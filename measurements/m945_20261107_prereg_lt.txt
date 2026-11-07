@@ -1,0 +1,73 @@
+(945) c83lt 事前登録：土地税の算定の基準 A1 の段 A-2 の腕（旗 LandTaxFixedBasis・腕つきの 1 回目・形の変え直しの枠 0）
+書いたモデル：Claude Opus 5.5・2026-11-07・枝 c83lt（d313515b から）・worktree D:/PoB_work/wt_c83lt・作業フォルダ D:/PoB_work/c83lt_work（この線が作る物＝このフォルダ・D:/PoB_work/c83lt_art・D:/PoB_work/c83lt_work/arm_c83ltB・arm_c83ltS・突然変異の木 D:/PoB_work/c83lt_work/mut_tree）。
+形は〈入口〉（助走の最後の月の 1 回の凍結＋毎月の基数の読み替え）。形・門・突然変異は (937) の事前登録 measurements/m937_20261107_prereg_lt.txt（[0]〜[14]＝枝 origin/c82lt の物・merge で入る）をそのまま引き継ぐ。この文は (937) との差と、腕 B の前に書く物（(937) 反証役 中）だけを書く。全ての案は〈AI の案・確証なし〉。
+作者の言葉：作者 2026-11-04「足りなくても売らされたは、制度の問題でもある…法律側で整備する問題ではないでしょうか」→ 推奨〈既存の土地税に算定の基準を持たせる〉を〈作者「全て推奨で」で推奨を採った〉。★(832) ② A1・★(852) ③ Q1 も〈作者「全て推奨で」で推奨を採った〉。★(919) ④ は〈作者「全て推奨で進めてください」で推奨を採った〉。
+
+[0] 先頭に書く物（指示と材料からの外れ）
+ 0-1 手順の順：最初のコミット＝この事前登録 → origin/c82lt（e45ea08d・旗 0）の merge（git merge-tree で衝突 0 を確かめた）→ 機構の試験 T14（下の [3]）→ 走査の番人（㉘）→ 腕 A＋旗 0 の savetest・leakhunt → c83cc の印を待つ → kind=test なら fix942.patch を別のコミット → 旗 1（08e2f8d0 と同じ 1 行・休眠の表から外す）→ 旗 1 のフルスイート・savetest・leakhunt（㉜）→ 突然変異 → 腕 B c83ltB（種 1〜10）→ S11 c83ltS（種 11〜20・POB_CEARN=0）。
+ 0-2 腕 A（旗 0・素の 5 種）を merge と T14 の後の木で回す：`batch.sh run c83ltA 5`（素・計器なし）の成績表が b5_20261107_m933 と全行一致（名乗り行の SOURCE-HASH を除く）。ident（計器つき 10 種）は回さない：旗 0 の ident c82ltz〈判定: 恒等〉（測った種で一致・measurements/m937_20261107/ident_c82ltz/ident_out.txt・旗 0 の木 8dd58ba2）の後に main の SimCore で変わったのは c82sm の注だけ（行の数は同じ）。merge の後に `git diff origin/c82lt HEAD -- PriceOfBread.SimCore` が注の行だけであることを確かめて報告に書く（注の外の行が出たら止めて ident を考える）。旗 0 の木で savetest と leakhunt も 1 回回す（G1 の旗 0 の側）。
+ 0-3 c83cc の印（D:/PoB_work/r942_work/verdict.mark）が kind=test のときだけ腕へ進む。kind が instrument・engine・unknown か、120 分のうちに印が来なければ、旗を 1 にせず（旗 0 のまま）腕を回さずに止めて報告する（次の波の挙動の先頭）。kind=test の直しは InstrumentsTests.cs の :2119 の試験の中だけ・盤面と種は替えない・両方の旗で緑・突然変異で赤（区分は印の中身で名乗る＝この文の [9] に追記）。
+ 0-4 持ち主のファイル：(937) で持ち主の外だった 6 本（NationConfig.cs・World.cs・Simulation.cs:119・Model.cs・Territory.cs・EconomyStep.cs の月の頭の 0 化）はこの線の持ち主（README ★(940)）。重なり：Coefficients.cs は c83ic が :2018 の隣・c83hd が :3335 の隣・この線は :713（枝の行）＝重なり 0。DormantIdentityTests.cs は 3 本が 1 行ずつ（この線は LandTaxFixedBasis の 1 行を旗 1 で消す）。InstrumentsTests.cs は c83tf が :2240・この線は kind=test のときだけ :2119。EconomyStep.cs・world.json・Fiscal.cs・PolicyPreferences.cs は他の線の一覧に無い。
+
+[1] 腕 B の前に書く物（(937) 反証役 中）
+ 1-1 限界（眠った RGO）：EconomyStep.cs:817（枝の木）`if (z == 1) { ... continue; }` で眠った生産者は月の段を全て飛ばす＝PayOwnerRent（:2799）を通らない＝凍結した RGO が眠った月は差分を積まない＝その月は定額を請求しない（基数＝地代 0）。凍結の値は残る（目覚めた月から定額）。助走の最後の月に眠っていた RGO は凍結しない（null＝収穫比例）。この限界は門で数えない（記録：lbUnfrozenRgo）。
+ 1-2 英の G8c の窓：窓（paper の 3 腕＝keep_933 の base_ins・n1・n2 の |log baseOverFirstSeenRatio|）は形の変え直しの前の物差し（q0 の 3 か月目の地代と今の地代の比）で取った。結果を見る前に (1) に決める：**イギリスの G8c は記録**（窓に当てた結果を書くだけ・採否に使わない）・**清の G8c を〈働いた〉の効く門**（窓 [0.2555, 1.1409]・両側）にする。理由：清は旗 0 の ident の生で計器の写しの |log B| の中央 0.5099（新しい形の凍結）が窓の中央 0.51〜0.57 と同じ側で、物差しの違い（凍結の月）が窓の幅（4.5 倍）より十分小さい。英は計器の写しが 0.1435（窓の下端 0.1386 の 1.04 倍）＝物差しの違いで窓の縁に寄っている。(2)〈別の恒等の線で窓を取り直す〉は次の波に回さない（記録で足りる）。
+ 1-3 鏡との照合：G4・G7・G8a・G8b は〈エンジンの値と計器が自分で組んだ写し（鏡）の照合〉＝実装の点検であって〈狙いどおり働いた〉の大きさではない。〈働いた〉の大きさは清の G8c（両側）だけ。G7 の事象 20 は〈凍結の事象が起きた〉の数（鏡の照合と事象の数の両方）。
+ 1-4 突然変異 M6（基数を自給へ広げる）は (937) では計器の試験 I2 だけが赤で、機構の試験は緑だった＝機構の試験 T14 を足す（[3]）。
+ 1-5 計算量：m933 の推定 212.2 秒（上限 248.5・名目の余り 約 36.3 秒）。この線の割り当て＝+0.7 秒（(937) [12] の見込み 0.2〜0.7 秒の上）＝約 212.9 秒。2 秒以下＝1 本の腕で門にしない（合流の木の累計で読む）。止める線は ＞248.5 秒だけ。
+ 1-6 D:：事前登録の時点の空き 176.7GB（shutil）。重い仕事の順はこの回の指示（ic の腕 B → hd の腕 B → lt の腕 B → ic の S11 → hd の S11 → lt の S11）。起こす前に shutil で床（腕 B 41・S11 35GB）＋5GB を確かめる。
+
+[2] 紙の台本（今の盤面 keep_933 の base_ins・n1・n2）
+ - scripts/instruments/c82lt/paper937.py をそのまま回した出力 measurements/m945_20261107/paper945_m933.txt＝(937) の paper937_m933.txt とバイトで同じ（盤面が同じ m933）。窓：英 [0.1386, 0.6773]・清 [0.2555, 1.1409]。G7 の見込み 20（3 腕とも）。旗 0 で落ちること：旗 0 の ident の生の門の出力 measurements/m937_20261107/gate_flag0_ident.txt＝GATES FAIL G7,G4,G8a,G8b,G8c:イギリス,G8c:清（旗 0＝何もしない実装で全ての門が落ちる）。
+ - ㉗：G7 は床ちょうど 20 を要る（全て起きる前提）＝紙の見込みが床に等しい＝それでも回す理由：凍結の事象は名簿の国×種で決まる（英・清は 3 腕とも q0 の請求＞0 が 10/10）＝欠けるのは実装の誤りだけ。
+
+[3] 機構の試験 T14（M6 で赤になる）
+ - LandTaxFixedBasisTests に T14〈自給のある州でも基数は凍結と持ち分だけ〉：英の盤面の RGO に持ち分の枠を置き（農民の自作の枠〔LaborPopIndex〕に正の持ち分）、州の LastSubsistenceOutput を正にして凍結→地代 600 の月→受け手ごとの基数＝凍結×持ち分・和＝凍結。期待は試験が置いた数（1000）と計器の割り方の写し（Instruments.LsRecipient）から作る。
+ - 盤面の条件（欠けると M6 が緑のまま）：(a) LandShares が null でなく、枠 2（LaborPopIndex）の持ち分＞0、(b) 凍結の後の月の PayOwnerRent の前に州の LastSubsistenceOutput＞0（Zero は触らない）、(c) 自営（OwnerPopIndex＝LaborPopIndex）の RGO を選ばない。Assert は受け手ごとの基数（地代＋差分）と、担い手の差分 LandTaxBasisAdjPerMonth そのもの（凍結×持ち分−地代×持ち分）の両方。
+ - 予言：元の形で緑・M6 で赤（M6 は担い手の差分に LastSubsistenceOutput を足す）。--tests-delta は (937) の 16 に 1 を足して 17（Category!=FullLength）。
+
+[4] 門（腕 B と S11 の両方・scripts/instruments/c82lt/gate937.py・事前登録 m937 [4]・[14] の形のまま・数は変えない）
+ - G1 保存：savetest と leakhunt が旗 0 と旗 1 の両方で合格（〈壊さない〉）。
+ - G4 掛けない（鏡）：名簿の国の lbOverBasePopMonths の和＝0。
+ - G7 連続（鏡＋事象・母集合の床 20）：開幕の四半期の lbFreezeEventFlag＝1 かつ lbWarmupBreakPopMonths＝0 の名簿の国×種＝20。
+ - G8a（鏡）：lbAdjBreakPopMonths の和＝0。G8b（鏡）：lbFrozenInvariantBreak・lbFrozenCopyNoEngine・lbFrozenForeignEngine の和＝0。
+ - G8c 働いた（大きさ・両側）：**清だけを門**（窓 [0.2555, 1.1409]）・**英は記録**（[1] 1-2）。gate937.py は英も GATES の行に入れる＝この線の判定は清の G8c と G1・G4・G7・G8a・G8b で読み、英の G8c の外は記録に写す（台本の数と窓は変えない）。
+ - 新÷旧の表（記録）：tab937.py（英・清の土地税の収入・階級ごとの地代・名目 GDP・土地税の実効と目標の段・同じ盤面の新の請求÷旧の請求）・英の国債の不履行の種の数。
+ - 〈狙いどおり働いたか〉の段：清の G8c（大きさ）と G7（事象 20）。
+
+[5] 突然変異（旗 1 の木で回し直す・scripts/instruments/c82lt/mut937.py に T14 を含めて）
+ | 突然変異 | 赤になる試験の予言 | 赤になる腕の門 |
+ | M1″ 最初の助走の月で止め上書きしない | T12・I2 | G7 |
+ | M2 地価を凍結 | T1・T2・T3・T10・T11・T12・I2 | G7・G8a・G8b |
+ | M3 毎月取り直す | T2・T3・T8・T9・T10・T12・T13・I2 | G8a・G8b・G8c（|log|=0） |
+ | M4 凍結×凍結÷今で積む | T2・T3・T10・T12・I2 | G8a |
+ | M5 持ち分を無視 | T2・T3・I2 | G8a |
+ | M6 基数を自給へ広げる | **T14**・I2 | G4・G8a |
+ | M7′ 不在地主の RGO も凍結 | T6・I2 | G8b |
+ | M8′ 移転で凍結を消さない | T7 | （割譲の事象しだい） |
+ | M9 予想を地代のまま | T8 | — |
+ | M10 特権台帳を地代のまま | T9 | — |
+ | M11 旗 0（何もしない実装） | T1・T2・T3・T7・T8・T9・T10・T11・T12・I2（T14 も） | G7・G8a・G8b・G8c |
+ | M12 選好を地代のまま | T10 | — |
+ | M14 Fiscal の分岐を地代で判定 | T3 | — |
+ 出力 measurements/m945_20261107/mutation.txt。突然変異の木は使い捨て（合流の判断まで出力を残す）。
+
+[6] 赤の予言（旗 1 の木のフルスイート＝㉜）
+ - (937) の旗 1 の木 08e2f8d0 の結果（measurements/m937_20261107/suite_flag1_after_reshape.txt）：WriterRatchetTests item 1（価格：日次の写像の回）・item 2（建設：見た生産者〔旬〕が 10% を超えて下がった）・item 11（外交：覇権の判定の国×国）と InstrumentsTests〈建設の州の表と専売の取り分が別の積算器に閉じる〉。
+ - 予言：WriterRatchet item 1・2・11 は軌道の件数を写しただけの番人＝書き換えず数を報告し、合流が ★(749) で取り直す。InstrumentsTests の建設の閉じは fix942.patch で緑（kind=test のとき）。**それ以外の赤が 1 本でも出たら腕 B を回さず止める**。
+ - ㉜ の grep（旗 1 の木）：`grep -nE "LandRentPerMonth" PriceOfBread.Tests/*.cs` の Assert で英か清の盤面に率×地代を固定する物＝(937) の [6] のとおり（LandbaseInstrumentTests は計器の写し・EngineReadIdentityTests は予想＝実際の照合）。(937) の旗 1 のフルスイートでどちらも緑。merge の後に grep し直して報告に書く。
+ - --list-tests の数の予言：Category!=FullLength 2435（main 2418＋c82lt の 16＋T14）・FullLength 3。kind=test の直しで試験の数が変わるなら [9] に書く。
+ - FullLength 3・savetest・leakhunt は合格の予言（(937) で合格）。
+
+[7] 走査の番人（㉘）と件数の予言（㉑）
+ - merge の差（main d313515b→origin/c82lt の SimCore）：`new MoneyStock(` の足す行 0・Industrializ の足す行 0・scripts/instruments/flow262（route_anchors.tsv）の差 0＝変化 0 の予言。WriterRatchetTests の宣言の表（お金への書き手）への書き足し 0。
+ - 回す：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests（merge と T14 のコミットの直後・旗 0・隔離ビルド D:/PoB_work/c83lt_art）。予言：赤 0。
+
+[8] 止める線（この回の形をそのまま写す・結果を見る前）
+ - scripts/instruments/c78gz/stoplines906.sh の 1 本：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる・★(905) ① の〈分離・反乱の建国の後に名目 GDP 0 が続いて跳ぶ型〉は記録）・1e10 倍以上・非有限・開幕の 1000 倍以上（記録・同じ国が半分以上の種なら NG）。基準とヌル腕（keep_933 の base_ins・n1・n2・a11）も同じ台本で数え直して並べる（⑰）。〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉の四半期をヌル腕の件数と並べる（㊳）。
+ - 空洞化 1/10 未満（`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`・既定の -ex rule＝規則 A2）：〈線が原因〉が 1 件でもあれば止める（★(852) ①）。件ごとに keep_933/base_ins（S11 は keep_933/a11）の同じ種・同じ州を読み、基線ですでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。飢えによる空洞化も原因を問わず止める線。
+ - 推定の計算量 ＞248.5 秒（.cost）・機構のテストの赤（走査の番人を含む）。
+ - 記録の段（採否に使わない）：gdp_zero10（先頭）・英の不履行・exact・near・NG（ng.sh・基準 rd:measurements/ng933_20261107:m933・読み手の出力は D:/… の形）・home_break・史実の線・nullgate.py（種 1〜10 だけ）・英の G8c。
+ - 形の変え直しの枠は 0：腕 B の結果の後にエンジンを触る必要が出たら止めて報告する。
+
+[9] 追記の欄（c83cc の印の区分と fix942.patch の区分を、当てる前にここへ書く）
