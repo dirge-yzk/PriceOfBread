@@ -8,6 +8,7 @@ export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/P
 SP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; REPO="$(cd "$SP/../../.." && pwd)"
 ARM="${1:?腕}"; N="${2:-10}"; SB="${3:-1}"
 export POB_WORK="D:/PoB_work/c83ic_work/arm_$ARM"; mkdir -p "$POB_WORK"
+export POB_INSTRUMENTS_NATIONS="清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ"   # 毎回渡す（m933 の .manifest の 9 国）
 H=$(git -C "$REPO" rev-parse HEAD)
 echo "木 $H 腕 $ARM 種 $SB〜$((SB+N-1)) POB_CEARN=${POB_CEARN:-（既定）}"
 bash "$REPO/scripts/instruments/batch.sh" prep "$ARM" "commit:$H" plain || exit 1
