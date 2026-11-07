@@ -29,7 +29,7 @@ def files(src, sdir, mdir, skip):
 # c80uk
 doc('D:/PoB_work/r924_work/20261107_英の専制化の経路_読み_下書き.md',
     D + '/20261107_英の専制化の経路_読み_下書き.md',
-    '【読みと設計の材料の下書き・AI の案・作者の確認待ち】', 'D:/PoB_work/m926/fix924.md')
+    '【読みと設計の材料の下書き・AI の案・作者の確認待ち】', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fix924.md'))
 files('D:/PoB_work/r924_work', T + '/scripts/instruments/r924', T + '/measurements/m924_20261107', set())
 
 # c80dm（material.md・draft.md は日付つきの 2 本と同じ中身＝日付つきを写す）
@@ -43,6 +43,6 @@ for kind, name in (('材料', 'material.md'), ('下書き', 'draft.md')):
     rest = first[first.index('】') + 1:]
     tmp = 'D:/PoB_work/m926/_t925.md'
     open(tmp, 'wb').write(('# ' + rest).encode('utf-8') + b[nl:])
-    doc(tmp, D + '/' + os.path.basename(src), '【設計の材料と下書き・AI の案・作者の確認待ち】', 'D:/PoB_work/m926/fix925.md')
+    doc(tmp, D + '/' + os.path.basename(src), '【設計の材料と下書き・AI の案・作者の確認待ち】', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fix925.md'))
     os.remove(tmp)
 files('D:/PoB_work/r925_work', T + '/scripts/instruments/r925', T + '/measurements/m925_20261107', set())
