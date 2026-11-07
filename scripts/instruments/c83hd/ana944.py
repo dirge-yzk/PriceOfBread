@@ -1,6 +1,7 @@
 # (944) c83hd プローブの集計（読むだけ・事前登録 measurements/m944_20261107_prereg_hd.txt [12] の ①〜③）
 #   python -X utf8 -I ana944.py <probe944 の出力フォルダ> [名,名,…]
 import sys, os, csv
+sys.stdout.reconfigure(newline='\n')   # 出力を LF に（Windows の文字モードの CRLF を避ける）
 out = sys.argv[1]
 names = sys.argv[2].split(',') if len(sys.argv) > 2 else ['flag0', 'flag1', 'n1', 'n2']
 def tab(p):
