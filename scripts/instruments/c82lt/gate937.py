@@ -88,7 +88,7 @@ def main():
     gin = sum(1 for r in rows if num(r['landPaidOverClaimAtTax']) == num(r['landPaidOverClaimAtTax']))
     W('Gi（記録）：landPaidOverClaimAtTax＞1+1e-9 の行 %d／比のある行 %d（全ての国）' % (gi, gin))
     W('GATES %s %s' % ('PASS' if not fail else 'FAIL', ','.join(fail)))
-    print('\n'.join(out))
+    sys.stdout.buffer.write(('\n'.join(out) + '\n').encode('utf-8'))   # LF のまま（Windows の文字モードの CRLF にしない）
 
 
 if __name__ == '__main__':

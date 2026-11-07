@@ -61,7 +61,7 @@ def main():
     cl, cp = read(arm, 'landfix', 'landClaimAtTaxPerMonth', sa), read(arm, 'landfix', 'landClaimPropAtTaxPerMonth', sa)
     for n in LIST:
         out.append('%s 同じ盤面 landClaimAtTax÷landClaimPropAtTax：%s' % (n, '・'.join('%s %.3f' % (w, cl.get((n, w), float('nan')) / cp.get((n, w), float('nan')) if cp.get((n, w), 0) else float('nan')) for w in ws)))
-    print('\n'.join(out))
+    sys.stdout.buffer.write(('\n'.join(out) + '\n').encode('utf-8'))   # LF のまま
 
 
 if __name__ == '__main__':
