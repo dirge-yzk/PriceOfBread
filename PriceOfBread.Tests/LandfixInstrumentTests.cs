@@ -73,6 +73,68 @@ public class LandfixInstrumentTests
         Assert.Equal(D(fr1, "landClaimPropAtTaxPerMonth"), D(fr1, "landClaimAtTaxPerMonth"));
     }
 
+    /// <summary>★(951) c84lb：I2 の盤面（旗 1）でイギリスの首都でない州（エンジンの凍結のある RGO を持つ・植民地格でない）をフランスへ出して戻す。
+    /// <paramref name="inQuarter"/>＝false：q0 の後に出し q1 の後に戻す（四半期をまたぐ）。true：q1 の中で月 0 の締めの後に出し、月 1 の締めの後に戻す（同じ四半期の中で月の締めをまたぐ）。
+    /// 四半期 q0〜q2 の行を返す。期待は試験が手で置く（写しはエンジンと同じく移転で消える＝戻っても写しは無い）。</summary>
+    private static List<Dictionary<string, string>> RunMove(bool inQuarter)
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_landfix_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], Seed) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.World.Coef.LandTaxFixedBasis = 1.0;
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        try
+        {
+            sim.StartWarmup(quartersOverride: 1);
+            sim.StepQuarter(); Instruments.Quarter(sim, Seed, 0);
+            var r = uk.Regions.First(x => x.Id != 0 && x.Tier != RegionTier.Colonial && x.Producers.Any(s => s.IsRgo && s.FrozenLandRentPerMonth is not null));
+            if (!inQuarter)
+            {
+                Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+                sim.StepQuarter(); Instruments.Quarter(sim, Seed, 1);
+                Territory.TransferRegion(fr, uk, r, Territory.Rehoming.Ceded);
+            }
+            else
+            {
+                for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
+                Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+                for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
+                Territory.TransferRegion(fr, uk, r, Territory.Rehoming.Ceded);
+                for (int d = 2 * Calendar.DaysPerMonth; d < Calendar.DaysPerQuarter; d++) sim.StepDay();
+                Instruments.Quarter(sim, Seed, 1);
+            }
+            sim.StepQuarter(); Instruments.Quarter(sim, Seed, 2);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+        return Rows(dir);
+    }
+
+    private static void AssertNoRevivedCopy(Dictionary<string, string> r)
+    {
+        Assert.Equal(0.0, D(r, "lbFrozenCopyNoEngine"));
+        Assert.Equal(0.0, D(r, "lbFrozenForeignEngine"));
+        Assert.Equal(0.0, D(r, "lbAdjBreakPopMonths"));
+        Assert.Equal(0.0, D(r, "lbOverBasePopMonths"));
+        Assert.True(D(r, "lbFrozenEngineRgo") > 0);
+        Assert.Equal(D(r, "lbFrozenEngineRgo"), D(r, "lbFrozenCopyRgo"));
+    }
+
+    /// <summary>I4（(951)・出て戻る）：四半期をまたいで出て戻った州の写しは生き返らない＝写しだけの凍結 0・差分の照合の破れ 0・写しとエンジンの凍結の数が同じ。</summary>
+    [Fact]
+    public void I4_出て戻った州の写しは生き返らない()
+    {
+        var rows = RunMove(inQuarter: false);
+        foreach (var q in new[] { 1, 2 }) AssertNoRevivedCopy(Row(rows, q, "イギリス"));
+    }
+
+    /// <summary>I5（(951)・同じ四半期の中で出て戻る）：月 0 の締めの後に出て月 1 の締めの後に戻った州の写しも生き返らない（締め月だけで捨てる形はここで落ちる）。</summary>
+    [Fact]
+    public void I5_同じ四半期の中で出て戻った州の写しは生き返らない()
+    {
+        var rows = RunMove(inQuarter: true);
+        foreach (var q in new[] { 1, 2 }) AssertNoRevivedCopy(Row(rows, q, "イギリス"));
+    }
+
     /// <summary>I3（旗 0＝何もしない実装で門が落ちる）：イギリスの凍結の事象 0・エンジンの凍結 0・計器の写しは正（同じ盤面の B を読める）・エンジンの基数は地代そのもの。</summary>
     [Fact]
     public void I3_旗0は凍結の事象0で計器の写しだけがある()
