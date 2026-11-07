@@ -93,8 +93,10 @@ public static class PolicyPreferences
         public readonly double NominalGdp;
         // ★(547) 線 rs2：旧支配層（ブロック 0）の所得のうち地代の割合（正規化の前の和の比＝Rent[0]÷Income[0]・所得 0 なら 0）。農奴解放・土地改革への反対の強さが読む。新しい和は足さない（BuildSums の既存の 2 本の比）。
         public readonly double LordRentToIncome;
-        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp, double lordRentToIncome)
-        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; LordRentToIncome = lordRentToIncome; }
+        // ★(937) 土地税の基数のシェア（Fiscal.LandTaxBase・旗 LandTaxFixedBasis＝0 では Rent と同じ値）。読むのは土地税の軸だけ（地代の保護と LordRentToIncome は所得の量＝Rent のまま）。
+        public readonly double[] LandBase;
+        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp, double lordRentToIncome, double[] landBase)
+        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; LordRentToIncome = lordRentToIncome; LandBase = landBase; }
     }
 
     /// <summary>大衆の平均失業率（人口加重・移民制限法の選好と SelfPlay の移民法の意図が読む＝唯一定義・2026-09-11 #13）。⚠労働市場の無い小シナリオでは0＝無影響。</summary>
@@ -120,6 +122,7 @@ public static class PolicyPreferences
         double tw = sums.Tw, tr = sums.Tr, ti = sums.Ti, tp = sums.Tp;
         double lordRentToIncome = RentToIncomeOf(rent[0], income[0]);   // ★(547) 正規化の前の和の比（正規化は同じ配列を書き換える）
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
+        double[] landBase = sums.LandBase; Normalize(landBase, sums.Tl);   // ★(937) 土地税の基数のシェア（旗 0 は rent と同じ値・同じ順の和）
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
         double ngdp = w.NominalOf(w.GdpPerMonth.Value);   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
@@ -128,7 +131,7 @@ public static class PolicyPreferences
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
             ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio.Value) + (ngdp > 1e-9 ? System.Math.Min(1.0, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp))).Value) : 0))
             : 0;
-        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp, lordRentToIncome);
+        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp, lordRentToIncome, landBase);
     }
 
     /// <summary><see cref="Build"/> の POP 由来の和（ブロックごと・正規化の前）。国の入力（法・国庫）は読まない＝窓の中の使い回し（<see cref="PopWindow"/>）に載せられる。</summary>
@@ -136,22 +139,26 @@ public static class PolicyPreferences
     {
         internal double[] Wealth = new double[BlocCount], Rent = new double[BlocCount], Income = new double[BlocCount], Poll = new double[BlocCount];
         internal double[] Old = new double[BlocCount], BlocPop = new double[BlocCount];
-        internal double Tw, Tr, Ti, Tp;
+        internal double[] LandBase = new double[BlocCount];   // ★(937) 土地税の基数（Fiscal.LandTaxBase）のブロックの和
+        internal double Tw, Tr, Ti, Tp, Tl;
         internal BuildSums Copy() => new()
         {
             Wealth = (double[])Wealth.Clone(), Rent = (double[])Rent.Clone(), Income = (double[])Income.Clone(), Poll = (double[])Poll.Clone(),
             Old = (double[])Old.Clone(), BlocPop = (double[])BlocPop.Clone(), Tw = Tw, Tr = Tr, Ti = Ti, Tp = Tp,
+            LandBase = (double[])LandBase.Clone(), Tl = Tl,
         };
         /// <summary>番人（<see cref="PopWindow.Verify"/>）：求め直した和と 1 ビットも違わないことを確かめる。</summary>
         internal void CheckSame(BuildSums f)
         {
             PopWindow.Check("立場の土台の合計(富)", Tw, f.Tw); PopWindow.Check("立場の土台の合計(地代)", Tr, f.Tr);
             PopWindow.Check("立場の土台の合計(所得)", Ti, f.Ti); PopWindow.Check("立場の土台の合計(人頭税)", Tp, f.Tp);
+            PopWindow.Check("立場の土台の合計(土地税の基数)", Tl, f.Tl);
             for (int i = 0; i < BlocCount; i++)
             {
                 PopWindow.Check("立場の土台(富)", Wealth[i], f.Wealth[i]); PopWindow.Check("立場の土台(地代)", Rent[i], f.Rent[i]);
                 PopWindow.Check("立場の土台(所得)", Income[i], f.Income[i]); PopWindow.Check("立場の土台(人頭税)", Poll[i], f.Poll[i]);
                 PopWindow.Check("立場の土台(高齢)", Old[i], f.Old[i]); PopWindow.Check("立場の土台(ブロックの人口)", BlocPop[i], f.BlocPop[i]);
+                PopWindow.Check("立場の土台(土地税の基数)", LandBase[i], f.LandBase[i]);
             }
         }
     }
@@ -166,6 +173,7 @@ public static class PolicyPreferences
             double sv = System.Math.Max(0, p.Savings.Value);
             o.Wealth[b] += sv; o.Tw += sv;
             double rn = System.Math.Max(0, p.LandRentPerMonth.Value); o.Rent[b] += rn; o.Tr += rn;
+            double lb = w.Coef.LandTaxFixedBasis > 0 ? System.Math.Max(0, Fiscal.LandTaxBase(w.Coef, p).Value) : rn; o.LandBase[b] += lb; o.Tl += lb;   // ★(937) 土地税の基数（旗 0 は rn と同じ値）
             double inc = System.Math.Max(0, p.EarnedPerMonth.Value); o.Income[b] += inc; o.Ti += inc;
             if (p.IsCommoner) { o.Poll[b] += p.Size; o.Tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
             { o.Old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); o.BlocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）。★(471) 兵士も数える（年金の受け手と同じ集合。Old は BlocPop の比にしか使われない＝分子と分母が同じ規則）
@@ -238,7 +246,7 @@ public static class PolicyPreferences
             case PolicyAxis.ProgressiveTax:   // 累進＝資本（最大の払い手）ほど強く反対
                 return (mass ? 1.0 : 0) - (BurdenScale + (modern ? ProgressiveCapitalSurcharge : 0)) * e.Wealth[b];
             case PolicyAxis.LandTax:          // 土地税＝地代の受け手（地主）が反対・他は転嫁を歓迎
-                return (e.Rent[b] < LandTaxRentierThreshold ? 1.0 : 0) - (BurdenScale + 1.0) * e.Rent[b];
+                return (e.LandBase[b] < LandTaxRentierThreshold ? 1.0 : 0) - (BurdenScale + 1.0) * e.LandBase[b];   // ★(937) 負担は土地税の基数（旗 0 は Rent と同じ値）
             case PolicyAxis.PollTax:          // 人頭税＝対象（大衆）が反対・免除（特権）は転嫁を歓迎
                 return (e.Poll[b] < 1e-6 ? 1.0 : 0) - BurdenScale * e.Poll[b];
             case PolicyAxis.SocialSecurity:   // 福祉＝大衆が受益・富裕が財源負担。法多様性L2＝高齢比率の受益者項（年金軸が同じPrefを使う＝高齢化した国だけ年金が通る・ビスマルク1889型）

@@ -338,7 +338,7 @@ public static class Territory
         // ★(774) 継いだ着工の意志の取り下げ（旗は (817) で焼き込み）：移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる。意志は政府のもの＝建物（BuiltScale）は州と一緒に移るが、旧の政府の着工の意志は新しい持ち主へ移らない。
         //   計器の InheritIntentBefore／After は読むだけ（旧の値と、同じ純関数で作った新の値を並べる）。
         if (Instruments.On) Instruments.InheritIntentBefore(from, r, how);
-        foreach (var pr in r.Producers) pr.StateTarget = DroppedStateTarget(pr.StateTarget, World.StateUnits(pr, from.Coef));
+        foreach (var pr in r.Producers) { pr.StateTarget = DroppedStateTarget(pr.StateTarget, World.StateUnits(pr, from.Coef)); pr.FrozenLandRentPerMonth = null; }   // ★(937) 定額の土地税の凍結は送り手の国の台帳＝移転（割譲・建国・再併合）で消す（受け手では収穫比例＝後からできた RGO と同じ）
         if (Instruments.On) Instruments.InheritIntentAfter(from, r);
         // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
         //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。

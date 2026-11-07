@@ -284,6 +284,7 @@ public sealed class Pop
     public MoneyPerMonth PaidPerMonth;               // その月に支払った総額
     public MoneyPerMonth EarnedPerMonth;             // その月に得た総所得
     public MoneyPerMonth LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
+    public MoneyPerMonth LandTaxBasisAdjPerMonth;    // ★(937) 土地税の基数−地代の差分（その月・流れ）＝凍結した RGO（Producer.FrozenLandRentPerMonth）の〈凍結×持ち分−今の地代の正の部分〉の和。月の頭に 0（LandRentPerMonth と同じ）。旗 LandTaxFixedBasis＝0 では常に 0
     public MoneyPerMonth IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読む＝外資の利札の入力。ほかの読み手は計器と Discovery.IdeaBoardOf〔旗 SpreadNeedFascismDecline の盤面・計器 idn_s〕）
     /// <summary>★(706) 線 urb3：その月の自給の値＝Σ主食 [自給で満たした量 sub（<c>EconomyStep.Run</c> の自給充足）× その州のその主食の今の市場価格 <c>Market.Price</c>]（EarnedPerMonth と同じ〈その月の流れ〉・月の頭に 0 へ戻す）。
     /// 州の中の移動の〈移る値打ち〉（<see cref="PopDecision.MigrationValues"/>）の農村の側だけが読む（旗 <c>UrbanFlowReal</c> が 0 の間は計器だけが読む＝世界は動かない）。
@@ -714,6 +715,7 @@ public sealed class Producer
     public int OwnerPopIndex;     // 地代/利潤の受け手
     public int LaborPopIndex;     // 賃金の受け手
     public Share RentShare;      // ρ。自営は実質無関係（owner==labor）
+    public MoneyPerMonth? FrozenLandRentPerMonth;   // ★(937) 定額の土地税の凍結した名目の地代（RGO の割る前の総額・null＝凍結なし＝収穫比例）。書くのは EconomyStep.PayOwnerRent（旗 LandTaxFixedBasis＞0・World.LandTaxBasisFixed の国・開幕の最初の月・不在地主の RGO を除く）と Territory.TransferRegion（移転で null）だけ。状態＝凍結した月の名目の地代は盤面から導けない（設計思想⑩の〈本当に必要な場合〉・事前登録 m937）
     public double[]? LandShares; // ★(895) 土地の持ち分（RGO の地代の受け手の割合・和 1）：0 貴族＝OwnerPopIndex・1 教会＝州の ClergyPopIndex・2 農民の自作＝LaborPopIndex・3 市民の地主＝州の InvestorPopIndex。null＝今の OwnerPopIndex に 1.0（割り方は EconomyStep.PayOwnerRent・AddRentRecipients）
     public List<Input> Inputs = [];   // レシピの投入材（多段チェーン §2.4）。RGO は空
     public double LastInputFill = 1.0;  // 前期の投入充足率（§9-A 注2：投入が買えないと実産出が落ちる・律速）

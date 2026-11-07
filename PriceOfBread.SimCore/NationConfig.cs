@@ -50,6 +50,7 @@ public sealed class NationConfig
     //   （率 1.0 あたり直接税÷年GDP 約 9.4%・measurements/f1c_20261013_prereg.txt）。
     //   ⚠小数の開始値は段の格子の途中＝実効の率は目標（段の格子）へ Government.Move で這い寄る（距離に比例）。
     public double LandTaxStage = 1;
+    public string? LandTaxBasis = null;   // ★(937) 土地税の算定の基準（world.json の "landTaxBasis"・"Fixed"＝開幕の名目の地代で凍結した定額・null＝収穫比例＝今のまま）。World.LandTaxBasisFixed へ写す（読むのは旗 LandTaxFixedBasis＞0 のときだけ）
     // ★(400) 専売の開幕の段（World.StateMonopolyTier の梯子の段・0＝規則なし＝旧のまま〔教義の段が助走から決める・プレイヤーの国は 0〕）。税の段（上の PollTaxStage／LandTaxStage）と同じ形の開幕の入力。
     //   正のとき：助走の始め（MultiNationSim.WarmupEconomy）に World.SetStateMonopolyTier(この段) で置き、助走の間は教義の段との max で保つ（AI の教義が助走の各四半期にこの段を下げて消さない）。
     //   助走の後は何も足さない＝既存の規律（払えない＝広げる・利払いが重い＝確率で広げる・国庫が安全水準を超える＝狭める・教義の段が床）が今の広さから動かす。
