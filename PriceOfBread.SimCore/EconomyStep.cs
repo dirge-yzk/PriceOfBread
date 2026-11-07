@@ -1085,7 +1085,7 @@ public static class EconomyStep
             if (coef.SubsidySoftBudgetDecay > 0)
                 boost *= 1.0 - coef.SubsidySoftBudgetDecay * s.SubsidyDependence;
             // #136 内戦の経済麻痺（2026-07-25）：内戦中は流通・徴発・戦場化・労働の逃散で実効生産性が落ちる（太平天国＝江南壊滅・米内戦＝南部の崩落。
-            // 現行の内戦は軍需消費2倍のみ＝むしろ軍需景気の面すらあった）。独立乗算・CivilWarEconomyDisruption=0.2（点火2026-07-25）。0で不読＝旧恒等。
+            // 当時の内戦は軍需消費2倍のみ〔今は対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)〕＝むしろ軍需景気の面すらあった）。独立乗算・CivilWarEconomyDisruption=0.2（点火2026-07-25）。0で不読＝旧恒等。
             if (coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive)
                 boost *= 1.0 - coef.CivilWarEconomyDisruption;
             // 規模の経済（B-2）：工場財（投入連鎖を持つ非RGO）のみ、操業規模で生産性↑＝大工場ほど単位コスト安。
