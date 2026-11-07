@@ -1,0 +1,6 @@
+# premise930 D:/PoB_work/keep_919/base_ins 種 1〜10（名簿 7 国・q0 の最悪）
+noble_rel	4.1e-10
+clergy_abs	0
+peasant_abs	0
+cap_minus_remit_abs	0
+ne_nonnoble_abs	0

@@ -100,7 +100,7 @@ public class CornintInstrumentTests
             var want = new double[3];
             foreach (var reg in w.Regions) foreach (var p in reg.Pops) want[PolicyPreferences.BlocOf(p)] += Math.Max(0, p.LandRentPerMonth.Value);
             var eng = PolicyPreferences.Build(w);
-            // 財ごとの配分の期待（定義から試験が組む）：POP の地代を、その POP が所有する RGO の産出の値〔産出×州の値段〕で按分し、穀物法の客体の財とそれ以外に分ける
+            // 財ごとの配分の期待（定義から試験が組む）：POP の地代を、その POP が受け手の枠を持つ RGO の産出の値〔産出×州の値段×その POP が受ける土地の持ち分の割合（欄が null なら持ち主に 1）〕で按分し、穀物法の客体の財とそれ以外に分ける
             var wantGrain = new double[3]; var wantOther = new double[3];
             foreach (var reg in w.Regions)
             {
