@@ -44,7 +44,7 @@ public static partial class Instruments
         bool meritOk = w.Bureaucracy >= BureaucracyLaw.MeritExam;
         if (a == PolicyAxis.SocialSecurity)
         {
-            double room = System.Math.Min(1.0, System.Math.Max(0.0, 1.0 - w.AusterityIntensity)) * Government.SocialSecurityMaxLevel;
+            double room = PoliticalQuantities.Clamp01(1.0 - w.AusterityIntensity) * Government.SocialSecurityMaxLevel;
             if (target > (int)System.Math.Floor(room) && target > cur) return 8;
         }
         switch (a)

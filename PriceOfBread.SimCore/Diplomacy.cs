@@ -2018,7 +2018,7 @@ public sealed class Diplomacy
         foreach (var q in Powers)
         {
             if (!gw.CanInvade(q, out _)) continue;   // 完全対等：プレイヤーと同じ単一ゲート（Minor標的・従属/交戦・余剰戦力・兵力比・物資）
-            double proj = Projection(great, q, c) * ExpeditionLift(great, q, c);   // 到達可能性（距離・制海権・**遠征技術**＝宗主の地理2026-07-12：低技術の大陸国は海越えの標的を考慮すらしない）
+            double proj = Projection(great, q, c);   // 到達可能性（距離・制海権。遠征技術の門は (613) 段3 の焼き込みで無く、(921) で呼び口ごと消した）
             if (proj < AiColonizeMinProjection) continue;
             // 魅力＝（植民地＋経済規模）×届きやすさ÷強さ。経済規模項（宗主の地理2026-07-12）＝植民地化の目的そのもの（市場・税基盤）。
             // 旧＝植民地数のみで、実国のインド諸邦（植民地0・高GDP）より近場の抽象小勢力が常に勝っていた＝英が印度を選ばない構造。
@@ -2270,14 +2270,6 @@ public sealed class Diplomacy
         else receiver.ColonyList.Add(col);
     }
 
-    /// <summary>遠征技術ゲート（宗主の地理2026-07-12）：**海越えの植民地化遠征**は蒸気補給・兵站・医療の技術がないと成立しない
-    /// （TechMilLowFloor＝アヘン戦争の非対称、の遠征版＝前近代の大国は隣接にしか届かず、海洋帝国は技術とともに世界へ届く）。
-    /// 旧＝制海権(SeaControl)だけが海越えの門で、相手海軍が皆無なら低技術の大陸国（清）でも大軍を海越しに投射でき、
-    /// 印度・中央アジアの「従属はするが宗主が史実と違う」逸脱（宗主一致exact40%の主因）を生んでいた。
-    /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(194) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
-    internal double ExpeditionLift(Power great, Power target, Coefficients c)
-        => 1.0;   // ★(613) 段3（旗 TechMultipliersOff は (843) で焼き込み）：海越えの遠征の技術の門なし（1.0）。旧の式（遠征の技術水準÷自国の技術水準）の枝は消した
-
     /// <summary>屈服線＝標的を屈服させるのに要る実効戦力（軍事ゲージ×<see cref="Coefficients.ColonizeSubmitRatio"/>・無防備な標的の床つき）。
     /// ★屈服判定・要求余剰戦力（国力比の分母）・UI表示が**この1本**を読む（2026-08-23：床0.05と床なしの二重定義を統合）。</summary>
     public double SubmitLine(Power target, Coefficients c)
@@ -2285,7 +2277,7 @@ public sealed class Diplomacy
 
     /// <summary>侵略の実効戦力（ゲート・AI標的選好・UI表示・実行の共通式）：陸軍力×投射（距離減衰・制海権）×遠征技術ゲート。<see cref="SubmitLine"/> 以上で屈服。</summary>
     public double ColonizeForce(Power great, Power target, Coefficients c)
-        => great.LandPower * Math.Max(0.05, Projection(great, target, c)) * ExpeditionLift(great, target, c);
+        => great.LandPower * Math.Max(0.05, Projection(great, target, c));
 
     /// <summary>★列強の介入と和平提案（点火2026-08-01）。
     /// ── 何のための機構か ──────────────────────────────────────────────────────
@@ -3624,7 +3616,7 @@ public sealed class Diplomacy
 
     /// <summary>海越え（制海権が要る関係）か。03地理 手順0（2026-07-28）：陸続き＝**陸塊一致**（Landmass.Of＝landmass.jsonの一次データ・距離制限なし）。
     /// 旧・Geo.ContinentOf（矩形5分岐）は島の概念が無く旧世界の全島嶼をユーラシアへ接着＝85.6%の国対が陸続き・英がボルネオへ陸路侵略・
-    /// マダガスカルが船なしで大陸侵攻・4ゲート（ExpeditionLift/Projection減衰/CanInvadeの船と制海権/輸送船消費）が同時に無効化されていた。
+    /// マダガスカルが船なしで大陸侵攻・4ゲート（遠征技術〔(921) で消した〕/Projection減衰/CanInvadeの船と制海権/輸送船消費）が同時に無効化されていた。
     /// 第4段4-4の趣旨（露→満州は陸続き＝ユーラシア同一陸塊）は保存される（旧の旗 ContinentalLandReach と旧・海盆×LandReachKm判定は 2026-10-18 に削除）。</summary>
     public bool IsSeaCrossing(Power x, Power y)   // ★(410) 使わない引数 Coefficients を外した（旧の旗 ContinentalLandReach の削除の後は係数を読まない）
     {

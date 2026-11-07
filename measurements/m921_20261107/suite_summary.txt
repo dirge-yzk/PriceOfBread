@@ -1,0 +1,3 @@
+成功!   -失敗:     0、合格:  2404、スキップ:     1、合計:  2405、期間: 19 m 13 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 6 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests: nonfull 2405・FullLength 3（ident.mark.log）。NullReferenceException 0。savetest・leakhunt OK（ident_20261107_m921.txt）

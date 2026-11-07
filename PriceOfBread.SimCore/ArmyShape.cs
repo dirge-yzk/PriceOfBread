@@ -77,13 +77,13 @@ public static class ArmyShape
                 //   国境＝陸路グラフで隣り合う州の組の数×地形の通りにくさ（<see cref="Borders"/>・植民地格の州も州として数える）。接しない国は投射だけ（国境の辺1本ぶんが上限）＝あまり脅威でない。
                 // ★海を越えて来る陸軍は海で止める（(151)・AI の提案〈海軍は別のベース＝艦隊の比と海路の接触〉の AI の読み）＝首都どうしが別の陸塊（IsSeaCrossing）の投射は海の必要量へ
                 //   （投射は海越えに制海権 SeaControl を掛ける＝i の艦隊が大きいほど届かない＝海の任務そのもの）。国境（植民地の陸の国境を含む）は陸のまま。
-                // ★(194) 海を越えて来る陸軍は相手の遠征の技術の分だけ（Diplomacy.ExpeditionLift＝海越えの植民地化遠征の可否と同じ1本・推奨【推】・作者の承認は未確認）＝
+                // ★(194) 海を越えて来る陸軍は相手の遠征の技術の分だけ（海越えの遠征の技術の門＝(613) 段3 の焼き込みで常に 1.0 になり (921) で呼び口ごと消した・当時は Diplomacy の遠征の技術の関数・推奨【推】・作者の承認は未確認）＝
                 //   蒸気補給・兵站・医療の技術の無い大陸国の大軍は海を越えて運べない（2026-07-12 の遠征技術ゲートの物理）＝脅威の側でも同じ規則で読む
                 //   （旧＝制海権だけ＝双方の艦隊が小さい間は制海権 0.5 で清の大軍の半分が日本へ届く脅威に見え、清と日が互いを海の脅威と見て艦隊を積んだ＝(192) 申し送り3）。
                 double proj = dip.Projection(ps[j], ps[i], c);
                 bool cross = dip.IsSeaCrossing(ps[j], ps[i]);
                 hrLand[j * n + i] = h * (border[j * n + i] + (cross ? 0 : proj));
-                hrCross[j * n + i] = cross ? h * proj * dip.ExpeditionLift(ps[j], ps[i], c) : 0;
+                hrCross[j * n + i] = cross ? h * proj : 0;
                 double sea = 0;
                 for (int b = 0; b < Basins.Count; b++) sea += ps[i].BasinPresence[b] * ps[j].BasinPresence[b];
                 // ⚠BasinPresence は L1 正規化済み＝この内積を「海軍需要の水準」の根拠にしてはならない（分散する国ほど内積が小さく符号が逆転する）。

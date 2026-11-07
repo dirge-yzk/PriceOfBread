@@ -372,7 +372,7 @@ public static class Territory
         bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
         RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
-        // ★(902) c77ce 割譲の支配度 C1＋H-a（旗 CedeRuleToLocal・既定 0・事前登録 measurements/m902_20261106_prereg_ce.txt）：割譲（Ceded）の 1 回だけ、旧の国家の分を在地へ移し（C1）、
+        // ★(902) c77ce 割譲の支配度 C1＋H-a（旗 CedeRuleToLocal・既定 1（(915) で点火）・事前登録 measurements/m902_20261106_prereg_ce.txt）：割譲（Ceded）の 1 回だけ、旧の国家の分を在地へ移し（C1）、
         //   受け手の自分の外国持分を 0 にする（H-a・鍵は Diplomacy の AddForeignShare の呼び口と同じ式）。Rehome(Ceded) の呼び手はここだけ＝Ceded 枝に置くのと同じ値（Rehome は係数を受け取らない）。
         //   RuleInit・Rule[2]・Rule[3]・Dominance は触らない（支配度は前の持ち主の値を引き継ぐ）。闘争度を読まない＝割譲の不満（CededColonyMilitancy）の経路に足さない。
         if (how == Rehoming.Ceded && to is not null && from.Coef.CedeRuleToLocal > 0)
