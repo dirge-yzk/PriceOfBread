@@ -1886,6 +1886,7 @@ public static partial class Instruments
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
         CpTable(sk, sim.Diplomacy);   // (791)
         CmTable(sk, sim.Diplomacy);   // (821) 調停の戦争の講和の表 cpmed_s
+        ImpTable(sk, sim.Diplomacy);   // (928) 矯正講和の表 imp_s
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
         CeTable(sk);      // (345)

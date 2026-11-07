@@ -191,6 +191,7 @@ public sealed class Simulation
         World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ★徴兵法の現在値＝初期値（(178)）
         // P2：登録簿（Crown/Seizure）を初期政体から構築（英CM→Crown=Absolutist・米Rep→None等）。flag=0ではdead write＝挙動恒等。
         CrownParliament.ApplyRegime(World, World.Coef, World.Polity);
+        if (Instruments.On) Instruments.CrownSource(World, 0);   // (928) 計器（読むだけ）：王冠の登録簿の書き手 0＝開幕
         // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。毎期の政体→スカラー写像を廃止）。
         if (scenario.PoliticsEnabled) Politics.RaiseFoundingInstitutions(World);
         World.Freedom = scenario.PoliticsEnabled ? Politics.FreedomFromLaws(World.Suffrage, World.Censorship) : scenario.Freedom;   // 倍率排除②：探究の自由＝参政権＋報道法から創発（floor-raise 後に算出）
