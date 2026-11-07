@@ -1,0 +1,51 @@
+m923 (923) c80lr 事前登録 2026-11-07  基点 b3a4190f・試験だけ（SimCore 0 行）・腕 0 本・旗なし
+目的：★(912) ① (a)〈作者「全て推奨で」で推奨を採った〉＝土地の持ち分の 4 枠で割る規則を、造幣の地代（StateFactoryTests の Theory 2 本）と cornint の試験の期待（C3 国内・C4 輸出）へ揃える。規則の置き換え＝盤面の直し（c79lb (914)）とは別の線。
+
+■ 最初の確かめ（エンジンと計器は既に 4 枠で割っている＝この線は試験だけで閉じる）
+ E1 PriceOfBread.SimCore/InternationalMarket.cs:104  EconomyStep.AddRentRecipients(to, wt, w, rr, pr, rent);   （国営持分を引いた後の正の rent）
+ E2 PriceOfBread.SimCore/EconomyStep.cs:740-746  AddRentRecipients：pr.LandShares 有り かつ !Colonial.AbsenteeRgo → 割合が正の枠ごとに (rr.Pops[LandShareRecipient(rr,pr,k)], rent*ls[k])
+ E3 PriceOfBread.SimCore/EconomyStep.cs:714-718  LandShareRecipient：0 Owner・1 Clergy・2 Labor・3 Investor・範囲の外は Owner
+ E4 PriceOfBread.SimCore/Simulation.cs:967-972  LandShares を置くのは 非賦存・持ち主が貴族の RGO だけ（AbsenteeRgo は賦存が条件＝同じ生産者で両立しない）
+ I1 PriceOfBread.SimCore/InstrumentsCornint.cs:62-65（国内の ownerTot を枠の受け手×割合）・:79-84（受け手 pi の割合の和 wpi で按分）・:105-115（輸出の地代を枠ごとの層へ rent×割合）
+ I2 PriceOfBread.SimCore/InstrumentsLandshare.cs:29-35  LsRecipient（E3 と同じ写像・寄せた回数を数える）
+ ＝エンジンも計器も式を変えずに揃う。Simulation.MintGold（:2903）→ PaySales → E1 の道。
+
+■ 形（試験の期待だけ）
+ T1 StateFactoryTests.cs（Theory 国営持分の造幣の代金は持分の割合だけ国庫へ・0.0／3.0）：期待の Add(持ち主, rent*(1-f)) を、p.LandShares が null なら今のまま、
+    有りなら割合が正の枠 k ごとに Add(受け手 k, rent*(1-f)*ls[k])。受け手 k は試験が州の添字から自分で組む（0 OwnerPopIndex・1 r.ClergyPopIndex・2 LaborPopIndex・3 r.InvestorPopIndex・範囲の外は OwnerPopIndex）
+    ＝エンジンの LandShareRecipient も計器の LsRecipient も呼ばない。国庫・台帳・保存量 D・前提の Assert は変えない（★(743)）。
+ T2 CornintInstrumentTests.cs C3（:74 国内の地代とブロックの割合…）：wantGrain・wantOther の按分の分母 ownerTot と、POP pi の取り分の重みを枠の受け手×割合で組む（null は今の持ち主の 1 行）。
+    母集合（IsRgo・GoodId の範囲・OwnerPopIndex の範囲）と判定の Assert（許容 1e-6・閉じる・両方が正）は変えない。
+ T3 CornintInstrumentTests.cs C4（:131 輸出の地代は…）：e[BlocOf(持ち主)] += RentShareOf*amt を、LandShares 有りなら枠ごとに e[BlocOf(受け手 k)] += RentShareOf*amt*ls[k]。判定は変えない。
+ データ無し（今の world.json）では全ての生産者で LandShares が null＝期待の値は今と同じ（3 本とも null の枝は今の式を残す）。
+
+■ 門（両側）
+ (i) データ無しの木（枝 c80lr）：フルスイート Category!=FullLength と =FullLength を分けて回し、--list-tests の数（2402・3）と合計を突き合わせる。赤 0・中止 0。
+ (ii) 枝 c80lr の頭の detached worktree に origin/c78ls d590fc9f の world.json だけを当てる（コミットしない・LandOwnershipDataTests.cs は当てない）：
+     T1 の 2 本・T2・T3 が緑。赤は OpeningBakeTests 2（★(764)）と WriterRatchetTests item 6・11（★(749)）の区分だけ（m914 の 8 本から 4 本が抜ける＝赤は 4 本ちょうど）。それ以外の赤が 1 本でも出たら止める。
+ 旗 0 に当たる〈何もしない実装〉の確かめ＝今の期待（持ち主だけ）は (ii) で 4 本とも赤（measurements/m914_20261107_result_lb.txt の (ii) の行で既に測った）＝門 (ii) は何もしない実装では落ちる。
+
+■ 突然変異（使い捨ての木＝(ii) の写し・出力は measurements/m923_20261107_mutation_lr.txt）
+ M1 期待を持ち主だけへ戻す（T1〜T3 を元へ）            → 赤：T1×2・T2・T3（4 本）  緑：他
+ M2 エンジン AddRentRecipients の LandShares の枝を消す（地代を持ち主へ全額・枠を読まない）→ 赤：T1×2  緑：T2・T3（計器は E2 を通らず LandShares を自分で読む＝C3・C4 は計器と試験が一致したまま）
+ M3 計器の国内の枝（InstrumentsCornint.cs:62・:80・:84）を持ち主の 1 行へ → 赤：T2  緑：T1・T3
+ M4 計器の輸出の枝（InstrumentsCornint.cs:105-115）を持ち主の 1 行へ → 赤：T3  緑：T1・T2
+ ＝M2〜M4 で直した 4 本がそれぞれ赤＝番人を弱めていない。M1〜M4 は対象の 2 クラス（StateFactoryTests・CornintInstrumentTests）だけを回す。
+
+■ ソースを走査する番人（㉘）・件数の予言（㉑）・旧の規則を固定する番人（㉜）
+ SimCore・Runner・App の変更 0 行＝WriterRatchetTests の宣言の表・`new MoneyStock(` の件数・route_anchors.tsv の鍵・工業化度の読み手の許可表・DormantIdentityTests は動かない＝変わる件数の予言 0。
+ ㉜：期待を持ち主の添字で組む試験の表（下）を grep した。旧の規則（地代は持ち主へ全額）を固定する番人で、データありの木で赤になるのは T1〜T3 の 4 本だけ（m914 の (ii)）。
+ 旗は足さない＝旗 1 の木は無い。ident は回さない（試験だけの変更の ident は自明に恒等＝証拠にしない・★(912)）。
+
+■ 持ち主の添字で期待を組む他の試験（直さない・00一覧の行の下書きへ）
+ 機構の軸（AddRentRecipients・PayOwnerRent・LsRecipient の読み手）：Tests では LandShareTests.cs だけ（(895) の番人＝既に枠で組む）。
+ 盤面の軸（OwnerPopIndex を読む・仏英の盤面）：
+  - StateFactoryTests.cs:484-495 輸出の代金の RGO の地代→持ち主（Warm(2055)・m914 の (ii) で緑＝盤面が土地の持ち分の国でないか賦存の RGO を選ぶ＝もろい・データが広がると赤になりうる）
+  - LandbaseInstrumentTests.cs:132-133・:197（持ち主の POP を空にする盤面の作り＝期待の組み方ではない）
+  - SbBargainTests・EconomyTests・ServiceEconomyTests・ColonialPopTests・ScholarshipTests・MilitaryTests:416・HouseholdProductionTests・FuelOperatingCostTests・BuildingGoodBundleTests：合成の生産者か工場・役務か所有の写像の検査＝地代の受け手の期待ではない。
+
+■ 紙の台本・止める線・計算量
+ 紙＝上の形の式そのもの（盤面の量を読まない）。keep_919/base_ins の計器の生は読まない（試験の期待だけの線で、ゲームの軌道は 1 ビットも変わらない）。
+ 止める線（★(919)・stoplines906.sh）：腕が 0 本＝破綻・発散・100 倍・空洞化（ピークの 1/10 未満で〈線が原因〉の件・T1 ★(852) ①・規則 A2 の例外 7 州）は軌道が変わらないので 0 件の見込み。機構のテストの赤＝門 (i)(ii) で読む。
+ 計算量の割り当て 0 秒（SimCore 0 行）。savetest・leakhunt は SimCore 0 行＝m919 の合格（measurements/m919_20261107/suite_summary.txt）を写すだけで回さない。
+ 入れない物：world.json と LandOwnershipDataTests.cs のコミット・OpeningBake の焼き直し・WriterRatchetTests・(b) 鉱山の RGO を外す案・SimCore・App・Display・Runner。
