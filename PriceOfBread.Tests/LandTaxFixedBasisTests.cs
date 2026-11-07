@@ -138,6 +138,38 @@ public class LandTaxFixedBasisTests
         Assert.All(r.Pops, p => Assert.Equal(0.0, p.LandTaxBasisAdjPerMonth.Value));
     }
 
+    /// <summary>T14（★(945)・M6＝基数を自給へ広げる形）：州に自給の産出があっても、受け手ごとの基数は凍結×持ち分だけ（担い手の差分＝(凍結−地代)×持ち分）。
+    /// 盤面＝自営でない RGO に持ち分の枠（貴族 0.6・農民の自作〔担い手〕0.4）を置き、凍結の後の月の前に州の LastSubsistenceOutput を正にする。期待は試験が置いた数（1000・600）と計器の割り方の写しから作る。</summary>
+    [Fact]
+    public void T14_自給のある州でも基数は凍結と持ち分だけ()
+    {
+        var sim = Sim("イギリス");
+        var w = sim.Nations[0].World;
+        Region? r = null; Producer? s = null;
+        foreach (var rr in w.Regions)
+        {
+            if (rr.Id == 0 || rr.Tier == RegionTier.Colonial) continue;
+            foreach (var ss in rr.Producers)
+                if (ss.IsRgo && ss.OwnerPopIndex >= 0 && ss.OwnerPopIndex < rr.Pops.Count && ss.LaborPopIndex >= 0 && ss.LaborPopIndex < rr.Pops.Count
+                    && ss.LaborPopIndex != ss.OwnerPopIndex && !Colonial.AbsenteeRgo(rr, ss)) { r = rr; s = ss; break; }
+            if (s is not null) break;
+        }
+        Assert.True(r is not null && s is not null, "試験の前提：自営でない RGO が無い");
+        w.Coef.LandTaxFixedBasis = 1.0;
+        s!.LandShares = [0.6, 0.0, 0.4, 0.0];
+        double labShare = ShareOf(r!, s, s.LaborPopIndex);
+        Assert.True(labShare > 0, "試験の前提：担い手の持ち分が 0");
+        Zero(r!);
+        Freeze(w, r!, s, 1000.0);
+        Zero(r!);
+        r!.LastSubsistenceOutput = 250.0;
+        EconomyStep.PayOwnerRent(w, r, s, 600.0, w.Coef);
+        Assert.Equal(1000.0, Base(r), 9);
+        Assert.Equal((1000.0 - 600.0) * labShare, r.Pops[s.LaborPopIndex].LandTaxBasisAdjPerMonth.Value, 9);
+        for (int i = 0; i < r.Pops.Count; i++)
+            Assert.Equal(1000.0 * ShareOf(r, s, i), Fiscal.LandTaxBase(w.Coef, r.Pops[i]).Value, 9);
+    }
+
     /// <summary>T4（旗 0 の恒等）：旗 0 は凍結しない・差分は 0・基数は地代そのもの（ビットで同じ）。</summary>
     [Fact]
     public void T4_旗0は凍結せず基数は地代()
