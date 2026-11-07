@@ -1,0 +1,118 @@
+(952) c84kp 事前登録（最初のコミット・腕の前）：K＝開幕の一括昇格の植民地だけ支配度 1.0 から（旗 OpeningColonyDominanceFull・3 回の規則の 1 回目）
+書いたモデル：Claude Opus 5.5。木：ceee778f から枝 c84kp（worktree D:/PoB_work/wt_c84kp）。基線 m947（keep_947/base_ins・n1・n2・a11）。日付 2026-11-08。
+作業フォルダ：D:/PoB_work/c84kp_work（この線が作った・他に作ったフォルダは worktree wt_c84kp だけ）。
+
+== 0. 形の種類 ==
+- 入口（初期条件）の形。尾ではない。開幕の盤面の 1 か所の初期値だけを変える。
+- 確証：作者の裁定ではない。開幕の植民地の 0 は実装（AI）が選んだ値（00一覧 §0-2 ★(947) ⑤）。1.0 は本国の州と同じ値（新しい数を選ばない）。
+  作者「領土の所有権と実効支配を別々に扱うだけでなく、獲得後の統治能力が時間をかけて変化する仕組みが欲しいところです」・★(826) ⑤ Q1＝D1〈作者「全て推奨で」で推奨を採った〉。1.0 という値の形そのものは〈AI の推奨・確証なし〉。
+
+== 1. grep の引用（ceee778f） ==
+- MultiNationSim.cs:174  `Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);`（PromoteAllColonies・構築の :151 から 1 回・PromotedColonies に数えない初期条件）
+- Diplomacy.cs:2269  `Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial);`（接収）。本番の呼び手はこの 2 本だけ（反証役の訂正 2）。Simulation.cs:1504 の既定 Integrated は本番の呼び手が無い。
+- Simulation.cs:1604  `Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える`。:1630 `return region;`（同名の州なら :1586 `return same;`＝PromoteAllColonies は :169 の同名の門で先に飛ばす）。
+- Model.cs:1093  `public double Dominance = 1.0;`。Simulation.cs:938 本国の州の初期値（HeldSinceFromData 0 では 1.0）。
+- Dominance の書き手（grep -rn "\.Dominance\b"・Instruments を除く）：積分 Politics.cs:1546/1548 の 1 か所・初期値 Simulation.cs:938 と :1604・独立の確定 Territory.cs:288（1.0）。読み手：Politics.cs:1546（前の値）・:1605（`!(r3.Dominance > 0)` で分離の予約）・表示だけ Display/PopTables.cs:236・App GameViewModel.Map.cs:736。SelfPlay（AI）に読み手 0。margin（引き留め−圧力）は Dominance を読まない＝起点だけが変わり、積分の式は変わらない。
+- 先例 Privileges.cs:131〜:133（1783 年に活きている特権は既に世代長ぶん既得権化＝保有年数を DominanceMatureYears から始める）。
+- 旗の名 OpeningColonyDominanceFull：Coefficients.cs に 0 件（全域 0 件）。置き場所 Coefficients.cs:2757 DominanceMatureYears の隣。
+
+== 2. 形（新しい状態 0・係数 0・旗 1 本） ==
+- Coefficients.cs:2757 の隣に `public double OpeningColonyDominanceFull = 0.0;`（器）→点火で 1.0。
+- MultiNationSim.cs:174 の呼び口の戻り値に、旗 >0 のとき `reg.Dominance = 1.0;`（本国の州と同じ値）。注に〈初期条件＝Privileges.cs:131 と同じ作法〉。
+- 変えない物：PromoteColonyToRegion の署名と Simulation.cs・Diplomacy.cs・Territory.cs・Politics.cs・Rule・RuleInit・Tier（D1＝Rule[0] と Dominance を二重に数えない）。
+- DormantIdentityTests.cs の表に器のコミットで +1 行（"OpeningColonyDominanceFull"）・点火のコミットで −1（注の 1 行へ・同じファイルの :68 の先例）。
+
+== 3. 紙（keep_947 の base_ins・n1・n2・a11 で取り直した・台本 scripts/instruments/c84kp/paper952.py・出力 measurements/m952_20261108/paper952_keep947.txt） ==
+- 定義：開幕の植民地格の州＝secession_s で四半期<4 に tier=Colonial で現れた（国・州）の最初の行。年の末の行しか無い国（蘭ほか計器の国でない国）は q3 の行＝4 四半期を積分した後の値（年の分解能の近似・q0 の真の値は番人の試験 T1 で読む）。
+- 確かめ：q≤3 に行のある国は全ての種で 40（world.json 61 国のうち州 1 つの国 21 を除いた数と一致＝州が 2 つ以上の国は全て行を持つ）。G3 の〈q≥4 で初めて出た名〉に古い州は混ざらない（植民地格の州を持つ国は州が 2 つ以上）。
+- 基線の値（旗 0）：
+  腕   G1（最初の行の中央）  州×種  G2（q<40 Seceded・Colonial）  種ごと                 G3（接収の最初の行の中央）  州×種  G4（q≥40 Seceded 全て）  G4o（開幕の植民地の名）  G4x（それ以外）
+  base 0.0595               798    45                             0,0,1,0,10,15,0,0,0,19  0.0273                    247    136                      11                       125
+  n1   0.0574               804    35                             11,0,1,20,0,2,0,0,0,1   0.0250                    271    122                      11                       111
+  n2   0.0571               805    41                             0,0,1,10,17,13,0,0,0,0  0.0243                    282    122                      10                       112
+  a11  0.0442               804    64                             13,0,1,2,0,0,14,0,20,14 0.0235                    263    128                      14                       114
+  （下書きの G1 の基線 0.0277 は m933 の四半期 0 の国だけの値＝この定義では 0.057〜0.060。G2 の送り手は蘭 44/33/40・英 1/2/1。）
+- 予言（旗 1・紙）：開幕の植民地の最初の行を 1.0 から積み直す＝clamp01(1＋margin×0.025×k)（k＝四半期の国 1・年の末の国 4）＝中央 1.0000・0.9 未満 0（4 本とも）。
+
+== 4. 予言（両方向） ==
+- (a) 開幕 10 年（四半期<40）の植民地格の分離の建国が減る：蘭の 33〜44 件→0〜数件（英の 1〜2 件も起点 >0 で消える予言＝紙は 0）。
+- (b) 負の margin が続く州は後で立つ（時期がずれる）：1.0 から 0 に届くのは margin の和が −40 に届いたとき＝margin −1 が続けば 40 四半期（10 年）。蘭の植民地の年の末の margin の下限から〈最短の四半期〉の下限は 1÷(0.025×|m|) で言えるが、基線では q≈3 で消えて系列が無い＝〈遅れの上限〉は紙では言えない。観測量＝G4o（開幕の植民地の名の q≥40 の分離）の新÷旧（記録）。
+- (c) 開幕の後の分離の建国が減る→分離独立の戦争・建国した国の数・その国の統治の表（cederule_s の Returned）が減る。後の時代の分離の時計は最初の分岐までは同じ（(925) の紙：1 未満の経路は約 10.5 年で 1.0 に重なる）。
+- (d) 主な観測量の符号と大きさ（段0 の予言）：G1 は 0.06→1.0（+0.94）・G2 は 35〜45→0〜数件。悪くする向きの予言は無い＝腕を回す。
+
+== 5. 門（両側・腕の前に固定・結果の後に変えない） ==
+- G1（働いた）：開幕の植民地格の州の最初の行の Dominance の中央 ≥ 0.9。旗 0 の値 0.0595・0.0574・0.0571（a11 0.0442）＝紙で落ちる。
+- G2（狙い）：四半期<40 の分離の建国（cederule_s how=Seceded）のうち tierBefore=Colonial の件数（10 種の合計）≤ 17（keep_947 のヌル腕 3 本〔m947・N1・N2〕の最小 35 の半分の切り捨て・2 倍の余裕は置かない）。旗 0 の値 45・35・41＝紙で落ちる。S11 は a11 の 64 と並べて記録。
+- G3（形の誤りの上限＝他の昇格を巻き込まない）：接収（Diplomacy.cs:2269）だけの母集合＝四半期≥4 で初めて現れた州の名で tier=Colonial の最初の行の Dominance の中央 < 0.05。旗 0 の値 0.0273・0.0250・0.0243（0.05 以上 66/247・55/271・48/282・訂正 3 と同じ型）。最初の行は移した後に 1〜4 四半期積分した値（移した直後の値は番人の試験 T3 で読む＝教訓 ⑮）。
+- G4（壊さない）→**記録へ下げる**（結果を見る前・理由 2 つ）：
+  ① 指示の G4〈q≥40 の分離の建国がヌル腕の幅の内〉は、予言 (b)〈後で立つ〉と矛盾する（幅 122〜136＝14 件・蘭の遅れた分が流れ込めば機構が狙いどおりでも赤）。母集合を〈開幕の植民地の名でない州〉の G4x に直した。
+  ② G4x の幅は 111〜125。ヌル腕の一つ抜き（3 通り）で空振り：base を腕と見なす→[111,112] の外（空振り）・n1→[112,125] の外（空振り）・n2→内＝2/3＝1/3 以上＝規則（尾の門の一つ抜き）で記録へ下げる。
+  記録の読み：G4x と G4o を基準とヌル腕と並べる。
+- 2755 行の no-go〈割譲の翌四半期の独立の戦争の急増〉は向きが逆（0→1 でなく 1.0 から始める）で紙で恒真になる＝止める線に入れず記録（★(879)）。
+- 符号だけの門は置かない。G1・G2 は大きさで、ヌル腕（0.05〜0.06・35〜45）の外か。
+
+== 6. 番人の試験（新しいファイル PriceOfBread.Tests/OpeningColonyDominanceTests.cs・期待値は試験に字で書く＝エンジンの式から作らない） ==
+- T1：旗 1 で WorldData.Nations() の MultiNationSim を構築した直後、Tier==Colonial の全ての州の Dominance が 1.0。前提：英・西・葡・蘭がそれぞれ Colonial の州を 1 つ以上持つ（前提が崩れたら赤の文で名乗る）。既定の係数（new Coefficients()）で読む＝旗の既定が 1 であることも見る。
+- T2：旗 0 と旗 1 の同じ盤面（同じ種）で、全ての国の全ての州の Tier・Rule・RuleInit・州の名の並びがビットで同じ・Colonial でない州の Dominance も同じ（形の誤り＝Tier・Rule を動かす・本国の州を動かす）。
+- T3：旗 1 で Simulation.PromoteColonyToRegion を直に呼ぶ（接収の経路と同じ関数）と Dominance 0.0（呼び口の違いで書いた＝関数は変えない）。
+- T4：旗 0 で構築した直後の Colonial の州の Dominance が 0.0（器の恒等の番人）。
+
+== 7. 突然変異ごとの門の赤と緑（㉚・腕の前・紙と番人の試験） ==
+  形                         G1（紙）        G2（紙）   G3（紙）        T1  T2  T3  T4
+  旗 1（形）                 1.0000 緑       0 緑       0.0275 緑       緑  緑  緑  緑
+  M1 全ての昇格を 1.0        1.0000 緑       0 緑       1.0000 赤       緑  緑  赤  赤（Simulation.cs:1604 を 1.0 にする形）
+  M2 開幕を 0.5              0.5561 赤       0 緑       0.0275 緑       赤  緑  緑  緑
+  M3 蘭だけ 1.0              0.0693 赤       1 緑       0.0275 緑       赤  緑  緑  緑
+  M4 Tier も Core            1.0 緑（予言）  —          —               緑  赤  緑  緑（計器の門では見えない＝T2 が拾う）
+  M5 旗の既定 0              0.0561 赤       45 赤      0.0275 緑       赤  緑  緑  緑
+  （紙の数は base。n1・n2・a11 も同じ赤と緑＝paper952_keep947.txt。M3 の紙は q0〜q2 に分離した蘭の植民地の最初の行が新しい国の名で出る分を蘭に数えない＝蘭の取り分 0.06〜0.07 の下限側。）
+- 登録した突然変異は全て使い捨ての木で回す：M1〜M5 は番人の試験（T1〜T4）の赤を測る。計器の門（G1〜G3）の赤は紙（上の表）で読む＝突然変異の腕は回さない（D: の空きと腕の節約・挙動の腕はこの線で 2 本〔B・S11〕）。
+- 突然変異で緑のままの試験が出たら、同じ線で試験を足して赤を確かめる。
+
+== 8. 赤の予言（旗 1 の木のフルスイート・★(899)・㉜） ==
+- ★(818) の 2 軸の grep：
+  機構の軸（CheckSecession・PendingSecessionWars・.Dominance を触る試験）：CedeRuleInstrumentTests・CedeRuleToLocalTests・ColonyPromotionTests・ConservationTests・InheritIntentTests・NationIdentityTests・RevoltIgnitionTests・RuleOrderP1Tests・RuleSharesFormTests・SecessionLaborLawInstrumentTests・WarThemeTests。どれも Dominance を試験の中で置くか、割譲の前後を比べる（ColonyPromotionTests.cs:85＝割譲の前後の同値・:123＝独立の確定の 1.0）＝開幕の 0 を前提にしない＝触らない。RuleSharesFormTests.cs:220〜221 は PromoteColonyToRegion を直に呼ぶ（旗に依らない）。SecessionLaborLawInstrumentTests は増分＝margin×速度（clamp 1 つき）を見る＝起点に依らない。
+  盤面の軸（全ての国の盤面で分離・独立・植民地を数える試験）：ConservationTests（植民地の保存＝残り＋独立＋昇格＝初期・Dominance を読まない）・MultiNationTests・FullChainTests・StartWarmupTests ほか 33 本が WorldData.Nations() を回す＝開幕 10 年の分離の建国が消えると軌道が変わる。
+- 予言：機構の番人の赤 0。軌道に依る試験（StartWarmupTests の史実の桁ほか）の赤は 0〜数本の可能性がある＝史実の桁の赤は止める線ではない（記録・テストの層）。機構の番人の赤は止める線。
+- DormantIdentityTests の表の件数：器 +1・点火 −1（㉑）。
+
+== 9. ソースを走査する番人の点検（㉘） ==
+- 工業化度の読み手の許可表（IndustrializationReaderTests）：触らない（読み手を足さない）。
+- `new MoneyStock(` の件数：MultiNationSim.cs は 3 件のまま（足さない）。
+- route_anchors.tsv（scripts/instruments/flow262/）の MultiNationSim.cs の鍵の行（:8〜:10 運河と港の工賃）：触る行は :174 の直後で鍵の行と重ならない（新しいコードは鍵の行に書き足さない）。
+- WriterRatchetTests の宣言の表：MultiNationSim.cs の行は Pop.Carry( の 1 件だけ（:207）。Dominance の書き手の宣言は無い＝変わる件数 0 の予言。
+- GoodIdGuardTests（scripts の *.py を走査）：paper952.py に C# の配列の字面を書かない。
+- 器のコミットの直後に 6 組の番人を回す（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）。
+
+== 10. 周辺の点検（★(885)） ==
+- 分離の判定（Politics.CheckSecession :1546〜:1605）：積分の書き手 1 か所・起点だけが変わる。(i) 狙い＝開幕の植民地が取った年からでなく本国の州と同じ起点で数えられる。
+- 独立の確定（Territory.cs:286〜:288）：独立の勝ちで 1.0・Tier Core＝この線と同じ値＝矛盾しない。
+- 植民地の州化（Simulation.cs:1604・Diplomacy.cs:2269）：接収は 0 のまま（G3・T3）。
+- 徴兵の遺恨（PeacetimeConscriptGrievance・休眠の器）：Dominance を読まない（grep）。
+- 特権の強度（Privileges.cs:142 Strength＝保有年数÷世代長）：先例と同じ作法。Dominance を読まない。
+- 明らかな欠損：なし（読むだけ）。
+
+== 11. 止める線（この回の形をそのまま写す） ==
+- stoplines906.sh の 1 本（破綻・非有限・1e10 倍・plvl の 100 倍・開幕の 1000 倍以上・空洞化 1/10 未満の〈線が原因〉・〈100 倍〉の〈それ以外〉・計算量・機構のテスト）。
+- 〈100 倍〉の〈それ以外〉の読み方＝c84gz の印 D:/PoB_work/c84gz_work/ruler.mark（`rc=0 sha=a3c17862 rule=pair end=05:35`・腕の前に読んだ）の rule=pair：腕の件数 ≦ m947 のヌル腕（N1 1・N2 1）の件数の最大なら記録・超えたら止める。台本は c84gz の a3c17862 の stoplines949.sh（stoplines906.sh を書き換えずに呼び、末尾に judge949.py の節）。基準とヌル腕も同じ台本で数え直して並べる（⑰）。
+- 空洞化：ピークの 1/10 未満・規則 A2（an_h2.py の既定 -ex rule＝植民地格・緯度の絶対値 55 度以上・開幕の人口 20 千人未満＝7 州）以外・主要国の州は例外にしない・**その線が原因と読めた件だけ**＝基線（keep_947/base_ins）の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない。
+- 推定の計算量 ＞ 248.5 秒（名目・m947 の推定 210.2 秒・名目の余り 約 38.3 秒）。
+- 記録：exact・near・NG（ng.sh・基準 rd:measurements/ng947_20261108:m947）・史実の線・補給崩壊・〈建国の後の 0 の続き〉・〈建国の直後〉・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上（同じ国が半分以上の種なら NG）・英の国債の不履行の種の数・首位の国の世界の実質 GDP の取り分（ヌル腕の最大と並べる）。
+
+== 12. 新÷旧の表（★(919)・同じ盤面・腕 B の生 ÷ keep_947/base_ins・全ての列を報告に書く） ==
+- 国：蘭・英・西・葡。列：開幕の植民地格の州×種・最初の行の支配度の中央・Seceded（tierBefore=Colonial）q<40・q≥40・Core の行（secession_s）・独立の確定の近似（cederule_s の Seceded のうち Returned の無い州）。
+- 基線（base）：蘭 48・0.0635・44・3・0・0／英 270・0.0290・1・3・0・1／西 260・0.0870・0・0・0・0／葡 90・0.0765・0・4・0・0（n1・n2・a11 は paper952_keep947.txt）。
+- 〈独立の確定〉は secession_s の Core の行では全ての腕で 0（独立した州の国が行を持たないか、確定が稀）＝cederule_s の近似と並べる。蘭の早い分離 44 件は全て Returned＝失敗した分離の戦争。
+
+== 13. 計算量の見込み ==
+- コードの費用：構築の 1 回だけ（植民地の数の代入）＝0 秒。軌道の変化（開幕の分離の建国が減る＝国の数が減る）で推定が動く＝割り当て 0.5 秒（名目の余り 約 38.3 秒の内）。2 秒以下の割り当て＝1 本の腕で門にしない（.cost を m947 と並べて記録）。
+
+== 14. D: の空き ==
+- 2026-11-08 05:2x に shutil で 67.6GB。腕 B の床 41GB・S11 の床 35GB＝起こす前に確かめ直す。腕 B と S11 の生は合流の判断まで消さない（D:/PoB_work/c84kp_work/arm_c84kpB・arm_c84kpS）。
+
+== 15. 他の線との重なり（㉞） ==
+- この線の持ち主：MultiNationSim.cs（:174 の直後だけ）・Coefficients.cs（:2757 の隣の旗の行だけ）・DormantIdentityTests.cs（1 行）・OpeningColonyDominanceTests.cs（新）・scripts/instruments/c84kp/・measurements/m952_*・D:/PoB_work/c84kp_work/。
+- 重なり：Coefficients.cs は c84lb（枝の :713 の旗の行）と同じファイルの別の行。DormantIdentityTests.cs は kp の 1 行だけ。c84ca（Instruments*.cs）・c84gz（台本・OnDoubleReadScanTests.cs）とは重ならない。ColonyPromotionTests.cs は触らない（開幕の 0 を前提にした Assert が無い＝§8）。
+
+== 16. 台帳 ==
+- S27-H010（機能の台帳.md:995〈昇格した植民地は支配度0から始まる〉）を新しい行を作らずに打消し線と日付で更新する（訂正 4）＝報告に行を書き、合流が写す。
