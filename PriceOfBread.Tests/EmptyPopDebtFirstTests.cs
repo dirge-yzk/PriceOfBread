@@ -50,8 +50,10 @@ public class EmptyPopDebtFirstTests
         Assert.True(Math.Abs(w.BaseMoney.Value - bm0) <= 1e-9 * Math.Max(1, Math.Abs(bm0)), "返しが基礎貨幣を動かした");
     }
 
+    /// <summary>(944) B1（<see cref="Coefficients.EmptyPopDebtToHeirs"/>）が 0 のときの B5 の番人（盤面の前提は <see cref="On"/> が明示）。
+    /// 残りの債務を相続人へ移す規則の側は EmptyPopDebtToHeirsTests の T8（同じ盤面・債務 500・貯蓄 300）が持つ。</summary>
     [Fact]
-    public void 貯蓄が債務に足りなければ貯蓄の全額を返し_残りの債務は持ち越して相続しない()
+    public void B1が0のとき貯蓄が債務に足りなければ貯蓄の全額を返し_残りの債務は人の居ないPOPに残る()
     {
         var sim = Two(1911UL); var w = sim.Nations[0].World; On(w);
         var r = Pick(w);
