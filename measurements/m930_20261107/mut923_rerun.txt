@@ -1,0 +1,42 @@
+mut930 rc=0
+=== M0
+木 24eb13141a268fc9e553a016d2aad72e5b69a4b5
+mut rc=0
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:    28、スキップ:     0、合計:    28、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+=== M1
+木 24eb13141a268fc9e553a016d2aad72e5b69a4b5
+mut rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     4、合格:    24、スキップ:     0、合計:    28、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 3) [3 s]
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 0) [3 ms]
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.輸出の地代は輸出額と生産者から組んだ値に合い_シグマは範囲に収まる [2 s]
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.国内の地代とブロックの割合と今の選好はエンジンの値に合う [2 s]
+SUITEDONE
+=== M2
+木 24eb13141a268fc9e553a016d2aad72e5b69a4b5
+mut rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     2、合格:    26、スキップ:     0、合計:    28、期間: 32 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 3) [3 s]
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 0) [11 ms]
+SUITEDONE
+=== M3
+木 24eb13141a268fc9e553a016d2aad72e5b69a4b5
+mut rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 44 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.国内の地代とブロックの割合と今の選好はエンジンの値に合う [3 s]
+SUITEDONE
+=== M4
+木 24eb13141a268fc9e553a016d2aad72e5b69a4b5
+mut rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.輸出の地代は輸出額と生産者から組んだ値に合い_シグマは範囲に収まる [2 s]
+SUITEDONE
+MUTDONE
+mut923 rc=0
+wt removed rc=0
