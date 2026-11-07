@@ -362,6 +362,7 @@ public sealed class Diplomacy
     private readonly Dictionary<long, double[]> _tensionWhy = [];
     private static readonly int TensionReasonCount = System.Enum.GetValues<TensionReason>().Length;
     private readonly Dictionary<long, int> _warClock = [];   // 緊張100以上が続いた月数
+    [System.NonSerialized] private Dictionary<World, CrownForm>? _crownAtPeaceHead;   // ★(943) 旗 ImposeCrownFromLoser：講和の段（StepWars の戦争の走査）の頭の交戦国の王冠の控え＝月の中だけの作業領域（セーブに載らない・走査の終わりで null）
     private (Power w, Power l)? _pendingRevanch;   // 復讐心の予約（ResolvePeaceで設定→EndWarの緊張リセット後に適用・同ティック内消費＝監査2026-07-11 他3）
     private readonly HashSet<long> _alliance = [];
     private readonly HashSet<long> _embargo = [];
@@ -2653,6 +2654,16 @@ public sealed class Diplomacy
                 if (cpSeen.Add(pl)) { if (!cpFlushAt.TryGetValue(wi, out var fl)) cpFlushAt[wi] = fl = []; fl.Add(pl); }
             }
         }
+        // ★(943) 旗 ImposeCrownFromLoser：講和の段の頭の交戦国の王冠を控える（同じ月の講和は全てこの走査の 1 周の中＝ResolvePeace の呼び手は ConcludeWar だけ）。0 は 1 行も通らない。
+        if (c.ImposeCrownFromLoser > 0)
+        {
+            _crownAtPeaceHead = new();
+            foreach (var hw in Wars)
+            {
+                if (hw.A.Nation is { } an) _crownAtPeaceHead.TryAdd(an, an.Crown);
+                if (hw.B.Nation is { } bn) _crownAtPeaceHead.TryAdd(bn, bn.Crown);
+            }
+        }
         for (int i = Wars.Count - 1; i >= 0; i--)
         {
             var war = Wars[i];
@@ -2767,6 +2778,7 @@ public sealed class Diplomacy
         }
         if (cpPending is not null)   // 前走査と歩の食い違い（講和の途中で閾値が動いた）で残った保留の安全網
             foreach (var p in new List<Power>(cpPending.Keys)) FlushCollapseGroup(c, p, cpPending);
+        _crownAtPeaceHead = null;   // ★(943) 控えは月の中だけ
     }
 
     /// <summary>講和の 1 本＝ResolvePeace → EndWar → 復讐心の積み（月の走査の本体と FlushCollapseGroup が同じ 1 本を通る）。cg が null なら旧の単独の講和。</summary>
@@ -3190,15 +3202,27 @@ public sealed class Diplomacy
                 if (crushing && dw.PoliticsEnabled && dw.Polity != ww0.Polity
                     && Math.Abs(Ideology(ww0.Polity) - Ideology(dw.Polity)) >= c.ImposeRegimeIdeologyGap)
                 {
-                    var impPre = Instruments.ImpBeforeIfOn(dw);   // (928) 計器（読むだけ）：矯正の前の敗者の断面
-                    CrownParliament.ApplyRegime(dw, c, ww0.Polity);
-                    Politics.RaiseFoundingInstitutions(dw, allowRevoke: true, c);   // 押し付け政体の含意参政権・報道へ（自由化も反動剥奪も対称）
-                    double legBeforeImpose = dw.Legitimacy;
-                    dw.Legitimacy = Math.Min(dw.Legitimacy, c.ImposedRegimeLegitimacy);   // 銃剣の上の玉座＝正統性は低く始まる（復古の芽）
-                    if (dw.Legitimacy != legBeforeImpose)   // 説明API（#63）：未記帳の書き込み現場を解消（第1波点火でExplainTestsが捕捉・2026-07-28）
-                        dw.Explain?.Add("Legitimacy", "矯正講和(銃剣の上の玉座)", dw.Legitimacy - legBeforeImpose);
-                    Log.Add($"{_year} {winner.Name}が{loser.Name}の政体を矯正（矯正講和・戦勝点{absScore:0.00}）");
-                    if (impPre is not null) Instruments.ImpAfter(this, impPre, winner, loser, ww0, dw, absScore, crushing);   // (928) 計器（読むだけ）：imp_s の 1 行＋王冠の登録簿の書き手 2
+                    // ★(943) 旗 ImposeCrownFromLoser（> 0）：君主系の押し付けは、王冠の形を敗者の講和の段の頭の王冠から取る（形 (i)＝押し付ける政体そのものを写し替える
+                    //   ＝政体と王冠が食い違わない＝次の Step の床交差の再ラベルが立たない）。同じ月の 2 本目以降も段の頭の王冠（控えが無い＝講和を直に呼んだ試験は今の王冠）。
+                    //   写し替えた先が敗者の今の政体と同じなら押し付けない（門は勝者の政体で測る＝君主系どうしの隔たりは 0.15 以下で門 0.4 に届かない＝紙では 0 件）。0 は勝者の政体のまま。
+                    var imposeTarget = ww0.Polity;
+                    if (c.ImposeCrownFromLoser > 0 && (ww0.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate))
+                    {
+                        var headCrown = _crownAtPeaceHead is not null && _crownAtPeaceHead.TryGetValue(dw, out var hc) ? hc : dw.Crown;
+                        imposeTarget = headCrown switch { CrownForm.Despotic => Polity.Despotic, CrownForm.Shogunate => Polity.Shogunate, _ => Polity.Absolutist };
+                    }
+                    if (imposeTarget != dw.Polity)
+                    {
+                        var impPre = Instruments.ImpBeforeIfOn(dw);   // (928) 計器（読むだけ）：矯正の前の敗者の断面
+                        CrownParliament.ApplyRegime(dw, c, imposeTarget);
+                        Politics.RaiseFoundingInstitutions(dw, allowRevoke: true, c);   // 押し付け政体の含意参政権・報道へ（自由化も反動剥奪も対称）
+                        double legBeforeImpose = dw.Legitimacy;
+                        dw.Legitimacy = Math.Min(dw.Legitimacy, c.ImposedRegimeLegitimacy);   // 銃剣の上の玉座＝正統性は低く始まる（復古の芽）
+                        if (dw.Legitimacy != legBeforeImpose)   // 説明API（#63）：未記帳の書き込み現場を解消（第1波点火でExplainTestsが捕捉・2026-07-28）
+                            dw.Explain?.Add("Legitimacy", "矯正講和(銃剣の上の玉座)", dw.Legitimacy - legBeforeImpose);
+                        Log.Add($"{_year} {winner.Name}が{loser.Name}の政体を矯正（矯正講和・戦勝点{absScore:0.00}）");
+                        if (impPre is not null) Instruments.ImpAfter(this, impPre, winner, loser, ww0, dw, absScore, crushing);   // (928) 計器（読むだけ）：imp_s の 1 行＋王冠の登録簿の書き手 2
+                    }
                 }
                 // 宗主権の引き継ぎ（宗主の地理2026-07-12・第2レバー）：敗者が宗主なら、圧勝の勝者はその属国の宗主権を1件引き継ぐ
                 // ＝下関1895（日本が清の朝鮮宗主権を剥奪）・アヘン戦争後の朝貢体制崩壊の物理。朝貢体制は「宗主が守れない・罰せられない」と
