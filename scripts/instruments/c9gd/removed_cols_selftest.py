@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# (786) ident_check.py の --removed-cols の自己点検（突然変異）：基準の silverpar_s1.tsv から列 fiscalBAt3Count を消した腕を作り、
+# (949) 消す列を fiscalBAt3Count（今の基準に無い）から eAtFloorCount へ付け替えた。
+# (786) ident_check.py の --removed-cols の自己点検（突然変異）：基準の silverpar_s1.tsv から列 eAtFloorCount を消した腕を作り、
 #   ①宣言あり＝恒等 ②宣言なし＝不一致 ③宣言ありでも 1 欄の値を変えたら不一致 ④宣言ありでも残りの列の順序を替えたら不一致、を確かめる。
 # 使い方：python -I removed_cols_selftest.py <基準の計器の生のフォルダ（silverpar_s1.tsv がある）> <作業フォルダ>
 import sys, os, csv, importlib.util, io, contextlib
 base, work = sys.argv[1], sys.argv[2]
 rows = list(csv.reader(open(os.path.join(base, 'silverpar_s1.tsv'), encoding='utf-8', newline=''), delimiter='\t'))
-k = rows[0].index('fiscalBAt3Count')
+k = rows[0].index('eAtFloorCount')
 def w(d, rs):
     os.makedirs(os.path.join(work, d), exist_ok=True)
     with open(os.path.join(work, d, 'silverpar_s1.tsv'), 'w', encoding='utf-8', newline='') as f:
@@ -17,7 +18,7 @@ r3 = [dr(r) for r in rows]; c = r3[0].index('eMean'); r3[0][c], r3[0][c + 1] = r
 sys.argv = ['x', 't']
 spec = importlib.util.spec_from_file_location('ic', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'ident', 'ident_check.py'))
 ic = importlib.util.module_from_spec(spec); spec.loader.exec_module(ic)
-decl = ('silverpar_s:fiscalBAt3Count',)
+decl = ('silverpar_s:eAtFloorCount',)
 def run(arm, d):
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):

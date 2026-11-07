@@ -1,0 +1,3 @@
+ PriceOfBread.Tests/DormantIdentityTests.cs        | 2 +-
+ PriceOfBread.Tests/OpeningColonyDominanceTests.cs | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)

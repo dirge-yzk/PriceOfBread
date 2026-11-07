@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 /// 計器の門 <c>Instruments.On</c> を 1 つの関数の中で 2 回以上読むと、確保と使用が別の読みになり得る（並列の試験で On が途中で変わると NRE か計器の値のずれ・(913)(921) の型）。
 /// SimCore の各ファイルを字句で走査し（コメント・文字列を飛ばし、型の直下の丸括弧を持つ波括弧を関数と見なす）、関数ごとの <c>Instruments.On</c> の読みの数を数える。
 /// 今の木で 2 回以上読む関数を下の表に名乗る（ファイル::関数名#同名の何番目か＝読みの数）。表に無い関数が 2 回以上読む・表より読みが増える＝赤。減るのは良い方向なので緑（表を縮める）。
-/// 限界（自己申告）：式本体のメンバー（=>）と局所関数・ラムダは外側の関数に数える。字句の走査であって構文木ではない。読みの 1 本が確保に使われるかは見ない（件数だけ）。</summary>
+/// 限界（自己申告）：式本体のメンバー（=>）と局所関数・ラムダは外側の関数に数える。字句の走査であって構文木ではない。読みの 1 本が確保に使われるかは見ない（件数だけ）。ヘッダの中の文字列の // も剥ぐ（コメントを剥ぐ正規表現は文字列を区別しない＝関数の名が隣の括弧から取られうる）。</summary>
 public class OnDoubleReadScanTests
 {
     const char BS = (char)92, NL = (char)10, NUL = (char)0;
@@ -150,5 +150,18 @@ public class OnDoubleReadScanTests
             "}");
         var r = Scan(src);
         Assert.Equal(new[] { ("F", 2), ("G", 1) }, r.ToArray());
+    }
+
+    [Fact]
+    public void ヘッダのコメントの_class_の語と括弧は関数の名と種類に影響しない()
+    {
+        // コメントを剥がないと、// の class が型の頭と読まれて F が関数に数えられない
+        string src = string.Join(NL.ToString(),
+            "class A {",
+            " // class helper ( x )",
+            " void F(int a /* ( */) { var a = Instruments.On; var b = Instruments.On; }",
+            "}");
+        var r = Scan(src);
+        Assert.Equal(new[] { ("F", 2) }, r.ToArray());
     }
 }

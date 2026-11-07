@@ -1,0 +1,14 @@
+(950) c84rb 読む線（波84）の作業の場所と読む生の一覧（2026-11-08・読み始める前に書いた）
+- 作業の場所：D:/PoB_work/r950_work/（台本・出力・下書き）。worktree・枝は作らない（ソースは main の作業ツリー ceee778f を読むだけ・枝 origin/c83hd は git show で読むだけ）。コミット・push 0。腕 0 本。
+- 読む生（計器つき 10 種・種 1〜10）
+  腕   D:/PoB_work/keep_947_rej/c83hdB_10   （B1 の旗 1・木 m933＋B1・8758c539 の系）
+  基準 D:/PoB_work/keep_933/base_ins       （腕と同じ盤面＝m933・(944) の [11] の新÷旧の比べ先・読むだけ）
+  基準 D:/PoB_work/keep_947/base_ins       （今の基線 m947）
+  ヌル D:/PoB_work/keep_947/n1・n2         （m947 のヌル腕）・keep_933/n1・n2（m933 のヌル腕＝腕と同じ盤面）
+  S11  D:/PoB_work/keep_947/a11・keep_933/a11（種 11〜20・POB_CEARN=0＝cearn_s・cpop_s が無い＝(a) の型の件数だけ）
+- 読む表：nation_s（名目 GDP・価格水準・人口・建国）・cearn_s（州×四半期の出入り・heirDebtSettled・estateDebtMoved・billBlocked・importPayerKind）・cpop_s（POP×州×四半期の出入り・outCapital・outImport・debt）・divhost_s・cpwd_s・money_s（ある列だけ）・secession_s／cederule_s（分かれた四半期）。
+- 読むソース：CapitalMarket.cs（逃避 :174・配当 :180 の TakeGold）・BilateralMarket.cs:579〜580・価格水準の床 0.4 の書き手・枝 origin/c83hd の EmptyPopEstate.cs DebtToHeirs。
+- 問い：(a) 植民地格から分かれた国の貯蓄の流出と価格水準の床の型の件数（腕・基準・ヌル腕を同じ台本で）と、分かれる前の heirSettled・貨幣の縮み（州×四半期）→結論 1 つ。
+        (b) U2 0.3727 の中身（相続人の階級・州の格・財・四半期で分ける）と、輸入の手形の分を外した形の U2 の紙。
+        (c) 最後の回の形の素案（両側の門・旗 0 で落ちる紙・no-go が恒真でない・突然変異の表・計算量）。
+- 覗き：腕を回さないので 0 の予定。
