@@ -1,0 +1,4 @@
+/d/PoB_work/c80eb_work/suite_nonfull.txt:成功!   -失敗:     0、合格:  2406、スキップ:     1、合計:  2407、期間: 16 m 31 s - PriceOfBread.Tests.dll (net10.0)
+/d/PoB_work/c80eb_work/suite_full.txt:成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 55 s - PriceOfBread.Tests.dll (net10.0)
+list-tests: 2407 / 3 (ident 腕 t)
+NullReferenceException: 0・中止: 0

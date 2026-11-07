@@ -306,7 +306,7 @@ public sealed class Pop
         if (PopWindow.Verify) PopWindow.GuardWrite("運搬");
         from._savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
         to._savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
-        if (Instruments.On) { Instruments.Sav(from, Instruments.SavKind.CarryOut, -savings.Value); Instruments.Sav(to, Instruments.SavKind.CarryIn, savingsIn.Value); }   // (262) 計器（読むだけ）：貯蓄の書き手の台帳
+        if (Instruments.On) { Instruments.Sav(from, Instruments.SavKind.CarryOut, -savings.Value); Instruments.Sav(to, Instruments.SavKind.CarryIn, savingsIn.Value); Instruments.CearnCarryDebt(to, debtIn.Value); }   // (262) 計器（読むだけ）：貯蓄の書き手の台帳
     }
 
     /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体・2026-09-30 段4g に World から Pop へ移した＝貯蓄の書き手を Pop の中へ）。

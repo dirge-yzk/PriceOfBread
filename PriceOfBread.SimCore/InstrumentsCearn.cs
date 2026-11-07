@@ -33,7 +33,8 @@ public static partial class Instruments
         + "\timportOldRuleBudgetStartPerQuarter\timportBudgetExcessMaxPerClearing"   // (868) 末尾 2 列＝旧の規則の予算（旗に依らない）・清算ごとの超過の最大
         + "\timportBudgetExcessMaxPerClearingSub\timportPaidPayerSizeLe1e12PerQuarter\timportPaidPayerSizeMidPerQuarter\timportPaidPayerSizeGt1e9PerQuarter"   // (874) 末尾 4 列＝超過の最大（補助は TreasuryCat.Subsidy だけ足す）・払った額を払いの時点の払い手の人数（≦1e-12／1e-12 超〜1e-9／1e-9 超）で分けた和
         + "\timportBudgetExcessMaxPerClearingSubLive"   // (880) 末尾 1 列＝Sub と同じ超過の最大を、人数 ≦1e-12 の払い手の 0 でない払いが無かった清算だけで畳む（旗 0 の人の居ない商人の手形の清算を外す）
-        + "\tmerchantDebt\testateDebtSettledPerQuarter";   // (910) 末尾 2 列＝四半期の末の商人の POP の債務（添字なし＝NaN）・相続の前の返しの段で貯蓄から世界の外へ移った額（台帳・旗を読まない）
+        + "\tmerchantDebt\testateDebtSettledPerQuarter"   // (910) 末尾 2 列＝四半期の末の商人の POP の債務（添字なし＝NaN）・相続の前の返しの段で貯蓄から世界の外へ移った額（台帳・旗を読まない）
+        + "\tbillBlockedClearings\tbillBlockedDustClearings\temptyDebtAfterEstate\testateDebtMovedPerQuarter\theirDebtSettledPerQuarter";   // (920) 末尾 5 列＝手形を振り出せなかった清算の数・その中の塵・相続の段の直後の人の居ない債務者の数・相続の段で返し以外で債務が移った額・人の居る非商人 POP が決済 ① で返した額
 
     /// <summary>台帳の列（流入 7・流出 9）。<see cref="CearnColumn"/> の返り値。</summary>
     internal enum CearnCol : sbyte
@@ -54,11 +55,13 @@ public static partial class Instruments
         public int ImpKind; public double ImpBudget, ImpPaid, ImpCross;   // (863) 輸入の払い手の列（CearnImportHead・CearnImportPaid）
         public double ImpOldBudget, ImpExMax = double.NegativeInfinity, ImpHeadStock = double.NaN, ImpPaidClr; public bool ImpHeadOn;   // (868) 旧の規則の予算・清算ごとの超過の最大（未定義は -∞）・今の清算の頭の在庫（NaN＝手形）・今の清算の払い・頭があるか
         public double ImpHeadStockSub = double.NaN, ImpExMaxSub = double.NegativeInfinity; public readonly double[] ImpPaidBand = new double[3];   // (874) 補助を Subsidy だけに絞った頭の在庫と超過の最大・払った額の人数の帯別の和
+        public int BillBlocked, BillBlockedDust, EmptyDebtAfter;   // (920) 手形を振り出せなかった清算の数・その中の塵（0＜債務≦1e-12）・相続の段の直後に人数 ≦1e-12 で債務 ≠0 の POP の数（月ごとの和）
+        public double EstDebtMoved, HeirDebtSettled, EstDebtBeforeSnap, EstSettledSnap;   // (920) 相続の段で人の居ない POP の債務が返し以外で減った額・人の居る非商人 POP が決済 ① で返した額・相続の段の頭の断面（人の居ない POP の債務の和・返した額の累計）
         public double EstDebtSettled;   // (910) 相続の前の返しの段で移った額（四半期の和）
         public double ImpExMaxSubLive = double.NegativeInfinity; public bool ImpClrDead;   // (880) 人数 ≦1e-12 の払い手の払いが無かった清算だけの超過の最大・今の清算に人数 ≦1e-12 の払い手の 0 でない払いがあったか
         public readonly Dictionary<(string File, int Line, SavKind Kind, char Cp), double> Out = new(), In = new();
         public readonly CgAcc[] G = [new(), new(), new(), new()];   // (829) 階級の群の台帳（群の番号＝CgGroupOf）
-        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; ImpKind = 0; ImpBudget = ImpPaid = ImpCross = 0; ImpOldBudget = 0; ImpExMax = double.NegativeInfinity; ImpHeadStock = double.NaN; ImpPaidClr = 0; ImpHeadOn = false; ImpHeadStockSub = double.NaN; ImpExMaxSub = double.NegativeInfinity; System.Array.Clear(ImpPaidBand); ImpExMaxSubLive = double.NegativeInfinity; ImpClrDead = false; EstDebtSettled = 0; }
+        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; ImpKind = 0; ImpBudget = ImpPaid = ImpCross = 0; ImpOldBudget = 0; ImpExMax = double.NegativeInfinity; ImpHeadStock = double.NaN; ImpPaidClr = 0; ImpHeadOn = false; ImpHeadStockSub = double.NaN; ImpExMaxSub = double.NegativeInfinity; System.Array.Clear(ImpPaidBand); ImpExMaxSubLive = double.NegativeInfinity; ImpClrDead = false; EstDebtSettled = 0; BillBlocked = BillBlockedDust = EmptyDebtAfter = 0; EstDebtMoved = HeirDebtSettled = 0; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, CearnAcc> CearnAccs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CearnAcc> CearnPopAcc = new();
@@ -138,8 +141,8 @@ public static partial class Instruments
             CearnImportSubsidyInto(a, delta);
             if (_cearnCat == TreasuryCat.Subsidy) CearnImportSubsidySubInto(a, delta);   // (874) 売買方針の補助だけ（輸出の関税の戻し〔TreasuryCat.Tariff・払いの後〕は足さない）
         }
-        if (kind == SavKind.Take && CearnFileName(file) == "BilateralMarket.cs") CearnImportPaid(a, -delta, p.Size);
-        if (_estRepay && kind == SavKind.Take) a.EstDebtSettled -= delta;   // (910) 相続の前の返しの段の中の貯蓄の出（Bank.Lend の負の側＝世界の外へ・台帳の書き込み＝移った額）   // (863) 輸入の払い（関税・代金・運賃・港湾料・保険料＝清算の払いの段）
+        if (kind == SavKind.Take && CearnFileName(file) == "BilateralMarket.cs") CearnImportPaid(a, -delta, p.Size);   // (863) 輸入の払い（関税・代金・運賃・港湾料・保険料＝清算の払いの段）
+        if (_estRepay && kind == SavKind.Take) a.EstDebtSettled -= delta;   // (910) 相続の前の返しの段の中の貯蓄の出（Bank.Lend の負の側＝世界の外へ・台帳の書き込み＝移った額）
         if (col == CearnCol.Skip) return;
         bool isIn = (int)col < CearnInCols;
         a.Flow[(int)col] += isIn ? delta : -delta;
@@ -147,6 +150,7 @@ public static partial class Instruments
         if (cw is not null)   // (836) POP の四半期の台帳（同じ列）と窓の中の税
         {
             cw.QFlow[(int)col] += isIn ? delta : -delta;
+            if (col == CearnCol.OutOther) { var oq = cw.QOutOther ??= new(); var ok = (routed ? file : "", routed ? _routeLine : 0, kind, cp); oq.TryGetValue(ok, out double ov); oq[ok] = ov - delta; }   // (920) outOther の経路別（cpop_s の outOtherTop1）
             if (col == CearnCol.OutTax && cw.InWin) cw.WinTax -= delta;
         }
         if (routed && CearnFileName(file) == "EmptyPopEstate.cs") EstateSav(a, cw, p, kind, delta);   // (848) 相続 R1 の列（実際に移った額＝台帳の書き込み）
@@ -218,6 +222,7 @@ public static partial class Instruments
         if (m is not null) ob = m.Debt.Value > 0 ? System.Math.Max(0, m.Savings.Value) : double.PositiveInfinity;
         else foreach (var p in r.Pops) ob += System.Math.Max(0, p.Savings.Value);
         a.ImpBudget += b; a.ImpOldBudget += ob;
+        if (m is not null && m.Debt.Value > 0) { a.BillBlocked++; if (!(m.Debt.Value > 1e-12)) a.BillBlockedDust++; }   // (920) 手形を振り出せない（決済の後も商人の債務が正＝:580 の門が偽・旗を読まない）清算の頭・その中の塵
         CearnImportFoldInto(a);
         a.ImpHeadOn = true; a.ImpHeadStock = a.ImpHeadStockSub = double.IsPositiveInfinity(b) ? double.NaN : b; a.ImpPaidClr = 0;
         a.ImpClrDead = false;   // (880) 今の清算の印を戻す
@@ -393,6 +398,7 @@ public static partial class Instruments
                 cols.Add(F(double.IsNegativeInfinity(a.ImpExMaxSub) ? double.NaN : a.ImpExMaxSub)); cols.Add(F(a.ImpPaidBand[0])); cols.Add(F(a.ImpPaidBand[1])); cols.Add(F(a.ImpPaidBand[2]));   // (874)
                 cols.Add(F(double.IsNegativeInfinity(a.ImpExMaxSubLive) ? double.NaN : a.ImpExMaxSubLive));   // (880)
                 cols.Add(F(r.MerchantPop is { } mpd ? mpd.Debt.Value : double.NaN)); cols.Add(F(a.EstDebtSettled));   // (910)
+                cols.Add(I(a.BillBlocked)); cols.Add(I(a.BillBlockedDust)); cols.Add(I(a.EmptyDebtAfter)); cols.Add(F(a.EstDebtMoved)); cols.Add(F(a.HeirDebtSettled));   // (920)
                 sk.W.WriteLine(string.Join('\t', cols));
                 if (r.Tier == RegionTier.Colonial) CgRows(sk, seed, q, w, nation, r, a, sn.Savings, inSum - outSum);   // (829) 植民地格の州だけ群の行
                 a.Clear(); a.Start = sn.Savings; a.Started = true; CgReset(a, r);
@@ -450,6 +456,7 @@ public static partial class Instruments
         public double QMonthStart, QMonthEnd, QWin, QEarned, QLand, QInd, QPaid, QSub, QPoll, QInc;
         public int QClaimed, QEmptied, QPos, QEmptiedPos;
         public double QEstOut, QEstIn;   // (848) 相続 R1 の出と入り
+        public double QDebtCarry; public Dictionary<(string File, int Line, SavKind Kind, char Cp), double>? QOutOther;   // (920) Pop.Carry で受けた債務の和・outOther の経路別の和（遅延確保）
         public readonly int[] QStuck = new int[CpStuckKinds];
         /// <summary>四半期の始まり（州の台帳と同じ時点）：POP の四半期の台帳を戻し、始まりの在庫を取る。</summary>
         public void QReset(double start)
@@ -458,7 +465,7 @@ public static partial class Instruments
             QStart = start; QLate = 0; QMonths = 0;
             QMonthStart = QMonthEnd = QWin = QEarned = QLand = QInd = QPaid = QSub = QPoll = QInc = 0;
             QClaimed = QEmptied = QPos = QEmptiedPos = 0;
-            QEstOut = QEstIn = 0;
+            QEstOut = QEstIn = 0; QDebtCarry = 0; QOutOther?.Clear();
         }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CgPop> CgPops = new();
@@ -556,6 +563,7 @@ public static partial class Instruments
         {
             if (!CearnAccs.TryGetValue(r, out var a)) continue;
             EstateFold(a);
+            a.EstDebtBeforeSnap = EmptyDebtSum(r, out _); a.EstSettledSnap = a.EstDebtSettled;   // (920) 相続の段の頭の断面
             double e = 0, live = 0;
             foreach (var p in r.Pops)
             {
@@ -565,6 +573,41 @@ public static partial class Instruments
             if (!(e > 0)) continue;
             if (live > 1e-9) a.EstDue += e; else a.EstNoHeir += e;
         }
+    }
+
+    /// <summary>(920) 人数 ≦1e-12 の POP の債務の和（符号つき）と、債務 ≠0 の POP の数。</summary>
+    static double EmptyDebtSum(Region r, out int count)
+    {
+        double s = 0; count = 0;
+        foreach (var p in r.Pops) if (!(p.Size > 1e-12) && p.Debt.Value != 0) { s += p.Debt.Value; count++; }
+        return s;
+    }
+
+    /// <summary>(920) 相続の段（<see cref="EmptyPopEstate.Step"/>）の直後：人数 ≦1e-12 で債務 ≠0 の POP の数（月ごとの和）と、段の頭から直後までに人の居ない POP の債務が減った額から返した額（estateDebtSettledPerQuarter の段の中の増分）を引いた残り＝返し以外で債務が移った額。
+    /// 旗を読まない・エンジンの関数を呼ばない。今の実装では人の居ない POP の債務を動かすのは返しの段だけ＝estateDebtMovedPerQuarter は常に 0（債務を相続人へ移す案 B1 が入ったときに初めて正になる）。</summary>
+    internal static void EstateAfter(World w)
+    {
+        if (!CearnOn) return;
+        foreach (var r in w.Regions)
+        {
+            if (!CearnAccs.TryGetValue(r, out var a)) continue;
+            double after = EmptyDebtSum(r, out int n);
+            a.EmptyDebtAfter += n;
+            a.EstDebtMoved += (a.EstDebtBeforeSnap - after) - (a.EstDebtSettled - a.EstSettledSnap);
+        }
+    }
+
+    /// <summary>(920) 決済 ①（BilateralMarket.cs の清算の頭）で、人数 ＞1e-12 の商人でない POP が債務を返した額。商人 POP と人の居ない POP は数えない。</summary>
+    internal static void CearnBillSettle(Region r, Pop p, double back)
+    {
+        if (!CearnOn || !(p.Size > 1e-12) || ReferenceEquals(p, r.MerchantPop)) return;
+        if (CearnAccs.TryGetValue(r, out var a)) a.HeirDebtSettled += back;
+    }
+
+    /// <summary>(920) Pop.Carry の 7 引数の形で受け手が受けた債務（受け手の通貨・cpop_s の debtInCarryPerQuarter）。Bank.Carry（銀行の与信の側）は数えない。</summary>
+    internal static void CearnCarryDebt(Pop to, double debtIn)
+    {
+        if (CearnOn && CgPops.TryGetValue(to, out var cw)) cw.QDebtCarry += debtIn;
     }
 
     /// <summary>四半期の末の断面：人数 ≦1e-12 で在庫が正の POP の在庫の和。</summary>
@@ -597,7 +640,8 @@ public static partial class Instruments
         + "laborLines\tlaborBankruptLines\tlaborCapacity\tlaborDesiredOutput\tlaborOutput\tlaborRevenuePerMonth\tlaborZeroDesiredCapacity\t"
         + "topLaborGood\ttopLaborCapacity\ttopLaborDesiredOutput\ttopLaborOutput\ttopLaborPrice\ttopLaborMarginalCost\ttopLaborRevenuePerMonth\ttopLaborCostPerMonth\t"
         + "ownerLines\townerRevenuePerMonth\tgroupStartGap\tgroupNetFlowGap\testateOutPerQuarter\testateInPerQuarter"   // (848) 末尾 2 列＝相続 R1
-        + "\tdebt";   // (863) 末尾 1 列＝四半期の末の Pop.Debt
+        + "\tdebt"   // (863) 末尾 1 列＝四半期の末の Pop.Debt
+        + "\toutOtherTop1Route\toutOtherTop1PerQuarter\tdebtInCarryPerQuarter";   // (920) 末尾 3 列＝outOther の上位の経路・その額・Pop.Carry で受けた債務
 
     internal const int CpStuckKinds = 6;
     /// <summary>止まった月の割合（|月末−月初| ≦ これ×月初）。計器の物差し（係数ではない）。</summary>
@@ -695,6 +739,8 @@ public static partial class Instruments
             cols.Add(F(sumStart[gi] - gStart[gi])); cols.Add(F(sumNet[gi] - gNet[gi]));
             cols.Add(F(cw?.QEstOut ?? 0)); cols.Add(F(cw?.QEstIn ?? 0));   // (848)
             cols.Add(F(p.Debt.Value));   // (863)
+            string oot = "-"; double oov = double.NaN; if (cw?.QOutOther is { } oqd) oot = CearnTop(oqd, 0, out oov);
+            cols.Add(oot); cols.Add(F(oov)); cols.Add(F(cw?.QDebtCarry ?? 0));   // (920)
             sk.P.WriteLine(string.Join('\t', cols));
         }
     }
