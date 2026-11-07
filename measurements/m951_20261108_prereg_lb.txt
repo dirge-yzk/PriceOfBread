@@ -1,0 +1,64 @@
+(951) c84lb 事前登録：計器の写し LbFrozen を州の出入りで計器が自分で始末する直し（波84・origin/c83lt の上・旗 0 の ident・腕 B なし＝3 回の規則に数えない・main に入れない〔★(940)〕）
+書いた日 2026-11-08・最初のコミット（逆適用と merge より前）・書いたモデル Claude Opus 5.5
+
+0. 形の名乗り
+- 種類：計器の直し（エンジンの行を変えない）。旗 0（LandTaxFixedBasis＝0）の木で ident 1 本〈判定: 恒等〉。旗 1 は使い捨ての worktree で試験だけ（腕 B・S11 は回さない）。
+- 枝 c84lb＝origin/c83lt の頭 f876d8d0 から。手順：この事前登録 → 5b109157 の逆適用（旗 0・Coefficients.cs:713 と DormantIdentityTests.cs の 1 行＝5b109157 が消した DormantZeroFields の行を戻す）→ origin/main ceee778f の merge（git merge-tree で衝突 0 を確かめた・木 35ab2dab）→ 直し（InstrumentsLandbase.cs だけ）→ 試験（LandfixInstrumentTests.cs だけ）→ 走査の番人 → ident。
+- 触る行：PriceOfBread.SimCore/InstrumentsLandbase.cs（LbNat の欄 2 つ・LandbaseRgoRent の写しを作る枝・LandbaseMonth の頭）・PriceOfBread.Tests/LandfixInstrumentTests.cs（試験 2 本と補助）・Coefficients.cs:713（逆適用だけ）・DormantIdentityTests.cs（逆適用の 1 行＝c84kp の 1 行とは別の行）・scripts/instruments/c84lb/・measurements/m951_*。
+- 触らない：Instruments.cs（呼びの口は既にある MonthClose の LandbaseMonth(w) の 1 行＝Instruments.cs:1499 を使う）・InstrumentsInheritIntent.cs・Territory.cs・InstrumentsTests.cs:2119・fix942（70dda9f5）・App・Display・Runner。
+
+1. 捨てる場所とその理由（案 (a) を選ぶ）
+- 形：国（名簿の国＝a.Fixed）が写しを持つ生産者の名簿（LbNat に持つ List<Producer>・LandbaseRgoRent で写しを新しく作ったときだけ足す）を持つ。
+  月の締め LandbaseMonth の頭（LbNatOf の直後・助走の月も・早い return より前）で、その国の w.Regions の生産者の集合（参照で比べる）に無い名簿の生産者の写しを LbFrozen から消し、名簿からも外す。毎月走る（締め月だけではない）。
+- 理由：
+  ① 州が国の Regions を出る道は Territory.cs:322（TransferRegion の from.Regions.Remove）だけ、入る道は Territory.cs:417（Adopt）だけ（grep）。TransferRegion はエンジンの凍結を必ず消す（Territory.cs:341）＝〈月の締めに自分の州に居ない写しを捨てる〉はエンジンの規則と同じ集合を、エンジンの欄を読まずに計器が自分で選ぶ。
+  ② 案 (b)〈見た月〉を写しが受け口で見られた月で数えると、眠った生産者（EconomyStep の sleep[pi]==1 で continue＝PayOwnerRent が呼ばれない）と〈出て行った月〉を区別できない＝エンジンは凍結を保つのに計器が捨てる＝lbFrozenForeignEngine を新しく作る。月の締めで州を走査して〈見た月〉を書く形は (a) と同じ情報でより複雑。
+  ③ 捨てるのは月の締めの頭＝その月の受け口（LandbaseRgoRent）の後。州が四半期の締めの後の共有層で出ると、計器が最初に見るのは次の四半期の最初の月の締め＝そこで捨てる。戻った州の写しは無い（受け口は助走の後に写しを作らない）。
+- 計器はエンジンの欄（FrozenLandRentPerMonth）を捨てる判断に使わない（使うと lbFrozenCopyNoEngine が同語反復になる）。
+
+2. 移転・建国・再統合で写しをどうするか（★(947)）
+- 写しは助走の最後に凍結した国（fz.W）の持ち物。割譲・建国（Seceded）・再統合（Returned）のどれでも、州が出た国の次の月の締めで写しが消える。
+- 受け手（名簿の国でも）は助走の後なので写しを作らない＝Territory.cs:341 がエンジンの凍結を null にし、受け手では収穫比例になるのと同じ規則。元の国へ戻っても写しは無い（エンジンも null）。
+- 建国の新しい国は助走を持たない＝写しなし。名簿の国が消える（併合）と月の締めが走らない＝名簿は LbNats（World を鍵）ごと消える。
+- 不在地主の RGO（LsAbsenteeRgo）は今のまま写しを作らない。
+
+3. 限界（計器が自己申告する・注に書く）
+- ⑮ 同じ四半期の締めの中（共有層＝外交の 3 歩・再統合・建国）で出て戻る州は、月の締めの口では見えない＝写しが残る（エンジンは null）＝lbFrozenCopyNoEngine に数えられる。計器の受け口は LandbaseRgoRent（経済の月）と LandbaseMonth（月の締め）だけで、共有層の中に口が無い（Instruments.cs・Territory.cs に行を足さない指示）。紙の台本の下限（inheritintent_s の E 行で見える物だけ）：m947 の盤面 keep_947/base_ins で 0 件（10 種）・(945) の腕 B keep_947_rej/c83ltB_10 で 0 件。
+- 試験の〈同じ四半期の中で出て戻る〉は〈同じ四半期の中の月の締めをまたいで出て戻る〉と定義する（試験は StepDay で月の間に移す）。
+- 眠った RGO は定額を請求しない（エンジンの A-2 の形の限界＝PayOwnerRent が呼ばれない月は差分が積まれない・計器も同じ）。
+- 名簿の生産者は 1 か月より長く強い参照で持たない（毎月の締めで外す）。
+
+4. 足す事象（LandfixInstrumentTests・I2 の盤面＝イギリスとフランス・1 四半期の助走・外交は凍結・旗 1）
+- I4〈出て戻る〉：q0 の後にイギリスの首都でない州（エンジンの凍結のある RGO を持つ州を試験が選ぶ）をフランスへ割譲（Ceded）→ q1 → イギリスへ割譲で戻す → q2。q1・q2 のイギリスの行で lbFrozenCopyNoEngine＝0・lbFrozenCopyRgo＝lbFrozenEngineRgo（＞0）・lbAdjBreakPopMonths＝0・lbOverBasePopMonths＝0・lbFrozenForeignEngine＝0。
+- I5〈同じ四半期の中で出て戻る〉：q0 の後、q1 の中で StepDay×30（月 0 の締め）→ 割譲で出す → StepDay×30（月 1 の締め）→ 戻す → 四半期の残り → Instruments.Quarter。q1・q2 のイギリスの行で I4 と同じ 5 つ。
+- 両側：直す前（逆適用と merge の後・直しの前のコミット）で I4・I5 が赤（lbFrozenCopyNoEngine＞0）になることを実測して measurements/m951_20261108/twoside_before.txt に残す。直した後は緑。
+
+5. 門
+- G1 旗 0 の ident〈判定: 恒等〉：`bash scripts/instruments/ident/ident.sh run c84lbz --tree D:/PoB_work/wt_c84lb --added-tables landfix_s --tests-delta <T> --saveleak --ng --save 20261108`。基準は ident.cfg の m947（素の 5 種 b5_20261108_m947・計器つき 10 種 b10_20261108_m947_ins・INSRAW keep_947/base_ins）。
+  予言：素の 5 種・計器つき 10 種の成績表は全行一致・計器の表は landfix_s（基準に無い＝足した表の宣言）以外が全てバイト一致（既知の揺れ burscan_s・clock_s だけ）・pfix_s は出ない（m947 と同じエンジン）・注視の表一致・.cost の推定一致（計器は計算量の台帳に数えない）・NG 93（ng947 と新 0・外れ 0）・savetest OK・leakhunt 保存則違反なし。
+  T（テストの増え）の予言：枝の試験 17 本（[Fact]/[Theory] の足し＝git diff の数）＋この線の 2 本＝19（Category!=FullLength 2423＋19＝2442・FullLength 3）。--list-tests で突き合わせ、違えば腕の前に理由つきで追記する。
+- G2 写しの生き返りの門（ident の生で・計器の表 landfix_s と region_s を paper951.py で読む）：lbFrozenCopyRgo が前の行より増えた（国×四半期）＝0。
+  旗 0〈何もしない実装＝今の枝の計器〉で落ちることの確かめ：同じ台本は (945) の腕 B の生（旧の計器・旗 1）で増え 30＝予言の（国・q+1）に 30/30 当たる。m947 の盤面での旧の規則の予言＝増えの上限 50（国×四半期・戻り 52）＝0 ではない＝何もしない実装は落ちる。上限の門の量＝0（新しい規則では写しは助走の月にしか作られない＝増えは構造で 0・1 件でも出たら形の誤り）。
+- G3 試験の両側：I4・I5 は直す前に赤・直した後に緑。I1〜I3 は直した後も緑。
+- G4 テストの合計を --list-tests と突き合わせる（中止 0）。savetest・leakhunt（ident の --saveleak）。
+- G5 旗 1 の確かめ（使い捨ての worktree D:/PoB_work/c84lb_work/wt_f1・5b109157 を当てる）：LandTaxFixedBasisTests・LandfixInstrumentTests（I4・I5 を含む）・InstrumentsTests の :2119 の試験（fix942 のまま）が緑。why945 の型〈写しだけの凍結〉＝I4・I5 の盤面で lbFrozenCopyNoEngine＝0。
+
+6. 突然変異（使い捨ての木・旗 1 の試験で・出力は measurements/m951_20261108/mut/）
+| 突然変異 | I1 | I2 | I3 | I4 出て戻る | I5 同じ四半期の中 | G2（ident の生・紙） |
+| M1 捨てるのをやめる | 緑 | 緑 | 緑 | 赤 | 赤 | 赤（m947 の盤面で増え ≤50） |
+| M2 毎月全ての写しを捨てる | 緑 | 赤（CopyRgo 0≠EngineRgo） | 赤（CopyRgo＞0 が破れ） | 赤 | 赤 | 緑（増え 0＝この門は M2 を拾わない＝I2・I3 が拾う） |
+| M3 捨てるのを締め月（四半期の最後の月）だけにする | 緑 | 緑 | 緑 | 緑 | 赤 | 緑（自然の移転は四半期の締めの後だけ＝本番の盤面では M3 と同じ） |
+- 腕の前の紙の確かめ：M3 が I5 でだけ赤になるのは、I5 の出て戻るが月 1 の締め（締め月でない）だけに見えるため。M1 の I4・I5 の赤は直す前の実測（G3 の両側）と同じ形。
+- 突然変異の木の生（試験の出力）は合流の判断まで残す。
+
+7. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 直しは InstrumentsLandbase.cs の計器の中だけ：工業化度の読み手の許可表（IndustrializationReaderTests）に触れない（工業化度を読まない）・`new MoneyStock(` の件数 0→0（InstrumentsLandbase.cs）・route_anchors.tsv の鍵の行に触れない・WriterRatchetTests の宣言の表に触れない（エンジンの欄に書かない）・UnitTypeTests（単位の名の欄を足さない）・DormantIdentityTests（逆適用で LandTaxFixedBasis の行が戻る＝旗 0 の器の表に 1 行・5b109157 の前の形）。変わる件数の予言＝0。
+- 器のコミットの直後に `dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~LandfixInstrumentTests"`（隔離ビルド --artifacts-path D:/PoB_work/c84lb_art）。
+- ㉜ 旗 1 の木の grep：試験で lbFrozen・LbFrozen・landfix を読むのは LandfixInstrumentTests.cs だけ（grep）＝旧の規則〈写しが戻る〉を固定している番人は無い。
+
+8. 止める線と計算量（この線は腕 B を回さない＝写しの記録だけ）
+- 止める線（この回の形をそのまま写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散・1 四半期に 100 倍以上（建国の直後の型はヌル腕の件数と並べる）・1e10 倍以上・空洞化（原因を問わない・ピークの 1/10 未満・例外の規則 A2＝an_h2.py の既定 -ex rule・その線が原因と読めた件だけ＝基線の同じ種で同じ州が既にピークの 1/4 未満なら〈元からの弱さ〉）・推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む）。旗 0 の ident は成績表が全行一致の予言＝これらは基線 m947 と同じ値。
+- 計算量の割り当て：0 秒（計器は INS のときだけ・名簿の国 2 か国×毎月の生産者の走査・計算量の台帳に入らない）。
+
+9. 次の回へ
+- A-2 の腕つきの 2 回目は次の次の波（3 回の規則で数える）。そのとき :2119 は main の側（c84ca の直し）を取り、fix942 は落とす。この線は :2119 と fix942 に触れない。
