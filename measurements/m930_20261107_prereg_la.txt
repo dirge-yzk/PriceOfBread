@@ -1,0 +1,119 @@
+(930) c81la 事前登録：土地の持ち分の段 B-2a の再走＝world.json に名簿 7 国（仏・英・西・普・丁・日・ポ）の landOwnership を入れる（データの直し・旗なし・腕つきの 1 回目）
+書いた担当＝Claude Opus 5.5（挙動の線）。木＝main 11c35e54 から枝 c81la（worktree D:/PoB_work/wt_c81la）。データ＝d590fc9f の 2 ファイル（PriceOfBread.SimCore/world.json・PriceOfBread.Tests/LandOwnershipDataTests.cs）を git checkout で当てた（cherry-pick しない）。
+盤面＝m919（成績表の基線・計器の生 D:/PoB_work/keep_919/base_ins・ヌル腕 keep_919/n1・n2・種 11〜20 の基線 keep_919/a11〔POB_CEARN=0〕）。恒等の ident の基準 keep_926/base_ins は使わない（この線は ident を回さない＝[0]）・空洞化の振り分けだけ keep_926/base_ins を読む（指示のとおり）。
+出発＝00一覧 §00〈次の波（波81〜）〉②・実装ログ (909)・(914)・(923)。作者「将来的に『土地を手放す』『土地を買う』は実装したい」→ AI の推奨（州ごとの持ち分・1783 の開始値が先）＝〈作者「全て推奨で」で推奨を採った〉。★(832) ② Q-B B1・★(852) ③ Q2（B-0→B-2→B-1）も〈作者「全て推奨で」で推奨を採った〉。
+形と値は (909) の事前登録 m909_20261107_prereg_ls.txt の [1] のまま（AI の案・確証なし・値は AI の記憶の研究書の幅の中点・要出典確認）。作者が値そのものを裁定した物ではない＝NG は〈確証なし×バランスを壊す〉の両方が揃ったときだけ（作者 2026-10-14）。
+3 回の規則：腕つきの 1 回目（(909) c78ls は腕 B なしで止めた＝数えない・★(899)）。
+
+[0] 線の頭の宣言
+- 形の名乗り＝入口（開幕のデータ）。係数の旗を持たない。〈旗 0／旗 1〉＝〈データ無し（基線 m919）／データあり（腕 B の木）〉。腕 A と ident は無い（SimCore の .cs 0 行・データだけの線＝(909) [0] と同じ）。
+- 新しい状態 0・新しい係数 0・新しい旗 0・タイマー 0。SimCore の .cs は 1 行も触らない（器は main にある：NationConfig.cs:103 LandOwnership・Simulation.cs:968〜:983 構築と LandOwnershipShares・EconomyStep.cs:714 LandShareRecipient・:723 PayOwnerRent・:740 AddRentRecipients・計器 InstrumentsLandshare.cs の landshare_s）。
+- 触るファイル（持ち主の範囲）：
+  ① PriceOfBread.SimCore/world.json（名簿 7 国の "landOwnership" の 7 行・d590fc9f のまま・LF）
+  ② PriceOfBread.Tests/LandOwnershipDataTests.cs（d590fc9f のまま・T-a・T-b の 2 本）
+  ③ PriceOfBread.Tests/StateFactoryTests.cs：輸出の代金の試験の RGO の部分（今の木の :491〜:497 → 直した後 :491〜:509）の期待を造幣の試験の 4 枠の形（直した後 :551〜:558）に揃える＝Assert は 3 本のまま・母集合（選ぶ RGO の条件 :481〜:488）と許容（9 桁）は不変。期待の組み方だけ〈欄が null なら持ち主に地代・有りなら割合が正の枠ごとに受け手へ 地代×割合〉。注の直し＝造幣の試験の summary（今の :501・直した後 :513〈残りの地代は持ち主〉→〈残りの地代は土地の持ち分の 4 枠の受け手（欄が null なら持ち主）〉）。
+  ④ PriceOfBread.Tests/CornintInstrumentTests.cs：注だけ（指示の :102 は今の木の :103＝〈その POP が所有する RGO〉→〈その POP が受け手の枠を持つ RGO …×その POP が受ける割合（欄が null なら持ち主に 1）〉）。
+  ⑤ PriceOfBread.SimCore/opening_bake.json：★(764) の焼き直し（[7]）。
+  ⑥ scripts/instruments/c81la/（gate930.py・premise930.py・tab930.py・suite930.sh・mut930.sh）・measurements/m930_*。
+- 入れない物：SimCore の .cs・名簿の国を増やすこと・鉱山の RGO を外す案 (b)・B-2b・B-1・A-2・WriterRatchetTests の宣言の表・App・Display・Runner。
+- ③ の注意（名乗る）：(909) のデータの木のフルスイートで、輸出の代金の試験（[Fact]）は旧の形のまま緑だった＝Warm(2055) の仏の州 0 で選ばれる RGO の欄は null（賦存か持ち主が貴族でない）と推定する＝直した else の枝はこの盤面では通らない＝〈形を揃えた・盤面が変われば効く〉の直し（突然変異 mut923 の M1 でこの [Fact] は緑のままの予言＝[5]）。
+
+[1] 値（(909) [1] のまま・d590fc9f の world.json と同じバイト）
+  | 国 | 貴族 N′ | 教会 K | 農民 P | 市民 B |
+  | フランス | 0.265 | 0.087 | 0.378 | 0.270 |
+  | イギリス | 0.745 | 0.045 | 0.175 | 0.035 |
+  | スペイン | 0.488 | 0.152 | 0.228 | 0.132 |
+  | プロイセン | 0.904 | 0.020 | 0.076 | 0 |
+  | デンマーク | 0.905 | 0.020 | 0.075 | 0 |
+  | 日本 | 0.987 | 0.013 | 0 | 0 |
+  | ポーランド | 0.872 | 0.128 | 0 | 0 |
+- 確かめ：gate930.py（gate909 の写し）が world.json を自分で読み、手書きの表 ROSTER と正規化の後 1e-12 で一致・国の集合も一致＝真（measurements/m930_20261107/paper930_keep919_datatree.txt の 3 行目）。main の world.json では偽（paper930_keep919_flag0.txt）。
+
+[2] 当たる集合（(909) [2] のまま・行は今の木で grep し直した：Simulation.cs:968・:972・:983）
+- q0 の rgoFieldCount の予言＝(909) の measurements/m909_20261107/fieldcount_predict.txt（仏 212・英 129・西 192・普 130・丁 106・日 228・ポ 134）。腕 B の q0 で同じ数なら一致・違えば記録（門ではない）。
+- 前提（G-B1 ③ の分母）を keep_919 の q0 で種ごとに確かめた（premise930.py・名簿 7 国の最悪）：基線 種 1〜10＝貴族の実際と NE＋E の相対差 4.1e-10・教会 0・農民 0・市民−送金 0・持ち主が貴族でない非賦存 0／a11 種 11〜20＝5.71e-10・0・0・0・0／N1＝7.33e-10・0・0・0・0。＝前提は m919 の盤面でも成り立つ。
+
+[3] 周辺の点検（★(885)・ソースだけ・新しい腕は回さない・行は今の木で grep した）
+- 地代の受け手の所得：PayOwnerRent（EconomyStep.cs:723〜）は受け手ごとに EarnedPerMonth と RGO の正の地代の LandRentPerMonth を書く・貴族の受け手だけ特権の台帳（領主権）を記録＝受け手が平民へ替わった分だけ領主権の記録が減る（記録）。
+- 土地税（Fiscal.cs:803〜:804）：基数は POP の LandRent×特権の過少査定＝受け手が平民へ替わった分だけ請求が増える（史実の taille の向き・AI の読み・確証なし・記録）。十分の一税（Fiscal.cs:98・:816 TitheClaim）：大衆の前の月の所得＝農民の枠の地代は入る（記録）。
+- PolicyPreferences.cs:168：層ごとの地代（BlocOf の層）＝受け手の層が替われば穀物法の利害も替わる（狙いの下流・記録）。
+- InterestGroups.cs:19〜（注）・:62 LandedWealthOf：閉鎖の階級（貴族と聖職者）の LandRent だけを資本化＝農民と資本家へ移った地代は政治力の資本化に入らない（分子と分母の非対称の疑い＝C-1 で読む・この線では直さない・(909) [3] と同じ・記録）。
+- cornint（InstrumentsCornint.cs）：(923) で計器と試験は 4 枠で数える＝データの木で C3・C4 は緑（絞り込みの試験で確かめた＝[7]）。
+- 思想（Ideology.cs:163）：rent÷(rent＋earned)＝農民の rentier が少し上がる（記録・確証なし）。
+- 明らかな欠損は見つけていない。直しは同じ腕に混ぜない。
+
+[4] 門（両側・台本 scripts/instruments/c81la/gate930.py＝gate909.py の写し・変えたのは種の範囲だけ〔SEED_START〕・q0＝助走の後の最初の四半期）
+- 写しの確かめ：gate930 paper（種 1〜10）の出力は gate909 paper と 2 行目以降が 1 バイトも違わない（diff 0 バイト）。
+- G-B1 写し（名簿の国ごと・全ての種の q0 の最大）：① maxRelDiffDataVsField ≦1e-12 ② maxRelDiffSlotVsActual ≦1e-12 ③ 実際の割合（(909) [4] の式）が表の正規化の値と相対 1e-6（表の値 0 の枠は絶対 1e-6）④ world.json の欄と手書きの表 ROSTER が 1e-12 で一致し国の集合が名簿と同じ（gate の時だけ門）。
+- G-B2 働いた：Q＝重みが正の枠（教会・農民・市民）の階級の LandRent（q0・×4）÷名目 GDP（q0）の種の中央値。Δ＝Q(腕)−Q(基線)。W＝Q(基線)・Q(N1)・Q(N2) の最大−最小。P＝基線の rentNonEndowByOwnerClassNoble×(K＋P＋B)×4÷名目 GDP の種の中央値。U＝(1＋1÷(1−e))÷2。門＝Δ÷P ≧0.8 かつ Δ＞W かつ Δ÷P_arm ≦U（(909) の名乗りのまま＝上限は同じ盤面の比）。
+- 紙の値（keep_919 で取り直した＝measurements/m930_20261107/paper930_keep919_datatree.txt）：
+  P＝仏 0.104266・英 0.0217304・西 0.045895・普 0.0182923・丁 0.0121535・日 0.00198676・ポ 0.0218679
+  e＝0.1525・0.1191・0.1690・0.1055・0.1557・0.0948・0.1659
+  U＝1.0899・1.0676・1.1017・1.0590・1.0922・1.0524・1.0994
+  W＝1.63e-05・2.93e-05・1.13e-04・0・0・0・0
+  ＝m909（keep_905）の値と表示の桁で全て同じ（q0 は助走の直後で、m905〜m919 の間の変更が q0 の名簿 7 国の地代と GDP に効いていない＝記録）。
+- S11（種 11〜20・SEED_START=11）：基線＝keep_919/a11。ヌル腕の種 11〜20 は無い＝W は {Q(a11)・Q(N1 種 1〜10)・Q(N2 種 1〜10)} の幅で代える（近似と名乗る・腕の前に決めた）。紙の値（paper930_gate930_s11.txt）：P＝仏 0.103108・英 0.02149・西 0.0461328・普 0.0183312・丁 0.0122102・日 0.00197387・ポ 0.0208513／U＝1.0971・1.0652・1.1019・1.0592・1.0942・1.0493・1.1025／W＝4.9e-05・3.78e-05・4.95e-05・0・0・0・0。
+- G-B3 対照（種ごと）：全ての四半期で rgoFieldColonialCount＝0・rgoFieldEndowCount＝0、q0 で名簿の外の rgoFieldCount＝0（q1 以後の名簿の外は記録）。
+- 旗 0（データ無し）で落ちることの確かめ（paper930_keep919_flag0.txt＝main の world.json・keep_919 の盤面）：G-B1 ①② は 0 で通る・③ は全ての国で相対 1 で落ちる・④ は偽（world.json に欄が無い）・G-B2 は Δ＝0 で全ての国で落ちる・G-B3 は通る（対照）。＝歯は ③④・G-B2 と突然変異（[5]）。
+- 〈狙いどおり働いた〉の大きさの門＝G-B2（ヌル腕の幅の外・下限と上限）。〈壊さない〉門だけで採らない。
+- 紙の no-go（★(879)）：〈名簿の全ての国で Δ（紙）≦W〉なら回さない。旗 0 に当てた＝Δ＝0≦W＝no-go（正しい側）。紙の正しい形 M0 に当てた＝Δ÷P＝1.000〜1.004・全ての国で W の外＝go（mutpaper930_keep919.txt）＝恒真でない。判別の力は弱い（〈データが入れば go〉に近い）＝回す必要の確かめだけ。
+
+[5] 突然変異（㉚）
+(a) 紙（mutpaper909.py を keep_919 の q0 に当てた・measurements/m930_20261107/mutpaper930_keep919.txt）＝(909) [5] の表と赤と緑が全て同じ：
+| 変異 | G-B1① | ② | ③ | ④ | G-B2 | G-B3 |
+| M0 正しい形 | 緑 | 緑 | 緑 | 緑 | 緑（Δ÷P 1.000〜1.004） | 緑 |
+| M1 欄を読まない | 赤 | 緑 | 赤 | 緑 | 赤 7 国 | 緑 |
+| M2 割り方で欄を読まない | 緑 | 赤 | 赤 | 緑 | 赤 7 国 | 緑 |
+| M3 賦存にも当てる | 赤 | 緑 | 赤 | 緑 | 赤 7 国（1.110〜1.209＞U） | 赤 |
+| M4 植民地格にも当てる | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 |
+| M5 割合を 2 度掛ける | 緑 | 赤 | 赤 | 緑 | 赤 7 国（0.013〜0.303） | 緑 |
+| M6 正規化しない | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |（表の和が 3 桁で 1＝この盤面の門では区別できない・LandShareTests T5 が拾う＝名乗る）
+| M7 教会の枠を貴族の受け手へ | 緑 | 赤 | 赤 | 緑 | 赤 5 国（西・普・丁・日・ポ） | 緑 |
+| M7b 教会の値を貴族へ写す | 緑 | 緑 | 赤 | 赤 | 赤 5 国 | 緑 |
+| M8 名簿の外に当てる | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 |
+(b) 使い捨ての木（試験だけ・計算の腕は回さない）
+- mut930.sh（mut909.sh の写し・M0・M1・M7b・M8・M3・M4・LandOwnershipDataTests と LandShareTests.T5）：予言＝(909) の mutation.txt と同じ＝M0 緑・M1／M7b／M8 は T-a が赤（M1 は T-b も）・M3 は T-b と T5 が赤・M4 は T-b が赤。
+- mut923.sh（c80lr の台本のまま・データの木の detached worktree）：予言＝M0 赤 0・M1（試験の 2 ファイルを b3a4190f へ）＝造幣の Theory 2・C3・C4 が赤（輸出の代金の [Fact] は緑のまま＝[0] ③ の注意）・M2（AddRentRecipients の枠の枝を消す）＝造幣の Theory 2 が赤・M3＝C3・M4＝C4。〈持ち主だけへ戻す〉（M1）と〈枠を読まない〉（M2）で赤になること＝指示の確かめ。
+- ㉜ との突き合わせ（★(899)）：赤の予言（[7]）のどれも突然変異の赤と重ならない＝OpeningBake・WriterRatchet は突然変異の門ではない。
+
+[6] 機構の試験（d590fc9f の LandOwnershipDataTests.cs のまま・期待は表の手書き＝同語反復にしない）
+- T-a 名簿の国だけが表のとおりの持ち分を持つ・T-b 構築は本国の非賦存の貴族の RGO にだけ欄を置き植民地格と賦存は持たない（(909) [6]）。
+- データの木の絞り込み（StateFactoryTests・CornintInstrumentTests・LandOwnershipDataTests・OpeningBakeTests の 39 本・焼き直しの前）：赤は OpeningBakeTests 2 本だけ＝(923) 門 (ii) の再現（D:/PoB_work/c81la_work/quick/test.txt）。
+
+[7] ★(818)・㉜ 旗 1（データあり）の木で番人が旧の規則を固定していないか
+- 機構の軸（PayOwnerRent・AddRentRecipients・RentShareOf・LandRentPerMonth・PaySales・OwnerPopIndex・LsRecipient）で Tests を grep＝30 ファイル（grep818.txt）。盤面の軸（名簿 7 国の NationConfig.France/Britain/Prussia/Japan/Iberia と WorldData.ByName の 7 国名）と両方に当たる＝25 ファイル。機構の行（49 行・mech_lines.txt）と前後の Assert を読んだ：
+  - (909) の予言の外の 7 本は (914)（AiFirstWave・ReformPath・Instruments:1963・LandShareTests.T7 は盤面で LandOwnership=null）と (923)（StateFactory の造幣の 2 本・Cornint C3・C4 は 4 枠）で直っている。
+  - TaxTests.cs:125〜127 は露と米（名簿の外）・RuleSharesFormTests.cs:239 は官僚（受け手でない）・LandbaseInstrumentTests は地代の和か、盤面から選んだ POP を定義から読む・ColonialPopTests.cs:82〜105 は植民地の大農園（欄を持たない＝T-b）・PaySalesMerchantTests は清算所の商人の分・Hz8IdentityTests は RentShareOf の上限＝どれも〈受け手が持ち主だけ〉を固定していない。
+  - (923) の後に main に入った試験（BillBlockedColumnsTests・CoupGateNanMarkTests・ForceReadGuardTests）は機構の軸に当たらない。
+- 赤の予言（データの木・焼き直しの後）＝WriterRatchetTests item 6（CostLedger.ClaimProducers・宣言 1809・:425）と item 11（DiploHegemonScans・宣言 3395620・:539）だけ（★(749)＝データで最初の 40 四半期の軌道が動く＝〈動きうる・合流が取り直す〉と種類で予言・線は触らない）。OpeningBakeTests 2 本は焼き直しで緑の予言。これ以外の赤が出たら腕 B を回さず止める。
+- ★(764) 焼き直し：bash scripts/instruments/hz4_490/bake.sh（種 1・上限 200・データの木）＝inputHash 81c222ceeec0309e→f78e327ccfa97644・sourceHash d3c7b810b27d76d0→7acdb71e783d739d・quartersRun 112→143・converged 真。capNames・producerNames・goods は同じ・nationTable は違う（データと木の差）。旗 OpeningBakeEnabled（Coefficients.cs:1936）は 0＝表は開かれない＝成績表に効かない予言。
+- フルスイート：Category!=FullLength と =FullLength を分け --list-tests と突き合わせる（suite930.sh・savetest と leakhunt つき）。予言の数＝nonfull 2412（main の 2410＋T-a・T-b）・full 3。
+
+[8] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- SimCore の .cs を触らない＝工業化度の読み手の許可表（IndustrializationReaderTests）・`new MoneyStock(` の件数・scripts/instruments/flow262/route_anchors.tsv の鍵の行・WriterRatchetTests の静的な宣言・UnitTypeTests・DormantIdentityTests（新しい旗なし）＝どれも件数の変化 0 の予言。走査の番人の組はフルスイートに含まれる（WriterRatchet item 6・11 だけ軌道の件数＝[7]）。
+
+[9] 段0 の予言・同じ盤面の新÷旧の表（★(919)）
+- 狙いの量（G-B2）：教会・農民・市民へ移る年の地代÷名目 GDP＝P（上の値）。向き＝増える（作りから）。〈悪くする〉ではない＝回す。
+- 新÷旧の表の列（tab930.py・腕÷基線と N1÷基線・N2÷基線を並べる・記録）：
+  ① 名簿 7 国の階級ごとの地代 landRentActual{Noble,Clergy,Peasant,Capitalist}PerQuarter（q0 と q0〜q39 の平均）
+  ② 名目 GDP nominalGdpPerYear（q0 と q0〜q39 の平均）
+  ③ 仏の開幕の政治の門（(909) の AiFirstWave:325・ReformPath:430 の信号の代わりの観測量）：reform_s の suffrageLawCode が q0 から最初に変わる四半期・wallPassCount の和・wallPassCostIndex の平均・blockedLawCount の平均（q0〜q39）・supportShare の q0
+  ④ 仏の関税 fiscal_s の ledgerTariffPerMonth（最初の 120 か月の平均）
+  基線どうしの雑音（tab930_base_vs_base.txt）：地代の貴族 0.98〜1.01・GDP 0.98〜1.01・市民の地代（送金）0.67〜2.16・仏の阻まれた法の平均 0.977〜1.012・関税 0.986〜1.017。
+- 予言（記録・符号だけ）：仏・西・英の貴族の地代は下がり（非賦存の (1−N′) 分）、教会・農民・市民は 0 から正へ。
+- 記録の先頭（採否に使わない）：仏の閉鎖の層の地代・資本家の所得・土地税と十分の一税の増分・農奴解放と土地改革の年・英の国債の不履行の種の数（m919 は 4/10）。
+- 計算量の割り当て＝0.5 秒（新しい経路なし・受け手の繰り返しが 1 組から最大 4 組になるだけ）。m919 の推定 211.7＋0.5＝212.2≦248.5。.cost で確かめる（2 秒以下＝1 本の腕で門にしない・記録）。
+
+[10] 止める線（この波の運用のまま＝scripts/instruments/c78gz/stoplines906.sh の 1 本・★(919)・腕 B を回す前に写す）
+- 止める物：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限・plvl）・〈100 倍〉は gdp_jump906 --founding の〈それ以外〉の行だけ・開幕の 1000 倍以上（作者 2026-10-29〜30 の発散の規則＝直前の数年に敗戦・内戦・疫病・封鎖・国家の崩壊があれば見逃す・無ければ注視の先頭・同じ国で半分以上の種なら NG＝止める）・推定の計算量 ＞248.5 秒・機構と不変条件の試験の赤（走査の番人を含む・[7] の予言の外）。
+- 州の空洞化：ピークの 1/10 未満で名簿の外（規則 A2＝an_h2.py の既定 -ex rule・-v4）で、その線が原因と読めた件だけ止める＝基線（keep_926/base_ins・同じ種・同じ州）がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。主要国の州は例外にしない。
+- 記録の欄（ヌル腕の件数と並べる）：〈建国の後の 0 の続き〉〈建国の直後〉〈分母の痩せ〉・gdp_zero10（名目 GDP 0 が 4 四半期以上・人口 1 万以上＝記録の先頭）・政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期（㊳）。基準とヌル腕は measurements/m919_20261107/armM・null・armS11 の stop906_* を同じ台本で数えた物と並べる。
+- 記録（採否に使わない）：NG（ng.sh・基準 rd:measurements/ng919_20261107:m919・読み手の出力は D:/… の形）・exact・near・国力・史実の線・補給崩壊の倍化・nullgate.py。NG にするのは〈確証なし×バランスを壊す〉の両方が揃ったときだけ（home_break.py の本国の版を名簿の国で読む）。
+
+[11] 腕と D:
+- 腕 B：`INS=1 bash scripts/instruments/batch.sh run c81laB 10`（計器つき 10 種・POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。S11：`POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c81laS 10 11`。成否は終了コード（0 完走・2 計器の国が空・3 ARMFULL・4 BATCHFAIL）と成績表の両方。
+- 順（この回）：cw の腕 B（11:42 に完走）→ この線のフルスイート → この線の腕 B → cw の S11 → この線の S11 → sm と im の ident。起こす前に arms.sh free と shutil の空きを見る（床＝腕 B 36＋5GB・S11 30＋5GB）。書いた時点の空き 148.2GB・arms.sh free 6。
+- 生は反証役が読んだら〈門と止める線の表＋keepsum〉へ縮め、合流の判断まで残す。src_* は腕の後に消す。
+
+[12] 手順の名乗り（指示から外れる所）
+- 指示は〈最初の確かめ＝データの木のフルスイート（事前登録の前）〉→〈事前登録〉→〈旗 1 のフルスイート〉の 2 回。この線は 1 回にした：焼き直しの前の赤の区分は絞り込みの 39 本（[6]）と (923) 門 (ii) で確かめ、フルスイートは焼き直しの後の木（コミットするバイトと同じ作業の木）で 1 回だけ回す（savetest・leakhunt つき）。走り始めた時点の作業の木の差の sha256 を D:/PoB_work/c81la_work/suite_tree_diffsha.txt に残した＝データのコミットの木と一致することを報告で確かめる。この事前登録はフルスイートの結果を読む前にコミットする。

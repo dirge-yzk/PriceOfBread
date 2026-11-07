@@ -1,0 +1,49 @@
+AdminServesRuleTests.cs:56:        foreach (var rg in w.Regions) { rg.Rule = [0.5, 0.4, 0.1, 0.0]; rg.AdminFill = fill; foreach (var q in rg.Pops) { q.EarnedPerMonth = ne
+AiFirstWaveTests.cs:35:        var cfg = NationConfig.France().ShallowClone(); cfg.LandOwnership = null;   // ★(914) 土地の持ち分のデータの有無に依らず
+ColonialPopTests.cs:70:    /// <summary>★(173) R1：輸出代金（清算の受け取り＝InternationalMarket.PaySales）のうち植民地の輸出作物の大農園�
+ColonialPopTests.cs:82:        double paid = InternationalMarket.PaySales((null, null), col, Catalog.SugarCaneId, 1000.0, w);
+ColonialPopTests.cs:99:        local.SetSavings(500); local.LandRentPerMonth = new MoneyPerMonth(200); local.EarnedPerMonth = new MoneyPerMonth(200);
+ColonialPopTests.cs:100:        double i0 = inv.Savings.Value, ie0 = inv.EarnedPerMonth.Value, il0 = inv.LandRentPerMonth.Value;
+ColonialPopTests.cs:104:        Assert.Equal(300, local.Savings.Value, 9); Assert.Equal(0, local.EarnedPerMonth.Value, 9); Assert.Equal(0, local.LandRentPerMonth.Value, 9
+ColonialPopTests.cs:105:        Assert.Equal(i0 + 200, inv.Savings.Value, 9); Assert.Equal(ie0 + 200, inv.EarnedPerMonth.Value, 9); Assert.Equal(il0 + 200, inv.LandRentPe
+ConservationTests.cs:63:        //   ⚠2026-09-29（段3-1）から輸出代金は全額が清算所（世界の外）から④の持分（持ち主・国庫・労働）
+CriminalVesselTests.cs:148:        p.LandRentPerMonth = new MoneyPerMonth(500);
+Hz8IdentityTests.cs:43:                    Assert.Equal(Bits(Math.Min(share, cap)), Bits(EconomyStep.RentShareOf(rgo, r, coef)));   // 産地＝小さい方
+Hz8IdentityTests.cs:44:                    Assert.Equal(Bits(share), Bits(EconomyStep.RentShareOf(fac!, r, coef)));                  // 工場＝上限に縛られない
+InstrumentsTests.cs:29:        if (noLandData) cfgs = [.. cfgs.Select(c => { var d = c.ShallowClone(); d.LandOwnership = null; return d; })];   // ★(914) 土地の持�
+InstrumentsTests.cs:517:            // ★(264) 反証役 rv 中#1・低#2：経路名は呼び手の位置。PaySales／Procure の中の Transfer（InternationalMarket.
+InstrumentsTests.cs:518:            //   期待値はソースの本文から作る（計器の出力から作らない）：清算所の払い（BilateralMarket.cs の P
+InstrumentsTests.cs:521:            int clearingLine = Array.FindIndex(bilat, l => l.Contains("PaySales((null, null), rS, g,")) + 1;
+InstrumentsTests.cs:522:            Assert.True(clearingLine > 0, "清算所の PaySales の行がソースに見つからない");
+InstrumentsTests.cs:1281:    /// （<c>Transfer(</c>・<c>Blend(</c>・<c>PaySales(</c>・<c>Procure(</c>・<c>GiveGold(</c>・<c>TakeGold(</c>）を含むことを確か
+InstrumentsTests.cs:1300:        string[] calls = ["Transfer(", "Blend(", "PaySales(", "Procure(", "GiveGold(", "TakeGold("];
+LandbaseInstrumentTests.cs:41:                    foreach (var p in r.Pops) b += Math.Max(0, p.LandRentPerMonth.Value);
+LandbaseInstrumentTests.cs:66:    /// <summary>主食の RGO（IsRgo・主食・倒産でない・産出＞0）の産出で重みを付けた地代の取り分（エン�
+LandbaseInstrumentTests.cs:73:            num += s.Output * EconomyStep.RentShareOf(s, r, w.Coef); den += s.Output;
+LandbaseInstrumentTests.cs:97:                if (q == 0) foreach (var r in sim.Nations[0].World.Regions) { double s = 0; foreach (var p in r.Pops) s += Math.Max(0, p.Lan
+LandbaseInstrumentTests.cs:113:        foreach (var r in fr.Regions) { var s = r.Pops.FirstOrDefault(p => p.IsSoldier && !p.IsCriminal && p.Size > 1e-9); if (s is null) c
+LandbaseInstrumentTests.cs:115:        foreach (var r in fr.Regions) { var s = r.Pops.FirstOrDefault(p => !p.Closed && !p.IsCriminal && !used.Contains(p) && p.LandRentPer
+LandbaseInstrumentTests.cs:143:            foreach (var p in r.Pops) p.LandRentPerMonth = new MoneyPerMonth(0);
+LandbaseInstrumentTests.cs:146:        foreach (var r in uk.Regions) if (r.Name != b.E.ZeroRegion && r.Pops.Any(p => p.LandRentPerMonth.Value > 0)) b.E.PositiveRegions.Ad
+LandbaseInstrumentTests.cs:170:                double rent = p.LandRentPerMonth.Value;
+LandbaseInstrumentTests.cs:319:                foreach (var r in w.Regions) foreach (var p in r.Pops) { l.Add(BitConverter.DoubleToInt64Bits(p.LandRentPerMonth.Value)); l
+PaySalesMerchantTests.cs:6:/// <summary>★(486) 保存則の穴の番人：清算所が払い手の売上（<see cref="InternationalMarket.PaySales"/>）で、その財�
+PaySalesMerchantTests.cs:12:public class PaySalesMerchantTests
+PaySalesMerchantTests.cs:30:        double moved = InternationalMarket.PaySales((null, null), r, g, 100.0, w);
+PaySalesMerchantTests.cs:46:        InternationalMarket.PaySales((null, null), r, g, 100.0, w);
+PaySalesMerchantTests.cs:60:        double moved = InternationalMarket.PaySales((w, [payer]), r, g, 50.0, w);
+PaySalesMerchantTests.cs:71:        double moved = InternationalMarket.PaySales((null, null), r, g, 100.0, w, minted: true);
+PaySalesMerchantTests.cs:87:            InternationalMarket.PaySales((null, null), r, g, 100.0, w);                 // 清算所・鋳造でない → fixHit（直しが�
+PaySalesMerchantTests.cs:88:            InternationalMarket.PaySales((null, null), r, g, 30.0, w, minted: true);    // 清算所・鋳造 → mintEmpty と mintUnmoved（
+PaySalesMerchantTests.cs:89:            InternationalMarket.PaySales((w, [payer]), r, g, 50.0, w);                  // POP が払い手 → popEmpty
+PaySalesMerchantTests.cs:90:            InternationalMarket.PaySales((w, null), r, g, 20.0, w);                     // 国庫が払い手 → treasEmpty
+PaySalesMerchantTests.cs:112:            InternationalMarket.PaySales((null, null), r, g, 100.0, w);
+ReformPathTests.cs:15:        var cfg = NationConfig.France().ShallowClone(); cfg.LandOwnership = null;   // ★(914) 土地の持ち分のデータの有無に依らず�
+RuleSharesFormTests.cs:239:        foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier) rentBefore += p.LandRentPe
+RuleSharesFormTests.cs:242:        foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier) rent += p.LandRentPerMonth
+SubstInstrumentTests.cs:145:                    double rent = Math.Max(0, p.LandRentPerMonth.Value);
+TaxTests.cs:125:        Assert.True(ruNoble.LandRentPerMonth.Value > 0, "農奴制の貴族が地代を受け取っていない");
+TaxTests.cs:126:        Assert.Equal(0.0, ruPeasant.LandRentPerMonth.Value);         // 農奴は地代を受け取らない（労働の売上のみ）
+TaxTests.cs:127:        Assert.True(usPeasant.LandRentPerMonth.Value > 0, "自作農が自分の農場の地代を受け取っていない");
+TreasuryLedgerTests.cs:307:                foreach (var p in r.Pops) { p.SetSavings(p.Savings.Value * (2)); p.EarnedPerMonth *= 2; p.LandRentPerMonth *= 2; p.BondHoldings
+UnitTypeTests.cs:122:        (typeof(Pop), "LandRentPerMonth", typeof(MoneyPerMonth)),
