@@ -32,7 +32,7 @@ public class EmptyPopDebtFirstTests
 
     private static double HouseholdDebt(World w) { double d = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) d += p.Debt.Value; return d; }
 
-    private static void On(World w) { w.Coef.EmptyPopEstate = 1; w.Coef.EmptyPopDebtFirst = 1; }
+    private static void On(World w) { w.Coef.EmptyPopEstate = 1; w.Coef.EmptyPopDebtFirst = 1; w.Coef.EmptyPopDebtToHeirs = 0; }   // (936) 前提を既定に頼らず明示：B1（債務を相続人へ）は切る＝B5 だけを確かめる
 
     [Fact]
     public void 貯蓄が債務に足りれば相続の前に全額返し_残りだけが相続人へ()
@@ -110,7 +110,7 @@ public class EmptyPopDebtFirstTests
     public void 旗0では債務に触れず今の相続のまま()
     {
         var sim = Two(1915UL); var w = sim.Nations[0].World;
-        w.Coef.EmptyPopEstate = 1; w.Coef.EmptyPopDebtFirst = 0;
+        w.Coef.EmptyPopEstate = 1; w.Coef.EmptyPopDebtFirst = 0; w.Coef.EmptyPopDebtToHeirs = 0;   // (936) 前提を既定に頼らず明示（B1 は切る）
         var r = Pick(w);
         var a = EmptyWithDebt(w, r, 700, 300);
         var live = r.Pops.Where(p => p.Size > 1e-12).ToList();
