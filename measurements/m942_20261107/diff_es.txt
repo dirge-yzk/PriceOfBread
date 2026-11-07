@@ -1,0 +1,39 @@
+diff --git a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+index b4c262cd..7288060c 100644
+--- a/PriceOfBread.SimCore/EconomyStep.cs
++++ b/PriceOfBread.SimCore/EconomyStep.cs
+@@ -722,6 +722,17 @@ public static class EconomyStep
+     /// 書き込みの行は所得・地代とも 1 本（受け手ごとに行を足さない＝WriterRatchetTests）。</summary>
+     internal static void PayOwnerRent(World? world, Region region, Producer s, double rent, Coefficients coef)
+     {
++        if (Instruments.On && world is not null && s.IsRgo) Instruments.LandbaseRgoRent(world, region, s, rent);   // ★(937) 計器（読むだけ）：RGO の割る前の地代（計器は凍結の写しと割り方を自分で持つ）
++        // ★(937) 定額の土地税の基数（旗 LandTaxFixedBasis＞0・定額の国だけ）：助走（WarmupFrozen）の月ごとに RGO の地代で凍結を上書きし（正でなければ null）、助走の後は上書きしない＝助走の最後の月の地代が凍結の値。
++        //   その後は〈凍結×持ち分−今の地代の正の部分〉を受け手の差分へ積む。助走の無い木（単国の試験・StartWarmupQuarters＝0）は凍結が立たない＝収穫比例（形の変え直し 1 回目・事前登録 [14]）。
++        //   不在地主の RGO（Colonial.AbsenteeRgo）は凍結しない＝Colonial.RemitAbsenteeRent が地代を移しても差分は動かない（差分を積むのは凍結した RGO だけ）。
++        double? fz = null;
++        if (coef.LandTaxFixedBasis > 0 && world is not null && world.LandTaxBasisFixed && s.IsRgo)
++        {
++            if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))
++                s.FrozenLandRentPerMonth = rent > 0 ? new MoneyPerMonth(rent) : null;
++            fz = s.FrozenLandRentPerMonth?.Value;
++        }
+         var ls = s.LandShares;
+         for (int k = 0, nk = ls is null ? 1 : ls.Length; k < nk; k++)
+         {
+@@ -730,6 +741,7 @@ public static class EconomyStep
+             double rk = ls is null ? rent : rent * ls[k];
+             region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);
+             if (s.IsRgo && rk > 0) region.Pops[rp].LandRentPerMonth += new MoneyPerMonth(rk);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
++            if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth += new MoneyPerMonth((ls is null ? f : f * ls[k]) - Math.Max(0, rk));   // ★(937) 凍結の差分（凍結の月は 0）
+             if (s.IsRgo && rk > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[rp].ClassId == PopClass.Noble)
+                 Privileges.Record(world, Privileges.Seigneurial, rk * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
+         }
+@@ -844,7 +856,7 @@ public static class EconomyStep
+             // ★ゼロ化の直前に前期の所得を退避（私的投資の原資が読む・2026-08-04）。⚠この行は複数文が並ぶ＝行途中にコメントを挿すと以降が全部コメントアウトされる（実際に踏んで平均充足0＝31テスト赤）
+             p.LastEarnedPerMonth = p.EarnedPerMonth;
+             p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
+-            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
++            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasisAdjPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
+             p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
+         }
+         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
