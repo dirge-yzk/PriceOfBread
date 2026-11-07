@@ -1,0 +1,37 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (104 ミリ秒)。
+  D:\PoB_work\c83tf_work\mut1\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (367 ミリ秒)。
+  D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (363 ミリ秒)。
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\EconomyStep.cs(1729,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\Instruments.cs(2513,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c83tf_work\art_m1\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.App\Controls\TableView.cs(74,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c83tf_work\mut1\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c83tf_work\art_m1\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\ConservationTests.cs(956,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(322,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(322,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(323,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(323,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c83tf_work\art_m1\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c83tf_work\art_m1\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:10.73]     PriceOfBread.Tests.InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる [9 s]
+  エラー メッセージ:
+   フランス パリ Q0 束 117.1 ÷束 0.01 [1.505E-05,1.673E-05] | フランス ルアーヴル Q0 束 58.68 ÷束 0.01 [7.233E-05,7.539E-05] | フランス リヨン Q0 束 97.51 ÷束 0.01 [2.069E-05,2.164E-05] | フランス マルセイユ Q0 束 86.77 ÷束 0.01 [2.306E-05,2.552E-05] | フランス ボルドー Q0 束 81.28 ÷束 0.01 [2.746E-05,3.109E-05] | フランス リール Q0 束 75.61 ÷束 0.01 [2.682E-05,2.975E-05] | フランス トゥールーズ Q0 束 57.7 ÷束 0.01 [7.863E-05,8.105E-05] | フランス アジャクシオ Q0 束 1.326 ÷束 0.01 [0.00072,0.0007465] | イギリス ロンドン Q0 束 13.36 ÷束 0.01 [4.982E-05,5.464E-05] | イギリス マンチェスター Q0 束 13.94 ÷束 0.01 [6.393E-05,6.734E-05] | イギリス バーミンガム Q0 束 19.83 ÷束 0.01 [7.448E-05,7.938E-05] | イギリス グラスゴー Q0 束 28.59 ÷束 0.01 [8.26E-05,8.866E-05] | イギリス ダブリン Q0 束 48.16 ÷束 0.01 [3.526E-05,3.782E-05] | フランス ルアーヴル Q1 束 15.32 ÷束 0.01 [7.233E-05,8.216E-05] | フランス トゥールーズ Q1 束 16.02 ÷束 0.01 [7.863E-05,8.465E-05] | フランス アジャクシオ Q1 束 7.435 ÷束 0.01 [0.000726,0.0008168] | イギリス ロンドン Q1 束 2.235 ÷束 0.01 [6.004E-06,5.33E-05] | イギリス マンチェスター Q1 束 5.174 ÷束 0.01 [8.425E-06,6.671E-05] | イギリス バーミンガム Q1 束 3.315 ÷束 0.01 [6.773E-05,8.421E-05] | イギリス グラスゴー Q1 束 15.37 ÷束 0.01 [1.032E-05,8.949E-05] | イギリス ダブリン Q1 束 1.481 ÷束 0.01 [3.118E-05,3.872E-05] | フランス ルアーヴル Q2 束 0.7777 ÷束 0.01 [8.216E-05,8.97E-05] | フランス トゥールーズ Q2 束 0.9181 ÷束 0.01 [8.465E-05,9.103E-05] | フランス アジャクシオ Q2 束 14.78 ÷束 0.01 [0.0006761,0.0008425] | イギリス ロンドン Q2 束 2.771 ÷束 0.01 [4.043E-05,4.765E-05] | イギリス マンチェスター Q2 束 3.712 ÷束 0.01 [5.604E-05,6.376E-05] | イギリス バーミンガム Q2 束 2.788 ÷束 0.01 [6.405E-05,8.027E-05] | イギリス ダブリン Q2 束 2.289 ÷束 0.01 [4.584E-06,3.668E-05] | フランス アジャクシオ Q3 束 3.409 ÷束 0.01 [0.0006761,0.0008124] | イギリス マンチェスター Q3 束 0.1921 ÷束 0.01 [5.61E-05,6.473E-05] （231／302）
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる() in D:\PoB_work\c83tf_work\mut1\PriceOfBread.Tests\InstrumentsTests.cs:line 2317
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+done 1

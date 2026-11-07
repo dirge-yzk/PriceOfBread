@@ -1,0 +1,99 @@
+# (944) c83hd 事前登録：B1〈人の居ない POP の債務を相続人が受ける〉の再走（波83・挙動・旗 EmptyPopDebtToHeirs・B5 のテーマの新しい形の 1 回目＝(936) は腕 0 本で数えない・落ちたら次が最後）
+# 担当 Claude Opus 5.5・枝 c83hd（main d313515b から）・worktree D:/PoB_work/wt_c83hd・作業 D:/PoB_work/c83hd_work
+# 基準 m933（成績表 b10_20261107_m933_ins・b5_20261107_m933・b10s11_20261107_m933_ins・生 D:/PoB_work/keep_933/{base_ins,n1,n2,a11}）・NG の基準 rd:measurements/ng933_20261107:m933
+# AI の案・確証なし。材料：docs/202611/20261107/20261107_人の居ない商人の手形の詰まり_B5の根とB1の材料_下書き.md §3〜§4 と末尾の訂正（★(919) 合流の反証役）・measurements/m936_20261107_prereg_hd.txt・measurements/m936_20261107/。
+# 作者の答え：00一覧 §0-2 ★(940) ①（前提の明示 3 か所は ㉜ の〈旧の規則を固定する番人〉に当たるか）は答えが無い＝推奨〈当たらない〉で進める〈作者「全て推奨で」で推奨を採った〉。★(919) ③（相続人が損の出る輸入を払い続ける形）は事前登録で名乗り U2 で読む〈作者「全て推奨で進めてください」で推奨を採った〉。
+# 形の種類：〈入口〉（植民地格の州で人の居ない商人が払い手のときの輸入の道を開く。紙で kind2 の行は植民地格の行の 約 64%＝尾ではない）。
+# この事前登録は (936) の事前登録 [1]〜[13] をそのまま引き継ぐ（形・門・閾値・止める線は 1 字も変えない）。下は (936) からの違いと足した読みだけを書く。違いの無い節は「(936) の [n] のまま」と書く。
+
+[0] (936) からの違い（要点）
+- 木：d313515b（main・(940) の後）＋ 6cbb8917（器・cherry-pick）＋ 名と注の直しのコミット（下の [7-2]）＋ c83tf の印の sha（InstrumentsTests.cs:2240 の直し・cherry-pick）＋ f76dbb2e（点火・cherry-pick）。
+- 84688034→d313515b の差は、触る 7 ファイルのうち Coefficients.cs 1 行（c82sm の注）と BillBlockedColumnsTests.cs 1 行（:144・c82sm）だけ（git diff --stat）＝(936) の行番号はそのまま当たる見込み。cherry-pick で衝突したら行を取り直してここへ追記する。
+- 6cbb8917 は measurements/m936_20261107/scan_flag0.txt と scripts/instruments/c82hd/mut936.py を含む＝main に (940) が写した物と同じ中身の見込み（衝突なら main 側を残す）。
+- 突然変異の表の M0 の予言の誤記を直す（[5]）。
+- 走査の番人は器のコミットの後に回し、出力の頭に HEAD を書く（(936) は 17 秒前の作業の木で回した＝㉘ の順の違反）。組に TechLevelRemovalTests を足す（[6]）。
+- 足した読み：[12]（(936) 反証役 中）・[13]（★(818)・★(899)・★(919)・★(885)）。
+- 台本：scripts/instruments/c83hd/（arm944.sh・reads944.sh・suite944.sh・probe944.py）。門の台本は scripts/instruments/c82hd/gate936.py を 1 字も変えずに使う（定義を変えない）。突然変異は scripts/instruments/c82hd/mut936.py をそのまま使う。
+
+[1] grep の引用：(936) の [1] のまま（器 6cbb8917 の EmptyPopEstate.cs の :17・:23・:25・:31 と Core の後の DebtToHeirs・Coefficients.cs:3336 EmptyPopDebtToHeirs・DormantIdentityTests.cs:145）。:31 の World.Transfer は cearn_s の経路の名＝この行を動かさない。
+
+[2] 形：(936) の [2] のまま（変えない・新しい状態 0・係数のリテラル 0・新しい計器 0＝ident は回さない）。
+- Pop.Carry を呼ばず、債務の対の 2 文（Model.cs:307〜:308 の債務の側）を DebtToHeirs に直接書く（WriterRatchetTests.cs:207 が Pop.Carry の呼び手を MultiNationSim.cs に閉じる）＝移しは cpop_s の debtInCarryPerQuarter に載らない（名乗り・(936) と同じ）。
+- 塵（★(919) ③ の訂正 3）：人数の比のまま入れる（寄せない）。T1b で固定・〈人の居る非商人の塵の行〉を新÷旧の列で記録。
+
+[3] 新しく開く道：(936) の [3] のまま。損の出る輸入の債務を相続人が受け、:580 の不渡りの門が効かなくなる形は U2（記録）で読む＝★(919) ③〈作者「全て推奨で進めてください」で推奨を採った〉。
+
+[4] 門：(936) の [4] のまま（定義＝scripts/instruments/c82hd/gate936.py・結果を見る前に固定・腕 B と S11 の両方）。
+| 門 | 側 | 閾値 | 旗 0 の紙 base／n1／n2（(936) の keep_933 の値・measurements/m936_20261107/paper_*.txt） | 旗 0 で |
+|---|---|---|---|---|
+| W1 働いた | 下 | ≧0.60 | 0.0026／0.0027／0.0025 | 落ちる |
+| W2 働いた | 下 | ≧0.80 | 0.0041／0.0044／0.0046 | 落ちる |
+| U1 形の誤り | 上 | ＝0 | 1,195,026／1,128,697／1,286,058 | 落ちる |
+| U2 形の誤り（記録） | 上 | 記録（ヌル腕の幅 0.000160〜0.000873 と並べる・〈最大以下〉と尾の門にしない） | 0.000160／0.000873／0.000578 | — |
+| U3 保存 | 両 | ConservationTests.cs:190（短い走行）・:199（FullLength）の赤 0 | 緑 | 機構のテスト＝止める線 |
+| T1〜T8 | — | 緑（EmptyPopDebtToHeirsTests 9 本） | 旗 0 の T7 だけ緑 | — |
+- 天井の目安（kind1）0.9209／0.9286／0.9175・noheir 0（(936) の紙）。U1 ＞0 なら落とす（読み替えない）。
+- S11 の基準は keep_933/a11。POB_CEARN=0 の走りは cearn_s・cgrp_s を書かず、keep_933/a11 には cpop_s も無い（ls で 0 本）＝W1・W2・U1・U2 は S11 では読めない。S11 は〈読めない〉と書き、止める線・U3（機構のテスト）・成績表（記録）だけを読む。結果を見る前にここで固定する（(936) [4] の〈腕 B と S11 の両方〉は S11 では読める物だけ）。
+
+[5] 突然変異ごとの赤の表（予言・使い捨ての木 D:/PoB_work/c83hd_work/mut で mut936.py・旗の既定を 1 にした木の上・成績表の列は紙の予言で腕は回さない）
+| 突然変異 | W1 | W2 | U1 | U2 | U3（:190） | 単体（予言） |
+|---|---|---|---|---|---|---|
+| M0 何もしない | 赤 | 赤 | 赤 | — | 緑 | T1・T1b・T3・T4・T5・T8 赤（T2・T6・T7 緑）※(936) の〈T2 の移った量〉は誤記＝T2 は和の保存だけを見る＝M0 で緑 |
+| M1 送り手を 0 にしない | 赤の見込み | 赤の見込み | 赤 | — | 緑 | T1 赤 |
+| M2 相続人へ渡さない | — | — | — | — | 赤 | T1・T1b・T2・T3・T4・T5・T8 赤 |
+| M3 2 倍渡す | — | — | — | 赤の見込み | 赤 | T1・T1b・T2・T3・T4・T5・T8 赤 |
+| M4 貯蓄 ＞0 の送り手だけ | 赤の見込み | 赤の見込み | 赤 | — | 緑 | T1・T1b・T3・T4・T5・T8 赤（どの盤面も送り手の貯蓄 0） |
+| M5 相続人が返せる時だけ | 弱い | 弱い | 赤 | — | 緑 | T4 赤 |
+| M6 重みを貯蓄で | — | — | — | — | 緑 | T1・T1b・T4・T5 赤 |
+- (936) の実測（mutation_summary.txt）との突き合わせで M4・M6 の単体の列は実測へ寄せた（(936) の予言より多い赤＝記録）。この木で全てを取り直し、予言と違えば記録に書く（門は変えない）。
+- OK（突然変異なし・旗 1）＝10 本全て緑が前提。
+
+[6] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）（d313515b で grep し直した）
+- IndustrializationReaderTests の許可表：EmptyPopEstate.cs の行 0＝変わらない（0）。
+- `new MoneyStock(`：SimCore の件数 64（grep）・器は 0 本足す（6cbb8917 の EmptyPopEstate.cs に 0）＝UnitTypeTests の宣言は変わらない。
+- scripts/instruments/flow262/route_anchors.tsv：EmptyPopEstate の鍵の行 0＝変わらない。
+- WriterRatchetTests.cs:207 `Pop.Carry(` の呼び手の表：呼ばない＝0。計算量の宣言の表：旗 0 の木では 0。旗 1 の木では軌道が動く＝★(749) の区分の赤 0〜3 本（(936) の実測は item 1・9・11 の 3 本＝+13.7%・+5.9%・+32.4%）＝予言の内の赤はこの 3 本だけ。線では取り直さず報告に列挙する。
+- OnDoubleReadScanTests.cs:23 `EmptyPopEstate.cs::Core#0 = 3`：3 のまま。
+- DormantIdentityTests：器で +1 行（EmptyPopDebtToHeirs）・点火で〈点火＝この表から外した〉の注へ置き換え。
+- 回す組（器のコミットの直後・隔離ビルド D:/PoB_work/c83hd_work/art_scan・出力の頭に HEAD）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests・TechLevelRemovalTests と相続の試験（EmptyPopDebtToHeirsTests・EmptyPopDebtFirstTests・EmptyPopEstateTests・BillBlockedColumnsTests・HeirDebtSettledMovedTests）。
+
+[7] 旗 1 の木で番人が旧の規則を固定していないかの grep（㉜・★(818) の 2 軸）：(936) の [7] のまま。
+- [7-1] 前提の明示 3 か所（EmptyPopDebtFirstTests.cs:35・:113・BillBlockedColumnsTests.cs:103 に `w.Coef.EmptyPopDebtToHeirs = 0;`・Assert は不変）＝★(940) ① の推奨〈当たらない〉で進める（新しい規則の側は T8 が同じ盤面〔債務 500・貯蓄 300〕で持つ）。
+- [7-2] 試験の名と注の直し（(936) 反証役 低・★(940) ①）：EmptyPopDebtFirstTests.cs の〈…残りの債務は持ち越して相続しない〉の試験は、B1 が置き換える規則そのものの名だった＝名と注を〈B1 が 0 のときの B5〉の意味へ直す（Assert・盤面・母集合は 1 字も変えない＝名と注だけ）。器の cherry-pick の後の別のコミット。
+- [7-3] InstrumentsTests.cs:2240 は c83tf の直し（印 D:/PoB_work/c83tf_work/handoff.mark の sha）を cherry-pick する。自分では直さない。印が FAILED か 150 分で来なければ腕を回さず報告する。直しの後の旗 1 のフルスイートで :2240 が赤なら止める。
+- 予言の内の赤＝WriterRatchet の item 1・9・11 だけ。それ以外の赤が旗 1 のフルスイートで出たら腕 B を回さず止める（㉜）。--list-tests は Category!=FullLength 2427＋FullLength 3 の見込み（m933 の 2418＋EmptyPopDebtToHeirsTests 9 本・c83tf が試験の数を変えたら名乗る）。
+
+[8] 止める線：(936) の [8] のまま（scripts/instruments/c78gz/stoplines906.sh の 1 本・基準とヌル腕は measurements/m933_20261107/{armM,null,armS11}/stop906*.txt と同じ台本で並べる・空洞化 1/10 未満は an_h2.py -v4・規則 A2 の名簿の外で〈線が原因〉が 1 件でもあれば止める＝基線 keep_933/base_ins の同じ種・同じ州が既にピークの 1/4 未満なら〈元からの弱さ〉で止めない・推定の計算量 ＞248.5 秒・機構のテストの赤〔走査の番人を含む〕・破綻）。〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期〉はヌル腕の件数と並べる（㊳）。名目 GDP 0 の続きは gdp_zero10.py（記録の段の先頭）。
+
+[9] 計算量の割り当て：0.2 秒（据え置き）。
+- 理由：WriterRatchet の +5.9〜+32.4% は最初の 40 四半期・1 種の軌道の件数の宣言で、全長の CPU 秒ではない（同じ型の表の動きは過去の波で全長の .cost では数 % 以下＝★(784) の DiploHegemonScans +57.3% が全長 −0.7%）。
+- 読み方：腕 B の .cost の推定を m933 212.2・N1 211.1・N2 212.0 と並べる（記録・2 秒以下は 1 本の腕で門にしない）。門は上限 248.5 秒だけ。余り 約 36.3 秒は c83ic・c83lt と共有。
+- [12] で〈B1 が原因〉と読めたら（下の読み方）、割り当てを腕 B の .cost の差（m933 との差）で取り直して報告に書く（門は変えない）。
+
+[10] 段0 の予言：(936) の [10] のまま（W1・W2 は 0.003〜0.005 から天井の目安 0.92 の近くへ・U1 0・U2 上がる〔大きさは紙で出せない＝記録〕・Σ moved 0→正・Σ heirSettled 上がる・Σ billBlocked 下がる・塵の行 上がりうる）。紙は門の破れを予言しない（㉗ の追記は要らない）。
+
+[11] 新÷旧の表の列：(936) の [11] のまま（同じ盤面＝腕 B と keep_933/base_ins・S11 と keep_933/a11）。
+
+[12] 足す読み（(936) 反証役 中〈旗 1 でパリが Q14〜Q16 にフランスを離れ、外交の計算量 +32%＝B1 が開幕 4 年でフランスの政治の軌道を分けた疑い〉・低〈計器の国の絞りで読めていない〉）
+- 台本 scripts/instruments/c83hd/probe944.py（読むだけ・決定を変えない・使い捨ての木 D:/PoB_work/c83hd_work/probe）：InstrumentsTests.cs:2240 の試験の走り（種 1789・20 四半期）を 4 通りで回す＝旗 0・旗 1・n1（旗 0＋SupplySlope 0.50000001）・n2（旗 0＋0.49999999）。
+  - 計器の国の絞り（イギリス・フランス）を全ての国（"*"）へ広げる（計器は読むだけ＝軌道は変わらない。旗 0 の走りで試験の判定〔bad 0／checkedRows〕が (936) の probe_flag0 と同じことで確かめる）。
+  - 各四半期の Snap の頭で、国の数・国の名の一覧・パリを持つ国を書く。試験の判定の直前に計器のフォルダを写す。
+- 読む物（集計は ana944.py）：
+  - ① 旗 1 の Q0〜Q13 のフランスの全ての州の estateDebtMovedPerQuarter（cearn_s）＝州ごとの和と ＞0 の四半期の数。旗 0 も並べる（旗 0 は 0 の見込み）。
+  - ② 4 通りの Q16 までの国の数と分離の年表（新しい国が現れた四半期と名・secession_s の行・cederule_s の行）。
+  - ③ パリが離れた四半期の持ち主（離れた先の国）と原因の経路（cederule_s の how・sender・receiver／secession_s の行／戦争と内戦の月〔nation_s の atWarMonths・civilWarMonths〕）。
+- 読み方（結果を見る前に固定）：
+  - 〈B1 が原因と読める〉＝①で旗 1 のフランスの州に Q0〜Q13 の間に estateDebtMoved ＞0 があり、かつ n1・n2 の両方でパリが Q16 までフランスを離れない。
+  - 〈軌道の揺れと読む〉＝n1 か n2 のどちらかでパリが Q16 までにフランスを離れるか、①が全て 0。
+  - どちらでも決定は変えない（試験の直しは c83tf・腕 B へ進むかは [7] の規則だけ）。〈B1 が原因〉なら [9] の割り当ての取り直しと、止める線の読みでフランスの行を先頭に並べる（読みの順だけ・門は変えない）。
+- 旗 1 の全長（腕 B）では、同じ ① を種 1〜10 の cearn_s のフランスの州の Q0〜Q13 で読み、keep_933/base_ins と並べる（記録）。
+
+[13] 足す突き合わせ（記録・決定を変えない）
+- ★(818) の 2 軸：機構の軸（EmptyPopEstate・Pop.Carry・CearnBillSettle・:580）と盤面の軸（空の商人のある州の試験）の grep は [7] のまま。
+- ★(899) の突き合わせ：突然変異の実測の赤と [5] の予言を 1 行ずつ並べる（違いは記録）。
+- ★(919) の新÷旧の表：[11] の列を keep_933/base_ins に対する比で書く（0 の基準は〈0→値〉と書く）。
+- ★(885) の周辺の点検：:579 の決済 ①・:580 の手形（コードは変えない）・Take の床（Model.cs:359・塵）・HouseholdLoans の保存（T2・U3）＝(936) の [12] のまま。腕 B の後に、Σ heirDebtSettled と相続人の側の塵の行（0＜debt≦1e-12 の人の居る非商人）を新÷旧で書く。
+
+[14] D: と順：腕 B の床 41GB＋5・S11 35GB＋5（起こす前に shutil）。順＝c83ic の腕 B → c83hd の腕 B → c83lt の腕 B → c83ic の S11 → c83hd の S11 → c83lt の S11（計画の順）。D: の空きは 179.0GB（2026-11-07・計画の時点）。
+
+[15] 3 回の規則：B1 は B5 のテーマの新しい形の 1 回目（(936) は数えない）。腕の前のフルスイートで予言の外の赤が出て止めたか、印が来ずに止めたなら、数えない。

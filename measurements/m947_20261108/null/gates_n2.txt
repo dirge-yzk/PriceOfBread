@@ -1,0 +1,5 @@
+# paper943 mut=M0
+D:/PoB_work/m947/out_n2_10/ins	seeds=10	impPerSeed=[54, 29, 38, 67, 22, 40, 31, 58, 48, 56]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=443
+  other: chainGroups=42  monarchWinner=274  rec_UK_constToMonarch=34  rec_relabelAfterImp=109
+  trans(head->after,monarchWinner): 無->絶対:81 絶対->絶対:173 専制->専制:20

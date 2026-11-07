@@ -1,0 +1,1 @@
+m947 G2 456 [38, 31, 71, 44, 53, 50, 53, 29, 46, 41] monarchW 303 imposedMismatch 0 crownAfterMismatch 0 desp->abs 0 {(2, 2): 36, (1, 1): 181, (0, 1): 86}

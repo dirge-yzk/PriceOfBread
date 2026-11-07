@@ -1,0 +1,29 @@
+# (944) c83hd 旗 1 の木のフルスイート（suite944.sh・2026-11-08 01:21〜02:06・c83ic の ident と並走）
+木 22a098f082bb5d0568e066c97f8fb50ca04e6a17
+list nonfull 2427
+list full 3
+nonfull rc=1 2305s
+full rc=0 195s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:24:36.50]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [FAIL]
+[xUnit.net 00:24:36.52]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [FAIL]
+[xUnit.net 00:24:36.52]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2655980) [FAIL]
+失敗!   -失敗:     3、合格:  2423、スキップ:     1、合計:  2427、期間: 38 m 19 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 13 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [3 ms]
+  エラー メッセージ:
+   計算量「価格：日次の写像の回」が 15966799 件（宣言 14043298・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミット�
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：着値の充填」が 30474234 件（宣言 28783150・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書�
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2655980) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3516652 件（宣言 2655980・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミッ�
+saveleak rc=0 215s
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+SUITEDONE

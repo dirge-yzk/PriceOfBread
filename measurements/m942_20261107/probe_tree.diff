@@ -1,0 +1,87 @@
+diff --git a/PriceOfBread.SimCore/Instruments.cs b/PriceOfBread.SimCore/Instruments.cs
+index f1dbec10..f51d0aad 100644
+--- a/PriceOfBread.SimCore/Instruments.cs
++++ b/PriceOfBread.SimCore/Instruments.cs
+@@ -519,6 +519,7 @@ public static partial class Instruments
+     /// <summary>四半期の末：今の四半期の支払いの積算を窓の区切りの積算へ足す（<see cref="Quarter"/> が国ごとに呼ぶ・<c>st.Uid</c> が採番された後）。</summary>
+     static void SpendFold(Sink sk, World w, WState st, int q, bool picked)
+     {
++        if (ProbeLog is not null) { double cs = 0; if (st.QSpend is { } qq) for (int c = 0; c < NC; c++) cs += qq[(c * SpendW + ExtraSlot(SpendExtra.Construction)) * SpendStride]; ProbeLog.WriteLine("SPQ	" + q + "	" + NameOf(w) + "	" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(w) + "	" + st.ClsMonths + "	" + st.Uid + "	" + picked + "	" + w.Regions.Count + "	" + F(cs) + "	" + SpendBucketOf(q)); ProbeQ = q + 1; }
+         if (st.ClsMonths <= 0 || st.Uid == 0) { if (st.QSpend is not null) Array.Clear(st.QSpend); return; }
+         int b = SpendBucketOf(q);
+         if (!sk.Spend.TryGetValue((st.Uid, b), out var a)) sk.Spend[(st.Uid, b)] = a = new SpendAcc();
+@@ -1396,6 +1397,7 @@ public static partial class Instruments
+     /// <summary>(289) 建設の決済（州×月）：建った束と、投資家が実際に払った額（材料＋工賃・<c>PaidPerMonth</c> へ足すのと同じ <c>cost</c>）。</summary>
+     internal static void ConsRegionPaid(World w, Region r, double builtUnits, double cost)
+     {
++        if (ProbeLog is not null && cost != 0) ProbeLog.WriteLine("PAY	" + ProbeQ + "	" + w.Year + "	" + NameOf(w) + "	" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(w) + "	" + r.Name + "	" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(r) + "	" + F(cost) + "	" + (IsPicked(w, S(w)) ? 1 : 0) + "	" + S(w).Active + "	" + S(w).Uid + "	" + w.Regions.Contains(r));
+         if (!IsPicked(w, S(w))) return;
+         var a = ConAccs.GetValue(r, _ => new ConAcc());
+         a.BuiltUnits += builtUnits; a.Paid += cost;
+@@ -1413,6 +1415,7 @@ public static partial class Instruments
+     /// <summary>(289) 線D：挙げた国×州×四半期（q が <see cref="ConsMaxQuarter"/> まで）。資本家の貯蓄の在庫（四半期の末）・希望・投資枠・計画・実際に払った額（月あたり）と、州の人口・工業化度・工場の規模。
+     /// 限界の自己申告：①貯蓄は四半期の末の値・希望と枠と支払いは四半期の月平均（÷ClsMonths）②<c>investorSavingsStock</c>＝<c>InvestorPopIndex</c> の POP・<c>capitalistSavingsStock</c>＝州の資本家階級の全 POP の和
+     /// ③州の人口は全 POP の和（兵士を含む）④工場の規模＝RGO でない生産者の <c>BuiltScale</c> の和。</summary>
++    internal static System.IO.StreamWriter? ProbeLog; internal static int ProbeQ;
+     static void ConsRows(Sink sk, ulong seed, int q, World w, WState st)
+     {
+         if (q > ConsMaxQuarter) return;
+@@ -1429,6 +1432,7 @@ public static partial class Instruments
+             if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) { var ip = r.Pops[r.InvestorPopIndex]; invSize = ip.Size; invSav = ip.Savings.Value; invEarn = ip.EarnedPerMonth.Value; }
+             double scale = 0; foreach (var pr in r.Producers) if (!pr.IsRgo) scale += pr.BuiltScale;
+             ConAccs.TryGetValue(r, out var a);
++            if (ProbeLog is not null) ProbeLog.WriteLine("ROW	" + q + "	" + ProbeQ + "	" + nation + "	" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(w) + "	" + r.Name + "	" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(r) + "	" + F(a?.Paid ?? 0) + "	" + F(cm));
+             sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industrialization), F(r.ProductiveIndustrialization), F(scale),
+                 I(a?.Judged ?? 0), F(cm), F((a?.Desired ?? 0) / cm), F((a?.Budget ?? 0) / cm), F((a?.Planned ?? 0) / cm), F((a?.PlannedUnits ?? 0) / cm), F((a?.BuiltUnits ?? 0) / cm), F((a?.Paid ?? 0) / cm),
+                 I(a?.TermMonths ?? 0), I(a?.DesiringMonths ?? 0), TermMean(a, a?.TermGain), TermMean(a, a?.TermSat), TermMean(a, a?.TermTech), TermMean(a, a?.TermCrowd), TermMean(a, a?.TermHeat), TermMean(a, a?.TermHurdle), TermMean(a, a?.TermNet), TermMean(a, a?.TermAbsorb), TermMean(a, a?.TermJoint), TermMean(a, a?.TermUnits), TermMean(a, a?.TermUnitMoney)));
+diff --git a/PriceOfBread.Tests/InstrumentsTests.cs b/PriceOfBread.Tests/InstrumentsTests.cs
+index ef6bfeea..6a6b9492 100644
+--- a/PriceOfBread.Tests/InstrumentsTests.cs
++++ b/PriceOfBread.Tests/InstrumentsTests.cs
+@@ -2122,7 +2122,9 @@ public class InstrumentsTests
+         try
+         {
+             Instruments.Configure(dir, "フランス");
+-            try { var on = Make(); on.DiplomacyFrozen = true; RunMatch(on, Quarters, instr: true); }   // ★(613) 外交を止める＝州の所有が四半期の途中で移ると、州の表（所有国の行）と支払いの表（払った時点の国）の帰属が分かれる〔計器の限界・新しい軌道の戦争で 1.2e-4 開いた〕ので、この閉じの番人は所有の移りを除く
++            Instruments.ProbeLog = new System.IO.StreamWriter(System.Environment.GetEnvironmentVariable("R942_PROBE") ?? "D:/PoB_work/r942_work/probe.tsv");
++            try { var on = Make(); on.DiplomacyFrozen = true; RunMatch(on, Quarters, instr: true); } finally { Instruments.ProbeLog.Dispose(); Instruments.ProbeLog = null; }
++            try { }   // ★(613) 外交を止める＝州の所有が四半期の途中で移ると、州の表（所有国の行）と支払いの表（払った時点の国）の帰属が分かれる〔計器の限界・新しい軌道の戦争で 1.2e-4 開いた〕ので、この閉じの番人は所有の移りを除く
+             finally { Instruments.Configure(null, null); }
+ 
+             var (ch, cr) = Table(System.IO.Path.Combine(dir, "cons_s1789.tsv"));
+@@ -2135,6 +2137,19 @@ public class InstrumentsTests
+             static int BucketOf(int q) { int b = 0; for (int i = 1; i < Instruments.SpendBucketStart.Length; i++) if (q >= Instruments.SpendBucketStart[i]) b = i; return b; }
+ 
+             // ① 州の払った額の和 ＝ spend_s の建設の材料と工賃（窓の区切りごと）
++            // ★(942) 州の表は四半期の末に所有する国の州を回し、支払いの表は払った時点の国で積む＝四半期の途中で州が国を出入りすると帰属が分かれる〔計器の限界・★(613) と同じ〕。
++            //   外交の凍結は Diplomacy.Step だけを止め、内戦と分離の建国（SpawnSecededNations）と再統合（ReabsorbNations）は止めない（旗 LandTaxFixedBasis 1 の軌道で 1787 年に パリ が 立憲王政フランス へ移り、区切り 2 が 4,714 開いた）。
++            //   出た州はその四半期の払いが支払いの表にだけ載り、戻った州は出た四半期の積み残しを州の表に載せる＝州の名の集合が前の四半期と違う四半期を含む区切りは比べない（出入りの両側）。比べた区切りが無ければ赤。
++            int cR = Array.IndexOf(ch, "region");
++            var regionsByQ = new SortedDictionary<int, HashSet<string>>();
++            foreach (var r in cr) { int q = int.Parse(r[cQ]); if (!regionsByQ.TryGetValue(q, out var set)) regionsByQ[q] = set = new HashSet<string>(); set.Add(r[cR]); }
++            var movedBuckets = new HashSet<int>();
++            int prevQ = int.MinValue; HashSet<string>? prevSet = null;
++            foreach (var (q, set) in regionsByQ)
++            {
++                if (prevSet is not null && (q != prevQ + 1 || !prevSet.SetEquals(set))) movedBuckets.Add(BucketOf(q));
++                prevQ = q; prevSet = set;
++            }
+             var consPaid = new Dictionary<int, double>();
+             foreach (var r in cr)
+             {
+@@ -2145,11 +2160,15 @@ public class InstrumentsTests
+             foreach (var r in sr)
+                 if (r[sN] == "フランス" && r[sK] == "extra" && r[sS] == "建設の材料と工賃") { int b = int.Parse(r[sB]); spendPaid[b] = spendPaid.GetValueOrDefault(b) + Col(sh, r, "payPerMonth") * Col(sh, r, "monthsCount"); }
+             Assert.True(consPaid.Values.Sum() > 0 && spendPaid.Values.Sum() > 0, $"対照：建設の払いが0（州の表 {consPaid.Values.Sum()}・支払いの表 {spendPaid.Values.Sum()}）");
++            int comparedBuckets = 0;
+             foreach (var b in consPaid.Keys.Union(spendPaid.Keys))
+             {
++                if (movedBuckets.Contains(b)) continue;
++                comparedBuckets++;
+                 double a = consPaid.GetValueOrDefault(b), c = spendPaid.GetValueOrDefault(b);
+                 Assert.True(Math.Abs(a - c) <= 1e-9 * Math.Max(1.0, Math.Abs(c)), $"区切り{b}：州の払った額の和 {a} が支払いの表の建設 {c} に閉じない");
+             }
++            Assert.True(comparedBuckets >= 1, $"対照：比べた区切りが無い（州が国を出入りした区切り {string.Join(",", movedBuckets)}）");
+ 
+             // ② 州の資本家の貯蓄の和 ＝ class_s の資本家の貯蓄
+             var consSav = new Dictionary<string, double>();

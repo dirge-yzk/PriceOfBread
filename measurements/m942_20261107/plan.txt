@@ -1,0 +1,17 @@
+(942) c83cc 読む線の計画（2026-11-07）
+作業の場所
+- D:/PoB_work/r942_work/（この線が作ったフォルダ・合流が写すまで消さない）
+- 使い捨ての木 D:/PoB_work/r942_work/wt（08e2f8d0 の detached・プローブはここだけ・コミットしない・最後に外す）
+- 隔離ビルド D:/PoB_work/r942_work/art（--artifacts-path）
+- 枝 c83cc と wt_c83cc は作らない（読む線＝㉖）
+読む生と材料
+- measurements/m937_20261107/nullprobe_closure.txt・suite_flag1_after_reshape.txt・measurements/m937_20261107_prereg_lt.txt
+- scripts/instruments/c82lt/nullprobe937.sh・suite937.sh
+- 枝 origin/c82lt 08e2f8d0（旗 1）・e45ea08d（旗 0）
+- PriceOfBread.Tests/InstrumentsTests.cs:2119 の試験・Instruments.cs の ConsRegion/ConsRegionPaid/ConsRows・AddSpend・EconomyStep.cs:2331-2333
+- 腕 0 本。生は試験の盤面（seed 1789・仏普英墺・20 四半期・外交凍結）をプローブで取り直すだけ
+手順
+1. 木で試験にプローブ（月×州×国の建設の支払いの写し）を足して旗 1 で回し、区切り 2 の差を州×四半期×月に分ける
+2. 差の州がその四半期の末に仏の w.Regions に居るかを見る（所有の移り・地域の消滅・計器の帰属）
+3. 旗 1 の道（LandTaxBase・FrozenLandRentPerMonth・LandTaxBasisAdjPerMonth・月の頭の 0 化）との関係をソースの行で示す
+4. 区分を選び、印 verdict.mark を書く（kind=test なら fix942.patch）
