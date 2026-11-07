@@ -1,0 +1,8 @@
+M1 ImpAfter の呼び口を外す	PriceOfBread.SimCore/Diplomacy.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.壊滅級の勝利で矯正講和が
+M2 orderInMonthIndex を常に 1	PriceOfBread.SimCore/InstrumentsImpose.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.壊滅級の勝利で矯正講和が
+M3 Transition の口の符号を 0	PriceOfBread.SimCore/Politics.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.開幕と政体変更と蜂起の決
+M4 SettleRevolt の口を外す	PriceOfBread.SimCore/Politics.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.開幕と政体変更と蜂起の決
+M5 crownRegisterSourceCode の列を常に 0	PriceOfBread.SimCore/InstrumentsCrown.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.crownpcの末尾の列
+M6 loserCrownBeforeCode を矯正の後の値で読む	PriceOfBread.SimCore/InstrumentsImpose.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.壊滅級の勝利で矯正講和が
+M7 廃位の口を外す	PriceOfBread.SimCore/CrownParliament.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.開幕と政体変更と蜂起の決
+M8 開幕の口を外す	PriceOfBread.SimCore/Simulation.cs	赤：失敗 PriceOfBread.Tests.ImposeAndCrownSourceTests.開幕と政体変更と蜂起の決

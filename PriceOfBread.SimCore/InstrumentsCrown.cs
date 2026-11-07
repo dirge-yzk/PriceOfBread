@@ -28,6 +28,20 @@ public static partial class Instruments
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, CrownPrev> CrownPrevs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, CrownSink> CrownSinks = new();
 
+    // ---- (928) 王冠の登録簿を最後に書いた口の符号 crownRegisterSourceCode（計器の持ち物・World に欄を足さない・セーブに載らない） ----
+    // 符号：0 開幕（Simulation の構築）・1 Transition 系の政体変更（Politics.ExecuteRegimeChange＝Transition と蜂起の決着のうち蜂起以外）・2 矯正講和・3 蜂起の決着（Politics の反乱の勝ち）・
+    //   4 廃位（議会が王冠を廃す）・5 幕府の終わり・6 不明（口が印を付けていない国＝助走の後の復元〔GovernanceSnapshot〕・建国の World など）。
+    // ⚠限界：①符号は呼び口が付ける印＝口が増えても印が無ければ前の符号のまま。②ExecuteRegimeChange の呼び手のうち Transition と蜂起の決着だけ分けた（他に呼び手は無いと grep で確かめた）。
+    internal const int CrownSrcUnknown = 6;
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<int>> CrownSrcs = new();
+    internal static void CrownSource(World w, int code)
+    {
+        if (CrownSrcs.TryGetValue(w, out var box)) box.Value = code; else CrownSrcs.Add(w, new System.Runtime.CompilerServices.StrongBox<int>(code));
+    }
+    /// <summary>On の判定を中で持つ版（同じ関数に呼び口が 2 本ある CrownParliament.Step 用＝呼び側で On を 2 回読まない）。</summary>
+    internal static void CrownSourceIfOn(World w, int code) { if (On) CrownSource(w, code); }
+    internal static int CrownSourceOf(World w) => CrownSrcs.TryGetValue(w, out var box) ? box.Value : CrownSrcUnknown;
+
     /// <summary>断面を取る（純粋な読み）。</summary>
     internal static CrownPrev CrownSnap(World w) => new()
     {
@@ -211,7 +225,7 @@ public static partial class Instruments
         + "blockOpenFlag\trepSupportIndex\tcurSupportIndex\tcrownSupportIndex\tinertiaIndex\tmobilizationIndex\teffectiveCoerceIndex\tterm1SupportGateFlag\tterm1CoerceGateFlag\tterm1Share\tterm1ClampHitFlag\t"
         + "term2GateFlag\tterm2Share\tterm2ZeroHitFlag\tsoldierLeanIndex\tarmyPowerIndex\tterm2pGateFlag\tterm2pShare\tterm2pZeroHitFlag\t"
         + "depositionFlag\tshogunateEndFlag\tfloorHitFlag\trelabelFlag\tregimeEventFlag\tgrantFlag\tpcTargetShare\t"
-        + "debtGripShare\tinterestPerMonth\trevenuePerMonth\tinterestPerRevenueShare\taboveConstitutionalFloorFlag\trecentRegimeChangesIndex";
+        + "debtGripShare\tinterestPerMonth\trevenuePerMonth\tinterestPerRevenueShare\taboveConstitutionalFloorFlag\trecentRegimeChangesIndex	crownRegisterSourceCode";
 
     /// <summary>行の値（見出し <see cref="CrownHeaderText"/> と同じ順）。</summary>
     internal static string CrownLine(World w, int q, int uid, CrownRow row)
@@ -233,7 +247,7 @@ public static partial class Instruments
             Bp(r.BlockOpen), F(x.Rep), F(first ? double.NaN : x.CurPrev), F(x.CrownS), F(x.Inertia), F(x.Mobilization), F(x.Coerce), Bp(r.T1Support), Bp(r.T1Coerce), F(r.Term1), Bp(r.T1Clamp),
             Bp(r.T2Gate), F(r.Term2), Bp(r.T2Zero), F(x.Lean), F(r.ArmyPower), Bp(r.T2pGate), F(r.Term2p), Bp(r.T2pZero),
             Bp(row.Deposition), Bp(row.ShogunateEnd), Bp(row.FloorHit), Bp(row.Relabel), Bp(row.RegimeEvent), Bp(row.Grant), F(CrownTarget(w.Polity)),
-            F(debtGrip), F(interest), F(revenue), F(revenue > 0 ? interest / revenue : double.NaN), B(row.PcNow >= c.ConstitutionalControlFloor), F(w.RecentRegimeChanges));
+            F(debtGrip), F(interest), F(revenue), F(revenue > 0 ? interest / revenue : double.NaN), B(row.PcNow >= c.ConstitutionalControlFloor), F(w.RecentRegimeChanges), I(CrownSourceOf(w)));
     }
 
     /// <summary>四半期の末（<see cref="Quarter"/> の国ごとの段）：1 国の行を書き、次の四半期のために断面を置き直す（州が 0 の国は行を出さないが断面は置く）。</summary>

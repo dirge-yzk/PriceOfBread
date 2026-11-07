@@ -61,6 +61,7 @@ public sealed class GovernanceSnapshot
         w.ChildLaborLegal = _childLaborAllowed ? 1.0 : 0.0;          // 児童労働の合法度も法のアンカーへ戻す（倍率排除④）
         w.Freedom = _freedom; w.Polity = _polity; w.BaseCoercion = _baseCoercion; w.Coercion = _coercion; w.Legitimacy = _legitimacy;
         w.Crown = _crown; w.Seizure = _seizure; w.ParliamentControl = _parliamentControl;
+        if (Instruments.On) Instruments.CrownSource(w, Instruments.CrownSrcUnknown);   // (928) 計器（読むだけ）：復元＝書き手は不明
         w.SocialSecurity = _social; w.AdminSpending = _admin; w.PollTax = _pollTax; w.LandTax = _landTax; w.ProgressiveTax = _progressiveTax;
         w.SetMilitarySpending(_military, _navalUpkeepShare); w.Tariff = _tariff; w.InterestRate = _interestRate;
         w.EducationSpending = _eduSpending; w.TaxRate = _taxRate; w.FiscalFundingRatio = _fiscalFunding;

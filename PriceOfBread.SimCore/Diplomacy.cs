@@ -3190,6 +3190,7 @@ public sealed class Diplomacy
                 if (crushing && dw.PoliticsEnabled && dw.Polity != ww0.Polity
                     && Math.Abs(Ideology(ww0.Polity) - Ideology(dw.Polity)) >= c.ImposeRegimeIdeologyGap)
                 {
+                    var impPre = Instruments.ImpBeforeIfOn(dw);   // (928) 計器（読むだけ）：矯正の前の敗者の断面
                     CrownParliament.ApplyRegime(dw, c, ww0.Polity);
                     Politics.RaiseFoundingInstitutions(dw, allowRevoke: true, c);   // 押し付け政体の含意参政権・報道へ（自由化も反動剥奪も対称）
                     double legBeforeImpose = dw.Legitimacy;
@@ -3197,6 +3198,7 @@ public sealed class Diplomacy
                     if (dw.Legitimacy != legBeforeImpose)   // 説明API（#63）：未記帳の書き込み現場を解消（第1波点火でExplainTestsが捕捉・2026-07-28）
                         dw.Explain?.Add("Legitimacy", "矯正講和(銃剣の上の玉座)", dw.Legitimacy - legBeforeImpose);
                     Log.Add($"{_year} {winner.Name}が{loser.Name}の政体を矯正（矯正講和・戦勝点{absScore:0.00}）");
+                    if (impPre is not null) Instruments.ImpAfter(this, impPre, winner, loser, ww0, dw, absScore, crushing);   // (928) 計器（読むだけ）：imp_s の 1 行＋王冠の登録簿の書き手 2
                 }
                 // 宗主権の引き継ぎ（宗主の地理2026-07-12・第2レバー）：敗者が宗主なら、圧勝の勝者はその属国の宗主権を1件引き継ぐ
                 // ＝下関1895（日本が清の朝鮮宗主権を剥奪）・アヘン戦争後の朝貢体制崩壊の物理。朝貢体制は「宗主が守れない・罰せられない」と

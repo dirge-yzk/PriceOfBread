@@ -711,6 +711,7 @@ public static class Politics
             if (IsSeizure(target)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
         }
         CrownParliament.ApplyRegime(w, c, target);   // 登録簿＋政体キャッシュ（flag=1はPCジャンプも）＝単一の書き込み口（P2）
+        if (Instruments.On) Instruments.CrownSource(w, 1);   // (928) 計器（読むだけ）：王冠の登録簿の書き手 1＝Transition 系の政体変更（蜂起の決着は呼び手の側で 3 に上書き）
         RaiseFoundingInstitutions(w, allowRevoke: true, c);   // 新政体の含意参政権・報道へ（自由化＝拡張／反動＝剥奪＝ラチェット解除・反革命の波。政3：c 渡しで自由化はラチェット可）
         if (target is Polity.ProletarianDictatorship or Polity.Anarchy) Fiscal.RepudiateDebt(w, c);   // 既定は債務継承（史実）。急進革命のみ否認（継承＝リセットしない＝攻略封じ＋史実）
         var (dt, dm, dmass) = Dispossessed(target);
@@ -842,7 +843,7 @@ public static class Politics
         if (rebelWon)   // 反乱が依然優勢＝革命勝利→目標政体へ（失脚で不安定）
         {
             // F3b 経済決着：政体は変わらない＝運動の要求をのませる（F1譲歩の大型版＝要求top-kを複数段・政治資本を大量に燃やす）。
-            if (target != w.Polity) ExecuteRegimeChange(w, c, target, violent: true);   // 内戦を経た勝利＝暴力の転換（覚醒・断裂の窓・否認・失脚・土地改革は即時の政変と同じ1本）
+            if (target != w.Polity) { ExecuteRegimeChange(w, c, target, violent: true); if (Instruments.On) Instruments.CrownSource(w, 3); }   // (928) 計器：蜂起の決着は書き手 3   // 内戦を経た勝利＝暴力の転換（覚醒・断裂の窓・否認・失脚・土地改革は即時の政変と同じ1本）
             else if (movement is not null) ConcedeToFaction(w, c, movement);
         }
         else   // 中央が持ちこたえた＝反乱鎮圧（闘争度緩和）

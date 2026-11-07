@@ -144,6 +144,7 @@ public static class CrownParliament
                 && S(Polity.Republic) - S(Polity.ConstitutionalMonarchy) > c.PolityInertia * w.Legitimacy)
             {
                 w.Crown = CrownForm.None;
+                Instruments.CrownSourceIfOn(w, 4);   // (928) 計器（読むだけ）：書き手 4＝廃位
                 w.LogAdd($"{w.Year} {w.SelfPower?.Name}の議会が王冠を廃した");
             }
             // ④王権の形の変異＝**実体駆動へ全面再設計**（07_再設計 §1 ＋ A1裁定・2026-07-31）。
@@ -166,6 +167,7 @@ public static class CrownParliament
                     if (external || fromBelow)
                     {
                         w.Crown = CrownForm.Absolutist;
+                        Instruments.CrownSourceIfOn(w, 5);   // (928) 計器（読むだけ）：書き手 5＝幕府の終わり
                         // 内圧が外圧の相対強度（緊張を0..1へ正規化＝開戦閾値200が満点）を上回るなら「下からの倒幕」＝議会つき
                         if (fromBelow && mil >= tension / Diplomacy.TensionMax)
                         {
