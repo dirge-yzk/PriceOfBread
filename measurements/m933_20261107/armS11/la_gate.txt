@@ -1,0 +1,30 @@
+# gate930 gate  arm=D:/PoB_work/m933/out_mS_10_s11/ins  base=D:/PoB_work/keep_919/a11  n1=D:/PoB_work/keep_919/n1  n2=D:/PoB_work/keep_919/n2  種 11〜20（ヌル腕は種 1〜10）
+# world.json の landOwnership の国: ['イギリス', 'スペイン', 'デンマーク', 'フランス', 'プロイセン', 'ポーランド', '日本']
+# world.json と手書きの表 ROSTER の一致（正規化の後 1e-12・国の集合も）: True
+nation	P_med	e_med	U	Qarm	Qbase	Qn1	Qn2	W	Delta	Delta/P	GB2	GB1_a_max	GB1_b_max	GB1_c_max	GB1
+フランス	0.103108	0.1626	1.0971	0.102586	0.000156244	0.000205222	0.000201134	4.9e-05	0.102429	0.9934	通る	0	5.44e-17	3.95e-10	通る
+イギリス	0.02149	0.1153	1.0652	0.021354	5.58296e-06	4.33981e-05	1.40953e-05	3.78e-05	0.0213484	0.9934	通る	0	5.34e-18	2.96e-10	通る
+スペイン	0.0461328	0.1693	1.1019	0.0458004	0.000351476	0.000301959	0.000317216	4.95e-05	0.0454489	0.9852	通る	0	2.84e-17	6.54e-10	通る
+プロイセン	0.0183312	0.1059	1.0592	0.0182111	0	0	0	0	0.0182111	0.9934	通る	0	0	3.04e-10	通る
+デンマーク	0.0122102	0.1585	1.0942	0.0121201	0	0	0	0	0.0121201	0.9926	通る	0	0	3.73e-10	通る
+日本	0.00197387	0.0898	1.0493	0.00196825	0	0	0	0	0.00196825	0.9972	通る	0	0	2.79e-10	通る
+ポーランド	0.0208513	0.1701	1.1025	0.0208309	0	0	0	0	0.0208309	0.9990	通る	0	0	1.27e-10	通る
+# 記録（門ではない）：同じ盤面の比
+REC	フランス	P_arm=0.102457	Delta/P_arm=0.9997	U=1.0971	P_arm/P_base=0.9937	記録：Delta/P_base≦U=真
+REC	イギリス	P_arm=0.0213331	Delta/P_arm=1.0007	U=1.0652	P_arm/P_base=0.9927	記録：Delta/P_base≦U=真
+REC	スペイン	P_arm=0.0454265	Delta/P_arm=1.0005	U=1.1019	P_arm/P_base=0.9847	記録：Delta/P_base≦U=真
+REC	プロイセン	P_arm=0.0182111	Delta/P_arm=1.0000	U=1.0592	P_arm/P_base=0.9934	記録：Delta/P_base≦U=真
+REC	デンマーク	P_arm=0.0121201	Delta/P_arm=1.0000	U=1.0942	P_arm/P_base=0.9926	記録：Delta/P_base≦U=真
+REC	日本	P_arm=0.00196825	Delta/P_arm=1.0000	U=1.0493	P_arm/P_base=0.9972	記録：Delta/P_base≦U=真
+REC	ポーランド	P_arm=0.0208309	Delta/P_arm=1.0000	U=1.1025	P_arm/P_base=0.9990	記録：Delta/P_base≦U=真
+GB3 seed 11: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=878 国=オスマン,オーストリア,立憲王政フランス）
+GB3 seed 12: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=1011 国=オスマン,ポルトガル,ロシア,ヴュルテンベルク,立憲王政イギリス,第2共和制スペイン）
+GB3 seed 13: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=1719 国=オスマン,オーストリア,ペルシャ,ポルトガル,モロッコ,共和制オーストリア,立憲王政イギリス）
+GB3 seed 14: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=2090 国=オスマン,オーストリア,ブハラ,ロシア,ヴェネツィア,立憲王政イギリス）
+GB3 seed 15: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=211 国=オスマン,オーストリア,サルデーニャ＝ピエモンテ,ロシア,立憲王政スペイン）
+GB3 seed 16: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=1424 国=オスマン,サルデーニャ＝ピエモンテ,ハノーファー,両シチリア,共和制スペイン,立憲王政フランス）
+GB3 seed 17: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=3555 国=オスマン,オーストリア,サルデーニャ＝ピエモンテ,ポルトガル,モロッコ,ロシア,両シチリア,第2立憲王政両シチリア）
+GB3 seed 18: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=1440 国=オスマン,オーストリア,スウェーデン,ダブリンの自由主義の大衆運動・イギリス,バイエルン,ロシア,両シチリア,立憲王政スペイン,立憲王政フランス）
+GB3 seed 19: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=2357 国=オスマン,サルデーニャ＝ピエモンテ,ポルトガル,ライン諸邦,ロシア,両シチリア,立憲王政フランス,立憲王政プロイセン）
+GB3 seed 20: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=1584 国=オスマン,ネーデルラント,ライン諸邦,ロシア,両シチリア,立憲王政スペイン）
+判定: G-B1 と G-B2 全て通る・G-B3 通る

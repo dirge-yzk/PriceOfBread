@@ -1,0 +1,8 @@
+# zcheck933 基準 D:/PoB_work/keep_926/base_ins・腕 D:/PoB_work/ident_m933z/out_ib_10/ins・基準の木 890d59e0・測る木 9a640102・宣言 ['heirDebtSettledPerQuarter']・表 10 本
+宣言の列 heirDebtSettledPerQuarter	809504
+経路の列（行の写しで一致） inTop1Route	354
+経路の列（行の写しで一致） outTop1Route	232
+経路の写し	Politics.cs:1958:give:P	→	Politics.cs:1959:give:P	354
+経路の写し	Politics.cs:1958:take:P	→	Politics.cs:1959:take:P	232
+その他の違い	0
+判定（この台本）：違いは宣言の列と経路の行の写しだけ

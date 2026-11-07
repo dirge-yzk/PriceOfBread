@@ -1,0 +1,4 @@
+# (933) アブレーションの成績表の突き合わせ（名乗り行〔SOURCE-HASH〕と POB_COEF の名乗りを除く・diff の行数）
+A-cw0（T_M 1af3e5d7・CivilWarArmsDemandUnified=0・素の 10 種）対 c81la の腕 B b10_20261107_m930_ins: diff 行 0
+A-la0（T_cw 9898f268・素の 10 種）対 c81cw の腕 B m929_20261107/b10_c81cwB_10.txt: diff 行 0
+.cost の推定：A-cw0 推定の計算量（1試合）: 210.1 秒・c81la 腕 B 210.1 秒／A-la0 推定の計算量（1試合）: 212.5 秒・c81cw 腕 B 212.5 秒

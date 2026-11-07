@@ -1,0 +1,31 @@
+# (933) 合流のフルスイート（木 1af3e5d7＝T_M・Release・分けて・suite933.sh）
+list nonfull 2418
+list full 3
+nonfull rc=0 910s
+full rc=0 200s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2417、スキップ:     1、合計:  2418、期間: 15 m 7 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 18 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 213s
+保存 46.1MB（583ms）／読込 537ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 189・その月の額の和 1.238E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m933/leakhunt.txt　マニフェスト=D:/PoB_work/m933/leakhunt.txt.manifest（SOURCE-HASH=3325579fb3d8a8cc）
+SL-END 14:22:20
+SAVELEAKDONE
+# NullReferenceException: nonfull 0・full 0
+# 取り直しの前（木 7d8a3f26・WriterRatchetTests だけ）
+list nonfull 2418
+list full 3
+ratchet rc=1 49s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:46.35]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3395620) [FAIL]
+[xUnit.net 00:00:46.36]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1809) [FAIL]
+失敗!   -失敗:     2、合格:    45、スキップ:     0、合計:    47、期間: 46 s - PriceOfBread.Tests.dll (net10.0)
+RATCHETDONE
+[xUnit.net 00:00:46.35]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3395620) [FAIL]
+[xUnit.net 00:00:46.36]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1809) [FAIL]
