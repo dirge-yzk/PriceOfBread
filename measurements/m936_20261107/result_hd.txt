@@ -1,0 +1,40 @@
+# (936) c82hd 結果：B1〈人の居ない POP の債務を相続人が受ける〉＝**止めた**（腕 B の前のフルスイートで予言の外の赤 1 本・事前登録 [7] の規則どおり腕 B・S11 は回さない）
+# 担当 Claude Opus 5.5・枝 c82hd・器 6cbb8917（旗 0）・点火 f76dbb2e（旗 1）・事前登録 c15ec340（measurements/m936_20261107_prereg_hd.txt）
+
+[A] 腕 A（素の 5 種・木 6cbb8917＝旗 0）
+- measurements/b5_20261107_m936A（.manifest・.cost）＝b5_20261107_m933 と 183 行が全行バイト一致（SOURCE-HASH の行を除く・armA_diff_vs_b5_m933.txt は 0 行）。
+- .cost の推定 211.5 秒＝m933 の 5 種と同じ。
+
+[B] 走査の番人（㉘・旗 0 の木・器のコミットの直後）
+- IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests と相続の試験（EmptyPopDebtToHeirsTests・EmptyPopDebtFirstTests・EmptyPopEstateTests・BillBlockedColumnsTests・HeirDebtSettledMovedTests）＝163 本 緑（scan_flag0.txt）。
+
+[C] 突然変異（旗の既定を 1 にした使い捨ての木・単体の試験 9 本＋ConservationTests:190）
+| 突然変異 | 赤（実測） | 予言 [5] との突き合わせ |
+|---|---|---|
+| OK（なし） | 0／10 | 緑の前提どおり |
+| M0 何もしない | T1・T1b・T3・T4・T5・T8 | 一致。ただし [5] の〈T2 の移った量〉は誤記＝T2 は和の保存だけを見る＝M0 で緑（門の破れではない・予言の書き方の誤り） |
+| M1 送り手に残りを残す | T1 | 一致 |
+| M2 相続人へ渡さない | ConservationTests:190・T1・T1b・T2・T3・T4・T5・T8 | 一致（U3 赤） |
+| M3 2 倍渡す | ConservationTests:190・T1・T1b・T2・T3・T4・T5・T8 | 一致（U3 赤） |
+| M4 貯蓄 ＞0 の送り手だけ | T1・T1b・T3・T4・T5・T8 | T3 の赤は予言どおり・他の T も赤（どの盤面も送り手の貯蓄 0）＝予言より多い（記録） |
+| M5 相続人が返せる時だけ | T4 | 一致 |
+| M6 重みを貯蓄で | T1・T1b・T4・T5 | T5 の赤は予言どおり・T1・T1b・T4 も赤（相続人の貯蓄が人数の比と違う盤面）＝予言より多い（記録） |
+- 出力：mut_OK.txt・mut_M0.txt〜mut_M6.txt・mutation_summary.txt。
+
+[D] 旗 1 の木 f76dbb2e のフルスイート（㉜・suite_flag1_summary.txt）
+- --list-tests：Category!=FullLength 2427・FullLength 3（m933 の 2418 から +9＝足した試験 EmptyPopDebtToHeirsTests 9 本）。
+- Category!=FullLength：合格 2422・失敗 4・スキップ 1（合計 2427＝--list-tests と一致・中止 0）。FullLength 3 緑（ConservationTests:199 を含む＝U3 の全長は緑）。savetest・leakhunt 合格。
+- 失敗 4 本：
+  1. WriterRatchetTests 計算量の表 item 1〈価格：日次の写像の回〉15,966,799（宣言 14,043,298・+13.7%）
+  2. 同 item 9〈清算：着値の充填〉30,474,234（宣言 28,783,150・+5.9%）
+  3. 同 item 11〈外交：覇権の判定の国×国〉3,516,652（宣言 2,655,980・+32.4%）
+     ＝1〜3 は ★(749) の区分（軌道の件数を写しただけの番人）＝事前登録 [6] の予言〈0〜3 本〉の内。線では取り直さない。
+  4. **InstrumentsTests.cs:2240 `私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる`**：〈フランス パリ Q17 束 326.2 ÷束 8.144E-05 [1.926E-05,2.29E-05]（1／346）〉＝**予言の外の赤**（機構の配線の番人）＝事前登録 [7]〈予言の外の赤が出たら腕 B を回さず止める〉で止めた。
+
+[E] プローブ（読むだけ・決定を変えない・probe936.py・probe_flag1.txt・probe_flag0.txt）
+- 旗 1：試験の行の表でパリ（フランス）は Q17 から始まり Q14〜Q16 の行が無い（その間フランスの州の一覧にパリが無い＝他国の州・推）。Q17 の Cum の差 0.02656 は、試験の start の辞書が最後にフランスの州だった四半期の値（cum0 0.08228）から数える＝複数の四半期の累積を Q17 の 1 四半期の束 326.2 で割っている（÷束 8.14e-5 は日ごとの ipc の 3.6〜4.2 倍）。Q18・Q19 は ÷束 1.40e-5・1.58e-5 で括りの中。
+- 旗 0：パリは Q14〜Q19 が続けて並び ÷束 2.0e-5〜2.3e-5（全て括りの中・bad 0／343）。
+- パリの estateDebtMovedPerQuarter・emptyDebtAfterEstate は旗 1 でも Q14〜Q19 で 0＝B1 はパリの債務を動かしていない＝赤は B1 の行の直接の働きではなく、軌道が動いて〈州がフランスを離れて戻る〉形が試験の盤面に入ったため（推）。試験の Snap は四半期の続きを確かめない（start を州が戻った四半期まで持ち越す）＝★(743) 末尾の〈軌道に依る前提の赤〉の型。
+- この読みは決定を変えない（事前登録 [7] で止める・試験の括りと期間を直さない・腕 B を〈記録だけ〉で回さない）。
+
+[F] 3 回の規則：腕 B・S11 なし＝(909) と同じ型で回数に数えない（B5 のテーマの 2 回目＝新しい形の 1 回目は、まだ測っていない）。

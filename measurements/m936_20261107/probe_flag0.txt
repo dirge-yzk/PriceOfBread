@@ -1,0 +1,19 @@
+bad 0/343 : 
+Q14 cum0 0.0829417612464864 cum1 0.08964840008851559 gain 0.00670664 ipcLo 1.91323E-05 ipcHi 2.17737E-05 built 333.173 gain/built 2.01296E-05
+Q15 cum0 0.08964840008851559 cum1 0.09689314019455433 gain 0.00724474 ipcLo 1.85513E-05 ipcHi 2.12233E-05 built 363.332 gain/built 1.99397E-05
+Q16 cum0 0.09689314019455433 cum1 0.10453362435127746 gain 0.00764048 ipcLo 1.92094E-05 ipcHi 2.12676E-05 built 376.343 gain/built 2.03019E-05
+Q17 cum0 0.10453362435127746 cum1 0.11237083052179178 gain 0.00783721 ipcLo 1.93629E-05 ipcHi 2.21397E-05 built 378.115 gain/built 2.0727E-05
+Q18 cum0 0.11237083052179178 cum1 0.12196268940426823 gain 0.00959186 ipcLo 2.18745E-05 ipcHi 2.27062E-05 built 426.82 gain/built 2.24729E-05
+Q19 cum0 0.12196268940426823 cum1 0.12971207986790348 gain 0.00774939 ipcLo 2.24103E-05 ipcHi 2.31495E-05 built 336.601 gain/built 2.30225E-05
+cearn Q14 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q15 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q16 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q17 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q18 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q19 estateDebtMoved 0 emptyDebtAfter 0
+cons Q14 builtUnitsPerMonth 111.057705 monthsCount 3
+cons Q15 builtUnitsPerMonth 121.1107102 monthsCount 3
+cons Q16 builtUnitsPerMonth 125.447589 monthsCount 3
+cons Q17 builtUnitsPerMonth 126.0383997 monthsCount 3
+cons Q18 builtUnitsPerMonth 142.2732585 monthsCount 3
+cons Q19 builtUnitsPerMonth 112.2003374 monthsCount 3

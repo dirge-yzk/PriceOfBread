@@ -14,6 +14,7 @@ GIVE = 'heirs[i].Debt += x;'
 LAST = 'heirs[^1].Debt += d.Debt; d.Debt = default;'
 COLLECT = 'sum += s; } if (w.Coef.EmptyPopDebtToHeirs > 0 && p.Debt.Value > 0) (debtors ??= new List<Pop>()).Add(p);'
 MUT = {
+    'OK': [],                                                                             # 突然変異なし（点火の形そのもの＝全て緑が前提）
     'M0': [(CALL, '')],                                                                   # 何もしない
     'M1': [(FOR, 'for (int i = 0; i < heirs.Count; i++)'), (LAST, '')],                   # 末尾にも比の額＝送り手に残りが残る
     'M2': [(GIVE, ''), (LAST, 'd.Debt = default;')],                                     # 送り手を 0 にするが相続人へ渡さない
