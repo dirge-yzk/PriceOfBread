@@ -116,3 +116,10 @@
 
 == 16. 台帳 ==
 - S27-H010（機能の台帳.md:995〈昇格した植民地は支配度0から始まる〉）を新しい行を作らずに打消し線と日付で更新する（訂正 4）＝報告に行を書き、合流が写す。
+
+== 追記 2026-11-08 06:10（腕 B の前・門の数は変えない） ==
+- 腕 A：ident c84kpz（木 4ea56d76・旗 0 の器）〈判定: 恒等〉＝素の 5 種 180 行が b5_20261108_m947 と全行バイト一致・.cost の推定 209.5 秒が一致・Category!=FullLength 2427（2423+4）・FullLength 3（measurements/m952_20261108/identA_c84kpz.txt）。
+- 突然変異の試験（使い捨ての木・点火の形の上・measurements/m952_20261108/mut/）：ign＝T1〜T4 緑／M1＝T3・T4 赤／M2＝T1 赤／M3＝T1 赤／M4＝T1・T2 赤／M5＝T1 赤。
+  §7 の表の予言との違い：M4 で T1 も赤（予言は緑）＝Tier が Core になると植民地格の州が 0 になり T1 の前提の文で落ちる。どの突然変異も少なくとも 1 本の試験で赤＝緑のままの突然変異なし。
+- 点火の形：T1 は既定の係数（new Coefficients() と同じ＝MultiNationSim の coef 省略）で構築する（§6 の文どおり）。器の木では旗 1 を明示していた。
+- 〈それ以外〉の読み：台本 scripts/instruments/c84kp/reads952.sh＝stoplines906.sh をそのまま呼び、c84gz の a3c17862 の judge949.py（rule=pair・ヌル腕 measurements/m947_20261108/null/stop906_n1.txt・_n2.txt）と gdp_fall949.py の写し（D:/PoB_work/c84kp_work/gz949）で判定。a3c17862 と c84gz の今の頭 ef326fa0 で scripts/instruments/c84gz/ の差は 0。
