@@ -59,7 +59,7 @@ def rat(a, b):
 def main():
     arm, base, n1, n2 = sys.argv[1:5]; sb = int(sys.argv[5]) if len(sys.argv) > 5 else 1
     A = med(arm, range(sb, sb + 10)); B = med(base, range(sb, sb + 10))
-    N1 = med(n1, range(1, 11)); N2 = med(n2, range(1, 11)); B1 = med(base, range(1, 11)) if sb != 1 else B
+    N1 = med(n1, range(1, 11)); N2 = med(n2, range(1, 11)); B1 = med(os.environ.get('BASE1', base), range(1, 11)) if sb != 1 else B   # 種 11〜20 のとき、ヌル腕の比の分母は種 1〜10 の基線（環境変数 BASE1）
     print(f'# tab930 arm={arm} base={base} 種 {sb}〜{sb+9}（ヌル腕の比は種 1〜10 の基線との比）')
     print('nation\tcolumn\tarm\tbase\tarm/base\tN1/base\tN2/base')
     for k in A:
