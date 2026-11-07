@@ -1,0 +1,120 @@
+# (936) c82hd 事前登録：B1〈人の居ない POP の債務を相続人が受ける〉（波82・挙動・B5 のテーマの 2 回目＝新しい形の 1 回目・落ちたら次が最後）
+# 担当 Claude Opus 5.5・枝 c82hd（84688034 から）・worktree D:/PoB_work/wt_c82hd・作業 D:/PoB_work/c82hd_work
+# 基準 m933（成績表 b10_20261107_m933_ins・b5_20261107_m933・生 D:/PoB_work/keep_933/{base_ins,n1,n2,a11}）・NG の基準 rd:measurements/ng933_20261107:m933
+# AI の案・確証なし（材料 docs/202611/20261107/20261107_人の居ない商人の手形の詰まり_B5の根とB1の材料_下書き.md §3〜§4 と ★(919) の訂正・00一覧 §0-2 ★(919) ③ は〈作者「全て推奨で」で推奨を採った〉）。
+# 形の種類：〈入口〉（植民地格の州で人の居ない商人が払い手のときの輸入の道を開く。紙で kind2 の行は植民地格の行の 約 64%＝尾ではない）。
+
+[1] grep の引用（84688034・書く前に取り直した）
+- EmptyPopEstate.cs:11 Step＝Core＋EstateAfter（1 行）・:13 EstateDue・:14 旗 EmptyPopEstate の早い return。
+- :22 B5 の旗 EmptyPopDebtFirst の行（返してから `double s = p.Savings.Value;`）・:23 `if (s > 0) { payers…; held…; sum += s; }`。
+- :25 `if (payers is null || !(live > 1e-9)) continue;`＝貯蓄の送り手が 1 人も居ない州は相続の段に入らない（材料の M4 の形はこの行にもある）。
+- :26〜:30 相続人＝人数 ＞1e-12・人数が最大の受け手を末尾へ。:31 `World.Transfer((w, payers), (w, heirs, null), sum, fromWeights: held);`＝cearn_s の経路の名（呼び口の行番号）。
+- Coefficients.cs:3335 `EmptyPopDebtFirst = 0.0`・:3336 `EmptyPopEstate = 1.0`。DormantIdentityTests.cs:144 `"EmptyPopDebtFirst",`。
+- Model.cs:299・:304 Pop.Carry（:307〜:308 が債務の対 `from.Debt -= debt; … to.Debt += debtIn;`・:309 計器 CearnCarryDebt）・:346〜 Pop.Take（:359 の床 `!(take > 1e-12) || !(held > 1e-9)` なら 0）。
+- BilateralMarket.cs:579 決済 ①（Bank.Lend の負・Take の床を通る）・:580 `bill[t2] = !(merchPay.Debt.Value > 0)`。
+- InstrumentsCearn.cs:559 EstateDue（段の頭の断面 EstDebtBeforeSnap）・:588 EstateAfter（EmptyDebtAfter＋＝債務 ≠0 の空の POP の数・EstDebtMoved＋＝頭の債務−直後の債務−返した額）＝estateDebtMovedPerQuarter は計器が自分で数える（エンジンの局所変数を受け取らない）。
+- 前提〈EstateDue と EstateAfter の間で r.Pops から人の居ない POP を抜く処理が無い〉：間は Core だけ（:11）・Core は r.Pops を読むだけ・SimCore に `Pops.Remove`・`Pops.RemoveAll`・`Pops.RemoveAt` の呼びは 0 件（grep）。
+
+[2] 形（実装と同じ形・新しい状態 0・係数のリテラル 0・新しい計器 0）
+- 旗 1 本：Coefficients.cs:3335 の隣に `public double EmptyPopDebtToHeirs = 0.0;`（新しい器・既定 0・EmptyPopDebtFirst とは別）。DormantIdentityTests.cs:144 の隣に 1 行。
+- 旗 ＞0（かつ EmptyPopEstate ＞0＝:14 の後）での動き：
+  - :17 に `List<Pop>? debtors = null;` を同じ行に足す。
+  - :23 の同じ行に `if (w.Coef.EmptyPopDebtToHeirs > 0 && p.Debt.Value > 0) (debtors ??= new List<Pop>()).Add(p);`＝貯蓄 0 でも債務 ＞0 の空の POP を送り手に含める（B5 の返しの後の債務を読む・NaN は比較が偽で含めない）。
+  - :25 を `if ((payers is null && debtors is null) || !(live > 1e-9)) continue;` へ（同じ行）。
+  - :31 を `if (payers is not null) World.Transfer(…同じ引数…); if (debtors is not null) DebtToHeirs(heirs, debtors, live);` へ（同じ行・World.Transfer の呼び口は :31 のまま＝経路の名は動かない）。
+  - 新しい関数 DebtToHeirs（Core の後の行へ足す＝:31 より前の行番号は動かない）：送り手ごとに債務 D0 を読み、末尾以外の相続人 i へ `x = D0 × (人数_i ÷ live)` を `送り手.Debt -= x; 相続人.Debt += x;` で移し、末尾（人数が最大）の相続人へ送り手の残り `送り手.Debt` をそのまま足して送り手を `default`（厳密な 0）にする。
+- 材料との違い（名乗り）：
+  - 材料 §3-1 は書き手を Pop.Carry と書いた。WriterRatchetTests.cs:207 `[InlineData("Pop.Carry(", "MultiNationSim.cs", 1)]` は `sites.All(x => x == file)`＝呼び手のファイルを 1 つに閉じる番人（行を足しても 2 ファイル目を名乗れない・Theory の本体は持ち主の外）。EmptyPopEstate.cs から Pop.Carry を呼ぶと必ず赤＝**Pop.Carry の債務の対と同じ 2 文（Model.cs:307〜:308 の債務の側）を直接書く**（貯蓄と国債の保有は触らない・同じ州＝同じ国の銀行＝HouseholdLoans は動かない）。新しい関数を作る理由（README §1-10）：Pop.Carry は番人で呼べず、債務の対だけを書く既存の関数は無い（grep：Debt を書くのは Bank.Lend・Pop.Carry・GovernanceSnapshot.cs:71・Simulation.cs:3092 の休眠 PopDebtDriven）。
+  - 副作用：Pop.Carry の中の計器 CearnCarryDebt を通らない＝cpop_s の debtInCarryPerQuarter にこの移しは載らない（estateDebtMovedPerQuarter は差分で数えるので門は読める）。
+  - 額は演算子 `MoneyStock * double` で作る＝`new MoneyStock(` を書かない（UnitTypeTests.cs:901 の件数の宣言 66 は変わらない）。
+  - Core の中に Instruments.On の読みを足さない（OnDoubleReadScanTests.cs:23 `["EmptyPopEstate.cs::Core#0"] = 3` は 3 のまま・DebtToHeirs は On を読まない＝表に載らない）。
+  - PopWindow.Verify のときは Pop.Carry と同じく GuardWrite を呼ぶ（検査の道だけ・通常の走行では読まない）。
+- 塵（★(919) ③）：材料 §3-1 の人数の比のまま入れる（小さい相続人に 1e-12 以下の債務が配られうる＝Pop.Take の床で決済 ① が返さない塵が相続人の側にできる）。寄せる形にしない（形の変え直しは 1 回の枠＝腕の前に形を 2 つ持たない）。〈人の居る非商人の塵の行〉を新÷旧の列に置き、記録にする。T1b で小さい相続人の挙動を固定する。
+- :22 の注〈否定形の門〉（(910) の反証役）：(920)（05e2ddc0）で既に〈比較が偽＝NaN は返さない〉へ直っている（今の :22 の注に〈否定形〉の字は無い）＝この線では直す物なし。
+- 入れない物：B1′（相続した貯蓄の範囲まで）・塵の債務の直し（⑬・Model.cs の床）・ImportPayerLive・:580 の門・BilateralMarket.cs・Fiscal.cs・world.json・App・Display・Runner。
+
+[3] 新しく開く道（材料 §3-2・腕の前に名乗る）
+- :580 は商人の債務しか見ない。B1 の後は空の商人の債務が毎月の相続の段で 0 になり、手形は毎月開く（予算は積荷の担保＝∞）。
+- 損の出る輸入（着値 ＞ 売値）が続くと、相続人の貯蓄が決済 ① で払い続け、返せない分は相続人の債務として残る＝:580 の不渡りの門が効かなくなる（〈相続人が負債も継ぐ〉＝★(919) ③ の推奨〈名乗り U2 で読む〉）。
+- 読む所：上限の門 U1・U2（記録）・止める線〈100 倍〉（輸入が開く道は案 A と同じ止める線に当たる恐れ）。
+- 閉じたテーマ ImportPayerLive との違い：ImportPayerLive＝空の商人を払い手にしない（予算は相続人の貯蓄・手形なし）／B1＝空の商人が手形で払い、債務を相続人が受ける（予算は積荷の担保）。BilateralMarket.cs は 1 字も変えない。
+
+[4] 門（腕 B と S11 の両方・定義は scripts/instruments/c82hd/gate936.py・結果を見る前に固定）
+| 門 | 側 | 観測量 | 閾値 | 旗 0 の紙（base／n1／n2） | 旗 0 で |
+|---|---|---|---|---|---|
+| W1 働いた | 下 | cearn_s の tier＝Colonial・importPayerKind＝2 の行で importPaidPerQuarter ＞0 の割合（gate910 の G2 と同じ定義） | ≧0.60 | 0.0026／0.0027／0.0025 | 落ちる |
+| W2 働いた | 下 | cpop_s の空の商人の行（商人・popK ≦1e-12）で inCreditPerQuarter ＞0 の割合 | ≧0.80 | 0.0041／0.0044／0.0046 | 落ちる |
+| U1 形の誤り | 上 | cearn_s の emptyDebtAfterEstate の和（全ての州・相続人の無い州も数える計器のまま） | ＝0 | 1,195,026／1,128,697／1,286,058 | 落ちる |
+| U2 形の誤り（記録） | 上 | 空の商人の行があり人の居る人数 ＞1e-9 の州×四半期で、人の居る POP の末の債務の和 ＞1e-9 の割合 | 記録（ヌル腕の幅 0.000160〜0.000873 と並べる・〈最大以下〉と尾の門にしない） | 0.000160／0.000873／0.000578 | — |
+| U3 保存 | 両 | ConservationTests.cs:190（短い走行）・:199（FullLength）＝国ごとの HouseholdLoans＝Σ Pop.Debt | 赤 0 | 緑 | 機構のテスト＝止める線 |
+| T1〜T8 | — | 手で組んだ盤面の数（新しい試験 EmptyPopDebtToHeirsTests.cs・期待は試験が手で書いた数） | 緑 | 旗 0 の T7 だけ緑 | — |
+- 閾値の出所（正直に）：W1 0.60・W2 0.80 は材料 §4 の値の据え置き（B5 の時代の腕 B〔G2 0.4574・W2 0.4588〕とヌル腕の幅の外に置いた AI の案）。keep_933 で取り直した旗 0 の値は上の表のとおりで、どちらも閾値の 1/100 未満。
+- 恒真でないこと（★(879)）：旗 0（何もしない実装）で W1・W2・U1 が落ちる（上の表）。通りうること：W1・W2 の天井の目安＝人の居る商人が払い手の植民地格の行（kind1）で importPaid ＞0 の割合 0.9209／0.9286／0.9175（手形の門が開いていれば輸入が起きる頻度）。U1＝0 は構造で届く：相続人の無い州で空の POP に債務が残る行の目安（noheir936.py：emptyDebtAfterEstate ＞0 かつ estateNoHeirPerQuarter ＞0）＝base で 0（Colonial 393,349・Core 5,519・Integrated 69 行のうち）。ただし estateNoHeirPerQuarter は貯蓄が正の空の POP だけを見る＝貯蓄 0・債務ありだけの相続人の無い州は紙で読めていない＝**U1 ＞0 ならそれでも落とす（読み替えない）**。
+- 単体の機構の試験（期待は手で書いた数・計器を読まない）：
+  - T1 相続人 2 つ（人数 2 と 1）・空の POP の債務 7・貯蓄 0 → Step の後、送り手の債務のビットが厳密な 0・人数 1 の相続人 7/3・人数 2 の相続人 14/3（相対 1e-12）。
+  - T1b 人数 2e-12 の小さい相続人を含む（債務 1）→ 小さい相続人も人数の比で受け（≦1e-12 の塵になる＝名乗りの固定）、送り手は厳密な 0、相続人の和は 1。
+  - T2 国の Σ Pop.Debt が Step の前後で同じ（相対 1e-12）・HouseholdLoans と BaseMoney はビットで同じ。
+  - T3 貯蓄 0・債務だけの空の POP（州の他の空の POP に貯蓄なし＝payers が null の州）も移る。
+  - T4 相続人の貯蓄が 0 でも移る。
+  - T5 人数の比（人数 1 と 3・貯蓄は逆に 300 と 100）→ 人数 3 の相続人が 3/4。
+  - T6 州に人の居る POP が無いときは移らない（債務は残る）。
+  - T7 旗 0 では債務に触れない（債務 7 のまま・相続人の債務 0）。
+  - T8 B5 と並べる（EmptyPopDebtFirst＝1・貯蓄 300・債務 500）→ 300 を返し、残りの 200 を相続人へ・送り手は厳密な 0。
+- 旗 0：DormantIdentityTests の行（既定 0 の器は 1 ビットも変えない）。
+
+[5] 突然変異ごとの赤の表（腕の前の予言・使い捨ての木 D:/PoB_work/c82hd_work/mut で単体の試験を回す・どの突然変異も旗の既定を 1 にした木の上で掛ける・成績表の列〔W1・W2・U1・U2〕は紙の予言で、腕は回さない）
+| 突然変異 | W1 | W2 | U1 | U2 | U3（:190） | 単体 |
+|---|---|---|---|---|---|---|
+| M0 何もしない（:31 の DebtToHeirs の呼びを消す） | 赤 | 赤 | 赤 | — | 緑 | T1・T1b・T2 の移った量・T3・T4・T5・T8 赤（T6・T7 緑） |
+| M1 送り手を 0 にしない（末尾にも比の額を渡し残りを送り手に残す） | 赤の見込み（塵が :580 を止める） | 赤の見込み | 赤 | — | 緑 | T1 赤（7・2・1 の数で送り手に 8.9e-16 が残る＝紙で計算） |
+| M2 送り手を 0 にするが相続人へ渡さない | — | — | — | — | 赤 | T1・T2 赤 |
+| M3 相続人へ 2 倍渡す | — | — | — | 赤の見込み | 赤 | T1・T2 赤 |
+| M4 貯蓄 ＞0 の送り手だけ（:23 の債務の送り手を `s > 0` の中へ） | 赤の見込み | 赤の見込み | 赤 | — | 緑 | T3 赤 |
+| M5 相続人の貯蓄の和 ≧ 債務の時だけ移す | 弱い | 弱い | 赤 | — | 緑 | T4 赤 |
+| M6 重みを人数でなく貯蓄で割る | — | — | — | — | 緑 | T5 赤（成績表の門では拾えない＝単体で拾う） |
+- 突き合わせ（★(899)）：U3 の赤は M2・M3 だけ。㉜ の予言（[7]）の赤の型〈前提の固定〉は突然変異で出ない（旗 1 の木の既定で出る型）。
+
+[6] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- IndustrializationReaderTests の許可表：工業化度を読まない＝変わらない（0）。
+- UnitTypeTests.cs:901 `new MoneyStock(` の件数（宣言 66）：書かない＝0。
+- scripts/instruments/flow262/route_anchors.tsv：EmptyPopEstate.cs の鍵の行は無い（grep 0）・:31 の行番号は動かない＝0。
+- WriterRatchetTests.cs:207 の呼び手の表：Pop.Carry を呼ばない＝0。計算量の宣言の表（最初の 40 四半期・1 種）：旗 0 の木では 0。旗 1 の木では軌道が動く＝★(749) の区分の表の赤が 0〜3 本ありうる（(910) は 3 本）＝その赤は〈軌道の件数を写しただけの番人〉として線では取り直さず報告に列挙し、合流の木で取り直す（新しい計数の処理は無い）。
+- OnDoubleReadScanTests.cs:23 `EmptyPopEstate.cs::Core#0 = 3`：3 のまま（Core に On の読みを足さない）。
+- DormantIdentityTests：旗 0 の器の行 +1（`EmptyPopDebtToHeirs`）。既定を 1 にするコミットでこの行を〈点火＝この表から外した〉の注へ置き換える（前例 :143 の EmptyPopEstate）。
+- 回す試験：`--filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~OnDoubleReadScanTests"`（隔離ビルド D:/PoB_work/c82hd_art）を器のコミットの直後に。
+
+[7] 旗 1 の木で番人が旧の規則を固定していないかの grep（㉜・★(818) の 2 軸）
+- 機構の軸（EmptyPopEstate・Pop.Carry・CearnBillSettle・:580）：EmptyPopEstate.Step を呼ぶ試験＝EmptyPopEstateTests（債務を置かない＝変わらない）・EmptyPopDebtFirstTests・BillBlockedColumnsTests。CearnBillSettle と HeirDebtSettled を読む試験＝BillBlockedColumnsTests・HeirDebtSettledMovedTests（清算だけ・相続の段を通らない）。
+- 盤面の軸（空の商人のある州の試験）：MerchantPop を人数 0 にする試験＝BillBlockedColumnsTests・CearnTradeColumnsTests・ConservationTests・EmptyPopDebtFirstTests・ImportPayerLiveTests・PaySalesMerchantTests・WarThemeTests。このうち相続の段を通る（Step・StepQuarter）のは EmptyPopDebtFirstTests・BillBlockedColumnsTests・WarThemeTests（債務は国債だけ＝変わらない）・ConservationTests（保存の番人＝U3）。
+- 旗 1 の既定で赤になる予言（Assert の読み）：
+  1. EmptyPopDebtFirstTests.cs:52〜66 `貯蓄が債務に足りなければ…持ち越して相続しない`：:63 `a.Debt ≒ 300`（B5 の返しの残りを人の居ない POP に持ち越す）＝B1 が残りを相続人へ移す＝赤。
+  2. EmptyPopDebtFirstTests.cs:109〜121 `旗0では債務に触れず今の相続のまま`：:119 `Assert.Equal(300.0, a.Debt.Value)`＝赤。
+  3. BillBlockedColumnsTests.cs:96〜116 `相続の段の直後の人の居ない債務者を数え…`（debtFirst 0 の枝 :113 `EmptyDebtAfter == 2`・:115 `EstDebtMoved == 0`）＝赤。
+  - どれも〈人の居ない POP の債務を他の機構が動かさない〉を盤面の前提に置いた B5 と計器の試験（B1 の規則を否定する番人ではない）。直しの形は 1 つ＝**盤面の前提の明示**（Assert は 1 字も変えない）：EmptyPopDebtFirstTests.cs:35 の On に `w.Coef.EmptyPopDebtToHeirs = 0;`・:113 の同じ行に `w.Coef.EmptyPopDebtToHeirs = 0;`・BillBlockedColumnsTests.cs:103 の同じ行に `w.Coef.EmptyPopDebtToHeirs = 0;`（前例 EmptyPopEstateTests.cs:169〈前提を既定に頼らず明示（点火の後の既定は 1）〉）。旗 0 の器のコミットに入れる（旗 0 では何もしない行＝恒等）。**どれも持ち主の外**（BillBlockedColumnsTests は c82sm が :144 だけ・行は別＝行番号は動かさない）＝合流へ列挙する。合流がこれを ㉜ の〈旧の規則の固定〉と読むなら B1 は採らない。
+  - 予言の外の赤が旗 1 のフルスイートで出たら、腕 B を回さず止める。
+
+[8] 止める線（この回の形をそのまま写す・結果を見る前）
+- scripts/instruments/c78gz/stoplines906.sh の 1 本：〈100 倍〉の〈それ以外〉（★(905) ① の区分〈分離・反乱の建国の後に名目 GDP 0 が続いて跳ぶ〉は記録へ）・1e10 倍・非有限・plvl の 100 倍・開幕の 1000 倍以上（同じ国が半分以上の種なら NG・他は記録）。基準とヌル腕は measurements/m933_20261107/{armM,null,armS11}/stop906*.txt を同じ台本の出力として並べる。
+- 空洞化 1/10 未満（an_h2.py -v4・規則 A2 の名簿の外・★(852) ① T1＝〈線が原因〉が 1 件でもあれば止める）。件ごとに keep_933/base_ins の同じ種・同じ州を読み、基線で既にピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+- 推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む）・破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+- 記録：gdp_zero10・英の不履行・ハーネス不合格・exact・near・NG（ng.sh・基準 rd:measurements/ng933_20261107:m933・出力は D:/… で渡す）・home_break・nullgate.py・史実の線。
+
+[9] 計算量の割り当て：0.2 秒（毎月の相続の段で、債務のある空の POP の州だけに相続人の数の繰り返し＝植民地格の州×月で数本）。m933 の推定 212.2 秒・名目の余り 約 36.3 秒の内（c82lt と共有）。
+
+[10] 段0 の予言（主な観測量の符号と大きさ・腕の前）
+- W1・W2：旗 0 の 0.003〜0.005 から、天井の目安 0.92 の近くへ上がる（手形が毎月開く）＝〈悪くする〉向きではない。
+- U1：0（構造）。U2：上がる（相続人が損の出る輸入の債務を受ける）・大きさは紙で出せない＝記録。
+- Σ estateDebtMovedPerQuarter：0 → 正。Σ heirDebtSettledPerQuarter：上がる。Σ billBlockedClearings：下がる（空の商人の手形が止まらない）。人の居る非商人の塵の行：上がりうる（[2] の塵）。
+- 紙が門の破れを予言しない（W1・W2 の天井 0.92 は閾値の上・U1 の相続人の無い州は紙で 0）＝回す理由の追記は要らない（㉗）。
+
+[11] 新÷旧の表の列（同じ盤面＝同じ種・base の keep_933/base_ins と腕 B の生／S11 は keep_933/a11 と c82hdS）
+- W1・W2・U1・U2・kind1 の割合・Σ moved・Σ heirSettled・Σ billBlocked・相続人なしで空の商人の債務 ＞0・人の居る非商人の塵の行（gate936.py の全ての行）・止める線の各行・an_h2 の件数・gdp_zero10・.cost の推定・exact・near・NG・英の不履行。全てを報告に書く。
+
+[12] 周辺の点検（★(885)）
+- :579 決済 ①：相続人の債務は次の清算で相続人の貯蓄から返る（州の全ての POP を回す・Bank.Lend の負＝Take の床を通る）＝B1 は書き手を変えない。
+- :580 手形：コードは変えない。B1 の後は空の商人の債務が毎月 0＝門が開く（[3]）。
+- Take の床（Model.cs:359・塵の債務 ⑬）：直さない。B1 で相続人の側に塵が増えうる（[2]）。
+- HouseholdLoans の保存：同じ州＝同じ国の銀行＝ΔHouseholdLoans＝0・ΔBaseMoney＝0（T2・U3）。
+- 計器 debtInCarryPerQuarter：B1 の移しは載らない（[2]）。
+
+[13] D: の空き（shutil）：107.9GB（2026-11-07・紙の前）。腕 B の床 41GB・S11 35GB＝起こす前に読み直す。順＝hd の腕 B → lt の ident → lt の腕 B → hd の S11 → lt の S11（計画の順）。
