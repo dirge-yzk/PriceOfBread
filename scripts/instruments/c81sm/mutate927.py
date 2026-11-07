@@ -12,7 +12,7 @@ for spec in sys.argv[4:]:
     assert orig.count(ob) == 1, f'{name}: 旧が {orig.count(ob)} 回'
     try:
         open(p, 'wb').write(orig.replace(ob, nb))
-        r = subprocess.run(['dotnet', 'test', os.path.join(tree, 'PriceOfBread.Tests/PriceOfBread.Tests.csproj'), '-c', 'Release', '--artifacts-path', 'D:/PoB_work/c81sm_art', '--filter', flt, '--nologo'],
+        r = subprocess.run(['dotnet', 'test', os.path.join(tree, 'PriceOfBread.Tests/PriceOfBread.Tests.csproj'), '-c', 'Release', '--artifacts-path', 'D:/PoB_work/c81sm_art2', '--filter', flt, '--nologo'],
                            capture_output=True, text=True, encoding='utf-8', errors='replace')
         txt = r.stdout + r.stderr
         failed = [l.strip()[:200] for l in txt.splitlines() if l.strip().startswith(('失敗 ', 'Failed '))]

@@ -1,0 +1,13 @@
+== LsMax_TierRule列の最大を取らない: RED
+   失敗 PriceOfBread.Tests.LandShareTests.T7f_期待と実際が合わない盤面で新しい規則の差の列は正になる [5 s]
+   失敗!   -失敗:     1、合格:    17、スキップ:     0、合計:    18、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+== ii_差でなくbackを足す旧の形: RED
+   失敗 PriceOfBread.Tests.HeirDebtSettledMovedTests.取り立てが床で0を返す決済は0を足し_通常の決済は移った額を足す [2 s]
+   失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== iii_尾に列を1本足した写し: RED
+   失敗 PriceOfBread.Tests.EmptyPopDebtFirstTests.計器の列は返した額と商人の債務を読む [3 s]
+   失敗 PriceOfBread.Tests.CearnTradeColumnsTests.人の居ない払い手の払いがあった清算は新しい列に畳まない_次の頭で印が戻る [137 ms]
+   失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+== iv_Discovery.StepにOnの読みを1本足す: RED
+   失敗 PriceOfBread.Tests.OnDoubleReadScanTests.InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない [328 ms]
+   失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 370 ms - PriceOfBread.Tests.dll (net10.0)
