@@ -1,0 +1,31 @@
+(949) c84gz 事前登録（最初のコミット・結果を見る前に固定）。恒等の線（台本と試験だけ）。基準 m947（ceee778f・測った木 e8e2d4ae）。
+[1] 種類と予言
+  形＝入口でも尾でもなく読み手の台本の直し。SimCore・Runner・App・Display・ident.cfg に触れない＝挙動の予言 0（素の 5 種・計器つき 10 種は m947 と全行一致の見込み）。
+  ident は回さない（SimCore の入力が変わらない＝木のハッシュは Tests と scripts だけ。指示どおり ident なし）。試験を 1 本足すので 2423→2424（FullLength 3 は同じ）を --list-tests で突き合わせる。
+[2] 段 1＝止める線〈100 倍〉の〈それ以外〉の物差し
+  読み方 2 つ。pair＝その波の基線のヌル腕 n1・n2 の〈それ以外〉の件数（10 種の合計）の最大と並べ、腕の件数がその最大以下なら記録・超えたら止める（★(826) ① の型）。strict＝今のまま 1 件でも止める。
+  推奨（AI の案・確証なし）＝pair。比べるのは 10 種の件数。〈2 倍の余裕〉は置かない（★(947)）。印の rule に書く。
+  数える区分＝gdp_jump906 --founding の 4 区分（建国の直後 ＞ 建国の後の 0 の続き ＞ 分母の痩せ ＞ それ以外）の〈それ以外〉。3 区分（gdp_jump833）の〈それ以外〉も並べて出す（N2 の共和制スペイン 1835 は 3 区分では〈それ以外〉・4 区分では〈建国の後の 0 の続き〉＝記録）。
+  材料＝keep_947 の base_ins・n1・n2・a11 と keep_933 の n1・n2 だけ（挙動の線の腕は見ない）。
+  紙の予言（生を読んだ後の追記ではなく、先に見た出力 stop906 から）：4 区分の〈それ以外〉は M 0・S11 0・N1 1（種 6 ハイデラバード 1928・137.8 倍）・N2 0。3 区分では N1 1・N2 1（種 5 共和制スペイン 1835・196.5 倍）。
+  ハイデラバード 1928：名目 GDP が 956→86 まで落ちて 0 以下には落ちない（正のまま）→ 701 → 96683 と戻る。人口の比 0.9956・窓 8 行に 0 以下 0 行＝建国の後の 0 の続き（★(905) ①）にも分母の痩せにも入らない。スペイン 1835：窓 8 行に 0 が 5 行＝★(905) ① に入る。
+  判定の表（M・S11・N1・N2 の旧＝strict と新＝pair）：旧は M 止めない・S11 止めない・N1 止める・N2 止める（3 区分）。新（pair・参照＝n1 と n2 の最大 1）は 4 本とも記録。M・S11 の判定は旧と新で同じ（0 件）。
+  台本 stoplines949.sh（stoplines906.sh の写し＋判定の 1 行・旧の台本は書き換えない）。判定は judge949.py（--rule pair|strict）。
+  印 D:/PoB_work/c84gz_work/ruler.mark：origin/c84gz へ push 後、`rc=0 sha=<コミット> rule=<pair|strict> end=<時刻>`（tmp に書いて mv）。
+[3] 段 2＝gdp_jump の下がりの向き（記録の列・止める線にしない）
+  gdp_fall949.py：直前が正で今が有限・比 ≦1/100 の下がり。区分＝建国の直後・分母の痩せ（人口の比 ≦1/10 か ≧10）・それ以外。0 への落ち（今が 0 以下）は別の列で数える。
+  S11 種 20 ポルトガル q380：260.1 分の 1 の下がり・人口の比 0.0315＝分母の痩せの区分に入る見込み（記録）。
+[4] 段 3＝小物の束
+  (i) ident_check.py：既知の揺れの札（呼び出し位置だけ・経路の行番号だけ）に宣言の列の名を併記（_decl・宣言が無ければ札は今までと同じ・known_hit の形と c70gt の lambda を保つ）。c70gt/c71gt の表示の試験は緑のままの見込み。
+  (ii) c9gd・c10tg の自己試験：列 fiscalBAt3Count・portNew は今の基準に無く落ちる→今の基準の列（eAtFloorCount・fareLandNewIndex）へ付け替え。keep_947/base_ins で 4 項目とも OK の見込み。
+  (iii) OnDoubleReadScanTests に〈ヘッダにコメント（class の語と括弧）を持つ関数〉の [Fact] を 1 本。StripComments を外す突然変異で赤・戻して緑。summary の限界に〈ヘッダの中の文字列の // も剥ぐ〉を足す。
+  (iv) ImposeAndCrownSourceTests の year の口（Diplomacy.cs:925）は記録だけ（触らない）。
+[5] 門
+  G1 自己試験が両側で緑（fixture：ヌル腕と同数〔記録〕・1 多い〔止める〕）。
+  G2 旧と新で M・S11 の判定が同じ（N1・N2 だけが変わりうる）。
+  G3 成績表と NG は変えない（ident なしの根拠＝SimCore に触れない。git diff --stat で SimCore・Runner・App・Display が 0 行を示す）。
+  G4 テスト 2424 ＋ FullLength 3 を --list-tests と突き合わせる・走査の番人（㉘）は OnDoubleReadScanTests を含む 5 つの番人を回す。
+  突然変異（門ごとに赤を確かめる）：Mu1 判定の〈>〉を〈>=〉（同数が止まる→G1 の〈同数〉行で赤）・Mu2 ヌル腕の件数を 0 にする（参照が 0 → N1 の自件が止まる・同数行が止まる→赤）・Mu3 下がりの区分を上がりに混ぜる（gdp_fall949 の比の向きを逆→ fixture の下がり行で赤）・Mu4 StripComments を外す（新しい試験が赤）。
+[6] 他の線との重なり（grep）：c84ca は Instruments.cs・InstrumentsInheritIntent.cs・InstrumentsTests.cs :2119・scripts/instruments/c84ca。c84kp は MultiNationSim.cs・Coefficients.cs :2757・DormantIdentityTests.cs 1 行・新しい試験 1 本・ColonyPromotionTests.cs。c84lb は InstrumentsLandbase.cs・Coefficients.cs :713・LandfixInstrumentTests.cs。本線は OnDoubleReadScanTests.cs（読み手の grep：Instruments.On の走査＝SimCore の各 .cs を読むだけ）・ident_check.py・c9gd/c10tg・scripts/instruments/c84gz と重ならない。
+  ソースを走査する番人の書き換え（㉑）＝0 件（既存の表 Allowed は変えない）。浮動小数の順序が変わる箇所＝無い。
+  足す計器の列＝無い（台本の出力の行だけ）。

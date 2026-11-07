@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# (949) 列を portNew（今の基準に無い）から fareLandNewIndex へ付け替えた。
 # (792) c10tg：(786) の自己点検を portch_s の中ほどの列 portNew に当てた写し。
 # (786) ident_check.py の --removed-cols の自己点検（突然変異）：基準の portch_s1.tsv から列 portNew を消した腕を作り、
 #   ①宣言あり＝恒等 ②宣言なし＝不一致 ③宣言ありでも 1 欄の値を変えたら不一致 ④宣言ありでも残りの列の順序を替えたら不一致、を確かめる。
@@ -6,7 +7,7 @@
 import sys, os, csv, importlib.util, io, contextlib
 base, work = sys.argv[1], sys.argv[2]
 rows = list(csv.reader(open(os.path.join(base, 'portch_s1.tsv'), encoding='utf-8', newline=''), delimiter='\t'))
-k = rows[0].index('portNew')
+k = rows[0].index('fareLandNewIndex')
 def w(d, rs):
     os.makedirs(os.path.join(work, d), exist_ok=True)
     with open(os.path.join(work, d, 'portch_s1.tsv'), 'w', encoding='utf-8', newline='') as f:
@@ -18,7 +19,7 @@ r3 = [dr(r) for r in rows]; c = r3[0].index('gcKm'); r3[0][c], r3[0][c + 1] = r3
 sys.argv = ['x', 't']
 spec = importlib.util.spec_from_file_location('ic', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'ident', 'ident_check.py'))
 ic = importlib.util.module_from_spec(spec); spec.loader.exec_module(ic)
-decl = ('portch_s:portNew',)
+decl = ('portch_s:fareLandNewIndex',)
 def run(arm, d):
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):

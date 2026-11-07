@@ -1,0 +1,42 @@
+(954) 合流（波84）の予言（merge の前に書く・2026-11-08）
+書き手：合流の担当（Claude Opus 5.5）。作業フォルダ D:/PoB_work/m954_work（この回に作った）。測る worktree D:/PoB_work/wt_m954（detached・この回に作る）。
+
+[1] 入れる物・入れない物
+- 入れる（merge）：c84ca（origin/c84ca 1971884c・(948) 恒等・〈判定: 恒等〉）・c84gz（origin/c84gz 541777a3・(949)・SimCore 0 行・台本と試験だけ）。
+- 記録と台本のパスだけ写す（器は入れない＝README ★(940)〈合流は止めた挙動の線の旗 0 の器を main に入れない〉）：
+  - c84kp（(952)・旗 1 のフルスイートの赤で腕 B の前に止めた）：measurements/m952_20261108/・measurements/m952_20261108_prereg_kp.txt・scripts/instruments/c84kp/。
+    取らない物：MultiNationSim.cs の 1 行・Coefficients.cs:2758 の旗・OpeningColonyDominanceTests.cs・DormantIdentityTests の 1 行・点火 70caed7c。
+    担当の推奨〈器 4ea56d76 ほかは入れてよい〉は ★(940) と食い違う＝★(940) に従う（両方を報告の先頭に書く）。
+  - c84lb（(951)・origin/c83lt の上の枝・main に入れない＝★(940)）：measurements/m951_20261108/・m951_20261108_prereg_lb.txt・b5/b10/mon/ident_20261108_c84lbz・scripts/instruments/c84lb/。
+- 読む線 c84rb（D:/PoB_work/r950_work）・設計の材料の線 c84tb（D:/PoB_work/r953_work）は、合流が docs・scripts・measurements へ写す（中身は書き換えない・反証役の訂正は記録と末尾へ）。
+- 挙動を変えた線は 0 本＝基線は m947 のまま。M・N1・N2・S11・アブレーションの腕は回さない。keep_954_rej に置く生は無い。
+
+[2] 衝突と消す名前
+- ca と gz の触るファイルの重なり 0（git diff --name-only の comm）。git merge-tree で両方とも衝突 0。
+- 消す名前：ca の .cs の削除の行は InstrumentsU4.cs の `if (n == 0) continue;` 1 行（条件に anyDeparted を足した置き換え）だけ＝名前の削除 0。gz の .cs の削除は OnDoubleReadScanTests.cs の summary の文 1 行＝名前の削除 0。他の枝で grep する名前は無い。
+
+[3] 合わせた木（ceee778f＋c84ca＋c84gz）の ident（ラベル m954z・--tree D:/PoB_work/wt_m954・--saveleak・--ng）
+宣言は c84ca の ident と同じ：--rows-grown-ok cons_s,consf_s・--known-extra は measurements/m948_20261108_known_extra.txt の 45 列・--tests-delta 2（ca +1・gz +1）。
+予言：
+- 素の 5 種：b5_20261108_m947 と全行バイト一致（180 行）。.cost 推定 209.5 秒で一致。
+- 計器つき 10 種：b10_20261108_m947_ins と全行バイト一致（181 行）。.cost 推定 210.2 秒で一致。
+- 注視の表：mon_20261108_m947.txt とタグの行以外が一致（5085 行）。
+- 計器の表 1149 本：バイト一致 1109・既知の揺れ 20（burscan_s・clock_s）・行が増えた表 20 本（cons_s 10・consf_s 10・増えた行 272＝ca の ident と同じ数）・宣言の無い違い 0。
+- テストの数：Category!=FullLength 2425（2423＋2）・FullLength 3。
+- savetest OK・leakhunt 保存則違反なし。NG 93 で m947 と同じ集合（新しい 0・外れた 0）。
+- SOURCE-HASH は m947 と違う（Instruments の .cs が変わる）＝名乗り行の外。
+外れたときの扱い：ca だけの ident と違う結果が出たら、gz の差分（試験と台本）に原因は無いはず＝止めて原因を書く。
+
+[4] 測る木と main のコミットの順（㉙）
+- 合わせた commit で detached の worktree wt_m954 を切って測る。main の作業ツリーでは docs のコミットを続けてよい（測る木の HEAD は動かない）。
+
+[5] 止める線の段（この合流で採否を決める物）
+- ident の不一致（宣言の無い違い・成績表の行の差・.cost の差）・フルスイートの赤（Category!=FullLength と =FullLength を分け、--list-tests の 2425/3 と突き合わせる）・savetest・leakhunt。
+[6] 記録の段（採否に使わない）
+- c84ca の consf_s q>160 の 32 件（regionsCount の変化で説明できない・未検証）。
+- c84gz の印 ruler.mark に区分の数が書かれていない（4 区分・sha a3c17862）。kp の事前登録の参照〈N1 1・N2 1〉は 3 区分の数字。
+- c84rb・c84tb の反証役の訂正。
+- 記録のファイルの直し（エンジン外）：m949_20261108/judge_table.txt・mut949.txt を LF へ、m948_20261108_diff_vs_prediction.txt・m948_20261108_probe_wt1.tsv を cp932 から UTF-8 へ。
+
+[7] 恒等の後
+- INSRAW を合わせた木の ident の計器つき 10 種の生へ移す（D:/PoB_work/keep_954/base_ins へ移動・写さない）。ident.cfg は INSRAW・BASE_COMMIT（合わせた木）・TESTS_NONFULL 2425 だけ直す（B5・B10INS・MON・NG_BASE は m947 のまま＝★(926) の前例）。

@@ -1,0 +1,2 @@
+(951) 走査の番人（㉘・木 0dfe0a0e・旗 0）：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|LandfixInstrumentTests
+成功!   -失敗:     0、合格:   135、スキップ:     0、合計:   135、期間: 17 m 37 s - PriceOfBread.Tests.dll (net10.0)

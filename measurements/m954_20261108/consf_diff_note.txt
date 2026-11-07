@@ -1,0 +1,7 @@
+(954) 合流：consf_s の旧（keep_947/base_ins）と新（keep_954/base_ins＝c84ca の直しの後・合わせた木 3c3747bb の ident m954z の生）の差の全ての鍵
+台本 scripts/instruments/m954/consf_diff954.py・出力 consf_diff_keys.tsv（1 行＝1 つの (種, 国, 四半期)）。
+- 差の (種, 国, 四半期) 1024（c84ca の diff_vs_prediction.txt の consf_s 1024 と同じ数）。
+- q<=160（cons_s の上限の内）324。
+- q>160 のうち、旧の表で国の (scope→regionsCount) が前の四半期と違う・か前の四半期の行が無い＝699。
+- 残る 1 件＝種 9 イギリス q228：region_s9.tsv（keep_947/base_ins）で q227→q228 にアマゾン（Colonial）が出てモガディシュ（Colonial）が入った＝州の数を変えない入れ替わり（regionsCount 33→33）。
+＝差は全て州の出入りの四半期に当たる。c84ca の〈32 件は説明できない〉は regionsCount の変化の取り方が狭かった物（定義の違い）＝この取り方では説明できない件 0。ident の取り直しは要らない。

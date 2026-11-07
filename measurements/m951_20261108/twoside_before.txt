@@ -1,0 +1,11 @@
+(951) 両側の前（直しの前の木 67d37cb6＋試験 I4・I5・旗 1）：dotnet test --filter LandfixInstrumentTests
+  成功 PriceOfBread.Tests.LandfixInstrumentTests.I3_旗0は凍結の事象0で計器の写しだけがある [4 s]
+  失敗 PriceOfBread.Tests.LandfixInstrumentTests.I5_同じ四半期の中で出て戻った州の写しは生き返らない [1 s]
+Actual:   19
+  失敗 PriceOfBread.Tests.LandfixInstrumentTests.I4_出て戻った州の写しは生き返らない [1 s]
+Actual:   19
+  成功 PriceOfBread.Tests.LandfixInstrumentTests.I2_旗1で凍結の事象と照合が通る [748 ms]
+  成功 PriceOfBread.Tests.LandfixInstrumentTests.I1_見出し [22 ms]
+テストの合計数: 5
+     成功: 3
+     失敗: 2

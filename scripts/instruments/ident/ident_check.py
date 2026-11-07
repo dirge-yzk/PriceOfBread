@@ -379,6 +379,10 @@ def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:�
     return True, moved, extra
 
 
+def _decl(known, t):   # (949) 既知の揺れの札に、その表の宣言の列の名を併記する（宣言が無ければ空＝今までの札と同じ）
+    return '（宣言の列 ' + ','.join(sorted(known[t])) + '）' if known.get(t) else ''
+
+
 def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}')
     if not os.path.isdir(new):
@@ -411,13 +415,13 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
             real.append((f, ['NONTSV'])); continue
         t = table_of(f)
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
-            known_hit.append((f, ['呼び出し位置だけ'])); continue
+            known_hit.append((f, ['呼び出し位置だけ' + _decl(known, 'flow_s')])); continue
         if t == 'cearn_s':
             okc, nmv, ext = cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown))
             if okc and not ext:
-                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）'])); continue
+                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）' + _decl(known, 'cearn_s')])); continue
             if okc and ext:   # (852) 基準の列は経路を写して一致・末尾に増えた列は --grown-ok の宣言（宣言の増減と既知の揺れの両方に名乗る）
-                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）'])); continue
+                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）' + _decl(known, 'cearn_s')])); continue
         rcs = [x.split(':', 1)[1] for x in removed_cols if ':' in x and f.startswith(x.split(':', 1)[0])]
         kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown), removed_cols=rcs)
         if J(base, f) in COLS_REMOVED and not d and not extra and not kn and not (pref(f, rows_grown) and ROWS_ADDED.get(J(base, f), 0) > 0):
