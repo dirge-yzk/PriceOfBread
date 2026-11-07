@@ -1,0 +1,1 @@
+(viii) 突然変異 StripComments を外す（string h = src[hdr..i]）: OnDoubleReadScanTests が赤（新しい二重読み Fiscal.cs::min#0 ほか 鍵の名が旧の形に戻る）

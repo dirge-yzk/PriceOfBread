@@ -3,7 +3,7 @@
 使い方：python scripts/instruments/c81im/mutate928.py <木> <出力 txt>  （木は作業ツリーのルート・事前にコミット済みで差分が無いこと）"""
 import subprocess, sys, os
 tree, out = sys.argv[1], sys.argv[2]
-ART = 'D:/PoB_work/c81im_art2'
+ART = os.environ.get('MUT_ART', 'D:/PoB_work/c81im_art2')   # (935) c82sm：環境変数で隔離ビルドの置き場を替えられる
 MUTS = [
  ('M1 ImpAfter の呼び口を外す', 'PriceOfBread.SimCore/Diplomacy.cs',
   b'if (impPre is not null) Instruments.ImpAfter(', b'if (false) Instruments.ImpAfter('),
@@ -21,6 +21,19 @@ MUTS = [
   b'Instruments.CrownSourceIfOn(w, 4);', b'/* */'),
  ('M8 開幕の口を外す', 'PriceOfBread.SimCore/Simulation.cs',
   b'if (Instruments.On) Instruments.CrownSource(World, 0);', b'/* */'),
+ # (935) c82sm：符号 2・5・6 の口と、勝者の政体／押し付けの政体の取り違え・year・absScoreIndex（㉚）
+ ('M9 矯正講和の口（符号 2）を外す', 'PriceOfBread.SimCore/InstrumentsImpose.cs',
+  b'        CrownSource(dw, 2);', b'        /* */'),
+ ('M10 幕府の終わりの口（符号 5）を外す', 'PriceOfBread.SimCore/CrownParliament.cs',
+  b'Instruments.CrownSourceIfOn(w, 5);', b'/* */'),
+ ('M11 復元の口（符号 6）を外す', 'PriceOfBread.SimCore/GovernanceSnapshot.cs',
+  b'if (Instruments.On) Instruments.CrownSource(w, Instruments.CrownSrcUnknown);', b'/* */'),
+ ('M12 勝者の政体と押し付けの政体を取り違える', 'PriceOfBread.SimCore/InstrumentsImpose.cs',
+  b'I((int)ww.Polity), I((int)pre.Polity), I((int)pre.Crown), I((int)dw.Crown), I((int)dw.Polity),', b'I((int)dw.Polity), I((int)pre.Polity), I((int)pre.Crown), I((int)dw.Crown), I((int)ww.Polity),'),
+ ('M13 year の列に月を書く', 'PriceOfBread.SimCore/InstrumentsImpose.cs',
+  b'I(cp.Month), I(cp.Year),', b'I(cp.Month), I(cp.Month),'),
+ ('M14 absScoreIndex を常に 1', 'PriceOfBread.SimCore/InstrumentsImpose.cs',
+  b'F(absScore), F(System.Math.Abs(', b'F(1.0), F(System.Math.Abs('),
 ]
 res = []
 for name, rel, old, new in MUTS:

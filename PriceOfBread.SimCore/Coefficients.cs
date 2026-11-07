@@ -2006,7 +2006,7 @@ public sealed class Coefficients
     // 離脱(coverage<GoldCoverMin)と再加入(coverage>=GoldCoverMin)が同一閾値・クールダウンなしのチャタリング。
     public double GoldRejoinCoverMargin = 1.3;      // **2026-07-25点火試験**：再加入に要するカバー率の余白（GoldCoverMin×これ）。1.0=現行恒等（シュミットトリガー＝境界チャタリング防止）
     public double GoldCoverCreditRestraint = 0.5;   // **2026-07-25点火試験**：金本位国のカバー率防衛＝coverageが床(GoldCoverMin×(1+これ))未満で与信上限を比例縮小（1890年代バンクレート防衛の与信面＝兌換を守るため信用を絞る・与信↓→BroadMoney↓→coverage回復の負帰還）。0=不読＝恒等
-    // 戦争・内戦の経済ダメージ（2026-07-25 #136・ユーザー指摘「低すぎる可能性」）。棚卸し＝現行の内戦は軍需消費2倍・正統性ドレイン・選挙停止**のみ**
+    // 戦争・内戦の経済ダメージ（2026-07-25 #136・ユーザー指摘「低すぎる可能性」）。棚卸し＝当時の内戦は軍需消費2倍・正統性ドレイン・選挙停止**のみ**（今は内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)・CivilWarArmsDemandUnified 旗 1）
     //（生産・資本・民間人が無傷＝太平天国の長江壊滅・米内戦の南部資本半減が表現不能。軍需2倍はむしろ軍需景気）。対外戦争は戦費・資材競合・
     // 兵士/士官の戦死・封鎖・厭戦のみ＝**国土は無傷**（北仏1914-18型の戦場破壊なし）。以下3本で物理ダメージを追加（点火試験値・値は各行参照）。
     public double CivilWarEconomyDisruption = 0.2;  // **2026-07-25点火試験**：内戦中の実効生産性×(1−これ)（流通麻痺・徴発・戦場化・労働の逃散）。0=不読＝恒等

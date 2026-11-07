@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>★(895) 線 c76ls：土地の持ち分の段 B-0（器 <see cref="Producer.LandShares"/>・データの入口 <see cref="NationConfig.LandOwnership"/>・計器 <c>landshare_s</c>）の番人。
 /// 事前登録 measurements/m895_20261106_prereg_ls.txt [3] の T1〜T8。期待は計器と別の出所から作る（割合の表は試験が手で書いた値・受け手の添字は州の POP の欄・送金の有無は試験が POP から数える）。
-/// world.json の全ての国は null（B-0）＝試験はフランスの写しにだけ欄を置く。突然変異（使い捨ての木）は measurements/m895_20261106/mutation.txt。</summary>
+/// world.json の landOwnership は (930) c81la から名簿 7 国（フランス・日本・イギリス・プロイセン・スペイン・デンマーク・ポーランド）に入った（他の国は null）＝試験はフランスの写しに With で手の表 Fr を欄に置く。突然変異（使い捨ての木）は measurements/m895_20261106/mutation.txt。</summary>
 [Collection("Instruments")]
 public class LandShareTests
 {
@@ -369,7 +369,7 @@ public class LandShareTests
         // T7″ 人工のずれ：data の側に欄と違う値
         string dir2 = RunIns([With("フランス", Fr)], 1, seed, setup: sim => Instruments.LsDataOverride.AddOrUpdate(sim.Nations[0].World, [0.5, 0, 0.5, 0]));
         Assert.True(D(Rows(dir2, seed)[0], "maxRelDiffDataVsField") > 0.1, "data の側の値を欄と違えても差が立たない");
-        // world.json の側（フランスは null）を読む＝欄と違う
+        // world.json の側（c81la の後はフランスも [0.265, 0.087, 0.378, 0.270]・上の Fr の手の表と違う値）を読む＝欄と違う
         string dir3 = RunIns([With("フランス", Fr)], 1, seed);
         Assert.True(D(Rows(dir3, seed)[0], "maxRelDiffDataVsField") > 0.1, "data の側が world.json でなく生産者の欄を読んでいる");
     }

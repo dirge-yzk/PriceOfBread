@@ -60,6 +60,7 @@ public class ImposeAndCrownSourceTests
             Assert.Equal(((int)fr.Nation!.Polity).ToString(), Col(row, "imposedPolityCode"));
             Assert.Equal(((int)uk.Nation!.Crown).ToString(), Col(row, "loserCrownAfterCode"));
             Assert.Equal(0.45, double.Parse(Col(row, "ideologyGapIndex"), System.Globalization.CultureInfo.InvariantCulture), 12);   // 立憲 0.45 − 絶対 0.0
+            Assert.Equal(1.5, double.Parse(Col(row, "absScoreIndex"), System.Globalization.CultureInfo.InvariantCulture), 12);   // 厭戦の崩壊の講和は満額 1.5（RunImpose の盤面の注）
             Assert.Equal("1", Col(row, "crushingFlag")); Assert.Equal("1", Col(row, "orderInMonthIndex"));
             Assert.Equal(legB, double.Parse(Col(row, "legitimacyBeforeShare"), System.Globalization.CultureInfo.InvariantCulture), 9);
             Assert.Equal(uk.Nation!.Legitimacy, double.Parse(Col(row, "legitimacyAfterShare"), System.Globalization.CultureInfo.InvariantCulture), 9);
@@ -68,17 +69,30 @@ public class ImposeAndCrownSourceTests
             var pre = Instruments.ImpBefore(uk.Nation!);
             var polPre = uk.Nation!.Polity; var crPre = uk.Nation!.Crown;
             uk.Nation!.Crown = crPre == CrownForm.None ? CrownForm.Despotic : CrownForm.None;
+            Instruments.CpMonth(sim.Diplomacy, 61, 1788);   // 講和の月と年を直に与える（この盤面は国の歩を回さず Diplomacy の年が 0 のまま）
             Instruments.ImpAfter(sim.Diplomacy, pre, fr, uk, fr.Nation!, uk.Nation!, 1.5, true);
-            var last = Instruments.ImpRowsPending(sim.Diplomacy)[^1].Split('	');
+            var last = Instruments.ImpRowsPending(sim.Diplomacy)[^1].Split('\t');
             Assert.Equal(((int)crPre).ToString(), Col(last, "loserCrownBeforeCode"));
             Assert.Equal(((int)uk.Nation!.Crown).ToString(), Col(last, "loserCrownAfterCode"));
             Assert.NotEqual(Col(last, "loserCrownBeforeCode"), Col(last, "loserCrownAfterCode"));
             Assert.Equal(((int)polPre).ToString(), Col(last, "loserPolityBeforeCode"));
+            Assert.Equal("1788", Col(last, "year")); Assert.Equal("20", Col(last, "quarter")); Assert.Equal("61", Col(last, "month"));
+            // 勝者の政体と押し付けの政体が違う盤面：敗者の政体を勝者と別にして呼ぶ＝winnerPolityCode は勝者・imposedPolityCode は敗者の今の政体で読む
+            var diffPol = fr.Nation!.Polity == Polity.Despotic ? Polity.Republic : Polity.Despotic;
+            var preD = Instruments.ImpBefore(uk.Nation!);
+            uk.Nation!.Polity = diffPol;
+            Instruments.ImpAfter(sim.Diplomacy, preD, fr, uk, fr.Nation!, uk.Nation!, 1.5, true);
+            var dRow = Instruments.ImpRowsPending(sim.Diplomacy)[^1].Split('\t');
+            Assert.NotEqual(Col(dRow, "winnerPolityCode"), Col(dRow, "imposedPolityCode"));
+            Assert.Equal(((int)fr.Nation!.Polity).ToString(), Col(dRow, "winnerPolityCode"));
+            Assert.Equal(((int)diffPol).ToString(), Col(dRow, "imposedPolityCode"));
+            Assert.Equal(((int)preD.Polity).ToString(), Col(dRow, "loserPolityBeforeCode"));
+            uk.Nation!.Polity = preD.Polity;
             // 同じ月に同じ敗者へ 2 本目（計器の呼び口を直に叩く）＝順番は 2・別の敗者は 1 から
             Instruments.ImpAfter(sim.Diplomacy, Instruments.ImpBefore(uk.Nation!), fr, uk, fr.Nation!, uk.Nation!, 1.5, true);
             Instruments.ImpAfter(sim.Diplomacy, Instruments.ImpBefore(fr.Nation!), uk, fr, uk.Nation!, fr.Nation!, 1.5, true);
-            var all = Instruments.ImpRowsPending(sim.Diplomacy).Select(r => r.Split('	')).ToList();
-            Assert.Equal(new[] { "1", "2", "3", "1" }, all.Select(r => Col(r, "orderInMonthIndex")).ToArray());
+            var all = Instruments.ImpRowsPending(sim.Diplomacy).Select(r => r.Split('\t')).ToList();
+            Assert.Equal(new[] { "1", "2", "3", "4", "1" }, all.Select(r => Col(r, "orderInMonthIndex")).ToArray());
             return 0;
         });
     }
@@ -105,6 +119,11 @@ public class ImposeAndCrownSourceTests
             CrownParliament.Step(fr, c);
             Assert.Equal(CrownForm.None, fr.Crown);
             Assert.Equal(4, Instruments.CrownSourceOf(fr));                                   // 廃位
+            // 符号 6 の口：助走の後の復元は書き手を不明（6）へ戻す（口を外すと直前の符号 3 が残る）
+            Politics.SettleRevolt(fr, c, true, fr.Polity == Polity.Republic ? Polity.Despotic : Polity.Republic, null, System.Array.Empty<Pop>());
+            Assert.Equal(3, Instruments.CrownSourceOf(fr));
+            GovernanceSnapshot.Capture(fr).RestoreTo(fr);
+            Assert.Equal(6, Instruments.CrownSourceOf(fr));
             Assert.Equal(Instruments.CrownSrcUnknown, Instruments.CrownSourceOf(offWorld));   // 計器が切れていた間に作った World は不明
             return 0;
         });

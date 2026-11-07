@@ -69,7 +69,7 @@ public static class PolicyPreferences
     private const double BurdenScale = 3.0;   // 課税ベースのシェア→反対強度の換算（シェア0.67で約−2＝強反対）
     internal const double StatusScale = 2.0;   // 自由化に対する旧支配層の抵抗強度（特権の大きさ＝富シェアで変調）
     // マジックナンバー一掃（2026-07-20・値据え置き・命名のみ）
-    // ★案D（2026-08-31）：RentProtectionWeight はハードコード定数からCoefficients.RentProtectionWeightCoef へ係数化（既定1.5＝厳密恒等・#17調整対象）
+    // ★案D（2026-08-31）：RentProtectionWeight はハードコード定数からCoefficients.RentProtectionWeightCoef へ係数化（当時の既定1.5＝厳密恒等・#17調整対象・今の既定は1.0〔点火2026-08-31 T2腕〕）
     private const double ProgressiveCapitalSurcharge = 1.5;      // 累進課税＝資本（近代エリート）への追加反対強度
     private const double NationalizationCapitalOpposition = 1.5; // 国有化＝資本（近代エリート）の利潤没収への反対強度
     private const double LandTaxRentierThreshold = 0.34;         // 土地税＝この地代シェア未満なら転嫁を歓迎（賛成）

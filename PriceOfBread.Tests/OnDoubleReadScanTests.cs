@@ -22,14 +22,14 @@ public class OnDoubleReadScanTests
         ["EconomyStep.cs::Run#0"] = 11,
         ["EmptyPopEstate.cs::Core#0"] = 3,
         ["Fiscal.cs::Step#0"] = 4,
-        ["Fiscal.cs::min#0"] = 2,
+        ["Fiscal.cs::Borrow#0"] = 2,
         ["Government.cs::Step#0"] = 5,
         ["Government.cs::CountOpenFronts#0"] = 3,
         ["Government.cs::MandateGate#0"] = 5,
         ["Government.cs::Move#0"] = 7,
         ["Government.cs::StepLevel#0"] = 5,
         ["InternationalMarket.cs::PaySales#0"] = 4,
-        ["Model.cs::min#0"] = 2,
+        ["Model.cs::Take#0"] = 2,
         ["Model.cs::Blend#0"] = 2,
         ["MultiNationSim.cs::StepDiscoveries#0"] = 5,
         ["MultiNationSim.cs::StepDay#0"] = 3,
@@ -39,18 +39,20 @@ public class OnDoubleReadScanTests
         ["SelfPlay.cs::TryBuildFacility#0"] = 8,
         ["SelfPlay.cs::Apply#0"] = 10,
         ["SelfPlay.cs::Run#0"] = 4,
-        ["Simulation.cs::州の建設予約は#0"] = 3,
+        ["Simulation.cs::QuarterStart#0"] = 3,
         ["Simulation.cs::AddStateClaim#0"] = 2,
         ["Simulation.cs::QuarterEnd#0"] = 2,
-        ["Simulation.cs::実装ログ#0"] = 18,
+        ["Simulation.cs::MonthSettle#0"] = 18,
         ["Simulation.cs::DemographicStep#0"] = 5,
         ["Territory.cs::static#0"] = 4,
         ["World.cs::TriggerEpidemic#0"] = 7,
         ["World.cs::UpdatePriceLevel#0"] = 2,
-        ["World.cs::min#2"] = 2,
+        ["World.cs::StepConstruction#0"] = 2,
     };
 
     static bool W(char c) => char.IsLetterOrDigit(c) || c == '_';
+
+    static string StripComments(string h) => Regex.Replace(h, @"//[^\n]*|/\*.*?\*/", " ", RegexOptions.Singleline);
 
     internal static List<(string Name, int Reads)> Scan(string src)
     {
@@ -88,7 +90,7 @@ public class OnDoubleReadScanTests
             }
             if (ch == '{')
             {
-                string h = src[hdr..i];
+                string h = StripComments(src[hdr..i]);   // 鍵の名は、コメントを剥いだ頭から取る（コメントの中の括弧や class の語を名にしない）
                 if (Regex.IsMatch(h, "(?<![A-Za-z0-9_])(class|struct|namespace|record|enum|interface)(?![A-Za-z0-9_])")) stack.Add(('t', "", new int[1]));
                 else if (stack.Count > 0 && stack[^1].Kind == 't' && h.Contains('('))
                 {

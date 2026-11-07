@@ -29,8 +29,8 @@ public static partial class Instruments
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, CrownSink> CrownSinks = new();
 
     // ---- (928) 王冠の登録簿を最後に書いた口の符号 crownRegisterSourceCode（計器の持ち物・World に欄を足さない・セーブに載らない） ----
-    // 符号：0 開幕（Simulation の構築）・1 Transition 系の政体変更（Politics.ExecuteRegimeChange＝Transition と蜂起の決着のうち蜂起以外）・2 矯正講和・3 蜂起の決着（Politics の反乱の勝ち）・
-    //   4 廃位（議会が王冠を廃す）・5 幕府の終わり・6 不明（口が印を付けていない国＝助走の後の復元〔GovernanceSnapshot〕・建国の World など）。
+    // 符号：0 開幕または建国（Simulation の構築＝建国の子の国も同じ構築を通る・国の最初の行の quarter＞0 で分ける）・1 Transition 系の政体変更（Politics.ExecuteRegimeChange＝Transition と蜂起の決着のうち蜂起以外）・2 矯正講和・3 蜂起の決着（Politics の反乱の勝ち）・
+    //   4 廃位（議会が王冠を廃す）・5 幕府の終わり・6 不明（口が印を付けていない国＝助走の後の復元〔GovernanceSnapshot〕など）。
     // ⚠限界：①符号は呼び口が付ける印＝口が増えても印が無ければ前の符号のまま。②ExecuteRegimeChange の呼び手のうち Transition と蜂起の決着だけ分けた（他に呼び手は無いと grep で確かめた）。
     internal const int CrownSrcUnknown = 6;
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<int>> CrownSrcs = new();
@@ -225,7 +225,7 @@ public static partial class Instruments
         + "blockOpenFlag\trepSupportIndex\tcurSupportIndex\tcrownSupportIndex\tinertiaIndex\tmobilizationIndex\teffectiveCoerceIndex\tterm1SupportGateFlag\tterm1CoerceGateFlag\tterm1Share\tterm1ClampHitFlag\t"
         + "term2GateFlag\tterm2Share\tterm2ZeroHitFlag\tsoldierLeanIndex\tarmyPowerIndex\tterm2pGateFlag\tterm2pShare\tterm2pZeroHitFlag\t"
         + "depositionFlag\tshogunateEndFlag\tfloorHitFlag\trelabelFlag\tregimeEventFlag\tgrantFlag\tpcTargetShare\t"
-        + "debtGripShare\tinterestPerMonth\trevenuePerMonth\tinterestPerRevenueShare\taboveConstitutionalFloorFlag\trecentRegimeChangesIndex	crownRegisterSourceCode";
+        + "debtGripShare\tinterestPerMonth\trevenuePerMonth\tinterestPerRevenueShare\taboveConstitutionalFloorFlag\trecentRegimeChangesIndex\tcrownRegisterSourceCode";
 
     /// <summary>行の値（見出し <see cref="CrownHeaderText"/> と同じ順）。</summary>
     internal static string CrownLine(World w, int q, int uid, CrownRow row)
