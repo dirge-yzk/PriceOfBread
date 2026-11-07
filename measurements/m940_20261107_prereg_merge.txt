@@ -1,0 +1,37 @@
+(940) 合流（波82）の予言（合流の前にコミットする・結果を見る前に書いた）
+基点 main 84688034（= origin/main・fetch で確かめた）。基線 m933（測った木 1af3e5d7・84688034 との差は docs・measurements・scripts・ident.cfg だけ）・計器の生 INSRAW keep_933/base_ins（BASE_COMMIT 1af3e5d7）。
+作業フォルダ（この回に合流が作る物）：D:/PoB_work/m940（作業）・D:/PoB_work/wt_m940（worktree・枝 m940）・D:/PoB_work/ident_m940z（腕 Z の ident の生・読み終えたら消す）。keep_940・keep_940_rej は作らない（採る挙動の線 0・回した挙動の腕 0）。
+
+[1] 入れる物と入れない物（線の報告と反証役の指摘から・結果を見る前に固定）
+- c82it (934)：入れる（scripts だけ・反証役は低 1・記録 3＝high なし・試験 cearn_known_test.py GATEOK・突然変異 4 本赤）。
+- c82sm (935)：入れる（SimCore は注と文字列の生のタブ 1 個の綴り替えだけ・行の数の差 0・反証役は低と記録だけ＝high なし）。線は ident を回していない（計画のとおり）＝合流の腕 Z が初めての ident。
+- c82hd (936)：**旗 0 の器も入れない**。事前登録 c15ec340 と結果 a2fdccc7（.cs 0 行）だけを cherry-pick する（★(912)）。
+  理由：指示の順の文〈自分の門を通った挙動の線〉に当たらない（腕 B と S11 を回していない・旗 1 のフルスイートで予言の外の赤 InstrumentsTests.cs:2240）。器の恒等は腕 A の 5 種だけで測った。pending ①（前提を明示した試験 3 か所が ㉜ の〈旧の規則を固定する番人〉に当たるか）が作者の答え待ち＝当たるなら B1 は採らない形になる。
+  前例は両方ある：入れた側＝c76cs〔(896)・器は旗 0・点火を逆適用して m899 へ〕・c77ce〔(902)・m905 へ〕／入れない側＝c80cw〔(922)・m926・腕 B なし＝枝ごと残す〕。この回は c80cw の側を採る（AI の判断）。
+  3 回の規則には数えない（★(912)）。次の波は枝 origin/c82hd（器 6cbb8917・点火 f76dbb2e）から cherry-pick で再開する。
+- c82lt (937)：**旗 0 の器も入れない**。事前登録・台本・記録（measurements/m937_*・scripts/instruments/c82lt/）だけをパスで写す（器のコミットに .cs と world.json・opening_bake.json が混ざる＝コミットは cherry-pick しない）。
+  理由：腕 B と S11 を回していない（旗 1 のフルスイートで建設の閉じの赤）・持ち主の外のファイル 6 本（NationConfig.cs・World.cs・Simulation.cs:119・Model.cs・Territory.cs・EconomyStep.cs の月の頭の 0 化）・world.json のデータ（★(912)〈データや旗の点火を main に入れず〉）。腕 0 本＝3 回の規則に数えない。次の波は枝 origin/c82lt（e45ea08d・旗 0）から再開する。
+- c82fg (938)：読む線。台本と表を scripts/instruments/r938/・measurements/m938_20261107/ へ写す。下書きは docs/202611/20261107/ へ題に〈読みの下書き・AI の案・作者の確認待ち〉と書いて写す（本文は変えず、反証役の訂正 3 件を末尾に足す）。
+- c82ln (939)：設計の材料。日付つきの 2 本（material.md・draft.md と同じ中身を assert で確かめる）を docs/202611/20261107/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（本文は変えない・反証役の訂正 5 件は末尾）。台本は scripts/instruments/r939/・出力は measurements/m939_20261107/。
+- 挙動の線を入れない＝基線は m933 のまま。M・N1・N2・S11・アブレーションは回さない。
+
+[2] 消す名前の確かめ（★(773)）
+- c82it・c82sm とも消す名前 0（両方の反証役が確かめた・合流も diff の削除行で確かめる）。
+- merge-tree：c82sm と c82it の衝突 0（反証役の確認）。
+
+[3] 腕 Z（ident m940z・合わせた木・挙動の線の旗なし）の予言
+- 素の 5 種が b5_20261107_m933 と全行一致・計器つき 10 種が b10_20261107_m933_ins と全行一致（名乗り行の SOURCE-HASH を除く）。
+- .cost の推定 211.5／212.2 秒（m933 と同じ）。注視の表 mon_20261107_m933.txt と一致。
+- 計器の表 1150 本：宣言の無い違い 0（既知の揺れは KNOWN の burscan_s:seconds・clock_s だけ）。新しい表・列 0（--grown-ok なし）。
+- SOURCE-HASH は 3325579fb3d8a8cc から変わる（c82sm が SimCore の 5 ファイルの注に触れた）。
+- テスト 2418（合格 2417・スキップ 1）＋FullLength 3・--tests-delta 0。savetest・leakhunt 合格。
+- NG は ng933 と同じ集合（新しい 0・外れた 0）。
+- c82it の新しい道（CEARN['known']）はこの Z では通らない（ident.cfg の KNOWN に cearn_s の宣言なし・--known-extra を渡さない＝kmap は空＝旧とバイト同じ道）。c82it の検証は合わせた木で cearn_known_test.py を 1 回回した GATEOK だけ。
+- 不一致なら容疑者は c82sm だけ（c82it は scripts）＝c82sm を外した木で Z をもう 1 本回して帰属を決める。
+
+[4] 止める線と記録の段
+- 止める線：腕 Z の〈判定: 不一致〉（その他の違い 1 件以上）・フルスイートの赤・savetest・leakhunt の不合格。
+- 記録の段：NG・exact・near・gdp_zero10・英の不履行・史実の線（挙動が同じなので m933 と同じ値の写し）。
+
+[5] ident.cfg
+- 基線は m933 のまま。INSRAW keep_933/base_ins・BASE_COMMIT 1af3e5d7 は据え置く（INSRAW を動かさない＝BASE_COMMIT も動かさない）。TESTS_NONFULL 2418 のまま。注の行に (940) を足すだけ。
