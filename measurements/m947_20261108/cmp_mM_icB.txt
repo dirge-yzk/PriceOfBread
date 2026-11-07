@@ -1,0 +1,3 @@
+files 1149 1149 onlyA [] onlyB []
+common 1149 differ 20 ['burscan_s1.tsv', 'burscan_s10.tsv', 'burscan_s2.tsv', 'burscan_s3.tsv', 'burscan_s4.tsv', 'burscan_s5.tsv', 'burscan_s6.tsv', 'burscan_s7.tsv', 'burscan_s8.tsv', 'burscan_s9.tsv', 'clock_s1.tsv', 'clock_s10.tsv', 'clock_s2.tsv', 'clock_s3.tsv', 'clock_s4.tsv', 'clock_s5.tsv', 'clock_s6.tsv', 'clock_s7.tsv', 'clock_s8.tsv', 'clock_s9.tsv']
+band lines 181 181 differ 0
