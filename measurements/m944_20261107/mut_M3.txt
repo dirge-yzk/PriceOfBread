@@ -1,0 +1,18 @@
+# (936) 突然変異 M3（rc=1）
+  失敗 PriceOfBread.Tests.ConservationTests.家計の与信は国ごとにPOPの債務の和に等しい [50 s]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [35 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T2_国の債務の和と与信と基礎貨幣は動かない [8 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [17 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [10 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T8_B5の返しの後の残りを相続人へ移す [22 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T3_貯蓄0で債務だけの人の居ないPOPも移る [9 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [10 ms]
+失敗!   -失敗:     8、合格:     2、スキップ:     0、合計:    10、期間: 50 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:52.05]     PriceOfBread.Tests.ConservationTests.家計の与信は国ごとにPOPの債務の和に等しい [FAIL]
+[xUnit.net 00:00:52.17]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [FAIL]
+[xUnit.net 00:00:52.18]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T2_国の債務の和と与信と基礎貨幣は動かない [FAIL]
+[xUnit.net 00:00:52.19]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [FAIL]
+[xUnit.net 00:00:52.20]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [FAIL]
+[xUnit.net 00:00:52.23]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T8_B5の返しの後の残りを相続人へ移す [FAIL]
+[xUnit.net 00:00:52.25]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T3_貯蓄0で債務だけの人の居ないPOPも移る [FAIL]
+[xUnit.net 00:00:52.26]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [FAIL]
