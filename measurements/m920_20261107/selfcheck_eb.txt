@@ -1,0 +1,4 @@
+cearn 行 2147415・billBlocked<dust の行 0・|estateDebtMoved| の最大 0
+和：billBlockedClearings 2104225・dust 830943・emptyDebtAfterEstate 1188105・heirDebtSettled 8640.76
+cpop 行 8136102・debtInCarry の和 2627.64・outOtherTop1Route が - でない行 4943695
+自己検証 OK
