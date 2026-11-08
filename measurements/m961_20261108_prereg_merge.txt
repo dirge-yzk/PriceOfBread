@@ -1,0 +1,39 @@
+(961) 合流（波85）の予言（merge より前に書く・結果を見た後に書き換えない）
+基点 main 3fbb5f8b6719a0e5144e0b07ecb4f45cddd87dcc・作業の木 D:/PoB_work/wt_m961（枝 m961）・作業フォルダ D:/PoB_work/m961_work（この回に作った）
+
+[1] 入れる線と入れない線（線の報告と反証役の指摘を読んで、腕の前に決めた）
+- c85sl (955) 試験だけ：入れる。c85kp の枝が 6defceee を merge 済み（merge-base --is-ancestor で確かめた）＝別に merge しない。
+- c85hs (956) 恒等（ident c85hs〈判定: 恒等〉・cpop_s:outOtherTop1Route を宣言）：入れる。
+- c85kp (957) 挙動 K（旗 OpeningColonyDominanceFull 既定 1）：腕 B・S11 の門と止める線を通った＝入れる候補。
+- c85lt (958) 挙動 A-2（旗 LandTaxFixedBasis 既定 1）：腕 B・S11 の門と止める線を通った＝入れる候補（事前登録 [5] の字義から外れた試験の字面の直し 13af9704 は、合わせた木のフルスイート〔GoodIdGuardTests を含む〕で確かめる）。
+- c85mw (959) 挙動：腕の前の旗 1 のフルスイートで予言の外の赤 3 件＝★(912)：エンジン・旗・計器の列は入れない。事前登録・紙・門の台本・記録（measurements/m959_*・b5/b10/mon/ident の c85mwz・scripts/instruments/c85mw/）だけを写す。3 回の規則に数えない。
+- c85tx (960) 設計の材料：docs/202611/20261108/ へ題に状態を書いて写す（中身は書き換えない・反証役の高 2 件ほかを末尾に足す）。
+
+[2] 衝突の予言（git merge-tree で見た）
+- hs+kp：PriceOfBread.SimCore/Coefficients.cs（hs の :2757 の注の書き換えと kp の :2758 の旗の行が隣り合う）＝両方の行を残す。
+- hs+lt：PriceOfBread.SimCore/opening_bake.json の頭書き（hash の行）＝仮にどちらかを取り、合わせた木で scripts/instruments/hz4_490/bake.sh で焼き直す（★(764)・旗 OpeningBakeEnabled 0＝挙動に効かない）。
+- kp+lt：衝突 0。
+- 消す名前（hs：HeldSinceFromData・CoreHeldYears・ProvinceSpec.HeldSince・world.json の heldSince）を kp・lt・sl の枝で grep した＝新しい読み手 0（残りは main と同じ消される行だけ）。
+- 合流はエンジンの .cs を直さない（衝突の解消だけ）。
+
+[3] 合わせた木の SimCore の差の予言
+- 合わせた木 − c85kp の頭 ＝ hs の差＋lt の差。合わせた木 − c85lt の頭 ＝ hs の差＋kp の差。hs は旗に依らず恒等（測った種で一致）・sl は試験だけ。
+- 腕 Z（kp・lt の旗を 0 にした使い捨ての木・ident m961z）：素の 5 種が b5_20261108_m947 と、計器つき 10 種が b10_20261108_m947_ins と全行バイト一致（名乗り行を除く）。.cost の推定も一致（209.5／210.2 秒）。宣言：cpop_s:outOtherTop1Route（hs の −3 行と lt の :119 の +1 行で経路の行番号が動く）・landfix_s 10 本（lt の新しい表）・テストの数の差。NG は 93 で m947 と同じ集合。
+- アブレーション（★(933) の型・素の 10 種）：A-lt0（kp の旗 1・lt の旗 0）の成績表は c85kp の腕 B（measurements/m957_20261108/b10_c85kpB_ins.txt）と、A-kp0（lt の旗 1・kp の旗 0）は c85lt の腕 B（D:/PoB_work/c85lt_work/arm_c85ltB/b10_c85ltB_10.txt）と、名乗り行を除いて全行一致する。当たれば各線の門は線の腕 B の生をそのまま引く。外れたら記録の段の先頭に書き、外れた腕を計器つきで回し直して門を読む。
+- M（両方の旗 1）は m947 とも線の腕 B とも一致しない（2 本の挙動の線の重ね）。
+
+[4] 止める線の段（M・S11 で読む・基準とヌル腕は同じ台本で数え直す）
+- 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest・進行不能。
+- 1 四半期に 100 倍以上（〈それ以外〉は stoplines906 の後に RULE=pair の stoplines949・4 区分・NULLS は新しい N1・N2 と m947 の n1・n2 の両方で並べる）・1e10 倍以上・非有限。
+- 州の空洞化 1/10 未満（an_h2.py -v4・規則 A2）のうち〈線が原因〉（基線の同じ種で同じ州がピークの 1/4 未満でなかった）が 1 件でもあれば採らない。種 1〜10 は keep_954/base_ins、種 11〜20 は keep_947/a11 と並べる。
+- 推定の計算量 ＞248.5 秒（見込み：kp 211.8・lt 209.7・m947 210.2 から約 211〜213 秒）。
+- 機構のテストの赤（フルスイート・ソースを走査する番人を含む）。
+- kp の門（c84kp/paper952.py の G1≥0.9・G2≤17・G3<0.05）と lt の門（c85lt/gate958.py の G7・G4・G8a・G8b・清の G8c 窓）を M と S11 で 1 字も変えずに読む。最終の採否は S11 で 1 回だけ（同じ門）。
+- アブレーションで門が落ちる組があれば後から入れた側（lt）を外す。
+
+[5] 記録の段（採否に使わない）
+- exact・near・NG（ng961 を新しい基準に）・nullgate・home_break・英の国債の不履行の種の数（M・S11・N1・N2 を m947 と並べる）・名目 GDP 0 の続き（gdp_zero10）・開幕の 1000 倍以上・空洞化 1/4 未満・史実の線。
+- WriterRatchetTests：lt の旗 1 で item 1・2・11 が赤（予言の内・★(749)）＝合わせた木の実測で取り直す。kp と重ねて他の行が動けば〈予言の外〉として記録の先頭に名乗る（★(749) の範囲＝軌道の件数を写しただけの番人）。
+- テストの数：Category!=FullLength 2425＋hs 1＋kp 5＋lt 19＝2450 の見込み・FullLength 3（--list-tests で確かめる）。
+
+[6] 採ったら新しい基線 m961：成績表 b5_20261108_m961・b10_20261108_m961・b10_20261108_m961_ins・mon・NG 基準 ng961・生 D:/PoB_work/keep_961（base_ins＝M・n1・n2・a11＝S11）・ident.cfg を書き換える。keep_947・keep_954 は残す。採らなかった腕の生は D:/PoB_work/keep_961_rej。
