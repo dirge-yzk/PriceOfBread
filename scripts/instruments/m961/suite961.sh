@@ -10,7 +10,7 @@
 # (885) 合流（(879) suite879.sh の写し・作業フォルダだけ m885）＝(879) 合流（(873) suite873.sh の写し・作業フォルダだけ m879）＝(873) 合流（(866) suite866.sh の写し・作業フォルダだけ m873）＝(866) 合流（(859) の写し・作業フォルダだけ m866）＝元は (859) 合流（(855) suite855.sh の写し・作業フォルダと git archive の元だけ m859）＝元は (855)（(852) suite852.sh の写し・作業フォルダと git archive の元だけ c70ss）＝元は (852)（(845) の写し・作業フォルダと git archive の元だけ m852） # (839)（(832) の suite832.sh と (828) の suite828.sh の写し・作業フォルダだけ m839・git archive の元は wt_m845） フルスイート（Release・Category!=FullLength と =FullLength を分けて回す）・続けて savetest と leakhunt（saveleak.sh）。10 種のバッチと並べない（README §1-2）。
 #   bash suite839.sh <コミット> [guards]   guards を付けると ㉘ の走査の番人と線の試験の組だけを回す（--list-tests も数える）
 export PATH="/c/Program Files/dotnet:/usr/bin:/c/Program Files/Git/usr/bin:$PATH" AVALONIA_TELEMETRY_OPTOUT=1
-H=${1:?コミット}; MODE=${2:-full}; W=D:/PoB_work/m961_work; S=$W/suitesrc
+H=${1:?コミット}; MODE=${2:-full}; W=${M961W:-D:/PoB_work/m961_work}; S=$W/suitesrc
 rm -rf $S && mkdir -p $S && (cd C:/Users/dirge/Documents/PriceOfBread && git archive $H) | tar -x -C $S || exit 1
 cd $S
 dotnet build PriceOfBread.Tests/PriceOfBread.Tests.csproj -c Release --artifacts-path $W/art_suite --disable-build-servers > $W/suite_build.txt 2>&1 || { echo BUILDFAIL; tail -20 $W/suite_build.txt; exit 1; }

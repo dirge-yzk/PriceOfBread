@@ -1,0 +1,3 @@
+files 1150 1150 onlyA [] onlyB []
+common 1150 differ 50 ['burscan_s1.tsv', 'burscan_s10.tsv', 'burscan_s2.tsv', 'burscan_s3.tsv', 'burscan_s4.tsv', 'burscan_s5.tsv', 'burscan_s6.tsv', 'burscan_s7.tsv', 'burscan_s8.tsv', 'burscan_s9.tsv', 'cearn_s1.tsv', 'cearn_s10.tsv', 'cearn_s2.tsv', 'cearn_s3.tsv', 'cearn_s4.tsv', 'cearn_s5.tsv', 'cearn_s6.tsv', 'cearn_s7.tsv', 'cearn_s8.tsv', 'cearn_s9.tsv']
+band lines 181 181 differ 0
