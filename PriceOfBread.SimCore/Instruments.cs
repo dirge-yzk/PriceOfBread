@@ -1517,6 +1517,7 @@ public static partial class Instruments
         CgMonthClose(w);   // (829) 植民地格の州の階級の群の表：POP の月の窓の終わり（月末の在庫は徴税の後に読む）
         LandshareMonth(w);   // (895) 土地の持ち分：その月の LandRent の期待と実際（不在地主の送金の後・次の月の 0 化の前）
         LandbaseMonth(w);   // (937) 土地税の段 A-0′（課税の時点の写し）と A-2（定額の基数の照合）
+        BasisxMonth(w);   // (970) 土地税の段 A-2b-0：月の和の締めと四半期の締め月の写し（basisx_s）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
@@ -1896,6 +1897,7 @@ public static partial class Instruments
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
         SubstTable(sim, seed, q); CornintTable(sim, seed, q);   // (837) 自給の段 1 の表 subst_s（州×四半期）・地主の政治 C1 の表 cornint_s（国×四半期）
         LandbaseTable(sim, seed, q);   // (894) 土地税の算定の基準 A1 の段 A-0 の表 landbase_s（国×四半期）・landbasereg_s（州×四半期）
+        BasisxTable(sim, seed, q);   // (970) 土地税の段 A-2b-0 の表 basisx_s（計器の国×四半期）
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1922,6 +1924,7 @@ public static partial class Instruments
         IdnClose(sim);   // (640)
         SubstClose(sim); CornintClose(sim);   // (837)
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
+        BasisxClose(sim);   // (970) basisx_s
         CrownClose(sim);   // (889) crownpc_s
         CwClose(sim);   // (903) cwmult_s
         LandshareClose(sim);   // (895) landshare_s
