@@ -96,6 +96,7 @@ def main():
     tot = {}     # (nation, rule) -> [種ごとの最終の切り替えの回数]
     cr = {}      # (nation, 'c1'/'c2') -> [種ごとの危機の四半期の数]
     stn = {}     # nation -> [種ごとの姿勢が有効な四半期の数]
+    stc = {}     # nation -> {姿勢の番号: 四半期の数}（全ての種の合計）
     gb = {}      # nation -> G÷B の値の列（定額へ・比例へ）
     mv = {}      # nation -> moved の値の列
     nan_rows = 0; rows_n = 0
@@ -116,6 +117,8 @@ def main():
             cr.setdefault((nat, 'c1'), []).append(sum(1 for r in rs if num(r['bxCrisis1']) == 1))
             cr.setdefault((nat, 'c2'), []).append(sum(1 for r in rs if num(r['bxCrisis2']) == 1))
             stn.setdefault(nat, []).append(sum(1 for r in rs if num(r['bxStance']) >= 0))
+            for r in rs:
+                kk = int(num(r['bxStance'])); stc.setdefault(nat, {}); stc[nat][kk] = stc[nat].get(kk, 0) + 1
             for r in rs:
                 rows_n += 1
                 if num(r['bxNanFlag']) == 1:
@@ -160,6 +163,10 @@ def main():
     W('国\tC1 の述語\tC2 の述語\t姿勢の有効な四半期')
     for nat in nations:
         W('%s\t%g/%d\t%g/%d\t%g/%d' % (nat, statistics.median(cr[(nat, 'c1')]), max(cr[(nat, 'c1')]), statistics.median(cr[(nat, 'c2')]), max(cr[(nat, 'c2')]), statistics.median(stn[nat]), max(stn[nat])))
+    W('')
+    W('## 姿勢の番号ごとの四半期の数（全ての種の合計・番号は UtilityAgent.Stance：0 近代化・1 産業・2 福祉・3 緊縮・4 軍国・-1 信号なし）。規則 S は 0 のときだけ定額へ置く')
+    for nat in nations:
+        W('%s	%s' % (nat, ' '.join('%d:%d' % (k, v) for k, v in sorted(stc.get(nat, {}).items()))))
     W('')
     W('## H4 の G÷B と moved の分布（記録・門にしない）。moved÷(LandTaxTop÷3) の LandTaxTop＝0.4（Government.cs:35）')
     W('国\t列\t中央\tp95\t最大')
