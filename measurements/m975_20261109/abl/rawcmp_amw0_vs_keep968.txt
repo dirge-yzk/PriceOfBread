@@ -1,0 +1,8 @@
+A=D:/PoB_work/m975_work/out_amw0_10/ins
+B=D:/PoB_work/keep_968/base_ins
+共通 1155 本・バイト一致 1125・違い 30
+  違い burscan 10
+  違い clock 10
+  違い cwmult 10
+  片方だけ A:basisx 10
+  片方だけ A:pinit 10

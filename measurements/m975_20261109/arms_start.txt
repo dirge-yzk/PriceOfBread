@@ -1,0 +1,18 @@
+mM start 2026-11-09 02:35:57 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=37afb26d Dfree=126.99GB armsfree=6
+n1 start 2026-11-09 02:35:57 ins=1 N=10 SB=1 cearn=1 coef=SupplySlope=0.50000001 HEAD=37afb26d Dfree=126.99GB armsfree=6
+mM end 2026-11-09 02:55:36 rc=0
+n1 end 2026-11-09 02:56:16 rc=0
+n2 start 2026-11-09 02:57:55 ins=1 N=10 SB=1 cearn=1 coef=SupplySlope=0.49999999 HEAD=37afb26d Dfree=89.75GB armsfree=6
+mS start 2026-11-09 02:57:55 ins=1 N=10 SB=11 cearn=0 coef=- HEAD=37afb26d Dfree=89.75GB armsfree=6
+mS end 2026-11-09 03:18:35 rc=0
+n2 end 2026-11-09 03:18:53 rc=0
+amt0 start 2026-11-09 03:23:09 ins=1 N=10 SB=1 cearn=1 coef=MoTrendInitNeedsGdp=0 HEAD=37afb26d Dfree=75.83GB armsfree=6
+amw0 start 2026-11-09 03:23:09 ins=1 N=10 SB=1 cearn=1 coef=MilitaryWarMultFromContact=0 HEAD=37afb26d Dfree=75.83GB armsfree=6
+amt0 end 2026-11-09 03:45:23 rc=0
+amw0 end 2026-11-09 03:45:48 rc=0
+identZ start 2026-11-09 03:46:12 tree=f95cfe13 Dfree=38.8GB armsfree=6
+identZ end 2026-11-09 04:06:03 rc=0
+p10 start 2026-11-09 04:08:08 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=37afb26d Dfree=55.11GB armsfree=6
+p10 end 2026-11-09 04:14:40 rc=0
+p5 start 2026-11-09 04:14:40 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=37afb26d Dfree=54.28GB armsfree=6
+p5 end 2026-11-09 04:20:15 rc=0

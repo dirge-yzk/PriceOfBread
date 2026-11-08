@@ -1,0 +1,5 @@
+c87mt_work/arm_c87mtB・arm_c87mtS（mt の腕 B・S11 の生 31GB・反証役が keep_968/base_ins・a11 とバイト一致を確かめた〔pinit_s の外〕・pinit_s だけ m975_work/mt_pinit へ写した）消した 2026-11-09 02:03:43
+c87mw_work/arm_c87mwB/out_c87mwB_10/ins（mw の腕 B の生 18GB・合わせた木の M の生と計器の表ごとにバイト一致〔burscan・clock の揺れと basisx・pinit の外〕＝M の生の写し・門 GATES PASS を M で読んだ後）消した 2026-11-09 03:06:02
+out_amt0_10・out_amw0_10（合成後のアブレーションの生 約 36GB・amt0＝M と計器の表ごとにバイト一致〔pinit の旗の列と揺れの外〕・amw0＝keep_968/base_ins とバイト一致〔cwmult の増えた列と basisx・pinit と揺れの外〕・門を読んだ後）消した 2026-11-09 04:00:41
+ident_m975z（腕 Z の ident の生 約 19GB・〈判定: 恒等〉・bx_read を Z の生で回して measurements/m970_20261108_bx_read.txt と見出しの外で一致を確かめた後）消した 2026-11-09 04:16:54
+c87mw_work/arm_c87mwS/out_c87mwS_10_s11/ins（mw の S11 の生 13GB・合わせた木の S11 と種 13 の外でバイト一致・種 13 の違いは mt の defer に帰属・門を S11 で読んだ後）消した 2026-11-09 04:20:36
