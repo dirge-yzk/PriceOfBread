@@ -88,13 +88,14 @@ public class MoTrendInitTests
         {
             var sim = new MultiNationSim([.. WorldData.Nations()], 1789UL, _ => new UtilityAgent());
             var monetary = new System.Collections.Generic.HashSet<string>();
+            var coefOf = new System.Collections.Generic.Dictionary<string, double>();   // 国ごとの係数（World.Coef は国ごとの別のインスタンス）
             Instruments.Configure(dir, "イギリス");
             try
             {
                 Instruments.Phase(sim, 1789UL, "open");
                 sim.StartWarmup(null, 4);
                 Instruments.Phase(sim, 1789UL, "warm");
-                foreach (var n in sim.Nations) if (n.World.MonetaryEnabled && n.World.MoTrendForInstruments > 1e-9) monetary.Add(NameOf(n));
+                foreach (var n in sim.Nations) { coefOf[NameOf(n)] = n.World.Coef.MoTrendInitNeedsGdp; if (n.World.MonetaryEnabled && n.World.MoTrendForInstruments > 1e-9) monetary.Add(NameOf(n)); }
             }
             finally { Instruments.Close(sim); Instruments.Configure(null, null); }
             Assert.True(monetary.Count >= 2, $"趨勢が置かれた国が {monetary.Count}＝試験の盤面が足りない");
@@ -102,8 +103,9 @@ public class MoTrendInitTests
             var h = rows[0]; int iN = Array.IndexOf(h, "nation"), iE = Array.IndexOf(h, "event"), iG = Array.IndexOf(h, "gdpRealPerMonth"), iF = Array.IndexOf(h, "moTrendInitNeedsGdpFlag");
             Assert.True(iN >= 0 && iE >= 0 && iG >= 0 && iF >= 0, "pinit_s の列が欠けた");
             var init = rows.Skip(1).Where(r => r[iE] == "init").ToList();
+            Assert.True(init.Count >= monetary.Count, $"init の行 {init.Count} が趨勢の置かれた国 {monetary.Count} より少ない");   // 対照の件数
             foreach (var nm in monetary) Assert.Contains(init, r => r[iN] == nm);   // 趨勢が置かれた全ての国（挙げていない国も）に基準の行がある
-            Assert.All(rows.Skip(1), r => Assert.Equal("0", r[iF]));   // 旗の列は既定の係数の値
+            Assert.All(rows.Skip(1), r => Assert.Equal(coefOf[r[iN]], double.Parse(r[iF], System.Globalization.CultureInfo.InvariantCulture)));   // 旗の列はその国の係数の値（★(972) 追記 1：字の "0" から直した）
         }
         finally { try { Directory.Delete(dir, true); } catch { } }
     }
