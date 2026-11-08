@@ -888,7 +888,7 @@ public sealed class World
     public double RadicalPower { get; internal set; }
     public double MeanSatisfactionPol { get; internal set; }   // 大衆（Politics.IsMassPop＝闘争度・不満度と同じ母集団・2026-09-25 に全国民から変更）の人口加重平均満足度＝経済危機の指標。一党支配→独裁化（ブルジョア/プロレタリア）は満足度が低い危機国のみ（ワイマール型）＝満足した安定な立憲（英・米）を巻き込まない。実装＝NationalScore.MeanSatisfaction（第5段5-1で一元化・Politics.Stepがpop更新後に代入＝従来と同時点）
     /// <summary>★B3（実バグ21件・2026-09-07）：「内戦中か」の述語を1本に＝「自分が当事者で CivilWarParent の付いた War がある」。
-    /// 旧＝旧経路（CivilWarYears>0）だけを見て、内戦一元化の主経路（War で戦う）では経済麻痺・軍需2倍・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。
+    /// 旧＝旧経路（CivilWarYears>0）だけを見て、内戦一元化の主経路（War で戦う）では経済麻痺・軍需（当時は2倍）・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。
     /// ★2026-09-08に1.0で**点火**（F3b蜂起doc §5 段3）＝6読み手が一斉に生きた（生産麻痺→FoodFill低下→飢餓が10^6級の死者へ届く唯一の経路）。
     /// ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（CivilWarYears・第二の戦争エンジン）を削除＝内戦は全て戦争の形（首都の蜂起も）。</summary>
     public bool InCivilWar
