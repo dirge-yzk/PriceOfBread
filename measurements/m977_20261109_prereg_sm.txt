@@ -1,0 +1,41 @@
+(977) c88sm ⓪⁗ 小物の束 2＋波87 の注と試験の穴（波88・恒等の線・試験と注と台本だけ・ident は回さない）
+基準 m975（main 5e6adf98）。署名 Claude Sonnet 5.5。事前登録＝最初のコミット（結果を見る前）。
+
+[1] 恒等の線・予言 0
+  SimCore の差は // の注だけ（コードの部分は 1 字も変えない）。係数の値・計算の順序・浮動小数の順序が変わる箇所は無い（予言 0・紙の台本で食い違い 0 を数える対象も無い）。
+  門＝scripts/instruments/c88sm/gate977.py：`git diff -U0 5e6adf98 -- PriceOfBread.SimCore` の各ハンクで、−の行と＋の行の〈最初の // より前〉の部分が空白を除いて同じ並びであること。出力は measurements/m977_20261109_gate_simcore.txt。
+  ident は回さない（D: の消費 0・合流の腕 Z が見る）。
+
+[2] 消す物と残す物
+  消す物＝無し（注の書き直しだけ）。残す物＝全て。
+  書き直す注（grep 済み・`grep -n "2 倍\|2倍\|×2\|MilitaryWarMult"` の SimCore の全てを点検した）：
+    Coefficients.cs:2011・:2012（内戦の〈軍需 2 倍〉の旧の注→今の式 1＋κ×接触の割合・内戦の 2.0 の枝は旗ごと消えた）
+    Coefficients.cs:2172（MilitaryWarMult＝旗 0 のときだけ）・:2173（WarMobilizationDepth＝同）・:2175（κ＝戦時の倍率＝1＋κ×接触の割合を明記）
+    Coefficients.cs:2802（B3 の注の〈軍需2倍〉＝当時は 2 倍・今は対外戦と同じ式）
+    World.cs:891（InCivilWar の doc の〈軍需2倍〉＝当時は 2 倍）
+    EconomyStep.cs:1100 は (973) で書き直し済み＝触らない。ArmyShape.cs:48・:147・BilateralMarket・Catalog・Model.cs:1073（MilitaryWarMult=9.0 の歴史の記録）は別の意味の 2 倍／歴史の記録＝触らない。
+  読み手の grep（WarMobilizationDepth・MilitaryWarMult）：SimCore＝Simulation.cs:2119（mobilize・旗 1 でも計算するが warMult は旗 1 で読まない）・:2120（旗 0 の枝）・InstrumentsCivwar.cs:51-52（計器 cwmult_s の旧の規則の列）・Coefficients.cs／Tests＝CivilWarArmsDemandTests.cs:29-30（前提）・WarThemeTests.cs:21,35・MilitaryTests.cs:2007（注）／scripts＝c77cw/mut903.py・c87mw/ign973.py・sameboard973.py・m933/m961/m975 の台帳の文／Runner・App・Display＝0／POB_COEF の名前の文字列＝係数の反射のみ（変更なし）／SaveGame＝係数は名前と型で書く（変更なし）。
+  他の線との重なり：ts＝試験ファイルが重ならない（MoTrendInitTests.cs・BasisxInstrumentTests.cs は sm だけ）・cs＝Coefficients.cs は cs が新しい旗の 1 行だけ（sm は :2011-2012・:2172-2175・:2802 の注の行）・EconomyStep.cs は sm は触らない。World.cs は cs が :2341 だけ・sm は :891 の 1 行。
+
+[3] 足す試験と、それぞれを赤にする突然変異（使い捨て＝作業ツリーを書き換えて回し git checkout で戻す・台本 scripts/instruments/c88sm/mut977.sh・出力 measurements/m977_20261109_mut.txt）
+  T-a MoTrendInitTests.旗1の見送りの四半期も物価の更新の鎖は最後まで走る…：見送りの道でも圧を使い切り・自己費用の物価と期待インフレが 1 歩動く（期待値は手で書く）。
+     M1＝World.cs:1644 の初回の道を〈見送りでも趨勢を置かずに返す〉形に変える（`return` が見送りでも走る）→ 赤の予言：T-a（圧が残る）・T-b（event が init になる）。既存 T1 は緑のまま（穴）。
+  T-b MoTrendInitTests.計器pinitは見送った四半期をdeferに…：実質 GDP 0 の見送り 2 回→defer・defer・基準→init（順も）。
+     M2＝Instruments.cs:1655 の条件を `early` だけにする（defer の行を出さない）→ 赤の予言：T-b。
+     M3＝event の書き分けを常に "init" にする→ 赤の予言：T-b。
+  T-c BasisxInstrumentTests.T4_合成の盤面_凍結なし に bxFundingRatio（0.9）と bxDebtToGdpYear（1234567÷(名目 GDP 月×12)）の Near を足す。
+     M4＝InstrumentsBasisx.cs の bxFundingRatio と bxDebtToGdpYear の出力を入れ替える→ 赤の予言：T-c。
+     M5＝SDebt の分母の 12.0 を 1.0 にする→ 赤の予言：T-c。
+     M6＝SFund を 1.0 固定にする→ 赤の予言：T-c（T6 も赤になる見込み）。
+  T-d scripts/instruments/c86sm/cpop_route_test.py に〈実際に違った列〉の札の assert（a は札なし・b は debtInCarryPerQuarter・f は cearn_s に heirDebtSettledPerQuarter）。T3（計器の門が閉じていれば何も足さない）は実装の中身を問わず通る＝〈既存の門の番人〉と名乗る（新しい列の門に数えない）。
+     M7＝ident_check.py の複製で _actual() の本体を空文字を返す形にする→ GATEFAIL の予言。
+  T-e (962) 新しい Assert 2 本への突然変異（試験ファイルは触らない・変異だけ）：
+     M8＝SecessionLaborLawInstrumentTests.cs:87 の盤面を置く州を 1 国の 1 州だけにする→ 系列の床（5 本・2 国）で赤の予言。
+     M9＝TransportInstrumentTests.cs の移す四半期を q==5 だけにする（移す州 1 つ）→ Assert.Equal(2, moved.Distinct().Count()) で赤の予言。
+  T-f scripts/instruments/r931/read931a.py：書き先を 4 つ目の引数（既定は従来どおりこの台本のあるフォルダ）。py_compile と 2 通りの呼び方（既定／指定）で出力先を確かめる。
+  ソースを走査する番人の点検（㉘）：器・計器の列・係数の値は変えない＝IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests の書き換え件数の予言＝0（赤なら止める）。MoneyStock の new の件数・route_anchors・WriterRatchetTests の宣言の表は変わらない（予言 0）。
+  テストの数の予言：TESTS_NONFULL 2472 → 2474（T-a・T-b の +2・T-c は既存に Assert を足すだけ）。--list-tests と突き合わせる。
+
+[4] 成績表
+  素の 5 種・計器つき 10 種は、SimCore が注だけの差（コードの部分が同じ）なのでコンパイル結果が同じ＝m975 と名乗り行を除いて全行一致の見込み（ここでは回さない・合流の腕 Z で見る）。計器の表の差は宣言の増減なし。
+[5] ここまでが全て真なら〈判定: 恒等（注と試験と台本だけ・ident は回さない）〉として採る。外れたらその変更を外して報告に回す。
