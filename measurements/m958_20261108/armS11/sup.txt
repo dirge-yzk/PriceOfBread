@@ -1,0 +1,4 @@
+イギリス reform.supportShare 新÷旧：1783-85 nan・1786-99 nan・1800-49 nan・1850-99 nan・1900-50 nan
+清 reform.supportShare 新÷旧：1783-85 nan・1786-99 nan・1800-49 nan・1850-99 nan・1900-50 nan
+イギリス nation.parliamentGripIndex 新÷旧：1783-85 nan・1786-99 nan・1800-49 nan・1850-99 nan・1900-50 nan
+清 nation.parliamentGripIndex 新÷旧：1783-85 nan・1786-99 nan・1800-49 nan・1850-99 nan・1900-50 nan

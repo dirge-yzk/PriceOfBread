@@ -1,0 +1,6 @@
+rc=1
+  失敗 PriceOfBread.Tests.LandfixInstrumentTests.I5_同じ四半期の中で出て戻った州の写しは生き返らない [1 s]
+Actual:   19
+  失敗 PriceOfBread.Tests.LandfixInstrumentTests.I4_出て戻った州の写しは生き返らない [1 s]
+Actual:   19
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 13 s - PriceOfBread.Tests.dll (net10.0)
