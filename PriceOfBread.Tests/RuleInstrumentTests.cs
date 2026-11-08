@@ -67,6 +67,7 @@ public class RuleInstrumentTests
     {
         var (rows, sim, lastQ) = Run(1797UL, 3);
         int checkedRows = 0;
+        var checkedNations = new HashSet<string>();   // (976) 対照の国の数
         foreach (var n in sim.Nations)
         {
             var w = n.World; string nation = Instruments.NameOf(w);
@@ -87,10 +88,11 @@ public class RuleInstrumentTests
                 double got = D(r, "militancyRegionIndex");
                 Assert.True(double.IsNaN(want) ? double.IsNaN(got) : Math.Abs(got - want) <= 1e-9 * Math.Max(1e-9, Math.Abs(want)), $"m_r が違う {nation} {reg.Name}：{got} ≠ {want}");
                 Assert.True(Math.Abs(D(r, "militancyNationIndex") - mBar) <= 1e-9 * Math.Max(1e-9, mBar), $"m̄ が違う {nation}：{D(r, "militancyNationIndex")} ≠ {mBar}（首都を外した値 {mBarNoCap}）");
-                checkedRows++;
+                checkedRows++; checkedNations.Add(nation);
             }
         }
         Assert.True(checkedRows > 0);
+        Assert.True(checkedNations.Count >= 2, $"対照：突き合わせた国が 1 国以下（{checkedNations.Count}）");   // (976) 国の数
         Assert.True(checkedRows >= sim.Nations.Sum(n => n.World.Regions.Count) / 2, $"対照：突き合わせた州の行が少ない（{checkedRows}／州 {sim.Nations.Sum(n => n.World.Regions.Count)}）＝最後の四半期の行が世界の州の半分に届かない");   // (969) 対照の件数
     }
 
@@ -100,6 +102,7 @@ public class RuleInstrumentTests
     {
         var (rows, sim, lastQ) = Run(1797UL, 3);
         int checkedRows = 0;
+        var checkedNations = new HashSet<string>();   // (976) 対照の国の数
         foreach (var n in sim.Nations)
         {
             var w = n.World; var c = w.Coef; string nation = Instruments.NameOf(w);
@@ -117,10 +120,11 @@ public class RuleInstrumentTests
                 Assert.True(Math.Abs(D(r, "ungovTargetOldShare") - (1.0 - po) * (1.0 - reach)) <= 1e-9, $"旧の目標が違う {nation} {r["region"]}");
                 Assert.True(Math.Abs(D(r, "ungovTargetNewShare") - (1.0 - orderWant) * (1.0 - reach)) <= 1e-9, $"新の目標が違う {nation} {r["region"]}");
                 Assert.True(Math.Abs((D(r, "ungovTargetNewShare") - D(r, "ungovTargetOldShare")) - (po - orderWant) * (1.0 - reach)) <= 1e-9, $"新−旧が (旧の秩序−order_r)×(1−到達) でない {nation} {r["region"]}");
-                checkedRows++;
+                checkedRows++; checkedNations.Add(nation);
             }
         }
         Assert.True(checkedRows > 0);
+        Assert.True(checkedNations.Count >= 2, $"対照：恒等式を突き合わせた国が 1 国以下（{checkedNations.Count}）");   // (976) 国の数
         Assert.True(checkedRows >= sim.Nations.Sum(n => n.World.Regions.Count) / 2, $"対照：恒等式を突き合わせた州の行が少ない（{checkedRows}／州 {sim.Nations.Sum(n => n.World.Regions.Count)}）");   // (969) 対照の件数
     }
 
