@@ -3,7 +3,7 @@
 #   盤面は手で組む（小さな表と使い捨ての git の木）。cmp_ins まで通して判定を読む。1 つでも期待と違えば最後に GATEFAIL・終了コード 1。全部期待どおりなら GATEOK。
 #   環境変数 C86SM_EXPECT_OLD=1：main の道具（cpop_s の経路の移動を写せない）での予言を期待値にする（事前登録の再現用）。
 #   再現する組み合わせは 2 つ：(933) 宣言の列と経路の行の移動が同じ表に重なる形（cearn_s）と、cpop_s の経路の行の移動（cpop_s・cearn_s が同じ出力フォルダに並ぶ形も）。
-import sys, os, shutil, stat, subprocess, importlib.util
+import sys, os, io, shutil, stat, subprocess, importlib.util, contextlib
 
 work = sys.argv[1]
 icpath = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'ident', 'ident_check.py')
@@ -79,7 +79,8 @@ def erows(la, lb, heir='10', other='1.5'):   # cearn_s の盤面
             ['1', 'X', f'Foo.cs:{lb}:take:P', f'Foo.cs:{la}:take:P', heir, other]]
 
 
-def board(name, tables_base, tables_arm, tree, known, expect_ok):
+def board(name, tables_base, tables_arm, tree, known, expect_ok, label=None):
+    # (977) label＝判定の文に出るはずの〈実際に違った列〉の札（None＝札が出ない＝実際に違った宣言の列が無い）。旧の道（OLD）では見ない。
     root = f'{work}/b_{name}'
     rmtree(root)
     bd, ad = root + '/base', root + '/arm'
@@ -87,23 +88,32 @@ def board(name, tables_base, tables_arm, tree, known, expect_ok):
     for f, r in tables_arm.items(): tsv(f'{ad}/{f}', r)
     ic.CEARN.update(root=G, base=base, tree=tree, arm_commit=None, maps={}, paths=None)
     n0 = len(ic.FAILS)
-    ic.cmp_ins(ad, bd, known, [], [], [])
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        ic.cmp_ins(ad, bd, known, [], [], [])
+    out = buf.getvalue()
+    sys.stdout.write(out)
     got = len(ic.FAILS) == n0
     check(name, expect_ok, got)
+    if expect_ok and not OLD:   # (977) 札の文字列そのものを見る（_actual() が空でも緑になる穴を塞ぐ）
+        if label is None:
+            check(name + '：札なし', False, '実際に違った列' in out)
+        else:
+            check(name + '：札 ' + label, True, ('実際に違った列 ' + label) in out)
 
 
 KP = ic.parse_known(['cpop_s:debtInCarryPerQuarter'])
 KE = ic.parse_known(['cearn_s:heirDebtSettledPerQuarter'])
 KB = ic.parse_known(['cpop_s:debtInCarryPerQuarter', 'cearn_s:heirDebtSettledPerQuarter'])
 P0 = {'cpop_s1.tsv': prows(5, 9)}
-board('a_cpop_s の経路の行だけ動く', P0, {'cpop_s1.tsv': prows(8, 12)}, T1, {}, not OLD)
-board('b_cpop_s の経路の行も宣言の列も動く（宣言あり）', P0, {'cpop_s1.tsv': prows(8, 12, carry='4')}, T1, KP, not OLD)
+board('a_cpop_s の経路の行だけ動く', P0, {'cpop_s1.tsv': prows(8, 12)}, T1, {}, not OLD, None)
+board('b_cpop_s の経路の行も宣言の列も動く（宣言あり）', P0, {'cpop_s1.tsv': prows(8, 12, carry='4')}, T1, KP, not OLD, 'debtInCarryPerQuarter')
 board('b2_宣言の列だけ違い経路は動かない（旧の道へ落ちる）', P0, {'cpop_s1.tsv': prows(5, 9, carry='4')}, T1, KP, True)
 board('c_cpop_s の経路も動き宣言の外の列も違う', P0, {'cpop_s1.tsv': prows(8, 12, other='1.6')}, T1, KP, False)
 board('d_cpop_s の経路が写せない（基準の5行目が書き換わった）', P0, {'cpop_s1.tsv': prows(8, 12)}, T2, KP, False)
 board('e_cpop_s の宣言が無く cearn_s の宣言だけ（宣言は表ごと）', P0, {'cpop_s1.tsv': prows(8, 12, carry='4')}, T1, KE, False)
 board('f_同じフォルダに cearn_s（宣言の列と経路が重なる）と cpop_s（経路だけ）が並ぶ',
-      {**P0, 'cearn_s1.tsv': erows(5, 9)}, {'cpop_s1.tsv': prows(8, 12), 'cearn_s1.tsv': erows(8, 12, heir='11')}, T1, KB, not OLD)
+      {**P0, 'cearn_s1.tsv': erows(5, 9)}, {'cpop_s1.tsv': prows(8, 12), 'cearn_s1.tsv': erows(8, 12, heir='11')}, T1, KB, not OLD, 'heirDebtSettledPerQuarter')
 board('g_cearn_s の宣言の列は cpop_s の違いを許さない（known の取り違え）',
       {**P0, 'cearn_s1.tsv': erows(5, 9)}, {'cpop_s1.tsv': prows(8, 12, carry='4'), 'cearn_s1.tsv': erows(8, 12, heir='11')}, T1, KE, False)
 board('h_行の数が違う', P0, {'cpop_s1.tsv': prows(8, 12) + [['3', 'X', 'r3', '-', '3', '1.5']]}, T1, KP, False)

@@ -1,6 +1,6 @@
 # (931) 読むだけ：州の産出（工場＋採取の参照価格の値）がちょうど 0 の続き（人口 100 千人以上・4 四半期以上）を分ける。
 #   deadreg916.py と同じ定義（region_s の factoryOutputRefValuePerMonth＋extractionOutputRefValuePerMonth＝0・populationK≧100・続き 4 四半期以上）。
-#   使い方: python -X utf8 -I read931a.py <ins フォルダ> <種の起点 1|11> <名札>
+#   使い方: python -X utf8 -I read931a.py <ins フォルダ> <種の起点 1|11> <名札> [書き先のフォルダ＝既定はこの台本のあるフォルダ]
 #   出力: 区間と州×四半期の数・持ち主・格・長さの分布・入り方・終わり方・州×四半期の生産者の状態（居ない／全部倒産／居て 0）・
 #         cearn_s（州のお金・物価・自己費用の割合）と subst_s（自給）の中央を、同じ腕の〈0 でない植民地格の州〉と並べる。
 import sys, os, statistics as st, collections as C
@@ -174,5 +174,8 @@ for k in sorted(before): P(f'  {k}	{med(before[k]):.5g} (n={len(before[k])})')
 runs_all.sort(reverse=True)
 P('最長の区間（上位 15）: 長さ 種 始めの年 州 持ち主 格 人口(終) 入り方 終わり方')
 for r in runs_all[:15]: P('  ' + ' '.join(str(x) for x in r))
-open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'read931a_{TAG}_out.txt'), 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+# (977) 書き先は 4 つ目の引数（フォルダ）。無ければ従来どおりこの台本のあるフォルダ。
+OUTDIR = sys.argv[4] if len(sys.argv) > 4 else os.path.dirname(os.path.abspath(__file__))
+os.makedirs(OUTDIR, exist_ok=True)
+open(os.path.join(OUTDIR, f'read931a_{TAG}_out.txt'), 'w', encoding='utf-8').write('\n'.join(out) + '\n')
 print('\n'.join(out[:12]))
