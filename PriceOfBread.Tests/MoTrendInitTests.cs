@@ -110,6 +110,62 @@ public class MoTrendInitTests
         finally { try { Directory.Delete(dir, true); } catch { } }
     }
 
+    /// <summary>(977) 見送る四半期は〈趨勢を置いて戻る〉でなく物価の更新の鎖を最後まで走る（旗 1・実質 GDP 0）：不換の増発の圧を物価へ掛けて 0 に戻し・自己費用の物価を P へ寄せ・期待インフレを平滑する。期待値は手で書く。
+    /// 変異＝見送りの道でも初回の道〔趨勢を置いて戻る〕と同じに早く返す → 圧が残り・P も自己費用の物価も期待インフレも動かず赤になる。</summary>
+    [Fact]
+    public void 旗1の見送りの四半期も物価の更新の鎖は最後まで走る_圧を使い切り_自己費用の物価と期待インフレが動く()
+    {
+        var w = Fresh(1.0);
+        var saved = Zero(w);
+        var c = w.Coef;
+        double p0 = w.PriceLevel, cost0 = 2.0 * p0, e0 = 0.01, press = 0.1;
+        w.CostPriceLevel = cost0; w.ExpectedInflationPerYear = new RatePerYear(e0); w.FiatInflationPressure = press;
+        w.UpdatePriceLevel(c);
+        Assert.True(w.MoTrendForInstruments <= 1e-9, $"実質 GDP 0 の四半期で趨勢が置かれた（{w.MoTrendForInstruments}）");
+        double pWant = p0 * (1.0 + c.FiatInflationWeight * press);
+        Assert.True(pWant > p0 * 1.01, "圧が物価を動かさない前提では確かめられない");
+        AssertRel(pWant, w.PriceLevel, "増発の圧の分だけ上がった物価");
+        Assert.Equal(0.0, w.FiatInflationPressure);
+        AssertRel(cost0 + c.MonetaryTrendSpeed * (pWant - cost0), w.CostPriceLevel, "自己費用の物価の 1 歩");
+        AssertRel(e0 + c.InflationExpectationSmoothing * (Calendar.PerQuarterToPerYear(pWant / p0 - 1.0) - e0), w.ExpectedInflationPerYear.Value, "期待インフレの 1 歩");
+        Restore(w, saved, 1.0);
+    }
+
+    /// <summary>(977) 計器 pinit_s の event 列：実質 GDP 0 の四半期は defer（旗 1）・基準を置いた呼びは init。defer の行を出す条件〔基準を置いた呼びでなく趨勢が 0〕と early の別を確かめる。
+    /// 変異＝defer の行を出さない／init を defer と書く → 赤。</summary>
+    [Fact]
+    public void 計器pinitは見送った四半期をdeferに_基準を置いた四半期をinitに書く()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "pob_pinit2_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var sim = new MultiNationSim([.. WorldData.Nations()], 1789UL, _ => new UtilityAgent());
+            var w = sim.Nations.Select(n => n.World).First(x => x.SelfPower is { } sp && (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) == "イギリス");
+            Assert.True(w.MoTrendForInstruments <= 1e-9, "作った直後に趨勢がもう置かれている");
+            w.Coef.MoTrendInitNeedsGdp = 1.0;
+            Instruments.Configure(dir, "イギリス");
+            try
+            {
+                var saved = Zero(w);
+                w.UpdatePriceLevel(w.Coef); w.UpdatePriceLevel(w.Coef);   // 見送りが 2 回
+                Restore(w, saved, 1.0);
+                w.UpdatePriceLevel(w.Coef);   // 基準を置く呼び
+                Assert.True(w.MoTrendForInstruments > 1e-9);
+                Instruments.Phase(sim, 1789UL, "open");   // 溜めた行を書き出す
+            }
+            finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+            var rows = File.ReadAllLines(Path.Combine(dir, "pinit_s1789.tsv")).Select(l => l.Split((char)9)).ToArray();
+            var h = rows[0]; int iN = Array.IndexOf(h, "nation"), iE = Array.IndexOf(h, "event"), iG = Array.IndexOf(h, "gdpRealPerMonth"), iT = Array.IndexOf(h, "moTrendAfterMonths"), iF = Array.IndexOf(h, "moTrendInitNeedsGdpFlag");
+            var uk = rows.Skip(1).Where(r => r[iN] == "イギリス").ToList();
+            var ev = uk.Select(r => r[iE]).ToArray();
+            Assert.Equal(new[] { "defer", "defer", "init" }, ev);   // 順も確かめる（見送り 2 回のあとに基準 1 回）
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            Assert.All(uk.Take(2), r => { Assert.True(double.Parse(r[iG], inv) <= 1e-9); Assert.True(double.Parse(r[iT], inv) <= 1e-9); Assert.Equal(1.0, double.Parse(r[iF], inv)); });
+            Assert.True(double.Parse(uk[2][iG], inv) > 1e-9 && double.Parse(uk[2][iT], inv) > 1e-9);
+        }
+        finally { try { Directory.Delete(dir, true); } catch { } }
+    }
+
     private static string NameOf(Simulation n) => n.World.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "(単国)";
 
     [Theory]
