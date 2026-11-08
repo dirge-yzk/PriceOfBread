@@ -2205,12 +2205,6 @@ public sealed class Diplomacy
         return (me.LandPower, me.NavalPower, me.AirPower, enemy.LandPower, enemy.NavalPower, enemy.AirPower, win);
     }
 
-    /// <summary>★戦線の押しの1本（2026-09-29 処理の一元化 段3 G）＝陸軍力÷戦線数×投射×上陸×制空。
-    /// 実際の戦線（<see cref="StepWars"/>）・画面の戦争見通し（<see cref="WarOutlook"/>）・AI の生存効用の脅威（UtilityAgent.ChooseStance）が同じ1本を読む
-    /// ＝AI とプレイヤーが同じ物差しで相手を見る（⚠旧＝AI は陸海合計の Military×投射、画面は陸軍力×投射、戦線はその上に上陸と制空）。
-    /// 上陸は <see cref="LandBattleHappens"/>（どちらか一方でも上陸できれば陸戦は起きる＝両側に同じ値）。見通しと AI は開戦前の問い＝戦線1。
-    /// ★2026-09-30（支払いの一元化 段3-2・作者裁定 Q8 (a)）：戦費充足（0.3＋0.7×払えた割合）の乗数を削除＝払えない国の弱さは装備の充足と兵の補給
-    ///   （軍需の調達と兵士の給与×国家の支払い率＝即応度＝LandPower の中）に既に入っている＝もう一度掛けない（思想⑨）。</summary>
     /// <summary>(959) c85mw：交戦の接触の割合 e＝Σ_{p が当事者の戦争} min(押しA, 押しB)÷p の Military（StepWars の接触 contactStrength と戦死の式の比と同じ・削らない＝思想⑧）。
     /// その場の盤面（Wars・各国の Military・NavalShare＝四半期の末の外交の後のまま）から求め直す＝保存する欄 0。交戦していなければ 0・否定形＝NaN は 0。
     /// 読み手＝旗 <see cref="Coefficients.MilitaryWarMultFromContact"/> 1 の戦時の軍需の倍率（Simulation の warMult）だけ。</summary>
@@ -2226,6 +2220,12 @@ public sealed class Diplomacy
         return e > 0 ? e : 0;
     }
 
+    /// <summary>★戦線の押しの1本（2026-09-29 処理の一元化 段3 G）＝陸軍力÷戦線数×投射×上陸×制空。
+    /// 実際の戦線（<see cref="StepWars"/>）・画面の戦争見通し（<see cref="WarOutlook"/>）・AI の生存効用の脅威（UtilityAgent.ChooseStance）が同じ1本を読む
+    /// ＝AI とプレイヤーが同じ物差しで相手を見る（⚠旧＝AI は陸海合計の Military×投射、画面は陸軍力×投射、戦線はその上に上陸と制空）。
+    /// 上陸は <see cref="LandBattleHappens"/>（どちらか一方でも上陸できれば陸戦は起きる＝両側に同じ値）。見通しと AI は開戦前の問い＝戦線1。
+    /// ★2026-09-30（支払いの一元化 段3-2・作者裁定 Q8 (a)）：戦費充足（0.3＋0.7×払えた割合）の乗数を削除＝払えない国の弱さは装備の充足と兵の補給
+    ///   （軍需の調達と兵士の給与×国家の支払い率＝即応度＝LandPower の中）に既に入っている＝もう一度掛けない（思想⑨）。</summary>
     public double FrontPush(Power x, Power y, Coefficients c, int fronts = 1)
         => x.LandPower / Math.Max(1, fronts) * Projection(x, y, c) * (LandBattleHappens(x, y, c) ? 1.0 : 0.0) * (1.0 + c.AirControlPushWeight * (AirCtl(x, y) - 0.5));
 

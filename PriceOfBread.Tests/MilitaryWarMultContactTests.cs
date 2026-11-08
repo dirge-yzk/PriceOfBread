@@ -110,6 +110,9 @@ public class MilitaryWarMultContactTests
 
     private static double D(Dictionary<string, string> r, string k) => double.Parse(r[k], System.Globalization.CultureInfo.InvariantCulture);
 
+    /// <summary>T6 で試験が置く κ（(973)：既定の字 42 を期待に使わない＝(959) の反証役・World の κ から期待を作らない）。</summary>
+    private const double Kappa6 = 7.0;
+
     /// <summary>T6：計器 cwmult_s の末尾 5 列＝同じ盤面で接触の割合の規則を数える（旗を読まない）。旗 1＝ずれ 0・旗 0＝交戦の月の全てがずれ・接触の和は旗に依らない。</summary>
     [Fact]
     public void 計器は同じ盤面で接触の割合の規則を数える()
@@ -123,7 +126,7 @@ public class MilitaryWarMultContactTests
             try
             {
                 var fr = sim.Nations[0].World; var es = sim.Nations[1].World;
-                foreach (var n in sim.Nations) n.World.Coef.MilitaryWarMultFromContact = flag;
+                foreach (var n in sim.Nations) { n.World.Coef.MilitaryWarMultFromContact = flag; n.World.Coef.WarArmsDemandPerContact = Kappa6; }
                 sim.Diplomacy.Wars.Add(new War { A = fr.SelfPower!, B = es.SelfPower! });
                 sim.StepQuarter(); Instruments.Quarter(sim, 1791UL, 0);
             }
@@ -139,7 +142,7 @@ public class MilitaryWarMultContactTests
                 Assert.Equal("0", r["zeroContactWarMonthsCount"]);
                 Assert.Equal(flag > 0 ? "0" : "3", r["contactRuleMismatchMonthsCount"]);
                 double rule = D(r, "warMultContactRuleSumIndex");
-                Assert.True(Math.Abs(rule - (months + 42.0 * ct)) <= 1e-9 * rule, $"{r["nation"]} 規則の和 {rule:G17}（期待 {months + 42.0 * ct:G17}）");
+                Assert.True(Math.Abs(rule - (months + Kappa6 * ct)) <= 1e-9 * rule, $"{r["nation"]} 規則の和 {rule:G17}（期待 {months + Kappa6 * ct:G17}）");
                 if (flag > 0) Assert.True(Math.Abs(D(r, "warMultActualForeignSumIndex") - rule) <= 1e-9 * rule, $"{r["nation"]} 実際の和 {r["warMultActualForeignSumIndex"]}（期待 {rule:G17}）");
                 sums[(flag, r["nation"])] = ct;
             }

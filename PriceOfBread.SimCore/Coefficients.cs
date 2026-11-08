@@ -2172,7 +2172,6 @@ public sealed class Coefficients
     public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：対外戦の軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）
     public double MilitaryWarMultFromContact = 0.0;           // (959) c85mw 旗（既定 0）：1＝戦時の軍需の倍率を接触の割合から導く＝warMult＝1＋WarArmsDemandPerContact×e（e＝Diplomacy.Engagement＝自国の戦線の接触÷自軍の Military・削らない）・内戦も対外戦も同じ式＝MilitaryWarMult・WarMobilizationDepth・内戦の 2.0 を読まない。0＝今の式（事前登録 measurements/m959_20261108_prereg_mw.txt）
     public double WarArmsDemandPerContact = 42.0;             // (959) κ＝接触の割合 1 あたりの軍需の上乗せの倍率（旗 MilitaryWarMultFromContact 1 だけが読む）。42＝m947 の生で今の戦時の軍需の総量 Σ兵×(warMult−1) を保つ値（紙・戦死÷Rate を接触の代理にした近似・AI の値・確証なし）
-    public double CivilWarArmsDemandUnified = 1.0;            // (922) c80cw 点火（1）・(903) c77cw 旗：内戦の軍需の倍率（MilitaryWarMult×2.0 の枝）を消し、内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)へ。0＝今の 2 倍の枝（Simulation.cs の warMult の行）
     // 監査2026-07-12 死19：MilitaryBudgetFrac（国庫比の軍需上限）は歳入フロー基準（MilitaryRevenueShare）への置換後の残骸＝参照ゼロにつき削除。軍需上限を調整する係数は MilitaryRevenueShare
     // 上位軍需（機関銃・装甲艦）：基本装備を整えた残余予算で調達＝戦力の質的乗数。富裕/軍国国ほど届く（高価だが強い）。値は暫定でsweep対象
     public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦

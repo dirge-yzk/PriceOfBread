@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 // ---------------------------------------------------------------- (903) 内戦の軍需の倍率の計器 cwmult_s（読むだけ・恒等・事前登録 measurements/m903_20261106_prereg_cw.txt）
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsCrown.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・World に欄を足さない。
 // 目的＝同じ盤面で旧の規則（内戦＝MilitaryWarMult×2.0）と新の規則（内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)）を両方数え、
-//   エンジンが実際に使った値（首都州の MilitaryWarMultLast＝Simulation の warMult の行の書き込み）と突き合わせる。旗（CivilWarArmsDemandUnified）を読まない。
+//   エンジンが実際に使った値（首都州の MilitaryWarMultLast＝Simulation の warMult の行の書き込み）と突き合わせる。旗を読まない（旧の旗 CivilWarArmsDemandUnified は (973) で枝ごと消した＝旧の規則の列は内戦の 2.0 の記録として残す）。
 // 取り方＝月（軍の更新の直前＝WarMonth の中・同じ月の warMult の書き込みの後）に、計器が自分で戦争の表を走査して内戦か・交戦かを決め（World.InCivilWar を呼ばない）、
 //   厭戦と係数を読み、四半期の末に国ごとに 1 行（その四半期に交戦の月が 1 以上の国だけ・全ての国）。助走の月は数えない（Phase "warm" で捨てる）。
 // 列（単位は接尾辞：Count＝月の数・SumIndex＝月の和の無次元・SumShare＝月の和の 0〜1・Qty＝財の量の月の和）：事前登録 §0 のとおり。
