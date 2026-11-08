@@ -1,0 +1,1 @@
+PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3731820)
