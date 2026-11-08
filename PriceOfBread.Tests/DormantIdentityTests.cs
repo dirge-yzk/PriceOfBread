@@ -66,6 +66,7 @@ public class DormantIdentityTests
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
                                         //   0＝EconomyStep の枝に入らず（rebelDemand 全0）・法は7箇所全部が素通り・第5因子は掛けない＝厳密恒等。点火は 1.0（0/1の主フラグ）
         // ★CivilWarArmsDemandUnified（(903) c77cw 内戦の軍需の倍率の枝を消す）は 2026-11-07 (922) c80cw で 1 に**点火**＝この表から外した（番人 CivilWarArmsDemandTests）。
+        "MilitaryWarMultFromContact",   // (959) c85mw 戦時の軍需の倍率を接触の割合から導く（0＝今の式＝厳密恒等・番人 MilitaryWarMultContactTests）
         // ★FamineDriveGain は 2026-09-22 に 10 で**点火**、NeedTierSplit は同日に旗ごと削除（階層3分割を既定化＝作者裁定2026-09-20）＝この表から外した。
         // ★ParticipationDiscontent は 2026-10-19 (431) に 1 で**点火**、DiscontentSplit は焼き込んで旗ごと削除（二量分離の完成＝闘争度の目標から生活の項を外し、参加の述語と思想の更新の入力は max(不満度, 闘争度)）。この表から外した。
         "AssimilationRevival",          // ★段4（2026-09-09・§7-7バグa後半）＝民族復興＝抵抗の床を外して符号を反転させる（勾配の差し替え）。

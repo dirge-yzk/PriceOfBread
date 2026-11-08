@@ -2066,6 +2066,7 @@ public sealed class Simulation
         foreach (var pr in World.Regions) if (pr.IsPort) { navalYard = true; break; }
         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
         double natSoldiers = World.SoldierSizeK();
+        double warEngageNat = World.Coef.MilitaryWarMultFromContact > 0 && atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // (959) c85mw 旗 1 だけ：接触の割合（国×月に 1 回・その場の盤面から求め直す・保存する欄 0）
         // ★海の金の割合（2026-10-03 (189)）＝施行された陸海の維持費の比（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI は ArmyShape.NavalSpendShareOf を目標に置く・プレイヤーは同じ法の値）。
         //   装備の器（軍事費の器から給与を払った残り）を陸の装備と艦に分ける（下の州ループ・旧＝理想の海の割合〔ShapeNavalShare〕で軍需の内訳を再配分＝艦を兵の頭数×割合で買った）。
         double navalSpendNat = World.NavalSpendShare.Value;
@@ -2120,7 +2121,8 @@ public sealed class Simulation
                 bool atWar = atWarNation;
                 double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
                 double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // WarMobilizationDepth=0 なら mobilize=1＝旧挙動（⚠既定は0.5＝live・x-02 で注記を是正）。>0で長期戦ほど軍需倍率↑（総動員）
-                double warMult = !(World.Coef.CivilWarArmsDemandUnified > 0) && World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0 : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // (903) 旗 1＝内戦も対外戦と同じ式（InCivilWar ⊂ atWar）・旗 0＝内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
+                double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0)   // (959) 旗 1＝接触の割合から（内戦も対外戦も同じ式・9.0・0.5・2.0 を読まない）
+                    : (!(World.Coef.CivilWarArmsDemandUnified > 0) && World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0 : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0));   // (903) 旗 1＝内戦も対外戦と同じ式（InCivilWar ⊂ atWar）・旗 0＝内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
                 // 軍需＝**兵士の装備のみ**（治安維持力=軍の一本化2026-06-23：治安維持力は装備された軍の効果＝BaseCoercion を MilitaryScale に含めない＝二重計上を解消し装備コストを下げる）。軍隊規模(兵数)×戦時倍率に比例。
                 // 課題6（駐屯州調達・2026-08-08）：装備需要の州配分＝首都一極と駐屯州比例のブレンド（総量保存）。
                 // g=0＝旧（首都のみ）と厳密同値。兵士は自分の駐屯州の市場で装備を買う＝単一市場の物理律速を解く。
