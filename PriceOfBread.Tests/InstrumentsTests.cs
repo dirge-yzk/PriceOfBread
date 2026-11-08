@@ -43,6 +43,7 @@ public class InstrumentsTests
                 sim.StepQuarter();
                 if (instr) Instruments.Quarter(sim, 1789UL, q);
             }
+            Assert.True(sim.Nations.Count >= 4, $"前提が崩れた：走行の終わりの国が {sim.Nations.Count}（4 未満）＝〈4 * 四半期〉の床は国が減らないことに依る");   // (976) B12
         }
         finally { if (instr) Instruments.Close(sim); }
     }
@@ -1901,6 +1902,7 @@ public class InstrumentsTests
             try
             {
                 var sim = Make(noLandData: true);   // ★(914) 英の限界の縁の反転の対照は土地の持ち分のデータ無しの盤面で組んである
+                Assert.Equal("イギリス", Instruments.NameOf(sim.Nations[2].World));   // (976) B9 名指しの添字が英を指す前提
                 sim.Nations[2].World.Coef.MaxInterestShareOfRevenue = new Share(LimitUnderTest);   // 英の限界を 0.60 に動かす（国ごと別インスタンス）＝英の利払い÷歳入はこの盤面で 0.35〜1.0 を動く＝限界の両側の月と反転が実際に現れる（0.67 よりは下＝仏の線 ≦ 限界 の不変条件を保つ）
                 limit = sim.Nations[2].World.Coef.MaxInterestShareOfRevenue.Value;
                 RunMatch(sim, Quarters, instr: true);

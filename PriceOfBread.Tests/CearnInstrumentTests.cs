@@ -248,6 +248,7 @@ public class CearnInstrumentTests
             var cearn = Rows(System.IO.Path.Combine(dir, "cearn_s1789.tsv"));
             var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1789.tsv"));
             Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+            Assert.True(want.Keys.Select(k => k.Nation).Distinct().Count() >= 2, "対照：植民地格の州を持つ国が 1 国以下＝州の出入りの持ち越しを 1 国でしか見ていない");   // (976) B13
             Assert.True(grp.Count > 0, "群の行が無い＝計器が働いていない");
             var byRegion = cearn.ToDictionary(r => (r["quarter"], r["nation"], r["region"]));
             var colonial = cearn.Where(r => r["tier"] == "Colonial" && D(r, "popK") > 0).Select(r => (r["quarter"], r["nation"], r["region"])).ToHashSet();
@@ -436,6 +437,7 @@ public class CearnInstrumentTests
             var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1789.tsv"));
             var pop = PRows(System.IO.Path.Combine(dir, "cpop_s1789.tsv"));
             Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+            Assert.True(want.Keys.Select(k => k.Nation).Distinct().Count() >= 2, "対照：植民地格の州を持つ国が 1 国以下＝州の出入りの持ち越しを 1 国でしか見ていない");   // (976) B13
             Assert.True(pop.Count > 0, "POP の行が無い＝計器が働いていない");
             Assert.Contains(pop, r => D(r, "popK") == 0);   // 前提：人数 0 の POP（器）がある＝P2 を拾える
             var gKey = grp.ToDictionary(r => (r["quarter"], r["nation"], r["region"], r["group"]));
