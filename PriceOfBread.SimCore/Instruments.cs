@@ -157,6 +157,7 @@ public static partial class Instruments
         public int FsxDevMonths, FsxGateMonths, FsxOverMonths; public double FsxPForceSum, FsxPForceMax, FsxPMSum, FsxPSSum, FsxPSMax, FsxFloorSum, FsxDoneSum, FsxAboveFloorSum, FsxExcessWouldSum;   // (616) 今の四半期の中の月ごとの和／最大
         public readonly List<string> DcRows = new();   // (587) 旧の切り下げの切り（貯蓄の月の上限）に当たった月の行（全ての国・まばら）
         public int PcWarmN, PcGameN; public readonly List<string> PcRows = new();   // (582) 物価の更新の呼びの番号（全ての国・挙げた国の PxWarmN／PxGameN と同じ数え方）と、天井・床に触れた行（全ての国・まばら）
+        public readonly List<string> PinitRows = new();   // ★(972) c87mt M/Y の趨勢の基準を置いた／見送った四半期の行（全ての国・pinit_s）
         public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
         public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
         // ---- (281) 線O0：借入の門の周り（読むだけ・月ごとの印と四半期の和）。LimitPrev＝前の月の「利払いが限界に届いたか」は四半期をまたぐ（助走の月は -1 へ戻す）
@@ -206,6 +207,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? PfixW, PjumpW, FsxW; public bool PfixHeader, PjumpHeader, FsxHeader;   // (603) pfix_s・pjump_s
         public System.IO.StreamWriter? DevCapW; public bool DevCapHeader;   // (587) 切り下げの切りに当たった月（全ての国・まばら）
         public System.IO.StreamWriter? PClamp; public bool PClampHeader;   // (582) 物価の天井・床の接触（全ての国・まばら）
+        public System.IO.StreamWriter? Pinit; public bool PinitHeader;   // ★(972) c87mt 趨勢の基準の表 pinit_s（全ての国・国ごとに初期化の 1 行＋見送った四半期）
         public System.IO.StreamWriter? Site, Metal, MetalNat; public bool SiteHeader, MetalHeader, MetalNatHeader;   // (316) 産地の判定の行・世界の金銀の行／(582) 国別の金銀の行
         public System.IO.StreamWriter? Eng; public bool EngHeader;                         // (415) 発見の表の行の親の産業の技師の量（census）
         public System.IO.StreamWriter? Clock; public bool ClockHeader;                     // (461) 発見の時計の表（census）
@@ -1649,6 +1651,8 @@ public static partial class Instruments
         var st = S(w);
         {   // ★(582) 全ての国（挙げていない国も）の物価の天井・床の接触を溜める＝旧の天井 PxObserveCeil（4.0）を越えた／床を割った物価の行を 9 国の外の国まで帰属するための表 pclamp_s（天井は廃止後も観測の線として残す）。読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。
             bool wm = w.WarmupFrozen; int pc = wm ? st.PcWarmN++ : st.PcGameN++;
+            if (early || !(w.MoTrendForInstruments > 1e-9))   // ★(972) c87mt：基準を置いた呼び（early）と、置かずに見送った四半期（呼びの後も趨勢が 0＝旗 MoTrendInitNeedsGdp が 1 で実質 GDP が正でない四半期）を全ての国で数える。読むだけ
+                st.PinitRows.Add(string.Join('	', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), early ? "init" : "defer", F(gdp), F(ratio), F(w.MoTrendForInstruments), F(w.Coef.MoTrendInitNeedsGdp)));
             if (!early)
             {   // (603) 分母の式が旧と新で違った月／実質 GDP が正でない四半期（趨勢を保持した四半期）と、1 四半期で 100 倍以上の跳ね
                 string pt = (wm ? "w" : "q") + PxI(pc), pnm = NameOf(w), pyr = F(w.Year);
@@ -1744,6 +1748,13 @@ public static partial class Instruments
             if (!sk.PClampHeader) { sk.PClamp.WriteLine("time\tnation\tyear\tkind\tpriceLevelAfterFiatIndex\tpriceLevelAfterIndex\tfiatPressureBeforeShare\tcyclicalRatio"); sk.PClampHeader = true; }
             foreach (var row in st.PcRows) sk.PClamp.WriteLine(row);
             st.PcRows.Clear();
+        }
+        if (st.PinitRows.Count > 0)   // ★(972) c87mt 趨勢の基準を置いた／見送った四半期（全ての国）
+        {
+            sk.Pinit ??= Open("pinit", seed);
+            if (!sk.PinitHeader) { sk.Pinit.WriteLine("time	nation	year	event	gdpRealPerMonth	moneyToGdpMonths	moTrendAfterMonths	moTrendInitNeedsGdpFlag"); sk.PinitHeader = true; }
+            foreach (var row in st.PinitRows) sk.Pinit.WriteLine(row);
+            st.PinitRows.Clear();
         }
         if (st.PfixRows.Count > 0)   // (603) 圧の分母の式が旧と新で違った月／実質 GDP が正でない四半期（全ての国）
         {
@@ -1916,6 +1927,7 @@ public static partial class Instruments
         ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
         MonClose(sim, sk.Seed);   // (660) mongood_s・monai_s を書き monlaw_s を閉じる
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null; sk.DevCapW?.Dispose(); sk.DevCapW = null; sk.PfixW?.Dispose(); sk.PfixW = null; sk.PjumpW?.Dispose(); sk.PjumpW = null; sk.FsxW?.Dispose(); sk.FsxW = null;   // (316)(582)(587)(603)(616)
+        sk.Pinit?.Dispose(); sk.Pinit = null;   // (972)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
