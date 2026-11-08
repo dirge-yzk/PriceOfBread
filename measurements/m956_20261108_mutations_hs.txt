@@ -1,0 +1,5 @@
+(956) c85hs 突然変異（使い捨ての写し・試験 OpeningProvinceHeldTests だけ）
+M1 Simulation.cs 構築時の Dominance = 1.0 -> 0.5 : 赤（失敗 1）
+M2 Simulation.cs 構築時の Tier = Core -> Integrated : 赤（失敗 1）
+元の木：緑。ガード束（OpeningProvinceHeld|IndustrializationReader|UnitType|Instruments|WriterRatchet|DormantIdentity）131 合格。
+ident：cpop_s の outOtherTop1Route は Simulation.cs の行番号（2416->2413）だけの差＝--known-extra cpop_s:outOtherTop1Route を宣言（正規化して他の欄・行は全て一致を別に確認）。判定: 恒等（測った種で一致）。

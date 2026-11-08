@@ -1,0 +1,36 @@
+=== 恒等の判定（測った種で一致） c85hs（2026-11-08 09:39:10）===
+測った木：D:/PoB_work/wt_c85hs（HEAD 82ff1811・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c85hs/scripts/instruments/ident/ident.cfg
+宣言：known_extra=['cpop_s:outOtherTop1Route'] tests_delta=1
+腕 a：rc=0 end=2026-11-08 09:02:14
+腕 b：rc=0 end=2026-11-08 09:09:45
+腕 t：rc=0 end=2026-11-08 08:42:32
+腕 s：rc=0 end=2026-11-08 09:01:42
+測る木の SOURCE-HASH：bf2f0ec37e5702f6
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: bf2f0ec37e5702f6
+[素の 5 種] b5_ia_5.txt 対 b5_20261108_m947
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261108_m947.cost
+  ○ 件数の行 29 本・推定 209.5 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: bf2f0ec37e5702f6
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261108_m947_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261108_m947_ins.cost
+  ○ 件数の行 29 本・推定 210.2 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c85hs/out_ib_10/ins  対  基準 D:/PoB_work/keep_954/base_ins
+  基準 1149 本・腕 1149 本・バイト一致 1099 本
+  既知の揺れの列だけが違う表 50 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 13283 欄）×1・cearn_s:経路の行番号だけ（写して一致 20891 欄）×1・cearn_s:経路の行番号だけ（写して一致 21346 欄）×1・cearn_s:経路の行番号だけ（写して一致 22157 欄）×1・cearn_s:経路の行番号だけ（写して一致 22316 欄）×1・cearn_s:経路の行番号だけ（写して一致 22747 欄）×1・cearn_s:経路の行番号だけ（写して一致 23121 欄）×1・cearn_s:経路の行番号だけ（写して一致 25415 欄）×1・cearn_s:経路の行番号だけ（写して一致 25620 欄）×1・cearn_s:経路の行番号だけ（写して一致 26066 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・cpop_s:outOtherTop1Route×10・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 1099・既知の揺れ 50・宣言された増減 0）
+  内訳：共通の表 1149 本＝バイト一致 1099＋既知の揺れ 50＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1149）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261108_m947.txt（タグの行を除く）
+  ○ タグの行以外が一致（5085 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 93 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_c85hs/measurements/ng947_20261108:m947）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2426（基準 2425+1 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
