@@ -163,7 +163,7 @@ public sealed class NationConfig
 /// 287州世界（Phase 3）＝史実の州区分。record＝System.Text.Json で名前付き自動シリアライズ（旧タプル converter 不要）。
 /// </summary>
 public sealed record ProvinceSpec(string City, double Share, int[] Resources, string Culture = "", string Religion = "", bool Coastal = false,
-    int HeldSince = 0, bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null);
+    bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null);
 // ★Rule（2026-09-06・支配度の一般化 段1）：州の4区分の初期値（国家・在地・外国・無統治）。null＝国既定 RuleDefault → 国家1.0。
 // 【削除 2026-10-01 (148)】LateResources（1783年の地図に無い後期産地＝西部の硫黄・銀・北九州の硫黄）＝産地の発見の表 Catalog.Sites へ（州も植民地も同じ表・場所の名前で引く）。
 // ★IndShare（2026-09-01・初期工業化の按分キーの一次データ化）：-1＝従来どおり人口比 Share で按分。

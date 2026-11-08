@@ -1,0 +1,21 @@
+(956) c85hs 事前登録　H0＝HeldSinceFromData・CoreHeldYears・ProvinceSpec.HeldSince・world.json の heldSince の削除
+形：恒等の線（消す線）。エンジンの値は旗 0 の経路のまま＝Dominance 1.0・Tier Core を直接書く。
+[1] 予言 0：素の 5 種・計器つき 10 種・NG は m947 と名乗り行を除き全行一致。浮動小数の順序が変わる箇所は無い（定数 1.0 と Core の直書き）。
+[2] 消す物（grep 3fbb5f8b）
+  Coefficients.cs:2777-2778 HeldSinceFromData / :3293 CoreHeldYears
+  NationConfig.cs:165 ProvinceSpec 位置引数 int HeldSince=0（名前つき HeldSince: の呼び手は 0・new ProvinceSpec は Simulation.cs:571 の 3 引数だけ）
+  Simulation.cs:807 の 11 項分解 -> 10 項 / :934-939 ゲート -> Dominance=1.0・Tier=Core
+  world.json heldSince 29 件（System.Text.Json は未知の鍵を既定で無視・WorldData.Options に Disallow 無し）
+  DormantIdentityTests.cs:103（DormantZeroFields の行）を消して RetiredFields へ HeldSinceFromData を足す。CoreHeldYears は非 0 でその表に無い
+  読み手：App・Display・Runner は 0（grep 済）。scripts/instruments/r946 は紙の台本（world.json を python で読む）＝記録。
+  POB_COEF の名前：scripts・measure.sh・batch.sh に HeldSinceFromData/CoreHeldYears の指定は無い。
+  残す：DominanceMatureYears（Privileges.cs:133,:142 が読む）・MultiNationSim・PromoteColonyToRegion・K の旗。
+  注だけ直す：Model.cs:1091-1092・Privileges.cs:132・Coefficients.cs:2757。
+  データの食い違い（ダンツィヒ 1793 ほか）は台帳 S27-H010・H011 の行に残す。
+  他の線との重なり：Coefficients.cs は c85kp(:2758)・c85mw(:2172) と行が別。Simulation.cs は lt(:119)・mw(:2123-2141) と別。
+  NationConfig.cs は lt(:53)。world.json は lt の landTaxBasis と別行。DormantIdentityTests.cs は kp の K の行と mw(:68) と別。
+[3] 足す試験：Tests に新しい 1 本（HeldSinceRetiredTests）＝名指し州の構築時 Dominance==1.0 かつ Tier==Core。
+  突然変異 M1：Dominance を 0.5 に -> 赤を期待。M2：Tier を Integrated に -> 赤を期待。緑なら試験を足す。
+  走査の番人（㉘）：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を器の直後に回す。
+  書き換える件数（㉑）：DormantIdentityTests の表は Fact 内の配列＝Fact の数は変わらない（Tests 数の予言 2425+1=2426）。区分＝★(743) ①④。
+[4] ident 1 本（run c85hs）。ident.cfg の m947 基準。[5]〈判定: 恒等〉なら採る。一致しなければ外して報告。
