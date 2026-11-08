@@ -1,0 +1,111 @@
+(964) c86lt 事前登録：土地税の算定の基準 A-2〈定額の土地税〉（旗 LandTaxFixedBasis）の再合流＝m961 の上で腕 A・旗 1 のフルスイート・腕 B・S11（波86・枝 origin/c85lt a27d9f80 の上・3 回の規則の 2 回目〔(958) は数えない〕・形の変え直しの枠 1）
+書いた日 2026-11-08・最初のコミット（origin/main bbc55c0d の merge より前）・書いたモデル Claude Opus 5.5・worktree D:/PoB_work/wt_c86lt・枝 c86lt。
+この線が作るフォルダ：D:/PoB_work/wt_c86lt・D:/PoB_work/c86lt_work（腕の作業フォルダ arm_c86ltA・arm_c86ltB・arm_c86ltS・突然変異の木 mut_tree と mut_art・wt_mutlb と art_mutlb・読みの出力 reads_*・ng_*・焼き直し bake）・D:/PoB_work/c86lt_art（走査の番人とフルスイートの隔離ビルド）。腕 B と S11 の生は合流の判断まで残す（消すのは art・突然変異の木・snap だけ）。
+形は〈入口〉（助走の最後の月の 1 回の凍結＋毎月の基数の読み替え）。形・門・突然変異は (958) の事前登録 measurements/m958_20261108_prereg_lt.txt（と (937)・(945)・(951)）を引き継ぐ。この文はそれとの差と、この回の指示が足した物だけを書く。全ての案は〈AI の案・確証なし〉。
+作者の言葉：作者 2026-11-04「足りなくても売らされたは、制度の問題でもある…法律側で整備する問題ではないでしょうか」→ 推奨〈既存の土地税に算定の基準を持たせる〉を〈作者「全て推奨で」で推奨を採った〉。★(832) ② A1 は〈作者「全て推奨で」で推奨を採った〉。★(919) ④ は〈作者「全て推奨で進めてください」で推奨を採った〉。
+
+[0] 先頭に書く物（指示からの外れ）
+ 0-1 worktree の起点：回の雛形は `git worktree add <パス> -b <枝> bbc55c0d` だが、この線の手順 1〈枝 c86lt を a27d9f80 から作る〉に従い a27d9f80 から作った（main bbc55c0d は手順 2 で merge する）。
+ 0-2 腕 A：手順 3〈旗 0 の合わせた木の素の 5 種が b5_20261108_m961 と全行一致〉を、雛形 ③ の ident の代わりに回す（ident は回さない）。理由＝手順 3 の明示・D: の ident の床 40GB は c86sm の ident に回す（★(926)）・旗 0 の計器の表の恒等は (958) の ident c85ltz で測った（m947 の木の上・〈判定: 恒等〉・既知の揺れ 40）＝この回の merge で入る main の差（(952)〜(961) の kp・hs・sl ほか）は main の側で測られている。
+ 0-3 腕 A の旗 0 の渡し方：POB_COEF ではなく batch.sh prep の書き換え scripts/instruments/c86lt/flag0_964.py（src の写しの Coefficients.cs の `LandTaxFixedBasis = 1.0;` を `0.0;` に 1 か所＝木は書き換えない）。POB_COEF を使うと成績表に〈★係数の上書き（POB_COEF）〉の名乗り行が 1 行増え（Program.cs の selfplay-batch の報告の頭・grep〈係数の上書き（POB_COEF）〉）、全行一致の比べに例外が要るため。
+ 0-4 腕 B の台本は POB_INSTRUMENTS_NATIONS を明示で export する（scripts/instruments/c86lt/arm964.sh・9 国）。
+
+[1] 3 回の規則と形の変え直し
+ - 1 回目は (945)（門 G4・G8a・G8b の破れ）。(951) は計器の直し（3 回の規則に数えない＝㉒）。(958) は門と止める線を全て通ったが、合流 (961) で kp と重ねた木の SecessionLaborLawInstrumentTests.cs:87 の赤で外した＝計画の担当が推奨〈(958) は数えない〉で決めた。この回が 2 回目。
+ - 形の変え直しの枠は 1（⑭）。エンジンの行はこの回に書かない予定（注 2 行と opening_bake.json の inputHash だけ）。
+
+[2] 紙の台本（今の盤面＝keep_961/base_ins・n1・n2）
+ 2-1 paper937.py（(937) の台本のまま）の出力 measurements/m964_20261108/paper937_m961.txt：
+   英 |log B| の中央 0.1889・0.2004・0.3340 → 窓 [0.0945, 0.6681]（記録）／清 0.5613・0.6283・0.4936 → 窓 [0.2468, 1.2565]（門）。形＝3 腕の中央の [最小×1/2, 最大×2]（(937) と同じ形を今の盤面で取り直した＝⑧）。G7 の見込み 20（3 腕とも）。旗 0 の B を自分に当てる＝全て内・M3（|log B|=0）は落ちる。
+   門の台本 scripts/instruments/c86lt/gate964.py＝gate958.py の写しで窓の定数の 1 行だけを上の値へ。
+ 2-2 paper951.py の出力 measurements/m964_20261108/paper951_keep961.txt：戻り 56・国×四半期 53・同じ四半期の締めの中で出て戻る（下限）0（旧の規則なら写しの増え ≤53 が出る＝何もしない実装は G2 で落ちる根拠）。
+ 2-3 旗 0 で門が落ちること：keep_961/base_ins には landfix_s が無い（旗 0 の盤面）＝G7 0／20・G8c の B≡1＝|log|=0＝落ちる（(958) の旗 0 の ident の生で GATES FAIL G7,G4,G8a,G8b,G8c:イギリス,G8c:清＝measurements/m958_20261108/gate_flag0_ident.txt）。この回は旗 0 の計器の生を作らない（腕 A は計器なし）＝(958) の結果を写す。
+ 2-4 1 回目の合わせた木の記録（measurements/m961_20261108/combo_kp_lt/・木 e2dea72d・kp の旗 1 と lt の旗 1）：M の清の G8c 0.4368・S11 0.5301＝どちらも新しい窓 [0.2468, 1.2565] の内。
+ 2-5 ㉗：G7 は床ちょうど 20 を要る＝紙の見込みが床に等しい＝それでも回す理由：凍結の事象は名簿の国×種で決まる（英・清は 3 腕とも q0 の請求＞0 が 10/10）＝欠けるのは実装の誤りだけ。
+
+[3] 門（腕 B と S11 の両方・gate964.py・(958) [3] と同じ形）
+ - G1 保存：savetest と leakhunt が旗 1 で合格（〈壊さない〉）。
+ - G4 掛けない（鏡）：名簿の国の lbOverBasePopMonths の和＝0。
+ - G7 連続（鏡＋事象・床 20）：開幕の四半期の lbFreezeEventFlag＝1 かつ lbWarmupBreakPopMonths＝0 の名簿の国×種＝20。
+ - G8a（鏡）：lbAdjBreakPopMonths の和＝0。G8b（鏡）：lbFrozenInvariantBreak・lbFrozenCopyNoEngine・lbFrozenForeignEngine の和＝0。
+ - G8c 働いた（大きさ・両側）：清だけを門（窓 [0.2468, 1.2565]）・英は記録。
+ - G2 写しの生き返り：新＝landfix_s の lbFrozenCopyRgo が前の行より増えた国×四半期＝0。旧の数え方（同じ腕の region_s の〈戻り〉と why945 の型）を並べる。限界 ⑮（lbFrozenCopyNoEngine＞0 の行・同じ四半期の締めの中で出て戻る下限）の予言 0。
+ - 〈狙いどおり働いたか〉の段：清の G8c（大きさ・両側）と G7（事象 20）。G4・G7・G8a・G8b・G2 はエンジンと計器の写しの照合＝実装の点検。
+ - G4・G8a・G8b は、写しだけの凍結 0 の型（why945 の型 0）で通る。
+
+[4] 突然変異（使い捨ての木・腕は回さない＝試験の赤と、腕の門の列は紙の主張）
+ 4-1 (958) の組をそのまま使う（scripts/instruments/c85lt/mut958.py・木 D:/PoB_work/c86lt_work/mut_tree〔merge の後の旗 1 の木を --detach〕）。試験は LandTaxFixedBasisTests・LandfixInstrumentTests。
+ | 突然変異 | 赤になる試験の予言 | 赤になる腕の門（紙） |
+ | M1″ 最初の助走の月で止め上書きしない | T12・I2 | G7 |
+ | M2 地価を凍結 | T1・T2・T3・T10・T11・T12・I2 | G7・G8a・G8b |
+ | M3 毎月取り直す（凍結を毎月解く） | T2・T3・T8・T9・T10・T12・T13・I2 | G8a・G8b・清の G8c（|log|=0＜0.2468） |
+ | M4 凍結×凍結÷今で積む | T2・T3・T10・T12・I2 | G8a |
+ | M5 持ち分を無視 | T2・T3・I2 | G8a |
+ | M6 基数を自給へ広げる | T14・I2 | G4・G8a |
+ | M7′ 不在地主の RGO も凍結 | T6・I2 | G8b |
+ | M8′ 移転で凍結を消さない | T7 | （割譲の事象しだい） |
+ | M9 予想を地代のまま | T8 | — |
+ | M10 特権台帳を地代のまま | T9 | — |
+ | M11 旗 0（何もしない実装） | T1・T2・T3・T7・T8・T9・T10・T11・T12・T14・I2 | G7・G8a・G8b・G8c |
+ | M12 選好を地代のまま | T10 | — |
+ | M14 Fiscal の分岐を地代で判定 | T3 | — |
+ (958) の実測で予言の外に赤だった I4・I5（M1″〜M8′・M11）と T14（M2〜M5）は、この回も赤でよい（写しの照合の試験が実装の誤りも拾う）＝予言の欠け 0 を門にする。
+ 4-2 (951) の組（scripts/instruments/c86lt/mut964lb.sh＝mut958lb.sh の写し・パスだけ c86lt_work）：
+ | M1 捨てるのをやめる | I4・I5 赤 | G2 赤（増え ≤53） |
+ | M2 毎月全ての写しを捨てる | I2〜I5 赤 | G2 緑（I2・I3 が拾う） |
+ | M3 捨てるのを締め月だけにする | I5 赤 | G2 緑 |
+ 出力 measurements/m964_20261108/mut/。突然変異の木の試験のログは合流の判断まで残す。
+
+[5] 赤の予言（旗 1 の木のフルスイート＝㉜・腕 B の前・oc の印の sha を merge した後の木）
+ - Category!=FullLength と =FullLength を分けて回し、合計を --list-tests と突き合わせる。--list-tests の予言：Category!=FullLength 2450（main の TESTS_NONFULL 2431＋枝の足し 19＝1 回目の合わせた木 e2dea72d の 2450 と同じ）・FullLength 3。oc の印の後に件数の差を [10] に追記（oc は試験の中身の直し＝件数は変えない見込み）。
+ - 予言の内の赤（★(749)・軌道の件数を写しただけの番人・書き換えず数を報告し、取り直しは合流）：WriterRatchetTests item 1（価格：日次の写像の回・e2dea72d で 14485467＞宣言 14043298）・item 2（建設：見た生産者〔旬〕1632＜宣言 1862）・item 11（外交：覇権の判定の国×国 3731820＞宣言 2655980）＝measurements/m961_20261108/combo_kp_lt/ratchet.txt。3 本のうち赤にならない物があってもよい（〈最大 3 本〉）。他の item の赤が出たら軌道の件数の行かを読んで名乗る。
+ - GoodIdGuardTests：13af9704 で LandfixInstrumentTests.cs の添字を for へ直した＝赤 0 の予言。
+ - InstrumentsTests〈建設の州の表と専売の取り分が別の積算器に閉じる〉（:2119）：緑（(958) の 12-7 で緑・e2dea72d でも緑）。
+ - SecessionLaborLawInstrumentTests.cs:87・TransportInstrumentTests.cs:91：oc の印の sha を merge した後は緑の予言（oc の線の主張・持ち主は oc）。印が来ない（rc=1 か 120 分）なら腕 B を起こさずに止める。
+ - 〈組が少ない〉型（SecessionLaborLawInstrumentTests・TransportInstrumentTests・InstrumentsTests の対照）は、フルスイートより先に数分で回す（★(961)）。
+ - 上の外の赤が 1 本でも出たら腕 B を回さず止める（同じ腕で物差しを替えない）。赤が〈機構の番人が旧の規則そのものを固定している〉型なら書き換えずに止め、作者に聞く物として推奨つきで報告する。
+ - ㉜ の grep（旗 1 の木）：`grep -nE "Assert.*LandRentPerMonth" PriceOfBread.Tests/*.cs`＝LandTaxFixedBasisTests（この線）と ColonialPopTests（不在地主の送金の地代＝基数ではない）だけの予言。merge の後に grep し直して [10] に書く。
+ - FullLength 3・savetest・leakhunt は合格の予言。
+
+[6] ★(954) の〈組が少ない〉型の Assert を、触る量（地代の凍結）の起点に依るかで grep した（origin/main bbc55c0d の行を grep し直した）：
+ - LandbaseInstrumentTests.cs:293 `checkedLag >= 2 && checkedReg > 0`＝地代そのもの（基数ではない）＝起点に依らない。
+ - SecessionLaborLawInstrumentTests.cs:87 `checkedPairs >= 20`（支配度の増分の対照）＝地代の凍結ではなく州の分離と支配度の軌道に依る＝lt の旗 1 で軌道が動くと組の数が動く型（e2dea72d で 13）＝oc の直しの持ち主。
+ - TransportInstrumentTests.cs:91 `split`（年の中で持ち主が替わった州の組）＝州の移転の軌道に依る型＝oc の直しの持ち主。
+ - TreasuryLedgerTests.cs:64（国の数）・SubstInstrumentTests.cs:170（行の数）・PolicyPoliticsTests.cs:1682（在庫で否決された戦線）・InstrumentsTests の件数の Assert（(958) [6] の列挙）＝凍結した地代を起点に母集合が決まる物は無い。
+ - 予言：oc の後の木で、旗 1 で件数の Assert が赤になる物 0。
+
+[7] 走査の番人（㉘）と件数の予言（㉑）
+ - 枝の差（origin/main...a27d9f80 の SimCore）：`new MoneyStock(` の足す行 0・Industrializ の足す行 0・route_anchors.tsv の差 0・WriterRatchetTests.cs・IndustrializationReaderTests.cs の差 0＝変わる件数 0 の予言（(958) [7] と同じ枝の差）。
+ - merge のコミットの直後に `dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~LandfixInstrumentTests|FullyQualifiedName~LandTaxFixedBasisTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~OpeningBakeTests"`（隔離ビルド D:/PoB_work/c86lt_art）。予言：赤は WriterRatchet の [5] の 3 本まで・他は 0。
+
+[8] merge と焼き直しの予言（★(947)・★(961)）
+ - `git merge-tree --write-tree --name-only origin/main a27d9f80`：衝突は PriceOfBread.SimCore/opening_bake.json だけ（この線の担当が見た）。
+ - opening_bake.json は合わせた木で焼き直す（scripts/instruments/hz4_490/bake.sh・POB_WORK D:/PoB_work/c86lt_work/bake）。予言：inputHash は e2dea72d と同じ cf1f34b126ca5133（OpeningBake.InputHash＝埋め込みの資源のうち opening_bake.json を除く物＝world.json ほかが e2dea72d と同じ）・本文は e2dea72d の表と、頭書きの sourceHash と generated の行の外でバイト一致・OpeningBakeTests は緑。旗 OpeningBakeEnabled 0＝挙動に効かない（★(764) の区分）。本文が一致したら e2dea72d の opening_bake.json のバイトをそのまま置く（SimCore の差を 0 にする）か焼いた物を置くかを [10] に書く。
+ - 注の直し：Coefficients.cs:713 の注と DormantIdentityTests.cs:140〜141 の注にある (945) の記述を (958)・(964) へ（値と判定は変えない）。
+ - `git diff --stat e2dea72d HEAD -- PriceOfBread.SimCore PriceOfBread.Runner` の予言：Coefficients.cs の注 1 行（と opening_bake.json の頭書き 1〜2 行）だけ。差がそれだけなら〈腕 B と S11 の成績表は combo の b10_20261108_m961combo_ins・b10s11_20261108_m961combo_ins と全行一致（名乗り行の SOURCE-HASH を除く）・計器の生は keep_961_rej/combo_mM_10・combo_mS_10_s11 と同じ・清の G8c は 0.4368／0.5301〉と予言する（★(947)）。外れたら記録の段の先頭。oc の sha を merge した後も同じ diff を取り直す（oc は Tests だけ＝差は増えない見込み）。
+ - 腕 A：旗 0（flag0_964.py）の合わせた木の素の 5 種（種 1〜5・計器なし）が measurements/b5_20261108_m961 と全行一致（名乗り行の SOURCE-HASH を除く）。予言は一致（旗 0 の経路は main と同じ）。外れたら腕 B を起こさず止める。
+
+[9] 止める線（この回の形をそのまま写す・結果を見る前）
+ - 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限・plvl）・推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む）。
+ - `RULE=pair NULLS="measurements/m961_20261108/null/stop906_n1.txt measurements/m961_20261108/null/stop906_n2.txt" bash scripts/instruments/c84gz/stoplines949.sh <ins> <出力> <種の起点>`（stoplines906.sh の本体を中で呼ぶ・4 区分・〈それ以外〉が rc）。1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる）・1e10 倍以上・非有限。基準とヌル腕は同じ台本の出力 measurements/m961_20261108/armM/stop949_newnulls.txt・armS11/stop949_newnulls.txt・null/stop949_m947nulls_n{1,2}.txt と並べる（⑰）。基準〈それ以外〉は N1 1・N2 0・M 0・S11 0。〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉の四半期をヌル腕の件数と並べる（㊳）。
+ - 空洞化（原因を問わない・ピークの 1/10 未満・`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`・既定の -ex rule＝規則 A2・主要国の州は例外にしない）：その線が原因と読めた件が 1 件でもあれば止める（T1）＝件ごとに keep_961/base_ins（S11 は keep_961/a11）の同じ種・同じ州を読み、基線ですでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。飢えによる空洞化も止める線。
+ - 開幕の 1000 倍以上：記録（同じ国が半分以上の種なら NG）。
+ - 記録の段（採否に使わない）：名目 GDP 0 の続き（scripts/instruments/m808/gdp_zero10.py・先頭）・建国の後の 0 の続き・建国の直後・分母の痩せ・英の国債の不履行・exact・near・NG（ng.sh・基準 rd:measurements/ng961_20261108:m961・読み手の出力は D:/… の形）・home_break・史実の線・nullgate.py（種 1〜10・m961 と _n1_ins・_n2_ins）・英の G8c・◎・常勝。
+ - 最終の採否は S11 でも読む（同じ門と同じ止める線）。
+
+[10] 計算量・D:・枠
+ - m961 の推定 211.8 秒（上限 248.5・名目の余り 約 36.7 秒）。この線の割り当て＝+0.7 秒（(958) の見込みのまま・e2dea72d の M は 211.3＝m961 211.8 より −0.5・S11 は 211.6 対 213.6）。2 秒以下＝1 本の腕で門にしない（合流の木の累計で読む）。
+ - D:：事前登録の時点の空き 93.4GB（shutil）。重い仕事は同時に 2 本まで。腕 B（床 41GB・生 約 17GB）→ S11（床 35GB・生 約 12GB）の順。c86sm の ident（床 40GB）は lt の腕の後（★(926)）。起こす前に shutil と `bash scripts/instruments/tools/arms.sh free`。腕 A（素の 5 種・計器なし）は小さい。
+ - フルスイートと FullLength は 10 種のバッチと並べない。
+
+[11] 新÷旧の表（記録・全ての列を報告に書く＝★(919)）
+ - tab937.py（英・清の土地税の収入 landTaxPaidPerMonth・階級ごとの地代 rentDomPerMonth0〜2・名目 GDP・landTaxEndShare・landTaxTargetEndShare・同じ盤面の新の請求÷旧の請求）＋sup945.py（reform_s.supportShare・nation_s.parliamentGripIndex）・英の国債の不履行の種の数。比べる基準は keep_961/base_ins（S11 は keep_961/a11）。英 1900-50 の土地税の収入・名目 GDP・landTaxTargetEndShare・parliamentGripIndex、清 rentDomPerMonth1 を必ず書く。
+
+[12] 周辺の点検（★(885)・読んだ物・merge の後の木の行）
+ - 課税への同意：土地税には同意を掛けない（Fiscal.cs の AssessPop・:802〜805）＝基数の読み替えは同意の経路に入らない。
+ - 土地税の賛否（PolicyPreferences.cs:96〜97・:125・:176）：負担の項は LandBase（Fiscal.LandTaxBase のシェア）・旗 0 は Rent と同じ値。地代の保護と LordRentToIncome は所得の量＝Rent のまま。
+ - 議会の支持：sup945.py で parliamentGripIndex・supportShare を並べる（記録）。
+ - Territory.cs:341：移転で凍結を消す（`pr.FrozenLandRentPerMonth = null`・T7・M8′）。計器の写しは (951) の LbDropLeft が月の締めで同じ集合を消す。
+ - kp（OpeningColonyDominanceFull・MultiNationSim.cs:177）の植民地の支配度 1.0 と土地税の基数の重なり：土地税の徴収の漏れは支配度の区分（RuleDelivery）が担い、基数（Fiscal.LandTaxBase）は査定の量＝別の段の掛け算（査定×届く割合）＝二重計上ではない。kp で英の植民地の州が開幕から 1.0＝その州の凍結した基数の届く量が増える＝英の土地税の収入の新÷旧は kp を含む盤面（keep_961）と比べる（e2dea72d の M の lt_tab.txt と同じ盤面）。
+
+[13] 追記の欄（腕 B の前・結果を見る前に書く物はここへ）
