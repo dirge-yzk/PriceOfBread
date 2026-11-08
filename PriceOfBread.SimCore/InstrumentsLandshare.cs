@@ -52,8 +52,8 @@ public static partial class Instruments
     internal static int LsSlots(World w, double[] ls) => w.Coef.LandShareCrownSlot > 0 && ls.Length == 5 ? 4 : ls.Length;
     internal static double LsW(World w, double[] ls, int k) => w.Coef.LandShareCrownSlot > 0 && ls.Length == 5 ? ls[k] / (1.0 - ls[4]) : ls[k];
 
-    /// <summary>★(978) 鉱物の財（計器が自分で持つ 14 個の id の表＝Catalog.IsMineral を呼ばない・番人 LandShareCrownTests.T_M1 が突き合わせる）。</summary>
-    static readonly int[] LsMineralIds = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 89, 107, 108, 110];
+    /// <summary>★(978) 鉱物の財（計器が自分で持つ 14 個の表＝Catalog.IsMineral を呼ばない・番人 LandShareCrownTests.T_M1 が突き合わせる）。</summary>
+    static readonly int[] LsMineralIds = [Catalog.IronOreId, Catalog.CoalId, Catalog.CopperOreId, Catalog.LeadOreId, Catalog.GoldOreId, Catalog.SulfurId, Catalog.LimestoneId, Catalog.SilicaSandId, Catalog.ClayId, Catalog.CrudeOilId, Catalog.ChromeId, Catalog.TinOreId, Catalog.SaltpeterId, Catalog.SilverId];   // ★GoodIdGuardTests＝数値の財 id を書かない（定数の名で同じ 14 財）
     internal static bool LsMineral(int id) => System.Array.IndexOf(LsMineralIds, id) >= 0;
 
     /// <summary>★(978) 計器が自分で組む建てた容量の持分（World.StateProfitShare を呼ばない・国有化の下限は写さない＝その州は門の母集合から外す）。</summary>
