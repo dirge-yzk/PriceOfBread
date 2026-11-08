@@ -1,0 +1,23 @@
+(963) c86sm の突然変異 M1〜M7（(968) 合流が scripts/instruments/c86sm/mut963.sh を 1 字も変えずに回した・木 0ef13cd9 の使い捨ての木 D:/PoB_work/c86sm_work/wt_mut・artifacts D:/PoB_work/c86sm_mutart・2026-11-08 19:49 終わり）
+読み：M1・M2・M5・M6・M7 は赤。M3 は緑（事前登録 [3] が〈二重の門〉の同値の変異として先に受け入れた物・反証役も穴ではないと読んだ）。M4（道具の試験）は main の道具の写しで a・b・f が ✗＝赤。
+
+applied M1
+M1 rc=1 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 2 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.HeirDebtAfterSettleColumnsTests.決済の後に残る人の居るPOPの債務の和を清算ごとに足し_人の居ないPOPは数えない [1 s]
+applied M2
+M2 rc=1 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.HeirDebtAfterSettleColumnsTests.手形を振り出した清算のうち残高が1e9を超えた数だけを数える_商人の債務で手形が詰まる清算は数えない [6 ms]
+applied M3
+M3 rc=0 成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+applied M5
+M5 rc=1 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 10 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.U4InstrumentTests.全期間の表の払った額と判定の月数は区分ごとにも州の表の和に合う_本国と植民地を取り違えない [2 s]
+applied M6
+M6 rc=1 失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 10 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.U4InstrumentTests.全期間の表の今の規則の列は州の表の和に合い流れの影が立つ [7 s]
+  失敗 PriceOfBread.Tests.U4InstrumentTests.全期間の表の払った額と判定の月数は区分ごとにも州の表の和に合う_本国と植民地を取り違えない [2 s]
+applied M7
+M7 rc=1 失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 10 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.U4InstrumentTests.全期間の表の今の規則の列は州の表の和に合い流れの影が立つ [7 s]
+  失敗 PriceOfBread.Tests.U4InstrumentTests.全期間の表の払った額と判定の月数は区分ごとにも州の表の和に合う_本国と植民地を取り違えない [3 s]
+M4 ✗ a_cpop_s の経路の行だけ動く：期待 True・実際 False ✗ b_cpop_s の経路の行も宣言の列も動く（宣言あり）：期待 True・実際 False ✗ f_同じフォルダに cearn_s（宣言の列と経路が重なる）と cpop_s（経路だけ）が並ぶ：期待 True・実際 False GATEFAIL a_cpop_s の経路の行だけ動く | b_cpop_s の経路の行も宣言の列も動く（宣言あり） | f_同じフォルダに cearn_s（宣言の列と経路が重なる）と cpop_s（経路だけ）が並ぶ 
