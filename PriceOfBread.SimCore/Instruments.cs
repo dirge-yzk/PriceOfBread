@@ -1516,6 +1516,7 @@ public static partial class Instruments
         DivhostMonth(w);   // (801) 投資家の工業レントの月の和
         CgMonthClose(w);   // (829) 植民地格の州の階級の群の表：POP の月の窓の終わり（月末の在庫は徴税の後に読む）
         LandshareMonth(w);   // (895) 土地の持ち分：その月の LandRent の期待と実際（不在地主の送金の後・次の月の 0 化の前）
+        LandbaseMonth(w);   // (937) 土地税の段 A-0′（課税の時点の写し）と A-2（定額の基数の照合）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }

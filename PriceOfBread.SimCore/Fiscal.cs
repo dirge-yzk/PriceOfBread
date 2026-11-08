@@ -87,7 +87,7 @@ public static class Fiscal
             double tax = asd.Total;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
             double kInc = asd.Income, kProg = asd.Progressive, kPoll = asd.Poll, kLand = asd.Land;   // ★(474) 税の種類ごとの査定（所得・累進・人頭・土地）＝予算表の実効が読む診断。tax は同じ順に足した和（ビットは旧と同じ）
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
-                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
+                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, LandTaxBase(c, p).Value)) * (1.0 - privBase));
             // 仲介者の取り分（支配度 段3）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
             double cut = 0; Pop? lord = null;
             {
@@ -800,10 +800,15 @@ public static class Fiscal
         if (pollRate > 1e-9 && p.IsCommoner)
         { kPoll = c.PollTaxRate * pollRate * p.Size; tax += kPoll; }
         // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（所得税と同方式）。
-        if (landRate > 1e-9 && p.LandRentPerMonth.Value > 0)
-        { kLand = (landRate * p.LandRentPerMonth * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+        var landBase = LandTaxBase(c, p);   // ★(937) 土地税の基数（旗 0 は地代そのもの）。分岐の判定も同じ基数（凍結した RGO の地代が 0 の月も定額を請求する）
+        if (landRate > 1e-9 && landBase.Value > 0)
+        { kLand = (landRate * landBase * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
         return new TaxAssessed(privBase, consent, kInc, kProg, kPoll, kLand, tax);
     }
+
+    /// <summary>★(937) 土地税の基数（1 POP・その月）の唯一の定義＝査定（<see cref="AssessPop"/>・予想の <see cref="ForecastTax"/> も同じ関数）・特権台帳（<see cref="Step"/>）・選好（PolicyPreferences.ComputeBuildSums）の読み手。
+    /// 旗 LandTaxFixedBasis＝0 は地代そのもの（今のまま）。正は地代＋凍結の差分（<see cref="Pop.LandTaxBasisAdjPerMonth"/>＝定額の国の凍結した RGO だけが積む）。</summary>
+    internal static MoneyPerMonth LandTaxBase(Coefficients c, Pop p) => c.LandTaxFixedBasis > 0 ? p.LandRentPerMonth + p.LandTaxBasisAdjPerMonth : p.LandRentPerMonth;
 
     /// <summary>★(481) <see cref="AssessPop"/> の結果（4 種の請求・身分制免税の係数・課税への同意・和）。</summary>
     internal readonly record struct TaxAssessed(double PrivBase, double Consent, double Income, double Progressive, double Poll, double Land, double Total);
