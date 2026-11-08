@@ -1,0 +1,5 @@
+(969) c87ot 突然変異（コミットの前・wt_c87ot の木で直後に元へ戻した）2026-11-08
+M1 RuleInstrumentTests T5・T6 の rows.Where(...) に .Take(1) を足す（1 国 1 行しか突き合わせない）→ 赤 2 本
+   T5 対照：突き合わせた州の行が少ない（2／州 46）／T6 対照：恒等式を突き合わせた州の行が少ない（2／州 46）  ※旧の Assert（> 0）は緑のまま＝新しい床だけが拾う
+M2 CearnInstrumentTests 始まりの在庫：飛ばしの条件に checkedRows >= 1 を足す（1 行しか数えない）→ 赤 対照：始まりの在庫を突き合わせた行が少ない（1／warm の州 46）
+元の形（直し有り）：RuleInstrumentTests・CearnInstrumentTests 26/26 緑（wt_c87ot）。

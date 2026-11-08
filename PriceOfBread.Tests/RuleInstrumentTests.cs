@@ -91,6 +91,7 @@ public class RuleInstrumentTests
             }
         }
         Assert.True(checkedRows > 0);
+        Assert.True(checkedRows >= sim.Nations.Sum(n => n.World.Regions.Count) / 2, $"対照：突き合わせた州の行が少ない（{checkedRows}／州 {sim.Nations.Sum(n => n.World.Regions.Count)}）＝最後の四半期の行が世界の州の半分に届かない");   // (969) 対照の件数
     }
 
     /// <summary>T6：R・order_r・無統治の目標の恒等式。R は EffectiveCoerce と CrimeOrderPerPop から、order_r は R×m̄÷m_r の [0,1] クランプ、目標は (1−秩序)×(1−到達)。新−旧＝(旧の秩序−order_r)×(1−到達)。</summary>
@@ -120,6 +121,7 @@ public class RuleInstrumentTests
             }
         }
         Assert.True(checkedRows > 0);
+        Assert.True(checkedRows >= sim.Nations.Sum(n => n.World.Regions.Count) / 2, $"対照：恒等式を突き合わせた州の行が少ない（{checkedRows}／州 {sim.Nations.Sum(n => n.World.Regions.Count)}）");   // (969) 対照の件数
     }
 
     /// <summary>T7：遅れた R。最初の四半期は nan。以後、publicOrderIndex が 1 未満の行で orderRawLagIndex が publicOrderIndex に一致する（Crime.Step が前の四半期の Coercion で書いた w.PublicOrder）。

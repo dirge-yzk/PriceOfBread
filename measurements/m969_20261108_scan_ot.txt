@@ -1,0 +1,46 @@
+(969) c87ot 走査（読むだけ・事前登録を兼ねる）2026-11-08  基準 main d300ba20（旗 0）
+方法：(a) Instruments.Configure／On を立てる試験 15 ファイル＋Configure を使う 59 ファイルを grep（国・州の名指し／件数の床／州をキーにした持ち越し辞書）
+      (b) 実測：旗 0 の木 wt0 と 旗 1 の木 wtH(main+c83hd)・wtW(main+c85mw)・wtD(main+c82hd) で、計器を立てる 80 余りの試験クラス（529 本）を回した。
+      wt0 529/529 緑・wtH 529/529 緑（c83hd は 5b58812c を含む）。wtW・wtD は下の表。
+      (c) 過去の赤の記録：m941・m959_20261108/suite_flag1・m962_20261108_mutations_oc.txt・m937_20261107。
+
+原因の型（記号）
+  T1 開幕の支配度に依る対照（母集合の組が軌道の開幕に依る）
+  T2 州の出入りで累積・始まりの値を持ち越す（州が国の一覧から外れて戻る）
+  T3 別の積算器の境の月（窓の区切りで 2 つの積算器が閉じない）
+  T4 期間と軌道で数を稼ぐ（床が軌道の大きさに依る）／年の中で持ち主が替わる州の組が盤面に依る
+  T5 対照の件数が弱い（> 0 だけ）
+  T6 名指しの国・州・四半期の読み（盤面を置かずに軌道の特定の行を読む）
+
+[A] 実際に赤になった（旗 1 の木）
+  A1 SecessionLaborLawInstrumentTests.cs:87〜97  T1  c85lt の木で組 13（床 20）  → (962) 済み（盤面を置く）  ※数に入れる・重ねて直さない
+  A2 TransportInstrumentTests.cs:91〜107          T4  c85mw の木で持ち主が替わる州の組 0 → (962) 済み（州を移す）  ※数に入れる・重ねて直さない
+  A3 InstrumentsTests.cs:2240 私的な建設の工業化度の累積  T2  c82hd の木（パリ Q17）で赤 → c83tf の 5b58812c は main に 75c8858e で入っていた（cherry-pick は空＝済み）  ※数に入れる・重ねて直さない
+  A4 InstrumentsTests.cs:2119 建設の州の表と専売の取り分  T3  c82lt の木で赤（区切り 2）→ main（c86lt を採った後）は緑・wtH・wtW でも緑  → 予防（赤の木が今は無い）
+[B] 予防（赤の木が無い）  ※今の 4 つの木ではどれも緑。型と場所だけ列挙
+  B1 ForceReadGuardTests.cs:27           T4/T5  checkedPairs ≧ 20（国 2 の Powers.Take(8)）盤面は MultiNationSim 外交停止＝軌道に依らない → 対象外
+  B2 RouteKmTests.cs:186                 T4  xmig_s の行 ≧10（越境の移民が起きた対照）軌道に依る → 波88
+  B3 RuleInstrumentTests.cs:93・122      T5  checkedRows > 0 だけ（英仏 3 四半期の最終の四半期）→ 直す（床を足す）
+  B4 CearnInstrumentTests.cs:598         T5  checkedRows > 0 だけ → 直す（床を足す）
+  B5 InstrumentsTests.cs:1248            T5  checkedPush > 0 だけ → 波88
+  B6 UrbanFlowRealTests.cs:96            T5  n >= 1 → 波88
+  B7 InstrumentsTests.cs:140〜165,232    T4  借入の判定の経路 borrowSeen（過去に種を替えて直した＝(512)）→ 波88
+  B8 InstrumentsTests.cs:1355,1431       T4  戦線 fronts.Count ≧5・rowsWithFronts >50 → 波88
+  B9 InstrumentsTests.cs:1903〜1965      T6  英の限界の縁の反転（盤面は土地の持ち分データ無しに固定済み）→ 波88
+  B10 InstrumentsTests.cs:2032           T4  借越の月 ≧2 → 波88
+  B11 InstrumentsTests.cs:2075           T4  挙げた国の階級 ≧20・他の国 ≧20 → 波88
+  B12 InstrumentsTests.cs 4 * Quarters 型の床（:184,:231,:257,:315,:370,:510,:640,:659,:713,:799,:829,:1963）T4  国の数（建国で増える）×四半期で床を作る＝軌道が国を減らさないことに依る → 波88
+  B13 CearnInstrumentTests.cs:228〜262,415  T2  植民地格の州の want 辞書（3 四半期）州の出入りが無い短い期間 → 波88
+  B14 CessionUnifiedTests.cs:153 バーミンガム・InstrumentsTests.cs:919 カナダ  T6  名指しの州（盤面で割譲を置く）→ 盤面を置いてあるので対象外
+  B15 RuleOrderP1Tests.cs（マルセイユ 12 か所）T6  盤面を置く（SetMilitancy）試験 → 対象外
+  B16 DiplomacyPendingTests.cs:272 スウェーデン  T6  Powers.Find 名指し → 波88
+  B17 MultiNationTests.cs:124,485 英・日  T6  Powers.First 名指し（開幕の国）→ 対象外（開幕の世界の名簿）
+[C] 持ち主が別の線の番人（数に入れない）
+  C1 CivilWarArmsDemandTests.cs 6 件（wtW で赤）・MilitaryTests.cs:2030（wtW で赤）＝旧の規則の番人＝c87mw の持ち物（予言の内）
+  C2 WriterRatchetTests の item 2・11 ほか＝軌道の件数の番人＝★(749) で合流が取り直す
+  C3 EmptyPopDebt*Tests・BillBlockedColumnsTests・EmptyPopEstateTests（hd の持ち物）
+
+型ごとの数（A・B のうち数える物。:87 :91 は済みで数える）
+  T1: 1（A1 済み）  T2: 1 済み（A3）+1 波88（B13）  T3: 1（A4 予防）  T4: 2 済み+7 波88（B2 B7 B8 B10 B11 B12 ＋A2）  T5: 5（B3×2 B4 を直す・B5 B6 波88）  T6: 1 波88（B16）
+この回で直す物：B3（RuleInstrumentTests の 2 か所）・B4（CearnInstrumentTests）＝T5 3 か所。A3 は main に入っていた。
+残り（B2 B5 B6 B7 B8 B9 B10 B11 B12 B13 B16）は一覧に〈波88 の恒等の先頭へ〉と書いて残す（削らない）。
