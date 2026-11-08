@@ -1,0 +1,18 @@
+mM start 2026-11-08 11:30:00 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=e2dea72d Dfree=117.39GB armsfree=6
+n1 start 2026-11-08 11:30:00 ins=1 N=10 SB=1 cearn=1 coef=SupplySlope=0.50000001 HEAD=e2dea72d Dfree=117.39GB armsfree=6
+n2 start 2026-11-08 11:30:01 ins=1 N=10 SB=1 cearn=1 coef=SupplySlope=0.49999999 HEAD=e2dea72d Dfree=117.39GB armsfree=6
+n1 end 2026-11-08 11:57:15 rc=0
+mM end 2026-11-08 11:57:32 rc=0
+n2 end 2026-11-08 11:57:34 rc=0
+mS start 2026-11-08 11:57:55 ins=1 N=10 SB=11 cearn=0 coef=- HEAD=e2dea72d Dfree=61.13GB armsfree=6
+identZ start 2026-11-08 11:57:55 tree=2fa20ae6 Dfree=61.13GB armsfree=6
+alt0 start 2026-11-08 11:57:55 ins=0 N=10 SB=1 cearn=1 coef=LandTaxFixedBasis=0 HEAD=e2dea72d Dfree=61.13GB armsfree=6
+alt0 end 2026-11-08 12:20:20 rc=0
+akp0 start 2026-11-08 12:21:09 ins=0 N=10 SB=1 cearn=1 coef=OpeningColonyDominanceFull=0 HEAD=e2dea72d Dfree=33.26GB armsfree=4
+mS end 2026-11-08 12:25:09 rc=0
+p10 start 2026-11-08 12:28:30 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=e2dea72d Dfree=27.61GB armsfree=5
+akp0 end 2026-11-08 12:31:11 rc=0
+p5 start 2026-11-08 12:36:13 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=e2dea72d Dfree=26.79GB armsfree=5
+p10 end 2026-11-08 12:37:48 rc=0
+p5 end 2026-11-08 12:43:24 rc=0
+identZ end 2026-11-08 12:44:49 rc=0

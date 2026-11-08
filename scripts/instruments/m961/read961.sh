@@ -16,9 +16,12 @@ else
   python -X utf8 -I $S/c84kp/paper952.py arm=$I a11=$K/a11 > $R/kp_gates.txt 2>&1; echo "kp rc=$?"
   python -X utf8 -I $S/brk693/home_break.py arm=$I a11=$K/a11 --test arm > $R/home_break.txt 2>&1; echo "home rc=$?"
 fi
-python -X utf8 $S/c85lt/gate958.py $I $SB > $R/lt_gate.txt 2>&1; echo "lt rc=$?"
-python -X utf8 $S/c82lt/tab937.py $I $BASE $SB $SB > $R/lt_tab.txt 2>&1; echo "tab rc=$?"
-python -X utf8 $S/c84lb/paper951.py $I $I > $R/lt_g2_new.txt 2>&1; echo "g2new rc=$?"
+if ls $I/landfix_s* > /dev/null 2>&1; then   # lt の門は landfix_s のある木だけ（(961) で lt を外した後の木には表が無い）
+  python -X utf8 $S/c85lt/gate958.py $I $SB > $R/lt_gate.txt 2>&1; echo "lt rc=$?"
+  python -X utf8 $S/c82lt/tab937.py $I $BASE $SB $SB > $R/lt_tab.txt 2>&1; echo "tab rc=$?"
+  python -X utf8 $S/c84lb/paper951.py $I $I > $R/lt_g2_new.txt 2>&1; echo "g2new rc=$?"
+fi
+bash $S/c78gz/stoplines906.sh $I $R/stop906.txt $SB > $R/stop906.log 2>&1; echo "stop906 rc=$?"
 RULE=pair NULLS="measurements/m947_20261108/null/stop906_n1.txt measurements/m947_20261108/null/stop906_n2.txt" bash $S/c84gz/stoplines949.sh $I $R/stop949_m947nulls.txt $SB > $R/stop949_m947nulls.log 2>&1; echo "stop949 rc=$?"
 if [ "$NN" = newnulls ]; then
   RULE=pair NULLS="D:/PoB_work/m961_work/read/n1/stop906.txt D:/PoB_work/m961_work/read/n2/stop906.txt" bash $S/c84gz/stoplines949.sh $I $R/stop949_newnulls.txt $SB > $R/stop949_newnulls.log 2>&1; echo "stop949new rc=$?"
