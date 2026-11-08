@@ -954,7 +954,7 @@ public sealed class Coefficients
     // 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。0=無効（較正中立）。保存：CumulativeGoldMinted 台帳で基礎貨幣増を追跡。
     // 【墓標2026-11-05 (843)・読み手が無くなった係数の削除】GoldMintFraction（既定 0.2・金鉱の月次産出のうち鋳造に回る割合）を消した＝旗 MintPriceFloorGate の焼き込みで旧来の産出比例の枝が無くなり読み手が無くなった。
     public double PriceLevelFloor = 0.4;            // 物価水準の下限（深いデフレの底＝暴走防止）
-    public double MoTrendInitNeedsGdp = 0.0;        // ★(972) c87mt (D)（AI の案・確証なし・事前登録 measurements/m972_20261108_prereg_mt.txt）：> 0 のとき World.UpdatePriceLevel は実質 GDP が正でない四半期に M/Y の趨勢の基準を置かない（0＝今の形・番人 MoTrendInitTests）
+    public double MoTrendInitNeedsGdp = 1.0;        // ★(972) c87mt (D) で 1 に点火（AI の案・確証なし・事前登録 measurements/m972_20261108_prereg_mt.txt）：> 0 のとき World.UpdatePriceLevel は実質 GDP が正でない四半期に M/Y の趨勢の基準を置かない（0＝今の形・番人 MoTrendInitTests）
     // ★(582) 物価水準の上限は廃止した（作者 2026-10-26「極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」）。物価は床 PriceLevelFloor までだけ切り、上は紙幣増発の掛け算（FiatInflationPressure→FiatInflationWeight）が複利で伸びうる。
     //   P が正の有限でない四半期（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）は更新前の P を保つ否定形の番人だけが World.UpdatePriceLevel にある（天井ではない）。事前登録 measurements/svf2_582_20261026_prereg.txt
     // 地域別の貨幣的物価水準（②集計粒度）：各州の物価水準＝国家物価×地域乗数。乗数＝(州の1人あたり貯蓄/国の1人あたり貯蓄)^Weight をクランプ。
