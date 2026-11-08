@@ -2011,7 +2011,7 @@ public class MilitaryTests
     [Fact]
     public void 交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま()
     {
-        (double ceil, double pay, double warMult) Twin(double warMultCoef)
+        (double ceil, double pay, double warMult) Twin(double kappa)
         {
             var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
             sim.StepQuarter();
@@ -2019,15 +2019,15 @@ public class MilitaryTests
             sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             c.MilitaryEnvelopeShare = new Share(1000);     // 器を大きく＝給与の後に装備の上限が残る
             for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
-            c.MilitaryWarMult = warMultCoef;    // 月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
+            c.WarArmsDemandPerContact = kappa;    // (973) 旗 MilitaryWarMultFromContact 1＝戦時の倍率は 1＋κ×接触の割合＝双子は κ を替える。月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
             sim.StepDay();
             double ceil = 0;
             foreach (var r in w.Regions) ceil += r.MilitaryBudgetCeiling;
             Assert.True(w.FiscalFundingRatio.Value > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio.Value}");
             return (ceil / w.FiscalFundingRatio.Value, w.LastSoldierPayPerMonth.Value, w.Region.MilitaryWarMultLast);   // 請求（r を掛ける前）＝装備の必要額は戦時の倍率で違う＝r が双子で違う
         }
-        var hi = Twin(new Coefficients().MilitaryWarMult); var lo = Twin(1.0);
-        Assert.True(hi.warMult > lo.warMult && hi.warMult > 1, $"前提が崩れた：戦時の倍率 {hi.warMult}／{lo.warMult}");
+        var hi = Twin(new Coefficients().WarArmsDemandPerContact); var lo = Twin(0.0);
+        Assert.True(hi.warMult > lo.warMult && hi.warMult > 1 && Math.Abs(lo.warMult - 1.0) <= 1e-12, $"前提が崩れた：戦時の倍率 {hi.warMult}／{lo.warMult}（κ＝0 の側は 1）");
         Assert.True(lo.pay > 0 && Math.Abs(hi.pay - lo.pay) <= 1e-12 * lo.pay, $"前提が崩れた：兵士の給与の請求が双子で違う（{lo.pay:G17} → {hi.pay:G17}）");
         Assert.True(lo.ceil > 0, $"前提が崩れた：装備の上限が0（{lo.ceil}）");
         Assert.True(Math.Abs(hi.ceil - lo.ceil) <= 1e-12 * lo.ceil, $"戦時の倍率で装備の上限が広がった（{lo.ceil:G17} → {hi.ceil:G17}）＝選んだ段の外で軍事費が上がる");
