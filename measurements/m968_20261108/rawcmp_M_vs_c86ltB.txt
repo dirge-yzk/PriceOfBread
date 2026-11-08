@@ -1,0 +1,4 @@
+common 1155 same 1125 onlyA 0 onlyB 0
+diff tables {'burscan_s': 10, 'cearn_s': 10, 'clock_s': 10}
+onlyA []
+onlyB []

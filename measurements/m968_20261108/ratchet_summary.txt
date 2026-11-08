@@ -1,0 +1,6 @@
+list nonfull 2454
+list full 3
+ratchet rc=0 83s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:    47、スキップ:     0、合計:    47、期間: 1 m 18 s - PriceOfBread.Tests.dll (net10.0)
+RATCHETDONE
