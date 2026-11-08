@@ -2205,6 +2205,21 @@ public sealed class Diplomacy
         return (me.LandPower, me.NavalPower, me.AirPower, enemy.LandPower, enemy.NavalPower, enemy.AirPower, win);
     }
 
+    /// <summary>(959) c85mw：交戦の接触の割合 e＝Σ_{p が当事者の戦争} min(押しA, 押しB)÷p の Military（StepWars の接触 contactStrength と戦死の式の比と同じ・削らない＝思想⑧）。
+    /// その場の盤面（Wars・各国の Military・NavalShare＝四半期の末の外交の後のまま）から求め直す＝保存する欄 0。交戦していなければ 0・否定形＝NaN は 0。
+    /// 読み手＝旗 <see cref="Coefficients.MilitaryWarMultFromContact"/> 1 の戦時の軍需の倍率（Simulation の warMult）だけ。</summary>
+    public double Engagement(Power p, Coefficients c)
+    {
+        if (!(p.Military > 1e-9)) return 0;
+        var fronts = new Dictionary<Power, int>();
+        foreach (var w in Wars) { fronts[w.A] = fronts.GetValueOrDefault(w.A) + 1; fronts[w.B] = fronts.GetValueOrDefault(w.B) + 1; }
+        double contact = 0;
+        foreach (var w in Wars)
+            if (w.A == p || w.B == p) contact += Math.Min(FrontPush(w.A, w.B, c, fronts[w.A]), FrontPush(w.B, w.A, c, fronts[w.B]));
+        double e = contact / p.Military;
+        return e > 0 ? e : 0;
+    }
+
     /// <summary>★戦線の押しの1本（2026-09-29 処理の一元化 段3 G）＝陸軍力÷戦線数×投射×上陸×制空。
     /// 実際の戦線（<see cref="StepWars"/>）・画面の戦争見通し（<see cref="WarOutlook"/>）・AI の生存効用の脅威（UtilityAgent.ChooseStance）が同じ1本を読む
     /// ＝AI とプレイヤーが同じ物差しで相手を見る（⚠旧＝AI は陸海合計の Military×投射、画面は陸軍力×投射、戦線はその上に上陸と制空）。

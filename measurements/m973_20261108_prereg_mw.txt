@@ -1,0 +1,125 @@
+(973) c87mw 事前登録：⑮ MilitaryWarMult を接触の割合から導く（案 A・このテーマの 2 回目〔(170) の腕 M を 1 回目に数える・(959) は腕の前で止めた＝数えない〕）＋⑰ CivilWarArmsDemandUnified の旧の枝と旧の規則の番人の焼き込み
+書いた日 2026-11-08・木 d300ba20（main・枝 c87mw）・基線 m968（比べる生 D:/PoB_work/keep_968/base_ins・ヌル腕 keep_968/n1・n2・種 11〜20 keep_968/a11）
+この文は腕を回す前に書いた。結果を見た後にここの数を変えない（変えるなら〈結果の後の変更〉と名乗り、新しい種で判定し直す）。
+作者 2026-11-06「内戦だから固定で2倍とするより、戦線の規模、動員率、戦争の継続期間、兵力、軍需品の充足率などから需要を導いた方が自然です」・§0-2 ★(961) ①・★(968) ① は答えが無い＝推奨で進める〈作者「全て推奨で」で推奨を採った〉・★(919) ①〈作者「全て推奨で進めてください」で推奨を採った〉。
+
+== §0 先頭 ==
+(a) 番人 7 件（(959) の旗 1 のフルスイートで赤になった旧の規則の番人）を 1 件ずつ読んだ表と処遇（この線の持ち物＝CivilWarArmsDemandTests.cs・MilitaryTests.cs の双子）：
+  # | 場所（d300ba20） | 何を固定しているか | 処遇
+  1 | CivilWarArmsDemandTests.cs:33〜:38 T1〈旗1の内戦の戦時の倍率は対外戦と同じ総動員の式〉 | 字の 11.7＝旧の式 MilitaryWarMult×(1+WarMobilizationDepth×厭戦) | 消す（旧の式の字を固定）。〈内戦＝対外戦〉の機構の主張は MilitaryWarMultContactTests T4（xf==xc・期待 1＋κe）が持つ
+  2 | 同 :41〜:47 T2〈旗1の対外戦の戦時の倍率は内戦と同じ値〉 | 字の 11.7・f==cw | 消す（同上・T4 が持つ）
+  3 | 同 :51〜:57 T3〈旗1の内戦は厭戦で総動員が深まる〉 | 字の 9 と差 2.7＝WarMobilizationDepth が warMult に効く | 消す。この機構（厭戦→総動員の軍需）は旗 1 で Simulation から外れる＝§10 の周辺の点検に名乗る（器 WarMobilizationDepth は残す・計器 cwmult_s の新の規則の列は残す）
+  4 | 同 :61〜:65 T4〈旗0の内戦は今の2倍の枝のまま〉 | 旗 CivilWarArmsDemandUnified 0 の 2.0 の枝だけ | 旗ごと消す（⑰）
+  5・6 | 同 :70〜:111 Theory（InlineData 0.0・1.0 の 2 件）〈計器は同じ盤面で旧と新の規則と実際の値を数える〉 | InlineData が消す旗そのもの・実際の和＝18×月／9×1.2×月 | 直す：κ の双子（InlineData κ＝0 と κ＝7・試験が置く値）の Theory へ。盤面は仏西（陸続き）に仏を親とする内戦・旗 MilitaryWarMultFromContact を試験が 1 に置く。残す不変条件＝4 行・内戦の月 3・対外戦 0・旧と新の規則の列の和（計器の定義＝前提 9・0.5 を Assert）・militaryScale＞0・弾薬の需要＞0。足す Assert＝接触の規則とのずれ 0・実際の和＝月＋κ×計器の接触の和（κ は試験が置いた字・接触は計器が自分で数えた値＝エンジンの Engagement と別の出所）・旧の規則とのずれ 3（2.0 の枝が無い）・接触の和＞0（前提）。11.7・18・42 を実際の値の期待に使わない
+  7 | MilitaryTests.cs:2029〜:2030〈交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま〉 | 双子が MilitaryWarMult を 9 と 1 に替える＝旗 1 では読まない＝前提が赤 | 直す（点火のコミットで）：双子を WarArmsDemandPerContact（κ）の既定と 0 へ。前提の Assert に〈κ＝0 の側の warMult が 1〉を足す。主の Assert（装備の上限が双子で同じ）は変えない
+  加えて MilitaryWarMultContactTests.cs T6 の字の 42（(959) の反証役〈低〉）：試験が κ＝7 を置いてから 月＋7×接触の和 を期待にする（World の κ から期待を作らない＝同語反復にしない）。
+(b) 持ち主の範囲の外の行（名乗る）：
+  Simulation.cs:2065（natSoldiers の行）＝接触の割合を国×月に 1 回だけ求める式を同じ行の後ろに並べる（州ループの中の :2120 で求めると州の数だけ掛かる・(959) と同じ置き場）。行の数は変えない（§16）。
+  Diplomacy.cs：Engagement を FrontPush の doc の上へ（(959) の反証役〈低〉＝FrontPush の doc を外していた）。
+(c) κ：WarArmsDemandPerContact＝42 のまま（根拠を m968 で書き直す＝§2）。ident c87mwz（旗 0）の計器の同じ盤面の値（gates973.py の〈κ（総量を保つ値・同じ盤面）〉）を記録し、それが [40, 46] の外なら点火のコミットで四捨五入した値へ替える（腕の前・理由つきで追記）。
+
+== §1 形（入口＝warMult の式の置き換え・旗 1 本・新しい状態 0）==
+⑰（恒等・旗 1 の盤面で）：Coefficients.CivilWarArmsDemandUnified の欄と Simulation.cs:2120 の `!(CivilWarArmsDemandUnified > 0) && World.InCivilWar ? MilitaryWarMult * 2.0 :` の枝を消す（既定 1 では通らない枝）。
+⑮：旗 MilitaryWarMultFromContact（既定 0→点火 1）・κ WarArmsDemandPerContact（42）。
+  旗 1：warMult＝atWar ? 1＋κ×e : 1（内戦も対外戦も同じ式・MilitaryWarMult 9.0・WarMobilizationDepth 0.5 を読まない）。
+  e＝Diplomacy.Engagement(自国の Power)＝Σ_{自国が当事者の戦争} min(FrontPush(A,B,c,前線の数A), FrontPush(B,A,c,前線の数B)) ÷ 自国の Military（削らない＝思想⑧・NaN と負は 0・Military≦1e-9 は 0）。
+  その場の盤面から国×月に 1 回求め直す（保存する欄 0）。旗 0：Engagement を呼ばない（今の式のまま）。
+  耐久品の摩耗（EconomyStep.cs:581）は MilitaryWarMultLast を読む＝自動で接触に揃う。
+計器 cwmult_s の末尾 5 列（(959) の器のまま）：contactShareSumIndex・warMultContactRuleSumIndex・contactRuleMismatchMonthsCount・zeroContactWarMonthsCount・warMultActualZeroContactSumIndex（旗を読まない・Engagement を呼ばない・計器が自分で戦争の表を走査）。ruleOld の列（内戦＝×2.0）は残す（旗を読まない計器の定義＝消さない＝ident の宣言は cwmult の列の増え〈+5〉だけ）。
+
+== §2 κ の紙（今の総量を保つ・keep_968・台本 scripts/instruments/c87mw/paper973.py・出力 measurements/m973_20261108/paper973_m968.txt）==
+κ＝Σ兵K×(warMult−1)÷Σ兵K×e〔e の代理＝戦死÷Rate・Rate＝0.002÷WorkingMenStdShare〕。
+  base 43.37〜43.91・n1 41.76〜42.28・n2 43.30〜43.84（WMSS 0.2765／0.2731）＝3 腕の幅 41.8〜43.9。(959) の同じ盤面の値（計器の厳密な e）は代理より 0.3〜0.8 低かった（41.65 対 41.9〜42.5）＝m968 の同じ盤面の値の見込み 42.6〜43.6。
+  κ＝42 は代理の 3 腕の幅の中・総量の比の見込み 0.96〜1.0（A4 の [0.5, 2.0] の中）。
+
+== §3 門（両側・数）＝台本 scripts/instruments/c87mw/gates973.py（腕の前にコミット）==
+働いた（大きさ・cwmult_s の末尾 5 列で接触の割合と warMult の関係を読む）：
+A1 接触 0 の側：計器の e＜1e-9 の交戦の国×月が 100 以上で、その実際の warMult の平均が |平均−1|≦1e-6。旗 0 は 9 以上＝赤。
+A2c 接触の多い側（計器）：cwmult_s の国×四半期を接触の割合（接触の和÷交戦の月）で並べ、月の重みで上位 10% の warMult の平均÷全体の平均 ∈ [1.5, 上位の接触の平均÷全体の接触の平均（同じ腕）]。
+   上限＝線形の形（1＋κe）は κ→∞ でも e の比を超えない＝超えるのは接触より急な形（2 乗・内戦だけの増し）に固有の誤り。旗 0 は約 1＝赤。
+A2 接触の多い側（代理・ヌル腕と比べる）：casualty_s の戦死÷兵の月で国×年を並べ、上位 10% の warMult÷全体 ∈ [1.5, 3.5]。旗 0（ヌル腕の幅）0.9894〜0.9901＝赤・旗 1 の見込み 2.81〜2.87。
+形：
+A3 計器の新の規則（1＋κ×計器の e）と実際の値のずれの月 ≦ 交戦の月の 0.1%。旗 0 は全ての交戦の月がずれ＝赤。
+壊さない（総量・両側）：
+A4 Σ兵K×(warMult−1) 腕÷基線（keep_968/base_ins）∈ [0.5, 2.0]。ヌル腕どうし 0.7427・0.8054（緑）。κ＝0 は 0＝赤・κ×10 は約 10＝赤。
+記録（採否に使わない・幅の外は〈注視〉と書く）：
+R1 内戦の長さの中央 [9, 12]（内戦の決着の帯）・R2 内戦の月の弾薬・火薬・鉛の需要と産出（連鎖の休眠）と弾薬の需要の比・R3 1900 年以後の対外戦の本数 [894, 1410]・R4 その長さの平均 [15.69, 19.62]・R5 1900 年以後の列強どうし [159, 306]・R6 1910 年代の戦死K [0, 18299]。
+  R1・R3〜R6 は (959) で門（A5 G2・A6）だったが、m968 のヌル腕の一つ抜き（3 通り）で 5 本とも空振り 1/3＝規則〈1/3 以上なら記録へ〉で下げた（paper973_m968.txt の末尾）。
+採否：A1・A2c・A2・A3・A4 が全て緑・止める線に当たらない・機構のテストが緑。
+
+== §4 旗 0 で落ちる紙（今の盤面 keep_968）==
+measurements/m973_20261108/gates_flag0_n1_vs_base.txt（ヌル腕 n1 を腕と見なす）：A1・A2c・A3 は列なし＝赤・A2 0.9894＝赤・A4 0.7427＝緑・GATES FAIL。
+旗 0 で列のある盤面（ident c87mwz の腕 b の計器）でも A1（warMult 9 以上）・A2c（約 1）・A3（全ての月がずれ）が赤＝M0 の行として ident の後に gates973.py を当てて確かめる。
+no-go が恒真でない：A1（1＋κ×0＝1）・A2c・A2（紙 2.81〜2.87）・A3（計器と同じ式）は旗 1 の正しい形で緑の見込み＝通る道がある。
+
+== §5 突然変異（腕の前の表・どの門と試験で赤か）==
+使い捨ての木（点火の状態＝旗の既定 1・番人を直した後）に 1 本ずつ当て、試験 MilitaryWarMultContactTests・CivilWarArmsDemandTests・MilitaryTests の双子を回す（台本 scripts/instruments/c87mw/mut973.sh・出力 measurements/m973_20261108/mut/）。門は紙（式と計器の列の定義）で書く。
+  M0 何もしない（旗を読まない＝いつも今の式） 門：A1・A2c・A2・A3 赤（A4 緑）／試験：接触 T1・T2・T3・T4・T5・T6、内戦 T5′ の 2 件、双子 赤
+  M1 κ＝0（係数の字）                         門：A2c・A2・A4 赤（A1・A3 緑＝計器も κ を読む）／試験：接触 T1・T3、双子 赤（T4・T5 は期待も κ＝0 で 1＝緑・T6 と T5′ は κ を試験が置く＝緑）
+  M2 接触を内戦だけ 2 倍                      門：A3 赤／試験：接触 T4、内戦 T5′（κ＝7）赤
+  M3 接触を前の月の値で持つ（新しい状態）     門：A3 赤／試験：接触 T3 赤
+  M4 κ を 10 倍（係数の字）                   門：A4 赤（上）／試験：緑の見込み＝較正の値は試験の層の外（字を固定しない＝(959) の反証役）・門 A4 だけが拾う＝穴として名乗る
+  M5 Clamp01 を掛ける                          門：A3 赤（e＞1 の月）／試験：接触 T5 赤
+  M6 内戦に 2.0 を掛ける（2×(1＋κe)）          門：A3・A2c（内戦の月の比）赤／試験：接触 T4、内戦 T5′ の 2 件 赤
+  M7（⑰ 固有）旗 0 の側に内戦の 2.0 の枝を戻す 旗 0 の盤面だけ＝ident c87mwz の腕 b の内戦の月で warMult 18＝〈不一致〉（試験は旗 0 の枝の番人を消した＝試験では拾わない＝ident が拾う）・回さない
+試験が緑のままの突然変異（M4 以外）が出たら、同じ線で機構の試験を足して赤を確かめる（★(790)）。
+
+== §6 段0 の予言（ソースと keep_968 から・腕の前）==
+⑰：旗 1 の盤面で通らない枝を消すだけ＝ident（旗 0 の器と一緒）で〈恒等〉の見込み。
+⑮ の主な観測量（符号と大きさ）：
+  接触 0 の交戦の国×月（海越えで上陸できない・相手の陸軍 0）：warMult 約 11.0→1（代理：戦死 0 の交戦の月 17,166〜19,047／交戦の月 107,157〜123,639＝約 15%）。
+  接触の多い国（上位 10%・e の平均 約 0.81）：warMult 約 10.6→約 35（1＋42×0.81）。e＞1 の月は 43 を超える。
+  耐久品の摩耗（EconomyStep.cs:581）：warWear＝wear×(1＋1.0×(warMult−1))・上限 0.9＝前線の国の耐久装備の損耗が増す（旗 0 は約 10.6 倍）。
+  総量 Σ兵×(warMult−1) は同じ盤面で約 1.0 倍（κ の定義）。軌道（戦争の本数・長さ・戦死・内戦の決着）の向きはソースから決まらない＝記録 R1〜R6。
+見込みは〈悪くする〉と言い切れない（配り直し）＝腕 B を回す理由がある。
+
+== §7 ソースを走査する番人の点検（㉘）と件数の予言（㉑）（grep・木 d300ba20）==
+  route_anchors.tsv（scripts/instruments/flow262/）の Simulation.cs・Diplomacy.cs の鍵 7 行＝Transfer と PaySales の行だけ＝この線は触らない＝0。
+  `new MoneyStock(` の件数：Simulation.cs 32・Diplomacy.cs 2・InstrumentsCivwar.cs 0＝足さない＝変わる件数 0。
+  工業化度の読み手の許可表（IndustrializationReaderTests.cs:23〜:26）：工業化度を読まない＝0。
+  WriterRatchetTests の宣言の表：CostLedger の行を足さない＝0（軌道の件数の値は §8）。
+  DormantIdentityTests.DormantZeroFields：器のコミットで MilitaryWarMultFromContact の 1 行を足し（+1）、点火のコミットで外す（−1）。:68 の注は CivilWarArmsDemandUnified を旗ごと消した旨へ（行の数は同じ）。
+  UnitTypeTests：新しい欄は double 2 本（旗と κ・MilitaryWarMult と同じ型）・CivilWarArmsDemandUnified の double 1 本が消える。
+器と ⑰ のコミットの直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests と、この線の試験 3 本を隔離ビルド（--artifacts-path D:/PoB_work/c87mw_work/art）で回す。
+
+== §8 ㉜ の grep（旗 1 の木で旧の規則を固定する番人）と予言の赤 ==
+grep `MilitaryWarMult|WarMobilizationDepth|CivilWarArmsDemandUnified|MilitaryWarMultLast|WarArmsDemandPerContact` の Tests の読み手（d300ba20）：
+  CivilWarArmsDemandTests.cs（§0 (a) の 6 件＝この線で直す）・MilitaryTests.cs:2022〜:2030（§0 (a) の 7＝点火のコミットで直す）・WarThemeTests.cs:21・:35（WarMobilizationDepth の字の 0.5 と置き換え＝係数の字は変えない＝緑の見込み）・DormantIdentityTests.cs:68（注）・WriterRatchetTests.cs:425（注）。
+旗 1 のフルスイートの予言（origin/c87ot の印の頭を merge した木）：
+  予言の内＝WriterRatchetTests の計算量の見た件数の表（★(749)・軌道の件数）。(959) では ConstructionSeen（下がった）と DiploHegemonScans（外交：覇権の判定の国×国・増えた）の 2 行が許しの外へ出た＝この 2 行が許しの外へ出る見込み（他の行が出ても★(749) の区分＝軌道の件数を写した表）。取り直すときは行と前後の値を verdict に列挙する。
+  上の外の赤（機構の向き・大きさ・母集合の Assert）は ★(912) の〈数えない止め〉。試験のバグの区分（★(743)・軌道に依る前提）の赤は ㊴ の手順（ただし c87ot の持ち物のファイルなら直さずに止めて報告）。
+
+== §9 止める線（波87 の指示の写し・結果を見る前）==
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限）・推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+1 四半期に 100 倍以上：stoplines906 の後に `RULE=pair NULLS="measurements/m968_20261108/null/stop906_n1.txt measurements/m968_20261108/null/stop906_n2.txt" bash scripts/instruments/c84gz/stoplines949.sh <ins> <出力> 1`（4 区分）＝〈それ以外〉が基線とヌル腕（M・S11・N1・N2 とも 0）の外なら止める。政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる（㊳）。
+空洞化：an_h2.py -v4・規則 A2 の名簿の外でピークの 1/10 未満のうち〈線が原因〉の件が 1 件でもあれば止める（基線 keep_968/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めない）。
+記録：名目 GDP 0 の続き（gdp_zero10.py）・NG（ng.sh・基準 rd:measurements/ng968_20261108:m968）・開幕の 1000 倍以上・史実の線・exact・near・nullgate・英の国債の不履行の種の数・本国の破綻（home_break.py）。
+S11（種 11〜20・POB_CEARN=0）も同じ止める線で読む（比べる生 keep_968/a11）。
+
+== §10 周辺の点検（★(885)・ソース・読むだけ）==
+厭戦（WarExhaustion）：旗 1 では warMult に効かない（Simulation.cs:2118〜:2119 の warExh・mobilize は旗 0 の枝だけが読む）。厭戦の他の読み手（講和・政治）は変わらない。期間は月ごとの和で効く（作者の〈継続期間〉）。
+WarMobilizationDepth：Simulation（旗 0 の枝）と計器 InstrumentsCivwar.cs:45 と WarThemeTests だけ＝旗 1 では Simulation が読まない（器は残す・消すのは別の線）。
+ArmsWarWearScale（EconomyStep.cs:581）：MilitaryWarMultLast を読む＝接触に揃う・上限 0.9（Math.Min）は今のまま（記録・思想⑧の対象かは別の線）。
+装備の器と支払い率 r：MilitaryScale（Simulation.cs:2133）＝調達の必要額→軍事費の器の給与の後の残り×国家の支払い率 r＝配り直しは器の上限で絞られる（双子の試験＝§0 (a) 7 が守る）。
+App の GameViewModel.Politics.cs:524・:542 は MilitaryWarMultLast を読む表示＝触らない（Engine の値が変わるだけ）。
+Military.cs:191・Model.cs:1073 の古い注は持ち主の外＝触らない（記録）。
+
+== §11 台帳の行（合流が書く）==
+S16-17（内戦の軍需の倍率）＝⑰ で旗と枝を削除・S23-H024（MilitaryWarMult・WarMobilizationDepth）＝旗 1 で Simulation は読まない（器と計器だけ）。
+
+== §12 3 回の規則 ==
+このテーマの 2 回目（1 回目＝(170) の腕 M）。腕 B の前に予言の外の赤で止めたなら数えない（★(912)）。
+
+== §13 計算量 ==
+国×月×その国の戦争の数×FrontPush 2 本＋前線の数の辞書。台帳（World.Cost）の行は足さない＝推定の .cost は変わらない見込み。割り当て 0.3 秒（記録・2 秒以下＝門にしない・名目の余り 約 37.2 秒）。
+
+== §14 重なり（波87 の他の線の持ち物と）==
+Coefficients.cs：この線は :2171〜:2173 と新しい 2 行だけ（hd＝EmptyPopDebtToHeirs と新しい旗・mt＝新しい旗の行＝離れた所）。Instruments.cs：触らない（bx＝basisx の呼び口・mt＝pclamp）。DormantIdentityTests.cs：:68 と自分の旗の 1 行。
+Simulation.cs・Diplomacy.cs・InstrumentsCivwar.cs・EconomyStep.cs（:1100 の注）・CivilWarArmsDemandTests.cs・MilitaryTests.cs（双子）・MilitaryWarMultContactTests.cs は他の線の持ち物に無い（c87ot の持ち物の一覧から除かれている）。
+
+== §15 段取り ==
+1 事前登録（このコミット）→ 2 cherry-pick 757daf81（器）→ 3 ⑰ と番人の整理（Engagement の doc の位置・T6 の κ・内戦の計器の試験）→ 4 走査の番人（㉘）→ 5 ident c87mwz（旗 0）→ 6 突然変異（使い捨ての木）→ 7 点火（ff1bf106 の cherry-pick・双子・注）→ 8 origin/c87ot の印の頭を merge → 9 計器の試験の束（㊴）→ フルスイート（分けて・--list-tests）・savetest・leakhunt → 10 腕 B（種 1〜10）・S11（種 11〜20・POB_CEARN=0）→ 門と止める線 → push。
+
+== §16 ident の宣言の予言 ==
+`--grown-ok cwmult`（末尾 5 列）・`--tests-delta 2`（MilitaryWarMultContactTests +6・CivilWarArmsDemandTests 6→2＝−4）・宣言の無い違い 0。
+Simulation.cs の行の数は変えない（:2065 の行に並べる・:2120 を 1 行のまま）＝cpop_s の outOtherTop1Route（Simulation.cs の行番号を名に持つ）は一致の見込み（(959) は +2 行で 10 本ずれた＝cpop_route_shift.txt）。Diplomacy.cs の +15 行は (959) で宣言なしに通った（cearn_s は BASE_COMMIT の写し）。
