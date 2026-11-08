@@ -587,15 +587,16 @@ public class CearnInstrumentTests
             var rows = Rows(System.IO.Path.Combine(dir, "cearn_s1798.tsv"));
             Assert.NotEmpty(rows);
             Assert.True(atWarm.Any(kv => Math.Abs(kv.Value - init[kv.Key]) > 1e-9 * Math.Max(1, Math.Abs(kv.Value))), "前提が崩れた：最初の 1 四半期で在庫が動いた州が無い");
-            int checkedRows = 0;
+            int checkedRows = 0; var checkedNations = new HashSet<string>();   // (976)
             foreach (var r in rows)
             {
                 if (D(r, "lateRegisteredPops") > 0) continue;
                 double want = atWarm[(r["nation"], r["region"])];
                 Assert.True(Math.Abs(D(r, "savingsStart") - want) <= 1e-9 * Math.Max(1, Math.Abs(want)), $"始まりの在庫が warm の時点の在庫と違う {r["nation"]} {r["region"]}：{D(r, "savingsStart")} ≠ {want}");
-                checkedRows++;
+                checkedRows++; checkedNations.Add(r["nation"]);
             }
             Assert.True(checkedRows > 0);
+            Assert.True(checkedNations.Count >= 2, $"対照：始まりの在庫を突き合わせた国が 1 国以下（{checkedNations.Count}）");   // (976) 国の数
             Assert.True(checkedRows >= atWarm.Count / 2, $"対照：始まりの在庫を突き合わせた行が少ない（{checkedRows}／warm の州 {atWarm.Count}）");   // (969) 対照の件数
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
