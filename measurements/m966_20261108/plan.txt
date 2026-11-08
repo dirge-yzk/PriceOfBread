@@ -1,0 +1,9 @@
+(966) c86ef 読む線・腕 0 本・コミット 0・作業の場所 D:/PoB_work/r966_work（この回に作ったフォルダはこれだけ・worktree と枝は作らない）
+読む生：
+  m961: D:/PoB_work/keep_961/{base_ins,n1,n2,a11}（divhost_s・cpwd_s・cearn_s・nation_s・cederule_s）
+  m947: D:/PoB_work/keep_947/{base_ins,n1,n2,a11}（同上・n1 ハイデラバードを最初の例）
+材料：docs/202611/20261108/20261108_B1の最後の回の前_…_下書き.md §2-3〜2-5・反証役の訂正 1〜4／measurements/m950_20261108/／scripts/instruments/r950/
+現物：CapitalMarket.cs:179-180（配当）・:248 付近（新規の流入）・World.cs:1654（床）・Coefficients.cs:955
+台本：r966_ef.py（E と F と G を全ての組で同じ規則で数える・区間は 1 つの書き方）・r966_chain.py（鎖の順と底の純の比）・r966_after.py（床の後）
+出力：D:/PoB_work/r966_work/out_*.txt・下書き 20261108_元からの弱さEとF_配当と価格水準の床_読み_盤面m961_下書き.md
+再開（2026-11-08）：r966_after.py は作らない＝床の後は r966_frun_sum.py・r966_fepi.py で代えた。問い 4 は r966_kp.py→out_kp.txt（既にある出力だけ）。
