@@ -1,0 +1,49 @@
+(963) c86sm 事前登録（波86・恒等の線・ident 1 本・腕を回す前に書く。結果を見た後に書き換えない）
+基点 main bbc55c0d1097d28fa6344de5d11a7b99be5a416c・作業の木 D:/PoB_work/wt_c86sm（枝 c86sm）・作業フォルダ D:/PoB_work/c86sm_work（この回に作った）
+署名：書いたモデル Claude Sonnet 5.5。作者の裁定の文は引かない（★(947) ①・★(954) ① は〈作者「全て推奨で」で推奨を採った〉）。
+
+[1] 恒等の線・予言 0
+- 挙動を変えない。エンジンの式・係数・計算の順序・BilateralMarket.cs を 1 行も変えない（§5-1 の列は CearnImportHeadInto＝決済 ① と同じ繰り返しの中・ins2 の内の既存の呼び口で読む。:579 の呼び口は足さない）。
+- 浮動小数の順序が変わる箇所：0（計器が実際の残高を読むだけ。エンジンの a*b/c 型の式に触れない）。紙の台本で旧と新の比較の食い違い 0 件。
+- 成績表：素の 5 種（b5_20261108_m961）・計器つき 10 種（b10_20261108_m961_ins）の報告は名乗り行の SOURCE-HASH を除き全行一致。
+- 計器の表の差は宣言だけ：cearn_s は末尾 2 列（heirDebtAfterSettleSum・billWithHeirDebtClearings）が増えた表（--grown-ok cearn_s）。他の表は 1150 本ともバイト一致。
+- 経路の行番号の揺れ：0 本（金を動かすファイルに 1 行も足さない・消さない＝cearn_s・cpop_s・flow_s の経路の名は動かない）。
+- テストの数：非 FullLength 2431 → 2435（+4＝HeirDebtAfterSettleColumnsTests 3・U4InstrumentTests 1）。FullLength 3 のまま。ident は --tests-delta 4。
+- 道具の自己判定（ident_check.py を変える）：判定は新しい道具と main の道具（git show bbc55c0d:scripts/instruments/ident/ident_check.py を作業フォルダへ写した物）の両方で回す。経路の行番号の揺れが 0 の予言なので、両方とも同じ判定（〈判定: 恒等〉）で、cpop_s の宣言は要らない（古い道具で cpop_s の宣言が要るのは cpop_s の経路の行が動いたときだけ＝この回は動かない）。違いが出たら鍵を measurements に置く。
+- 道具の試験 scripts/instruments/c86sm/cpop_route_test.py：新しい道具で 9 件 ○（GATEOK）・main の道具（C86SM_EXPECT_OLD=1）で cpop_s の経路の移動を含む 4 件（a・b・f）が不一致の予言で GATEOK（腕の前に回した結果は measurements/m963_20261108_cpop_route_test.txt）。
+
+[2] 消す物と残す物
+- 消す物：なし（コメントの直しだけ）。
+  - NationConfig.cs の注（HeldSince の説明を〈回1-1 で削除済み〉へ）・Coefficients.cs OpeningColonyDominanceFull の注（行番号 Privileges.cs:131・Simulation.cs:1604・Diplomacy.cs:2269 を関数名 Privileges.StepMonth・Simulation.PromoteColonyToRegion・Diplomacy.AcquireColony へ）・InstrumentsU4.cs の頭の限界④⑤（U4Depart の後の形）。コードは変えない。
+  - 読み手の grep：HeldSince は SimCore で Model.cs の墓標と Coefficients.cs の墓標のコメントのみ（コードの読み手 0）。行番号の参照は MultiNationSim.cs:175-176 の注（lt でも sm でもない持ち主・触れない＝報告で合流へ）。
+- 足す物：InstrumentsCearn.cs（見出し 2 列・CearnAcc の 2 欄・Clear・行の書き出し・CearnImportHeadInto の 3 行）・ident_check.py（cpop_s の経路の枝・行を並べて読む・実際に違った列の併記）・tests 4 本・EndsWith の伸ばし 3 行（BillBlockedColumnsTests.cs:145・CearnTradeColumnsTests.cs:199・EmptyPopDebtFirstTests.cs:154＝尾の番人）・scripts/instruments/c86sm/{cpop_route_test.py,guards.sh}。
+- 他の線との重なり：oc＝SecessionLaborLawInstrumentTests.cs・TransportInstrumentTests.cs だけ（重ならない）。lt＝Coefficients.cs:713・NationConfig.cs:53 の行（sm は :2758 と :174 の注だけ＝別の行）。EndsWith を伸ばす 3 本の尾の番人（CearnTradeColumnsTests.cs・EmptyPopDebtFirstTests.cs は持ち主の一覧に無いが、列を足せば必ず赤になる尾の番人＝(910) の型で伸ばす）は oc・lt が触らない。
+- 読み手の grep（heirDebtSettledPerQuarter の型で新列を足す側）：SimCore＝InstrumentsCearn.cs のみ。Runner・App・Display＝0。SaveGame＝CearnAcc は World の外（保存しない）。POB_COEF＝係数を足さない。scripts の読み手＝既存の列名の参照のみ（新列を読む台本は無い）。
+
+[3] 足す試験と突然変異
+- HeirDebtAfterSettleColumnsTests（Instruments コレクション）：
+  (T1) 決済の後に残る人の居る POP の債務の和＝清算数×7（債務 10・貯蓄 3 → 残り 7。人の居ない POP の債務 9 は数えない）。
+  (T2) 閾値 1e-9：残高 5e-10 は和に入るが清算の数は 0・2e-9 は数える・商人の債務が決済の後も残る清算（手形を振り出せない）は数えない。
+  (T3) 計器の門が閉じていれば台帳が作られない。
+- U4InstrumentTests：consf_s の払った額・判定の月数を区分（home／Colonial）ごとに cons_s の州の行の和と突き合わせる（区分の取り違えと、植民地の区分で比べた行が 0 でないことの対照）。
+- 尾の番人 3 本の EndsWith を新しい 2 列まで伸ばす。
+- 突然変異（使い捨ての写し・腕の前に回す・結果は measurements/m963_20261108_mut.txt）：
+  M1 heirDebtAfterSettleSum を ① の前で読む（CearnImportHead を決済の繰り返しの前へ動かす）→ T1 が赤。
+  M2 閾値 1e-9 を外す（> 0）→ T2 が赤。
+  M3 CearnImportHeadInto の 3 行を ins2 の外へ出す → CearnOn の内側の門が残るため計器の門は二重＝緑になりうる（T3 は門が閉じた世界で台帳が作られないことを見る）。緑なら〈二重の門〉と名乗る。
+  M4 ident_check の cpop_s の枝を外す → cpop_route_test.py の a・b・f が赤。
+  M5 consf_s の区分を取り違える（colonial の条件を反転）→ U4InstrumentTests の区分の試験が赤。
+  M6 ClearQuarter の漏れ（consf_s の行で a.ClearQuarter() を外す）→ 既存の 20 四半期の和の試験が赤のはず（赤にならなければ穴を名乗る）。
+  M7 consf_s の二重に足す（出た国の積みを 2 回足す）→ 既存の和の試験が赤のはず。
+- ソースを走査する番人（㉘）：隔離ビルド D:/PoB_work/c86sm_art で scripts/instruments/c86sm/guards.sh（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests と線の試験の組）。書き換える件数の予言（㉑）：0（静的な件数・値の番人は書き換えない。WriterRatchetTests の宣言の表・new MoneyStock( の件数・route_anchors.tsv の鍵の行を変えない）。
+- 工業化度の読み手の許可表・new MoneyStock( の件数・route_anchors.tsv・WriterRatchetTests の宣言の表：変更 0（腕の前に grep で確かめる）。
+
+[4] 判定
+- 素の 5 種・計器つき 10 種が m961 と名乗り行を除いて全行一致、計器の表の差は cearn_s の宣言の 2 列だけ。
+- 列が空でない対照：旗 0 で heirDebtAfterSettleSum ＞1e-9 の州×四半期（billWithHeirDebtClearings ＞0 の行）が 0 でなく、u2_b の 63〜326 と同じ桁（10〜数千）。結果は鍵ごとに measurements へ。
+- 説明できなかった差の鍵は全て measurements へ置く（★(954)）。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
+
+[6] 入れない物：(c1) の旗とエンジンの式・§5-2 impgood_s・BilateralMarket.cs・lt の行・README・App・Display・Runner。
+(iii) ㉘ の既定の組：GoodIdGuardTests を含むかどうかの出所はリポジトリの外（ワークフローの COMMON）＝リポでは変えず scripts/instruments/c86sm/guards.sh に既定を置く。合流と作者のセッションへ頼む。

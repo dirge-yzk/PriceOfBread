@@ -142,7 +142,7 @@ public class BillBlockedColumnsTests
             var cf = System.IO.Directory.GetFiles(dir, "cearn_s*").Single();
             var ch = HeaderOf(cf);
             Assert.Contains("\tmerchantDebt\testateDebtSettledPerQuarter\tbillBlockedClearings\tbillBlockedDustClearings\temptyDebtAfterEstate\testateDebtMovedPerQuarter\theirDebtSettledPerQuarter", Instruments.CearnHeaderText);   // 二重の番人として残す：Contains は 7 列の並び（途中の順）・次の EndsWith は末尾の位置（後ろに列が足されたら赤）を別々に守る
-            Assert.EndsWith("\theirDebtSettledPerQuarter", Instruments.CearnHeaderText);
+            Assert.EndsWith("\theirDebtSettledPerQuarter\theirDebtAfterSettleSum\tbillWithHeirDebtClearings", Instruments.CearnHeaderText);
             foreach (var l in System.IO.File.ReadAllLines(cf).Skip(1)) Assert.Equal(ch.Length, l.Split('\t').Length);
             var pf = System.IO.Directory.GetFiles(dir, "cpop_s*").Single();
             var ph = HeaderOf(pf);

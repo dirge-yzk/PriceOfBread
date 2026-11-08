@@ -13,8 +13,8 @@ namespace PriceOfBread.SimCore;
 //   flowCurrentPlannedMoneySum＝影の判定がある州×月（希望が正）の今の計画の和＝影の計画と同じ州×月で比べる分母。
 // ⚠限界（計器が自己申告する）：①影は静的な反事実＝希望・所得・消費は今の規則の軌道のまま（U4 の腕では応答する）。
 //   ②今の規則の消費の支払いは投資の取り置き（EconomyStep の投資家の RemainingBudget×(1−IndInvestmentFrac)）の後の値＝U4 で取り置きを外すと消費は増えうる＝腕の流れは影より小さい向き。
-//   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。
-//   ⑧工業化度の列は置かない（IndustrializationReaderTests の許可表＝新しい読み手を足さない）。⑤州の持ち主が四半期の中で替わると、その州の積みは四半期の末の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
+//   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。州が国を出た場合は U4Depart が出る時点の Tier の区分で、出た国の次の行へ回す（(948)）。
+//   ⑧工業化度の列は置かない（IndustrializationReaderTests の許可表＝新しい読み手を足さない）。⑤州の持ち主が四半期の中で替わると、出る前の積みは U4Depart の写しとして出た国の次の consf_s の行へ入り（州の数・人口・貯蓄は足さない）、出た後の積みは今の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
 public static partial class Instruments
 {
     internal const string ConsfHeaderText = "quarter\tyear\tnation\tscope\tregionsCount\tpopulationK\tinvestorSavingsStock\t"

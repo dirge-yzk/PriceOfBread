@@ -258,6 +258,7 @@ def flow_same_but_location(pa, pb):   # 呼び出し位置を除いた行の多�
 #   基準の木のコミット（cfg の BASE_COMMIT＝INSRAW を出した木）と測る木の同じファイルの行の対応（difflib・変わらない行どうし）で基準の表の〈:行〉を写してから比べる（cearn_remap.py〔(828)〕と同じ写像）。
 #   他の列はバイトで比べる。写像に無い行（消した・書き換えた行）を指す経路・別の行へ移った経路・経路でない列の違いは不一致のまま。BASE_COMMIT が cfg に無ければ使わない（旧のバイト比べ）。flow_s の規則は別（上）。
 CEARN_ROUTE_COLS = ('outTop1Route', 'outTop2Route', 'inTop1Route')
+CPOP_ROUTE_COLS = ('outOtherTop1Route',)   # (963) c86sm：cpop_s の経路の列（outOtherTop1Route＝同じ〈ファイル:行:向き:区分〉の名）。cearn_same_but_location の route_cols に渡す（cpop_s の宣言の列は known['cpop_s']）
 CEARN = {'root': None, 'base': None, 'tree': None, 'arm_commit': None, 'maps': {}, 'paths': None}   # 測る木は tree の作業ファイル（arm_commit を渡せばその木のコミット＝道具の試験用）
 _ROUTE_RE = re.compile(r'^([A-Za-z0-9_]+\.cs):(\d+)(.*)$', re.S)
 
@@ -323,7 +324,7 @@ def _cearn_remap(s):   # 基準の経路の名の〈:行〉を測る木の行へ
     return f'{fn}:{m[ln]}{rest}'
 
 
-def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数, 腕で末尾に増えた列)
+def cearn_same_but_location(pa, pb, allow_grown=False, route_cols=CEARN_ROUTE_COLS):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数, 腕で末尾に増えた列)
     # (852) allow_grown＝--grown-ok に cearn_s がある＝腕の見出しが基準の見出しを頭に含み末尾に列が増えた形も、基準の列（頭の n 列）を同じ規則で比べる（増えた列は比べない＝宣言の増減に数える）。
     #   列の追加と金を動かすファイルの行の移動が同じ木に入ると、旧の形は見出しの不一致で写像を走らせず〈宣言の無い違い〉にしていた（(848) c69eh §9 の道具の限界）。
     # (934) CEARN['known']＝cearn_s の宣言の列（--known-extra と KNOWN・parse_known の形 {列: None か (条件の列, 値)}・cmp_ins が入れる）。経路の外の列でも、宣言の列は値の違いを許す（cols_diff と同じ規則）。空か未設定＝今までと同じ（全ての列がバイトで一致）。呼び出しの引数にしないのは、試験が差し替える関数の形（c70gt）を保つため。
@@ -331,26 +332,33 @@ def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:�
     if not CEARN['base'] or not CEARN['root'] or not (CEARN['tree'] or CEARN['arm_commit']):
         return False, 0, []
     kmap = CEARN.get('known') or {}
-    with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:
-        ra = list(csv.reader(fa, delimiter='\t'))
-        rb = list(csv.reader(fb, delimiter='\t'))
-    if not ra or not rb or len(ra) != len(rb):
+    with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:   # (963) 行を並べて読む（cpop_s は 350MB 級＝2 本を list にしない）
+        return _cearn_same_rows(csv.reader(fa, delimiter='\t'), csv.reader(fb, delimiter='\t'), allow_grown, route_cols, kmap)
+
+
+def _cearn_same_rows(ra, rb, allow_grown, route_cols, kmap):
+    CEARN['actual'] = []   # (963) 宣言の列のうち実際に値が違った列（呼び出しの後に cmp_ins が札へ併記する）
+    act = set()
+    h0, hb = next(ra, None), next(rb, None)
+    if not h0 or not hb:
         return False, 0, []
-    h = ra[0]
+    h = h0
     n = len(h)
-    if rb[0] == h:
+    if hb == h:
         extra = []
-    elif allow_grown and len(rb[0]) > n and rb[0][:n] == h:
-        extra = rb[0][n:]
+    elif allow_grown and len(hb) > n and hb[:n] == h:
+        extra = hb[n:]
     else:
         return False, 0, []
-    nb = len(rb[0])
-    rc = [i for i, c in enumerate(h) if c in CEARN_ROUTE_COLS]
+    nb = len(hb)
+    rc = [i for i, c in enumerate(h) if c in route_cols]
     if not rc:
         return False, 0, []
     moved = 0
     kdiff = False
-    for xa, xb in zip(ra[1:], rb[1:]):
+    for xa, xb in zip_longest(ra, rb):
+        if xa is None or xb is None:   # 行の数が違う
+            return False, 0, []
         if len(xa) != n or len(xb) != nb:
             return False, 0, []
         for i in range(n):
@@ -374,9 +382,16 @@ def cearn_same_but_location(pa, pb, allow_grown=False):   # 経路の列の〈:�
                     if xa[j] != fv or xb[j] != fv:
                         return False, 0, []
                 kdiff = True
+                act.add(h[i])
     if kdiff and moved == 0:
         return False, 0, []
+    CEARN['actual'] = sorted(act)
     return True, moved, extra
+
+
+def _actual():   # (963) 直前の cearn_same_but_location で実際に違った宣言の列（無ければ空）
+    a = CEARN.get('actual') or []
+    return '（実際に違った列 ' + ','.join(a) + '）' if a else ''
 
 
 def _decl(known, t):   # (949) 既知の揺れの札に、その表の宣言の列の名を併記する（宣言が無ければ空＝今までの札と同じ）
@@ -419,9 +434,19 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         if t == 'cearn_s':
             okc, nmv, ext = cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown))
             if okc and not ext:
-                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）' + _decl(known, 'cearn_s')])); continue
+                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）' + _decl(known, 'cearn_s') + _actual()])); continue
             if okc and ext:   # (852) 基準の列は経路を写して一致・末尾に増えた列は --grown-ok の宣言（宣言の増減と既知の揺れの両方に名乗る）
-                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）' + _decl(known, 'cearn_s')])); continue
+                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）' + _decl(known, 'cearn_s') + _actual()])); continue
+        if t == 'cpop_s':   # (963) cpop_s も経路の行番号の移動を写す（宣言の列は known['cpop_s']・cearn_s の宣言とは別）
+            CEARN['known'] = known.get('cpop_s', {})
+            try:
+                okc, nmv, ext = cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown), route_cols=CPOP_ROUTE_COLS)
+            finally:
+                CEARN['known'] = known.get('cearn_s', {})
+            if okc and not ext:
+                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）' + _decl(known, 'cpop_s') + _actual()])); continue
+            if okc and ext:
+                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）' + _decl(known, 'cpop_s') + _actual()])); continue
         rcs = [x.split(':', 1)[1] for x in removed_cols if ':' in x and f.startswith(x.split(':', 1)[0])]
         kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown), removed_cols=rcs)
         if J(base, f) in COLS_REMOVED and not d and not extra and not kn and not (pref(f, rows_grown) and ROWS_ADDED.get(J(base, f), 0) > 0):

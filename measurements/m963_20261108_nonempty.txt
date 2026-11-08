@@ -1,0 +1,11 @@
+ins\cearn_s1.tsv rows 217592 sum>1e-9 3758 billWithHeir>0 166
+ins\cearn_s2.tsv rows 210804 sum>1e-9 4297 billWithHeir>0 160
+ins\cearn_s3.tsv rows 216817 sum>1e-9 3190 billWithHeir>0 228
+ins\cearn_s4.tsv rows 215560 sum>1e-9 3314 billWithHeir>0 192
+ins\cearn_s5.tsv rows 217164 sum>1e-9 3678 billWithHeir>0 217
+ins\cearn_s6.tsv rows 210717 sum>1e-9 2982 billWithHeir>0 70
+ins\cearn_s7.tsv rows 215744 sum>1e-9 4140 billWithHeir>0 48
+ins\cearn_s8.tsv rows 214432 sum>1e-9 2324 billWithHeir>0 52
+ins\cearn_s9.tsv rows 213606 sum>1e-9 4201 billWithHeir>0 127
+ins\cearn_s10.tsv rows 215815 sum>1e-9 3470 billWithHeir>0 228
+合計 rows 2148251 sum>1e-9 35354 billWithHeir>0 1488
