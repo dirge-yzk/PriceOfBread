@@ -89,3 +89,10 @@
 
 == 13. 台帳 ==
 - S27-H010（機能の台帳.md:995〈昇格した植民地は支配度0から始まる〉）を新しい行を作らずに打消し線と日付で更新する文を報告に書く（合流が写す）。
+
+== 追記 2026-11-08 09:10（腕 B の前・門の数は変えない） ==
+- c85sl の印 D:/PoB_work/c85sl_work/sl.mark：`rc=0 sha=6defceee1b47bae392b30e5c0263423c3217266d form=p quarters=60 pairs0=1442 pairs1=31 end=08:30`（最初の確かめで既にあった＝waitmark の待ちは 0 回）。
+  form=p（★(743) の〈盤面〔期間〕の取り直し〉・Run(36)→Run(60)・Assert の文と閾値 20 は変えない）・旗 1 の種 1789 で checkedPairs 31（旗 0 は 1442）。sha 6defceee を merge（da16a760・衝突 0）。
+- 番人 T3′（26143cd8）：OpeningColonyDominanceTests と走査の番人 6 組を隔離ビルドで 178 本緑（measurements/m957_20261108/guards_t3x.txt）。
+- 腕 A の木：D:/PoB_work/c85kp_work/treeA＝26143cd8 から detach して 70caed7c を戻した 46303e1c（push しない）。ident c85kpz を --no-ins --tests-delta 5 で起こした。
+- 旗 1 のフルスイートの木：この追記のコミット（c85sl を merge した後）。予言：Category!=FullLength 2430（2425＋T1〜T4 の 4＋T3′ の 1・c85sl は 0）・全て合格（スキップ 1）・FullLength 3 合格・savetest・leakhunt 合格。
