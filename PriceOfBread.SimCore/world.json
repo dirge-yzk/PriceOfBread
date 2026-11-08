@@ -652,6 +652,7 @@
   },
   {
    "name": "ロシア",
+   "landOwnership": [0.530, 0.0, 0.0, 0.0, 0.470],
    "rule": [0.5, 0.45, 0.0, 0.05],
    "nobility": 566,
    "peasant": 24922,
@@ -959,7 +960,7 @@
   },
   {
    "name": "プロイセン",
-   "landOwnership": [0.904, 0.020, 0.076, 0.0],
+   "landOwnership": [0.610, 0.020, 0.076, 0.0, 0.294],
    "rule": [0.7, 0.28, 0.0, 0.02],
    "bureaucracy": "MeritExam",
    "nobility": 166,

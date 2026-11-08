@@ -13,7 +13,8 @@ public class LandOwnershipDataTests
         ["フランス"] = [0.265, 0.087, 0.378, 0.270],
         ["イギリス"] = [0.745, 0.045, 0.175, 0.035],
         ["スペイン"] = [0.488, 0.152, 0.228, 0.132],
-        ["プロイセン"] = [0.904, 0.020, 0.076, 0.0],
+        ["プロイセン"] = [0.610, 0.020, 0.076, 0.0, 0.294],   // ★(978) B-2b：5 個目＝国家の枠（事前登録 measurements/m978_20261109_prereg_cs.txt [1] 8 から手で写した）
+        ["ロシア"] = [0.530, 0.0, 0.0, 0.0, 0.470],
         ["デンマーク"] = [0.905, 0.020, 0.075, 0.0],
         ["日本"] = [0.987, 0.013, 0.0, 0.0],
         ["ポーランド"] = [0.872, 0.128, 0.0, 0.0],
@@ -29,9 +30,9 @@ public class LandOwnershipDataTests
             if (!Table.TryGetValue(c.Name, out var t)) { Assert.True(c.LandOwnership is null, $"名簿の外の {c.Name} が landOwnership を持つ（増やすときは表も直す）"); continue; }
             with++;
             Assert.NotNull(c.LandOwnership);
-            Assert.Equal(4, c.LandOwnership!.Length);
+            Assert.Equal(t.Length, c.LandOwnership!.Length);   // ★(978) 長さ 4（貴族・教会・農民の自作・市民の地主）か 5（＋国家の枠）＝表の長さ
             double sum = 0;
-            for (int k = 0; k < 4; k++) { Assert.Equal(t[k], c.LandOwnership[k]); Assert.True(c.LandOwnership[k] >= 0, $"{c.Name} 枠 {k} が負"); sum += c.LandOwnership[k]; }
+            for (int k = 0; k < t.Length; k++) { Assert.Equal(t[k], c.LandOwnership[k]); Assert.True(c.LandOwnership[k] >= 0, $"{c.Name} 枠 {k} が負"); sum += c.LandOwnership[k]; }
             Assert.True(System.Math.Abs(sum - 1.0) <= 1e-12, $"{c.Name} の和 {sum} が 1 でない");
         }
         Assert.Equal(Table.Count, with);
@@ -46,7 +47,7 @@ public class LandOwnershipDataTests
         int absenteeAll = 0;
         foreach (var (name, t) in Table)
         {
-            double tsum = t[0] + t[1] + t[2] + t[3];
+            double tsum = 0; foreach (var v in t) tsum += v;   // ★(978) 長さ 5 の表も和で割る
             var w = new MultiNationSim([WorldData.ByName(name)], seed: 1789UL) { DiplomacyFrozen = true }.Nations[0].World;
             var seen = new List<double[]>();
             foreach (var r in w.Regions)
@@ -62,8 +63,8 @@ public class LandOwnershipDataTests
                     bool want = s.IsRgo && !endow && s.OwnerPopIndex >= 0 && s.OwnerPopIndex < r.Pops.Count && r.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble;
                     if (!want) { Assert.True(s.LandShares is null, $"{name} の {r.Name} で欄を持つべきでない生産者（賦存 {endow}・RGO {s.IsRgo}）が欄を持つ"); continue; }
                     Assert.NotNull(s.LandShares);
-                    Assert.Equal(4, s.LandShares!.Length);
-                    for (int k = 0; k < 4; k++) Assert.Equal(t[k] / tsum, s.LandShares[k], 12);
+                    Assert.Equal(t.Length, s.LandShares!.Length);
+                    for (int k = 0; k < t.Length; k++) Assert.Equal(t[k] / tsum, s.LandShares[k], 12);
                     Assert.DoesNotContain(seen, x => ReferenceEquals(x, s.LandShares));
                     seen.Add(s.LandShares);
                 }
