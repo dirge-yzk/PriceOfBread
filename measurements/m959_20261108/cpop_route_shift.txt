@@ -1,0 +1,15 @@
+# (959) ident c85mwz の cpop_s の宣言の無い違い 10 本の中身（腕 D:/PoB_work/ident_c85mwz/out_ib_10/ins 対 基準 D:/PoB_work/keep_954/base_ins）
+# 列 outOtherTop1Route の値（経路の名＝ファイル:行）だけが違う。他の列の違い・行の数の違いを数える。行の写し＝器が Simulation.cs の :2069 の後ろに 2 行を足した（:2069 の 1 行・warMult の行を 2 行へ）
+種 1：行 857428
+種 2：行 769184
+種 3：行 806065
+種 4：行 822848
+種 5：行 768404
+種 6：行 808002
+種 7：行 833404
+種 8：行 801762
+種 9：行 805610
+種 10：行 791427
+209302	Simulation.cs:2828:take:T → Simulation.cs:2830:take:T
+63446	Simulation.cs:2416:take:T → Simulation.cs:2418:take:T
+他の列の違い 0・〈:2068 より後ろで +2〉で説明できない違い 0

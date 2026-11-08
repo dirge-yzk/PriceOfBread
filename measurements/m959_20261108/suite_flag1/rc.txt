@@ -1,0 +1,2 @@
+nonfull rc=1
+full rc=0

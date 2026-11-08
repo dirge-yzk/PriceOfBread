@@ -1,0 +1,31 @@
+(959) c85mw 結果：腕 B の前で止めた（㉜・★(912)）
+木：点火 ff1bf106（器 757daf81・事前登録 f612e494）・2026-11-08
+
+== 旗 1 の木のフルスイート（分けて・--list-tests と突き合わせ）==
+Category!=FullLength：合計 2431（--list-tests 2431）＝合格 2420・失敗 10・スキップ 1・中止 0
+FullLength：合計 3（--list-tests 3）＝合格 3
+savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（保存則違反なし）
+
+== 赤 10 件と事前登録 §0 (a) の予言（7 件）の突き合わせ ==
+予言の中（7 件・旧の規則を字で固定した番人・持ち主の外）：
+  CivilWarArmsDemandTests.cs:37  旗1の内戦の戦時の倍率は対外戦と同じ総動員の式（1・期待 11.7）
+  CivilWarArmsDemandTests.cs:46  旗1の対外戦の戦時の倍率は内戦と同じ値（1・期待 11.7）
+  CivilWarArmsDemandTests.cs:56  旗1の内戦は厭戦で総動員が深まる（1・期待 9）
+  CivilWarArmsDemandTests.cs:65  旗0の内戦は今の2倍の枝のまま（1・期待 18）
+  CivilWarArmsDemandTests.cs:98  計器は同じ盤面で…(flag: 1)（newRuleMismatch 3・期待 0）
+  CivilWarArmsDemandTests.cs:104 計器は同じ盤面で…(flag: 0)（oldRuleMismatch 3・期待 0）
+  MilitaryTests.cs:2030          交戦中も装備の上限は戦時の倍率で広がらず…（前提：双子の倍率 3.1358 と 3.1358＝MilitaryWarMult を読まない）
+予言の外（3 件）＝★(912) の〈数えない止め〉：
+  WriterRatchetTests.cs:575 計算量の見た件数は宣言した表を超えない(item 2・ConstructionSeen)：1608 件（宣言 1862）＝10% を超えて下がった
+  WriterRatchetTests.cs:571 同 (item 11・外交の覇権の判定の国×国)：2958560 件（宣言 2655980・許し +2%）＝増えた
+    ＝試験の盤面の軌道の件数を写した表（★(749)）＝旗 1 で戦争の軌道が変わり件数が動いた。
+  TransportInstrumentTests.cs:91 越境の印は年の途中で州の持ち主が替わっても…：〈年の中で持ち主が替わった州の組が 1 つも無い（対照）〉
+    ＝★(954) の〈組が少ない〉型（対照の件数が軌道に依る）。事前登録 §8 の grep は軍需の語だけを引き、この型を全域で grep していなかった（点検の漏れ）。
+判定：予言の外の赤 3 件＝腕 B を回さない・このテーマの 3 回の規則に数えない（★(912)）。予言の中の 7 件も ㉜ で腕 B を止める型。
+
+== 器（旗 0）==
+ident c85mwz〈判定: 恒等〉（measurements/ident_20261108_c85mwz.txt）。旗 0 の盤面の門：A1・A2・A3 赤・A4〜A6 緑（gates_M0_flag0_ident.txt）。同じ盤面の κ＝41.65。
+突然変異：mut/M0〜M6.txt（新しい試験 6 本で全て赤を確かめた・M2 は 3 回目で正しく当てた）。
+
+== 腕 B の門・止める線 ==
+腕 B を回していない＝A1〜A6・空洞化・100 倍・1e10 倍・名目 GDP 0・.cost・NG・開幕の 1000 倍は全て未測定。
