@@ -59,10 +59,10 @@ public static partial class Instruments
                     if (s.GoodId < 0 || s.GoodId >= ng) continue;
                     if (s.OwnerPopIndex >= 0 && s.OwnerPopIndex < r.Pops.Count && s.LaborPopIndex >= 0 && s.LaborPopIndex < r.Pops.Count) totalOut[s.GoodId] += System.Math.Max(0, s.Output);
                     if (!s.IsRgo || s.OwnerPopIndex < 0 || s.OwnerPopIndex >= r.Pops.Count) continue;
-                    if (s.LandShares is { } lso)   // ★(895) 土地の持ち分：枠の受け手に 産出の値×割合（null は今の持ち主の 1 行）
+                    if (s.LandShares is { } lso)   // ★(895) 土地の持ち分：枠の受け手に 産出の値×割合（null は今の持ち主の 1 行）・★(978) 旗 1 かつ長さ 5 は私の 4 枠だけ（LsSlots）・重みは ls[k] のまま（この計器の値は国営持分の前＝国家の枠の分は誰にも付けない・輸出の層も同じ）
                     {
                         double v0 = System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price); long fbo = 0;
-                        for (int k = 0; k < lso.Length; k++) if (lso[k] > 0) ownerTot[LsRecipient(r, s, k, ref fbo)] += v0 * lso[k];
+                        for (int k = 0, nk = LsSlots(w, lso); k < nk; k++) if (lso[k] > 0) ownerTot[LsRecipient(r, s, k, ref fbo)] += v0 * lso[k];
                     }
                     else ownerTot[s.OwnerPopIndex] += System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price);
                 }
@@ -77,7 +77,7 @@ public static partial class Instruments
                     {
                         if (!s.IsRgo || s.GoodId < 0 || s.GoodId >= ng) continue;
                         double wpi = 0;   // ★(895) 土地の持ち分：割合が正の枠の受け手が pi の RGO を、割合の和の重みで読む（null は今の条件 OwnerPopIndex==pi）
-                        if (s.LandShares is { } lsp) { long fbp = 0; for (int k = 0; k < lsp.Length; k++) if (lsp[k] > 0 && LsRecipient(r, s, k, ref fbp) == pi) wpi += lsp[k]; if (!(wpi > 0)) continue; }
+                        if (s.LandShares is { } lsp) { long fbp = 0; for (int k = 0, nk = LsSlots(w, lsp); k < nk; k++) if (lsp[k] > 0 && LsRecipient(r, s, k, ref fbp) == pi) wpi += lsp[k]; if (!(wpi > 0)) continue; }
                         else if (s.OwnerPopIndex != pi) continue;
                         double v = System.Math.Max(0, s.Output * r.Markets[s.GoodId].Price);
                         if (!(v > 0)) continue;
@@ -105,7 +105,7 @@ public static partial class Instruments
                         if (s.LandShares is { } lsx)   // ★(895) 土地の持ち分：枠ごとの層へ rent×割合（null は今の持ち主の 1 行）
                         {
                             long fbx = 0;
-                            for (int k = 0; k < lsx.Length; k++)
+                            for (int k = 0, nk = LsSlots(w, lsx); k < nk; k++)
                             {
                                 if (!(lsx[k] > 0)) continue;
                                 int bk = CnBloc(r.Pops[LsRecipient(r, s, k, ref fbx)]); double rk = rent * lsx[k];

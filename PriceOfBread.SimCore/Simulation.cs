@@ -970,22 +970,22 @@ public sealed class Simulation
         foreach (var pr in region.Producers)
             if (pr.IsRgo && pr.RentShare.Value > 0 && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < region.Pops.Count
                 && pr.GoodId >= 0 && pr.GoodId < Catalog.RefPrices.Length)
-                for (int k = 0, nk = pr.LandShares is { } ls0 ? ls0.Length : 1; k < nk; k++)   // ★(895) 枠ごとに 種×割合（null＝今の持ち主に種のまま）
+                for (int k = 0, nk = pr.LandShares is { } ls0 ? (coef.LandShareCrownSlot > 0 && ls0.Length == 5 ? 4 : ls0.Length) : 1; k < nk; k++)   // ★(895) 枠ごとに 種×割合（null＝今の持ち主に種のまま）・★(978) 旗 1 かつ長さ 5 は国家の枠（5 個目）を種に置かない＝私の枠は種×ls[k]（国営持分の前の種×(1−c)×ls[k]÷(1−c)）
                     if (pr.LandShares is not { } ls || ls[k] > 0)
                         region.Pops[pr.LandShares is null ? pr.OwnerPopIndex : EconomyStep.LandShareRecipient(region, pr, k)].LandRentPerMonth += new MoneyPerMonth(pr.LandShares is { } lsk ? pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale * lsk[k] : pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale);
         return region;
     }
 
-    /// <summary>★(895) 土地の持ち分のデータ（4 個）を和で割った写し。長さが 4 でない・負・非有限・和が正でないなら null（＝今の持ち主に 1.0）。</summary>
+    /// <summary>★(895) 土地の持ち分のデータ（4 個・★(978) 5 個目＝国家の枠も可）を和で割った同じ長さの写し。長さが 4 か 5 でない・負・非有限・和が正でない・5 個目が 1 以上（1−c で割れない）なら null（＝今の持ち主に 1.0）。旗は読まない。</summary>
     internal static double[]? LandOwnershipShares(double[]? lo)
     {
-        if (lo is null || lo.Length != 4) return null;
+        if (lo is null || (lo.Length != 4 && lo.Length != 5)) return null;
         double sum = 0;
         foreach (var v in lo) { if (!(v >= 0) || double.IsInfinity(v)) return null; sum += v; }
         if (!(sum > 0) || double.IsInfinity(sum)) return null;
-        var o = new double[4];
-        for (int k = 0; k < 4; k++) o[k] = lo[k] / sum;
-        return o;
+        var o = new double[lo.Length];
+        for (int k = 0; k < lo.Length; k++) o[k] = lo[k] / sum;
+        return o.Length == 5 && !(1.0 - o[4] > 0) ? null : o;
     }
 
     // 役務（サービス財）の係数：労働力＝工場の投入。賃金は労働市場の価格で決まる（生産が先→売って収入の設計）。

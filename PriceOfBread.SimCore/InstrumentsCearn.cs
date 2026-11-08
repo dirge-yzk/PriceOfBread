@@ -703,10 +703,10 @@ public static partial class Instruments
                     if (top[li] is null || s.Capacity > top[li]!.Capacity) top[li] = s;
                 }
             }
-            if (s.LandShares is { } lsc)   // ★(895) 土地の持ち分：割合が正の枠の受け手のうち担い手でない者に行を 1（同じ受け手は 1 回）・売上×その受け手の割合の和（null は今の持ち主の 1 行）
+            if (s.LandShares is { } lsc)   // ★(978) 旗 1 かつ長さ 5 は私の 4 枠だけ（LsSlots・売上の重みは ls[k] のまま）。★(895) 土地の持ち分：割合が正の枠の受け手のうち担い手でない者に行を 1（同じ受け手は 1 回）・売上×その受け手の割合の和（null は今の持ち主の 1 行）
             {
                 long fbc = 0;
-                for (int k = 0; k < lsc.Length; k++)
+                for (int k = 0, nk = LsSlots(w, lsc); k < nk; k++)
                 {
                     if (!(lsc[k] > 0)) continue;
                     int ri = LsRecipient(r, s, k, ref fbc);
@@ -714,7 +714,7 @@ public static partial class Instruments
                     for (int j = 0; j < k; j++) if (lsc[j] > 0 && LsRecipient(r, s, j, ref fbc) == ri) { seen = true; break; }
                     if (seen || ri == li || ri < 0 || ri >= n) continue;
                     double wr = 0;
-                    for (int j = k; j < lsc.Length; j++) if (lsc[j] > 0 && LsRecipient(r, s, j, ref fbc) == ri) wr += lsc[j];
+                    for (int j = k; j < nk; j++) if (lsc[j] > 0 && LsRecipient(r, s, j, ref fbc) == ri) wr += lsc[j];
                     oLines[ri]++; oRev[ri] += s.LastRevenue * wr;
                 }
             }

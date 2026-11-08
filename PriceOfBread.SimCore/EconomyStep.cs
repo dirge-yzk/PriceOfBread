@@ -734,14 +734,16 @@ public static class EconomyStep
             fz = s.FrozenLandRentPerMonth?.Value;
         }
         var ls = s.LandShares;
-        for (int k = 0, nk = ls is null ? 1 : ls.Length; k < nk; k++)
+        bool crown = coef.LandShareCrownSlot > 0 && ls is { Length: 5 };   // ★(978) B-2b：5 個目（国家の枠）は国営持分で国庫へ入った（World.StateProfitShare）＝私の 4 枠だけを ls[k]÷(1−c) で
+        for (int k = 0, nk = ls is null ? 1 : crown ? 4 : ls.Length; k < nk; k++)
         {
             if (ls is not null && !(ls[k] > 0)) continue;   // 割合が 0（と NaN）の枠は並べない
             int rp = ls is null ? s.OwnerPopIndex : LandShareRecipient(region, s, k);
-            double rk = ls is null ? rent : rent * ls[k];
+            double wk = ls is null ? 1.0 : crown ? ls[k] / (1.0 - ls[4]) : ls[k];   // 枠の重み（地代と凍結の差分の両方が読む 1 本）
+            double rk = ls is null ? rent : rent * wk;
             region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);
             if (s.IsRgo && rk > 0) region.Pops[rp].LandRentPerMonth += new MoneyPerMonth(rk);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
-            if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth += new MoneyPerMonth((ls is null ? f : f * ls[k]) - Math.Max(0, rk));   // ★(937) 凍結の差分（凍結の月は 0）
+            if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth += new MoneyPerMonth((ls is null ? f : f * wk) - Math.Max(0, rk));   // ★(937) 凍結の差分（凍結の月は 0）
             if (s.IsRgo && rk > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[rp].ClassId == PopClass.Noble)
                 Privileges.Record(world, Privileges.Seigneurial, rk * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
         }
@@ -753,8 +755,9 @@ public static class EconomyStep
     {
         if (pr.LandShares is { } ls && !Colonial.AbsenteeRgo(rr, pr))
         {
-            for (int k = 0; k < ls.Length; k++)
-                if (ls[k] > 0) { to.Add(rr.Pops[LandShareRecipient(rr, pr, k)]); wt.Add(rent * ls[k]); }
+            bool crown = w.Coef.LandShareCrownSlot > 0 && ls.Length == 5;   // ★(978) B-2b：国家の枠は国営持分（PaySales の stateCut）で国庫へ入った＝私の 4 枠を ls[k]÷(1−c) で
+            for (int k = 0, nk = crown ? 4 : ls.Length; k < nk; k++)
+                if (ls[k] > 0) { to.Add(rr.Pops[LandShareRecipient(rr, pr, k)]); wt.Add(crown ? rent * (ls[k] / (1.0 - ls[4])) : rent * ls[k]); }
             return;
         }
         // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園の地代は不在地主（本国の首都の投資家）へ直接＝清算の受け取りは移し方の1本（貯蓄と所得を同じ額で書く）
@@ -2768,6 +2771,7 @@ public static class EconomyStep
             double subEff = subRate * privFrac;
             // 国庫が肩代わりできる国営持分（R3）＝持分×r。払えない分（持分×(1−r)）は民営と同じ＝赤字は持ち主が負い（負の貯蓄→与信）、休止の対象になる。
             double stateCover = stateFrac * payRate;
+            double lsSf0 = insOn && s.IsRgo ? region.StateSpent[(int)TreasuryCat.StateFactory] : 0;   // ★(978) 計器（読むだけ）：国営工場の区分の台帳の移す前の値（受け口が移した直後の値と比べる）
             if (valueAdded >= 0)
             {
                 double rentShare = RentShareOf(s, region, coef);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
@@ -2795,7 +2799,7 @@ public static class EconomyStep
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
             bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
             s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth).Value);
-            if (insOn && s.IsRgo && world is not null) Instruments.LandshareRgo(world, region, s, rent);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分と赤字の枝の後の rent（割る前の総額）
+            if (insOn && s.IsRgo && world is not null) Instruments.LandshareRgo(world, region, s, rent, lsSf0);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分と赤字の枝の後の rent（割る前の総額）
             PayOwnerRent(world, region, s, rent, coef);   // ★(895) 地代の受け手（持ち主か土地の持ち分の枠）へ所得・地代（LandRent）・領主権の記録（null＝今の持ち主に全額）
             region.Pops[s.LaborPopIndex].EarnedPerMonth += new MoneyPerMonth(wages);
             if (absentee is not null && Colonial.AbsenteeRgo(region, s)) absentee[s.OwnerPopIndex] += rent;   // R1：不在地主の分（精算の後に送る・赤字も）

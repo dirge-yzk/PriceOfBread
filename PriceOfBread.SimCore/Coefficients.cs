@@ -3336,6 +3336,7 @@ public sealed class Coefficients
     //   ★2026-10-30 に 1 で**点火**（腕 A〔旗 0〕は基線 m645 と全行バイト一致・腕 B〔計器つき 10 種〕は止める線に当たらず・狙いの数字 ③a ③d が通る＝事前登録 measurements/inh_650_20261030_prereg2.txt [2]・結果 measurements/inh_650_20261030_result.txt）。0 に倒せば法の行が消え厳密に旧に戻る。
     // 【墓標2026-11-05 (843)・旗の焼き込み】InheritanceLawGate（既定 1.0）を消した＝相続法は常に動く。旧の枝（ゲート 0 では動かない）は消した。
     public double EmptyPopDebtFirst = 0.0;   // ★(910) c78ep 案 B5（AI の案・確証なし・事前登録 measurements/m910_20261107_prereg_ep.txt）：> 0 のとき EmptyPopEstate.Step の中で、人数 ≦1e-12 の POP の債務を相続より先に自分の貯蓄から返す（Bank.Lend の負の側・min(債務, max(0, 貯蓄))）。0＝何もしない（旗 EmptyPopEstate ＞0 のときだけ読む）
+    public double LandShareCrownSlot = 0.0;   // ★(978) c88cs 土地の持ち分 B-2b 案 S1（AI の案・確証なし・事前登録 measurements/m978_20261109_prereg_cs.txt）：> 0 かつ Producer.LandShares の長さ 5 のとき、5 個目（国家の枠 c）を国営持分へ畳む（World.StateProfitShare＝f＋(1−f)×c）・私の 4 枠は ls[k]÷(1−c)。0＝今の形（5 個目は持ち主へ寄る）
     public double EmptyPopEstate = 1.0;   // ★(848) c69eh（2026-11-05 に 1 で点火・0 に戻せば何もしない）：> 0 のとき毎月、人数 ≦1e-12 で在庫が正の POP の在庫を同じ州の人数 ＞1e-12 の POP へ人数の比で移す（EmptyPopEstate.Step・相続の段の前・確証なし・事前登録 measurements/m848_20261105_prereg_eh.txt）。0＝何もしない
     // ★(480) 線 ma：AI が最低賃金法に置く目標の選び方（AI の選び・確証なし・事前登録 measurements/ma480_20261021_prereg.txt）。0＝今の規則〈本国の都市の割合の線で上げる目標だけを書く〉（UtilityAgent.MinimumWageTargetFromBoard）。
     //   > 0＝盤面の実物から選ぶ（UtilityAgent.MinimumWageTargetFromFloor）：本国の州の労働の失業と、床が縛る広がり（MinimumWageFloor.BindShare）から、上げる線と下げる線を分け（間は現状維持）、下げる目標も書く。都市の割合の線は読まない。
