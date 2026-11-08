@@ -24,6 +24,11 @@
  - NG 91（基準は種 1〜10 の m961＝93・種が違う＝記録だけ）。
  - 新÷旧：英 1900-50 土地税の収入 0.789・名目 GDP 0.904・landTaxTargetEndShare 0.750・parliamentGripIndex 0.911（sup964s11.py＝sup945.py の種の範囲を 11〜20 にした写し）／清 rentDomPerMonth1 1900-50 0.997。
 
+[3b] 基準の出所
+ - 〈基準 M〉〈基準 S11〉の痩せ・不履行の数は m961 の基線（kp だけの木）の読み measurements/m961_20261108/armM/stop949_newnulls.txt・armS11/stop949_newnulls.txt（生 D:/PoB_work/m961_work2/…）。ヌル腕は measurements/m961_20261108/null/stop906_n1.txt・n2。
+ - 1 回目の合わせた木（kp＋lt）の S11 の読み measurements/m961_20261108/combo_kp_lt/armS11/stop949_newnulls.txt は痩せ 2・不履行 [1,0,0,1,0,…]＝この回の S11 と同じ（同じエンジン）。
+ - 腕の木 87c5a089 とスイートの木 f074ec05 の差は measurements だけ（git diff --stat の SimCore・Runner の差 0）。
+
 [4] 機構が狙いどおり働いたか
  - 清の G8c（凍結した基数と地代の離れの大きさ）が M・S11 とも窓の内・G7 の凍結の事象 20/20＝凍結が起き、基数が地代から離れた。
  - 写しの照合（G4・G8a・G8b・G2 新）は全て 0。
