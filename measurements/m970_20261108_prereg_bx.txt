@@ -1,0 +1,73 @@
+(970) c87bx 事前登録：土地税の算定の基準 A1 の段 A-2b-0＝恒等の計器 basisx_s（新しい表 1 本）。書いたモデル：Claude Sonnet 5.5。2026-11-08。
+木の基点 d300ba20b7f9e3c6c1f1eb98a251374a63b690dc（main・基線 m968）。worktree D:/PoB_work/wt_c87bx・枝 c87bx。作業 D:/PoB_work/c87bx_work・隔離ビルド D:/PoB_work/c87bx_art。
+材料：docs/202611/20261108/ …段A-2b′_施行の経路と代価…下書き §5（表の仕様）・…段A-2b″_RGOの地代の状態と規則Cの数え直し…下書き §0〜§2・§7（列の足し）と末尾の反証役・scripts/instruments/r967/r967read.py（規則の定義）。
+作者の言葉（原文）：「足りなくても売らされたは、制度の問題でもある…法律側で整備する問題ではないでしょうか」。★(832) ② A1・★(919) ④ は〈作者「全て推奨で」で推奨を採った〉形。この線は計器だけ（決めない）。
+
+== [1] 恒等の線・予言 0 ==
+- 挙動を変えない。エンジンの欄・係数・SaveGame・Move・Government・EconomyStep を触らない。足すのは計器の新しい表 basisx_s（国×四半期・計器の国の名簿の国だけ）。
+- 予言 0：素の 5 種・計器つき 10 種の成績表は m968 と名乗り行を除き全行一致。計器の表の差は basisx_s が増えるだけ（既にある表の行と列は 1 つも変わらない）。
+- 浮動小数の順序が変わる箇所：なし（エンジンの計算式を 1 行も触らない）。紙の台本で旧と新を比べる箇所も 0。
+
+== [2] 消す物と残す物・読み手・他の線との重なり ==
+消す物：なし。残す物：landbase_s・landbasereg_s・landfix_s の列と行（変えない）。
+足す物（ファイル:行は書いた時点）：
+- PriceOfBread.SimCore/InstrumentsBasisx.cs（新・部分クラス）：BasisxHeaderText（46 列）・BxRuleStep（純関数）・BasisxRgoRent（受け口）・BasisxMonth（月の口）・BasisxTable（四半期の口）・BasisxClose。
+- PriceOfBread.SimCore/Instruments.cs：呼び口 3 行（MonthClose の LandbaseMonth の次に BasisxMonth・Quarter の LandbaseTable の次に BasisxTable・Close の LandbaseClose の次に BasisxClose）。
+- PriceOfBread.SimCore/InstrumentsLandbase.cs：LandbaseRgoRent の頭に BasisxRgoRent の呼び出し 1 行（受け口を EconomyStep に足さず、既にある受け口に相乗りする）。EconomyStep.cs は触らない。
+- PriceOfBread.Tests/BasisxInstrumentTests.cs（新）。scripts/instruments/c87bx/bx_read.py（新・紙の読み手）。measurements/m970_*。
+読み手の grep（basisx・Basisx・BxRuleStep・BasisxHeaderText）：SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表＝新しいファイルの名前だけ（既存の読み手 0・新しい係数 0・SaveGame の欄 0）。
+計器が読むエンジンの欄（読むだけ）：Pop.LandRentPerMonth・Pop.Closed・IsSoldier・IsCriminal・Region.Pops・Producer.IsRgo・LandShares・OwnerPopIndex・World.LandTax・ExpectedInflationPerYear・FiscalFundingRatio・GovDebt・NominalGdpPerMonth・IsQuarterEndMonth・WarmupFrozen・Polity・Coef.PrivilegeTaxDiscount・PrivilegeFromCrownShare。
+  凍結の写しは landfix の LbFrozen（同じ部分クラス・助走の月に LandbaseRgoRent が作る）を読む＝二重の写しを作らない。姿勢は WState.ModStance（InstrumentsModernize.cs の ModernizeSignal が置く）を月の口で写す。
+エンジンの関数を呼ばない：Fiscal.LandTaxBase・AssessPop・Privileges.TaxAssessment・Colonial.AbsenteeRgo・UtilityAgent.ChooseStance。pb の式・不在地主でない RGO の選び（凍結の写しがある RGO だけ）・受け手（LsRecipient）は計器の写し。
+他の線との重なり：
+- c87ot（試験の一括の直し）：BasisxInstrumentTests.cs は ot の走査の対象に入らない（新しい試験は除く）。LandbaseInstrumentTests・LandfixInstrumentTests は触らない。
+- c87mt：Instruments.cs の PriceStep の pclamp の行（別の行）。c87mw：InstrumentsCivwar.cs・Simulation.cs ほか（別のファイル）。c87hd：BilateralMarket.cs・EmptyPopEstate.cs ほか（別のファイル）。
+- Instruments.cs の 3 行はどの線も触らない行の隣＝合流で衝突しない見込み。InstrumentsLandbase.cs は他の線の持ち物に無い。
+- 持ち主の表の外に出た点：なし（InstrumentsLandbase.cs の 1 行は〈basisx の呼び口〉の一部。指示の Instruments.cs の呼び口の行だけという範囲より 1 ファイル広い＝受け口が EconomyStep.cs の中にしか無く、EconomyStep.cs は mw の持ち物の注の行を除き触れないため。報告に名乗る）。
+
+== [3] 足す試験と、それぞれを赤にする突然変異 ==
+試験（PriceOfBread.Tests/BasisxInstrumentTests.cs・Theory の行を数えて +11）：T1 見出し 46 列・T2 規則の 1 歩（手で数えた系列）・T3 毎四半期に反転する偽の規則の台本（20 回）・
+ T4 合成の盤面（凍結なし・手で入れた地代と率・pb）・T5 合成の盤面（凍結あり・POP の符号が混ざる）・T6 危機の述語（C1/C2）・T7 規則 S と姿勢・T8 実走の整合（エンジンの凍結の数・Σ pb×r の POP 側との一致・H4 の B と基数の 2 通り・切り替えの数と目標の変化・期待インフレの時点）・
+ T9 旗 0 でも写しの凍結が立つ・T10×2 出て戻る（四半期をまたぐ版・同じ四半期の中の版＝★(947)）。期待は試験が手で置く（地代・率・π は試験が決める・pb と受け手はエンジンの関数と欄から作る・計器の式を呼び戻さない）。
+突然変異（ident とコミットの前に使い捨ての編集で回す・各々で赤になる試験を腕の前に表にする＝㉚）：
+ M1 π の符号を逆に（ΔC の定額へと比例へ）→ T4・T5 が赤。
+ M2 moved の分母を一歩の後の基数（B＋ΔC）に → T4・T5 が赤。
+ M3 pb を外す（BxPb が閉鎖階級を 1 とする）→ T4・T5 が赤（T4 は閉鎖階級の免税 d′＞0 を前提に Assert する）。
+ M4 影の凍結を毎期上書き（F の間に f を R へ）→ T2 が赤（規則 B の戻しが R＞f にならない）。
+ M5 規則 C1 の危機の述語を外す（毎四半期評価）→ T6 が赤。
+ M6 H4 の G を |c| でなく c の和に → T5 が赤。
+ M7 姿勢の写しを外す → T7 が赤。
+ M8 凍結の額 Σ pb×f を地代 r で数える → T5 が赤。
+ M9 規則 B が規則 A の戻しの判定を使う → T2 が赤。
+ M10 受け口の呼び出し（LandbaseRgoRent の 1 行）を外す → T4・T5・T8 が赤。
+ 緑のまま残る突然変異があれば同じ線で試験を足して赤にする（★(790)）。出力は measurements/m970_20261108_mut/ にコミット。
+ソースを走査する番人の点検（㉘）：器のコミットの直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests に加え、SimCore を走査する CalendarTests・GoodIdGuardTests・TreasuryLedgerTests・FoodLedgerTests を回す（隔離ビルド）。
+ grep の結果（書いた時点）：`new MoneyStock(` の件数 64（SimCore 全体・この線で増えない）・route_anchors.tsv の鍵の行（触らない）・工業化度の読み手の許可表（触らない）・WriterRatchetTests の宣言の表（触らない）。
+ ㉑ 書き換える件数の予言：WriterRatchetTests の宣言の表 0 行・DormantIdentityTests 0 行・走査の許可表 0 行（新しいファイルが走査の対象に入って赤になったら、その番人の許可表に足す＝件数を報告に名乗る。その場合は予言の外）。
+テストの数：Category!=FullLength が 2454＋11＝2465・FullLength 3（--list-tests と突き合わせる）。
+
+== [4] 恒等の判定 ==
+素の 5 種（b5）・素の 10 種・計器つき 10 種（b10 ins）が m968 の成績表と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は --added-tables basisx のみ（宣言の無い違い 0）。
+`bash scripts/instruments/ident/ident.sh run c87bxz --tree <木> --added-tables basisx --tests-delta 11 --saveleak`（腕の枠が空いてから・走っている間はこの worktree にコミットしない＝㉙）。〈判定: 恒等〉と名乗れるのは測った種で一致のとき（〈証明〉と書かない）。
+
+== [5] 採否 ==
+〈判定: 恒等〉・フルスイート（Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる）・savetest・leakhunt が緑なら採る。一致しなければ、その変更を外して報告に回す。ident・probe の生は合流の判断まで残す（⑲）。
+
+== [6] 紙（ident の生で規則の候補を数える）＝数える前に固定する物 ==
+読み手 scripts/instruments/c87bx/bx_read.py（出力の書き先は引数）。入力は ident の生（D:/PoB_work/c87bx_work/ident の計器つき 10 種・計器の国の basisx_s）。
+- 数える物：国×種ごとに、規則 A・B・C1・C2・S の切り替えの回数（bxSwitch の最終行）と、向き別（P→F・F→P＝bxTarget の変化）の回数・危機の述語 bxCrisis1・bxCrisis2 の四半期の数。
+- 錨（r967read.py と同じ）：フランス P→F 1790・プロイセン P→F 1861・日本 P→F 1873・清 F→P 1941。
+- no-go の窓（数える前に固定）：錨の年の前後 5 年（±5 年）かつ開幕の 20 四半期の後（q≧20）の積集合。規則 k が錨の国 c で no-go とは、窓の中の c の錨の向きの切り替えが 10 種とも 0 回であること。窓が空の国（錨の年が範囲の外）は no-go と数えず〈窓なし〉と書く。結果を見た後に窓を替えない。
+- 往復の過多（上限の物差し）：窓の中の切り替えの回数が窓の四半期の数の半分以上＝過多。自己検査（紙の台本）：偽の規則〈毎四半期に反転〉は過多になり、偽の規則〈何もしない〉は no-go になること（どちらも bx_read.py の最初に確かめ、外れたら読み手を直す）。
+  下限の no-go は〈毎四半期に反転する規則〉を通す（窓の中で 1 回以上切り替わるため）＝下限の門だけでは足りない、と報告に名乗る。
+- 規則 S：近代化の姿勢が bxStance に出た四半期の数（姿勢の列が生に有るか＝有効な値〔-1 でない〕が 10 種で 1 件以上か）と、切り替えの回数。戻す側を置かない片方向であることを名乗る。
+- 全ての候補（A・B・C1・C2・S）が no-go か過多なら、結論は〈作者への問いの材料〉として書く（決めない）。規則の選びは A-2b-1 の事前登録で行う。
+- H4 の D・G・B：bxH4G*÷bxH4B の分布（国×四半期の中央・p95）と、bxMovedTo* ÷（LandTaxTop÷3）の比の分布を記録（門にしない）。
+- GX2 は正しい符号で書く（A-2b-1 の器の試験の Assert の向き）：比例へ戻す月の請求の動きは |Δφ|×(r − A÷φ*_旧)（インフレの下で比例へ戻すと請求が上がる）。(967) 下書きの本文は書き換えない。
+- H4b の WarmupFrozen の間は基準の一歩を回さない歯止めは A-2b-1 の段で扱う（この線は列だけ）。
+- 時点の約束（限界に名乗る）：行 q の A・B・C1・C2 は q の末の観測から q+1 の頭に置く目標。r967read.py は q の頭に q−1 の末の値を使う＝1 行ずれる。q=0 の頭の判定（助走の最後の値）は計器に無い。S は q の頭に選ばれた姿勢への応答。
+
+== [7] 記録の約束 ==
+作ったフォルダ：D:/PoB_work/c87bx_work・D:/PoB_work/c87bx_art・D:/PoB_work/wt_c87bx（worktree）・ident の作業フォルダ（ident.sh が決める）。push の後に ident の生と c87bx_work・c87bx_art を消す（keep_* と他のセッションの物には触れない）。
+腕の枠で待った時間・覗いた回数・前面の待ちの回数・hook に止められた回数・増えた行と減った行を報告に書く。実装ログと 00一覧は書かない（合流が書く）。
+開始時の確認：arms.sh free＝6・D: の空き 約 172GB・dotnet／testhost／python／VBCSCompiler（PID 21456 ほか）は別のセッションの物（消さない）。
