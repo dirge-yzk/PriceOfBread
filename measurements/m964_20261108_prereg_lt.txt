@@ -109,3 +109,10 @@
  - kp（OpeningColonyDominanceFull・MultiNationSim.cs:177）の植民地の支配度 1.0 と土地税の基数の重なり：土地税の徴収の漏れは支配度の区分（RuleDelivery）が担い、基数（Fiscal.LandTaxBase）は査定の量＝別の段の掛け算（査定×届く割合）＝二重計上ではない。kp で英の植民地の州が開幕から 1.0＝その州の凍結した基数の届く量が増える＝英の土地税の収入の新÷旧は kp を含む盤面（keep_961）と比べる（e2dea72d の M の lt_tab.txt と同じ盤面）。
 
 [13] 追記の欄（腕 B の前・結果を見る前に書く物はここへ）
+ 13-1（2026-11-08・腕 B の前）手順の記録：事前登録 c9b1e4fb → merge origin/main bbc55c0d（c668fca7・衝突は opening_bake.json だけ＝[8] の予言どおり）→ 注の直し 2d72b05a（Coefficients.cs:713・DormantIdentityTests.cs:140〔指示の :141 は grep で :140〕）→ merge c86oc 0fd88c7a（38ff52c1）。
+ 13-2 焼き直し（bake.sh・種 1・上限 200）：inputHash cf1f34b126ca5133（予言どおり）・本文は e2dea72d の表と sourceHash の 1 行の外でバイト一致（generated も同じ 2026-11-08）。焼いた物を置いた（e2dea72d のバイトは置かない）。
+ 13-3 `git diff --stat e2dea72d HEAD -- PriceOfBread.SimCore PriceOfBread.Runner`：Coefficients.cs 1 行（:713 の注）・opening_bake.json 1 行（sourceHash）だけ＝oc の merge の後も同じ＝[8] の予言〈腕 B と S11 の成績表は combo の b10_20261108_m961combo_ins・b10s11_20261108_m961combo_ins と全行一致（SOURCE-HASH を除く）・清の G8c 0.4368／0.5301〉を確定の予言とする。
+ 13-4 走査の番人（㉘・木 2d72b05a）：201 本のうち合格 198・赤 3＝WriterRatchetTests item 1（14485467＞宣言 14043298）・item 2（1632＜宣言 1862）・item 11（3731820＞宣言 2655980）＝[5] の予言の内（件数も e2dea72d と同じ）・GoodIdGuardTests・OpeningBakeTests・DormantIdentityTests は緑（measurements/m964_20261108/scan.txt）。
+ 13-5 腕 A（旗 0・flag0_964.py・木 2d72b05a・素の 5 種）：measurements/b5_20261108_m961 とバイト一致（179 行）・推定 212.5 秒（同じ）＝measurements/m964_20261108/armA.txt。
+ 13-6 oc の印 D:/PoB_work/c86oc_work/oc.mark＝`rc=0 sha=0fd88c7a… form=q pairs0=1418 pairsL=1418 series0=34 seriesL=34 nations0=2 nationsL=2 pre_fix_pairsL=13`（待たずに既にあった＝waitmark 0 回）。form＝q（4 四半期ごとに植民地格の支配度を 0.5 へ置く・期間を延ばさない）・pairsL 1418（lt を重ねた木の組・床 20）。0fd88c7a は SecessionLaborLawInstrumentTests.cs と m962 の事前登録だけ（TransportInstrumentTests.cs:91 は含まない）。--list-tests の件数は変えない見込み（[Fact] の数は同じ）。
+ 13-7 ㉜ の grep（木 2d72b05a）：`Assert.*LandRentPerMonth` は LandTaxFixedBasisTests（19 行・この線）・ColonialPopTests（2 行・不在地主の送金）・TaxTests.cs:125〜127（3 行・農奴制の貴族／農奴／自作農が地代を受け取るか＝受け取りの有無で基数ではない・(958) の 12-6 の列挙から漏れていた）＝率×地代を英・清の盤面に固定する Assert は 0。
