@@ -98,3 +98,9 @@
  - Territory.cs:341：移転で凍結を消す（T7・M8′）。計器の写しは (951) の LbDropLeft が月の締めで同じ集合を消す。
 
 [12] 追記の欄（腕 B の前・結果を見る前に書く物はここへ）
+ 12-1（2026-11-08・腕 B の前）手順の記録：逆適用 dba2576b → merge 1bab8ff4（git merge-tree で衝突 0・木 f9f8121c が merge の木と一致）。`git diff 1e5e5fd6 HEAD -- PriceOfBread.SimCore PriceOfBread.Runner` は Instruments.cs 20 行・InstrumentsInheritIntent.cs 1 行・InstrumentsU4.cs 26 行（c84ca の計器）だけ＝エンジンの行 0。InstrumentsTests.cs は main と同じ（差 0 行）。
+ 12-2 走査の番人（㉘・旗 0・merge の後）149 本緑（measurements/m958_20261108/scan.txt）。
+ 12-3 ident c85ltz（木 2a182ea8・SOURCE-HASH aea7bc07963dc8b7）〈判定: 恒等〉（測った種で一致）：素の 5 種 180 行・計器つき 10 種 181 行が m947 と全行一致・.cost 推定 209.5／210.2 秒が一致・計器の表 1149＝一致 1109＋既知の揺れ 40＋宣言 10（landfix_s）・宣言の無い違い 0・注視の表一致・NG 93（新 0・外れ 0）・テスト 2444＋3（予言どおり）・savetest OK・leakhunt 保存則違反なし。既知の揺れ 40 の内訳＝burscan_s:seconds 10・clock_s 10・cearn_s の経路の行番号だけ 10・flow_s の呼び出し位置だけ 10＝[8] の予言と一致。
+ 12-4 旗 0 で門が落ちること（2-3）：ident の生に gate958.py＝GATES FAIL G7,G4,G8a,G8b,G8c:イギリス,G8c:清（清の G8c 0.0000＝窓の外・measurements/m958_20261108/gate_flag0_ident.txt）。
+ 12-5 突然変異（旗 1 の使い捨ての木＝2a182ea8＋5b109157）：(945) の組 13 本とも予言の赤の試験を全て含んで赤（予言の欠け 0）・予言の外の赤は I4・I5（M1″〜M8′・M11）と T14（M2〜M5）＝写しの照合の試験が実装の誤りも拾う。(951) の組：M1＝I4・I5 赤・M2＝I2〜I5 赤・M3＝I5 赤＝予言どおり（measurements/m958_20261108/mut/）。
+ 12-6 ㉜ の grep（旗 1 の木）：`grep -nE "Assert.*LandRentPerMonth"` は LandTaxFixedBasisTests（この線の試験）と ColonialPopTests:104〜105（不在地主の送金の地代＝基数ではない）だけ。率×地代を英・清の盤面に固定する Assert は 0。
