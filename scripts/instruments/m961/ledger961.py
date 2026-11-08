@@ -12,7 +12,7 @@ def h010(c):
     assert c[2] == '昇格した植民地は支配度0から始まる', c[2]
     c[2] = '~~昇格した植民地は支配度0から始まる~~（2026-11-08 (961)）開幕の一括昇格（MultiNationSim.cs の PromoteAllColonies の呼び口の直後）は 1.0 から・途中の接収（Diplomacy.cs の AcquireColony→PromoteColonyToRegion）は 0 から'
     c[7] = H
-    c[9] = c[9] + '（2026-11-08 (957) c85kp：K の 1 回目を腕 B まで回した＝旗 OpeningColonyDominanceFull 既定 1・G1 1.0000〔旗 0 は 0.0595〕・G2 0〔上限 17・旗 0 は 45〕・G3 0.0257〔上限 0.05〕・止める線 0。(961) 合流で採った＝合わせた木 M の G1 1.0000・G2 0・G3 0.0250／S11 1.0000・0・0.0253・番人 OpeningColonyDominanceTests の T1・T3・T3′・T4・1.0 という値は AI の推奨・確証なし〈作者「全て推奨で」で推奨を採った〉）'
+    c[9] = c[9] + '（2026-11-08 (957) c85kp：K の 1 回目を腕 B まで回した＝旗 OpeningColonyDominanceFull 既定 1・G1 1.0000〔旗 0 は 0.0595〕・G2 0〔上限 17・旗 0 は 45〕・G3 0.0257〔上限 0.05〕・止める線 0。(961) 合流で採った＝lt を外した合わせた木 05983574 の M の G1 1.0000・G2 0・G3 0.0257／S11 1.0000・0・0.0253〔M・S11 の成績表は腕 B・S11 と全行一致〕・番人 OpeningColonyDominanceTests の T1・T3・T3′・T4・1.0 という値は AI の推奨・確証なし〈作者「全て推奨で」で推奨を採った〉）'
 def h011(c):
     c[9] = c[9] + '（2026-11-08 (956) c85hs：HeldSinceFromData・CoreHeldYears・ProvinceSpec の HeldSince・world.json の heldSince 29 行を消した〔コミット 82ff1811・ident c85hs〈判定: 恒等〉・(961) で main へ〕・消す前の 29 州の値は measurements/m946_20261107/table29.md・ダンツィヒ 1793 ほかのデータの食い違いはこの表で読む）'
     c[11] = '消した（2026-11-08 (956) c85hs・82ff1811・(961) で main へ・錨は Coefficients.cs の墓標の行）'
@@ -21,7 +21,7 @@ def h005(c):
     c[4] = 'Simulation.cs:936:RegionTier.Core'
     c[9] = c[9] + '（2026-11-08 (956)：CoreHeldYears を消した＝開幕の州は全て Core・支配度 1.0 の直書き〔Simulation.cs の BuildProvince〕・植民地格は PromoteColonyToRegion・錨を写し直した）'
 def h006(c):
-    c[9] = c[9] + '（2026-11-08 (958) c85lt：A-2〈定額の土地税〉を腕つきの 2 回目で回した＝旗 LandTaxFixedBasis 既定 1・腕 B の門 G7 20・G4 0・G8a 0・G8b 0・清の G8c 0.5097〔窓 0.2314〜1.2594〕・止める線 0。(961) 合流で採った＝合わせた木 M の清の G8c 0.4368・S11 0.5301・G7 20・G4・G8a・G8b 0）'
+    c[9] = c[9] + '（2026-11-08 (958) c85lt：A-2〈定額の土地税〉を腕つきの 2 回目で回した＝旗 LandTaxFixedBasis 既定 1・腕 B の門 G7 20・G4 0・G8a 0・G8b 0・清の G8c 0.5097〔窓 0.2314〜1.2594〕・止める線 0。(961) 合流は外した＝kp と重ねた木の M・S11 でも門は全て通った〔清の G8c 0.4368・0.5301・G7 20・G4・G8a・G8b 0〕が、フルスイートで SecessionLaborLawInstrumentTests.cs:87 が赤〔組 13〕＝lt を抜くと緑＝〈後から入れた側を外す〉・枝 origin/c85lt に残す＝この行の挙動は変わらない）'
 def s1617(c):
     assert c[10] == '—', c[10]
     c[10] = '(959) c85mw MilitaryWarMult を接触の割合から導く案 A（2 回目）は腕の前の旗 1 のフルスイートで予言の外の赤 3 件〔WriterRatchetTests の 2 行・TransportInstrumentTests.cs:91〕と旧の規則を字で固定した番人 7 件で止めた（★(912)・3 回の規則に数えない・枝 origin/c85mw・(961) は採っていない＝この行の挙動は変わらない）'
