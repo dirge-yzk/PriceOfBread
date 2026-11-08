@@ -1089,7 +1089,7 @@ public sealed class Region
     public Terrain Terrain;                           // ★地形タグ（(3)・2026-08-28）。既定 Plain。出所＝places.json の terrain 列（構築時に1回引く）。係数全1.0の間は読み手がいても恒等
     public bool Malarial;                             // ★マラリア地（同上）。旧 Colony.Malarial の移設先。植民地維持費（Colonial.AccumUpkeep）がキニーネ需要に読む
     // 【墓標2026-09-26】HeldSince（州の保有開始年）＝回1-1で削除（思想⑩・外部レビューの検討 §10-10［植民地8］）。書き手（構築と植民地の州化）だけで読み手が無かった。
-    //   保有開始年の一次データは world.json の heldSince（ProvinceSpec.HeldSince）＝構築時に格と支配度の初期値へ1回だけ使う。移転の付け直しは Territory.Rehome（割譲は支配度を動かさない・独立の確定で1）。
+    //   （2026-11-08 (956)）heldSince のデータも削除＝構築時の格は Core・支配度は 1.0 の直書き。移転の付け直しは Territory.Rehome（割譲は支配度を動かさない・独立の確定で1）。
     public double Dominance = 1.0;                    // ★E-06 支配度（ストック・0..1・2026-09-05）：Politics.CheckSecession が毎四半期 (引き留め−離脱圧力)×DominanceSpeed で積分。初期値＝保有年数÷DominanceMatureYears。DominanceIsStock>0 のとき 0 で独立
     // ★支配度の一般化（作者採用2026-09-06・段1＝器と観測のみ）：州の4区分（0=国家・1=在地権力・2=外国・3=無統治・合計1・保存対象）。
     //   初期値＝州データ（ProvinceSpec.Rule）→ 国既定（NationConfig.Rule）→ 無ければ 国家1.0（現行と同じ挙動）。(399) で点火：Politics.CheckSecession が毎四半期 DominanceSpeed で目標へ寄せる。

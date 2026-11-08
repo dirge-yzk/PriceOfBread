@@ -100,7 +100,6 @@ public class DormantIdentityTests
         "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
         // ★ColonyPlantationRent（実バグ B5＝植民地格の昇格州に大農園の地代）は 2026-10-02 (173) で**点火**（R1＋c6・旗ごと削除）＝この表から外した。
-        "HeldSinceFromData",            // 実バグ B14＝world.json の heldSince を読む（0＝全州 Core・支配度1）
         // ★CivilWarPredicateUnified は 2026-09-08 に 1.0 で**点火**（F3b蜂起doc §5 段3・作者裁定②）＝この表から外した。
         "RevoltIgnitionIntensity",      // F3b蜂起doc 段4＝点火の付け替え（門1＝FactionStrength÷f.Size の示強量）。0で旧2門（力の門＋好機/圧倒）＝厳密恒等
         "RevoltGrievanceWeight",        // F3b蜂起doc 段4＝門2の怨嗟の重み（min(1, FactionRejectionMutation×Rejections)）。0で加算項が消える
@@ -238,6 +237,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "HeldSinceFromData",          // (956) 線 c85hs：B14＝world.json の heldSince を読む旗〔既定0〕。heldSince のデータと CoreHeldYears〔150〕とあわせて削除（全州 Core・支配度1.0 の経路だけ残した）
         "WageClampIndScale",          // (605) 線 ind4：賃金の天井の工業化度の項〔R2 点火 1.0・(495) で IndustrializationOff が 0 を掛けていた〕。項ごと削除（天井そのものの WageClampMax は残る）
         "MonopolyDissolveInd",        // (605) 同：独占が解体する工業化度〔0.3〕。解体は独占禁止法の係数 MonopolyRentFactor に任せる
         "RefrigerationIndOnset",      // (605) 同：冷蔵の立ち上がりの工業化度〔1.0〕。冷蔵の門は発見の行

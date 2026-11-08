@@ -129,7 +129,7 @@ public static class Privileges
             }
             w.PrivilegeLastActive[k] = active;
             // ★初期化（最初の月）：1783年に活きている特権は**既に世代長ぶん既得権化している**（旧体制は何世紀も前から）＝保有年数を DominanceMatureYears から始める。
-            //   活きていない特権は0から。（HeldSince=0＝中核=1.0 の Dominance と同じ作法）。未初期化の印＝負値。
+            //   活きていない特権は0から。（開幕の全州＝中核=1.0 の Dominance と同じ作法）。未初期化の印＝負値。
             if (w.PrivilegeHeldYears[k] < 0) w.PrivilegeHeldYears[k] = active ? c.DominanceMatureYears : 0;
             w.PrivilegeHeldYears[k] = active ? w.PrivilegeHeldYears[k] + dt : System.Math.Max(0, w.PrivilegeHeldYears[k] - dt);
             w.PrivilegeTakeMonth[k] = 0;
