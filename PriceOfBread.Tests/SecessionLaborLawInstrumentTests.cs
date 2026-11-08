@@ -49,7 +49,15 @@ public class SecessionLaborLawInstrumentTests
     [Fact]
     public void 州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う()
     {
-        var (dir, sim) = Run(60);   // 60 四半期＝開幕の植民地の支配度が 0 でも 1.0 でも、内側の組が 20 を超える（旗 1 で 31・★(955)）
+        // ★(962) 盤面を置く：4 四半期ごと（q%4==1・最後の q=59 は置かない）に植民地格の州の支配度を 0.5 へ戻す＝どの木でも内側の組が続く（期間を延ばさない・開幕の支配度や別の線の点火で外側へ張り付く木でも組が 20 を割らない）。
+        //   行 q は StepQuarter の中で組まれる（Instruments.Quarter が書く前）＝置く前の値。よって後の行が q+1 の組は式が成り立たない＝除く。
+        var reset = new HashSet<int>();
+        var (dir, sim) = Run(60, (s, q) =>
+        {
+            if (q % 4 != 1 || q == 59) return;
+            reset.Add(q);
+            foreach (var n in s.Nations) foreach (var rg in n.World.Regions) if (rg.Tier == RegionTier.Colonial) rg.Dominance = 0.5;
+        });
         try
         {
             var (h, rows) = Table(System.IO.Path.Combine(dir, "secession_s1789.tsv"));
@@ -71,20 +79,22 @@ public class SecessionLaborLawInstrumentTests
             // 連続する 2 四半期（同じ国・同じ州）：支配度の増分＝次の行の marginIndex × DominanceSpeed（クランプにかからない範囲）。本体が書いた r.Dominance の差との突き合わせ。
             var byKey = rows.GroupBy(r => (Nation: r[Array.IndexOf(h, "nation")], Region: r[Array.IndexOf(h, "region")]))
                             .ToDictionary(g => g.Key, g => g.OrderBy(r => Col(h, r, "quarter")).ToList());
-            int checkedPairs = 0;
+            int checkedPairs = 0; var pairSeries = new HashSet<(string Nation, string Region)>();
             foreach (var kv in byKey)
             {
                 var list = kv.Value;
                 for (int i = 1; i < list.Count; i++)
                 {
                     if (Col(h, list[i], "quarter") != Col(h, list[i - 1], "quarter") + 1) continue;
+                    if (reset.Contains((int)Col(h, list[i], "quarter") - 1)) continue;   // ★(962) 置いた四半期をまたぐ組は除く
                     double d0 = Col(h, list[i - 1], "dominanceShare"), d1 = Col(h, list[i], "dominanceShare");
                     if (!(d0 > 1e-6 && d0 < 1 - 1e-6 && d1 > 1e-6 && d1 < 1 - 1e-6)) continue;   // クランプにかかった四半期は式が成り立たない
                     Near(d0 + Col(h, list[i], "marginIndex") * speed, d1, 1e-9, $"{kv.Key} 支配度の増分");
-                    checkedPairs++;
+                    checkedPairs++; pairSeries.Add(kv.Key);
                 }
             }
             Assert.True(checkedPairs >= 20, $"支配度の増分を突き合わせた組が少ない {checkedPairs}（対照）");
+            Assert.True(pairSeries.Count >= 5 && pairSeries.Select(s => s.Nation).Distinct().Count() >= 2, $"組を持つ系列が少ない {pairSeries.Count} 本・{pairSeries.Select(s => s.Nation).Distinct().Count()} 国（1 州の 1 系列に頼る対照）");
             // 最後の四半期の行：世界の Region.Dominance／TariffInterest（CheckSecession が最後に書いた値）と一致
             var last = rows.Where(r => Col(h, r, "quarter") == 59).ToList();
             Assert.NotEmpty(last);
