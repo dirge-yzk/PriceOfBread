@@ -144,6 +144,7 @@ public class DormantIdentityTests
         // ★OpeningColonyDominanceFull（(952) c84kp 開幕の一括昇格の植民地の支配度を 1.0 から）は 2026-11-08 に 1 で**点火**＝この表から外した（番人 OpeningColonyDominanceTests）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         "EmptyPopDebtToHeirs",          // (936) c82hd 案 B1 人の居ない POP の債務を相続人へ移す旗（0＝今の形・番人 EmptyPopDebtToHeirsTests）。点火時にこの表から外す
+        "BillGateReadsHeirDebt",        // (971) c87hd 案 (c1) 手形の門が相続人の債務も読む旗（0＝今の門・番人 BillGateHeirDebtTests）。点火時にこの表から外す
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
     ];

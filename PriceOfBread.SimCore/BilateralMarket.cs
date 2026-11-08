@@ -577,7 +577,7 @@ public sealed partial class InternationalMarket
             var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
                 if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) { double debt0 = p2.Debt.Value; Bank.Lend(w2, p2, -back); if (ins2) Instruments.CearnBillSettle(r2, p2, debt0 - p2.Debt.Value); } }   // ①手形の決済（否定形の門＝NaN は返さない）
-            if (r2.MerchantPop is { } merchPay && !(c.ImportPayerLive > 0 && !(merchPay.Size > 1e-12))) { payerOf[t2] = [merchPay]; bill[t2] = !(merchPay.Debt.Value > 0); }   // ★(863) 旗 ImportPayerLive＞0：人の居ない商人（人数 ≦1e-12）は払い手にしない＝下の枝へ
+            if (r2.MerchantPop is { } merchPay && !(c.ImportPayerLive > 0 && !(merchPay.Size > 1e-12))) { payerOf[t2] = [merchPay]; double heirDebt = 0; if (c.BillGateReadsHeirDebt > 0) foreach (var p3 in r2.Pops) if (p3.Size > 1e-12) heirDebt += p3.Debt.Value; bill[t2] = !(merchPay.Debt.Value > 0) && !(heirDebt > 1e-9); }   // ★(863) 旗 ImportPayerLive＞0：人の居ない商人（人数 ≦1e-12）は払い手にしない＝下の枝へ。★(971) 旗 BillGateReadsHeirDebt＞0：決済 ① の後の同じ州の人の居る POP の債務の和 ＞1e-9（塵は門にしない）なら手形なし（規則 ② を相続人へ・旗 0 は heirDebt＝0＝今の門）
             else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) || r2.Pops.TrueForAll(p => p.Size > 1e-12) ? r2.Pops : r2.Pops.Exists(p => p.Size > 1e-12) ? r2.Pops.FindAll(p => p.Size > 1e-12) : null;   // ★(863) 旗＞0：人数 ＞1e-12 の POP だけ（全員なら Pops そのもの・0 人なら null＝輸入しない・手形なし）
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
             if (bill[t2]) budget[t2] = double.PositiveInfinity; if (ins2) Instruments.CearnImportHead(r2);   // ③積荷が担保（量は X が決める）・(863) 計器：清算の頭の州だけを渡す（払い手・予算は渡さない）
