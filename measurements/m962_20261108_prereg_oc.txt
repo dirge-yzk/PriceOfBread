@@ -14,3 +14,5 @@
 [4] 門（両側）：直す前＝wtL で :87 赤（組 13）・wtM で :91 赤（確認済み 2026-11-08）。直した後＝:87 が wt0 と wtL で緑・:91 が wt0 と wtM で緑。テストの合計は 2431 のまま。
     wtL＝bbc55c0d＋origin/c85lt（opening_bake.json は ours）・wtM＝bbc55c0d＋ff1bf106。
 [5] 点検（★(954)）：Tests の〈組が少ない〉型の Assert を grep。軌道の起点に依るのはこの 2 本。ForceReadGuardTests.cs:27 は開幕の盤面の 8 国の組で軌道に依らない＝記録のみ。他の >50 型（Discontent*・InstrumentsTests）は母集合が大きく記録。
+[6] 結果を見る前の補正（実行前・2026-11-08）：(a) の置く対象を〈全国・全州〉から〈Tier==Colonial の州だけ〉へ狭める（本国格は m955 の probe で組が 0＝置いても得ない・分離の発火を避ける）。値 0.5・周期 q%4==1・最終の q=59 は置かない・床（組20・系列5・国2）は変えない。
+    行の書き順の確認：secession の行は StepQuarter の中の CheckSecession（Politics.cs:1550・Dominance は積分の後）で組まれ、Instruments.Quarter（afterStep の後）で書かれる＝行 q の dominanceShare は置く前の値。よって除く組は〈後の行が q+1〉。
