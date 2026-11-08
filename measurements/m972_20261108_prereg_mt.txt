@@ -72,3 +72,10 @@
  - 試験：PriceOfBread.Tests/MoTrendInitTests.cs（新）だけ。ot の試験ファイルとは重ねない。
 
 [9] 手順：この事前登録 → 器（旗 0・計器・試験・休眠表）→ 走査の番人 → ident.sh run c87mtz（--added-tables pinit --tests-delta 5）→ 突然変異（使い捨ての木・出力 measurements/m972_20261108/mut/）→ origin/c87ot の印の頭を merge → 旗 1 のコミット → 計器の試験の束 → フルスイート（Category!=FullLength と =FullLength を分けて・--list-tests と突き合わせ）・savetest・leakhunt → 腕 B（INS=1・10 種・種 1〜10）→ S11（POB_CEARN=0・種 11〜20）→ 読み（rawcmp・stoplines949・an_h2 -v4・gdp_zero10・ng.sh・nullgate・.cost・1000 倍）→ push。形の変え直しは 1 回だけ。腕の生は合流の判断まで消さない。
+
+[追記 1・2026-11-08・結果の後の変更（旗 1 の計器の試験の束の後）]
+ - 予言の外れ：[5]〈旗 1 で赤になる試験の予言：0 本〉と [1] T4〈旗の列は既定の 0〉は旗 1 の木で外れた。束（~Instrument・MoTrendInitTests・DormantIdentityTests）189 本のうち赤 1 本＝MoTrendInitTests の T4（Expected "0"・Actual "1"・measurements/m972_20261108/tins_flag1_before_fix.txt）。エンジンは正しい（列の値＝係数の値 1）。
+ - 区分：README ★(743) の ①〜④ のどれにも当たらない＝区分なし。この線で新しく作った試験の期待値の書き損じ（試験の名は〈旗の列は係数の値〉なのに、本文が既定の値の字 "0" を写した）。
+ - 直す形：期待値を、各国の World.Coef.MoTrendInitNeedsGdp（Instruments.Close の前に国ごとに読む）と比べる形へ。旧の盤面への番人の固定ではない理由＝試験の中で旗を 0 に置かない・盤面の今の係数を読む＝既定がどちらでも同じ試験。字の "0" より強い（国ごとの値と数で比べる）。機構の向き・大きさ・判定の門（T1・T0・T3）には触らない。対照の件数の Assert（init の行の数 ≧ 趨勢の置かれた国の数）を足す。
+ - 確かめ：旗 1 の木と旗 0 の木（0930ae92 に直した試験を写した使い捨ての木）の両方で MoTrendInitTests が緑・直しを外す（字の "0" に戻す）と旗 1 で赤（上の記録）。その後、ot の merge の後にフルスイートからやり直す。
+ - 報告の先頭に〈㊴・★(743) から外れた直し〉として名乗る。
