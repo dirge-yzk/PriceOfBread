@@ -1,0 +1,5 @@
+== base_ins
+== n1
+6	共和制イベリア	q0=256	zeros=4	popK=3003	len=4
+== n2
+== a11
