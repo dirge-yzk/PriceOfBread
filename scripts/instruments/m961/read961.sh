@@ -6,7 +6,7 @@
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 T=D:/PoB_work/wt_m961; cd $T || exit 9; S=scripts/instruments
 TAG=${1:?タグ}; O=${2:?out}; B=${3:?成績表}; SB=${4:-1}; NN=${5:-}
-R=D:/PoB_work/m961_work/read/$TAG; mkdir -p $R; I=$O/ins; K=D:/PoB_work/keep_947
+W961=${M961W:-D:/PoB_work/m961_work}; R=$W961/read/$TAG; mkdir -p $R; I=$O/ins; K=D:/PoB_work/keep_947
 if [ "$SB" = 11 ]; then BASE=$K/a11; else BASE=D:/PoB_work/keep_954/base_ins; fi
 if [ "$SB" = 1 ]; then
   python -X utf8 -I $S/c84kp/paper952.py arm=$I base=$K/base_ins n1=$K/n1 n2=$K/n2 > $R/kp_gates.txt 2>&1; echo "kp rc=$?"
@@ -24,10 +24,10 @@ fi
 bash $S/c78gz/stoplines906.sh $I $R/stop906.txt $SB > $R/stop906.log 2>&1; echo "stop906 rc=$?"
 RULE=pair NULLS="measurements/m947_20261108/null/stop906_n1.txt measurements/m947_20261108/null/stop906_n2.txt" bash $S/c84gz/stoplines949.sh $I $R/stop949_m947nulls.txt $SB > $R/stop949_m947nulls.log 2>&1; echo "stop949 rc=$?"
 if [ "$NN" = newnulls ]; then
-  RULE=pair NULLS="D:/PoB_work/m961_work/read/n1/stop906.txt D:/PoB_work/m961_work/read/n2/stop906.txt" bash $S/c84gz/stoplines949.sh $I $R/stop949_newnulls.txt $SB > $R/stop949_newnulls.log 2>&1; echo "stop949new rc=$?"
+  RULE=pair NULLS="$W961/read/n1/stop906.txt $W961/read/n2/stop906.txt" bash $S/c84gz/stoplines949.sh $I $R/stop949_newnulls.txt $SB > $R/stop949_newnulls.log 2>&1; echo "stop949new rc=$?"
 fi
 python -X utf8 $S/hol/an_h2.py $I -v4 > $R/hol_v4.txt 2>&1; echo "hol rc=$?"
 python -X utf8 -I $S/m808/gdp_zero10.py arm=$I base=$BASE > $R/gdp_zero10.txt 2>&1; echo "gdpz rc=$?"
 python -X utf8 -I $S/tools/keepsum.py $I $R/keepsum.tsv > $R/keepsum.log 2>&1; echo "keepsum rc=$?"
-if [ "$SB" = 1 ]; then bash $S/ng.sh $I $TAG D:/PoB_work/m961_work/ng_$TAG rd:measurements/ng947_20261108:m947 > $R/ng.txt 2>&1; echo "ng rc=$?"; fi
+if [ "$SB" = 1 ]; then bash $S/ng.sh $I $TAG $W961/ng_$TAG rd:measurements/ng947_20261108:m947 > $R/ng.txt 2>&1; echo "ng rc=$?"; fi
 echo READDONE

@@ -6,7 +6,7 @@
 #   bash arm873.sh <腕> <INS 0|1> <種の数> <種の起点> <CEARN 0|1> <POB_COEF か -> <コミット>
 #   腕の成否は batch.sh の終了コード（0＝完走・2＝計器の国が空・3＝ARMFULL・4＝BATCHFAIL）と成績表の有無の両方で読む。
 S=D:/PoB_work/wt_m961/scripts/instruments
-export POB_WORK=D:/PoB_work/m961_work POB_REPO=D:/PoB_work/wt_m961
+export POB_WORK=${M961W:-D:/PoB_work/m961_work} POB_REPO=D:/PoB_work/wt_m961
 export POB_INSTRUMENTS_NATIONS="清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ"
 ARM=$1; INSF=$2; N=$3; SB=$4; CE=$5; COEF=$6; H=$7
 [ "$CE" = 0 ] && export POB_CEARN=0
