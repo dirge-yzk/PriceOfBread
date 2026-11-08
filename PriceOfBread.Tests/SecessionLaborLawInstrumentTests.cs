@@ -49,7 +49,7 @@ public class SecessionLaborLawInstrumentTests
     [Fact]
     public void 州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う()
     {
-        var (dir, sim) = Run(36);
+        var (dir, sim) = Run(60);   // 60 四半期＝開幕の植民地の支配度が 0 でも 1.0 でも、内側の組が 20 を超える（旗 1 で 31・★(955)）
         try
         {
             var (h, rows) = Table(System.IO.Path.Combine(dir, "secession_s1789.tsv"));
@@ -86,7 +86,7 @@ public class SecessionLaborLawInstrumentTests
             }
             Assert.True(checkedPairs >= 20, $"支配度の増分を突き合わせた組が少ない {checkedPairs}（対照）");
             // 最後の四半期の行：世界の Region.Dominance／TariffInterest（CheckSecession が最後に書いた値）と一致
-            var last = rows.Where(r => Col(h, r, "quarter") == 35).ToList();
+            var last = rows.Where(r => Col(h, r, "quarter") == 59).ToList();
             Assert.NotEmpty(last);
             int matched = 0;
             foreach (var n in sim.Nations)

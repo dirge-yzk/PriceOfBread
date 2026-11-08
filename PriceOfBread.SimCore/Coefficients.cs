@@ -2755,6 +2755,7 @@ public sealed class Coefficients
     public double DominanceSpeed = 0.025;            //   四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
     public double RuleOrderByRegion = 1.0;           // ★(850) c69po 州ごとの治安 P1-1 の旗（既定 1＝(873) で採用・無統治の目標は州の秩序 Clamp01(R×m̄÷m_r)・R は Coercion の切る前の被覆／0＝国の秩序 Clamp01(w.PublicOrder)＝旧の式・Politics.CheckSecession・番人 RuleOrderP1Tests）
     public double DominanceMatureYears = 30.0;       //   初期値＝保有年数÷これ（世代長＝同化の物差し）。開幕の全州（中核）＝1.0
+    public double OpeningColonyDominanceFull = 1.0;  // ★(952) c84kp 旗（既定 1＝2026-11-08 点火）：開幕の一括昇格（MultiNationSim.PromoteAllColonies）の植民地格の州の支配度を本国の州と同じ 1.0 から（初期条件＝Privileges.cs:131 と同じ作法）／0＝0 から（Simulation.cs:1604）。接収（Diplomacy.cs:2269）は常に 0。番人 OpeningColonyDominanceTests
     // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md）：州の4区分（国家・在地・外国・無統治）を
     //   DominanceSpeed で目標へ寄せる。(399) で点火（旗 RuleSharesEnabled・RuleSharesReach・RuleSharesTaxBase・RuleLocalFromRights・RuleUngovFromReach・ColonyRuleFromData・TaxLeakByRule・LawReachByRule は物理削除＝常時）：
     //   目標＝国家〔残り〕／在地〔開幕のデータ×仲介者の権利の残高 Privileges.IntermediaryDegree〕／外国〔講和で積まれた持分の合計〕／無統治〔(1−治安)×(1−到達)〕。

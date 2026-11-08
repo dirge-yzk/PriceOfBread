@@ -171,7 +171,10 @@ public sealed class MultiNationSim
                 // ⚠PromotedColonies には数えない＝これは**初期条件**であってプレイ中の昇格ではない。
                 //   数えると保存検査（Validation「植民地の保存」＝残り＋独立＋昇格＝初期）が二重計上で落ちる
                 //   （実測 37+0+42=79 vs 初期43）。初期の総数はこの直後に Colonies から取り直される。
-                Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
+                var reg = Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
+                // ★(952) 初期条件＝Privileges.cs:131 と同じ作法（1783 年に既に支配している植民地は、本国の州と同じ 1.0 から数える）。
+                //   途中の接収（Diplomacy.cs:2269）は 0 のまま＝実際に取った年から。Tier・Rule・RuleInit は変えない（Rule[0] と二重に数えない）。
+                if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;
             }
         }
     }
