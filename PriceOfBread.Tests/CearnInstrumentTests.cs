@@ -248,6 +248,7 @@ public class CearnInstrumentTests
             var cearn = Rows(System.IO.Path.Combine(dir, "cearn_s1789.tsv"));
             var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1789.tsv"));
             Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+            Assert.True(want.Keys.Select(k => k.Nation).Distinct().Count() >= 2, "対照：植民地格の州を持つ国が 1 国以下＝州の出入りの持ち越しを 1 国でしか見ていない");   // (976) B13
             Assert.True(grp.Count > 0, "群の行が無い＝計器が働いていない");
             var byRegion = cearn.ToDictionary(r => (r["quarter"], r["nation"], r["region"]));
             var colonial = cearn.Where(r => r["tier"] == "Colonial" && D(r, "popK") > 0).Select(r => (r["quarter"], r["nation"], r["region"])).ToHashSet();
@@ -436,6 +437,7 @@ public class CearnInstrumentTests
             var grp = GRows(System.IO.Path.Combine(dir, "cgrp_s1789.tsv"));
             var pop = PRows(System.IO.Path.Combine(dir, "cpop_s1789.tsv"));
             Assert.True(want.Count > 0, "前提が崩れた：英仏に植民地格の州が無い");
+            Assert.True(want.Keys.Select(k => k.Nation).Distinct().Count() >= 2, "対照：植民地格の州を持つ国が 1 国以下＝州の出入りの持ち越しを 1 国でしか見ていない");   // (976) B13
             Assert.True(pop.Count > 0, "POP の行が無い＝計器が働いていない");
             Assert.Contains(pop, r => D(r, "popK") == 0);   // 前提：人数 0 の POP（器）がある＝P2 を拾える
             var gKey = grp.ToDictionary(r => (r["quarter"], r["nation"], r["region"], r["group"]));
@@ -587,15 +589,16 @@ public class CearnInstrumentTests
             var rows = Rows(System.IO.Path.Combine(dir, "cearn_s1798.tsv"));
             Assert.NotEmpty(rows);
             Assert.True(atWarm.Any(kv => Math.Abs(kv.Value - init[kv.Key]) > 1e-9 * Math.Max(1, Math.Abs(kv.Value))), "前提が崩れた：最初の 1 四半期で在庫が動いた州が無い");
-            int checkedRows = 0;
+            int checkedRows = 0; var checkedNations = new HashSet<string>();   // (976)
             foreach (var r in rows)
             {
                 if (D(r, "lateRegisteredPops") > 0) continue;
                 double want = atWarm[(r["nation"], r["region"])];
                 Assert.True(Math.Abs(D(r, "savingsStart") - want) <= 1e-9 * Math.Max(1, Math.Abs(want)), $"始まりの在庫が warm の時点の在庫と違う {r["nation"]} {r["region"]}：{D(r, "savingsStart")} ≠ {want}");
-                checkedRows++;
+                checkedRows++; checkedNations.Add(r["nation"]);
             }
             Assert.True(checkedRows > 0);
+            Assert.True(checkedNations.Count >= 2, $"対照：始まりの在庫を突き合わせた国が 1 国以下（{checkedNations.Count}）");   // (976) 国の数
             Assert.True(checkedRows >= atWarm.Count / 2, $"対照：始まりの在庫を突き合わせた行が少ない（{checkedRows}／warm の州 {atWarm.Count}）");   // (969) 対照の件数
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
