@@ -34,7 +34,8 @@ public static partial class Instruments
         + "\timportBudgetExcessMaxPerClearingSub\timportPaidPayerSizeLe1e12PerQuarter\timportPaidPayerSizeMidPerQuarter\timportPaidPayerSizeGt1e9PerQuarter"   // (874) 末尾 4 列＝超過の最大（補助は TreasuryCat.Subsidy だけ足す）・払った額を払いの時点の払い手の人数（≦1e-12／1e-12 超〜1e-9／1e-9 超）で分けた和
         + "\timportBudgetExcessMaxPerClearingSubLive"   // (880) 末尾 1 列＝Sub と同じ超過の最大を、人数 ≦1e-12 の払い手の 0 でない払いが無かった清算だけで畳む（旗 0 の人の居ない商人の手形の清算を外す）
         + "\tmerchantDebt\testateDebtSettledPerQuarter"   // (910) 末尾 2 列＝四半期の末の商人の POP の債務（添字なし＝NaN）・相続の前の返しの段で貯蓄から世界の外へ移った額（台帳・旗を読まない）
-        + "\tbillBlockedClearings\tbillBlockedDustClearings\temptyDebtAfterEstate\testateDebtMovedPerQuarter\theirDebtSettledPerQuarter";   // (920) 末尾 5 列＝手形を振り出せなかった清算の数・その中の塵・相続の段の直後の人の居ない債務者の数・相続の段で返し以外で債務が移った額・人の居る非商人 POP が決済 ① で返した額
+        + "\tbillBlockedClearings\tbillBlockedDustClearings\temptyDebtAfterEstate\testateDebtMovedPerQuarter\theirDebtSettledPerQuarter"   // (920) 末尾 5 列＝手形を振り出せなかった清算の数・その中の塵・相続の段の直後の人の居ない債務者の数・相続の段で返し以外で債務が移った額・人の居る非商人 POP が決済 ① で返した額
+        + "\theirDebtAfterSettleSum\tbillWithHeirDebtClearings";   // (963) 末尾 2 列＝清算の頭（決済 ① の直後）の人数 ＞1e-12 の POP の債務の和（清算ごとに足す）・手形を振り出した清算のうち和 ＞1e-9 の数（旗を読まない・読むだけ）
 
     /// <summary>台帳の列（流入 7・流出 9）。<see cref="CearnColumn"/> の返り値。</summary>
     internal enum CearnCol : sbyte
@@ -57,11 +58,12 @@ public static partial class Instruments
         public double ImpHeadStockSub = double.NaN, ImpExMaxSub = double.NegativeInfinity; public readonly double[] ImpPaidBand = new double[3];   // (874) 補助を Subsidy だけに絞った頭の在庫と超過の最大・払った額の人数の帯別の和
         public int BillBlocked, BillBlockedDust, EmptyDebtAfter;   // (920) 手形を振り出せなかった清算の数・その中の塵（0＜債務≦1e-12）・相続の段の直後に人数 ≦1e-12 で債務 ≠0 の POP の数（月ごとの和）
         public double EstDebtMoved, HeirDebtSettled, EstDebtBeforeSnap, EstSettledSnap;   // (920) 相続の段で人の居ない POP の債務が返し以外で減った額・人の居る非商人 POP が決済 ① で返した額・相続の段の頭の断面（人の居ない POP の債務の和・返した額の累計）
+        public double HeirDebtAfterSettleSum; public int BillWithHeirDebtClearings;   // (963) 清算の頭の人の居る POP の債務の和（清算ごとに足す）・手形を振り出した清算のうち和 ＞1e-9 の数
         public double EstDebtSettled;   // (910) 相続の前の返しの段で移った額（四半期の和）
         public double ImpExMaxSubLive = double.NegativeInfinity; public bool ImpClrDead;   // (880) 人数 ≦1e-12 の払い手の払いが無かった清算だけの超過の最大・今の清算に人数 ≦1e-12 の払い手の 0 でない払いがあったか
         public readonly Dictionary<(string File, int Line, SavKind Kind, char Cp), double> Out = new(), In = new();
         public readonly CgAcc[] G = [new(), new(), new(), new()];   // (829) 階級の群の台帳（群の番号＝CgGroupOf）
-        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; ImpKind = 0; ImpBudget = ImpPaid = ImpCross = 0; ImpOldBudget = 0; ImpExMax = double.NegativeInfinity; ImpHeadStock = double.NaN; ImpPaidClr = 0; ImpHeadOn = false; ImpHeadStockSub = double.NaN; ImpExMaxSub = double.NegativeInfinity; System.Array.Clear(ImpPaidBand); ImpExMaxSubLive = double.NegativeInfinity; ImpClrDead = false; EstDebtSettled = 0; BillBlocked = BillBlockedDust = EmptyDebtAfter = 0; EstDebtMoved = HeirDebtSettled = 0; }
+        public void Clear() { System.Array.Clear(Flow); Late = 0; StateSpend = 0; StateTake = 0; Out.Clear(); In.Clear(); EstDue = EstNoHeir = EstMoved = EstIn = EstOutLive = EstInEmpty = EstSpread = 0; EstMin = double.PositiveInfinity; EstMax = double.NegativeInfinity; ImpKind = 0; ImpBudget = ImpPaid = ImpCross = 0; ImpOldBudget = 0; ImpExMax = double.NegativeInfinity; ImpHeadStock = double.NaN; ImpPaidClr = 0; ImpHeadOn = false; ImpHeadStockSub = double.NaN; ImpExMaxSub = double.NegativeInfinity; System.Array.Clear(ImpPaidBand); ImpExMaxSubLive = double.NegativeInfinity; ImpClrDead = false; EstDebtSettled = 0; BillBlocked = BillBlockedDust = EmptyDebtAfter = 0; EstDebtMoved = HeirDebtSettled = 0; HeirDebtAfterSettleSum = 0; BillWithHeirDebtClearings = 0; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, CearnAcc> CearnAccs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, CearnAcc> CearnPopAcc = new();
@@ -222,6 +224,9 @@ public static partial class Instruments
         if (m is not null) ob = m.Debt.Value > 0 ? System.Math.Max(0, m.Savings.Value) : double.PositiveInfinity;
         else foreach (var p in r.Pops) ob += System.Math.Max(0, p.Savings.Value);
         a.ImpBudget += b; a.ImpOldBudget += ob;
+        double heirDebt = 0; foreach (var p in r.Pops) if (p.Size > 1e-12) heirDebt += p.Debt.Value;   // (963) 決済 ① の直後の実際の残高（清算の頭は ① と同じ繰り返しの中・間に債務を動かす処理が無い）
+        a.HeirDebtAfterSettleSum += heirDebt;
+        if (m is not null && !(m.Debt.Value > 0) && heirDebt > 1e-9) a.BillWithHeirDebtClearings++;   // (963) 手形を振り出した（BillBlocked の否定・旗を読まない＝ImportPayerLive 1 で人の居ない商人は手形を振り出さない清算も数える限界）
         if (m is not null && m.Debt.Value > 0) { a.BillBlocked++; if (!(m.Debt.Value > 1e-12)) a.BillBlockedDust++; }   // (920) 手形を振り出せない（決済の後も商人の債務が正＝:580 の門が偽・旗を読まない）清算の頭・その中の塵
         CearnImportFoldInto(a);
         a.ImpHeadOn = true; a.ImpHeadStock = a.ImpHeadStockSub = double.IsPositiveInfinity(b) ? double.NaN : b; a.ImpPaidClr = 0;
@@ -399,6 +404,7 @@ public static partial class Instruments
                 cols.Add(F(double.IsNegativeInfinity(a.ImpExMaxSubLive) ? double.NaN : a.ImpExMaxSubLive));   // (880)
                 cols.Add(F(r.MerchantPop is { } mpd ? mpd.Debt.Value : double.NaN)); cols.Add(F(a.EstDebtSettled));   // (910)
                 cols.Add(I(a.BillBlocked)); cols.Add(I(a.BillBlockedDust)); cols.Add(I(a.EmptyDebtAfter)); cols.Add(F(a.EstDebtMoved)); cols.Add(F(a.HeirDebtSettled));   // (920)
+                cols.Add(F(a.HeirDebtAfterSettleSum)); cols.Add(I(a.BillWithHeirDebtClearings));   // (963)
                 sk.W.WriteLine(string.Join('\t', cols));
                 if (r.Tier == RegionTier.Colonial) CgRows(sk, seed, q, w, nation, r, a, sn.Savings, inSum - outSum);   // (829) 植民地格の州だけ群の行
                 a.Clear(); a.Start = sn.Savings; a.Started = true; CgReset(a, r);

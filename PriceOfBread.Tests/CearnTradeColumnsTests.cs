@@ -196,7 +196,7 @@ public class CearnTradeColumnsTests
             var file = System.IO.Directory.GetFiles(dir, "cearn_s*").Single();
             var lines = System.IO.File.ReadAllLines(file);
             Assert.Equal(Instruments.CearnHeaderText, lines[0]);
-            Assert.EndsWith("\timportBudgetExcessMaxPerClearingSubLive\tmerchantDebt\testateDebtSettledPerQuarter\tbillBlockedClearings\tbillBlockedDustClearings\temptyDebtAfterEstate\testateDebtMovedPerQuarter\theirDebtSettledPerQuarter", lines[0]);   // (927) (910) の型へ戻す＝尾の全部を EndsWith で確かめる（(880) の列の位置と (910)・(920) の尾 7 列・尾に列が増えたら赤でこの文字列を伸ばす）
+            Assert.EndsWith("\timportBudgetExcessMaxPerClearingSubLive\tmerchantDebt\testateDebtSettledPerQuarter\tbillBlockedClearings\tbillBlockedDustClearings\temptyDebtAfterEstate\testateDebtMovedPerQuarter\theirDebtSettledPerQuarter\theirDebtAfterSettleSum\tbillWithHeirDebtClearings", lines[0]);   // (927) (910) の型へ戻す＝尾の全部を EndsWith で確かめる（(880) の列の位置と (910)・(920) の尾 7 列・尾に列が増えたら赤でこの文字列を伸ばす）
             var h = lines[0].Split('\t'); int Ix(string n) => Array.IndexOf(h, n);
             var row = lines.Skip(1).Select(l => l.Split('\t')).Single(c => c[2] == nation && c[3] == r.Name);
             Assert.Equal(h.Length, row.Length);
