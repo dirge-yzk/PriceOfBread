@@ -596,6 +596,7 @@ public class CearnInstrumentTests
                 checkedRows++;
             }
             Assert.True(checkedRows > 0);
+            Assert.True(checkedRows >= atWarm.Count / 2, $"対照：始まりの在庫を突き合わせた行が少ない（{checkedRows}／warm の州 {atWarm.Count}）");   // (969) 対照の件数
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
