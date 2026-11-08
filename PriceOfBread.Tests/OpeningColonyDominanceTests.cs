@@ -70,6 +70,22 @@ public class OpeningColonyDominanceTests
         Assert.Equal(0.0, reg.Dominance);
     }
 
+    // T3′（(957)）：旗 1 でも、接収の受け取りの 1 本（Diplomacy.AcquireColony）を通った州は 0 から（T3 は関数を直に呼ぶ＝AcquireColony の中だけを壊す形を拾えない）
+    [Fact]
+    public void T3x_旗1でも接収の受け取りを通った州は支配度0から()
+    {
+        foreach (var sim in new[] { Build(1.0), new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent()) })
+        {
+            var w = sim.Nations.First(n => n.World.SelfPower!.Name == "イギリス").World;
+            const string name = "接収の試験の植民地";
+            Assert.False(w.Regions.Exists(r => r.Name == name), "前提が崩れた：同名の州がある（吸収の枝に入る）");
+            sim.Diplomacy.AcquireColony(w.SelfPower!, new Colony { Name = name, Resources = [], PopSize = 10, Population = 1.0 }, sim.Coef);
+            var reg = w.Regions.Single(r => r.Name == name);
+            Assert.Equal(RegionTier.Colonial, reg.Tier);
+            Assert.Equal(0.0, reg.Dominance);
+        }
+    }
+
     // T4：旗 0 で構築した直後の植民地格の州は支配度 0（器の恒等）
     [Fact]
     public void T4_旗0で開幕の植民地格の州は支配度0から()
