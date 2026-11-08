@@ -124,7 +124,7 @@ public class LandfixInstrumentTests
     public void I4_出て戻った州の写しは生き返らない()
     {
         var rows = RunMove(inQuarter: false);
-        foreach (var q in new[] { 1, 2 }) AssertNoRevivedCopy(Row(rows, q, "イギリス"));
+        for (int q = 1; q <= 2; q++) AssertNoRevivedCopy(Row(rows, q, "イギリス"));   // 四半期 1・2（財の番号の走査の番人 GoodIdGuardTests が無名の整数の配列を拾うので for で書く）
     }
 
     /// <summary>I5（(951)・同じ四半期の中で出て戻る）：月 0 の締めの後に出て月 1 の締めの後に戻った州の写しも生き返らない（締め月だけで捨てる形はここで落ちる）。</summary>
@@ -132,7 +132,7 @@ public class LandfixInstrumentTests
     public void I5_同じ四半期の中で出て戻った州の写しは生き返らない()
     {
         var rows = RunMove(inQuarter: true);
-        foreach (var q in new[] { 1, 2 }) AssertNoRevivedCopy(Row(rows, q, "イギリス"));
+        for (int q = 1; q <= 2; q++) AssertNoRevivedCopy(Row(rows, q, "イギリス"));   // 四半期 1・2（上と同じ理由で for）
     }
 
     /// <summary>I3（旗 0＝何もしない実装で門が落ちる）：イギリスの凍結の事象 0・エンジンの凍結 0・計器の写しは正（同じ盤面の B を読める）・エンジンの基数は地代そのもの。</summary>
