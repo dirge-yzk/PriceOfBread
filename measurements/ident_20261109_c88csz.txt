@@ -1,0 +1,31 @@
+=== 恒等の判定（測った種で一致） c88csz（2026-11-09 05:48:53）===
+測った木：D:/PoB_work/wt_c88cs（HEAD 2d4a7cdb・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c88cs/scripts/instruments/ident/ident.cfg
+宣言：grown=['landshare_s'] tests_delta=10
+腕 a：rc=0 end=2026-11-09 05:43:05
+腕 b：rc=0 end=2026-11-09 05:47:08
+腕 t：rc=0 end=2026-11-09 05:33:07
+測る木の SOURCE-HASH：3f798e0ff44d7158
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 3f798e0ff44d7158
+[素の 5 種] b5_ia_5.txt 対 b5_20261109_m975
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261109_m975.cost
+  ○ 件数の行 29 本・推定 209.5 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 3f798e0ff44d7158
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261109_m975_ins
+  ○ 全行バイト一致（184 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261109_m975_ins.cost
+  ○ 件数の行 29 本・推定 210.7 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c88csz/out_ib_10/ins  対  基準 D:/PoB_work/keep_975/base_ins
+  基準 1180 本・腕 1180 本・バイト一致 1150 本
+  列が増えた表（--grown-ok の宣言）10 本：landshare_s1.tsv+20列・landshare_s10.tsv+20列・landshare_s2.tsv+20列・landshare_s3.tsv+20列・landshare_s4.tsv+20列・landshare_s5.tsv+20列
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1150・既知の揺れ 20・宣言された増減 10）
+  内訳：共通の表 1180 本＝バイト一致 1150＋既知の揺れ 20＋列が増えた 10＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1180）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261109_m975.txt（タグの行を除く）
+  ○ タグの行以外が一致（5083 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2482（基準 2472+10 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等
