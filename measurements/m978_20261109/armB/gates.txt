@@ -1,0 +1,15 @@
+G-S1 働いた：実際÷期待 最小 1.000000000 最大 1.000000000（行 240・期待 0 の 種×国 0）→ 緑
+G-S2 写し：国内 最大 9.114e-16（行 240）・輸出 最大 3.259e-16（行 240）→ 緑
+G-S3 私の枠：maxRelDiffSlotVsActual 最大 2.173e-18（(4, 'プロイセン', '646')）・q0 の rgoFieldCount 最小 130.0 → 緑
+G-S4 上限：全ての RGO の国家の取り分÷期待 最大 1.000000000（行 240）→ 緑
+# 記録（門ではない）
+ロシア	q0〜q11 の和（種 1〜10）：crownExpected 1181211.7・crownExpExpected 38260.1・crownDeficitState 462.4・crownProppedRgoMonths 3854・crownNationalizedSkipCount 0
+ロシア	全期間の和：crownProppedRgoMonths 151711・crownDeficitState 688165.5・鉱山 非賦存 28439730.6・賦存 1602470.9・輸出 12803149.8
+プロイセン	q0〜q11 の和（種 1〜10）：crownExpected 217441.3・crownExpExpected 1276.5・crownDeficitState 0.0・crownProppedRgoMonths 0・crownNationalizedSkipCount 0
+プロイセン	全期間の和：crownProppedRgoMonths 6971・crownDeficitState 2952.6・鉱山 非賦存 5713020.3・賦存 642445.3・輸出 164989.6
+# 同じ盤面の新÷旧（q0〜q11 の和・種 1〜10・露・普）：貴族の LandRent・歳入の基数÷名目 GDP
+ロシア	貴族の LandRent 新÷旧 0.6060
+プロイセン	貴族の LandRent 新÷旧 0.7144
+ロシア	歳入の基数×12÷名目 GDP（q0〜q11 の平均）新 0.0610 旧 0.0613 新÷旧 0.9939
+プロイセン	歳入の基数×12÷名目 GDP（q0〜q11 の平均）新 0.0659 旧 0.0731 新÷旧 0.9015
+判定: 緑
