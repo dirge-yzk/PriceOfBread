@@ -3,3 +3,6 @@ M1 Simulation.cs 構築時の Dominance = 1.0 -> 0.5 : 赤（失敗 1）
 M2 Simulation.cs 構築時の Tier = Core -> Integrated : 赤（失敗 1）
 元の木：緑。ガード束（OpeningProvinceHeld|IndustrializationReader|UnitType|Instruments|WriterRatchet|DormantIdentity）131 合格。
 ident：cpop_s の outOtherTop1Route は Simulation.cs の行番号（2416->2413）だけの差＝--known-extra cpop_s:outOtherTop1Route を宣言（正規化して他の欄・行は全て一致を別に確認）。判定: 恒等（測った種で一致）。
+フルスイート（Category!=FullLength）2426：合格 2423・スキップ 1・失敗 2（OpeningBakeTests の 2 本＝同梱の表 opening_bake.json の頭書き inputHash が world.json の埋め込みのハッシュ f78e327ccfa97644 のまま）。
+  直し：opening_bake.json の inputHash を bb331411edd99d6c へ（1 行・heldSince は旗 1 の読み込みでも読み手が無い＝表の中身は変わらない）。OpeningBakeTests 9 本合格。FullLength 3 合格。
+  注：c85lt も world.json と opening_bake.json を触る＝合流で inputHash を取り直す（1 行の衝突）。
