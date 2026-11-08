@@ -1,0 +1,7 @@
+(969) c87ot 門の木の結果（2026-11-08）  --list-tests の合計＝529（wt0 のビルドで突き合わせ）
+直す前（計器を立てる 80 余りの試験クラス 529 本）：wt0(main d300ba20) 529/529 緑・wtH(main+c83hd) 529/529 緑・wtD(main+c82hd) 529/529 緑
+  wtW(main+c85mw) 523/529＝赤 6 本は全て CivilWarArmsDemandTests（旧の規則の番人＝c87mw の持ち物・予言の内・数に入れない）。TransportInstrumentTests :91 は緑（(962) の直しが main にある）。
+  MilitaryTests.cs:2030 は上の 529 の外の試験クラス（c87mw の持ち物）。
+赤の木が無い＝今回直した 3 か所はどれも予防と名乗る。
+直した後（RuleInstrumentTests＋CearnInstrumentTests 26 本）：wt_c87ot・wtH・wtW・wtD で 26/26 緑。突然変異は m969_20261108_mutations_ot.txt（赤）。
+数：走査 A（赤になった）4（:87 :91 :2240 :2119）＝全て済み。B（予防）17 のうち 3 か所を直した。残り 11 は〈波88 の恒等の先頭へ〉。
