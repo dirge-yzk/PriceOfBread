@@ -35,7 +35,7 @@ public class TransportInstrumentTests
     private static void Near(double expect, double actual, double rel = 1e-8) => Assert.True(Math.Abs(expect - actual) <= rel * Math.Max(1.0, Math.Abs(expect)), $"期待 {expect}・実際 {actual}");
 
     /// <summary>6 年（24 四半期）回して表を書く。経路と州の断面の行は毎年の終わりに出す（既定は 10 年ごと）。</summary>
-    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters = 24, bool isolate = true)
+    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters = 24, bool isolate = true, Action<MultiNationSim, int>? afterStep = null)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tr_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
@@ -49,7 +49,7 @@ public class TransportInstrumentTests
         Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
         Instruments.Phase(sim, 1789UL, "warm");
-        try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+        try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); afterStep?.Invoke(sim, q); Instruments.Quarter(sim, 1789UL, q); } }
         finally { Instruments.Close(sim); }
         return (dir, sim, () => { Instruments.TrSnapEveryYears = snap; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } });
     }
@@ -62,7 +62,17 @@ public class TransportInstrumentTests
     [Fact]
     public void 越境の印は年の途中で州の持ち主が替わっても経路の行と帯の行で閉じる()
     {
-        var (dir, sim, restore) = Run(60, isolate: false);
+        // ★(962) 盤面を置く：年の途中（q==5・q==13）でイギリスの本土格の州（首都以外・人口の大きい順）をフランスへ移す＝持ち主が替わる事象を試験が起こす（外交の割譲が起きるかに頼らない・期間を延ばさない）。
+        var moved = new List<string>();
+        var (dir, sim, restore) = Run(60, isolate: false, afterStep: (s, q) =>
+        {
+            if (q != 5 && q != 13) return;
+            var uk = s.Nations.Single(n => n.World.SelfPower?.BaseName == "イギリス" || n.World.SelfPower?.Name == "イギリス").World;
+            var fr = s.Nations.Single(n => n.World.SelfPower?.BaseName == "フランス" || n.World.SelfPower?.Name == "フランス").World;
+            var pick = uk.Regions.Where(r => r.Id != 0 && r.Tier == RegionTier.Core).OrderByDescending(r => r.SumPopulation()).First();
+            moved.Add(pick.Name);
+            Territory.TransferRegion(uk, fr, pick, Territory.Rehoming.Ceded);
+        });
         try
         {
             string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
@@ -89,6 +99,13 @@ public class TransportInstrumentTests
             foreach (var y in crossPair.Keys) Near(crossPair[y], crossBin.GetValueOrDefault(y), 1e-9);
             foreach (var y in domPair.Keys) Near(domPair[y], domBin.GetValueOrDefault(y), 1e-9);
             Assert.True(split, "年の中で持ち主が替わった州の組が 1 つも無い（対照）＝この盤面はずれの根を踏んでいない");
+            // ★(962) 移した州ごとに、その州の鍵が年の中で 2 つ以上の国の組を持つ（1 州に頼らない）
+            Assert.Equal(2, moved.Distinct().Count());
+            foreach (var m in moved.Distinct())
+            {
+                var keys = seenKeys.Where(kv => (kv.Key.Item2 == m || kv.Key.Item3 == m) && kv.Value.Count > 1).ToList();
+                Assert.True(keys.Count > 0, $"移した州 {m} の経路の鍵が年の中で国の組を替えていない（対照）");
+            }
         }
         finally { restore(); }
     }
