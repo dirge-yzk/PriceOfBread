@@ -1,0 +1,14 @@
+(981) 合流が c88ts_work のログから組んだ突然変異の表の補い（反証役（中）の指摘＝コミット済みの m976_20261109_mutations_ts.txt に M4〜M6b・M9 の行が無かった）。ログは同じフォルダの mut_ts.log・mut_ts2.log・mut_ts3.log・mutA.mark.log（CRLF を LF に直しただけ）。
+落ちた Assert の文はログに無い（試験の名だけ）＝〈どの Assert で落ちたか〉は不明と名乗る。
+突然変異	狙い	結果	落ちた試験
+M3	Make を 3 国（B12）	赤	InstrumentsTests.軍事費の施行の一歩の内訳が…（B12 の Assert と見られる・不明）
+M4	Make を 2 国・B12 の Assert を外す（B11）	緑	—（建国で国が増える＝B11 は外した）
+M5	B5 の計器を 1 国だけに挙げる	緑	—（nation_s は全国の行を出す＝B5 は外した）
+M5b	B5：Make を 2 国・B12 の Assert を外す	赤	InstrumentsTests.軍事費の施行の一歩の内訳が…（B5 の Assert ではなく別の Assert が先に赤の見込み・不明）
+M6	B8 の計器を 1 国だけに挙げる	緑	—（B8 は外した）
+M6b	B8：Make を 1 国・B12 の Assert を外す	赤	InstrumentsTests.幽霊戦線の列が…（別の Assert が先に赤の見込み・不明）
+M7	英を添字 2 から外す（B9）	赤	InstrumentsTests.借入の門の周りの列が…（B9 の Assert.Equal と見られる・不明）
+M8	B13 の英の行を飛ばす	赤	CearnInstrumentTests.群の表は州の台帳の和に合い…
+M8b	B13（POP の行）	赤	CearnInstrumentTests.POPの行は閉じ…
+M9	B2：越境を起こす国を仏・普だけ	赤	RouteKmTests.陸路は貿易の経路の表と一致し…（記録の〈作れず〉と食い違う＝外した B2 の Assert か元からの Assert かは不明＝波89 で B2 をやり直す前に取り直す）
+反証役（中）：B12（RunMatch の終わりの Nations.Count>=4）は Make の国の数の静的な番人＝SimCore の Nations.RemoveAt は MultiNationSim.cs:1285 の反乱国の再併合だけ＝Make の最初の 4 国はどの軌道でも消えない＝軌道に依る床の穴は塞いでいない（波89 で別項目）。
