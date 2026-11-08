@@ -1,0 +1,5 @@
+# M3 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.BillGateHeirDebtTests.H4_同じ州だけを読む_同じ国の別の州の債務は門にしない [11 ms]
+失敗!   -失敗:     1、合格:    52、スキップ:     0、合計:    53、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:06.85]     PriceOfBread.Tests.BillGateHeirDebtTests.H4_同じ州だけを読む_同じ国の別の州の債務は門にしない [FAIL]

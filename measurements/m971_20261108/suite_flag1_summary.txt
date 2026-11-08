@@ -1,0 +1,33 @@
+# (971) c87hd 旗 1 の木（2b292bf9＝点火 d1e41fd7＋origin/c87ot 2f93de76 の merge）のフルスイート（Category!=FullLength と =FullLength を分けた）・savetest・leakhunt。--list-tests 非全長 2471・全長 3＝合計と一致。赤 3＝WriterRatchet の計算量 item 1・9・11（事前登録 [7] の予言の内＝種類で予言・合流が ★(749) で取り直す）
+木 2b292bf91707140dae9c41fe2605d0ae6c38e250
+list nonfull 2471
+list full 3
+nonfull rc=1 1723s
+full rc=0 312s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:09:41.96]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3731820) [FAIL]
+[xUnit.net 00:09:41.97]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [FAIL]
+[xUnit.net 00:09:41.97]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14485467) [FAIL]
+失敗!   -失敗:     3、合格:  2467、スキップ:     1、合計:  2471、期間: 28 m 38 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 10 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3731820) [6 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2803908 件（宣言 3731820）＝10 % を超えて**下がった**＝表を 2803908 へ下げて理由を書く（＝改善の宣言）。
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：着値の充填」が 30548999 件（宣言 28783150・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14485467) [< 1 ms]
+  エラー メッセージ:
+   計算量「価格：日次の写像の回」が 15874224 件（宣言 14485467・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+saveleak rc=0 309s
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+[PROBE世界] 国際金融 1832年 ΔW=44.959（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1832年 ΔW=45.820（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1832年 ΔW=50.393（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1833年 ΔW=53.242（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+SUITEDONE
