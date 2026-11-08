@@ -9,13 +9,18 @@ namespace PriceOfBread.SimCore;
 // 列（単位は接尾辞：Count＝月の数・SumIndex＝月の和の無次元・SumShare＝月の和の 0〜1・Qty＝財の量の月の和）：事前登録 §0 のとおり。
 // ⚠限界（計器が自己申告する）：warMult の行と WarMonth の間に厭戦と戦争の表の書き手は無い（書き手は共有層の Diplomacy と MultiNationSim・単国の Diplomacy.Step は WarMonth の後）。
 //   ずれた月は oldRuleMismatchMonthsCount・newRuleMismatchMonthsCount で名乗る（隠さない）。財の量は月の決算の時点の各州の市場の Last*（前の清算の値）。
+// (959) c85mw 末尾の 5 列（事前登録 measurements/m959_20261108_prereg_mw.txt §3 A1・A3）：接触の割合の規則（1＋WarArmsDemandPerContact×e）を同じ盤面で数える。旗（MilitaryWarMultFromContact）は読まない。
+//   e は計器が自分で戦争の表を走査し、前線の数を数え、押しの 1 本 Diplomacy.FrontPush の min を自軍の Military で割る（エンジンの Diplomacy.Engagement は呼ばない・削らない・NaN は 0）。
+//   ⚠限界：押しの式（FrontPush）はエンジンと同じ関数＝押しの式そのものの誤りは拾わない（拾うのは集め方・割り方・削り方・κ の掛け方・内戦の扱い・遅れ）。
+//   旗 0 では contactRuleMismatchMonthsCount が交戦の月の全て（今の式は 9 以上）＝ずれを名乗る。
 public static partial class Instruments
 {
     sealed class CwAcc
     {
-        public int Civil, Foreign, OldMis, NewMis;
+        public int Civil, Foreign, OldMis, NewMis, CtMis, ZeroM;
         public double ActC, OldC, NewC, ExhC, ActF, NewF, MilC;
         public double AmmoD, AmmoP, PowD, PowP, LeadD, LeadP;
+        public double Ct, CtR, ZeroAct;
     }
     sealed class CwSink { public System.IO.StreamWriter? W; public bool Header; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, CwAcc> CwAccs = new();
@@ -24,7 +29,8 @@ public static partial class Instruments
     internal const string CwHeaderText = "quarter\tyear\tnationUid\tnation\tcivilWarMonthsCount\tforeignWarMonthsCount\t"
         + "warMultActualCivilSumIndex\twarMultOldRuleCivilSumIndex\twarMultNewRuleCivilSumIndex\twarExhaustionCivilSumShare\t"
         + "warMultActualForeignSumIndex\twarMultNewRuleForeignSumIndex\toldRuleMismatchMonthsCount\tnewRuleMismatchMonthsCount\t"
-        + "militaryScaleCivilSumIndex\tammunitionDemandCivilQty\tammunitionProducedCivilQty\tgunpowderDemandCivilQty\tgunpowderProducedCivilQty\tleadDemandCivilQty\tleadProducedCivilQty";
+        + "militaryScaleCivilSumIndex\tammunitionDemandCivilQty\tammunitionProducedCivilQty\tgunpowderDemandCivilQty\tgunpowderProducedCivilQty\tleadDemandCivilQty\tleadProducedCivilQty\t"
+        + "contactShareSumIndex\twarMultContactRuleSumIndex\tcontactRuleMismatchMonthsCount\tzeroContactWarMonthsCount\twarMultActualZeroContactSumIndex";
 
     static bool CwMismatch(double actual, double rule) => !(System.Math.Abs(actual - rule) <= 1e-12 * System.Math.Max(1.0, System.Math.Abs(rule)));
 
@@ -47,6 +53,22 @@ public static partial class Instruments
         double actual = w.Region.MilitaryWarMultLast;
         if (CwMismatch(actual, ruleOld)) acc.OldMis++;
         if (CwMismatch(actual, ruleNew)) acc.NewMis++;
+        // (959) 接触の割合の規則：前線の数は全ての戦争の両側で数え、自国が当事者の戦線ごとに弱い側の押しを足し、自軍の Military で割る
+        var nFront = new System.Collections.Generic.Dictionary<Power, int>();
+        foreach (var x in d.Wars) { nFront[x.A] = nFront.GetValueOrDefault(x.A) + 1; nFront[x.B] = nFront.GetValueOrDefault(x.B) + 1; }
+        double touch = 0;
+        foreach (var x in d.Wars)
+        {
+            if (x.A != sp && x.B != sp) continue;
+            double pa = d.FrontPush(x.A, x.B, c, nFront[x.A]), pb = d.FrontPush(x.B, x.A, c, nFront[x.B]);
+            touch += pa < pb ? pa : pb;
+        }
+        double share = sp.Military > 1e-9 ? touch / sp.Military : 0;
+        if (!(share > 0)) share = 0;
+        double ruleContact = 1.0 + c.WarArmsDemandPerContact * share;
+        acc.Ct += share; acc.CtR += ruleContact;
+        if (CwMismatch(actual, ruleContact)) acc.CtMis++;
+        if (share < 1e-9) { acc.ZeroM++; acc.ZeroAct += actual; }
         if (!civil) { acc.Foreign++; acc.ActF += actual; acc.NewF += ruleNew; return; }
         acc.Civil++; acc.ActC += actual; acc.OldC += ruleOld; acc.NewC += ruleNew; acc.ExhC += exh;
         foreach (var r in w.Regions)
@@ -79,7 +101,8 @@ public static partial class Instruments
         sk.W.WriteLine(string.Join('\t',
             CwI(q), CwI(w.Year), CwI(S(w).Uid), NameOf(w), CwI(a.Civil), CwI(a.Foreign),
             F(a.ActC), F(a.OldC), F(a.NewC), F(a.ExhC), F(a.ActF), F(a.NewF), CwI(a.OldMis), CwI(a.NewMis),
-            F(a.MilC), F(a.AmmoD), F(a.AmmoP), F(a.PowD), F(a.PowP), F(a.LeadD), F(a.LeadP)));
+            F(a.MilC), F(a.AmmoD), F(a.AmmoP), F(a.PowD), F(a.PowP), F(a.LeadD), F(a.LeadP),
+            F(a.Ct), F(a.CtR), CwI(a.CtMis), CwI(a.ZeroM), F(a.ZeroAct)));
     }
 
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
