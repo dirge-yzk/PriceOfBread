@@ -100,7 +100,7 @@ public sealed partial class InternationalMarket
                     if (sc > 0) { stateCut += sc; rent -= sc; }
                     if (rent > 0)
                     {
-                        if (Instruments.On) Instruments.LandshareExp(w, rr, pr, rent);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分を引いた後の輸出の地代の総額
+                        if (Instruments.On) Instruments.LandshareExp(w, rr, pr, rent, sc);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分を引いた後の輸出の地代の総額（★(978) 国営持分 sc も＝写しの門だけが読む）
                         EconomyStep.AddRentRecipients(to, wt, w, rr, pr, rent);   // ★(895) 受け手＝不在地主（植民地格の大農園・R1）か持ち主か土地の持ち分の枠
                     }
                     if (wages > 0) { to.Add(rr.Pops[pr.LaborPopIndex]); wt.Add(wages); }

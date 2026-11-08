@@ -1,0 +1,115 @@
+(978) c88cs 事前登録：土地の持ち分 B-2b＝露・普の国家の枠（案 S1）＋鉱山の地代の列を同じ器に（旗 LandShareCrownSlot・B-2b の 1 回目）
+書いた日 2026-11-09・木 5e6adf98（main＝基線 m975）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+作者の裁定の形：土地の持ち分（B-2b を含む）＝〈作者「全て推奨で」で推奨を採った〉（★(832) ② B1・★(852) ③ Q2）。露・普の 5 枠の値・S1-a（露の c＝男の魂の割合の代理）・弾力は〈AI の案・確証なし〉。
+形の種類：入口（開幕の所有のデータと国営持分の規則）。3 回の規則：B-2b の 1 回目。
+
+[0] 下書き（docs/202611/20261107/…B-2bと鉱山の地代の計器_盤面m933_下書き.md）と指示から外した所（推奨で進めた・報告の先頭に書く）
+ a. 地代の種（Simulation.cs の構築）の重みは ls[k] のまま（k＜4）＝ls[k]÷(1−c) で割らない。種は国営持分の前の値＝月の流れ rent×(1−c)×ls[k]÷(1−c)＝R(1−f)ls[k] と f＝0 で一致（下書き §7・突然変異 M-S6 の形）。指示の〈地代の種も wk〉は採らない。
+ b. InstrumentsCornint.cs・InstrumentsCearn.cs の 4 か所（反証役 1）は旗 1 かつ長さ 5 で k＜4（LsSlots）・重みは ls[k] のまま。この 2 本が掛ける値（産出の値・売上・PaySales の近似の rent）は国営持分の前＝wk で割ると国家の枠の分を私の枠へ数え戻す。
+ c. G-S4 の分母を直した：下書きの〈crownActual÷(c×非賦存×貴族の国内の地代)〉は旗 1 の生では分母の地代が国家の枠の後（×(1−c)）＝正しい実装で 1÷(1−c)（露 1.89）になる。→ 新しい列 crownAllActualPerQuarter（全ての RGO の国家の取り分＝stA−f×R′・母集合を絞らない）÷crownExpected ≤ 1.01。形に固有の誤り（賦存や貴族でない RGO にも国家の枠）がここだけに出る。
+ d. G-S2 の閾値は 1e-9（下書き 1e-12）。理由：実際の側は州の台帳 StateSpent[StateFactory] の前後差＝州の中の先の RGO の分だけ |台帳| が大きく、相対の丸めは 1e-16×(州の RGO の数≲10^3)×(|台帳|÷その RGO の取り分) で 1e-12 に近づきうる。突然変異の差は O(c)＝0.29〜0.47 で 1e-9 と 8 桁離れる。
+ e. 鉱山の列は B-2b の器と同じ ident（P2）・露の c は面積でなく〈男の魂〉の人口の割合の代理（反証役 2・要出典確認）・旗 0 の畳みは置かない（F-b）・5 枠のデータは旗 1 のコミット・名簿は露・普だけ。
+ f. 持ち主の一覧の外を 1 本触る：PriceOfBread.Tests/LandOwnershipDataTests.cs の手書きの表（旗 1 のコミット・[9] の予言）。他の線の持ち主のファイルではない。
+ g. 突然変異 M-S5（国家の枠の赤字を payRate に関わらず全額国庫）は実装に該当する行が無い（国家の枠は stateFrac の 1 本だけを通り、赤字の枝に別の行を書いていない）＝突然変異の対象外と名乗る。
+
+[1] 形（旗 0＝1 ビットも変えない・旗 1 かつ長さ 5 のときだけ動く）
+ 1. Coefficients.cs：LandShareCrownSlot = 0.0（新しい行 1 本・名は git grep で .cs 0 件を確かめた）。新しい状態・係数・タイマーは 0（配列の長さが 4→5）。
+ 2. World.cs StateProfitShare：国有化の下限の後に `if (c.LandShareCrownSlot > 0 && p.LandShares is { Length: 5 } ls) f += (1.0 - f) * ls[4];`＝f′＝f＋(1−f)c。呼び口 7 か所（EconomyStep の④・PaySales・Simulation の請求の見込み 2・SetSubsidyRate・CanSubsidize・補助の外し）は触らない。
+ 3. EconomyStep.cs PayOwnerRent：crown＝旗 1 かつ長さ 5 → 周回 k＜4・重み wk＝ls[k]÷(1−ls[4])（地代 rk＝rent×wk と凍結の差分 f×wk が同じ 1 本の局所を読む）。旗 0 は wk＝ls[k]（式は rent×ls[k] のまま）。書き手の行は増やさない。:716 の寄せ（_ => −1）は旗 0 の形として残す。
+ 4. EconomyStep.cs AddRentRecipients：同じ crown で k＜4・重み rent×(ls[k]÷(1−ls[4]))。
+ 5. Simulation.cs：構築の地代の種の周回は旗 1 かつ長さ 5 で k＜4（重みは ls[k]＝[0] a）。LandOwnershipShares は長さ 4 か 5 を受けて同じ長さで返す（旗を読まない）・長さ 5 で !(1−o[4]>0) なら null。
+ 6. 計器の受け口：EconomyStep の④の前に `lsSf0`（既にある局所 insOn を読む・On の読みは増えない）・LandshareRgo に渡す。InternationalMarket.PaySales の既にある LandshareExp に sc を足す（PaySales の On の読みは 4 のまま）。
+ 7. 計器 InstrumentsLandshare.cs：LsNormalize を長さ 4 か 5 へ・枠の周回は LsSlots／LsW（旗 1 かつ長さ 5 なら k＜4・ls[k]÷(1−ls[4])）＝エンジンの旗 0 の形と同じ寄せ・計器が旗の係数を読むだけ（エンジンの関数を呼ばない）。国家の枠の積みは rent≦0 の返りより前。
+ 8. world.json（旗 1 のコミットだけ）：プロイセン landOwnership [0.904,0.020,0.076,0.0] → [0.609,0.020,0.076,0.0,0.294]・ロシア（鍵なし）→ [0.530,0.0,0.0,0.0,0.470]。出典＝docs/202611/20261106/…B-2-0…_材料.md:110・:113（Kabuzan 1971・Blum 1961・Moon 1999／Knapp 1887・Schissler 1978・Harnisch 1984＝AI の記憶・要出典確認）。
+
+[2] 計器の列（landshare_s の末尾・既にある 57 列の値は変えない・20 列）
+ 鉱山（§2-1）：rentNonEndowMineralPerQuarter・rentNonEndowMineralByOwnerClass{Noble,Clergy,Peasant,Capitalist,Other}PerQuarter・rentEndowMineralPerQuarter・expRentMineralPerQuarter・expRentNonEndowNoblePerQuarter・expRentNonEndowNobleMineralPerQuarter（鉱物＝計器の 14 個の id の表 0・1・2・3・4・5・7・8・9・10・89・107・108・110）
+ 国家の枠（§2-2）：crownExpectedPerQuarter・crownActualPerQuarter・crownMaxRelDiff・crownExpExpectedPerQuarter・crownExpActualPerQuarter・crownExpMaxRelDiff・crownAllActualPerQuarter（[0] c）・crownDeficitStatePerQuarter・crownProppedRgoMonths・crownNationalizedSkipCount
+ 定義：stA＝受け口の前後の StateSpent[StateFactory] の差（移した直後の値・⑮）・R′＝rent＋stA・f＝計器が自分で組む BuiltScale÷Scale（StateProfitShare を呼ばない）・c＝計器が world.json（試験は LsDataOverride）の 5 個を自分で和で割った 5 個目。
+ 期待＝R′×(1−f)×c（非植民地格・非賦存・持ち主が貴族・stA≥0・rent＞0・国有化の州〔NationalizedMask≠0〕を除く）・実際＝stA−f×R′（同じ行）・全て＝同じ式を全ての RGO（国有化の州を除く・stA≥0・rent＞0）。輸出は (rent＋sc)×(1−f)×c と sc−f×(rent＋sc)。
+ 限界（自己申告）：植民地格の鉱物は国内の列に入らない・造幣と輸出を分けない・受け口の rent は国営持分の後・国の和だけ・後から立つ RGO（欄なし）は期待に入って実際 0（門は q0〜q11）・basisx_s と landbase_s の周回は持ち主の範囲の外＝旗 1 の 5 枠では国家の枠を持ち主へ寄せて数える（記録）。
+ 足した計器の列＝上の 20 列だけ（他の表は 0）。
+
+[3] 門（台本 scripts/instruments/c88cs/gates978.py gates・露・普・種 1〜10・q0〜q11・両側）
+ G-S1 働いた：期待＞0 の 種×国×四半期 で crownActual÷crownExpected ∈ [0.99, 1.01]・全ての 種×国 に期待＞0 の四半期がある（空なら赤）。旗 0＝期待 0（データに 5 個目が無い）＝空＝赤。
+ G-S2 写し：期待＞0 の行の crownMaxRelDiff ≤ 1e-9・crownExpExpected＞0 の行の crownExpMaxRelDiff ≤ 1e-9（輸出の行は全体で 1 つ以上）。旗 0＝空＝赤。
+ G-S3 私の枠：全ての四半期の maxRelDiffSlotVsActual ≤ 1e-9・q0 の rgoFieldCount＞0（全ての 種×国）。今の盤面（keep_975）は露・普とも全期間 0（n2 の露 3.9e-19）。旗 0＝露の q0 の rgoFieldCount 0＝赤。
+ G-S4 上限（形に固有の誤り）：期待＞0 の行で crownAllActual÷crownExpected ≤ 1.01。誤りの形（賦存にも国家の枠）では 1＋賦存の地代の割合（下書きの紙で露 1.186・普 1.117）。
+ 狙いの数字（機構の観測量）＝G-S1 の比が 1（国家の枠が国庫へ移った）・G-S3（私の枠が 1−c で割られて受け手へ）。史実の大きさは記録。
+ 旗 0 の盤面で落ちることの紙：keep_975/base_ins（crown の列が無い）＝measurements/m978_20261109/paper_gates_keep975.txt〈判定: 赤〉。旗 0 の器の ident の生（crown の列が 0）でも同じ台本で赤になることを ident の後に追記する。
+ 試験の盤面の写し：LandShareCrownTests.T_S11（旗 1 で G-S1〜G-S4 の規則が通り、旗 0 で G-S1 の比 0）。
+
+[4] 記録（門ではない）：露・普の歳入の基数×12÷名目 GDP の新÷旧・貴族の LandRent の新÷旧（下書きの予言 露 0.604・普 0.712＝m933 の盤面）・crownProppedRgoMonths・crownDeficitState・鉱山の列・史実比較の桁・NG（ng.sh・基準 rd:measurements/ng975_20261109:m975）・nullgate.py・英の国債の不履行の種の数・開幕の 1000 倍以上。
+
+[5] no-go（★(879)・腕の前・keep_975 の base_ins・n1・n2）：規則〈露・普の q0〜q11 の crownExp÷歳入の基数（種の中央）が、ヌル腕の幅（m975・n1・n2 の中央の最大−最小）以下なら回さない〉。
+ 出力 measurements/m978_20261109/paper_nogo.txt：露 旗 0＝0.000000（no-go）・候補 1.174294（幅 0.002164＝go）・普 旗 0＝0.000000（no-go）・候補 0.690869（幅 0.004406＝go）＝両方の値を返す（恒真でない）。
+
+[6] 試験（新しいファイル LandShareCrownTests.cs・10 本の Fact・期待は手の表 Cr＝[0.3,0.1,0.2,0.1,0.3] と州の POP の添字から）
+ T_S0 正規化（長さ 4/5・c＝1 で null・構築で欄なし）・T_S1 国営持分（旗 1 で c・建てた 1/2 で 0.65・旗 0 で 0・長さ 4 で 0）・T_S2 国内の地代（旗 1＝ls÷(1−c)・旗 0＝5 個目が持ち主へ）・T_S2b 輸出の並び・T_S3 PaySales の国家の枠が国庫へ・T_S6 構築の種・T_S10 凍結の差分の重み・T_S11 門の規則の写し（旗 1 で通り旗 0 で落ちる）・T_M1 鉱物の表・T_M2 鉱山の列（注入の差・四半期で 0・I1〜I4）。
+ DormantIdentityTests.cs の休眠の表に LandShareCrownSlot の 1 行（旗 1 のコミットで外す）。
+
+[7] 突然変異（使い捨ての木・コミットと ident の前・出力 measurements/m978_20261109/mutation.txt）と、どの門・試験で赤か（㉚）
+ M-S1 StateProfitShare に畳まない（5 個目は寄せで貴族へ）→ G-S1（実際 0）・T_S1・T_S11／keep の生で見える
+ M-S2 賦存の RGO にも国家の枠（StateProfitShare が長さでなく〈データのある国の全ての RGO〉に c）→ G-S4・（試験は T_S11 の全て÷期待）／見える
+ M-S3 私の 4 枠を 1−c で割らない（PayOwnerRent の wk＝ls[k]）→ G-S3（差＝c）・T_S2／見える（G-S1 は 1 のまま＝G-S1 では拾えない）
+ M-S4 輸出の側で畳まない（PaySales の sc を旧の f で）→ G-S2 の輸出の列・T_S3／見える
+ M-S5 実装に行が無い（[0] g）
+ M-S6 地代の種の重みも 1−c で割る → T_S6／生では見えない
+ M-S7 f の分を引かない（f′＝f＋c）→ T_S1（0.8≠0.65）／q0〜q11 の f は 0＝生では見えない
+ M-S8 旗 0 でも畳む（StateProfitShare の旗の確かめを外す）→ T_S1・T_S2（旗 0 の枝）・T_S11（旗 0 の実際 0）／ident は緑のまま（4 枠のデータでは長さ 5 の枝が通らない）
+ M-S9 c≥1 を受ける（正規化の null を外す）→ T_S0／見えない
+ M-S10 凍結の差分の基数は ls[k] のまま → T_S10／露・普は凍結の国でない＝見えない
+ Mu-M1 鉱物の表から銀（110）を落とす → T_M1・T_M2（輸出・非賦存は銀でなければ緑）
+ Mu-M2 賦存も列 1 に数える → T_M2
+ Mu-M3 受け手の階級で割る → T_M2（Noble に全額でない）
+ Mu-M4 四半期で 0 へ戻さない → T_M2（q1 の差）
+ Mu-M6 列 9 の判別から〈持ち主が貴族〉を落とす → T_M2（4X が入る）
+ （Mu-M5 植民地格・Mu-M7 階級の添字は既存の試験と I2 の生に任せる＝回さない）
+ Cornint・Cearn の周回（[0] b）の突然変異は回さない＝試験が拾うかは未確かめ（限界）。
+
+[8] ソースを走査する番人（㉘）：器のコミットの直後に `dotnet test --filter IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests`。
+ grep（5e6adf98 → 器の木・SimCore の .cs の行の数）：`new MoneyStock(` 64→64・`Instruments.On` 231→231・`LandRentPerMonth +=` 3→3・`EarnedPerMonth +=` 10→10・`LandTaxBasisAdjPerMonth +=` 1→1。新しい Transfer 0＝route_anchors.tsv の鍵の行は要らない。工業化度の読み手 0。
+ 予言（㉑）：走査の件数の番人で変わる物 0。WriterRatchetTests の宣言の表（計算量の item）は旗 0 では動かない・旗 1 では〈動きうる・合流が取り直す（★(749)）〉。
+
+[9] 旗 1 の木で赤になる試験の予言（㉜・★(899)・★(764)・★(954)）
+ 確実に赤：LandOwnershipDataTests の 2 本（表のプロイセン 4 枠・〈名簿の外の露は null〉・Length==4）＝データの値の番人（★(764) の〈静的な値の番人〉）→ 旗 1 のコミットで表を [0.609,0.020,0.076,0.0,0.294]・露 [0.530,0,0,0,0.470] に直し、長さ 4 か 5 を受ける（Assert の文と期待の出所＝手で写した表は変えない）。
+ 確実に赤：OpeningBakeTests の 2 本（opening_bake.json の inputHash に world.json を含む）＝線は触らず赤のまま報告・合流が 1 回だけ焼き直す（★(764)）。
+ 緑の見込み：StateFactoryTests（フランス・鋼の盤面・4 枠）・LandTaxFixedBasisTests（英・清）・CornintInstrumentTests（英・仏）・LandShareTests（フランスの手の表 4 枠）・BasisxInstrumentTests。
+ 動きうる（軌道に依る・露・普の世界を回す試験）：〈組が少ない〉型の grep＝CearnInstrumentTests・ForceReadGuardTests・InstrumentsTests・MoTrendInitTests・RouteKmTests・RuleInstrumentTests・SecessionLaborLawInstrumentTests・TransportInstrumentTests。赤なら ★(743) の区分で名乗れるか（試験のバグ）を事前登録の追記で書いてから直す・名乗れなければ止める。
+ 旧の規則を固定する番人の grep（㉜）：`LandShares` を読む試験 10 本のうち、旗 1 の規則（5 個目を国庫へ）と逆を固定するのは LandOwnershipDataTests の Length==4 だけ（データの表）。機構の向きを固定する番人は無い。
+
+[10] 周辺の点検（★(885)・読むだけ）
+ StateProfitShare の呼び口 7 か所：補助金（SetSubsidyRate・CanSubsidize）は私の持分 1−f′ にだけ効く＝国家の枠の RGO の補助の効き目は (1−c) に縮む（記録）。赤字の枝：国家の枠の赤字を国庫が payRate の分だけ肩代わり・propped が真＝SubsidyDependence が上がる（crownProppedRgoMonths で記録）。請求の見込み（Simulation の Claim）にも国家の枠の赤字が入る。
+ 土地税の基数（Fiscal.cs:811 LandTaxBase＝LandRent）：普の土地税（段 2）の基数が国家の枠の分だけ縮む＝国庫の純の増え＝国家の枠−失う土地税（記録）・露は土地税 0。凍結の国（英・清）は露・普と交わらない。
+ 貴族の政治力：PolicyPreferences.cs:175 の Rent・InterestGroups.cs:62 の土地の資本化は LandRent を読む＝露・普の貴族の地代が縮む（記録）。
+ 欠損（明らかな物）：なし（basisx_s・landbase_s の周回は [2] の限界・持ち主の範囲の外）。
+
+[11] 止める線（この回の形をそのまま写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（stoplines906.sh＋stoplines949.sh・pair・NULLS は m975 の null/stop906_n1・n2・建国の直後と政府の人口の 1/10・10 倍の四半期はヌル腕の件数と並べる・N1 は〈それ以外〉1 件）・1e10 倍以上・非有限・空洞化（an_h2.py -v4・規則 A2・ピークの 1/10 未満で、基線 keep_975/base_ins の同じ種・同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めない・それ以外の〈線が原因〉が 1 件でもあれば止める）・推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む）。
+ 記録の段の先頭：名目 GDP 0 が 4 四半期以上続く国（gdp_zero10.py）。開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。
+
+[12] 計算量：+0.3 秒以下を割り当てる（StateProfitShare の長さの確かめ 1 つ・PayOwnerRent の bool 1 つ・計器は INS だけ）。m975 の推定 210.7 秒＋0.3＝211.0（上限 248.5）。2 秒以下＝1 本の腕で門にしない（.cost を m975 と並べて記録）。
+
+[13] 段0 の予言（腕の前）：露・普の q0 の国庫の国営工場の区分の収入が 0→露 約 1.17×歳入の基数・普 約 0.69×（紙）・貴族の LandRent が下がる（向き：減る・大きさ：1−c×非賦存×貴族の地代÷貴族の LandRent）・普の土地税は少し減る。〈悪くする〉の見込みは無い（破綻の型の経路：国庫の流入が増えるだけ・赤字の肩代わりは payRate で縛られる）＝go。
+ 既知のずれ：後から立つ RGO に国家の枠が付かない・露の賦存の鉱山（ウラル）は国家の枠の外・露の c は人口の割合の代理（地代の負担の比 β は入れない）。
+
+[14] 追記 2026-11-09（旗 1 のコミットと腕 B の前・門と止める線は変えない）
+ a. 突然変異（[7]）は器のコミットの後に回した（順の外れ＝★(968) の〈ident とコミットの前〉に反した・器のコミット 2d4a7cdb の使い捨ての木）。結果 measurements/m978_20261109/mutation.txt：M-S1〜M-S4・M-S6〜M-S10・Mu-M1〜Mu-M4・Mu-M6 の 14 本は全て赤（緑のまま 0 本）。
+ b. 旗 0 の器の ident c88csz〈判定: 恒等〉（素の 5 種 182 行・計器つき 10 種 184 行の全行バイト一致・計器の表 1180＝一致 1150＋既知の揺れ 20＋列が増えた 10・試験 2482＝2472＋10・推定 210.7 秒＝m975 と同じ）。記録 measurements/ident_20261109_c88csz.txt。
+ c. 旗 0 の器の生（ident の計器つき 10 種）で門の台本は〈判定: 赤〉（G-S1・G-S2・G-S4 は母集合が空・G-S3 は露の q0 の rgoFieldCount 0）＝measurements/m978_20261109/gates_flag0_ident.txt。
+ d. データの値の直し（腕の前）：プロイセンの 5 枠は [0.610, 0.020, 0.076, 0.0, 0.294]（材料の割り直し 0.609 の丸めの 0.001 を貴族へ＝和をちょうど 1 に・B-2a の名簿の規約〈和 1〉と LandOwnershipDataTests の和の番人に合わせた）＝c＝0.294（紙の c＝0.2943 との差は no-go の判定を変えない）。ロシアは [0.530, 0.0, 0.0, 0.0, 0.470]。
+
+[15] 追記 2026-11-09（旗 1 のフルスイートの後・腕 B の前・門と止める線は変えない＝結果の後の変更はエンジンに無い）
+ 旗 1 の木 87b3565c（点火＋origin/c88ts の印の頭 6b133a29）のフルスイート：非 FullLength 2482（--list-tests 2482）＝失敗 7・FullLength 3/3 緑・savetest OK・leakhunt 保存則違反なし。記録 measurements/m978_20261109/suite_flag1_first.txt。
+ a. 予言どおり（[9]）：OpeningBakeTests の 2 本（★(764)・線は触らない・合流が焼き直す）・WriterRatchetTests の計算量の item 2（建設：見た生産者 1758／宣言 1632）と item 11（外交：覇権の判定の国×国 3434066／宣言 2961860）＝〈動きうる・合流が取り直す（★(749)）〉の種類。
+ b. 予言の外・走査の番人：GoodIdGuardTests〈数値の財 id は書かない〉＝私の計器（InstrumentsLandshare.cs:56 の 14 個の数の表）が番人に当たった（器のコミットの ㉘ の束にこの番人が入っていなかった）。直し＝同じ 14 財を Catalog の定数の名で書く（値は同じ＝T_M1 が IsMineral の集合と突き合わせる・エンジンの行 0・出力のビットは変わらない）。番人は書き換えない。
+ c. 予言の外・試験のバグ（★(743) の区分＝盤面の前提〔データの有無〕・★(914) c79lb の型）：SbBargainTests の 2 本（M3〈所得の合計は変わらない〉・〈自作農の所得は取り分に依らない〉）は盤面がロシア（NationConfig.Russia）＝露の 5 枠の国家の枠が地代の一部を国庫へ移す＝POP の所得の合計の保存の前提が盤面で崩れた。試験が見ている機構（産地の取り分＝min(慣習, 法の上限)）は土地の持ち分と独立。
+    旧の盤面に番人を固定する形に当たらない理由：直しは試験の盤面のデータを〈持ち分なし〉に置く（★(914) と同じ・AiFirstWaveTests・ReformPathTests・InstrumentsTests の前例）だけで、旗の値も Assert の文と閾値も変えない＝国家の枠の規則（新しい既定）を否定する盤面にしていない。対照の Assert（盤面に欄が無い・首都の州に産地が 1 つ以上）を足した。
+    旗 1（直しあり）で緑・直しを外すと旗 1 で赤（上の 87b3565c の走り）・旗 0 の木でも緑（使い捨ての木で確かめる）。SimCore には触れない。直した後はフルスイートからやり直す。
+
+[16] 追記 2026-11-09（腕 B の前・結果を見る前・門の数と規則は変えない）
+ a. G-S4 の母集合の差（今名乗る）：crownAllActual は欄が長さ 5 の RGO なら持ち主の階級や州の格に依らず積み、crownExpected は〈非植民地格×非賦存×持ち主が貴族〉に絞る。q0〜q11 のうちに持ち主が貴族でなくなった RGO（改革で OwnerPopIndex が動く）や植民地格へ移った州の RGO は全てにだけ入る＝正しい実装でも比が 1 を超えうる。
+    読む規則（腕の前に固定）：G-S4 だけ赤で G-S1・G-S2・G-S3 が緑なら、超過の行を数え、その行の種・国・四半期で〈欄を持つ RGO の持ち主の階級の移り・州の格の移り〉が説明するかを生で読む。説明できれば〈母集合の差＝既知のずれ〉と名乗って記録、説明できなければ赤のまま（採らない）。
+ b. ⑭ の数え方：3da60807（計器の鉱物の表を定数の名へ）は旗 1 の出力（フルスイート）を見た後の SimCore の変更。出力のビットは変わらない（同じ 14 財・T_M1）が、⑭ は〈理由に関係なく全て〉と書く＝〈形の変え直しの枠 1 回を使った〉とも読める。担当の読み＝計器の名の直し・エンジン 0 行（枠に数えない）。両方を報告の先頭に置き合流に委ねる。この先エンジンにも計器にも触れない。
+ c. ident c88csz が測った木は 2d4a7cdb。出荷の SimCore はそれに 3da60807 が乗る＝恒等の根拠は〈T_M1 が IsMineral の集合と一致〉だけで、測り直していない。
+ d. 計器の試験の束（㊴）は filter〈Instrument|LandShare|LandOwnership〉の 220 本（指示の 819 本の束より狭い）＝フルスイート 2482 で覆う。
+ e. 腕 B の木は 9dc14566（点火＋c88ts の印の頭＋計器の名の直し＋試験の直し）。

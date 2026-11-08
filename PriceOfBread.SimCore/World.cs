@@ -2343,6 +2343,7 @@ public sealed class World
         double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale / Math.Max(p.Scale, 1e-9)) : 0.0;
         if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0 && Nationalization.IsNationalized(p.GoodId, r.NationalizedMask))
             f = Math.Max(f, c.NationalizationStateShare.Value);
+        if (c.LandShareCrownSlot > 0 && p.LandShares is { Length: 5 } ls) f += (1.0 - f) * ls[4];   // ★(978) B-2b：国家の枠（王領・国有地）は国営持分（国有化の下限の後）
         return f;
     }
 

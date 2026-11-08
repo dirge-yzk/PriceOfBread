@@ -1,0 +1,14 @@
+list nonfull 2482
+list full 3
+nonfull rc=1 876s
+full rc=0 194s
+[xUnit.net 00:00:48.16]     PriceOfBread.Tests.GoodIdGuardTests.数値の財idは書かない [FAIL]
+[xUnit.net 00:01:14.53]     PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [FAIL]
+[xUnit.net 00:01:18.91]     PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [FAIL]
+[xUnit.net 00:06:25.64]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2961860) [FAIL]
+[xUnit.net 00:06:25.64]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1632) [FAIL]
+失敗!   -失敗:     7、合格:  2474、スキップ:     1、合計:  2482、期間: 14 m 34 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 12 s - PriceOfBread.Tests.dll (net10.0)
+saveleak rc=0 195s
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
