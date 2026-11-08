@@ -1641,7 +1641,7 @@ public sealed class World
         // 不換（金本位外）：広義マネー（金+信用）＝信用膨張で増やせる→好況インフレ・紙幣増発も可能。兌換可能性で連続補間（部分兌換）。
         double money = broad + (baseM - broad) * Convertibility;   // Conv=1→BaseMoney(金)・Conv=0→BroadMoney(信用込み)
         double ratio = money / Math.Max(1e-9, gdp);   // 実質産出あたりの貨幣（名目の厚み＝数量説の M/Y）
-        if (_moTrend <= 1e-9) { _moTrend = ratio; if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, double.NaN, double.NaN, PriceLevel, double.NaN, double.NaN, convTarget, 0.0, true); return; }   // 初回はトレンドの基準を取るだけ
+        if (_moTrend <= 1e-9 && !(c.MoTrendInitNeedsGdp > 0 && !(gdp > 1e-9))) { _moTrend = ratio; if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, double.NaN, double.NaN, PriceLevel, double.NaN, double.NaN, convTarget, 0.0, true); return; }   // 初回はトレンドの基準を取るだけ。★(972) 旗 MoTrendInitNeedsGdp（既定 0＝旧）：1 なら実質 GDP が正でない四半期は基準を置かず下の holdTrend の道へ（貨幣÷1e-9 で趨勢を置くと次の正の四半期の循環比が 1e-11〜1e-9 になり床に張り付いた＝(966) の (D)）＝次の正の四半期に置く
         bool holdTrend = !(gdp > 1e-9);   // ★(603) 実質 GDP が正でない四半期（産出が死んだ国）：1e-9 で割った比（1e15）で趨勢を汚さない＝趨勢を更新せず、循環比は P そのもの（寄せる力 0）。否定形＝NaN の GDP も同じ側
         double trend0 = _moTrend; if (!holdTrend) _moTrend = PoliticalQuantities.Toward(_moTrend, ratio, c.MonetaryTrendSpeed);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
         double cyclical = holdTrend ? PriceLevel : ratio / Math.Max(1e-9, _moTrend);   // トレンド比＝信用循環：好況で信用が厚い→>1→インフレ／恐慌で信用が縮む→<1→デフレ

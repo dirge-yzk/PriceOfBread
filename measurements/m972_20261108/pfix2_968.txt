@@ -1,0 +1,48 @@
+== base_ins
+1 pfix なし
+2 pfix なし
+3 pfix なし
+4 pfix なし
+5 pfix なし
+6 pfix なし
+7 pfix なし
+8 pfix なし
+9 pfix なし
+10 pfix なし
+計 0
+== n1
+1 pfix なし
+2 pfix なし
+3 pfix なし
+4 pfix なし
+5 pfix なし
+6	kind2 行	2	国	1	最初の2つ	[('q1', '共和制イベリア', '1847')]
+7 pfix なし
+8 pfix なし
+9 pfix なし
+10 pfix なし
+計 2
+== n2
+1 pfix なし
+2 pfix なし
+3 pfix なし
+4 pfix なし
+5 pfix なし
+6 pfix なし
+7 pfix なし
+8 pfix なし
+9 pfix なし
+10 pfix なし
+計 0
+== a11
+11 pfix なし
+12 pfix なし
+13 pfix なし
+14 pfix なし
+15 pfix なし
+16 pfix なし
+17 pfix なし
+18 pfix なし
+19 pfix なし
+20 pfix なし
+計 0

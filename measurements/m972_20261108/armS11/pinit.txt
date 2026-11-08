@@ -1,0 +1,11 @@
+11	init	72	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+12	init	70	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+13	init	69	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+14	init	69	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+15	init	69	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+16	init	66	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+17	init	70	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+18	init	70	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+19	init	72	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+20	init	69	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+計 {'init': 696}
