@@ -260,6 +260,7 @@ public static partial class Instruments
     /// <summary>受け口（EconomyStep.PayOwnerRent の頭・RGO だけ・INS のときだけ）：割る前の地代 <paramref name="rent"/>。名簿の国の凍結の写し（助走の月に上書き）と、POP ごとの期待の差分を積む。</summary>
     internal static void LandbaseRgoRent(World w, Region r, Producer s, double rent)
     {
+        BasisxRgoRent(w, r, s, rent);   // (970) 土地税の段 A-2b-0（basisx_s）：割る前の地代を受け手ごとに積む（読むだけ）
         var a = LbNatOf(w);
         if (!a.Fixed) return;
         LbFz? fz;
