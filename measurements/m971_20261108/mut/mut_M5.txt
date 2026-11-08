@@ -1,0 +1,11 @@
+# M5 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [113 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [36 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [44 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [40 ms]
+失敗!   -失敗:     4、合格:    49、スキップ:     0、合計:    53、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:07.91]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [FAIL]
+[xUnit.net 00:00:08.04]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [FAIL]
+[xUnit.net 00:00:08.08]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [FAIL]
+[xUnit.net 00:00:08.21]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [FAIL]

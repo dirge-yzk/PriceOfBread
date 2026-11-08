@@ -108,6 +108,15 @@ public class BillGateHeirDebtTests
     }
 
     [Fact]
+    public void H8_人の居ない商人の債務も規則2で止める_和に入らない商人を別に読む()
+    {
+        // 商人：人数 0・債務 5・貯蓄 0（人の居る POP の和に入らない）・他の POP は債務 0＝商人の項だけが止める（商人の項を消す突然変異 M4 で赤・H6 は人の居る商人＝和にも入るので M4 を拾えない）
+        var f1 = Run(1, (r, m, o, x) => { m.Size = 0; m.Debt = new MoneyStock(5); m.SetSavings(0); });
+        Assert.Equal(BitConverter.DoubleToInt64Bits(5.0), BitConverter.DoubleToInt64Bits(f1.After));
+        Assert.Equal(0.0, f1.Import);
+    }
+
+    [Fact]
     public void H7_債務が無ければ旗1も旗0と同じく振り出す()
     {
         var f0 = Run(0, (r, m, o, x) => { });
