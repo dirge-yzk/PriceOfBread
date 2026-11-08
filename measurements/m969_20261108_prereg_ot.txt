@@ -1,0 +1,18 @@
+(969) c87ot 事前登録：軌道に依る計器の試験の一括の直し（2026-11-08・作者「これら改善をやってみよう」の (1) で推奨を採った）
+[1] 恒等の線・予言 0。試験だけ（SimCore・Runner・App・Display に触れない）。ident は回さない（★(912)）。
+    区分＝試験のバグの直し（★(743)・(q)）。Assert の文と閾値は変えない。対照の件数の Assert を足す。期間と種を延ばさない（★(961)）。Theory 化で盤面を広げない（★(879)）。
+[2] 消す物：無い。残す物：全て。読み手の grep：試験の中の局所変数と Assert だけ（SimCore・Runner・App・Display・scripts・measurements の台本・POB_COEF・SaveGame に及ぶ名前は無い）。
+    他の線との重なり：InstrumentsTests.cs は ot の持ち物（hd の木の 5b58812c は main の 75c8858e と同じ内容＝重複しない）。RuleInstrumentTests.cs・CearnInstrumentTests.cs は他の線が触らない。
+    触る行：RuleInstrumentTests.cs の :93 と :122 の直後・CearnInstrumentTests.cs の :598 の直後。
+[3] 足す試験：無し（--tests-delta 0）。足す物は既存の試験の中の対照の件数の Assert のみ。
+    直す物と突然変異：
+    F1 InstrumentsTests.cs 私的な建設の工業化度（A3）＝main に 75c8858e で入っていた（cherry-pick は空）。この回は触らない。wtD で緑を確認。
+    F2 RuleInstrumentTests T5・T6（B3）＝checkedRows の床を足す（国数を数える：checkedNations ≧2・行 ≧ 測った値の半分）。突然変異＝rows の絞り（quarter==lastQ）を外す／国の名簿を 1 国にする → 赤。
+    F3 CearnInstrumentTests 始まりの在庫（B4）＝checkedRows の床（測った値の半分）。突然変異＝lateRegisteredPops の飛ばしを全行に広げる → 赤。
+    床の値は旗 0 の木で測った件数の約半分（結果を見る前の登録は〈測る〉こと・数値は下に追記する）。
+    ソースを走査する番人の点検（㉘）：触る試験が WriterRatchetTests・DormantIdentityTests・InstrumentsTests のソース走査の許可表に載っていないことを grep で確かめる。書き換える件数の予言（㉑）＝0。
+[4] 恒等：試験だけの線＝SimCore を触らない＝名乗り行を除いて素の 5 種・計器つき 10 種は m968 と全行一致（走らせない・★(912)）。
+[5] 門：直した試験を 4 つの木（wt0・wtH・wtW・wtD）で --filter で回し緑。F2・F3 は赤の木が無い＝予防と名乗る。
+    wtW の CivilWarArmsDemandTests 6 件と MilitaryTests.cs:2030 は旧の規則の番人＝c87mw の持ち物＝予言の内。
+    浮動小数の順序が変わる箇所：無い（試験の Assert のみ）。
+[6] 受け渡し：D:/PoB_work/c87ot_work/ot.mark に rc・sha・直した本数・残りの本数。
