@@ -1,0 +1,5 @@
+  成功 PriceOfBread.Tests.OpeningColonyDominanceTests.T1_旗1で開幕の植民地格の州は全ての国で支配度1から 
+  失敗 PriceOfBread.Tests.OpeningColonyDominanceTests.T3x_旗1でも接収の受け取りを通った州は支配度0から 
+  失敗 PriceOfBread.Tests.OpeningColonyDominanceTests.T3_旗1でも途中の昇格は支配度0から 
+  失敗 PriceOfBread.Tests.OpeningColonyDominanceTests.T4_旗0で開幕の植民地格の州は支配度0から 
+  成功 PriceOfBread.Tests.OpeningColonyDominanceTests.T2_旗は格と支配の区分と本国の州を動かさない 

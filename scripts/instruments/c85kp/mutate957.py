@@ -18,8 +18,9 @@ MUT = {
     'M3': lambda: rep('PriceOfBread.SimCore/MultiNationSim.cs', 'if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;', 'if (_coef.OpeningColonyDominanceFull > 0 && sp.Name == "ネーデルラント") reg.Dominance = 1.0;'),
     'M4': lambda: rep('PriceOfBread.SimCore/MultiNationSim.cs', 'if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;', 'if (_coef.OpeningColonyDominanceFull > 0) { reg.Dominance = 1.0; reg.Tier = RegionTier.Core; }'),
     'M5': lambda: rep('PriceOfBread.SimCore/Coefficients.cs', 'public double OpeningColonyDominanceFull = 1.0;', 'public double OpeningColonyDominanceFull = 0.0;'),
-    'M6': lambda: rep('PriceOfBread.SimCore/Diplomacy.cs', '            Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial);\n        }\n        else receiver.ColonyList.Add(col);',
-                      '            { var reg6 = Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial); reg6.Dominance = 1.0; }\n        }\n        else receiver.ColonyList.Add(col);'),
+    # M6 の Diplomacy.cs は CRLF（git ls-files --eol）
+    'M6': lambda: rep('PriceOfBread.SimCore/Diplomacy.cs', '            Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial);\r\n        }\r\n        else receiver.ColonyList.Add(col);',
+                      '            { var reg6 = Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial); reg6.Dominance = 1.0; }\r\n        }\r\n        else receiver.ColonyList.Add(col);'),
 }
 
 MUT[MODE]()
