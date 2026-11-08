@@ -115,10 +115,14 @@ public class BasisxInstrumentTests
             Instruments.BasisxRgoRent(fr, reg, s2, 3000);
             Instruments.BasisxRgoRent(fr, reg, s1, -500);   // 負の地代＝正の部分だけ（受け手の所得は動かない）
             foreach (var kv in rent) kv.Key.LandRentPerMonth = new MoneyPerMonth(kv.Value);
+            fr.FiscalFundingRatio = new Share(0.9); fr.GovDebt = new MoneyStock(1234567.0);   // (977) 支払い率と国債は既定でない値に置く（bxFundingRatio・bxDebtToGdpYear の列を確かめる）
             Month(fr, true);
             Instruments.Quarter(sim, Seed, 0);
+            double gdpYear = fr.NominalGdpPerMonth.Value * 12.0;   // 国債の比の分母＝年の名目 GDP（月×12・手で書く）
+            Assert.True(gdpYear > 0, "名目 GDP が正でない＝bxDebtToGdpYear が nan になる");
             End(sim);
             var row = Row(Rows(dir), 0, "フランス");
+            Near(0.9, D(row, "bxFundingRatio"), "支払い率"); Near(1234567.0 / gdpYear, D(row, "bxDebtToGdpYear"), "国債÷年の名目 GDP");
             double rentPb = rent.Sum(kv => Pb(kv.Key, deg) * kv.Value);
             Assert.Equal(3.0, D(row, "bxRgoCount")); Assert.Equal(0.0, D(row, "bxFrozenRgoCount"));
             Near(0.2, D(row, "bxRate"), "率");

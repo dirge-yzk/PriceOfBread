@@ -2008,8 +2008,8 @@ public sealed class Coefficients
     // 離脱(coverage<GoldCoverMin)と再加入(coverage>=GoldCoverMin)が同一閾値・クールダウンなしのチャタリング。
     public double GoldRejoinCoverMargin = 1.3;      // **2026-07-25点火試験**：再加入に要するカバー率の余白（GoldCoverMin×これ）。1.0=現行恒等（シュミットトリガー＝境界チャタリング防止）
     public double GoldCoverCreditRestraint = 0.5;   // **2026-07-25点火試験**：金本位国のカバー率防衛＝coverageが床(GoldCoverMin×(1+これ))未満で与信上限を比例縮小（1890年代バンクレート防衛の与信面＝兌換を守るため信用を絞る・与信↓→BroadMoney↓→coverage回復の負帰還）。0=不読＝恒等
-    // 戦争・内戦の経済ダメージ（2026-07-25 #136・ユーザー指摘「低すぎる可能性」）。棚卸し＝当時の内戦は軍需消費2倍・正統性ドレイン・選挙停止**のみ**（今は内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)・CivilWarArmsDemandUnified 旗 1）
-    //（生産・資本・民間人が無傷＝太平天国の長江壊滅・米内戦の南部資本半減が表現不能。軍需2倍はむしろ軍需景気）。対外戦争は戦費・資材競合・
+    // 戦争・内戦の経済ダメージ（2026-07-25 #136・ユーザー指摘「低すぎる可能性」）。棚卸し＝当時の内戦は軍需消費2倍・正統性ドレイン・選挙停止**のみ**（今は内戦も対外戦と同じ式 1＋WarArmsDemandPerContact×接触の割合＝(973) 旗 MilitaryWarMultFromContact 1。内戦の 2.0 の枝は旗 CivilWarArmsDemandUnified ごと消した）
+    //（生産・資本・民間人が無傷＝太平天国の長江壊滅・米内戦の南部資本半減が表現不能。当時の軍需2倍はむしろ軍需景気だった）。対外戦争は戦費・資材競合・
     // 兵士/士官の戦死・封鎖・厭戦のみ＝**国土は無傷**（北仏1914-18型の戦場破壊なし）。以下3本で物理ダメージを追加（点火試験値・値は各行参照）。
     public double CivilWarEconomyDisruption = 0.2;  // **2026-07-25点火試験**：内戦中の実効生産性×(1−これ)（流通麻痺・徴発・戦場化・労働の逃散）。0=不読＝恒等
     public double WarCivilianToll = 0.002;          // 第7段第1波②点火（2026-07-28）：対外戦争の民間人死＝劣勢度×接触強度×これ（月次・非兵士pop比）。戦争が本当に恐ろしくなる（厭戦→革命の実体＝餓死）。CivilWarCivilianTollと同じ保存作法。0で恒等
@@ -2169,10 +2169,10 @@ public sealed class Coefficients
     //   底は人口の側の定員（Simulation.BuildNation）。旧＝構築時の兵×12 か月。市場の在庫 200（Simulation.CatalogEconomy）は床のまま（Max）＝この式が勝つのは monthly×月数 > 200 の国だけ。
     //   測定は measurements/ars239_20261010_prereg.txt と _raw/（5種で 底だけ／底＋60／月数だけ／底＋36 を並べた・10種は底＋60）。⚠ 底と月数は同じ倍率の強さの違い（3.33 倍と 5 倍）＝別の機構ではない。
     public double InitialArsenalMonths = 60.0;
-    public double MilitaryWarMult = 9.0;                      // 交戦中の軍需消費の倍率（武器需要ブーム）。元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
-    public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：対外戦の軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）
+    public double MilitaryWarMult = 9.0;                      // 旗 MilitaryWarMultFromContact 0 のときだけ交戦中の軍需消費の倍率（武器需要ブーム）。元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）。旗 1（既定）では Simulation は読まない＝読み手は旗 0 の枝（Simulation.cs の warMult の行）と計器 cwmult_s の旧の規則の列（InstrumentsCivwar.cs）。内戦の 2.0 の枝は消えた
+    public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：旗 MilitaryWarMultFromContact 0 のときの軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）。旗 1（既定）では warMult に入らない（読み手は旗 0 の枝と InstrumentsCivwar.cs の旧の規則の列だけ。Simulation.cs の mobilize の変数は旗 1 でも計算するが warMult は読まない）
     public double MilitaryWarMultFromContact = 1.0;           // (959) c85mw 点火（1）・旗：1＝戦時の軍需の倍率を接触の割合から導く＝warMult＝1＋WarArmsDemandPerContact×e（e＝Diplomacy.Engagement＝自国の戦線の接触÷自軍の Military・削らない）・内戦も対外戦も同じ式＝MilitaryWarMult・WarMobilizationDepth・内戦の 2.0 を読まない。0＝今の式（事前登録 measurements/m959_20261108_prereg_mw.txt）
-    public double WarArmsDemandPerContact = 42.0;             // (959) κ＝接触の割合 1 あたりの軍需の上乗せの倍率（旗 MilitaryWarMultFromContact 1 だけが読む）。42＝今の戦時の軍需の総量 Σ兵×(warMult−1) を保つ値（(973) m968 の生で取り直した紙＝戦死÷Rate を接触の代理にした近似で base・n1・n2 の幅 41.8〜43.9・measurements/m973_20261108/paper973_m968.txt・同じ盤面の計器の値は ident c87mwz の門の記録・AI の値・確証なし）
+    public double WarArmsDemandPerContact = 42.0;             // (959) κ＝接触の割合 1 あたりの軍需の上乗せの倍率（旗 MilitaryWarMultFromContact 1 だけが読む・戦時の倍率＝1＋κ×接触の割合）。42＝今の戦時の軍需の総量 Σ兵×(warMult−1) を保つ値（(973) m968 の生で取り直した紙＝戦死÷Rate を接触の代理にした近似で base・n1・n2 の幅 41.8〜43.9・measurements/m973_20261108/paper973_m968.txt・同じ盤面の計器の値は ident c87mwz の門の記録・AI の値・確証なし）
     // 監査2026-07-12 死19：MilitaryBudgetFrac（国庫比の軍需上限）は歳入フロー基準（MilitaryRevenueShare）への置換後の残骸＝参照ゼロにつき削除。軍需上限を調整する係数は MilitaryRevenueShare
     // 上位軍需（機関銃・装甲艦）：基本装備を整えた残余予算で調達＝戦力の質的乗数。富裕/軍国国ほど届く（高価だが強い）。値は暫定でsweep対象
     public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
@@ -2799,7 +2799,7 @@ public sealed class Coefficients
     // ★(456) 旗 ScoreFromWorldShare は焼き込んで消した（(416) で追加・(449) で既定 1 へ点火・(456) で旧の腕〔0＝兵＋豊かさ＋金融＋技術の和〕を物理的に消した）。国力＝世界の総量に対する本国の割合の 6 項（兵・軍事費〔参照価格建て〕・鉄の産出・動力の消費・都市人口・総人口）の均等平均×100
     //   （飽和もクランプも使わない・総量が 0 の項は平均から外す・植民地の州は数えない）。外交のランク・条約港の風化・序列の在庫・NationBrief・画面・Runner が NationalScore の 1 本を読む。旧の式（Instruments.OldScore）と計器 score_s の旧の列〔scoreOld・rankOld・isGreatOld〕は (798) で消した。
     //   作者の 2026-06-28 の指示と逆向きになる恐れ（人口の項が 4 つ）＝承認は未確認（00一覧 §0-2 Q-S1）。旧に戻す道は git 履歴〔(449) の木〕だけ。
-    // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
+    // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需（当時は2倍・今は対外戦と同じ式）・
     //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。
     //     ⚠親も反乱国も真＝親の全州が生産−20%を受ける。清・露・オスマンの経済帯が悪化することは作者が受容済み（帯の悪化は差し戻しの理由にしない・記録する）。
