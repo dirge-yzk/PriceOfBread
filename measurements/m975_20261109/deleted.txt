@@ -3,3 +3,4 @@ c87mw_work/arm_c87mwB/out_c87mwB_10/ins（mw の腕 B の生 18GB・合わせた
 out_amt0_10・out_amw0_10（合成後のアブレーションの生 約 36GB・amt0＝M と計器の表ごとにバイト一致〔pinit の旗の列と揺れの外〕・amw0＝keep_968/base_ins とバイト一致〔cwmult の増えた列と basisx・pinit と揺れの外〕・門を読んだ後）消した 2026-11-09 04:00:41
 ident_m975z（腕 Z の ident の生 約 19GB・〈判定: 恒等〉・bx_read を Z の生で回して measurements/m970_20261108_bx_read.txt と見出しの外で一致を確かめた後）消した 2026-11-09 04:16:54
 c87mw_work/arm_c87mwS/out_c87mwS_10_s11/ins（mw の S11 の生 13GB・合わせた木の S11 と種 13 の外でバイト一致・種 13 の違いは mt の defer に帰属・門を S11 で読んだ後）消した 2026-11-09 04:20:36
+wt_c87ot・wt_c87bx・wt_c87hd・wt_c87mt・wt_c87mw（git worktree remove・枝は origin に残る）・wt_m975z（腕 Z の使い捨ての木・枝 m975z を消した）2026-11-09 04:33:34
