@@ -1,0 +1,40 @@
+m1008 事前登録（線 c93tq・仮番号 (1008)・貿易の段0 の本体の計器・恒等の線）
+基準＝m1001（木 1784e2ea・INSRAW＝D:/PoB_work/keep_1006/base_ins＝nationgood_s・tradeskip_s つき）。書き手＝Claude Sonnet 5.5。計器より前の別のコミット。結果を見た後に書き換えない。
+
+[1] 形：恒等（旗なし・係数なし・力学 0 行・INS=1 のときだけ書く）。予言 0。素の 5 種・計器つき 10 種は m1001 と名乗り行を除いて全行一致。
+  計器つきの表の差は宣言だけ：--grown-ok tradeskip,nationgood（列が末尾に増える）。旧の列はバイトで同じ。目的＝英 1913 の関税の 4 候補（穀物法・実効の tar と目標の差・通貨の換算・CIF の分母）を列で切る。
+  行の移動 0。年のラベルは★(1006)＝呼んだ時点の年（C1・C2 の既存の規則のまま）。
+
+[2] 足す物（旗なし・新しい係数 0・力学 0 行）
+  読み手の grep の結果：TsCol・TsAcc・NgAcc・NgDeal・NgHead・TsBegin の呼び手は BilateralMarket.cs・Instruments*.cs・TradeInstrumentTests.cs だけ（Runner・App・Display・scripts の台本は表の列名で読む）。消す物 0。
+  列（tradeskip_s の末尾・国の値は財の行に繰り返す・ALL の行は 0 を同じ幅で埋める）
+    duty の内訳：dutyMean（走査した行の duty の平均＝エンジンの duty の局所）・dutyTariffMean（protect＝Math.Max(0, tar[ni]) の写しの平均）・dutyCornMean（cornPen の平均）。平均の分母＝rowScan。
+    xWedgeA の 3 分け（排他・優先順）：xWedgeAT 関税の分だけ抜いて通る（selP×(baseMul＋wS2−protect)＜lp）／xWedgeAC それでなく穀物法の分だけ抜いて通る／xWedgeAB どちらか一方では通らず両方抜くと通る。和＝xWedgeA。
+    最初の門ごとの値段の比の度数（形 (a) で固定）：xSoldBin0〜9・xCapBin0〜9・xWedgeBin0〜9・xPassBin0〜9（境は旧と同じ）・ratioNaN（比が NaN の売り手の数＝度数に入らない）。旧の ratioBin0〜9 は門の前の全体のまま。
+    実効の関税と目標（国の値・TsBegin＝清算の頭で蓄える）：tarEff（エンジンの tar[i]＝TariffRate の局所）・tariffNow（w.Tariff）・tariffTarget（Q5(Policy.TariffTarget)＋TariffRetaliationBias を [TariffFloor,1] に収めた写し。Government.TariffTargetFloored は private なので計器が自分で写す）・treatyScale（1−Politics.ForeignPortShare）・exRate（エンジンの exRate[i]＝w.FxRate）。
+  nationgood_s の末尾：dutyTariffPaid・dutyCornPaid（越境の成約で買い手が払った関税の分・穀物法の分）・tarEffAtPay・exRateAtPay（その清算の頭の tar[i]・exRate[i]）。国×財の行（買い手の国）。
+    積む通貨＝買い手の通貨（台帳の payTariff と同じ式 vA×part÷exRate[ni]）。金建ては ×exRate で読み手が換算。式はエンジンの dutyPay（vA×dutyA÷exRate）と別に、protect と cornPen を別々に呼び口で受けて積む（割合で割らない・duty の合算を渡さない）。負の関税（protect＝0）の輸出補助は積まない。
+    積む範囲＝清算 1 回分（NgHead で 0 へ・World.LastTariffRevenuePerClearing の範囲と同じ）。
+  呼び口（行を足さない・既存の行の中で引数だけ）：BilateralMarket.cs の NgHead と TsBegin の行（tar・exRate を足す）・ts.Scan の行（cornPen を足す）・TradeDeal の行（越境の protect の払い・穀物法の払いを足す）。InstrumentsTransport.cs:100 の署名と NgDeal の呼びに同じ引数。
+  他の線との重なり：c93ms は Instruments.cs・Simulation.cs・InstrumentsMerch.cs だけ＝重ならない。Instruments.cs には触れない（表は既存の Tradeskip・Nationgood の書き手に載せる）。
+
+[3] 門（両側）・突然変異・試験
+  G5 行ごとに dutyTariffMean＋dutyCornMean＝dutyMean（相対 1e-12）。試験：穀物法なしの盤面で dutyCornMean＝0・関税 0 の盤面で dutyTariffMean＝0（合成の盤面＋実盤で穀物法 Full の英が主食を輸入する行に cornMean＞0 の対照）。
+  G6 国ごとに Σ財(dutyTariffPaid＋dutyCornPaid)＝World.LastTariffRevenuePerClearing（エンジンの別の欄・四半期の末の最後の清算 1 回分）・相対 1e-9。tar＜0 の国は 1171 の輸出補助が同じ欄から引かれるので除外し、比べた国が 3 以上・Σ穀物法の払い＞0 を対照にする。下側：書かないと赤・上側：国内を混ぜると赤。比べる範囲＝清算 1 回分。ident の生では fiscal_s の ledgerTariffPerMonth とも並べるが記録（Transfer が払い手の残高で削る・月次平均との範囲の差があるため門にしない）。
+  G7 各行で Σ門(xSoldBin_k＋xCapBin_k＋xWedgeBin_k＋xPassBin_k)＝旧の ratioBin_k（全行・全 k）。Σ全ての門の度数＋ratioNaN＝xPairs。対照＝xCap と xWedge の度数が正の行がある。
+  G8 tarEff＝Clamp(tariffNow×treatyScale, TariffFloor, 1)（1e-12）。条約港の盤面（Politics.AddForeignShare で港州に持分）で treatyScale＜1 かつ tarEff＜tariffNow（対照）・床の盤面（TariffFloor を負にして tariffNow をそれ未満へ）で tarEff＝TariffFloor。
+  G9 門の順：容量が 0 の売り手で楔にも落ちる売り手は xCap に数える（合成の盤面・旧の順）。
+  G1〜G4b（c92tg）は緑のまま。加えて：ident〈判定: 恒等〉・㉘ の束が緑・savetest 合格・推定 248.5 秒以下。
+  突然変異（使い捨ての木・どの門で赤かを 1 本ずつ）
+    M1 dutyCornMean に duty を積む → G5 赤
+    M2 dutyCornPaid を積まない → G6 赤（Σ穀物法の払い＞0 の対照つき）
+    M3 度数を門の前で全て xPassBin へ入れる → G7 赤（xCap・xWedge の度数が正の対照）
+    M4 tarEff を w.Tariff で写す（treatyScale を外す）→ G8 の条約港の試験が赤
+    M5 門の順を 楔→容量 に替える → G9 赤（ident でも tradeskip の旧の列が不一致になる）
+    M6 dutyTariffPaid に国内の成約を混ぜる（cross を見ない）→ G6 赤
+  足す試験（TradeInstrumentTests.cs・[Fact] 6 本・[Theory] 0 本）：G5・G6・G7・G8 条約港・G8 床・G9。TESTS_NONFULL 2530→2536（--tests-delta 6）。書き換える既存の試験 0（Row・Scan の新しい引数は既定値つきで旧の呼びを変えない）。
+  ㉘ の束（--artifacts-path D:/PoB_work/c93tq_art）＋TradeInstrumentTests・OnDoubleReadScanTests・TransportInstrumentTests・CearnTradeColumnsTests。㉑㉘ 点検：`new MoneyStock(` 件数は触れない・route_anchors は触れない・WriterRatchetTests の宣言の表は触れない・OnDoubleReadScanTests は `Instruments.On` の字面を足さない（新しい呼び口は引数だけ）・工業化度の読み手の許可表は触れない。書き換える件数の予言 0。
+
+[4] 計算量：Scan の売り手 1 人あたり加算が数回＝標本の年（調べる年）の第 4 四半期の最初の清算だけ。nationgood の積みは成約ごとに 2 加算。推定の変化は 0.3 秒以内（.cost の推定は基準 211.2 秒・上限 248.5）。行の増減：BilateralMarket.cs・InstrumentsTransport.cs は 0（git diff --stat で ident の前に確かめる）。
+[5] 英 1913 の 4 候補が切れるか（記録・門にしない）：穀物法＝dutyCornMean と xWedgeAC／実効の tar と目標の差＝tarEff 対 tariffTarget／通貨の換算＝exRate と buyer 通貨の払い／CIF の分母＝記録（この列では切れない見込み）。xCap 47.8% の中身＝xCapBin の比≧1 の割合。
+[6] 採る条件：ident〈判定: 恒等〉・G5〜G9 が ident の生で通る（G6 のみ記録）・㉘ 緑・savetest・突然変異 M1〜M6 が全て赤。集計の台本は scripts/instruments/c93tq/ にコミット。生は合流が読み終えるまで残す。
