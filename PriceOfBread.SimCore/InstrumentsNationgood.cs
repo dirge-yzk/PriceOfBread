@@ -11,7 +11,7 @@ namespace PriceOfBread.SimCore;
 //   priceMeanGold は州の Price の単純平均×国の FxRate（取引の重みなし）。量は財の単位（重さを掛けない）。
 public static partial class Instruments
 {
-    internal const string NationgoodHeaderText = "year\tnation\tgood\ttier\tproducedQty\tdemandQty\tshortageQty\tstockQty\tcrossImportValue\tcrossExportValue\tcrossImportQty\tcrossExportQty\tpriceMeanGold";
+    internal const string NationgoodHeaderText = "year\tnation\tgood\ttier\tproducedQty\tdemandQty\tshortageQty\tstockQty\tcrossImportValue\tcrossExportValue\tcrossImportQty\tcrossExportQty\tpriceMeanGold\tdutyTariffPaid\tdutyCornPaid\ttarEffAtPay\texRateAtPay";   // (1008) 末尾の 4 列：越境の成約で買い手が払った関税の分・穀物法の分（買い手の通貨）・その清算の頭の tar・exRate
 
     /// <summary>越境の額と量を調べる年の間隔（年の数字がこの数の倍数と 1913）。既定 10＝trroute と同じ。番人だけが 1 にする。</summary>
     internal static int NgEveryYears = 10;
@@ -20,7 +20,7 @@ public static partial class Instruments
 
     sealed class NgAcc
     {
-        public double[] ImpV = [], ExpV = [], ImpQ = [], ExpQ = [];
+        public double[] ImpV = [], ExpV = [], ImpQ = [], ExpQ = [], DutyT = [], DutyC = [], Tar = [], Ex = [];
         public int Gc;
         public readonly Dictionary<World, int> Idx = new();
         public World[] Worlds = [];
@@ -32,13 +32,15 @@ public static partial class Instruments
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, NgSink> NgSinks = new();
 
     /// <summary>清算の頭：越境の蓄えを 0 へ戻す（World.ImportsByGood の 0 戻しと同じ位置）。計器が切れていれば何もしない。</summary>
-    internal static void NgHead(InternationalMarket m, IReadOnlyList<Simulation> nations, int gc)
+    internal static void NgHead(InternationalMarket m, IReadOnlyList<Simulation> nations, int gc, double[]? tar = null, double[]? exRate = null)
     {
         if (!On) return;
         var a = NgAccs.GetValue(m, _ => new NgAcc());
         int nn = nations.Count;
-        if (a.ImpV.Length != nn * gc) { a.ImpV = new double[nn * gc]; a.ExpV = new double[nn * gc]; a.ImpQ = new double[nn * gc]; a.ExpQ = new double[nn * gc]; }
-        else { Array.Clear(a.ImpV); Array.Clear(a.ExpV); Array.Clear(a.ImpQ); Array.Clear(a.ExpQ); }
+        if (a.ImpV.Length != nn * gc) { a.ImpV = new double[nn * gc]; a.ExpV = new double[nn * gc]; a.ImpQ = new double[nn * gc]; a.ExpQ = new double[nn * gc]; a.DutyT = new double[nn * gc]; a.DutyC = new double[nn * gc]; }
+        else { Array.Clear(a.ImpV); Array.Clear(a.ExpV); Array.Clear(a.ImpQ); Array.Clear(a.ExpQ); Array.Clear(a.DutyT); Array.Clear(a.DutyC); }
+        if (a.Tar.Length != nn) { a.Tar = new double[nn]; a.Ex = new double[nn]; }
+        for (int i = 0; i < nn; i++) { a.Tar[i] = tar is not null ? tar[i] : double.NaN; a.Ex[i] = exRate is not null ? exRate[i] : double.NaN; }   // (1008) 清算の頭の tar・exRate（エンジンの局所）
         a.Gc = gc; a.Idx.Clear(); a.Worlds = new World[nn]; a.LastB = a.LastS = null; a.Any = true;
         for (int i = 0; i < nn; i++) { a.Idx[nations[i].World] = i; a.Worlds[i] = nations[i].World; }
     }
@@ -50,18 +52,23 @@ public static partial class Instruments
     }
 
     /// <summary>成約 1 件（TradeDeal の位置）：越境だけを積む。</summary>
-    internal static void NgDeal(InternationalMarket m, World buyer, World seller, int good, double qty, double value, double freight, bool cross)
+    internal static void NgDeal(InternationalMarket m, World buyer, World seller, int good, double qty, double value, double freight, bool cross, double dutyT = 0.0, double dutyC = 0.0)
     {
         if (!cross || !NgAccs.TryGetValue(m, out var a) || !a.Any) return;
         int bi = NgIdx(a, buyer, true), si = NgIdx(a, seller, false);
         if (bi < 0 || si < 0 || good >= a.Gc) return;
         a.ImpV[bi * a.Gc + good] += value + freight; a.ImpQ[bi * a.Gc + good] += qty;
         a.ExpV[si * a.Gc + good] += value; a.ExpQ[si * a.Gc + good] += qty;
+        a.DutyT[bi * a.Gc + good] += dutyT; a.DutyC[bi * a.Gc + good] += dutyC;   // (1008) 買い手の通貨・越境の成約だけ
     }
 
     /// <summary>番人用：国の添字×財の越境の蓄え（輸入額・輸出額・輸入量・輸出量）。蓄えが無ければ null。</summary>
     internal static (double[] ImpV, double[] ExpV, double[] ImpQ, double[] ExpQ, int Gc)? NgSnapshot(InternationalMarket m)
         => NgAccs.TryGetValue(m, out var a) && a.Any ? (a.ImpV, a.ExpV, a.ImpQ, a.ExpQ, a.Gc) : null;
+
+    /// <summary>番人用（1008）：国の添字×財の払った関税の分・穀物法の分（買い手の通貨）・国の tar・exRate。</summary>
+    internal static (double[] DutyT, double[] DutyC, double[] Tar, double[] Ex, int Gc)? NgDutySnapshot(InternationalMarket m)
+        => NgAccs.TryGetValue(m, out var a) && a.Any ? (a.DutyT, a.DutyC, a.Tar, a.Ex, a.Gc) : null;
 
     static void NationgoodTable(MultiNationSim sim, ulong seed, int q)
     {
@@ -89,7 +96,8 @@ public static partial class Instruments
                 }
                 int ci = a.Idx.TryGetValue(w, out var ix0) ? ix0 : -1; bool had = ci >= 0; int k = ci * a.Gc + g;
                 sk.W.WriteLine(string.Join('\t', I(yearLabel), nm, Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), F(prod), F(dem), F(sh), F(stock),
-                    had ? F(a.ImpV[k]) : "0", had ? F(a.ExpV[k]) : "0", had ? F(a.ImpQ[k]) : "0", had ? F(a.ExpQ[k]) : "0", n > 0 ? F(price / n * w.FxRate) : "nan"));
+                    had ? F(a.ImpV[k]) : "0", had ? F(a.ExpV[k]) : "0", had ? F(a.ImpQ[k]) : "0", had ? F(a.ExpQ[k]) : "0", n > 0 ? F(price / n * w.FxRate) : "nan",
+                    had ? FR(a.DutyT[k]) : "0", had ? FR(a.DutyC[k]) : "0", had ? FR(a.Tar[ci]) : "nan", had ? FR(a.Ex[ci]) : "nan"));
             }
         }
     }
