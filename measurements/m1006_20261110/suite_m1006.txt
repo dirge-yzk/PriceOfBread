@@ -1,0 +1,4 @@
+(1006) 合流のフルスイート（合わせた木 wt_m1006＝1784e2ea・隔離ビルド D:/PoB_work/m1006_work/suite_art・Release）
+Category!=FullLength: 成功!   -失敗:     0、合格:  2529、スキップ:     1、合計:  2530、期間: 15 m 59 s - PriceOfBread.Tests.dll (net10.0)
+Category=FullLength: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 20 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests（ident m1006z の腕 t）：Category!=FullLength 2530・FullLength 3＝合計と一致
