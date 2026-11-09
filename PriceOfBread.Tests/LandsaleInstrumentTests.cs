@@ -236,4 +236,17 @@ public class LandsaleInstrumentTests
         Assert.True(Math.Abs(a1 - 1e-13) <= 1e-12 * 1e-13, $"旗 1 の実際 {a1:R}");
         SameRel(a1, c1, "旗 1");
     }
+
+    /// <summary>T11（1002・(995) 反証役の紙の盤面）貯蓄が全額払われる盤面（V≧ΣS・P＝21600）：写しの額は 買い手ごとの min(φ×シェア×P, S_j) ＝ S_j ちょうど。実際と写しを許容なし（Assert.Equal）で比べる。
+    /// 1 人（13.321）は min を外すと写しが 13.321000000000002・2 人（6.291・10.7077）は 6.291000000000001 になり赤（SameRel は 1e-12 の許容で緑のままだった＝M4 の穴）。期待は貯蓄の手の値から書く。</summary>
+    [Fact]
+    public void T11_貯蓄が全額払われる盤面は厳密に一致()
+    {
+        var (a1, c1, _) = SaleBoard(13.321, 0, 0, 1e9, 0);
+        Assert.Equal(13.321, a1);
+        Assert.Equal(13.321, c1);
+        var (a2, c2, _) = SaleBoard(6.291, 10.7077, 0, 1e9, 0);
+        Assert.Equal(6.291 + 10.7077, a2);
+        Assert.Equal(a2, c2);
+    }
 }

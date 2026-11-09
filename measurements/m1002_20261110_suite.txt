@@ -1,0 +1,1 @@
+非 FullLength：合格 2524・スキップ 1・合計 2525（予言 2524+1 と一致・--list-tests 2525）。FullLength --list-tests 3＝非 FullLength の後に未走（SimCore・Runner・App は無変更・試験の .cs は T11 の 1 本だけ）。savetest OK（1789・300 四半期・12 四半期後に全 61 カ国一致）・leakhunt 完走（保存則違反なし）。

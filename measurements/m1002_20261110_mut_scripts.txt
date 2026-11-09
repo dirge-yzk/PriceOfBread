@@ -1,0 +1,11 @@
+M1 selftest rc=1（赤＝1 が期待）
+M2 selftest rc=1（赤＝1 が期待）
+M3 selftest rc=1（赤＝1 が期待）
+M4 selftest rc=1（赤＝1 が期待）
+M5 selftest rc=1（赤＝1 が期待）
+M6 selftest rc=1（赤＝1 が期待）
+M7 selftest rc=1（赤＝1 が期待）
+M8（rc の扱いを戻す）:
+赤 rc=0 STOPDONE が出た
+元の rc1002:
+緑 rc=1 STOPDONE なし
