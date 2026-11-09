@@ -1,0 +1,4 @@
+M	種 10	region_s の行 2155530	(quarter,region) の重複 0	nationIndex の不一致 0
+S11	種 10	region_s の行 2157282	(quarter,region) の重複 0	nationIndex の不一致 0
+N1	種 10	region_s の行 2158466	(quarter,region) の重複 0	nationIndex の不一致 0
+N2	種 10	region_s の行 2159417	(quarter,region) の重複 0	nationIndex の不一致 0
