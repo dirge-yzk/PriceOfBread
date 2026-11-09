@@ -1,0 +1,7 @@
+# (937) mut990：突然変異ごとの赤の試験（LandTaxFixedBasisTests・LandfixInstrumentTests）・木 D:/PoB_work/c90px_work/mut_tree
+M1 build=0 test=1 赤 2：インフレの下で比例へ戻すと請求が上がる・四半期の途中のセーブの往復で請求が一致する ｜ 失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M2 build=0 test=1 赤 1：助走の20四半期でphiが動かない ｜ 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M3 build=0 test=1 赤 1：建国の子のphiが親と同じ_旗0では写さない ｜ 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M4 build=0 test=1 赤 1：地主が純反対でも在庫があればphiが動く ｜ 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M5 build=0 test=1 赤 1：四半期の途中のセーブの往復で請求が一致する ｜ 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M6 build=0 test=1 赤 1：建国の子のphiが親と同じ_旗0では写さない ｜ 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,37 @@
+(990) c90px 事前登録：⑯ 土地税 A-2b-1a-ii の器＝φ* だけ（旗 0・恒等の線・ident 1 本）。AI の案・確証なし。作者「全て推奨で」で推奨を採った範囲（★(981) ③・★(919) ④）。点火 1d は答え待ち（★(988) ①）＝この線は入れない。
+基準 m988（22de6aab）。形は〈尾〉ではなく〈器〉。
+
+[1] 恒等の線・予言 0
+- 旗 LandTaxPhiMove（既定 0）。名前は着手前に grep して 0 件（SimCore・Tests・Runner・App・scripts・measurements）。
+- 旗 0 の世界で動く経路は 3 行：
+  (a) World.LandTaxBasisPhi（double）の読み込み。LandTaxBasisFixed は派生（get＝φ*＞0・set＝1.0／0.0）。world.json の "Fixed" の国は φ*＝1.0、他は 0.0。
+  (b) EconomyStep.PayOwnerRent の差分に φ* を掛ける 1 箇所（旧は掛けない）。φ* は 1.0 か 0.0 で、差分を積む（fz が非 null）のは φ*＞0 の国だけ＝掛けるのは常に 1.0。
+  (c) Government.Step の旗 1 の分岐（旗 0 では読まれるだけ）。
+- 浮動小数の順序が変わる箇所：(b) の 1 箇所だけ。〈1.0×(差)〉は IEEE で差そのもの（NaN・無限も同じ）。差の外側に 1 回だけ掛け、差の中身の式（f×wk−max(0,rk)）の順序は変えない。同じ盤面で旧と新を数えた食い違いの数の予言は 0（紙の台本：旗 0 で φ* ∈ {0,1}・fz 非 null なら φ*＝1）。
+- 予言：素の 5 種・10 種・計器つき 10 種が m988 と名乗り行を除いて全行バイト一致。推定の計算量は m988 と同じ（読み手は PayOwnerRent の 1 掛け算だけ）。
+
+[2] 消す物と残す物
+- 消す物：なし。
+- 残す物：World.LandTaxBasisFixed（派生の形で残す＝書き手 Simulation.cs:119 と試験 LandTaxFixedBasisTests.cs:61・:194・:248・:302・LandShareCrownTests.cs:189 は 1 行も書き換えない）。
+  ★(743) の区分：bool を double の欄へ広げ、bool は同じ名の派生で残す（〈試験を書き換える〉でも〈別の欄を並べる〉でもない）。
+- 足す物：World.LandTaxBasisPhi（World.cs の LandTaxBasisFixed の隣）・Coefficients.LandTaxPhiMove（:713 の次の行）・Government.MoveLandTaxPhi（Move の直前）・Step の 1 行・CopyLawsFrom の 1 行（旗 1 のときだけ）・PayOwnerRent の else-if 1 本（旗 1 のときだけ）。
+- 読み手の grep（LandTaxBasisFixed）：SimCore＝World.cs（宣言）・Simulation.cs:119（書き手）・EconomyStep.cs（PayOwnerRent の条件）・Model.cs／NationConfig.cs（注の文字だけ）／Runner・App・Display＝0 件／Tests＝LandTaxFixedBasisTests・LandShareCrownTests／scripts＝c82lt・c85lt の突然変異の台本（文字列）／measurements＝m937・m942 の記録。POB_COEF の名前の解決は旗 LandTaxPhiMove が増えるだけ。SaveGame はフィールドの反射＝bool の裏の欄が消え double の裏の欄が増える（double は分岐にある・savetest で確かめる）。
+- 点検（㉘）：new MoneyStock( の件数＝64（変わらない予言）。route_anchors.tsv に LandTaxBasis の行は 0 件（足さない）。WriterRatchetTests に LandTaxBasis の行は 0 件（φ* の書き手は MoveLandTaxPhi の 1 行と CopyLawsFrom の 1 行と World.LandTaxBasisFixed の setter だけ＝宣言の表を書き換える件数の予言は 0）。工業化度の読み手の許可表は触らない（0 件）。DormantIdentityTests は DormantZeroFields の表に 1 行（LandTaxPhiMove）＝件数の番人があるならその +1 を予言として置く。
+- 他の線との重なり：c90sl は Fiscal.cs の Step（:95〜:125）と Coefficients.cs の :3340 の後の 1 行・DormantIdentityTests の末尾の行。px は Coefficients.cs :713 の次の 1 行と DormantIdentityTests の EmptyPopDebtFirst の前の 1 行、EconomyStep.cs の :726〜:746、World.cs の :104 と CopyLawsFrom、Government.cs の Step の 1 行と Move の直前の関数。重なる行は無い（隣り合う行は合流で解く）。Fiscal.cs は読むだけ・触らない（LandTaxBase は差分を足す形のまま φ*入りの差分を読む）。
+
+[3] 足す試験（PriceOfBread.Tests/LandTaxPhiTests.cs・政治を有効にした盤面・目標は引数）と、赤にする突然変異
+- 試験 5 本：①インフレの下で比例へ戻すと請求が上がる（期待は手で置いた式 φ×1000＋(1−φ)×1500）②助走の 20 四半期で φ* が動かない③建国の子の φ* が親と同じ（旗 0 では写さない対も同じ試験の中）④地主が純反対でも在庫があれば φ* が動く（在庫 0 なら動かない対つき・純反対は NetSupport で前提を確かめる）⑤四半期の途中のセーブの往復で基数が一致する。
+- 突然変異（scripts/instruments/c90px/mut990.py・使い捨ての木で 1 本ずつ・赤の試験を measurements/m990_20261109/mut990.txt に残す）：
+  M1 GX2 の符号を反対にする（差分の係数を φ から 1−φ へ）→ ①
+  M2 MoveLandTaxPhi の WarmupFrozen の歯止めを外す→ ②
+  M3 CopyLawsFrom の φ* の行を外す→ ③
+  M4 mandate＝false で呼ぶ→ ④
+  M5 φ* を保存しない（[NonSerialized]＝Δφ が四半期の途中で次の月へ残らず消える・指示の〈Δφ を次の月へ残す〉の代わりに、保存の往復で一致を割る形を使う。名乗る）→ ⑤
+  M6 旗 0 でも CopyLawsFrom で写す（旗の条件を外す）→ ③（旗 0 の対）
+- ソースを走査する番人（㉘）：scan28.sh を器のコミットの直後に回す。書き換える件数の予言は 0。
+
+[4] 比較
+- 素の 5 種（b5_20261109_m988）・素の 10 種（b10_20261109_m988）・計器つき 10 種（b10_20261109_m988_ins）が全行バイト一致（名乗り行の SOURCE-HASH を除く）。計器の表の差は宣言なし（計器を足さない）。ident.sh run c90px の判定。
+- 止める線：破綻・savetest・leakhunt・機構の試験の赤・推定 248.5 秒超。史実の線・NG は記録。
+
+[5] 〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ (b) を外して報告に回す。生は合流の判断まで残す（⑲）。
