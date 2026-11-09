@@ -1,0 +1,4 @@
+created 2026-11-10 06:40:40: D:/PoB_work/m1011_work（合流の作業・突然変異の写し mut・隔離ビルド suite_art・道具箱の写し kitsrc・docs の下書き stage）
+created 2026-11-10 06:40 頃: D:/PoB_work/wt_m1011（worktree・枝 m1011＝測る木）
+created 2026-11-10 06:42:01: D:/PoB_work/ident_m1011z（ident.sh の作業）
+created 2026-11-10 07:04:12: D:/PoB_work/keep_1011（base_ins＝合わせた木の計器つき 10 種の生・ident_m1011z/out_ib_10/ins から移した・merch_s と tradeskip_s・nationgood_s の新しい列を含む）
