@@ -78,10 +78,12 @@ for s in seeds:
     # G6 の記録：nationgood の払い（国×年の Σ財）と fiscal_s の関税の台帳
     ixn, rn = rd(pn)
     paid = {}
+    negtar = set()
     for r in rn:
         k = (r[ixn['year']], r[ixn['nation']])
         v = float(r[ixn['dutyTariffPaid']]) + float(r[ixn['dutyCornPaid']])
         paid[k] = paid.get(k, 0.0) + v
+        if float(r[ixn['tarEffAtPay']]) < 0: negtar.add(k)   # (1011) 負の関税（輸出補助）の国は G6 の照合から除く（試験と同じ母集合）
         if r[ixn['nation']] == NAT and r[ixn['year']] == YR:
             paid_uk['t'] += float(r[ixn['dutyTariffPaid']]); paid_uk['c'] += float(r[ixn['dutyCornPaid']]); paid_uk['imp'] += float(r[ixn['crossImportValue']]); paid_uk['ex'].append(float(r[ixn['exRateAtPay']]))
     if os.path.exists(pf):
@@ -90,21 +92,18 @@ for s in seeds:
         for r in rf:
             led.setdefault((r[ixf['year']], r[ixf['nation']]), []).append((int(r[ixf['monthIndex']]), float(r[ixf['ledgerTariffPerMonth']])))
         for (y, nat), v in paid.items():
-            m = led.get((str(int(y) - 1), nat))   # 呼びの時点の年は直前の第 4 四半期の翌年＝台帳は 1 年前の年の印
-            if not m or v == 0:
+            m = led.get((y, nat))   # (1011) 払いは年 y の印の最初の月の台帳と同じ清算（反証役 c93tq の 1 件目：旧は y−1 の最後の月と比べて 0.983 が出ていた）
+            if not m or v == 0 or (y, nat) in negtar:
                 continue
             m.sort()
-            last3 = sum(x[1] for x in m[-3:])
-            if last3 != 0:
-                ratio_rec.append(v / last3)
-            if m[-1][1] != 0:
-                ratio1.append(v / m[-1][1])
+            if m[0][1] != 0:
+                ratio1.append(v / m[0][1])
 
 print(f'行(国×財×種)={rows_n}  不一致：G5 duty の和 {bad["g5"]}（最大 {maxd["g5"]:.2e}）・xWedgeA の 3 分け {bad["g5split"]}')
 print(f'G7：旧の度数との不一致 {bad["g7bin"]}・総和＋NaN≠xPairs {bad["g7sum"]}・門の件数との不一致 {bad["g7gate"]}（ratioNaN>0 の行 {nanrows}）')
 print(f'G8：tarEff の不一致 {bad["g8"]}（最大 {maxd["g8"]:.2e}）')
 if ratio1:
-    print(f'G6 記録（直近 1 か月の台帳）：n={len(ratio1)} 中央値 {st.median(ratio1):.6f}  1±1e-6 の割合 {sum(abs(x - 1) < 1e-6 for x in ratio1) / len(ratio1):.3f}')
+    print(f'G6 記録（年 y の最初の月の台帳・負の関税の国を除く）：n={len(ratio1)} 中央値 {st.median(ratio1):.6f}  1±1e-6 の割合 {sum(abs(x - 1) < 1e-6 for x in ratio1) / len(ratio1):.3f}')
 if ratio_rec:
     print(f'G6 記録（門ではない）：nationgood の払い÷fiscal_s の台帳の直近 3 か月の和  n={len(ratio_rec)} 中央値 {st.median(ratio_rec):.4f}  1±1e-6 の割合 {sum(abs(x - 1) < 1e-6 for x in ratio_rec) / len(ratio_rec):.3f}')
 if uk['scan'] > 0:
