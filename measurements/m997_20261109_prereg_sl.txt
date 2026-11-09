@@ -110,3 +110,9 @@
  テストの数の予言（★(994)）：2521＋c91lc の新しい [Fact] 3（LandsaleInstrumentTests 7→10）＋この線 0＝**非 FullLength 2524・FullLength 3**（lc.mark の 2524 と一致）。
  突然変異は旗 1＋c91lc の code の頭（54691086＝417731de と .cs が同じ・差は measurements だけ）を merge した使い捨ての木 D:/PoB_work/c91sl_work/mut で回し始めた（フルスイートと並行・腕の前に終える）。
  旗 1 の木（c91lc を merge する前の e7440aae）の走査の番人の束（㉘＋LandSaleTests＋OnDoubleReadScanTests）：188 本すべて合格。
+
+[追記 2026-11-09・旗 1 のフルスイートの後・腕の結果の前（腕は 22:20 頃に起こした・結果は見ていない）]
+ 計器の束（㊴・~Instrument と ~LandSale・木 efa79804）：211 本すべて合格。
+ フルスイート（木 1645a93a・scripts/instruments/c91sl/suite997.sh）：非 FullLength 合計 2524（合格 2523・スキップ 1・失敗 0）＝--list-tests 2524・FullLength 3（合格 3）＝--list-tests 3。予言 2524＋3 と一致。赤 0（予言 0）。
+ savetest OK（12 四半期・61 か国・最大相対差 0）・leakhunt 完走（200 四半期・保存則違反なし・説明できない増減 0）。
+ 腕 B（POB_WORK=D:/PoB_work/c91sl_work/arm_B・タグ c91slB_10）と S11（arm_S11・タグ c91slS_10_s11・POB_CEARN=0）は同じ木 1645a93a で同時に起こした（重い仕事 2 本＝c91lc の ident は終わっていた・D: の空き 130.7GB）。[14] の〈B → S11〉の順から外れた所（結果は種と木だけで決まる）。
