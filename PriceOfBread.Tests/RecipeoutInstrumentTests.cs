@@ -13,7 +13,8 @@ namespace PriceOfBread.Tests;
 public class RecipeoutInstrumentTests
 {
     private const ulong Seed = 1789UL;
-    private static NationConfig[] Configs() => [NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()];
+    private static NationConfig Sicily() => WorldData.Nations().First(n => n.Provinces.Any(p => p.City == "パレルモ"));   // 希少鉱物（硫黄）の産地＝総量保存で膨らんだ賦存（E の倍率 10 超）の対照
+    private static NationConfig[] Configs() => [NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria(), Sicily()];
     private static MultiNationSim Make(Coefficients? coef = null) => new(Configs(), Seed, _ => new UtilityAgent(), coef);
 
     private sealed class Tab
@@ -116,7 +117,7 @@ public class RecipeoutInstrumentTests
     public void T3_級の規則値はProductivityの倍率と合う()
     {
         var sim = Make();
-        var cnt = new Dictionary<string, int>(); var badList = new List<string>(); int bad = 0; int ucount = 0;
+        int scarceE = 0; var cnt = new Dictionary<string, int>(); var badList = new List<string>(); int bad = 0; int ucount = 0;
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
                 foreach (var p in r.Producers)
@@ -124,11 +125,13 @@ public class RecipeoutInstrumentTests
                     var x = Instruments.RoRead(n.World, r, p);
                     if (double.IsNaN(x.Endow)) continue;   // 播種の賦存を受けない生産者（職人・代替レシピ・役務）
                     cnt[x.Class] = cnt.GetValueOrDefault(x.Class) + 1;
+                    if (x.Class == "E" && x.Rule > 10.0) scarceE++;
                     if (x.Class == "U") { ucount++; continue; }
                     if (!Close(x.Endow, x.Rule, 1e-9)) { bad++; if (badList.Count < 12) badList.Add($"{n.World.Region.Name}/{r.Name}/財{p.GoodId}:{Catalog.Goods[p.GoodId].Name}/{p.RecipeName}/RGO={p.IsRgo}/{x.Class} 規則 {x.Rule} 倍率 {x.Endow}"); }
                 }
         Assert.True(bad == 0, $"食い違い {bad} 件：" + string.Join(" | ", badList));
         Assert.Equal(0, ucount);
+        Assert.True(scarceE >= 1, "希少鉱物の産地（E で倍率 10 超）の対照が無い");
         foreach (var k in new[] { "E", "N", "S", "Z" }) Assert.True(cnt.GetValueOrDefault(k) >= 1, $"級 {k} の対照が無い");
         // 級 X：未発見（産出の門 0・倍率 4.0）→ 開く（4.0×5.0＝20）。同じ生産者を開く前と後で読む
         (World w, Region r, Producer p)? site = null;
@@ -165,8 +168,8 @@ public class RecipeoutInstrumentTests
     [Fact]
     public void T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う()
     {
-        int abund = 0, big = 0, deposit = 0;
-        foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France() })
+        int abund = 0, big = 0, bigE = 0, deposit = 0;
+        foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
         {
             var w0 = Solo(cfg, new Coefficients()).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;
             Assert.True(w1.Coef.EndowmentCostFollowsAbundance > 0 && !(w0.Coef.EndowmentCostFollowsAbundance > 0));
@@ -184,12 +187,13 @@ public class RecipeoutInstrumentTests
                     double engine1 = EconomyStep.MineralSelfCost(p1, r1, w1.Coef, w1) + EconomyStep.InputCostPerUnit(p1, r1, r1, w1.Coef);
                     Assert.True(Close(x0.IfAbundance, engine1, 1e-9), $"{cfg.Name}/{r0.Name}/財{p0.GoodId}：旗0の計器 {x0.IfAbundance}・旗1のエンジン {engine1}");
                     Assert.True(Close(x1.IfAbundance, x1.Mc, 1e-12), "旗 1 の盤面で二重に割っている");
-                    if (x0.Rule > 1.0) { abund++; if (x0.Rule > 10.0) big++; }
+                    if (x0.Rule > 1.0) { abund++; if (x0.Rule > 10.0) big++; if (x0.Class == "E" && x0.Rule > 10.0) bigE++; }
                 }
             }
         }
         Assert.True(abund >= 20, $"倍率>1 の生産者が少ない {abund}");
         Assert.True(big >= 1, "倍率 10 超（希少鉱物か開いた大鉱床）の対照が無い");
+        Assert.True(bigE >= 1, "希少鉱物の産地（E で倍率 10 超）の対照が無い");
         Assert.True(deposit >= 1, "大鉱床の盤面が無い");
     }
 

@@ -1,0 +1,241 @@
+(1013) 突然変異の出力（全文）。使い捨ての木 c94ro_work/mutwt・台本 scripts/instruments/c94ro/mutate.py。2026-11-10。
+第1回＝試験 5 本（希少鉱物の対照なし）：Mu1→T2 赤・Mu2→T1 赤・Mu3→T4 赤・Mu4→T4 と T3 赤・Mu5→全て緑（期待どおり＝級を Productivity から決めると T3 は自分自身と比べる同語反復になる＝やらない形の確かめ）・Mu6→全て緑（穴：試験の盤面に希少鉱物の産地が無かった）。
+穴を見つけたので試験に両シチリア（パレルモ＝硫黄 93.6 級）の盤面と E の倍率 10 超の対照を足した（T3・T4）。第2回 Mu6→T4 と T3 が赤。
+
+=== 要約（第1回）
+## Mu1_投入の値段を国の平均にする
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T2_費用はExplainCostByRecipeと合う [7 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+
+## Mu2_outputSumをCapacityにする
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T1_量の保存は国と財ごとにnationgoodの産出と合う [7 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+
+## Mu3_農業労働の投入も割る
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [3 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+
+## Mu4_大鉱床を4.0だけで割る
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [2 s]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う [62 ms]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+
+## Mu5_級の規則値をProductivityから決める
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 30 s - PriceOfBread.Tests.dll (net10.0)
+
+## Mu6_希少鉱物の総量保存を使わない
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 22 s - PriceOfBread.Tests.dll (net10.0)
+=== 要約（第2回 Mu6・強めた試験）
+## Mu6_希少鉱物の総量保存を使わない
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [5 s]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う [43 ms]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+=== 強めた試験の変異なし
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 31 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu1_投入の値段を国の平均にする.log
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (84 ミリ秒)。
+  D:\PoB_work\c94ro_work\mutwt\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (282 ミリ秒)。
+  D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (278 ミリ秒)。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.App\Controls\TableView.cs(74,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ConservationTests.cs(956,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(322,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(322,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(323,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(323,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:11.39]     PriceOfBread.Tests.RecipeoutInstrumentTests.T2_費用はExplainCostByRecipeと合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T2_費用はExplainCostByRecipeと合う [7 s]
+  エラー メッセージ:
+   パリ/パリ/0/鉱山：計器 0.33434972685914416・エンジン 0.3386446732183552
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T2_費用はExplainCostByRecipeと合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 103
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu2_outputSumをCapacityにする.log
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.App\Controls\TableView.cs(74,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\ConservationTests.cs(956,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(322,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(322,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(323,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\UnitTypeTests.cs(323,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:25.88]     PriceOfBread.Tests.RecipeoutInstrumentTests.T1_量の保存は国と財ごとにnationgoodの産出と合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T1_量の保存は国と財ごとにnationgoodの産出と合う [7 s]
+  エラー メッセージ:
+   (1784, フランス, 鉄鉱石)：計器 1545.4005508663797・nationgood 801.8942842
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T1_量の保存は国と財ごとにnationgoodの産出と合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 66
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu3_農業労働の投入も割る.log
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:04.73]     PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [3 s]
+  エラー メッセージ:
+   イギリス/ロンドン/財7：旗0の計器 0.135・旗1のエンジン 0.28500000000000003
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 185
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu4_大鉱床を4.0だけで割る.log
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:04.89]     PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [2 s]
+  エラー メッセージ:
+   日本/北九州/財5：旗0の計器 0.28500000000000003・旗1のエンジン 0.21700000000000003
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 185
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:16.35]     PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う [62 ms]
+  エラー メッセージ:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 145
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu5_級の規則値をProductivityから決める.log
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 30 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu6_希少鉱物の総量保存を使わない.log
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 22 s - PriceOfBread.Tests.dll (net10.0)
+
+=== 全文 Mu6_希少鉱物の総量保存を使わない.log
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94ro_work\mutwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94ro_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:09.12]     PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う [5 s]
+  エラー メッセージ:
+   両シチリア/パレルモ/財5：旗0の計器 0.28500000000000003・旗1のエンジン 0.2026813880126183
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 188
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:18.80]     PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う [43 ms]
+  エラー メッセージ:
+   食い違い 1 件：ナポリ/パレルモ/財5:硫黄/鉱山/RGO=True/E 規則 4 倍率 126.80000000000001
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.T3_級の規則値はProductivityの倍率と合う() in D:\PoB_work\c94ro_work\mutwt\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 119
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
