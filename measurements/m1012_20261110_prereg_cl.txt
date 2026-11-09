@@ -1,0 +1,53 @@
+(1012) c94cl 事前登録（最初のコミット）：地主の政治 C-0′ の計器 corncf_s と D-0 の計器 lordstat_s（恒等の線・旗なし・INS=1 のときだけ書く・新しい係数 0・エンジンの力学 0 行）
+書いたモデル：Claude Sonnet 5.5。出発の木 4803fabe（基線 m1001）。材料：docs/202611/20261107/…段C-0′＋D-0_盤面m919_下書き.md（(932) §2・§3）・docs/202611/20261109/…盤面m988_下書き.md（(1000) §2-2・§2-3・§4・§6-1）。
+注：計器の本体と試験は、この事前登録のコミットより前に下書きとして書いてあるが、まだ何も走らせていない（腕・突然変異・ident は 0 本）。予言は走らせる前に固定する。
+
+[1] 恒等の線・予言 0
+  形＝〈入口〉ではなく計器（読むだけ）。エンジンの .cs は 1 行も変えない。変える SimCore は新しい 2 本と Instruments.cs の既存 2 行だけ。
+  計器つき 10 種・素の 5 種の成績表は m1001 と名乗り行を除いて全行一致。計器の表の差は宣言（--added-tables corncf_s,lordstat_s）だけ。推定の計算量 211.2 秒は動かない（.cost は INS=1 の計器の秒を含めない。計器の重さ＝国×7 財×売り手約 60 の着値と州×生産者の走査）。
+
+[2] 消す物と残す物・重なり
+  消す物＝なし。残す物＝全て。足す物（ファイル）：
+    PriceOfBread.SimCore/InstrumentsCorncf.cs（新）・InstrumentsLordstat.cs（新）
+    PriceOfBread.SimCore/Instruments.cs の既存 2 行（--- 行を足さない ---）
+      呼び口 :1912（SubstTable…CornintTable…MerchTable… の行）の末尾に CorncfTable(sim, seed, q); LordstatTable(sim, seed, q);
+      閉じ口 :1940（SubstClose…CornintClose…MerchClose… の行）の末尾に CorncfClose(sim); LordstatClose(sim);
+      期待＝git diff --stat で Instruments.cs は 2 行増 2 行減（行の追加 0）。
+    PriceOfBread.Tests/CorncfInstrumentTests.cs（新）・LordstatInstrumentTests.cs（新）
+  読み手の grep（名の衝突）：corncf・Corncf・lordstat・Lordstat・CfDuties・CfLandedAB・CfStake・CfRents・LdIntermediary は SimCore・Runner・App・Display・Tests・scripts・measurements の台本で 0 件（接頭辞 Cf・Ld は InstrumentsLandsale.cs の LdNC・LdPrivateSlots・LdClamp01 と別名）。
+  POB_COEF の名前・SaveGame の名前の表への影響＝0（係数も欄も足さない）。
+  新しい `new MoneyStock(` は 0 件（grep 済み）。route_anchors.tsv の鍵の行は触らない。WriterRatchetTests の宣言の表は触らない（計器は書き込みの行を持たない）。
+  他の線との重なり：c94ro は Instruments.cs の :1909・:1942（別の行）と InstrumentsRecipeout.cs。c94pe は Meritocracy.cs・Coefficients.cs。重ならない。
+  使い回す写し（新しい写しを作らない）：InstrumentsCornint.cs の CnBloc・InstrumentsLandshare.cs の LsSlots・LsRecipient。
+  (932) の下書きとの食い違い（名乗る）：
+    (a) 十分の一税の母体＝(932) §3-2 と L7 は〈聖職者の居る州〉。現物 Fiscal.cs:66〜73 は国全体で聖職者の有無を決めて全州の大衆から請求する。計器は現物に合わせて〈国に聖職者が居るとき〉に直した。L7 の突然変異もそれに合わせて置き直した。
+    (b) 官僚制度の〈次の段〉＝猟官→資格任用→専門・国教の〈次の段〉＝国教→内心の自由→信仰の自由（国家無神論と信仰の自由は動かさない）。AI の案・確証なし。
+    (c) 型 2・3 の判定に輸出額（ExportsByGood）を使う。貿易の配列が無い世界は型 0・m と S↑ と S↓′ は nan。
+
+[3] 試験と突然変異
+  列の数：corncf_s＝94（鍵 4・楔 3・穀物の財 7×8＝56・ブロックごと 7×3＝21・国 6・cfRentAll 3＋cfRentCrownShare 1）。lordstat_s＝28。
+  試験の数（★(994)：新しいファイルの [Fact]・[Theory] の InlineData の行を数えた）：
+    CorncfInstrumentTests＝Fact 19（T2・T3・T3b・T4・T5・T6・T7・T8・T9・T10・T11・T12・T13・T14・T15・T16・T17・T18・T19）＋Theory の行 8（T1 の 6 行・T6′ の 2 行）＝27。
+    LordstatInstrumentTests＝Fact 12（L1〜L11 と G-L）。
+    合計 39（--tests-delta 39）。TESTS_NONFULL は 2546→2585 の見込み。
+  突然変異と赤になる試験（使い捨ての木・腕の前に固定）：
+    M1 周回を 5 まで（国家の枠を持ち主へ）→ T6′（旗 1 の行）・T19
+    M2 重みを ls[k]÷(1−ls[4]) にして国営持分の前の値に掛ける → T6′（旗 1 の行）
+    M3 分母をエンジンの実際の側（POP の LandRentPerMonth の和）にする → T18（実走の行）
+    M4 国家の枠を分母から外す（crown÷priv）→ T19
+    M5 計器が World.StateProfitShare を呼ぶ → T15（走査・T15′ の名）
+    M6 RuleInit[1] の代わりに Rule[1] → L3（Rule[1]≠RuleInit[1] の盤面）
+    M7 内心の自由と信仰の自由を入れ替える → L5
+    M8 近代エリートを数える（母体）→ L6
+  追加の突然変異（試験を足した時の確かめ・結果は後で書く）：M9 なしの楔を 0.5 → T1・M10 買い手を残す → T3b・M11 S↓ の min(p, L(d)) を p に → T8・M12 聖職者が居なくても母体を数える → L7・M13 全ての州を数える（動く州）→ L2。
+  走査の番人（T15・T15′・L10）：禁止の名を計器のファイル全文（注も）で grep 済み＝0 件（TitheDegree(・IntermediaryDegree(・EstateDegree(・EffectiveVoice(・FranchiseVoice(・IsMassPop(・TitheClaim(／LastDiscoveryView・.Landed(・TariffRate(・CornFactor(・TreatyPortTariffScale(・ForeignPortShare(・LandShareRecipient(・RentShareOf(・DistanceKm(・PolicyPreferences.・StateProfitShare(・IsNationalized(・LandTaxBase()。
+  ㉘ 走査の番人 5 組（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests）：書き換える件数の予言＝0（試験は足すだけ・既存の件数の番人は触らない）。赤なら腕を回さない。
+  年の印（★(1006)）：行の year は呼びの時点の年＝q%4==3 の行の year は翌年のラベル（cornint_s と同じ書き方）。読み手は年末の行を 1 年ずれて読まない。行の移動 0。
+
+[4] 行の数と計算量の予言
+  corncf_s・lordstat_s の行数＝cornint_s と同じ（INSRAW keep_1011/base_ins の cornint_s 10 種の合計 408,387 行）。
+  推定の計算量＝m1001 の 211.2 秒のまま（上限 248.5 秒）。
+  門 G-I（国家の枠）：cfRentCrownShare と landshare_s の crownActual の突き合わせ。許容は〈国×四半期の中央値の差が 0.05 以内〉（期待の側と実際の側の差は f0 の赤字の枝などで正）。下側＝M4 で T19 が赤。上側＝M1 で T6′ が赤。
+  門 G-L（十分の一税）：dreTitheBasePerMonth×TitheRate×度合い＝エンジンの請求の和（GL_ の試験・実走の相対 1e-6）。台帳の実際の側の列は無い（landbase_s の請求の列は別の定義）ので合成の試験で代える＝名乗る。
+
+[5] 採る基準：ident〈判定: 恒等〉（新しい表 2 本以外は全行一致）・㉘ の束が緑・savetest 合格・推定 248.5 秒以下。一致しなければ変更を外して報告に回す（D-0 の試験が赤なら lordstat を外して corncf だけで ident）。
