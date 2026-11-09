@@ -1,2 +1,5 @@
 D:/PoB_work/ident_m988z 18GB（腕 Z の ident の生・判定〈恒等〉を measurements/ident_20261109_m988z.txt に残してから消した） 2026-11-09 15:38:16
 D:/PoB_work/c89dd_work/arm_B 17GB・arm_S 12GB（c89dd の腕 B と S11 の生・合流の M・S11 と表ごとにバイトで比べ〔rawcmp_M_vs_c89ddB.txt・rawcmp_S11_vs_c89ddS11.txt〕、違いは時計の揺れと経路の行番号〔c89ls の Fiscal.cs の +1 行〕と landsale_s だけ・成績表は全行一致＝★(968)・(981) の先例） 2026-11-09 16:19:45
+D:/PoB_work/m988_work/out_mSc_10_s11・out_zSc_10_s11 各約 17GB（CEARN=1 の種 11〜20 の 2 腕の生・門の判定 armSc/judge984.txt と生の比べ 2 本を measurements に残してから消した） 2026-11-09 16:44:16
+D:/PoB_work/m988_work の src_*（腕の写しと隔離ビルド）・snap_*・out_*（ins を keep_988 へ移した残り）・cpop（cpop_route_test の盤面）・suite の art_suite・suitesrc 2026-11-09 16:45:22
+wt_c89tb・wt_c89ls・wt_c89dd（git worktree remove・枝は origin に残る・ローカルの枝を消した〔ローカルの頭は origin と同じ〕）・wt_m988z（腕 Z の使い捨ての木・枝 m988z を消した） 2026-11-09 16:47:36
