@@ -2,6 +2,7 @@
 #   腕名が N2 のときはシャムと共和制イギリスの行も読む。--selfneg は G1 の負の対照（出力の 1 バイトを変えた写しで G1 が赤になること）。
 import re, sys
 A = [a for a in sys.argv[1:] if not a.startswith('--')]
+SIAM = next((a[len('--siam='):] for a in sys.argv[1:] if a.startswith('--siam=')), None)
 bad = 0
 def ok(n, c, note=''):
     global bad
@@ -38,8 +39,10 @@ for a in A:
     print(f'   記録 {arm} 〈それ以外〉≧100（採否に使わない・m1001 の参照の最大は 0）：{m2.group(0) if m2 else "読めない"}')
     if arm.startswith('N2'):
         rows = [l.split('\t') for l in new.split('\n') if l.startswith('   行\t')]
-        sia = {(c[1], c[3]): c[4] for c in rows if c[2] == 'シャム'}
-        ok(f'{arm} G2′ シャム 種 7 q445（上がり）と q444（下がり）が 州の出入り', sia.get(('7', 'q445')) == '州の出入り' and sia.get(('7', 'q444')) == '州の出入り', str({k: v for k, v in sia.items() if k[0] == '7'}))
+        if SIAM:   # (1002) シャムの跳びが実在する生の gdp_jump1002 --rows の出力を --siam=<ファイル> で渡したときだけ（m1001 の N2 には無い）
+            srows = [l.split('\t') for l in open(SIAM, 'rb').read().decode('utf-8').replace('\r', '').split('\n') if l.startswith('   行\t')]
+            sia = {(c[1], c[3]): c[4] for c in srows if c[2] == 'シャム'}
+            ok(f'{arm} G2′ シャム 種 7 q445（上がり）と q444（下がり）が 州の出入り', sia.get(('7', 'q445')) == '州の出入り' and sia.get(('7', 'q444')) == '州の出入り', str({k: v for k, v in sia.items() if k[0] == '7'}))
         uk = [c for c in rows if c[1] == '6' and c[2] == '共和制イギリス' and c[3] == 'q151']
         ok(f'{arm} 参考（996 の G3）共和制イギリス 種 6 q151 が それ以外', len(uk) == 1 and uk[0][4] == 'それ以外', str(uk[0][4:6]) if uk else '行なし')
 sys.exit(1 if bad else 0)
