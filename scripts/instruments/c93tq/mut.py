@@ -13,11 +13,11 @@ def edit(path, a, b):
     assert s.count(a) == 1, (path, a, s.count(a)); open(p, 'wb').write(s.replace(a, b).encode('utf-8'))
 def run(name, edits):
     for path, a, b in edits: edit(path, a, b)
-    r = subprocess.run(['dotnet', 'test', os.path.join(tree, 'PriceOfBread.Tests'), '-c', 'Release', '--artifacts-path', art, '--filter', 'FullyQualifiedName~TradeInstrumentTests'], capture_output=True, text=True, encoding='utf-8', errors='replace')
+    r = subprocess.run(['dotnet', 'test', os.path.join(tree, 'PriceOfBread.Tests'), '-c', 'Release', '--artifacts-path', art, '--filter', 'FullyQualifiedName~TradeInstrumentTests', '--logger', 'console;verbosity=normal'], capture_output=True, text=True, encoding='utf-8', errors='replace')
     out = r.stdout.splitlines()
     print('=== ' + name)
     for l in out:
-        if '[FAIL]' in l or l.startswith('失敗!') or l.startswith('成功!') or 'error CS' in l: print(l[:220])
+        if '[FAIL]' in l or l.strip().startswith('失敗 ') or l.strip().startswith('Failed ') or l.startswith('失敗!') or l.startswith('成功!') or 'error CS' in l: print(l[:220])
     subprocess.run(['git', '-C', tree, 'checkout', '--', '.'])
     sys.stdout.flush()
 for name, spec in M.items():
