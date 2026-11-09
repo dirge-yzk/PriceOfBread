@@ -1,0 +1,13 @@
+Core {'rows': 1423211, 'empty': 129, 'lockA': 44, 'earn>0': 44, 'attract>1': 44, 'attract>2(cap)': 44, 'mk==0': 44} flowK_sum(0.02率)=71.1
+Colonial {'rows': 636911, 'empty': 413465, 'lockA': 71189, 'earn>0': 71184, 'attract>1': 71183, 'attract>2(cap)': 71183, 'mk==0': 71189} flowK_sum(0.02率)=30870.4
+Integrated {'rows': 93161} flowK_sum(0.02率)=0.0
+seed 1 {'Colonial_empty': 47933, 'Colonial_lockA': 9217}
+seed 2 {'Colonial_empty': 42029, 'Colonial_lockA': 7234}
+seed 3 {'Colonial_empty': 38599, 'Colonial_lockA': 5694}
+seed 4 {'Colonial_empty': 41429, 'Colonial_lockA': 7625}
+seed 5 {'Colonial_empty': 45816, 'Colonial_lockA': 6913}
+seed 6 {'Colonial_empty': 31704, 'Colonial_lockA': 4370}
+seed 7 {'Colonial_empty': 53233, 'Colonial_lockA': 10701}
+seed 8 {'Colonial_empty': 42643, 'Colonial_lockA': 7847}
+seed 9 {'Colonial_empty': 36212, 'Colonial_lockA': 4543}
+seed 10 {'Colonial_empty': 33867, 'Colonial_lockA': 7045, 'Core_empty': 129, 'Core_lockA': 44}

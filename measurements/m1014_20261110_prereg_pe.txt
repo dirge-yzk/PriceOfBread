@@ -1,0 +1,114 @@
+(1014) c94pe 事前登録：小営業の入口 ①* の空の行き先の錠 A を外す（旗 ColonyPettyEntryEmptyTarget・挙動の線・3 回の規則の 1 回目）
+書いた日 2026-11-10・木 4803fabe（main＝基線 m1001）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+出発：00一覧 §00〈挙動 ColonyPettyEntryEmptyTarget〉・§0-2 ★(1001) ①（答えが無い＝〈作者「全て推奨で」で推奨を採った〉）・実装ログ (999)・(1007) 反証役 ②③・素案 measurements/m999_20261109/prereg_next_draft.txt。
+形の種類：入口（社会移動の小営業の入口の新しい経路）。形の細部は全て AI の案・確証なし。3 回の規則：同じ形の 1 回目。
+
+[0] 指示から外れた所（報告の先頭にも書く）
+ a. **行き先を商人だけに狭めた**。Meritocracy.cs:164 は職人（pi=0）と商人（pi=1）の 2 択のループの中の 1 行で、行のまま外すと空の職人の行き先も開く（錠 A で止まる職人の行は全格で 84,147＝商人 71,233 より多い）。
+    門 G1〜G3 は全て商人の量で、merch_s に職人の 1 人あたりの稼ぎの列が無い（計器の書き換えは〈入れない物〉）＝職人の側には上側の門（入り過ぎ）が置けない。
+    よって旗＞0 で外すのは `idx == r.MerchantPopIndex` の行き先だけ。職人の空の行き先は記録（[5] の記録の列〈職人が空の割合〉）にして次の線の材料へ。
+ b. G1 を素案の絶対値（≦0.26）から新÷旧（≦0.50）へ替えた（素案からの変更）。理由は [4]。G1′ の下限 0.80 は指示に数が無いので、この事前登録で置いた。
+ c. 旗の名に Colony が付くが、形は格で分けない（全ての格・国ごとの特例なし）。本国格で起きる件数（錠 A の商人の行 44・種 10 だけ）を記録する。
+
+[1] 必要性の確かめ（腕の前・紙・scripts/instruments/c94pe/need1014.py・出力 measurements/m1014_20261110/need_base.txt）
+ 生：D:/PoB_work/keep_1011/base_ins の merch_s（10 種・2,153,283 行）。
+ 錠 A が止める行（lockABlockedMerchant=1＝錠 B 開かつ商人が空）：植民地格 71,189・本国格 44・統合格 0。
+ そのうち emptyMerchantEarnedPerMonth＞0：植民地格 71,184／71,189・本国格 44／44。
+ 空の商人の Size は全ての行で 0（merchantK==0）＝エンジンの attract＝Earned÷1e-9÷(労働者の 1 人あたり所得×1.5)。
+ その近似で attract＞2（min(attract−1,1) の上限で 1 に頭打ち）：植民地格 71,183／71,189・本国格 44／44。
+ 読み：空の行き先の Earned は 0 ではない（流通の取り分が人の居ない商人の POP に入る＝EconomyStep.cs:2167・:2734・:2895）＝旗は何かをする。**腕を回す。**
+ 1 四半期の流れの大きさ（近似）：錠 A の行ごとに 0.02×workerK×1。和は植民地格 30,870 千人・本国格 71 千人（10 種の行の和・最初の行だけが効く）。
+
+[2] 形（エンジン 1 行・行を足さない）
+ Coefficients.cs：:3342（LandShareTaxSale）の後に `public double ColonyPettyEntryEmptyTarget = 0.0;` を 1 行（新しい係数はこれだけ・状態・タイマー・閾値 0）。
+ Meritocracy.cs:164 を同じ行のまま次へ：
+   `if (t.Size <= Eps && !(c.ColonyPettyEntryEmptyTarget > 0 && idx == r.MerchantPopIndex)) continue;`
+   旗 0（と NaN）では括弧の中が偽＝旧の条件そのもの＝恒等。旗＞0 では、空の商人の行き先だけ continue しない。
+ :165 の attract（Max(0,Earned)÷Max(Eps,Size)÷…）と :168 の min(attract−1,1) は触らない＝空の行き先では attract≈1e16 で上限 1＝流れ＝0.02×労働者の頭数（from.Size で頭打ち）。
+ Move→Pop.Blend は受け手の Size の門を持たない（Model.cs:400〜）。t0=0 なら t1=n＞1e-12＝受け手の属性は移る組の属性・0 で割らない。お金は Carry（1 人あたりの按分）＝保存則は今の経路のまま。
+ :132・:258・:273・:333 の同じ形は触らない。錠 B（:156〜157）も触らない。
+
+[3] 判定の時点の差（限界 ④・名乗る）
+ 計器 merch_s は社会移動の区間の前（Simulation.cs:1908）で錠 B を読む。エンジンは ⑦ の平時の兵の戻し（:107〜）と ① の昇格（:128〜）の後の生きた from で読む。
+ ずれの記録（両向き・merch_s だけで数える）：
+  (i) lockABlockedMerchant=1 なのに翌四半期の merchantK≦1e-9（計器は開・エンジンは閉か、入った後に同じ四半期で抜けた）。
+  (ii) lockABlockedMerchant=0 かつ merchantEmpty=1 なのに翌四半期の merchantK＞1e-9（計器は閉・エンジンは開か、他の経路〔PopDecision・移民〕＝上限）。
+ 旗 0 の値（基線）：(i) 70,981／71,165・(ii) 592。
+
+[4] 紙の予言（今の盤面 keep_1011/base_ins・scripts/instruments/c94pe/paper1014.py・出力 measurements/m1014_20261110/paper_base.txt）
+ 仮定（名乗る・上側の見込み）：錠 A の最初の行の翌四半期から、その州の商人は空でなくなり、以後は空に戻らない。
+   根拠：商人には貧しさの出口が無い（⑤ の行き先は専門職・⑥ と ①' は職人だけ）＝出るのは ③ の資本家への昇格（MerchantArtisanCapitalRise）と死と移民だけ。
+ G1（植民地格の商人が空の割合・10 種の和÷和）：旗 0＝0.6492 → 予言 0.1296（新÷旧 0.1996・種ごと 0.141〜0.257）。
+   錠 A の行だけが減る下側の見込み（持続なし）なら新÷旧≈0.83（1−71,189÷413,465）。門 0.50 はこの 2 つの間で、仮定が半分外れても届く所。
+ G1′：旗 0＝0.0026（184／71,165）→ 予言≧0.9（attract≈1e16 で流れは必ず正・届かないのは ④ と同じ四半期の出口だけ）。
+ G2（中核ベンガルの商人が空の四半期・種の中央）：旗 0＝327（種 39〜510）→ 予言 22.5（種 18〜174・172 と 72 の 2 種が門 40 の外）。
+ G3（入り過ぎ）：旗 0＝0.1548（種 0.0509〜0.2839）。予言は〈旗 0 と同じ桁・≦0.30〉＝入口の流れは attract→1 で小さくなる比例の形（行き過ぎは稼ぎの揺れだけ）。
+ ヌル腕の幅（cpop_s の植民地格の商人の行・scripts/instruments/c94pe/null1014.py・出力 null_base.txt）：基線 0.6493・N1 0.6793・N2 0.6620（和÷和）＝新÷旧 1.00〜1.05。種の幅 0.480〜0.830。
+ 旗 0 で門が落ちることの確かめ（gates1014.py に基線を腕として渡した・gates_flag0.txt）：G1 1.0000＞0.50 落ちる・G1′ 0.0026＜0.80 落ちる・G2 327＞40 落ちる・G3 0.1548 通る（上側の門＝旗 0 では通るのが正しい）。
+
+[5] 門（両側・腕の前に固定・scripts/instruments/c94pe/gates1014.py）
+ 狙い（下側・大きさ）：
+  G1 新÷旧≦0.50（植民地格の州×四半期で商人が空の割合・10 種の和÷和・行の格はその四半期の格）。ヌル腕の幅（新÷旧 1.00〜1.05）の外。
+  G1′ ≧0.80（錠 A の行のうち翌四半期に merchantK＞1e-9 の割合・全ての格）。機構の門。
+  G2 種の中央≦40（中核ベンガル）。
+ 上側（この形に固有の誤り＝入り過ぎ）：
+  G3 ≦0.4258（植民地格で商人が空でない行のうち merchEarnedPerCap＜workerIncomePerCap×PromotionPremium の割合・和÷和・基線の種の上端 0.2839×1.5）。労働者の所得が nan の行は除外して件数を記録。
+ 記録（新÷旧・★(919) の全ての列＝gates1014.py の出力の〈同じ盤面の新÷旧〉の 13 行を全て報告に写す）：職人が空の割合・錠 A の行（植民地格／格の外）・④(i)(ii)・植民地格の商人の頭数の和（ラベル 1851・1914 の年末）・空でない植民地格の行の merchantDebt＞0 の割合・G3 の除外の件数。
+ 壊さない（止める線・この回の形をそのまま写す）：
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）と発散（1e10 倍・非有限・開幕の 1000 倍以上・plvl）。
+  1 四半期に人口が 1/10 未満か 10 倍以上・〈100 倍〉は scripts/instruments/c92gf/stoplines1002.sh の〈それ以外〉の行（基準 measurements/m1006_20261110/stopbase/ の M・N1・N2・S11 と並べる・同じ台本で数え直す）。建国の直後と〈分離・反乱の建国の後に名目 GDP 0〉は記録。
+  空洞化：python scripts/instruments/hol/an_h2.py <腕>/ins -v4 でピークの 1/10 未満・規則 A2 の名簿の外。**その線が原因と読めた件だけ止める**＝基線 keep_1011/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+  計算量：推定 ＞248.5 秒で止める。機構のテスト（ソースを走査する番人を含む）の赤で止める。
+ 記録だけ：NG（ng.sh・基準 rd:measurements/ng1001_20261109:m1001・出力フォルダは D:/ の形）・nullgate（m1001・N1・N2）・exact・near・史実の線・home_break・名目 GDP 0 の続き（gdp_zero10.py）・英の国債の不履行の種の数（ukdef975.py）・開幕の 1000 倍以上（同じ国が半分以上の種なら NG）。
+
+[6] 突然変異（腕の前に使い捨ての木で・試験は出力の全文を measurements/m1014_20261110/mut_*.txt に残し、日本語の出力〈成功!・失敗:・合格:〉で絞る）
+ 門ごとの赤（紙・M1 と M2 は基線そのもの＝[4] の旗 0 の値）：
+  | 突然変異 | G1 | G1′ | G2 | G3 | 器の試験 |
+  | M0 無変更 | 通る（予言） | 通る | 通る | 通る | 緑 |
+  | M1 旗を読まない（旧の行） | 赤 1.00 | 赤 0.0026 | 赤 327 | 通る | T1b 赤 |
+  | M2 空の行き先の attract を 0 | 赤 1.00 | 赤 0.0026 | 赤 327 | 通る | T1b 赤 |
+  | M3 min(attract−1,1) の上限を外す | 通る | 通る | 通る | 赤の見込み（未確定：労働者が全て抜けると workerIncomePerCap が nan で除外される＝除外の件数で読む） | T3 赤 |
+  | M4 錠 B も外す（旗＞0 のとき） | 通る（より低い） | 通る | 通る | 赤の見込み（未確定） | T2 赤 |
+  | M5 :132 も旗で外す | — | — | — | — | T4 赤 |
+  | M6 職人の空の行き先も開く（idx の条件を外す） | 通る | 通る | 通る | 通る（商人の量だけ） | T4 赤 |
+ 門の紙（G1〜G3）は M1・M2 だけ盤面で確かめた（gates_flag0.txt）。M3・M4 の門の赤は見込み＝腕を回さない（D: と腕の枠の予算）＝試験で拾う（T3・T2）。
+
+[7] 器の試験（PriceOfBread.Tests/ColonyPettyEntryTests.cs・新・期待は手で置く・旗は w.Coef.X=）
+ T1 [Theory] 2 件：(a) 旗 0 で、空の商人（Size 0・Earned 100）・錠 B 開（Instruments.MerchLocks で LockBOpen=true を確かめる）→ Step の後の商人は 0 のまま。(b) 旗 1 → 商人＞0。
+ T2 [Fact]：旗 1・錠 B 閉（労働者の貯蓄 0・MerchLocks で LockBOpen=false を確かめる＝反証役 ③ の形）→ Step の後の商人は 0（旗 0 の値と一致）。
+ T3 [Fact]：旗 1 の流れは率の上限の内＝商人の増え ≦2×0.02×労働者の頭数（Step の前）かつ ≧0.25×同じ（M3 で労働者の頭数そのものが動く＝赤）。
+ T4 [Fact]：旗 1 でも空の職人の行き先と空の専門職（MeritToIndex・:132 の行き先）は旗 0 と同じ頭数（持ち場の外へ広げない）。
+ 試験の数（★(994)・[Theory] は InlineData ごと）：2＋1＋1＋1＝5 → 非 FullLength 2546→**2551**・FullLength 3。ident は `--tests-delta 5 --added-tables`（無し）で回す。
+
+[8] ソースを走査する番人の点検（㉘・㉑）
+ 工業化度の読み手の許可表（IndustrializationReaderTests）：Meritocracy の参照は UrbanHeadroom の反射だけ（:115）＝この線は触れない。
+ `new MoneyStock(` の件数：SimCore 64＝この線は 0 件足す（変わる件数の予言 0）。
+ route_anchors.tsv：Meritocracy.cs の鍵は行の文（:71〈Pop.Blend(fromPop, toPop, …〉）＝行を足さないので flow_s の sourceLine も動かない。
+ WriterRatchetTests の宣言の表：Meritocracy の行は無い（grep 0）。計算量の item（軌道の件数）は旗 1 で動きうる（★(749)・合流が取り直す・★(899)）。
+ DormantIdentityTests.DormantZeroFields：旗 0 の器のコミットで 1 行足す・旗 1 のコミットで外して墓標の注を 1 行（既存の書き方）。
+ ㉘ の束（器のコミットの直後・隔離ビルド D:/PoB_work/c94pe_work/art）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests・MerchInstrumentTests・ColonyPettyEntryTests。
+
+[9] 旗 1 で赤になる試験の予言（★(899)：[6] の突然変異の赤と ㉜ の一覧を突き合わせた）
+ 突然変異 M1〜M6 が赤にするのは ColonyPettyEntryTests の T1〜T4 だけ（既存の試験で小営業の入口を空の行き先で読む物は無い：MobilityTests.cs:217・FiscalTests.cs:376 は PettyEntryRatePerQuarter=0 で回す）。
+ ㉜ の grep（旗 1 の木）：空の商人を軌道から拾う既存の試験は TradeClearingBoardTests:23（英の開幕の盤面を数えて記録するだけ・Assert は人の居る POP が無い州＝0）・EmptyPopDebtFirstTests・BillBlockedColumnsTests・ImportPayerLiveTests（どれも空の POP を試験が作る）＝旗 1 で前提が崩れる見込み 0。
+ 予言：旗 1 のフルスイートで赤 0 本（DormantIdentityTests は同じコミットで表を直す）。動きうる物＝WriterRatchetTests の軌道の件数の item（種類で予言・★(749)）と FullLength 3 本（軌道に依る）。赤が出たら ★(743) の区分で名乗れるかで分ける（㊴）。
+
+[10] 周辺の点検（読むだけ・scripts/instruments/c94pe/peri1014.py・出力 peri_base.txt）
+ 錠 B の avgPerCap：植民地格で商人が空の行の〈労働者の 1 人あたり貯蓄÷州の平均〉の中央 0.012（25% 0.001・75% 0.572）・≧1 は 17.7%＝平均に地主・資本家の貯蓄が入り、労働者はほとんど届かない＝錠 B が入口の 8 割を閉じる。記録（この線では触らない）。
+ 出口 ArtisanDecline（:174〜）と ⑥（:359〜）：職人だけ。商人には貧しさの出口が無い（⑤ の行き先は専門職）＝入った商人は稼ぎが痩せても残る。非対称＝別の線の候補（記録）。
+ 植民地格の商人の Debt：商人が空の植民地格の行の 412,650／413,465（99.8%）で merchantDebt＞0（最大 641.6）＝人の居ない商人の POP が債務を持っている。旗 1 で最初に入る組はこの債務の残りを抱える POP に入る（Blend は送り手の按分だけを運び、受け手の既存の債務は残る）＝入った商人の 1 人あたりの債務が大きく出る。記録の列〈空でない植民地格の行の merchantDebt＞0 の割合〉（基線 0.2104）で読む。器は EmptyPopDebtFirst（既定 0）＝この線では触らない。
+ cpop_s の格の打ち切り（★(1001)）：G1 は merch_s の各行の格で数える（基線と腕で同じ物差し）。ヌル腕の幅は cpop_s（植民地格だけ）で、merch_s と G1 で一致済み（(1007)）。
+
+[11] 計算量の割り当て：+0.5 秒以下（エンジンは分岐 1 本・空でなくなる商人の POP の分だけ他の段の計算が増えうる）。m1001 の推定 211.2 秒・上限 248.5 秒・名目の余り 約 37.3 秒。2 秒以下は 1 本の腕で門にしない（記録・合流の .cost で読む）。
+
+[12] 腕の指令
+ ident：`bash scripts/instruments/ident/ident.sh run c94pez --tree D:/PoB_work/wt_c94pe --tests-delta 5`（旗 0 の器のコミットで・走る間はこの worktree にコミットしない）。
+ 腕 B：POB_WORK=D:/PoB_work/c94pe_work/arm_B・`batch.sh prep c94peB commit:<旗 1 のコミット> plain`→`INS=1 POB_INSTRUMENTS_NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ bash scripts/instruments/batch.sh run c94peB 10`。
+ S11：POB_WORK=D:/PoB_work/c94pe_work/arm_S11・POB_CEARN=0・同じ国の名簿・`run c94peS 10 11`。
+ S11 の読み方：基準 a11 に merch_s が無い＝種 11〜20 は止める線だけで読み（stoplines1002 の S11 の基準・an_h2・gdp_zero10）、G1〜G3 は腕の値を記録だけ（門にしない）。
+ 読み手：scripts/instruments/c94pe/read1014.sh（gates1014・stoplines1002・an_h2 -v4・gdp_zero10・plvl・ukdef・nullgate・home_break・ng・.cost）。
+
+[13] 手順
+ この事前登録（最初のコミット）→ 旗 0 の器と試験（1 コミット）→ ㉘ の束 → ident c94pez〈判定: 恒等〉→ 突然変異（使い捨ての木）→ 旗 1（Coefficients.cs と DormantIdentityTests の表）→ 計器の試験の束（㊴）→ フルスイート（非 FullLength と FullLength を分けて --list-tests と突き合わせる）・savetest・leakhunt（㉜・赤なら腕 B を回さない）→ 腕 B＋S11 → 門と止める線 → 採否の推奨。
+ 旗 1 の出力を見た後のエンジンの変更は ⑭ の枠 1 回まで（理由に関係なく数える）。
+ 採否：G1・G1′・G2・G3 が全て通り、止める線に当たらなければ〈採る〉を推奨。どれかが落ちたら採らない（同じ腕で物差しを替えない）。G1 だけ落ちて G1′ が通る＝機構は働くが届かない＝初期値の線（案 C）の材料として記録。
