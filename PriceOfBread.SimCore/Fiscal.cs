@@ -47,6 +47,7 @@ public static class Fiscal
         // 走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。TaxConsentWeight=0 では配列を作らず1命令も走らない。
         //   ★(351) 州×POP のなぞりは**この 1 本**（下の pops と、POP ごとの並行の列〔算入率・領主の取り分〕を同じ 1 周で作る＝旧は pops を平らにする周と並行の配列を埋める周が別で、
         //     添字が合わなければ黙って旧挙動へ倒していた〔集合の定義がずれると黙って外れる〕）。列は pops と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える。集合＝国家会計の集合（絞らない）。
+        Instruments.LandsaleStep(w);   // ★(983) 計器（読むだけ・On の確かめは関数の中＝この関数の Instruments.On の読みの数を増やさない・OnDoubleReadScanTests）：徴税の前の貯蓄から未払いの土地税と売りの期待を計器が自分で数える（landsale_s）
         var scan = TaxScan.Of(w, c);
         var pops = scan.Pops;
         List<double>? scopeInc = scan.ScopeInc; List<double> ruleMul = scan.RuleMul, ruleCut = scan.RuleCut; List<Pop?> ruleLord = scan.RuleLord;

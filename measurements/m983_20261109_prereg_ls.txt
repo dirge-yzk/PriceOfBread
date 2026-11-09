@@ -1,0 +1,68 @@
+(983) c89ls 事前登録：土地の持ち分 B-1 の段 0＝恒等の計器 landsale_s（未払いの土地税と売りの期待）
+書いた日 2026-11-09・木 46cd4df6（main＝基線 m981）・担当 Claude Sonnet 5.5・腕（ident）の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+作者の裁定の形：作者 2026-11-04「将来的に『土地を手放す』『土地を買う』は実装したい」→〈作者「全て推奨で」で推奨を採った〉（★(832) ② B1・★(852) ③ Q2＝B-0→B-2→B-1）。段 0 は計器だけ。
+形の種類：入口（計器・読むだけ）。3 回の規則：B-1 の段 0 の 1 回目。
+
+[1] 恒等の線・予言 0
+ 1. エンジンの挙動を 1 ビットも変えない。エンジン側の足跡は Fiscal.cs の 1 行（Instruments.LandsaleStep(w) の呼び口・徴税の走査 TaxScan.Of の直前）と Instruments.cs の 3 行（MonthClose／Quarter の表／Close の登録）だけ。新しい係数・旗・状態（エンジンの欄）・Transfer は 0。
+ 2. 呼び口は Instruments.On を Fiscal.cs で読まない（On の確かめは LandsaleStep の中）＝OnDoubleReadScanTests の Fiscal.cs::Step#0 = 4 を動かさない（新しい読みを足すと 5 になって赤・表の書き換えは c89tb の持ち物と重なりうるので避けた）。月 120k 回の空呼びのコストは無視できる（推定の計算量は ident の .cost で確かめる）。
+ 3. 計器の状態は INS のときだけの World ごとの積み（ConditionalWeakTable LdAccs）。エンジンの欄・[NonSerialized] の欄は足さない（中①の決め事 2）。
+
+[2] 消す物と残す物・読み手の grep
+ 消す物：0。残す物：既存の全て。足す物：PriceOfBread.SimCore/InstrumentsLandsale.cs（新）・PriceOfBread.Tests/LandsaleInstrumentTests.cs（新）・scripts/instruments/c89ls/{gates983.py,mut983.py}・measurements/m983_*。
+ 読み手の grep（足す名 LandsaleStep・LandsaleMonth・LandsaleTable・LandsaleClose・LdAccs・LandsaleHeaderText・landsale_s）：SimCore／Runner／App／Display／Tests／scripts／measurements／POB_COEF の名前／SaveGame の名前 = 全て 0 件（足す前）。係数・SaveGame に触れない。
+ エンジンの関数を呼ばない（計器が自分で組む）：RuleDelivery・AssessPop・PayRate・LandTaxBase・TitheClaim・TaxScan.Of は写し（LdMul・LdCutFrac・請求の合成・LdRp・基数の式・十分の一税の式）。
+ 呼んでよい読むだけの関数：Privileges.TaxExemptionDegree・Privileges.TitheDegree・InterestGroups.FranchiseVoice／SuffrageInclusion・Politics.IsMassPop・PowerAffinity.Shares（王権の取り分・旗が 0 の既定では呼ばれない）。既存の計器の写しの再利用：LsRecipient・LsClass・LsAbsenteeRgo・LsAccs（輸出の地代の月の積み MExp）。
+ 他の線との重なり：c89tb（InstrumentsTests.cs ほか試験ファイル）・c89dd（Model.cs の Pop.Take・Coefficients.cs の旗 1 行・DormantIdentityTests.cs の 1 行・InstrumentsCearn.cs の末尾）と持ち主のファイルは重ならない。Instruments.cs は表の登録の 3 行だけ（全ての線が自分の行だけ）。InstrumentsTests.cs に表の列挙は無い（landshare／basisx／landsale の grep 0）。EconomyStep.cs・Model.cs・InternationalMarket.cs には触れない。
+
+[3] 中①〜⑤ の決め事（(975) の反証役の中。推奨で進めた）
+ 中①：h ごとの地代は段 0 に要らない。saleExpectedSharePerYear の分母は売り手 POP の LandRentPerMonth（国内の RGO の地代の和）で組む。PayOwnerRent の rk の写し・Model.cs の欄・EconomyStep.cs の行は入れない（⑩の例外の名乗りは段 1 で、要るときに）。
+   代わりの限界：買い手の税は h ごとの max(0,地代−税) の和でなく、売り手の LandRent−土地税率×基数×（買い手の貯蓄加重の免税の係数）の正の部の 1 本に畳む（割合は下界側にずれうる）。
+ 中②：輸出の地代（AddRentRecipients）は期待の分母に入れない（LandRent に載らない＝課税の基数と同じ集合）。月の和は exportRentPerQuarter に記録だけ（landshare_s の expRentPerQuarter と同じ積みを読む）。入れない理由＝InternationalMarket.cs は持ち主の一覧の外・分子分母を同じ集合に保つ。既知のずれ：輸出作物の産地の持ち分の純の地代は小さく見える側（割合は上界側）。
+ 中③：段 2 の G-L1 は〈≤1＋1e-9〉と〈事前登録した偏りの下限〉の両側に置き直す（この線では書くだけ）。偏りの量＝計器の rp は下界（走査の途中で受け手の貯蓄が増える）・未払いは上界。
+ 中④：段 1 の決め事＝走査の中は（売り手, V）を集めるだけ・国庫への移し（:119 の後）の後にまとめて解く。
+ 中⑤：買い手＝〈売り手の持ち分 h（RGO）ごとに、枠 k＜4 の受け手が実在し（LsRecipient が寄せていない）売り手と別の POP である枠〉。寄せの枠は外し buyerFallbackSlotCount に数える。B-2b（国家の枠）があるので、公売は私の枠 k＜4 だけ（LdPrivateSlots）。買い手の枠の数は同じ POP が 2 枠なら 2 と数え、貯蓄の和は POP の重複を除く。
+ 低⑥〜⑫の写し（限界の節）：⑥ read974 の未保存の臨時集計は使わない（この線の数は landsale_s の列だけ）。⑦ WriterRatchetTests に LandShares の行は無い（grep 0）＝書き手の増は 0 と予言（この線は LandShares を書かない）。⑧ 可否の法は saleLawOpenFlag に分けて記録（期待には掛けない）。⑨ 欄が null の RGO は [1,0,0,0] として持ち分に数える・不在地主の RGO は外す（構築の除外は段 1 で決める）。⑩ 〈英の件数 45〜202〉の 202 は S11 の値（ヌル腕どうしは 45〜118）。⑪ !(P>0) と !(金利>0) と買い手の貯蓄 0 の売り手は期待に入れず saleBlockedNoPricePerQuarter／saleBlockedNoBuyerPerQuarter に積む（未払いが消える端）。⑫ 行の番号は今の木で grep し直した（landbase は EconomyStep.cs:725・PolicyPreferences.cs:97・Privileges.cs:41〜・privBase は Fiscal.cs の AssessPop）。名簿は 9 か国（欄のある 8 か国〔フランス・日本・イギリス・ロシア・プロイセン・スペイン・デンマーク・ポーランド〕＋定額の清。英は二重に数えない）。
+
+[4] 計器の列（landsale_s・31 列・国×四半期・月の和）
+ quarter・year・nation・monthsInQuarter・scanMonths（受け口が働いた月）・popsScanned（請求が正の POP の月の数の和）・rp1NationMonths（土地税を払う POP の rp が全て 1 の月）・lowRpNationMonths（そうでない月）
+ unpaidLandPerQuarter（Σ kLand×届き×(1−rp)）・unpaidLand{Noble,Clergy,Peasant,Capitalist,Other}PerQuarter（売り手の階級の 5 区分＝指示の 4 列でなく LsClass の 5 区分）・unpaidHolderCount
+ landClaimDeliveredPerQuarter（Σ kLand×届き）・paidCopyPerQuarter（Σ kLand×届き×rp）・engineLandTaxPerQuarter（Σ 月の LastTaxLandPerMonth）・paidCopyOverEngine（月の copy÷エンジンの最大）・paidCopyRp1RelDiff（rp が全て 1 の月の相対差の最大）
+ saleExpectedSharePerYear（Σ 未払い×国債金利÷Σ 純の地代・四半期の和の比）・saleIncludedUnpaidPerQuarter・saleNetRentPerQuarter・saleBlockedNoBuyerPerQuarter・saleBlockedNoPricePerQuarter・saleLawOpenFlag・buyerSavingsCoverShare（Σ 買い手の貯蓄÷Σ 期待に入れた未払い）・buyerCountSum・buyerFallbackSlotCount
+ sellerLandRentPerQuarter・exportRentPerQuarter
+ 足した計器の表＝landsale_s の 1 表だけ（他の表の列は 0）。
+ 限界（自己申告）：rp は走査の開始時点の貯蓄＝下界・未払いは上界／輸出の地代は分母に入れない／買い手の税は 1 本に畳む／null の RGO は [1,0,0,0]／法の門は期待に掛けない／助走の月と Fiscal 無効の月は数えない。
+
+[5] 門（両側・旗なし＝恒等の線なので旗 0 の盤面で落ちることは試験の突然変異で確かめる）
+ G1 向き：paidCopyOverEngine ≤ 1＋1e-9（全ての 種×国×四半期）。誤りの形＝請求の写しが過大（届きを掛けない・rp を 1 にする）で 1 を超える。
+ G2 等式：paidCopyRp1RelDiff ≤ 1e-9（土地税を払う POP の rp が全て 1 の月だけ）。誤りの形＝請求の写しの式の食い違い。
+ G3 件数の下限（受け口を外す突然変異を落とす）：名簿の国の 種ごとに scanMonths の和＞0・popsScanned の和＞0・rp1NationMonths の和＞0（等式の門が一度は働く）。
+ G4 写し：exportRentPerQuarter は landshare_s の expRentPerQuarter と相対 1e-9（試験 T5・二重に足せば赤）。
+ 狙いの数字（機構の観測量）：G1・G2 が全ての行で通ること。史実の大きさ・国ごとの割合の大きさは記録。
+ 読み手：scripts/instruments/c89ls/gates983.py（gates）。
+
+[6] no-go（腕の前に写す・★(879)）
+ 規則：名簿の国ごとに 種ごとの全期の saleExpectedSharePerYear（Σ 割合×純の地代÷Σ 純の地代）の 10 種の中央を取り、全ての国で〈同じ国の N1 と N2 の中央の差の 3 倍〉以下か、全ての国で 0.05%／年（0.0005）未満なら、B-1 の器と腕を回さない（no-go）。それ以外は go。
+ この線での読み：この線の ident の生（M の計器つき 10 種）の中央を一度読んで記録に残す（ヌル腕の landsale_s は無い＝判定は pending）。判定は合流がヌル腕（SupplySlope 0.50000001・0.49999999）を INS で回した後（段 1 の前）。
+ 恒真でないことの示し方：(a) 試験 T6＝単国（イギリス）で持ち分の受け手の貯蓄を移し方の 1 本で他の POP へ移して 0 に置くと、未払い＞通常・saleExpectedSharePerYear＞0・買い手の枠＞0（go を返せる盤面）。(b) gates983.py selftest＝規則が go も no-go も返す紙の確かめ。
+ ㉗：no-go を返したのに回すなら〈それでも回す理由〉を 1 行（今は書ける理由が無い・推奨は段 0 で止め A-2b′ の盤面で読み直す）。
+
+[7] 試験（新しいファイル LandsaleInstrumentTests.cs・7 本の Fact）と突然変異（コミットと ident の前・出力 measurements/m983_20261109/mutation.txt）
+ T1 見出し 31 列・T2 純関数の 1 歩（LdRp・LdMul・LdCutFrac を手で数えた値）・T3 枠の数（k＜4）と持ち分の判定・T4 買い手の枠（手で数えた値）・T5 実走の門（G1・G2・G3・G4）・T6 貯蓄 0 の盤面で go・T7 階級別の和。
+ 突然変異ごとに赤の試験（腕の前）：
+  M1 受け口を外す（Fiscal.cs の呼び口）→ T5（scanMonths＝0）・T6
+  M2 rp を 1 に固定 → T2・T5（G2 の等式は rp が全て 1 の月で緑のまま＝T5 は件数の下限で赤にならず T6 の未払い＞0 で赤）・T6
+  M3 寄せの枠を買い手に入れる → T4（買い手の枠の数）
+  M4 輸出の地代を二重に足す → T5（G4）
+  M5a k＜4 を外す（持ち分の判定）→ T3
+  M5b k＜4 を外す（買い手の枠の周回）→ T4
+ （M2 の読み：T5 が赤か緑かは実走の結果。上は予言＝実行の結果は mutation.txt が正。）
+ 門の写し：全ての突然変異は計器の行を変えるので、G1〜G4 の python の門（gates983.py）が ident の生で同じ変異を拾うかは確かめない（試験が拾う）。限界として名乗る。
+
+[8] ソースを走査する番人（㉘）：器のコミットの直後に `dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~OnDoubleReadScanTests"`（隔離ビルド --artifacts-path D:/PoB_work/c89ls_art）。
+ grep（46cd4df6 → 器の木・SimCore の .cs の行の数）：`new MoneyStock(` 64→64・`Instruments.On` 232→232（呼び口で On を読まない）・`LandRentPerMonth +=` 不変・`EarnedPerMonth +=` 不変・新しい Transfer 0（route_anchors.tsv の新しい行 0）・WriterRatchetTests の宣言の表 LandShares の行 0→0・GoodIdGuardTests に財 id のリテラルを足さない（landsale_s は財 id を使わない）。
+ 予言（㉑）：走査の件数の番人で書き換える件数 0。書き換える試験 0。
+
+[9] ident（腕の前に枠を確かめる）：bash scripts/instruments/ident/ident.sh run c89ls --tree D:/PoB_work/wt_c89ls --added-tables landsale_s --tests-delta 7（基準 ident.cfg＝m981）。arms.sh free ≥ 3 のときだけ始める。走っている間はこの worktree にコミットしない（㉙）。
+ 合否＝10 種・5 種・計器つき 10 種の成績表が m981 と名乗り行を除いて全行一致（計器の表の差は宣言 landsale_s だけ）。〈判定: 恒等〉なら採る（測った種で一致）。
+ 数の記録：テストの数の差（+7）・足した行と減った行・腕の枠で待った時間・生のパス・覗いた回数・前面の待ちの回数・hook に止められた回数。
