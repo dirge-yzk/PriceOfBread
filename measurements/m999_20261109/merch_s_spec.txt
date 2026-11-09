@@ -1,0 +1,24 @@
+(999) R5 → 計器 merch_s の仕様（恒等・旗なし・AI の案・2026-11-09 Claude Opus 5.5）
+目的：商人と職人の POP が空の州を、本国格を含む全ての州で数える。cpop_s は植民地格の州だけ（InstrumentsCearn.cs:209 の限界③）。
+小営業の入口（Meritocracy.cs:154〜:170）の錠 A・錠 B を、エンジンの関数を呼ばずに計器が自分で再計算する。
+
+呼び口：社会移動の区間の前（Simulation.cs の Instruments.UrxEnter と同じ所・四半期に 1 回・助走は書かない）。
+範囲：全ての国の全ての州（Tier を問わない）。
+列：
+  quarter year nation region tier popK
+  merchantK artisanK workerK
+  merchantEmpty（merchantK ≦1e-9 の 0/1）・artisanEmpty
+  avgPerCap（Σmax(0,Savings)÷Σ頭数・計器が r.Pops から自分で数える）
+  workerSavPerCap（労働者の Savings÷頭数）
+  lockBOpen（PettyEntryRate＞0 かつ avgPerCap＞1e-9 かつ workerK＞1e-9 かつ workerSavPerCap ≧ avgPerCap の 0/1）
+  lockABlockedMerchant（lockBOpen かつ merchantEmpty の 0/1）・lockABlockedArtisan
+  merchEarnedPerCap（商人の EarnedPerMonth÷頭数・空なら空欄）
+  workerIncomePerCap（労働者の EarnedPerMonth÷頭数）
+  emptyMerchantEarnedPerMonth（merchantEmpty の行で商人の EarnedPerMonth）
+  promotionPremium（係数の値の写し）
+欄：エンジンに足す欄は無い（読むだけ）。足すなら [System.NonSerialized]。
+試験：
+  合成の州で、錠 A と錠 B の 4 通り（空/空でない×開/閉）の行が期待どおりの 0/1 になること。
+  期待値はエンジンを呼ばずに手で置く。
+  突然変異〈lockBOpen の不等式を逆にする〉で赤になること。
+恒等：旗 0 の 10 種・5 種・計器つき 10 種の成績表が全行バイト一致（名乗り行の SOURCE-HASH を除く）。
