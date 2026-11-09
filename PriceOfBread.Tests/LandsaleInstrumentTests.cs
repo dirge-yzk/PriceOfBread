@@ -45,12 +45,12 @@ public class LandsaleInstrumentTests
             if (p.LandRentPerMonth.Value > 0 && p.Savings.Value > 0 && !ReferenceEquals(p, sink)) World.Transfer((w, [p]), (w, [sink], [1.0]), p.Savings.Value);
     }
 
-    /// <summary>T1：見出しは 31 列・重複なし・先頭 3 列は quarter・year・nation。</summary>
+    /// <summary>T1：見出しは 42 列（★(991) 末尾に実際の公売の 11 列を足した＝31→42・事前登録 m991 [4]）・重複なし・先頭 3 列は quarter・year・nation。</summary>
     [Fact]
     public void T1_見出し()
     {
         var h = Instruments.LandsaleHeaderText.Split('\t');
-        Assert.Equal(31, h.Length);
+        Assert.Equal(42, h.Length);
         Assert.Equal(["quarter", "year", "nation"], h[..3]);
         Assert.Equal(h.Length, h.Distinct().Count());
     }

@@ -150,6 +150,7 @@ public class DormantIdentityTests
         // ★LandShareCrownSlot（(978) c88cs 土地の持ち分 B-2b 国家の枠）は 2026-11-09 に 1 で**点火**＝この表から外した（番人 LandShareCrownTests）。
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
+        "LandShareTaxSale",             // (991) c90sl 土地の持ち分 B-1 段 1〜2 土地税の払えない分の公売の旗（0＝今の形・番人 LandSaleTests）。腕 B は門 G-L3 の赤で採らなかった（2026-11-09）。点火時にこの表から外す
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

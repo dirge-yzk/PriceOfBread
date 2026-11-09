@@ -1,0 +1,13 @@
+# (991) c90sl 突然変異（使い捨ての木・LandSaleTests と LandsaleInstrumentTests）
+M1	値段を総額で（買い手の税を引かない）	緑	 ｜ 失敗!   -失敗:     6、合格:    11、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M2	V に届き（ruleMul）を掛けない	緑	 ｜ 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M3	V に (1−rp) を掛けない	緑	 ｜ 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M4	代金を走査の revenue にも足す	緑	 ｜ 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M5	持ち分を動かさない	緑	 ｜ 失敗!   -失敗:     9、合格:     8、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M6	買い手を投資家（枠 3）だけ	緑	 ｜ 失敗!   -失敗:     6、合格:    11、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M7	法の門を外す	緑	 ｜ 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M8	国家の枠（k＝4）も売る	緑	 ｜ 失敗!   -失敗:     1、合格:    16、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M9	寄せの枠を買い手に入れる（生の受け手の代わりに寄せた受け手）	緑	 ｜ 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 13 s - PriceOfBread.Tests.dll (net10.0)
+M10	貯蓄の上限（φ≤ΣS÷P と額≤S_j）を外す	緑	 ｜ 成功!   -失敗:     0、合格:    17、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M11	φ≤1 を外す	緑	 ｜ 失敗!   -失敗:     2、合格:    15、スキップ:     0、合計:    17、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M12	×12 を落とす（値段を月で）	緑	 ｜ 失敗!   -失敗:     6、合格:    11、スキップ:     0、合計:    17、期間: 9 s - PriceOfBread.Tests.dll (net10.0)

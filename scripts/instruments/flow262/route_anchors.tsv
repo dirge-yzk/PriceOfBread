@@ -72,4 +72,6 @@ Meritocracy.cs	Pop.Blend(fromPop, toPop, flow, femaleAccess: femAccess, literacy
 Military.cs	Pop.Blend(from, to, amount, draft: draft, draftLo: 20, draftHi: draftHi);	徴兵と復員(階級の運搬)	
 Territory.cs	internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c) => Pop.Blend(sp, dp, moveSize);	州の間の移民(POPの運搬)	
 MultiNationSim.cs	double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare.Value, money: false);	越境の移民(POPの運搬)	
+# ★(991) c90sl 土地の持ち分 B-1 段 1〜2 の公売（旗 LandShareTaxSale）
+LandSale.cs	double moved = World.Transfer((w, [pj]), (w, null, null), amt, TreasuryCat.OtherIn);	土地の公売の代金(買い手→国庫)	★(991) 旗 0 では呼ばれない
 		(位置なし＝月末の精算・国が替わる換算・州の移動)	

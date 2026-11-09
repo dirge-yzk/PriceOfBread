@@ -1,0 +1,135 @@
+(991) c90sl 事前登録：土地の持ち分 B-1 段 1〜2＝土地税の払えない分の公売（旗 LandShareTaxSale・腕つきの 1 回目）
+書いた日 2026-11-09・木 22de6aab（main＝基線 m988）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+作者の言葉：作者 2026-11-04「将来的に『土地を手放す』『土地を買う』は実装したい」→〈作者「全て推奨で」で推奨を採った〉（★(832) ② B1・★(852) ③ Q2＝B-0→B-2→B-1）。形の細部は全て AI の案・確証なし。
+形の種類：入口（新しい経路）。3 回の規則：B-1 の売り買いの腕の 1 回目。no-go の判定は go（★(983)・measurements/m988_20261109/armM/nogo983.txt）。
+
+[0] 下書き（docs/202611/20261108/…_下書き.md）と指示から外れた所（報告の先頭にも書く）
+ a. 国庫の区分は TreasuryCat.Tax でなく OtherIn。理由：Fiscal.cs の注〈種類ごとの実際の税収（和＝台帳の Tax）〉が不変条件。EngineReadIdentityTests:30・FiscalTests:142/1657・AdminServesRuleTests:68・RuleSharesFormTests:277・CearnInstrumentTests:77 が台帳の Tax の差を走査の税収と等置する。公売の代金は走査の税ではない（中④で走査の後に解く）。
+ b. LandSale.cs は部分クラスでなく独立の internal static class LandSale。Fiscal（:11）も World も partial でない＝宣言の行に触れないため。
+ c. 解く場所は十分の一税の移し（Fiscal.cs の `if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer(...)` の直後）。指示の範囲 :95〜:125 から数行外れる。理由：買い手（聖職・担い手）が十分の一税の払い手でもある＝十分の一税の前に払わせると Pop.Take が十分の一税を held で切る（十分の一税の挙動が変わる）。集める list の宣言 1 行は走査の前（taxPayers の行の近く・範囲の外）。Fiscal.cs の足跡は 3 行（宣言・集める・解く）。
+ d. 欄が null の RGO は売る月に [1,0,0,0] を作る（低⑨）＝構築の除外（賦存の RGO・持ち主が貴族でない RGO）を広げる。理由：公売は土地税を払えない地代の受け手の全てに掛かる規則（構築の除外は world.json の土地の持ち分のデータが貴族の農地だけを書くため）。null の配列化は割り方が同じ（PayOwnerRent・AddRentRecipients で ls[0]=1.0 の 1 組＝rent×1.0＝rent）。計器 landsale_s の限界 ④ と同じ集合＝G-L1 の分母と同じ集合。清（全 RGO が null）・定額の国はこれが無いと公売が立たない。
+ e. 買い手の値段は 1 本の公売の値段（買い手の貯蓄で重みを付けた免税の係数の平均 pbAvg）。下書きの〈P_j＝買い手ごと〉ではない。理由：計器 landsale_s が同じ規則で期待を数えた（G-L1 の分母と同じ規則）・1 回の公売に値段は 1 つ。買い手ごとの税の差は pbAvg に入る。
+
+[1] 形（式は実装と同じ順・Fiscal.cs と LandSale.cs）
+ 1. 旗 Coefficients.LandShareTaxSale（既定 0・:3340 の後の 1 行）。旗 0 では list を作らず、解く関数も呼ばない＝1 命令も増えない。
+ 2. 走査の中（:102 の rp の直後）：rp＜1 かつ kLand＞0 かつ旗＞0 なら（pi, V）を集めるだけ。V＝kLand×ruleMul[pi]×(1−rp)（国庫に届くはずだった土地税の不足・月あたり）。
+ 3. 十分の一税の移しの後に LandSale.Resolve(w, c, pops, 集めた list, crownShareForPrivilege) を 1 回。法の門：w.SerfEmancipation ≠ None（なしの国は何もしない）。
+ 4. 売り手ごと（pi の昇順＝州の順）：州 r・州の中の添字 i を pops の並び（Regions→Pops）から引く。
+    持ち分 H＝州の RGO のうち、不在地主の RGO（Colonial.AbsenteeRgo）を外し、欄が null なら持ち主＝i の RGO（枠 0）、欄があれば k＜min(4, 長さ) で ls[k]＞0 かつ LandShareRecipient(r,s,k)＝i の枠（寄せの枠を含む＝今その地代を受けている枠）。
+    買い手 B＝H の RGO ごとに、枠 k＜4 の生の受け手（0 持ち主・1 聖職・2 担い手・3 投資家の添字が州の POP の範囲内＝寄せでない）で i と別の POP の和集合（重複なし）。
+    S_j＝max(0, 貯蓄)（解く時点＝税と十分の一税の後）。ΣS≤0 なら売らない。pbAvg＝Σ S_j×Privileges.TaxAssessment(j)÷ΣS。
+    純の地代 net＝R−τ×B×pbAvg（R＝売り手の LandRentPerMonth・B＝Fiscal.LandTaxBase(売り手)・τ＝w.LandTax）。金利 rate＝w.GovBondRatePerYear。!(net＞0) か !(rate＞0) なら売らない（低⑪＝未払いは消える）。
+    値段 P＝Calendar.PerMonthToPerYear(net)÷rate（持ち分の全体の値段）。φ＝V÷P → min(φ, 1) → min(φ, ΣS÷P)（定義域＝持っている分より多く売れない・買い手の貯蓄より多く払えない）。
+    買い手 j ごとに 額＝min(φ×S_j÷ΣS×P, S_j) を World.Transfer(買い手→国庫, OtherIn) で 1 本（戻り値 moved_j）・a_j＝moved_j÷P。
+    持ち分の移し：H の RGO ごとに、その RGO で枠を持つ買い手 E_s（a_j＞0 で、生の受け手が j の最初の枠 k′）へ。売り手の枠 k の ls[k]×A（A＝Σ_j a_j）を ls[k] から引き、E_s へ a_j÷Σ_{E_s} a_j で分ける（最後の買い手は残り＝和を保つ）。E_s が空の RGO は動かさない（既知のずれ：その RGO の分は払ったのに移らない＝計器 saleHeldDropSum÷salePhiSum が 1 を下回る）。欄が null なら先に [1,0,0,0] を置く。国家の枠（k＝4）は触れない。
+    計器の受け口 2 本（On の確かめは計器の中・エンジンに On の読みを足さない）：売り手ごとに Instruments.LandsaleSaleBegin(w, r, i) を最初に・Instruments.LandsaleSaleEnd(w, r, i, moved の和) を最後に。
+ 5. 新しい状態＝既にある Producer.LandShares の欄の値だけ（null→配列を含む）。新しい係数は旗 1 本。タイマー・天井・錠なし（φ≤1 と貯蓄の上限は定義域）。AI とプレイヤーは同じ機構（動詞を作らない・App・Display・Runner に触れない）。
+
+[2] 紙の確かめ：POP 水準で閉じるか（指示の条件）
+ (a) 買い手の税は移った地代に線形・係数は POP 単位（τ×privBase_j・Fiscal.AssessPop の土地税は land×LandTaxBase(p)×privBase）＝束の純の値打ち φ×(R−τ×pb_j×B) は h ごとの写しなしで閉じる。max(0,·) は束の全体に 1 回（値段が負にならない定義域）だけ＝h ごとの max の和とは違う（計器の限界 ③ と同じ型・定額で凍結＞地代の h がある売り手は値段が下界側）。→ 閉じる。
+ (b) 定額の国：買い手の基数の増えは PayOwnerRent が毎月 frozen×新しい wk で差分を組み直す＝φ が全 h に一様なら φ×B の写し（G-L5 は試験）。新しい状態なし。
+ (c) 閉じない所（既知のずれ・名乗る）：売り手の R には不在地主の RGO の送金（Colonial.cs:161 で持ち主の LandRent へ）と、今月 rk≤0 の RGO の欠けが入る＝売れる集合と R の集合がずれる（値段が上界側＝φ が小さい側）。計器 landsale_s も同じ R＝期待と実際は同じ集合。
+ (d) 中②：輸出の地代（AddRentRecipients）は R に入らない＝輸出作物の産地の持ち分は安く売られる（分子と分母の非対称の記録・計器の限界 ②）。
+ (e) 低⑧：法の門 SerfEmancipation≥Limited と Privileges.cs:27 の作者 2026-10-16 の注（農奴解放の法は州の支配の法でなく人の身分の法）の緊張。理由＝普の十月勅令（1807）が身分の解放と土地の売買の自由を同時に定めた（AI の記憶・要出典確認）。LandReform（Privileges.cs:29）を門にする案は採らない（土地改革は地代の取り分の上限の法）。
+ (f) 低⑪：!(P＞0) の端では未払いが記録されずに消える（計器 saleBlockedNoPricePerQuarter に積む）。L2（国家が取る）との組の候補。
+ (g) 解く順：州の中は pi の昇順・後の売り手の買い手の貯蓄は先の売りで減る＝順に依る（大きさは年 0.5〜1.2% の売り＝被覆の中央は数千〜数十万倍で影響は小・既知のずれ）。
+
+[3] 紙の台本の出力（今の盤面 keep_988/base_ins・measurements/m991_20261109/）
+ paper991_base.txt：計器 landsale_s の期待（10 種）。期待に入れた未払いの和 462308（仏 286310・西 122611・英 34003 ほか）・法が開いた四半期の分 1.0000。copy/engine（rp＜1 の行）の最小 1＝計器の rp の下界の偏りは測った行で 0（G-L3 の両側を置く根拠）。被覆（買い手の貯蓄÷未払い）の中央は仏 1.5e4・西 3.9e4・英 6.1e4・オスマン 4.0（被覆＜1 の率 0.38）。
+ gates991_base_flag0.txt：旗 0（足した列なし＝実際 0）で G-L1 下側・G-L2b・G-L3・G-L4 が赤（判定: 赤あり）＝門は〈何もしない実装〉で落ちる。
+ G-L4 の参照（期待の側・世界でまとめた年の割合・種ごと）0.0051〜0.0124＝上限 0.05 に約 4 倍の余り。国ごとの中央ではセンナール 0.053（未払い 0.45）・ポートモレスビー 0.018＝国ごとの門にすると小国が空振る＝世界でまとめる。
+
+[4] 計器（InstrumentsLandsale.cs の末尾に列を足す・landsale_s が 31→42 列）
+ 足す列：saleActualPaidPerQuarter（エンジンが実際に移した額＝受け口 End に渡る moved の和）・saleCopyPaidPerQuarter（計器の写し φ_copy×P_copy の和）・saleEventCount・salePaidCopyMaxRelDiff・saleSlotSumMaxAbsDev・saleHeldDropSum・salePhiSum・saleActualShareNetSum・saleActualNetSum・saleBuyerCount・saleBuyerNonInvestorCount。
+ 計器が自分で組む物（エンジンの関数を呼ばない）：V_copy＝LandsaleStep が数えた売り手の未払い（徴税の前の貯蓄）・買い手（LdBuyersOf＝寄せの枠を外す）・S_j・pbAvg（計器の PB）・R・B（計器の基数の式）・τ・rate・P_copy・φ_copy＝min(V_copy÷P, 1, ΣS÷P)。Begin で州の RGO の枠の和と POP ごとの持ち分を写し、End で比べる（枠の和の動き・売り手の手放した割合 drop＝1−後÷前・買い手の増えと階級）。φ_actual＝moved÷P_copy。
+ 受け口は助走の月（WarmupFrozen）と V_copy の無い売り手を数えない。
+
+[5] 門（両側・旗 0 で落ちることは [3] で確かめた）
+ G-L1 上側：行ごと（種×国×四半期）saleActualPaidPerQuarter ≤ saleIncludedUnpaidPerQuarter×(1+1e-9)+1e-12。誤りの形＝V に届き（ruleMul）を掛けない・(1−rp) を掛けない＝期待より多く取る。
+ G-L1 下側：種ごと、saleLawOpenFlag＝1 の行の Σ実際÷Σ期待 ≥ 0.9。下限の根拠＝計器の偏り（rp は下界＝期待は上界・[3] の測った行で偏り 0）と定義域の切り（被覆の中央は数千倍以上・被覆＜1 の国は量が小さい）と、解く時点の貯蓄が徴税の後（期待は徴税の前）の差。誤りの形＝何もしない（0）・半分だけ取る。
+ G-L2a：行ごと saleSlotSumMaxAbsDev ≤ 1e-12（RGO ごとの枠の和が売りで動かない）。
+ G-L2b：種ごと Σ saleHeldDropSum÷Σ salePhiSum ∈ [0.9, 1+1e-9]（払った割合だけ手放す・多く手放さない）。誤りの形＝持ち分を動かさない（0）・二重に動かす（＞1）。
+ G-L3：行ごと salePaidCopyMaxRelDiff ≤ 1e-9、かつ売りの件数の和＞0。誤りの形＝値段を総額で（買い手の税を引かない）・金利と 12 の取り違え・貯蓄の上限を外す。
+ G-L4：種ごと、世界でまとめた年に手放す割合 Σ saleActualShareNetSum÷Σ saleActualNetSum ≤ 0.05（12φ×net の net の重み）。誤りの形＝値段を月で（×12 を落とす＝12 倍）・金利を二度割る。
+ G-L5（試験だけ）：定額の盤面で、売った次の PayOwnerRent の買い手の LandTaxBasisAdj の増え＝凍結×移した割合（試験 T9）。
+ G-L6（記録）：買い手の件数・うち投資家でない件数（0 なら買い手の形の誤り＝ただし門にしない）。
+ 狙いの数字（機構の観測量）：G-L1 下側（売りが期待どおり立つ）・G-L2b（払った分の持ち分が移る）・G-L3（値段の規則）。史実の大きさ・国ごとの割合は記録。
+ 読み手：scripts/instruments/c90sl/gates991.py <生> [種の数] [種の起点]。腕 B（種 1〜10）と S11（POB_CEARN=0・landsale_s は CEARN に依らず書かれる＝armS11/gates983.txt）で同じ門を読む。
+
+[6] 試験（新しいファイル PriceOfBread.Tests/LandSaleTests.cs・期待は手で置く＝計器やエンジンの関数を逆に呼ばない）
+ T1 旗 0：rp＜1 の盤面で Fiscal.Step の後に持ち分・台帳 OtherIn が動かない／旗 1：動く（盤面が売りを立てることの対照）。
+ T2 値段と払いと移し（Resolve を直に・手で数えた値）：売り手＝持ち主・買い手 3 人（聖職・担い手・投資家）の払い＝φ×S_j÷ΣS×P・持ち分の動き。
+ T3 定義域：V が大＝φ＝1 で売り手の私の枠が全て移る・貯蓄が小＝払いは貯蓄まで（貯蓄が負にならない）。
+ T4 寄せの枠は買い手でない（投資家なし＝枠 3 は持ち主へ寄る＝売り手が聖職のとき、枠 3 に何も入らない）。
+ T5 国家の枠（長さ 5 の欄の ls[4]）は変わらない。
+ T6 法の門：農奴解放＝なしで何もしない。
+ T7 保存：Σ貯蓄＋国庫が売りの前後で同じ（1e-9）・RGO ごとの枠の和が同じ（1e-12）。
+ T8 欄が null の RGO は [1,0,0,0] を作ってから移す・不在地主の RGO は外す。
+ T9 G-L5：凍結のある RGO で売った後の PayOwnerRent の買い手の LandTaxBasisAdj の増え＝凍結×移した割合。
+ T10 走査の税は変わらない：旗 0 と 1 で台帳 Tax と LastTaxLandPerMonth が同じ（代金を走査の revenue に足していない）。
+ T11 実走（イギリス・貯蓄を抜いた盤面・旗 1・計器つき 3 四半期）：G-L1 上側・G-L2a・G-L3 が全ての行・売りの件数＞0・買い手に投資家でない者がいる。旗 0 の実走は実際の列が 0。
+ 計器の試験 LandsaleInstrumentTests.T1：見出し 31→42（予言・★(764) の静的な件数の番人）。
+
+[7] 突然変異（コミットの前・使い捨ての木 D:/PoB_work/c90sl_work/mut/・出力 measurements/m991_20261109/mutation.txt）と、どの門・試験で赤か（予言）
+ M1 値段を総額で（net＝R）→ 門 G-L3・試験 T2
+ M2 V に ruleMul を掛けない → 門 G-L1 上側（届き＜1 の州）・試験 T11（G-L1 上側）
+ M3 V に (1−rp) を掛けない → 門 G-L1 上側・試験 T11
+ M4 代金を走査の revenue にも足す（集める行で revenue += V）→ 門なし（名乗る）・試験 T10
+ M5 持ち分を動かさない → 門 G-L2b・試験 T2・T11
+ M6 買い手を投資家だけ → 門 G-L6（記録）・G-L3（pbAvg がずれる州だけ）・試験 T2・T11
+ M7 法の門を外す → 門なし（記録）・試験 T6
+ M8 国家の枠（k＝4）も売る → 門なし・試験 T5
+ M9 寄せの枠を買い手に入れる → 門 G-L3（買い手の集合がずれる州）・試験 T4
+ M10 貯蓄の上限（ΣS÷P）を外す → 門 G-L3（被覆＜1 の行）・試験 T3
+ M11 φ≤1 を外す → 試験 T3
+ M12 ×12 を落とす（値段を月で）→ 門 G-L3・G-L4・試験 T2
+ 限界：門の python が腕の生で同じ変異を拾うかは、突然変異ごとの腕を回さず試験で確かめる（腕 1 本 約 12GB×12 本は D: と時間に収まらない）。
+
+[8] ソースを走査する番人（㉘・器のコミットの直後）と変わる件数の予言（㉑）
+ 束：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|GoodIdGuardTests。
+ route_anchors.tsv：鍵の行 70→71（LandSale.cs の買い手→国庫の Transfer の行・新しい行に置く・鍵の行に書き足さない）。
+ WriterRatchetTests：LandShares の行は今 0（grep 0）＝行を足す。正規表現は `.LandShares` へのメンバーの代入だけ数える＝今 1（Simulation.cs:969）→ 2（LandSale.cs の null の配列化 1 行）。局所の配列 ls[k] の書き換えは数えない＝別の番人＝LandSaleTests の T7（枠の和）・T5（国家の枠）。
+ `new MoneyStock(` の件数 64 は変えない（LandSale.cs に書かない）。
+ DormantIdentityTests：旗 0 の間は DormantZeroFields の末尾に "LandShareTaxSale" を足し、点火のコミットで外して注を 1 行（既存の型）。
+ OnDoubleReadScanTests：エンジンに Instruments.On の読みを足さない（受け口は計器の中で確かめる）＝表は動かない。
+ 工業化度の読み手の許可表・GoodIdGuard：触れない。
+
+[9] 旗 1 の木の番人（㉜・★(818)）
+ grep -ln "LandShares" PriceOfBread.Tests/*.cs＝9 ファイル（BasisxInstrumentTests・CornintInstrumentTests・LandOwnershipDataTests・LandShareCrownTests・LandShareTests・LandTaxFixedBasisTests・LandsaleInstrumentTests・SbBargainTests・StateFactoryTests）。Assert.Null(s.LandShares) は LandShareTests:201・212・221・LandShareCrownTests:72＝どれも構築の直後（歩を進めない）＝赤の予言 0。
+ 台帳 Tax を読む試験（[0] a）は区分 OtherIn で影響なし＝予言 0。貯蓄の差を読む試験（FiscalTests:1660 ほか）で、払えない土地の受け手と買い手が同じ盤面にいるものは赤になりうる＝予言は〈0 件〉・赤なら README ★(743) の区分で読む（旧の規則を固定する番人なら止めて作者に聞く）。
+ 旧の規則を固定する番人の grep：〈土地税を払えなければ持ち分は動かない〉を Assert する試験は grep で 0 件。
+
+[10] 止める線（この回の形をそのまま写す）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限）。
+ 〈100 倍〉の〈それ以外〉：stoplines949.sh（RULE=pair・NULLS＝measurements/m988_20261109/null/stop906_n1.txt・stop906_n2.txt）。参照の最大は 1（N2 のシャム）。
+ 空洞化：ピークの 1/10 未満で、規則 A2（an_h2.py の既定 -ex rule＝植民地格・緯度の絶対値 55 度以上・world.json の開幕の人口 20 千人未満）以外・主要国の州は例外にしない・**その線が原因と読めた件だけ**＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（keep_988/base_ins で読む）。
+ 推定の計算量 ＞248.5 秒。機構の試験の赤（ソースを走査する番人を含む）。
+ 記録だけ：NG（ng.sh・基準 rd:measurements/ng988_20261109:m988）・史実の線・成績表・gdp_zero10・空洞化 1/4 未満・開幕の 1000 倍以上・nullgate・英の国債の不履行の種の数。
+
+[11] 計算量の割り当て：+0.3 秒以下（rp＜1 の土地の受け手だけが解かれる・州の RGO の周回）。m988 の推定 211.5 秒＝余り 約 37.0 秒。この回の他の線は恒等（px・tr）＋読む・設計の材料＝合計 0.3 秒。2 秒以下は 1 本の腕で門にしない（記録）。
+
+[12] 手順と旗の既定
+ 事前登録（このコミット）→ 器（旗 0）・計器の列・試験 → 走査の番人の束 → 突然変異（使い捨ての木）→ ident（c90slz・旗 0・--grown-ok landsale_s・--tests-delta ＋N）〈判定: 恒等〉→ 点火（Coefficients.cs の 1 行と DormantIdentityTests の 1 行）→ origin/c90tr の印の頭を merge → 計器の束 → フルスイート（非 FullLength と FullLength を分けて --list-tests と突き合わせる）・savetest・leakhunt → 腕 B（INS=1 batch.sh run c90slB 10・POB_WORK=D:/PoB_work/c90sl_work/arm_B）→ S11（POB_CEARN=0）→ 門・止める線 → push。形の変え直しは 1 回だけ。
+
+[追記 2026-11-09・腕の前・器のコミットと同じ] 試験 T11 の盤面をイギリスからフランスへ、貯蓄を抜くのを四半期の頭から毎日へ替えた。理由：イギリス（定額の国）の盤面は 3 四半期で売り 1 件・買い手は投資家だけ（買い手の貯蓄 0 と純の地代≤0 で止まる＝saleBlockedNoBuyer・NoPrice）＝〈投資家でない買い手がいる〉の Assert が盤面の弱さで赤。Assert の文と閾値は変えていない。T1〜T10 の手で数える盤面はイギリスのまま。
+ 走査の番人の束（㉘）＋新しい試験＋計器の試験＋OnDoubleReadScanTests：194 本すべて合格（旗 0 の木）。
+
+[追記 2026-11-09・ident の後・腕の前]
+ ident c90slz（旗 0・木 5c1f873a）：判定: 恒等（素の 5 種 179 行・計器つき 10 種 180 行が m988 と全行バイト一致・計器の表 1190 本＝バイト一致 1131＋既知の揺れ 49＋列が増えた landsale_s 10・注視 5009 行・推定 210.5／211.5 秒が一致）。measurements/ident_20261109_c90slz.txt。
+ 予言の外れ（宣言だけ）：テストの数の増えを +10 と書いたが +11（WriterRatchetTests の InlineData("LandShares", 2) も 1 本に数える）。同じ出力で check を --tests-delta 11 にして判定: 恒等。腕の出力は変えていない。
+ ident の生で門を読んだ（measurements/m991_20261109/gates991_identz.txt）：旗 0 は G-L1 下側・G-L2b・G-L3・G-L4 が赤（何もしない実装で落ちる）。
+ 突然変異の 1 回目（T1〜T11）で M3（V に (1−rp) を掛けない）が緑＝試験の盤面が全て rp＝0。試験 T12（0＜rp＜1 の売り手で〈取れた土地税＋公売の代金＝請求の全額〉）を足した（試験だけ・SimCore に触れない）。M9・M10 は等価な突然変異の見込み（M9：寄せの受け手は持ち主＝枠 0 で既に買い手か売り手自身／M10：額は Pop.Take が貯蓄で切る＝上限が 3 重）。
+
+[追記 2026-11-09・旗 1 のフルスイートの後・腕 B の前（㊴ の試験のバグの直し）]
+ 旗 1 の木（eba8feb8）のフルスイート：非 FullLength 合計 2516（合格 2514・スキップ 1・失敗 1）＋FullLength 3（合格 3）＝2519＝--list-tests の 2519 と一致。savetest OK（12 四半期・61 か国・最大相対差 0）・leakhunt 完走（200 四半期・保存則違反なし）。計器の束（Instrument と LandSale の 208 本）は合格。
+ 赤 1 本：LandShareTests.T10_cpopの地代の受け手の行は持ち分の受け手を数える（聖職者の地代の受け手の売上 84.1723 が 売上×0.5 84.2166 と違う・相対 5e-4）。
+ 区分：README ★(743) の〈軌道に依る前提〉（試験が置いた持ち分 (0.5,0.5,0,0) が走る間ずっと動かない前提。旗 1 では公売が持ち分を動かす）。この試験の主題は計器 cpop_s が持ち分の受け手を数えること＝公売の規則でも土地税の規則でもない。
+ 旧の盤面に番人を固定する形に当たらない理由：固定するのはこの計器の試験の盤面のスペイン 1 国の旗だけ（公売の機構の番人は LandSaleTests が旗 1 で持つ）。Assert の文と閾値は変えない。前提の Assert（印を付けた RGO の持ち分が最後まで (0.5,0.5,0,0)）を足す。
+ 直し：試験の setup でスペインの World.Coef.LandShareTaxSale＝0（盤面の取り直し）。直しは試験だけの別のコミット。直しを外すと赤（上の赤そのもの）・旗 0 の木では直しの有無に依らず緑（ident の木で緑だった）。SimCore に触れない。
+
+[結果の後の追記・採否に使わない・門は変えていない（2026-11-09）]
+ 腕 B（計器つき 10 種・種 1〜10・木 e788865e・生 D:/PoB_work/c90sl_work/arm_B/out_c90slB_10/ins）と S11（種 11〜20・POB_CEARN=0・生 D:/PoB_work/c90sl_work/arm_S11/out_c90slS_10_s11/ins）。読み手 scripts/instruments/c90sl/read991.sh。
+ G-L1 上側 違反 0／0 行・下側 種ごとの最小 0.999742／0.999190（通る）。G-L2a 最大 3.3e-16（通る）。G-L2b 全種 1.000000（通る）。G-L4 0.0041〜0.0127／0.0037〜0.0169（通る）。G-L6 買い手 105126 件うち投資家でない 71005（B）。
+ G-L3 赤：違反 958／1032 行（売りの件数 61732／54584）。違反行の |実際−写し| の最大 4.4e-9／5.4e-9・1e-8 を超える行 0・向きは片側（写し−実際＞1e-12 が 262／279 行・実際−写し＞1e-12 は 0 行）。原因の読み：買い手の貯蓄が 1e-9 以下の塵のとき Pop.Take が払いを拒む（Model.cs の Take の `!(held > 1e-9)` で 0 を返す）＝計器の写しはその買い手の払いを正と予言する。門に絶対の床が無かった（事前登録の形の誤り）。
+ 判定：事前登録の門 G-L3 が両腕で赤＝採らない（規則 ⑥・RULE47：同じ腕で門に床を足さない・写しに Take の床を写さない）。形の変え直しの枠は使わない（エンジンを直しても塵の買い手だけの事象で Take は 0 を返し、写しは正を予言する＝通らない）。3 回の規則：この形の腕つき 1 回目の不採用。
+ 止める線：0（100 倍の〈それ以外〉腕 0・参照の最大 1・1e10 倍 0・非有限 0・空洞化 1/10 未満 0 件・推定 211.2／211.9 秒・機構の試験は旗 1 のフルスイートで緑）。

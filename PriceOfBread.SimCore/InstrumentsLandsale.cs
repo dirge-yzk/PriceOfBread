@@ -29,7 +29,8 @@ public static partial class Instruments
         + "unpaidLandPerQuarter\tunpaidLandNoblePerQuarter\tunpaidLandClergyPerQuarter\tunpaidLandPeasantPerQuarter\tunpaidLandCapitalistPerQuarter\tunpaidLandOtherPerQuarter\tunpaidHolderCount\t"
         + "landClaimDeliveredPerQuarter\tpaidCopyPerQuarter\tengineLandTaxPerQuarter\tpaidCopyOverEngine\tpaidCopyRp1RelDiff\t"
         + "saleExpectedSharePerYear\tsaleIncludedUnpaidPerQuarter\tsaleNetRentPerQuarter\tsaleBlockedNoBuyerPerQuarter\tsaleBlockedNoPricePerQuarter\tsaleLawOpenFlag\tbuyerSavingsCoverShare\tbuyerCountSum\tbuyerFallbackSlotCount\t"
-        + "sellerLandRentPerQuarter\texportRentPerQuarter";
+        + "sellerLandRentPerQuarter\texportRentPerQuarter\t"
+        + "saleActualPaidPerQuarter\tsaleCopyPaidPerQuarter\tsaleEventCount\tsalePaidCopyMaxRelDiff\tsaleSlotSumMaxAbsDev\tsaleHeldDropSum\tsalePhiSum\tsaleActualShareNetSum\tsaleActualNetSum\tsaleBuyerCount\tsaleBuyerNonInvestorCount";   // ★(991) 末尾の 11 列＝実際の公売（LandsaleSaleBegin／End）
 
     /// <summary>[0,1] へ閉じる（計器の写し・NaN は 0）。</summary>
     internal static double LdClamp01(double x) => !(x > 0) ? 0 : x > 1 ? 1 : x;
@@ -103,6 +104,12 @@ public static partial class Instruments
         public readonly double[] QUnpaidByClass = new double[LdNC];
         public long QHolders, QPops, QBuyerCount, QFallback; public int Months, ScanMonths, Rp1Months, LowRpMonths; public bool Law;
         public double MaxOver, MaxRp1Rel;
+        // ★(991) 実際の公売（受け口 LandsaleSaleBegin／End）：月の未払いの写し（売り手→V）・免税の度合い・Begin の写し・四半期の和
+        public readonly Dictionary<Pop, double> Owed = new(ReferenceEqualityComparer.Instance);
+        public double ExemptDeg;
+        public bool Pend; public double PPrice, PNet, PCopy; public double[] PHeld = []; public readonly List<double> PSlot = [];
+        public double QSaleActual, QSaleCopy, QSaleMaxRel, QSaleSlotDev, QSaleDrop, QSalePhi, QSaleShareNet, QSaleNet;
+        public long QSaleEvents, QSaleBuyers, QSaleBuyersNonInv;
     }
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, LdAcc> LdAccs = new();
@@ -116,10 +123,12 @@ public static partial class Instruments
         a.MUnpaid = a.MPaidCopy = a.MClaimDelivered = a.MSellerRent = a.MInclUnpaid = a.MInclNetRent = a.MInclRate = a.MBlockNoBuyer = a.MBlockNoPrice = a.MCoverSavings = 0;
         System.Array.Clear(a.MUnpaidByClass);
         a.MHolders = a.MPops = a.MLowRp = a.MLandLow = a.MBuyerCount = a.MFallback = 0;
+        a.Owed.Clear();   // ★(991)
         var c = w.Coef;
         double discount = c.PrivilegeTaxDiscount.Value;
         double crownShare = c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
         double exemptDeg = Privileges.TaxExemptionDegree(w, c, crownShare);
+        a.ExemptDeg = exemptDeg;   // ★(991) 公売の写しの買い手の免税
         double PB(Pop p) => p.Closed && !p.IsSoldier ? 1.0 - exemptDeg : 1.0;
         double titheRate = c.TitheRate.Value * Privileges.TitheDegree(w, c);
         bool clergy = false;
@@ -167,6 +176,7 @@ public static partial class Instruments
                 if (!(unpaid > 0)) continue;
                 // 売り手：未払いが正の POP
                 a.MUnpaid += unpaid; a.MUnpaidByClass[LsClass(p.ClassId)] += unpaid; a.MHolders++;
+                a.Owed[p] = unpaid;   // ★(991) 公売の写しの V（徴税の前の貯蓄で数えた未払い）
                 a.MSellerRent += p.LandRentPerMonth.Value;
                 buyers.Clear();
                 foreach (var s in r.Producers)
@@ -237,12 +247,75 @@ public static partial class Instruments
                 F(a.QClaimDelivered), F(a.QPaidCopy), F(a.QEngine), F(a.MaxOver), F(a.MaxRp1Rel),
                 F(share), F(a.QInclUnpaid), F(a.QInclNetRent), F(a.QBlockNoBuyer), F(a.QBlockNoPrice), a.Law ? "1" : "0", F(cover), I(a.QBuyerCount), I(a.QFallback),
                 F(a.QSellerRent), F(a.QExport),
+                F(a.QSaleActual), F(a.QSaleCopy), I(a.QSaleEvents), F(a.QSaleMaxRel), F(a.QSaleSlotDev), F(a.QSaleDrop), F(a.QSalePhi), F(a.QSaleShareNet), F(a.QSaleNet), I(a.QSaleBuyers), I(a.QSaleBuyersNonInv),
             };
             sk.W.WriteLine(string.Join('\t', v));
             a.QUnpaid = a.QPaidCopy = a.QClaimDelivered = a.QEngine = a.QSellerRent = a.QInclUnpaid = a.QInclNetRent = a.QInclRate = a.QBlockNoBuyer = a.QBlockNoPrice = a.QCoverSavings = a.QExport = 0;
             System.Array.Clear(a.QUnpaidByClass);
             a.QHolders = a.QPops = a.QBuyerCount = a.QFallback = 0; a.Months = a.ScanMonths = a.Rp1Months = a.LowRpMonths = 0; a.MaxOver = a.MaxRp1Rel = 0;
+            a.QSaleActual = a.QSaleCopy = a.QSaleMaxRel = a.QSaleSlotDev = a.QSaleDrop = a.QSalePhi = a.QSaleShareNet = a.QSaleNet = 0; a.QSaleEvents = a.QSaleBuyers = a.QSaleBuyersNonInv = 0;   // ★(991)
         }
+    }
+
+    /// <summary>★(991) 州 <paramref name="r"/> の RGO（不在地主を外す）の私の枠の和（null＝1）を <paramref name="slot"/> へ、POP ごとの持ち分（枠の割合の和・寄せは持ち主）を戻り値へ。</summary>
+    static double[] LdHeldSnapshot(Region r, List<double> slot)
+    {
+        var h = new double[r.Pops.Count];
+        slot.Clear();
+        foreach (var s in r.Producers)
+        {
+            if (!s.IsRgo || LsAbsenteeRgo(r, s)) continue;
+            var ls = s.LandShares;
+            if (ls is null) { slot.Add(1.0); if (s.OwnerPopIndex >= 0 && s.OwnerPopIndex < h.Length) h[s.OwnerPopIndex] += 1.0; continue; }
+            double sum = 0; long fb = 0;
+            for (int k = 0, nk = LdSlotCount(ls); k < nk; k++) { sum += ls[k]; if (ls[k] > 0) { int j = LsRecipient(r, s, k, ref fb); if (j >= 0 && j < h.Length) h[j] += ls[k]; } }
+            slot.Add(sum);
+        }
+        return h;
+    }
+
+    /// <summary>★(991) 受け口（LandSale.Resolve の売り手ごとの最初・On の確かめは中）：計器が自分で公売の値段と払いを組み（売り手の V は LandsaleStep の写し・買い手は寄せの枠を外す）、持ち分を写す。</summary>
+    internal static void LandsaleSaleBegin(World w, Region r, int seller)
+    {
+        if (!On || w.WarmupFrozen || !LdAccs.TryGetValue(w, out var a)) return;
+        a.Pend = false;
+        var p = r.Pops[seller];
+        if (!a.Owed.TryGetValue(p, out double v) || !(v > 0)) return;
+        var c = w.Coef;
+        var buyers = new List<int>(); long fb = 0;
+        foreach (var s in r.Producers) if (s.IsRgo && !LsAbsenteeRgo(r, s) && LdHolds(r, s, seller)) LdBuyersOf(r, s, seller, buyers, ref fb);
+        double sumS = 0, sumSpb = 0;
+        foreach (var j in buyers) { var q = r.Pops[j]; double sj = System.Math.Max(0, q.Savings.Value); sumS += sj; sumSpb += sj * (q.Closed && !q.IsSoldier ? 1.0 - a.ExemptDeg : 1.0); }
+        double landBase = c.LandTaxFixedBasis > 0 ? p.LandRentPerMonth.Value + p.LandTaxBasisAdjPerMonth.Value : p.LandRentPerMonth.Value;
+        double net = sumS > 0 ? p.LandRentPerMonth.Value - w.LandTax * landBase * (sumSpb / sumS) : 0.0;
+        double rate = w.GovBondRatePerYear.Value;
+        double price = net > 0 && rate > 0 ? 12.0 * net / rate : 0.0;   // 計器の写し：月の純の地代×12÷年の金利
+        double phi = price > 0 ? System.Math.Min(System.Math.Min(v / price, 1.0), sumS / price) : 0.0;
+        a.PPrice = price; a.PNet = net; a.PCopy = phi * price;
+        a.PHeld = LdHeldSnapshot(r, a.PSlot);
+        a.Pend = true;
+    }
+
+    /// <summary>★(991) 受け口（売り手ごとの最後）：エンジンが実際に移した額 <paramref name="moved"/> を写しと比べ、持ち分の動き（枠の和・売り手の手放した割合・買い手）を数える。</summary>
+    internal static void LandsaleSaleEnd(World w, Region r, int seller, double moved)
+    {
+        if (!On || w.WarmupFrozen || !LdAccs.TryGetValue(w, out var a)) return;
+        if (!a.Pend) { if (moved > 0) { a.QSaleActual += moved; a.QSaleMaxRel = double.PositiveInfinity; } return; }   // 写しが売りを立てなかったのにエンジンが売った
+        a.Pend = false;
+        a.QSaleActual += moved; a.QSaleCopy += a.PCopy;
+        double d = System.Math.Abs(moved - a.PCopy), den = System.Math.Max(System.Math.Abs(moved), System.Math.Abs(a.PCopy));
+        a.QSaleMaxRel = LdMaxNan(a.QSaleMaxRel, d == 0 ? 0.0 : den > 0 ? d / den : double.NaN);
+        var slot0 = new List<double>(a.PSlot); var h0 = a.PHeld;
+        var h1 = LdHeldSnapshot(r, a.PSlot);
+        for (int k = 0; k < slot0.Count && k < a.PSlot.Count; k++) a.QSaleSlotDev = LdMaxNan(a.QSaleSlotDev, System.Math.Abs(a.PSlot[k] - slot0[k]));
+        if (!(moved > 0) || !(a.PPrice > 0)) return;
+        a.QSaleEvents++;
+        double phiA = moved / a.PPrice;
+        a.QSalePhi += phiA;
+        a.QSaleDrop += h0[seller] > 0 ? 1.0 - h1[seller] / h0[seller] : 0.0;
+        a.QSaleShareNet += 12.0 * phiA * a.PNet; a.QSaleNet += a.PNet;
+        for (int j = 0; j < h1.Length && j < h0.Length; j++)
+            if (j != seller && h1[j] > h0[j]) { a.QSaleBuyers++; if (j != r.InvestorPopIndex) a.QSaleBuyersNonInv++; }
     }
 
     static void LandsaleClose(MultiNationSim sim)
