@@ -38,12 +38,15 @@ public class InstrumentsTests
         if (instr) Instruments.Phase(sim, 1789UL, "warm");
         try
         {
+            int liveNationQuarters = 0;   // (982) B12 生きている国×四半期（国が死んで行が止まる型を四半期ごとに数える）
             for (int q = 0; q < quarters; q++)
             {
                 sim.StepQuarter();
                 if (instr) Instruments.Quarter(sim, 1789UL, q);
+                Assert.True(sim.Nations.Count >= 4, $"前提が崩れた：四半期 {q} の国が {sim.Nations.Count}（4 未満）＝〈4 * 四半期〉の床は国が減らないことに依る");
+                liveNationQuarters += sim.Nations.Count;
             }
-            Assert.True(sim.Nations.Count >= 4, $"前提が崩れた：走行の終わりの国が {sim.Nations.Count}（4 未満）＝〈4 * 四半期〉の床は国が減らないことに依る");   // (976) B12
+            Assert.True(liveNationQuarters >= 4 * quarters, $"前提が崩れた：生きている国×四半期が {liveNationQuarters}（{4 * quarters} 未満）");   // (976) B12
         }
         finally { if (instr) Instruments.Close(sim); }
     }
@@ -1211,7 +1214,7 @@ public class InstrumentsTests
             foreach (var c in new[] { "militaryMoveOutcomeCode", "militaryMoveIncreasingFlag", "militaryMoveCurrentShare", "militaryMoveTargetShare", "militaryMoveNetSupportIndex", "militaryMoveResistIndex", "militaryMoveResistTradIndex", "militaryMoveResistModernIndex", "militaryMoveResistMassIndex", "militaryMovePushBudgetFactor", "militaryMoveOpenFrontsCount", "militaryMoveStepFraction", "politicalCapitalSpentIndex", "politicalCapitalMaxIndex" })
                 Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
             var c0 = sim.Nations[0].World.Coef;
-            int[] counts = new int[5]; int checkedPush = 0; int[] openCounts = new int[2];
+            int[] counts = new int[5]; int checkedPush = 0; int[] openCounts = new int[2]; var pushNations = new HashSet<string>();
             foreach (var row in nr)
             {
                 int outcome = (int)Col(nh, row, "militaryMoveOutcomeCode");
@@ -1230,7 +1233,7 @@ public class InstrumentsTests
                     Assert.True(res + 1e-8 >= trad + mod + mass, $"抵抗の合計 {res} がブロックの内訳の和 {trad + mod + mass} を下回る");
                     double push = Col(nh, row, "militaryMovePushBudgetFactor"); int fronts = (int)Col(nh, row, "militaryMoveOpenFrontsCount");
                     double expectPush = fronts > 1 ? Math.Pow(1.0 / fronts, c0.PoliticalBudgetGate) : 1.0;
-                    Assert.InRange(push, expectPush - 1e-8, expectPush + 1e-8); checkedPush++;
+                    Assert.InRange(push, expectPush - 1e-8, expectPush + 1e-8); checkedPush++; pushNations.Add(row[Array.IndexOf(nh, "nation")]);
                     // ★(270) 歩幅の比＝歩幅×(1+抵抗の重み×抵抗)÷基本の速さ：解禁の四半期は政治予算を掛けない（1.0 か勅令の加速）・解禁の外は政治予算を掛ける（push か push×勅令の加速）
                     double ratio = f * (1.0 + c0.PolicyResistanceWeight * res) / c0.PolicyBaseSpeed, agile = 1.0;   // (384) 勅令の速さ（AutocraticPolicyAgility）は削除した＝歩幅の比に非議会の加速は無い
                     bool open = Col(nh, row, "warStageOpenAfterGovFlag") == 1;
@@ -1247,6 +1250,7 @@ public class InstrumentsTests
             Assert.True(counts[3] > 0, $"無償で動いた四半期が1度も無い（{string.Join(',', counts)}）");   // ★(383) 旧は〈政治資本が足りず固定された四半期 counts[2]〉も要求した。行政効率の連鎖を消した盤面ではこの 4 国 40 四半期に起きなくなった（0,0,0,119,44）＝対照の一つを外した（結果 2 の行が出れば内側の式の照合は今も働く）   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
             Assert.True(counts[4] > 0, $"政治資本を払って動いた四半期が1度も無い（{string.Join(',', counts)}）＝純支持が負の経路が写っていない");
             Assert.True(checkedPush > 0);
+            Assert.True(pushNations.Count >= 2, $"(982) 対照：政治予算の係数を突き合わせた国が {pushNations.Count}（2 未満）＝歩幅の式の検査が 1 国に偏っている");
             Assert.True(openCounts[1] > 0, $"解禁の四半期のうち政治予算の係数が1未満の四半期が無い（{openCounts[0]},{openCounts[1]}）＝政治予算を掛けないことを確かめる対照にならない");
 
             // ⑥戦時段の器の割合（エンジンの Military.WarStageShare そのもの）＝別の列（解禁・施行のシェア・目標の段）から (min(施行, 目標の段÷段数) − (段数−1)÷段数) × 段数 を 0..1 に収めた値に合う。解禁の外は 0
@@ -1387,12 +1391,12 @@ public class InstrumentsTests
             foreach (var c in countCols.Concat(["openFrontsCount", "openFrontsLevelLawCount", "openFrontsContinuousCount", "militaryFrontCountedFlag", "pushBudgetFactor", "openFrontStates"]))
                 Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
             double gate = sim.Nations[0].World.Coef.PoliticalBudgetGate;
-            var seen = new int[11]; int rowsWithFronts = 0, levelSeen = 0, contSeen = 0, milChecked = 0;
+            var seen = new int[11]; int rowsWithFronts = 0; var frontNations = new HashSet<string>(); int levelSeen = 0, contSeen = 0, milChecked = 0;
             foreach (var row in nr)
             {
                 int n = (int)Col(nh, row, "openFrontsCount");
                 if (n < 0) continue;   // Step が来なかった行（助走の直後など）
-                rowsWithFronts++;
+                rowsWithFronts++; frontNations.Add(row[Array.IndexOf(nh, "nation")]);
                 int sum = 0; var perCode = new int[11];
                 for (int i = 0; i < countCols.Length; i++) { int k = (int)Col(nh, row, countCols[i]); sum += k; perCode[codeOfCol[i] + 1] += k; }
                 Assert.Equal(n, sum);
@@ -1429,6 +1433,7 @@ public class InstrumentsTests
                 for (int i = 0; i < 11; i++) seen[i] += perCode[i];
                 levelSeen += lvl; contSeen += n - lvl;
             }
+            Assert.True(frontNations.Count >= 2, $"(982) 対照：戦線を数えた国が {frontNations.Count}（2 未満）＝戦線の列の検査が 1 国に偏っている");
             Assert.True(rowsWithFronts > 50, $"戦線を数えた行が少ない（{rowsWithFronts}）");
             int moved = seen[4] + seen[5] + seen[8] + seen[9], fixedN = seen[2] + seen[3] + seen[6] + seen[7];
             Assert.True(moved > 0 && fixedN > 0, $"動いた戦線と固定された戦線が両方写っていない（符号 −1..9 の件数 {string.Join(',', seen)}）");
@@ -2056,7 +2061,7 @@ public class InstrumentsTests
             var (h, rows) = Table(System.IO.Path.Combine(dir, "spend_s1789.tsv"));
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             int iB = Array.IndexOf(h, "bucket"), iU = Array.IndexOf(h, "nationUid"), iN = Array.IndexOf(h, "nation"), iP = Array.IndexOf(h, "pickedFlag"), iC = Array.IndexOf(h, "classId"), iK = Array.IndexOf(h, "kind"), iT = Array.IndexOf(h, "tier"), iS = Array.IndexOf(h, "slotName");
-            int pickedClasses = 0, otherClasses = 0, luxuryRows = 0, domesticRows = 0, constructionRows = 0, tierRows = 0;
+            var otherNations = new HashSet<string>(); int pickedClasses = 0, otherClasses = 0, luxuryRows = 0, domesticRows = 0, constructionRows = 0, tierRows = 0;
             foreach (var g in rows.GroupBy(r => (r[iB], r[iU], r[iC])))
             {
                 var cls = g.Single(r => r[iK] == "class");
@@ -2067,13 +2072,14 @@ public class InstrumentsTests
                 if (!picked && parts.Count == 0) continue;
                 double sum = parts.Sum(r => Col(h, r, "payPerMonth"));
                 Assert.True(Math.Abs(sum - classPay) <= 1e-9 * Math.Max(1.0, Math.Abs(classPay)), $"{cls[iN]} 区切り{cls[iB]} 階級{cls[iC]}：支払いの種類の和 {sum} が階級の支出 {classPay} に閉じない（支払いの位置の写し漏れ）");
-                if (picked) pickedClasses++; else otherClasses++;
+                if (picked) pickedClasses++; else { otherClasses++; otherNations.Add(cls[iU]); }
                 if (!picked) Assert.DoesNotContain(parts, r => r[iK] == "good" && r[iT] != "Luxury" && r[iT] != "Service");   // 他の国は嗜好品と役務の財だけ財ごと
                 luxuryRows += parts.Count(r => r[iK] == "good" && r[iT] == "Luxury" && Col(h, r, "payPerMonth") > 0);
                 domesticRows += parts.Count(r => r[iK] == "good" && r[iS] == "家事奉仕" && Col(h, r, "payPerMonth") > 0);
                 constructionRows += parts.Count(r => r[iK] == "extra" && r[iS] == "建設の材料と工賃" && Col(h, r, "payPerMonth") > 0);
                 tierRows += parts.Count(r => r[iK] == "tier");
             }
+            Assert.True(otherNations.Count >= 2, $"(982) 対照：挙げていない国で突き合わせた国が {otherNations.Count}（2 未満）＝〈他の国〉の検査が 1 国に偏っている");
             Assert.True(pickedClasses >= 20 && otherClasses >= 20, $"突き合わせた階級が少ない（挙げた国 {pickedClasses}・他の国 {otherClasses}）");
             Assert.True(luxuryRows > 0 && domesticRows > 0 && constructionRows > 0 && tierRows > 0, $"対照：嗜好品 {luxuryRows}・家事奉仕 {domesticRows}・建設 {constructionRows}・階層の合算 {tierRows} のどれかが0＝その支払いの位置が1度も通っていない");
 

@@ -99,7 +99,7 @@ def board(name, tables_base, tables_arm, tree, known, expect_ok, label=None):
         if label is None:
             check(name + '：札なし', False, '実際に違った列' in out)
         else:
-            check(name + '：札 ' + label, True, ('実際に違った列 ' + label) in out)
+            check(name + '：札 ' + label, True, ('（実際に違った列 ' + label + '）') in out)   # (982) 札の後ろの閉じ括弧まで見る（接頭辞の列名でも緑になる穴を塞ぐ）
 
 
 KP = ic.parse_known(['cpop_s:debtInCarryPerQuarter'])
