@@ -182,6 +182,30 @@ public class LandSaleTests
         Assert.Equal(off.Land, on.Land, 12);
     }
 
+    /// <summary>T12（★(991) 追記・突然変異 M3 が T1〜T11 で緑だった穴＝どの盤面も rp＝0）：0＜rp＜1 の売り手。土地の受け手は売り手だけ（他の POP の地代は 0）。
+    /// 走査で取れた土地税（LastTaxLandPerMonth）＋公売の代金（台帳 OtherIn）＝払える盤面（貯蓄 1e9＝rp 1）で取れた土地税＝届く請求の全額。売り手の貯蓄＝全額の半分（請求の和は全額以上＝rp＜1）。</summary>
+    [Fact]
+    public void T12_払えた分と公売の代金で請求の全額()
+    {
+        (double Land, double Other) Run(double sellerSavings)
+        {
+            var (w, r, _, _) = Board([0.7, 0.1, 0.15, 0.05], sellerSavings, 1e6, 1e6, 1e6);
+            foreach (var rr in w.Regions) foreach (var p in rr.Pops) if (!ReferenceEquals(p, r.Pops[0])) { p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasisAdjPerMonth = new MoneyPerMonth(0); }
+            r.Pops[0].LastEarnedPerMonth = new MoneyPerMonth(0);
+            w.Coef.LandShareTaxSale = 1; w.FiscalFundingRatio = new Share(1);
+            double o0 = w.TreasuryLedger[(int)TreasuryCat.OtherIn];
+            Fiscal.Step(w, w.Coef);
+            return (w.LastTaxLandPerMonth.Value, w.TreasuryLedger[(int)TreasuryCat.OtherIn] - o0);
+        }
+        var full = Run(1e9);
+        Assert.True(full.Land > 0, "盤面が土地税を立てる");
+        Assert.Equal(0.0, full.Other, 15);
+        var part = Run(full.Land * 0.5);
+        Assert.True(part.Land > 0 && part.Land < full.Land, $"0＜rp＜1：{part.Land} ／ {full.Land}");
+        Assert.True(part.Other > 0, "公売が立つ");
+        Assert.Equal(full.Land, part.Land + part.Other, 9);
+    }
+
     private static string Begin() { string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_landsale991_" + Guid.NewGuid().ToString("N")); Instruments.Configure(dir, "*"); return dir; }
 
     private static List<Dictionary<string, string>> RunIns(double flag, int quarters = 3)
