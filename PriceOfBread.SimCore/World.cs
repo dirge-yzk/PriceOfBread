@@ -746,7 +746,7 @@ public sealed class World
         double moved;
         if (from.Pops is { } fp)
         {
-            moved = Pop.Take(fp, amount, fromWeights, taken, fromHeld);   // 動いた額＝引いた額の和（受け手へは同じ額）。fromHeld＝呼び手が同じ並びで求め済みの保有の合計（NaN＝ここで数える）
+            moved = Pop.Take(fp, amount, fromWeights, taken, fromHeld, from.W!.Coef);   // (984) 払い手の国の係数（床の旗）・動いた額＝引いた額の和（受け手へは同じ額）。fromHeld＝呼び手が同じ並びで求め済みの保有の合計（NaN＝ここで数える）
             if (!(moved > 0)) return 0;
         }
         else
