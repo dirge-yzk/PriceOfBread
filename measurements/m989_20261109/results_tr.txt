@@ -1,0 +1,7 @@
+(989) c90tr 結果（試験だけ・ident なし）
+直した試験：InstrumentsTests.cs  B7（PlaceBorrowBoard :150・RunMatch の afterWarmup :39・新しい Assert :190）・B12（FirstFourNames :71・床 11 か所〔:172・:209・:242・:340・:387・:664・:683・:738・:824・:850・:1980〕）。
+数えない 3 か所：RunMatch の 4*quarters（静的な述語）・:267 の Assert.Equal（nationIndex＜4 で既に数える）・階級の groups（founders）。
+突然変異（mutations_tr.tsv）：M-B7a 赤（原盤の借入の国は イギリス の 1）・M-B7b 緑（新しい Assert だけが盤面の偏りを拾う）・M-B7c 赤・M-B12a 赤・M-B12b 赤（予言は〈等価かもしれない〉だったが、既定の盤面で 20 四半期のうちに 5 つ目の国が生まれる＝nationIndex＜100 で名が 5 になり赤。つまり建国は実際に起きていて、床の取り違えは現物で起こりうる）・M-B12c 赤・M-B12d 緑（床を全行に戻しても最初の 4 国の行だけで床を満たす盤面＝下限の門は盤面の突然変異で隔てられない・予防と名乗る）。
+門の木：wt0（main＋直し）＝InstrumentsTests 40 本緑（直す前の探り p5 も同じ）・㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）173 本緑（scan28_wt0.txt）。
+旗 1 の木（main＋origin/c87hd・main＋origin/c82hd）：どちらも merge が Coefficients.cs と DormantIdentityTests.cs で衝突（c82hd は measurements/m936 も add/add）＝旗の行の和集合で解かず、木を外して名乗る。よって直した後の緑は 1 本の木（wt0）だけ。
+SimCore の差：0（git diff 22de6aab -- PriceOfBread.SimCore は空）。
