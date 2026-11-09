@@ -1,0 +1,9 @@
+deleted 2026-11-10 07:21:57: D:/PoB_work/wt_c93ms（git worktree remove）
+deleted 2026-11-10 07:22:01: D:/PoB_work/wt_c93tq（git worktree remove）
+deleted 2026-11-10 07:22:04: D:/PoB_work/wt_m1011（git worktree remove）
+deleted 2026-11-10 07:22:04: ローカルの枝 c93ms・c93tq・m1011（main に入った・origin の枝は残す）
+deleted 2026-11-10 07:24:10: D:/PoB_work/c93ms_work（c93ms の ident の生・約 19GB）・D:/PoB_work/ident_m1008z（c93tq の ident の生・約 19GB）・D:/PoB_work/c93tq_work（台本・印）＝線の報告は〈合流が読み終えるまで残す〉・合流は合わせた木の生（keep_1011/base_ins）で g1.py・read_tq.py を読み直し、両線の門の数が一致した後に消した（自分で作っていないフォルダ＝この根拠で消した）
+deleted 2026-11-10 07:24:10: D:/PoB_work/r1009_work・D:/PoB_work/r1010_work（読む線と設計の材料の作業フォルダ・main 9b189cb8 に写したことを git cat-file で確かめた後）
+deleted 2026-11-10 07:24:22: D:/PoB_work/ident_m1011z（合流の ident の生の残り・計器つき 10 種の生は keep_1011/base_ins へ移した）
+deleted（予定・この記録の push の後）：D:/PoB_work/m1011_work（隔離ビルド suite_art・道具箱の写し kitsrc・突然変異のログ mut・docs の下書き stage・印とログ）
+残した物：keep_1001・keep_1006（読むだけ・触れていない）・keep_1011（新しい INSRAW）。wt_ui2 ほか別のセッションの物には触れていない。
