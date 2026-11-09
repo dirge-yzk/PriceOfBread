@@ -1,0 +1,35 @@
+(1004) c92wr 戦争の段0 — 作業の計画（読むだけの線・腕 0 本・コミットしない）
+書いた日：2026-11-10・担当 Claude Opus 5.5
+
+■作業の場所
+- 置き場：D:/PoB_work/r1004_work/（この線が作った唯一のフォルダ。worktree も枝も作らない）
+- ソースは main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 36401c9a）を読むだけ。書き込まない。
+- 合流の写し先（合流がする）：measurements/m1004_20261110/ と scripts/instruments/r1004/
+
+■読む生（読むだけ・書き換えない）
+盤面 4 つ＝D:/PoB_work/keep_1001/
+- base_ins（m1001 基線・種 1〜10）
+- n1（ヌル腕 SupplySlope 0.50000001・種 1〜10）
+- n2（ヌル腕 SupplySlope 0.49999999・種 1〜10）
+- a11（m1001 の木・種 11〜20・POB_CEARN=0）
+表：
+- wars_s<種>.tsv：startYear civilWarFlag sideA sideB months deadK（1 行＝1 組の戦争〈同盟と宗主の参戦も別の行〉・Instruments.WarTables・試合の終わりの時点の月数＝1950 年に続いている戦争は打ち切り）
+- invade_s<種>.tsv：year invader target targetIsNation submitted proximityAdded addedToTarget（World.Invade を通った全て）
+- score_s<種>.tsv：rankInForce（その四半期の列強の判定・動く名簿の比べ用）
+- nation_s<種>.tsv：soldierK atWarMonths civilWarMonths armyThreatShare securityThreatShare openFrontsCount ほか（余剰戦力の項の候補）
+- cpeace_s・casualty_s（講和と戦死・補助）
+- 比べ：measurements/b10_20261109_m1001_ins の〈同一ペアの再戦〉の行（交戦ペア 169.2 組・3 回以上 21.0 組・最多 8.6 回）＝自分の数え方の検算に使う
+
+■読むソース（grep し直して行を確かめる）
+- World.cs：ExpansionWill・WarFever・TickExpansionWill・InvadeWillCost・CanInvade・Invade
+- Diplomacy.cs：LandPower・Tension・WarGateOpen・TriggerWars・SideMilitary・DeclareWar・TryAiSubjugate・ColonizeWillCost・CanOfferPeace の膨張度・DriftTension・PostWarTension の置き直し
+- 縛られた戦力の候補：ArmyShape・治安の届く力・前線の兵・占領地
+
+■手順
+1. prereg.txt を書く（数え方・組の定義・列強の固定の名簿・期間の窓）＝数える前
+2. 台本 wr1004_count.py（入力の盤面と出力の書き先を引数）で問い 2・3 の表
+3. ソースから問い 4（余剰戦力の式の候補）・問い 5（warentry_s の仕様）・問い 6（段1〜3 の門の素案）
+4. 結果は findings.md（下書き）にまとめる。数は台本の出力から写す。
+
+■入れない物
+.cs・テスト・腕・計器の追加・コミット・生の書き換え・M の減衰・お互いの依存・段1〜3 の実装・App/Display/Runner
