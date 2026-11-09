@@ -1,0 +1,2 @@
+M	行 408387	salePaidCopyMaxRelDiff の inf 0・nan 0	実際≠写しの行 0
+S11	行 409300	salePaidCopyMaxRelDiff の inf 0・nan 0	実際≠写しの行 0
