@@ -1,0 +1,96 @@
+(984) c89dd 事前登録：⑬ 塵の債務＝Pop.Take の床の側（旗 TakeFloorPositive・既定 0 の器→点火）・波89・3 回の規則の 1 回目・基線 m981（main 46cd4df6・測った木 9c296d94）
+書いた担当：Claude Opus 5.5（線 c89dd）。この線が作るフォルダ：D:/PoB_work/wt_c89dd（worktree・枝 c89dd）・D:/PoB_work/c89dd_work（作業・紙・腕 arm_B・arm_S・ident の作業・突然変異の木 mut）・D:/PoB_work/c89dd_art（隔離ビルド）。
+材料：docs/202611/20261107/20261107_人の居ない商人の手形の詰まり_B5の根とB1の材料_下書き.md 根 2（48 行〜）・157 行・164 行・170〜171 行・★(919) の反証役 2・3。scripts/instruments/r917/read917_dust.py。00一覧 §00 ⑬・§0-2 ★(919) ②〈作者「全て推奨で進めてください」で推奨を採った〉。
+
+[0] 形の種類＝入口（全ての移しの口の払い手の側の床・1 行の条件）。尾ではない。
+ - 現物：Model.cs:360 `if (!(take > 1e-12) || !(held > 1e-9)) return 0;`（Pop.Take の重み null の枝）。take＝min(額, Σmax(0,貯蓄))。
+   決済 ①（BilateralMarket.cs:579）は back＝min(Debt, 貯蓄) を Bank.Lend(w, p, −back)（Bank.cs:27〜:32）→ World.Transfer → Pop.Take で返す。0＜Debt≦1e-12 の返しは床で 0 になり、
+   債務は 0 にならない＝:580 の手形の門 bill＝!(Debt＞0) は厳密な 0 を要る＝その商人は手形を振り出せないまま（分子と分母の非対称：返しの床 1e-12・振り出しの門 0・配る側 Pop.Distribute は 段2-3 E1 で床を外した＝ConservationTests.cs:561）。
+ - 新しい形（旗 1）：:360 の額の床を `!(take > 0)` にする（`!(take > (coef is not null && coef.TakeFloorPositive > 0 ? 0 : 1e-12))`・同じ 1 行・行は増えない）。否定形＝NaN の額・NaN の貯蓄は take が NaN になり 0 を返す。
+ - 保有の床（held ＞1e-9）：**両方の旗で残す**（決めた）。理由：(a) 紙 [3] で塵の行の末の貯蓄 ≦1e-9 は 0 行（keep_981/base_ins の 187,502 行の全て）＝この床は塵の債務に効いていない。
+   (b) 外すと HeirDebtSettledMovedTests.cs:23〜29〈取り立てが床（held ≦1e-9）で 0 を返す決済は 0 を足す〉が旗 1 で赤＝旧の床を試験の盤面の前提に置いた番人＝★(912) の〈試験の期待を新しい規則へ組み直す〉に当たる＝この線では扱わない。
+   (c) take ＞0 なら held ≧take ＞0（take＝min(額, held)）＝分母は正＝比のガードとしては額の床だけで足りる。保有の床の絶対値は〈比のガードを絶対値で書かない〉に当たる候補＝別の線へ回す（pending に書く）。
+ - 係数の届け方：Pop.Take は static で World を持たない。唯一の SimCore の呼び手 World.Transfer（World.cs:749）が払い手の国の係数（from.W.Coef・POP の側は国を名乗る＝直前の throw で非 null）を末尾の省略可の引数 coef で渡す。
+   coef＝null（試験の直接の呼び＝PopScanTests.cs:154〜156・:176・:332〜:339）は今の床＝ビットが同じ。**World.cs:749 と Model.cs:347（署名）は指示の持ち主の範囲（Model.cs:348〜:365・Coefficients の旗 1 行）の外＝報告の先頭に名乗る**。WriterRatchetTests.cs:206 の `Pop.Take(` の World.cs の件数 1 は変わらない。
+ - 新しい状態・係数・タイマー＝0（旗 1 本だけ）。確証：作者の裁定の形ではない＝§0-2 ★(919) ②〈作者「全て推奨で進めてください」で推奨を採った〉の向き（床の側で直す）・形の細部は AI の案・確証なし。
+ - Take は全ての移しの口の払い手の側：World.Transfer の呼び手は SimCore に 61 箇所（grep `World.Transfer(\|\bTransfer((`）。旗 1 は塵の債務だけでなく、全ての口で 0＜額≦1e-12 の移しを動かす（税・地代・運搬ほか）。重み付きの枝（!(tw＞0)）は触らない。
+ - 計器：新しい列は足さない（決めた）。理由：同じ盤面で旧と新の規則を数える読み手は既にある＝cearn_s の billBlockedDustClearings（(920)・清算の頭で計器が POP の状態から自分で数える＝Take の局所変数を受け取らない）・cpop_s の debt（(863)）・merchantDebt（(910)）。
+   Take の中に〈0＜take≦1e-12 で止まった呼び〉の数を置く形は、エンジンの局所変数を受け取るだけの計器＝教訓 ① に当たる＝置かない。flow_s の SavLedger の Take の件数（a[1]）は旗 1 で増える＝記録（予言の外の赤にしない）。
+   ＝ident は --added-tables なし。
+
+[1] 門（腕の前に固定・ループの中で変えない）
+ G1〈働いた〉（主な門・腕 B 計器つき 10 種・種 1〜10・台本 scripts/instruments/c89dd/gate984.py・種の和）
+  G1a 人の居る商人の行（cpop_s・className 商人・popK ＞1e-12）の塵（0＜debt≦1e-9）の割合 ≦ 旗 0 の 1/10。旗 0（keep_981/base_ins）＝0.790661（187,502/237,146）→ 門 ≦0.0790661。
+  G1b cearn_s の billBlockedDustClearings の和 ≦ 旗 0 の 1/10。旗 0＝1,343,245 → 門 ≦134,324。
+  ＝両方が通って G1 が通る。旗 0 で 0 でない＝恒真でない（[3]）。ヌル腕でも G1a 0.804687・0.514673、G1b 1,463,806・661,720＝ヌル腕どうしで 1/10 に届かない（N2/基準 0.65・0.49）。
+ G2〈保存〉（機構の試験・PriceOfBread.Tests/TakeDustFloorTests.cs・期待は試験が置いた債務と貯蓄から手で決める）
+  T1 旗 1（Theory 1e-13・1e-15・1e-16・1e-18）：貯蓄 2e-9 の POP の債務 d を決済 ① と同じ返しで → Debt＝0.0 ちょうど・貯蓄の減り＝d（相対 1e-12×貯蓄）・家計の与信の減り＝d（相対 1e-12）。
+  T0 旗 0（陽性の対照・1e-13・1e-15）：同じ盤面で債務・貯蓄・家計の与信が 1 ビットも動かない。
+  T2 保有の床（旗 0・1）：貯蓄 5e-10・債務 1e-13 → 動かない。
+  T3 旗 1：額 NaN・0・負・−∞ と貯蓄 NaN の払い手 → 0 を返し何も動かさない。
+  T4 旗 1：2 人の払い手（3e-9・1e-9）から 4e-13 → 動いた額＝4e-13・保有の比（3:1）・貯蓄の減りの和＝動いた額（相対 1e-12）・負の貯蓄なし。対照：旗 0 と coef なしは 0。
+  T5 床は払い手の国の係数を読む（国 0 だけ旗 1 → 国 0 の塵は返り国 1 の塵は残る）。
+  T6 清算（Market.Step）を通す（旗 0・1）：商人の債務 1e-15・貯蓄 1e4 → 旗 1 は清算の頭の BillBlocked＝BillBlockedDust＝0・商人に塵が残らない／旗 0 は BillBlockedDust ＞0・＝BillBlocked・債務 1e-15 のまま。
+  ＋ leakhunt・savetest（旗 1 の木）。
+ G3〈上の側〉（この形に固有の誤り＝返し過ぎ）：腕 B の cpop_s の debt ＜0 の行＝0（旗 0 も 0・ヌル腕も 0＝判別ではなく形の誤りの検出）。記録：savings ＜−1e-9 の行（旗 0 74・N1 429・N2 290）。
+ 記録（門ではない）：植民地格の州の importPaidPerQuarter の和の新÷旧（旗 0 3.7416e7・N1 4.42635e7〔1.183〕・N2 3.76344e7〔1.006〕＝ヌル腕の幅 1.006〜1.183）・本国格の同じ量・billBlockedClearings の和・塵の続きの本数・nullgate の O・NG・英の国債の不履行の種の数・開幕の 1000 倍以上。
+ 止める線（挙動の線の決まりのまま・結果の前に写す）：破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）・1 四半期に 100 倍以上の〈それ以外〉（stoplines949.sh・RULE=pair・NULLS＝measurements/m981_20261109/null/stop906_n1.txt・stop906_n2.txt・分離・反乱の建国の後に名目 GDP 0 が続いて跳ぶ型は記録＝★(905) ①）・1e10 倍以上・非有限・
+  空洞化 1/10 未満の名簿の外（規則 A2・`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`・**その線が原因と読めた件だけ**＝基線の同じ種で同じ州が keep_981/base_ins ですでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない・〈線が原因〉が 1 件でもあれば止める＝★(852) T1）・推定の計算量 ＞248.5 秒・機構の試験の赤（ソースを走査する番人を含む）。
+  NG（ng.sh・基準 rd:measurements/ng981_20261109:m981）・国力・史実度・exact・near・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上は記録。
+
+[2] 突然変異（使い捨ての木・コミットの前に回す）と門ごとの赤・緑の表（㉚・紙の予言）
+ | 突然変異 | T1 | T0 | T2 | T3 | T4 | T5 | T6 旗1 | T6 旗0 | G1（腕 B・紙の予言） |
+ | M1 床を戻す（旗 1 でも 1e-12） | 赤 | 緑 | 緑 | 緑 | 赤 | 赤 | 赤 | 緑 | 赤（基準と同じ＝比 1） |
+ | M2 床を 1e-15 にする | 赤（1e-15・1e-16・1e-18） | 緑 | 緑 | 緑 | 緑（4e-13 ＞1e-15） | 赤 | 赤 | 緑 | 赤（塵の 98% は ≦1e-15＝917 の dZ0） |
+ | M3a 旗を読まない（常に旧の床） | 赤 | 緑 | 緑 | 緑 | 赤 | 赤 | 赤 | 緑 | 赤（比 1） |
+ | M3b 旗を読まない（常に新の床） | 緑 | 赤 | 緑 | 緑 | 赤（対照の旗 0） | 赤 | 緑 | 赤 | 緑（旗 0 の ident が非恒等で落ちる） |
+ | M4 保有の床を外す | 緑 | 緑 | 赤（旗 1） | 緑 | 緑 | 緑 | 緑 | 緑 | 緑（塵の行の貯蓄 ≦1e-9 は 0 行＝G1 は拾わない・T2 だけが拾う） |
+ | M5 World.cs が係数を渡さない（coef null） | 赤 | 緑 | 緑 | 緑 | 緑（直接の呼び） | 赤 | 赤 | 緑 | 赤（比 1） |
+ | M6 NaN の否定形を崩す（`take <= 0`） | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | — |
+ ・腕の段の突然変異は回さない（紙の予言だけ・腕 1 本 約 12GB）。M1・M3a・M5 の腕は旗 0 の木と同じ規則＝基準の生 keep_981/base_ins そのもの＝G1 が赤（比 1.0）であることは [3] の数で確かめた。M2 は 917 の値の段の数（dZ0：≦1e-15 98%）で赤を予言する。
+
+[3] 紙の台本の出力（今の盤面 keep_981・台本 scripts/instruments/c89dd/gate984.py）
+ - measurements/m984_20261109/paper_base_ins.txt：人の居る商人の行 237,146・塵 187,502（0.790661）・塵の続きの始まり 1,050・debt＜0 0 行・savings＜−1e-9 74 行・塵で貯蓄 ≦1e-9 0 行・billBlockedDust 1,343,245・billBlocked 2,602,501・植民地の輸入の払い 3.7416e7・本国 9.73426e8。
+ - measurements/m984_20261109/paper_n1.txt・paper_n2.txt（dustLowSavRows の列を足す前の版）：N1 0.804687・1,463,806／N2 0.514673・661,720。
+ - 旗 0 で門が落ちる確かめ：G1a 0.790661 ＞0.0790661・G1b 1,343,245 ＞134,324＝旗 0（何もしない実装）は G1 で赤。ヌル腕も赤。
+ - 予言 P1（腕 B）：G1a は 0.005〜0.03（旗 0 で塵でない行 49,644 から始まった続き 1,050＝行あたり 2%＝旗 1 では塵が次の清算で返る＝四半期の末に残るのは最後の清算の後に生まれた塵だけ）＝門の 1/4 前後（3/4 には寄らない＝㉗ の名乗りは要らない）。G1b は旗 0 の 1% 以下（清算の頭の塵は、前の清算の後に運ばれた塵だけ）。G3＝0。
+ - 予言 P2（旗 0 の ident）：〈判定: 恒等〉（宣言 --tests-delta +13〔TakeDustFloorTests の Theory 4＋2＋2＋2・Fact 3〕・--added-tables なし）。
+ - 予言 P3（腕 B の成績表）：全ての口で 0＜額≦1e-12 の移しが動く＝軌道は種ごとに基準から離れる（成績表は全行一致しない）。
+
+[4] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+ - IndustrializationReaderTests の許可表：足すコードに工業化度の読み手は無い＝変わらない。
+ - `new MoneyStock(` の件数：SimCore に足さない（試験の中だけ）＝変わらない。
+ - route_anchors.tsv の鍵の行（World.cs の Transfer の 3 行＝:67〜:69 の文字列の鍵）：World.cs:749 は鍵の行ではない＝変わらない。
+ - WriterRatchetTests の宣言の表：`Pop.Take(` World.cs 1（:206）＝変わらない。計算量の item（軌道の件数）は旗 1 で動きうる＝合流が ★(749) で取り直す型（機構の向きを主張しない番人）＝予言：動いたら verdict に列挙。
+ - UnitTypeTests：Model.cs の新しい行に単位の換算は無い（0 と 1e-12 の比べだけ）＝変わらない予言。
+ - GoodIdGuardTests：gate984.py に C# の配列の字面は無い＝変わらない。
+ - DormantIdentityTests：器のコミットで DormantZeroFields に TakeFloorPositive を 1 行（EmptyPopDebtFirst の次）。点火のコミットで外し、★の注の 1 行を残す。〈係数は全て本体のどこかで読まれる〉＝Model.cs:360 が読む。
+ - 束：`dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~TakeDustFloorTests"`（隔離ビルド D:/PoB_work/c89dd_art）を器のコミットの直後に。
+
+[5] ★(818) と旗 1 の木の番人が旧の規則を固定していないか（㉜・grep）
+ - 機構の軸（Take と Bank.Lend の返しの床を読む試験）：`grep -ln "\.Debt\b\|Debt\.Value\|Bank\.Lend" PriceOfBread.Tests/*.cs` 24 本。うち床の前提を書く物：
+   HeirDebtSettledMovedTests.cs:23〜29（held ≦1e-9 の床＝保有の床を残すので旗 1 でも緑の予言）・BillBlockedColumnsTests.cs:59〜66・:110（塵の債務 1e-13・5e-10 で貯蓄 0＝back＝0＝Take を呼ばない＝旗 1 でも緑の予言）・
+   ConservationTests.cs:561〜573（Pop.Distribute の床＝触らない）・PopScanTests.cs:154〜156・:176・:332〜:339（coef なしの直接の呼び＝今の床＝緑）・EmptyPopDebtFirstTests（旗 EmptyPopDebtFirst 0・返しは貯蓄の大きい POP＝緑の予言）。
+ - 盤面の軸：清算の盤面（ジェノヴァ・トスカーナ／英・仏）で塵を置く試験は上の 2 本だけ。微小な額の移しを〈動かない〉と書く Assert（`[0-9]e-1[3-9]` を Transfer・Take・Lend と同じファイルで grep）＝ConservationTests.cs:568（Distribute）だけ＝旗 1 で変わらない。
+ - 旗 1 で赤になる試験の予言：規則の側は 0 本。軌道に依る試験（計器の試験の対照の件数・flow_s の件数ほか）は旗 1 の軌道で動きうる＝㊴ で計器の束を先に回し、赤は ★(743) の区分で読む。
+ - 旗 1 にしたら、フルスイートの前に `FullyQualifiedName~Instrument` と TakeDustFloorTests を先に回す（㊴）。
+
+[6] 周辺の点検（★(885)・読むだけ・新しい腕は回さない）
+ - Bank.Lend の正の額の側（Bank.cs:29）：World.Transfer → Pop.Distribute（床なし＝段2-3 E1）＝0＜額≦1e-12 の貸しは動く＝返しだけが床で止まっていた（分子と分母の非対称の型）。旗 1 で対称になる（保有 ＞1e-9 の払い手について）。
+ - Pop.Carry の債務（Model.cs:428 `debt = from.Debt * frac`）：小さい人の流れが 1e-12 以下の債務を運ぶ疑い（下書き 157 行）。cpop_s の debtInCarryPerQuarter（(920)）が読み手。旗 1 は運ばれた塵も次の決済で返す（貯蓄 ＞1e-9 なら）＝出所は直さない（記録・腕 B で debtInCarry と塵の始まりを並べる）。
+ - EmptyPopEstate の相続人の債務（EmptyPopEstate.cs:22・旗 EmptyPopDebtFirst 0 の器）：同じ back＝min(Debt, 貯蓄) → Bank.Lend の形＝旗 1 なら器の点火のときも塵が返る。B1（相続人へ債務を配る）の素案が作る床未満の塵（★(919) 反証役 3）も、相続人の貯蓄 ＞1e-9 なら次の決済で返る＝床を先に直す順の根拠。
+ - 手形の門 :580 の対称：bill＝!(Debt＞0)（厳密な 0）。旗 1 で返しの床が 0 になり、返しと振り出しの両側が〈正なら〉で揃う。残る非対称＝保有 ≦1e-9 の払い手の塵（紙で 0 行）。:580 は触らない（入れない物）。
+ - 明らかな欠損：保有の床の絶対値（held ＞1e-9）が比のガードの絶対値＝別の線の候補（HeirDebtSettledMovedTests の番人を伴う＝作者に聞く物の候補）。
+
+[7] 計算量の割り当て：+0.3 秒（1 行の条件 1 つ＋旗 1 で増える微小な移しの Sav の呼び）。m981 の推定 212.3 秒・上限 248.5 秒・名目の余り 約 36.2 秒。2 秒以下の割り当て＝1 本の腕で門にしない（合流の木の累計で読む）。
+
+[8] 重なり（他の線の持ち主のファイル）
+ - Coefficients.cs：この線は :3339 の新しい旗の 1 行（EmptyPopDebtFirst の次）だけ（tb は :2172〜:2173 の注＝離れている）。
+ - Model.cs：:347（署名・持ち主の範囲の外）と :360 の 2 行（ls は Producer の [NonSerialized] の欄 1 行＝離れている）。
+ - World.cs：:749 の 1 行（引数を足す・持ち主の範囲の外＝この回の線で World.cs を持つ線は無い＝計画の持ち主の一覧を grep した）。
+ - DormantIdentityTests.cs：自分の旗の 1 行（EmptyPopDebtFirst の次）。
+ - 試験：PriceOfBread.Tests/TakeDustFloorTests.cs（新）だけ。tb・ls の試験ファイルとは重ねない。InstrumentsCearn.cs は触らない（列を足さない）。
+
+[9] 手順：この事前登録 → 器（旗 0・試験・休眠表）→ 走査の番人の束 → ident.sh run c89ddz（--tests-delta 13）→ 突然変異（使い捨ての木・出力 measurements/m984_20261109/mut/）→ 点火（旗 1・.cs だけ）→ origin/c89tb の印の頭を merge
+   → 計器の束（㊴）→ フルスイート（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる）・savetest・leakhunt → 腕 B（`INS=1 bash scripts/instruments/batch.sh run c89ddB 10`・POB_WORK＝D:/PoB_work/c89dd_work/arm_B）
+   → S11（`INS=1 POB_CEARN=0 bash scripts/instruments/batch.sh run c89ddS 10 11`・POB_WORK＝D:/PoB_work/c89dd_work/arm_S・床に届かなければ合流が ★(852) で回す）→ 止める線 → push。形の変え直しは 1 回だけ（⑭）。
