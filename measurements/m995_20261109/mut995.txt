@@ -1,0 +1,4 @@
+M1_塵の述語を外す rc 1 | 失敗 PriceOfBread.Tests.LandsaleInstrumentTests.T8_塵の買い手だけ [22 ms]; 失敗 PriceOfBread.Tests.LandsaleInstrumentTests.T9_塵と塵でない買い手 [17 ms] | 失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M2_床を1e-12に固定 rc 1 | 失敗 PriceOfBread.Tests.LandsaleInstrumentTests.T10_床の旗 [32 ms] | 失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M3_ΣSから塵を外す rc 1 | 失敗 PriceOfBread.Tests.LandsaleInstrumentTests.T9_塵と塵でない買い手 [11 ms] | 失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M4_minを外す rc 0 |  | 成功!   -失敗:     0、合格:    10、スキップ:     0、合計:    10、期間: 5 s - PriceOfBread.Tests.dll (net10.0)

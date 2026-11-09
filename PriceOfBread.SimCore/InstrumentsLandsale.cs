@@ -18,6 +18,9 @@ namespace PriceOfBread.SimCore;
 //   ⑤純の地代が 0 以下（!(P>0)）か国債金利が正でない・買い手の貯蓄が 0 の売り手は期待に入れず saleBlocked* に別に積む（未払いが消える端＝低⑪）。
 //   ⑥法の門（農奴解放 ≥ 限定的）は期待に掛けず saleLawOpenFlag（四半期の最後の月の値）に分けて記録。
 //   ⑦助走の月（World.WarmupFrozen）・Fiscal が無効の月は数えない。
+//   ⑧★(995) 公売の払いの写し（LandsaleSaleBegin）は買い手ごとの額の和にエンジンの床を入れる（保有が 1e-9 以下・額が床〔TakeFloorPositive＞0 なら 0・でなければ 1e-12〕以下は 0）。エンジンの関数は呼ばない。
+//     写しの重み〔Closed && !IsSoldier ? 1−免税の度合い : 1〕は Privileges.TaxAssessment（同じ式）・写しの基数は Fiscal.LandTaxBase（同じ分岐）と今の盤面で同じ値（紙の確かめ＝事前登録 m995 [1]）。
+//     既知の限界：免税の度合いは月の走査の頭の取り（走査の途中で入力が変わる盤面では不一致）・特権の免税（PrivilegeTaxDiscount＞0）や φ*≠0/1 の盤面は同値の外に出うる・買い手の列挙は SellOne と別実装。
 public static partial class Instruments
 {
     const int LdNC = 5;
@@ -291,7 +294,17 @@ public static partial class Instruments
         double rate = w.GovBondRatePerYear.Value;
         double price = net > 0 && rate > 0 ? 12.0 * net / rate : 0.0;   // 計器の写し：月の純の地代×12÷年の金利
         double phi = price > 0 ? System.Math.Min(System.Math.Min(v / price, 1.0), sumS / price) : 0.0;
-        a.PPrice = price; a.PNet = net; a.PCopy = phi * price;
+        // ★(995) 払いの予言＝買い手ごとの額の和にエンジンの床を入れる（Pop.Take は保有が 1e-9 以下か額が床以下なら 0 を返す）。ΣS・φ・値段は塵込みのまま（SellOne と同じ）。床は払い手の国の係数（World.Transfer が from.W.Coef を渡す）。
+        double floor = c.TakeFloorPositive > 0 ? 0 : 1e-12;
+        double copy = 0;
+        if (phi > 0)
+            foreach (var j in buyers)
+            {
+                double sj = System.Math.Max(0, r.Pops[j].Savings.Value);
+                double amt = System.Math.Min(phi * (sj / sumS) * price, sj);
+                if (sj > 1e-9 && amt > floor) copy += amt;
+            }
+        a.PPrice = price; a.PNet = net; a.PCopy = copy;
         a.PHeld = LdHeldSnapshot(r, a.PSlot);
         a.Pend = true;
     }
@@ -317,6 +330,18 @@ public static partial class Instruments
         for (int j = 0; j < h1.Length && j < h0.Length; j++)
             if (j != seller && h1[j] > h0[j]) { a.QSaleBuyers++; if (j != r.InvestorPopIndex) a.QSaleBuyersNonInv++; }
     }
+
+    /// <summary>★(995) 試験の窓（LdAcc は private）：売り手 <paramref name="p"/> の未払い V と免税の度合いを置く（LandsaleStep の代わり）。On のときだけ。</summary>
+    internal static void LandsaleTestOwe(World w, Pop p, double v, double exemptDeg)
+    {
+        if (!On) return;
+        var a = LdAccs.GetValue(w, _ => new LdAcc());
+        a.Owed[p] = v; a.ExemptDeg = exemptDeg;
+    }
+
+    /// <summary>★(995) 試験の窓：四半期の積みの実際の払い・写しの払い・最大の相対差。</summary>
+    internal static (double Actual, double Copy, double MaxRel) LandsaleTestRead(World w)
+        => LdAccs.TryGetValue(w, out var a) ? (a.QSaleActual, a.QSaleCopy, a.QSaleMaxRel) : (double.NaN, double.NaN, double.NaN);
 
     static void LandsaleClose(MultiNationSim sim)
     {
