@@ -175,4 +175,65 @@ public class LandsaleInstrumentTests
             Assert.True(Math.Abs(sum - tot) <= 1e-9 * Math.Max(1.0, tot), $"階級の和 {sum} 総量 {tot}");
         }
     }
+
+    /// <summary>★(995) 公売を直接回す盤面（LandSaleTests.Board と同じ型：英の 1 州・POP 0＝売り手・1 聖職・2 担い手・3 投資家・τ 0.1・金利 0.05・売り手の地代 100＝値段 21600・免税 0）。計器は On・未払いは窓で置く。</summary>
+    private static (double Actual, double Copy, double MaxRel) SaleBoard(double s1, double s2, double s3, double v, double floorFlag)
+    {
+        string dir = Begin();
+        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: Seed) { DiplomacyFrozen = true };
+        try
+        {
+            var w = sim.Nations[0].World;
+            w.Coef.PrivilegeTaxDiscount = new Share(0); w.Coef.LandShareTaxSale = 1; w.Coef.TakeFloorPositive = floorFlag;
+            w.LandTax = 0.1; w.GovBondRatePerYear = new RatePerYear(0.05); w.SerfEmancipation = ReformLevel.Full;
+            var r = w.Regions.First(x => x.Tier != RegionTier.Colonial && x.Pops.Count >= 4 && x.Producers.Count(p => p.IsRgo) >= 2);
+            r.ClergyPopIndex = 2; r.InvestorPopIndex = 3;
+            foreach (var p in r.Producers.Where(p => p.IsRgo)) { p.OwnerPopIndex = 0; p.LaborPopIndex = 1; p.LandShares = [0.7, 0.1, 0.15, 0.05]; }
+            foreach (var p in r.Pops) { p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasisAdjPerMonth = new MoneyPerMonth(0); }
+            r.Pops[0].LandRentPerMonth = new MoneyPerMonth(100);
+            r.Pops[0].SetSavings(0); r.Pops[1].SetSavings(s1); r.Pops[2].SetSavings(s2); r.Pops[3].SetSavings(s3);
+            var pops = Fiscal.TaxScan.Of(w, w.Coef).Pops;
+            Instruments.LandsaleTestOwe(w, r.Pops[0], v, 0.0);
+            LandSale.Resolve(w, w.Coef, pops, [(pops.IndexOf(r.Pops[0]), v)], 0.0);
+            return Instruments.LandsaleTestRead(w);
+        }
+        finally { End(sim); }
+    }
+
+    private static void SameRel(double actual, double copy, string msg) => Assert.True(Math.Abs(actual - copy) <= 1e-12 * Math.Max(Math.Abs(actual), Math.Abs(copy)), $"{msg}: 実際 {actual:R} 写し {copy:R}");
+
+    /// <summary>T8（★(995)・a）塵の買い手だけ（貯蓄 5e-10×3）：Pop.Take は保有 1e-9 以下を拒む＝実際 0・写し 0（塵の述語を外せば写しが 1.5e-9 で赤）。</summary>
+    [Fact]
+    public void T8_塵の買い手だけ()
+    {
+        var (act, copy, rel) = SaleBoard(5e-10, 5e-10, 5e-10, 216, 0);
+        Assert.Equal(0.0, act);
+        Assert.Equal(0.0, copy);
+        Assert.Equal(0.0, rel);
+    }
+
+    /// <summary>T9（★(995)・b）塵と塵でない買い手が混ざる（9e-10・2e-9・0・V 1e-9）：ΣS＝2.9e-9・φP＝1e-9＝買い手 2 の払いは 1e-9×2÷2.9＝6.9e-10（手で数えた値）。塵は払えない。</summary>
+    [Fact]
+    public void T9_塵と塵でない買い手()
+    {
+        double want = 1e-9 * 2.0 / 2.9;
+        foreach (double flag in new[] { 0.0, 1.0 })
+        {
+            var (act, copy, rel) = SaleBoard(9e-10, 2e-9, 0, 1e-9, flag);
+            Assert.True(Math.Abs(act - want) <= 1e-9 * want, $"実際 {act:R} 手の値 {want:R}");
+            SameRel(act, copy, $"旗 {flag}");
+        }
+    }
+
+    /// <summary>T10（★(995)・c）床の旗：貯蓄 3000・6000・V 1e-13（各買い手の額は 1e-12 未満）。旗 0＝Take が拒む＝実際 0・写し 0。旗 1＝1e-13 が動く＝実際＝写し＝1e-13。</summary>
+    [Fact]
+    public void T10_床の旗()
+    {
+        var (a0, c0, _) = SaleBoard(3000, 6000, 0, 1e-13, 0);
+        Assert.Equal(0.0, a0);
+        Assert.Equal(0.0, c0);
+        var (a1, c1, _) = SaleBoard(3000, 6000, 0, 1e-13, 1);
+        Assert.True(Math.Abs(a1 - 1e-13) <= 1e-12 * 1e-13, $"旗 1 の実際 {a1:R}");
+        SameRel(a1, c1, "旗 1");
+    }
 }
