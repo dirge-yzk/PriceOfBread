@@ -344,7 +344,7 @@ public sealed class Pop
     /// <paramref name="taken"/>＝非 null なら払い手ごとの動いた額を並びの順に足す。否定形のガード＝NaN の額・請求は取らない。
     /// <paramref name="heldKnown"/>＝（重み null のときだけ読む）呼び手が**同じ並びで**もう求めた Σmax(0,貯蓄)（NaN＝ここで数える）。★(351) 切り下げと通貨改革は、額を決めるのに払い手の保有の合計を先に数える
     ///   ＝その和と同じ和をここでもう一度数えていた。呼び手の求めと移し方の間は何も書かない＝同じ順の同じ和＝1 ビットも違わない（番人＝<see cref="PopWindow.Verify"/> が求め直して確かめる）。</summary>
-    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null, double heldKnown = double.NaN)
+    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null, double heldKnown = double.NaN, Coefficients? coef = null)
     {
         double moved = 0;
         if (weights is null)
@@ -357,7 +357,7 @@ public sealed class Pop
                 if (!double.IsNaN(heldKnown)) PopWindow.Check("払い手の保有の合計", heldKnown, held);
             }
             double take = Math.Min(amount, held);
-            if (!(take > 1e-12) || !(held > 1e-9)) return 0;
+            if (!(take > (coef is not null && coef.TakeFloorPositive > 0 ? 0 : 1e-12)) || !(held > 1e-9)) return 0;   // ★(984) 旗 TakeFloorPositive＞0：動かす額が正なら動かす（0＜額≦1e-12 の塵の債務も返る）・旗 0／coef null＝今の床 1e-12・保有の床は両方で同じ
             if (PopWindow.Verify) PopWindow.GuardWrite("取り立て");   // ★(352) 反証役〔pu v〕低：動かす額が決まった後（0 しか動かさない呼びは止めない＝他の書き込み口と同じ形）
             foreach (var p in payers) { double s = take * (Math.Max(0, p._savings.Value) / held); p._savings -= new MoneyStock(s); moved += s; taken?.Add(s); if (Instruments.On) Instruments.Sav(p, Instruments.SavKind.Take, -s); }   // (262) 計器（読むだけ）
             return moved;
