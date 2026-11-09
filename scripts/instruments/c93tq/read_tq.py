@@ -23,7 +23,8 @@ nanrows = 0
 uk = dict(n=0, scan=0.0, dt=0.0, dc=0.0, dm=0.0, wa=0, wat=0, wac=0, wab=0, wb=0, wc=0, wd=0, xw=0, xp=0, xcap=0, capge1=0, capwedgeall=0)
 ukn = {k: [] for k in ('tarEff', 'tariffNow', 'tariffTarget', 'treatyScale', 'exRate')}
 ratio_rec = []
-paid_uk = dict(t=0.0, c=0.0)
+ratio1 = []
+paid_uk = dict(t=0.0, c=0.0, imp=0.0, ex=[])
 for s in seeds:
     pt, pn, pf = f'{d}/tradeskip_s{s}.tsv', f'{d}/nationgood_s{s}.tsv', f'{d}/fiscal_s{s}.tsv'
     if not (os.path.exists(pt) and os.path.exists(pn)):
@@ -82,7 +83,7 @@ for s in seeds:
         v = float(r[ixn['dutyTariffPaid']]) + float(r[ixn['dutyCornPaid']])
         paid[k] = paid.get(k, 0.0) + v
         if r[ixn['nation']] == NAT and r[ixn['year']] == YR:
-            paid_uk['t'] += float(r[ixn['dutyTariffPaid']]); paid_uk['c'] += float(r[ixn['dutyCornPaid']])
+            paid_uk['t'] += float(r[ixn['dutyTariffPaid']]); paid_uk['c'] += float(r[ixn['dutyCornPaid']]); paid_uk['imp'] += float(r[ixn['crossImportValue']]); paid_uk['ex'].append(float(r[ixn['exRateAtPay']]))
     if os.path.exists(pf):
         ixf, rf = rd(pf)
         led = {}
@@ -96,10 +97,14 @@ for s in seeds:
             last3 = sum(x[1] for x in m[-3:])
             if last3 != 0:
                 ratio_rec.append(v / last3)
+            if m[-1][1] != 0:
+                ratio1.append(v / m[-1][1])
 
 print(f'行(国×財×種)={rows_n}  不一致：G5 duty の和 {bad["g5"]}（最大 {maxd["g5"]:.2e}）・xWedgeA の 3 分け {bad["g5split"]}')
 print(f'G7：旧の度数との不一致 {bad["g7bin"]}・総和＋NaN≠xPairs {bad["g7sum"]}・門の件数との不一致 {bad["g7gate"]}（ratioNaN>0 の行 {nanrows}）')
 print(f'G8：tarEff の不一致 {bad["g8"]}（最大 {maxd["g8"]:.2e}）')
+if ratio1:
+    print(f'G6 記録（直近 1 か月の台帳）：n={len(ratio1)} 中央値 {st.median(ratio1):.6f}  1±1e-6 の割合 {sum(abs(x - 1) < 1e-6 for x in ratio1) / len(ratio1):.3f}')
 if ratio_rec:
     print(f'G6 記録（門ではない）：nationgood の払い÷fiscal_s の台帳の直近 3 か月の和  n={len(ratio_rec)} 中央値 {st.median(ratio_rec):.4f}  1±1e-6 の割合 {sum(abs(x - 1) < 1e-6 for x in ratio_rec) / len(ratio_rec):.3f}')
 if uk['scan'] > 0:
@@ -108,4 +113,5 @@ if uk['scan'] > 0:
     print(f'  楔 {int(uk["xw"])}（越境の組 {int(uk["xp"])} の {100 * uk["xw"] / max(1, uk["xp"]):.1f}%）のうち A {int(wa)}＝関税の分で通る {int(uk["wat"])}・穀物法の分で通る {int(uk["wac"])}・両方要る {int(uk["wab"])}／B {int(uk["wb"])} C {int(uk["wc"])} D {int(uk["wd"])}')
     print(f'  xCap {int(uk["xcap"])}（越境の組の {100 * uk["xcap"] / max(1, uk["xp"]):.1f}%）のうち売り手の値段が自分以上（比≧1.0）{int(uk["capge1"])}（{100 * uk["capge1"] / max(1, uk["xcap"]):.1f}%）')
     print('  国の値（種ごと・中央値）：' + '・'.join(f'{k} {st.median(v):.4f}' for k, v in ukn.items() if v))
-    print(f'  払い（買い手の通貨・合算）：関税 {paid_uk["t"]:.4g}・穀物法 {paid_uk["c"]:.4g}')
+    exm = st.median(paid_uk['ex']) if paid_uk['ex'] else float('nan')
+    print(f'  払い（買い手の通貨・合算）：関税 {paid_uk["t"]:.4g}・穀物法 {paid_uk["c"]:.4g}・越境の輸入額（金建て・運賃込み）{paid_uk["imp"]:.4g}・払い÷輸入額（金建てに換算 ×exRate）{(paid_uk["t"] + paid_uk["c"]) * exm / max(1e-9, paid_uk["imp"]):.4f}')
