@@ -1,0 +1,128 @@
+(997) c91sl 事前登録：土地の持ち分 B-1 段 1〜2＝土地税の払えない分の公売の 2 回目の腕（旗 LandShareTaxSale・エンジン 0 行・3 回の規則の 2 回目）
+書いた日 2026-11-09・木 2b8f617d（main＝基線 m988）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+作者の言葉：作者 2026-11-04「将来的に『土地を手放す』『土地を買う』は実装したい」→〈作者「全て推奨で」で推奨を採った〉（★(832) ② B1・★(852) ③ Q2＝B-0→B-2→B-1）。形の細部は全て AI の案・確証なし。
+形の種類：入口（新しい経路）。3 回の規則：同じ形の 2 回目（1 回目 (991) は門 G-L3 の形の誤り〈写しにエンジンの保有の床が無い〉で採らなかった）。**この腕が赤なら、次が最後（3 回目）と名乗る。**
+形（エンジン）：(991) の事前登録 measurements/m991_20261109_prereg_sl.txt の [0]〜[2] と 1 字も変えない（LandSale.cs・Fiscal.cs の 3 行は main に旗 0 の器として入っている＝この線はエンジンを 1 行も書かない）。
+
+[0] 指示から外れた所（報告の先頭にも書く）
+ a. G-L3 に〈行の |実際−写し| ≦ 1e-12〉の絶対の床を足した（指示の〈相対 1e-9 に加えてエンジンの床に合わせた絶対の床を両側に〉に従った・(991) の門の文からの変更はこの 1 か所と、写しの側〈c91lc の式〉だけ）。下の [5] に床の根拠。
+ b. 突然変異の表から M9・M10 を〈門の表〉から外し（反証役 ③・等価）、試験の表には等価の理由つきで残す（〈寄せの枠を買い手に入れる〉形を 1 回当てて緑を記録する）。
+
+[1] 必要性の確認（腕の前・既にある生だけ・scripts/instruments/c91sl/need997.py・出力 measurements/m997_20261109/need997.txt）
+ 生：D:/PoB_work/keep_994_rej/c90sl_arm_{B,S11}（(991) の腕・木 e788865e・TakeFloorPositive＝1）。
+ G-L3 の違反行（salePaidCopyMaxRelDiff＞1e-9）：B 958 行・S11 1032 行。
+ 向き：写し＞実際 457／482 行・行の和の差が丸めの内（相対 1e-13）501／550 行・**実際＞写しは 0／0 行**。
+ 大きさ：行の差 d＝写し−実際 の最大 4.44e-9／5.43e-9・d÷max(売りの件数,1) の最大 2.31e-9／1.27e-9（上限 8×1e-9 を超える行 0）。
+   売りの件数（saleEventCount）は InstrumentsLandsale.cs:311〜312 で moved＞0 の売りだけを数える（全ての買い手が塵の売りは 0 件）＝max(…,1) で割る。
+ 読み：塵の買い手 1 人の欠け＝min(φ·S_j/ΣS·P, S_j)≦S_j≦1e-9（Model.cs:360 の `!(held > 1e-9)` で Take が 0 を返す）＝向きは片側・大きさは件数×買い手×1e-9 以下。違反行は全てこの型と矛盾しない。**塵の外の行は 0 本＝腕を回す。**
+ 限界（名乗る）：生は四半期×国の和で、salePaidCopyMaxRelDiff は売りごとの最大＝同じ行の中で〈実際＞写し〉の売りが塵の売りに隠れる場合は読めない（〈逆向き 0 行〉は必要条件で、売りごとの帰属ではない）。帰属の残りはソースで読む：写し（InstrumentsLandsale.cs:278〜298）の PCopy＝φ·P とエンジン（LandSale.cs:72〜77）の Σ_j min(φ·S_j/ΣS·P, S_j) は φ≦ΣS÷P のとき数学的に等しく、違うのは Take の床だけ（TakeFloorPositive＝1 の額の床は〈正なら動かす〉・保有の床 held＞1e-9）。
+ c91lc の直した式（実装ログ (991) の反証役 ①：ΣS・pbAvg・φ は塵込みのまま・払いの予言だけ Σ_j [S_j＞1e-9]·min(φ·S_j/ΣS·P, S_j)・額の床は TakeFloorPositive に応じて）は、この型の欠けを写しの側でゼロにする。c91lc の紙が出たら [追記] で突き合わせる（突き合わせが食い違えば腕を回さずに止めて名乗る）。
+
+[2] エンジンの床をどの項に入れるか（★(994)）
+ 保有の床（Model.cs:360 `!(held > 1e-9)`）：写しの側（c91lc の式の [S_j＞1e-9]）。門には入れない。
+ 額の床（Model.cs:360・TakeFloorPositive＞0 なら `!(take > 0)`、0 なら `!(take > 1e-12)`）：写しの側（c91lc が旗に応じて写す）。この木は TakeFloorPositive＝1（Coefficients.cs:3340）。
+ 門の絶対の床 1e-12（[5] G-L3）：上の 2 つを写した後に残る和の順の丸めだけを許す。額の床の旗 0 の値と同じ桁（行の和の差がこれ以下なら、どちらの向きでも通る＝両側）。
+
+[3] 予言（エンジンも旗も 1 回目と同じ・c90px の器は旗 0 で恒等〈m994z〉）
+ P1 腕 B・S11 の成績表（素の 10 種の帯の報告）は measurements/b10_20261109_c90slB_ins・b10s11_20261109_c90slS_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+ P2 生の計器の表は keep_994_rej の腕の生と、landsale_s の写しの列（saleCopyPaidPerQuarter・salePaidCopyMaxRelDiff）・既知の揺れ（ident.cfg の揺れの表）・flow の sourceLine と経路の名の行番号（★(988)：main に入った c90px の EconomyStep.cs の行の増減）の外で一致。
+ P3 G-L1 上側・G-L1 下側・G-L2a・G-L2b・G-L4・G-L6 と止める線は 1 回目の値を再現する（G-L1 下側の最小 0.999742／0.999190・G-L4 0.0041〜0.0127／0.0037〜0.0169・G-L6 105126／71005〔B〕・推定 211.2／211.9 秒）。
+ P4 G-L3 は違反 0 行（写しの直しで塵の欠けがゼロ・残りは丸め）。
+ 外れたら記録の先頭に書く（〈写しだけの違いではない〉の証拠）。P1・P2 の外れは採否の門ではなく記録（エンジンが同じことの確かめ）。
+
+[4] 計器：この線は列を足さない（landsale_s 42 列のまま・写しの式は c91lc の持ち物）。
+
+[5] 門（両側・(991) [5] の文のまま・G-L3 だけ変更・読み手 scripts/instruments/c91sl/gates997.py＝gates991.py の写しで G-L3 の 1 行だけ違う）
+ G-L1 上側：行ごと saleActualPaidPerQuarter ≦ saleIncludedUnpaidPerQuarter×(1+1e-9)+1e-12。
+ G-L1 下側：種ごと saleLawOpenFlag＝1 の行の Σ実際÷Σ期待 ≧ 0.9。
+ G-L2a：行ごと saleSlotSumMaxAbsDev ≦ 1e-12。
+ G-L2b：種ごと Σ saleHeldDropSum÷Σ salePhiSum ∈ [0.9, 1+1e-9]。
+ G-L3：行ごと〈salePaidCopyMaxRelDiff ≦ 1e-9〉または〈|saleActualPaidPerQuarter − saleCopyPaidPerQuarter| ≦ 1e-12〉（両側）、かつ売りの件数の和＞0。写しは c91lc の式（[2]）。
+ G-L4：種ごと Σ saleActualShareNetSum÷Σ saleActualNetSum ≦ 0.05。
+ G-L5（試験だけ）：LandSaleTests の T9。
+ G-L6（記録）：買い手の件数・うち投資家でない件数。
+ 狙いの数字（機構の観測量）：G-L1 下側（売りが期待どおり立つ）・G-L2b（払った分の持ち分が移る）・G-L3（値段の規則）。史実の大きさ・国ごとの割合は記録。
+ 腕 B（種 1〜10）と S11（種 11〜20・POB_CEARN=0・landsale_s は CEARN に依らず書かれる＝★(988) の読み方＝landsale_s を直接読む）で同じ門を読む。
+
+ 門が〈間違った形〉で落ちることの確かめ（腕の前・出力 measurements/m997_20261109/）：
+  gates997_base_flag0.txt：keep_994/base_ins（旗 0・足した列あり・実際 0）＝G-L1 下側 0.0・G-L2b nan・G-L3 件数 0・G-L4 nan で赤（判定: 赤あり）＝何もしない実装で落ちる。
+  gates997_rej_B.txt・gates997_rej_S11.txt：keep_994_rej（直す前の写し）＝G-L3 違反 262／279 行で赤＝絶対の床 1e-12 は旧の写しの誤り（塵の欠け）を通さない（床が門を空にしていない）。
+  G-L3 の床を〈買い手×1e-9〉のように広げると旧の写しも通る＝広げない。
+
+[6] 突然変異（旗 1＋c91lc の頭を merge した使い捨ての木 D:/PoB_work/c91sl_work/mut/・台本 scripts/instruments/c91sl/mut997.py＝mut991.py の写し・出力 measurements/m997_20261109/mutation.txt）と、どの門・試験で赤か（予言・(991) の mutation_r2.txt と同じ）
+  M1 値段を総額で → 門 G-L3・試験 T2 ほか
+  M2 V に ruleMul を掛けない → 門 G-L1 上側・試験 T11
+  M3 V に (1−rp) を掛けない → 門 G-L1 上側・試験 T12
+  M4 代金を走査の revenue にも足す → 門なし・試験 T1_T10
+  M5 持ち分を動かさない → 門 G-L2b・試験 T2・T11 ほか
+  M6 買い手を投資家だけ → 門 G-L6（記録）・G-L3（pbAvg がずれる州）・試験 T2・T11 ほか
+  M7 法の門を外す → 門なし・試験 T6
+  M8 国家の枠も売る → 門なし・試験 T5
+  M11 φ≦1 を外す → 試験 T3
+  M12 ×12 を落とす → 門 G-L3・G-L4・試験 T2 ほか
+  M9 寄せの枠を買い手に入れる → **等価（門の表から外す・試験は緑の予言）**：LandSale.cs:55 は枠 k＜4 の生の受け手（SlotPop）を ls[k] の正負に依らず全て買い手に入れる＝持ち主（枠 0）は既に買い手か売り手自身。寄せの受け手（LandShareRecipient の範囲外→OwnerPopIndex）は持ち主＝足しても買い手の集合は変わらない。
+  M10 貯蓄の上限を外す → **等価（門の表から外す・試験は緑の予言）**：額の上限は 3 重（φ≦ΣS÷P・min(…, S_j)・Take の min(amount, held)）。
+  G-L3 が固有に拾うのは M1・M12（反証役 ③）。門の python が腕の生で同じ変異を拾うかは突然変異ごとの腕を回さず試験で確かめる（腕 1 本 約 12GB）＝限界。
+  写しの直しの持ち物（写しの直しを外す突然変異）は c91lc の線が持つ。
+
+[7] 既知のずれ（名乗る）
+ a. 反証役 ④：1 つの RGO にしか枠の無い担い手（枠 2）が払った分の一部は、複数の RGO に枠を持つ聖職（枠 1）と投資家（枠 3）へ寄る（LandSale.cs の移し＝RGO ごとに、その RGO で枠を持つ買い手 E_s へ a_j÷Σ_{E_s} a で分ける）。保存則は破らない（G-L2a・T7）・G-L2b は売り手の側だけを見る＝この寄りは門に出ない。記録。
+ b. (991) [2] (c)〜(g) のずれ（不在地主の送金が R に入る・輸出の地代は R の外・法の門と作者 2026-10-16 の注の緊張・値段が立たない端の未払いが消える・州の中の順）はそのまま。
+
+[8] 関連機能の点検（反証役 ⑤・ソースと既にある生だけで読む・新しい行なし）
+ a. null→[1,0,0,0] を読む側：PayOwnerRent（EconomyStep.cs:738〜749）は null で 1 組（rp＝OwnerPopIndex・wk＝1.0・rk＝rent）、[1,0,0,0] で k＝0 だけ（ls[1..3]＝0 は飛ばす・rp＝LandShareRecipient(0)＝OwnerPopIndex〔範囲の外なら持ち主へ寄る＝同じ〕・wk＝1.0・rk＝rent×1.0＝rent・凍結の差分 f×1.0＝f）＝同じ値。AddRentRecipients（:758）は欄ありの枝が不在地主の RGO を外す＝公売は不在地主の RGO を配列化しない（LandSale.cs:47）＝null と同じ 1 組（rent×1.0）。World.cs:2349 は長さ 5 だけ＝[1,0,0,0] は読まない。Simulation.cs:969〜975 は構築だけ。Territory.cs:341 は凍結だけを null にし欄は消さない（grep `LandShares = null` 0 件）。欠損なし。
+ b. 定額の凍結の基数：PayOwnerRent の凍結の差分 LandTaxBasisAdj は枠の重み wk で受け手へ割る＝持ち分が移ると次の月から買い手の基数へ（G-L5＝試験 T9）。欠損なし。
+ c. 不在地主の送金（Colonial.cs:147〜161）：在地の口座から不在地主へ LandRent の記録も移す＝不在地主（首都の投資家）が自州で売り手になると R に植民地の地代が入る（値段が上界側＝φ が小さい側）。公売は不在地主の RGO を売らない。既知のずれ（[7] b）。新しい欠損は別の線へ回す物なし。
+
+[9] ソースを走査する番人（㉘）と変わる件数の予言（㉑）
+ この線のコミットは Coefficients.cs:3342 の既定 0→1 の 1 行と DormantIdentityTests.cs:153 の行を外して注 1 行（既存の型）だけ。
+ route_anchors.tsv・WriterRatchetTests・`new MoneyStock(` の件数・工業化度の読み手の許可表・GoodIdGuard・OnDoubleReadScanTests：エンジンの行を書かない＝変わる件数 0。
+ DormantIdentityTests：DormantZeroFields から LandShareTaxSale を外す（既定が 1 になる＝表に残すと既定 0 の器の検査で赤）。
+ テストの数（★(994)）：この線の新しい [Fact]・[Theory] は 0。予言＝2521（TESTS_NONFULL）＋ c91lc の新しい [Fact]・[Theory] の数 ＋ 0。c91lc の頭を merge した時点で数えて [追記] に書く（フルスイートの前）。FullLength 3。
+
+[10] 旗 1 の木の番人（㉜・★(818)）
+ (991) の旗 1 のフルスイートの唯一の赤 LandShareTests.T10（cpop の地代の受け手）は main で盤面の取り直し（LandShareTests.cs:470 `Coef.LandShareTaxSale = 0`）が入っている＝赤の予言 0。
+ Assert.Null(s.LandShares) は構築の直後だけ（(991) [9]）＝予言 0。〈土地税を払えなければ持ち分は動かない〉を Assert する試験は grep で 0 件。
+ 赤が出たら README ★(743) の区分で読み、旧の規則を固定する番人なら止めて作者に聞く。
+
+[11] 止める線（今の物差し・この回の形をそのまま写す）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限）。
+ 〈100 倍〉の〈それ以外〉：scripts/instruments/c84gz/stoplines949.sh（RULE=pair・NULLS＝measurements/m988_20261109/null/stop906_n1.txt・stop906_n2.txt）。参照の最大は 1（N2 のシャム）。基準とヌル腕も同じ台本で数え直して並べる。
+ 空洞化：an_h2.py -v4 でピークの 1/10 未満で、規則 A2（既定 -ex rule）以外・主要国の州は例外にしない・**その線が原因と読めた件だけ**＝基線（keep_994/base_ins・種 11〜20 は keep_988/a11）の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+ 推定の計算量 ＞248.5 秒。機構の試験の赤（ソースを走査する番人を含む）。
+ 記録だけ：NG（ng.sh・基準 rd:measurements/ng988_20261109:m988）・史実の線・成績表・nullgate（門 A′）・gdp_zero10（記録の段の先頭）・空洞化 1/4 未満・開幕の 1000 倍以上・英の国債の不履行の種の数・c91rx の〈州の出入り〉の区分（印が腕の結果より前に push されていれば記録の列として並べるだけ）。
+
+[12] 計算量の割り当て：+0.3 秒以下（(991) と同じ）。m988 の推定 211.5 秒・余り 約 37.0 秒。2 秒以下は 1 本の腕で門にしない（記録）。
+
+[13] 腕の指令（(991) の腕の名乗りと同じ条件）
+ 腕 B：POB_WORK=D:/PoB_work/c91sl_work/arm_B・INS=1 POB_INSTRUMENTS_NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ bash scripts/instruments/batch.sh run c91slB 10（種 1〜10）。
+ S11：POB_WORK=D:/PoB_work/c91sl_work/arm_S11・POB_CEARN=0・同じ国の名簿・種 11〜20（(991) の S11 の名乗り `selfplay-batch 10 - 0 11`）。
+ 床：腕 B 41GB・S11 35GB（D: の空きを shutil で確かめる）。S11 は床に届かなければ合流が回してよい（門と止める線を 1 字も変えない）。
+
+[14] 手順
+ 事前登録（このコミット）→ 点火（Coefficients.cs:3342 と DormantIdentityTests:153）→ origin/c91lc の印の頭を merge（ident〈判定: 恒等〉の後）→ c91lc の紙と [1] の突き合わせ → テストの数の予言を [追記] → 計器の束（㊴）→ フルスイート（非 FullLength と FullLength を分けて --list-tests と突き合わせる）・savetest・leakhunt → 突然変異（使い捨ての木）→ 腕 B → S11 → 門・止める線・生の比べ → push。形の変え直しは 1 回だけ（エンジンは書かない予定）。
+ G-L3 の帰属を読み終えたら、keep_994_rej は合流が消してよい（報告に書く）。
+
+[追記 2026-11-09・c91lc の頭を merge した後・フルスイートの前]
+ merge：origin/c91lc の印（D:/PoB_work/c91lc_work/lc.mark＝rc=0・head=417731de・judge=identity(c91lc)・tests_nonfull=2524・tests_full=3）の頭 417731de を c91sl へ merge（c0437427）。
+ c91lc の紙（measurements/m995_20261109_paper_gl3.txt）との突き合わせ：B 958 行・S11 1032 行の全てが〈塵の上界の内〉（外 0・(旧の写し−実際)÷上界 の最大 0.77／0.423）＝この線の need997（逆向き 0・d÷max(件数,1) ≦ 2.31e-9／1.27e-9）と同じ読み。食い違いなし＝腕を回す。
+ c91lc の式（InstrumentsLandsale.cs の LandsaleSaleBegin）：ΣS・φ・値段は塵込みのまま・写し＝Σ_j [S_j＞1e-9 かつ 額＞床]·min(φ·S_j/ΣS·P, S_j)・床＝TakeFloorPositive＞0 ? 0 : 1e-12＝[2] のとおり。
+ テストの数の予言（★(994)）：2521＋c91lc の新しい [Fact] 3（LandsaleInstrumentTests 7→10）＋この線 0＝**非 FullLength 2524・FullLength 3**（lc.mark の 2524 と一致）。
+ 突然変異は旗 1＋c91lc の code の頭（54691086＝417731de と .cs が同じ・差は measurements だけ）を merge した使い捨ての木 D:/PoB_work/c91sl_work/mut で回し始めた（フルスイートと並行・腕の前に終える）。
+ 旗 1 の木（c91lc を merge する前の e7440aae）の走査の番人の束（㉘＋LandSaleTests＋OnDoubleReadScanTests）：188 本すべて合格。
+
+[追記 2026-11-09・旗 1 のフルスイートの後・腕の結果の前（腕は 22:20 頃に起こした・結果は見ていない）]
+ 計器の束（㊴・~Instrument と ~LandSale・木 efa79804）：211 本すべて合格。
+ フルスイート（木 1645a93a・scripts/instruments/c91sl/suite997.sh）：非 FullLength 合計 2524（合格 2523・スキップ 1・失敗 0）＝--list-tests 2524・FullLength 3（合格 3）＝--list-tests 3。予言 2524＋3 と一致。赤 0（予言 0）。
+ savetest OK（12 四半期・61 か国・最大相対差 0）・leakhunt 完走（200 四半期・保存則違反なし・説明できない増減 0）。
+ 腕 B（POB_WORK=D:/PoB_work/c91sl_work/arm_B・タグ c91slB_10）と S11（arm_S11・タグ c91slS_10_s11・POB_CEARN=0）は同じ木 1645a93a で同時に起こした（重い仕事 2 本＝c91lc の ident は終わっていた・D: の空き 130.7GB）。[14] の〈B → S11〉の順から外れた所（結果は種と木だけで決まる）。
+
+[結果の後の追記・門は変えていない（2026-11-09）]
+ 腕 B（種 1〜10・木 1645a93a・生 D:/PoB_work/c91sl_work/arm_B/out_c91slB_10/ins）と S11（種 11〜20・POB_CEARN=0・生 D:/PoB_work/c91sl_work/arm_S11/out_c91slS_10_s11/ins）。読み手 scripts/instruments/c91sl/read997.sh・出力 measurements/m997_20261109/arm{B,S11}/。
+ 予言 P1：成績表は b10_20261109_c90slB_ins・b10s11_20261109_c90slS_ins と全行バイト一致（181／179 行・SOURCE-HASH を除く）＝当たり。
+ 予言 P2：生は keep_994_rej と表ごとに バイト一致 1137／1118・既知の揺れ 20／20・違う 30／20。違う表の内訳（cmp997.py）：landsale_s は写しの列だけ（salePaidCopyMaxRelDiff 4608／4800 行・saleCopyPaidPerQuarter 457／482 行＝need997 の〈写し＞実際〉の行の数と同じ）・cearn_s は inTop1Route だけ（World.cs:1886→1889 の行番号）・flow_s は sourceLine だけ＝当たり。
+ 予言 P3・P4（門）：G-L1 上側 違反 0／0 行・下側 最小 0.999742／0.999190・G-L2a 最大 3.3e-16・G-L2b 全種 1.000000・**G-L3 違反 0／0 行・最大 0（売りの件数 61732／54584）**・G-L4 0.0041〜0.0127／0.0037〜0.0169・G-L6 買い手 105126（投資家でない 71005）／94210（65713）＝全ての門が通る（判定: 全ての門が通る）。need997：違反行 0。
+ 止める線：100 倍の〈それ以外〉腕 0／0（3 区分・4 区分とも・ヌル腕 N1 0・N2 1＝参照の最大 1）・1e10 倍 0・非有限 0・pxmonth 3 か月比の最大 1.114／1.116・開幕の 1000 倍以上 0・空洞化 1/10 未満 0 件（1/4 未満は 1 件〈移民〉／1 件〈飢え〉＝記録）・推定 211.2／211.9 秒（上限 248.5）・機構の試験は旗 1 のフルスイートで緑。**止める線 0。**
+ 記録：gdp_zero10 区間 0／0・nullgate〈雑音の内〉・home_break ① 鳴る国なし・NG 77（新しい 9・外れた 17・基準 m988 の 85）・英の国債の不履行 5/10〔2,6,7,9,10〕／5/10〔11,14,18,19,20〕・c91rx の〈州の出入り〉（記録の列・印 21:27 は腕の結果 22:34 より前）：100 倍以上 0／0・10〜100 倍の跳びと落ち 7（痩せ 4・出入り 3・それ以外 0）／4（痩せ 2・出入り 0・それ以外 2〈共和制イギリス q223・q238＝共通の州 1/1 の産出の比 13〜20〉）。
+ 判定：事前登録の門が全て通り、止める線 0＝**採る側**（合流の判断）。機構が狙いどおり働いたか：G-L1 下側（売りが期待の 0.999 以上で立つ）・G-L2b（払った割合だけ手放す＝1.000000）・G-L3（値段の規則＝写しと実際が売りごとに一致・最大 0）。
+ G-L3 の帰属：(991) の 958／1032 行の赤は全て写しの床の欠け（塵の買い手）で、写しの直し（c91lc）の後の同じ種・同じ盤面で 0 行＝帰属は読み終えた。keep_994_rej は合流が消してよい。

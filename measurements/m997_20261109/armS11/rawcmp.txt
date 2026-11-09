@@ -1,0 +1,22 @@
+バイト一致 1118・既知の揺れ 20・違う 20・腕だけ 0・比べる側だけ 0・除いた表 0（）
+  違う flow_s11.tsv
+  違う flow_s12.tsv
+  違う flow_s13.tsv
+  違う flow_s14.tsv
+  違う flow_s15.tsv
+  違う flow_s16.tsv
+  違う flow_s17.tsv
+  違う flow_s18.tsv
+  違う flow_s19.tsv
+  違う flow_s20.tsv
+  違う landsale_s11.tsv
+  違う landsale_s12.tsv
+  違う landsale_s13.tsv
+  違う landsale_s14.tsv
+  違う landsale_s15.tsv
+  違う landsale_s16.tsv
+  違う landsale_s17.tsv
+  違う landsale_s18.tsv
+  違う landsale_s19.tsv
+  違う landsale_s20.tsv
+判定: 不一致
