@@ -66,7 +66,7 @@ public static partial class Instruments
     {
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || sim.Nations.Count == 0 || !NgYear(sim.Nations[0].World.Year)) return;
-        if (!NgAccs.TryGetValue(sim.Market, out var a) || !a.Any || a.ImpV.Length > sim.Nations.Count * a.Gc) return;   // 建国スポーンは末尾拡張＝清算の後に増えた国の行は越境 0（清算に居なかった）
+        if (!NgAccs.TryGetValue(sim.Market, out var a) || !a.Any) return;   // 国の名簿は清算のたびに World→添字で写す（NgHead）＝清算の後に増減・並べ替えがあっても World で引く・清算に居なかった国の行は越境 0
         var sk = NgSinks.GetValue(sim, _ => new NgSink());
         if (sk.W is null) { sk.W = Open("nationgood", seed); sk.W.WriteLine(NationgoodHeaderText); }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -83,7 +83,7 @@ public static partial class Instruments
                     var mk = r.Markets[g];
                     prod += mk.LastProduced; dem += mk.LastDemand; sh += mk.LastShortage; stock += mk.Stock; price += mk.Price; n++;
                 }
-                int k = i * a.Gc + g; bool had = k < a.ImpV.Length;
+                int ci = a.Idx.TryGetValue(w, out var ix0) ? ix0 : -1; bool had = ci >= 0; int k = ci * a.Gc + g;
                 sk.W.WriteLine(string.Join('\t', I(w.Year), nm, Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), F(prod), F(dem), F(sh), F(stock),
                     had ? F(a.ImpV[k]) : "0", had ? F(a.ExpV[k]) : "0", had ? F(a.ImpQ[k]) : "0", had ? F(a.ExpQ[k]) : "0", n > 0 ? F(price / n * w.FxRate) : "nan"));
             }

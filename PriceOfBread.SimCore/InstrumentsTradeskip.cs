@@ -31,7 +31,7 @@ public static partial class Instruments
 
     internal sealed class TsAcc
     {
-        internal int Nn, Gc; internal int[] C = []; internal int[] NoSell = [];
+        internal int Nn, Gc; internal string[] Names = []; internal int[] C = []; internal int[] NoSell = [];
         internal long Ledger0, LedgerDelta; internal bool Filled, Ended;
         int[] sNode = []; double[] sPrice = []; int sN;
         int cur = -1, curBn, curG; bool scanned, dealtCross, dealtDom;
@@ -105,11 +105,12 @@ public static partial class Instruments
     {
         if (!On || !first || nations.Count == 0) return null;
         var w0 = nations[0].World;
-        if (w0.Quarter != Calendar.QuartersPerYear - 1 || !NgYear(w0.Year)) return null;   // Quarter の年末の呼び（q%4==3）の直前に終わった四半期（World.Quarter は四半期の末で進む＝その呼びの時点で 4）＝C1 と同じ四半期
+        if (w0.Quarter != Calendar.QuartersPerYear || !NgYear(w0.Year + 1)) return null;   // Quarter の年末の呼び（q%4==3）の直前に終わった四半期＝第 4 四半期（World.Year はその四半期の末で進む＝呼びの時点の年は +1・表の年は C1 と同じ呼びの時点の年）
         var a = TsAccs.GetValue(m, _ => new TsAcc());
         int nn = nations.Count, len = nn * gc * (int)TsCol.Count;
         if (a.C.Length != len) a.C = new int[len]; else Array.Clear(a.C);
         if (a.NoSell.Length != gc) a.NoSell = new int[gc]; else Array.Clear(a.NoSell);
+        a.Names = new string[nn]; for (int i = 0; i < nn; i++) a.Names[i] = NameOf(nations[i].World);
         a.Nn = nn; a.Gc = gc; a.Ledger0 = ledger; a.LedgerDelta = 0; a.Filled = true; a.Ended = false;
         return a;
     }
@@ -120,7 +121,7 @@ public static partial class Instruments
     static void TradeskipTable(MultiNationSim sim, ulong seed, int q)
     {
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
-        if (!yearEnd || !TsAccs.TryGetValue(sim.Market, out var a) || !a.Filled || !a.Ended || a.Nn > sim.Nations.Count) return;   // 建国スポーンは末尾拡張＝清算の後に国が増えても先頭の a.Nn 国の添字は変わらない
+        if (!yearEnd || !TsAccs.TryGetValue(sim.Market, out var a) || !a.Filled || !a.Ended) return;   // 行は清算に居た国（TsBegin の時点の名簿・名前も写し）だけ
         var sk = TsSinks.GetValue(sim, _ => new TsSink());
         if (sk.W is null) { sk.W = Open("tradeskip", seed); sk.W.WriteLine(TradeskipHeaderText); }
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -128,7 +129,7 @@ public static partial class Instruments
         var cols = new List<string>(48);
         for (int i = 0; i < a.Nn; i++)
         {
-            string nm = NameOf(sim.Nations[i].World);
+            string nm = a.Names[i];
             for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)
             {
                 int o = (i * a.Gc + g) * nc;
