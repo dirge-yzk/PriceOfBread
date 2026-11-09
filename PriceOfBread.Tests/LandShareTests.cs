@@ -467,6 +467,7 @@ public class LandShareTests
         var rev = new Dictionary<Region, double>();
         string dir = RunIns([WorldData.ByName("イギリス"), WorldData.ByName("スペイン")], 1, seed, setup: sim =>
         {
+            sim.Nations[1].World.Coef.LandShareTaxSale = 0;   // ★(991) 盤面の取り直し（★(743) の軌道に依る前提）：この試験は置いた持ち分が走る間ずっと動かない前提＝公売（旗 LandShareTaxSale）が持ち分を動かすのでスペインだけ切る。公売の番人は LandSaleTests
             foreach (var r in sim.Nations[1].World.Regions.Where(r => r.Tier == RegionTier.Colonial && r.ClergyPopIndex >= 0 && r.ClergyPopIndex < r.Pops.Count))
             {
                 if (r.Producers.Any(q => q.OwnerPopIndex == r.ClergyPopIndex && q.LaborPopIndex != r.ClergyPopIndex)) continue;   // 聖職者が元から持ち主の行がある州は外す
@@ -482,6 +483,7 @@ public class LandShareTests
             .Where(r => r["nation"] == "スペイン" && r["region"] == reg.Name && r["popIndex"] == reg.ClergyPopIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToList();
         Assert.Single(rows);
         Assert.Equal(marked[reg].Count, D(rows[0], "ownerLines"));
+        Assert.All(marked[reg], p => Assert.Equal([0.5, 0.5, 0.0, 0.0], p.LandShares!));   // ★(991) 前提：置いた持ち分が最後まで動いていない
         Assert.True(System.Math.Abs(D(rows[0], "ownerRevenuePerMonth") - rev[reg] * 0.5) <= 1e-8 * rev[reg], $"聖職者の地代の受け手の売上 {rows[0]["ownerRevenuePerMonth"]} が 売上×0.5 {rev[reg] * 0.5} と違う");
     }
 }
