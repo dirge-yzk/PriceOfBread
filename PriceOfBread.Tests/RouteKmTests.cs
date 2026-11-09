@@ -193,7 +193,7 @@ public class RouteKmTests
                 outSum[q] = outSum.GetValueOrDefault(q) + Col(rh, r, "crossBorderOutKPerQuarter");
                 inSum[q] = inSum.GetValueOrDefault(q) + Col(rh, r, "crossBorderInKPerQuarter");
             }
-            var xSum = new Dictionary<string, double>();
+            var xSum = new Dictionary<string, double>(); var xNations = new HashSet<string>();
             foreach (var r in xr)
             {
                 Assert.Equal(xh.Length, r.Length);
@@ -201,6 +201,7 @@ public class RouteKmTests
                 Assert.True(v > 0);
                 xSum[q] = xSum.GetValueOrDefault(q) + v;
                 Assert.NotEqual(Str(xh, r, "fromNation"), Str(xh, r, "toNation"));
+                xNations.Add(Str(xh, r, "fromNation")); xNations.Add(Str(xh, r, "toNation"));
                 Assert.Equal(nationOf[(q, Str(xh, r, "fromRegion"))], Str(xh, r, "fromNation"));
                 Assert.Equal(nationOf[(q, Str(xh, r, "toRegion"))], Str(xh, r, "toNation"));
                 int i = RouteKm.IndexOf(Str(xh, r, "fromRegion")), j = RouteKm.IndexOf(Str(xh, r, "toRegion"));
@@ -214,6 +215,7 @@ public class RouteKmTests
                 Near(o, x); Near(inSum[q], x);
             }
             Assert.True(xSum.Count >= 5, "越境の移民が起きた四半期が少ない");
+            Assert.True(xNations.Count >= 3, $"(982) 対照：越境の移民に関わった国が {xNations.Count}（3 未満）＝越境の突き合わせが 1 組の国の対に偏っている");
         }
         finally { Instruments.TrSnapEveryYears = snap; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
