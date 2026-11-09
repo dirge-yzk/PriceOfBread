@@ -60,3 +60,10 @@
 - 工業化度の読み手の許可表：新しい読み手 0（計器は Region.Mechanization を EffectiveQty の写しで読むが、Industrialization の許可表の対象の名前は読まない〈IndustrializationReaderTests で確かめる〉）。
 - new MoneyStock( の件数：SimCore で変化 0。
 - route_anchors.tsv の鍵の行：触らない。WriterRatchetTests の宣言の表：触らない。
+
+[7] 追記（計器と試験を書いた後・ident の前・結果を見る前）2026-11-10
+- 級の対象の訂正（計器を書く間に試験 T4 が赤になって分かった＝腕の前の直し）：播種の賦存（BuildProvince と PromoteColonyToRegion の分岐）は IsRgo の生産者だけでなく、カタログの既定の生産者（レシピ名が空の非役務の財）にも当たる＝州の resources に載る工場の財（マンチェスターの財 36）も 3.5 倍される。職人・代替レシピ・役務は播種の後に足されるので受けない。
+  よって [1] の〈IsRgo の生産者だけが E/X/N/S/Z になる〉を〈IsRgo か、レシピ名が空の非役務の財〉に直す。X・N・S は IsRgo のまま。IsRgo でない対象は resources に載れば E・希少鉱物の非産地なら Z・どれでもなければ F。
+  endowFromProductivity は級 F で nan（既定の兵器の生産者は播種の後に ToWeaponStrength で生産性が 3〜4 倍される＝基準が引けない）。
+- 試験の数の訂正：T1a と T1b を 1 本にした。[Fact] 5 本（T1 量の保存と対照・T2・T3・T4・T5）・[Theory] 0 本。T4 は MultiNationSim でなく Simulation を共有世界の形（Scenario の Coef を反射で渡し StepsDiplomacy=false）で作る（国別の係数は構築時に Scenario から入る）。
+- 試験の初回の結果：5 本緑（T4 の赤は上の対象の直しで解消）。
