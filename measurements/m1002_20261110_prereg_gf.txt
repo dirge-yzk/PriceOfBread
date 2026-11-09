@@ -1,0 +1,49 @@
+# (1002) c92gf 事前登録：門と台本の直しの束（恒等の線・.cs 0 行・ident なし・腕なし）
+# この文書は直しより前の別のコミット。結果を見た後に書き換えない（変えたら〈結果の後の変更〉と名乗る）。
+
+[1] 種類と予言
+ 恒等の線（試験と台本だけ）。SimCore・Runner・App・Display の .cs は 0 行。素の 5 種・計器つき 10 種の成績表は m1001 と同一（動くコードが無い）。
+ ident は回さない（指示）。止める線の差し替え（stoplines1002 を読み台本に使う）は (1006) 合流から。この線の ident.cfg・read 台本は触らない。
+ 予言 0＝挙動の差 0。
+
+[2] 消す物と残す物
+ 消す物＝無し。残す物＝c91rx・c78gz・c84gz・c91sl は 1 字も書き換えない。足す物＝
+  PriceOfBread.Tests/LandsaleInstrumentTests.cs に T11（末尾・T10 の後）。
+  scripts/instruments/c92gf/ へ c91rx の 6 本＋fixture を写して gdp_jump1002.py・stoplines1002.sh・mkfix1002.py・selftest1002.py・gates1002f.py（旧 gates996）・mut1002.py。gates997.py の写し gates1002.py。
+ 読み手の grep（2026-11-10）：stoplines996・gdp_jump996・gates997 を呼ぶのは c91rx・c91sl の中と scripts/instruments/m1001（read1001.sh・docs1001_*）だけ。SimCore・Runner・App・Display・Tests に 0。POB_COEF・SaveGame に無関係。
+ `new MoneyStock(` の件数（SimCore）64＝変わらない。route_anchors.tsv・WriterRatchetTests の宣言の表・工業化度の読み手の許可表：触らない（.cs を SimCore に足さない）。
+ 他の線との重なり：c92tg は InstrumentsNationgood/Tradeskip・Instruments.cs・InstrumentsTransport.cs・BilateralMarket.cs・TradeInstrumentTests.cs。本線は LandsaleInstrumentTests.cs と scripts/instruments/c92gf/ と measurements/m1002_* だけ。重なり 0。
+
+[3] 足す試験・物差しと、赤にする突然変異
+ (a) T11（LandsaleInstrumentTests）。SaleBoard（英 1 州・売り手の地代 100・τ 0.1・金利 0.05＝値段 P＝21600）で、買い手の枠の貯蓄を 1 人 13.321（V≧ΣS）と 2 人 6.291・10.7077 に置き、実際と写しを Assert.Equal（厳密・許容なし）で比べる。
+   期待値は盤面の貯蓄の和の手の値（13.321・6.291＋10.7077 のうち保有の払い＝各 S_j）を別の式で書く（写しの出力から作らない）。1 人の盤面は写し 13.321 になること、min を外すと 13.321000000000002（反証役の紙の盤面）で赤。
+   盤面が SaleBoard の器で作れない（買い手の数が合わない・塵の判定が働く等）場合は、作れる最も近い盤面と丸めの差を報告に名乗る。
+   突然変異 M4＝InstrumentsLandsale.cs の `Math.Min(phi * (sj / sumS) * price, sj)` から min を外す→T11 が赤（T8〜T10 の SameRel は許容 1e-12 なので緑のまま＝穴だった）。使い捨ての木で回す。
+ (b) 止める線の物差し gdp_jump1002.py＝gdp_jump996.py に条件 (iii) を足す。
+   moved = (州の集合が違う) かつ (共通の州の産出の和の比 cr が [0.1,10]) かつ (iii)。
+   (iii)＝tot（全州の産出の和の 今÷前）が有限・正で、(ra>1)==(tot>1)（名目の比と州の和の比が同じ向き）かつ 0.1 ≦ ra/tot ≦ 10（ra＝名目の比）。tot が NaN・0 以下は (iii) 偽。
+   区分の優先は 996 のまま。
+   合成を fixture へ足す：P（r1=100 のまま r2=1 の州が入る・名目 ×200・物価 ×200）・Q（r1=100・r2=1 から r2 が抜ける・名目 ×1/200・物価 ×1/200）。期待＝どちらも〈それ以外〉（P は上がり・Q は下がり）。既存の A〜K は期待を変えない。
+   selftest1002 の期待：行の数 11・州の出入り 3・それ以外 6（B・C・D・H・P・Q）・〈それ以外〉≧100 は 6・分母の痩せ 1・建国の直後 1。
+   突然変異：M7＝(iii) を外す→P・Q が州の出入りへ逃げて selftest 赤（G3）。996 の M1〜M6 は引き続き赤。
+ (c) stoplines1002.sh：見出しを --rows に直す。stoplines906.sh か python の rc≠0 なら STOPDONE を出さず rc を返す。突然変異 M8＝rc の扱いを戻す→rc≠0 の合成（存在しない ins フォルダ）で STOPDONE が出て赤。
+ (d) gates1002.py＝gates997.py の写し。G-L3 の判定を
+     `math.isfinite(r3) and (r3 <= TOL or abs(a - a3) <= L3_ABS)` にする（他は 1 字も変えない）。旧は r3＝nan で 〈r3<=TOL〉が偽・〈abs(a−a3)〉が小さければ緑・r3＝+inf で偽・abs が小さければ緑＝番兵を通る穴。
+   合成の行（landsale の表）：r3＝inf・nan・正常の行を足した小さい表で、新は赤・旧（gates997）は緑になることを示す。突然変異 M9＝isfinite を外す→合成 inf 行で緑（＝門が赤を出せない）を示し、テストで赤。
+   keep_1001/base_ins（旗 1）を gates1002 で読み、(1001) の値（違反 0）を再現する。
+ テストの数の予言（㉑）：LandsaleInstrumentTests の [Fact] 10→11（+1）。非 FullLength 2524→2525・FullLength 3 のまま。走査の番人（㉘）の許可表・宣言の表の書き換え 0 件（件数の予言 0）。
+
+[4] 成績表
+ 素の 5 種・計器つき 10 種は回さない（.cs 0 行・m1001 と同一）。名乗り：成績表の差 0 は動くコードが無いことによる。ident なし。
+ 浮動小数の順序が変わる箇所＝無し（.cs を変えない・T11 は読むだけ）。
+
+[5] 門（両側）と採る条件
+ T11：元で緑・M4 で赤・T8〜T10 は緑のまま。
+ G1：4 腕（keep_1001 の base_ins・n1・n2・a11＝armM・n1・n2・armS11）の旧の節が m1001 の stop906 とバイト一致。経路の文字列（D:/PoB_work/ で始まり 〈：〉・タブ・空白・改行で終わる語）だけ <PATH> に置き換えてから比べる＝腕の前に決めた規則（996 は結果の後に決めた）。厳密な比較は参考として併記。負の対照（1 字変えた写しで赤）も出す。
+ G2（拾い過ぎない）：fixture の P・Q が〈それ以外〉に残る。
+ G2′（拾う）：シャム型＝m988 N2 種 7 q445・q444（measurements/m996_20261109 の記録から）と fixture のシャムの合成が〈州の出入り〉のまま。実データ（N2）で確かめる。
+ G3：(iii) を外す突然変異 M7 で P・Q が〈州の出入り〉へ逃げて selftest 赤。
+ isfinite：合成 inf・nan で新が赤・旧が緑。base_ins で違反 0。
+ 実データの 4 腕での 〈それ以外〉≧100・州の出入りの件数は m1001 の stop996 と並べて記録（(iii) で区分が動く件数）。採否には使わない。
+ 採る条件＝上の全ての門が緑・フルスイート（非 FullLength を --list-tests と突き合わせ・FullLength 3）・savetest・leakhunt が緑。
+ 印＝D:/PoB_work/c92gf_work/ruler.mark（判定に効く引数を全て）。
