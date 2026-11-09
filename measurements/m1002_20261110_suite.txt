@@ -1,0 +1,1 @@
+非 FullLength：合格 2524・スキップ 1・合計 2525（予言 2524+1 と一致・--list-tests 2525）。FullLength --list-tests 3（.cs 無変更のため再走せず）。savetest OK（1789・300 四半期・12 四半期後に全 61 カ国一致）・leakhunt 完走（保存則違反なし）。
