@@ -101,7 +101,9 @@ public sealed class World
     /// <para>本編では常に false＝読み手の分岐は全て偽＝厳密恒等。<see cref="MultiNationSim.WarmupEconomy"/> だけが立てて必ず戻す。</para></summary>
     public bool WarmupFrozen { get; internal set; }
     /// <summary>★(937) 土地税の算定の基準が定額の国（world.json の landTaxBasis＝"Fixed"・データ）。読むのは旗 LandTaxFixedBasis＞0 の EconomyStep.PayOwnerRent だけ。建国の国は false（構築のデータが無い＝収穫比例）。</summary>
-    public bool LandTaxBasisFixed { get; internal set; }
+    public bool LandTaxBasisFixed { get => LandTaxBasisPhi > 0; internal set => LandTaxBasisPhi = value ? 1.0 : 0.0; }   // ★(990) c90px：派生（φ* が正＝定額の国）。書き込みは 1.0／0.0 に写す＝データ（Simulation）と既存の試験の書き方はそのまま
+    /// <summary>★(990) c90px 土地税の算定の基準の定額の度合い φ*（[0,1]・国ごと・保存する唯一の状態）。1＝基数は凍結した地代×持ち分（<see cref="EconomyStep.PayOwnerRent"/> の差分の係数）・0＝収穫比例。旗 LandTaxPhiMove＝0 では world.json の landTaxBasis（"Fixed"＝1.0）のまま動かない。動かすのは <see cref="Government.MoveLandTaxPhi"/>（旗 LandTaxPhiMove＞0）だけ。</summary>
+    public double LandTaxBasisPhi { get; internal set; }
     /// <summary>★(490) 開幕の焼き込みの試走の腕（<see cref="OpeningBake.RunOptions"/>・焼く側の Runner の bakeopen だけが立てる＝null が遊ぶ側・測る側＝何も変わらない）。作業用の選択でシミュの状態ではない（セーブに載らない）。</summary>
     [System.NonSerialized] public OpeningBake.RunOptions? BakeRun;
 
@@ -486,6 +488,7 @@ public sealed class World
         ConscriptionPreWar = src.ConscriptionPreWar;   // ★(178) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
         Policy.CopyFrom(src.Policy);
+        if (Coef.LandTaxPhiMove > 0) LandTaxBasisPhi = src.LandTaxBasisPhi;   // ★(990) c90px 旗 1 のときだけ（旗 0 で写すと今は比例から始まる建国の子が変わる）
     }
     // 運用コスト監査2026-08-16（#1 海軍の運用燃料・休眠）：燃料充足のEMA（1.0=制約なし）。
     // 書き手＝Military.NavalFuelStep・読み手＝Diplomacy の同期（Power.NavalFuelMul）。どちらも NavalFuelPerGauge>0 のときだけ＝既定0では読み書きゼロ（セーブ往復に載るのみ）＝厳密恒等。

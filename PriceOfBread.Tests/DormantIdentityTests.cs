@@ -144,6 +144,7 @@ public class DormantIdentityTests
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★EmptyPopEstate（(848) c69eh 人の居ない POP の在庫の相続 R1）は 2026-11-05 に 1 で**点火**＝この表から外した。
         // ★OpeningColonyDominanceFull（(952) c84kp 開幕の一括昇格の植民地の支配度を 1.0 から）は 2026-11-08 に 1 で**点火**＝この表から外した（番人 OpeningColonyDominanceTests）。
+        "LandTaxPhiMove",               // (990) c90px 土地税の基数の定額の度合い φ* を動かす器（0＝world.json のまま・番人 LandTaxPhiTests）。点火は A-2b-1d（答え待ち）
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★TakeFloorPositive（(984) c89dd ⑬ Pop.Take の額の床を〈正なら動かす〉にする旗）は 2026-11-09 に 1 で**点火**＝この表から外した（番人 TakeDustFloorTests）。
         // ★LandShareCrownSlot（(978) c88cs 土地の持ち分 B-2b 国家の枠）は 2026-11-09 に 1 で**点火**＝この表から外した（番人 LandShareCrownTests）。

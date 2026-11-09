@@ -292,6 +292,7 @@ public static class Government
         // 社会保障の旧スライダー枝は第3段3-6で削除（法駆動が正）。
         // ★税・支出の段は表 RateLaws を施行の順に回す（2026-09-28 処理の一元化 段1＝旧は軸ごとの Move の1行）。
         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
+        if (c.LandTaxPhiMove > 0) MoveLandTaxPhi(w, c, w.LandTaxBasisPhi);   // ★(990) c90px 旗 1：φ* の 1 歩（この器は現在値を渡す＝動かない・目標の置き方は A-2b-1d）
         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。
         if (w.CoercionFollowsForce)
             p.CoercionTarget = CoercionTargetFromForce(w.SoldierSizeK() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
@@ -890,6 +891,14 @@ public static class Government
     //   ⚠**旧の硬いゲートへは戻さない**：税4軸と軍事費は 2026-09-20 に段になり**施行が Move 側**なので、ここだけ硬く戻すと
     //     「税の段が反対を押し切って上がる」経路が消える＝現行より後退する。門は世界に1つ（S1 の字義）＝法もスライダーも在庫で払う。
     //   ⚠法は同じ四半期の先に課金される（Government.Step は法→スライダーの順）＝スライダーの這い進みが法を飢えさせることはない。
+    /// <summary>★(990) c90px 土地税の基数の定額の度合い φ*（<see cref="World.LandTaxBasisPhi"/>）を目標 <paramref name="target"/>（[0,1]・引数＝T の欄は作らない）へ 1 歩動かす。
+    /// 助走（WarmupFrozen）の間は動かさない。土地税の軸の Move を mandate＝true で呼ぶ＝純支持の門は閉じず、反対を押し切る分は政治資本の在庫が払う（憲法級でない軸の余白は +∞・政治が無効な世界では 0）。</summary>
+    internal static void MoveLandTaxPhi(World w, Coefficients c, double target)
+    {
+        if (w.WarmupFrozen) return;
+        w.LandTaxBasisPhi = Move(w.LandTaxBasisPhi, target, c, w, PolicyAxis.LandTax, mandate: true);
+    }
+
     private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true, bool fullPush = false)
     {
         bool milProbe = Instruments.On && a == PolicyAxis.Coercion && spendScale == 1.0;   // 計器（読むだけ）：軍事費の合計の施行の一歩（Step の milTotal）だけを写す

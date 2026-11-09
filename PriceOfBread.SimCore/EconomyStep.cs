@@ -731,6 +731,8 @@ public static class EconomyStep
         {
             if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))
                 s.FrozenLandRentPerMonth = rent > 0 ? new MoneyPerMonth(rent) : null;
+            else if (coef.LandTaxPhiMove > 0 && !world.WarmupFrozen && s.FrozenLandRentPerMonth is null && rent > 0 && !Colonial.AbsenteeRgo(region, s))
+                s.FrozenLandRentPerMonth = new MoneyPerMonth(rent);   // ★(990) 旗 1：助走の後に φ*＞0 へ入った RGO はその月の地代で凍結（旗 0＝この枝は無い）
             fz = s.FrozenLandRentPerMonth?.Value;
         }
         var ls = s.LandShares;
@@ -743,7 +745,7 @@ public static class EconomyStep
             double rk = ls is null ? rent : rent * wk;
             region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);
             if (s.IsRgo && rk > 0) region.Pops[rp].LandRentPerMonth += new MoneyPerMonth(rk);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
-            if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth += new MoneyPerMonth((ls is null ? f : f * wk) - Math.Max(0, rk));   // ★(937) 凍結の差分（凍結の月は 0）
+            if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth += new MoneyPerMonth(world!.LandTaxBasisPhi * ((ls is null ? f : f * wk) - Math.Max(0, rk)));   // ★(937) 凍結の差分（凍結の月は 0）
             if (s.IsRgo && rk > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[rp].ClassId == PopClass.Noble)
                 Privileges.Record(world, Privileges.Seigneurial, rk * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
         }
