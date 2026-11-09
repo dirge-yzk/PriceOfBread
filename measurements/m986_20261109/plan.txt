@@ -1,0 +1,9 @@
+(986) c89ci 植民地の独立の圧力を項ごとに読む — 作業の場所と読む生（読むだけ・腕 0 本・コミットしない）
+作業フォルダ: D:/PoB_work/r986_work/（台本・表・下書き。合流が measurements/m986_<日付>/ と scripts/instruments/r986/ へ写す）
+worktree・枝: 作らない（読むだけ＝ソースは main の作業ツリー C:/Users/dirge/Documents/PriceOfBread を読むだけ・HEAD 46cd4df6）
+読む生（読むだけ・書き換えない）:
+  D:/PoB_work/keep_981/base_ins/{secession,cederule,rule,nation,wars}_s{1..10}.tsv（種 1〜10）
+  D:/PoB_work/keep_981/a11/{secession,cederule,rule,nation,wars}_s{11..20}.tsv（種 11〜20・POB_CEARN=0）
+読むソース: PriceOfBread.SimCore/InstrumentsSecession.cs・Politics.cs（CheckSecession・Step の coerce）・Coefficients.cs・world.json
+読む docs: docs/202611/20261107/20261107_割譲の支配度の残り_開幕の州の支配度の初期値_盤面m933_下書き.md・_材料.md（§3・§5）
+手順: 1 事前登録 prereg.txt（数える前）→ 2 台本 r986_terms.py（出力先を引数）→ 3 表 → 4 ソースの行で史実の原因の当てはめ → 5 設計の材料と次の波の素案 notes.md

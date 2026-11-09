@@ -1,0 +1,272 @@
+# (986) 組 s1_10 種 1〜10 生 D:/PoB_work/keep_981/base_ins・年末の行・1800〜1830・保持中（今の持ち主＝開幕の持ち主）
+## 表1 列の中央（種ごとの中央→種の中央［最小・最大］）
+### 群 SA  行数（州×年）の種の中央 682.0
+SA	legitimacyIndex	0.7611	[0.2943, 0.9056]	種数 10
+SA	totalPopK	2.675e+04	[2.209e+04, 2.997e+04]	種数 10
+SA	coerceIndex	1.637e+04	[7709, 2.53e+04]	種数 10
+SA	holdBaseIndex	2.013	[1.534, 2.173]	種数 10
+SA	holdBaseRebuildGapIndex	0	[0, 0]	種数 10
+SA	stanceIndex	-0.2428	[-0.3979, -0.1357]	種数 10
+SA	sharedDivIndex	1	[1, 1]	種数 10
+SA	restiveCount	0	[0, 0]	種数 10
+SA	popK	194.3	[180.1, 201]	種数 10
+SA	crowdK	192.9	[176.5, 199.7]	種数 10
+SA	crowdFactorShare	0.7628	[0.7463, 0.7689]	種数 10
+SA	militancyMeanIndex	0.2586	[0.2081, 0.3414]	種数 10
+SA	cultureDistanceIndex	0.8067	[0.8067, 0.8122]	種数 10
+SA	coreShareMeanShare	0.1933	[0.1878, 0.1933]	種数 10
+SA	consciousnessMeanIndex	0.05444	[0.05444, 0.2501]	種数 10
+SA	suffrageInclusionShare	0.1933	[0.1878, 0.1933]	種数 10
+SA	tariffInterestIndex	-0.6405	[-0.6573, -0.6207]	種数 10
+SA	tariffGapIndex	0.3783	[0.2365, 0.4861]	種数 10
+SA	tariffTermIndex	0.1599	[0.08469, 0.2821]	種数 10
+SA	ethnicTermIndex	0.1036	[0.08152, 0.1315]	種数 10
+SA	consciousnessFactorShare	0.9456	[0.7499, 0.9456]	種数 10
+SA	suffrageFactorShare	0.8067	[0.8067, 0.8122]	種数 10
+SA	pressureIndex	0.1224	[0.08954, 0.1958]	種数 10
+SA	pressureRebuildGapIndex	0	[0, 0]	種数 10
+SA	effHoldBeforeShareIndex	1.054	[0.7837, 1.139]	種数 10
+SA	holdShareIndex	1.054	[0.7837, 1.139]	種数 10
+SA	marginIndex	0.8924	[0.6657, 1.014]	種数 10
+SA	dominanceShare	1	[1, 1]	種数 10
+SA	goFlag	0	[0, 0]	種数 10
+SA	capitalDistanceKm	8762	[8752, 8837]	種数 10
+SA	legitTerm	0.6707	[0.2607, 0.797]	種数 10
+SA	coerceTerm	1.347	[1.266, 1.376]	種数 10
+SA	holdSumGap	2.579e-10	[1.872e-10, 2.94e-10]	種数 10
+SA	proj	0.533	[0.5309, 0.5333]	種数 10
+SA	raw	0.2492	[0.1702, 0.4141]	種数 10
+SA	rawAfterCons	0.2288	[0.1615, 0.3922]	種数 10
+SA	rawAfterSuff	0.1901	[0.1316, 0.3196]	種数 10
+SA	holdFloorNoLegit	0.7105	[0.6538, 0.7249]	種数 10
+SA	kLegit	0.01351	[0.005354, 0.02629]	種数 10
+SA	kCoerceOnly	0.01661	[0.008749, 0.03401]	種数 10
+SA	milNeeded	2.142	[1.637, 2.815]	種数 10
+SA	milNeededGap2	0.4877	[0.4373, 0.5171]	種数 10
+### 群 BR  行数（州×年）の種の中央 206.5
+BR	legitimacyIndex	0.6167	[0.3697, 0.9403]	種数 10
+BR	totalPopK	6423	[4005, 1.063e+04]	種数 10
+BR	coerceIndex	1880	[806.4, 2964]	種数 10
+BR	holdBaseIndex	1.65	[1.03, 1.944]	種数 10
+BR	holdBaseRebuildGapIndex	0	[0, 0]	種数 10
+BR	stanceIndex	-0.4637	[-0.5317, -0.3971]	種数 10
+BR	sharedDivIndex	1	[1, 1]	種数 10
+BR	restiveCount	0	[0, 0]	種数 10
+BR	popK	109	[50.52, 124.4]	種数 10
+BR	crowdK	107.8	[50.11, 123.7]	種数 10
+BR	crowdFactorShare	0.642	[0.4551, 0.6734]	種数 10
+BR	militancyMeanIndex	0.2026	[0.1641, 0.3493]	種数 10
+BR	cultureDistanceIndex	0.8067	[0.8067, 0.8178]	種数 10
+BR	coreShareMeanShare	0.1933	[0.1822, 0.1933]	種数 10
+BR	consciousnessMeanIndex	0.05526	[0.05444, 0.2524]	種数 10
+BR	suffrageInclusionShare	0.1933	[0.1822, 0.1933]	種数 10
+BR	tariffInterestIndex	-0.6908	[-0.7566, -0.4584]	種数 10
+BR	tariffGapIndex	0.2267	[0.08747, 0.2907]	種数 10
+BR	tariffTermIndex	0.09949	[0.02793, 0.1432]	種数 10
+BR	ethnicTermIndex	0.08456	[0.06349, 0.1499]	種数 10
+BR	consciousnessFactorShare	0.9447	[0.7476, 0.9456]	種数 10
+BR	suffrageFactorShare	0.8067	[0.8067, 0.8178]	種数 10
+BR	pressureIndex	0.07945	[0.03965, 0.1173]	種数 10
+BR	pressureRebuildGapIndex	0	[0, 0]	種数 10
+BR	effHoldBeforeShareIndex	0.9539	[0.5948, 1.452]	種数 10
+BR	holdShareIndex	0.9539	[0.5948, 1.452]	種数 10
+BR	marginIndex	0.8714	[0.4863, 1.348]	種数 10
+BR	dominanceShare	1	[1, 1]	種数 10
+BR	goFlag	0	[0, 0]	種数 10
+BR	capitalDistanceKm	6977	[2271, 7419]	種数 10
+BR	legitTerm	0.5932	[0.36, 0.9205]	種数 10
+BR	coerceTerm	0.9284	[0.6384, 1.069]	種数 10
+BR	holdSumGap	2.337e-10	[6.899e-11, 3.02e-10]	種数 10
+BR	proj	0.589	[0.5741, 0.8149]	種数 10
+BR	raw	0.1768	[0.1048, 0.2535]	種数 10
+BR	rawAfterCons	0.1638	[0.07767, 0.2392]	種数 10
+BR	rawAfterSuff	0.1301	[0.06274, 0.1931]	種数 10
+BR	holdFloorNoLegit	0.5793	[0.3723, 0.713]	種数 10
+BR	kLegit	0.04773	[0.01541, 0.1122]	種数 10
+BR	kCoerceOnly	0.08716	[0.0006853, 0.1863]	種数 10
+BR	milNeeded	2.921	[1.607, 5.471]	種数 10
+BR	milNeededGap2	0.5746	[0.3089, 1.066]	種数 10
+### 群 SD  行数（州×年）の種の中央 50.0
+SD	legitimacyIndex	0.7896	[0.4341, 0.928]	種数 9
+SD	totalPopK	2.771e+04	[1.863e+04, 3.94e+04]	種数 9
+SD	coerceIndex	2.364e+04	[1.395e+04, 3.265e+04]	種数 9
+SD	holdBaseIndex	2.051	[1.731, 2.208]	種数 9
+SD	holdBaseRebuildGapIndex	0	[0, 0]	種数 9
+SD	stanceIndex	-0.31	[-0.4775, 0.06045]	種数 9
+SD	sharedDivIndex	1	[1, 1]	種数 9
+SD	restiveCount	0	[0, 0]	種数 9
+SD	popK	218.4	[188.7, 308.1]	種数 9
+SD	crowdK	213.8	[186.8, 290.6]	種数 9
+SD	crowdFactorShare	0.7794	[0.7568, 0.8289]	種数 9
+SD	militancyMeanIndex	0.3725	[0.2343, 0.4411]	種数 9
+SD	cultureDistanceIndex	0.8067	[0.8067, 0.8547]	種数 9
+SD	coreShareMeanShare	0.1933	[0.1453, 0.1933]	種数 9
+SD	consciousnessMeanIndex	0.07363	[0.07328, 0.2747]	種数 9
+SD	suffrageInclusionShare	0.1933	[0.1453, 0.1933]	種数 9
+SD	tariffInterestIndex	-0.6776	[-1, -0.4911]	種数 9
+SD	tariffGapIndex	0.3924	[0.1503, 0.7891]	種数 9
+SD	tariffTermIndex	0.3595	[0.05804, 0.5156]	種数 9
+SD	ethnicTermIndex	0.1455	[0.09385, 0.1932]	種数 9
+SD	consciousnessFactorShare	0.9264	[0.7253, 0.9267]	種数 9
+SD	suffrageFactorShare	0.8067	[0.8067, 0.8547]	種数 9
+SD	pressureIndex	0.2888	[0.08689, 0.3937]	種数 9
+SD	pressureRebuildGapIndex	0	[0, 0]	種数 9
+SD	effHoldBeforeShareIndex	1.183	[1.004, 1.268]	種数 9
+SD	holdShareIndex	1.183	[1.004, 1.268]	種数 9
+SD	marginIndex	0.8362	[0.6555, 1.132]	種数 9
+SD	dominanceShare	1	[1, 1]	種数 9
+SD	goFlag	0	[0, 0]	種数 9
+SD	capitalDistanceKm	7365	[7246, 7484]	種数 9
+SD	legitTerm	0.6646	[0.3684, 0.8279]	種数 9
+SD	coerceTerm	1.372	[1.334, 1.387]	種数 9
+SD	holdSumGap	2.198e-10	[1.515e-10, 3.02e-10]	種数 9
+SD	proj	0.5759	[0.572, 0.5798]	種数 9
+SD	raw	0.4972	[0.1426, 0.6661]	種数 9
+SD	rawAfterCons	0.4294	[0.132, 0.5739]	種数 9
+SD	rawAfterSuff	0.3745	[0.1091, 0.4962]	種数 9
+SD	holdFloorNoLegit	0.7906	[0.763, 0.7969]	種数 9
+SD	kLegit	0.02346	[0.003882, 0.04259]	種数 9
+SD	kCoerceOnly	0.02285	[0.00221, 0.2407]	種数 9
+SD	milNeeded	1.874	[1.144, 3.283]	種数 9
+SD	milNeededGap2	0.5103	[0.4531, 0.5779]	種数 9
+## 表2 和÷和（種ごと→種の中央［最小・最大］）
+SA	tariff/raw	0.6474	[0.5228, 0.7016]	種数 10
+SA	ethnic/raw	0.3526	[0.2984, 0.4772]	種数 10
+SA	afterCons/raw（意識の割引の後）	0.9444	[0.7528, 0.9454]	種数 10
+SA	afterSuff/afterCons（選挙権の割引）	0.8115	[0.798, 0.8299]	種数 10
+SA	pressure/afterSuff（大衆の飽和）	0.598	[0.5865, 0.6304]	種数 10
+SA	pressure/raw（割引の合計）	0.4562	[0.3649, 0.4861]	種数 10
+SA	pressure/hold（圧力÷引き留め）	0.1592	[0.1239, 0.2382]	種数 10
+SA	legitTerm/holdBase	0.3268	[0.1626, 0.3625]	種数 10
+SA	coerceTerm/holdBase	0.6732	[0.6375, 0.8374]	種数 10
+SA	effBefore/holdBase（投射）	0.5286	[0.5258, 0.5294]	種数 10
+SA	hold/effBefore（共有の分母）	1	[1, 1]	種数 10
+SA	floor/pressure（威信0の引き留め÷圧力）	4.373	[2.9, 5.283]	種数 10
+SA	negMargin/n（margin が負の行の割合）	0	[0, 0.01743]	種数 10
+SA	kCnan/n（財政と戦争だけでは届かない行の割合・事前登録の外）	0.8797	[0.5924, 0.9467]	種数 10
+SA	mil1/n（今の関税の乖離のまま闘争度 1 以下で届く行の割合・事前登録の外）	0.02525	[0.001456, 0.1981]	種数 10
+BR	tariff/raw	0.5403	[0.4041, 0.5703]	種数 10
+BR	ethnic/raw	0.4597	[0.4297, 0.5959]	種数 10
+BR	afterCons/raw（意識の割引の後）	0.9449	[0.7506, 0.946]	種数 10
+BR	afterSuff/afterCons（選挙権の割引）	0.8057	[0.7941, 0.8388]	種数 10
+BR	pressure/afterSuff（大衆の飽和）	0.4874	[0.4378, 0.576]	種数 10
+BR	pressure/raw（割引の合計）	0.3608	[0.2651, 0.4195]	種数 10
+BR	pressure/hold（圧力÷引き留め）	0.1146	[0.06983, 0.2049]	種数 10
+BR	legitTerm/holdBase	0.3983	[0.3291, 0.507]	種数 10
+BR	coerceTerm/holdBase	0.6017	[0.493, 0.6709]	種数 10
+BR	effBefore/holdBase（投射）	0.5932	[0.588, 0.8328]	種数 10
+BR	hold/effBefore（共有の分母）	1	[1, 1]	種数 10
+BR	floor/pressure（威信0の引き留め÷圧力）	4.886	[3.12, 9.618]	種数 10
+BR	negMargin/n（margin が負の行の割合）	0	[0, 0.02703]	種数 10
+BR	kCnan/n（財政と戦争だけでは届かない行の割合・事前登録の外）	0.9637	[0.7892, 0.9947]	種数 10
+BR	mil1/n（今の関税の乖離のまま闘争度 1 以下で届く行の割合・事前登録の外）	0	[0, 0.2216]	種数 10
+SD	tariff/raw	0.6964	[0.531, 0.7814]	種数 9
+SD	ethnic/raw	0.3036	[0.2186, 0.469]	種数 9
+SD	afterCons/raw（意識の割引の後）	0.9222	[0.7103, 0.9242]	種数 9
+SD	afterSuff/afterCons（選挙権の割引）	0.8373	[0.8226, 0.8613]	種数 9
+SD	pressure/afterSuff（大衆の飽和）	0.779	[0.7553, 0.8028]	種数 9
+SD	pressure/raw（割引の合計）	0.6007	[0.4689, 0.6158]	種数 9
+SD	pressure/hold（圧力÷引き留め）	0.3118	[0.1508, 0.3827]	種数 9
+SD	legitTerm/holdBase	0.3159	[0.2216, 0.3687]	種数 9
+SD	coerceTerm/holdBase	0.6841	[0.6313, 0.7784]	種数 9
+SD	effBefore/holdBase（投射）	0.5759	[0.5729, 0.5798]	種数 9
+SD	hold/effBefore（共有の分母）	1	[1, 1]	種数 9
+SD	floor/pressure（威信0の引き留め÷圧力）	2.33	[1.728, 4.269]	種数 9
+SD	negMargin/n（margin が負の行の割合）	0	[0, 0.1316]	種数 9
+SD	kCnan/n（財政と戦争だけでは届かない行の割合・事前登録の外）	0.5526	[0.3226, 0.8871]	種数 9
+SD	mil1/n（今の関税の乖離のまま闘争度 1 以下で届く行の割合・事前登録の外）	0.09677	[0, 0.3226]	種数 9
+## 表3 検算（絶対値の最大）
+BR	holdBaseRebuildGap	0
+BR	holdSumGap(台本の組み直し)	5.75e-10
+BR	pressureRebuildGap	0
+SA	holdBaseRebuildGap	0
+SA	holdSumGap(台本の組み直し)	5.28e-10
+SA	pressureRebuildGap	0
+SD	holdBaseRebuildGap	0
+SD	holdSumGap(台本の組み直し)	5.3e-10
+SD	pressureRebuildGap	0
+## 表4 群 SA の道のり（年ごとの州の中央→種の中央）・要る四半期数＝1÷(−margin×0.025)（負のときだけ）
+year	margin	dominance	pressure	hold	要る四半期	種数
+1800	0.8154	1	0.1581	1.018	—	10
+1801	0.8785	1	0.1564	1.044	—	10
+1802	0.8383	1	0.1524	1.048	—	10
+1803	0.8767	1	0.1902	1.029	—	10
+1804	0.8912	1	0.1807	1.066	—	10
+1805	0.9097	1	0.1674	1.103	—	10
+1806	0.88	1	0.1788	1.079	—	10
+1807	0.905	1	0.1702	1.089	—	10
+1808	0.9067	1	0.1911	1.104	—	10
+1809	0.911	1	0.2103	1.091	—	10
+1810	0.8422	1	0.2278	1.106	—	10
+1811	0.9122	1	0.2226	1.132	—	10
+1812	0.8707	1	0.1837	1.145	—	10
+1813	0.8834	1	0.1658	1.104	—	10
+1814	0.9214	1	0.1599	1.118	—	10
+1815	0.9573	1	0.1388	1.077	—	10
+1816	0.9398	1	0.1432	1.099	—	10
+1817	0.9585	1	0.1333	1.114	—	10
+1818	0.943	1	0.1097	1.093	—	10
+1819	0.9269	1	0.1102	1.083	—	10
+1820	0.9018	1	0.09903	1.066	—	10
+1821	0.8591	1	0.09177	1.035	—	10
+1822	0.9223	1	0.1144	1.076	—	10
+1823	0.963	1	0.09637	1.071	—	10
+1824	0.9916	1	0.1069	1.106	—	10
+1825	0.9643	1	0.08773	1.091	—	10
+1826	0.9388	1	0.07886	1.092	—	10
+1827	0.9593	1	0.07833	1.12	—	10
+1828	0.9821	1	0.08012	1.132	—	10
+1829	0.963	1	0.1059	1.105	—	10
+1830	1.005	1	0.1031	1.122	—	10
+## 表5 保持中でない行（年末・1800〜1830）＝群・今の持ち主・格・行数（種の和）
+SA	イギリス	Colonial	142
+BR	イギリス	Colonial	91
+SA	日本	Colonial	69
+SD	オーストリア	Colonial	48
+BR	オスマン	Colonial	44
+SD	ロシア	Colonial	40
+SD	イギリス	Colonial	39
+SA	オヨ帝国	Colonial	38
+SD	オスマン	Colonial	34
+SD	プロイセン	Colonial	31
+SA	オスマン	Colonial	27
+SA	オーストリア	Colonial	26
+SA	フランス	Colonial	24
+SA	モロッコ	Colonial	22
+BR	プロイセン	Colonial	21
+BR	清	Colonial	18
+SA	サルデーニャ＝ピエモンテ	Colonial	14
+SA	ロシア	Colonial	4
+## 表6 スペインの国の列（年末・種の中央）
+year	legitimacy	totalPopK	coerce	holdBase	sharedDiv	restive	種数
+1800	0.6787	2.628e+04	1.078e+04	1.91	1	0	10
+1801	0.715	2.651e+04	1.26e+04	1.958	1	0	10
+1802	0.7403	2.669e+04	1.308e+04	1.965	1	0	10
+1803	0.6831	2.688e+04	1.305e+04	1.93	1	0	10
+1804	0.7428	2.706e+04	1.459e+04	1.999	1	0	10
+1805	0.8183	2.664e+04	1.595e+04	2.069	1	0	10
+1806	0.7788	2.68e+04	1.621e+04	2.025	1	0	10
+1807	0.7967	2.709e+04	1.74e+04	2.046	1	0	10
+1808	0.8143	2.693e+04	1.851e+04	2.07	1	0	10
+1809	0.7944	2.683e+04	1.631e+04	2.048	1	0	10
+1810	0.8237	2.697e+04	1.57e+04	2.077	1	0	10
+1811	0.8734	2.708e+04	1.6e+04	2.125	1	0	10
+1812	0.8867	2.716e+04	1.807e+04	2.149	1	0	10
+1813	0.8074	2.721e+04	1.838e+04	2.07	1	0	10
+1814	0.8403	2.728e+04	1.805e+04	2.101	1	0	10
+1815	0.7665	2.727e+04	1.734e+04	2.024	1	0	10
+1816	0.8022	2.733e+04	1.886e+04	2.063	1	0	10
+1817	0.8208	2.693e+04	2.003e+04	2.09	1	0	10
+1818	0.7854	2.699e+04	2.05e+04	2.051	1	0	10
+1819	0.7683	2.671e+04	1.797e+04	2.031	1	0	10
+1820	0.7359	2.68e+04	1.653e+04	2	1	0	10
+1821	0.6894	2.689e+04	1.444e+04	1.947	1	0	10
+1822	0.747	2.691e+04	1.691e+04	2.018	1	0	10
+1823	0.7471	2.692e+04	1.686e+04	2.014	1	0	10
+1824	0.814	2.699e+04	1.894e+04	2.08	1	0	10
+1825	0.785	2.706e+04	1.93e+04	2.048	1	0	10
+1826	0.7868	2.713e+04	1.738e+04	2.051	1	0	10
+1827	0.8337	2.72e+04	1.969e+04	2.102	1	0	10
+1828	0.8578	2.724e+04	1.999e+04	2.124	1	0	10
+1829	0.8067	2.727e+04	1.991e+04	2.073	1	0	10
+1830	0.8365	2.727e+04	2.162e+04	2.105	1	0	10

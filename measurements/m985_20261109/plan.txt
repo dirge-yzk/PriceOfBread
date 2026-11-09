@@ -1,0 +1,9 @@
+(985) c89sd 国家の枠の赤字の未払いの額を読む（読むだけ・腕 0 本・コミットしない）
+作業の場所：D:/PoB_work/r985_work/（台本 scripts/・出力 out/）。worktree・枝は作らない。ソースは main 46cd4df6 の作業ツリーを読むだけ。
+読む生（書き換えない）：
+  D:/PoB_work/keep_981/{base_ins,n1,n2}/fiscal_s{1..10}.tsv（月×計器9国・payRateShare・claimStateLossPerMonth・ledgerStateFactoryPerMonth・revenueBasePerMonth）
+  D:/PoB_work/keep_981/{base_ins,n1,n2}/landshare_s{1..10}.tsv（四半期×国・crownDeficitStatePerQuarter・crownAllActualPerQuarter・crownProppedRgoMonths・landRentActual*）
+  D:/PoB_work/keep_981/{base_ins,n1,n2}/nation_s{1..10}.tsv（nominalGdpPerYear）
+  a11 は POB_CEARN=0 の腕＝必要なときだけ。
+ソース：EconomyStep.cs:2738 payRate・:2759 stateFrac・:2773 stateCover・:2792〜:2796・:2800〜:2801・:723 PayOwnerRent・World.cs:2341・Simulation.cs:1869〜1876（claimStateLoss）・:2429〜:2447（payRate→EconomyStep の順）・InstrumentsLandshare.cs:139〜155（crownDef・crownProp）。
+問い：1 額（国家の枠の分・国有の分）2 足りない列 3 ヌル腕の幅と黒字の月の非対称 4 直しの形の案と門の素案。
