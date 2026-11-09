@@ -31,11 +31,12 @@ public class InstrumentsTests
         return sim;
     }
 
-    private static void RunMatch(MultiNationSim sim, int quarters, bool instr)
+    private static void RunMatch(MultiNationSim sim, int quarters, bool instr, Action<MultiNationSim>? afterWarmup = null)
     {
         if (instr) Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
         if (instr) Instruments.Phase(sim, 1789UL, "warm");
+        afterWarmup?.Invoke(sim);   // (989) B7 借入の盤面を置く（助走明け・最初の四半期の前。off と on の 2 走行に同じ関数を渡す）
         try
         {
             int liveNationQuarters = 0;   // (982) B12 生きている国×四半期（国が死んで行が止まる型を四半期ごとに数える）
@@ -65,6 +66,17 @@ public class InstrumentsTests
             foreach (var r in w.Regions) { A(r.SumPopulation()); A(r.SumSavings().Value); foreach (var m in r.Markets) { A(m.Price); A(m.Stock); } }
         }
         return d;
+    }
+
+    /// <summary>(989) B12 最初の 4 国（nationIndex＜4）の名の集合＝nation_s の行から作る（Nations.Count や生きている国の語は使わない）。4 国未満なら床の前提が崩れている。
+    /// 〈4 * 四半期〉の床は、建国で増えた国の行では満たさず、この 4 国の表の行だけで数える。</summary>
+    private static HashSet<string> FirstFourNames(string dir)
+    {
+        var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+        int iIdx = Array.IndexOf(nh, "nationIndex"), iNat = Array.IndexOf(nh, "nation");
+        var names = nr.Where(r => int.Parse(r[iIdx]) < 4).Select(r => r[iNat]).ToHashSet();
+        Assert.True(names.Count == 4, $"(989) 前提が崩れた：nationIndex＜4 の国が {names.Count}（4 でない）");
+        return names;
     }
 
     private static string NewDir() => System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_instr_" + Guid.NewGuid().ToString("N"));
@@ -135,6 +147,13 @@ public class InstrumentsTests
 
     private const int Quarters = 20;
 
+    /// <summary>(989) B7 借入の盤面＝助走明けに全ての国の国庫の現金を POP へ移し（移し方の1本＝基礎貨幣は保存される・CreditTests と同じ作法）、国債に GDP の 2 年分の外債を足す。国庫が空で利払いが重い＝払えない額が借入の判定へ回る。種・期間・Assert は変えない。</summary>
+    private static void PlaceBorrowBoard(MultiNationSim sim)
+    {
+        foreach (var n in sim.Nations) { var w = n.World; if (w.Treasury.Value > 0) World.Transfer((w, null), (w, new List<Pop>(w.AllPops()), null), w.Treasury.Value, TreasuryCat.OtherOut);
+            var extra = new MoneyStock(Calendar.PerMonthToPerYear(2.0 * w.NominalGdpPerMonth).Value); w.ForeignDebt += extra; w.GovDebt += extra; }   // 足す分は全て外債（国内の保有台帳の不変条件を保つ）＝利払いの請求が歳入を超え払えない額が立つ
+    }
+
     /// <summary>出す走行と出さない走行の状態が全ビットで一致し、出力の形も正しい（1本の走行で両方の番人を取る＝走行は2本だけ）。</summary>
     [Fact]
     public void 計器を出しても軌道は変わらず出力の形が正しい()
@@ -143,16 +162,17 @@ public class InstrumentsTests
         try
         {
             // ★(512) 州のデータの追加で軌道が動き、種 1789 では借入の判定の経路を 1 度も通らなかった（対照が赤）＝種 1790 で通る（種の選び直し〔(405)(508) と同じ作法〕。★(537) 武器の並行で軌道がまた動き 1790 では通らなくなった＝1791 で通る（1792 は赤・1793〜1795 も通る）・1790〜1793 は全て通った）。
-            var off = Make(1791UL); RunMatch(off, Quarters, instr: false);
+            var off = Make(1791UL); RunMatch(off, Quarters, instr: false, PlaceBorrowBoard);
             Instruments.Configure(dir, "*");
-            try { var on = Make(1791UL); RunMatch(on, Quarters, instr: true); Assert.Equal(Digest(off), Digest(on)); }
+            try { var on = Make(1791UL); RunMatch(on, Quarters, instr: true, PlaceBorrowBoard); Assert.Equal(Digest(off), Digest(on)); }
             finally { Instruments.Configure(null, null); }
 
             // ---- 財政の鎖
             var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
-            Assert.True(fr.Count >= 4 * (Quarters * 3 - 3), $"財政の行が少なすぎる（{fr.Count}）＝計器が働いていない");
+            var ff = FirstFourNames(dir); int frFirst = fr.Count(r => ff.Contains(r[Array.IndexOf(fh, "nation")]));   // (989) B12 最初の 4 国の行で数える
+            Assert.True(frFirst >= 4 * (Quarters * 3 - 3), $"財政の行が少なすぎる（{frFirst}）＝計器が働いていない");
             Assert.All(fr, r => Assert.Equal(fh.Length, r.Length));
-            int borrowSeen = 0, claimsSeen = 0; double worstGap = 0, worstRes = 0;
+            int borrowSeen = 0, claimsSeen = 0; double worstGap = 0, worstRes = 0; var borrowNations = new HashSet<string>();
             foreach (var r in fr)
             {
                 double total = Col(fh, r, "claimTotalPerMonth");
@@ -161,12 +181,13 @@ public class InstrumentsTests
                 worstGap = Math.Max(worstGap, Math.Abs(Col(fh, r, "claimItemGapPerMonth")) / Math.Max(1.0, total));
                 double flow = 0; for (int i = 0; i < fh.Length; i++) if (fh[i].StartsWith("ledger") && fh[i].EndsWith("PerMonth") && fh[i] != "ledgerSumPerMonth" && fh[i] != "ledgerResidualPerMonth") flow += Math.Abs(Col(fh, r, fh[i]));
                 worstRes = Math.Max(worstRes, Math.Abs(Col(fh, r, "ledgerResidualPerMonth")) / Math.Max(1.0, flow));
-                if (r[Array.IndexOf(fh, "borrowBinder")] != "noShortfall") borrowSeen++;
+                if (r[Array.IndexOf(fh, "borrowBinder")] != "noShortfall") { borrowSeen++; borrowNations.Add(r[Array.IndexOf(fh, "nation")]); }
             }
             Assert.True(claimsSeen > fr.Count * 0.9, "請求が立っていない行が多い（請求の写しの漏れ）");
             Assert.True(worstGap < 1e-9, $"請求の項目の和が請求の合計に合わない（相対 {worstGap:E2}）＝請求の足し算に項が足されたのに計器の写しが追いついていない");
             Assert.True(worstRes < 1e-9, $"国庫の月の帳尻（Δ国庫−Σ台帳）が閉じない（相対 {worstRes:E2}）");
             Assert.True(borrowSeen > 0, "借入の判定の経路を1度も通らない（対照）＝この盤面は借入の計器を測れていない");
+            Assert.True(borrowNations.Count >= 2, $"(989) 対照：借入の判定の経路を通った国が {borrowNations.Count}［{string.Join(",", borrowNations)}］（2 未満）＝借入の計器の検査が 1 国に偏っている");
 
             // ---- 階級
             var (ch, cr) = Table(System.IO.Path.Combine(dir, "class_s1789.tsv"));
@@ -185,7 +206,7 @@ public class InstrumentsTests
                 Assert.True(Math.Abs(size - Col(sh, srow, "totalPopulationK")) <= 1e-9 * Math.Max(1.0, size), $"階級の人数の和が国の人口に合わない {time} {nation}");
                 Assert.True(Math.Abs(sav - Col(sh, srow, "totalMoneyStock")) <= 1e-9 * Math.Max(1.0, Math.Abs(sav)), $"階級の貯蓄の和が国の貨幣に合わない {time} {nation}");
             }
-            Assert.True(sr.Count >= 4 * (Quarters + 2), "在庫の断面が少ない");
+            Assert.True(sr.Count(r => ff.Contains(r[Array.IndexOf(sh, "nation")])) >= 4 * (Quarters + 2), "在庫の断面が少ない");   // (989) B12
 
             // ---- (258) F1 段0：財政の鎖の四半期の列（nation_s）が月次の表（fiscal_s）と別の経路で合う。
             //   nation_s の数は月ごとの状態から四半期へ足した値・fiscal_s は月ごとの行＝2つの経路が同じ月を数える。予算の基数＝純税収＋間接税。
@@ -218,7 +239,7 @@ public class InstrumentsTests
                         if (grp.Count != 3) continue;   // 最初の四半期は台帳の差分の前の月が無く2行
                         var nrow = nr.FirstOrDefault(r => r[Array.IndexOf(nh, "nation")] == nation && int.Parse(r[Array.IndexOf(nh, "quarter")]) == g);
                         if (nrow is null) continue;
-                        groupsChecked++;
+                        if (ff.Contains(nation)) groupsChecked++;   // (989) B12
                         int closed = grp.Count(r => Col(fh, r, "borrowGateOpenFlag") == 0), shortM = grp.Count(r => Col(fh, r, "borrowShortfallPerMonth") > 0), rBelow = grp.Count(r => Col(fh, r, "payRateShare") < 1);
                         Assert.Equal(closed, (int)Col(nh, nrow, "borrowGateClosedMonths")); Assert.Equal(shortM, (int)Col(nh, nrow, "shortfallMonths")); Assert.Equal(rBelow, (int)Col(nh, nrow, "payRateBelowOneMonths"));
                         closedSeen += closed; shortSeen += shortM; rBelowSeen += rBelow;
@@ -316,7 +337,8 @@ public class InstrumentsTests
 
             var (sh, sr) = Table(System.IO.Path.Combine(dir, "stock_s1789.tsv"));
             var yearEnd = sr.Where(r => { var t = r[Array.IndexOf(sh, "time")]; return t.StartsWith('q') && int.Parse(t[1..]) % 4 == 3; }).ToList();
-            Assert.True(yearEnd.Count >= 4 * (WarQ / 4), "年末の行が足りない");
+            var ff = FirstFourNames(dir);   // (989) B12
+            Assert.True(yearEnd.Count(r => ff.Contains(r[Array.IndexOf(sh, "nation")])) >= 4 * (WarQ / 4), "年末の行が足りない");
             foreach (var r in yearEnd)
             {
                 Assert.InRange(Col(sh, r, "steamFillShare"), 0, 1);
@@ -354,7 +376,7 @@ public class InstrumentsTests
                 Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
 
             // ①四半期平均＝財政の月の行の3か月の平均（その四半期の3か月が全て挙がる四半期だけ）
-            int checkedQuarters = 0, claimPositive = 0;
+            int checkedQuarters = 0, claimPositive = 0; var ff = FirstFourNames(dir);
             foreach (var row in nr)
             {
                 int q = int.Parse(row[iqN]); string nation = row[inN];
@@ -362,7 +384,7 @@ public class InstrumentsTests
                 var all = fr.Where(r => r[inF] == nation).ToList();
                 if (q < 1 || all.Count != Calendar.MonthsPerQuarter * WarQ - 1) continue;
                 var months = all.Skip(2 + Calendar.MonthsPerQuarter * (q - 1)).Take(Calendar.MonthsPerQuarter).ToList();
-                checkedQuarters++;
+                if (ff.Contains(nation)) checkedQuarters++;   // (989) B12
                 double Mean(string c) => months.Average(r => Col(fh, r, c));
                 foreach (var (nc, fc) in new[] { ("adminClaimSimPerMonth", "claimAdminPerMonth"), ("adminClaimFiscalPerMonth", "adminClaimFiscalPerMonth"), ("adminSpendableAtBudgetPerMonth", "adminSpendableAtBudgetPerMonth"), ("adminFillMeanShare", "adminFillShare"), ("payRateMeanShare", "payRateShare") })
                 {
@@ -632,14 +654,15 @@ public class InstrumentsTests
             var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
             Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
             string[] terms = ["bondBaseTermPerYear", "bondDebtTermPerYear", "bondInflationExpectationTermPerYear", "bondDistrustTermPerYear", "bondPolicyRateTermPerYear", "bondRepresentationTermPerYear", "bondClampTermPerYear"];
-            int rows = 0, debtSeen = 0, reprSeen = 0;
+            int rows = 0, debtSeen = 0, reprSeen = 0; var ff = FirstFourNames(dir);   // (989) B12
             foreach (var r in nr)
             {
                 if (Col(nh, r, "bondMonthsCount") == 0) continue;
                 double rate = Col(nh, r, "bondRateMeanPerYear"), sum = SumCols(nh, r, terms);
                 Assert.True(Math.Abs(rate - sum) <= 1e-12 + 1e-9 * Math.Abs(rate), $"内訳の和 {sum:G10} が金利 {rate:G10} に閉じない（{r[Array.IndexOf(nh, "nation")]} q{r[0]}）");
                 Assert.InRange(Col(nh, r, "bondConvertibilityDiscountMeanFactor"), 0.0, 1.0 + 1e-12);
-                rows++; if (Col(nh, r, "bondDebtTermPerYear") > 0) debtSeen++; if (Col(nh, r, "bondRepresentationTermPerYear") < 0) reprSeen++;
+                if (ff.Contains(r[Array.IndexOf(nh, "nation")])) rows++;   // (989) B12
+                if (Col(nh, r, "bondDebtTermPerYear") > 0) debtSeen++; if (Col(nh, r, "bondRepresentationTermPerYear") < 0) reprSeen++;
             }
             Assert.True(rows >= 4 * (Quarters - 1), $"内訳の行が少ない（{rows}）");
             Assert.True(debtSeen > 0 && reprSeen > 0, "対照：債務比の項と議会の割引が1度も立たない＝この盤面では内訳を測れていない");
@@ -657,7 +680,7 @@ public class InstrumentsTests
                     if (m3.Count != 3) continue;
                     double mean = m3.Average(x => Col(fh, x, "govBondRatePerYear"));
                     Assert.True(Math.Abs(mean - Col(nh, r, "bondRateMeanPerYear")) <= 1e-12 + 1e-9 * Math.Abs(mean), $"{g.Key} q{q}：月の金利の平均 {mean:G10} と内訳の金利 {Col(nh, r, "bondRateMeanPerYear"):G10} が違う");
-                    checkedQ++;
+                    if (ff.Contains(g.Key)) checkedQ++;   // (989) B12
                 }
             }
             Assert.True(checkedQ >= 4 * (Quarters - 3), $"月の金利と突き合わせた四半期が少ない（{checkedQ}）");
@@ -703,7 +726,7 @@ public class InstrumentsTests
             finally { Instruments.Configure(null, null); }
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
-            int seen = 0;
+            int seen = 0; var ff = FirstFourNames(dir);   // (989) B12
             foreach (var r in nr)
             {
                 double need = Col(nh, r, "adminNeedAtBudgetPerMonth"), needP = Col(nh, r, "adminNeedAtPurchasePerMonth"), claim = Col(nh, r, "adminClaimSimPerMonth"), cap = Col(nh, r, "adminClaimCappedAtBudgetPerMonth");
@@ -712,7 +735,7 @@ public class InstrumentsTests
                 Assert.True(cap <= claim * (1 + 1e-12) + 1e-12 && cap <= need * (1 + 1e-12) + 1e-12, "切った額が請求か必要額を超える");
                 if (Col(nh, r, "adminOverNeedRegionMonthsCount") == 0) Assert.True(Math.Abs(cap - claim) <= 1e-9 * Math.Max(1, claim), "超過の州が無いのに切った額が請求と違う");
                 Assert.InRange(Col(nh, r, "adminCfShortMonthsCount"), 0, Col(nh, r, "shortfallMonths"));   // 反事実で払えない月が増えることはない
-                seen++;
+                if (ff.Contains(r[Array.IndexOf(nh, "nation")])) seen++;   // (989) B12
             }
             Assert.True(seen >= 4 * Quarters, $"必要額の行が少ない（{seen}）");
             // 月ごとの行（fiscal_s）でも同じ関係
@@ -783,7 +806,7 @@ public class InstrumentsTests
                 var key = (r[Array.IndexOf(ch, "time")], r[Array.IndexOf(ch, "nation")]);
                 paid[key] = paid.GetValueOrDefault(key) + p;
             }
-            int rows = 0, partial = 0, tight = 0;
+            int rows = 0, partial = 0, tight = 0; var ff = FirstFourNames(dir);   // (989) B12
             foreach (var r in nr)
             {
                 double mass = Col(nh, r, "massPaidPerMonth"); if (double.IsNaN(mass)) continue;
@@ -798,7 +821,7 @@ public class InstrumentsTests
                 Assert.True(c480 <= b480 + 1e-12);   // 削られる額は拘束された POP の Paid を超えない
                 if (b120 > 0 && b120 < 1) partial++;
                 if (b480 > 0) tight++;
-                rows++;
+                if (ff.Contains(r[Array.IndexOf(nh, "nation")])) rows++;   // (989) B12
             }
             Assert.True(rows >= 4 * Quarters - 2, $"拘束の行が少ない（{rows}）");
             Assert.True(partial > 0 && tight > 0, "対照：拘束が部分的な行／1度も拘束しない＝この盤面では測れていない");
@@ -824,11 +847,11 @@ public class InstrumentsTests
                 try { RunMatch(sim, Quarters, instr: true); }
                 finally { Instruments.Configure(null, null); }
                 var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
-                double max = 0; minOff = double.PositiveInfinity; int rows = 0;
+                double max = 0; minOff = double.PositiveInfinity; int rows = 0; var ff = FirstFourNames(dir);   // (989) B12
                 foreach (var r in nr)
                 {
                     double b = Col(nh, r, "capBoundPaidShareD120"); if (double.IsNaN(b)) continue;
-                    rows++; max = Math.Max(max, b); minOff = Math.Min(minOff, b);
+                    if (ff.Contains(r[Array.IndexOf(nh, "nation")])) rows++; max = Math.Max(max, b); minOff = Math.Min(minOff, b);
                 }
                 Assert.True(rows >= 4 * Quarters - 2, $"拘束の行が少ない（{rows}）");
                 return max;
@@ -1916,7 +1939,7 @@ public class InstrumentsTests
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
             int mi = Array.IndexOf(fh, "monthIndex"), ni = Array.IndexOf(fh, "nation");
-            int checkedQ = 0, limitMonthsTotal = 0, crossingsTotal = 0, openMonthsTotal = 0;
+            var ff = FirstFourNames(dir); int checkedQ = 0, limitMonthsTotal = 0, crossingsTotal = 0, openMonthsTotal = 0;
             var ukRatios = new List<double>();
             foreach (var g in fr.GroupBy(r => r[ni]))
             {
@@ -1954,7 +1977,7 @@ public class InstrumentsTests
                     }
                     Assert.True(Col(nh, r, "interestShareOver067MonthsCount") <= Col(nh, r, "interestAtLimitMonthsCount"), "仏の線を超えた月が限界に届いた月より多い");
                     Assert.True(Col(nh, r, "warGateClosedMonthsCount") <= Math.Min(Col(nh, r, "atWarMonths"), Col(nh, r, "borrowGateClosedMonths")), "交戦×門閉が交戦の月か門閉の月を越えた");
-                    limitMonthsTotal += limitM; openMonthsTotal += 3 - limitM; checkedQ++;
+                    limitMonthsTotal += limitM; openMonthsTotal += 3 - limitM; if (ff.Contains(g.Key)) checkedQ++;   // (989) B12
                 }
                 if (isUk)
                 {
