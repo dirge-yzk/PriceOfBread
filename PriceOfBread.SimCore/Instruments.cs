@@ -1905,7 +1905,7 @@ public static partial class Instruments
         LandsaleTable(sim, seed, q);       // (983) 土地の持ち分の段 B-1 の段 0 の表 landsale_s（国×四半期・未払いの土地税と売りの期待）
         LandshareTable(sim, seed, q);      // (895) 土地の持ち分の段 B-0 の表 landshare_s（国×四半期・月の閉じで積んだ期待と実際）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
-        NationgoodTable(sim, seed, q); TradeskipTable(sim, seed, q);   // (1003) 貿易の計器 C1 nationgood_s・C2 tradeskip_s
+        NationgoodTable(sim, seed, q); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q);   // (1003) 貿易の計器 C1 nationgood_s・C2 tradeskip_s
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
@@ -1939,7 +1939,7 @@ public static partial class Instruments
         IdnClose(sim);   // (640)
         SubstClose(sim); CornintClose(sim); MerchClose(sim);   // (837)
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
-        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim);   // (970)(1003)   // (970) basisx_s
+        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim);   // (970)(1003)   // (970) basisx_s
         CrownClose(sim);   // (889) crownpc_s
         CwClose(sim);   // (903) cwmult_s
         LandsaleClose(sim);   // (983) landsale_s
