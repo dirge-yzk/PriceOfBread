@@ -1,0 +1,9 @@
+(992) c90si 読む線 plan（2026-11-09）
+作業の場所: D:/PoB_work/r992_work（worktree・枝は作らない・コミットしない）
+読む生（読むだけ）:
+ - D:/PoB_work/keep_988/n2 の種7: nation_s7 region_s7 cederule_s7 wars_s7 rule_s7 secession_s7 money_s7 fiscal_s7 trnation_s7 pxmonth_s7
+ - 比べ: D:/PoB_work/keep_988/{base_ins,n1,a11}（S11=a11）・D:/PoB_work/keep_981/{base_ins,n1,n2,a11}
+材料: measurements/m988_20261109/null/{stop949_m981nulls_n2.txt,stop906_n2.txt,gdp_zero10_n2.txt,keepsum_n2.tsv}
+台本: scripts/instruments/c84gz/stoplines949.sh・gdp_fall949.py・c78gz/stoplines906.sh
+現物: nominalGdpPerYear の書き手・名目GDPの和・Territory Rehome・MultiNationSim 建国
+台本の置き場: D:/PoB_work/r992_work/*.py（出力先を引数で）
