@@ -1,0 +1,22 @@
+(994) 合流（波90）の予言（merge より前にコミットする）
+作ったフォルダ：D:/PoB_work/wt_m994（worktree・枝 m994）・D:/PoB_work/m994_work・ident の作業フォルダ D:/PoB_work/ident_m994z（ident.sh が作る）・D:/PoB_work/keep_994（INSRAW を移すとき）・D:/PoB_work/keep_994_rej（c90sl の腕の生を移す先）。
+
+[0] 入れる線と順：c90tr 430efb36（試験だけ）→ c90px bae541c7（恒等の器・ident〈判定: 恒等〉）→ c90sl 0c06d7af（旗 LandShareTaxSale 0 の器として入れる）。
+  - c90sl は自分の門 G-L3 が赤＝挙動の線としては採らない。器（旗 0）を恒等として入れるのは指示の順〈自分の門を通った挙動の線〉から外れる＝報告の先頭で名乗る（線と反証役の推奨・作者「全て推奨で」で推奨を採った）。
+  - 挙動を変えた線は 0 本＝基線は m988 のまま。M・N1・N2・S11・アブレーションは回さない。
+  - 衝突：git merge-tree で tr+px・px+sl とも 0。消す名前：px の LandTaxBasisFixed は自動プロパティ→派生（setter は残る）＝書き手 Simulation.cs:119・LandShareCrownTests.cs:189・LandSaleTests.cs:152 は通る。RunMatch の署名の変更は InstrumentsTests の private の物だけ（他のファイルの RunMatch は別の定義）。
+  - 合流はエンジンの .cs を直さない。
+
+[1] 合わせた木の腕 Z（＝合わせた木そのもの・挙動の線の旗は全て 0）の ident（--saveleak --ng）の予言：
+  - 素の 5 種 179 行・計器つき 10 種 180 行が b5_20261109_m988・b10_20261109_m988_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）。推定 210.5／211.5 秒のまま。
+  - 計器の表：landsale_s が末尾 11 列増える（--grown-ok landsale）。cearn_s（経路の名の行番号）・flow_s（sourceLine）・cpop_s（並び）は Fiscal.cs・EconomyStep.cs の行のずれで揺れる＝ident_check の既知の揺れの内（c90slz で 49 本・c90pxz で 40 本と同じ型）。それ以外はバイト一致。
+  - 注視の表一致。NG の集合は ng988 と同じ（新しい 0・外れた 0）。savetest OK・leakhunt 保存則違反なし。
+  - c90sl の ident は 5c1f873a で測った物。頭 0c06d7af との SimCore の差は Coefficients.cs の注 1 行だけ＝この ident がその差も覆う。
+  - テストの数（Category!=FullLength）：2504＋5（px）＋11（sl）＋0（tr）＝2520 と予言する。c90sl の報告は tr 込みで 2516（2504＋12 に読める）＝食い違いがある。--list-tests の実測を正とし、ずれは予言の外れとして記録の先頭に書く。FullLength 3。
+
+[2] フルスイート（ident の後・10 種と並べない）：Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる。赤 0 を予言する。WriterRatchetTests は旗 0 の木で件数が動かない見込み（SimCore の変更は旗で守られている）。赤なら ★(749) の区分で名乗る。
+
+[3] 止める線の段（この回の対象）：ident の不一致・機構の試験の赤・savetest・leakhunt。挙動の腕が無いので 100 倍・1e10 倍・空洞化・計算量の新しい計測は無い（推定は ident の .cost で読む）。
+    記録の段：NG（ng988 と比べる）・c90sl の腕 B・S11 の止める線と門の値（線の報告の写し）。
+
+[4] INSRAW：landsale_s の列が増えるので、ident の計器つき 10 種の生を D:/PoB_work/keep_994/base_ins へ移し、ident.cfg の INSRAW・BASE_COMMIT・TESTS_NONFULL・MON・B10INS を合わせた木の物へ替える（成績表の行は m988 と同じ＝基線の名は m988 のまま）。
