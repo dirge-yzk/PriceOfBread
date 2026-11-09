@@ -1,2 +1,4 @@
 deleted 2026-11-09 23:59:15: D:/PoB_work/c91sl_work/arm_B（c91sl の腕の生・合わせた木の M・S11 と rawcmp で一致を読んだ後・(988) の先例）
 deleted 2026-11-09 23:59:30: D:/PoB_work/c91sl_work/arm_S11（c91sl の腕の生・合わせた木の M・S11 と rawcmp で一致を読んだ後・(988) の先例）
+deleted 2026-11-10 01:09:35: D:/PoB_work/ident_m1001z（ident の生・判定と記録を push した後）
+deleted（予定・この記録の push の後）：D:/PoB_work/m1001_work（腕の out の残り・読みの出力〔measurements/m1001_20261109 へ写した〕）・D:/PoB_work/wt_m1001（git worktree remove・枝 m1001 はローカルだけ消す）。worktree wt_c91lc・wt_c91rx・wt_c91sl・wt_m1001z は git worktree remove 済み（ローカルの枝も消した・origin の枝は残す）。
