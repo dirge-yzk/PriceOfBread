@@ -1,0 +1,34 @@
+(1009) c93wn 戦争の段0 の数え直し — 作業の計画（読むだけの線・腕 0 本・コミットしない）
+書いた日：2026-11-10・担当 Claude Opus 5.5
+
+■作業の場所
+- 置き場：D:/PoB_work/r1009_work/（この線が作った唯一のフォルダ。worktree も枝も作らない）
+- ソースは main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 381a3d8a・未コミット 0）を読むだけ。書き込まない。
+- 台本：scripts/instruments/r1004/ の 3 本をこのフォルダへ写し、写しを wr1009_*.py として直す（r1004 は書き換えない）。
+- 合流の写し先（合流がする）：measurements/m1009_<日付>/ と scripts/instruments/r1009/
+
+■読む生（読むだけ・書き換えない）
+盤面 4 つ＝D:/PoB_work/keep_1001/{base_ins,n1,n2,a11}（a11 は種 11〜20・他は種 1〜10）
+- wars_s：startYear civilWarFlag sideA sideB months deadK（Diplomacy.AddBelligerent の Wars.Add ごと・年は出来事の時点の _year）
+- invade_s：year invader target targetIsNation submitted proximityAdded addedToTarget（World.Invade ごと・年は出来事の時点）
+- score_s：quarter year nation ... rankInForce（q%4==3 の行だけ全ての国）
+- nation_s：quarter year nationIndex nation ... soldierK atWarMonths civilWarMonths warScaleRatioAtDecision ...（全ての国・毎四半期）
+- fm_s：quarter year nationUid nation ... atWarMonthsCount warScaleRatioAtDecision needLandIndex needInternalIndex garrisonMenIndex forcePotentialIndex landPotentialIndex landSideDenominatorIndex ...（9 国は毎四半期・他は q%4==3 だけ）
+- cpeace_s（講和・補助）
+- 旧の値：measurements/m1004_20261110/wr1004_*.txt
+
+■読むソース（grep し直した行）
+- 時点：Simulation.cs:1917-1918（Year++ は StepQuarter の末）・SelfPlay.cs:2183（Instruments.Quarter は StepQuarter の後）・Diplomacy.cs:1721（WarStarted は _year）・World.cs:2255（Invaded は Year）
+- World.cs：:1326 ExpansionWill・:2093 WarFever・:2118 TickExpansionWill・:2173 InvadeWillCost・:2184 CanInvade（:2189 弱小国の門・:2190〜:2205 後ろの門）・:2219 Invade・:2223 消費
+- Diplomacy.cs：:1622 WarScale・:2001-2006 侵略の頻度の篩・:2015 TryAiSubjugate・:2021 CanInvade の呼び口
+
+■手順
+1. prereg.txt を書く（時点の規則・打ち切りの帯・年数・組の定義・列強の 2 定義）＝数える前
+2. wr1009_count.py：問い 2 の表を 4 盤面で出し直し、旧の値との差を並べる（wr1009_diff.py）
+3. history_pairs.txt：史実の組（9 国・1815〜1914）の列挙と出典の度合い
+4. wr1009_surplus.py・wr1009_warpeace.py：q%4==3 にそろえて余剰戦力の項を引き直す
+5. spec_and_gates.txt：warentry_s・warpair_s・warband_s・wars_s の入口の札の仕様、門 G1〜G4 の直し、突然変異の表
+6. findings.txt：問いの表→根ごとの形→次の波の事前登録の素案
+
+■入れない物
+.cs・テスト・腕・計器の追加・コミット・生の書き換え・r1004 の書き換え・M の減衰・お互いの依存・段1〜3 の実装・App/Display/Runner
