@@ -1,0 +1,32 @@
+バイト一致 1137・既知の揺れ 20・違う 30・腕だけ 0・比べる側だけ 0・除いた表 0（）
+  違う cearn_s1.tsv
+  違う cearn_s10.tsv
+  違う cearn_s2.tsv
+  違う cearn_s3.tsv
+  違う cearn_s4.tsv
+  違う cearn_s5.tsv
+  違う cearn_s6.tsv
+  違う cearn_s7.tsv
+  違う cearn_s8.tsv
+  違う cearn_s9.tsv
+  違う flow_s1.tsv
+  違う flow_s10.tsv
+  違う flow_s2.tsv
+  違う flow_s3.tsv
+  違う flow_s4.tsv
+  違う flow_s5.tsv
+  違う flow_s6.tsv
+  違う flow_s7.tsv
+  違う flow_s8.tsv
+  違う flow_s9.tsv
+  違う landsale_s1.tsv
+  違う landsale_s10.tsv
+  違う landsale_s2.tsv
+  違う landsale_s3.tsv
+  違う landsale_s4.tsv
+  違う landsale_s5.tsv
+  違う landsale_s6.tsv
+  違う landsale_s7.tsv
+  違う landsale_s8.tsv
+  違う landsale_s9.tsv
+判定: 不一致
