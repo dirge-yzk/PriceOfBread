@@ -1,0 +1,29 @@
+(1006) 合流（波92）の予言（merge より前にコミットする）
+作ったフォルダ：D:/PoB_work/m1006_work（合流の作業）・D:/PoB_work/wt_m1006（worktree・枝 m1006＝測る木）・D:/PoB_work/ident_m1006z（ident.sh が作る）・D:/PoB_work/keep_1006（INSRAW を移すとき）。keep_1006_rej は作らない（採らなかった腕が無い）。
+
+[0] 入れる線と順：c92gf a55f1c2a（試験 T11 と台本だけ・.cs は試験 1 本）→ c92tg b13215c1（恒等の計器 nationgood_s・tradeskip_s・ident c92tg4〈判定: 恒等〉・測った木 57027d13）。
+  - 挙動を変えた線は 0 本＝基線は m1001 のまま。M・N1・N2・S11・アブレーションは回さない。
+  - 衝突：git merge-tree で main+gf・gf+tg とも 0。持ち主のファイルの重なり 0（comm で確かめた）。
+  - 消す名前：gf は削除行 0。tg の削除行は BilateralMarket.cs の呼び口の行の書き換えと Instruments.TradeDeal の引数の追加（int good）だけ＝消す名前は無い。TradeDeal の呼び手は BilateralMarket.cs:1052 の 1 か所（SimCore・Tests・Runner・App を grep）＝tg の枝の中で揃っている。
+  - 合流はエンジンの .cs を直さない。
+  - 読む線 c92wr（r1004_work）と設計の材料 c92tf（r1005_work）は写すだけ（反証役の訂正を足す・中身は書き換えない）。
+
+[1] 合わせた木の腕 Z（＝合わせた木そのもの・挙動の線の旗は無い）の ident（--saveleak --ng --added-tables nationgood,tradeskip --tests-delta 6）の予言：
+  - 素の 5 種 181 行・計器つき 10 種 182 行が b5_20261109_m1001・b10_20261109_m1001_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）。推定 209.3／211.2 秒のまま（.cost の件数の行も一致）。
+  - 計器の表：nationgood_s・tradeskip_s が 10 種ずつ増える（宣言 20 本）。他は バイト一致か既知の揺れ（cearn_s の経路の行番号・flow_s の sourceLine・burscan_s:seconds ほか）だけ・宣言の無い違い 0。
+    BilateralMarket.cs・Instruments.cs の行がずれるので cearn_s・flow_s の行番号の揺れは c92tg4 と同じ型で出る見込み。
+  - 注視の表：タグの行以外が mon_20261109_m1001.txt と一致。
+  - NG の集合は ng1001 と同じ（77 件・新しい 0・外れた 0）。
+  - テストの数（Category!=FullLength）：2524＋1（gf T11）＋5（tg）＝2530（合格 2529・スキップ 1）。FullLength 3。
+    tg の申し送り〈TESTS_NONFULL 2524→2529〉は gf の +1 を数えていない＝2530 を正とする。
+  - savetest OK・leakhunt 保存則違反なし。
+
+[2] フルスイート（ident の後・10 種と並べない）：Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる。赤 0 を予言する（2530＋3）。
+    WriterRatchetTests の宣言の表は動かない見込み（tg は呼び口だけ・件数の番人の書き換え 0）。
+
+[3] 止める線の段（この回の対象）：ident の不一致・機構の試験の赤・savetest・leakhunt。挙動の腕が無いので 100 倍・1e10 倍・空洞化・計算量の新しい計測は無い（推定は ident の .cost で読む）。
+    記録の段：NG（ng1001 と比べる）・c92tg の門 G1〜G4b を合わせた木の計器つき 10 種の生で read_g.py にかけ直す（反証役の中の指摘〈ident の生を早く消した〉への答え）＝m1003_20261110_result.txt の数と一致を予言（合わせた木は 57027d13＋gf の試験 1 本＝計器の出力は同じ）。
+    英 1913 の内訳の数（買い手の行 37191・最初の門の割合・A〜D）は集計の台本がコミットされていない＝〈反証役が確かめていない〉と記録する。
+    止める線の物差し stoplines1002：gf が出した keep_1001 の 4 腕（M・N1・N2・S11）の出力を次の挙動の線からの基準として置く（同じ腕で読み替えない）。G2′ には keep_988/n2 を gdp_jump1002 --rows で読み直した出力を渡す。〈それ以外〉≧100 は 4 腕とも 0 を予言。
+
+[4] INSRAW：nationgood_s・tradeskip_s が増えるので、ident の計器つき 10 種の生を D:/PoB_work/keep_1006/base_ins へ移し、ident.cfg の INSRAW・BASE_COMMIT・TESTS_NONFULL（2530）を合わせた木の物へ替える。B5・B10INS・MON・NG_BASE は m1001 のまま（成績表は全行一致の予言）。
