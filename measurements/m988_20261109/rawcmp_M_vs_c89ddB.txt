@@ -1,0 +1,9 @@
+A=D:/PoB_work/m988_work/out_mM_10/ins
+B=D:/PoB_work/c89dd_work/arm_B/out_c89ddB_10/ins
+共通 1180 本・バイト一致 1131・違い 49
+  違い burscan 10
+  違い cearn 10
+  違い clock 10
+  違い cpop 9
+  違い flow 10
+  片方だけ A:landsale 10

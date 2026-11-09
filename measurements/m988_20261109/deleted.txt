@@ -1,0 +1,2 @@
+D:/PoB_work/ident_m988z 18GB（腕 Z の ident の生・判定〈恒等〉を measurements/ident_20261109_m988z.txt に残してから消した） 2026-11-09 15:38:16
+D:/PoB_work/c89dd_work/arm_B 17GB・arm_S 12GB（c89dd の腕 B と S11 の生・合流の M・S11 と表ごとにバイトで比べ〔rawcmp_M_vs_c89ddB.txt・rawcmp_S11_vs_c89ddS11.txt〕、違いは時計の揺れと経路の行番号〔c89ls の Fiscal.cs の +1 行〕と landsale_s だけ・成績表は全行一致＝★(968)・(981) の先例） 2026-11-09 16:19:45
