@@ -1,0 +1,5 @@
+created 2026-11-10 03:36:49: D:/PoB_work/m1006_work（合流の作業）
+created 2026-11-10 03:40 頃（merge 1784e2ea の直後）: D:/PoB_work/wt_m1006（worktree・枝 m1006）
+created 2026-11-10 03:40:45: D:/PoB_work/ident_m1006z（ident.sh の作業）
+created 2026-11-10 04:14:13: D:/PoB_work/keep_1006（base_ins＝合わせた木の計器つき 10 種の生・ident_m1006z/out_ib_10/ins から移した・nationgood_s・tradeskip_s を含む）
+created 2026-11-10 04:06 頃: D:/PoB_work/m1006_work/mut_tree（突然変異の使い捨ての worktree・終わった後に git worktree remove 済み）

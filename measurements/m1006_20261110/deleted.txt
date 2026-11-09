@@ -1,0 +1,6 @@
+deleted 2026-11-10 04:35:33: D:/PoB_work/wt_c92gf（git worktree remove）
+deleted 2026-11-10 04:35:38: D:/PoB_work/wt_c92tg（git worktree remove）
+deleted 2026-11-10 04:35:42: D:/PoB_work/wt_m1006（git worktree remove）
+deleted 2026-11-10 04:35:42: ローカルの枝 c92gf・c92tg・m1006（origin の枝は残す）
+deleted 2026-11-10 04:35:44: D:/PoB_work/ident_m1006z（ident の生・判定と記録を push した後・計器つき 10 種の生は keep_1006/base_ins へ移した）
+deleted（予定・この記録の push の後）：D:/PoB_work/m1006_work（隔離ビルド suite_art・道具箱の写し kitsrc・突然変異の写し gfmut・止める線の出力 stopbase〔measurements/m1006_20261110/stopbase/ へ写した〕・docs の試し dry）。担当の作業フォルダ c92gf_work・c92tg_work・r1004_work・r1005_work は合流が作った物でないので残した。
