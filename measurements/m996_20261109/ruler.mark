@@ -1,0 +1,12 @@
+rc=0 end=2026-11-09 c91rx 物差し 996（記録の列だけ・採否に使わない）
+台本=scripts/instruments/c91rx/gdp_jump996.py（stoplines996.sh が stoplines906.sh の後ろに足す）
+対象の跳び=名目GDPの比 >=10 か <=1/10（今のGDPが正・前の有限行が正）・建国の直後=初出から K=4 四半期以内を除く
+JUMP=100 NEAR=10 POP_THIN=10 WIN=8 ZMIN=4
+区間=[0.1,10] 両端を含む・州の出入り=(i)州の集合が違う かつ (ii)共通の州の産出の和の比が区間の内（前の共通和<=0/非有限/共通なし=NaN は区間の外）
+産出の列=region_s factoryOutputRefValuePerMonth+extractionOutputRefValuePerMonth
+州のid=region_s の region 名・国の取り方=(quarter, nationIndex)（uid の前の行と今の行の nationIndex）
+区分の優先=建国の直後>建国の後の0の続き(上がり>=100のみ)>分母の痩せ>州の出入り>それ以外
+範囲=上がり・下がりの両側
+G1の基準=measurements/m988_20261109/{armM,armS11}/stop906.txt・null/stop906_n{1,2}.txt（経路の文字列だけ印へ）
+読んだ生=M keep_994/base_ins(種1-10) S11 keep_988/a11(11-20) N1 keep_988/n1 N2 keep_988/n2
+位置=measurements/m996_20261109/ ・ 事前登録=measurements/m996_20261109_prereg_rx.txt
