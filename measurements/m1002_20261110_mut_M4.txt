@@ -1,0 +1,15 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました�
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T5_実走の門 [3 s]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T10_床の旗 [21 ms]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T3_枠の数とk未満4 [5 ms]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T8_塵の買い手だけ [5 ms]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T1_見出し [< 1 ms]
+  失敗 PriceOfBread.Tests.LandsaleInstrumentTests.T11_貯蓄が全額払われる盤面�
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T7_階級別の和 [472 ms]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T6_貯蓄0の盤面でgo [1 s]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T9_塵と塵でない買い手 [26 ms]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T4_買い手の枠 [5 ms]
+  成功 PriceOfBread.Tests.LandsaleInstrumentTests.T2_純関数の1歩 [< 1 ms]
+テストの合計数: 11
+合計時間: 7.4412 秒
+M4＝InstrumentsLandsale.cs の Math.Min(..., sj) を外した使い捨ての木 D:/PoB_work/c92gf_work/mut_tree：T11 だけ赤・T1〜T10 緑。元（c92gf）は 11 本緑。
