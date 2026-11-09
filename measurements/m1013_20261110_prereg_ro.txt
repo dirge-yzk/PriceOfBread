@@ -1,0 +1,62 @@
+(1013) 線 c94ro 事前登録：計器 recipeout_s（貿易の段0 C3＝国×財×レシピ×賦存の級の産出と単位費用・豊富側を割ったときの単位費用）。恒等の線・旗なし・新しい係数 0・エンジンの力学 0 行・乱数を引かない・エンジンに欄を足さない。2026-11-10 Claude Sonnet 5.5。
+木＝4803fabe（main）。腕の前に、計器より前の別のコミットで入れる。作者 2026-09-08「同一生産コスト辺りの産出能力にするのが正しい」（Coefficients.cs:1380 の注）・作者 2026-11-09「自給率と貿易の少なさについて「これは修正対象です」」。段の形は AI の推奨（作者の確認待ち）。
+
+[1] 形と予言
+- 形＝計器（尾でも入口でもない・読むだけ）。INS=1 のときだけ動く。表 recipeout_s<種>.tsv を 1 本足す。他の表・成績表は 1 行も変わらない（予言 0＝名乗り行を除いて素の 5 種・10 種・計器つき 10 種の成績表が m1001 と全行一致・表の差は宣言の recipeout_s だけ）。
+- 年：NgYear の年（10 の倍数と 1913）の q%4==3 の 1 回。年の印と国の行の並びは nationgood_s と同じ（NgAccs の国の名簿＋清算の後に増えた国・yearLabel は名簿の先頭の国の年）。
+- 行：年×国×財×レシピ名×級。生産者が 1 個体も居ない組は行にしない。レシピ名が空の生産者は (既定) と書く。並びは財の id・レシピ名（序数比較）・級の順。
+- 級（計器が自分で決める。Productivity からは決めない）。決める材料は Region.Resources・Region.Name と Catalog.Sites・Climate.StapleSelfSufficient（座標は Climate.CityCoord(州の名)・(0,0) なら国の首都州の名で引き直す）・係数 ScarceMineralGate・SilverRushEnabled。共有世界＝!World.StepsDiplomacy（BuildProvince の sharedWorld と Promote の !w.StepsDiplomacy と同じ）。
+  優先（エンジンの播種の分岐の順に写す。IsRgo の生産者だけが E/X/N/S/Z になる。IsRgo でない生産者は全て F）：
+  X＝産地の発見の行に当たる（共有世界・Catalog.SiteRowOf(州の名, 財)≥0・銀は SilverRushEnabled が正のときだけ）。**E と X の優先は X が先**（州の resources に財が載っていても X。開始時の賦存に載る金（アルタ=カリフォルニア）も X）。倍率の規則値＝(resources に有る：ScarceEndowment、無い：ResourceEndowment)×ResourceEndowmentScale、鉱床で SiteFound なら×GoldRushEndowment（4.0×5.0＝20）。植林は SiteFound の後も掛けない。
+  E＝X でなく、resources に財が載る。規則値＝ScarceEndowment(財, 係数, 共有世界)×ResourceEndowmentScale（希少鉱物は総量保存で膨らむ＝硫黄は 93.6 級〔Simulation.cs:706〕）。
+  Z＝X でも E でもなく、共有世界で ScarceMineralGate が正で IsScarceMineral。**指示の級に無い札（産出 0 の非産地）。N の一種にすると T3 の対照が 0.4 と 0 で割れるので分ける**。規則値 0。
+  N＝上のどれでもなく、Climate.StapleSelfSufficient が偽。規則値 0.4×ResourceScarcityScale。
+  S＝上のどれでもない IsRgo。規則値 1.0。
+  F＝IsRgo でない（工場・職人・役務・代替レシピ）。規則値 1.0・endowFromProductivity は nan（基準の生産性が引けない）。
+  U＝座標が (0,0) のまま引けない州の IsRgo で、E/X/Z でないもの。**指示に無い札。件数を記録する（期待 0）**。
+- 列（13）：year・nation・good・recipe・class・producers・outputSum・capacitySum・scaleSum・unitCostOutW・selfCostOutW・unitCostIfAbundance・endowFromProductivity。
+  outputSum＝Σ Producer.Output・capacitySum＝Σ Capacity・scaleSum＝Σ Scale（行の生産者について）。
+  unitCostOutW＝産出で重みづけた単位費用 mc の平均（Σ産出 が 0 なら生産者の単純平均）。selfCostOutW＝同じ重みの自己費用の部分。unitCostIfAbundance＝同じ重みの、倍率>1 の生産者の自己費用を倍率の指数 1 で割ったときの mc（倍率≦1 の生産者はそのまま〔=旗 EndowmentCostFollowsAbundance を 1 にしたときのエンジンの mc〕）。endowFromProductivity＝Producer.Productivity÷(Catalog.Goods[財].Productivity×7.0) の生産者の単純平均（RGO だけ）。7.0 は Simulation.FullChainProductivityScale の写し（private const）＝試験 T3 が固定する。
+- mc は計器が自分で組む（エンジンの関数 MineralSelfCost・InputCostPerUnit・EffectiveQty・ExplainCostByRecipe は計器の本体から呼ばない）：
+  mc＝MarginalCost×World.CostPriceLevel×Region.LocalPriceMultiplier（鉱物の RGO は MineralCostFollowsGrade が正のとき ÷Region.MineralGradeFactor）＋Σ（投入量×自州の市場の Price）。投入量＝QtyPerOutput（BuysLabor の労働力だけ ×(1−ElecLaborSave×ElecFill)×(1−LaborSaveRate×生産者の州の Mechanization)＝エンジンの EffectiveQty と同じ式を係数値で写す）。
+  unitCostIfAbundance の割る量＝倍率の規則値^(1−旗 EndowmentCostFollowsAbundance)（旗 0 で指数 1・旗 1 の盤面は播種で割ってあるので指数 0＝二重に割らない）。農業労働（投入）は割らない。
+- 呼び口（行を足さない）：Instruments.cs:1909 の既存の行の末尾に `RecipeoutTable(sim, seed, q);`・:1942 の既存の行の末尾に `RecipeoutClose(sim);` を継ぎ足すだけ。git diff --numstat で Instruments.cs の挿入数＝削除数（1 行の置き換え 2 本＝+2/−2）を ident の前に確かめて記録する。
+- 計算量：年 18 回前後・四半期に 1 回・全生産者（国 61×州×生産者 約 130）を 1 回なでる。全長で 0.05 秒未満〈推〉。ident の推定が m1001 の 211.2 秒と一致（上限 248.5 秒）。行数は種あたり 20〜35 万行〈推〉。ファイルは種あたり 数十 MB。
+- 記録の列（ident の生で読み、門にしない）：
+  G3 の基線＝鉄鉱石・石炭の越境の輸出のうち、産地の州を持つ国が出した割合（nationgood_s の crossExportQty と recipeout_s の級 E/X の行）。
+  級 E の unitCostOutW と、紙の値（0.297・鉱物 0.285）の比べ。級 E/N/S の単位費用の比の財別の表（U3・U4 の置き直しの材料）。
+  級 U・Z の行数。
+
+[2] 消す物と残す物
+- 消す物＝0。名前を変える物＝0。足す物（新規のファイル）：PriceOfBread.SimCore/InstrumentsRecipeout.cs・PriceOfBread.Tests/RecipeoutInstrumentTests.cs・scripts/instruments/c94ro/・measurements/m1013_*。
+- 既存の行の変更＝Instruments.cs の 2 行（上）だけ。Simulation.cs・Coefficients.cs・SaveGame・App・Display・Runner は触らない。
+- 読み手の grep（新しい名前なので既存の読み手は 0）：RecipeoutTable・RecipeoutClose・recipeout は新規。POB_COEF の名前・SaveGame の名前の表に新しい欄は無い（エンジンに欄を足さない）。`new MoneyStock(` は SimCore で 0 行増（計器は金を作らない）。
+- 他の線との重なり（Instruments.cs の呼び口の行）：c94cl は :1912・:1940 の別の行。c94ro は :1909・:1942 の別の行。同じファイル・別の行＝合流が解く。Coefficients.cs・Meritocracy.cs は触らない（c94pe の持ち物）。表の一覧を数える既存の試験は Tests に無い（nationgood の grep 0 件）＝宣言は ident の --added-tables recipeout_s だけ。
+- 浮動小数の順序が変わる箇所＝0（エンジンを触らない）。
+
+[3] 試験（PriceOfBread.Tests/RecipeoutInstrumentTests.cs・[Collection("Instruments")]・TradeInstrumentTests の Run の型）。予言＝[Fact] 8 本・[Theory] 0 本（実装で増減したら実装ログに書く）。
+- T1a 量の保存（合成の盤面）：4〜6 カ国で 12 四半期・NgEveryYears=1。(年, 国, 財) ごとの recipeout_s の Σ outputSum と、同じ実行の nationgood_s の producedQty の相対差が 1e-9 以下（nationgood は G10 の丸め〈最大 5e-10〉）。**下側**：計器が outputSum を書かないと、対照の件数（調べた組の数の下限と Σ>0 の組の下限）で赤。**上側**：outputSum を Capacity で書くと赤。
+- T1b 対照の件数：行数の下限・級 E/N/S/F の各行の下限・Σ産出>0 の組の下限。
+- T2 費用の一致：合成の盤面で、州ごとに入力の値段を変え（1 州の 1 財の Price を 2 倍にする）、計器の生産者ごとの mc が ExplainCostByRecipe の同じレシピ（レシピ名と投入の財の列が同じ）の Mc と 1e-9 以下。自己費用の部分（selfCost）も OwnCost と 1e-9 以下。
+- T3 級の一致：全ての国・全ての IsRgo 生産者で、級の規則値と Productivity÷(Catalog.Productivity×7.0) の食い違いが 0 件。対照の件数の下限（E・N・S・X・Z それぞれ≥1。X は未発見と SiteFound=true の両方）。7.0 の写しが Simulation の実際の倍率と合うことを S 級の生産者で固定する。
+- T4 ON 経路：MultiNationSim の coef 引数で EndowmentCostFollowsAbundance=1 の盤面と旗 0 の盤面を同じ種で作り、構築の直後（物価水準・乗数が 1）に、旗 1 のエンジンの mc〔ExplainCostByRecipe〕と旗 0 の盤面の計器の unitCostIfAbundance が、E の全ての生産者で 1e-9 以下。大鉱床の盤面：両方の盤面で Discovery.OpenSite を同じ生産者に呼び（鉱床の行の生産者）、同じ比べ（4.0×5.0＝20 の倍率）。旗 1 の盤面の計器の unitCostIfAbundance＝unitCostOutW（二重に割らない）。
+- T5 表の存在：実行して表が 13 列のヘッダーで書かれ、旗なし（INS 切れ）では書かれない。
+- 突然変異（使い捨ての木・出力の全文を measurements/m1013_20261110_mutations.txt に残す）：
+  Mu1 投入の値段を国の平均にする→T2 が赤。
+  Mu2 outputSum を Output でなく Capacity にする→T1a が赤。
+  Mu3 unitCostIfAbundance で農業労働（投入）も割る→T4 が赤。
+  Mu4 大鉱床を 4.0 だけで割る→T4 の大鉱床の盤面が赤。
+  Mu5 級を Productivity から決める→T3 は赤にならない〈期待〉＝やらない形の確かめとして記録する（計器が級を Productivity から決めると T3 が自分自身と比べる同語反復になる）。
+  Mu6 ScarceEndowment を使わず ResourceEndowment で割る→T4（希少鉱物の生産者）が赤。
+- ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後・ident より前に回す。書き換える件数の予言（㉑）＝0。許可表・宣言の表に行を足さない。
+
+[4] 恒等
+- 素の 5 種・計器つき 10 種が m1001 と名乗り行を除いて全行一致（計器の表の差は宣言の recipeout_s だけ）。推定の計算量＝211.2 秒と一致。
+- 腕は ident 1 本（--added-tables recipeout_s）。savetest・leakhunt。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ呼び口を外して報告に回す。ident の生・突然変異の生は合流の判断まで残す。
+
+[6] 点検（事前登録の時点で grep した結果）
+- 工業化度の読み手の許可表：新しい読み手 0（計器は Region.Mechanization を EffectiveQty の写しで読むが、Industrialization の許可表の対象の名前は読まない〈IndustrializationReaderTests で確かめる〉）。
+- new MoneyStock( の件数：SimCore で変化 0。
+- route_anchors.tsv の鍵の行：触らない。WriterRatchetTests の宣言の表：触らない。
