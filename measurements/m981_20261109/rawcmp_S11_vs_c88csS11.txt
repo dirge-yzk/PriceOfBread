@@ -1,0 +1,5 @@
+A=D:/PoB_work/m981_work/out_mS_10_s11/ins
+B=D:/PoB_work/c88cs_work/arm_S11/out_c88csS_10_s11/ins
+共通 1147 本・バイト一致 1127・違い 20
+  違い burscan 10
+  違い clock 10

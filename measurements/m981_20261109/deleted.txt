@@ -1,0 +1,6 @@
+D:/PoB_work/ident_m981z 18GB（腕 Z の ident の生・判定〈恒等〉を読み終えた後）
+D:/PoB_work/c88cs_work/arm_B 約18GB（c88cs の腕 B の生・M と表ごとにバイトで比べ、時計の揺れ〔burscan 10・clock 10〕の外で全て一致＝★(968)）
+D:/PoB_work/m981_work/suite の art_suite・suitesrc 約2GB（フルスイートの隔離ビルド・結果は suite_summary.txt）
+D:/PoB_work/m981_work/src_mM・src_n1・src_n2・src_p10（終わった腕の写しと隔離ビルド）
+D:/PoB_work/m981_work/src_mS（S11 の写しと隔離ビルド）
+D:/PoB_work/c88cs_work/arm_S11 約13GB（c88cs の S11 の生・合流の S11 と表ごとにバイトで比べ、時計の揺れ〔burscan 10・clock 10〕の外で全て一致＝★(968)）
