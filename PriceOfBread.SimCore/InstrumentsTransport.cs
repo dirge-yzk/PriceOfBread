@@ -97,9 +97,9 @@ public static partial class Instruments
     static TrNat TrNatOf(TrAcc a, string name) { if (!a.Nats.TryGetValue(name, out var n)) a.Nats[name] = n = new TrNat(); return n; }
 
     /// <summary>成約 1 件（<c>BilateralMarket</c> の記帳の位置・読むだけ）。<paramref name="freight"/>＝その成約の運賃（金建て・<c>freightPool</c> へ足す額）・<paramref name="weight"/>＝財 1 単位の輸送重量。</summary>
-    internal static void TradeDeal(InternationalMarket m, World buyer, World seller, Region sellerR, Region buyerR, double weight, double qty, double value, double freight, in TrRoute rt, bool cross, double shipShareSeller, double shipShareBuyer, int good)
+    internal static void TradeDeal(InternationalMarket m, World buyer, World seller, Region sellerR, Region buyerR, double weight, double qty, double value, double freight, in TrRoute rt, bool cross, double shipShareSeller, double shipShareBuyer, int good, double dutyT = 0.0, double dutyC = 0.0)
     {
-        NgDeal(m, buyer, seller, good, qty, value, freight, cross);   // (1003) C1 nationgood_s：越境の額と量を財×国で積む
+        NgDeal(m, buyer, seller, good, qty, value, freight, cross, dutyT, dutyC);   // (1003) C1 nationgood_s：越境の額と量を財×国で積む
         var a = TrOf(m);
         double w = qty * weight, eq = rt.EqSea + rt.EqLand;
         double frLand = eq > 0 ? freight * rt.EqLand / eq : 0.0;

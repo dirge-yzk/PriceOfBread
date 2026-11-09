@@ -196,4 +196,152 @@ public class TradeInstrumentTests
         }
         finally { restore(); }
     }
+
+    // ---------------------------------------------------------------- (1008) 線 c93tq：貿易の段0 の本体の計器（事前登録 measurements/m1008_20261110_prereg_tq.txt [3]）
+    private static Instruments.TsAcc Board2(double[] tarEff, double cornPen, double duty, double baseMul, double[] prices, double[]? capLeft = null, double lp = 1.0)
+    {
+        var tr = new (int nation, Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk)[5];
+        for (int i = 0; i < 5; i++) tr[i] = (i == 0 ? 0 : 1, null!, 0, 0, 0, 1, 1, true, 0, 0, true);
+        var a = new Instruments.TsAcc { Nn = 2, Gc = 1, C = new int[2 * (int)Instruments.TsCol.Count], NoSell = new int[1], D = new double[6], TarEff = tarEff };
+        a.GoodBegin(prices.Length); for (int i = 0; i < prices.Length; i++) a.AddSeller(i + 1, prices[i]);
+        var left = Enumerable.Repeat(1.0, prices.Length).ToArray(); var cap = capLeft ?? Enumerable.Repeat(1.0, 5).ToArray();
+        a.Row(0, 0); a.Scan(tr, 0, lp, left, cap, baseMul, duty, duty, null, cornPen); a.End(0);
+        return a;
+    }
+    private static int Gt(Instruments.TsAcc a, Instruments.TsCol c) => a.At(0, 0, c);
+
+    /// <summary>G5：関税の分＋穀物法の分＝duty。合成の盤面（穀物法 0・関税 0・両方）と実盤の全ての走査した行。xWedgeA の 3 分けの和＝xWedgeA。</summary>
+    [Fact]
+    public void G5_関税の分と穀物法の分の和はdutyに合う()
+    {
+        var none = Board2([0.4, 0], 0.0, 0.4, 1.05, [0.8]);   // 穀物法なし
+        Assert.Equal(0.0, none.D[2]); Near(none.D[0], none.D[1], 1e-12, "穀物法なし");
+        var zero = Board2([0.0, 0], 0.4, 0.4, 1.05, [0.8]);   // 関税 0（穀物法だけ）
+        Assert.Equal(0.0, zero.D[1]); Near(zero.D[0], zero.D[2], 1e-12, "関税 0");
+        var both = Board2([0.3, 0], 0.1, 0.4, 1.05, [0.8, 0.95]);
+        Near(both.D[0], both.D[1] + both.D[2], 1e-12, "両方"); Assert.True(both.D[1] > 0 && both.D[2] > 0, "対照：両方が正");
+        Assert.Equal(1, Gt(both, Instruments.TsCol.WAT)); Assert.Equal(1, Gt(both, Instruments.TsCol.WAB)); Assert.Equal(0, Gt(both, Instruments.TsCol.WAC));   // 0.8＝関税を抜けば通る・0.95＝どちらか一方では通らない
+        var corn = Board2([0.1, 0], 0.3, 0.4, 1.05, [0.8]);
+        Assert.Equal(1, Gt(corn, Instruments.TsCol.WAC));
+        // 実盤：穀物法を全面にした国が主食を輸入しようとする行で、行ごとに和が合う
+        var (dir, sim, restore) = Run(16, before: s => { foreach (var n in s.Nations) n.World.CornLaws = ReformLevel.Full; });
+        try
+        {
+            var t = Read(dir, "tradeskip"); int cmp = 0; double cornPos = 0, tarPos = 0, wa = 0;
+            foreach (var r in t.R)
+            {
+                if (t.S(r, "nation") == "ALL") continue;
+                double d = t.D(r, "dutyMean"), dt = t.D(r, "dutyTariffMean"), dc = t.D(r, "dutyCornMean");
+                Near(d, dt + dc, 1e-12, "行の duty の和");
+                Near(t.D(r, "xWedgeA"), t.D(r, "xWedgeAT") + t.D(r, "xWedgeAC") + t.D(r, "xWedgeAB"), 0, "xWedgeA の 3 分け");
+                if (t.D(r, "rowScan") > 0) cmp++; cornPos += dc; tarPos += dt; wa += t.D(r, "xWedgeA");
+            }
+            Assert.True(cmp > 50 && cornPos > 0 && tarPos > 0 && wa > 0, $"対照：走査した行 {cmp}・穀物法の平均の和 {cornPos}・関税 {tarPos}・xWedgeA {wa}");
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>G6：国ごとに Σ財(関税の払い＋穀物法の払い)＝World.LastTariffRevenuePerClearing（四半期の末の最後の清算 1 回分・エンジンの別の欄）。tar＜0 の国は輸出補助が同じ欄から引かれるので除く。</summary>
+    [Fact]
+    public void G6_越境の払いの内訳の和はエンジンの関税収入に合う()
+    {
+        int compared = 0; double sumCorn = 0, sumTar = 0;
+        var (dir, sim, restore) = Run(16, before: s => { foreach (var n in s.Nations) n.World.CornLaws = ReformLevel.Full; }, afterStep: (s, q) =>
+        {
+            var sn = Instruments.NgDutySnapshot(s.Market); if (sn is null) return;
+            for (int i = 0; i < s.Nations.Count; i++)
+            {
+                if (!(sn.Value.Tar[i] >= 0)) continue;
+                double c = 0, tt = 0;
+                for (int g = 0; g < sn.Value.Gc; g++) { tt += sn.Value.DutyT[i * sn.Value.Gc + g]; c += sn.Value.DutyC[i * sn.Value.Gc + g]; }
+                Near(s.Nations[i].World.LastTariffRevenuePerClearing, tt + c, 1e-9, $"国 {i} 四半期 {q}");
+                compared++; sumCorn += c; sumTar += tt;
+            }
+        });
+        try { Assert.True(compared >= 3 && sumCorn > 0 && sumTar > 0, $"対照：比べた国×四半期 {compared}・穀物法の払い {sumCorn}・関税の払い {sumTar}"); }
+        finally { restore(); }
+    }
+
+    /// <summary>G7：最初の門ごとの度数の和＝旧の ratioBin（全行・全 k）・全ての門の度数＋ratioNaN＝xPairs。</summary>
+    [Fact]
+    public void G7_門ごとの値段の比の度数は旧の度数と件数に合う()
+    {
+        var (dir, sim, restore) = Run(16, before: s => { foreach (var n in s.Nations) n.World.CornLaws = ReformLevel.Full; });
+        try
+        {
+            var t = Read(dir, "tradeskip"); int rows = 0; double cap = 0, wedge = 0;
+            foreach (var r in t.R)
+            {
+                if (t.S(r, "nation") == "ALL") continue;
+                double all = 0, gSold = 0, gCap = 0, gWedge = 0, gPass = 0;
+                for (int k = 0; k < 10; k++)
+                {
+                    double a1 = t.D(r, "xSoldBin" + k), a2 = t.D(r, "xCapBin" + k), a3 = t.D(r, "xWedgeBin" + k), a4 = t.D(r, "xPassBin" + k);
+                    Near(t.D(r, "ratioBin" + k), a1 + a2 + a3 + a4, 0, "度数 k=" + k); all += a1 + a2 + a3 + a4;
+                    gSold += a1; gCap += a2; gWedge += a3; gPass += a4;
+                }
+                Near(t.D(r, "xPairs"), all + t.D(r, "ratioNaN"), 0, "度数の総和＋NaN＝xPairs");
+                Assert.True(gSold <= t.D(r, "xSoldOut") && gCap <= t.D(r, "xCap") && gWedge <= t.D(r, "xWedge") && gPass <= t.D(r, "xPass"), "門ごとの度数は門の件数を超えない");
+                if (t.D(r, "ratioNaN") == 0) { Near(t.D(r, "xCap"), gCap, 0, "xCap の度数の和"); Near(t.D(r, "xWedge"), gWedge, 0, "xWedge の度数の和"); Near(t.D(r, "xPass"), gPass, 0, "xPass の度数の和"); }
+                rows++; cap += t.D(r, "xCap"); wedge += t.D(r, "xWedge");
+            }
+            Assert.True(rows > 50 && cap > 0 && wedge > 0, $"対照：行 {rows}・xCap {cap}・xWedge {wedge}");
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>G8（条約港）：tarEff＝Clamp(tariffNow×treatyScale, TariffFloor, 1)。英の港州に外国の持分を置いた盤面で treatyScale＜1・tarEff＜tariffNow の行がある。</summary>
+    [Fact]
+    public void G8_実効の関税は条約港の目減りを含む()
+    {
+        bool done = false;
+        var (dir, sim, restore) = Run(12, before: s =>
+        {
+            if (done) return; done = true;
+            foreach (var r in s.Nations[2].World.Regions) if (r.IsPort) Politics.AddForeignShare(r, "テスト国", 0.5);
+        });
+        try
+        {
+            var t = Read(dir, "tradeskip"); int cmp = 0, cut = 0;
+            foreach (var r in t.R)
+            {
+                if (t.S(r, "nation") == "ALL") continue;
+                double now = t.D(r, "tariffNow"), sc = t.D(r, "treatyScale"), eff = t.D(r, "tarEff");
+                Near(Math.Clamp(now * sc, -0.25, 1), eff, 1e-12, "tarEff");
+                cmp++; if (sc < 1 - 1e-6 && now > 0.01 && eff < now - 1e-9) cut++;
+            }
+            Assert.True(cmp > 50 && cut > 0, $"対照：行 {cmp}・条約港で目減りした行 {cut}");
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>G8（床）：関税を床より下へ置いた国の tarEff＝TariffFloor。</summary>
+    [Fact]
+    public void G8_実効の関税は床で止まる()
+    {
+        var (dir, sim, restore) = Run(12, before: s => { s.Nations[1].World.Tariff = -0.9; });
+        try
+        {
+            var t = Read(dir, "tradeskip"); int bound = 0, cmp = 0;
+            foreach (var r in t.R)
+            {
+                if (t.S(r, "nation") == "ALL") continue;
+                double now = t.D(r, "tariffNow"), sc = t.D(r, "treatyScale"), eff = t.D(r, "tarEff");
+                Near(Math.Clamp(now * sc, -0.25, 1), eff, 1e-12, "tarEff"); cmp++;
+                if (now * sc <= -0.25 + 1e-12) { bound++; Near(-0.25, eff, 1e-12, "床"); }
+            }
+            Assert.True(cmp > 50 && bound > 0, $"対照：行 {cmp}・床に当たった行 {bound}");
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>G9：門の順（容量→楔）。容量が 0 の売り手は楔にも落ちる値段でも xCap に数える（楔→容量の順に替えると xWedge になる）。</summary>
+    [Fact]
+    public void G9_門の順は容量が楔より先()
+    {
+        var capZero = new double[] { 1, 0, 1, 1, 1 };   // 最初の売り手（状態 1）の容量が 0
+        var a = Board2([0.4, 0], 0.1, 0.4, 1.05, [0.8, 0.8], capZero);   // 0.8×(1.05＋0.4)＝1.16≧1＝楔でも落ちる
+        Assert.Equal(1, Gt(a, Instruments.TsCol.XCap)); Assert.Equal(1, Gt(a, Instruments.TsCol.XWedge));
+        Assert.Equal(1, a.C[(int)Instruments.TsCol.GBin0 + 10 + 2]);   // xCapBin の 0.8÷1.0（境 0.8 以上 0.9 未満＝k=2）
+    }
 }

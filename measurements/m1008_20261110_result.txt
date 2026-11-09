@@ -1,0 +1,9 @@
+m1008 結果（線 c93tq・(1008)・恒等の線・事前登録 measurements/m1008_20261110_prereg_tq.txt・書き手 Claude Sonnet 5.5）
+判定: 恒等（ident m1008z・測った木 HEAD 18be86d9 の 1 つ前の計器のコミット 4ec74dc4＋台本）。素の 5 種・計器つき 10 種・注視・NG（77 件・新 0・外れ 0）が m1001 と全行一致・推定 209.3 秒／211.2 秒（基準と同じ）・テスト 2536（基準 2530＋6）＋FullLength 3。計器の表は 1207 本中バイト一致 1167・既知の揺れ 20・列が増えた 20（tradeskip_s・nationgood_s）。savetest OK・leakhunt 保存則違反なし。㉘ の束（8 区分 145 件）緑・TradeInstrumentTests 11 本緑。
+行の増減：BilateralMarket.cs +4／−4・InstrumentsTransport.cs +2／−2（行の追加 0）。
+足した列：tradeskip_s の末尾 52 列（dutyMean・dutyTariffMean・dutyCornMean・xWedgeAT・xWedgeAC・xWedgeAB・xSoldBin0〜9・xCapBin0〜9・xWedgeBin0〜9・xPassBin0〜9・ratioNaN・tarEff・tariffNow・tariffTarget・treatyScale・exRate）・nationgood_s の末尾 4 列（dutyTariffPaid・dutyCornPaid・tarEffAtPay・exRateAtPay）。
+門（ident の生 10 種×全年・行 1431560）：G5 不一致 0（最大 7.7e-16）・xWedgeA の 3 分け 0・G7 旧の度数 0・総和 0・門の件数 0（ratioNaN>0 の行 0）・G8 不一致 0。G6 は試験の盤面（1e-9・穀物法 Full・比べた国×四半期 3 以上）で通る。生では fiscal_s の台帳と並べた記録だけ（門にしない）：直近 1 か月の台帳に対する払いの比の中央値 0.983（1±1e-6 の行 0）・直近 3 か月の和に対しては 0.336。月次の清算で台帳は月の合算＝範囲が違う（未解明の差が 2% 残る・記録）。
+突然変異 M1〜M6：全て赤（measurements/m1008_20261110_mutations.txt）。
+英 1913（種を合算・measurements/m1008_20261110_read_tq.txt）：走査した行の duty 平均 0.242＝関税 0.239＋穀物法 0.003。楔 29.9% のうち A（関税の分で通る 119447・穀物法の分で通る 858・両方要る 1320）。xCap 47.8% のうち売り手の値段が自分以上（比≧1.0）44.2%＝(1003) の反証役の予想〈半分近くは自分より高い売り手〉に当たる。国の値（種の中央値）：tarEff 0.2388＝tariffNow 0.2388・tariffTarget 0.1669・treatyScale 1.000・exRate 0.9415。越境の輸入額（金建て・運賃込み）に対する払い 0.245（tar と合う）。
+4 候補の読み：穀物法＝小さい（平均 0.003・xWedgeAC 858）／実効の tar と目標の差＝tarEff は目標 0.167 より高い（tariffNow が目標へ追従中・指数 0.144 は Q5 前の生の値）で、tarEff 自体は tariffNow と一致（条約港の目減り 0）／通貨の換算＝exRate 0.94 で払い÷輸入額 0.245 と tar が合う＝換算では説明できない／CIF の分母＝運賃込みの額に対し 0.245＝この列では〈30%〉が出ない（〈実効 30%〉の出所は別の計算＝未解明のまま）。
+記録の注意：tariffTarget の列は Politics の目標を Q5 に丸めて報復の偏りを足し [TariffFloor,1] に収めた写し（Government.TariffTargetFloored は private）。G6 の払いは買い手の通貨（台帳と同じ式）。tradeskip の平均は第 4 四半期の最初の清算・nationgood の払いは最後の清算＝別の清算。

@@ -495,8 +495,8 @@ public sealed partial class InternationalMarket
             else { Array.Clear(eg0); Array.Clear(w0.ImportsByGood!); }
             expByGood[i] = w0.ExportsByGood!; impByGood[i] = w0.ImportsByGood!;
         }
-        Instruments.NgHead(this, nations, gc);   // (1003) 計器 C1：越境の蓄えを清算の頭で 0 へ（World.ImportsByGood と同じ範囲・計器が切れていれば即戻る）
-        var ts = Instruments.TsBegin(this, nations, gc, firstClearingOfQuarter, Cost[CostLedger.ClearingRows]);   // (1003) 計器 C2：調べる年の第 4 四半期の最初の清算だけ非 null
+        Instruments.NgHead(this, nations, gc, tar, exRate);   // (1003) 計器 C1：越境の蓄えを清算の頭で 0 へ（World.ImportsByGood と同じ範囲・計器が切れていれば即戻る）
+        var ts = Instruments.TsBegin(this, nations, gc, firstClearingOfQuarter, Cost[CostLedger.ClearingRows], tar, exRate);   // (1003) 計器 C2：調べる年の第 4 四半期の最初の清算だけ非 null
 
         // ★支払いの一元化 段3-1（貿易・2026-09-29・計画 §10-12-9 の 3-1・C1〜C5・D4・A7・econ-07/B21）：旧＝国ごとの純流入 netFlow を Apply で
         //   国の全POP の貯蓄比に配っていた（輸入代金を払うのは国の全POP・運賃も関税の残りも同じ）＝払い手と受け手が名目と違った。
@@ -862,7 +862,7 @@ public sealed partial class InternationalMarket
                 int snA = 0, siA = 0; Market msA = null!; bool xPriceOn = false, crossA = false, seaA = false;
                 bool dealtRow = false;   // この行で1件でも成約したか（成約しなかった行に印＝ClearFailLp）
                 int guard = 0;
-                if (ts is not null) ts.Scan(tr, t, lp, left, capLeft, baseMul, wedge, duty, sellCheap);   // (1003) 計器 C2：走査に入る行の売り手の表を最初に当たった門で数える
+                if (ts is not null) ts.Scan(tr, t, lp, left, capLeft, baseMul, wedge, duty, sellCheap, cornPen);   // (1003) 計器 C2：走査に入る行の売り手の表を最初に当たった門で数える
                 while (true)
                 {
                     if (MultiNationSim.TimeOn) CntRollIters++;   // ★計器
@@ -1054,7 +1054,7 @@ public sealed partial class InternationalMarket
                     if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
                     freightPool += frG;
                     if (Instruments.On) Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr);   // ★(403) 計器（読むだけ）
-                    if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni], g);   // ★(380) 輸送の段0 の計器（読むだけ）・★(385) 運賃の配りの比を売り手側・買い手側の国で添える
+                    if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni], g, crossA ? vA * protect / exRate[ni] : 0.0, crossA ? vA * cornPen / exRate[ni] : 0.0);   // ★(380) 輸送の段0 の計器（読むだけ）・★(385) 運賃の配りの比を売り手側・買い手側の国で添える
                     if (ts is not null) ts.Deal(crossA);   // (1003) 計器 C2：この行の成約が越境か国内か
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];   // 売買方針（高く買う）＝積出し価格×楔（旧＝数量×表示用の平均×楔＝R6）
                     // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
