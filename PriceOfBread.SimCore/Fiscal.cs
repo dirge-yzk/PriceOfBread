@@ -79,6 +79,7 @@ public static class Fiscal
         var taxPayers = new List<Pop>(); var taxClaim = new List<double>();
         double paidInc = 0, paidProg = 0, paidPoll = 0, paidLand = 0;   // ★(474) 税の種類ごとの実際に取れた額（予算表の実効・読むだけ）
         var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
+        List<(int Pi, double V)>? landSales = null;   // ★(991) 旗 LandShareTaxSale：土地税を払えない受け手と不足額 V（走査の中は集めるだけ・十分の一税の移しの後に LandSale.Resolve が解く＝中④）
         for (int pi = 0; pi < pops.Count; pi++)
         {
             var p = pops[pi]; if (p.IsCriminal) continue;   // ★(366) 犯罪者は申告せず頭数も把握されない＝所得税・累進・人頭税・土地税・十分の一税の請求を立てない（盗んだ金に所得税が掛かるのを防ぐ）。犯罪者の POP が無い世界では偽＝恒等
@@ -100,6 +101,7 @@ public static class Fiscal
             double claims = tax + cut + tithe;
             if (!(claims > 0)) continue;   // 否定形＝NaN の請求は立てない
             double rp = PayRate(p, claims);   // 1本の率（払える額が足りれば 1＝全額）
+            if (rp < 1.0 && kLand > 0 && c.LandShareTaxSale > 0) (landSales ??= []).Add((pi, kLand * ruleMul[pi] * (1.0 - rp)));   // ★(991) V＝国庫に届くはずだった土地税の不足（届き×払えない割合）
             tax *= rp; cut *= rp; tithe *= rp;
             { double f = ruleMul[pi] * rp; paidInc += kInc * f; paidProg += kProg * f; paidPoll += kPoll * f; paidLand += kLand * f; }   // ★(474) 種類ごとの実際に取れた額（査定×国庫へ届く割合×払える割合）
             if (lord is not null && cut > 0)
@@ -128,6 +130,7 @@ public static class Fiscal
         // ★段3-4（2026-09-30）：徴収は上の税と同じ1本の率（旧 Privileges.CollectTithe の徴収の走査を畳んだ）。貯蓄は按分の本体（頭数・端数は最後の聖職）・所得も同じ1行で。
         //   ★2026-09-30 段4g：大衆→聖職の移し方の1本（払い手の重み＝自分の十分の一税の請求・受け手は頭数・所得にも書く）。
         if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: true, fromWeights: titheClaim);
+        if (landSales is not null) LandSale.Resolve(w, c, pops, landSales, crownShareForPrivilege);   // ★(991) 公売（税と十分の一税の移しの後＝買い手の貯蓄は義務を払った後・旗 0 では list を作らない）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Tithe, titheCollected);   // ★特権台帳（段1・観測）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.StepMonth(w, c);   // ★特権台帳（段1）：今月の取り分を畳み保有年数を積む（月次・十分の一税の後）
 

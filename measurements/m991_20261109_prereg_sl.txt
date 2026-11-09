@@ -110,3 +110,6 @@
 
 [12] 手順と旗の既定
  事前登録（このコミット）→ 器（旗 0）・計器の列・試験 → 走査の番人の束 → 突然変異（使い捨ての木）→ ident（c90slz・旗 0・--grown-ok landsale_s・--tests-delta ＋N）〈判定: 恒等〉→ 点火（Coefficients.cs の 1 行と DormantIdentityTests の 1 行）→ origin/c90tr の印の頭を merge → 計器の束 → フルスイート（非 FullLength と FullLength を分けて --list-tests と突き合わせる）・savetest・leakhunt → 腕 B（INS=1 batch.sh run c90slB 10・POB_WORK=D:/PoB_work/c90sl_work/arm_B）→ S11（POB_CEARN=0）→ 門・止める線 → push。形の変え直しは 1 回だけ。
+
+[追記 2026-11-09・腕の前・器のコミットと同じ] 試験 T11 の盤面をイギリスからフランスへ、貯蓄を抜くのを四半期の頭から毎日へ替えた。理由：イギリス（定額の国）の盤面は 3 四半期で売り 1 件・買い手は投資家だけ（買い手の貯蓄 0 と純の地代≤0 で止まる＝saleBlockedNoBuyer・NoPrice）＝〈投資家でない買い手がいる〉の Assert が盤面の弱さで赤。Assert の文と閾値は変えていない。T1〜T10 の手で数える盤面はイギリスのまま。
+ 走査の番人の束（㉘）＋新しい試験＋計器の試験＋OnDoubleReadScanTests：194 本すべて合格（旗 0 の木）。
