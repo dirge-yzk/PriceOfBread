@@ -7,17 +7,23 @@ def ok(n, c, note=''):
     global bad
     print(('緑' if c else '赤'), n, note)
     if not c: bad += 1
-def g1(out, ref):
+def norm(t):
+    # 結果の後の変更（996）：生の経路の文字列（D:/PoB_work/ の ins フォルダと fixrows の一時ファイル）だけを同じ印にして比べる。件数・表の中身は変えない。
+    return re.sub(r'D:/PoB_work/[^：\t \n]+', '<PATH>', t)
+def g1(out, ref, strict=False):
     o = out.split('\n'); r = ref.split('\n')
     if r and r[-1] == '': r = r[:-1]
+    if not strict: o = norm('\n'.join(o)).split('\n'); r = norm('\n'.join(r)).split('\n')
     return len(o) >= len(r) and o[1:len(r)] == r[1:]
 for a in A:
     arm, outp, refp = a.split('=', 2)
     out = open(outp, 'rb').read().decode('utf-8'); ref = open(refp, 'rb').read().decode('utf-8')
-    ok(f'{arm} G1 旧の節が基準と 2 行目以降バイト一致', g1(out, ref))
+    ok(f'{arm} G1 旧の節が基準と 2 行目以降バイト一致（経路の文字列だけ印へ・結果の後の変更）', g1(out, ref))
+    print(f'   参考：経路を印にしない厳密な比較＝{"緑" if g1(out, ref, True) else "赤（経路の 2 行が違う）"}')
     if '--selfneg' in sys.argv[1:]:
         bad_out = out.replace('== ukdefault', '== ukdefaulT', 1)
         ok(f'{arm} G1 の負の対照（見出し 1 字を変えた写しで G1 が赤）', not g1(bad_out, ref))
+        ok(f'{arm} G1 の負の対照 2（表の数字 1 字を変えた写し）', not g1(out.replace('不履行のあった種', '不履行のあつた種', 1), ref))
     i = out.index('== 記録（996')
     new = out[i:]; old = out[:i]
     # 旧の --founding 節の件数
