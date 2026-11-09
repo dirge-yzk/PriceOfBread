@@ -1,0 +1,8 @@
+(982) c89tb 門の結果（試験だけ・ident なし）
+木：wt0＝c89tb 本体（main 46cd4df6＋試験と注）／wtH＝c89tb＋origin/c87hd（Coefficients.cs・DormantIdentityTests.cs の隣り合う行の衝突は両側を残して解いた・measurements の衝突は ours）／wtD＝c89tb＋origin/c82hd（同）。
+直す前に赤の木：無し＝B2・B5・B8・B11・B12 は全て〈予防〉（対照の下限を足しただけ・旗の木でも元から緑）。
+直した後：wt0 InstrumentsTests＋RouteKmTests 44 本緑（B7 の Assert を外す前の回で 44/45・外した後は ㉘ の束に含めて緑）・wtH 45/45・wtD 45/45（trees_rc.txt）。
+㉘ の束（Instruments・UnitType・IndustrializationReader・WriterRatchet・DormantIdentity・GoodIdGuard）：成功!   -失敗:     0、合格:   173、スキップ:     0、合計:   173、期間: 8 m 36 s - PriceOfBre
+突然変異：measurements/m982_20261109_mutations_tb.txt（対照の回つき・8 本全て狙いどおり赤）。
+SimCore の差は注だけ：measurements/m982_20261109_commentonly.txt。
+B7 は波90 の恒等の先頭へ（borrowSeen を通る国が 1 国。種と期間を変えずには直せない＝★(961)。盤面に借入を置く直しは Digest の比べる 2 走行を揃える必要があり別の線）。

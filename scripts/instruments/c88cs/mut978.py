@@ -27,6 +27,13 @@ MUT = [
 ]
 FILTER = 'FullyQualifiedName~LandShareCrownTests|FullyQualifiedName~LandShareTests|FullyQualifiedName~LandOwnershipDataTests'
 L = []
+# (982) 対照の回：突然変異なしで同じ束を回し、緑でなければ以後の赤は突然変異のせいと言えない（木か束が元から赤）
+r0 = subprocess.run(['dotnet', 'test', os.path.join(TREE, 'PriceOfBread.Tests'), '-c', 'Release', '--artifacts-path', ART, '--filter', FILTER],
+                    capture_output=True, text=True, encoding='utf-8', errors='replace')
+out0 = r0.stdout + r0.stderr
+red0 = sorted(set(m.group(1) for m in re.finditer(r'失敗 PriceOfBread\.Tests\.\w+\.(\w+)', out0)))
+L.append(f'M-0	対照（突然変異なし）	{"緑（期待どおり）" if r0.returncode == 0 and not red0 else "赤（対照が崩れた＝以後の表は読めない）"}	{",".join(red0)}')
+print(L[-1], flush=True)
 for mid, f, a, b, what in MUT:
     p = os.path.join(TREE, f)
     raw = open(p, 'rb').read()

@@ -1,0 +1,19 @@
+(982) c89tb 事前登録（恒等の線・試験と注と台本だけ・ident なし）2026-11-09  基準 main 46cd4df6
+区分：★(743) の (q)＝試験の中で対照の数え方を変える（対照の件数の Assert を既存の隣に足す・Assert の文と閾値は変えない）。★(912) 試験だけの線は ident を回さない。材料 m969_20261108_scan_ot.txt・m976_20261109_prereg_ts.txt・m976_20261109_mutlogs/table_by_merge.txt。
+
+[1] 恒等の線・予言 0。SimCore は注だけ（Coefficients.cs:2173・Simulation.cs の古い注）。Runner・App・Display に触れない。素の 5 種・計器つき 10 種は m981 と全行一致の見込み（回さない）。
+[2] 消す物：なし。残す物：全て。他の線との重なり：InstrumentsTests.cs・RouteKmTests.cs・LandOwnershipDataTests.cs（注だけ）は c89tb だけの持ち主。ls・dd の試験ファイル・DormantIdentityTests・WriterRatchetTests は触れない（item は合流が取り直す・★(749)）。
+    Coefficients.cs は :2173 の注 1 行だけ（dd の旗の 1 行と別の行）。
+[3] 足す試験（対照の国の数の下限＝2 は ts の T5・T6 と同じ作法・B2 だけ 3。期間・種・既存の閾値・Theory 化は触れない＝★(879)・★(961)）
+    B2  RouteKmTests 陸路は貿易の経路の表と一致…  xNations（越境の移民に関わった国）≧3。突然変異＝盤面を 仏・普 だけにする → 新しい Assert が赤（M9 の取り直し：どの Assert で落ちるかを先に取る）
+    B5  InstrumentsTests 軍事費の施行の一歩の内訳…  pushNations（政治予算の係数を突き合わせた国）≧2。突然変異＝計器を 1 国だけ挙げる／Make を 1 国
+    B7  InstrumentsTests 計器を出しても軌道は変わらず…  borrowNations（借入の判定の経路を通った国）≧2。盤面に借入を置く形は種と期間の変更になるので採らない（★(961)）＝現物で 2 未満なら〈波90 へ〉と理由つきで残す
+    B8  InstrumentsTests 開いた戦線の列…  frontNations ≧2。突然変異＝1 国だけ
+    B11 InstrumentsTests 富裕層のお金の行き先の表…  otherNations（挙げていない国で突き合わせた国）≧2。突然変異＝Make を 2 国（挙げる国 1 + 他 1）
+    B12 InstrumentsTests RunMatch：終わりの 1 回の Nations.Count≧4 を〈四半期ごと〉に Nations.Count≧4 と、生きている国×四半期の和 ≧4×四半期数 に置き換える（Assert の閾値 4 は不変）。突然変異＝Make を 3 国にする／四半期ごとの述語を外す（和の Assert が先に赤）
+    入らない分は一覧に〈波90 の恒等の先頭へ〉と書く（B6 B9 B10 B13 B16 は m976 の一覧のとおり別の線の型）。
+    小物の束 3：Coefficients.cs:2173 の注（旧の規則の列だけ→ruleNew も読む）・Simulation.cs の mobilize の古い注・LandOwnershipDataTests の 0.610 の出所（丸めの残差 0.001 を貴族へ・m978 prereg [1] d）・cpop_route_test.py の札の判定・mut978.py の対照の回（突然変異なしで緑）・㉘ の束のフィルタに GoodIdGuardTests。
+    ㉘ ソースを走査する番人：SimCore は注だけ＝書き換える件数の予言（㉑）＝0。束＝InstrumentsTests・RouteKmTests・UnitTypeTests・IndustrializationReaderTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests。
+    SimCore の差は注だけ：git diff -U0 main -- PriceOfBread.SimCore の +/− の行が全て // か空白であることを scripts/instruments/c89tb/commentonly.py で示し measurements/m982_* にコミット。
+[4] 門の木：wt0＝46cd4df6（旗 0）／wtH＝main＋origin/c87hd／wtD＝main＋origin/c82hd。直す前に赤の木が無い試験は〈予防〉と名乗る。直した後は 3 つの木で緑。
+[5]〈判定: 恒等〉（試験だけ・ident は回さない＝測った種で一致の主張はしない）なら採る。素の 5 種・計器つき 10 種は回さない。

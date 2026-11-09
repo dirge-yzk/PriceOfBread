@@ -2116,7 +2116,7 @@ public sealed class Simulation
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
                 double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
-                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // WarMobilizationDepth=0 なら mobilize=1＝旧挙動（⚠既定は0.5＝live・x-02 で注記を是正）。>0で長期戦ほど軍需倍率↑（総動員）
+                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // (982) 旗 MilitaryWarMultFromContact 1（既定）では warMult に入らない（次の行の旗 0 の枝だけが読む）。旗 0 では WarMobilizationDepth=0 なら mobilize=1、>0 で長期戦ほど軍需倍率↑（総動員）
                 double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0) : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // (973) 旗 MilitaryWarMultFromContact 1＝接触の割合から（内戦も対外戦も同じ式・9.0・0.5 を読まない）・0＝今の MilitaryWarMult×(1+WarMobilizationDepth×厭戦)（内戦も同じ式・旧の内戦の 2.0 の枝と旗 CivilWarArmsDemandUnified は ⑰ で消した）
                 // 軍需＝**兵士の装備のみ**（治安維持力=軍の一本化2026-06-23：治安維持力は装備された軍の効果＝BaseCoercion を MilitaryScale に含めない＝二重計上を解消し装備コストを下げる）。軍隊規模(兵数)×戦時倍率に比例。
                 // 課題6（駐屯州調達・2026-08-08）：装備需要の州配分＝首都一極と駐屯州比例のブレンド（総量保存）。

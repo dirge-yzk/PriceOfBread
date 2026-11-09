@@ -1,0 +1,3 @@
+PriceOfBread.SimCore/Coefficients.cs	注と空白だけ	変わった行 1
+PriceOfBread.SimCore/Simulation.cs	注と空白だけ	変わった行 1
+変わったファイル 2・コードが違うファイル 0・判定 一致（注だけ）
