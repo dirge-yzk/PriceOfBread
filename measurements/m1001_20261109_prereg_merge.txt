@@ -1,0 +1,40 @@
+(1001) 合流（波91）の予言（merge より前に書く・結果を見た後に変えない）
+作ったフォルダ：D:/PoB_work/m1001_work・D:/PoB_work/wt_m1001（枝 m1001・基点 2b8f617d）。この後に作る予定：wt_m1001z（腕 Z の使い捨ての木）・ident_m1001z・keep_1001・keep_1001_rej（採らなかった腕があれば）。
+
+[1] 入れる線と順
+ 恒等 c91lc 417731de（ident c91lc〈判定: 恒等〉）→ 恒等 c91rx 9c26dd32（台本だけ・.cs の差 0）→ 挙動 c91sl 20bc7be5（自分の門 G-L1〜G-L4 が通り止める線 0・c91lc を既に含む）。
+ 読む線 c91td（r998_work）・c91bn（r999_work）・設計の材料 c91ld（r1000_work）は写すだけ（中身は書き換えず、反証役の訂正を末尾に足す）。
+ 反証役の high の指摘は 0 件＝外す線は無い見込み。
+ c91lc が c91sl の祖先であることは git merge-base --is-ancestor で確かめた。git merge-tree（c91sl×c91rx）は衝突 0。
+ 消す名前 0：.cs の〈-〉の行は InstrumentsLandsale.cs の PCopy の 1 行（同じ行の置き換え）・Coefficients.cs:3342 の既定の値の行（名前は同じ）・DormantIdentityTests.cs:153 の休眠の表の行（点火の定型）だけ。
+
+[2] 合わせた木で何が動くか
+ 合わせた木の SimCore の .cs は c91sl の腕の木 1645a93a と同じバイト（c91rx は .cs を持たない・合流は .cs を直さない）。
+ 動くのは LandShareTaxSale 0→1 の公売だけ（旗 1）。腕 Z（この旗だけ 0）は m988 と同じ挙動の見込み。
+
+[3] 予言（成績表のバイト一致・名乗り行の SOURCE-HASH を除く）
+ P1 M（計器つき 10 種・種 1〜10・CEARN=1）の成績表は measurements/b10_20261109_c91slB_ins と全行一致。注視の表は mon_20261109_c91slB.txt と全行一致。
+ P2 S11（種 11〜20・POB_CEARN=0＝c91sl の S11 も a11 も CEARN=0）の成績表は measurements/b10s11_20261109_c91slS_ins と全行一致。
+ P3 M・S11 の生と c91sl の腕の生（D:/PoB_work/c91sl_work/arm_B・arm_S11）の比べ（m764/rawcmp.py）：違うのは既知の揺れ（burscan_s:seconds・clock_s）だけ（.cs の行番号が同じなので cearn の inTop1Route と flow の sourceLine も一致）。
+ P4 c91sl の門（gates997.py・事前登録 m997 [5] のまま）は M と S11 で c91sl の腕の値を再現：G-L1 上側 違反 0・下側の最小 0.999742／0.999190・G-L2a 最大 ≦1e-12・G-L2b 1.000000・G-L3 違反 0 行・G-L4 0.0041〜0.0127／0.0037〜0.0169。
+ P5 推定の計算量 M 211.2・S11 211.9 秒（≦248.5）。
+ P6 腕 Z（合わせた木＋LandShareTaxSale 0）：ident m1001z〈判定: 恒等〉＝素の 5 種・計器つき 10 種・注視が m988 と全行一致・足した表 0（c91lc の ident で landsale_s は旗 0 のとき値が変わらなかった）・テストの宣言 +3（2521→2524・c91lc の T8〜T10）。
+ P7 フルスイート（合わせた木・旗 1）：Category!=FullLength 2524（合格 2523・スキップ 1・赤 0）＝--list-tests 2524・FullLength 3/3・savetest・leakhunt 合格・WriterRatchetTests 赤 0（c91sl が同じ .cs の木で緑）。
+ P8 N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）と素の 10 種・5 種（新しい基線の成績表）：値は予言しない（ヌル腕は作りから未知）。
+
+[4] 止める線の段（採否に使う）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1e10 倍・非有限・100 倍以上の〈それ以外〉（stoplines949 RULE=pair・NULLS は m988 の null/stop906_n1・n2＝参照の最大 1）・空洞化 1/10 未満（an_h2.py -v4・規則 A2）で〈線が原因〉の件（件ごとに基線の同じ種で同じ州が 1/4 未満かを表に書く＝種 1〜10 は keep_994/base_ins・種 11〜20 は keep_988/a11）・推定の計算量 ＞248.5 秒・機構の試験の赤（フルスイート・ソースを走査する番人を含む）。
+ c91sl の門 G-L1〜G-L4 を合わせた木の M で読み直し、最終の採否は S11 で 1 回だけ（同じ門）。
+ 恒等の線（c91lc・c91rx）の恒等は腕 Z の ident〈判定: 恒等〉で確かめる（★(778)）。
+
+[5] 記録の段（採否に使わない）
+ exact・near・NG（ng988 との差・ヌル腕の幅）・nullgate・home_break ①・名目 GDP 0 の続き（gdp_zero10）・開幕の 1000 倍以上・英の国債の不履行の種の数（m988：M 6/10・S11 5/10・N1 4/10・N2 7/10）・stoplines996（州の出入り・c91rx の区分）・新しいヌル腕で数えた stop949・空洞化 1/4 未満。
+
+[6] 腕と D: の段取り
+ D: の空き 102.2GB（shutil・合流の始め）。c91sl_work の腕の生 31GB。
+ 1 段目：M・S11・N1・N2（計器つき）＋素の 10 種 p10・5 種 p5（6 本＝ARMFULL）を同時に。
+ 2 段目：生の比べ（P3）を書いた後、c91sl_work の腕の生を消し（帰属を読み終えた）、腕 Z の ident。
+ 採ったら M・N1・N2・S11 の生を keep_1001/{base_ins,n1,n2,a11} へ移す。keep_988・keep_994・keep_994_rej は消さない・移さない。
+
+[7] 合流がしない事
+ エンジンの .cs を直さない。c91lc の反証役の M4（T11 を足す）と c91rx の反証役の条件 (iii) は波92 の恒等の線へ申し送る（この合流では試験も台本も書き換えない）。
