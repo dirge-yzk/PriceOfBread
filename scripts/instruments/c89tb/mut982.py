@@ -8,7 +8,7 @@ T_B2 = 'FullyQualifiedName~RouteKmTests.陸路は貿易の経路の表と一致'
 T_B5 = 'FullyQualifiedName~InstrumentsTests.軍事費の施行の一歩の内訳が別の列と合い'
 T_B8 = 'FullyQualifiedName~InstrumentsTests.幽霊戦線の列が'
 T_B11 = 'FullyQualifiedName~InstrumentsTests.富裕層のお金の行き先の表が'
-T_B12 = 'FullyQualifiedName~InstrumentsTests.運河の開通の四半期が出る'
+T_B12 = 'FullyQualifiedName~InstrumentsTests.計器を出しても軌道は変わらず'
 MUT = [
     ('M-B2a', RK, 'xNations.Add(Str(xh, r, "fromNation")); xNations.Add(Str(xh, r, "toNation"));', 'xNations.Add("x");', T_B2, '越境に関わった国を 1 つに潰す（新しい Assert だけが赤）'),
     ('M-B2b', RK, '[NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()]', '[NationConfig.France(), NationConfig.Prussia()]', T_B2, 'M9 の取り直し：盤面を仏・普だけ'),
