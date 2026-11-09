@@ -23,6 +23,7 @@ public static partial class Instruments
         public double[] ImpV = [], ExpV = [], ImpQ = [], ExpQ = [];
         public int Gc;
         public readonly Dictionary<World, int> Idx = new();
+        public World[] Worlds = [];
         public World? LastB, LastS; public int LastBi, LastSi;
         public bool Any;
     }
@@ -38,8 +39,8 @@ public static partial class Instruments
         int nn = nations.Count;
         if (a.ImpV.Length != nn * gc) { a.ImpV = new double[nn * gc]; a.ExpV = new double[nn * gc]; a.ImpQ = new double[nn * gc]; a.ExpQ = new double[nn * gc]; }
         else { Array.Clear(a.ImpV); Array.Clear(a.ExpV); Array.Clear(a.ImpQ); Array.Clear(a.ExpQ); }
-        a.Gc = gc; a.Idx.Clear(); a.LastB = a.LastS = null; a.Any = true;
-        for (int i = 0; i < nn; i++) a.Idx[nations[i].World] = i;
+        a.Gc = gc; a.Idx.Clear(); a.Worlds = new World[nn]; a.LastB = a.LastS = null; a.Any = true;
+        for (int i = 0; i < nn; i++) { a.Idx[nations[i].World] = i; a.Worlds[i] = nations[i].World; }
     }
 
     static int NgIdx(NgAcc a, World w, bool buyer)
@@ -70,9 +71,12 @@ public static partial class Instruments
         var sk = NgSinks.GetValue(sim, _ => new NgSink());
         if (sk.W is null) { sk.W = Open("nationgood", seed); sk.W.WriteLine(NationgoodHeaderText); }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        for (int i = 0; i < sim.Nations.Count; i++)
+        // 行＝清算に居た国（清算のあと Quarter までに消えた国も含む＝年×財の量の保存が崩れない）→ 清算の後に増えた国（越境 0）
+        int yearLabel = sim.Nations[0].World.Year;   // 年の印は呼びの時点の名簿の先頭の国の年（C2 と同じ・消えた国の世界の年は使わない）
+        var rowWorlds = new List<World>(a.Worlds);
+        foreach (var n in sim.Nations) if (!a.Idx.ContainsKey(n.World)) rowWorlds.Add(n.World);
+        foreach (var w in rowWorlds)
         {
-            var w = sim.Nations[i].World;
             string nm = NameOf(w);
             for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)
             {
@@ -84,7 +88,7 @@ public static partial class Instruments
                     prod += mk.LastProduced; dem += mk.LastDemand; sh += mk.LastShortage; stock += mk.Stock; price += mk.Price; n++;
                 }
                 int ci = a.Idx.TryGetValue(w, out var ix0) ? ix0 : -1; bool had = ci >= 0; int k = ci * a.Gc + g;
-                sk.W.WriteLine(string.Join('\t', I(w.Year), nm, Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), F(prod), F(dem), F(sh), F(stock),
+                sk.W.WriteLine(string.Join('\t', I(yearLabel), nm, Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), F(prod), F(dem), F(sh), F(stock),
                     had ? F(a.ImpV[k]) : "0", had ? F(a.ExpV[k]) : "0", had ? F(a.ImpQ[k]) : "0", had ? F(a.ExpQ[k]) : "0", n > 0 ? F(price / n * w.FxRate) : "nan"));
             }
         }

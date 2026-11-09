@@ -13,3 +13,6 @@
 === M5
 [xUnit.net 00:00:19.76]     PriceOfBread.Tests.TradeInstrumentTests.G1_越境の額はエンジンの輸入と輸出の欄と財ごとに合う [FAIL]
 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 37 s - PriceOfBread.Tests.dll (net10.0)
+=== M6 (標本の年を +1 しない)
+[FAIL] G2G3 (年の集合の一致)
+失敗!   -失敗:     1、合格:     4
