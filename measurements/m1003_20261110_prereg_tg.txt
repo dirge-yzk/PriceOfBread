@@ -1,0 +1,101 @@
+m1003 事前登録（線 c92tg・仮番号 (1003)・計器 C1 nationgood_s と C2 tradeskip_s・恒等の線）
+基準＝m1001（木 36401c9a から出る・基線の計器つき 10 種の生 D:/PoB_work/keep_1001/base_ins）
+書き手＝Claude Sonnet 5.5。腕の前の最初のコミット（計器より前）。結果を見た後に書き換えない。
+
+[1] 形：恒等（旗なし・係数なし・力学 0 行・INS=1 のときだけ書く）。予言 0（素の 5 種・計器つき 10 種は新しい表 2 本の他は m1001 と全行一致）。
+  種類＝計器の追加だけ。目的＝英 1913 の関税の 4 候補（穀物法・実の tar と目標の差・通貨の換算・CIF の分母）を列で分ける材料（m998 findings 〈足すべき計器の仕様〉）。
+  列は全て「今の盤面で起きた事」を読む。エンジンの値（ClearingRows の台帳）と計器が自分で数えた値を突き合わせる。
+
+[2] 足す物・消す物
+  新しいファイル（持ち主＝この線）
+    PriceOfBread.SimCore/InstrumentsNationgood.cs（C1）・PriceOfBread.SimCore/InstrumentsTradeskip.cs（C2）・PriceOfBread.Tests/TradeInstrumentTests.cs
+    scripts/instruments/c92tg/（読み手の台本）・measurements/m1003_*
+  既存ファイルに足す呼び口（力学の行は 1 行も変えない・乱数なし・順序を変えない）
+    BilateralMarket.cs（00一覧の〈BilateralMarket.cs は読むだけ〉からのずれ＝呼び口だけを足す。ScopeSkip・CearnImportHead と同じ型）
+      (a) :494〜:496 の直後（清算の頭・財の配列を 0 にした直後）：Instruments.NgHead(this, nn, gc) 1 行（C1 の蓄えを 0 へ・計器が切れていれば即戻る）
+      (b) :1052 の TradeDeal の呼び出しへ財の番号 g を 1 つ足す（引数 1 つだけ・既存の `if (Instruments.On)` の中のまま）
+      (c) C2：清算の頭で `bool tsOn = Instruments.TsBegin(...)`（四半期の最初の清算・かつ調べる年の第 4 四半期のときだけ真）・
+          買い手の行の先頭／行を飛ばす 6 箇所（番の標本 :790・需要なし :833〜:835・予算 0 :836）／走査に入る直前／清算の終わりに `if (tsOn) Instruments.Ts...(...)`。熱いループの分岐は局所の bool tsOn だけを読む。
+      ※ OnDoubleReadScanTests は文字列 `Instruments.On` の読みの数を StepBilateral#0＝12 と許す。新しい呼び口は `Instruments.On` の字面を書かない（メソッド内部で On を読む）＝許可表は書き換えない（書き換えた件数 0）。
+    InstrumentsTransport.cs:100 TradeDeal：引数 `int good` を 1 つ足す（C1 の蓄えは TradeDeal の中で既存の蓄えの隣に積む）。
+    Instruments.cs：Quarter の TransportFold の次に NgTable・TsTable の呼び出し 2 行・Close に 2 行（Dispose）。
+  読み手の grep（消す物は 0・名前の衝突を確かめる）：Ng・Ts の接頭辞の名前は SimCore・Tests・scripts に未使用であることを実装の前に grep する（結果は実装コミットの注）。
+  他の線との重なり：c92gf＝LandsaleInstrumentTests.cs・scripts/instruments/c92gf だけ／c92wr・c92tf はコミットしない＝重ならない。Instruments.cs は全ての線が自分の行だけを触る（本線は Quarter・Close の 4 行）。
+
+[3] 列・門・突然変異・試験
+  読む時点（トラップの名乗り）
+    C1：その四半期の**最後の清算**（月 3・thin）。World.ImportsByGood・ExportsByGood は清算の頭で 0 にされ四半期の末には最後の清算 1 回分が残るため、計器の蓄えも毎清算の頭で 0 にする（同じ範囲）。
+    C2：その四半期の**最初の清算**（thin でない・全ての行が走る清算）。年＝10 の倍数と 1913（trroute と同じ年・番人が TrSnapEveryYears 相当の NgEveryYears を 1 にする）。C1 と C2 は別の清算を読む＝突き合わせる門は C1 内と C2 内で閉じる。
+  C1 nationgood_s（行＝年×国×財・全ての国×全ての財）
+    列：year・nation・good・tier・producedQty（Σ州 Market.LastProduced）・demandQty（ΣLastDemand）・shortageQty（ΣLastShortage）・stockQty（ΣStock）・crossImportValue・crossExportValue（越境のみ・金建て・清算 1 回分）・crossImportQty・crossExportQty・priceMeanGold（州の Price×FxRate の単純平均）。
+    越境の額・量は計器が TradeDeal の呼び口で自分で積む（財×国・エンジンに欄を足さない）。輸入＝vA＋frG・輸出＝vA（BilateralMarket.cs:1057 と同じ規則）・量は qA（輸入も輸出も）。
+    subsistenceShare は作らない（Pop.SubsistenceShare は POP の食べる割合で財ごとでない＝国×財に導けない・列を作らず名乗る）。
+  C2 tradeskip_s（行＝年×買い手の国×財）
+    買い手の行（ClearingRows と同じ範囲＝buyers の 1 行）ごとにちょうど 1 つの結果：rowIdle（番の標本の飛ばし R0 :790）・rowNoNeed（需要なし R6 :833〜:835）・rowBudget0（予算 0 R4 :836）・rowScan（走査に入った行）。
+    走査に入った行は rowScanDealtCross（越境の成約が 1 件以上）・rowScanDealtDomOnly（国内の成約だけ＝R5）・rowScanNoDeal に分ける。
+    走査に入った行ごとに売り手の州（その財の sellers の全員）を最初に当たった門で 1 つに数える（越境の売り手だけ・国内は別の列 domPairs）：
+      xPairs＝越境の売り手の数（和＝下の 6 つ）・xSoldOut（その時点で残り 0＝先の買い手が満たした）・xCap（輸送の容量 R3＝売り手か買い手の capLeft≦0）・
+      xWedge（楔で飛ばす R2＝selP×(baseMul＋wS2)≧lp）・xPass（楔を通った）。
+    R2 の区分（互いに排他・4 区分＝事前登録の素案の 3 区分を排他にするため c と d に分けた＝ずれ）：
+      a 関税を抜けば通る（selP×(baseMul＋wS2−duty)＜lp）・b a でなく運賃を抜けば通る（selP×(1＋wS2)＜lp）・c a でも b でもないが両方抜けば通る（selP×(1＋wS2−duty)＜lp）・d 両方抜いても通らない。
+      duty＝買い手の国の関税＋穀物法の分（越境のみ・国内の売り手は wS2 に duty を含まない）。wS2 は engine の `wS2`（sellCheap の引きを含む）を渡す。距離・危険料は引かない（KmOf を呼ばない＝距離の表に副作用を作らない）。
+    売り手側（その財で買い手の行と独立に 1 回）：sellerUnlinked（R−1 連結なし）・sellerNoStock（R1 在庫 0／lp≦1e-9／売る許可 0）・sellerListed（売り手の表に載った）・を国の行に載せる。
+    組の値段の比 selP÷lp（金建て・越境の売り手）の度数：ratioBin0〜9（境＝0.5・0.8・0.9・1.0・1.1・1.25・1.5・2・4）。分位は読み手が出す。
+    財に売り手が 0 人（sellers.Count==0・ClearingRows に数えない）：goodNoSellers を ALL の行に。
+    合計の行：国＝ALL・財＝ALL の行の rowsLedger＝その清算の Cost[ClearingRows] の増分（エンジンの台帳＝別のコード）。
+  限界（計器が自己申告する）：C2 は engine の局所（lp・capLeft・left・sellers・baseMul・wS2・duty）を呼び口の引数で受け取る（ScopeSkip・ScopeDeal の先例）＝エンジンの局所の独立の再導出ではない。
+    ただし結果の数え上げ（行の結果の排他・和・台帳との突き合わせ）は計器のコード。距離ごとの着値は求めない。売り手の国の次元は行に持たない（行数を 61×130×18 に抑える）。
+    国内の売り手は xPairs に数えない。pxgoods_s の輸出入 0 の穴は直さない（記録）。C3 recipeout_s は入れない。
+  門（両側）
+    G1 Σ財 crossExportValue と ExportsByGood の和の相対差 ≦1e-9（輸入も）。下側：計器を書かないと赤（輸出入が正の盤面で 0 の列）／上側：国内を混ぜると赤。独立＝計器の蓄えは TradeDeal 引数から積み、突き合わせは World.ImportsByGood（エンジンの別の欄）。
+    G2 行の結果の和＝rowScanned（結果 4 つの和）・rowScan＝その 3 つの和・Σ rowScanned＝ALL の rowsLedger（ずれ 0）。
+    G3 R2 の 4 区分の和＝xWedge・xPairs＝6 つの和。
+    G4 crossImportQty×priceMeanGold と crossImportValue が 10 倍以内（単位の取り違えを拾う・どちらかが 0 の行は除く＝正の行が 1 以上あることを対照にする）。
+    加えて：ident〈判定: 恒等〉・㉘ の束が緑・savetest 合格・推定の計算量 ≦248.5 秒。
+  突然変異（使い捨ての木で回す・それぞれ赤を確かめて measurements/ に出力）
+    M1 C1 の越境に LastImport を使う（国内を混ぜる）→ G1 赤
+    M2 C2 の R1 側（売り手側の sellerNoStock）を数えない／rowNoNeed を数えない → G2 赤
+    M3 関税抜きの判定を運賃抜きと同じにする → G3 は緑・試験〈関税 0 の盤面で R2a＝0〉で赤（試験は関税>0 の盤面の正の対照つき）
+    M4 qA でなく vA を積む → G4 赤
+    M5 輸入から frG を落とす → G1 赤
+  足す試験（TradeInstrumentTests.cs・[Fact] 5 本＝TESTS_NONFULL 2524→2529・--tests-delta 5・[Theory] 0 本）
+    T1 G1（越境が正の盤面・輸出入とも・対照＝正の行が 1 以上）／T2 G2・G3（rowsLedger と結果の和・R2 区分の和・対照＝rowScan と xWedge が正）／T3 G4／
+    T4 関税 0 の盤面で R2a＝0・関税>0 の盤面で R2a>0（正の対照）／T5 計器を切ると蓄えが作られない。
+  ㉘ の束：dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests"（--artifacts-path D:/PoB_work/c92tg_art）。
+  ㉑㉘ 点検（今の木 36401c9a の grep）：`new MoneyStock(` 64 件（本線は新しい MoneyStock を作らない＝件数の番人に影響 0）・route_anchors.tsv は scripts/instruments/flow262/route_anchors.tsv（鍵の行に書き足さない・本線の呼び口は別）・
+    WriterRatchetTests の宣言の表＝触れない（Cost の行を足さない）・OnDoubleReadScanTests の許可表＝上の注のとおり 0 件・工業化度の読み手の許可表＝新しい読みを足さない。書き換える件数の予言＝0。
+  浮動小数の順序が変わる箇所：0（力学の式を書き換えない）。
+
+[4] 計算量の予言：C1＝TradeDeal ごとの配列の加算＋年に 1 回の走査＝0.1 秒未満。C2＝調べる年（18 年）の第 4 四半期の最初の清算だけで行ごとに売り手の表を 1 周（行×売り手の数）＝1 試合あたり +0.3〜1.5 秒（推定）。
+  .cost の推定は INS=1 の恒等の腕で読む（基準 211.2 秒・上限 248.5・名目の余り約 37 秒）。素の腕は計器が切れているので推定秒は 1 行も変わらない（予言 0）。
+[5] 採る条件：ident〈判定: 恒等〉（新しい表 2 本 nationgood・tradeskip を --added-tables で宣言・他は全行一致）・㉘ 緑・G1〜G4 が ident の生で通る・savetest・突然変異 M1〜M5 が全て赤。〈判定: 恒等〉なら〈測った種で一致〉と名乗る。
+  英 1913 の関税の 4 候補（穀物法・実の tar と目標の差・通貨の換算・CIF の分母）は、C1・C2 の列で分けられるかを記録する（採否の門にしない）。
+
+[追記 2026-11-10・計器と試験を書いた後・腕の前（結果の後の変更を名乗る）]
+- ずれ①：G4 の形。試験の盤面（4 国・24 四半期）の最初の読みで、行ごとの crossImportQty×priceMeanGold÷crossImportValue の最大が 25.6（フランス 米）だった（州の平均の値段と売り手の積出し価格の差）。
+  行ごとの 10 倍以内を〈中央値が 0.3〜3 かつ 7 割以上の行が 0.1〜10〉に直した（単位の取り違えは全行を同じ向きにずらす＝M4 では比が値段そのもの）。ident の生では行が多いので、同じ形（中央値・割合）で読む。
+- ずれ②：T4 は実盤で関税 0 を作れない（関税は毎四半期の政策が動かし、AI を置かなくても 1〜2% が出る）ため、R2 の区分の判定（TsAcc.Scan）を合成の盤面で直接測る形にした。
+- ずれ③：M2 の突然変異は、売り手側の数えでなく行の結果の 1 つ（需要なし）を数えない形（G2 の行の和で赤）。M1 は LastImport でなく〈越境の印を見ない＝国内を混ぜる〉形（同じ G1）。
+- ㉘ の束＋OnDoubleReadScanTests・TransportInstrumentTests・CearnTradeColumnsTests・CalendarTests＝147 件が緑（書き換えた件数 0）。
+
+[追記 2 2026-11-10・ident 1 回目（判定: 恒等・m1001 と全行一致）の生を読んだ後・計器の直し（結果の後の変更を名乗る）]
+- 1 回目の生の読み：G1 不一致 0（最大相対差 7.7e-10）・G2 の行の結果の不一致 0・台帳の不一致の年 0／169・G3 不一致 0・G4 の中央値 2.15・0.1〜10 の行の割合 0.83。
+- 計器の食い違い①：tradeskip_s の年の印が +1 年ずれていた（1791・1801…と 1914）。World.Quarter は四半期の末で進み、Quarter の年末の呼び（q%4==3）の時点で 4＝直前に終わった四半期は World.Quarter＝3。
+  C2 の標本を World.Quarter＝4 の最初の清算にしたため、C1（その呼びの四半期の最後の清算）と別の四半期を読み、フラッシュも次の年の呼びになっていた。直し＝標本の条件を World.Quarter＝QuartersPerYear−1 に・フラッシュに yearEnd の条件を足す。番人（G2G3 の年の集合が nationgood の年に含まれる）を足した。
+- 計器の食い違い②：nationgood_s で 1880・1940 の年が欠けた（その四半期の中に建国スポーンで国が増え、国の数の確かめで書き出しを捨てていた）。直し＝先頭の国（清算に居た国）の蓄えを使い、増えた国の行は越境 0 で書く（tradeskip は清算に居た国の行だけ）。
+- 突然変異 M4（量の代わりに額を積む）は G4 の中央値の門を通った（試験の盤面は値段が 1 前後＝比が値段そのものでも中央値が 3 未満）。G4b を足した＝年×財ごとに Σ国 crossImportQty＝Σ国 crossExportQty（別々の欄で積んだ量の保存）・輸入の額≧輸出の額（CIF≧FOB）。M4 で赤になることを使い捨ての木で確かめた。
+- 計器を直したので ident をやり直す（1 回目の判定は力学の行を変えていない恒等の確認として残す）。
+
+[追記 3 2026-11-10・ident 2 回目（判定: 恒等）の生を読んだ後・計器の再度の直し（結果の後の変更を名乗る）]
+- 2 回目の生の読み：G1〜G4b は通ったが、tradeskip_s の年の印が 1 回目と同じく +1 年（1791・1801…）のまま・nationgood_s は 1940 が欠け 2210 の行がある。追記 2 の直し①は誤りだった。
+- 事実（nation_s の quarter と year から）：Quarter の年末の呼び（q%4==3）の時点で World.Year は新しい年へ進んでいる（q=519 の行の year が 1913＝直前に終わった四半期は 1912 年の第 4 四半期）。
+  C1 の年の印は〈呼びの時点の年〉＝標本の四半期は直前の第 4 四半期（World.Quarter＝4・年は印−1）。C2 の標本は World.Quarter＝4 かつ NgYear(年＋1)（印と同じ呼びの時点の年）にする。追記 2 の World.Quarter＝3 は誤りで外す。
+- 1940 の欠け：その四半期の中の国の増減（名簿の並びが変わる）で、国の数の確かめが書き出しを捨てていた。直し＝清算の頭で写した World→添字で現在の国を引く（清算に居なかった国の行は越境 0）・tradeskip は TsBegin の時点の名簿の名前を写す。
+- 番人：G2G3 を 2 年おきの標本で回し、tradeskip の年の集合が nationgood の年の集合と一致することを見る（追記 2 の年の集合の番人は毎年の標本では 1 年ずれを拾えなかった）。突然変異 M6（標本の年を +1 しない）で赤になることを確かめる。
+- 3 回目の ident をやり直す。1・2 回目は力学の行を変えていない恒等の確認として残す（判定: 恒等）。
+
+[追記 4 2026-11-10・ident 3 回目（判定: 恒等）の生を読んだ後・計器の三度目の直し（結果の後の変更を名乗る）]
+- 3 回目の生の読み：C1・C2 の年の印が揃った（1790〜1950・1913）。G1 不一致 0（最大相対差 7.7e-10）・G2 の行の結果の不一致 0・台帳の不一致の年 0／180・G3 不一致 0・G4 の中央値 2.147・0.1〜10 の割合 0.835。
+- G4b：年×財×種 23400 のうち量の保存の不一致 103・CIF＜FOB 22（(種,年)＝(1,1940)(5,1800)(6,1940)(7,1820)(10,1800)(10,1950) の 6 組）。原因＝清算の後 Quarter の呼びまでに名簿から消えた国の行を書いていなかった（越境の相手の片側が欠ける）。
+  直し＝清算の頭で写した国の名簿（消えた国を含む）で行を書き、清算の後に増えた国は越境 0 で足す・年の印は名簿の先頭の国の年に揃える（消えた国の世界の年を使わない）。G4b の門は変えない。
+- 4 回目の ident をやり直す。
