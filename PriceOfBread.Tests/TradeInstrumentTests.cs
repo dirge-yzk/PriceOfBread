@@ -110,6 +110,9 @@ public class TradeInstrumentTests
                 scan += t.D(r, "rowScan"); wedge += t.D(r, "xWedge"); cross += t.D(r, "xPairs"); noDeal += t.D(r, "rowNoDeal"); dealtCross += t.D(r, "rowDealtCross");
             }
             Assert.True(byYear.Count >= 3, "対照：調べた年が 3 年以上ある");
+            // C1 と C2 は同じ四半期を読む：年の集合が合う（ident の最初の読みで C2 の年の印が 1 年ずれていた＝World.Year は四半期の末で進む・結果を見た後に足した番人）
+            var ngYears = Read(dir, "nationgood").R.Select(r => r[0]).ToHashSet();
+            Assert.True(byYear.Keys.All(ngYears.Contains), "tradeskip の年が nationgood の年に無い（四半期のずれ）");
             foreach (var (y, v) in byYear) { Assert.True(v.ledger > 0, "台帳が 0＝対照が空 " + y); Near(v.ledger, v.rows, 0, "Σ行の数＝エンジンの台帳 " + y); }
             Assert.True(scan > 0 && wedge > 0 && cross > 0 && noDeal > 0 && dealtCross > 0, $"対照：走査 {scan}・楔 {wedge}・越境の売り手 {cross}・成約なし {noDeal}・越境の成約 {dealtCross}");
         }
@@ -136,6 +139,16 @@ public class TradeInstrumentTests
             // （量の代わりに額を積むと比は値段そのもの＝中央値 10 超）。中央値が 0.3〜3 と、7 割以上の行が 10 倍以内で見る。
             Assert.True(ratios[n / 2] > 0.3 && ratios[n / 2] < 3, "中央値 " + ratios[n / 2]);
             Assert.True(ratios.Count(x => x > 0.1 && x < 10) >= 0.7 * n, "10 倍以内の行の割合が低い");
+            // G4b（M4 の穴を塞ぐ・突然変異 M4 が中央値の門を通ったため結果の後に足した）：値段が 1 前後の盤面では量の代わりに額を積んでも中央値が 3 を超えない。
+            //   越境の量は輸入側と輸出側が同じ qA を積む＝年×財ごとに Σ国 crossImportQty ＝ Σ国 crossExportQty（別々の欄で積んだ量の保存）。輸入の額は運賃の分だけ輸出の額より大きい（CIF≧FOB）。
+            var qsum = new Dictionary<(string, string), (double imp, double exp, double impV, double expV)>();
+            foreach (var r in t.R)
+            {
+                var k = (t.S(r, "year"), t.S(r, "good")); var c = qsum.GetValueOrDefault(k);
+                qsum[k] = (c.imp + t.D(r, "crossImportQty"), c.exp + t.D(r, "crossExportQty"), c.impV + t.D(r, "crossImportValue"), c.expV + t.D(r, "crossExportValue"));
+            }
+            Assert.True(qsum.Values.Count(v => v.exp > 0) >= 10, "対照：越境のある年×財が 10 以上ある");
+            foreach (var (k, v) in qsum) { Near(v.exp, v.imp, 1e-9, "量の保存 " + k); Assert.True(v.impV >= v.expV * (1 - 1e-9), "輸入の額（CIF）は輸出の額（FOB）以上 " + k); }
         }
         finally { restore(); }
     }
