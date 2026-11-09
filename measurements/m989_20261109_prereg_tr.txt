@@ -1,0 +1,19 @@
+(989) c90tr 事前登録（恒等の線・試験だけ・ident なし）2026-11-09  基準 main 22de6aab（m988）
+区分：★(743) の (q)＝試験の中で対照の数え方を変える（盤面を置く関数を足す・対照の件数の Assert を既存の隣に足す・Assert の文と閾値は変えない）。★(912) 試験だけの線は ident を回さない。材料＝m982_20261109_prereg_tb.txt・実装ログ (982) の反証役 ②。
+この事前登録は直しより前の別のコミットに入れる。探り（uncommitted・p1〜p4）で借入の盤面の形を試した記録は [3] に書く（国庫を空にするだけでは借入の国が 1 のまま・保有台帳の不変条件は外債だけを足す形で保てた）。
+
+[1] 恒等の線・予言 0。触れるのは PriceOfBread.Tests/InstrumentsTests.cs だけ（B7 の盤面を置く関数と RunMatch の引数 1 つ・床の行）。SimCore・Runner・App・Display・px と sl の試験ファイルに触れない。素の 5 種・計器つき 10 種は m988 と全行一致の見込み（回さない）。
+[2] 消す物：なし。残す物：全て（Assert の文と閾値・種 1791・期間 20 四半期・WarQ）。
+    読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前）：足す物は試験のメンバー（PlaceBorrowBoard・FirstFourNames）だけ＝他に読み手の無い新設。RunMatch の引数 afterWarmup は既定 null で他の呼び手（InstrumentsTests 内のみ）に影響しない。
+    他の線との重なり：InstrumentsTests.cs は c90tr だけの持ち主（px は LandTaxFixedBasisTests ほか・sl は LandSaleTests ほかで重ならない）。DormantIdentityTests・WriterRatchetTests・Coefficients.cs には触れない。
+[3] 足す物と、それぞれを赤にする突然変異
+    B7  PlaceBorrowBoard＝助走明け（最初の四半期の前）に全ての国の国庫の現金を POP へ移し（World.Transfer＝基礎貨幣を保存）、国債に GDP の 2 年分の外債を足す（ForeignDebt と GovDebt に同じ額＝国内の保有台帳を保つ）。off と on の 2 走行に同じ関数を渡す。種 1791・20 四半期は不変。新しい Assert＝borrowNations（borrowBinder が noShortfall でない行の国）≧2。
+        探り：国庫を空にするだけ → 借入の国 1（新しい Assert が赤）・国庫を RebaseTreasury(0) で捨てる → 基礎貨幣の保存が破れて赤（採らない）・国債を全て外債に置き換える → 保有台帳が破れて赤（採らない）・外債を足す → 緑。
+        突然変異 M-B7a＝PlaceBorrowBoard の本体を空にする → 新しい Assert が赤の見込み（原盤の借入の国は 1）。M-B7b＝M-B7a かつ新しい Assert を外す → 緑（新しい Assert だけが盤面の偏りを拾う＝負荷を負っている）。
+    B12 FirstFourNames＝nation_s の nationIndex＜4 の行の国の名の集合（Nations.Count と〈生きている国〉の語は使わない）・4 でなければ赤。床の 11 か所（:172 財政の行・:209 在庫の断面・:242 突き合わせた四半期・:340 年末の行・:387・:664 内訳の行・:683・:738・:824・:850・:1980）を、この集合に入る国の行だけで数える。Assert の文と閾値は不変。
+        数えない 3 か所と理由：RunMatch の〈4 * quarters〉＝(982) の毎四半期の述語（Make の 4 国の静的な番人）・nation_s の 4*WarQ＝:267 の Assert.Equal が nationIndex＜4 で既に数える・階級の groups＝founders（open の行の国）で既に 4 国に限る。
+        突然変異 M-B12a＝nationIndex＜4 を＜1 にする（床を 1 国にする）→ FirstFourNames の Assert が赤。M-B12b＝述語を＜100 にする（外す）→ 20 四半期の盤面では建国が無く名の集合が同じなら等価（等価と名乗る＝予防）。M-B12c＝Make を 3 国にする → 赤。
+    ㉘ ソースを走査する番人の点検：SimCore は不変＝書き換える件数の予言（㉑）＝0。束＝scripts/instruments/c90tr/scan28.sh（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）。WriterRatchetTests は合流が取り直す（★(749)）が、SimCore が不変なので表は動かない見込み。
+    〈4 * Quarters〉の床の grep の 14 行の内訳：変える 11・数えない 3（上）。(982) は〈12 か所〉と書いたが、現物は 14 行＝線が数え直した。
+[4] 素の 5 種・計器つき 10 種は m988 と名乗り行を除いて全行一致の見込み（試験だけ＝回さない）。
+[5] 門の木：wt0＝main 22de6aab＋直し／wtH＝main＋origin/c87hd＋直し／wtD＝main＋origin/c82hd＋直し。直す前に赤になる木：B7 の新しい Assert は wt0 で赤（原盤の借入の国 1）＝探りで確認済みの形・B12 の床は予防（赤の木が無い）。直した後は 3 つの木で緑。〈判定: 恒等〉は主張しない（ident を回さない）＝試験だけの変更が結果を 1 ビットも動かさないことは SimCore の差が 0 であることで示す。
