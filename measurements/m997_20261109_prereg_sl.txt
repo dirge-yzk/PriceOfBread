@@ -102,3 +102,11 @@
 [14] 手順
  事前登録（このコミット）→ 点火（Coefficients.cs:3342 と DormantIdentityTests:153）→ origin/c91lc の印の頭を merge（ident〈判定: 恒等〉の後）→ c91lc の紙と [1] の突き合わせ → テストの数の予言を [追記] → 計器の束（㊴）→ フルスイート（非 FullLength と FullLength を分けて --list-tests と突き合わせる）・savetest・leakhunt → 突然変異（使い捨ての木）→ 腕 B → S11 → 門・止める線・生の比べ → push。形の変え直しは 1 回だけ（エンジンは書かない予定）。
  G-L3 の帰属を読み終えたら、keep_994_rej は合流が消してよい（報告に書く）。
+
+[追記 2026-11-09・c91lc の頭を merge した後・フルスイートの前]
+ merge：origin/c91lc の印（D:/PoB_work/c91lc_work/lc.mark＝rc=0・head=417731de・judge=identity(c91lc)・tests_nonfull=2524・tests_full=3）の頭 417731de を c91sl へ merge（c0437427）。
+ c91lc の紙（measurements/m995_20261109_paper_gl3.txt）との突き合わせ：B 958 行・S11 1032 行の全てが〈塵の上界の内〉（外 0・(旧の写し−実際)÷上界 の最大 0.77／0.423）＝この線の need997（逆向き 0・d÷max(件数,1) ≦ 2.31e-9／1.27e-9）と同じ読み。食い違いなし＝腕を回す。
+ c91lc の式（InstrumentsLandsale.cs の LandsaleSaleBegin）：ΣS・φ・値段は塵込みのまま・写し＝Σ_j [S_j＞1e-9 かつ 額＞床]·min(φ·S_j/ΣS·P, S_j)・床＝TakeFloorPositive＞0 ? 0 : 1e-12＝[2] のとおり。
+ テストの数の予言（★(994)）：2521＋c91lc の新しい [Fact] 3（LandsaleInstrumentTests 7→10）＋この線 0＝**非 FullLength 2524・FullLength 3**（lc.mark の 2524 と一致）。
+ 突然変異は旗 1＋c91lc の code の頭（54691086＝417731de と .cs が同じ・差は measurements だけ）を merge した使い捨ての木 D:/PoB_work/c91sl_work/mut で回し始めた（フルスイートと並行・腕の前に終える）。
+ 旗 1 の木（c91lc を merge する前の e7440aae）の走査の番人の束（㉘＋LandSaleTests＋OnDoubleReadScanTests）：188 本すべて合格。
