@@ -105,7 +105,7 @@ public static partial class Instruments
     {
         if (!On || !first || nations.Count == 0) return null;
         var w0 = nations[0].World;
-        if (w0.Quarter != Calendar.QuartersPerYear || !NgYear(w0.Year)) return null;
+        if (w0.Quarter != Calendar.QuartersPerYear - 1 || !NgYear(w0.Year)) return null;   // Quarter の年末の呼び（q%4==3）の直前に終わった四半期（World.Quarter は四半期の末で進む＝その呼びの時点で 4）＝C1 と同じ四半期
         var a = TsAccs.GetValue(m, _ => new TsAcc());
         int nn = nations.Count, len = nn * gc * (int)TsCol.Count;
         if (a.C.Length != len) a.C = new int[len]; else Array.Clear(a.C);
@@ -119,7 +119,8 @@ public static partial class Instruments
 
     static void TradeskipTable(MultiNationSim sim, ulong seed, int q)
     {
-        if (!TsAccs.TryGetValue(sim.Market, out var a) || !a.Filled || !a.Ended || a.Nn != sim.Nations.Count) return;
+        bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
+        if (!yearEnd || !TsAccs.TryGetValue(sim.Market, out var a) || !a.Filled || !a.Ended || a.Nn > sim.Nations.Count) return;   // 建国スポーンは末尾拡張＝清算の後に国が増えても先頭の a.Nn 国の添字は変わらない
         var sk = TsSinks.GetValue(sim, _ => new TsSink());
         if (sk.W is null) { sk.W = Open("tradeskip", seed); sk.W.WriteLine(TradeskipHeaderText); }
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
