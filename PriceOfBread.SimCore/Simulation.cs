@@ -1905,7 +1905,7 @@ public sealed class Simulation
         Politics.Step(World, World.Coef);                   // §9-E
         if (!(warm && World.BakeRun?.StopSocialMobility == true))
         {
-            if (Instruments.On && !warm) Instruments.UrxEnter(World);   // (649) 計器（読むだけ）：社会移動の区間の前
+            if (Instruments.On && !warm) { Instruments.UrxEnter(World); Instruments.MerchEnter(World); }   // (649) 計器（読むだけ）：社会移動の区間の前
             Meritocracy.Step(World, World.Coef);                // ★(490) 焼く試走の腕だけ止める（BakeRun は焼く側以外は null＝旧と同じ）／社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
             if (Instruments.On && !warm) Instruments.UrxExit(World, "社会移動");   // (649) 計器（読むだけ）：社会移動の区間の後
         }
