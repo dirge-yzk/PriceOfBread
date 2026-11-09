@@ -4,3 +4,5 @@ D:/PoB_work/m981_work/suite の art_suite・suitesrc 約2GB（フルスイート
 D:/PoB_work/m981_work/src_mM・src_n1・src_n2・src_p10（終わった腕の写しと隔離ビルド）
 D:/PoB_work/m981_work/src_mS（S11 の写しと隔離ビルド）
 D:/PoB_work/c88cs_work/arm_S11 約13GB（c88cs の S11 の生・合流の S11 と表ごとにバイトで比べ、時計の揺れ〔burscan 10・clock 10〕の外で全て一致＝★(968)）
+wt_c88ts・wt_c88sm・wt_c88cs（git worktree remove・枝は origin に残る・ローカルの枝を消した）・wt_m981z（腕 Z の使い捨ての木・枝 m981z を消した） 2026-11-09 10:01:40
+D:/PoB_work/m981_work の src_p5・out_*（ins を keep_981 へ移した残り）・ng_*（measurements へ写した）・bake/bake_build
