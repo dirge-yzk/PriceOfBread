@@ -1,0 +1,15 @@
+=== M1
+[xUnit.net 00:00:18.38]     PriceOfBread.Tests.TradeInstrumentTests.G1_越境の額はエンジンの輸入と輸出の欄と財ごとに合う [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 35 s - PriceOfBread.Tests.dll (net10.0)
+=== M2
+[xUnit.net 00:00:29.34]     PriceOfBread.Tests.TradeInstrumentTests.G2G3_成約0の理由の和は走査した行の数とエンジンの台帳に合う [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 36 s - PriceOfBread.Tests.dll (net10.0)
+=== M3
+[xUnit.net 00:00:18.56]     PriceOfBread.Tests.TradeInstrumentTests.T4_関税0の盤面では関税を抜けば通る区分が0で関税を掛けると正になる [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 33 s - PriceOfBread.Tests.dll (net10.0)
+=== M4
+[xUnit.net 00:00:40.03]     PriceOfBread.Tests.TradeInstrumentTests.G4_越境の量と平均の値段の積は額と10倍以内 [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 38 s - PriceOfBread.Tests.dll (net10.0)
+=== M5
+[xUnit.net 00:00:19.76]     PriceOfBread.Tests.TradeInstrumentTests.G1_越境の額はエンジンの輸入と輸出の欄と財ごとに合う [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 37 s - PriceOfBread.Tests.dll (net10.0)

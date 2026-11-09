@@ -30,11 +30,11 @@ public class TradeInstrumentTests
     }
 
     /// <summary>quarters 四半期回す（q%4==3 の四半期の終わりごとに afterQuarterEnd）。年ごとに調べる（NgEveryYears＝1）。</summary>
-    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters, Action<MultiNationSim>? before = null, Action<MultiNationSim, int>? afterStep = null, bool instrumentsOn = true, bool still = false)
+    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters, Action<MultiNationSim>? before = null, Action<MultiNationSim, int>? afterStep = null, bool instrumentsOn = true, bool still = false, int every = 1)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tg_" + Guid.NewGuid().ToString("N"));
         if (instrumentsOn) Instruments.Configure(dir, "*"); else Instruments.Configure(null, null);
-        int every = Instruments.NgEveryYears; Instruments.NgEveryYears = 1;
+        int every0 = Instruments.NgEveryYears; Instruments.NgEveryYears = every;
         var sim = Make(still);
         foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
         sim.DiplomacyFrozen = true;
@@ -45,7 +45,7 @@ public class TradeInstrumentTests
         before?.Invoke(sim);
         try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); afterStep?.Invoke(sim, q); if (instrumentsOn) Instruments.Quarter(sim, Seed, q); before?.Invoke(sim); } }
         finally { if (instrumentsOn) Instruments.Close(sim); }
-        return (dir, sim, () => { Instruments.NgEveryYears = every; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } });
+        return (dir, sim, () => { Instruments.NgEveryYears = every0; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } });
     }
 
     private static void Near(double expect, double actual, double rel, string what) => Assert.True(Math.Abs(expect - actual) <= rel * Math.Max(1.0, Math.Abs(expect)), $"{what}：期待 {expect}・実際 {actual}");
@@ -88,7 +88,7 @@ public class TradeInstrumentTests
     [Fact]
     public void G2G3_成約0の理由の和は走査した行の数とエンジンの台帳に合う()
     {
-        var (dir, sim, restore) = Run(24);
+        var (dir, sim, restore) = Run(24, every: 2);   // 2 年おき＝C2 の標本の四半期が C1 とずれていると年の印の集合が合わない
         try
         {
             var t = Read(dir, "tradeskip");
@@ -112,7 +112,7 @@ public class TradeInstrumentTests
             Assert.True(byYear.Count >= 3, "対照：調べた年が 3 年以上ある");
             // C1 と C2 は同じ四半期を読む：年の集合が合う（ident の最初の読みで C2 の年の印が 1 年ずれていた＝World.Year は四半期の末で進む・結果を見た後に足した番人）
             var ngYears = Read(dir, "nationgood").R.Select(r => r[0]).ToHashSet();
-            Assert.True(byYear.Keys.All(ngYears.Contains), "tradeskip の年が nationgood の年に無い（四半期のずれ）");
+            Assert.True(byYear.Keys.ToHashSet().SetEquals(ngYears) && ngYears.Count >= 2 && ngYears.All(y => int.Parse(y) % 2 == 0), "tradeskip の年の集合が nationgood の年と違う（四半期のずれ）");
             foreach (var (y, v) in byYear) { Assert.True(v.ledger > 0, "台帳が 0＝対照が空 " + y); Near(v.ledger, v.rows, 0, "Σ行の数＝エンジンの台帳 " + y); }
             Assert.True(scan > 0 && wedge > 0 && cross > 0 && noDeal > 0 && dealtCross > 0, $"対照：走査 {scan}・楔 {wedge}・越境の売り手 {cross}・成約なし {noDeal}・越境の成約 {dealtCross}");
         }

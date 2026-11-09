@@ -18,5 +18,7 @@ elif m == 'M4':   # 量の代わりに額を積む
     edit(NG, 'a.ImpQ[bi * a.Gc + good] += qty;', 'a.ImpQ[bi * a.Gc + good] += value;')
 elif m == 'M5':   # 輸入から運賃を落とす
     edit(NG, 'a.ImpV[bi * a.Gc + good] += value + freight;', 'a.ImpV[bi * a.Gc + good] += value;')
+elif m == 'M6':   # C2 の標本の四半期を C1 とずらす（ident 1 回目の形：World.Year の読みが +1 年ずれる）
+    edit(TS, '!NgYear(w0.Year + 1)', '!NgYear(w0.Year)')
 else:
     raise SystemExit('unknown ' + m)
