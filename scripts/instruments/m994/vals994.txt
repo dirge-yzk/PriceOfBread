@@ -1,0 +1,3 @@
+SUITE=2521＋3 緑（スキップ 1）・savetest・leakhunt
+FREE=約 65.8GB（shutil・合流の終わり）
+PROC=VBCSCompiler 1 本（PID 13668・20:37:52 起動＝合流のフルスイートの saveleak のビルドが起こした物）＝止めようとしたが権限の判定で拒まれた＝残した（build-server shutdown は打っていない）
