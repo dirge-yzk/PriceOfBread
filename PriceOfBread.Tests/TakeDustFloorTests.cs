@@ -28,11 +28,11 @@ public class TakeDustFloorTests
     {
         var sim = Gt(); Flag(sim, 1); var w = sim.Nations[0].World; var p = Payer(w);
         p.SetSavings(2e-9); p.Debt = new MoneyStock(dust);
-        double loans0 = w.Bank.HouseholdLoans.Value, sav0 = p.Savings.Value;
+        double loans0 = w.Bank!.HouseholdLoans.Value, sav0 = p.Savings.Value;
         Settle(w, p);
         Assert.Equal(0.0, p.Debt.Value);   // 手形の門（!(Debt＞0)）が開く＝厳密な 0
         Assert.True(Math.Abs((sav0 - p.Savings.Value) - dust) <= 1e-12 * sav0, $"貯蓄の減り {sav0 - p.Savings.Value} が返した額 {dust} と違う");
-        Assert.True(Math.Abs((loans0 - w.Bank.HouseholdLoans.Value) - dust) <= 1e-12 * Math.Max(1, Math.Abs(loans0)), $"家計の与信の減り {loans0 - w.Bank.HouseholdLoans.Value} が返した額 {dust} と違う");
+        Assert.True(Math.Abs((loans0 - w.Bank!.HouseholdLoans.Value) - dust) <= 1e-12 * Math.Max(1, Math.Abs(loans0)), $"家計の与信の減り {loans0 - w.Bank!.HouseholdLoans.Value} が返した額 {dust} と違う");
     }
 
     [Theory]
@@ -42,11 +42,11 @@ public class TakeDustFloorTests
     {
         var sim = Gt(); Flag(sim, 0); var w = sim.Nations[0].World; var p = Payer(w);
         p.SetSavings(2e-9); p.Debt = new MoneyStock(dust);
-        double loans0 = w.Bank.HouseholdLoans.Value, sav0 = p.Savings.Value;
+        double loans0 = w.Bank!.HouseholdLoans.Value, sav0 = p.Savings.Value;
         Settle(w, p);
         Assert.Equal(dust, p.Debt.Value);
         Assert.Equal(sav0, p.Savings.Value);
-        Assert.Equal(loans0, w.Bank.HouseholdLoans.Value);
+        Assert.Equal(loans0, w.Bank!.HouseholdLoans.Value);
     }
 
     [Theory]
