@@ -50,6 +50,21 @@ public class MerchInstrumentTests
         Assert.False(Instruments.MerchLocks(r, 0.0).LockBOpen);   // 入口の率が 0 なら錠 B は開かない
     }
 
+    /// <summary>T6：エンジンが小営業の入口の節に着かない州（MeritToIndex＜0）は meritActive も lockBOpen も 0（元手が開いていても）。</summary>
+    [Fact]
+    public void 昇格先が無い州は入口の節に着かない()
+    {
+        var sim = Two(1789UL);
+        var r = Craft(sim, 5, 400);
+        Assert.True(Instruments.MerchLocks(r, Rate).LockBOpen);
+        int keep = r.MeritToIndex;
+        r.MeritToIndex = -1;
+        var m = Instruments.MerchLocks(r, Rate);
+        r.MeritToIndex = keep;
+        Assert.False(m.MeritActive);
+        Assert.False(m.LockBOpen);
+    }
+
     /// <summary>T2：負の貯蓄の POP を含む州の avgPerCap は max(0,貯蓄) の和÷頭数。n 個の POP のうち 1 つが −500・他は 100・頭数は全て 10＝(n−1)×100÷(10n)。</summary>
     [Fact]
     public void 負の貯蓄は平均から除く()

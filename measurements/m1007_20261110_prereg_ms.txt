@@ -48,3 +48,7 @@
   ずれ 0 の根拠（Meritocracy.Step の全 Move を読んだ）：merch_s は Step の前・cpop_s は Step の後。空の商人へ入る道は `t.Size<=Eps continue`（:132・:164・:258・:273・:333）と FillJobs（:432・:474 で MerchantPopIndex を飛ばす）で全て閉じている。出る道は率×深さ＜1 の比例なので 1e-9 の境をまたぐのは Size が 1e-9 に近い POP だけ。ずれが出たら行を列挙して原因を名乗り、ずれ 0 を満たしたとは書かない。
 - G2：lockBOpen＝0 の州×四半期で入口の流れが 0（ident の生に流れの列は無い＝T5 の合成の試験で代える）。
 - 採否：〈判定: 恒等〉・㉘ の束が緑・savetest 合格・推定 248.5 秒以下なら採る。一致しなければ変更を外して報告に回す。
+
+[追記 1・腕の前・実装での訂正（結果を見る前）]
+- 試験の形を実装で整理した：T5 を Theory 2 件（閉＝入口の流れ 0・開＝流れが出る感度）にした。Mu5（meritActive を外す）を赤にする T6（Fact：MeritToIndex＜0 の州で meritActive と lockBOpen が 0）を足した。
+  属性＝[Fact] 4（T2・T3・T4・T6）＋[Theory] 2（T1＝InlineData 4・T5＝InlineData 2）＝6。実行の件数＝4＋4＋2＋... ＝ Fact 4 ＋ T1 の 4 ＋ T5 の 2 ＝ 10。TESTS_NONFULL 2530→2540（[1] の 2538 の訂正）。
