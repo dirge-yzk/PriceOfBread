@@ -1,0 +1,31 @@
+(1011) 合流（波93）の予言（merge より前にコミットする）
+作ったフォルダ：D:/PoB_work/m1011_work（合流の作業・2026-11-10 06:40）・D:/PoB_work/wt_m1011（worktree・枝 m1011＝測る木）・D:/PoB_work/ident_m1011z（ident.sh が作る）・D:/PoB_work/keep_1011（INSRAW を移す先・新しく作る）。
+
+[0] 入れる線と順：c93ms 1949fd57（恒等の計器 merch_s・ident c93ms〈判定: 恒等〉・測った木 addf3bed）→ c93tq 2158c8e7（恒等の計器 tradeskip_s +52 列・nationgood_s +4 列・ident m1008z〈判定: 恒等〉・測った木 4ec74dc4）。
+  - 挙動を変えた線は 0 本＝基線は m1001 のまま。M・N1・N2・S11・アブレーションは回さない。
+  - 衝突：git merge-tree origin/c93ms origin/c93tq は 0。持ち主のファイルの重なり 0（ms＝Instruments.cs・Simulation.cs・InstrumentsMerch.cs／tq＝BilateralMarket.cs・InstrumentsTradeskip.cs・InstrumentsNationgood.cs・InstrumentsTransport.cs）。
+  - 消す名前（★(773)）：ms の削除行 3 は呼び口の行の書き換え（Instruments.cs 2・Simulation.cs 1）。tq の削除行 26 は TradeDeal・TsBegin・Scan・NgDeal の引数の追加と見出しの書き換え。ms の新しいファイルは TradeDeal・TsBegin・NgHead・NgDeal・Tradeskip・Nationgood を 0 件参照。tq の試験は Merch を 0 件参照。tq の枝で UrxEnter・SubstTable・SubstClose は基点のまま。＝消す名前は無い。
+  - 合流はエンジンの .cs を直さない。直すのは台本 2 本だけ（下の [3]）。
+  - 読む線 c93wn（r1009_work）と設計の材料 c93ge（r1010_work）は写すだけ（中身は書き換えず、反証役の訂正を末尾に足す）。
+
+[1] 合わせた木の腕 Z（＝合わせた木そのもの・挙動の線の旗は無い）の ident（--saveleak --ng --added-tables merch_s --grown-ok tradeskip,nationgood --tests-delta 16）の予言：
+  - 素の 5 種 181 行・計器つき 10 種 182 行が b5_20261109_m1001・b10_20261109_m1001_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）。推定 209.3／211.2 秒のまま。
+  - 計器の表：merch_s が 10 本増える（宣言）・tradeskip_s・nationgood_s の 20 本は列が末尾に増える（宣言）・既知の揺れ 20・宣言の無い違い 0。
+    行の数は増えない（ms・tq とも呼び口は既存の行の中）＝cearn_s の経路の名〈ファイル:行〉は動かない。
+  - 注視の表：タグの行以外が mon_20261109_m1001.txt と一致。
+  - NG の集合は ng1001 と同じ（77 件・新しい 0・外れた 0）。
+  - テストの数（Category!=FullLength）：2530＋10（ms）＋6（tq）＝2546（合格 2545・スキップ 1）。FullLength 3。
+  - savetest OK・leakhunt 保存則違反なし。
+
+[2] フルスイート（ident の後・10 種と並べない）：Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる。赤 0 を予言する（2546＋3）。
+    WriterRatchetTests の宣言の表は動かない見込み（両線とも計器だけ・番人の書き換え 0）。
+
+[3] 台本の直し（ident の前にコミット・ソースの外）：
+  - scripts/instruments/c93ms/mutate.sh：結果の絞りが英語の出力（Failed・Passed!）にしか当たらず、日本語の出力（成功!・失敗:・合格:）を全て捨てていた（反証役 c93ms の 1 件目）＝絞りに日本語を足し、全文をファイルへ残す。元の木と作業フォルダは引数（環境変数 SRC・MUTW）で替えられるようにする。
+  - scripts/instruments/c93tq/read_tq.py：G6 の照合が〈年 y の印の払い〉を〈y−1 の最後の月の台帳〉と比べていた（反証役 c93tq の 1 件目）＝〈年 y の印の最初の月〉と比べ、tarEffAtPay<0 の国を除く。
+  予言：突然変異 Mu1〜Mu5 は合わせた木で全て赤（Mu1＝T1 の 4 件と T6・Mu2＝T2・Mu3＝T1 の 4 件・Mu4＝T3 と T4・Mu5＝T6）。G6 は合わせた木の生で 1±1e-6 の割合が 1.000（反証役の 1530/1530 と同じ）。
+
+[4] 止める線の段（この回の対象）：ident の不一致・機構の試験の赤・savetest・leakhunt・突然変異の緑。挙動の腕が無いので 100 倍・1e10 倍・空洞化・計算量の新しい計測は無い（基準 m1001 のまま）。
+    記録の段：NG（ng1001 と比べる）・c93tq の read_tq を合わせた木の生にかけ直す・c93ms の g1.py を合わせた木の生にかけ直す・反証役の指摘（high は 0 件）。
+
+[5] INSRAW：merch_s が増え tradeskip_s・nationgood_s の列が増えるので、ident の計器つき 10 種の生を D:/PoB_work/keep_1011/base_ins へ移し、ident.cfg の INSRAW・BASE_COMMIT（合わせた木）・TESTS_NONFULL（2546）を直す。成績表 B5・B10INS・MON・NG_BASE は m1001 のまま。keep_1001・keep_1006 は残す（読むだけ）。
