@@ -1,0 +1,44 @@
+(1018) c95wn 戦争の計器 warentry_s・warpair_s・warband_s と wars_s の入口の札・q の列 — 事前登録（コードを書く前・2026-11-10・担当 Claude Sonnet 5.5）
+形：恒等の線（尾）。挙動を変えない。INS=1 のときだけ書く。新しい係数 0・エンジンの力学 0 行・乱数を引かない。仕様の本体＝measurements/m1009_20261110/spec_and_gates.txt（§0〜§4・§5 の床は記録の列）。
+
+[1] 予言 0（恒等）
+- 素の 5 種・計器つき 10 種は m1017 と名乗り行を除いて全行一致。計器の表の差＝新しい表 warentry_s・warpair_s・warband_s と、wars_s・invade_s の末尾に増えた列だけ。
+- 推定の計算量：プローブ（下 [4]）で warpair_s の書き手あり／なしの差が 2 秒以下。
+
+[2] 消す物と残す物
+- 消す物 0。足す物：PriceOfBread.SimCore/InstrumentsWar.cs（新・部分クラス）。
+- エンジン側の変更はどれも読み手の行への付け足しか、宣言の可視性（private→internal）だけ。旗の有無に依らない。値も順序も変えない。
+  a. Diplomacy.cs:2021 `out _`→`out var r` と同じ行の hook（影の評価と理由の件数）。
+  b. Diplomacy.cs の入口の行の頭に札：TriggerWars(:1575)・ResolvePendingWar(:2184)・Subjugate(:2265)・DeclareWar(:1766 既定札)・DeclareWar の呼び手の統一(:1899)と調停拒否(:2381)・JoinAllies(:1835)・DefendDependent(:1736)・ResolveCallToArms(:1847)・DeclareCivilWar(:1749)。いずれも同じ行の中（行の追加 0）。札は組の鍵つき＝別の組の戦争には効かない（古い札が残っても誤らない）。
+  c. Diplomacy.cs の組の出来事の hook（同じ行の末尾）：AI の屈服(:1566)・講和の置き直し(:3444 ResetTensionTo WarResidue)・分離の置き直し(:494 ResetTensionTo Secession)。
+  d. 可視性：Diplomacy._rank・_warClock・_warCount(参照は WarRepeatStats が既に公開)、World.InvShipStock・InvCannedStock・InvadeCannedReq・InvadeShipReq・InvadeWillCost（影の評価が呼ぶ）。private→internal の宣言だけ。
+  e. Instruments.cs：DipState に q と札の並びの欄(:283・:285 の組)・WarStarted/Invaded(:1102・:1104)・WarTables(:2369〜)の末尾の列・Quarter の呼び口の既存の行(:1914・:1944)に名を足すだけ（行の追加 0）・WarMonth(:1094〜)の中に月の受け口 1 行。
+  f. World.cs:2286 は触らない（DeclareUnificationWarOn は DeclareWar 既定札＝統一で読める）。MultiNationSim.cs:313・:334 も触らない（内戦は DeclareCivilWar の札で、分離は CivilWarSecession で読み分ける）。
+- 読み手の grep（書く前に確かめた）：_rank の読み手は Diplomacy.cs 内のみ（RankOf・SyncPowers）。InvShipStock 等の呼び手は World.cs 内のみ。名前を変えない・消さないので読み手への影響 0。
+- 他の線との重なり：pc は Instruments.cs:1908・:1942 を使い、wn は :1914・:1944＝同じ塊の隣の行（合流で衝突しうる）。表の一覧を数える試験の行は合流が解く。
+
+[3] 足す試験（WarInstrumentTests.cs・[Collection("Instruments")]・[Fact]/[Theory] を数える）：8 属性・xUnit の件数 9（Theory の InlineData 2）。--tests-delta 9。
+- T1 [Theory 2] G-W4：S_A・S_C′ が手で置いた紙の値と 1e-12 以内（reach>0 の行・reach=0 の行）。突然変異 M-S：前線の項を外す→赤。
+- T2 reach=0 なら S_C′=S_A。突然変異 M-S と同じ。
+- T3 G-W1：小さな盤面で DeclareWar・DeclareCivilWar・参戦（同盟）を通し、札が〈参戦・宗主〉以外の組で数えた最多・3 回以上の組数・組の数が WarRepeatStats と一致。突然変異 M-T：JoinAllies の札を外す（上側＝参戦が主に化ける）→赤、M-T2：DeclareWar の既定札を外す（下側）→赤。
+- T4 G-W3：四半期のループの途中で DeclareWar を押し、wars_s の q がループ変数と一致、invade_s にも q。突然変異 M-Q：q を 1 つずらす→赤。
+- T5 影の評価と実際の CanInvade：Minor の標的について、影の関数の最初に落ちた門の名前が CanInvade の reason と一致（同語反復を避けるため、実際の reason は CanInvade の戻りで取る）。突然変異 M-R：`out _` に戻す（理由が落ちる）→ G-W2 の和の試験（T8）が赤。
+- T6 影の篩の順：:2190〜:2205 の順が入れ替わると、手で置いた盤面（従属中かつ交戦中）で最初に落ちる門が変わる。突然変異 M-O：篩の順を入れ替える→赤。
+- T7 影の評価が状態を書かず乱数を引かない：評価の前後で Diplomacy の乱数の状態（DeterministicRng の次の値）と ExpansionWill が不変。突然変異 M-D：影の評価が乱数を 1 回引く→赤（さらに ident でも赤）。
+- T8 G-W2：理由の件数の和＝評価の数。影の通過数≦:2189 で落ちた数。標的の Id が _rank に無い件数の列が 0 以上で整数。
+- 突然変異の出力の全文は measurements/m1018_20261110_mutations.txt（★(1011)）。
+
+[4] ㉘ 走査の番人と書き換え：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests に ScalarDeletionTests・GoodIdGuardTests を足して ident の前に回す。書き換える件数の予言＝0（新しい係数・欄・MoneyStock を足さない）。DipState に足す欄は計器側の型で SaveGame に載らない（Dips は ConditionalWeakTable）。
+- 年の印（★(1006)・★(1011)）：出来事は四半期末の共有の段で起き Year++ の後＝wars_s の startYear は暦の Y−1 年第 4 四半期〜Y 年第 3 四半期。q は Quarter(q) の呼びを数えて付ける（q の列で盤面の行と結合する）。
+
+[5] プローブ：計器つき 1 種（種 1）を warpair_s の書き手あり／なしで 2 回（POB_WAR_NOPAIR=1 で書き手を止める）。行の数・ファイルの大きさ・.cost の推定の差を測る。上限＝行 50 万／種以下・差 2 秒以下。超えたら書く条件を〈140 以上の月があった組と出来事〉へ狭める。
+
+[6] 門（両側）
+- ident〈判定: 恒等〉（`--added-tables warentry_s,warpair_s,warband_s --grown-ok wars_s,invade_s --tests-delta 9`）・㉘ の束が緑・savetest 合格・推定 248.5 秒以下。
+- G-W1（T3）・G-W2（T8）・G-W3（T4）・G-W4（T1）。ident の生で門を読み、床 F1〜F5 の予言値は記録の列として数える（spec §5・採否の門ではない）。
+
+[7] 限界の自己申告
+- 月の列は Diplomacy.Step の頭（CpMonth の位置）で読む＝前の月の末の状態。四半期の最初の月の頭は前の四半期の末なので読まず、四半期の末（Quarter）の読みで 3 本目にする。
+- 膨張意欲の 4 つの流れは、合算の変化（前の四半期末→今）と計器が計算した流入で導く（キャップが効く四半期は消費が過小に出る）。
+- WarScale の reach は 比×自陣営の陸の力 で復元する（浮動小数の復元）。自陣営の集合は計器が再構成する。
+- 屈服は :1566 の hook、置き直しは :3444・:494 の hook で数える。
