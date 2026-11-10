@@ -29,6 +29,38 @@ public static partial class Instruments
     sealed class CscState
     {
         public readonly Dictionary<(string Nation, int Role, int Cls), CscAcc> Map = new();
+        // (1024) K1 cscx_s：年×国×格×払い手（csc_s の鍵と列は変えない＝別の表）。書き手は清算の 1 本のスレッド（csc_s の Map と同じ）。
+        public readonly Dictionary<(string Nation, int Tier, int Payer), CscxAcc> MapX = new();
+        public System.IO.StreamWriter? XW; public bool XHeader;
+    }
+    sealed class CscxAcc { public long Rows, Fills, Invalid, ToBest; }
+
+    /// <summary>(1024) 払い手の区分（買い手の州から計器が自分で読む・Cearn の ImpKind と同じ述語）：0＝手形あり商人（人数＞1e-12 かつ債務が正でない）・1＝手形なし商人（人数＞1e-12 かつ債務が正）・2＝空の商人（商人の POP はあるが人数 ≦1e-12）・3＝商人の POP 無し（全 POP が払い手）。
+    /// 限界：行の終わりの時点の状態（エンジンの手形は清算の頭で決まる）。</summary>
+    internal static int CscxPayer(Region r)
+    {
+        int mi = r.MerchantPopIndex;
+        if (mi < 0 || mi >= r.Pops.Count) return 3;
+        var m = r.Pops[mi];
+        if (!(m.Size > 1e-12)) return 2;
+        return m.Debt.Value > 0 ? 1 : 0;
+    }
+
+    /// <summary>(1024) K1：走査した買い手行の終わり（<c>BilateralMarket</c>・読むだけ）。<paramref name="fills"/>＝この行の着値の充填・<paramref name="invalid"/>＝うち着値≧自州価格・<paramref name="toBest"/>＝うち最良が替わった。</summary>
+    internal static void ScopeRowX(InternationalMarket m, World buyer, Region r, long fills, long invalid, long toBest)
+    {
+        var s = CscAccs.GetValue(m, _ => new CscState());
+        var key = (NameOf(buyer), (int)r.Tier, CscxPayer(r));
+        if (!s.MapX.TryGetValue(key, out var a)) s.MapX[key] = a = new CscxAcc();
+        a.Rows++; a.Fills += fills; a.Invalid += invalid; a.ToBest += toBest;
+    }
+
+    /// <summary>(1024) 試験の口：cscx の蓄え（全ての国・格・払い手の和）。</summary>
+    internal static (long Rows, long Fills, long Invalid, long ToBest) ScopeXGet(MultiNationSim sim)
+    {
+        long rows = 0, f = 0, iv = 0, tb = 0;
+        if (CscAccs.TryGetValue(sim.Market, out var s)) foreach (var a in s.MapX.Values) { rows += a.Rows; f += a.Fills; iv += a.Invalid; tb += a.ToBest; }
+        return (rows, f, iv, tb);
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, CscState> CscAccs = new();
     static CscAcc CscOf(InternationalMarket m, World w, int role, int cls)
@@ -92,7 +124,7 @@ public static partial class Instruments
     }
 
     /// <summary>助走の直後：助走の月の成約を数えない。</summary>
-    internal static void ScopeClear(MultiNationSim sim) { if (CscAccs.TryGetValue(sim.Market, out var s)) s.Map.Clear(); }
+    internal static void ScopeClear(MultiNationSim sim) { if (CscAccs.TryGetValue(sim.Market, out var s)) { s.Map.Clear(); s.MapX.Clear(); } PxClear(sim); }   // (1024) cscx_s・pxstep_s の助走の蓄えも空にする
 
     const string CscHeader = "year\tnation\troleCode\tclassCode\trowsCount\tdealtRowsCount\tdealsCount\tfallbackRowsCount\tqtyPerYear\tqtyTimesUnitPrice\tqtyTimesBestDelivered\tqtyTimesLocalPrice\tqtyTimesSellerShipPrice\tqtyAfterFallbackPerYear\tthrottledRowsCount\tthrottledDealtRowsCount\tthrottledQtyPerYear\tfillsCount\tthrottledFillsCount\tpotRawPerYear\tpotAddedPerYear\tthrottledPotRawPerYear";
 
@@ -115,5 +147,30 @@ public static partial class Instruments
                 a.Fills.ToString(System.Globalization.CultureInfo.InvariantCulture), a.ThrFills.ToString(System.Globalization.CultureInfo.InvariantCulture), F(a.PotRaw), F(a.PotAdded), F(a.ThrPotRaw)));
         }
         s.Map.Clear();
+        CscxFold(s, seed, year);
+    }
+
+    const string CscxHeader = "year\tnation\ttierCode\tpayerCode\trowsCount\tfillsCount\tfillsInvalidCount\tfillsToBestCount";
+
+    /// <summary>(1024) K1 cscx_s の年の終わり（と試合の終わりの残り）：csc_s と同じ呼びで行にして書き、0 へ戻す。tierCode＝Core／Integrated／Colonial の名・payerCode＝<see cref="CscxPayer"/>。</summary>
+    static void CscxFold(CscState s, ulong seed, int year)
+    {
+        if (s.MapX.Count == 0) return;
+        s.XW ??= Open("cscx", seed);
+        if (!s.XHeader) { s.XW.WriteLine(CscxHeader); s.XHeader = true; }
+        foreach (var kv in s.MapX.OrderBy(k => k.Key.Nation, StringComparer.Ordinal).ThenBy(k => k.Key.Tier).ThenBy(k => k.Key.Payer))
+        {
+            var a = kv.Value;
+            s.XW.WriteLine(string.Join('\t', TrI(year), kv.Key.Nation, ((RegionTier)kv.Key.Tier).ToString(), TrI(kv.Key.Payer),
+                a.Rows.ToString(System.Globalization.CultureInfo.InvariantCulture), a.Fills.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                a.Invalid.ToString(System.Globalization.CultureInfo.InvariantCulture), a.ToBest.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+        s.MapX.Clear();
+    }
+
+    /// <summary>(1024) cscx_s の書き手を閉じる（<see cref="PxstepClose"/> から呼ぶ）。</summary>
+    static void CscxClose(MultiNationSim sim)
+    {
+        if (CscAccs.TryGetValue(sim.Market, out var s)) { s.XW?.Dispose(); s.XW = null; }
     }
 }

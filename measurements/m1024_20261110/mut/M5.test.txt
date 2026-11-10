@@ -1,0 +1,9 @@
+腕の出力: D:/PoB_work/c96kf_work/m5/out_m5_1/ins
+csc_s1.tsv: 基線と不一致（または基線に無い）
+cscx_s1.tsv: 基線と不一致（または基線に無い）
+year	nation	roleCode	classCode	rowsCount	dealtRowsCount	dealsCount	fallbackRowsCount	qtyPerYear	qtyTimesUnitPrice	qtyTim
+1784	アシャンティ王国|0	0	0	63	46	76	0	211.200042	377.9199593	312.2333158	530.724589	150.1426354	0	27	16	77.8859
+1784	アシャンティ王国|0	0	1	218	12	52	0	35.44346142	40.31124862	38.35742465	72.88292995	14.96138221	0	184	11	34.
+year	nation	roleCode	classCode	rowsCount	dealtRowsCount	dealsCount	fallbackRowsCount	qtyPerYear	qtyTimesUnitPrice	qtyTim
+1784	アシャンティ王国	0	0	63	46	76	0	211.200042	377.9199593	312.2333158	530.724589	150.1426354	0	27	16	77.885966
+1784	アシャンティ王国	0	1	218	12	52	0	35.44346142	40.31124862	38.35742465	72.88292995	14.96138221	0	184	11	34.93

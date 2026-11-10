@@ -1,0 +1,21 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsPxstep.cs b/PriceOfBread.SimCore/InstrumentsPxstep.cs
+index 0b888a73..1d506d03 100644
+--- a/PriceOfBread.SimCore/InstrumentsPxstep.cs
++++ b/PriceOfBread.SimCore/InstrumentsPxstep.cs
+@@ -16,6 +16,7 @@ public static partial class Instruments
+     internal static readonly string[] PxBranchNames = ["labor", "svcClosed", "svcDaily", "goodsClosed", "pinnedClosed", "goodsDaily", "dormant", "dead", "other"];
+     const int PxB = 9;
+ 
++    static readonly PxAcc PxShared = new();
+     sealed class PxAcc { public readonly long[] Cnt = new long[3 * PxB], Runs = new long[3 * PxB]; }
+     sealed class PxSink { public System.IO.StreamWriter? W; public bool Header; public ulong Seed; }
+     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, PxAcc> PxAccs = new();
+@@ -26,7 +27,7 @@ public static partial class Instruments
+     internal static void PxStep(Region r, long live, long steps, long dormant, long labor, long svcClosed, long svcDaily, long goodsClosed, long pinned, long goodsDaily,
+         long runsLabor, long runsSvc, long runsGoods)
+     {
+-        var a = PxAccs.GetValue(r, _ => new PxAcc());
++        var a = PxShared;
+         int o = (int)r.Tier * PxB;
+         a.Cnt[o + 0] += labor; a.Cnt[o + 1] += svcClosed; a.Cnt[o + 2] += svcDaily; a.Cnt[o + 3] += goodsClosed; a.Cnt[o + 4] += pinned; a.Cnt[o + 5] += goodsDaily;
+         a.Cnt[o + 6] += dormant; a.Cnt[o + 7] += live - dormant - steps;

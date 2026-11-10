@@ -1,0 +1,69 @@
+(1024) c96kf 事前登録：清算の充填の計器 K1 cscx_s・K2 pxstep_s・K3 merch_s の末尾（恒等の線・読むだけ）
+書いた日 2026-11-10・木 00f50935（main＝基線 m1022）・担当 Claude Sonnet 5.5・腕の前に固定（結果を見た後に変えない）
+出発：00一覧 §00〈次の波（波96〜）〉の〈清算の充填の計器 K1〜K3〉・measurements/m1021_20261110/findings.txt 105〜108 行（K1・K2・K3・Z0）・同 verifier_corrections.txt ④⑤⑥⑦。
+形の種類：恒等（計器だけ）。挙動の線ではない＝旗なし・新しい係数 0・力学 0・乱数を引かない・セーブに載る欄を足さない（置き場は ConditionalWeakTable）。
+
+[1] 恒等の線・予言 0
+ 成績表の全行（素の 5 種・計器つき 10 種）と .cost の件数は m1022 と一致する。推定の計算量は 231.1 秒のまま（台帳の件数が変わらない）。
+ 実時間の増えは 〈推〉0.5 秒以下：充填の内側に整数の加算 2 つ（着値≧lp の数・最良が替わった数）を無条件で足す。計器の表の書き込みは INS=1 のときだけ。
+
+[2] 足す物と消す物
+ 消す物：なし（注 1 本だけ直す＝BilateralMarket.cs の ⑥〈:845 の注〉が現物と合わない件は、行を grep し直して注だけを直す）。
+ 足す物（名前・ファイル）：
+  K1 cscx_s（InstrumentsScope.cs）：鍵＝年×国×格 tierCode（Core／Integrated／Colonial の名）×払い手 payerCode（0 手形あり商人・1 手形なし商人・2 空の商人・3 商人の POP 無し＝全 POP）。
+     列＝rowsCount・fillsCount・fillsInvalidCount（del2≧lp の充填）・fillsToBestCount（del2＜bestDelA で最良が替わった充填）。
+     csc_s の鍵と列は変えない（⑦）。格と払い手は、計器が買い手の州から自分で読む（payer の定義は Cearn の ImpKind と同じ述語：商人の Size＞1e-12 かつ Debt＞0 の否定が手形あり）。
+     限界（自己申告）：払い手の判定は行の終わりの時点の状態（エンジンの bill は清算の頭で決まる）＝同じ清算の中で手形が増えた州は 1 区分ずれうる。
+  K2 pxstep_s（InstrumentsPxstep.cs 新）：鍵＝年×国×格×枝（labor 労働の日次・svcClosed 役務の閉じた式・svcDaily 役務の日次・goodsClosed 財の閉じた式・pinnedClosed 張り付きの閉じた式・goodsDaily 財の日次・asleep 眠り・dead 需要も産出も無い財・other 上のどれでもない）。
+     列＝goodsCount・dailyRuns。other は 0 のはず（自己確認の欄）。台帳の PriceGoods＝Σ(labor…goodsDaily)+dead+other・PriceDailyRuns＝labor＋svcDaily＋goodsDaily の dailyRuns。
+     書き手：MarketFlow.StepDay の終わりの 1 か所（局所の数を渡す）。州ごとの蓄え（Region 単位・州は 1 本のスレッドが回す）＝スレッド安全・集計は整数の和（順に依らない）。
+  K3 merch_s の末尾 7 列（InstrumentsMerch.cs）：merchSavPerCapAtGate・merchFallGateIn（Meritocracy.cs :345 の転落の門を、計器が門の時点で自分で計算する＝⑤）・
+     merchPettyIn（①* で商人へ入った人数）・artisanPettyIn（①* で職人へ）・merchCapRiseOut（③′ 商人→資本家）・merchFallOut（:345 の転落）・artisanFallOut（⑥ 職人→下層）。
+     道の量は実際に移った量（移す前後の POP の Size の差）。Meritocracy.Step の頭で Instruments.On を 1 回だけ読む（今は 0）。
+ Instruments.cs：:1912 の行に PxstepTable(sim, seed, q) と :1940 の行に PxstepClose(sim) を足すだけ（行の追加 0・git diff --stat で確かめる）。cscx_s の書き出しは ScopeFold の中・閉じるのは PxstepClose。
+ 読み手の grep（消す物が無いので足す物の鍵の衝突のみ）：cscx・pxstep・merchSavPerCap は SimCore・Runner・App・Display・Tests・scripts・measurements に既存の名なし（書き終えたら grep で再確認）。
+ 他の線との重なり：wn は Instruments.cs の :1914・:1944（隣の行）と InstrumentsWar.cs＝合流で隣接行の衝突を解く。rd は Coefficients.cs・world.json＝重ならない。
+  Instruments.cs の :1912・:1940 は kf の行、:1914・:1944 は wn の行。
+
+[3] 試験（ClearingFillInstrumentTests.cs 新・[Collection("Instruments")]）と突然変異
+ T1 cscx_s の fills の和＝csc_s の fills の和（実走・同じ年・全ての国）。
+ T2 pxstep_s の枝の和＝台帳（cost）の PriceGoods・PriceDailyRuns（StepDay を合成の州で呼ぶ・other＝0）。
+ T3 着値≧lp の売り手を 1 人置くと fillsInvalid が 1 件（合成の 2 国の盤面）。
+ T4 K3 の道の量の和＝商人の人数の差（合成の州・①*・③′・転落の 3 道を別々に発火）＋門の計算が転落の発火と一致。
+ T5 並列と逐次で pxstep_s がバイト一致。
+ 突然変異（それぞれ赤にする・出力の全文を measurements/ に残す）：
+  M1 fillsInvalid を del2＞lp に → T3　M2 枝を 1 つ落とす → T2　M3 道を 1 本落とす → T4
+  M4 書き手を共有のリストへ同期なしで足す → T5（確率的に赤〈読みの限界〉）　M5 csc_s の鍵に格を足す → ident
+ ㉘ ソースを走査する番人：OnDoubleReadScanTests の許可表は書き換えない（StepDay の Instruments.On は 1 に保つ＝既存の読みを局所へ巻き上げ、BilateralMarket は既存の if に同居）。
+  WriterRatchetTests・DormantIdentityTests・InstrumentsTests・UnitTypeTests・IndustrializationReaderTests の束を ident の前に回す。
+  ㉑ 書き換える件数の予言：許可表 0 件・merch_s の見出しを Assert する既存の試験 0 件（定数を共用）・表の一覧の試験は grep で確かめて、2 表増える行があれば数える。
+ テスト数の差の予言：+5（T1〜T5）。
+
+[4] 成績表の判定
+ 素の 5 種・計器つき 10 種が m1022 と名乗り行を除いて全行一致。計器の表の差は宣言だけ：--added-tables cscx_s,pxstep_s --grown-ok merch_s --tests-delta 5。
+ 浮動小数の順序が変わる箇所：なし（整数の加算を足すだけ・既存の式は触らない）。同じ盤面で旧≠新の比較の数：0。
+
+[5] 記録の列（ident の生で数える・判定ではない）
+ fillsInvalid÷fills（C2 で削れる件数の上限＝39.8 秒×その割合）・格×払い手ごとの充填・pxstep_s の枝ごとの件数・
+ K3：①′ を商人に写した式（職人の ①′ の attract＝労働者の所得÷商人の稼ぎ×PromotionPremium＞1）に当たる行の、資産の門の内と外（m1021 の 71% の読み直し）。
+
+[6] C2 のビット一致の 3 条件（verifier_corrections ④の写し・この線では実装しない）
+ (a) 下界が全ての州の真の下界である（陸路と海路の選び方 KmOf の最小を含む）。
+ (b) 飛ばすのは着値≧lp の売り手だけ（bestDelA 側の打ち切り :912 は旧の下界のまま＝次善の集合を変えない）。
+ (c) 飛ばすだけで break にしない（prevS を進める・:921 と同じ形）。KmOf の表の書き込み・kmGen の刻印が減る副作用は App の地図の陸路の記帳だけ（成績表は読まない）。
+
+[7] 入れない物：帰属の腕 Z0・C1/C2 の高速化・商人の出口 F1・wn/rd の持ち物・App/Display/Runner。
+
+[8] 追記（腕の前・器を書いた後・結果は見ていない）2026-11-10
+ a. 出力の枝の名：眠りは dormant（変数名の綴りを避ける）。枝は labor・svcClosed・svcDaily・goodsClosed・pinnedClosed・goodsDaily・dormant・dead・other の 9 本。
+    MarketFlow.StepDay に足した整数の局所は 6 本（kLabor・kSvcD・kGoodsD＝層ごとの総数・kRunL・kRunS・kRunG＝層ごとの日次の日数）。nStep1 は 3 層で共用、nClosedL は労働の枝の中で重なるため既存の局所では分割にならない。
+    dead は live.Length−dormant−steps から導く（局所を足さない）・other＝steps−6 枝の和（0 のはず）。Instruments.On は StepDay の頭で bool insOn に 1 回だけ読み、LwStep の呼び口と PxStep の呼び口が共用（OnDoubleReadScanTests の許可表は書き換えない）。
+ b. K1 の cscx_s の tierCode は Core／Integrated／Colonial の 3 値（指示の〈Colonial／Home〉の Home を Core と Integrated に分けた）。
+    cscx_s の書き出しは ScopeFold の中・閉じるのは PxstepClose（Instruments.cs の行の追加 0・変えた行は :1912・:1940 の 2 行・git diff --stat で +2 −2）。
+ c. K3 の道の量は実際に移った人数（移す前後の POP の Size の差）。道は 5 本：merchPettyIn・artisanPettyIn（①*）・merchCapRiseOut（③′）・merchFallOut（:345）・artisanFallOut（⑥）。
+    ⑥ は職人の量（商人ではない）。Step の中で商人の Size を動かす道は ①*・③′・:345 の 3 本だけ（RouteViaPool の行き先から商人は除かれる）＝T4 は merchPettyIn−merchCapRiseOut−merchFallOut＝商人の人数の差。
+    資産の門は :345 の位置で MerchGate が呼ばれ、計器が FallAnchorReform・MiddleFallThreshold から自分で計算する（FallAnchor は private）。merchSavPerCapAtGate も同じ時点。門を通らない州は nan。
+ d. T3 の限界：着値＝自州価格ちょうどの充填は float で作れない＝≧ と ＞ の違いは検査できない（測度 0）。突然変異 M1 は向きを逆にする形（del2＜lp）で置く。
+    T3 の掃引で、無効な売り手でも候補表が空の最初の 1 人なら toBest に数えられる（最良＝初期値 MaxValue との比較）ことが見えた＝fillsToBestCount は〈最良が有効な売り手に替わった〉件数ではない（記録の列は invalid と並べて読む）。
+ e. ㉑ 書き換える件数の予言：OnDoubleReadScanTests の許可表 0 件・merch_s の見出しを Assert する既存の試験は定数を共用＝0 件・表の一覧の試験（cscx・pxstep・merch_s の名を数える既存の試験）0 件（grep で確認済み）。テスト数の差 +5 は Theory の行を数えない関数の数＝T1・T2（Theory 3 行）・T3・T4（Theory 3 行）・T4b・T5 で、--list-tests の増え方は後で数える（予言を +5 から +10 へ訂正：Theory の行は別の試験として数えられる＝T1 1・T2 3・T3 1・T4 3・T4b 1・T5 1）。
+    ※この訂正は器を書いた後・ident の前（結果を見る前）。

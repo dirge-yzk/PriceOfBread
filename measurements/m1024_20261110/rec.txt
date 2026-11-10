@@ -1,0 +1,22 @@
+R1 seeds=10 rows=167145285 fills=4552073728 invalid=3135034956 toBest=351439417
+R1 invalid/fills=0.688705  toBest/fills=0.077204  C2 の上限（秒）＝39.8×invalid/fills＝27.410
+R2 tier payer rows fills invalid toBest invalid/fills
+R2 Colonial 0 48595109 1420019631 964742357 97030337 0.679387
+R2 Colonial 1 70902 1932749 643510 126578 0.332951
+R2 Colonial 2 31929 957927 275718 71672 0.287828
+R2 Core 0 110540923 2905761221 2004974076 236226392 0.690000
+R2 Core 1 8719 336812 123424 20414 0.366448
+R2 Integrated 0 7897644 223064005 164275130 17963870 0.736448
+R2 Integrated 1 59 1383 741 154 0.535792
+R3 branch goodsCount dailyRuns
+R3 goodsClosed 1038820353 0
+R3 svcClosed 57557759 0
+R3 pinnedClosed 44887230 0
+R3 goodsDaily 40377155 602152053
+R3 labor 38321580 180793774
+R3 svcDaily 19184397 287765955
+R3 dormant 18013508 0
+R3 歩に入った財の和（dormant・dead を除く）=1239148474  other=0
+R4 {'rows': 2165315, 'gateEvaluated': 2163928, 'nohit': 2044941, 'nohit_gate_0': 1529573, 'engineFell': 520516, 'nohit_gate_1': 515327, 'hit': 54273, 'hit_gate_0': 45125, 'hit_gate_1': 9148, 'nohit_gate_nan': 41}
+R4 道の量の和（merchPettyIn artisanPettyIn merchCapRiseOut merchFallOut artisanFallOut） [40415.511, 5160.673, 30236.675, 560217.138, 601415.656]
+R4 ①′ を商人に写した式に当たる行=54273：資産の門の内（1）=9148 (0.1686)・外（0）=45125 (0.8314)・未評価（nan）=0
