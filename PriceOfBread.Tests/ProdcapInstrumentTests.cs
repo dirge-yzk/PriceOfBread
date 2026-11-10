@@ -81,7 +81,7 @@ public class ProdcapInstrumentTests
             var pc = Read(dir, "prodcap");
             var prod = new Dictionary<string, double>();
             foreach (var g in Catalog.Goods) prod.TryAdd(g.Name, g.Productivity);
-            int ig = pc.I("good"), ic = pc.I("class"); int cmp = 0, bad = 0; var cls = new HashSet<string>();
+            int ig = pc.I("good"), ic = pc.I("class"); int cmp = 0, bad = 0, badRule = 0; var cls = new HashSet<string>(); var ruleN = new Dictionary<string, int>();
             foreach (var r in pc.R)
             {
                 cls.Add(r[ic]);
@@ -89,8 +89,13 @@ public class ProdcapInstrumentTests
                 if (double.IsNaN(e)) continue;
                 double want = pc.D(r, "productivity") / (prod[r[ig]] * 7.0);
                 cmp++; if (Math.Abs(want - e) > 1e-9 * Math.Max(1.0, Math.Abs(e))) bad++;
+                // 級の札と倍率の突き合わせ（手で置いた規則値：S＝1.0・N＝0.4×既定の ResourceScarcityScale・Z＝0）。級の規則を落とした写しは札と倍率が食い違う
+                double? rule = r[ic] == "S" ? 1.0 : r[ic] == "N" ? 0.4 * new Coefficients().ResourceScarcityScale : r[ic] == "Z" ? 0.0 : null;
+                if (rule is { } rv) { ruleN[r[ic]] = ruleN.GetValueOrDefault(r[ic]) + 1; if (Math.Abs(e - rv) > 1e-9) badRule++; }
             }
             Assert.Equal(0, bad);
+            Assert.Equal(0, badRule);
+            foreach (var k in new[] { "S", "N", "Z" }) Assert.True(ruleN.GetValueOrDefault(k) >= 1, "規則値の対照が無い " + k);
             Assert.True(cmp >= 1000, $"比べた行が少ない {cmp}");
             foreach (var k in new[] { "X", "E", "Z", "N", "S", "F" }) Assert.Contains(k, cls);
         }
