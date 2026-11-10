@@ -42,3 +42,10 @@
 - 膨張意欲の 4 つの流れは、合算の変化（前の四半期末→今）と計器が計算した流入で導く（キャップが効く四半期は消費が過小に出る）。
 - WarScale の reach は 比×自陣営の陸の力 で復元する（浮動小数の復元）。自陣営の集合は計器が再構成する。
 - 屈服は :1566 の hook、置き直しは :3444・:494 の hook で数える。
+
+━━ 追記 1（器のコミットの後・ident の前・結果を見る前・2026-11-10）
+- 試験は 10 属性（[Fact] 9・[Theory] 1）・xUnit の件数 11（Theory の InlineData 2）。--tests-delta 11。足した 2 本：T9（Diplomacy.cs の CanInvade の呼びが Instruments.WarEval へ理由を渡す走査）・T10（AddBelligerent／StartWar を呼ぶ全ての行に Instruments.WarTag がある走査＝AI の侵略の経路は rng の門の後でしか通らず、配線は走査で守る）。M-R は T9・M-T／M-T2 は T3 と T10 で赤になる想定。T7 は外交の専用乱数（SubmitRng）も確かめる。
+- [7] の限界②の訂正：膨張意欲の上限（キャップ）で切れた分は、導いた消費の側に出る（過大）。〈過小〉と書いたのは誤り。
+- ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ScalarDeletionTests・GoodIdGuardTests・WarInstrumentTests）：1 回目は 198 件中 197 合格・赤 1＝GoodIdGuardTests（計器の変数名 g が〈財の変数 == n〉に当たった）→ 変数名を gate に直して再実行で合格（書き換えた許可表は 0）。
+- プローブ（種 1・INS=1・warpair_s の書き手あり pa／なし pb）：warpair_s 54,334 行／種（上限 50 万以下）・warentry_s 40,814 行・warband_s 668 行・wars_s 532 行。.cost の推定は pa 236.6 秒＝pb 236.6 秒（差 0.0 秒・上限 2 秒以下）。実測の CPU は 873.3 対 862.1 秒（他のプロセスと重なっていて参考）。書く条件を狭めずに 10 種へ進む。
+- 純関数の確かめ（器のコミットで grep）：SeaControl（Diplomacy.cs:3459）＝NavalPower の比を返すだけ／IsSeaCrossing・Projection・DependentCount・Suzerain・IsAtWar・RankOf＝表を読むだけ／InvShipStock・InvCannedStock＝市場の在庫を読むだけ／InvadeShipReq→NearestColonyKm＝距離を数えるだけ／InvadeWillCost→ColonizeWillCost→ColonizeForce・SubmitLine＝読むだけ。いずれも書き込みと乱数 0（T7 が乱数の次の値と状態で確かめる）。
