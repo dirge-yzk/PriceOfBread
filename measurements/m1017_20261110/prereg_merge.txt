@@ -35,3 +35,10 @@
  c94pe の反証役の中①：pay_s の空の商人の枝（PayDiag.CountEmptyMerchant）を基線 keep_1011 と M で並べ、清算の充填の増加が植民地の空の商人の門の側かを読む（読むだけ）。
 [8] 挙動の線は 1 本＝合成後のアブレーションの腕は回さない（㉞ の対象は 2 本以上）。
 [9] c94cl の反証役の高：門 G-I は事前登録の形が同じ集合どうしの比較でない＝〈判定不能〉として記録する。〈許容超過＝計器の限界〉の結論と申し送り 5 は 00一覧・台帳へ写さない。gi_read.py はこの合流で直さない。計器の恒等は ident で確かめる（[2]）。
+
+[追記 2026-11-10・合わせた木 a61e66b7 のフルスイートの後・腕と腕 Z の前]
+ 予言の外れ（[1]）：フルスイートの赤は予言した 4 本（WriterRatchetTests item 1・2・9・11＝値は予言どおり 17266684・1995・32392768・3230490）のほかに 1 本＝ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い（c94cl の InstrumentsCorncf.cs:176 と CorncfInstrumentTests.cs:125 が Region.State を読む）。GoodIdGuardTests は直しの後で緑。FullLength 3 合格・savetest OK・leakhunt 保存則違反なし・--list-tests 2595＋3（予言どおり）。
+ 扱い（32c989ab）：RegionState.Locked の書き手は SimCore・Runner・Tests・App に 0（grep）＝判定は恒真＝恒真の判定を 2 か所消した（許可表は変えない・(665)(727) の合流と同じ型）。
+ 確かめ（腕 Z の後・結果を見る前に固定）：腕 Z の生の corncf_s・lordstat_s（種 1〜10・20 本）の sha1 が線の ident の生（m1017_work/hash/cl_ident.tsv）と全て一致すること。recipeout_s（10 本）も ro_ident.tsv と全て一致すること。
+ 一致しなければ：消した判定は恒等でなかった＝c94cl を外す（merge を戻し、腕 Z を --added-tables recipeout_s --tests-delta 10 で回し直す）と報告する。
+ WriterRatchetTests は 4 行を取り直した（★(749)）。取り直しと削除の後の木でフルスイートをもう一度回し、2595 のうち赤 0 を腕の前に確かめる。
