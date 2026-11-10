@@ -1,0 +1,118 @@
+(1020) c95ub 事前登録：段0″b 遍在の財＝石灰石・珪砂・粘土を非産地の 0.4（Simulation.ResourceScarcity）の外へ出す（旗 UbiquitousMineralExempt・挙動の線・3 回の規則の 1 回目）
+書いた日 2026-11-10・木 8cc53a06（main＝基線 m1017）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+出発：00一覧 §00〈段0″b 遍在の財〉・§0-2 ★(1017) ①（推奨〈コード〉＝〈作者「全て推奨で」で推奨を採った〉）・measurements/m1015_20261110/findings.txt §2・§4・§5 2.b・verifier_corrections.txt ⑥。
+作者 2026-11-09：自給率と貿易の少なさについて「これは修正対象です」。
+形の種類：入口（播種の賦存の規則・開幕から全ての四半期に効く）。形の細部は AI の案・確証なし（遍在の財を主食と同じ扱いにする判断は AI の推奨）。
+
+[0] 指示から外れた所（報告の先頭にも書く）
+ a. G2 の素案（下側 ≧1.5・上側 ≦4.0）を〈下側 1.05・上側 2.5〉へ替えた。理由：旗は能力（Productivity）を 2.5 倍にするだけで自己費用（MarginalCost）は触らない（EndowmentCostFollowsScarcity＝0）。
+    基線の級 N の稼働率は 0.67〜0.90・3 財の不足÷需要は 0.1014・3 財は家計が買わない中間財＝産出は〈不足が埋まる分（需要÷産出＝1.119）＋値下がりで誘発される下流の需要〉までしか動かない（[4]）。
+    素案の 1.5 は能力の比で、産出の比ではない＝働いた機構を〈届かない〉で退ける門になる。上側 2.5＝能力の比（これを超えたら能力以外が動いた＝この形に固有の誤り）。4.0 は意味を持たない。
+ b. 判別の強い機構の門 G2b（3 財の不足÷需要の新÷旧 ≦0.90）を足した（ヌル腕の幅 0.977〜0.998）。
+ c. 器の試験は構築の前に Scenario.Coef を置く形（MultiNationSim の coef 引数は国の Simulation の播種に届かない＝MultiNationSim.cs:80 は cfg.ToScenario の既定の係数）。
+
+[1] 必要性の確かめ（腕の前・紙・scripts/instruments/c95ub/gates1020.py need・出力 measurements/m1020_20261110/need_base.txt）
+ 生：D:/PoB_work/keep_1017/base_ins の recipeout_s・nationgood_s（10 種）。
+ 3 財の級 N の行 32,780（endowFromProductivity＝0.4 は 32,780＝100%）・producers の和 175,152・級 E の行 1,254（4.0 は 1,254）・級 S 0・級 X 0（Catalog.Sites に 3 財の行は無い＝grep 0）。
+ 3 財の級 N の outputSum（1870＋1913）1,764,733（3 財の産出 1,816,966 の 97.1%＝産出のほとんどは既に非産地の 0.4 の州）。
+ →級 N の行が有る＝旗は何かをする＝**腕を回す**。
+
+[2] 形（エンジン 2 行＋計器 1 行＋述語 1 本＋旗 1 行）
+ Coefficients.cs:3344（ColonyPettyEntryEmptyTarget の後）に `public double UbiquitousMineralExempt = 0.0;`（新しい係数はこれだけ・状態・タイマー・閾値 0）。
+ Catalog.IsUbiquitousMineral(id, c)＝`c.UbiquitousMineralExempt > 0 && id is LimestoneId or SilicaSandId or ClayId`（旗 0・NaN では常に偽）。
+ 3 か所が同じ述語を呼ぶ（分子と分母を揃える）：
+   Simulation.cs:851（本国の州）・:1534（植民地の昇格）：`… && !Climate.StapleSelfSufficient(…) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(… 0.4 …)`
+   InstrumentsRecipeout.cs:56：`else if (!Climate.StapleSelfSufficient(g, lat, lon) && !Catalog.IsUbiquitousMineral(g, c)) { cls = "N"; … }`（述語が真なら級 S・規則 1.0）
+ 旗 0 では述語が偽＝`&& !false`＝旧の条件そのもの・副作用なし＝恒等。
+ 触らない：産地の州（resources にある州）の 4.0（:836・:1522）・ScarceEndowment（k は希少鉱物だけ）・案 B の門（:762 ApplyEndowment の豊富側）。
+ 案 B の門からの除外は入れない：旗 1 の非産地の 3 財は倍率 1.0＝ApplyEndowment を通らない＝B（EndowmentCostFollowsAbundance）が 0 でも 1 でも効かない（倍率 >1 の側だけが B）＝死んだ枝にならない。B の線の事前登録の前提として名乗る：〈旗 1 では 3 財の非産地は B と C の対象の外〉。
+
+[3] 判定の時点の差（限界）
+ recipeout_s の級は計器が州の resources・座標・述語から自分で決める（エンジンの局所変数を受け取らない）。述語は計器とエンジンが同じ 1 本を呼ぶ＝M5（計器の行だけ直さない）を拾うのは G1 と試験 T6・RecipeoutInstrumentTests.T3。
+ nationgood_s の priceMeanGold は国の行の平均（重みなし）＝G3 の床は粗い上限（名乗る）。
+
+[4] 紙の予言（今の盤面 keep_1017/base_ins・need_base.txt）
+ G1：旗 1 で 3 財の級 N の行 0・級 S の行≈32,780（行の数のヌル腕の差 +0.24〜+0.48%）・endow 1.0 が 100%。
+ G2（3 財の非産地の産出・1870＋1913・和÷和）：下側の見込み 1.06（不足の半分が埋まる）・中央の見込み 1.12（不足が全て埋まる＝需要÷産出 1.119）・上側の見込み 1.4（値段が級 N の単位費用 0.353 まで落ち、下流の需要が増える）。能力の上限 2.5。
+ G2b（不足÷需要）：0.1014 → 見込み 0.03〜0.07（新÷旧 0.3〜0.7）。限界：級 N の稼働率が 1 未満（0.67〜0.90）なのに不足がある＝不足の一部は能力でなく州の配り（州ごとの需給）＝不足が残る向きの不確かさ。
+ G3（下流の単位費用の新÷旧の床）：投入の値段が級 N の単位費用まで落ちきった場合の上限の下がり＝鉄(既定) 0.9469・鉄木炭製鉄 0.9465・セメント 0.7041・ガラス 0.7370。見込みは床の上（値段は単位費用まで落ちきらない）。
+ 値段（記録）：3 財の値段の平均 0.635〜0.648 → 見込み 0.40〜0.55（新÷旧 0.6〜0.85）。
+ 甜菜糖（記録）：投入の石灰石 0.3222 が安くなる＝甜菜糖の割合は上がる向き〈推〉（beet_base.tsv：英 1913 0.774・清 0.443・オスマン 0.872・日 0.706・米 0.483）。
+ 旗 0 で門が落ちることの確かめ（基線を腕として渡した・measurements/m1020_20261110/gates_flag0.txt）：G1 落ちる（N 32,780・S 0）・G2 落ちる（1.0000）・G2b 落ちる（1.0000）・G1′ 通る・G3 通る（上側の門＝何もしない形では通る）。
+
+[5] 門（両側・腕の前に固定・scripts/instruments/c95ub/gates1020.py gates <腕> keep_1017/base_ins keep_1017/n1 keep_1017/n2 1-10）
+ 狙い（機構・下側）：
+  G1：3 財の級 N の行 0 かつ 級 S の行が全て endow 1.0（1e-9）かつ 級 S の行 ≧ 基線の N の行×0.98。
+  G2：3 財の非産地の産出（旧 N→新 S の outputSum・1870＋1913・10 種の和÷和）新÷旧 1.05〜2.5 かつ ヌル腕の上端（n1 0.9963・n2 1.0283）の外。
+  G2b：3 財の不足÷需要（nationgood_s・1870＋1913）新÷旧 ≦0.90 かつ ヌル腕の下端（0.9771・0.9979）の外。
+ 上側（この形に固有の誤り）：
+  G1′：(a) 他の財の級 N の行が全て endow 0.4 かつ 行の数 ≧ 基線×0.98（M1＝全ての 0.4 の財へ広げる誤りを拾う）。(b) 3 財の級 E が全て 4.0 かつ 行の数 ≧ 基線×0.98（M3）。
+  G3：鉄(既定)・鉄木炭製鉄・セメント・ガラスの級 F の unitCostOutW（産出の重み・1870＋1913）新÷旧 ≧ [4] の床×min(1, ヌル腕の新÷旧)。
+ G4（越境）：基線の 3 財の越境の輸出÷産出 0.00812 ＜床 0.02＝**記録**（門にしない）。新÷旧と n1 0.00720・n2 0.00617 を並べる。
+ 記録（★(919)・gates1020.py の〈記録 新÷旧〉の全ての行を報告に写す）：scaleSum（N→S）・3 財の産出と需要（nationgood）・3 財の値段の平均・行の数・鍵の重なり・G4・甜菜糖の割合（rh_beet.py を腕の eqr_s に同じ引数で：英・清・オスマン・日・米）・.cost の項ごとの秒。
+ 植民地格の行の数：recipeout_s に格の列が無い＝数えられない（限界・名乗る）。植民地の昇格の州（:1534）は試験 T5 で確かめる。
+ 壊さない（止める線・この回の形をそのまま写す）：
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限）。
+  〈1 四半期 100 倍〉は scripts/instruments/c92gf/stoplines1002.sh の〈それ以外〉の行（基準 measurements/m1017_20261110/stopbase/ の M・N1・N2・S11 と並べる・gates1002f に --siam）。建国の直後と分離・反乱の建国の後の名目 GDP 0 の区分は記録。
+  空洞化：python scripts/instruments/hol/an_h2.py <腕>/ins -v4 でピークの 1/10 未満・規則 A2（-ex rule＝植民地格・緯度の絶対値 55 度以上・開幕の人口 20 千人未満＝7 州）の名簿の外。**その線が原因と読めた件だけ止める**＝基線 keep_1017/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（T1＝線が原因の件が 1 件でもあれば止める）。
+  計算量：推定 ＞248.5 秒で止める。機構のテスト（ソースを走査する番人を含む）の赤で止める。
+ 記録だけ：人口の比の行（scripts/instruments/m1017/popjump1017.py・ヌル腕 n1・n2 の件数と並べる）・NG（ng.sh・基準 rd:measurements/ng1017_20261110:m1017・出力フォルダは D:/ の形）・nullgate（m1017・N1・N2）・exact・near・史実の線・home_break・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・英の国債の不履行の種の数。
+ 採否：G1・G2・G2b・G1′・G3 が全て通り、止める線に当たらなければ〈採る〉を推奨。どれかが落ちたら採らない（同じ腕で物差しを替えない）。
+
+[6] 突然変異（腕の前に使い捨ての木 D:/PoB_work/c95ub_work/wt_mut で・試験の出力の全文を measurements/m1020_20261110/mut_*.txt に残す）
+ | 突然変異 | G1 | G1′ | G2 | G2b | G3 | 器の試験 |
+ | M0 旗 0（基線そのもの） | 赤（盤面で確かめた） | 通る | 赤（盤面） | 赤（盤面） | 通る | T2・T6 赤 |
+ | M1 述語を 0.4 の全ての財へ（:851・:1534 の条件を〈常に除く〉へ） | 通る | 赤（他の財の N が 0） | 通る | 通る見込み | 通る見込み | T3・T5 赤 |
+ | M2 :851 だけ（:1534 を直さない） | 赤（植民地の昇格の州の 3 財が S で endow 0.4＝s3_10＜s3） | 通る | 通る見込み | 通る見込み | 通る | T5 赤 |
+ | M3 産地の 4.0 も 1.0 に（:836 の 3 財を 1.0） | 通る | 赤（E が 4.0 でない） | 通る見込み | 通る見込み | 通る | T4 赤 |
+ | M4 述語を石灰石だけ | 赤（珪砂・粘土の N が残る） | 通る | 弱い | 弱い | 通る | T2・T6 赤 |
+ | M5 InstrumentsRecipeout.cs:56 を直さない | 赤（N の行が残る・endow 1.0） | 通る | 通る見込み（G2 は旧 N と新 S の産出の和で読む） | 通る見込み | 通る | T6 赤・RecipeoutInstrumentTests.T3 は旗 1 の既定で赤 |
+ 門の盤面で確かめたのは M0 だけ（gates_flag0.txt）。M1〜M5 の門の赤は紙＝腕を回さない（D: と腕の枠の予算）＝試験で拾う（使い捨ての木で回す）。
+
+[7] 器の試験（PriceOfBread.Tests/UbiquitousMineralTests.cs・新・期待は手で置く：財の生産性×7.0×{0.4・1.0・4.0}）
+ 構築：ロンドン・プラハ・ロッテルダムを持つ 3 国を Scenario.Coef（構築の前）に旗を置いて共有世界の形で作る。
+ T1 [Fact] 旗 0：非産地の 3 財の RGO は ×0.4（財ごとに対照 ≧10）。
+ T2 [Fact] 旗 1：同じ RGO は ×1.0（財ごとに対照 ≧10）。
+ T3 [Fact] 旗 1：非産地の鉄鉱石・石炭・銅鉱は ×0.4 のまま（対照 ≧20）。
+ T4 [Fact] 旗 1：産地の州（ロンドン 石灰石・プラハ 珪砂・ロッテルダム 粘土）は ×4.0 のまま（3 財とも対照がある）。
+ T5 [Theory] 2 件：Simulation.PromoteColonyToRegion で昇格させた州の 3 財が 旗 0 で ×0.4・旗 1 で ×1.0・鉄鉱石と石炭は ×0.4。
+ T6 [Fact]：計器 RoRead の級が 旗 0 で N（規則 0.4）・旗 1 で S（規則 1.0）・Endow が規則と一致（対照 ≧30）。
+ 試験の数（★(994)・[Theory] は InlineData ごと）：4＋2＋1＝7 → 非 FullLength 2595→**2602**・FullLength 3。ident は `--tests-delta 7` で回す。
+
+[8] ソースを走査する番人の点検（㉘・㉑）
+ 工業化度の読み手の許可表（IndustrializationReaderTests）：この線は工業化度を読まない（変わる件数 0）。
+ `new MoneyStock(` の件数：SimCore 64＝この線は 0 件足す。
+ route_anchors.tsv（scripts/instruments/flow262/）：Simulation.cs・Catalog.cs・InstrumentsRecipeout.cs の該当の行の鍵は無い（grep 0）。
+ WriterRatchetTests の宣言の表：ResourceScarcity・StapleSelfSufficient・ApplyEndowment の行は無い（grep 0）。計算量の item（軌道の件数）は旗 1 で動きうる（★(749)・合流が取り直す）。
+ DormantIdentityTests.DormantZeroFields：旗 0 の器のコミットで 1 行足す・旗 1 のコミットで外して墓標の注を 1 行。
+ GoodIdGuardTests：台本は財を名前で書く（gates1020.py）・C# は Catalog の定数で書く。
+ ㉘ の束（器のコミットの直後・隔離ビルド D:/PoB_work/c95ub_work/art）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ScalarDeletionTests・GoodIdGuardTests・RecipeoutInstrumentTests・UbiquitousMineralTests。
+
+[9] 旗 1 で赤になる試験の予言（★(899)：[6] の突然変異の赤と ㉜ の grep を突き合わせた）
+ 突然変異 M1〜M5 が赤にするのは UbiquitousMineralTests の T2〜T6 と RecipeoutInstrumentTests.T3（M5 だけ）。
+ ㉜ の grep（3 財を読む既存の試験）：BuildingGoodBundleTests（レシピの係数＝不変）・SulfuricAcidSodaAshTests:29〜31（参照価格 0.54＝Catalog の値＝不変）・EconomyTests:650（硫黄の ScarceEndowment＝不変）・DiscoveryEngineerTests（発見の名前＝不変）。どれも旗 1 で値が動かない。
+ RecipeoutInstrumentTests.T3：旗 1 で 3 財の非産地は級 S・Productivity＝財の生産性×7.0 ちょうど（7.0 は Simulation.cs:424 の構築で :851 より前）＝緑。級 N の対照は他の財で ≧1＝緑。
+ 予言：旗 1 のフルスイートで機構の番人の赤 0 本（DormantIdentityTests は同じコミットで表を直す）。動きうる物＝WriterRatchetTests の軌道の件数の item（種類で予言・★(749)）と FullLength 3 本（軌道に依る）。
+
+[10] 周辺の点検（読むだけ）
+ StapleSelfSufficient の読み手：Simulation.cs:851・:1534・InstrumentsRecipeout.cs:56 の 3 か所（grep で確かめた）＝3 か所とも同じ述語を足す。:777・:821 の注は主食の規則の説明＝この線は注を足さない（旗の注は Coefficients と Catalog）。
+ ScarceEndowment の k（EnsureScarceCounts）：数えるのは IsScarceMineral の財だけ（:737）＝3 財は入らない＝産地の 4.0 は総量保存の逆算を受けない（ResourceEndowment＝4.0 のまま）。
+ MineralCostFollowsGrade（Coefficients.cs:1368）：既定 0（休眠）＝EconomyStep.MineralSelfCost は鉱脈で割らない。Catalog.IsMineral に 3 財が入る＝枯渇（MineralGradeFactor の能力の倍率 EconomyStep.cs:1116）は 3 財にも掛かる＝この線は変えない（記録）。
+ 住居・建造物（NonTradeable）の石灰石の投入 0.2・0.15：投入の石灰石は取引できる財＝州の市場で買う＝旗 1 で安くなる向き（記録）。
+ 割譲の費用と植民地の価値（Diplomacy.cs:3023・:3092・:3106）は Resources.Length だけを読む＝データは変えない＝触らない（確かめた）。
+ 案 B（EndowmentCostFollowsAbundance）：[2] のとおり、旗 1 の 3 財の非産地は倍率 1.0＝B の対象の外。
+
+[11] 計算量の割り当て：合計 +2.0 秒以下（m1017 の推定 231.5 秒・上限 248.5 秒・名目の余り 約 17.0 秒）。
+ 項ごとの見積り：生産：生産者×月（45.86 秒）＝生産者の集合は変わらない＝±0.3／清算：着値の充填（39.77）＝不足が減り取引の行が動きうる＝±1.0／価格：財の歩（28.86）＝州×財×旬＝件数は不変＝±0.3／他の項＝軌道の揺れ ±1.0。
+ 2 秒以下は 1 本の腕で門にしない（合流の木の累計で読む）。止める線は推定 ＞248.5 秒。c94pe は +0.5 の予言で +20.3＝予言との差を項ごとに名乗る。
+
+[12] 腕の指令
+ ident：`bash scripts/instruments/ident/ident.sh run c95ubz --tree D:/PoB_work/wt_c95ub --tests-delta 7`（旗 0 の器のコミットで・走る間はこの worktree にコミットしない）。
+ 腕 B：POB_WORK=D:/PoB_work/c95ub_work/arm_B・計器つき 10 種（`INS=1 POB_INSTRUMENTS_NATIONS=<README の国の名簿> bash scripts/instruments/batch.sh run c95ubB 10`）。
+ S11：POB_WORK=D:/PoB_work/c95ub_work/arm_S11・POB_CEARN=0・同じ国の名簿・種 11〜20。
+ S11 の読み方：基準 keep_1017/a11 に recipeout_s・nationgood_s がある＝gates1020.py を a11 を基準・ヌル腕の欄にも a11 を渡して**記録**として出す（種 11〜20 のヌル腕は無い＝門にしない）。止める線は stoplines1002 の S11 の基準・an_h2・gdp_zero10 で読む。
+ 読み手：scripts/instruments/c95ub/read1020.sh（gates1020・stoplines1002・an_h2 -v4・gdp_zero10・popjump1017・plvl・ukdef・nullgate・home_break・ng・rh_beet・.cost）。
+
+[13] 手順
+ この事前登録（最初のコミット）→ 旗 0 の器と試験（1 コミット）→ ㉘ の束 → ident c95ubz〈判定: 恒等〉→ 突然変異（使い捨ての木）→ 旗 1（Coefficients.cs と DormantIdentityTests の表）→ 計器の試験の束（㊴）→ フルスイート（分けて回し --list-tests と突き合わせる）・savetest・leakhunt → 赤なら腕 B を回さず止める → 腕 B＋S11 → 門と止める線 → 採否の推奨。
+ 旗 1 の出力を見た後のエンジンの変更は ⑭ の枠 1 回まで（理由に関係なく数える）。
