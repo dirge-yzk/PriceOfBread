@@ -33,3 +33,21 @@
 
 [7] 記録の段（採否に使わない）
  NG（ng1017 の 91 件と比べる）・nullgate・home_break・英の国債の不履行（M・S11・N1・N2）・人口の比の行（popjump1017）・開幕の 1000 倍以上・exact・near・史実の線。
+
+[追記 1]（1 回目のフルスイートの後・合わせ直しの merge と腕の前に書く）
+ 合わせた木 9c755d1b（wn＋pc＋ub・旗 1）のフルスイート（measurements/m1022_20261110/suite_9c755d1b_wn_excluded.txt）：--list-tests 2618＋3（予言どおり）・Category!=FullLength 合格 2613・スキップ 1・赤 4・FullLength 3/3・savetest OK・leakhunt 保存則違反なし。
+ 予言の外れ（[1] の〈赤は item 11 の 1 本だけ〉）：予言の赤 item 11（2,239,092）のほかに 3 本。
+  ①GoodIdGuardTests.道具のPythonは財の番号を数字で書かない＝c95pc の台本 scripts/instruments/c95pc/record.py:9 `GOODS3 = [`（中身は財の名前の並び＝番号の直書きではない・変数名が走査の型に当たった）。
+  ②OnDoubleReadScanTests＝新しい二重読み Diplomacy.cs::TriggerWars#0 読み 2（c95wn が TriggerWars の屈服の行と StartWar の行に Instruments.On の読みを 1 つずつ足した）。
+  ③InvadeInstrumentTests（DiplomacyPendingTests.cs:242）＝invade_s の見出しの幅 7→8（c95wn が q の列を足した）。
+ 判断：c95wn をこの合流から外す（波96 の先頭へ戻す）。
+  理由 1：OnDoubleReadScanTests の Allowed は〈今の木の違反の写し・直した関数はここから消す〉と名乗る下向きの番人＝TriggerWars を許可表に足すのは〈読みは増えない〉の Assert を物差しの側で緑にすること。
+  理由 2：直す場所は Diplomacy.cs::TriggerWars の 2 読みを 1 読みに畳むこと＝エンジンの .cs＝合流は触れない。
+  理由 3：★(813)（c13fl）の前例＝走査の番人の赤は旗 0 の器でも main へ入れられない。wn の事前登録は㉑の予言 0 で、束に OnDoubleReadScanTests・DiplomacyPendingTests が無く、フルスイートも回していない。
+  ③は見出しの幅の宣言（pc の RecipeoutHeaderExpected と同じ型）だが、wn を外すのでこの回では触らない。
+ ①の直し（台本だけ・エンジンの .cs は 0）：record.py の変数名 GOODS3 を MINERAL_NAMES に替える（中身は不変）。予言：出力は変わらない＝腕 Z の生（旗 0 の盤面＝pc の ident と同じ盤面）で record.py を回した出力が measurements/m1019_20261110_record.txt とバイト一致。
+ 改めた予言：
+  入れる順＝pc 4ce31359 → ub 96c24272（merge-tree 衝突 0）。テスト Category!=FullLength＝2595＋pc 5＋ub 7＝2607・FullLength 3。合わせ直した木のフルスイートの赤は item 11 の 1 本だけ（取り直しの前）・①の直しの後は GoodIdGuard 緑。
+  腕 Z の宣言＝--added-tables prodcap_s・--grown-ok recipeout_s・--tests-delta 12（ほかは [2] のまま）。腕 Z の生の prodcap_s・recipeout_s は pc の ident の生と表ごとの sha1 で一致（hash/pc_ib.tsv）。
+  M・S11 の成績表の一致の予言は [3]・[4] のまま（pc は恒等）。M の生は ub の arm_B と、揺れの表・列が増えた recipeout_s・腕にだけある prodcap_s を除いてバイト一致。
+ D:：線の ident の生（wn・pc・ubz の out_ib_10・out_ia_5）は表ごとの sha1 を m1022_work/hash/ に取った後に消した（フルスイートの結果を見る前）＝空き 132.8GB＝Z・M・S11・N1・N2 を同時に起こす。
