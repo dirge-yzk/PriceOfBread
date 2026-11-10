@@ -161,7 +161,7 @@ public static class Meritocracy
                     int idx = pi == 0 ? r.ArtisanPopIndex : r.MerchantPopIndex;
                     if (idx < 0) continue;
                     var t = r.Pops[idx];
-                    if (t.Size <= Eps) continue;
+                    if (t.Size <= Eps && !(c.ColonyPettyEntryEmptyTarget > 0 && idx == r.MerchantPopIndex)) continue;   // ★(1014) 旗 > 0 で空の商人の行き先だけ飛ばさない（0・NaN＝旧の条件そのもの）
                     double attract = Math.Max(0, t.EarnedPerMonth.Value) / Math.Max(Eps, t.Size) / Math.Max(Eps, fromIncome * c.PromotionPremium);
                     if (attract > 1.0)
                     {
