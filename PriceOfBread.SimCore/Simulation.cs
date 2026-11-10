@@ -802,9 +802,30 @@ public sealed class Simulation
     //   操業規模の器 InitialArmsIndustryScale は 2026-08-22 の実測で棄却＝2026-09-26 に削除（棚卸し mil-21・dorm-36）。
     internal static readonly int[] InitialArmsIndustryGoods = [Catalog.GunpowderId, Catalog.CanvasId, Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.SailingShipId, Catalog.WarshipId];
 
+    /// <summary>★(1025) c96rd 段0″a 資源のデータ：world.json の州の resources に足した史実の産地の行（確度〈中〉かつ州の対応を確かめた 10 行・事前登録 measurements/m1025_20261110_prereg_rd.txt §1）。
+    /// 足した行は各州の配列の末尾＝旗 0 で外すと足す前の並びに戻る。</summary>
+    internal static readonly (string City, int Good)[] ResourceRowsAdded =
+    [
+        ("バーミンガム", Catalog.CopperOreId), ("マンチェスター", Catalog.SaltId), ("グラスゴー", Catalog.FishId), ("ブレスラウ", Catalog.IronOreId),
+        ("セントポール", Catalog.LeadOreId), ("広州", Catalog.IronOreId), ("グラーツ", Catalog.SaltId), ("ビルバオ", Catalog.IronOreId),
+        ("セビーリャ", Catalog.CopperOreId), ("セビーリャ", Catalog.LeadOreId),
+    ];
+
+    /// <summary>★(1025) 州の賦存の配列を決める 1 か所（BuildProvince だけが呼ぶ）。旗 <see cref="Coefficients.ResourceRowsFix"/> が正なら world.json の配列のまま、
+    /// 0（NaN も）なら <see cref="ResourceRowsAdded"/> の行を外した配列（並びは元のまま・外す行の無い州は元の配列）。州の Region.Resources はこの配列＝全ての読み手が同じ配列を見る。</summary>
+    internal static int[] ProvinceResources(string city, int[] resources, Coefficients coef)
+    {
+        if (coef.ResourceRowsFix > 0) return resources;
+        bool Added(int g) { foreach (var (c, a) in ResourceRowsAdded) if (a == g && c == city) return true; return false; }
+        bool any = false;
+        foreach (var g in resources) if (Added(g)) { any = true; break; }
+        return any ? System.Array.FindAll(resources, g => !Added(g)) : resources;
+    }
+
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
         var (city, share, resources, culture, religion, _, _, _, _, _) = p;   // Coastal/Malarial/ArableLand/IndShare/Rule は p.* で直接参照（★2026-10-01 (148)：LateResources を削除＝産地の発見の表 Catalog.Sites へ）
+        resources = ProvinceResources(city, resources, coef);   // ★(1025) 足した史実の産地の行を旗で入れる・外す 1 か所
         var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
         // 列挙する州（中国の茶州等）は下の賦存ブースト×3.5で産み、加工して世界へ売る＝供給の偏在が地理から創発する（287州世界）。

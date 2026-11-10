@@ -1,0 +1,16 @@
+applied M1
+ PriceOfBread.SimCore/Simulation.cs | 2 +-
+ PriceOfBread.SimCore/world.json    | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:06.34]     PriceOfBread.Tests.ResourceRowsTests.T2_旗1では足した行が入り賦存が4倍か3点5倍 [FAIL]
+[xUnit.net 00:00:06.34]     PriceOfBread.Tests.ResourceRowsTests.T6_足した行の表は10行で重ならずworldjsonにある [FAIL]
+[xUnit.net 00:00:06.39]     PriceOfBread.Tests.ResourceRowsTests.T4_足していない生産者は旗で1ビットも動かない [FAIL]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T2_旗1では足した行が入り賦存が4倍か3点5倍 [27 ms]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T6_足した行の表は10行で重ならずworldjsonにある [6 ms]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T4_足していない生産者は旗で1ビットも動かない [47 ms]
+rc=1
+   Assert.Equal() Failure: Collections differ
+   ベルリン・鉄鉱石 が手の表の〈足した行〉に無い
+   Assert.Equal() Failure: Values differ

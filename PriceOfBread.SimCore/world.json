@@ -506,7 +506,8 @@
      "share": 0.1656,
      "resources": [
       36,
-      1
+      1,
+      6
      ],
      "culture": "イングランド",
      "religion": "プロテスタント",
@@ -520,7 +521,8 @@
       0,
       27,
       1,
-      107
+      107,
+      2
      ],
      "culture": "イングランド",
      "religion": "プロテスタント",
@@ -533,7 +535,8 @@
      "share": 0.138,
      "resources": [
       1,
-      75
+      75,
+      20
      ],
      "culture": "スコットランド",
      "religion": "プロテスタント",
@@ -639,7 +642,9 @@
      "city": "セントポール",
      "rule": [0.0, 0.05, 0.0, 0.95],
      "share": 0.005,
-     "resources": [],
+     "resources": [
+      3
+     ],
      "coastal": false,
      "culture": "",
      "religion": ""
@@ -1024,7 +1029,8 @@
      "resources": [
       1,
       3,
-      105
+      105,
+      0
      ],
      "culture": "ドイツ",
      "religion": "カトリック",
@@ -1295,7 +1301,8 @@
      "share": 0.05629139,
      "resources": [
       0,
-      19
+      19,
+      6
      ],
      "culture": "ドイツ",
      "religion": "カトリック",
@@ -1769,7 +1776,9 @@
      "rule": [0.5, 0.45, 0.0, 0.05],
      "share": 0.137648,
      "resources": [
-      16
+      16,
+      2,
+      3
      ],
      "culture": "スペイン",
      "religion": "カトリック",
@@ -1799,7 +1808,9 @@
      "city": "ビルバオ",
      "rule": [0.3, 0.7, 0.0, 0.0],
      "share": 0.058992,
-     "resources": [],
+     "resources": [
+      0
+     ],
      "culture": "スペイン",
      "religion": "カトリック",
      "coastal": true
@@ -2026,7 +2037,8 @@
      "resources": [
       66,
       14,
-      24
+      24,
+      0
      ],
      "culture": "漢",
      "religion": "儒仏",
