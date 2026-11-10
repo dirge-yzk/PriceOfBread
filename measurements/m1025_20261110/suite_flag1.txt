@@ -1,0 +1,18 @@
+# (1025) 旗 1 の木 cf73a1b2 のフルスイート・savetest・leakhunt（腕 B の前・㉜ ㊴）
+# 計器の束（㊴）：FullyQualifiedName~Instrument|UbiquitousMineralTests|ResourceRowsTests
+成功!   -失敗:     0、合格:   285、スキップ:     0、合計:   285、期間: 27 m 10 s - PriceOfBread.Tests.dll (net10.0)
+# --list-tests：Category!=FullLength 2614・FullLength 3
+失敗!   -失敗:     4、合格:  2609、スキップ:     1、合計:  2614、期間: 17 m 7 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 20 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [333 ms]
+  失敗 PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [5 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1627) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2239092) [< 1 ms]
+   Assert.Empty() Failure: Collection was not empty
+   Assert.Equal() Failure: Strings differ
+   計算量「請求：見た生産者（月）」が 1678 件（宣言 1627・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分
+   計算量「外交：覇権の判定の国×国」が 2010476 件（宣言 2239092）＝10 % を超えて**下がった**＝表を 2010476 へ下げて理由を書く（＝改善の宣言）。
+# 赤 4 本の区分：OpeningBakeTests 2 本＝★(764)（world.json の変更・合流で焼き直す）・WriterRatchetTests item 6（1627→1678）・item 11（2239092→2010476）＝★(749)（軌道の件数・合流の木で取り直す）＝事前登録 §8 の予言の内
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
