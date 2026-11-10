@@ -1,0 +1,4 @@
+2026-11-10 22:00:19 suite1 緑の後に消した：ident_c96wn/{out_ia_5,out_ib_10,src_ia,src_ib,src_it,art_it}・ident_c96kf/{同}・c96rd_work/out_c96rdB_10・c96rd_work/out_c96rdS_10_s11（sha1 は m1027_work/hash/）
+2026-11-10 22:54:12 腕 Z の判定〈恒等〉と sha1 の突き合わせ（read/rawcmp_Z_vs_c96wn・_c96kf）の後に消した：ident_m1027z/{out_ia_5,out_ib_10,src_*,art_it,snap_ib_10}（自分で作った）
+2026-11-10 23:26:37 腕の木の写し src_*・空の out_*（自分で作った）
+2026-11-10 23:31:40 線の作業フォルダ（自分で作っていない・生は先に消した・記録は各線の measurements と合流の写しにある）：ident_c96wn・ident_c96kf・c96wn_work（mut_D〜mut_T2 の 12 本を含む）・c96wn_edit.py・c96kf_work・c96rd_work・r1026_work（写しは ad24b57c）
