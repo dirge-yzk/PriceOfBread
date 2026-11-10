@@ -1,0 +1,33 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c95ub_work\art_mut\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c95ub_work\art_mut\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c95ub_work\art_mut\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c95ub_work\art_mut\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:05.36]     PriceOfBread.Tests.UbiquitousMineralTests.T3_旗1でも他の非産地の鉱物は0点4のまま [FAIL]
+  失敗 PriceOfBread.Tests.UbiquitousMineralTests.T3_旗1でも他の非産地の鉱物は0点4のまま [3 s]
+  エラー メッセージ:
+   ロンドン 財鉄鉱石：21（期待 8.4）
+  スタック トレース:
+     at PriceOfBread.Tests.UbiquitousMineralTests.T3_旗1でも他の非産地の鉱物は0点4のまま() in D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.Tests\UbiquitousMineralTests.cs:line 73
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:05.44]     PriceOfBread.Tests.UbiquitousMineralTests.T5_植民地の昇格の州でも同じ(flag: 1, expect: 1) [FAIL]
+  失敗 PriceOfBread.Tests.UbiquitousMineralTests.T5_植民地の昇格の州でも同じ(flag: 1, expect: 1) [5 ms]
+  エラー メッセージ:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  スタック トレース:
+     at PriceOfBread.Tests.UbiquitousMineralTests.T5_植民地の昇格の州でも同じ(Double flag, Double expect) in D:\PoB_work\c95ub_work\wt_mut\PriceOfBread.Tests\UbiquitousMineralTests.cs:line 104
+   at InvokeStub_UbiquitousMineralTests.T5_植民地の昇格の州でも同じ(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

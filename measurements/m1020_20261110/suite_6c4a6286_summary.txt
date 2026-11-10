@@ -1,0 +1,22 @@
+list nonfull 2602
+list full 3
+nonfull rc=1 908s
+full rc=0 179s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:06:21.70]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3230490) [FAIL]
+失敗!   -失敗:     1、合格:  2600、スキップ:     1、合計:  2602、期間: 15 m 5 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 58 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3230490) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2239092 件（宣言 3230490）＝10 % を超えて**下がった**＝表を 2239092 へ下げて理由を書く（＝改善の宣言）。
+SUITEDONE
+saveleak rc=0 188s
+保存 46.2MB（520ms）／読込 602ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 140・その月の額の和 1.023E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c95ub_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c95ub_work/suite/leakhunt.txt.manifest（SOURCE-HASH=cabfe156bcd49bfc）
+SL-END 15:00:48
+SAVELEAKDONE

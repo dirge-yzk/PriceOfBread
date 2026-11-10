@@ -1,0 +1,12 @@
+D:\PoB_work\c95ub_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:09:10.71]     PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [FAIL]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [242 ms]
+  エラー メッセージ:
+   利害が全て 0＝試験にならない
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則() in D:\PoB_work\c95ub_work\suite\suitesrc\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 365
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:   272、スキップ:     0、合計:   273、期間: 9 m 15 s - PriceOfBread.Tests.dll (net10.0)
