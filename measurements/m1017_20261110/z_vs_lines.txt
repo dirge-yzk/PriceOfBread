@@ -1,0 +1,3 @@
+corncf_s: 腕 Z 10 本・線の生 10 本・sha1 一致 10
+lordstat_s: 腕 Z 10 本・線の生 10 本・sha1 一致 10
+recipeout_s: 腕 Z 10 本・線の生 10 本・sha1 一致 10
