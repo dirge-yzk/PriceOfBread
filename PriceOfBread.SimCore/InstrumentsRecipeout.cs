@@ -10,7 +10,7 @@ namespace PriceOfBread.SimCore;
 //   ②産出が 0 の行の単位費用は生産者の単純平均（産出重みが定義できない）。③Region.Resources を持たない小世界は級 N・S の判別が Climate の座標に依る。
 public static partial class Instruments
 {
-    internal const string RecipeoutHeaderText = "year\tnation\tgood\trecipe\tclass\tproducers\toutputSum\tcapacitySum\tscaleSum\tunitCostOutW\tselfCostOutW\tunitCostIfAbundance\tendowFromProductivity";
+    internal const string RecipeoutHeaderText = "year\tnation\tgood\trecipe\tclass\tproducers\toutputSum\tcapacitySum\tscaleSum\tunitCostOutW\tselfCostOutW\tunitCostIfAbundance\tendowFromProductivity\tsiteFound";
 
     private const double RoFullChainScale = 7.0;   // Simulation.FullChainProductivityScale の写し（試験 T3 が実物と突き合わせる）
     private const double RoScarcity = 0.4;         // Simulation.ResourceScarcity の写し（同上）
@@ -84,12 +84,12 @@ public static partial class Instruments
         return new RoProd(cls, rule, endow, mc, self, selfAb + inputs);
     }
 
-    sealed class RoAcc { public int N; public double O, Cap, Sc, OMc, OSelf, OAb, SMc, SSelf, SAb, SEndow; public int NEndow; }
+    sealed class RoAcc { public int N; public double O, Cap, Sc, OMc, OSelf, OAb, SMc, SSelf, SAb, SEndow; public int NEndow, NSiteFound; }
     sealed class RoSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, RoSink> RoSinks = new();
 
     /// <summary>国 1 つの行（番人用）：財の id・レシピ名・級の順。</summary>
-    internal static List<(int Good, string Recipe, string Class, int N, double O, double Cap, double Sc, double Mc, double Self, double Ab, double Endow)> RoRows(World w, int goodLimit)
+    internal static List<(int Good, string Recipe, string Class, int N, double O, double Cap, double Sc, double Mc, double Self, double Ab, double Endow, double SiteF)> RoRows(World w, int goodLimit)
     {
         var acc = new Dictionary<(int, string, string), RoAcc>();
         foreach (var r in w.Regions)
@@ -106,17 +106,18 @@ public static partial class Instruments
                 a.OMc += o * x.Mc; a.OSelf += o * x.Self; a.OAb += o * x.IfAbundance;
                 a.SMc += x.Mc; a.SSelf += x.Self; a.SAb += x.IfAbundance;
                 if (!double.IsNaN(x.Endow)) { a.SEndow += x.Endow; a.NEndow++; }
+                if (p.SiteFound) a.NSiteFound++;
             }
         }
         var keys = new List<(int, string, string)>(acc.Keys);
         keys.Sort((a, b) => { int t = a.Item1.CompareTo(b.Item1); if (t != 0) return t; t = string.CompareOrdinal(a.Item2, b.Item2); return t != 0 ? t : string.CompareOrdinal(a.Item3, b.Item3); });
-        var rows = new List<(int, string, string, int, double, double, double, double, double, double, double)>(keys.Count);
+        var rows = new List<(int, string, string, int, double, double, double, double, double, double, double, double)>(keys.Count);
         foreach (var k in keys)
         {
             var a = acc[k]; bool wgt = a.O > 0;
             rows.Add((k.Item1, k.Item2, k.Item3, a.N, a.O, a.Cap, a.Sc,
                 wgt ? a.OMc / a.O : a.SMc / a.N, wgt ? a.OSelf / a.O : a.SSelf / a.N, wgt ? a.OAb / a.O : a.SAb / a.N,
-                a.NEndow > 0 ? a.SEndow / a.NEndow : double.NaN));
+                a.NEndow > 0 ? a.SEndow / a.NEndow : double.NaN, k.Item3 == "X" ? (double)a.NSiteFound / a.N : double.NaN));
         }
         return rows;
     }
@@ -137,7 +138,7 @@ public static partial class Instruments
         {
             string nm = NameOf(w);
             foreach (var row in RoRows(w, goodLimit))
-                sk.W.WriteLine(string.Join('\t', I(yearLabel), nm, Catalog.Goods[row.Good].Name, row.Recipe, row.Class, I(row.N), FR(row.O), FR(row.Cap), FR(row.Sc), FR(row.Mc), FR(row.Self), FR(row.Ab), FR(row.Endow)));
+                sk.W.WriteLine(string.Join('\t', I(yearLabel), nm, Catalog.Goods[row.Good].Name, row.Recipe, row.Class, I(row.N), FR(row.O), FR(row.Cap), FR(row.Sc), FR(row.Mc), FR(row.Self), FR(row.Ab), FR(row.Endow), FR(row.SiteF)));
         }
     }
 

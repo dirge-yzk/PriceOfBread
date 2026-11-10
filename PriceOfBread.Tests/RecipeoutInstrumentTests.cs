@@ -74,7 +74,7 @@ public class RecipeoutInstrumentTests
         }
         finally { restore(); }
     }
-    private const string RecipeoutHeaderExpected = "year\tnation\tgood\trecipe\tclass\tproducers\toutputSum\tcapacitySum\tscaleSum\tunitCostOutW\tselfCostOutW\tunitCostIfAbundance\tendowFromProductivity";
+    private const string RecipeoutHeaderExpected = "year\tnation\tgood\trecipe\tclass\tproducers\toutputSum\tcapacitySum\tscaleSum\tunitCostOutW\tselfCostOutW\tunitCostIfAbundance\tendowFromProductivity\tsiteFound";
 
     /// <summary>T2：州ごとに値段を変えた盤面で、計器の生産者ごとの mc・自己費用が ExplainCostByRecipe の同じレシピ（名前と投入の財の列）の Mc・OwnCost と合う。</summary>
     [Fact]
@@ -195,6 +195,38 @@ public class RecipeoutInstrumentTests
         Assert.True(big >= 1, "倍率 10 超（希少鉱物か開いた大鉱床）の対照が無い");
         Assert.True(bigE >= 1, "希少鉱物の産地（E で倍率 10 超）の対照が無い");
         Assert.True(deposit >= 1, "大鉱床の盤面が無い");
+    }
+
+    /// <summary>(1019) S1：siteFound の列。開く前の大鉱床の行は割合が下がり、OpenSite の後は上がる（Sites の Kind で決める変異では動かない）。級 X 以外は nan・級 X の行は 0〜1。</summary>
+    [Fact]
+    public void S1_siteFoundは産地の発見に従う()
+    {
+        var sim = Make();
+        (World w, Region r, Producer p)? site = null;
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+            if (site is null && p.IsRgo && p.SiteRow >= 0 && Catalog.Sites[p.SiteRow].Kind == Catalog.SiteKind.Deposit && !p.SiteFound) site = (n.World, r, p);
+        Assert.NotNull(site);
+        var (sw, sr, sp) = site!.Value;
+        int gc = Catalog.Goods.Length;
+        double Frac()
+        {
+            string rn = sp.RecipeName.Length == 0 ? "(既定)" : sp.RecipeName;
+            var row = Instruments.RoRows(sw, gc).Single(x => x.Good == sp.GoodId && x.Recipe == rn && x.Class == "X");
+            return row.SiteF;
+        }
+        double before = Frac();
+        Assert.True(before >= 0.0 && before < 1.0, $"開く前の割合 {before}");
+        Discovery.OpenSite(sw, sr, sp, sw.Coef);
+        double after = Frac();
+        Assert.True(after > before && after <= 1.0, $"開いた後の割合 {after}・前 {before}");
+        int xRows = 0;
+        foreach (var n in sim.Nations)
+            foreach (var row in Instruments.RoRows(n.World, gc))
+            {
+                if (row.Class == "X") { xRows++; Assert.True(row.SiteF >= 0.0 && row.SiteF <= 1.0); }
+                else Assert.True(double.IsNaN(row.SiteF), $"級 {row.Class} の siteFound は nan");
+            }
+        Assert.True(xRows >= 1, "級 X の行が無い");
     }
 
     /// <summary>T5：INS を切ると表を書かない。</summary>
