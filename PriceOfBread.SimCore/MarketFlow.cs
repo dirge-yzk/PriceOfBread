@@ -99,6 +99,8 @@ public static class MarketFlow
         bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
         bool closedWage = h > 1 && lnFloorWage > Eps && lnCeilWage > Eps;
         long nSteps = 0, nClosedL = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
+        long kLabor = 0, kSvcD = 0, kGoodsD = 0, kRunL = 0, kRunS = 0, kRunG = 0;   // (1024) 計器 K2 pxstep_s の枝ごとの層の総数と日次の日数（無条件の整数の加算＝読みは増えない・nStep1 などは層をまたいで共用なので別に持つ）
+        bool insOn = Instruments.On;   // (1024) この関数の計器の門は 1 回だけ読む（下の LwStep の呼び口と終わりの PxStep の呼び口が使う）
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
@@ -188,9 +190,9 @@ public static class MarketFlow
                     }
                     m.ReservationWage = RW;
                     m.Price = P;
-                    if (Instruments.On) Instruments.LwStep(region, gi, P, mwFloor);   // ★(481) 計器（読むだけ）：書いた直後の値段とそのとき使った床（labor_s の N2 の診断）
+                    if (insOn) Instruments.LwStep(region, gi, P, mwFloor);   // ★(481) 計器（読むだけ）：書いた直後の値段とそのとき使った床（labor_s の N2 の診断）
                     if (h == 1) nStep1++; else nLabor++;
-                    nRun += run; nSkip += h - run;
+                    nRun += run; nSkip += h - run; kLabor++; kRunL += run;
                 }
                 else
                 {
@@ -232,7 +234,7 @@ public static class MarketFlow
                         if (still) break;
                     }
                     m.Price = P;
-                    nRun += run; nSkip += h - run;
+                    nRun += run; nSkip += h - run; kSvcD++; kRunS += run;
                 }
             }
             else
@@ -306,9 +308,10 @@ public static class MarketFlow
                     if (still) { if (pinned) m.FlowAsleep = true; break; }   // ★張り付いた財が不動点に着いた＝月の残りの旬は眠る（上の remarks）
                 }
                 m.Price = P;
-                nRun += run; nSkip += h - run;
+                nRun += run; nSkip += h - run; kGoodsD++; kRunG += run;
             }
         }
+        if (insOn) Instruments.PxStep(region, live.Length, nSteps, nAsleep, kLabor, nClosedS, kSvcD, nClosedG, nClosedP, kGoodsD, kRunL, kRunS, kRunG);   // (1024) 計器 K2（読むだけ）：枝ごとの件数を州の蓄えへ
         if (cost is not null) cost[CostLedger.PriceGoods] += live.Length - nAsleep;   // 計算量の台帳（診断）：この州で回した財（死んでいない財のうち眠っていない財）
         if (cost is not null) cost[CostLedger.PriceDailyRuns] += nRun;   // 計算量の台帳（診断）：日次の写像をまわした回（役務・労働・帯の端の財）
         if (MultiNationSim.TimeOn)

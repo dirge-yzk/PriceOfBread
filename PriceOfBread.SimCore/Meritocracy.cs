@@ -28,6 +28,7 @@ public static class Meritocracy
         bool atWar = w.AtWarNow;   // 戦時は復員しない（Military.Step の交戦の判定と同じ＝自国の戦争が1本でもある）
         double dischargeQ = Calendar.OverSteps(c.SoldierMigrationRatePerMonth.Value, Calendar.MonthsPerQuarter);   // 平時の定員超過を戻す速さ＝旧の月の徴募/離職の速さの四半期の値（新しい数なし）
         double volunteers = 0;   // この四半期に席へ入った志願兵（国の和）＝熟練を薄める（Military.DiluteSkill）
+        bool ins = Instruments.On;   // (1024) 計器 K3（merch_s の末尾 7 列）の門＝Step の頭で 1 回だけ読む
         foreach (var r in w.Regions)
         {
 
@@ -166,7 +167,9 @@ public static class Meritocracy
                     if (attract > 1.0)
                     {
                         double petty = Math.Min(c.PettyEntryRatePerQuarter.Value * from.Size * Math.Min(attract - 1.0, 1.0), from.Size);
+                        double szP0 = ins ? t.Size : 0;   // (1024) 計器 K3：移す前の行き先の人数
                         Move(from, t, petty, c);
+                        if (ins) Instruments.MerchRoute(r, pi == 1 ? 0 : 1, t.Size - szP0);
                     }
                 }
             }
@@ -272,7 +275,11 @@ public static class Meritocracy
                         var t = r.Pops[idx];
                         if (t.Size <= Eps) continue;
                         if (AssetPerCap(t) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))   // rank7：③と同じ物差し
+                        {
+                            double szC0 = ins ? t.Size : 0;   // (1024) 計器 K3
                             Move(t, capitalist, c.CapitalRiseRatePerQuarter.Value * c.MerchantArtisanCapitalRise * t.Size, c);
+                            if (ins && pi == 0) Instruments.MerchRoute(r, 2, szC0 - t.Size);
+                        }
                     }
                 }
             }
@@ -348,11 +355,14 @@ public static class Meritocracy
                 var mt = r.Pops[r.MerchantPopIndex];
                 double pcM = mt.Size > Eps ? AssetPerCap(mt) : 0;   // rank7：⑤と同じ物差し
                 double thrM = c.MiddleFallThreshold * FallAnchor(mt, fallAvg, c);
+                if (ins) Instruments.MerchGate(r, mt, c);   // (1024) 計器 K3：資産の門をこの位置で計器が自分で計算する
                 if (mt.Size > Eps && pcM < thrM)
                 {
                     double depthM = FallDepth(pcM, thrM, false, c);
+                    double szF0 = ins ? mt.Size : 0;   // (1024) 計器 K3
                     if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, mt, 1, c.MiddleFallRatePerQuarter.Value * depthM * mt.Size, secular, higherEdu, c, ref soldierVac, forced: true);
                     else Move(mt, from, c.MiddleFallRatePerQuarter.Value * depthM * mt.Size, c);
+                    if (ins) Instruments.MerchRoute(r, 3, szF0 - mt.Size);
                 }
             }
 
@@ -367,9 +377,11 @@ public static class Meritocracy
                 {
                     double rate = pc < c.InsolventThreshold * anc6 ? c.BankruptcyFallRatePerQuarter.Value : c.MiddleFallRatePerQuarter.Value;
                     double depth6 = FallDepth(pc, c.MiddleFallThreshold * anc6, false, c);   // 深割れ（破産圏）は自然に速いまま＝depth≈1
+                    double szA0 = ins ? artisan.Size : 0;   // (1024) 計器 K3
                     // ①''点火時：破産職人もプール経路（資格のある者は専門職へ・残りは下層の最良職へ）
                     if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, rate * depth6 * artisan.Size, secular, higherEdu, c, ref soldierVac, forced: true);
                     else Move(artisan, from, rate * depth6 * artisan.Size, c);
+                    if (ins) Instruments.MerchRoute(r, 4, szA0 - artisan.Size);
                 }
             }
 

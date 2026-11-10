@@ -776,7 +776,7 @@ public sealed partial class InternationalMarket
             buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
             if (swSec is not null) { TimeListsTicks += swSec.ElapsedTicks; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
             var costC = Cost; costC[CostLedger.ClearingRows] += buyers.Count;   // 計算量の台帳（診断）：この財で見る買い手行（眠った行・飛ばした行も1件）
-            long nFill = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）
+            long nFill = 0, nInv = 0, nBest = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）・(1024) 計器 K1 の整数の数え（着値≧自州価格の充填・最良が替わった充填＝無条件の加算で読みは増えない）
             foreach (var (t, lp) in buyers)
             {
                 if (ts is not null) ts.Row(tr[t].nation, g);   // (1003) 計器 C2：買い手の行を 1 件数える
@@ -801,7 +801,7 @@ public sealed partial class InternationalMarket
                     restrict = true; rowStamp++; if (MultiNationSim.TimeOn) CntScopeRows++;
                     foreach (var pr in pmem) if (pr.ClearSellerStamp == gStamp) member[pr.ClearSellerPos] = rowStamp;
                 }
-                bool scopeThr = false; long scopeFill0 = nFill;   // ★(434) 計器（読むだけ）：買い手の州が律速か（LastTradeThrottle＜1）・この行の着値の充填の始めの件数
+                bool scopeThr = false; long scopeFill0 = nFill, scopeInv0 = nInv, scopeBest0 = nBest;   // ★(434) 計器（読むだけ）：買い手の州が律速か（LastTradeThrottle＜1）・この行の着値の充填の始めの件数
                 int scopeCls = 0; bool scopeFell = false;   // ★(403) 計器（読むだけ）：行の種類（0 最初・1 最初で眠らせる対象・2 月で前の月に輸入があった行・3 月で覚えで絞った行・5 月で前の月に輸入が無く不足で起きた行）と探し直したか
                 if (Instruments.On) { scopeCls = thin ? (restrict ? 3 : (m.PrevImport > 0 ? 2 : 5)) : (!(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG) ? 1 : 0); scopeThr = !(tr[t].r.LastTradeThrottle >= 1.0); }
                 m.ClearFailLp = 0;   // 印は走査して成約しなかったときだけ（下の行の終わり）＝門で飛ばした行・成約した行は印なし
@@ -832,7 +832,9 @@ public sealed partial class InternationalMarket
                 //     各売り手を1行につき1回しか訪問しないので不要（距離・危険料の表 kmTab/riskTab は清算全体の純メモのまま＝値は同じ。
                 //     ⚠下の 1a/1b/1c から埋まる対は減る＝逆向きの kmLand を読む陸路の記帳（LastLandPartner*・読み手は App の地図だけ）が1ulp の同着で変わりうる）。
                 //   ⚠候補表に入れるのは着値 < MaxValue の売り手だけ＝旧の更新規則（初期値 MaxValue との厳密比較）で best/second に一度も入らない売り手（∞・NaN）は旧でも読まれない。
-                // ★無効な売り手（着値 ≥ 自州価格 lp・∞・NaN）を訪ねない（2026-09-26・高速化・厳密恒等）。無効な売り手は行の結果に効かない：
+                // ★無効な売り手（着値 ≥ 自州価格 lp・∞・NaN）は行の結果に効かない（2026-09-26・高速化・厳密恒等）。
+                //   ⚠(1024) 注の直し：現物が訪ねないのは下界で分かる売り手だけ（:921 の lbv≧lp の打ち切りと 1c の selP·(baseMul＋楔)≧lp の飛ばし）。下界を越えた売り手は距離と危険料を引いて充填し、
+                //   着値が MaxValue 未満なら着値≧lp でも候補表へ入る（その件数を計器 cscx_s の fillsInvalidCount が数える）。以下の理由は〈無効な売り手が結果に効かない〉ことの説明：
                 //   最良になれば下の `!(lp > bestDelA)` で書き込みの前に行が終わる／次善になっても単価は min(lp, 次善)＝lp（次善が MaxValue と同じ値）／
                 //   候補表から外す経路と記帳は最良が有効なときしか通らない／(着値, 添字) の最良は有効な売り手が1人でもいれば無効な売り手の有無で変わらない。
                 //   ⇒ 有効な売り手の集合・訪ねる順・各反復で起きること（成約／外す／行を終える）が旧と同じ＝同じ組が同じ順・量・単価で成約する。
@@ -930,11 +932,11 @@ public sealed partial class InternationalMarket
                             double mar2 = tMargin * (1.0 + km2 / Diplomacy.DistanceNormKm) * adValoremRev
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
-                            double del2 = selP * fac2;
+                            double del2 = selP * fac2; if (del2 >= lp) nInv++;   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
                             if (del2 < double.MaxValue)
                             {
                                 candS[candN] = s2; candD![candN] = del2; candK![candN] = km2; candF![candN] = fac2;
-                                if (del2 < bestDelA) { secondDelA = bestDelA; bestDelA = del2; bestA = s2; bestPos = candN; }   // 新しく訪問した売り手は候補表の誰よりも添字が大きい＝旧の厳密比較と同じ
+                                if (del2 < bestDelA) { nBest++; secondDelA = bestDelA; bestDelA = del2; bestA = s2; bestPos = candN; }   // 新しく訪問した売り手は候補表の誰よりも添字が大きい＝旧の厳密比較と同じ
                                 else if (del2 < secondDelA) secondDelA = del2;
                                 candN++;
                             }
@@ -1082,7 +1084,7 @@ public sealed partial class InternationalMarket
                     else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
                 if (!thin && dealtN > 0) { var keep = new Region[dealtN]; Array.Copy(dealtTmp, keep, dealtN); m.ClearPartners = keep; }   // ★(403) 覚え＝最初の清算で相手にした売り手（先の K 人）
-                if (Instruments.On) Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell, scopeThr, nFill - scopeFill0);   // ★(403) 計器（読むだけ）
+                if (Instruments.On) { Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell, scopeThr, nFill - scopeFill0); Instruments.ScopeRowX(this, nations[ni].World, tr[t].r, nFill - scopeFill0, nInv - scopeInv0, nBest - scopeBest0); }   // ★(403) 計器（読むだけ）・(1024) K1 cscx_s
                 if (!dealtRow) m.ClearFailLp = lp;   // ★走査して成約しなかった＝この自州価格を印に（月の清算で、これを超えて上がるまで眠る＝上の thin の注記）
             }
             costC[CostLedger.ClearingFills] += nFill;   // 計算量の台帳（診断）：この財の着値の充填
