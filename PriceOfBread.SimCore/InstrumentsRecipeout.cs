@@ -53,7 +53,7 @@ public static partial class Instruments
                 var (lat, lon) = Climate.CityCoord(r.Name);
                 if (lat == 0 && lon == 0 && w.Regions.Count > 0) (lat, lon) = Climate.CityCoord(w.Regions[0].Name);
                 if (lat == 0 && lon == 0) { cls = "U"; rule = double.NaN; }
-                else if (!Climate.StapleSelfSufficient(g, lat, lon)) { cls = "N"; rule = RoScarcity * c.ResourceScarcityScale; }
+                else if (!Climate.StapleSelfSufficient(g, lat, lon) && !Catalog.IsUbiquitousMineral(g, c)) { cls = "N"; rule = RoScarcity * c.ResourceScarcityScale; }
                 else { cls = "S"; rule = 1.0; }
             }
         }

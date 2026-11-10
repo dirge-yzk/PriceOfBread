@@ -848,7 +848,7 @@ public sealed class Simulation
             }
             // ★希少鉱物は**非産地では厳密に0**（2026-08-13・裁定⑥）。総量は産地の賦存を引き上げて保つ（ScarceEndowment）。
             else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
-            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
+            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
 
         // ★貴族・聖職の初期資産＝土地（2026-08-04・作者指示「現在の問題を全て解決して」の統一根）。
@@ -1531,7 +1531,7 @@ public sealed class Simulation
                 }
             }
             else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
-            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);
+            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
         // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。（入植者の着地〔農民/労働者〕は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）
         double natives = Math.Max(0, col.PopSize);
