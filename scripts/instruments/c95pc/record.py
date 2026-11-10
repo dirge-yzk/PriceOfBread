@@ -6,7 +6,7 @@
 import sys, glob, os, collections
 
 RAW, HOLE, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
-GOODS3 = ['石灰石', '珪砂', '粘土']
+MINERAL_NAMES = ['石灰石', '珪砂', '粘土']
 
 def rows(path):
     with open(path, encoding='utf-8') as f:
@@ -38,7 +38,7 @@ for s in seeds:
             acc[(y, r['region'], r['good'])][1] += float(r['productivity'])
             acc[(y, r['region'], r['good'])][2].add(r['class'])
             acc[(y, r['region'], r['good'])][3] += int(r['siteFound'])
-        if r['good'] in GOODS3 and r['class'] == 'N':
+        if r['good'] in MINERAL_NAMES and r['class'] == 'N':
             k = (s, y, r['good'])
             three[k][0] += 1; three[k][1] += float(r['output']); three[k][2] += float(r['capacity'])
     for (nat, g, prov) in want:
