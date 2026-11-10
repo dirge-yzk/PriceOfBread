@@ -1,0 +1,35 @@
+(1022) 合流（波95）の予言（merge より前に書く・結果を見る前）
+作った物：D:/PoB_work/m1022_work・D:/PoB_work/wt_m1022（枝 m1022・基点 8cc53a06）。
+
+[0] 入れる順と前提
+ 順＝恒等 c95wn 5544d6b2 → 恒等 c95pc 4ce31359 → 挙動 c95ub 96c24272。読む線 c95cf は写すだけ（コミットは合流）。設計の材料の線は無し。
+ git merge-tree で wn＋pc・その上に ub とも衝突 0。.cs の〈-〉の行は wn の Diplomacy.cs・World.cs の可視性（private→internal）と札の同じ行の書き換え・Instruments.cs の wars_s・invade_s の書き手と呼び口、pc の Instruments.cs の呼び口 2 行と InstrumentsRecipeout.cs の見出し・RoAcc・RoRows、ub の Simulation.cs:851・:1534 と InstrumentsRecipeout.cs:56 の同じ行の書き換えと試験 2 本（CorncfInstrumentTests・RevoltIgnitionTests）だけ＝消す名前 0（WarTables・WarStarted・RoRows を他の枝が新しく呼ぶ所は 0・git grep）。
+ 合流が直す物（エンジンの .cs は 0）：WriterRatchetTests の宣言の表 item 11（覇権の判定の国×国）を合わせた木の実測で取り直す（★(749)）。予言：ub の旗 1 の木の実測 2,239,092 と同じ値（(1017) で 2,171,852→3,230,490 と取り直した item＝軌道の件数。改善の宣言ではない）。wn・pc の計器は INS=0 で件数に触れない。
+
+[1] テストの数
+ Category!=FullLength＝2595＋wn 11＋pc 5＋ub 7＝2618・FullLength 3。
+ 合わせた木（旗 1）の束とフルスイート：赤は item 11 の 1 本だけ（取り直しの前）。取り直した後は赤 0。
+ ProdcapInstrumentTests.P2 は旗 1 の木でも緑：旗 1 で 3 財は RoRead の級が S に移り賦存 1.0＝P2 の S の規則（1.0）と一致する（pc の反証役の名指しの確かめ）。
+ savetest OK・leakhunt 保存則違反なし。
+
+[2] 腕 Z（合わせた木で Coefficients.cs の UbiquitousMineralExempt を 0 にした使い捨ての木・枝 m1022z）
+ ident m1022z＝〈判定: 恒等〉：素の 5 種が b5_20261110_m1017・計器つき 10 種が b10_20261110_m1017_ins と全行一致（名乗り行を除く）。推定 233.1／231.5 秒。
+ 宣言＝--added-tables warentry_s,warpair_s,warband_s,prodcap_s・--grown-ok wars_s,invade_s,recipeout_s・--tests-delta 23・--ng（NG 91 件・新 0・外 0）・--saveleak。
+ 腕 Z の生の warentry_s・warpair_s・warband_s・wars_s・invade_s は wn の ident の生、prodcap_s・recipeout_s は pc の ident の生と表ごとの sha1 で一致（線の生は消す前に sha1 を取る）。
+
+[3] 腕 M（合わせた木・旗 1・計器つき 10 種）
+ 成績表は ub の腕 B b10_20261110_c95ubB_ins と全行一致（名乗り行を除く）・推定 231.1 秒。
+ 生は ub の arm_B と、既知の揺れ（burscan_s・clock_s）・列が増えた表（recipeout_s・wars_s・invade_s）・腕にだけある 4 表（warentry_s・warpair_s・warband_s・prodcap_s）を除いてバイト一致。
+ ub の門 gates1020.py（1 字も変えない・基準 keep_1017）＝線の腕 B と同じ値：G1 級 N 0・級 S 32,972・G1′ 他の財の級 N 244,242・3 財の級 E 1,258・G2 1.4352（1.05〜2.5）・G2b 0.4951（≦0.90）・G3 鉄(既定) 0.9698・木炭製鉄 0.9515・セメント 0.8655・ガラス 0.8540（床の上）。
+ （recipeout_s の列が 1 本増えるので、gates1020.py が列を名前で引くなら同じ値・位置で引くなら合流が読みを確かめて名乗る。）
+[4] S11（種 11〜20・POB_CEARN=0）：成績表は ub の S11 b10s11_20261110_c95ubS_ins と全行一致・推定 227.6 秒。
+ G は記録（ub の事前登録 [12]＝種 11〜20 のヌル腕は無い）。線の S11 で G3 の鉄(既定) 0.9423 が床 0.9543 を下回ったことは記録のまま（同じ値の予言）。最終の採否は S11 で 1 回（止める線）。
+[5] ヌル腕 N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）・素の p5・p10：新しい基線 m1022 の表を作るためだけ（予言の値は書かない）。
+ D: の空き 72.6GB（計画の 176.0GB から別の線が使った）＝線の ident の生（wn・pc・ubz）の表ごとの sha1 を取ってから消し、Z・M・S11・N1・N2 を同時に起こす。空きが 6 本の分（約 94GB）に足りなければ N1・N2 を後に回す（採否は S11 で読む＝順は崩れない）。
+
+[6] 止める線の段（採否に使う）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1e10 倍以上・非有限・stoplines1002 の〈それ以外〉の 100 倍以上（M・S11・N1・N2 を同じ台本で数え直し、measurements/m1017_20261110/stopbase/ と並べる）・空洞化 1/10 未満の名簿の外（an_h2 -v4）で線が原因の件（基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない・種 1〜10 は keep_1017/base_ins・種 11〜20 は keep_1017/a11）・推定の計算量 ＞248.5 秒・機構と不変条件のテストの赤。
+ 予言：止める線 0（M・S11 は ub の腕 B・S11 と同じ盤面）・空洞化 1/10 未満 0・名目 GDP 0 の続き 0。
+
+[7] 記録の段（採否に使わない）
+ NG（ng1017 の 91 件と比べる）・nullgate・home_break・英の国債の不履行（M・S11・N1・N2）・人口の比の行（popjump1017）・開幕の 1000 倍以上・exact・near・史実の線。
