@@ -1,0 +1,5 @@
+(1017) 道具箱 D:/PoB_play/kit を main 6e2822eb で建て直した（scripts/instruments/m1017/kit1017.sh）
+    0 エラー
+
+経過時間 00:00:15.54
+KITDONE
