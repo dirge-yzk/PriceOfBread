@@ -15,20 +15,20 @@ public class CorncfInstrumentTests
     private static int[] CornIds() => Enumerable.Range(0, Catalog.Goods.Length).Where(g => Catalog.Goods[g].Tier == GoodTier.Staple || Catalog.Goods[g].GrainChain).ToArray();
 
     /// <summary>英仏の 2 国を quarters 四半期走らせ、最後の四半期の計器の前に beforeLast で世界を触れる（法や欄を置く）。</summary>
-    private static (string Dir, MultiNationSim Sim) Run(int quarters, Action<MultiNationSim>? beforeLast = null)
+    private static (string Dir, MultiNationSim Sim) Run(int quarters, Action<MultiNationSim>? beforeLast = null, ulong seed = Seed)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_corncf_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
-        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: Seed) { DiplomacyFrozen = true };
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: seed) { DiplomacyFrozen = true };
         try
         {
-            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (q == quarters - 1) beforeLast?.Invoke(sim); Instruments.Quarter(sim, Seed, q); }
+            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (q == quarters - 1) beforeLast?.Invoke(sim); Instruments.Quarter(sim, seed, q); }
         }
         finally { Instruments.Close(sim); Instruments.Configure(null, null); }
         return (dir, sim);
     }
 
-    private static List<Dictionary<string, string>> Last(string dir, int quarters) => Rows(dir, Seed).Where(r => r["quarter"] == (quarters - 1).ToString()).ToList();
+    private static List<Dictionary<string, string>> Last(string dir, int quarters, ulong seed = Seed) => Rows(dir, seed).Where(r => r["quarter"] == (quarters - 1).ToString()).ToList();
 
     /// <summary>手組みの州：所有者（閉鎖）・聖職者（閉鎖）・担い手（大衆）・投資家（近代）の 4 人と穀物の RGO 1 本（産出 100・値段 2・取り分 0.5＝地代 100）。</summary>
     private static (World W, Region R, Producer S) Board(double[]? ls, double builtScale = 0, int flag = 0)
@@ -340,8 +340,12 @@ public class CorncfInstrumentTests
         var (prod, all, _, _) = Rents(w0); int nc = CornIds().Length;
         Assert.Equal(30.0, prod[0 * nc], 9); Assert.Equal(15.0, prod[2 * nc], 9); Assert.Equal(50.0, all[0] + all[1] + all[2], 9);   // 100×(1−0.5)
         Assert.Equal(0.6, Instruments.CfOverAll(prod[0 * nc] * 1.0, all[0] + all[1] + all[2]), 12);   // 分母は同じ規則の和 50
-        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) n.World.CornLaws = ReformLevel.Limited; });
-        var rows = Last(dir, 3); int used = 0;
+        int used = 0, checkedRows = 0;
+        // ★(1020) c95ub：型 1 の行の有無は軌道に依る前提（README ★(743) の末尾）＝種を 1791 の 1 本から 1791〜1795 の 5 本へ広げた（等式・閾値・母集合の規則は同じ）。
+        for (ulong seed = Seed; seed < Seed + 5; seed++)
+        {
+        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) n.World.CornLaws = ReformLevel.Limited; }, seed);
+        var rows = Last(dir, 3, seed);
         foreach (var n in sim.Nations)
         {
             var row = rows.Single(r => r["nation"] == Instruments.NameOf(n.World));
@@ -359,9 +363,12 @@ public class CorncfInstrumentTests
                 if (!(trAll > 1e-9)) continue;
                 double got = D(row, "cfStakeDown" + b);
                 Assert.True(Math.Abs(got - sum / trAll) <= 1e-9 * Math.Max(1, Math.Abs(sum / trAll)) + 1e-12, $"{Instruments.NameOf(n.World)} b{b}：{got} ≠ {sum / trAll}");
+                checkedRows++;
                 if (sum > 0) used++;
             }
         }
+        }
+        Assert.True(checkedRows >= 15, $"調べた行が少ない（{checkedRows}）");   // 5 種×2 国×3 段＝30 のうち trAll＞0 の行
         Assert.True(used > 0, "利害が全て 0＝試験にならない");
     }
 
