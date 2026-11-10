@@ -2162,18 +2162,18 @@ public sealed class World
         return best == double.MaxValue ? 0 : best;
     }
 
-    private double InvShipStock() => (InvSailId < Region.Markets.Length ? Region.Markets[InvSailId].Stock : 0) + (InvSteamId < Region.Markets.Length ? Region.Markets[InvSteamId].Stock : 0);
-    private double InvCannedStock() => InvCannedId < Region.Markets.Length ? Region.Markets[InvCannedId].Stock : 0;
-    private double InvadeCannedReq(Power t) => Coef.InvadeCannedBase + Coef.InvadeCannedPerMilitary * t.Military;
+    internal double InvShipStock() => (InvSailId < Region.Markets.Length ? Region.Markets[InvSailId].Stock : 0) + (InvSteamId < Region.Markets.Length ? Region.Markets[InvSteamId].Stock : 0);
+    internal double InvCannedStock() => InvCannedId < Region.Markets.Length ? Region.Markets[InvCannedId].Stock : 0;
+    internal double InvadeCannedReq(Power t) => Coef.InvadeCannedBase + Coef.InvadeCannedPerMilitary * t.Military;
     // 侵略に要る余剰戦力＝**国力比の単一式**（Diplomacy.ColonizeWillCost・作者裁定2026-08-23）。
     //   旧＝Base＋PerMilitary×標的軍事力 のみ。標的（抽象標的）の軍事力は world.json の静的値（0.1〜0.5・Diplomacy の月次同期の対象外＝
     //   131年間不変）＝要求量は 82%〜90% の4通りしか取らず、距離も制海権も自国の陸軍力も入っていなかった（willprobe 実測）。
     //   ⚠ここが AI とプレイヤーの合流点（CanInvade・Invade の実消費・UI の ExpansionCostFor の三者が読む唯一の式）＝対称は自動的に保たれる。
     //   外交盤を持たない単独世界（経済テスト）では動詞そのものが発火しない＝満タン要求を返す。
-    private double InvadeWillCost(Power t) => Diplomacy is not null && SelfPower is not null
+    internal double InvadeWillCost(Power t) => Diplomacy is not null && SelfPower is not null
         ? Diplomacy.ColonizeWillCost(SelfPower, t, Coef)
         : Coef.ExpansionWillCap;
-    private double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.DistanceWarDecay * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
+    internal double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.DistanceWarDecay * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
 
     /// <summary>侵略の可否＝**唯一のゲート**（旧「植民地化」と1本化・作者裁定2026-08-23）。AI・プレイヤー・UI がこの1本だけを読む。
     /// 標的は弱小（Minor）＝抽象標的でも実在の弱小国でもよい。行為者のランクは問わない（旧・植民地化の「列強のみ」は撤去）＝

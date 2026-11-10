@@ -1099,10 +1099,10 @@ public static partial class Instruments
         CwMonth(w);   // (903) cwmult_s（内戦の軍需の倍率の旧と新の規則）
     }
     /// <summary>戦争を立てた所（<c>Diplomacy.AddBelligerent</c> の <c>Wars.Add</c> の直後）：試合の終わりに戦死と月数を読む。</summary>
-    internal static void WarStarted(Diplomacy dip, War war, int year) => Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war));
+    internal static void WarStarted(Diplomacy dip, War war, int year) { Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war)); WarNoteStart(dip, war); }
     /// <summary>(440) 侵略 1 回（<c>World.Invade</c> が <c>Diplomacy.Subjugate</c> を終えた所）：屈服したか・近接の緊張に積んだ量・そのうち標的自身の組（<c>q == target</c>）に積んだ量。読むだけ。試合の終わりに <c>invade_s</c> へ書く。</summary>
     internal static void Invaded(Diplomacy dip, int year, Power invader, Power target, bool submitted, double added, double addedToTarget)
-        => Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget));
+        { Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget)); WarNoteInvade(dip); }
     /// <summary>月の戦死（<c>Diplomacy.WarCasualties</c>）：(年, 国)ごとの月数・兵士の月和・戦死の和（戦死は兵士の上限をかけた後の量）。</summary>
     internal static void Casualty(Diplomacy dip, int year, Power p, double soldierPop, double dead)
     {
@@ -1911,7 +1911,7 @@ public static partial class Instruments
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
         SubstTable(sim, seed, q); CornintTable(sim, seed, q); MerchTable(sim, seed, q); CorncfTable(sim, seed, q); LordstatTable(sim, seed, q);   // (837)(1012) 自給の段 1 の表 subst_s（州×四半期）・地主の政治 C1 の表 cornint_s（国×四半期）
         LandbaseTable(sim, seed, q);   // (894) 土地税の算定の基準 A1 の段 A-0 の表 landbase_s（国×四半期）・landbasereg_s（州×四半期）
-        BasisxTable(sim, seed, q);   // (970) 土地税の段 A-2b-0 の表 basisx_s（計器の国×四半期）
+        BasisxTable(sim, seed, q); WarQuarter(sim, seed, q);   // (970) 土地税の段 A-2b-0 の表 basisx_s（計器の国×四半期）
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1920,7 +1920,7 @@ public static partial class Instruments
     internal static void Close(MultiNationSim sim)
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
-        if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
+        if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip, sim.Diplomacy);
         CpTable(sk, sim.Diplomacy);   // (791)
         CmTable(sk, sim.Diplomacy);   // (821) 調停の戦争の講和の表 cpmed_s
         ImpTable(sk, sim.Diplomacy);   // (928) 矯正講和の表 imp_s
@@ -1941,7 +1941,7 @@ public static partial class Instruments
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
         BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim);   // (970)(1003)   // (970) basisx_s
         CrownClose(sim);   // (889) crownpc_s
-        CwClose(sim);   // (903) cwmult_s
+        CwClose(sim); WarClose(sim);   // (903) cwmult_s・(1018) warentry_s・warpair_s・warband_s
         LandsaleClose(sim);   // (983) landsale_s
         LandshareClose(sim);   // (895) landshare_s
         SilverParityClose(sim);   // (775)
@@ -2366,19 +2366,21 @@ public static partial class Instruments
         }
     }
 
-    static void WarTables(Sink sk, DipState dip)
+    static void WarTables(Sink sk, DipState dip, Diplomacy dp)
     {
         using (var wr = Open("wars", sk.Seed))
         {
-            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK");
+            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK\tq\tentryCode");
+            int wi = 0;
             foreach (var (year, war) in dip.Wars)
-                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB)));
+                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi++)));
         }
         using (var iv = Open("invade", sk.Seed))
         {
-            iv.WriteLine("year	invader	target	targetIsNation	submitted	proximityAdded	addedToTarget");
+            iv.WriteLine("year	invader	target	targetIsNation	submitted	proximityAdded	addedToTarget	q");
+            int ii = 0;
             foreach (var (year, invader, target, targetIsNation, submitted, added, addedToTarget) in dip.Invades)
-                iv.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), invader, target, targetIsNation ? "1" : "0", submitted ? "1" : "0", F(added), F(addedToTarget)));
+                iv.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), invader, target, targetIsNation ? "1" : "0", submitted ? "1" : "0", F(added), F(addedToTarget), WarInvadeQ(dp, ii++)));
         }
         using (var cs = Open("casualty", sk.Seed))
         {

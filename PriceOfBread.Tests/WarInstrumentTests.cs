@@ -1,0 +1,266 @@
+using System.Reflection;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>★(1018) 線 c95wn：戦争の計器 warentry_s・warpair_s・warband_s と wars_s の入口の札・q の列（読むだけ）の番人。事前登録 measurements/m1018_20261110_prereg_wn.txt の T1〜T8。
+/// 期待は手で置く：T1 は紙の値・T3 は engine 自身の診断（Diplomacy.WarRepeatStats＝_warCount）・T4 はループ変数・T5 はエンジンの CanInvade の戻りの理由（計器の関数の出力でなく別系統）。
+/// 突然変異（使い捨ての木・measurements/m1018_20261110_mutations.txt）：M-S 前線の項を外す／M-T JoinAllies の札を外す／M-T2 DeclareWar の既定札を外す／M-Q q を 1 つずらす／M-R `out _` に戻す／M-O 影の篩の順を入れ替える／M-D 影の評価が乱数を引く。</summary>
+[Collection("Instruments")]
+public class WarInstrumentTests
+{
+    private static MultiNationSim Make(ulong seed = 1789UL)
+        => new([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("プロイセン")], seed);
+
+    private static string TempDir(string tag)
+    {
+        var d = Path.Combine(Path.GetTempPath(), "pob_wn_" + tag + "_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(d);
+        return d;
+    }
+
+    private static Power P(MultiNationSim sim, string name) => sim.Diplomacy.Powers.First(p => p.Nation is not null && (p.BaseName.Length > 0 ? p.BaseName : p.Name) == name);
+
+    /// <summary>T1：S_A・S_C′ が紙の値と 1e-12 以内。land=10・needLand=2・needInternal=1：S_A=7。ratio=0.4→S_C′=10×0.6−3=3・ratio=2（縛られきる）→−3。</summary>
+    [Theory]
+    [InlineData(0.4, 7.0, 3.0)]
+    [InlineData(2.0, 7.0, -3.0)]
+    public void 余剰の候補は紙の値(double ratio, double wantA, double wantC)
+    {
+        Instruments.WarSurplus(10, 2, 1, ratio, out double sA, out double sC);
+        Assert.Equal(wantA, sA, 12);
+        Assert.Equal(wantC, sC, 12);
+        Assert.True(sC < sA, "前線の項が効く行（reach＞0）では S_C′＜S_A（対照）");
+    }
+
+    /// <summary>T2：reach＝0（ratio 0）・届かない（NaN／負）なら S_C′＝S_A。縛られきる（+∞）は 1 と同じ。</summary>
+    [Fact]
+    public void 前線が無ければ余剰は変わらない()
+    {
+        foreach (double ratio in new[] { 0.0, double.NaN, -1.0 })
+        {
+            Instruments.WarSurplus(10, 2, 1, ratio, out double sA, out double sC);
+            Assert.Equal(sA, sC, 12);
+            Assert.Equal(7.0, sA, 12);
+        }
+        Instruments.WarSurplus(10, 2, 1, double.PositiveInfinity, out _, out double sInf);
+        Instruments.WarSurplus(10, 2, 1, 1.0, out _, out double sOne);
+        Assert.Equal(sOne, sInf, 12);
+        Assert.Equal(-3.0, sOne, 12);
+    }
+
+    /// <summary>T3：G-W1。DeclareWar（既定札 declare）・DeclareCivilWar（civil）・同盟の参戦（ally）を通し、〈参戦〉以外の札で数えた組の数と最多が Diplomacy.WarRepeatStats（_warCount）と一致。
+    /// 下側＝札を付け忘れた入口があると組が足りず赤・上側＝参戦を主と数えると組が増えて赤。</summary>
+    [Fact]
+    public void 参戦以外の札で数えた交戦ペアが再戦の診断と一致する()
+    {
+        bool saved = Instruments.On;
+        Instruments.Configure(TempDir("t3"), null);
+        try
+        {
+            var sim = Make();
+            sim.StartWarmup();
+            var d = sim.Diplomacy; var c = sim.Coef;
+            var uk = P(sim, "イギリス"); var fr = P(sim, "フランス"); var pr = P(sim, "プロイセン");
+            // 英とプロイセンを同盟させ、プロイセンに対する仏の宣戦で英を参戦させる（私有の同盟表と緊張を反射で置く＝通る経路は本物の JoinAllies）
+            var key = typeof(Diplomacy).GetMethod("Key", BindingFlags.NonPublic | BindingFlags.Static)!;
+            var al = (HashSet<long>)typeof(Diplomacy).GetField("_alliance", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(d)!;
+            al.Add((long)key.Invoke(null, [uk, pr])!);
+            d.SeedTension(uk, fr, 100);
+            Assert.True(d.DeclareWar(fr, pr, c));
+            var meta = Instruments.WarMetaOf(d);
+            Assert.Equal(d.Wars.Count, meta.Count);
+            Assert.Equal(3, meta[0].Code);   // declare
+            int joins = meta.Count(m => Instruments.WarIsJoin(m.Code));
+            // 内戦（反乱側は抽象の力）
+            var abstractP = d.Powers.First(p => p.Nation is null);
+            d.DeclareCivilWar(uk, abstractP, Polity.Republic, c);
+            meta = Instruments.WarMetaOf(d);
+            Assert.Equal(d.Wars.Count, meta.Count);
+            Assert.Equal(6, meta[^1].Code);   // civil
+            // 主の組（参戦以外）を数える：同じ組の再戦は 1 回なので組の数は件数と同じ
+            var pairs = new Dictionary<(int, int), int>();
+            for (int i = 0; i < meta.Count; i++)
+            {
+                if (Instruments.WarIsJoin(meta[i].Code)) continue;
+                var w = d.Wars[i];
+                var k2 = w.A.Id < w.B.Id ? (w.A.Id, w.B.Id) : (w.B.Id, w.A.Id);
+                pairs[k2] = pairs.GetValueOrDefault(k2) + 1;
+            }
+            var stats = d.WarRepeatStats();
+            Assert.Equal(stats.Pairs, pairs.Count);
+            Assert.Equal(stats.MaxRepeat, pairs.Values.Max());
+            Assert.True(stats.Pairs >= 2, "対照：主と内戦の 2 組が数えられている");
+            Assert.True(joins >= 1, $"対照：同盟の参戦（ally）が通った経路を踏んだ（joins={joins}）");
+            Assert.All(meta.Where(m => Instruments.WarIsJoin(m.Code)), m => Assert.Equal(4, m.Code));
+        }
+        finally { Instruments.On = saved; }
+    }
+
+    /// <summary>T4：G-W3。四半期のループの途中で DeclareWar を押し、記録の q がループ変数と一致する。wars_s の q の列（ファイル）もループ変数と一致。</summary>
+    [Fact]
+    public void 出来事のqはループの変数と一致する()
+    {
+        bool saved = Instruments.On;
+        var dir = TempDir("t4");
+        Instruments.Configure(dir, null);
+        var sim = Make(); const ulong seed = 1789UL;
+        try
+        {
+            Instruments.Phase(sim, seed, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, seed, "warm");
+            var d = sim.Diplomacy; var c = sim.Coef;
+            var fr = P(sim, "フランス"); var pr = P(sim, "プロイセン");
+            for (int q = 0; q < 6; q++)
+            {
+                if (q == 3) Assert.True(d.DeclareWar(fr, pr, c));
+                sim.StepQuarter();
+                Instruments.Quarter(sim, seed, q);
+            }
+            var meta = Instruments.WarMetaOf(d);
+            Assert.NotEmpty(meta);
+            Assert.Equal(3, meta[0].Q);
+            Assert.Equal(d.Wars.Count, meta.Count);
+        }
+        finally { Instruments.Close(sim); Instruments.On = saved; }
+        var lines = File.ReadAllLines(Path.Combine(dir, "wars_s1789.tsv"));
+        var cols = lines[0].Split('\t');
+        Assert.Equal("q", cols[^2]); Assert.Equal("entryCode", cols[^1]);
+        var first = lines[1].Split('\t');
+        Assert.Equal("3", first[^2]);
+        Assert.Equal("declare", first[^1]);
+        // 対照：warband_s の行数は四半期の数と同じ（q の列が 0..5）
+        var band = File.ReadAllLines(Path.Combine(dir, "warband_s1789.tsv"));
+        Assert.Equal(7, band.Length);
+        Assert.Equal("5", band[^1].Split('\t')[0]);
+    }
+
+    /// <summary>T5：影の評価の門の名前が、エンジンの CanInvade の理由と一致する（弱小国の標的について）。期待はエンジンの戻りの文字列（別系統）。
+    /// 対照：複数の理由が現れる（全て同じ理由なら比べたことにならない）。</summary>
+    [Fact]
+    public void 影の評価の最初に落ちた門は本物の理由と一致する()
+    {
+        var sim = Make();
+        sim.StartWarmup();
+        var d = sim.Diplomacy; var c = sim.Coef;
+        var seen = new HashSet<string>(); int checkedN = 0;
+        var warTargets = d.Powers.Where(p => p.Nation is null && p.ColonyList.Count > 0 && d.Suzerain(p) is null).Take(2).ToList();
+        Assert.True(d.DeclareWar(sim.Nations[0].World.SelfPower!, warTargets[0], c));   // 交戦中の標的を 1 つ作る
+        foreach (double will in new[] { 0.0, c.ExpansionWillCap })
+            foreach (var n in sim.Nations)
+            {
+                var gw = n.World; var self = gw.SelfPower!;
+                gw.ExpansionWill = will;
+                foreach (var t in d.Powers)
+                {
+                    bool ok = gw.CanInvade(t, out var reason);
+                    if (reason is "自国" or "外交なし" or "弱小国が標的") continue;
+                    int g = Instruments.WarShadowGate(gw, d, c, self, t);
+                    Assert.Equal(reason, Instruments.WarShadowReasons[g]);
+                    Assert.Equal(ok, g == 0);
+                    seen.Add(reason); checkedN++;
+                }
+            }
+        Assert.True(checkedN >= 20, $"対照：比べた標的が少なすぎる（{checkedN}）");
+        Assert.True(seen.Count >= 2, $"対照：理由が 1 種類しか現れない（{string.Join("/", seen)}）");
+    }
+
+    /// <summary>T6：門の順。交戦中の標的は、余剰戦力も同時に足りない盤面でも〈交戦中〉（:2193 が :2195 より前）。</summary>
+    [Fact]
+    public void 影の篩の順は交戦中が余剰戦力より先()
+    {
+        var sim = Make();
+        sim.StartWarmup();
+        var d = sim.Diplomacy; var c = sim.Coef;
+        var gw = sim.Nations[0].World; var self = gw.SelfPower!;
+        var t = d.Powers.First(p => p.Nation is null && p.ColonyList.Count > 0 && d.Suzerain(p) is null);
+        Assert.True(gw.ExpansionWill < gw.InvadeWillCost(t), "前提：余剰戦力は足りない（開幕の意欲 0）");
+        Assert.Equal(6, Instruments.WarShadowGate(gw, d, c, self, t));   // 余剰戦力が不足
+        Assert.True(d.DeclareWar(self, t, c));
+        Assert.Equal(4, Instruments.WarShadowGate(gw, d, c, self, t));   // 交戦中が先
+        Assert.False(gw.CanInvade(t, out var reason));
+        Assert.Equal("交戦中", reason);
+    }
+
+    /// <summary>T7：影の評価と評価の hook は状態を書かず乱数を引かない：同じ種の 2 つの盤面で、片方にだけ全ての標的の評価を通し、乱数の次の値・膨張意欲・戦争の数が一致。</summary>
+    [Fact]
+    public void 影の評価は乱数を引かず状態を書かない()
+    {
+        bool saved = Instruments.On;
+        Instruments.Configure(TempDir("t7"), null);
+        try
+        {
+            var a = Make(); var b = Make();
+            a.StartWarmup(); b.StartWarmup();
+            var d = a.Diplomacy; var c = a.Coef;
+            foreach (var n in a.Nations)
+            {
+                var gw = n.World; var self = gw.SelfPower!;
+                foreach (var t in d.Powers)
+                {
+                    bool ok = gw.CanInvade(t, out var reason);
+                    Instruments.WarEval(d, c, self, t, reason);
+                    Instruments.WarShadowGate(gw, d, c, self, t);
+                }
+            }
+            Assert.Equal(b.Rng.NextDouble(), a.Rng.NextDouble());
+            Assert.Equal(b.Nations[0].World.ExpansionWill, a.Nations[0].World.ExpansionWill);
+            Assert.Equal(b.Diplomacy.Wars.Count, a.Diplomacy.Wars.Count);
+            Assert.Equal(b.Nations[0].World.InvShipStock(), a.Nations[0].World.InvShipStock());
+        }
+        finally { Instruments.On = saved; }
+    }
+
+    /// <summary>T8：G-W2。四半期の行の理由の件数の和＝評価の数、影の通過数（sh_projPass）≦影で落ちた数（sh の合計）＋…、標的の Id が _rank に無い件数は整数で評価の数以下。
+    /// 評価の hook を実際に通す（Diplomacy.TryAiSubjugate の hook を直接呼ぶ形で同じ経路の列を出す）。</summary>
+    [Fact]
+    public void 理由の件数の和は評価の数と一致する()
+    {
+        bool saved = Instruments.On;
+        var dir = TempDir("t8");
+        Instruments.Configure(dir, null);
+        var sim = Make(); const ulong seed = 1789UL;
+        try
+        {
+            Instruments.Phase(sim, seed, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, seed, "warm");
+            var d = sim.Diplomacy; var c = sim.Coef;
+            int evals = 0;
+            for (int q = 0; q < 2; q++)
+            {
+                foreach (var n in sim.Nations)
+                {
+                    var gw = n.World; var self = gw.SelfPower!;
+                    foreach (var t in d.Powers) { gw.CanInvade(t, out var reason); Instruments.WarEval(d, c, self, t, reason); evals++; }
+                }
+                sim.StepQuarter();
+                Instruments.Quarter(sim, seed, q);
+            }
+        }
+        finally { Instruments.Close(sim); Instruments.On = saved; }
+        var lines = File.ReadAllLines(Path.Combine(dir, "warentry_s1789.tsv"));
+        var h = lines[0].Split('\t');
+        int Col(string n) => Array.IndexOf(h, n);
+        int rFirst = Col("r_ok"), rLast = Col("r_other");
+        Assert.True(rFirst > 0 && rLast == rFirst + 14);
+        long evalSum = 0, rSum = 0, weak = 0, shSum = 0;
+        for (int i = 1; i < lines.Length; i++)
+        {
+            var f = lines[i].Split('\t');
+            long ev = long.Parse(f[Col("evals")]);
+            long rs = 0; for (int k = rFirst; k <= rLast; k++) rs += long.Parse(f[k]);
+            Assert.Equal(ev, rs);
+            long w = long.Parse(f[Col("r_weak")]);
+            long sh = 0; for (int k = Col("sh_pass"); k <= Col("sh_canned"); k++) sh += long.Parse(f[k]);
+            Assert.Equal(w, sh);   // 影の評価は〈弱小国が標的〉で落ちた全てに行われる
+            Assert.True(long.Parse(f[Col("sh_projPass")]) + long.Parse(f[Col("sh_projFail")]) <= long.Parse(f[Col("sh_pass")]));
+            Assert.InRange(long.Parse(f[Col("tgtRankMissing")]), 0, ev);
+            evalSum += ev; rSum += rs; weak += w; shSum += sh;
+        }
+        Assert.True(evalSum >= 100, $"対照：評価の数が少なすぎる（{evalSum}）");
+        Assert.True(weak > 0, "対照：弱小国の門で落ちた評価が 1 件はある");
+    }
+}

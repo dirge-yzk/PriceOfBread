@@ -322,7 +322,7 @@ public sealed class Diplomacy
     public EventLog Log = new();
     public int WarsStarted;   // 開戦回数のスカラーカウンタ（Validationの開戦数＝旧・Log文字列走査の置換。Log.Enabled=falseでも数える）
     private readonly Dictionary<long, int> _warCount = [];   // ★診断（2026-08-01）：ペアごとの開戦回数。挙動非依存＝書くだけ
-    private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（高緊張帯の冷める速さ＝平時の減衰×(1−遺恨)）
+    internal readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（高緊張帯の冷める速さ＝平時の減衰×(1−遺恨)）
     // ★列強の介入と和平提案（器2026-08-01・旧の旗 PeaceInterventionEnabled は 2026-10-18 に焼き込み）
     // ★2026-09-03（キューB-08 の前段）：**同名衝突で州へ昇格できず ColonyList に残った回数**を数える。
     //   ⚠「読み手が空だから消してよい」は本プロジェクトで4回踏んだ推論（型の統合が起こす静かな破損）。
@@ -361,7 +361,7 @@ public sealed class Diplomacy
     // 挙動には一切影響しない純記帳（読むのはUIの緊張モーダルと番人テストだけ）。SaveGameはリフレクションなので自動追従（型はDictionary<long,double[]>＝既存タグのみ）。
     private readonly Dictionary<long, double[]> _tensionWhy = [];
     private static readonly int TensionReasonCount = System.Enum.GetValues<TensionReason>().Length;
-    private readonly Dictionary<long, int> _warClock = [];   // 緊張100以上が続いた月数
+    internal readonly Dictionary<long, int> _warClock = [];   // 緊張100以上が続いた月数
     [System.NonSerialized] private Dictionary<World, CrownForm>? _crownAtPeaceHead;   // ★(943) 旗 ImposeCrownFromLoser：講和の段（StepWars の戦争の走査）の頭の交戦国の王冠の控え＝月の中だけの作業領域（セーブに載らない・走査の終わりで null）
     private (Power w, Power l)? _pendingRevanch;   // 復讐心の予約（ResolvePeaceで設定→EndWarの緊張リセット後に適用・同ティック内消費＝監査2026-07-11 他3）
     private readonly HashSet<long> _alliance = [];
@@ -374,7 +374,7 @@ public sealed class Diplomacy
     // 従属関係（非対称＝宗主→従属の有向）。**「属国」一本化**（ユーザー指示・旧 衛星/属国/傀儡を統合）：金銭貢納＋外交整列、宗主のみ参戦義務・従属は宗主の戦争に従わない。
     private readonly HashSet<long> _dependency = [];   // DirKey(宗主,従属) の有無＝属国関係（種別なし）
     // 国家ランク（列強/中堅/弱小）：四半期ごとに NationalScore の相対閾値で算出しキャッシュ（Power.Id→ランク）。ラベルのみ＝同盟/戦争は不変。
-    private readonly Dictionary<int, PowerRank> _rank = [];
+    internal readonly Dictionary<int, PowerRank> _rank = [];
     public DeterministicRng? UnificationRng;   // P4 統一戦争の専用RNG系列（MultiNationSimが注入・既存系列のdraw数を乱さない。null=単一国/較正＝不発）
     public DeterministicRng? SubmitRng;        // ★屈服の確率化（AI審査3-1・2026-08-31）の専用RNG系列（同上の作法＝既存系列のdraw数を乱さない。SubmitProbabilistic=0では未消費）
     private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
@@ -398,8 +398,8 @@ public sealed class Diplomacy
     internal const double CollapseScore = 1.5;   // ★internal（2026-09-06）：旧経路の内戦の戦勝点も同じ物差しで決着した（その経路は 2026-09-28 に削除＝内戦は戦争の形で同じ戦勝点）                 // 戦勝点の絶対上限＝厭戦崩壊の決定的スコア
     internal const double TensionMax = 200.0;                 // 緊張の尺度＝AddTension のクランプ上限（CrownParliament が外圧を0..1へ正規化して内圧〔闘争度〕と比べるときも同じ尺度で割る）。旧＝直書きの 200 と CrownParliament の TensionScale（(736) で 1 本へ）
     internal const double DistanceNormKm = 10_000.0;          // 距離減衰の正規化単位（km）＝エンジン内の距離の物差しの1本（2026-09-28 処理の一元化 段1＝植民地の維持費と入植・国際市場の運賃と危険料・侵略の船需要の同値の写し3本を畳んだ）。★internal 化2026-09-03＝Politics の分離判定が**同じ物差し**で保持力を割るため（「軍が届くか」の物差しはエンジン内で1本）
-    private const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
-    private const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
+    internal const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
+    internal const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
     private const double OfficerCasualtyPopCap = 0.05;        // 将校戦死の貴族人口上限（5%/月）
     private const int EndedWarRingCapacity = 256;             // 終戦記録リングの容量
 
@@ -491,7 +491,7 @@ public sealed class Diplomacy
     /// ⚠2026-09-26（作者裁定 Q9）：休戦の仕組みは丸ごと削除した（19世紀の講和に不戦年限の条項は無く、再戦の抑えは厭戦と財政が担う）。</summary>
     internal void RegisterIndependence(Power parent, Power child, Coefficients c)
     {
-        ResetTensionTo(Key(parent, child), c.PostWarTension, TensionReason.Secession);
+        ResetTensionTo(Key(parent, child), c.PostWarTension, TensionReason.Secession); if (Instruments.On) Instruments.WarPairEvent(this, parent, child, 3);
         // ★作者裁定 c（2026-09-28・§13-1）：分離独立でも失地の累計を増やす（旧＝講和の割譲だけ）＝独立が確定した州の数（分断・分離戦の敗北・分離の建国・調停の独立）。
         //   割譲と同じ1州1.0＝物差しは1本（Politics.Step の半減期20年の減衰・失地の民族主義 r[4] の長期項）。再併合で戻りうる建国の時点（開戦時の建国）では数えない。
         if (parent.Nation is { } lostW && child.Nation is { } gotW) lostW.LostRegionsCumulative += gotW.Regions.Count;
@@ -923,7 +923,7 @@ public sealed class Diplomacy
     public void Step(Coefficients c, DeterministicRng rng, int month)
     {
         Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
-        if (Instruments.On) Instruments.CpMonth(this, month, _year);   // (791) 計器（読むだけ）
+        if (Instruments.On) { Instruments.CpMonth(this, month, _year); Instruments.WarPairSample(this, c, month, endOfQuarter: false); }   // (791)(1018) 計器（読むだけ）
         // ★開幕（2026-10-01 (151)）＝経済を持つ国のどれもまだ艦隊を播いていない最初の同期（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）。
         bool opening = true;   // ★(189) 艦隊駆動の旗（NavalPowerFromFleet）は削除＝経済を持つ国は常に艦の在庫から
         foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
@@ -1563,7 +1563,7 @@ public sealed class Diplomacy
                             if (c.AISubmitMilRatio > 0
                                 && submitYields)
                             {
-                                CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(a, b)); _tensionRamp.Remove(DirKey(b, a)); _warClock[k] = 0;   // 屈服＝緊張を宥和側へ・両向きのならしを消す（ResolvePendingWar の受諾と同型）
+                                CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(a, b)); _tensionRamp.Remove(DirKey(b, a)); _warClock[k] = 0; if (Instruments.On) Instruments.WarPairEvent(this, a, b, 1);   // 屈服＝緊張を宥和側へ・両向きのならしを消す（ResolvePendingWar の受諾と同型）
                                 if (weak.Nation is { } wn)   // 屈辱（下関・三国干渉＝国内の怒り）。説明APIへ記帳（2026-07-27：未記帳の書き込み現場を解消＝内訳合計と最終値の恒等）
                                 {
                                     double actualCost = System.Math.Min(c.AISubmitLegitCost, wn.Legitimacy);
@@ -1572,7 +1572,7 @@ public sealed class Diplomacy
                                 }
                                 Log.Add($"{_year} {weak.Name}が{strong.Name}に屈服（緊張緩和）");
                             }
-                            else { StartWar(a, b, c); _warClock[k] = 0; atWar = WarKeySet(); }
+                            else { if (Instruments.On) Instruments.WarTag(this, a, b, 1); StartWar(a, b, c); _warClock[k] = 0; atWar = WarKeySet(); }
                         }
                     }
                 }
@@ -1733,7 +1733,7 @@ public sealed class Diplomacy
         // A6（改修2026-06-28）：宗主の防衛参戦は無条件でなく、厭戦が高くない・**到達できる**（投射力）ことを要する。届かない/疲弊した宗主は属国を見殺しにする（A1の離反へ繋がる）。
         if (suz.WarExhaustion > c.WarWearyThreshold || Projection(suz, enemy, c) < c.DefendProjectionMin) return;
         Log.Add($"{_year} {suz.Name}が宗主として参戦→{enemy.Name}（{dependent.Name}を防衛）");
-        AddBelligerent(new War { A = suz, B = enemy }, c, depth: 1, visited: []);   // ★宗主の同盟も連鎖する（AI の同盟国の参戦と同じ段＝2026-09-28 処理の一元化 段2 D）
+        if (Instruments.On) Instruments.WarTag(this, suz, enemy, 5); AddBelligerent(new War { A = suz, B = enemy }, c, depth: 1, visited: []);   // ★宗主の同盟も連鎖する（AI の同盟国の参戦と同じ段＝2026-09-28 処理の一元化 段2 D）
     }
 
     /// <summary>★内戦一元化（CivilWarAsWar・2026-08-30）：内戦の開戦。通常の宣戦ゲート（従属・ランク）は通らない＝
@@ -1746,7 +1746,7 @@ public sealed class Diplomacy
         _warCount[Key(parent, rebel)] = _warCount.GetValueOrDefault(Key(parent, rebel)) + 1;
         Log.Add(secession ? $"{_year} {rebel.Name}が{parent.Name}からの独立を宣言＝分離独立戦争" : $"{_year} {parent.Name}で内戦＝{rebel.Name}が地図の上に立った");
         // 交戦の入口の1本（内戦中は敵対州間の交易が禁輸/密輸の既存機構に乗る＝doc §3 の④が自動になる・同盟は親側だけに問う）
-        AddBelligerent(new War { A = parent, B = rebel, CivilWarParent = parent, CivilWarPolity = rebelPolity, CivilWarSecession = secession }, c, depth: 0);
+        if (Instruments.On) Instruments.WarTag(this, parent, rebel, secession ? 10 : 6); AddBelligerent(new War { A = parent, B = rebel, CivilWarParent = parent, CivilWarPolity = rebelPolity, CivilWarSecession = secession }, c, depth: 0);
         // ★革命圧力は自国の POP から（2026-09-29 線2＝(100) の申し送り2・推奨で進めた）：開戦の瞬間に両陣営の動員を**自国の POP** で測り直す（Politics.MeasureMobilization の1本）。
         //   崩壊の線（StepWars の RevCut＝1−RevolutionSurrenderWeight×革命圧力）は元から両陣営で同じ式＝読む量が違った：
         //   旧＝測定は四半期末の Politics.Step だけ＝最初の四半期は、反乱国は測定0（線1.0）・政府は出て行った州の住民まで含む前の測定（線0.6）のまま戦った
@@ -1763,7 +1763,7 @@ public sealed class Diplomacy
     {
         if (attacker == target || AtWar(attacker, target)) return false;
         if (InDependency(attacker, target)) return false;   // 監査2026-07-05：従属関係の内側では宣戦不可（CanInvade/CanColonize と同じ規律を動詞側にも＝防御的二重化）
-        StartWar(attacker, target, c);   // 能動侵略
+        if (Instruments.On) Instruments.WarTagDefault(this, attacker, target, 3); StartWar(attacker, target, c);   // 能動侵略
         return true;
     }
 
@@ -1832,7 +1832,7 @@ public sealed class Diplomacy
                 continue;
             }
             Log.Add($"{_year} {ally.Name}が同盟により参戦→{enemy.Name}" + (depth > 0 ? $"（連鎖{depth + 1}段目）" : ""));
-            AddBelligerent(new War { A = ally, B = enemy }, c, depth + 1, visited);   // 機能5-④-1：参戦国の同盟へさらに伝播（既定2段・0で1段のみ＝旧）
+            if (Instruments.On) Instruments.WarTag(this, ally, enemy, 4); AddBelligerent(new War { A = ally, B = enemy }, c, depth + 1, visited);   // 機能5-④-1：参戦国の同盟へさらに伝播（既定2段・0で1段のみ＝旧）
         }
     }
 
@@ -1844,7 +1844,7 @@ public sealed class Diplomacy
         if (join && !AtWar(player, call.Enemy))
         {
             Log.Add($"{_year} {player.Name}が同盟により参戦→{call.Enemy.Name}");
-            AddBelligerent(new War { A = player, B = call.Enemy }, c, depth: 1, visited: []);   // ★プレイヤーの同盟も連鎖する（AI の同盟国の参戦と同じ段＝2026-09-28 処理の一元化 段2 D）
+            if (Instruments.On) Instruments.WarTag(this, player, call.Enemy, 8); AddBelligerent(new War { A = player, B = call.Enemy }, c, depth: 1, visited: []);   // ★プレイヤーの同盟も連鎖する（AI の同盟国の参戦と同じ段＝2026-09-28 処理の一元化 段2 D）
         }
         else if (!join && c.AllyRefusalTension > 0)
         {
@@ -2018,7 +2018,7 @@ public sealed class Diplomacy
         Power? best = null; double bestScore = 0;
         foreach (var q in Powers)
         {
-            if (!gw.CanInvade(q, out _)) continue;   // 完全対等：プレイヤーと同じ単一ゲート（Minor標的・従属/交戦・余剰戦力・兵力比・物資）
+            { bool okInv = gw.CanInvade(q, out var invReason); if (Instruments.On) Instruments.WarEval(this, c, great, q, invReason); if (!okInv) continue; }   // 完全対等：プレイヤーと同じ単一ゲート（Minor標的・従属/交戦・余剰戦力・兵力比・物資）
             double proj = Projection(great, q, c);   // 到達可能性（距離・制海権。遠征技術の門は (613) 段3 の焼き込みで無く、(921) で呼び口ごと消した）
             if (proj < AiColonizeMinProjection) continue;
             // 魅力＝（植民地＋経済規模）×届きやすさ÷強さ。経済規模項（宗主の地理2026-07-12）＝植民地化の目的そのもの（市場・税基盤）。
@@ -2181,7 +2181,7 @@ public sealed class Diplomacy
         player.PendingWar = null;
         if (foe is null) return;
         long k = Key(player, foe);
-        if (fight) { StartWar(player, foe, c); _warClock[k] = 0; }
+        if (fight) { if (Instruments.On) Instruments.WarTag(this, player, foe, 7); StartWar(player, foe, c); _warClock[k] = 0; }
         else
         {
             CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(player, foe)); _tensionRamp.Remove(DirKey(foe, player)); _warClock[k] = 0;   // 屈服＝緊張を宥和側へ・両向きのならしを消す・クロックを切る＝開戦を回避
@@ -2262,7 +2262,7 @@ public sealed class Diplomacy
             }
             return true;
         }
-        StartWar(great, target, c);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
+        if (Instruments.On) Instruments.WarTag(this, great, target, 2); StartWar(great, target, c);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
         Log.Add($"{_year} {target.Name}が{great.Name}の侵略に抗して開戦");
         return false;
     }
@@ -2378,7 +2378,7 @@ public sealed class Diplomacy
                 Power refuser = side == 0 ? war.A : war.B;
                 AddTension(greatPower, refuser, c.InterventionRivalTension, TensionReason.Mediation);   // 面子を潰された側との緊張（提案の代償は双方向）
                 if (!AtWar(greatPower, refuser))
-                    DeclareWar(greatPower, refuser, c);   // ★拒否＝参戦。★是正（監査2026-09-02 #20）：StartWar直呼びはDeclareWarのInDependencyガードを通らず宗主-属国間の戦争が成立しうる不具合を修正（DeclareWarはAtWarも見るが上でチェック済みなので恒等）
+                    { if (Instruments.On) Instruments.WarTag(this, greatPower, refuser, 9); DeclareWar(greatPower, refuser, c); }   // ★拒否＝参戦。★是正（監査2026-09-02 #20）：StartWar直呼びはDeclareWarのInDependencyガードを通らず宗主-属国間の戦争が成立しうる不具合を修正（DeclareWarはAtWarも見るが上でチェック済みなので恒等）
                 Log.Add($"{_year} {refuser.Name}が{greatPower.Name}の調停を拒んだ");
             }
         }
@@ -3441,7 +3441,7 @@ public sealed class Diplomacy
         //   終戦の出口は EndWar の 1 本（国の除去 RemovePower も通る）。バッチにプレイヤーは居ない＝待ちは積まれず、この走査は読むだけ。
         foreach (var q in Powers)
             if (q.PendingCallToArms is { } call && ((call.Caller == war.A && call.Enemy == war.B) || (call.Caller == war.B && call.Enemy == war.A))) q.PendingCallToArms = null;
-        ResetTensionTo(k, c.PostWarTension, TensionReason.WarResidue);   // 講和で緊張がリセット（やがて再び煽られて再燃＝周期的）。内訳も戦争の遺恨1本へ＝開戦前の理由は戦争で清算された
+        ResetTensionTo(k, c.PostWarTension, TensionReason.WarResidue); if (Instruments.On) Instruments.WarPairEvent(this, war.A, war.B, 2);   // 講和で緊張がリセット（やがて再び煽られて再燃＝周期的）。内訳も戦争の遺恨1本へ＝開戦前の理由は戦争で清算された
         // ⚠休戦（講和後の不戦年限）は置かない＝作者裁定 2026-09-26（Q9・09-07「規模で」を置き換え）。再戦の抑えは厭戦（WarWearyThreshold・減衰）と講和後の緊張が担う。
         Wars.RemoveAt(i);
     }
