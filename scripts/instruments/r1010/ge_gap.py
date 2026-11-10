@@ -4,7 +4,7 @@
 import sys, os, statistics as st
 RAW, RNG, OUT = sys.argv[1:4]
 lo, hi = map(int, RNG.split('-')); SEEDS = range(lo, hi + 1)
-GOODS = ['硫黄', 'グアノ', 'サトウキビ', '金鶏樹皮', '銅鉱', '鉄鉱石', '石炭', '硝石', '野菜', '木', '畜産']
+GE_NAMES = ['硫黄', 'グアノ', 'サトウキビ', '金鶏樹皮', '銅鉱', '鉄鉱石', '石炭', '硝石', '野菜', '木', '畜産']
 YEARS = [1870, 1913]
 MAJ = {'イギリス', 'フランス', 'プロイセン', 'ロシア', 'アメリカ', '清'}
 def fl(x):
@@ -20,7 +20,7 @@ for s in SEEDS:
         h = f.readline().rstrip('\n').split('\t'); ix = {c: i for i, c in enumerate(h)}
         for line in f:
             r = line.rstrip('\n').split('\t'); y = int(r[ix['year']]); g = r[ix['good']]
-            if y not in YEARS or g not in GOODS: continue
+            if y not in YEARS or g not in GE_NAMES: continue
             pq, dq, pr, iq = fl(r[ix['producedQty']]), fl(r[ix['demandQty']]), fl(r[ix['priceMeanGold']]), fl(r[ix['crossImportQty']])
             x = a.setdefault((g, y), [0.0] * 7)
             x[0] += pr * pq; x[1] += pq
@@ -31,7 +31,7 @@ for s in SEEDS:
 def md(v): v = [z for z in v if z == z]; return st.median(v) if v else float('nan')
 with open(OUT, 'w', encoding='utf-8', newline='\n') as o:
     o.write(f'# ge_gap raw={RAW} seeds={RNG}・種の中央値\ngood\tyear\tpriceProducers\tpriceMaj6\tratio\tmaj6ImportOverDemand\tmaj6ProdOverDemand\tworldCrossExportOverProd\n')
-    for g in GOODS:
+    for g in GE_NAMES:
         for y in YEARS:
             v = R.get((g, y))
             if not v: continue
