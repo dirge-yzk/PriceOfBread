@@ -34,6 +34,19 @@ public class WarInstrumentTests
         Assert.True(sC < sA, "前線の項が効く行（reach＞0）では S_C′＜S_A（対照）");
     }
 
+    /// <summary>(1023) T9：評価ごとの新しい要求 need×(1−τ²) が紙の値と 1e-12 以内。need=3・declare=140：τ＝0→3（今の要求）・緊張 70（τ＝0.5）→2.25・緊張 140→0・200（上限で切る）→0・負・NaN は τ＝0→3。</summary>
+    [Theory]
+    [InlineData(0.0, 3.0)]
+    [InlineData(70.0, 2.25)]
+    [InlineData(140.0, 0.0)]
+    [InlineData(200.0, 0.0)]
+    [InlineData(-5.0, 3.0)]
+    [InlineData(double.NaN, 3.0)]
+    public void 新しい要求は紙の値(double tension, double want)
+    {
+        Assert.Equal(want, Instruments.WarNewNeed(3.0, tension, 140.0), 12);
+    }
+
     /// <summary>T2：reach＝0（ratio 0）・届かない（NaN／負）なら S_C′＝S_A。縛られきる（+∞）は 1 と同じ。</summary>
     [Fact]
     public void 前線が無ければ余剰は変わらない()
@@ -262,6 +275,11 @@ public class WarInstrumentTests
             Assert.InRange(long.Parse(f[Col("tauPos")]), 0, ev);
             Assert.InRange(long.Parse(f[Col("tauPosWeak")]), 0, w);
             Assert.True(double.Parse(f[Col("sumTau2")], System.Globalization.CultureInfo.InvariantCulture) <= long.Parse(f[Col("tauPos")]) + 1e-9);   // τ²≦1
+            long nOk = long.Parse(f[Col("newOk")]), oOk = long.Parse(f[Col("oldOk")]), nOnly = long.Parse(f[Col("newOnly")]);
+            Assert.InRange(nOk, 0, ev); Assert.InRange(oOk, 0, ev);
+            Assert.True(nOk >= oOk, "新しい要求は今の要求より小さい＝足りる件数は減らない");
+            Assert.Equal(nOk - oOk, nOnly);
+            Assert.True(double.Parse(f[Col("sumNewNeed")], System.Globalization.CultureInfo.InvariantCulture) >= 0);
             evalSum += ev; rSum += rs; weak += w; shSum += sh;
         }
         Assert.True(evalSum >= 100, $"対照：評価の数が少なすぎる（{evalSum}）");

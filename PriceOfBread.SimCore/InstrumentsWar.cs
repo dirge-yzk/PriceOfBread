@@ -11,6 +11,7 @@ namespace PriceOfBread.SimCore;
 //  ②膨張意欲の流れは合算の変化（前の四半期末→今）と、計器が今の盤面から計算した流入（戦争熱・商業）で導く。上限で切れた分も消費の側に出る。
 //  ③WarScale の reach は 比×自陣営の陸の力 で復元する（浮動小数の復元）。自陣営の集合は計器が再構成する。
 //  ④屈服・講和の置き直し・分離の置き直しは Diplomacy の該当行の hook で数える。
+//  ⑥(1023) willDerivedUse は前の四半期末＋流入−今 の導出＝時点がずれる行がある（負の行 6.2%・c95wn の測り）。評価ごとの新しい要求の列（sumNewNeed・newOk・oldOk・newOnly）は呼び 1 回の最初の評価の陸の力・要求・前線の割合に、評価ごとの緊張だけを替えて比べる（呼びの途中で標的が変わっても陸の力は呼びの最初の値）。
 //  ⑤影の評価が呼ぶエンジンの関数（SeaControl・IsSeaCrossing・InvShipStock・InvCannedStock・InvadeWillCost・InvadeShipReq・InvadeCannedReq・Projection・DependentCount）は状態を書かず乱数を引かない（器のコミットで grep 済み）。
 public static partial class Instruments
 {
@@ -40,6 +41,9 @@ public static partial class Instruments
         public double Land, Force, NeedLand, NeedInternal, NeedSea, PowerMil, LandPower, Own, Reach, Ratio, SA, SC, RA, RC;
         public int RCalls, SCLess;
         public int TauPos, TauPosWeak;   // 評価の組の緊張が正の件数（弱小国の門で落ちた評価だけの件数も）
+        public double CurLand, CurNeed, CurB;   // (1023) 呼び 1 回の最初の評価で読んだ陸の力・要求・前線の割合（評価ごとの新しい要求の比較に使う）
+        public double SumNewNeed;        // (1023) Σ 評価ごとの新しい要求 need×(1−τ²)
+        public int NewOk, OldOk, NewOnly;   // (1023) 評価のうち 新しい要求で余剰が足りる／S_C′（今の要求）で足りる／新しいだけで足りる件数
         public double SumTau2;           // Σ min(1, 緊張÷140)²（要求×(1−τ²) の τ² の和・F4 の材料）
         public double PrevWill;
         public bool HavePrev;
@@ -156,11 +160,20 @@ public static partial class Instruments
     // ---------------------------------------------------------------- 余剰の候補（純関数）----------------------------------------------------------------
     /// <summary>余剰戦力の候補：S_A＝landPotential−(needLand+needInternal)・S_C′＝landPotential×(1−min(1,ratio))−(needLand+needInternal)。ratio＝reach÷自陣営の陸の力（WarScale）。
     /// ratio が NaN／負は 0（届かない）、+∞は 1（全て縛られる）。</summary>
+    internal static double WarRatioClamp(double ratio) => !(ratio > 0) ? 0 : ratio >= 1 ? 1 : ratio;
+
+    /// <summary>(1023) 評価ごとの新しい要求 need×(1−τ²)・τ＝min(1, 緊張÷declare)（緊張が負・NaN は 0）。τ＝0 で今の要求、τ＝1（緊張＝declare 以上）で 0。</summary>
+    internal static double WarNewNeed(double need, double tension, double declare)
+    {
+        double tau = !(tension > 0) ? 0 : tension >= declare ? 1 : tension / declare;
+        return need * (1 - tau * tau);
+    }
+
     internal static void WarSurplus(double land, double needLand, double needInternal, double ratio, out double sA, out double sC)
     {
         double need = needLand + needInternal;
         sA = land - need;
-        double b = !(ratio > 0) ? 0 : ratio >= 1 ? 1 : ratio;
+        double b = WarRatioClamp(ratio);
         sC = land * (1 - b) - need;
     }
 
@@ -236,6 +249,12 @@ public static partial class Instruments
         acc.Reason[WarReasonIndex(reason)]++;
         if (!d._rank.ContainsKey(target.Id)) acc.TgtRankMissing++;
         double tens = d.Tension(great, target);
+        if (acc.FiniteCalls > 0)
+        {
+            double newNeed = WarNewNeed(acc.CurNeed, tens, c.WarDeclareTension);
+            bool nOk = acc.CurLand * (1 - acc.CurB) - newNeed >= 0, oOk = acc.CurLand * (1 - acc.CurB) - acc.CurNeed >= 0;
+            acc.SumNewNeed += newNeed; if (nOk) acc.NewOk++; if (oOk) acc.OldOk++; if (nOk && !oOk) acc.NewOnly++;
+        }
         if (tens > 0) { acc.TauPos++; if (reason == "弱小国が標的") acc.TauPosWeak++; double tau = System.Math.Min(1.0, tens / c.WarDeclareTension); acc.SumTau2 += tau * tau; }
         if (d.RankOf(target) != PowerRank.Minor) acc.TgtNonMinor++;
         if (reason == "弱小国が標的")
@@ -266,7 +285,7 @@ public static partial class Instruments
         double own = WarOwnLand(d, great);
         double reach = own > 0 && !double.IsInfinity(ratio) ? ratio * own : double.NaN;
         WarSurplus(land, great.NeedLand, great.NeedInternal, ratio, out double sA, out double sC);
-        acc.FiniteCalls++;
+        acc.FiniteCalls++; acc.CurLand = land; acc.CurNeed = great.NeedLand + great.NeedInternal; acc.CurB = WarRatioClamp(ratio);
         acc.Will += gw.ExpansionWill; acc.Fever += gw.WarFever();
         acc.FMil += mil; acc.FMilSpend += milSpend; acc.FNoble += trad; acc.FSoldier += soldierShare; acc.FThreat += threat; acc.FDiv += diversion;
         acc.Land += land; acc.Force += force; acc.NeedLand += great.NeedLand; acc.NeedInternal += great.NeedInternal; acc.NeedSea += great.NeedSea;
@@ -284,7 +303,7 @@ public static partial class Instruments
         + "sh_pass\tsh_dependent\tsh_suzerainOf\tsh_noLand\tsh_atWar\tsh_maxDep\tsh_will\tsh_mil\tsh_ship\tsh_sea\tsh_canned\tsh_projFail\tsh_projPass\tsh_calls\t"
         + "willNow\twillPrev\twillInflowWar\twillInflowCommerce\twillDerivedUse\t"
         + "feverNow\tsumWill\tsumFever\tsumFMil\tsumFMilSpend\tsumFNoble\tsumFSoldier\tsumFThreat\tsumFDiversion\t"
-        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2";
+        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2\tsumNewNeed\tnewOk\toldOk\tnewOnly";
 
     internal const string WarPairHeader = "quarter\tnationA\tnationB\ttensionEnd\ttensionMax\tmonthsGe140\tmonthsGt100\twarClock\tgateOpenMonths\tstarts\tsubmits\tpeaceResets\tsecessionResets\tgrudge\thostility";
     internal const string WarBandHeader = "quarter\tpairs\tpairsWritten\tpairsSkipped\tb0\tb0_20\tb20_70\tb70_100\tb100_140\tb140\tsubmits\tpeaceResets\tsecessionResets\tstart_unknown\tstart_main\tstart_subjugate\tstart_declare\tstart_ally\tstart_suzerain\tstart_civil\tstart_ultimatum\tstart_calltoarms\tstart_mediation\tstart_secession";
@@ -329,7 +348,7 @@ public static partial class Instruments
             Add(F(adv));
             Add(F(acc.Will)); Add(F(acc.Fever)); Add(F(acc.FMil)); Add(F(acc.FMilSpend)); Add(F(acc.FNoble)); Add(F(acc.FSoldier)); Add(F(acc.FThreat)); Add(F(acc.FDiv));
             Add(F(acc.Land)); Add(F(acc.Force)); Add(F(acc.NeedLand)); Add(F(acc.NeedInternal)); Add(F(acc.NeedSea)); Add(F(acc.PowerMil)); Add(F(acc.LandPower)); Add(F(acc.Own)); Add(F(acc.Reach)); Add(F(acc.Ratio));
-            Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess)); Add(WI(acc.TauPos)); Add(WI(acc.TauPosWeak)); Add(F(acc.SumTau2));
+            Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess)); Add(WI(acc.TauPos)); Add(WI(acc.TauPosWeak)); Add(F(acc.SumTau2)); Add(F(acc.SumNewNeed)); Add(WI(acc.NewOk)); Add(WI(acc.OldOk)); Add(WI(acc.NewOnly));
             st.We!.WriteLine(sb.ToString());
             // 次の四半期へ
             double pw = will;
