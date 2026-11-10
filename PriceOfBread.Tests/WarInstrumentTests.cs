@@ -259,6 +259,9 @@ public class WarInstrumentTests
             Assert.Equal(w, sh);   // 影の評価は〈弱小国が標的〉で落ちた全てに行われる
             Assert.True(long.Parse(f[Col("sh_projPass")]) + long.Parse(f[Col("sh_projFail")]) <= long.Parse(f[Col("sh_pass")]));
             Assert.InRange(long.Parse(f[Col("tgtRankMissing")]), 0, ev);
+            Assert.InRange(long.Parse(f[Col("tauPos")]), 0, ev);
+            Assert.InRange(long.Parse(f[Col("tauPosWeak")]), 0, w);
+            Assert.True(double.Parse(f[Col("sumTau2")], System.Globalization.CultureInfo.InvariantCulture) <= long.Parse(f[Col("tauPos")]) + 1e-9);   // τ²≦1
             evalSum += ev; rSum += rs; weak += w; shSum += sh;
         }
         Assert.True(evalSum >= 100, $"対照：評価の数が少なすぎる（{evalSum}）");
