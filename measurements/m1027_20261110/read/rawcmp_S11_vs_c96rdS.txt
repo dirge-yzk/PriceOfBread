@@ -1,0 +1,43 @@
+共通 1230・一致 1170・揺れの表の違い 20・それ以外の違い 40・a だけ 0・b だけ 50
+違い flow_s11.tsv
+違い flow_s12.tsv
+違い flow_s13.tsv
+違い flow_s14.tsv
+違い flow_s15.tsv
+違い flow_s16.tsv
+違い flow_s17.tsv
+違い flow_s18.tsv
+違い flow_s19.tsv
+違い flow_s20.tsv
+違い invade_s11.tsv
+違い invade_s12.tsv
+違い invade_s13.tsv
+違い invade_s14.tsv
+違い invade_s15.tsv
+違い invade_s16.tsv
+違い invade_s17.tsv
+違い invade_s18.tsv
+違い invade_s19.tsv
+違い invade_s20.tsv
+違い merch_s11.tsv
+違い merch_s12.tsv
+違い merch_s13.tsv
+違い merch_s14.tsv
+違い merch_s15.tsv
+違い merch_s16.tsv
+違い merch_s17.tsv
+違い merch_s18.tsv
+違い merch_s19.tsv
+違い merch_s20.tsv
+違い wars_s11.tsv
+違い wars_s12.tsv
+違い wars_s13.tsv
+違い wars_s14.tsv
+違い wars_s15.tsv
+違い wars_s16.tsv
+違い wars_s17.tsv
+違い wars_s18.tsv
+違い wars_s19.tsv
+違い wars_s20.tsv
+a だけ（頭） []
+b だけ（頭） ['cscx', 'pxstep', 'warband', 'warentry', 'warpair']

@@ -1,0 +1,37 @@
+(1026) c96ol 事前登録（数える前に書いた・2026-11-10・担当 Claude Opus 5.5）
+読む線・腕 0・コミット 0。生＝keep_1022/base_ins（種 1〜10）・keep_1022/a11（種 11〜20）。
+
+[定義]
+- 組＝(種, 年, 国の名, 財)。年は prodcap_s と nationgood_s の両方にある年（NgYear＝10 の倍数と 1913。prodcap の開幕の 1784 は除く）。
+- A＝Σ prodcap_s.output（その組の全ての行・州はファイル順・州の中は生産者のファイル順に左から足す）。B＝nationgood_s.producedQty。ずれ d＝A−B。
+- 食い違う組＝|d| > 5e-10×max(|A|,|B|) + 1e-9。根拠：B は G10（Instruments.cs:298 の F＝有効 10 桁＝相対の丸め ≦5e-10）・A は R（往復）＝A 側の丸め 0。絶対の 1e-9 は G10 で 0 近傍の塵。
+- 比は和÷和（Σ|d| ÷ ΣA など）。
+- 移転の事象＝cederule_s の行（how＝Ceded・Seceded・Returned＝TransferRegion→Rehome の非 Sovereign＝Territory.cs:266 で LastProduced を 0 にする）。Sovereign（Diplomacy.cs:504）は 0 にしない＝表に無くてよい。
+- cederule_s.quarter と prodcap_s.q は同じ絶対の四半期の番号（SelfPlay.cs:2183 の q）か、台本で年＝1783+q//4 の対応を確かめて書く。
+
+[区分（上から順に当てる・1 組は 1 区分）]
+(a)  組の国が、読みと同じ四半期（cederule.quarter == prodcap.q）に受け手（receiver）になった州を持ち、その州がその財の行を持つ。
+(a′) (a) でなく、同じ年の別の四半期に受け手になった州を含む。
+(b)  (a)(a′) でなく、その国が内戦の側（wars_s civilWarFlag=1・startYear ≦ 年 ≦ startYear+months/12）か、region_s のその四半期（q）に warIntensity>0 の州を持つ。
+(c)  上でなく、組の行に output=0 かつ capacity>0 の生産者（眠り・倒産・採算 0 の近似）を含む。
+(d)  それ以外。
+
+[予言（ソースから・数える前）]
+P-a：(a) の d は、受け手になった州のその財の Σoutput（州ごとの部分和 X）と一致する（d−X が G10 の許容の内）。理由＝四半期の末の順は Run（3 月目・EconomyStep.cs:2213 で LastProduced＝Σ Output）→ 清算 → Diplomacy.Step×3・ReabsorbNations・SpawnSecededNations（MultiNationSim.cs:825・:1065・:1066＝TransferRegion→Rehome が Territory.cs:266 で LastProduced を 0・Output は触らない）→ Instruments.Quarter（SelfPlay.cs:2183）。両方の表は Instruments.cs:1908 の同じ行で同じ w.Regions を読む。
+P-sign：全ての食い違う組で d>0（A≧B）。LastProduced は 0 にされるだけ。d<0 が 1 組でもあれば別の根。
+P-a′：(a′) の d は 0（次の月の Run が LastProduced を書き直す）。
+P-b：(b) の d は 0（内戦の乗数は boost＝能力に掛かり、Output と produced の両方に同じに入る：EconomyStep.cs:1106・:1126・:1141）。
+P-c：(c) の d は 0（眠りは Output==0 のときだけ：EconomyStep.cs:786・倒産は :1021 で Output=0 にしてから continue）。
+P-d：(d) の d は 0。0 でなければ問い 4 へ。
+P-world：世界の合計（種・年・財）の d は (a) の X の和に等しい（送り手の側は州が抜けて両方の表から消える＝ずれは受け手の側だけ）。
+記録（門ではない）：反証役の〈1 種あたり 115〜507 組（0.08〜0.35%）〉は許容の取り方が不明＝同じ値になるかは記録だけ。名前の重複（同名の別の国）は組を混ぜる＝重複の数を記録。
+
+[外す組の規則の候補（結論で 1 本を推す）]
+規則 A：cederule_s で、読みの四半期（その年の q%4==3）に受け手になった国の (国, 年) の全ての財を外す（州の単位で外せるなら (国, 年, 財) で州の行だけ）。
+規則 B：門の産出の側を producedQty でなく prodcap_s の Σoutput に替える（0 にされない側）。
+
+[追記 1（種 1 の試走を見た後・名乗り）]
+- 種 1 の試走で (a′) に 115 組（差 0.5・1・2.5・50＝Simulation.cs:1026 の開幕の Output の値）が出た＝P-a′ の外れ。所有の移転ではなく、読みの四半期に新しく作られた州（ウォルビスベイ・region_s の最初の行が q347＝読みの四半期）。
+  経路＝Diplomacy.AcquireColony（Diplomacy.cs:2279・四半期の末の Diplomacy.Step の中）→ Simulation.PromoteColonyToRegion（Simulation.cs:1501）→ Territory.Adopt（Territory.cs:413・:417）。cederule_s には出ない（TransferRegion を通らない）。
+- 区分を 1 つ足した：(a0) 読みの四半期に作られた州（region_s の最初の四半期 == q・q>0）。X に (a0) の州の Σoutput を足す。区分の順は a → a0 → a′ → b → c → d。
+- これは結果を見た後の区分の追加＝種 11〜20（a11）を新しい種として同じ台本で読み、追加の後の予言（a0 の d＝X0・a′ の d＝0）をそこで判定する。

@@ -1,0 +1,26 @@
+== base
+class	pairs	mismatch	sumA	sumAbsD	sumD	negD	maxAbsResid(a,a0=d-X; others=|d|)
+a	2680	1846	1.71455e+07	457332	457332	0	0.000388
+a0	351	345	1.32939e+06	5952	5952	0	4.75e-06
+a2	8758	0	2.76373e+07	0	0	0	0
+b	53526	0	9.3053e+07	0	0	0	0
+c	390502	0	6.28104e+08	0	0	0	0
+d	989133	0	7.76458e+08	0	0	0	0
+all	pairs=1444950	mismatch=2191	share=0.00152	sumAbsD/sumA=3.001e-04
+per seed mismatch/pairs: s1:412/142870(0.29%) s2:115/142740(0.08%) s3:0/146900(0.00%) s4:286/145210(0.20%) s5:243/142870(0.17%) s6:251/142870(0.18%) s7:256/142870(0.18%) s8:181/151060(0.12%) s9:107/144560(0.07%) s10:340/143000(0.24%)
+(a)(a0) d-X: rows outside G10 tolerance=0  max |d-X|/max(A,B)=4.471e-10
+world (seed,year,good) with |sumD|>1e-6: 7938  max |sumD-sumX|=4.859e-04
+info: s1 dupRegionQuarter=0 founded=29 / s1 prodcapRows=1024298 ngKeys=142870 dupB=0 events={'Ceded': 139, 'Seceded': 12, 'Returned': 12} years=[1790, 1800, 1810]..18 qOf1790=27 / s1 onlyA=0 onlyB=13907 / s2 dupRegionQuarter=0 founded=29 / s2 prodcapRows=1034481 ngKeys=142740 dupB=0 events={'Ceded': 109, 'Seceded': 7, 'Returned': 7} years=[1790, 1800, 1810]..18 qOf1790=27 / s2 onlyA=0 onlyB=13844 / s3 dupRegionQuarter=0 founded=7 / s3 prodcapRows=991809 ngKeys=146900 dupB=0 events={'Ceded': 109, 'Seceded': 14, 'Returned': 12} years=[1790, 1800, 1810]..18 qOf1790=27 / s3 onlyA=0 onlyB=14451 / s4 dupRegionQuarter=0 founded=29 / s4 prodcapRows=1025346 ngKeys=145210 dupB=0 events={'Ceded': 123, 'Seceded': 15, 'Returned': 14} years=[1790, 1800, 1810]..18 qOf1790=27 / s4 onlyA=0 onlyB=14222 / s5 dupRegionQuarter=0 founded=29 / s5 prodcapRows=1032912 ngKeys=142870 dupB=0 events={'Ceded': 78, 'Seceded': 8, 'Returned': 8} years=[1790, 1800, 1810]..18 qOf1790=27 / s5 onlyA=0 onlyB=13865 / s6 dupRegionQuarter=0 founded=29 / s6 prodcapRows=1026761 ngKeys=142870 dupB=0 events={'Ceded': 119, 'Seceded': 11, 'Returned': 11} years=[1790, 1800, 1810]..18 qOf1790=27 / s6 onlyA=0 onlyB=13903 / s7 dupRegionQuarter=0 founded=29 / s7 prodcapRows=1037295 ngKeys=142870 dupB=0 events={'Ceded': 106, 'Seceded': 5, 'Returned': 5} years=[1790, 1800, 1810]..18 qOf1790=27 / s7 onlyA=0 onlyB=13917 / s8 dupRegionQuarter=0 founded=29 / s8 prodcapRows=1026761 ngKeys=151060 dupB=0 events={'Ceded': 102, 'Seceded': 17, 
+== a11
+class	pairs	mismatch	sumA	sumAbsD	sumD	negD	maxAbsResid(a,a0=d-X; others=|d|)
+a	3741	2280	1.51959e+07	654192	654192	0	4.58e-05
+a0	468	460	3.86528e+06	8223.5	8223.5	0	3.66e-05
+a2	6094	0	1.80545e+07	0	0	0	0
+b	55398	0	9.47455e+07	0	0	0	0
+c	396953	0	6.43196e+08	0	0	0	0
+d	981776	0	7.32876e+08	0	0	0	0
+all	pairs=1444430	mismatch=2740	share=0.00190	sumAbsD/sumA=4.393e-04
+per seed mismatch/pairs: s11:492/145860(0.34%) s12:194/146900(0.13%) s13:318/144430(0.22%) s14:197/145470(0.14%) s15:399/142870(0.28%) s16:191/142870(0.13%) s17:265/146120(0.18%) s18:474/143000(0.33%) s19:84/144040(0.06%) s20:126/142870(0.09%)
+(a)(a0) d-X: rows outside G10 tolerance=0  max |d-X|/max(A,B)=4.748e-10
+world (seed,year,good) with |sumD|>1e-6: 8228  max |sumD-sumX|=5.718e-04
+info: s11 dupRegionQuarter=0 founded=29 / s11 prodcapRows=1027106 ngKeys=145860 dupB=0 events={'Ceded': 112, 'Seceded': 15, 'Returned': 13} years=[1790, 1800, 1810]..18 qOf1790=27 / s11 onlyA=0 onlyB=14470 / s12 dupRegionQuarter=0 founded=29 / s12 prodcapRows=1035548 ngKeys=146900 dupB=0 events={'Ceded': 89, 'Seceded': 12, 'Returned': 10} years=[1790, 1800, 1810]..18 qOf1790=27 / s12 onlyA=0 onlyB=14244 / s13 dupRegionQuarter=0 founded=29 / s13 prodcapRows=1008127 ngKeys=144430 dupB=0 events={'Ceded': 125, 'Seceded': 15, 'Returned': 14} years=[1790, 1800, 1810]..18 qOf1790=27 / s13 onlyA=0 onlyB=14157 / s14 dupRegionQuarter=0 founded=29 / s14 prodcapRows=1029205 ngKeys=145470 dupB=0 events={'Ceded': 70, 'Seceded': 14, 'Returned': 12} years=[1790, 1800, 1810]..18 qOf1790=27 / s14 onlyA=0 onlyB=14271 / s15 dupRegionQuarter=0 founded=29 / s15 prodcapRows=1026924 ngKeys=142870 dupB=0 events={'Ceded': 150, 'Seceded': 13, 'Returned': 13} years=[1790, 1800, 1810]..18 qOf1790=27 / s15 onlyA=0 onlyB=13862 / s16 dupRegionQuarter=0 founded=29 / s16 prodcapRows=1028161 ngKeys=142870 dupB=0 events={'Ceded': 127, 'Seceded': 10, 'Returned': 10} years=[1790, 1800, 1810]..18 qOf1790=27 / s16 onlyA=0 onlyB=14111 / s17 dupRegionQuarter=0 founded=29 / s17 prodcapRows=1027461 ngKeys=146120 dupB=0 events={'Ceded': 94, 'Seceded': 15, 'Returned': 14} years=[1790, 1800, 1810]..18 qOf1790=27 / s17 onlyA=0 onlyB=14183 / s18 dupRegionQuarter=0 founded=29 / s18 prodcapRows=1020069 ngKeys=143000 dupB=0 events={

@@ -1,0 +1,60 @@
+(1026) c96ol 読む線の結果：Producer.Output と Market.LastProduced のずれの帰属（2026-11-10・担当 Claude Opus 5.5・腕 0・コミット 0）
+
+[読んだ生]
+- D:/PoB_work/keep_1022/base_ins（種 1〜10）・D:/PoB_work/keep_1022/a11（種 11〜20）の prodcap_s・nationgood_s・cederule_s・region_s・wars_s。
+- 台本：attr.py（区分）・agg.py（集計）・excl.py（外す組の件数）・wagejump.py（記録）。
+- 出力：q3_table.txt・base_/a11_{summary,mismatch,world,info}・q6_excl.txt・q2_timing.txt・rec_wagejump.txt。事前登録 prereg.txt（追記 1 つき）。
+
+[問い 3：区分ごとの表]（q3_table.txt から写す・食い違い＝|d|>5e-10×max(A,B)+1e-9）
+種 1〜10（組 1,444,950・食い違い 2,191＝0.152%・Σ|d|÷ΣA 3.0e-4）
+  (a) 読みの四半期に受け手：組 2,680・食い違い 1,846・Σd 457,332・d<0 0・|d−X| は G10 の許容の内（相対の最大 4.47e-10）
+  (a0) 読みの四半期に作られた州：組 351・食い違い 345・Σd 5,952・d<0 0・同上
+  (a′) 同じ年の別の四半期に受け手：組 8,758・食い違い 0
+  (b) 内戦・戦の強さ>0：組 53,526・食い違い 0
+  (c) 産出 0×能力>0 の生産者を含む：組 390,502・食い違い 0
+  (d) それ以外：組 989,133・食い違い 0
+  種ごと：s1 412・s2 115・s3 0・s4 286・s5 243・s6 251・s7 256・s8 181・s9 107・s10 340
+種 11〜20（新しい種・追記 1 の後の判定）：組 1,444,430・食い違い 2,740（0.190%）
+  (a) 2,280・Σd 654,192・(a0) 460・Σd 8,223.5・(a′)(b)(c)(d) 0・d<0 0・|d−X| の相対の最大 4.75e-10（許容の外 0 行）
+世界の合計：(種,年,財) の Σd は (a)(a0) の X の和に一致（|Σd−ΣX| の最大 4.9e-4〔種 1〜10〕・5.7e-4〔11〜20〕＝国ごとの G10 の丸めの和）。
+予言の判定：P-a・P-sign・P-b・P-c・P-d・P-world は当たり。P-a′ は種 1 の試走で外れ（新しい州＝ウォルビスベイ q347）→ 区分 (a0) を足した（結果の後の追加）→ 新しい種 11〜20 で (a0) d＝X0・(a′) 0 が当たり。
+反証役の〈1 種あたり 115〜507 組〉とは許容と種が違う（こちらは 0〜492・種 3 は 0）＝記録だけ。
+
+[問い 4]：(d) は 0＝経路を追う組は無い。
+
+[問い 5：結論]（確証の度合い：数＝台本の出力・時点＝ソースの行〔q2_timing.txt〕）
+- ずれは全て、四半期の末の Run（3 月目）と計器の読みの間に起きる 2 種の州の事象で説明が付く（残りの区分は 0・符号は一方向・d＝X が G10 の内）：
+  ① TransferRegion→Rehome（Ceded・Seceded・Returned）が Territory.cs:266 で LastProduced を 0 にする（Output は触らない）。
+  ② Diplomacy.AcquireColony→PromoteColonyToRegion が新しい市場（LastProduced 0）と開幕の Output の値（0.5・50 ほか）を持つ州を作る。
+- 計器の側：nationgood_s の producedQty はこの窓の〈0 にされた流量〉を読む＝計器の時点の型。生産物は失われていない（Run の末で Stock に入っている＝EconomyStep.cs:2212）。
+- エンジンの側（同じ窓の読み手・ソースから・大きさ未計測）：3 月目の清算（BilateralMarket.cs:985・:986・:990）は移った州を〈産出 0・需要はそのまま〉と読む＝LastDemand は残し LastProduced だけ 0 にする非対称（分子と分母の非対称の型）。StepDiscoveries（Discovery.cs:759〈推〉）・WorldGoodsProduced（MultiNationSim.cs:991）・次の 1 か月の旬の価格形成（MarketFlow.cs:130）も同じ 0 を読む。1 種あたり事象 約 110〜160 件（cederule_s）。
+- 判定：計器の直しで足りる量（ずれ）と、エンジンの小さな非対称（同じ窓の他の読み手）の両方がある。後者の大きさは今ある生では測れない（四半期の末の断面しか無い＝窓は四半期の中）。
+
+[問い 6：外す組の規則]（q6_excl.txt）
+- 推奨（規則 B）：rd・案 B の門で産出を年ごとに数えるときは prodcap_s の Σoutput（Producer.Output）を使う＝0 にされない側・州と生産者の単位で読める。
+- nationgood_s.producedQty を使う門だけは規則 A：〈読みの四半期（q%4==3）に cederule_s の receiver になった国、または region_s の最初の行がその四半期の州を持つ国〉の (種, 年, 国) を外す。
+  外れる割合：種 1〜10 で (種,年,国) 26／11,115（0.23%・移転 23・新しい州 3）・(国,財) の行 0.23%・producedQty の和の 1.18%。種 11〜20 で 36／11,111（0.32%）・行 0.32%・1.23%。
+- 注意：どちらの表の〈年ごとの産出〉も年の和ではなく、その年の最後の月（3 月目）の月の流量の断面。
+
+[推奨と次の波の素案]
+推奨 1（恒等の線・小）：nationgood_s の末尾に列 outputSum（その国の州の Producer.Output の和・計器が州と生産者を自分で歩く）と eventRegions（その四半期に Rehome か新設された州の数）を足す。または InstrumentsProdcap.cs の ⚠限界の 1 行（c95pc の小物）に〈読みの四半期に移った州・作られた州は output と producedQty が合わない＝d＝その州の Σoutput〉と書く。
+  門（両側）：G1 outputSum＝prodcap の Σoutput（全ての組・往復の桁で一致）。G2 eventRegions＝0 の組で outputSum＝producedQty（G10 の内）。G3 eventRegions＞0 の組の数＝q6_excl の数（種 1〜10 で 26）＝上側（多すぎ）も下側（0）も赤。
+  突然変異：outputSum を LastProduced の和にする→G1 が (a)(a0) の組で赤。eventRegions を cederule だけで数える→G3 が新しい州の 3 組で赤。旗 0 で落ちる確かめ＝列が無い木では G1〜G3 が読めず赤。
+  試験：P1 に〈合成の盤面で 1 州を TransferRegion で移して読む〉を足す（今の P1 は領土の動かない盤面だけで緑）＝d＝移った州の Σoutput を両側で Assert。突然変異〈Rehome の 0 化を外す〉で d＝0 になり赤（挙動の線の検知器にもなる）。
+推奨 2（挙動の線の候補・優先は低い・確証なし）：Rehome の流量の 0 化の扱いを揃える（形 E1＝LastProduced・LastSold・PrevStock を置き直さない／形 E2＝LastDemand も 0 にして非対称を消す）。新しい係数 0・新しい状態 0・旗 1（例 RehomeKeepsFlows）。
+  先に要る物：Territory.cs:259 の〈財収支の恒等式を保つ〉の理由を、旗 1 の木で GoodsBalance・savetest・leakhunt が緑かで確かめる（〈推〉で 0 化は不要の見込み）。
+  門の素案（両側）：H1（働いた）＝計器 nationgood_s と prodcap_s の食い違いの組が (a) で 0（旗 0 は種 1〜10 で 1,846）＝(a0) は E1 では残る（新しい州は別）。H2（上側）＝移った州の 3 月目の清算の輸入量（要る計器：清算の行に州が移った四半期の印）が旗 0 の 1/2 以上に減らない・ヌル腕の幅の外に増えない。止める線は README のまま。
+  要る計器：移った州の 3 月目の清算の X・Y（xPrice・xNeed・yPrice）と、次の月の旬の役務の flowIn を、移った州とその四半期の印つきで書く表（新）。
+- 作者の問いへの材料（決めない）：新しい州（植民地の昇格）の市場が流量 0 で始まるのは、開幕の Output の値（0.5・50）と合わない＝新しい州の最初の月をどう数えるかは設計の問い。
+
+[記録]
+- 覗き：0 回（作りかけの出力を tail・ls で覗いていない）。waitmark 2 回（base.done・wage.done）。hook に止められた 1 回（grep の模様に禁止の並び〈眠りの語〉＝Grep の道具で読み直した・言い換えはしていない）。
+- 背景の失敗 4 回（台本の f 文字列と集合の型の誤り＝直して回し直した・生には触れていない）。
+
+[追記（反証の先回り・完了の前）]
+- 受け手の名の突き合わせ：(a) の食い違いの組を cederule_s の how で引くと Ceded 3,280・Seceded 609・Returned 237（種 1〜20・q3_byhow.txt）＝3 種とも receiver の名が prodcap の ownerNation と合った。読みの四半期の事象は Ceded 55・Seceded 8・Returned 3。
+- 残りの LastProduced の読み手の窓の判定：
+  窓の外＝DemographicStep（Simulation.cs:2620・呼び手 :2524）・MintGold（:2972・呼び手 :2489）＝どちらも MonthSettle の中で Run（:2447）の後＝Run が書き直した後に読む。
+  窓の中〈推〉＝EnsureLiveGoods（Model.cs:1206・呼び手 MarketFlow.cs:105＝旬の価格形成）：Rehome の 0 化が LastProduced の setter で LiveDirty を立てる（Model.cs:821〜827）＝需要が塵で産出だけがあった財（輸出向けの RGO など）は次の Run まで死んだ財に落ち、その州の価格形成から外れる。
+  未追跡（呼び手の段を確かめていない）＝Colonial.ChooseFuelGood（Colonial.cs:176・呼び手 Colonial.cs:79・Military.cs:320・Transport.cs:117・:169）・PolicyPreferences.MilitaryOutputShare（:494・:509・呼び手 :341）・SelfPlay.TermsOf（SelfPlay.cs:54・呼び手 :68）・InternationalMarket.PaySales（:81 は Output を読む＝窓の影響なし）・Invariants.cs:163（月次の検査＝Run の後）。
+- Rehome の流量の 0 化の出所：git の初期コミット 1a3c2278（2026-09-21 の git 整備）から在る・(55) 7906bc42 が同じ行に触れた。0 化を入れた回と理由の記録は docs に未発見（注 Territory.cs:259 の〈財収支の恒等式を保つ〉だけ）。

@@ -1,0 +1,16 @@
+(1026) c96ol 読む線の反証役（opus）の訂正（合流 (1027) が写した・線の result.txt は書き換えていない）
+
+1. 中：エンジン側の窓は how で分かれる。
+   - 順＝Diplomacy.Step×3（MultiNationSim.cs:825）→ Market.Step（:832＝3月目の清算）→ WorldGoodsProduced（:982〜:997）→ ReabsorbNations（:1065）→ SpawnSecededNations（:1066）。
+   - Ceded（Diplomacy.cs:3422・Diplomacy.Step の中）と (a0) だけが、3月目の清算と世界の和で 0 を読む（読みの四半期の事象 66 件のうち 55 件・食い違う組 4,126 のうち 3,280）。
+   - Seceded（MultiNationSim.cs:404）・Returned（:1220）は清算の後＝窓は次の月の MarketFlow.cs:130 と EnsureLiveGoods だけ。
+   - (a0) の新しい市場は LastDemand も 0＝非対称にならない。
+   - 事前登録 P-a の順の文〈Run→清算→Diplomacy.Step〉は q2_timing の正しい順と食い違う（直したと名乗られていない）。計器の帰属 (a) には効かない。
+   - 推奨 2 の H2〈移った州の 3月目の清算の輸入量〉は母集合を Ceded に限る。
+2. 低〜中：規則 B〈産出は prodcap_s の Σoutput〉の偏り 2 つ。
+   - (i) (a0) の新しい州で、Run を通っていない開幕の Output（0.5・50）を数える（種1〜20 で 805 組・Σd 14,175）＝作者への問いを暗黙に決める。
+   - (ii) (a) で、3月目に送り手の下で作られた産出を受け手の産出として数える＝国ごとの門なら移転の四半期に国の間で産出が動く。
+   - 国ごとの門か (a0) を含む門では、規則 B の下でも規則 A の除外を併用する。
+3. 低：年の対応。World.Year は Q4 の末に進む（Simulation.cs:1917〜:1918）・読みは StepQuarter の後（SelfPlay.cs:2183）＝印の年 Y の行は Y−1 年 12 月の 1 か月の流量（例 1913 の行は 1912 年 12 月）。cederule_s.year は q%4 が 0〜2 で 1783+q//4・q%4==3 で 1784+q//4。年で突き合わせる門は q で引く。
+4. 低：推奨 1 の eventRegions は〈how≠Sovereign の Rehome と Adopt で新しく作られた州〉と定義する（Territory.cs:264 で Sovereign は 0 化を飛ばす）。G3 の 26 は今の盤面（m1022 の種1〜10）に固有＝同じ盤面の恒等の線に限る。
+5. 低：hook に止められた 1 回の文が、verdict〈awk の模様〉と result.txt〈grep の模様〉で食い違う。

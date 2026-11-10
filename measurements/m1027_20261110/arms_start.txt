@@ -1,0 +1,14 @@
+mM start 2026-11-10 22:00:41 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=df6c859f Dfree=91.04GB armsfree=6
+mS start 2026-11-10 22:00:41 ins=1 N=10 SB=11 cearn=0 coef=- HEAD=df6c859f Dfree=91.04GB armsfree=6
+identZ start 2026-11-10 22:00:41 tree=fdd42924 Dfree=91.04GB armsfree=6
+n1 start 2026-11-10 22:00:41 ins=1 N=10 SB=1 cearn=1 coef=SupplySlope=0.50000001 HEAD=df6c859f Dfree=91.04GB armsfree=6
+mS end 2026-11-10 22:43:24 rc=0
+n1 end 2026-11-10 22:44:20 rc=0
+mM end 2026-11-10 22:44:21 rc=0
+identZ end 2026-11-10 22:52:45 rc=0
+n2 start 2026-11-10 22:54:18 ins=1 N=10 SB=1 cearn=1 coef=SupplySlope=0.49999999 HEAD=df6c859f Dfree=30.3GB armsfree=6
+p10 start 2026-11-10 22:54:28 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=df6c859f Dfree=29.59GB armsfree=6
+p5 start 2026-11-10 22:54:28 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=df6c859f Dfree=29.58GB armsfree=6
+p5 end 2026-11-10 23:10:27 rc=0
+p10 end 2026-11-10 23:10:28 rc=0
+n2 end 2026-11-10 23:15:50 rc=0
