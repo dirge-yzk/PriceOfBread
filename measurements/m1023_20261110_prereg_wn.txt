@@ -1,0 +1,33 @@
+(1023) 事前登録 c96wn：c95wn（戦争の計器）の直し（恒等の線・コードの前・最初のコミット）
+基準：m1022（main 00f50935）。材料：origin/c95wn の 6 コミットを cherry-pick -x で入れた木（a51c4c78..7a5f521f）。
+
+[1] 種類と予言 0
+- 恒等の線。力学 0 行・新しい係数 0・乱数を引かない・INS=1 のときだけ動く。予言 0（素の 5 種・計器つき 10 種は新しい表 3 本と wars_s／invade_s の末尾の列を除き m1022 と全行一致）。
+- 浮動小数の順序が変わる箇所：WarSurplus の b の式を WarRatioClamp へ括り出す（同じ分岐・同じ値）だけ。計器の中の式で、エンジンの値は変えない。紙の台本での食い違い数＝0 の見込み（同じ三分岐）。
+
+[2] 直す 3 点と、消す物と残す物
+(a) Diplomacy.TriggerWars の Instruments.On の読み 2 本（屈服の行・StartWar の行）を、関数の頭の局所 bool ins の 1 読みへ。OnDoubleReadScanTests の許可表 Allowed には足さない。他の関数に新しい二重読みが出たら同じ形で直す（c95wn が足した読みで 2 回以上読む関数は TriggerWars だけ＝走査の赤は 1 件だった）。
+(b) 見出しの幅：invade_s は q の列で 7→8。DiplomacyPendingTests.cs:242 Assert.Equal(7→8)（★(743) ②・比べる量は同じ表の見出しの列数＝計器の宣言の更新）。計器の表の見出しや列の数を Assert する既存の試験は grep で全て確かめた：該当は DiplomacyPendingTests.cs:242 の 1 行だけ（WarInstrumentTests は新しい試験）。
+(c) 読み手の無い internal を private に戻す。Diplomacy.cs の ColonizeGdpNormalizer は読み手 0（SimCore・Runner・App・Tests・scripts の grep 結果 0）＝private に戻す。残す internal と理由（計器 InstrumentsWar.cs が読む）：_grudge・_warClock（InstrumentsWar:351・:350・Runner/PendingProbe は反射）・_rank・AiColonizeMinProjection・World の InvShipStock／InvCannedStock／InvadeCannedReq／InvadeWillCost／InvadeShipReq（影の評価が読む）。
+(d) warentry_s の末尾に列 4 本：sumNewNeed（Σ 評価ごとの need×(1−τ²)）・newOk（新しい要求で余剰 landPotential×(1−b)−要求 ≧0 の評価の件数）・oldOk（今の要求＝S_C′≧0 の評価の件数）・newOnly（新しいだけで足りる件数）。計器が自分で計算（エンジンの関数を呼ばない・need は NeedLand+NeedInternal、land・b は呼びの最初の評価の snapshot）。τ＝min(1, 緊張÷WarDeclareTension)（緊張が負・NaN は 0）。
+(e) ⚠限界に名乗る：willDerivedUse の時点のずれ（負の行 6.2%）・呼び 1 回の snapshot を呼びの中の全評価で共有する。
+(f) 記録：事前登録 m1018 [2] e（DipState に置く）と実装（ConditionalWeakTable の WarOf）の違い／WarTag の後に戦争が立たない経路で札が残る経路（実装ログに書く）。
+他の線との重なり：c96kf＝Instruments.cs:1912・:1940 の既存の行（こちらは :1914・:1944 の既存の行と WarTables の列）・c96rd＝world.json・Coefficients.cs（こちらは触れない）。Instruments.cs を触るのは wars_s／invade_s の書き手だけ。
+
+[3] 足す試験とそれを赤にする突然変異・走査の番人の点検（㉘）・件数の予言（㉑）
+- WarInstrumentTests T9 新しい要求は紙の値（Theory 6 ケース・紙の値 1e-12：τ=0→need、緊張 70→0.75 need、140 と 200→0、負・NaN→need）。突然変異 N1＝τ²を τ にする（70 で 1.5 → 赤）・N2＝上限の切りを外す（200 で負 → 赤）。
+- T8 に newOk≧oldOk・newOnly＝newOk−oldOk・範囲の Assert（N3＝newOk に oldOk の条件を使う → 赤）。
+- 既存の 7 本の突然変異（c95wn mut.sh）を新しい木で回し直す：全て赤。
+- N4＝TriggerWars の読みを 2 つに戻す → OnDoubleReadScanTests が赤。N5＝見出しの幅の試験を 7 のままにする → InvadeInstrumentTests が赤。
+- ㉑ OnDoubleReadScanTests：Allowed の行と値は main 00f50935 と同じ（足さない・増やさない）。走査の宣言の書き換えは 0 件。ScalarDeletionTests・GoodIdGuardTests・OnDoubleReadScanTests・DiplomacyPendingTests を ㉘ の束に入れる（WriterRatchetTests・DormantIdentityTests・InstrumentsTests ほか既定の束も）。WriterRatchetTests の宣言の表は触らない（計算量の見た件数に触れない）。
+- 試験の数（[Fact]・[Theory] のケース）：main は非 FullLength 2607（合格 2606・スキップ 1）＋FullLength 3。c95wn の WarInstrumentTests のケース数＋この線の +6（T9）が増分＝--list-tests で数えて ident の --tests-delta に渡す（数えた値は実装ログへ）。
+- GoodIdGuardTests の既知の赤（c95pc record.py）は main の合流で直った物かをフルスイートで確かめ、赤なら record.py の扱いを報告する（触るなら scripts の道具だけ）。
+
+[4] ident：`ident.sh run c96wn --tree D:/PoB_work/wt_c96wn --added-tables warentry_s,warpair_s,warband_s --grown-ok wars_s,invade_s --tests-delta <数>`。基準 m1022（B5・B10INS・MON・NG_BASE）。フルスイートを ident の前に回す（★(1022)）。
+
+[5] 床 F1〜F3（m1022 の盤面の ident の生で数え直す・m1017 の値 206,001・1,295・2,286 は旧）
+- F1＝旧の規則の件数（理由〈余剰戦力が不足〉の評価の行の和）・F2＝invade_s の行（種ごと）・F3＝sh_calls の和（評価の数 7,402・8,785 は床にしない）。数え直した値は記録（門ではない）。台本 scripts/instruments/c96wn/floors.py。
+
+[6] 門（両側）
+- 判定〈恒等〉・フルスイート緑・savetest 合格・推定 248.5 秒以下・Allowed の行と値が main と同じか減る・G-W1〜G-W4 は m1018 の定義のまま・新しい列は紙の値と 1e-12 以内（τ＝0 で今の要求、τ＝140 で 0）。
+- 判定が恒等でなければ、その変更を外して報告に回す。〈判定: 恒等〉なら〈測った種で一致〉と名乗る。

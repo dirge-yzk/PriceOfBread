@@ -1,0 +1,11 @@
+seed 1 evals=78777 F1_will=21472 F2_invade=130 F3_shcalls=220 tauPos=54094 newOk=25712 oldOk=24868 newOnly=844 rowsTau=960
+seed 2 evals=69500 F1_will=19395 F2_invade=128 F3_shcalls=121 tauPos=47747 newOk=30850 oldOk=30110 newOnly=740 rowsTau=847
+seed 3 evals=128405 F1_will=20353 F2_invade=67 F3_shcalls=31 tauPos=88484 newOk=42730 oldOk=41716 newOnly=1014 rowsTau=1536
+seed 4 evals=82330 F1_will=19025 F2_invade=140 F3_shcalls=170 tauPos=56951 newOk=32804 oldOk=32064 newOnly=740 rowsTau=995
+seed 5 evals=79834 F1_will=22219 F2_invade=141 F3_shcalls=215 tauPos=54920 newOk=29064 oldOk=28313 newOnly=751 rowsTau=973
+seed 6 evals=76154 F1_will=19557 F2_invade=142 F3_shcalls=179 tauPos=52340 newOk=22791 oldOk=21914 newOnly=877 rowsTau=928
+seed 7 evals=75645 F1_will=20336 F2_invade=133 F3_shcalls=171 tauPos=52194 newOk=28158 oldOk=27408 newOnly=750 rowsTau=922
+seed 8 evals=90434 F1_will=21920 F2_invade=134 F3_shcalls=217 tauPos=62351 newOk=32911 oldOk=32058 newOnly=853 rowsTau=1072
+seed 9 evals=85820 F1_will=21755 F2_invade=148 F3_shcalls=205 tauPos=58625 newOk=29053 oldOk=28309 newOnly=744 rowsTau=1043
+seed 10 evals=71527 F1_will=20727 F2_invade=117 F3_shcalls=154 tauPos=48703 newOk=29457 oldOk=28823 newOnly=634 rowsTau=871
+total evals=838426 F1_will=206759 F2_invade=1280 F3_shcalls=1683 tauPos=576409 newOk=303530 oldOk=295583 newOnly=7947 rowsTau=10147
