@@ -39,6 +39,8 @@ public static partial class Instruments
         public double Will, Fever, FMil, FMilSpend, FNoble, FSoldier, FThreat, FDiv;
         public double Land, Force, NeedLand, NeedInternal, NeedSea, PowerMil, LandPower, Own, Reach, Ratio, SA, SC, RA, RC;
         public int RCalls, SCLess;
+        public int TauPos, TauPosWeak;   // 評価の組の緊張が正の件数（弱小国の門で落ちた評価だけの件数も）
+        public double SumTau2;           // Σ min(1, 緊張÷140)²（要求×(1−τ²) の τ² の和・F4 の材料）
         public double PrevWill;
         public bool HavePrev;
     }
@@ -233,6 +235,8 @@ public static partial class Instruments
         acc.Evals++;
         acc.Reason[WarReasonIndex(reason)]++;
         if (!d._rank.ContainsKey(target.Id)) acc.TgtRankMissing++;
+        double tens = d.Tension(great, target);
+        if (tens > 0) { acc.TauPos++; if (reason == "弱小国が標的") acc.TauPosWeak++; double tau = System.Math.Min(1.0, tens / c.WarDeclareTension); acc.SumTau2 += tau * tau; }
         if (d.RankOf(target) != PowerRank.Minor) acc.TgtNonMinor++;
         if (reason == "弱小国が標的")
         {
@@ -280,7 +284,7 @@ public static partial class Instruments
         + "sh_pass\tsh_dependent\tsh_suzerainOf\tsh_noLand\tsh_atWar\tsh_maxDep\tsh_will\tsh_mil\tsh_ship\tsh_sea\tsh_canned\tsh_projFail\tsh_projPass\tsh_calls\t"
         + "willNow\twillPrev\twillInflowWar\twillInflowCommerce\twillDerivedUse\t"
         + "feverNow\tsumWill\tsumFever\tsumFMil\tsumFMilSpend\tsumFNoble\tsumFSoldier\tsumFThreat\tsumFDiversion\t"
-        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls";
+        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2";
 
     internal const string WarPairHeader = "quarter\tnationA\tnationB\ttensionEnd\ttensionMax\tmonthsGe140\tmonthsGt100\twarClock\tgateOpenMonths\tstarts\tsubmits\tpeaceResets\tsecessionResets\tgrudge\thostility";
     internal const string WarBandHeader = "quarter\tpairs\tpairsWritten\tpairsSkipped\tb0\tb0_20\tb20_70\tb70_100\tb100_140\tb140\tsubmits\tpeaceResets\tsecessionResets\tstart_unknown\tstart_main\tstart_subjugate\tstart_declare\tstart_ally\tstart_suzerain\tstart_civil\tstart_ultimatum\tstart_calltoarms\tstart_mediation\tstart_secession";
@@ -325,7 +329,7 @@ public static partial class Instruments
             Add(F(adv));
             Add(F(acc.Will)); Add(F(acc.Fever)); Add(F(acc.FMil)); Add(F(acc.FMilSpend)); Add(F(acc.FNoble)); Add(F(acc.FSoldier)); Add(F(acc.FThreat)); Add(F(acc.FDiv));
             Add(F(acc.Land)); Add(F(acc.Force)); Add(F(acc.NeedLand)); Add(F(acc.NeedInternal)); Add(F(acc.NeedSea)); Add(F(acc.PowerMil)); Add(F(acc.LandPower)); Add(F(acc.Own)); Add(F(acc.Reach)); Add(F(acc.Ratio));
-            Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess));
+            Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess)); Add(WI(acc.TauPos)); Add(WI(acc.TauPosWeak)); Add(F(acc.SumTau2));
             st.We!.WriteLine(sb.ToString());
             // 次の四半期へ
             double pw = will;
