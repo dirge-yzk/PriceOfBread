@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/BilateralMarket.cs b/PriceOfBread.SimCore/BilateralMarket.cs
+index 2a1b4755..d1b45f5b 100644
+--- a/PriceOfBread.SimCore/BilateralMarket.cs
++++ b/PriceOfBread.SimCore/BilateralMarket.cs
+@@ -932,7 +932,7 @@ public sealed partial class InternationalMarket
+                             double mar2 = tMargin * (1.0 + km2 / Diplomacy.DistanceNormKm) * adValoremRev
+                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
+                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
+-                            double del2 = selP * fac2; if (del2 >= lp) nInv++;   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
++                            double del2 = selP * fac2; if (del2 < lp) nInv++;   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
+                             if (del2 < double.MaxValue)
+                             {
+                                 candS[candN] = s2; candD![candN] = del2; candK![candN] = km2; candF![candN] = fac2;
