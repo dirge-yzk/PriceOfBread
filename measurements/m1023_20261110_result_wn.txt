@@ -1,0 +1,12 @@
+(1023) c96wn 結果（事前登録 m1023_20261110_prereg_wn.txt の追記・結果を見た後に規則は変えていない）
+木：c96wn（00f50935 + origin/c95wn の 6 コミット cherry-pick -x + 直し）。ident c96wn〈判定: 恒等〉（測った種で一致）：素の 5 種 179 行・計器つき 10 種 181 行が m1022 と名乗り行を除き全行バイト一致・推定 231.1 秒・計器の表は共通 1256 本が（バイト一致 1216＋既知の揺れ 20＋列が増えた 20）・新しい表 30 本（warentry_s・warpair_s・warband_s の 10 種分）は宣言どおり・注視 4629 行一致・テスト 2625（基準 2607+18）＋FullLength 3。
+フルスイート（隔離ビルド・ident の前）：Category!=FullLength 2625（合格 2624・スキップ 1）・FullLength 3 合格・--list-tests 2625／3 と一致。savetest OK・leakhunt 保存則違反なし。㉘ の束（ScalarDeletion・GoodIdGuard・OnDoubleReadScan・DiplomacyPending・InvadeInstrument・WarInstrument ほか 219 本）緑。
+試験の書き換え（★(743) ②）：DiplomacyPendingTests.cs:242 Assert.Equal(7→8, header.Length)（invade_s の q の列）。OnDoubleReadScanTests の許可表は変更 0（TriggerWars は表に足していない）。
+突然変異（measurements/m1023_20261110_mutations.txt・台本 scripts/instruments/c96wn/mut.sh）：c95wn の 7 本（S・T・T2・Q・R・O・D）全て赤（失敗 3・2・3・1・1・2・1）。N1 τ²→τ 赤（WarInstrumentTests）・N2 上限の切りを外す 赤・N4 TriggerWars の読みを 2 つに戻す 赤（OnDoubleReadScanTests 1 本）・N5 見出しの幅を 7 に戻す 赤（InvadeInstrumentTests 1 本）。N3（newOk に今の要求を使う）は最初は緑＝穴を名乗り、判定を純関数 WarOkPair に括り出して紙の値の試験（新しいだけで足りる評価）を足し、再実行して赤を確かめた（出力の末尾）。
+足した試験：WarInstrumentTests T9 新しい要求は紙の値（Theory 6 ケース）・T9b 新しいだけで足りる評価は紙の値（Fact）・T8 に newOk≧oldOk／newOnly＝newOk−oldOk の Assert。c95wn の WarInstrumentTests のケースと合わせて +18。
+足した計器の列：warentry_s の末尾に sumNewNeed・newOk・oldOk・newOnly（c95wn の tauPos・tauPosWeak・sumTau2 の後）。wars_s は q・entryCode、invade_s は q（c95wn のまま）。
+internal を private に戻した物：ColonizeGdpNormalizer（読み手 0）。他の internal は InstrumentsWar.cs が読む（残す）。
+床の数え直し（m1022 の盤面・計器つき 10 種の生・scripts/instruments/c96wn/floors.py・出力 measurements/m1023_20261110_floors.txt）：F1（理由〈余剰戦力が不足〉の評価の行の和）206,759（m1017 の値は 206,001）・F2（invade_s の行）1,280（種ごと 67〜148；旧 1,295）・F3（sh_calls の和）1,683（種ごと 31〜220；旧 2,286；種 3 が 31 と小さい）。評価の数 838,426 は床にしない。新しい列：τ＞0 の評価 576,409／新しい要求で余剰が足りる 303,530・今の要求で足りる 295,583・新しいだけで足りる 7,947（足りる件数の 2.7% 増）。記録のみ。
+記録：事前登録 [2] e（DipState に置く）に対し実装は ConditionalWeakTable の WarOf（InstrumentsWar.cs）＝表の寿命が Diplomacy と同じ・DipState の欄は足していない。WarTag の後に StartWar が戦争を立てない経路（DeclareWar のガードで拒否される入口など）では TagCode・TagA・TagB が残る（InstrumentsWar.cs:79・:92〜93＝WarStarted が組が同じ場合だけ拾って 0 に戻す）。組が違えば拾われず次の WarTag で上書きされる＝誤った札が付くのは、同じ組の次の開戦が別の入口から来たときだけ（件数は未測定・記録）。willDerivedUse の時点のずれ（負の行 6.2%）は ⚠限界 ⑥ に名乗った。
+腕の枠で待った時間：0（arms.sh free を確かめて ident を起こし、待ちなし）。覗き（tail・ls）：ident ログの末尾の読み 2 回（完了後）。前面の待ち（waitmark）：約 17 回。hook に止められた回数：2（どちらも私が命令に余計な語を付けた誤り）。
+作ったフォルダ：D:/PoB_work/wt_c96wn・D:/PoB_work/c96wn_work・D:/PoB_work/c96wn_art・D:/PoB_work/ident_c96wn（ident の生・合流まで残す）。mut_* の使い捨ての木は消した。
