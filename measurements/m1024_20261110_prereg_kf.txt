@@ -53,3 +53,17 @@
  (c) 飛ばすだけで break にしない（prevS を進める・:921 と同じ形）。KmOf の表の書き込み・kmGen の刻印が減る副作用は App の地図の陸路の記帳だけ（成績表は読まない）。
 
 [7] 入れない物：帰属の腕 Z0・C1/C2 の高速化・商人の出口 F1・wn/rd の持ち物・App/Display/Runner。
+
+[8] 追記（腕の前・器を書いた後・結果は見ていない）2026-11-10
+ a. 出力の枝の名：眠りは dormant（変数名の綴りを避ける）。枝は labor・svcClosed・svcDaily・goodsClosed・pinnedClosed・goodsDaily・dormant・dead・other の 9 本。
+    MarketFlow.StepDay に足した整数の局所は 6 本（kLabor・kSvcD・kGoodsD＝層ごとの総数・kRunL・kRunS・kRunG＝層ごとの日次の日数）。nStep1 は 3 層で共用、nClosedL は労働の枝の中で重なるため既存の局所では分割にならない。
+    dead は live.Length−dormant−steps から導く（局所を足さない）・other＝steps−6 枝の和（0 のはず）。Instruments.On は StepDay の頭で bool insOn に 1 回だけ読み、LwStep の呼び口と PxStep の呼び口が共用（OnDoubleReadScanTests の許可表は書き換えない）。
+ b. K1 の cscx_s の tierCode は Core／Integrated／Colonial の 3 値（指示の〈Colonial／Home〉の Home を Core と Integrated に分けた）。
+    cscx_s の書き出しは ScopeFold の中・閉じるのは PxstepClose（Instruments.cs の行の追加 0・変えた行は :1912・:1940 の 2 行・git diff --stat で +2 −2）。
+ c. K3 の道の量は実際に移った人数（移す前後の POP の Size の差）。道は 5 本：merchPettyIn・artisanPettyIn（①*）・merchCapRiseOut（③′）・merchFallOut（:345）・artisanFallOut（⑥）。
+    ⑥ は職人の量（商人ではない）。Step の中で商人の Size を動かす道は ①*・③′・:345 の 3 本だけ（RouteViaPool の行き先から商人は除かれる）＝T4 は merchPettyIn−merchCapRiseOut−merchFallOut＝商人の人数の差。
+    資産の門は :345 の位置で MerchGate が呼ばれ、計器が FallAnchorReform・MiddleFallThreshold から自分で計算する（FallAnchor は private）。merchSavPerCapAtGate も同じ時点。門を通らない州は nan。
+ d. T3 の限界：着値＝自州価格ちょうどの充填は float で作れない＝≧ と ＞ の違いは検査できない（測度 0）。突然変異 M1 は向きを逆にする形（del2＜lp）で置く。
+    T3 の掃引で、無効な売り手でも候補表が空の最初の 1 人なら toBest に数えられる（最良＝初期値 MaxValue との比較）ことが見えた＝fillsToBestCount は〈最良が有効な売り手に替わった〉件数ではない（記録の列は invalid と並べて読む）。
+ e. ㉑ 書き換える件数の予言：OnDoubleReadScanTests の許可表 0 件・merch_s の見出しを Assert する既存の試験は定数を共用＝0 件・表の一覧の試験（cscx・pxstep・merch_s の名を数える既存の試験）0 件（grep で確認済み）。テスト数の差 +5 は Theory の行を数えない関数の数＝T1・T2（Theory 3 行）・T3・T4（Theory 3 行）・T4b・T5 で、--list-tests の増え方は後で数える（予言を +5 から +10 へ訂正：Theory の行は別の試験として数えられる＝T1 1・T2 3・T3 1・T4 3・T4b 1・T5 1）。
+    ※この訂正は器を書いた後・ident の前（結果を見る前）。
