@@ -157,9 +157,9 @@ public class WarInstrumentTests
                 {
                     bool ok = gw.CanInvade(t, out var reason);
                     if (reason is "自国" or "外交なし" or "弱小国が標的") continue;
-                    int g = Instruments.WarShadowGate(gw, d, c, self, t);
-                    Assert.Equal(reason, Instruments.WarShadowReasons[g]);
-                    Assert.Equal(ok, g == 0);
+                    int gate = Instruments.WarShadowGate(gw, d, c, self, t);
+                    Assert.Equal(reason, Instruments.WarShadowReasons[gate]);
+                    Assert.Equal(ok, gate == 0);
                     seen.Add(reason); checkedN++;
                 }
             }
@@ -206,6 +206,7 @@ public class WarInstrumentTests
                 }
             }
             Assert.Equal(b.Rng.NextDouble(), a.Rng.NextDouble());
+            Assert.Equal(b.Diplomacy.SubmitRng!.NextDouble(), a.Diplomacy.SubmitRng!.NextDouble());   // 外交の専用系列も引かない
             Assert.Equal(b.Nations[0].World.ExpansionWill, a.Nations[0].World.ExpansionWill);
             Assert.Equal(b.Diplomacy.Wars.Count, a.Diplomacy.Wars.Count);
             Assert.Equal(b.Nations[0].World.InvShipStock(), a.Nations[0].World.InvShipStock());
@@ -262,5 +263,34 @@ public class WarInstrumentTests
         }
         Assert.True(evalSum >= 100, $"対照：評価の数が少なすぎる（{evalSum}）");
         Assert.True(weak > 0, "対照：弱小国の門で落ちた評価が 1 件はある");
+    }
+
+    private static string[] DiplomacyLines() => File.ReadAllLines(Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "Diplomacy.cs"));
+
+    /// <summary>T9：呼び口の配線。AI の侵略の評価（TryAiSubjugate）の CanInvade の呼びが、理由を計器の hook へ渡している（`out _` に戻すと赤）。バッチの AI の経路は rng の門の後でしか通らないので、配線は走査で守る。</summary>
+    [Fact]
+    public void 侵略の評価の呼び口は理由を計器へ渡す()
+    {
+        var hits = DiplomacyLines().Where(l => l.Contains("gw.CanInvade(q, out")).ToList();
+        Assert.Single(hits);
+        Assert.Contains("Instruments.WarEval(", hits[0]);
+        Assert.DoesNotContain("out _", hits[0]);
+    }
+
+    /// <summary>T10：入口の札。戦争を立てる全ての呼び口（AddBelligerent の呼び・StartWar の呼び）の同じ行に札がある（StartWar の本体が AddBelligerent を呼ぶ 1 行だけは呼び手が札を立てるので除く）。札を付け忘れた入口があると赤。</summary>
+    [Fact]
+    public void 戦争を立てる全ての入口の行に札がある()
+    {
+        int n = 0; var missing = new List<string>();
+        foreach (var l in DiplomacyLines())
+        {
+            string t = l.TrimStart();
+            if (t.StartsWith("//") || t.StartsWith("///") || t.Contains("void StartWar(") || t.StartsWith("AddBelligerent(new War { A = a, B = b }")) continue;
+            if (!(t.Contains("AddBelligerent(new War") || t.Contains("StartWar("))) continue;
+            n++;
+            if (!t.Contains("Instruments.WarTag")) missing.Add(t.Length > 90 ? t[..90] : t);
+        }
+        Assert.Empty(missing);
+        Assert.True(n >= 8, $"対照：入口の行を {n} 本しか数えていない");
     }
 }

@@ -236,9 +236,9 @@ public static partial class Instruments
         if (d.RankOf(target) != PowerRank.Minor) acc.TgtNonMinor++;
         if (reason == "弱小国が標的")
         {
-            int g = WarShadowGate(gw, d, c, great, target);
-            acc.Shadow[g]++;
-            if (g == 0)
+            int gate = WarShadowGate(gw, d, c, great, target);
+            acc.Shadow[gate]++;
+            if (gate == 0)
             {
                 if (d.Projection(great, target, c) < Diplomacy.AiColonizeMinProjection) acc.ShadowProjFail++;
                 else { acc.ShadowProjPass++; acc.CallShadowPass = true; }
