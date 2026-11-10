@@ -15,7 +15,7 @@ for s in range(1, ns + 1):
     m = dict(matched=0, diff=0, diffMut3=0, core=0, coreWithCp=0, rows=0, lockB=0, blockedM=0, blockedA=0, colRows=0, colEmpty=0, colLockB=0, colBlocked=0, mEmptyAll=0)
     with open(mp, encoding='utf-8', newline='') as f:
         r = csv.reader(f, delimiter='\t'); h = next(r); ix = {c: i for i, c in enumerate(h)}
-        assert len(h) == 22, len(h)
+        assert len(h) >= 22, len(h)   # (1027) 合流：merch_s は (1024) c96kf で末尾に 7 列（29 列）＝列は名で引くので下限だけ
         for x in r:
             m['rows'] += 1
             col = x[ix['tier']] == 'Colonial'
