@@ -1,0 +1,149 @@
+(1025) c96rd 事前登録：段0″a 資源のデータ＝world.json の resources に史実の産地の行を足す（旗 ResourceRowsFix・挙動の線・貿易の主の線・3 回の規則の 1 回目）
+書いた日 2026-11-10・木 00f50935（main＝基線 m1022）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+出発：00一覧 §00〈次の波（波96〜）〉の〈段0″a 資源のデータ〉・§0-2 ★(1017) ②（後の発見の炭田・鉄鉱は Sites で入れない＝作者「全て推奨で」で推奨を採った）・
+      measurements/m1015_20261110/findings.txt §2・§5 2.a・〈次の波の事前登録の素案〉・verifier_corrections.txt ①〜④・measurements/m1019_20261110_record.txt。
+作者 2026-11-09：自給率と貿易の少なさについて「これは修正対象です」。
+形の種類：入口（州の構築で賦存の配列を決める＝開幕から全ての四半期に効く）。どの行を足すか・州の対応の規則・産地の座標は AI の案・確証なし（史実の行は記憶から）。
+
+[0] 指示から外れた所（報告の先頭にも書く）
+ a. 対応を確かめた〈推〉の行は 6 行（指示の 5 行＋西の鉛鉱〔セビーリャ〕）。hist.tsv の note がこの行を〈対応の州は〈推〉〉と書く＝規則 R2 が拾った。保守側（確かめる行が増える）。
+ b. 〈確〉の 2 行は最も近い点が別の州だが、規則 R4（〈確〉の行は記録だけ）で外さない：英の漁獲（グリムズビー→最も近い点はマンチェスター 143 km・グラスゴーは 369 km）・
+    普の鉄鉱石（タルノヴィッツ→最も近い点はクラクフ〔他の国の点〕88 km・ブレスラウは 148 km）。英の漁獲はスコットランドの漁場をグラスゴー（本国で唯一のスコットランドの州）で受ける読み・
+    普の鉄鉱石は上シュレージエンを普の唯一のシュレージエンの州で受ける読み（どちらも AI の読み・確証なし）。
+ c. world.json を直す＝旗に関係なく OpeningBakeTests の入力のハッシュの 2 本が赤（★(764)＝線の担当は触らず、合流の木で焼き直す）。GoodIdGuardTests の賦存の個数の手の表は
+    同じコミットで直す（表の注〈州や植民地を足す・賦存を直す回は表も直す〉・値は [8] の予言と一致するときだけ＝★(764) ②）。
+ d. EnsureScarceCounts（Simulation.cs:712〜:736・world.json を直接数える・旗を見られない静的な表）は足した行を旗 0 でも数える＝読み手の非対称。足す 5 財（鉄鉱石・銅鉱・鉛鉱・塩・漁獲）は
+    どの段（ScarceMineralOnlySulfur 0〜4）でも IsScarceMineral が偽＝この数えは読まれない＝結果に効かない（器の試験 T5 で番人にする）。
+
+[1] 行の確定（腕の前・紙・scripts/instruments/c96rd/rows.py・出力 measurements/m1025_20261110/rows.tsv）
+ R0 hole.tsv の class=D・conf=中 の 15 行から始める。
+ R1 外す 3 行：日本の茶（京都・RGO が無い）・オスマンのアヘン（スミルナ・RGO が無い・verifier ②〈主な〉に当たらない）・露の石炭（ハリコフ・L＝verifier ①）。
+ R2 州の対応の確度の列（verifier ③）：hist.tsv の note が〈対応の州は〈推〉〉と書く行、または verifier ③ が名指した行を〈推〉・他は〈確〉。
+ R3 〈推〉の行：史実の主な産地（hist.tsv の histRegion の最初の産地・座標は AI の記憶＝rows.py の SITES）に最も近い places.json の点（state・colony・target の 344 点）が
+    対応させた州そのものなら〈確かめた〉・違えば外す（距離の閾値は置かない＝最も近い点＝その産地を含む州の代わり）。
+ R4 〈確〉の行は R3 と同じ計算を記録だけにする（外さない）。
+ 結果（rows.tsv）：
+  | 国 | 財 | 州 | 対応 | 最も近い点（km）| 対応の州（km）| 規則 | 足す |
+  | イギリス | 銅鉱 | バーミンガム | 確 | バーミンガム 342 | 342 | R4 一致 | 1 |
+  | イギリス | 塩 | マンチェスター | 確 | マンチェスター 31 | 31 | R4 一致 | 1 |
+  | イギリス | 漁獲 | グラスゴー | 確 | マンチェスター 143 | 369 | R4 不一致（外さない・[0] b） | 1 |
+  | プロイセン | 鉄鉱石 | ブレスラウ | 確 | クラクフ 88 | 148 | R4 不一致（外さない・[0] b） | 1 |
+  | ロシア | 石炭 | ハリコフ | 推 | ハリコフ 199 | 199 | R1 L | 0 |
+  | ロシア | 塩 | エカテリンブルク | 推 | ウラル 183 | 383 | R3 外す | 0 |
+  | アメリカ | 銅鉱 | セントポール | 推 | フォートウィリアム 140 | 444 | R3 外す | 0 |
+  | アメリカ | 鉛鉱 | セントポール | 推 | セントポール 349 | 349 | R3 確かめた | 1 |
+  | 清 | 鉄鉱石 | 広州 | 推 | 広州 19 | 19 | R3 確かめた | 1 |
+  | オーストリア | 塩 | グラーツ | 推 | グラーツ 146 | 146 | R3 確かめた | 1 |
+  | スペイン | 鉄鉱石 | ビルバオ | 確 | ビルバオ 0 | 0 | R4 一致 | 1 |
+  | スペイン | 銅鉱 | セビーリャ | 確 | セビーリャ 63 | 63 | R4 一致 | 1 |
+  | スペイン | 鉛鉱 | セビーリャ | 推 | セビーリャ 221 | 221 | R3 確かめた | 1 |
+  | 日本 | 茶 | 京都 | 確 | 京都 15 | 15 | R1 RGO なし | 0 |
+  | オスマン | アヘン | スミルナ | 確 | アンカラ 238 | 298 | R1 RGO なし | 0 |
+ **足す行の数＝10 で固定**（州 7・財 5）。露の塩はウラル（ペルミ）が最も近い＝対応の付け替えは別の線の候補（記録・この線では入れない）。米の銅鉱は州の外（フォートウィリアム）＝外す。
+ 足した後の配列（各州の配列の末尾に足す＝旗 0 で外すと元の並び）：
+  バーミンガム [0,27,1,107]→[0,27,1,107,2]・マンチェスター [36,1]→[36,1,6]・グラスゴー [1,75]→[1,75,20]・ブレスラウ [1,3,105]→[1,3,105,0]・
+  セントポール []→[3]・広州 [66,14,24]→[66,14,24,0]・グラーツ [0,19]→[0,19,6]・ビルバオ []→[0]・セビーリャ [16]→[16,2,3]
+  （番号：鉄鉱石 0・銅鉱 2・鉛鉱 3・塩 6・漁獲 20＝Catalog.cs:405・:412・:431〜:433）
+
+[2] 必要性の確かめ（腕の前・紙・scripts/instruments/c96rd/gates1025.py・生 D:/PoB_work/keep_1022/base_ins の prodcap_s・種 1〜10）
+ 足す 10 行の (州, 財) の開幕の断面（1784 q3）の RGO：100 件（10 行×10 種）全てが級 N（productivity＝基準×0.4・鉱物と塩 8.4・漁獲 6.72）。
+ →0 行ではない＝旗は何かをする＝**腕を回す**（measurements/m1025_20261110/paper_flag0.tsv の最後の行〈足した行の基準の級が全て N=True・読んだ比の数 100〉）。
+
+[3] 形（データ 10 行＋エンジン 2 本＋旗 1 行）
+ world.json：[1] の 10 行を各州の resources の末尾に足す。
+ Coefficients.cs:3344（UbiquitousMineralExempt の後）に `public double ResourceRowsFix = 0.0;`（新しい係数はこれだけ・状態・タイマー・閾値 0）。
+ Simulation.cs：足した行の表 `ResourceRowsAdded`（(州, 財) の 10 行）と、外す関数 `ProvinceResources(city, resources, coef)` を BuildProvince の上に置く。
+  旗 > 0 なら world.json の配列をそのまま返す。旗 0（NaN も）なら表の行を外した新しい配列（並びは元のまま）。外す財が無い州は元の配列をそのまま返す。
+ BuildProvince（Simulation.cs:805）の分解の次の 1 行で `resources = ProvinceResources(city, resources, coef);`＝外すのはここ 1 か所。
+ 州の Region.Resources はこの配列（:933）＝全ての読み手（賦存の枝 :828〜:845・地代の取り分 :841〜:845・割譲の費用と価値 Diplomacy.cs:3023・:3092・:3103・:3106・:3402・
+ アヘン :1489・:1498・植民地 Colonial.cs:125・計器 InstrumentsCess・InstrumentsLandbase:180・InstrumentsLandshare:70・:75・InstrumentsRecipeout:40・App の地図）が同じ配列を見る。
+ 触らない：Sites の Deposit（使わない）・ScarceEndowment・ApplyEndowment・案 B（EndowmentCostFollowsAbundance 0 のまま）・植民地（InitialColonies に足す行は無い）。
+ 旗 0 では ProvinceResources が足す前の world.json と同じ値の配列を返す＝州の構築は 1 ビットも変わらない（配列の参照だけが新しい＝読み手は値しか読まない）。
+
+[4] 紙の予言と、新÷旧の表の列
+ N1・N2：足した (州, 財) の開幕の productivity の新÷旧＝鉱物 4.0÷0.4＝10.0・塩と漁獲 3.5÷0.4＝8.75（Simulation.cs:684〜:685）。旗 0（基線を腕として渡す）は 1.0＝N1 赤（paper_flag0.tsv）。
+ N1′：足していない鍵の新÷旧が 1.0＝100%（開幕の断面は構築の値＝軌道に依らない）。ヌル腕 n1・n2 を腕として渡しても 90,050/90,050＝100%（paper_null_n1.tsv・paper_null_n2.tsv）＝
+      開幕の断面の他の鍵は揺れない＝門が判別できる。
+ N3（記録）：足した国のその財の世界の取り分は上がる向き〈推〉。基線とヌル腕の幅（record_base_null.tsv）は 0.5〜2.1 倍＝種の中央値でも揺れが大きい＝門にしない。
+ 越境（記録）：足した財の越境の輸出÷産出（基線 0.0009〜0.025）。向きの予言は置かない（産地が増えて自給が増えれば下がり、安い産地が輸出すれば上がる）。ヌル腕の幅 0.28〜2.2 倍。
+ 地代（記録）：PlantationRentShare 0.6 で、足した 10 行の RGO の持ち主が貴族（OwnerPopIndex 0）・RentShare 0.6 へ（:841〜:845）。
+ 新÷旧の表の列（報告に全て写す）：N1 の行ごとの比（10 行×10 種）・N2 の最大・N1′ の一致の割合と件数・N3（1850・1870・1913 の 10 行）・越境（同 3 年×5 財）・
+  割譲の件数と費用（cess_s の行数と resourceCount の分布・足した 7 州が割譲された件数）・英の国債の不履行の種（ukdef975.py）・.cost の項ごとの秒。
+
+[5] 門（両側・腕の前に固定・python scripts/instruments/c96rd/gates1025.py measurements/m1025_20261110/rows.tsv D:/PoB_work/keep_1022/base_ins <腕>/ins）
+ 狙い（機構・下側）：N1＝足した (州, 財) の開幕の productivity の新÷旧の最小 ≧ 8.0（10 行×10 種・持ち主が開幕と違う行は使わない＝skip の件数を名乗る）。
+ 上側（この形に固有の誤り）：N2＝同じ比の最大 ≦ 12.5（Sites の Deposit の 5 倍＝50 倍・二重の足し＝100 倍を拾う）。
+ 形の誤り：N1′＝足していない鍵の新÷旧の一致（|比−1| ≦1e-9）が 100%（M1 の〈別の州へ〉・〈全ての州へ〉を拾う）。
+ 記録：N3・越境（record1025.py・ヌル腕の幅と並べる）・割譲・地代・英の国債の不履行の種・.cost・NG・人口の比の行（popjump1017.py）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・nullgate.py。
+ 壊さない（止める線・この回の形をそのまま写す）：
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限）。
+  〈1 四半期 100 倍〉は scripts/instruments/c92gf/stoplines1002.sh の〈それ以外〉の行（基準 measurements/m1022_20261110/stopbase/ の M・N1・N2・S11 と同じ台本で並べる・gates1002f に --siam）。
+   建国の直後（系列の最初の行から 4 四半期以内）・分離と反乱の建国の後・分母の痩せ（政府の人口が 1 四半期で 1/10 未満か 10 倍以上）は記録（ヌル腕の件数と並べる）。
+  空洞化：python scripts/instruments/hol/an_h2.py <腕>/ins -v4 でピークの 1/10 未満・規則 A2（-ex rule＝植民地格・緯度の絶対値 55 度以上・開幕の人口 20 千人未満＝7 州）の名簿の外で、
+   その線が原因と読めた件（T1）が 1 件でもあれば止める。基線（keep_1022/base_ins）の同じ種で同じ州が既にピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+  計算量：推定 ＞248.5 秒で止める。機構のテスト（ソースを走査する番人を含む）の赤で止める。
+ 採否：N1・N2・N1′ が全て通り、止める線に当たらなければ〈採る〉を推奨。どれかが落ちたら採らない（同じ腕で物差しを替えない）。
+ 〈機構が狙いどおり働いたか〉＝N1（足した州で賦存が 4.0／3.5 に乗った）と N1′（他の州は動かない）。N3 と越境は向きの記録。
+
+[6] 突然変異（腕の前・使い捨ての木 D:/PoB_work/c96rd_work/wt_mut・試験の出力を measurements/m1025_20261110/mut_*.txt に残す）
+ | 突然変異 | N1 | N2 | N1′ | 器の試験 |
+ | M0 旗 0（基線そのもの） | 赤（1.0・盤面で確かめた paper_flag0.tsv） | 通る | 通る | T2・T3・T4 赤 |
+ | M1 表の行を別の州へ（ブレスラウ→ベルリン の鉄鉱石） | 赤（ブレスラウの比 1.0） | 通る | 赤（ベルリンの鉄鉱石の比 10） | T2・T3 赤 |
+ | M2 Sites の Deposit で入れる（×GoldRushEndowment 5＝産地の 4.0×5） | 通る | 赤（50） | 通る | T4 赤 |
+ | M3 賦存の枝だけに足す（BuildProvince の賦存の判定に表を直に読ませ、Region.Resources は旧の配列） | 通る | 通る | 通る | T3 赤（Region.Resources に財が無いのに級 E） |
+ | M4 外す所を 2 か所に分ける（賦存の枝は外した配列・Region.Resources は world.json の配列） | 通る（旗 1） | 通る | 通る | T1・T3 赤（旗 0 で Region.Resources に足した行が残る） |
+ 門の盤面で確かめたのは M0 だけ（paper_flag0.tsv）。M1〜M4 は器の試験で拾う（使い捨ての木で試験を回す）。M2 の N2 は紙（Deposit は開いた時に ×5＝開幕の断面では門 0 で productivity 0
+  ＝N1 が赤になる型もある〈推〉＝どちらの門で落ちるかを試験の出力で名乗る）。
+
+[7] 器の試験（PriceOfBread.Tests/ResourceRowsTests.cs・新）
+ 構築は UbiquitousMineralTests と同じ形（cfg.ToScenario(seed, sharedWorld: true) に Scenario.Coef を置いてから Simulation を作る）。期待は手で置く：Catalog の財の生産性×7.0（FullChainProductivityScale）×{0.4・3.5・4.0}。
+ T1 旗 0：7 州の Region.Resources が足す前の配列（手で書いた旧の配列）と同じ並び・同じ値。足した (州, 財) の RGO は 基準×0.4。
+ T2 旗 1：7 州の Region.Resources が足した後の配列（手で書いた新の配列）。足した (州, 財) の RGO の Productivity が 基準×4.0（鉱物）／3.5（塩・漁獲）。PlantationRentShare>0 なら持ち主は貴族（OwnerPopIndex 0）。
+ T3 同じ配列：旗 0 と旗 1 の両方で、全ての州の全ての RGO について〈Region.Resources に財がある〉⇔〈Productivity が 基準×4.0／3.5（希少鉱物は除く）〉（賦存の読み手と割譲の読み手が同じ配列）。
+    対照の件数の下限（調べた RGO の数 ≧ 100・足した行 10 件を全て通った）を置く。
+ T4 足していない州：旗 0 と旗 1 で、足した 10 行以外の全ての RGO の Productivity が同じ double（対照の件数の下限つき）。
+ T5 足した 5 財は ScarceMineralOnlySulfur 0〜4 のどの段でも希少鉱物でない（EnsureScarceCounts が旗を見ない読み手であることの番人）。
+ T6 旗の既定と表：ResourceRowsAdded は 10 行・(州, 財) が重ならない・どの行も world.json の配列にある（M1 で州の名を誤ると赤）。
+ 突然変異で赤を確かめる：上の表の M0〜M4 と、T5 は足す財に希少鉱物（例 錫鉱）を混ぜると赤。
+
+[8] ソースを走査する番人（㉘）と変わる件数の予言（㉑）・旗 1 の赤の予言（㉜）
+ 点検（grep・00f50935）：工業化度の読み手の許可表＝触らない（読み手を足さない）・`new MoneyStock(` の件数＝足さない（0）・route_anchors.tsv の鍵の行＝Simulation.cs の鍵の行を書き換えない
+  （BuildProvince の分解の行は鍵ではない・新しい行を別に置く）・WriterRatchetTests の宣言の表＝計数の処理を足さない。
+ ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ScalarDeletionTests・GoodIdGuardTests・OnDoubleReadScanTests・DiplomacyPendingTests）：
+  旗 0 の器のコミットで緑の予言。ただし GoodIdGuardTests.世界データの財の番号は期待する名前の財を指す は world.json の値で赤になる＝同じコミットで表を直す。予言（world.json の州と植民地の賦存の個数）：
+   鉄鉱石 8→11・銅鉱 6→8・鉛鉱 2→4・塩 5→7・漁獲 29→30（他の財は不変）。数えた値がこの予言と違えば直さずに止める。
+  DormantIdentityTests.DormantZeroFields に ResourceRowsFix を 1 行足す（旗 0 の器）・旗 1 のコミットでその行を消す（UbiquitousMineralExempt と同じ作法）。
+ world.json を直すと赤になる派生の表（★(764)・旗に関係なく）：OpeningBakeTests の入力のハッシュの 2 本（同梱の opening_bake.json の inputHash）。線では触らず赤のまま報告し、合流の木で焼き直す。
+  フルスイート（旗 0 の器・旗 1）でこの 2 本以外の赤は機構の赤として扱う。
+ 旗 1 の木の予言：WriterRatchetTests の計算量の宣言の表（最初の 40 四半期・1 種）は軌道が動くので赤になりうる＝★(749)（合流の木で取り直す・線では書き換えない）。
+  軌道に依る前提の試験（種を選んで前提を置く物）は赤になりうる＝㊴ の区分で名乗れる物だけ同じ線で直す（事前登録の追記を先に）。
+  旧の規則を固定する番人は無い見込み：賦存の配列を読む試験（LandShareTests:28・:199・LandShareCrownTests:275・LandOwnershipDataTests:62・UbiquitousMineralTests）は Region.Resources を読む＝新しい配列に従う。
+  EconomyTests:340 はイギリスの最初の州（ロンドン）の畜産を選ぶ＝足す行に当たらない。FullChainTests:122 は茶・コーヒー・金鶏樹皮・キニーネだけを数える＝当たらない。PlaceAdditionTests は足す 7 州を含まない。
+ ㉜ のそれでも回す理由：旗 1 のフルスイートの赤が OpeningBakeTests の 2 本（★(764)）と ★(749) の宣言の表だけなら腕 B を回す（どちらも機構の赤ではない区分）。
+
+[9] 計算量（.cost の項ごとの秒の見積り）
+ 直接：生産者の数・市場・財は同じ（10 個の RGO の Productivity が変わるだけ・Region.Resources の長さが 7 州で 1〜2 増える＝割譲の候補の評価の掛け算が 1 つ増えるだけ）＝0.0 秒。
+ 軌道の変化：c94pe は予言 +0.5 に対し実際 +20.3 秒（軌道が商人の数を動かした）。この形は鉱物と塩の産地の値段を下げ、輸出と製鉄を動かす＝清算（BilateralMarket）と商人の項が
+  動く向き〈推〉＝見込み −3〜+5 秒（中央 +1）。名目の余り 約 17.4 秒の中。外れの尾（c94pe 型）は余りを超えうる＝止める線 248.5 秒で読む（使う量の登録＝+5 秒）。
+ 項ごとの比較は .cost の項を m1022（b10_20261110_m1022_ins.cost）と並べ、予言との差を名乗る。
+
+[10] S11 の読み方
+ D: の空きが〈見込み＋5GB〉に足りれば、腕 B の後に種 11〜20（計器つき）を 1 本回し、N1・N2・N1′ を keep_1022/a11 と比べて同じ規則で読む（a11 は POB_CEARN=0＝S11 も POB_CEARN=0）。
+ 足りなければ回さずに名乗る（採否は合流の S11 で読む）。S11 の結果で事前登録を直さない。
+
+[11] 周辺の点検（読むだけ・欠損は別の線へ）
+ (a) PlantationRentShare（:841〜:845）：足した 10 行の RGO の持ち主が貴族へ・地代の取り分 0.6。史実（記憶・確証なし）：英の鉱物は土地の持ち主の権利（コーンウォールの鉱区の領主・チェシャーの塩）＝貴族の地代は合う向き。
+     西・普・墺は地下の資源が王権（鉱山の高権）＝国の取り分の形が無い〈記録〉。米・清は私人と国の請負＝貴族の階級の形は合わない〈記録〉。
+ (b) 割譲の費用の Resources.Length の重み：足した 7 州は割譲の費用（ColonyCaptureResourceCost 10×1〜2）が上がり、植民地格の経路では価値（Length＋0.5＋units×0.5）も上がる。
+     CedeTerritoryUnified（:3392〜）は Core の州も候補＝費用が上がると境界改定では取られにくく、戦利品（GDP 最大）では産出が増えて取られやすい向き〈推〉。cess_s の resourceCount で記録。
+ (c) Colonial.cs:125 の輸出作物の判別：ExportCrop は主食と穀物の鎖でない全ての財で真＝鉱物も含む。ただし r.Tier == Colonial の州だけ＝足す 7 州は開幕で Core＝割譲で植民地格になった時だけ効く（記録）。
+ (d) 英がバーミンガムを失う種（§0-W・T(i)）：戦争と割譲の線の注視＝この線では直さない。英の銅鉱の行はバーミンガム＝データを直しても T(i) に掛かる（verifier ④）。
+ (e) 米の銅鉱を外した結果、米は銅鉱の産地を持たないまま（findings §4 の〈米 −〉の逆の向きは残る）＝記録。露の塩はウラル（ペルミ）へ付け替える候補＝別の線。
+
+[12] 重なり（この回の他の線の持ち物と）
+ c96wn（InstrumentsWar.cs・Instruments.cs の戦争の行・Diplomacy.cs・World.cs）・c96kf（InstrumentsPxstep・InstrumentsScope・InstrumentsMerch・BilateralMarket・MarketFlow・Meritocracy）と重ならない。
+ 共有のファイル：Coefficients.cs（:3344 の後に 1 行）・DormantIdentityTests.cs（DormantZeroFields に 1 行）＝合流が解く。Diplomacy.cs は読むだけ（書かない）。
+ GoodIdGuardTests.cs（賦存の個数の 5 行）＝㉘ の束の試験・他の線は台本の財の番号の検査で触る可能性＝合流が解く。
+
+[13] 生と後片付け
+ 作業フォルダ D:/PoB_work/c96rd_work（腕 B・S11・突然変異の木・試験の出力）。生は合流の判断まで消さない。起こす前に shutil で〈見込み＋5GB〉の空きを確かめる。
