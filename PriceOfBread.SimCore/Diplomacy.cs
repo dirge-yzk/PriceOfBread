@@ -398,7 +398,7 @@ public sealed class Diplomacy
     internal const double CollapseScore = 1.5;   // ★internal（2026-09-06）：旧経路の内戦の戦勝点も同じ物差しで決着した（その経路は 2026-09-28 に削除＝内戦は戦争の形で同じ戦勝点）                 // 戦勝点の絶対上限＝厭戦崩壊の決定的スコア
     internal const double TensionMax = 200.0;                 // 緊張の尺度＝AddTension のクランプ上限（CrownParliament が外圧を0..1へ正規化して内圧〔闘争度〕と比べるときも同じ尺度で割る）。旧＝直書きの 200 と CrownParliament の TensionScale（(736) で 1 本へ）
     internal const double DistanceNormKm = 10_000.0;          // 距離減衰の正規化単位（km）＝エンジン内の距離の物差しの1本（2026-09-28 処理の一元化 段1＝植民地の維持費と入植・国際市場の運賃と危険料・侵略の船需要の同値の写し3本を畳んだ）。★internal 化2026-09-03＝Politics の分離判定が**同じ物差し**で保持力を割るため（「軍が届くか」の物差しはエンジン内で1本）
-    internal const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
+    private const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
     internal const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
     private const double OfficerCasualtyPopCap = 0.05;        // 将校戦死の貴族人口上限（5%/月）
     private const int EndedWarRingCapacity = 256;             // 終戦記録リングの容量
@@ -1516,6 +1516,7 @@ public sealed class Diplomacy
 
     private void TriggerWars(Coefficients c)
     {
+        bool ins = Instruments.On;   // (1023) 計器の門は関数の頭で 1 回だけ読む（確保と使用を別の読みにしない）
         var atWar = WarKeySet();   // ★(spdip) 交戦中の組（WarKeySet の注）＝開戦（StartWar＝同盟の参戦も足す）の後は作り直す
         for (int i = 0; i < Powers.Count; i++)
             for (int j = i + 1; j < Powers.Count; j++)
@@ -1563,7 +1564,7 @@ public sealed class Diplomacy
                             if (c.AISubmitMilRatio > 0
                                 && submitYields)
                             {
-                                CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(a, b)); _tensionRamp.Remove(DirKey(b, a)); _warClock[k] = 0; if (Instruments.On) Instruments.WarPairEvent(this, a, b, 1);   // 屈服＝緊張を宥和側へ・両向きのならしを消す（ResolvePendingWar の受諾と同型）
+                                CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(a, b)); _tensionRamp.Remove(DirKey(b, a)); _warClock[k] = 0; if (ins) Instruments.WarPairEvent(this, a, b, 1);   // 屈服＝緊張を宥和側へ・両向きのならしを消す（ResolvePendingWar の受諾と同型）
                                 if (weak.Nation is { } wn)   // 屈辱（下関・三国干渉＝国内の怒り）。説明APIへ記帳（2026-07-27：未記帳の書き込み現場を解消＝内訳合計と最終値の恒等）
                                 {
                                     double actualCost = System.Math.Min(c.AISubmitLegitCost, wn.Legitimacy);
@@ -1572,7 +1573,7 @@ public sealed class Diplomacy
                                 }
                                 Log.Add($"{_year} {weak.Name}が{strong.Name}に屈服（緊張緩和）");
                             }
-                            else { if (Instruments.On) Instruments.WarTag(this, a, b, 1); StartWar(a, b, c); _warClock[k] = 0; atWar = WarKeySet(); }
+                            else { if (ins) Instruments.WarTag(this, a, b, 1); StartWar(a, b, c); _warClock[k] = 0; atWar = WarKeySet(); }
                         }
                     }
                 }
