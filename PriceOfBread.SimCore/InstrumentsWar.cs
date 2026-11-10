@@ -169,6 +169,12 @@ public static partial class Instruments
         return need * (1 - tau * tau);
     }
 
+    /// <summary>(1023) 余剰 land×(1−b)−要求 ≧0 か：新しい要求で（nOk）・今の要求で（oOk＝S_C′≧0）。</summary>
+    internal static void WarOkPair(double land, double b, double oldNeed, double newNeed, out bool nOk, out bool oOk)
+    {
+        nOk = land * (1 - b) - newNeed >= 0; oOk = land * (1 - b) - oldNeed >= 0;
+    }
+
     internal static void WarSurplus(double land, double needLand, double needInternal, double ratio, out double sA, out double sC)
     {
         double need = needLand + needInternal;
@@ -252,7 +258,7 @@ public static partial class Instruments
         if (acc.FiniteCalls > 0)
         {
             double newNeed = WarNewNeed(acc.CurNeed, tens, c.WarDeclareTension);
-            bool nOk = acc.CurLand * (1 - acc.CurB) - newNeed >= 0, oOk = acc.CurLand * (1 - acc.CurB) - acc.CurNeed >= 0;
+            WarOkPair(acc.CurLand, acc.CurB, acc.CurNeed, newNeed, out bool nOk, out bool oOk);
             acc.SumNewNeed += newNeed; if (nOk) acc.NewOk++; if (oOk) acc.OldOk++; if (nOk && !oOk) acc.NewOnly++;
         }
         if (tens > 0) { acc.TauPos++; if (reason == "弱小国が標的") acc.TauPosWeak++; double tau = System.Math.Min(1.0, tens / c.WarDeclareTension); acc.SumTau2 += tau * tau; }

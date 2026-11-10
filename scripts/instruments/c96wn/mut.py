@@ -18,7 +18,7 @@ elif m == 'O':
 elif m == 'D': rep(W, '        if (d.Suzerain(t) is not null) return 1;', '        d.SubmitRng!.NextDouble();\n        if (d.Suzerain(t) is not null) return 1;')
 elif m == 'N1': rep(W, 'return need * (1 - tau * tau);', 'return need * (1 - tau);')
 elif m == 'N2': rep(W, '!(tension > 0) ? 0 : tension >= declare ? 1 : tension / declare', '!(tension > 0) ? 0 : tension / declare')
-elif m == 'N3': rep(W, 'if (nOk) acc.NewOk++;', 'if (oOk) acc.NewOk++;')
+elif m == 'N3': rep(W, 'nOk = land * (1 - b) - newNeed >= 0;', 'nOk = land * (1 - b) - oldNeed >= 0;')
 elif m == 'N4': rep(D, 'if (ins) Instruments.WarTag(this, a, b, 1);', 'if (Instruments.On) Instruments.WarTag(this, a, b, 1);')
 elif m == 'N5': rep(root + '/PriceOfBread.Tests/DiplomacyPendingTests.cs', 'Assert.Equal(8, header.Length);', 'Assert.Equal(7, header.Length);')
 else: raise SystemExit('unknown ' + m)

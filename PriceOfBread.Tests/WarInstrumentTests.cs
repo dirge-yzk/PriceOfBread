@@ -47,6 +47,19 @@ public class WarInstrumentTests
         Assert.Equal(want, Instruments.WarNewNeed(3.0, tension, 140.0), 12);
     }
 
+    /// <summary>(1023) T9b：新しいだけで足りる評価を紙で作る。land=10・前線の割合 0.4→余剰の元は 6。今の要求 8 では足りない（6−8＜0）。緊張 100（τ²＝0.5102…）の新しい要求 3.918…では足りる。緊張 0 は同じ要求＝どちらも足りない。</summary>
+    [Fact]
+    public void 新しいだけで足りる評価は紙の値()
+    {
+        double nn = Instruments.WarNewNeed(8.0, 100.0, 140.0);
+        Instruments.WarOkPair(10, 0.4, 8.0, nn, out bool nOk, out bool oOk);
+        Assert.True(nOk); Assert.False(oOk);
+        Instruments.WarOkPair(10, 0.4, 8.0, Instruments.WarNewNeed(8.0, 0.0, 140.0), out nOk, out oOk);
+        Assert.False(nOk); Assert.False(oOk);
+        Instruments.WarOkPair(10, 0.4, 5.0, Instruments.WarNewNeed(5.0, 0.0, 140.0), out nOk, out oOk);
+        Assert.True(nOk); Assert.True(oOk);
+    }
+
     /// <summary>T2：reach＝0（ratio 0）・届かない（NaN／負）なら S_C′＝S_A。縛られきる（+∞）は 1 と同じ。</summary>
     [Fact]
     public void 前線が無ければ余剰は変わらない()
