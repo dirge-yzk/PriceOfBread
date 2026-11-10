@@ -1,0 +1,1 @@
+RECORD=腕 Z の生（旗 0 の盤面）で回した出力が measurements/m1019_20261110_record.txt とバイト一致（measurements/m1022_20261110/read/record_Z.txt）
