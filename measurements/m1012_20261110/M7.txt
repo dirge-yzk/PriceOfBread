@@ -1,0 +1,26 @@
+M7 ok
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:03.15]     PriceOfBread.Tests.LordstatInstrumentTests.L5_十分の一税の度合い [FAIL]
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L5_十分の一税の度合い [1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.59999999999999998 (rounded from 0.59999999999999998)
+Actual:   0.29999999999999999 (rounded from 0.29999999999999999)
+  スタック トレース:
+     at PriceOfBread.Tests.LordstatInstrumentTests.L5_十分の一税の度合い() in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\LordstatInstrumentTests.cs:line 97
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
