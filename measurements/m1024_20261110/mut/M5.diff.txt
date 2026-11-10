@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsScope.cs b/PriceOfBread.SimCore/InstrumentsScope.cs
+index 8cbb8363..0d74b6b0 100644
+--- a/PriceOfBread.SimCore/InstrumentsScope.cs
++++ b/PriceOfBread.SimCore/InstrumentsScope.cs
+@@ -67,7 +67,7 @@ public static partial class Instruments
+     {
+         var s = CscAccs.GetValue(m, _ => new CscState());
+         string name = NameOf(w);
+-        var key = (name, role, cls);
++        var key = (name + "|" + ((int)(w.Regions.Count > 0 ? w.Regions[0].Tier : 0)), role, cls);
+         if (!s.Map.TryGetValue(key, out var a)) s.Map[key] = a = new CscAcc();
+         return a;
+     }
