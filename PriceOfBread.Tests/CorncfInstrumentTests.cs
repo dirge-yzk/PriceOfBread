@@ -122,7 +122,7 @@ public class CorncfInstrumentTests
                     if (i == j) continue;
                     var o = sim.Nations[i].World; var ds = o.DiscoveryPrice; if (ds is null || !(ds[g] >= 0)) continue;
                     double prod = 0, imp = 0, dem = 0;
-                    foreach (var rg in o.Regions) { if (rg.State != RegionState.Active) continue; prod += rg.Markets[g].LastProduced; imp += rg.Markets[g].LastImport - rg.Markets[g].LastExport; dem += rg.Markets[g].LastDemand; }
+                    foreach (var rg in o.Regions) { prod += rg.Markets[g].LastProduced; imp += rg.Markets[g].LastImport - rg.Markets[g].LastExport; dem += rg.Markets[g].LastDemand; }
                     double pl = o.MonetaryEnabled ? o.PriceLevel : 1.0;
                     if (!(pl > 0 && dem > 1e-9 && prod + (imp > 0 ? imp : 0) > 1e-9) || !(prod > 0)) continue;
                     double km = Geo.DistanceKm(w.Latitude, w.Longitude, o.Latitude, o.Longitude);

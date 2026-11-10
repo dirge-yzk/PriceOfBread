@@ -173,7 +173,6 @@ public static partial class Instruments
             sProd[i] = new double[gc]; sNet[i] = new double[gc]; sDem[i] = new double[gc];
             foreach (var r in wi.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 int mn = System.Math.Min(r.Markets.Length, gc);
                 for (int g = 0; g < mn; g++) { var m = r.Markets[g]; sProd[i][g] += m.LastProduced; sNet[i][g] += m.LastImport - m.LastExport; sDem[i][g] += m.LastDemand; }
             }
