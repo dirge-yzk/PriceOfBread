@@ -1,5 +1,5 @@
-=== 恒等の判定（測った種で一致） c94pez（2026-11-10 09:46:00）===
-測った木：D:/PoB_work/wt_c94pe（HEAD d289bd92・未コミット 25 本）
+=== 恒等の判定（測った種で一致） c94pez（2026-11-10 08:40:10）===
+測った木：D:/PoB_work/wt_c94pe（HEAD cfc69363・未コミット 9 本）
 基準の設定：D:/PoB_work/wt_c94pe/scripts/instruments/ident/ident.cfg
 宣言： tests_delta=5
 腕 a：rc=0 end=2026-11-10 08:18:46

@@ -1,0 +1,7 @@
+base1011 種 10 fixHitN 0	fixHitAmt 0	mintEmptyN 0	mintEmptyAmt 0	popEmptyN 442912	popEmptyAmt 28944	treasEmptyN 11025	treasEmptyAmt 3430.08	clearUnmovedN 0	mintUnmovedN 0
+M 種 10 fixHitN 0	fixHitAmt 0	mintEmptyN 0	mintEmptyAmt 0	popEmptyN 88592	popEmptyAmt 6399.33	treasEmptyN 410	treasEmptyAmt 1863.55	clearUnmovedN 0	mintUnmovedN 0
+N1 種 10 fixHitN 0	fixHitAmt 0	mintEmptyN 0	mintEmptyAmt 0	popEmptyN 81695	popEmptyAmt 6280.94	treasEmptyN 890	treasEmptyAmt 1195.96	clearUnmovedN 0	mintUnmovedN 0
+N2 種 10 fixHitN 0	fixHitAmt 0	mintEmptyN 0	mintEmptyAmt 0	popEmptyN 85407	popEmptyAmt 6344.94	treasEmptyN 884	treasEmptyAmt 4760.46	clearUnmovedN 0	mintUnmovedN 0
+新÷旧（M÷base1011） fixHitN nan	fixHitAmt nan	mintEmptyN nan	mintEmptyAmt nan	popEmptyN 0.2	popEmptyAmt 0.2211	treasEmptyN 0.03719	treasEmptyAmt 0.5433	clearUnmovedN nan	mintUnmovedN nan
+新÷旧（N1÷base1011） fixHitN nan	fixHitAmt nan	mintEmptyN nan	mintEmptyAmt nan	popEmptyN 0.1844	popEmptyAmt 0.217	treasEmptyN 0.08073	treasEmptyAmt 0.3487	clearUnmovedN nan	mintUnmovedN nan
+新÷旧（N2÷base1011） fixHitN nan	fixHitAmt nan	mintEmptyN nan	mintEmptyAmt nan	popEmptyN 0.1928	popEmptyAmt 0.2192	treasEmptyN 0.08018	treasEmptyAmt 1.388	clearUnmovedN nan	mintUnmovedN nan
