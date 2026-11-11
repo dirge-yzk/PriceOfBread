@@ -1,0 +1,36 @@
+=== 恒等の判定（測った種で一致） c100dv（2026-11-12 05:36:00）===
+測った木：D:/PoB_work/wt_c100dv（HEAD 53c9f046b・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c100dv/scripts/instruments/ident/ident.cfg
+宣言：なし
+腕 a：rc=0 end=2026-11-12 05:30:04
+腕 b：rc=0 end=2026-11-12 05:35:59
+腕 t：rc=0 end=2026-11-12 05:19:58
+腕 s：rc=0 end=2026-11-12 05:29:18
+測る木の SOURCE-HASH：0d1c19b457b890a4
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 0d1c19b457b890a4
+[素の 5 種] b5_ia_5.txt 対 b5_20261112_m1053
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261112_m1053.cost
+  ○ 件数の行 31 本・推定 230.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 0d1c19b457b890a4
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261112_m1053_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261112_m1053_ins.cost
+  ○ 件数の行 31 本・推定 227.6 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c100dv/out_ib_10/ins  対  基準 D:/PoB_work/keep_1053/base_ins
+  基準 1327 本・腕 1327 本・バイト一致 1307 本
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1307・既知の揺れ 20・宣言された増減 0）
+  内訳：共通の表 1327 本＝バイト一致 1307＋既知の揺れ 20＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1327）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261112_m1053.txt（タグの行を除く）
+  ○ タグの行以外が一致（4628 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 97 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_c100dv/measurements/ng1053_20261112:m1053）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2689（基準 2689）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
