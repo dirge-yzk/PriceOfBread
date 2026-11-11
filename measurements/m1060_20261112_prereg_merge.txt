@@ -1,0 +1,23 @@
+(1060) 合流（波100）の予言（merge の前にコミットする）
+
+基点 56f176a72（main＝origin/main・基線 m1053）。
+
+[1] 入れる物と外す物（線の報告と反証役を読んだ時点の判断）
+- c100dv (1054) 恒等：入れる（merge）。〈判定: 恒等〉（測った種で一致・ident_20261112_c100dv.txt）。触るのは scripts/instruments/ident と tools と measurements だけ。PRUNE の既定は 0 のまま。消す名前は無い（ident.sh の 2 行の置き換えだけ）。
+- c100mx (1055) 挙動：腕を回していない（紙の台本で門 W3 が破れる予言）＝採らない。枝の 1 コミット afdb3bae5 は measurements と scripts/instruments/c100mx だけ＝記録として merge する。
+- c100ic (1056) 挙動：自分の門 G2 が上側で赤＝採らない。器（旗 0・4e159fb49 まで）も入れない＝反証役 2 人が ImposeCrownFromLoserTests の盤面の書き換え（README ★(743) の区分の外）を中とした・書き換えだけを外した木は誰も測っていない・合流は .cs を直さない。記録だけ（measurements/m1056_20261112・measurements/m1056_* の事前登録・scripts/instruments/c100ic）を origin/c100ic からファイルを名指して写す。器は枝 origin/c100ic に残す。
+- c100wo (1057)・c100pq (1058)：読む線＝台本と表を写す（scripts/instruments/r1057・r1058・measurements/m1057_20261112・m1058_20261112）。
+- c100ci (1059)：設計の材料＝docs/202611/20261112/ へ写す（中身は書き換えない・反証役の訂正は末尾に足す）。
+
+[2] 合わせた木で動く物の予言
+- エンジンと試験：SimCore・Tests・App・Runner の .cs・.csproj・world.json の差は 56f176a72 から 0 行。
+- 成績表：素の 5 種・計器つき 10 種とも m1053（b5_20261112_m1053・b10_20261112_m1053_ins）と名乗り行を除いて全行一致。計器の表 1327 本はバイト一致 1307＋既知の揺れ 20（burscan_s・clock_s）。注視の表は MONHEAD のタグの 1 行だけ違う。NG 97・新しい 0・外れた 0。.cost の推定 227.6 秒で一致。
+- テストの数：Category!=FullLength 2689・FullLength 3（差 0）。WriterRatchetTests の宣言の表・ident.cfg は変えない。
+- 基線は m1053 のまま。M・N1・N2・S11・アブレーションの腕は回さない（挙動の線 0 本）。keep_1060 は作らない。
+
+[3] 止める線の段と記録の段
+- 止める線：フルスイート（2 つに分けて --list-tests と突き合わせる）・savetest・leakhunt・合わせた木の ident が〈判定: 恒等〉でないこと。
+- 記録：dv の prune_selftest.py を合わせた木で 1 回（緑の予言）。採らなかった ic の腕 B の生は keep_1060_rej/ic_armB へ移す。
+
+[4] D: の段（空き 5.3GB・shutil）
+- 合わせた木の ident（21GB＋5GB）は今の空きでは起こせない。keep_1044 は ident.cfg・00一覧・README の参照から (1053) で外れている＝push の後に、c99ov の腕 B（keep_1053_rej/ov_armB）と同じ木の基線として pq が読んだ表を keep_1060_rej へ移してから消す（deleted.txt に名乗る）。空きが 26GB を超えたら ident を既定の経路（PRUNE=0）で 1 本回す。
