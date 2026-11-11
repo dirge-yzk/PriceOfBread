@@ -1,0 +1,15 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsTradeskip.cs b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+index 022206c82..d2ef5bbef 100644
+--- a/PriceOfBread.SimCore/InstrumentsTradeskip.cs
++++ b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+@@ -70,7 +70,9 @@ public static partial class Instruments
+                     if (listedMark[s]) continue;
+                     // (1045) C4a の順をエンジンの門の順へ（BilateralMarket.cs の売り手の表の構築＝出し手の係数 sellAcc≦1e-12〔州の access → 軍需 → 鎖国・アヘン〕→ 在庫−目標≦1e-12）。
+                     //   計器は鎖国とアヘンの係数を再導出しない（エンジンの関数を呼ばない）＝その 2 つで落ちた州は、在庫−目標≦1e-12 でもあれば OgStock、無ければ OgOther に数える（宣言した限界）。
+-                    if (tr[s].access <= 1e-12) Add(sn, g, TsCol.OgAcc0);
++                    if (!(mktOf[s].Stock - mktOf[s].TargetStock > 1e-12)) Add(sn, g, TsCol.OgStock);
++
++                    else if (tr[s].access <= 1e-12) Add(sn, g, TsCol.OgAcc0);
+                     else if (milGood && tr[s].access * milExportAcc[sn] <= 1e-12) Add(sn, g, TsCol.OgMil);
+                     else if (!(mktOf[s].Stock - mktOf[s].TargetStock > 1e-12)) Add(sn, g, TsCol.OgStock);
+                     else Add(sn, g, TsCol.OgOther);

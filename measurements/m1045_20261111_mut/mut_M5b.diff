@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsTradeskip.cs b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+index 022206c82..738682db8 100644
+--- a/PriceOfBread.SimCore/InstrumentsTradeskip.cs
++++ b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+@@ -131,7 +131,7 @@ public static partial class Instruments
+             double xBb = access * Math.Max(0, Math.Min(xPrice, xNeedB));
+             bool diff = xOld != xBb && !(double.IsNaN(xOld) && double.IsNaN(xBb));
+             Add(curBn, curG, TsCol.RpIter); if (diff) Add(curBn, curG, TsCol.RpDiff);
+-            if (on && r <= 1.0 && m.Stock - m.LastImport < m.TargetStock) { Add(curBn, curG, TsCol.RpCtrl); if (diff) Add(curBn, curG, TsCol.RpCtrlDiff); }
++            if (on && m.Stock - m.LastImport < m.TargetStock) { Add(curBn, curG, TsCol.RpCtrl); if (diff) Add(curBn, curG, TsCol.RpCtrlDiff); }
+             if (D.Length > 0) { int di = (curBn * Gc + curG) * DStride; D[di + 4] += xOld; D[di + 5] += xBb; }
+         }
+ 

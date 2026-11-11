@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsSellr.cs b/PriceOfBread.SimCore/InstrumentsSellr.cs
+index 21f35821a..88429d8d1 100644
+--- a/PriceOfBread.SimCore/InstrumentsSellr.cs
++++ b/PriceOfBread.SimCore/InstrumentsSellr.cs
+@@ -16,7 +16,7 @@ public static partial class Instruments
+     internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth\trentRMul";   // (1045) 末尾：エンジン（EconomyStep.cs:963 の周り）が重みに掛ける形＝rentR が正でなければ 0（NaN も 0）
+ 
+     /// <summary>(1045) エンジンが sellR に掛ける rentR の形（否定形で丸める＝NaN・負は 0）。計器自身の写し。</summary>
+-    internal static double RentRMulOf(double rentR) => rentR > 0 ? rentR : 0.0;
++    internal static double RentRMulOf(double rentR) => rentR;
+ 
+     sealed class SrSink { public System.IO.StreamWriter? W; }
+     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, SrSink> SrSinks = new();

@@ -54,6 +54,12 @@ public class TradeSkipC4dTests
         Assert.Equal(1, At(a, Instruments.TsCol.RpCtrl));
         Assert.Equal(0, At(a, Instruments.TsCol.RpCtrlDiff));
         Assert.Equal(75.0 + 30.0, a.D[4], 9); Assert.Equal(175.0 + 30.0, a.D[5], 9);
+        // r＝4 で S−I＜TS（S＝5）：xNeed＝85・xNeedB＝185 → 差あり。r＞1 なので統制の行に数えない（M5＝r≦1 の判定を外す突然変異を T2 で赤にする）
+        a.Repick(Mk(10, 100, 20, 0, 5), 1.0, 2.0, 2.0, 1.0, 1.0, Eps);
+        Assert.Equal(3, At(a, Instruments.TsCol.RpIter));
+        Assert.Equal(2, At(a, Instruments.TsCol.RpDiff));
+        Assert.Equal(1, At(a, Instruments.TsCol.RpCtrl));
+        Assert.Equal(0, At(a, Instruments.TsCol.RpCtrlDiff));
     }
 
     /// <summary>C4a の順はエンジンの門の順（出し手の係数〔access → 軍需〕→ 在庫−目標）。access 0 で在庫≦目標の州は access 0 に数える（旧の順なら在庫≦目標に数える）。</summary>
