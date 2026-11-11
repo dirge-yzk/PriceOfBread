@@ -145,7 +145,7 @@ public class LordstatInstrumentTests
         foreach (var n in sim.Nations) { var row = RowOf(dir, 3, n.World); Assert.Equal(0.7, D(row, "dsbRealityNow"), 12); Assert.Equal(0.7, D(row, "dsbRealityNext"), 12); }
     }
 
-    /// <summary>L9：行の数＝cornint_s と同じ国の集合・列の数 28。</summary>
+    /// <summary>L9：行の数＝cornint_s と同じ国の集合・列の数 50（(1039) で 22 列を末尾に足した）。</summary>
     [Fact]
     public void L9_行の数は国の数()
     {
@@ -153,7 +153,7 @@ public class LordstatInstrumentTests
         var rows = Rows(dir); Assert.Equal(6, rows.Count);
         var corn = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"cornint_s{Seed}.tsv"), null);
         Assert.Equal(corn.Select(r => r["quarter"] + "/" + r["nation"]).OrderBy(x => x), rows.Select(r => r["quarter"] + "/" + r["nation"]).OrderBy(x => x));
-        Assert.Equal(28, rows[0].Count);
+        Assert.Equal(50, rows[0].Count);   // (1039) 28+D-1 の 11+D-2 の 11
     }
 
     /// <summary>L10：lordstat を書くファイルがエンジンの物を呼ばない（走査）。</summary>
@@ -161,7 +161,7 @@ public class LordstatInstrumentTests
     public void L10_エンジンの物を読まない()
     {
         string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "InstrumentsLordstat.cs"));
-        foreach (var bad in new[] { "TitheDegree(", "IntermediaryDegree(", "EstateDegree(", "EffectiveVoice(", "FranchiseVoice(", "IsMassPop(", "TitheClaim(" })
+        foreach (var bad in new[] { "TitheDegree(", "IntermediaryDegree(", "EstateDegree(", "EffectiveVoice(", "FranchiseVoice(", "IsMassPop(", "TitheClaim(", "LordStake(", "LordIncomeLoss(", "LordIncomeGain(", "EffectiveRentShares(" })   // (1039) 期待の側が使い回さない名を足した（実際の側の Build・Pref・NetSupport は読んでよい）
             Assert.False(src.Contains(bad), $"InstrumentsLordstat.cs が禁止の名 {bad} を含む");
     }
 
