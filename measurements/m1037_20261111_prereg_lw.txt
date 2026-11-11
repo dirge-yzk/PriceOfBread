@@ -96,3 +96,13 @@
 
 [9] 他の線との重なり（持ち主の表から）：c98lc＝BilateralMarket.cs・MultiNationSim.cs・InstrumentsTradeskip.cs／c98wr＝World.cs・Diplomacy.cs・InstrumentsWar.cs／c98da＝Privileges.cs・PolicyPreferences.cs・PopScan.cs・InstrumentsLordstat.cs。
    共有＝Coefficients.cs（この線は ChildWorkFactor の隣の 3 行）・Instruments.cs（Sink の 1 行・Fold の 1 行・Dispose の 1 行）・DormantIdentityTests.cs（旗の表の 1 行）・WriterRatchetTests.cs（旗 1 で赤なら表の行）。
+
+[10] 腕 B の前の追記（2026-11-11・旗 1 の腕の出力を見る前・旗 0 の ident c98lwz の lwk_s で数えた）
+ a. 母集合の件数（旗 0 の ident の計器つき 10 種）：G1 145,917・G2 145,917・G3 226,971・G4a 5,447・G4b 133,623・G5 543,503＝全て N の下限を超える＝[3] の数は変えない。
+    旗 0 の値（measurements/m1037_20261111/gates_flag0.txt）：G1 0.0000・G2 中央値 1.000・G4a 0.0000・G4b 0.0000＝落ちる（予言どおり）・G5 1.0000＝通る・
+    G3 0.0157＝旗 0 でも落ちる（旗 0 のエンジンは旧の式・計器の紙の式は手の重み＝構成の変化への応答が違う。G3 は狙いの門ではなく M2 を拾う門＝旗 0 の値は記録）。m＞1 の行 0。
+    工員の b_pap の中央値 1.230（G2 の帯 1.08〜1.32 の内）。
+ b. ⑭ の枠を使った（1 回目・理由と中身）：使い捨ての木で旗 1 の計器の試験の束を先に回したら、財の少ない小さな世界（労働力の市場が無い）で EconomyStep.PowerShare が
+    region.Markets[LaborId] を配列の外で読んで例外（RdhInstrumentTests 1・PopulationInstrumentTests 2）。直し＝労働力の市場が無い州は m＝0（形は変えない・主の世界の m は不変）。
+    旗 1 の試験の出力を見た後のエンジンの変更なので、理由に関係なく〈形の変え直し〉の 1 回に数える＝この後の 2 回目は止めて報告。器の試験に T7（市場の無い世界で旗 1 が回る）を足す。
+ c. [4] の表の M9 の器の試験は〈T4・T6 技師〉と書いたが、実際は T6 だけが赤（T4 は役割の関数を直に呼ぶ＝変異は呼び手の側）。measurements/m1037_20261111/mut.txt。
