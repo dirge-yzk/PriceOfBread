@@ -3232,7 +3232,7 @@ public sealed class Diplomacy
                     // (1056) 旗 ImposeOncePerCollapse（> 0）：崩壊の講和の集合（cg）の矯正は 1 回まで＝取り分の順で先に矯正した勝者がいれば、後の勝者は矯正しない（cg が null の単独の講和は旧のまま）。
                     if (imposeTarget != dw.Polity && c.ImposeOncePerCollapse > 0 && cg is not null && cg.ImposeLeft <= 0)
                     {
-                        if (Instruments.On) Instruments.ImpSkipped(this, winner, loser, ww0, dw, absScore, crushing, cg, cgShare, tooFarToRule, ceded);   // (1056) 計器（読むだけ）：飛ばした矯正の 1 行
+                        Instruments.ImpSkippedIfOn(this, winner, loser, ww0, dw, absScore, crushing, cg, cgShare, tooFarToRule, ceded);   // (1056) 計器（読むだけ・On は中で読む）：飛ばした矯正の 1 行
                     }
                     else if (imposeTarget != dw.Polity)
                     {

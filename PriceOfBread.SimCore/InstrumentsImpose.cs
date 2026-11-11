@@ -52,9 +52,11 @@ public static partial class Instruments
     }
 
     /// <summary>(1056) 旗 ImposeOncePerCollapse で飛ばした矯正（門は越えたが集合の枠が 0）：1 行だけ貯める。王冠の書き手を付けない・orderInMonthIndex の番号を使わない（0）。</summary>
-    internal static void ImpSkipped(Diplomacy d, Power winner, Power loser, World ww, World dw, double absScore, bool crushing,
+    // ResolvePeace は既に On を何度も読む関数＝On の判定は中で持つ（ImpBeforeIfOn と同じ・OnDoubleReadScanTests）。
+    internal static void ImpSkippedIfOn(Diplomacy d, Power winner, Power loser, World ww, World dw, double absScore, bool crushing,
         Diplomacy.CollapseGroup? cg, double cgShare, bool tooFarToRule, bool ceded)
     {
+        if (!On) return;
         var st = ImpStates.GetValue(d, _ => new ImpState());
         ImpRow(st, CpOf(d), ImpBefore(dw), winner, loser, ww, dw, absScore, crushing, 0, cg, cgShare, tooFarToRule, ceded, skipped: true);
     }
