@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App;
@@ -103,4 +105,49 @@ public static class Fmt
 
     /// <summary>表示の桁（<paramref name="digits"/> 桁）で 0 になる値は +0.0 にする（−0.0 や −0.001 が「-0」と出ない）。</summary>
     private static double ZeroAt(double v, int digits) => Math.Round(v, digits, MidpointRounding.AwayFromZero) == 0 ? 0.0 : v;
+
+    private static readonly System.Text.RegularExpressions.Regex BattleLine = new(@"^(.+)が(.+)に(陸戦|海戦)で(圧勝|快勝|辛勝)（戦勝点\+([0-9.]+)）$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+    private static readonly System.Text.RegularExpressions.Regex ScorePart = new(@"戦勝点([+\-]?)([0-9]+(?:\.[0-9]+)?)", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+    private static readonly System.Text.RegularExpressions.Regex ReparationPart = new(@"賠償([0-9]+)", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>外交ログの新しい分（<paramref name="from"/> から）を年表の本文にする（B7）。先頭の年トークンを除く・同じ組（勝者と敗者）の戦闘の行は 1 行にまとめる
+    /// （戦勝点は足し合わせ・度合いは最も強い物・陸戦と海戦が混ざれば「陸戦と海戦」）・戦勝点は符号つきの 3 桁（<see cref="DisplayFormat.Amount"/>）・賠償は金額の書式・括弧のあとのコロンは全角。</summary>
+    public static List<string> TidyDiploLog(IReadOnlyList<string> log, int from)
+    {
+        var bodies = new List<string>();
+        var battleAt = new Dictionary<string, int>();   // 勝者|敗者 → bodies の添字
+        var battle = new Dictionary<string, (string W, string L, HashSet<string> Kinds, int Grade, double Sum)>();
+        string[] grades = { "辛勝", "快勝", "圧勝" };
+        for (int li = from; li < log.Count; li++)
+        {
+            string raw = log[li];
+            string body = raw;
+            int sp = raw.IndexOf(' ');
+            if (sp > 0 && int.TryParse(raw[..sp], out _)) body = raw[(sp + 1)..];   // 先頭の年トークンを除去（yyyy/mm/dd に置換）
+            var m = BattleLine.Match(body);
+            if (m.Success && double.TryParse(m.Groups[5].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double pts))
+            {
+                string key = m.Groups[1].Value + "|" + m.Groups[2].Value;
+                int g = System.Array.IndexOf(grades, m.Groups[4].Value);
+                if (battle.TryGetValue(key, out var b)) { b.Kinds.Add(m.Groups[3].Value); battle[key] = (b.W, b.L, b.Kinds, System.Math.Max(b.Grade, g), b.Sum + pts); }
+                else { battleAt[key] = bodies.Count; bodies.Add(""); battle[key] = (m.Groups[1].Value, m.Groups[2].Value, new HashSet<string> { m.Groups[3].Value }, g, pts); }
+                continue;
+            }
+            body = ScorePart.Replace(body, sm =>
+            {
+                string amount = DisplayFormat.Amount(double.Parse(sm.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture));
+                string sign = amount == "0" ? "" : sm.Groups[1].Value == "-" ? DisplayFormat.Minus : "+";
+                return "戦勝点" + sign + amount;
+            });
+            body = ReparationPart.Replace(body, rm => "賠償" + Money(double.Parse(rm.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture)));
+            bodies.Add(body.Replace("）:", "）："));
+        }
+        foreach (var (key, i) in battleAt)
+        {
+            var b = battle[key];
+            string kind = b.Kinds.Count > 1 ? "陸戦と海戦" : b.Kinds.First();
+            bodies[i] = $"{b.W}が{b.L}に{kind}で{grades[b.Grade]}（戦勝点+{DisplayFormat.Amount(b.Sum)}）";
+        }
+        return bodies;
+    }
 }

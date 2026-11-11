@@ -236,12 +236,9 @@ public partial class GameViewModel
         // 外交ログ（開戦・講和・同盟・植民地化・独立…）を事件ログへ（新規分のみ）。
         // 日付は yyyy/mm/dd（事件の発生日）。発生地＝本文に最初に現れる国の首都＝遠い事件ほど遅れて届く（QueueNews と同じ距離ラグ）。
         var dlog = _sim.Diplomacy.Log;
-        for (int li = _diploLogSeen; li < dlog.Count; li++)
+        foreach (string tidied in Fmt.TidyDiploLog(dlog, _diploLogSeen))
         {
-            string raw = dlog[li];
-            string body = raw;
-            int sp = raw.IndexOf(' ');
-            if (sp > 0 && int.TryParse(raw[..sp], out _)) body = raw[(sp + 1)..];   // 先頭の年トークンを除去（yyyy/mm/dd に置換）
+            string body = tidied;
             bool warLine = body.Contains("開戦") || body.Contains("宣戦");
             string icon = warLine ? "⚔" : body.Contains("同盟") ? "🤝" : body.Contains("講和") ? "🕊" : body.Contains("侵略") || body.Contains("属国") ? "🏴" : body.Contains("成立を宣言") || body.Contains("から独立") ? "👑" : body.Contains("座礁") ? "🏭" : body.Contains("職人が没落") ? "🔨" : "🌐";   // 座礁/職人の没落（通知・2026-09-05）
             // 発生地＝本文で最初に名前が出る国。**自国が当事者（本文に自国名）なら距離ラグなしで即時**＝宣戦布告される・属国化される等の重大事を見逃さない。
@@ -344,6 +341,6 @@ public partial class GameViewModel
         if (DiscoveryShown) RefreshDiscovery();   // 発見パネル（F）も同じ追従
         if (DiplomacyShown) RefreshFactions();   // 外交と戦争のページが見えていれば国内勢力を四半期ごとに追従（2026-07-20移設・国内勢力は戦争タブが正位置）
         // 巨大建造物は生産タブの左下（2026-08-10移設）＝上の RefreshProduction が BuildMegaRows を含む＝ここで別に組まない
-        RefreshProblems(includeMap);   // 左の列の問題の一覧（月ごと・向きの基準は四半期の境で取り直す）
+        RefreshProblems();   // 左の列の問題の一覧（月ごと・向きの基準は四半期の番号で取り直す）
     }
 }

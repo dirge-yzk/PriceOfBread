@@ -10,6 +10,27 @@ namespace PriceOfBread.Tests;
 public class FmtTests
 {
     [Fact]
+    public void 年表の外交ログは同じ組の戦闘を1行にまとめ_戦勝点は符号つき3桁_賠償は金額の書式()
+    {
+        var log = new List<string>
+        {
+            "1800 英がプロイセンに陸戦で快勝（戦勝点+0.104）",
+            "1800 英がプロイセンに海戦で辛勝（戦勝点+0.0120）",
+            "1800 仏が墺に陸戦で圧勝（戦勝点+0.2）",
+            "1800 英が仏に勝利（戦勝点1.00）:賠償50",
+            "1800 英×仏 白紙講和（戦勝点-0.20）",
+        };
+        var t = Tidy(log);
+        Assert.Equal(4, t.Count);
+        Assert.Equal("英がプロイセンに陸戦と海戦で快勝（戦勝点+0.116）", t[0]);
+        Assert.Equal("仏が墺に陸戦で圧勝（戦勝点+0.2）", t[1]);
+        Assert.Equal("英が仏に勝利（戦勝点+1.00）：賠償£50", t[2]);
+        Assert.Equal("英×仏 白紙講和（戦勝点−0.2）", t[3]);
+    }
+
+    private static List<string> Tidy(List<string> log) => Fmt.TidyDiploLog(log, 0);
+
+    [Fact]
     public void 旧の金額の書式は1文字も変わらない_Moneyは小さな負の額に符号を残す旧の挙動のまま()
     {
         Assert.Equal("£0", Fmt.Money(0));

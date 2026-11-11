@@ -137,4 +137,17 @@ public class ProblemScanTests
         Assert.Equal(lit, items.Count);
         Assert.All(items, p => Assert.True(LawCatalog.ByField(p.RowKey)!.IsVisible(w)));
     }
+
+    [Fact]
+    public void 財の不足はまだ世界のどこにも作れない財を並べない()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789);
+        var w = sim.Nations[0].World;
+        var unavailable = ProductionDiag.UnavailableGoods(sim, w.Coef);
+        foreach (var p in ProblemScan.Scan(sim, w).Where(p => p.Kind == ProblemKind.GoodShortage))
+        {
+            int g = int.Parse(p.Key["short|".Length..]);
+            Assert.False(unavailable[g], $"作れない財が不足に並んだ: {p.Target}");
+        }
+    }
 }

@@ -267,7 +267,7 @@ public partial class GameViewModel
     // エンジンの終戦記録 Diplomacy.EndedWars（終戦月の最終値つき）を一次ソースにした（レビュー2026-07-19）。
 
     // 報せを配達キューへ。自国(isPlayer)＝即時。他国＝首都間の大圏距離×年代のラグだけ遅れて届く（電信普及でラグ縮小、1870年で実質0）。
-    // 文言（助言なし）は alerts.csv。日付は「届いた日」＝遅延分は（nヶ月前）を付す。
+    // 文言（助言なし）は alerts.csv。日付は「届いた日」（遅れの表記は付けない）。
     private void QueueNews(string id, string nation, double srcLat, double srcLon, bool isPlayer, params object[] args)
     {
         var e = AlertCatalog.Make(id, args);
@@ -317,12 +317,10 @@ public partial class GameViewModel
         foreach (var n in due) DeliverNews(n.Icon, n.Body, n.Color, n.EventDay, n.Mine);
     }
 
-    // 配達：日付は「届いた日」。遅れて届いた報せは（nヶ月前）を付す。全件リストへ積み、フィルタ（世界⇄自国のみ）に合う分だけ表示へ。
+    // 配達：日付は「届いた日」。全件リストへ積み、フィルタ（世界⇄自国のみ）に合う分だけ表示へ。
     private void DeliverNews(string icon, string body, IBrush color, double eventDay, bool mine = true)
     {
-        int lateMonths = (int)System.Math.Round((_simDays - eventDay) / (double)Calendar.DaysPerMonth);
-        string suffix = lateMonths >= 1 ? $"({lateMonths}ヶ月前)" : "";
-        var row = new AlertRow(icon, $"{EventDate()} {body}{suffix}", color, mine, InvolvesGreatPower(body, mine));
+        var row = new AlertRow(icon, $"{EventDate()} {body}", color, mine, InvolvesGreatPower(body, mine));   // 経過の表記（nヶ月前）は付けない＝日付がある（B6）
         _allAlerts.Insert(0, row);
         while (_allAlerts.Count > AlertsKept) _allAlerts.RemoveAt(_allAlerts.Count - 1);
         if (NewsPasses(mine, row.Great))

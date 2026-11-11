@@ -21,7 +21,7 @@ public static class ProblemScan
         ProblemKind.Bankruptcy => "倒産と休止",
         ProblemKind.RegionHunger => "州の飢え",
         ProblemKind.Unemployment => "失業",
-        ProblemKind.Discontent => "不満と闘争",
+        ProblemKind.Discontent => "闘争に加わる人数",
         ProblemKind.Deficit => "赤字と支払い",
         ProblemKind.War => "戦況",
         ProblemKind.Faction => "反乱勢力",
@@ -77,8 +77,10 @@ public static class ProblemScan
     // 財の不足＝必要量（前期の総需要）に対して満たせなかった割合（2026-11-11 作者指示：額では程度が分からない）。財の値段の表と同じ行・同じ値から作る。
     private static void Shortage(MultiNationSim sim, World w, List<ProblemItem> o)
     {
+        var unavailable = ProductionDiag.UnavailableGoods(sim, w.Coef);   // まだ世界のどこにも作れない財（技術が無い）は不足に並べない
         foreach (var l in MarketTables.Lines(sim, w))
         {
+            if (l.Good >= 0 && l.Good < unavailable.Length && unavailable[l.Good]) continue;
             if (!(l.Shortage > 0) || !(l.Demand > 0)) continue;   // 否定形＝NaN も落とす
             o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, Math.Min(1.0, l.Shortage / l.Demand), Unit.Share, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
         }
