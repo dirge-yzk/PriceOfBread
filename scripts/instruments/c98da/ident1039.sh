@@ -4,7 +4,7 @@
 cd D:/PoB_work/wt_c98da || exit 2
 FREE=$(python -c "import shutil;print(round(shutil.disk_usage('D:/').free/1e9,2))")
 echo "ident start $(date '+%F %T') tree=$(git rev-parse --short=8 HEAD) Dfree=${FREE}GB armsfree=$(bash scripts/instruments/tools/arms.sh free)" >> D:/PoB_work/c98da_work/arms_start.txt
-bash scripts/instruments/ident/ident.sh run c98da --tree D:/PoB_work/wt_c98da --work D:/PoB_work/c98da_work/ident --saveleak --tests-delta __DELTA__ --ng --save 20261111 --grown-ok lordstat_s
+bash scripts/instruments/ident/ident.sh run c98da --tree D:/PoB_work/wt_c98da --work D:/PoB_work/c98da_work/ident --saveleak --tests-delta 6 --ng --save 20261111 --grown-ok lordstat_s
 RC=$?
 echo "ident end $(date '+%F %T') rc=$RC" >> D:/PoB_work/c98da_work/arms_start.txt
 exit $RC
