@@ -1,0 +1,28 @@
+(1035) 合流（波97）の予言（merge より前にコミットする）
+
+[1] 入れる線と順
+- 恒等 c97ws（origin/c97ws 4931195d・ident c97ws〈判定: 恒等〉）→ 恒等 c97sp（origin/c97sp 61e02b99・ident c97sp〈判定: 恒等〉）。--no-ff で 1 本ずつ。
+- 挙動 c97eb（origin/c97eb ff04ad15）は入れない＝担当が腕 B の前に止めた（ColonialPopTests の赤・3 回の規則の 1 回目）。枝は残す。
+- 読む線 c97mg と設計の材料 c97dp・c97lw・c97op は写すだけ（エンジンの変更 0）。
+- 挙動の線は 0 本＝基線は m1027 のまま。腕 Z＝合わせた木そのもの（(1011) の前例）。
+
+[2] 衝突と消す名前（merge の前に確かめた）
+- git merge-tree origin/c97ws origin/c97sp＝rc 0（衝突 0）。持ち主のファイルの重なり 0（ws は Instruments.cs・InstrumentsNationgood.cs・InstrumentsWar.cs・試験 2 本、sp は BilateralMarket.cs・InstrumentsScope.cs・MultiNationSim.cs・試験 4 本）。
+- ws が消す名前 WarSt.Samples・WarInvadeQsOf：origin/c97sp・origin/c97eb の *.cs で当たるのは InstrumentsWar.cs の定義そのもの（ws が消す行）だけ＝他の読み手 0。sp が消す名前 0。
+
+[3] 合わせた木の ident（ident m1035z・--saveleak --ng）の予言
+- 素の 5 種：b5_20261110_m1027 と全行バイト一致（名乗り行を除く）。
+- 計器つき 10 種：b10_20261110_m1027_ins と全行バイト一致。注視の表：mon_20261110_m1027 と一致。
+- 計器の表：列が末尾に増える表＝warentry_s（+1 列 crossWeakWill）・nationgood_s（+2 列 outputSum・eventRegions）・cscx_s（+1 列 fillsSkippedLB）＝30 本。既知の揺れに足す列＝csc_s:fillsCount・csc_s:throttledFillsCount・cscx_s:fillsCount・cscx_s:fillsInvalidCount・cscx_s:fillsToBestCount（sp の追記 2 と同じ宣言）。宣言の無い違い 0。
+- .cost：件数の行が違うのは〈清算：着値の充填〉〈清算：着値の下界で飛ばした売り手〉の 2 本だけ。推定は約 216.9 秒（計器つき）・216.3 秒（5 種）＝sp の ident と同じ値。
+- テストの数：Category!=FullLength 2651（2642＋ws 4＋sp 5）・FullLength 3。
+- NG：集合は ng1027 と同じ（新 0・外 0）。savetest OK・leakhunt 違反なし。
+- 止める線の段：腕 Z が〈判定: 恒等〉でなければ、宣言の無い違いの表を ws・sp の線の ident と突き合わせて帰属を決め、原因の線を外す。記録の段：.cost の推定の減り（下を見よ）。
+
+[4] 計算量の扱い（記録・予算の余りは動かさない）
+- 台帳の推定は 231.0→約 216.9 秒になる見込み。ただし sp の反証役（中）の読み＝充填した側（1 種 約 2.51 億件）の下界の評価と ThreadStatic の読みが台帳に無い・単価 0.02 µs は見積り・40 四半期の計り台で実時間の差は雑音の内。
+- 合流は予算の余りを〈約 17.5 秒のまま〉として扱う（216.9 を余りに計上しない）。台帳の行を〈下界を評価した件数（飛ばし＋充填）〉に改める恒等の線を波98 の恒等の先頭に置く。
+
+[5] 合わせた木のフルスイート（ident の後）：Category!=FullLength 2651（合格 2650・スキップ 1）・FullLength 3＝--list-tests と一致。SecessionLaborLawInstrumentTests:280 の直しの後のフルスイートは sp では未実施＝この回が初めて覆う。
+
+[6] ws の反証役（中）の穴：元の N3（InstrumentsWar.cs の WarEval の数える側 `if (nOk) acc.NewOk++;`→`if (oOk) acc.NewOk++;`）を使い捨ての木で当てる。予言：T11（WarInstrumentTests の newOnly の盤面）が赤。結果は measurements/m1035_20261111/ws_mut_n3orig.txt。
