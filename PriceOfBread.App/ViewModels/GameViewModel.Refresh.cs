@@ -64,7 +64,7 @@ public partial class GameViewModel
         // ★技術力の対最先端比はヘッダーから撤去（2026-08-15＝財政タブの技術効率へ移設）
         // ★軍事力（順位＋即応度）はヘッダーから撤去（2026-08-24作者指示）＝戦争タブの「理想の軍隊」の節見出しへ移設（ArmyIdealHeader）。
         // 地位：列強は順位付き「列強3位」・それ以外は「準列強」「中堅」「弱小」。★2026-09-23に1行目（国名の隣）から概況行へ移したので、
-        // 下の stats が読む前にここで作る（旧はSyncRowsの後で作っており、そのまま stats に入れると1ヶ月前の値が出る）。
+        // 下の stats が読む前にここで作る（旧はSyncRowsの後で作っており、そのまま stats に入れると1か月前の値が出る）。
         // 順位＝国力スコア（NationalScore）で自国より上の列強の数＋1（旧＝Powersリストの生成順インデックスは無関係で、
         // 仏が32番目に生成されると「列強32位」と誤表示していた不具合の修正・2026-07-12）。
         int myPos = 1;
@@ -140,7 +140,7 @@ public partial class GameViewModel
                 Enemy = tr.EnemyName,
                 Score = $"戦勝点 {Fmt.SignedPct(sc)}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
-                Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
+                Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}か月経過",
                 Forces = $"自軍 {Troops(me)}　即応度 {Fmt.Share(_player.MilitaryReadiness)}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
                 // ★2026-09-23：兵士の戦死と民間人の死を**別の行**で出す（民間は兵の17〜25倍＝1本に足すと兵の戦死が桁で消える）
                 Losses = $"戦死 自国 {Fmt.PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastDeadEnemy)}" : "")
@@ -179,7 +179,7 @@ public partial class GameViewModel
                 Key = $"{id}@{(int)_simDays}",
                 EndDay = _simDays,
                 Title = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}　{result}",
-                Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}ヶ月"
+                Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}か月"
                        + $"\n戦死 自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(deadEnemy)}" : "")
                        + $"\n民間人の死 自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(civEnemy)}" : "")
                        + $"\n戦費 {Fmt.Money(tr.CostShare)}",
@@ -188,7 +188,7 @@ public partial class GameViewModel
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}との戦争が終結した。\n\n"
-                    + $"結果：{result}(戦勝点 {Fmt.SignedPct(scEnd)})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
+                    + $"結果：{result}(戦勝点 {Fmt.SignedPct(scEnd)})　{months}か月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Fmt.Money(tr.CostShare)}\n\n"
@@ -218,12 +218,12 @@ public partial class GameViewModel
                 double sc = war.Score;
                 // 政体をめぐる内戦の政府側は戦争の間だけ頭書き＋国名（戦争タブの自国の戦争と同じ表＝SimCore の1か所）
                 string aName = SecessionNames.WarName(war.A, _sim.Diplomacy.Wars), bName = SecessionNames.WarName(war.B, _sim.Diplomacy.Wars);
-                string lead = System.Math.Abs(sc) < 0.05 ? "拮抗" : (sc > 0 ? $"{aName}が優勢 {sc:+0%}" : $"{bName}が優勢 {-sc:+0%}");
+                string lead = System.Math.Abs(sc) < 0.05 ? "拮抗" : (sc > 0 ? $"{aName}が優勢 {Fmt.Share(sc)}" : $"{bName}が優勢 {Fmt.Share(-sc)}");
                 mrows.Add(new MediationRow
                 {
                     Key = $"{war.A.Id}|{war.B.Id}",
                     Title = $"{aName} ⚔ {bName}",
-                    Info = $"{war.Months}ヶ月経過　{lead}" + (ok ? $"　戦力余剰 {WillPct(_sim.Diplomacy.InterventionWillCost(me, war, cM))}" : $"　{why}"),   // ★2026-09-23：語を「戦力余剰」へ統一
+                    Info = $"{war.Months}か月経過　{lead}" + (ok ? $"　戦力余剰 {WillPct(_sim.Diplomacy.InterventionWillCost(me, war, cM))}" : ""),   // 押せない理由は釦の右（Reason）へ（B48）   // ★2026-09-23：語を「戦力余剰」へ統一
                     CanMediate = ok, Reason = why,
                 });
             }
@@ -258,12 +258,12 @@ public partial class GameViewModel
                 else if (src.ColonyList.Count > 0) { sLat = src.ColonyList[0].Latitude; sLon = src.ColonyList[0].Longitude; }
             }
             var lineBrush = warLine && mentionsMe ? NewsRed : NewsBlue;   // 自国が絡む開戦＝赤で強調
-            QueueNewsText(icon, body, lineBrush, sLat, sLon, isMine);   // 日付は配達時に付与（届いた日＋遅延ヶ月）
+            QueueNewsText(icon, body, lineBrush, sLat, sLon, isMine);   // 日付は配達時に付与（届いた日＋遅延か月）
         }
         _diploLogSeen = dlog.Count;
 
         // 教育費（義務教育の国庫負担）・専売益・外資フローの実績＝州の累積カウンタの四半期差分→月平均（市場依存で毎tick予測が難しい項目）。
-        // 監査2026-07-11（他7）：Refreshは月次でも呼ばれる＝毎回/3で割ると教育費・専売が実際の約1/3表示・外資は3ヶ月のうち2ヶ月£0点滅だった→
+        // 監査2026-07-11（他7）：Refreshは月次でも呼ばれる＝毎回/3で割ると教育費・専売が実際の約1/3表示・外資は3か月のうち2か月£0点滅だった→
         // 四半期境界を跨いだ時だけ差分を取り月平均を更新（境界間は前回値を保持）。
         int qStamp = _player.Year * Calendar.QuartersPerYear + _player.Quarter;
         if (qStamp != _prevQuarterStamp)

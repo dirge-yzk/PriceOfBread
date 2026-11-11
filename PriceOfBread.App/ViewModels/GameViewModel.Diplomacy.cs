@@ -43,6 +43,17 @@ public partial class GameViewModel
     // ★国の行の組み立ては App の状態（確かめの窓・狙い先・地図のカメラ）に依るので、本体の目録（PoliticsTables）ではなくここで TableData を組む。
     [ObservableProperty] private TableSnapshot _nationTable = TableSnapshot.Empty;
 
+    /// <summary>国名の前の丸の色の凡例（政体の色の組＝<see cref="NationInk.PolityInk"/>）。絶対君主制・専制・幕府は同じ色。</summary>
+    public static IReadOnlyList<LegendItem> PolityLegend { get; } =
+    [
+        new("絶対君主制・専制・幕府", Avalonia.Media.Brush.Parse(NationInk.PolityInk(Polity.Absolutist))),
+        new(PlayText.PolityRegimeJa(Polity.ConstitutionalMonarchy), Avalonia.Media.Brush.Parse(NationInk.PolityInk(Polity.ConstitutionalMonarchy))),
+        new(PlayText.PolityRegimeJa(Polity.Republic), Avalonia.Media.Brush.Parse(NationInk.PolityInk(Polity.Republic))),
+        new(PlayText.PolityRegimeJa(Polity.MilitaryDictatorship), Avalonia.Media.Brush.Parse(NationInk.PolityInk(Polity.MilitaryDictatorship))),
+        new(PlayText.PolityRegimeJa(Polity.BourgeoisDictatorship), Avalonia.Media.Brush.Parse(NationInk.PolityInk(Polity.BourgeoisDictatorship))),
+        new(PlayText.PolityRegimeJa(Polity.ProletarianDictatorship), Avalonia.Media.Brush.Parse(NationInk.PolityInk(Polity.ProletarianDictatorship))),
+    ];
+
     /// <summary>統一戦争ができる相手の宣戦布告の押し釦の地の色（金＝統一の機運）。</summary>
     private const string UnificationFill = "#A8862B";
 
@@ -102,12 +113,12 @@ public partial class GameViewModel
             else if (war) { badge = "戦争中"; badgeFill = NationInk.War; }
             else if (powSuz == me) { badge = "自国の属国"; badgeFill = NationInk.OwnVassal; }
             else if (_sim.Diplomacy.Suzerain(me) == pow) { badge = "自国の宗主"; badgeFill = NationInk.OwnSuzerain; }
-            else if (powSuz is not null) { badge = powSuz.Name; badgeFill = NationInk.OtherVassal; }   // 宗主名だけ（長い「○○の属国」は末尾が落ちて別の語になる）。属国であることは色が担い、全文は行のホバーの「関係:」
+            else if (powSuz is not null) { badge = SecessionNames.DisplayName(powSuz, powSuz.Nation is { } snw ? PowerAffinity.PolityFromShares(snw) : null, _sim.Diplomacy.Wars); badgeFill = NationInk.OtherVassal; }   // 国名の列と同じ表（国号）から＝「マラーター帝国」と「マラーター王国」が食い違わない（B45）   // 宗主名だけ（長い「○○の属国」は末尾が落ちて別の語になる）。属国であることは色が担い、全文は行のホバーの「関係:」
             else if (_sim.Diplomacy.HasAlliance(me, pow)) { badge = "同盟"; badgeFill = NationInk.Ally; }
             else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeFill = NationInk.NoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
             // 外交アクションの可否：弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
             // ★2026-08-23作者裁定：植民地化と侵略は1本（侵略）。標的が弱小なら抽象標的でも実在国でも同じボタン＝エンジンの World.CanInvade にもランク条件は無い（AI と同じ動詞・同じ可否）。
-            bool showInvade = !isMe && powRank == PowerRank.Minor;
+            bool showInvade = !isMe;   // 全ランクに宣戦布告の押し釦を出す（押せない理由つき・B47）。弱小以外はエンジンの理由「弱小国が標的」
             string invReason = "";
             bool canInvade = showInvade && _player.CanInvade(pow, out invReason);
             if (!showInvade || canInvade) invReason = "";
@@ -115,15 +126,11 @@ public partial class GameViewModel
             string unifReason = "";
             bool canUnif = showUnif && _player.CanUnificationWar(pow, out unifReason);
             if (!showUnif || canUnif) unifReason = "";
-            double willCost = showInvade ? _player.ExpansionCostFor(pow) : 0;   // ゲート・実消費・表示は同一の式（国力比・2026-08-23）
-            double wcap = _player.Coef.ExpansionWillCap;
-            // 不可の理由（グレーアウトした動詞の下に常に出す短い数の形）：不足系は「必要・現在」の数で言い換え。
+            // 不可の理由（グレーアウトした動詞の下に常に出す短い名詞句）。閾値の数は出さない（作者裁定 2026-09-23）。case の文字列はエンジンの理由（World.CanInvade）＝変えない
             string? ReasonTip(string reason) => reason switch
             {
                 "" => null,
-                "余剰戦力が不足" => $"戦力余剰 必要{Fmt.Share(willCost / wcap)}・現在{Fmt.Share(_player.ExpansionWill / wcap)}",   // ⚠case の文字列はエンジンの理由（World.CanInvade）＝変えない。変えたのは表示だけ
-                "属国が上限" => $"属国 {_sim.Diplomacy.DependentCount(me)}/{_player.Coef.MaxDependents}",
-                "兵力が不足" => $"兵力 必要{_player.Coef.InvadeMilitaryFactor:F1}倍・自国{me.Military * _player.MilitaryReadiness:F2}／標的{pow.Military:F2}",
+                "余剰戦力が不足" => "戦力余剰が不足",   // 語を「戦力余剰」へ統一（2026-09-23）
                 _ => reason,
             };
 

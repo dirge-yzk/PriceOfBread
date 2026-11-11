@@ -18,6 +18,9 @@ namespace PriceOfBread.App.Controls;
 /// ・<see cref="Filterable"/> が真なら絞り込みの文字の欄を出す。
 /// ・列の幅は単位から決めた最小幅（<c>MinWidth</c>）。固定の <c>Width</c> は値を黙って切るので使わない。見出しと行は列の大きさを共有する。
 /// ・Avalonia の描画の部品だけ。XAML を持たない＝結線は <see cref="SnapshotProperty"/> の 1 本（呼び手の XAML が x:DataType 付きで束縛する）。</summary>
+/// <summary>凡例の 1 項（色の丸と名）。</summary>
+public readonly record struct LegendItem(string Name, IBrush Brush);
+
 public sealed class TableView : UserControl
 {
     public static readonly StyledProperty<TableSnapshot?> SnapshotProperty = AvaloniaProperty.Register<TableView, TableSnapshot?>(nameof(Snapshot));
@@ -53,8 +56,8 @@ public sealed class TableView : UserControl
         confirm(vb);
     }
 
-    /// <summary>段の列の最大の幅（これを超える段の押し釦は欄の中で折り返す）。</summary>
-    public const double StageMaxWidth = 236;
+    /// <summary>段の列の最大の幅（これを超える段の押し釦は欄の中で折り返す）。選べない段の下の短い理由が横に並ぶ分まで広げた（B42・2026-11-12）。</summary>
+    public const double StageMaxWidth = 440;
 
     /// <summary>文字の 1 つのセルの最大の幅（これを超える長い文字は末尾を省略記号にして全文を吹き出しに出す）。</summary>
     public const double MaxTextWidth = 260;
@@ -79,11 +82,51 @@ public sealed class TableView : UserControl
     }
 
     /// <summary>行の外の高さ（絞り込みの欄・見出し・横の流れの目盛り・余白）。</summary>
-    public double ChromeHeight() => (Filterable ? 28 : 0) + 24 + (ScrollX ? 14 : 0) + 6;
+    public double ChromeHeight() => (Filterable ? 28 : 0) + (_legendCount > 0 ? 20 : 0) + 24 + (ScrollX ? 14 : 0) + 6;
 
     /// <summary>表の行の数（撮影の検査用）。</summary>
     public int RowCount => _rows.Count;
 
+    /// <summary>表の上に出す色の凡例（呼び手が渡す・例：国名の前の丸の政体の色）。割合の列（半円）がある表は、その区分の色と名を自動で出す（B34・B49）。</summary>
+    public IReadOnlyList<LegendItem>? Legend { get => _legend; set { _legend = value; RefreshLegend(); } }
+    private IReadOnlyList<LegendItem>? _legend;
+    private readonly WrapPanel _legendPanel = new() { Orientation = Orientation.Horizontal, IsVisible = false, Margin = new Thickness(0, 0, 0, 2) };
+    private int _legendCount;
+
+    /// <summary>凡例の中身を作り直す。呼び手の凡例が無ければ、割合の列の最初の行の区分（名と半円の色）。</summary>
+    private void RefreshLegend()
+    {
+        IReadOnlyList<LegendItem>? items = _legend;
+        var snap = Snapshot ?? TableSnapshot.Empty;
+        if (items is null)
+        {
+            int shareCol = -1;
+            for (int i = 0; i < snap.Columns.Count; i++) if (snap.Columns[i].Kind == ColumnKind.Share) { shareCol = i; break; }
+            if (shareCol >= 0)
+                foreach (var r in snap.Rows)
+                    if (shareCol < r.Cells.Count && r.Cells[shareCol].Extra is ShareCell sc && sc.Parts.Count > 0)
+                    {
+                        items = sc.Parts.Select((p, i) => new LegendItem(p.Name, RowPresenter.PiePalette[i % RowPresenter.PiePalette.Length])).ToList();
+                        break;
+                    }
+        }
+        _legendPanel.Children.Clear();
+        _legendCount = items?.Count ?? 0;
+        if (items is not null)
+            foreach (var it in items)
+                _legendPanel.Children.Add(new StackPanel
+                {
+                    Orientation = Orientation.Horizontal, Spacing = 3, Margin = new Thickness(0, 0, 10, 0),
+                    Children =
+                    {
+                        new Avalonia.Controls.Shapes.Ellipse { Width = 8, Height = 8, Fill = it.Brush, VerticalAlignment = VerticalAlignment.Center },
+                        new TextBlock { Text = it.Name, FontSize = Small - 1, Foreground = Brush("InkSoftBrush", Brushes.Gray), VerticalAlignment = VerticalAlignment.Center },
+                    },
+                });
+        _legendPanel.IsVisible = _legendCount > 0;
+    }
+
+    private readonly StackPanel _top = new() { Orientation = Orientation.Vertical };
     private readonly Grid _root = new() { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
     private readonly TextBox _filterBox = new() { Watermark = "絞り込み", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
@@ -129,8 +172,9 @@ public sealed class TableView : UserControl
     public TableView()
     {
         Grid.SetIsSharedSizeScope(_root, true);   // 見出しと行が同じ列の大きさを共有する
-        Grid.SetRow(_filterBox, 0); Grid.SetRow(_header, 1); Grid.SetRow(_bodyHost, 2);
-        _root.Children.Add(_filterBox); _root.Children.Add(_header); _root.Children.Add(_bodyHost);
+        _top.Children.Add(_legendPanel); _top.Children.Add(_filterBox);   // 行 0＝凡例と絞り込み（行の番号は変えない＝見出しは 1・行は 2）
+        Grid.SetRow(_top, 0); Grid.SetRow(_header, 1); Grid.SetRow(_bodyHost, 2);
+        _root.Children.Add(_top); _root.Children.Add(_header); _root.Children.Add(_bodyHost);
         _filterBox.TextChanged += (_, _) => { _filter = _filterBox.Text ?? ""; Rebuild(); };
         Content = _root;
         AttachBody();
@@ -182,6 +226,7 @@ public sealed class TableView : UserControl
     private void Rebuild()
     {
         var snap = Snapshot ?? TableSnapshot.Empty;
+        RefreshLegend();
         if (snap.Rows.Count != _lastRowCount) { _lastRowCount = snap.Rows.Count; SnapshotChanged?.Invoke(); }   // 行の数が変わった時だけ（毎月の値の更新では並べ直さない）
         string sig = string.Join("|", snap.Columns.Select(c => c.Key + ":" + c.Kind));
         if (sig != _columnSig)
@@ -396,7 +441,7 @@ public sealed class TableView : UserControl
             }
         }
 
-        private static readonly IBrush[] PiePalette = [Brushes.SteelBlue, Brushes.Goldenrod, Brushes.IndianRed, Brushes.SeaGreen, Brushes.MediumPurple, Brushes.Peru];
+        internal static readonly IBrush[] PiePalette = [Brushes.SteelBlue, Brushes.Goldenrod, Brushes.IndianRed, Brushes.SeaGreen, Brushes.MediumPurple, Brushes.Peru];
 
         private static readonly Dictionary<string, IBrush> InkCache = new();
 
@@ -492,7 +537,7 @@ public sealed class TableView : UserControl
                 {
                     var btn = new Button { Classes = { "lawstage" } };
                     btn.Click += (s, _) => { if (s is Button { Tag: (StageCell cell, int level) } && cell.CanSelect(level)) cell.Select(level); };
-                    var why = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.NoWrap, IsVisible = false };
+                    var why = new TextBlock { FontSize = 10, TextWrapping = TextWrapping.NoWrap, IsVisible = false };
                     why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
                     wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = new StackPanel { Orientation = Orientation.Vertical, Children = { btn, why } } });   // 選べない段の釦の下に押せない理由（短い語）
                 }

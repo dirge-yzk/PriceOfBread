@@ -29,6 +29,17 @@ internal static class UiShotPageP1
         capture($"{nextNo():D2}_生産.png");
         logOuter("生産");
         Report(window, "生産");
+        // 巨大建造物の欄は 1920×1080 では畳まれて始まる＝撮影の時だけ開いて、カードの 4 行目が切れていないかを撮る（B17）
+        var prodGrid = window.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(s => s.Key == "mega"));
+        if (prodGrid is not null)
+        {
+            prodGrid.SetUserState(["mega"], []);
+            await Task.Delay(900);
+            capture($"{nextNo():D2}_生産_巨大建造物を開く.png");
+            Report(window, "生産・巨大建造物を開く");
+            prodGrid.SetUserState([], []);
+            await Task.Delay(300);
+        }
         if (UiShotWindows.GameViewOf(window) is { } gvw) UiShotWindows.OpenFull(gvw, lay, Slot.Market); else lay.Open(Slot.Market);
         await Task.Delay(900);
         capture($"{nextNo():D2}_市場.png");

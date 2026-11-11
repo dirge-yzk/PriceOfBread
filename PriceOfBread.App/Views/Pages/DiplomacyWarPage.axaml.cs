@@ -30,6 +30,7 @@ public partial class DiplomacyWarPage : UserControl
     {
         InitializeComponent();
         Sections.Table = Table;
+        NationList.Legend = GameViewModel.PolityLegend;   // 国名の前の丸の色（政体）の凡例（B49）
         NationList.RowActivated += key => (DataContext as GameViewModel)?.CenterNationCommand.Execute(key);   // 行を押すと地図がその国の中心へ動く（地図が欄か枠に載っている間だけ効く）
     }
 

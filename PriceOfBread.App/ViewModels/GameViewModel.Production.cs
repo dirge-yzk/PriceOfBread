@@ -998,8 +998,7 @@ public partial class GameViewModel
                 ShowStart = !mp.IsComplete,   // ボタンは完成後だけ消す（それ以外は出してグレーアウト＝工場の流儀）
                 StartLabel = $"着工 {Fmt.Money(cost)}",
                 // データのツールチップ（規律準拠＝説明文でなく値）。行には理由を書かない＝カーソルを合わせればここが出る。
-                StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}/見積 {Fmt.Money(cost)}"
-                            + (Megaprojects.StartRefusal(_player, mp) is { } refusal ? "\n" + refusal : ""),
+                StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}/見積 {Fmt.Money(cost)}",   // 1 行（カードの 4 行目）。門が閉じた物は一覧に並べないので理由の行は要らない
                 Project = mp,
             });
         }

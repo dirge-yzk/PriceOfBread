@@ -173,7 +173,12 @@
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
-                                    <Button Classes="mini dense" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" HorizontalAlignment="Left" Margin="0,2,0,0"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                                        <Button Classes="mini dense" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" HorizontalAlignment="Left"/>
+                                        <!-- 押せない理由は釦の右（B48） -->
+                                        <TextBlock Text="{Binding Reason}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                                                   IsVisible="{Binding !CanMediate}"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
