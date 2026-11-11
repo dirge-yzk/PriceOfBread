@@ -1,0 +1,39 @@
+=== 恒等の判定（測った種で一致） m1053z（2026-11-12 02:18:36）===
+測った木：D:/PoB_work/wt_m1053z（HEAD e3dd74fed・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_m1053/scripts/instruments/ident/ident.cfg
+宣言：grown=['tradeskip_s', 'sellr_s', 'lordstat_s'] known_extra=['tradeskip:sogStockLeTarget', 'tradeskip:sogSellAcc0', 'tradeskip:sogMilitary'] cost_allow=['労働の重み'] tests_delta=16
+腕 a：rc=0 end=2026-11-12 02:07:00
+腕 b：rc=0 end=2026-11-12 02:18:36
+腕 t：rc=0 end=2026-11-12 01:43:04
+腕 s：rc=0 end=2026-11-12 02:03:29
+測る木の SOURCE-HASH：da9e0123a576340f
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: da9e0123a576340f
+[素の 5 種] b5_ia_5.txt 対 b5_20261111_m1044
+  ○ 全行バイト一致（179 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261111_m1044.cost
+  △ 宣言された例外（--cost-allow）1 本：労働の重み：州の動力の割合 m の生産者の走査（旗 Labo
+  △ 推定 新 230.1 秒 対 基準 223.6 秒（宣言された例外の分）
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: da9e0123a576340f
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261111_m1044_ins
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261111_m1044_ins.cost
+  △ 宣言された例外（--cost-allow）1 本：労働の重み：州の動力の割合 m の生産者の走査（旗 Labo
+  △ 推定 新 229.2 秒 対 基準 222.7 秒（宣言された例外の分）
+[計器の表] 腕 D:/PoB_work/ident_m1053z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1044/base_ins
+  基準 1326 本・腕 1326 本・バイト一致 1246 本
+  列が増えた表（--grown-ok の宣言）30 本：lordstat_s1.tsv+2列・lordstat_s10.tsv+2列・lordstat_s2.tsv+2列・lordstat_s3.tsv+2列・lordstat_s4.tsv+2列・lordstat_s5.tsv+2列
+  既知の揺れの列だけが違う表 50 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 64115 欄）×1・cearn_s:経路の行番号だけ（写して一致 64799 欄）×1・cearn_s:経路の行番号だけ（写して一致 66842 欄）×1・cearn_s:経路の行番号だけ（写して一致 67630 欄）×1・cearn_s:経路の行番号だけ（写して一致 73218 欄）×1・cearn_s:経路の行番号だけ（写して一致 73464 欄）×1・cearn_s:経路の行番号だけ（写して一致 76915 欄）×1・cearn_s:経路の行番号だけ（写して一致 81615 欄）×1・cearn_s:経路の行番号だけ（写して一致 84572 欄）×1・cearn_s:経路の行番号だけ（写して一致 87689 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・cpop_s:経路の行番号だけ（写して一致 21330 欄）×1・cpop_s:経路の行番号だけ（写して一致 22111 欄）×1・cpop_s:経路の行番号だけ（写して一致 22129 欄）×1・cpop_s:経路の行番号だけ（写して一致 22700 欄）×1・cpop_s:経路の行番号だけ（写して一致 23339 欄）×1・cpop_s:経路の行番号だけ（写して一致 23787 欄）×1・cpop_s:経路の行番号だけ（写して一致 24910 欄）×1・cpop_s:経路の行番号だけ（写して一致 24975 欄）×1・cpop_s:経路の行番号だけ（写して一致 26055 欄）×1・cpop_s:経路の行番号だけ（写して一致 26668 欄）×1・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 1246・既知の揺れ 50・宣言された増減 30）
+  内訳：共通の表 1326 本＝バイト一致 1246＋既知の揺れ 50＋列が増えた 30＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1326）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261111_m1044.txt（タグの行を除く）
+  ○ タグの行以外が一致（4692 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 101 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_m1053/measurements/ng1044_20261111:m1044）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2689（基準 2673+16 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
