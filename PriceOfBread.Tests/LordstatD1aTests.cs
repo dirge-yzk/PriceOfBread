@@ -11,11 +11,13 @@ public class LordstatD1aTests
     private const ulong Seed = 1792UL;
     private static double D(Dictionary<string, string> r, string c) => SubstInstrumentTests.D(r, c);
 
-    private static (string Dir, MultiNationSim Sim) Run(int quarters, Action<MultiNationSim>? beforeLast = null)
+    /// <summary><paramref name="flags"/>＝旗 LordReligionStake・LordIntermediaryStake を全ての国の係数に置く値（null＝既定のまま）。(1048) 旗 0 の経路を見る試験は 0 を明示する。</summary>
+    private static (string Dir, MultiNationSim Sim) Run(int quarters, Action<MultiNationSim>? beforeLast = null, double? flags = null)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_lordstat1a_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: Seed) { DiplomacyFrozen = true };
+        if (flags is { } fl) foreach (var n in sim.Nations) { n.World.Coef.LordReligionStake = fl; n.World.Coef.LordIntermediaryStake = fl; }
         try
         {
             for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (q == quarters - 1) beforeLast?.Invoke(sim); Instruments.Quarter(sim, Seed, q); }
@@ -58,7 +60,7 @@ public class LordstatD1aTests
     {
         var c = new Coefficients();
         Assert.Equal(0.0, c.LordReligionStake); Assert.Equal(0.0, c.LordIntermediaryStake);
-        var (_, sim) = Run(2);
+        var (_, sim) = Run(2, flags: 0.0);
         foreach (var n in sim.Nations)
         {
             var w = n.World; var e = PolicyPreferences.Build(w);
@@ -72,7 +74,8 @@ public class LordstatD1aTests
         }
     }
 
-    /// <summary>D1a-3（M8）：窓の中で Build を取っても、窓の外で求め直しても、聖職者の所得の和は 1 ビットも違わない（窓の写し Copy と番人 CheckSame にも同じ和）。聖職者の和は試験が POP から組んだ値とも合う。</summary>
+    /// <summary>D1a-3（M8）：窓の中で Build を取っても、窓の外で求め直しても、聖職者の所得の割合は 1 ビットも違わない（窓の写し Copy と番人 CheckSame にも同じ和）。割合は試験が POP から組んだ聖職者÷旧支配層の和とも合う。
+    /// (1048)：Profile の欄を生の月額 ClergyIncome0 から比 ClergyToIncome0 へ替えた（反証役 v の次元の指摘）。</summary>
     [Fact]
     public void D1a_3_窓の中と外で聖職者の所得の和が一致()
     {
@@ -80,31 +83,32 @@ public class LordstatD1aTests
         foreach (var n in sim.Nations)
         {
             var w = n.World;
-            double expect = 0;
-            foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.Closed && p.ClassId == PopClass.Clergy) expect += Math.Max(0, p.EarnedPerMonth.Value);
-            Assert.True(expect > 0, $"{Instruments.NameOf(w)}：聖職者の所得が無い（前提が崩れた）");
+            double clergy = 0, lords = 0;
+            foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.Closed) { double e0 = Math.Max(0, p.EarnedPerMonth.Value); lords += e0; if (p.ClassId == PopClass.Clergy) clergy += e0; }
+            Assert.True(clergy > 0 && lords > clergy, $"{Instruments.NameOf(w)}：聖職者の所得が無いか旧支配層の内側に無い（前提が崩れた）");
+            double expect = clergy / lords;
             var outside = PolicyPreferences.Build(w);
-            Assert.True(Math.Abs(outside.ClergyIncome0 - expect) <= 1e-9 * expect);
+            Assert.True(Math.Abs(outside.ClergyToIncome0 - expect) <= 1e-9 * expect);
             Assert.Null(w.PopSums);
             w.PopSums = new PopWindow();
             try
             {
                 var first = PolicyPreferences.Build(w);    // 窓の最初の呼び＝貯めた和の写し
                 var second = PolicyPreferences.Build(w);   // 窓の 2 回目＝貯めた和の写し
-                Assert.Equal(BitConverter.DoubleToInt64Bits(outside.ClergyIncome0), BitConverter.DoubleToInt64Bits(first.ClergyIncome0));
-                Assert.Equal(BitConverter.DoubleToInt64Bits(outside.ClergyIncome0), BitConverter.DoubleToInt64Bits(second.ClergyIncome0));
+                Assert.Equal(BitConverter.DoubleToInt64Bits(outside.ClergyToIncome0), BitConverter.DoubleToInt64Bits(first.ClergyToIncome0));
+                Assert.Equal(BitConverter.DoubleToInt64Bits(outside.ClergyToIncome0), BitConverter.DoubleToInt64Bits(second.ClergyToIncome0));
             }
             finally { w.PopSums = null; }
         }
     }
 
-    /// <summary>D1a-4：計器の列は 50 本・呼び口で窓は null・国教にすると度合いが 1／内心の自由の係数／前も 1。期待の比は別の列から作る。旗 0 の実際は −1。</summary>
+    /// <summary>D1a-4：計器の列は 52 本（(1048) で +2）・呼び口で窓は null・国教にすると度合いが 1／内心の自由の係数／前も 1。期待の比は別の列から作る。旗 0 の実際は −1。</summary>
     [Fact]
     public void D1a_4_国教の列()
     {
-        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) n.World.StateReligion = StateReligionLaw.StateChurch; });
+        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) n.World.StateReligion = StateReligionLaw.StateChurch; }, flags: 0.0);
         var rows = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"lordstat_s{Seed}.tsv"), null);
-        Assert.Equal(50, rows[0].Count);
+        Assert.Equal(52, rows[0].Count);
         bool anyPositive = false;
         foreach (var n in sim.Nations)
         {
@@ -126,7 +130,7 @@ public class LordstatD1aTests
     [Fact]
     public void D1a_5_仲介の取り分の列()
     {
-        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) { var w = n.World; w.Bureaucracy = BureaucracyLaw.MeritExam; w.LandReform = ReformLevel.Full; w.LastRuleCut = 7.0; } });
+        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) { var w = n.World; w.Bureaucracy = BureaucracyLaw.MeritExam; w.LandReform = ReformLevel.Full; w.LastRuleCut = 7.0; } }, flags: 0.0);
         foreach (var n in sim.Nations)
         {
             var row = RowOf(dir, 3, n.World);
@@ -152,6 +156,55 @@ public class LordstatD1aTests
             Assert.InRange(D(row, "d2Rent0OverIncome0"), 0.0, 1.0);
             Assert.Equal(-1.0, D(row, "d2PrefBurUpAct"), 12);
         }
+    }
+
+    /// <summary>D1a-5′（(1048)・反証役 v の低③）：猟官×全面（仲介の度合い 1）では、官僚制度の一段（資格任用＝0.5）で半分を失い・戻す一段は無い（猟官の前は猟官）＝上げ cr×0.5・戻し 0
+    /// （資格任用×全面の対称な盤面では前と次を入れ替えても緑だった）。</summary>
+    [Fact]
+    public void D1a_5b_猟官と全面では上げは半分で戻しは0()
+    {
+        var (dir, sim) = Run(3, s => { foreach (var n in s.Nations) { var w = n.World; w.Bureaucracy = BureaucracyLaw.Spoils; w.LandReform = ReformLevel.Full; w.LastRuleCut = 7.0; } }, flags: 0.0);
+        foreach (var n in sim.Nations)
+        {
+            var row = RowOf(dir, 3, n.World);
+            double cr = 7.0 / D(row, "lsIncome0PerMonth") * D(row, "d2Rho");
+            Assert.True(cr > 0, "cr が 0＝前提が崩れた");
+            Assert.Equal(0.5 * cr, D(row, "d2SMidBurExp"), 9);
+            Assert.Equal(0.0, D(row, "d2SGainBurExp"), 12);
+            Assert.Equal(0.0, D(row, "d2SMidLandExp"), 12);   // 土地改革は全面で動かない
+            Assert.Equal(0.0, D(row, "d2SGainLandExp"), 12);  // 戻しても I＝max(1, 0.5)＝1 のまま
+        }
+    }
+
+    /// <summary>D1a-7（(1048)）：計器が自分で数えた土地改革の地代の損と得の列は、旗 0 のエンジンの実際の土地改革の Pref の旧の値 −2×(0.5＋損)・−2×(0.5＋得) と 1e-9 で合う。
+    /// 旗 1 では実際の側が −2×(0.5＋期待) の形に合う（国教・官僚制度・土地改革の両向き）＝門 G3〜G5 の試験の形。</summary>
+    [Fact]
+    public void D1a_7_旗0と旗1で実際の側が期待の形に合う()
+    {
+        var (dir0, sim0) = Run(3, flags: 0.0);
+        int checkedRows = 0;
+        foreach (var n in sim0.Nations)
+        {
+            var row = RowOf(dir0, 3, n.World);
+            Assert.True(Math.Abs(D(row, "d2PrefLandUpAct") - (-2.0 * (0.5 + D(row, "d2LordLossLandExp")))) <= 1e-9, $"{Instruments.NameOf(n.World)}：旗 0 の土地改革（上げ）");
+            Assert.True(Math.Abs(D(row, "d2PrefLandDownAct") - (-2.0 * (0.5 + D(row, "d2LordGainLandExp")))) <= 1e-9, $"{Instruments.NameOf(n.World)}：旗 0 の土地改革（戻し）");
+            checkedRows++;
+        }
+        var (dir1, sim1) = Run(3, s => { foreach (var n in s.Nations) { var w = n.World; w.Bureaucracy = BureaucracyLaw.MeritExam; w.LandReform = ReformLevel.Limited; w.StateReligion = StateReligionLaw.InnerFreedom; } }, flags: 1.0);
+        foreach (var n in sim1.Nations)
+        {
+            var row = RowOf(dir1, 3, n.World);
+            Assert.True(D(row, "relStakeUpExp") > 0 && D(row, "relStakeDownExp") > 0, "国教の期待が 0＝前提が崩れた");
+            Assert.True(D(row, "d2SGainBurExp") > 0 && D(row, "d2SGainLandExp") > 0, "仲介の取り分の戻しの期待が 0＝前提が崩れた（資格任用×限定は上げ 0・戻し cr）");
+            Assert.True(Math.Abs(D(row, "relPrefUpAct") - (-2.0 * (0.5 + D(row, "relStakeUpExp")))) <= 1e-9, "国教（上げ）");
+            Assert.True(Math.Abs(D(row, "relPrefDownAct") - (-2.0 * (0.5 + D(row, "relStakeDownExp")))) <= 1e-9, "国教（戻し）");
+            Assert.True(Math.Abs(D(row, "d2PrefBurUpAct") - (-2.0 * (0.5 + D(row, "d2SMidBurExp")))) <= 1e-9, "官僚制度（上げ）");
+            Assert.True(Math.Abs(D(row, "d2PrefBurDownAct") - (-2.0 * (0.5 + D(row, "d2SGainBurExp")))) <= 1e-9, "官僚制度（戻し）");
+            Assert.True(Math.Abs(D(row, "d2PrefLandUpAct") - (-2.0 * (0.5 + D(row, "d2LordLossLandExp") + D(row, "d2SMidLandExp")))) <= 1e-9, "土地改革（上げ）");
+            Assert.True(Math.Abs(D(row, "d2PrefLandDownAct") - (-2.0 * (0.5 + D(row, "d2LordGainLandExp") + D(row, "d2SGainLandExp")))) <= 1e-9, "土地改革（戻し）");
+            checkedRows++;
+        }
+        Assert.Equal(4, checkedRows);
     }
 
     /// <summary>D1a-6：仲介者の度合いが 0（専門×全面）の盤面では S は全て 0（分母の守り）。</summary>

@@ -6,7 +6,7 @@ namespace PriceOfBread.SimCore;
 // 目的＝旧支配層の〈地位と権力の軸〉（秘密投票・官僚制度・国教・徴兵・検閲）の選好が札（定数 ±1）で、導ける物（国教＝十分の一税・官僚制度＝仲介者の取り分）を〈次の一段で失う所得の割合〉で読み直す案 D-1 の材料。
 //   札のまま残るのは秘密投票・検閲・徴兵（権力の量から導くなら別の設計）。
 // エンジンの関数を呼ばない：十分の一税の度合い・仲介者の度合い・身分の度合い・実効発言権・大衆の判定・十分の一税の請求は全て計器が自分で書く（走査の番人 LordstatInstrumentTests の L10 が禁止の名を見張る）。使い回すのは CnBloc だけ。
-// 行＝国×四半期（cornint_s と同じ国の集合）。列＝28（鍵 8・分母 2・秘密投票 3・官僚制度 9・国教 5・徴兵 1）＋(1039) 22（D-1 の国教 11・D-2 の仲介の取り分 11＝末尾）。
+// 行＝国×四半期（cornint_s と同じ国の集合）。列＝28（鍵 8・分母 2・秘密投票 3・官僚制度 9・国教 5・徴兵 1）＋(1039) 22（D-1 の国教 11・D-2 の仲介の取り分 11）＋(1048) 2（土地改革の地代の損と得＝旧の値の期待・末尾）。
 // (1039)：末尾の 22 列は、期待の側を計器が自分の純関数で書き、実際の側（Pref・純支持・教義）だけ PolicyPreferences.Build/Pref/NetSupport と UtilityAgent.DoctrineFrom を読む（読むだけ・四半期の末＝窓の外）。額は国の通貨・どれも直近の月の値（…PerMonth）。
 // 〈次の一段〉＝その法を 1 段だけ寛容側へ進めた後（秘密投票は公開→秘密・官僚制度は猟官→資格任用→専門・国教は国教→内心の自由→信仰の自由・国家無神論は例外で動かさない）。
 // lsIncome0PerMonth＝閉鎖の層（CnBloc が 0）の max(0, 所得) の和（PolicyPreferences の Income[0] と同じ集合）。十分の一税の母体＝国に聖職者（人口が正）が居るときの大衆（平民で近代でなく犯罪者でない）の max(0, 前の月の所得) の和（徴収の走査は国全体の聖職者の有無で決まる）。
@@ -41,6 +41,19 @@ public static partial class Instruments
          : s == StateReligionLaw.InnerFreedom ? c.InnerFreedomTithe : s == StateReligionLaw.ReligiousFreedom ? c.ReligiousFreedomTithe : s == StateReligionLaw.StateAtheism ? 0.0 : 1.0;
     /// <summary>選挙の実在（純関数）＝議会政体（立憲君主制・共和制）なら 秘密投票 1・公開投票 OpenBallotReality／それ以外は PaperFranchiseReality。</summary>
     internal static double LdBallotReality(bool parliamentary, bool secret, Coefficients c) => parliamentary ? (secret ? 1.0 : c.OpenBallotReality) : c.PaperFranchiseReality;
+    /// <summary>(1048) 産地の地代の上限（純関数）＝全面 full・限定 full＋(1−full)×0.5・なし 1。</summary>
+    internal static double LdRentCapOf(ReformLevel lv, double full) => lv == ReformLevel.Full ? full : lv == ReformLevel.Limited ? full + (1.0 - full) * 0.5 : 1.0;
+    /// <summary>(1048) 産地の慣習の取り分＝先頭の州の産地（IsRgo）の RentShare の最小（産地が無ければ 0）。計器が自分で数える。</summary>
+    internal static double LdCustomRent(World w)
+    {
+        if (w.Regions.Count == 0) return 0.0;
+        double m = double.PositiveInfinity;
+        foreach (var pr in w.Regions[0].Producers) if (pr.IsRgo && pr.RentShare.Value < m) m = pr.RentShare.Value;
+        return double.IsPositiveInfinity(m) ? 0.0 : m;
+    }
+    /// <summary>(1048) 実効の取り分（純関数）＝min(慣習, 土地改革の上限, 農奴解放の上限)。</summary>
+    internal static double LdEffRent(double custom, ReformLevel lr, ReformLevel se, Coefficients c)
+        => System.Math.Min(custom, System.Math.Min(LdRentCapOf(lr, c.LandReformRentCap.Value), LdRentCapOf(se, c.SerfEmancipationRentCap.Value)));
 
     static void LordstatTable(MultiNationSim sim, ulong seed, int q)
     {
@@ -91,6 +104,10 @@ public static partial class Instruments
             var bprev = LdBureaucracyPrev(bnow); var lrNext = LdLandNext(lr); var lrPrev = LdLandPrev(lr);
             double cutShare = inc0 > 1e-9 ? w.LastRuleCut / inc0 : 0.0, rho = rhoDen > 0 ? rhoNum / rhoDen : 0.0, cr = cutShare * rho;
             double iBurUp = LdIntermediary(bnext, lr), iLandUp = LdIntermediary(bnow, lrNext), iBurDn = LdIntermediary(bprev, lr), iLandDn = LdIntermediary(bnow, lrPrev);
+            // ---- (1048) 土地改革の地代の損と得（旧の値 −2×(0.5＋損) の損）＝計器が自分で数える（エンジンの損の関数を呼ばない）
+            double custom = LdCustomRent(w), rentRatio = inc0 > 1e-9 ? rent0 / inc0 : 0.0, effNow = LdEffRent(custom, lr, w.SerfEmancipation, c);
+            double landLoss = effNow > 1e-9 ? (effNow - LdEffRent(custom, lrNext, w.SerfEmancipation, c)) / effNow * rentRatio : 0.0;
+            double landGain = effNow > 1e-9 ? (LdEffRent(custom, lrPrev, w.SerfEmancipation, c) - effNow) / effNow * rentRatio : 0.0;
             var cols = new List<(string Name, string Val)>(64)
             {
                 ("quarter", I(q)), ("year", I(w.Year)), ("nation", NameOf(w)), ("polityCode", I((int)w.Polity)), ("secretBallotCode", I((int)w.SecretBallot)),
@@ -112,6 +129,7 @@ public static partial class Instruments
                 ("d2SGainBurExp", F(LdStakeShare(cr, imNow, iBurDn))), ("d2SGainLandExp", F(LdStakeShare(cr, imNow, iLandDn))),
                 ("d2PrefBurUpAct", F(PolicyPreferences.Pref(PolicyAxis.Bureaucracy, 0, prof, w, true))), ("d2PrefLandUpAct", F(PolicyPreferences.Pref(PolicyAxis.LandReform, 0, prof, w, true))),
                 ("d2PrefBurDownAct", F(PolicyPreferences.Pref(PolicyAxis.Bureaucracy, 0, prof, w, false))), ("d2PrefLandDownAct", F(PolicyPreferences.Pref(PolicyAxis.LandReform, 0, prof, w, false))),
+                ("d2LordLossLandExp", F(landLoss)), ("d2LordGainLandExp", F(landGain)),
             };
             if (!sk.Header) { sk.W.WriteLine(string.Join('\t', cols.ConvertAll(x => x.Name))); sk.Header = true; }
             sk.W.WriteLine(string.Join('\t', cols.ConvertAll(x => x.Val)));

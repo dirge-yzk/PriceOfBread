@@ -153,7 +153,7 @@ public class LordstatInstrumentTests
         var rows = Rows(dir); Assert.Equal(6, rows.Count);
         var corn = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"cornint_s{Seed}.tsv"), null);
         Assert.Equal(corn.Select(r => r["quarter"] + "/" + r["nation"]).OrderBy(x => x), rows.Select(r => r["quarter"] + "/" + r["nation"]).OrderBy(x => x));
-        Assert.Equal(50, rows[0].Count);   // (1039) 28+D-1 の 11+D-2 の 11
+        Assert.Equal(52, rows[0].Count);   // (1039) 28+D-1 の 11+D-2 の 11・(1048) +2（土地改革の地代の損と得）
     }
 
     /// <summary>L10：lordstat を書くファイルがエンジンの物を呼ばない（走査）。</summary>
