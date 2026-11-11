@@ -1,0 +1,11 @@
+(885) 合流のフルスイート（木 b414b8c7＝合わせた木 aef07f2a と SimCore・Tests・Runner の字が同じ・台本 scripts/instruments/m885/suite885.sh・2026-11-06）
+list nonfull 2323
+list full 3
+nonfull rc=0 840s
+full rc=0 171s
+saveleak rc=0 180s
+成功!   -失敗:     0、合格:  2322、スキップ:     1、合計:  2323、期間: 13 m 51 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 49 s - PriceOfBread.Tests.dll (net10.0)
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

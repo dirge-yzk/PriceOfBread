@@ -1,0 +1,35 @@
+(934) c82it 突然変異（使い捨ての写しで ident_check.py の 1 箇所を壊し cearn_known_test.py を回した結果）
+M1=宣言の外の列まで外す M2=写しの道を恒等にする M3=KNOWN の列を読まない M4=条件を見ない
+事前登録 [5] との差：M1 は d・d2 に加え c2 が赤（宣言が空でも許すため）。f は M1 では赤にならない（cols_diff の道が経路の列の違いで不一致にする）＝f を赤にするのは M4。
+## M1
+✗ c2_宣言の無い宣言（known が空）なら c は不一致：期待 False・実際 True
+✗ d_両方に加えて宣言の外の列も違う：期待 False・実際 True
+✗ d2_宣言の外の列だけ違い経路も動く：期待 False・実際 True
+GATEFAIL c2_宣言の無い宣言（known が空）なら c は不一致 | d_両方に加えて宣言の外の列も違う | d2_宣言の外の列だけ違い経路も動く
+## M2
+✗ b_経路の行だけ動く（宣言の列は同じ）：期待 True・実際 False
+✗ c_宣言の列も経路の行も違う（波81の再現）：期待 True・実際 False
+✗ c3_行の条件つきの宣言（nation=X の行だけ許す）：期待 True・実際 False
+GATEFAIL b_経路の行だけ動く（宣言の列は同じ） | c_宣言の列も経路の行も違う（波81の再現） | c3_行の条件つきの宣言（nation=X の行だけ許す）
+## M3
+✗ c_宣言の列も経路の行も違う（波81の再現）：期待 True・実際 False
+✗ c3_行の条件つきの宣言（nation=X の行だけ許す）：期待 True・実際 False
+GATEFAIL c_宣言の列も経路の行も違う（波81の再現） | c3_行の条件つきの宣言（nation=X の行だけ許す）
+## M4
+✗ f_条件つきの宣言で条件の外の行が違う：期待 False・実際 True
+GATEFAIL f_条件つきの宣言で条件の外の行が違う
+## 直した後の本体
+○ a_宣言の列だけ違う（経路は動かない）：期待 True・実際 True
+○ b_経路の行だけ動く（宣言の列は同じ）：期待 True・実際 True
+○ c_宣言の列も経路の行も違う（波81の再現）：期待 True・実際 True
+○ c2_宣言の無い宣言（known が空）なら c は不一致：期待 False・実際 False
+○ c3_行の条件つきの宣言（nation=X の行だけ許す）：期待 True・実際 True
+○ d_両方に加えて宣言の外の列も違う：期待 False・実際 False
+○ d2_宣言の外の列だけ違い経路も動く：期待 False・実際 False
+○ e_写せない経路（基準の5行目が書き換わった）：期待 False・実際 False
+○ e2_写せない経路（宣言の列は同じ）：期待 False・実際 False
+○ f_条件つきの宣言で条件の外の行が違う：期待 False・実際 False
+GATEOK
+## 直す前の本体（C82IT_EXPECT_OLD=1）
+GATEOK
+## 既にある道具の試験 前→後 の差（パスの字だけ）：c9gd・c10tg は基準の生に列 fiscalBAt3Count・portNew が無く前後とも ValueError、c67id の実データの部は keep_826 が無く前後とも REAL_MISSING、c71gt は keep_852 が無く回せない。c70gt は前後とも全て ○。

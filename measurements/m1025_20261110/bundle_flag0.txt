@@ -1,0 +1,7 @@
+# (1025) 旗 0 の器の ㉘ の束（1 回目＝T3 の対照の件数の下限が赤〔9・19〕→手の値へ直して ResourceRowsTests だけ回し直した）
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T3_賦存の読み手と州の配列が同じ(flag: 0) [1 s]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T3_賦存の読み手と州の配列が同じ(flag: 1) [31 ms]
+失敗!   -失敗:     2、合格:   212、スキップ:     0、合計:   214、期間: 9 m 22 s - PriceOfBread.Tests.dll (net10.0)
+# 回し直し（ResourceRowsTests）
+成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

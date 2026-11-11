@@ -1,0 +1,11 @@
+M6 �𓖂Ă�
+rc=1
+MilitaryWarMultContactTests.計器は同じ盤面で接触の割合の規則を数える	Passed
+MilitaryWarMultContactTests.接触は毎月その場の盤面から求め直す	Passed
+MilitaryWarMultContactTests.旗1の内戦は対外戦と同じ式	Failed
+CivilWarArmsDemandTests.計器は内戦の月に接触の割合の規則と実際の値を数える(kappa: 0)	Failed
+MilitaryWarMultContactTests.旗1の対外戦の倍率は1足すκ掛ける接触の割合	Passed
+MilitaryWarMultContactTests.接触の割合は1で削らない	Passed
+CivilWarArmsDemandTests.計器は内戦の月に接触の割合の規則と実際の値を数える(kappa: 7)	Failed
+MilitaryWarMultContactTests.接触が0の戦争は旗1で平時の倍率になる	Passed
+MilitaryTests.交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま	Passed

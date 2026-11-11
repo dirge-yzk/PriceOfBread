@@ -41,9 +41,9 @@ public static class Military
     {
         double v = skill;
         double over = upkeep - c.SkillUpkeepThreshold;
-        if (over > 0) v += c.SkillGainRate * over * (1.0 - v);        // 閾値超過分で育つ（1.0へ漸近＝上限を別に置かない）
+        if (over > 0) v = PoliticalQuantities.Toward(v, 1.0, c.SkillGainRate * over);        // 閾値超過分で育つ（1.0へ漸近＝上限を別に置かない）
         else v -= c.SkillDecayPerQuarter * v * Math.Min(1.0, -over / Math.Max(1e-9, c.SkillUpkeepThreshold));   // 割れた深さに比例して錆びる
-        if (fighting) v += c.SkillWarGain * (1.0 - v);                 // 実戦（内戦含む）
+        if (fighting) v = PoliticalQuantities.Toward(v, 1.0, c.SkillWarGain);                 // 実戦（内戦含む）
         return PoliticalQuantities.Clamp01(v);
     }
 

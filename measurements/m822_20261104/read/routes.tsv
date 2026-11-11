@@ -1,0 +1,41 @@
+seed	region	route	sumPerQuarterInW	sourceLine
+4	カナダ	CapitalMarket.cs:176:take:B	490	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord
+4	カナダ	BilateralMarket.cs:1148:take:B	424.6	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の
+4	カナダ	CapitalMarket.cs:173:take:B	69.69	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   
+4	カナダ	Fiscal.cs:119:take:T	66.41	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+4	セントマイケル	Fiscal.cs:119:take:T	12.93	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+4	セントマイケル	Meritocracy.cs:651:carryOut:P	5.511	Pop.Blend(fromPop, toPop, flow, femaleAccess: femAccess, literacy: moveLit);
+4	セントマイケル	BilateralMarket.cs:1148:take:B	1.572	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の
+4	セントマイケル	Transport.cs:184:take:P	0.4936	double buy = InternationalMarket.Procure(w, r, gi, want, investor);
+10	ヌエバ・エスパーニャ銀地帯	CapitalMarket.cs:176:take:B	2.388e+04	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord
+10	ヌエバ・エスパーニャ銀地帯	CapitalMarket.cs:173:take:B	1.446e+04	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   
+10	エルパソ	BilateralMarket.cs:1148:take:B	52.68	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の
+10	エルパソ	Fiscal.cs:119:take:T	10.59	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+10	エルパソ	CapitalMarket.cs:176:take:B	4.934	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord
+10	エルパソ	BilateralMarket.cs:1147:take:T	3.321	if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenuePerClearing += World.Transfer((w0, pt), (w0, null, null), payTariff[t], Tr
+10	ロレート	Fiscal.cs:119:take:T	12.47	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+10	ロレート	Fiscal.cs:129:take:P	0.2669	if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: t
+10	ロレート	Territory.cs:232:carryOut:P	0.08415	internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c) => Pop.Blend(sp, dp, moveSize);
+10	ロレート	Simulation.cs:2814:take:T	0.0002756	if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCa
+10	ボゴタ	CapitalMarket.cs:176:take:B	2263	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord
+10	ボゴタ	CapitalMarket.cs:173:take:B	1388	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   
+10	キト	CapitalMarket.cs:176:take:B	2569	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord
+10	キト	CapitalMarket.cs:173:take:B	1576	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   
+10	イキトス	BilateralMarket.cs:1148:take:B	63.54	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の
+10	イキトス	Fiscal.cs:119:take:T	51.23	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+10	イキトス	BilateralMarket.cs:1147:take:T	4.852	if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenuePerClearing += World.Transfer((w0, pt), (w0, null, null), payTariff[t], Tr
+10	イキトス	CapitalMarket.cs:173:take:B	1.593	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   
+10	ラパス	CapitalMarket.cs:176:take:B	1331	double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord
+10	ラパス	CapitalMarket.cs:173:take:B	810.5	if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   
+10	カルメン・デ・パタゴネス	Fiscal.cs:119:take:T	32.6	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+10	カルメン・デ・パタゴネス	BilateralMarket.cs:1148:take:B	5.287	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の
+10	カルメン・デ・パタゴネス	Fiscal.cs:129:take:P	2.009	if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: t
+10	カルメン・デ・パタゴネス	Bank.cs:31:take:H	0.1882	: -World.Transfer((w, [p]), (null, null, null), -amount, outside: World.Outside.HouseholdCredit);
+10	パラワン	Fiscal.cs:119:take:T	15.88	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+10	パラワン	Military.cs:371:carryOut:P	0.3677	Pop.Blend(from, to, amount, draft: draft, draftLo: 20, draftHi: draftHi);
+10	パラワン	Fiscal.cs:129:take:P	0.02862	if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: t
+10	パラワン	Simulation.cs:2814:take:T	0.01626	if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCa
+10	チロエ	Fiscal.cs:119:take:T	56.71	revenue = World.Transfer((w, taxPayers), (w, null, null), revenue, TreasuryCat.Tax, fromWeights: taxClaim);
+10	チロエ	BilateralMarket.cs:1148:take:B	21.77	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の
+10	チロエ	Fiscal.cs:129:take:P	1.238	if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: t
+10	チロエ	Bank.cs:31:take:H	0.003071	: -World.Transfer((w, [p]), (null, null, null), -amount, outside: World.Outside.HouseholdCredit);

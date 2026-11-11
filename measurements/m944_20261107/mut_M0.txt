@@ -1,0 +1,14 @@
+# (936) 突然変異 M0（rc=1）
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [26 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [27 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [53 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T8_B5の返しの後の残りを相続人へ移す [11 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T3_貯蓄0で債務だけの人の居ないPOPも移る [9 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [29 ms]
+失敗!   -失敗:     6、合格:     4、スキップ:     0、合計:    10、期間: 1 m 5 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:01:07.37]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [FAIL]
+[xUnit.net 00:01:07.45]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [FAIL]
+[xUnit.net 00:01:07.49]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [FAIL]
+[xUnit.net 00:01:07.50]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T8_B5の返しの後の残りを相続人へ移す [FAIL]
+[xUnit.net 00:01:07.53]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T3_貯蓄0で債務だけの人の居ないPOPも移る [FAIL]
+[xUnit.net 00:01:07.60]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [FAIL]

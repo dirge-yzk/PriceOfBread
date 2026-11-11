@@ -1,0 +1,45 @@
+m923 (923) c80lr 突然変異 2026-11-07  台本 scripts/instruments/c80lr/mut923.sh・木＝1f9f0bf9 の detached worktree＋d590fc9f の world.json（コミットしない）・2 クラス（StateFactoryTests・CornintInstrumentTests 28 本）だけ
+表（予言＝事前登録 m923_20261107_prereg_lr.txt の M1〜M4）：T1＝造幣の Theory 2 本・T2＝C3 国内・T3＝C4 輸出
+ M0 変異なし（対照）      赤 0           予言 赤 0             一致
+ M1 期待を持ち主だけへ戻す 赤 T1×2・T2・T3  予言 T1×2・T2・T3      一致（元の 4 本の赤が戻る）
+ M2 エンジン AddRentRecipients の枠の枝を消す 赤 T1×2  予言 T1×2（C3・C4 は計器が LandShares を自分で読む＝緑）  一致
+ M3 計器の国内の枝を持ち主の 1 行へ 赤 T2  予言 T2  一致
+ M4 計器の輸出の枝を持ち主の 1 行へ 赤 T3  予言 T3  一致
+＝直した 4 本はそれぞれ対応する突然変異で赤＝番人を弱めていない。生＝D:/PoB_work/c80lr_work/mut/M0〜M4/mut.txt（合流の判断まで残す）。
+--- 台本の出力（そのまま）
+M  PriceOfBread.SimCore/world.json
+=== M0
+木 1f9f0bf9bccd634554c32bbbd6e19fa05ec0428f
+mut rc=0
+成功!   -失敗:     0、合格:    28、スキップ:     0、合計:    28、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+=== M1
+木 1f9f0bf9bccd634554c32bbbd6e19fa05ec0428f
+mut rc=1
+失敗!   -失敗:     4、合格:    24、スキップ:     0、合計:    28、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 3) [1 s]
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 0) [2 ms]
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.輸出の地代は輸出額と生産者から組んだ値に合い_シグマは範囲に収まる [849 ms]
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.国内の地代とブロックの割合と今の選好はエンジンの値に合う [622 ms]
+SUITEDONE
+=== M2
+木 1f9f0bf9bccd634554c32bbbd6e19fa05ec0428f
+mut rc=1
+失敗!   -失敗:     2、合格:    26、スキップ:     0、合計:    28、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 3) [1 s]
+  失敗 PriceOfBread.Tests.StateFactoryTests.国営持分の造幣の代金は持分の割合だけ国庫へ(imported: 0) [2 ms]
+SUITEDONE
+=== M3
+木 1f9f0bf9bccd634554c32bbbd6e19fa05ec0428f
+mut rc=1
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.国内の地代とブロックの割合と今の選好はエンジンの値に合う [740 ms]
+SUITEDONE
+=== M4
+木 1f9f0bf9bccd634554c32bbbd6e19fa05ec0428f
+mut rc=1
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.CornintInstrumentTests.輸出の地代は輸出額と生産者から組んだ値に合い_シグマは範囲に収まる [1 s]
+SUITEDONE
+M  PriceOfBread.SimCore/world.json
+MUTDONE

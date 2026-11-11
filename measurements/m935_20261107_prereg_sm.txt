@@ -1,0 +1,52 @@
+(935) c82sm 事前登録 — 恒等の小物の束 (v)〜(xiii)（注・試験・台本だけ・ident は回さない）
+基準 84688034（main・コードは 1af3e5d7 と同じ）。種類＝恒等の線（README §1-3 コメントの行）。挙動の線ではない。
+
+[1] 恒等の線・予言 0
+ - SimCore の差は注（// の行）と、文字列の中の生のタブ 1 個の綴り替え（バックスラッシュ t へ・値は同じ）だけ。式・係数・順序・行の数は変えない。
+ - 浮動小数の順序が変わる箇所: 0 箇所（式に触れない）。同じ盤面で旧と新を数える比較の食い違いの数: 0。
+ - 合否は台本 scripts/instruments/c82sm/strip_cmp.py（両側から注を剥いで比べ、行数の差 0・注の外の差 0）と、INS=1 の selfplay 1 種（seed 1・200 四半期）を
+   基準の木 1af3e5d7（git archive）と比べた計器の生の全ての表の sha256 の一致。ident は回さない（D: の床・注だけの変更・README §1-3 コメントの行）。
+
+[2] 消す物と残す物（読み手の grep）
+ 消す物: 0（読み手 0 の削除は無い）。
+ 直す物（注）:
+  (v)  Coefficients.cs:2009 と EconomyStep.cs:1088 の〈現行の内戦は軍需消費2倍〉→ 当時の記述と名乗り、今は MilitaryWarMult×(1+WarMobilizationDepth×厭戦)（Coefficients.cs:2171 CivilWarArmsDemandUnified 旗 1）。
+       grep: MilitaryWarMult は Coefficients.cs:2169・EconomyStep の読み手は変えない。
+  (vi) InstrumentsCrown.cs:32-33 の符号の注（0 を開幕または建国・6 から建国を外す: Simulation.cs:193 は建国の子〔PrebuiltRegions〕も同じ構築子を通る）。
+       InstrumentsImpose.cs:12 の注 ⓪ から焼いた走行の数字（10 種で 1 件・10 種で 1 行も出なかった）を外す。
+       生のタブ: InstrumentsImpose.cs は 0 個（grep -P "\t"）。InstrumentsCrown.cs:228 に文字列の中の生のタブ 1 個（crownRegisterSourceCode の前）→ バックスラッシュ t へ（値同じ）。
+       ImposeAndCrownSourceTests.cs の Split('生のタブ') 3 個（:72 :80 とその周り）→ Split('バックスラッシュ t')（値同じ）。
+  (xi) LandShareTests.cs の T7b 付近の注〈フランスは null〉→ (930) c81la 以後 world.json の landOwnership は名簿 7 国（フランス・日本・イギリス・プロイセン・スペイン・デンマーク・ポーランド）。:8 の summary も同じ。
+  (xii) BillBlockedColumnsTests.cs の Contains（:144）と EndsWith（:145）: 二重の番人として残す（Contains は 7 列の並び・EndsWith は末尾の位置＝後ろへの列の追加で赤）。注を 1 行足す。
+  (xiii) PolicyPreferences.cs:72 の〈既定1.5〉→ RentProtectionWeightCoef の今の既定は 1.0（Coefficients.cs:1964・点火 2026-08-31）。
+ 直す物（試験・台本）:
+  (vii) ImposeAndCrownSourceTests: year・absScoreIndex の Assert（year は Instruments.CpMonth で与えた 1788・absScoreIndex は 1.5）・勝者と押し付けの政体が違う盤面・符号 6 の口（復元）の Assert。
+  (viii) OnDoubleReadScanTests: 鍵の名をコメントを剥いだ頭から取る（StripComments を足す）。鍵が変わる見込み＝下の [3]。
+  (ix) scripts/instruments/c80eb/mut920.py:8 M1 の旧の文字列を BilateralMarket.cs:579 の今の文へ（8 本全て現物に 1 箇所で当たることを確かめた）。
+  (x)  scripts/instruments/c81la/reads930.sh: S11 の枝に export BASE1（tab930.py:62 が読む）。
+ 他の線との重なり（行は別）: Coefficients.cs（hd :3335 の隣・lt の土地税の隣・sm は :2009）／EconomyStep.cs（lt は PayOwnerRent・sm は :1088）／PolicyPreferences.cs（lt :168・sm :72）／DormantIdentityTests.cs は触らない。
+ App・Display・Runner・world.json・Fiscal.cs・EmptyPopEstate.cs・InstrumentsLandbase.cs は触らない。
+ 読み手の確認: 消す物が無いので名前の読み手の grep は不要。SaveGame・POB_COEF の名前: 変えない。
+
+[3] 足す試験と突然変異（★(892)）・走査の番人の点検（㉘）・書き換える件数の予言（㉑）
+ 試験の数: Fact の追加 0・削除 0 → --tests-delta 0（2418 非 FullLength＋3 FullLength のまま）。
+ 突然変異（scripts/instruments/c81im/mutate928.py の M9〜M14 と既存 M1〜M8・使い捨ての写し・赤になるべき）:
+  M9  InstrumentsImpose の CrownSource(dw, 2) を外す → ImposeAndCrownSourceTests が赤
+  M10 CrownParliament の幕府の終わり（符号 5）を外す → 赤
+  M11 GovernanceSnapshot の復元（符号 6）を外す → 赤（今回足した Assert で。足す前は緑のはず）
+  M12 勝者の政体と押し付けの政体の列を取り違える → 赤
+  M13 year の列に月を書く → 赤
+  M14 absScoreIndex を常に 1 → 赤
+ (viii) の突然変異: 鍵の行の頭にコメントを足した写し（括弧つき）で、新しい Scan は正しい関数名を取り、旧の形（コメントを剥がない）は名前が変わる。
+ 注を剥ぐ台本の突然変異: 注でない 1 字の違い（Simulation.cs に 2 行）を入れた写しで strip_cmp.py --self-test が注の外の差 2 行を出す。
+ OnDoubleReadScanTests の Allowed 表の書き換え: 鍵の名だけ 5 件（値は変えない・読みの数は同じ）。
+   Fiscal.cs::min#0(2)→Fiscal.cs::Borrow#0・Model.cs::min#0(2)→Model.cs::Take#0・Simulation.cs::州の建設予約は#0(3)→Simulation.cs::QuarterStart#0・
+   Simulation.cs::実装ログ#0(18)→Simulation.cs::MonthSettle#0・World.cs::min#2(2)→World.cs::StepConstruction#0。それ以外の鍵は変わらない予言。
+   （予言の根拠: 旧は鍵の名がコメントの中の括弧から取れていた疑い。実測は新 Scan の赤の一覧から取り、予言と違えば報告に書く。）
+ 走査の番人の点検（㉘）: IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。
+   new MoneyStock( の件数 64（SimCore）・変わらない予言。route_anchors の鍵の行・WriterRatchetTests の宣言の表: 触らない。cearn_s の経路の名〈ファイル:行〉: SimCore の行の数を変えないので不変。
+
+[4] 成績表: ident は回さない。素の 5 種・計器つき 10 種が m933 と一致することは、コードの差が注と同値のタブだけであること（[1]）と selfplay 1 種の計器の生の sha256 の一致で示す。
+[5] 〈台本が注の外の差 0〉かつ〈sha256 が全て一致〉なら採る。一致しなければその変更を外して報告に回す。
+
+D: の空き: 99GB（df -h /d・着手時）。使うのは隔離ビルド 2 本（約 3GB）と selfplay の計器の生（数十 MB）だけ。

@@ -1,0 +1,5 @@
+D:/PoB_work/m981_work
+D:/PoB_work/wt_m981
+D:/PoB_work/wt_m981z（枝 m981z）
+D:/PoB_work/ident_m981z（ident.sh が作った・腕 Z の生 18GB・判定〈恒等〉を measurements/ident_20261109_m981z.txt に残してから消した）
+D:/PoB_work/keep_981（新しい基線の生 base_ins＝M・n1・n2・a11＝S11）

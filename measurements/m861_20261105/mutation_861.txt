@@ -1,0 +1,14 @@
+(861) c71id 突然変異の表（使い捨ての木 D:/PoB_work/c71id_mut＝git archive 84d6e753・scripts/instruments/c71id/mutrun861.sh が c70id の mut854.py の変異 MM7 を当てて MintAtMarketTests の組だけを隔離ビルドで回した）。
+restore は変異が触るファイル（Simulation.cs）を worktree D:/PoB_work/wt_c71id から写した（走行中に worktree で変異が触るファイル〔Simulation.cs〕は編集していない。ただし measurements/m854_20261105/mutation_854.txt は未コミットで編集中だった〔頭の行の直し・変異の対象外＝結果に影響しない〕）。
+
+MM7  予算の消費 `if (atMarket) gapLeft -= value;` を外す
+    結果：失敗 1・合格 4  赤
+      赤：MintAtMarketTests.市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う
+        Assert.Equal(budget, (q1 + q2) * price0, 6)：期待 367954.2048・実際 478340.4662（＝期待の 1.3 倍）
+    見込み（事前登録 [3] 項目 A）：赤（2 州目が予算を丸ごと使い 1.3 倍）→ 見込みどおり。州の順番に依らない 1.3 倍。
+    他の 4 本（既存の Theory 2 行・係数 0・予算 0）は緑のまま（既存の試験の主張は変わらない）。
+
+(854) の MM7 の行（緑＝穴）は、この新しい試験で赤に直った。(854) の反証役 中 1 は塞がった。
+元の木（変異なし）では同じ試験が緑（スキャンの番人の組 603 本の中に含まれ、失敗 0：guards_summary.txt）。
+
+OM1 の判別（反証役 低 2）：Theory 3 行は (846) の形へ戻しても緑のまま（mutation_854.txt の OM1 の行）＝判別は Fact だけ。決める＝〈判別は Fact だけ〉と StateEduDemandTests の Theory の直前の注に名乗った（事前登録 [3] 項目 B）。試験の数は変わらない。

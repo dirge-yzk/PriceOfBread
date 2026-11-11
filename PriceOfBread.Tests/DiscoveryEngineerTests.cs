@@ -53,7 +53,6 @@ public class DiscoveryEngineerTests
     {
         var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
         sim.Coef.DiscoveryEngineerHalfPerMonth = half;   // 多国の判定が読む共有の係数
-        sim.Coef.TechThresholdOff = 0; foreach (var n in sim.Nations) n.World.Coef.TechThresholdOff = 0;   // ★(613) この番人は旗 DiscoveryEngineerHalfPerMonth の旧の枝〔制度と思想の行は技術水準を読む〕を見る＝旗 TechThresholdOff（既定 1）の旧の枝〔段6 で旧の枝ごと消す〕
         foreach (var n in sim.Nations) n.World.Coef.DiscoveryEngineerHalfPerMonth = half;
         if (!(half > 0)) foreach (var n in sim.Nations) Discovery.SeedCompatRows(n.World);   // 旗0の構築と同じ（構築は既定の係数を読むので、旗を0にした盤面は互換の解禁を最初の判定の前に呼ぶ）
         sim.StepQuarter();
@@ -175,14 +174,18 @@ public class DiscoveryEngineerTests
         Assert.Equal(NeedsEarlierDiscovery.OrderBy(x => x), zero.OrderBy(x => x));
     }
 
-    /// <summary>T3：旗が0のとき、制度と思想の行の技術力は今の式そのもの（70×min(1, 技術水準÷難易度)）で、他の行は 70×min(1, 技術水準÷難易度) を超えない（押しは1以下）。
-    /// 技術水準を動かすと旗0では技術力が動く。⚠壊し方＝旗0でも技師の式を使う → 技術水準を動かしても動かず赤。</summary>
+    /// <summary>T3（(824) c65id で今の既定の盤面へ移した）：技師の旗 DiscoveryEngineerHalfPerMonth が 0 のとき、製法の行の技術力は今の式そのもの（70×min(1, 技術水準÷難易度)を超えず、技術水準で増える）。
+    /// 制度と思想の行は技術水準を読まない（既定＝旗 TechThresholdOff の焼き込み前から 1）：特許（d＝0）は 70・d＞0 の社会主義は 70×本国の識字÷基準 0.5（識字は手で置く：本国 0.25・植民地 1.0 → 35）。
+    /// 技術水準を 0 から 100 まで動かしても制度と思想の行は動かない。⚠壊し方＝旗0でも技師の式を使う／製法の行の比を固定する → 製法の行が技術水準で動かず赤（陽性の対照 hi＞lo）。
+    /// ⚠この試験は〈制度と思想の行に技術水準の比を戻す〉では赤にならない（(824) の突然変異 Mu1・Mu10 で緑＝measurements/m824_20261104_mutation.txt：既定の盤面では識字の上書き〔Discovery.cs〕が d＞0 の行を覆い、特許は d＝0 で比が 1 になる）。その番人は TechLevelRemovalTests（段2b の TechRatioOf）と InstitutionAnchorTests。</summary>
     [Fact]
-    public void 旗0は技術水準の式のまま()
+    public void 旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない()
     {
         var sim = BoardOff.Value;
         var w = Nation(sim, "フランス");
         double saved = w.TechLevel;
+        var savedLit = new List<(Pop P, double L)>();
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { savedLit.Add((p, p.Literacy)); p.Literacy = r.Tier == RegionTier.Colonial ? 1.0 : 0.25; }
         try
         {
             int patent = Discovery.PatentRow, soc = Discovery.SocialismRow, bess = Row("転炉鋼");
@@ -190,25 +193,21 @@ public class DiscoveryEngineerTests
             {
                 w.TechLevel = tl;
                 var t = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true);
-                foreach (int row in new[] { patent, soc })
-                {
-                    double diff = Discovery.Difficulty(row, w.Coef);
-                    double ratio = !(diff > 0) ? 1.0 : System.Math.Min(1.0, tl / diff);
-                    Assert.Equal(Discovery.TermMax * ratio, t[row].Tech, 9);
-                }
+                Assert.Equal(Discovery.TermMax, t[patent].Tech, 9);                 // d＝0 の行は識字にも技術水準にも依らず満点
+                Assert.Equal(Discovery.TermMax * 0.5, t[soc].Tech, 9);              // 70×(0.25÷0.5)＝35（技術水準が 0 でも 100 でも同じ）
                 Assert.True(t[bess].Tech <= Discovery.TermMax * System.Math.Min(1.0, tl / Discovery.Difficulty(bess, w.Coef)) + 1e-9, "転炉鋼の技術力が 70×比 を超えた");
             }
             w.TechLevel = 0.0; double lo = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true)[bess].Tech;
             w.TechLevel = 100.0; double hi = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true)[bess].Tech;
-            Assert.True(hi > lo, "旗0で技術水準が技術力に効いていない");
+            Assert.True(hi > lo, "旗0で技術水準が製法の行の技術力に効いていない");
         }
-        finally { w.TechLevel = saved; }
+        finally { w.TechLevel = saved; foreach (var (p, l) in savedLit) p.Literacy = l; }
     }
 
-    /// <summary>旗が正のとき、製法・新製品・新兵器の行と産地の技術力は技術水準を読まない（技術水準を 0 にしても 100 にしても同じ）。制度と思想の行は読む（置き換えは次の波・事前登録 [3-3]）。
+    /// <summary>旗が正のとき、製法・新製品・新兵器の行と産地の技術力は技術水準を読まない（技術水準を 0 にしても 100 にしても同じ）。制度と思想の行も読まない（(824) c65id で今の既定の盤面へ移した：旗 TechThresholdOff が 1 で比は識字から作る）。
     /// ⚠壊し方＝旗が正でも比 min(1, 技術水準÷難易度) を掛ける → 赤。</summary>
     [Fact]
-    public void 旗が正なら製法と産地は技術水準を読まず_制度と思想は読む()
+    public void 旗が正なら製法と産地と制度と思想の行は技術水準を読まない()
     {
         var sim = BoardOn.Value;
         var w = Nation(sim, "フランス");
@@ -227,7 +226,7 @@ public class DiscoveryEngineerTests
                 nonSpread++;
             }
             Assert.True(nonSpread > 30);
-            Assert.True(t1[Discovery.SocialismRow].Tech > t0[Discovery.SocialismRow].Tech, "制度と思想の行は（この線では）技術水準を読み続ける");
+            Assert.Equal(t0[Discovery.SocialismRow].Tech, t1[Discovery.SocialismRow].Tech);   // 制度と思想の行は技術水準で動かない（識字から作る比）
         }
         finally { w.TechLevel = saved; }
         // 産地：まだ見つかっていない産地を持つ国で、技術水準を 0 にしても 100 にしても技術力は同じ（人の厚み N÷(N＋N0) だけ・0〜70）

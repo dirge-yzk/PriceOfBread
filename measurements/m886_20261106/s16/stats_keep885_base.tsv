@@ -1,0 +1,21 @@
+coupgate_route	route	rows	seeds_with
+coupgate_route	1	108822	10
+coupgate_route	2	21591	10
+coupgate_route	3	84	10
+coupgate_route	4	1692	10
+coupgate_route	5	48	10
+coupgate_route	7	5	3
+dcont	rows	149407
+dcont	q_mutated>0	2475	nations	29
+dcont	q_cohGate>0	70964	nations	76
+dcont	q_strong>0	296	nations	38
+dcont	factionRevoltsCum_sum_final(計器国)	110	nations	30
+dcont	maxCohesion	1.0
+dcont	q_strikeRegions>0	1487
+prdf	revoltN_sum	110
+prdf	revoltTarget(行)	{'4': 94, '3': 15, '7': 1}
+wars	all	5993	civil	177	months_median	12.0	months_max	43.0
+cpmed_civil	civil	blank	-	34
+cpmed_civil	civil	blank	forced	1
+cpmed_civil	civil	nonblank	-	142
+nation	q_civilWarMonths>0	1453	months_sum	4359	nations	93

@@ -31,13 +31,14 @@ public static class ArmyShape
         foreach (var p in dip.Powers) if (p.Nation is not null) ps.Add(p);   // 抽象標的は脅威側からも注意配分の宛先からも外す（Projection の HomeDefenseBonus 分岐の誤用を避ける）
         int n = ps.Count;
         if (n == 0) return;
+        bool ins = Instruments.On;   // 計器の旗は 1 回だけ読む（確保と使用で別々に読むと、並列の試験で旗が切り替わったとき確保されない表を ! で渡して NullReferenceException・★(912)）
 
         // 1. 敵意×到達（j→i＝j の武力が i に届く強さ）。陸は国境の長さ＋陸続きの投射、海を越える陸軍は投射（距離減衰×制海権）、艦隊は海盆プレゼンスの重なり。
         var hrLand = new double[n * n];
         var hrCross = new double[n * n];   // ★(151) 海を越えて届く陸軍（j の首都から i の首都が別の陸塊）＝i は海で止める＝海の必要量へ
         var hrSea = new double[n * n];
-        double[]? fmHome = Instruments.On ? new double[n * n] : null;   // 計器（読むだけ・(371) 流れM の計器）：本国どうしの国境の分（Borders の第3引数は呼び手が0で渡す表＝戻り値の border は変わらない）
-        double[]? fmH = Instruments.On ? new double[n * n] : null;      // 計器（読むだけ）：敵意 h(i,j) の写し（下の二重ループで h を計算した直後に写す）
+        double[]? fmHome = ins ? new double[n * n] : null;   // 計器（読むだけ・(371) 流れM の計器）：本国どうしの国境の分（Borders の第3引数は呼び手が0で渡す表＝戻り値の border は変わらない）
+        double[]? fmH = ins ? new double[n * n] : null;      // 計器（読むだけ）：敵意 h(i,j) の写し（下の二重ループで h を計算した直後に写す）
         var border = Borders(ps, c, fmHome);
         // ★海路の接触（2026-10-03 (194)・推奨【推】・作者の承認は未確認）＝相手の艦隊が i へ向く重みに i の越境の交易額（World.TradeValueSmoothed＝輸出＋輸入の額の数期の平滑・金建て
         //   ＝交易比重 Power.TradeWeight〔禁輸の痛み・国際価格の重み〕と同じ量）÷全ての国の平均を掛ける
@@ -76,13 +77,13 @@ public static class ArmyShape
                 //   国境＝陸路グラフで隣り合う州の組の数×地形の通りにくさ（<see cref="Borders"/>・植民地格の州も州として数える）。接しない国は投射だけ（国境の辺1本ぶんが上限）＝あまり脅威でない。
                 // ★海を越えて来る陸軍は海で止める（(151)・AI の提案〈海軍は別のベース＝艦隊の比と海路の接触〉の AI の読み）＝首都どうしが別の陸塊（IsSeaCrossing）の投射は海の必要量へ
                 //   （投射は海越えに制海権 SeaControl を掛ける＝i の艦隊が大きいほど届かない＝海の任務そのもの）。国境（植民地の陸の国境を含む）は陸のまま。
-                // ★(194) 海を越えて来る陸軍は相手の遠征の技術の分だけ（Diplomacy.ExpeditionLift＝海越えの植民地化遠征の可否と同じ1本・推奨【推】・作者の承認は未確認）＝
+                // ★(194) 海を越えて来る陸軍は相手の遠征の技術の分だけ（海越えの遠征の技術の門＝(613) 段3 の焼き込みで常に 1.0 になり (921) で呼び口ごと消した・当時は Diplomacy の遠征の技術の関数・推奨【推】・作者の承認は未確認）＝
                 //   蒸気補給・兵站・医療の技術の無い大陸国の大軍は海を越えて運べない（2026-07-12 の遠征技術ゲートの物理）＝脅威の側でも同じ規則で読む
                 //   （旧＝制海権だけ＝双方の艦隊が小さい間は制海権 0.5 で清の大軍の半分が日本へ届く脅威に見え、清と日が互いを海の脅威と見て艦隊を積んだ＝(192) 申し送り3）。
                 double proj = dip.Projection(ps[j], ps[i], c);
                 bool cross = dip.IsSeaCrossing(ps[j], ps[i]);
                 hrLand[j * n + i] = h * (border[j * n + i] + (cross ? 0 : proj));
-                hrCross[j * n + i] = cross ? h * proj * dip.ExpeditionLift(ps[j], ps[i], c) : 0;
+                hrCross[j * n + i] = cross ? h * proj : 0;
                 double sea = 0;
                 for (int b = 0; b < Basins.Count; b++) sea += ps[i].BasinPresence[b] * ps[j].BasinPresence[b];
                 // ⚠BasinPresence は L1 正規化済み＝この内積を「海軍需要の水準」の根拠にしてはならない（分散する国ほど内積が小さく符号が逆転する）。
@@ -152,7 +153,7 @@ public static class ArmyShape
             p.NeedMen = c.SoldiersPerMilitary * ((p.NeedLand + p.NeedInternal) + c.NavalCrewPerGauge * p.NeedSea) / System.Math.Max(0.05, q);
             p.AttentionColSumMax = maxColSum;
         }
-        if (Instruments.On) Instruments.ArmyNeed(ps, c, border, fmHome!, fmH!, hrLand, hrCross, hrSea, landPot, unrest);   // 計器（読むだけ・(371) 流れM の計器）：陸の必要量の組成と海の金の割合の分母
+        if (ins) Instruments.ArmyNeed(ps, c, border, fmHome!, fmH!, hrLand, hrCross, hrSea, landPot, unrest);   // 計器（読むだけ・(371) 流れM の計器）：陸の必要量の組成と海の金の割合の分母
     }
 
     /// <summary>★敵意 h(i,j)∈[0,1)（脅威の作り直し・2026-10-01 (151)）＝緊張の有理飽和（平時でも床 φ＝「無政府状態では武力は武力」）。
@@ -293,8 +294,7 @@ public static class ArmyShape
     ///   3因子を別々に返す＝各呼び手の掛ける順（浮動小数の結合順）をそのまま保つ。</summary>
     internal static (double Tech, double Cohesion, double Militarism) Quality(World w, Coefficients c)
     {
-        double techQuality = c.TechMultipliersOff > 0 ? 1.0   // ★(613) 段3：技術水準を掛けない（兵器の発見と装備の在庫が質を持つ）
-            : c.TechMilLowFloor + (1 - c.TechMilLowFloor) * PoliticalQuantities.Clamp01(w.TechLevel / c.TechMilFullLevel);
+        double techQuality = 1.0;   // ★(613) 段3（旗 TechMultipliersOff は (843) で焼き込み）：技術水準を掛けない（兵器の発見と装備の在庫が質を持つ）
         double cohesion = w.EthnicEnabled ? 1 + c.UnityMilitaryQuality * (w.EthnicUnity - 0.5) : 1.0;
         // ①軍の練度（2026-08-18・親軍法の撤去）＝識字×組織（専門官僚制・鉄道）×勤務年数。旧＝親軍法ONで一律1.3の段差。
         // 露は皆兵＋巨額でも低質（識字と下士官層の不在）・英は志願長期勤務で最高＝法でなく実物量が質を作る。

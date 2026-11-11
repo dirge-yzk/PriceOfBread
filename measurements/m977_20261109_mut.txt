@@ -1,0 +1,11 @@
+M1 [PriceOfBread.SimCore/World.cs] 失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 6 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.MoTrendInitTests.旗1の見送りの四半期も物価の更新の鎖は最後まで走る_圧を使い切り_自己費用の物価と期待インフレが動く ;  失敗 PriceOfBread.Tests.MoTrendInitTests.計器pinitは見送った四半期をdeferに_基準を置いた四半期をinitに書く ;
+M2 [PriceOfBread.SimCore/Instruments.cs] 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 6 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.MoTrendInitTests.計器pinitは見送った四半期をdeferに_基準を置いた四半期をinitに書く ;
+M3 [PriceOfBread.SimCore/Instruments.cs] 失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 6 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.MoTrendInitTests.計器pinitは見送った四半期をdeferに_基準を置いた四半期をinitに書く ;
+M4 [PriceOfBread.SimCore/InstrumentsBasisx.cs] 失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 7 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.BasisxInstrumentTests.T4_合成の盤面_凍結なし ;
+M5 [PriceOfBread.SimCore/InstrumentsBasisx.cs] 失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 8 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.BasisxInstrumentTests.T4_合成の盤面_凍結なし ;
+M6 [PriceOfBread.SimCore/InstrumentsBasisx.cs] 失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 7 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.BasisxInstrumentTests.T4_合成の盤面_凍結なし ;
+M8 [PriceOfBread.Tests/SecessionLaborLawInstrumentTests.cs] 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 23 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う ;
+M9 [PriceOfBread.Tests/TransportInstrumentTests.cs] 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 24 s - PriceOfBread.Tests.dll (net10.0)   失敗 PriceOfBread.Tests.TransportInstrumentTests.越境の印は年の途中で州の持ち主が替わっても経路の行と帯の行で閉じる ;
+M7 [ident_check の _actual を空に] 終了コード 1 | GATEFAIL b_cpop_s の経路の行も宣言の列も動く（宣言あり）：札 debtInCarryPerQuarter | f_同じフォルダに cearn_s（宣言の列と経路が重なる）と cpop_s（経路だけ）が並ぶ：札 heirDebtSettledPerQuarter
+G1 [gate977 に値の変更] 終了コード 1 GATEFAIL
+done

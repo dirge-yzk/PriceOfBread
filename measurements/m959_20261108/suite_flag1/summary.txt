@@ -1,0 +1,3 @@
+suite/nonfull.log:失敗!   -失敗:    10、合格:  2420、スキップ:     1、合計:  2431、期間: 25 m 45 s - PriceOfBread.Tests.dll (net10.0)
+suite/full.log:成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 10 s - PriceOfBread.Tests.dll (net10.0)
+list nonfull 2431・full 3

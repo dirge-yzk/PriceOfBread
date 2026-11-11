@@ -1,0 +1,15 @@
+RESTORED MM7 PriceOfBread.SimCore/Simulation.cs
+APPLIED MM7 PriceOfBread.SimCore/Simulation.cs
+filter: FullyQualifiedName~MintAtMarketTests
+test rc=1 6s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.MintAtMarketTests.市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う [3 ms]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.MintAtMarketTests.市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う [3 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 6 decimal places
+Expected: 367954.20480000001 (rounded from 367954.20479999989)
+Actual:   478340.46623999998 (rounded from 478340.46623999928)
+  スタック トレース:
+     at PriceOfBread.Tests.MintAtMarketTests.市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う() in D:\PoB_work\c71id_mut\PriceOfBread.Tests\MintAtMarketTests.cs:line 103
+RESTORED MM7 PriceOfBread.SimCore/Simulation.cs

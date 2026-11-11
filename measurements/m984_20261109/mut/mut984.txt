@@ -1,0 +1,50 @@
+== M1_floor_back（PriceOfBread.SimCore/Model.cs）
+失敗 PriceOfBread.Tests.TakeDustFloorTests.床は払い手の国の係数を読む [6 s]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1の微小な取り立ては保有の比で配り_負の貯蓄を作らない [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-15) [< 1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-18) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1E-13) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 9.9999999999999998E-17) [< 1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.清算の決済で塵の債務が返り手形の門が開く(flag: 1) [411 ms]
+失敗!   -失敗:     7、合格:     7、スキップ:     0、合計:    14、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M2_floor_1e-15（PriceOfBread.SimCore/Model.cs）
+失敗 PriceOfBread.Tests.TakeDustFloorTests.床は払い手の国の係数を読む [3 s]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-15) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-18) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 9.9999999999999998E-17) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.清算の決済で塵の債務が返り手形の門が開く(flag: 1) [560 ms]
+失敗!   -失敗:     5、合格:     9、スキップ:     0、合計:    14、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+== M3a_flag_unread_old（PriceOfBread.SimCore/Model.cs）
+失敗 PriceOfBread.Tests.TakeDustFloorTests.床は払い手の国の係数を読む [5 s]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1の微小な取り立ては保有の比で配り_負の貯蓄を作らない [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-15) [< 1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-18) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1E-13) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 9.9999999999999998E-17) [< 1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.清算の決済で塵の債務が返り手形の門が開く(flag: 1) [558 ms]
+失敗!   -失敗:     7、合格:     7、スキップ:     0、合計:    14、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== M3b_flag_unread_new（PriceOfBread.SimCore/Model.cs）
+失敗 PriceOfBread.Tests.TakeDustFloorTests.床は払い手の国の係数を読む [5 s]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗0は今の床のまま_塵の債務は動かない(dust: 1.0000000000000001E-15) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗0は今の床のまま_塵の債務は動かない(dust: 1E-13) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1の微小な取り立ては保有の比で配り_負の貯蓄を作らない [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.清算の決済で塵の債務が返り手形の門が開く(flag: 0) [73 ms]
+失敗!   -失敗:     5、合格:     9、スキップ:     0、合計:    14、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M4_held_floor_off（PriceOfBread.SimCore/Model.cs）
+失敗 PriceOfBread.Tests.HeirDebtSettledMovedTests.取り立てが床で0を返す決済は0を足し_通常の決済は移った額を足す [25 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.保有の床は両方の旗で残る(flag: 1) [21 ms]
+失敗!   -失敗:     2、合格:    12、スキップ:     0、合計:    14、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M5_world_no_coef（PriceOfBread.SimCore/World.cs）
+失敗 PriceOfBread.Tests.TakeDustFloorTests.床は払い手の国の係数を読む [5 s]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-15) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1.0000000000000001E-18) [35 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 1E-13) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1は塵の債務を厳密な0まで返し_与信の台帳も同じ額だけ減る(dust: 9.9999999999999998E-17) [1 ms]
+失敗 PriceOfBread.Tests.TakeDustFloorTests.清算の決済で塵の債務が返り手形の門が開く(flag: 1) [455 ms]
+失敗!   -失敗:     6、合格:     8、スキップ:     0、合計:    14、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== M6_nan_guard（PriceOfBread.SimCore/Model.cs）
+失敗 PriceOfBread.Tests.TakeDustFloorTests.旗1でも額がNaN_0_負なら動かない [2 ms]
+失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== 元の形
+成功!   -失敗:     0、合格:    14、スキップ:     0、合計:    14、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE

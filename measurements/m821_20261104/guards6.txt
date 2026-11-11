@@ -1,0 +1,2 @@
+(821) c65md 器のコミット ee48d223 の木（隔離ビルド D:/PoB_work/c65md_work/art2）で ForcedPeaceBlankTests と走査の番人 6 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）
+成功!   -失敗:     0、合格:   180、スキップ:     0、合計:   180、期間: 19 m 37 s - PriceOfBread.Tests.dll (net10.0)

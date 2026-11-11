@@ -1,0 +1,37 @@
+== M1_理由を全て1: RED
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.社会保障の否決の理由は緊縮の上限が官僚制度の前提より先 [1 s]
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.参政権と女性の権利と不可逆の理由が盤面の欄から導かれる [5 ms]
+   失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M2_緊縮の上限を外す: RED
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.社会保障の否決の理由は緊縮の上限が官僚制度の前提より先 [1 s]
+   失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M3_符号5を控えない: RED
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.参政権と女性の権利と不可逆の理由が盤面の欄から導かれる [4 ms]
+   失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M4_呼ばない: RED
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.社会保障の否決の理由は緊縮の上限が官僚制度の前提より先 [1 s]
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.参政権と女性の権利と不可逆の理由が盤面の欄から導かれる [3 ms]
+   失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M5_緊縮は官僚が資格任用のときだけ（順序の取り違え）: RED
+   失敗 PriceOfBread.Tests.Lawgate2InstrumentTests.社会保障の否決の理由は緊縮の上限が官僚制度の前提より先 [1 s]
+   失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M7a_②の下限を外す: RED
+   失敗 PriceOfBread.Tests.CrownPcInstrumentTests.王権と軍の圧力の当て直しは手の数で合い押す先の下限0が働く [2 ms]
+   失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== M7a2_②'の下限を外す: RED
+   失敗 PriceOfBread.Tests.CrownPcInstrumentTests.王権と軍の圧力の当て直しは手の数で合い押す先の下限0が働く [1 ms]
+   失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== M7b_②の正統性の因子を外す: RED
+   失敗 PriceOfBread.Tests.CrownPcInstrumentTests.王権と軍の圧力の当て直しは手の数で合い押す先の下限0が働く [1 ms]
+   失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== M7c_軍の力の(1-PC)を外す: RED
+   失敗 PriceOfBread.Tests.CrownPcInstrumentTests.王権と軍の圧力の当て直しは手の数で合い押す先の下限0が働く [1 ms]
+   失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== LsMax_最大値を取らない: RED
+   失敗 PriceOfBread.Tests.LandShareTests.T7f_期待と実際が合わない盤面で新しい規則の差の列は正になる [7 s]
+   失敗 PriceOfBread.Tests.LandShareTests.T7b_欄ありの盤面で計器は写しと受け手を確かめる [2 s]
+   失敗 PriceOfBread.Tests.LandShareTests.T7e_首都が植民地格の月は送金を期待へ足さない規則の列 [2 s]
+   失敗!   -失敗:     3、合格:    15、スキップ:     0、合計:    18、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+== LsMax_TierRuleの1行だけ外す: RED
+   失敗 PriceOfBread.Tests.LandShareTests.T7f_期待と実際が合わない盤面で新しい規則の差の列は正になる [4 s]
+   失敗!   -失敗:     1、合格:    17、スキップ:     0、合計:    18、期間: 15 s - PriceOfBread.Tests.dll (net10.0)

@@ -47,6 +47,7 @@ public static class Fiscal
         // 走査順は pops の構築（w.Regions→r.Pops）と同一＝添字が1:1対応。TaxConsentWeight=0 では配列を作らず1命令も走らない。
         //   ★(351) 州×POP のなぞりは**この 1 本**（下の pops と、POP ごとの並行の列〔算入率・領主の取り分〕を同じ 1 周で作る＝旧は pops を平らにする周と並行の配列を埋める周が別で、
         //     添字が合わなければ黙って旧挙動へ倒していた〔集合の定義がずれると黙って外れる〕）。列は pops と同じ長さ・同じ並びで同時に伸びる＝添字合わせが構造で消える。集合＝国家会計の集合（絞らない）。
+        Instruments.LandsaleStep(w);   // ★(983) 計器（読むだけ・On の確かめは関数の中＝この関数の Instruments.On の読みの数を増やさない・OnDoubleReadScanTests）：徴税の前の貯蓄から未払いの土地税と売りの期待を計器が自分で数える（landsale_s）
         var scan = TaxScan.Of(w, c);
         var pops = scan.Pops;
         List<double>? scopeInc = scan.ScopeInc; List<double> ruleMul = scan.RuleMul, ruleCut = scan.RuleCut; List<Pop?> ruleLord = scan.RuleLord;
@@ -78,6 +79,7 @@ public static class Fiscal
         var taxPayers = new List<Pop>(); var taxClaim = new List<double>();
         double paidInc = 0, paidProg = 0, paidPoll = 0, paidLand = 0;   // ★(474) 税の種類ごとの実際に取れた額（予算表の実効・読むだけ）
         var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
+        List<(int Pi, double V)>? landSales = null;   // ★(991) 旗 LandShareTaxSale：土地税を払えない受け手と不足額 V（走査の中は集めるだけ・十分の一税の移しの後に LandSale.Resolve が解く＝中④）
         for (int pi = 0; pi < pops.Count; pi++)
         {
             var p = pops[pi]; if (p.IsCriminal) continue;   // ★(366) 犯罪者は申告せず頭数も把握されない＝所得税・累進・人頭税・土地税・十分の一税の請求を立てない（盗んだ金に所得税が掛かるのを防ぐ）。犯罪者の POP が無い世界では偽＝恒等
@@ -87,7 +89,7 @@ public static class Fiscal
             double tax = asd.Total;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
             double kInc = asd.Income, kProg = asd.Progressive, kPoll = asd.Poll, kLand = asd.Land;   // ★(474) 税の種類ごとの査定（所得・累進・人頭・土地）＝予算表の実効が読む診断。tax は同じ順に足した和（ビットは旧と同じ）
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
-                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
+                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, LandTaxBase(c, p).Value)) * (1.0 - privBase));
             // 仲介者の取り分（支配度 段3）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
             double cut = 0; Pop? lord = null;
             {
@@ -99,6 +101,7 @@ public static class Fiscal
             double claims = tax + cut + tithe;
             if (!(claims > 0)) continue;   // 否定形＝NaN の請求は立てない
             double rp = PayRate(p, claims);   // 1本の率（払える額が足りれば 1＝全額）
+            if (rp < 1.0 && kLand > 0 && c.LandShareTaxSale > 0) (landSales ??= []).Add((pi, kLand * ruleMul[pi] * (1.0 - rp)));   // ★(991) V＝国庫に届くはずだった土地税の不足（届き×払えない割合）
             tax *= rp; cut *= rp; tithe *= rp;
             { double f = ruleMul[pi] * rp; paidInc += kInc * f; paidProg += kProg * f; paidPoll += kPoll * f; paidLand += kLand * f; }   // ★(474) 種類ごとの実際に取れた額（査定×国庫へ届く割合×払える割合）
             if (lord is not null && cut > 0)
@@ -127,6 +130,7 @@ public static class Fiscal
         // ★段3-4（2026-09-30）：徴収は上の税と同じ1本の率（旧 Privileges.CollectTithe の徴収の走査を畳んだ）。貯蓄は按分の本体（頭数・端数は最後の聖職）・所得も同じ1行で。
         //   ★2026-09-30 段4g：大衆→聖職の移し方の1本（払い手の重み＝自分の十分の一税の請求・受け手は頭数・所得にも書く）。
         if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: true, fromWeights: titheClaim);
+        if (landSales is not null) LandSale.Resolve(w, c, pops, landSales, crownShareForPrivilege);   // ★(991) 公売（税と十分の一税の移しの後＝買い手の貯蓄は義務を払った後・旗 0 では list を作らない）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Tithe, titheCollected);   // ★特権台帳（段1・観測）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.StepMonth(w, c);   // ★特権台帳（段1）：今月の取り分を畳み保有年数を積む（月次・十分の一税の後）
 
@@ -263,7 +267,7 @@ public static class Fiscal
         w.ForeignIntPaidThisQuarter += foreignInt;   // 02断線走査（2026-07-28）：CapitalMarketが債権国投資家へ配当（旧＝世界から消えるだけの片側記帳）
         // ★利子の未払いは元本へ繰り入れる（作者裁定 Q3・2026-09-28）＝お金は動かない・請求権だけが増える。国内分は持ち手の保有へ（保有に比例＝台帳の不変条件
         //   Σ保有＝GovDebt−ForeignDebt を保つ）・対外分は対外債へ（CapitalMarket が新しい対外債として債権国へ付ける）。持ち手のいない国内分は債権者がいない＝繰り入れない。
-        //   不履行は既存の計数（借入の上限に張り付いたまま＝InsolvencyQuarters）のまま。
+        //   不履行は既存の計数（借入の上限に張り付いたまま＝InsolvencyMonths）のまま。
         //   ★開始前の助走（World.WarmupFrozen）は繰り入れない（2026-09-29 (109)）＝国債の残高は時間が経って積み上がる量（借入・減債・不履行の計数と同じ門）。
         //     旧は助走の歳入が請求の数倍で r＜1 の月が来ず、この穴が表に出なかった（1783年の税の段で米の国債が助走で +0.02 動いた）。
         double unpaidInt = interest - interestPaid;
@@ -341,8 +345,8 @@ public static class Fiscal
 
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
         // 借入の逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
-        // 財3（cadence）：BorrowCooldownMonths（減算）・InsolvencyQuarters（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
-        //   ⚠名前は「Quarters」だが単位は月＝InsolvencyQuarters は払えなかった請求の割合の月ごとの累計（月の請求の何か月分・(205)）・DefaultCooldownMonths=24 は2年の借入禁止。
+        // 財3（cadence）：BorrowCooldownMonths（減算）・InsolvencyMonths（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
+        //   ★(843) 旧の名前 InsolvencyQuarters は単位（月）と食い違っていたので InsolvencyMonths へ改めた（値は変えない）＝InsolvencyMonths は払えなかった請求の割合の月ごとの累計（月の請求の何か月分・(205)）・DefaultCooldownMonths=24 は2年の借入禁止。
         //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。
         if (w.BorrowCooldownMonths > 0) w.BorrowCooldownMonths--;
         // ★張り付き＝今月の借入の門が閉じていた（直近の利払い≧限界×直近の歳入＝月初の Borrow と同じ1本＝上の underLimit の外）のに、払えない（r＜1）月（2026-09-28）。
@@ -355,12 +359,12 @@ public static class Fiscal
         //   兌換停止の後の兌換は四半期 ConvertibilityDropSpeed で0 へ漸近するだけで0 にならない＝切り下げの余地＝払えない額×(1−兌換) の残り（払えない額×兌換）・
         //   銀の改鋳の窓の残り（×(1−正貨比率)）・浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、ほぼ全てを払えていた国が8か月で国債を全て否認した
         //   （(203) の10種で148件中67件・英5件中4件・計器 scratchpad/m204/inj_d204）。重みは入力に比例＝天井も床も足していない（思想⑧）。戻りは旧と同じ（払えた月・門が開いた月に0）。
-        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters += 1.0 - payRate; else w.InsolvencyQuarters = 0;
-        if (w.InsolvencyQuarters >= c.DefaultArrearsMonths)
+        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += 1.0 - payRate; else w.InsolvencyMonths = 0;
+        if (w.InsolvencyMonths >= c.DefaultArrearsMonths)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
-            w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が数えられない）。★(373) 制度疲労の削除の後、回数は計器（defaultCount・sovereignDefaultCumulativeCount）とセーブだけが読む
+            w.InsolvencyMonths = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が数えられない）。★(373) 制度疲労の削除の後、回数は計器（defaultCount・sovereignDefaultCumulativeCount）とセーブだけが読む
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);
@@ -800,10 +804,15 @@ public static class Fiscal
         if (pollRate > 1e-9 && p.IsCommoner)
         { kPoll = c.PollTaxRate * pollRate * p.Size; tax += kPoll; }
         // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、徴収の漏れは支配度の区分（RuleDelivery）が担う（所得税と同方式）。
-        if (landRate > 1e-9 && p.LandRentPerMonth.Value > 0)
-        { kLand = (landRate * p.LandRentPerMonth * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+        var landBase = LandTaxBase(c, p);   // ★(937) 土地税の基数（旗 0 は地代そのもの）。分岐の判定も同じ基数（凍結した RGO の地代が 0 の月も定額を請求する）
+        if (landRate > 1e-9 && landBase.Value > 0)
+        { kLand = (landRate * landBase * privBase).Value; tax += kLand; }   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
         return new TaxAssessed(privBase, consent, kInc, kProg, kPoll, kLand, tax);
     }
+
+    /// <summary>★(937) 土地税の基数（1 POP・その月）の唯一の定義＝査定（<see cref="AssessPop"/>・予想の <see cref="ForecastTax"/> も同じ関数）・特権台帳（<see cref="Step"/>）・選好（PolicyPreferences.ComputeBuildSums）の読み手。
+    /// 旗 LandTaxFixedBasis＝0 は地代そのもの（今のまま）。正は地代＋凍結の差分（<see cref="Pop.LandTaxBasisAdjPerMonth"/>＝定額の国の凍結した RGO だけが積む）。</summary>
+    internal static MoneyPerMonth LandTaxBase(Coefficients c, Pop p) => c.LandTaxFixedBasis > 0 ? p.LandRentPerMonth + p.LandTaxBasisAdjPerMonth : p.LandRentPerMonth;
 
     /// <summary>★(481) <see cref="AssessPop"/> の結果（4 種の請求・身分制免税の係数・課税への同意・和）。</summary>
     internal readonly record struct TaxAssessed(double PrivBase, double Consent, double Income, double Progressive, double Poll, double Land, double Total);

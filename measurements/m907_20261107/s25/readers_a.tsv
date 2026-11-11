@@ -1,0 +1,17 @@
+PolityInertia	5	1	1	0	GameViewModel.Politics.cs:325・Program.cs:2438・CrownParliament.cs:120・CrownParliament.cs:144・Politics.cs:609	SoldierHoldSplitTests.cs:138
+Transition	1	9	0	5	Politics.cs:503	SoldierHoldSplitTests.cs:95・SoldierHoldSplitTests.cs:124・SoldierHoldSplitTests.cs:139・WarThemeTests.cs:874
+RepudiateDebt	2	0	0	6	Fiscal.cs:362・Politics.cs:715	
+StagedAxis	1	0	0	0	Government.cs:634	
+StateAtheism	6	2	1	0	Government.cs:143・Government.cs:741・Policy.cs:94・Politics.cs:380・Privileges.cs:37・\346\223\215\344\275\234\343\202\253\343\203\274\343\203\211.md":37	LandbaseInstrumentTests.cs:157・PrivilegeDisplayTests.cs:69
+NationalizeAll	15	2	0	0	LawCatalog.cs:129・LawCatalog.cs:130・FactionSnapshot.cs:240・Government.cs:177・Government.cs:178・Parliament.cs:382・Parliament.cs:383・Policy.cs:275	SecessionLaborLawInstrumentTests.cs:233・SecessionLaborLawInstrumentTests.cs:250
+NationalizationAll	14	1	0	2	LawCatalog.cs:129・FactionSnapshot.cs:183・FactionSnapshot.cs:227・FactionSnapshot.cs:317・Government.cs:177・Government.cs:722・Government.cs:727・Parliament.cs:382	PolicyPoliticsTests.cs:1910
+ExpeditionLift	3	0	0	0	ArmyShape.cs:85・Diplomacy.cs:2021・Diplomacy.cs:2288	
+ProjectionUsesLand	2	1	0	0	Diplomacy.cs:3656・Diplomacy.cs:3660	DormantIdentityTests.cs:89
+ProjectionRuleMin	2	1	0	0	Diplomacy.cs:3650・Diplomacy.cs:3655	DormantIdentityTests.cs:168
+SubmitProbabilistic	1	1	0	0	Diplomacy.cs:1557	DormantIdentityTests.cs:229
+SubmitRng	2	0	0	0	Diplomacy.cs:1557・MultiNationSim.cs:65	
+PrizeCargoShare	2	4	0	0	Diplomacy.cs:784・Diplomacy.cs:803	TradeThemeTests.cs:20・TradeThemeTests.cs:37・UnitTypeTests.cs:202・UnitTypeTests.cs:559
+PrizeMoneyRatePerMonth	1	3	0	1	Diplomacy.cs:803	UnitTypeTests.cs:104・WarThemeTests.cs:1130・WarThemeTests.cs:1138
+CollectPrize	1	1	0	0	Diplomacy.cs:773	WarThemeTests.cs:1133
+LastBlockadeRisk	4	1	1	6	GameViewModel.Trade.cs:97・Diplomacy.cs:788・Diplomacy.cs:2534・MultiNationSim.cs:1527	WarThemeTests.cs:1131
+TensionPopupThreshold	2	0	0	0	GameViewModel.Popups.cs:172・GameViewModel.Popups.cs:177	

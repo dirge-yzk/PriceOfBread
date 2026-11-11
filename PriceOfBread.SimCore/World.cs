@@ -100,6 +100,10 @@ public sealed class World
     /// 政治は <see cref="PoliticsEnabled"/>=false、外交は <see cref="MultiNationSim.DiplomacyFrozen"/> で別途凍結される。</para>
     /// <para>本編では常に false＝読み手の分岐は全て偽＝厳密恒等。<see cref="MultiNationSim.WarmupEconomy"/> だけが立てて必ず戻す。</para></summary>
     public bool WarmupFrozen { get; internal set; }
+    /// <summary>★(937) 土地税の算定の基準が定額の国（world.json の landTaxBasis＝"Fixed"・データ）。読むのは旗 LandTaxFixedBasis＞0 の EconomyStep.PayOwnerRent だけ。建国の国は false（構築のデータが無い＝収穫比例）。</summary>
+    public bool LandTaxBasisFixed { get => LandTaxBasisPhi > 0; internal set => LandTaxBasisPhi = value ? 1.0 : 0.0; }   // ★(990) c90px：派生（φ* が正＝定額の国）。書き込みは 1.0／0.0 に写す＝データ（Simulation）と既存の試験の書き方はそのまま
+    /// <summary>★(990) c90px 土地税の算定の基準の定額の度合い φ*（[0,1]・国ごと・保存する唯一の状態）。1＝基数は凍結した地代×持ち分（<see cref="EconomyStep.PayOwnerRent"/> の差分の係数）・0＝収穫比例。旗 LandTaxPhiMove＝0 では world.json の landTaxBasis（"Fixed"＝1.0）のまま動かない。動かすのは <see cref="Government.MoveLandTaxPhi"/>（旗 LandTaxPhiMove＞0）だけ。</summary>
+    public double LandTaxBasisPhi { get; internal set; }
     /// <summary>★(490) 開幕の焼き込みの試走の腕（<see cref="OpeningBake.RunOptions"/>・焼く側の Runner の bakeopen だけが立てる＝null が遊ぶ側・測る側＝何も変わらない）。作業用の選択でシミュの状態ではない（セーブに載らない）。</summary>
     [System.NonSerialized] public OpeningBake.RunOptions? BakeRun;
 
@@ -484,6 +488,7 @@ public sealed class World
         ConscriptionPreWar = src.ConscriptionPreWar;   // ★(178) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
         Policy.CopyFrom(src.Policy);
+        if (Coef.LandTaxPhiMove > 0) LandTaxBasisPhi = src.LandTaxBasisPhi;   // ★(990) c90px 旗 1 のときだけ（旗 0 で写すと今は比例から始まる建国の子が変わる）
     }
     // 運用コスト監査2026-08-16（#1 海軍の運用燃料・休眠）：燃料充足のEMA（1.0=制約なし）。
     // 書き手＝Military.NavalFuelStep・読み手＝Diplomacy の同期（Power.NavalFuelMul）。どちらも NavalFuelPerGauge>0 のときだけ＝既定0では読み書きゼロ（セーブ往復に載るのみ）＝厳密恒等。
@@ -730,7 +735,7 @@ public sealed class World
                                     Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null, double fromHeld = double.NaN,
                                     [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
     {
-        if (Instruments.On) Instruments.Route(routeFile, routeLine, from.Pops is not null ? 'P' : from.W is not null ? 'T' : OutsideCode(outside), to.Pops is not null ? 'P' : to.W is not null ? 'T' : OutsideCode(outside));   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）と相手の側を貯蓄の台帳の経路名にする
+        if (Instruments.On) { Instruments.Route(routeFile, routeLine, from.Pops is not null ? 'P' : from.W is not null ? 'T' : OutsideCode(outside), to.Pops is not null ? 'P' : to.W is not null ? 'T' : OutsideCode(outside)); Instruments.CearnRoute(cat, toCat); }   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）と相手の側を貯蓄の台帳の経路名にする・(822) 国庫の側の区分を州の台帳へ写す
         if (!(amount > 0)) return 0;
         if ((from.Pops is not null && from.W is null) || (to.Pops is not null && to.W is null))
             throw new InvariantViolationException("移し方の1本：POP の側が国を名乗っていない（国 null・POP は台帳に載らない）");
@@ -744,7 +749,7 @@ public sealed class World
         double moved;
         if (from.Pops is { } fp)
         {
-            moved = Pop.Take(fp, amount, fromWeights, taken, fromHeld);   // 動いた額＝引いた額の和（受け手へは同じ額）。fromHeld＝呼び手が同じ並びで求め済みの保有の合計（NaN＝ここで数える）
+            moved = Pop.Take(fp, amount, fromWeights, taken, fromHeld, from.W!.Coef);   // (984) 払い手の国の係数（床の旗）・動いた額＝引いた額の和（受け手へは同じ額）。fromHeld＝呼び手が同じ並びで求め済みの保有の合計（NaN＝ここで数える）
             if (!(moved > 0)) return 0;
         }
         else
@@ -886,7 +891,7 @@ public sealed class World
     public double RadicalPower { get; internal set; }
     public double MeanSatisfactionPol { get; internal set; }   // 大衆（Politics.IsMassPop＝闘争度・不満度と同じ母集団・2026-09-25 に全国民から変更）の人口加重平均満足度＝経済危機の指標。一党支配→独裁化（ブルジョア/プロレタリア）は満足度が低い危機国のみ（ワイマール型）＝満足した安定な立憲（英・米）を巻き込まない。実装＝NationalScore.MeanSatisfaction（第5段5-1で一元化・Politics.Stepがpop更新後に代入＝従来と同時点）
     /// <summary>★B3（実バグ21件・2026-09-07）：「内戦中か」の述語を1本に＝「自分が当事者で CivilWarParent の付いた War がある」。
-    /// 旧＝旧経路（CivilWarYears>0）だけを見て、内戦一元化の主経路（War で戦う）では経済麻痺・軍需2倍・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。
+    /// 旧＝旧経路（CivilWarYears>0）だけを見て、内戦一元化の主経路（War で戦う）では経済麻痺・軍需（当時は2倍）・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。
     /// ★2026-09-08に1.0で**点火**（F3b蜂起doc §5 段3）＝6読み手が一斉に生きた（生産麻痺→FoodFill低下→飢餓が10^6級の死者へ届く唯一の経路）。
     /// ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（CivilWarYears・第二の戦争エンジン）を削除＝内戦は全て戦争の形（首都の蜂起も）。</summary>
     public bool InCivilWar
@@ -977,7 +982,7 @@ public sealed class World
     /// 相手の側（生産者の持分と消費者）は月内の仮勘定（Paid・Earned）が同じ額で書いてある＝両側は月の中の1本の形で閉じる（計画 §10-12-2-3）。</summary>
     internal void SettleStateSpent(Region r)
     {
-        for (int k = 0; k < r.StateSpent.Length; k++)
+        if (Instruments.On) Instruments.CearnStateSpent(r); for (int k = 0; k < r.StateSpent.Length; k++)   // (822) 計器（読むだけ）
             if (r.StateSpent[k] != 0) Pay((TreasuryCat)k, -r.StateSpent[k]);
     }
 
@@ -1100,7 +1105,7 @@ public sealed class World
 
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
-    public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
+    public double InsolvencyMonths { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（Fiscal.Step が月次で進める）
     public int BorrowCooldownMonths { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 
@@ -1538,15 +1543,15 @@ public sealed class World
     public void UpdateGdpCycle()
     {
         double g = GdpPerMonth.Value;
-        GdpTrend = !(GdpTrend > 0) ? g : GdpTrend + Coef.GdpTrendSmoothing * (g - GdpTrend);   // EMA＝高頻度ノイズを除去したトレンド（否定形＝NaN は再シード）
+        GdpTrend = !(GdpTrend > 0) ? g : PoliticalQuantities.Toward(GdpTrend, g, Coef.GdpTrendSmoothing);   // EMA＝高頻度ノイズを除去したトレンド（否定形＝NaN は再シード）
         double pc = g / Math.Max(1.0, TotalPopulation);   // ★E2：同じ平滑・同じピーク忘却で1人あたりも追う
-        GdpPcTrend = !(GdpPcTrend > 0) ? pc : GdpPcTrend + Coef.GdpTrendSmoothing * (pc - GdpPcTrend);
+        GdpPcTrend = !(GdpPcTrend > 0) ? pc : PoliticalQuantities.Toward(GdpPcTrend, pc, Coef.GdpTrendSmoothing);
         if (GdpPcTrend > GdpPcPeak) GdpPcPeak = GdpPcTrend;
-        else GdpPcPeak += Coef.GdpPeakDecay * (GdpPcTrend - GdpPcPeak);
+        else GdpPcPeak = PoliticalQuantities.Toward(GdpPcPeak, GdpPcTrend, Coef.GdpPeakDecay);
         // ピークは上昇に即追従、下降中は忘却係数でゆっくり再基準化（構造的に縮小した国は「新しい長期水準」を基準に＝永久恐慌バグの解消）。
         // 一時的な後退（数四半期）はピークが高止まりして drawdown を出すが、年単位の恒常縮小はピークが追いつき drawdown が自然に解ける。
         if (GdpTrend > GdpPeak) GdpPeak = GdpTrend;
-        else GdpPeak += Coef.GdpPeakDecay * (GdpTrend - GdpPeak);
+        else GdpPeak = PoliticalQuantities.Toward(GdpPeak, GdpTrend, Coef.GdpPeakDecay);
     }
 
     // 物価水準（名目スカラー・段4-貨幣 第1段）。広義マネー(金+信用)が実質産出(Gdp＝参照価格建て)より速く伸びるとインフレ、遅いとデフレ（1873-96の長期デフレ等）。
@@ -1639,12 +1644,12 @@ public sealed class World
         // 不換（金本位外）：広義マネー（金+信用）＝信用膨張で増やせる→好況インフレ・紙幣増発も可能。兌換可能性で連続補間（部分兌換）。
         double money = broad + (baseM - broad) * Convertibility;   // Conv=1→BaseMoney(金)・Conv=0→BroadMoney(信用込み)
         double ratio = money / Math.Max(1e-9, gdp);   // 実質産出あたりの貨幣（名目の厚み＝数量説の M/Y）
-        if (_moTrend <= 1e-9) { _moTrend = ratio; if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, double.NaN, double.NaN, PriceLevel, double.NaN, double.NaN, convTarget, 0.0, true); return; }   // 初回はトレンドの基準を取るだけ
+        if (_moTrend <= 1e-9 && !(c.MoTrendInitNeedsGdp > 0 && !(gdp > 1e-9))) { _moTrend = ratio; if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, double.NaN, double.NaN, PriceLevel, double.NaN, double.NaN, convTarget, 0.0, true); return; }   // 初回はトレンドの基準を取るだけ。★(972) 旗 MoTrendInitNeedsGdp（既定 0＝旧）：1 なら実質 GDP が正でない四半期は基準を置かず下の holdTrend の道へ（貨幣÷1e-9 で趨勢を置くと次の正の四半期の循環比が 1e-11〜1e-9 になり床に張り付いた＝(966) の (D)）＝次の正の四半期に置く
         bool holdTrend = !(gdp > 1e-9);   // ★(603) 実質 GDP が正でない四半期（産出が死んだ国）：1e-9 で割った比（1e15）で趨勢を汚さない＝趨勢を更新せず、循環比は P そのもの（寄せる力 0）。否定形＝NaN の GDP も同じ側
-        double trend0 = _moTrend; if (!holdTrend) _moTrend += c.MonetaryTrendSpeed * (ratio - _moTrend);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
+        double trend0 = _moTrend; if (!holdTrend) _moTrend = PoliticalQuantities.Toward(_moTrend, ratio, c.MonetaryTrendSpeed);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
         double cyclical = holdTrend ? PriceLevel : ratio / Math.Max(1e-9, _moTrend);   // トレンド比＝信用循環：好況で信用が厚い→>1→インフレ／恐慌で信用が縮む→<1→デフレ
         double before = PriceLevel;
-        PriceLevel += c.MonetaryPriceSensitivity * (cyclical - PriceLevel); double pEma = PriceLevel, fiatP = FiatInflationPressure;   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）。(280) 後ろの2つは計器の読み（計算には使わない）
+        PriceLevel = PoliticalQuantities.Toward(PriceLevel, cyclical, c.MonetaryPriceSensitivity); double pEma = PriceLevel, fiatP = FiatInflationPressure;   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）。(280) 後ろの2つは計器の読み（計算には使わない）
         // #3 不換の紙幣増発（通貨切下げ）→物価上昇＝印刷はインフレ的（→名目GDP↑→実質債務減）。金本位中は devaluation 封印ゆえ圧0。
         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
@@ -1652,7 +1657,7 @@ public sealed class World
         // ★(582) 天井は廃止（作者 2026-10-27 の依頼「数値としての天井は可能なら排除したい」）。床だけ残す。P が正の有限でない（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）四半期は更新前の P を保つ＝否定形の守り（Math.Clamp も Math.Max も NaN を消さない）。
         //   ★(584) 設計の選択：有限で 0 以下の P も更新前の P を保つ（旧の Clamp は床 0.4 にした）＝床は掛けない。⚠(587) 月の切り（貯蓄の 5%）は外した。それでも増発だけでは届きにくい【推】＝(a) 圧は haircut（貯蓄の取り上げ・貨幣を作らない）も数える (b) 循環比 c は ratio÷_moTrend で、一定の発行の速さの定常ではトレンドが吸う（c→1+g/0.02・定常のインフレ率 0）(c) 閾値は四半期の圧 f＞5/9（月に広義の貨幣の約 18.5%）の分岐だけで、開幕の広義の貨幣は年 GDP の約 29 年分＝届く赤字は作りにくい（事前登録 hyp587 追記 4）。次の候補は貨幣の厚み（OpeningMoneyFromRatioMode）とトレンドの吸い。
         PriceLevel = PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before;
-        CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
+        CostPriceLevel = PoliticalQuantities.Toward(CostPriceLevel, PriceLevel, c.MonetaryTrendSpeed);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
         ExpectedInflationPerYear += new RatePerYear(Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear.Value)); if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, trend0, cyclical, before, pEma, pFiat, convTarget, fiatP, false);   // EMA。(280) 後ろは計器（読むだけ）：物価の更新の鎖
@@ -1677,7 +1682,7 @@ public sealed class World
             parity = GoldParity * silverRel;
         }
         double rateTarget = floatTarget + (parity - floatTarget) * Convertibility;   // Conv=1→平価・Conv=0→floatTarget(変動)
-        ExchangeRate += c.ExchangeRateSpeed * (rateTarget - ExchangeRate);
+        ExchangeRate = PoliticalQuantities.Toward(ExchangeRate, rateTarget, c.ExchangeRateSpeed);
         // 説明API（金利doc B2・2026-07-30）：金利の第4チャネル（為替）と第5チャネル（物価→期待インフレ）を測れる状態にする。
         // ★診断④の実証点＝金本位（Convertibility=1）では「兌換（平価への拘束）」の項が floatTarget の寄与を**厳密に打ち消す**
         //   （rateTarget−floatTarget ＝ (1−floatTarget)×1 ＝ 1.0−floatTarget）＝金利の為替チャネルが恒等的に消えるのが台帳に出る。
@@ -1936,9 +1941,7 @@ public sealed class World
         //   ── コスト倍率 ────────────────────────────────────────────────────────
         //   技術が遅れた国ほど、同じ近代化に多くの金がかかる（既存の状態量だけで作る）。
         //   ＝技術を輸入に頼る国の割高さ。
-        double costMul = 1.0
-            + (Coef.TechMultipliersOff > 0 ? 0.0   // ★(613) 段3：遅れの割増なし
-               : Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0));
+        double costMul = 1.0;   // ★(613) 段3（旗 TechMultipliersOff は (843) で焼き込み）：技術の遅れの割増なし（旧の式は 1.0 + 0.0 だった＝値は同じ）
         //   ── 費用は frac に対して**凸**（2026-08-04）─────────────────────────────
         //   要求額 = A × GDP × コスト倍率 × frac/(1−frac)。frac→1 で**発散**＝「100%はほとんどの国で不可能」が
         //   閾値でなく形として成立する（線形にして係数を大きくすると、通常域まで一緒に潰れて覇権が消える＝実測でテスト赤）。
@@ -2159,18 +2162,18 @@ public sealed class World
         return best == double.MaxValue ? 0 : best;
     }
 
-    private double InvShipStock() => (InvSailId < Region.Markets.Length ? Region.Markets[InvSailId].Stock : 0) + (InvSteamId < Region.Markets.Length ? Region.Markets[InvSteamId].Stock : 0);
-    private double InvCannedStock() => InvCannedId < Region.Markets.Length ? Region.Markets[InvCannedId].Stock : 0;
-    private double InvadeCannedReq(Power t) => Coef.InvadeCannedBase + Coef.InvadeCannedPerMilitary * t.Military;
+    internal double InvShipStock() => (InvSailId < Region.Markets.Length ? Region.Markets[InvSailId].Stock : 0) + (InvSteamId < Region.Markets.Length ? Region.Markets[InvSteamId].Stock : 0);
+    internal double InvCannedStock() => InvCannedId < Region.Markets.Length ? Region.Markets[InvCannedId].Stock : 0;
+    internal double InvadeCannedReq(Power t) => Coef.InvadeCannedBase + Coef.InvadeCannedPerMilitary * t.Military;
     // 侵略に要る余剰戦力＝**国力比の単一式**（Diplomacy.ColonizeWillCost・作者裁定2026-08-23）。
     //   旧＝Base＋PerMilitary×標的軍事力 のみ。標的（抽象標的）の軍事力は world.json の静的値（0.1〜0.5・Diplomacy の月次同期の対象外＝
     //   131年間不変）＝要求量は 82%〜90% の4通りしか取らず、距離も制海権も自国の陸軍力も入っていなかった（willprobe 実測）。
     //   ⚠ここが AI とプレイヤーの合流点（CanInvade・Invade の実消費・UI の ExpansionCostFor の三者が読む唯一の式）＝対称は自動的に保たれる。
     //   外交盤を持たない単独世界（経済テスト）では動詞そのものが発火しない＝満タン要求を返す。
-    private double InvadeWillCost(Power t) => Diplomacy is not null && SelfPower is not null
+    internal double InvadeWillCost(Power t) => Diplomacy is not null && SelfPower is not null
         ? Diplomacy.ColonizeWillCost(SelfPower, t, Coef)
         : Coef.ExpansionWillCap;
-    private double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.DistanceWarDecay * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
+    internal double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.DistanceWarDecay * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
 
     /// <summary>侵略の可否＝**唯一のゲート**（旧「植民地化」と1本化・作者裁定2026-08-23）。AI・プレイヤー・UI がこの1本だけを読む。
     /// 標的は弱小（Minor）＝抽象標的でも実在の弱小国でもよい。行為者のランクは問わない（旧・植民地化の「列強のみ」は撤去）＝
@@ -2343,6 +2346,7 @@ public sealed class World
         double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale / Math.Max(p.Scale, 1e-9)) : 0.0;
         if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0 && Nationalization.IsNationalized(p.GoodId, r.NationalizedMask))
             f = Math.Max(f, c.NationalizationStateShare.Value);
+        if (c.LandShareCrownSlot > 0 && p.LandShares is { Length: 5 } ls) f += (1.0 - f) * ls[4];   // ★(978) B-2b：国家の枠（王領・国有地）は国営持分（国有化の下限の後）
         return f;
     }
 

@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+index ef7b2fd8..53006176 100644
+--- a/PriceOfBread.SimCore/EconomyStep.cs
++++ b/PriceOfBread.SimCore/EconomyStep.cs
+@@ -2339,7 +2339,7 @@ public static class EconomyStep
+             // ★助走：材料は買って払った（上の決済で完了）が、**能力にはしない**＝1783年の生産能力のまま価格だけ均衡へ寄る。
+             //   ⚠`built` そのものを0にしてはいけない＝下の建設端数の繰越（KeepMaterial の eff−built×Cons）が全量繰越に化けて
+             //     翌月の新規購入が消え、結局は建設需要が抜ける（＝止めたかった副作用が裏口から入る）。加算だけを止める。
+-            double privateIndGain = built * privateIndPerConstruction;   // (301) 決済の 3 か所（工業化度・その累積・RGO の面積）が同じ積を読む＝計画と同じ 1 束の工業化度（番人 InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる）
++            double privateIndGain = built * coef.IndPerConstruction;   // (301) 決済の 3 か所（工業化度・その累積・RGO の面積）が同じ積を読む＝計画と同じ 1 束の工業化度（番人 InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる）
+             if (!warmFrozen)
+             {
+                 if (eqOn) { double eqInst = FactoryEquipment.Distribute(region, coef, privateIndGain, region.TotalIndustrialization, costL, insOn ? world : null); if (insOn) Instruments.EquipmentBought(world!, region, privateIndGain, eqInst); }   // ★(495) 同じ購入を適格な個体の設備にも同じ割合で足す（在庫に足す前の値で φ を出す）

@@ -1,0 +1,29 @@
+(1022) 合流の 1 回目のフルスイート（合わせた木 9c755d1b＝wn＋pc＋ub・旗 1・隔離ビルド）の失敗の行（suite1022.sh の出力から抜いた）
+list nonfull 2618
+list full 3
+nonfull rc=1 909s
+full rc=0 186s
+saveleak rc=0 192s
+失敗!   -失敗:     4、合格:  2613、スキップ:     1、合計:  2618、期間: 15 m 7 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 4 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [30 s]
+  エラー メッセージ:
+   Python の道具が財の番号を数字で書いている 1 件＝instr.good_id("名前") か Catalog の定数で書くこと：instruments/c95pc/record.py:9［財の表の直書き（GOODS = …）］GOODS3 = [（1 件・許可 0）
+--
+  失敗 PriceOfBread.Tests.OnDoubleReadScanTests.InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない [546 ms]
+  エラー メッセージ:
+   新しい二重読み Diplomacy.cs::TriggerWars#0 読み2
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3230490) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2239092 件（宣言 3230490）＝10 % を超えて**下がった**＝表を 2239092 へ下げて理由を書く（＝改善の宣言）。
+--
+  失敗 PriceOfBread.Tests.InvadeInstrumentTests.侵略の表は屈服か拒否かと積んだ量を行に残す [45 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 7
+Actual:   8
+保存 46.2MB（516ms）／読込 456ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 140・その月の額の和 1.023E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

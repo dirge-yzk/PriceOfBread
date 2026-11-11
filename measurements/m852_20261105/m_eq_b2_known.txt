@@ -1,0 +1,21 @@
+burscan_s1.tsv 既知の列だけ
+burscan_s2.tsv 既知の列だけ
+burscan_s3.tsv 既知の列だけ
+burscan_s4.tsv 既知の列だけ
+burscan_s5.tsv 既知の列だけ
+burscan_s6.tsv 既知の列だけ
+burscan_s7.tsv 既知の列だけ
+burscan_s8.tsv 既知の列だけ
+burscan_s9.tsv 既知の列だけ
+burscan_s10.tsv 既知の列だけ
+clock_s1.tsv 既知の列だけ
+clock_s2.tsv 既知の列だけ
+clock_s3.tsv 既知の列だけ
+clock_s4.tsv 既知の列だけ
+clock_s5.tsv 既知の列だけ
+clock_s6.tsv 既知の列だけ
+clock_s7.tsv 既知の列だけ
+clock_s8.tsv 既知の列だけ
+clock_s9.tsv 既知の列だけ
+clock_s10.tsv 既知の列だけ
+判定：burscan_s・clock_s の 20 本は ident.cfg の KNOWN の列（秒）だけが違う

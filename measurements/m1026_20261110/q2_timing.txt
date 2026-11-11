@@ -1,0 +1,34 @@
+(1026) 問い 2：Output と LastProduced はそれぞれ月のどの時点の量か（main 00f50935 のソース・grep で実在を確かめた行）
+
+[書き手の全数]
+- Producer.Output（Model.cs:707〜711・setter が GdpVersion を進める）の実行中の書き手は EconomyStep.Run の中だけ：
+  :1021（倒産＝0 にして continue）・:1126（Toward で目標へ）・:1127（負を 0）・:1138（未発明＝0）・:1139（目標なし×床未満＝0）。
+  他は開幕の構築（Simulation.cs の new Producer の初期値＝工場 0.5・RGO 50 ほか・:1026）。Territory・Diplomacy・PromoteColonyToRegion は Output に触れない。
+- Market.LastProduced（Model.cs:821）の書き手は 3 か所だけ：
+  EconomyStep.cs:902（Run の頭で 0）・:2213（Run の末で produced[gi]）・Territory.cs:266（Rehome の非 Sovereign で 0・LastSold・LastImport・LastExport・LastShortage も 0・PrevStock＝Stock。LastDemand と TargetStock は触らない）。
+  新しく作られた州の市場（PromoteColonyToRegion＝Simulation.cs:1501→Territory.Adopt :413・:417）は既定値 0 のまま。
+
+[produced[gi] は Output の和か]
+- はい。produced[s.GoodId] += s.Output（EconomyStep.cs:1141）が唯一の加算。同じ生産者の段（:1017 からの loop）で Output を書き終えた直後に足す。
+- 足さない生産者：眠り（:1019・SleepState :786 は Output==0 のときだけ眠らせる＝0）・倒産（:1021 で Output=0 にしてから continue）＝どちらも Output は 0。
+- Run に早い return は無い（:792〜:2213 の return は全て内側のラムダ）。:1141 と :2213 の間に Output の書き手は無い。
+- ⇒ Run の末では、州 r・財 g について LastProduced ＝ Σ_{r の生産者で財 g} Output（同じ順の左からの和）。
+
+[月と四半期の順（読みの時点）]
+- 毎月：Simulation.StepDayClose（Simulation.cs:1730）→ MonthSettle（:1732→:1988）→ EconomyStep.Run（:2447）→ CheckInvariants（:2528）。
+- 1・2 月目の末：MultiNationSim の月次清算（Market.Step・firstClearingOfQuarter）。
+- 3 月目（四半期の末）：Run の後に MultiNationSim.StepDay の quarterDone の段（:814〜:1076）：
+  Diplomacy.Step×3（:825＝割譲・植民地の取得 AcquireColony→PromoteColonyToRegion・TransferRegion→Rehome）
+  → StepCanals・Megaprojects → Market.Step（:832＝3 月目の清算・StepBilateral が LastProduced を読む BilateralMarket.cs:985・:986・:990）
+  → StepDiscoveries（:855）→ WorldGoodsProduced の注入（:982〜:997・LastProduced の世界の和）
+  → ReabsorbNations（:1065）・SpawnSecededNations（:1066＝TransferRegion→Rehome）→ _quarter++（:1075）。
+- その後に SelfPlay.cs:2182 sim.StepQuarter() が返り、:2183 Instruments.Quarter(sim, seed, q)。
+- 計器：Instruments.cs:1908 の同じ行で NationgoodTable（InstrumentsNationgood.cs:95 が LastProduced を州ごとに足す）と ProdcapTable（InstrumentsProdcap.cs:39 が Producer.Output をそのまま書く）を呼ぶ＝同じ瞬間・同じ w.Regions。
+- ⇒ 読みの時点で両者が食い違うのは、最後の Run（3 月目）と読みの間に LastProduced を書く物＝Rehome（非 Sovereign）と、新しい州の市場（既定 0）だけ。
+
+[同じ窓で 0 を読むエンジンの読み手（記録・挙動の線の材料・この線では触らない）]
+- BilateralMarket.cs:985・:986（買い手 X：xPrice＝LastDemand×pow−(LastProduced＋LastImport)・xNeed＝TargetStock＋LastDemand−LastProduced−Stock＝LastDemand は残り LastProduced だけ 0＝分子と分母の非対称）・:990（売り手 Y：yPrice＝(LastProduced＋LastImport)×unit÷rp−LastDemand−LastExport＝負）＝移った州は 3 月目の清算で〈作らない州〉として買い、売らない。〈ソースから・大きさは未計測〉
+- Discovery.cs:759（Aggregate・StepDiscoveries :855 の経路〈推〉）・MultiNationSim.cs:991（WorldGoodsProduced・読み手 RootSupply）＝移った州の 3 月目の産出が世界の和から抜ける。
+- MarketFlow.cs:130（次の四半期の 1 月目の旬の価格形成 flowIn＝LastProduced＋LastImport）＝次の Run までの約 1 か月、移った州の流入から産出が抜ける。役務（労働）は在庫が無い＝供給＝流入〈推・大きさ未計測〉。財は在庫が需要まで覆う（:131）。
+- 記録の試し（門ではない）：region_s.wageFactor の q→q+1 の比＝移った州 n=1370 p10 0.971・p50 1.000・p90 1.028／同じ四半期の他の州 p10 0.994・p50 1.000・p90 1.006（種 1〜10・rec_wagejump.txt）。広がりは所有の変化そのもの（通貨・税・名簿）と交絡＝この窓の効きとは分けられない。
+- Rehome の 0 化の注〈財収支の恒等式を保つ〉（Territory.cs:259）：GoodsBalance（Invariants.cs:163）は月次の CheckInvariants（Run の後）で見る。Run の頭（:900〜:902）が PrevStock と流量を毎月置き直すので、0 化が無くても次の検査の時点の恒等式は成り立つ見込み〈推・未検証＝挙動の線を開くなら最初に試験で確かめる〉。

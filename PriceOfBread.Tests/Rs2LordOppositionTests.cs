@@ -103,4 +103,18 @@ public class Rs2LordOppositionTests
         double used1 = -PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w);
         Assert.Equal(PolicyPreferences.StatusScale * (0.5 + loss), used1, 9);
     }
+
+    [Fact]
+    public void 教育法と女性の権利の旧支配層の反対は旧支配層の貯蓄の割合から作られる()
+    {
+        // 旗に依らない生きた経路（PolicyPreferences の EducationLaw／WomenRights の行）の陽性の対照＝(803) の反証役の指摘①。
+        // 農奴解放・土地改革の〈失う所得の割合〉とは別の式（貯蓄の割合 W0 が反対の強さに入る）。期待値は POP を直に数えた W0 と手書きの StatusScale 2.0 から作る。
+        var w = RussiaBoard();
+        var (w0, _) = LordSums(w);
+        var e = PolicyPreferences.Build(w);
+        double expect = -2.0 * (0.5 + w0);
+        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.EducationLaw, 0, e, w), 9);
+        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.WomenRights, 0, e, w), 9);
+        Assert.True(w0 > 0.05, $"盤面の前提が崩れた（旧支配層の貯蓄の割合 {w0}）");
+    }
 }

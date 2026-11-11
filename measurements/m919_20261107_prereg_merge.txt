@@ -1,0 +1,45 @@
+(919) 合流（波79）の予言（合流の前にコミットする・結果を見る前に書いた）
+基点 main 17b9a1ed（= origin/main・fetch で確かめた）。基線 m905（測った木 fc9aeb4c・SOURCE-HASH aaecd9e3b5cce1b8）・計器の生 INSRAW keep_912/base_ins（BASE_COMMIT b482aa8b）。
+作業フォルダ（この回に合流が作る物）：D:/PoB_work/m919・D:/PoB_work/wt_m919（枝 m919）・D:/PoB_work/wt_m919z（Z の木・detached）・D:/PoB_work/ident_m919z・D:/PoB_work/keep_919（採ったとき）・D:/PoB_work/keep_919_rej（採らなかった腕があるときだけ）。
+
+[1] 入れる物と入れない物（線の報告と反証役の指摘から・結果を見る前に固定）
+- c79ar (913)：入れる（線の ident c79ar〈判定: 恒等〉・ArmyShape.cs +4／−3・計算式に触れない）。
+- c79lb (914)：入れる（試験 4 ファイルの盤面だけ・SimCore 0 行）。
+- c79ce (915)：入れる（挙動・旗 CedeRuleToLocal 既定 1・線の門 G1〜G6 が腕 B・S11 とも緑・止める線 0・旗 1 の木のフルスイート緑）。反証役の指摘は中・低だけ（high なし）＝外す理由なし。
+- c79cw (916)・c79db (917)：読む線。台本と表を scripts/instruments/r916/・r917/ と measurements/m916_20261107/・m917_20261107/ へ写す。下書きは docs/202611/20261107/ へ題に状態を書いて写す（本文は変えず、反証役の訂正を末尾に足す）。
+- c79lo (918)：設計の材料。material.md と draft.md を docs/202611/20261107/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（本文は変えない・反証役の訂正は末尾）。台本は scripts/instruments/r918/・出力は measurements/m918_20261107/。
+- 挙動の線は 1 本（c79ce）＝合成後のアブレーションは要らない（1 本ずつ旗を 0 にした腕＝腕 Z と同じ）。
+
+[2] 消す名前の確かめ（★(773)）
+- 3 枝とも名前を消していない（c79ar は局所 ins を足すだけ・c79lb は InstrumentsTests.Make に既定つきの引数 noLandData を足すだけ・c79ce は既定の値と DormantIdentityTests の 1 行）。他の枝で grep する対象なし。
+
+[3] 木
+- Z の木＝17b9a1ed＋c79ar＋c79lb＋c79ce の事前登録 51e2446e まで（旗 CedeRuleToLocal 0）。
+- M の木＝Z の木＋c79ce の残り（点火 8c56f3c8 以降・旗 1）。衝突 0 の見込み（触るファイルが重ならない）。
+
+[4] 合わせた木で一致する物（予言）
+- 腕 Z（ident m919z・--tree wt_m919z・宣言なし・--tests-delta 0・--saveleak・--ng）：素の 5 種＝b5_20261106_m905・計器つき 10 種＝b10_20261106_m905_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）・.cost の推定 212.7／212.4 秒・計器の表 1143 本＝一致 1123＋既知の揺れ 20・宣言の外の違い 0・注視の表 5193 行一致・テスト 2402＋3・savetest OK・leakhunt 違反なし・NG 93＝ng905 と同じ集合。Z の SOURCE-HASH は c79ar の ident の木（459b6e30a204de26）と同じ見込み（c79lb は試験だけ）。
+- 腕 M（計器つき 10 種・種 1〜10）：成績表は c79ce の腕 B（b10_20261107_m915_ceB_ins）と全行バイト一致（名乗り行の SOURCE-HASH を除く）。生の keepsum は measurements/m915_20261107/keepsum_c79ceB_10.tsv と、既知の揺れ以外で一致（ArmyShape.cs には Transfer が無い＝cearn_s・flow_s の経路の名はずれない見込み）。
+- 腕 S11（種 11〜20・POB_CEARN=0）：b10s11_20261107_m915_ceS_ins と全行バイト一致・keepsum は keepsum_c79ceS_10_s11.tsv と既知の揺れ以外で一致。
+- M・S11 が線の腕と一致しないときは採る前に止めて帰属を読む（c79ar が旗 1 の盤面で非恒等、という形が考えられる唯一の経路）。
+- 門（gate902.py を 1 字も変えずに呼ぶ）：M は線の腕 B と同じ値（母集合 1,417・G1〜G6 失敗 0・G2 外れ 0 種・G4 受け手の側 2 件）・S11 は線の S11 と同じ値（母集合 1,308・G4 の受け手の側は母集合 0＝〈判定不能〉のまま書く・緑とは書かない）。最終の採否は S11 で 1 回だけ（同じ門）。
+- .cost の推定：M 211.7 秒・S11 209.4 秒（上限 248.5 秒の内）。
+- 英の国債の不履行：M 4/10・S11 3/10（線のとおり）。
+- フルスイート（M の木・Release・分けて）：Category!=FullLength 2402（合格 2401＋スキップ 1）・FullLength 3・中止 0・赤 0。MultiNationTests の ArmyNeed の NullReferenceException は c79ar で出ないはず（出たら予言の外れとして記録の先頭へ・そのクラスだけ再走）。savetest OK・leakhunt 違反なし。WriterRatchetTests の宣言の表は動かない見込み（線の旗 1 の木で赤 0）。
+
+[5] 止める線の段と記録の段
+- 止める線（M と S11・数える台本は scripts/instruments/c78gz/stoplines906.sh の 1 本）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限・開幕の 1000 倍以上・plvl）・〈100 倍〉は gdp_jump906 --founding の〈それ以外〉の行だけ・空洞化（ピークの 1/10 未満で線が原因の件が 1 件でも＝規則 A2・an_h2.py -v4・基線の同じ種で同じ州がピークの 1/4 未満なら〈元からの弱さ〉＝種 1〜10 は keep_912/base_ins・種 11〜20 は keep_905/a11）・推定の計算量 ＞248.5 秒・機構のテストの赤。予言：全て 0。
+- 記録（採否に使わない）：〈建国の後の 0 の続き〉・〈建国の直後〉・〈分母の痩せ〉（基線とヌル腕を同じ台本で数え直して並べる）・名目 GDP 0 の続き（gdp_zero10）・空洞化 1/4 未満・exact・near・NG・nullgate・英の不履行・同じ盤面の新÷旧の 5 列（stateReachShare・adminFillShare を含む＝反証役の指摘・新しいヌル腕 N1・N2 の幅で読み直す）・ハーネス不合格の件数と内訳。
+
+[6] 採ったとき
+- 新しい基線 m919：ヌル腕 N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）・素の 10 種と素の 5 種（M の木）・NG の新しい基準 ng919・生を D:/PoB_work/keep_919/{base_ins,n1,n2,a11}（a11 は POB_CEARN=0）・ident.cfg を書き換え（B5・B10INS・MON・INSRAW keep_919/base_ins・BASE_COMMIT＝M の木・TESTS_NONFULL 2402・NG_BASE ng919）。
+- 線の生（c79ar_work/ident_c79ar・c79ce_work/out_c79ceB_10・out_c79ceS_10_s11）は、Z・M・S11 と突き合わせた後に消す（〈自分で作っていないフォルダを消した〉として名乗る）。
+- 台帳の錨：ArmyShape.cs が 1 行増える＝機能の台帳の ArmyShape の行を新しい BASE_COMMIT へ写し直し（reanchor905.py）、ledger_check の門 1〜9。
+
+[7] 記録に必ず書く反証役の指摘（合流はエンジンの .cs を直さない）
+- c79ce：新÷旧の 5 列の書き漏れ（stateReachShare 1.0244・adminFillShare 1.0258＝m905 のヌル腕の幅の外・予言の向きと逆）・ハーネス不合格 8/10（基線 4・N1 5・N2 6）・Territory.cs:375 の注が〈既定 0〉のまま（線へ戻す）。
+- c79ar：突然変異の試験のソースは残っていない（結果の表だけ）。
+- c79lb：result_lb.txt の M2 の木の名乗りは生ではデータありの木・M2 の 2 つの形は回したのは 1 形だけ。
+- c79cw：案 A は (170) 腕 M と同じ形で既に捨てた（実装ログ 22586・22619・22914 行）。
+- c79db：〈片方向の錠〉は反証役の数え直しで否定（続きの 97% は人の居ないまま返し切って抜ける）・bash -c の中の & の違反と hook の穴。
+- c79lo：G-L1 の期待の列が V2 の形で推奨の V1 と食い違う（高）＝設計の材料の誤り（実装の線ではない）。

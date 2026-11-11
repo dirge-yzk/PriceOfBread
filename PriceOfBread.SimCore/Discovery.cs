@@ -286,7 +286,7 @@ public static class Discovery
                 if (ir > 0) rent += ir;
                 if (p.ClassId != PopClass.Worker) continue;
                 workerPop += p.Size;
-                double sub = p.Subsistence; sub = PoliticalQuantities.Clamp01(sub);
+                double sub = p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity ? p.SubsistenceShare : p.SubsistenceBasis; sub = PoliticalQuantities.Clamp01(sub);   // ★(854) InstrumentsCearn と同じ三項式：読み込みの直後や Run の前の月も同じ値を読む（欄 SubsistenceShare は [NonSerialized]・Run の頭が毎月書く）
                 double dep = p.Size * (1.0 - sub);
                 double fill = p.SupplyFill;
                 wage += dep; unmet += dep * (1.0 - fill); fillW += p.Size * fill;
@@ -377,7 +377,7 @@ public static class Discovery
 
     /// <summary>★(169) 世界の市場（判定の段の頭で1回組む導出量・状態ではない＝<see cref="WorldPrices"/>）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段と重み（その国の産出＝売っている量）。
     /// ・<see cref="Average"/>＝平滑化した値段を重みで平均した世界の値段（財ごと・どの国にも市場が無い財は <see cref="NoPrice"/>）＝画面と計器が読む（(165) の世界の値段と同じ）。
-    /// ・<see cref="Landed"/>＝買い手の国が払う着値＝売り手ごとに 値段×(1＋運賃＋関税) を同じ重みで平均（清算の着値の倍率と同じ組み方＝運賃＝TransportMargin×(1＋DistanceMarginScale×距離÷1万km)×運賃革命・
+    /// ・<see cref="Landed"/>＝買い手の国が払う着値＝売り手ごとに 値段×(1＋運賃＋関税) を同じ重みで平均（清算の着値の倍率と同じ組み方＝運賃＝TransportMargin×(1＋距離÷1万km)×運賃革命・
     ///   関税＝買い手の関税の楔）。距離は国の経済の中心どうしの大圏（清算の海路と陸路の距離ではない＝近似）・従量の運賃と危険料と売買方針は読まない（AI の読み・推奨で進めた）。
     ///   旧（(165)）＝運賃と関税を入れない世界の値段（遠い国の輸入の費用を低く見た＝(167) 反証役 vd1#8）。着値は呼ばれた財だけ（市場の死んだ財）求める＝国×財の全ての組は回さない。</summary>
     public sealed class WorldMarket
@@ -440,7 +440,7 @@ public static class Discovery
                         d = ReferenceEquals(seller, buyer) ? 0 : Geo.DistanceKm(buyer.Latitude, buyer.Longitude, seller.Latitude, seller.Longitude);
                         if (i < km.Length) km[i] = d;
                     }
-                    fac = 1.0 + c.TransportMargin * (1.0 + c.DistanceMarginScale * d / Diplomacy.DistanceNormKm) * Freight + duty;
+                    fac = 1.0 + c.TransportMargin * (1.0 + d / Diplomacy.DistanceNormKm) * Freight + duty;
                 }
                 else fac = 1.0;
                 num += wt * s[g] * fac; den += wt;
@@ -670,7 +670,7 @@ public static class Discovery
             // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
             //   ★(415) 旗 DiscoveryEngineerHalfPerMonth が正のとき、製法と新製品と新兵器の行は技術水準を読まない（下の技師の比 EngineerFactor）。制度と思想の行は今のまま（親の産業が定義できない・事前登録 [3-3]）。★(621)(627) ただし制度と思想の行（特許以外）は下で TechRatioOf の値を本国の識字÷SpreadLiteracyFull（0〜1）で上書きする（既定 0.5）。
             double ratio = TechRatioOf(w, row, spread, engOn, c);
-            if (spread && c.TechThresholdOff > 0 && c.SpreadLiteracyFull.Value > 0 && d.Decade > Catalog.DiscoveryBaseDecade)   // ★(621) 線 inst：制度と思想の技術の比を本国の識字÷基準へ（特許〔d≦0〕は 1 のまま・NaN の旗は偽＝旗 0）
+            if (spread && c.SpreadLiteracyFull.Value > 0 && d.Decade > Catalog.DiscoveryBaseDecade)   // ★(621) 線 inst：制度と思想の技術の比を本国の識字÷基準へ（特許〔d≦0〕は 1 のまま・NaN の係数は偽＝比 1・旗 TechThresholdOff は (824) で焼き込み）
             {
                 if (double.IsNaN(spreadLit)) spreadLit = PoliticalQuantities.AvgLiteracy(w, coreOnly: true);
                 ratio = SpreadLiteracyRatio(spreadLit, c.SpreadLiteracyFull.Value);
@@ -818,7 +818,7 @@ public static class Discovery
         for (int g = 0; g < x.Length; g++)
         {
             if (!(x[g] >= 0)) continue;                                   // 観測なし＝動かさない（否定形＝NaN も）
-            s[g] = s[g] >= 0 ? s[g] + a * (x[g] - s[g]) : x[g];           // 最初の観測は瞬間の値から
+            s[g] = s[g] >= 0 ? PoliticalQuantities.Toward(s[g], x[g], a) : x[g];           // 最初の観測は瞬間の値から
         }
         return (x, prod);
     }
@@ -986,7 +986,7 @@ public static class Discovery
     /// ・運転の費用＝清算の陸路の費用の鉄道÷馬（BilateralMarket の陸路の費用＝LandSeaCostRatio×地形の係数・鉄道の後は×<see cref="Coefficients.RailCostFraction"/>・地形は馬→鉄道の係数・水路の州は水運のまま）。
     /// ・★(169) 資本の費用（AI の推奨・作者の承認は未確認）＝容量1あたりの月の減耗×財の値段（<see cref="Transport"/> が積む形＝線路と機関車を同じ単位数ずつ買い1単位が <see cref="Coefficients.TransportCapPerUnit"/> の容量・
     ///   月に <see cref="Coefficients.TransportDecay"/> ずつ減る＝TransportDecay×(線路の値段＋機関車を作る費用)÷(2×TransportCapPerUnit)）を、同じ容量の荷を馬で運ぶ陸の運賃の金額
-    ///   （清算の陸の脚の運賃の倍率＝TransportMargin×DistanceMarginScale×LandSeaCostRatio×地形×最寄りの港までの陸の距離 <see cref="Region.PortLandKm"/>÷1万km×運賃革命・容量1あたりの荷の値打ちは1【推】）で割った値。
+    ///   （清算の陸の脚の運賃の倍率＝TransportMargin×LandSeaCostRatio×地形×最寄りの港までの陸の距離 <see cref="Region.PortLandKm"/>÷1万km×運賃革命・容量1あたりの荷の値打ちは1【推】）で割った値。
     ///   旧（(165)〜(167)）＝運転の費用だけ＝輸送の不足が無くても（通した割合1）必要性 54（(166) §0・(167) の作者への確認③）。
     /// を国の内陸の州（港でない稼働中の州・陸の脚のある州）の潜在の交易で重み付けた平均（<see cref="LandFreightServed"/> と同じ重み）。
     /// ★(169) 内陸の州の潜在の交易が無い国（陸の輸送を使っていない）は <see cref="NoPrice"/>＝必要性0（代替する物の需要が無ければ0＝他の行と同じ規則・旧＝RailCostFraction＝島国も必要性 54）。
@@ -998,7 +998,7 @@ public static class Discovery
         double pRail = book.Of(c.RailGoodId), pLoco = book.Cost(loco);
         if (!(pRail >= 0) || !(pLoco >= 0) || !(c.TransportCapPerUnit > 0)) return NoPrice;
         double capital = c.TransportDecay * (pRail + pLoco) / (2.0 * c.TransportCapPerUnit);   // 容量1あたりの月の資本の費用（実質）
-        double horseUnit = c.TransportMargin * c.DistanceMarginScale * c.LandSeaCostRatio * (freight > 0 ? freight : 1.0) / Diplomacy.DistanceNormKm;   // 陸の脚1kmの馬の運賃の倍率（地形1）
+        double horseUnit = c.TransportMargin * c.LandSeaCostRatio * (freight > 0 ? freight : 1.0) / Diplomacy.DistanceNormKm;   // 陸の脚1kmの馬の運賃の倍率（地形1）
         double pot = 0, sum = 0;
         foreach (var r in w.Regions)
         {
@@ -1073,10 +1073,11 @@ public static class Discovery
             w.DiscoveryLossQ = null;
         }
         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
-        var ro = Instruments.On ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
-        var eo = Instruments.On ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
+        bool insOn = Instruments.On;   // (921) 関数の頭で 1 回だけ読む（(913) と同じ形・並列の試験で On が途中で切り替わっても確保と使用が食い違わない）
+        var ro = insOn ? new (double Replaced, double Cost)[Catalog.Discoveries.Length] : null;   // (320) 計器だけ＝代替する物の値段と新しいレシピの費用を書き出す（Score は書くだけ・判定の値は同じ）
+        var eo = insOn ? new double[Catalog.Discoveries.Length] : null;   // ★(415) 計器だけ＝行ごとの親の産業の技師の量（判定の値は同じ）
         var terms = Score(w, view, c, includeKnown: false, null, ro, eo, out var book, out var dem);
-        if (Instruments.On) Instruments.IdnObserve(w, view, c, terms);   // ★(640) 計器だけ＝思想の必要性の量（旗 0 でも候補の量を書く）
+        if (insOn) Instruments.IdnObserve(w, view, c, terms);   // ★(640) 計器だけ＝思想の必要性の量（旗 0 でも候補の量を書く）
         if (eo is not null && Calendar.QuarterIndexOfTick(w.Tick) % 8 == 0)   // ★(415) 計器だけ＝全ての行（解禁済みも）の技師の量の軌道を8四半期ごとに（census・事前登録 [6]）。解禁済みの行は判定が飛ばすので別に求める
         {
             var all = ParentEngineersByRow(w, view, c, out var allTerms, out var allRatio);   // ★(450) 必要性・代替する物の値段・新しいレシピの費用も同じ 1 回から（解禁済みの行も）
@@ -1105,7 +1106,7 @@ public static class Discovery
                 foreach (var p in r.Producers)
                 {
                     if (!Unfound(p)) continue;
-                    double[]? po = Instruments.On ? new double[3] : null;   // (316) 計器だけ＝開いた時の人・値段・費用を読む（判定の値は同じ）
+                    double[]? po = insOn ? new double[3] : null;   // (316) 計器だけ＝開いた時の人・値段・費用を読む（判定の値は同じ）
                     var tm = SiteTerms(w, r, p, c, book, dem, po);
                     if (!(tm.Score >= GateScore)) continue;
                     if (po is not null) Instruments.SiteOpened(w, r, p, tm, po);
@@ -1164,12 +1165,12 @@ public static class Discovery
         }
     }
 
-    /// <summary>★(613) 点数の技術の比＝技術水準÷難易度（0〜1）。制度と思想の行（<paramref name="spread"/>）は旗 TechThresholdOff が正なら 1（注の〈技術の押しは1〉）＝★(621)(627) 呼び手（Step）が特許以外の制度と思想の行でこの 1 を本国の識字÷SpreadLiteracyFull に上書きする。製法ほかの行は技師の旗 <paramref name="engOn"/> が立つと 1（技師の比 EngineerFactor が代わる）。
+    /// <summary>★(613) 点数の技術の比＝技術水準÷難易度（0〜1）。制度と思想の行（<paramref name="spread"/>）は 1（注の〈技術の押しは1〉・旗 TechThresholdOff は (824) で焼き込み）＝★(621)(627) 呼び手（Step）が特許以外の制度と思想の行でこの 1 を本国の識字÷SpreadLiteracyFull に上書きする。製法ほかの行は技師の旗 <paramref name="engOn"/> が立つと 1（技師の比 EngineerFactor が代わる）。
     /// 式は元の Step の中の 4 行をそのまま抜き出した（ビット一致）。</summary>
     internal static double TechRatioOf(World w, int row, bool spread, bool engOn, Coefficients c)
     {
         double ratio = 1.0;
-        if ((spread && !(c.TechThresholdOff > 0)) || (!spread && !engOn))
+        if (!spread && !engOn)
         {
             double diff = Difficulty(row, c);
             ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;

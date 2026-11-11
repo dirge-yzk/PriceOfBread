@@ -1,0 +1,100 @@
+(902) c77ce 事前登録：割譲の支配度 C1 の段 C-1（C1＋H-a・旗 CedeRuleToLocal・既定 0・1 回目）と Dominance の引き継ぎの記録
+書いた担当＝Claude Opus 5.5（挙動の線）。木＝101d4329 から枝 c77ce（worktree D:/PoB_work/wt_c77ce）。盤面＝m873（計器の生 D:/PoB_work/keep_899/base_ins・1120 本）。
+作者の言葉：2026-11-04「割譲された場合、これらの支配度は割譲側が完全に踏襲するものなのでしょうか」→ AI の推奨（国家の分を在地へ移し、今の寄せ方で戻す）＝C1＋H-a は〈作者「全て推奨で」で推奨を採った〉。
+  2026-11-06「領土の所有権と実効支配を別々に扱うだけでなく、獲得後の統治能力が時間をかけて変化する仕組みが欲しいところです」→ 推奨〈同じ線で Dominance の引き継ぎも読む〉（作者「全て推奨で」で推奨を採った）。
+形は AI の案（確証なし）。作者が形そのものを裁定した物ではない＝NG の判定は〈確証なし×バランス破壊〉の両方が揃うときだけ（記録）。
+
+[0] 線の頭の宣言
+- C1 は Dominance を触らない。D2（支配度の側の案）と重ねない。同じ割譲の事象を闘争度 +0.3（Diplomacy.cs の CedeRegion・CededColonyMilitancy）の経路に足さない＝二重計上にしない（C1 は Rule の在庫の配分の移しだけ・闘争度を読まない・P1-1 の無統治の目標の式に触れない）。
+- 新しい状態 0・新しい係数 0・タイマー 0・旗 1 本（CedeRuleToLocal・`grep -rn CedeRuleToLocal` は書く前に 0 件）。
+- Dominance の引き継ぎは読むだけ（記録）。形を変える案は 00一覧の下書きへ（合流が書く）。
+
+[1] 形（下書き docs/202611/20261106/20261106_割譲の支配度C1の段C-0_州ごとの治安P1-1の後_下書き.md §2・§5〜§7・§10）
+- 旗 CedeRuleToLocal（double・既定 0・Coefficients.cs の CededColonyMilitancy の直後の 1 行）。読むのは送り手の Coef（`from.Coef`＝Territory.TransferRegion の他の読みと同じ。World.Coef は国ごと別のインスタンス＝試験は読む側の World に旗を置く）。腕 B は全ての国が同じ値。
+- 旗 1 のとき、Territory.TransferRegion の `Rehome(r, how, sameCore);`（:374）の直後で、how＝Ceded かつ to≠null の 1 回だけ：
+  C1：`r.Rule[1] += r.Rule[0]; r.Rule[0] = 0`（Rule の長さが 4 のとき）。RuleInit・Rule[2]・Rule[3]・Dominance・RuleStateYears は触らない。
+  H-a：to.SelfPower があるとき、鍵 key＝BaseName（空なら Name）＝Diplomacy.cs:3164 の AddForeignShare の呼び口と同じ式を Territory.cs に書く。ForeignRulers[k]＝key の要素の ForeignShares[k] を 0（主体の並びと配列の長さは残す）。第三国の持分はそのまま運ぶ。
+- **下書きの置き場との差（名乗る）**：下書きは C1 を Rehome の Ceded 枝（:271〜:275）に置く。Rehome(Region, Rehoming, bool) は係数を受け取らない＝旗を読めない。Rehome(Ceded) の呼び手は TransferRegion の :374 の 1 か所だけ（grep：Rehome( の呼び手は Territory.cs:374 と Diplomacy.cs:503〔Sovereign〕の 2 か所）＝:374 の直後に C1 と H-a をまとめて置くのは、Ceded 枝に置くのと同じ値（Rehome(Ceded) は Rule・RuleInit・Dominance・外国持分を触らない）。Rehome の署名と Diplomacy.cs は変えない。
+- C1 の和：エンジンの `r.Rule[1] + r.Rule[0]` と計器の c1LocalShare（`RuleBefore[0] + RuleBefore[1]`）は IEEE の加法の可換性で同じビット。
+- 助走は外交を凍結＝開幕の盤面は旗 0 と同じ。
+
+[2] 周辺の点検（★(885)・grep で実在を確かめた行）
+- Military.cs:273 の述語 peacetimeColonial（`c.PeacetimeConscriptGrievance > 0 && … r.Rule[1] > r.Rule[0]`）：C1 の後は割譲の全ての州で Rule[1]＞Rule[0] が真になるが、PeacetimeConscriptGrievance＝0（Coefficients.cs:2769）で短絡＝挙動 0。下書き §0-1 ③の〈真の長さ 中央 48 四半期〉は打切り 37% を除いた中央＝下界（§10 訂正 4）。点火は入れない。
+- AdminFill の書き手：EconomyStep.cs:2647・:2648（月ごとの行政の調達）・Simulation.cs:1621（植民地の昇格の州）。割譲から四半期の末までに走りうる＝G6 は両側とも四半期の末の AdminFill（計器の c1DeliveryShare は四半期の末の AdminFill で当てる）。
+- Fiscal.cs:504 `Politics.RuleReach(rg)`（年金の到達）：割譲の州で R0 が 0 から戻るまで年金の到達が落ちる＝記録（門にしない）。
+- Dominance の書き手：Simulation.cs:938（開幕）・Simulation.cs:1604（植民地の昇格＝0）・Politics.cs:1547（CheckSecession の積分 `r2.Dominance = d;`）・Territory.cs:288（Sovereign＝1）。割譲（Ceded）と接収は前の持ち主の値を引き継ぐ（Rehome の Ceded 枝は触らない）＝C1 も触らない。
+- Rule と RuleInit の配列の共有：Simulation.cs:941〜:942 は Clone・:1605〜:1606 の Places.RuleOf は Clone を返す（Places.cs:83）＝Rule[1] を書いても RuleInit と地名のデータは動かない。
+- 外国持分の書き手：Diplomacy.cs:3164（条約港・AddForeignShare）・Diplomacy.cs:549（風化）・Politics.cs:1783〜:1793。同じ四半期に AddForeignShare が割譲の州に当たった行は foreignAddedFlag＝1 で門の母集合から外す（§10 訂正 2）。
+- 独立の確定（Diplomacy.cs:503 Territory.Rehome(Sovereign) の直呼び）は TransferRegion を通らない＝C1 は効かない（機構の試験で守る）。
+- 他の線との重なり：c77cs（CrownParliament.cs・InstrumentsCrown.cs・Coefficients.cs:2962）・c77cw（Simulation.cs:2121〜:2125・Coefficients.cs:2168 付近）・c77sm（CedeRuleInstrumentTests.cs の :6〜:9 の注と :58〜:62 の Assert の足し・Politics.cs・Diplomacy.cs・Coefficients.cs:1787 ほか）。この線が触る行は Territory.cs の :374 の直後・Coefficients.cs の :1561 の直後・DormantIdentityTests.cs の :28 の直後・CedeRuleInstrumentTests.cs の Setup()（:16〜:17・c77sm は触っていない＝`git -C D:/PoB_work/wt_c77sm diff 101d4329` で確かめた）。
+
+[3] 旗 1 の木で番人が旧の規則を固定していないか（㉜・★(818)）
+- `grep -ln "Rule\[\|ForeignRulers\|Rehome\|Ceded" PriceOfBread.Tests/*.cs` の 19 本の Assert（Rule・ForeignShares・ForeignRulers・Dominance・UnequalTreatyInForce を見る物）を読んだ：
+  - CedeRuleInstrumentTests.cs（計器の試験・(888)）：T1 は旗 0 の〈前＝後〉と identDiffMaxIndex＝"0"・identBreakFlag＝"0"、T2 は receiverOwnAfterShare＝0.2、T5 は 1 回だけ動いた州の identBreakFlag＝"0" を見る＝**旗 1 で T1・T2・T5 が赤**（T8 は人工の破れ ≧0.9e-6 を見る＝旗 1 でも緑の見込み）。旗 0 の世界の計器の性質を確かめる試験＝★(832) ① (a) の型＝Setup() で全ての国の Coef に旗 0 を置く 1 行を足す（Assert は 1 字も変えない）。**このファイルは c77ce の〈入れない物〉で c77sm の持ち物＝指示から外れる＝verdict の先頭に書く**（触らないと ㉜ で腕 B を回せない）。
+  - TerritoryTests.cs:214（首都の割譲・遷都）：Assert は Id・座標・植民地財＝Rule を見ない。ColonyPromotionTests.cs:85（Dominance 不変）・:123：C1 は Dominance を触らない＝緑。RuleSharesFormTests.cs:186（条約港の持分＝ResolvePeace の条約港の枝・割譲ではない）・:144〜:150（UnequalTreatyInForce・割譲を踏まない）：緑。RuleOrderP1Tests・ScoreReaderTests:156：割譲を踏まない。
+  - 割譲を踏んで貨幣・艦・国債・意志・容量を見る試験（ConservationTests・FiscalTests:450・:1454・NavalCedeFleetReturnTests・NavalPortProcurementTests・InheritIntentTests・CapacityAnchorTests・PortRewireTests・RevoltIgnitionTests:868・InstrumentsTests:872・:920・WarThemeTests:177）：Rule を Assert しない＝緑の見込み（届きが変わるのは次の月の税から＝同じ手番の Assert に入らない）。
+- 予言：旗 1 のフルスイートの赤＝**WriterRatchetTests item 11（最初の 40 四半期の軌道の件数）は動きうる**（種類の予言・合流が ★(749) で 1 回取り直す）。それ以外の赤は 0（CedeRuleInstrumentTests の T1・T2・T5 は Setup() の旗 0 で緑）。予言に無い赤が出たら腕 B を回さず止める。
+
+[4] 門（母集合＝cederule_s の how＝Ceded かつ movedAgainFlag＝0 かつ foreignAddedFlag＝0・台本 scripts/instruments/c77ce/gate902.py）
+- 比べ方：計器の列は印字 G10（相対 5e-10）＝印字を double に読み、両辺が同じ C# の double の印字なら差 0 で比べる（|差|≦1e-12）。後の R1 は計器の c1LocalShare（C# の和）と比べる。エンジンの値のビットの一致は機構の試験（BitConverter）が見る＝門は二層（★(885) と矛盾しない）。identBreakFlag は旗 0 の ident だけで読む（旗 1 では割譲の全ての行で 1 になる）。
+- G1 形：後の R0＝0・後の R1＝c1LocalShare・後の R2・R3・RuleInit[1]・dominance＝前。全ての母集合の行で真（失敗 0 件）。上側（R3・RuleInit・dominance・R2 の不変）は〈無統治へ〉〈C1′〉〈支配度も 0〉〈外国へ〉の誤りを拾う。
+- G2 大きさ：種ごとに Σ(前の R0−後の R0) が Σ前の R0 の [1−1e-9, 1＋1e-9]（下限と上限）。旗 0 は 0。大きさの見込み（記録）：今の盤面で 1 種あたり Σ前の R0 の平均 70.1（10 種・1,324 件・前の R0 の中央 0.535）。
+- G3 対照：Seceded・Returned（母集合の印を除く）の identBreakFlag＝0（計器が double で数えた差）。今の盤面で 338 行。
+- G4 穴：Ceded の後の receiverOwnAfterShare＝0・thirdPartyAfterSum＝thirdPartyBeforeSum。**母集合（前の receiverOwnBeforeShare＞0）は keep_899/base_ins の 10 種で 0 件**（第三国の持分＞0 は 24 件）＝下書き §5 の規則のとおり〈受け手の持分を 0 にする〉側の門は空＝機構の試験（受け手の鍵の持分を置いて割譲を踏む・BaseName あり／なし）へ移し、腕の門では記録に下げる。第三国の和の不変は 24 件の行で門のまま。
+- G5 保存：前と後の 4 区分の和＝1（|差|≦2e-9＝4 つの G10 の丸めの和の上界）。
+- G6 届き：pickedReceiverFlag＝1 の行で deliveryAfterShare＝c1DeliveryShare・reachAfterShare＝c1ReachShare（0）。両側とも四半期の末の AdminFill。G1 から従う（形の写しの確かめ・独立の門ではない）。今の盤面で 776 行。
+- 旗 0（何もしない実装）で落ちることの確かめ（今の盤面 keep_899/base_ins＝旗 0 の世界に台本を当てた・measurements/m902_20261106/gate902_base899.txt）：G1 失敗 1,304／1,324（前の R0 が 1e-17 程度の 20 行は 0 と見分けられない＝植民地格の州）・G2 失敗 10／10 種・G6 失敗 760／776・G3・G4・G5 は緑。
+- cederule_s にはヌル腕の幅が無い（ヌル腕の木に表が無い）＝〈幅なし〉と名乗る。門は形の不等式で読み、ヌル腕と比べない。
+- 〈狙いどおり働いた〉の大きさの門＝G2（事象ごとの在庫の移しの和が前の R0 の和に一致・旗 0 で 0）。G1 と同じ観測の別の読み（独立ではない）と名乗る。
+
+[5] 突然変異（㉚）：紙の台本（今の盤面の行に各変異の規則を当てて〈後〉を作る・measurements/m902_20261106/paper902_base899.txt）と機構の試験（使い捨ての木で 1 本ずつ・腕の前）
+| 変異 | 紙の門の赤 | 機構の試験の赤（見込み） |
+|---|---|---|
+| M0 正しい形（C1＋H-a） | なし | なし |
+| M1 R0 を無統治へ（形 C3） | G1・G6 | T2 |
+| M2 RuleInit[1] にも足す（C1′） | G1 | T2 |
+| M3 穴を消さない | なし（G4 の母集合 0） | T2・T3 |
+| M4 建国・再併合でも動かす | G3 | T4 |
+| M5 Dominance も 0 | G1 | T2 |
+| M6 半分だけ移す | G1・G2・G6 | T2・T5 |
+| M7 第三国の持分も消す | G4（24 件） | T2・T3 |
+| M8 旗 0（何もしない実装） | G1・G2・G6 | T2・T3・T5 |
+| M9 R1 を足し忘れる | G1・G5・G6 | T2・T5 |
+| M10 独立の確定（Rehome の Sovereign 枝）でも動かす | 表に行が無い | T4 |
+| M11 旗を読まない（常に動かす） | なし（旗 1 の腕では見えない） | T1 |
+| M12 鍵を Name だけにする | なし（G4 の母集合 0） | T3 |
+- 機構の試験（新しいファイル PriceOfBread.Tests/CedeRuleToLocalTests.cs）：T1 旗 0 の番人（★(832) ① (a)＝送り手と受け手の Coef に旗 0 を明示・Rule・RuleInit・Dominance・外国持分がビット不変）／T2 旗 1 の形（R0＝0・R1 のビット＝試験のリテラルの和・R2・R3・RuleInit・Dominance 不変・和 1・受け手の持分 0・第三国 不変・長さ不変）／T3 鍵（名を替えた国で BaseName・BaseName が空なら Name・他の鍵は残す）／T4 対照（Seceded・Returned の TransferRegion と Rehome(Sovereign) で Rule と持分がビット不変）／T5 講和の割譲（ResolvePeace の境界改定 戦勝点 1.3 で州が実際に動いた前提の Assert・動いた州で R0＝0・R1＝前の R0＋R1・旗 0 の盤面では不変）。期待値は試験が移す前に写した値とリテラルから作る（エンジンの関数を呼ばない）。
+- 突然変異でどの試験も赤にならない物は、同じ線で試験を足して赤を確かめる（★(790)）。
+
+[6] 段0 の予言（腕の前・ソースと keep_899/base_ins から）
+- 主な観測量の符号と大きさ：割譲の瞬間に、割譲の州の R0 が前の値（中央 0.535）から 0 へ・R1 が同じだけ増える（G2＝1 種あたり約 70 の見込み・軌道で揺れる）。その後は Politics.cs:1586 の寄せ（DominanceSpeed 0.025／四半期）で R0 が目標へ戻る＝4 年後に差の 1−0.975^16≈33%・10 年後に 1−0.975^40≈64% が戻る見込み。今の盤面の割譲の州の R0 は 4 年後 中央 0.531・10 年後 0.548（measurements/m902_20261106/dom902_base899.txt）＝旗 1 では 4 年後 中央 約 0.18・10 年後 約 0.35 の見込み（記録・門にしない）。
+- 受け手の国の税の届きは割譲の州の R0×(1−d)×AdminFill（d＝1−PrivilegeTaxDiscount 0.3＝0.7・在地は d を届ける）だけ落ちる＝国で中央 0.33%（下書き §2 ③・上界）。〈悪くする〉の見込みではない（作者の問いへの推奨の形そのもの）＝腕を回す。
+- Dominance：今の盤面の割譲の州の dominance は前・後・4 年後・10 年後とも中央 1.0（＜0.999 は前 107・後 107・4 年後 82・10 年後 26 件／1,324）＝C1 は Dominance を触らない＝旗 1 でも同じ分布の見込み（記録）。
+- 受け手の UnequalTreatyInForce が H-a で倒れる件数：前の receiverOwnBeforeShare＞0 が 10 種で 0 件＝0 件の見込み（記録）。
+
+[7] 止める線（この回の形をそのまま写す・結果を見る前）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上の〈それ以外〉（gdp_jump797／833・建国の直後の型＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上になった四半期はヌル腕の件数と並べる・基準とヌル腕も同じ台本で数え直す）・1e10 倍以上・plvl_seeds・gdp_zero10（名目 GDP 0 が 4 四半期以上・人口 1 万以上）・走査の番人 7 組・推定の計算量 ＞248.5 秒・savetest・leakhunt・機構のテストの赤。数え方は scripts/instruments/m866/stoplines866.sh。
+- 空洞化：ピークの 1/10 未満の州で、例外の規則 A2（scripts/instruments/hol/an_h2.py の既定 -ex rule＝植民地格・緯度の絶対値 55 度以上・開幕の人口 20 千人未満）の外・主要国の州は例外にしない・**その線が原因と読めた件だけ**止める（holclass839＝T1・線の自分の分も数える）。基線 keep_899/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない。飢えによる空洞化も原因を問わず数える。
+- 記録（採否に使わない）：exact・near・NG（ng.sh・基準 rd:measurements/ng873_20261106:m873）・nullgate の O・開幕の 1000 倍以上・英の国債の不履行の種の数・史実の線・国力。
+
+[8] 計算量の割り当て：0.01 秒未満（割譲は 10 種で 1,330 件・1 件あたり配列の数要素の書き換え）。名目の余り 約 37.0 秒（m873 の推定 211.5 秒・上限 248.5 秒）。c77cs・c77cw の割り当てと合わせても余りに収まる見込み（各線の事前登録を合流が足す）。
+
+[9] 走査の番人（㉘）の点検と件数の予言（㉑）
+- IndustrializationReaderTests の許可表 ("Territory.cs", 1)・TechLevelRemovalTests ("Territory.cs", 1)・WriterRatchetTests `[InlineData(".Rebase(", "Territory.cs", 1)]`：この線の足す行は工業化度・技術水準・Rebase を読まない＝件数は不変。
+- `new MoneyStock(` の件数：足さない＝不変。route_anchors.tsv（scripts/instruments/flow262/）の Territory.cs の鍵の行は MoveBetweenRegions（:232＝挿入の前）＝不変・鍵の行に書き足さない。
+- cearn_s の経路の行番号と flow_s の呼び出し位置：Territory.cs の :374 より後に金を動かす呼び出しがあれば行番号が動く＝既知の揺れ（〈写して一致〉で通す）。Coefficients.cs の 1 行の挿入は計器の経路の行に出ない見込み。
+- WriterRatchetTests item 11：旗 0 の器では不変（恒等）・旗 1 では動きうる（種類の予言）。
+
+[10] 手順と宣言
+1. この事前登録（最初のコミット・台本と紙の出力を同じコミットに）。
+2. 器（旗 0）：Coefficients.cs・Territory.cs・DormantIdentityTests.cs（:28 の直後に 1 行）・CedeRuleToLocalTests.cs（新）・CedeRuleInstrumentTests.cs（Setup() の旗 0 の 1 行）→ 走査の番人 5 組（隔離ビルド D:/PoB_work/c77ce_work/art）。
+3. `bash scripts/instruments/ident/ident.sh run c77cez --tree D:/PoB_work/wt_c77ce --tests-delta 5`（新しい試験 5 本・表と列は足さない・走っている間はコミットしない）で〈判定: 恒等〉。
+4. 突然変異 M1〜M12 を使い捨ての木で CedeRuleToLocalTests に当てる（出力を measurements/m902_20261106/ へ）。
+5. 点火（Coefficients.cs の既定 1・DormantIdentityTests.cs の行を外す・.cs だけ）→ 旗 1 の木で Category!=FullLength と FullLength を分けて回し --list-tests と突き合わせる・savetest・leakhunt → 予言に無い赤なら止める。
+6. 腕 B `INS=1 bash scripts/instruments/batch.sh run c77ceB 10`（POB_INSTRUMENTS_NATIONS を渡す）→ gate902.py・dom902.py・stoplines866.sh・holclass839・ng.sh（D:/ の形）・nullgate.py（記録）・.cost・開幕の 1000 倍。
+7. S11（この線の指示の手順 5）：腕 B が止める線に当たらず門が緑のときだけ `POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c77ceS 10 11`（種 11〜20・POB_CEARN=0 を宣言＝基準 b10s11_20261106_m873_ins〔生 keep_873/a11〕と同じ条件）。教訓 ⑨〈種 11〜20 は線では回さない〉と指示の手順 5 が食い違う＝この線は指示の手順に従う（報告の先頭に書く）。S11 では gate902・止める線・空洞化を読む（門は同じ・数を変えない）。
+- 形の変え直しは 1 回だけ。旗 1 の出力を見た後のエンジンの変更は 0（変えたら形の変え直しに数える）。
+
+[11] D: の空き（起こす前）：shutil 141.92GB・arms.sh free 6（2026-11-06・線の頭）。
+
+[追記 2026-11-06・器のコミットの前・腕の前] 機構の試験は Fact 4 本＋Theory 1 本（旗 0 と旗 1 の 2 行）＝--list-tests で 6 件増える＝ident の宣言は --tests-delta 6（[10] の 5 を直す・数え方の誤り）。器の木で走査の番人 5 組＋TechLevelRemovalTests＋CedeRuleInstrumentTests＋CedeRuleToLocalTests は 156 件全て合格（隔離ビルド D:/PoB_work/c77ce_work/art）。

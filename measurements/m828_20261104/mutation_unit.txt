@@ -1,0 +1,28 @@
+MUTATED F1
+== F1 rc=0
+成功!   -失敗:     0、合格:    12、スキップ:     0、合計:    12、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu1
+== Mu1 rc=1
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.利札の落としの端数が丸められた時_旗1は持ち主の減りが外資の負債の減りとビットで同じ(ledger: 1) [352 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.利札の落としが外資の負債に吸収された時_旗1は持ち主の対外資産も動かない(ledger: 1) [12 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.逃避の端数が丸められた時_旗1は持ち主の減りが外資の負債の減りとビットで同じ(ledger: 1) [11 ms]
+失敗!   -失敗:     3、合格:     9、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu2
+== Mu2 rc=1
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.利札の落としの端数が丸められた時_旗1は持ち主の減りが外資の負債の減りとビットで同じ(ledger: 1) [232 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.利札の落としが外資の負債に吸収された時_旗1は持ち主の対外資産も動かない(ledger: 1) [149 ms]
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu3
+== Mu3 rc=1
+  失敗 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(writeDown: 1) [5 s]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.利札の落としの端数が丸められた時_旗1は持ち主の減りが外資の負債の減りとビットで同じ(ledger: 1) [12 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.未払いが外資の負債より大きい時は外資の負債が0で止まり対外資産も同じ額だけ減る [205 ms]
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.払えない時は未払いと同じ額だけ外資の負債と持ち主の対外資産が減る [151 ms]
+失敗!   -失敗:     4、合格:     8、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu5
+== Mu5 rc=1
+  失敗 PriceOfBread.Tests.CapitalCouponWriteDownTests.逃避の端数が丸められた時_旗1は持ち主の減りが外資の負債の減りとビットで同じ(ledger: 1) [125 ms]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+MUTATED Mu6
+== Mu6 rc=0
+成功!   -失敗:     0、合格:    12、スキップ:     0、合計:    12、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,103 @@
+(812) c13ib 港・移民・都市の旗（I5）と時間 1-5・1-7（I11）と試験の直し（恒等の線）事前登録 2026-11-03
+基線＝m797（main 9ce2cf90）。枝 c13ib（9ce2cf90 から）。出発＝(796) の表 3 の I5・I11 と (803)(808) の申し送り。作者「全て推奨でよい」（2026-11-03）で推奨を採った（承認の言葉ではない）。
+このコミットは事前登録だけ（実装も試験も入っていない）。数と門は腕の前に固定する。変えるなら腕の前に理由つきで末尾へ追記する。
+
+[0] 形の種類＝尾（読み手の整理と名前の直し）。新しい係数 0・新しい状態変数 0・新しい上限と下限 0。AI とプレイヤーで同じ経路（旗の焼き込みと改名だけ）。
+    確証＝あり（旧い枝の削除・改名・同じ式の関数化＝挙動なし）。
+    新しい補助関数 2 本（README §1-10 の必要性）：
+      Calendar.OverSteps(率, 回数)＝`1.0 - Math.Pow(1.0 - 率, 回数)` 。既にある似た物を grep で確かめた：`Calendar` に換算は PerXToPerY の線形しか無く、〈率を n 回に合成する〉物は Credit.cs:74・138・Meritocracy.cs:29 の 3 か所に同じ式が散っている（時間 doc §3-2 の形 D-2）。
+      PoliticalQuantities.Toward(x, 目標, 速さ)＝`x + 速さ*(目標 - x)` 。既にある似た物は Government.Move（政策の軸だけ・刻みと段つき）と Pop.Blend（POP の混ぜ・別物）。同じ式の写しが約 40 か所に散っている（時間 doc §3-2 の形 A）。
+    ⚠(796) の表 3 の本文は repo に無い（実装ログ (796) の本文 7 行と measurements/m796_20261103/*.tsv だけ）。I5 の名簿は表 4（pureflags.tsv・flag1.tsv）から〈港・移民・都市〉の語で選んだ＝名簿は私（c13ib）の選び。表 3 の名簿と違うなら合流が読み替える。
+
+[1] 恒等の線・予言 0
+    素の 5 種・計器つき 10 種の成績表が m797（b5_20261103_m797・b10_20261103_m797_ins）と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は 0（宣言なし）。.cost の件数の行の差は 0。
+    NG の集合は触らない（ng.sh は回さない＝成績表の全行一致が NG の同一を含意する）。判定は〈測った種で一致〉（証明とは書かない）。
+
+[2] 消す物と残す物（読み手の grep：git grep で SimCore・Runner・App・Tests・scripts・docs。measurements の台本は閉じた線の記録なので触らない）
+
+  (A) 焼き込む旗（SimCore だけに読み手がある。App・Runner・Display に読み手 0）
+    A1 NavalProcurementNeedsPort（Coefficients.cs:2294）
+        読み手：EconomyStep.cs:351 `if (coef.NavalProcurementNeedsPort > 0 && !region.NationHasPort) return null;` → `if (!region.NationHasPort) return null;`
+        他：Coefficients.cs:3028 の注・EconomyStep.cs:345 の注（旗の名を指す）。Tests：EquipDiscoveryTests.cs:210 の前提 Assert（★(743) ④）。
+        重なり：(796) の I1（経済の旗 13 本）にも入る可能性（EconomyStep.cs）。I1 は今の波の線に無い。名簿の外に置かずここで焼く（旗 1 つ・App/Runner に読み手 0）。
+    A2 CrossBorderMigrationByOpportunity（Coefficients.cs:2701）
+        読み手：MultiNationSim.cs:1687 `if (!(_coef.CrossBorderMigrationByOpportunity > 0)) return;` の 1 行を消す。式は触らない（c13hl が読む移民の式に当たるため）。
+        Tests：読み手 0。
+    A3 UrbanCapOff（Coefficients.cs:1964・既定 1）と、旗 0 の枝だけに読み手がある物
+        旗の読み手：PopDecision.cs:98（天井の包み）・Meritocracy.cs:451（UrbanHeadroom の早期 return）・InstrumentsUrx.cs:147（計器の写し）。
+        消す（旗 0 の枝だけが読む）：UrbanCapFollowSpeed（Coefficients.cs:1177）・BaseUrbanCap（:1176）・UrbanPerInd（:1178）・Region.UrbanIndSmoothed（Model.cs:1042・保存される状態）・PopDecision.UrbanShareCap と MaxUrbanShareCap。
+        ⚠Meritocracy.UrbanHeadroom は `total <= Eps → 0` が `UrbanCapOff → +∞` より前にある。焼き込みは CapitalEnabled／対の null／total≦Eps の 3 つの return を残し、最後を +∞ にする（常に +∞ だと total≦Eps の州で非恒等）。
+        ⚠InstrumentsUrx.cs の cap・capBound の列は旗 1 で定数（1.0・false）。列は残して定数を書く（計器の表の差 0）。
+        残す：UrbanFlowReal（既定 0・未着手の器・隣にあるだけ）・CapitalHeadroomFromReturn（既定 0）・SerfMobilityGate（算術に使う係数）。
+        Tests（読んでから ①③で整理）：IndustrializationReaderTests.cs:63-74・122-140・MigrationPairTests.cs:60-80・MobilityTests.cs:99・131-132・155・UrxInstrumentTests.cs:40・56-70・PolicyPoliticsTests.cs:1216-1301・Hz7IdentityTests.cs:22-25・MilitaryTests.cs:1866。注だけ：DevaluationCapReliefTests.cs:160・HabitTests.cs:176。
+        スクリプトの読み手：scripts/instruments/ind4/step0.py・cap677/readers.py・eq495/step0.py・ir505/step0.py・urb2_687/s0.py は閉じた線の読むだけの台本（古い）＝触らない。
+        もし読んで試験の整理が ★(743) の ①〜④ に収まらないと分かったら、A3 は外して報告に回す（A1・A2 だけを入れる）。外した理由は verdict に書く。
+
+  (B) 残す（名簿外・触らない）
+    NavalCedeFleetReturn・InheritedStateIntentDrop（Territory.cs・港・移民・都市ではない＝割譲と継承）・HcdColonyCessionDistance（講和の距離）・NavalPortProcurement（算術と混ざる・App に注）・LandRouteEnabled（キャッシュの鍵に値を書く）・PortCapToThroughput（算術）。
+    World.InsolvencyQuarters（時間 doc U2）：App（GameViewModel.Fiscal.cs:125・127・137）が読む＝この回は触れない（App に触れない）。報告へ。
+    Toward を使わない形の座標：TechEducation.cs:60 は入れる／TechEducation.cs:125（GrowTech）は c13ia の tl 段6 が消す／PopDecision.cs:105・InstrumentsUrx.cs:154 は A3 で消える。
+    Simulation.cs:2597（FoodFill += k*(rawFill − prevFood)）＝prevFood が直前の FoodFill と同じと言い切れない（間の式を全部読んでいない）＝外す。
+    World.cs:1658（型つき RatePerYear）・Discovery.cs:557（3 乗の書き方＝Math.Pow とビットが違う）・Military.cs:326（混ぜる形）・Politics.cs:442・World.cs:1547/1551 の `else` の枝でない所は入れない。
+
+  (C) 改名（時間 doc 1-5）
+    すでに済み：U1 VassalTributeMonthGdpPerQuarter・U3 ReservationWage…PerDay・U4 …KeepPerQuarter／KeepPerMonth（(736)）。
+    この線で直す：緊張の流入 8 本に PerMonth＝ThreatTensionRate→ThreatTensionPerMonth・RouteDependenceTensionRate→RouteDependenceTensionPerMonth・IdeologyTensionRate→IdeologyTensionPerMonth・EthnicTensionRate→EthnicTensionPerMonth・LawTensionRate→LawTensionPerMonth・ReligionTensionRate→ReligionTensionPerMonth・ProtectorTensionRate→ProtectorTensionPerMonth・OpiumBanTensionRate→OpiumBanTensionPerMonth。
+    読み手の grep：SimCore＝Coefficients.cs と Diplomacy.cs（1044・1052・1095・1176・1246・1290・1292・1300・1306・1307・1477・1500・951 の注）／Runner 0／App 0／Display 0／scripts 0／POB_COEF の名前を含む台本 0（git grep）／Tests＝MilitaryTests.cs:883-885・1081-1083・ProtectorTests.cs:36・46-50・61・RouteTensionTests.cs:12・19-20・31-34・48-58。
+    試験の変更は識別子の置換だけ（Assert の中身・値・メッセージの意味は動かさない）。★(743) の ①〜④ のどれでもない〈改名に伴う識別子の置換〉＝verdict に区分 ⑤ と名乗って〈ファイル:行・前と後〉を列挙する。
+    名前を変える前に全域の grep を取り直す（Tests・scripts・Runner・App）。App か Runner か Display に読み手が出たらその名前は残す。
+
+[3] 形 D・形 A（時間 doc 1-7）
+    OverSteps：Credit.cs:74・138（`spd`・`adjSpd`）・Meritocracy.cs:29（`dischargeQ`）の 3 か所。式は `1.0 - Math.Pow(1.0 - 率, 回数)` を関数の中に 1 回だけ書く（引数は double・回数は呼び元の型のまま暗黙変換＝Credit は int days・Meritocracy は int の定数）。Discovery.cs:557 の a*a*a は Math.Pow とビットが違う＝入れない。
+    Toward（形 A）：次を入れる（座標は scripts/instruments/c13ib/scan_toward.py の出力 measurements/m812_20261103_toward_sites.tsv が元。行は grep し直して確定）。
+      EconomyStep.cs（832・994・2130・2131・2173・2183・2724・2740）／Government.cs（358・360）／Military.cs（44・46）／MarketFlow.cs:172（形 B＝`(t - x) * k`）／MultiNationSim.cs:1622／PoliticalQuantities.cs:276／Politics.cs（250・317・320・324・358・1450）／SelfPlay.cs（28〔形 B〕・2236・2251・2263＝試合の診断の写し）／Simulation.cs（2014・2038・2041・2048・2655・2843）／TechEducation.cs:60／World.cs（1545・1549・1655・1680）／InstrumentsSecession.cs:44。
+      代入の形（x + k*(t−x) を式の中で使う物）：World.cs:1541・1543（GdpTrend・GdpPcTrend）・World.cs:1644（_moTrend）・World.cs:1647（PriceLevel）・Discovery.cs:821・Credit.cs（bank.Confidence の Clamp01 の中）・Factions.cs（st.Cohesion の Clamp01 の中）。
+      入れない：上の (B) の残す物。
+    浮動小数の順序が変わる箇所（⑳）の列挙：
+      ・`X += K * (T - X)`→`X = Toward(X, T, K)`：Toward の本体は `x + k*(t - x)`。同じ 1 回の乗算と 1 回の加算で、K が `a*b` のとき `a*b*(T-X)` は C# で `(a*b)*(T-X)`（左結合）＝引数に `a*b` を渡して同じ。ビットは変わらない。
+      ・形 B（MarketFlow.cs:172・SelfPlay.cs:28）`X += (T - X) * K`：乗算の順を `K*(T−X)` に入れ替える。IEEE の乗算は可換＝同じ値。K が単項のときだけ入れる（`(T−X)*a*b` は `((T−X)*a)*b` で別の丸め＝入れない）。
+      ・Simulation.cs:2038・2041・2048：K が `速さ * (条件 ? e : 1.0)` や `速さ * enforce` の積。`(速さ*…)*(T−X)` と同じ括り。
+      ・OverSteps：`Math.Pow(1.0 - r, n)` の n が int→double に変わる（Credit.cs の days＝int・Meritocracy は定数 int）。Math.Pow は double を受けるので呼び元でも暗黙に double 化されていた＝同じ。
+      ・÷12・月と四半期の換算の位置を動かす箇所：0。
+    紙の台本 scripts/instruments/c13ib/paper_float.py：形 A・形 B・積の K・OverSteps の旧と新を同じ乱数の盤面 1,000,000 組で両方計算して食い違いの数を数える。予言＝食い違い 0。0 でなければその座標の形を外す。
+
+[4] 試験と突然変異（★(743) の札で名乗る・-＝削除・~＝書き直し・+＝足す）
+    HousingGateSharedTests.cs の xUnit2004（Assert.Equal(true/false, …) → Assert.True/False）6 件：警告の解消。判定の中身は動かさない（区分 ⑥〈警告の解消〉として名乗る）。
+    + Rs2LordOppositionTests：教育法と女性の権利の旧支配層の反対は旧支配層の貯蓄の割合 W0 から作られる（旗に依らない生きた経路・(803) の反証役の指摘①）。突然変異 M1＝PolicyPreferences.cs の `trad ? -StatusScale * (0.5 + e.Wealth[0]) : 1.0` を LordStake に替える → 赤のはず。
+    + MandateWallStockCapTests：壁の一歩の後の正統性の払いは b が足りる盤面（b を大きく置く）と壁の一歩の盤面で同じ（請求が代価の全額）（(803) の反証役の指摘②）。突然変異 M2＝Government.Spend の MandateSpentNew への足しを applied にする → 赤のはず。
+    ident.sh の 2 行目の注：〈恒等の証明〉→〈恒等の判定（測った種で一致）〉。読み手の確認：git grep で字を探す台本は ident.sh・ident.cfg・ident_check.py の注の 3 か所だけ（コードで字を探す読み手 0）。
+    A1〜A3・C の試験の整理：上の [2] のとおり。確定した件数は試験のコミットで末尾へ追記する（㉑）。
+    突然変異の台本は scripts/instruments/c13ib/mut_run.sh・出力は measurements/m812_20261103_mutation.txt にコミット。
+
+[5] 腕（挙動を変えない＝腕 A のみ）
+    `bash scripts/instruments/ident/ident.sh run c13ib --tree D:/PoB_work/wt_c13ib --tests-delta <整数> --saveleak`（run_in_background）。素の 5 種・計器つき 10 種・テストの数・savetest・leakhunt。ヌル腕は回さない。
+    腕の枠：arms.sh free が 4 以上のときだけ始める（c13fl を優先・同時に ident を回す恒等の線は 1 本まで）。待った時間を報告に書く。
+    フルスイートは Category!=FullLength と FullLength を分けて回し、合計を --list-tests と突き合わせる。
+
+[6]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す（外した枝は読み手の残る旗・名前として報告）。コミットを群ごとに分けてあるので、不一致のときは群ごとに外して切り分ける。
+
+[追記 2026-11-03・腕の前・結果を見る前に確定した数と形（㉑）]
+    入れた範囲（実装済みのコミット）：A1・A2・A3（旗の焼き込み）／緊張の流入 8 本の改名／OverSteps 3 か所／Toward 44 か所（群 1＝13・群 2＝10・群 3＝21）／試験の直し。
+    入れなかった物（[2] (B) のとおり）：NavalCedeFleetReturn・InheritedStateIntentDrop・World.InsolvencyQuarters（App が読む）・Simulation.cs の FoodFill・型つきの World.cs:1658・Discovery.cs:557・Military.cs:326・TechEducation.cs:125。
+    ㉑ 書き換える件数の番人の予言（IndustrializationReaderTests.Allowed＝工業化度を読む行の数のファイル別の許可表）：InstrumentsUrx.cs 4→0・Meritocracy.cs 1→0・PopDecision.cs 4→0・Model.cs 5→4（他は変わらない。紙の台本＝許可表の正規表現を焼き込み後のソースに当てた結果）。
+    WriterRatchetTests など計算量の件数の表は触れない（予言＝変化 0・.cost の件数の行の差 0）。
+    テストの数の予言（--tests-delta）＝ −3（Hz7IdentityTests の天井の式 1・MobilityTests の天井の残枠 1・PolicyPoliticsTests の旗 0 の双子 1）＋2（Rs2LordOppositionTests +1・MandateWallStockCapTests +1）＝ −1。
+    試験の書き換え（★(743)）：
+      Hz7IdentityTests.cs の都市化の天井の式の試験と Inds ①（天井の式 UrbanShareCap ごと消えた）
+      MobilityTests.cs の失業プールは都市化天井の残枠…の試験 ①／BaseUrbanCap の行 2 本 ③（効かない目盛り）
+      MilitaryTests.cs:1866 の BaseUrbanCap・UrbanPerInd の行 ③
+      PolicyPoliticsTests.cs の旗 0 の双子の試験 ①／TaxChainCheck の引数 capOff・minFixedMil と旗の行と下限の Assert ③④
+      IndustrializationReaderTests.cs の J4 の試験の旗 0 の半分 ①・旗の既定の Assert と Flags の名前 ④・許可表 ㉑
+      UrxInstrumentTests.cs の旗 0 の盤面 2 つ ①・UrbanIndSmoothed の前提の Assert 2 行 ④
+      MigrationPairTests.cs の職の移しの天井の期待と Headroom の補助 ①（天井が無いので 3 か所目の検査は成り立たない＝犯罪者を対に選ばない検査は残りの 2 か所が持つ）
+      EquipDiscoveryTests.cs:210 の前提 Assert ④
+      MilitaryTests・ProtectorTests・RouteTensionTests の緊張 8 本の識別子の置換 ⑤
+      HousingGateSharedTests の xUnit2004 ⑥
+      DormantIdentityTests の RetiredFields +7 名と注
+      足した試験：Rs2LordOppositionTests +1・MandateWallStockCapTests +1（足すので区分外）
+    突然変異（scripts/instruments/c13ib/mut_run.py・使い捨ての複製で当てる）：M1＝教育法・女性の権利の反対を LordStake に替える→Rs2 の新しい試験が赤／M2＝Spend の MandateSpentNew への足しを applied にする→MandateWallStockCapTests の新しい試験が赤／M3＝港の門を外す／M4＝越境移民を止める／M5＝Toward の符号を壊す／M6＝OverSteps を壊す。M3〜M6 は赤になる試験があるかを記録する（緑なら穴を名乗り、機構の試験を足す〔★(790)〕）。
+
+[追記 2 2026-11-03・ident の前・結果（成績表）を見る前]
+    突然変異 M7（UrbanHeadroom の〈組の人口が 0 なら 0〉の早い return を外す）が緑だった（焼き込みで残した順序を守る試験が無かった）。★(790) に従い同じ線で機構の試験を足した：
+    IndustrializationReaderTests.職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限（足す・区分外）。M7 で赤になることを確かめた（measurements/m812_20261103_mutation.txt）。
+    テストの数の予言を直す：−3＋3（Rs2 +1・MandateWall +1・Industrialization +1）＝ 0（--tests-delta 0・--list-tests の予言＝非 FullLength 2221・FullLength 3）。

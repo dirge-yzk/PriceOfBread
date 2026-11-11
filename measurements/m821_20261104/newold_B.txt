@@ -1,0 +1,9 @@
+# 同じ盤面（cpmed_s）：外交の講和・調停の戦争・うち崩壊・うち旧の規則で払う（反実仮想＞0）・Σ反実仮想・Σ実際の賠償（調停の戦争）・賠償の枝まで進んだ調停の戦争
+腕B	講和 4109	調停 141	崩壊 33	旧なら払う 13	Σ反実仮想 560476	Σ実際 0	枝 0	新÷旧（Σ実際÷Σ反実仮想）0.0000
+旗0の盤面	講和 4020	調停 145	崩壊 39	旧なら払う 18	Σ反実仮想 245007	Σ実際 203403	枝 18	新÷旧（Σ実際÷Σ反実仮想）0.8302
+# 腕をまたぐ崩壊の講和の Σ 賠償（cpeace_s・記録＝門にしない・ヌル腕どうしの幅と並べる）：repMovedIndex（無い木は repRealIndex）
+腕B	事象 1131	Σ repMovedIndex 1.81429e+07	Σ repRealIndex 1.9271e+07
+旗0の盤面	事象 1086	Σ repMovedIndex 1.9199e+07	Σ repRealIndex 1.93719e+07
+基準 keep_818	事象 1086	Σ repMovedIndex 1.9199e+07	Σ repRealIndex 1.93719e+07
+N1 keep_797	事象 1378	Σ repRealIndex 3.02723e+07	Σ repRealIndex 3.02723e+07
+N2 keep_797	事象 1059	Σ repRealIndex 1.67292e+07	Σ repRealIndex 1.67292e+07

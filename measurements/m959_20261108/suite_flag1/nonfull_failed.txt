@@ -1,0 +1,10 @@
+PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1862)
+PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2655980)
+PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦は厭戦で総動員が深まる
+PriceOfBread.Tests.CivilWarArmsDemandTests.旗0の内戦は今の2倍の枝のまま
+PriceOfBread.Tests.CivilWarArmsDemandTests.計器は同じ盤面で旧と新の規則と実際の値を数える(flag: 0)
+PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の対外戦の戦時の倍率は内戦と同じ値
+PriceOfBread.Tests.MilitaryTests.交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま
+PriceOfBread.Tests.TransportInstrumentTests.越境の印は年の途中で州の持ち主が替わっても経路の行と帯の行で閉じる
+PriceOfBread.Tests.CivilWarArmsDemandTests.旗1の内戦の戦時の倍率は対外戦と同じ総動員の式
+PriceOfBread.Tests.CivilWarArmsDemandTests.計器は同じ盤面で旧と新の規則と実際の値を数える(flag: 1)

@@ -1,0 +1,46 @@
+(811) c13ia 突然変異（焼き込み後のソースに当てた使い捨ての木・台本 scripts/instruments/c13ia/mut_run.sh・mut_apply.py）
+== M0：M0: 変異なしの対照
+rc=0 M=M0 試験の組=FullyQualifiedName~MilitaryTests|FullyQualifiedName~IvfIn
+  成功!   -失敗:     0、合格:   141、スキップ:     0、合計:   141、期間: 33 s - PriceOfBread.Tests.dll (net10.0)
+== M1：M1: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M1 試験の組=FullyQualifiedName~MilitaryTests
+  失敗!   -失敗:     1、合格:    69、スキップ:     0、合計:    70、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.MilitaryTests.軍事費の器は給与から装備から質の順に吸われ使い切れない分は請求しない [124 ms]
+== M2：M2: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M2 試験の組=FullyQualifiedName~IvfInitialValuesTests|FullyQualifiedNa
+  失敗!   -失敗:     2、合格:    15、スキップ:     0、合計:    17、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.IvfInitialValuesTests.賃金の割増の国平均も植民地を外す [141 ms]
+    失敗 PriceOfBread.Tests.IvfInitialValuesTests.国平均から植民地を外すと本土の物価の乗数が1へ寄り_植民地は下限のまま [37 ms]
+== M3：M3: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M3 試験の組=FullyQualifiedName~IvfInitialValuesTests|FullyQualifiedNa
+  失敗!   -失敗:     2、合格:    13、スキップ:     0、合計:    15、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.IvfInitialValuesTests.鋳鉄の機械は全ての州に1本入り_入力は手の値 [3 s]
+    失敗 PriceOfBread.Tests.FullChainTests.全50財がロードされ放置で破綻せず基礎貨幣を保存する [4 ms]
+== M4：M4: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M4 試験の組=FullyQualifiedName~ReformPathTests|FullyQualifiedName~Sch
+  失敗!   -失敗:     3、合格:    33、スキップ:     0、合計:    36、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.ReformPathTests.D2_ReligiousはPublicと同じ割合の財源を持つ [44 ms]
+    失敗 PriceOfBread.Tests.ReformPathTests.D2_国庫の購入は保存量Dを動かさない [353 ms]
+    失敗 PriceOfBread.Tests.ReformPathTests.D2_Religiousは国庫が教育を買う_教育費0なら買わない [233 ms]
+== M5：M5: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M5 試験の組=FullyQualifiedName~FullChainTests
+  失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.FullChainTests.全50財がロードされ放置で破綻せず基礎貨幣を保存する [4 ms]
+== M6：M6: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M6 試験の組=FullyQualifiedName~FullChainTests
+  失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.FullChainTests.全50財がロードされ放置で破綻せず基礎貨幣を保存する [7 ms]
+== M7：M7: applied to PriceOfBread.SimCore/Simulation.cs
+rc=1 M=M7 試験の組=FullyQualifiedName~HouseholdProductionTests|FullyQualifie
+  失敗!   -失敗:     6、合格:    12、スキップ:     0、合計:    18、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.HouseholdProductionTests.本土の全ての州に8本の行が手書きの表どおりに入る [3 s]
+    失敗 PriceOfBread.Tests.FullChainTests.全50財がロードされ放置で破綻せず基礎貨幣を保存する [< 1 ms]
+    失敗 PriceOfBread.Tests.HouseholdProductionTests.昇格した植民地の州にも同じ8本が入る [54 ms]
+    失敗 PriceOfBread.Tests.HouseholdProductionTests.短い走行は完走し産出は有限で保存の往復が一致する [7 s]
+    失敗 PriceOfBread.Tests.HouseholdProductionTests.発見の門は1で眠らず国営の工場の候補からは外れる [12 ms]
+    失敗 PriceOfBread.Tests.HouseholdProductionTests.手仕事の行は既存の行の後ろに連続して入る [4 ms]
+
+読み方（焼き込み後のソースに当てた 7 本のうち、赤にならなかった物は 0）：
+  M0（変異なしの対照）は 141 本が緑。M1〜M7 は全て赤。
+  M1 は MilitaryTests の〈軍事費の器は給与から装備から質の順に吸われ使い切れない分は請求しない〉が拾った（軍需予算は上限を超えない…ではない）。
+  M5（冷蔵の加工肉）と M6（石油ケロシン）は FullChainTests の件数（132＋1＋5）だけが拾う＝件数の番人だけで、レシピの中身（投入・生産性）を見る試験は無い。弱い番人であることを合流が知る。

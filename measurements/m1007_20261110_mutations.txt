@@ -1,0 +1,8 @@
+(1007) c93ms 突然変異の結果（使い捨ての木 D:/PoB_work/c93ms_work/mut_mu1〜5・現物は書き換えない・台本 scripts/instruments/c93ms/mutate.sh・mutall.sh）
+試験の束＝MerchInstrumentTests（現物の木で 10 件すべて緑・突然変異の木の出力は下）。
+Mu1 lockBOpen の不等式を逆にする（wSavPc >= avgPerCap → <）：赤 5/10（T1 の 4 件・T6）。T5 は赤にならない（T5 はエンジンの出力を読む試験で、計器の式には依らない＝事前登録の〈T1・T5〉は〈T1・T6〉に訂正）。
+Mu2 max(0,Savings) を外す：赤 1/10（T2）。
+Mu3 merchantK に職人を足す：赤 4/10（T1 の 4 件）。T4（英仏 6 四半期の植民地格）は緑＝このミニ走りでは商人が空で職人が空でない植民地格の州が無い。G1 の本番は ident の生（10 種）で集計し、同じ突然変異を生で当てて食い違いが出ることを台本で確かめる。
+Mu4 植民地格だけを書く：赤 2/10（T3・T4）。
+Mu5 meritActive を lockBOpen から外す：赤 1/10（T6）。
+全 5 本が赤になった（緑のまま残った突然変異 0）。出力：mut_result.txt の写しは本ファイルの内容。

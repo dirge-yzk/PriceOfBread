@@ -1,0 +1,13 @@
+共通 1246・一致 1216・揺れの表の違い 20・それ以外の違い 10・a だけ 0・b だけ 10
+違い recipeout_s1.tsv
+違い recipeout_s10.tsv
+違い recipeout_s2.tsv
+違い recipeout_s3.tsv
+違い recipeout_s4.tsv
+違い recipeout_s5.tsv
+違い recipeout_s6.tsv
+違い recipeout_s7.tsv
+違い recipeout_s8.tsv
+違い recipeout_s9.tsv
+a だけ（頭） []
+b だけ（頭） ['prodcap']

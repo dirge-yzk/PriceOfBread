@@ -1,0 +1,32 @@
+M8 ok
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:05.06]     PriceOfBread.Tests.LordstatInstrumentTests.GL_十分の一税の請求はエンジンに合う [FAIL]
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.GL_十分の一税の請求はエンジンに合う [4 s]
+  エラー メッセージ:
+   イギリス：4525.278398500001 ≠ 1221.3812605616185
+  スタック トレース:
+     at PriceOfBread.Tests.LordstatInstrumentTests.GL_十分の一税の請求はエンジンに合う() in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\LordstatInstrumentTests.cs:line 193
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:12.33]     PriceOfBread.Tests.LordstatInstrumentTests.L6_母体は大衆だけ [FAIL]
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L6_母体は大衆だけ [514 ms]
+  エラー メッセージ:
+   イギリス：90505.56797 ≠ 24427.625211232353
+  スタック トレース:
+     at PriceOfBread.Tests.LordstatInstrumentTests.L6_母体は大衆だけ() in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\LordstatInstrumentTests.cs:line 121
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     2、合格:    37、スキップ:     0、合計:    39、期間: 17 s - PriceOfBread.Tests.dll (net10.0)

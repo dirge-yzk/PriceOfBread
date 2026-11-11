@@ -1,0 +1,28 @@
+(931) c81co 読む線の計画（2026-11-07・Opus 5.5・コミットしない・腕 0 本・.cs 0 行）
+
+作業の場所
+- D:/PoB_work/r931_work/（このフォルダだけを作った）。worktree と枝は作らない（読むだけ・ソースは main の作業ツリー 11c35e54 を読むだけ・書かない）。
+- 台本：r931_work/*.py（python -X utf8 -I）。出力：r931_work/*_out.txt。まとめ：read931.txt。下書き：20261107_植民地格の州の産出0の続き_読み_下書き.md。
+
+読む生（消さない・書かない）
+- D:/PoB_work/keep_919/base_ins（基線 m919・種 1〜10）
+- D:/PoB_work/keep_919/n1・n2（ヌル腕）
+- D:/PoB_work/keep_919/a11（S11・種 11〜20）
+- 表：region_s（州×四半期の産出・人口・稼ぎ・工場と採取の稼働数・倒産数・foodFill）
+      subst_s（自給の産出・farmCap/Sold/Produced）
+      cearn_s（州のお金の出入り・savings・localPriceAtFloorFlag）
+      landbasereg_s（regionRgoCount・regionRgoOwnerEmpty・regionSubValue）
+      sbrreg_s（州の付加価値）・inpf_s・inpb_s（国×財の投入の失い）
+- 材料：D:/PoB_work/r916_work（deadreg916.py・_peru14.txt・read916.txt）・下書き 20261107_内戦の軍需の2回目の前… §2・§6
+
+読むソース（grep し直してから行番号を書く）
+- EconomyStep.cs：:945 付近 sellR・:1088〜:1130 の目標と TargetStockFloor・DesiredOutput。
+- World.cs：名目 GDP の和。
+- 生産者の能力・採算・投入の充足の書き手。
+
+手順
+1. deadreg916 を keep_919 の 4 本で数え直し（基準を m919 へ）。
+2. 続きの区間ごとに：持ち主の国・格・人口・自給の産出・州のお金・長さの分布・終わり方（持ち主の変化＝独立か割譲／人口の落ち／再点火）。
+3. 区間の中の稼働数・倒産数・生産者の数（region_s・landbasereg_s）で、〈生産者が居ない〉〈居て 0〉を分ける。
+4. ソースで、目標が立たない分岐を〈未発明・能力 0・投入の充足 0・採算 0・需要 0〉に分け、既にある生で分けられる所と計器が要る所を名乗る。
+5. 想定の形か欠損かをソースで分ける→案 1〜2・門の素案（両側）・旗 0 で落ちる紙の確かめ・突然変異の表・台帳の行の下書き。

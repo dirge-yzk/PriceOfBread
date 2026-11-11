@@ -1,0 +1,129 @@
+(848) c69eh 事前登録：人の居ない POP の口座のお金を、同じ州の人の居る POP へ人数の比で移す相続 R1（担当 Claude Opus 5.5・2026-11-05・波69・3 回の規則の 1 回目）
+出発：00一覧 §00〈次の波（波69〜）〉⑤・★(839) ②〈(a) 相続・確証なし＝計器で読んでから〉（作者 2026-11-05〈作者「全て推奨で」で推奨を採った〉）・(836) c67pu の R1（measurements/m836_20261105/report.txt 16〜25 行・54 行〜の素案・77 行の反証役 high）。
+木：worktree D:/PoB_work/wt_c69eh・枝 c69eh（7f34146c から）。作業フォルダ D:/PoB_work/c69eh_work。
+
+== §0 形と no-go の基準（紙を数える前に書く・この節はこのコミットで固定）
+形〈出口〉：旗 EmptyPopEstate（既定 0）＞0 のとき、毎月、国の全ての州で、人数 ≦1e-12（Model.cs:394 Blend の門 `!(from.Size > 1e-12)` と同じ）で在庫が正の POP の在庫の全額を、
+  同じ州の人数 ＞1e-12 の POP へ人数（Size）の比で移す（World.Transfer の 1 本・払い手＝人の居ない POP の集合〔保有の比で全額〕・受け手＝人の居る POP の集合〔重み null＝頭数〕・income=false）。
+  州に人の居る POP が無いときは移さない（計器に記録）。州の種類で分けない（植民地格だけの特例にしない）。新しい状態 0・係数 0（旗の 1 行だけ）。
+置き場：Simulation.DemographicStep の相続の段（estateRate の行・main の Simulation.cs:2729）の直前に呼び 1 行。
+  ⚠指示の〈月の頭〉と違う＝実際の位置は月の終わりに近い（DemographicStep は月の段の最後〔Simulation.cs:2503〕・MonthClose の直前・助走の月は呼ばれない）。
+  ここに置く理由：①相続の請求（死者×1 人あたりの貯蓄）は同じ走査の後で立つ＝人の居ない POP には死者が無い＝同じ月に二重に動かさない（移した後の人の居る POP の 1 人あたりの貯蓄は増え、相続の請求はその分だけ増える＝記録）
+  ②四半期の末の断面（cpop_s）は MonthClose の後に書く＝旗 1 なら断面の人の居ない在庫は〈その月の DemographicStep の後に入った額〉だけ＝G1 の観測量がまっすぐ読める。
+no-go の基準（紙を数える前に固定）：母集合 P（下）で、旗 0（基線の生 keep_845/base_ins）の share＝E/M が 0.01 未満の組が P の 9 割以上なら〈何もしない機構〉として腕を回さず形を報告する。
+  加えて：P の全ての種で W（ΣE/ΣM）が 0.01 未満でも no-go（金額で 1% 未満しか動かない）。
+母集合 P＝植民地格の州×四半期（cpop_s の行のある組・四半期 0〜667）のうち、州のお金 M＝Σmax(0,在庫)＞0 で、人数 ＞1e-12 の POP が 1 つ以上ある組。
+  E＝人数 ≦1e-12 で在庫が正の POP の在庫の和（四半期の末の断面）。全ての州（本土を含む）の数は、器のコミットで足す反実仮想の列（cearn_s の末尾）で ident c69ehz の生から取り直す（記録・門の母集合は P のまま）。
+紙の台本：scripts/instruments/c69eh/paper848.py（cpop_s だけを読む・エンジンを呼ばない）。
+
+== §1 紙の数（段0・今の盤面 keep_845/base_ins と新のヌル腕 keep_839/n1・n2・旗 0・出力 measurements/m848_20261105/paper848_out.txt）
+no-go の判定：P の share＜0.01 の割合＝基線 0.349（ヌル腕 0.386・0.391）＜0.9・W（種ごと）＝0.112〜0.405（中央 0.248）≧0.01＝**no-go に当たらない＝進める**。
+W（P の和の比）＝基線 0.2356・N1 0.1686・N2 0.1903。種ごとの W の最小＝基線 0.1118（種 5）・N1 0.0397（種 3）・N2 0.0875（種 7）。
+E の持ち手（10 種の和）：商人が E の約 95%（基線の種 1：商人 4.79e8・職人 1.15e7・資本家 1.29e7・他 0）。四半期 200 未満の W 0.31〜0.50・500 以上 0.004〜0.45（種で大きく違う）。
+受け手の居ない組（人数 ＞1e-12 の POP が 0 で E＞0）＝植民地格では 3 腕とも 0 件（四半期の末の断面）。
+資本家（popIndex 3＝InvestorPopIndex）が人数 ≦1e-12 で在庫が正の組＝基線の種あたり 13,513〜27,046 組（P の約 24〜48%）・在庫の和（四半期の和）1.86e6〜2.31e8。
+人の居ない POP の流れ（基線の種 1・植民地格・全期間の和）：商人＝流入 inMarket 7.64e6・inOther 3.37e6／流出 outCapital 4.77e6・outImport 4.13e6・outOther 1.29e6・outBond 4.27e4。資本家＝流入 inMarket 8.27e5・inFromPops 1.01e5／流出 outMarket 6.76e5・outColonialRent 1.07e5。在庫の和（四半期の和）5.03e8＝流れの約 40 倍＝在庫の大半は動かない。
+凍結の 15 件（m829 の名簿＝古い木の出来事・この盤面では記録）：入りの四半期の share＝基線 0〜1（0 が 3 件＝フォートユーコン・ヌエバ・グラナダ・パラワン）。人の居る POP の在庫の中央＝基線 91.7・N1 94.5・N2 3.08。
+
+== §2 置き場と月の中の順序（grep で確かめた）
+月の段（Simulation.cs の月の関数）：…Territory.Step → TechEducation → DemographicStep（:2503・助走は飛ぶ）→ BackstopNegativeSavings → CheckInvariants → Instruments.MonthClose（:2508）。
+四半期の末（MultiNationSim の四半期の段）：国の月 3 回の後に、外交・運河・巨大建造物・Market.Step（清算・firstClearingOfQuarter false）・港・海上保険・移民・招聘・発見・CapitalMarket.Step（配当）… → SelfPlay.cs:2183 Instruments.Quarter（cearn_s・cpop_s の行）。
+＝旗 1 でも四半期の末の断面 E は 0 にならない：第 3 月の DemographicStep の後に入った額（四半期の末の清算の商人の取り分・CapitalMarket の配当ほか）が残る。予言：W1 ≦ 1 四半期の人の居ない POP への流入÷M（基線の種 1＝流入 約 1.2e7／668 四半期 ≒ 1.8e4・M 約 2.36e6／四半期 ⇒ ≦ 約 0.008）。
+DemographicStep の早い return（総人口 ＜1e-9・massPop ＜1e-9）と助走（WarmupFrozen）は移しも止める＝助走中に溜まった在庫は助走の後の最初の月に一度に移る。
+
+== §3 形の細部（★(778)：事前登録の形＝実装の形）
+払い手＝州の Pops のうち `!(p.Size > 1e-12)` かつ `p.Savings > 0`（NaN の人数は空の側）。受け手＝同じ州の `p.Size > 1e-12` の全ての POP（兵士・閉鎖階級を含む・州の種類で分けない）。
+額＝払い手の在庫の和（全額）。World.Transfer((国, 払い手), (国, 受け手, 重み null＝頭数〔Pop.Distribute〕), 和, fromWeights: 払い手ごとの在庫〔払い手ごとに自分の在庫を全額＝scale 1〕)・income=false・区分は既定（POP→POP＝国庫に触れない）。
+閾値は 2 本：受け手の人数の和 ≦1e-9 なら移さない（World.Transfer の受け手不在の門と同じ＝実装はその前に自分で飛ばす）・払い手の在庫の和 ≦1e-9（Pop.Take の held の門）なら 0。
+確保：払い手の居る州だけで受け手のリストを作る（払い手の居ない州ではリストを確保しない）。旗 0＝計器の呼び 1 行の後に早い return（乱数を引かない・リストを確保しない）。
+新しい状態 0・係数 0（旗 EmptyPopEstate の 1 行）・セーブの欄 0。国ごとの特例なし・文化の属性なし。
+
+== §4 門（両側・腕 B〔計器つき 10 種・種 1〜10〕で読む・旗 0 の実測値つき）
+G1 働いた（大きさ・下限）：母集合 P（§0）・四半期の末の断面。腕 B で〈P の和の W ≦ 0.02〉かつ〈全ての種の W ≦ 0.02〉かつ〈P の share＜0.01 の割合 ≧ 0.7〉。
+  旗 0 の実測＝基線 W 0.2356・種の最小 0.1118・割合 0.349（落ちる）／N1 0.1686・0.0397・0.386（落ちる）／N2 0.1903・0.0875・0.391（落ちる）＝ヌル腕の一つ抜き 3 通りで空振り 0/3。0.02 はヌル腕の種の最小 0.0397 の半分（§2 の予言 ≦約 0.008 より上）。
+G2 保存（両側・cearn_s の末尾の列〔全ての州×四半期〕と cpop_s の末尾 2 列）：
+  ①下側：腕 B の全ての州×四半期の estateMovedPerQuarter の和 ＞0（移った）。
+  ②|estateInPerQuarter − estateMovedPerQuarter| ≦ 1e-9×max(1, estateMovedPerQuarter)（州の中で出と入りが閉じる＝別の州へ移さない）。
+  ③estateOutFromLivePerQuarter ≦ 1e-12（人数 ＞1e-12 の POP からは出ない）・estateInToEmptyPerQuarter ≦ 1e-12（人数 ≦1e-12 の POP へは入らない）。
+  ④estateRecvPerCapitaSpread ≦ 1e-9（月ごとの受けた額÷受け手の人数の最大と最小の差÷最大＝州の中で 1 本・四半期の最大）。
+  ⑤上側（湧かない）：estateMovedPerQuarter ≦ estateDuePerQuarter×(1＋1e-9)＋1e-12（移した額 ≦ その月の頭に計器が自分で数えた人の居ない在庫）。
+  ⑥cpop_s：州×四半期で Σ estateOutPerQuarter と Σ estateInPerQuarter の差 ≦ 1e-9×max(1, Σ out)。
+G3（凍結の 15 件の入りの四半期の人の居る POP の在庫と所得）：**記録へ下げる**（腕の前・紙で判別力を測った）＝基線 91.7・N1 94.5・N2 3.08 の一つ抜き 3 通りで〈腕と見なした 1 本が他 2 本の最大を超える〉が 1/3（N1）＝空振り 1/3 以上（gaud の型）。腕 B の値は記録に並べる。
+G4（素案〈人数 0 の POP の無い州で州のお金の分布が旗 0 と一致〉）：**分解した**（腕の中では 1 州で移した瞬間に値段と貿易が世界で分かれる＝連結の世界では必ず落ちる）＝(a) ident c69ehz（旗 0 で全行バイト一致）(b) 単体の試験〈人数 0 の POP が在庫を持たない州は旗 1 でも 1 ビットも変わらない〉。
+計算量：登録 0.5 秒以下（月に 1 回・国の州×POP の 1 周＋払い手の居る州だけ Transfer 1 本・AI の見積もり・確証なし）。.cost は記録（2 秒以下の割り当ては 1 本の腕で門にしない）。
+
+== §5 突然変異（腕の前・門ごとの赤の表）
+方法：計器つき 10 種の突然変異の腕は回さない（D: の空き＝1 本 約 15GB）。G2 と保存の系は EmptyPopEstateTests を使い捨ての木の写しで当てる（試験が G2 の述語と同じ量を数える＝〈近似〉と名乗る）。G1 の〈何もしない〉は旗 0 の紙（§1）で落ちることを確かめ済み。
+| 突然変異 | G1 | G2① | G2② | G2③ | G2④ | G2⑤ | 単体の試験 |
+| E0 何もしない（早い return を常に） | 赤（旗 0 の紙） | 赤 | 緑 | 緑 | 緑 | 緑 | 移る・保存・計器の試験が赤 |
+| E1 人数の比でなく均等に配る | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 人数の比が赤 |
+| E2 人の居る POP からも出す（払い手の門を外す） | — | 緑 | 緑 | 赤 | 緑 | 赤 | 人の居る POP から出ないが赤 |
+| E3 別の州へ移す（次の州の受け手へ） | — | 緑 | 赤 | 緑 | 緑 | 緑 | 州の和が赤 |
+| E4 人数 0 の POP へも配る（受け手の門を外す・重み 1） | — | 緑 | 緑 | 赤 | 赤 | 緑 | 人数の比が赤 |
+結果は measurements/m848_20261105/mutation.txt（使い捨ての木 D:/PoB_work/c69eh_mut）。
+
+== §6 走査の番人（㉘）と変わる件数の予言（㉑）
+工業化度の読み手の許可表：触れない（新しいファイルは工業化度を読まない）＝0。`new MoneyStock(` の件数：0 本足す（World.Transfer を通す）。route_anchors.tsv の鍵：足さない・Simulation.cs の鍵の行（アンカーは行のコードの文字列）は動かない（挿入は新しい行）。
+WriterRatchetTests の宣言の表：`Pop.Take(`・`Pop.Distribute(` を直接呼ばない（World.Transfer を通す）＝0。計算量の宣言の表（最初の 40 四半期・1 種の件数）は旗 1 で軌道が動く＝**点火の後は赤になる見込み**＝★(749) の〈軌道の件数を写しただけの番人〉＝線では取り直さない・赤のまま報告（合流の木で 1 回だけ）。
+`grep -ln Savings PriceOfBread.Tests/*.cs` の Assert の点検は器のコミットの後（§8 に書き足す）。
+
+== §7 恒等の判定 c69ehz の予言（結果の前）
+旗 0：成績表 3 枚（b5・b10・計器つき b10）と計器の表は基準と全行一致。宣言は --grown-ok cearn_s,cpop_s（cearn_s の末尾 8 列・cpop_s の末尾 2 列＝c69eh の持ち主は cpop_s・cearn_s の列は担当の範囲〈cpop_s の末尾〉より半歩外＝報告に名乗る）・--tests-delta ＋7（EmptyPopEstateTests 7 本）。
+cearn_s の経路の 3 列（outTop1Route・outTop2Route・inTop1Route）：旗 0 では新しい経路の名は出ない（本体は新しいファイル EmptyPopEstate.cs）。Simulation.cs の挿入行より下の経路（main の :2804・:2957・:3007・:3063＝基線の生の名 Simulation.cs:2804:take:T・:2955:giveIncome:M・:3007:take:M・:3063:give:C ほか）は 1 行ずれる＝ident_check.py の BASE_COMMIT の写像（difflib）で写る＝不一致にならない見込み。確かめは ident_check.py の写像と scripts/instruments/c66dw/cearn_remap.py の両方。
+旗 1（腕 B）の予言：新しい経路 EmptyPopEstate.cs:<呼びの行>:take:P（outTop1Route／outTop2Route）と EmptyPopEstate.cs:<同>:give:P（inTop1Route）が植民地格の州の行に現れる。列の振り分けは take:P＝outOther・give:P＝inFromPops。
+
+== §8 止める線（この回の形をそのまま写す）
+破綻（クラッシュ・NaN・保存則・savetest・進行不能）／空洞化 1/10 未満の名簿の外（holclass839.py・規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない・作者の ①〈線の自分の腕も数える〉＝腕 B の〈線が原因〉の件は止める線）／名目 GDP と価格水準の 1 四半期に 100 倍以上（gdp_jump797.py・gdp_jump833.py の〈それ以外〉だけ・建国の直後の型と政府の人口の 1/10・10 倍の四半期はヌル腕の件数と並べる・基準とヌル腕を同じ台本で数え直す）／1e10 倍以上／推定の計算量 ＞248.5 秒／savetest・leakhunt／機構のテストの赤（ソースを走査する番人 6 組を含む・★(749) の計算量の表は別の区分）。
+記録：開幕の 1000 倍以上（同じ国が半分以上の種なら NG）・名目 GDP 0 の続き（gdp_zero10.py・記録の先頭）・NG（ng.sh・基準 rd:measurements/ng839_20261105:m839）・exact・near・史実の線・空洞化 1/4 未満の件数・c69hl の新しい型（記録として並べるだけ）。3 世代のヌル腕（新 m839・旧 m826・旧 m797）の件数を並べる。
+記録の先頭（予言＝旗 1 の出力を見る前）：
+  ①植民地の投資（EconomyStep.cs:1039 budget＝IndInvestmentFrac×max(0, Pops[3].Savings)）：資本家が空の植民地格の州×四半期（種あたり 1.4〜2.7 万組）で、原資が〈溜まった在庫〉から〈1 か月以内の流入〉へ＝桁で落ちる向き。観測量＝cpop_s の資本家（popIndex 3）の在庫と cearn_s の factoryOutputRefValuePerMonth（植民地格）。
+  ②商人の取り分の移り：E の約 95% は商人＝毎月掃き出すと、人の居ない商人が払っていた outImport（輸入の代金）と outCapital（外資の配当・資本の送り出し）は〈1 か月以内の流入〉に縛られる＝それらの州の輸入と資本の流出は減る向き。Pop.Take は held ≦1e-9 で 0＝空の商人の支払いが〈払えない〉に変わる（BilateralMarket.cs:595 の港の持ち主の門 Size ＞1e-9 と閾値が違う＝記録）。
+  ③人の居る POP の在庫：P の人の居る在庫の割合は 1−W＝約 0.76→約 1 へ（+30% 前後）。相続法の請求（死者×1 人あたりの貯蓄）はその分だけ増える。
+  ④英の国債の不履行の種・1/4 未満の件数は記録。
+腕 B の生：反証役が読んだ後に、門と止める線の読み手が開く表だけ（region_s・migration_s・gdp の表・門の列の表〔cearn_s・cpop_s〕と keepsum_all_tables.tsv＝keep_839_rej/abDW0_md_10 の型）へ縮める。縮めた後も合流が読むまで残す。ident c69ehz の生は判定と反証役の読みの後に keepsum を measurements/m848_20261105/ へ残して消す。
+
+== §9 追記（2026-11-05・ident c69ehz の 1 回目の後・旗 1 の出力を見る前＝⑭の〈形の変え直し〉に数えない）
+1 回目（木 bb767545・印の記録 measurements/m848_20261105/ident_c69ehz_run1.txt）は〈判定: 不一致〉。理由は 2 件とも道具の限界で、恒等の破れではない：
+  ①.cost の件数の行〈海軍の発注の配り〉はラベルの文字列だけが違う（値は同じ 1946888・1947035）＝c68ui (843) の名の変え＝m845 の ident も `--cost-allow 海軍の発注の配り` で通した。この線とは無関係＝同じ宣言を足す。
+  ②cearn_s の経路 3 列：ident_check.py の cearn_same_but_location は見出しの一致（ra[0]==rb[0]）を前提にする＝列が末尾に増えた表では写像が走らず、Simulation.cs の 1 行の挿入で動いた行番号を〈宣言の無い違い〉と数えた。
+     §7 の予言〈difflib で写る＝不一致にならない〉は外れた（道具が grown と写像を同時に扱えない）。補助の読み手 scripts/instruments/c69eh/routecheck848.py（基準の行番号を測る木へ写して経路の 3 列だけ比べ、共通の列はバイトで比べる）では 10 種の 2,101,712 行で経路の違い 0・共通の列の違い 0（measurements/m848_20261105/routecheck_identz1.txt）。
+直し（形は同じ・順序も同じ）：Simulation.cs の足した 1 行を消し、呼びを既存の行 `double estateRate = Government.InheritanceRate(World.Inheritance);` の頭へ同じ行として置いた（`EmptyPopEstate.Step(World); double estateRate = …`）＝Simulation.cs の行番号は ef637d89 と同じ（World.Transfer の行番号の並びが一致を確かめた）＝cearn_s の共通の列はバイトで比べられる。
+2 回目の ident の宣言：--grown-ok cearn_s,cpop_s・--tests-delta 7・--cost-allow 海軍の発注の配り。EmptyPopEstate.cs の World.Transfer は 28 行目＝旗 1 の腕の新しい経路の名は EmptyPopEstate.cs:28:take:P と EmptyPopEstate.cs:28:give:P（§7 の <呼びの行>）。
+1 回目の生は keepsum（measurements/m848_20261105/keepsum_identz1_ins.tsv）を残して 2 回目に置き換えた（同じラベルの start は古い出力を消す）。
+全ての州の反実仮想（1 回目の生・旗 0・cearn_s の末尾の列・measurements/m848_20261105/gate848_identz1.txt）：格ごとの〈断面の空の在庫÷州の在庫〉＝植民地格 0.2356（cpop_s の紙と一致）・本国格（Core）0.000114・統合格（Integrated）9.4e-11。
+  その月に移るはずの額の 10 種の和＝植民地格 1.456e10・本国格 8.79e8・統合格 51.2・受け手の居ない州 0。due＞0 の州×四半期＝植民地格 394,821／574,835・本国格 104,221／1,392,843・統合格 10,684／134,034。
+  G2①（移った額の和 ＞0）は旗 0 で 0＝落ちる（旗 0 で門が落ちることの確かめ）。G2②〜⑥ は旗 0 で違反 0（0 を 0 と比べる＝旗 0 では判別しない側の門）。
+突然変異（measurements/m848_20261105/mutation.txt）：§5 の表どおり、E0〜E4 は全て少なくとも 1 本の試験で赤。表より余分に赤：E2 で〈人数 0 の POP が在庫を持たない州は旗 1 でも変わらない〉・E3 で同じ試験（どちらも形どおり）。
+  〈州に人の居る POP が無ければ動かない〉はどの突然変異でも緑＝受け手の人数の和の門は World.Transfer の受け手不在の門が二重に守る＝EmptyPopEstate だけの突然変異では落とせない（名乗る）。
+基線とヌル腕 3 世代の止める線の数え直し（同じ台本 scripts/instruments/c69eh/stoplines848.sh・出力 measurements/m848_20261105/stop_null/）。
+
+== §10 追記（2026-11-05・点火 6d71ed93 の後・腕 B の前＝旗 1 のフルスイート〔㉜〕の結果・measurements/m848_20261105/suite_flag1.txt）
+--list-tests は Category!=FullLength 2251・FullLength 3（ident と同じ）。FullLength 3 本合格・中止 0。Category!=FullLength は 2246 合格・スキップ 1・失敗 4：
+  ①WriterRatchetTests の計算量の表 3 行（item 9〈清算：着値の充填〉34,767,013→28,790,685・item 1〈価格：日次の写像の回〉18,448,309→14,079,089〔どちらも 10% を超えて下がった〕・item 11〈外交：覇権の判定の国×国〉2,787,201→3,382,172〔増えた〕）
+     ＝§6 の予言どおり★(749) の〈軌道の件数を写しただけの番人〉＝機構の赤ではない＝線では取り直さない（赤のまま・合流の木で 1 回だけ）。item 11 は★(749) の注意の行。
+  ②EmptyPopEstateTests〈計器の列は移った額を読み_出と入りが州の中で閉じる〉＝試験の前提〈国 1 は旗 0〉を既定に頼っていた（点火で既定が 1 になり国 1 も移した）＝前提の明示だけを直した（★(826) ② の型・機構の主張の Assert は同じ式のまま）：
+     diff：`w.Coef.EmptyPopEstate = 1;   // 国 0 だけ旗 1（国 1 は旗 0＝移さないが due は数える）` の次の行に `sim.Nations[1].World.Coef.EmptyPopEstate = 0;   // 前提を既定に頼らず明示（点火の後の既定は 1）` を足した。
+     Assert（`if (c[Ix("nation")] != nation0) Assert.Equal(0.0, moved);` ほか）は 1 字も変えていない。直した後は 7 本合格。
+savetest OK（12 四半期後も全 61 カ国が継続系列と一致）・leakhunt 完走（200 四半期・保存則違反なし・説明できない増減 0）。＝腕 B を回す（赤は①の区分と②の前提だけ）。
+
+== §11 追記（2026-11-05・腕 B1 の後＝**旗 1 の出力を見た後のエンジンの変更**＝⑭ の〈形の変え直し〉の 1 回の枠を使う・腕 B2 の前に書く）
+腕 B1（D:/PoB_work/c69eh_armB・記録 measurements/m848_20261105/armB1/）の門：G1 通る（P の和の W 2.62e-7・種の最大 8.27e-7・割合 0.9983）・G2 ①②③⑤⑥ 通る・**G2④ 落ちる**（1,489 組で受け手の 1 人あたりの広がり ＞1e-9・最大 5.4e-4・全て植民地格）。止める線は全て通る（100 倍 0・1e10 倍 0・1/10 は例外の名簿のバロー 1 件だけ・名目 GDP 0 の続き 0・推定 212.1 秒）。
+＝B1 は採らない（物差し〔④ の 1e-9・相対〕は替えない）。
+原因（試験で確かめた）：Pop.Distribute は端数を**並びの末尾の受け手**へ寄せる（`share = … : amount - done`）＝末尾の受け手の人数がごく小さいと、1 人あたりの相対のずれが ε×Σ人数÷末尾の人数 まで膨らむ（金額のずれは 1e-13 の桁）。§3 は受け手の並びを書いていなかった＝形の指定の漏れ。
+  試験 EmptyPopEstateTests〈末尾の受け手の人数がごく小さくても1人あたりの受け取りは1本〉（末尾の受け手の人数 1e-10）を足した＝今の形（並びのまま）で**赤**（(最大−最小)÷最大＝0.00315）＝突然変異 E5〈並びを直さない形〉の記録を兼ねる。
+直し（⑭ の 1 回の枠・2 回目は無し＝B2 が 1 つでも落ちたら止めて報告）：受け手のリストを作った後、人数が最大の受け手を末尾と 1 回だけ入れ替える（払い手・額・閾値・確保の回数は触らない）。
+  変更する行は EmptyPopEstate.Step の `if (!(w.Coef.EmptyPopEstate > 0)) return;` より後だけ＝旗 0 の経路は 1 字も触らない（ident c69ehz の〈判定: 恒等〉はそのまま当てはまる・合流の Z 腕で確かめる）。
+予言（B2）：G2④ の広がり ≦1e-13 の桁・G1 は B1 と同じ水準（W ≦1e-6）・他の門と止める線は B2 で全て読み直す（軌道は B1 と別物＝人数の比の端数の帰属が変わる）。
+B1 の生は §8 の形へ縮める（keepsum_all_tables.tsv を先に書く・残す表＝読み手が開く nation_s・region_s・migration_s・pxmonth_s・wars_s・stock_s・casualty_s・fiscal_s・cessp_s・canal_s・tnation_s・flow_s・cearn_s・cpop_s）。
+§11 の補い（同じ日・B2 の前）：直しの後も試験が赤（0.00258）＝試験の読み方の桁落ち（末尾の小さな受け手の受けた額を〈後の在庫−前の在庫〉で読むと、前の在庫が大きいときに 1e-16×在庫÷受けた額 の誤差が出る）。
+  計器（cearn_s の estateRecvPerCapitaSpread）は Sav の口に渡る額そのもの（share）を読む＝桁落ちは無い＝B1 の ④ の赤は末尾の端数の帰属で説明できる（計器の読み方の側の問題ではない）。
+  試験は、末尾の受け手の在庫を先に 0 の近く（|在庫|＜1e-9）へ移してから読む形に直した（主張の式〈(最大−最小)÷最大 ≦1e-9〉は同じ）。§11 の〈今の形で赤（0.00315）〉は桁落ちを含む値＝今の形で赤になるかは突然変異 E5〈入れ替えを外す〉で取り直す（measurements/m848_20261105/mutation.txt に追記）。
+
+== §12 追記（2026-11-05・B2 の前）：D: の空きの床で B2 を起こせない
+形の変え直しの後の木（1ff69dcd→107830f7）のフルスイート・savetest・leakhunt・突然変異は済み（measurements/m848_20261105/suite_flag1.txt・mutation2.txt）。B2 の起動の前に測った D: の空きは 25.5GB（床 35GB の下・腕の枠は 6 空き）。
+  自分の物で消せるのは B1 の縮めた生（約 6.6GB）だけ＝全部消しても約 32GB で床に届かない・§8／§11 で〈縮めて合流まで残す〉と書いた＝消さない（⑲）。他の線の生には触らない。
+  ＝この回では B2 を回さない。B2 の回し方（合流か次の回）：`POB_WORK=D:/PoB_work/c69eh_armB2 bash scripts/instruments/batch.sh prep c69ehB dir:<c69eh の木> plain` → `POB_WORK=D:/PoB_work/c69eh_armB2 INS=1 bash scripts/instruments/batch.sh run c69ehB 10` → `bash scripts/instruments/c69eh/postB848.sh <出力> D:/PoB_work/c69eh_armB2`（門と止める線は §4・§8 のまま・④ の最大の広がり〔予言 ≦1e-13 の桁〕を最初に読む）。
+B1 の同じ盤面の新÷旧（measurements/m848_20261105/armB1/ratio848_B1.txt・cearn_s の同じ種・四半期・国・州の行どうし・記録）：
+  植民地格：工場の産出の値の比の中央 0.63（ヌル腕 0.93・0.94）・輸入の代金の和の比 0.27（ヌル腕 0.96・1.05）・州の在庫の比の中央 0.60（ヌル腕 0.99・0.98）・外資の出 outCapital の和の比 1.38（ヌル腕 1.44・1.64）。
+  本国格：outCapital の和の比 2.38（ヌル腕 1.73・1.55＝ヌル腕の外の上）・工場の産出の値の和の比 1.02（ヌル腕 0.93・0.95）。
+止める線の 3 世代の並べ表：measurements/m848_20261105/stop_table_B1.tsv（B1 は全ての止める線で 0・英の不履行 6/10＝ヌル腕 2〜6/10 の上端）。

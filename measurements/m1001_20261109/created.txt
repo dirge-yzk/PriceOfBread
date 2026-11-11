@@ -1,0 +1,4 @@
+created 2026-11-09 23:08:15: D:/PoB_work/m1001_work, D:/PoB_work/wt_m1001 (branch m1001)
+created 2026-11-09 23:14:55: D:/PoB_work/wt_m1001z (branch m1001z)
+created 2026-11-09 23:59:36: D:/PoB_work/ident_m1001z（ident.sh の作業）
+created 2026-11-10 01:04:19: D:/PoB_work/keep_1001（base_ins＝M・n1・n2・a11＝S11〔CEARN=0〕・m1001_work の out_*/ins から移した）

@@ -1,0 +1,9 @@
+# (869) 走査の番人 7 組＋ImportPayerLiveTests（点火 491a89ac の木・隔離ビルド D:/PoB_work/c72ip_art・Release・2026-11-06）
+失敗!   -失敗:     3、合格:   188、スキップ:     0、合計:   191、期間: 11 m 16 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [< 1 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [< 1 ms]
+予言 [8]＝WriterRatchetTests の item {1, 9, 11} だけ赤＝当たり（値は (863) の実測と同じ）。他の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests・ImportPayerLiveTests）は緑。
+計算量「価格：日次の写像の回」が 15859997 件（宣言 14043298・許し +2 %）
+計算量「外交：覇権の判定の国×国」が 1923064 件（宣言 2978732）＝10 % を超えて**下がった**＝表を 1923064 へ下げて理由を書く（＝改善の宣言）。
+計算量「清算：着値の充填」が 31414231 件（宣言 28783150・許し +2 %）

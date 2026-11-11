@@ -1,0 +1,9 @@
+突然変異 M3b_oldtest（木 4cda498a・old-test）
+ PriceOfBread.SimCore/InstrumentsCearn.cs     |  2 +-
+ PriceOfBread.Tests/CearnTradeColumnsTests.cs | 70 ++--------------------------
+ 2 files changed, 6 insertions(+), 66 deletions(-)
+-        else foreach (var p in r.Pops) ob += System.Math.Max(0, p.Savings.Value);
++        else foreach (var p in r.Pops) if (p.Size > 1e-12) ob += System.Math.Max(0, p.Savings.Value);
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

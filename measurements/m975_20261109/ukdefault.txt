@@ -1,0 +1,8 @@
+D:/PoB_work/m975_work/out_mM_10/ins	5/10	[4, 6, 7, 8, 9]
+D:/PoB_work/m975_work/out_mS_10_s11/ins	5/10	[11, 12, 17, 18, 19]
+D:/PoB_work/m975_work/out_n1_10/ins	6/10	[1, 2, 3, 4, 6, 7]
+D:/PoB_work/m975_work/out_n2_10/ins	4/10	[2, 7, 8, 9]
+D:/PoB_work/keep_968/base_ins	4/10	[1, 2, 8, 10]
+D:/PoB_work/keep_968/a11	3/10	[11, 14, 17]
+D:/PoB_work/keep_968/n1	5/10	[2, 3, 5, 9, 10]
+D:/PoB_work/keep_968/n2	6/10	[1, 2, 3, 5, 8, 9]

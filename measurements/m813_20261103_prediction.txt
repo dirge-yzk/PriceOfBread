@@ -1,0 +1,36 @@
+(813) 合流（波63）の予言（腕の前・merge の前に書く・書いたモデル Claude Opus 5.5）
+基点 main 9ce2cf90。基準の成績表 m797（b5_20261103_m797・b10_20261103_m797・b10_20261103_m797_ins）。
+
+[1] 入れる物
+- c13ia (811)：恒等の線（判定: 恒等＝測った種で一致・反証役 high 0）＝枝 origin/c13ia 3e25fe42 を --no-ff で merge。
+- c13ib (812)：恒等の線（判定: 恒等＝測った種で一致・反証役 high 0）＝枝 origin/c13ib 24299450 を --no-ff で merge。
+- c13fl (810)：挙動の線は採らない（腕 B の後のフルスイートで機構と不変条件の番人 3 本が赤＝止める線 RULE47・赤は旗 0 の器 fb258d37 にもある＝ソースの走査の番人）。
+  入れるのは scripts/instruments/c13fl/ と measurements/m810_20261103/・m810_20261103_*・b5_20261103_c13flz*・b10_20261103_c13flz_ins*・b10_20261103_c13flB_ins* だけ（git checkout origin/c13fl -- <パス>）。
+  入れない物：CapitalMarket.cs・InstrumentsDivhost.cs・Coefficients.cs の注・CapitalCouponWriteDownTests.cs・CapitalDividendHostRentTests.cs:62。
+- c13hl (809)：読むだけ＝D:/PoB_work/r809_work の台本を scripts/instruments/r809/ へ・表と報告を measurements/m809_20261103/ へ写す。
+- 合流が足す物：エンジンの注だけの直し（焼き込みの後で嘘になった注＝Simulation.cs の MilitaryBudgetNeedCapped の旗 0 を前提にした注・InstrumentsUrx.cs の summary の UrbanIndSmoothed）。式・係数・順序は変えない。試験の .cs は触らない。
+- ★(773) の grep（消す名前を他の枝の足した行で探す）：c13ia の 7 名を c13ib・c13fl の + 行で 0・c13ib の 17 名（I5 の旗 3・天井の目盛 3・状態 1・PopDecision の 2・緊張の旧名 8）を c13ia・c13fl の + 行で 0。
+
+[2] 合わせた木で動く物（予言）
+- 挙動を変える線は無い＝合わせた木の成績表は m797 と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+  - 素の 5 種 → b5_20261103_m797 と 184 行一致。.cost の件数の行 29 本・推定 220.1 秒が一致。
+  - 計器つき 10 種 → b10_20261103_m797_ins と 185 行一致。.cost の推定 221.2 秒が一致。
+  - 計器の表：基準 979 本・腕 979 本・バイト一致 949・既知の揺れ 30（burscan_s・clock_s・flow_s の呼び出し位置）・宣言 0（c13fl の divhost_s の +6 列・divworld_s は入れない）。
+  - 注視の表 4636 行一致。
+  - NG 101・新しい 0・外れた 0（基準 rd:measurements/ng797_20261103:m797）。
+  - 試験：Category!=FullLength 2221−1（c13ia の Theory→Fact）＋0（c13ib の −3＋3）＝2220・FullLength 3。
+  - savetest OK・leakhunt 保存則違反なし。
+- 基線の名は m797 のまま（ident.cfg の B5・B10INS・MON・NG_BASE は据え置き・TESTS_NONFULL 2221→2220・INSRAW は合わせた木の ident の計器つき 10 種の生 keep_813/base_ins へ移す）。
+
+[3] 止める線の段（合わせた木）
+- 機構と不変条件のテストの赤 0（フルスイート・Category!=FullLength と FullLength を分けて回す）。
+- 破綻 0・価格水準の 1 四半期 100 倍以上 0・1e10 倍以上 0・空洞化 1/10 未満（規則 A2 の外）0 件・推定 221.2 秒＝m797 と同じ字（同じ軌道）。
+- 一致しなければ c13ib を抜いた木で切り分ける（他は触らない）。
+
+[4] 記録の段（採否に使わない）
+- 空洞化 1/4 未満 6 件・名目 GDP 0 の続き 0・開幕の 1000 倍以上 0・英の国債の不履行 M 4/10（m797 と同じ生）・N1 5/10・N2 4/10・S11 3/10（keep_797 の生・(808) の数え直しを引く）。
+- c13fl の腕 B の記録（exact 48.5・near 83.6・NG 89〔新 10 外 22〕・空洞化 1/4 未満 12・英の不履行 5/10）は採らなかった腕の記録として写す。
+
+[5] 生の始末の予定
+- c13fl の腕 B の生 → D:/PoB_work/keep_813/rej/c13flB_10。keep_808/rd806・keep_808/rej → keep_813/ へ移す。keep_808 は参照先を直したコミットと同時に消す。keep_797（n1・n2・a11）は残す。
+- 線の ident の生（ident_c13ia・ident_c13ib・c13fl_work/ident_z）と突然変異の生は、合わせた木の ident〈判定: 恒等〉と結果のコミットを確かめた後に消す。

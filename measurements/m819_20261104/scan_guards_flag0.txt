@@ -1,0 +1,7 @@
+(819) c65fl 走査の番人の組（㉘）＋規則 C の Theory＋CapitalCouponWriteDownTests・旗 0 の木 ccd76bcf・隔離ビルド D:/PoB_work/c65fl_art
+filter: IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|FiscalTests.外資の配当と逃避は投資家までしか払わない|CapitalCouponWriteDownTests
+rc=0・合計 135・失敗 0（GoodIdGuardTests は旗 1 の木のフルスイートで回す）
+  成功 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(writeDown: 1) [2 s]
+  成功 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(writeDown: 0) [53 ms]
+テストの合計数: 135
+合計時間: 13.0805 分

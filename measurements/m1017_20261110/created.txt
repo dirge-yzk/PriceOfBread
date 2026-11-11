@@ -1,0 +1,5 @@
+D:/PoB_work/m1017_work（合流の作業）
+D:/PoB_work/wt_m1017（測る木・枝 m1017）
+D:/PoB_work/wt_m1017z（腕 Z の使い捨ての木・枝 m1017z）
+D:/PoB_work/ident_m1017z（腕 Z の ident.sh）
+D:/PoB_work/keep_1017（新しい基線 m1017 の生＝base_ins〔M〕・n1・n2・a11〔S11・POB_CEARN=0〕）

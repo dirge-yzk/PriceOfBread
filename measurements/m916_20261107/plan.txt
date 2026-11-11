@@ -1,0 +1,20 @@
+(916) c79cw 読む線の計画（2026-11-07・担当 Opus 5.5）
+作業の場所：D:/PoB_work/r916_work/（このフォルダだけを作る・worktree と枝は作らない・コミットしない）
+ソースの読み：main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 17b9a1ed＝b482aa8b と SimCore 同じ）を読むだけ（書かない）。
+腕：0 本。
+
+読む生：
+- D:/PoB_work/keep_905_rej/c77cwB_10（腕 B・種 1〜10・表 admrule cederule cessp cwmult migration nation pxmonth region rule wars のみ）
+- D:/PoB_work/keep_905_rej/c77cwS_10_s11（S11・種 11〜20・同じ 10 表）
+- D:/PoB_work/keep_905_rej/c77cw_flag0_cwmult（旗 0 の cwmult・種 1〜10）
+- D:/PoB_work/keep_905/base_ins・n1・n2・a11（基準とヌル腕・a11 が種 11〜20 の基準）
+- measurements/m903_20261106/・m903_20261106_prereg_cw.txt・scripts/instruments/c77cw/
+- scripts/instruments/c78gz/・measurements/m906_20261106/・measurements/m912_20261107/stop906_n1.txt
+
+手順：
+1. stoplines906.sh を c77cwB_10（種 1）・c77cwS_10_s11（種 11）・keep_905/a11（種 11・比較）に当てる（bg.sh・run_in_background）。台本は書き換えない。
+2. 種 14 共和制両シチリア：nation_s_14・wars_s_14 から建国・q468〜q474 の名目 GDP 0・人口・州・格・独立を読む。0 の書き手をソースで分ける。NaN・保存則の確かめ。
+3. a11 の種 14 との分かれ（wars・nation の最初の差の四半期）。
+4. 2 回目の前提の紙（門 G1・G1f・G2・G3）。
+5. MilitaryWarMult 9.0 の導き直しの案 2〜3 個（grep で既存量を確かめる）。
+出力：read916.txt・20261107_内戦の軍需の2回目の前_読みとMilitaryWarMultの導き直し_下書き.md・台本（*.py）・stop_*.txt

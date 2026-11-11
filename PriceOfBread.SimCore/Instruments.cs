@@ -71,14 +71,14 @@ public static partial class Instruments
 
     sealed class WState
     {
-        public double FleetMovedOutCeded, FleetReceivedCeded, FleetReturned;   // ★(688) 線 navf5：割譲で艦ごと出ていった隻数（送り手）・割譲で艦を受け取った隻数（受け手）・旗 NavalCedeFleetReturn で送り手の首都の州へ戻した隻数（送り手）の累計（読むだけ・World ごと）
+        public double FleetMovedOutCeded, FleetReceivedCeded, FleetReturned;   // ★(688) 線 navf5：割譲で艦ごと出ていった隻数（送り手）・割譲で艦を受け取った隻数（受け手）・割譲で送り手の首都の州へ戻した隻数（送り手・旗 NavalCedeFleetReturn は (817) で焼き込み）の累計（読むだけ・World ごと）
         public double FleetMovedOutHome, FleetMovedOutColonial;   // ★(669) 線 navf3：この国（送り手）の州が割譲・分離独立などで FleetUnits ごと出ていった隻数の累計を、出た州の格（移る前の Tier）で分けた（読むだけ・World ごと）
         public long BurTicks; public int BurCalls;         // (389) 走査の実時間（Stopwatch の刻み）と呼びの数
         public string? BurRow;                             // (389) 官僚制度の判断の表の行（GateAllLawTargets が置き BurFold が書いて消す）
         public int ModStance = -1; public double ModGapUsed = double.NaN;   // (416) AI の近代化投資の判断（Apply が置き ModFold が書いて戻す）
         public List<string>? SecRows;                      // (395) 州の分離の内訳の行（CheckSecession が置き SecFold が書いて消す）
         public List<string>? EpiRows;                      // (629) 疫病 1 件ごとの行（World.TriggerEpidemic が置き EpiFold が書いて消す）
-        public string? CoupRow; public int CoupRoute;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
+        public string? CoupRow; public int CoupRoute, CoupNanBranch;      // (393) 軍の力の入口の表の行と第 1 の門の後の経路（Politics.Transition が置き CoupFold が書いて消す）
         public bool Active, Armed;                         // 今月の写しが有効か／月初の Begin が走ったか
         public readonly double[] Claim = new double[(int)Item.Count];
         public double Treasury0, Payable0, Spare0, Payable1, Borrowed, Devalued, ClaimsTotal, PayRate;
@@ -157,6 +157,7 @@ public static partial class Instruments
         public int FsxDevMonths, FsxGateMonths, FsxOverMonths; public double FsxPForceSum, FsxPForceMax, FsxPMSum, FsxPSSum, FsxPSMax, FsxFloorSum, FsxDoneSum, FsxAboveFloorSum, FsxExcessWouldSum;   // (616) 今の四半期の中の月ごとの和／最大
         public readonly List<string> DcRows = new();   // (587) 旧の切り下げの切り（貯蓄の月の上限）に当たった月の行（全ての国・まばら）
         public int PcWarmN, PcGameN; public readonly List<string> PcRows = new();   // (582) 物価の更新の呼びの番号（全ての国・挙げた国の PxWarmN／PxGameN と同じ数え方）と、天井・床に触れた行（全ての国・まばら）
+        public readonly List<string> PinitRows = new();   // ★(972) c87mt M/Y の趨勢の基準を置いた／見送った四半期の行（全ての国・pinit_s）
         public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
         public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
         // ---- (281) 線O0：借入の門の周り（読むだけ・月ごとの印と四半期の和）。LimitPrev＝前の月の「利払いが限界に届いたか」は四半期をまたぐ（助走の月は -1 へ戻す）
@@ -206,6 +207,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? PfixW, PjumpW, FsxW; public bool PfixHeader, PjumpHeader, FsxHeader;   // (603) pfix_s・pjump_s
         public System.IO.StreamWriter? DevCapW; public bool DevCapHeader;   // (587) 切り下げの切りに当たった月（全ての国・まばら）
         public System.IO.StreamWriter? PClamp; public bool PClampHeader;   // (582) 物価の天井・床の接触（全ての国・まばら）
+        public System.IO.StreamWriter? Pinit; public bool PinitHeader;   // ★(972) c87mt 趨勢の基準の表 pinit_s（全ての国・国ごとに初期化の 1 行＋見送った四半期）
         public System.IO.StreamWriter? Site, Metal, MetalNat; public bool SiteHeader, MetalHeader, MetalNatHeader;   // (316) 産地の判定の行・世界の金銀の行／(582) 国別の金銀の行
         public System.IO.StreamWriter? Eng; public bool EngHeader;                         // (415) 発見の表の行の親の産業の技師の量（census）
         public System.IO.StreamWriter? Clock; public bool ClockHeader;                     // (461) 発見の時計の表（census）
@@ -251,6 +253,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Fb; public bool FbHeader;   // (550) 工場の建屋の財（建造物）の表（旗 BuildingGoodBundle が正の国×四半期・InstrumentsFb.cs）
         public System.IO.StreamWriter? Wp; public bool WpHeader;   // (537) 旧と新の武器の並行の表（挙げた国×四半期×{小銃・火砲・蒸気機関}）
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // (416) 近代化投資の信号の表（国×四半期）・国力の旧と新の表（国×年末）
+        public System.IO.StreamWriter? Lawgate2; public bool Lawgate2Header;                // (908) 施行の否決の理由の表 lawgate2_s
         public System.IO.StreamWriter? LawGate; public bool LawGateHeader;                 // (423) 法の門の旧と新の表（国×四半期）
         public System.IO.StreamWriter? SvcBuy; public bool SvcBuyHeader;                   // (433) 家事奉仕の買い手の表（国×四半期×階級）
         public System.IO.StreamWriter? Dcont; public bool DcontHeader;                       // (417) 不満度の読み手の表（国×四半期）
@@ -300,6 +303,7 @@ public static partial class Instruments
     internal static void Begin(World w)
     {
         var st = S(w);
+        CearnRegister(w);   // (822) 植民地の稼ぎの表：全ての国の州の POP を州の台帳へ登録（月初・読むだけ）
         if (IsPicked(w, st)) RegisterPops(w, st);   // (262) 貯蓄の書き手の台帳：挙げた国の POP を台帳の持ち主へ登録（月初・新しい POP は次の月から）
         st.Active = !w.WarmupFrozen; st.Armed = true;
         if (!st.Active) { st.HaveLedger = false; st.LimitPrev = -1; return; }   // (281) 助走の月は限界の縁の往復を数えない
@@ -1004,6 +1008,7 @@ public static partial class Instruments
             f.Code = code; f.Net = code is 0 or 5 or 6 ? double.NaN : st.GfGateNet;
             if (gated) { f.Cost = st.GfGateCost; f.SDec = st.GfGateS; f.Structural = IsStructural(w, code, f.Cost); }
         }
+        Lawgate2Note(w, code, ci, ti);   // (908) 施行の否決の理由の表 lawgate2_s の控え（符号 5・6 だけ）
     }
     /// <summary><c>Government.Move</c> の結果（outcome は <see cref="MilitaryMove"/> と同じ 0 閉じていた／1 純支持／2 政治資本／3 無償で動いた／4 払って動いた）。軸と歩幅の尺度から戦線の種類を決める。</summary>
     internal static void MoveResult(World w, PolicyAxis a, double spendScale, int outcome, double cur, double target, double next, double net, double speed)
@@ -1091,12 +1096,13 @@ public static partial class Instruments
         if (atWar) st.WarMonths++;
         st.WarNow = atWar;   // (281) 交戦×門閉の月を MonthClose で数える
         if (w.InCivilWar) st.CivilWarMonths++;
+        CwMonth(w);   // (903) cwmult_s（内戦の軍需の倍率の旧と新の規則）
     }
     /// <summary>戦争を立てた所（<c>Diplomacy.AddBelligerent</c> の <c>Wars.Add</c> の直後）：試合の終わりに戦死と月数を読む。</summary>
-    internal static void WarStarted(Diplomacy dip, War war, int year) => Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war));
+    internal static void WarStarted(Diplomacy dip, War war, int year) { Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war)); WarNoteStart(dip, war); }
     /// <summary>(440) 侵略 1 回（<c>World.Invade</c> が <c>Diplomacy.Subjugate</c> を終えた所）：屈服したか・近接の緊張に積んだ量・そのうち標的自身の組（<c>q == target</c>）に積んだ量。読むだけ。試合の終わりに <c>invade_s</c> へ書く。</summary>
     internal static void Invaded(Diplomacy dip, int year, Power invader, Power target, bool submitted, double added, double addedToTarget)
-        => Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget));
+        { Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget)); WarNoteInvade(dip); }
     /// <summary>月の戦死（<c>Diplomacy.WarCasualties</c>）：(年, 国)ごとの月数・兵士の月和・戦死の和（戦死は兵士の上限をかけた後の量）。</summary>
     internal static void Casualty(Diplomacy dip, int year, Power p, double soldierPop, double dead)
     {
@@ -1211,17 +1217,19 @@ public static partial class Instruments
     /// <summary>移し方の1本（<see cref="World.Transfer"/>）と人の移し方の1本（<see cref="Pop.Blend"/>）の入口：呼び出しの位置（コンパイル時の定数・[CallerFilePath]／[CallerLineNumber]）を、続く貯蓄の書き込みの経路名にする。</summary>
     internal static void Route(string file, int line, char fromSide, char toSide) { _routeFile = file; _routeLine = line; _routeFrom = fromSide; _routeTo = toSide; }
 
-    internal static void FleetReturned(World from, double ships) => S(from).FleetReturned += ships;   // ★(688) 線 navf5：割譲のとき送り手の首都の州へ戻した艦の隻数（旗 NavalCedeFleetReturn が正のときだけ呼ばれる）
+    internal static void FleetReturned(World from, double ships) => S(from).FleetReturned += ships;   // ★(688) 線 navf5：割譲のとき送り手の首都の州へ戻した艦の隻数（割譲で送り手に州が残るときだけ呼ばれる・旗 NavalCedeFleetReturn は (817) で焼き込み）
 
     /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
     internal static void RegionMoved(World from, World? to, Region r, Territory.Rehoming how)
     {
+        NgRegionMoved(from, r);   // (1028) nationgood_s の eventRegions
+        CedeBefore(from, to, r, how);   // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：移る時点の前の値を貯める（最初の文＝建国と挙げていない受け手の行も落とさない・InstrumentsCede.cs）
         if (r.FleetUnits is { } fu)   // ★(669) 線 navf3：送り手の World ごとに、出ていく艦を出た州の格で分けて積む（(614) の [ThreadStatic] は種の数が違う腕を比べられなかった）
         {
             double sum = 0; foreach (double x in fu) sum += x;
             var sf = S(from);
             if (r.Tier == RegionTier.Colonial) sf.FleetMovedOutColonial += sum; else sf.FleetMovedOutHome += sum;
-            if (how == Territory.Rehoming.Ceded && from.Regions.Count > 0) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：送り手が残る割譲だけの内訳（送り手・受け手）＝旗 NavalCedeFleetReturn が戻す対象と同じ集合（送り手の最後の州の割譲は国が消える＝艦ごと渡るので別。Remove の後なので Count は残る州の数）
+            if (how == Territory.Rehoming.Ceded && from.Regions.Count > 0) { sf.FleetMovedOutCeded += sum; if (to is not null) S(to).FleetReceivedCeded += sum; }   // ★(688) 線 navf5：送り手が残る割譲だけの内訳（送り手・受け手）＝割譲で艦を戻す対象と同じ集合（旗 NavalCedeFleetReturn は (817) で焼き込み・送り手の最後の州の割譲は国が消える＝艦ごと渡るので別。Remove の後なので Count は残る州の数）
         }
         foreach (var p in r.Pops) { Sav(p, SavKind.RegionOut, -p.Savings.Value); PopOwner.Remove(p); }
         if (to is null) return;
@@ -1235,6 +1243,7 @@ public static partial class Instruments
     /// <summary>貯蓄の書き込み1件（<c>Pop</c> の中の書き手の隣から呼ぶ・額は符号つきの増分）。挙げた国の POP だけ記帳する（登録が無ければ何もしない）。</summary>
     internal static void Sav(Pop p, SavKind kind, double delta)
     {
+        CearnSav(p, kind, delta);   // (822) 植民地の稼ぎの表：州の台帳（全ての国・挙げた国の登録より前）
         if (!PopOwner.TryGetValue(p, out var st)) return;
         bool routed = kind is SavKind.Give or SavKind.GiveIncome or SavKind.Take or SavKind.CarryOut or SavKind.CarryIn;
         // 相手の側：受け取り（Give・GiveIncome）は払い手の側・払い（Take）は受け手の側。運搬は POP どうし
@@ -1395,9 +1404,21 @@ public static partial class Instruments
         a.BuiltUnits += builtUnits; a.Paid += cost;
         U4Paid(r, builtUnits, cost);   // (707)
     }
+    /// <summary>(948) 州が国を出る（<c>InheritIntentBefore</c> から・読むだけ）：出る州の積算器を、出た国（<paramref name="from"/>）の次の cons_s の行として取り置いて州から外す。外さないと、戻った四半期に古い積算が戻った国の行として出る。
+    /// 取り置くのは挙げた国だけ（その国の ConsRows が引き取る）。外すのは挙げた国かどうかに関わらず。</summary>
+    internal static void ConsDepart(World from, Region r)
+    {
+        if (IsPicked(from, S(from))) U4Depart(from, r);   // (948) consf_s 側の同じ直し
+        if (!ConAccs.TryGetValue(r, out var a)) return;
+        ConAccs.Remove(r);
+        if (!IsPicked(from, S(from))) return;
+        ConsDeparted.GetValue(from, _ => new List<(Region, ConAcc)>()).Add((r, a));
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, List<(Region Reg, ConAcc Acc)>> ConsDeparted = new();
     /// <summary>(289) 助走の月の分は数えない（<see cref="ResetQuarter"/> と同じ扱い）。</summary>
     static void ClearCons(World w)
     {
+        ConsDeparted.Remove(w);   // (948) 助走の間に出た州の積み残しも持ち越さない
         foreach (var r in w.Regions) if (ConAccs.TryGetValue(r, out var a)) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
         U4ClearWorld(w);   // (707)
     }
@@ -1409,6 +1430,8 @@ public static partial class Instruments
     /// ③州の人口は全 POP の和（兵士を含む）④工場の規模＝RGO でない生産者の <c>BuiltScale</c> の和。</summary>
     static void ConsRows(Sink sk, ulong seed, int q, World w, WState st)
     {
+        List<(Region Reg, ConAcc Acc)>? departed = null;
+        if (ConsDeparted.TryGetValue(w, out var dl)) { departed = new(dl); ConsDeparted.Remove(w); }   // (948) 上限の四半期を過ぎても溜めない
         if (q > ConsMaxQuarter) return;
         sk.Cons ??= Open("cons", seed);
         if (!sk.ConsHeader) { sk.Cons.WriteLine("quarter\tyear\tnation\tregion\ttier\tactiveFlag\tpopulationK\tinvestorSizeK\tinvestorSavingsStock\tcapitalistSavingsStock\tinvestorEarnedPerMonth\tindustrializationIndex\tproductiveIndustrializationIndex\tfactoryScale\tjudgedMonthsCount\tmonthsCount\tdesiredMoneyPerMonth\tbudgetMoneyPerMonth\tplannedMoneyPerMonth\tplannedUnitsPerMonth\tbuiltUnitsPerMonth\tpaidPerMonth	termMonthsCount	desiringMonthsCount	gainWithTechMean	satMean	techLevelMean	crowdingPremiumMean	financialHeatMean	hurdleMean	netReturnMean	absorbFactorMean	jointStockFactorMean	desiredUnitsMean	unitMoneyMean"); sk.ConsHeader = true; }
@@ -1428,6 +1451,12 @@ public static partial class Instruments
                 I(a?.TermMonths ?? 0), I(a?.DesiringMonths ?? 0), TermMean(a, a?.TermGain), TermMean(a, a?.TermSat), TermMean(a, a?.TermTech), TermMean(a, a?.TermCrowd), TermMean(a, a?.TermHeat), TermMean(a, a?.TermHurdle), TermMean(a, a?.TermNet), TermMean(a, a?.TermAbsorb), TermMean(a, a?.TermJoint), TermMean(a, a?.TermUnits), TermMean(a, a?.TermUnitMoney)));
             if (a is not null) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
         }
+        if (departed is null) return;
+        // (948) 四半期の途中でこの国を出た州：払った額は支払いの表（払った時点の国）にこの国で載る＝州の表にも出た国の行で載せる。活動の列（activeFlag）は 0・州の在庫の列は 0（いまの持ち主の物なので載せない）・月あたりの列は積算÷この国の月数。
+        foreach (var (r, a) in departed)
+            sk.Cons.WriteLine(string.Join('	', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), "0", F(0), F(0), F(0), F(0), F(double.NaN), F(double.NaN), F(double.NaN), F(0),
+                I(a.Judged), F(cm), F(a.Desired / cm), F(a.Budget / cm), F(a.Planned / cm), F(a.PlannedUnits / cm), F(a.BuiltUnits / cm), F(a.Paid / cm),
+                I(a.TermMonths), I(a.DesiringMonths), TermMean(a, a.TermGain), TermMean(a, a.TermSat), TermMean(a, a.TermTech), TermMean(a, a.TermCrowd), TermMean(a, a.TermHeat), TermMean(a, a.TermHurdle), TermMean(a, a.TermNet), TermMean(a, a.TermAbsorb), TermMean(a, a.TermJoint), TermMean(a, a.TermUnits), TermMean(a, a.TermUnitMoney)));
     }
 
     // ---------------------------------------------------------------- (292) 線P：港の建設の州ごとの表 ----------------------------------------------------------------
@@ -1488,6 +1517,11 @@ public static partial class Instruments
     internal static void MonthClose(World w)
     {
         DivhostMonth(w);   // (801) 投資家の工業レントの月の和
+        CgMonthClose(w);   // (829) 植民地格の州の階級の群の表：POP の月の窓の終わり（月末の在庫は徴税の後に読む）
+        LandsaleMonth(w);   // (983) 土地の持ち分の段 B-1 の段 0：エンジンの取れた土地税との照合（LandshareMonth が輸出の地代の月の積みを 0 へ戻す前）
+        LandshareMonth(w);   // (895) 土地の持ち分：その月の LandRent の期待と実際（不在地主の送金の後・次の月の 0 化の前）
+        LandbaseMonth(w);   // (937) 土地税の段 A-0′（課税の時点の写し）と A-2（定額の基数の照合）
+        BasisxMonth(w);   // (970) 土地税の段 A-2b-0：月の和の締めと四半期の締め月の写し（basisx_s）
         var st = S(w);
         if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
@@ -1537,7 +1571,7 @@ public static partial class Instruments
         C("devaluedPerMonth", st.Devalued); C("payableAfterBorrowStock", st.Payable1); C("payRateShare", st.PayRate);
         C("borrowGateOpenFlag", st.GateOpenNow < 0 ? double.NaN : st.GateOpenNow); C("directTaxNetPerMonth", st.RevDirectNet); C("indirectRevenuePerMonth", st.RevIndirect);
         C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt.Value);
-        C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
+        C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyMonths); C("defaultCount", w.SovereignDefaultCount);
         var led = w.TreasuryLedger; double dSum = 0;
         for (int k = 0; k < NCat; k++) { double d = led[k] - st.PrevLedger[k]; dSum += d; C("ledger" + ((TreasuryCat)k) + "PerMonth", d); }
         double dT = w.Treasury.Value - st.PrevTreasury;
@@ -1620,6 +1654,8 @@ public static partial class Instruments
         var st = S(w);
         {   // ★(582) 全ての国（挙げていない国も）の物価の天井・床の接触を溜める＝旧の天井 PxObserveCeil（4.0）を越えた／床を割った物価の行を 9 国の外の国まで帰属するための表 pclamp_s（天井は廃止後も観測の線として残す）。読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。
             bool wm = w.WarmupFrozen; int pc = wm ? st.PcWarmN++ : st.PcGameN++;
+            if (early || !(w.MoTrendForInstruments > 1e-9))   // ★(972) c87mt：基準を置いた呼び（early）と、置かずに見送った四半期（呼びの後も趨勢が 0＝旗 MoTrendInitNeedsGdp が 1 で実質 GDP が正でない四半期）を全ての国で数える。読むだけ
+                st.PinitRows.Add(string.Join('	', (wm ? "w" : "q") + PxI(pc), NameOf(w), F(w.Year), early ? "init" : "defer", F(gdp), F(ratio), F(w.MoTrendForInstruments), F(w.Coef.MoTrendInitNeedsGdp)));
             if (!early)
             {   // (603) 分母の式が旧と新で違った月／実質 GDP が正でない四半期（趨勢を保持した四半期）と、1 四半期で 100 倍以上の跳ね
                 string pt = (wm ? "w" : "q") + PxI(pc), pnm = NameOf(w), pyr = F(w.Year);
@@ -1716,6 +1752,13 @@ public static partial class Instruments
             foreach (var row in st.PcRows) sk.PClamp.WriteLine(row);
             st.PcRows.Clear();
         }
+        if (st.PinitRows.Count > 0)   // ★(972) c87mt 趨勢の基準を置いた／見送った四半期（全ての国）
+        {
+            sk.Pinit ??= Open("pinit", seed);
+            if (!sk.PinitHeader) { sk.Pinit.WriteLine("time	nation	year	event	gdpRealPerMonth	moneyToGdpMonths	moTrendAfterMonths	moTrendInitNeedsGdpFlag"); sk.PinitHeader = true; }
+            foreach (var row in st.PinitRows) sk.Pinit.WriteLine(row);
+            st.PinitRows.Clear();
+        }
         if (st.PfixRows.Count > 0)   // (603) 圧の分母の式が旧と新で違った月／実質 GDP が正でない四半期（全ての国）
         {
             sk.PfixW ??= Open("pfix", seed);
@@ -1767,6 +1810,8 @@ public static partial class Instruments
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         if (time == "warm") foreach (var n in sim.Nations) { foreach (var rg in n.World.Regions) FlowOf(rg).HabitSoldSum = 0; var wst2 = S(n.World); wst2.OpTensionAdded = 0; wst2.OpTensionPairMonths = 0; wst2.OpTensionLevelMax = 0; CeClear(wst2); PAcc(n.World).Clear(n.World); if (wst2.FmA is { } fma) { fma.ClearNet(); fma.ClearArmy(); } }   // (342) 助走の月は数えない
         if (time == "warm") InpWorldTable(sim);   // (657)
+        if (time == "warm") CwWarm(sim);   // (903) cwmult_s
+        if (time == "warm") CearnWarm(sim);   // (822) 助走の月の流れを捨て、始まりの在庫を取り直す
         if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // (380)(403) 助走の月の成約を数えない・(579) 助走の着工の判断の回を数えない
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
         RdhPhase(sim, seed, time);   // (721) rdh_s の O・W の行（RDH が空なら何もしない）
@@ -1798,6 +1843,8 @@ public static partial class Instruments
             PopFold(sk, seed, w, st, q, picked, yearEnd);   // (361) 人口の表（籠は ce_s の積算を読む＝CeFold が戻す前）
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
+            CrownFold(sim, seed, w, q);                     // (889) 議会の統制力の項ごとの寄与の表 crownpc_s（全ての国・毎四半期・前の四半期の末の断面を計器が貯める）
+            CwFold(sim, seed, w, q);   // (903) cwmult_s
             IvfFold(sk, seed, w, q, picked, yearEnd);       // (536) 初期値の直し（資本の土台）の表（本土と植民地の物価の乗数・石炭の費用・建設の組の選び・資本財の需給）
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
             CoupFold(sk, seed, w, st, q);   // (393) 軍の力の入口の表
@@ -1826,6 +1873,7 @@ public static partial class Instruments
             WpFold(sk, seed, w, q);                         // (537) 旧と新の武器の並行の表（全ての国・旧の門・産出の割合・費用・装備の充足・国営の持分）
             ModFold(sk, seed, w, st, q, picked, yearEnd);   // (416) AI の近代化投資の信号の表（旧の gap と新しい信号）
             LawGateFold(sk, seed, w, q, picked, yearEnd);   // (423) 法の門の旧と新の表（金本位・反トラスト・同業組合の願い）
+            Lawgate2Fold(sk, seed, w, q);                   // (908) 施行の否決の理由の表（符号 5・6 の段の法の一歩ごと）
             SvcBuyFold(sk, seed, w, q, picked);   // (433) 家事奉仕の買い手の表（階級ごとの欲しい量・予算で絞った量・買えた量・州の月の和を戻す）
             DcontFold(sk, seed, w, q, picked, yearEnd);     // (417) 不満度の読み手の表（闘争度の 5 本の内訳・参加の述語の旧と新・運動体）
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // (345) 消費の入口の表（階級の所得と支出を戻す前）
@@ -1839,8 +1887,7 @@ public static partial class Instruments
         }
         RegionRows(sk, seed, q, sim);
         OpiumRows(sk, seed, q, sim);    // (342) アヘンの表
-        HabitcapTable(sim, seed, q);    // (771) アヘンの蓋の旧新の表
-        HabitbalTable(sim, seed, q);    // (787) アヘンの釣り合いの表
+        HabitlgTable(sim, seed, q);     // (820) アヘンのロジスティックの旧新の表
         SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         SilverParityTable(sim, seed, q);   // (775) 銀の平価の自己参照の表（注入の直後の捕捉と四半期の末の E）
         DiscTable(sk, seed, q, sim);    // (320) 発見の表の行の出来事と蒸気機関・機関車の軌道
@@ -1853,10 +1900,19 @@ public static partial class Instruments
         PrdfTable(sim, seed);              // (681) 急進の運動体の表
         DivhostTable(sim, seed, q); RdhTable(sim, seed, q);            // (801) 外資の配当の旧新の表 // (721) 名簿の外の空洞化の原因の表（RDH が空なら何もしない）
         PrdsTable(sim, seed);              // (700) 影の列（社会主義→共産主義の移し替えの影）
+        CpwdTable(sim, seed, q);           // (815) 払えない利札の落としの表
+        CearnTable(sim, seed, q);          // (822) 植民地の稼ぎの表（全ての国の州×四半期）
+        CedeTable(sim, q);                 // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：貯めた事象の後の値を四半期の末に読む
+        LandsaleTable(sim, seed, q);       // (983) 土地の持ち分の段 B-1 の段 0 の表 landsale_s（国×四半期・未払いの土地税と売りの期待）
+        LandshareTable(sim, seed, q);      // (895) 土地の持ち分の段 B-0 の表 landshare_s（国×四半期・月の閉じで積んだ期待と実際）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
+        NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // (1003) 貿易の計器 C1 nationgood_s・C2 tradeskip_s
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
+        SubstTable(sim, seed, q); CornintTable(sim, seed, q); MerchTable(sim, seed, q); PxstepTable(sim, seed, q); CorncfTable(sim, seed, q); LordstatTable(sim, seed, q);   // (837)(1012)(1024) 自給の段 1 の表 subst_s（州×四半期）・地主の政治 C1 の表 cornint_s（国×四半期）
+        LandbaseTable(sim, seed, q);   // (894) 土地税の算定の基準 A1 の段 A-0 の表 landbase_s（国×四半期）・landbasereg_s（州×四半期）
+        BasisxTable(sim, seed, q); WarQuarter(sim, seed, q);   // (970) 土地税の段 A-2b-0 の表 basisx_s（計器の国×四半期）
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1865,8 +1921,10 @@ public static partial class Instruments
     internal static void Close(MultiNationSim sim)
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
-        if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
+        if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip, sim.Diplomacy);
         CpTable(sk, sim.Diplomacy);   // (791)
+        CmTable(sk, sim.Diplomacy);   // (821) 調停の戦争の講和の表 cpmed_s
+        ImpTable(sk, sim.Diplomacy);   // (928) 矯正講和の表 imp_s
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
         CeTable(sk);      // (345)
@@ -1875,19 +1933,30 @@ public static partial class Instruments
         ScopeFold(sk, sk.Seed, 0, sim, force: true); sk.Csc?.Dispose(); sk.Csc = null;   // (403) 年の途中で終わった残り
         MonClose(sim, sk.Seed);   // (660) mongood_s・monai_s を書き monlaw_s を閉じる
         sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null; sk.MetalNat?.Dispose(); sk.MetalNat = null; sk.PClamp?.Dispose(); sk.PClamp = null; sk.DevCapW?.Dispose(); sk.DevCapW = null; sk.PfixW?.Dispose(); sk.PfixW = null; sk.PjumpW?.Dispose(); sk.PjumpW = null; sk.FsxW?.Dispose(); sk.FsxW = null;   // (316)(582)(587)(603)(616)
+        sk.Pinit?.Dispose(); sk.Pinit = null;   // (972)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
+        SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // (837)(1012)(1024)
+        LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
+        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim);   // (970)(1003)   // (970) basisx_s
+        CrownClose(sim);   // (889) crownpc_s
+        CwClose(sim); WarClose(sim);   // (903) cwmult_s・(1018) warentry_s・warpair_s・warband_s
+        LandsaleClose(sim);   // (983) landsale_s
+        LandshareClose(sim);   // (895) landshare_s
         SilverParityClose(sim);   // (775)
         SilverWeightClose(sim, sk.Seed);   // (807)
         DivhostClose(sim); PortchClose(sim);    // (801)(770)
         PortlmClose(sim);    // (777)
+        CpwdClose(sim);      // (815)
+        CearnClose(sim);     // (822)
         InheritIntentClose(sim);   // (781) 開いたままの継いだ工事の窓を書く
         PrdfClose(sim);  // (681)
         RdhClose(sim);   // (721)
         PrdsClose(sim);  // (700)
         CessClose(sim, sk.Seed);   // (717) 割譲の表 cess_s・講和の表 cessp_s
+        CedeClose(sim, sk.Seed);   // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s
         DscClose(sim);   // (725) dsc2_s
         sk.DiscContact?.Dispose(); sk.DiscContact = null;   // (328)
         sk.DiscFlow?.Dispose(); sk.DiscFlow = null;   // (360)
@@ -1929,6 +1998,7 @@ public static partial class Instruments
         sk.Wp?.Dispose(); sk.Wp = null;   // (537)
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // (416)
         sk.LawGate?.Dispose(); sk.LawGate = null;   // (423)
+        sk.Lawgate2?.Dispose(); sk.Lawgate2 = null;   // (908)
         sk.SvcBuy?.Dispose(); sk.SvcBuy = null;   // (433)
         sk.Dcont?.Dispose(); sk.Dcont = null;   // (417)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
@@ -2297,19 +2367,21 @@ public static partial class Instruments
         }
     }
 
-    static void WarTables(Sink sk, DipState dip)
+    static void WarTables(Sink sk, DipState dip, Diplomacy dp)
     {
         using (var wr = Open("wars", sk.Seed))
         {
-            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK");
+            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK\tq\tentryCode");
+            int wi = 0;
             foreach (var (year, war) in dip.Wars)
-                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB)));
+                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi++)));
         }
         using (var iv = Open("invade", sk.Seed))
         {
-            iv.WriteLine("year	invader	target	targetIsNation	submitted	proximityAdded	addedToTarget");
+            iv.WriteLine("year	invader	target	targetIsNation	submitted	proximityAdded	addedToTarget	q");
+            int ii = 0;
             foreach (var (year, invader, target, targetIsNation, submitted, added, addedToTarget) in dip.Invades)
-                iv.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), invader, target, targetIsNation ? "1" : "0", submitted ? "1" : "0", F(added), F(addedToTarget)));
+                iv.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), invader, target, targetIsNation ? "1" : "0", submitted ? "1" : "0", F(added), F(addedToTarget), WarInvadeQ(dp, ii++)));
         }
         using (var cs = Open("casualty", sk.Seed))
         {
@@ -2676,7 +2748,7 @@ public static partial class Instruments
         C("portFleetGoodsStock", nvPortStock); C("colonialFleetGoodsStock", nvColStock); C("inlandFleetGoodsStock", nvInlandStock); C("capitalFleetGoodsOutputPerMonth", nvOutCap); C("otherFleetGoodsOutputPerMonth", nvOutOther);   // ★(606) 線 navf：首都以外の港の州と港でない州の軍艦の市場の在庫・造船の産出（首都／首都以外）
         C("navalBudgetCapitalPerMonth", nvBudCap); C("navalBudgetOtherPerMonth", nvBudOther); C("navalOrderStatesCount", nvOrders);
         C("navalBudgetColonialPerMonth", nvBudColonial); C("navyPaidPerMonth", nvPaid); C("fleetUnitsMovedOutHomeCum", S(w).FleetMovedOutHome); C("fleetUnitsMovedOutColonialCum", S(w).FleetMovedOutColonial); C("fleetUnitsMovedOutCededCum", S(w).FleetMovedOutCeded); C("fleetUnitsReceivedCededCum", S(w).FleetReceivedCeded); C("fleetUnitsReturnedToCapitalCum", S(w).FleetReturned);   // ★(688) 線 navf5：送り手が残る割譲だけの出た隻数・受け取った隻数・旗 1 で戻した隻数（累計）
-          // ★(606) 追記 2：植民地格の州へ行った予算・海軍の区分の支払い・州の割譲などで艦ごと移った隻数の累計（全ての国の和・読むだけ）   // 海軍の予算の配り（旗 NavalPortProcurement が 0 なら首都だけ・首都以外は 0）と艦を発注した州の数
+          // ★(606) 追記 2：植民地格の州へ行った予算・海軍の区分の支払い・州の割譲などで艦ごと移った隻数の累計（全ての国の和・読むだけ）   // 海軍の予算の配り（本国格の港の州へ配る・旗 NavalPortProcurement は (824) で焼き込み）と艦を発注した州の数
         sk.Stock ??= Open("stock", seed);
         if (!sk.StockHeader) { sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Name))); sk.StockHeader = true; }
         sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Value)));

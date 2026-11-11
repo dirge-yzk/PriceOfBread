@@ -1,0 +1,7 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index abf1a263..daa692b8 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -2011 +2011 @@ public sealed class Coefficients
+-    public double CivilWarEconomyDisruption = 0.2;  // **2026-07-25点火試験**：内戦中の実効生産性×(1−これ)（流通麻痺・徴発・戦場化・労働の逃散）。0=不読＝恒等
++    public double CivilWarEconomyDisruption = 0.25;  // **2026-07-25点火試験**：内戦中の実効生産性×(1−これ)（流通麻痺・徴発・戦場化・労働の逃散）。0=不読＝恒等

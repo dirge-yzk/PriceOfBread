@@ -1,0 +1,5 @@
+(868) フルスイート（git archive の最終コミット・Release）
+Category!=FullLength：--list-tests 2312（基準 2307+5）＝合格 2311・スキップ 1・失敗 0・中止の行 0
+FullLength：--list-tests 3＝合格 3・失敗 0・中止の行 0
+savetest OK・leakhunt 違反なし（ident の --saveleak・ident_m868.txt）
+ready868（番人 7 組＋対象の試験 226 本）：緑（旗 0）。旗 1 の木（F1）：赤は DormantIdentityTests の旗の表だけ（mutation_868.txt）

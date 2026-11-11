@@ -1,0 +1,18 @@
+(888) c75ce 段 C-1 の G4 の母集合の数と旗 0 の恒等の門（ident c75ce の計器つき 10 種の生・D:/PoB_work/ident_c75ce/out_ib_10/ins・木 73925883・SOURCE-HASH 1f8c51bdbcd1debe）
+記録であって採否の言い方ではない（事前登録 [7]）。数えた台本：scripts/instruments/c75ce/gate888.py（種ごとの表は gate888_ident.txt）と、この線がその場で回した数え（下の数は全て 10 種の和）。
+
+旗 0 の恒等の門
+- cederule_s の行 1,668（Ceded 1,330・Seceded 177・Returned 161）。
+- 母集合（movedAgainFlag＝0 かつ foreignAddedFlag＝0）1,662（Ceded 1,324・Seceded 177・Returned 161）。
+- identBreakFlag の和＝0・旗と identDiffMaxIndex の食い違い 0 ⇒ 門の破れ 0（GATE 恒等の門 破れ 0・seeds 10）。
+- 印で外した行：movedAgain 6（3 組・同じ四半期に同じ州が 2 回割譲：種 2 q380 アマラプラ アワド→朝鮮→マラータ同盟・種 5 q326 アクモラ ポルトガル→アワド→ロシア・種 9 q308 ルアンダ ポルトガル→オスマン→スペイン）。この 6 行も identBreakFlag は 0。foreignAdded 0（同じ四半期に AddForeignShare が割譲の州に当たった件は 10 種で 0）。
+- 独立の確定（Sovereign）が同じ四半期に当たった行：identBreakFlag が全て 0＝0 件。
+
+割譲（Ceded）の内訳（段 C-1 の母集合）
+- 1,330 行＝cess_s の route 2〜4 の行の和（624＋669＋37＝1,330）と一致。cess_s の route 1（ColonyList の抽象の植民地）69 行は州ではない＝RegionMoved を通らない。(878) の〈1,399 行〉＝1,330＋69。
+- 前の格（母集合 1,324）：Colonial 740・Core 380・Integrated 204。後の格（1,330）：Colonial 744・Integrated 586（Ceded は植民地格を除いて Integrated へ）。
+- 前の R0＞0 は 1,330 全て。sameCoreFlag＝1 は 59。受け手が計器の国（pickedReceiverFlag＝1）は母集合 1,324 のうち 776。
+- 外国持分の主体のある割譲（foreignRulerBeforeCount＞0）24・第三国の持分＞0 は 24・**受け手の鍵の持分＞0（receiverOwnBeforeShare＞0）は 0**。
+  ⇒ 段 C-1 の G4（穴 H-a の門）の母集合は 10 種で 0。下書き §5 G4 の規則〈母集合が 10 種で 0 なら門は空＝機構のテスト（受け手の持分を置いて割譲を踏む）へ移し、門は記録へ下げると事前登録に書く〉に当たる（段 C-1 の事前登録が写す）。(878) の〈外国持分の主体のある割譲 21 件＝上界〉はこの 24 件にあたる（盤面 m873 と木の違い）。
+
+計算量：.cost の推定は 5 種 210.1 秒・計器つき 10 種 211.5 秒で基準と一致（件数の行 29 本）。

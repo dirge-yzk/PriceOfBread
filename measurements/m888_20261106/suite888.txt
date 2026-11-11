@@ -1,0 +1,6 @@
+(888) c75ce フルスイート（木 3c747a95 の .cs＝393d98ed と同じ・隔離ビルド D:/PoB_work/c75ce_art・Release・分けて回した）
+Category!=FullLength：成功!   -失敗:     0、合格:  2330、スキップ:     1、合計:  2331、期間: 24 m 45 s - PriceOfBread.Tests.dll (net10.0)
+  --list-tests の数 2331（ident の t の腕・tests_list_nonfull.txt）と一致・中止の行 0
+Category=FullLength：成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 33 s - PriceOfBread.Tests.dll (net10.0)
+  --list-tests の数 3 と一致・中止の行 0
+savetest OK・leakhunt 保存則違反なし（ident の s の腕・measurements/ident_20261106_c75ce.txt）

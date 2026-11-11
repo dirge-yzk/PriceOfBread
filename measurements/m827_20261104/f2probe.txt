@@ -1,0 +1,9 @@
+置き換えた：1 箇所・D:/PoB_work/c66sv_f2probe/tree/PriceOfBread.SimCore/Coefficients.cs・770536 → 770536 バイト
+  失敗 PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [1 ms]
+  失敗 PriceOfBread.Tests.MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate: 0) [517 ms]
+   フランス：SilverGoldRatio=1.5014114768784563 期待=0.33154007550690584（gate=0）
+  失敗 PriceOfBread.Tests.MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate: 1) [414 ms]
+   フランス：WorldSilverPrice=0.8099276302598938 期待=0.17903702286743714（gate=1）
+  失敗 PriceOfBread.Tests.SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate: 1) [1 s]
+   注入 1.0740269582437734 と計器の取り直し 1.0808366065074941 が合わない
+失敗!   -失敗:     4、合格:    36、スキップ:     0、合計:    40、期間: 4 m 38 s - PriceOfBread.Tests.dll (net10.0)

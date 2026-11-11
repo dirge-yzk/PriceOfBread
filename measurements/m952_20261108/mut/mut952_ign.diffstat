@@ -1,0 +1,4 @@
+ PriceOfBread.SimCore/Coefficients.cs              | 2 +-
+ PriceOfBread.Tests/DormantIdentityTests.cs        | 2 +-
+ PriceOfBread.Tests/OpeningColonyDominanceTests.cs | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)

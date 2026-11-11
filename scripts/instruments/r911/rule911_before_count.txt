@@ -1,0 +1,9 @@
+# (911) c78lt 限界 ⑨ の扱いの選び方（数える前に書いた・2026-11-07）
+- 数える物：keep_905/base_ins・n1・n2 の landbase_s と nation_s を (種, quarter, nation) で突き合わせ、同じ国の前の行から
+  landTaxEndShare・polityCode（＝免税の度合い d′ の入力）・privExemptDegreeShare・州の数（core+integrated+colonial+nonCore）が変わった行を数える。
+  これは (ii) で外す行の上界（QuarterStart の Government.Step での率の変化＝課税に使われた正しい変化も含む）。
+- 補う印：landPaidOverClaim > 1+1e-9 の行（取れた額が請求を超える＝課税の時点と計器の時点の盤面が食い違った下界の印）。
+- 選び方：(ii) の上界が、案 Y の候補の国（イギリス・清・フランス・プロイセン）の国×四半期の 5% 以下で、かつどの候補の国も 10% 以下なら (ii) を候補に残す。
+  超えたら (i)。どちらの場合も、(ii) は社会移動・粛清・徴兵で POP が動いた分を外せない（州の数も率も変わらない）＝その分の食い違いの量を
+  〈取れた÷請求 ＞1〉の行の数で名乗る。
+- 同点（どちらでもよい）なら (i)：A-2 の線の計器のコミットに入り、その線の ident が同じ回で測る＝余分な ident 0 本。

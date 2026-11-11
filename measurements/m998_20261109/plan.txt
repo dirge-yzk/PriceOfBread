@@ -1,0 +1,35 @@
+(998) c91td 貿易の段0（読むだけ・腕 0 本・コミットしない）  2026-11-09  担当 Claude Opus 5.5
+作業の場所: D:/PoB_work/r998_work/（この回に作ったフォルダはこれだけ・worktree と枝は作らない）
+main 2b8f617d を読む（C:/Users/dirge/Documents/PriceOfBread・読むだけ）
+
+■ 材料の指示と現物の食い違い（最初に名乗る）
+- goods_s は 財×国 の表ではない。Instruments.cs:2486＝残存国（活きた州が 2 以下・人口 100 千人以上・供給の充足が閾値未満）だけ。
+  種 1 の現物＝15 カ国（オヨ帝国・ハノーファーほか）×31 財（主食・日用品）。6 大国の行は無い。→ 問い 2 の主な材料にならない。
+- pxgoods_s は 1783〜1794 年の 9 カ国×32 財（主食・日用品・奢侈）だけ。1790 年の点だけ読める。
+- trroute_s・trbin_s は州の組×10 年おきで、財の列が無い。組の上位 3000 の外は 1 行に合算。
+- 関税の実の率（w.Tariff×(1−外国の港の持分)）の列は無い。scalars_s の tariffTargetIndex は目標。nation_s の tariffPaidInQuarter÷輸入額 を実効の率として使う。
+
+■ 問いごとの読める範囲（数える前に固定）
+問い3 貿易÷GDP：全部読める。nation_s（列 7 nominalGdpPerYear・52/53 exports/importsPerClearing・54 clearingsPerYear・240 fxRate）と scalars_s（列 29 tradeToGdpRatio）。
+問い2 自給率：一部だけ。
+  - chemgood_s：硫酸・ソーダ灰×10 カ国×全年（産出・需要・輸入・輸出の列なし）。
+  - ivf_s：鉄・鋼・機械の産出と需要×72 カ国×全年（輸入の列なし）。
+  - pxgoods_s：1790 年×9 カ国×32 財（産出・需要・輸入・輸出・在庫）。
+  - mongood_s：72 カ国×全ての財の生涯の要約（noProdYears など）。作らない財の数だけで、率ではない。
+  - metalnat_s：金・銀の産出・需要×国。
+問い4 二国×財の成約 0 の理由：財の次元では読めない。読める断片＝(b) 運賃÷額（trroute・trbin の距離帯）・(c) 実効の関税（nation_s）・越境と国内の額の割合（trbin crossBorderFlag）・国の組の成約の有無（trroute を国の組へ集計）。(a)(d)(e) は計器の仕様にして止める。
+問い5 劣った代替：eqr_s（10 カ国×全年×財×レシピの scaleSum・shareOfGood・marginSum）。wp_s（3 財の旧と新の単位費用）。site_s（産地）。ソース：Simulation.cs の賦存の入口（ApplyEndowment・ResourceScarcity 0.4・EndowmentCostFollows* の旗 0）。
+問い6 史実：HistoricalReference.cs:332 TradeOpenness1913（6 大国の平均 25.3%）。1870 と財の向きは〈AI の記憶・要出典〉。
+問い7 案まで。
+
+■ 読む生（読むだけ・書き換えない）
+D:/PoB_work/keep_994/base_ins/{nation,scalars,chemgood,ivf,pxgoods,mongood,eqr,wp,site,trroute,trbin,trnation,metalnat}_s{1..10}.tsv
+D:/PoB_work/keep_988/{n1,n2}/ 同じ表（ヌル腕の幅）・keep_988/a11（種 11〜20）
+Runner の selfsuff・marginprobe は回さない（腕に当たる）。
+
+■ 台本（書き先を引数で受ける）
+D:/PoB_work/r998_work/scripts/q3_trade_gdp.py  <生のフォルダ> <出力>
+D:/PoB_work/r998_work/scripts/q2_selfsuff.py   <生のフォルダ> <出力>
+D:/PoB_work/r998_work/scripts/q4_wedges.py     <生のフォルダ> <出力>
+D:/PoB_work/r998_work/scripts/q5_alt_recipes.py <生のフォルダ> <出力>
+出力: D:/PoB_work/r998_work/out/

@@ -49,7 +49,15 @@ public class SecessionLaborLawInstrumentTests
     [Fact]
     public void 州の分離の内訳は組み直した圧力が本体に合い_支配度の増分が行の余裕に合い_最後の行は世界に合う()
     {
-        var (dir, sim) = Run(36);
+        // ★(962) 盤面を置く：4 四半期ごと（q%4==1・最後の q=59 は置かない）に植民地格の州の支配度を 0.5 へ戻す＝どの木でも内側の組が続く（期間を延ばさない・開幕の支配度や別の線の点火で外側へ張り付く木でも組が 20 を割らない）。
+        //   行 q は StepQuarter の中で組まれる（Instruments.Quarter が書く前）＝置く前の値。よって後の行が q+1 の組は式が成り立たない＝除く。
+        var reset = new HashSet<int>();
+        var (dir, sim) = Run(60, (s, q) =>
+        {
+            if (q % 4 != 1 || q == 59) return;
+            reset.Add(q);
+            foreach (var n in s.Nations) foreach (var rg in n.World.Regions) if (rg.Tier == RegionTier.Colonial) rg.Dominance = 0.5;
+        });
         try
         {
             var (h, rows) = Table(System.IO.Path.Combine(dir, "secession_s1789.tsv"));
@@ -71,22 +79,24 @@ public class SecessionLaborLawInstrumentTests
             // 連続する 2 四半期（同じ国・同じ州）：支配度の増分＝次の行の marginIndex × DominanceSpeed（クランプにかからない範囲）。本体が書いた r.Dominance の差との突き合わせ。
             var byKey = rows.GroupBy(r => (Nation: r[Array.IndexOf(h, "nation")], Region: r[Array.IndexOf(h, "region")]))
                             .ToDictionary(g => g.Key, g => g.OrderBy(r => Col(h, r, "quarter")).ToList());
-            int checkedPairs = 0;
+            int checkedPairs = 0; var pairSeries = new HashSet<(string Nation, string Region)>();
             foreach (var kv in byKey)
             {
                 var list = kv.Value;
                 for (int i = 1; i < list.Count; i++)
                 {
                     if (Col(h, list[i], "quarter") != Col(h, list[i - 1], "quarter") + 1) continue;
+                    if (reset.Contains((int)Col(h, list[i], "quarter") - 1)) continue;   // ★(962) 置いた四半期をまたぐ組は除く
                     double d0 = Col(h, list[i - 1], "dominanceShare"), d1 = Col(h, list[i], "dominanceShare");
                     if (!(d0 > 1e-6 && d0 < 1 - 1e-6 && d1 > 1e-6 && d1 < 1 - 1e-6)) continue;   // クランプにかかった四半期は式が成り立たない
                     Near(d0 + Col(h, list[i], "marginIndex") * speed, d1, 1e-9, $"{kv.Key} 支配度の増分");
-                    checkedPairs++;
+                    checkedPairs++; pairSeries.Add(kv.Key);
                 }
             }
             Assert.True(checkedPairs >= 20, $"支配度の増分を突き合わせた組が少ない {checkedPairs}（対照）");
+            Assert.True(pairSeries.Count >= 5 && pairSeries.Select(s => s.Nation).Distinct().Count() >= 2, $"組を持つ系列が少ない {pairSeries.Count} 本・{pairSeries.Select(s => s.Nation).Distinct().Count()} 国（1 州の 1 系列に頼る対照）");
             // 最後の四半期の行：世界の Region.Dominance／TariffInterest（CheckSecession が最後に書いた値）と一致
-            var last = rows.Where(r => Col(h, r, "quarter") == 35).ToList();
+            var last = rows.Where(r => Col(h, r, "quarter") == 59).ToList();
             Assert.NotEmpty(last);
             int matched = 0;
             foreach (var n in sim.Nations)
@@ -267,7 +277,7 @@ public class SecessionLaborLawInstrumentTests
         Assert.Equal(CostLedger.Count, CostLedger.Names.Length);
         Assert.Equal(CostLedger.Count, CostLedger.UnitMicros.Length);
         Assert.True(CostLedger.AiBureaucracyScans < CostLedger.Count);   // この行は表の中にある（★(417) 行が後ろに足されても赤にならない形へ＝複数の線が行を足すので合流のたびに直さない）
-        Assert.Equal(CostLedger.NavalOrderScans + 1, CostLedger.Count);   // ★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝★(679) 最後の行は NavalOrderScans（28＝海軍の発注の配り）・行を足す線は ここを直す／旧：25 は年齢の層の歩／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
+        Assert.Equal(CostLedger.ClearingSkipsLB + 1, CostLedger.Count);   // ★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝★(679) 最後の行は NavalOrderScans（28＝海軍の発注の配り）・行を足す線は ここを直す／旧：25 は年齢の層の歩／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
         Assert.Equal(CostLedger.AiBureaucracyScanUnitMicros, CostLedger.UnitMicros[CostLedger.AiBureaucracyScans]);
         Assert.True(CostLedger.UnitMicros.All(u => u > 0 && double.IsFinite(u)), "単価が 0 以下か有限でない行がある");
         var (dir, sim) = Run(8);

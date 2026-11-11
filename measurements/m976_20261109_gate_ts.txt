@@ -1,0 +1,4 @@
+(976) c88ts 門の木の結果 2026-11-09（触る 6 クラス・Release・隔離ビルド）
+直す前：wtH（main+origin/c87hd）96/96 緑・wtD（main+origin/c82hd）96/96 緑＝赤の木なし＝全て〈予防〉。wtD の merge は measurements/m936_20261107 の add/add 衝突を ours で解いた（試験・SimCore は衝突なし）。
+直した後：wtH 96/96・wtD 96/96・wt0（5e6adf98）96/96 緑。--list-tests の合計 96＝3 つの木とも一致。
+走査の番人（IndustrializationReaderTests・UnitTypeTests・WriterRatchetTests・DormantIdentityTests）：90/90 緑（SimCore に触れない＝書き換える件数 0）。

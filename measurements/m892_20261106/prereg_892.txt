@@ -1,0 +1,68 @@
+(892) 波75 の合流の予言（merge と ident とフルスイートの前の最初のコミット・担当 Claude Opus 5.5・基点 11db605f）
+この文書は merge・ident・フルスイートの前に書いた。結果を見た後に書き換えない（足すなら〈結果の後の追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（作者 2026-10-27「残りは推奨で」・2026-11-05「全て推奨で」）。
+
+■ [0] 作った物（この回の合流が自分で作るフォルダ）
+  - D:/PoB_work/wt_m892（合流の worktree・枝 m892・基点 11db605f）。
+  - D:/PoB_work/m892（合流の作業：印・下書き・フルスイートと道具箱の作業）。
+  - D:/PoB_work/ident_m892z（腕 Z の ident の作業）。
+  - D:/PoB_work/keep_892（Z が恒等のときだけ作る＝base_ins〈Z の計器つき 10 種の生〉・keep_885/base_ins とバイトで同じ表はハードリンク）。
+  - D:/PoB_work/keep_892_rej（新しく作る＝採らなかった腕 c75ipS_10_s11 の生を縮めた物・突然変異の腕 c75ipE2_1）。
+  - 消さない・中身を移さない：keep_873・keep_873_rej・keep_879・keep_879_rej・keep_885・keep_885_rej。
+
+■ [1] 始めの状態（2026-11-06 14:15）
+  - D: の空き 102.57GB（shutil.disk_usage）・arms.sh free 6。
+  - 残留プロセス：dotnet・Runner・testhost・VBCSCompiler・python は 0 本（Get-Process）。
+  - origin/main＝11db605f（fetch して確かめた）。線の枝 origin/c75ce c78b57a0・c75cp ea5504fe・c75ip 74d75bf8・c75ts 9998d71c（ローカルの枝と同じ）。
+
+■ [2] 線ごとの入れ方（予言）
+  - c75ce (888)：入れる。ident〈判定: 恒等〉（測った種で一致・木 73925883・SimCore の差は InstrumentsCede.cs〔新〕と Instruments.cs +3 行）。試験 +8（CedeRuleInstrumentTests.cs）。
+    - 反証役 4 件（中 1・低 3）は high ではない＝外さない。中の M7〈前を Rehome の後に読む〉が緑のまま（T1 に tierBefore／tierAfter の Assert が無い）は、次の波の恒等の小物の行へ書く（合流は .cs を直さない）。
+  - c75cp (889)：入れる。ident〈判定: 恒等〉（木 6ce66cf9・SimCore の差は InstrumentsCrown.cs〔新〕と Instruments.cs +2 行）。試験 +8（CrownPcInstrumentTests.cs）。
+    - 反証役 3 件（中 1・低 2）は high ではない＝外さない。中の〈② と ②′ の当て直しの式を狙った突然変異が無い（M7 の穴）〉は次の波の行へ。それまで ②′ の列の当て直しは〈突然変異で確かめていない〉と名乗る。
+  - c75ip (887)：採らない＝**数える 3 回目の不採用＝採らないまま閉じる（3 回の規則の最後）**。
+    - 理由は S11 の止める線〈1 四半期に 100 倍以上〉の〈それ以外〉1 件だけ（種 15 オマーン 1803 q79・1,123.7 倍・人口の比 4.717・最初の行から 79 四半期・gdp_jump833）。基準 S11・N1・N2 の〈それ以外〉は 0。
+    - 担当の理由 (2)〈M で種 8 フォートウィリアムの T1 が戻る〉は [A] の予言で、計っていない（反証役 low）＝不採用の理由に使わない。合流は M を回さない（旗 0 へ戻す＝M はこの線の何も試さない）。
+    - merge して、点火 6c55bc67 の .cs だけを逆適用する（★(866)）：`git show 6c55bc67 -- PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DormantIdentityTests.cs | git apply -R --index`。事前登録・台本・記録はそのまま入れる。
+  - c75ts (890)：採らない＝**3 回目の不採用＝採らないまま閉じる**。
+    - 理由：線の事前登録 [9] は止める線を〈腕 B〔近似〕と S11 に当てる〉と書いた。腕 B（近似＝(882) の c74tsB_10 の生）で、段 0 の規則 gdp_jump890 でも今の規則 gdp_jump797・gdp_jump833 でも〈それ以外〉1 件（種 8 オーストラリア王国 670.6 倍・予言 [5] どおり）＝止める線に当たった線は採る候補に数えない。
+    - **合流は M を回さない**（事前登録 [9] の 119 行〈採否は合流の M・S11 まで読む〉に対する名乗り）：M は採る候補だけに回す（★(873) の型）。この線の点火の .cs は 7023745f と同じ値で、7023745f→858a26f5 の SimCore の差は注と計器（InstrumentsCearn.cs）だけ＝M は腕 B と同じ軌道の見込み（線の予言 [5] の 89 行も〈合流の M でこの線は止める線に当たる見込み〉）。再現を確かめても採否は変わらず、D: を約 10〜16GB 使う。
+    - 反証役の〈N＝9 以上で同じ跳びは免除へ移る（q84 の名目 GDP 3,180.16＞3,080.8）〉を記録に写す。事前登録の〈N に頑健〉の文はそのまま写さない。gdp_jump890 を〈100 倍〉の標準の読み手に替えるのは、この回ではしない（別の恒等の線でヌル腕から N・THIN を固定）。
+    - merge して、点火 858a26f5 の .cs だけを逆適用する：`git show 858a26f5 -- PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DormantIdentityTests.cs | git apply -R --index`（注の字の直しも戻る）。
+  - c75lg (886)：読む線。D:/PoB_work/r886_work を写す。
+    - 機能の台帳.md → docs/機能の台帳.md。overview.patch → docs/ゲーム概要と実装機能.md に当てる。**当てる前に §1-3 の〈値段は旬＝10 日〉を直す**（反証役 medium：国内の値段は PriceOnlyStepDays＝15・Coefficients.cs:652・10 日は建設と信用だけ）。台帳の L 番号を崩さないよう、行の数を変えずに直す。
+    - ledger_check.py の下側の門が無い件（反証役 medium）は、台本を直さず〈上側だけの門〉と台帳の末尾の〈反証役の訂正〉に名乗る。changed_rows.py の係数名の拾いの穴（反証役 medium）と S16-11 の〈働く〉の根拠（low）も同じ節に書く。
+    - 台本 → scripts/instruments/r886/・表 → measurements/m886_20261106/。
+  - c75ds (891)：設計の材料の線。draft.md・material.md を docs/202611/20261106/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（中身は書き換えない・反証役の 5 件を末尾に〈反証役の訂正〉として足す）。台本 → scripts/instruments/r891/・出力 → measurements/m891_20261106/。
+
+■ [3] 消す・改める名前（★(773)）
+  - 4 枝とも .cs の消した行は c75ip・c75ts の既定値の 1 行と DormantIdentityTests の表の 1 行だけ（逆適用で戻る）。新しい名（InstrumentsCede・cederule_s・Cede*・InstrumentsCrown・crownpc_s・Crown*）は他の枝に無い（反証役が確かめた・merge の前に grep し直して記録に書く）。
+  - c75ce と c75cp の Instruments.cs は別の行（:1220・:1862・:1903 と :1805・:1891）＝git merge-tree で衝突なし（14:20 に確かめた）。
+  - c75ip と c75ts は Coefficients.cs（:3597 と :531）と DormantIdentityTests.cs（:139 と :30）の別の行。
+
+■ [4] 合わせた木の予言（逆適用の後）
+  - SimCore の 11db605f との差は Instruments.cs（+5 行）・InstrumentsCede.cs・InstrumentsCrown.cs だけ。Coefficients.cs と DormantIdentityTests.cs の差は 0。Tests の新しいファイルは CedeRuleInstrumentTests.cs・CrownPcInstrumentTests.cs の 2 本。WriterRatchetTests.cs は差 0＝★(749) の取り直しはしない。
+  - 腕 Z：`bash scripts/instruments/ident/ident.sh run m892z --tree D:/PoB_work/wt_m892 --saveleak --added-tables cederule_s,crownpc_s --tests-delta 16`。
+    - 素の 5 種 178 行が b5_20261106_m873 と・計器つき 10 種 183 行が b10_20261106_m873_ins と全行バイト一致（SOURCE-HASH を除く）。
+    - .cost の推定 210.1／211.5 秒が一致。
+    - 計器の表は基準 1070 本＝バイト一致 1050＋既知の揺れ 20（burscan_s・clock_s）。腕にだけある表は cederule_s 10 本・crownpc_s 10 本。宣言の無い違いは 0。
+    - 注視の表 5130 行一致。
+    - テスト Category!=FullLength 2339（2323＋8＋8）・FullLength 3。savetest OK・leakhunt 違反なし。
+    - Z の cederule_s 10 本は c75ce の ident の生（ident_c75ce/out_ib_10/ins）と、crownpc_s 10 本は c75cp の生（ident_c75cp/out_ib_10/ins）とバイトで同じ見込み（計器は互いの状態を読まない）。
+  - フルスイート（suite892.sh・Z の後に回す・並べない）：Category!=FullLength 2338 合格＋スキップ 1＝2339（--list-tests 2339）・FullLength 3・中止 0。WriterRatchetTests は緑（点火を外した＝item 1・9・11 の赤は消える）。savetest OK・leakhunt 違反なし。
+  - NG は回さない（成績表が全行一致＝NG の集合は ng873 と同じ・記録）。
+
+■ [5] 止める線の段と記録の段
+  - 止める線の段：Z の〈判定: 恒等〉・フルスイートの赤 0（機構の番人・走査の番人を含む）・savetest・leakhunt。どれかが落ちたら、その線を外した木で測り直して帰属を決める（c75cp → c75ce の順に外す）。
+  - 記録の段：c75ip の S11 の成績表と止める線の表・c75ts の段 0 の読み（腕 B と S11）・c75lg の台帳と S16 の判定・c75ds の紙の数。線の記録をそのまま写す（言い方を和らげない）。
+  - 挙動の線は 0 本＝基線は m873 のまま（B5・B10INS・MON・NG_BASE ng873 は据え置き）。英の国債の不履行は m873 の M 6・S11 6・N1 2・N2 4 のまま。ヌル腕の空洞化 1/10 未満 0・名目 GDP 0 の続き 0・開幕の 1000 倍 0（stop_table_873.tsv のまま）。
+
+■ [6] Z が恒等のときの後始末（予言）
+  - ident.cfg：INSRAW D:/PoB_work/keep_892/base_ins・BASE_COMMIT <Z を測った木>・TESTS_NONFULL 2339。KNOWN・TESTS_FULL・NG_BASE・B5・B10INS・MON は据え置き。
+  - keep_892/base_ins：Z の計器の生 1090 本・keep_885/base_ins とバイトで同じ表（1050 本の見込み）はハードリンク・違う表（既知の揺れ 20・cederule_s 10・crownpc_s 10）は Z の生を移す。移す前に keepsum を書く。
+  - ident_c75ce・ident_c75cp の生は、Z の cederule_s・crownpc_s とバイトで同じかを数えた後に消す（線の keepsum は measurements にある）。
+  - c75ip の S11 の生は keep_892_rej/c75ipS_10_s11 へ縮めて移す（8 表〔region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s〕＋cearn_s・cpop_s＋keepsum＝線の事前登録の形）。E2 の腕の生（1.7GB）は keep_892_rej/c75ipE2_1 へそのまま移す。
+
+■ [7] 待ち方
+  - 1 分を超える仕事は bg.sh で run_in_background・前面の waitmark 230 で待つ。Z の走行中は wt_m892 にコミットしない（㉙）＝docs の下書きは D:/PoB_work/m892 に置き、Z の後にコミットする。
+  - フルスイートは Z と並べない。

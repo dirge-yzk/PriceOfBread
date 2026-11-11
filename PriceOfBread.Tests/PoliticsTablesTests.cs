@@ -20,7 +20,7 @@ public class PoliticsTablesTests
     public void 法の表の行は法の目録から並び_群は法の群と国有化だけ_鍵は重ならない()
     {
         var (sim, w) = Board();
-        w.Coef.NationalizationGate = 1; w.Coef.GuildLawGate = 1;   // 休眠中の法（出す条件が偽）は行ごと出ない＝門を開けて「その他」の群を確かめる
+        w.Coef.GuildLawGate = 1;   // 休眠中の法（出す条件が偽）は行ごと出ない＝門を開けて「その他」の群を確かめる
         var t = PoliticsTables.Laws.Read(sim, w);
         var visible = LawCatalog.In(LawSlot.Law).Where(d => d.IsVisible(w)).Concat(LawCatalog.In(LawSlot.Nationalization).Where(d => d.IsVisible(w))).Select(d => d.Key).ToArray();
         Assert.Equal(visible, t.Rows.Select(r => r.Key).ToArray());   // 目録の並びのまま
@@ -34,19 +34,9 @@ public class PoliticsTablesTests
     }
 
     [Fact]
-    public void 国有化の群は門が閉じている間は行ごと出ない()
-    {
-        var (sim, w) = Board();
-        w.Coef.NationalizationGate = 0;
-        var t = PoliticsTables.Laws.Read(sim, w);
-        Assert.DoesNotContain(t.Rows, r => r.Group == PoliticsTables.NationalizationGroup);
-    }
-
-    [Fact]
     public void 段の押し釦の可否とホバーは法の行と同じ文字_押すと目標が置かれる()
     {
         var (sim, w) = Board();
-        w.Coef.NationalizationGate = 1;
         var t = PoliticsTables.Laws.Read(sim, w);
         foreach (var r in t.Rows)
         {

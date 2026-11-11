@@ -1,0 +1,63 @@
+(826) 合流の予言（波65・腕の前に書く・書いたモデル Claude Opus 5.5）2026-11-04
+基点 main 8bbcd39f（基線 m797）。worktree D:/PoB_work/wt_m826（枝 m826）・作業フォルダ D:/PoB_work/m826。
+作者「全て推奨で。ただ、現状のタスクは完了する方向で」で推奨を採って進める（承認の言葉ではない）。
+入れる順＝恒等の線 c65ce・c65sv・c65id（3 本とも〈判定: 恒等〉）→ 挙動の線 c65fl・c65op（自分の門を通った）→ c65md は旗 0 の器だけ（下の [0-3]）。
+
+[0] 採否の骨格（腕の前に決める）
+[0-1] 恒等 3 本：c65ce（cearn_s）・c65sv（silverst_s・silverwt_s の末尾 24 列）・c65id（古い注・NavalPortProcurement と技術の 2 旗の焼き込み）＝入れる。
+  c65id の ExternalPressureGapScale の削除（指示は〈消さない〉）と試験 9 本の改名は、読み手の無い係数の番人（DormantIdentityTests）が許さない形の代わりが無いため推奨〈削除のまま・改名を認める〉で入れ、§0-2 の作者に聞く物の先頭へ置く。
+[0-2] 挙動 2 本：c65fl（旗 CapitalCouponUnpaidWriteDown 既定 1・規則 C の拡張＝§0-2 ★(818) ① の推奨〈認める〉を作者「全て推奨で」で採った）・c65op（旗 OpiumAddictionLogistic 既定 1・形 H）＝合わせた木で読む。
+  c65fl は腕 B を回していない（(815) の生の使い回し＝近似）。合流のアブレーションの腕 M_op0（c65fl だけ旗 1）の生を c65fl/cmpraw.py で keep_818_rej/c14flB_10 と比べ、共通の表がバイト一致すれば〈近似〉を実測で閉じる（下の [2]）。
+[0-3] c65md：挙動の線としては採らない（線の担当の判定〈止める線の 100 倍に建国の直後でない 1 件・事前登録 [8] にその型が無い〉を読み替えない）。
+  担当の推奨〈人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は建国の直後と同じ扱い〉は止める線の物差しの直し＝この合流で当てない（RULE47）＝次の波の別の線（旧の既定で恒等）の候補として 00一覧へ。
+  ㉜ の違反（旧の規則の番人 CollapsePeaceTests.cs:146〜167 の Theory 化）も入れない。
+  (802)(808)(818) の型で旗 0 の器だけ入れる＝origin/c65md を merge したうえで 381f1046（旗の既定 1）と a6a5e142（Theory 化）だけを git revert する（エンジンの .cs を合流が書くのではなく、線のコミットを戻すだけ）。旗 0 の器＋9b528681（計器 cpmed_s の反実仮想の直し）は残る。
+  腕 B の生 D:/PoB_work/c65md_work/armB/out_c65mdB_10 は keep_826_rej/c65mdB_10 へ mv。
+
+[1] ★(773) の grep（merge の前・済み）
+- c65id が消す名前（CensusSuffrageTechThreshold・CompulsoryEduTechThreshold・ExternalPressureGapScale・FleetMovedOutCeded・NavalPortProcurement・SuffrageTechThreshold・TechSignalOff・TechThresholdOff・WomenPropertyTechThreshold・WomenSuffrageTechThreshold）を origin/c65ce・c65sv・c65fl・c65op・c65md の + 行で grep＝コードの読み手 0（ヒットは .cost の〈海軍の発注の配り〉の名乗りの行と .manifest の NavalPortProcurementTests.cs のファイル名だけ＝測定の出力）。
+- 他の線が消す名前：c65fl＝旗の既定の行だけ・c65op＝Habit.cs の HabitProfile の欄の並べ替え（他の枝に Habit の読み手の変更 0）・c65ce・c65sv・c65md＝0。
+
+[2] 合わせた木（旗 fl=1・op=1・md=0）の腕と、どれがどれとバイト一致するか（名乗り行の SOURCE-HASH を除く）
+- Z（ident.sh run m826z・作業フォルダの coef_ia.txt・coef_ib.txt に CapitalCouponUnpaidWriteDown=0;OpiumAddictionLogistic=0;ForcedPeaceBlankOverCollapse=0）：
+  素の 5 種 ≡ b5_20261103_m797・計器つき 10 種 ≡ b10_20261103_m797_ins・注視の表 ≡ mon_20261103_m797（4636 行）・.cost の件数の行 一致・推定 220.1／221.2 秒。
+  計器の表 vs keep_818/base_ins＝宣言 --added-tables cearn_s,silverst_s,habitlg_s,cpmed_s --grown-ok silverwt_s で〈判定: 恒等〉。NG（--ng）101・新 0・外れ 0。
+  ＝恒等の線 3 本の恒等と、挙動の線 2 本と c65md の旗 0 の経路が合わせた木でも旧のままであることを同時に確かめる。1 行でも外れたら止めて線ごとの木で切り分ける。
+- M（合わせた木・既定・計器つき 10 種・種 1〜10）：c65fl・c65op の両方の軌道＝どの既存の成績表とも一致しない（新しい）。
+- M_op0（POB_COEF OpiumAddictionLogistic=0＝c65fl だけ旗 1）：成績表 ≡ measurements/b10_20261104_c14flB_ins（184 行・名乗り行を除く）。
+  生 ≡ keep_818_rej/c14flB_10/out_c14flB_10/ins の共通の表（silverwt_s を除く＝c65sv が末尾に列を足した・この表は共通の列で比べる）・新にだけ：cearn_s・silverst_s・habitlg_s・cpmed_s。
+  ＝一致すれば c65fl の腕 B の使い回し（作者に聞く物 (A)/(B)）は (B) の実測で閉じる＝作者に聞かなくてよくなる。外れたら c65fl を外す（予言の外れとして記録の先頭）。
+- M_fl0（POB_COEF CapitalCouponUnpaidWriteDown=0＝c65op だけ旗 1）：成績表 ≡ measurements/b10_20261104_c65opB_ins。生 ≡ D:/PoB_work/c65op_work/armB/out_c65opB_10/ins の共通の表（silverwt_s は共通の列）・新にだけ：cearn_s・silverst_s・cpmed_s。
+- N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）・S11（種 11〜20・計器つき）・Z11（旗 0 の 3 本を 0・種 11〜20・計器つき＝c65fl の G3・G4 の S11 の比べる側〔keep_797/a11 に cpworld_s が無い〕）・P（素の 10 種）・P5（素の 5 種）。
+- P ≡ M の成績表（計器は軌道を変えない）。P5 は新しい基線の b5。
+- 腕の割り振り（同時 6 本・D: の空き 73GB）：1 巡目＝Z（a・b）・M・N1・N2・S11（計器つき 5 本 ≈ 60GB）。1 巡目の Zb が〈判定: 恒等〉なら恒等の線の ident の生（ident_c65ce・ident_c65sv・ident_c65id・ident_c65opz）と c65op の突然変異の生を消してから 2 巡目＝M_op0・M_fl0・Z11・P・P5。
+- フルスイートは 10 種のバッチと並べない＝1 巡目の後・2 巡目の前に単独で回す（Category!=FullLength と =FullLength を分ける）。savetest・leakhunt は旗 1 の木で。
+
+[3] 試験の数（予言）
+- --list-tests：Category!=FullLength 2250（2226＋c65ce 5＋c65sv 4−c65id 2＋c65fl 1＋c65op 8＋c65md の器 8）・FullLength 3。Z の宣言 --tests-delta 24。
+- WriterRatchetTests.cs:401・406 は c65op が c2b45d86 の木（op だけ）で取り直した。合わせた木（fl も旗 1）で赤なら失敗の文の実測で 1 回だけ取り直す（★(749)・00一覧〈(3)〉へ）。緑なら取り直さない。
+- ㉘ の走査の番人（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・GoodIdGuard＋線の試験 Fiscal・HabitLogistic・Habit・Cearn・Silverst・ForcedPeaceBlank・CollapsePeace・NavalPortProcurement・DiscoveryEngineer・TechLevelRemoval・InstitutionAnchor・Military）を merge の直後に回す＝赤なら腕を回さない。
+
+[4] 門（線の事前登録の門をそのまま・合わせた木の M と S11 で読む・数は変えない）
+- c65fl（measurements/m815_20261104_prereg_fl.txt [4]・台本 scripts/instruments/c14fl/gate815.py）：
+  G1 事象＞0 かつ外れ 0／G2 保存の外れ 0・skip か clip の落としの割合 ≦1e-3／G3 1949 の世界の外資の負債 腕÷旗 0 の種の中央 ≧0.2／G4 外資の負債÷年 GDP の 1949 の中央の比 [0.1, 0.8]／G5 名目 GDP 0 の続き 0。
+  比べる側：M＝keep_818/base_ins（旗 0 の盤面＝m797 の軌道）・S11＝Z11 の生（cpworld_s・divhost_s・nation_s）。
+  線の腕 B（(815) の生の写し）：G1 93,497・外れ 0／G2 0／G3 0.456／G4 0.501／G5 0。
+- c65op（measurements/m820_20261104_prereg_op.txt [4]・台本 scripts/instruments/c65op/gate_op.py）：
+  L1 ≧70%（母集合 1 種あたり ≧100）／L2 在庫≧0.199 の州×四半期 1 種あたり ≦10／U1 在庫の最大 ≦0.2+1e-9／U2 床の月 0／U3 釣り合いの破り 0。
+  線の腕 B：L1 99.12%／L2 0.0／U1 0.1801／U2 0／U3 0。
+- 予言（点の予言は門にしない）：2 本の機構は別の市場（外資の請求権と、アヘンの依存の在庫）に掛かる＝M でも線の腕 B と同じ桁で通る見込み。M_op0・M_fl0（アブレーション）でもそれぞれの線の門は通る（M_op0≡c14flB・M_fl0≡c65opB なので線の腕 B の値そのもの）。
+  効きが足し算か：同じ盤面の新÷旧（c65fl＝未払いの割合・外資の負債÷年 GDP の 1949 の中央／c65op＝国の依存の在庫）を M と M_op0・M_fl0 で並べて記録する。
+  門が M で落ちる組があれば、後から入れた側（c65op）を外して読み直す。
+- 最終の採否は S11 で 1 回だけ（同じ門）。
+
+[5] 止める線（M・S11・N1・N2 を同じ台本で数える＝scripts/instruments/m826/stoplines826.sh〔m818/stoplines818.sh の並び〕）
+- 破綻（未完走・非有限・savetest・leakhunt）／価格水準の 1 四半期 100 倍以上・1e10 倍以上（c11fl/pxjump.py）／名目 GDP の 1 四半期 100 倍以上（m797/gdp_jump797.py・建国の直後＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる・それ以外が 1 件でも出たら止める線の候補＝ヌル腕の件数と並べて判断し、ヌル腕で 0 なら採らない）／空洞化 1/10 未満（an_h2.py -v4・規則 A2）＝件ごとに、基線の同じ種で同じ州がすでに 1/4 未満か（種 1〜10＝keep_818/base_ins・種 11〜20＝keep_797/a11）を表に書く＝〈元からの弱さ〉は止めない・〈線が原因〉が 1 件でもあれば採らない（この基準は結果を見る前のここに写した）／推定の計算量 ＞248.5 秒／機構のテストの赤（走査の番人を含む）。
+[6] 記録（採否に使わない）
+- 名目 GDP 0 の続き（m808/gdp_zero10.py・記録の段の先頭）・開幕の 1000 倍以上（brk693/plvl_seeds.py）・英の国債の不履行の種の数（c10cp/ukdefault.py・M・S11・N1・N2 を m797 と並べる）・NG（ng.sh・基準 rd:measurements/ng797_20261103:m797）・門 A′（nullgate.py）・〈壊す〉①（home_break.py 本国の版）・exact・near・空洞化 1/4 未満の件数。
+- 成績表の差がヌル腕の幅の内なら改善と書かない。
+
+[7] 採ったときの新しい基線 m826
+- 成績表 b10_20261104_m826（P）・b5_20261104_m826（P5）・b10_20261104_m826_ins（M）・b10s11_20261104_m826_ins（S11）・b10_20261104_m826_n1_ins・_n2_ins。
+- 生 D:/PoB_work/keep_826（base_ins＝M・n1・n2・a11＝S11）。ident.cfg（B5・B10INS・MON・INSRAW・TESTS_NONFULL 2250・NG_BASE）。NG の新しい基準 ng826_20261104。
+- 採らなかった腕の生は D:/PoB_work/keep_826_rej/（c65mdB_10）。keep_797・keep_813・keep_818・keep_818_rej は残す。

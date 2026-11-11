@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/Meritocracy.cs b/PriceOfBread.SimCore/Meritocracy.cs
+index 16356281..a164e284 100644
+--- a/PriceOfBread.SimCore/Meritocracy.cs
++++ b/PriceOfBread.SimCore/Meritocracy.cs
+@@ -278,7 +278,7 @@ public static class Meritocracy
+                         {
+                             double szC0 = ins ? t.Size : 0;   // (1024) 計器 K3
+                             Move(t, capitalist, c.CapitalRiseRatePerQuarter.Value * c.MerchantArtisanCapitalRise * t.Size, c);
+-                            if (ins && pi == 0) Instruments.MerchRoute(r, 2, szC0 - t.Size);
++                            
+                         }
+                     }
+                 }

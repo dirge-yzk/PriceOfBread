@@ -1,0 +1,103 @@
+(853) 線 c70gt 事前登録：門と道具の直し（恒等の線・エンジン 0 行・ident なし）
+書いたモデル：Claude Sonnet 5.5。枝 c70gt（出発 fe21d8a1cfebff3003b35e8de563be270df77582）。worktree D:/PoB_work/wt_c70gt。作業フォルダ D:/PoB_work/c70gt_work。
+種類＝恒等の線（物差しの直し）。.cs・計器・試験は 1 字も触れない。App・SimCore/Display・Runner にも触れない。
+出発：00一覧 §00〈次の波（波70〜）〉① の (a)(b)(c)(f)。直す物差しは c69ss の G4・G3b・G3c・突然変異の穴（反証役 (849) ①②）と c69po の G2b（反証役 (850) ③）と ident_check.py の表示・mkm852.py の KNOWN・c69hl の残り。
+旗 1 の腕の出力（keep_852_rej/c69poB_10・c69ss_work/armB の腕 B の生）は、新しい門の数字を出すためには読まない（結果に寄せた物差しになる）。例外は下の [1] の〈印の被覆の確かめ〉1 点だけ（印が既知の 57 行を覆うかを数えるだけで、規則は替えない。外れても規則は替えない）。
+
+この文書の順＝[0] この文書の前に走らせた物 [1] c69ss の門 [2] c69po の G2b [3] 道具 [4] c69hl の残り [5] 受け渡し [6] 消す物と残す物・重なり [7] 恒等 [8] D: と生 [9] 自己申告の枠
+
+━━ [0] この文書の前に走らせた物（順序の名乗り）
+- 偵察を 2 本、この文書より前に走らせた（旗 0 の基線 keep_852/base_ins とヌル腕 keep_852/n1・n2 の subst_s・region_s だけ・読むだけ）：/tmp/probe1.py（C: の一時・消した）と D:/PoB_work/c70gt_work/probe/probe2.py。規則どおり旗 1 の腕は読んでいないが、事前登録より前の順だった。
+- 偵察の数（旗 0 とヌル腕の生・種 1〜10・候補行＝s2RhoSource＝1 かつ s2EEnd が有限の行 2,057,440 行は 3 本とも同じ）：
+  基線：region_s の nationIndex の変化 1,552 行（うち s2SoldEnd＝0 の行 1,492）・subst_s の nation の字の変化 1,491 行（全て s2SoldEnd＝0）・うち E＞0 の行 61 / 候補の E＞0 3,874。
+  N1：index 1,447（sold＝0 は 1,406）・字 1,406（全て sold＝0）・E＞0 の行 68 / 4,659。N2：index 1,508（sold＝0 は 1,465）・字 1,465（全て sold＝0）・E＞0 の行 67 / 6,391。
+  ＝字の変化は全て売れた量 0（Rehome の型）。index の変化は字の変化を全て含み、余りの 41〜61 行は売れた量が 0 でない（Rehome を通らなかった変化＝外しすぎ・害なし）。s2SoldEnd＝0 の行全体は 17,056〜26,240 行あり、持ち主の変化はそのごく一部＝売れた量 0 そのものでは外さない（結果に寄せた物差しになるから）。
+  旗 0 の基線・ヌル腕では s2BasisKind が全行 0 ＝焼いた行（基の種類 2）が 0 件。
+
+━━ [1] c69ss の門（台本 scripts/instruments/c70gt/gates_ss853.py・gates849.py を写して直す）
+[1-1] G4 の母集合から Rehome を通った州×四半期を外す（規則）
+- 印＝region_s（腕の同じ種）の nationIndex。州×四半期の行（subst_s）について、同じ州の一つ前の subst_s の行（四半期は問わない）の nationIndex と違う行を〈持ち主が変わった行〉と呼び、G4 の母集合から外す。州の最初の行が q＞0 の行も外す（比べる相手が無い）。q＝0 の最初の行は外さない。
+- 理由（ソース）：Territory.Rehome（Territory.cs:262）は how が Sovereign でない 3 種（Ceded・Seceded・Returned）で市場の LastSold ほかを 0 に戻す。計器の SubstTable は四半期の末の Instruments.Quarter（Instruments.cs:1865）で、エンジンの Run が売れた量を読んだ後にそれを読む。nation の字でなく nationIndex を使うのは、字の変化を見る方が 1,491 行で、index の方が全てを含む（上の偵察）ため。
+- 外す行の件数を腕・基線・ヌル腕ごとに名乗る（E＞0 の行と E≦0 の行を分ける）。
+- G4m（印の乱用の止め）：外した行の割合（候補＝BasisKind＝2 かつ RhoSource＝1 かつ E が有限の行のうち、E＞0 の行について数える）≦ 3 × （基線・N1・N2 の旗 0 で同じ印を同じ分母で数えた割合の最大）。偵察の値は 1.57%・1.46%・1.05% なので閾値は約 4.7%。数値は閾値の表（gates_ss853_thresholds.tsv）に写す。分子に入れるのは〈外した行の数〉＝印を逃げ道に使って落ちる行を全て外す盤面は G4m で落ちる。
+- G4 の母集合の下限・一致の式は 849 のまま（E＞0 の行 ≧400×倍率・E≦0 の行 ≧100,000×倍率・全て一致）。外した後の行数で下限を数える。
+- 計器を月の末に撮る直しは計器の変更＝この線では入れない。別の恒等の線の候補（計器が売れた量を Rehome の前に撮る）として記録に書く。
+- 印の被覆の確かめ（唯一の旗 1 の読み）：c69ss_work/armB の subst_s と region_s で、反証役 (849) ① が数えた〈E＞0 で食い違う 57 行〉（diag849.txt の式）が全てこの印で外れるかを数える。これは印の定義の確かめで、G4 の合否を腕 B に当てる読みではない。外れない行があっても規則は替えない（その行は別の根として報告する）。
+
+[1-2] G3b・G3c を記録へ下げる
+- G3b は q0 のヌル腕の幅が中央 2.8e-5＝何かを変える実装は必ず落ちる門（㉗）。G3c は旗 0 でも M4 でも緑で判別の力 0。どちらも門の表（ok）から外し、値は出し続ける（記録の節に G3b・G3c として並べる）。
+- 門＝G1a・G1b・G2・G3a・G4・G4m・G5。
+
+[1-3] 突然変異（固定の盤面・紙の台本）
+- 台本 mkboard_ss853.py が、正しい実装の列を合成した小さな subst_s と region_s（母集合の下限は倍率で縮める）を作り、1 か所ずつ壊した盤面を作る。壊し方（エンジンの式の 1 項を替えたときに列がどう変わるか）は台本に式で書く。
+- 予言（回す前）：
+  正しい盤面＝G1a・G1b・G2・G3a・G4・G4m・G5 全て通る。
+  M1（ρ＝0）＝G1b・G2・G3a が赤。M2（U に能力の全部）＝G1a・G2・G3a が赤、**G5 は緑**（ρ を焼くときも同じ U を使うので、開幕の状態では σ が d に戻る。(849) の実の M2 で G5 が緑だったのと同じ向き）。
+  M3（産出の基準 D2 で数える）＝G2・G3a が赤（(849) の事前登録は G2 だけと書いた。焼くときの ρ も D2 で作るなら G3a も赤＝予言の外れとして名乗る）。
+  M5（失業の式を直さない）＝G4 が赤。M6（技術の比を 1 にする）＝G2・G3a が赤（技術の比が 1 でない州で）。
+  M4（収穫係数を外す）＝G3c だけが赤だった（記録に下げたので、門の表の赤は 0）。
+  空の盤面（焼いた行が 0）＝G1b・G2・G3a・G4 の下限が赤。旗 0 の盤面（実の keep_852/base_ins を腕に見立てる・種 1〜2）＝G1a・G1b・G2・G3a・G4 が赤。
+  印の乱用の盤面（M5 の食い違う行を全て〈持ち主が変わった〉にする）＝G4m が赤（または下限が赤）。印を外した盤面（旧の 57 行の型＝持ち主が変わった行で売れた量が 0 になり失業が食い違う）＝印を使わない旧の G4 は赤・新しい G4 は緑。
+- 表は measurements/m853_20261105/mut_ss853.txt に置く（回した後・予言の外れは外れと書く）。
+
+[1-4] ヌル腕を腕に見立てた一つ抜きの空振りの率（記録）
+- 3 本の旗 0 の生（基線・N1・N2）を順に〈腕〉にし、残りの 2 本のうち片方を基線・もう片方を相方とし、G1a の割合と G5 の d の中央を数える（幅 w＝|基線−相方|）。6 通り。空振りの率は 6 通りのうち G1a・G5 が緑になった数／6（粒度は 1/6）。門の判定には使わない。
+
+━━ [2] c69po の G2b（台本 scripts/instruments/c70gt/gates_po853.py・gates850.py と p1_paper850.py の写しを直す）
+[2-1] 対照の母集合を正確な列で作る（規則）
+- 述語 Pexact（G2a と同じ物・2 つの定義を作らない）＝orderOldIndex ≥ 1 かつ orderRawNowIndex ≥ 1 かつ orderRegionNowIndex ≥ 1 かつ militancyRegionOwnIndex ＞ 0 かつ ruleUngovBeforeShare が有限かつ ruleForeignBeforeShare ＝ 0 かつ rule_s の ruleForeignShare ＝ 0（秒数の読みは 850 の G2a と同じ）。
+- 持続の窓の長さ L（四半期）：行 (nation, region, q) が母集合に入るのは、q−L+1 から q までの L 個の四半期の全てに secession_s の行があり（行の四半期が 1 刻みで続き）、そのすべての行が Pexact を満たすときだけ。途中に行の抜け・Pexact を満たさない行・1 四半期を超える間隔がある州×四半期は入れない。
+- 年末の行しか無い国（挙げた国以外）は 1 刻みの窓が作れないので入らない（件数を名乗る）。挙げた国の名簿＝清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ（batch.sh の既定・ident.cfg の基線と同じ 9 国）。腕 B も同じ名簿で回す（印で確かめる）。
+- C(L)＝母集合の rule_s の ruleUngovShare（四半期の末）の平均（種をまたいで行を足して平均）。
+- 窓の長さの規則（結果の前に固定）：候補 L ∈ {20, 40, 60, 80, 120}。各 L で旗 0 の 3 本（基線 M′＝keep_852/base_ins・N1＝keep_852/n1・N2＝keep_852/n2）の C(L) を数え、**一つ抜きの空振りの数**＝3 本から（腕・基線・相方）の順を 6 通り選び、W＝|C(相方)−C(基線)| として |C(腕)−C(基線)| ＞ W になる通りの数。母集合の下限＝3 本とも 1,000 行以上を満たす L の中で、空振りの数が最小の L。同数なら**長い方**（持ち越しの残りが 0.975^L で小さいから）。下限を満たす L が無ければ no-go（G2b を門にせず記録へ・.log の先頭に書く）。
+- 粒度の自己申告：3 本しか無いので空振りの数は 0〜6 の 7 値。小さな差は選べない＝規則は最小値で選ぶだけで、空振りが 0 になる L が複数あれば最長を採る。
+- 幅 W_C(L)＝max(|C(N1)−C(M′)|, |C(N2)−C(M′)|)（850 と同じ形）。G2b＝|C(B)−C(M′)| ≤ W_C(L) かつ B の母集合 ≥ 1,000 行。選んだ L と W_C は閾値の表（gates_po853_thresholds.tsv）に写す。
+- G0・G1・G1u・G2a は 850 の定義のまま写す（許容 1e-8）。p1_paper850.py の S・T・G0・G2a の数え方は関数として台本の中に写す。
+
+[2-2] 突然変異（固定の盤面）
+- 台本 mkboard_po853.py が、正しい実装の secession_s・rule_s を合成し（6 国×8 州・首都 1 州・約 220 四半期・国ごとの R・州ごとの m_r・初期の無統治の割合が違う・Rule は 2.5% ずつ目標へ寄る）、壊した盤面を作る。ヌル腕の盤面は初期値の揺らしだけが違う 2 本。
+- 予言（回す前）：
+  正しい盤面＝G0・G1・G1u・G2a・G2b が通る。
+  M1（Clamp01(R)＝m̄÷m_r を外す）＝G0・G1 が赤（遅れだけでは ΔS が幅の内）。M4（m_r を m̄ に替える）＝M1 と同じ式なので同じ赤。
+  M2（order×(1−m_r) の形）＝G0・G2a・G2b が赤（十分でも目標が正）。
+  M3（切った R を使う Clamp01(R)×m̄÷m_r）＝G0・G2a・G2b が赤。
+  M7（Clamp01 を外す）＝G0・G1u が赤（目標が負へ出て ΔS が T+W を超える）。
+  G2b の窓の読みを〈最初の四半期だけ〉に替えた突然変異（途中に order_r＜1 がある盤面）＝その盤面で G2b が赤（正しい読みでは緑）。
+  空の盤面（Pexact を満たす州が無い）＝母集合の下限で G2a・G2b が赤。母集合の外へ逃がした盤面（対照の州を全て途中で 1 未満にする）＝下限で赤。
+  M5・M6 は門でなく試験・点検（RuleOrderP1Tests・CrimeTests・m_r の一致）の物で、この台本の表には載せない。
+- 表は measurements/m853_20261105/mut_po853.txt に置く。
+
+━━ [3] 道具
+- ident_check.py（scripts/instruments/ident/）：cmp_ins の最後の表示の内訳を、1 つの表を 1 つの区分にだけ数える形へ（区分の辞書を 1 つ持ち、表示の行だけそこから数える）。real・missing・only・判定の条件・FAILS・MISSING・報告の ok/miss/fail の呼びは 1 字も変えない。表示に〈内訳の和＝共通の表の数〉の行を足す（和が合わなければ表示の注意の行を出すだけ・判定は変えない）。
+  直す 2 か所：(1) cearn_s の列が増えた形が grown_hit と known_hit の両方に入る（:402〜404）。(2) rows_grown の表が rows_hit に入った後 `if not extra and not kn: continue` を抜けて grown_hit か known_hit にも入る形。
+  試し：T1〜T8（test_cearn_grown852.py・cearn_same_but_location の試し）に T9〈内訳の和＝共通の表の数〉を足す。cmp_ins を小さな盤面で呼び、(a) cearn_s の列が増えた表を含む盤面 (b) rows_grown の表を含む盤面 の両方で、表示した区分の件数の和が共通の表の数に等しいこと。突然変異＝内訳の二重計上を戻すと T9 が赤。
+- mkm852.py（scripts/instruments/m852/）：ident.cfg の KNOWN を ic.load_cfg → ic.parse_known で読み、既知の表には ic.cols_diff(基準, 腕, 既知の列) を呼ぶ。d も extra も空で kn だけなら〈既知の揺れだけ〉と数える。試し＝(a) burscan_s の seconds だけ違う盤面は〈既知の揺れだけ〉 (b) 同じ表の別の列が違う盤面は〈違う〉。突然変異＝KNOWN を読まない形に戻すと (a) が赤。
+
+━━ [4] c69hl の残り（scripts/instruments/r847/）
+- 門 1 の作り直しの台本 run847.sh・gate847.sh（(847) の反証役 ⑥：無かった）を足す。mkfix847.py の盤面を作り、fixgate847.py で 3 盤（A・B・L）の門を数える 1 本。
+- loo847.py の割り当てをずらす突然変異（MU9：--board の割り当てを 1 つずらす）を mut847.sh に足す。予言＝実の生の一つ抜きの件数が MU0 と違う、または恒等の門 3 が赤。回して表に書く。ずらしても件数が変わらなければ、その事実を名乗る（穴の報告）。
+- arm847.sh を LF にする（git ls-files --eol で確かめる）・S11 の呼び方を 1 行で（使い方の頭書きに追記：第 3 引数＝基線の an の名・第 4 引数＝盤面の集合）。
+
+━━ [5] 受け渡し
+- D:/PoB_work/c70gt_work/gates/ に置く物：gates_ss853.py・gates_po853.py・gates_ss853_thresholds.tsv・gates_po853_thresholds.tsv・SHA256.txt。
+- 自己試験 `bash scripts/instruments/c70gt/selftest853.sh` を `bash scripts/instruments/tools/bg.sh D:/PoB_work/c70gt_work/gates_ready.mark …` で起こす。中身＝固定の盤面の表・旗 0 の盤面・一つ抜きの空振りの率・sha256 の確かめ。.log の末尾に sha256。rc≠0 または no-go はその門の名と理由を .log の先頭に書く。
+- 印の意味＝ss と po の門（[1][2]）が使えるか。道具（[3][4]）は印の対象外（別に報告する）。
+- 挙動の線へ：写した台本の sha256 を事前登録に引くこと。
+
+━━ [6] 消す物と残す物・他の線との重なり
+- 消す物＝0。gates849.py・gates850.py・p1_paper850.py・diag・mut の旧台本は残す（(849)(850) の記録の再現に要る）。足す物＝scripts/instruments/c70gt/ の新しい台本・measurements/m853_20261105/。
+- 直す既存の物＝ident_check.py（表示だけ）・mkm852.py（KNOWN）・r847/（arm847.sh・mut847.sh・run847.sh・gate847.sh）。
+- 読み手の grep：ident_check.py の読み手＝ident.sh・mkm852.py・c10tg/c9gd の removed_cols 試し・test_cearn_grown852.py・m778/m784/m826/m832 の比較台本（import して関数を呼ぶ物は cearn_same_but_location・flow_same_but_location・table_of・cols_diff）。これらの関数の署名と戻り値は変えない。mkm852.py の読み手＝measurements/m852_20261105/ の記録だけ（再実行しない）。
+- 他の線の owns との重なり＝0（scripts/instruments/c70gt/・ident_check.py・mkm852.py・r847/・measurements/m853_* は c70gt だけ）。
+- GoodIdGuardTests（scripts の *.py を走査）・InstrumentsTests を新しい台本を足した後に回す。台本の中に C# の配列の字面・ハードコードした財の名を書かない。
+
+━━ [7] 恒等
+- エンジン・計器・試験の .cs の変更＝0 行（git diff --stat で確かめる）。ident は回さない（ソースから自明＝必要性の確認の段）。素の 5 種・計器つき 10 種は m852 のまま（動かさない）。
+- ソースを走査する番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests）：.cs を触らないので件数は変わらない予言（㉑）。GoodIdGuardTests と InstrumentsTests だけ回して確かめる（scripts を走査するのは前者）。
+
+━━ [8] D: と生
+- 新しい生を作らない（今ある keep_852・c69ss_work の読みだけ）。作る物は小さな合成盤面（数 MB）と台本の出力。消さない物は指示のとおり。
+- 空き 33.9GB を開始時に測った（shutil.disk_usage）。
+
+━━ [9] 自己申告の枠
+- waitmark の回数・覗きの回数・hook に止められた回数を分けて最後に書く。

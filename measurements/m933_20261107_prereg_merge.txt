@@ -1,0 +1,48 @@
+(933) 合流（波81）の予言（腕と合流の前にコミットする・結果を見た後に変えない）
+木の基点 11c35e5418c4f13036ec3fa41f249c78c146c7b0（main・origin/main と同じ・fetch で確かめた）。基線 m919（keep_919）。恒等の ident の基準 ident.cfg（keep_926/base_ins・890d59e0・2410）。
+
+== 0. 入れる順と木 ==
+c81sm（(927)・origin/c81sm 0d2e8ed0）→ c81im（(928)・369fb50b）＝ここまでが腕 Z の木 T_Z（挙動の線の変更を 1 つも含まない）
+→ c81cw（(929)・2ebdfa7f・旗 CivilWarArmsDemandUnified 0→1 だけ）＝木 T_cw（アブレーション A-la0 の木＝c81la のデータが無い）
+→ c81la（(930)・e88d3535・world.json の名簿 7 国の landOwnership と opening_bake.json の焼き直し）＝木 T_M（M・N1・N2・S11 の木）。
+→ WriterRatchetTests の宣言の表 item 6・11 の取り直し（★(749)・腕より前・T_M の実測で 1 回だけ）。
+消す名の grep（★(773)）：4 枝とも名を消していない（c81sm は RunClearing を private→internal にしただけ・c81cw は既定の値と注・c81im と c81la は足すだけ）＝対象なし（D:/PoB_work/m933/removed_lines.txt）。
+衝突の見込み 0（4 枝の持ち主のファイルは重ならない・反証役が git merge-tree で確かめた）。合流はエンジンの .cs を直さない。
+
+== 1. 恒等の段（止める線）==
+- 腕 Z（T_Z）の ident：〈判定: 恒等〉。宣言＝--added-tables imp_s --grown-ok crownpc_s --known-extra cearn_s:heirDebtSettledPerQuarter --tests-delta 6（2410＋c81sm 3＋c81im 3＝2416）--saveleak --ng。
+  素の 5 種 182 行が b5_20261107_m919 と・計器つき 10 種 183 行が b10_20261107_m919_ins と全行バイト一致（名乗り行を除く）。.cost の推定 207.9／211.7 秒。NG 99（新 0・外れ 0）。
+- アブレーション（素の 10 種・計器なし＝成績表だけ・m919 で素の 10 種と計器つき 10 種は全行一致）：
+  A-cw0（T_M・POB_COEF で CivilWarArmsDemandUnified=0）の成績表は c81la の腕 B b10_20261107_m930_ins と名乗り行以外で全行バイト一致。
+  A-la0（T_cw）の成績表は c81cw の腕 B measurements/m929_20261107/b10_c81cwB_10.txt と名乗り行以外で全行バイト一致。
+  理由：A-cw0 と c81la の腕 B の木の差は c81sm・c81im（Z で恒等）だけ。A-la0 と c81cw の腕 B の木 74abe7a7 の差は c80eb・c80sm・c80lr（★(926) の Z で恒等）と c81sm・c81im だけ。
+  ⇒ 一致すれば、各線の腕 B の生（c81cw_work・c81la_work）を〈もう一方の線を抜いた木〉の生として読む（計器の列は c81sm・c81im の分だけ違う＝門の台本は読まない列）。一致しなければ、その腕を計器つきで回し直して門を読む。
+- テストの数：T_M で Category!=FullLength 2418（2410＋3＋3＋2〔c81la の T-a・T-b〕）・FullLength 3。--list-tests と突き合わせる。
+
+== 2. 合わせた木で動く物（記録の段・予言）==
+- M（T_M・計器つき 10 種）・S11（種 11〜20・POB_CEARN=0）の成績表は m919 と一致しない（予言できない＝初めての組み合わせ）。exact・near・NG・nullgate・英の不履行は記録。
+- WriterRatchetTests：取り直しの前は item 6（ClaimProducers 宣言 1809）・item 11（DiploHegemonScans 宣言 3395620）が赤。c81la の木の実測は 1627・2655980。旗 cw=1 で最初の 40 四半期の内戦の軌道が動けば値は違いうる（予言しない）。他の item は緑。
+- フルスイートの赤：上の 2 本だけ（取り直しの前）。取り直しの後は赤 0・中止 0・NRE 0。savetest OK・leakhunt 違反なし。
+- OnDoubleReadScanTests（c81sm）の表は T_M で変わらない（反証役が合わせた木で確かめた）。
+- c81la の門（q0＝助走の直後で読む）：M の G-B1・G-B2・G-B3 の値は c81la の腕 B と同じ見込み（助走の中の内戦の軍需が q0 の地代と GDP に効かない限り）。違えば記録し、門の判定だけで読む。
+- c81cw の門：M・S11 で a_c は 10.7〜10.9 の見込み・newRuleMismatch 0（規則の形から）。
+- 計算量：M の推定は m919 211.7＋cw（+0.8）＋la（−1.6）の近く＝210〜213 秒（記録・2 秒以下は 1 本の腕で門にしない）。上限 248.5 秒は止める線。
+- SOURCE-HASH は予言しない。
+
+== 3. 門（線の事前登録のまま・数を変えない）==
+c81cw（m929 prereg §1）：G1 下限 a_c≧9.0 かつ内戦の四半期の平均の最小≧9.0−1e-9／上限 a_c≦13.5／形 Σ newRuleMismatch≦0.001×Σ戦争の月／大きさ a_c÷18≦0.75・G1f a_f∈[9.0,13.5]・G2 内戦の長さの中央∈[8,14]・G3 3 財の需要と産出＞0・d_B÷d_0≧0.2。台本 scripts/instruments/c80cw/gates922.py・tab922.py（1 字も変えない）。
+c81la（m930 prereg [4]）：G-B1 ①〜④・G-B2（Δ÷P≧0.8・Δ＞W・Δ÷P_arm≦U）・G-B3。台本 scripts/instruments/c81la/gate930.py・tab930.py（1 字も変えない・S11 の tab は BASE1=D:/PoB_work/keep_919/base_ins を渡す）。
+M（種 1〜10）で両方の線の門を読み直し、最終の採否は S11 で 1 回だけ（同じ門）。
+効きが足し算か（㉞）：M の門の観測量（a_c・a_f・d_B÷d_0・Δ÷P）を各線の腕 B の値と並べる（A-cw0・A-la0 が線の腕 B と一致すれば、線の腕 B がアブレーションの腕）。
+
+== 4. 止める線（★(919)・scripts/instruments/c78gz/stoplines906.sh の 1 本）==
+破綻・発散（1e10 倍・非有限・plvl・開幕の 1000 倍以上）・〈100 倍〉の〈それ以外〉・空洞化 1/10 未満で線が原因（件ごとに基線の同じ種で同じ州が 1/4 未満かを表に書く＝種 1〜10 は keep_926/base_ins・種 11〜20 は keep_919/a11）・推定の計算量＞248.5 秒・機構のテストの赤。
+基準とヌル腕の数え直しは c81cw が同じ台本で取った measurements/m922_20261107/null/stop906_{base,a11,n1,n2}.txt を使う（台本は (906) の後に変わっていない）。
+予言：M・S11 とも止める線は 0。〈建国の後の 0 の続き〉〈建国の直後〉〈分母の痩せ〉は記録の欄（ヌル腕の件数と並べる）。
+記録の段：gdp_zero10（線の腕に出た 共和制フランス〔c81cw 種 1〕・オーストラリア王国〔c81la S11 種 13〕は軌道の違いで出る・出ないが変わりうる）・home_break・NG・nullgate・exact・near・英の不履行。
+
+== 5. 採ったときの新しい基線 ==
+m933＝M。生 D:/PoB_work/keep_933/{base_ins,n1,n2,a11}。ident.cfg：B5（T_M の素の 5 種＝新しく回す）・B10INS・MON・INSRAW keep_933/base_ins・BASE_COMMIT＝T_M の頭・TESTS_NONFULL 2418・NG_BASE ng933。
+新しいヌル腕 N1・N2（T_M・SupplySlope 0.50000001・0.49999999・計器つき 10 種）。keep_912_rej・keep_919・keep_926 は残す。
+腕の枠：Z（2 枠）＋M＋S11＋A-cw0＋A-la0＝6 枠が採否に要る組＝先に起こす。N1・N2・素の 5 種は後（枠の上限 6 のため ㊲ の〈全て同時〉から外れる＝名乗る）。
+D: の空き：起こす前に shutil で読む。c81sm と c81im の ident の生（約 36GB・反証役が読んだ・恒等の判定済み）は keepsum に縮めてから消す。

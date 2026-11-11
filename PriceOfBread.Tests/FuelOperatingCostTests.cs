@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// 運用コスト監査2026-08-16（燃料系4本＝海軍運用燃料・鉄道運行石炭・汽船運行燃料・空軍/輜重燃料）。
 /// 海軍燃料だけ休眠（既定0）＝既定では台帳Navy が1ビットも動かないことのガードと、係数を直接非0にしたON経路の検証。
-/// ★2026-09-27（回4-3 の再挑戦）：汽船の船の選択（容量あたりの総費用）と、機関の時代係数で上がる汽船の性能の番人。
+/// ★2026-09-27（回4-3 の再挑戦）：汽船の船の選択（容量あたりの総費用）の番人。(843) で時代係数の旗 EraOff を焼き込んだ＝機関の時代係数で上がる汽船の性能の番人と、前線技術で帆船と汽船が入れ替わる番人は旗 0 の経路とともに消えた。
 /// </summary>
 public class FuelOperatingCostTests
 {
@@ -199,62 +199,6 @@ public class FuelOperatingCostTests
         else { Assert.True(t1 > t0, "汽船の需要が立っていない"); Assert.Equal(s0, s1); }
     }
 
-    // ★2026-09-27（回4-3 の再挑戦・作者裁定 2026-09-26 (3)）：転換は費用で起きる。参照価格の帆船(1.625)・汽船(3.1866)・石炭(0.54)と点火した ShipFuelRate のもとで、
-    //   前線技術 1.84（この木の seed 1・2 で1840年ごろ＝1838年 1.78〜1.81・1843年 1.88〜1.91）では帆船が安く（汽船＝era 0.94×0.0857≈0.081 > 帆船 0.054）、
-    //   2.78（1883年 2.77〜2.78）では汽船が安い（era 0.55×0.0857≈0.047 < 0.054）。同じ1880年代でも石炭が2倍の盤面では帆船に戻る（0.55×0.129≈0.071）。
-    [Theory]
-    [InlineData(1.84, 1.0, true)]
-    [InlineData(2.78, 1.0, false)]
-    [InlineData(2.78, 2.0, true)]
-    public void 汽船への転換は費用で起きる_1840年は帆船_1880年代は汽船_燃料が高いと帆船へ戻る(double frontierTech, double coalMult, bool sailWins)
-    {
-        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
-        double coal = Catalog.RefPrices[Catalog.CoalId] * coalMult;
-        var sim = ShipWorld(57, coef, Catalog.RefPrices[Catalog.SailingShipId], Catalog.RefPrices[Catalog.SteamshipId], steamSupplied: true, frontierTech, coal);
-        var (s0, t0) = ShipDemand(sim.World);
-        Transport.Step(sim.World, coef);
-        var (s1, t1) = ShipDemand(sim.World);
-        if (sailWins) { Assert.True(s1 > s0, "帆船の需要が立っていない"); Assert.Equal(t0, t1); }
-        else { Assert.True(t1 > t0, "汽船の需要が立っていない"); Assert.Equal(s0, s1); }
-    }
-
-    [Fact]
-    public void 汽船の性能は機関の時代係数で上がる_1単位の容量は2倍で容量あたりの燃料は半分()
-    {
-        // era＝EraFactor(前線技術, EraColonyCoal)：前線 1.0（運賃革命のランプの前）で 1.0・3.5（満了の後）で 0.5。
-        //   ①汽船1単位の容量＝30×2.5×解禁度÷era＝75→150（同時代の換算「汽船1トンは帆船3〜5トン分」）②容量あたりの燃料＝ShipFuelRate×era＝半分。
-        //   ★2026-10-01 段2A：旧③「州の解禁度が半分なら1単位の容量も半分」は外した＝汽船の解禁度は発見の2値（作者裁定 §1A-2）＝半分の盤面は無い。
-        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
-        double CapPerUnit(double tech)
-        {
-            var sim = ShipWorld(58, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech);   // 汽船が安い
-            var w = sim.World;
-            double stock0 = 0; foreach (var r in w.Regions) stock0 += r.Markets[Catalog.SteamshipId].Stock;
-            Transport.Step(w, coef);
-            double stock1 = 0; foreach (var r in w.Regions) stock1 += r.Markets[Catalog.SteamshipId].Stock;
-            Assert.Equal(1.0, w.ShipSteamShare.Value);
-            return w.ShipCapacity / (stock0 - stock1);
-        }
-        double early = CapPerUnit(1.0), late = CapPerUnit(3.5);
-        Assert.Equal(coef.TransportCapPerUnit * coef.ShipTier2CapMult, early, 6);   // 買った単位は在庫(1e6)の差から数える＝差の丸め（約1e-9）ぶんの許容
-        Assert.Equal(2.0 * early, late, 6);
-
-        double FuelDemand(double tech)
-        {
-            var sim = ShipWorld(59, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech);
-            var w = sim.World;
-            w.ShipCapacity = 1e9; w.ShipSteamShare = new Share(1.0);   // 目標を超える容量＝船は買わない＝燃料だけを比べる
-            double d0 = 0; foreach (var r in w.Regions) d0 += r.Markets[Catalog.CoalId].LastDemand;
-            Transport.Step(w, coef);
-            double d1 = 0; foreach (var r in w.Regions) d1 += r.Markets[Catalog.CoalId].LastDemand;
-            return d1 - d0;
-        }
-        double fEarly = FuelDemand(1.0), fLate = FuelDemand(3.5);
-        Assert.True(fEarly > 0, "汽船が石炭を焚いていない");
-        Assert.Equal(coef.ShipFuelRate * 1e9 * (1 - coef.TransportDecay), fEarly, 3);   // era＝1
-        Assert.Equal(0.5 * fEarly, fLate, 6);
-    }
-
     [Fact]
     public void 船の選択_汽船の供給が無い州では汽船の需要が立たない()
     {
@@ -286,7 +230,7 @@ public class FuelOperatingCostTests
     [Fact]
     public void 船の選択_積んだ容量は単位の容量どおりで代金は生産者の持ち主へ保存される()
     {
-        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
+        var coef = new Coefficients();
         var sim = ShipWorld(53, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true);   // 汽船が安い
         var w = sim.World;
         double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);
@@ -337,7 +281,7 @@ public class FuelOperatingCostTests
     [Fact]
     public void 汽船の割合は減耗と購入をどう重ねても容量の在庫の割合と一致する()
     {
-        var coef = new Coefficients { EraOff = 0 };   // ★(613) 時代係数の機構の番人＝旗 EraOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
+        var coef = new Coefficients();
         var sim = ShipWorld(54, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: 2.3);   // 運賃革命のランプの途中（era が1でも0.5でもない）
         var w = sim.World;
         double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);

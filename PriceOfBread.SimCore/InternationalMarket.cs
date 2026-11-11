@@ -100,9 +100,8 @@ public sealed partial class InternationalMarket
                     if (sc > 0) { stateCut += sc; rent -= sc; }
                     if (rent > 0)
                     {
-                        // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園の地代は不在地主（本国の首都の投資家）へ直接＝清算の受け取りは移し方の1本（貯蓄と所得を同じ額で書く）
-                        //   なので国内の売上（EconomyStep の④＝精算の後に送る）と違って直接払ってよい。
-                        to.Add(Colonial.AbsenteeRgo(rr, pr) && Colonial.AbsenteeOwner(w, rr) is { } ab ? ab : rr.Pops[pr.OwnerPopIndex]); wt.Add(rent);
+                        if (Instruments.On) Instruments.LandshareExp(w, rr, pr, rent, sc);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分を引いた後の輸出の地代の総額（★(978) 国営持分 sc も＝写しの門だけが読む）
+                        EconomyStep.AddRentRecipients(to, wt, w, rr, pr, rent);   // ★(895) 受け手＝不在地主（植民地格の大農園・R1）か持ち主か土地の持ち分の枠
                     }
                     if (wages > 0) { to.Add(rr.Pops[pr.LaborPopIndex]); wt.Add(wages); }
                 }
@@ -177,9 +176,7 @@ public sealed partial class InternationalMarket
     /// <summary>運賃革命の倍率（A-高2・2026-08-15 に従価の運賃へも）＝1−TransportRevolutionMax×clamp01((前線の技術水準−Onset)÷Span)・TransportRevolutionMax≦0 は1。
     /// 清算（BilateralMarket の運賃の倍率）と発見の着値（Discovery.WorldMarket＝★(169)）が同じ1本を読む（(169) に清算の式をここへ移した）。</summary>
     internal static double FreightRevolution(double frontierTech, Coefficients c)
-        => c.TransportRevolutionMax > 0 && !(c.EraOff > 0)   // ★(613) 段4：旗 EraOff が正なら運賃革命は 1.0（前線の技術水準のランプを読まない・否定形＝NaN は旗 0）
-            ? 1.0 - c.TransportRevolutionMax * PoliticalQuantities.Clamp01((frontierTech - c.TransportRevolutionOnset) / c.TransportRevolutionSpan)
-            : 1.0;
+        => 1.0;   // ★(613) 段4（旗 EraOff は (843) で焼き込み）：運賃革命は常に 1.0（前線の技術水準のランプを読まない・旧の伸縮の枝は消した）
 
     // 【墓標2026-09-29・支払いの一元化 段3-1】Apply（国ごとの純流入を、黒字なら商人の仲介料＋残りを国の全POP の貯蓄比・赤字も全POP の貯蓄比で配る）を削除した。
     //   輸入代金は捌き手の商人・売り手の受取は④の持分・運賃は船の持ち主・仲介料は越境の輸出の受取から州の商人へ（黒字と赤字で対称）＝BilateralMarket.StepBilateral の清算の終わり。

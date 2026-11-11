@@ -1,0 +1,8 @@
+(868) 盤面 probe（旗 ImportPayerLive・ClearingFills・商人の添字なしの州・商人の人数 ≦1e-12 の州・人の居る POP が無い州・州の数）。英 1 国の盤面（TradeClearingTests.月の清算は…）
+--- 盤面の行を足す前（旗 1 は :473 で赤: Expected 1.9262720000000002 Actual 0）
+1	fills=1	noMerchIdx=0	merchSmall=27	noLivePop=0	regions=32
+0	fills=11	noMerchIdx=0	merchSmall=27	noLivePop=0	regions=32
+--- 盤面の行を足した後（旗 0・旗 1 とも緑）
+1	fills=11	noMerchIdx=0	merchSmall=27	noLivePop=0	regions=32
+0	fills=11	noMerchIdx=0	merchSmall=27	noLivePop=0	regions=32
+--- 読み：旗 0 の fills は前後とも 11（商人の添字なしの州 0＝旗 0 の道筋は構造で不変）。旗 1 は 1→11 で旗 0 と同じ。

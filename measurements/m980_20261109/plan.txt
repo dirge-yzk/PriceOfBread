@@ -1,0 +1,26 @@
+(980) c88hr 読む線（波88）の計画・2026-11-09・担当 Claude Opus 5.5
+作った物：D:/PoB_work/r980_work/（この線の作業フォルダだけ）。worktree と枝は作らない（読むだけ・コミット 0・push 0）。
+
+作業の場所
+- 台本・表・下書き：D:/PoB_work/r980_work/
+- ソースは main の作業ツリー（5e6adf98）と origin/c87hd（83ef3b4d）を読むだけ（git show / git diff）。
+
+読む生（読むだけ・書き換えない・消さない）
+- 旗 1（B1 EmptyPopDebtToHeirs 1＋(c1) BillGateReadsHeirDebt 1）：D:/PoB_work/keep_975_rej/hd_S11/out_c87hdS_10_s11/ins/{cearn_s11..20, cpop_s11..20, nation_s11..20}.tsv（種 11〜20）
+- 旗 0（B1 なし・(c1) なし・m975 の木）：D:/PoB_work/keep_975/base_ins/{cearn_s1..10, cpop_s1..10, nation_s1..10}.tsv（種 1〜10）
+  - keep_975/a11 は cearn_s・cpop_s が無い（nation_s だけ）＝同じ種 11〜20 の旗 0 の cearn は無い＝問い 2 は種の違う base_ins で読む（名乗る）。
+  - 参考：keep_975/n1・n2（ヌル腕・cearn あり）は揺れの幅を見るときだけ。
+- measurements/m971_20261108/（result_hd.txt・paper_flag0_null.txt・mut/・armS11/）・measurements/m971_20261108_prereg_hd.txt
+- 下書き docs/202611/20261108/20261108_B1の最後の回の前_貯蓄の流出と価格水準の床とU2の中身_読み_下書き.md
+
+ソース（grep し直す）
+- BilateralMarket.cs:578〜583（決済 ①・手形の門 ②③）
+- EmptyPopEstate.cs（main と origin/c87hd の差＝D:/PoB_work/r980_work/hd_diff.txt）
+- InstrumentsCearn.cs（importPayerKind・heirDebtAfterSettleSum・billWithHeirDebtClearings ほか）
+
+問い
+1. 型〈kind=2 の手形→B1 が相続人へ→① で返し切る→門は 0→新しい手形〉が hd_S11 の流出の何割か（輸入額で数える）。極値 3 行（種 14 共和制イギリス Q454・種 18 Q465・種 16 ポルトガル Q543）を名指しで追う。
+2. 同じ型が旗 0 にもあるか（base_ins・種 1〜10）。
+3. (c2) の設計の材料（上限〈量だけ＝∞〉を変える形の候補・門の位置・U5 の分母）。
+
+腕 0 本。覗き 0 回の予定（腕なし）。

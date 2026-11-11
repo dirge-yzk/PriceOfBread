@@ -1,0 +1,34 @@
+(846) 線 c69id の記録（書いたモデル：Claude Sonnet 5.5・枝 c69id・出発点 7f34146c）
+
+■ 判定: 恒等（測った種で一致）
+- 測った木 b00b1163（HEAD・未コミット 0 本）・SOURCE-HASH f7cc4caabd56b873。素の 5 種 182 行・計器つき 10 種 181 行が m839 と全行一致（名乗り行を除く）。計器の表 1068 本のうちバイト一致 1048・既知の揺れ 20（burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10）・宣言された増減 0。注視の表 4686 行一致。NG 81 件・新しい 0・外れた 0。テストの数 Category!=FullLength 2260（2244＋16）・FullLength 3。savetest OK・leakhunt 違反なし。
+- **1 回目の判定は不一致だった（和らげずに）**：.cost の件数の行の**名前**が 2 本違った（基準 m839 の .cost は旗名つきの旧い名乗り〈海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき…〉・今の木は (843) が焼き込み済みの旗の名を消した名乗り）。件数・秒の数は同じ（1,947,035／1,946,888）。(843) の ident は `--cost-allow 海軍の発注の配り` を名乗っていたのに、この線の事前登録 [4] のコマンドに入れ忘れた＝事前登録の漏れ。腕は回し直さず、同じ出力に `ident.sh check c69id --tests-delta 16 --ng --cost-allow 海軍の発注の配り` を当てて 2 回目で〈判定: 恒等〉（ident/ident_run1_log.txt が 1 回目・ident_check2_log.txt が 2 回目）。エンジンの変更は 0（注だけ）なので、名乗りの差は m839 の基準の .cost が (843) の前の木の物であることから来る。
+- ソースの差は注の文字だけ：src_diff846.py 7f34146c → SimCore 6 本全て〈注の文字だけ〉・コードの差 0（paper_src_diff.txt）。浮動小数の順序が変わる箇所 0。
+
+■ 足した試験（16 本・ファイル:行は b00b1163 の木）
+- LaborClosedTests.cs +6（Theory 2 ケース〈閉じた式と日次の 1 歩を 15 回が相対 1e-12〉・Fact 2〈参照をまたぐ・法の床に届く＝ビットで同じ〉・Theory 2 ケース〈参照より上から出発＝ビットで同じ〉）。物差し＝StepDay(r,c,1,…) を 15 回。〈使った〉の証拠＝台帳 PriceDailyRuns（1 対 15）。
+- ServiceClosedTests.cs（新）+2（天井の近くに張り付いた役務は相対 3e-5 以内かつ台帳 0・参照をまたぐ向きはビットで同じ）。旧の元は 5a19a944^ （(843) の別のコミットで消えたファイル）。
+- StateEduDemandTests.cs +7（供給が足りる月・尽きた月・一部だけ取れた月・値段の向き・労働の重みの向き・高等教育・到達率）。物差し＝Demand(f＝0)（高等教育は HigherEduFunding＝0）。旧の第 9 の試験〈旗の既定は 1〉は復元せず、到達率の試験に置き換えた（AI の案）。OneMonth に引数 reachFromAdmin・adminFill を足した（既定は従来どおり 0・1.0）。
+- RuleInstrumentTests.cs +1（挙げていない国の遅れた R も毎四半期更新される・T8）。
+- 突然変異 15 本（measurements/m846_20261105/mut_summary.txt）：ML1 ML2 MS1 MS2 ME1〜ME5 MR1〜MR3 MF1 は赤・MF3 は緑・MF2 は赤。事前登録の見込みとの食い違いは MF2・MF3 の 2 本（見込みが逆）。ME5 は事前登録に無い追加（試験 (a) を赤にする変異が無かったため）。
+- 赤の確かめ（要点）：ML1（閉じた式の値の誤り）→ Labor の Theory 2＋端の日 1。ML2（閉じた式を使わない）→ Labor の Theory 2＋WriterRatchetTests 3。MS1 → Service ①。MS2 → Service ①＋WriterRatchetTests 3。ME1（`2*(want−boughtQty)`）→ 一部だけ・尽きた月・到達率。MR1 → 新しい T8 だけ（T7 は緑のまま）。MR2 → T4・T5・T6。MR3 → T6。
+
+■ FullChainTests の鋳造の経路（項目 7）
+- 結果：金本位・Full(1)・400 ティックの盤面の鋳造は**自由鋳造の床の枝**で起きている（MF2＝床の枝を外すと〈鋳造が一度も発生していない〉で赤・MF3＝市場買いを外しても緑・MF1＝記帳を外すと貨幣保存の破れで赤）。(843) の反証役 ③ の疑い（市場買いでしか起きていない）は当たらなかった。Assert は不変・注に 2 行だけ事実を足した。市場買いの枝を踏む番人は無い（作らなかった＝別の線）。
+
+■ 古い注の一巡（項目 8）：World.cs:1103・Coefficients.cs の ServiceClosed／LaborClosed の注 3 行・Parliament.cs:372〜373・Politics.cs:1294〜1295（CRLF のまま）・SelfPlay.cs:365〜366・FuelOperatingCostTests の summary・InstrumentsRule.cs の ⚠限界に 1 文。対象外（理由つき）＝Diplomacy.cs:1555（SubmitProbabilistic は生きた旗）・Parliament.cs:371（GuildLawGate は生きている）・Parliament.cs:376／Politics.cs:1298（RebelArmsMarketEnabled は生きている）・LaborClosedTests の summary は試験の復元と一緒に書き直した。
+
+■ 走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests＋TechLevelRemovalTests・InstrumentsMonTests＝193 本緑（書き換えた件数 0・予言どおり）。
+
+■ フルスイート（Release・隔離ビルド・git archive b00b1163）：Category!=FullLength 2259 合格＋スキップ 1（合計 2260＝--list-tests と一致）・FullLength 3 本合格・中止 0（suite_summary.txt）。savetest・leakhunt は ident の --saveleak（OK・違反なし）。
+
+■ 指示から外れた所・反省（担当の先頭）
+- **反証役（opus）を起こせなかった**（この担当に副担当を起こす道具が無い）。advisor の読みで代えた。
+- **ident の生を反証役が読む前に消した**：D: の空きが 2.3GB まで落ちた（他の線の腕と私の ident〈16GB〉とフルスイートの重なり）ため、keepsum（measurements/m846_20261105/keepsum_ident_c69id_ins.tsv・1068 本の sha256・行数・見出し）を残して out_ib_10 を消した。(842) の ⑲ と同じ違反に当たる（事前登録 [5] は〈反証役が読んでから〉と書いたのに従えなかった）。恒等の判定は比べた結果（バイト一致 1048・既知の揺れ 20）として measurements/m846_20261105/ident/ に残してある。生は ident を回し直せば再現する（木 b00b1163）。
+- 事前登録 [4] の ident のコマンドに `--cost-allow 海軍の発注の配り` を入れ忘れた（上）。
+- 計算量の宣言の表（WriterRatchetTests）に触れていない・★(743) の書き換え 0（既存の試験の Assert を 1 字も書き換えていない。LaborClosedTests・StateEduDemandTests の既存の Fact〈閉じた式は端の日だけを確かめる・財源率が0なら何も足さない・満額の義務教育で…・計器の試験〉は変更なし。FuelOperatingCostTests は summary の注だけ。StateEduDemandTests.OneMonth の引数追加は既定値で従来と同じ）。
+- 触る行の列挙（合流で解く）：Coefficients.cs :653・:654・:656・:658（注だけ・旗の行ではない）／World.cs:1103／Parliament.cs:372〜373／Politics.cs:1294〜1295／SelfPlay.cs:365〜366／InstrumentsRule.cs 22 行目の直後に 1 行／試験 LaborClosedTests.cs・ServiceClosedTests.cs（新）・StateEduDemandTests.cs・RuleInstrumentTests.cs・FullChainTests.cs（注のみ）・FuelOperatingCostTests.cs（注のみ）。
+
+■ 足した計器の列：なし（0）。新しい係数 0・新しい状態 0。
+
+■ 自己申告：waitmark 約 30 回（前面）・印の外の覗き 1 回（ガード後の変異の出力の読みは完了後）・hook に止められた回数 0（ただし stdin を待つ stray の cat で 1 本を TaskStop）・腕の枠の待ち 0（arms.sh free 4〜6）・D: の空きの最小 2.28GB。作ったフォルダ：wt_c69id（残す）・c69id_work・c69id_art・c69id_suite・ident_c69id（生は消した）・c69id_mut／mut2／mutart／mutart2（消した）。

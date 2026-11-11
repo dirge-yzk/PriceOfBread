@@ -1,0 +1,12 @@
+applied M4
+ PriceOfBread.SimCore/Simulation.cs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:04.02]     PriceOfBread.Tests.ResourceRowsTests.T3_賦存の読み手と州の配列が同じ(flag: 0) [FAIL]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T3_賦存の読み手と州の配列が同じ(flag: 0) [2 s]
+[xUnit.net 00:00:04.15]     PriceOfBread.Tests.ResourceRowsTests.T1_旗0では州の配列は足す前と同じで足した財は0点4 [FAIL]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T1_旗0では州の配列は足す前と同じで足した財は0点4 [62 ms]
+rc=1
+   旗 0・マンチェスター・塩：配列にある=True・賦存の値=8.4（基準×3.5=73.5）
+   Assert.Equal() Failure: Collections differ

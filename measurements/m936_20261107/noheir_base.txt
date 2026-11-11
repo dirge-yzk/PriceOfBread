@@ -1,0 +1,3 @@
+# フォルダ D:/PoB_work/keep_933/base_ins
+emptyDebtAfterEstate＞0 の行（tier ごと）：Colonial 393349・Core 5519・Integrated 69
+その中で estateNoHeirPerQuarter＞0：0

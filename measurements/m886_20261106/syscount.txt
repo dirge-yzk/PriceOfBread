@@ -1,0 +1,31 @@
+S01	68	Discovery.cs goods.json goods.json
+S02	44	Calendar.cs MarketFlow.cs
+S03	0	
+S04	1	LaborSupply.cs
+S05	22	Megaprojects.cs megaprojects.json
+S06	10	Crime.cs
+S07	30	InternationalMarket.cs
+S08	52	Geo.cs Landmask.cs Landmass.cs PathGraph.cs Places.cs SeaGraph.cs Transport.cs barriers.json landmass.json passages.json places.json sea_nodes.json
+S09	1	TradeReachDiag.cs
+S10	3	LaborSupply.cs PopClass.cs
+S11	16	TechEducation.cs
+S12	29	Meritocracy.cs
+S13	69	Crime.cs NationConfig.cs PopDecision.cs
+S14	46	Ideology.cs PoliticalQuantities.cs
+S15	19	PoliticalQuantities.cs
+S16	23	FactionSnapshot.cs Factions.cs SecessionNames.cs
+S17	46	CrownParliament.cs PoliticalQuantities.cs PowerAffinity.cs
+S18	31	InterestGroups.cs Parliament.cs
+S19	15	Contraband.cs Policy.cs
+S20	21	Privileges.cs
+S21	0	
+S22	94	Bank.cs CapitalMarket.cs Credit.cs Explain.cs NationConfig.cs
+S23	106	ArmyShape.cs Military.cs NationConfig.cs PowerShares.cs Scenario.cs
+S24	1	Landmass.cs
+S25	1	Landmass.cs
+S26	39	Colonial.cs Landmass.cs
+S27	8	CultureRealms.cs Formations.cs SecessionNames.cs
+S28	63	Climate.cs DeterministicRng.cs Geo.cs NationConfig.cs Places.cs megaprojects.json places.json
+S29	163	Program.cs BudgetBindDiag.cs DeterministicRng.cs HistoricalReference.cs Invariants.cs MechanismProbe.cs SaveGame.cs Scenario.cs TradeReachDiag.cs Validation.cs
+hubs ['BilateralMarket.cs', 'Catalog.cs', 'Coefficients.cs', 'Diplomacy.cs', 'EconomyStep.cs', 'Fiscal.cs', 'Government.cs', 'Model.cs', 'MultiNationSim.cs', 'PolicyPreferences.cs', 'Politics.cs', 'SelfPlay.cs', 'Simulation.cs', 'Territory.cs', 'World.cs', 'world.json']
+gone ['Calibration.cs', 'DiploCore.cs', 'DormantIdentityTests.cs', 'EconTab.axaml', 'GameViewModel.cs', 'Header.cs', 'Law.cs', 'LawRowVM.cs', 'Map.cs', 'News.cs', 'PoliticsTab.axaml', 'Popups.cs', 'Production.cs', 'Refresh.cs', 'SaveMenu.cs', 'SliderLimit.cs', 'Sweep.cs', 'Tests.cs', 'Trade.cs', 'War.cs', 'WarTab.axaml', 'WriterRatchetTests.cs', 'an_wpn.py', 'measure.sh']

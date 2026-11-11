@@ -145,7 +145,7 @@ public static class Government
             FrontOpen: w => w.Polity != Polity.ProletarianDictatorship),
         new(PolicyAxis.Antitrust, w => (int)w.Antitrust, (w, v) => w.Antitrust = (AntitrustLaw)v, (w, p) => (int)p.Antitrust, 2, Stage: 2),   // 独占禁止法（E6）：規制なし→談合禁止→独占の解体（独占レント保有層が抵抗）
         new(PolicyAxis.Guild, w => (int)w.Guild, (w, v) => w.Guild = (GuildLaw)v, (w, p) => (int)p.Guild, 2, Stage: 2, Open: w => w.Coef.GuildLawGate > 0),   // ★同業組合法（特権 段4・2026-09-07）：保護→制限→廃止（職人が抵抗）。ゲート0＝法が動かない＝恒等
-        new(PolicyAxis.MinimumWage, w => (int)w.MinimumWage, (w, v) => w.MinimumWage = (MinimumWageLaw)v, (w, p) => (int)p.MinimumWage, 3, Stage: 2, Open: w => w.Coef.MinimumWageLawGate > 0),   // ★最低賃金法（線 lw (459)・2026-10-20）：なし→生存→生活→充足（独立した量の段・他の法の前提なし・賃金労働者が推し資本が抵抗する）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.MinimumWage, w => (int)w.MinimumWage, (w, v) => w.MinimumWage = (MinimumWageLaw)v, (w, p) => (int)p.MinimumWage, 3, Stage: 2),   // ★最低賃金法（線 lw (459)・2026-10-20）：なし→生存→生活→充足（独立した量の段・他の法の前提なし・賃金労働者が推し資本が抵抗する）。旗 MinimumWageLawGate は (843) で焼き込み
         new(PolicyAxis.WartimeRationing, w => w.WartimeRationing ? 1 : 0, (w, v) => w.WartimeRationing = v == 1, (w, p) => p.WartimeRationing ? 1 : 0, 1),   // 戦時配給法（E6・あり/なし）：戦時のみ発火（資本が反対）
         new(PolicyAxis.MilitaryExport, w => w.MilitaryExportBan ? 1 : 0, (w, v) => w.MilitaryExportBan = v == 1, (w, p) => p.MilitaryExportBan ? 1 : 0, 1),   // 軍需輸出の法（禁制品doc C5・2026-07-30）：武器で稼ぐ資本が禁止に反対＝軍需産業の大きい国ほど通らない・軸の増＝禁止
         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：旧支配層が禁止を推し近代/大衆が抵抗。ゲート0＝法が動かない＝恒等。軸の増＝禁止。
@@ -180,7 +180,7 @@ public static class Government
         // 既定 None＝AI/議会/勢力が目標を置かなければ目標＝現在＝StepLevel が即 return。
         new(PolicyAxis.ColonialSuffrage, w => (int)w.ColonialSuffrage, (w, v) => w.ColonialSuffrage = (ColonialSuffrageLaw)v, (w, p) => (int)p.ColonialSuffrage, 2, Stage: 2),   // なし→自国民のみ→全面を1段ずつ
         new(PolicyAxis.MigrantNativeSuffrage, w => (int)w.MigrantNativeSuffrage, (w, v) => w.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v, (w, p) => (int)p.MigrantNativeSuffrage, 1, Stage: 1),   // なし0／あり1（2段＝段の飛び越しが存在しない）
-        new(PolicyAxis.Inheritance, w => (int)w.Inheritance, (w, v) => w.Inheritance = (InheritanceLaw)v, (w, p) => (int)p.Inheritance, 4, Stage: 2, Open: w => w.Coef.InheritanceLawGate > 0),   // ★相続法（線 inh (650)）：なし→低→中→高→全て（独立した量の段・政体の門なし）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.Inheritance, w => (int)w.Inheritance, (w, v) => w.Inheritance = (InheritanceLaw)v, (w, p) => (int)p.Inheritance, 4, Stage: 2),   // ★相続法（線 inh (650)）：なし→低→中→高→全て（独立した量の段・政体の門なし）。旗 InheritanceLawGate は (843) で焼き込み
     ];
 
     /// <summary>軸→表の行（同じ軸の行が複数あるのは国有化の5部門だけ＝先頭の行・段も位置も表を読まない軸）。</summary>
@@ -292,6 +292,7 @@ public static class Government
         // 社会保障の旧スライダー枝は第3段3-6で削除（法駆動が正）。
         // ★税・支出の段は表 RateLaws を施行の順に回す（2026-09-28 処理の一元化 段1＝旧は軸ごとの Move の1行）。
         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
+        if (c.LandTaxPhiMove > 0) MoveLandTaxPhi(w, c, w.LandTaxBasisPhi);   // ★(990) c90px 旗 1：φ* の 1 歩（この器は現在値を渡す＝動かない・目標の置き方は A-2b-1d）
         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。
         if (w.CoercionFollowsForce)
             p.CoercionTarget = CoercionTargetFromForce(w.SoldierSizeK() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
@@ -355,9 +356,9 @@ public static class Government
             if (!(gap >= -1 && gap <= 1)) gap = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
             rateTarget = PoliticalQuantities.Clamp01(w.InterestRate + c.TrilemmaRateResponse * gap);
         }
-        w.InterestRate += c.PolicyBaseSpeed * (rateTarget - w.InterestRate);
+        w.InterestRate = PoliticalQuantities.Toward(w.InterestRate, rateTarget, c.PolicyBaseSpeed);
         // 行政費＝官僚機構の予算編成（行政府の内部事項＝利益集団の抵抗は受けない）。目標へ寄る。
-        w.AdminSpending += c.PolicyBaseSpeed * (Q5(PoliticalQuantities.Clamp01(p.AdminSpendingTarget)) - w.AdminSpending);
+        w.AdminSpending = PoliticalQuantities.Toward(w.AdminSpending, Q5(PoliticalQuantities.Clamp01(p.AdminSpendingTarget)), c.PolicyBaseSpeed);
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の予算編成（AntiCorruptionSpending←AntiCorruptionTarget平滑）を物理削除＝汚職V2恒久ONで下流（Fiscal請求・清廉度更新）が全て死んでいた。
         // P9改（2026-07-19ユーザー裁定）：国民形成費レバーは廃止＝NationBuildingSpending は Fiscal の需要駆動ブロック
         // （「選挙を望む層」の自費拠出＝実支払い/満額）が毎月導出する。ここでは動かさない。
@@ -370,7 +371,7 @@ public static class Government
         //   新＝<see cref="LawPrereq"/> の門（「緊縮の下限」「緊縮の上限」）＝債権者が奪うのは**法を選ぶ自由**であって値ではない。
         //   ⚠門は「上げる力」を持たない＝緊縮下で逆進税を自動で引き上げる手は消える（自発的に上げるのは SelfPlay の財政ストレス／プレイヤーの判断）。
         //     債務スパイラルは未払い（Fiscal の利払い・維持費の Min）→FiscalFundingRatio の劣化→デフォルト（払えなかった大きさの累計が DefaultArrearsMonths に届く・(205)）で閉じる。
-        //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料。
+        //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（旗 SummonByInterestShare＝1〔既定〕では CrownParliament が 利払い÷歳入 を読む・旗 0 では本値の >0.5 を読む〔(908) で注だけ直した〕）と門の材料。
         //   軍事費の緊縮は**不採用**（2026-06-18 検証）：負債国だけが動員解除し財政健全な覇権国は軍を維持＝非対称な武装解除で力の格差が拡大した。
         // ★値は施行の前（上の austerity）で導出し、置くのはここ＝この四半期の法の門は前の四半期の値を読む（2026-09-30 (119) で導出だけを上へ移した・並びは旧と同じ）。
         if (Instruments.On) Instruments.StockAtStepEnd(w);   // 計器（読むだけ・(278)）：Step の末尾の政治資本の在庫
@@ -890,6 +891,14 @@ public static class Government
     //   ⚠**旧の硬いゲートへは戻さない**：税4軸と軍事費は 2026-09-20 に段になり**施行が Move 側**なので、ここだけ硬く戻すと
     //     「税の段が反対を押し切って上がる」経路が消える＝現行より後退する。門は世界に1つ（S1 の字義）＝法もスライダーも在庫で払う。
     //   ⚠法は同じ四半期の先に課金される（Government.Step は法→スライダーの順）＝スライダーの這い進みが法を飢えさせることはない。
+    /// <summary>★(990) c90px 土地税の基数の定額の度合い φ*（<see cref="World.LandTaxBasisPhi"/>）を目標 <paramref name="target"/>（[0,1]・引数＝T の欄は作らない）へ 1 歩動かす。
+    /// 助走（WarmupFrozen）の間は動かさない。土地税の軸の Move を mandate＝true で呼ぶ＝純支持の門は閉じず、反対を押し切る分は政治資本の在庫が払う（憲法級でない軸の余白は +∞・政治が無効な世界では 0）。</summary>
+    internal static void MoveLandTaxPhi(World w, Coefficients c, double target)
+    {
+        if (w.WarmupFrozen) return;
+        w.LandTaxBasisPhi = Move(w.LandTaxBasisPhi, target, c, w, PolicyAxis.LandTax, mandate: true);
+    }
+
     private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true, bool fullPush = false)
     {
         bool milProbe = Instruments.On && a == PolicyAxis.Coercion && spendScale == 1.0;   // 計器（読むだけ）：軍事費の合計の施行の一歩（Step の milTotal）だけを写す

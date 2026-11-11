@@ -1,0 +1,21 @@
+(1015) c94rh 貿易の段0′〈資源の穴〉の一覧＝読む線・腕 0 本・コミット 0・Claude Opus 5.5・2026-11-10
+
+作業の場所
+- D:/PoB_work/r1015_work/（この回に作った唯一のフォルダ）。worktree・枝は作らない（読むだけ＝main の作業ツリー 4803fabe のファイルを読むだけ・書かない）。
+- 台本：D:/PoB_work/r1015_work/scripts/（合流が scripts/instruments/r1015/ へ写す）
+- 出力：D:/PoB_work/r1015_work/out/（合流が measurements/m1015_20261110/ へ写す）
+- 所見：D:/PoB_work/r1015_work/findings.txt
+
+読む物（全て読むだけ）
+- ソース（4803fabe）：PriceOfBread.SimCore/world.json（州と植民地の resources・city）・goods.json（財の id・名・inputs・tier）
+  Simulation.cs:684〜:851（賦存 4.0/3.5・非産地 0.4・ScarceEndowment・ApplyEndowment・SiteRowFor・BuildProvince の枝）・:1507〜:1534（植民地）・:1363（甜菜糖のレシピ）
+  Catalog.cs:333〜:341（IsScarceMineral）・:373（IsColonial）・:798〜:813（Sites）・Climate.cs:36〜:43（StapleSelfSufficient）・Discovery.cs:1231（OpenSite）
+- 生：D:/PoB_work/keep_1011/base_ins の region_s（州の持ち主・年）・nationgood_s（産出・越境）・種 1〜10
+- 先の台本：scripts/instruments/r1010/ge_paper.py（定数と 0.4 の財の定義を写す）・measurements/m1010_20261110/out_paper_1913.tsv
+- 下書きと材料：docs/202611/20261110/20261110_貿易の第1期の最初の段_採取の地理と劣った代替_盤面m1001_{下書き,材料}.md
+
+順
+1. prereg.txt（穴の定義・〈主な〉の定義・出典の度合いの名乗り）を数える前に書く
+2. 台本 rh_table.py：9 国×採取の財の盤面の側（1783 の州・1870/1913 の持ち州で賦存>1 の州の数・産地の行・産出）
+3. 史実の側の表 hist.tsv（手で書く・出典の度合いつき）→ 台本 rh_hole.py が突き合わせて穴を列挙
+4. 甜菜・直し方・案 B への効き・推奨・次の波の素案を findings.txt

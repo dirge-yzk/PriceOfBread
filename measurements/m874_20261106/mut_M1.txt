@@ -1,0 +1,5 @@
+M1 if (_cearnCat == TreasuryCat.Subsidy) CearnImportSubsidySubInto(a, delta);
+  -> CearnImportSubsidySubInto(a, delta);
+  失敗 PriceOfBread.Tests.CearnTradeColumnsTests.補助はSubsidyだけを足し輸出の関税の戻しは足さない [17 ms]
+   Assert.Equal() Failure: Values differ
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

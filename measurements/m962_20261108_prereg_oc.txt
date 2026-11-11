@@ -1,0 +1,18 @@
+(962) c86oc 事前登録（最初のコミット・結果を見る前）
+[0] 区分：恒等の線・試験だけ・ident なし（★(912)）。形は (q)＝試験の中で盤面を置く。期間の取り直し (p) は使わない（★(961)）。(c) 数え方の変更は使わない。
+    どちらも README ★(743) ①〜④ の外の書き換えなので、別の区分〈(q) 盤面の置き方〉と名乗る。Near の式・クランプの除外（:82）・突き合わせの Assert・閾値 20 は変えない。
+[1] 恒等の線・予言 0：SimCore・係数・Runner・App・Display に触れない。素の 5 種・計器つき 10 種は m961 と同一（試験だけの変更＝成績表に影響しない）。
+[2] 消す物＝なし。残す物＝全て。足す物＝
+    (a) SecessionLaborLawInstrumentTests.cs :87 の試験：afterStep で q%4==1 の四半期（q=1,5,...,57）ごとに全国・全州の Dominance を 0.5 へ置く（最後の q=59 は置かない＝最終行と世界の突き合わせを保つ）。
+        置いた四半期の次の行（置く前の記録値との差が式に合わない）の組は数えない＝除く規則は置いた四半期の集合から機械的に決める（行の quarter が置いた q+1 の組を除く）。
+        床：checkedPairs >= 20（変えない）に加え、組を持つ (国,州) の系列が 5 本以上・組を持つ国が 2 国以上（1 州の 1 系列に頼らない・(955) の反証役）。この床は結果の前に置く。
+    (b) TransportInstrumentTests.cs :91 の試験：Run に afterStep を足し（既定 null）、q==5 でイギリスの本土格の州（首都以外・人口最大）を、q==13 でその次に大きい州をフランスへ Territory.TransferRegion(…, Rehoming.Ceded) で移す。
+        対照の Assert は 2 つ：移した各州ごとに、その州を売り手か買い手に持つ (年, 売り手州, 買い手州) の鍵が 2 つ以上の (売り手国, 買い手国) の組を持つ（州 2 つとも）。既存の split の Assert は残す。
+    読み手の grep：Run( を呼ぶのは同じファイルの試験だけ（他のファイルは別の private Run）。
+[3] 突然変異（使い捨ての写し）：M1 :87 の speed*1.01→Near で赤／M2 :82 のクランプの除外を外す→赤／M3 盤面を置く行を消す→wtL で対照が赤／M4 :91 の移転を消す→wtM で対照が赤。
+    ソースを走査する番人：試験のファイルを走査する番人は無い見込み（書き換える件数の予言 0）。確かめは WriterRatchetTests・DormantIdentityTests・InstrumentsTests の該当 filter を回す。
+[4] 門（両側）：直す前＝wtL で :87 赤（組 13）・wtM で :91 赤（確認済み 2026-11-08）。直した後＝:87 が wt0 と wtL で緑・:91 が wt0 と wtM で緑。テストの合計は 2431 のまま。
+    wtL＝bbc55c0d＋origin/c85lt（opening_bake.json は ours）・wtM＝bbc55c0d＋ff1bf106。
+[5] 点検（★(954)）：Tests の〈組が少ない〉型の Assert を grep。軌道の起点に依るのはこの 2 本。ForceReadGuardTests.cs:27 は開幕の盤面の 8 国の組で軌道に依らない＝記録のみ。他の >50 型（Discontent*・InstrumentsTests）は母集合が大きく記録。
+[6] 結果を見る前の補正（実行前・2026-11-08）：(a) の置く対象を〈全国・全州〉から〈Tier==Colonial の州だけ〉へ狭める（本国格は m955 の probe で組が 0＝置いても得ない・分離の発火を避ける）。値 0.5・周期 q%4==1・最終の q=59 は置かない・床（組20・系列5・国2）は変えない。
+    行の書き順の確認：secession の行は StepQuarter の中の CheckSecession（Politics.cs:1550・Dominance は積分の後）で組まれ、Instruments.Quarter（afterStep の後）で書かれる＝行 q の dominanceShare は置く前の値。よって除く組は〈後の行が q+1〉。

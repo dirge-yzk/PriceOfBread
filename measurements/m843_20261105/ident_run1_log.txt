@@ -1,0 +1,60 @@
+ident start：ラベル=c68ui 木=/d/PoB_work/wt_c68ui 作業=/d/PoB_work/ident_c68ui 腕=[a b t s] 開始=2026-11-05 06:18:04
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c68ui（2026-11-05 06:32:12）===
+測った木：D:/PoB_work/wt_c68ui（HEAD 7c23e3b7・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c68ui/scripts/instruments/ident/ident.cfg
+宣言：cost_allow=['海軍の発注の配り'] tests_delta=-28
+腕 a：rc=1 end=2026-11-05 06:27:55
+腕 b：rc=1 end=2026-11-05 06:32:11
+腕 t：rc=0 end=2026-11-05 06:19:22
+腕 s：rc=0 end=2026-11-05 06:28:09
+測る木の SOURCE-HASH：2a4b92aedbcfb3ab
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 2a4b92aedbcfb3ab
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m839
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m839.cost
+  △ 宣言された例外（--cost-allow）2 本：海軍の発注の配り：州×月×3 周（NavalPortSpli・海軍の発注の配り：州×月×3 周（旗 NavalPortPr
+  ○ 件数の行 29 本・推定 219.0 秒・種ごとの忠実度 5 行が一致（例外 2 本を宣言）
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 2a4b92aedbcfb3ab
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m839_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m839_ins.cost
+  △ 宣言された例外（--cost-allow）2 本：海軍の発注の配り：州×月×3 周（NavalPortSpli・海軍の発注の配り：州×月×3 周（旗 NavalPortPr
+  ○ 件数の行 29 本・推定 220.8 秒・種ごとの忠実度 10 行が一致（例外 2 本を宣言）
+[計器の表] 腕 D:/PoB_work/ident_c68ui/out_ib_10/ins  対  基準 D:/PoB_work/keep_839/base_ins
+  基準 1068 本・腕 1068 本・バイト一致 1018 本
+  既知の揺れの列だけが違う表 40 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 20906 欄）×1・cearn_s:経路の行番号だけ（写して一致 21354 欄）×1・cearn_s:経路の行番号だけ（写して一致 21467 欄）×1・cearn_s:経路の行番号だけ（写して一致 22626 欄）×1・cearn_s:経路の行番号だけ（写して一致 22931 欄）×1・cearn_s:経路の行番号だけ（写して一致 23645 欄）×1・cearn_s:経路の行番号だけ（写して一致 23704 欄）×1・cearn_s:経路の行番号だけ（写して一致 23916 欄）×1・cearn_s:経路の行番号だけ（写して一致 24102 欄）×1・cearn_s:経路の行番号だけ（写して一致 25594 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×10
+  ✗ 不一致：計器の表：宣言の無い違い 10 本
+      monlaw_s1.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s10.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s2.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s3.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s4.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s5.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s6.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s7.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s8.tsv	['HEADER_ORDER_OR_MISSING']
+      monlaw_s9.tsv	['HEADER_ORDER_OR_MISSING']
+[注視の表] mon_ib_10.txt 対 mon_20261105_m839.txt（タグの行を除く）
+  ✗ 不一致：注視の表：行数 4686 対 4686・違う行 5
+      1: 新 MONHEAD	段の法の名簿(第 2 段・monlaw_s の見出しから実行時に作る)：読める 36 行・読めない 0 行・門つき 2 行(Government.LevelLaws は 36 行)
+         基 MONHEAD	段の法の名簿(第 2 段・monlaw_s の見出しから実行時に作る)：読める 36 行・読めない 0 行・門つき 4 行(Government.LevelLaws は 36 行)
+      39: 新 MONROW	1	最低賃金|段2	6	注視	s1:制定0/撤回0; s3:制定0/撤回0; s7:制定0/撤回0…
+         基 MONROW	1	最低賃金|段2	6	注視	s1:制定0/撤回0|R1門開; s3:制定0/撤回0|R1門開; s7:制定0/撤回0|R1門開…
+      40: 新 MONROW	1	最低賃金|段3	10	先頭	s1:制定0/撤回0; s2:制定0/撤回0; s3:制定0/撤回0…
+         基 MONROW	1	最低賃金|段3	10	先頭	s1:制定0/撤回0|R1門開; s2:制定0/撤回0|R1門開; s3:制定0/撤回0|R1門開…
+      44: 新 MONROW	1	相続法|段3	10	先頭	s1:制定0/撤回0; s2:制定0/撤回0; s3:制定0/撤回0…
+         基 MONROW	1	相続法|段3	10	先頭	s1:制定0/撤回0|R1門開; s2:制定0/撤回0|R1門開; s3:制定0/撤回0|R1門開…
+      45: 新 MONROW	1	相続法|段4	10	先頭	s1:制定0/撤回0; s2:制定0/撤回0; s3:制定0/撤回0…
+         基 MONROW	1	相続法|段4	10	先頭	s1:制定0/撤回0|R1門開; s2:制定0/撤回0|R1門開; s3:制定0/撤回0|R1門開…
+[テストの数] --list-tests
+  ○ Category!=FullLength 2236（基準 2264-28 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+不一致の理由 2 件：
+  - 計器の表：宣言の無い違い 10 本
+  - 注視の表：行数 4686 対 4686・違う行 5
+判定: 不一致

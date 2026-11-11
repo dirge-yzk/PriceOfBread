@@ -1,0 +1,5 @@
+c75ce:cederule_s=8 c75ce:crownpc_s=0 c75ce:InstrumentsCede=1 c75ce:InstrumentsCrown=0 c75ce:CedeBefore=2 c75ce:CedeTable=2 c75ce:CedeClose=2 c75ce:CrownFold=0 c75ce:CrownClose=0 
+c75cp:cederule_s=0 c75cp:crownpc_s=8 c75cp:InstrumentsCede=0 c75cp:InstrumentsCrown=0 c75cp:CedeBefore=0 c75cp:CedeTable=0 c75cp:CedeClose=0 c75cp:CrownFold=2 c75cp:CrownClose=2 
+c75ip:cederule_s=0 c75ip:crownpc_s=0 c75ip:InstrumentsCede=0 c75ip:InstrumentsCrown=0 c75ip:CedeBefore=0 c75ip:CedeTable=0 c75ip:CedeClose=0 c75ip:CrownFold=0 c75ip:CrownClose=0 
+c75ts:cederule_s=0 c75ts:crownpc_s=0 c75ts:InstrumentsCede=0 c75ts:InstrumentsCrown=0 c75ts:CedeBefore=0 c75ts:CedeTable=0 c75ts:CedeClose=0 c75ts:CrownFold=0 c75ts:CrownClose=0 
+main:cederule_s=0 main:crownpc_s=0 main:InstrumentsCede=0 main:InstrumentsCrown=0 main:CedeBefore=0 main:CedeTable=0 main:CedeClose=0 main:CrownFold=0 main:CrownClose=0 

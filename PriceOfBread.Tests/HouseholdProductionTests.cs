@@ -7,31 +7,26 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(418) 日用品の自給（00-CE2 案 B）の番人（事前登録 measurements/ce_20261019_prereg.txt の D1〜D8）。
-/// 旗 <c>HouseholdProductionEnabled</c>＝農家の手仕事を実の生産者の行（<c>RecipeName</c>＝〈家内工業〉・8 財）にする。期待値は本体の表（<c>Simulation.HouseholdGoods</c> と財の表の投入）から作らず、
+/// 農家の手仕事を実の生産者の行（<c>RecipeName</c>＝〈家内工業〉・8 財）にする規則（旗 <c>HouseholdProductionEnabled</c> は (811) で焼き込み＝常に建つ）。期待値は本体の表（<c>Simulation.HouseholdGoods</c> と財の表の投入）から作らず、
 /// 下の手書きの表（財→財の表の投入と量＝工場の連鎖の最後の一段・(418) 追記3 の形 ③）と、職人の工房の手計算の値（衣料の生産性 1.8×7×0.6・自己費用 0.35）で書く（同語反復にしない）。
 /// 機構と不変条件の番人であって、創発の主張（手仕事の産出の割合・日用品の充足）は成績表と計器 <c>house_s</c> が見る。
-/// ⚠州の構築時の旗：MultiNationSim の <c>coef</c> は各国の Simulation には届かない（各国は <c>cfg.ToScenario</c> の既定の係数＝POB_COEF だけが届く）＝本土の州は <c>Scenario.Coef</c> を直に差して建てる（下の <c>Nation</c>）。
-/// 昇格した植民地の州は MultiNationSim の <c>coef</c> で建つ（下の <c>Multi</c>）。
+/// 本土の州は 1 国の Simulation の構築（下の <c>Nation</c>）・昇格した植民地の州は MultiNationSim の構築（下の <c>Multi</c>）で建つ。
 /// ★点検後の形：財の表の投入に農業労働力を最後の投入として足す（RGO と同じ規則に載せる）。
-/// ⚠突然変異（それぞれ赤になることを確かめた）：投入 1 本の入れ替え（衣料の染料→塩）／担い手を農民から貴族へ／旗の読み落とし（先頭の return を外す）／FacilityBuildScore の述語を外す／職人の比 0.6 を 0.5 に／農業労働力の投入を外す／FindFactory の述語を外す。</summary>
+/// ⚠突然変異（それぞれ赤になることを確かめた）：投入 1 本の入れ替え（衣料の染料→塩）／担い手を農民から貴族へ／FacilityBuildScore の述語を外す／職人の比 0.6 を 0.5 に／農業労働力の投入を外す／FindFactory の述語を外す。</summary>
 public class HouseholdProductionTests
 {
-    /// <summary>本土の州だけの 1 国の世界（旗は Scenario.Coef に差す＝州の構築時に届く）。</summary>
-    private static World Nation(NationConfig cfg, double flag)
+    /// <summary>本土の州だけの 1 国の世界。</summary>
+    private static World Nation(NationConfig cfg)
+        => new Simulation(cfg.ToScenario(41, sharedWorld: true), new NullAgent()).World;
+
+    private static IEnumerable<World> Worlds()
     {
-        var sc = cfg.ToScenario(41, sharedWorld: true);
-        typeof(Scenario).GetProperty(nameof(Scenario.Coef))!.SetValue(sc, new Coefficients { HouseholdProductionEnabled = flag });
-        return new Simulation(sc, new NullAgent()).World;
+        yield return Nation(NationConfig.Britain());
+        yield return Nation(NationConfig.France());
     }
 
-    private static IEnumerable<World> Worlds(double flag)
-    {
-        yield return Nation(NationConfig.Britain(), flag);
-        yield return Nation(NationConfig.France(), flag);
-    }
-
-    private static MultiNationSim Multi(double flag)
-        => new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83, coef: new Coefficients { HouseholdProductionEnabled = flag }) { DiplomacyFrozen = true };
+    private static MultiNationSim Multi()
+        => new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
 
     /// <summary>手書きの表（産出 1 単位あたり・財の表の factory の投入を見て手で書いた＝工場の連鎖の最後の一段）。</summary>
     private static readonly (int Good, (int In, double Q)[] Inputs)[] Expected =
@@ -74,73 +69,55 @@ public class HouseholdProductionTests
     }
 
     [Fact]
-    public void 既定は点火で職人の比と自己費用は手書きの値のまま()
+    public void 職人の比と自己費用は手書きの値のまま()
     {
-        Assert.Equal(1.0, new Coefficients().HouseholdProductionEnabled);   // (418) 後半で点火（0 は旧＝腕 A）
         Assert.Equal(0.6, Simulation.HandcraftProductivityRatio);
         Assert.Equal(0.35, Simulation.HandcraftSelfCost);
         Assert.Equal("家内工業", Simulation.HouseholdRecipeName);
     }
 
     [Fact]
-    public void 旗0では手仕事の行は無く旗1は行を足すだけで他の行の並びを変えない()
+    public void 手仕事の行は既存の行の後ろに連続して入る()
     {
-        var off = Worlds(0.0).ToList(); var on = Worlds(1.0).ToList();
         int regions = 0;
-        for (int n = 0; n < off.Count; n++)
-        {
-            Assert.Equal(off[n].Regions.Count, on[n].Regions.Count);
-            for (int i = 0; i < off[n].Regions.Count; i++)
+        foreach (var w in Worlds())
+            foreach (var r in w.Regions)
             {
                 regions++;
-                var a = off[n].Regions[i]; var b = on[n].Regions[i];
-                Assert.DoesNotContain(a.Producers, p => p.RecipeName == "家内工業");
-                Assert.Equal(a.Pops.Count, b.Pops.Count);   // 行だけを足す＝POP は増えない
-                var rest = b.Producers.Where(p => p.RecipeName != "家内工業").ToList();
-                Assert.Equal(a.Producers.Count, rest.Count);
-                for (int k = 0; k < rest.Count; k++)
-                {
-                    Assert.Equal(a.Producers[k].GoodId, rest[k].GoodId);
-                    Assert.Equal(a.Producers[k].RecipeName, rest[k].RecipeName);
-                    Assert.Equal(a.Producers[k].Productivity, rest[k].Productivity);
-                    Assert.Equal(a.Producers[k].MarginalCost, rest[k].MarginalCost);
-                    Assert.Equal(a.Producers[k].LaborPopIndex, rest[k].LaborPopIndex);
-                }
-                // 手仕事の行は既存の行の後ろ（先頭の個体〔FindProducer の規約〕は変わらない）
-                Assert.True(b.Producers.Take(a.Producers.Count).All(p => p.RecipeName != "家内工業"));
+                int first = r.Producers.FindIndex(p => p.RecipeName == "家内工業");
+                Assert.True(first > 0, "手仕事の行が無い／先頭にある");
+                // 手仕事の行は既存の行の後ろ（先頭の個体〔FindProducer の規約〕は変わらない）＝最初の手仕事の行より後ろは全て手仕事の行
+                Assert.All(r.Producers.Skip(first), p => Assert.Equal("家内工業", p.RecipeName));
             }
-        }
         Assert.True(regions > 10, "前提が崩れた：州が少ない");
     }
 
     [Fact]
-    public void 旗1では本土の全ての州に8本の行が手書きの表どおりに入る()
+    public void 本土の全ての州に8本の行が手書きの表どおりに入る()
     {
         int regions = 0;
-        foreach (var w in Worlds(1.0)) foreach (var r in w.Regions) { regions++; AssertHomeRows(r); }
+        foreach (var w in Worlds()) foreach (var r in w.Regions) { regions++; AssertHomeRows(r); }
         Assert.True(regions > 10);
     }
 
     [Fact]
-    public void 旗1では昇格した植民地の州にも同じ8本が入る()
+    public void 昇格した植民地の州にも同じ8本が入る()
     {
-        // ⚠既定が 1 になったので、MultiNationSim の coef が届かない本土の州〔各国の ToScenario の既定の係数＝1〕には旗 0 でも行が入る。
-        //   植民地の州〔MultiNationSim の coef で建つ〕の分だけが旗で増減する＝行を持つ州の数の差で確かめる。
-        var sim = Multi(1.0);
+        // 昇格した植民地の州〔MultiNationSim が建てる〕にも行が入る＝行を持つ州の数が本土の州だけの世界（Worlds）より多いことで確かめる。
+        var sim = Multi();
         int on = 0;
         foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
             if (r.Producers.Any(p => p.RecipeName == "家内工業")) { on++; AssertHomeRows(r); }
-        var off = Multi(0.0);
         int offCount = 0;
-        foreach (var n in off.Nations) foreach (var r in n.World.Regions) if (r.Producers.Any(p => p.RecipeName == "家内工業")) offCount++;
-        Assert.True(on - offCount > 10, $"前提が崩れた：旗 1 で増える植民地の州が少ない（{offCount} → {on}）");
+        foreach (var w in Worlds()) foreach (var r in w.Regions) if (r.Producers.Any(p => p.RecipeName == "家内工業")) offCount++;
+        Assert.True(on - offCount > 10, $"前提が崩れた：増える植民地の州が少ない（本土 {offCount} → {on}）");
     }
 
     [Fact]
     public void 職人の行は括り出した定数でも手計算の値のまま()
     {
         int seen = 0;
-        foreach (var w in Worlds(0.0))
+        foreach (var w in Worlds())
             foreach (var r in w.Regions)
                 foreach (var p in r.Producers.Where(p => p.RecipeName == "職人" && p.GoodId == Catalog.ClothingId))
                 {
@@ -155,7 +132,7 @@ public class HouseholdProductionTests
     public void 発見の門は1で眠らず国営の工場の候補からは外れる()
     {
         int seen = 0;
-        foreach (var w in Worlds(1.0))
+        foreach (var w in Worlds())
             foreach (var r in w.Regions)
             {
                 var def = r.Producers.First(p => p.GoodId == Catalog.ClothingId && p.RecipeName != "家内工業" && p.RecipeName != "職人");   // 比較の相手＝同じ財の既定の行
@@ -175,7 +152,7 @@ public class HouseholdProductionTests
     public void 国営の工場の動詞が掴む個体は手仕事の行にならない()
     {
         int checkedGoods = 0;
-        foreach (var w in Worlds(1.0))
+        foreach (var w in Worlds())
         {
             var r = w.Regions[0];
             foreach (var gid in new[] { Catalog.ClothingId, Catalog.BeerId, Catalog.CheeseId })
@@ -193,9 +170,9 @@ public class HouseholdProductionTests
     }
 
     [Fact]
-    public void 旗1の短い走行は完走し産出は有限で保存の往復が一致する()
+    public void 短い走行は完走し産出は有限で保存の往復が一致する()
     {
-        var sim = Multi(1.0);
+        var sim = Multi();
         sim.StartWarmup();
         for (int q = 0; q < 4; q++) sim.StepQuarter();
         double homeOut = 0; int rows = 0;

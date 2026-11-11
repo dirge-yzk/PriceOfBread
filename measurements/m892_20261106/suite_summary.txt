@@ -1,0 +1,14 @@
+(892) 合流のフルスイート（scripts/instruments/m892/suite892.sh 3da45a7b〔起こした時の HEAD・後の 26c11fa3 は ident.cfg と記録だけ〕・git archive の木・Release・--artifacts-path D:/PoB_work/m892/art_suite）
+--list-tests：Category!=FullLength 2339・FullLength 3
+成功!   -失敗:     0、合格:  2338、スキップ:     1、合計:  2339、期間: 13 m 30 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 50 s - PriceOfBread.Tests.dll (net10.0)
+中止の行：Category!=FullLength 0・FullLength 0（grep 中止|aborted）
+nonfull rc=0 813s
+full rc=0 172s
+saveleak rc=0 180s
+保存 46.2MB（527ms）／読込 448ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 167・その月の額の和 2.533E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+leakhunt の SOURCE-HASH c77b22d3bd0fa55f＝腕 Z の測った木と同じ

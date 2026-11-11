@@ -1,0 +1,113 @@
+namespace PriceOfBread.SimCore;
+
+// ---------------------------------------------------------------- (903) 内戦の軍需の倍率の計器 cwmult_s（読むだけ・恒等・事前登録 measurements/m903_20261106_prereg_cw.txt）
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsCrown.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・World に欄を足さない。
+// 目的＝同じ盤面で旧の規則（内戦＝MilitaryWarMult×2.0）と新の規則（内戦も対外戦と同じ MilitaryWarMult×(1+WarMobilizationDepth×厭戦)）を両方数え、
+//   エンジンが実際に使った値（首都州の MilitaryWarMultLast＝Simulation の warMult の行の書き込み）と突き合わせる。旗を読まない（旧の旗 CivilWarArmsDemandUnified は (973) で枝ごと消した＝旧の規則の列は内戦の 2.0 の記録として残す）。
+// 取り方＝月（軍の更新の直前＝WarMonth の中・同じ月の warMult の書き込みの後）に、計器が自分で戦争の表を走査して内戦か・交戦かを決め（World.InCivilWar を呼ばない）、
+//   厭戦と係数を読み、四半期の末に国ごとに 1 行（その四半期に交戦の月が 1 以上の国だけ・全ての国）。助走の月は数えない（Phase "warm" で捨てる）。
+// 列（単位は接尾辞：Count＝月の数・SumIndex＝月の和の無次元・SumShare＝月の和の 0〜1・Qty＝財の量の月の和）：事前登録 §0 のとおり。
+// ⚠限界（計器が自己申告する）：warMult の行と WarMonth の間に厭戦と戦争の表の書き手は無い（書き手は共有層の Diplomacy と MultiNationSim・単国の Diplomacy.Step は WarMonth の後）。
+//   ずれた月は oldRuleMismatchMonthsCount・newRuleMismatchMonthsCount で名乗る（隠さない）。財の量は月の決算の時点の各州の市場の Last*（前の清算の値）。
+// (959) c85mw 末尾の 5 列（事前登録 measurements/m959_20261108_prereg_mw.txt §3 A1・A3）：接触の割合の規則（1＋WarArmsDemandPerContact×e）を同じ盤面で数える。旗（MilitaryWarMultFromContact）は読まない。
+//   e は計器が自分で戦争の表を走査し、前線の数を数え、押しの 1 本 Diplomacy.FrontPush の min を自軍の Military で割る（エンジンの Diplomacy.Engagement は呼ばない・削らない・NaN は 0）。
+//   ⚠限界：押しの式（FrontPush）はエンジンと同じ関数＝押しの式そのものの誤りは拾わない（拾うのは集め方・割り方・削り方・κ の掛け方・内戦の扱い・遅れ）。
+//   旗 0 では contactRuleMismatchMonthsCount が交戦の月の全て（今の式は 9 以上）＝ずれを名乗る。
+public static partial class Instruments
+{
+    sealed class CwAcc
+    {
+        public int Civil, Foreign, OldMis, NewMis, CtMis, ZeroM;
+        public double ActC, OldC, NewC, ExhC, ActF, NewF, MilC;
+        public double AmmoD, AmmoP, PowD, PowP, LeadD, LeadP;
+        public double Ct, CtR, ZeroAct;
+    }
+    sealed class CwSink { public System.IO.StreamWriter? W; public bool Header; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, CwAcc> CwAccs = new();
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, CwSink> CwSinks = new();
+
+    internal const string CwHeaderText = "quarter\tyear\tnationUid\tnation\tcivilWarMonthsCount\tforeignWarMonthsCount\t"
+        + "warMultActualCivilSumIndex\twarMultOldRuleCivilSumIndex\twarMultNewRuleCivilSumIndex\twarExhaustionCivilSumShare\t"
+        + "warMultActualForeignSumIndex\twarMultNewRuleForeignSumIndex\toldRuleMismatchMonthsCount\tnewRuleMismatchMonthsCount\t"
+        + "militaryScaleCivilSumIndex\tammunitionDemandCivilQty\tammunitionProducedCivilQty\tgunpowderDemandCivilQty\tgunpowderProducedCivilQty\tleadDemandCivilQty\tleadProducedCivilQty\t"
+        + "contactShareSumIndex\twarMultContactRuleSumIndex\tcontactRuleMismatchMonthsCount\tzeroContactWarMonthsCount\twarMultActualZeroContactSumIndex";
+
+    static bool CwMismatch(double actual, double rule) => !(System.Math.Abs(actual - rule) <= 1e-12 * System.Math.Max(1.0, System.Math.Abs(rule)));
+
+    /// <summary>月（<see cref="WarMonth"/> の中）：内戦か・交戦かを計器が自分で決め、旧と新の規則と実際の値を積む。</summary>
+    static void CwMonth(World w)
+    {
+        if (w.Diplomacy is not { } d || w.SelfPower is not { } sp) return;
+        bool civil = false, war = false;
+        foreach (var x in d.Wars)
+        {
+            if (x.A != sp && x.B != sp) continue;
+            war = true;
+            if (x.CivilWarParent is not null) civil = true;
+        }
+        if (!war) return;
+        var c = w.Coef; var acc = CwAccs.GetValue(w, _ => new CwAcc());
+        double exh = sp.WarExhaustion;
+        double ruleNew = c.MilitaryWarMult * (1.0 + c.WarMobilizationDepth * exh);
+        double ruleOld = civil ? c.MilitaryWarMult * 2.0 : ruleNew;
+        double actual = w.Region.MilitaryWarMultLast;
+        if (CwMismatch(actual, ruleOld)) acc.OldMis++;
+        if (CwMismatch(actual, ruleNew)) acc.NewMis++;
+        // (959) 接触の割合の規則：前線の数は全ての戦争の両側で数え、自国が当事者の戦線ごとに弱い側の押しを足し、自軍の Military で割る
+        var nFront = new System.Collections.Generic.Dictionary<Power, int>();
+        foreach (var x in d.Wars) { nFront[x.A] = nFront.GetValueOrDefault(x.A) + 1; nFront[x.B] = nFront.GetValueOrDefault(x.B) + 1; }
+        double touch = 0;
+        foreach (var x in d.Wars)
+        {
+            if (x.A != sp && x.B != sp) continue;
+            double pa = d.FrontPush(x.A, x.B, c, nFront[x.A]), pb = d.FrontPush(x.B, x.A, c, nFront[x.B]);
+            touch += pa < pb ? pa : pb;
+        }
+        double share = sp.Military > 1e-9 ? touch / sp.Military : 0;
+        if (!(share > 0)) share = 0;
+        double ruleContact = 1.0 + c.WarArmsDemandPerContact * share;
+        acc.Ct += share; acc.CtR += ruleContact;
+        if (CwMismatch(actual, ruleContact)) acc.CtMis++;
+        if (share < 1e-9) { acc.ZeroM++; acc.ZeroAct += actual; }
+        if (!civil) { acc.Foreign++; acc.ActF += actual; acc.NewF += ruleNew; return; }
+        acc.Civil++; acc.ActC += actual; acc.OldC += ruleOld; acc.NewC += ruleNew; acc.ExhC += exh;
+        foreach (var r in w.Regions)
+        {
+            acc.MilC += r.MilitaryScale;
+            var m = r.Markets;
+            if (Catalog.AmmunitionId < m.Length) { acc.AmmoD += m[Catalog.AmmunitionId].LastDemand; acc.AmmoP += m[Catalog.AmmunitionId].LastProduced; }
+            if (Catalog.GunpowderId < m.Length) { acc.PowD += m[Catalog.GunpowderId].LastDemand; acc.PowP += m[Catalog.GunpowderId].LastProduced; }
+            if (Catalog.LeadId < m.Length) { acc.LeadD += m[Catalog.LeadId].LastDemand; acc.LeadP += m[Catalog.LeadId].LastProduced; }
+        }
+    }
+
+    /// <summary>助走の直後（<see cref="Phase"/> の "warm"）：助走の月の積算を捨てる。</summary>
+    static void CwWarm(MultiNationSim sim)
+    {
+        foreach (var n in sim.Nations) CwAccs.Remove(n.World);
+    }
+
+    static string CwI(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>四半期の末（<see cref="Quarter"/> の国ごとの段）：交戦の月が 1 以上の国の行を書き、積算を捨てる。</summary>
+    static void CwFold(MultiNationSim sim, ulong seed, World w, int q)
+    {
+        if (!CwAccs.TryGetValue(w, out var a)) return;
+        CwAccs.Remove(w);
+        if (a.Civil + a.Foreign <= 0) return;
+        var sk = CwSinks.GetValue(sim, _ => new CwSink());
+        sk.W ??= Open("cwmult", seed);
+        if (!sk.Header) { sk.W.WriteLine(CwHeaderText); sk.Header = true; }
+        sk.W.WriteLine(string.Join('\t',
+            CwI(q), CwI(w.Year), CwI(S(w).Uid), NameOf(w), CwI(a.Civil), CwI(a.Foreign),
+            F(a.ActC), F(a.OldC), F(a.NewC), F(a.ExhC), F(a.ActF), F(a.NewF), CwI(a.OldMis), CwI(a.NewMis),
+            F(a.MilC), F(a.AmmoD), F(a.AmmoP), F(a.PowD), F(a.PowP), F(a.LeadD), F(a.LeadP),
+            F(a.Ct), F(a.CtR), CwI(a.CtMis), CwI(a.ZeroM), F(a.ZeroAct)));
+    }
+
+    /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
+    static void CwClose(MultiNationSim sim)
+    {
+        if (CwSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
+    }
+}

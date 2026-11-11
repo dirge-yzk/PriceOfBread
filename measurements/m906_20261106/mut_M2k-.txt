@@ -1,0 +1,44 @@
+赤 (a) M905 gdp_jump 既定がバイト一致 
+緑 (a) M905 gdp_zero 既定がバイト一致 
+赤 (a) M905 stop_table_905 の再現（833 の 3 区分 1/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) S11_905 gdp_jump 既定がバイト一致 
+緑 (a) S11_905 gdp_zero 既定がバイト一致 
+赤 (a) S11_905 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) N1_905 gdp_jump 既定がバイト一致 
+緑 (a) N1_905 gdp_zero 既定がバイト一致 
+赤 (a) N1_905 stop_table_905 の再現（833 の 3 区分 0/2/1・gdpZero4q 0） 実 ?/0
+赤 (a) N2_905 gdp_jump 既定がバイト一致 
+緑 (a) N2_905 gdp_zero 既定がバイト一致 
+赤 (a) N2_905 stop_table_905 の再現（833 の 3 区分 1/0/1・gdpZero4q 2） 実 ?/2
+赤 (a) M873 gdp_jump 既定がバイト一致 
+緑 (a) M873 gdp_zero 既定がバイト一致 
+赤 (a) M873 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) S11_873 gdp_jump 既定がバイト一致 
+緑 (a) S11_873 gdp_zero 既定がバイト一致 
+赤 (a) S11_873 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) N1_873 gdp_jump 既定がバイト一致 
+緑 (a) N1_873 gdp_zero 既定がバイト一致 
+赤 (a) N1_873 stop_table_905 の再現（833 の 3 区分 1/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) N2_873 gdp_jump 既定がバイト一致 
+緑 (a) N2_873 gdp_zero 既定がバイト一致 
+赤 (a) N2_873 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) c77ceB gdp_jump 既定がバイト一致 
+緑 (a) c77ceB gdp_zero 既定がバイト一致 
+赤 (a) c77ceB stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) c77ceS gdp_jump 既定がバイト一致 
+緑 (a) c77ceS gdp_zero 既定がバイト一致 
+赤 (a) c77ceS stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 1） 実 ?/1
+赤 (a) c77cwB gdp_jump 既定がバイト一致 
+緑 (a) c77cwB gdp_zero 既定がバイト一致 
+赤 (a) c77cwB stop_table_905 の再現（833 の 3 区分 1/0/0・gdpZero4q 0） 実 ?/0
+赤 (a) c77cwS gdp_jump 既定がバイト一致 
+緑 (a) c77cwS gdp_zero 既定がバイト一致 
+赤 (a) c77cwS stop_table_905 の再現（833 の 3 区分 1/1/1・gdpZero4q 0） 実 ?/0
+緑 (b) 旧 gdp_zero10 は a建国0が7行 を数えない（盤面で旧の区間は j旧でも見える0 の 1 件だけ） 
+緑 (b) --founding は a建国0が7行 を 7 四半期で数える 
+緑 (b) --founding は j旧でも見える0 を 12 四半期で数える 
+赤 (b) 盤面の区分（優先と窓の端・初出の四半期） c建国の直後:建国の直後→それ以外
+赤 (b) 旧の既定の盤面の出力が 833 と一致 
+合計 41 赤 26
+赤の一覧 ['(a) M905 gdp_jump 既定がバイト一致', '(a) M905 stop_table_905 の再現（833 の 3 区分 1/0/0・gdpZero4q 0）', '(a) S11_905 gdp_jump 既定がバイト一致', '(a) S11_905 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0）', '(a) N1_905 gdp_jump 既定がバイト一致', '(a) N1_905 stop_table_905 の再現（833 の 3 区分 0/2/1・gdpZero4q 0）', '(a) N2_905 gdp_jump 既定がバイト一致', '(a) N2_905 stop_table_905 の再現（833 の 3 区分 1/0/1・gdpZero4q 2）', '(a) M873 gdp_jump 既定がバイト一致', '(a) M873 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0）', '(a) S11_873 gdp_jump 既定がバイト一致', '(a) S11_873 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0）', '(a) N1_873 gdp_jump 既定がバイト一致', '(a) N1_873 stop_table_905 の再現（833 の 3 区分 1/0/0・gdpZero4q 0）', '(a) N2_873 gdp_jump 既定がバイト一致', '(a) N2_873 stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0）', '(a) c77ceB gdp_jump 既定がバイト一致', '(a) c77ceB stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 0）', '(a) c77ceS gdp_jump 既定がバイト一致', '(a) c77ceS stop_table_905 の再現（833 の 3 区分 0/0/0・gdpZero4q 1）', '(a) c77cwB gdp_jump 既定がバイト一致', '(a) c77cwB stop_table_905 の再現（833 の 3 区分 1/0/0・gdpZero4q 0）', '(a) c77cwS gdp_jump 既定がバイト一致', '(a) c77cwS stop_table_905 の再現（833 の 3 区分 1/1/1・gdpZero4q 0）', '(b) 盤面の区分（優先と窓の端・初出の四半期）', '(b) 旧の既定の盤面の出力が 833 と一致']
+

@@ -1,0 +1,32 @@
+(1021) c95cf 読む線（波95）の作業の計画（腕 0・ident 0・コミット 0）
+作成 2026-11-10・書いたモデル Claude Opus 5.5
+
+作業の場所
+  D:/PoB_work/r1021_work/（この線が作ったフォルダはここだけ。worktree・枝は作らない＝main の作業ツリーは読むだけ・木は 8cc53a06）
+  台本：D:/PoB_work/r1021_work/scripts/（python -X utf8 -I・出力の書き先を引数で受ける）
+  出力：D:/PoB_work/r1021_work/out/（所見は .txt）
+  合流の写し先：measurements/m1021_20261110/ と scripts/instruments/r1021/
+
+読む生（読むだけ・書き換えない）
+  D:/PoB_work/keep_1017/base_ins  … csc_s・tradeskip_s・pay_s・merch_s・nationgood_s・nation_s（種 1〜10・旗 1）
+  D:/PoB_work/keep_1017/n1・n2   … 同じ表（ヌル腕・旗 1）
+  D:/PoB_work/keep_1017/a11      … 種 11〜20（旗 1）
+  旧の基線（旗 0＝m1001 の盤面）の生は無い＝旧と比べられるのは measurements の集計だけ（限界）
+
+読む集計
+  measurements/b10_20261109_m1001_ins.cost・b10_20261110_m1017_ins.cost・_n1_ins.cost・_n2_ins.cost・b10s11_*.cost・b10_20261110_m1017z_ins.cost
+  measurements/m1014_20261110/costattr.txt・paper_base.txt・peri_base.txt・result_pe.txt・measurements/m1014_20261110_prereg_pe.txt
+  measurements/m1017_20261110/paydiff.txt・measurements/m1006_20261110/readg_m1006.txt（旧の盤面の xPairs の門の和）
+
+読むソース（main 8cc53a06・grep し直す）
+  PriceOfBread.SimCore/BilateralMarket.cs（払い手と予算 :575〜585・行の門 :780〜845・充填 :887〜940・台帳 :778・:1088）
+  PriceOfBread.SimCore/InstrumentsScope.cs（csc_s の fillsCount＝台帳の充填の内訳）
+  PriceOfBread.SimCore/MarketFlow.cs（:105〜:313 財の歩と日次の写像の数え）
+  PriceOfBread.SimCore/Meritocracy.cs（:153〜:172・:178〜:188・:264〜:275・:345〜:357・:359〜:370・:597〜:620）
+  PriceOfBread.SimCore/Coefficients.cs（PromotionPremium・ArtisanDeclineRatePerQuarter・MerchantArtisanCapitalRise・MiddleFallThreshold・InsolventThreshold・ImportPayerLive）
+
+順
+  1 prereg.txt（数える前）→ 2 問い①（ソースで充填の定義）→ 3 csc_s で充填を行の種類×国×年代に分ける・tradeskip_s と並べる
+  → 4 日次の写像・財の歩（ソースの定義と、生で読める物だけ）→ 5 速くする候補 → 6 問い②（商人の出口の現物）
+  → 7 merch_s で数える → 8 形の素案・計器の仕様 → findings.txt
+覗く回数：腕なし＝0 の見込み。背景の仕事：台本が 1 分を超えるときだけ bg.sh。

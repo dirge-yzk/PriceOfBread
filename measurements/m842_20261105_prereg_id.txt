@@ -1,0 +1,74 @@
+(842) 線 c68id 事前登録（最初のコミット・結果を見る前）。書いたモデル：Claude Sonnet 5.5。仮番号 (842)。枝 c68id。出発点 eccd9155（main・m839）。
+
+■ [1] 形と予言 0
+- 種類＝恒等の線（入口でも尾でもない。計器・注・試験だけ）。エンジンの挙動を変えない。新しい係数 0・新しい状態 0（計器の中の持ち物は ConditionalWeakTable だけ＝セーブに入らない）。
+- 予言 0：素の 5 種（b5）と計器つき 10 種（b10_ins）は m839 の成績表と名乗り行を除いて全行バイト一致。計器の表は宣言した差だけ。
+- 出す判定は ident の〈判定: 恒等〉（測った種で一致）。一致しなければ、その変更を外して報告に回す。
+- 作者の言葉は引かない（この線に作者の新しい言葉は無い）。AI の案・確証なしは〈AI の案〉と書く。
+
+■ [2] 消す物と残す物・読み手の grep
+2-1 消す物：なし（改名 1・注の直し 4・値の変更 1・足す列 2 系統）。
+2-2 項目（行は eccd9155 の木で grep した）
+ 1 CoefficientRelationTests.cs（関係の Fact は :13〜21）に Fact を 1 本足す＝WarPushSpeed 0.10・WarLuck 0.12 の既定の固定（c67id が ★(743) ①〜④ の外で外した 2 行を戻す）。関係の Fact と WhitePeaceScore 0.25（WarVerdictTests にある）には触れない。読み手 grep：WarPushSpeed／WarLuck は Tests 10 ファイル・SimCore は Coefficients.cs :1399〜1400 と War 関連。値は変えない。
+ 2 CollapsePeaceTests.cs:147 の名前だけ改名。Assert は 1 字も変えない。旧名の読み手 grep：Tests は当該 1 箇所・scripts 0・measurements は過去の記録 6 本（m791・m798・m821・m833 の名乗り。履歴なので書き換えない）。(833)（measurements/m833_20261105/result833.txt:56）が記録した食い違い＝InlineData(1.0) では主張が逆になる、は c65md を戻した最終の木（Fact・ForcedPeaceBlankOverCollapse 既定 0）では起きない。名前に前提（旗 ForcedPeaceBlankOverCollapse が 0）を足して、c65md を載せ直した時に再び逆にならないようにする（AI の案）。
+ 3 注の道：InstrumentsCearn.cs:428 と CearnInstrumentTests.cs:387 の D:/PoB_work/r836_work/plan.txt → measurements/m836_20261105/plan.txt。CearnInstrumentTests.cs:389 の measurements/m836_20261104/mutation.txt も実在しない（実在は m836_20261105/mutation.txt）＝同じ束で直す。InstrumentsSilverWeight.cs:5 の注：旗の説明を (834) 後の形（正のとき対数平均の票を A′＝薄い側の額 min(銀の需要×RefPrices[銀]，金鉱の需要×RefPrices[金鉱]) にする・w1 の枝はエンジンから消えた・列 relW1Index などは計器が自分で組む反実仮想）へ直す。読み手 grep：注なので 0。
+ 4 cgrp_s の Started でない四半期を nan に：InstrumentsCearn.cs の CgRows（:541〜）の savingsStart（F(g.Start)）と residualPerQuarter（F(sv[gi]-g.Start-net[gi])）を `a.Started ? … : nan` に。g.Start の格納は変えない（`any` の判定が g.Start != 0 を読む＝行の数を変えないため）。cpop_s には gStart を渡すので cpop_s は変わらない。読み手 grep：cgrp_s を読む scripts 5 本（c66cg/r829_read.py・r836/r836_read.py・r836/mut836.py ほか）は列名で読む。nan の行は読み手が除く。値の変わる表は cgrp_s の 2 列だけ＝宣言 --known-extra cgrp_s:savingsStart,cgrp_s:residualPerQuarter（結果の前に固定）。
+ 5 G5・G6 の呼び手の配線の突然変異（c67pu の反証役）。試験を足すのは、突然変異が緑のままのときだけ。
+ 6 engineRentShare の注：指示は InstrumentsSubst.cs と書くが、この列は InstrumentsCornint.cs にしか無い（grep 済み・InstrumentsSubst.cs に engineRentShare は 0 件）。食い違いは事前登録 measurements/m837_20261104_prereg_ss.txt:48〈分母＜1e-9 なら 0〉対 実装 InstrumentsCornint.cs:102〈分母が 1e-9 以下なら割らず rentDom[b] のまま〉＝実装が正しい（PolicyPreferences.Normalize と同じ）。直すのは InstrumentsCornint.cs の頭の注に engineRentShare の分母の扱いを明記。InstrumentsSubst.cs は触らない。指示から外れる点として報告の先頭に書く。
+ 7 cornint_s の末尾に 1 列：c1InterestGrain0PositiveFlag＝c1InterestGrain0 が正なら 1・そうでなければ 0・貿易の配列が無い国（haveTrade が偽）は nan。定義はこの 1 行だけ（c67ss の事前登録 (c) 〈c1InterestGrain のブロック 0 が正の四半期の割合〉を読み手が平均で出せるように）。宣言 --grown-ok cornint_s。試験は CornintInstrumentTests に Fact を足す。
+ 8 段 P1-0：rule_s の末尾（nat の後）に列を足す（InstrumentsRule.cs・RuleFold）。
+    列（単位は接尾辞）：
+    orderRawIndex＝切る前の R＝EffectiveCoerce(w)÷max(1e-9, 人口×CrimeOrderPerPop)（Crime.cs:19〜20 と同じ式・結合順 C×(P/ref) を保つ）。四半期の末の w.Coercion で数える。
+    militancyRegionIndex＝m_r＝その州の平民の人口加重の闘争度（Politics.RegionMilitancy と同じ述語 IsCommoner を計器が自前のループで数える・首都を含む）。大衆が 0 の州は nan。
+    militancyNationIndex＝m̄＝国の全ての州（首都を含む）の大衆の人口加重の平均。州の列と同じ値を国の列として全ての州の行に書く。
+    orderRegionIndex＝order_r＝Clamp01(R×m̄÷m_r)（m_r が正でない州は 1＝下書きの規則）。
+    ungovTargetOldShare＝(1−Clamp01(w.PublicOrder))×(1−reachShare)＝今のエンジンの無統治の目標。
+    ungovTargetNewShare＝(1−order_r)×(1−reachShare)。
+    遅れた R の列（反証役の訂正 8）：orderRawLagIndex＝1 四半期前の四半期の末に数えた R（計器の持ち物・最初の四半期は nan）・orderRegionLagIndex＝Clamp01(R_遅れ×m̄÷m_r)・ungovTargetNewLagShare＝(1−orderRegionLagIndex)×(1−reachShare)。
+    計器が自分で州の POP と国の Coercion を読む（エンジンの関数の局所変数を受け取らない）。エンジンの Politics 側の式は呼ばない（m_r の突き合わせは試験が別の道で行う）。
+    持ち物：国ごとに前の四半期の R を 1 つ（InstrumentsRule.cs の ConditionalWeakTable<World, …>）。RuleFold は四半期ごとに全ての国で呼ばれる（Instruments.cs の Quarter の走査）ので、書く行を出す前に毎四半期更新する。Instruments.cs には触れない（c68uh の持ち分）。
+    宣言 --grown-ok rule_s。列は 9 本（6＋遅れ 3）。
+2-3 他の線との重なり（grep 済み）
+ - c68uh：Instruments.cs の region_s・Territory.cs・Coefficients.cs・DormantIdentityTests.cs＝c68id は触れない。
+ - c68ui：Coefficients.cs・MultiNationSim.cs・SelfPlay.cs・World.cs・PowerShares.cs・FiscalTables.cs・Runner・App・FullChainTests.cs・DormantIdentityTests.cs＝c68id は触れない。c68ui が消す旗の名前が、c68id の触る 8 ファイル（InstrumentsRule.cs・InstrumentsCearn.cs・InstrumentsCornint.cs・InstrumentsSilverWeight.cs・CoefficientRelationTests.cs・CollapsePeaceTests.cs・CearnInstrumentTests.cs・CornintInstrumentTests.cs＋新しい RuleInstrumentTests.cs）に出ないことを grep で確かめる（合流の★(773)）。
+ - 触る行：InstrumentsRule.cs（頭の注・ヘッダ定数・RuleFold の全体）／InstrumentsCearn.cs（:428 の注・CgRows の 2 行）／InstrumentsCornint.cs（頭の注 1 行・:130 付近の末尾列）／InstrumentsSilverWeight.cs（:5）／テスト 4 本の指定の場所。
+ - Instruments.cs・Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs・InstrumentsSubst.cs は触れない。App・Display・Runner は触れない。
+
+■ [3] 足す試験と、それぞれを赤にする突然変異
+ T1 CoefficientRelationTests（項目 1）：既定の固定の Fact。突然変異 M1＝Coefficients.WarPushSpeed を 0.11 に→赤。
+ T2 CearnInstrumentTests（項目 4）：Started を倒した植民地格の州（CearnAccOf で取り、StepQuarter の後・Instruments.Quarter の前に Started=false にして盤面を作る＝四半期の途中で州が足された形の代わり・注で名乗る）で cgrp_s の savingsStart と residualPerQuarter が nan・他の州は数。突然変異 M2＝nan を 0 に戻す→赤。
+ T3 CornintInstrumentTests（項目 7）：フラグが c1InterestGrain0 の正負に一致（haveTrade が偽なら nan）。突然変異 M5＝`> 0` を `>= 0` に→赤（c1InterestGrain0 が厳密に 0 の行が試験の盤面にある場合。無ければ盤面を替えて名乗る）。
+ T4〜T7 RuleInstrumentTests（新しいファイル・項目 8）：
+   T4 列と見出しの数（9 列が末尾・順序）と 1 行の列数＝見出しの数。
+   T5 m_r が試験の別の道（POP を試験が数える）と、Politics.AvgRegionMilitancy と一致。首都を含む国で m̄ が首都を含んで数えられる。突然変異 M3＝m̄ から首都を外す→赤。
+   T6 R が試験の別の道（Coercion と TotalPopulation と CrimeOrderPerPop のリテラル 0.8 の既定から）と一致、orderRegionIndex・ungovTarget の恒等式（ungovTargetNewShare−ungovTargetOldShare＝(Clamp01(w.PublicOrder)−order_r)×(1−reachShare)）。
+   T7 遅れ：2 四半期以上回して、publicOrderIndex が 1 未満の行で orderRawLagIndex が publicOrderIndex と 1e-9 で一致（今の R orderRawIndex とは一致しない行がある）。突然変異 M4＝遅れた R に今の R を入れる→赤。
+ 配線の突然変異（項目 5・使い捨ての写し D:/PoB_work/c68id_mut・出力は measurements/m842_20261105/mutation.txt）：W1＝CgRows の CpopRows の呼びを外す／W2＝CgMonthClose の呼びを外す（MonthClose 側）／W3＝CearnOn の門を CgMonthClose から外す／W4＝QReset（CgReset 内の行 386）を外す。赤が出なければ試験を足す（足すだけ・count は [6] に更新して再コミット）。
+ 注だけ直す変更（項目 3・6・2 の改名）の突然変異は無い＝変化 0 を記録（結果は測った表の一致）。
+ ソースを走査する番人の点検（㉘）：工業化度の読み手の許可表（IndustrializationReaderTests）に新しい読み手を足さない（工業化度を読まない）／`new MoneyStock(` の件数は 192（eccd9155）から増やさない／route_anchors.tsv（scripts/instruments/flow262/）の鍵の行に書き足さない／WriterRatchetTests の宣言の表（:24 の Instruments.cs・InstrumentsCapacity.cs ほか）に新しい書き手を足さない＝計器は `.量名 =` の代入を SimCore の量に対してしない（読むだけ）。書き換える件数の予言：0。UnitTypeTests・InstrumentsTests・DormantIdentityTests・GoodIdGuardTests も赤にならない（予言）。器のコミットの直後に 6 組を隔離ビルド（--artifacts-path D:/PoB_work/c68id_art）で回す。
+
+■ [4] 恒等の判定
+ - コマンド：bash scripts/instruments/ident/ident.sh run c68id --tree D:/PoB_work/wt_c68id --grown-ok rule_s,cornint_s --known-extra cgrp_s:savingsStart,cgrp_s:residualPerQuarter --tests-delta <[6] の確定値> --saveleak
+ - 期待：b5 全行一致・b10_ins 全行一致・.cost の件数の行と推定が一致・計器の表は基準 1068 本のうち宣言以外バイト一致・cearn_s は全行一致（InstrumentsCearn.cs は金を動かさないが cearn_s の書き手＝経路の列は BASE_COMMIT の写像で読む。cearn_s は行を足していない・経路の鍵は変えない）。cgrp_s は savingsStart と residualPerQuarter の 2 列だけが違ってよく、違うのは Started でない四半期の行だけ。
+ - 紙の台本（腕の前）：keep_839/base_ins の cgrp_s で、Started でなかった四半期の行の見込みを代理で数える（savingsStart==0 かつ monthsClosed==0 かつ lateRegisteredPops>0 の行）＝宣言した 2 列が違う行の件数の見込み。結果の cgrp_s の差の行数と比べて報告に書く。
+ - 紙の値（m839 の生 keep_839/base_ins・首都を除く・scripts/instruments/r838/p1_paper.py を実行）：国×四半期（2 州以上）59,813・州×四半期 930,908・R≧1 かつ R m̄/m_r≧1 が 449,843・R<1 かつ R m̄/m_r≧1 が 64,264・そのうち m̄/m_r<1 が 141,882・1 四半期前の R と publicOrderIndex（<1）の一致 27,955/27,955・m_r＝0 の州 0。出力は measurements/m842_20261105/paper_m839.txt。
+ - 母集合の件数（P1-0 の計器が首都を含めて数える）の予言：国の行に首都を含む州が加わるので、州×四半期は 930,908 より多い（首都 1 州ぶんが国×四半期ごとに加わる。2 州以上の国に限らず 1 州の国も rule_s は行を出す）。件数は計器の結果として書く（紙の値と一致を期待しない・首都を除く紙の値と〈首都を除いた〉計器の集計は一致を期待する＝台本 c68id/rule_p1_count.py の 1 行目で数える）。
+ - 浮動小数の順序が変わる箇所：エンジン側 0（計器の読み書きだけ）。同じ盤面で旧と新を比べる箇所：なし。
+
+■ [5] 採るかの規則
+ 〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。フルスイート（Category!=FullLength と FullLength を分ける）・savetest・leakhunt を ident の後に回す。ident の判定と反証役の読みが終わったら要約（keepsum）を measurements に残し、自分の ident の生をすぐ消す（宣言で差を許した表の生は要約と sha256 を残して消す）。
+
+■ [6] 足す試験の数（予言）
+ T1〜T7 の 7 本（T1 1・T2 1・T3 1・T4〜T7 4）。配線の突然変異で赤が出ない箇所があれば +1 ごと。--tests-delta は確定したら ident の前に再コミットで書く（結果の前）。
+ 暫定：--tests-delta 7。
+
+■ [7] 作ったフォルダ（消す予定）
+ D:/PoB_work/wt_c68id（worktree・枝は残す）・D:/PoB_work/c68id_work（台本の出力・印）・D:/PoB_work/c68id_art（隔離ビルド）・D:/PoB_work/c68id_mut（突然変異の使い捨ての写し）・D:/PoB_work/c68id_mutart・D:/PoB_work/ident_c68id（ident の作業・合流の判断まで残す）。
+
+■ [8] 追記（ident を起こす前・結果の前）
+- 足した試験は 8 本：T1 1・T2 1（CearnInstrumentTests.台帳が始まっていない州のcgrp…＝G7）・T3 1・T4〜T7 4・G8 1（CearnInstrumentTests.助走の直後に始まりの在庫を取り直す＝配線の突然変異 W6 が緑だったため足した）。--tests-delta 8（Category!=FullLength 2264 → 2272）。[6] の暫定 7 は 8 に直す。
+- 配線の突然変異の結果は measurements/m842_20261105/mutation.txt（M1〜M5・W1〜W6 を使い捨ての写しで隔離ビルドして取った。W6 だけ最初は緑→G8 を足して赤）。同値の突然変異 W7・W8 は記録。
+- ㉘ ソースを走査する番人 6 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）：器のコミット 0f54fc95 の木で 172 本全て緑（書き換えた件数 0・予言どおり）。
+- 紙の台本（腕の前）cgrp_s：基準の生 keep_839/base_ins の cgrp_s で、savingsStart が厳密に 0 かつ monthsClosed が 0 の行（代理）は 10 種の合計で 412 行（種別 16・16・20・12・116・24・72・116・8・12）。ident の cgrp_s の差の行数はこの代理の集合の部分集合になる見込み（台本 scripts/instruments/c68id/cgrp_nan_paper.py <基準> <腕>）。代理は厳密な定義ではない＝腕の違い ⊂ 代理 を確かめ、外れた行は報告する。
+- rule_s の件数の予言：scripts/instruments/c68id/rule_p1_count.py の 1 番（secession_s と同じ州・首都を除く・遅れた R）は紙の値と全て一致する見込み（59813／930908／449843／64264／141882／27955）。±数件のずれは G10 の印字の丸めの境（R×m̄/m_r が 1 に極めて近い州）で起きうる＝ずれたらその件数を書く。首都を含む件数は結果。
+- 浮動小数の順序が変わる箇所：エンジン側 0（変更なし）。

@@ -1,0 +1,105 @@
+(860) 線 c71gt 事前登録：門と道具の続き（恒等の線・エンジン 0 行・ident なし）
+書いたモデル：Claude Sonnet 5.5。枝 c71gt（出発 62190ef0f70668d31fa20b3e2e1394dc7289f8c5）。worktree D:/PoB_work/wt_c71gt。作業フォルダ D:/PoB_work/c71gt_work。
+種類＝恒等の線（物差しと道具の直し）。.cs・計器・試験は 1 字も触れない。App・SimCore/Display・Runner にも触れない。係数のリテラルを書き換えない。
+出発：00一覧 §00〈次の波（波71〜）〉① の (a)(b)（作者の答え待ちではない）と、batch.sh の終了コード（作者 2026-11-05 の問い〈無数のタスクが失敗している〉から足す小物）。
+直す物：c70gt の G2b（反証役 (853) と (856) の指摘＝旗 1 の正しい形でも落ちる）・G4m の閾値の分母（(853) 反証役 中）・chooseL の粒度の文（同 中）・MU10 の注（同 低）・ident_check の by（同 低）・batch.sh の終了コード。
+この線は c70ss の G5 に触れない（帰属は読む線 c71sr）。keep_859_rej/c70ssB_10 に新しい門を当てない。
+
+この文書の順＝[0] 順序の名乗り [1] 恒等の線・予言 [2] 消す物と残す物・読み手・重なり [3] 足す試験と突然変異・走査の番人の点検 [4] 恒等の判定（ident を回さない理由） [5] 受け渡しと no-go [6] 採る規則 [7] D: と生 [8] 自己申告の枠
+
+━━ [0] この文書の前に走らせた物（順序の名乗り）
+- 規則を書く前に、旗 0 の 3 本（keep_852/base_ins・n1・n2・種 1〜10）で G2b の候補の形 c（窓の頭の減衰を引いた残り）と形 a（最初の行から Pexact が途切れない行）を数えた（D:/PoB_work/c71gt_work/explore/ex1.py・読むだけ・コミットしない）。
+  形 c の残りの符号つき平均は全ての L（20・40・80・120）で 1e-15 の桁（母集合 M′/N1/N2＝L 120 で 33,504/31,063/39,720）。形 a は母集合が小さく（最初の行から途切れない行＝Lmin 1 で 2,233/2,061/1,697・Lmin 40 で 803/36/368）、ヌル腕の幅が C の 75% 以上。
+  旗 1 の実の生（keep_852_rej/c69poB_10）はこの時点で 1 字も読んでいない（chain の一致の点検〔前の四半期の ung と before が 100% 一致〕を除く＝盤面が同じかの確かめで、門の数字ではない）。
+- 旗 0 の m839 の盤面の secession_s（keep_852_rej/c69poB_10/z_secession＝ident c69poz）と rule_s（keep_839/base_ins）を D:/PoB_work/c71gt_work/f0_839 に写した（旗 1 の腕と同じ盤面の旗 0）。盤面が同じかは、secession_s の ruleUngovBeforeShare が rule_s の前の四半期の ruleUngovShare と 95,603/95,603 で一致する（旗 1 の側は 96,188/96,188）ことで確かめた。
+
+━━ [1] 恒等の線・予言
+[1-1] G2b の形（c69po の門・台本 scripts/instruments/c71gt/gates_po860.py）
+- 問題：853 の G2b は C（持続の窓の ruleUngovShare の平均）の腕と基線の差 ≤ W_C。旗 1 は order_r が 1 未満だった時期に Rule[3] を積むので、窓の前の持ち越しが窓の中に残り（C(旗1)÷C(旗0) が L に依らず 1.46〜1.69）、窓の集合も違う（+47%）。(856) の予測では |ΔC|÷W_C が L 120 で 8.1。正しい実装でも落ちる。
+- 候補（AI の案・確証なし）：(a) 母集合を〈その州の最初の行から Pexact が途切れない州×四半期〉に限る (b) G2b を記録へ下げ G2a だけにする (c) 窓の前の超過を 0.975^L で差し引く。
+- 選ぶ規則（旗 0 の M′・N1・N2 だけで決める・結果を見て変えない）：順は c ＞ a ＞ b の最初に満たす形。
+  形 c：残り＝ung(窓の末)−ruleUngovBeforeShare(窓の頭)×(1−0.025)^L の絶対値の平均が、M′・N1・N2 の 3 本の全てで 1e-8 以下（G0 の TOL と同じ）かつ 3 本の全てで母集合 ≥ 1,000 行。窓の L は満たす L の中で最大（候補 20・40・60・80・120）。
+    根拠（ソース）：無統治の割合の更新は ung ← before×(1−0.025)＋0.025×t（G0 が点検する式）。窓の中の全ての行が Pexact（orderOld ≥1 かつ orderRaw ≥1 かつ orderRegionNow ≥1 …＝旧の目標も新の目標も 0）なら、窓の末の ung は窓の頭の before の減衰だけになる＝窓の前の持ち越しは構造的に差し引かれ、残りは 0。閾値にヌル腕の雑音の幅を使わない（雑音が 1e-13 の桁なので幅から閾値を置けない）。
+    G2b の中身：持ち越しを引いた後、窓の中で無統治の割合が目標以外の経路で動かない（他の書き手がいない）ことと、窓の母集合が下限を満たすこと。腕と基線の両方に当てる（基線が旗 0 で 0 でなければ、前提が崩れている）。
+    名乗り：形 c は G2a（実際の目標＝旧の目標）と同じ内容を窓の連鎖で読む＝G2a と独立ではない（G2a は 1 行ずつ、G2b は L 行の連鎖で ung の連続を読む）。門の数は増えない・独立の証拠にしない。
+  形 a：3 本の全てで母集合 ≥ 1,000 行かつ ヌル腕の幅 W_C÷|C_base| ≤ 0.25。形 b：常に使える。
+- 予言（旗 0 の 3 本・L 120）：形 c が満たされる（残りの絶対値の平均 3 本とも 1e-12 以下の桁）。形 a は満たされない（幅の比 0.75）。選ぶ形＝c・L＝120。閾値の表 gates_po860_thresholds.tsv（form・persist_L・G2b_tol・記録の W_R・W_C0・W_S）を --choose-form が書く。
+- 853 の形（C の差 ≤ W_C）は G2b0 の名で記録に残す（値は出し続ける・門ではない）。
+- 門の表：G0・G1・G1u・G2a・G2b（G3 は記録・門 A′ は記録）。G0・G1・G1u・G2a の定義は 853 と同じ。
+- 旗 1 の実の生の使い方：旗 1 の腕 keep_852_rej/c69poB_10/ins（木 f880f55c・盤面 m839）を、同じ盤面の旗 0（f0_839）と比べ、**〈正しい実装を落とさない〉の確かめだけ**に使う（1 回・読むだけ）。閾値の合わせには使わない（使わなかった）。ヌル腕は m852 の keep_852/n1・n2 と M′ の差で幅を数える（盤面が違うと名乗る＝null_base）。
+  予言：G0・G1・G1u・G2a・G2b の全てが通る（G0 100%・ΔS が幅の約 26 倍・G2a 100% は (850) の腕で通った。G2b は形 c で残りが 1e-8 以下＝母集合 旗1 約 6.4 万／旗0 約 4.4 万）。
+  旗 1 の実の生で G2b が通らなければ no-go（形 c が通らないなら形 b を選ぶ道は **取らない**＝結果を見て規則を変えない。.log の先頭に門の名と理由を書き rc 1・c71po は腕を回さない）。他の形（a・853 の形）の旗 1 の値は **記録** として出す（選ぶ根拠にしない）。
+  この確かめで門を直す・閾値を動かすことは **しない**（直すなら新しい線）。
+- 空振りの率の名乗り（本当の粒度）：旗 0 の 3 本の一つ抜き（腕・基線・相方の 6 通り）。G2b が赤になる通りは 6 通り中 0 の予言。G1（ΔS＞W）が緑になる通りは対称な雑音 3 本では 3/6 が基準＝G1 は雑音を区別できない粒度 1/6（記録）。
+
+[1-2] G4m（c69ss の門・台本 scripts/instruments/c71gt/gates_ss860.py・閾値の表 gates_ss860_thresholds.tsv）
+- 問題：853 の閾値は mask_share（候補＝s2RhoSource＝1 かつ s2EEnd が有限）の外した E＞0 の割合の 3 倍。門の分母は run_gates の〈s2BasisKind＝2 かつ s2RhoSource＝1〉の候補。分母が違う（★(778) の型・分子と分母の非対称）。
+- 旗 0 の基線・ヌル腕では s2BasisKind が全行 0（853 の偵察）＝門の述語（BasisKind＝2）の候補は旗 0 で 0 行で、旗 0 の規則では閾値を置けない。一方、外した行（持ち主が変わった行）は region_s の nationIndex の変化で決まり、BasisKind に依らない（印は世界の性質）。
+- 直し（AI の案・確証なし・推奨）：**門の側を閾値の側へ揃える**。G4m の候補の述語を、閾値と同じ cand＝〈s2RhoSource＝1 かつ s2EEnd が有限〉（BasisKind を問わない）の 1 本の関数にして、mask_share と run_gates の G4m が **同じ関数** を呼ぶ。分子は cand のうち E＞0 かつ外した行、分母は cand のうち E＞0 の行。
+  G4（失業の一致の門）の母集合は 853 のまま（BasisKind＝2 かつ RhoSource＝1・外した行を除く）。G4m の専用の数え（G4m 候補 E＞0・G4m 外した E＞0）を足し、G4 の既存の数え（G4 候補 E＞0・G4 外した E＞0）は報告のために残す。
+  閾値の規則は 853 のまま（旗 0 の基線・N1・N2 の割合の最大の 3 倍）。数値は 853 の閾値 0.047238 と同じ分母なので変わらない予言（61/3874・68/4659・67/6391 の最大 0.015746 の 3 倍）。数え直して 853 と一致すれば、閾値の表の sha256 の変わる理由は注の書き換えだけ（sha256 は変わる）。
+- 名乗り：BasisKind＝2 でない行が旗 1 の腕に多く居ると、G4 が見る母集合より分母が広い＝印の乱用の割合が薄まる。この薄まりは旗 1 の腕の生で測る必要があるが、c70ss の生には新しい門を当てない（本線の指示）ので **測らない**。記録に〈薄まりは未測定〉と書く。
+- G5 の式は 1 字も変えない（写しの diff で確かめる）。
+
+[1-3] chooseL の粒度の文と MU10 の注
+- 853 の --choose-L の出力文〈粒度：3 本しか無いので空振りの数は 0〜6 の 7 値〉は、3 本の対称な雑音では空振りの期待値が 3/6 で、7 値の粒度を名乗って選べるように読める。860 の --choose-form は〈満たす／満たさないの 2 値〉と名乗る（上の [1-1] の文）。853 の --choose-L は c70gt の写しとして残すだけで、860 では使わない。
+- r847/mut847.sh の MU9・MU10 の注：MU10 の注は〈赤にならないことの確かめ〉と書くが、結果（measurements/m853_20261105/mut847_mu9_mu10.txt）は 割り当ての不一致 12/17 を別の欄で拾う（門の緑は変わらない）。注を結果に合わせて直す（実行する式・MU の定義は 1 字も変えない）。
+
+[1-4] ident_check.py の by から realf を除く（表示だけ）
+- 場所：ident_check.py の cmp_ins の既知の揺れの内訳（known_hit を by にまとめる所）。`if f in gf or f in rf or f in cf: continue` に `or f in realf` を足す。part（内訳の区分の数え方）は変えない。判定（FAILS・MISSING・bad_missing・bad_only・real）に触れない。
+- 試験 T10（scripts/instruments/c71gt/test_ident_display860.py）：既知の揺れの列と宣言の無い増えた列が同じ表に居る盤面（real にも known_hit にも入る）で、既知の揺れの内訳の行に当該の表が出ない（二重に数えない）。突然変異＝旧の ident_check.py（git show 62190ef0:…）で T10 が赤。
+
+[1-5] batch.sh の終了コード
+- 現状（grep で確かめた）：batch.sh:77 の `exit $MRC` が measure.sh の終了コードをそのまま返す。0〜2 は試合の結果で 1 はハーネス不合格を含む（基線でも 1）。ビルドの失敗も 1 だが成績表が出ない。担当の背景の命令が〈失敗〉と表示され、本物のビルドの失敗が埋もれる。
+- 新しい意味：成績表 $W/b${N}_$TAG.txt が出て、最後の空でない行が〈判定:〉を含む（measure.sh の報告の終わり＝60 本の過去の成績表で確かめた）なら **0**（試合の結果は成績表の中の判定の行が持つ＝ハーネス不合格でも 0）。ビルドの失敗か成績表が無い・途中で切れたときは新しい番号 **4**（名＝BATCHFAIL）。ARMFULL の **3**・INS の国なしの **2** は今のまま。
+  measure.sh の終了コードは ms_$TAG.log の末尾に〈measure rc=…〉と書いて残す（rc= の行は今までどおり）。
+  走る前に古い成績表を消す（`rm -f $W/b${N}_$TAG.txt`・ARMFULL を通った後）＝失敗した走りが前の走りの成績表を〈完走〉に見せない。
+  試合の結果（成績表の数）は変えない。batch.sh の他の行（prep・arms.sh・環境変数・trap・計器）は 1 字も変えない。:55 の注を新しい意味に書き直す。
+- 呼び手の表（grep -rln 'batch.sh' scripts/instruments＝86 本）：rc で枝分かれする所を全て読む。今も使う物の結果は担当の記録に表で残す（予言＝ident.sh の && の連鎖は rc 0 が増えるだけで枝分かれの向きは同じ・ident_check の rc=(0|1|2) の受け入れは変えない〔判定の規則を変えない〕・4 と 3 は受け入れられず落ちる＝ビルド失敗が ident で見える）。古い線のフォルダの台本（c11fl〜c69ss・m757〜m839）は直さず〈古い・使わない〉と書く。
+- 試験 scripts/instruments/c71gt/test_batch_rc860.sh：偽の measure.sh を置いた木で 3 通り（rc 1＋成績表あり→0・rc 1＋成績表なし→4・ARMFULL→3）。突然変異＝旧の batch.sh で〈rc 1＋成績表あり→1〉となり赤。
+
+━━ [2] 消す物と残す物・読み手・重なり
+- 消す物：無し。c70gt/・c70po/gt853/・c70ss/ の写しは残す（古い線の記録・読むだけ）。
+- 足す物（scripts/instruments/c71gt/）：gates_po860.py・gates_po860_thresholds.tsv・gates_ss860.py・gates_ss860_thresholds.tsv・mask_shares860.sh・mut_po860.py・mut_ss860.py・test_ident_display860.py・test_batch_rc860.sh・selftest860.sh・flag1_check860.sh（旗 1 の実の生の確かめ）。measurements/m860_20261105_prereg_gt.txt・measurements/m860_20261105/。
+- 直す物：scripts/instruments/batch.sh（:55 の注・:68 付近〔rm〕・:77 の終了コード）・scripts/instruments/ident/ident_check.py（by の 1 行）・scripts/instruments/r847/mut847.sh（MU9・MU10 の注の 2 行）。
+- 読み手（grep の結果）：gates_po853.py・gates_ss853.py の呼び手＝scripts/instruments/c70gt/ と c70po/gt853/・c70po/predict_g2b856.py・c70ss/ の写し（どれも c70gt の写し＝読むだけ・直さない）。chooseL の読み手＝c70gt/gates_po853.py のみ。ident_check の by の読み手＝cmp_ins の表示のみ。batch.sh の終了コードの読み手＝ident.sh:42〜44・m852/arm852.sh・armB2_852.sh・c70po/armB856.sh・c70ss/armB855.sh・go.sh（今も使う物）。SimCore・Runner・App・Display・Tests の読み手は無い（scripts の台本）。POB_COEF の名前・SaveGame の名前の表への影響 0。
+- GoodIdGuardTests（scripts の *.py を走査）：新しい .py に財の番号の数字を書かない。InstrumentsTests：スクリプトを走査する試験が無いことを grep で確かめる（台本の中に C# の配列の字面を書かない）。
+- 他の線との重なり（worktree の状態を読んで確かめた）：wt_c71id は measurements/m854_*・scripts/instruments/c71ip/（c71ip の未追跡）。c71gt の持ち主のファイル（batch.sh・ident/・r847/・c71gt/・measurements/m860_*）と重ならない。c71po は c71gt の印 gates_ready.mark だけを待つ。
+
+━━ [3] 足す試験と突然変異・走査の番人の点検
+- 固定の盤面（合成・実の生は読まない）：mut_po860.py（6 国×8 州・窓 L 120 の盤面・母集合の下限の倍率 0.2）。
+  予言（赤＝予言の門が赤・緑＝緑のまま）：
+  correct＝G0・G1・G1u・G2a・G2b 全て緑。
+  M1・M4＝G0・G1 が赤（G2b は緑）。
+  M2・M3・M7＝G0・G2a・G2b が赤、M2・M3 は G1 が緑、M7 は G1u も赤。（853 の表の実際の赤に合わせて書く＝M2・M3 の G1u も赤、M7 の G2a も赤。M7 の G2b が赤になることを 860 の新しい門で確かめる。）
+  correct・窓の読みを最後の四半期だけにした門（G2b の突然変異＝窓の長さを無視）＝G2b が赤。
+  empty の盤面（母集合 0）＝G2a・G2b が赤。escape の盤面（毎 30 四半期に 1 四半期の不足＝L 以上の窓が作れない）＝G2b が赤。
+  **新しい盤面 carry**（正しい実装だが窓の前の不足が長い＝持ち越しが大きい：戊が 20〜59 四半期 R＝0.1）＝G0・G1・G1u・G2a・G2b が全て緑（形 c の要＝持ち越しを差し引く）。G2b0（853 の形・記録）が赤になるかは **記録** （予言しない）。
+- 固定の盤面 mut_ss860.py：mut_ss853.py の PRED を引き継ぐ（G5 の式は変えない）。**G4m の分母の突然変異**＝G4m の候補の述語を旧（BasisKind＝2 かつ RhoSource＝1）へ戻した使い捨ての写し（テキストの置換で作る）で、BasisKind が 0 の行を含む盤面の G4m 候補数が mask_share の候補数と食い違い、試験が赤。
+- 旗 0 の盤面（実の keep_852/base_ins を腕に見立てる）：po は G0・G1 が赤（働いた門が旗 0 で落ちる）・G2a・G2b は緑。ss は G1a・G1b・G2・G3a・G4 が赤。
+- ident_check：T10（上の [1-4]）。batch.sh：test_batch_rc860.sh（上の [1-5]）。
+- 突然変異の表（どの門／どの試験で赤か・腕の前の紙の台本）：
+  G2b の形の要を外す（形 c の減衰の項を外す＝残りを ung だけで測る）→ 形 c が旗 0 で 1e-8 を満たさず --choose-form が c を選べない（selftest が赤）。
+  G2b の窓の読みを最後の四半期だけ（mode last）→ 固定の盤面で G2b が赤。
+  G4m の分母を旧へ → mut_ss860 の分母の試験が赤。
+  ident_check の realf の除外を戻す → T10 が赤。
+  batch.sh の終了コードを旧へ → test_batch_rc860.sh が赤。
+- ソースを走査する番人の点検（㉘）：.cs を触らないので 7 組の件数は変わらない（書き換える件数の予言＝0）。GoodIdGuardTests・InstrumentsTests を台本のコミットの直後に回す（隔離ビルド --artifacts-path D:/PoB_work/c71gt_art）。工業化度の読み手の許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表は、この線で 1 字も変えない（grep の差 0 で確かめる）。
+
+━━ [4] 恒等の判定（ident を回さない理由・必要性の確認の段）
+- エンジン・計器・試験の .cs は 0 行で、SimCore・Runner・App・データは 62190ef0 と差 0（`git diff --stat 62190ef0 -- PriceOfBread.SimCore PriceOfBread.Runner PriceOfBread.App PriceOfBread.Tests` が空）＝成績表も計器の表も変わりえない。ident は回さない（回すと D: を約 15GB 使って同じ字が出る）。ただし batch.sh の終了コードは ident.sh が走らせる道具なので、直した batch.sh が **成績表を変えない** ことは test_batch_rc860.sh（偽の measure.sh）で確かめ、本物の measure.sh は呼ばない。
+- m852 の成績表との全行一致は、ソースの差 0 による（合流は ident を回さない前例〔(859)〕）。
+
+━━ [5] 受け渡しと no-go
+- D:/PoB_work/c71gt_work/gates/ に置く：gates_po860.py・gates_po860_thresholds.tsv・mut_po860.py・SHA256.txt（sha256 の一覧）。ss の物（gates_ss860.py・同閾値の表・mut_ss860.py）も置く（c71po は使わない・記録）。
+- 印：`bash scripts/instruments/tools/bg.sh D:/PoB_work/c71gt_work/gates_ready.mark bash scripts/instruments/c71gt/selftest860.sh`（run_in_background）。自己試験は 固定の盤面・旗 0 の盤面・**旗 1 の実の生**・突然変異の表を回し、.log の先頭に判定、末尾に sha256 と G2b の形と旗 1 の実の生の結果を書く。rc≠0 は no-go。
+- no-go の条件（結果を見て足さない）：①形 c が旗 0 で満たされない（--choose-form の rc≠0）②固定の盤面の表が予言と違う③旗 0 の盤面で G0・G1 が落ちない④旗 1 の実の生で G0・G1・G1u・G2a・G2b のどれかが落ちる⑤閾値の表の数え直しが違う。G4m は po の受け渡しの対象外（ss の記録）。
+
+━━ [6] 採る規則
+- 恒等の線：エンジン 0 行・試験の通り（上の [3]）・判定文が selftest の .log の先頭に出る。〈判定: 恒等〉に相当する文は〈ソースの差 0＝成績表の変わりえない恒等〉と書く（ident の判定とは名乗らない）。
+
+━━ [7] D: と生
+- 回す腕：無し（読むだけ。自己試験は keep_852 と keep_852_rej の既存の生を読む）。D: の使用＝f0_839（約 0.8GB・secession_s と rule_s の写し）と隔離ビルド（約 1GB）。生は消さない。作ったフォルダ＝wt_c71gt・c71gt_work・c71gt_art。
+
+━━ [8] 自己申告の枠
+- waitmark の回数と覗きの回数を分けて報告に書く。hook に止められた回数。

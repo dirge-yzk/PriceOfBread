@@ -1,0 +1,13 @@
+bad 1/346 : フランス パリ Q17 束 326.2 ÷束 8.144E-05 [1.926E-05,2.29E-05]
+Q17 cum0 0.08227547710216312 cum1 0.10883908064282191 gain 0.0265636 ipcLo 1.92585E-05 ipcHi 2.28956E-05 built 326.188 gain/built 8.14365E-05
+Q18 cum0 0.10883908064282191 cum1 0.1143707508872912 gain 0.00553167 ipcLo 8.98621E-06 ipcHi 2.28671E-05 built 395.08 gain/built 1.40014E-05
+Q19 cum0 0.1143707508872912 cum1 0.11998178704404212 gain 0.00561104 ipcLo 1.32244E-05 ipcHi 1.62765E-05 built 355.629 gain/built 1.57778E-05
+cearn Q14 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q15 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q16 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q17 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q18 estateDebtMoved 0 emptyDebtAfter 0
+cearn Q19 estateDebtMoved 0 emptyDebtAfter 0
+cons Q17 builtUnitsPerMonth 108.729319 monthsCount 3
+cons Q18 builtUnitsPerMonth 131.693497 monthsCount 3
+cons Q19 builtUnitsPerMonth 118.5430273 monthsCount 3

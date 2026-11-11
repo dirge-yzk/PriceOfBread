@@ -1,0 +1,86 @@
+M9 ok
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\Instruments.cs(2553,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c94cl_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:15.73]     PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 1, tariff: 0, now: 0.5, down: 0, up: 1) [FAIL]
+[xUnit.net 00:00:15.73]     PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 0, tariff: 0, now: 0, down: 0, up: 0.5) [FAIL]
+[xUnit.net 00:00:15.73]     PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 0, tariff: 0.29999999999999999, now: 0.29999999999999999, down: 0.29999999999999999, up: 0.80000000000000004) [FAIL]
+[xUnit.net 00:00:15.73]     PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 2, tariff: 0.29999999999999999, now: 1.3, down: 0.80000000000000004, up: 1.3) [FAIL]
+[xUnit.net 00:00:15.74]     PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 2, tariff: 0, now: 1, down: 0.5, up: 1) [FAIL]
+[xUnit.net 00:00:15.74]     PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 1, tariff: 0.29999999999999999, now: 0.80000000000000004, down: 0.29999999999999999, up: 1.3) [FAIL]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 1, tariff: 0, now: 0.5, down: 0, up: 1) [1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0 (rounded from 0)
+Actual:   0.5 (rounded from 0.5)
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Int32 level, Double tariff, Double now, Double down, Double up) in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 74
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 0, tariff: 0, now: 0, down: 0, up: 0.5) [< 1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0 (rounded from 0)
+Actual:   0.5 (rounded from 0.5)
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Int32 level, Double tariff, Double now, Double down, Double up) in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 74
+   at InvokeStub_CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 0, tariff: 0.29999999999999999, now: 0.29999999999999999, down: 0.29999999999999999, up: 0.80000000000000004) [< 1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.29999999999999999 (rounded from 0.29999999999999999)
+Actual:   0.80000000000000004 (rounded from 0.80000000000000004)
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Int32 level, Double tariff, Double now, Double down, Double up) in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 74
+   at InvokeStub_CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 2, tariff: 0.29999999999999999, now: 1.3, down: 0.80000000000000004, up: 1.3) [< 1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0 (rounded from 0)
+Actual:   0.5 (rounded from 0.5)
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Int32 level, Double tariff, Double now, Double down, Double up) in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 76
+   at InvokeStub_CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 2, tariff: 0, now: 1, down: 0.5, up: 1) [< 1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0 (rounded from 0)
+Actual:   0.5 (rounded from 0.5)
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Int32 level, Double tariff, Double now, Double down, Double up) in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 76
+   at InvokeStub_CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 1, tariff: 0.29999999999999999, now: 0.80000000000000004, down: 0.29999999999999999, up: 1.3) [< 1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.29999999999999999 (rounded from 0.29999999999999999)
+Actual:   0.80000000000000004 (rounded from 0.80000000000000004)
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Int32 level, Double tariff, Double now, Double down, Double up) in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 74
+   at InvokeStub_CorncfInstrumentTests.T1_楔は段と関税の閉じた数(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:17.60]     PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [FAIL]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [480 ms]
+  エラー メッセージ:
+   利害が全て 0＝試験にならない
+  スタック トレース:
+     at PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則() in D:\PoB_work\c94cl_work\wt_mut\PriceOfBread.Tests\CorncfInstrumentTests.cs:line 365
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     7、合格:    32、スキップ:     0、合計:    39、期間: 19 s - PriceOfBread.Tests.dll (net10.0)

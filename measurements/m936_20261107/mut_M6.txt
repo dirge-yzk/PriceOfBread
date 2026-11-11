@@ -1,0 +1,10 @@
+# (936) 突然変異 M6（rc=1）
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [28 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [6 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [10 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [5 ms]
+失敗!   -失敗:     4、合格:     6、スキップ:     0、合計:    10、期間: 37 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:39.32]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [FAIL]
+[xUnit.net 00:00:39.35]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1b_小さい相続人も人数の比で受ける_塵になる [FAIL]
+[xUnit.net 00:00:39.36]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T1_送り手は厳密な0_相続人は人数の比 [FAIL]
+[xUnit.net 00:00:39.40]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T5_重みは人数で貯蓄ではない [FAIL]

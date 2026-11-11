@@ -105,13 +105,16 @@ public static partial class Instruments
         }
         return res;
     }
+    /// <summary>(843) 門の列を出す法＝門（Open）を持つ法＋旗の焼き込みで門が無くなった 2 本（最低賃金法・相続法＝常に開いている＝値 1 のまま列を残す）。
+    /// 計器の表 monlaw_s と注視の表の列・文言を基準と 1 バイトも変えないため（ident に消した列の宣言が無い注視の表がある）。基準の生を作り直す回に外す。</summary>
+    static bool MonGateColumn(Government.LevelLaw l) => l.Open != null || l.Axis is PolicyAxis.MinimumWage or PolicyAxis.Inheritance;
     static string[]? _monLawNames;
     internal static string[] MonLawNamesOfTable => _monLawNames ??= MonLawNames(Government.LevelLaws.Select(l => l.Axis).ToArray());
     internal static string MonLawHeader()
     {
         var laws = Government.LevelLaws; var nm = MonLawNamesOfTable;
         var gates = new List<string>();
-        for (int i = 0; i < laws.Length; i++) if (laws[i].Open != null) gates.Add("lawGateOpen:" + nm[i]);
+        for (int i = 0; i < laws.Length; i++) if (MonGateColumn(laws[i])) gates.Add("lawGateOpen:" + nm[i]);
         return "quarter\tyear\tnationUid\tnationIndex\tnation\tpolityCode\tblockadeRiskShare\t" + string.Join('\t', gates) + "\t"
             + string.Join('\t', nm) + "\t" + string.Join('\t', nm.Select(x => x + "Target"));
     }
@@ -194,7 +197,7 @@ public static partial class Instruments
         {
             I(q), I(w.Year), I(st.Uid), I(index), NameOf(w), I((int)w.Polity), F(w.LastBlockadeRisk),
         };
-        for (int i = 0; i < laws.Length; i++) if (laws[i].Open != null) cols.Add(laws[i].Open!(w) ? "1" : "0");
+        for (int i = 0; i < laws.Length; i++) if (MonGateColumn(laws[i])) cols.Add(laws[i].Open is null || laws[i].Open!(w) ? "1" : "0");
         for (int i = 0; i < laws.Length; i++) cols.Add(I(laws[i].Get(w)));
         for (int i = 0; i < laws.Length; i++) cols.Add(I(laws[i].Target(w, pol)));
         ms.Law.WriteLine(string.Join('\t', cols));

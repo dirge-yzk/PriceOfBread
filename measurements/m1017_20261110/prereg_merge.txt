@@ -1,0 +1,44 @@
+(1017) 合流（波94）の予言（merge より前に書く・結果を見る前）
+作った物：D:/PoB_work/m1017_work・D:/PoB_work/wt_m1017（枝 m1017・基点 4803fabe）。
+
+[0] 入れる順と前提
+ 順＝c94cl 4a072ad6 → c94ro 37373a9c → c94pe 3970151e（恒等 2 本→挙動 1 本）。
+ git merge-tree で 3 組とも衝突 0。.cs の〈-〉の行は cl・ro の Instruments.cs の呼び口と閉じ口の書き換え各 2 行（ro は :1908〔NationgoodTable の行・反証役の訂正〕と :1942、cl は :1912 と :1940）と、pe の Meritocracy.cs:164 の同じ行の書き換えだけ＝消す名前 0。
+ 合流が直す物（エンジンの .cs は 0）：
+  ①main の赤 GoodIdGuardTests（scripts/instruments/r1010/ge_gap.py:7 の `GOODS = [`）＝変数名を GE_NAMES に替える（台本の出力は変わらない）。
+  ②WriterRatchetTests の宣言の表 item 1・2・9・11 を合わせた木の実測で取り直す（★(749)）。予言：c94pe の旗 1 の木の実測と同じ値（価格の写像 17,266,684・建設の見た生産者 1,995・清算の充填 32,392,768・覇権の判定 3,230,490）＝cl・ro の計器は INS=0 で件数に触れない。
+  ③c94cl の突然変異の全文 M1〜M13.log（.gitignore の *.log で枝に無い）を measurements/m1012_20261110/M*.txt として写す。
+  ④読む線 c94rh の台本を scripts/instruments/r1015/ へ写すとき、rh_board.py の財の番号の直書き（:13・:14・:18・:19）を goods.json の名前で引く形に替える（GoodIdGuardTests のため）＝出力は書き換え前とバイト一致すること（合流が回して確かめる）。
+
+[1] テストの数
+ Category!=FullLength＝2546＋cl 39＋ro 5＋pe 5＝2595・FullLength 3。
+ 合わせた木（旗 1）のフルスイート：赤は ②の 4 本（取り直しの前）と ①の 1 本（直しの前）だけ。直した後は赤 0。savetest OK・leakhunt 保存則違反なし。
+
+[2] 腕 Z（合わせた木で ColonyPettyEntryEmptyTarget を 0 にした使い捨ての木）
+ ident m1017z＝〈判定: 恒等〉：素の 5 種 181 行が b5_20261109_m1001・計器つき 10 種 182 行が b10_20261109_m1001_ins と全行一致（名乗り行を除く）。
+ 宣言＝--added-tables corncf_s,lordstat_s,recipeout_s・--tests-delta 49・--ng（NG 77 件・新 0・外 0）・--saveleak。推定 209.3／211.2 秒。
+ 腕 Z の生の corncf_s・lordstat_s・recipeout_s（種 1〜10）は線の ident の生（ident_c94clz・c94ro_work/ident）とバイト一致。
+
+[3] 腕 M（合わせた木・旗 1・計器つき 10 種）
+ 成績表は c94pe の腕 B b10_20261110_c94peB_ins と全行一致（名乗り行を除く）・推定 231.5 秒・exact 47・near 84。
+ 生は c94pe の arm_B と、既知の揺れ（burscan_s:seconds・clock_s:worldTotalPerMonth@kind=C）と腕にだけある 3 表（corncf_s・lordstat_s・recipeout_s）を除いてバイト一致。
+ c94pe の門 gates1014.py（1 字も変えない・基準 keep_1011/base_ins）＝線の腕 B と同じ値：G1 0.1711（≦0.50）・G1′ 0.889（≧0.80）・G2 20.5（≦40）・G3 0.1256（≦0.4258）。
+[4] S11（種 11〜20・POB_CEARN=0）：成績表は c94pe の S11 b10s11_20261110_c94peS_ins と全行一致・推定 228.8 秒。G は記録（基準 a11 に merch_s が無い＝線の事前登録 [12] のまま）。最終の採否は S11 で 1 回（止める線）。
+[5] ヌル腕 N1・N2（SupplySlope 0.50000001・0.49999999・計器つき 10 種）・素の p5・p10：新しい基線 m1017 の表を作るためだけ（予言の値は書かない）。
+
+[6] 止める線の段（採否に使う）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1e10 倍以上・非有限・stoplines1002 の〈それ以外〉の 100 倍以上（M・S11・N1・N2 を同じ台本で数え直し、measurements/m1006_20261110/stopbase/ と並べる）・空洞化 1/10 未満の名簿の外（an_h2 -v4）で線が原因の件（基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝種 1〜10 は keep_1011/base_ins・種 11〜20 は keep_1001/a11）・推定 ＞248.5 秒・機構のテストの赤。
+ 予言：M・S11 とも止める線 0。
+[7] 記録の段（採否に使わない）
+ 〈1 四半期に政府の人口が 1/10 未満か 10 倍以上〉の四半期（系列の最初の 4 行の後・nation_s の populationK）＝㊳ で M・S11 を新しい N1・N2 と旧の keep_1011/base_ins・keep_1001/n1・n2・a11 の件数と並べる（台本 scripts/instruments/m1017/popjump1017.py＝合流が書く・同じ台本で全てを数える）。予言：M は 4 行（反証役の数え直し）でヌル腕の幅の内。
+ NG（基準 ng1001）・nullgate・exact・near・home_break・名目 GDP 0 の続き・開幕の 1000 倍以上・英の国債の不履行の種の数（M・S11・N1・N2・m1001 の 5/5/4/4 と並べる）・plvl。
+ c94pe の反証役の中①：pay_s の空の商人の枝（PayDiag.CountEmptyMerchant）を基線 keep_1011 と M で並べ、清算の充填の増加が植民地の空の商人の門の側かを読む（読むだけ）。
+[8] 挙動の線は 1 本＝合成後のアブレーションの腕は回さない（㉞ の対象は 2 本以上）。
+[9] c94cl の反証役の高：門 G-I は事前登録の形が同じ集合どうしの比較でない＝〈判定不能〉として記録する。〈許容超過＝計器の限界〉の結論と申し送り 5 は 00一覧・台帳へ写さない。gi_read.py はこの合流で直さない。計器の恒等は ident で確かめる（[2]）。
+
+[追記 2026-11-10・合わせた木 a61e66b7 のフルスイートの後・腕と腕 Z の前]
+ 予言の外れ（[1]）：フルスイートの赤は予言した 4 本（WriterRatchetTests item 1・2・9・11＝値は予言どおり 17266684・1995・32392768・3230490）のほかに 1 本＝ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い（c94cl の InstrumentsCorncf.cs:176 と CorncfInstrumentTests.cs:125 が Region.State を読む）。GoodIdGuardTests は直しの後で緑。FullLength 3 合格・savetest OK・leakhunt 保存則違反なし・--list-tests 2595＋3（予言どおり）。
+ 扱い（32c989ab）：RegionState.Locked の書き手は SimCore・Runner・Tests・App に 0（grep）＝判定は恒真＝恒真の判定を 2 か所消した（許可表は変えない・(665)(727) の合流と同じ型）。
+ 確かめ（腕 Z の後・結果を見る前に固定）：腕 Z の生の corncf_s・lordstat_s（種 1〜10・20 本）の sha1 が線の ident の生（m1017_work/hash/cl_ident.tsv）と全て一致すること。recipeout_s（10 本）も ro_ident.tsv と全て一致すること。
+ 一致しなければ：消した判定は恒等でなかった＝c94cl を外す（merge を戻し、腕 Z を --added-tables recipeout_s --tests-delta 10 で回し直す）と報告する。
+ WriterRatchetTests は 4 行を取り直した（★(749)）。取り直しと削除の後の木でフルスイートをもう一度回し、2595 のうち赤 0 を腕の前に確かめる。

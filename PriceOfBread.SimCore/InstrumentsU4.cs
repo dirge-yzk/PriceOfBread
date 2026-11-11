@@ -13,8 +13,8 @@ namespace PriceOfBread.SimCore;
 //   flowCurrentPlannedMoneySum＝影の判定がある州×月（希望が正）の今の計画の和＝影の計画と同じ州×月で比べる分母。
 // ⚠限界（計器が自己申告する）：①影は静的な反事実＝希望・所得・消費は今の規則の軌道のまま（U4 の腕では応答する）。
 //   ②今の規則の消費の支払いは投資の取り置き（EconomyStep の投資家の RemainingBudget×(1−IndInvestmentFrac)）の後の値＝U4 で取り置きを外すと消費は増えうる＝腕の流れは影より小さい向き。
-//   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。
-//   ⑧工業化度の列は置かない（IndustrializationReaderTests の許可表＝新しい読み手を足さない）。⑤州の持ち主が四半期の中で替わると、その州の積みは四半期の末の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
+//   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。州が国を出た場合は U4Depart が出る時点の Tier の区分で、出た国の次の行へ回す（(948)）。
+//   ⑧工業化度の列は置かない（IndustrializationReaderTests の許可表＝新しい読み手を足さない）。⑤州の持ち主が四半期の中で替わると、出る前の積みは U4Depart の写しとして出た国の次の consf_s の行へ入り（州の数・人口・貯蓄は足さない）、出た後の積みは今の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
 public static partial class Instruments
 {
     internal const string ConsfHeaderText = "quarter\tyear\tnation\tscope\tregionsCount\tpopulationK\tinvestorSavingsStock\t"
@@ -107,8 +107,21 @@ public static partial class Instruments
     /// <summary>助走の明け（ClearCons）：全ての写しを戻す（助走の月の消費・振動の履歴を持ち越さない）。</summary>
     static void U4ClearWorld(World w)
     {
+        U4Departed.Remove(w);   // (948)
         foreach (var r in w.Regions) if (U4Accs.TryGetValue(r, out var a)) a.ClearAll();
     }
+
+    /// <summary>(948) 州が国を出る（<see cref="ConsDepart"/> から・挙げた国だけ）：出る州の四半期の積みを写して出た国の次の consf_s の行へ回し、州の四半期の積みを戻す（月をまたぐ写しは州について行く）。cons_s と同じ穴（州が国を出入りした四半期に積みが戻った国の行として出る）の同じ直し。</summary>
+    static void U4Depart(World from, Region r)
+    {
+        if (!U4Accs.TryGetValue(r, out var a)) return;
+        var snap = new U4Acc(); snap.Judged = a.Judged; snap.Desiring = a.Desiring; snap.Bound = a.Bound; snap.FlowAvail = a.FlowAvail; snap.FlowDesiring = a.FlowDesiring; snap.FlowBound = a.FlowBound; snap.Osc = a.Osc;
+        snap.Desired = a.Desired; snap.Budget = a.Budget; snap.Planned = a.Planned; snap.BoundCut = a.BoundCut; snap.FlowDesired = a.FlowDesired; snap.FlowBudget = a.FlowBudget; snap.FlowPlanned = a.FlowPlanned; snap.FlowCurPlanned = a.FlowCurPlanned; snap.FlowEarned = a.FlowEarned; snap.FlowCons = a.FlowCons;
+        snap.Paid = a.Paid; snap.Built = a.Built; snap.OscPaid = a.OscPaid; snap.OscAbsD1 = a.OscAbsD1; snap.OscAbsD2 = a.OscAbsD2; snap.OscLag = a.OscLag; snap.OscSq = a.OscSq; snap.OscSqLag = a.OscSqLag;
+        a.ClearQuarter();
+        U4Departed.GetValue(from, _ => new List<(RegionTier Tier, U4Acc Acc)>()).Add((r.Tier, snap));
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, List<(RegionTier Tier, U4Acc Acc)>> U4Departed = new();
 
     /// <summary>四半期の末（挙げた国だけ）：consf_s の行（区分 2 本）を書き、四半期の積みを戻す（月をまたぐ写しは残す）。</summary>
     static void ConsfRows(Sink sk, ulong seed, int q, World w)
@@ -117,6 +130,8 @@ public static partial class Instruments
         if (!sk.ConsfHeader) { sk.Consf.WriteLine(ConsfHeaderText); sk.ConsfHeader = true; }
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string nation = NameOf(w);
+        List<(RegionTier Tier, U4Acc Acc)>? departed = null;
+        if (U4Departed.TryGetValue(w, out var dl)) { departed = new(dl); U4Departed.Remove(w); }   // (948)
         for (int s = 0; s < ConsfScopes.Length; s++)
         {
             bool colonial = s == 1;
@@ -135,7 +150,16 @@ public static partial class Instruments
                 paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq; oSqLag += a.OscSqLag;
                 a.ClearQuarter();
             }
-            if (n == 0) continue;
+            bool anyDeparted = false;
+            if (departed is not null) foreach (var (tier, a) in departed)
+            {
+                if ((tier == RegionTier.Colonial) != colonial) continue;
+                anyDeparted = true;   // (948) 出た州の積み（州の数・人口・貯蓄は今の持ち主の物＝足さない）
+                judged += a.Judged; desiring += a.Desiring; bound += a.Bound; fAvail += a.FlowAvail; fDes += a.FlowDesiring; fBound += a.FlowBound; osc += a.Osc;
+                desired += a.Desired; budget += a.Budget; planned += a.Planned; cut += a.BoundCut; fDesired += a.FlowDesired; fBudget += a.FlowBudget; fPlanned += a.FlowPlanned; fCurPlanned += a.FlowCurPlanned; fEarn += a.FlowEarned; fCons += a.FlowCons;
+                paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq; oSqLag += a.OscSqLag;
+            }
+            if (n == 0 && !anyDeparted) continue;
             sk.Consf.WriteLine(string.Join('\t', I(q), I(w.Year), nation, ConsfScopes[s], I(n), F(pop), F(invSav),
                 I(judged), I(desiring), I(bound), F(desired), F(budget), F(planned), F(cut),
                 I(fAvail), I(fDes), I(fBound), F(fDesired), F(fBudget), F(fPlanned), F(fEarn), F(fCons),

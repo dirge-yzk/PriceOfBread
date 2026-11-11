@@ -27,7 +27,7 @@ public class IdeaNeedBoardTests
     /// <summary>兵士でない全ての POP の充足を fill に揃える（SupplyFill＝(FoodMet+NeedMet)÷(FoodNeed+NeedTotal)）・工場労働者の自給を 0・闘争度を mil に。</summary>
     private static void SetBoard(World w, double fill, double mil = 0.0)
     {
-        foreach (var p in Civ(w)) { p.FoodNeed = 1; p.FoodMet = fill; p.NeedTotal = 0; p.NeedMet = 0; p.Militancy = mil; if (p.ClassId == PopClass.Worker) p.Subsistence = 0; }
+        foreach (var p in Civ(w)) { p.FoodNeed = 1; p.FoodMet = fill; p.NeedTotal = 0; p.NeedMet = 0; p.Militancy = mil; if (p.ClassId == PopClass.Worker) p.SubsistenceBasis = 0; }
     }
 
     private static double Sat(double s, Coefficients c) => Discovery.TermMax * s / (s + c.DiscoveryNeedHalfIdea);

@@ -1,0 +1,37 @@
+mutated Mu1
+PREPDONE c65opMu1 dir:D:/PoB_work/wt_c65op plain /d/PoB_work/wt_c65op/scripts/instruments/c65op/mutate.py
+== Mu1 tests rc=1
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの在庫はdの内に留まり_釣り合いを越えない_一定の消費では釣り合いへ収束する 
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの更新は手の算術_挟みは0からd_蓋なしの旗では線形とビットで一致 
+      1   失敗 PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す(logistic: 1) 
+失敗!   -失敗:     5、合格:    17、スキップ:     0、合計:    22、期間: 1 m 7 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu2
+PREPDONE c65opMu2 dir:D:/PoB_work/wt_c65op plain /d/PoB_work/wt_c65op/scripts/instruments/c65op/mutate.py
+== Mu2 tests rc=1
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの在庫はdの内に留まり_釣り合いを越えない_一定の消費では釣り合いへ収束する 
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの更新は手の算術_挟みは0からd_蓋なしの旗では線形とビットで一致 
+      1   失敗 PriceOfBread.Tests.HabitTests.アヘンの蓋の旗は既定0_旗1で蓋だけが外れる_他の5値は変わらない 
+      1   失敗 PriceOfBread.Tests.HabitTests.アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.成長0でも減衰は走る_行を持たない世界では在庫に触らない 
+      1   失敗 PriceOfBread.Tests.HabitTests.蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.釣り合いの表は旗0で違反0_床0_蓋の表と月数が合う 
+失敗!   -失敗:     9、合格:    13、スキップ:     0、合計:    22、期間: 52 s - PriceOfBread.Tests.dll (net10.0)
+mutated Mu3
+PREPDONE c65opMu3 dir:D:/PoB_work/wt_c65op plain /d/PoB_work/wt_c65op/scripts/instruments/c65op/mutate.py
+== Mu3 tests rc=1
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.ロジスティックの表は旗0で実際が旧_旗1で実際が新_釣り合いの破り0_在庫はd以下(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの在庫はdの内に留まり_釣り合いを越えない_一定の消費では釣り合いへ収束する 
+      1   失敗 PriceOfBread.Tests.HabitLogisticTests.形Hの更新は手の算術_挟みは0からd_蓋なしの旗では線形とビットで一致 
+      1   失敗 PriceOfBread.Tests.HabitTests.アヘンの蓋の旗は既定0_旗1で蓋だけが外れる_他の5値は変わらない 
+      1   失敗 PriceOfBread.Tests.HabitTests.アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.アヘンの表は州と国の行が揃い_国の中毒度は州の和に合い_計器を出しても軌道は変わらない 
+      1   失敗 PriceOfBread.Tests.HabitTests.中毒度の更新は成長_減衰_0から上限の手の算術(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.蓋の旗は呼び手の更新まで届く_旗0は蓋で止まり_旗1は蓋なしで残る 
+      1   失敗 PriceOfBread.Tests.HabitTests.蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す(logistic: 1) 
+      1   失敗 PriceOfBread.Tests.HabitTests.釣り合いの表は旗0で違反0_床0_蓋の表と月数が合う 
+失敗!   -失敗:    10、合格:    12、スキップ:     0、合計:    22、期間: 51 s - PriceOfBread.Tests.dll (net10.0)
+MUTUNITDONE

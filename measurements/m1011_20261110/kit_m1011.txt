@@ -1,0 +1,5 @@
+(1011) 道具箱 D:/PoB_play/kit を main 9b189cb8 で建て直した（kit1011.sh・-p:UseSharedCompilation=false）。最後の記録のコミットは docs と measurements だけ＝Runner と SimCore は 9b189cb8 と同じ。
+    0 エラー
+
+経過時間 00:00:15.28
+KITDONE

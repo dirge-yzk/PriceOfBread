@@ -1,0 +1,63 @@
+Ceded dom_10y	n1125 med1.0000 p101.0000 p901.0000 <top25 | n1167 med1.0000 p101.0000 p901.0000 <top33 | n1072 med1.0000 p101.0000 p901.0000 <top32
+Ceded dom_4y	n1266 med1.0000 p101.0000 p901.0000 <top83 | n1260 med1.0000 p101.0000 p901.0000 <top67 | n1179 med1.0000 p101.0000 p901.0000 <top69
+Ceded dom_after	n1417 med1.0000 p101.0000 p901.0000 <top120 | n1410 med1.0000 p101.0000 p901.0000 <top104 | n1285 med1.0000 p101.0000 p901.0000 <top108
+Ceded dom_before	n1417 med1.0000 p101.0000 p901.0000 <top120 | n1410 med1.0000 p101.0000 p901.0000 <top104 | n1285 med1.0000 p101.0000 p901.0000 <top108
+Ceded left_top_within_10y(after>=top)	50 | 63 | 51
+Ceded margin_med_10y	n1402 med1.0739 p100.6396 p901.5529 <top583 | n1389 med1.0756 p100.6181 p901.5870 <top620 | n1272 med1.1057 p100.6251 p901.6123 <top515
+Ceded margin_negshare_10y	n1402 med0.0000 p100.0000 p900.0000 <top1401 | n1389 med0.0000 p100.0000 p900.0000 <top1387 | n1272 med0.0000 p100.0000 p900.0000 <top1272
+Ceded min_dom_10y(after<top)	n120 med0.5878 p100.3233 p900.9759 <top114 | n104 med0.6668 p100.3229 p900.9754 <top96 | n108 med0.6641 p100.2711 p900.9868 <top101
+Ceded min_dom_10y(after>=top,left)	n50 med0.9772 p100.8986 p900.9965 <top50 | n63 med0.9836 p100.8738 p900.9976 <top63 | n51 med0.9893 p100.9046 p900.9981 <top51
+Ceded n	1417 | 1410 | 1285
+Ceded never_top_censored(after<top)	3 | 8 | 8
+Ceded no_row_after	10 | 13 | 2
+Ceded no_track	4 | 6 | 10
+Ceded r0_10y	n1125 med0.3754 p100.2055 p900.4990 <top1125 | n1167 med0.3769 p100.2042 p900.5182 <top1167 | n1072 med0.3659 p100.2080 p900.5035 <top1072
+Ceded r0_4y	n1266 med0.1946 p100.1063 p900.2669 <top1266 | n1260 med0.2008 p100.1038 p900.2732 <top1260 | n1179 med0.1937 p100.1055 p900.2666 <top1179
+Ceded r0_50pct_censored	155 | 158 | 119
+Ceded r0_90pct_censored	426 | 393 | 342
+Ceded r0_after	n1417 med0.0000 p100.0000 p900.0000 <top1417 | n1410 med0.0000 p100.0000 p900.0000 <top1410 | n1285 med0.0000 p100.0000 p900.0000 <top1285
+Ceded r0_before	n1417 med0.5078 p100.1468 p900.7706 <top1417 | n1410 med0.5245 p100.1583 p900.7842 <top1410 | n1285 med0.4961 p100.1547 p900.7724 <top1285
+Ceded stayed_top_10y_or_censored(after>=top)	1233 | 1224 | 1114
+Ceded tierBefore=Colonial	794 | 810 | 682
+Ceded tierBefore=Core	398 | 391 | 390
+Ceded tierBefore=Integrated	225 | 209 | 213
+Ceded track_years	n1354 med45.2500 p105.7500 p90139.2500 <top21 | n1355 med50.0000 p105.7500 p90136.5000 <top20 | n1245 med55.7500 p107.5000 p90140.5000 <top21
+Ceded years_r0_to_50pct_before	n1199 med6.7500 p102.2500 p9011.7500 <top32 | n1197 med6.5000 p102.5000 p9011.7500 <top26 | n1126 med6.5000 p102.5000 p9010.7500 <top19
+Ceded years_r0_to_90pct_before	n928 med14.2500 p103.5000 p9035.0000 <top17 | n962 med15.5000 p103.7500 p9036.0000 <top14 | n903 med15.2500 p104.0000 p9034.5000 <top11
+Ceded years_to_top(after<top)	n117 med6.0000 p101.0000 p9013.2500 <top12 | n96 med4.7500 p100.7500 p9012.7500 <top11 | n100 med4.7500 p100.7500 p909.7500 <top11
+Returned dom_after	n146 med1.0000 p100.0000 p901.0000 <top37 | n164 med1.0000 p100.0000 p901.0000 <top52 | n166 med1.0000 p100.0000 p901.0000 <top61
+Returned dom_before	n146 med1.0000 p100.0000 p901.0000 <top37 | n164 med1.0000 p100.0000 p901.0000 <top52 | n166 med1.0000 p100.0000 p901.0000 <top61
+Returned left_top_within_10y(after>=top)	2 | 4 | 3
+Returned margin_med_10y	n34 med0.6511 p100.1854 p901.6376 <top25 | n47 med0.7122 p100.0561 p901.4899 <top33 | n48 med0.5273 p100.0408 p901.5148 <top34
+Returned margin_negshare_10y	n34 med0.0000 p100.0000 p900.1000 <top34 | n47 med0.0000 p100.0000 p900.4000 <top46 | n48 med0.0000 p100.0000 p900.3000 <top46
+Returned min_dom_10y(after<top)	n19 med0.0659 p100.0107 p901.0000 <top16 | n28 med0.9678 p100.0059 p901.0000 <top24 | n33 med0.0646 p100.0012 p901.0000 <top28
+Returned min_dom_10y(after>=top,left)	n2 med0.9359 p100.9359 p900.9587 <top2 | n4 med0.9918 p100.9588 p900.9942 <top4 | n3 med0.9949 p100.9706 p900.9986 <top3
+Returned n	146 | 164 | 166
+Returned never_top_censored(after<top)	4 | 5 | 8
+Returned no_row_after	18 | 22 | 29
+Returned no_track	0 | 4 | 4
+Returned r0_after	n146 med0.6061 p100.3524 p900.8500 <top146 | n164 med0.5887 p100.3173 p900.8500 <top164 | n166 med0.5786 p100.2905 p900.8500 <top166
+Returned r0_before	n146 med0.6061 p100.3524 p900.8500 <top146 | n164 med0.5887 p100.3173 p900.8500 <top164 | n166 med0.5786 p100.2905 p900.8500 <top166
+Returned stayed_top_10y_or_censored(after>=top)	107 | 106 | 97
+Returned years_to_top(after<top)	n15 med2.7500 p100.2500 p9026.7500 <top3 | n23 med1.2500 p100.2500 p9016.7500 <top8 | n25 med4.7500 p100.2500 p9035.0000 <top8
+Seceded dom_after	n160 med1.0000 p100.0000 p901.0000 <top50 | n182 med1.0000 p100.0000 p901.0000 <top76 | n190 med1.0000 p100.0000 p901.0000 <top83
+Seceded dom_before	n160 med1.0000 p100.0000 p901.0000 <top50 | n182 med1.0000 p100.0000 p901.0000 <top76 | n190 med1.0000 p100.0000 p901.0000 <top83
+Seceded n	160 | 182 | 190
+Seceded r0_after	n160 med0.5989 p100.3524 p900.8500 <top160 | n182 med0.5823 p100.3145 p900.8500 <top182 | n190 med0.5726 p100.2995 p900.8500 <top190
+Seceded r0_before	n160 med0.5989 p100.3524 p900.8500 <top160 | n182 med0.5823 p100.3145 p900.8500 <top182 | n190 med0.5726 p100.2995 p900.8500 <top190
+all region_quarters	1334332 | 1308700 | 1309654
+all region_quarters_at_top	1296125 | 1269873 | 1269445
+jump dom_after_jump	n12 med1.0000 p101.0000 p901.0000 <top0 | n21 med1.0000 p101.0000 p901.0000 <top0 | n19 med1.0000 p101.0000 p901.0000 <top0
+jump dom_before_jump	n12 med0.0000 p100.0000 p900.0000 <top12 | n21 med0.0000 p100.0000 p900.0000 <top21 | n19 med0.0000 p100.0000 p900.0000 <top19
+jump n	12 | 21 | 19
+jump same_nation_name=1	12 | 21 | 19
+jump tier_after=Core	12 | 21 | 19
+open_Colonial dom_10y	n342 med0.9647 p100.5715 p901.0000 <top187 | n344 med0.9763 p100.5912 p901.0000 <top182 | n348 med0.9649 p100.5682 p901.0000 <top187
+open_Colonial dom_30y	n299 med1.0000 p101.0000 p901.0000 <top16 | n291 med1.0000 p101.0000 p901.0000 <top21 | n288 med1.0000 p101.0000 p901.0000 <top26
+open_Colonial dom_q0	n370 med0.0277 p100.0184 p900.0361 <top370 | n370 med0.0277 p100.0185 p900.0361 <top370 | n370 med0.0276 p100.0185 p900.0361 <top370
+open_Colonial go_ever_same_owner	2 | 3 | 2
+open_Colonial go_within_10y	1 | 1 | 1
+open_Colonial margin_med_first2y	n370 med1.0338 p100.6903 p901.3668 <top146 | n370 med1.0357 p100.6949 p901.3663 <top142 | n370 med1.0391 p100.6945 p901.3683 <top140
+open_Colonial never_top	30 | 28 | 27
+open_Colonial years_to_top	n340 med10.5000 p107.5000 p9021.5000 <top0 | n342 med10.2500 p107.5000 p9020.7500 <top0 | n343 med10.5000 p107.5000 p9022.7500 <top0
+open_Core dom_q0	n1080 med1.0000 p101.0000 p901.0000 <top0 | n1080 med1.0000 p101.0000 p901.0000 <top0 | n1080 med1.0000 p101.0000 p901.0000 <top0

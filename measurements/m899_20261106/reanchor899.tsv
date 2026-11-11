@@ -1,0 +1,138 @@
+行	前	後	写し方
+S16-16	EconomyStep.cs:1048:coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive	EconomyStep.cs:1089:coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive	写した
+S16-16	Simulation.cs:1685:r.CivilWarActive = World.InCivilWar	Simulation.cs:1706:r.CivilWarActive = World.InCivilWar	写した
+S16-17	Simulation.cs:2102:World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0	Simulation.cs:2123:World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0	写した
+S16-21	Coefficients.cs:2993:FactionForgetQuarters	Coefficients.cs:2994:FactionForgetQuarters	写した
+S16-40	Coefficients.cs:3013:RevoltAftermathOnWarPath	Coefficients.cs:3014:RevoltAftermathOnWarPath	写した
+S16-48	Coefficients.cs:3058:RevoltCooldownRetire	Coefficients.cs:3059:RevoltCooldownRetire	写した
+S15-14	Coefficients.cs:3136:DynMandateAmplify	Coefficients.cs:3137:DynMandateAmplify	写した
+S15-15	Coefficients.cs:3134:ClergyMediationPerCapita	Coefficients.cs:3135:ClergyMediationPerCapita	写した
+S15-17	Coefficients.cs:3099:RedefinedMandateFloor	Coefficients.cs:3100:RedefinedMandateFloor	写した
+S15-17	Coefficients.cs:3100:RedefinedMandateNcMin	Coefficients.cs:3101:RedefinedMandateNcMin	写した
+S15-20	CrownParliament.cs:458:w.RecentRegimeChanges += 1	CrownParliament.cs:471:w.RecentRegimeChanges += 1	写した
+S15-20	CrownParliament.cs:207:w.RecentRegimeChanges *= 1.0 - w.ReplacementRate	CrownParliament.cs:220:w.RecentRegimeChanges *= 1.0 - w.ReplacementRate	写した
+S15-24	Coefficients.cs:3089:RegimeTrackRecordWeight	Coefficients.cs:3090:RegimeTrackRecordWeight	写した
+S15-25	CrownParliament.cs:202:w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay	CrownParliament.cs:215:w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay	写した
+S15-25	CrownParliament.cs:210:record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters	CrownParliament.cs:223:record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters	写した
+S15-25	CrownParliament.cs:212:w.RegimeTrackRecord[fam] = PoliticalQuantities.ClampOr	CrownParliament.cs:225:w.RegimeTrackRecord[fam] = PoliticalQuantities.ClampOr	写した
+S15-41	CrownParliament.cs:234:double conscriptTerm = c.NationBuildConscript	CrownParliament.cs:247:double conscriptTerm = c.NationBuildConscript	写した
+S15-41	CrownParliament.cs:238:double crisisMult = 1.0	CrownParliament.cs:251:double crisisMult = 1.0	写した
+S15-41	CrownParliament.cs:241:double lawCeil = w.EducationLaw switch	CrownParliament.cs:254:double lawCeil = w.EducationLaw switch	写した
+S15-41	CrownParliament.cs:252:double ncDrive = c.NationBuildAccumRate	CrownParliament.cs:265:double ncDrive = c.NationBuildAccumRate	写した
+S15-42	CrownParliament.cs:263:NationConsciousnessDerived	CrownParliament.cs:276:NationConsciousnessDerived	写した
+S15-42	CrownParliament.cs:346:NationConsciousnessDerived	CrownParliament.cs:359:NationConsciousnessDerived	写した
+S15-42	Coefficients.cs:3153:NationConsciousnessDerived	Coefficients.cs:3154:NationConsciousnessDerived	写した
+S15-43	CrownParliament.cs:411:static double CivicOpenness(	CrownParliament.cs:424:static double CivicOpenness(	写した
+S15-43	CrownParliament.cs:248:double openness = CivicOpenness(w)	CrownParliament.cs:261:double openness = CivicOpenness(w)	写した
+S01-H007	Coefficients.cs:3403:BonanzaDepositYears	Coefficients.cs:3404:BonanzaDepositYears	写した
+S02-H003	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S03-H020	Coefficients.cs:3403:BonanzaDepositYears	Coefficients.cs:3404:BonanzaDepositYears	写した
+S03-H020	Coefficients.cs:3402:DepositGradeFloor	Coefficients.cs:3403:DepositGradeFloor	写した
+S03-H020	Coefficients.cs:3401:DepositGradeKnee	Coefficients.cs:3402:DepositGradeKnee	写した
+S03-H020	Coefficients.cs:3400:DepositYearsAtBirth	Coefficients.cs:3401:DepositYearsAtBirth	写した
+S04-H004	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S04-H013	Coefficients.cs:3185:CartelBanRent	Coefficients.cs:3186:CartelBanRent	写した
+S04-H013	Coefficients.cs:3341:GuildRentPremium	Coefficients.cs:3342:GuildRentPremium	写した
+S04-H017	Coefficients.cs:3114:OpiumLaborPenalty	Coefficients.cs:3115:OpiumLaborPenalty	写した
+S05-H019	Coefficients.cs:3553:MotorFuelRate	Coefficients.cs:3554:MotorFuelRate	写した
+S05-H023	Coefficients.cs:3198:NationalizationSeizureRate	Coefficients.cs:3199:NationalizationSeizureRate	写した
+S05-H023	Coefficients.cs:3191:NationalizationStateShare	Coefficients.cs:3192:NationalizationStateShare	写した
+S05-H023	Coefficients.cs:3209:SoeSaleMilitancyCeil	Coefficients.cs:3210:SoeSaleMilitancyCeil	写した
+S05-H026	Coefficients.cs:3419:FarmScaleCap	Coefficients.cs:3420:FarmScaleCap	写した
+S05-H026	Coefficients.cs:3418:MineralScaleCap	Coefficients.cs:3419:MineralScaleCap	写した
+S05-H026	Coefficients.cs:3420:RgoScaleSpeedFactor	Coefficients.cs:3421:RgoScaleSpeedFactor	写した
+S07-H009	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S07-H016	Model.cs:832:PrevImport	Model.cs:833:PrevImport	写した
+S07-H016	Model.cs:857:ClearFailLp	Model.cs:858:ClearFailLp	写した
+S08-H006	Coefficients.cs:3598:SeaStitchLeadBudgetMult	Coefficients.cs:3599:SeaStitchLeadBudgetMult	写した
+S09-H034	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S09-H035	Coefficients.cs:3539:ShipFuelRate	Coefficients.cs:3540:ShipFuelRate	写した
+S09-H037	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S10-H015	Simulation.cs:2525:FertilePool	Simulation.cs:2546:FertilePool	写した
+S10-H020	Simulation.cs:2819:SmoothRegionalFoodFill	Simulation.cs:2840:SmoothRegionalFoodFill	写した
+S12-H005	Coefficients.cs:3343:GuildMobilityDrag	Coefficients.cs:3344:GuildMobilityDrag	写した
+S13-H008	Coefficients.cs:3490:EraMigrationScale	Coefficients.cs:3491:EraMigrationScale	写した
+S13-H013	Coefficients.cs:3490:EraMigrationScale	Coefficients.cs:3491:EraMigrationScale	写した
+S10-H042	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S14-H009	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S14-H012	Coefficients.cs:3167:OpenBallotReality	Coefficients.cs:3168:OpenBallotReality	写した
+S14-H012	Coefficients.cs:3168:PaperFranchiseReality	Coefficients.cs:3169:PaperFranchiseReality	写した
+S14-H013	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S14-H014	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S14-H016	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S14-H024	Coefficients.cs:3130:DynMandateFoodAnchor	Coefficients.cs:3131:DynMandateFoodAnchor	写した
+S14-H027	Coefficients.cs:3272:FascismGate	Coefficients.cs:3273:FascismGate	写した
+S27-H006	Coefficients.cs:3508:SecessionConsciousnessWeight	Coefficients.cs:3509:SecessionConsciousnessWeight	写した
+S17-H001	Coefficients.cs:3361:ConstitutionalControlExit	Coefficients.cs:3362:ConstitutionalControlExit	写した
+S17-H001	Coefficients.cs:3360:ConstitutionalControlFloor	Coefficients.cs:3361:ConstitutionalControlFloor	写した
+S17-H002	CrownParliament.cs:441:ApplyRegime	CrownParliament.cs:454:ApplyRegime	写した
+S17-H003	Coefficients.cs:3075:ParliamentPressureRate	Coefficients.cs:3076:ParliamentPressureRate	写した
+S17-H004	Coefficients.cs:3082:ShogunateEndMilitancy	Coefficients.cs:3083:ShogunateEndMilitancy	写した
+S17-H004	Coefficients.cs:3081:ShogunateEndTension	Coefficients.cs:3082:ShogunateEndTension	写した
+S17-H011	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S18-H016	Coefficients.cs:3073:PartyFormCohesion	Coefficients.cs:3074:PartyFormCohesion	写した
+S18-H021	Coefficients.cs:3520:ParliamentStreetSupersede	Coefficients.cs:3521:ParliamentStreetSupersede	写した
+S19-H013	Coefficients.cs:2963:ParliamentBudgetVeto	Coefficients.cs:2964:ParliamentBudgetVeto	写した
+S19-H015	Coefficients.cs:3313:PrivilegeStripMilitancy	Coefficients.cs:3314:PrivilegeStripMilitancy	写した
+S19-H017	Coefficients.cs:3066:FactionConcessionSteps	Coefficients.cs:3067:FactionConcessionSteps	写した
+S19-H017	Coefficients.cs:2989:RevoltConcessionSpend	Coefficients.cs:2990:RevoltConcessionSpend	写した
+S19-H021	Coefficients.cs:3008:RebelArmsMarketEnabled	Coefficients.cs:3009:RebelArmsMarketEnabled	写した
+S19-H026	Coefficients.cs:3480:MonetaryPeerPullScale	Coefficients.cs:3481:MonetaryPeerPullScale	写した
+S19-H030	Coefficients.cs:3339:GuildLawGate	Coefficients.cs:3340:GuildLawGate	写した
+S17-H025	Coefficients.cs:3360:ConstitutionalControlFloor	Coefficients.cs:3361:ConstitutionalControlFloor	写した
+S17-H031	Coefficients.cs:3361:ConstitutionalControlExit	Coefficients.cs:3362:ConstitutionalControlExit	写した
+S17-H033	Coefficients.cs:3075:ParliamentPressureRate	Coefficients.cs:3076:ParliamentPressureRate	写した
+S17-H037	Coefficients.cs:2962:GrantedControlOnReform	Coefficients.cs:2963:GrantedControlOnReform	写した
+S19-H035	CrownParliament.cs:532:PolicyDistance	CrownParliament.cs:545:PolicyDistance	写した
+S19-H036	Coefficients.cs:3086:RegimeRecordAccumRate	Coefficients.cs:3087:RegimeRecordAccumRate	写した
+S19-H036	Coefficients.cs:3088:RegimeRecordDecay	Coefficients.cs:3089:RegimeRecordDecay	写した
+S20-H013	Coefficients.cs:3416:OversightFactorScale	Coefficients.cs:3417:OversightFactorScale	写した
+S20-H013	Coefficients.cs:3415:OversightMeritExam	Coefficients.cs:3416:OversightMeritExam	写した
+S20-H013	Coefficients.cs:3414:OversightPressCensored	Coefficients.cs:3415:OversightPressCensored	写した
+S22-H001	Coefficients.cs:3480:MonetaryPeerPullScale	Coefficients.cs:3481:MonetaryPeerPullScale	写した
+S22-H006	Coefficients.cs:3510:MintReserveTargetWeight	Coefficients.cs:3511:MintReserveTargetWeight	写した
+S22-H007	Coefficients.cs:3452:MintBuysAtMarket	Coefficients.cs:3453:MintBuysAtMarket	写した
+S22-H008	Coefficients.cs:3381:MintDemandCounted	Coefficients.cs:3382:MintDemandCounted	写した
+S22-H009	Simulation.cs:3001:SellReserve	Simulation.cs:3022:SellReserve	写した
+S22-H011	Coefficients.cs:3511:TrilemmaRateResponse	Coefficients.cs:3512:TrilemmaRateResponse	写した
+S22-H012	Coefficients.cs:3372:CapitalControlOpenness	Coefficients.cs:3373:CapitalControlOpenness	写した
+S22-H051	Coefficients.cs:3460:MintParitySells	Coefficients.cs:3461:MintParitySells	写した
+S22-H052	Coefficients.cs:3440:SilverParityFromRatio	Coefficients.cs:3441:SilverParityFromRatio	写した
+S20-H026	Coefficients.cs:3307:PrivilegeLedgerEnabled	Coefficients.cs:3308:PrivilegeLedgerEnabled	写した
+S23-H013	Coefficients.cs:3274:NationBuildMobilizationWeight	Coefficients.cs:3275:NationBuildMobilizationWeight	写した
+S23-H034	Coefficients.cs:3551:AirFuelRate	Coefficients.cs:3552:AirFuelRate	写した
+S23-H034	Coefficients.cs:3553:MotorFuelRate	Coefficients.cs:3554:MotorFuelRate	写した
+S24-H017	Coefficients.cs:3111:UnificationAiCooldownYears	Coefficients.cs:3112:UnificationAiCooldownYears	写した
+S24-H017	Coefficients.cs:3110:UnificationAiPursueChance	Coefficients.cs:3111:UnificationAiPursueChance	写した
+S24-H017	Coefficients.cs:3112:UnificationAiWarGapYears	Coefficients.cs:3113:UnificationAiWarGapYears	写した
+S24-H017	Coefficients.cs:3107:UnificationV1Only	Coefficients.cs:3108:UnificationV1Only	写した
+S24-H029	Coefficients.cs:3189:RationingBlockadeRelief	Coefficients.cs:3190:RationingBlockadeRelief	写した
+S24-H049	Simulation.cs:1483:PromoteColonyToRegion	Simulation.cs:1504:PromoteColonyToRegion	写した
+S24-H059	Coefficients.cs:2964:VictoryLegitBoost	Coefficients.cs:2965:VictoryLegitBoost	写した
+S24-H073	Coefficients.cs:3535:EraNavalFuel	Coefficients.cs:3536:EraNavalFuel	写した
+S24-H073	Coefficients.cs:3534:NavalFuelFillSmoothing	Coefficients.cs:3535:NavalFuelFillSmoothing	写した
+S24-H073	Coefficients.cs:3529:NavalFuelPerGauge	Coefficients.cs:3530:NavalFuelPerGauge	写した
+S24-H073	Coefficients.cs:3533:NavalFuelSortieFloor	Coefficients.cs:3534:NavalFuelSortieFloor	写した
+S24-H079	Coefficients.cs:3055:MilitiaCombatValue	Coefficients.cs:3056:MilitiaCombatValue	写した
+S26-H005	Coefficients.cs:3289:CoreHeldYears	Coefficients.cs:3290:CoreHeldYears	写した
+S26-H010	Coefficients.cs:3491:EraColonyCoal	Coefficients.cs:3492:EraColonyCoal	写した
+S27-H021	Coefficients.cs:3508:SecessionConsciousnessWeight	Coefficients.cs:3509:SecessionConsciousnessWeight	写した
+S27-H031	Coefficients.cs:3521:RumpReabsorbYears	Coefficients.cs:3522:RumpReabsorbYears	写した
+S27-H057	Coefficients.cs:3277:FormationLegitimacyBoost	Coefficients.cs:3278:FormationLegitimacyBoost	写した
+S27-H058	Coefficients.cs:3109:UnificationNatioShare	Coefficients.cs:3110:UnificationNatioShare	写した
+S26-H021	Coefficients.cs:3490:EraMigrationScale	Coefficients.cs:3491:EraMigrationScale	写した
+S28-H023	Coefficients.cs:3402:DepositGradeFloor	Coefficients.cs:3403:DepositGradeFloor	写した
+S28-H023	Coefficients.cs:3401:DepositGradeKnee	Coefficients.cs:3402:DepositGradeKnee	写した
+S28-H023	Coefficients.cs:3400:DepositYearsAtBirth	Coefficients.cs:3401:DepositYearsAtBirth	写した
+S28-H024	Coefficients.cs:3403:BonanzaDepositYears	Coefficients.cs:3404:BonanzaDepositYears	写した
+S28-H027	Coefficients.cs:3419:FarmScaleCap	Coefficients.cs:3420:FarmScaleCap	写した
+S28-H027	Coefficients.cs:3418:MineralScaleCap	Coefficients.cs:3419:MineralScaleCap	写した
+S28-H027	Coefficients.cs:3420:RgoScaleSpeedFactor	Coefficients.cs:3421:RgoScaleSpeedFactor	写した
+S29-H056	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S29-H075	Coefficients.cs:3640:Coefficients	Coefficients.cs:3641:Coefficients	写した
+S17-P01	CrownParliament.cs:30:SummonParliamentRate	CrownParliament.cs:31:SummonParliamentRate	近くへ写した
+S17-P02	CrownParliament.cs:39:CoopParliamentCrown	CrownParliament.cs:52:CoopParliamentCrown	写した
+S17-P03	CrownParliament.cs:111:ParliamentPressureRate	CrownParliament.cs:124:ParliamentPressureRate	写した
+S17-P04	CrownParliament.cs:119:crown > rep	CrownParliament.cs:132:crown > rep	写した
+S17-P05	CrownParliament.cs:126:ArmyPcPressure	CrownParliament.cs:139:ArmyPcPressure	写した
+S17-P06	CrownParliament.cs:195:ArmyAllegiance	CrownParliament.cs:208:ArmyAllegiance	写した

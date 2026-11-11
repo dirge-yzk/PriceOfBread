@@ -1,0 +1,131 @@
+(827) c66sv の事前登録（波66・挙動の線・銀のテーマの 3 回の規則の 2 回目・仮番号 (827)・書いたモデル Claude Opus 5.5）2026-11-04
+基点 main 4e7fd41f（基線 m826・測った木 cbc11c34・SOURCE-HASH cbb717a976b69e18）。worktree D:/PoB_work/wt_c66sv（枝 c66sv）。腕の前に書く。事前登録は最初のコミット。数を変えるなら腕の前に理由つきで追記する（結果を見た後に変えない）。
+作者「全て推奨で。ただ、現状のタスクは完了する方向で」で推奨を採って進める。出発は (823) c65sv の紙の結論〈旗 SilverParityDemandWeighted の値 2＝A′〉と §0-2 ★(826) ④ の推奨〈次の挙動の線で値 2＝A′ を入れ、1 は焼かない〉（AI の案・確証なし）。
+形の種類＝入口（注入の対数平均の 1 州の票の定義を替える）。w1（値 1）の枝は消さず、焼きもしない（④ は作者の答え待ち）。根 D（開幕の金鉱の市場のデータ）・Fiscal の b の下端 1.0・silverpar_s の列は触らない。
+
+[1] 形（エンジン）
+ ・旗の値が 2 以上のとき、州の票を w＝min(dAg×RefPrices[銀], dAu×RefPrices[金鉱]) にする（dAg＝銀の市場の LastDemand・dAu＝金鉱の市場の LastDemand）。2 つの積をそれぞれ、非有限・非正なら 0 に倒してから小さい方（積に掛けるガード＝dAg が有限でも積が inf なら 0）。
+ ・重みはエンジン側に自前で書く（新しい純関数 MultiNationSim.SilverMinRefWeight(dAg, dAu, refAg, refAu)）＝計器の Instruments.SilverMinWeight を呼ばない（呼ぶと S1 が同語反復になる）。README §1-10 の grep：似た関数は計器の SilverMinWeight（呼んではならない）と SilverVoteWeight（1 辺だけ）＝新しく作る理由はこの 1 行。
+ ・変える行は 1 か所：`double wState = SilverVoteWeight(dAu, demandWeighted);` を `double wState = minRefWeighted ? SilverMinRefWeight(mAg.LastDemand, dAu, refAgW, refAuW) : SilverVoteWeight(dAu, demandWeighted);` に。minRefWeighted＝`_coef.SilverParityDemandWeighted >= 2`。refAgW・refAuW は走査の前に Catalog.RefPrices を読む局所（読みだけ）。
+ ・`demandWeighted = _coef.SilverParityDemandWeighted > 0` は 1 字も変えない＝値 2 でも真＝`if (demandWeighted)` の累積と SilverMeanRatio(demandWeighted, …) は値 1 と同じ行を通る。値 0 の経路（三項の右＝SilverVoteWeight(dAu, false)＝1）と値 1 の経路（三項の右＝SilverVoteWeight(dAu, true)）は字面も算術の順序も同じ＝変わるのは値 2 の票の 1 行だけ（紙の証）。
+ ・新しい係数 0・新しい状態 0。旗の既定は器のコミットで 0、点火のコミットで 2。
+
+[2] 計器（読むだけ・事前登録の文から独立）
+ ・silverwt_s の末尾に 6 列（既存の列は 1 つも変えない＝ident は --grown-ok silverwt_s）：
+   usedAgOneSidedShare（エンジンの票のうち銀の側の片側の州〔銀の需要＜銀の産出の 1%〕の割合）・usedEnterShare（エンジンの票のうち、前の注入の走査の集合に無かった州の割合・seq 1 は nan）・
+   equalAgOneSidedShare・w1AgOneSidedShare・minRefAgOneSidedShare・maxRefAgOneSidedShare（計器の自走査の反実仮想＝等重み・w1・A′・max 版の銀の側の片側の割合）。
+ ・エンジンからの呼び出し Instruments.SilverWeightState に州 r・dAg・prodAg の 3 引数を足す（`if (Instruments.On)` の中・エンジンの算術は変えない）。呼び出しは MultiNationSim.cs の 1 か所だけ（grep 済み・Tests からの直接の呼び出し 0）。
+ ・入った州の集合：SilverWeightState の時点では計器の Prev（SilverstSinks）は前の注入の走査の集合のまま＝SilverstEnd（SilverWeightEnd の頭で呼ばれ、State の全ての呼び出しの後）が今の注入の集合へ更新する。usedEnterShare はこの Prev で数える（自走査の enterShareMinRef と同じ集合）。
+ ・計器の限界（自己申告）：銀の側の片側の 1% は計器の定義／usedEnterShare は計器の Prev（自走査の集合）で数える＝エンジンが別の集合を持つわけではない（走査の条件は同じ・stateCountDiff で確かめる）。
+
+[3] 門（両側・腕の前に固定・数は腕 B の生で読む。紙の数は予言にとどめる）。読み手 scripts/instruments/c66sv/paper827.py --mode arm（腕 B の生・エンジンの票 used*）
+ ・W1：助走（frozen=1）の全ての注入で usedOneSidedShare（金鉱の側の片側）の最大 ≦0.05（nan があれば落ちる）。
+ ・W1m（W1 の鏡・★(773)）：助走の全ての注入で usedAgOneSidedShare（銀の側の片側）の最大 ≦0.05。
+ ・W2b：本走（frozen=0）の全ての注入で usedRelIndex が挟み [0.3, 3.0] の外（nan を含む）の件数 0。
+ ・E1：本走の seq＞1 の全ての注入で usedEnterShare の最大 ≦0.05。
+ ・U1：全ての注入のうち usedMaxShare＞0.5 の注入の割合 ≦0.01。
+ ・S1：ratioOkFlag=1 の全ての注入で、エンジンの票の列（usedRelIndex・usedMaxShare・usedOneSidedShare・usedAgOneSidedShare・usedEnterShare）が計器の自走査の A′ の列（relMinRefIndex・minRefMaxShare・minRefOneSidedShare・minRefAgOneSidedShare・enterShareMinRef）と文字列で一致（"R" 書式＝ビット一致）。食い違い 0。
+ ・狙いどおり働いたか（大きさの門・★(826) の機構の規律）：T1＝1786〜1790 の英の州（silverst_s の nation=イギリス の行）の A′ の票の割合の最大 ≦0.05（同じ年の w1 の割合の最大は旗 0 の盤面で 0.6088・全ての種で 0.23 以上＝0.1 超）。
+   T2（記録・門にしない）＝同じ盤面の本走の rel の新÷旧（usedRelIndex÷relEqualIndex）の分位。
+ ・止める線（下の [6]）と savetest・leakhunt・機構のテスト（ソースを走査する番人 6 組を含む）。
+ ・採否：W1・W1m・W2b・E1・U1・S1・T1 の全てが通り、止める線に当たらなければ採る。どれか 1 つでも落ちたら採らない（同じ腕で物差しを替えない・形の変え直しは 1 回だけ）。
+
+[4] 紙の台本（今の盤面 keep_826/base_ins＝旗 0・計器の自走査の反実仮想。paper827.py --mode paper の出力 measurements/m827_20261104/paper827_base.txt）
+   形                         | W1（助走の金の片側の最大） | W2b（本走の挟み外） | E1（本走の入った州の最大） | U1（1 州＞0.5 の割合）
+   A′（旗 2 の形）            | 0.0049 通る                | 0 通る              | 0.0027 通る                | 0.0000 通る
+   対照 等重み（旗 0）        | 0.4118 落ちる              | 0 通る              | 0.0267 通る                | —
+   対照 w1（旗 1）            | 0.0023 通る                | 3 落ちる            | 0.6088 落ちる              | 0.0001 通る
+   対照 max 版                | 0.3596 落ちる              | 6 落ちる            | 0.4653 落ちる              | 0.0064 通る
+   記録 A（局所の値段建て）   | 0.0046                     | 0                   | 0.0025                     | 0.0000
+   対照 二乗                  | —                          | 20 落ちる           | —                          | 0.3372 落ちる
+   対照 産出                  | —                          | 3 落ちる            | —                          | 0.0001 通る
+ ・旗 0（等重み＝何もしない実装）で W1 が落ちる（0.4118）。旗 1（w1）で E1 が落ちる（0.6088）。この 2 つを同じ台本で確かめた。
+ ・T1 の前提：1786〜1790 の英の州の w1 の割合の最大 0.6088（種ごと 0.233〜0.609）・同じ行の A′ の割合の最大 0.0130（種 5）・他の種は 0.0001 以下。
+ ・T2（記録）：本走の rel の A′÷等重み p1 0.897・p5 0.933・p50 0.990・p95 1.028・p99 1.061・最小 0.841・最大 1.198。本走の A′ の rel p5 0.867・p50 0.985・p95 1.054・最小 0.662・最大 1.566。
+ ・W1m は今の生に列が無い＝器の後の ident（旗 0・計器つき 10 種）の生で取り、腕 B の前に [9] へ追記する（対照 w1 の銀の片側が落ちること・等重みの値も同時に書く）。
+ ・紙の限界：反実仮想は旗 0 の盤面（エンジンの rel は等重み）で数えた。A′ に替えると rel が動き、金銀の値段・造幣・通貨制度の選好が動く＝腕 B の軌道は替わる。silverst_s は上位 5 と入った・出た州の行だけ＝英の州がどの上位 5 にも入らない注入ではその州の割合は行に無い（上位 5 の最小より小さい）。
+
+[5] 突然変異（㉚・登録した物は全て回す・腕の前に門ごとの赤を予言）
+ 単位の突然変異（使い捨ての木 D:/PoB_work/c66sv_mut で SilverParityDemandWeightedTests と SilverstInstrumentTests を回す・出力 measurements/m827_20261104_unit_mutations.txt）：
+   M1 エンジンの min を max に（SilverMinRefWeight の小さい方→大きい方）→ 手の値の試験と実盤面の旗 2 の S1 の試験が赤。
+   M2 dAg を無視（SilverMinRefWeight の銀の辺を dAu×refAu に）→ 手の値の試験と実盤面の旗 2 の S1 が赤。
+   M3 RefPrices を外す（積を dAg・dAu だけに）→ 手の値の試験（refAg≠refAu の行）が赤。実盤面の S1 は赤にならない見込み（下の注）。
+   M4 値 2 の分岐を値 1 へ倒す（minRefWeighted を常に偽）→ 実盤面の旗 2 の S1 が赤。
+   M5 積のガードを外す（非有限・非正を 0 に倒さない）→ 手の値の試験（NaN・負・inf の行）が赤。
+   M6 計器の usedAgOneSidedShare を金鉱の側の片側で数える→ 実盤面の旗 2 の S1（agOneSided）が赤。
+ 門の水準（腕 B の門で読む形に対し、紙の反実仮想の列で読む・腕は回さない）：
+   M1（max 版）→ S1・W1（0.3596）・W2b（6）・E1（0.4653）で赤。U1 は通る（0.0064）。
+   M2（dAg を無視＝dAu×refAu＝w1 の定数倍＝割合と rel は w1 と同じ）→ S1・W2b（3）・E1（0.6088）で赤。W1m は ident の生の w1AgOneSidedShare で読む（予言：落ちる＝英の州は銀の需要がほぼ 0 で金鉱の需要が大きい）。
+   M3（RefPrices を外す）→ **門では検出できない**：今の Catalog で RefPrices[銀]＝RefPrices[金鉱]（silverst_s の行から 0.54・比 1.0）＝票が全て同じ定数倍＝割合と rel は不変。S1 の文字列の比べは丸めで割れることがあるが保証しない。拾うのは単位の試験の手の値（refAg≠refAu）だけ。
+   M4（値 2→値 1＝w1）→ S1・W2b（3）・E1（0.6088）で赤。
+ 対照の確かめ：門ごとに少なくとも 1 本の対照で落ちる（W1＝等重み・max／W2b＝w1・max・二乗・産出／E1＝w1・max／U1＝二乗）。U1 は max 版・w1 では落ちない＝二乗の型だけを拾う上限の門（(823) と同じ）。
+
+[6] 止める線と記録（挙動の線・この回の文をそのまま写す）
+ 止める線：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる）・1e10 倍以上・空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+ 記録の段の先頭：名目 GDP が 0 のまま 4 四半期以上続く国（人口 1 万以上・gdp_zero10.py）。開幕の 1000 倍以上（記録・同じ国が半分以上の種なら NG）。NG・国力・史実度・英の国債の不履行の種の数は記録。
+ ヌル腕の件数（並べる相手・腕の前に写す）：
+                         | 空洞化 1/10 未満 | 1/4 未満 | 名目 GDP 100 倍（建国の直後／それ以外） | 価格水準 100 倍 | 名目 GDP 0 の続き | 英の不履行の種
+   基線 M（m826）        | 0                | 2        | 0／0                                    | 0               | 0                 | 3/10
+   旧 N1（m797_n1）      | 0                | 9        | 0／0                                    | 0               | 0                 | 5/10
+   旧 N2（m797_n2）      | 0                | 7        | 0／0                                    | 0               | 0                 | 4/10
+   新 N1（m826_n1）      | 0                | 16       | 0／0                                    | 0               | 4 区間（シク連邦）| 3/10
+   新 N2（m826_n2）      | 1（セントポール）| 21       | 1／2（ポルトガル 1912・スペイン 1938）  | 0               | 0                 | —（stop_n2 で読む）
+   （出典：measurements/m826_20261104/stop_mB.txt・stop_n1.txt・stop_n2.txt・measurements/m815_20261104/stoplines_null_recount.txt・m797_20261103/rec_raw.txt）
+ 読み手：scripts/instruments/c66sv/stoplines827.sh（m826 の stoplines826.sh と同じ並び）。100 倍の比較は基準とヌル腕を同じ台本で数え直して並べる（⑰）。
+
+[7] ソースを走査する番人の点検（㉘）・書き換える件数の予言（㉑）・★(818) の grep
+ ・IndustrializationReaderTests の許可表（MultiNationSim.cs 2 件）：工業化度を読まない＝変わらない。`new MoneyStock(` の件数：足さない＝0 の変化。route_anchors.tsv の鍵の行（MultiNationSim.cs 8 行＝運河・港・保険の経路）：注入の段は鍵に無い＝触らない。WriterRatchetTests の宣言の表：書き手を足さない＝触らない。GoodIdGuardTests：台本 paper827.py に C# の配列の字面を書かない。InstrumentsTests の名簿：表を足さない（silverwt_s の列だけ）。DormantIdentityTests:32 の行：器では触らない・点火のコミットで外す（点火の手順・★(743) ④の型）。
+ ・予言：器のコミットで書き換える番人 0・件数の変化 0。
+ ・★(818)：この線が書く欄＝World.SilverGoldRatio・World.WorldSilverPrice。`grep -ln "SilverGoldRatio\|WorldSilverPrice" PriceOfBread.Tests/*.cs` ＝FiscalTests.cs（:1698 は手で WorldSilverPrice を置く盤面＝注入を通らない）・MultiNationTests.cs。読んだ Assert：
+   ①MultiNationTests.cs:56〜87 `銀平価の器は同一市場内の銀金比から世界銀価格を作る`（Theory gate 0・1）：:84 の Assert が SilverGoldRatio＝等重みの対数平均（exp(Σln/cnt)/refRatio）＝**旧の規則（等重みの票）そのものを固定する番人**。旗 2 の既定では gate 0・1 の 2 行とも赤になる予言（:81 の WorldSilverPrice も gate 1 で赤）。
+   ②MultiNationTests.cs:209〜238 `SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す`（Theory gate 0・1）：:230 が usedParityIndex＝relRecomputedIndex（silverpar_s の計器が等重みで取り直した値）＝同じく旧の規則を固定。旗 2 では gate 1 の行が赤の予言（gate 0 は旧の統計の経路で通る）。
+   ③MultiNationTests.cs:243〜262 `平価の計器は軌道を変えない`：計器の有無のビット一致＝旗に依らず通る。MultiNationTests.cs:89〜105 は World を手で置く盤面＝通る。
+ ・㉜ の旗 1 の木の grep（旧の規則を固定していないか）：上の ①② が該当。MultiNationTests.cs はこの線の持ち主のファイルではない。
+
+[8] 予め決める扱い（結果を見る前・㉜）
+ ・点火のコミット（既定 2.0・DormantIdentityTests.cs:32 の行を外す）の直後に、旗 2 の木でフルスイート（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる・中止の行も拾う）・savetest・leakhunt を腕 B より前に回す。
+ ・赤が [7] の ①② の型（期待の式が等重みの票＝旧の規則を固定する番人・持ち主でないファイル）なら、**番人を書き換えずに止め、腕 B を回さない**（旗 0 を初期化子に置く書き換えも、Theory 化もしない＝(807) の [10]①② の型は ★(818)・㉜ の前で main に入っていない）。pending の先頭に〈作者に聞く物〉として推奨つきで書く。
+   推奨（AI の案・確証なし）：(a) ①② の初期化子に SilverParityDemandWeighted = 0.0 を置き〈旗 0 の経路の番人（旗を明示）〉と名乗り、旗 2 の経路の番人は SilverParityDemandWeightedTests（旗を明示）が持つ＝次の波で MultiNationTests.cs を持つ線が入れる。(b) ★(826) ② の推奨〈前提の Assert だけが赤で機構の主張が同じ式で通る型は Theory 化してよい〉が決まれば、①② の期待の式を旗ごとの票で書く。
+   3 回の規則の数え方の推奨：この線は門を 1 つも読まずに止まる＝〈同じ形で採らなかった〉の 2 回目に数えない（作者に聞く物）。
+ ・赤が ★(749)（WriterRatchetTests の計算量の宣言の表）なら、取り直しは合流の木で 1 回（線は触らず報告）。それ以外の機構の赤は止める線。
+ ・器の後、点火の前に、使い捨ての木（既定を 2 にした写し）で MultiNationTests・SilverParityInstrumentTests・SilverParityDemandWeightedTests・DormantIdentityTests だけを回し、赤の名簿と値を早く取る（D:/PoB_work/c66sv_f2probe・記録 measurements/m827_20261104/f2probe.txt）。
+
+[9] 手順
+ ① 事前登録（この文書・台本 paper827.py・紙の出力）＝最初のコミット → ② 器・計器・試験（旗の既定 0・小さなコミット）→ ③ 走査の番人 6 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests＋この線の試験）→ ④ ident `ident.sh run c66svz --tree D:/PoB_work/wt_c66sv --grown-ok silverwt_s --tests-delta <足した試験の数> --saveleak`（bg.sh で包み run_in_background・走っている間は worktree にコミットしない）→ ⑤ 〈判定: 恒等〉と W1m の紙の追記 → ⑥ 単位の突然変異 → ⑦ 点火のコミット → ⑧ 旗 2 のフルスイート・savetest・leakhunt → 赤の型で [8] → ⑨ 通れば腕 B `INS=1 bash scripts/instruments/batch.sh run c66svB 10`（成績表 b10_20261104_c66svB_ins）→ 門と止める線。
+ 作ったフォルダ＝D:/PoB_work/wt_c66sv・c66sv_work・c66sv_art・c66sv_mut・c66sv_f2probe・ident_c66svz（ident の作業フォルダ）。消してよいのはこれだけ。
+
+[10] 計算量の割り当て
+ 約 0 秒（注入は四半期に 1 回・州ごとに掛け算 2 と比べ 1 と分岐 1）。素の腕では計器の呼び出しは分岐 1 つ。.cost の推定を m826 の 215.6 秒と比べる（名目の余り 約 32.9 秒の内）。
+
+[11] 事前登録の点検
+ ・README ★(675)：外した物差し（補給崩壊の倍化・10pt・NG の正味）を門に写していない（この文書に〈補給崩壊…倍〉〈10pt〉〈NG の正味〉の字は無い）。
+ ・符号だけの門は無い（W1・W1m・E1 は 0.05・U1 は 0.01・W2b と S1 は件数 0・T1 は 0.05）。
+ ・旗 0（何もしない実装）で落ちる門：W1（0.4118）。値 1（w1）で落ちる門：E1・W2b。T1 は w1 の盤面で 0.6088＝落ちる。
+ ・事前登録の形と実装の形の一致（⑪）：[1] の 1 行の三項と純関数を実装の差分と突き合わせて報告に書く。
+ ・他の線との重なり（この回の持ち主の表）：MultiNationSim.cs は c66id が 852〜855 の注を触る（この線は 35〜45 と 880〜905）＝行は重ならない。Coefficients.cs は c66dw（1008 付近）・c66id（2510〜2512）・この線（3438〜3439）＝重ならない。DormantIdentityTests.cs は c66id が :35・この線が :32（点火のコミットで行を外す）＝隣接の行＝合流で確かめる。InstrumentsSilverWeight.cs・InstrumentsSilverst.cs・SilverParityDemandWeightedTests.cs・SilverstInstrumentTests.cs は他の線の表に無い。
+
+[12] 追記 1（点火の前・腕 B の出力はまだ無い＝結果の後の変更ではない。門・閾値・採否の規則は変えていない）
+ ・器のコミット d20419ef。足した試験 3 本（SilverParityDemandWeightedTests：手の値 1・旗 2 の S1 1・旗 0／1 の新しい列 1）＝tests-delta +3。SilverstInstrumentTests の U3 に入口の Assert 4 行（dAg・prodAg・pAg と前提）。
+ ・走査の番人 6 組＋銀の試験と MultiNationTests（207 本）は緑（measurements/m827_20261104/guards.txt）。書き換えた番人 0・件数の変化 0（予言どおり）。
+ ・恒等の判定（測った種で一致）：`ident.sh run c66svz --tree D:/PoB_work/wt_c66sv --grown-ok silverwt_s --tests-delta 3 --saveleak` の 1 回目は〈判定: 不一致〉（measurements/m827_20261104/ident_first_check.txt）。
+   宣言の無い違いは cearn_s の 10 本の 3 列（inTop1Route・outTop1Route・outTop2Route）だけ。この 3 列は〈ファイル:行:動詞:種〉の呼び出し位置＝MultiNationSim.cs の頭に 10 行・注入の段に 2 行足したので行が +10・+12 ずれた。
+   scripts/instruments/c66sv/cearnloc827.py（git diff の hunk から旧→新の行の写像を作り、違う全てのセルを照らす）で、違うセル 55,229 の全てが同じファイル・同じ動詞と種・行だけが写像どおり（それ以外 0）＝〈位置だけ〉（measurements/m827_20261104/cearnloc.txt）。
+   これを確かめた後に `ident.sh check c66svz --grown-ok silverwt_s --tests-delta 3 --known-extra cearn_s:inTop1Route,cearn_s:outTop1Route,cearn_s:outTop2Route` で〈判定: 恒等〉（measurements/ident_20261104_c66svz.txt・SOURCE-HASH 9a246a2d52c2af5b）。
+   素の 5 種と計器つき 10 種は m826 と全行バイト一致（181 行）・.cost 推定 215.6 秒（一致）・計器の表 バイト一致 995＋既知の揺れ 40＋宣言 10・注視の表一致・テスト 2253（2250+3）＋3・savetest OK・leakhunt 保存則違反なし。
+   推奨（AI の案）：cearn_s の 3 列は flow_s と同じ呼び出し位置の列＝ident.cfg の KNOWN に足すか、flow_s と同じく位置を除いて比べる（次の恒等の線・合流が決める）。
+ ・W1m の紙（ident の旗 0 の生・measurements/m827_20261104/paper827_ident.txt）：A′ 0.0001 通る／対照 等重み 0.0882 落ちる・w1 0.4206 落ちる（＝M2〈dAg を無視〉と M4〈値 2→1〉は W1m でも落ちる）・max 版 0.0726 落ちる。W1・W2b・E1・U1 の紙は [4] と同じ値（同じ盤面）。
+   旗 0 の生でエンジンの新しい列は自走査の等重みと全 6,880 注入で文字列一致（usedAgOneSidedShare＝equalAgOneSidedShare・usedEnterShare＝enterShareEqual）。
+ ・単位の突然変異 M1〜M7（measurements/m827_20261104_unit_mutations.txt）：全て赤。M1・M2・M3＝手の値と旗 2 の S1 の 2 本／M4＝旗 2 の S1／M5＝手の値／M6・M7＝旗 2 の S1 と旗 0／1 の新しい列の 2 本。
+   M3（RefPrices を外す）は旗 2 の実盤面の S1（文字列の比べ）でも赤になった＝定数倍の丸めがビットを変えた（[5] で〈保証しない〉と書いた側に出た・門の水準では検出できないことは変わらない）。
+ ・旗 2 の赤の名簿を早く取った（[8] の使い捨ての木・measurements/m827_20261104/f2probe.txt）：赤 4＝DormantIdentityTests.休眠フラグは既定でゼロである（点火の手順で外す行）・MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate 0・1)・SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate 1)。
+   値：gate 0 で フランス SilverGoldRatio＝1.5014（期待＝等重み 0.3315）／gate 1 で WorldSilverPrice＝0.8099（期待 0.1790）／silverpar_s の gate 1 で 注入 1.0740・計器の等重みの取り直し 1.0808。
+   ＝[7] の ①② の予言どおり（旧の規則〈等重みの票〉を固定する番人・持ち主でないファイル）。[8] の規則で、点火の後のフルスイートでも同じ赤なら番人を書き換えずに止め、腕 B は回さない。
+
+[13] 結果（点火のコミット 71be1db5 の木・[1]〜[12] の規則は変えていない。書いたモデル Claude Opus 5.5）　★腕 B を回さずに止めた（[8]）
+ ・フルスイート（measurements/m827_20261104/suite_flag2.txt）：--list-tests は Category!=FullLength 2253・FullLength 3（ident.cfg の 2250＋3 と足した 3 本に合う）。
+   Category!=FullLength＝失敗 4・合格 2248・スキップ 1（TechInstitutionTests の既存のスキップ）・合計 2253／FullLength＝合格 3。中止の行 0。
+   赤 4：①MultiNationTests.銀平価の器は同一市場内の銀金比から世界銀価格を作る(gate 0)・②同(gate 1)・③SilverParityInstrumentTests.平価の計器は注入と独立な式で同じ平価を取り直す(gate 1)＝[7] の予言どおり（等重みの票を固定する番人・MultiNationTests.cs）。
+   ④WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item 11)＝〈外交：覇権の判定の国×国〉3,083,057 件（宣言 2,787,201・+10.6%）＝★(749) の区分（最初の 40 四半期の軌道の件数の写し）＝線は触らず、採るなら合流の木で 1 回取り直す。
+ ・savetest OK（12 四半期・全 61 カ国・最大相対差 0）・leakhunt 完走（200 四半期・保存則違反なし・世界の台帳の説明できない増減 0）。
+ ・判断：①〜③ は旧の規則（等重みの票）そのものを固定する番人で、この線の持ち主でないファイル＝[8] の規則どおり書き換えずに止め、腕 B を回さない。門は 1 つも腕の生で読んでいない。
+ ・作者に聞く物（推奨つき）は [8] の (a)(b) と、3 回の規則の数え方（門を読まずに止まった＝2 回目に数えない）。答えが来たら、次の線は (a) なら MultiNationTests.cs の 2 本の初期化子に SilverParityDemandWeighted = 0.0 を置いた木で、この器（d20419ef）と点火（71be1db5）の上から腕 B `INS=1 bash scripts/instruments/batch.sh run c66svB 10` と paper827.py --mode arm・stoplines827.sh を回すだけ。

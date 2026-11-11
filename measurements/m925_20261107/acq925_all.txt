@@ -1,0 +1,12 @@
+# acquired D:/PoB_work/keep_919/base_ins {'n': 129, 'go10': 0, 'goever': 0, 'never_top': 11, 'seceded_later': 0}
+dom_first_row n 129 p10 0.0000 med 0.0000 p90 0.0444
+years_to_top n 118 p10 7.0000 med 10.5000 p90 14.2500
+margin_med_first2y n 129 p10 0.6904 med 0.9229 p90 1.3951
+# acquired D:/PoB_work/keep_919/n1 {'n': 120, 'go10': 0, 'goever': 0, 'never_top': 14, 'seceded_later': 0}
+dom_first_row n 120 p10 0.0000 med 0.0000 p90 0.0230
+years_to_top n 106 p10 8.0000 med 10.7500 p90 14.5000
+margin_med_first2y n 120 p10 0.6517 med 0.9018 p90 1.2523
+# acquired D:/PoB_work/keep_919/n2 {'n': 142, 'go10': 0, 'goever': 0, 'never_top': 15, 'seceded_later': 0}
+dom_first_row n 142 p10 0.0000 med 0.0000 p90 0.0000
+years_to_top n 127 p10 8.0000 med 10.5000 p90 14.5000
+margin_med_first2y n 141 p10 0.6503 med 0.9203 p90 1.2673

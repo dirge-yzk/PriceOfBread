@@ -1,0 +1,24 @@
+(867) batch.sh の終了コードの呼び手の表（measurements/m860_20261105/callers_batch_rc860.txt の写し＋下の追記 2 件）。元の見出し：(860) batch.sh の終了コードの呼び手の表（grep -rln 'batch.sh' scripts/instruments＝86 本・うち `batch.sh run` を呼ぶ .sh は 39 本・Python の an_*.py などは注に名を書くだけ）
+新しい意味：0＝成績表が出て最後の空でない行が〈判定:〉を含む（ハーネス不合格でも 0）・2＝INS=1 で計器の国が空・3＝ARMFULL・4＝BATCHFAIL（ビルドの失敗か成績表が無い／途中で切れた）。旧は measure.sh の rc をそのまま（0〜2、ビルドの失敗も 1）。
+
+■ 今も使う物（rc を読む／残す所を全て読んだ）
+| 呼び手 | rc の使い方 | 新しい意味での動き |
+| ident/ident.sh:42〜43（腕 a・b） | `prep && run` の && は prep の rc。run の rc は :53 の RC=$? に入り $M/$ARM.done へ `rc=…` と書く | 基線でもハーネス不合格の 1 だった → 0 に変わる。ビルド失敗は 1 → 4 |
+| ident/ident_check.py:587 | `^rc=(0|1|2) `（腕 a・b）・`^rc=0 `（t・s）を受け入れる | **変えない**（判定の規則に触れない）。0 は受け入れ、3 と 4 は受け入れない＝ビルドの失敗が ident で〈未了〉として見える（旧は 1 のまま受け入れ、出力の欠けで別の所で落ちた） |
+| m852/arm852.sh:12 | `rc=$?` を arms_start.txt に書くだけ | 値が変わるだけ（分岐なし） |
+| m852/armB2_852.sh:10 | RC=$? を書くだけ | 同上 |
+| c70po/armB856.sh:11 | RC=$? を書くだけ | 同上 |
+| c70ss/armB855.sh:8 | `prep && INS=1 run`（最後の rc がスクリプトの rc） | 分岐なし。呼ぶ側（担当）は成績表の有無で読む（今までどおり） |
+| go.sh:5 | `GO-END rc=$?` をログに書くだけ | 同上 |
+| tools/arms.sh（batch.sh の中） | ARMFULL の 3 | 変わらない |
+
+■ 古い・使わない（直さない）
+- 古い線のフォルダの台本（`batch.sh run` を呼ぶ 39 本のうち上の今も使う 6 本以外）：c65op/armB.sh:9・c9op/run_arm.sh:12（印に rc=$? を書く・rc 3＝ARMFULL なら呼び直す〔3 は変わらない〕）・r793/run_r793.sh:11・m826/m832/m839 の arm.sh:12・c66dw/mut828.sh・c67id/mut835.sh は rc を **ログ／印に書くだけで分岐に使わない**（grep で rc=・RC=・$? を全て読んだ）。古い線のフォルダ（c10cp〜c14fl・c65md〜c69ss・c7ag・c7sw・c8sv・c9gd・c9op・iwf546・m757〜m839 ほか）は直さず〈古い・使わない〉。rc の意味が変わっても過去の回の結果は変わらない（成績表の数は変えない）。
+- Python の an_*.py ほか（an_a266・an_ai337・an_ce・… 残りの 47 本）：batch.sh の名を注・出力の名乗りに書くだけで rc を読まない。
+
+■ 注（BATCHFAIL の後の残り物）
+- ビルドの失敗で終わった走りは、measure.sh が先に書いた .manifest が新しく、前の走りの .cost が古いまま残る（成績表は消すので無い）。直さない（measure.sh は触れない）。成績表の有無と ms_<腕>_<種>.log の末尾（measure rc・BATCHFAIL）で読む。
+
+■ (867) 追記
+- rc=1 は prep の失敗：ident.sh の腕 a・b は `prep && run` の形で、prep が失敗すると run まで行かず、印には prep の rc（1 など）が `rc=1 …` として残るか、印が書かれない。新しい batch.sh の run は 1 を返さない（0・2・3・4 だけ）ので、印の rc=1 は run の物ではなく prep の失敗か旧の木の基準（ハーネス不合格を 1 で返した (860) の前の batch.sh）。ident_check.py の受け入れ `^rc=(0|1|2) ` は 1 を通すが、prep の失敗なら出力が欠けて、下の突き合わせ（成績表の有無・SOURCE-HASH）で未了に落ちる。ident_check.py:588〜589 の注はこの意味に直した（注だけ・AST は直す前と同一）。
+- measure.sh の BATCHFAIL の後の残り物（記録だけ・直さない）：ビルドの失敗で終わった走りは、measure.sh が先に書いた .manifest が新しく、前の走りの .cost が古いまま残る（成績表は batch.sh が走る前に消すので無い）。合流や担当が .manifest と .cost を組で読むときは、成績表の有無（BATCHFAIL の行・ms_<腕>.log の〈measure rc=…〉）を先に見る。

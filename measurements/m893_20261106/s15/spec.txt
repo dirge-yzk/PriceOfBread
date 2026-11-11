@@ -1,0 +1,106 @@
+Politics.cs|double institutionalGap =
+Politics.cs|double erosion =
+Politics.cs|double constErode =
+Politics.cs|double domErode =
+Politics.cs|double leg = w.Legitimacy
+Politics.cs|leg -= mandateClaim
+Politics.cs|double refill =
+Politics.cs|w.MandateSpent = Math.Max(0
+Politics.cs|double mandateFloor =
+Politics.cs|double orderFloor =
+Politics.cs|double legFloor =
+Politics.cs|bool eroding =
+Politics.cs|double warDrain =
+Politics.cs|w.Coercion = w.BaseCoercion
+Politics.cs|internal static void Transition(
+Politics.cs|double bourgeoisCoup = 0
+Politics.cs|bourgeoisCoup = c.BourgeoisCoupWeight
+Politics.cs|1.0 + c.RegimeTrackRecordWeight
+Politics.cs|best - cur <= c.PolityInertia
+Politics.cs|double holdA = SoldierHoldShare
+Politics.cs|challenge += coerce * (1.0 - holdA)
+Politics.cs|double anticipation =
+Politics.cs|bool reformFromAbove =
+Politics.cs|bool violent =
+Politics.cs|double grant = c.GrantedControlOnReform
+Politics.cs|w.ReformGrantCount++
+Politics.cs|internal static void ExecuteRegimeChange(
+Politics.cs|RevolutionAwakensNation(w, c);
+Politics.cs|if (IsSeizure(target)) w.RuptureWindowQuarters
+Politics.cs|Fiscal.RepudiateDebt(w, c);
+Politics.cs|ResolveRevolt(w, c, dt, dm, dmass);
+Politics.cs|w.LandReform = fl;
+Politics.cs|sufTarget = (Suffrage)Math.Clamp
+Politics.cs|bool ratchet =
+Politics.cs|if (w.RuptureWindowQuarters > 0) w.RuptureWindowQuarters--
+Politics.cs|(int)c.RuptureWindowQuartersOnCrush);
+Politics.cs|bool terror = c.RevolutionTerror
+Politics.cs|private static void RevolutionAwakensNation
+Politics.cs|Clamp01(v + c.RevolutionConsciousness
+Politics.cs|double hope = 1.0 / Math.Max(1.0, w.RecentRegimeChanges)
+Politics.cs|public static double FreedomFromLaws
+Politics.cs|w.Freedom = FreedomFromLaws
+Politics.cs|w.DynasticMandate = PoliticalQuantities.Toward
+Politics.cs|double dynE = (w.DynasticMandate - 0.5)
+Politics.cs|dynE *= 1.0 - c.MandateReligiousCircuit
+Politics.cs|double dmWar = -c.DynMandateWarWeight
+Politics.cs|foreach (var p in rebels) p.Militancy *= c.ReformMilitancyRelief
+Politics.cs|dynErodeMul = 1.0 - c.DynMandateAmplify
+Politics.cs|double lawOpen = w.StateReligion switch
+Politics.cs|double dmSat = c.DynMandateSatWeight
+Politics.cs|double dmFood = c.DynMandateFoodWeight
+Politics.cs|w.Legitimacy = Math.Max(0, w.Legitimacy - c.RevoltSuppressLegitCost)
+Politics.cs|if (attractor == w.Polity
+Politics.cs|if (challenge <= coerce && !reformFromAbove)
+Politics.cs|if (!IsSeizure(attractor) && radical <= reformist
+Politics.cs|if (reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
+Politics.cs|Instruments.CoupRoute(w, violent ? 5 : 6);
+Politics.cs|if (violent && challenge < coerce * c.CivilWarLandslideRatio)
+Politics.cs|w.Legitimacy = legFloor;
+Politics.cs|w.Legitimacy = legClamped;
+Politics.cs|w.DefeatShock *= c.DefeatShockKeepPerQuarter
+Politics.cs|internal static double SoldierHoldShare(
+Politics.cs|private static void ResolveRevolt(
+Politics.cs|if (target != w.Polity) ExecuteRegimeChange(w, c, target, violent: true);
+Politics.cs|internal static void SettleRevolt(
+Politics.cs|w.MandateSpent += spend;
+Politics.cs|var (dt, dm, dmass) = Dispossessed(target);
+Government.cs|if (w.RuptureWindowQuarters > 0) return false;
+Government.cs|private static double MandateMargin(
+Government.cs|private static bool IsConstitutional(
+Government.cs|private static bool MandateGate(
+Government.cs|internal static bool PoliticalCapitalAffords(
+Government.cs|return w.MandateSpent <= 0 && avail > 0
+Government.cs|private static int CountOpenFronts(
+Government.cs|if (fronts > 1) w.PoliticalPushBudget
+Government.cs|w.PoliticalCapitalMax =
+Government.cs|p.CoercionTarget = CoercionTargetFromForce
+Government.cs|if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true;
+PoliticalQuantities.cs|public static double EffectiveCoerce
+PoliticalQuantities.cs|PoliticalCapitalRate(
+PoliticalQuantities.cs|MandateWeight
+CrownParliament.cs|w.RecentRegimeChanges += 1
+CrownParliament.cs|w.RecentRegimeChanges *= 1.0 - w.ReplacementRate
+CrownParliament.cs|w.RegimeTrackRecord[fam] = PoliticalQuantities.ClampOr
+CrownParliament.cs|record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters
+CrownParliament.cs|w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay
+CrownParliament.cs|double conscriptTerm = c.NationBuildConscript
+CrownParliament.cs|double crisisMult = 1.0
+CrownParliament.cs|double ncDrive = c.NationBuildAccumRate
+CrownParliament.cs|double openness = CivicOpenness(w);
+CrownParliament.cs|static double CivicOpenness(
+CrownParliament.cs|NationConsciousnessDerived
+CrownParliament.cs|w.RegimeTenureQuarters = 0;
+CrownParliament.cs|public static void ApplyRegime(
+Fiscal.cs|internal static void RepudiateDebt(
+Fiscal.cs|w.BorrowCooldownMonths = c.DefaultCooldownMonths
+TechEducation.cs|private static bool FrontierCapable
+TechEducation.cs|w.Freedom >= c.FrontierFreedomThreshold
+Military.cs|NationBuildMobilizationWeight
+Diplomacy.cs|c.ImposedRegimeLegitimacy
+Diplomacy.cs|dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0)
+World.cs|public double Legitimacy
+World.cs|RecentRegimeChanges
+World.cs|MandateSpent
+World.cs|RegimeTrackRecord
+World.cs|RuptureWindowQuarters

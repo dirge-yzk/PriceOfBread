@@ -155,4 +155,53 @@ public class U4InstrumentTests
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    [Fact]
+    public void 全期間の表の払った額と判定の月数は区分ごとにも州の表の和に合う_本国と植民地を取り違えない()
+    {
+        const int Quarters = 20;
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_u4s_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var uk = NationConfig.Britain().ShallowClone(); uk.OpeningStateMonopolyTier = 0;
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
+            Instruments.Configure(dir, "*");
+            try
+            {
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                try { for (int q = 0; q < Quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+                finally { Instruments.Close(sim); }
+            }
+            finally { Instruments.Configure(null, null); }
+
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "cons_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "consf_s1789.tsv"));
+            // cons_s の州の行の格（Tier の名）で home／Colonial に分けて (四半期, 国, 区分) ごとに月の和へ戻す。月数の無い行は外す（対照の分母に入れる）
+            var want = new Dictionary<(string Q, string N, string S), double[]>();
+            foreach (var row in cr)
+            {
+                double m = Col(ch, row, "monthsCount");
+                if (!(m > 0)) continue;
+                string scope = row[Array.IndexOf(ch, "tier")] == "Colonial" ? "Colonial" : "home";
+                var k = (row[Array.IndexOf(ch, "quarter")], row[Array.IndexOf(ch, "nation")], scope);
+                if (!want.TryGetValue(k, out var v)) want[k] = v = new double[2];
+                v[0] += Col(ch, row, "judgedMonthsCount"); v[1] += Col(ch, row, "paidPerMonth") * m;
+            }
+            int cmp = 0, colonialCells = 0;
+            foreach (var row in fr)
+            {
+                var k = (row[Array.IndexOf(fh, "quarter")], row[Array.IndexOf(fh, "nation")], row[Array.IndexOf(fh, "scope")]);
+                if (!want.TryGetValue(k, out var w)) continue;
+                Assert.Equal(w[0], Col(fh, row, "judgedRegionMonthsCount"));
+                double g = Col(fh, row, "paidMoneySum");
+                Assert.True(Math.Abs(w[1] - g) <= 5e-10 * 4 * (Math.Abs(w[1]) + Math.Abs(g)) + 1e-9, $"{k} の paidMoneySum が区分ごとの州の表の和と合わない（consf {g:G12}・cons_s {w[1]:G12}）");
+                if (w[0] > 0) { cmp++; if (k.Item3 == "Colonial") colonialCells++; }
+            }
+            Assert.True(cmp > 0, "対照：比べた区分が 0 個＝この盤面は何も検査していない");
+            Assert.True(colonialCells > 0, "対照：植民地の区分で比べた行が 0＝区分の取り違えを見ていない");
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

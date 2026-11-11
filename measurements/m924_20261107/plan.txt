@@ -1,0 +1,16 @@
+(924) c80uk 英の専制化の経路を読む — 作業の計画（読むだけ・.cs 0 行・腕 0 本・コミットしない）
+作った物：D:/PoB_work/r924_work（このフォルダだけ）。worktree・枝は作らない（main の作業ツリー C:/Users/dirge/Documents/PriceOfBread を読むだけ・HEAD b3a4190f）。
+
+読む生（全て既にある・書き換えない）
+- D:/PoB_work/keep_919/base_ins/  crownpc_s1..10・fm_s1..10・reform_s1..10・lawgate2_s1..10・nation_s1..10・rule_s1..10（基線 m919・種 1〜10）
+- D:/PoB_work/keep_919/n1/ ・n2/（ヌル腕・同じ表）
+- D:/PoB_work/keep_919/a11/（S11 種 11〜20・同じ表）
+- 要約だけ（生は消えた＝名乗る）：measurements/m901_20261106/（paper901・result901・armB）・m896_20261106/・m889_20261106/
+
+読むソース（b3a4190f）
+- PriceOfBread.SimCore/CrownParliament.cs（Step 召集・巻き返し・①②②′・P2 再ラベル・ApplyRegime・LabelFromAxes・ParliamentControlTarget）
+- PriceOfBread.SimCore/Politics.cs（Transition → ExecuteRegimeChange→ApplyRegime＝Crown=Despotic を書く唯一の口）
+- PriceOfBread.SimCore/PowerShares.cs DebtGrip・InstrumentsCrown.cs（列の意味）
+
+台本：D:/PoB_work/r924_work/q1_episodes.py ほか（python -X utf8 -I）
+出力：read924.txt・20261107_英の専制化の経路_読み_下書き.md

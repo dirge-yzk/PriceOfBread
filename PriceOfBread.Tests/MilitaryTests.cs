@@ -166,14 +166,11 @@ public class MilitaryTests
     }
 
     /// <summary>M4（2026-09-11）：恒常性の信号の分子は上限（MilitaryBudgetCeiling）1本＝旧 Math.Max(Ceiling, Budget) は Budget ≤ Ceiling の単調性で同値。
-    /// 必要額で切る腕・切らない腕の両方で全 Active 州が Budget ≤ Ceiling を保つ（分子と分母の非対称を作らない番人）。</summary>
-    [Theory]
-    [InlineData(1.0)]
-    [InlineData(0.0)]
-    public void 軍需予算は上限を超えない(double needCapped)
+    /// 全 Active 州が Budget ≤ Ceiling を保つ（分子と分母の非対称を作らない番人）。（旗 MilitaryBudgetNeedCapped は (811) で焼き込み＝必要額で切る腕だけ）</summary>
+    [Fact]
+    public void 軍需予算は上限を超えない()
     {
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
-        foreach (var n in sim.Nations) n.World.Coef.MilitaryBudgetNeedCapped = needCapped;
         sim.StepQuarter();
         int checkedRegions = 0, capitals = 0;
         foreach (var n in sim.Nations)
@@ -181,7 +178,7 @@ public class MilitaryTests
             {
                 checkedRegions++;
                 Assert.True(r.MilitaryBudget <= r.MilitaryBudgetCeiling,
-                    $"{n.World.SelfPower?.Name}／{r.Name}：予算 {r.MilitaryBudget} > 上限 {r.MilitaryBudgetCeiling}（NeedCapped={needCapped}）");
+                    $"{n.World.SelfPower?.Name}／{r.Name}：予算 {r.MilitaryBudget} > 上限 {r.MilitaryBudgetCeiling}");
                 Assert.True(r.MilitaryBudgetCeiling >= 0 && double.IsFinite(r.MilitaryAffordRaw) && r.MilitaryAffordRaw >= 0,
                     $"{n.World.SelfPower?.Name}／{r.Name}：上限 {r.MilitaryBudgetCeiling}／支払能力 {r.MilitaryAffordRaw} が不正");
                 if (ReferenceEquals(r, n.World.Region)) { capitals++; Assert.True(r.MilitaryBudgetCeiling > 0, "首都の軍需予算上限が0＝Simulation の書き手を経ていない"); }
@@ -724,7 +721,7 @@ public class MilitaryTests
     /// <summary>★(189) 呼び手の側：海軍の予算（Simulation の月次の Region.NavalBudget）＝装備の器（軍事費の器から給与を払った残り）×海の金の割合（World.NavalSpendShare＝施行された陸海の維持費の比）・
     /// 陸の装備の上限（MilitaryBudgetCeiling）＝装備の器×(1−海の金の割合)＝作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」の金の分け方。
     /// 盤面＝英仏（外交は止める＝艦は播かれない・海の必要量は手で大きく置く＝目標の艦隊は在庫より大きい＝必要額で切られない）＝30日回すと首都の 海軍の予算÷陸の装備の上限＝割合÷(1−割合)
-    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。★(685) 合流：旗 NavalPortProcurement（既定 1）は国の予算を本国格の港の州へ配る＝比は〈Σ州の海軍の予算÷首都の陸の上限〉で読む（旗 0 でも首都の1本＝同じ式）。州ごとの配りの番人は NavalPortProcurementTests。
+    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。★(685) 合流：国の予算は本国格の港の州へ配られる（旗 NavalPortProcurement は (824) で焼き込み）＝比は〈Σ州の海軍の予算÷首都の陸の上限〉で読む。州ごとの配りの番人は NavalPortProcurementTests。
     /// ⚠突然変異「陸の装備の上限を装備の器の全体のまま（旧）」「海軍の予算を分けない」で赤。</summary>
     [Fact]
     public void 海軍の予算は装備の器を海の金の割合で分ける()
@@ -740,7 +737,29 @@ public class MilitaryTests
         Assert.True(cap.NavalBudget > 0 && cap.MilitaryBudgetCeiling > 0, $"前提が崩れた：海軍の予算 {cap.NavalBudget}・陸の装備の上限 {cap.MilitaryBudgetCeiling}");
         double navSum = 0; foreach (var r in w.Regions) navSum += r.NavalBudget;
         Assert.Equal(s / (1 - s), navSum / cap.MilitaryBudgetCeiling, 9);
-        if (w.Coef.NavalPortProcurement <= 0) foreach (var r in w.Regions) if (!ReferenceEquals(r, cap)) Assert.Equal(0.0, r.NavalBudget);
+    }
+
+    /// <summary>(817) c14id 海軍の予算は必要額で切られる：国の海軍の予算（Region.NavalBudget の和）は、海の必要量が十分小さい国が大きい国の 1 割に満たない（必要額は海の必要量に比例する＝1e-5÷50＝2e-7）。
+    /// 盤面の読み（探りの試験で測った）：この盤面の装備の器×海の金の割合は約 22（月の額）・必要額は海の必要量 1 あたり約 5.6 万＝必要量 4e-4 を超えると予算は必要額に届かず器の側で止まる（必要量 0.4 では切られない）。
+    /// (811) の突然変異 M1 は陸の milCap の切り捨て 1 行だけで、艦の切り捨て（本国格の港の州へ配る国の予算の navalNat・M1c）は変異していなかった。
+    /// 切り捨てを外すと予算は装備の器×海の金の割合のままで必要量に依らない＝比が 1 になって赤。（(824) で旗 NavalPortProcurement を焼き込み、旧の経路の navalCap〔首都の 1 本・M1b〕は死んだコードとして消えた＝旗 0 の行を消した。）
+    /// 期待値は必要量の比（手で書いた 1e-5 と 50）から作り、Simulation の式を呼ばない。</summary>
+    [Fact]
+    public void 海軍の予算は必要額で切られ_海の必要量の小さい国の予算は大きい国の1割に満たない()
+    {
+        double NavalSum(double needSea)
+        {
+            var sim = Frozen152("イギリス", "フランス");
+            var w = sim.Nations[0].World; var sp = w.SelfPower!;
+            sp.NeedSea = needSea; sp.NeedLand = 3; sp.NeedInternal = 1;
+            for (int d = 0; d < 30; d++) sim.StepDay();
+            Assert.True(sp.NeedSea == needSea, "前提が崩れた：外交が走って海の必要量が書き換わった");
+            double s = 0; foreach (var r in w.Regions) s += r.NavalBudget;
+            return s;
+        }
+        double big = NavalSum(50), small = NavalSum(1e-5);
+        Assert.True(big > 0, $"前提が崩れた：海の必要量が大きいのに海軍の予算が 0（{big}）");
+        Assert.True(small < 0.1 * big, $"海軍の予算が必要額で切られていない：必要量 1e-5 の国の予算 {small} が必要量 50 の国の予算 {big} の 1 割以上");
     }
 
     /// <summary>★(189) 海軍力は艦の在庫×段の効き×乗員の充足×海の熟練から決まり、陸軍の即応度と陸の質（Military の乗数）を読まない
@@ -819,7 +838,6 @@ public class MilitaryTests
         // ④ 港の州が無い国
         r.NationHasPort = false;
         Assert.Null(EconomyStep.FleetOrder(r, c, w, out _));
-        Assert.Equal(0.0, EconomyStep.NavalProcurementNeed(r, c, w));
     }
 
     /// <summary>★(189) 陸の装備の段は艦を買わない（EconomyStep.LandMul＝艦は0）＝陸の装備の必要額は軍艦の値段に依らない・上位と最上位の充足は陸分と同じ
@@ -859,7 +877,7 @@ public class MilitaryTests
             int kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);
             var q = EconomyStep.FleetOrder(r, c, w, out double cost);
             Assert.True(q is not null && q[kw] > 0 && cost > 0, "前提が崩れた：帆船の軍艦の発注が無い");
-            r.NavalOrder = q;   // ★(679) 旗 NavalPortProcurement の既定 1：発注は月次の書き手 Simulation が州に配る（Run を直に呼ぶ本試験は Simulation を通らない）＝首都の州だけが港の盤面で Simulation が書く発注（国の発注×割合 1）を置く
+            r.NavalOrder = q;   // ★(679) 旗 NavalPortProcurement〔(824) で焼き込み〕：発注は月次の書き手 Simulation が州に配る（Run を直に呼ぶ本試験は Simulation を通らない）＝首都の州だけが港の盤面で Simulation が書く発注（国の発注×割合 1）を置く
             r.NavalBudget = frac * cost;
             EconomyStep.Run(r, c, 1.0, w.Bank, w);
             return (r.FleetUnits?[kw] ?? 0, r.StateSpent[(int)TreasuryCat.Navy], q![kw]);
@@ -880,9 +898,9 @@ public class MilitaryTests
         var sim = Frozen152("フランス", "スペイン", "日本");
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var jp = sim.Nations[2].World.SelfPower!;
-        c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
-        c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionRate = 0;
-        c.TensionDecay = 0; c.ProtectorTensionRate = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionRate = 0;
+        c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
+        c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionPerMonth = 0;
+        c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionPerMonth = 0;
         Ally152(dip, fr, es);
         double fe0 = dip.Tension(fr, es), fj0 = dip.Tension(fr, jp), ej0 = dip.Tension(es, jp);
         dip.Step(c, sim.Rng, 1);   // 四半期の境でない月＝AI・調停は走らない
@@ -955,46 +973,6 @@ public class MilitaryTests
         fr.NavalShare = new Share(0.5);   // 兵の半分が艦に乗る
         ArmyShape.Compute(dip, c);
         Assert.True(es.NeedLand < esLand0 * (1 - 1e-9), $"仏の兵の半分が艦に乗っても西の陸の必要量が下がらない（{esLand0:G17}→{es.NeedLand:G17}）");
-    }
-
-    /// <summary>★(194) 海を越えて来る陸軍は相手の遠征の技術の分だけ（<see cref="Diplomacy.ExpeditionLift"/>＝海越えの植民地化遠征の可否と同じ1本・推奨で進めた＝作者の承認は未確認）。
-    /// 盤面＝仏・西・英（開幕・外交は止める・海軍シェア0）。遠征技術の門を外した（ExpeditionTechLevel＝0＝届く量は投射だけ）盤面と、全ての国の門を床にした（ExpeditionTechLevel を巨大に）盤面を比べる
-    /// ＝英の海の必要量（海を越えて来る仏と西の陸軍）が下がり、西の陸の必要量（仏の陸軍の注意が同じ1つの分母で陸の国境へ寄る）が上がる。陸続きの組の門は1。
-    /// ⚠突然変異「海越えの重みに門を掛けない」で赤。</summary>
-    [Fact]
-    public void 海を越えて来る陸軍は相手の遠征の技術の分だけ()
-    {
-        var sim = Frozen152("フランス", "スペイン", "イギリス");
-        var dip = sim.Diplomacy; var c = sim.Coef;
-        var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
-        foreach (var p in new[] { fr, es, uk }) p.NavalShare = new Share(0);
-        c.TechMultipliersOff = 0;   // ★(613) 遠征の門の機構の番人＝旗 TechMultipliersOff（既定 1）の旧の枝を見る〔段6 の物理削除と一緒に消す〕
-        c.ExpeditionTechLevel = 0;   // 門なし（旧と同じ）
-        Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));
-        ArmyShape.Compute(dip, c);
-        double ukSea1 = uk.NeedSea, esLand1 = es.NeedLand;
-        Assert.True(ukSea1 > 0 && esLand1 > 0, $"前提が崩れた：英の海の必要量 {ukSea1}・西の陸の必要量 {esLand1}");
-        c.ExpeditionTechLevel = 1e12;   // 全ての国の門が床（技術0の遠征）
-        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);
-        Assert.Equal(1.0, dip.ExpeditionLift(fr, es, c));   // 陸続きは門の外
-        ArmyShape.Compute(dip, c);
-        Assert.True(uk.NeedSea < ukSea1 * (1 - 1e-9), $"遠征の技術が床でも英の海の必要量が下がらない（{ukSea1:G17}→{uk.NeedSea:G17}）＝海越えの重みに門が掛かっていない");
-        Assert.True(es.NeedLand > esLand1 * (1 + 1e-12), $"海を越えられない仏の陸軍の注意が陸の国境へ寄らない（{esLand1:G17}→{es.NeedLand:G17}）");
-    }
-
-    [Fact]
-    public void 旗_TechMultipliersOff_が正なら遠征の門は技術に依らず1()   // ★(613) 線 tl 段3
-    {
-        var sim = Frozen152("フランス", "スペイン", "イギリス");
-        var dip = sim.Diplomacy; var c = sim.Coef;
-        var fr = sim.Nations[0].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
-        c.TechMultipliersOff = 0;
-        c.ExpeditionTechLevel = 1e12;   // 全ての国の門が床（旗 0 の対照）
-        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);
-        c.TechMultipliersOff = 1;
-        Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));   // 旗が正＝門なし
-        c.TechMultipliersOff = double.NaN;
-        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);   // NaN は旗 0（今のとおり）へ倒す（否定形）
     }
 
     /// <summary>★(194) 艦隊の注意は相手の越境の交易額（World.TradeValueSmoothed＝交易比重と同じ平滑の量）÷全ての国の平均で向く＝海路の接触（推奨で進めた＝作者の承認は未確認）。
@@ -1078,9 +1056,9 @@ public class MilitaryTests
             var sim = Frozen152("フランス", "スペイン", "日本");
             var dip = sim.Diplomacy; var c = sim.Coef;
             var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!;
-            c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
-            c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionRate = 0;
-            c.TensionDecay = 0; c.ProtectorTensionRate = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionRate = 0;
+            c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
+            c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionPerMonth = 0;
+            c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionPerMonth = 0;
             if (mountain) foreach (var r in sim.Nations[0].World.Regions) r.Terrain = Terrain.Mountain;
             double t0 = dip.Tension(fr, es);
             dip.Step(c, sim.Rng, 1);   // 四半期の境でない月＝AI・調停は走らない
@@ -1863,7 +1841,6 @@ public class MilitaryTests
         (double toFarm, double toWork, double flow, double popDiff, double farmPW, double workPW) Arm(double soldierEarnedPerHead)
         {
             var w = France155().World; var c = w.Coef; var r = w.Region;
-            c.BaseUrbanCap = 0.85; c.UrbanPerInd = 0;   // 都市化の天井を外す（兵士 POP は農村＝都市の職へは天井の残枠まで）
             c.SerfGateCoversPool = 0;                    // 農奴の移動の門を外す（送った人数＝流れ）
             var s = r.Pops[r.SoldierPopIndex];
             Pop? farm = null, work = null;
@@ -2034,7 +2011,7 @@ public class MilitaryTests
     [Fact]
     public void 交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま()
     {
-        (double ceil, double pay, double warMult) Twin(double warMultCoef)
+        (double ceil, double pay, double warMult) Twin(double kappa)
         {
             var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
             sim.StepQuarter();
@@ -2042,15 +2019,15 @@ public class MilitaryTests
             sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             c.MilitaryEnvelopeShare = new Share(1000);     // 器を大きく＝給与の後に装備の上限が残る
             for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
-            c.MilitaryWarMult = warMultCoef;    // 月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
+            c.WarArmsDemandPerContact = kappa;    // (973) 旗 MilitaryWarMultFromContact 1＝戦時の倍率は 1＋κ×接触の割合＝双子は κ を替える。月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
             sim.StepDay();
             double ceil = 0;
             foreach (var r in w.Regions) ceil += r.MilitaryBudgetCeiling;
             Assert.True(w.FiscalFundingRatio.Value > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio.Value}");
             return (ceil / w.FiscalFundingRatio.Value, w.LastSoldierPayPerMonth.Value, w.Region.MilitaryWarMultLast);   // 請求（r を掛ける前）＝装備の必要額は戦時の倍率で違う＝r が双子で違う
         }
-        var hi = Twin(new Coefficients().MilitaryWarMult); var lo = Twin(1.0);
-        Assert.True(hi.warMult > lo.warMult && hi.warMult > 1, $"前提が崩れた：戦時の倍率 {hi.warMult}／{lo.warMult}");
+        var hi = Twin(new Coefficients().WarArmsDemandPerContact); var lo = Twin(0.0);
+        Assert.True(hi.warMult > lo.warMult && hi.warMult > 1 && Math.Abs(lo.warMult - 1.0) <= 1e-12, $"前提が崩れた：戦時の倍率 {hi.warMult}／{lo.warMult}（κ＝0 の側は 1）");
         Assert.True(lo.pay > 0 && Math.Abs(hi.pay - lo.pay) <= 1e-12 * lo.pay, $"前提が崩れた：兵士の給与の請求が双子で違う（{lo.pay:G17} → {hi.pay:G17}）");
         Assert.True(lo.ceil > 0, $"前提が崩れた：装備の上限が0（{lo.ceil}）");
         Assert.True(Math.Abs(hi.ceil - lo.ceil) <= 1e-12 * lo.ceil, $"戦時の倍率で装備の上限が広がった（{lo.ceil:G17} → {hi.ceil:G17}）＝選んだ段の外で軍事費が上がる");

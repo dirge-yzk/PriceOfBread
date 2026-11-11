@@ -1,0 +1,81 @@
+(972) c87mt 事前登録：⓪‴′ 元からの弱さ (D)＝M/Y の趨勢の初期化は実質 GDP が正になってから（旗 MoTrendInitNeedsGdp・既定 0 の器→点火）・波87・1 回目（3 回の規則）・基線 m968（main d300ba20・測った木 ca4d2184）
+書いた担当：Claude Opus 5.5（線 c87mt）。この線が作るフォルダ：D:/PoB_work/wt_c87mt（worktree・枝 c87mt）・D:/PoB_work/c87mt_work（作業・腕 arm_c87mtB・arm_c87mtS・ident の作業・突然変異の木 mut_*）・D:/PoB_work/c87mt_art（隔離ビルド）。
+材料：docs/202611/20261108/20261108_元からの弱さEとF_配当と価格水準の床_読み_盤面m961_下書き.md §1・§4・§5 (D)・§6-1・末尾の反証役（中の 2 本目）。scripts/instruments/r966/r966_birth0.py・measurements/m966_20261108/out_birth0.txt。
+
+[0] 形の種類＝入口（初期化の 1 行の条件）。尾ではない。
+ - 現物：World.cs:1644 `if (_moTrend <= 1e-9) { _moTrend = ratio; …; return; }`。ratio＝money÷Max(1e-9, gdp)。最初の呼び出しで実質 GDP が 0（生まれた国の最初の四半期）だと趨勢＝貨幣÷1e-9（1e9 倍の桁）になり、次の正の四半期の循環比 cyc＝ratio÷趨勢が 1e-11〜1e-9 になる（(966)：n2_947 種 5 共和制スペインが 459 四半期床に張り付いた）。(603) の holdTrend の守り（:1645）は初期化の行の後にしか無い。
+ - 新しい形（旗 1）：:1644 の条件を `_moTrend <= 1e-9 && !(c.MoTrendInitNeedsGdp > 0 && !(gdp > 1e-9))` にする（同じ 1 行の中・行は増やさない＝World.cs の行番号は動かない）。実質 GDP が正でない（NaN を含む）四半期は基準を置かず、下の holdTrend の道（趨勢を更新しない・循環比は P そのもの）をそのまま通る。次に実質 GDP が正の四半期に、その四半期の ratio で置く。
+ - 形の選び（返すか、通すか）：材料 §5 (D) は〈返す〉と書く。この線は〈通す〉を選ぶ。理由：〈返す〉は見送った四半期ごとに紙幣の圧の適用・自己費用の物価・期待インフレの更新を飛ばし、圧が正の四半期まで積もって 1 度に掛かる（0 の続きは 4〜20 四半期＝(966)・この盤面の n1 種 6）。〈通す〉は見送った四半期を旗 0 の 2 つ目以降の 0 の四半期（holdTrend）と同じに扱い、違いは〈貨幣÷1e-9 で趨勢を置く〉の 1 点だけ。最初の 0 の四半期の扱いも、旗 0 は〈返す〉（圧を残す）・旗 1 は〈通す〉（圧を掛ける・P の床と有限の守りを通る）＝この 1 四半期だけ違う（記録）。
+ - 新しい状態・係数・タイマー＝0（旗 1 本だけ）。確証：作者の裁定の形ではない＝AI の案・確証なし（材料の読み）。
+ - 計器：新しい表 pinit_s（全ての国・基準を置いた呼び〈init〉と、呼びの後も趨勢が 0 の四半期〈defer〉を 1 行ずつ）。列＝time（pclamp_s と同じ国ごとの通し番号）・nation・year・event・gdpRealPerMonth・moneyToGdpMonths・moTrendAfterMonths・moTrendInitNeedsGdpFlag。計器は呼びの後の趨勢（w.MoTrendForInstruments）と係数を自分で読む（エンジンの判断の局所変数を受け取らない）。欄は WState と Sink の計器の器だけ（エンジンの欄は足さない＝[System.NonSerialized] の要る欄は 0）。
+   ・指示は〈pclamp に初期化の行を足す〉。pclamp_s に行を足さず別の表にした理由：scripts/instruments/mon/an_mon.py:613〜615 が pclamp_s の行を kind を問わず国ごとに数えて注視の表（B3）に入れる＝旗 0 で行を足すと注視の表が変わり恒等の判定が通らない。ident には --added-tables pinit で宣言する。
+
+[1] 門（腕の前に固定・ループの中で変えない）
+ G1（主な門・機構の試験・PriceOfBread.Tests/MoTrendInitTests.cs・期待値は試験が式で作る）
+  T1 旗 1：作った直後（趨勢 0）の英で生産者の産出を 0 にし（実質 GDP 0）、2 四半期 UpdatePriceLevel → 各四半期で趨勢 ≦1e-9・P は動かない。産出を戻した四半期 → 趨勢＝(B＋(M−B)×兌換)÷G（試験が手で計算・相対 1e-12）・P は動かない。次の四半期に産出を 2 倍 → 趨勢＝t1＋k×(r2−t1)（k＝MonetaryTrendSpeed・相対 1e-12）。
+  T0 旗 0（陽性対照）：同じ盤面で 0 の四半期を 1 つ → 趨勢が、正の四半期の M/Y の 1e5 倍を超える（旧の欠損が試験の盤面で再現する＝T1 が旗 0 で赤になることの裏づけ）。
+  T3 旗 0・1：最初の呼び出しで実質 GDP が正なら趨勢はその四半期の M/Y（旗によらず同じ）。
+  T4 計器：多国の盤面の助走 4 の後、趨勢の置かれた全ての国に pinit_s の init の行がある・旗の列は既定の 0。
+ G2（腕 B・記録）：〈働いた〉は腕 B では観測できない＝記録。紙の台本（[3]）では、腕 B と同じ種 1〜10 の基線（keep_968/base_ins）に、実質 GDP が 0 の四半期が 1 つも無い（pfix_s の kind=2 が 0 行・生まれた国の最初の行の実質 GDP が 0 の区間 0・cyc＜1e-3 の床の行 0）。N1・N2・a11 でも cyc＜1e-3 は 0。最初の行が 0 の区間は N1 種 6 共和制イベリア（Q256〜・4 四半期・全て 0・正になる前に消えた）の 1 件だけ。材料が名指した N1 種 9 などは m961・m947 の盤面で、m968 には無い＝旗 0 で機構が起きる盤面を腕の前に名乗れない。
+  ・腕 B の数える量（記録）：pinit_s の defer の行の数（予言 0）・init の行で gdpRealPerMonth ≦1e-9 の数（旗 1 なら構成上 0）。
+ G3 上の側（記録）：新しく生まれた国の最初の 8 四半期の P の中央が、旗 0 の同じ国の 1/10〜10 倍。腕 B では事象が無い＝比は全て 1（自明に通る）＝門にしない・記録。
+ 止める線（挙動の線の決まりのまま・結果の前に写す）：破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）・1 四半期に 100 倍以上（stoplines949.sh・RULE=pair・NULLS＝measurements/m968_20261108/null/stop906_n1.txt・stop906_n2.txt・〈それ以外〉で止める・建国の直後の型と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる）・1e10 倍以上・非有限・空洞化（an_h2.py <ins> -v4・既定 -ex rule＝規則 A2・ピークの 1/10 未満・原因を問わない・主要国の州は例外にしない・線が原因と読めた件だけ止める＝基線 keep_968/base_ins〔S11 は keep_968/a11〕の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）・推定の計算量 ＞248.5 秒・機構の試験の赤（ソースを走査する番人を含む）。記録：exact・near・NG（ng.sh・基準 rd:measurements/ng968_20261108:m968）・史実の線・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・nullgate（門 A′）・英の国債の不履行の種の数。
+
+[2] 突然変異（使い捨ての木・コミットの前に回す）と門ごとの赤・緑の表（㉚・紙の予言）
+ | 突然変異 | T1 | T0 | T3 | T4 | 腕 B（記録） |
+ | M0 旗を読まない（何もしない実装＝旧の形） | 赤（0 の四半期で趨勢が置かれる） | 緑 | 緑 | 緑 | 差なし |
+ | M1 1 回だけ見送り、2 回目は Max(1e-9) の ratio で置く | 赤（2 つ目の 0 の四半期で置かれる） | 緑 | 赤（正の最初の呼びも見送る） | 緑 | 差あり（全ての国の基準が 1 四半期遅れる） |
+ | M2 初期化を毎回の上書きにする（旗 1 で GDP が正なら毎回 ratio を置いて返す） | 赤（2 つ目の正の四半期の 1 歩） | 緑 | 緑 | 緑 | 大きく変わる |
+ | M3 守りの向きを逆（GDP が正なら見送る） | 赤（正の四半期で趨勢 0） | 緑 | 赤（旗 1） | 緑 | 大きく変わる |
+ | M4 計器の行を出さない | 緑 | 緑 | 緑 | 赤 | — |
+ ・M1・M2・M3 は旗 1 の木（既定 1）で当てる。M0・M4 は旗 0 の木で当てる。項を消した突然変異（M0）と元の形の差は T1 が拾う（腕 B では事象が無く差が出ない＝腕 B の緑を採る理由にしない）。
+
+[3] 紙の台本の出力（今の盤面 keep_968・この線の台本 scripts/instruments/c87mt/）
+ - measurements/m972_20261108/birth0_968.txt（r966_birth0.py）：b968 生まれた区間 126・最初が 0 は 0／n1 103・1（0 の続き 4）・cyc＜1e-3 0／n2 129・0／a11 125・0。
+ - measurements/m972_20261108/z0list_968.txt：最初が 0 の区間の全て＝n1 種 6 共和制イベリア q0=256 zeros=4 len=4（正にならずに消えた）だけ。
+ - measurements/m972_20261108/pfix2_968.txt（pfix_s の kind=2＝実質 GDP が正でない四半期）：base_ins 0 行（種 1〜10 の全て pfix_s が無い）・n1 種 6 の 2 行（共和制イベリア）・n2 0・a11 0。
+ - measurements/m972_20261108/cyc3_968.txt（pclamp_s の floor で cyc＜1e-3）：base_ins・n1・n2・a11 とも 0 行。
+ - 旗 0 で門が落ちる確かめ：G1 の T1 は旗 0 の盤面で、1 つ目の 0 の四半期の後に趨勢が 1e5 倍以上（T0 が同じ盤面で確かめる）＝T1 の〈趨勢 ≦1e-9〉で赤。腕 B の門は置かない（旗 0 でも 0 件＝★(790) の〈旗 0 で落ちない門〉の型）。
+ - 予言 P1（腕 B・S11）：前提＝種 1〜10 と 11〜20 の基線で、最初の呼び出しの四半期に実質 GDP が正でない国が無い（pfix_s の kind=2 が 0 行＝初期化の後の 0 の四半期も無い・cyc＜1e-3 も 0）。前提が成り立てば、旗 1 の腕 B の成績表（b10）は b10_20261108_m968_ins と、S11 は b10s11_20261108_m968_ins と全行一致（名乗り行の SOURCE-HASH を除く）。生の表は rawcmp.py で pinit_s（腕にだけある表）と既知の揺れ（cearn_s の経路の行番号〔Instruments.cs と Coefficients.cs の行が動く〕・burscan_s・clock_s）の外は一致。外れたら前提が崩れた所（pinit_s の defer の行）を名乗る＝形の変え直しではない。
+ - 予言 P2（旗 0 の ident）：〈判定: 恒等〉（宣言 --added-tables pinit・--tests-delta ＋5〔MoTrendInitTests の Fact 3＋Theory 2〕）。
+
+[4] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+ - IndustrializationReaderTests の許可表（World.cs 7・Instruments.cs 1）：足すコードに工業化度の読み手は無い＝変わらない。
+ - CalendarTests（World.cs 3・Instruments.cs 1）：足すコードに月・日・四半期の換算の掛け算・割り算は無い＝変わらない。
+ - `new MoneyStock(` の件数：足すコードに無い＝変わらない。
+ - route_anchors.tsv の鍵の行（World.cs 67〜69 の Transfer の 3 行）：触らない＝変わらない。
+ - WriterRatchetTests の宣言の表（World.cs の Pop.Distribute・Pop.Take）：触らない。計算量の item（軌道の件数）は腕 B が基線と全行一致の予言なので動かない予言（動いたら合流が ★(749) で取り直す）。
+ - DormantIdentityTests：器のコミットで DormantZeroFields に MoTrendInitNeedsGdp を 1 行（StapleDemandRebalance の次）。点火のコミットで外し、★の注の 1 行を残す。〈係数は全て本体のどこかで読まれる〉＝World.cs:1644 が読む。
+ - 走査の番人は器のコミットの直後に回す（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）。
+
+[5] 旗 1 の木の番人が旧の規則を固定していないか（㉜・grep）
+ - `moTrend|MoTrend|趨勢` を Tests で grep：PriceLevelPressureTests.cs:155（初期化の後に実質 GDP 0 にする＝初期化を通った後の holdTrend の試験）・:81・DevaluationCapReliefTests.cs:84・EconomyTests.cs:424（作った盤面の最初の呼び出し＝実質 GDP は正）・InstrumentsTests.cs:1734〜1765（money_s の first／update の行の関係＝実質 GDP が正の国だけ）。どれも〈最初の呼び出しの実質 GDP が 0〉の盤面を使わない＝旗 1 で変わらない予言。
+ - 産出を 0 にする試験（`Output = 0`）：ParliamentGripYearTests.cs:35（物価の更新を呼ばない）・PriceLevelPressureTests.cs:158（初期化の後）・他は工場 1 つだけ＝旗 1 で変わらない予言。
+ - 旗 1 で赤になる試験の予言：0 本（MoTrendInitTests の T0 は旗を試験の中で 0 に置く＝既定に依らない）。突然変異の赤の一覧（[2]）と突き合わせた（★(899)）：M1〜M3 は旗 1 の木で T1・T3 を赤にする＝旗 1 の既定そのものでは赤にならない。
+ - 旗 1 にしたら、フルスイートの前に `FullyQualifiedName~Instrument` と MoTrendInitTests を先に回す（㊴）。
+
+[6] 周辺の点検（★(885)・読むだけ・新しい腕は回さない）
+ - PriceLevelFloor の床（World.cs:1656・既定 0.4）：見送った四半期は holdTrend の道＝P は動かず床の行は出ない。床の値は触らない（入れない物）。
+ - Toward（:1646）：holdTrend の四半期は趨勢を更新しない（_moTrend＝0 のまま）。次の正の四半期は :1644 の初期化に入り Toward は通らない。
+ - cyclical の読み手（:1647・:1649 の Toward・Instruments.PriceStep の cyclicalRatio・pclamp_s・pjump_s）：見送った四半期の cyclical＝P（holdTrend と同じ）。trend0＝0 が money_s の moTrendBeforeMonths に出る（挙げた 9 国だけ・事象が無ければ出ない）。
+ - pclamp の読み手：an_mon.py（行を国ごとに数える）・r966_*.py・svf582/h4_prefix.py・PriceLevelCeilFreeTests.cs:111。pinit_s を別の表にしたのでどれも変わらない。
+ - 同じ量（_moTrend）の書き手は World.cs:1644・:1646 の 2 箇所だけ・読み手は :1647 と MoTrendForInstruments（計器と試験）だけ。セーブは名前と型で欄を書く（_moTrend は既にある double＝新しい型なし）。
+ - 明らかな欠損：無し（見つけた物はここへ書く）。
+
+[7] 計算量の割り当て：+0.1 秒（初期化の行の条件 1 つ＋計器の表 1 本は INS の時だけ）。m968 の推定 211.3 秒・上限 248.5 秒・名目の余り 約 37.2 秒。2 秒以下の割り当て＝1 本の腕で門にしない（合流の木の累計で読む）。
+
+[8] 重なり（他の線の持ち主のファイル）
+ - Coefficients.cs：この線は :956 PriceLevelFloor の次の 1 行だけ（mw は :2171〜:2173、hd は :3336 付近＝離れている）。
+ - Instruments.cs：WState の欄 1 行（:160）・Sink の欄 1 行（:210）・PriceStep の 2 行（:1654〜1655）・FlushPx の 7 行（PfixRows の塊の前）・Close の 1 行（sk.Disc の前）＝全て新しい行。bx の basisx の呼び口と Open の行には触らない（Open の関数そのものは呼ぶだけ）。
+ - World.cs：:1644 の 1 行だけ（同じ行の中で条件と注を足す）。
+ - DormantIdentityTests.cs：自分の旗の 1 行（StapleDemandRebalance の次）。
+ - 試験：PriceOfBread.Tests/MoTrendInitTests.cs（新）だけ。ot の試験ファイルとは重ねない。
+
+[9] 手順：この事前登録 → 器（旗 0・計器・試験・休眠表）→ 走査の番人 → ident.sh run c87mtz（--added-tables pinit --tests-delta 5）→ 突然変異（使い捨ての木・出力 measurements/m972_20261108/mut/）→ origin/c87ot の印の頭を merge → 旗 1 のコミット → 計器の試験の束 → フルスイート（Category!=FullLength と =FullLength を分けて・--list-tests と突き合わせ）・savetest・leakhunt → 腕 B（INS=1・10 種・種 1〜10）→ S11（POB_CEARN=0・種 11〜20）→ 読み（rawcmp・stoplines949・an_h2 -v4・gdp_zero10・ng.sh・nullgate・.cost・1000 倍）→ push。形の変え直しは 1 回だけ。腕の生は合流の判断まで消さない。
+
+[追記 1・2026-11-08・結果の後の変更（旗 1 の計器の試験の束の後）]
+ - 予言の外れ：[5]〈旗 1 で赤になる試験の予言：0 本〉と [1] T4〈旗の列は既定の 0〉は旗 1 の木で外れた。束（~Instrument・MoTrendInitTests・DormantIdentityTests）189 本のうち赤 1 本＝MoTrendInitTests の T4（Expected "0"・Actual "1"・measurements/m972_20261108/tins_flag1_before_fix.txt）。エンジンは正しい（列の値＝係数の値 1）。
+ - 区分：README ★(743) の ①〜④ のどれにも当たらない＝区分なし。この線で新しく作った試験の期待値の書き損じ（試験の名は〈旗の列は係数の値〉なのに、本文が既定の値の字 "0" を写した）。
+ - 直す形：期待値を、各国の World.Coef.MoTrendInitNeedsGdp（Instruments.Close の前に国ごとに読む）と比べる形へ。旧の盤面への番人の固定ではない理由＝試験の中で旗を 0 に置かない・盤面の今の係数を読む＝既定がどちらでも同じ試験。字の "0" より強い（国ごとの値と数で比べる）。機構の向き・大きさ・判定の門（T1・T0・T3）には触らない。対照の件数の Assert（init の行の数 ≧ 趨勢の置かれた国の数）を足す。
+ - 確かめ：旗 1 の木と旗 0 の木（0930ae92 に直した試験を写した使い捨ての木）の両方で MoTrendInitTests が緑・直しを外す（字の "0" に戻す）と旗 1 で赤（上の記録）。その後、ot の merge の後にフルスイートからやり直す。
+ - 報告の先頭に〈㊴・★(743) から外れた直し〉として名乗る。

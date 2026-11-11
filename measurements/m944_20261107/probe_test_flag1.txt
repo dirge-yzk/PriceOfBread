@@ -1,0 +1,4 @@
+# (944) プローブ flag1（旗 1.0・SupplySlope 0.5・rc=1）
+  失敗 PriceOfBread.Tests.InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる [21 s]
+   フランス パリ Q17 束 304.9 ÷束 8.711E-05 [1.926E-05,2.29E-05] （1／346）
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 21 s - PriceOfBread.Tests.dll (net10.0)

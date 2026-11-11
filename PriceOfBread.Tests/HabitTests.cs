@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>(342) 段2：財の性質〈習慣性〉（<see cref="Habit"/>・<see cref="HabitProfile"/>）の番人。アヘンの中毒の更新は旧の式（<c>OpiumAddictionGrowth</c> ほかの直読み）と同じ値で、他の財は 0（効かない）。
-/// 期待値はコードの式を呼ばず、リテラルの算術で書く（0.1・0.02・0.2・1.0・2.0 は係数の既定値＝別の出所。蓋 0.2 は旗 OpiumAddictionCapOff＝0 のとき）。
+/// 期待値はコードの式を呼ばず、リテラルの算術で書く（0.1・0.02・0.2・1.0・2.0 は係数の既定値＝別の出所。蓋 0.2 は OpiumAddictionCap の既定）。
 /// 突然変異（一時的に壊して赤を確かめる・結果は実装ログ (342)）：①<c>NextStock</c> の減衰を 1.1 倍 ②<c>NextStock</c> の上限を外す ③<c>LaborFactor</c> の床を 0.4 に ④<c>Of</c> が全ての財に行を返す
 /// ⑤<c>EconomyStep</c> の更新を <c>Active</c>（成長&gt;0）で守る ⑥<c>LaborFactor</c> の主フラグを外す ⑦<c>EconomyStep</c> の <c>adults *= </c> の行を消す ⑧所得弾力の除外を <c>Active</c> に。
 /// ★(344) 反証役 op〔v〕：計器の全体の口（<c>Instruments.Configure</c>）を立てる試験があるので、並列を外す集まり〈Instruments〉に入れた（<c>InstrumentsTests</c>・<c>LuxuryRatioDiagTests</c> と同じ）。</summary>
@@ -15,7 +15,6 @@ public class HabitTests
     public void アヘンの行は今の係数の値_他の財は全て0で効かない()
     {
         var c = new Coefficients();
-        c.OpiumAddictionCapOff = 0;   // (771) 盤面の明示＝旗 0 の経路の番人（段2 で既定が 1 になっても赤にならない）
         var h = Habit.Of(c, Catalog.OpiumId);
         Assert.True(h.Forms); Assert.True(h.Active);
         Assert.Equal(0.1, h.Growth); Assert.Equal(0.02, h.Decay); Assert.Equal(0.2, h.Cap); Assert.Equal(1.0, h.LaborPenalty); Assert.Equal(2.0, h.MiseryScale);
@@ -32,12 +31,23 @@ public class HabitTests
         Assert.True(z.Forms); Assert.False(z.Active);
     }
 
-    [Fact]
-    public void 中毒度の更新は成長_減衰_0から上限の手の算術()
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 中毒度の更新は成長_減衰_0から上限の手の算術(double logistic)
     {
-        var h = Habit.Of(new Coefficients(), Catalog.OpiumId);
-        Assert.Equal(0.079, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);   // 0.05＋0.1×0.3−0.02×0.05
-        Assert.Equal(Math.Min(0.2862, h.Cap), Habit.NextStock(h, 0.19, 1.0), 12);                           // 0.19＋0.1−0.0038＝0.2862 → 上限 0.2
+        // (820) 旗 OpiumAddictionLogistic を引数にした（旗 0 の行は今の算術と判定のまま・旗 1 の行は形 H の手の算術）
+        var h = Habit.Of(new Coefficients { OpiumAddictionLogistic = logistic }, Catalog.OpiumId);
+        if (logistic == 0)
+        {
+            Assert.Equal(0.079, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);   // 0.05＋0.1×0.3−0.02×0.05
+            Assert.Equal(Math.Min(0.2862, h.Cap), Habit.NextStock(h, 0.19, 1.0), 12);                           // 0.19＋0.1−0.0038＝0.2862 → 上限 0.2
+        }
+        else
+        {
+            Assert.Equal(0.0715, h.Forms ? Habit.NextStock(h, 0.05, 0.3) : double.NaN, 12);  // 0.05＋0.1×0.3×(1−0.05/0.2)−0.02×0.05
+            Assert.Equal(0.1912, Habit.NextStock(h, 0.19, 1.0), 12);                          // 0.19＋0.1×1.0×(1−0.95)−0.0038
+        }
         Assert.Equal(0.0098, Habit.NextStock(h, 0.01, 0.0), 12);                         // 消費が無ければ 2% ずつ減る
         Assert.Equal(0.0, Habit.NextStock(h, 0.0, 0.0), 12);
         // 習慣性の無い財の行（全て 0）：在庫は 0 に潰れる（行を持たない財では呼ばれない＝呼び手の Forms で守る）
@@ -86,6 +96,15 @@ public class HabitTests
         // 習慣性の行を持つ財が無い世界（アヘンの番号を存在しない財へ）：在庫は 1 か月後もそのまま＝他の財の経路が在庫に触れない
         var (r2, _) = OneMonth(0.05, c => c.OpiumGoodId = -1);
         Assert.Equal(0.05, r2.OpiumAddiction);
+    }
+
+    [Fact]
+    public void 在庫が蓋を超えていれば1か月の更新で蓋の0_2へ戻る_既定の経路の大きさ()
+    {
+        // (835) (830) の旗 OpiumAddictionCapOff の焼き込みで旗の試験と一緒に消えた〈蓋の旗は呼び手の更新まで届く〉の、旗 0 の側（＝今の既定の経路の大きさ）を戻す。
+        // 0.3 は蓋 0.2（OpiumAddictionCap の既定＝別の出所のリテラル）を超える＝呼び手の更新（EconomyStep.Run → Habit.NextStock）が 0.2 へ挟む。
+        var (r, _) = OneMonth(0.3, c => { });
+        Assert.Equal(0.2, r.OpiumAddiction, 12);
     }
 
     /// <summary>1か国の盤面で EconomyStep.Run を1回して、アヘンの州の市場の需要（LastDemand）を返す。奢侈品の所得弾力 ε と成長を変えて比べる（POP の所得は階級ごとに r が違う）。</summary>
@@ -162,12 +181,12 @@ public class HabitTests
     private static MultiNationSim MakeMatch() => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
 
     /// <summary>英の最初の活きた州に中毒度 0.05 を置いて <paramref name="quarters"/> 四半期。計器を出すなら opium_s の読み先を返す。最後の英の州の中毒度と国庫のビット列も返す。</summary>
-    private static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? capOff = null)
+    internal static (long Digest, string? Dir) RunMatch(int quarters, bool instr, double? logistic = null)
     {
         string? dir = instr ? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_opium_" + Guid.NewGuid().ToString("N")) : null;
         if (instr) Instruments.Configure(dir, null);
         var sim = MakeMatch();
-        if (capOff is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionCapOff = capOff.Value;   // (787) 旗を明示して回す（既定が 1 になっても旗 0 の経路の番人が動く）
+        if (logistic is not null) foreach (var nat in sim.Nations) nat.World.Coef.OpiumAddictionLogistic = logistic.Value;   // (820) 形 H の旗を明示して回す
         var uk = sim.Nations[2].World;
         var seeded = uk.Regions.First();
         seeded.OpiumAddiction = 0.05;
@@ -238,127 +257,21 @@ public class HabitTests
         finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
     }
 
-    // ---------------------------------------------------------------- (771) c6op アヘンの蓋の段1：旗 OpiumAddictionCapOff と旧新の計器 habitcap_s ----------------------------------------------------------------
+    // ---------------------------------------------------------------- (830) 旧の蓋の表 habitcap_s と釣り合いの表 habitbal_s の削除の番人 ----------------------------------------------------------------
 
+    /// <summary>(830) 旧新の蓋の表 habitcap_s（(771)）と釣り合いの表 habitbal_s（(787)）は読み手が旗 OpiumAddictionCapOff だけだったので旗と一緒に削除した。計器を出す試合でこの 2 本が戻っていない（登録だけ残る）ことと、
+    /// 残す表（opium_s・habitlg_s）が出ていることを見る。⚠壊し方＝Instruments.Quarter に habitcap_s／habitbal_s を書く 1 行を戻す → 赤。</summary>
     [Fact]
-    public void アヘンの蓋の旗は既定0_旗1で蓋だけが外れる_他の5値は変わらない()
+    public void アヘンの計器は旧の蓋と釣り合いの表を出さない_ロジスティックの表と中毒度の表は出る()
     {
-        var c0 = new Coefficients();
-        Assert.Equal(0.0, c0.OpiumAddictionCapOff);
-        var c1 = new Coefficients { OpiumAddictionCapOff = 1 };
-        var h0 = Habit.Of(c0, Catalog.OpiumId); var h1 = Habit.Of(c1, Catalog.OpiumId);
-        Assert.Equal(double.PositiveInfinity, h1.Cap);
-        Assert.Equal(h0.Forms, h1.Forms); Assert.Equal(h0.Growth, h1.Growth); Assert.Equal(h0.Decay, h1.Decay); Assert.Equal(h0.LaborPenalty, h1.LaborPenalty); Assert.Equal(h0.MiseryScale, h1.MiseryScale);
-        Assert.Equal(0.2862, Habit.NextStock(h1, 0.19, 1.0), 12);   // 0.19＋0.1−0.02×0.19（蓋なし）
-        // NaN の旗は蓋あり側へ倒れる（否定形）
-        Assert.Equal(h0.Cap, Habit.Of(new Coefficients { OpiumAddictionCapOff = double.NaN }, Catalog.OpiumId).Cap);
-    }
-
-    [Fact]
-    public void 蓋の旗は呼び手の更新まで届く_旗0は蓋で止まり_旗1は蓋なしで残る()
-    {
-        var (r0, _) = OneMonth(0.3, c => c.OpiumAddictionCapOff = 0);
-        Assert.Equal(0.2, r0.OpiumAddiction);                       // 0.3 は蓋 0.2 を超える＝0.2 へ
-        var (r1, _) = OneMonth(0.3, c => c.OpiumAddictionCapOff = 1);
-        Assert.True(r1.OpiumAddiction >= 0.3 * 0.98 - 1e-12, $"蓋なしなのに 0.2 付近へ落とされた {r1.OpiumAddiction}");   // 0.3−0.02×0.3＋成長×消費（消費は 0 以上）
-    }
-
-    [Fact]
-    public void 蓋の旧新の純関数は同じ前の在庫から3通りの次の在庫を返す()
-    {
-        var c = new Coefficients { OpiumAddictionCapOff = 0 };
-        var (o0, n0, u0) = Instruments.HabitCapPair(Habit.Of(c, Catalog.OpiumId), c, 0.19, 1.0);
-        Assert.Equal(0.2, o0, 12); Assert.Equal(0.2862, n0, 12); Assert.Equal(0.2, u0, 12);
-        c.OpiumAddictionCapOff = 1;
-        var (o1, n1, u1) = Instruments.HabitCapPair(Habit.Of(c, Catalog.OpiumId), c, 0.19, 1.0);
-        Assert.Equal(0.2, o1, 12); Assert.Equal(0.2862, n1, 12); Assert.Equal(0.2862, u1, 12);
-    }
-
-    [Fact]
-    public void アヘンの蓋の表は旧が新の蓋つき_旗0では実際が旧に等しい()
-    {
-        const int quarters = 12;
-        var (_, dir) = RunMatch(quarters, instr: true, capOff: 0);   // (787) 旗 0 を明示（旗 0 の経路の番人）
+        var (_, dir) = RunMatch(2, instr: true);
         try
         {
-            var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitcap_s1789.tsv"));
-            var h = lines[0].Split('	'); var rows = lines.Skip(1).Select(l => l.Split('	')).ToList();
-            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
-            int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
-            double D(string[] r, string c) => double.Parse(r[I(c)], System.Globalization.CultureInfo.InvariantCulture);
-            long B(string[] r, string c) => BitConverter.DoubleToInt64Bits(D(r, c));
-            Assert.Equal(rows.Count, rows.Select(r => (r[I("quarter")], r[I("nationIndex")], r[I("region")])).Distinct().Count());
-            foreach (var r in rows)
-            {
-                Assert.Equal(BitConverter.DoubleToInt64Bits(Math.Min(D(r, "newNextLastIndex"), D(r, "capIndex"))), B(r, "oldNextLastIndex"));   // 旧＝新を旧の蓋で切った値（ビット一致）
-                Assert.Equal(0.0, D(r, "capOffFlag"));
-                Assert.Equal(B(r, "oldNextLastIndex"), B(r, "usedNextLastIndex"));   // 旗 0 では実際の蓋＝旧の蓋
-                Assert.True(int.Parse(r[I("bindMonthsCount")]) <= int.Parse(r[I("monthsCount")]));
-                Assert.True(D(r, "excessSumIndex") >= 0 && D(r, "newNextMaxIndex") >= D(r, "newNextLastIndex"));
-            }
-            Assert.True(rows.Count(r => r[I("nationIndex")] == "2") >= quarters, "種を置いた英の州の行が四半期ごとに出ていない");
-            // 別の出所との突き合わせ：旗 0 では四半期の最後の月の実際の次の在庫＝その四半期の末の opium_s の中毒度（更新の前の在庫を読む位置を取り違えると外れる）
-            var ol = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "opium_s1789.tsv"));
-            var oh = ol[0].Split('	'); int oq = Array.IndexOf(oh, "quarter"), on = Array.IndexOf(oh, "nationIndex"), orr = Array.IndexOf(oh, "region"), os = Array.IndexOf(oh, "scope"), oa = Array.IndexOf(oh, "addictionIndex");
-            var opium = ol.Skip(1).Select(l => l.Split('	')).Where(r => r[os] == "R").ToDictionary(r => (r[oq], r[on], r[orr]), r => double.Parse(r[oa], System.Globalization.CultureInfo.InvariantCulture));
-            int compared = 0;
-            foreach (var r in rows.Where(r => D(r, "usedNextLastIndex") > 0))
-            {
-                Assert.True(opium.TryGetValue((r[I("quarter")], r[I("nationIndex")], r[I("region")]), out var a), "opium_s に対応する州の行が無い");
-                Assert.InRange(D(r, "usedNextLastIndex") - a, -1e-7, 1e-7);
-                compared++;
-            }
-            Assert.True(compared >= quarters, "突き合わせた行が少ない（主張が空洞）");
-        }
-        finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
-    }
-
-    // ---------------------------------------------------------------- (787) c9op アヘンの蓋の段2：釣り合いの表 habitbal_s ----------------------------------------------------------------
-
-    [Fact]
-    public void 釣り合いの上限と破りの判定は式の手の算術()
-    {
-        // 上限＝max(在庫, (成長/減衰)×消費)：成長 0.1・減衰 0.02 → 5×消費
-        Assert.Equal(2.0, Instruments.HabitBalCeiling(0.1, 0.02, 0.2, 0.4), 12);     // 5×0.4＝2.0 ＞ 在庫 0.2
-        Assert.Equal(3.0, Instruments.HabitBalCeiling(0.1, 0.02, 3.0, 0.4), 12);     // 在庫 3.0 ＞ 2.0 → 在庫
-        Assert.True(double.IsPositiveInfinity(Instruments.HabitBalCeiling(0.1, 0.0, 0.2, 0.4)));   // 減衰 0 以下は上限なし
-        // 式どおりの次の在庫は破らない：0.2＋0.1×0.4−0.02×0.2＝0.236 ≦ 2.0／釣り合いの値そのものも破らない
-        Assert.False(Instruments.HabitBalViolates(0.1, 0.02, 0.2, 0.4, 0.236));
-        Assert.False(Instruments.HabitBalViolates(0.1, 0.02, 2.0, 0.4, 2.0));
-        // 減衰を壊した次の在庫（0.2＋0.1×0.4＝0.24 は上限 2.0 の内だが、在庫が釣り合いの近くにあれば破る）
-        Assert.True(Instruments.HabitBalViolates(0.1, 0.02, 2.0, 0.4, 2.04));         // 減衰 0：2.0＋0.04 ＞ 上限 2.0
-        Assert.True(Instruments.HabitBalViolates(0.1, 0.02, 0.2, 0.4, 2.5));
-        Assert.True(Instruments.HabitBalViolates(0.1, 0.02, 0.2, 0.4, double.NaN));   // NaN は破りとして数える
-    }
-
-    [Fact]
-    public void 釣り合いの表は旗0で違反0_床0_蓋の表と月数が合う()
-    {
-        const int quarters = 12;
-        var (_, dir) = RunMatch(quarters, instr: true, capOff: 0);
-        try
-        {
-            var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitbal_s1789.tsv"));
-            var h = lines[0].Split('	'); var rows = lines.Skip(1).Select(l => l.Split('	')).ToList();
-            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
-            int I(string c) { int i = Array.IndexOf(h, c); Assert.True(i >= 0, "列が無い " + c); return i; }
-            double D(string[] r, string c) => double.Parse(r[I(c)], System.Globalization.CultureInfo.InvariantCulture);
-            Assert.Equal(rows.Count, rows.Select(r => (r[I("quarter")], r[I("nationIndex")], r[I("region")])).Distinct().Count());
-            Assert.True(rows.Count(r => r[I("nationIndex")] == "2") >= quarters, "種を置いた英の州の行が四半期ごとに出ていない");
-            foreach (var r in rows)
-            {
-                Assert.Equal(0, int.Parse(r[I("balViolMonthsCount")]));   // 旗 0（蓋あり）でも式の不変式は成り立つ
-                Assert.Equal(0, int.Parse(r[I("floorMonthsCount")]));     // 蓋 0.2×害 1.0 ＜ 0.5：労働の床は効かない
-                Assert.True(D(r, "pcMaxPerMonth") >= 0 && D(r, "stockUsedMaxIndex") >= 0 && D(r, "stockBeforeMaxIndex") >= 0);
-                Assert.InRange(D(r, "stockUsedMaxIndex"), 0, 0.2 + 1e-12);   // 旗 0：次の在庫は蓋 0.2 以下
-                Assert.True(D(r, "balViolMaxIndex") == 0);
-            }
-            // 蓋の表と同じ口：州×四半期の行の月数が一致する
-            var cl = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir!, "habitcap_s1789.tsv"));
-            var ch = cl[0].Split('	'); int cq = Array.IndexOf(ch, "quarter"), cn = Array.IndexOf(ch, "nationIndex"), cr = Array.IndexOf(ch, "region"), cm = Array.IndexOf(ch, "monthsCount");
-            var capMonths = cl.Skip(1).Select(l => l.Split('	')).ToDictionary(r => (r[cq], r[cn], r[cr]), r => r[cm]);
-            Assert.Equal(capMonths.Count, rows.Count);
-            foreach (var r in rows) Assert.Equal(capMonths[(r[I("quarter")], r[I("nationIndex")], r[I("region")])], r[I("monthsCount")]);
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(dir!, "opium_s1789.tsv")), "アヘンの表が出ていない（前提）");
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(dir!, "habitlg_s1789.tsv")), "ロジスティックの表が出ていない（前提）");
+            var gone = System.IO.Directory.GetFiles(dir!).Select(f => System.IO.Path.GetFileName(f)!)
+                .Where(n => n.StartsWith("habitcap_s", StringComparison.Ordinal) || n.StartsWith("habitbal_s", StringComparison.Ordinal)).ToList();
+            Assert.True(gone.Count == 0, "削除した旧の蓋・釣り合いの表が出ている：" + string.Join(", ", gone));
         }
         finally { try { System.IO.Directory.Delete(dir!, true); } catch { } }
     }

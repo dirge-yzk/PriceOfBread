@@ -320,9 +320,9 @@ public static class Territory
         double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
         from.RailCapacity -= rail; from.ShipCapacity -= ship;
         from.Regions.Remove(r);
-        // ★(688) 線 navf5（旗 NavalCedeFleetReturn が正のとき・割譲だけ）：艦は国のもの＝出ていく州の艦の在庫を、送り手に州が残るなら送り手の首都の州へ戻す（首都の州が出るなら遷都の後の新しい首都＝下の SetCapital が選ぶ州と同じ NextCapital）。
-        //   計器の RegionMoved より前に動かす＝戻した艦は〈出ていった艦〉に数えない（戻した隻数は FleetReturned の別の列）。旗 0 は 1 ビットも触らない。送り手の州が 0（国が消える＝戻し先が無い）ならそのまま艦ごと渡る。
-        if (how == Rehoming.Ceded && from.Coef.NavalCedeFleetReturn > 0 && r.FleetUnits is { } cededFleet)
+        // ★(688) 線 navf5（割譲だけ・旗は (817) で焼き込み）：艦は国のもの＝出ていく州の艦の在庫を、送り手に州が残るなら送り手の首都の州へ戻す（首都の州が出るなら遷都の後の新しい首都＝下の SetCapital が選ぶ州と同じ NextCapital）。
+        //   計器の RegionMoved より前に動かす＝戻した艦は〈出ていった艦〉に数えない（戻した隻数は FleetReturned の別の列）。送り手の州が 0（国が消える＝戻し先が無い）ならそのまま艦ごと渡る。
+        if (how == Rehoming.Ceded && r.FleetUnits is { } cededFleet)
         {
             var homeReg = wasCapital ? NextCapital(from) : from.Regions.Find(q => q.Id == 0);
             if (homeReg is not null)
@@ -335,11 +335,10 @@ public static class Territory
             }
         }
         from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
-        // ★(774) 継いだ着工の意志の取り下げ（旗 InheritedStateIntentDrop が正のとき）：移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる。意志は政府のもの＝建物（BuiltScale）は州と一緒に移るが、旧の政府の着工の意志は新しい持ち主へ移らない。
-        //   計器の InheritIntentBefore／After は読むだけ（旧の値と、旗に依らず同じ純関数で作った新の値を並べる）。
+        // ★(774) 継いだ着工の意志の取り下げ（旗は (817) で焼き込み）：移る州の生産者の StateTarget（国営工場を建てる意志）を今の棟数まで下げる。意志は政府のもの＝建物（BuiltScale）は州と一緒に移るが、旧の政府の着工の意志は新しい持ち主へ移らない。
+        //   計器の InheritIntentBefore／After は読むだけ（旧の値と、同じ純関数で作った新の値を並べる）。
         if (Instruments.On) Instruments.InheritIntentBefore(from, r, how);
-        if (from.Coef.InheritedStateIntentDrop > 0)
-            foreach (var pr in r.Producers) pr.StateTarget = DroppedStateTarget(pr.StateTarget, World.StateUnits(pr, from.Coef));
+        foreach (var pr in r.Producers) { pr.StateTarget = DroppedStateTarget(pr.StateTarget, World.StateUnits(pr, from.Coef)); pr.FrozenLandRentPerMonth = null; }   // ★(937) 定額の土地税の凍結は送り手の国の台帳＝移転（割譲・建国・再併合）で消す（受け手では収穫比例＝後からできた RGO と同じ）
         if (Instruments.On) Instruments.InheritIntentAfter(from, r);
         // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
         //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。
@@ -373,7 +372,20 @@ public static class Territory
         bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
         RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
-        if (from.Coef.NavalPortProcurement > 0) { r.NavalBudget = 0; r.NavalOrder = null; }   // ★(669) 追記 1（旗 1 のときだけ・旗 0 の状態は 1 ビットも触らない）：月ごとに Simulation が書き直す複製を、州が持ち主を替えるときに戻す（移った州が前の国の首都の予算を持ったまま計器の行に出る＝偽の植民地向けの予算を作らない）
+        // ★(902) c77ce 割譲の支配度 C1＋H-a（旗 CedeRuleToLocal・既定 1（(915) で点火）・事前登録 measurements/m902_20261106_prereg_ce.txt）：割譲（Ceded）の 1 回だけ、旧の国家の分を在地へ移し（C1）、
+        //   受け手の自分の外国持分を 0 にする（H-a・鍵は Diplomacy の AddForeignShare の呼び口と同じ式）。Rehome(Ceded) の呼び手はここだけ＝Ceded 枝に置くのと同じ値（Rehome は係数を受け取らない）。
+        //   RuleInit・Rule[2]・Rule[3]・Dominance は触らない（支配度は前の持ち主の値を引き継ぐ）。闘争度を読まない＝割譲の不満（CededColonyMilitancy）の経路に足さない。
+        if (how == Rehoming.Ceded && to is not null && from.Coef.CedeRuleToLocal > 0)
+        {
+            if (r.Rule.Length == 4) { r.Rule[1] += r.Rule[0]; r.Rule[0] = 0; }
+            if (to.SelfPower is { } tsp)
+            {
+                string key = tsp.BaseName.Length > 0 ? tsp.BaseName : tsp.Name;
+                for (int k = 0; k < r.ForeignShares.Length && k < r.ForeignRulers.Length; k++)
+                    if (r.ForeignRulers[k] == key) r.ForeignShares[k] = 0;
+            }
+        }
+        r.NavalBudget = 0; r.NavalOrder = null;   // ★(669) 追記 1（旗 NavalPortProcurement は (824) で焼き込み）：月ごとに Simulation が書き直す複製を、州が持ち主を替えるときに戻す（移った州が前の国の首都の予算を持ったまま計器の行に出る＝偽の植民地向けの予算を作らない）
         if (backToColony && to?.Diplomacy is { } dg)
         {
             if (tierLeft == RegionTier.Core) dg.SovereignColonialRegions--; else dg.PromotedColonies--;

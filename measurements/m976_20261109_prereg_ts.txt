@@ -1,0 +1,17 @@
+(976) c88ts 事前登録（恒等の線・試験だけ・ident なし）2026-11-09  基準 main 5e6adf98
+区分：作者 2026-11-08「これら改善をやってみよう」の (1)。材料 m969_20261108_scan_ot.txt。★(912) 試験だけの線は ident を回さない。
+
+[1] 恒等の線・予言 0。SimCore・Runner・App・Display・Coefficients に触れない。素の 5 種・計器つき 10 種は m975 と全行一致の見込み（回さない）。
+[2] 消す物：なし。残す物：全て。他の線との重なり：持ち主の試験 6 ファイル（RouteKmTests・InstrumentsTests・UrbanFlowRealTests・CearnInstrumentTests・DiplomacyPendingTests・RuleInstrumentTests）。
+    sm（MoTrendInitTests・BasisxInstrumentTests）・cs（LandShare*Tests・DormantIdentityTests）とは重ならない。WriterRatchetTests は触れない（item は合流が取り直す・★(749)）。
+[3] 足す試験（Assert の文と既存の閾値は変えない。対照の件数の Assert を足すだけ＝(q)）
+    ステップ 1（(969) 反証役の中）：RuleInstrumentTests の T5・T6 と CearnInstrumentTests 始まりの在庫に〈突き合わせた国の数 ≧ 2〉。
+      突然変異：Run の国を イギリス だけにする／フランスの行を飛ばす → 新しい Assert だけが赤（行の床は緑のまま）。
+    残り 11 の型と形（順 T4→T5→T2→T6）：
+      T4 B2 B7 B8 B10 B11 B12 ／ T5 B5 B6 ／ T2 B13 ／ T6 B9 B16
+      形は全て〈対照が寄与した国・四半期の数の下限を既存の Assert の隣に足す〉。期間・種・既存の閾値・Theory 化は触れない（★(879)・★(961)）。
+      B7 は borrowSeen を種と期間の変更でしか直せないなら〈波89 へ〉と理由つきで残す。
+    この波で入れる見込み：ステップ 1 と、現物を読んで国・四半期の寄与を数えられた分。入らない分は一覧に〈波89 の恒等の先頭へ〉と書く（削らない）。
+    ㉘ ソースを走査する番人：SimCore に触れないので書き換える件数の予言（㉑）＝0。回す束＝InstrumentsTests・UnitTypeTests・IndustrializationReaderTests・WriterRatchetTests・DormantIdentityTests は ts.mark の前に直した試験の束だけを回し、WriterRatchetTests は合流が取り直す。
+[4] 門の木：wt0＝5e6adf98／wtH＝main＋origin/c87hd／wtD＝main＋origin/c82hd。直す前に赤の木が無い試験は〈予防〉と名乗る。直した後は 3 つの木で緑。
+[5]〈判定: 恒等〉（試験だけ・ident は回さない）なら採る。

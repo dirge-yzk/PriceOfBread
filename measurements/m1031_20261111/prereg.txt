@@ -1,0 +1,21 @@
+(1031) c97mg 事前登録（数える前に書く・2026-11-11）
+母集合：keep_1027/base_ins の merch_s1..10 の全行（merchantK で絞らない）。
+〈逆向き〉＝merchFallGateIn＝'1' かつ merchFallOut≦1e-9。内訳として merchFallOut＝0 ちょうどと 0＜…≦1e-9 を別に数える。
+  （(1024) の 4,209 は m1022＋kf の盤面＝今回は keep_1027 で数え直す。rec.py の engineFell は fo＞1e-9＝これと対。）
+格：tier の列そのまま（Colonial・Core・Integrated）＝3 区分で出す（(1024) の〈中核 330〉が Integrated を含んだかは不明と名乗る）。
+区分（排他・この順に当てる）：
+ (d) 前提の門：ソースで 0（MerchGate は MerchantArtisanCapitalRise＞0・MerchantPopIndex≧0・avgPerCap＞Eps の塊の内でだけ呼ばれる・JobSearchRatePerQuarter 既定 0.025・SerfGateCoversPool 既定 0＝RouteViaPool の農奴の門は掛からない）。数えずに 0 と書き、manifest の POB_COEF が空であることだけ確かめる。
+ (b) 計器とエンジンの門の時点の差：ソースで 0 の予言（〈確証：高〉）。
+     理由：両者の pc と所得の項は同じ式・同じ時点。違いは平均だけ（エンジン＝州の頭の Σmax(0,貯蓄)÷Σ人数＝merch_s 12 列 avgPerCap と同じ値／計器＝:345 の時点で再計算）。
+     州の頭から :345 までの人と金の動きは全て Pop.Blend（Model.cs:400・貯蓄を人数の割合で運ぶ・同じ州＝同じ通貨）で、Σ人数は保たれ Σmax(0,貯蓄) は増えない
+     ＝平均(計器)≦平均(エンジン)＝計器の閾値≦エンジンの閾値＝計器の門 1 ならエンジンの門も 1。対の確かめ：エンジンが落とした行で計器の門が 1 でない行＝0（rec.py の engineFellGateNot1）。
+     丸めの差（Σの順は同じ・ulp の境）は数えられない＝名乗るだけ。
+ (c) 流量が Eps 以下：門の時点の人数 Sg＝merchantK＋merchPettyIn−merchCapRiseOut（:345 の前に商人へ人を出し入れする道は ①* と ③′ だけ＝ソースで確かめる）。
+     流量＝0.03×depth×Sg・depth∈[0.7,1]。Sg≦1e-9（:356 の mt.Size＞Eps の門の外＝そもそも門 1 にならないはず＝矛盾として別に数える）／
+     0.03×Sg≦1e-9＝(c) 確実／0.021×Sg＞1e-9＝(c) でない／間＝(c?) 帯（depth を近似で出す）。
+ (a) 行き先が無い：植民地格は cpop_s の同じ四半期・同じ州の POP で、下流（農民・工場労働者・使用人）の popK が全て≦1e-9（兵士は強制の残りの道で除かれる）。
+     本国格・Integrated は cpop が無い＝workerK（9 列）＞1e-9 なら〈行き先あり〉、≦1e-9 なら〈判定できない〉の箱（(e) に入れない）。
+     限界：cpop は四半期の頭の頭数・Step の中の時点ではない（近似）。中流の職（技師ほか）が吸ったなら merchFallOut＞0 のはず＝逆向きの行では吸っていない。
+ (e) それ以外：0 でなければ 1 例を RouteViaPool の経路まで追う。
+比は和÷和。区分の和＝全体（格ごと・種ごと）を確かめる。種 11〜20（a11）は cpop が無い＝(c) と (a) の本国格の判定だけ・数の再現として出す。
+予言（紙）：(b)＝0・(d)＝0。逆向きの大半は (c) か (a)＝植民地格の〈生まれたばかりの微小な商人〉か〈下流が空の州〉。

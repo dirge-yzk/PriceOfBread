@@ -1,0 +1,8 @@
+(994) 合流が消した物・移した物（2026-11-09）
+- 作ったフォルダ：D:/PoB_work/m994_work・D:/PoB_work/wt_m994（枝 m994）・D:/PoB_work/ident_m994z・D:/PoB_work/keep_994・D:/PoB_work/keep_994_rej。
+- 移した：D:/PoB_work/ident_m994z/out_ib_10/ins → D:/PoB_work/keep_994/base_ins（ident.cfg の INSRAW）。
+- 移した：D:/PoB_work/c90sl_work/arm_B・arm_S11 → D:/PoB_work/keep_994_rej/c90sl_arm_B・c90sl_arm_S11（採らなかった腕の生・指示の名）。
+- 消した：D:/PoB_work/ident_m994z の残り（判定〈恒等〉の後・計器の生は上の移し）。
+- 消した：線の worktree D:/PoB_work/wt_c90tr・wt_c90px・wt_c90sl（git worktree remove・どれも未コミット 0・頭は origin/c90tr 430efb36・c90px bae541c7・c90sl 0c06d7af と同じ）とローカルの枝 c90tr・c90px・c90sl（origin の枝は残る）。
+- 消す（push の後）：D:/PoB_work/wt_m994（git worktree remove）・ローカルの枝 m994・D:/PoB_work/m994_work（記録は measurements/m994_20261109 へ写した）。
+- 触れていない：keep_981・keep_988・線の作業フォルダ c90tr_work・c90px_work・c90sl_work（腕の生を移した後の残り）・r992_work・r993_work（写した後も残す）・別のセッションの物。

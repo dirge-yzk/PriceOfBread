@@ -1,0 +1,95 @@
+(870) c72ss 自給の段 2（S1-a）の 3 回目＝最後の事前登録（担当 Claude Opus 5.5・枝 c72ss・基点 688294bf・2026-11-06）
+この文書は点火・フルスイート・腕の前に書いた（最初のコミット）。結果を見た後に書き換えない（足すなら〈追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（★(859) ③〈c70ss は 2 回目＝次が最後〉・★(839) ③・作者 2026-10-27「残りは推奨で」）。
+
+■ [0] 作ったフォルダ（この回にこの線が作った物＝消してよいのはこれだけ）
+  - D:/PoB_work/wt_c72ss（worktree・枝 c72ss）
+  - D:/PoB_work/c72ss_work（フルスイートの写し・腕 S11 の出力・読みの出力）
+
+■ [1] 形（(849)・(855) のまま・変えない）
+  - 旗 SubsistenceStage2（Coefficients.cs:530）の既定を 0→1 にするだけ。DormantIdentityTests.cs:29 の旗の表の行を外す。1b9eeab1 と同じ 2 行。
+  - 点火のコミットは .cs だけ（★(866)）。台本・事前登録・記録は別のコミット。
+  - 旗 1 の出力を見た後のエンジンの変更は 0（⑭の枠は使わない）。形の変え直し（σ の分母・T を自給に掛けるか）はこの線に入れない＝c72ds の材料。
+  - ident は回さない：旗 0 の器は main にあり、合わせた木 3b5fbb56 の ident m866 で〈判定: 恒等〉（測った種で一致）。この線の .cs の差は旗の既定の 1 字と表の 1 行だけ＝挙動を変える側。
+
+■ [2] 段0 の no-go（腕の前に固定）
+  - (a) c72gt の印 D:/PoB_work/c72gt_work/g5_ready.mark の rc が 0 でない → 腕を回さない・3 回の規則に数えない・報告する。
+  - (b) 印の .log の先頭が `VERDICT g5 fail …` → 腕を回さない・**3 回の規則の最後の不採用で閉じる**。点火のコミットは枝に残す（main は旗 0 の器のまま）。設計書へ申し送る項目を c72ds の材料として報告に書く。
+  - (c) 旗 1 の木のフルスイートで予言 [3] の外の赤 → 腕を回さず止めて報告する。
+  - (d) 印の .log の末尾の sha256 と、c72gt_work/gates/ の台本の sha256 が合わない → 腕を回さず報告する。
+  - (e) 印の .log が `VERDICT g5 pass` でも、それは〈近似〉（結果の後に作った物差しで既にある生を読み直した）＝それだけで採らない。採否は [5] の S11 の止める線で決める。
+
+■ [3] 予言（旗 1 の木のテスト）
+  - --list-tests：Category!=FullLength 2307・FullLength 3（点火は試験を足さない・DormantZeroFields は表を回す 1 本）。
+  - 赤の予言は WriterRatchetTests の item 2（建設：見た生産者（旬）・宣言 1862）の 1 本だけ。(855) の旗 1 の木の実測は 1983（+6.5%＝許し +2% の外・measurements/m855_20261105/suite855_f1.txt）。WriterRatchetTests は線では書き換えない（★(778)）。
+  - それ以外の赤は止める（[2] (c)）。中止の行も拾う。合計を --list-tests と突き合わせる。
+  - savetest OK・leakhunt 違反なしの予言（(855) の旗 1 の木と同じ）。
+  - 旧の規則を固定する番人が旗 1 で赤になったら、★(866) の Theory 化の型か ★(832) ① (a) の型に当たる物だけ、diff をこの文書に追記してから直す。それ以外は止める。(855) の旗 1 の木では該当 0（予言：0）。
+
+■ [4] ㉘ ソースを走査する番人の点検（基点 688294bf で grep）
+  - 走査の番人 7 組：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・TechLevelRemovalTests。点火の後に suite870.sh guards（(855) と同じ組＋線の試験の組）を回す。予言：WriterRatchetTests の item 2 だけ赤・DormantIdentityTests は表から外すので緑。
+  - IndustrializationReaderTests の許可表：EconomyStep.cs 8 ほか＝この線は .cs の読み手を足さない＝変わる件数 0。
+  - `new MoneyStock(` の SimCore の件数 64＝変わる件数 0。
+  - route_anchors.tsv（scripts/instruments/flow262/）＝鍵の行に触れない。
+  - WriterRatchetTests の宣言の表：item 2 の 1862（★(852) の行）＝書き換えない。
+  - ★(818)：`grep -ln 'Subsistence\|SubsistenceStage2' PriceOfBread.Tests/*.cs` ＝ 11 ファイル（DormantIdentityTests 10 Assert・FoodLedgerTests 57・IdeaBoardLoadTests 10・IdeaNeedBoardTests 30・LaborClosedTests 22・LaborMarketFormTests 120・MinimumWageAiFloorTests 50・RdhInstrumentTests 24・SubsistenceStage2Tests 28・SubstInstrumentTests 42・UrbanFlowRealTests 61）。旗を明示する試験は IdeaBoardLoadTests:20（旗 0 を明示）・SubsistenceStage2Tests:14・SubstInstrumentTests:185（旗を引数で明示）＝既定に頼らない。この線は台帳の欄を書かない（新しい欄 0）＝(855) の旗 1 の木のフルスイートで他の赤 0 を予言の根拠にする。
+
+■ [5] 採否の規則（S11 の止める線で決める・★(802)・★(832)）
+  - 腕：c72ssS＝旗 1 の木の計器つき 10 種・**種 11〜20**・POB_CEARN=0（cearn_s・cgrp_s・cpop_s を書かない宣言・門と止める線はその表を読まない）・国の名簿は batch.sh の既定 9 国。
+    `bash scripts/instruments/c72ss/s11_870.sh <旗 1 のコミット>`（prep commit:<H> plain → `POB_CEARN=0 INS=1 bash batch.sh run c72ssS 10 11`）。
+  - 腕の成否は終了コード（0＝完走）と成績表 b10_c72ssS_10_s11.txt の最後の行の〈判定:〉と manifest の種 10 本の全てで読む。
+  - 種 1〜10 は回し直さない（決定論・keep_859_rej/c70ssB_10 と同じ生になる）。種 1〜10 の止める線は keep_859_rej/c70ssB_10 を stoplines866.sh（種の起点 1）と holclass839.py（基準 measurements/m852_20261105/armM/stop_mM.txt）で数え直す（約 3 分・記録と止める線の両方に並べる）。
+  - **止める線**（この回の形をそのまま写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能＝シミュが止まる）・発散（金利・人口・値段が桁で暴走）・空洞化 1/10 未満（holclass839.py・規則 A2＝T1・**線が原因**の件だけ・この線の腕の〈線が原因〉も数える＝★(839) ①・基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）・〈100 倍〉は gdp_jump797.py と gdp_jump833.py の〈それ以外〉だけ・1e10 倍（plvl_seeds.py）・開幕の 1000 倍（plvl_seeds.py）・名目 GDP 0 の続き（gdp_zero10.py・この線の指示では止める線の並び・波の決まりでは記録の段の先頭＝基準 S11 0 区間より増えたら止める線として報告の先頭に名乗る）・機構の番人の赤・計算量（推定 ＞248.5 秒）・savetest・leakhunt。
+  - S11 の比べる側：keep_852/a11（b10s11_20261105_m852_ins＝exact 47.7・near 87.4・不履行 4/10）を同じ台本 stoplines866.sh（種の起点 11）で数え直した物。holclass839.py の〈元からの弱さ〉の基準も同じ数え直し（measurements/m852_20261105/armS11/stop_mS.txt と並べる）。
+  - ㊳ 政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期（gdp_jump833 の〈分母の痩せ〉の列）をヌル腕の件数と並べる（記録）。
+  - ヌル腕の件数を並べる：新 m852（N1・N2）と旧 m839（n1_839・n2_839・a11_839）＝measurements/m866_20261105/stop_table_866.tsv の行（M 5/10・S11 4/10・N1_852 hol1/4 3・N2_852 5・n1_839 11・n2_839 9）。
+  - 一つ抜き（r847/loo847.py）は記録だけ（m826・m797 のヌル腕の生が無い）。
+
+■ [6] 門（c72gt の物をそのまま・種 11〜20 は記録）
+  - G1a・G1b・G2・G3a・G4・G4m・G5b・G5p。c72gt の台本 gates_ss867.py と閾値の表をそのまま使う（写して sha256 を [8] の追記に引く）。
+  - 種 11〜20 にはヌル腕が無い＝G5b／G5p の閾値は種 1〜10 の物を当てる＝〈近似〉と名乗る。S11 の門は**記録**（採否に使わない）。
+  - 突然変異：(855) の単位の突然変異の表 measurements/m855_20261105/mut_unit_855.txt を引く（形が同じ・回し直さない）。G5b／G5p の突然変異と旗 0 で落ちることの確かめは c72gt の印の .log（自己試験）を引く。
+
+■ [7] 計算量の割り当て：0.1 秒以下（(855) の旗 1 の腕 211.7 秒・基線 m852 212.6 秒＝旗 1 は増やさない向き）。S11 の .cost を記録する。
+
+■ [8] 生を縮めること（腕の前に書く）
+  - 腕 S11 の生（D:/PoB_work/c72ss_work/s11/out_c72ssS_10_s11/ins）は、読み終えた後に門と止める線の表（region_s・migration_s・nation_s・pxmonth_s・cessp_s・secession_s・subst_s・rule_s）と keepsum_all_tables.tsv へ縮める。縮めた後も合流が読むまで消さない。反証役が読む前には縮めない。
+  - keep_859_rej・keep_852・keep_866 は読むだけ（消さない・動かさない）。
+
+■ [9] 記録（採否に使わない）
+  - 成績表 exact・near の S11 の新÷旧（基準 b10s11_20261105_m852_ins）・英の国債の不履行の種の数・nullgate（記録）・NG（ng.sh・基準 rd:measurements/ng852_20261105:m852）・食べる割合の開幕の値（0.7 を保つか）・売る割合（市場の買いの割合）の向き（技術と値段で増えるか）・農民の失業・.cost。
+
+■ [10] 重なり（他の線）：Coefficients.cs は :530 の既定値だけ（c72po は :2752・c72ip は :3596）。DormantIdentityTests.cs は :29 の 1 行だけ（c72po は :31＝近い＝合流が手で解く）。App・SimCore/Display・Runner には触れない。台本は scripts/instruments/c72ss/ に新しく置く（c70ss/・m866/ は書き換えない）。
+
+■ 追記（2026-11-06 02:0x・腕 S11 の前・上の文は書き換えていない）
+  - c72gt の印 g5_ready.mark の 1 回目（01:34）は rc=1・`VERDICT g5 fail 道具の確かめが通らない（c72ss は腕を回さない）`（c72gt の自己試験が G1a〜G4m の式の行を 860 と diff して食い違いを拾った＝c72gt の道具の側）＝[2] (a) に当たる＝その時点では腕を回さない・数えない。c72gt が印を出し直し、2 回目（01:44）は rc=0・`VERDICT g5 pass 道具は使える・読み直し (a)（c70ssB_10・近似）で全ての門が通る`。1 回目と 2 回目で門の台本と閾値の表の sha256 は同じ（下）＝変わったのは c72gt の自己試験の側だけ。この線は 1 回目の出力を見て何も変えていない。
+  - 写した台本（scripts/instruments/c72ss/・中身は c72gt_work/gates/ と同じ）：
+    a0ea27969f85ab9753a7a00de752f8f842bccee1ae4fc11595fd35de08b6e7a2  gates_ss867.py
+    9521aa9f67dac31b7f2a4cb7501df3ec81a350b6779041cdef2977539f3f02e0  gates_ss867_thresholds.tsv
+    0d788d06cfb2d75c257fd71d70e96c18737d566061a0a6bcb2d73192372c57c1  mut_ss867.py（c72gt_work/gates/ のまま・写していない）
+  - 印の .log は measurements/m870_20261106/g5_ready_log_c72gt.txt に写した（2 回目）。1 回目の .log は c72gt が出し直しで上書きした（先頭の行だけ上に引いた）。
+  - 読み直し (a)（近似）：G1a 0.6813・G1b・G2・G3a・G4・G4m 0.01550≦0.04724・G5b |dB| 0.00000≦0.0103・G5p 5 窓とも通る＝全て通る。G4m の分母の薄まり（記録）：候補 E＞0 4710 のうち BasisKind≠2 は 0。
+  - 〈近似〉なので [2] (e) のとおり、これだけでは採らない。採否は [5] の S11 の止める線。
+  - S11 の門（記録）の読み方を腕の前に固定：scripts/instruments/c72ss/gates_s11_870.py＝gates_ss867.py を 1 字も変えずに import し、腕と基線 keep_852/a11 の種 11〜20 を種 1〜10 の名へハードリンクした見かけのフォルダで N1＝N2＝基線として回す。G1b・G2・G3a・G4・G4m はヌル腕に依らない＝そのまま。G1a は w＝0 の近似（d＜0 の割合）。G5b と G5p は印字された |dB の中央|・窓ごとの |e の中央| を、読み直し (a) の w の中央 0.0103・wp の中央（1783-85 0.00357・1786-99 0.00989・1800-49 0.02907・1850-99 0.06666・1900-50 0.09481）へ当てる。旗 0 の盤面（keep_852/a11 を腕と基線の両方に置く）で落ちることを腕の前に確かめる（出力 measurements/m870_20261106/gates_s11_flag0.txt）。
+  - 種 1〜10 の止める線の数え直し（measurements/m870_20261106/stop_c70ssB_s1.txt・holclass_c70ssB_s1.txt）は (855) の armB_stop.txt と同じ数（空洞化 1/10 未満 0・1/4 未満 2・不履行 5/10）。gdp_jump797 の〈それ以外〉1（種 4 ヒヴァ 1923・123.7 倍）は gdp_jump833 で〈分母の痩せ〉（人口の比 26.7）＝〈それ以外〉0。N1_852・N2_852 にも同じ型が 1 件ずつ（stop_table_866.tsv）＝(859) と同じ扱いで止める線に当たらない。
+  - D: の空き 136.1GB（00:5x）・arms.sh free 6（00:5x）。腕の直前に取り直す。
+
+■ 結果の後の追記（2026-11-06 02:4x・上の文は書き換えていない・上の追記の〈02:0x〉は 01:5x の誤り）
+  - 旗 1 の木 f6ad79b3 のフルスイート：予言どおり（Category!=FullLength 2305 合格＋スキップ 1＋失敗 1＝2307・FullLength 3・中止 0・赤は WriterRatchetTests item 2〔1983・宣言 1862〕だけ）・savetest OK・leakhunt 違反なし（measurements/m870_20261106/suite_f1.txt）。旧の規則を固定する番人の赤は 0＝テストの書き換え 0。
+  - 腕 S11（c72ssS・種 11〜20・POB_CEARN=0）：batch.sh の終了コード 0・成績表の最後の行に〈判定:〉・manifest の RUN は selfplay-batch 10 - 0 11・計器の nation_s は 10 種そろう。成績表は measurements/b10s11_20261106_c72ssS_ins（.cost・.manifest）。
+  - **S11 の止める線は全て 0**（measurements/m870_20261106/s11_stop.txt・s11_holclass.txt・stop_table_870.tsv）：破綻 0/10・空洞化 1/10 未満 0（holclass839〈線が原因〉0・基準 stop_a11_852.txt でも stop_mS.txt でも 1/10 の行 0）・〈100 倍〉の〈それ以外〉0（gdp_jump797 の〈それ以外〉1＝種 19 プロイセン 1815・422 倍は gdp_jump833 で〈分母の痩せ〉〔人口の比 146〕・N1_852・N2_852 にも同じ型が 1 件ずつ）・1e10 倍 0・開幕の 1000 倍 0・名目 GDP 0 の続き 0・推定の計算量 210.2 秒（基準 S11 209.5＋0.7・上限 248.5 の内・2 秒以下は 1 本の腕で門にしない＝記録）。
+  - ㊳（記録）：政府の人口の比 ≧10 の四半期 1（上のプロイセン 1815）・基準 S11 0・N1_852 1・N2_852 1・a11_839 2。
+  - 記録：exact 43.8（基準 S11 47.7・新÷旧 0.918）・near 85.2（87.4・0.975）・英の国債の不履行 1/10（基準 4/10）・空洞化 1/4 未満 1（種 11 ハミ・清・本国格・〈その他〉1202→299 千人・基準 S11 0・N1_852 3・N2_852 5）・NG 89（前から 74・新しい 15・外れた 16＝基準 ng852 は種 1〜10＝種が違う比べ）・成績表のハーネス不合格 6/10（基準 10/10）。
+  - 門（記録・〈近似〉・measurements/m870_20261106/s11_gates.txt）：G1a 0.8340（w＝0 の近似）・G1b・G2・G3a・G4・G4m 0.01334≦0.04724・G5b |dB| 0.00000≦0.0103・G5p 5 窓とも通る＝全て通る。
+  - 機構が狙いどおり働いたか（観測量）：食べる割合の開幕の値は 1783-85 で 1−0.3049＝0.695（基線 0.700）＝0.7 を保つ。市場へ出す割合（市場の買いの割合）は 1786-99 0.336→1800-49 0.372→1850-99 0.423 と技術（T÷T0 1.000→1.071）と効率化材（EffFill 0.02→0.39）に連れて増え、1900-50 は 0.331（T÷T0 1.065・EffFill 0.307）へ戻る。農民の失業（G4 の E＞0 の行）3403 行・実装と一致。
+  - 採否（事前登録 [5] の規則）：S11 の止める線 0＝**採る候補**（最終の採否は合流 (873)・M ≡ 種 1〜10 の keep_859_rej/c70ssB_10 の確かめは合流）。読み直しと S11 の門は〈近似〉＝採る理由に数えていない。
+  - 生：D:/PoB_work/c72ss_work/s11/out_c72ssS_10_s11/ins（全ての表・POB_CEARN=0）。反証役と合流が読む前なので縮めていない（[8] のとおり、読んだ後に 8 表＋keepsum へ縮める）。
+
+■ 追記（2026-11-06 02:5x・結果の後・上の文は書き換えていない）
+  - この線の台本の sha256：
+    7318d8e252796111a374c6ceda46b9f3f191e48e3660db935621cf975a5fc607 *scripts/instruments/c72ss/s11_870.sh
+    4b238d234c83c8607b7c887516aefbbc4d67357359ef1e4a8e6ffa0f692f349a *scripts/instruments/c72ss/read870.sh
+    d0a32b5f545d60463cfb8315e8d334df47bc29d3af51442518e3b35d3a484004 *scripts/instruments/c72ss/gates_s11_870.py
+    7d20db02d6110894c47b3e08b9a458fbb17c79f0066369c3e2604b6df3a7e706 *scripts/instruments/c72ss/recount870.sh
+    4e15bf00baa57fe5853f96e23050463b3cf5435d5cf0efa4419ce5589d9593d3 *scripts/instruments/c72ss/suite870.sh
+  - 空洞化 1/4 未満のハミ（種 11・清・本国格）の振り分け（記録）：基線 keep_852/a11 の同じ種・同じ州は 1910 年 760.1 千人（1783 年 688.7・ピーク 2181.8〔1943〕）＝1/4 未満に落ちていない。腕は 1910 年 295.8・最小 284.7（1913）・1950 年 1249.9 へ戻る＝〈線が原因〉と読める 1/4 の事象（1/4 は記録・止める線ではない）。

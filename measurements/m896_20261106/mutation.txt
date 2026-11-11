@@ -1,0 +1,75 @@
+(896) c76cs 突然変異（使い捨ての木 D:/PoB_work/c76cs_work/mut＝73ed6dec の detached・台本 scripts/instruments/c76cs/mut896.py・試験の組 SummonByInterestShareTests＋CrownPcInstrumentTests の 16 本）
+表（予言＝事前登録 §4）：
+| 突然変異 | 赤の試験 | 予言どおりか |
+| M1 s＝0（何もしない実装） | S1・S2・S3・T1′・T0′（5 本） | ○（腕の門は G2＝紙で項＞0 が 0＝定義から落ちる・G1 は落とさない） |
+| M2 押す先を 1.0 | S1・S3・S5・T1′・T0′（5 本） | ○（S2 は DebtGrip＝1 の盤面なので緑＝予言どおり） |
+| M3 分母の守りを外す | S4（1 本） | ○ |
+| M4 段差へ戻す | S1・S3・T0′（3 本） | ○ |
+| M5 計器の写しを旗で分けない | T1′・T0′（2 本） | ○ |
+| M6 結果に Clamp01 | 赤 0（16 本とも緑） | ○ 何もしない変異（PC≦DebtGrip≦1）＝働いていない項＝入れない |
+| M7 押す先の max(0,·) を外す | S5・T0′（2 本） | ○ |
+| M8 旗 0 の枝を変える（×2.0→×2.1） | S0・T1・T5・T0（4 本） | ○ |
+腕の門の側：単体で緑の M6 は形を変えない（結果が同じ）＝腕の門でも落ちない。M2 は腕の門で落ちる保証が無い（比例のまま）＝単体の S1・S3・S5 だけが落とす＝〈突然変異で腕の門を確かめていない〉と名乗る。
+---- 生の出力 ----
+applied M1_s0
+    0 エラー
+== M1_s0
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は1に張り付かない [5 s]
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する [5 ms]
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる [2 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 [13 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 [16 ms]
+失敗!   -失敗:     5、合格:    11、スキップ:     0、合計:    16、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+applied M2_t1
+    0 エラー
+== M2_t1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する [7 ms]
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる [2 ms]
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1でPCがDebtGripより上なら召集は0 [31 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 [14 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 [15 ms]
+失敗!   -失敗:     5、合格:    11、スキップ:     0、合計:    16、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+applied M3_noguard
+    0 エラー
+== M3_noguard
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1で歳入0なら召集は動かない [5 ms]
+失敗!   -失敗:     1、合格:    15、スキップ:     0、合計:    16、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+applied M4_step
+    0 エラー
+== M4_step
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集の項は圧力に比例する [6 ms]
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1の召集は利払い歳入に比例しDebtGripへ寄せる [2 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 [32 ms]
+失敗!   -失敗:     3、合格:    13、スキップ:     0、合計:    16、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+applied M5_insnosplit
+    0 エラー
+== M5_insnosplit
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1の召集だけの盤面で計器の項はエンジンの動きで残差は0 [3 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 [2 ms]
+失敗!   -失敗:     2、合格:    14、スキップ:     0、合計:    16、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+applied M6_clamp
+    0 エラー
+== M6_clamp
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:    16、スキップ:     0、合計:    16、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+applied M7_nomax
+    0 エラー
+== M7_nomax
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗1でPCがDebtGripより上なら召集は0 [15 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.旗1でもStepの直後に数えれば残差は0 [120 ms]
+失敗!   -失敗:     2、合格:    14、スキップ:     0、合計:    16、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+applied M8_flag0
+    0 エラー
+== M8_flag0
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SummonByInterestShareTests.旗0は緊縮の段差の式のまま [2 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.召集だけの盤面で召集の項は式の値で残差は0 [3 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.政変の四半期は印と説明の区分で残差が説明される [6 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.Stepの直後に数えれば残差は0 [15 ms]
+失敗!   -失敗:     4、合格:    12、スキップ:     0、合計:    16、期間: 15 s - PriceOfBread.Tests.dll (net10.0)

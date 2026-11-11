@@ -31,12 +31,19 @@ public sealed class MultiNationSim
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
 
     // splitmix64（Diplomacy.Hash01と同系の混合）：国別乱数種の生成（他16）。
-    /// <summary>★(807) 銀の平価の注入の対数平均の 1 州ぶんの票。旗 0＝1（等重み）／旗 1＝その州の金鉱の需要（0・負・NaN・非有限は票なし＝否定形で 0 へ倒す）。純関数（試験が手の値で読む）。</summary>
-    internal static double SilverVoteWeight(double demandAu, bool weighted) => !weighted ? 1.0 : (demandAu > 0 && demandAu < double.PositiveInfinity ? demandAu : 0.0);
-
-    /// <summary>★(807) 注入の対数平均の最後の 1 行。旗 0＝州の数で割る（今の形）／旗 1＝票の和で割る（和が正でなければ 0＝比が不正の扱い）。</summary>
+    /// <summary>★(807) 注入の対数平均の最後の 1 行。旗 0＝州の数で割る（今の形）／旗が正＝票の和で割る（和が正でなければ 0＝比が不正の扱い）。</summary>
     internal static double SilverMeanRatio(bool weighted, double lnSum, int count, double weightedLnSum, double weightSum)
         => weighted ? (weightSum > 1e-9 ? System.Math.Exp(weightedLnSum / weightSum) : 0) : (count > 0 ? System.Math.Exp(lnSum / count) : 0);
+
+    /// <summary>★(827) 旗が正（A′・点火の値 2・(834) で値 1 の w1 の枝を消した）の 1 州ぶんの票＝薄い側の額（参照価格建て）＝min(dAg×refAg, dAu×refAu)。2 つの積をそれぞれ非有限・非正なら 0（否定形）にしてから小さい方
+    /// （片側が無い州は票なし）。計器の <c>Instruments.SilverMinWeight</c> は呼ばない＝計器の自走査と独立（門 S1）。純関数（試験が手の値で読む）。</summary>
+    internal static double SilverMinRefWeight(double demandAg, double demandAu, double refAg, double refAu)
+    {
+        double sideAg = demandAg * refAg, sideAu = demandAu * refAu;
+        if (!(sideAg > 0 && sideAg < double.PositiveInfinity)) sideAg = 0.0;
+        if (!(sideAu > 0 && sideAu < double.PositiveInfinity)) sideAu = 0.0;
+        return sideAg < sideAu ? sideAg : sideAu;
+    }
 
     private static ulong MixSeed(ulong seed, ulong i)
     {
@@ -164,7 +171,10 @@ public sealed class MultiNationSim
                 // ⚠PromotedColonies には数えない＝これは**初期条件**であってプレイ中の昇格ではない。
                 //   数えると保存検査（Validation「植民地の保存」＝残り＋独立＋昇格＝初期）が二重計上で落ちる
                 //   （実測 37+0+42=79 vs 初期43）。初期の総数はこの直後に Colonies から取り直される。
-                Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
+                var reg = Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
+                // ★(952) 初期条件＝Privileges.cs:131 と同じ作法（1783 年に既に支配している植民地は、本国の州と同じ 1.0 から数える）。
+                //   途中の接収（Diplomacy.cs:2269）は 0 のまま＝実際に取った年から。Tier・Rule・RuleInit は変えない（Rule[0] と二重に数えない）。
+                if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;
             }
         }
     }
@@ -797,7 +807,7 @@ public sealed class MultiNationSim
         //   ・StepAssimilation　読む：識字　書く：中核民族の割合
         //   ・MigrateBetweenNations／RecruitSpecialists　読む：食料の充足・貯蓄・規模・失業　書く：規模・貯蓄・Blend の全欄・閉鎖（為替で運ぶ）
         //   ・StepDiscoveries　読む：規模　書く：国の欄
-        //   ・銀の平価の注入（下のブロックの銀の世界価格）　読む：各州の銀と金鉱の値段・金鉱の需要（旗 SilverParityDemandWeighted が正のとき票）　書く：各国の WorldSilverPrice・SilverGoldRatio
+        //   ・銀の平価の注入（下のブロックの銀の世界価格）　読む：各州の銀と金鉱の値段（旗 SilverParityDemandWeighted が正のときは銀と金鉱の需要も＝薄い側の額を票）　書く：各国の WorldSilverPrice・SilverGoldRatio
         //   ・CapitalMarket.Step／対外借入の貸し手の引き落とし　読む：投資家の貯蓄（旗 CapitalDividendFromHostRent が正のときは投資家の工業レント〔第 3 月の流れ＝(801) の外資の利札〕も）　書く：貯蓄
         //   ・ReabsorbNations／SpawnSecededNations　州ごと移す　・StepDiffusion　読む：識字・報道・ラジオ・規模・思想　書く：国の欄
         //   順番に依存する所：戦死と移民（規模・貯蓄）を四半期首の地域価格・Blocs・Build が読む／移民が混ぜた思想を次の四半期首の議会が読む。
@@ -850,15 +860,15 @@ public sealed class MultiNationSim
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;
             // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
-            // 「先進勢力との接触」の実体から四半期導出する。外圧＝世界の技術水準との格差（GapScaleで正規化）×海からの接触係数
-            //（港あり=1/内陸=InlandFactor＝黒船は海から来る）。世界の技術水準国自身は格差0＝外圧0（追い風は後発の現象）。
-            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。点火2026-07-27（旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み）。
+            // 「先進勢力との接触」の実体から四半期導出する形で点火した（2026-07-27・旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み）。★(824) 以後：外圧＝技術の格差 gap（下で 0 を書く）×海からの接触係数（港あり=1／内陸=InlandFactor）＝**常に 0**。
+            //   技術水準の削除（段2a・旧の旗 TechSignalOff の焼き込み）で技術の格差は外圧に入れない。書き込みは残す（NationConfig の死んだ定数 0.3 を残さない）。
+            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。
             foreach (var n in Nations)
             {
                 var w = n.World;
                 bool coastal = false;
                 foreach (var r in w.Regions) if (r.IsPort) { coastal = true; break; }
-                double gap = _coef.TechSignalOff > 0 ? 0.0 : PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));   // ★(613) 段2a：旗が正なら格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）
+                double gap = 0.0;   // ★(613) 段2a（旗 TechSignalOff は (824) で焼き込み）：技術の格差は外圧に入れない＝格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）。旧の ExternalPressureGapScale は読み手が無くなったので削除
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
@@ -879,7 +889,8 @@ public sealed class MultiNationSim
             if (Catalog.SilverId < Market.Price.Count)
             {
                 double ratioSum = 0; int ratioCnt = 0;
-                bool demandWeighted = _coef.SilverParityDemandWeighted > 0;   // ★(807) 旗：対数平均の票を金鉱の需要で重みづける
+                bool demandWeighted = _coef.SilverParityDemandWeighted > 0;   // ★(807)(834) 旗：正のとき対数平均の票を A′（薄い側の額・参照価格建て）にする・値 0 は等重みのまま
+                double refAgW = Catalog.RefPrices[Catalog.SilverId], refAuW = Catalog.RefPrices[Catalog.GoldOreId];   // (827) A′ の票の参照価格（読むだけ）
                 double wLnSum = 0, wSum = 0;
                 foreach (var n in Nations)
                     foreach (var r in n.World.Regions)
@@ -892,9 +903,9 @@ public sealed class MultiNationSim
                         double lnRatio = System.Math.Log(pAg / pAu);
                         ratioSum += lnRatio; ratioCnt++;   // 対数平均
                         double dAu = mAu.LastDemand;
-                        double wState = SilverVoteWeight(dAu, demandWeighted);   // ★(807) 旗 1＝その州の金鉱の需要（需要 0・非有限は票なし）
+                        double wState = demandWeighted ? SilverMinRefWeight(mAg.LastDemand, dAu, refAgW, refAuW) : 1.0;   // ★(827)(834) 旗が正＝A′（値 1 の w1 の枝は (834) で消した）／旗 0＝等しい 1 票
                         if (demandWeighted) { wLnSum += wState * lnRatio; wSum += wState; }
-                        if (Instruments.On) Instruments.SilverWeightState(this, wState, lnRatio, dAu, mAu.LastProduced);   // (807) 計器（読むだけ）：エンジンが実際に使った票
+                        if (Instruments.On) Instruments.SilverWeightState(this, r, wState, lnRatio, dAu, mAu.LastProduced, mAg.LastDemand, mAg.LastProduced);   // (807) 計器（読むだけ）：エンジンが実際に使った票／(827) 州と銀の需要・産出
                     }
                 double refAu = Catalog.RefPrices[Catalog.GoldOreId];
                 double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
@@ -1360,7 +1371,7 @@ public sealed class MultiNationSim
             foreach (var sim in Nations)
             {
                 var w = sim.World; year = w.Year;
-                if (_coef.TechGateByDiscovery > 0 ? !Megaprojects.RequirementMet(w, cp.Id) : w.TechLevel < cp.TechGate) continue;   // ★(613) 段1：旗が正なら拠出する国の自国の発見の行 requires。近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
+                if (!Megaprojects.RequirementMet(w, cp.Id)) continue;   // ★(613) 段1（旗 TechGateByDiscovery は (843) で焼き込み）：拠出する国の自国の発見の行 requires。近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
                 if (_coef.CanalInvestReturns.Value > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 // ★段3-3（C13・2026-09-30）：出資者＝投資家の述語の1本（CapitalMarket.Investors＝配当の受け手と同じ集合）。旧＝各州の資本家1人（InvestorPopIndex・活きた州）。
@@ -1619,7 +1630,7 @@ public sealed class MultiNationSim
             if (p.Nation is { } nw)
             {
                 double v = Math.Max(0, nw.LastExportValue) + Math.Max(0, nw.LastImportValue);
-                nw.TradeValueSmoothed += _coef.TradeValueSmoothing * (v - nw.TradeValueSmoothed);   // 数期平滑＝単四半期の禁輸/封鎖スパイクで比重が跳ねない
+                nw.TradeValueSmoothed = PoliticalQuantities.Toward(nw.TradeValueSmoothed, v, _coef.TradeValueSmoothing);   // 数期平滑＝単四半期の禁輸/封鎖スパイクで比重が跳ねない
                 total += nw.TradeValueSmoothed; count++;
             }
         if (total <= 1e-9 || count == 0) return;
@@ -1684,7 +1695,6 @@ public sealed class MultiNationSim
     internal void MigrateBetweenNations()   // internal＝番人テストが段を単離して1回だけ呼ぶため（StepAssimilation・MoveMigrants と同じ扱い）
     {
         foreach (var sim0 in Nations) { var w0 = sim0.World; w0.LastImmigration = 0; w0.LastEmigration = 0; w0.LastSpecialistExit = 0; }   // 診断（UI）：四半期の移民収支カウンタ（★段⑤：専門職の流出カウンタも同じ場所で0に＝無条件＝滞留しない）
-        if (!(_coef.CrossBorderMigrationByOpportunity > 0)) return;   // 0＝越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
         int n = Nations.Count;
         // 1. 行き先の州・機会・座標・受入国の重み・州の受入の上限・居る階級
         var dstA = new double[n];
@@ -1998,7 +2008,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, Count = 29;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, Count = 30;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2016,7 +2026,8 @@ public static class CostLedger
         "年齢の層の歩：POP×月×（層の数−8）（8層の算術は月次・消費の単価の中。作者の 11 層の増分だけ・8層では 0 件）",
         "レシピごとの設備の配り：購入が起きた州×月の生産者の数（旗 RecipeEquipment が正のとき・配りは 3 周・退場は 2 周の走査 1 周につき州の生産者の数）",
         "主食の台帳と配り直し：POP×月×段（旗 StapleLedgerSum が正のとき決済後の締め 1 段・旗 StapleDemandRebalance が正のとき月の頭の前計算 1 段・(504)）",
-        "海軍の発注の配り：州×月×3 周（旗 NavalPortProcurement が正のとき・NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
+        "海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
+        "清算：着値の下界で飛ばした売り手（距離と危険料を引かず下界の比較だけ・(1029)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2069,7 +2080,10 @@ public static class CostLedger
         RecipeEquipmentScanUnitMicros,   // ★(495) レシピごとの設備の配り：州の生産者 1 件あたり（**上限の見積り**・census は無い・下の定数の注記）
         StapleLedgerUnitMicros,   // ★(504) 主食の台帳と配り直し：POP×月×段あたり（**上限の見積り**・census は無い・下の定数の注記）
         NavalOrderScanUnitMicros,   // ★(669) 海軍の発注の配り：州×月×周あたり（**上限の見積り**・census は無い・下の定数の注記）
+        ClearingSkipUnitMicros,   // ★(1029) 清算：着値の下界で飛ばした売り手あたり（下の定数の注記）
     ];
+    /// <summary>★(1029) 着値の下界で飛ばした売り手の単価（マイクロ秒/件）＝**上限の見積り**：1 件＝下界の表の引き（国の表の添字）＋下界の式の評価＋比較＋連結リストを進める。単価の根拠は measurements/m1029_*（小さな計り台）。</summary>
+    public const double ClearingSkipUnitMicros = 0.02;
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
     /// それまで .cost の外にあった重さ（(392) の申し送り）を内側へ入れる行＝推定の計算量が約 0.5 秒増える（予算の上限 248.5 秒の内）。</summary>
@@ -2095,7 +2109,7 @@ public static class CostLedger
     /// <summary>★(504) 主食の台帳と配り直しの単価（マイクロ秒/件＝POP×月×段）＝**上限の見積り**（census は無い）。前計算は POP ごとに主食 5 財の乗算と加算（約 20 演算）、締めは POP ごとに 2 回の比較。
     /// 形が近い奢侈品と家事奉仕の所得弾力の走査（POP×月・0.0155）より少し重い 0.04 を置く（事前登録 measurements/fd504_20261023_prereg.txt の[7]）。旗①②が全て 0 では件数 0。腕 B の .cost の実測で取り直す。</summary>
     public const double StapleLedgerUnitMicros = 0.04;
-    /// <summary>★(669) 海軍の発注の配りの単価（マイクロ秒/件＝州×月×周）＝**上限の見積り**（census は無い）。州の取扱高と階級を比べて足す・割るだけの走査で、形が近い建設の見た生産者（0.013）より少し重い 0.02 を置く（旗 NavalPortProcurement が正のときだけ数える＝旗 0 の推定は不変）。
+    /// <summary>★(669) 海軍の発注の配りの単価（マイクロ秒/件＝州×月×周）＝**上限の見積り**（census は無い）。州の取扱高と階級を比べて足す・割るだけの走査で、形が近い建設の見た生産者（0.013）より少し重い 0.02 を置く（旗 NavalPortProcurement は (824) で焼き込み＝月初の配りのたびに数える）。
     ///   件数の上限＝国×月×州×3 周（61 国で全長 約 8 千州×月 3 周でも 1 試合 0.1 秒未満）。</summary>
     public const double NavalOrderScanUnitMicros = 0.02;
     /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。★(486) 旗 MinimumWageAiFromFloor が正のときは AI の判断の読み（本国の州の生産者と財の走査・国×四半期）の件数も同じ台帳に立つ（法が無くても）。</summary>

@@ -1,0 +1,28 @@
+# 種 5 D:/PoB_work/keep_947_rej/c83hdB_10
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+マドラス	78	1264→9333	4.505e+04	4.505e+04	7.129e+04	4.514e+04	4.514e+04	3.011e+04	6.939e+04	1.266e-17	1782	627.8	78	0
+内陸ベンガル	78	4535→1.838e+04	6.797e+04	6.797e+04	1.106e+05	6.811e+04	6.811e+04	4.413e+04	1.266e+05	2.309e-17	4635	1.318e+04	78	0
+# 種 6 D:/PoB_work/keep_947_rej/c83hdB_10
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+内陸ベンガル	80	4132→1.12e+04	5.971e+04	5.971e+04	9.703e+04	5.981e+04	5.981e+04	3.937e+04	9.793e+04	1.985e-17	5405	6773	80	0
+# 種 5 D:/PoB_work/keep_933/base_ins
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+マドラス	78	1264→2.865e+04	0	0	7216	31.77	31.77	15.29	5.057e+04	0	3636	2390	78	210
+内陸ベンガル	78	4535→7.258e+04	0	0	1.82e+04	0.3885	0.3885	0.2704	1.335e+05	0	8145	2.415e+04	78	170
+# 種 6 D:/PoB_work/keep_933/base_ins
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+内陸ベンガル	80	4132→6.137e+04	0	0	1.51e+04	58.59	58.59	28.65	9.515e+04	1337	7826	1.043e+04	80	235
+# 種 5 D:/PoB_work/keep_933/n1
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+マドラス	78	1155→2.857e+04	0	0	7066	25.99	25.99	12.49	5.017e+04	0	3941	2084	78	209
+内陸ベンガル	78	4475→7.602e+04	0	0	1.614e+04	65.16	65.16	31.44	1.282e+05	0	8534	1.859e+04	78	209
+# 種 6 D:/PoB_work/keep_933/n1
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+内陸ベンガル	80	4152→6.896e+04	0	0	1.416e+04	67.57	67.57	48.67	1.018e+05	0	8086	7554	80	170
+# 種 5 D:/PoB_work/keep_933/n2
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+マドラス	78	1262→2.887e+04	0	0	5947	94.63	94.63	44.58	4.728e+04	0	3255	2236	78	192
+内陸ベンガル	78	4523→6.105e+04	0	0	1.562e+04	145.9	145.9	69.05	1.094e+05	0	7520	1.591e+04	78	192
+# 種 6 D:/PoB_work/keep_933/n2
+州	四半期の数	貯蓄(始め→終わり)	ΣheirSet	Σmoved	Σ空の貯蓄の相続	ΣinCred	ΣimpPaid	ΣoutImp	ΣinExp	ΣoutCap	ΣoutTax	ΣoutColRent	空の商人の払い手の四半期	ΣbBlk
+内陸ベンガル	80	4094→6.541e+04	0	0	1.555e+04	524.1	524.1	388.2	1.022e+05	0	7852	1.115e+04	80	166

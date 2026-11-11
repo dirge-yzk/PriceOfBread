@@ -1,0 +1,48 @@
+(934) c82it 事前登録  ident の道具の直し（cearn_same_but_location が宣言の列を経路の外のバイト一致から外す）
+基準の木 84688034（枝 c82it）。恒等の線・予言 0・scripts だけ（SimCore・Tests・ident.cfg・App・Display・Runner に触れない・ident は回さない）。
+
+[1] 恒等の線（予言 0）
+  ゲーム側の挙動は変えない。変えるのは scripts/instruments/ident/ident_check.py の cearn_same_but_location とその呼び口（cmp_ins の 1 行）だけ。
+
+[2] grep の引用（84688034）
+  ident_check.py:326 def cearn_same_but_location(pa, pb, allow_grown=False)  ＝経路の外の列は xa[i] != xb[i] で即 return False
+  ident_check.py:59  --known-extra   ／ :572 known = parse_known(cfg.get('KNOWN','').split(',') + a['known_extra'])
+  ident_check.py:399 呼び口 cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown))  ＝ known は渡っていない
+  ident_check.py:191 cols_diff は known の列を比べない（既知の揺れ）。cearn の道だけが宣言の列を知らない。
+  読み手：cearn_same_but_location は ident_check.py の cmp_ins と試験（c67id/cearn_rule_test.py）だけ（scripts 全域 grep で確かめる）。
+  消す物：なし。残す物：写しの道（_cearn_map・_cearn_remap）・判定の他の道・出力の形。
+  他の線との重なり：scripts/instruments/ident/ident_check.py を触る線は c82it だけ（指示の持ち主の表）。
+
+[3] 形
+  cearn_same_but_location に省略可の引数 kmap（既定 None＝今までと同じ）を足す。cmp_ins の呼び口で known.get('cearn_s', {}) を渡す。
+  経路の外の列 i：値が違い、その列が kmap にあれば（条件つき宣言ならその行の条件が両側で成り立つときだけ）許す。それ以外は今のまま不一致。
+  経路の列の写しの道は 1 字も変えない。宣言の列だけが違い経路が動かない表（moved=0）は今までどおり cols_diff の道へ落とす（判定の文言・内訳の区分を変えない）。
+  浮動小数の順序が変わる箇所：なし（スクリプトの文字列比べだけ）。
+
+[4] 試験 scripts/instruments/c82it/cearn_known_test.py（手で組んだ cearn_s の小さな 2 表と使い捨ての git の木・cmp_ins を通す）
+  予言の表（期待＝判定が恒等＝計器の表の不一致が出ない）
+  盤面                                         直す前    直した後
+  a 宣言の列だけ違う                           恒等      恒等
+  b 経路の行だけ動く                           恒等      恒等
+  c 宣言の列＋経路の行（波81の再現）           不一致    恒等
+  c2 c と同じで宣言が空                        不一致    不一致
+  c3 c と同じで行の条件つきの宣言（成立）      不一致    恒等
+  d c＋宣言の外の列も違う                      不一致    不一致
+  d2 宣言の外の列だけ違い経路も動く            不一致    不一致
+  e 写せない経路（c の宣言の列つき）           不一致    不一致
+  e2 写せない経路（宣言の列は同じ）            不一致    不一致
+  f 条件つきの宣言で条件の外の行が違う         不一致    不一致
+  直す前の再現：C82IT_EXPECT_OLD=1 で c だけ期待が逆になる（c, c3 が不一致）。
+
+[5] 突然変異（使い捨ての写しで・ident_check.py の 1 箇所を壊す）
+  M1 宣言の外の列まで外す（kmap の判定を常に真）          → d・d2・f が緑になる＝赤（GATEFAIL）
+  M2 写しの道を外す（_cearn_remap を恒等にする）          → b・c・c3 が不一致＝赤
+  M3 KNOWN の列を読まない（呼び口で {} を渡す）           → c・c3 が不一致＝赤
+  M4 条件を見ない（条件つき宣言を無条件に許す）            → f が緑になる＝赤
+  各々の結果を measurements/m934_20261107_mut.txt に残す。
+
+[6] 門
+  (i) 新しい試験が予言どおり（GATEOK）。
+  (ii) 既にある道具の試験（c67id/cearn_rule_test.py・c70gt/test_ident_display853.py・c71gt/selftest860.sh・c9gd/removed_cols_selftest.py・c10tg/removed_cols_selftest_portch.py）を直す前と後で回し、出力が同じ。
+  (iii) ident.sh の判定の行・出力の形が同じ（新しい試験で cmp_ins の出力の行を直す前と後で比べる）。
+  腕・ident は回さない（約 18GB の生が要る＝D: の床）。コードは scripts だけなので SimCore の入力ハッシュは動かない。

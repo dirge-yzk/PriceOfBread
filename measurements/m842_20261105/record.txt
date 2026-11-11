@@ -1,0 +1,44 @@
+(842) 線 c68id 記録。書いたモデル：Claude Sonnet 5.5。枝 c68id（出発 eccd9155）。事前登録 measurements/m842_20261105_prereg_id.txt。
+
+■ 判定
+- 判定: 恒等（測った種で一致）。測った木 D:/PoB_work/wt_c68id・HEAD 93847482・SOURCE-HASH 309a507d61970ef9。
+- 素の 5 種は m839 と名乗り行を除いて全行バイト一致（182 行・.cost の件数の行 29 本・推定 219.0 秒が一致）。計器つき 10 種も全行一致（181 行・推定 220.8 秒）。
+- 計器の表は基準 1068 本・腕 1068 本・バイト一致 1018 本・宣言された増減 20（rule_s×10・cornint_s×10）・既知の揺れ 30（burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10・cgrp_s:residualPerQuarter,savingsStart×10）。cearn_s は全てバイト一致（宣言 0）。
+- 注視の表 4686 行一致。テストの数は Category!=FullLength 2272（基準 2264＋宣言 8）・FullLength 3。savetest OK・leakhunt 完走・保存則違反なし。
+- フルスイートは分けて回した：Category!=FullLength 合格 2271＋スキップ 1＝2272（22 分 48 秒）・FullLength 3 本合格（3 分 7 秒）・中止 0（suite_summary.txt）。
+- ident の判定の文は ident_c68id_verdict.txt。腕 a・b の rc=1 は (836) の判定（m836_20261105/ident_c67pu_verdict.txt）と同じ形（check が恒等と判定する）。
+
+■ 予言との照合
+- 予言 0（挙動を変えない）：一致。cgrp_s の差の行数は紙の台本の代理（savingsStart が 0 かつ monthsClosed が 0）の 412 行と一致：違う行 412・全て代理の集合の中・違う列は savingsStart と residualPerQuarter だけ（cgrp_diff_vs_proxy.txt）。
+- rule_s の P1-0 の列（rule_p1_count.txt の 1 番・首都を除く・secession_s と同じ州・遅れた R）：国×四半期 59,813 と州×四半期 930,908 は紙の値と一致・1 四半期前の R と publicOrderIndex(<1) の一致 27,955/27,955 も一致。件数の 3 本は紙の値と ±10〜16 のずれ（R≧1 かつ R m̄/m_r≧1 が 449,853〔紙 449,843〕・R<1 かつ R m̄/m_r≧1 が 64,253〔紙 64,264〕・そのうち m̄/m_r<1 が 141,898〔紙 141,882〕）。事前登録 [8] の〈G10 の丸めの境で数件〉の予言の幅を少し超える：R が 1 に極めて近い州で、R<1 の側から R≧1 の側へ約 10 件動いた形（2 本の和は 514,106 対 紙の 514,107）。原因の候補を確かめた（rule_vs_secession.txt）：R の側は一致している（orderRawLagIndex 対 前の四半期の coerceIndex÷(totalPopK×0.8)＝991,502 行のうち相対 1e-9 を超えるのは 57 行）。闘争度の側は別の瞬間の値：rule_s の militancyRegionIndex（四半期の末）と secession_s の militancyMeanIndex（CheckSecession の呼び時点）は、突き合わせた 1,118,869 行のうち 1,029,509 行（92%）で相対 1e-9 を超えて違い、最大の相対差は 376。±10〜16 のずれは、この瞬間の差が R×m̄÷m_r の ≧1 の境で割れる州の分と読める（確かめたのは闘争度の差の存在まで。境の州の件数への寄与は数えていない）。物差しにしない記録。
+- ★次の線への申し送り（大事）：P1-0 の州の闘争度 m_r・国の平均 m̄ は〈四半期の末の断面〉で、エンジンの Rule のループが読む瞬間（CheckSecession の中）の値ではない。計器が自分で読む形（指示）の限界であり、InstrumentsRule.cs の ⚠限界〈四半期の末の断面〉に含まれるが、闘争度の差が 92% の行で出ることは名乗っていなかった。P1-1 の門・働いたの数を読むときは、闘争度を secession_s の militancyMeanIndex（CheckSecession の瞬間）で読むか、Rule のループの瞬間に貯める hook（Instruments.cs・今回の持ち分の外）を足すかを先に決める。
+- 首都を含む母集合（遅れた R）：州×四半期（m_r＞0）1,268,809・R≧1 かつ R m̄/m_r≧1 が 503,156・R<1 かつ R m̄/m_r≧1 が 106,752・そのうち m̄/m_r<1 が 160,372（今の R では 1,270,294／503,244／107,322／160,384）。
+- 同じ四半期の一致の件数：publicOrderIndex が 1 未満の国×四半期 111,422 のうち、遅れた R が一致 111,332（残りの 90 は最初の四半期 q0 の挙げた国 9×10 種＝遅れが nan）・今の R が一致 978。遅れた R で書くべきことが数で確かめられた（今の R では一致しない）。
+- 目標の差 新−旧（国×四半期の州の人口加重の平均・Rule の長さが 4 の州）：今の R：p10 −0.0031・中央 0・p90 0.0081・平均 0.0012（150,487 件）。遅れた R：p10 −0.0026・中央 0・p90 0.0079・平均 0.0012（150,362 件）。
+
+■ 足した試験 8 本（Category!=FullLength +8）
+- CoefficientRelationTests.cs 戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0_12（T1）。
+- CearnInstrumentTests.cs 台帳が始まっていない州のcgrpは始まりと残差がnan_他の州は数（G7・T2）・助走の直後に始まりの在庫を取り直す（G8）。
+- CornintInstrumentTests.cs ブロック0の穀物の利害が正なら旗は1_そうでなければ0（C6・T3）。
+- RuleInstrumentTests.cs（新しいファイル）T4〜T7 の 4 本（見出しと国の列・m_r と m̄〔首都を含む〕・R と秩序と目標の恒等式・遅れた R）。
+- 改名 1：CollapsePeaceTests.cs の旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る → 旗1で調停の戦争の白紙の旗が0なら列強の調停の戦争も崩壊で賠償を払い集合に入る（Assert は変えない・件数 0）。
+- ★(743) ①〜④ の書き換え：なし（足すだけ・改名 1・注の直しだけ）。WriterRatchetTests などソースを走査する番人 6 組は器のコミットの直後に 172 本全て緑（書き換え 0）。
+
+■ 突然変異（measurements/m842_20261105/mutation.txt）
+- M1〜M5・W1〜W5：全て赤（期待どおり）。W6（Phase warm の CearnWarm の呼びを外す）は最初は緑＝G5・G6 の配線の穴 → G8 を足して赤。同値の W7・W8 は記録。
+- 注だけ直す変更（SilverWeight・Cornint の注・注の道・改名）の突然変異は無い：変化 0（ident の全行一致）。
+
+■ 指示から外れた所・読んだことの食い違い（先頭の記録）
+- 項目 6：指示は InstrumentsSubst.cs の注と書くが、engineRentShare は InstrumentsCornint.cs にしか無い（InstrumentsSubst.cs に 0 件）。食い違いは事前登録 m837_20261104_prereg_ss.txt:48〈分母＜1e-9 なら 0〉対 実装〈割らず rentDom_b のまま〉で、実装が正しい。注は InstrumentsCornint.cs の頭に書いた。InstrumentsSubst.cs は触れていない。
+- 項目 2：c65md を戻した最終の木では旧名は主張が逆にならない（InlineData(1.0) の Theory は無い）。改名は前提（ForcedPeaceBlankOverCollapse が 0）を名乗る形にした（AI の案）。
+- 項目 3：CearnInstrumentTests.cs:389 の m836_20261104/mutation.txt も実在しない（実在は m836_20261105）ので同じ束で直した。
+- 遅れた R の持ち物は Instruments.cs の WState でなく InstrumentsRule.cs 内の ConditionalWeakTable（Instruments.cs に触れない指示のため）。
+- 項目 7 の定義は AI の案（c1InterestGrain0 が正なら 1 の旗・平均すれば正の割合）。
+- 反証役（opus）は起こせない担当のため、advisor の読みで代えた（設計の点検と完了前の点検の 2 回）。
+
+■ 運用の記録
+- 作ったフォルダ：D:/PoB_work/wt_c68id（worktree・枝は残す）・c68id_work（台本の出力・印）・c68id_art（隔離ビルド）・c68id_mut（worktree・消した）・c68id_mutart（消した）・ident_c68id（ident の作業 16G）。
+- 消した物：c68id_mut・c68id_mutart。ident_c68id の生は keepsum を keepsum_ident_c68id_ins.tsv に残して消す。
+- 腕の枠：ident を起こす前の arms.sh free は 6・D: の空きは 38.3GB・待った時間 0。
+- waitmark の呼び出し：guard 1・突然変異 1・ident 4・フルスイート 6・FullLength 1 の約 13 回（これは覗きに数えない）。印の外の覗き：ident の作業の marks を 4 回見た（waitmark の命令に ls を添えた＝1 本の仕事につき 30 分に 1 回の上限を超えた・3 回超過）。
+- hook に止められた回数 0。台本に時間待ち・単独の & を書いていない。

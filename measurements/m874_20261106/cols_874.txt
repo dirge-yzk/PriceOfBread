@@ -1,0 +1,2 @@
+rows 2141397 band sum mismatch 0 maxrel 2.2272333085911403e-10 old!=sub rows 36 rows with band0>0 1031
+old!=sub rows 36 with nan 0 sub<old violations 0

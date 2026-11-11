@@ -1,0 +1,40 @@
+# (845) 合流（波68）の予言（合わせる前に書く・結果を見た後に書き換えない）
+作成：2026-11-05 合流の担当（Claude Opus 5.5）。基点 eccd91553c796247e0c4f9812db199eec0204b5c（m839）。
+この回に作ったフォルダ：D:/PoB_work/m845（作業）・D:/PoB_work/wt_m845（worktree・枝 m845）。
+
+## [1] 入れる線と入れない線（結果の前に決める）
+- 挙動の線：0 本。c68uh (841) は段0 の紙で no-go＝.cs 0 行・旗なし・腕なし。記録（事前登録・紙の台本と表）だけを merge する。
+  - 3 回の規則：腕も形も旗も無いので〈1 回目〉に数えない（合流の判断）。次にこのテーマを回すなら新しい形（反証役の挙げた港の容量 Region.PortCapacity を候補に読むか、cp3 の資本の在庫）から始める。
+- 恒等の線：c68id (842)〈判定: 恒等〉・c68ui (843)〈判定: 恒等〉を入れる。順は c68id → c68ui → c68uh。
+- 読む線 c68hl (840)：コミットなし＝台本を scripts/instruments/r840/、表を measurements/m840_20261105/ へ写す。
+- 設計の材料の線 c68ds (844)：コミットなし＝material.md・draft.md を docs/202611/20261105/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す。台本を scripts/instruments/r844/、出力を measurements/m844_20261105/ へ。
+- c65md・c67sv は旗 1 の腕へ載せない（この回の決まり）。
+- 反証役の指摘に high は無い（c68uh 中 2・c68hl 低 5・c68ds 中 1 低 3・c68id 中 1 低 4・c68ui 中 3 低 5）。中の指摘は記録の先頭と次の波へ回す（合流はエンジンの .cs も試験も直さない）。
+
+## [2] 合わせた木で動く物（予言）
+- 挙動：何も動かない。基線は m839 のまま。
+- 計器：rule_s の末尾 9 列・cornint_s の末尾 1 列が増える（c68id）。cgrp_s の savingsStart・residualPerQuarter が 412 行で nan（c68id・行の数は不変）。monlaw_s は MonGateColumn で基準の列を値 1 のまま残す（c68ui）＝バイト一致。
+- .cost：件数の行の名前〈海軍の発注の配り〉の行が c68ui で名乗りの字を変える（--cost-allow）。他の件数の行 29 本と推定（219.0 秒・220.8 秒）は一致。
+- cearn_s：c68ui は金を動かすファイル（Fiscal.cs・Simulation.cs・MultiNationSim.cs・World.cs ほか）の行を消した＝経路の名〈ファイル:行〉の行番号が動く。宣言は足さず、ident_check.py の BASE_COMMIT（bd1fb979）からの行の写像で〈写しても違う 0・写せない 0〉と予言する。確かめは ident_check.py と scripts/instruments/c66dw/cearn_remap.py の両方（★(832)）。c68id は計器のファイルだけ（エンジンの行は動かさない）。
+- テストの数：Category!=FullLength＝2264＋8（c68id）−28（c68ui）＝**2244**・FullLength＝3。合わなければ宣言を直さず、どの試験が動いたかを読む。
+
+## [3] 恒等の判定（合わせた木の ident 1 本）
+- 命令：`bash scripts/instruments/ident/ident.sh run m845 --tree D:/PoB_work/wt_m845 --saveleak --ng --grown-ok rule_s,cornint_s --known-extra cgrp_s:savingsStart,cgrp_s:residualPerQuarter --tests-delta -20 --cost-allow 海軍の発注の配り`
+- 予言：素の 5 種 b5 ≡ b5_20261105_m839（182 行・名乗り行の SOURCE-HASH を除く）。計器つき 10 種 b10_ins ≡ b10_20261105_m839_ins（181 行）。注視の表はタグの行以外一致。計器の表 1068 本＝バイト一致＋宣言の増減 20（rule_s×10・cornint_s×10）＋既知の揺れ（burscan_s・clock_s・cgrp_s の 2 列・cearn_s の行番号）。NG の集合は ng839 と同じ（新しい 0・外れた 0）。savetest OK・leakhunt 違反なし。
+- 腕 Z は回さない（挙動の線 0 本＝★(784)・★(790) の型）。M・N1・N2・S11 も回さない（新しい基線を作らない）。
+
+## [4] 止める線の段と記録の段
+- 止める線の段：該当なし（挙動の線 0 本＝どの腕にも当てない）。恒等の判定が〈不一致〉なら、不一致の表から帰属の線（c68id の計器・c68ui の焼き込み）を読み、その線を外す。
+- 機構のテストの赤：合わせた木のフルスイート（Category!=FullLength と =FullLength を分け、--list-tests と突き合わせる）で赤が出たら、物差しを替えずに、その赤を出した線を外す。
+- 記録の段（採否に使わない）：
+  - c68ui の〈旗 1 の出力を見た後の変更〉2 件（1 回目の ident の不一致の後の InstrumentsMon.MonGateColumn・フルスイートの赤の後の TechLevelRemovalTests の許可表〔MultiNationSim 9→8・World 5→4・6 ファイルの行の削除〕＝㉑ の予言なしの取り直し）。
+  - c68ui の消した試験 28 本のうち、旗 1 の機構の大きさを旗 0 を物差しにして確かめていた物（LaborClosedTests 6・ServiceClosedTests 2・StateEduDemandTests 7）＝次の波で物差しを置き換えて復元する線へ。
+  - c68ui の FullChainTests の鋳造の番人の枝（床か市場買いか）は未確かめ＝残り。
+  - c68ui の ident の途中で D: の空きが 4.2GB まで落ちた。
+  - c68id の rule_s の闘争度の列は四半期の末の値で、CheckSecession の瞬間と 92% の行で違う（⚠限界に未記載＝線へ戻す）。
+  - c68hl の訂正：0.249（161.0→40.0）はフォートウィリアムでなくセントポールの数（00一覧 :546・:552・実装ログ :54083 を打消し線と日付で直す）。
+  - c68uh の紙の no-go の第一の理由の見落とし（Region.PortCapacity）。
+
+## [5] 新しい基線を作らない場合の ident.cfg
+- B5・B10INS・MON・NG_BASE は m839 のまま。INSRAW を合わせた木の ident の計器つき 10 種の生（D:/PoB_work/keep_845/base_ins）へ移す（★(790) の型・約 15GB）。BASE_COMMIT は測った木の頭。TESTS_NONFULL 2244。
+- 〈判定: 恒等〉でなければ INSRAW は動かさない。

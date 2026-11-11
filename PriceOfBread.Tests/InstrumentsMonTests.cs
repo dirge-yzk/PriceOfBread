@@ -198,7 +198,7 @@ public class InstrumentsMonTests
         {
             var (h, rows) = Table(System.IO.Path.Combine(dir, "monlaw_s1789.tsv"));
             Assert.Equal(Instruments.MonLawHeader(), string.Join('\t', h));
-            int tail = 7 + laws.Count(l => l.Open != null);
+            int tail = 7 + laws.Count(l => l.Open != null || l.Axis is PolicyAxis.MinimumWage or PolicyAxis.Inheritance);   // (843) 焼いた門の 2 本は値 1 のまま列を残す（InstrumentsMon.MonGateColumn）
             Assert.Equal(tail + 2 * laws.Length, h.Length);
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             int qi = Array.IndexOf(h, "quarter"), ui = Array.IndexOf(h, "nationUid"), ii = Array.IndexOf(h, "nationIndex");

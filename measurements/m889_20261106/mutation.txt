@@ -1,0 +1,58 @@
+(889) c75cp 突然変異（scripts/instruments/c75cp/mut889.sh・木 0d236e98・1 本ずつ当てて CrownPcInstrumentTests 8 件を回し git checkout で戻した）
+予言：M1→T1・M2→T2・M3→T3・M4→T4・M5→T4・M5b→T1/T0・M6→T6b が赤。
+
+突然変異 M1_summon2x（木 0d236e98）
+-            double raw = pc + c.SummonParliamentRate * (x.Austerity - 0.5) * 2.0;
++            double raw = pc + 2 * c.SummonParliamentRate * (x.Austerity - 0.5) * 2.0;
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.召集だけの盤面で召集の項は式の値で残差は0 [8 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.政変の四半期は印と説明の区分で残差が説明される [5 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.Stepの直後に数えれば残差は0 [16 ms]
+失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+
+突然変異 M2_noclamp（木 0d236e98）
+-            pc = RuleClamp01(raw);
++            pc = raw;
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.Stepの直後に数えれば残差は0 [56 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.召集が1で切られた四半期に切りの印が立つ [2 ms]
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+
+突然変異 M3_t1gate（木 0d236e98）
+-            if (c.ParliamentPressureRate > 0 && r.T1Support && r.T1Coerce)
++            if (c.ParliamentPressureRate > 0 && r.T1Support)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.議会の圧力は門が2つとも開いたときだけ動く [2 ms]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+
+突然変異 M4_crownguard（木 0d236e98）
+-        if (c.SummonParliamentRate > 0 && r.RbCrown && r.RbCoop && r.RbLeg && r.RbArmy)
++        if (c.SummonParliamentRate > 0 && r.RbCoop && r.RbLeg && r.RbArmy)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.巻き返しは前の断面の協力度と軍の帰属で門を読み王冠の無い国では0 [15 ms]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+
+突然変異 M5_nowsnap（木 0d236e98）
+-        else row.Run = CrownApply(row.X, c, prev.Pc, prev.Polity, prev.Crown, prev.Seizure, prev.Coop, prev.Army, row.X.CurPrev);
++        else row.Run = CrownApply(row.X, c, prev.Pc, prev.Polity, prev.Crown, prev.Seizure, w.CoopParliamentCrown, w.ArmyAllegiance, row.X.CurPrev);
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.巻き返しは前の断面の協力度と軍の帰属で門を読み王冠の無い国では0 [3 ms]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+
+突然変異 M5b_nowpc（木 0d236e98）
+-        else row.Run = CrownApply(row.X, c, prev.Pc, prev.Polity, prev.Crown, prev.Seizure, prev.Coop, prev.Army, row.X.CurPrev);
++        else row.Run = CrownApply(row.X, c, w.ParliamentControl, prev.Polity, prev.Crown, prev.Seizure, prev.Coop, prev.Army, row.X.CurPrev);
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.召集だけの盤面で召集の項は式の値で残差は0 [34 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.巻き返しは前の断面の協力度と軍の帰属で門を読み王冠の無い国では0 [2 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.政変の四半期は印と説明の区分で残差が説明される [6 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.Stepの直後に数えれば残差は0 [8 ms]
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.召集が1で切られた四半期に切りの印が立つ [3 ms]
+失敗!   -失敗:     5、合格:     3、スキップ:     0、合計:     8、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+
+突然変異 M6_crosstol（木 0d236e98）
+-    internal const double CrossTol = 1e-12;
++    internal const double CrossTol = 1;
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.CrownPcInstrumentTests.交差の門はずらした統制力を落とす [7 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 9 s - PriceOfBread.Tests.dll (net10.0)

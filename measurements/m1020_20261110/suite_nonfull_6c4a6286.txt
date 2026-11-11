@@ -1,0 +1,14 @@
+D:\PoB_work\c95ub_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:07.86]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+[xUnit.net 00:06:21.70]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3230490) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3230490) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2239092 件（宣言 3230490）＝10 % を超えて**下がった**＝表を 2239092 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\c95ub_work\suite\suitesrc\PriceOfBread.Tests\WriterRatchetTests.cs:line 576
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:  2600、スキップ:     1、合計:  2602、期間: 15 m 5 s - PriceOfBread.Tests.dll (net10.0)

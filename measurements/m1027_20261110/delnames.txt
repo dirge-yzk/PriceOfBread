@@ -1,0 +1,16 @@
+WarStarted c96wn 6
+WarStarted c96kf 5
+WarStarted c96rd 5
+WarTables c96wn 4
+WarTables c96kf 4
+WarTables c96rd 4
+MerchBuf c96wn 3
+MerchBuf c96kf 3
+MerchBuf c96rd 3
+ScopeClear c96wn 2
+ScopeClear c96kf 2
+ScopeClear c96rd 2
+WarStarted base 5
+WarTables base 4
+MerchBuf base 3
+ScopeClear base 2

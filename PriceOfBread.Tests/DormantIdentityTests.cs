@@ -24,25 +24,33 @@ public class DormantIdentityTests
         // ★StateEduDemandInFront（(452) 国庫の教育の買いたい分を値段が読む需要へ）は 2026-10-20 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★ServiceClosedFixedPoint（(spa) A′ 役務の不動点の閉じた式）は 2026-10-23 に 1 で**点火**（S1c・ServiceClosedMaxCurv=0.01）＝この表から外した。
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
-        // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は IndustrializationReaderTests（都市化の天井_旗1…旗0は旧のまま）。
+        // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。(812) で旗ごと焼き込んだ（RetiredFields）。
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
+        // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
+        // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
+        "SubsistenceNoBoughtTech",     // ★(877) c73ts 自給の段 2′ Σ2′：技術の比 T を自給の 3 か所（焼く ρ・σ・(b′) の lneed）から外す旗（0＝S1-a のまま・番人 SubsistenceNoBoughtTechTests）。点火時にこの表から外す
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
+        // ★RuleOrderByRegion（(850) c69po・(862) c71po 州ごとの治安 P1-1）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は RuleOrderP1Tests の P1_0・P1_2・P1_5 と RuleSharesFormTests の D2 の 2 本（旗 0 を明示）。
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
+        "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
         "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
+        // ★CapitalClaimCancelFromLedger（(828) c66dw 消えた請求権の額を外資の負債の台帳の差で書く）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests の Theory（旗を明示）。
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
-        "OpiumAddictionCapOff",   // (771) c6op アヘンの蓋の段1（0＝蓋 0.2・段2 で 1）
+        // ★CapitalCouponUnpaidWriteDown（(815) c14fl 払えない利札で請求権を落とす）は 1 で**点火**（腕 B の木）＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests（旗を明示）。
+        // ★OpiumAddictionCapOff（(771) c6op アヘンの蓋の段1・既定 0）は (830) で旗ごと削除（RetiredFields）。d は常に OpiumAddictionCap。
+        // ★OpiumAddictionLogistic（(820) c65op 形 H）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は HabitTests の Theory（旗を明示）・HabitLogisticTests。
         // ★PortSameLandmassFirst（(779) c8pd 港の形 (d)）は線の枝で 1 に**点火**＝この表から外した。(785) c9bk で旗ごと焼き込み（欄は削除）＝番人は PortByLandTests の形d_ 3 本。
         "CapitalHeadroomFromReturn",   // (605) 線 ind4：工業化度の読み手を盤面の量へ置き換える旗の束（既定 0＝今のまま・番人 IndustrializationReaderTests）
         // ★TechMultipliersOff（(613) 線 tl 段3）は 2026-10-28 に 1 で**点火**＝この表から外した。TechGateByDiscovery・TechSignalOff・TechThresholdOff・EraOff（段1・2a・2b・4）も同日に 1 で点火。TechProductivityBracketOff（段5・腕 B5）は既定 0 のまま〔cp3 と同じ線か後〕
         // ★InheritanceLawGate（(650) 相続法）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は InheritanceLawTests。
-        // ★HcdColonyCessionDistance（(696) 線 hcd 講和の植民地格の州の複数割譲に距離）は 2026-10-31 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は ColonyCessionDistanceTests（旗を 0 に置いた走行）。
+        // ★HcdColonyCessionDistance（(696) 線 hcd 講和の植民地格の州の複数割譲に距離）は 2026-10-31 に 1 で**点火**＝この表から外した。(817) で旗ごと削除（RetiredFields）。番人は ColonyCessionDistanceTests。
         "TechProductivityBracketOff",
-        // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalCedeFleetReturnTests（旗を 0 に置いた走行）。
+        // ★NavalCedeFleetReturn（(688) 線 navf5 割譲で艦が移る経路）は 2026-10-30 に 1 で**点火**＝この表から外した。(817) で旗ごと削除（RetiredFields）。番人は NavalCedeFleetReturnTests。
         // ★StanceEduHoldsLaw（(680) 線 edq）は 2026-10-30 に 1 で**点火**＝この表から外した。(772) c6sp で焼き込み（欄は墓標・旗 0 の経路は無い）＝番人 StanceEduHoldsLawTests は既定の形だけを確かめる。
         // ★SpreadLiteracyFull・SpreadPrereqEdges（(621) 線 inst）は 2026-10-28 に点火＝この表から外した（SpreadLiteracyFull は既定 0.5・辺は Catalog.After の共産主義 ← 社会主義へ移して旗を消した）。旗 0 の経路の番人は InstitutionAnchorTests。
         // ★MandateWallStockCap（(615) 政治資本の壁の一歩の勘定）は 2026-10-28 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は MandateWallStockCapTests。
         "CriminalClassEnabled",         // ★(366) 治安と所有の安全 段0 の器＝犯罪者 POP を並べる主フラグ（0＝Pops.Count も CriminalPopIndex=-1 も不変）。点火は段1（腕 A）
-        // ★NavalPortProcurement（(606)(669)(679) 線 navf4 海軍の需要の道）は 2026-10-30 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NavalPortProcurementTests（旗を 0 に置いた走行）。
+        // ★NavalPortProcurement（(606)(669)(679) 線 navf4 海軍の需要の道）は 2026-10-30 に 1 で**点火**＝この表から外した。(824) で旗ごと削除（RetiredFields）。番人は NavalPortProcurementTests。
         // ★ModernizationAbolished（(573) 近代化投資の廃止・作者 2026-10-26）は 2026-10-26 に 1 で**点火**（腕 B_mod・止める線に当たらず）＝この表から外した。
         // ★ClearingIdleThrottledScan・ClearingIdlePotentialReweight（(434) 清算の片方向の錠）は 2026-10-19 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★DomesticServiceMarketRation（(433) 家事奉仕を優先配分から外す）は 2026-10-19 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
@@ -57,6 +65,8 @@ public class DormantIdentityTests
         // ★SymmetricTensionVerb は 2026-09-28 に点火して旗ごと削除（回8-1・dip-04）＝この表から外した。
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
                                         //   0＝EconomyStep の枝に入らず（rebelDemand 全0）・法は7箇所全部が素通り・第5因子は掛けない＝厳密恒等。点火は 1.0（0/1の主フラグ）
+        // ★CivilWarArmsDemandUnified（(903) c77cw 内戦の軍需の倍率の枝を消す）は 2026-11-07 (922) c80cw で 1 に**点火**＝この表から外した・2026-11-08 (973) c87mw ⑰ で旧の 2.0 の枝ごと旗を消した（番人は MilitaryWarMultContactTests・CivilWarArmsDemandTests の計器の試験）。
+        // ★MilitaryWarMultFromContact（(959) c85mw 戦時の軍需の倍率を接触の割合から導く）は 2026-11-08 に枝 c85mw で 1 に**点火**＝この表から外した（番人 MilitaryWarMultContactTests）。
         // ★FamineDriveGain は 2026-09-22 に 10 で**点火**、NeedTierSplit は同日に旗ごと削除（階層3分割を既定化＝作者裁定2026-09-20）＝この表から外した。
         // ★ParticipationDiscontent は 2026-10-19 (431) に 1 で**点火**、DiscontentSplit は焼き込んで旗ごと削除（二量分離の完成＝闘争度の目標から生活の項を外し、参加の述語と思想の更新の入力は max(不満度, 闘争度)）。この表から外した。
         "AssimilationRevival",          // ★段4（2026-09-09・§7-7バグa後半）＝民族復興＝抵抗の床を外して符号を反転させる（勾配の差し替え）。
@@ -91,7 +101,6 @@ public class DormantIdentityTests
         "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
         // ★ColonyPlantationRent（実バグ B5＝植民地格の昇格州に大農園の地代）は 2026-10-02 (173) で**点火**（R1＋c6・旗ごと削除）＝この表から外した。
-        "HeldSinceFromData",            // 実バグ B14＝world.json の heldSince を読む（0＝全州 Core・支配度1）
         // ★CivilWarPredicateUnified は 2026-09-08 に 1.0 で**点火**（F3b蜂起doc §5 段3・作者裁定②）＝この表から外した。
         "RevoltIgnitionIntensity",      // F3b蜂起doc 段4＝点火の付け替え（門1＝FactionStrength÷f.Size の示強量）。0で旧2門（力の門＋好機/圧倒）＝厳密恒等
         "RevoltGrievanceWeight",        // F3b蜂起doc 段4＝門2の怨嗟の重み（min(1, FactionRejectionMutation×Rejections)）。0で加算項が消える
@@ -125,13 +134,26 @@ public class DormantIdentityTests
         // ★DevaluationCapReliefExp（(587) 切り下げの月の上限の緩め）は 2026-10-27 に 1 で**点火**（線 hyp の腕 B・止める線に当たらず）＝この表から外した。0 に戻せば旧の切り（貯蓄×DevaluationCapFracPerMonth）。
         // ★StapleLedgerSum・HarvestShortfallToMarket（(504) 食料の台帳を主食の和へ①③）は 2026-10-23 に 1 で**点火**（腕 C・止める線に当たらず）＝この表から外した。②は表に残る。
         "StapleDemandRebalance",        // ★(504) 主食どうしの乗り換えの配り直し②（挟みを外し欲しい量の和を必要量に合わせる）＝0 で今の挟み。点火は同上
+        // ★MoTrendInitNeedsGdp（(972) c87mt (D) 実質 GDP が正になってから M/Y の趨勢の基準を置く）は 2026-11-08 に 1 で**点火**＝この表から外した。
         // ★UnionBargaining（(520) 交渉の取り分）は 2026-10-24 に 1 で**点火**・LandRentResidual（産地の地代の残りの道）は (529) で撤回して旗ごと削除（腕 B1″〔種 21〜30〕・B2・合成の腕 B3・止める線に当たらず）＝この表から外した。
         // ★RentScarcityElasticity（産地の地代の土地稀少弾力）は (529) で既定 0＝休眠にし、(541) で墓標へ消した＝この表から外した（復活を禁じる番人は Hz8IdentityTests）。
         // ★LordOppositionByRentLoss（(547) 農奴解放・土地改革への旧支配層の反対の強さを次の一段で失う所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は Rs2LordOppositionTests。
         // ★LordOppositionReverseGain（(558) 農奴解放・土地改革への旧支配層の減らす向きの強さを 1 段戻したときに得る所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は Rs3LordReverseGainTests。
+        // ★LandTaxFixedBasis（(937) c82lt 土地税の算定の基準 A-2・定額の国の凍結した基数）は 2026-11-08 の (958) c85lt・(964) c86lt で 1 に**点火**（1 回目 (945) は採らず）＝この表から外した。
+        "ImportPayerLive",              // (863) c71ip 輸入の払い手を人の居る POP に限る旗（0＝今の形・1 ビットも変わらない・番人 ImportPayerLiveTests）。点火時にこの表から外す
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
+        // ★EmptyPopEstate（(848) c69eh 人の居ない POP の在庫の相続 R1）は 2026-11-05 に 1 で**点火**＝この表から外した。
+        // ★OpeningColonyDominanceFull（(952) c84kp 開幕の一括昇格の植民地の支配度を 1.0 から）は 2026-11-08 に 1 で**点火**＝この表から外した（番人 OpeningColonyDominanceTests）。
+        "LandTaxPhiMove",               // (990) c90px 土地税の基数の定額の度合い φ* を動かす器（0＝world.json のまま・番人 LandTaxPhiTests）。点火は A-2b-1d（答え待ち）
+        // ★ResourceRowsFix（(1025) c96rd 段0″a 資源のデータ＝world.json に足した史実の産地の 10 行を州の構築で使う旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ResourceRowsTests）
+        "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
+        // ★UbiquitousMineralExempt（(1020) c95ub 遍在の財〔石灰石・珪砂・粘土〕を非産地の 0.4 の外へ出す旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 UbiquitousMineralTests）。
+        // ★ColonyPettyEntryEmptyTarget（(1014) c94pe 小営業の入口の空の商人の行き先を飛ばさない旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ColonyPettyEntryTests）。
+        // ★TakeFloorPositive（(984) c89dd ⑬ Pop.Take の額の床を〈正なら動かす〉にする旗）は 2026-11-09 に 1 で**点火**＝この表から外した（番人 TakeDustFloorTests）。
+        // ★LandShareCrownSlot（(978) c88cs 土地の持ち分 B-2b 国家の枠）は 2026-11-09 に 1 で**点火**＝この表から外した（番人 LandShareCrownTests）。
         // ★RecipeEquipment・IndustrializationOff（(495) レシピごとの設備と工業化度の倍率の削除）は 2026-10-23 に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
+        // ★LandShareTaxSale（(991) c90sl 土地の持ち分 B-1 段 1〜2 土地税の払えない分の公売の旗）は 2026-11-09 (997) c91sl で 1 に**点火**＝この表から外した（番人 LandSaleTests）。
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>
@@ -226,6 +248,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "HeldSinceFromData",          // (956) 線 c85hs：B14＝world.json の heldSince を読む旗〔既定0〕。heldSince のデータと CoreHeldYears〔150〕とあわせて削除（全州 Core・支配度1.0 の経路だけ残した）
         "WageClampIndScale",          // (605) 線 ind4：賃金の天井の工業化度の項〔R2 点火 1.0・(495) で IndustrializationOff が 0 を掛けていた〕。項ごと削除（天井そのものの WageClampMax は残る）
         "MonopolyDissolveInd",        // (605) 同：独占が解体する工業化度〔0.3〕。解体は独占禁止法の係数 MonopolyRentFactor に任せる
         "RefrigerationIndOnset",      // (605) 同：冷蔵の立ち上がりの工業化度〔1.0〕。冷蔵の門は発見の行
@@ -297,6 +320,16 @@ public class DormantIdentityTests
         "SilverStandardGate",
         // ★旗の焼き込み 2026-10-18・精査 doc §4 ①-c 軍14の最後（ColoniesAreRegions＝植民地の州昇格。読み手が多いので最後・環境固定のテストは固定を外して緑)
         "ColoniesAreRegions",
+        // ★旗の焼き込み 2026-11-03 (812) c13ib（I5・港と移民の旗。既定 1 の経路だけ残した）
+        "NavalProcurementNeedsPort", "CrossBorderMigrationByOpportunity",
+        "NavalCedeFleetReturn",   // (817) c14id：I5 の旗の焼き込み（割譲で艦を送り手の首都の州へ戻す・既定 1 の経路だけ残した）
+        "InheritedStateIntentDrop",   // (817) c14id：I5 の旗の焼き込み（移る州の生産者の意志を今の棟数まで下げる・既定 1 の経路だけ残した）
+        "HcdColonyCessionDistance",   // (817) c14id：I5 の旗の焼き込み（講和の植民地格の州の複数割譲に距離の項・既定 1 の経路だけ残した）
+        "NavalPortProcurement",   // (824) c65id：I5 の旗の焼き込み（国の海軍の発注と予算を本国格の港の州へ配る・既定 1 の経路だけ残した）
+        "TechSignalOff",   // (824) c65id：技術水準の削除の段2a の旗の焼き込み（姿勢の効用の技術の遅れと外圧の格差を 0 にする・既定 1 の経路だけ残した）
+        "TechThresholdOff",   // (824) c65id：技術水準の削除の段2b の旗の焼き込み（Modernize の法の目標と制限選挙の技術の閾値・制度と思想の行の技術の比・既定 1 の経路だけ残した）
+        "ExternalPressureGapScale",   // (824) c65id：外圧が満額になる技術格差（読み手は MultiNationSim の gap の 1 行だけだった＝TechSignalOff の焼き込みで読み手が無くなり、読み手のない係数の番人に従って削除）
+        "UrbanCapOff", "BaseUrbanCap", "UrbanPerInd", "UrbanCapFollowSpeed", "UrbanIndSmoothed",   // 都市化の天井の旗と目盛り・Region の平滑化の状態（A3）
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
         "NationalConsciousnessCorruptionWeight",   // (798) c11dm：国民意識の蓄積の門の左の項（既定 0.2 で常に真・他の読み手なし〔Coefficients の注にあった World.civicCarriesEthnic は存在しない〕）。試験〈係数は全て本体のどこかで読まれる〉が門を消した後に赤で知らせた
@@ -308,6 +341,13 @@ public class DormantIdentityTests
         "FrontierDevelopmentRate", "FrontierUnlockThreshold", "ForceUnlockRate", "ForceUnlockTreasuryCostPerMonth", "ForceUnlockMilitancy",
         "PreemptiveSeizeWeight", "FertileAbsoluteBlend", "MigrationFarePerkKm", "NationalismFromConsciousness", "WorldPriceStatUnclamped",
         "LordOppositionByRentLoss", "LordOppositionReverseGain", "MandateWallStockCap", "FactionOpportunism",   // (803) c12lw：法の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は Rs2LordOppositionTests・Rs3LordReverseGainTests・MandateWallStockCapTests・RevoltIgnitionTests）
+        "OpiumAddictionCapOff",   // (830) c66id：アヘンの蓋の旗（(771)・既定 0＝蓋 OpiumAddictionCap）の焼き込み。正の枝〔d=+∞〕は形 H の下で形 H が黙って消える罠だった。計器 habitcap_s・habitbal_s も削除
+        "TechMultipliersOff", "TechGateByDiscovery", "EraOff",   // (843) c68ui：技術水準の削除の段6（段1・3・4 の旗の焼き込み・既定 1 の経路だけ残した）
+        "ExpeditionTechLevel", "ExpeditionTechFloor", "TechMilLowFloor", "TechMilFullLevel", "ModernizationTechLagCost",   // (843) c68ui：TechMultipliersOff の焼き込みで読み手が無くなった技術の倍率の係数 5 本
+        "MinimumWageLawGate", "InheritanceLawGate", "AntitrustGate", "NationalizationGate",   // (843) c68ui：I3 の残り 4 本（法の旗・既定 1 の経路だけ残した）
+        "ServiceClosedFixedPoint", "LaborClosedForm", "HouseholdCreditStapleOnly", "StapleElasticityZero", "StateEduDemandInFront", "ArmsStockEnabled", "BaseArmsStockEnabled",   // (843) c68ui：I1 経済の旗（既定の経路だけ残した）
+        "DistanceMarginScale",   // (843) c68ui：B12 既定 1.0 の距離の物差し（×1.0 の因子の除去）
+        "MilitaryBudgetNeedCapped", "RegionalPriceBaseExcludesColonies", "MachineCastIronRecipe", "ParishEduFunded", "ChilledMeatEnabled", "KeroseneFromOilEnabled", "HouseholdProductionEnabled",   // (811) c13ia：Simulation.cs の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は MilitaryTests・IvfInitialValuesTests・ReformPathTests・HouseholdProductionTests ほか）
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

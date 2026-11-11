@@ -1,0 +1,8 @@
+M0 rc=0 成功!   -失敗:     0、合格:    15、スキップ:     0、合計:    15、期間: 18 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 
+M1 rc=1 失敗!   -失敗:     3、合格:    12、スキップ:     0、合計:    15、期間: 15 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.空の商人の行き先は旗1でだけ入る(flag: 1, wantEntry: True) [67 ms] 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.旗1でも職人と専門職の空の行き先は開かない [129 ms] 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.空の行き先の流れは率の上限の内 [58 ms] 
+M2 rc=1 失敗!   -失敗:     3、合格:    12、スキップ:     0、合計:    15、期間: 11 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.空の商人の行き先は旗1でだけ入る(flag: 1, wantEntry: True) [97 ms] 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.旗1でも職人と専門職の空の行き先は開かない [176 ms] 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.空の行き先の流れは率の上限の内 [98 ms] 
+M3 rc=1 失敗!   -失敗:     2、合格:    13、スキップ:     0、合計:    15、期間: 17 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 失敗 PriceOfBread.Tests.MerchInstrumentTests.錠Bが閉じていれば入口の流れは0(workerSav: 400, wantEqual: False) [386 ms] 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.空の行き先の流れは率の上限の内 [107 ms] 
+M4 rc=1 失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 17 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.錠Bが閉じていれば旗1でも空の商人は0のまま [280 ms] 
+M5 rc=1 失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 29 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.旗1でも職人と専門職の空の行き先は開かない [183 ms] 
+M6 rc=1 失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 6 s - PriceOfBread.Tests.dll (net10.0)  赤の試験: 失敗 PriceOfBread.Tests.ColonyPettyEntryTests.旗1でも職人と専門職の空の行き先は開かない [319 ms] 
+MUTDONE

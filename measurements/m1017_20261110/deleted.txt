@@ -1,0 +1,22 @@
+2026-11-10 10:16:54 D:/PoB_work/c94pe_work/ident（線の生・表ごとの sha1 を m1017_work/hash に取った後＝合わせた木の腕の生と突き合わせる）
+2026-11-10 10:16:56 D:/PoB_work/ident_c94clz（線の生・表ごとの sha1 を m1017_work/hash に取った後＝合わせた木の腕の生と突き合わせる）
+2026-11-10 10:16:59 D:/PoB_work/c94ro_work/ident（線の生・表ごとの sha1 を m1017_work/hash に取った後＝合わせた木の腕の生と突き合わせる）
+2026-11-10 10:17:00 D:/PoB_work/c94pe_work/arm_S11/out_c94peS_10_s11/ins（線の生・表ごとの sha1 を m1017_work/hash に取った後＝合わせた木の腕の生と突き合わせる）
+2026-11-10 11:31:40 D:/PoB_work/m1017_work/quick（合流の使い捨ての木とビルド）
+2026-11-10 11:31:46 D:/PoB_work/m1017_work/mutro（合流の使い捨ての木とビルド）
+2026-11-10 11:31:46 D:/PoB_work/m1017_work/suite/art_suite（合流の使い捨ての木とビルド）
+2026-11-10 11:31:54 D:/PoB_work/m1017_work/suite/suitesrc（合流の使い捨ての木とビルド）
+2026-11-10 11:31:54 D:/PoB_work/m1017_work/scan（合流の使い捨ての木とビルド）
+2026-11-10 11:35:44 D:/PoB_work/ident_m1017z（腕 Z の ident の生・判定〈恒等〉と表ごとの sha1〔hash/z.tsv〕を取った後）
+2026-11-10 12:04:41 D:/PoB_work/c94pe_work/arm_B/out_c94peB_10/ins（線の腕 B の生・合わせた木の M の生と表ごとの sha1 で一致〔read/rawcmp_M_vs_c94peB.txt〕・門 gates1014 を M で読み直した後）
+2026-11-10 12:35:41 D:/PoB_work/wt_c94cl（worktree・git worktree remove）
+2026-11-10 12:35:45 D:/PoB_work/wt_c94ro（worktree・git worktree remove）
+2026-11-10 12:35:49 D:/PoB_work/wt_c94pe（worktree・git worktree remove）
+2026-11-10 12:35:53 D:/PoB_work/wt_m1017z（worktree・git worktree remove）
+2026-11-10 12:36:10 D:/PoB_work/c94cl_work（線の作業フォルダ・台本と表と成績表は measurements と scripts に写した後・線の報告が〈合流が消してよい〉と書いた物）
+2026-11-10 12:36:10 D:/PoB_work/c94ro_work（線の作業フォルダ・台本と表と成績表は measurements と scripts に写した後・線の報告が〈合流が消してよい〉と書いた物）
+2026-11-10 12:36:10 D:/PoB_work/c94pe_work（線の作業フォルダ・台本と表と成績表は measurements と scripts に写した後・線の報告が〈合流が消してよい〉と書いた物）
+2026-11-10 12:36:10 D:/PoB_work/r1015_work（線の作業フォルダ・台本と表と成績表は measurements と scripts に写した後・線の報告が〈合流が消してよい〉と書いた物）
+2026-11-10 12:36:11 D:/PoB_work/r1016_work（線の作業フォルダ・台本と表と成績表は measurements と scripts に写した後・線の報告が〈合流が消してよい〉と書いた物）
+2026-11-10 12:36:59 D:/PoB_work/wt_m1017（worktree・git worktree remove）・ローカルの枝 c94cl・c94ro・c94pe・m1017z・m1017（origin の枝は残す）
+D:/PoB_work/m1017_work はこの記録の push の後に消す（合流の作業フォルダ自身）

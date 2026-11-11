@@ -1,0 +1,39 @@
+(857) c70ea 事前登録（読む線・腕 0 本・生の値を読む前に書く・2026-11-05・担当 Claude Opus 5.5）
+合流が写す先：measurements/m857_20261105_prereg.txt（sha256 は D:/PoB_work/r857_work/prereg.sha256）
+この時点までに読んだ物：ソース（下）・既に main にある要約の表（measurements/m852_20261105/armB2/ratio848_c69ehB.txt＝和の比と中央の比・m836 report.txt）・生の表のヘッダの行と cpop_s の className の一覧だけ。生の値（州ごと・POP ごと・国ごとの行）はまだ読んでいない。
+
+§0 分母（全ての問いで同じ）
+- 腕：旗 1＝D:/PoB_work/keep_852/base_ins（M・m852）／旗 0 の同じ盤面＝D:/PoB_work/keep_845/base_ins（腕 Z ≡ m839）／旧のヌル腕＝D:/PoB_work/keep_839/n1・n2（旗 0）。
+- 種 1〜10・四半期 0〜667 の全て。
+- 植民地格＝表の tier 列が Colonial（cearn_s・cpop_s・cons_s・region_s とも同じ列）。本国格＝Core。
+- 組（同じ盤面の比）＝(種, 四半期, 国, 州) の鍵が両腕にある行どうし（ratio848.py と同じ照合）。軌道は旗で分かれる＝〈同じ盤面〉は同じ鍵の行であって同じ状態ではないと名乗る。
+- 階級は className で引く（'商人'・'資本家'）＝popIndex で引かない（Simulation.cs:549 系と :951 系で MerchantPopIndex が 9／10 に割れる）。
+- 〈人の居ない〉＝popK ≦ 1e-9（千人の単位＝人数 ≦1e-6 人。EmptyPopEstate の門 Size ≦1e-12 は人の単位か千人の単位かを担当が確かめていない＝境の行の数を別に出す）。
+- 比は〈旗 1 ÷ 旗 0（keep_845）〉と〈N1 ÷ 旗 0〉〈N2 ÷ 旗 0〉を並べる（ヌル腕どうしの幅）。比のガードは絶対値で書かない＝和の比と、両方が正の組の比の中央と、分母の組の数を並べる。
+
+§1 ソースから読めた鎖（生を読む前・担当の予言の材料）
+- 輸入の払い手：BilateralMarket.cs:580 `if (r2.MerchantPop is { } merchPay) { payerOf[t2] = [merchPay]; bill[t2] = !(merchPay.Debt.Value > 0); }`＝州に商人の POP があれば人数を見ずにその 1 POP が払い手。:583 bill が真なら支払能力 ∞（手形）。:1142〜1145 貯蓄で足りない分を Bank.Lend（Debt が増える）。:578〜579 清算の頭で `min(Debt, max(0, Savings))` を返す。
+- 月の順：MultiNationSim.cs:783 StepDayClose（Simulation.DemographicStep → Simulation.cs:2734 EmptyPopEstate.Step）の後に :796／:829 Market.Step（清算）。＝旗 1 では人の居ない商人の在庫は毎月、清算の前に同じ州の人の居る POP へ掃かれる。EmptyPopEstate は Debt を動かさない（EmptyPopEstate.cs）。
+- 投資の原資：EconomyStep.cs:1125 `budget = IndInvestmentFrac × max(0, Pops[InvestorPopIndex].Savings)`（人数を見ない）・:810〜811 投資枠の控除。
+
+§2 問いと予言（外れたら外れと書く）
+Q1 植民地格の輸入の代金の和の比 0.25（中央 0.78）
+ - 表 1：旗 0 で、植民地格の州の輸入の代金（cpop_s outImportPerQuarter）を払った POP の内訳（人数 0／正 × 階級）。
+ - 表 2：旗 1 で消えた分の振り分け。指示の 3 択＝(a) 人の居ない口座の買い（人の居ない需要）・(b) 投資の財の輸入・(c) 値段。
+ - 指示の予言：(a) が過半。
+ - 担当の予言（§1 から・指示の予言と別に書く）：(d) 3 択の外＝払い手の錠。旗 0 で植民地格の輸入の代金の過半（≧0.5）は人数 0 の商人の POP が払っている。旗 1 でその州では、最初の数四半期に inCreditPerQuarter＞0 が出た後、outImportPerQuarter≈0（旗 0 の同じ鍵の 1/10 未満）が続く（返済の原資が毎月掃かれる→ Debt＞0 のまま→ bill 偽→ 支払能力≈0）。人の居る商人の州の輸入の比は幅（N1・N2）の内。和の比 0.25 と中央 0.78 の乖離は〈商人が空の州〉と〈商人が居る州〉に分けると説明がつく。(a) は小さい（GoodNeed＝基礎の需要×人数＝人の居ない POP は買わない＝EconomyStep.cs:1718）。(b) の大きさは予言しない（輸入の財ごとの列が cpop_s に無い＝ trroute_s の値と重さで値段（c）を年ごとに見るだけ）。
+Q2 植民地格の工場の産出の比 0.59
+ - 表 3：cons_s の investorSizeK ≦1e-9 の植民地格の州の数（四半期ごとの割合）と、investorSavingsStock・budgetMoneyPerMonth・builtUnitsPerMonth・paidPerMonth・factoryScale の旗 0／旗 1 の和の比と中央（時代別：1783〜1829・1830〜1879・1880〜1950）。
+ - 予言：人数 0 の資本家を指す植民地格の州で、旗 1 の investorSavingsStock は旗 0 の 1/10 未満（毎月の流入の桁）・budget も同じ比・builtUnits と factoryScale がその後を追って下がる。人の居る資本家の州の比は幅の内。工場の産出 0.59 の大半（≧0.5）は前者の州から。
+Q3 M の種 8 共和制デンマークの名目 GDP 0 の 50 四半期
+ - 表 4：nation_s（人口・名目 GDP・州の数の列）・region_s のその国の州（人口・活き）・cearn_s（州の在庫・流れ）・secession_s（建国の四半期と元の国）を 1869〜1935 の前後で並べる。旗 0 の同じ種（keep_845）・S11・N1・N2 に同じ国名があるか。
+ - 予言なし（読む前に形を書けない）。破綻（NaN・保存則・進行不能）に当たるかを判定する：NaN は nation_s／cearn_s の非有限の値、保存則は cearn_s の residualPerQuarter の桁、進行不能は〈人口 1 万以上・州あり・名目 GDP 0 が 4 四半期以上〉かつ〈経済の流れ（州の inMarket・outMarket）が 0〉で読む。
+Q4 英の国債の不履行（M 5/10・S11 4/10・m839 M′ 4/10）・本国格の州の outCapital（B1 2.38・B2 1.62・ヌル腕 1.73・1.64）：記録だけ（表を写す・新しく数えない）。
+
+§3 根の書き方
+- 根ごとに〈幽霊の需要が消えた＝正しい向き〉か〈払い手・原資が人の居ない口座に縛られていた＝別の歪みが残る〉かを書く。ソースの行は grep で確かめる。
+- 次の挙動の線の形の案（AI の案・確証なし）を 1〜3 つ・良い所・難しい所・推奨。国ごとの特例の案は採らない側。
+- 採るかどうかは書かない。
+
+§4 台本と出力（D:/PoB_work/r857_work・新しいファイルだけ）
+- q1_import.py → out/q1_*.tsv・q2_invest.py → out/q2_*.tsv・q3_denmark.py → out/q3_*.txt・report.txt。腕 0 本・コミット 0。

@@ -1,0 +1,7 @@
+mutation	build	PriceOfBread.Tests.MoTrendInitTests.旗0は実質GDPが0の最初の呼び出しで趨勢を桁違いに置く_旧の形の陽性対照	PriceOfBread.Tests.MoTrendInitTests.旗1では実質GDPが0の四半期に趨勢を置かず_正になった四半期のMYで置き_次の四半期は1歩だけ寄る	PriceOfBread.Tests.MoTrendInitTests.最初の呼び出しで実質GDPが正なら旗によらず趨勢はその四半期のMY(flag: 0)	PriceOfBread.Tests.MoTrendInitTests.最初の呼び出しで実質GDPが正なら旗によらず趨勢はその四半期のMY(flag: 1)	PriceOfBread.Tests.MoTrendInitTests.計器pinitは全ての国の基準を置いた呼びを1行ずつ出し_旗の列は係数の値
+ORIG	ok	緑	緑	緑	緑	緑
+M0	ok	緑	赤	緑	緑	緑
+M1	ok	緑	赤	緑	赤	緑
+M2	ok	緑	赤	緑	緑	緑
+M3	ok	緑	赤	緑	赤	緑
+M4	ok	緑	緑	緑	緑	赤

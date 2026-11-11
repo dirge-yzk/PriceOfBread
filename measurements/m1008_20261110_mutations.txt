@@ -1,0 +1,18 @@
+m1008 突然変異（使い捨ての木 D:/PoB_work/c93tq_work/mut・台本 scripts/instruments/c93tq/mut.py・試験 TradeInstrumentTests 11 本）：元の木は 11 本全て緑
+=== M1 dutyCornMean に duty を積む (G5)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G5_関税の分と穀物法の分の和はdutyに合う [125 ms]
+=== M2 dutyCornPaid を積まない (G6)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G6_越境の払いの内訳の和はエンジンの関税収入に合う [3 s]
+=== M3 度数を門の前で全て xPassBin へ (G7)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G7_門ごとの値段の比の度数は旧の度数と件数に合う [6 s]
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G9_門の順は容量が楔より先 [4 ms]
+=== M4 tarEff を w.Tariff で写す (G8 条約港)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G8_実効の関税は条約港の目減りを含む [3 s]
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G8_実効の関税は床で止まる [2 s]
+=== M5 門の順を 楔→容量 に替える (G9)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G9_門の順は容量が楔より先 [2 ms]
+=== M6 払いに国内の成約を混ぜる (G6)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G1_越境の額はエンジンの輸入と輸出の欄と財ごとに合う [25 s]
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G6_越境の払いの内訳の和はエンジンの関税収入に合う [1 s]
+
+表（事前登録の M1〜M6 → 赤になった門）：M1→G5・M2→G6・M3→G7（と G9：度数が門の合成の盤面でも動くため）・M4→G8 条約港（と G8 床）・M5→G9・M6→G6（と G1：国内の額が輸入欄に混ざるため）。全て赤。

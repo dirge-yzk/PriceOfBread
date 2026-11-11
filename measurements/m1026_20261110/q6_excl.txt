@@ -1,0 +1,2 @@
+D:/PoB_work/keep_1022/base_ins seeds=1..10: (seed,year,nation) total=11115 excluded=26 (0.23%) [transfer 23 / founded 3]  (nation,good) rows excluded=3380/1444950 (0.23%)  producedQty share excluded=1.18%
+D:/PoB_work/keep_1022/a11 seeds=11..20: (seed,year,nation) total=11111 excluded=36 (0.32%) [transfer 32 / founded 4]  (nation,good) rows excluded=4680/1444430 (0.32%)  producedQty share excluded=1.23%

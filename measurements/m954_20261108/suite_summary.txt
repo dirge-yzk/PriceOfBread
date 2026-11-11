@@ -1,0 +1,19 @@
+(954) 合流のフルスイート（木 82792c19・Release・suite954.sh・Category!=FullLength と =FullLength を分けた）
+list nonfull 2425
+list full 3
+nonfull rc=0 828s
+full rc=0 176s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2424、スキップ:     1、合計:  2425、期間: 13 m 45 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 54 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 179s
+保存 46.6MB（522ms）／読込 459ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 351・その月の額の和 9.708E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m954_work/leakhunt.txt　マニフェスト=D:/PoB_work/m954_work/leakhunt.txt.manifest（SOURCE-HASH=37e382503deb818b）
+SL-END 07:43:26
+SAVELEAKDONE

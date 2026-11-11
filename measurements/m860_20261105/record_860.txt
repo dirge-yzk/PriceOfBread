@@ -1,0 +1,34 @@
+(860) 線 c71gt 記録（恒等の線・エンジン 0 行・ident なし）
+できた。枝 c71gt（出発 62190ef0）。事前登録 measurements/m860_20261105_prereg_gt.txt（最初のコミット a445036f）。
+- 作ったフォルダ：D:/PoB_work/wt_c71gt（worktree）・D:/PoB_work/c71gt_work（f0_839＝旗 0 の m839 の盤面の secession_s と rule_s の写し・gates/＝受け渡し・selftest/・explore/・mutss・mutpo・t_batch ほか）・D:/PoB_work/c71gt_art（隔離ビルド）。消した物：無し。残した物：全て（c71po が gates/ と gates_ready.mark を読む・f0_839 は自己試験が読む）。
+- 腕を回していない（読むだけ）。ident は回していない（理由＝事前登録 [4]：SimCore・Runner・App・Tests・データは 62190ef0 と差 0 を `git diff --stat 62190ef0 -- PriceOfBread.SimCore PriceOfBread.Runner PriceOfBread.App PriceOfBread.Tests` が空で確かめた）。
+- 判定文：〈ソースの差 0＝成績表の変わりえない恒等〉（ident の判定とは名乗らない）。
+
+■ G2b の形（規則どおり c）
+- 旗 0 の M′・N1・N2（keep_852・種 10）：形 c は L 20〜120 の全てで残りの絶対値の平均が 1e-12 以下の桁（L 120 で 5.7e-14／5.2e-14／5.9e-14・母集合 33,504／31,063／39,720）。形 a は幅の比 0.75（Lmin 1）で満たさない。選んだ形＝c・L＝120（measurements/m860_20261105/chooseForm_860.txt・閾値の表 gates_po860_thresholds.tsv）。
+- 名乗り：形 c は G2a と独立ではない（窓の連鎖で ung の連続を読む）。(856) の持ち越しの超過は G2b0（853 の形）の記録にだけ見える。旗 0 のデータでは残りは代数で 0 なので、--choose-form が no-go を返すのは台本が壊れたときだけ。
+- carry の盤面（正しい実装・窓の前の不足が長い）：G0・G1・G1u・G2a・G2b 全て緑。G2b0（853 の形）は |ΔC| 2.4e-5 ＞ W_C 1.8e-5 で赤＝853 の形は正しい実装を落とすことを固定の盤面でも確かめた。
+- 旗 1 の実の生（keep_852_rej/c69poB_10・盤面 m839・旗 0 は f0_839）：**1 回・閾値を固定した後・確かめだけ**。G0 100%・G1 ΔS 0.0359572＞W 0.00283252・G1u・G2a 100%（484,265 行）・G2b（母集合 旗1 63,913／旗0 43,540・残り 8.05e-14／5.86e-14）＝全て通る。G2b0 は |ΔC| 1.72e-4 が W_C 2.13e-5 の 8.1 倍（(856) の予測と一致）。他の形（a・853 の形）の値は flag1_forms860.txt に記録（選ぶ根拠にしていない）。
+- 一つ抜き（旗 0 の 3 本・6 通り）：G2b が赤になる通り 0／6。G1 が緑になる通り 2／6（対称な雑音 3 本では 3/6 が基準＝G1 は雑音を区別できない粒度 1/6）。
+
+■ G4m・chooseL・MU10・ident_check・batch.sh
+- G4m：候補の述語を関数 cand に 1 本化し、閾値（mask_share）と門（run_gates）が同じ関数を呼ぶ。数え直した割合は 61/3874・68/4659・67/6391（853 と同じ分母）＝閾値 0.047238 は同じ値で、表の sha256 が変わるのは注の書き換えのため。G5 の式（コメント以外の G5 を含む行）は 853 と一致（自己試験の diff）。**薄まりは未測定**（旗 1 の腕の BasisKind が 2 でない行の割合は c70ss の生に新しい門を当てない指示のため測っていない）。
+- G4m の突然変異（門の候補に BasisKind＝2 を足した旧の写し）：BasisKind が 0 の行を含む盤面で門 201・閾値側 419 と食い違い試験が赤。
+- chooseL の粒度の文：860 の --choose-form は〈満たす／満たさないの 2 値〉と名乗る。MU10 の注：結果（割り当ての不一致 12/17）に合わせた（式は 1 字も変えない）。
+- ident_check：by の除外に realf を足した（表示だけ）。T10 は新で緑・旧（62190ef0）で T10b が赤。
+- batch.sh：完走 0・失敗 4（BATCHFAIL）・ARMFULL 3・INS の国なし 2。test_batch_rc860.sh は新で全て緑、旧（62190ef0）で rc1_table・rc1_notable・rc0_truncated・rc1_stale と measure rc の行が赤。呼び手の表＝callers_batch_rc860.txt（分岐に使うのは ident_check の rc 受け入れだけ・正規表現は変えていない）。
+- 走査の番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests を隔離ビルド（D:/PoB_work/c71gt_art）で 172 本 全て合格（約 12 分）。書き換えた件数 0。
+
+■ 突然変異の表（腕の前の紙の台本・自己試験で再現）
+| 突然変異 | 赤になる所 |
+| G2b の形の要を外す（減衰の項を 0 に） | 形 c が旗 0 で満たされず --choose-form が rc≠0（mut_decay860.txt） |
+| G2b の窓の読みを最後の四半期だけ（mode last） | 固定の盤面で G2b が赤（mut_po860.txt） |
+| M2・M3・M7（目標式の誤り） | G2b（と G0・G2a）が赤 |
+| empty・escape の盤面 | G2b が赤（母集合が下限を満たさない） |
+| G4m の分母を旧へ | mut_ss860 の分母の試験が赤 |
+| ident_check の realf の除外を戻す（旧） | T10b が赤 |
+| batch.sh の終了コードを旧へ | test_batch_rc860.sh が赤 |
+
+■ 増えた行・減った行：scripts 14 ファイルで +1019 行 −5 行（新しいファイルが大半・直した既存は batch.sh +9/−2・ident_check.py +2/−2・mut847.sh +1/−1）。.cs は 0 行。
+■ 受け渡し：D:/PoB_work/c71gt_work/gates/（gates_po860.py・同閾値の表・mut_po860.py・gates_ss860.py・同閾値の表・mut_ss860.py・SHA256.txt）・印 gates_ready.mark（rc=0・end 2026-11-05 20:04:08）。sha256（gates_po860.py）61467ad5a7d3cc69cb5ce8e1bcba60cb76ee1f0755fae25eb3fe35e31c82a15e・（gates_po860_thresholds.tsv）e7cd62d0baff83e0b6fdc3d7cd52a90bb1fa884fb75c7b45e6d5875c677f8c87・（mut_po860.py）580338ad98cafb442b26e9fb211cf8dcd76d120aceba8d644588ce2042a7f4b2。
+■ 自己申告：waitmark 約 17 回（走査 2・自己試験 1 回目 7・2 回目 8）・覗き 2 回・hook に止められた 1 回（命令の途中に & を書いた誤り・言い換えず run_in_background でやり直した）・腕の枠で待った時間 0（腕を回していない）。自己試験は 1 回目が G5 の式の比べで版の字（853→860）の違いを拾って no-go になり（台本の比べ方の誤り）、直して 2 回目で rc 0。BATCHFAIL の後は .manifest が新しく .cost が古いまま残る（直さない）。

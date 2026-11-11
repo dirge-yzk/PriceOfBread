@@ -1,0 +1,6 @@
+M2 CearnImportPaid(a, -delta, p.Size);
+  -> CearnImportPaid(a, -delta, 1.0);
+  失敗 PriceOfBread.Tests.CearnTradeColumnsTests.旗0は人の居ない商人の帯が正_旗1は0_三列の和は払った額(flag: 0) [2 ms]
+  失敗 PriceOfBread.Tests.CearnTradeColumnsTests.帯は払いの時点の払い手の人数で決まり四半期の末の人数ではない [7 ms]
+   Assert.Equal() Failure: Values differ
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

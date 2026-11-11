@@ -1,0 +1,47 @@
+(995) c91lc 事前登録：B-1 の写しの直し＝計器の払いの予言にエンジンの床を入れる（恒等の線・ident 1 本）
+書いた日 2026-11-09・木 2b8f617d（main＝基線 m988）・担当 Claude Sonnet 5.5・腕の前（直しより前の別のコミット）に固定。
+形の種類：計器の写しの直し（エンジン 0 行・新しい係数 0・新しい列 0）。旗 LandShareTaxSale 0（既定）では写しが立たない＝ident は恒等（予言 0）。
+背景：(991) c90sl は門 G-L3 が赤で採らなかった（塵の買い手で Pop.Take が払いを拒む・写しにエンジンの床が無かった）。README ★(994)：エンジンの床を写しのどの項に入れるかをここに書く。
+
+[1] 式（恒等の線・予言 0）
+ 現物：InstrumentsLandsale.cs LandsaleSaleBegin（:278）。PCopy が `phi * price` だった所を、買い手ごとの払いの予言の和へ。
+ ΣS・Σ(S·重み)・pbAvg・net・price・φ は今のまま（塵込み＝SellOne と同じ・変えない）。
+ 払いの予言 PCopy＝Σ_j [S_j＞1e-9]·[amt_j＞floor]·amt_j、amt_j＝min(φ·(S_j/ΣS)·P, S_j)（演算の順は SellOne の `Math.Min(phi * (sj / sumS) * price, sj)` と同じ）。
+ floor＝w.Coef.TakeFloorPositive＞0 ? 0 : 1e-12。読むのは払い手の国の係数（確かめ済み：World.cs:752 は Pop.Take(…, from.W!.Coef)・買い手は同じ州＝同じ World＝w.Coef）。
+ エンジン側の根拠：Model.cs:360 の Pop.Take は `take＝min(額, 保有)`・`!(take＞(TakeFloorPositive＞0 ? 0 : 1e-12)) || !(held＞1e-9)` で 0 を返す。単独の払い手で held＝max(0, 貯蓄)＝S_j ⇒ [S_j＞1e-9]、take＝amt（amt≦S_j）。
+ 写しを入れる項＝払いの予言の和だけ（ΣS・φ・価格には入れない＝それらはエンジンも塵込み）。
+ エンジンの関数は呼ばない（Privileges.TaxAssessment・Fiscal.LandTaxBase は呼ばず、計器の写しのまま）。なぜ今の盤面で同じ値か（紙・1 行ずつ）：
+  ①写しの重み `Closed && !IsSoldier ? 1−ExemptDeg : 1` ≡ Privileges.TaxAssessment（Privileges.cs:93-94 は同じ式）。ExemptDeg は LandsaleStep が TaxExemptionDegree(w, c, crownShare) を（Fiscal.Step の crownShareForPrivilege と同じ式 CrownShareForPrivilege で）月の走査の頭で取る＝Resolve（同じ月の走査の後）まで入力が変わらない限り同値。
+  ②写しの landBase ≡ Fiscal.LandTaxBase（Fiscal.cs:815：LandTaxFixedBasis＞0 ? 地代＋差分 : 地代）。計器は同じ分岐を自分で持つ。
+  ③1 回目の差は最大 5.4e-9（G-L3）＝この床の欠けで説明される（読み直しは [3]）。
+ 既知の限界（InstrumentsLandsale.cs の頭の注へ）：ExemptDeg は走査の頭の取り（走査の途中で免税の入力が変わる盤面では ≠）・V は徴税の前の貯蓄で数えた未払い（エンジンの V と同じ式の写し）・買い手の列挙は LdBuyersOf の写し（SellOne の buyers と別実装）。φ*≠0/1 の盤面・特権の免税を使う盤面（PrivilegeTaxDiscount＞0）は計器の写しが ①②の同値の外に出うる＝記録の限界として名乗る。
+ 浮動小数の順序が変わる箇所：PCopy の和の取り方が `phi*price` → 買い手ごとの和へ変わる（計器の列 saleCopyPaidPerQuarter・salePaidCopyMaxRelDiff の値だけ・旗 0 では写しが立たず 0）。エンジンの演算順は 1 命令も変えない。旗 0 での食い違い数＝0（Pend が立たない）。
+
+[2] 消す物・残す物・読み手
+ 消す物：0（LandsaleSaleBegin の 1 行 `a.PPrice = price; a.PNet = net; a.PCopy = phi * price;` の PCopy の式だけを置き換える）。
+ 足す物：試験の窓として InstrumentsLandsale.cs に internal static 2 本（LandsaleTestOwe＝未払いの写しと免税の度合いを置く・LandsaleTestRead＝QSaleActual／QSaleCopy／QSaleMaxRel を返す）。LdAcc は private のため、試験が受け口を直接回すのに要る。読み手＝LandsaleInstrumentTests だけ。
+ 読み手の grep（2b8f617d）：PCopy＝InstrumentsLandsale.cs 内だけ。saleCopyPaidPerQuarter／salePaidCopyMaxRelDiff＝InstrumentsLandsale.cs・scripts/instruments/c90sl/gates991.py・docs の記録（実装ログ (991)）・measurements/m991_*。Runner・App・Display・POB_COEF の名前・SaveGame の名前の表：0 件。
+ InstrumentsLandsale を名指しで走査する番人（Tests）：0 件。`new MoneyStock(` InstrumentsLandsale.cs 内：0 件。route_anchors.tsv の鍵の行：触れない（新しい鍵 0）。WriterRatchetTests の宣言の表：触れない（エンジンの書き手 0）。
+ 他の線との重なり：c91sl は Coefficients.cs:3342・LandSaleTests.cs・DormantIdentityTests.cs:153。lc は InstrumentsLandsale.cs（LandsaleSaleBegin の PCopy の 1 行＋頭の注＋試験の窓）・LandsaleInstrumentTests.cs（足すだけ）。重ならない。c91rx は scripts/instruments/c91rx/ だけ。
+
+[3] 足す試験（LandsaleInstrumentTests.cs・[Fact] だけ 3 本＝T8〜T10）と突然変異
+ 盤面：LandSaleTests.Board と同じ型（英の 1 州・POP 0＝売り手・1 聖職・2 担い手・3 投資家・τ＝0.1・金利 0.05・売り手の地代 100・免税 0・値段 21600）を試験の中に手で組み、Instruments.Configure（On）→ LandsaleTestOwe → LandSale.Resolve（旗 LandShareTaxSale＝1）を直接回し、LandsaleTestRead で実際＝写しを相対 1e-12 で比べる。期待は手で置く（式の逆呼びはしない）。
+ T8（a）塵の買い手だけ：貯蓄 5e-10×3（V＝216）。実際 0・写し 0（Assert で 0 を明示）。
+ T9（b）塵と塵でない買い手が混ざる：貯蓄 9e-10（塵）・2e-9・0・V＝1e-9。手計算：ΣS＝2.9e-9、φ·P＝1e-9、amt₂＝1e-9×2÷2.9＝6.9e-10（≦S₂・床 1e-12 超）、塵は払えない。実際＝写し＝6.9e-10（相対 1e-12）。
+ T10（c）床の旗：貯蓄 3000・6000・0・V＝1e-13。旗 TakeFloorPositive 0：amt 全て＜1e-12 で実際 0・写し 0。旗 1：実際＝写し＝1e-13（Assert で 1e-13 の相対 1e-12 を明示）。
+ 突然変異（それぞれの赤を ㉚ の表で予言）：
+  M1 塵の述語 [S_j＞1e-9] を外す → T8 赤（写し 1.5e-9 ≠ 実際 0）・T9 赤（写しに塵の分 3.1e-10 が混じる）。
+  M2 floor を旗に依らず 1e-12 に固定する → T10 赤（旗 1 で写し 0 ≠ 実際 1e-13）。T8・T9 は緑のまま（それぞれ別の門の担当）。
+  M3 ΣS から塵を外す（反証役 ① の誤りの形）→ T9 赤（amt₂ が 6.9e-10 → 1e-9 へ 31% 動く）。
+  M4 min(·, S_j) を外す → 実質同値（φ≦ΣS÷P の定義域の下で φ·(S_j/ΣS)·P≦S_j は丸めの 1 ulp でしか効かない）＝赤にならないと予言。穴として名乗り、同値の理由を記録に書く（機構の試験を足しても赤にできない）。
+ テストの数の予言：2521 → 2524（LandsaleInstrumentTests の [Fact] 7 → 10・[Theory] 0・新しいファイル 0・FullLength 3 は変わらない）。--tests-delta +3。
+ ㉘ の束（器のコミットの直後・ident より前）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests。書き換える件数の予言（㉑）：0。
+
+[4] 恒等の合否
+ 素の 5 種（b5_20261109_m988）・素の 10 種（b10_20261109_m988）・計器つき 10 種（b10_20261109_m988_ins）が名乗り行の SOURCE-HASH を除き全行バイト一致。計器の表の差は宣言だけ：landsale_s の saleCopyPaidPerQuarter・salePaidCopyMaxRelDiff（旗 0 では 0 のまま＝差 0 の予言）。ident.cfg の m988・INSRAW keep_994/base_ins。
+ 旗の既定は触らない。入れない物：LandSale.cs・Fiscal.cs・Model.cs・Coefficients.cs・新しい列・LandSaleTests.cs・App・Display・Runner。
+
+[5] 旗 1 の写しの差の上側（腕は回さない）
+ keep_994_rej/c90sl_arm_{B,S11} の landsale_s の G-L3 の 958／1032 行を、直した式の紙の台本（scripts/instruments/c91lc/・paper991.py の写し）で読み直す。生に買い手ごとの S_j が無ければ、読めた範囲（塵の件数・差の大きさと床の閾値の対応）を限界つきで書く＝〈全て説明できた〉と言い切れる根拠が生に無ければ言わない。
+
+[6] 〈判定: 恒等〉なら採る。一致しなければ変更を外して報告に回す。

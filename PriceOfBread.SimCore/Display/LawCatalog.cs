@@ -68,7 +68,7 @@ public static class LawCatalog
         Ladder(nameof(NationPolicy.ChildLaborAllowed), "児童労働", "教育と労働", PolicyAxis.ChildLabor, ["禁止", "合法"],
             w => B(w.ChildLaborAllowed), w => B(w.Policy.ChildLaborAllowed), (p, v) => p.ChildLaborAllowed = v == 1),
         Ladder(nameof(NationPolicy.MinimumWage), "最低賃金", "教育と労働", PolicyAxis.MinimumWage, ["なし", "生存", "生活", "充足"],
-            w => (int)w.MinimumWage, w => (int)w.Policy.MinimumWage, (p, v) => p.MinimumWage = (MinimumWageLaw)v, w => w.Coef.MinimumWageLawGate > 0),   // ゲート 0 ＝非表示
+            w => (int)w.MinimumWage, w => (int)w.Policy.MinimumWage, (p, v) => p.MinimumWage = (MinimumWageLaw)v),
         // --- 身分と土地 ---
         Ladder(nameof(NationPolicy.WomenRights), "女性の権利", "身分と土地", PolicyAxis.WomenRights, ["なし", "財産権", "教育権", "選挙権"],
             w => (int)w.WomenRights, w => (int)w.Policy.WomenRights, (p, v) => p.WomenRights = (WomenRightsLaw)v, null, typeof(WomenRightsLaw)),
@@ -89,7 +89,7 @@ public static class LawCatalog
         Ladder(nameof(NationPolicy.Bureaucracy), "官僚制度", "統治機構", PolicyAxis.Bureaucracy, ["猟官制", "資格任用", "専門官僚"],
             w => (int)w.Bureaucracy, w => (int)w.Policy.Bureaucracy, (p, v) => p.Bureaucracy = (BureaucracyLaw)v),
         Ladder(nameof(NationPolicy.Antitrust), "独占禁止", "統治機構", PolicyAxis.Antitrust, ["規制なし", "談合禁止", "独占の解体"],
-            w => (int)w.Antitrust, w => (int)w.Policy.Antitrust, (p, v) => p.Antitrust = (AntitrustLaw)v, w => w.Coef.AntitrustGate > 0),
+            w => (int)w.Antitrust, w => (int)w.Policy.Antitrust, (p, v) => p.Antitrust = (AntitrustLaw)v),
         // --- 国境管理 ---
         Ladder(nameof(NationPolicy.ImmigrationRestriction), "移民制限", "国境管理", PolicyAxis.ImmigrationRestriction, ["開放", "選別", "閉鎖"],
             w => (int)w.ImmigrationRestriction, w => (int)w.Policy.ImmigrationRestriction, (p, v) => p.ImmigrationRestriction = (ImmigrationLaw)v),
@@ -101,7 +101,7 @@ public static class LawCatalog
         Ladder(nameof(NationPolicy.Guild), "同業組合", "", PolicyAxis.Guild, ["保護", "制限", "廃止"],
             w => (int)w.Guild, w => (int)w.Policy.Guild, (p, v) => p.Guild = (GuildLaw)v, w => w.Coef.GuildLawGate > 0),
         Ladder(nameof(NationPolicy.Inheritance), "相続", "", PolicyAxis.Inheritance, ["なし", "低率", "中率", "高率", "全額"],
-            w => (int)w.Inheritance, w => (int)w.Policy.Inheritance, (p, v) => p.Inheritance = (InheritanceLaw)v, w => w.Coef.InheritanceLawGate > 0),   // ★線 inh (650)：ゲート 0 ＝非表示
+            w => (int)w.Inheritance, w => (int)w.Policy.Inheritance, (p, v) => p.Inheritance = (InheritanceLaw)v),
         Ladder(nameof(NationPolicy.CivilianArmsBan), "民間の武器購入", "", PolicyAxis.CivilianArms, ["許可", "禁止"],
             w => B(w.CivilianArmsBan), w => B(w.Policy.CivilianArmsBan), (p, v) => p.CivilianArmsBan = v == 1, w => w.Coef.RebelArmsMarketEnabled > 0),   // 禁止しても漏れる＝反乱勢力の武器購入が有効な時だけ出す
         Ladder(nameof(NationPolicy.SpecialistExitLaw), "技術者流出禁止", "", PolicyAxis.SpecialistExitBan, ["自由", "制限", "禁止"],
@@ -117,17 +117,17 @@ public static class LawCatalog
             enumType: typeof(SocialSecurityLaw), slot: LawSlot.Welfare, fields: [nameof(NationPolicy.SocialSecurityLaw), nameof(NationPolicy.SocialSecurityTarget)]),
         // --- 国有化（5 部門＋全て）---
         Ladder(nameof(NationPolicy.NationalizeRailways), "鉄道国有化", "", PolicyAxis.Nationalization, ["民営", "国有"],
-            w => B(w.NationalizeRailways), w => B(w.Policy.NationalizeRailways), (p, v) => p.NationalizeRailways = v == 1, w => w.Coef.NationalizationGate > 0, slot: LawSlot.Nationalization),
+            w => B(w.NationalizeRailways), w => B(w.Policy.NationalizeRailways), (p, v) => p.NationalizeRailways = v == 1, slot: LawSlot.Nationalization),
         Ladder(nameof(NationPolicy.NationalizeMines), "鉱山国有化", "", PolicyAxis.Nationalization, ["民営", "国有"],
-            w => B(w.NationalizeMines), w => B(w.Policy.NationalizeMines), (p, v) => p.NationalizeMines = v == 1, w => w.Coef.NationalizationGate > 0, slot: LawSlot.Nationalization),
+            w => B(w.NationalizeMines), w => B(w.Policy.NationalizeMines), (p, v) => p.NationalizeMines = v == 1, slot: LawSlot.Nationalization),
         Ladder(nameof(NationPolicy.NationalizeMilitary), "軍需産業国有化", "", PolicyAxis.Nationalization, ["民営", "国有"],
-            w => B(w.NationalizeMilitary), w => B(w.Policy.NationalizeMilitary), (p, v) => p.NationalizeMilitary = v == 1, w => w.Coef.NationalizationGate > 0, slot: LawSlot.Nationalization),
+            w => B(w.NationalizeMilitary), w => B(w.Policy.NationalizeMilitary), (p, v) => p.NationalizeMilitary = v == 1, slot: LawSlot.Nationalization),
         Ladder(nameof(NationPolicy.NationalizeOil), "石油国有化", "", PolicyAxis.Nationalization, ["民営", "国有"],
-            w => B(w.NationalizeOil), w => B(w.Policy.NationalizeOil), (p, v) => p.NationalizeOil = v == 1, w => w.Coef.NationalizationGate > 0, slot: LawSlot.Nationalization),
+            w => B(w.NationalizeOil), w => B(w.Policy.NationalizeOil), (p, v) => p.NationalizeOil = v == 1, slot: LawSlot.Nationalization),
         Ladder(nameof(NationPolicy.NationalizeElectricity), "電力国有化", "", PolicyAxis.Nationalization, ["民営", "国有"],
-            w => B(w.NationalizeElectricity), w => B(w.Policy.NationalizeElectricity), (p, v) => p.NationalizeElectricity = v == 1, w => w.Coef.NationalizationGate > 0, slot: LawSlot.Nationalization),
+            w => B(w.NationalizeElectricity), w => B(w.Policy.NationalizeElectricity), (p, v) => p.NationalizeElectricity = v == 1, slot: LawSlot.Nationalization),
         Ladder(nameof(NationPolicy.NationalizeAll), "全て国有化", "", PolicyAxis.NationalizationAll, ["民営", "国有"],
-            w => B(w.NationalizeAll), w => B(w.Policy.NationalizeAll), (p, v) => p.NationalizeAll = v == 1, w => w.Coef.NationalizationGate > 0, slot: LawSlot.Nationalization),   // 残り全産業の一括＝プロレタリア独裁のみ
+            w => B(w.NationalizeAll), w => B(w.Policy.NationalizeAll), (p, v) => p.NationalizeAll = v == 1, slot: LawSlot.Nationalization),   // 残り全産業の一括＝プロレタリア独裁のみ
     ];
 
     /// <summary>置き場ごとの行（表の並びのまま）。</summary>

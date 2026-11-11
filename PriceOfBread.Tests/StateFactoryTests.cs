@@ -490,15 +490,27 @@ public class StateFactoryTests
         rg!.Output = 1.0;
         double rs2 = EconomyStep.RentShareOf(rg, r, w.Coef);
         var own2 = r.Pops[rg.OwnerPopIndex]; var lab2 = r.Pops[rg.LaborPopIndex];
+        double rent2 = amount * rs2, wages2 = amount * (1 - rs2);
+        var expect = new System.Collections.Generic.Dictionary<Pop, double>(ReferenceEqualityComparer.Instance);
+        void Add(Pop q, double v) => expect[q] = (expect.TryGetValue(q, out var o) ? o : 0) + v;
+        if (rg.LandShares is not { } lsr) Add(own2, rent2);   // 地代→持ち主
+        else   // ★(930) 土地の持ち分の 4 枠（造幣の試験と同じ形）：割合が正の枠ごとに受け手へ 地代×割合（受け手は試験が州の添字から組む＝0 持ち主・1 聖職者・2 担い手・3 投資家・範囲の外は持ち主）
+            for (int k = 0; k < lsr.Length; k++)
+            {
+                if (!(lsr[k] > 0)) continue;
+                int ix = k == 0 ? rg.OwnerPopIndex : k == 1 ? r.ClergyPopIndex : k == 2 ? rg.LaborPopIndex : k == 3 ? r.InvestorPopIndex : -1;
+                Add(r.Pops[ix >= 0 && ix < r.Pops.Count ? ix : rg.OwnerPopIndex], rent2 * lsr[k]);
+            }
+        Add(lab2, wages2);                                                // 賃金→労働
         double o20 = own2.Savings.Value, l20 = lab2.Savings.Value, l2e = lab2.EarnedPerMonth.Value;
         InternationalMarket.PaySales((null, null), r, rg.GoodId, amount, w);
-        Assert.Equal(amount * rs2, own2.Savings.Value - o20, 9);          // 地代→持ち主
-        Assert.Equal(amount * (1 - rs2), lab2.Savings.Value - l20, 9);    // 賃金→労働
-        Assert.Equal(amount * (1 - rs2), lab2.EarnedPerMonth.Value - l2e, 9);     // 賃金も所得（課税の基数）
+        Assert.Equal(expect.TryGetValue(own2, out var eo) ? eo : 0, own2.Savings.Value - o20, 9);   // 地代→持ち主（4 枠なら貴族の枠）
+        Assert.Equal(expect[lab2], lab2.Savings.Value - l20, 9);          // 賃金→労働（4 枠なら農民の自作の枠の地代も）
+        Assert.Equal(expect[lab2], lab2.EarnedPerMonth.Value - l2e, 9);   // 賃金も所得（課税の基数）
     }
 
     /// <summary>★段3-5（2026-09-30・C8＝処理の一元化 段4d）：鋳造の代金は④の持分（InternationalMarket.PaySales＝国内の売上・輸出代金と同じ分け方）＝
-    /// 地代のうち国営持分は国庫（区分 StateFactory）・残りの地代は持ち主・賃金は労働（所得 Earned も同じ額）。在庫のうち輸入の分
+    /// 地代のうち国営持分は国庫（区分 StateFactory）・残りの地代は土地の持ち分の 4 枠の受け手（欄が null なら持ち主）・賃金は労働（所得 Earned も同じ額）。在庫のうち輸入の分
     /// （前の月＋この月の輸入の、この月の産出との比）は輸入の捌き手（州の商人）へ。旧＝代金は産出の比で持ち主へ・労働は係数 MintWageShare（④と別の規則）で・
     /// 輸入の在庫も国内の鉱山へ払った。盤面＝密閉1国の仏・銀の生産者1人（国営持分 1/2）・平価の下の銀の在庫を造幣局が平価で引き取る。
     /// ⚠突然変異「代金を持ち主へ全額（④を通さない）」「輸入の分も鉱山へ」で赤。</summary>
@@ -509,7 +521,6 @@ public class StateFactoryTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // MoneyThemeTests の造幣局の盤面と同じ（密閉1国）
         var w = sim.World;
-        Assert.True(w.Coef.MintPriceFloorGate > 0 && w.Coef.StandardMetalMintGate > 0, "前提＝床モードと本位金属が live");
         w.Coef.MintBuysAtMarket = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（器 MintFloorRespectsReserve は 2026-10-09 (210) に削除）
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
         int ag = Catalog.SilverId;
@@ -537,7 +548,14 @@ public class StateFactoryTests
         double rent = domestic * rs, wages = domestic - rent;
         var expect = new System.Collections.Generic.Dictionary<Pop, double>(ReferenceEqualityComparer.Instance);
         void Add(Pop q, double v) => expect[q] = (expect.TryGetValue(q, out var o) ? o : 0) + v;
-        Add(r.Pops[p.OwnerPopIndex], rent * (1 - f));   // 残りの地代→持ち主
+        if (p.LandShares is not { } lsm) Add(r.Pops[p.OwnerPopIndex], rent * (1 - f));   // 残りの地代→持ち主
+        else   // ★(923) 土地の持ち分の 4 枠：割合が正の枠ごとに受け手へ 残りの地代×割合（受け手は試験が州の添字から組む＝0 持ち主・1 聖職者・2 担い手・3 投資家・範囲の外は持ち主）
+            for (int k = 0; k < lsm.Length; k++)
+            {
+                if (!(lsm[k] > 0)) continue;
+                int ix = k == 0 ? p.OwnerPopIndex : k == 1 ? r.ClergyPopIndex : k == 2 ? p.LaborPopIndex : k == 3 ? r.InvestorPopIndex : -1;
+                Add(r.Pops[ix >= 0 && ix < r.Pops.Count ? ix : p.OwnerPopIndex], rent * (1 - f) * lsm[k]);
+            }
         Add(r.Pops[p.LaborPopIndex], wages);             // 賃金→労働
         Add(r.Pops[r.MerchantPopIndex], impPart);        // 輸入の分→捌き手の商人
         var s0 = new System.Collections.Generic.Dictionary<Pop, (double S, double E)>(ReferenceEqualityComparer.Instance);

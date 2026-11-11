@@ -1,0 +1,68 @@
+(1007) 線 c93ms 事前登録：計器 merch_s（全ての州の商人・職人の空と、小営業の入口の錠 A・B の再計算）。恒等の線・旗なし・新しい係数 0・エンジンの力学 0 行。2026-11-10 Claude Sonnet 5.5。
+木＝381a3d8a（main）。腕の前に、計器より前の別のコミットで入れる。
+
+[1] 形と予言
+- 形＝計器（尾でも入口でもない・読むだけ）。INS=1 のときだけ動く。表 merch_s<種>.tsv を 1 本足す。他の表・成績表は 1 行も変わらない（予言 0）。
+- 呼び口（行を足さない）：
+  Simulation.cs:1908 の既存の 1 行の中で `Instruments.UrxEnter(World);` と並べて `Instruments.MerchEnter(World);` を呼ぶ（社会移動 Meritocracy.Step の直前・助走の外・国ごとの World ごとに 1 回）。
+  Instruments.cs の既存の行に名を足すだけ：Quarter の SubstTable の行に MerchTable(sim, seed, q)・Close の SubstClose の行に MerchClose(sim)。
+  金を動かすファイルの行の移動 0。git diff --numstat で Simulation.cs と Instruments.cs の挿入数＝削除数を ident の前に確かめる。
+- 二段：MerchEnter は州の行を文字列にして国の World ごとの一時置き場（直近の 1 四半期ぶんだけ・次の呼びで置き換える＝増えない）に積む。MerchTable は四半期の末に全ての国の分を書き出して空にする。書き出しは q（Quarter の引数）を頭に付ける。
+- 年の印（★(1006)）：year は呼んだ時点の World.Year。呼び口は Quarter++／Year++（Simulation.cs:1917〜1918）の前＝その四半期自身の年。Quarter から書く他の表（q%4==3 の行は翌年のラベル）とは年の印が 1 年ずれうる。表どうしの突き合わせは (quarter, nation, region) で行い、year では結ばない。
+- 範囲：全ての国の全ての州（Tier を問わない）。助走は書かない。
+- 列（merch_s_spec.txt ＋ 反証役の訂正 4）：quarter year nation region tier popK merchantK artisanK workerK merchantEmpty artisanEmpty avgPerCap workerSavPerCap meritActive lockBOpen lockABlockedMerchant lockABlockedArtisan merchEarnedPerCap workerIncomePerCap emptyMerchantEarnedPerMonth merchantDebt promotionPremium（23 列）。
+  meritActive（0/1）＝エンジンが小営業の入口の節に着く条件（Meritocracy.cs:40 の Σ頭数＞1e-9 かつ :48 の MeritFromIndex≧0 かつ MeritToIndex≧0）。spec の lockBOpen の定義にこの条件を足した（エンジンの continue と同じ）ことを名乗る。
+  lockBOpen＝meritActive かつ PettyEntryRatePerQuarter＞0 かつ avgPerCap＞1e-9 かつ workerK＞1e-9 かつ workerSavPerCap≧avgPerCap。
+  avgPerCap＝Σmax(0,Savings)÷Σ頭数（r.Pops から計器が数える）。workerSavPerCap＝MeritFromIndex の POP の Savings（生）÷頭数。
+  merchantEmpty＝MerchantPop の Size≦1e-9（MerchantPopIndex が無い州は 1）。artisanEmpty も同じ。lockABlocked*＝lockBOpen かつ *Empty。
+  merchantDebt＝商人 POP の Debt（空なら 0）。merchEarnedPerCap＝商人の EarnedPerMonth÷Size（空は空欄＝nan）。workerIncomePerCap＝労働者の EarnedPerMonth÷Size。emptyMerchantEarnedPerMonth＝merchantEmpty の行だけ商人の EarnedPerMonth（他は nan）。
+- エンジンの関数を呼ばない（Meritocracy の関数は 0 回）。エンジンに足す欄 0・Coefficients 0 行・Meritocracy.cs 0 行・SaveGame に触れない（型の追加なし）。
+- 行の数の予言：cearn_s と同じ列挙（全ての国の全ての州×助走の後の四半期）＝1 種あたり cearn_s と同数（keep_1006/base_ins の cearn_s1 は 215,034 行）。merch_s は cearn_s の行数と全種で一致する（予言）。1 行 約 190 バイト＝1 種あたり 約 41MB・10 種 約 0.4GB。毎四半期（年 1 回に落とさない・後で替えない）。
+- 計算量の予言：.cost の推定秒は m1001 と同じ 211.2（計器は数えの項目に入らない）。計器の CPU は 1 種あたり +1〜3 秒（21 万行×23 列の文字列化）・名目の上限の判定には使わない（計器つきの腕の推定は m1006z と同じ）。
+- テストの数の予言：新しい MerchInstrumentTests.cs に [Fact] 4・[Theory] 1（InlineData 4）＝属性 5・実行の件数 +8。TESTS_NONFULL 2530→2538（FullLength 3 のまま）。既存の試験の行は書き換えない。
+
+[2] 消す物と残す物
+- 消す物 0。足す物＝InstrumentsMerch.cs（新）・MerchInstrumentTests.cs（新）・Simulation.cs:1908 と Instruments.cs の 2 行の中の名前の追加・scripts/instruments/c93ms/（台本）。
+- 読み手の grep（merch_s・MerchHeader・InstrumentsMerch）：SimCore・Runner・App・Display・Tests・scripts・measurements に 0 件（新規の名前）。POB_COEF に新しい名前 0。SaveGame の新しい名前 0。
+- 点検（㉘）：`new MoneyStock(` は SimCore で 64 件（この線は構築しない＝64 のまま）。route_anchors.tsv は 0 行変更。工業化度の読み手の許可表（IndustrializationReaderTests の Instruments*.cs の行）は新しいファイルの名前 InstrumentsMerch.cs を書かない（工業化度を読まない）。WriterRatchetTests は計器のファイルを走査する（Directory.EnumerateFiles SimCore *.cs）＝InstrumentsMerch.cs が書き手の宣言に当たらない（Pop の欄を書かない）ことを ㉘ の束で確かめる。書き換える件数の予言＝0。
+- 他の線との重なり：c93tq の持ち物（InstrumentsTradeskip.cs・InstrumentsNationgood.cs・BilateralMarket.cs・InstrumentsTransport.cs）には触れない。Instruments.cs は同じファイルだが、触る行は SubstTable／SubstClose の行（c93tq は NationgoodTable／TradeskipTable・NationgoodClose／TradeskipClose の行）＝行は重ならない。
+
+[3] 足す試験と突然変異（MerchInstrumentTests.cs）
+- T1（Theory・4 件）：合成の州（手で置いた商人・労働者・貯蓄）で 錠 A・錠 B の 4 通り（空／空でない × 開／閉）が期待の 0/1。期待は手の表（エンジンを呼ばない）。
+- T2（Fact）：負の貯蓄の POP を含む州で avgPerCap が max(0,·) の和÷頭数と一致（手で組む）。
+- T3（Fact）：英仏の数四半期の実走で、行の数＝全州×四半期（cearn_s の行と (quarter,nation,region) で 1 対 1）・Tier が複数ある・merchantK が POP の Size と一致・MerchantPop の無い行が空と数えられる。
+- T4（Fact・G1 の突き合わせ）：同じ走りで、植民地格の州×四半期だけ、merch_s の merchantEmpty が cpop_s の商人の popK≦1e-9 と一致（ずれ 0）。本国格を混ぜると食い違いが出ること（上側）も同じ試験で確かめる。
+- T5（Fact・G2 の代え）：合成の州で小営業の入口が閉（労働者の貯蓄＜平均）のとき、Meritocracy.Step で商人・職人へ労働者から入る人数が 0（エンジンの出力を読む＝期待は手）。これは ident の生に入口の流れの列が無いための代え（代えたことを名乗る）。
+- 突然変異（使い捨ての木・現物を書き換えない）：
+  Mu1 lockBOpen の不等式を逆にする → T1・T5 で赤。
+  Mu2 max(0,Savings) を外す → T2 で赤。
+  Mu3 merchantK に職人を足す → T3・T4 で赤。
+  Mu4 植民地格だけを書く → T3（Tier が複数）・T4 の上側で赤。
+  Mu5 meritActive を落とす（lockBOpen から条件を外す）→ T1 の meritActive の行が赤。
+  突然変異ごとの赤と緑は measurements/m1007_20261110_mutations.txt に書く。緑のままなら試験を足して赤にする。
+
+[4] 恒等の判定
+- 素の 5 種・計器つき 10 種の成績表が m1001（b5_20261109_m1001・b10_20261109_m1001_ins）と名乗り行（SOURCE-HASH）を除き全行一致。表の差は merch_s の追加だけ（ident.sh run c93ms --tree <木> --added-tables merch_s）。NG の集合は ng1001 と同じ。
+- 浮動小数の順序が変わる箇所：0（エンジンの式を書き換えない）。同じ盤面で旧と新の比較の食い違い：該当なし。
+- G1：植民地格の州×四半期で merch_s の merchantEmpty の和が cpop_s の商人が空（popK≦1e-9）の和と一致（ずれ 0）。下側＝merch_s を書かないと赤（T3/T4・ident の読み手）。上側＝本国格を混ぜると赤。S11（a11）は POB_CEARN=0 で cpop_s が無いので読まない。
+  ずれ 0 の根拠（Meritocracy.Step の全 Move を読んだ）：merch_s は Step の前・cpop_s は Step の後。空の商人へ入る道は `t.Size<=Eps continue`（:132・:164・:258・:273・:333）と FillJobs（:432・:474 で MerchantPopIndex を飛ばす）で全て閉じている。出る道は率×深さ＜1 の比例なので 1e-9 の境をまたぐのは Size が 1e-9 に近い POP だけ。ずれが出たら行を列挙して原因を名乗り、ずれ 0 を満たしたとは書かない。
+- G2：lockBOpen＝0 の州×四半期で入口の流れが 0（ident の生に流れの列は無い＝T5 の合成の試験で代える）。
+- 採否：〈判定: 恒等〉・㉘ の束が緑・savetest 合格・推定 248.5 秒以下なら採る。一致しなければ変更を外して報告に回す。
+
+[追記 1・腕の前・実装での訂正（結果を見る前）]
+- 試験の形を実装で整理した：T5 を Theory 2 件（閉＝入口の流れ 0・開＝流れが出る感度）にした。Mu5（meritActive を外す）を赤にする T6（Fact：MeritToIndex＜0 の州で meritActive と lockBOpen が 0）を足した。
+  属性＝[Fact] 4（T2・T3・T4・T6）＋[Theory] 2（T1＝InlineData 4・T5＝InlineData 2）＝6。実行の件数＝4＋4＋2＋... ＝ Fact 4 ＋ T1 の 4 ＋ T5 の 2 ＝ 10。TESTS_NONFULL 2530→2540（[1] の 2538 の訂正）。
+
+[追記 2・結果の後の訂正（予言の外れの記録・門と採否の規則は変えない）]
+- 列の数は 22（[1] の 23 は数え違い）。
+- 行の数の予言〈cearn_s と全種で同数〉は外れた：merch_s は cearn_s より 1 種あたり 33〜47 行少ない（s1：214,987 対 215,034・10 種で 2,153,283 対 2,153,684＝−0.02%）。両側にずれる＝cearn_s にあって merch_s に無い (quarter,nation,region) が 135・逆が 88（s1）。州が四半期の中で国をまたいで動く（割譲・併合・分離）ので、社会移動の前の所属と Quarter の時点の所属が違う。計器の欠陥ではなく、所属の時点の違い（限界として名乗る）。
+- G1：突き合わせた 636,188 行（植民地格の州×四半期・10 種）でずれ 0。本国格の行 1,516,372 のうち cpop_s に行のあるもの 0（上側）。突然変異 Mu3（職人を足す）を生へ当てるとずれ 91（s8）＝生の上でも赤。出力 measurements/m1007_20261110_g1.txt・台本 scripts/instruments/c93ms/g1.py。
+
+[追記 3・結果]
+- ident c93ms〈判定: 恒等〉（measurements/ident_20261110_c93ms.txt）：素の 5 種 181 行・計器つき 10 種 182 行が m1001 と全行一致・推定 211.2 秒（素の 5 種 209.3）・計器の表はバイト一致 1187＋既知の揺れ 20＋宣言された増 10（merch_s）・NG 77 件 新 0 外 0・savetest OK・leakhunt 保存則違反なし。
+- テスト：Category!=FullLength 2540（合格 2539・スキップ 1）＝基準 2530＋10（予言どおり）・FullLength 3 合格。㉘ の束 140 件緑。
+- 生：D:/PoB_work/c93ms_work/ident/out_ib_10/ins（merch_s 10 本ほか）を合流が読み終えるまで残す。
+
+[追記 4・行の差の原因の確かめ（s1）]
+- cearn_s にあって merch_s に無い (quarter,nation,region) 135 件のうち 88 件は同じ四半期・同じ州が別の国の名で merch_s にある（州が呼びの後〜Quarter の間に国をまたいで動いた）。残り 47 件は merch_s のその四半期に州が無い＝呼びの後に作られた州（例：ポートモレスビーは cearn_s の最初が q136・merch_s の最初が q137）。逆（merch_s にだけある）の 89 件のうち 88 件が上の対の片方。差し引き 47＝行数の差 47 に一致。
+- 追記 2 の〈所属の時点の違い〉は 88 件は確かめた・47 件は〈呼びの後に作られた州〉（1 件の確かめ＋行数の一致）で、全件を個別には確かめていない。限界として名乗る：merch_s は社会移動の前の所属と州の集合で書く。

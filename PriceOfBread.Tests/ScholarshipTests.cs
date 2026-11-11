@@ -158,7 +158,7 @@ public class ScholarshipTests
         Assert.Matches(new Regex(@"regrow\s*\*\s*\(\s*Math\.Max\(0,\s*r\.StateSpent\[\(int\)TreasuryCat\.Education\]\)"), src);
         Assert.Matches(new Regex(@"CompulsoryEduFunding \*= payRate;"), src);   // 割合は義務教育の財源率そのもの（別の状態を持たない）＝支払い率 r＜1 の月は負担も比例して縮む
         // 国の教育費の率の複製は 1 行（月次の写し）で、支払い率を掛けない（割合の支払い率は CompulsoryEduFunding に畳まれている＝二重に掛けない）
-        Assert.Equal(1, Regex.Matches(src, @"r\.EducationSpending = World\.EducationSpending;").Count);
+        Assert.Single(Regex.Matches(src, @"r\.EducationSpending = World\.EducationSpending;"));
         Assert.DoesNotMatch(new Regex(@"r\.EducationSpending\s*\*="), src);
         string eco = File.ReadAllText(FindSimCore("EconomyStep.cs"));
         Assert.Contains("region.StateSpent[(int)TreasuryCat.Education] += subsidy;", eco);
@@ -201,14 +201,14 @@ public class ScholarshipTests
         Simulation Board(int flag, EducationLaw law, double spending)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-            sim.World.Coef.ScholarshipTopStage = flag; sim.World.Coef.ParishEduFunded = 0;
+            sim.World.Coef.ScholarshipTopStage = flag;
             sim.World.EducationLaw = law; sim.World.Policy.EducationLaw = law;
             sim.World.EducationSpending = spending; sim.World.Policy.EducationSpendingTarget = spending;
             sim.Run(2);
             return sim;
         }
         Assert.Equal(0.0, SumShare(Board(0, EducationLaw.Public, 1.0)));            // 旗 0＝最上段でも法なし
-        Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Religious, 1.0)));         // 法の門：教区学校の国は国庫が授業料を負担しない（義務教育の財源も 0）
+        Assert.Equal(0.0, SumShare(Board(1, EducationLaw.None, 1.0)));              // 法の門：教育法なしの国は国庫が授業料を負担しない（義務教育の財源も 0）。★(811) 旗 ParishEduFunded の焼き込みで教区学校の国は財源を持つ＝この行は教育法なしへ付け替えた
         Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Public, 0.0)));            // 段 0＝教育費なし
         Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Public, 0.6)));            // 段 2＝財源率は正でも補助は出ない（(590) の比例の形との違い）
         Assert.Equal(0.0, SumShare(Board(1, EducationLaw.Public, 0.8)));            // 段 2 の上端（0.85 の手前）
@@ -231,7 +231,7 @@ public class ScholarshipTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World;
-        w.Coef.ScholarshipTopStage = 1; w.Coef.ParishEduFunded = 0;
+        w.Coef.ScholarshipTopStage = 1;
         w.EducationLaw = EducationLaw.Public; w.Policy.EducationLaw = EducationLaw.Public;
         w.EducationSpending = 1.0; w.Policy.EducationSpendingTarget = 1.0;
         bool below = false;

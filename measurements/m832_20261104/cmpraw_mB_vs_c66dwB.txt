@@ -1,0 +1,32 @@
+両方にある表 978（外した頭 burscan_s,clock_s,flow_s,silverwt_s,cearn_s）・同じ 978・違う 0・新にだけ 10・旧にだけ 20
+  新にだけ cgrp_s1.tsv
+  新にだけ cgrp_s10.tsv
+  新にだけ cgrp_s2.tsv
+  新にだけ cgrp_s3.tsv
+  新にだけ cgrp_s4.tsv
+  新にだけ cgrp_s5.tsv
+  新にだけ cgrp_s6.tsv
+  新にだけ cgrp_s7.tsv
+  新にだけ cgrp_s8.tsv
+  新にだけ cgrp_s9.tsv
+  旧にだけ habitbal_s1.tsv
+  旧にだけ habitbal_s10.tsv
+  旧にだけ habitbal_s2.tsv
+  旧にだけ habitbal_s3.tsv
+  旧にだけ habitbal_s4.tsv
+  旧にだけ habitbal_s5.tsv
+  旧にだけ habitbal_s6.tsv
+  旧にだけ habitbal_s7.tsv
+  旧にだけ habitbal_s8.tsv
+  旧にだけ habitbal_s9.tsv
+  旧にだけ habitcap_s1.tsv
+  旧にだけ habitcap_s10.tsv
+  旧にだけ habitcap_s2.tsv
+  旧にだけ habitcap_s3.tsv
+  旧にだけ habitcap_s4.tsv
+  旧にだけ habitcap_s5.tsv
+  旧にだけ habitcap_s6.tsv
+  旧にだけ habitcap_s7.tsv
+  旧にだけ habitcap_s8.tsv
+  旧にだけ habitcap_s9.tsv
+判定: 不一致

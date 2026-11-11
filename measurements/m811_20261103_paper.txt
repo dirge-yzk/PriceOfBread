@@ -1,0 +1,11 @@
+(811) c13ia 紙の台本 scripts/instruments/c13ia/paper_fold.py の出力（旧＝9ce2cf90 の Simulation.cs・新＝c13ia の Simulation.cs）
+1 件 if(coef.MachineCastIronRecipe>0)
+1 件 if(coef.KeroseneFromOilEnabled>0)
+1 件 if(coef.ChilledMeatEnabled>0)
+1 件 boolexColonies=c.RegionalPriceBaseExcludesColonies>0;
+2 件 exColonies&&
+1 件 if(World.Coef.MilitaryBudgetNeedCapped>0&&r.Id==0)
+1 件 if(World.Coef.MilitaryBudgetNeedCapped>0)navalNat=
+1 件 (World.EducationLaw==EducationLaw.Religious&&World.Coef.Pari
+1 件 if(!(coef.HouseholdProductionEnabled>0))return;
+一致：旧に折りたたみを当てた物＝新（式の本体の違い 0）

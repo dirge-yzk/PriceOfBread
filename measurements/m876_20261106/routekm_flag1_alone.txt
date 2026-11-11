@@ -1,0 +1,12 @@
+D:\PoB_work\c73ip_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:11.35]     PriceOfBread.Tests.RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる [FAIL]
+  失敗 PriceOfBread.Tests.RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる [9 s]
+  エラー メッセージ:
+   xmig_s の行が 9＝越境の移民が起きた対照が無い
+  スタック トレース:
+     at PriceOfBread.Tests.RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる() in D:\PoB_work\c73ip_work\suite\suitesrc\PriceOfBread.Tests\RouteKmTests.cs:line 185
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 11 s - PriceOfBread.Tests.dll (net10.0)

@@ -50,4 +50,7 @@ public static class Calendar
     public static RatioToGdpYear ToGdpYear(MoneyStock stock, MoneyPerYear gdpPerYear) => new(stock.Value / gdpPerYear.Value);
     /// <summary>期間の換算（年数→月数）。割合の換算ではない。</summary>
     public static double YearsToMonths(double years) => years * MonthsPerYear;
+    /// <summary>刻みの換算（率を <paramref name="steps"/> 回に合成する）＝1 回あたりの率 <paramref name="rate"/> を毎回かけて steps 回進んだときの動いた割合 `1 − (1 − rate)^steps`。
+    /// 中身は呼び元（Credit の旬次の緩和・Meritocracy の四半期の離職）が書いていた式そのまま（Math.Pow を 1 回）。a*a*a と書いた Discovery.PriceSmoothingQ はビットが違うので通さない。</summary>
+    public static double OverSteps(double rate, double steps) => 1.0 - Math.Pow(1.0 - rate, steps);
 }

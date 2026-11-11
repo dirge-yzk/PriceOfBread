@@ -22,7 +22,7 @@ public sealed class NationConfig
     //   開発初期に国ごとに手で置いた値で、農民だけ下げても他の階級がテンプレのまま残った（修正一覧 F1：アフリカの識字が史実の10〜50倍）。既定＝テンプレの国（世界の大半）の人口加重の値。
     public double Literacy = 0.23;
     public double ClergyFrac = 0.40, IntelligentsiaFrac = 0.35;   // 貴族→聖職者・専門職→インテリ を分離する初期割合（聖職者・知識人）
-    public double PeasantSubsistence = 0.7;
+    public double PeasantSubsistence = 0.7;   // 開幕の農民の食べる割合のデータ（Pop.SubsistenceBasis の焼く前の値・★(849) 旗 SubsistenceStage2 が正なら助走の後の最初の月にこの割合を保つ ρ を焼く）
     public Polity Polity = Polity.Absolutist;
     public EducationLaw Education = EducationLaw.Religious;
     public double Coercion = 400;   // 人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）
@@ -50,6 +50,7 @@ public sealed class NationConfig
     //   （率 1.0 あたり直接税÷年GDP 約 9.4%・measurements/f1c_20261013_prereg.txt）。
     //   ⚠小数の開始値は段の格子の途中＝実効の率は目標（段の格子）へ Government.Move で這い寄る（距離に比例）。
     public double LandTaxStage = 1;
+    public string? LandTaxBasis = null;   // ★(937) 土地税の算定の基準（world.json の "landTaxBasis"・"Fixed"＝開幕の名目の地代で凍結した定額・null＝収穫比例＝今のまま）。World.LandTaxBasisFixed へ写す（読むのは旗 LandTaxFixedBasis＞0 のときだけ）
     // ★(400) 専売の開幕の段（World.StateMonopolyTier の梯子の段・0＝規則なし＝旧のまま〔教義の段が助走から決める・プレイヤーの国は 0〕）。税の段（上の PollTaxStage／LandTaxStage）と同じ形の開幕の入力。
     //   正のとき：助走の始め（MultiNationSim.WarmupEconomy）に World.SetStateMonopolyTier(この段) で置き、助走の間は教義の段との max で保つ（AI の教義が助走の各四半期にこの段を下げて消さない）。
     //   助走の後は何も足さない＝既存の規律（払えない＝広げる・利払いが重い＝確率で広げる・国庫が安全水準を超える＝狭める・教義の段が床）が今の広さから動かす。
@@ -100,6 +101,7 @@ public sealed class NationConfig
     // 農制＝農場の残余（売上−農業労働力の購入費）のうち地主（貴族）が取る割合。
     // 1.0＝農奴制（露）・0.8＝領主農場（普・土）・0.6＝既定（61国のうち43国）・0.5＝小作（仏・日・英）・0.0＝自作農（米＝農民が自分の農場を所有）
     public double FarmLordShare = 0.6;
+    public double[]? LandOwnership = null;   // ★(895) 土地の持ち分（world.json の "landOwnership"・4 個＝貴族・教会・農民の自作・市民の地主の地代の受け手の割合）。null＝今の持ち主に 1.0。構築（Simulation.BuildProvince）が非賦存の RGO へ和で割った写しを置く
     // 各国の象徴的主食（英＝紅茶・露＝ウォッカ・日＝米・仏＝パン…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。
     // 固執財の需要床/闘争度直撃の機構は廃止（主食欠乏の怒りは満足度経路＝主食tierの最重みが拾う）。
     public int CulturalGoodId = Catalog.BreadId;   // 既定＝パン（61国のうち24国・Runner の診断が <0 のときに使う財と同じ）
@@ -161,7 +163,7 @@ public sealed class NationConfig
 /// 287州世界（Phase 3）＝史実の州区分。record＝System.Text.Json で名前付き自動シリアライズ（旧タプル converter 不要）。
 /// </summary>
 public sealed record ProvinceSpec(string City, double Share, int[] Resources, string Culture = "", string Religion = "", bool Coastal = false,
-    int HeldSince = 0, bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null);
+    bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null);
 // ★Rule（2026-09-06・支配度の一般化 段1）：州の4区分の初期値（国家・在地・外国・無統治）。null＝国既定 RuleDefault → 国家1.0。
 // 【削除 2026-10-01 (148)】LateResources（1783年の地図に無い後期産地＝西部の硫黄・銀・北九州の硫黄）＝産地の発見の表 Catalog.Sites へ（州も植民地も同じ表・場所の名前で引く）。
 // ★IndShare（2026-09-01・初期工業化の按分キーの一次データ化）：-1＝従来どおり人口比 Share で按分。
@@ -170,5 +172,5 @@ public sealed record ProvinceSpec(string City, double Share, int[] Resources, st
 // ★ArableLand（2026-08-26・辺境の廃止に伴う一般化）：0＝従来どおり「初期農民×LandHeadroom(1.8)」から導く。
 //   ⚠旧は**辺境だけ**が world.json に手書きの収容力（蝦夷地8000/西部25000/ウラル6000/シベリア9000/ウラジオストク3000）を持ち、
 //     本作で唯一「人口と独立に置かれた土地の量」だった。辺境を普通の州へ畳むときにその情報を捨てないための受け皿。
-//   ★(3)の地形が入ったら、全州の耕地賦存量を**面積×地形**から導く＝ここが人口依存から抜ける入口になる。   // ★植民地のラベル化（器2026-08-01）：HeldSince＝保有開始暦年（0＝未設定＝中世から＝中核）／Malarial＝風土病の地（州の格と直交＝中核州にもある）。
+//   ★(3)の地形が入ったら、全州の耕地賦存量を**面積×地形**から導く＝ここが人口依存から抜ける入口になる。   // ★植民地のラベル化（器2026-08-01）：Malarial＝風土病の地（HeldSince は回1-1 で削除済み＝Model.cs の墓標）（州の格と直交＝中核州にもある）。
                                                  // ⚠既定値付きの末尾追加なので world.json は無改修で通る（System.Text.Json がコンストラクタ既定を使う）   // Coastal＝沿岸/河港州＝世界市場と直接交易できる港州（IsPort）。改修2026-06-28：都市名ハードコード(PortCities)を**一次データ化**＝改名耐性・網羅性向上（gen_world.py の COASTAL で付与）

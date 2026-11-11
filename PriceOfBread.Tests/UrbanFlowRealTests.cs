@@ -46,9 +46,9 @@ public class UrbanFlowRealTests
         {
             // 手の算術：自給で満たす量＝必要量(財ごと)×規模×自給率（収穫係数 1）・値段＝ratio×参照価格。★(713) urb4：食べられる量＝必要量で切る（自給率≦1・収穫係数 1 の盤面では切りは効かない＝値は (706) と同じ）
             double expect = 0;
-            for (int i = 0; i < Staples.Length; i++) expect += Math.Min(Need[i] * p.Size * p.Subsistence, Need[i] * p.Size) * ratio[i] * Catalog.RefPrices[Staples[i]];
+            for (int i = 0; i < Staples.Length; i++) expect += Math.Min(Need[i] * p.Size * p.SubsistenceShare, Need[i] * p.Size) * ratio[i] * Catalog.RefPrices[Staples[i]];
             Assert.Equal(expect, p.SubsistenceValuePerMonth.Value, 9);
-            if (p.Subsistence > 0) { farmers++; Assert.True(p.SubsistenceValuePerMonth.Value > 0, "前提：自給のある POP の欄が 0"); }
+            if (p.SubsistenceBasis > 0) { farmers++; Assert.True(p.SubsistenceValuePerMonth.Value > 0, "前提：自給のある POP の欄が 0"); }
             else Assert.Equal(0.0, p.SubsistenceValuePerMonth.Value);
         }
         Assert.True(farmers >= 1, "前提：自給率の正の POP が無い");
@@ -68,7 +68,7 @@ public class UrbanFlowRealTests
             for (int i = 0; i < Staples.Length; i++)
             {
                 double px = ratio[i] * Catalog.RefPrices[Staples[i]];
-                double raw = Need[i] * p.Size * p.Subsistence * harvest;   // 手の算術（goods.json の必要量の literal）
+                double raw = Need[i] * p.Size * p.SubsistenceShare * harvest;   // 手の算術（goods.json の必要量の literal）
                 double need = Need[i] * p.Size;
                 expect += (raw < need ? raw : need) * px;
                 uncapped += raw * px;
@@ -88,7 +88,7 @@ public class UrbanFlowRealTests
         int n = 0;
         for (int i = 0; i < r1.Pops.Count; i++)
         {
-            if (!(r1.Pops[i].Subsistence > 0)) continue;
+            if (!(r1.Pops[i].SubsistenceBasis > 0)) continue;
             // 2 か月目も同じ盤面の値段＝1 か月ぶんと同じ値（積み上がっていない）
             Assert.Equal(r1.Pops[i].SubsistenceValuePerMonth.Value, r2.Pops[i].SubsistenceValuePerMonth.Value, 9);
             n++;
@@ -301,7 +301,7 @@ public class UrbanFlowRealTests
         try
         {
             var (w, r, rural, urban, c) = Board(0.10, 0.0, 0.30, housingPrice: 1.0, housingOn: false);
-            Assert.Equal(Tier(r), RegionTier.Core);
+            Assert.Equal(RegionTier.Core, Tier(r));
             urban.Size = rural.Size;   // 対の都市の割合 0.5＝所得の差の向きがそのまま流れの向き（目標 0.79／0.21）
             long Flip() => Instruments.UrxPdPeek(w).FlipRegionMonths;
             PdMonth(w, r, rural, urban, 0.10, 0.30, 0.9);   // 農村→都市（+）

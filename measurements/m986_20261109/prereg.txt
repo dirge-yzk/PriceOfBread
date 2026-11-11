@@ -1,0 +1,33 @@
+(986) c89ci 事前登録（数える前に書いた・数えた後に替えない）2026-11-09
+盤面: m981（main 46cd4df6・測った木 9c296d94）。生: D:/PoB_work/keep_981/base_ins（種1〜10）・a11（種11〜20・POB_CEARN=0）。読むだけ。
+
+1 対象（world.json の initialColonies の名から・開幕の持ち主で分ける）
+  群 SA スペイン領アメリカ 23 州: ヌエバ・エスパーニャ銀地帯 中央メキシコ キューバ ペルー ヌエバ・グラナダ ラ・プラタ プエルトリコ カラカス
+     ルイジアナ・フロリダ チリ サンタフェ エルパソ ロレート レオン ボゴタ キト イキトス ラパス トゥクマン アスンシオン カルメン・デ・パタゴネス プンタアレナス チロエ
+     （フィリピン・サンボアンガ・パラワンは除く＝アメリカではない）
+  群 BR ポルトガル領ブラジル 7 州: ブラジル アマゾン マナウス サルヴァドール サンルイス ゴイアス クイアバ（ルアンダ・テテは除く）
+  群 SD 仏領サン=ドマング 2 州: 北部サン=ドマング 南部サン=ドマング
+  州は名で追う。行ごとに開幕の持ち主（群で決まる）と今の持ち主（secession_s の nation 列）を両方書く。
+2 期間と行
+  1800〜1830 年（両端を含む）。secession_s の行のうち年の末の行（quarter % 4 == 3）だけ＝毎四半期の国と年末だけの国をそろえる。
+  主の集計は〈今の持ち主＝開幕の持ち主〉の行（保持中）。他の持ち主の行は件数と持ち主の名だけ別の表に書く。
+3 項（secession_s の列・InstrumentsSecession.cs の定義のまま）
+  圧力: tariffTermIndex（関税の項）・ethnicTermIndex（民族の加算）・raw＝両者の和・consciousnessFactorShare・suffrageFactorShare・crowdFactorShare・pressureIndex
+     （pressure ＝ raw × 意識の因数 × 選挙権の因数 × 大衆の因数＝Politics.cs の順。組み直しの確かめは pressureRebuildGapIndex）
+     関税の項の中身: tariffGapIndex・militancyMeanIndex・cultureDistanceIndex（1+距離 の因数）
+  保持力: legitimacyIndex／(1+totalPopK×5e-6)＝威信の項・1.43×coerce/(coerce+1000)＝治安維持力の項（係数は Coefficients.cs の今の値）・和＝holdBaseIndex との差を確かめる
+     投射＝effHoldBeforeShareIndex÷holdBaseIndex・共有の分母＝sharedDivIndex・holdShareIndex（引き留め）
+  margin＝marginIndex・dominanceShare・goFlag
+4 集計
+  種ごと: 群ごとに保持中の行（州×年）の中央値（各列）と、比は和÷和（圧力の和÷引き留めの和・関税の項の和÷raw の和・raw×各因数の割引の寄与）。
+  10 種: 種ごとの値の中央（最小・最大も添える）。種1〜10 と 種11〜20 を別に出し、2 組の差を揺れとして名乗る（ヌル腕は無い）。
+  道のり: 群 SA の年ごとの margin と dominance の中央（10 種の中央）1800〜1830。
+5 独立の件数: cederule_s の how=Seceded・tierBefore=Colonial のうち対象の州（1783〜1950 と 1800〜1830 の 2 つ）。
+6 スペインの 1805〜1812: secession_s のスペインの国の列（legitimacyIndex・coerceIndex・totalPopK・holdBaseIndex）・nation_s（atWarMonths・totalPopulationK・coreRegions・colonialRegions）・wars_s（スペインが側の戦争）。
+7 判定ではない（門なし）。数は台本の出力から写す。確証の度合いを名乗る。
+追記（数える前・advisor の指摘を入れた・同じ日）
+  a 表に因数の列の中央も出す: militancyMeanIndex・tariffGapIndex・cultureDistanceIndex・coreShareMeanShare・consciousnessMeanIndex・suffrageInclusionShare・stanceIndex・tariffInterestIndex
+  b 検算: pressureRebuildGapIndex・holdBaseRebuildGapIndex の群ごとの絶対値の最大
+  c 保持力の床: 威信の項を 0 とした引き留め＝治安維持力の項×投射÷共有分母 を群ごとに出し、圧力の中央と並べる
+  d Dominance の要る四半期数: 1÷(−margin×0.025)（margin が負の行だけ）を道のりの表に添える
+  e スペインの 1805〜1815: 戦争・総人口・州の数の表を先に出し、事象が無い種では問い4を〈盤面に出ない〉と分ける。戦争に入った年の保持力の上がり下がりを符号で数える（記録）

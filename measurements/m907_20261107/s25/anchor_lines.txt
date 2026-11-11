@@ -1,0 +1,207 @@
+S25-01 Coefficients.cs:1415:WarDeclareTension :: public double WarDeclareTension = 140.0;      // **2026-07-25採用（C-高6の次段＝下げ戻し）**：exact38/ne
+S25-01 Coefficients.cs:1265:WarTriggerMonths :: public int WarTriggerMonths = 6;              // 緊張100以上がこれだけ続くと開戦（攻守区別なし）。戦争過多を抑えるため3→6（長
+S25-01 Diplomacy.cs:1510:WarGateOpen :: internal bool WarGateOpen(Power a, Power b, Coefficients c, HashSet<long>? atWar = null)
+S25-01 Diplomacy.cs:1516:TriggerWars :: private void TriggerWars(Coefficients c)
+S25-02 Diplomacy.cs:610:AddTensionKeyed :: private double AddTensionKeyed(long k, double d, TensionReason reason)   // 戻り値＝実際に動いた量（クラ
+S25-02 Diplomacy.cs:679:TensionReasonJa :: public static string TensionReasonJa(TensionReason r) => r switch
+S25-03 Coefficients.cs:1569:ThreatTensionPerMonth :: public double ThreatTensionPerMonth = 0.10;       // 経済/植民地の大国であること自体が周囲の緊張を高める（覇権防止）。0.25
+S25-03 Coefficients.cs:1600:DependentThreatWeight :: public double DependentThreatWeight = 0.3;    // 宗主の覇権脅威評価に従属国のGDP/植民地をこの率で合算（属国の帝国は大きく見える
+S25-03 Diplomacy.cs:1067:ThreatTension :: private void ThreatTension(Coefficients c)
+S25-03 Diplomacy.cs:1104:ThreatReach :: internal double ThreatReach(Power big, Power other, double borderWeight, Coefficients c)  
+S25-04 Coefficients.cs:2227:SkillTensionWeight :: public double SkillTensionWeight = 0.5;        // 熟練度が生む緊張＝軍隊規模に**乗算**する形（作者指示）。0で恒等
+S25-04 Diplomacy.cs:1118:ThreatScore :: private double ThreatScore(Power p, Coefficients c)
+S25-05 Coefficients.cs:1574:IdeologyTensionPerMonth :: public double IdeologyTensionPerMonth = 0.22;     // 異なる政体間の緊張（イデオロギー距離1あたり・月）。陣営化の駆動。0.35
+S25-05 Coefficients.cs:1575:IdeologyAffinityRelief :: public double IdeologyAffinityRelief = 0.30;  // 同じ政体間の緊張低下（月）。同イデオロギーの親近
+S25-05 Diplomacy.cs:1165:IdeologyTension :: private void IdeologyTension(Coefficients c)
+S25-06 Coefficients.cs:1577:EthnicTensionPerMonth :: public double EthnicTensionPerMonth = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループ
+S25-06 Coefficients.cs:1579:LawTensionPerMonth :: public double LawTensionPerMonth = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由
+S25-06 Coefficients.cs:1580:ReligionTensionPerMonth :: public double ReligionTensionPerMonth = 0.03;     // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）。ファミリ
+S25-06 Coefficients.cs:1581:ReligionHeresyBonus :: public double ReligionHeresyBonus = 0.22;     // 同ファミリー異宗派（スンナ⇔シーア・カトリック⇔プロテスタント）の摩擦加算＝「異端
+S25-06 Coefficients.cs:1578:EthnicAffinityRelief :: public double EthnicAffinityRelief = 0.12;    // 同民族グループ間の緊張低下（月・同一民族はさらに強い）
+S25-06 Diplomacy.cs:1242:AffinityTensions :: private void AffinityTensions(Coefficients c)
+S25-07 Coefficients.cs:1587:ProtectorTensionPerMonth :: public double ProtectorTensionPerMonth = 0.02;  // 【点火2026-08-09 ign_p11＝硬性緑Δ+8.2】// 同宗教保護
+S25-07 Coefficients.cs:1588:ProtectorInterventionWeight :: public double ProtectorInterventionWeight = 0.5;  // 【点火2026-08-09 同上】// 列強介入の動機×(1+これ×gri
+S25-07 Diplomacy.cs:1316:ProtectorGrievance :: public static double ProtectorGrievance(Power a, Power b)
+S25-08 Coefficients.cs:1570:RouteDependenceTensionPerMonth :: public double RouteDependenceTensionPerMonth = 0.10;   // ★点火2026-09-03（B-02・単独A/B batch10
+S25-08 Diplomacy.cs:1042:RouteTension :: private void RouteTension(Coefficients c)
+S25-09 Coefficients.cs:3121:OpiumBanTensionPerMonth :: public double OpiumBanTensionPerMonth = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争
+S25-09 Diplomacy.cs:1475:OpiumTension :: private void OpiumTension(Coefficients c)
+S25-10 Coefficients.cs:1502:OpiumExportPressureThreshold :: public double OpiumExportPressureThreshold = 1.2;   // 外圧の合計がこれを超えたら輸出を禁じる（TradeWeight の和＝
+S25-10 Coefficients.cs:1501:OpiumExportPressureTension :: public double OpiumExportPressureTension = 40.0;    // 「緊張が高い」とみなす閾値（Tension は 100 で宣戦水準）
+S25-10 SelfPlay.cs:1778:OpiumExportPressureThreshold :: p.OpiumExportBan = opiumPressure > w.Coef.OpiumExportPressureThreshold;
+S25-11 Coefficients.cs:1262:TensionDecay :: public double TensionDecay = 0.42;            // 平時の緊張の自然減（月）。0.18→0.42＝冷却を速め全体の緊張水準を下げ開戦回
+S25-11 Coefficients.cs:1261:HighTensionBand :: public double HighTensionBand = 100.0;
+S25-11 Coefficients.cs:2883:FrozenTensionDecayRate :: public double FrozenTensionDecayRate = 0.2;   // 外11：開戦不能ペアの≥100緊張に課す月次減衰（旧の旗 FrozenTensio
+S25-11 Diplomacy.cs:3684:DriftTension :: private void DriftTension(Coefficients c)
+S25-12 Diplomacy.cs:325:_grudge :: private readonly Dictionary<long, double> _grudge = [];  // ★遺恨ストック（2026-08-01）：ペアごと。講和時の復
+S25-12 Diplomacy.cs:3684:DriftTension :: private void DriftTension(Coefficients c)
+S25-13 Coefficients.cs:1767:DefeatShockTensionRelief :: public double DefeatShockTensionRelief = 2.0;  // 機能9-1点火（2026-07-28）：ハイエナ抑制＝敗戦ショックが高い相手への
+S25-13 Coefficients.cs:1768:DefeatShockProtectMin :: public double DefeatShockProtectMin = 0.3;     // 機能9-1：保護が効く敗戦ショックの下限（数年で切れる＝DefeatShockK
+S25-13 Diplomacy.cs:3684:DriftTension :: private void DriftTension(Coefficients c)
+S25-14 Coefficients.cs:2883:FrozenTensionDecayRate :: public double FrozenTensionDecayRate = 0.2;   // 外11：開戦不能ペアの≥100緊張に課す月次減衰（旧の旗 FrozenTensio
+S25-14 Diplomacy.cs:3746:CannotDeclareWar :: private bool CannotDeclareWar(long key)
+S25-15 Coefficients.cs:1563:RevanchismTension :: public double RevanchismTension = 70.0;        // #15 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値
+S25-15 Diplomacy.cs:2888:ResolvePeace :: internal void ResolvePeace(Coefficients c, War war, CollapseGroup? cg = null, double cgSha
+S25-16 Coefficients.cs:1656:GreatPowerCount :: public int GreatPowerCount = 7;                // 列強の定員（スコア上位N・2026-07-04人数制：同ランクの外交相手が常時5
+S25-16 Coefficients.cs:1670:SecondPowerCount :: public int SecondPowerCount = 5;               // 準列強の定員（列強の次のN）
+S25-16 Coefficients.cs:1675:MiddlePowerCount :: public int MiddlePowerCount = 7;               // 中堅の定員（準列強の次のN。残りの実国家と抽象勢力は弱小）
+S25-16 Coefficients.cs:1651:GreatPowerScoreFraction :: public Share GreatPowerScoreFraction = new(0.35);  // 首位比率式のランク判定。53カ国世界（実国>12）では人数制に置換済みだ
+S25-16 Coefficients.cs:1652:MinorPowerScoreFraction :: public Share MinorPowerScoreFraction = new(0.22);  // 実国12以下の世界（テスト・較正）では現役（GreatPowerScor
+S25-16 Coefficients.cs:1655:RankUpdateIntervalQuarters :: public double RankUpdateIntervalQuarters = 4;  // P14（2026-07-17点火）：ランク再分類の間隔（四半期）。4=年次ソート
+S25-16 Diplomacy.cs:553:ComputeRanks :: internal void ComputeRanks(Coefficients c)
+S25-17 Coefficients.cs:1269:HegemonThreatMin :: public double HegemonThreatMin = 0.3;         // 覇権と見なす最低脅威超過（GDP×0.6＋植民地×0.4 の平均超過分）。これ未満
+S25-17 Coefficients.cs:1276:HegemonContainmentTrade :: public double HegemonContainmentTrade = 0.40; // 封じ込めで覇権国が失う交易アクセス＝これ×脅威超過（0で無効）。海軍で侵攻不能な島
+S25-17 Coefficients.cs:1277:HegemonContainmentMax :: public double HegemonContainmentMax = 0.55;   // その上限（交易アクセス floor 0.1 まで落とさず・最大でも交易の約半分まで
+S25-17 Coefficients.cs:1270:AntiHegemonAllianceChance :: public double AntiHegemonAllianceChance = 0.7;// 覇権が共通の敵のときの同盟成立確率（通常0.4より高い＝合従が組まれやすい）
+S25-17 Coefficients.cs:1271:AntiHegemonExtraAlliances :: public int AntiHegemonExtraAlliances = 1;     // 覇権に対抗する時だけ同盟上限を+これ（三国協商＝三極以上の合従を許す）
+S25-17 Diplomacy.cs:753:ApplyHegemonContainment :: private void ApplyHegemonContainment(Coefficients c)
+S25-18 Coefficients.cs:1267:MaxAlliances :: public int MaxAlliances = 2;                  // 1国の同盟数の上限（全員同盟を防ぐ）
+S25-18 Coefficients.cs:1263:FriendlyTensionMax :: public double FriendlyTensionMax = 20;        // これ未満＝友好（同盟の条件）
+S25-18 Coefficients.cs:1264:RivalTensionThreshold :: public double RivalTensionThreshold = 40;     // これ超＝ライバル（共通の敵）。戦時備蓄が始まる緊張（Model.Stockpile
+S25-18 Diplomacy.cs:1986:c.MaxAlliances :: int cap = c.MaxAlliances + (coalitionFoe == hegemon ? c.AntiHegemonExtraAlliances : 0);
+S25-19 Diplomacy.cs:1980:Landmass.Same :: && !Landmass.Same(pw2.Latitude, pw2.Longitude, qw2.Latitude, qw2.Longitude))
+S25-19 Landmass.cs:95:Same :: public static bool Same(double lat1, double lon1, double lat2, double lon2) => Of(lat1, lo
+S25-20 Coefficients.cs:1603:AllianceBreakTension :: public double AllianceBreakTension = 50;      // 同盟国間の緊張がこれを超えると同盟が崩れる（強国は孤立へ）
+S25-20 Diplomacy.cs:1417:BreakStrainedAlliances :: private void BreakStrainedAlliances(Coefficients c)
+S25-21 Diplomacy.cs:1784:JoinAllies :: private void JoinAllies(Power belligerent, Power enemy, Coefficients c, int depth = 0, Has
+S25-21 Diplomacy.cs:1776:AllyJoinThreshold :: public double AllyJoinThreshold(Power enemy, Coefficients c)
+S25-22 Coefficients.cs:1758:WarChainMaxDepth :: public double WarChainMaxDepth = 2;            // 機能5-④点火（2026-07-28）：同盟参戦の連鎖段数（WW1型）。0で1段
+S25-22 Coefficients.cs:1759:WarChainDepthPenalty :: public double WarChainDepthPenalty = 1.5;      // 機能5-④-2：2段目以降の参戦閾値×これ^depth（連鎖は段ごとに渋る＝全世
+S25-22 Diplomacy.cs:1717:AddBelligerent :: private void AddBelligerent(War war, Coefficients c, int depth, HashSet<(long, int)>? visi
+S25-23 Coefficients.cs:1757:AllyRefusalTension :: public double AllyRefusalTension = 60;         // 機能5-③点火（2026-07-28）：参戦要請の見送り/拒否＝要請元との緊張＋
+S25-23 Diplomacy.cs:1839:ResolveCallToArms :: public void ResolveCallToArms(Power player, bool join, Coefficients c)
+S25-24 Diplomacy.cs:1695:StartWar :: private void StartWar(Power a, Power b, Coefficients c)
+S25-24 Diplomacy.cs:486:HasEmbargo :: public bool HasEmbargo(Power a, Power b) => _embargo.Contains(Key(a, b));
+S25-25 Coefficients.cs:1795:DefendProjectionMin :: public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
+S25-25 Diplomacy.cs:1434:WorthFighting :: private bool WorthFighting(Power a, Power b, Coefficients c)
+S25-26 Coefficients.cs:1877:AISubmitMilRatio :: public double AISubmitMilRatio = 3.0;   // **2026-07-25採用（第3群C-高6）**：軍事3倍差で弱い側が屈服（緊張解消＋正統性
+S25-26 Coefficients.cs:1418:ConcedeTensionTarget :: public double ConcedeTensionTarget = 110.0;   // 最後通牒で「要求を受け入れる」＝緊張をこの値へ下げて開戦を回避（WarDeclar
+S25-26 Coefficients.cs:1965:AISubmitLegitCost :: public double AISubmitLegitCost = 0.05;        // 屈服の正統性コスト（下関・三国干渉の屈辱＝国内の怒り）
+S25-26 Diplomacy.cs:1588:SideMilitary :: public double SideMilitary(Power p, Power foe, Coefficients c)
+S25-27 Diplomacy.cs:2177:ResolvePendingWar :: public void ResolvePendingWar(Power player, bool fight, Coefficients c)
+S25-28 Coefficients.cs:1688:ActionTensionStep :: public double ActionTensionStep = 25.0;        // 「挑発する/緊張を緩和する」1回の緊張増減量（合計。TensionActionR
+S25-28 Coefficients.cs:1689:TensionActionRampMonths :: public int TensionActionRampMonths = 6;        // 緊張操作の反映期間（月）＝即時でなく毎月 Step/Ramp ずつ動く（2026
+S25-28 Diplomacy.cs:2155:RaiseTension :: public bool RaiseTension(Power actor, Power target, Coefficients c)
+S25-28 Diplomacy.cs:2169:EaseTension :: public bool EaseTension(Power actor, Power target, Coefficients c)
+S25-28 Diplomacy.cs:2043:StepTensionRamp :: internal void StepTensionRamp(Coefficients c)
+S25-29 Coefficients.cs:1789:AppeaseMilitaryRatio :: public double AppeaseMilitaryRatio = 2.5;      // 相手の軍が自軍のこれ倍超＝勝てない相手＝挑発せず宥和（緊張を下げる）
+S25-29 Diplomacy.cs:1904:DiplomacyAI :: private void DiplomacyAI(Coefficients c, DeterministicRng rng)
+S25-30 Coefficients.cs:1696:ProvokeProximitySpread :: public double ProvokeProximitySpread = 0.3;    // 挑発の近隣波及＝標的の近隣諸国(ProximityTensionRange内)も
+S25-30 Coefficients.cs:1468:ProximityTensionRange :: public double ProximityTensionRange   = 3000.0; // この距離(km)内の列強が反応（隣接で最大、距離に比例して減衰）
+S25-30 Diplomacy.cs:2116:SpreadProvocationTension :: private void SpreadProvocationTension(Power actor, Power target, double baseStep, Coeffici
+S25-31 Coefficients.cs:1693:TensionPoliticsScale :: public double TensionPoliticsScale = 0.03;     // 挑発＝タカ派(反動/ナショ/帝国/ファシ)の喝采−ハト派(自由/共和)の反発、宥
+S25-31 Diplomacy.cs:2098:TensionPolitics :: internal void TensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coeffic
+S25-32 Diplomacy.cs:486:HasEmbargo :: public bool HasEmbargo(Power a, Power b) => _embargo.Contains(Key(a, b));
+S25-32 Diplomacy.cs:724:TradeAccess :: public double TradeAccess(Power fr)
+S25-33 Coefficients.cs:2179:MilitaryExportTensionThreshold :: public double MilitaryExportTensionThreshold = 60.0;      // この緊張以上の相手へは軍需財を輸出しない（尺度0..200
+S25-33 Coefficients.cs:2181:MilitaryExportAccessFloor :: public double MilitaryExportAccessFloor = 0.1;            // 禁止しても残る輸出口（Diplomacy.TradeAcc
+S25-33 Diplomacy.cs:743:MilitaryExportAccess :: public double MilitaryExportAccess(Power fr, Coefficients c)
+S25-34 Coefficients.cs:2614:RiskLambda :: public double RiskLambda = 2.0;              // 03手順7：リスク線積分の強度＝1−exp(−λΣ敵支配度×km/1e4)。完全支配
+S25-35 Coefficients.cs:1793:PrizeCargoShare :: public Share PrizeCargoShare = new(1.0);           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastP
+S25-35 Coefficients.cs:1792:PrizeMoneyRatePerMonth :: public RatePerMonth PrizeMoneyRatePerMonth = new(0.004);          // A2拿捕賞金＝敵GDP×これ×制海優位を毎
+S25-35 Diplomacy.cs:775:CollectPrize :: private void CollectPrize(Power raider, Power victim, Coefficients c)
+S25-36 Diplomacy.cs:798:raiderNaval :: if (SeaControl(co, victim) > 0.5) raiderNaval += co.NavalPower;
+S25-36 Diplomacy.cs:775:CollectPrize :: private void CollectPrize(Power raider, Power victim, Coefficients c)
+S25-37 Diplomacy.cs:1014:SyncFleet :: private static void SyncFleet(Power p, World nw, Coefficients c, double denom, double sold
+S25-38 Coefficients.cs:1591:DependencyAlignmentRelief :: public double DependencyAlignmentRelief = 1.2; // 従属-宗主間の緊張を毎月これだけ下げる＝整列（従属は宗主に開戦しない）。衛星=外
+S25-38 Diplomacy.cs:450:SetDependency :: public void SetDependency(Power suzerain, Power dependent)
+S25-38 Diplomacy.cs:1352:StepDependency :: internal void StepDependency(Coefficients c, int month)   // internal＝番人（FiscalTests の貢納の未
+S25-39 Coefficients.cs:1590:VassalTributeMonthGdpPerQuarter :: public double VassalTributeMonthGdpPerQuarter = 0.015;      // 属国/傀儡の貢納＝従属の月の GDP×これを毎四半期 
+S25-39 Diplomacy.cs:1352:StepDependency :: internal void StepDependency(Coefficients c, int month)   // internal＝番人（FiscalTests の貢納の未
+S25-40 Coefficients.cs:1592:VassalHoldScale :: public double VassalHoldScale = 0.5;          // 属国の抑え＝宗主の陸軍力×投射(距離減衰)×これ。属国の軍がこれを超え反目が高いと
+S25-40 Coefficients.cs:1593:VassalDefectionMilitancy :: public double VassalDefectionMilitancy = 0.6;  // 離反の意志ゲート＝属国民の平均闘争度がこれを超え、かつ軍事条件（VassalHo
+S25-40 Diplomacy.cs:1352:StepDependency :: internal void StepDependency(Coefficients c, int month)   // internal＝番人（FiscalTests の貢納の未
+S25-41 Coefficients.cs:1795:DefendProjectionMin :: public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
+S25-41 Diplomacy.cs:1728:DefendDependent :: private void DefendDependent(Power dependent, Power enemy, Coefficients c)
+S25-42 Coefficients.cs:1601:MaxDependents :: public int MaxDependents = 8;                 // 1宗主が抱えられる従属の上限（帝国の過剰拡張＝過伸を防ぐ）。4→8（宗主の地理20
+S25-42 Diplomacy.cs:1412:CountDependents :: private int CountDependents(Power s) { int k = 0; foreach (var _ in DependentsOf(s)) k++; 
+S25-43 Coefficients.cs:1810:InterventionMotiveRatio :: public double InterventionMotiveRatio = 1.0;     // 勝勢側の陣営戦力 ÷ 介入国の陣営戦力 がこれ以上なら「止めたい」＝動機
+S25-43 Coefficients.cs:1814:InterventionSubmitBar :: public double InterventionSubmitBar = 0.5;
+S25-43 Coefficients.cs:1815:InterventionRivalTension :: public double InterventionRivalTension = 22.0;   // 提案が他の列強との緊張を上げる量（ColonizeRivalTension=
+S25-43 Coefficients.cs:1816:InterventionWarMinMonths :: public double InterventionWarMinMonths = 12.0;   // 開戦からこの月数未満の戦争には口を出さない（始まったばかりの戦争に列強は動か
+S25-43 Diplomacy.cs:2302:PeaceInterventionAI :: private void PeaceInterventionAI(Coefficients c)
+S25-43 Diplomacy.cs:2390:CanOfferPeace :: public bool CanOfferPeace(Power g, War war, Coefficients c, out string reason)
+S25-44 Diplomacy.cs:2327:ExecuteMediation :: private void ExecuteMediation(Power greatPower, War war, Coefficients c)
+S25-44 Diplomacy.cs:2390:CanOfferPeace :: public bool CanOfferPeace(Power g, War war, Coefficients c, out string reason)
+S25-45 Diplomacy.cs:2327:ExecuteMediation :: private void ExecuteMediation(Power greatPower, War war, Coefficients c)
+S25-45 Diplomacy.cs:2373:DeclareWar(greatPower, refuser, c) :: DeclareWar(greatPower, refuser, c);   // ★拒否＝参戦。★是正（監査2026-09-02 #20）：StartWar直呼びはDeclareW
+S25-46 Coefficients.cs:1438:ReparationGdpFraction :: public Share ReparationGdpFraction = new(0.2);    // 賠償金＝敗者GDP×戦勝点×これ。完全勝利(戦勝点1)で月の GDP の2
+S25-46 Coefficients.cs:1599:VassalizeWinScore :: public double VassalizeWinScore = 1.4;        // この戦勝点(未クランプ)以上の壊滅的勝利なら、領土割譲(1.2)の代わりに敗者を属
+S25-46 Coefficients.cs:1602:GovCostVassalThreshold :: public double GovCostVassalThreshold = 0.4;   // 講和の圧勝後：敗者の統治コスト（民族距離0.5＋宗教距離0.5）がこれ以上＝異民族
+S25-46 Coefficients.cs:1531:ColonyCaptureMax :: public int ColonyCaptureMax = 3;               // 1戦争で奪える植民地の上限（完全勝利でも3つほど）
+S25-46 Coefficients.cs:1526:ColonyCaptureBudget :: public double ColonyCaptureBudget = 100;       // 完全勝利(戦勝点1)の奪取予算＝100点（budget ＝ 戦勝点 × これ）
+S25-46 Diplomacy.cs:2888:ResolvePeace :: internal void ResolvePeace(Coefficients c, War war, CollapseGroup? cg = null, double cgSha
+S25-47 Coefficients.cs:1557:CessionMaxDistanceKm :: public double CessionMaxDistanceKm = 4000;     // 監査2026-07-05：割譲の投射圏＝**勝者の首都**から割譲候補州までの大
+S25-47 Coefficients.cs:1414:SeaInvasionControlMin :: public double SeaInvasionControlMin = 0.65;
+S25-47 Diplomacy.cs:3469:CessionTarget :: internal bool CessionTarget(Coefficients c, CessionReach rc, double lat, double lon, bool 
+S25-48 Coefficients.cs:1531:ColonyCaptureMax :: public int ColonyCaptureMax = 3;               // 1戦争で奪える植民地の上限（完全勝利でも3つほど）
+S25-48 Diplomacy.cs:3359:CedeTerritoryUnified :: private bool CedeTerritoryUnified(Coefficients c, World loser, Power winner, World ww, str
+S25-49 Coefficients.cs:1018:TreatyPortWinnerDistanceKm :: public double TreatyPortWinnerDistanceKm = 6000;  // 勝者と敗者がこれ以上離れていたら属国化しない（遠隔地の属国は統治できない）
+S25-49 Coefficients.cs:1023:TreatyPortReparationMult :: public double TreatyPortReparationMult = 2.5;     // 条約港の講和での賠償倍率（「多額の賠償金」＝属国化の代わりに金と通商特権を
+S25-49 Coefficients.cs:2764:ForeignRuleFromTreaty :: public double ForeignRuleFromTreaty = 0.5;
+S25-50 Coefficients.cs:1022:TreatyPortLapseRatio :: public Share TreatyPortLapseRatio = new(0.5);         // 【点火0.5・2026-08-16＝A/B: 単独35/69/51
+S25-50 Diplomacy.cs:529:TreatyPortLapse :: internal void TreatyPortLapse(Coefficients c, int month)
+S25-51 Diplomacy.cs:3213:CountDependents(winner) :: if (crushing && CountDependents(winner) < c.MaxDependents)
+S25-51 Coefficients.cs:1601:MaxDependents :: public int MaxDependents = 8;                 // 1宗主が抱えられる従属の上限（帝国の過剰拡張＝過伸を防ぐ）。4→8（宗主の地理20
+S25-52 Coefficients.cs:1748:RevolutionSurrenderWeight :: public double RevolutionSurrenderWeight = 0.4; // 機能6-2点火（2026-07-28）：講和意欲の閾値×(1−これ×革命圧力)＝
+S25-52 Diplomacy.cs:2481:StepWars :: private void StepWars(Coefficients c)
+S25-53 Coefficients.cs:1646:OfficerCasualtyShare :: public Share OfficerCasualtyShare = new(0.06);    // B-1：戦死の一部が士官＝伝統支配層(貴族)にも及ぶ割合＝WarFever
+S25-53 Diplomacy.cs:3249:OutcomeShocks :: private static void OutcomeShocks(Coefficients c, World? winW, World? loseW, double absSco
+S25-53 Diplomacy.cs:3738:DefeatedShock :: private double DefeatedShock(long key)
+S25-54 Coefficients.cs:1697:ColonizeSubmitRatio :: public double ColonizeSubmitRatio = 3.0;       // 侵略：実効戦力が屈服線（＝標的の軍事ゲージ×これ）以上なら標的は屈服→属国化/併
+S25-54 Coefficients.cs:1698:ColonizeSubmitFloorMilitary :: public double ColonizeSubmitFloorMilitary = 0.05;   // 屈服線の床＝無防備な標的にも最小限の遠征が要る（0で床なし＝軍を持たな
+S25-54 Coefficients.cs:1794:ColonizeAnnexMilitancy :: public double ColonizeAnnexMilitancy = 0.3;    // A5無血植民地化の被支配不満（接収植民地のMilitancy/属国pop闘争度の
+S25-54 Diplomacy.cs:2283:SubmitLine :: public double SubmitLine(Power target, Coefficients c)
+S25-54 Diplomacy.cs:2225:Subjugate :: internal bool Subjugate(Power great, Power target, Coefficients c)
+S25-55 Coefficients.cs:1460:InvadeMilitaryFactor :: public double InvadeMilitaryFactor    = 1.2;   // 自軍の実効戦力が標的軍事力×これ以上で挑める
+S25-55 Coefficients.cs:2312:InvadeSeaControlMin :: public double InvadeSeaControlMin = 0.45;     // 海越え侵略に要る最低制海権（弱海軍の内陸国は海外植民地を取れない＝英の海上覇権が意
+S25-55 Coefficients.cs:1450:ExpansionWillCap :: public double ExpansionWillCap      = 10.0;  // 膨張意欲の貯蓄上限（連続侵略の原資上限）
+S25-55 Coefficients.cs:1535:ColonizeWillSuperiorityDiscount :: public double ColonizeWillSuperiorityDiscount = 1.0;   // 国力比の重み（作者裁定2026-08-23）：要求余剰戦力＝上限
+S25-55 World.cs:2179:CanInvade :: public bool CanInvade(Power target, out string reason)
+S25-55 World.cs:2214:Invade :: public bool Invade(Power target, Colony? interest = null)
+S25-55 World.cs:2261:ExpansionCostFor :: public double ExpansionCostFor(Power target) => InvadeWillCost(target);
+S25-56 Diplomacy.cs:2278:ExpeditionLift :: internal double ExpeditionLift(Power great, Power target, Coefficients c)
+S25-57 Coefficients.cs:1541:AiColonizeChance :: public double AiColonizeChance = 0.12;             // AI列強の植民地化試行率/四半期（裁定2：衛星国用SatelliteFo
+S25-57 Coefficients.cs:1790:HegemonRestraintFloor :: public Share HegemonRestraintFloor = new(0.25);    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停
+S25-57 Diplomacy.cs:2013:TryAiSubjugate :: private void TryAiSubjugate(Power great, Coefficients c)
+S25-58 Coefficients.cs:1699:ColonizeRivalTension :: public double ColonizeRivalTension = 22.0;     // 植民地化が**他の列強**との緊張を高める量（グレートゲーム＝勢力圏争い・他列強
+S25-58 Coefficients.cs:1468:ProximityTensionRange :: public double ProximityTensionRange   = 3000.0; // この距離(km)内の列強が反応（隣接で最大、距離に比例して減衰）
+S25-58 Diplomacy.cs:2437:RaiseColonizeTension :: private void RaiseColonizeTension(Power great, Power target, Coefficients c, Power? target
+S25-59 Coefficients.cs:3113:UnificationAiPursueChance :: public double UnificationAiPursueChance = 0.7;  // AI追求確率（70%史実/30%見送り＝非史実の彩り。専用RNG系列で1dra
+S25-59 Coefficients.cs:3114:UnificationAiCooldownYears :: public int UnificationAiCooldownYears = 20;     // 見送り後の再判定クールダウン（年）
+S25-59 Coefficients.cs:3115:UnificationAiWarGapYears :: public int UnificationAiWarGapYears = 3;        // 宣戦後の次判定間隔（年）＝1864→1866→1870の連続戦争の律動
+S25-59 Diplomacy.cs:1883:TryUnificationWars :: private void TryUnificationWars(Coefficients c)
+S25-60 Coefficients.cs:2309:DistanceWarDecay :: public double DistanceWarDecay = 1.0;         // 戦力投射の距離減衰（1あたり1万km）。遠い戦線ほど押し合いが鈍る＝クリミア/ボー
+S25-60 Coefficients.cs:2311:HomeDefenseBonus :: public double HomeDefenseBonus = 1.25;        // 本土防衛の地の利（抽象標的＝自領で戦う側は投射せず守りに専念）
+S25-60 Diplomacy.cs:3639:Projection :: public double Projection(Power x, Power y, Coefficients c)
+S25-61 Coefficients.cs:2767:ProjectionRuleMin :: public double ProjectionRuleMin = 1.1;
+S25-61 Coefficients.cs:2769:ProjectionUsesLand :: public double ProjectionUsesLand = 0.0;
+S25-61 Diplomacy.cs:3639:Projection :: public double Projection(Power x, Power y, Coefficients c)
+S25-62 Landmass.cs:95:Same :: public static bool Same(double lat1, double lon1, double lat2, double lon2) => Of(lat1, lo
+S25-62 Landmass.cs:62:LandmassOf :: public static string LandmassOf(string name)
+S25-62 Diplomacy.cs:3629:IsSeaCrossing :: public bool IsSeaCrossing(Power x, Power y)   // ★(410) 使わない引数 Coefficients を外した（旧の旗 Conti
+S25-63 Coefficients.cs:707:TariffRetaliation :: public double TariffRetaliation = 0.5;       // 報復関税（tariff-no-strategic-retaliation）：相手の対
+S25-63 Coefficients.cs:708:TariffReactionMax :: public double TariffReactionMax = 0.25;      // 報復/相互低減で偏倚させ得る上限(±)。TariffRetaliation=0なら無
+S25-63 Diplomacy.cs:1858:TradePolicyReaction :: private void TradePolicyReaction(Coefficients c)
+S25-64 DormantIdentityTests.cs:300:TradeTreatyEnabled :: "ArmyShapeEnabled", "ColonialRegionCession", "ConscriptionScalesWithWar", "EnableFormation
+S25-65 Diplomacy.cs:1434:WorthFighting :: private bool WorthFighting(Power a, Power b, Coefficients c)
+S25-66 Coefficients.cs:1433:WarWearyThreshold :: public double WarWearyThreshold = 0.5;        // 疲弊がこれ超なら新たな戦争に入らない（講和後も数年は減衰中の厭戦が再戦を抑える＝休
+S25-66 Diplomacy.cs:1510:WarGateOpen :: internal bool WarGateOpen(Power a, Power b, Coefficients c, HashSet<long>? atWar = null)
+S25-67 MultiNationSim.cs:263:SeedRivalries :: private void SeedRivalries(WorldData.WorldSetup setup)
+S25-68 Coefficients.cs:1436:PostWarTension :: public double PostWarTension = 38;            // 講和後の緊張の置き直し値。そこからゆっくり100へ再上昇＝中後期戦争を生むが時計仕
+S25-68 Diplomacy.cs:491:RegisterIndependence :: internal void RegisterIndependence(Power parent, Power child, Coefficients c)
+S25-69 Coefficients.cs:1567:ConcertReparationRestraint :: public double ConcertReparationRestraint = 0.04;  // 第7段第1波⑤点火（2026-07-28）：会議外交＝ウィーン体制（傍観す
+S25-69 Coefficients.cs:1568:ConcertRestraintMax :: public double ConcertRestraintMax = 0.5;         // 抑制の上限（会議度が高くても賠償の半分まで）。非0だが主レバー0が積を先にゼ
+S25-69 Diplomacy.cs:2888:ResolvePeace :: internal void ResolvePeace(Coefficients c, War war, CollapseGroup? cg = null, double cgSha
+S25-70 Coefficients.cs:2018:ImposeRegimeIdeologyGap :: public double ImposeRegimeIdeologyGap = 0.4;    // 発動に要する政体イデオロギー距離（Ideology()スカラー差＝絶対0.0⇔
+S25-70 Coefficients.cs:2019:ImposedRegimeLegitimacy :: public double ImposedRegimeLegitimacy = 0.3;    // 押し付け政体の正統性上限（低く始まる＝復古の芽。実績ストックが失望を蓄積→宗主
+S25-71 Coefficients.cs:1551:CessionSeaCrossingWeight :: public double CessionSeaCrossingWeight = 1.0;   /* ★点火2026-08-01（上陸ゲートと同時）：渡海の摩擦。★閾値の判定そのも
+S25-71 Diplomacy.cs:3524:CessionCost :: internal static double CessionCost(Coefficients c, int resources, double units, bool dista
+S25-72 Coefficients.cs:1878:SubmitProbabilistic :: public double SubmitProbabilistic = 0.0;   // ★屈服の確率化（AI審査3-1・2026-08-31休眠）：3.0倍の決定論的な崖（2.
+S25-72 Diplomacy.cs:1557:SubmitProbabilistic :: if (c.SubmitProbabilistic > 0 && SubmitRng is { } submitRng && c.AISubmitMilRatio > 1.0)
+S25-73 Diplomacy.cs:1352:StepDependency :: internal void StepDependency(Coefficients c, int month)   // internal＝番人（FiscalTests の貢納の未
+S25-73 Coefficients.cs:1877:AISubmitMilRatio :: public double AISubmitMilRatio = 3.0;   // **2026-07-25採用（第3群C-高6）**：軍事3倍差で弱い側が屈服（緊張解消＋正統性
+S25-74 DormantIdentityTests.cs:263:WarStartPoliticsScale :: "WarStartPoliticsScale",      // 開戦そのものの政治的帰結＝戦争の実体の被害で表す（2026-07-25 の教訓）
+S25-75 ScalarDeletionTests.cs:70:DiploCore :: foreach (var t in new[] { "DiploCore", "Calibration", "Sweep", "SweepMetrics", "Modernizat
+S25-76 Diplomacy.cs:330:PeaceOffersMade :: public int PeaceOffersMade, PeaceOffersRefused, PeaceOffersBlank;   // 診断スカラー（WarsStarted 
+S25-77 Diplomacy.cs:324:_warCount :: private readonly Dictionary<long, int> _warCount = [];   // ★診断（2026-08-01）：ペアごとの開戦回数。挙動非依

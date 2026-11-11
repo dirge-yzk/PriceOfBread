@@ -1,0 +1,8 @@
+A=D:/PoB_work/m988_work/out_mSc_10_s11/ins
+B=D:/PoB_work/m988_work/out_mS_10_s11/ins
+共通 1162 本・バイト一致 1142・違い 20
+  違い burscan 10
+  違い clock 10
+  片方だけ A:cearn 10
+  片方だけ A:cgrp 10
+  片方だけ A:cpop 10

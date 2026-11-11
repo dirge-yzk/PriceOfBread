@@ -1,0 +1,17 @@
+(913) c79ar 事前登録  2026-11-07  恒等の線（試験の並列の競合の直し）  木 17b9a1ed から  基準 ident.cfg（INSRAW keep_912/base_ins・BASE_COMMIT b482aa8b・TESTS_NONFULL 2402・NG_BASE ng905）
+[1] 線の種類＝恒等・予言 0（成績表・計器の表・試験の数・NG は m905 と名乗り行を除いて全行一致）。
+    原因：ArmyShape.Compute が静的な Instruments.On を :39・:40（確保）と :155（`!` で使う）で 2 回読む。並列の試験で別のクラスが On を偽→真へ切り替えると、確保されず ArmyNeed へ null が渡り InstrumentsFm.cs:78 で NullReferenceException（★(912)・MultiNationTests の 2 本・再走で緑）。
+    形：Compute の頭で `bool ins = Instruments.On;` を 1 回読み、:39・:40・:155 をその局所へ。値の流れは同じ。
+    代案（試験のクラスへ [Collection("Instruments")]）は直列化でスイートが延びる＝選ばない。
+    効く範囲：〈前半で確保せず後半で ! 参照〉の NRE だけを消す。On が真→偽へ切り替わった後に ArmyNeed が書き先 Dir を失う競合は別の型＝〈競合が無くなる〉とは書かない。
+[2] 現物（b482aa8b・grep 済み）：ArmyShape.cs:39 `double[]? fmHome = Instruments.On ? new double[n * n] : null;`・:40 fmH 同形・:155 `if (Instruments.On) Instruments.ArmyNeed(..., fmHome!, fmH!, ...)`。:73 は `fmH is not null` の守り（局所を使わないので変えない）。ArmyShape.cs の Instruments.On は他に無い（3 行）。:79・:85 の ExpeditionLift は触らない。
+    消す物：無し。足す物：局所 1 つ。読み手の変化：無し（局所は Compute の中だけ）。SaveGame・POB_COEF・Runner・App・Display・Tests の読み手：無し。
+    他の線との重なり：c79lb は Tests の 4 ファイル（LandShareTests・AiFirstWaveTests・ReformPathTests・InstrumentsTests:1963）・c79ce は Coefficients.cs・DormantIdentityTests.cs・CedeRule 試験・Territory.cs の注＝ArmyShape.cs と重ならない。
+    同じ型の表（直さない）：git grep -n "Instruments.On" -- PriceOfBread.SimCore は 230 行・36 ファイル。確保と使用が別の読みの関数は measurements/m913_20261107/on_double_read_table.txt に表にした（直すのは次の恒等の線）。
+[3] 足す試験：無し（突然変異の試験は使い捨ての写しで回し、コミットしない）→ --tests-delta 0・宣言 0。
+    突然変異（使い捨て）：M1 旧の形のまま :155 の直前で Instruments.On を真にする（:39 では偽）→ 使い捨て試験で NRE が出る／新の形で同じ操作 → NRE が出ない。M2 局所を使わず :155 だけ旧に戻す → M1 の操作で NRE（赤）。
+    ソースを走査する番人の点検（㉘）：器のコミット直後に IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を隔離ビルドで回す。書き換える件数の予言（㉑）＝0。`new MoneyStock(` の件数は変えない。
+    浮動小数の順序が変わる箇所：無し（計算式に触れない）。紙の台本の食い違い数＝0。
+[4] 合否：素の 5 種・計器つき 10 種・NG（ident --ng は回さない＝SimCore の計算に触れない）が m905 と全行バイト一致・.cost の推定が一致。フルスイート（分けて・合計を --list-tests と突き合わせ・中止 0）で赤 0。savetest・leakhunt OK。
+[5] 〈判定: 恒等〉なら採る。一致しなければ変更を外して報告。
+D: 空き 124GB（床 35GB＋5GB を満たす）・arms.sh free＝6。作業フォルダ D:/PoB_work/c79ar_work/・隔離ビルド D:/PoB_work/c79ar_art。

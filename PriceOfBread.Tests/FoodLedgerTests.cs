@@ -73,7 +73,7 @@ public class FoodLedgerTests
     {
         var c = new Coefficients();
         Assert.Equal(0.6, c.CrossElasticity); Assert.Equal(0.4, c.PriceFactorMin); Assert.Equal(1.4, c.PriceFactorMax);
-        Assert.True(c.StapleElasticityZero > 0); Assert.Equal(0.0, c.FoodIncludesAnimalProtein);
+        Assert.Equal(0.0, c.FoodIncludesAnimalProtein);
         Assert.Equal(1.0, c.StapleLedgerSum); Assert.Equal(0.0, c.StapleDemandRebalance); Assert.Equal(1.0, c.HarvestShortfallToMarket);   // 既定＝①③は点火（1）・②は休眠（0・腕 B の M5 が外れた）
         for (int i = 0; i < 5; i++) Assert.Equal(E[i], Catalog.Goods[Staples[i]].BaseNeed);
     }
@@ -84,7 +84,7 @@ public class FoodLedgerTests
         // 値段＝参照価格・在庫は十分・貯蓄は十分＝全員が全ての主食を満たす盤面（農民は自給率 0.7＝足し算の丸めで過分と不足が 1 ulp ずつ出る）。
         // 農民の人口は、自給＋買えた量が必要量から財ごとに逆向きに 1 ulp ずれる値（766.1368727868479 で パン・トウモロコシ=+1ulp・ジャガイモ=−1ulp〔Python で全探索した一例〕）に置く。
         //   丸めの許容が無いと過分と不足が 1 ulp ずつ立って FoodMet が旧と 1 ulp 違う（突然変異 m7）。
-        void Noisy(Region r) { foreach (var p in r.Pops) if (p.Subsistence > 0) p.Size = 766.1368727868479; }
+        void Noisy(Region r) { foreach (var p in r.Pops) if (p.SubsistenceBasis > 0) p.Size = 766.1368727868479; }
         var (_, a) = Month(c => Flags(c, 0, 0, 0), setup: Noisy);
         var (_, b) = Month(c => Flags(c, 1, 0, 0), setup: Noisy);
         Assert.Equal(a.Pops.Count, b.Pops.Count);
@@ -96,7 +96,7 @@ public class FoodLedgerTests
             Assert.True(Math.Abs(pa.FoodMet - pa.FoodNeed) <= 1e-9 * pa.FoodNeed, $"前提：{pa.ClassName} が満たされていない {pa.FoodMet}/{pa.FoodNeed}");
             Assert.Equal(BitConverter.DoubleToInt64Bits(pa.FoodMet), BitConverter.DoubleToInt64Bits(pb.FoodMet));
             Assert.Equal(BitConverter.DoubleToInt64Bits(pa.FoodNeed), BitConverter.DoubleToInt64Bits(pb.FoodNeed));
-            fed++; if (pa.Subsistence > 0) farmers++;
+            fed++; if (pa.SubsistenceBasis > 0) farmers++;
         }
         Assert.True(fed >= 8 && farmers >= 1, $"前提が崩れた：満たされた POP {fed}・農民 {farmers}");
     }
@@ -115,13 +115,13 @@ public class FoodLedgerTests
         {
             var pa = a.Pops[i]; var pb = b.Pops[i];
             if (!(pa.Size > 1e-6 && pa.FoodNeed > 1e-9)) continue;
-            var off = Expect(Ratio, Avail, rebalance: false, ledger: false, s: pa.Subsistence);   // 農民（自給率 0.7）も手の算術で突き合わせる
-            var on = Expect(Ratio, Avail, rebalance: false, ledger: true, s: pa.Subsistence);
+            var off = Expect(Ratio, Avail, rebalance: false, ledger: false, s: pa.SubsistenceShare);   // 農民（自給率 0.7）も手の算術で突き合わせる
+            var on = Expect(Ratio, Avail, rebalance: false, ledger: true, s: pa.SubsistenceShare);
             Assert.Equal(off.OldMet * pa.Size, pa.FoodMet, 9);
             Assert.Equal(on.NewMet * pb.Size, pb.FoodMet, 9);
             Assert.Equal(off.Need * pa.Size, pa.FoodNeed, 9);
             Assert.Equal(pa.FoodNeed, pb.FoodNeed);   // 必要量の足し方は変えない
-            n++; if (pa.Subsistence > 0) farmers++;
+            n++; if (pa.SubsistenceBasis > 0) farmers++;
         }
         Assert.True(n >= 9 && farmers >= 1, $"対象の POP が少ない {n}・農民 {farmers}");
     }
@@ -157,8 +157,8 @@ public class FoodLedgerTests
         {
             var pa = a.Pops[i]; var pb = b.Pops[i];
             if (!(pa.Size > 1e-6 && pa.FoodNeed > 1e-9)) continue;
-            var off = Expect(ratio, avail, rebalance: false, ledger: false, s: pa.Subsistence);
-            var on = Expect(ratio, avail, rebalance: false, ledger: true, s: pa.Subsistence);
+            var off = Expect(ratio, avail, rebalance: false, ledger: false, s: pa.SubsistenceShare);
+            var on = Expect(ratio, avail, rebalance: false, ledger: true, s: pa.SubsistenceShare);
             Assert.Equal(off.OldMet * pa.Size, pa.FoodMet, 9);
             Assert.Equal(on.NewMet * pb.Size, pb.FoodMet, 9);
             Assert.Equal(pb.FoodNeed, pb.FoodMet, 9);      // 過分が不足を覆う盤面では新しい台帳は必要量ちょうどまで満たす
@@ -181,11 +181,11 @@ public class FoodLedgerTests
         int farmers = 0;
         foreach (var p in r.Pops.Where(q => q.Size > 1e-6 && q.FoodNeed > 1e-9))
         {
-            Assert.Equal(Expect(Ratio, Avail, rebalance: true, ledger: true, s: p.Subsistence).NewMet * p.Size, p.FoodMet, 9);
-            n++; if (p.Subsistence > 0) farmers++;
+            Assert.Equal(Expect(Ratio, Avail, rebalance: true, ledger: true, s: p.SubsistenceShare).NewMet * p.Size, p.FoodMet, 9);
+            n++; if (p.SubsistenceBasis > 0) farmers++;
         }
         foreach (var p in ro.Pops.Where(q => q.Size > 1e-6 && q.FoodNeed > 1e-9))
-            Assert.Equal(Expect(Ratio, Avail, rebalance: true, ledger: false, s: p.Subsistence).NewMet * p.Size, p.FoodMet, 9);
+            Assert.Equal(Expect(Ratio, Avail, rebalance: true, ledger: false, s: p.SubsistenceShare).NewMet * p.Size, p.FoodMet, 9);
         Assert.True(n >= 9 && farmers >= 1);
         // 旧の挟みは縛っていた（パン 0.2512→0.4・野菜 3.98→1.4）＝挟みなしの欲しい量の和は旧より大きい
         Assert.True(Enumerable.Range(0, 5).Sum(i => E[i] * Math.Clamp(Math.Pow(1.0 / Ratio[i], 0.6), 0.4, 1.4)) < E.Sum() - 0.2);
@@ -201,7 +201,7 @@ public class FoodLedgerTests
         Assert.NotNull(d);
         double expectMarket = 0;
         foreach (var p in r.Pops)
-            for (int i = 0; i < 5; i++) expectMarket += p.Size * E[i] * Math.Max(0.0, 1.0 - p.Subsistence * F);
+            for (int i = 0; i < 5; i++) expectMarket += p.Size * E[i] * Math.Max(0.0, 1.0 - p.SubsistenceShare * F);
         Assert.True(expectMarket > 0);
         Assert.Equal(expectMarket, d!.MarketNeed, 9);            // 市場に出す必要量＝必要量×max(0, 1−自給率×収穫係数)（独立に組んだ値・追記 2 で豊作も対称）
         Assert.Equal(d.MarketNeed, d.Desired, 9);                // 予算の前の欲しい量の和＝市場に出す必要量の和（配り直しが保存する）
@@ -209,7 +209,7 @@ public class FoodLedgerTests
         // ②だけ（③0）なら Σ 必要量×(1−自給率)
         var (_, r2) = Month(c => Flags(c, 1, 1, 0), Ratio, Stock, harvest: F, ins: true);
         var d2 = Instruments.FdDiagOf(r2)!;
-        double expect2 = r2.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.Subsistence));
+        double expect2 = r2.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.SubsistenceShare));
         Assert.Equal(expect2, d2.MarketNeed, 9);
         Assert.Equal(d2.MarketNeed, d2.Desired, 9);
     }
@@ -225,15 +225,15 @@ public class FoodLedgerTests
         double none = Market(0.7, 0);   // 旗 0 では蓄えを書かない（NaN）ので旧の値は独立に組む
         Assert.True(double.IsNaN(none));
         var (_, rr) = Month(c => Flags(c, 0, 0, 0), harvest: 0.7);
-        double oldMarket = rr.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.Subsistence));
+        double oldMarket = rr.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.SubsistenceShare));
         double bad = Market(0.7, 1), normal = Market(1.0, 1), good = Market(1.3, 1);
         Assert.True(bad > oldMarket * 1.04, $"凶作で市場の需要が増えない {bad} vs {oldMarket}");
         Assert.Equal(oldMarket, normal, 9);   // 平年は旧と同じ
         Assert.True(good < oldMarket * 0.96, $"豊作で市場の需要が減らない {good} vs {oldMarket}");   // 追記 2：豊作は自給の産出が増える＝市場の需要は減る（決済の段の sub と同じ向き）
-        Assert.Equal(oldMarket - rr.Pops.Sum(p => p.Size * E.Sum() * p.Subsistence * 0.3), good, 9);   // 手の算術：自給の増え分 (1.3−1.0) だけ減る
+        Assert.Equal(oldMarket - rr.Pops.Sum(p => p.Size * E.Sum() * p.SubsistenceShare * 0.3), good, 9);   // 手の算術：自給の増え分 (1.3−1.0) だけ減る
         // 凶作の増え方の手の算術：Σ Size×E×自給率×(1−0.7) だけ増える
         var (_, r7) = Month(c => Flags(c, 0, 0, 1), harvest: 0.7, ins: true);
-        double extra = r7.Pops.Sum(p => p.Size * E.Sum() * p.Subsistence * 0.3);
+        double extra = r7.Pops.Sum(p => p.Size * E.Sum() * p.SubsistenceShare * 0.3);
         Assert.Equal(oldMarket + extra, bad, 9);
     }
 

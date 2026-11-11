@@ -1,0 +1,45 @@
+(836) 読みの集計（事前登録 plan.txt の述語のまま・出来事 15 件の窓＝入りの前 8 四半期・対照＝controls.tsv）
+
+R1〈人数がほぼ 0 の POP に在庫が止まる〉（母集合＝月初の在庫が正で begin≧claim の POP×月）
+  event   ほぼ0  ：POP×四半期 1352・州の在庫の割合 0.9918・母集合の月 980・止まった月 0.4898・口の外 0・請求0かつ所得0 0.446・請求0 0.0439・所得0 0・払っていない 0・その他 0・空の印（母集合の中）0.00612・空の印÷請求の立つ月 0.799
+  event   人の居る ：POP×四半期 208・州の在庫の割合 0.008244・母集合の月 275・止まった月 0.01091・口の外 0・請求0かつ所得0 0.0109・請求0 0・所得0 0・払っていない 0・その他 0・空の印（母集合の中）0.00364・空の印÷請求の立つ月 0.669
+  control ほぼ0  ：POP×四半期 24152・州の在庫の割合 0.7949・母集合の月 24821・止まった月 0.4004・口の外 0・請求0かつ所得0 0.199・請求0 0.131・所得0 0.00246・払っていない 0・その他 0.0677・空の印（母集合の中）0.00761・空の印÷請求の立つ月 0.175
+  control 人の居る ：POP×四半期 5176・州の在庫の割合 0.2051・母集合の月 13357・止まった月 0.05203・口の外 0・請求0かつ所得0 0・請求0 0.00247・所得0 7.49e-05・払っていない 0・その他 0.0495・空の印（母集合の中）0.00314・空の印÷請求の立つ月 0.131
+
+R2〈人の居る POP の所得が 0〉（人数÷州の人数≧0.01 の POP×四半期）
+  event  ：所得が正 172・所得 0 36＝行なし 13・能力0 0・採算0 0・望むが産出0 0・産出が正で売上0 4・売上あり 19・採算0 のうち床 0／床でない 0
+    階級：兵士 13・農民 13・工場労働者 10
+    最大の賃金の行の財：- 13・労働力 10・加工肉 9・農業労働力 4
+  control：所得が正 5150・所得 0 26＝行なし 0・能力0 0・採算0 0・望むが産出0 0・産出が正で売上0 0・売上あり 26・採算0 のうち床 0／床でない 0
+    階級：工場労働者 22・農民 4
+    最大の賃金の行の財：労働力 22・農業労働力 3・加工肉 1
+
+種 7 清 マレー Q103・Q104（cgrp_s の閉じない行の 1 件）
+  cearn_s q103：savingsStart nan・savings 0.01999071079・residual nan・late 0
+  cpop_s q103 #0 貴族 closed：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #1 農民 mass：popK 550.0017786・start nan・savings 6.568957625E-05・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #2 工場労働者 mass：popK 5.323943914E-05・start nan・savings 0.01992502121・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #3 資本家 modernElite：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #4 技師 modernElite：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #5 聖職者 closed：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #6 教師 modernElite：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #7 官僚 modernElite：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #8 医者 modernElite：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #9 商人 modernElite：popK 0・start nan・savings 3.813483769E-12・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #10 職人 mass：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #11 使用人 mass：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cpop_s q103 #12 兵士 soldier：popK 0・start nan・savings 0・residual nan・late 0・months 0・inMarket 0・gStartGap nan
+  cearn_s q104：savingsStart 0.01999071079・savings 282.4147855・residual 1.705302566E-13・late 13
+  cpop_s q104 #0 貴族 closed：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #1 農民 mass：popK 540.1343369・start 6.568957625E-05・savings 265.6354828・residual 1.136868377E-13・late 1・months 3・inMarket 415.8680312・gStartGap 0
+  cpop_s q104 #2 工場労働者 mass：popK 10.1783057・start 0.01992502121・savings 0.04063242652・residual 9.159339953E-16・late 1・months 3・inMarket 0.3802872515・gStartGap 0
+  cpop_s q104 #3 資本家 modernElite：popK 0・start 0・savings 0.06633339333・residual -2.359223927E-14・late 1・months 3・inMarket -262.8200592・gStartGap 0
+  cpop_s q104 #4 技師 modernElite：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #5 聖職者 closed：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #6 教師 modernElite：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #7 官僚 modernElite：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #8 医者 modernElite：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #9 商人 modernElite：popK 0・start 3.813483769E-12・savings 3.672469738・residual -4.440892099E-16・late 1・months 3・inMarket 10.19705743・gStartGap 0
+  cpop_s q104 #10 職人 mass：popK 0・start 0・savings 12.99986708・residual 1.776356839E-15・late 1・months 3・inMarket -21.13322165・gStartGap 0
+  cpop_s q104 #11 使用人 mass：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0
+  cpop_s q104 #12 兵士 soldier：popK 0・start 0・savings 0・residual 0・late 1・months 3・inMarket 0・gStartGap 0

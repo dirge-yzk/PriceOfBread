@@ -1,0 +1,22 @@
+種 1 基準の行 224116  代理の行（savingsStart=0 かつ monthsClosed=0）16
+  腕と基準で違う行 16（うち代理の集合の中 16）
+種 2 基準の行 226000  代理の行（savingsStart=0 かつ monthsClosed=0）16
+  腕と基準で違う行 16（うち代理の集合の中 16）
+種 3 基準の行 228244  代理の行（savingsStart=0 かつ monthsClosed=0）20
+  腕と基準で違う行 20（うち代理の集合の中 20）
+種 4 基準の行 217308  代理の行（savingsStart=0 かつ monthsClosed=0）12
+  腕と基準で違う行 12（うち代理の集合の中 12）
+種 5 基準の行 256596  代理の行（savingsStart=0 かつ monthsClosed=0）116
+  腕と基準で違う行 116（うち代理の集合の中 116）
+種 6 基準の行 220120  代理の行（savingsStart=0 かつ monthsClosed=0）24
+  腕と基準で違う行 24（うち代理の集合の中 24）
+種 7 基準の行 239300  代理の行（savingsStart=0 かつ monthsClosed=0）72
+  腕と基準で違う行 72（うち代理の集合の中 72）
+種 8 基準の行 253048  代理の行（savingsStart=0 かつ monthsClosed=0）116
+  腕と基準で違う行 116（うち代理の集合の中 116）
+種 9 基準の行 221456  代理の行（savingsStart=0 かつ monthsClosed=0）8
+  腕と基準で違う行 8（うち代理の集合の中 8）
+種 10 基準の行 213152  代理の行（savingsStart=0 かつ monthsClosed=0）12
+  腕と基準で違う行 12（うち代理の集合の中 12）
+合計 基準の行 2299340  代理の行 412
+合計 違う行 412  代理の集合の中 412  違う列 [('residualPerQuarter', 412), ('savingsStart', 412)]

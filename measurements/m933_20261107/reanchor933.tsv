@@ -1,0 +1,95 @@
+行	前	後	写し方
+S16-01	Politics.cs:821:private static bool RaiseRevolt(	Politics.cs:822:private static bool RaiseRevolt(	写した
+S16-01	Politics.cs:824:w.PendingRebelRegions = [seat]	Politics.cs:825:w.PendingRebelRegions = [seat]	写した
+S16-01	Politics.cs:996:RaiseRevolt(w, best.Region, target)	Politics.cs:997:RaiseRevolt(w, best.Region, target)	写した
+S16-03	Politics.cs:823:w.LeavableRegions([seat], capital: true)	Politics.cs:824:w.LeavableRegions([seat], capital: true)	写した
+S16-03	Politics.cs:1005:bool won = FactionStrength(w, c, best) > coerce + LoyalistMilitia(w, c, best)	Politics.cs:1006:bool won = FactionStrength(w, c, best) > coerce + LoyalistMilitia(w, c, best)	写した
+S16-11	Politics.cs:845:if (target != w.Polity) ExecuteRegimeChange	Politics.cs:845:if (target != w.Polity) ExecuteRegimeChange	写せない
+S16-11	Politics.cs:846:ConcedeToFaction(w, c, movement)	Politics.cs:847:ConcedeToFaction(w, c, movement)	写した
+S16-12	Politics.cs:850:p.Militancy *= c.ReformMilitancyRelief	Politics.cs:851:p.Militancy *= c.ReformMilitancyRelief	写した
+S16-12	Politics.cs:852:RuptureWindowQuartersOnCrush	Politics.cs:853:RuptureWindowQuartersOnCrush	写した
+S16-13	Politics.cs:864:movement.Cohesion = 0	Politics.cs:865:movement.Cohesion = 0	写した
+S16-13	Politics.cs:865:w.RevoltingFaction = null	Politics.cs:866:w.RevoltingFaction = null	写した
+S16-19	Politics.cs:1714:RegionAvgSuffrageInclusion(World w, Region r)	Politics.cs:1715:RegionAvgSuffrageInclusion(World w, Region r)	写した
+S16-23	Politics.cs:967:best.Rejections += 1	Politics.cs:968:best.Rejections += 1	写した
+S16-25	Politics.cs:893:if (f.Cohesion < c.FactionCohesionFightThreshold) continue	Politics.cs:894:if (f.Cohesion < c.FactionCohesionFightThreshold) continue	写した
+S16-26	Politics.cs:899:if (!w.Regions.Contains(f.Region)) continue	Politics.cs:900:if (!w.Regions.Contains(f.Region)) continue	写した
+S16-27	Politics.cs:937:if (bestStrength <= hold + militia)	Politics.cs:938:if (bestStrength <= hold + militia)	写した
+S16-28	Politics.cs:949:bool weakness = w.Legitimacy < c.FactionStrikeLegitimacy	Politics.cs:950:bool weakness = w.Legitimacy < c.FactionStrikeLegitimacy	写した
+S16-28	Politics.cs:952:c.FactionOverwhelmFactor	Politics.cs:953:c.FactionOverwhelmFactor	写した
+S16-29	Politics.cs:1049:int moved = CrisisDemandsMoved(w, best)	Politics.cs:1050:int moved = CrisisDemandsMoved(w, best)	写した
+S16-29	Politics.cs:1068:TriggerFactionRevolt(w, c, best, coerce)	Politics.cs:1069:TriggerFactionRevolt(w, c, best, coerce)	写した
+S16-30	Politics.cs:1052:best.Rejections = 0	Politics.cs:1053:best.Rejections = 0	写した
+S16-30	Politics.cs:1060:best.Rejections += 1	Politics.cs:1061:best.Rejections += 1	写した
+S16-31	Politics.cs:1134:double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced	Politics.cs:1135:double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced	写した
+S16-31	Politics.cs:1123:c.ModernEliteSubCensusVoice	Politics.cs:1124:c.ModernEliteSubCensusVoice	写した
+S16-32	Politics.cs:1133:if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor	Politics.cs:1134:if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor	写した
+S16-33	Politics.cs:912:if (!(c.RevoltIgnitionIntensity > 0))	Politics.cs:913:if (!(c.RevoltIgnitionIntensity > 0))	写した
+S16-33	Politics.cs:929:if (!(c.RevoltIgnitionIntensity > 0))	Politics.cs:930:if (!(c.RevoltIgnitionIntensity > 0))	写した
+S16-34	Politics.cs:1204:return coerce * ((1.0 - blend) + blend * share)	Politics.cs:1205:return coerce * ((1.0 - blend) + blend * share)	写した
+S16-35	Politics.cs:994:Polity target = NearestPolity(best.Ideo)	Politics.cs:995:Polity target = NearestPolity(best.Ideo)	写した
+S16-36	Politics.cs:1186:militia += size[b] * Math.Max(0, dist - c.LoyalistDistanceFloor)	Politics.cs:1187:militia += size[b] * Math.Max(0, dist - c.LoyalistDistanceFloor)	写した
+S16-37	Politics.cs:1139:if (c.RebelArmsMarketEnabled > 0) strength *= f.EquipFill	Politics.cs:1140:if (c.RebelArmsMarketEnabled > 0) strength *= f.EquipFill	写した
+S16-38	Politics.cs:976:if (c.RevoltMilitiaRaise > 0)	Politics.cs:977:if (c.RevoltMilitiaRaise > 0)	写した
+S16-42	Politics.cs:1216:i == 0 ? c.FactionConcessionSteps : 1)	Politics.cs:1217:i == 0 ? c.FactionConcessionSteps : 1)	写した
+S16-42	Politics.cs:846:ConcedeToFaction(w, c, movement)	Politics.cs:847:ConcedeToFaction(w, c, movement)	写した
+S16-44	Politics.cs:1369:worstHeat <= c.RegionalRevoltThreshold) return	Politics.cs:1370:worstHeat <= c.RegionalRevoltThreshold) return	写した
+S16-45	Politics.cs:1370:double strength = worstHeat * crowd * c.RegionalRevoltStrength	Politics.cs:1371:double strength = worstHeat * crowd * c.RegionalRevoltStrength	写した
+S16-45	Politics.cs:1377:c.RevoltSuppressDeadFrac.Value	Politics.cs:1378:c.RevoltSuppressDeadFrac.Value	写した
+S16-45	Politics.cs:1381:c.RevoltSuppressLegitCost	Politics.cs:1382:c.RevoltSuppressLegitCost	写した
+S16-46	Politics.cs:1406:if (w.CornLaws > ReformLevel.None)	Politics.cs:1407:if (w.CornLaws > ReformLevel.None)	写した
+S16-47	Politics.cs:1686:internal static double RegionRevoltHeat(Region r, Coefficients c) => AvgRegionMilitancy(r)	Politics.cs:1687:internal static double RegionRevoltHeat(Region r, Coefficients c) => AvgRegionMilitancy(r)	写した
+S16-48	Politics.cs:889:w.PendingRebelRegions is not null) return	Politics.cs:890:w.PendingRebelRegions is not null) return	写した
+S15-03	Diplomacy.cs:3257:dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0)	Diplomacy.cs:3259:dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0)	写した
+S15-20	CrownParliament.cs:471:w.RecentRegimeChanges += 1	CrownParliament.cs:473:w.RecentRegimeChanges += 1	写した
+S15-20	CrownParliament.cs:220:w.RecentRegimeChanges *= 1.0 - w.ReplacementRate	CrownParliament.cs:222:w.RecentRegimeChanges *= 1.0 - w.ReplacementRate	写した
+S15-25	CrownParliament.cs:215:w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay	CrownParliament.cs:217:w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay	写した
+S15-25	CrownParliament.cs:223:record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters	CrownParliament.cs:225:record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters	写した
+S15-25	CrownParliament.cs:225:w.RegimeTrackRecord[fam] = PoliticalQuantities.ClampOr	CrownParliament.cs:227:w.RegimeTrackRecord[fam] = PoliticalQuantities.ClampOr	写した
+S15-26	Politics.cs:1819:internal static double SoldierHoldShare(	Politics.cs:1820:internal static double SoldierHoldShare(	写した
+S15-34	Politics.cs:845:if (target != w.Polity) ExecuteRegimeChange(w, c, target, violent: true)	Politics.cs:845:if (target != w.Polity) ExecuteRegimeChange(w, c, target, violent: true)	写せない
+S15-35	Politics.cs:741:public static void RaiseFoundingInstitutions(	Politics.cs:742:public static void RaiseFoundingInstitutions(	写した
+S15-35	Politics.cs:768:bool ratchet =	Politics.cs:769:bool ratchet =	写した
+S15-36	Politics.cs:759:sufTarget = (Suffrage)Math.Clamp	Politics.cs:760:sufTarget = (Suffrage)Math.Clamp	写した
+S15-37	Politics.cs:725:if (dt)	Politics.cs:726:if (dt)	写した
+S15-37	Politics.cs:732:w.LandReform = fl	Politics.cs:733:w.LandReform = fl	写した
+S15-38	Politics.cs:715:Fiscal.RepudiateDebt(w, c)	Politics.cs:716:Fiscal.RepudiateDebt(w, c)	写した
+S15-39	Politics.cs:1924:bool terror = c.RevolutionTerror	Politics.cs:1925:bool terror = c.RevolutionTerror	写した
+S15-39	Politics.cs:1931:bool deposed = (depTrad && p.Closed)	Politics.cs:1932:bool deposed = (depTrad && p.Closed)	写した
+S15-40	Politics.cs:1845:Clamp01(v + c.RevolutionConsciousness	Politics.cs:1846:Clamp01(v + c.RevolutionConsciousness	写した
+S15-41	CrownParliament.cs:247:double conscriptTerm = c.NationBuildConscript	CrownParliament.cs:249:double conscriptTerm = c.NationBuildConscript	写した
+S15-41	CrownParliament.cs:251:double crisisMult = 1.0	CrownParliament.cs:253:double crisisMult = 1.0	写した
+S15-41	CrownParliament.cs:254:double lawCeil = w.EducationLaw switch	CrownParliament.cs:256:double lawCeil = w.EducationLaw switch	写した
+S15-41	CrownParliament.cs:265:double ncDrive = c.NationBuildAccumRate	CrownParliament.cs:267:double ncDrive = c.NationBuildAccumRate	写した
+S15-42	CrownParliament.cs:276:NationConsciousnessDerived	CrownParliament.cs:278:NationConsciousnessDerived	写した
+S15-42	CrownParliament.cs:359:NationConsciousnessDerived	CrownParliament.cs:361:NationConsciousnessDerived	写した
+S15-43	CrownParliament.cs:424:static double CivicOpenness(	CrownParliament.cs:426:static double CivicOpenness(	写した
+S15-43	CrownParliament.cs:261:double openness = CivicOpenness(w)	CrownParliament.cs:263:double openness = CivicOpenness(w)	写した
+S15-45	Politics.cs:852:(int)c.RuptureWindowQuartersOnCrush)	Politics.cs:853:(int)c.RuptureWindowQuartersOnCrush)	写した
+S19-03	Politics.cs:1240:Government.LawPrereq(	Politics.cs:1241:Government.LawPrereq(	写した
+S19-15	Politics.cs:1211:private static void ConcedeToFaction(	Politics.cs:1212:private static void ConcedeToFaction(	写した
+S19-15	Politics.cs:1216:c.FactionConcessionSteps	Politics.cs:1217:c.FactionConcessionSteps	写した
+S19-15	Politics.cs:1217:double spend = c.RevoltConcessionSpend	Politics.cs:1218:double spend = c.RevoltConcessionSpend	写した
+S19-15	Politics.cs:1256:Government.LawPrereq(	Politics.cs:1257:Government.LawPrereq(	写した
+S19-27	Politics.cs:1316:PolicyAxis.NavyUpkeep => ConcedeNavyUpkeep(	Politics.cs:1317:PolicyAxis.NavyUpkeep => ConcedeNavyUpkeep(	写した
+S19-34	Politics.cs:741:public static void RaiseFoundingInstitutions(	Politics.cs:742:public static void RaiseFoundingInstitutions(	写した
+S19-35	CrownParliament.cs:545:private static double PolicyDistance(	CrownParliament.cs:547:private static double PolicyDistance(	写した
+S19-36	CrownParliament.cs:215:w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay	CrownParliament.cs:217:w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay	写した
+S25-11	Diplomacy.cs:3676:DriftTension	Diplomacy.cs:3678:DriftTension	写した
+S25-12	Diplomacy.cs:3676:DriftTension	Diplomacy.cs:3678:DriftTension	写した
+S25-13	Diplomacy.cs:3676:DriftTension	Diplomacy.cs:3678:DriftTension	写した
+S25-14	Diplomacy.cs:3738:CannotDeclareWar	Diplomacy.cs:3740:CannotDeclareWar	写した
+S25-47	Diplomacy.cs:3461:CessionTarget	Diplomacy.cs:3463:CessionTarget	写した
+S25-48	Diplomacy.cs:3351:CedeTerritoryUnified	Diplomacy.cs:3353:CedeTerritoryUnified	写した
+S25-51	Diplomacy.cs:3205:CountDependents(winner)	Diplomacy.cs:3207:CountDependents(winner)	写した
+S25-53	Diplomacy.cs:3241:OutcomeShocks	Diplomacy.cs:3243:OutcomeShocks	写した
+S25-53	Diplomacy.cs:3730:DefeatedShock	Diplomacy.cs:3732:DefeatedShock	写した
+S25-60	Diplomacy.cs:3631:Projection	Diplomacy.cs:3633:Projection	写した
+S25-61	Diplomacy.cs:3631:Projection	Diplomacy.cs:3633:Projection	写した
+S25-62	Diplomacy.cs:3621:IsSeaCrossing	Diplomacy.cs:3623:IsSeaCrossing	写した
+S25-71	Diplomacy.cs:3516:CessionCost	Diplomacy.cs:3518:CessionCost	写した
+S14-H037	Politics.cs:1890:IsMassPop	Politics.cs:1891:IsMassPop	写した
+S17-H002	CrownParliament.cs:454:ApplyRegime	CrownParliament.cs:456:ApplyRegime	写した
+S24-H057	Diplomacy.cs:3205:CountDependents(winner)	Diplomacy.cs:3207:CountDependents(winner)	写した
+S17-P06	CrownParliament.cs:208:ArmyAllegiance	CrownParliament.cs:210:ArmyAllegiance	写した
+S07-P02	BilateralMarket.cs:579:Debt	BilateralMarket.cs:579:Debt	近くへ写した

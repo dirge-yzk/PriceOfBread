@@ -1,0 +1,4 @@
+base_ins: ラベル y で非 Minor の標的 11 件・ラベル y−1 の格 Minor 10・None 1
+n1: ラベル y で非 Minor の標的 15 件・ラベル y−1 の格 Minor 15
+n2: ラベル y で非 Minor の標的 15 件・ラベル y−1 の格 Minor 14・None 1
+a11: ラベル y で非 Minor の標的 23 件・ラベル y−1 の格 Minor 21・Secondary 1・None 1

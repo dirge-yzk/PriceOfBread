@@ -1,0 +1,4 @@
+base	植民地格・人口 100 以上・輸出＞0 の州×四半期	計 297552	mint 69146 (0.232)	mintImp 9 (0.000)	trade 57387 (0.193)	unknown 171010 (0.575)
+base	同・額の割合	mint 0.249	mintImp 0.000	trade 0.266	unknown 0.485
+base	輸出が閉じる前の四半期	計 151	mint 29 (0.192)	trade 14 (0.093)	unknown 108 (0.715)
+base	0 の続きの州の最後の輸出の四半期	計 52	mint 10 (0.192)	trade 3 (0.058)	unknown 39 (0.750)

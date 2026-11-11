@@ -1,0 +1,9 @@
+PREREG measurements/m880_20261106_prereg_id.txt sha256 02fc5320604b7a971d3909b403ad130ca5e2b6edc6f79d8d1249262f4c55cb4a
+U2S measurements/m880_20261106/u2s_source880.txt（門 U2L の形＝cearn_s の末尾の列 importBudgetExcessMaxPerClearingSubLive）
+HOLOWN scripts/instruments/c74id/holown880.py（R880＝A2 ∪ 持ち主の照合・OR 形・自己試験 measurements/m880_20261106/selftest880.txt・ヌル腕 null880.txt）
+ROUTEKM (i) 盤面の選び直しを入れた＝for の四半期 40→60（Assert は不変）・旗 0・ImportPayerLive＝1・SubsistenceNoBoughtTech＝1 とも緑（measurements/m880_20261106/routekm880.txt）＝c74ip は RouteKmTests を予言する赤に書かなくてよい
+HEAD 9247c93c14fae4798470f569415c1e12efef1974  origin/c74id 9247c93c14fae4798470f569415c1e12efef1974
+TREE /d/PoB_work/wt_c74id HEAD 9247c93c 未コミット 0
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   237、スキップ:     0、合計:   237、期間: 6 m 57 s - PriceOfBread.Tests.dll (net10.0)
+rc=0

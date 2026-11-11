@@ -1,0 +1,12 @@
+(849) 旗 1 の木（addbd33d＋scripts/instruments/c69ss/ignite849.py の編集＝点火のコミットと同じ中身）のフルスイート（使い捨ての写し D:/PoB_work/c69ss_work/suite/src）
+IGNITE ok
+list nonfull 2253
+list full 3
+nonfull rc=1
+full rc=0
+/d/PoB_work/c69ss_work/suite/nonfull.txt:[xUnit.net 00:02:27.47]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2787201) [FAIL]
+/d/PoB_work/c69ss_work/suite/nonfull.txt:失敗!   -失敗:     1、合格:  2251、スキップ:     1、合計:  2253、期間: 19 m 21 s - PriceOfBread.Tests.dll (net10.0)
+/d/PoB_work/c69ss_work/suite/full.txt:成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 2 m 58 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2787201) [51 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 3180452 件（宣言 2787201・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。

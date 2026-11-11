@@ -1,0 +1,15 @@
+(938) c82fg 読む線：反乱の側の国が建国から名目 GDP 0 を続ける型（波82・.cs 0 行・腕 0 本・コミットしない）
+担当 Opus 5.5・2026-11-07
+作業の場所：D:/PoB_work/r938_work/（このフォルダだけを作る・worktree と枝は作らない＝main の作業ツリー 84688034 を読むだけ）
+読むソース：C:/Users/dirge/Documents/PriceOfBread（main 84688034・編集しない）
+
+読む生（読むだけ）：
+- 旗 1（m933）：D:/PoB_work/keep_933/base_ins（M・種 1〜10）・n1・n2・a11（S11・種 11〜20）
+- 旗 0（m919）：D:/PoB_work/keep_919/base_ins・n1・n2・a11
+- c81cw の腕 B の種 1：D:/PoB_work/c81cw_work/keep_s1/{nation,region,cearn}_s1.tsv
+使う表：nation_s（nominalGdpPerYear・populationK・coreRegions・colonialRegions・civilWarMonths・nationUid）・region_s（tier・populationK・factory/extractionOutputRefValuePerMonth）・cearn_s（savings・inExport・outTax・frozenFlag・belowSelfCostShare）・secession_s・wars
+
+台本：scripts/instruments/c78gz/gdp_zero906.py --founding・gdp_jump906.py --founding（呼ぶだけ）・自作の read938.py（このフォルダ）
+出力：read938.txt・20261107_反乱の側の国の建国からの名目GDP0_読み_下書き.md
+
+問い：1 区間の組成 2 線が原因か（旗 1 と旗 0 で建国の件数と 0 の区間）3 ⑤ と同じ根か 4 想定か欠損か 5 ★(905) ① の区分の写し

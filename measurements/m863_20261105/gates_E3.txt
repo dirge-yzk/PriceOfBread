@@ -1,0 +1,8 @@
+# 種 1：表が無い（D:/PoB_work/c71ip_work/marms/out_c71ipE3_1/ins\cpop_s1.tsv・D:/PoB_work/c71ip_work/marms/out_c71ipE3_1/ins\cearn_s1.tsv）
+# gates863 D:/PoB_work/c71ip_work/marms/out_c71ipE3_1/ins 種 1-1
+L1	nan	閾値 ≧0.2	赤	分子 0	分母 0	（cearn_s の植民地格の outImport の和 0）
+U1	0	閾値 ＝0	緑	正の行 0	（≦1e-9 で数えた和 0＝記録）
+U2	列なし（importBudgetStartPerQuarter・importPaidPerQuarter が無い＝旗 0 の器より前の生）
+U3	列なし（importCrossRegionPerQuarter が無い）
+記録	鍵の数：商人が居る 0・人の居ない商人 0・商人の行なし 0・人の居ない商人で人の居る POP 0 0（その輸入の和 0）
+記録	債務の列なし（cpop_s の debt が無い）

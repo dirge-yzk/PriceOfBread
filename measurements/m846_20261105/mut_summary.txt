@@ -1,0 +1,80 @@
+(846) c69id 変異の表（使い捨ての写し D:/PoB_work/c69id_mut・c69id_mut2 に git archive したコミット済みの木。変異ごとに該当の試験の組だけを隔離ビルドで回した。台本 scripts/instruments/c69id/mut846.py・mutrun846.sh）
+
+ML1  LaborClosed の戻す値に 1.001 を掛ける
+    結果：失敗 3・合格 4  赤
+      赤：LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(priceOverRef:
+      赤：LaborClosedTests.閉じた式は端の日だけを確かめる
+
+ML2  MarketFlow.cs:162 laborClosed を false に（閉じた式を使わない）
+    結果：失敗 5・合格 48  赤
+      赤：LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(priceOverRef:
+      赤：WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item:
+
+MS1  ServiceClosed の戻す値に 1+1e-4 を掛ける
+    結果：失敗 1・合格 1  赤
+      赤：ServiceClosedTests.天井の近くに張り付いた役務は閉じた式で日次と同じ値へ進む
+
+MS2  MarketFlow.cs:218 の ServiceClosed の呼びを外す（閉じた式を使わない）
+    結果：失敗 4・合格 44  赤
+      赤：ServiceClosedTests.天井の近くに張り付いた役務は閉じた式で日次と同じ値へ進む
+      赤：WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item:
+
+ME1  教育の `m.LastDemand += want-boughtQty` を 2 倍に
+    結果：失敗 3・合格 6  赤
+      赤：StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない
+      赤：StateEduDemandTests.供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ
+      赤：StateEduDemandTests.行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む
+
+ME2  同じ行を消す
+    結果：失敗 6・合格 3  赤
+      赤：StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない
+      赤：StateEduDemandTests.供給が尽きた月は教育の値段が財源率0より上がる_買いたい分が値段に出る
+      赤：StateEduDemandTests.供給が尽きた月は教育の担い手への労働の配分の重みが増える_翌月の重みは前月の需要を読む
+      赤：StateEduDemandTests.供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ
+      赤：StateEduDemandTests.行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む
+      赤：StateEduDemandTests.財源率が0なら何も足さない_買いたい分は財源率に比例する
+
+ME3  高等教育の同じ行を消す
+    結果：失敗 1・合格 8  赤
+      赤：StateEduDemandTests.高等教育の補助も同じ型_供給が無い月は予算の天井ぶんだけ需要へ足す
+
+ME4  教育の到達 r を 1.0 に固定
+    結果：失敗 1・合格 8  赤
+      赤：StateEduDemandTests.行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む
+
+ME5  教育の買えた分 `m.LastDemand += take` を 2 倍に
+    結果：失敗 2・合格 7  赤
+      赤：StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない
+      赤：StateEduDemandTests.供給が足りる月は国庫が買い_足す量は買えた量と同じ_二重に数えない
+
+MR1  InstrumentsRule の `lagSt.Prev = rNow;` を早い return の後へ
+    結果：失敗 1・合格 4  赤
+      赤：RuleInstrumentTests.挙げていない国の遅れたRも毎四半期更新される_年末の行が1四半期前のRに一致する
+
+MR2  rule_s の p1 の行で m_r と m̄ の順を入れ替える
+    結果：失敗 3・合格 2  赤
+      赤：RuleInstrumentTests.P1の9列が末尾に順序どおりあり_国の列は州の行で同じ値
+      赤：RuleInstrumentTests.切る前のRと州の秩序と無統治の目標は恒等式どおり
+      赤：RuleInstrumentTests.州の闘争度と国の平均は首都を含めて試験が数えた値に合う
+
+MR3  order_r の式の m̄/m_r を逆に
+    結果：失敗 1・合格 4  赤
+      赤：RuleInstrumentTests.切る前のRと州の秩序と無統治の目標は恒等式どおり
+
+MF1  World.cs:775 の鋳造の記帳 CumulativeGoldMinted += d を外す
+    結果：失敗 1・合格 9  赤
+      赤：FullChainTests.鋳造で基礎貨幣が増えても保存則は保たれる
+
+MF2  Simulation.MintGold の床の枝を外す（`!atMarket` だけ残す）
+    結果：失敗 1・合格 9  赤
+      赤：FullChainTests.鋳造で基礎貨幣が増えても保存則は保たれる
+
+MF3  Simulation.MintGold の市場買い atMarket を false に
+    結果：失敗 0・合格 10  緑
+
+■ 見込み（事前登録 [3]）との比べ（和らげずに）
+- ML1・ML2・MS1・MS2・ME1〜ME4・MR1〜MR3・MF1：見込みどおり赤。ME5（買えた分 take を 2 倍）は事前登録に無い追加（試験 (a) 供給が足りる月を赤にできる変異が表に無かったため足した）→ (a)(c) が赤。
+- **MF2・MF3 は見込みが逆だった**：見込み＝MF2 緑・MF3 赤（鋳造は市場買い）。結果＝MF2 赤（床の枝を外すと〈鋳造が一度も発生していない〉）・MF3 緑（市場買いを外しても緑）。FullChainTests の鋳造の番人の盤面（金本位・Full(1)・400 ティック）の鋳造は自由鋳造の床の枝で起きている。(843) の反証役 ③ の疑い（市場買いでしか起きていない）は当たらなかった＝番人の主張は事実どおり・Assert は 1 字も書き換えていない。注に 2 行だけ事実を足した。
+- MR1：T7（"*" で毎四半期の行が出る）は緑のまま（RuleInstrumentTests の合格 4）・新しい Fact だけが赤（q=3 の遅れた R が NaN）＝T7 では見えない穴であることを確かめた。
+- ML2・MS2：WriterRatchetTests の計算量の見た件数の番人も赤（(843) の M1 と同じ）。
+- MR2：T4 だけでなく T5・T6 も赤（列の順の入れ替えは 3 本に見える）。MR3：T6 だけ赤。

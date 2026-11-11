@@ -294,7 +294,7 @@ public class FiscalTests
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         double treasury0 = w.Treasury.Value, base0 = w.BaseMoney.Value;
         w.Coef.MaxInterestShareOfRevenue = new Share(0);                 // 借入上限に張り付き（利払い÷歳入≧限界＝借りられない）
-        w.InsolvencyQuarters = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(205)）
+        w.InsolvencyMonths = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(205)）
         FiscalMonth(w, Short);                                // 払えない月（r＜1）＝借りられずに払えない月が続いた
         Assert.True(w.HadSovereignDefault, "前提が崩れた：デフォルトが起きていない");
         Assert.Equal(0.0, w.GovDebt.Value);
@@ -608,15 +608,17 @@ public class FiscalTests
     //   ②配当と逃避の払いが投資家で足りないと全POPから取った（流入は投資家へだけ入る＝分子と分母の非対称）＝受け皿の大衆の貨幣が国外へ抜けた。
     // =====================================================================================================
 
-    [Fact]
-    public void 外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える()
+    [Theory]
+    [InlineData(0.0)]   // 旗 CapitalCouponUnpaidWriteDown 0＝2026-09-27 の規則 C のまま（払えない配当は積まない＝負債の減りは逃避の額ちょうど）
+    [InlineData(1.0)]   // ★(819) c65fl：規則 C の拡張（払えない利札も不履行＝払えなかった利札の分だけ請求権を落とす）＝負債の減り＝逃避＋min(未払いの利札, 残りの外資の負債)
+    public void 外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える(double writeDown)
     {
         // 外資の流入・逃避の受け皿・新規の資本移動は、どれも投資家の貯蓄へだけ入る（GiveGold の toInvestors）。流出も投資家まで＝
         // 投資家が尽きても農民・労働者の貯蓄は国外へ出ない。
         // ★2026-09-27（C）：払えない逃避は不履行＝債権ごと消える（受入国の負債と持ち主の対外資産が同じ額だけ減る・貨幣は払えた額しか動かない）。
         //   旧＝負債は払えた額しか減らず、払えなかった元本が毎四半期もう一度の逃避と配当を請求され続けた。払えない配当は積まない（同じ規則）。
         // 国際金融の外資以外の流れ（新規の資本移動・国内資本の逃避・外債の元利）を止め、仏の外資の負債を投資家の貯蓄の千倍にする（持ち主は英）。
-        var coef = new Coefficients { CapitalDividendFromHostRent = 0, CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0) };   // ★(801) 旗 0 を明示（この試験は旧の形の払い＝率×外資の負債を確かめる）。外債の元利は構築直後で空（新規の起債も利払いも無い）
+        var coef = new Coefficients { CapitalDividendFromHostRent = 0, CapitalDemandScale = 0, CapitalDomesticFlightRatePerQuarter = new RatePerQuarter(0), CapitalCouponUnpaidWriteDown = writeDown };   // ★(801) 旗 0 を明示（この試験は旧の形の払い＝率×外資の負債を確かめる）。外債の元利は構築直後で空（新規の起債も利払いも無い）
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
         var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
         var all = new[] { br, fr, pr };
@@ -648,11 +650,16 @@ public class FiscalTests
         //     払えない配当は積まない＝負債の減りは逃避の額ちょうど。持ち主の対外資産も同じ額だけ減る（請求権の両側を同時に）。
         double flight = Math.Min(fci0, fci0 * coef.CapitalFlightRatePerQuarter.Value * (1.0 - fr.CreditRating)), tolC = 1e-9 * Math.Max(1.0, fci0);
         Assert.True(flight > 2 * paid, $"前提が崩れた：逃避 {flight} の大半が払える（払えた額 {paid}）");
-        Assert.True(Math.Abs(fci0 - fr.ForeignCapitalIn.Value - flight) <= tolC, $"仏の負債の減り {fci0 - fr.ForeignCapitalIn.Value} ≠ 逃避の額 {flight}（払えなかった元本が債権のまま残る／未払いの配当が積まれた）");
+        // ★(819) c65fl 旗 1（規則 C の拡張）：逃避だけで投資家が払い切る（上の前提）＝利札は 1 も払えない＝未払いの利札＝率×逃避の後の外資の負債（試験が係数から書く・エンジンの局所の値を読まない）。
+        //   その分だけ請求権も落ちる（外資の負債で頭打ち）。旗 0 は落とさない＝期待は逃避の額ちょうど（旧の等式のまま）。
+        double unpaidCoupon = writeDown > 0 ? Math.Min((fci0 - flight) * coef.CapitalDividendRatePerQuarter.Value, fci0 - flight) : 0.0;
+        if (writeDown > 0) Assert.True(unpaidCoupon > 1e6 * tolC, $"前提が崩れた：未払いの利札 {unpaidCoupon} が許しの幅 {tolC} に埋もれる（落とさない実装が通る）");
+        double expectDrop = flight + unpaidCoupon;
+        Assert.True(Math.Abs(fci0 - fr.ForeignCapitalIn.Value - expectDrop) <= tolC, $"仏の負債の減り {fci0 - fr.ForeignCapitalIn.Value} ≠ 逃避の額 {flight}＋未払いの利札の落とし {unpaidCoupon}（払えなかった元本が債権のまま残る／未払いの配当が積まれた／落としの額の誤り）");
         double dFci = 0, dCa = 0;
         for (int i = 0; i < all.Length; i++) { dFci += fcis0[i] - all[i].ForeignCapitalIn.Value; dCa += cas0[i] - all[i].CapitalAbroad.Value; }
         Assert.True(Math.Abs(dCa - dFci) <= tolC, $"持ち主の対外資産の減り {dCa} ≠ 受入国の負債の減り {dFci}（請求権の片側だけが消えた）");
-        Assert.True(Math.Abs(cas0[0] - br.CapitalAbroad.Value - flight) <= tolC, $"英の対外資産の減り {cas0[0] - br.CapitalAbroad.Value} ≠ 仏の逃避の額 {flight}");
+        Assert.True(Math.Abs(cas0[0] - br.CapitalAbroad.Value - expectDrop) <= tolC, $"英の対外資産の減り {cas0[0] - br.CapitalAbroad.Value} ≠ 仏の逃避の額 {flight}＋未払いの利札の落とし {unpaidCoupon}");
         // (d) 貨幣は払えた額しか動かない＝世界の基礎貨幣は台帳の外で動かない・各国の保存も閉じる
         double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
         Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
@@ -951,10 +958,10 @@ public class FiscalTests
         // ③ 不履行の計数（借入の上限の上＝限界0・払えない月）
         var warm3 = Board(true); warm3.Coef.MaxInterestShareOfRevenue = new Share(0);
         warm3.FiscalFundingRatio = new Share(Short); Fiscal.Step(warm3, warm3.Coef, -Ample);
-        Assert.Equal(0.0, warm3.InsolvencyQuarters);
+        Assert.Equal(0.0, warm3.InsolvencyMonths);
         var ctl3 = Board(false); ctl3.Coef.MaxInterestShareOfRevenue = new Share(0);
         ctl3.FiscalFundingRatio = new Share(Short); Fiscal.Step(ctl3, ctl3.Coef, -Ample);
-        Assert.Equal(1.0 - Short, ctl3.InsolvencyQuarters);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
+        Assert.Equal(1.0 - Short, ctl3.InsolvencyMonths);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
     }
 
     /// <summary>★(205) 不履行は**払えなかった大きさの累計**で決まる（2026-10-04・README §1-8・推奨で進めた＝作者の承認は未確認）。
@@ -985,7 +992,7 @@ public class FiscalTests
         Assert.True(d0 > 0 && HeldOf(a) > 0, "前提が崩れた：国債と持ち手がいない");
         Month(a, 0.5);
         Assert.False(a.HadSovereignDefault, "r＝0.5 の月1つ（累計 0.5）で不履行になった");
-        Assert.Equal(0.5, a.InsolvencyQuarters);
+        Assert.Equal(0.5, a.InsolvencyMonths);
         Month(a, 0.5);
         Assert.True(a.HadSovereignDefault, "r＝0.5 の月2つ（累計 1.0＝月の請求1か月分）で不履行にならない");
         Assert.Equal(1, a.SovereignDefaultCount);
@@ -994,7 +1001,7 @@ public class FiscalTests
         var b = Board();
         for (int m = 0; m < 60; m++) Month(b, 0.99);
         Assert.False(b.HadSovereignDefault, "ほぼ払えている月（r＝0.99）の60か月で不履行になった＝大きさを見ていない");
-        Assert.InRange(b.InsolvencyQuarters, 0.59, 0.61);
+        Assert.InRange(b.InsolvencyMonths, 0.59, 0.61);
         Assert.True(b.GovDebt.Value >= d0 * 0.99, "前提が崩れた：国債が消えた");
         // ③ 浮動小数の端
         var c = Board();
@@ -1003,7 +1010,7 @@ public class FiscalTests
         // ④ 払えた月で0
         var e = Board();
         Month(e, 0.5); Month(e, 1.0);
-        Assert.Equal(0.0, e.InsolvencyQuarters);
+        Assert.Equal(0.0, e.InsolvencyMonths);
         Month(e, 0.5);
         Assert.False(e.HadSovereignDefault, "払えた月を挟んだのに累計が残った（0.5・1・0.5 で不履行）");
         // ⑤ 門が開いた月で0
@@ -1011,7 +1018,7 @@ public class FiscalTests
         Month(g, 0.5);
         g.Coef.MaxInterestShareOfRevenue = new Share(1e9); g.LastInterestPerMonth = new MoneyPerMonth(0); g.LastRevenuePerMonth = g.NominalGdpPerMonth;   // 利払い÷歳入が限界の下＝借りられる
         Month(g, 0.5);
-        Assert.Equal(0.0, g.InsolvencyQuarters);
+        Assert.Equal(0.0, g.InsolvencyMonths);
         g.Coef.MaxInterestShareOfRevenue = new Share(0);
         Month(g, 0.5);
         Assert.False(g.HadSovereignDefault, "門が開いた月を挟んだのに累計が残った");

@@ -1,0 +1,7 @@
+(1026) c96ol 読む線 計画（2026-11-10・担当 Claude Opus 5.5）
+作業の場所: D:/PoB_work/r1026_work/（台本・表・下書き）。worktree・枝は作らない（main の作業ツリー 00f50935 のソースを読むだけ）。コミット 0・腕 0。
+読む生（読むだけ）:
+ - D:/PoB_work/keep_1022/base_ins/{prodcap,nationgood,region,cess,cederule,wars,secession,recipeout}_s{1..10}.tsv
+ - D:/PoB_work/keep_1022/a11/ の同名（種 11〜20・あれば）
+読むソース: Model.cs(Producer.Output)・EconomyStep.cs(LastProduced の書き手)・Territory.cs(Rehome)・InstrumentsProdcap.cs・InstrumentsNationgood.cs・Instruments.cs(呼び口)
+手順: prereg.txt → 時点の表(src_timing.txt) → 台本 attr.py → 区分の表 → (d) の経路 → 結論と外す組の規則 → 素案

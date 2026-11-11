@@ -1,0 +1,35 @@
+== n1  D:/PoB_work/keep_919/n1
+入り口の前後の 1 人あたり貯蓄（入り口＝0・中央）: -12:1.15e-06 -11:5.77e-06 -10:1.05e-05 -9:2.69e-06 -8:1.92e-06 -7:3.42e-07 -6:2.92e-06 -5:5.72e-06 -4:2.31e-06 -3:1.86e-07 -2:2.74e-09 -1:6.44e-12 0:1.95e-14 1:4.82e-16 2:1.61e-16
+入り口の前 12 四半期の流出の和（1644 州×四半期・比率）:
+  outTaxPerQuarter	9365.92	0.896
+  outMarketPerQuarter	969.757	0.093
+  outDuesPerQuarter	57.0702	0.005
+  outMigrationPerQuarter	27.6639	0.003
+  outOtherPerQuarter	24.8416	0.002
+  outColonialRentPerQuarter	7.11774	0.001
+  outCapitalPerQuarter	3.41529	0.000
+  outBondPerQuarter	0	0.000
+  outImportPerQuarter	0	0.000
+同じ期間の流入の和:
+  inStatePerQuarter	1695.85	0.568
+  inMarketPerQuarter	1009.16	0.338
+  inExportPerQuarter	193.703	0.065
+  inMigrationPerQuarter	53.6366	0.018
+  inFromPopsPerQuarter	20.5426	0.007
+  inOtherPerQuarter	8.67582	0.003
+  inCreditPerQuarter	1.94266	0.001
+流出 − 流入（前 12 四半期の和）: 7472.27
+前 12 四半期の最大の流出の経路（額の和・上位 10）:
+  Fiscal.cs:119:take:T	9363.28
+  CapitalMarket.cs:180:take:B	3.3172
+  EmptyPopEstate.cs:31:take:P	3.00799
+  MultiNationSim.cs:1815:carryOut:P	1.11343e-06
+  MultiNationSim.cs:1047:take:B	3.93709e-15
+  Meritocracy.cs:651:carryOut:P	3.91913e-15
+  CapitalMarket.cs:174:take:B	0
+  CapitalMarket.cs:158:take:B	0
+続きの中（3604 州×四半期）の流入の和: inFromPopsPerQuarter:2.943e+04 inStatePerQuarter:734.1 inOtherPerQuarter:46.67 inMarketPerQuarter:32.86 inMigrationPerQuarter:25.74 inExportPerQuarter:5.44 inCreditPerQuarter:2.474e-09
+続きの中の流出の和: outTaxPerQuarter:640.2 outCapitalPerQuarter:69.01 outMarketPerQuarter:32.07 outOtherPerQuarter:10.43 outDuesPerQuarter:1.718 outMigrationPerQuarter:0.1889 outColonialRentPerQuarter:3.524e-06 outBondPerQuarter:0 outImportPerQuarter:0
+再点火の四半期（137）の流入の和: inStatePerQuarter:561.2 inMarketPerQuarter:12.89 inMigrationPerQuarter:11.64 inFromPopsPerQuarter:6.391 inOtherPerQuarter:5.76 inExportPerQuarter:3.011 inCreditPerQuarter:2.844
+再点火の四半期に正の流入があった件数: inMigrationPerQuarter:135 inMarketPerQuarter:133 inFromPopsPerQuarter:133 inStatePerQuarter:29 inExportPerQuarter:22 inOtherPerQuarter:21 inCreditPerQuarter:14
+再点火の直前の四半期の 1 人あたり貯蓄の中央 6.9e-07・再点火の四半期 1.47e-06

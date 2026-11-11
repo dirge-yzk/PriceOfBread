@@ -1,0 +1,24 @@
+(1024) c96kf 記録（恒等の線・計器 K1 cscx_s・K2 pxstep_s・K3 merch_s の末尾 7 列）2026-11-10・Claude Sonnet 5.5
+判定：ident c96kf＝〈判定: 恒等〉（測った種で一致）。測った木 HEAD c7930bc5（SOURCE-HASH 3050be566362ebae）。全文は ident_verdict.txt。
+  素の 5 種＝b5_20261110_m1022 と全行バイト一致（179 行）・.cost 推定 230.5 秒。計器つき 10 種＝b10_20261110_m1022_ins と全行バイト一致（181 行）・.cost 推定 231.1 秒（上限 248.5 以下）。
+  計器の表＝共通 1256 本はバイト一致 1196＋既知の揺れ 50＋列が増えた 10（merch_s ×10・+7 列）＋宣言の無い違い 0。腕にだけある 20 本は宣言した cscx_s・pxstep_s 各 10。
+  注視の表＝mon_20261110_m1022.txt と一致（4629 行）。テストの数＝2617（2607＋10）・FullLength 3。savetest OK・leakhunt 完走・保存則違反なし。
+テスト：フルスイート Category!=FullLength＝合格 2616・スキップ 1・失敗 0（2617）・FullLength＝3 合格。㉘ の束（ClearingFillInstrumentTests・IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ScalarDeletionTests・GoodIdGuardTests・OnDoubleReadScanTests・DiplomacyPendingTests・MerchInstrumentTests）＝220 件合格。
+  許可表・既存の試験の書き換え 0 件（㉑ の予言どおり）。足した試験 10（ClearingFillInstrumentTests.cs：T1・T2×3・T3・T4×3・T4b・T5）。
+突然変異（全文は mut/）：M1 del2＜lp→T3 赤・M2 goodsDaily の件数を落とす→T2 赤（days=1）・M3 ③′ の道を落とす→T4 rise 赤・M4 共有の蓄えへ同期なしで足す→T5 と T2 赤・M5 csc_s の鍵に格を足す→基線の csc_s と不一致（1 種の計器つき腕・mut/M5.test.txt）。
+  M1 の限界：着値＝自州価格ちょうど（≧ と ＞ の違い）は float で作れず検査できない。M2 は days=1 だけで赤（10 日の盤面は日次の財が少なく other が 0 のまま）。
+差分：Instruments.cs は +2 −2（:1912 と :1940 の既存の行に名を足しただけ・行の追加 0）。
+
+記録の列（rec.txt・ident の計器つき 10 種の生・助走後の全期間）：
+ R1 充填 4,552,073,728 件のうち着値≧自州価格＝3,135,034,956（68.87%）。最良が替わった充填 351,439,417（7.72%）。
+    C2 で削れる件数の上限を秒に直すと 27.4 秒（充填の項 39.8 秒×0.6887・.cost の充填の項 40.03 秒なら 27.6 秒）＝上限であって削れる量ではない（下界で飛ばせる売り手だけ・表の保守の費用は別）。
+    ※fillsToBestCount は候補表が空のときの最初の無効な売り手も数える（T3 の掃引で確認）＝〈有効な売り手へ替わった〉件数ではない。
+ R2 格×払い手（invalid÷fills）：Core 手形あり 0.690・Colonial 手形あり 0.679・Integrated 手形あり 0.736・Colonial 手形なし 0.333・Colonial 空の商人 0.288・Core 手形なし 0.366。充填の 98% は手形あり商人の州（payer 0）。
+ R3 pxstep_s（財×州×歩の件数）：goodsClosed 1,038,820,353・svcClosed 57,557,759・pinnedClosed 44,887,230・goodsDaily 40,377,155（日次 602,152,053 日）・labor 38,321,580（180,793,774 日）・svcDaily 19,184,397（287,765,955 日）・dormant 18,013,508・other 0。
+    台帳（.cost）の財の歩は 10 種で 1,271,089,710・日次の写像 1,149,805,550＝計器の値は 2.5%・7% 少ない（計器は助走を数えない）。
+ R4 K3：商人の行 2,165,315 のうち、①′ を商人に写した式（労働者の所得÷（商人の稼ぎ×転職プレミアム）＞1）に当たる行は 54,273。資産の門の内 9,148（16.9%）・外 45,125（83.1%）。
+    エンジンが商人を落とした行 520,516 の全てで計器の門も開（不一致 0）。道の量の和＝merchPettyIn 40,416・artisanPettyIn 5,161・merchCapRiseOut 30,237・merchFallOut 560,217・artisanFallOut 601,416（千人の単位は popK に従う）。
+    門の時点の差：前の 21 列は社会移動の前・末尾 7 列は Step の中（①*・③′ の後の :345 の位置）。
+
+作った物・片付け：D:/PoB_work/wt_c96kf（残す・合流まで）・D:/PoB_work/ident_c96kf（21GB・生は合流が帰属を読み終えるまで残す）・D:/PoB_work/c96kf_work（印とログ）。消した物＝c96kf_mut（突然変異の木）・c96kf_mutart・c96kf_art・c96kf_work/m5。
+腕の枠：空き 6 で待ち 0 分。hook に止められた回数 1（変数名に眠りの綴りを含む grep）。

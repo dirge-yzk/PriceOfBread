@@ -1,0 +1,19 @@
+(880) c74id (d) RouteKmTests の盤面の選び直し（事前登録 measurements/m880_20261106_prereg_id.txt [5]・書いたモデル Claude Opus 5.5）
+
+━━ 数えた物（使い捨ての木 D:/PoB_work/c74id_work/wt_probe・dbabb1ca＋使い捨ての試験 RouteKmProbe880.cs〔写し RouteKmProbe880.cs.txt〕・コミットしない）
+- 同じ盤面（4 国・種 1789・助走の後）を 80 四半期回し、四半期 40・60・80 までの xmig_s の行数を数えた（3 つの設定は sim.Coef と各国の World.Coef の両方に置いた）。
+| 設定 | Q=40 | Q=60 | Q=80 |
+| 旗 0（既定） | 47 | 53 | 300 |
+| ImportPayerLive＝1 | 9 | 28 | 580 |
+| SubsistenceNoBoughtTech＝1 | 35 | 48 | 234 |
+- 参考（記録）：migration_s の行は Q=60 で 旗 0 655・ImportPayerLive＝1 68・SubsistenceNoBoughtTech＝1 620（ImportPayerLive＝1 は国内の移民の行が 1 桁少ない）。Q=60 の最後の年 1798（Q=40 は 1793・Q=80 は 1803）＝注〈1789〜1830 年代は運河なし（cfg 0）〉の範囲の内。
+
+━━ 選んだ数：60（{40,60,80} のうち 3 つの設定で xmig_s の行 ≧20 の最小・40 は ImportPayerLive＝1 で 9）
+- 本物の RouteKmTests（:138 の [Fact]・for の 40→60 だけ・Assert の式とリテラルは不変・コミット b696b867）を 3 つの設定で回した：
+  - 旗 0（この枝の木・4cda498a）：緑（guards_flag0.txt＝237 合格の中）。
+  - ImportPayerLive＝1（使い捨ての木 wt_f1・Coefficients.cs:3597 の既定を 1）：RouteKmTests は緑（guards_flag1_ipl.txt・赤は DormantIdentityTests〔旗の表の行〕と WriterRatchetTests item 1・9・11 だけ＝予言の内）。
+  - SubsistenceNoBoughtTech＝1（使い捨ての木 wt_f2・Coefficients.cs:531 の既定を 1）：RouteKmTests・CearnTradeColumnsTests 11 本とも緑（guards_flag1_snbt.txt）。
+- 突然変異 RK（ImportPayerLive＝1 の木で 60→40 へ戻す）：mut_RK.txt（:185 の前提〈xmig_s の行 ≧10〉が赤の見込み）。
+
+━━ 決めたこと：(i)＝盤面の選び直しを入れた（★(866) の Theory 化ではない・[Fact] と旗の既定のまま・規則の検査は同じ＝行ごとの閉じと名前の一致を、より多くの行で）。c74ip はこの試験を〈予言する赤〉に書かなくてよい（旗 1 で緑を確かめ済み）。
+- 名乗る限界：盤面の数は 3 つの設定の行数を見て選んだ（選び方は数える前に事前登録 [5] に固定した）。60 は ImportPayerLive＝1 で 28＝閾値 10 の 2.8 倍・〈20 以上〉の余りは 8。挙動の線が他の旗を点けると前提の数は動きうる（軌道に依る前提＝★(879)）。

@@ -1,0 +1,4 @@
+(854) c70id 紙の補い：全 61 カ国・種 1789・UtilityAgent・120 四半期（SubsistenceStage2＝0 と 1）の四半期ごとに、兵士でない工場労働者（Size＞0）の自給の割合を旧の読み方（欄 SubsistenceShare）と新の読み方（三項式）で数え、Clamp01 の後のビットが違う件数を数えた。使い捨ての試験（コミットしない・源は probe_worker_sub854_source.txt）。
+ PROBE stage2=0 quarters=120 examined=37038 differ=0 basisPos=0 productivityWorkers=0
+ PROBE stage2=1 quarters=120 examined=37038 differ=0 basisPos=0 productivityWorkers=0
+結論：差 0 件・自給の基が正の工場労働者 0 件・Productivity の工場労働者 0 件＝今のデータでは Discovery.cs:289 の旧と新の読み方は常に同じ値（IdeaBoardOf は 0 を読む）。

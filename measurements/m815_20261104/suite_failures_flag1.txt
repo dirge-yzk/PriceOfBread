@@ -1,0 +1,7 @@
+(815) c14fl フルスイート Category!=FullLength（測った木 e0560027＝旗 1・SimCore は 8e4bf0a9 と同じ）の赤とスキップ（エラー メッセージだけ）
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+[xUnit.net 00:04:14.06]     PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える [FAIL]
+  失敗 PriceOfBread.Tests.FiscalTests.外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える [75 ms]
+  エラー メッセージ:
+   仏の負債の減り 819405950 ≠ 逃避の額 657277500.0000001（払えなかった元本が債権のまま残る／未払いの配当が積まれた）
+失敗!   -失敗:     1、合格:  2222、スキップ:     1、合計:  2224、期間: 16 m 42 s - PriceOfBread.Tests.dll (net10.0)

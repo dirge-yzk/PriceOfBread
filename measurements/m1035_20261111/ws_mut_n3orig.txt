@@ -1,0 +1,14 @@
+(1035) 合流：元の N3 の突然変異（c97ws の反証役 中①への答え）
+木：合わせた木 9e08cb73 の使い捨ての写し（D:/PoB_work/m1035_work/mutn3）・InstrumentsWar.cs:261 の WarEval の数える側 'if (nOk) acc.NewOk++;' → 'if (oOk) acc.NewOk++;'（c96wn の mut.py:21 の元の N3）
+命令：dotnet test PriceOfBread.Tests -c Release --filter FullyQualifiedName~WarInstrumentTests（隔離ビルド）
+結果：赤（予言どおり T11）
+  失敗 PriceOfBread.Tests.WarInstrumentTests.評価を通すと新しいだけで足りる件数が正になる [2 s]
+     成功: 19
+     失敗: 1
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "1"
+Actual:   "0"
+           ↑ (pos 0)
+読み：元の N3 は T11（newOnly の盤面で WarEval を通す試験）で赤＝★(1027) の〈元の変異は未確認の穴〉は閉じた。c97ws の M1 は差し替えた後の N3（純関数 WarOkPair の中身）で、元の N3 ではない＝報告の〈元の N3 を M1 として残した〉は〈M1＝差し替えた後の N3・元の N3＝この記録（M8 相当）〉と読む。

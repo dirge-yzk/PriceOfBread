@@ -1,0 +1,10 @@
+# (876) 走査の番人 7 組＋ImportPayerLiveTests・TradeClearingBoardTests・TradeClearingTests（点火 4bd19b65 の木・merge の前・隔離ビルド D:/PoB_work/c73ip_work/guard・Release・2026-11-06）
+--list-tests：Category!=FullLength 2312・FullLength 3（予言どおり）
+失敗!   -失敗:     3、合格:   210、スキップ:     0、合計:   213、期間: 8 m 7 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [2 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+   計算量「価格：日次の写像の回」が 15733303 件（宣言 14043298・許し +2 %）
+   計算量「清算：着値の充填」が 31821007 件（宣言 28783150・許し +2 %）
+   計算量「外交：覇権の判定の国×国」が 2662704 件（宣言 3133384）＝10 % を超えて**下がった**＝表を 2662704 へ下げて理由を書く（＝改善の宣言）。
+予言 [8]＝WriterRatchetTests の item {1, 9, 11} だけ赤＝当たり。他の番人は緑（DormantIdentityTests・ImportPayerLiveTests 6 本・TradeClearingBoardTests・TradeClearingTests を含む）。

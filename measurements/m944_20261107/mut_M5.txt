@@ -1,0 +1,4 @@
+# (936) 突然変異 M5（rc=1）
+  失敗 PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [55 ms]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 1 m 3 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:01:06.23]     PriceOfBread.Tests.EmptyPopDebtToHeirsTests.T4_相続人の貯蓄が0でも移る [FAIL]

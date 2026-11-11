@@ -96,7 +96,6 @@ public class MobilityTests
         foreach (var sim in new[] { off, on })
         {
             var r = sim.World.Region;
-            sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（英は月20で既にペア天井超過＝素だと§2.4が正しく封鎖する。ここは転職経路自体を見る）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             // 農民の半分が失業・労働者の1人あたり所得が農民を大きく上回る世界（工場が生産性で勝つ）を直接セット＝決定論
             farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = new Share(0.5);   // JobSearchUsesEma点火（2026-08-16）＝プールは慢性失業（EMA）を読む
@@ -119,28 +118,6 @@ public class MobilityTests
     }
 
     [Fact]
-    public void 失業プールは都市化天井の残枠を超えて農村から都市へ流さない()   // §2.4の管轄拡張（敵対レビューHIGH・監査rank2の是正）
-    {
-        var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        off.Run(20); on.Run(20);
-        on.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10);
-        foreach (var sim in new[] { off, on })
-        {
-            var w = sim.World; var r = w.Region;
-            w.Coef.UrbanCapOff = 0;   // ★(687) 天井の枝（旗 0）の番人＝既定が 1（天井なし）になったので旧の枝へ置く
-            w.Coef.BaseUrbanCap = 0.0; w.Coef.UrbanPerInd = 0.0;   // 天井0＝都市への新規流入枠なし（双子とも同条件）
-            var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
-            farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = new Share(0.5);   // EMA点火に追随
-            farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
-            Meritocracy.Step(w, w.Coef);
-        }
-        double f0 = off.World.Region.Pops[1].Size, f1 = on.World.Region.Pops[1].Size;
-        Assert.True(System.Math.Abs(f1 - f0) < 1e-9 * f0,
-            $"天井0なのに失業農民が都市職へ流れた（OFF {f0:F2} / ON {f1:F2}）＝§2.4の素通り");
-    }
-
-    [Fact]
     public void 失業プールの着地はsoftmax按分でも動き総取りを超えない()   // JobPoolTemperature（監査rank2）のON経路
     {
         var wta = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 総取り（T=0）
@@ -152,7 +129,6 @@ public class MobilityTests
         foreach (var sim in new[] { wta, soft })
         {
             var r = sim.World.Region;
-            sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（天井の封鎖は専用テストが見る）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             farmer.UnemploymentRate = new Share(0.5); farmer.UnemploymentEma = new Share(0.5);   // EMA点火に追随
             farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);

@@ -1,0 +1,39 @@
+# 書き手の grep（731d3de1 の SimCore・Instruments*.cs を除く・注の行を除く）
+## Legitimacy\s*([-+*/]?=[^=]|=\s*Politic|\+\+|--)
+Coefficients.cs:1733 Coefficients.cs:2018 Coefficients.cs:2910 Diplomacy.cs:1570 Diplomacy.cs:2111 Diplomacy.cs:2192 Diplomacy.cs:3204 Diplomacy.cs:3256 Fiscal.cs:238 Fiscal.cs:366 Formations.cs:392 GovernanceSnapshot.cs:62 Government.cs:854 Megaprojects.cs:134 Politics.cs:456 Politics.cs:475 Politics.cs:1381 SelfPlay.cs:1930 World.cs:672 
+## DynasticMandate\s*[-+*/]?=[^=]
+Politics.cs:347 Politics.cs:358 
+## \bCoercion\s*[-+*/]?=[^=]
+FactionSnapshot.cs:223 FactionSnapshot.cs:281 GovernanceSnapshot.cs:62 Government.cs:768 MultiNationSim.cs:424 MultiNationSim.cs:474 NationConfig.cs:28 Politics.cs:492 Politics.cs:1284 
+## \bBaseCoercion\s*[-+*/]?=[^=]
+GovernanceSnapshot.cs:62 Government.cs:298 MultiNationSim.cs:436 NationConfig.cs:111 Politics.cs:1284 Simulation.cs:93 
+## MandateSpent\s*[-+*/]?=[^=]
+Government.cs:874 Politics.cs:452 Politics.cs:1222 
+## MandateSpentNew\s*[-+*/]?=[^=]
+Government.cs:875 Politics.cs:443 Politics.cs:1223 
+## PoliticalCapitalMax\s*[-+*/]?=[^=]
+Government.cs:233 
+## RecentRegimeChanges\s*[-+*/]?=[^=]
+CrownParliament.cs:207 CrownParliament.cs:458 
+## RegimeTrackRecord\[[^]]*\]\s*[-+*/]?=[^=]
+CrownParliament.cs:202 CrownParliament.cs:212 
+## RegimeTenureQuarters\s*([-+*/]?=[^=]|\+\+)
+CrownParliament.cs:177 CrownParliament.cs:201 CrownParliament.cs:457 
+## RuptureWindowQuarters\s*([-+*/]?=[^=]|--)
+Politics.cs:201 Politics.cs:711 Politics.cs:852 
+## NationalConsciousness\s*[-+*/]?=[^=]
+CrownParliament.cs:219 CrownParliament.cs:296 CrownParliament.cs:307 CrownParliament.cs:372 CrownParliament.cs:383 CrownParliament.cs:390 Model.cs:239 Model.cs:422 NationConfig.cs:111 Politics.cs:1845 Politics.cs:1850 Politics.cs:1851 Simulation.cs:117 
+## ReformGrantCount\s*([-+*/]?=[^=]|\+\+)
+Politics.cs:681 
+## DefeatShock\s*[-+*/]?=[^=]
+Diplomacy.cs:3265 Politics.cs:398 Politics.cs:479 
+## VictoryShock\s*[-+*/]?=[^=]
+Diplomacy.cs:3262 Politics.cs:480 
+## \.Polity\s*=[^=]
+CrownParliament.cs:178 CrownParliament.cs:460 GovernanceSnapshot.cs:62 
+## PoliticalPushBudget\s*[-+*/]?=[^=]
+Government.cs:222 Government.cs:227 
+## Freedom\s*=[^=]
+GovernanceSnapshot.cs:62 Politics.cs:380 Politics.cs:509 Privileges.cs:37 Simulation.cs:196 
+## \.LandReform\s*=[^=]
+FactionSnapshot.cs:295 GovernanceSnapshot.cs:58 Government.cs:116 Parliament.cs:336 Politics.cs:732 Politics.cs:733 Politics.cs:1273 SelfPlay.cs:1747 

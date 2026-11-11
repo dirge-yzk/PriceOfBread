@@ -1,0 +1,1 @@
+nation_quarters 109633 selected_heat>0.5 4717 any_region_heat>0.5 18033 nations_selected_over 50 max_heat 1.0

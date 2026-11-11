@@ -1,0 +1,54 @@
+(843) c68ui 記録（波68・恒等の線）　書いたモデル＝Claude Sonnet 5.5
+
+【判定】恒等の判定（測った種で一致）。ident c68ui（2 回目・HEAD 5891a036）：
+  素の 5 種 b5_20261105_c68ui ＝ b5_20261105_m839 と全行バイト一致（182 行）・計器つき 10 種 b10_20261105_c68ui_ins ＝ b10_20261105_m839_ins と全行バイト一致（181 行）。
+  .cost：件数の行 29 本・推定 219.0 秒（5 種）・220.8 秒（10 種）・種ごとの忠実度が一致（宣言した例外＝行の名前を変えた 2 本だけ）。
+  計器の表：基準 1068 本・腕 1068 本・バイト一致 1028 本・既知の揺れの列だけが違う 40 本（burscan_s の seconds 10 と cearn_s の経路の行番号だけ 30）・宣言された増減 0。
+  注視の表：タグの行以外が一致（4686 行）。テストの数：Category!=FullLength 2236（2264−28 を宣言）・FullLength 3。savetest OK・leakhunt 完走・保存則違反なし。
+  cearn_s の経路：cearn_remap.py（基準 bd1fb979 → 腕 5891a036）＝そのまま一致 1873154・行番号を写して一致 228578・写しても違う 0・写せない番号 0＝〈呼び出し位置だけの違い〉。
+  1 回目の ident（HEAD 7c23e3b7）は不一致：計器 monlaw_s の列（lawGateOpen:MinimumWage・lawGateOpen:Inheritance）が焼いた門とともに消え、注視の表の門の文言が変わった（ident_run1_log.txt）。
+  直し：InstrumentsMon.MonGateColumn で焼いた 2 本の門の列を値 1 のまま残した（基準の生を作り直す回に外す）。InstrumentsMonTests の列数の数え方を同じ規則へ（静的な件数）。
+
+【足した計器の列】なし（trstat の Z 行は値を 1.0 の定数にして行を残し、monlaw_s の 2 列は値 1 のまま残した＝列は 1 本も増減していない）。
+
+【入れた物】
+  (1) 技術の死んだ項：SelfPlay の UModTechWeight・UIndTechWeight と ChooseStance の techGap（常に 0 の局所変数）を項ごと消した。
+  (2) 段6：EraOff・TechMultipliersOff・TechGateByDiscovery を既定 1 の枝だけ残して焼いた（EraFactor・FreightRevolution・ExpeditionLift は常に 1.0）。読み手が無くなった係数 5 本（ExpeditionTechLevel・ExpeditionTechFloor・TechMilLowFloor・TechMilFullLevel・ModernizationTechLagCost）を墓標にして消した。
+      Display/FiscalTables.cs の近代化の吹き出しの技術の遅れの 3 行（常に 0 を出していた）を消した（画面のみ）。
+  (3) I3 の残り 4 本：MinimumWageLawGate・InheritanceLawGate・AntitrustGate・NationalizationGate。
+  (4) I2 の造幣の組：MintPriceFloorGate・StandardMetalMintGate（GoldMintFraction も読み手が無くなり消した）。Runner の印字を外し、FullChainTests の保存則の番人は金本位の盤面へ移した。
+  (5) I1 経済の旗 7 本：ServiceClosedFixedPoint・LaborClosedForm・HouseholdCreditStapleOnly・StapleElasticityZero・StateEduDemandInFront・ArmsStockEnabled・BaseArmsStockEnabled（App の GameViewModel.Politics.cs と Runner の読み手も同じ線で直した）。
+  (6) B12：DistanceMarginScale。(7) 通貨改革の釦の条件を Fiscal.CurrencyMemoryBroken へ。(8) InsolvencyQuarters→InsolvencyMonths（値と型は同じ）。
+  (10) 台帳の名乗り：海軍の発注の配りの行の名前から旗 NavalPortProcurement の言及を消した（.cost の行の名前が変わる＝--cost-allow 海軍の発注の配り）。
+  (11) 支配度の地図の塗りを Rule の国家の区分（国家でない割合のぶんだけ薄くする）へ。PopTables.RuleParts を public にして 1 本を共有。uishot に 03c2 の 1 枚を足した。画面 measurements/m843_20261105/03c2_map_europe_dominance.png（原本 D:/PoB_work/c68ui_shots/03c2_地図_欧州_支配度.png・1793 年・イギリス）。
+
+【入れなかった物（残り）】
+  (9) I13 PowerShares.DebtGrip の倒し先：基線で到達する枝（種 3 マカッサル共和国 1946〜の 3 四半期）＝区分 II（挙動が変わる）。
+  I1 の残り 6 本：HarvestShortfallToMarket・BuildingGoodBundle（InstrumentsFd・InstrumentsFb が読む）／ClearingIdleThrottledScan・ClearingIdlePotentialReweight（InstrumentsScope が読む）／LaborFloorOffGate・LaborBandFloorOffGate（InstrumentsLw が読む）／IndustrializationOff（試験 5 ファイル）／ScarceMineralOnlySulfur（0〜4 の段）。
+      ＝指示の〈Instruments*.cs が読む旗は入れない〉に当たる。13 本の名簿は (796) の表 3 の本文が repo に無く、pureflags.tsv から選んだ（事前登録 [2]）。取れたのは 7 本。
+  古い注の掃除：焼いた旗の名前を書いた注（Policy.cs・World.cs・Model.cs・PolicyPreferences.cs・Simulation.cs・InstrumentsLw.cs など）は旗の名前が残っている行がある（読み手は無い）。点火したらコメント一巡の規律は次の回。
+
+【試験の書き換え（★(743)）】
+  旗 0 の経路の試験の削除 28 本（①）：MilitaryTests 2・FuelOperatingCostTests 4・ServiceClosedTests 2（ファイルごと）・LaborClosedTests 6・StateEduDemandTests 7・NutritionTests 1・InheritanceLawTests 3・LaborMarketFormTests 2・PoliticsTablesTests 1。
+  旗の代入・前提の行の削除（③ 相当）：DiscoveryScoreTests（EraOff の配線の確かめ 1 ブロック）・TechLevelRemovalTests（旗 0 の陽性対照の行）・FoodLedgerTests・SmallFixes471Tests・MinimumWageAiFloorTests・LaborMarketFormTests・InheritanceLawTests・PoliticsTablesTests・MoneyThemeTests・StateFactoryTests。
+  許可表・名簿の行：DormantIdentityTests（焼いた名を足す）・UnitTypeTests（GoldMintFraction の 2 行を消す）・TechLevelRemovalTests.Allowed（ArmyShape・Diplomacy・DiscoveryTables・FiscalTables・Megaprojects・PlayHarness の行を消し、MultiNationSim 9→8・World 5→4＝焼いた旗が読んでいた技術水準の行が減っただけ。事前登録 [3] の追記では予言していなかった＝フルスイートで赤になって直した）・InstrumentsMonTests の列数の数え方。
+  置き換え：FullChainTests の鋳造の保存則の番人は旗 0 の旧い産出比例経路から金本位の盤面へ移した（突然変異 M2b＝金本位を外す→赤）。
+  機構の向き・大きさの Assert は書き換えていない。旗 0 との差を主張していた試験は消した（その差は ident の全行一致が確かめる）。
+
+【突然変異】M1 MarketFlow の役務の閉じた式を使わない→WriterRatchetTests が赤 3 本／M2a 単純化した FullChainTests＝緑／M2b 金本位を外す→FullChainTests が赤／M3 InsolvencyMonths の加算を 3 倍→FiscalTests・TreasuryLedgerTests が赤。（出力 mut_*.txt・台本 mut.sh・mut2.sh）
+  初版の FullChainTests（金鉱の値段を平価の半分に置く形）は M2 で緑のまま（値段を 2 倍にしても鋳造が起きた＝値段の置き直しは効いていなかった）＝値段の置き直しを消して金本位だけにした。
+
+【走査の番人】6 組 172 本＝緑（11 分 48 秒・器のコミットの後）。フルスイート Category!=FullLength：2236 本＝合格 2234＋スキップ 1＋赤 1（TechLevelRemovalTests の許可表＝上のとおり直して 13 本緑）。FullLength 3 本の結果は下。
+  最終の木と ident の木の差：TechLevelRemovalTests.cs の許可表の行だけ（試験のファイル）。成績表の入力ではない。
+
+【自己申告】
+  作ったフォルダ：D:/PoB_work/wt_c68ui（作業木）・c68ui_work・c68ui_art・c68ui_artS（uishot 用のビルド）・c68ui_shots・ident_c68ui（消した）・c68ui_artA（消した）。
+  消した物：ident_c68ui（keepsum 20 本の要約と sha256 を measurements/m843_20261105/keepsum_ident_c68ui.tsv に残した）・c68ui_artA。
+  残した物：c68ui_art・c68ui_artS・c68ui_shots・c68ui_work（合流が読むまで）。他の線・keep_* には触れていない。
+  waitmark の回数：約 22（前面の待ち・1 回 200〜230 秒）。覗き（waitmark 以外で進み具合を見た）：約 10（ls・tail・ident.sh mark）。
+  hook に止められた回数：1（git add -A を含む複合の命令を書いた＝名指しの git add へ直した）。
+  腕の枠で待った時間：0（ident 起動時 arms.sh free は 5〜6・D: の空きは 21GB まで落ちたが起こした＝他の線の ident の生が残っていた時間帯）。
+  uishot：1 回目は 1850 年まで進めて 40 分以上終わらず自分で止めた（プロセスは自分の物だけ）。2 回目は 1793 年で完走。
+  D: の空き：開始 42.8GB→ident 中 4.2GB まで落ちた→生を消して 39.5GB。
+
+【追記】FullLength 3 本＝合格（2 分 48 秒・最終の木）。TechLevelRemovalTests（許可表を直した後）13 本＝緑。最終の木のフルスイート＝Category!=FullLength は許可表を直す前に 2234 合格＋スキップ 1＋赤 1（許可表）・直した後はその 1 本が緑（TechLevelRemovalTests 13 本）＝残りは同じ木の結果。

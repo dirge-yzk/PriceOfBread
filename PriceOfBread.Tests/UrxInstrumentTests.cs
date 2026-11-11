@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// ★(649) 都市と農村の規模の差の区間別の表（<c>urx_s</c>）と PopDecision の駆動の表（<c>urxpd_s</c>）の番人（読むだけの計器・恒等）。
 /// ①駆動の写し：<see cref="Instruments.UrxPdDrive"/> の flow が、同じ盤面で本物の <see cref="PopDecision.Run"/> を走らせた前後の農村・都市の規模の差と一致する（期待値は本物の Run の前後の差から作る＝計器の式を再利用しない）。
-///   農村→都市・都市→農村・天井で切れる・飢えの門・農奴の門の 5 通りの盤面。計器の呼びが <c>UrbanIndSmoothed</c> を書かない。
+///   農村→都市・都市→農村・天井で切れる・飢えの門・農奴の門の 5 通りの盤面。
 /// ②区間の検算（事前登録 C1・C2）：全ての区間の差の和＝最後の水準−最初の水準（国×群）・最後の水準が世界の POP の数え直しに合う。社会移動の区間が実際に切り出されている。
 /// ③軌道が計器で変わらないことは InstrumentsTests の全ビット一致の番人が見る（挙げる国は *）。
 /// </summary>
@@ -37,9 +37,7 @@ public class UrxInstrumentTests
     {
         var (r, rural, urban, c) = Board(incRural, incUrban, fillRural, fillUrban, capital);
         tweak?.Invoke(c);
-        double smoothed0 = r.UrbanIndSmoothed;
         Assert.True(Instruments.UrxPdDrive(c, r, serfFree, out var d), what + "：対が取れない");
-        Assert.Equal(smoothed0, r.UrbanIndSmoothed);   // 計器の呼びは平滑値を書かない
         double u0 = urban.Size, r0 = rural.Size;
         PopDecision.Run(r, c, serfFree);
         double actual = urban.Size - u0;   // 農村→都市が正
@@ -53,8 +51,7 @@ public class UrxInstrumentTests
     {
         Match("農村→都市", 0.1, 0.3, 0.9, 0.9, capital: false);
         Match("都市→農村", 0.3, 0.1, 0.9, 0.9, capital: false);
-        Match("天井で切れる", 0.1, 0.5, 0.9, 0.9, capital: true, tweak: c => { c.UrbanCapOff = 0; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0; });
-        Match("天井なし（旗 1）", 0.1, 0.5, 0.9, 0.9, capital: true, tweak: c => { c.UrbanCapOff = 1; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0; });   // ★(694) 合流（反証役 urb2〔bv〕低）：新しい既定（旗 1）で首都の州の計器の写しと本物の Run が一致すること
+        Match("天井なし", 0.1, 0.5, 0.9, 0.9, capital: true);
         Match("飢えの門が閉じる", 0.1, 0.3, 0.9, 0.2, capital: false, expectFlowNonZero: false);
         Match("農奴の門が絞る", 0.1, 0.3, 0.9, 0.9, capital: false, serfFree: 0.25, tweak: c => c.SerfMobilityGate = 1.0);
     }
@@ -62,13 +59,9 @@ public class UrxInstrumentTests
     [Fact]
     public void 駆動の写しは天井と門の印を正しく立てる()
     {
-        var (r, _, _, c) = Board(0.1, 0.5, 0.9, 0.9, capital: true); c.UrbanCapOff = 0; c.BaseUrbanCap = 0.05; c.UrbanPerInd = 0;   // ★(687) 天井の枝（旗 0）の印の番人
-        Assert.True(Instruments.UrxPdDrive(c, r, 1.0, out var d));
-        c.UrbanCapOff = 1;   // 旗 1＝天井なし＝印が立たず目標は切られない
+        var (r, _, _, c) = Board(0.1, 0.5, 0.9, 0.9, capital: true);
         Assert.True(Instruments.UrxPdDrive(c, r, 1.0, out var dOff));
-        Assert.False(dOff.CapBound, "旗 1 で天井の印が立った"); Assert.Equal(dOff.TargetPre, dOff.TargetCapped, 12);
-        c.UrbanCapOff = 0;
-        Assert.True(d.CapBound, "天井で切れた印が立たない"); Assert.Equal(0.05, d.Cap, 12); Assert.True(d.TargetCapped < d.TargetPre);
+        Assert.False(dOff.CapBound, "天井の印が立った"); Assert.Equal(dOff.TargetPre, dOff.TargetCapped, 12);   // 天井なし＝印が立たず目標は切られない
         var (r2, _, _, c2) = Board(0.1, 0.3, 0.9, 0.2, capital: false);
         Assert.True(Instruments.UrxPdDrive(c2, r2, 1.0, out var d2));
         Assert.True(d2.FamineGated && d2.Flow == 0, "飢えの門の印が立たない");

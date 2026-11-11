@@ -1,0 +1,7 @@
+m914 (914) c79lb 結果 2026-11-07  基点 17b9a1ed・試験だけ（SimCore 0 行）
+(i) データ無しの木（c79lb）: 4 ファイル 108 本 緑。Category!=FullLength 合計 2402（合格 2401・スキップ 1・中止 0）＝--list-tests の 2402 と一致。
+(ii) データありの木（c79lb＋d590fc9f の world.json・未コミット）: 4 ファイル 108 本 緑。Category!=FullLength 2402 のうち赤 8＝予言どおりの区分だけ
+   StateFactoryTests 国営持分の造幣 2・OpeningBakeTests 2（★(764)）・WriterRatchetTests item 11・6（★(749)）・CornintInstrumentTests 2。MultiNationTests の NRE は出なかった。
+M1 (ii) で 4 本の盤面を 17b9a1ed へ戻す: T7・P7(ReformPath:430)・AiFirstWave 支持不足で否決・Instruments 借入の門 の 4 本が赤（元の赤が戻る）。統一ゲートは到達不能は元々緑。
+M2 (i) で LandOwnershipShares を常に null（枠を読まない）: LandShareTests 18 本中 11 本が赤（T1・T1b・T1c・T3・T3b・T4・T5・T6・T7b・T7c・T7d）。
+Assert・期待値・判定・母集合の書き換え 0。FullLength 3 本は回していない（試験の盤面の 4 ファイルは FullLength を含まない）。

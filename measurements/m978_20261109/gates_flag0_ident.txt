@@ -1,0 +1,10 @@
+G-S1 働いた：実際÷期待 最小 nan 最大 nan（行 0・期待 0 の 種×国 20）→ 赤
+G-S2 写し：国内 最大 nan（行 0）・輸出 最大 nan（行 0）→ 赤
+G-S3 私の枠：maxRelDiffSlotVsActual 最大 0.000e+00（(10, 'ロシア', '99')）・q0 の rgoFieldCount 最小 0.0 → 赤
+G-S4 上限：全ての RGO の国家の取り分÷期待 最大 nan（行 0）→ 赤
+# 記録（門ではない）
+ロシア	q0〜q11 の和（種 1〜10）：crownExpected 0.0・crownExpExpected 0.0・crownDeficitState 0.0・crownProppedRgoMonths 0・crownNationalizedSkipCount 0
+ロシア	全期間の和：crownProppedRgoMonths 0・crownDeficitState 0.0・鉱山 非賦存 45649190.4・賦存 954037.4・輸出 17112758.6
+プロイセン	q0〜q11 の和（種 1〜10）：crownExpected 0.0・crownExpExpected 0.0・crownDeficitState 0.0・crownProppedRgoMonths 0・crownNationalizedSkipCount 0
+プロイセン	全期間の和：crownProppedRgoMonths 0・crownDeficitState 0.0・鉱山 非賦存 8026234.4・賦存 790554.6・輸出 637748.3
+判定: 赤

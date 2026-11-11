@@ -207,7 +207,6 @@ public class EquipDiscoveryTests
         }
         Assert.True(i >= 0, "前提が崩れた：港の無い国で軍需調達が走っていない");
         var w = sim.Nations[i].World; var r = w.Region; var c = w.Coef;
-        Assert.True(c.NavalProcurementNeedsPort > 0, "前提が崩れた：港の無い国も軍艦を買う");
         System.Array.Fill(r.Discovered!, true);   // 上位段・tier3 を解禁（★段2A＝発見の表を解禁済みへ・旧＝技術水準 10）
         foreach (var tier in new[] { c.MilitaryQualityGoods, c.MilitaryTier3Goods })
             foreach (int g in tier)

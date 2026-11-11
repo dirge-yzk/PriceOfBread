@@ -13,7 +13,6 @@ public class MinimumWageAiFloorTests
     {
         var s = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         s.Run(2);
-        s.World.Coef.MinimumWageLawGate = 1;
         return s;
     }
 
@@ -111,16 +110,12 @@ public class MinimumWageAiFloorTests
             Assert.Equal(UtilityAgent.MinimumWageTargetFromBoard(w), UtilityAgent.MinimumWageTargetChosen(w));
             Assert.Equal(before, Led());
         }
-        // 旗 1 は新しい規則（読み手を呼ぶ＝台帳が増える）。MinimumWageLawGate＝0 なら旗に依らず書かない・台帳も増えない
+        // 旗 1 は新しい規則（読み手を呼ぶ＝台帳が増える）。
         w.MinimumWage = MinimumWageLaw.None;
         w.Coef.MinimumWageAiFromFloor = 1;
         long b1 = Led();
         UtilityAgent.MinimumWageTargetChosen(w);
         Assert.True(Led() > b1, "旗 1 で盤面を読んでいない");
-        w.Coef.MinimumWageLawGate = 0;
-        long b2 = Led();
-        Assert.Null(UtilityAgent.MinimumWageTargetChosen(w));
-        Assert.Equal(b2, Led());
     }
 
     // ---------------------------------------------------------------- 盤面の読み（手の参照との一致）

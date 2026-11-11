@@ -1,0 +1,20 @@
+(917) c79db 読む線の計画（2026-11-07・Claude Opus 5.5）
+作業の場所：D:/PoB_work/r917_work/（この回に作ったフォルダはこれ 1 つ・worktree と枝は作らない＝main の作業ツリーは読むだけ）
+コミットしない・腕 0 本・.cs 0 行。
+
+読む生（全て読むだけ）
+- 旗 0（基線 m905 と同じ軌道）：D:/PoB_work/keep_912/base_ins/cpop_s{1..10}.tsv・cearn_s{1..10}.tsv（cearn の末尾 2 列 merchantDebt・estateDebtSettledPerQuarter あり）
+- 腕 B（B5・旗 EmptyPopDebtFirst=1）：D:/PoB_work/keep_912_rej/c78epB_10/ins/cpop_s*・cearn_s*
+- ヌル腕：D:/PoB_work/keep_905/n1・n2 の cpop_s*（debt 列あり）・cearn_s*（末尾 2 列なし）
+- 前の線の出力：measurements/m910_20261107/（gate910*・diag910*・ratio_armB・paper910・nullgate_armB）・measurements/m910_20261107_prereg_ep.txt
+- 台本：scripts/instruments/c78ep/（gate910・diag910）・r897/
+
+ソース（main 17b9a1ed＝b482aa8b と SimCore 同じ・読むだけ）
+- EmptyPopEstate.cs:11 Step・:22 返しの 1 行／BilateralMarket.cs:579〜:583（決済 ①・bill）・:1142〜:1146（振り出し）
+- Bank.cs:27 Lend・World.cs:778 Book（HouseholdLoans）・Model.cs:305 Pop.Carry・:319 Distribute
+- InstrumentsCearn.cs:78〜（列の振り分け＝H の Take は outOther）・ConservationTests.cs:133〜:141・:190・:199
+
+台本（ここに置く）
+- read917_carry.py：問い 1〜3（持ち越しの定義し直し・分け・続きの長さ・国と州の集中・格ごと）
+- 出力：read917_<腕>.txt と read917.txt（まとめ）
+- 下書き：20261107_人の居ない商人の手形の詰まり_B5の根とB1の材料_下書き.md

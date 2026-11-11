@@ -1,0 +1,7 @@
+D:/PoB_work/c97ws_work（線 c97ws の作業・ident の生 約22GB）
+D:/PoB_work/c97sp_work（線 c97sp の作業・ident の生 約22GB）
+D:/PoB_work/c97eb_work（線 c97eb の作業・209K）
+D:/PoB_work/r1031_work・r1032_work・r1033_work・r1034_work（読む線と設計の材料・写した後）
+D:/PoB_work/wt_c97ws・wt_c97sp・wt_c97eb（git worktree remove・ローカルの枝 c97ws・c97sp・c97eb も消した・origin の枝は残す）
+D:/PoB_work/m1035_work/mutn3・mut_art（使い捨ての木）
+D:/PoB_work/ident_m1035z/out_ib_10/ins は keep_1035/base_ins へ移した（消していない）

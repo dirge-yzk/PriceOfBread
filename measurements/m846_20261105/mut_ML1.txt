@@ -1,0 +1,32 @@
+RESTORED ML1 PriceOfBread.SimCore/MarketFlow.cs
+APPLIED ML1 PriceOfBread.SimCore/MarketFlow.cs
+filter: FullyQualifiedName~LaborClosedTests
+test rc=1 6s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(priceOverRef: 0.5, demand: 100, supply: 300) [3 ms]
+  失敗 PriceOfBread.Tests.LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(priceOverRef: 0.5, demand: 300, supply: 100) [1 ms]
+  失敗 PriceOfBread.Tests.LaborClosedTests.閉じた式は端の日だけを確かめる [< 1 ms]
+失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(priceOverRef: 0.5, demand: 100, supply: 300) [3 ms]
+  エラー メッセージ:
+   値段の誤差 1.00E-003
+  スタック トレース:
+     at PriceOfBread.Tests.LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(Double priceOverRef, Double demand, Double supply) in D:\PoB_work\c69id_mut\PriceOfBread.Tests\LaborClosedTests.cs:line 54
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+--
+  失敗 PriceOfBread.Tests.LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(priceOverRef: 0.5, demand: 300, supply: 100) [1 ms]
+  エラー メッセージ:
+   値段の誤差 1.00E-003
+  スタック トレース:
+     at PriceOfBread.Tests.LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(Double priceOverRef, Double demand, Double supply) in D:\PoB_work\c69id_mut\PriceOfBread.Tests\LaborClosedTests.cs:line 54
+   at InvokeStub_LaborClosedTests.参照より下で向きが変わらない労働は閉じた式で日次と同じ値へ進む(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.LaborClosedTests.閉じた式は端の日だけを確かめる [< 1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 15 decimal places
+Expected: 0.48618055197606402 (rounded from 0.48618055197606391)
+Actual:   0.48666673252803999 (rounded from 0.48666673252803994)
+  スタック トレース:
+     at PriceOfBread.Tests.LaborClosedTests.閉じた式は端の日だけを確かめる() in D:\PoB_work\c69id_mut\PriceOfBread.Tests\LaborClosedTests.cs:line 88
+RESTORED ML1 PriceOfBread.SimCore/MarketFlow.cs

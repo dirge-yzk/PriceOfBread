@@ -1,0 +1,51 @@
+== M1
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T19_国家の枠の割合 [5 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T6p_国家の枠は旗1で外す(flag: 1, block0: 53, crown: 47) [< 1 ms]
+失敗!   -失敗:     2、合格:    37、スキップ:     0、合計:    39、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+== M2
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T19_国家の枠の割合 [3 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T6p_国家の枠は旗1で外す(flag: 1, block0: 53, crown: 47) [< 1 ms]
+失敗!   -失敗:     2、合格:    37、スキップ:     0、合計:    39、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+== M3
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [376 ms]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+== M4
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T19_国家の枠の割合 [3 ms]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+== M5
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T6p_国家の枠は旗1で外す(flag: 1, block0: 53, crown: 47) [3 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T15_エンジンの物を読まない [9 ms]
+失敗!   -失敗:     2、合格:    37、スキップ:     0、合計:    39、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+== M6
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L3_失う取り分は在地の目標から [266 ms]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+== M7
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L5_十分の一税の度合い [1 ms]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+== M8
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.GL_十分の一税の請求はエンジンに合う [4 s]
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L6_母体は大衆だけ [514 ms]
+失敗!   -失敗:     2、合格:    37、スキップ:     0、合計:    39、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+== M9
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 1, tariff: 0, now: 0.5, down: 0, up: 1) [1 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 0, tariff: 0, now: 0, down: 0, up: 0.5) [< 1 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 0, tariff: 0.29999999999999999, now: 0.29999999999999999, down: 0.29999999999999999, up: 0.800000000000000
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 2, tariff: 0.29999999999999999, now: 1.3, down: 0.80000000000000004, up: 1.3) [< 1 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 2, tariff: 0, now: 1, down: 0.5, up: 1) [< 1 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T1_楔は段と関税の閉じた数(level: 1, tariff: 0.29999999999999999, now: 0.80000000000000004, down: 0.29999999999999999, up: 1.3) [< 1 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [480 ms]
+失敗!   -失敗:     7、合格:    32、スキップ:     0、合計:    39、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+== M10
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T3b_実走の着値の係数は別に組んだ値に合う [877 ms]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 28 s - PriceOfBread.Tests.dll (net10.0)
+== M11
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T8_下げる向きの利害 [1 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T18_分子と分母は同じ規則 [825 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T16_下げるに輸入の割合を掛けた値 [< 1 ms]
+失敗!   -失敗:     3、合格:    36、スキップ:     0、合計:    39、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+== M12
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L7_聖職者が居ない国は母体0 [1 s]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 28 s - PriceOfBread.Tests.dll (net10.0)
+== M13
+  失敗 PriceOfBread.Tests.LordstatInstrumentTests.L2_動く州の割合 [823 ms]
+失敗!   -失敗:     1、合格:    38、スキップ:     0、合計:    39、期間: 32 s - PriceOfBread.Tests.dll (net10.0)

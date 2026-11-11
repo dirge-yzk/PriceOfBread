@@ -12,7 +12,9 @@ public class SbBargainTests
 {
     private static Simulation Warm()
     {
-        var sim = new Simulation(NationConfig.Russia().ToScenario(41), new NullAgent());
+        var cfg = NationConfig.Russia().ShallowClone(); cfg.LandOwnership = null;   // ★(978) 土地の持ち分のデータの有無に依らず同じ盤面（データ無し）にする（★(914) の型・露の 5 枠の国家の枠は地代の一部を国庫へ移す＝所得の合計の保存の前提が盤面で変わる）
+        var sim = new Simulation(cfg.ToScenario(41), new NullAgent());
+        Assert.DoesNotContain(sim.World.Regions.SelectMany(r => r.Producers), p => p.LandShares is not null);   // 対照：盤面に欄が無い
         sim.Run(20);
         return sim;
     }
@@ -248,6 +250,7 @@ public class SbBargainTests
             s.World.Region.FarmRentCap = new Share(cap);
         }
         int laborIdx = -1; foreach (var p in on.World.Region.Producers) if (p.IsRgo) { laborIdx = p.LaborPopIndex; break; }
+        Assert.True(on.World.Region.Producers.Count(p => p.IsRgo) >= 1, "対照：首都の州に産地が無い");   // ★(978) 対照の件数
         return (MonthRent(off), MonthRent(on), laborIdx);
     }
 

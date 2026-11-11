@@ -1,0 +1,39 @@
+diff --git a/PriceOfBread.Tests/InstrumentsTests.cs b/PriceOfBread.Tests/InstrumentsTests.cs
+--- a/PriceOfBread.Tests/InstrumentsTests.cs
++++ b/PriceOfBread.Tests/InstrumentsTests.cs
+@@ -2135,6 +2135,19 @@ public class InstrumentsTests
+             static int BucketOf(int q) { int b = 0; for (int i = 1; i < Instruments.SpendBucketStart.Length; i++) if (q >= Instruments.SpendBucketStart[i]) b = i; return b; }
+ 
+             // ① 州の払った額の和 ＝ spend_s の建設の材料と工賃（窓の区切りごと）
++            // ★(942) 州の表は四半期の末に所有する国の州を回し、支払いの表は払った時点の国で積む＝四半期の途中で州が国を出入りすると帰属が分かれる〔計器の限界・★(613) と同じ〕。
++            //   外交の凍結は Diplomacy.Step だけを止め、内戦と分離の建国（SpawnSecededNations）と再統合（ReabsorbNations）は止めない（旗 LandTaxFixedBasis 1 の軌道で 1787 年に パリ が 立憲王政フランス へ移り、区切り 2 が 4,714 開いた）。
++            //   出た州はその四半期の払いが支払いの表にだけ載り、戻った州は出た四半期の積み残しを州の表に載せる＝州の名の集合が前の四半期と違う四半期を含む区切りは比べない（出入りの両側）。比べた区切りが無ければ赤。
++            int cR = Array.IndexOf(ch, "region");
++            var regionsByQ = new SortedDictionary<int, HashSet<string>>();
++            foreach (var r in cr) { int q = int.Parse(r[cQ]); if (!regionsByQ.TryGetValue(q, out var set)) regionsByQ[q] = set = new HashSet<string>(); set.Add(r[cR]); }
++            var movedBuckets = new HashSet<int>();
++            int prevQ = int.MinValue; HashSet<string>? prevSet = null;
++            foreach (var (q, set) in regionsByQ)
++            {
++                if (prevSet is not null && (q != prevQ + 1 || !prevSet.SetEquals(set))) movedBuckets.Add(BucketOf(q));
++                prevQ = q; prevSet = set;
++            }
+             var consPaid = new Dictionary<int, double>();
+             foreach (var r in cr)
+             {
+@@ -2145,11 +2158,15 @@ public class InstrumentsTests
+             foreach (var r in sr)
+                 if (r[sN] == "フランス" && r[sK] == "extra" && r[sS] == "建設の材料と工賃") { int b = int.Parse(r[sB]); spendPaid[b] = spendPaid.GetValueOrDefault(b) + Col(sh, r, "payPerMonth") * Col(sh, r, "monthsCount"); }
+             Assert.True(consPaid.Values.Sum() > 0 && spendPaid.Values.Sum() > 0, $"対照：建設の払いが0（州の表 {consPaid.Values.Sum()}・支払いの表 {spendPaid.Values.Sum()}）");
++            int comparedBuckets = 0;
+             foreach (var b in consPaid.Keys.Union(spendPaid.Keys))
+             {
++                if (movedBuckets.Contains(b)) continue;
++                comparedBuckets++;
+                 double a = consPaid.GetValueOrDefault(b), c = spendPaid.GetValueOrDefault(b);
+                 Assert.True(Math.Abs(a - c) <= 1e-9 * Math.Max(1.0, Math.Abs(c)), $"区切り{b}：州の払った額の和 {a} が支払いの表の建設 {c} に閉じない");
+             }
++            Assert.True(comparedBuckets >= 1, $"対照：比べた区切りが無い（州が国を出入りした区切り {string.Join(",", movedBuckets)}）");
+ 
+             // ② 州の資本家の貯蓄の和 ＝ class_s の資本家の貯蓄
+             var consSav = new Dictionary<string, double>();

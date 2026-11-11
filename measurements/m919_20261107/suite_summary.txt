@@ -1,0 +1,5 @@
+(919) 合流のフルスイート（M の木 8a8344ad・Release・suite919.sh＝suite905.sh の写し・分けて）
+--list-tests：Category!=FullLength 2402・FullLength 3
+Category!=FullLength：成功 失敗 0・合格 2401・スキップ 1・合計 2402（13 分 56 秒・rc=0）・中止の行 0・NullReferenceException 0
+FullLength：成功 失敗 0・合格 3・合計 3（2 分 47 秒・rc=0）
+saveleak（179 秒）：savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（seed 1789・200 四半期・保存則違反なし・世界の台帳の説明できない増減 0）・SOURCE-HASH 70cab5b1d1de76a0

@@ -1,0 +1,7 @@
+SimCore の差のあるファイル 6 本・注の文字だけの差 6 本・コードの差 0 本
+   PriceOfBread.SimCore/Coefficients.cs comment-only
+   PriceOfBread.SimCore/InstrumentsRule.cs comment-only
+   PriceOfBread.SimCore/Parliament.cs comment-only
+   PriceOfBread.SimCore/Politics.cs comment-only
+   PriceOfBread.SimCore/SelfPlay.cs comment-only
+   PriceOfBread.SimCore/World.cs comment-only

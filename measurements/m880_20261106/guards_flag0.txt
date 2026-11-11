@@ -1,0 +1,4 @@
+TREE D:/PoB_work/wt_c74id HEAD 4cda498a 未コミット 1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   237、スキップ:     0、合計:   237、期間: 6 m 49 s - PriceOfBread.Tests.dll (net10.0)
+rc=0

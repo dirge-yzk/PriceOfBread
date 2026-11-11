@@ -1,0 +1,4 @@
+# D:/PoB_work/keep_912_rej/c78epB_10/ins 種 1・a∩S の州×四半期 2286
+outTop1Route 上位：Fiscal.cs:119:take:T 765・Transport.cs:184:take:P 629・CapitalMarket.cs:180:take:B 511・Fiscal.cs:129:take:P 215・CapitalMarket.cs:174:take:B 98・CapitalMarket.cs:158:take:B 28
+outTop2Route 上位：CapitalMarket.cs:180:take:B 647・CapitalMarket.cs:174:take:B 545・Transport.cs:184:take:P 334・Fiscal.cs:129:take:P 316・Fiscal.cs:119:take:T 296・MultiNationSim.cs:1503:take:P 65
+商人の outOther ÷ 州の outTop1 の中央 0.0473

@@ -1,0 +1,6 @@
+D:\PoB_work\c96kf_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:06.35]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+
+成功!   -失敗:     0、合格:  2616、スキップ:     1、合計:  2617、期間: 25 m 54 s - PriceOfBread.Tests.dll (net10.0)

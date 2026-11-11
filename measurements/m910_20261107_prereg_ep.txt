@@ -1,0 +1,111 @@
+(910) 線 c78ep 事前登録（波78・挙動の線・最初のコミット・担当 Claude Opus 5.5・枝 c78ep・worktree D:/PoB_work/wt_c78ep・258a4543 から）
+案 B5〈相続の前に、人の居ない POP の債務を返す〉
+
+[0] 名乗り
+- 出発：00一覧 §00〈次の波（波78〜）〉⑩。§0-2 ★(899) の問い ① は推奨〈輸入する＝B5〉で進める（作者の答えは無い・作者「全て推奨で」で推奨を採った）。★(839) ② (a)。
+- 形は AI の案・確証なし（新しい状態 0・係数 0・旗 1 本）。〈債務は相続より先に払う〉は遺産の整理の順の類推（確証なし）。
+- 3 回の規則：この線が B5 の 1 回目。閉じた案 A（ImportPayerLive〔人の居る POP が払う〕・(869)(876)(887) で 3 回）とは別の形＝設計書（docs/202611/20261106/20261106_人の居ないPOPの債務の扱い_案B_下書き.md）の新しい形。4 回目ではない。
+- 形の種類：〈入口〉（相続の段の入口で毎月・全ての国の全ての州の人数 ≦1e-12 の POP）。
+- 基線 m905（main 258a4543・測った木 fc9aeb4c）。比べる生 D:/PoB_work/keep_905/base_ins（M）・n1・n2（ヌル腕）。
+
+[1] 形（実装はこの文と一致させる＝★(778)）
+- 旗：Coefficients.EmptyPopDebtFirst（AI の名・grep で 0 件を確かめた）。既定 0＝1 ビットも変えない。Coefficients.cs の EmptyPopEstate（:3335）の次の行に 1 行。DormantIdentityTests の休眠の表に 1 行（点火で外す）。
+- EmptyPopEstate.Step（EmptyPopEstate.cs:11）の、:14 の旗 EmptyPopEstate の門の後、:19 の州の POP の走査の中・:21 の人数の判定で〈人数 ≦1e-12〉と決まった POP ごとに、貯蓄を読む前に
+    旗 EmptyPopDebtFirst ＞0 かつ Debt ＞0 なら back＝min(Debt, max(0, 貯蓄))・back ＞0 なら Bank.Lend(w, p, −back)
+  を呼び、その後に貯蓄を読み直して（今の :22〜:23 の規則のまま）払い手と相続の額を決める。残りの貯蓄は今の規則で相続人へ。
+- 受け手（人の居る POP）の有無に依らず返す（返しは相続人を要らない）。州に人の居る POP が無ければ、返した後の残りは今と同じく動かさない（:25 の continue）。
+- 人の居る POP（人数 ＞1e-12）の債務は返さない（決済 ① の今の規則のまま）。
+- 否定形の門：NaN の Debt・NaN の貯蓄は返さない（`back > 0` が偽）。
+- 行の位置：EmptyPopEstate.cs:31 の World.Transfer は行を動かさない（cearn_s の経路の名 EmptyPopEstate.cs:31 が行番号から作られる）＝返しの 1 段は :22 の行に足す。計器の印の呼びも同じ行。
+- 触らない：Bank.cs（Lend はそのまま）・HouseholdLoans の書き手は World.cs:778 の 1 本のまま・ΔBaseMoney＝0（Lend の負の側＝移し方の 1 本の世界の外 HouseholdCredit）・BilateralMarket.cs・Simulation.cs・RepayHouseholdDebt（休眠）・商人の初期値・cearn_s の既にある列・App・Display・Runner。
+
+[2] 計器（InstrumentsCearn.cs・旗を読まない・cearn_s の末尾に 2 列）
+- merchantDebt＝四半期の末の州の商人の POP（MerchantPop）の Debt（商人の添字が無ければ NaN）。全ての格の州（cpop_s は植民地格だけ＝Core に持ち越した債務を見る）。
+- estateDebtSettledPerQuarter＝EmptyPopEstate.Step の中の返しの段で、POP の貯蓄から世界の外（家計の与信）へ実際に移った額の四半期の和（台帳の書き込み＝移した額・Bank.Lend の中の移し方の 1 本が書く Take を、EmptyPopEstate.cs が立てる文脈の印〈返しの段の中〉で畳む・既にある型 CearnImportPayRegion と同じ）。旗 0 は 0。
+- 旗 0 の木では 2 列が増えるだけ＝ident の宣言 --grown-ok cearn_s。既にある列の値は変えない。新しいエンジンの欄 0（印は計器の側の ThreadStatic）。
+- ⚠限界（計器が申告する）：①月初に登録されていない POP の書き込みも州の台帳へ足す（州が引けない書き込みは数えない）②Core の州の返しは merchantDebt と estateDebtSettled だけ（POP ごとの行は cpop_s の植民地格だけ）。
+
+[3] 紙の台本（旗 0 の生だけ・scripts/instruments/c78ep/paper910.py・出力 measurements/m910_20261107/paper910.txt）
+空の商人の行＝cpop_s（植民地格）の商人・popK ≦1e-12。
+| 名 | 空の商人の行 | G1′ の行 | G1′ の比（旗 0） | 紙の持ち越し C | C の比 | kind2 の行 | G2（旗 0） | kind1 の割合 | G2 の紙 | 負の debt の行 | 人の居る商人の持ち越しの比 |
+| M  | 424,881 | 422,856 | 0.9952 | 191,145 | 0.4499 | 424,881 | 0.0025 | 0.9204 | 0.5063 | 0 | 0.0650 |
+| N1 | 409,567 | 407,435 | 0.9948 | 185,220 | 0.4522 | 409,567 | 0.0025 | 0.9257 | 0.5071 | 0 | 0.0518 |
+| N2 | 426,756 | 424,619 | 0.9950 | 214,315 | 0.5022 | 426,756 | 0.0024 | 0.9226 | 0.4593 | 0 | 0.0573 |
+- C（反証役の訂正 1）＝空の商人の行で debt ＞0 かつ四半期の inMarket ＜ debt の行。B5 では月ごとに〈所得で返す→返し切れば次の手形〉なので、四半期の末に持ち越すには四半期の所得の和が持ち越した債務に届かないことが要る（必要条件）。旗 0 の所得は輸入が止まった軌道の所得＝B5 の軌道より小さい向き＝C は上限の向き（推定）。
+- 人の居る商人の持ち越しの比 5.2〜6.5% は〈正しい実装の下の目安〉として記録（門にしない）。
+- 下書き（keep_892）の 45.7% は m905 の生で 45.1%（C÷debt＞0）／45.3%／50.3% に取り直した。
+
+[4] 門（腕の前に固定・ループの中で変えない・両側）
+働いた（大きさ・機構の観測量）
+- G1′：空の商人の行のうち、debt − inCredit ＞1e-9×max(1, debt) の行の比 ≦ 0.51（紙の C の比の最大 0.5022 の上）。旗 0 は 0.9952／0.9948／0.9950＝落ちる。
+- G2：cearn_s の植民地格の州×四半期で importPayerKind＝2 の行のうち importPaid ＞0 の割合 ≧ 0.45（紙の G2 の最小 0.4593 の下）。旗 0 は 0.0025＝落ちる。
+- ㉗ の名乗り：紙は旗 0 の軌道の上の近似。正しい B5 でも落ちうる所＝B5 の手形は月々の輸入の代金で大きさが変わる（紙は q0 の手形の大きさで止まった debt）＝後の時代に手形が大きく所得が追いつかないなら C を超えうる。紙は門の破れを予言しない（旗 0 が落ち、紙の値は門の内）。
+上限（形に固有の誤り）
+- U1：cpop_s の debt ＜ −1e-9 の行 0（旗 0 は 0）。
+- U2：州×四半期で estateDebtSettledPerQuarter ≦ (同じ州の前の四半期の merchantDebt ＋ その四半期の inCreditPerQuarter)×(1＋1e-9)＋1e-9 を破る行 0（返し過ぎ）。商人でない人の居ない POP が債務を持つと正しい実装でも破りうる＝破った行は POP の種類を読んで名乗る。旗 0 は 0 行（返し 0）。
+- U3：Σ estateDebtSettled ＞0（旗 0 は 0＝何もしない実装は落ちる）。
+壊さない
+- 番人 ConservationTests.cs:190・:199（家計の与信＝POP の債務の和・:199 は FullLength）・TradeClearingTests.cs:272・:325・EmptyPopEstateTests 9 本・新しい B5 の機構の試験・savetest・leakhunt・フルスイート。
+記録（門ではない）：nullgate（門 A′）・NG（ng.sh・基準 rd:measurements/ng905_20261106:m905）・exact・near・英の不履行・開幕の 1000 倍以上・首位の国の世界の実質 GDP の取り分・同じ盤面の新÷旧。
+
+[5] 突然変異ごとの赤の表（㉚・腕の前の紙）
+| 突然変異 | 赤になる所 | 根拠 |
+| E1 返さない（旗 0 と同じ） | G1′・G2・U3・単体 T1/T2 | 旗 0 の紙（[3]）＝旗 0 の生 M そのもの＝腕を回さない |
+| E2 相続の後に返す（順序の入れ替え） | G1′・G2・U3・単体 T1/T2 | 相続の後は人の居ない POP の貯蓄が 0（:65 の番人）＝back＝0＝Lend を呼ばない＝軌道は旗 0 とビットで同じ＝M の紙で落ちる。単体 T1〈debt ≦ 貯蓄なら Step の後 Debt＝0〉が赤 |
+| E3 人の居る POP の債務も返す | 単体 T4〈人の居る POP の債務と貯蓄は動かない〉 | 腕の門には無い（名乗る） |
+| E4 HouseholdLoans を動かさず Debt だけ消す | 単体 T3〈家計の与信＝POP の債務の和〉・ConservationTests.cs:190 | 突然変異の木で単体を回す |
+| E5 返す額を貯蓄で切らない | 移し方の 1 本が Σmax(0, 貯蓄) までしか動かさず Debt は動いた額で書く＝誤りを作れない（名乗る）。単体 T2〈貯蓄 ＜ debt なら Debt＝debt−貯蓄・貯蓄 0〉で確かめる |
+| E6 受け手の居ない州で返さない | 単体 T5〈人の居る POP の無い州でも返す〉 | [1] の形 |
+- 突然変異の腕（計器つき 10 種）は回さない＝E1・E2 は旗 0 の生で門が落ちることを紙で示した（腕 0 本・紙と単体で代える）。単体は使い捨ての木（D:/PoB_work/c78ep_work/mut）で回し、出力を measurements/m910_20261107/mut_*.txt へ。
+
+[6] ★(818) 読んだ Assert（grep -ln "EmptyPopEstate\|HouseholdLoans\|Bank.Lend" PriceOfBread.Tests/*.cs）
+- ConservationTests.cs:190・:199（与信＝債務の和）＝B5 は Lend で両方を同じ額＝緑の見込み。:137 の和・:647〜:651・:760〜:780・:956〜:984 は Lend と Carry の単体＝触れない。
+- TradeClearingTests.cs:272・:325＝Market.Step だけ＝EmptyPopEstate を呼ばない＝変わらない。
+- EmptyPopEstateTests 9 本：:65 人の居ない POP に在庫が残らない・:74 受けた和＝払い手の和・:194 moved ≦ due（返しの分 moved が減る向き＝緑）・:197 moved ≧1200（MakeEmpty が選ぶ POP に Debt が無いことが前提＝試験で 1 回確かめる）・:209 旗 EmptyPopEstate 0 の早い return（新しい旗は門の後）。
+- CreditTests・FiscalTests・ImportPayerLiveTests・UnitTypeTests・WriterRatchetTests・DormantIdentityTests＝下の [7]。
+
+[7] 走査の番人（㉘）と変わる件数の予言（㉑）
+- WriterRatchetTests の書き手の数：Savings 0・HouseholdLoans 4・Debt の直接の書き手を足さない（Bank.Lend を呼ぶだけ）＝変わらない。
+- `new MoneyStock(` は SimCore で 64 件＝足さない＝64 のまま。
+- route_anchors.tsv（scripts/instruments/flow262）の鍵 42・43（Bank.cs の貸しと返し）は変わらない・新しい鍵は足さない。工業化度の読み手の許可表は触れない。
+- DormantIdentityTests：器で +1 行（EmptyPopDebtFirst）・点火で −1 行。
+- 赤になる 1 行（予言）：CearnTradeColumnsTests.cs:199 `Assert.EndsWith("\timportBudgetExcessMaxPerClearingSubLive", lines[0])` は末尾に 2 列を足すと赤。持ち主の外の 1 行＝末尾の 3 列の並び `\timportBudgetExcessMaxPerClearingSubLive\tmerchantDebt\testateDebtSettledPerQuarter` で EndsWith に書き換える（(880) の列の位置を同じ強さで確かめる・機構の Assert ではない）。報告の先頭に名乗る。
+- CearnInstrumentTests.cs:20・CearnTradeColumnsTests.cs:136・:198・EmptyPopEstateTests.cs:178 は CearnHeaderText と比べる＝緑。
+- 計算量の宣言の表（WriterRatchetTests・★(749)）は旗 1 の木で種類で予言：ClearingFills と PriceDailyRuns は増える向き（(852) で相続の点火が −17.2%・−23.9%＝その逆向き）・item 11（DiploHegemonScans）ほか軌道の件数の行は動きうる＝赤でも腕 B を止めない（〈軌道の件数を写しただけの番人〉・合流が取り直す）。それ以外の赤は止める。
+- ㉜ 旗 1 の木の grep：EmptyPopEstateTests・ConservationTests・TradeClearingTests・ImportPayerLiveTests・CearnTradeColumnsTests の〈人の居ない POP の債務が残る〉を前提にする Assert を grep（`Debt` と `MerchantPop` と `Size = 0`）＝点火のコミットの後に結果を [10] に追記。
+
+[8] 周辺の点検（既にある生とソースだけ・記録）
+- 受け手の割り方：Pop.Distribute（Model.cs:319）は端数を末尾の受け手へ（amount − done）＝EmptyPopEstate.cs:28〜:30 が人数の最大を末尾へ寄せる＝B5 は額を減らすだけ＝変わらない。
+- 植民地格の輸入の払い手：BilateralMarket.cs:578〜:583（決済 ① と払い手・〈返し切れない商人は振り出さない〉）・:1142〜:1146（振り出し＝due − 貯蓄）＝B5 で返し切れば次の清算で手形が立つ（予言）。
+- 商人を人数 0 で作る初期値：Simulation.cs:1613（PromoteColonyToRegion の添字の並び・MerchantPopIndex＝9）＝00一覧 ⑯ の候補＝この線では直さない。
+- 休眠 RepayHouseholdDebt（Simulation.cs:3048・呼びは :2448）：月初の貯蓄を読む＝前の月の相続の後で 0＝この詰まりは直らない（訂正 4・推定）。
+
+[9] 止める線（波77 の一覧を旧の台本 scripts/instruments/m866/stoplines866.sh で数える・この波の物差しのまま）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（〈それ以外〉の件も止める線・建国の直後は系列の最初の行から 4 四半期以内をヌル腕の件数と並べる・政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期もヌル腕と並べる）・1e10 倍以上・gdp_zero10（名目 GDP 0 が 4 四半期以上続く国・人口 1 万以上）・推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む・[7] の計算量の表の型を除く）。
+- 空洞化：ピークの 1/10 未満（規則 A2＝an_h2.py の既定 -ex rule・-v4）の名簿の外で、その線が原因と読めた件だけ。基線（keep_905/base_ins）の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。主要国の州は例外にしない。原因を問わない（作者 2026-09-30「州から人が抜けきるというのは現実的ではないです。これは不具合とみなしてください。」）。
+- 当たったら採らない。建国の四半期・0 の長さ・跳びの倍率を記録し、生を縮めて残す。c78gz の新しい区分は使わない。
+- 基準の件数：measurements/m905_20261106/stop_table_905.tsv（M・S11 0・N1 は〈100 倍〉の〈それ以外〉1 件・N2 は〈それ以外〉1 件と gdp_zero10 の 2 区間）。
+
+[10] 計算量の割り当て
+- 9.0 秒（(852) の相続の点火の逆向きの上限：m845 220.8 → m852 212.6 秒＝−8.2 秒・輸入が開く分の清算の増え）。m905 212.4＋9.0＝221.4 ≦ 248.5（名目の余り 約 36.1 秒）。返しの段そのものは人の居ない POP の数の走査の中＝増えない見込み。
+
+[11] 段0 の予言（腕の前・ソースと keep_905 から）
+- 主な観測量の向き：G1′ の比 0.995 → 0.51 以下（下の目安は人の居る商人の 0.05〜0.07）・G2 0.0025 → 0.45 以上・estateDebtSettled ＞0。植民地格の州×四半期の輸入 0 が減る（下書き §1 の 63%）。〈悪くする〉の予言ではない＝回す。
+- 危うさ（記録）：案 A は〈輸入が開く〉の道で止める線に 3 回当たった（(869)(876)(887)）。B5 も同じ向きに世界を動かす＝止める線に当たりうる。当たったら採らない。
+- 腕：腕 B `INS=1 bash scripts/instruments/batch.sh run c78epB 10`（計器つき 10 種・POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）・S11 `INS=1 bash scripts/instruments/batch.sh run c78epS 10 11`（POB_CEARN=1 と宣言＝cpop_s と cearn_s を書く）。D: の床：腕 B 36GB＋5・S11 30GB＋5。起こす前の空き 70.2GB（shutil・2026-11-07 00:07）・arms.sh free 6。
+- 手順：この事前登録 → 器（旗 0）＋計器＋機構の試験 → 走査の番人（㉘）→ ident c78epz（〈判定: 恒等〉・--grown-ok cearn_s）→ 突然変異の単体 → 点火 → 旗 1 のフルスイート（分けて・--list-tests と突き合わせ）・savetest・leakhunt → 腕 B → S11。形の変え直しは 1 回まで（旗 1 の出力を見た後のエンジンの変更は全て数える）。
+
+[12] 追記（2026-11-07・腕 B の前・旗 1 の出力を見る前・門と閾値は変えない）
+- [2] の限界 ① の訂正：計器は月初に登録された POP の書き込みだけを数える（CearnSav は登録の無い POP を返す＝月の途中で現れた POP の返しは数えない）。前の文〈登録されていない POP の書き込みも足す〉は誤り。
+- 器のコミット 84977de6 の直後の走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests と EmptyPopEstateTests・CearnTradeColumnsTests・CearnInstrumentTests は緑（165 本のうち赤は新しい試験の 4 本だけ＝試験の盤面が POP の元の貯蓄を残していた・試験の側の前提を直して 7 本緑）。予言 [7] の通り（WriterRatchet の書き手の数・new MoneyStock 64・route_anchors 42/43 は変わらない・CearnTradeColumnsTests.cs:199 だけ書き換えた）。
+- ident c78epz（木 84977de6・SOURCE-HASH 4c268e74728df604）：判定: 恒等（測った種で一致）。素の 5 種 181 行・計器つき 10 種 184 行が全行一致・計器の表 1103 本一致＋既知の揺れ 20＋宣言の cearn_s +2 列 10 本・注視の表 5193 行・テスト 2398（2391＋7）＋FullLength 3・推定 212.4 秒。measurements/m910_20261107/ident_c78epz.txt・b5_20261107_c78epz・b10_20261107_c78epz_ins。
+- 旗 0 の木の計器で門の台本 gate910.py（measurements/m910_20261107/gate910_flag0.txt）：G1′ 0.9952・G2 0.0025・U1 0・U2 0・U3 0＝旗 0 は G1′・G2・U3 で落ちる（何もしない実装は通らない）。
+- 突然変異の単体（mut910.py・使い捨ての木・旗の既定 1 の上）：M0 全て緑（17 本・EmptyPopEstateTests 9 本と ConservationTests.cs:190 を含む）・E1 赤 5（T1・T2・T3・T5・T7）・E2 赤 4（T1・T2・T3・T7）・E3 赤 1（T4）・E4 赤 6（ConservationTests.cs:190 と T1・T2・T3・T5・T7）・E6 赤 1（T5）＝[5] の表の予言どおり。出力 measurements/m910_20261107/mut_*.txt。
+
+[13] 結果（2026-11-07・腕 B c78epB_10＝木 f103a76d の写し・計器つき 10 種・種 1〜10・門は [4] のまま変えない）
+- 採否：採らない。G1′ 0.5229 ＞ 0.51＝〈働いた〉の門で落ちた（[4] ㉗ で名乗った〈正しい B5 でも落ちうる〉の型）。形の変え直しはしない（枠の中の形が無い＝B1〜B4・Bank.cs・BilateralMarket.cs は入れない物）。S11 は回さない（採らない線の S11 は採否に使わない）。
+- 門：G1′ 0.5229 落ちる・G2 0.4574 通る・U1 0・U2 0・U3 51,259,258（返しのあった州×四半期 327,364）。measurements/m910_20261107/gate910_armB.txt。
+- 機構は狙いの向きに大きく働いた（記録）：持ち越しの比 0.995→0.523・植民地格 kind2 の輸入 0.25%→45.7%・持ち越しの続きの中央 403→4 四半期（ratio_armB.txt）。
+- 破れの内訳（diag910_armB.txt・結果の後の読み）：G1′ の行 190,913 のうち 84%（160,932）は四半期の inMarket ＜ debt（紙の C と同じ型＝所得が債務に届かない）。16%（29,981）は inMarket ≧ debt で、純の市場の所得（inMarket − outMarket）も全て債務以上・四半期の末の貯蓄は全て債務未満＝市場以外の出へ流れた疑い（読んでいない）。
+- 止める線（stop_armB.txt）：100 倍は旧の数え方（797）で〈それ以外〉1・833 の 3 区分で〈分母の痩せ〉1（ライン諸邦・種 9・1913・人口の比 0.0089）＝〈それ以外〉0（N1 の痩せ 2 と並べる）・1e10 倍 0・非有限 0・gdp_zero10 0・空洞化 1/10 未満 0 件（1/4 未満 9 件＝記録）・開幕の 1000 倍以上 0・推定 216.5 秒（＋4.1 ≦ 割り当て 9.0）・破綻 0/10・デッドロック 0/10。止める線には当たらない。
+- 記録：nullgate O 179.0 ≦ 203（雑音の内）・NG 99（前から 81・新しい 18・外れた 12）・英の不履行 2/10（基線 5/10）・exact 43.3・near 86.6・ハーネス不合格 6/10（基線 4/10・N1 5/10・N2 6/10）。

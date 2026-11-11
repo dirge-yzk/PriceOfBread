@@ -1,0 +1,6 @@
+(815) 旗 1 の木（D:/PoB_work/c14fl_work/sl16＝e0518931＋旗の既定 1・腕 B の木 8e4bf0a9 と注の 1 行だけ違う）の標準の savetest と leakhunt（scripts/instruments/saveleak.sh）
+## savetest 1789 300 12
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+## leakhunt 1789 200
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

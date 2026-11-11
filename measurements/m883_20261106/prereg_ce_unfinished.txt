@@ -1,0 +1,239 @@
+# 事前登録 (883) c74ce：割譲の支配度 C1 の段 C-0＝恒等の計器 cederule_s（形 Q′）
+
+書いたモデル：Claude Sonnet 5.5
+日付：2026-11-06
+枝：c74ce（496d5ec8 から）
+
+## [1] 線の種類
+
+恒等の線。予言 0（新しい表 cederule_s が増え、他の表と列は全行バイト一致）。
+
+## [2] 足す物と消す物
+
+### 足す物
+
+#### 新しいファイル
+- PriceOfBread.SimCore/InstrumentsCede.cs（新しい部分クラス・計器の本体）
+- PriceOfBread.Tests/InstrumentsCedeTests.cs（新しいテストファイル・T1〜T5）
+
+#### 既存ファイルへの追加（Instruments.cs に 3 行の呼び口）
+- Instruments.cs:1218 RegionMoved の中に 1 行（前の値を貯める）
+- Instruments.cs:1814 の RuleFold の並びに 1 行（後の値を読んで行を書く）
+- Instruments.cs:1900 の CessClose の並びに 1 行（CedeClose）
+
+#### 計器の新しい列
+- cederule_s（新しい表）：約 40 列（§4 の仕様）
+- cearn_s・他の既存の表の列：変更なし
+
+### 消す物
+
+消す物は 0。
+
+### 読み手の grep（2026-11-06・木 496d5ec8）
+
+SimCore・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前の表で `cederule` を grep：
+```
+PriceOfBread.SimCore/InstrumentsCede.cs の自分の宣言だけ（実装後）
+PriceOfBread.Tests/InstrumentsCedeTests.cs の自分の試験だけ（実装後）
+scripts/instruments/c74ce/ の自分の台本だけ（実装後）
+```
+
+`RegionMoved` の呼び手：
+```
+Territory.cs:353: Instruments.RegionMoved(from, to, r, how);
+```
+
+`RuleFold` の並び：
+```
+Instruments.cs:1814: RuleFold(sk, seed, w, q, picked, ye);
+```
+
+`CessClose` の並び：
+```
+Instruments.cs:1900: if (sk.Cess is not null) { CessClose(sk.Cess, sk.CessPeace); sk.Cess = null; sk.CessPeace = null; }
+```
+
+Territory.cs・Diplomacy.cs・Politics.cs の行番号（変更しない・読むだけ）：
+```
+Territory.cs:262 Rehome
+Territory.cs:271-275 Ceded 枝（格・民族・TierInParent だけ）
+Territory.cs:353 RegionMoved の呼び出し（Rehome の前）
+Diplomacy.cs:3164 鍵の式（BaseName.Length > 0 ? BaseName : Name）
+Diplomacy.cs:3386 CedeRegion
+Politics.cs:1547 Dominance の書き手（d の代入）
+Politics.cs:1783 AddForeignShare
+Politics.cs:1553-1561 州の秩序 order_r の計算
+Simulation.cs:1584-1585 植民地昇格の初期化（既にある州の書き手ではない）
+MultiNationSim.cs の SpawnNation・ReabsorbNations（Rule・Dominance・ForeignShares を書かない）
+```
+
+## [3] 足す試験と突然変異
+
+### 機構のテスト（T1〜T5）
+
+#### T1 TransferRegion(Ceded) の盤面で前＝後（旗 0）
+- 盤面：Ceded で州を移す（助走の外・計器の国 2 つ）
+- Assert：cederule_s の行で、後の R0〜R3・RuleInit[1]・dominance・receiverOwnShare・thirdPartyShareSum ＝ 前の値（1e-12）
+- 突然変異で赤：形 C1 を入れる（R0→R1）
+
+#### T2 受け手の鍵の照合（receiverOwnShare＞0）
+- 盤面：AddForeignShare を受け手の名で置いた州を割譲
+- BaseName のある国と無い国の両方でテスト
+- Assert：receiverOwnShare＞0
+- 突然変異で赤：鍵の式を Name だけにする
+
+#### T3 建国・再併合の行が出る
+- 盤面：Seceded と Returned
+- Assert：cederule_s に行が出る
+- 突然変異で赤：Seceded・Returned を除外する
+
+#### T4 同じ四半期に 2 回動いた州は movedAgain
+- 盤面：同じ州を同じ四半期に 2 回 Ceded
+- Assert：2 回目の行の movedAgainFlag＝1
+- 突然変異で赤：movedAgain の判定を外す
+
+#### T5 同じ四半期に AddForeignShare が当たった州は印の列が立つ
+- 盤面：割譲の後・同じ四半期の末までに AddForeignShare
+- Assert：pickedAddForeignShareFlag＝1
+- 突然変異で赤：AddForeignShare の印を外す
+
+### 走査の番人 7 組（点検）
+
+器のコミット直後に実行：
+```powershell
+dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~GoodIdGuardTests|FullyQualifiedName~TechLevelRemovalTests" --artifacts-path D:/PoB_work/c74ce_art
+```
+
+工業化度の読み手の許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表は変わらない（grep の結果を記録）。
+
+## [4] 恒等の判定
+
+素の 5 種が b5_20261106_m873 と全行一致（SOURCE-HASH を除く）。
+計器つき 10 種が b10_20261106_m873_ins と cederule_s の差だけ（名乗り行を除く）。
+
+宣言：
+```
+--added-tables cederule_s
+--tests-delta 5
+```
+
+## [5] 採否の規則
+
+〈判定: 恒等〉（測った種で一致）なら採る。
+
+不一致なら、その変更を外して報告に回す。
+
+## [6] 仕様と制約
+
+### cederule_s の列（形 Q′）
+
+約 40 列（§4 仕様）：
+
+**前の値（RegionMoved の時点）**
+- quarter・year・how・sender・receiver・region・tierBefore・sameCoreFlag・popK・receiverPopShare
+- R0・R1・R2・R3（前）
+- RuleInit[1]（前）
+- dominance（前）
+- foreignRulerCount・receiverOwnShare・thirdPartyShareSum・adminFill
+- deliveryBefore・reachBefore
+
+**C1＋H-a の見込み（計器が自分で計算）**
+- c1R0・c1R1・c1Delivery・c1Reach・haOwnShare
+
+**後の値（四半期の末）**
+- R0・R1・R2・R3（後）
+- RuleInit[1]（後）
+- dominance（後）
+- receiverOwnShare・thirdPartyShareSum
+- ownerAtQuarterEnd
+- militancyRegion（計器が州の平民から数える）
+- ungovTargetNew・ungovTargetOld
+
+**印の列**
+- movedAgainFlag（同じ四半期に 2 回動いた）
+- pickedReceiverFlag（受け手が計器の国）
+- pickedAddForeignShareFlag（同じ四半期に AddForeignShare が当たった・§10 訂正 2）
+
+### 制約
+
+- 新しい係数 0・新しい World の欄 0
+- 計器の状態は計器の持ち物（ConditionalWeakTable）
+- エンジンの関数を呼ばない（式を自分で書く）
+- 計算量 0.01 秒未満
+- 40 四半期の追跡の表は作らない
+
+### 旗 0 の恒等の門
+
+Ceded・Seceded・Returned の全ての行（movedAgainFlag＝1 と pickedAddForeignShareFlag＝1 を除く）で：
+- 後の R0〜R3・RuleInit[1]・dominance・receiverOwnShare・thirdPartyShareSum ＝ 前（1e-12）
+
+破れたら〈Rule の書き手が他にある〉＝計器の前提の誤り。
+
+## [7] 他の線との重なり
+
+### 持ち主のファイル
+
+- InstrumentsCede.cs（新規）：c74ce だけ
+- Instruments.cs（:1218・:1814・:1900 の 3 行）：c74ce だけ
+- InstrumentsCedeTests.cs（新規）：c74ce だけ
+
+### 読むだけのファイル
+
+- Territory.cs・Diplomacy.cs・Politics.cs・MultiNationSim.cs：誰も書かない
+- InstrumentsCess.cs・InstrumentsRule.cs：型の前例として読むだけ
+- BilateralMarket.cs（c74ip の持ち物）：c74id が読むだけ
+- EconomyStep.cs（:2606-2607・AdminFill の書き手）：読むだけ
+- Simulation.cs（:1584-1585・:1600）：読むだけ
+
+重ならない見込み。
+
+## [8] 突然変異の門への効き（紙の予言・腕の前に確認）
+
+計器の実装なので、エンジンの突然変異は全て計器の門に効かない（エンジンを変えない）。
+
+計器自身の突然変異：
+- M1 前を Rehome の後に読む → T1 は通る（前の読みの位置は門ではない）
+- M2 鍵の式を Name だけにする → T2 が赤（BaseName の国で）
+- M3 AddForeignShare の印を外す → T5 が赤
+- M4 Seceded・Returned を除外 → T3 が赤
+- M5 movedAgain の判定を外す → T4 が赤
+
+## [9] ソースを走査する番人の点検（㉘）
+
+器のコミット直後に実行する走査の番人 7 組：
+- IndustrializationReaderTests
+- UnitTypeTests
+- InstrumentsTests
+- WriterRatchetTests
+- DormantIdentityTests
+- GoodIdGuardTests
+- TechLevelRemovalTests
+
+全て緑を予言。新しい表 cederule_s を足すだけで、既存の読み手・書き手・件数は変わらない。
+
+工業化度の読み手の許可表：変更なし（新しい計器は追加しない）
+`new MoneyStock(` の件数：変更なし
+route_anchors.tsv の鍵の行：変更なし
+WriterRatchetTests の宣言の表：変更なし（旗 0＝計器だけ）
+
+## [10] 浮動小数の順序
+
+計器は新しい計算を足すだけで、既存の計算の順序を変えない。
+同じ盤面で旧と新の比較の食い違いは 0 件を予言。
+
+## [11] D: の見込みと床の規則
+
+ident 1 本：約 15〜17GB（床 35GB）
+D: の空き：起こす前に確認・35GB 以上を確保
+
+生の縮小：ident の後、cederule_s と keepsum だけ残す（段 C-1 の母集合の数と合流の INSRAW の候補）。
+
+## [12] 新しい係数と状態の確認（思想⑩）
+
+新しい係数：0
+新しい World の欄：0（計器の状態は ConditionalWeakTable）
+新しい旗：0（段 C-1 で 1 本・段 C-0 は旗なし）
+
+## [13] sha256（台本の写し）
+
+台本は新規作成（前例から写さない）。

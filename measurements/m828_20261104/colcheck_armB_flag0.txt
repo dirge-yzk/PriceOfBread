@@ -1,0 +1,23 @@
+== 腕 B（旗 1・D:/PoB_work/c66dw_work/out_c66dwB_10/ins）
+1 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+2 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+3 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+4 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+5 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+6 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+7 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+8 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+9 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+10 C#の列 osF 0 osC 0 印字の比較 ftAfter≠ledgerAfter 逃避 0 利札 0
+== 旗 0（ident c66dwz の腕 b）
+1 C#の列 osF 15003 osC 3840 印字の比較 ftAfter≠ledgerAfter 逃避 15003 利札 3840
+2 C#の列 osF 14068 osC 424 印字の比較 ftAfter≠ledgerAfter 逃避 14068 利札 424
+3 C#の列 osF 13805 osC 2641 印字の比較 ftAfter≠ledgerAfter 逃避 13805 利札 2641
+4 C#の列 osF 12359 osC 3187 印字の比較 ftAfter≠ledgerAfter 逃避 12359 利札 3187
+5 C#の列 osF 16570 osC 2712 印字の比較 ftAfter≠ledgerAfter 逃避 16570 利札 2712
+6 C#の列 osF 18752 osC 2484 印字の比較 ftAfter≠ledgerAfter 逃避 18752 利札 2484
+7 C#の列 osF 18961 osC 2563 印字の比較 ftAfter≠ledgerAfter 逃避 18961 利札 2563
+8 C#の列 osF 14162 osC 496 印字の比較 ftAfter≠ledgerAfter 逃避 14162 利札 496
+9 C#の列 osF 16672 osC 2483 印字の比較 ftAfter≠ledgerAfter 逃避 16672 利札 2483
+10 C#の列 osF 15002 osC 3149 印字の比較 ftAfter≠ledgerAfter 逃避 15002 利札 3149
+== gate828.py の再計算が C# の列と食い違った 1 行（種 7・1923・フランス・逃避）：fciBeforeFlight−fciAtCoupon＝2^-25 を計器が 2.980232238769531E-08 と印字（Python で float(印字)==2**-25 は False）＝差 6.6e-24＝2^-77（その値の 1 刻み）。C# の列 oneSidedFlight＝0。

@@ -1,0 +1,12 @@
+(999) c91bn R5 読む線 — 作業の場所と読む生の一覧（2026-11-09）
+作業の場所: D:/PoB_work/r999_work/（台本・出力・事前登録）。worktree は作らない（main の作業ツリーは読むだけ・書き込まない）。コミットしない。
+ソース: C:/Users/dirge/Documents/PriceOfBread @ 2b8f617d（読むだけ）。
+読む生（読むだけ・書き換えない）:
+  A 盤面 base = D:/PoB_work/keep_994/base_ins（m988 と同じ木の計器つき 10 種・種 1〜10・cpop/cearn あり）
+  B 盤面 n1   = D:/PoB_work/keep_988/n1
+  C 盤面 n2   = D:/PoB_work/keep_988/n2
+  D 盤面 a11  = D:/PoB_work/keep_988/a11（種 11〜20・cpop/cearn 無し＝商人の頭数は読めない）
+表: cpop_s（POP ごとの頭数・貯蓄）・region_s（州の持ち主・格・人口）・class_s・migration_s・xmig_s・rule_s・cederule_s・pop_s
+既存の材料: measurements/m980_20261109/read980.md・measurements/m992_20261109/bengal_out.txt・下書き 20261109_B5のc2_K3…_下書き.md
+手順: plan → prereg.txt → 問い 2（ベンガルの商人の時系列）→ 問い 3（同じ型の州の数）→ 問い 4（ソースの根）→ 問い 5・6（形と案）→ report.md
+腕 0 本。

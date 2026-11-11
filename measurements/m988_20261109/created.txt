@@ -1,0 +1,5 @@
+D:/PoB_work/m988_work 2026-11-09 14:19:55
+D:/PoB_work/wt_m988（枝 m988） 2026-11-09 14:19:55
+D:/PoB_work/wt_m988z（枝 m988z・腕 Z の使い捨ての木） 2026-11-09 14:22:56
+D:/PoB_work/ident_m988z（ident.sh が作った）
+D:/PoB_work/keep_988（新しい基線の生 base_ins＝M・n1・n2・a11＝S11〔CEARN=0〕） 2026-11-09 16:44:04

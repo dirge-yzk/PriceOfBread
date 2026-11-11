@@ -1,0 +1,11 @@
+木 0151f2e5cc71376af3f04c2ec3da2033c7599d20
+list nonfull 2354
+list full 3
+nonfull rc=0 943s
+full rc=0 183s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2353、スキップ:     1、合計:  2354、期間: 15 m 40 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 1 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+（このあと試験だけのコミット b7666610 で LandShareTests を 15→16 本・T9 を直した＝LandShareTests 16 本は c76ls_art のビルドで緑・SimCore と Runner は 0151f2e5 と同じ）

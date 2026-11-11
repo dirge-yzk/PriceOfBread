@@ -1,7 +1,7 @@
-# (728) 恒等の証明の突き合わせ（読むだけ）。ident.sh check から呼ぶ。使い方は ident.sh の先頭。
+# (728) 恒等の判定（測った種で一致）の突き合わせ（読むだけ）。ident.sh check から呼ぶ。使い方は ident.sh の先頭。
 #   python -I ident_check.py <ラベル> --root <木> [--work <作業フォルダ>] [--cfg <設定>] [--tree <測った木>] [--save <日付>] [宣言...] [--saveleak] [--ng]
 # 判定の規則：宣言の無い違いは全て〈不一致〉。基準の生が無い・出力が無いなど突き合わせられない所は〈未了〉（恒等とは言わない）。
-import sys, os, re, csv, hashlib, shutil, subprocess, datetime
+import sys, os, re, csv, hashlib, shutil, subprocess, datetime, difflib
 from collections import Counter
 from itertools import zip_longest
 from concurrent.futures import ThreadPoolExecutor
@@ -254,6 +254,150 @@ def flow_same_but_location(pa, pb):   # 呼び出し位置を除いた行の多�
     return len(ra) == len(rb) and key(ra) == key(rb)
 
 
+# (835) c67id：cearn_s の経路の列（outTop1Route・outTop2Route・inTop1Route）は〈ファイル:行:向き:区分〉の名を持つ＝金を動かすファイルに行を足すと、動きが同じでも行番号が変わって表が不一致になる。
+#   基準の木のコミット（cfg の BASE_COMMIT＝INSRAW を出した木）と測る木の同じファイルの行の対応（difflib・変わらない行どうし）で基準の表の〈:行〉を写してから比べる（cearn_remap.py〔(828)〕と同じ写像）。
+#   他の列はバイトで比べる。写像に無い行（消した・書き換えた行）を指す経路・別の行へ移った経路・経路でない列の違いは不一致のまま。BASE_COMMIT が cfg に無ければ使わない（旧のバイト比べ）。flow_s の規則は別（上）。
+CEARN_ROUTE_COLS = ('outTop1Route', 'outTop2Route', 'inTop1Route')
+CPOP_ROUTE_COLS = ('outOtherTop1Route',)   # (963) c86sm：cpop_s の経路の列（outOtherTop1Route＝同じ〈ファイル:行:向き:区分〉の名）。cearn_same_but_location の route_cols に渡す（cpop_s の宣言の列は known['cpop_s']）
+CEARN = {'root': None, 'base': None, 'tree': None, 'arm_commit': None, 'maps': {}, 'paths': None}   # 測る木は tree の作業ファイル（arm_commit を渡せばその木のコミット＝道具の試験用）
+_ROUTE_RE = re.compile(r'^([A-Za-z0-9_]+\.cs):(\d+)(.*)$', re.S)
+
+
+def _git_bytes(root, args):
+    r = subprocess.run(['git', '-C', root] + args, capture_output=True)
+    return r.stdout if r.returncode == 0 else None
+
+
+def _cearn_path(name):   # 経路の名のファイル名 → 基準のコミットの PriceOfBread.SimCore/ の下のパス（同名が 2 本あれば None＝写せない）
+    c = CEARN
+    if c['paths'] is None:
+        out = _git_bytes(c['root'], ['ls-tree', '-r', '--name-only', c['base'], '--', 'PriceOfBread.SimCore']) or b''
+        d = {}
+        for ln in out.decode('utf-8').splitlines():
+            if ln.endswith('.cs'):
+                d.setdefault(os.path.basename(ln), []).append(ln)
+        c['paths'] = d
+    ps = c['paths'].get(name, [])
+    return ps[0] if len(ps) == 1 else None
+
+
+def _cearn_map(name):   # ファイル名 → {基準の行: 測る木の行}（変わらない行だけ）。None＝同じファイル（恒等）。{}＝写せない
+    c = CEARN
+    if name in c['maps']:
+        return c['maps'][name]
+    m = {}
+    path = _cearn_path(name)
+    a = _git_bytes(c['root'], ['show', f"{c['base']}:{path}"]) if path else None
+    if a is None:
+        c['maps'][name] = m
+        return m
+    if c['arm_commit']:
+        bb = _git_bytes(c['root'], ['show', f"{c['arm_commit']}:{path}"])
+    else:
+        fp = J(c['tree'], path)
+        bb = open(fp, 'rb').read() if os.path.exists(fp) else None
+    if bb is None:
+        c['maps'][name] = m
+        return m
+    if a == bb:
+        c['maps'][name] = None
+        return None
+    la = [x.rstrip(b'\r') for x in a.split(b'\n')]
+    lb = [x.rstrip(b'\r') for x in bb.split(b'\n')]
+    for blk in difflib.SequenceMatcher(None, la, lb, autojunk=False).get_matching_blocks():
+        for k in range(blk.size):
+            m[blk.a + k + 1] = blk.b + k + 1
+    c['maps'][name] = m
+    return m
+
+
+def _cearn_remap(s):   # 基準の経路の名の〈:行〉を測る木の行へ。写せない行は末尾に ? を付ける（どの腕の値とも一致しない）
+    mo = _ROUTE_RE.match(s)
+    if not mo:
+        return s
+    fn, ln, rest = mo.group(1), int(mo.group(2)), mo.group(3)
+    m = _cearn_map(fn)
+    if m is None:
+        return s
+    if ln not in m:
+        return s + '?'
+    return f'{fn}:{m[ln]}{rest}'
+
+
+def cearn_same_but_location(pa, pb, allow_grown=False, route_cols=CEARN_ROUTE_COLS):   # 経路の列の〈:行〉を写せば全行が一致するか（経路の外の列はバイトで一致が要る）。(一致か, 写して一致した欄の数, 腕で末尾に増えた列)
+    # (852) allow_grown＝--grown-ok に cearn_s がある＝腕の見出しが基準の見出しを頭に含み末尾に列が増えた形も、基準の列（頭の n 列）を同じ規則で比べる（増えた列は比べない＝宣言の増減に数える）。
+    #   列の追加と金を動かすファイルの行の移動が同じ木に入ると、旧の形は見出しの不一致で写像を走らせず〈宣言の無い違い〉にしていた（(848) c69eh §9 の道具の限界）。
+    # (934) CEARN['known']＝cearn_s の宣言の列（--known-extra と KNOWN・parse_known の形 {列: None か (条件の列, 値)}・cmp_ins が入れる）。経路の外の列でも、宣言の列は値の違いを許す（cols_diff と同じ規則）。空か未設定＝今までと同じ（全ての列がバイトで一致）。呼び出しの引数にしないのは、試験が差し替える関数の形（c70gt）を保つため。
+    #   宣言の列だけが違い経路が動かない表は、今までどおり False を返して cols_diff の道へ落とす（判定の文言と内訳の区分を変えない）。
+    if not CEARN['base'] or not CEARN['root'] or not (CEARN['tree'] or CEARN['arm_commit']):
+        return False, 0, []
+    kmap = CEARN.get('known') or {}
+    with open(pa, encoding='utf-8', newline='') as fa, open(pb, encoding='utf-8', newline='') as fb:   # (963) 行を並べて読む（cpop_s は 350MB 級＝2 本を list にしない）
+        return _cearn_same_rows(csv.reader(fa, delimiter='\t'), csv.reader(fb, delimiter='\t'), allow_grown, route_cols, kmap)
+
+
+def _cearn_same_rows(ra, rb, allow_grown, route_cols, kmap):
+    CEARN['actual'] = []   # (963) 宣言の列のうち実際に値が違った列（呼び出しの後に cmp_ins が札へ併記する）
+    act = set()
+    h0, hb = next(ra, None), next(rb, None)
+    if not h0 or not hb:
+        return False, 0, []
+    h = h0
+    n = len(h)
+    if hb == h:
+        extra = []
+    elif allow_grown and len(hb) > n and hb[:n] == h:
+        extra = hb[n:]
+    else:
+        return False, 0, []
+    nb = len(hb)
+    rc = [i for i, c in enumerate(h) if c in route_cols]
+    if not rc:
+        return False, 0, []
+    moved = 0
+    kdiff = False
+    for xa, xb in zip_longest(ra, rb):
+        if xa is None or xb is None:   # 行の数が違う
+            return False, 0, []
+        if len(xa) != n or len(xb) != nb:
+            return False, 0, []
+        for i in range(n):
+            if i in rc:
+                if xa[i] == xb[i]:
+                    if _cearn_remap(xa[i]) != xa[i]:   # 同じ字でも基準の行が動いた（または消えた）行を指す＝別の呼び出しの行を指している
+                        return False, 0, []
+                    continue
+                if _cearn_remap(xa[i]) != xb[i]:
+                    return False, 0, []
+                moved += 1
+            elif xa[i] != xb[i]:
+                flt = kmap.get(h[i], False)
+                if flt is False:
+                    return False, 0, []
+                if flt is not None:   # 条件つきの宣言＝その行の条件の列の値が両側とも指定の値のときだけ許す（cols_diff と同じ）
+                    fc, fv = flt
+                    if fc not in h:
+                        return False, 0, []
+                    j = h.index(fc)
+                    if xa[j] != fv or xb[j] != fv:
+                        return False, 0, []
+                kdiff = True
+                act.add(h[i])
+    if kdiff and moved == 0:
+        return False, 0, []
+    CEARN['actual'] = sorted(act)
+    return True, moved, extra
+
+
+def _actual():   # (963) 直前の cearn_same_but_location で実際に違った宣言の列（無ければ空）
+    a = CEARN.get('actual') or []
+    return '（実際に違った列 ' + ','.join(a) + '）' if a else ''
+
+
+def _decl(known, t):   # (949) 既知の揺れの札に、その表の宣言の列の名を併記する（宣言が無ければ空＝今までの札と同じ）
+    return '（宣言の列 ' + ','.join(sorted(known[t])) + '）' if known.get(t) else ''
+
+
 def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}')
     if not os.path.isdir(new):
@@ -277,6 +421,7 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     missing = [f for f in fa if f not in sb]
     only = [f for f in fb if f not in sa]
     pref = lambda f, L: any(f.startswith(x) for x in L)
+    CEARN['known'] = known.get('cearn_s', {})   # (934)
     bad_missing = [f for f in missing if not pref(f, removed)]
     bad_only = [f for f in only if not pref(f, added)]
     known_hit, grown_hit, real, rows_hit, cols_hit = [], [], [], [], []
@@ -285,7 +430,23 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
             real.append((f, ['NONTSV'])); continue
         t = table_of(f)
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
-            known_hit.append((f, ['呼び出し位置だけ'])); continue
+            known_hit.append((f, ['呼び出し位置だけ' + _decl(known, 'flow_s')])); continue
+        if t == 'cearn_s':
+            okc, nmv, ext = cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown))
+            if okc and not ext:
+                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）' + _decl(known, 'cearn_s') + _actual()])); continue
+            if okc and ext:   # (852) 基準の列は経路を写して一致・末尾に増えた列は --grown-ok の宣言（宣言の増減と既知の揺れの両方に名乗る）
+                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）' + _decl(known, 'cearn_s') + _actual()])); continue
+        if t == 'cpop_s':   # (963) cpop_s も経路の行番号の移動を写す（宣言の列は known['cpop_s']・cearn_s の宣言とは別）
+            CEARN['known'] = known.get('cpop_s', {})
+            try:
+                okc, nmv, ext = cearn_same_but_location(J(base, f), J(new, f), allow_grown=pref(f, grown), route_cols=CPOP_ROUTE_COLS)
+            finally:
+                CEARN['known'] = known.get('cearn_s', {})
+            if okc and not ext:
+                known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄）' + _decl(known, 'cpop_s') + _actual()])); continue
+            if okc and ext:
+                grown_hit.append((f, ext)); known_hit.append((f, [f'経路の行番号だけ（写して一致 {nmv} 欄・列が増えた表）' + _decl(known, 'cpop_s') + _actual()])); continue
         rcs = [x.split(':', 1)[1] for x in removed_cols if ':' in x and f.startswith(x.split(':', 1)[0])]
         kn, d, extra = cols_diff(J(base, f), J(new, f), known.get(t, {}), rows_grown=pref(f, rows_grown), removed_cols=rcs)
         if J(base, f) in COLS_REMOVED and not d and not extra and not kn and not (pref(f, rows_grown) and ROWS_ADDED.get(J(base, f), 0) > 0):
@@ -306,6 +467,10 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         elif not extra:
             real.append((f, ['BYTES_ONLY']))
     # 既知の揺れだけが違う表は known_hit、それ以外が real。増えた列で real に入った表は上で入れ済み
+    # (853) 表示の内訳：共通の表を 1 つの区分にだけ数える（優先＝宣言の無い違い・列が増えた・行が増えた・列が消えた・既知の揺れ）。判定（bad_missing・bad_only・real）には触れない。
+    gf, rf, cf, kf = ({f for f, _ in x} for x in (grown_hit, rows_hit, cols_hit, known_hit))
+    realf = {f for f, _ in real}
+    part = Counter('real' if f in realf else 'grown' if f in gf else 'rows' if f in rf else 'cols' if f in cf else 'known' if f in kf else 'other' for f in diffs)
     say(f'  基準 {len(fa)} 本・腕 {len(fb)} 本・バイト一致 {same} 本')
     if missing:
         say(f'  基準にあって腕に無い {len(missing)} 本（うち宣言 {len(missing) - len(bad_missing)}）')
@@ -320,8 +485,10 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     if known_hit:
         by = {}
         for f, d in known_hit:
+            if f in gf or f in rf or f in cf or f in realf:
+                continue   # (853) 列が増えた表・行が増えた表・列が消えた表として数え済み（二重に数えない）／(860) 宣言の無い違いの表（real）も数え済み（part は real を先に数える）
             by.setdefault(table_of(f) + ':' + ','.join(d), []).append(f)
-        say(f'  既知の揺れの列だけが違う表 {len(known_hit)} 本：' + '・'.join(f'{k}×{len(v)}' for k, v in sorted(by.items())))
+        say(f'  既知の揺れの列だけが違う表 {part["known"]} 本：' + '・'.join(f'{k}×{len(v)}' for k, v in sorted(by.items())))
     if bad_missing:
         fail(f'計器の表：基準にあって腕に無い {len(bad_missing)} 本 {bad_missing[:5]}')
     if bad_only:
@@ -329,9 +496,13 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     if real:
         fail(f'計器の表：宣言の無い違い {len(real)} 本')
         for f, d in real[:10]:
-            say(f'      {f}\t{d[:6]}')
+            say(f'      {f}	{d[:6]}')
     if not (bad_missing or bad_only or real):
-        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {len(known_hit)}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + len(grown_hit) + len(rows_hit) + len(cols_hit)}）')
+        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {part["known"]}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + part["grown"] + part["rows"] + part["cols"]}）')
+    # (853) 内訳の和＝共通の表の数（表示だけ・合わなければ注意の行を出す）
+    tot = same + sum(part.values())
+    say(f'  内訳：共通の表 {len(both)} 本＝バイト一致 {same}＋既知の揺れ {part["known"]}＋列が増えた {part["grown"]}＋行が増えた {part["rows"]}＋列が消えた {part["cols"]}＋宣言の無い違い {part["real"]}＋その他 {part["other"]}（和 {tot}）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える'
+        + ('' if tot == len(both) else '　※和が合わない'))
 
 
 # ---------- 4 注視の表（タグの行以外） ----------
@@ -448,6 +619,7 @@ def main():
     base = lambda k: cfg[k] if os.path.isabs(cfg[k]) or re.match(r'^[a-zA-Z]:', cfg[k]) else J(root, cfg[k])
     say(f'=== 恒等の判定（測った種で一致） {a["label"]}（{datetime.datetime.now():%F %T}）===')
     tree = norm(a['tree'] or root)
+    CEARN.update(root=root, base=cfg.get('BASE_COMMIT') or None, tree=tree)   # (835) cearn_s の経路の列の規則（BASE_COMMIT が無ければ使わない）
     say(f'測った木：{tree}（HEAD {sh_out(["git", "-C", tree, "rev-parse", "--short", "HEAD"])}・未コミット {len(sh_out(["git", "-C", tree, "status", "--porcelain"]).splitlines())} 本）')
     say(f'基準の設定：{cfgp}')
     say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'rows_grown', 'removed_cols', 'known_extra', 'cost_allow') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
@@ -459,8 +631,9 @@ def main():
             if not mk:
                 miss(f'腕 {ar} の完了の印が無い（走っていないか途中）')
             elif not re.match(r'^rc=(0|1|2) ' if ar in ('a', 'b') else r'^rc=0 ', mk):
-                # 腕 a・b の 0・1・2 は measure.sh が試合の結果として返す値（1＝ハーネス不合格を含む＝基準の m702 も 5/5 で 1。measure.sh も 0〜2 を写しの対象にする）。
-                # ビルドの失敗も 1 だが成績表が出ない＝前の回の出力は start が消してある＝下の突き合わせで未了になる。3＝腕が満杯で走っていない
+                # (867) 注だけの直し（判定の規則と上の受け入れの正規表現は変えない）。batch.sh の終了コード（(860) 以後）：0＝成績表が出て最後の行に〈判定:〉がある（ハーネス不合格でも 0）・2＝INS=1 で計器の国が空・3＝腕が満杯で走っていない（ARMFULL）・4＝BATCHFAIL（ビルドの失敗か成績表が無い／途中で切れた）。
+                # 受け入れの 1 は旧の木（(860) の前の batch.sh はハーネス不合格を 1 で返した）の基準を読む場合と、ident.sh の prep の失敗（&& で run まで行かず印に rc が書かれない）のための物。prep の失敗は出力の欠けで下の突き合わせの未了に落ちる。3 と 4 は受け入れない。
+                # (880) 注だけの追記（判定の行・正規表現・メッセージの文字列は 1 字も変えない）：受け入れの 2（INS=1 で計器の国が空）を印の段で落とさないのは、その走りは計器の表が出ず、下の計器の表の突き合わせ（基準にある表が腕に無い）で不一致に落ちるから。受け入れの組 0|1|2 は今の batch.sh の終了コード 0・2・3・4 のうち 0 と 2 を受け 3 と 4 を受けない（1 は上の旧の木の場合だけ）。
                 miss(f'腕 {ar} の終了コードが測れた走りの物でない（{mk}）＝腕が満杯の 3・ビルドや measure.sh の失敗')
     pa, pb = J(W, 'b5_ia_5.txt'), J(W, 'b10_ib_10.txt')
     # 測った木と出力の SOURCE-HASH を突き合わせる（ident.sh start が測る木から数えた値＝measure.sh の src_manifest と同じ数え方）

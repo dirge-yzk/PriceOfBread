@@ -1,0 +1,17 @@
+# paper943 mut=M3
+D:/PoB_work/keep_933/base_ins	seeds=10	impPerSeed=[16, 11, 14, 7, 20, 15, 10, 17, 9, 12]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=131
+  other: chainGroups=59  gateClosedOnPaper=399  rec_relabelAfterImp=1
+  trans(head->after,monarchWinner): 
+D:/PoB_work/keep_933/n1	seeds=10	impPerSeed=[14, 15, 8, 7, 8, 14, 12, 11, 14, 17]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=120
+  other: chainGroups=72  gateClosedOnPaper=395  rec_relabelAfterImp=3
+  trans(head->after,monarchWinner): 
+D:/PoB_work/keep_933/n2	seeds=10	impPerSeed=[7, 12, 3, 19, 10, 8, 13, 10, 10, 8]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=100
+  other: chainGroups=52  gateClosedOnPaper=307
+  trans(head->after,monarchWinner): 
+D:/PoB_work/keep_933/a11	seeds=10	impPerSeed=[10, 13, 8, 9, 12, 15, 16, 14, 12, 11]
+  gates: G1=0  G1s=0  G3=0  GC=0  GR=0  G2=120
+  other: chainGroups=58  gateClosedOnPaper=353  rec_relabelAfterImp=2
+  trans(head->after,monarchWinner): 

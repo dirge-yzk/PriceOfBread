@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/MarketFlow.cs b/PriceOfBread.SimCore/MarketFlow.cs
+index f503bce2..6e37c17d 100644
+--- a/PriceOfBread.SimCore/MarketFlow.cs
++++ b/PriceOfBread.SimCore/MarketFlow.cs
+@@ -308,7 +308,7 @@ public static class MarketFlow
+                     if (still) { if (pinned) m.FlowAsleep = true; break; }   // ★張り付いた財が不動点に着いた＝月の残りの旬は眠る（上の remarks）
+                 }
+                 m.Price = P;
+-                nRun += run; nSkip += h - run; kGoodsD++; kRunG += run;
++                nRun += run; nSkip += h - run; kRunG += run;
+             }
+         }
+         if (insOn) Instruments.PxStep(region, live.Length, nSteps, nAsleep, kLabor, nClosedS, kSvcD, nClosedG, nClosedP, kGoodsD, kRunL, kRunS, kRunG);   // (1024) 計器 K2（読むだけ）：枝ごとの件数を州の蓄えへ

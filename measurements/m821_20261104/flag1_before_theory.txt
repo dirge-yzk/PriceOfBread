@@ -1,0 +1,9 @@
+(821) c65md 旗 1 の木 381f1046（試験は直す前）で CollapsePeaceTests・ForcedPeaceBlankTests・CpeaceColumnsTests・DormantIdentityTests の 28 本＝㉜ の予言の赤の観測（事前登録 [6]・[6′]）
+失敗!   -失敗:     1、合格:    27、スキップ:     0、合計:    28、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.CollapsePeaceTests.旗1は列強の調停の戦争も崩壊で賠償を払うなら集合に入る [21 ms]
+  エラー メッセージ:
+   前提が崩れた：調停の戦争が崩壊で上書きされていない（-0.0529787/-1.5）
+  スタック トレース:
+＝予言どおり :155 の前提の Assert だけが赤（調停の戦争の戦勝点 −0.0530＝白紙の線 0.25 の内・2 本目は −1.5）。:156 の和の Assert には届いていない（前提で止まった）。
+成功!   -失敗:     0、合格:    29、スキップ:     0、合計:    29、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+（Theory に直した後の同じ 4 組 29 本＝上の行・2026-11-04）

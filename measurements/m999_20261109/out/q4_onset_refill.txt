@@ -1,0 +1,28 @@
+== base: 州の型（州の数・種の中央 / 種の和）
+  empty_from_open_later_filled                  中央     84.5  和 822
+  empty_from_open_later_filled_refills          中央     89.0  和 856
+  empty_from_open_later_filled_refills_mig      中央     84.5  和 830
+  empty_from_open_never_filled                  中央     25.5  和 276
+  empty_from_open_never_filled_refills          中央      0.0  和 0
+  empty_from_open_never_filled_refills_mig      中央      0.0  和 0
+== n1: 州の型（州の数・種の中央 / 種の和）
+  empty_from_open_later_filled                  中央     74.0  和 789
+  empty_from_open_later_filled_refills          中央     75.5  和 815
+  empty_from_open_later_filled_refills_mig      中央     74.5  和 789
+  empty_from_open_never_filled                  中央     35.5  和 308
+  empty_from_open_never_filled_refills          中央      0.0  和 0
+  empty_from_open_never_filled_refills_mig      中央      0.0  和 0
+  never_empty                                   中央      0.0  和 3
+  never_empty_refills                           中央      0.0  和 0
+  never_empty_refills_mig                       中央      0.0  和 0
+== n2: 州の型（州の数・種の中央 / 種の和）
+  empty_from_open_later_filled                  中央     84.0  和 847
+  empty_from_open_later_filled_refills          中央     87.0  和 885
+  empty_from_open_later_filled_refills_mig      中央     85.5  和 862
+  empty_from_open_never_filled                  中央     26.0  和 241
+  empty_from_open_never_filled_refills          中央      0.0  和 0
+  empty_from_open_never_filled_refills_mig      中央      0.0  和 0
+  never_empty                                   中央      0.0  和 2
+  never_empty_refills                           中央      0.0  和 0
+  never_empty_refills_mig                       中央      0.0  和 0
+a11: cpop が無い＝商人の頭数は読めない

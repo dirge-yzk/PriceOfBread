@@ -1,0 +1,12 @@
+(816) c14sv 読むだけ・腕 0 本・コミット 0・push 0
+作業の場所: D:/PoB_work/r816_work（台本・表・出力はここだけ）
+worktree・枝: 作らない（main 8f558f9c の作業ツリーを読むだけ・C:/Users/dirge/Documents/PriceOfBread）
+読む生:
+  旗 1 の腕 B : D:/PoB_work/keep_813/rej/c12svB_10/ins （種 1〜10・silverwt_s・silverpar_s・region_s ほか）
+  旗 0 の基線 : D:/PoB_work/keep_813/base_ins （種 1〜10・ident m813＝m797 と全行一致）
+読むソース: PriceOfBread.SimCore/MultiNationSim.cs（注入 880〜912・SilverVoteWeight 35・SilverMeanRatio 38）
+           PriceOfBread.SimCore/InstrumentsSilverWeight.cs（計器 silverwt_s）
+           挟み（ExchangeRateFloor・Ceil）を読む World 側の行
+読む docs: 99_実装ログ (795)(807)(808)・00一覧 ★(807)・measurements/m807_20261103・b10_20261103_m807B_ins・scripts/instruments/c12sv/
+問い: (i) 種 2・4 の 1788 年 seq 43 の票を持った州と局所の比 (ii) 旗 0 との差の州の帰属 (iii) 尾を広げる所（ソースの行） (iv) 直す形の候補と計器の仕様
+要る列が生に無ければ: 計器の仕様を書いて止める

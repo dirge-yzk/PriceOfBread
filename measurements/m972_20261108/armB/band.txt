@@ -1,0 +1,1 @@
+成績表 D:/PoB_work/c87mt_work/arm_c87mtB/b10_c87mtB_10.txt 対 measurements/b10_20261108_m968_ins 行 180 180 違う行 0 判定 全行一致

@@ -1,0 +1,3 @@
+写す .cs： {'Coefficients.cs': 1143, 'EconomyStep.cs': 2709, 'Habit.cs': 0, 'Instruments.cs': 1177, 'InstrumentsCearn.cs': 239, 'InstrumentsCornint.cs': 1, 'InstrumentsHabitcap.cs': 1, 'InstrumentsHabitlg.cs': 89, 'InstrumentsInheritIntent.cs': 0, 'InstrumentsSilverParity.cs': 0, 'InstrumentsSilverWeight.cs': 78, 'InstrumentsSilverst.cs': 123, 'InstrumentsSubst.cs': 1, 'Model.cs': 0, 'MultiNationSim.cs': 2110, 'Simulation.cs': 0} （行番号が動いた行の数）
+行 2101732・そのまま一致 2057913・行番号を写して一致 43819・写しても違う 0・写せない番号 0
+判定：呼び出し位置だけの違い

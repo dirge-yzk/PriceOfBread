@@ -1,0 +1,5 @@
+# M2 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.BillGateHeirDebtTests.H2_決済の後に読む_返し切れた相続人は手形を止めない [2 ms]
+失敗!   -失敗:     1、合格:    52、スキップ:     0、合計:    53、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:07.19]     PriceOfBread.Tests.BillGateHeirDebtTests.H2_決済の後に読む_返し切れた相続人は手形を止めない [FAIL]

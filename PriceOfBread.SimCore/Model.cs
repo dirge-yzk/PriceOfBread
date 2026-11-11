@@ -87,6 +87,9 @@ public enum TreasuryCat
 /// （参政権・技術伝播・維持費・割譲到達・派閥が Colonial を読む。Core/Integrated は同じ扱い）。</summary>
 public enum RegionTier { Core, Integrated, Colonial }
 
+/// <summary>★(849) 自給の基（<see cref="Pop.SubsistenceBasis"/>）の意味：OpeningShare＝開幕の食べる割合のデータ（焼いていない）・WarmupShare＝割合のまま助走を通った（助走の後の最初の月に焼く）・Productivity＝焼いた自給の生産性 ρ。</summary>
+public enum SubsistenceBasisKind : byte { OpeningShare, WarmupShare, Productivity }
+
 /// <summary>★地形タグ（(3)・設計doc 20260826_地形と輸送コスト.DONE.md＝タグ7種×手段3列）。既定 Plain。
 /// ⚠数値は州に置かない＝州はタグ（事実）だけを持ち、係数は Coefficients の表に集約（思想②）。
 /// 森林＝**温帯林**（馬を強く阻むが鉄道はほぼ妨げない）／不毛＝砂漠・熱帯雨林・凍土（人がほぼ住めない）／
@@ -157,7 +160,14 @@ public sealed class Pop
                                 //   期の初めに読む用途（私的投資の原資）には使えない。ゼロ化の直前にここへ退避する。
     public double[] IdeologyShares = new double[Ideologies.Count];   // イデオロギー分布（伝統/反動/自由/共和/ナショ/社会/共産/無政府/帝国/ファシズム/王党派・合計1）。階級×条件×時代から創発（Ideology.cs）＝政体遷移の力ベクトル
     public bool Closed;              // 閉鎖階級（世襲の特権身分＝貴族・聖職）。移民の出入りをしない（史実の身分制）
-    public double Subsistence;       // 自給率（0..1）。必需(Staple)の一部を市場外で自足＝農民。市場で飢えない
+    /// <summary>★(849) 自給の基（旧 Subsistence）。焼く前（<see cref="SubsistenceBasisKind"/> が OpeningShare か WarmupShare）＝開幕の食べる割合のデータ（0..1・world.json の peasantSubsistence）。
+    /// 焼いた後（Productivity・旗 <see cref="Coefficients.SubsistenceStage2"/> が正の世界で助走の後の最初の月に 1 回）＝自給の生産性 ρ（売れ残りの農業労働の能力 1 単位あたりの主食・技術の倍率で割った値）。
+    /// 読み手は割合をこの欄から直に読まない＝その月の割合は <see cref="SubsistenceShare"/>（同名のまま意味を替えないための改名＝型の統合が起こす静かな破損を避ける）。</summary>
+    public double SubsistenceBasis;
+    /// <summary>★(849) <see cref="SubsistenceBasis"/> の意味の印（思想⑩の例外＝開幕の売れ残りの能力は暦が動くと導けない・ρ と同じ理由）。旗 0 は書かない（OpeningShare のまま）。</summary>
+    public SubsistenceBasisKind SubsistenceBasisKind;
+    /// <summary>★(849) この月に使う食べる割合（0..1）。EconomyStep.Run の頭で全ての POP に書く（旗 0 か焼く前＝<see cref="SubsistenceBasis"/> そのもの）。導ける量＝セーブに載せない。</summary>
+    [System.NonSerialized] public double SubsistenceShare;
     public bool IsModernElite;       // 近代的利益団体（専門職・ブルジョワ）。その勢力割合がメリトクラシー値を決める
     public bool IsSoldier;           // 兵士POP（軍隊規模の素）。軍事費で徴募/離職、戦争で戦死、徴兵で大衆から変換。自然出生死は対象外（規模は軍事力学が管理）
     /// <summary>★平民の民間人の述語（2026-09-30 処理の一元化 段4e H）＝閉鎖階級（貴族・聖職）でも兵士でもない（近代エリートを含む）。
@@ -274,6 +284,7 @@ public sealed class Pop
     public MoneyPerMonth PaidPerMonth;               // その月に支払った総額
     public MoneyPerMonth EarnedPerMonth;             // その月に得た総所得
     public MoneyPerMonth LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
+    public MoneyPerMonth LandTaxBasisAdjPerMonth;    // ★(937) 土地税の基数−地代の差分（その月・流れ）＝凍結した RGO（Producer.FrozenLandRentPerMonth）の〈凍結×持ち分−今の地代の正の部分〉の和。月の頭に 0（LandRentPerMonth と同じ）。旗 LandTaxFixedBasis＝0 では常に 0
     public MoneyPerMonth IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読む＝外資の利札の入力。ほかの読み手は計器と Discovery.IdeaBoardOf〔旗 SpreadNeedFascismDecline の盤面・計器 idn_s〕）
     /// <summary>★(706) 線 urb3：その月の自給の値＝Σ主食 [自給で満たした量 sub（<c>EconomyStep.Run</c> の自給充足）× その州のその主食の今の市場価格 <c>Market.Price</c>]（EarnedPerMonth と同じ〈その月の流れ〉・月の頭に 0 へ戻す）。
     /// 州の中の移動の〈移る値打ち〉（<see cref="PopDecision.MigrationValues"/>）の農村の側だけが読む（旗 <c>UrbanFlowReal</c> が 0 の間は計器だけが読む＝世界は動かない）。
@@ -296,7 +307,7 @@ public sealed class Pop
         if (PopWindow.Verify) PopWindow.GuardWrite("運搬");
         from._savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
         to._savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
-        if (Instruments.On) { Instruments.Sav(from, Instruments.SavKind.CarryOut, -savings.Value); Instruments.Sav(to, Instruments.SavKind.CarryIn, savingsIn.Value); }   // (262) 計器（読むだけ）：貯蓄の書き手の台帳
+        if (Instruments.On) { Instruments.Sav(from, Instruments.SavKind.CarryOut, -savings.Value); Instruments.Sav(to, Instruments.SavKind.CarryIn, savingsIn.Value); Instruments.CearnCarryDebt(to, debtIn.Value); }   // (262) 計器（読むだけ）：貯蓄の書き手の台帳
     }
 
     /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体・2026-09-30 段4g に World から Pop へ移した＝貯蓄の書き手を Pop の中へ）。
@@ -333,7 +344,7 @@ public sealed class Pop
     /// <paramref name="taken"/>＝非 null なら払い手ごとの動いた額を並びの順に足す。否定形のガード＝NaN の額・請求は取らない。
     /// <paramref name="heldKnown"/>＝（重み null のときだけ読む）呼び手が**同じ並びで**もう求めた Σmax(0,貯蓄)（NaN＝ここで数える）。★(351) 切り下げと通貨改革は、額を決めるのに払い手の保有の合計を先に数える
     ///   ＝その和と同じ和をここでもう一度数えていた。呼び手の求めと移し方の間は何も書かない＝同じ順の同じ和＝1 ビットも違わない（番人＝<see cref="PopWindow.Verify"/> が求め直して確かめる）。</summary>
-    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null, double heldKnown = double.NaN)
+    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null, double heldKnown = double.NaN, Coefficients? coef = null)
     {
         double moved = 0;
         if (weights is null)
@@ -346,7 +357,7 @@ public sealed class Pop
                 if (!double.IsNaN(heldKnown)) PopWindow.Check("払い手の保有の合計", heldKnown, held);
             }
             double take = Math.Min(amount, held);
-            if (!(take > 1e-12) || !(held > 1e-9)) return 0;
+            if (!(take > (coef is not null && coef.TakeFloorPositive > 0 ? 0 : 1e-12)) || !(held > 1e-9)) return 0;   // ★(984) 旗 TakeFloorPositive＞0：動かす額が正なら動かす（0＜額≦1e-12 の塵の債務も返る）・旗 0／coef null＝今の床 1e-12・保有の床は両方で同じ
             if (PopWindow.Verify) PopWindow.GuardWrite("取り立て");   // ★(352) 反証役〔pu v〕低：動かす額が決まった後（0 しか動かさない呼びは止めない＝他の書き込み口と同じ形）
             foreach (var p in payers) { double s = take * (Math.Max(0, p._savings.Value) / held); p._savings -= new MoneyStock(s); moved += s; taken?.Add(s); if (Instruments.On) Instruments.Sav(p, Instruments.SavKind.Take, -s); }   // (262) 計器（読むだけ）
             return moved;
@@ -704,6 +715,8 @@ public sealed class Producer
     public int OwnerPopIndex;     // 地代/利潤の受け手
     public int LaborPopIndex;     // 賃金の受け手
     public Share RentShare;      // ρ。自営は実質無関係（owner==labor）
+    public MoneyPerMonth? FrozenLandRentPerMonth;   // ★(937) 定額の土地税の凍結した名目の地代（RGO の割る前の総額・null＝凍結なし＝収穫比例）。書くのは EconomyStep.PayOwnerRent（旗 LandTaxFixedBasis＞0・World.LandTaxBasisFixed の国・助走の月ごとに上書き＝助走の最後の月の地代・不在地主の RGO を除く）と Territory.TransferRegion（移転で null）だけ。状態＝凍結した月の名目の地代は盤面から導けない（設計思想⑩の〈本当に必要な場合〉・事前登録 m937）
+    public double[]? LandShares; // ★(895) 土地の持ち分（RGO の地代の受け手の割合・和 1）：0 貴族＝OwnerPopIndex・1 教会＝州の ClergyPopIndex・2 農民の自作＝LaborPopIndex・3 市民の地主＝州の InvestorPopIndex。null＝今の OwnerPopIndex に 1.0（割り方は EconomyStep.PayOwnerRent・AddRentRecipients）
     public List<Input> Inputs = [];   // レシピの投入材（多段チェーン §2.4）。RGO は空
     public double LastInputFill = 1.0;  // 前期の投入充足率（§9-A 注2：投入が買えないと実産出が落ちる・律速）
     // UI診断用の純記帳（2026-07-19・力学は一切読まない）：素材のみの充足率。
@@ -1039,7 +1052,6 @@ public sealed class Region
     public double MineralDepositInitial = -1.0;   // 初期鉱脈（初年率×DepositYearsAtBirth）＝品位曲線の分母
     public double MineralDeposit = -1.0;          // 残量。毎月、鉱物産出ぶんだけ減る（決定論＝採掘量の関数）
     public double MineralGradeFactor = 1.0;       // 品位（残量から導出・EconomyStep の鉱物の能力と MineralSelfCost が読む）。既定1.0
-    public double UrbanIndSmoothed = -1.0;            // 監査2026-07-05（D3）：都市化天井が参照する平滑化済み工業化度（UrbanCapFollowSpeed<1で使用）。-1=未初期化（初回に現在値から開始）
     public int CulturalGoodId = -1;                   // 各国の象徴的主食（英＝茶・露＝蒸留酒・日＝米…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。固執財の需要床/闘争度機構は廃止。-1＝なし
     public bool[]? Discovered;                        // ★発見の表の解禁（段2A・2026-10-01）＝国の World.Discovered と同じ配列への参照（月次に TechLevel と一緒に写す・複製しない）。null＝まだ写していない＝表の行は全て未発見
     public double MilitaryScalePeace;                 // ★段2a：戦時倍率を除いた平時基準の規模（耐久品の目標在庫はこちら）
@@ -1048,7 +1060,7 @@ public sealed class Region
     public double MilitaryBudget;                     // 陸の装備の調達に充てられる国庫（Simulation が設定）。★(189) 艦は含まない（艦は下の NavalBudget）
     // ★海軍の予算（2026-10-03 (189)・作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」・2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、
     //   軍事費を分割するようにしよう」）＝軍事費の器から給与を払った残り（装備の器）×海の金の割合（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI とプレイヤーの同じ法の値）を、
-    //   海軍の調達の必要額（EconomyStep.NavalProcurementNeed＝目標の艦隊と在庫の差）で切った額。Simulation が月初に書き（国家の支払い率 r を掛ける）、EconomyStep の海軍の調達が読む。
+    //   海軍の調達の必要額（EconomyStep.FleetOrder の必要額＝目標の艦隊と在庫の差）で切った額。Simulation が月初に書き（国家の支払い率 r を掛ける）、EconomyStep の海軍の調達が読む。
     //   月ごとに作り直す作業の値（陸の MilitaryBudget と同じ型）＝旧 ShapeNavalShare（陸海の再配分の比・軍需を兵の頭数×海の割合で買った）を置き換えた（状態の数は同じ）。
     public double NavalBudget;
     public double MilitaryBudgetCeiling;              // 軍需予算の**上限**＝歳入シェア側の額（必要額で切る前。Simulation が設定）。恒常性の信号（MilitaryAffordRaw）はこちらから取る＝
@@ -1079,7 +1091,7 @@ public sealed class Region
     public Terrain Terrain;                           // ★地形タグ（(3)・2026-08-28）。既定 Plain。出所＝places.json の terrain 列（構築時に1回引く）。係数全1.0の間は読み手がいても恒等
     public bool Malarial;                             // ★マラリア地（同上）。旧 Colony.Malarial の移設先。植民地維持費（Colonial.AccumUpkeep）がキニーネ需要に読む
     // 【墓標2026-09-26】HeldSince（州の保有開始年）＝回1-1で削除（思想⑩・外部レビューの検討 §10-10［植民地8］）。書き手（構築と植民地の州化）だけで読み手が無かった。
-    //   保有開始年の一次データは world.json の heldSince（ProvinceSpec.HeldSince）＝構築時に格と支配度の初期値へ1回だけ使う。移転の付け直しは Territory.Rehome（割譲は支配度を動かさない・独立の確定で1）。
+    //   （2026-11-08 (956)）heldSince のデータも削除＝構築時の格は Core・支配度は 1.0 の直書き。移転の付け直しは Territory.Rehome（割譲は支配度を動かさない・独立の確定で1）。
     public double Dominance = 1.0;                    // ★E-06 支配度（ストック・0..1・2026-09-05）：Politics.CheckSecession が毎四半期 (引き留め−離脱圧力)×DominanceSpeed で積分。初期値＝保有年数÷DominanceMatureYears。DominanceIsStock>0 のとき 0 で独立
     // ★支配度の一般化（作者採用2026-09-06・段1＝器と観測のみ）：州の4区分（0=国家・1=在地権力・2=外国・3=無統治・合計1・保存対象）。
     //   初期値＝州データ（ProvinceSpec.Rule）→ 国既定（NationConfig.Rule）→ 無ければ 国家1.0（現行と同じ挙動）。(399) で点火：Politics.CheckSecession が毎四半期 DominanceSpeed で目標へ寄せる。
@@ -1106,7 +1118,7 @@ public sealed class Region
     //   null＝まだ艦を持ったことがない（0隻）。Diplomacy が艦の強さ（段の効き＝建造費×段の乗数）と乗員（隻数×1隻の乗員）を毎月ここから導く。
     //   ⚠旧 FleetStock（建造費で重みを付けた1本の和）を置き換えた＝段の効き（強さ）と隻数（乗員）は1本の和からは導けない（思想⑩：本当に要る分だけ＝財ごとの隻数）。
     public double[]? FleetUnits;
-    // ★(606) 線 navf：この州の今月の艦の発注（財ごとの隻数＝<see cref="Coefficients.FleetGoodIds"/> の並び）＝国の発注×この州の港の割合。Simulation が旗 NavalPortProcurement が正のときだけ毎月書く複製
+    // ★(606) 線 navf：この州の今月の艦の発注（財ごとの隻数＝<see cref="Coefficients.FleetGoodIds"/> の並び）＝国の発注×この州の港の割合。Simulation が毎月書く複製（旗 NavalPortProcurement は (824) で焼き込み）
     //   （GarrisonShare・NationHasPort と同じ型＝積み上げる状態ではない）・読み手は EconomyStep の艦の発注と決済だけ。null＝この州は今月艦を買わない。旗 0 では常に null。
     public double[]? NavalOrder;
     public double MilitaryTier3Fill = 0.0;            // #16 tier3軍需(戦車・弩級戦艦)の充足率＝戦力の最上位乗数(Power.Military を +MilitaryTier3Bonus×これ)。更なる残余予算で届く＝富裕/軍国/晩期のみ

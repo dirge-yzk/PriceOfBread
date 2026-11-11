@@ -1,0 +1,8 @@
+# (910) 突然変異 E4（rc=1）
+  失敗 PriceOfBread.Tests.ConservationTests.家計の与信は国ごとにPOPの債務の和に等しい [1 m 15 s]
+  失敗 PriceOfBread.Tests.EmptyPopDebtFirstTests.計器の列は返した額と商人の債務を読む [875 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtFirstTests.人の居るPOPが無い州でも返し_残りは動かさない [47 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtFirstTests.貯蓄が債務に足りなければ貯蓄の全額を返し_残りの債務は持ち越して相続しない [25 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtFirstTests.貯蓄が債務に足りれば相続の前に全額返し_残りだけが相続人へ [32 ms]
+  失敗 PriceOfBread.Tests.EmptyPopDebtFirstTests.返した後も家計の与信は国のPOPの債務の和に等しい [160 ms]
+失敗!   -失敗:     6、合格:    11、スキップ:     0、合計:    17、期間: 1 m 20 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,12 @@
+seed 1	rows 131	pop 131	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 109	Seceded 11	Returned 11
+seed 2	rows 168	pop 166	breaks 0	excl_movedAgain 2	excl_foreignAdded 0	flag_mismatch 0	Ceded 142	Seceded 13	Returned 13
+seed 3	rows 153	pop 153	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 135	Seceded 9	Returned 9
+seed 4	rows 153	pop 153	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 122	Seceded 16	Returned 15
+seed 5	rows 135	pop 133	breaks 0	excl_movedAgain 2	excl_foreignAdded 0	flag_mismatch 0	Ceded 96	Seceded 22	Returned 17
+seed 6	rows 172	pop 172	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 125	Seceded 26	Returned 21
+seed 7	rows 153	pop 153	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 112	Seceded 22	Returned 19
+seed 8	rows 181	pop 181	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 151	Seceded 15	Returned 15
+seed 9	rows 260	pop 258	breaks 0	excl_movedAgain 2	excl_foreignAdded 0	flag_mismatch 0	Ceded 206	Seceded 27	Returned 27
+seed 10	rows 162	pop 162	breaks 0	excl_movedAgain 0	excl_foreignAdded 0	flag_mismatch 0	Ceded 132	Seceded 16	Returned 14
+total	ceded_pickedReceiver 776	ceded_thirdBefore_pos 24	ceded_tier_Colonial 740	ceded_tier_Core 380	ceded_tier_Integrated 204	excl_movedAgain 6	pop 1662	pop_Ceded 1324	pop_Returned 161	pop_Seceded 177	rows 1668	rows_Ceded 1330	rows_Returned 161	rows_Seceded 177
+GATE 恒等の門 破れ 0	seeds 10

@@ -1,0 +1,39 @@
+工場労働者 1783 childLaborRate=0.810 share0to14=0.361
+工場労働者 1790 childLaborRate=0.893 share0to14=0.384
+工場労働者 1810 childLaborRate=0.964 share0to14=0.392
+工場労働者 1830 childLaborRate=0.954 share0to14=0.380
+工場労働者 1850 childLaborRate=0.930 share0to14=0.383
+工場労働者 1870 childLaborRate=0.910 share0to14=0.368
+工場労働者 1890 childLaborRate=0.911 share0to14=0.358
+工場労働者 1910 childLaborRate=0.933 share0to14=0.347
+工場労働者 1930 childLaborRate=0.934 share0to14=0.342
+工場労働者 1950 childLaborRate=0.939 share0to14=0.353
+技師 1783 childLaborRate=0.869 share0to14=0.361
+技師 1790 childLaborRate=0.822 share0to14=0.448
+技師 1810 childLaborRate=0.921 share0to14=0.523
+技師 1830 childLaborRate=0.269 share0to14=0.491
+技師 1850 childLaborRate=0.779 share0to14=0.533
+技師 1870 childLaborRate=0.613 share0to14=0.506
+技師 1890 childLaborRate=0.480 share0to14=0.508
+技師 1910 childLaborRate=0.297 share0to14=0.493
+技師 1930 childLaborRate=0.353 share0to14=0.494
+技師 1950 childLaborRate=0.456 share0to14=0.510
+農民 1783 childLaborRate=0.885 share0to14=0.361
+農民 1790 childLaborRate=0.962 share0to14=0.385
+農民 1810 childLaborRate=0.975 share0to14=0.396
+農民 1830 childLaborRate=0.955 share0to14=0.384
+農民 1850 childLaborRate=0.931 share0to14=0.384
+農民 1870 childLaborRate=0.918 share0to14=0.370
+農民 1890 childLaborRate=0.907 share0to14=0.361
+農民 1910 childLaborRate=0.923 share0to14=0.353
+農民 1930 childLaborRate=0.925 share0to14=0.348
+農民 1950 childLaborRate=0.926 share0to14=0.357
+1790 womenRightsCode {'0': 874, '1': 6} childLaborLegal mean=0.996
+1810 womenRightsCode {'0': 870, '1': 17} childLaborLegal mean=0.969
+1830 womenRightsCode {'0': 865, '1': 24} childLaborLegal mean=0.961
+1850 womenRightsCode {'0': 861, '1': 30} childLaborLegal mean=0.960
+1870 womenRightsCode {'0': 863, '1': 30} childLaborLegal mean=0.960
+1890 womenRightsCode {'0': 860, '1': 31, '2': 1} childLaborLegal mean=0.960
+1910 womenRightsCode {'0': 863, '1': 31, '2': 2} childLaborLegal mean=0.959
+1930 womenRightsCode {'0': 859, '1': 32, '2': 3} childLaborLegal mean=0.955
+1950 womenRightsCode {'0': 596, '1': 24, '2': 4} childLaborLegal mean=0.954

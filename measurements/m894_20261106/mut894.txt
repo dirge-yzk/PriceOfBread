@@ -1,0 +1,33 @@
+木 47a7434e1d13e4f9a536ea10096fe9b8619504c9（使い捨て D:/PoB_work/c76lb_work/mutwt）
+U0_変えない	赤: なし	成功!   -失敗:     0、合格:    13、スキップ:     0、合計:    13、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+mut U1 当てた
+U1_免税を落とす	赤: T2 T3 T13 	失敗!   -失敗:     3、合格:    10、スキップ:     0、合計:    13、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+mut U2 当てた
+U2_Rのmaxを外す	赤: T3 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+mut U3 当てた
+U3_Rに輸出額を足す	赤: T3 T5 T8 	失敗!   -失敗:     3、合格:    10、スキップ:     0、合計:    13、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+mut U4 当てた
+U4_遅れを3四半期	赤: T5 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+mut U5 当てた
+U5_0の州の判定を小なりへ	赤: T6 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+mut U6 当てた
+U6_地代を0へ書き戻す	赤: T2 T3 T5 T6 T7 T8 T13 	失敗!   -失敗:     7、合格:     6、スキップ:     0、合計:    13、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+mut U7 当てた
+U7_取り分の上界でrを1	赤: T11 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+mut U8 当てた
+U8_総額の上界にrを掛ける	赤: T11 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+mut U9 当てた
+U9_不足を値段で割らない	赤: T12 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+mut U10 当てた
+U10_KOverをK1000へ	赤: T12 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+mut U11 当てた
+U11_十分の一税を落とす	赤: T12 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+mut U12 当てた
+U12_持ち主の空の判定を反転	赤: T13 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+mut U13 当てた
+U13_照合の許しを1へ	赤: T9 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+mut U14 当てた
+U14_値段の重みを1へ	赤: T10 T11 T12 	失敗!   -失敗:     3、合格:    10、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+mut U15 当てた
+U15_州の請求に免税を掛けない	赤: T13 	失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+おわり

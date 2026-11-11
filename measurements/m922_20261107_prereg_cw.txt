@@ -1,0 +1,110 @@
+(922) c80cw 事前登録＝内戦の軍需の 2 回目＝旗 CivilWarArmsDemandUnified を点火（(903) と同じ形・同じ形の 2 回目・落ちたら次が最後）
+日付 2026-11-07・枝 c80cw（b3a4190f から）・worktree D:/PoB_work/wt_c80cw・担当 Claude Opus 5.5。
+出発：作者 2026-11-06「内戦だから固定で2倍とするより、戦線の規模、動員率、戦争の継続期間、兵力、軍需品の充足率などから需要を導いた方が自然です」〈作者「全て推奨で」で推奨を採った〉＝推奨の段 ①（枝を消す）。
+  作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」
+  確証の区分：枝を消す形は作者の指摘と 10-16 の裁定の形（確証あり＝バランスでは止めない）。内戦の需要を対外戦と同じ総動員の式に寄せることは AI の推奨（確証なし）。
+基線 m919（main b3a4190f・測った木 8a8344ad）。計器の生の基準 keep_919/base_ins。ヌル腕 keep_919/n1・n2。S11 の基準 keep_919/a11（POB_CEARN=0）。NG の基準 rd:measurements/ng919_20261107:m919。
+作ったフォルダ：D:/PoB_work/wt_c80cw（worktree）・D:/PoB_work/c80cw_work。
+D: の空き：64.1GB（2026-11-07・shutil.disk_usage）・arms.sh free＝6。
+(916) の読み：1 回目を落とした S11 の〈それ以外〉1 件（種 14 共和制両シチリア 1902 q478）は新しい読み（stoplines906）では〈建国の後の 0 の続き〉＝記録（measurements/m916_20261107/stop_c77cwS11.txt）。
+
+== 0. 形（(903) のまま・★(778) 事前登録の形と実装の形の一致）==
+器は main にある：Simulation.cs:2123 の warMult の行（旗 0＝`InCivilWar ? M×2.0 : (atWar ? M×mobilize : 1.0)`・旗 1＝`atWar ? M×mobilize : 1.0`）。
+点火＝Coefficients.cs:2171 の既定 0→1（同じ行の注を直すだけ）と DormantIdentityTests.cs:68 の行を外す（墓標の注へ＝(903) と同じ）。
+CivilWarArmsDemandTests.cs の旗 0 の盤面は残す（★(832) ① (a)）。新しい状態・係数・タイマーは 0。Simulation.cs は式も注も触らない（下の〈同じ木の旗 0〉の条件のため）。
+同じ木の旗 0 の生：点火の前に `git diff 8a8344ad -- PriceOfBread.SimCore` が空（b3a4190f と 8a8344ad は SimCore で 0 行の差）。点火の後は Coefficients.cs の既定の 1 行だけになることを確かめて追記する。
+  ＝keep_919/base_ins（種 1〜10）と keep_919/a11（種 11〜20・POB_CEARN=0）がそのまま同じ木の旗 0（d_0）。新しい ident は回さない。keep_919 は合流まで消さない。
+
+== 1. 予言（腕の前）==
+・内戦の月の warMult の平均（a_c）：18 → 約 10.7〜10.9（同じ盤面の新の規則の平均＝base 10.7403・N1 10.8585・N2 10.8535・a11 10.9022）＝a_c÷18≈0.60。
+・新の規則からずれた月（newRuleMismatch）＝0（(903) の腕 B も 0）。旧の規則からずれた月＝全ての内戦の月。
+・計算量：±1 秒（(903) 腕 B 211.0・同じ木の基線 211.5）。割り当て 1.0 秒（名目の余り 約 36.8 秒の内）。新しい計算は旗の比較 1 回だけ。
+・成績表の一致は予言しない（挙動が変わる）。
+・内戦の月あたりの弾薬の需要の腕÷旗 0：0.5〜0.75（(903) 0.6515）。
+
+== 2. 紙（今の盤面＝旗 0・keep_919）==
+台本 scripts/instruments/c80cw/gates922.py（(903) gates903.py の写し・G2 の 3 値を台本が wars_s から数える・G2 の帯は §3 のとおり [8,14]）・tab922.py（新÷旧の表）。
+出力 measurements/m922_20261107/paper_M0_base_ins.txt・paper_M0_n1.txt・paper_M0_n2.txt・paper_M0_a11.txt（gates922 を旗 0 の生に当てた＝M0〔何もしない実装〕の盤面）・paper_tab_null.txt・paper_tab_a11.txt。
+旗 0 で門が落ちる確かめ（4 枚とも同じ）：G1 上限 赤（a_c 18＞13.5）・G1 形 赤（newRuleMismatch＝全ての内戦の月 3465・4437・4356・3666）・G1 大きさ 赤（1.0＞0.75）。
+  G1 下限・G1f（a_f 10.592・10.610・10.586・10.612）・G2・G3 は緑（〈壊さない〉の門）。
+G2 の件数（m919 で取り直した・10 種の内戦の件数）：base 160・N1 182・N2 190・a11 143。長さの中央 base 11.5・N1 11・N2 11・a11 11。
+  m919 の 3 値で (903) の式 [min−w, max+w] を作ると [10.5, 12.0]。この帯は一つ抜きで base を外す（N1・N2 の 2 本の帯は [11,11]）＝空振り 1/3＝門にできない＝記録。
+  門は (903) の [8,14]（指示）。一つ抜き：3 通りとも内＝空振り 0/3。判別力は弱い＝〈壊さない〉の門。
+G3：3 財とも内戦の月の需要と産出＞0（base 弾薬 272k・79k／火薬 48k・40k／鉛 24k・40k）＝連鎖は休眠していない。
+  0.2 は〈壊さない門〉（内戦で 1.0 にする形の約 1/18＝0.056 を落とす）。働きの門ではない（(916)：旗 0 どうしの d の比が N1 0.92・N2 0.60 と動く）。d_0 は同じ木の旗 0＝keep_919/base_ins（S11 は keep_919/a11）。
+新÷旧の表の列のヌル腕の幅（paper_tab_null.txt・N1÷基線・N2÷基線）：
+  内戦の月 1.28・1.26／弾薬の需要÷内戦の月 0.958・1.122／弾薬の産出 0.808・1.874／火薬の需要 0.809・1.872／火薬の産出 0.780・1.478／鉛の需要 0.809・1.872／鉛の産出 0.580・1.251／
+  小銃の在庫（内戦の四半期・9 国）1.53・16.3／大砲 1.31・10.0／弾薬の在庫 0.784・1.314／内戦の件数 1.14・1.19／長さの中央 0.957・0.957／長さの平均 1.15・1.09／
+  決着 A（親の国）の勝ち 1.43・1.70／B（反乱側）の勝ち 1.00・0.929／白紙 1.14・1.23／B の勝ちの割合 0.879・0.783／対外戦の件数 1.03・0.953／1900 年より後の対外戦の件数 0.888・0.805／長さの中央 1.077・1.077／長さの平均 1.073・1.066。
+  warWear：計器の列は無い＝代理 1+ArmsWarWearScale×(a_c−1)（EconomyStep.cs:581 の式・ArmsWarWearScale＝1.0＝代理は a_c と同じ数）。旗 0 は 18（幅 0）。
+  内戦の決着は cpmed_s（civilFlag=1）の scoreIndex の符号（Diplomacy.cs:2413 `var winner = war.Score >= 0 ? war.A : war.B`）と blankFlag。件数は wars_s の内戦と一致した（160・182・190・143）。
+  ⇒ 新÷旧の表は全て記録（採否に使わない・ヌル腕の幅と並べて報告に全ての列を書く）。
+
+== 3. 門（(903) のまま・腕 B と S11 の両方・閾値は腕の出力を見る前に置いた）==
+G1 働いた（大きさ・両側）：腕の cwmult_s で a_c＝Σ warMultActualCivilSumIndex ÷ Σ civilWarMonthsCount。
+   下限：a_c ≧ 9.0 かつ 内戦の四半期の平均の最小 ≧ 9.0−1e-9（1.0 に落ちる形を落とす）。
+   上限：a_c ≦ 13.5（旗 0＝18 と〈2 倍を残す〉形を落とす）。
+   形：Σ newRuleMismatchMonthsCount ≦ 0.001×Σ(内戦＋対外戦だけの月)。
+   大きさ：a_c÷18 ≦ 0.75（旗 0 とヌル腕は 1.0＝幅 0）。
+G1f 対外戦（両側）：a_f ∈ [9.0, 13.5]（対外戦も 2 倍にする形を落とす）。
+G2 壊さない：内戦の長さの中央（10 種）∈ [8, 14]。
+G3 壊さない：3 財それぞれ内戦の月の需要の和＞0 かつ産出の和＞0・d_B÷d_0 ≧ 0.2。
+止める線（この回の形をそのまま写す＝scripts/instruments/c78gz/stoplines906.sh の 1 本）：
+   破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1e10 倍・非有限・開幕の 1000 倍以上・plvl）・〈100 倍〉は gdp_jump906 --founding の〈それ以外〉の行だけ・
+   空洞化＝ピークの 1/10 未満で〈線が原因〉の件が 1 件でもあれば（T1・★(852) ①・規則 A2＝an_h2.py の既定 -ex rule・主要国の州は例外にしない・
+     基線 keep_919/base_ins〔S11 は keep_919/a11〕の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・
+   推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む）。
+   〈建国の後の 0 の続き〉〈建国の直後〉〈分母の痩せ〉は記録の欄に写し、ヌル腕（keep_919/n1・n2 を同じ台本で数え直す）の件数と並べる。
+記録（採否に使わない）：exact・near・NG（ng.sh・基準 ng919）・nullgate の O・開幕の 1000 倍以上・英の国債の不履行・史実の線・国力・ハーネス不合格・新÷旧の表・名目 GDP 0 の続き（gdp_zero10）。
+
+== 4. 突然変異ごとにどの門で赤か（㉚・紙・腕の前）==
+  変異	中身	機構の試験（CivilWarArmsDemandTests）	G1 下限	G1 上限	G1 形	G1 大きさ	G1f	G2	G3
+  M0	何もしない（旗 1 でも枝を残す＝旗 0 の盤面）	旗 1 の試験が赤（内戦 18≠11.7）	緑	赤（18）	赤（全ての内戦の月）	赤（1.0）	緑	緑	緑　← keep_919 の 4 枚で確かめた
+  M1	枝を残す（M0 と同じ式）	赤	緑	赤	赤	赤	緑	緑	緑（M0 と同じ）
+  M2	内戦で 1.0	赤	赤（a_c 1＜9）	緑	赤	緑	緑	不明	赤（d_B÷d_0≒0.056＜0.2・見込み）
+  M3	総動員を外す（M×1）	赤	緑（9）	緑	赤（exh＞0 の月）	緑（0.5）	緑（a_f 9）	不明	緑
+  M4	対外戦も 2 倍	赤	緑	緑か赤	赤	緑	赤（≧18＞13.5）	不明	緑
+  ⇒ どの変異も、少なくとも 1 つの門か機構の試験で赤。M3 は大きさの門を通る＝形の門と機構の試験が拾う。
+  M1〜M4 の機構の試験は使い捨ての木（D:/PoB_work/c80cw_work/mut の写し）で mut903.py を回し、腕 B の前に §8 として追記する（数を変える追記ではない）。G1・G1f の M2〜M4 の欄は式からの紙（10 種の腕は回さない＝枠と D: のため）。
+
+== 5. 走査の番人の点検（㉘）と変わる件数の予言（㉑）==
+  ・IndustrializationReaderTests の許可表：工業化度の読み手を足さない＝変わらない。
+  ・`new MoneyStock(` の件数：足さない（Simulation.cs 32 件のまま）。
+  ・route_anchors.tsv の鍵の行：触らない（Simulation.cs を触らない）。
+  ・WriterRatchetTests の宣言の表：新しい書き手 0。軌道の件数の番人（item 11 DiploHegemonScans 3,395,620 ほか）は旗 1 で〈動きうる〉（種類で予言・★(749)）。(903) の旗 1 のフルスイートでは赤 0。
+  ・DormantIdentityTests：:68 の行を外す（点火のコミット）。DormantZeroFields が旗 1 を許すこと。
+  ・UnitTypeTests・InstrumentsTests：新しい列 0＝変わらない。
+  ⇒ 変わる件数の予言：走査の番人の件数は全て 0 の変化。
+== 6. 旗 1 で赤になる試験の予言（㉜・★(818) の 2 軸の grep・b3a4190f の Tests）==
+  機構の軸 `MilitaryWarMult|InCivilWar|MilitaryWarMultLast|WarMobilizationDepth|warMult`：CivilWarArmsDemandTests.cs（10）・MilitaryTests.cs（6）・PolicyPoliticsTests.cs（5）・RevoltIgnitionTests.cs（4）・WarThemeTests.cs（6）。
+  盤面の軸 `CivilWarParent`（内戦を起こす試験）：CivilWarArmsDemandTests・ColonyPromotionTests・NationIdentityTests・PolicyPoliticsTests・RevoltIgnitionTests・WarThemeTests。
+  Assert を読んだ：
+  ・MilitaryTests.cs:2014〜:2034＝仏英の対外戦（CivilWarParent なし）の双子で、戦時の倍率で装備の上限が広がらない＝旗 1 で式が同じ＝赤にならない。
+  ・PolicyPoliticsTests.cs:1350・:1369・:1520・:1574・RevoltIgnitionTests.cs:379・:636・WarThemeTests.cs:458・:906＝InCivilWar の真偽だけ＝旧の 2 倍を固定していない。
+  ・WarThemeTests.cs:21（WarMobilizationDepth の既定 0.5）・:35（保存則）＝旗に依らない。
+  ・ColonyPromotionTests・NationIdentityTests＝内戦の盤面で州・名前を主張（軍需を読まない）＝軌道が変わりうるが、主張は 1 か月の軍需に依らない（読む）。
+  ・CivilWarArmsDemandTests の旗 1 の 4 本は旗を明示＝既定に依らない。旗 0 の 2 本（T4・計器の旗 0）も明示＝残る。
+  ⇒ 予言：機構の試験の赤 0 本（(903) の旗 1 の木でも 0）。予言に無い赤が出たら腕 B を回さず止める（機構の番人が旧の規則を固定する型なら作者に聞く物へ）。
+== 7. 周辺の点検（★(885)・読むだけ）==
+  ・EconomyStep.cs:581 warWear＝wear×(1+ArmsWarWearScale×max(0, MilitaryWarMultLast−1))：内戦の月は 18 → 約 10.7 へ縮む（約 −40%）＝形の帰結（記録＝新÷旧の表の在庫の列）。
+  ・EconomyStep.cs:294 MilitaryProcurementNeed：MilitaryScale（＝warMult を含む）から必要量を作る＝内戦の月の必要量が縮む。予算の器は選んだ段だけが決める（MilitaryTests:2007 の番人）＝予算は変わらず、支払い率 r は上がりうる（記録）。
+  ・Military.cs:191 の注〈軍需側 WarMobilizationDepth と同型〉：旗 1 で内戦も同じ型＝注は正しくなる。
+  ・Model.cs:1071 の注：〈戦時は MilitaryScale が MilitaryWarMult=9.0 倍〉（2026-08-13 の記録）＝内戦の 18 には触れていない＝そのまま。
+  ・InstrumentsCivwar.cs:45〜:47：新の規則 M×(1+D×exh)・旧の規則 civil ? M×2.0 : 新＝計器はエンジンの関数を呼ばず自分で書く＝旗に依らない。
+  ・弾薬→火薬→鉛の連鎖：§2 の G3 の紙で 3 財とも需要と産出＞0。
+  ・欠損（00一覧の行の下書き・この線では直さない＝持ち主の外）：Coefficients.cs:2009〜:2010 と EconomyStep.cs:1088 の注〈現行の内戦は軍需消費2倍〉は点火の後に古くなる。
+  ・記録の読み（(916) の訂正 3）：物価水準 0.4 は PriceLevelFloor（Coefficients.cs:955）そのもの。
+== 8. 手順 ==
+  事前登録（この文）→ push → 点火（既定 1・DormantIdentityTests の行）→ 走査の番人（㉘）→ 旗 1 のフルスイート（Category!=FullLength と =FullLength を分け --list-tests と突き合わせる）・savetest・leakhunt（㉜・赤なら腕 B を回さず止める）
+  → 突然変異（使い捨ての木）→ 腕 B `INS=1 bash scripts/instruments/batch.sh run c80cwB 10`（床 36GB＋5GB）→ 門・止める線・記録 → S11 `POB_CEARN=0 INS=1 bash scripts/instruments/batch.sh run c80cwS 10 11`（床 30GB＋5GB）。
+  成否は終了コードと成績表の両方で読む。旗 1 の出力を見た後のエンジンの変更は 0（形の変え直しは 1 回まで）。落ちたら採らない（同じ腕で物差しを替えない）。
+== 9. 重なり ==
+  Coefficients.cs：:2171 の 1 行だけ（c80eb・c80sm は自分の行）。DormantIdentityTests.cs：:68 の 1 行だけ。Simulation.cs：触らない。他の線の持ち主のファイルに触れない。App・Display・Runner に触れない。
+
+== 10. 追記（2026-11-07・腕 B の前・点火 e8d13387 の後・数を変える追記ではない）==
+点火の後の `git diff 8a8344ad -- PriceOfBread.SimCore`＝Coefficients.cs の 1 行（既定 0.0→1.0 と同じ行の注）だけ＝keep_919/base_ins・keep_919/a11 が同じ木の旗 0（d_0）。
+突然変異 M1〜M4 の機構の試験（使い捨ての木 D:/PoB_work/c80cw_work/mut/tree＝e8d13387 の写し・台本 scripts/instruments/c77cw/mut903.py・出力 measurements/m922_20261107/mutation.txt）：
+  4 本とも旗 1 の試験 4 本が赤（内戦の総動員の式・厭戦で深まる・対外戦と同じ値・計器の旗 1）・旗 0 の試験 2 本は緑。M0 は §2 の 4 枚の紙で G1 の上限・形・大きさが赤。
+止める線のヌル腕の数え直し（同じ台本 stoplines906.sh を keep_919/n1・n2 に当てた・measurements/m922_20261107/null/）：
+  〈100 倍〉の --founding の区分（建国の直後／建国の後の 0 の続き／分母の痩せ／それ以外）：N1 0／0／0／0・N2 1／0／1／0。基準 m919（armM）1／0／0／0・S11 の基準（armS11）0／0／1／0。
+  1e10 倍・非有限 0・gdp_zero10 0・〈建国から続く 0〉0（4 本とも）。空洞化 1/10 未満 0 件（4 本とも）・1/4 未満 N1 2・N2 4・armM 1・armS11 2。

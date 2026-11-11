@@ -1,0 +1,7 @@
+# M1 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.BillGateHeirDebtTests.H3_塵は門にしない_閾値は債務の和の1e9 [48 ms]
+  失敗 PriceOfBread.Tests.BillGateHeirDebtTests.H1_旗1_決済の後も相続人に債務が残る州は手形を振り出さない_旗0は振り出す [4 ms]
+失敗!   -失敗:     2、合格:    51、スキップ:     0、合計:    53、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:10.17]     PriceOfBread.Tests.BillGateHeirDebtTests.H3_塵は門にしない_閾値は債務の和の1e9 [FAIL]
+[xUnit.net 00:00:10.20]     PriceOfBread.Tests.BillGateHeirDebtTests.H1_旗1_決済の後も相続人に債務が残る州は手形を振り出さない_旗0は振り出す [FAIL]

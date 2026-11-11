@@ -1,0 +1,43 @@
+VERDICT ident 恒等 判定: 恒等 (rc=0)
+旗 0 の生（landbase_s・landbasereg_s つき）：D:/PoB_work/ident_c76lb/out_ib_10/ins（ident の作業フォルダ D:/PoB_work/ident_c76lb）
+HEAD 測る前 47a7434e1d13e4f9a536ea10096fe9b8619504c9・後 47a7434e1d13e4f9a536ea10096fe9b8619504c9
+種 9	行 40862	旗の和 0	G10 一致 40862	食い違い 0	食い違いの相対差の最大 0
+種 10	行 41512	旗の和 0	G10 一致 41512	食い違い 0	食い違いの相対差の最大 0
+門 (i)(iii)：通る
+ident start：ラベル=c76lb 木=/d/PoB_work/wt_c76lb 作業=/d/PoB_work/ident_c76lb 腕=[a b t s] 開始=2026-11-06 15:45:05
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c76lb（2026-11-06 16:18:16）===
+測った木：D:/PoB_work/wt_c76lb（HEAD 47a7434e・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c76lb/scripts/instruments/ident/ident.cfg
+宣言：added=['landbase_s', 'landbasereg_s'] tests_delta=13
+腕 a：rc=0 end=2026-11-06 16:10:22
+腕 b：rc=0 end=2026-11-06 16:18:13
+腕 t：rc=0 end=2026-11-06 15:47:30
+腕 s：rc=0 end=2026-11-06 16:09:55
+測る木の SOURCE-HASH：820ec7ccf5aa8f1f
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 820ec7ccf5aa8f1f
+[素の 5 種] b5_ia_5.txt 対 b5_20261106_m873
+  ○ 全行バイト一致（178 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261106_m873.cost
+  ○ 件数の行 29 本・推定 210.1 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 820ec7ccf5aa8f1f
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261106_m873_ins
+  ○ 全行バイト一致（183 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261106_m873_ins.cost
+  ○ 件数の行 29 本・推定 211.5 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c76lb/out_ib_10/ins  対  基準 D:/PoB_work/keep_892/base_ins
+  基準 1090 本・腕 1110 本・バイト一致 1070 本
+  腕にだけある 20 本（うち宣言 20）
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1070・既知の揺れ 20・宣言された増減 20）
+  内訳：共通の表 1090 本＝バイト一致 1070＋既知の揺れ 20＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1090）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261106_m873.txt（タグの行を除く）
+  ○ タグの行以外が一致（5130 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2352（基準 2339+13 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等

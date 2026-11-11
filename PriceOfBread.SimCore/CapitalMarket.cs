@@ -168,12 +168,25 @@ public static class CapitalMarket
                     }
                 }
             }
+            if (Instruments.On) Instruments.CpwdMark(nations, i, 0, flightTotal);   // (815) 計器（読むだけ）：逃避の前の外資の負債・(828) 消えた請求権の累計（逃避の前）
             double flight = System.Math.Min(w[i].ForeignCapitalIn.Value, (w[i].ForeignCapitalIn * c.CapitalFlightRatePerQuarter.Value * (1.0 - cred[i])).Value);
+            double fciPreFlight = w[i].ForeignCapitalIn.Value, ftPreFlight = flightTotal;   // (828) c66dw：逃避の前の外資の負債と消えた請求権の累計（旗 CapitalClaimCancelFromLedger が正のときだけ下の 1 行が読む）
             if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
+            // ★(828) c66dw（旗 CapitalClaimCancelFromLedger が正のときだけ）：消えた請求権へ足す額を、逃避の額ではなく外資の負債が実際に減った額（台帳の差）にする＝持ち主の側と受け皿の側が同じ数。
+            //   外資の負債が大きいと逃避の額の端数が double の引き算で丸められる（減った額≠逃避の額）＝旧は持ち主の側だけが端数の分だけずれて落ちた。旗 0 は 1 命令も通らない（上の行の足しのまま）。
+            if (c.CapitalClaimCancelFromLedger > 0 && flight > 1e-9) flightTotal = ftPreFlight + (fciPreFlight - w[i].ForeignCapitalIn.Value) * e[i];
+            if (Instruments.On) Instruments.CpwdMark(nations, i, 1, flightTotal);   // (815) 計器（読むだけ）：逃避の後＝利札の時点の外資の負債・(828) 消えた請求権の累計（逃避の後）
             double divFci0 = w[i].ForeignCapitalIn.Value, divSav0 = Instruments.On ? InvestorSavings(w[i]) : 0; double div = c.CapitalDividendFromHostRent > 0 ? HostRentDividend(w[i]) : (w[i].ForeignCapitalIn * c.CapitalDividendRatePerQuarter.Value).Value;
             double divPaid0 = 0; if (div > 1e-9) { divPaid0 = TakeGold(w[i], div); taken[i] += divPaid0; } if (Instruments.On) Instruments.DivhostRecord(nations, i, e[i], divFci0, divSav0, div, divPaid0);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
+            // ★(815) c14fl（旗 CapitalCouponUnpaidWriteDown が正のときだけ）：払えなかった利札（請求−払えた額）は不履行＝その額だけ外資の負債を落とし（外資の負債で頭打ち）、
+            //   逃避と同じく金建てで flightTotal へ足す＝下の還流の段で持ち主の対外資産も同じ額だけ減る（規則 C の 1 本の配り方・二国間台帳は持たない＝世界の総和で同じ額）。旗 0 は 1 命令も通らない。
+            //   ★(828) c66dw（旗 CapitalClaimCancelFromLedger が正のとき）：足す額は落とした額 divWo ではなく外資の負債が実際に減った額（落とす前−落とした後）＝両側が同じ数。
+            //   外資の負債 4e7〜9e7 から 1e-9 級の divWo を引くと double に吸収されて負債は動かない（旧は持ち主の側だけが落ちた）。落とす前の門 divWo>1e-9 はそのまま（払い切った利札の丸めの残り 1e-16 級を落とさない）。旗 0 は divWo×為替のまま。
+            if (c.CapitalCouponUnpaidWriteDown > 0) { double divWo = System.Math.Min(div - divPaid0, w[i].ForeignCapitalIn.Value); if (divWo > 1e-9) { double fciPreWo = w[i].ForeignCapitalIn.Value; w[i].ForeignCapitalIn -= new MoneyStock(divWo); flightTotal += (c.CapitalClaimCancelFromLedger > 0 ? fciPreWo - w[i].ForeignCapitalIn.Value : divWo) * e[i]; } }
+            if (Instruments.On) Instruments.CpwdRow(nations, i, divPaid0, flightTotal);   // (815) 計器（読むだけ）：利札の請求は計器が式で書く・払いは TakeGold の返り値・落とした額は台帳の差
         }
         ProbeDiff("逃避配当");
+        if (Instruments.On) Instruments.CpwdOwner(nations, 0);   // (815) 計器（読むだけ）：還流の段の前の対外資産の金建ての和
         // 按分は金建て（対外資産×為替の比）＝逃避の請求権と戻る金を金建てで配り、各国の通貨へ戻す。
         double abroadSum = 0, backTotal = 0, takenSum = 0; for (int i = 0; i < n; i++) { abroadSum += (w[i].CapitalAbroad * e[i]).Value; backTotal += taken[i] * e[i]; takenSum += taken[i]; }
         if (abroadSum > 1e-9 && backTotal + flightTotal > 1e-9)
@@ -191,6 +204,7 @@ public static class CapitalMarket
         else if (takenSum > 1e-9)   // ★A-2#4修正：対外保有が無い（台帳のズレ）期に抜いた配当/逃避がどの pop にも戻らず蒸発するのを防ぐ＝抜いた host へ返金（金を捨てない）
             for (int i = 0; i < n; i++)
                 if (taken[i] > 0) GiveGold(w[i], taken[i]);   // 同じ国へ戻す＝換算なし
+        if (Instruments.On) Instruments.CpwdOwner(nations, 1);   // (815) 計器（読むだけ）：還流の段の後
         ProbeDiff("還流");
 
         // (3) 新規フロー：収益率＞worldRate の国が呼び込み（流入）、＜の国が送り出す（流出）。材の清算（min(需要,供給)）と同型。
@@ -235,6 +249,7 @@ public static class CapitalMarket
                 }
         }
         ProbeDiff("新規フロー");
+        if (Instruments.On) Instruments.CpwdEnd(nations);   // (815) 計器（読むだけ）：呼び出しの終わりの世界の外資の負債と対外資産
 
         // === 02断線走査（2026-07-28）繋ぐべき筆頭＝対外国債の相手方（レンティア帝国の成立）===
         // 旧＝外債の利子は債務国のCumulativeTradeFlowから一方向に消えるだけ（片側記帳）＝「債務国は痛むが債権国は儲からない」

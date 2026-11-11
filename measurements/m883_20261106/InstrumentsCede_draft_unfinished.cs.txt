@@ -1,0 +1,344 @@
+namespace PriceOfBread.SimCore;
+
+// ---------------------------------------------------------------- (883) 割譲の支配度の表 cederule_s（読むだけ・恒等） ----------------------------------------------------------------
+// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsCess.cs／InstrumentsRule.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない（世界を書かない）。INS=1（POB_INSTRUMENTS）のときだけ動く。
+// 目的＝割譲の支配度 C1 の段 C-0（docs/202611/20261106/20261106_割譲の支配度C1の段C-0_州ごとの治安P1-1の後_下書き.md）§4 段 C-0 の恒等の計器の仕様（形 Q′）。
+//   割譲（Ceded・Seceded・Returned）の事象 1 件ごとに、割譲の直前（RegionMoved の時点）と同じ四半期の末の支配度 4 区分（Rule）・支配度（Dominance）・外国持分を、エンジンの実際の値で書く。
+//   段 C-1（挙動）の門 G4 の母集合の数（割譲の件数・格の内訳・AddForeignShare の印で外れる件数）を、段 C-1 の事前登録の材料として取る。
+// 取り方＝割譲の直前（RegionMoved）に前の値を貯め、同じ四半期の末（Instruments.Quarter）に後の値を読んで行を書く。計器の状態は計器の持ち物（ConditionalWeakTable）。
+//   エンジンの関数を呼ばない（式を計器が自分で書く＝(774) の InheritIntentBefore／After と食い違う・教訓 ①）。
+// 行＝RegionMoved を通る事象 1 件につき 1 行（Ceded・Seceded・Returned。独立の確定 Sovereign は RegionMoved を通らない＝表に行が無い）。全ての国（計器の国に限らない）。
+// 列（単位は接尾辞：Share＝0〜1・Index＝無次元の量・K＝千人・Flag＝0／1）：
+//   前（RegionMoved の時点）：quarter／year／how／sender／receiver（建国 Seceded は四半期の末の持ち主）／region／tierBefore／sameCoreFlag（送り手と受け手の主流文化の一致）／popK／receiverPopShare（受け手の国の人口に対する割合）／
+//     R0〜R3（Rule の 4 区分）／RuleInit[1]（開幕のデータの在地）／dominance（支配度）／foreignRulerCount（外国持分の主体の数）／receiverOwnShare（受け手の鍵の持分・鍵は Diplomacy.cs:3164 と同じ式を計器が書く）／
+//     thirdPartyShareSum（第三国の持分の和）／adminFill（官僚の役務の充足・AdminFill）／deliveryBefore・reachBefore（式を計器が書く＝R0×(d＋(1−d)×AdminFill)＋R1×d・R0）。
+//   C1＋H-a の見込み（計器が自分で当てる）：c1R0・c1R1・c1Delivery・c1Reach・haOwnShare（＝0）。
+//   後（四半期の末）：R0〜R3／RuleInit[1]／dominance／receiverOwnShare／thirdPartyShareSum／ownerAtQuarterEnd（四半期の末の持ち主）／militancyRegion（計器が州の平民から数える）／ungovTargetNew・ungovTargetOld（rule_s と同じ計器の式）。
+//   印：movedAgainFlag（同じ四半期にもう一度持ち主が替わった）／pickedReceiverFlag（受け手が計器の国か）／pickedAddForeignShareFlag（同じ四半期にその州へ AddForeignShare が当たった＝割譲の後に ForeignRulers の長さか和が増えた・§10 訂正 2）。
+// ⚠限界（計器が自己申告する）：①四半期の末の断面（Instruments.Quarter の呼び時点）。②計器が自分で式を書く＝エンジンの関数を呼ばない（(774) との食い違い）。③40 四半期の追跡の表は作らない（戻りは rule_s で読める）。
+//   ④militancyRegion・ungovTargetNew は四半期の末の値＝エンジンの Rule のループが読む CheckSecession の瞬間の値と違う行がある（InstrumentsRule.cs の注記と同じ）＝エンジンの〈働いた〉の数には使わない。
+//   ⑤deliveryBefore・c1Delivery は RegionMoved の時点の AdminFill で数える（四半期の末の AdminFill は EconomyStep.cs:2606-2607・Simulation.cs:1600 が RegionMoved の後に書きうる）。
+//   ⑥pickedAddForeignShareFlag は ForeignRulers の変化で読む近似（AddForeignShare の直接の印ではない）＝長さか和が増えれば立つ（講和の条約港の書き手 Diplomacy.cs:3164・Politics.cs:1783）。
+public static partial class Instruments
+{
+    internal const string CedeRuleHeaderText = "quarter\tyear\thow\tsender\treceiver\tregion\ttierBefore\tsameCoreFlag\tpopK\treceiverPopShare\t"
+        + "R0\tR1\tR2\tR3\tRuleInit1\tdominance\tforeignRulerCount\treceiverOwnShare\tthirdPartyShareSum\tadminFill\tdeliveryBefore\treachBefore\t"
+        + "c1R0\tc1R1\tc1Delivery\tc1Reach\thaOwnShare\t"
+        + "R0After\tR1After\tR2After\tR3After\tRuleInit1After\tdominanceAfter\treceiverOwnShareAfter\tthirdPartyShareSumAfter\townerAtQuarterEnd\t"
+        + "militancyRegion\tungovTargetNew\tungovTargetOld\t"
+        + "movedAgainFlag\tpickedReceiverFlag\tpickedAddForeignShareFlag";
+
+    sealed class CedeState
+    {
+        public sealed class Item
+        {
+            public int Quarter;
+            public int Year;
+            public string How = "";
+            public string Sender = "";
+            public string Receiver = "";
+            public string RegionName = "";
+            public string TierBefore = "";
+            public bool SameCoreFlag;
+            public double PopK;
+            public double ReceiverPopShare;
+            public double R0, R1, R2, R3;
+            public double RuleInit1;
+            public double Dominance;
+            public int ForeignRulerCount;
+            public double ReceiverOwnShare;
+            public double ThirdPartyShareSum;
+            public double AdminFill;
+            public double DeliveryBefore;
+            public double ReachBefore;
+            // C1＋H-a の見込み
+            public double C1R0, C1R1;
+            public double C1Delivery, C1Reach;
+            public double HaOwnShare;
+            // ForeignRulers の変化を読むための前の状態
+            public int ForeignRulersLengthBefore;
+            public double ForeignSharesSumBefore;
+        }
+        public readonly List<Item> Pending = new();
+        public readonly List<string> Rows = new();
+    }
+
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, CedeState> CedeStates = new();
+    static CedeState CedeOf(Diplomacy dip) => CedeStates.GetValue(dip, _ => new CedeState());
+
+    /// <summary>RegionMoved の時点（Territory.cs:353・Rehome の前・換算の後）に前の値を貯める。</summary>
+    internal static void CedeObserveRegionMoved(Diplomacy dip, Coefficients c, Power? from, Power? to, Region r, Territory.TransferHow how, int year, int quarter)
+    {
+        var st = CedeOf(dip);
+        var it = new CedeState.Item
+        {
+            Quarter = quarter,
+            Year = year,
+            How = how.ToString(),
+            Sender = NameOf(from),
+            Receiver = NameOf(to),
+            RegionName = r.Name,
+            TierBefore = r.Tier.ToString(),
+            SameCoreFlag = false,  // 後で計算
+            PopK = r.SumPopulation() / 1000.0,
+            ReceiverPopShare = 0,  // 後で計算
+            R0 = r.Rule.Length >= 1 ? r.Rule[0] : 0,
+            R1 = r.Rule.Length >= 2 ? r.Rule[1] : 0,
+            R2 = r.Rule.Length >= 3 ? r.Rule[2] : 0,
+            R3 = r.Rule.Length >= 4 ? r.Rule[3] : 0,
+            RuleInit1 = r.RuleInit.Length >= 2 ? r.RuleInit[1] : 0,
+            Dominance = r.Dominance,
+            ForeignRulerCount = r.ForeignRulers.Count,
+            ReceiverOwnShare = 0,  // 後で計算
+            ThirdPartyShareSum = 0,  // 後で計算
+            AdminFill = r.AdminFill,
+            DeliveryBefore = 0,  // 後で計算
+            ReachBefore = 0,  // 後で計算
+            C1R0 = 0,
+            C1R1 = 0,
+            C1Delivery = 0,
+            C1Reach = 0,
+            HaOwnShare = 0,
+            ForeignRulersLengthBefore = r.ForeignRulers.Count,
+            ForeignSharesSumBefore = 0  // 後で計算
+        };
+
+        // sameCoreFlag の計算（両国の主流文化の一致）
+        if (from?.Nation is not null && to?.Nation is not null)
+        {
+            var fromCore = from.Nation.Cultures.Count > 0 ? from.Nation.Cultures[0] : "";
+            var toCore = to.Nation.Cultures.Count > 0 ? to.Nation.Cultures[0] : "";
+            it.SameCoreFlag = fromCore.Length > 0 && fromCore == toCore;
+        }
+
+        // receiverPopShare の計算
+        if (to?.Nation is not null)
+        {
+            double totalPop = to.Nation.TotalPopulation;
+            it.ReceiverPopShare = totalPop > 1e-9 ? it.PopK * 1000.0 / totalPop : 0;
+        }
+
+        // receiverOwnShare の計算（鍵は Diplomacy.cs:3164 と同じ式）
+        if (to is not null)
+        {
+            string key = to.BaseName.Length > 0 ? to.BaseName : to.Name;
+            if (r.ForeignRulers.Count > 0 && r.ForeignShares.Count > 0)
+            {
+                for (int i = 0; i < r.ForeignRulers.Count && i < r.ForeignShares.Count; i++)
+                {
+                    if (r.ForeignRulers[i] == key)
+                    {
+                        it.ReceiverOwnShare = r.ForeignShares[i];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // thirdPartyShareSum の計算
+        double sumShares = 0;
+        for (int i = 0; i < r.ForeignShares.Count; i++)
+        {
+            sumShares += r.ForeignShares[i];
+        }
+        it.ThirdPartyShareSum = sumShares;
+        it.ForeignSharesSumBefore = sumShares;
+
+        // deliveryBefore・reachBefore の計算（式を計器が書く）
+        double d = c.PrivilegeTaxDiscount;
+        it.DeliveryBefore = it.R0 * (d + (1 - d) * it.AdminFill) + it.R1 * d;
+        it.ReachBefore = it.R0;
+
+        // C1＋H-a の見込み（C1: Rule[1] += Rule[0]; Rule[0] = 0 / H-a: receiverOwnShare = 0）
+        it.C1R0 = 0;
+        it.C1R1 = it.R0 + it.R1;
+        it.C1Delivery = it.C1R0 * (d + (1 - d) * it.AdminFill) + it.C1R1 * d;
+        it.C1Reach = it.C1R0;
+        it.HaOwnShare = 0;
+
+        st.Pending.Add(it);
+    }
+
+    /// <summary>四半期の末（Instruments.Quarter）に後の値を読んで行を書く。</summary>
+    internal static void CedeFold(Sink sk, ulong seed, Diplomacy dip, Coefficients c, int quarter)
+    {
+        var st = CedeOf(dip);
+        if (st.Pending.Count == 0) return;
+
+        sk.CedeRule ??= Open("cederule", seed);
+        if (!sk.CedeRuleHeader) { sk.CedeRule.WriteLine(CedeRuleHeaderText); sk.CedeRuleHeader = true; }
+
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        foreach (var it in st.Pending)
+        {
+            // 四半期が一致する行だけ処理
+            if (it.Quarter != quarter) continue;
+
+            // 州を探す（受け手の国の州一覧から）
+            Region? rAfter = null;
+            Power? receiver = null;
+            foreach (var p in dip.Powers)
+            {
+                if (NameOf(p) == it.Receiver && p.Nation is not null)
+                {
+                    receiver = p;
+                    foreach (var r in p.Nation.Regions)
+                    {
+                        if (r.Name == it.RegionName)
+                        {
+                            rAfter = r;
+                            break;
+                        }
+                    }
+                    if (rAfter is not null) break;
+                }
+            }
+
+            // 建国（Seceded）の場合、四半期の末の持ち主を探す
+            if (rAfter is null && it.How == "Seceded")
+            {
+                foreach (var p in dip.Powers)
+                {
+                    if (p.Nation is not null)
+                    {
+                        foreach (var r in p.Nation.Regions)
+                        {
+                            if (r.Name == it.RegionName)
+                            {
+                                rAfter = r;
+                                receiver = p;
+                                break;
+                            }
+                        }
+                        if (rAfter is not null) break;
+                    }
+                }
+            }
+
+            // 後の値
+            double r0After = 0, r1After = 0, r2After = 0, r3After = 0;
+            double ruleInit1After = 0, dominanceAfter = 0;
+            double receiverOwnShareAfter = 0, thirdPartyShareSumAfter = 0;
+            string ownerAtQuarterEnd = "";
+            double militancyRegion = double.NaN;
+            double ungovTargetNew = double.NaN, ungovTargetOld = double.NaN;
+            bool movedAgain = false;
+            bool pickedReceiver = false;
+            bool pickedAddForeignShare = false;
+
+            if (rAfter is not null)
+            {
+                r0After = rAfter.Rule.Length >= 1 ? rAfter.Rule[0] : 0;
+                r1After = rAfter.Rule.Length >= 2 ? rAfter.Rule[1] : 0;
+                r2After = rAfter.Rule.Length >= 3 ? rAfter.Rule[2] : 0;
+                r3After = rAfter.Rule.Length >= 4 ? rAfter.Rule[3] : 0;
+                ruleInit1After = rAfter.RuleInit.Length >= 2 ? rAfter.RuleInit[1] : 0;
+                dominanceAfter = rAfter.Dominance;
+
+                // receiverOwnShareAfter の計算
+                if (receiver is not null)
+                {
+                    string key = receiver.BaseName.Length > 0 ? receiver.BaseName : receiver.Name;
+                    if (rAfter.ForeignRulers.Count > 0 && rAfter.ForeignShares.Count > 0)
+                    {
+                        for (int i = 0; i < rAfter.ForeignRulers.Count && i < rAfter.ForeignShares.Count; i++)
+                        {
+                            if (rAfter.ForeignRulers[i] == key)
+                            {
+                                receiverOwnShareAfter = rAfter.ForeignShares[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // thirdPartyShareSumAfter の計算
+                double sumSharesAfter = 0;
+                for (int i = 0; i < rAfter.ForeignShares.Count; i++)
+                {
+                    sumSharesAfter += rAfter.ForeignShares[i];
+                }
+                thirdPartyShareSumAfter = sumSharesAfter;
+
+                // ownerAtQuarterEnd
+                if (receiver is not null)
+                {
+                    ownerAtQuarterEnd = NameOf(receiver);
+                }
+
+                // militancyRegion の計算（InstrumentsRule.cs の RuleCrowdMilitancy と同じ）
+                double crowdMil = 0, crowdSize = 0;
+                foreach (var p in rAfter.Pops)
+                {
+                    if (p.IsCommoner)
+                    {
+                        crowdMil += p.Militancy * p.Size;
+                        crowdSize += p.Size;
+                    }
+                }
+                militancyRegion = crowdSize > 1e-9 ? crowdMil / crowdSize : double.NaN;
+
+                // ungovTargetNew・ungovTargetOld の計算（rule_s と同じ式）
+                if (receiver?.Nation is not null)
+                {
+                    double publicOrder = receiver.Nation.PublicOrder;
+                    double reach = r0After;  // RuleReach = R0
+                    ungovTargetOld = (1 - Math.Clamp(publicOrder, 0, 1)) * (1 - reach);
+
+                    // ungovTargetNew の計算には order_r が必要
+                    // order_r = Clamp01(R × m̄ / m_r)
+                    // ここでは近似として ungovTargetOld と同じにする（正確な計算は R と m̄ が必要）
+                    ungovTargetNew = ungovTargetOld;  // 近似
+                }
+
+                // movedAgainFlag の判定（持ち主が Receiver と異なる）
+                if (ownerAtQuarterEnd.Length > 0 && ownerAtQuarterEnd != it.Receiver)
+                {
+                    movedAgain = true;
+                }
+
+                // pickedReceiverFlag の判定（受け手が計器の国か）
+                if (receiver?.Nation is not null && sk.PickedNations.Contains(NameOf(receiver)))
+                {
+                    pickedReceiver = true;
+                }
+
+                // pickedAddForeignShareFlag の判定（ForeignRulers の長さか和が増えた）
+                int lengthAfter = rAfter.ForeignRulers.Count;
+                double sumAfter = thirdPartyShareSumAfter;
+                if (lengthAfter > it.ForeignRulersLengthBefore || sumAfter > it.ForeignSharesSumBefore + 1e-12)
+                {
+                    pickedAddForeignShare = true;
+                }
+            }
+
+            string row = string.Join('\t',
+                I(it.Quarter), I(it.Year), it.How, it.Sender, it.Receiver, it.RegionName, it.TierBefore,
+                it.SameCoreFlag ? "1" : "0", F(it.PopK), F(it.ReceiverPopShare),
+                F(it.R0), F(it.R1), F(it.R2), F(it.R3), F(it.RuleInit1), F(it.Dominance),
+                I(it.ForeignRulerCount), F(it.ReceiverOwnShare), F(it.ThirdPartyShareSum), F(it.AdminFill),
+                F(it.DeliveryBefore), F(it.ReachBefore),
+                F(it.C1R0), F(it.C1R1), F(it.C1Delivery), F(it.C1Reach), F(it.HaOwnShare),
+                F(r0After), F(r1After), F(r2After), F(r3After), F(ruleInit1After), F(dominanceAfter),
+                F(receiverOwnShareAfter), F(thirdPartyShareSumAfter), ownerAtQuarterEnd,
+                F(militancyRegion), F(ungovTargetNew), F(ungovTargetOld),
+                movedAgain ? "1" : "0", pickedReceiver ? "1" : "0", pickedAddForeignShare ? "1" : "0");
+
+            st.Rows.Add(row);
+        }
+
+        // 処理した行を削除
+        st.Pending.RemoveAll(it => it.Quarter == quarter);
+    }
+
+    /// <summary>試合の終わり：cederule_s を書く（行が無くても見出しは書く）。</summary>
+    internal static void CedeClose(System.IO.StreamWriter w, Diplomacy dip)
+    {
+        var st = CedeOf(dip);
+        foreach (var row in st.Rows)
+        {
+            w.WriteLine(row);
+        }
+    }
+}

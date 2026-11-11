@@ -1,0 +1,6 @@
+A=D:/PoB_work/m975_work/out_amt0_10/ins
+B=D:/PoB_work/m975_work/out_mM_10/ins
+共通 1180 本・バイト一致 1150・違い 30
+  違い burscan 10
+  違い clock 10
+  違い pinit 10

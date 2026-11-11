@@ -1,0 +1,35 @@
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+public class Probe854c
+{
+    private readonly ITestOutputHelper o;
+    public Probe854c(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Workers()
+    {
+        foreach (int stage2 in new[] { 0, 1 })
+        {
+            var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
+            foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = stage2;
+            long examined = 0, differ = 0, basisPos = 0, productivityWorkers = 0;
+            for (int q = 0; q < 120; q++)
+            {
+                sim.StepQuarter();
+                foreach (var n in sim.Nations)
+                    foreach (var r in n.World.Regions) foreach (var p in r.Pops)
+                    {
+                        if (p.ClassId != PopClass.Worker || p.IsSoldier || !(p.Size > 0)) continue;
+                        examined++;
+                        double oldv = PoliticalQuantities.Clamp01(p.SubsistenceShare);
+                        double newv = PoliticalQuantities.Clamp01(p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity ? p.SubsistenceShare : p.SubsistenceBasis);
+                        if (BitConverter.DoubleToInt64Bits(oldv) != BitConverter.DoubleToInt64Bits(newv)) differ++;
+                        if (p.SubsistenceBasis != 0) basisPos++;
+                        if (p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity) productivityWorkers++;
+                    }
+            }
+            o.WriteLine($"PROBE stage2={stage2} quarters=120 examined={examined} differ={differ} basisPos={basisPos} productivityWorkers={productivityWorkers}");
+        }
+    }
+}

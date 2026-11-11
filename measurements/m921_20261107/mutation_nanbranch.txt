@@ -1,0 +1,9 @@
+== M1_暴力かどうかを見ない: RED
+   失敗 PriceOfBread.Tests.CoupGateNanMarkTests.経路5で非暴力の縁だけ印が1 [2 s]
+   失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M2_試験の経路を 4 にする: RED
+   失敗 PriceOfBread.Tests.CoupGateNanMarkTests.経路5で非暴力の縁だけ印が1 [1 s]
+   失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M5_経路 5 を 4 に取り違える: RED
+   失敗 PriceOfBread.Tests.CoupGateNanMarkTests.経路5で非暴力の縁だけ印が1 [2 s]
+   失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

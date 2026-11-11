@@ -1,0 +1,51 @@
+(836) c67pu の作業の場所と読む生の一覧・読みの事前登録（cpop_s の出力を見る前に固定する・2026-11-04・担当 Claude Opus 5.5）
+
+【作業の場所】
+- worktree D:/PoB_work/wt_c67pu・枝 c67pu（f32502c3 から・ローカルのコミットだけ・push しない）
+- 作業フォルダ D:/PoB_work/r836_work（台本・表・下書き＝合流が写す）
+- 隔離ビルド D:/PoB_work/c67pu_art・ident の作業フォルダ D:/PoB_work/ident_c67pu・突然変異の木 D:/PoB_work/c67pu_mut
+- この回に作るフォルダはこの 5 つだけ（消すのもこの 5 つだけ）
+
+【読む生】
+- 基準の計器の生：D:/PoB_work/keep_832/base_ins/cgrp_s*.tsv・cearn_s*.tsv（読むだけ）
+- (829) の出来事と対照：measurements/m829_20261104/read/events.tsv（15 件）・controls.tsv（282 行）
+- 新しい表 cpop_s：ident c67pu の計器つき 10 種の生（D:/PoB_work/ident_c67pu/out_ib_10/…/cpop_s<種>.tsv）
+- 腕は足さない（ident の b の腕の生だけを読む）
+
+【cpop_s の行と列（計器の仕様）】
+- 行＝四半期の末に格が Colonial の州×その州の POP（州の Pops の並び・人数 0 の POP も書く）。cgrp_s と同じ Sav の口（CearnSav）で同じ列へ POP の台帳にも足す。
+- 列：識別（quarter・year・nation・region・popIndex・classId・className・group）・人数・四半期の始まりの在庫（未登録なら nan）・末の在庫・流入 7 列・流出 9 列（cgrp_s と同じ名）・残差・遅れの印・
+  月の窓（monthsClosed・月初の和・月末の和・窓の和・月の残差の和）・精算の内訳（所得の和・その中の地代と工業レント・支払いの和・自給の値の和）・請求（人頭税・所得税の上界）・
+  月の数え（請求の立つ月・空の印の月・月初が正で begin≧claim の月・その中の空の印・その中の止まった月の 6 区分）・四半期の末の断面（失業率・自給率・主食の充足・賃金の行の数と能力と DesiredOutput と産出と売上の和・能力が最大の賃金の行の財・能力・DesiredOutput・産出・値段・MarginalCost・売上・費用・地代の行の数と売上の和）・群の和の確かめ（州×群の POP の和−cgrp_s の群の値＝在庫と流れの 2 列）。
+- ProfitFactor はエンジンの関数を呼ばず、供給の段が書いた DesiredOutput÷Capacity で読む（EconomyStep.cs:977 の DesiredOutput＝Capacity×profitFactor）。
+- 支払った税の種類（人頭税と所得税）は Sav の口では分けられない（Fiscal.cs の国庫への移しは 1 本）＝払った額は outTax の 1 列・人頭税と所得税は計器が自分で書く請求の式（cgrp_s と同じ）。
+- 自給の〈量〉は POP ごとに貯まる欄が無い（州の LastSubsistenceOutput だけ）＝POP の列は自給の値 SubsistenceValuePerMonth の月の和と自給率 Subsistence。
+
+【R1 の述語（固定）】〈人数がほぼ 0 の POP に在庫が止まる〉
+- 母集合＝(829) の出来事 15 件の州×窓（入りの四半期 onsetQ の前 8 四半期＝onsetQ−8〜onsetQ−1）の POP×月のうち、月初の在庫 begin が正で begin≧claim（claim＝人頭税の請求＋所得税の上界・0 を含む）。
+- 〈止まった月〉＝|end−begin| ≦ 0.001×begin（計器の物差し CpStuckShare）。
+- 振り分け（排他・この順）：①口の外＝|end−begin−窓の和| ＞ 1e-9×max(1,|begin|+|end|+|窓の和|)／②請求 0 かつ 所得 0（窓の中の精算の所得 0）／③請求 0／④所得 0／⑤払っていない（請求は立つが窓の中の outTax が 0）／⑥その他。
+- 〈人数がほぼ 0〉＝その POP の人数÷州の人数 ＜ 0.01（四半期の末）。表は〈ほぼ 0〉と〈人の居る〉の 2 つに分けて、在庫の割合・止まった月の割合と 6 区分を出す。
+- 空の印は母集合の中で請求が正の月だけを数える（(829) 反証役の直し）。
+- 対照＝controls.tsv の同じ種・同じ国の凍らない植民地格の州・同じ窓。
+
+【R2 の述語（固定）】〈人の居る POP の所得が 0〉
+- 母集合＝同じ出来事の州×窓の POP×四半期のうち、人数÷州の人数 ≧ 0.01。
+- 〈所得 0〉＝四半期の精算の所得の和 ≦ 1e-9×max(1, 四半期の始まりの在庫)。
+- 所得 0 の POP の賃金の行：行が無い／行はあるが能力 0／能力が正で DesiredOutput 0（採算の率 0）／DesiredOutput が正で産出 0／産出が正で売上 0 の 5 区分（排他・この順）。
+- 採算の率 0 の行について、州の値段の乗数が RegionalPriceLevelMin（0.7）の床にいるか（cearn_s の localPriceAtFloorFlag を同じ種・四半期・州で引く）＝(825) 材料 B-8 の鎖〈ProfitFactor＝0・RegionalPriceLevelMin 0.7〉に当たるか。
+- 対照＝R1 と同じ。
+
+【結論の形】
+- 問いの表 → 根の候補＝ソースの行の表まで。挙動の形の素案は根が 1 本に読めたときだけ（両側の門・旗 0 で落ちる確かめ・突然変異の表つき）。
+
+【cgrp_s の穴】
+- M9〈POP を群の台帳から落とす〉＝試験 G1 と新しい G5 が保存の残差で赤を予言。
+- 清・朝鮮の州の最初の四半期の閉じない行（種 7 清 マレー Q103）＝cpop_s で 1 件読み、口を通らない書き込みの場所をソースの行まで。
+- 基準の生で既に分かったこと（cpop_s の前・cearn_s で確かめた）：マレーは種 7 の Q102 までどの国の州にも無く Q103 に清の州として現れる（州の数 309→310）・cearn_s の Q103 の savingsStart は nan・Q104 の lateRegisteredPops 13。
+
+【突然変異（cpop_s・保存の残差で赤を予言）】
+- P1 POP の振り分けを入れ替える（書き込みを州の次の POP の台帳へ）→ G5（POP の残差・群の和）赤
+- P2 人数 0 の POP を落とす（行を書かない）→ G5（群の和の確かめ・行の数）赤
+- P3 月初を月末で読む（月の窓の始まりを月の終わりの在庫で）→ G5（月の残差）赤
+- M9（cgrp_s）→ G1 と G5 赤

@@ -1,0 +1,9 @@
+# (937) gate937 D:/PoB_work/ident_c82ltz/out_ib_10/ins・種 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]・landfix_s のファイル 10・行 416779
+G7 凍結の事象（名簿の国×種・開幕の四半期〔助走の後の最初の月〕で事象 1 かつ助走の月の差分の破れ 0）＝0（床 20）
+G4 掛けない（名簿の国の lbOverBasePopMonths の和）＝1.01992e+06（0 で通る）
+G8a 実装の点検（名簿の国の lbAdjBreakPopMonths の和）＝1.22936e+06（0 で通る）
+G8b 凍結の不変（lbFrozenInvariantBreak・lbFrozenCopyNoEngine・lbFrozenForeignEngine の和）＝0・7.48545e+06・0（全て 0 で通る）・記録：名簿の外の国の lbFrozenForeignEngine＝0
+G8c 働いた イギリス：|log(エンジンの基数÷地代)| の中央 0.0000（行 6680）窓 [0.1386, 0.6773] → 外・記録：計器の写しの |log B| の中央 0.1435（行 6680）
+G8c 働いた 清：|log(エンジンの基数÷地代)| の中央 0.0000（行 6680）窓 [0.2555, 1.1409] → 外・記録：計器の写しの |log B| の中央 0.5099（行 6680）
+Gi（記録）：landPaidOverClaimAtTax＞1+1e-9 の行 0／比のある行 416470（全ての国）
+GATES FAIL G7,G4,G8a,G8b,G8c:イギリス,G8c:清

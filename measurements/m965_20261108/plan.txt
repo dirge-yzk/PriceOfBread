@@ -1,0 +1,12 @@
+(965) c86ex 読む線・腕 0 本・盤面 m961・コミットしない
+作業の場所: D:/PoB_work/r965_work/（worktree と枝は作らない＝main の作業ツリー bbc55c0d を読むだけ）
+読む生（keep_961＝m961・消さない・動かさない）:
+  D:/PoB_work/keep_961/base_ins（種 1〜10）・n1・n2（ヌル腕）・a11（種 11〜20）
+  表: region_s（区間の定義＝deadreg916 と同じ・産出・人口・格・foodFill）
+      cearn_s（inExportPerQuarter・savings・staple/top1-3 の値段と自己費用・localPriceMultiplier・regionPriceLevel・costPriceLevel・belowSelfCostShare・frozenFlag）
+      trroute_s（年×売り手州×買い手州・上位 3000 組＋残り 1 行＝計器の窓の限界）
+      subst_s（farmSold/Produced）・landbasereg_s（持ち主）・port_s（港）
+台本: D:/PoB_work/r965_work/read965*.py・出力 D:/PoB_work/r965_work/out/
+下書き: D:/PoB_work/r965_work/20261108_植民地格の州の輸出が閉じる根_読み_盤面m961_下書き.md
+問い: 1 区間の数え直し（m931 と並べる）2 輸出 0 と産出 0 の順 3 閉じた四半期の前後 4 0 でない植民地格の州・ヌル腕の幅 5 想定か欠損か・素案
+ソース: InstrumentsCearn.cs:93・BilateralMarket.cs の売り手の選び（:726〜:744）・EconomyStep.cs:1580〜:1649・:1106〜:1122・Simulation.cs PromoteColonyToRegion

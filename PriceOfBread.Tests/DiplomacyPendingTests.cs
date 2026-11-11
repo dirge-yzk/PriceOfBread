@@ -239,7 +239,7 @@ public class InvadeInstrumentTests
                 header = lines[0].Split('\t');
                 rows.Add(lines[1].Split('\t'));
                 Assert.Equal(2, lines.Length);   // 侵略 1 回＝データ行 1
-                Assert.Equal(7, header.Length);
+                Assert.Equal(8, header.Length);   // (1023) q の列を足した（c95wn）＝★(743) ②
             }
             int iNat = Array.IndexOf(header, "targetIsNation"), iSub = Array.IndexOf(header, "submitted"), iAdd = Array.IndexOf(header, "proximityAdded"), iAddT = Array.IndexOf(header, "addedToTarget");
             Assert.True(iNat >= 0 && iSub >= 0 && iAdd >= 0 && iAddT >= 0, "表の列の名前が足りない");

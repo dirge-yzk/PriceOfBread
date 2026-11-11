@@ -1,0 +1,18 @@
+# (876) 旗 1 のフルスイート（木 e45fc26e＝点火＋c73tc の merge・suite876.sh full・2026-11-06）
+list nonfull 2317
+list full 3
+nonfull rc=1 1292s
+full rc=0 203s
+失敗!   -失敗:     4、合格:  2312、スキップ:     1、合計:  2317、期間: 21 m 26 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 21 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [8 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3133384) [< 1 ms]
+  失敗 PriceOfBread.Tests.RouteKmTests.陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる [4 s]
+   xmig_s の行が 9＝越境の移民が起きた対照が無い
+中止の行 0（suite_nonfull・suite_full とも〈中止〉〈aborted〉0 行）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 279・その月の額の和 2.758E+05
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c73ip_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c73ip_work/suite/leakhunt.txt.manifest（SOURCE-HASH=3630a0440ce4aa79）
+SL-END 06:52:20

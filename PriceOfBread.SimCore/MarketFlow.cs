@@ -99,6 +99,8 @@ public static class MarketFlow
         bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
         bool closedWage = h > 1 && lnFloorWage > Eps && lnCeilWage > Eps;
         long nSteps = 0, nClosedL = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
+        long kLabor = 0, kSvcD = 0, kGoodsD = 0, kRunL = 0, kRunS = 0, kRunG = 0;   // (1024) 計器 K2 pxstep_s の枝ごとの層の総数と日次の日数（無条件の整数の加算＝読みは増えない・nStep1 などは層をまたいで共用なので別に持つ）
+        bool insOn = Instruments.On;   // (1024) この関数の計器の門は 1 回だけ読む（下の LwStep の呼び口と終わりの PxStep の呼び口が使う）
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
@@ -149,7 +151,7 @@ public static class MarketFlow
                     // 持続失業（超過供給）では目標がじわじわ下がり留保賃金も遅れて切り下がる＝名目賃金は下がりにくいが永久には張り付かない。
                     // ★旬次（A3）：労働（3財＝生きた財の約3%）は初回は閉じた式を使わない＝日次の写像を h 回（打ち切りつき）＝旬の終わりの賃金と
                     //   留保賃金（＝失業）は日次と一致する。Rise/Fall は1日あたりの定数（÷div しない）なので、閉じた式にするなら相ごとの形が要る（設計 §2）。
-                    // ★(459) 線 lw：最低賃金法の床（その州の労働者の生活費・名目の絶対値）。法が None（既定・MinimumWageLawGate＝0 では動かない）のときは 0＝下の分岐に入らない＝旧と1ビットも変わらない。
+                    // ★(459) 線 lw：最低賃金法の床（その州の労働者の生活費・名目の絶対値）。法が None（既定）のときは 0＝下の分岐に入らない（門の係数 MinimumWageLawGate は (843) で焼き込み済み＝法は常に動きうる）。
                     //   帯の外（SoftBand の後）で下から切る＝帯の錨（参照価格 wrp）に依らず、床が錨より高くても帯が退化しない。⚠前計算の lnFloorWage は教育・医療の役務の枝も読む＝書き換えない。
                     double mwFloor = 0;
                     if (minWage != MinimumWageLaw.None && MinimumWageFloor.Applies(minWage, gi))
@@ -159,7 +161,7 @@ public static class MarketFlow
                     }
                     // ★(469) 線 mw：帯の下側（WageClampMin）の撤去。ゲート 1（既定）で撤去・0 では下の分岐に入らない＝旧と1ビットも変わらない。教育・医療の役務の枝は別の枝＝触らない。
                     bool bandFloorOff = coef.LaborBandFloorOffGate > 0;
-                    bool laborClosed = h > 1 && bandFloorOff && coef.LaborClosedForm > 0;   // ★(spb) 案 B（係数 LaborClosedForm の注）
+                    bool laborClosed = h > 1 && bandFloorOff;   // ★(spb) 案 B（旗 LaborClosedForm は (843) で焼き込み＝閉じた式は常に使う）
                     double P = m.Price, RW = m.ReservationWage;
                     int run = 0;
                     while (run < h)
@@ -169,7 +171,7 @@ public static class MarketFlow
                         double rw = RW;
                         if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
                         double rwSpeed = target >= rw ? coef.ReservationWageRisePerDay : coef.ReservationWageFallPerDay;
-                        rw += (target - rw) * rwSpeed;
+                        rw = PoliticalQuantities.Toward(rw, target, rwSpeed);
                         double want = System.Math.Max(target, rw);
                         double p1 = bandFloorOff && want < wrp
                             ? System.Math.Max(want, Eps)   // ★(469) 帯の下側を外す＝参照より下は漸近形を通さない（下限は Eps だけ・参照 wrp で連続＝SoftBandLn(wrp)＝wrp）
@@ -188,9 +190,9 @@ public static class MarketFlow
                     }
                     m.ReservationWage = RW;
                     m.Price = P;
-                    if (Instruments.On) Instruments.LwStep(region, gi, P, mwFloor);   // ★(481) 計器（読むだけ）：書いた直後の値段とそのとき使った床（labor_s の N2 の診断）
+                    if (insOn) Instruments.LwStep(region, gi, P, mwFloor);   // ★(481) 計器（読むだけ）：書いた直後の値段とそのとき使った床（labor_s の N2 の診断）
                     if (h == 1) nStep1++; else nLabor++;
-                    nRun += run; nSkip += h - run;
+                    nRun += run; nSkip += h - run; kLabor++; kRunL += run;
                 }
                 else
                 {
@@ -215,8 +217,8 @@ public static class MarketFlow
                     }
                     else if (h == 1) nStep1++;
                     else nHard++;
-                    if (closedWage && coef.ServiceClosedFixedPoint > 0 && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc, coef.ServiceClosedMaxCurv))
-                    {   // ★(spa) A′ 役務の不動点の閉じた式（係数 ServiceClosedFixedPoint の注）＝日次の写像を回さない
+                    if (closedWage && ServiceClosed(P0, wrp, adj, lnFloorWage, lnCeilWage, k, h, out double psc, coef.ServiceClosedMaxCurv))
+                    {   // ★(spa) A′ 役務の不動点の閉じた式（旗 ServiceClosedFixedPoint は (843) で焼き込み）＝日次の写像を回さない
                         m.Price = psc;
                         nClosedS++;
                         continue;
@@ -232,7 +234,7 @@ public static class MarketFlow
                         if (still) break;
                     }
                     m.Price = P;
-                    nRun += run; nSkip += h - run;
+                    nRun += run; nSkip += h - run; kSvcD++; kRunS += run;
                 }
             }
             else
@@ -306,9 +308,10 @@ public static class MarketFlow
                     if (still) { if (pinned) m.FlowAsleep = true; break; }   // ★張り付いた財が不動点に着いた＝月の残りの旬は眠る（上の remarks）
                 }
                 m.Price = P;
-                nRun += run; nSkip += h - run;
+                nRun += run; nSkip += h - run; kGoodsD++; kRunG += run;
             }
         }
+        if (insOn) Instruments.PxStep(region, live.Length, nSteps, nAsleep, kLabor, nClosedS, kSvcD, nClosedG, nClosedP, kGoodsD, kRunL, kRunS, kRunG);   // (1024) 計器 K2（読むだけ）：枝ごとの件数を州の蓄えへ
         if (cost is not null) cost[CostLedger.PriceGoods] += live.Length - nAsleep;   // 計算量の台帳（診断）：この州で回した財（死んでいない財のうち眠っていない財）
         if (cost is not null) cost[CostLedger.PriceDailyRuns] += nRun;   // 計算量の台帳（診断）：日次の写像をまわした回（役務・労働・帯の端の財）
         if (MultiNationSim.TimeOn)
@@ -379,22 +382,7 @@ public static class MarketFlow
         return u / L;
     }
 
-    /// <summary>★張り付いた財の閉じた式（2026-09-30 (132) 計算量の予算・近似・作者裁定「起きている物だけ回す」）。
-    /// 供給も在庫も無く参照の20倍より上に張り付いた財（pinned・帯の端＝ndist が1＝amp が一定）の日次の写像は、SoftBand の正規化距離 t＝ln(P/rp)/L の上で
-    /// **一定の平行移動と飽和** T(t)＝S(t＋c)（c＝ln(1＋y)/L・S(x)＝x/(1＋x^k)^(1/k)）になる＝y は需給差の欠けの桁でしか価格に依らない。
-    /// ⇒ 不動点 t*（S(t*＋c)＝t*・ニュートン法）と、そのまわりの縮み ρ＝S′(t*＋c)（約0.71/日）で、h 日後の距離を閉じた式で出す：
-    /// 2次のケーニヒスの線形化 φ(e)＝e＋A·e²（A＝S″/(2ρ(1−ρ))）で φ(e_h)＝ρ^h·φ(e_0)。
-    /// 旧（S3b）＝日次の写像を最大 h 回（1日 約6回の超越関数）＝張り付いた財が四半期の境で物価水準の跳びへ戻る約50日と、月の境で需要が変えた不動点へ寄る日数の分を
-    /// 毎日まわした（census＝日次の回の41%）。
-    /// 使うのは①歩の始めが帯の端（u0≧PriceAmpLnScale）②不動点も帯の端 ③歩の始めの不動点からの対数の距離が <see cref="PinnedClosedMaxDev"/> 未満
-    /// ④需給差の欠けが <see cref="PinnedClosedMaxDeficit"/> 未満 ⑤ニュートン法が収束した、のときだけ（false＝呼び手は日次へ落とす）。
-    /// 誤差の上界（census）＝日次に対して最大 2.5e-5（相対）。<paramref name="atRest"/>＝次の1日の動きが <see cref="PinnedTol"/> を切る（日次の打ち切りと同じ判定＝月の残りを眠る印）。
-    /// ⚠ 否定形で判定する＝NaN は必ず日次へ落ちる。状態を持たない（局所変数だけ）＝並列の日次相でも決定的。</summary>
-    /// <summary>★(spa) A′ 役務の不動点の閉じた式（係数 <see cref="Coefficients.ServiceClosedFixedPoint"/>）。日次の写像 p′＝SoftBandLn(p·(1＋adj)) は、値段が参照の同じ側にいる間
-    /// t＝ln(p/rp)/L の上で T(t)＝S(t＋c)（c＝ln(1＋adj)/L・S(x)＝x/(1＋x^k)^(1/k)・L＝その側の帯の対数）＝<see cref="PinnedClosed"/> と同じ形（役務は amp を持たない＝c は値段に依らない）。
-    /// 床の側（adj＜0）は符号を返して同じ式で解く。使うのは ①値段と平行移動が参照の同じ側（u0·c≧0＝参照をまたがない＝L が変わらない）②不動点が収束し同じ側
-    /// ③不動点からの対数の距離 &lt; <see cref="PinnedClosedMaxDev"/> ④2次の項 |A·e0| &lt; <paramref name="maxCurv"/>（係数 <see cref="Coefficients.ServiceClosedMaxCurv"/>）のときだけ（false＝呼び手は日次へ落とす）。状態を持たない。⚠ 否定形で判定する＝NaN は日次へ。</summary>
-    /// <summary>★(spb) 案 B 労働の閉じた式（係数 <see cref="Coefficients.LaborClosedForm"/>）。旬の1日目を日次で回した後の値段 P1・留保賃金 RW1 から、残りの n 日を進めた値段（＝留保賃金）を返す。
+    /// <summary>★(spb) 案 B 労働の閉じた式（旗 LaborClosedForm は (843) で焼き込み）。旬の1日目を日次で回した後の値段 P1・留保賃金 RW1 から、残りの n 日を進めた値段（＝留保賃金）を返す。
     /// 参照より下（帯の床を外した側）で向きが変わらないときの日次の写像は等比：①品薄 adj≧0（Rise＝1）＝目標 P(1＋adj) が毎日留保賃金以上＝P_n＝P1·(1＋adj)^n
     /// ②品余り adj＜0（0＜Fall＜1）＝2 日目から値段は留保賃金に座り rw←rw(1＋Fall·adj)＝P_n＝rw2·(1＋Fall·adj)^(n−1)。
     /// 単調なので〈参照をまたがない〉〈法の床・Eps に届かない〉は端の日だけ見れば足りる。確かめられなければ false（呼び手は日次を続ける）。⚠否定形で判定する＝NaN は日次へ。状態を持たない。</summary>
@@ -423,6 +411,10 @@ public static class MarketFlow
         P = p; return true;
     }
 
+    /// <summary>★(spa) A′ 役務の不動点の閉じた式（旗 ServiceClosedFixedPoint は (843) で焼き込み）。日次の写像 p′＝SoftBandLn(p·(1＋adj)) は、値段が参照の同じ側にいる間
+    /// t＝ln(p/rp)/L の上で T(t)＝S(t＋c)（c＝ln(1＋adj)/L・S(x)＝x/(1＋x^k)^(1/k)・L＝その側の帯の対数）＝<see cref="PinnedClosed"/> と同じ形（役務は amp を持たない＝c は値段に依らない）。
+    /// 床の側（adj＜0）は符号を返して同じ式で解く。使うのは ①値段と平行移動が参照の同じ側（u0·c≧0＝参照をまたがない＝L が変わらない）②不動点が収束し同じ側
+    /// ③不動点からの対数の距離 &lt; <see cref="PinnedClosedMaxDev"/> ④2次の項 |A·e0| &lt; <paramref name="maxCurv"/>（係数 <see cref="Coefficients.ServiceClosedMaxCurv"/>）のときだけ（false＝呼び手は日次へ落とす）。状態を持たない。⚠ 否定形で判定する＝NaN は日次へ。</summary>
     internal static bool ServiceClosed(double P0, double rp, double adj, double lnFloor, double lnCeil, double k, int h, out double P, double maxCurv = 0.05)
     {
         P = P0;
@@ -461,6 +453,17 @@ public static class MarketFlow
     }
 
 
+    /// <summary>★張り付いた財の閉じた式（2026-09-30 (132) 計算量の予算・近似・作者裁定「起きている物だけ回す」）。
+    /// 供給も在庫も無く参照の20倍より上に張り付いた財（pinned・帯の端＝ndist が1＝amp が一定）の日次の写像は、SoftBand の正規化距離 t＝ln(P/rp)/L の上で
+    /// **一定の平行移動と飽和** T(t)＝S(t＋c)（c＝ln(1＋y)/L・S(x)＝x/(1＋x^k)^(1/k)）になる＝y は需給差の欠けの桁でしか価格に依らない。
+    /// ⇒ 不動点 t*（S(t*＋c)＝t*・ニュートン法）と、そのまわりの縮み ρ＝S′(t*＋c)（約0.71/日）で、h 日後の距離を閉じた式で出す：
+    /// 2次のケーニヒスの線形化 φ(e)＝e＋A·e²（A＝S″/(2ρ(1−ρ))）で φ(e_h)＝ρ^h·φ(e_0)。
+    /// 旧（S3b）＝日次の写像を最大 h 回（1日 約6回の超越関数）＝張り付いた財が四半期の境で物価水準の跳びへ戻る約50日と、月の境で需要が変えた不動点へ寄る日数の分を
+    /// 毎日まわした（census＝日次の回の41%）。
+    /// 使うのは①歩の始めが帯の端（u0≧PriceAmpLnScale）②不動点も帯の端 ③歩の始めの不動点からの対数の距離が <see cref="PinnedClosedMaxDev"/> 未満
+    /// ④需給差の欠けが <see cref="PinnedClosedMaxDeficit"/> 未満 ⑤ニュートン法が収束した、のときだけ（false＝呼び手は日次へ落とす）。
+    /// 誤差の上界（census）＝日次に対して最大 2.5e-5（相対）。<paramref name="atRest"/>＝次の1日の動きが <see cref="PinnedTol"/> を切る（日次の打ち切りと同じ判定＝月の残りを眠る印）。
+    /// ⚠ 否定形で判定する＝NaN は必ず日次へ落ちる。状態を持たない（局所変数だけ）＝並列の日次相でも決定的。</summary>
     private static bool PinnedClosed(double P0, double rp, double u0, double demandRaw, double supply, double gap, Coefficients coef, double div, double L, double k, int h,
                                      out double P, out bool atRest)
     {

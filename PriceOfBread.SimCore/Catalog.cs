@@ -327,6 +327,10 @@ public static class Catalog
         _ => 0.0,                                         // 屋内養蚕・鉱物・製造・役務
     };
 
+    /// <summary>★(1020) c95ub 遍在の財（石灰石・珪砂・粘土）＝どこでも採れる鉱物。旗 <see cref="Coefficients.UbiquitousMineralExempt"/> が正のときだけ真
+    /// （非産地の 0.4 を受けない＝播種の 2 か所〔本国の州・植民地の昇格〕と計器 recipeout_s の級がこの 1 本を呼ぶ）。旗 0（と NaN）では常に偽。</summary>
+    public static bool IsUbiquitousMineral(int id, Coefficients c)
+        => c.UbiquitousMineralExempt > 0 && id is LimestoneId or SilicaSandId or ClayId;
     /// <summary>希少鉱物（2026-08-13・doc 20260812_財の3分類と地理ゲート／作者裁定⑥）＝**産地でしか採れない**財。
     /// 硫黄5・金4・銀120・クロム98・錫鉱117・硝石118 の6財。原油は対象外（裁定⑥）。
     /// 石炭・鉄のような遍在鉱物は含めない＝「どこでも少しは採れる」のが正しいため。</summary>

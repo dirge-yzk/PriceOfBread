@@ -1,0 +1,105 @@
+(829) c66cg 植民地格の州の階級の群の表 cgrp_s（cearn_s の続き）と、仮説〈定額の請求が払う群の貯蓄を毎月空にする〉の読みの事前登録（波66・恒等の線＋読み・枝 c66cg・4e7fd41f から・書いたモデル Claude Opus 5.5）
+この文書は計器を書く前・腕を回す前の最初のコミット。結果を見た後にここを書き換えない（書き換えるなら〈結果の後の変更〉と名乗る）。
+作者「全て推奨で」で推奨を採って進める（承認の言葉ではない）。全ての門・閾値・窓は AI の案（確証なし）。
+
+■ [0] 腕の前に cearn_s だけで読んだこと（群の表はまだ無い＝群の表は読んでいない）
+  - 指示の〈出来事 6〉（onset.tsv＝(822) の m797 の軌道：セントマイケル 種4・ロレート・イキトス・カルメン・デ・パタゴネス・パラワン・チロエ 種10）は **m826 の軌道に 1 つも残っていない**。
+    keep_826/base_ins の cearn_s で、種 4 と 種 10 の frozenFlag が 8 四半期以上ある州は アラスカ（種4・88）と カナダ（種10・25）だけ＝6 州の凍結は m826 の種 4・10 では起きない。
+    m826 は c65fl（払えない利札）と c65op（アヘン）で軌道が動いた＝同じ州の凍結は別の種へ移った（ロレート・パラワン 種7、チロエ・パタゴネス・ロレート 種8、セントマイケル 種5 ほか）。
+  - そこで出来事を m826 の生で選び直す（規則は (822) の選び方と同じ形・台本 scripts/instruments/c66cg/pre_events826.py・表 measurements/m829_20261104/pre_events826.tsv）：
+    州×種ごとに frozenFlag＝1 の最長の連続（四半期の番号が 1 ずつ続く）が 40 四半期以上の州を挙げ、入り Q0＝その連続の最初の四半期、
+    入りの前 8 四半期（Q0−8〜Q0−1）の主の出口（outTax・outBond・outDues・outColonialRent・outCapital・outImport・outMigration・outOther と市場の純の出口 max(0, Σ(outMarket−inMarket)) の最大）が outTaxPerQuarter で、前の 8 四半期が揃う州＝出来事。
+    結果＝最長の連続 40 以上が 18 州・そのうち主の出口が outTax の **出来事 15**（種1 クイアバ・マナウス／種3 フォートユーコン／種4 アラスカ／種5 セントマイケル／種7 サンタフェ・サンボアンガ・ヌエバ・グラナダ・パラワン・レオン・ロレート／種8 カルメン・デ・パタゴネス・サンタフェ・チロエ・ロレート）。
+    主の出口が outImport の 3 州（種1 ゴイアス・種6 フォートユーコン・種8 エルパソ）は出来事ではない（記録）。
+  - 指示の〈6 のうち 4 以上〉（2/3）を同じ割合で写す＝**出来事 15 のうち 10 以上**。
+
+■ [1] 恒等の線・予言 0
+  挙動を変えない。計器の表を 1 本足す（cgrp_s）・cearn_s に環境変数の門を足す（既定は書く＝基準の表は変わらない）。
+  エンジンの行に足すのは計器の呼びの 1 行だけ（Instruments.MonthClose の頭・下の [2]）。係数・状態・乱数・浮動小数の順序の変更 0（エンジンの式に触れない＝紙の台本で数える食い違い 0）。
+  推定の計算量の割り当て 0 秒（.cost の推定が一致することを ident で確かめる）。
+
+■ [2] 足す物・消す物・残す物（読み手の grep つき）
+  足す物：
+  - SimCore/InstrumentsCearn.cs：表 cgrp_s（下の列）・群の振り分けの純関数 CgGroupOf・州の台帳 CearnAcc に群の台帳 4 つ（G）・POP の月の窓 CgPop（ConditionalWeakTable）・月の終わりの口 CgMonthClose・環境変数の門 CearnOn（POB_CEARN＝0 で cearn_s と cgrp_s の両方を書かない・既定＝書く）。
+  - SimCore/Instruments.cs：MonthClose の頭に 1 行（CgMonthClose(w)＝月の末の在庫は Fiscal.Step の後に読む必要がある）。
+    ⚠指示の持ち主の行〈cearn_s の登録の行の近く〉の外（今の 1491 行付近）＝報告の先頭に書く。c66id の行（1845〜1846 の habitcap・habitbal の登録の削除）とは別の行。
+    この線が Instruments.cs で触る行は MonthClose の頭の 1 行だけ（303・1239・1772・1861・1894 の cearn の行は触らない＝cgrp は InstrumentsCearn.cs の中の CearnRegister・CearnSav・CearnWarm・CearnTable・CearnClose から書く）。
+  - Tests/CearnInstrumentTests.cs に試験を足す（下の [3]）。
+  - scripts/instruments/c66cg/（pre_events826.py・読み手 r829_read.py・突然変異の台本）・measurements/m829_20261104/。
+  消す物：0。残す物：cearn_s の 59 列（ヘッダーと値はビット同じ）。
+  読み手の grep（2026-11-04・この木）：
+  - cearn_s の読み手＝scripts/instruments/c65ce/r822_*.py 7 本（列の名で読む＝列は変えない）・CearnInstrumentTests.cs。cgrp・CgGroupOf・CgPop・POB_CEARN は 0 件（新しい名）。
+  - SaveGame・POB_COEF・Runner・App・Display：計器は World の欄を足さない（ConditionalWeakTable と ThreadStatic だけ）＝SaveGame の名前の表に触れない・POB_COEF の名前 0。
+  - InstrumentsTests の名簿の行：表の名前の一覧は無い（grep "\"cearn\"|\"silverst\"|\"cpmed\"|\"habitlg\"" で Tests に 0 件・InstrumentsTests は表の名前を並べない）＝足す行は無い（報告に書く）。
+  他の線との重なり：
+  - Instruments.cs：c66id が habitcap_s・habitbal_s の登録の行（1845〜1846）を消す／この線は MonthClose の頭（1491 付近）に 1 行＝別の行（合流で解く）。
+  - InstrumentsCearn.cs・CearnInstrumentTests.cs はこの線だけ。MultiNationSim.cs・Coefficients.cs・WriterRatchetTests.cs・DormantIdentityTests.cs には触れない。
+
+  cgrp_s の行と列：
+  - 行＝四半期の末に格が Colonial の州×群（群＝0 mass 平民の大衆〔!Closed・!IsSoldier・!IsModernElite＝犯罪者を含む〕・1 modernElite〔!Closed・!IsSoldier・IsModernElite〕・2 closed〔Closed・!IsSoldier〕・3 soldier〔IsSoldier〕）。
+    述語は計器の中に旗で書く（エンジンの Politics.IsMassPop を呼ばない）。POP の人数・在庫・流れ・月の和が全て 0 の群の行は書かない。
+  - 列：quarter year nation region group popK nPops savingsStart savings／流入 7・流出 9（cearn_s と同じ名前と同じ振り分け CearnColumn）／residualPerQuarter lateRegisteredPops／
+    monthsClosed popKMonths savingsMonthStartSum savingsMonthEndSum windowNetSum monthResidualSum emptiedPopKMonths claimedPopKMonths pollClaimPerQuarter incomeTaxUpperPerQuarter／regionSavingsGap regionNetFlowGap。
+  - 定義：
+    群の流れ＝同じ Sav の口で、州の台帳と同じ列へ、その POP の群の台帳にも足す（精算は 2 列・それ以外は 1 列）。
+    residualPerQuarter＝savings−savingsStart−(Σ流入−Σ流出)（群ごと）。
+    月の窓＝月初（Begin＝CearnRegister）に POP ごとに月初の在庫を写し、月の終わり（MonthClose の頭＝Fiscal.Step の徴税の後）に月末の在庫を読む。窓の中の書き込みの和を POP ごとに持つ。
+      savingsMonthStartSum・savingsMonthEndSum・windowNetSum＝四半期の月の和。monthResidualSum＝savingsMonthEndSum−savingsMonthStartSum−windowNetSum（窓の閉じ）。
+      月初の在庫は〈月初の予算〉の代わり（EconomyStep が RemainingBudget に写すのは Begin の後＝Begin と EconomyStep の間の書き込みは月初の在庫に入らない・窓の流れに入る＝限界として申告）。
+    請求（計器が自分で書く式）：人頭税＝PollTaxRate×国の人頭税の段×Size（段が正・!Closed・!IsSoldier・犯罪者でない）・所得税の上界＝国の TaxRate×max(0, LastEarnedPerMonth)（身分の免税・課税への同意を掛けない＝上界）。
+      pollClaimPerQuarter・incomeTaxUpperPerQuarter＝月の終わりに数えた月の和。
+    空の印（POP×月）：請求（人頭税＋所得税の上界）＞0 の POP で、月末の在庫 ≦ 0.01×max(月初の在庫, 請求)。claimedPopKMonths＝請求＞0 の POP の人数の月の和・emptiedPopKMonths＝そのうち空の印の人数の月の和。
+    regionSavingsGap＝Σ群の savings−州の savings・regionNetFlowGap＝Σ群の(Σ流入−Σ流出)−州の(Σ流入−Σ流出)（計器の保存の確かめ＝群の和が cearn_s の州の列に合う）。同じ州の群の行は同じ値。
+  - ⚠限界（計器が自分で申告し注に書く）：①登録は月初＝月の途中で作られた POP は次の月まで群の台帳の外（lateRegisteredPops と残差に出る）②月の窓は月初に登録した POP だけ（月の途中で生まれた POP の在庫は窓に入らない）
+    ③請求の所得税は上界＝人頭税の割合 E2 は下界（保守の向き）④国の段と率は月の終わりの値（月の途中の法の変更は読まない）⑤州が月の途中で別の国へ移ると、その月の窓は数えない。
+  容量（D:）：cearn_s の植民地格の行は約 27%（keep_826 の種 1：56,650／208,829 行）＝cgrp_s は約 56,650×（書く群 2〜4）行×38 列＝1 種 約 50〜100MB・10 種 約 0.5〜1.0GB。
+  cearn_s の容量の門（§00 ②）：**(ii) 切らない＋環境変数で切れる門だけ足す**（推奨のとおり）。既定は cearn_s も cgrp_s も書く＝基準の表を変えない＝`--removed-tables` は無し・ident.cfg の更新は要らない（合流は cgrp の宣言だけ）。
+    POB_CEARN＝0 で両方を書かない（読む線でない腕の D: の節約に使える・この線では使わない）。
+
+■ [3] 足す試験と、それぞれを赤にする突然変異（CearnInstrumentTests.cs・使い捨ての木で確かめて measurements/m829_20261104/mutation.txt に書く）
+  G1 群の和と閉じ：英仏の 3 四半期。cgrp_s の州×四半期ごとに Σ群の savings・savingsStart・流れ 16 列が cearn_s の同じ州の行と相対 1e-9 で一致・regionSavingsGap と regionNetFlowGap が 0（相対 1e-9）・
+     群の行の残差 ≦1e-8×規模（遅れの無い行）・monthResidualSum ≦1e-8×規模・行は cearn_s の tier が Colonial の州だけ。
+     最後の四半期の群の savings と popK を、試験が sim の POP から**エンジンの述語**（Politics.IsMassPop・IsModernElite・Closed・IsSoldier）で自分で数えた和と 1e-9 で一致（別の出所）。
+  G2 群の振り分けの表：手で書いた旗の組（Closed・IsSoldier・IsModernElite・犯罪者の 8 通り以上）→群、と CgGroupOf を突き合わせ、Politics.IsMassPop が真なら mass と一致。
+  G3 請求と空の印：英の盤面で人頭税の段を正にして 1 四半期。closed と soldier の群の pollClaimPerQuarter は 0・mass は正・emptiedPopKMonths ≦ claimedPopKMonths ≦ popKMonths。
+  G4 門：CearnOn＝false で cearn_s と cgrp_s のファイルが出ず、軌道（全ての POP の貯蓄と国庫のビット）が計器なしと一致。
+  突然変異（各 1 本以上が赤の予言）：
+    M1 群の振り分けを入れ替える（closed と modernElite）→ G2・G1（エンジンの述語で数えた和）が赤。
+    M2 兵士を外す（CgGroupOf が兵士を数えない＝群の台帳に足さない）→ G1（Σ群≠州・regionSavingsGap）・G2 が赤。
+    M3 月初の在庫を月の終わりで読む（月初の写しを MonthClose の値で上書き）→ G1 の monthResidualSum が赤。
+    M4 空の印の比較を逆にする（≦ を ＞ へ）→ G3 の emptied ≦ claimed は通りうる＝G3 に〈人頭税の段を極端に上げた盤面で emptied＞0〉を足す（赤の予言は G3）。
+    M5 門の向きを逆にする（POB_CEARN の判定を反転）→ G4 と既存の T1 が赤。
+    M6 人頭税の述語に閉鎖階級を入れる → G3 が赤。
+  ソースを走査する番人の点検（㉘・この木で grep・書き換える件数の予言 0＝㉑）：
+    `new MoneyStock(` の件数（SimCore 64・InstrumentsCearn.cs 0・Instruments.cs 0）は変えない（計器は double だけ）・工業化度の読み手の許可表（InstrumentsCearn.cs は表に無い＝工業化度を読まない）・
+    route_anchors.tsv（scripts/instruments/flow262/）の鍵の行＝移し方の呼びを足さない・WriterRatchetTests の宣言の表＝書き手を足さない・UnitTypeTests＝型をまたぐ換算を足さない（Calendar.OneMonthOf は既存の 1 か所のまま）・GoodIdGuardTests＝財の番号を書かない。
+    器と試験のコミットの直後に 6 組（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）を隔離ビルド（--artifacts-path D:/PoB_work/c66cg_art）で回し、赤なら ident を回さない。
+
+■ [4] 恒等の判定
+  `bash scripts/instruments/ident/ident.sh run c66cg --tree D:/PoB_work/wt_c66cg --saveleak --added-tables cgrp --tests-delta <足した試験の数>`（bg.sh で run_in_background・arms.sh free が 3 以上で始める・走っている間はこの worktree にコミットしない）。
+  素の 5 種・計器つき 10 種が m826（b5_20261104_m826・b10_20261104_m826_ins）と名乗り行を除いて全行一致・計器の表は cgrp_s の追加だけ（cearn_s は全行一致）・.cost の推定が一致・
+  試験の数＝2250＋足した数／FullLength 3・savetest と leakhunt が通る。フルスイートは ident の後に分けて回し（Category!=FullLength と =FullLength）、合計を --list-tests と突き合わせる。
+
+■ [5] 採否
+  〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ、その変更を外して報告に回す。
+
+■ [6] 読み（ident の腕 b の生 D:/PoB_work/ident_c66cg/out_ib_10/ins で・腕を足さない・恒等でなければ読まない）＝形を決める表（読む前に固定）
+  出来事＝[0] の 15（pre_events826.tsv の event＝1・入り Q0 はその表の onsetQ）。窓 W＝Q0−8〜Q0−1 の 8 四半期（その州の行がある四半期だけ・4 未満なら〈判定不能〉＝支えない）。
+  払う群 g*＝W で pollClaimPerQuarter の和が最大の群（全ての群で 0 なら outTaxPerQuarter の和が最大の群・同点は番号の小さい群）。
+  量（g* について W の和で）：
+    E1（空にする）＝Σ emptiedPopKMonths ÷ Σ claimedPopKMonths（claimed が 0 なら E1＝0）。
+    E2（定額の請求の割合・下界）＝Σ pollClaimPerQuarter ÷ Σ（pollClaimPerQuarter＋incomeTaxUpperPerQuarter）（分母 0 なら 0）。
+  対照＝同じ種・同じ国・W の全ての四半期で格が Colonial・cearn_s の frozenFlag が W の全ての四半期で 0・g* の claimedPopKMonths の W の和が正の州（出来事の州を除く）。対照ごとに同じ g*・同じ W で E1 を数え、中央を取る。
+  出来事が仮説を支える＝次の 3 つが全て成り立つ：
+    S1：E1 ≧ 0.5（払う群の人の半分以上が、請求のある月の末に在庫を 1% 以下まで失う）。
+    S2：E2 ≧ 0.5（払う群の請求のうち人頭税＝定額の分が半分以上・下界で）。
+    S3：対照が 3 州以上あり、E1 − 対照の E1 の中央 ≧ 0.25。対照が 3 州未満なら〈対照なし〉＝支えない。
+  結論の規則：支える出来事が **15 のうち 10 以上**なら仮説を支える → 形 U の素案（下）を書く。10 未満なら〈記録〉（出来事ごとの g*・E1・E2・対照の数と中央・S1〜S3 を並べる）。
+  記録の列（門ではない）：g* の在庫の州の在庫に対する割合（W の savingsMonthEndSum の和÷州の和）・閉鎖階級の在庫の割合・g* の windowNetSum・outTax と outDues と outColonialRent の g* の取り分・同じ W の月の閉じの最大。
+  形 U の素案の書き方（支えたときだけ・挙動はこの回に入れない）：旗の名の案 PollTaxNominal・人頭税の額に州の物差しを掛ける（物差しは CostPriceLevel×LocalPriceMultiplier〔(73) の自己費用と同じ遅い趨勢×州の乗数〕と region.PriceLevel の 2 案を並べ、読みの表で E1 の高い州の物差しの低さが大きい方を推奨）・TaxScan.Of に州の物差しの列・
+    両側の門（働いた量の下限＝出来事の州の g* の E1 が旗 1 で半分以下へ・その形に固有の誤りの量の上限＝本国格の人頭税の収入の新÷旧が物差しの人口加重の平均から ±10% の外へ出ない）・突然変異の表（物差しの取り違え・植民地格だけに掛ける・掛けない）・旗 0 で門が落ちることの紙の確かめ。
+  形 T（戻りの経路）は素案にしない（戻りの経路の設計が先＝指示のとおり）。
+
+■ 待ち方・D:
+  1 分を超える仕事は bg.sh を run_in_background で起こし、前面の waitmark.sh（230 秒）を繰り返す。覗きは 1 本の仕事につき 30 分に 1 回まで。waitmark の回数と覗きの回数を分けて報告に書く。
+  作るフォルダ：D:/PoB_work/c66cg_work（作業）・c66cg_art（隔離ビルド）・ident_c66cg（ident）・wt_c66cg（worktree）。ident の生は合流の判断まで残す（読みの後に keepsum を measurements に残す）。

@@ -1,0 +1,53 @@
+事前登録 (920) 線 c80eb：人の居ない商人の手形の詰まり（B5 の根）の恒等の計器 ― 2026-11-07
+種類：尾（計器の列と台本だけ）・恒等。基準＝m919（ident.cfg の INSRAW keep_919/base_ins・BASE_COMMIT 8a8344ad）。出発＝b3a4190f。
+出所：docs/202611/20261107/20261107_人の居ない商人の手形の詰まり_B5の根とB1の材料_下書き.md §5・§6・末尾の ★(919) 訂正 1・2・4。作者「全て推奨で」で推奨を採った（★(839) ②(a)・★(912) ② の順＝読む → 計器 → B1）。
+
+[1] 恒等の線・予言 0
+- 挙動を変えない。成績表（素の 5 種・計器つき 10 種）は m919 と名乗り行を除いて全行一致。計器の表は cearn_s（末尾 5 列）と cpop_s（末尾 3 列）が伸びるだけ。
+- 係数のリテラル・計算の順序・乱数・エンジンの状態に触れない。エンジンの型に欄を足さない（欄は Instruments の側＝CearnAcc・CgPop）。全て旗を読まない・エンジンの関数を呼ばない。
+- 浮動小数の順序が変わる箇所：無し（エンジンの式は 1 つも書き換えない。足した式は計器の中の和と差だけ）。紙の台本で旧と新の比較の食い違いを数える対象が無い（0 件）。
+
+[2] 足す物・変える物（現物 b3a4190f で grep 済み）
+(a) cearn_s の末尾 5 列（InstrumentsCearn.cs CearnHeaderText の尾）
+  billBlockedClearings＝清算の頭（CearnImportHeadInto）で、決済 ① の後も商人 POP の債務が正の数（:580 の門 !(Debt>0) が偽になる清算）。計器が自分で r.Pops[MerchantPopIndex].Debt を読む。旗 ImportPayerLive は読まない（既定 0＝商人が居れば払い手と同じ。旗 1 で人の居ない商人が払い手から外れる州も数える＝限界として名乗る）。
+  billBlockedDustClearings＝その中で債務 ≦1e-12（0＜債務≦1e-12）。
+  emptyDebtAfterEstate＝EmptyPopEstate.Step の直後に、人数 ≦1e-12 で債務 ≠0 の POP の数（月ごとの和＝POP×月）。
+  estateDebtMovedPerQuarter＝相続の段の頭から直後までに人の居ない POP の債務の和が減った額 − その間に返しの段（estateDebtSettled）が返した額。今の実装では 0 になる（債務を動かすのは返しの段だけ）。案 B1 が入ったときに初めて正になる器。
+  heirDebtSettledPerQuarter＝決済 ①（BilateralMarket.cs:579）で、人数 ＞1e-12 の商人でない POP が返した額。
+(b) cpop_s の末尾 3 列：outOtherTop1Route・outOtherTop1PerQuarter（その POP の outOther の経路別の和の最大。cearn の outTop1Route と同じ作り＝ファイル:行:種類:相手の側）・debtInCarryPerQuarter（Pop.Carry 7 引数の受け手が受けた債務の和）。cpop は植民地格の州だけ＝限界。Bank.Carry（銀行の与信の側）は数えない＝限界。
+(c) 呼び口（持ち主でないファイル）
+  BilateralMarket.cs:576・579・583 の 3 行の書き換え・足す行 0：:576 に `bool ins2 = Instruments.On;`（この繰り返しで門を 1 回だけ読む）・:579 の Bank.Lend の直後に `if (ins2) Instruments.CearnBillSettle(...)`・:583 の既存の `if (Instruments.On) CearnImportHead` を `if (ins2)` へ。billBlocked の数えは既存の CearnImportHead の中（新しい呼び口を足さない＝On の 2 回読みを作らない）。
+  EmptyPopEstate.cs:11 Step を 1 行の薄い包みにし（Core(w) の後に `if (Instruments.On) EstateAfter`）本体を Core へ（同じ行に置く＝:31 の移しの行番号を動かさない）。:22 の注〈否定形の門＝NaN は返さない〉→〈比較が偽＝NaN は返さない〉（コードの形は `> 0` の肯定形）。
+  Model.cs:309（Pop.Carry の既存の `if (Instruments.On) {…}` の中）に `Instruments.CearnCarryDebt(to, debtIn.Value)` を 1 つ。指示の :427 は Blend 側の `debt = from.Debt*frac` の行＝運搬の書き込みの本体は Carry なので両方の形（越境の 7 引数も）を拾う Carry の中へ置いた。
+  InstrumentsCearn.cs：(863) の注を元の行（CearnImportPaid の行）へ戻した（_estRepay の行に二重に付いていた）。
+(d) 読み手の grep（消す物は無い＝名前の読み手を数える）：EmptyPopEstate.Step の呼び手は Simulation.DemographicStep と EmptyPopEstateTests・EmptyPopDebtFirstTests（同じ名前・同じ引数で動く）。CearnHeaderText／CpopHeaderText の読み手は CearnInstrumentTests・CearnTradeColumnsTests・EmptyPopDebtFirstTests（先頭一致の Assert.Equal は自動で伸びる）。scripts：列を名で引くのは read917_*.py・gate910.py（尾の追加は影響しない）。POB_COEF・SaveGame の名前の表：触れない（係数・セーブされる型に欄を足さない）。
+(e) 他の線との重なり：c80sm（Territory・Discovery・InstrumentsLawgate2・Diplomacy・ArmyShape）・c80cw（Coefficients・DormantIdentityTests・CivilWarArmsDemandTests・Simulation の注）・c80lr（StateFactoryTests・CornintInstrumentTests）と同じファイルを触らない。Instruments.cs・Coefficients.cs・Simulation.cs・Discovery.cs・InstrumentsLawgate2.cs・App・Display・Runner は触れない。
+(f) owns の外を触る 2 行（報告の先頭に名乗る）：EmptyPopDebtFirstTests.cs:154 の Assert.EndsWith（尾が merchantDebt／estateDebtSettledPerQuarter で終わると固定）→ Assert.Contains（列の名の隣接＝同じ強さ・尾に列が増えても赤にならない）。CearnTradeColumnsTests.cs:199 も同じ形（これは owns 内）。どちらも ★(743) の ①〜④ の外＝列を足すと必ず赤になる尾の固定の書き換え。他の線は触らない。
+(g) 入れない物：B1 の実装・旗 EmptyPopDebtFirst の値・BilateralMarket.cs:580 の門・Pop.Take の床（塵の債務は ★(919) ② の答え待ち）・CearnColumn への 'H' の枝（OutOther／InCredit の値が変わる＝非恒等）。
+
+[3] 足す試験（PriceOfBread.Tests/BillBlockedColumnsTests.cs・5 本）と突然変異（使い捨ての写しで・結果は measurements/m920_20261107_mutation_eb.txt）
+ 試験は期待を試験の置いた債務・貯蓄・移す人数から手で作る。エンジンの経路を通す（清算＝Market.Step・相続＝EmptyPopEstate.Step・運搬＝Pop.Blend）。
+ T1 商人が手形を振り出せない清算を数え塵は 1e-12 以下だけ（債務 5/貯蓄 1・1e-13/0・5e-10/0・0/100 の 4 盤面）
+ T2 決済で返した額は人の居る非商人だけ（商人 2・人の居ない非商人 4 は数えず 3 だけ）
+ T3 相続の段の直後の人の居ない債務者の数（旗 EmptyPopDebtFirst 0／1）と返し以外で減った債務（手で 7→4 にして 3）
+ T4 尾の列の名の並びと行の幅
+ T5 運搬で受けた債務（10×1/2＝5）と outOther の上位の経路（9 の Bar が 5 の Foo より上）・経路の無い POP は - と NaN
+ 突然変異 → 赤になる試験（腕の前に使い捨ての写しで確かめて表に書く。無い列は〈突然変異で確かめていない〉と名乗る）
+  M1 CearnBillSettle の呼び口（:579）を外す → T2
+  M2 CearnImportHeadInto の数えを外す → T1
+  M3 塵の閾値 1e-12 を 1e-9 へ → T1（5e-10 の盤面）
+  M4 EstateAfter の呼び（Step の包み）を外す → T3
+  M5 Carry の呼び口で debtIn でなく from.Debt（運び元の残り）＋debtIn を数える → T5
+  M6 outOther の経路別の和を外す → T5
+  M7 CearnCarryDebt の呼び口を外す → T5
+  M8 estateDebtMoved から返した額の引き算を外す → T3（旗 1 の盤面）
+ ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に隔離ビルドで回す。`new MoneyStock(` の件数は 64 のまま（予言㉑）。route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表は書き換えない（予言 0 件）。書き換えるテストの行は上の (f) の 2 行だけ。
+
+[4] 恒等の判定（ident）
+ 宣言：--grown-ok cearn_s,cpop_s（列が末尾に増える）・--tests-delta 5（足した試験 5・消した試験 0）・--saveleak。基準 INSRAW＝D:/PoB_work/keep_919/base_ins・BASE_COMMIT 8a8344ad。.cost の件数の行は変わらない（--cost-allow なし）。
+ 起こし方：bash scripts/instruments/tools/bg.sh D:/PoB_work/c80eb_work/ident.mark bash scripts/instruments/c80eb/ident920.sh（run_in_background・床 35GB＋5GB・arms.sh free が 3 以上のときだけ）。走っている間は worktree にコミットしない（㉙）。
+ 列の自己検証（台本 scripts/instruments/c80eb/selfcheck920.py）：billBlockedClearings ≧ billBlockedDustClearings・estateDebtMovedPerQuarter の絶対値の最大が 1e-9 以下（旗 0 の今の実装で 0）・cearn の既存の列は基準と全行一致（ident が見る）。
+ D: の空き（2026-11-07 起票時）：55GB（c80eb_art のビルドを含む）。
+
+[5] 〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ、その変更を外して報告に回す。
+ 台本（コミットしない・生は D:/PoB_work/r917_work）：scripts/instruments/c80eb/ に read920_carry.py・read920_heir.py・read920_dust.py（read917_*.py の写し）・null920.py（ヌル腕の幅 G1′・続きの中央を keep_919/n1・n2 で取り直す）・cont920.py（続きの終わり方の表＝新しい手形・債務≦ε・人が戻った・行が無い。★(919) 訂正 1）。ヌル腕の幅は measurements/m920_* へ。

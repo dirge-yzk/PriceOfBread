@@ -1,0 +1,81 @@
+# (900) c77lg：docs/ゲーム概要と実装機能.md の S19 の節（L3400〜3626・L3666〜3694・L3750〜3801）だけを直した写しを作る
+#  （行の数は変えない＝台帳の L の番号を動かさない・(893) patch_overview893.py を写して直した）。App の座標（GameViewModel・LawRowVM・axaml）は確かめていない＝そのまま残す。
+# 使い方: python -X utf8 patch_overview900.py <今の文書> <出力>
+import sys
+src, out = sys.argv[1:3]
+b = open(src, 'rb').read().decode('utf-8')
+assert '\r' not in b
+L = b.split('\n')
+T = '（2026-11-06 (900) に木 101d4329 で取り直した・台帳 {}）'
+def sub(n, a, c):
+    s = L[n - 1]
+    assert s.count(a) == 1, (n, a, s[:80])
+    L[n - 1] = s.replace(a, c)
+def line(n, start, new):
+    assert L[n - 1].startswith(start), (n, L[n - 1][:80])
+    L[n - 1] = new
+def coord(n, old, new, rows):
+    sub(n, old, new)
+    L[n - 1] = L[n - 1] + T.format(rows)
+ST = '　**稼働中** ／ '
+# 文書が古い（§2c-2）
+sub(3401, '★ 一気に飛べない。', '★ 一気に飛べない。⚠ 例外＝戦争の終わりの四半期に徴兵法を戦前の段へ戻す（2 段も・`Government.cs:256-260`）と、政変の四半期の制度の写し（`Politics.cs:741`）（2026-11-06 (900)・台帳 S19-01）。')
+sub(3405, '⚠ **1つ前の段を踏んでいない段は、目標として置けない。**', '⚠ **1つ前の段を踏んでいない段は、目標として置けない。**（門は照会〔法律タブ・勢力の要求・AI の GateLaw〕と施行の一歩に掛かる・AI の 3 法の目標の直書きは通らない・施行は 1 段ずつ＝2026-11-06 (900)・台帳 S19-02）')
+sub(3421, '＝b を超える一歩は永久に通らない。', '＝~~b を超える一歩は永久に通らない。~~ → ★(404)・(409) 以後は満タン（S≦0）で正統性の残りの 2 乗が代価に届けば通る（`Government.cs:578`・台帳 S15-09・S19-05）。')
+sub(3452, '（数える器は休眠＝FrontsCountMonetary=0）', '~~（数える器は休眠＝FrontsCountMonetary=0）~~ → 2026-09-28 に門を削除＝施行と同じく数える（2026-11-06 (900)・台帳 S19-08）')
+line(3462, '#### ● 勅令は速い', '#### ~~● 勅令は速い~~')
+line(3465, ST, '　~~**稼働中**~~ **削除（(384)・`Government.cs:912` の注＝議会の遅さは法の抵抗の議席の項で既に表される＝二重計上）** ／ ~~`Government.cs:805-812`~~' + T.format('S19-10'))
+sub(3466, '勅令の速さ(AutocraticPolicyAgility)=0.5', '~~勅令の速さ(AutocraticPolicyAgility)=0.5~~（消えた係数の番人 ScalarDeletionTests.cs:40）')
+sub(3470, '⚠ **立憲国では議会が予算を止められる**', '⚠ **立憲国では議会が予算を止められる**（式は政体を見ず統制力×協力度＝統制力＞0 の国の全て・2026-11-06 (900)・台帳 S19-11）')
+sub(3502, '否決の理由は2本の定型句', '否決の理由は~~2本~~ 3 本の定型句（賛成不足・政治資本の残りが不足・正統性が不足＝`Government.cs:850-854`・2026-11-06 (900)・台帳 S19-16）')
+line(3507, '#### ● 政策軸の全一覧（38軸）', '#### ● 政策軸の全一覧（~~38軸~~ 40 軸＝最低賃金法 MinimumWage と相続法 Inheritance は下の表に無い・2026-11-06 (900)・台帳 S19-17）')
+sub(3593, '国有化(NationalizationGate)=1.0', '~~国有化(NationalizationGate)=1.0~~（(843) c68ui で焼き込み＝DormantIdentityTests.cs:334 の消えた名の表・2026-11-06 (900)・台帳 S19-25）')
+line(3785, '#### ○ 現職効果', '#### ~~○ 現職効果~~')
+line(3787, '　**休眠** ／ ', '　~~**休眠**~~ **削除（係数 IncumbencyBias は SimCore に 0 件・DormantIdentityTests.cs:267 の消えた名の表〈振り返りの投票は作る予定が無い〉）** ／ ~~`Parliament.cs:414-426（Winner）`~~' + T.format('S19-43'))
+sub(3788, '現職効果(IncumbencyBias)=0（休眠）', '~~現職効果(IncumbencyBias)=0（休眠）~~')
+# 座標（2026-09-26〜10 月の座標を台帳の錨で取り直す）
+coord(3402, '`Government.cs:838-852（StepLevel', '`Government.cs:979（StepLevel', 'S19-01')
+sub(3402, '`Government.cs:69-183（段の法の表 LevelLaws', '`Government.cs:75（段の法の表 LevelLaws')
+coord(3406, '`Government.cs:531-532,640-652（StagedAxis）`', '`Government.cs:634 / Government.cs:760（StagedAxis）`', 'S19-02')
+coord(3413, '`Government.cs:523-638（LawPrereq）`', '`Government.cs:626（LawPrereq）`・呼び手 `Government.cs:820 / Government.cs:989 / SelfPlay.cs:328 / Politics.cs:1240`', 'S19-03')
+coord(3417, '`Government.cs:14-45,181-217,264-307（', '`Government.cs:391 / Government.cs:399 / Government.cs:409 / Government.cs:431（', 'S19-04')
+coord(3423, '`Government.cs:351（MandateMargin）` ／ `Government.cs:449-468（MandateGate）` ／ `Government.cs:475（PoliticalCapitalAffords）`', '`Government.cs:478（MandateMargin）` ／ `Government.cs:549（MandateGate）` ／ `Government.cs:578（PoliticalCapitalAffords）`', 'S19-05')
+coord(3430, '`Government.cs:361-368（IsConstitutional）`', '`Government.cs:492（IsConstitutional）`', 'S19-06')
+coord(3436, '`Government.cs:764-773（Spend）` ／ `Politics.cs:493-510`', '`Government.cs:868（Spend）` ／ `Politics.cs:441 / Politics.cs:450 / Politics.cs:452`', 'S19-07')
+sub(3442, '`Government.cs:501-504（削除の記録）`', '`Government.cs:594（削除の記録）`（2026-11-06 (900) に木 101d4329 で取り直した）')
+sub(3447, '`Government.cs:501-504（削除の記録）`', '`Government.cs:594（削除の記録）`（2026-11-06 (900) に木 101d4329 で取り直した）')
+coord(3453, '`Government.cs:218-226,447-469（CountOpenFronts', '`Government.cs:227 / Government.cs:512（CountOpenFronts', 'S19-08')
+coord(3459, '`Government.cs:775-822（Move）`', '`Government.cs:893（Move）`', 'S19-09')
+coord(3472, '`Government.cs:797-803`', '`Government.cs:908-910`', 'S19-11')
+coord(3479, '`Government.cs（BlockedByIrreversibility・ProtectedLaw・ReversalCostMul）`', '`Government.cs:939（BlockedByIrreversibility）・Government.cs:954（ProtectedLaw）・Government.cs:962（ReversalCostMul）`', 'S19-12')
+coord(3485, '`Privileges.cs:139-142` ／ `Government.cs:866-872`', '`Privileges.cs:124 / Privileges.cs:126`', 'S19-13')
+coord(3490, '`Politics.cs:747,889` ／ `Government.cs:842`', '`Politics.cs:711 / Politics.cs:852` ／ `Government.cs:946`', 'S19-14・S15-45')
+coord(3498, '`Politics.cs:1467-1574（ConcedeToFaction・ApplyDemand）` ／ `Parliament.cs:399-411`', '`Politics.cs:1211（ConcedeToFaction）・Politics.cs:1232（ApplyDemand）` ／ `Parliament.cs:399 / Parliament.cs:401（TargetDemand）`', 'S19-15')
+coord(3504, '`Government.cs:506-518（CanStep）`・`Government.cs:724-762（GateInfo）`', '`Government.cs:607（CanStep）`・`Government.cs:805 / Government.cs:814（GateInfo）`', 'S19-16')
+coord(3551, '`PolicyPreferences.cs:4-54（PolicyAxis）`', '`PolicyPreferences.cs:4（PolicyAxis）`', 'S19-17')
+coord(3558, '`SelfPlay.cs`', '`SelfPlay.cs` ／ `Government.cs:114 / Government.cs:116 / Government.cs:117`', 'S19-19')
+coord(3563, '`PolicyPreferences.cs:244-247`', '`PolicyPreferences.cs:333` ／ `Government.cs:150`', 'S19-20')
+coord(3568, '`PolicyPreferences.cs:239-241` ／ `Government.cs:141-149`', '`PolicyPreferences.cs:321` ／ `Government.cs:153`', 'S19-21')
+coord(3575, '`PolicyPreferences.cs:248-253`', '`PolicyPreferences.cs:336 / PolicyPreferences.cs:337` ／ `Contraband.cs:29（LeakFraction）`', 'S19-22')
+coord(3580, '`Government.cs:110,850-855`', '`Government.cs:112 / Government.cs:957`', 'S19-23')
+coord(3585, '`Government.cs:131-136,623-625`', '`Government.cs:142 / Government.cs:145 / Government.cs:741`', 'S19-24')
+coord(3592, '`Government.cs:152-164,601-608` ／ `Politics.cs:1588-1610`', '`Government.cs:165 / Government.cs:178 / Government.cs:727` ／ `Politics.cs:1348`', 'S19-25')
+coord(3599, '`Government.cs:98-105` ／ `PolicyPreferences.cs:289-333`', '`Government.cs:101 / Government.cs:105` ／ `PolicyPreferences.cs:410`', 'S19-26')
+coord(3606, '`PolicyPreferences.cs:217-218` ／ `Politics.cs:1576-1586` ／ `SelfPlay.cs:909-917（SetNavalUpkeepShare）` ／ `Simulation.cs:1538-1542`', '`PolicyPreferences.cs:294` ／ `Politics.cs:1316 / Politics.cs:1325` ／ `SelfPlay.cs:1106（SetNavalUpkeepShare）` ／ `Simulation.cs:220`', 'S19-27')
+coord(3611, '`InterestGroups.cs:102-118（SuffrageInclusion）` ／ `Fiscal.cs:41-50,100-108`', '`InterestGroups.cs:79（SuffrageInclusion）` ／ `Fiscal.cs:742`', 'S19-28')
+coord(3618, '`PolicyPreferences.cs:263-288` ／ `Government.cs:130` ／ `MultiNationSim.cs`', '`PolicyPreferences.cs:362` ／ `Government.cs:137` ／ `MultiNationSim.cs:1873`', 'S19-29')
+coord(3624, '`Government.cs:138,404` ／ `PolicyPreferences.cs:236-238` ／ `EconomyStep.cs:239,281`', '`Government.cs:147` ／ `PolicyPreferences.cs:318` ／ `EconomyStep.cs:642`', 'S19-30')
+coord(3668, '`Diplomacy.cs:2710-2713`', '`Diplomacy.cs:3144`', 'S19-31・S17-P07')
+coord(3679, '`Fiscal.cs:79-110`', '`Fiscal.cs:788`', 'S19-32')
+coord(3686, '`Government.cs:248-259（緊縮の強度）`・`Government.cs:309-315（AusterityStage）`・`Government.cs:552-557,568-574（門）`', '`Government.cs:377（緊縮の強度）`・`Government.cs:443（AusterityStage）`・`Government.cs:668 / Government.cs:685（門）`', 'S19-33')
+coord(3692, '`Politics.cs:778-841（RaiseFoundingInstitutions）`', '`Politics.cs:741（RaiseFoundingInstitutions）`', 'S19-34・S15-35')
+coord(3752, '`CrownParliament.cs:541-578（PolicyDistance）`', '`CrownParliament.cs:545（PolicyDistance）`・読み手 `CrownParliament.cs:67`', 'S19-35')
+coord(3757, '`CrownParliament.cs:207-217` ／ `World.cs:731`', '`CrownParliament.cs:215` ／ `World.cs:841`', 'S19-36・S15-25')
+coord(3763, '`Politics.cs:473-479`', '`Politics.cs:417`', 'S19-37・S15-04')
+coord(3769, '`Politics.cs:480-487,633-650`', '`Politics.cs:423 / Politics.cs:425`', 'S19-38・S15-05')
+coord(3775, '`Politics.cs:133-146`', '`Politics.cs:131 / Politics.cs:132` ／ `Government.cs:704`', 'S19-39')
+coord(3798, '`World.cs:766（PoliticalLockEnabled）`', '`World.cs:881（PoliticalLockEnabled）`', 'S19-42')
+nb = '\n'.join(L)
+assert len(nb.split('\n')) == len(b.split('\n'))
+open(out, 'wb').write(nb.encode('utf-8'))
+print('書いた', out, len(L), '行')

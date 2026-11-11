@@ -1,0 +1,79 @@
+(873) 波72 の合流の予言（merge と腕と ident の前の最初のコミット・担当 Claude Opus 5.5・基点 688294bf）
+この文書は merge・ident・腕・フルスイートの前に書いた。結果を見た後に書き換えない（足すなら〈結果の後の追記〉と日付で名乗る）。
+作者「全て推奨で」で推奨を採って進める（作者 2026-10-27「残りは推奨で」・2026-11-05「全て推奨で」）。
+
+■ [0] 作った物（この回の合流が自分で作ったフォルダ）
+  - D:/PoB_work/wt_m873（合流の worktree・枝 m873・基点 688294bf）。
+  - D:/PoB_work/m873（合流の作業：腕の出力・読みの出力・縮めた線の S11 の 8 表 lines/）。
+  - D:/PoB_work/wt_m873z（腕 Z の木＝恒等の線と c72ip の器だけを入れたコミット・detached）。
+  - D:/PoB_work/ident_m873z（腕 Z の ident の作業）。
+  - D:/PoB_work/keep_873_rej（新しく作った＝採らなかった腕 c72ipB_10 の 8 表＋cearn_s＋cpop_s＋keepsum・突然変異の腕 E2 の 1 種の生）。
+  - D:/PoB_work/keep_873（新しい基線を作るときだけ作る）。
+  - 消さない：keep_839・keep_852・keep_852_rej・keep_859_rej・keep_866・keep_866_rej。
+  - 記録：D:/PoB_work/c71gt_work と D:/PoB_work/c70id_work は、合流が始めた時点（2026-11-06 03:2x の ls -d）で既に無い。どの線の台本にも消す行は無い（反証役 5 人の確かめ）＝帰属は不明。合流は消していない。
+
+■ [1] D: の空き（2026-11-06・shutil.disk_usage）＝70.16GB（始め）→ c72ipB_10 を keep_873_rej へ縮めた後 79.12GB・arms.sh free 6。
+  - 腕を起こす直前に、空きと arms.sh free を D:/PoB_work/m873/arms_start.txt に書く（c72po・c72ss の反証役の指摘の型）。
+
+■ [2] 線ごとの入れ方（予言）
+  - c72gt (867)：入れる（.cs 0 行・台本 scripts/instruments/c72gt/ と記録 m867・ident_check.py の注 2 行＝AST 同一）。CRLF の 2 本（basis_share_867.txt・hol_holclass839_c71poB_867.txt）は merge の後に LF へ直す別のコミット（.cs ではない）。
+  - c72tc (868)：入れる（ident〈判定: 恒等〉＝7062c4d2・測った種で一致・SimCore の差は InstrumentsCearn.cs だけ・テスト +5）。反証役の中 2 件（CearnSav の補助の hook が BilateralMarket.cs:1165 の輸出補助も拾う・旧の規則の kind 2/3 の枝を守る試験が無い）は high ではない＝外さない・次の波の恒等の線へ申し送る。
+  - c72ip (869)：採らない（門 U1 が赤＝数える 1 回目の不採用）。merge して、点火 491a89ac の .cs だけを逆適用する（`git show 491a89ac -- PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DormantIdentityTests.cs | git apply -R --index`）。main に残るのは旗 0 の器と台本と記録。c72ip の枝は origin/c72tc の 23239bb3 を含む＝c72tc の後に merge する。
+  - c72ss (870)：採る候補（線の S11 の止める線 0）。
+  - c72po (871)：採る候補（線の S11 の止める線 0）。
+  - c72ds (872)：コミットしていない＝合流が D:/PoB_work/r872_work の 6 本を写す（docs/202611/20261106/ の下書きと材料・台本 scripts/instruments/r872/・出力 measurements/m872_20261106/）。反証役の 6 件は下書きの末尾に足す（中身は書き換えない）。
+  - 消す名前：どの線も 0（c72tc は Fact→Theory で試験の名は同じ・列は足すだけ・c72gt は台本の新しいフォルダ）＝★(773) の grep の対象は無い。
+  - merge の順：c72gt → c72tc → c72ip（＋逆適用）→〈コミット Z〉→ c72ss → c72po →〈コミット M〉。DormantIdentityTests.cs の :29（ss）と :31（po）は手で解き、`# Conflicts:` を残さない。
+  - 確かめ（コミット Z）：SubsistenceStage2・RuleOrderByRegion・ImportPayerLive の既定は 0。コミット M：SubsistenceStage2＝1・RuleOrderByRegion＝1・ImportPayerLive＝0。
+
+■ [3] 腕（2 段）
+  段 1（同時に起こす・6 枠）
+  - Z：ident.sh run m873z --tree D:/PoB_work/wt_m873z --saveleak --grown-ok cearn_s --tests-delta 5（腕 a・b・t・s）。
+  - mM：コミット M・計器つき 10 種・種 1〜10・全ての表。
+  - mS：コミット M・計器つき 10 種・種 11〜20・POB_CEARN=0（線の S11 と同じ宣言）。
+  - aSS：コミット M＋POB_COEF="RuleOrderByRegion=0"（自給の段 2 だけ）・計器つき 10 種・種 1〜10・POB_CEARN=0。
+  - aPO：コミット M＋POB_COEF="SubsistenceStage2=0"（治安だけ）・計器つき 10 種・種 1〜10・POB_CEARN=0。
+  段 2（段 1 で 2 本とも採る見込みのときだけ・Z の生と ident_c72tc を消した後）
+  - n1：コミット M＋POB_COEF="SupplySlope=0.50000001"・計器つき 10 種・全ての表。
+  - n2：コミット M＋POB_COEF="SupplySlope=0.49999999"・計器つき 10 種・全ての表。
+  - mP：コミット M・素の 10 種。mP5：コミット M・素の 5 種。
+  - 見込みの D:（段 1）＝Z 約 17＋mM 約 17＋mS・aSS・aPO 各 約 12＝約 70GB（線の S11 の生を 8 表へ縮めた後の空きの内）。
+
+■ [4] バイト一致の予言（mkm852.py の型・KNOWN を読む）
+  - Z：素の 5 種が b5_20261105_m852 と全行一致・計器つき 10 種の成績表が b10_20261105_m852_ins と全行一致・注視の表が mon_20261105_m852.txt と一致・計器の表は keep_866/base_ins と、cearn_s の末尾 +2 列（c72tc）と KNOWN の揺れだけ違う・テスト 2312＋3・savetest OK・leakhunt 違反なし＝〈判定: 恒等〉。
+  - aSS の 8 表 ≡ keep_859_rej/c70ssB_10/ins（種 1〜10）。成績表 b10 は c70ssB_10 の成績表と名乗り行の外で全行一致。
+  - aPO の 8 表 ≡ keep_866_rej/c71poB_10/ins。成績表 b10 は c71poB_10 の成績表と名乗り行の外で全行一致。
+  - aSS・aPO が線の腕と違えば、帰属を読むまで採らない（合わせた木に恒等でない差がある＝止めて報告）。
+  - これが〈M ≡ 線の腕〉の代わり（M は旗 2 本が 1 なので、どちらの線の腕とも一致しない）。
+
+■ [5] 門（両側）を合わせた木の M でもう一度読む（同じ台本・同じ閾値の表）
+  - ss：scripts/instruments/c72gt/gates_ss867.py <M の ins> keep_852/base_ins keep_852/n1 keep_852/n2 <出力> 10 1 gates_ss867_thresholds.tsv（c72gt の読み直し (a) と同じ呼び方）＝G1a・G1b・G2・G3a・G4・G4m・G5b・G5p が全て通る見込み（aSS ≡ c70ssB_10 は通った）。
+  - po：scripts/instruments/c72po/gt860/gates_po860.py <M の ins> keep_852/base_ins keep_852/n1 keep_852/n2 <出力> 10 1 gates_po860_thresholds.tsv＝G0・G1・G1u・G2a・G2b が全て通る見込み（aPO ≡ c71poB_10 は通った）。
+  - 足し算かの読み：M の各門の値を、その線のアブレーションの腕（ss は aSS、po は aPO）の値と並べる。M で落ちてアブレーションで通る門があれば、後から入れた側（c72po）を外す（★(778)・★(839)）。D: が足りなければ c72po の採用は波73 へ回す。
+  - S11 の門は記録（線の S11 と同じく近似・ヌル腕が a11 の 1 本で幅 0）。
+
+■ [6] 止める線（M・mS・n1・n2 と基準を同じ台本で数え直す＝scripts/instruments/m866/stoplines866.sh〔種の起点 1 か 11〕）
+  - 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest・進行不能（シミュが止まる・未完走）。
+  - 〈100 倍〉：gdp_jump833 の〈それ以外〉が 1 件でもあれば止める。gdp_jump797 の〈それ以外〉で gdp_jump833 が〈建国〉か〈分母の痩せ〉に入れる件は記録（★(859)・★(866) の前例・ヌル腕の件数と並べる）。
+  - 1e10 倍以上・非有限は止める。開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。
+  - 空洞化 1/10 未満（例外の規則 A2・an_h2.py -v5 の名簿の外）：件ごとに holclass839.py（基線＝種 1〜10 は keep_866/base_ins を同じ台本で数えた物・種 11〜20 は keep_852/a11）で〈元からの弱さ／線が原因〉に分け、並べて c72gt の holsplit867.py（L0〜L3）を出す。
+    - 採否：mS（最終）で holclass839 の〈線が原因〉が 1 件でもあれば採らない（帰属はアブレーションの腕で読む）。holsplit867 の L2 は止める線の免除に使わない＝記録（c72gt の反証役の指摘・c72gt の担当の推奨〈記録だけ〉の向き）。これは RULEW〈c72po の S11 は c72gt の規則で採否〉より厳しい側＝推奨で進めた所として名乗る。
+    - M（種 1〜10）で〈線が原因〉の件があれば、aSS・aPO のどちらに出るかで帰属を決め、その線を採らない。
+  - 名目 GDP 0 の続き（人口 1 万以上・4 四半期以上）：記録の段の先頭。
+  - 推定の計算量 ＞248.5 秒は止める。見込み＝212.6＋c72po の S11 の差 +5.1＋c72ss の +0.7 ≈ 218.4 秒（記録・2 秒以下の割り当ては門にしない）。
+  - 機構のテストの赤（走査の番人 7 組を含む）は止める。WriterRatchetTests は下の [7]。
+  - 記録：英の国債の不履行の種の数（M・mS・n1・n2 と m852）・NG（ng.sh・基準 ng852）・nullgate・exact・near・空洞化 1/4 未満の件数。
+
+■ [7] テストの予言
+  - --list-tests：Category!=FullLength 2312（2307＋c72tc 5・ss と po の旗の表の行は注の行へ＝数は変わらない）・FullLength 3。ident.cfg の TESTS_NONFULL を 2312 へ。
+  - 走査の番人 7 組は merge の直後（腕の前か腕と並べて・フィルタつき）に回す（㉘）。
+  - コミット M のフルスイート（腕の後・10 種の腕と並べない）：赤は WriterRatchetTests の item 2（c72ss）と item 11（c72po）だけ。値は線の値（item 2＝1983・item 11＝3,442,688）が予言だが、旗 2 本が 1 の木では違ってよい＝合わせた木の実測で宣言の表を取り直す（★(749) の区分・00一覧〈(3) リファクタの候補〉に〈波72 …〉）。それ以外の赤は止める。
+  - savetest OK・leakhunt 違反なし。
+
+■ [8] 枝分かれ
+  - 2 本とも採る：新しい基線 m873＝成績表（b5・b10・b10_ins・b10s11_ins・n1_ins・n2_ins・mon）・生を keep_873（base_ins＝mM・n1・n2・a11＝mS）・ident.cfg（B5・B10INS・MON・INSRAW keep_873/base_ins・BASE_COMMIT＝コミット M・TESTS_NONFULL 2312・NG_BASE ng873）・NG の新しい基準。
+  - 1 本だけ採る：その線だけの木（もう一方の点火を逆適用したコミット）で mM を回し直す（全ての表）・アブレーションの腕の生は〈その木の M〉の 8 表と照らす。D: が足りなければ、ここで止めて記録し、新しい基線は次の波で作る。
+  - 0 本：基線は m852 のまま・Z の生を keep_873/base_ins（c72tc の列つき）へ・ident.cfg の INSRAW・BASE_COMMIT・TESTS_NONFULL だけ直す。
+  - 3 回目の線が閉じたら、00一覧の行を〈3 回の規則の最後で閉じた〉にする。
+
+■ [9] 記録で出す物：入れた線と外した線と理由・門の値（線の腕・M・mS）と新÷旧・空洞化の件ごとの表・c72ds の要点・次の波の推奨・不履行の種の数・開幕の 1000 倍・書き換えたテスト・増減の行数・担当の違反・孤児のプロセス・NG の出入り。予言の外れは記録の段の先頭。

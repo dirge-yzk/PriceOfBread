@@ -228,9 +228,9 @@ public static class Politics
         //   ＝労働供給がその瞬間に回復する。⚠蜂起の予約中（RevoltingFaction／PendingRebelRegions）は「まだ始まっていないだけ」なので剥がさない
         //   （TriggerFactionRevolt が札を立ててから建国＝開戦までに四半期の境界を跨ぐ＝処理順に依存させない）。
         //   ⚠民兵率0の世界（RevoltMilitiaRaise=0＝既定）ではこの条件の中で1回も書かない＝厳密恒等。
-        //   ⚠「内戦中か」の物差しは World.InCivilWar **1本**（新しい述語を作らない）＝CivilWarPredicateUnified=1.0 が点火済みなので
+        //   ⚠「内戦中か」の物差しは World.InCivilWar **1本**（新しい述語を作らない）＝War 経路（CivilWarParent 付き）も含めて見える（旗 CivilWarPredicateUnified は 2026-10-18 に消えた＝Coefficients.cs の墓標）ので
         //     War 経路（CivilWarParent 付き＝親も反乱国も真）が見える（旧経路の内戦 CivilWarYears は 2026-09-28 段2 束3 で削除）。
-        //     ⚠それを0へ戻すと反乱国の民兵は建国の翌四半期に剥がれる（＝この札は内戦の述語に依存している）。
+        //     ⚠この札は内戦の述語に依存している（述語が War 経路を見なければ反乱国の民兵は建国の翌四半期に剥がれる）。
         bool inRevolt = w.InCivilWar || w.RevoltingFaction is not null || w.PendingRebelRegions is not null;
         foreach (var p in w.AllPops())
         {
@@ -247,7 +247,7 @@ public static class Politics
             double press = 0.75 + 0.5 * PressFreedom(w.Censorship) * newsReach;
             // [PORT:P2] 意識targetへの寄与＝識字×教育変換×都市化＋便乗、×報道（新聞/検閲）。時定数17年の遅い変数＝速い興奮は闘争度(P1)の仕事
             double target = PoliticalQuantities.Clamp01((p.Literacy * convert * urban + bandwagon) * press);
-            p.Consciousness += c.ConsciousnessSpeed * (target - p.Consciousness);
+            p.Consciousness = PoliticalQuantities.Toward(p.Consciousness, target, c.ConsciousnessSpeed);
         }
 
         // 倍率排除⑥b-2：軍拡負担の闘争度直接加算（治安維持力>2500 の手書き絶対閾値）を撤去。軍・治安維持力の維持コストは
@@ -314,14 +314,14 @@ public static class Politics
             // ★闘争度の追従速度 σ（設計メモ §7-3）＝**上昇の側で決まる**：σ < RegionalRevoltThreshold（1四半期では越えない）かつ
             //   1−(1−σ)² > RegionalRevoltThreshold（2四半期で越える）＝門0.50 では σ∈(0.293, 0.50)。
             //   ⚠上昇鈍化（旧 UnityMilitancyRelief×EthnicUnity）は削除＝民族統一度の3度目の読みだった（一本鎖へ）。
-            p.Militancy += c.MilitancySpeed * (target - p.Militancy);
+            p.Militancy = PoliticalQuantities.Toward(p.Militancy, target, c.MilitancySpeed);
             // ★参照点を今の生活水準へ寄せる（⚠want を計算した【後】＝同一ティック内で閉じない）。
             if (c.LivingRefSpeed > 0)
-                p.LivingRef += c.LivingRefSpeed * (p.Satisfaction - p.LivingRef);
+                p.LivingRef = PoliticalQuantities.Toward(p.LivingRef, p.Satisfaction, c.LivingRefSpeed);
             // ★食料の平常を今の充足へ寄せる（同じ慣れの速度・駆動を計算した【後】＝同一ティック内で閉じない）。
             //   ⚠利得に関わらず回す＝駆動が休眠の世界でも「慣れ」の分布を計器が測れる（起点と利得はその分布から導いた）。
             if (c.LivingRefSpeed > 0 && foodFill >= 0)
-                p.FoodRef += c.LivingRefSpeed * (foodFill - p.FoodRef);
+                p.FoodRef = PoliticalQuantities.Toward(p.FoodRef, foodFill, c.LivingRefSpeed);
         }
         }   // 参政権の範囲2法：州→popの入れ子ループの閉じ（AllPops の展開形）
 
@@ -355,7 +355,7 @@ public static class Politics
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
             double dynPerf = dmSat + dmFood + dmWar;   // ★(383) 作者 2026-10-16「汚職→廃止」：汚職の項 dmGraft（天命への -DynMandateGraftWeight×実効汚職）は物理削除した
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
-            w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
+            w.DynasticMandate = PoliticalQuantities.Toward(w.DynasticMandate, dmTarget, c.DynMandateEmaRate);
             if (w.Explain != null)   // 説明API：天命の内訳（合計＝最終値の厳密分解）
             {
                 double r = c.DynMandateEmaRate;
@@ -683,7 +683,7 @@ public static class Politics
         // P2：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
         // 「近代法を持つが議会に権力を渡さない」プロイセン/明治型が自然点になる（ラベルが後日 床交差で変わった時だけ建国制度が走る）。
         if (reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
-        if (Instruments.On) Instruments.CoupRoute(w, violent ? 5 : 6);
+        if (Instruments.On) Instruments.CoupRoute(w, 5, violent);   // (904) 旧 `violent ? 5 : 6`：6 は届かない枝（台帳 §2-3・10 種で 0 行）。radical／reformist が NaN のときだけ violent=false のまま来るが、ExecuteRegimeChange へ渡す violent は変えない（挙動は同じ）＝ラベルだけ 5 に畳まれる
         ExecuteRegimeChange(w, c, attractor, violent);
     }
 
@@ -711,6 +711,7 @@ public static class Politics
             if (IsSeizure(target)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
         }
         CrownParliament.ApplyRegime(w, c, target);   // 登録簿＋政体キャッシュ（flag=1はPCジャンプも）＝単一の書き込み口（P2）
+        if (Instruments.On) Instruments.CrownSource(w, 1);   // (928) 計器（読むだけ）：王冠の登録簿の書き手 1＝Transition 系の政体変更（蜂起の決着は呼び手の側で 3 に上書き）
         RaiseFoundingInstitutions(w, allowRevoke: true, c);   // 新政体の含意参政権・報道へ（自由化＝拡張／反動＝剥奪＝ラチェット解除・反革命の波。政3：c 渡しで自由化はラチェット可）
         if (target is Polity.ProletarianDictatorship or Polity.Anarchy) Fiscal.RepudiateDebt(w, c);   // 既定は債務継承（史実）。急進革命のみ否認（継承＝リセットしない＝攻略封じ＋史実）
         var (dt, dm, dmass) = Dispossessed(target);
@@ -842,7 +843,7 @@ public static class Politics
         if (rebelWon)   // 反乱が依然優勢＝革命勝利→目標政体へ（失脚で不安定）
         {
             // F3b 経済決着：政体は変わらない＝運動の要求をのませる（F1譲歩の大型版＝要求top-kを複数段・政治資本を大量に燃やす）。
-            if (target != w.Polity) ExecuteRegimeChange(w, c, target, violent: true);   // 内戦を経た勝利＝暴力の転換（覚醒・断裂の窓・否認・失脚・土地改革は即時の政変と同じ1本）
+            if (target != w.Polity) { ExecuteRegimeChange(w, c, target, violent: true); if (Instruments.On) Instruments.CrownSource(w, 3); }   // (928) 計器：蜂起の決着は書き手 3   // 内戦を経た勝利＝暴力の転換（覚醒・断裂の窓・否認・失脚・土地改革は即時の政変と同じ1本）
             else if (movement is not null) ConcedeToFaction(w, c, movement);
         }
         else   // 中央が持ちこたえた＝反乱鎮圧（闘争度緩和）
@@ -885,7 +886,7 @@ public static class Politics
         // ⚠述語に `RevoltingFaction is not null` を入れない：参照は戦争の決着でだけ外れる（再併合・白紙の分断・独立の確定＝2026-09-28 から3つとも
         //   Politics.SpendRevolt を通る。旧＝白紙と独立は参照を残したまま return し、この述語に入れると一度膠着した国は二度と蜂起できない恒久の錠になった）。
         //   状態（地図の上の内乱）だけを見る＝参照の外し忘れが錠にならない。
-        // ⚠InCivilWar は CivilWarPredicateUnified（点火済み1.0）に依存する＝0へ戻すと戦争経路の内戦をこの述語が見なくなる（段5の民兵の剥離と同じ依存）。
+        // ⚠InCivilWar は戦争経路の内戦（親も反乱国も真）を見る述語（旗 CivilWarPredicateUnified は消えた＝Coefficients.cs の墓標・段5の民兵の剥離と同じ依存）。
         if (w.InCivilWar || w.PendingRebelRegions is not null) return;
         FactionState? best = null; double bestStrength = 0, bestDespair = 0;
         foreach (var f in w.Factions)
@@ -1291,8 +1292,8 @@ public static class Politics
             PolicyAxis.StateReligion => StepEnumAxis((int)w.StateReligion, 2, v => { w.StateReligion = (StateReligionLaw)v; p.StateReligion = w.StateReligion; }),   // 上限=信仰の自由（国家無神論は政体の属性＝要求で到達しない）
             PolicyAxis.Antitrust => StepEnumAxis((int)w.Antitrust, 2, v => { w.Antitrust = (AntitrustLaw)v; p.Antitrust = w.Antitrust; }),
             PolicyAxis.Guild => w.Coef.GuildLawGate > 0 ? StepEnumAxis((int)w.Guild, 2, v => { w.Guild = (GuildLaw)v; p.Guild = w.Guild; }) : 0,   // ★特権 段4（ゲート0では要求経路も動かさない）
-            PolicyAxis.MinimumWage => w.Coef.MinimumWageLawGate > 0 ? StepEnumAxis((int)w.MinimumWage, 3, v => { w.MinimumWage = (MinimumWageLaw)v; p.MinimumWage = w.MinimumWage; }) : 0,   // ★最低賃金法（線 lw (459)・ゲート0では要求経路も動かさない）
-            PolicyAxis.Inheritance => w.Coef.InheritanceLawGate > 0 ? StepEnumAxis((int)w.Inheritance, 4, v => { w.Inheritance = (InheritanceLaw)v; p.Inheritance = w.Inheritance; }) : 0,   // ★相続法（線 inh (650)・ゲート0では要求経路も動かない）
+            PolicyAxis.MinimumWage => StepEnumAxis((int)w.MinimumWage, 3, v => { w.MinimumWage = (MinimumWageLaw)v; p.MinimumWage = w.MinimumWage; }),   // ★最低賃金法（線 lw (459)・門の係数 MinimumWageLawGate は (843) で焼き込み）
+            PolicyAxis.Inheritance => StepEnumAxis((int)w.Inheritance, 4, v => { w.Inheritance = (InheritanceLaw)v; p.Inheritance = w.Inheritance; }),   // ★相続法（線 inh (650)・門の係数 InheritanceLawGate は (843) で焼き込み）
             PolicyAxis.WartimeRationing => Flip(w.WartimeRationing, v => { w.WartimeRationing = v; p.WartimeRationing = v; }),
             PolicyAxis.MilitaryExport => Flip(w.MilitaryExportBan, v => { w.MilitaryExportBan = v; p.MilitaryExportBan = v; }),   // 軍需輸出の法（禁制品doc C5・2026-07-30）
             PolicyAxis.CivilianArms => c.RebelArmsMarketEnabled > 0 ? Flip(w.CivilianArmsBan, v => { w.CivilianArmsBan = v; p.CivilianArmsBan = v; }) : 0,   // ★民間の武器購入の法（2026-09-11・ゲート0では要求経路も動かさない）
@@ -1447,7 +1448,7 @@ public static class Politics
             //   ⚠副作用に注意：下の `SecessionCultureAdditive` は既に (1−中核度) を掛けているので、寄せ切ると**2乗**になる
             //   （＝民族主因の圧力が非線形に強まる）。点火は 1.0 でなく中間値から掃く。0で厳密恒等（休眠）。
             if (c.CultureDistanceFromEthnic > 0)
-                cultDist += c.CultureDistanceFromEthnic * ((1.0 - AvgRegionCoreShare(r)) - cultDist);
+                cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - AvgRegionCoreShare(r), c.CultureDistanceFromEthnic);
             double mil = AvgRegionMilitancy(r);
             double pressure = Math.Abs(stance - r.TariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);   // 関税乖離(0..2)×州不満×文化異質性
             // 政14：分離の駆動因が関税利害の乗算に一元化（関税乖離0なら文化がどれだけ異質でも圧力0）。19世紀の分離は民族・宗教が主因＝**独立の加算圧力**を用意（MinorityMilitancy と接続）。
@@ -1550,13 +1551,34 @@ public static class Politics
         // ★支配度の一般化（段1〜5・(399) で点火）：州の4区分（国家・在地・外国・無統治）を目標へ寄せる。速度は DominanceSpeed（新しい速度定数を作らない）。合計1を保つ。
         //   目標：無統治＝(1−治安)×(1−到達)（到達＝首都からの距離〔RegionReach〕・辺境ほど・治安が抜けるほど）／在地＝開幕のデータ×仲介者の権利の残高（官僚制度法と土地改革の max〔Privileges.IntermediaryDegree〕・
         //   農奴解放の法は読まない〔作者 2026-10-16：農奴解放は農奴POPを農民POPにする法で州の支配度には影響しない〕）／外国＝講和で積まれた持分の合計（ForeignShareSum）／国家＝残り。
+        //   ★(850) 州ごとの治安 P1-1（旗 RuleOrderByRegion・既定 0＝下の order をそのまま読む今の式）。作者 2026-11-04「闘争度が高い州は、支配度が低下するのではないか（警察力が十分でない場合）」→
+        //   AI の推奨〈無統治の目標を州ごとの治安で作る〉を〈作者「全て推奨で」で推奨を採った〉（形は AI の案・確証なし・事前登録 measurements/m850_20261105_prereg_po.txt）。
+        //   旗 1：州の秩序 order_r＝Clamp01(R×m̄÷m_r)。R＝今の Coercion の切る前の被覆（Crime.Step と同じ式・w.PublicOrder は切った値で 1 四半期遅れ＝読まない）・
+        //   m̄＝国の全ての州（首都を含む）の大衆の闘争度の人口加重の平均・m_r＝その州の平均（AvgRegionMilitancy・この瞬間の値）。m_r が正でない州は 1。
+        //   国の被覆を州の闘争度の比で割り振るだけ＝R≧1 かつ R×m̄÷m_r≧1 の州（警察が十分）は旧と同じ目標。新しい係数 0・新しい状態 0。
+        //   ⚠犯罪（Crime.cs）は国の秩序のまま（闘争度を 2 回数えない＝思想⑨・番人 CrimeTests）。1 州の国は上の頭の return で動かない（今と同じ）。
         {
             double order = PoliticalQuantities.Clamp01(w.PublicOrder);
+            bool byRegion = c.RuleOrderByRegion > 0;
+            double rawOrder = 0, mbar = 0;
+            if (byRegion)
+            {
+                rawOrder = PoliticalQuantities.EffectiveCoerce(w, c) / Math.Max(1e-9, w.TotalPopulation * c.CrimeOrderPerPop);
+                double milSum = 0, sizeSum = 0;
+                foreach (var rm in w.Regions) { var (mm, ss) = RegionMilitancy(rm); milSum += mm; sizeSum += ss; }
+                mbar = sizeSum > 1e-9 ? milSum / sizeSum : 0;
+            }
             double intermediary = Privileges.IntermediaryDegree(w);
             foreach (var r4 in w.Regions)
             {
                 if (r4.Rule.Length != 4) continue;
-                double tUngov = (1.0 - order) * (1.0 - RegionReach(w, c, r4));
+                double orderR = order;
+                if (byRegion)
+                {
+                    double mr = AvgRegionMilitancy(r4);
+                    orderR = !(mr > 0) ? 1.0 : PoliticalQuantities.Clamp01(rawOrder * mbar / mr);
+                }
+                double tUngov = (1.0 - orderR) * (1.0 - RegionReach(w, c, r4));
                 double tLocal = System.Math.Min(1.0 - tUngov, (r4.RuleInit.Length == 4 ? r4.RuleInit[1] : 0) * intermediary);
                 double tForeign = ForeignShareSum(r4);
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);

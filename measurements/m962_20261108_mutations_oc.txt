@@ -1,0 +1,8 @@
+(962) c86oc 突然変異と門の結果（2026-11-08・使い捨ての写し D:/PoB_work/c86oc_work/wt0・wtL・wtM）
+直す前：wtL（bbc55c0d＋origin/c85lt）で :87 赤＝組 13／wtM（bbc55c0d＋ff1bf106）で :91 赤＝年の中で持ち主が替わった州の組が無い。
+直した後：:87 が wt0・wtL で緑（SecessionLaborLawInstrumentTests 5/5）・:91 が wt0・wtM で緑（TransportInstrumentTests 5/5）。
+:87 の対照の大きさ（プローブ・Assert.Fail の使い捨て）：wt0 pairs=1418 series=34 nations=2／wtL pairs=1418 series=34 nations=2（床 20・5・2）。
+M1 :87 の speed*1.01（wt0）→赤（Near 期待 0.55421・実際 0.55394）
+M2 :82 のクランプの除外を外す（wtL）→赤（Near 期待 1.04774・実際 1）
+M3 盤面を置く行を消す（wtL）→赤（組が少ない 10）
+M4 :91 の移転を消す（wtM）→赤（年の中で持ち主が替わった州の組が 1 つも無い）

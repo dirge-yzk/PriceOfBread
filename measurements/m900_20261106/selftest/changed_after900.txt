@@ -1,0 +1,23 @@
+確かめ直す行 22（最後に確かめたコミットのある行 156・未確かめの行 936）
+S16-16	11db605f	EconomyStep.cs Simulation.cs	
+S16-17	11db605f	Simulation.cs	
+S17-P01	11db605f	CrownParliament.cs	
+S17-P02	11db605f	CrownParliament.cs	
+S17-P03	11db605f	CrownParliament.cs	
+S17-P04	11db605f	CrownParliament.cs	
+S17-P05	11db605f	CrownParliament.cs	
+S17-P06	11db605f	CrownParliament.cs	
+S07-P02	11db605f	Simulation.cs	
+S04-P01	11db605f	EconomyStep.cs	
+S04-P02	11db605f	EconomyStep.cs	
+S04-P04	11db605f	EconomyStep.cs	
+S04-P05	11db605f	EconomyStep.cs	
+S15-20	731d3de1	CrownParliament.cs	
+S15-24	731d3de1	CrownParliament.cs	
+S15-25	731d3de1	CrownParliament.cs	
+S15-35	731d3de1	CrownParliament.cs Simulation.cs	
+S15-41	731d3de1	CrownParliament.cs	
+S15-42	731d3de1	CrownParliament.cs	
+S15-43	731d3de1	CrownParliament.cs	
+S15-45	731d3de1	Simulation.cs	
+S17-P08	731d3de1	CrownParliament.cs InstrumentsCrown.cs	

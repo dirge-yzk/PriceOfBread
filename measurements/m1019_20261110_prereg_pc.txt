@@ -1,0 +1,53 @@
+(1019) 線 c95pc 事前登録：計器 prodcap_s（貿易の段0″＝年×州×生産者の播種の能力と賦存の級）・Mu5 を拾う機構の試験・recipeout_s の末尾に siteFound の列。
+恒等の線（予言 0）。木＝8cc53a06（main）。腕の前に、計器より前の別のコミットで入れる。作者 2026-11-09「これは修正対象です」（自給率と貿易の少なさ）。並べ方は AI の推奨。
+形＝計器（尾でも入口でもない・読むだけ）。INS=1 のときだけ動く。旗なし・新しい係数 0・力学 0 行・乱数を引かない・エンジンに欄を足さない。
+
+[1] 形と予言
+- 表 prodcap_s<種>.tsv を 1 本足す。recipeout_s の末尾に 1 列 siteFound を足す。他の表・成績表は 1 行も変わらない（予言 0）。
+- 年：recipeout_s と同じ呼び口の形（q%4==3 の四半期の末）で、(a) NgYear の年（10 の倍数と 1913）、(b) 開幕の最初の q%4==3 の年（1783）。(b) は nationgood_s に行が無い年＝P1 は両方にある年だけで比べる。年の印は yearLabel＝sim.Nations[0].World.Year（nationgood_s と同じ）。
+- 列（15）：year・q・region・ownerNation・good・recipe・isRgo・class・productivity・endowFromProductivity・capacity・output・marginalCost・siteRow・siteFound。
+  class・endowFromProductivity＝RoRead の戻り（recipeout と同じ規則を呼ぶ＝写しを作らない）。productivity・capacity・output・marginalCost・siteRow＝Producer の欄をそのまま（marginalCost は参照価格の単位の素の値）。siteFound＝0／1。
+  国の並び・財の切り（goodLimit）は RecipeoutTable と同じ（NgAccs の名簿→sim.Nations）。州の並び・生産者の並びはエンジンの並びのまま。
+- recipeout_s の siteFound：級 X の行＝その行の生産者のうち SiteFound の割合（0〜1）。**行の鍵は変えない**（鍵に足すと行が割れて他の列が動く＝ident の行の門が破れる）ので、混在の行は 0 と 1 の間になる。他の級は nan。級の値は変えない（--grown-ok recipeout_s）。
+- 行数の予言：recipeout_s の producers の和が年あたり約 54,000〜56,000（keep_1017 の recipeout_s1 の 1790〜1950）。年は 18＋開幕 1 ＝ 約 19 回。1 種あたり約 100 万行（計画の〈十万行の桁〉は桁が違った＝訂正）。1 行約 150 バイト＝1 種約 150MB・計器つき 10 種で約 1.5GB。
+- 計算量の予言：RoRead を全生産者に 19 回＝recipeout_s の生産者の数え直し（recipeout_s は同じ生産者を同じ年に RoRead 済み）＋行の書き出し約 100 万行。1 種あたり 2〜5 秒〈推〉・計器つきの腕の推定（計器の費用も含む）が m1017 の 231.5 秒から +3 秒以内〈推〉。0.05 秒未満の見積りは写さない。上限は推定 248.5 秒。
+- 記録の列（ident の生で読み、門にしない）：
+  段0″a の門 N1 の基線＝足す予定の 15 行の (州, 財) の開幕（1783）の productivity（prodcap_s の最初の年）。
+  段0″b の 3 財（石灰石・珪砂・粘土）の級 N の行の数・産出（recipeout_s と prodcap_s）。
+  siteFound の混在の行（0 でも 1 でもない行）の数。
+
+[2] 消す物と残す物
+- 消す物 0。足す物：InstrumentsProdcap.cs（新）・InstrumentsRecipeout.cs の見出し（:13 の定数）・RoAcc/RoRows の欄 1 本・書き手の列 1 本。
+- InstrumentsRecipeout.cs:56（級 N の規則の行）には触れない（c95ub の持ち物）。
+- 呼び口：Instruments.cs:1908・:1942 の既存の行の中に名を足すだけ（行の追加 0・git diff --stat で 1+/1- ずつ）。c95wn は :1914・:1944＝別の行。
+- 読み手の grep（recipeout_s・RoRows・RecipeoutHeaderText）：SimCore＝InstrumentsRecipeout.cs 内のみ・Tests＝RecipeoutInstrumentTests.cs（RecipeoutHeaderExpected の定数）・scripts＝c94ro/read_ro.py・t1_explain.py・m1017/cfg1017.py・identz1017.sh（列の名前で読む＝列の追加に影響なし〈cfg1017 は表の名前の頭だけ〉）。App・Display・Runner＝0。POB_COEF の名前＝0。SaveGame＝0（欄を足さない）。
+- 他の線との重なり：Instruments.cs（wn と別の行）・InstrumentsRecipeout.cs（ub が :56 の 1 行）・表の一覧を数える試験（grep 0 件＝書き換え 0）。
+
+[3] 足す試験と突然変異（[Fact]・[Theory] を数える＝★(994)）
+- ProdcapInstrumentTests.cs（新）4 本：
+  P1 量の保存：(年,国,財) ごとの Σ output が nationgood_s の producedQty と合う（1e-9 相対＋1e-12）。合成の盤面（Run 12 四半期）で見る。対照＝比べた組 ≥1000・産出が正の組 ≥200。下側＝書かないと赤・上側＝Capacity を書くと赤。
+  P2 級の突き合わせ：書いた productivity÷(財の生産性×7.0) が、RoRead の Endow と一致する（級 F・U を除く）。class の列が X/E/Z/N/S/F の全てを含む。
+  P3 Mu5 を拾う機構の試験：構築の後に 1 生産者の Productivity を 2 倍にしても、RoRead の Class・Rule・IfAbundance が変わらない（級 E・N・S・X の各 1 個体で）。
+  P4 年と列：見出しが 15 列の宣言と一致・最初の年の行が 1783 を含む・NgYear の年だけが他にある。
+- RecipeoutInstrumentTests.cs に 1 本：S1 siteFound＝開く前の大鉱床の行が 0・OpenSite の後が 1（1 個体の盤面で）・級 X 以外が nan・X の行の rule が siteFound で GoldRushEndowment の有無に割れる。
+- 書き換える既存の試験の行：RecipeoutInstrumentTests.cs の RecipeoutHeaderExpected（見出し宣言の定数＝列を足すと変わる・★(743) ② の型＝比べる文字列が出所の宣言そのもの）。他の Assert は書き換えない。
+- 試験の数の差：+5（[Fact] 5・[Theory] 0）。2595 → 2600。FullLength 3 は変わらない。
+- 突然変異（使い捨ての木・出力の全文を measurements/m1019_20261110_mutations.txt）：
+  Mu5 級を Productivity から決める → P3 が赤。
+  Output を Capacity にする → P1 が赤。
+  年を 1 つずらす（yearLabel+1）→ P1 が赤（★(1006)）。
+  siteFound を Sites の Kind で決める → S1 が赤。
+  class の写しを自前で書き :56 の規則を落とす → P2 が赤。
+  （P3 の下側：P3 を空の本体にすると mutation Mu5 で赤にならない＝対照の件数 ≥4 級を置く。）
+- ソースを走査する番人（㉘）の点検：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests に加え ScalarDeletionTests・GoodIdGuardTests。`new MoneyStock(` の件数＝64（SimCore）・書き換え予言 0。route_anchors.tsv の鍵の行は書き足さない。WriterRatchetTests の宣言の表・工業化度の許可表に recipeout・nationgood の行は無い＝書き換えの予言 0（㉑）。
+
+[4] 素の 5 種・計器つき 10 種は m1017 と名乗り行を除いて全行一致（計器の表の差は宣言だけ）。
+  ident `--added-tables prodcap_s --grown-ok recipeout_s --tests-delta 5`。
+[5] 〈判定: 恒等〉なら採る。一致しなければ変更を外して報告に回す。
+[6] 浮動小数の順序が変わる箇所＝0（読むだけ・エンジンの式に触れない）。
+
+[7] 追記（ident の後・結果の前に決まっていた訂正ではなく、ident の生を見た後の記録）
+- 開幕の最初の年の印は 1784（助走の後の最初の q%4==3）。[1] の〈1783〉は誤り。年の規則（最初の q%4==3）そのものは変えていない。
+- 行数の実測：1 種 1,095,152 行・122MB（予言の約 100 万行・約 150MB の範囲）。計器つき 10 種の ins は約 20GB（prodcap 以外を含む）。
+- 計算量：推定 231.5 秒（m1017 と同じ）＝予言の +3 秒以内。
+- 試験 P2 を ident の後に強めた（試験だけ・SimCore は不変）：級 S・N・Z の行の endowFromProductivity が手で置いた規則値（1.0・0.4×既定の ResourceScarcityScale・0）と合うことを足した。理由＝突然変異〈級の写しで N の規則を落とす〉は、強める前の P2 では級の札を倍率と突き合わせないため赤にならない可能性があった。[Fact] の数は変わらない（5）。突然変異の表は強めた P2 の木で取った。

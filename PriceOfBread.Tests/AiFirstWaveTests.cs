@@ -32,7 +32,8 @@ public class AiFirstWaveTests
     ///   ⇒ 本フィクスチャが試すのは「**望みは2段先だが、目標は次の1段だけに置くか**」＝統一ゲートの本体。</summary>
     private static Simulation UnreachableSuffrageWorld(ulong seed)
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(seed), new NullAgent());
+        var cfg = NationConfig.France().ShallowClone(); cfg.LandOwnership = null;   // ★(914) 土地の持ち分のデータの有無に依らず同じ盤面（データ無し）にする
+        var sim = new Simulation(cfg.ToScenario(seed), new NullAgent());
         var w = sim.World;
         w.Polity = Polity.Absolutist;
         w.Legitimacy = 1.0;                 // revolt項＝闘争×(1−正統性)=0＝スタンス選択を撹乱しない

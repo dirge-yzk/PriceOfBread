@@ -1,0 +1,35 @@
+== n2  D:/PoB_work/keep_919/n2
+入り口の前後の 1 人あたり貯蓄（入り口＝0・中央）: -12:1.19e-09 -11:2.11e-11 -10:5.21e-07 -9:2.28e-07 -8:1.5e-07 -7:2e-07 -6:1e-07 -5:5.7e-07 -4:5.41e-07 -3:1.5e-07 -2:1.19e-09 -1:7.07e-12 0:2.37e-14 1:4.05e-16 2:2.13e-16
+入り口の前 12 四半期の流出の和（1164 州×四半期・比率）:
+  outTaxPerQuarter	7257.28	0.930
+  outMarketPerQuarter	420.371	0.054
+  outMigrationPerQuarter	55.8221	0.007
+  outColonialRentPerQuarter	41.0629	0.005
+  outDuesPerQuarter	17.209	0.002
+  outOtherPerQuarter	15.1879	0.002
+  outCapitalPerQuarter	3.28757e-11	0.000
+  outBondPerQuarter	0	0.000
+  outImportPerQuarter	0	0.000
+同じ期間の流入の和:
+  inMarketPerQuarter	431.828	0.832
+  inExportPerQuarter	30.3864	0.059
+  inStatePerQuarter	28.8112	0.056
+  inMigrationPerQuarter	14.5686	0.028
+  inFromPopsPerQuarter	12.6568	0.024
+  inOtherPerQuarter	0.588788	0.001
+  inCreditPerQuarter	0.00575383	0.000
+流出 − 流入（前 12 四半期の和）: 7288.09
+前 12 四半期の最大の流出の経路（額の和・上位 10）:
+  Fiscal.cs:119:take:T	7255.6
+  EmptyPopEstate.cs:31:take:P	2.47051
+  Military.cs:371:carryOut:P	0.402889
+  MultiNationSim.cs:1815:carryOut:P	1.22118e-07
+  Meritocracy.cs:651:carryOut:P	1.39724e-11
+  CapitalMarket.cs:180:take:B	4.64016e-12
+  CapitalMarket.cs:174:take:B	1.87472e-12
+  MultiNationSim.cs:1047:take:B	6.82124e-14
+続きの中（3691 州×四半期）の流入の和: inFromPopsPerQuarter:1.326e+04 inStatePerQuarter:124.3 inMigrationPerQuarter:76.28 inOtherPerQuarter:1.163 inMarketPerQuarter:0.1011 inCreditPerQuarter:1.813e-09 inExportPerQuarter:1.533e-13
+続きの中の流出の和: outTaxPerQuarter:20.56 outCapitalPerQuarter:1.601 outMarketPerQuarter:0.09286 outOtherPerQuarter:0.00696 outDuesPerQuarter:0.006682 outColonialRentPerQuarter:8.616e-05 outMigrationPerQuarter:2.368e-05 outBondPerQuarter:0 outImportPerQuarter:0
+再点火の四半期（96）の流入の和: inMigrationPerQuarter:575.5 inStatePerQuarter:469 inMarketPerQuarter:10.61 inFromPopsPerQuarter:5.991 inExportPerQuarter:5.03 inOtherPerQuarter:3.891 inCreditPerQuarter:0.02734
+再点火の四半期に正の流入があった件数: inMarketPerQuarter:94 inMigrationPerQuarter:94 inFromPopsPerQuarter:93 inOtherPerQuarter:19 inExportPerQuarter:17 inStatePerQuarter:16 inCreditPerQuarter:9
+再点火の直前の四半期の 1 人あたり貯蓄の中央 2.11e-07・再点火の四半期 9.26e-07

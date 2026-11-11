@@ -20,7 +20,7 @@ public class FullChainTests
         var sim = new Simulation(Full(1), new NullAgent());
         Assert.Equal(122, sim.World.Regions[0].Goods.Count);   // ★2026-10-25 (550)：121→122＝建造物を足した（作り手は旗 0 で置かない＝下の生産者の数は動かない）   // ★2026-10-23 (493)：120→121＝ソーダ灰を足した（化学薬品を硫酸とソーダ灰に割った）   // ★2026-09-30 (129)：119→120＝金鶏樹皮を戻した（作者裁定 2026-09-30）   // ★2026-09-30 段1（財の削減）：130→119＝11財を畳んだ（金鶏樹皮・茶葉・コーヒー豆・コークス・パルプ・機械部品・工具・発電機・包帯・精密工作機械・戦闘機）   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
-        Assert.Equal(132 + (sim.World.Coef.MachineCastIronRecipe > 0 ? 1 : 0) + (sim.World.Coef.BuildingGoodBundle > 0 ? 5 : 0), sim.World.Regions[0].Producers.Count);   // ★(555) 旗 BuildingGoodBundle（既定 1）＝建造物の作り手 5 本（木造〔既定〕＋煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリート造）を各州に足す   // ★(536) 2026-10-25：F3（鋳鉄の機械）が既定 1＝各州に 1 本足す（旗 0 で 132）  //   // ★2026-10-23 (493)：128→132＝ソーダ灰の既定（草木灰）1 本＋ルブラン法・ソルベー法・電解の並存 3 本（化学薬品を硫酸とソーダ灰に割った）   // ★2026-10-19 (418)：120→128＝日用品の自給の点火で家内工業の行を 8 本足した（HouseholdProductionEnabled 既定 1）   // ★2026-10-02 (169)：119→120＝1780年代の蒸気機関「鋳鉄の機関」（蒸気機関の財の第2生産者・AddAlternateRecipes）   // ★2026-09-30 (129)：118→119＝キニーネが本国の工場へ戻った（樹皮は植民地の財＝フルチェーンに生産者は無い・早期の「樹皮の粉末」は国家世界のビルダー側）   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
+        Assert.Equal(132 + 1 + (sim.World.Coef.BuildingGoodBundle > 0 ? 5 : 0), sim.World.Regions[0].Producers.Count);   // 132 本（既定の行・並存レシピ・家内工業の 8 本ほか）＋鋳鉄の機械 1 本（各州）＋建造物の作り手 5 本（旗 BuildingGoodBundle 既定 1＝木造〔既定〕＋煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリート造）。数の経緯（(169)(418)(493)(536)(555) ほか）は実装ログ。
 
         double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
@@ -43,13 +43,11 @@ public class FullChainTests
     public void 鋳造で基礎貨幣が増えても保存則は保たれる()   // #10 金鉱→貨幣供給：鋳造は CumulativeGoldMinted を介した正当な基礎貨幣の増加源
     {
         var sim = new Simulation(Full(1), new NullAgent());
-        // ★2026-08-29 造幣3本点火後は**旧・産出比例経路の番人**として係数を明示0にピン（新既定＝床/本位金属/準備目標では
-        //   この玩具世界で「平価未満」が成立せず鋳造が発生しない＝minted>0 の前提が空振りした）。
-        //   新既定の保存則は本ファイル先頭テスト（全50財…）の恒等式が番人・床モードの発火はR20バッチ（破綻0）で実証済み。
-        sim.World.Coef.MintPriceFloorGate = 0;
-        sim.World.Coef.StandardMetalMintGate = 0;
-        sim.World.Coef.MintReserveTargetWeight = 0;
-        sim.World.Coef.GoldMintFraction = new Share(0.5);   // 金産出の半分を鋳造（貨幣化）
+        // ★(843) 造幣の旗 2 本（MintPriceFloorGate・StandardMetalMintGate）を焼き込んだ＝旧・産出比例経路の番人は**自由鋳造（床）の盤面**へ移した：
+        //   既定の通貨制度は不換（造幣局は何も買わない）なので、金本位を置く＝造幣局が本位金属（金鉱）を買い、鋳造で基礎貨幣が増える。
+        // (846) 鋳造の経路（変異で確かめた・measurements/m846_20261105/mut_summary.txt）：この盤面の鋳造は自由鋳造の床の枝（Simulation.MintGold の `m.Price > parity && !atMarket` を通る在庫の買い上げ）で起きている。
+        //   市場買い（MintBuysAtMarket）の枝を外しても緑・床の枝を外すと赤（鋳造が一度も発生していない）・鋳造の記帳（World の Outside.Mint）を外すと赤（貨幣保存の破れ）。〈市場買いでしか起きていない〉疑い（(843) の反証役 ③）は当たらなかった。
+        sim.World.MonetaryLaw = MonetaryStandardLaw.Gold;
         double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が鋳造を含めて全ティックで保持（GoodsBalance/MoneyConservation/NonNegative）

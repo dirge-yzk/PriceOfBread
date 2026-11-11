@@ -1,0 +1,25 @@
+(1011) 合流が c93ms の突然変異を合わせた木（wt_m1011・a93d52bf）の使い捨ての写しで回し直した（mutate.sh の絞りを日本語の出力へ直した後）。Mu0＝無変更の対照。
+Mu0 成功!   -失敗:     0、合格:    10、スキップ:     0、合計:    10、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+== Mu1 lockBOpen の不等式を逆にする
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 0, workerSav: 400, wantLockB: True, wantBlockedMerchant: True) [68 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 5, workerSav: 400, wantLockB: True, wantBlockedMerchant: False) [8 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 0, workerSav: 0, wantLockB: False, wantBlockedMerchant: False) [12 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 5, workerSav: 0, wantLockB: False, wantBlockedMerchant: False) [26 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.昇格先が無い州は入口の節に着かない [19 ms]
+失敗!   -失敗:     5、合格:     5、スキップ:     0、合計:    10、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+== Mu2 max(0,貯蓄) を外す
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.負の貯蓄は平均から除く [13 ms]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+== Mu3 merchantK に職人を足す
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 0, workerSav: 400, wantLockB: True, wantBlockedMerchant: True) [18 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 5, workerSav: 400, wantLockB: True, wantBlockedMerchant: False) [9 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 0, workerSav: 0, wantLockB: False, wantBlockedMerchant: False) [29 ms]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.錠AとBの4通り(merchantSize: 5, workerSav: 0, wantLockB: False, wantBlockedMerchant: False) [9 ms]
+失敗!   -失敗:     4、合格:     6、スキップ:     0、合計:    10、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+== Mu4 植民地格だけを書く
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.植民地格の商人の空はcpop_sと一致する [8 s]
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.実走の行は全ての州であり格が複数ある [1 s]
+失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+== Mu5 meritActive を lockBOpen から外す
+  失敗 PriceOfBread.Tests.MerchInstrumentTests.昇格先が無い州は入口の節に着かない [35 ms]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 10 s - PriceOfBread.Tests.dll (net10.0)

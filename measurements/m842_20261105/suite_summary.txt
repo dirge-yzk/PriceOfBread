@@ -1,0 +1,6 @@
+(842) 器のコミット 93847482 の木（隔離ビルド D:/PoB_work/c68id_art・Release）のフルスイート
+Category!=FullLength：成功!   -失敗:     0、合格:  2271、スキップ:     1、合計:  2272、期間: 22 m 48 s - PriceOfBread.Tests.dll (net10.0)
+Category=FullLength：成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 7 s - PriceOfBread.Tests.dll (net10.0)
+中止の行（The active test run was aborted など）：両方 0
+--list-tests の突き合わせ：ident の t 腕が Category!=FullLength 2272（基準 2264＋宣言 8）・FullLength 3 と測った。合計 2272＝合格 2271＋スキップ 1（スキップは TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する＝基線 m839 と同じ）。
+savetest OK・leakhunt 完走・保存則違反なし（ident の s 腕・ident_c68id_verdict.txt）。

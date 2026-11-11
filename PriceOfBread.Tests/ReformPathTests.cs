@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// ★(404) 専制の改革の経路（壁の一歩＝<see cref="Coefficients.MandateOverStockLegitPower"/>・<see cref="Coefficients.ParishEduFunded"/>・
+/// ★(404) 専制の改革の経路（壁の一歩＝<see cref="Coefficients.MandateOverStockLegitPower"/>・教区学校の財源（旗 ParishEduFunded は (811) で焼き込み）・
 /// 事前登録 measurements/rf_20261018_prereg.txt D1・D2）の番人。★(419) 旗 MandateOverStockFromLegitimacy は焼き込み（常に有効）＝旧の経路〔壁の一歩は永遠に通らない〕を見る盤面は払える量の指数 0（`!(power>0)` で閉じる）で作る。見るのは機構と不変条件だけ（成績表の主張は書かない）。
 /// 期待値は数値のリテラルで書く（同じ関数から作らない）。ON 経路は <c>w.Coef.X=</c> で書く（World.Coef は国ごと別インスタンス）。
 /// </summary>
@@ -12,18 +12,18 @@ public class ReformPathTests
 {
     private static Simulation Board()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var cfg = NationConfig.France().ShallowClone(); cfg.LandOwnership = null;   // ★(914) 土地の持ち分のデータの有無に依らず同じ盤面（データ無し）にする
+        var sim = new Simulation(cfg.ToScenario(1789), new NullAgent());
         sim.World.Coef.MandateOverStockLegitPower = 1;   // ★既定は採用値（指数 2＝(409)）。Board() は指数 1（払える量 avail＝旧の床なしと同値）を土台に、各テストが指数を明示して見る
         sim.Run(8);
         return sim;
     }
 
     [Fact]
-    public void D0_既定は採用値_指数2_教区学校の財源1()
+    public void D0_既定は採用値_指数2()
     {
         var c = new Coefficients();
         Assert.Equal(2.0, c.MandateOverStockLegitPower);      // ★(409) 採用：払える量＝avail²（(405) の床 0.4 は削除した）
-        Assert.Equal(1.0, c.ParishEduFunded);
         // 既定の盤面でも門が走る（二乗：avail＝0.7 の払える量は 0.49）
         var w = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent()).World;
         w.Legitimacy = 0.9; w.MandateSpentNew = 0.2;                     // この四半期に 0.2 を請求済み＝残りは 0.7
@@ -222,47 +222,36 @@ public class ReformPathTests
 
     // ---------------------------------------------------------------- D2：宗教教育でも国庫が教育を買う（Simulation の CompulsoryEduFunding）----------------------------------------------------------------
 
-    private static Simulation EduBoard(EducationLaw law, double flag, NationConfig? cfg = null, int quarters = 2)
+    private static Simulation EduBoard(EducationLaw law, NationConfig? cfg = null, int quarters = 2)
     {
         var sim = new Simulation((cfg ?? NationConfig.France()).ToScenario(1789), new NullAgent());
-        sim.World.Coef.ParishEduFunded = flag;
         sim.World.EducationLaw = law; sim.World.Policy.EducationLaw = law; sim.World.EducationSpending = 0.6; sim.World.Policy.EducationSpendingTarget = 0.6;   // 目標も置く（置かないと施行が現在値を目標へ戻す）
         sim.Run(quarters);
         return sim;
     }
 
     [Fact]
-    public void D2_旗0のReligiousの財源は0_旗1はPublicと同じ割合()
+    public void D2_ReligiousはPublicと同じ割合の財源を持つ()
     {
         Assert.Equal(0.2, new Coefficients().PublicEduFundingShare.Value);        // 前提：共有する係数の既定
-        var off = EduBoard(EducationLaw.Religious, 0);
-        var on = EduBoard(EducationLaw.Religious, 1);
-        var pub = EduBoard(EducationLaw.Public, 0);
-        var pubOn = EduBoard(EducationLaw.Public, 1);
-        foreach (var r in off.World.Regions) Assert.Equal(0.0, r.CompulsoryEduFunding);   // 旧：払っても何も買わない
+        var on = EduBoard(EducationLaw.Religious);
         bool anyPositive = false;
         foreach (var r in on.World.Regions)
         {
             Assert.InRange(r.CompulsoryEduFunding, 0.0, 0.2 * 0.6 + 1e-12);        // 上限＝0.2×0.6（支配度の到達・支払い率で下がる）
             if (r.CompulsoryEduFunding > 0) anyPositive = true;
         }
-        Assert.True(anyPositive, "旗 1 の Religious で財源が 1 つの州にも立たない");
-        // Public は旗に依らず同じ軌道（旗は Religious の枝にしか入らない）
-        Assert.Equal(pub.World.Regions.Count, pubOn.World.Regions.Count);
-        for (int i = 0; i < pub.World.Regions.Count; i++)
-            Assert.Equal(pub.World.Regions[i].CompulsoryEduFunding, pubOn.World.Regions[i].CompulsoryEduFunding);
-        Assert.Equal(pub.World.GovDebt.Value, pubOn.World.GovDebt.Value);
+        Assert.True(anyPositive, "Religious で財源が 1 つの州にも立たない");
     }
 
     [Fact]
-    public void D2_旗1のReligiousは国庫が教育を買い旗0は買わない_教育費0なら買わない()
+    public void D2_Religiousは国庫が教育を買う_教育費0なら買わない()
     {
         double Cum(Simulation s) { double t = 0; foreach (var r in s.World.Regions) t += r.CumEducationCost; return t; }
         // ⚠買えるのは担い手〔教区学校〕の産出のうち私人が買い残した分だけ（仏・露・清などは産出が私人の需要で売り切れて 0・日本は買い残しが出る＝事前登録 追記1）。買い残しが出る国で見る。
-        Assert.Equal(0.0, Cum(EduBoard(EducationLaw.Religious, 0, NationConfig.Japan(), 12)));
-        Assert.True(Cum(EduBoard(EducationLaw.Religious, 1, NationConfig.Japan(), 12)) > 0, "旗 1 の Religious で国庫が教育を 1 銭も買っていない");
+        Assert.True(Cum(EduBoard(EducationLaw.Religious, NationConfig.Japan(), 12)) > 0, "Religious で国庫が教育を 1 銭も買っていない");
         var zero = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-        zero.World.Coef.ParishEduFunded = 1; zero.World.EducationLaw = EducationLaw.Religious; zero.World.Policy.EducationLaw = EducationLaw.Religious; zero.World.EducationSpending = 0; zero.World.Policy.EducationSpendingTarget = 0;
+        zero.World.EducationLaw = EducationLaw.Religious; zero.World.Policy.EducationLaw = EducationLaw.Religious; zero.World.EducationSpending = 0; zero.World.Policy.EducationSpendingTarget = 0;
         zero.Run(2);
         Assert.Equal(0.0, Cum(zero));
         foreach (var r in zero.World.Regions) Assert.Equal(0.0, r.CompulsoryEduFunding);
@@ -469,13 +458,12 @@ public class ReformPathTests
         Assert.Null(typeof(World).GetField("IsPlayer"));
     }
 
-    /// <summary>D2：旗 1 の Religious で国庫が買っても貨幣の保存量 D は動かない（国庫の払い＝教師の売上の同額の移動）。</summary>
+    /// <summary>D2：Religious で国庫が買っても貨幣の保存量 D は動かない（国庫の払い＝教師の売上の同額の移動）。</summary>
     [Fact]
     public void D2_国庫の購入は保存量Dを動かさない()
     {
         var sim = new Simulation(NationConfig.Japan().ToScenario(1789), new NullAgent());
         var w = sim.World;
-        w.Coef.ParishEduFunded = 1;
         w.EducationLaw = EducationLaw.Religious; w.Policy.EducationLaw = EducationLaw.Religious; w.EducationSpending = 0.6; w.Policy.EducationSpendingTarget = 0.6;
         double D() => w.BaseMoney.Value - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value;
         double d0 = D();

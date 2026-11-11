@@ -1,0 +1,28 @@
+Politics.cs|maxSeat > c.PartyDominanceThreshold.Value
+PoliticalQuantities.cs|public static double PoliticalCapitalMax(
+Government.cs|w.MandateSpentNew +=
+Government.cs|private static void Spend(
+CrownParliament.cs|if (w.Polity != target)
+Politics.cs|ExecuteRegimeChange(w, c, attractor, violent);
+Politics.cs|RaiseFoundingInstitutions(w, allowRevoke: true, c);
+Politics.cs|public static void RaiseFoundingInstitutions(
+CrownParliament.cs|Politics.RaiseFoundingInstitutions(w, allowRevoke: true, c);
+Diplomacy.cs|CrownParliament.ApplyRegime(dw, c, ww0.Polity);
+PowerAffinity.cs|RegimeTrackRecord
+Government.cs|w.RuptureWindowQuarters > 0 || !ProtectedLaw(w, a)
+Simulation.cs|World.RuptureWindowQuarters <= 0
+Politics.cs|SettleRevolt(w, c, won, target, best, best.Region.Pops);
+CrownParliament.cs|if (c.NationConsciousnessDerived
+Military.cs|c.NationBuildMobilizationWeight
+Fiscal.cs|RepudiateDebt(w, c);   // 債務
+Politics.cs|bool capitalHeld = w.SecedingRegion is not null;
+Politics.cs|double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
+CrownParliament.cs|double lawCeil = w.EducationLaw switch
+CrownParliament.cs|double rep = w.Polity switch
+CrownParliament.cs|NationConsciousnessPerPop
+Politics.cs|if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && maxSeat
+Politics.cs|if (dt)
+Politics.cs|bool deposed = (depTrad && p.Closed)
+Politics.cs|w.MeanSatisfactionPol = sizeSum
+Politics.cs|reformist *= hope;
+Politics.cs|if (Instruments.On) Instruments.CoupRoute(w, 1); return; }

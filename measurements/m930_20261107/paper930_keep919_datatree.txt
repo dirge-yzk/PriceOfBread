@@ -1,0 +1,30 @@
+# gate909 paper  arm=D:/PoB_work/keep_919/base_ins  base=D:/PoB_work/keep_919/base_ins  n1=D:/PoB_work/keep_919/n1  n2=D:/PoB_work/keep_919/n2
+# world.json の landOwnership の国: ['イギリス', 'スペイン', 'デンマーク', 'フランス', 'プロイセン', 'ポーランド', '日本']
+# world.json と手書きの表 ROSTER の一致（正規化の後 1e-12・国の集合も）: True
+nation	P_med	e_med	U	Qarm	Qbase	Qn1	Qn2	W	Delta	Delta/P	GB2	GB1_a_max	GB1_b_max	GB1_c_max	GB1
+フランス	0.104266	0.1525	1.0899	0.000188963	0.000188963	0.000205222	0.000201134	1.63e-05	0	0.0000	落ちる	0	0	1	落ちる
+イギリス	0.0217304	0.1191	1.0676	2.04879e-05	2.04879e-05	4.33981e-05	1.40953e-05	2.93e-05	0	0.0000	落ちる	0	0	1	落ちる
+スペイン	0.045895	0.1690	1.1017	0.000204221	0.000204221	0.000301959	0.000317216	0.000113	0	0.0000	落ちる	0	0	1	落ちる
+プロイセン	0.0182923	0.1055	1.0590	0	0	0	0	0	0	0.0000	落ちる	0	0	1	落ちる
+デンマーク	0.0121535	0.1557	1.0922	0	0	0	0	0	0	0.0000	落ちる	0	0	1	落ちる
+日本	0.00198676	0.0948	1.0524	0	0	0	0	0	0	0.0000	落ちる	0	0	1	落ちる
+ポーランド	0.0218679	0.1659	1.0994	0	0	0	0	0	0	0.0000	落ちる	0	0	1	落ちる
+# 記録（門ではない）：同じ盤面の比
+REC	フランス	P_arm=0.104266	Delta/P_arm=0.0000	U=1.0899	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+REC	イギリス	P_arm=0.0217304	Delta/P_arm=0.0000	U=1.0676	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+REC	スペイン	P_arm=0.045895	Delta/P_arm=0.0000	U=1.1017	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+REC	プロイセン	P_arm=0.0182923	Delta/P_arm=0.0000	U=1.0590	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+REC	デンマーク	P_arm=0.0121535	Delta/P_arm=0.0000	U=1.0922	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+REC	日本	P_arm=0.00198676	Delta/P_arm=0.0000	U=1.0524	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+REC	ポーランド	P_arm=0.0218679	Delta/P_arm=0.0000	U=1.0994	P_arm/P_base=1.0000	記録：Delta/P_base≦U=真
+GB3 seed 1: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 2: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 3: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 4: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 5: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 6: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 7: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 8: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 9: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+GB3 seed 10: colonialMax=0 endowMax=0 outsideRosterAtQ0=0 通る  （記録：q1 以後の名簿の外で欄を持つ行=0 国=）
+判定: G-B1 と G-B2 落ちる・G-B3 通る

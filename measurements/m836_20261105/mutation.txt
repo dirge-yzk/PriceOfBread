@@ -1,0 +1,6 @@
+(836) 突然変異（木 D:/PoB_work/c67pu_mut・CearnInstrumentTests 11 本）
+M0 何もしない（基準）：緑 ／ 成功!   -失敗:     0、合格:    11、スキップ:     0、合計:    11、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+P1 POP の振り分けを入れ替える（行が次の POP の台帳を読む）：赤 POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う ／ 失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 32 s - PriceOfBread.Tests.dll (net10.0)
+P2 人数 0 の POP を落とす（行を書かない）：赤 POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う ／ 失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+P3 月初を月末で読む（POP の月の窓の始まり）：赤 POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う ／ 失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11、期間: 27 s - PriceOfBread.Tests.dll (net10.0)
+M9 POP を群の台帳から落とす（農民の書き込みを群に足さない・cgrp_s）：赤 POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う・群の表は州の台帳の和に合い_群と月の窓の台帳が閉じる ／ 失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 20 s - PriceOfBread.Tests.dll (net10.0)

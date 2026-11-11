@@ -1,0 +1,28 @@
+(864) c71sr の作業の場所と読む生の一覧（読む線・腕 0 本・コミットしない＝合流が scripts/instruments/r864/・measurements/m864_* へ写す）
+書いた日：2026-11-05
+
+作業の場所
+- D:/PoB_work/r864_work/（この回に作ったフォルダはこれ 1 つ）
+  - plan.txt（この紙）
+  - prereg_sr.txt（事前登録・生の d を読む前に書く・sha256 を prereg_sr.sha256 へ）
+  - r864_attr.py（帰属の台本・読むだけ）
+  - out_*.txt（台本の出力）
+  - report_864.txt（問いの表→根→次の形の案→次の波の事前登録の素案）
+- worktree と枝は作らない（読むだけ＝main の作業ツリーのソースと台本を読むだけ・書かない）
+
+読む生（全て読むだけ・消さない・移さない）
+- 旗 1（腕）：D:/PoB_work/keep_859_rej/c70ssB_10/ins/{subst_s,region_s,migration_s,pxmonth_s}1..10.tsv（木 1b9eeab1＝m852 の盤面の旗 1）
+- 旗 0（基線）：D:/PoB_work/keep_852/base_ins/{subst_s,region_s,migration_s}1..10.tsv（合わせた木 1271053f）
+- 新ヌル腕：D:/PoB_work/keep_852/n1・n2/{subst_s,region_s,migration_s}1..10.tsv（8 表だけ）
+- 旧ヌル腕（m839 の盤面・盤面が違うと名乗る）：D:/PoB_work/keep_839/base_ins・n1・n2/subst_s1..10.tsv（c69ss の末尾 26 列は無い）
+
+読む台本と記録
+- scripts/instruments/c70gt/gates_ss853.py（G5＝150〜182 行の定義の写し方）・c70ss/paper855.py・rehome855.py・read855.sh
+- measurements/m855_20261105/armB_gates.txt・paper855_m852.txt・rehome855_c69ssB.txt・pred_gates853_on_c69ssB.txt
+- measurements/m859_20261105/prereg_859.txt・measurements/m853_20261105/loo_ss853.txt
+- ソース（読むだけ）：EconomyStep.cs:92 SubsistenceHead・:2871・Territory.cs:266 Rehome・Coefficients.cs:530・InstrumentsSubst.cs（subst_s の列の意味）
+
+決まり
+- 腕 0 本・シミュを回さない・門の台本を変えない・採否を決めない
+- Python は読みと書きを 1 文にしない・出力は newline="\n"
+- 覗き（tail・ls で作りかけを見る）は数えて報告に書く

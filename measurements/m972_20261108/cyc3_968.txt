@@ -1,0 +1,4 @@
+D:/PoB_work/keep_968/base_ins	pclamp の表	5	cyc<1e-3 の行	0
+D:/PoB_work/keep_968/n1	pclamp の表	6	cyc<1e-3 の行	0
+D:/PoB_work/keep_968/n2	pclamp の表	6	cyc<1e-3 の行	0
+D:/PoB_work/keep_968/a11	pclamp の表	4	cyc<1e-3 の行	0

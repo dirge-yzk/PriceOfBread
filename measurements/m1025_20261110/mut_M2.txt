@@ -1,0 +1,12 @@
+applied M2
+ PriceOfBread.SimCore/Simulation.cs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:06.04]     PriceOfBread.Tests.ResourceRowsTests.T3_賦存の読み手と州の配列が同じ(flag: 1) [FAIL]
+[xUnit.net 00:00:06.05]     PriceOfBread.Tests.ResourceRowsTests.T2_旗1では足した行が入り賦存が4倍か3点5倍 [FAIL]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T3_賦存の読み手と州の配列が同じ(flag: 1) [60 ms]
+  失敗 PriceOfBread.Tests.ResourceRowsTests.T2_旗1では足した行が入り賦存が4倍か3点5倍 [8 ms]
+rc=1
+   旗 1・マンチェスター・塩：配列にある=True・賦存の値=367.5（基準×3.5=73.5）
+   バーミンガム・銅鉱：420（期待 84）

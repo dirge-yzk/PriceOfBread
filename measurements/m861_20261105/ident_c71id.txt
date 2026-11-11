@@ -1,0 +1,32 @@
+ident start：ラベル=c71id 木=/d/PoB_work/wt_c71id 作業=/d/PoB_work/ident_c71id 腕=[a b t] 開始=2026-11-05 19:27:03
+ident start：腕は全て終わった（4 印）
+=== 恒等の判定（測った種で一致） c71id（2026-11-05 19:47:27）===
+測った木：D:/PoB_work/wt_c71id（HEAD dadff0cf・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c71id/scripts/instruments/ident/ident.cfg
+宣言： tests_delta=14
+腕 a：rc=1 end=2026-11-05 19:38:04
+腕 b：rc=1 end=2026-11-05 19:47:27
+腕 t：rc=0 end=2026-11-05 19:28:37
+測る木の SOURCE-HASH：40463f121b763c84
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 40463f121b763c84
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m852
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m852.cost
+  ○ 件数の行 29 本・推定 216.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 40463f121b763c84
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m852_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m852_ins.cost
+  ○ 件数の行 29 本・推定 212.6 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c71id/out_ib_10/ins  対  基準 D:/PoB_work/keep_852/base_ins
+  基準 1070 本・腕 1070 本・バイト一致 1050 本
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1050・既知の揺れ 20・宣言された増減 0）
+  内訳：共通の表 1070 本＝バイト一致 1050＋既知の揺れ 20＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1070）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261105_m852.txt（タグの行を除く）
+  ○ タグの行以外が一致（5221 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2301（基準 2287+14 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等

@@ -1,0 +1,16 @@
+# (869) 旗 1 のフルスイート（origin/c72tc を merge した木 d917bb7d〔.cs は e2a23144 と同じ〕・隔離ビルド・Release・2026-11-06）＝㉜・N-e
+--list-tests：Category!=FullLength 2312・FullLength 3（2307＋c72tc の +5〔TradeClearingTests:434 の Fact→旗 0・1 の Theory で +1・TradeClearingBoardTests 4〕）
+失敗!   -失敗:     3、合格:  2308、スキップ:     1、合計:  2312、期間: 24 m 25 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 37 s - PriceOfBread.Tests.dll (net10.0)
+中止の行：0
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 14043298) [3 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 28783150) [< 1 ms]
+失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2978732) [< 1 ms]
+計算量「価格：日次の写像の回」が 15859997 件（宣言 14043298・許し +2 %）
+計算量「外交：覇権の判定の国×国」が 1923064 件（宣言 2978732）＝10 % を超えて**下がった**＝表を 1923064 へ下げて理由を書く（＝改善の宣言）。
+計算量「清算：着値の充填」が 31414231 件（宣言 28783150・許し +2 %）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 48・その月の額の和 4039
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+判定：赤は WriterRatchetTests の item 1・9・11 だけ＝予言 [8] の内（表は書き換えていない・★(778)）。TradeClearingTests:473（旗 0・1 の両方の行）は緑。予言の外の赤 0＝N-e は通った＝腕 B を回す。savetest OK・leakhunt 保存則違反なし。

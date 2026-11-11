@@ -1,0 +1,1 @@
+selftest 綺麗な行が通る True ・人工のずれ（1e-6・nan・欄 3・inf）を落とす [True, True, True, True]

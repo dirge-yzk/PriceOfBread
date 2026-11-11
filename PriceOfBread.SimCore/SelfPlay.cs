@@ -25,7 +25,7 @@ public static class NationalScore
     {
         if (double.IsNaN(w.ScoreStanding)) { w.ScoreStanding = now; return; }   // 開始時の種＝そのときの実力
         double r = PoliticalQuantities.Clamp01(w.Coef.ScoreInertiaRate);
-        w.ScoreStanding += (now - w.ScoreStanding) * r;
+        w.ScoreStanding = PoliticalQuantities.Toward(w.ScoreStanding, now, r);
     }
     // ===== ★(416) 国力の物差し＝世界の総量に対する本国の割合（事前登録 measurements/sc_20261019_prereg.txt D6・★(456) 旗 ScoreFromWorldShare は焼き込んだ＝この物差しが唯一の経路） =====
     /// <summary>国力の 6 項の素の量（本国の州だけ＝活きていて Tier≠Colonial）。兵・軍事費〔参照価格建て＝名目を物価水準で割る〕・鉄の産出（鋼は鉄を投入する＝入れると二重計上）・動力の消費（石炭＋原油×熱量比・満たされた量＝LastSold。満たされない需要〔LastDemand〕は数えない＝足りない国ほど増える歪みを避ける）・都市人口・総人口。</summary>
@@ -215,9 +215,7 @@ public sealed class UtilityAgent : INationAgent
     private const double UnrestSatisfactionThreshold = 0.62;
     private const double UModUnrestWeight = 0.3;                // 近代化効用：不満の重み
     private const double UIndRoomWeight = 1.2;                  // 工業化効用：余地の重み
-    private const double UModTechWeight = 1.0;                  // 近代化効用：技術差の重み
     private const double UModIndRoomWeight = 0.5;               // 近代化効用：工業化余地の重み
-    private const double UIndTechWeight = 0.5;                  // 工業化効用：技術差の重み
     // ★2026-08-04（作者指示「不満度の社会保障への圧力を高め、より満足度を落ちづらくする」）：1.5→2.5。
     //   旧値では不満の理論最大（満足0＝unrest0.7）でも効用1.05＝工業化効用（≈4.0）に構造的に勝てず、
     //   福祉スタンスは飢饉か革命間際でしか選ばれなかった。それでも早期は工業化が勝つ（史実＝福祉国家は工業化の後）。
@@ -246,7 +244,6 @@ public sealed class UtilityAgent : INationAgent
     private const double IndustrialistModBias = 1.2;          // 資本主義教義：近代化効用の増幅
     private const double ModernizerModBias = 1.5;            // 近代化教義：近代化効用の増幅
     private const double ModernizerWelBias = 1.2;           // 近代化教義：福祉効用の増幅
-    private const double CompulsoryEduTechThreshold = 1.0;   // 義務教育の技術閾値
     // ★(423) AI の法の門の線 3 本（★(599) 旗 AiLawGateFromBoard と工業化度を読む旧の式は削除した）。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
     internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
     internal const double AntitrustUrbanLine = 1.0 / 3.0;           // 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
@@ -259,9 +256,6 @@ public sealed class UtilityAgent : INationAgent
     internal const double MinimumWageUnempRaiseLine = 0.25;          // 上げる：失業がこの割合未満（下げる線の半分＝間の帯は現状維持）
     internal const double MinimumWageBindRaiseMax = 1.0 / 3.0;       // 上げる：次の段の床が縛る広がりがこれ以下（賃金が次の段の籠をおおむね払えている＝法は生活費を書き留めるだけで広くは縛らない）
     private const double CompulsoryEduBufferMult = 3.0;     // 義務教育の財政バッファ倍率
-    private const double WomenPropertyTechThreshold = 1.2; // 女性の権利＝財産権の段を目標に置く技術閾値
-    private const double WomenSuffrageTechThreshold = 1.5;// 女性の権利＝選挙権の段を目標に置く技術閾値（財産権より後）
-    private const double CensusSuffrageTechThreshold = 0.25;// 制限選挙の技術閾値
     private const double IndustrializeInvestFrac = 0.15;   // 産業スタンスの近代化投資率
     private const double ModernizeInvestFrac = 0.08;       // 近代化スタンスの近代化投資率
     /// <summary>開始時に**全国が共有する**近代化投資率（プレイヤーとAIの出発点を揃える）。
@@ -368,8 +362,8 @@ public sealed class UtilityAgent : INationAgent
         GateLaw(ref shared, w, PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)p.Bureaucracy, (int)BureaucracyLaw.Professional, v => p.Bureaucracy = (BureaucracyLaw)v);
         GateLaw(ref shared, w, PolicyAxis.Antitrust, (int)w.Antitrust, (int)p.Antitrust, (int)AntitrustLaw.Trustbust, v => p.Antitrust = (AntitrustLaw)v);
         if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);   // ★特権 段4
-        if (w.Coef.InheritanceLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (int)InheritanceLaw.All, v => p.Inheritance = (InheritanceLaw)v);   // ★相続法（線 inh (650)・ゲート0では目標を整形しない＝恒等）
-        if (w.Coef.MinimumWageLawGate > 0) GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・ゲート0では目標を整形しない＝恒等）
+        GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (int)InheritanceLaw.All, v => p.Inheritance = (InheritanceLaw)v);   // ★相続法（線 inh (650)・門の係数 InheritanceLawGate は (843) で焼き込み）
+        GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (int)MinimumWageLaw.Sufficiency, v => p.MinimumWage = (MinimumWageLaw)v);   // ★最低賃金法（線 lw (459)・門の係数 MinimumWageLawGate は (843) で焼き込み）
         GateLaw(ref shared, w, PolicyAxis.WartimeRationing, w.WartimeRationing ? 1 : 0, p.WartimeRationing ? 1 : 0, 1, v => p.WartimeRationing = v != 0);
         GateLaw(ref shared, w, PolicyAxis.MilitaryExport, w.MilitaryExportBan ? 1 : 0, p.MilitaryExportBan ? 1 : 0, 1, v => p.MilitaryExportBan = v != 0);
         if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(ref shared, w, PolicyAxis.CivilianArms, w.CivilianArmsBan ? 1 : 0, p.CivilianArmsBan ? 1 : 0, 1, v => p.CivilianArmsBan = v != 0);   // ★民間の武器購入の法（2026-09-11）
@@ -644,7 +638,7 @@ public sealed class UtilityAgent : INationAgent
         return lo + (hi - lo) * SecurityShare(w);
     }
 
-    // スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（技術差・工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
+    // スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
     private static Stance ChooseStance(World w) => ChooseStance(w, out _);
 
     /// <summary>★2026-08-26：内訳つきの本体。従来の <c>ChooseStance(World)</c> は out を捨てる薄いラッパー＝
@@ -653,15 +647,14 @@ public sealed class UtilityAgent : INationAgent
     {
         var doctrine = DoctrineFrom(w);   // 倍率排除⑧：支配ブロック＋軍国度から創発（政体ラベルの写像を廃止・政変や参政権拡大で動的に変わる）
         double sat = NationalScore.MeanSatisfaction(w);
-        double techGap = w.Coef.TechSignalOff > 0 ? 0.0 : Math.Max(0, w.WorldTechLevel - w.TechLevel);   // 技術の遅れ（後発の伸びしろ）。★(613) 段2a：旗 TechSignalOff が正なら 0（作者 2026-10-16〈技術水準は二重計上＝削除〉・否定形＝NaN は旗 0）
         double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();   // ★(416) 工業化の余地＝目盛り 4.0×国庫の配り先の設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）。達成して収益が立たなくなれば uInd が下がり教義の道へ
         double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);                                       // 不満（満足の不足）
         double fiscalNeed = FiscalStressOf(w);   // 国庫の逼迫（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
 
         // スタンスごとの効用＝助ける成分×不足。最大を選ぶ。
         double famine = Math.Max(0, 1.0 - w.FoodFill);   // 飢饉度（主食充足の不足∈[0,1]）。旧AIは FoodFill を一切読まず飢饉を見殺しにしていた（AI監査2026-07-06）＝反応の入力を与える
-        double uMod = UModTechWeight * techGap + UModIndRoomWeight * indRoom + UModUnrestWeight * unrest;
-        double uInd = UIndRoomWeight * indRoom + UIndTechWeight * techGap;
+        double uMod = UModIndRoomWeight * indRoom + UModUnrestWeight * unrest;
+        double uInd = UIndRoomWeight * indRoom;
         double uWel = UWelUnrestWeight * unrest + UWelFamineWeight * famine;        // 飢饉時は福祉スタンスの効用↑＝救済(社会保障)・逆進課税の緩和・労働短縮へ舵を切る（生存反射）
         double uFis = UFisWeight * fiscalNeed;
         // 軍備の基礎効用：専制(軍国)は常に軍拡。加えて対外脅威(緊張)があればどの政体も防衛のため軍拡する
@@ -983,12 +976,11 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    /// <summary>★最低賃金法の目標（線 lw (459)）＝MinimumWageLawGate＞0 かつ本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
+    /// <summary>★最低賃金法の目標（線 lw (459)）＝本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
     /// （帯で現行の法がすでにその段以上なら書かない＝施行済みの床を引き下げる目標を立てない）。賛否の出所＝PolicyPreferences（大衆が賛成・資本が反対）が目標の施行を政治ゲートで決める。
     /// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
     internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
     {
-        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
         MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
         return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
     }
@@ -997,13 +989,12 @@ public sealed class UtilityAgent : INationAgent
     internal static MinimumWageLaw? MinimumWageTargetChosen(World w)
         => w.Coef.MinimumWageAiFromFloor > 0 ? MinimumWageTargetFromFloor(w) : MinimumWageTargetFromBoard(w);
 
-    /// <summary>★(480) 線 ma：盤面の実物から最低賃金法の目標を選ぶ（旗 MinimumWageAiFromFloor ＞ 0）。MinimumWageLawGate＝0 では書かない。
+    /// <summary>★(480) 線 ma：盤面の実物から最低賃金法の目標を選ぶ（旗 MinimumWageAiFromFloor ＞ 0）。（門の係数 MinimumWageLawGate は (843) で焼き込み）。
     /// 読むもの＝本国の州の労働の失業（<see cref="MinimumWageFloor.ReadHomeLabor"/>）と、床が縛る広がり（<see cref="MinimumWageFloor.BindShare"/>）。広がりは必要な向きの 1 本だけ求める
     /// （失業が下げる線以上なら今の段・上げる線未満なら次の段。両方は同時に立たない＝財の走査は高々 1 回）。計算量の台帳（MinimumWageBasketScans）に走査の件数を足す。
     /// 書き方は <see cref="MinimumWageFloorWant"/>（純関数）。新しい状態・倍率を作らない。</summary>
     internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)
     {
-        if (!(w.Coef.MinimumWageLawGate > 0)) return null;
         var cost = w.Cost;
         var h = MinimumWageFloor.ReadHomeLabor(w, cost);
         double u = h.Unemployment;
@@ -1516,7 +1507,7 @@ public sealed class UtilityAgent : INationAgent
             case Stance.Modernize:
                 p.EducationLaw = EducationLaw.Public;
                 // 豊かな近代化国は義務教育へ＝popが買えない教育を国庫が買い全民就学（多大な財政コスト＝豊かさが前提）。
-                if (w.EducationLaw >= EducationLaw.Public && (w.Coef.TechThresholdOff > 0 || w.TechLevel > CompulsoryEduTechThreshold) && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
+                if (w.EducationLaw >= EducationLaw.Public && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
                 p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（★(399) 汚職の財政の漏れは削除済み＝行政費は税にも法の浸透にも返らない・何を返すかは作者に聞く Q8＝(402)）
@@ -1525,9 +1516,8 @@ public sealed class UtilityAgent : INationAgent
                 stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
                 p.SocialSecurityTarget = 0.3;   // 近代国家は公共医療を一定維持＝人口増（乳児死亡の低下）
                 p.ChildLaborAllowed = false;    // 近代化＝児童労働を禁止（出力↓だが識字↑＝教育→医療→人口）
-                if (w.Coef.TechThresholdOff > 0 || w.TechLevel > WomenPropertyTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
-                if (w.Coef.TechThresholdOff > 0 || w.TechLevel > WomenSuffrageTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：選挙権の段は財産権より後（tech閾値↑）。教育権の段は梯子が通る
-                if ((w.Coef.TechThresholdOff > 0 || w.TechLevel > CensusSuffrageTechThreshold) && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b：旗 TechThresholdOff が正なら技術の閾値の 4 本を落とす（願いは無条件・可否は政治の門と国庫の緩衝が決める）
+                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：成熟した近代国家＝女性の権利の最上段（選挙権）を願う。旧は財産権の段を先に願ったが、RaiseWomenRights は最大を取るので技術の閾値を外した後は財産権の行は常に no-op（(824) で消した・突然変異の記録 Mu4）。教育権の段は梯子が通る
+                if (p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;   // ★(613) 段2b（旗 TechThresholdOff は (824) で焼き込み）：技術の閾値の 4 本は無い（願いは無条件・可否は政治の門と国庫の緩衝が決める）
                 break;
             case Stance.Industrialize:
                 p.EducationLaw = w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Public;   // ★(680) 線 edq：願いは〈公教育以上〉＝義務教育の国に撤回の願いを書き戻さない（事前登録 measurements/edq680_20261030_prereg.txt・Modernize は国庫の述語で戻す願いを残す）。(772) 旗 StanceEduHoldsLaw を焼き込み（既定 1 の枝だけ残す）
@@ -2233,7 +2223,7 @@ public static class SelfPlayMatch
                         if (outQ <= floorOut) { if (dLoss > 0) { lossRateSkipped++; if (lossRateSkipWorst.Length == 0) lossRateSkipWorst = $"{w.SelfPower?.Name}(Q{q + 1}・産出{outQ:F0})"; } }
                         else
                         {
-                            lossRate[i] += lossRateSmooth * (dLoss / outQ - lossRate[i]);
+                            lossRate[i] = PoliticalQuantities.Toward(lossRate[i], dLoss / outQ, lossRateSmooth);
                             if (lossRate[i] > worstLossRate)
                             {
                                 worstLossRate = lossRate[i];
@@ -2248,7 +2238,7 @@ public static class SelfPlayMatch
                     // 恐慌計測：助走後、平滑化GDP（トレンド）のピーク比収縮を追う
                     if (q >= warmupQ)
                     {
-                        gdpTrend[i] += w.Coef.GdpTrendSmoothing * (w.GdpPerMonth.Value - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
+                        gdpTrend[i] = PoliticalQuantities.Toward(gdpTrend[i], w.GdpPerMonth.Value, w.Coef.GdpTrendSmoothing);   // EMA＝高頻度の市場ノイズを除去
                         if (gdpTrend[i] > gdpPeak[i]) gdpPeak[i] = gdpTrend[i];
                         worldTrendThis += gdpTrend[i];
                         // ★DDの産出床（史実基準化）：残骸国家（世界平均の1/1000未満）の〜100%収縮を世界DDに数えない。
@@ -2260,7 +2250,7 @@ public static class SelfPlayMatch
                         if (isMajor[i])
                         {
                             double pc = (w.GdpPerMonth / System.Math.Max(1.0, w.TotalPopulation)).Value;
-                            gdpPcTrend[i] += w.Coef.GdpTrendSmoothing * (pc - gdpPcTrend[i]);
+                            gdpPcTrend[i] = PoliticalQuantities.Toward(gdpPcTrend[i], pc, w.Coef.GdpTrendSmoothing);
                             if (gdpPcTrend[i] > gdpPcPeak[i]) gdpPcPeak[i] = gdpPcTrend[i];
                             double ddPc = gdpPcPeak[i] > 0 && gdpPeak[i] > ddFloor ? 1.0 - gdpPcTrend[i] / gdpPcPeak[i] : 0;
                             if (ddPc > majorMaxDrawdown)

@@ -1,0 +1,1 @@
+器の木 5b9459e7 の走査の番人と試験（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・TechLevelRemoval・CedeRuleInstrument・CedeRuleToLocal）: 成功!   -失敗:     0、合格:   156、スキップ:     0、合計:   156、期間: 9 m 22 s - PriceOfBread.Tests.dll (net10.0)

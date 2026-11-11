@@ -1,0 +1,42 @@
+(868) ident c72tc の出力（ident.cfg の INSRAW が keep_866 へ移った後の初めての実走・cfg は (866) が check を回し直していなかった）
+宣言：--grown-ok cearn_s --tests-delta 5 --saveleak（事前登録 [1] の +2 の予言は誤り：Theory の行 +1・新しい Fact 4 本 = +5。試験の数の予言の誤りとして記録）
+23239bb3 (868) 突然変異と旗 1 の木の台本
+ident start：ラベル=c72tc 木=/d/PoB_work/wt_c72tc 作業=/d/PoB_work/ident_c72tc 腕=[a b t s] 開始=2026-11-06 01:44:48
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c72tc（2026-11-06 02:03:46）===
+測った木：D:/PoB_work/wt_c72tc（HEAD 23239bb3・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c72tc/scripts/instruments/ident/ident.cfg
+宣言：grown=['cearn_s'] tests_delta=5
+腕 a：rc=0 end=2026-11-06 02:00:18
+腕 b：rc=0 end=2026-11-06 02:03:45
+腕 t：rc=0 end=2026-11-06 01:46:10
+腕 s：rc=0 end=2026-11-06 01:59:17
+測る木の SOURCE-HASH：5048d4c41cf36c81
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 5048d4c41cf36c81
+[素の 5 種] b5_ia_5.txt 対 b5_20261105_m852
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261105_m852.cost
+  ○ 件数の行 29 本・推定 216.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 5048d4c41cf36c81
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261105_m852_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261105_m852_ins.cost
+  ○ 件数の行 29 本・推定 212.6 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c72tc/out_ib_10/ins  対  基準 D:/PoB_work/keep_866/base_ins
+  基準 1070 本・腕 1070 本・バイト一致 1040 本
+  列が増えた表（--grown-ok の宣言）10 本：cearn_s1.tsv+2列・cearn_s10.tsv+2列・cearn_s2.tsv+2列・cearn_s3.tsv+2列・cearn_s4.tsv+2列・cearn_s5.tsv+2列
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1040・既知の揺れ 20・宣言された増減 10）
+  内訳：共通の表 1070 本＝バイト一致 1040＋既知の揺れ 20＋列が増えた 10＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1070）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261105_m852.txt（タグの行を除く）
+  ○ タグの行以外が一致（5221 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2312（基準 2307+5 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
+
+[exited with code 0]

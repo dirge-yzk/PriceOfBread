@@ -1,0 +1,42 @@
+AutocraticPolicyAgility | 宣言 なし | SimCore(係数表外) 1 | App/Runner/Tests/scripts 2
+NationalizationGate | 宣言 なし | SimCore(係数表外) 5 | App/Runner/Tests/scripts 1
+IncumbencyBias | 宣言 なし | SimCore(係数表外) 1 | App/Runner/Tests/scripts 1
+StagePrereq | 宣言 なし | SimCore(係数表外) 6 | App/Runner/Tests/scripts 4
+IrreversibleEmancipation | 宣言 なし | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+ParliamentBudgetScope | 宣言 なし | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+PrivilegeStripMilitancy | 宣言 3314:    public double PrivilegeStripMilitancy = 0.0; | SimCore(係数表外) 7 | App/Runner/Tests/scripts 4
+RebelArmsMarketEnabled | 宣言 3009:    public double RebelArmsMarketEnabled = 0.0; | SimCore(係数表外) 19 | App/Runner/Tests/scripts 3
+SpecialistExitBanPrefScale | 宣言 2700:    public double SpecialistExitBanPrefScale = 0.0; | SimCore(係数表外) 2 | App/Runner/Tests/scripts 1
+GuildLawGate | 宣言 3340:    public double GuildLawGate = 0.0; | SimCore(係数表外) 18 | App/Runner/Tests/scripts 10
+MilitaryExportPrefScale | 宣言 2178:    public double MilitaryExportPrefScale = 10.0;             // 軍需財の生産額シェア→資本� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+OpiumBanPrefScale | 宣言 2190:    public double OpiumBanPrefScale = 4.0;                    // 全国中毒度→大衆の禁令要求� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+OpiumTradePrefScale | 宣言 2191:    public double OpiumTradePrefScale = 10.0;                 // 阿片の生産額シェア→売る側� | SimCore(係数表外) 2 | App/Runner/Tests/scripts 0
+MonetaryPrefScale | 宣言 2696:    public double MonetaryPrefScale = 20.0; | SimCore(係数表外) 1 | App/Runner/Tests/scripts 1
+MonetaryPeerPullScale | 宣言 3481:    public double MonetaryPeerPullScale = 5.0;   // 【点火5.0・2026-08-21 銀本位ラウンド（上 | SimCore(係数表外) 7 | App/Runner/Tests/scripts 1
+TaxConsentWeight | 宣言 1848:    public double TaxConsentWeight = 0.35;   // ★2026-08-04（作者指摘「政治がゲームに与� | SimCore(係数表外) 6 | App/Runner/Tests/scripts 8
+AusterityStartDebt | 宣言 435:    public RatioToGdpYear AusterityStartDebt = new(0.3);      // 債務÷年名目GDP がこれ超で緊� | SimCore(係数表外) 2 | App/Runner/Tests/scripts 11
+AusterityRange | 宣言 436:    public RatioToGdpYear AusterityRange = new(0.7);          // ここ幅で緊縮が0→満額（債務� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 6
+AusterityTaxHike | 宣言 437:    public double AusterityTaxHike = 0.5;        // 満額緊縮時に人頭税へ上乗せする逆進課 | SimCore(係数表外) 2 | App/Runner/Tests/scripts 1
+RuptureWindowQuartersOnCrush | 宣言 1729:    public double RuptureWindowQuartersOnCrush = 8;   // 第6段6-8点火（2026-07-28）：断裂の窓� | SimCore(係数表外) 2 | App/Runner/Tests/scripts 1
+FactionConcessionSteps | 宣言 3067:    public int FactionConcessionSteps = 2;       // 内戦の講和の経済決着（Politics.ConcedeToFa | SimCore(係数表外) 1 | App/Runner/Tests/scripts 2
+RevoltConcessionSpend | 宣言 2990:    public double RevoltConcessionSpend = 0.125;   // 内戦の講和で要求をのませる（Politics. | SimCore(係数表外) 2 | App/Runner/Tests/scripts 0
+PolicyBaseSpeed | 宣言 506:    public double PolicyBaseSpeed = 0.12;        // スライダーが目標へ寄る基本速さ（四半 | SimCore(係数表外) 3 | App/Runner/Tests/scripts 3
+PolicyResistanceWeight | 宣言 507:    public double PolicyResistanceWeight = 4.0;  // 力ある集団の抵抗の強さ（速さ ÷ (1+こ� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 1
+ParliamentBudgetVeto | 宣言 2964:    public double ParliamentBudgetVeto = 2.0;      // P1-C 予算闘争（憲法紛争1862）：所得税 | SimCore(係数表外) 2 | App/Runner/Tests/scripts 0
+IrreversibleLaws | 宣言 1727:    public double IrreversibleLaws = 1.0;          // 第6段6-7点火（2026-07-28）：支持層を作� | SimCore(係数表外) 9 | App/Runner/Tests/scripts 0
+PoliticalBudgetGate | 宣言 1737:    public double PoliticalBudgetGate = 0.5;       // 第6段6-1点火（2026-07-28）：政治予算制� | SimCore(係数表外) 4 | App/Runner/Tests/scripts 7
+MandateSpendRate | 宣言 2912:    public double MandateSpendRate = 0.5;       // 押し切った一歩（純支持<0）の政治資本� | SimCore(係数表外) 9 | App/Runner/Tests/scripts 3
+MandateWeight | 宣言 2910:    public double MandateWeight = 0.3;          // 在庫 b の目盛り（上の注記）＝b=これ×Ma | SimCore(係数表外) 5 | App/Runner/Tests/scripts 22
+MandateRefillQuarters | 宣言 2930:    public double MandateRefillQuarters = 40;    // 空から満タンまでの四半期数（作者裁� | SimCore(係数表外) 3 | App/Runner/Tests/scripts 12
+TreatyRatificationWeight | 宣言 1787:    public double TreatyRatificationWeight = 0.5;  // **点火2026-07-31（07_再設計 第1弾1c）**： | SimCore(係数表外) 2 | App/Runner/Tests/scripts 0
+RegimeRecordAccumRate | 宣言 3087:    public double RegimeRecordAccumRate = 0.02;    // CoopPublicRegime（満足−闘争）×これ/四� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+RegimeRecordDecay | 宣言 3089:    public double RegimeRecordDecay = 0.00346;     // 実績の四半期減衰率（半減期50年＝2世 | SimCore(係数表外) 2 | App/Runner/Tests/scripts 2
+ConstMonarchyErosion | 宣言 246:    public double ConstMonarchyErosion = 0.02;       // 立憲君主制：議会の反王党派（自由+� | SimCore(係数表外) 2 | App/Runner/Tests/scripts 0
+PartyDominanceThreshold | 宣言 234:    public Share PartyDominanceThreshold = new(0.6);      // 一党支配と見なす議席シェアの閾 | SimCore(係数表外) 2 | App/Runner/Tests/scripts 2
+DominanceLegitimacyErosion | 宣言 235:    public double DominanceLegitimacyErosion = 0.05;  // 一党支配が正統性を削る強さ（支配� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+DominanceInstabilitySatisfaction | 宣言 245:    public double DominanceInstabilitySatisfaction = 0.43; | SimCore(係数表外) 3 | App/Runner/Tests/scripts 1
+OpenBallotReality | 宣言 3168:    public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在す | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+PaperFranchiseReality | 宣言 3169:    public double PaperFranchiseReality = 0.7;         // 非議会政体（専制等）＝紙の参政� | SimCore(係数表外) 1 | App/Runner/Tests/scripts 0
+SecretBallotGate | 宣言 なし | SimCore(係数表外) 0 | App/Runner/Tests/scripts 1
+FrontsCountMonetary | 宣言 なし | SimCore(係数表外) 2 | App/Runner/Tests/scripts 0
+SuffrageScopeGate | 宣言 なし | SimCore(係数表外) 4 | App/Runner/Tests/scripts 2

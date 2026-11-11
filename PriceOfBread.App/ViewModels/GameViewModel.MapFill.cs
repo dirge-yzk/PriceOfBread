@@ -80,7 +80,9 @@ public partial class GameViewModel
                 //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ黒くする（MapFill.Build の色の変調・2026-11-03 に薄くする→黒くするへ）。
                 //   ⚠旧コードは Seed に生値・指紋に ×64 の整数を渡していた＝1/64 未満しか動かない四半期は塗りが古いまま残った（量子化キャッシュの不変条件の破れ）。
                 //     いまは wq ひとつから値も指紋も作る＝「焼き直さない」と「同じ絵」が一致する。
-                double raw = rg.Dominance;
+                //   ★(843) 裁定 D1（★(826) ⑤）：塗りの元は 1−Rule[0]（国家でない割合）の区分＝表の〈支配度〉の列・州パネルの半円と同じ 4 区分（PopTables.RuleParts の 1 本）。
+                //     Region.Dominance は別の量（呼び名は帰属）で、塗りには使わない。
+                double raw = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg)[0].Share;
                 if (!(raw > 0)) raw = 0; else if (!(raw < 1)) raw = 1;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
                 int wq = (int)(raw * DominanceQ);
                 double wgt = wq / (double)DominanceQ;

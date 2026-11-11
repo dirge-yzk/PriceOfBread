@@ -1,0 +1,11 @@
+    0 エラー
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.MoTrendInitTests.最初の呼び出しで実質GDPが正なら旗によらず趨勢はその四半期のMY(flag: 1) [4 s]
+  エラー メッセージ:
+  成功 PriceOfBread.Tests.MoTrendInitTests.最初の呼び出しで実質GDPが正なら旗によらず趨勢はその四半期のMY(flag: 0) [9 ms]
+  失敗 PriceOfBread.Tests.MoTrendInitTests.旗1では実質GDPが0の四半期に趨勢を置かず_正になった四半期のMYで置き_次の四半期は1歩だけ寄る [2 ms]
+  エラー メッセージ:
+  成功 PriceOfBread.Tests.MoTrendInitTests.計器pinitは全ての国の基準を置いた呼びを1行ずつ出し_旗の列は係数の値 [17 s]
+  成功 PriceOfBread.Tests.MoTrendInitTests.旗0は実質GDPが0の最初の呼び出しで趨勢を桁違いに置く_旧の形の陽性対照 [1 ms]
+テストの合計数: 5
+合計時間: 27.2312 秒

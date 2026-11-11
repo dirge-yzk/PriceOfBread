@@ -1,0 +1,40 @@
+(988) 合流（波89）の予言（merge の前に書く・結果を見た後に替えない）
+基点 46cd4df6（m981）。入れる順＝恒等の線 c89tb（ca1903c7・試験と注と台本だけ）→ c89ls（a4480208・計器 landsale_s・ident〈判定: 恒等〉）→ 挙動の線 c89dd（25873e8b・旗 TakeFloorPositive 既定 1・中に c89tb の頭 ca1903c7 の merge を含む）。
+読む線 c89sd (985)・c89ci (986)・設計の材料の線 c89tc (987) は写すだけ（エンジンに触れない）。
+
+[0] 消す名前の確かめ（★(773)）：3 本の枝の SimCore の差の〈-〉の行は c89tb の注 2 行だけ（Coefficients.cs WarMobilizationDepth・Simulation.cs mobilize）。消える名前 0。Pop.Take は末尾に省略可の引数を足しただけ＝c89ls・c89tb の呼び手に影響なし（c89ls の InstrumentsLandsale.cs に Take( は 0 件）。merge-tree の試しは tb×dd・ls×dd とも衝突なし。
+
+[1] 挙動の線は c89dd の 1 本だけ＝合成後のアブレーションの腕（㉞）は回さない（2 本以上のときだけの規則）。
+
+[2] 恒等の段（腕 Z＝合わせた木で TakeFloorPositive を 0 にした使い捨ての木 wt_m988z）
+  - ident（基準 m981・ident.cfg を書き換える前に回す）：素の 5 種・計器つき 10 種・注視の表が m981 と全行一致（名乗り行を除く）。宣言＝added landsale_s・tests_delta 20（c89ls 7＋c89dd 13＋c89tb 0）。
+  - 予言の外れ＝恒等でない、なら c89ls か c89tb を外して報告へ回す。
+
+[3] 合わせた木（旗 1）で動く物
+  - M（計器つき 10 種・種 1〜10）＝c89dd の腕 B の生（D:/PoB_work/c89dd_work/arm_B/out_c89ddB_10/ins）と、landsale_s の表（新）と時計の揺れ（burscan_s・clock_s）を除いて表ごとにバイト一致。成績表 M は b10_20261109_c89ddB_ins と名乗り行を除き全行一致。
+  - S11（種 11〜20・POB_CEARN=0）＝c89dd の S11 の生（arm_S/out_c89ddS_10_s11/ins）と同じ形で一致。成績表は b10_20261109_c89ddS11_ins と全行一致。
+  - 推定の計算量：M 211.5 秒・S11 210.4 秒（c89dd の腕と同じ・上限 248.5）。
+  - 試験の数：Category!=FullLength 2504（2484＋20）・FullLength 3。
+  - WriterRatchetTests は赤 2（item 11 覇権の判定の国×国 3,434,066→2,171,852・item 2 建設の見た生産者 1,758→1,897＝c89dd の旗 1 の木の値と同じ）。★(749) で合わせた木の実測で 1 回だけ取り直す（軌道の件数を写しただけの番人）。他の赤 0。
+  - savetest OK・leakhunt の説明できない増減 0。
+
+[4] c89dd の両側の門（事前登録 m984_20261109_prereg_dd.txt のまま・M と S11 で読み直す）
+  - G1a（人の居る商人の行の塵の割合）≦ 基準×0.1 → M・S11 とも 0（通る）。
+  - G1b（billBlockedDustClearings の和）≦ 基準×0.1 → 0（通る）。
+  - G3（debt＜0 の行）＝0（通る）。上の側の主な裏づけは T4 と savings＜−1e-9 の行の記録（M 329・ヌル腕 74〜429 の内）。
+  - 最終の採否は S11 で 1 回だけ（同じ門・基準は keep_981/a11 を同じ台本で数えた値）。
+
+[5] c89ls の門と no-go（反証役の指摘・中＝線の生が消えていた）
+  - gates983.py gates を M の生で回す：G1・G2 が全ての行で通る見込み（T5 で確かめた写しと同じ式）。
+  - nogo M N1 N2 は合わせた木の新しいヌル腕で 1 回読む＝判定を記録（go／no-go のどちらも予言しない＝読む前の材料が無い）。
+
+[6] 止める線（段）：破綻 0・100 倍の〈それ以外〉0（基準とヌル腕を同じ台本で）・1e10 倍 0・非有限 0・空洞化 1/10 未満で〈線が原因〉0・推定 ≦248.5 秒・機構の試験の赤 0。
+    記録の段：予言の外れ（c89dd の P1＝G1a 0.005〜0.03 の予言に対し 0）を記録の先頭へ・NG（ng981 と比べた新・外れ・ヌル腕と並べる）・nullgate・英の国債の不履行の種の数・開幕の 1000 倍・名目 GDP 0 の続き・home_break。
+
+[7] 採ったら新しい基線 m988：生 D:/PoB_work/keep_988/{base_ins,n1,n2,a11}・ident.cfg（B5・B10INS・MON・INSRAW・BASE_COMMIT・TESTS_NONFULL 2504・NG_BASE ng988）。keep_981 は残す。
+
+[8] 結果を見る前の追記（2026-11-09 16:20・M・S11 の門の読みの後・追加の腕を起こす前）
+  - c89dd の門 G1a・G1b は cearn の系の表（cpop_s・cearn_s）を読む。S11 は POB_CEARN=0 で回す決まり＝合わせた木の mS と基準 keep_981/a11 には表が無く、門が読めなかった（gate984 の種 0）。線の側も S11 の門は読んでいない（read984.sh は種 1〜10 だけ）。
+  - そこで種 11〜20 を CEARN=1 で 2 本回す：mSc（合わせた木 43d9a62d）と zSc（腕 Z の木 a24be9b4＝TakeFloorPositive 0）。同じ台本 gate984.py --seeds 11 20 と judge984.py（門は事前登録 [1] のまま・基準＝zSc）で 1 回だけ読む。
+  - 予言：mSc は G1a 0・G1b 0・G3 0（通る）。zSc は dustShare＞0・billBlockedDust＞0（門が空でない）。
+  - 予言：mSc の cearn の系の外の表は mS と、zSc の cearn の系の外の表は keep_981/a11 と、既知の揺れ（burscan・clock・経路の行番号）の外で一致（CEARN の旗は読むだけ）。

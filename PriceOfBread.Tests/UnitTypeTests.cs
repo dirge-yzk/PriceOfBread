@@ -64,7 +64,7 @@ public class UnitTypeTests
             Assert.True(typeof(IUnitValue).IsAssignableFrom(t));
             Assert.True(typeof(IFormattable).IsAssignableFrom(t));
             Assert.True(typeof(IComparable<>).MakeGenericType(t).IsAssignableFrom(t));   // OrderBy・Max・Min は実行時に要る（無いと落ちる）
-            Assert.Empty(t.GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.Name is "op_Implicit" or "op_Explicit"));
+            Assert.DoesNotContain(t.GetMethods(BindingFlags.Public | BindingFlags.Static), m => m.Name is "op_Implicit" or "op_Explicit");
         }
     }
 
@@ -229,7 +229,6 @@ public class UnitTypeTests
         (typeof(Coefficients), "CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)),
         (typeof(Coefficients), "DevaluationCapFracPerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "FiatIssueFrac", typeof(Share)),
-        (typeof(Coefficients), "GoldMintFraction", typeof(Share)),
         (typeof(Coefficients), "BondRateRepresentationDiscount", typeof(Share)),
         (typeof(Coefficients), "PreTightenHeatFrac", typeof(Share)),
         (typeof(Coefficients), "CurrencyHoldingRatio", typeof(Share)),
@@ -625,7 +624,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで金融財政の係数の欄が残る()
     {
-        (string Name, Type Type)[] fields = [("CapitalDividendRatePerQuarter", typeof(RatePerQuarter)), ("CapitalFlightRatePerQuarter", typeof(RatePerQuarter)), ("CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)), ("DevaluationCapFracPerMonth", typeof(RatePerMonth)), ("FiatIssueFrac", typeof(Share)), ("GoldMintFraction", typeof(Share)), ("BondRateRepresentationDiscount", typeof(Share)), ("PreTightenHeatFrac", typeof(Share)), ("CurrencyHoldingRatio", typeof(Share)), ("PublicEduFundingShare", typeof(Share)), ("BankRunMax", typeof(Share)), ("LolrStrength", typeof(Share)), ("CurrencyReformBurnCap", typeof(Share)), ("InterestCapitalization", typeof(Share)), ("BondAppetite", typeof(Share)), ("ForeignBondCapacity", typeof(Share)), ("CapitalExportFrac", typeof(Share)), ("InsuranceCoverageMax", typeof(Share))];
+        (string Name, Type Type)[] fields = [("CapitalDividendRatePerQuarter", typeof(RatePerQuarter)), ("CapitalFlightRatePerQuarter", typeof(RatePerQuarter)), ("CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)), ("DevaluationCapFracPerMonth", typeof(RatePerMonth)), ("FiatIssueFrac", typeof(Share)), ("BondRateRepresentationDiscount", typeof(Share)), ("PreTightenHeatFrac", typeof(Share)), ("CurrencyHoldingRatio", typeof(Share)), ("PublicEduFundingShare", typeof(Share)), ("BankRunMax", typeof(Share)), ("LolrStrength", typeof(Share)), ("CurrencyReformBurnCap", typeof(Share)), ("InterestCapitalization", typeof(Share)), ("BondAppetite", typeof(Share)), ("ForeignBondCapacity", typeof(Share)), ("CapitalExportFrac", typeof(Share)), ("InsuranceCoverageMax", typeof(Share))];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < fields.Length; k++)
@@ -886,7 +885,7 @@ public class UnitTypeTests
     [Fact]
     public void 在庫のお金をdoubleから作る所の数は宣言のとおり()
     {
-        const int Declared = 65;   // (799)：64→65＝Fiscal.cs の CurrencyMemoryBroken〔累積の切下げ（World.CumulativeDevaluation は double の累積）を年GDP 比の述語へ渡すとき在庫の型に包む 1 件＝在庫の値を作る所であって月の流れの決算ではない。Fiscal の改革の門と SelfPlay の AI の意思の旧の直書き 2 か所を 1 本にした〕 → ★(490)：63→64＝Model.cs の Pop.ApplyBakedSavings〔開幕の焼き込みの読み込みが貯蓄の値を表の数から作る 1 件＝残高の設定であって月の流れの決算ではない。旗 OpeningBakeEnabled が 0 では呼ばれない〕 → (375)：64→63＝Model.cs の Pop.RebaseSavingsTo(double)〔(273) の置き直しの貯蓄を MoneyStock にする1件〕を置き直しのモードと一緒に削除した → (273)：63→64 → 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
+        const int Declared = 66;   // (815)：65→66＝CapitalMarket.cs の払えない利札の落とし〔旗 CapitalCouponUnpaidWriteDown が正のとき、未払いの額（double の取引の額）を外資の負債から引くとき在庫の型に包む 1 件＝(256) の〈外資の逃避で減る負債 1〉と同じ種類・月の流れの決算ではない〕 → (799)：64→65＝Fiscal.cs の CurrencyMemoryBroken〔累積の切下げ（World.CumulativeDevaluation は double の累積）を年GDP 比の述語へ渡すとき在庫の型に包む 1 件＝在庫の値を作る所であって月の流れの決算ではない。Fiscal の改革の門と SelfPlay の AI の意思の旧の直書き 2 か所を 1 本にした〕 → ★(490)：63→64＝Model.cs の Pop.ApplyBakedSavings〔開幕の焼き込みの読み込みが貯蓄の値を表の数から作る 1 件＝残高の設定であって月の流れの決算ではない。旗 OpeningBakeEnabled が 0 では呼ばれない〕 → (375)：64→63＝Model.cs の Pop.RebaseSavingsTo(double)〔(273) の置き直しの貯蓄を MoneyStock にする1件〕を置き直しのモードと一緒に削除した → (273)：63→64 → 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
         //   増えた理由（(252) の+6＝どれも double の流れ・取引の額・換算の結果を在庫の型へ入れる継ぎ目で、月の流れの決算ではない）：
         //   Bank 1＝家計の貸しと返しの動いた額を個人債務へ（Bank.Lend）／Diplomacy 2＝払えなかった貢納と賠償を対外債へ記帳する額（Fiscal.BookForeignDebt の引数が在庫の型になり呼び手が包む）／
         //   Fiscal +2＝減債で減る対外債（Math.Max の結果）・起債で資本家が払った額の保有（(251) の GovDebt 側の1件は対外債の側と共有して増やしていない・BookForeignDebt の引数は型になり −1）／

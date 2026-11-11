@@ -9,22 +9,6 @@ namespace PriceOfBread.Tests;
 /// <summary>(532) 恒等の束 hz7 の番人＝畳んだ読み口が、畳む前の式と同じ値を返すことを、独立に書いた式（係数の値でなく式の形と 0.85 の直書き）で確かめる。</summary>
 public class Hz7IdentityTests
 {
-    private static readonly double[] Inds = [-0.5, 0.0, 0.05, 0.3, 1.0, 2.5, 40.0];
-
-    [Fact]
-    public void 都市化の天井は基礎と工業化度の項を0から085に挟んだ手書きの式とビット単位で同じ()
-    {
-        var c = new Coefficients();
-        foreach (double ind in Inds)
-            foreach (double baseCap in new[] { 0.0, 0.05, 0.3, 0.9 })
-                foreach (double per in new[] { 0.0, 0.1, 0.5 })
-                {
-                    c.BaseUrbanCap = baseCap; c.UrbanPerInd = per;
-                    double raw = baseCap + ind * per;
-                    double want = raw < 0 ? 0 : raw > 0.85 ? 0.85 : raw;
-                    Assert.Equal(BitConverter.DoubleToInt64Bits(want), BitConverter.DoubleToInt64Bits(PopDecision.UrbanShareCap(c, ind)));
-                }
-    }
 
     [Fact]
     public void 選挙の余白は政治資本の目盛りと正統性から半分を引いた積()

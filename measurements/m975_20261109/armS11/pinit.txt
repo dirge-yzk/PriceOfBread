@@ -1,0 +1,11 @@
+11	init	73	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+12	init	70	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+13	init	72	defer	3	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[('共和制ポルトガル', 'q0', '1871'), ('共和制ポルトガル', 'q1', '1871'), ('共和制ポルトガル', 'q2', '1872')]
+14	init	67	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+15	init	70	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+16	init	68	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+17	init	77	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+18	init	76	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+19	init	73	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+20	init	73	defer	0	init で GDP≦1e-9	0	旗の列	['1']	defer の国	[]
+計 {'init': 719, 'defer': 3}

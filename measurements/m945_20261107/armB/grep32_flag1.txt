@@ -1,0 +1,15 @@
+PriceOfBread.Tests/AdminServesRuleTests.cs
+PriceOfBread.Tests/ColonialPopTests.cs
+PriceOfBread.Tests/CornintInstrumentTests.cs
+PriceOfBread.Tests/CriminalVesselTests.cs
+PriceOfBread.Tests/LandShareTests.cs
+PriceOfBread.Tests/LandTaxFixedBasisTests.cs
+PriceOfBread.Tests/LandbaseInstrumentTests.cs
+PriceOfBread.Tests/Rs2LordOppositionTests.cs
+PriceOfBread.Tests/Rs3LordReverseGainTests.cs
+PriceOfBread.Tests/RuleSharesFormTests.cs
+PriceOfBread.Tests/SbBargainTests.cs
+PriceOfBread.Tests/SubstInstrumentTests.cs
+PriceOfBread.Tests/TaxTests.cs
+PriceOfBread.Tests/TreasuryLedgerTests.cs
+PriceOfBread.Tests/UnitTypeTests.cs

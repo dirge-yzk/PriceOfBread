@@ -1,0 +1,12 @@
+D:\PoB_work\r942_work\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:18.98]     PriceOfBread.Tests.InstrumentsTests.建設の州の表と専売の取り分が別の積算器に閉じる [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.建設の州の表と専売の取り分が別の積算器に閉じる [17 s]
+  エラー メッセージ:
+   対照：比べた区切りが無い（州が国を出入りした区切り 2）
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.建設の州の表と専売の取り分が別の積算器に閉じる() in D:\PoB_work\r942_work\wt\PriceOfBread.Tests\InstrumentsTests.cs:line 2171
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 17 s - PriceOfBread.Tests.dll (net10.0)

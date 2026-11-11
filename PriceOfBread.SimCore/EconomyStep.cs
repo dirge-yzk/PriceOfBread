@@ -51,6 +51,90 @@ public static class EconomyStep
         return Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), crossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
     }
 
+    /// <summary>★(849) 主食の 1 人あたり月の名目の必要量（Catalog の主食の BaseNeed の和）＝自給の生産性 ρ の単位を〈農業労働の能力 1 単位あたりの主食〉にする分母（試合の中で変わらない）。</summary>
+    internal static readonly double StapleNeedPerCapita = SumStapleBaseNeed();
+    private static double SumStapleBaseNeed() { double n = 0; foreach (var gd in Catalog.Goods) if (gd.Tier == GoodTier.Staple) n += gd.BaseNeed; return n; }
+
+    /// <summary>★(849) 人力の農業労働の生産者（財＝農業労働力・レシピ名が空・投入が空・倒産でない）の能力の和（Capacity＞0 の物）と、最初の生産者の担い手の POP の番号（無ければ −1）。</summary>
+    private static (double cap, int lp) HumanFarmLabor(Region region)
+    {
+        int lp = -1; double cap = 0;
+        foreach (var s in region.Producers)
+        {
+            if (s.GoodId != Catalog.FarmLaborId || s.RecipeName.Length != 0 || s.Inputs.Count != 0 || s.Bankrupt) continue;
+            if (lp < 0) lp = s.LaborPopIndex;
+            if (s.Capacity > 0) cap += s.Capacity;
+        }
+        return (cap, lp);
+    }
+
+    /// <summary>★(849) 主食の RGO（IsRgo・主食・倒産でない）の効率化材の倍率 (1＋EffBoost×EffFill) の産出の加重平均（前の月の Output で重みづける）。Σ Output≦0 なら 1。
+    /// 読むのは効率化材の倍率だけ（発見の門・健康・土地・規模の経済は技術の比に入れない）。</summary>
+    private static double StapleEffTech(Region region, Coefficients coef)
+    {
+        double w = 0, ws = 0;
+        foreach (var s in region.Producers)
+        {
+            if (!s.IsRgo || s.Bankrupt || s.GoodId >= Catalog.Goods.Length || Catalog.Goods[s.GoodId].Tier != GoodTier.Staple) continue;
+            if (!(s.Output > 0)) continue;
+            w += s.Output; ws += s.Output * (1.0 + coef.EffBoost * s.EffFill);
+        }
+        return w > 0 ? ws / w : 1.0;
+    }
+
+    /// <summary>★(849) 売れ残りの農業労働の能力 U＝能力×clamp01(1−売れた÷能力)（c66ds の D1×能力）。能力が 0 以下なら 0。</summary>
+    private static double UnsoldFarmCapacity(double sold, double cap) => cap > 0 ? cap * Math.Clamp(1.0 - sold / cap, 0.0, 1.0) : 0.0;
+
+    /// <summary>★(849) 月の頭（前の月の能力・売れた量・産出・効率化材の値を読む位置＝市場の 0 戻しと能力の上書きの前）：全ての POP のこの月の食べる割合 <see cref="Pop.SubsistenceShare"/> を書く。
+    /// 旗 <see cref="Coefficients.SubsistenceStage2"/> が 0 か world＝null＝欄 <see cref="Pop.SubsistenceBasis"/> そのもの（1 ビットも変わらない）。
+    /// 旗が正：助走の月は割合のまま印を WarmupShare へ・助走の後の最初の月は WarmupShare の担い手だけ ρ＝d×必要量×人数÷(U×T) を焼く（U≦0・人数≦0 は焼かずに OpeningShare）・
+    /// 焼いた POP は σ＝min(1, ρ×U×T÷(必要量×人数))（人力の農業労働の担い手でない・人数 0 は 0）。</summary>
+    private static void SubsistenceHead(Region region, Coefficients coef, World? world)
+    {
+        var pops = region.Pops;
+        if (!(coef.SubsistenceStage2 > 0) || world is null)
+        {
+            for (int i = 0; i < pops.Count; i++) pops[i].SubsistenceShare = pops[i].SubsistenceBasis;
+            return;
+        }
+        if (world.WarmupFrozen)
+        {
+            for (int i = 0; i < pops.Count; i++)
+            {
+                var p = pops[i];
+                if (p.SubsistenceBasisKind == SubsistenceBasisKind.OpeningShare && p.SubsistenceBasis > 0) p.SubsistenceBasisKind = SubsistenceBasisKind.WarmupShare;
+                p.SubsistenceShare = p.SubsistenceBasis;
+            }
+            return;
+        }
+        var (cap, lp) = HumanFarmLabor(region);
+        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+        double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef), need = StapleNeedPerCapita;   // ★(877) 旗 SubsistenceNoBoughtTech が正なら技術の比 T を自給に掛けない（焼く ρ・σ の 2 か所＝×1.0 は厳密）
+        for (int i = 0; i < pops.Count; i++)
+        {
+            var p = pops[i];
+            if (p.SubsistenceBasisKind == SubsistenceBasisKind.WarmupShare)
+            {
+                if (i == lp && u > 0 && p.Size > 0) { p.SubsistenceBasis = p.SubsistenceBasis * need * p.Size / (u * t); p.SubsistenceBasisKind = SubsistenceBasisKind.Productivity; }
+                else p.SubsistenceBasisKind = SubsistenceBasisKind.OpeningShare;
+            }
+            if (p.SubsistenceBasisKind != SubsistenceBasisKind.Productivity) p.SubsistenceShare = p.SubsistenceBasis;
+            else p.SubsistenceShare = i == lp && p.Size > 0 ? Math.Min(1.0, p.SubsistenceBasis * u * t / (need * p.Size)) : 0.0;
+        }
+    }
+
+    /// <summary>★(849) 旗が正で焼いた担い手の農民の失業（(844) の (b) から収穫係数を外した形 (b′)）：普段の収穫で必要量を作るのに要る労働 L＝必要量×人数÷(ρ×T) を超えた売れ残りだけ＝clamp01((U−L)÷能力)。
+    /// U・能力・T はこの月の末の値（今の式と同じくこの月）。能力が 0 以下なら 0。</summary>
+    private static double FarmUnemploymentStage2(Region region, Coefficients coef, Pop lpop)
+    {
+        var (cap, _) = HumanFarmLabor(region);
+        if (!(cap > 0)) return 0;
+        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+        double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef);   // ★(877) 同じ旗で (b′) の lneed からも T を外す（焼く ρ と同じ規則＝焼いた月の L は旗 0 と同じ）
+        double lneed = StapleNeedPerCapita * lpop.Size / (lpop.SubsistenceBasis * t);
+        return PoliticalQuantities.Clamp01((u - lneed) / cap);
+    }
+
     /// <summary>主食の自給の収穫係数＝市場向けRGOと同じ三重積（州の収穫係数×緯度帯天候×その主食の作物の健全度×土地係数）。旧は決済の段の中の 3 行。
     /// ★(504) 需要の段（旗 HarvestShortfallToMarket）と前計算が同じ関数を呼ぶために取り出した＝積の順は 1 文字も変えない。</summary>
     private static double StapleHarvestFactor(Region region, int gi, double regionLandFactor)
@@ -102,7 +186,7 @@ public static class EconomyStep
             var norm = scratch.PopNorm;
             for (int i = 0; i < np; i++)
             {
-                double s = region.Pops[i].Subsistence, s0 = 0, s1 = 0;
+                double s = region.Pops[i].SubsistenceShare, s0 = 0, s1 = 0;
                 for (int j = 0; j < k; j++) { int id = ids[j]; double m = es[j] * Math.Max(0.0, 1.0 - s * self[id]); s0 += m; s1 += m * subst[id]; }
                 double r = s0 / s1;
                 norm[i] = s1 > 0 && double.IsFinite(r) ? r : 1.0;
@@ -205,7 +289,7 @@ public static class EconomyStep
     ///（budget=estCost なら afford=1 で差が消える）、機関銃・装甲艦以降の3段が全世界で調達不能になる＝死蔵財を増やす。
     /// 段のゲートは調達ブロックの入れ子と揃える（上位段の財が無い小シナリオでは、その先の段も数えない）。
     /// ⚠燃料（空軍/輜重）と艦隊修理は含めない。
-    /// ★(189)：陸の装備の段は艦（<see cref="Coefficients.FleetGoodIds"/>）を買わない（<see cref="LandMul"/>＝0）＝艦は海軍の調達（<see cref="NavalProcurementNeed"/>・別の予算）。
+    /// ★(189)：陸の装備の段は艦（<see cref="Coefficients.FleetGoodIds"/>）を買わない（<see cref="LandMul"/>＝0）＝艦は海軍の調達（<see cref="FleetOrder"/> の必要額・別の予算）。
     ///   旧＝陸海の再配分（ProcureMul＝理想の海の割合÷一律レートの海の割合）で艦も同じ段の中で買った＝軍艦の購入は兵の頭数（MilitaryScale）×海の割合だった。</summary>
     internal static double MilitaryProcurementNeed(Region region, Coefficients coef)
     {
@@ -342,13 +426,13 @@ public static class EconomyStep
     /// ・発注＝財ごとに（目標の隻数〔<see cref="FleetTargetUnits"/>〕−国の在庫〔<see cref="FleetHeldUnits"/>〕）⁺＝耐久の陸の装備（<see cref="TierQty"/>）と同じ「目標−在庫」の形
     ///   （沈んだ艦・劣化した艦の補充も同じ式から出る）。財ごと＝新しい段の艦を発見すればその艦の目標が立って建艦が始まる（古い段の艦が多くても＝段の効きが更新を呼ぶ・
     ///   古い段の艦は目標を超える分を買わず劣化で減る）。払える分は海軍の予算（Region.NavalBudget）が切る（Run の afford）。
-    /// ・港の州が1つも無い国は艦を買わない（<see cref="Coefficients.NavalProcurementNeedsPort"/>＝造船は港）。目標が無い・全ての財で目標に届いている＝null（必要額0）。
+    /// ・港の州が1つも無い国は艦を買わない（造船は港）。目標が無い・全ての財で目標に届いている＝null（必要額0）。
     /// 予算の上限（Simulation の NavalBudget＝min(装備の器×海の金の割合, 必要額)）と発注（Run）が同じ1本を読む。</summary>
     internal static double[]? FleetOrder(Region region, Coefficients coef, World? world, out double cost)
     {
         cost = 0;
         if (world is null) return null;
-        if (coef.NavalProcurementNeedsPort > 0 && !region.NationHasPort) return null;
+        if (!region.NationHasPort) return null;
         if (FleetTargetUnits(region, coef, world) is not { } t) return null;
         var have = FleetHeldUnits(world, coef);
         double[]? q = null;
@@ -362,14 +446,7 @@ public static class EconomyStep
         return q;
     }
 
-    /// <summary>★海軍の調達の必要額（2026-10-03 (189)）＝<see cref="FleetOrder"/> の必要額＝Simulation が海軍の予算（Region.NavalBudget）の上限に使う（陸の <see cref="MilitaryProcurementNeed"/> と対）。</summary>
-    internal static double NavalProcurementNeed(Region region, Coefficients coef, World? world)
-    {
-        FleetOrder(region, coef, world, out double cost);
-        return cost;
-    }
-
-    /// <summary>★(606) 線 navf：発注 <paramref name="q"/>（財ごとの隻数）の必要額＝その州の今の市場の値段で（<see cref="FleetOrder"/> の必要額の和と同じ式・同じ順）。旗 <see cref="Coefficients.NavalPortProcurement"/> が正のときだけ呼ばれる。</summary>
+    /// <summary>★(606) 線 navf：発注 <paramref name="q"/>（財ごとの隻数）の必要額＝その州の今の市場の値段で（<see cref="FleetOrder"/> の必要額の和と同じ式・同じ順）。旗 NavalPortProcurement は (824) で焼き込み＝港の州の発注（<see cref="Region.NavalOrder"/>）の必要額を読む経路から呼ばれる。</summary>
     internal static double FleetOrderCost(Region region, Coefficients coef, double[] q)
     {
         double cost = 0;
@@ -385,7 +462,7 @@ public static class EconomyStep
     /// （分母に植民地格の港まで含む <see cref="World.PortThroughputTotal"/> を使って分子だけ植民地を外すと Σ割合＜1＝予算が消える＝分子と分母の非対称）。</summary>
     internal static bool NavalHomePort(Region r) => r.IsPort && r.Tier != RegionTier.Colonial && r.LastPortThroughput > 0;
 
-    /// <summary>★(606) 線 navf／★(669) 線 navf3：国の海軍の発注を国の**本国格の港の州**に配る（旗 <see cref="Coefficients.NavalPortProcurement"/> が正のとき Simulation が月初に1回だけ呼ぶ）。
+    /// <summary>★(606) 線 navf／★(669) 線 navf3：国の海軍の発注を国の**本国格の港の州**に配る（Simulation が月初に1回だけ呼ぶ・旗 NavalPortProcurement は (824) で焼き込み）。
     /// 戻り値＝国の発注（<see cref="FleetOrder"/>＝目標の艦隊−国の在庫・首都の州で引く＝旧と同じ式）。<paramref name="share"/>（<c>World.Regions</c> と同じ並び）へ各州の割合を書く＝Σ=1（発注が無いなら全て 0）。
     /// 割合＝その州の港の取扱高 <see cref="Region.LastPortThroughput"/> ÷ 本国格の港の取扱高の和（述語は <see cref="NavalHomePort"/> の1本）。植民地格の港は配りに入らない（(614) の F1 は入れた）。
     /// 本国格の港の取扱高の和が 1e-9 以下（本国の港が無い国・開幕の清算の前）は首都の州が全部（旧と同じ）。割合は発注と予算の両方を同じ値で配る（発注だけ配ると需要が港の数倍になる＝分子と分母を同じ規則で）。</summary>
@@ -415,19 +492,14 @@ public static class EconomyStep
     }
 
     /// <summary>★(688) 線 navf5：App の政治タブの艦隊の行の〈海軍の予算の充足〉の式を SimCore の1本へ移した（挙動を変えない恒等の部分）。<paramref name="capital"/>＝首都の州（App の <c>r</c>）・<paramref name="fleetCost"/>＝首都の値段で引いた発注の必要額（<see cref="FleetOrder"/> の <c>out cost</c>）。
-    /// 旗 <see cref="Coefficients.NavalPortProcurement"/> が 0 のときは 首都の州の予算 ÷ <paramref name="fleetCost"/>。正のときは予算が国の本国格の港の州へ割られる（<see cref="NavalPortSplit"/>）ので、国の Σ州の予算 ÷ 各州が自分の値段で買う額の和。
+    /// 予算は国の本国格の港の州へ割られる（<see cref="NavalPortSplit"/>）ので、国の Σ州の予算 ÷ 各州が自分の値段で買う額の和（旗 NavalPortProcurement は (824) で焼き込み＝旧の〈首都の州の予算 ÷ <paramref name="fleetCost"/>〉の式は消えた。引数 <paramref name="capital"/>・<paramref name="fleetCost"/> は App が渡すので署名は残してあり、今は読まない）。
     /// 読むのは<b>支払い率を掛けた後</b>の <see cref="Region.NavalBudget"/>（Simulation の <c>r.NavalBudget *= payRate</c> の後）。0 の守りは App の <c>Eps</c> と同じ 1e-9（文字どおり）。呼び手＝App の艦隊の行（数と状態だけ）。</summary>
     internal static double FleetAfford(World world, Coefficients coef, Region capital, double fleetCost)
     {
-        double fAfford = fleetCost > 1e-9 ? Math.Min(1.0, capital.NavalBudget / fleetCost) : 0.0;
-        if (coef.NavalPortProcurement > 0)
-        {
-            var navShare = new double[world.Regions.Count]; var navBudShare = new double[world.Regions.Count];
-            NavalPortSplit(world, coef, navShare, navBudShare, out double navNeed);
-            double navBudget = 0; foreach (var pr in world.Regions) navBudget += pr.NavalBudget;
-            fAfford = navNeed > 1e-9 ? Math.Min(1.0, navBudget / navNeed) : 0.0;
-        }
-        return fAfford;
+        var navShare = new double[world.Regions.Count]; var navBudShare = new double[world.Regions.Count];
+        NavalPortSplit(world, coef, navShare, navBudShare, out double navNeed);
+        double navBudget = 0; foreach (var pr in world.Regions) navBudget += pr.NavalBudget;
+        return navNeed > 1e-9 ? Math.Min(1.0, navBudget / navNeed) : 0.0;
     }
 
     /// <summary>★(669) 追記 1：州の海軍の予算＝国の予算 <paramref name="navalNat"/> × その州の予算の割合（発注の割合が 0 の州は 0）。Simulation の州ごとの書き込みが通る1本（Σ州の予算＝国の予算を番人が見る）。</summary>
@@ -517,7 +589,7 @@ public static class EconomyStep
     internal static double EquipFill(double equipWant, double equipGot)
         => equipWant > Eps ? PoliticalQuantities.Clamp01(equipGot / equipWant) : 1.0;
 
-    /// <param name="durable">★段2a（2026-08-13）：true かつ ArmsStockEnabled>0 のとき、その段を**耐久品**として
+    /// <param name="durable">★段2a（2026-08-13・旗 ArmsStockEnabled は (843) で焼き込み）：true のとき、その段を**耐久品**として
     /// 「不足分の費用」で見積もる。予算の上限式がフロー基準のままだと、発注だけがストック基準になって
     /// **在庫を積み上げる原資が構造的に足りない**（実測：ストック版の方が装備が少なくなった）。
     /// 消耗品の段（基本・空軍）は false で呼ぶ＝従来どおりフロー。</param>
@@ -526,7 +598,7 @@ public static class EconomyStep
     internal static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)   // ★(474) internal＝軍事タブ（App）が写さず呼ぶ
     {
         double cost = 0;
-        bool stock = durable && coef.ArmsStockEnabled > 0;
+        bool stock = durable;
         for (int b = 0; b < goods.Length; b++)
             cost += TierQty(region, coef, goods[b], rates[b], stock, LandMul(coef, goods[b])) * region.Markets[goods[b]].Price;
         return cost;
@@ -538,7 +610,7 @@ public static class EconomyStep
     ///   目標 A* ＝ **平時基準**の規模 × 原単位 ÷ 摩耗率（定常で 摩耗×A* ＝ 現行の平時フロー消費に一致するよう逆算
     ///   ＝新しい数を作らない）。戦時倍率は目標に掛けない＝**機関銃は戦争が始まっても9倍要らない**。
     ///   発注 ＝ (A* − 在庫)⁺ ＝ 負の小銃は発注できないという物理。戦時は在庫が摩耗で減るぶんだけ発注が増える。
-    ///   ArmsStockEnabled=0 では stock=false。
+    ///   （旗 ArmsStockEnabled は (843) で焼き込み＝耐久品の段は常に stock。旧の stock=false の枝は消した）。
     /// ★陸海の乗数 <paramref name="mul"/>（(189) から <see cref="LandMul"/>＝艦は0）は**目標に**掛ける（2026-09-29 処理の一元化 段3 F）＝決済の充足の分母（<see cref="ArmsFillContribution"/> の目標）と同じ量
     ///   ＝基本段の <see cref="BaseArmsTarget"/> と同じ式。⚠旧＝(A*−在庫)⁺ の**発注にだけ**掛け、充足の分母には掛けなかった＝港の無い国の装甲艦・弩級戦艦は
     ///   発注0なのに分母に残り、理想の形が海を望む国は在庫が目標で止まって満たされなかった（E1 で基本段を是正したのと同型の非対称）。
@@ -637,6 +709,64 @@ public static class EconomyStep
         return s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
     }
 
+    /// <summary>★(895) 土地の持ち分の枠 <paramref name="slot"/> の受け手の POP の添字（<see cref="Producer.LandShares"/>）：0 貴族＝持ち主・1 教会＝州の聖職者・2 農民の自作＝担い手・3 市民の地主＝州の投資家。
+    /// 添字が −1 か範囲の外（4 以上の枠も）は持ち主（貴族の枠）へ寄せる。読み手＝<see cref="PayOwnerRent"/>・<see cref="AddRentRecipients"/>・構築の地代の種（Simulation.BuildProvince）。</summary>
+    internal static int LandShareRecipient(Region region, Producer s, int slot)
+    {
+        int i = slot switch { 0 => s.OwnerPopIndex, 1 => region.ClergyPopIndex, 2 => s.LaborPopIndex, 3 => region.InvestorPopIndex, _ => -1 };
+        return i >= 0 && i < region.Pops.Count ? i : s.OwnerPopIndex;
+    }
+
+    /// <summary>★(895) ④の地代（持ち主の取り分 <paramref name="rent"/>・国営持分と赤字の枝の後・負もありうる）を受け手へ：所得（Earned）・RGO の正の地代は地代の記録（LandRent＝土地税の課税ベース）・
+    /// 貴族の受け手の領主権の記録（旗 PrivilegeLedgerEnabled）。受け手と重みの並び＝<see cref="Producer.LandShares"/> の割合が正の枠（null＝持ち主に rent そのまま＝今の 1 組）。
+    /// 書き込みの行は所得・地代とも 1 本（受け手ごとに行を足さない＝WriterRatchetTests）。</summary>
+    internal static void PayOwnerRent(World? world, Region region, Producer s, double rent, Coefficients coef)
+    {
+        if (Instruments.On && world is not null && s.IsRgo) Instruments.LandbaseRgoRent(world, region, s, rent);   // ★(937) 計器（読むだけ）：RGO の割る前の地代（計器は凍結の写しと割り方を自分で持つ）
+        // ★(937) 定額の土地税の基数（旗 LandTaxFixedBasis＞0・定額の国だけ）：助走（WarmupFrozen）の月ごとに RGO の地代で凍結を上書きし（正でなければ null）、助走の後は上書きしない＝助走の最後の月の地代が凍結の値。
+        //   その後は〈凍結×持ち分−今の地代の正の部分〉を受け手の差分へ積む。助走の無い木（単国の試験・StartWarmupQuarters＝0）は凍結が立たない＝収穫比例（形の変え直し 1 回目・事前登録 [14]）。
+        //   不在地主の RGO（Colonial.AbsenteeRgo）は凍結しない＝Colonial.RemitAbsenteeRent が地代を移しても差分は動かない（差分を積むのは凍結した RGO だけ）。
+        double? fz = null;
+        if (coef.LandTaxFixedBasis > 0 && world is not null && world.LandTaxBasisFixed && s.IsRgo)
+        {
+            if (world.WarmupFrozen && !Colonial.AbsenteeRgo(region, s))
+                s.FrozenLandRentPerMonth = rent > 0 ? new MoneyPerMonth(rent) : null;
+            else if (coef.LandTaxPhiMove > 0 && !world.WarmupFrozen && s.FrozenLandRentPerMonth is null && rent > 0 && !Colonial.AbsenteeRgo(region, s))
+                s.FrozenLandRentPerMonth = new MoneyPerMonth(rent);   // ★(990) 旗 1：助走の後に φ*＞0 へ入った RGO はその月の地代で凍結（旗 0＝この枝は無い）
+            fz = s.FrozenLandRentPerMonth?.Value;
+        }
+        var ls = s.LandShares;
+        bool crown = coef.LandShareCrownSlot > 0 && ls is { Length: 5 };   // ★(978) B-2b：5 個目（国家の枠）は国営持分で国庫へ入った（World.StateProfitShare）＝私の 4 枠だけを ls[k]÷(1−c) で
+        for (int k = 0, nk = ls is null ? 1 : crown ? 4 : ls.Length; k < nk; k++)
+        {
+            if (ls is not null && !(ls[k] > 0)) continue;   // 割合が 0（と NaN）の枠は並べない
+            int rp = ls is null ? s.OwnerPopIndex : LandShareRecipient(region, s, k);
+            double wk = ls is null ? 1.0 : crown ? ls[k] / (1.0 - ls[4]) : ls[k];   // 枠の重み（地代と凍結の差分の両方が読む 1 本）
+            double rk = ls is null ? rent : rent * wk;
+            region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);
+            if (s.IsRgo && rk > 0) region.Pops[rp].LandRentPerMonth += new MoneyPerMonth(rk);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
+            if (fz is { } f) region.Pops[rp].LandTaxBasisAdjPerMonth += new MoneyPerMonth(world!.LandTaxBasisPhi * ((ls is null ? f : f * wk) - Math.Max(0, rk)));   // ★(937) 凍結の差分（凍結の月は 0）
+            if (s.IsRgo && rk > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[rp].ClassId == PopClass.Noble)
+                Privileges.Record(world, Privileges.Seigneurial, rk * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
+        }
+    }
+
+    /// <summary>★(895) 輸出代金の地代（<see cref="InternationalMarket.PaySales"/>・国営持分を引いた後の正の rent）の受け手と重みを並びへ足す。
+    /// 植民地格の州の輸出作物の大農園（<see cref="Colonial.AbsenteeRgo"/>）は不在地主（首都の投資家）・欄が null は持ち主の 1 組（今のまま）・欄ありは割合が正の枠ごとに 1 組（枠の順）。</summary>
+    internal static void AddRentRecipients(List<Pop> to, List<double> wt, World w, Region rr, Producer pr, double rent)
+    {
+        if (pr.LandShares is { } ls && !Colonial.AbsenteeRgo(rr, pr))
+        {
+            bool crown = w.Coef.LandShareCrownSlot > 0 && ls.Length == 5;   // ★(978) B-2b：国家の枠は国営持分（PaySales の stateCut）で国庫へ入った＝私の 4 枠を ls[k]÷(1−c) で
+            for (int k = 0, nk = crown ? 4 : ls.Length; k < nk; k++)
+                if (ls[k] > 0) { to.Add(rr.Pops[LandShareRecipient(rr, pr, k)]); wt.Add(crown ? rent * (ls[k] / (1.0 - ls[4])) : rent * ls[k]); }
+            return;
+        }
+        // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園の地代は不在地主（本国の首都の投資家）へ直接＝清算の受け取りは移し方の1本（貯蓄と所得を同じ額で書く）
+        //   なので国内の売上（EconomyStep の④＝精算の後に送る）と違って直接払ってよい。
+        to.Add(Colonial.AbsenteeRgo(rr, pr) && Colonial.AbsenteeOwner(w, rr) is { } ab ? ab : rr.Pops[pr.OwnerPopIndex]); wt.Add(rent);
+    }
+
     /// <summary>★(186) 生産者の眠り（計算量の予算・近似＝2026-10-03 推奨で進めた）＝0 回す・1 眠った・2 目覚めた。
     /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（技術ゲート0の月の操業規模0）・産出が0（産出のスナップ）に
     ///   置かれた工場と産地。その月の生産者の段（労働の重み・供給・投入の需要と決済・投入の充足・所得と操業規模と採算）を全て飛ばす
@@ -662,6 +792,8 @@ public static class EconomyStep
     public static void Run(Region region, Coefficients coef, double productivityMultiplier = 1.0, Bank? bank = null, World? world = null)
     {
         Prefetch(region);   // ★(spr) R1 先読み（読むだけ・値を書かない＝恒等。Prefetch の注）
+        if (Instruments.On && world is not null && !world.WarmupFrozen) Instruments.SubstMonthHead(world, region);   // (849) 計器（読むだけ）：月の頭の自給の材料を計器が自分で読む（エンジンの頭の前＝焼く前の値と前の月の食べる割合を読む）
+        SubsistenceHead(region, coef, world);   // ★(849) この月の食べる割合（旗 SubsistenceStage2 が 0 なら欄そのもの）
         int ng = region.Markets.Length;
         int np = region.Producers.Count;
         // 計算量の台帳（診断・この国の台帳）：生産者×月・POP×月（月次決算の残り＝財政・犯罪・軍事・人口ほかは POP に比例）。world＝null（単国の直呼び）は数えない。
@@ -729,7 +861,7 @@ public static class EconomyStep
             // ★ゼロ化の直前に前期の所得を退避（私的投資の原資が読む・2026-08-04）。⚠この行は複数文が並ぶ＝行途中にコメントを挿すと以降が全部コメントアウトされる（実際に踏んで平均充足0＝31テスト赤）
             p.LastEarnedPerMonth = p.EarnedPerMonth;
             p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
-            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
+            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasisAdjPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
             p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
@@ -829,7 +961,7 @@ public static class EconomyStep
             //   種火を残す＝再点火の入口（床撤去後の bootstrap）。新定数ゼロ。墓標＝×UnitCapacity（能力）＝過剰生産・×LastInputFill＝自己参照デッドロック。
             double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
             if (sleep[pi] == 2) s.LaborWeight = rentR * sellR;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
-            else s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
+            else s.LaborWeight = PoliticalQuantities.Toward(s.LaborWeight, rentR * sellR, coef.SupplyAdjustSpeed);
             if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }   // ★(495) 倒産しても設備は残る（Scale は据え置き）＝労働は取らない（旧は Scale=0 が重みを 0 にした）
             prodW[pi] = s.LaborWeight * s.Scale;
             if (Catalog.IsLaborGood(s.GoodId)) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
@@ -970,7 +1102,7 @@ public static class EconomyStep
             if (coef.SubsidySoftBudgetDecay > 0)
                 boost *= 1.0 - coef.SubsidySoftBudgetDecay * s.SubsidyDependence;
             // #136 内戦の経済麻痺（2026-07-25）：内戦中は流通・徴発・戦場化・労働の逃散で実効生産性が落ちる（太平天国＝江南壊滅・米内戦＝南部の崩落。
-            // 現行の内戦は軍需消費2倍のみ＝むしろ軍需景気の面すらあった）。独立乗算・CivilWarEconomyDisruption=0.2（点火2026-07-25）。0で不読＝旧恒等。
+            // 当時の内戦は軍需消費2倍のみ〔今は対外戦と同じ 1＋WarArmsDemandPerContact×接触の割合（(973) 旗 MilitaryWarMultFromContact 1）〕＝むしろ軍需景気の面すらあった）。独立乗算・CivilWarEconomyDisruption=0.2（点火2026-07-25）。0で不読＝旧恒等。
             if (coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive)
                 boost *= 1.0 - coef.CivilWarEconomyDisruption;
             // 規模の経済（B-2）：工場財（投入連鎖を持つ非RGO）のみ、操業規模で生産性↑＝大工場ほど単位コスト安。
@@ -991,7 +1123,7 @@ public static class EconomyStep
             double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
             // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
             target *= InventoryAdjust(region, s.GoodId, coef);
-            s.Output += coef.SupplyAdjustSpeed * (target - s.Output);
+            s.Output = PoliticalQuantities.Toward(s.Output, target, coef.SupplyAdjustSpeed);
             if (s.Output < 0) s.Output = 0;
             // ★幻の生産の根絶（作者2度指摘・2026-08-10／係数 PhantomOutputSnapFloor に由来の全文）。
             // 上の追従式は**目標が0でも幾何級数で減るだけ**でゼロに到達しない＝1783年に内燃機関・自動車が
@@ -1192,9 +1324,9 @@ public static class EconomyStep
         // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
         System.Array.Clear(region.StateSpent);   // 区分つき（TreasuryCat）の今月の未精算＝精算の後も次のこの行までは先月の値として残る（月初の請求の見込みが読む・Simulation）
         bool milProc = region.MilitaryScale > 0 && AllPresent(coef.MilitaryGoods, ng);   // 小シナリオ（軍需財を持たない）は対象外
-        // ★(606) 線 navf：旗 NavalPortProcurement が正のとき、陸の軍需（MilitaryScale＝首都だけ）の外で、港の州も自分の市場で艦を買う（発注 Region.NavalOrder は Simulation が月初に1回だけ配る）。
-        //   陸の装備は首都のまま（milProc の枝は触らない）。発注の述語と決済の述語は同じ1本（navPort）＝需要だけ立てて決済が無い（代金が消える）形を作らない。旗 0 では常に偽。
-        bool navPort = !milProc && coef.NavalPortProcurement > 0 && region.NavalOrder is not null && AllPresent(coef.FleetGoodIds, ng);
+        // ★(606) 線 navf（旗 NavalPortProcurement は (824) で焼き込み）：陸の軍需（MilitaryScale＝首都だけ）の外で、港の州も自分の市場で艦を買う（発注 Region.NavalOrder は Simulation が月初に1回だけ配る）。
+        //   陸の装備は首都のまま（milProc の枝は触らない）。発注の述語と決済の述語は同じ1本（navPort）＝需要だけ立てて決済が無い（代金が消える）形を作らない。
+        bool navPort = !milProc && region.NavalOrder is not null && AllPresent(coef.FleetGoodIds, ng);
         // ★E1（作者裁定2026-08-26）：陸海の乗数は**装備充足率の分母でも使う**＝分子（実発注）と分母（equipWant）が同じ乗数（「軍艦1083%」と同型の非対称を作らない）。
         //   ★(189) 乗数は LandMul（艦は0）＝陸の装備の段は艦を買わない・艦は海軍の調達（FleetOrder）と海軍の予算（Region.NavalBudget）。
         // ★装備の発見（作者裁定2026-09-08）＝まだ発見していない装備を、必要量（分母）にも発注（分子）にも見積（予算）にも入れない。
@@ -1247,9 +1379,9 @@ public static class EconomyStep
             {
                 double cost = TierCost(region, coef, goods, rates, true);
                 double tAfford = cost > Eps ? Math.Min(1.0, remainingBudget / cost) : 0.0;
-                bool stock = coef.ArmsStockEnabled > 0;   // ★段2a（2026-08-13）：耐久品は**不足分だけ**発注する（現行は毎期フロー全量）。0で従来式＝厳密恒等。
+                // ★段2a（2026-08-13・旗 ArmsStockEnabled は (843) で焼き込み）：耐久品は**不足分だけ**発注する
                 for (int b = 0; b < goods.Length; b++)
-                    militaryDemand[goods[b]] += TierQty(region, coef, goods[b], rates[b], stock, LandMul(coef, goods[b])) * tAfford * PriceAfford(goods[b]);
+                    militaryDemand[goods[b]] += TierQty(region, coef, goods[b], rates[b], true, LandMul(coef, goods[b])) * tAfford * PriceAfford(goods[b]);
                 return cost * tAfford;
             }
 
@@ -1298,15 +1430,11 @@ public static class EconomyStep
         //   2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」）：艦は海軍の予算（Region.NavalBudget＝装備の器×海の金の割合を必要額で切った額・Simulation）で
         //   目標の艦隊（海の必要量）と在庫の差を買う（FleetOrder・予算の上限と同じ1本）＝兵の頭数（MilitaryScale）を読まない。afford と価格の門は陸の装備と同じ形。
         //   決済と艦の在庫は下の軍需の決済の後（買えた分＝発注×配給率・支払いは海軍の区分）。
-        //   ★(606) 旗 NavalPortProcurement が正のときは発注を Simulation が配った Region.NavalOrder（国の発注×この州の割合）から読む＝州の並びに依らない（FleetOrder は国の在庫を読み、前の州の決済で在庫が増える）。
-        //   必要額はその州の今の値段で（予算 Region.NavalBudget も同じ割合で配られている）。旗 0 は従来のまま（首都だけが FleetOrder で引く）。
-        double[]? fleetQ; double fleetCost = 0;
-        if (coef.NavalPortProcurement > 0)
-        {
-            fleetQ = (milProc || navPort) ? region.NavalOrder : null;
-            if (fleetQ is not null) fleetCost = FleetOrderCost(region, coef, fleetQ);
-        }
-        else fleetQ = milProc ? FleetOrder(region, coef, world, out fleetCost) : null;
+        //   ★(606) 発注は Simulation が配った Region.NavalOrder（国の発注×この州の割合）から読む＝州の並びに依らない（FleetOrder は国の在庫を読み、前の州の決済で在庫が増える）。旗 NavalPortProcurement は (824) で焼き込み。
+        //   必要額はその州の今の値段で（予算 Region.NavalBudget も同じ割合で配られている）。
+        double fleetCost = 0;
+        double[]? fleetQ = (milProc || navPort) ? region.NavalOrder : null;
+        if (fleetQ is not null) fleetCost = FleetOrderCost(region, coef, fleetQ);
         if (fleetQ is not null)
         {
             double fAfford = fleetCost > Eps ? Math.Min(1.0, region.NavalBudget / fleetCost) : 0.0;
@@ -1640,7 +1768,7 @@ public static class EconomyStep
         double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
         // ★(504) 食料の台帳を主食の和へ（事前登録 measurements/fd504_20261023_prereg.txt）。旗①②③が全て 0 の月は下の塊の中を 1 行も走らない（厳密恒等）。
         bool fdLedger = coef.StapleLedgerSum > 0;
-        bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.StapleElasticityZero > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
+        bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
         bool fdShortfall = coef.HarvestShortfallToMarket > 0;
         bool fdAny = fdLedger || fdRebalance || fdShortfall;
         Instruments.FdDiag? fdd = fdAny && Instruments.On ? Instruments.FdBegin(region) : null;   // (504) 計器（読むだけ）
@@ -1711,8 +1839,8 @@ public static class EconomyStep
                 // 経11（大量消費化）：需要の上クランプは従来 PriceFactorMax=1.4 一律＝価格暴落しても基礎量の1.4倍で頭打ち＝産業革命の綿布型「安価な工業製品の大量消費」が構造的に起きない。
                 // 財tier別に上限を差し替える（DemandElasticityMaxDaily=2.5／Luxury=2.0・R1点火2026-07-13。1.4=PriceFactorMax なら旧恒等）。PriceFactorMin/Max自体は不変。
                 double elasMax = good.Tier switch { GoodTier.Daily => coef.DemandElasticityMaxDaily, GoodTier.Luxury => coef.DemandElasticityMaxLuxury, _ => coef.PriceFactorMax };
-                // ★塊1段0（StapleElasticityZero）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。ゲート0＝データの弾力＝厳密恒等
-                double elasEff = staple && coef.StapleElasticityZero > 0 ? 0.0 : good.Elasticity;
+                // ★塊1段0（旗 StapleElasticityZero は (843) で焼き込み）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。
+                double elasEff = staple ? 0.0 : good.Elasticity;
                 double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
                 if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
                 {
@@ -1748,13 +1876,13 @@ public static class EconomyStep
                 //   経済の行動であって政治の量ではない＝食料の二重計上にならない（思想⑨）。
                 if (habit.Active)
                     p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(habit.MiseryScale * (1.0 - lastSupply[pIdx])) + Habit.StockOf(region, habit)) * p.Size;
-                double marketNeed = staple ? (fdShortfall ? p.GoodNeed * Math.Max(0.0, 1.0 - p.Subsistence * fdSelf[gi]) : p.GoodNeed * (1.0 - p.Subsistence)) : p.GoodNeed;   // 自給分は市場に出さない（農民）。★(504) ③（対称の形・追記 2）：市場に出す量＝必要量×max(0, 1−自給率×収穫係数 f)＝凶作（f＜1）は自給の減りを市場で買い、豊作（f＞1）は市場の買いが減る。f は天候・作物の因子と土地係数（慢性の混み）の積＝混んだ州でも市場の需要が上がる〔(508) 反証役 fd〔bv〕低#6 で注を直した〕
+                double marketNeed = staple ? (fdShortfall ? p.GoodNeed * Math.Max(0.0, 1.0 - p.SubsistenceShare * fdSelf[gi]) : p.GoodNeed * (1.0 - p.SubsistenceShare)) : p.GoodNeed;   // 自給分は市場に出さない（農民）。★(504) ③（対称の形・追記 2）：市場に出す量＝必要量×max(0, 1−自給率×収穫係数 f)＝凶作（f＜1）は自給の減りを市場で買い、豊作（f＞1）は市場の買いが減る。f は天候・作物の因子と土地係数（慢性の混み）の積＝混んだ州でも市場の需要が上がる〔(508) 反証役 fd〔bv〕低#6 で注を直した〕
                 double demand = 0;
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
                     if (fdRebalance && staple) desired *= fdNorm[pIdx];   // ★(504) ②：Σ欲しい量＝Σ市場に出す必要量（予算の前）
-                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.Subsistence) * (fdRebalance ? fdOldFactor : priceFactor); }   // (504) 計器（読むだけ）
+                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.SubsistenceShare) * (fdRebalance ? fdOldFactor : priceFactor); }   // (504) 計器（読むだけ）
                     if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceIncomeFactorExponent) : incomeFactorOfPop![pIdx];   // ★(302) 線(2)(3)：奢侈品・家事奉仕の所得弾力（上の incomeFactorOfPop）。★(433) 家事奉仕の係数が 1 以外なら f の冪（指数＝ε×その値）
                     // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
                     // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
@@ -1775,7 +1903,7 @@ public static class EconomyStep
                     // ★主食の tier に限る＝質屋は食い扶持のための信用であって奢侈のためではない（新しい優先順位規則を書かずに史実の形になる）。
                     // ⚠自給農民には原理的に効かない（marketNeed が自給ぶん減っているため）＝機構の適用範囲であって欠陥ではない。
                     if (coef.PopDebtDriven > 0 && coef.HouseholdCreditMonths > 0 && bank is not null && world is not null
-                        && (staple || coef.HouseholdCreditStapleOnly <= 0))
+                        && staple)
                     {
                         double shortfall = (desired - p.RemainingBudget / buyerPrice) * buyerPrice;
                         if (shortfall > 0)
@@ -1832,8 +1960,8 @@ public static class EconomyStep
             {
                 double perCapita = totalPop > Eps ? sold / totalPop : 0;
                 if (insOn) Instruments.HabitSold(region, sold);   // (342) 計器（読むだけ）：州のその月の販売量
-                if (insOn && !world!.WarmupFrozen) Instruments.HabitCapStep(region, coef, habit, region.OpiumAddiction, perCapita);   // (771) 計器（読むだけ）：アヘンの蓋の旧新の次の在庫（更新の前＝同じ前の在庫・助走の月は数えない）
-                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // P3：生理的上限＝依存→満足↓→困窮消費↑の正帰還に物理の蓋（0.2上限でも労働−最大20%・満足−最大10%）
+                if (insOn && !world!.WarmupFrozen) Instruments.HabitLgStep(region, coef, perCapita);   // (820) 計器（読むだけ）：ロジスティックの旧新（前の月の遷移を今の在庫で閉じる・係数から自分で組む）
+                region.OpiumAddiction = Habit.NextStock(habit, region.OpiumAddiction, perCapita);   // (820) 形 H（旗 OpiumAddictionLogistic 既定 1）：在庫は 0〜d（d＝OpiumAddictionCap＝依存者 1 人の上乗せの量・成長の項に (1−在庫/d)）＝依存→満足↓→困窮消費↑の正帰還は d を超えない（旗 0 の旧の線形の式では d が蓋）。d＝0.2 でも労働−最大20%・満足−最大10%
             }
 
             // ★popが自腹で買った量の階級別記帳（作者フィードバック2026-08-10 項目6）＝生産タブの「用途」先頭行が読む唯一の出所。
@@ -1897,10 +2025,9 @@ public static class EconomyStep
                     sold += take;
                 }
                 // 義務教育：popが買えなかった必要量を**教育費スライダーの割合だけ**国庫が買い与える＝全民就学・ただし多大な財政コスト（教師給与を国家が払う）。
-                // ★(452) 旗 StateEduDemandInFront＝1：国庫の買いたい分（`want`）を、取れた分だけでなく値段が読む需要（m.LastDemand）に足す。旗 0 は条件も式も旧のまま。
+                // ★(452) 旗 StateEduDemandInFront は (843) で焼き込み：国庫の買いたい分（`want`）を、取れた分だけでなく値段が読む需要（m.LastDemand）に足す（旧の取れた分だけの枝は消した）。
                 //   供給が尽きた月（remaining ≦ 1e-12）も買いたい分を求める＝未充足は順位の配分に依らない〈予算の足りなさ〉Σ max(0, 必要量 − 民間の買いたい量〉で数える
                 //   （配分で削られた民間の分は popDemand に載っている＝数えると二重）。供給が足りる月は want == take がビットで成り立つ＝足す量は 0。
-                bool stateFront = coef.StateEduDemandInFront > 0;
                 if (insOn && gi == Catalog.EducationId)
                 {
                     double nd = 0, pv = 0;
@@ -1908,7 +2035,7 @@ public static class EconomyStep
                     Instruments.EdBegin(region, nd, pv, available);   // (452) 計器（読むだけ）：診断は計器の側の蓄え（(465) で Region から移した）
                 }
                 if (insOn && gi == Catalog.HigherEducationId) Instruments.HigherEdSet(region, 0, 0);   // (452) 計器（読むだけ）
-                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn))
+                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps)
                 {
                     double unmet = 0;
                     if (remaining > 1e-12)
@@ -1918,7 +2045,7 @@ public static class EconomyStep
                     else
                     {
                         foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（insOn だけの旗 0 は計器のためだけに読む＝購入も需要への加算も無い）
-                        if (stateFront && costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件・計器だけの読みも数えない）
+                        if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件・計器だけの読みも数えない）
                     }
                     // 財源率（教育費スライダー：満額1.0＝全民就学・半分＝半数就学）も行政の届きも**天井にだけ**効く。
                     // 配分率 gr＝take÷未充足 なので Σ配分＝take が式の形から立つ（下の高等教育ブロックと同じ書き方）。
@@ -1946,13 +2073,13 @@ public static class EconomyStep
                         sold += take;
                         m.LastDemand += take;             // 国家購入も需要として記録（次期の労働配分の重み）
                     }
-                    if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。供給が足りる月は want == boughtQty で 0 を足さない）
+                    if (want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形＝NaN は足さない側。供給が足りる月は want == boughtQty で 0 を足さない）
                     if (insOn) Instruments.EdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 // ★段③：近代化投資の学費補助。義務教育と**同じ形**だが律速が違う——義務教育は「率」（全民就学が目標）、
                 //   こちらは「額」（予算で買える人数が決まる＝作者裁定「効果を投入額から計算し、投入額上限は収入から計算する」）。
                 //   ⚠買えた分だけ StateSpent へ計上＝**空振りは国庫に残る**（予約 HigherEduFunding は月末に無条件ゼロ化）。
-                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && (remaining > 1e-12 || stateFront || insOn) && m.Price > Eps)   // ★(452) 旗 1：供給が尽きた月も買いたい分を求める（教育と同じ型・既定では必要量 0 で休眠）
+                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && m.Price > Eps)   // ★(452) 旗 1：供給が尽きた月も買いたい分を求める（教育と同じ型・既定では必要量 0 で休眠）
                 {
                     double unmet = 0;
                     if (remaining > 1e-12)
@@ -1962,7 +2089,7 @@ public static class EconomyStep
                     else
                     {
                         foreach (var p in region.Pops) if (p.GoodNeed > Eps) unmet += Math.Max(0, p.GoodNeed - p.GoodDemand);   // 旗 1 で供給が尽きた月：予算の足りなさ（民間の買いたい分は popDemand に載っている）。insOn だけの旗 0 は計器のためだけに読む
-                        if (stateFront && costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）
+                        if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）
                     }
                     double want = Math.Min(unmet, region.HigherEduFunding / m.Price);   // 国庫の買いたい分（予算の天井つき）
                     double take = Math.Min(Math.Min(remaining, unmet), region.HigherEduFunding / m.Price);
@@ -1984,7 +2111,7 @@ public static class EconomyStep
                         sold += take;
                         m.LastDemand += take;
                     }
-                    if (stateFront && want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）
+                    if (want > boughtQty) m.LastDemand += want - boughtQty;   // ★(452) 取れなかった買いたい分も値段が読む需要へ（否定形）
                     if (insOn) Instruments.HigherEdSet(region, want, boughtQty);   // (452) 計器（読むだけ）
                 }
                 ration[gi] = totalDemand > 1e-12 ? Math.Min(1.0, sold / totalDemand) : 0;
@@ -2064,7 +2191,7 @@ public static class EconomyStep
                         // 市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
                         double subFactor = region.HarvestFactor;
                         if (staple) subFactor = StapleHarvestFactor(region, gi, regionLandFactor);   // 市場向けと同じ収穫係数（三重積）
-                        double sub = staple ? p.GoodNeed * p.Subsistence * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
+                        double sub = staple ? p.GoodNeed * p.SubsistenceShare * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
                         double met = sub + Math.Min(qty, p.GoodNeed - sub);
                         p.NeedMet += met * needW;
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
@@ -2127,8 +2254,8 @@ public static class EconomyStep
                 double elecStep0 = coef.FillInertia * (0 - s.ElecFill);
                 if (elecStep0 < 0) elecStep0 *= 1.0 - coef.ElecFillIrreversibility;
                 s.ElecFill += elecStep0;
-                s.SteamFill += coef.FillInertia * (0 - s.SteamFill);
-                s.EffFill += coef.FillInertia * (0 - s.EffFill);
+                s.SteamFill = PoliticalQuantities.Toward(s.SteamFill, 0, coef.FillInertia);
+                s.EffFill = PoliticalQuantities.Toward(s.EffFill, 0, coef.FillInertia);
                 inputCost[pi] = 0;
                 continue;
             }
@@ -2170,7 +2297,7 @@ public static class EconomyStep
             if (elecStep < 0) elecStep *= 1.0 - coef.ElecFillIrreversibility;
             s.ElecFill += elecStep;   // 電化はゆっくり進み・剥がれる（設備の慣性）
             double steamFillTarget = steamNeed[pi] > 0 ? ration[Catalog.CoalId] : 0;
-            s.SteamFill += coef.FillInertia * (steamFillTarget - s.SteamFill);   // 蒸気動力もゆっくり進み・剥がれる（電化と同型の設備慣性）
+            s.SteamFill = PoliticalQuantities.Toward(s.SteamFill, steamFillTarget, coef.FillInertia);   // 蒸気動力もゆっくり進み・剥がれる（電化と同型の設備慣性）
             // RGO効率化材の決済（任意＝買えなくても基礎産出は出る）。買えた率が効率(EffFill)に積もる。
             if (effNeed[pi] > 0)
             {
@@ -2180,7 +2307,7 @@ public static class EconomyStep
                 revenue[bg] += pay;
             }
             double effFillTarget = effNeed[pi] > 0 ? effRation[effChosen[pi]] : 0;
-            s.EffFill += coef.FillInertia * (effFillTarget - s.EffFill);   // 効率化もゆっくり進み・剥がれる（慣性）
+            s.EffFill = PoliticalQuantities.Toward(s.EffFill, effFillTarget, coef.FillInertia);   // 効率化もゆっくり進み・剥がれる（慣性）
             inputCost[pi] = ic;
         }
 
@@ -2382,13 +2509,12 @@ public static class EconomyStep
         if (milProc)
         {
             double equipWant = 0, equipGot = 0;
-            // ★①基本段の耐久品ストック（2026-08-26）。BaseArmsStockEnabled=0 で以下は従来と**厳密恒等**
-            //   （耐久品の枝に入らず、equipGot への加算が got のまま・0加算は浮動小数でも完全に無害）。
+            // ★①基本段の耐久品ストック（2026-08-26・旗 BaseArmsStockEnabled は (843) で焼き込み）。
+            //   （旧の旗 0＝耐久品の枝に入らずフローだけの枝は消した）。
             // ⚠重み付けを変えない＝各財の寄与は従来と同じ want（フロー量）で測り、耐久品はその want に
             //   「在庫充足率」を掛けて足す。**在庫量と流量を1つの比の中で混ぜない**（分子と分母の非対称を作らない）。
-            bool baseStock = coef.BaseArmsStockEnabled > 0;
             bool opening = region.ArmsStock is null;   // 武器庫が一度も開いていない＝1783年の開幕の軍（ArmsHeld＝この月だけ未初期化を目標と読む・上位段と tier3 も同じ月の同じ値）
-            if (baseStock) region.ArmsStock ??= new Dictionary<int, double>();
+            region.ArmsStock ??= new Dictionary<int, double>();
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             {
                 int gi = coef.MilitaryGoods[b];
@@ -2406,7 +2532,7 @@ public static class EconomyStep
                     region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 // 耐久品は在庫へ積み摩耗で減らす（質の関数＝反乱勢力の武器購入と同じ1本 ArmsFillContribution・2026-09-11。baseStock=false では got そのもの＝フロー）
-                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null, opening);
+                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, region.ArmsStock, opening);
             }
             region.MilitaryEquipFill = EquipFill(equipWant, equipGot);
             // 運用コスト監査2026-08-16 #4b：輜重燃料の決済＝自分の発注量×配給率（militaryDemand[原油]の他の書き手＝空軍燃料と混ざらない）。
@@ -2426,7 +2552,7 @@ public static class EconomyStep
             //   1本も要らない段（未発見）は0＝質の乗数を立てない（基本段の「要らなければ1」とは逆＝上位段の充足は乗数の上乗せの量）。
             double SettleTier(int[] goods, double[] rates)
             {
-                var stock = coef.ArmsStockEnabled > 0 ? (region.ArmsStock ??= new Dictionary<int, double>()) : null;
+                var stock = (region.ArmsStock ??= new Dictionary<int, double>());
                 double tWant = 0, tGot = 0;
                 for (int b = 0; b < goods.Length; b++)
                 {
@@ -2502,10 +2628,9 @@ public static class EconomyStep
         //   ⚠払い手の端数は最後の参加者に寄せる＝Σ Paid ＝ 売り手の受取 と**厳密に**一致（比の和の丸めで1銭も湧かせない）。
         if (rebelOrders is not null && world is not null)
         {
-            bool rebelStock = coef.BaseArmsStockEnabled > 0;
             foreach (var (f, scale, rates, want, order, payers) in rebelOrders)
             {
-                if (rebelStock) f.ArmsStock ??= new Dictionary<int, double>();
+                f.ArmsStock ??= new Dictionary<int, double>();
                 double equipWant = 0, equipGot = 0, pay = 0;
                 for (int b = 0; b < coef.MilitaryGoods.Length; b++)
                 {
@@ -2516,7 +2641,7 @@ public static class EconomyStep
                     revenue[g] += payB;
                     pay += payB;
                     double mul = LandMul(coef, g);
-                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null, false);
+                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, f.ArmsStock, false);
                 }
                 f.EquipFill = EquipFill(equipWant, equipGot);
                 double charged = 0;
@@ -2648,6 +2773,7 @@ public static class EconomyStep
             double subEff = subRate * privFrac;
             // 国庫が肩代わりできる国営持分（R3）＝持分×r。払えない分（持分×(1−r)）は民営と同じ＝赤字は持ち主が負い（負の貯蓄→与信）、休止の対象になる。
             double stateCover = stateFrac * payRate;
+            double lsSf0 = insOn && s.IsRgo ? region.StateSpent[(int)TreasuryCat.StateFactory] : 0;   // ★(978) 計器（読むだけ）：国営工場の区分の台帳の移す前の値（受け口が移した直後の値と比べる）
             if (valueAdded >= 0)
             {
                 double rentShare = RentShareOf(s, region, coef);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
@@ -2675,13 +2801,11 @@ public static class EconomyStep
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
             bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
             s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth).Value);
-            region.Pops[s.OwnerPopIndex].EarnedPerMonth += new MoneyPerMonth(rent);
+            if (insOn && s.IsRgo && world is not null) Instruments.LandshareRgo(world, region, s, rent, lsSf0);   // ★(895) 土地の持ち分の計器（読むだけ）：国営持分と赤字の枝の後の rent（割る前の総額）
+            PayOwnerRent(world, region, s, rent, coef);   // ★(895) 地代の受け手（持ち主か土地の持ち分の枠）へ所得・地代（LandRent）・領主権の記録（null＝今の持ち主に全額）
             region.Pops[s.LaborPopIndex].EarnedPerMonth += new MoneyPerMonth(wages);
-            if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRentPerMonth += new MoneyPerMonth(rent);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
             if (absentee is not null && Colonial.AbsenteeRgo(region, s)) absentee[s.OwnerPopIndex] += rent;   // R1：不在地主の分（精算の後に送る・赤字も）
-            if (s.IsRgo && rent > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble)
-                Privileges.Record(world, Privileges.Seigneurial, rent * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
-            else if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
+            if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
                      && !(s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].GrainChain))
                 region.Pops[s.OwnerPopIndex].IndustrialRentPerMonth += new MoneyPerMonth(rent);   // 工業レントの物差し（書き込みタグ。★(801) 旗 CapitalDividendFromHostRent が正のとき CapitalMarket.HostRentDividend が読んで外資の利札の入力にする。powertrace/incomeprobe も読む）
             // 課題8（RGO第2層・2026-08-08）：穀物加工チェーン（麦・小麦粉＝GrainChain）は除外＝人口×食料需要に比例する
@@ -2721,7 +2845,7 @@ public static class EconomyStep
             // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
             double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限
             bool eqS = eqOn && FactoryEquipment.Eligible(s);   // ★(495) 設備を持つ生産者（旗 RecipeEquipment が正・暦が進む月）＝Scale は据え付けた設備で、ただでは伸び縮みしない
-            if (!eqS) s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度
+            if (!eqS) s.Scale = PoliticalQuantities.Toward(s.Scale, scaleTarget, catSpeed);   // ★カテゴリ速度
             // ★幻の工場（**live**・2026-08-11点火／旧の旗 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
             // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。
@@ -2737,7 +2861,7 @@ public static class EconomyStep
 
             // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）
             if (sleep[pi] == 2) s.SmoothedMargin = margin;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
-            else s.SmoothedMargin += coef.FactoryMarginSmoothing * (margin - s.SmoothedMargin);
+            else s.SmoothedMargin = PoliticalQuantities.Toward(s.SmoothedMargin, margin, coef.FactoryMarginSmoothing);
             if (s.Bankrupt)
             {
                 // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。
@@ -2799,7 +2923,11 @@ public static class EconomyStep
                 double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
                 // 農業労働は自給分（自作＝市場外の雇用）を失業から除く：高自給の貧農の自作を「失業」と数えない
                 // （主食消費は §EconomyStep で自給ぶんを FoodMet に計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
-                if (s.GoodId == Catalog.FarmLaborId) unsold -= lpop.Subsistence;
+                if (s.GoodId == Catalog.FarmLaborId)
+                {
+                    if (coef.SubsistenceStage2 > 0 && lpop.SubsistenceBasisKind == SubsistenceBasisKind.Productivity) unsold = FarmUnemploymentStage2(region, coef, lpop);   // ★(849) (b′)
+                    else unsold -= lpop.SubsistenceShare;
+                }
                 lpop.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(unsold));
             }
 
