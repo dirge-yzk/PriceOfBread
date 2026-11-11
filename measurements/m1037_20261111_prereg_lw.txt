@@ -1,0 +1,98 @@
+(1037) c98lw 事前登録：労働力の重み＝手作業は女 0.6・子 0.35、機械の操作は差なし（州の動力の割合 m で手と機械を按分）（旗 LaborWeightsByPower・挙動の線・3 回の規則の 1 回目）
+書いた日 2026-11-11・木 a06f769b（main＝基線 m1027）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+出発：作者 2026-11-11（原文）「労働力について 成人男性1に対し、女性を0.7～0.5、子供を0.5～0.25(適切な数値）にしてください。しかしこれは純粋な肉体労働(手作業の採掘や農作業）に限り、この差は機械化により是正され、機械操作に限ってはほとんど差が出ないようにしてください。」
+材料：docs/202611/20261111/20261111_労働力の重み_手作業と機械化_盤面m1027_下書き.md（案 1・§5・反証役の訂正 中①②・低③）・同 _材料.md・measurements/m1033_20261111/。
+§0-2 ★(1035) ①②は答えが無い＝作者「全て推奨で」で推奨を採った：① 機械の端は形 A（女・子とも 1.0・係数なし）② 技師には重みを掛けない（分岐は POP で切る）。
+手の値 女 0.6・子 0.35（作者の幅の内・作者「(適切な数値）」）と、農業と鉱山は手作業のまま（RGO の機械化の経路がソースに無い＝記録の限界）も推奨で進める。
+形の種類：入口（労働を売る POP の work の式＝開幕から全ての月に効く）。重みの値・m の定義・役割の分岐は AI の案・確証なし。〈手作業で女・子の差〉〈機械で差なし〉の形は作者の指示＝確証あり。
+
+[0] 指示から外れた所（報告の先頭にも書く）
+ a. 分岐は〈階級の番号〉でなく〈POP が売る労働の財〉で切る（役割）。理由：FullChain の簡易世界は ClassId 0・1・2（一次労働者・工員・資本家）で PopClass の番号（1＝農民・2＝工場労働者）と食い違う＝番号で切ると工員が農民扱いになる。
+    役割＝州の生産者を見て POP ごとに：労働力（LaborId）を売る＝機械の按分（州の m）／農業労働力だけを売る＝手（m＝0）／高度労働力だけを売る＝旧の式を逐語。
+    FullChain の工員（POP 1）は労働力と高度労働力の両方を売る＝労働力の側（機械の按分）で 1 つの work（反証役 中② の〈POP に 1 つの InitialWork〉の順の問題が消える）。
+ b. 下書きの G1・G2 の〈新÷旧の work〉は、エンジンに効く量〈能力の比 b〉へ書き直した（t=0 の正規化で水準は打ち消すため・突然変異 M4 を拾うため）。定義は [3]。
+ c. 門の許容は下書きの ±2% でなく ±0.1%（エンジンと計器は同じ盤面・同じ入力で同じ式を別に書く＝浮動小数の差だけ。±2% では M8〈分母を工場だけに〉が紙で 1.5% しか動かず拾えない）。
+
+[1] 形（旗 LaborWeightsByPower・既定 0）
+ 係数（Coefficients.cs・ChildWorkFactor の隣）：LaborWeightsByPower 0（旗）・FemaleHandLaborWeight 0.6・ChildHandLaborWeight 0.35（どちらも〈比〉＝成人男性 1 に対する 1 時間の産出）。
+   ChildWorkFactor 0.5 は変えず、旗 0 と技師の行が読む（積にしない）。機械の端は 1.0（係数なし）。新しい状態 0（m と役割は毎月導く・Scratch の作業配列だけ）。
+ m（州ごと・EconomyStep の供給のループ〔:1016〕の前に 1 回・旗が正の時だけ回す）：
+   m＝Σ_{生産者 s・投入に労働力がある} s.Output × EffectiveQty(s,州,労働力の投入) × p_s ÷ 州の労働力の市場の LastDemand
+   p_s＝ElecFill＋(1−ElecFill)×SteamFill。LastInputFill は掛けない（反証役 中①）。
+   分子と分母の基準＝どちらも前の月の需要の側：Output は前の月の供給のループの値（Output の書き手は供給のループだけ）・LastDemand は前の月の清算の総需要（投入・建設・再点火・効率化を含む）。
+   分子は前の月の投入の需要 Σ Output×eq（:1597 の inputNeed[労働力]）に p_s≦1 を掛けた部分和＝分母を超えない（例外：前の月の清算の後に ElecFill が下がって eq が上がった分。天井で削らない＝設計思想⑧・計器が m＞1 の行を数える）。
+   分母が正でない・m が NaN か負は、否定形 !(分母 > 0)・!(m >= 0) で m＝0。
+ 重み（役割ごと）：
+   労働力を売る POP：w_女＝0.6＋0.4×m・w_子＝0.35＋0.65×m。農業労働力だけ：m＝0 で同じ式（w_女 0.6・w_子 0.35）。高度労働力だけ：旧の式を逐語（女 1・子 ChildWorkFactor）。
+   work＝[男(15〜64)＋女(15〜64)×part×w_女＋OldLaborFactor×(男(65〜)＋女(65〜)×part×w_女)]×Habit.LaborFactor＋(10〜14)×w_子×ChildLaborRate。
+ 旗 0：:1080〜:1086 を逐語に通す（×1.0 を挟まない・計算の順を変えない・役割と m のループを回さない）。
+ InitialWork：旗 1 でも最初の評価の月の work（重みの入った work）で 1 回だけ捕捉（:1089 は変えない）。開幕の月は充足が 0 から始まる＝m≈0。
+ 二重に数えない（思想⑨）：part＝女の働く時間の割合（LaborSupply.FemaleParticipation＝財産権・困窮）・ChildLaborRate＝子の働く時間の割合（合法度・就学）。
+   重み＝1 時間あたりの産出（筋力の差）。work＝人数×時間×1 時間の産出＝別の次元の積で、同じ量を 2 度掛けていない。LaborSupply.cs は変えない（参加率の式に重みは入っていない＝grep で確かめた）。
+
+[2] 計器（教訓①・事前登録の文から独立に書く）：新しい表 lwk_s（InstrumentsLwk.cs・年末の四半期 q%4==3 の行・全ての国の全ての州の、労働の財を売る POP ごとに 1 行）
+   hook A（供給のループの前・Instruments.On の時）：計器が自分で州の生産者を選んで m と役割を数える（エンジンの PowerShare と役割の関数を呼ばない）。
+   hook B（労働の塊・InitialWork の捕捉の直後・民兵の前）：エンジンから part と work（使った値）を受け取り、計器が自分で旧の work・新の work・女の項・子の項を書く。
+     捕捉の影：POP を最初に見た月に、旧と新の work・m・part・児童労働を計器の蓄え（ConditionalWeakTable・シミュの状態ではない）に残す。
+   列：quarter year nation region popIndex className role mShare m0Share partShare part0Share clrShare clr0Share wFemIndex wChildIndex menIndex femOldIndex femNewIndex
+       childOldIndex childNewIndex workOldIndex workNewIndex workEngineIndex initialWorkEngineIndex initialWorkOldShadowIndex initialWorkNewShadowIndex militiaShare
+   旗 0 でも新の work を書く（workEngine＝workOld）。InstrumentsPop.cs:237 の影の ChildWork：旗 0 は c.ChildWorkFactor をそのまま（pop_s は全行バイト一致）・旗 1 は階級ごとに
+     Σ(10〜14 歳×児童労働×計器の w_子)÷Σ(10〜14 歳×児童労働)（労働の財を売らない POP は ChildWorkFactor）。
+   ⚠限界（計器が名乗る）：part は受け取る（エンジンの局所の値）・Habit.LaborFactor は計器も同じ関数を呼ぶ（入力であって試す式ではない）・断面は年末の四半期の最後の月。
+
+[3] 門（両側・旗 0 で落ちる・腕 B＝計器つき 10 種 種 1〜10 の lwk_s・台本 scripts/instruments/c98lw/gates_lw.py）
+   b_eng＝(workEngine÷initialWorkEngine)÷(workOld÷initialWorkOldShadow)・b_pap＝(workNew÷initialWorkNewShadow)÷(workOld÷initialWorkOldShadow)。一致＝|b_eng÷b_pap−1|≦0.001。
+   G1（狙い・式の一致）：工員（労働力を売る）で m≧0.8・m0≦0.1・|b_pap−1|≧0.03 の行の一致の割合 ≧0.999・N≧200。
+   G2（狙い・大きさ）：工員で m≧0.8・m0≦0.1 の行の b_eng の中央値が 1.08 以上 1.32 以下・N≧200（紙の格子 1,200 点の最小 1.106・最大 1.301・paper.txt §1）。旗 0 は 1.000。
+   G3（壊さない・農民が m を読まない）：農業労働力を売り労働力を売らない POP で、州の m≧0.5 の行の一致の割合 ≧0.999・N≧200。
+   G4a（女の項）：G1 の母集合で児童労働 0.01 未満の行の一致の割合 ≧0.999（N＜50 なら記録）。G4b（子の項）：G1 の母集合で児童労働 0.3 以上の行 ≧0.999・N≧200。
+   G5（壊さない・技師）：高度労働力だけを売る POP の b_eng が 1±1e-6 の割合 ≧0.999・N≧200。
+   G0（記録）：m の非有限・負・1 超の行の数。
+   N が足りない門：旗 0 の ident の腕（c98lwz の計器つき 10 種の lwk_s＝同じ盤面）で、腕 B の前に件数を数える。足りなければ腕 B の前に理由つきでこの節へ追記する（結果を見た後ではない）。
+   〈機構が狙いどおり働いたか〉の段＝G1・G2（・G4）。どれかが落ちたら採らない。
+
+[4] 突然変異（㉚・紙の台本 paper_lw.py §2・代表の行）と器の試験
+   | 変異 | 紙の b(W) | G1 | G2 | G3 | G4a | G4b | G5 | 器の試験 |
+   | 正しい実装 | 1.201 | g | g | g | g | g | g | 全て緑 |
+   | 旗 0 | 1.000 | R | R | g | R | R | g | T6 工員 |
+   | M1 m＝0 で固定 | 0.987 | R | R | g | R | R | g | T6 工員 |
+   | M2 農民にも m | 1.201 | g | g | R | g | g | g | T6 農民 |
+   | M3 子の重みに ChildWorkFactor を掛ける | 1.181 | R | g | g | R | R | g | T2・T3 |
+   | M4 基準を毎月捕え直す | 0.972 | R | R | g | R | R | g | T6 工員 |
+   | M5 子の重みを手のまま（女の項だけ動く） | 1.117 | R | g | g | g | R | g | T3 |
+   | M6 女の重みを手のまま（子の項だけ動く） | 1.071 | R | R | g | R | R | g | T3 |
+   | M8 m の分母を工場だけに | 1.217 | R | g | g | R | R | g | T5 |
+   | M9 技師にも重み | 1.201 | g | g | g | g | g | R | T4・T6 技師 |
+   突然変異は使い捨ての worktree（D:/PoB_work/c98lw_work/mut）で器の試験を回して赤を確かめる（腕は回さない＝D: の床）。出力は measurements/m1037_20261111/mut.txt。
+   器の試験（xUnit・LaborWeightTests.cs・期待は紙の値で置く）：
+   T1 開幕の月：旗 0 と旗 1 で全ての生産者の能力が一致（France と FullChain）。
+   T2 m＝0：工員の work が手の重みの式の紙の値（同じ年齢の割合から試験が自分で書く）。
+   T3 m＝0.5・m＝1：w_女・w_子が 0.8／0.675・1／1（試験が補助の関数を呼び、紙の値と比べる）。
+   T4 役割：France の工場労働者＝労働力・農民＝農業労働力だけ・技師＝高度労働力だけ。FullChain の POP 1＝労働力と高度労働力。
+   T5 m：合成の州（工場 1・ElecFill 1・Output 10・投入 1・LastDemand 20）で 0.5。分母 0・NaN で 0。
+   T6 2 か月目：工場の ElecFill を両方の世界で 1 に置いて 1 か月進め、労働の生産者の能力の比（旗 1÷旗 0）が、工員＝試験が自分で数えた m の紙の b（±2%）・農民＝1±1%・技師＝1（1e-12）。
+
+[5] 旗 1 で赤になる試験の予言（㉜）と走査の番人（㉘・㉑）
+   赤の見込み：WriterRatchetTests の軌道の件数の表（労働の供給が変わる＝清算・建設の件数が動く・★(749) の〈軌道の件数を写しただけの番人〉）。
+     DormantIdentityTests の旗の表（器のコミットで LaborWeightsByPower を足し、既定 1 のコミットで外す）。OpeningBakeTests は入力のハッシュ＝world.json だけ＝赤の見込みなし。
+     GenderTests:27〈女性財産権法は労働供給を増やす〉は単国の世界で旗 1 でも向きは同じ（手の重み 0.6 でも +）＝緑の見込み。児童労働の試験（PolicyPoliticsTests・StartWarmupTests）は大きさの固定があれば赤の候補。
+   走査の番人：工業化度の読み手の許可表（IndustrializationReaderTests）＝新しい読み手を作らない（Mechanization・Industrialization を読まない）。new MoneyStock( の件数＝SimCore で 64（変えない）。
+     route_anchors.tsv の鍵の行（EconomyStep の労働の塊は鍵に無い＝grep で 0 件）。WriterRatchetTests の宣言の表＝新しい書き手を作らない（予言 0 件の変化）。
+     計器の表を数える試験（InstrumentsTests の表の一覧・Dispose）＝lwk を足す行が要るなら同じコミットで（件数 +1 の予言）。OnDoubleReadScanTests＝EconomyStep では既存の局所 insOn だけを読む（新しい Instruments.On の読みを作らない）。
+   ident の宣言：--added-tables lwk・--tests-delta ＝足した試験の数（器のコミットで数える）。
+
+[6] 計算量：.cost の割り当て +0.3〜1.0 秒（州×月ごとに生産者を 1 回なめる・投入の行を見る・掛け算だけ）。
+   ⚠台帳（CostLedger）は MultiNationSim.cs＝c98lc の持ち物＝この線は台帳の行を足さない＝.cost の推定は旗 1 の新しいループを数えない（★(1035)）。
+   実時間を腕 B と基線（同じ条件のバッチの所要時間）で並べて記録し、余りへの計上は合流の判断に任せる。
+
+[7] 止める線（この回の標準をそのまま写す）
+   破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍の〈それ以外〉（建国の直後の型＝系列の最初の行から 4 四半期以内と ★(905) の区分は記録・基準とヌル腕を同じ台本で数え直す）・
+   1e10 倍・非有限・空洞化 1/10 未満の〈線が原因〉（規則 A2・an_h2.py -v4・基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・推定 248.5 秒・機構の試験の赤（走査の番人を含む）。
+   NG（基準 rd:measurements/ng1027_20261110:m1027）・史実度・国力・常勝・開幕の 1000 倍は記録。名目 GDP 0 の続き（gdp_zero10.py）は記録の段の先頭。政府の人口の比（popjump1017.py）は記録。
+   記録の段：工員の賃金と失業率の新÷旧（lw_s の plainWageBillPerMonth・plainUnemploymentShare）・電化の州で供給 + と需要 − が重なる大きさ・児童労働の法の賛否・英の国債の不履行の種の数。
+   S11 は回さない（合流で読む）。旗 1 の出力を見た後のエンジンの変更は〈形の変え直し〉に数える（枠 1 回）。
+
+[8] 周辺の点検（読むだけ・欠損は別の線へ）：児童労働の法の経路・女性の財産権・民兵の項・LaborSaveRate と Mechanization の休眠。結果は報告に書く。
+
+[9] 他の線との重なり（持ち主の表から）：c98lc＝BilateralMarket.cs・MultiNationSim.cs・InstrumentsTradeskip.cs／c98wr＝World.cs・Diplomacy.cs・InstrumentsWar.cs／c98da＝Privileges.cs・PolicyPreferences.cs・PopScan.cs・InstrumentsLordstat.cs。
+   共有＝Coefficients.cs（この線は ChildWorkFactor の隣の 3 行）・Instruments.cs（Sink の 1 行・Fold の 1 行・Dispose の 1 行）・DormantIdentityTests.cs（旗の表の 1 行）・WriterRatchetTests.cs（旗 1 で赤なら表の行）。
