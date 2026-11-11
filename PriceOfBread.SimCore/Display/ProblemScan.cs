@@ -116,7 +116,7 @@ public static class ProblemScan
         }
     }
 
-    // 失業＝失業者の数（階級ごと）／不満と闘争＝闘争度 × 人数（階級ごと）。階級の表と同じ行（兵士の〈失業〉は給与の未払い＝失業に数えない規則も表の側）。
+    // 失業＝失業者の数（階級ごと）／闘争に加わる人数＝闘争度 × 人数（階級ごと）。階級の表と同じ行（兵士の〈失業〉は給与の未払い＝失業に数えない規則も表の側）。
     private static void Classes(World w, List<ProblemItem> o)
     {
         foreach (var l in PopTables.ClassLines(w))
