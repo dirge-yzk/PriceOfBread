@@ -37,6 +37,8 @@ sealed class Program
     public static int[] UiShotYears = { 1793 };   // `--uishot <dir> <国> 1790,1800,1810`：各年に着いたら一時停止して全ページを <dir>/<年>/ に撮る。年が 1 つなら <dir> 直下（従来どおり）
     // ★観戦モード（`--autoplay`・単独でも `--uishot` と一緒でも）：選んだ国にも効用AIを差し、画面は通常と同じ。MainWindowViewModel.Spectate の初期値。
     public static bool Autoplay;
+    // ★世界の種（`--seed <数>`・既定 1789＝従来どおり）。観戦の撮影で「別の世界でも同じ事が起きるか」を確かめる用。画面からは選べない。
+    public static ulong Seed = SimFactory.DefaultSeed;
     // ★無人計測モード（A1・2026-09-05）：`--perf <出力txt>` で起動→自動で国選択→起動秒・四半期あたりms（速度3・40四半期）・全景/中心移動のフレームms を1行ずつ書いて終了。
     public static string? PerfOut;
     // ★地図スクロールの計測腕（2026-09-06・作者指示「マップスクロールがかなり重い」）：背景の焼き倍率・補間・四半期数を引数で切り替えて frame_ms を比べる。
@@ -92,6 +94,11 @@ sealed class Program
                 }
             }
             else if (args[i] == "--autoplay") Autoplay = true;
+            else if (args[i] == "--seed" && i + 1 < args.Length)
+            {
+                if (ulong.TryParse(args[i + 1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out ulong sd)) Seed = sd;
+                else BootLog.Write($"seed: 種の引数が読めない「{args[i + 1]}」→既定の{Seed}");
+            }
         // ★(501) 段2：撮影・計測・陸マスクの焼きは、作者の本物の配置（%LOCALAPPDATA%/PriceOfBread/配置.json）を読まず・書かない＝別の場所の配置を使う（毎回、初めの配置から始まる）。
         if (UiShotDir is not null || PerfOut is not null || BakeMaskOut is not null)
             Layout.LayoutStore.PathOverride = System.IO.Path.Combine(UiShotDir ?? System.IO.Path.GetTempPath(), "配置_検査用.json");

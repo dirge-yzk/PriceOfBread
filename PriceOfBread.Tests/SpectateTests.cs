@@ -39,6 +39,8 @@ public class SpectateTests
         Assert.NotEqual(a, b);
         Assert.Equal("warm_abc_2_20.pob", a);   // 通常の鍵は従来のまま
         Assert.NotEqual(SimFactory.WarmCacheFileName("abc", 3, 20, true), b);
+        Assert.Equal(b, SimFactory.WarmCacheFileName("abc", 2, 20, true, SimFactory.DefaultSeed));   // 既定の種は鍵に出ない
+        Assert.NotEqual(b, SimFactory.WarmCacheFileName("abc", 2, 20, true, 7UL));                  // 別の種は別の鍵＝別の世界を混ぜない
     }
 
     [Theory]

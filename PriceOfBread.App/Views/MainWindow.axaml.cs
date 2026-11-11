@@ -253,7 +253,7 @@ public partial class MainWindow : Window
             var years = Program.UiShotYears;
             bool spectate = gvm.Spectating;
             int k = 0;
-            PointRecord(rootDir, $"撮影開始　{(spectate ? "観戦" : "通常")}　国={ShownNationName(gvm)}　年={string.Join(",", years)}");
+            PointRecord(rootDir, $"撮影開始　{(spectate ? "観戦" : "通常")}　国={ShownNationName(gvm)}　年={string.Join(",", years)}　種={Program.Seed}");
             SeedPastWars(gvm);
             for (int yi = 0; yi < years.Length; yi++)
             {

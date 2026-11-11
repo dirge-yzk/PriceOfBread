@@ -82,7 +82,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string WarmCachePath(int playerIndex, bool spectate)
     {
         var mvid = typeof(MultiNationSim).Assembly.ManifestModule.ModuleVersionId.ToString("N");
-        return System.IO.Path.Combine(GameViewModel.SaveDir, SimFactory.WarmCacheFileName(mvid, playerIndex, new Coefficients().StartWarmupQuarters, spectate));   // 観戦は鍵が別（世界が別物）
+        return System.IO.Path.Combine(GameViewModel.SaveDir, SimFactory.WarmCacheFileName(mvid, playerIndex, new Coefficients().StartWarmupQuarters, spectate, Program.Seed));   // 観戦は鍵が別（世界が別物）・種も鍵
     }
     private const string WarmMagic = "POBWARM1";
 
@@ -135,7 +135,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSimFresh(int playerIndex, bool spectate)
     {
         // プレイヤー国は NullAgent（介入なし）＝UIが政策を握る。他国は効用AI。観戦は全国が効用AIで IsPlayer なし（SimFactory.Make）。
-        var sim = SimFactory.Make(WorldData.Nations(), playerIndex, spectate);
+        var sim = SimFactory.Make(WorldData.Nations(), playerIndex, spectate, Program.Seed);
         var player = sim.Nations[playerIndex].World;
         // ★専売は材を1つも選ばない状態で開始（作者裁定2026-09-20＝率という状態が無い）＝World.StateMonopolyMargins が全て0の既定そのもの。書き込みは不要。
         List<double>[]? hist = null;
