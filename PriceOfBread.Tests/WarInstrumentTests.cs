@@ -327,4 +327,78 @@ public class WarInstrumentTests
         Assert.Empty(missing);
         Assert.True(n >= 8, $"対照：入口の行を {n} 本しか数えていない");
     }
+
+    /// <summary>(1028) 評価の呼びを 1 本の盤面で行い、四半期の末に書かれた warentry_s の 1 国の行を列名で返す（body は 1 四半期の歩の後・Quarter の前に走る）。</summary>
+    private static Dictionary<string, string> EvalRow(string tag, int nation, Action<MultiNationSim, Diplomacy, Coefficients, World> body)
+    {
+        bool saved = Instruments.On;
+        var dir = TempDir(tag);
+        Instruments.Configure(dir, null);
+        var sim = Make(); const ulong seed = 1789UL;
+        string name;
+        try
+        {
+            Instruments.Phase(sim, seed, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, seed, "warm");
+            sim.StepQuarter();
+            var gw = sim.Nations[nation].World;
+            name = Instruments.NameOf(gw);
+            body(sim, sim.Diplomacy, sim.Coef, gw);
+            Instruments.Quarter(sim, seed, 0);
+        }
+        finally { Instruments.Close(sim); Instruments.On = saved; }
+        var lines = File.ReadAllLines(Path.Combine(dir, "warentry_s1789.tsv"));
+        var h = lines[0].Split('	');
+        var row = lines.Skip(1).Select(l => l.Split('	')).First(f => f[Array.IndexOf(h, "nation")] == name);
+        return h.Select((k, i) => (k, v: row[i])).ToDictionary(x => x.k, x => x.v);
+    }
+
+    /// <summary>(1028) T11：WarEval を通して newOnly＞0 になる。緊張 100（τ²＝(100÷declare)²）・戦争なし（前線の割合 0）の盤面で、今の要求は陸の力を 1 超え（足りない）・新しい要求 need×(1−τ²) は陸の力以下（足りる）。
+    /// 期待は盤面の値から手で置く（計器の関数を呼ばない）。元の N3（newOk に oldOk の条件）・τ を 0 に固定する変異で newOnly が 0 になり赤。</summary>
+    [Fact]
+    public void 評価を通すと新しいだけで足りる件数が正になる()
+    {
+        double need = 0, land = 0, tau2 = 0;
+        var r = EvalRow("t11", 0, (sim, d, c, gw) =>
+        {
+            var self = gw.SelfPower!;
+            var t = d.Powers.First(p => p != self);
+            d.SeedTension(self, t, 100);
+            Assert.Equal(100.0, d.Tension(self, t), 9);
+            Assert.Empty(d.Wars);   // 戦争なし＝前線の割合 0
+            land = ArmyShape.LandPotential(self);
+            Assert.True(land > 1e-9, "前提：陸の力が正");
+            double tau = 100.0 / c.WarDeclareTension; tau2 = tau * tau;
+            need = land * (1 + 0.5 * (1 / (1 - tau2) - 1));   // land＜need かつ need×(1−τ²)＜land
+            self.NeedInternal = 0; self.NeedLand = need;
+            Assert.True(land - need < 0 && land - need * (1 - tau2) >= 0, "前提：今の要求では足りず新しい要求なら足りる");
+            Instruments.WarEval(d, c, self, t, "余剰戦力が不足");
+        });
+        Assert.Equal("1", r["evals"]);
+        Assert.Equal("1", r["newOnly"]); Assert.Equal("1", r["newOk"]); Assert.Equal("0", r["oldOk"]);
+        double sumNew = double.Parse(r["sumNewNeed"], System.Globalization.CultureInfo.InvariantCulture);
+        Assert.True(Math.Abs(sumNew - need * (1 - tau2)) <= 1e-6 * need, $"新しい要求の和 {sumNew}・期待 {need * (1 - tau2)}");
+    }
+
+    /// <summary>(1028) T12：交差の列 crossWeakWill＝理由が〈弱小国が標的〉で、かつ膨張意欲が要求に足りない評価の件数。同じ国の 3 件：①弱小国・意欲 0（足りない）→数える ②弱小国・意欲が十分→数えない ③弱小国でない理由・意欲 0→数えない。
+    /// 期待は 1・r_weak は 2・evals は 3（手で置く）。r_will の条件を落とす変異で 2・弱小国の条件を落とす変異で 2 になり赤。</summary>
+    [Fact]
+    public void 交差の列は弱小国の標的かつ意欲が足りない評価だけを数える()
+    {
+        var r = EvalRow("t12", 0, (sim, d, c, gw) =>
+        {
+            var self = gw.SelfPower!;
+            var t = d.Powers.First(p => p != self && gw.InvadeWillCost(p) > 1e-9);
+            gw.ExpansionWill = 0;
+            Instruments.WarEval(d, c, self, t, "弱小国が標的");
+            gw.ExpansionWill = 1e9;
+            Instruments.WarEval(d, c, self, t, "弱小国が標的");
+            gw.ExpansionWill = 0;
+            Instruments.WarEval(d, c, self, t, "外交なし");
+        });
+        Assert.Equal("3", r["evals"]); Assert.Equal("2", r["r_weak"]);
+        Assert.Equal("1", r["crossWeakWill"]);
+        Assert.True(long.Parse(r["sh_will"]) <= long.Parse(r["crossWeakWill"]), "cross ≧ sh_will（前の門で落ちた評価を含む分だけ大きい）");
+    }
 }
