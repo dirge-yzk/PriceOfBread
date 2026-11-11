@@ -188,7 +188,7 @@ public partial class GameViewModel
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}との戦争が終結した。\n\n"
-                    + $"結果：{result}(戦勝点 {Fmt.SignedPct(scEnd)})　{months}か月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
+                    + $"結果：{result}（戦勝点 {Fmt.SignedPct(scEnd)}）　{months}か月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Fmt.Money(tr.CostShare)}\n\n"
@@ -224,7 +224,7 @@ public partial class GameViewModel
                     Key = $"{war.A.Id}|{war.B.Id}",
                     Title = $"{aName} ⚔ {bName}",
                     Info = $"{war.Months}か月経過　{lead}" + (ok ? $"　戦力余剰 {WillPct(_sim.Diplomacy.InterventionWillCost(me, war, cM))}" : ""),   // 押せない理由は釦の右（Reason）へ（B48）   // ★2026-09-23：語を「戦力余剰」へ統一
-                    CanMediate = ok, Reason = why,
+                    CanMediate = ok, Reason = Fmt.Zen(why),
                 });
             }
             SyncRows(MediationRows, mrows, r => r.Key, (t, s2) => t.CopyFrom(s2));
@@ -250,7 +250,7 @@ public partial class GameViewModel
                 if (ix < 0 && p.BaseName != p.Name) ix = body.IndexOf(p.BaseName, StringComparison.Ordinal);   // 変名直前に書かれたログ行は旧名のまま＝旧名でも解決
                 if (ix >= 0 && ix < best) { best = ix; src = p; }
             }
-            double sLat = _player.Latitude, sLon = _player.Longitude; bool isMine = true;
+            double sLat = _player.Latitude, sLon = _player.Longitude; bool isMine = mentionsMe;   // 自国が当事者＝本文に自国名がある時だけ（国名の出ない行〔勢力の合流など〕を自国の出来事にしない・V14）
             if (src is not null && src != Me && !mentionsMe)
             {
                 isMine = false;

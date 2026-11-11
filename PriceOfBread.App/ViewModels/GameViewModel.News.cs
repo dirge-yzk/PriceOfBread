@@ -163,7 +163,7 @@ public partial class GameViewModel
             bool mine = w == _player;
             long id = powers[i].Id;
             if (_prevPolities.TryGetValue(id, out var prev) && w.Polity != prev)
-            { QueueNews("ev_revolution", powers[i].Name, w.Latitude, w.Longitude, mine, PolityRegimeJa(w.Polity)); Annal("🏛", $"{powers[i].Name}:{PolityRegimeJa(prev)} → {PolityRegimeJa(w.Polity)}"); }
+            { QueueNews("ev_revolution", powers[i].Name, w.Latitude, w.Longitude, mine, PolityRegimeJa(w.Polity)); Annal("🏛", $"{powers[i].Name}：{PolityRegimeJa(prev)} → {PolityRegimeJa(w.Polity)}"); }
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
@@ -241,7 +241,7 @@ public partial class GameViewModel
         bool orderLow = _player.PublicOrder < 0.5;
         // ⚠★指標名は**UIと通知で完全に一致させる**（2026-08-02・作者指示「治安と秩序など」）。
         //   同じ量を2つの名前で呼ぶと、プレイヤーは別々の量だと思う。ヘッダーの指標名（治安）が正。
-        if (orderLow != _pfOrderLow) Notice("🚨", orderLow ? $"治安が崩れている(治安{Fmt.Share(_player.PublicOrder)})" : "治安が回復した", orderLow ? NewsRed : NewsGreen);
+        if (orderLow != _pfOrderLow) Notice("🚨", orderLow ? $"治安が崩れている（治安{Fmt.Share(_player.PublicOrder)}）" : "治安が回復した", orderLow ? NewsRed : NewsGreen);
         var rankNow = _sim.Diplomacy.RankOf(_sim.Diplomacy.Powers[_playerIndex]);
         if (rankNow != _pfRank) Notice("⭐", $"国家ランクが{RankJa(rankNow)}になった", NewsGold);
         SnapshotTurningPoints();

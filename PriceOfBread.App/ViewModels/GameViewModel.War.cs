@@ -27,7 +27,7 @@ public partial class GameViewModel
         var war = FindWarByKey(key);
         if (war is null) return;
         var c = _player.Coef;
-        if (!_sim.Diplomacy.CanOfferPeace(me, war, c, out var reason)) { DeliverNews("⚖", $"調停できない：{reason}", NewsRed, _simDays); return; }
+        if (!_sim.Diplomacy.CanOfferPeace(me, war, c, out var reason)) { DeliverNews("⚖", $"調停できない：{Fmt.Zen(reason)}", NewsRed, _simDays); return; }
         double cost = _sim.Diplomacy.InterventionWillCost(me, war, c);
         ConfirmTitle = "調停の提案";
         ConfirmBody = $"{war.A.Name} と {war.B.Name}\n余剰戦力 {WillPct(cost)} を消費　現在 {WillPct(_player.ExpansionWill)}\n拒まれれば面子＝緊張";
