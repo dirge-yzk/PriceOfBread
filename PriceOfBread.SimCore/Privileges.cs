@@ -18,23 +18,30 @@ public static class Privileges
     public static readonly int[] Beneficiary = [PopClass.Clergy, PopClass.Noble, PopClass.Bureaucrat, PopClass.Noble, PopClass.Capitalist, PopClass.Artisan];   // ClassId（PopClass は int 定数の静的クラス）
 
     /// <summary>身分の度合い（猟官1／資格任用0.5／専門0）＝PowerShares.PrivilegeIntact と同じ物差し。</summary>
-    public static double EstateDegree(World w) => w.Bureaucracy switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
+    public static double EstateDegree(World w) => EstateDegreeFor(w.Bureaucracy);
+    /// <summary>(1039) 段を受ける形（身分の度合いの 1 本の定義・上の <see cref="EstateDegree"/> はこれを呼ぶ）。</summary>
+    public static double EstateDegreeFor(BureaucracyLaw b) => b switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
+    /// <summary>(1039) 段を受ける形（土地改革の項＝なし1／限定0.5／全面0）。</summary>
+    public static double LandReformDegreeFor(ReformLevel lr) => lr switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
     /// <summary>領主権の残高＝農奴解放の未解放度（なし1／限定0.5／全面0）＝PowerShares.PrivilegeIntact と同じ物差し。
     /// ★農民の移動の自由（入植の送り元・社会移動の農村の池・農村→都市の流れ）は 1−これ（2026-09-28 処理の一元化 段1＝旧は同じ switch の写しが6箇所）。</summary>
     public static double SeigneurialDegree(World w) => w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
     /// <summary>★(399) 仲介者（徴税請負・藩・ザミーンダール・土司・領主の裁判権）が握る権利の残高∈[0,1]＝在地の区分の目標を決める量（<c>Politics.CheckSecession</c>）。
     /// 官職と徴税の私有〔<see cref="EstateDegree"/>＝官僚制度法 猟官1／資格任用0.5／専門0＝台帳の 既得の官職〕と地代を取る権利〔土地改革の法 なし1／限定0.5／全面0〕の大きい方＝どちらかが残る限り仲介者の権利は残る。
     /// 農奴解放の法は読まない（人の身分の法であって州の支配の法ではない・作者 2026-10-16）。開幕は全ての国で土地改革＝なし＝1.0。純関数・新しい状態なし。</summary>
-    public static double IntermediaryDegree(World w)
-        => System.Math.Max(EstateDegree(w), w.LandReform switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 });
+    public static double IntermediaryDegree(World w) => IntermediaryDegreeFor(w.Bureaucracy, w.LandReform);
+    /// <summary>(1039) 段を受ける形（官僚制度と土地改革の段を引数で受ける＝一段ずらした仲介者の度合いを同じ 1 本で読む・D-2 の受け口）。</summary>
+    public static double IntermediaryDegreeFor(BureaucracyLaw b, ReformLevel lr) => System.Math.Max(EstateDegreeFor(b), LandReformDegreeFor(lr));
     /// <summary>同業組合の残高＝法の度合（保護1／制限0.5／廃止0）＝上の2つと同じ物差し（★段4・GuildLawGate=0 でも読めるが上乗せ係数0で効かない）。</summary>
     public static double GuildDegree(World w) => w.Guild switch { GuildLaw.Full => 1.0, GuildLaw.Limited => 0.5, _ => 0.0 };
 
     /// <summary>十分の一税の残高＝国教法で変調した実効率÷基準率（国教のみ1／内心の自由・信仰の自由は係数／国家無神論0）。
     /// ★十分の一税の徴収（Fiscal.Step の税の走査）と同じ1本の定義（同じ式を2箇所に書かない・2026-09-07）。TitheRate=0 の世界は0＝特権そのものが無い。</summary>
-    public static double TitheDegree(World w, Coefficients c)
+    public static double TitheDegree(World w, Coefficients c) => TitheDegreeFor(w.StateReligion, c);
+    /// <summary>(1039) 段を受ける形（国教の段を引数で受ける＝一段ずらした十分の一税の度合いを同じ 1 本で読む・D-1 の受け口）。</summary>
+    public static double TitheDegreeFor(StateReligionLaw s, Coefficients c)
         => !(c.TitheRate.Value > 0) ? 0.0
-         : w.StateReligion switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
+         : s switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
 
     /// <summary>身分制免税の割引率＝閉鎖階級（貴族・聖職）の課税ベースから抜ける割合。
     /// ★<see cref="TaxAssessment"/> と同じ1本の定義（2026-09-07に重複を畳んだ・1.0−これ＝旧式とビット同一）。</summary>
