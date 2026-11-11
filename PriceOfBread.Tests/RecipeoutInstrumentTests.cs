@@ -171,7 +171,7 @@ public class RecipeoutInstrumentTests
         int abund = 0, big = 0, bigE = 0, deposit = 0;
         foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
         {
-            var w0 = Solo(cfg, new Coefficients()).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;
+            var w0 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;
             Assert.True(w1.Coef.EndowmentCostFollowsAbundance > 0 && !(w0.Coef.EndowmentCostFollowsAbundance > 0));
             Assert.Equal(w0.Regions.Count, w1.Regions.Count);
             for (int ri = 0; ri < w0.Regions.Count; ri++)
