@@ -1,0 +1,10 @@
+(1048) c99db 旗 0 の器の木 90c2f268 のフルスイート（suite1048.sh nosave）
+list nonfull 2680
+list full 3
+nonfull rc=0 2434s
+full rc=0 1465s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2679、スキップ:     1、合計:  2680、期間: 40 m 28 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 24 m 18 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
