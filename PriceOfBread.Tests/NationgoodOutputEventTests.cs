@@ -79,4 +79,47 @@ public class NationgoodOutputEventTests
         }
         finally { Instruments.NgEveryYears = every0; Instruments.Configure(null, null); try { Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>(1028) F：新しく作られた州（植民地の州化＝Adopt・RegionMoved を通らない）も eventRegions に数える。州の浅い複製（前の四半期の末に居なかった参照）を Territory.Adopt で 1 つ足した四半期だけ、足した国の eventRegions が 1（他の国と他の年は 0）。
+    /// 新しい州の検出を外す変異（RegionMoved だけで数える）で 0 になり赤（M4 は G1G2 では緑だった＝穴を埋める試験）。</summary>
+    [Fact]
+    public void F_新しく作られた州もeventRegionsに数える()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "pob_ngf_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        int every0 = Instruments.NgEveryYears; Instruments.NgEveryYears = 1;
+        var sim = Make();
+        foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
+        sim.DiplomacyFrozen = true;
+        string recv = ""; int addYear = -1;
+        try
+        {
+            Instruments.Phase(sim, Seed, "open");
+            sim.StartWarmup();
+            Instruments.Phase(sim, Seed, "warm");
+            for (int q = 0; q < 8; q++)
+            {
+                sim.StepQuarter();
+                if (q == 7)
+                {
+                    var to = sim.Nations[2].World;
+                    var clone = (Region)typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(to.Regions[0], null)!;
+                    Territory.Adopt(to, clone);
+                    recv = Instruments.NameOf(to); addYear = to.Year;
+                }
+                Instruments.Quarter(sim, Seed, q);
+            }
+        }
+        finally { Instruments.Close(sim); }
+        try
+        {
+            var lines = File.ReadAllLines(Path.Combine(dir, $"nationgood_s{Seed}.tsv"));
+            var h = lines[0].Split('	'); int Ix(string s) => Array.IndexOf(h, s);
+            var evBy = new Dictionary<(string, string), int>();
+            foreach (var l in lines.Skip(1)) { var f = l.Split('	'); evBy[(f[Ix("year")], f[Ix("nation")])] = int.Parse(f[Ix("eventRegions")]); }
+            Assert.True(evBy.Count >= 8, $"対照：(年,国) が少ない {evBy.Count}");
+            foreach (var kv in evBy) Assert.Equal(kv.Key == (addYear.ToString(), recv) ? 1 : 0, kv.Value);
+        }
+        finally { Instruments.NgEveryYears = every0; Instruments.Configure(null, null); try { Directory.Delete(dir, true); } catch { } }
+    }
 }
