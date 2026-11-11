@@ -215,6 +215,10 @@ public partial class GameViewModel : ViewModelBase
     /// （プレイヤー国だけ最初から禁令＝AIと非対称だった）。禁令は法律タブで通す＝議会と利益集団の政治ゲートを経る。</summary>
     public MultiNationSim Sim => _sim;          // 内戦の陣営選択（P8）＝同じ世界のまま操作国を差し替える呼び手（MainWindowViewModel）
     public int PlayerIndex => _playerIndex;
+    /// <summary>観戦（どの国にも IsPlayer が立っていない＝選んだ国の判断も全て AI）。世界から導く＝新しい旗もセーブへの添え書きも持たない（IsPlayer と操作者はシムごとセーブされる）。
+    /// 映す国の番号は <see cref="PlayerIndex"/> のまま（観戦でも画面が映す国）。</summary>
+    public bool Spectating => SimFactory.IsSpectating(_sim);
+    private Region? _watchHome;   // 観戦中だけ四半期ごとに控える映す国の首都州（国が消えた後に、その州を受け取った国＝吸収した国を引く手掛かり）
 
     public GameViewModel(MultiNationSim sim, int playerIndex, List<double>[]? warmupPrices, Action? onExit = null, Action? onLoad = null)
     {
@@ -272,6 +276,7 @@ public partial class GameViewModel : ViewModelBase
         foreach (var n in _sim.Nations) n.TelemetryEnabled = false;   // UIはTelemetryを読まない＝四半期スナップショットの割当/保持（セーブ肥大の一因）を止める
         _player.Explain = new ExplainLedger();   // 説明API（#63）：プレイヤー国だけに台帳を常設装着＝毎四半期のPolitics.Stepが正統性の内訳を記帳（本計算はビット恒等・ゼロコスト・SaveGameは非直列化なのでロード後もここで再装着）
         _treasuryMStart = _player.Treasury.Value;      // 月次収支の基準（新規/ロード共通）
+        _watchHome = _player.Regions.Count > 0 ? _player.Regions[0] : null;   // 観戦で国が消えた時の付け直しの手掛かり（SimFactory.SuccessorIndex）
         PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;   // 国名（首都州名ではなく国名）
         foreach (var rg in _player.Regions) { _prevEduCum += rg.CumEducationCost; _prevStateMonopCum += rg.CumStateMonopolyRevenue; }   // 累積カウンタの基準化（初回表示が過去合計にならない）
         _prevForeignNet = (_player.ForeignCapitalIn - _player.CapitalAbroad).Value;   // 外資純フローの基準化
@@ -391,6 +396,22 @@ public partial class GameViewModel : ViewModelBase
                 // ★作者裁定 f（2026-09-28）：操作国が再併合で吸収された（反乱側に乗り換えた後に親が勝った・革命が成就した）＝エンジンは親の国へ
                 //   IsPlayer と操作者を移している（MultiNationSim.ReabsorbNations）。画面を親の国へ付け直して報せる。
                 //   ⚠国を除くと Nations の添字が動く＝操作国より前の反乱国が消えても _playerIndex がずれる＝同じ付け直しで直す（報せは出さない）。
+                if (Spectating)
+                {
+                    // 観戦＝IsPlayer で国を探せない。映している国の世界そのものを探す：添字だけずれたなら付け直し・消えた（再併合）なら州を受け取った国（無ければ最大の国）へ付け直して報せる。
+                    int me = _sim.Nations.FindIndex(n => ReferenceEquals(n.World, _player));
+                    if (me >= 0 && me == _playerIndex) _watchHome = _player.Regions.Count > 0 ? _player.Regions[0] : _watchHome;
+                    else
+                    {
+                        int to = me >= 0 ? me : SimFactory.SuccessorIndex(_sim, _watchHome);
+                        if (to >= 0)
+                        {
+                            string toName = _sim.Nations[to].World.SelfPower?.Name ?? _sim.Nations[to].World.Region.Name;
+                            OnFollowPlayer?.Invoke(to, me >= 0 ? "" : $"{PlayerNationName}は{toName}へ再併合された。\n\n映す国:{toName}");
+                            return;
+                        }
+                    }
+                }
                 int follow = _sim.Nations.FindIndex(n => n.World.SelfPower?.IsPlayer == true);
                 if (follow >= 0 && (follow != _playerIndex || !ReferenceEquals(_sim.Nations[follow].World, _player)))
                 {
