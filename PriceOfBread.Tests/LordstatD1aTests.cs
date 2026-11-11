@@ -54,12 +54,12 @@ public class LordstatD1aTests
         { w.StateReligion = s; Assert.Equal(Privileges.TitheDegreeFor(s, w.Coef), Privileges.TitheDegree(w, w.Coef)); }
     }
 
-    /// <summary>D1a-2：旗 2 本は既定 0。旗 0 の経路の番人＝国教と官僚制度の旧支配層の Pref は −1.0 そのもの（ビット単位）・DirectionAware は偽・近代と大衆は +1。</summary>
+    /// <summary>D1a-2：旗 2 本は既定 1（(1048)）。旗 0 の経路の番人（盤面の係数に 0 を置く）＝国教と官僚制度の旧支配層の Pref は −1.0 そのもの（ビット単位）・DirectionAware は偽・近代と大衆は +1。</summary>
     [Fact]
     public void D1a_2_旗0の経路の番人()
     {
         var c = new Coefficients();
-        Assert.Equal(0.0, c.LordReligionStake); Assert.Equal(0.0, c.LordIntermediaryStake);
+        Assert.Equal(1.0, c.LordReligionStake); Assert.Equal(1.0, c.LordIntermediaryStake);   // (1048) 既定 1・旗 0 の経路は下の盤面で 0 を明示して見る
         var (_, sim) = Run(2, flags: 0.0);
         foreach (var n in sim.Nations)
         {
