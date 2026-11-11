@@ -13,7 +13,7 @@ public class LayoutTests
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var expected = new (Slot Slot, char Key, string Name)[]
         {
-            (Slot.Market, 'Q', "市場・清算・貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
+            (Slot.Market, 'Q', "市場と貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
             (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"),
         };
         Assert.Equal(9, SlotInfo.All.Count);

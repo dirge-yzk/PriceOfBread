@@ -44,7 +44,7 @@ public class DisplayCatalogTests
         Assert.Null(PageKeys.PageOfKey('Z'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
         Assert.Equal("Tab:生産", PageKeys.ButtonText(Page.Production));
-        Assert.Equal("Q:市場・清算・貿易", PageKeys.ButtonText(Page.Market));
+        Assert.Equal("Q:市場と貿易", PageKeys.ButtonText(Page.Market));
         Assert.True(DisplayNames.IsValid(PageKeys.MapName));
     }
 

@@ -91,17 +91,18 @@ public partial class GameViewModel
         // ★2026-08-15作者フィードバック(9)：「――陸上――」等のダッシュ区切りは廃止＝項目名だけで自明（鉄道=陸・海軍=海）
         var tRows = new List<TransportRow>
         {
-            new("基本輸送力", $"{Transport.PreRailCapacity(w, w.Coef):F0}"),   // ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（清算と同じ1本）
-            new("鉄道輸送量", $"{w.RailCapacity:F0}"),
-            new("海軍輸送量", $"{w.ShipCapacity:F0}"),
+            new("基本輸送力", Fmt.Qty(Transport.PreRailCapacity(w, w.Coef))),   // ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（清算と同じ1本）
         };
-        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"−{burdenLoss:F0}"));   // 符号は収支と同じ「−」・桁は他の輸送の行と同じ素の数
+        if (w.RailCapacity > 1e-9) tRows.Add(new TransportRow("鉄道輸送力", Fmt.Qty(w.RailCapacity)));   // 鉄道が無い間は出さない（0 の行を並べない・B21）
+        tRows.Add(new TransportRow("海軍輸送力", Fmt.Qty(w.ShipCapacity)));
+        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給", Fmt.Qty(-burdenLoss)));   // 差し引く量＝負号は「−」（Fmt.Qty）
         if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料（通商破壊）", $"{Fmt.Share(w.LastBlockadeRisk)}"));
-        TransportRows = tRows;
         // 使用率＝運びたかった重量 ÷ 配られた輸送容量（州ごとの値を自国の活きている州で合算）。100% を超える＝輸送が交易を絞っている
         double pot = 0, cap = 0;
         foreach (var rg in w.Regions)
             if (rg.LastTransportCap > 1e-9 && rg.LastTransportCap < 1e15) { pot += Math.Max(0, rg.LastTradePotential); cap += rg.LastTransportCap; }
+        tRows.Add(new TransportRow("使用量", Fmt.Qty(pot)));
+        TransportRows = tRows;
         double use = cap > 1e-9 ? pot / cap : double.NaN;
         TransportUseText = double.IsFinite(use) ? $"{Fmt.Share(use)}" : "—";
         TransportUseBrush = !double.IsFinite(use) ? Avalonia.Media.Brushes.Gray : use > 1.0 ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#B02418")) : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#2A2118"));

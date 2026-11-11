@@ -52,13 +52,25 @@ public static class MarketTables
         return result.OrderBy(l => TierOrder(Catalog.Goods[l.Good].Tier)).ThenBy(l => l.Good).ToList();
     }
 
+    /// <summary>世界価格比の文字の色（高騰＝赤・下落＝青）。濃さは 100% からの離れに比例する（離れが 100% 以上で最も濃い）。世界価格と同じ（離れが 0.5% 以内）は既定の色（null）。
+    /// 財の値段・財の表・貿易の表が同じ関数を通る。<paramref name="gap"/>＝国内価格 ÷ 世界価格 − 1。</summary>
+    public static string? RatioInk(double gap)
+    {
+        if (!(Math.Abs(gap) > 0.005)) return null;   // 否定形＝NaN も既定の色
+        double t = Math.Min(1.0, Math.Abs(gap));
+        var (r, g, b) = gap > 0 ? (0xB0, 0x24, 0x18) : (0x2F, 0x6E, 0xA5);
+        const int br = 0x6A, bg = 0x62, bb = 0x58;   // 離れが小さい時は本文に近い灰
+        int Mix(int a, int c) => (int)Math.Round(a + (c - a) * t);
+        return $"#{Mix(br, r):X2}{Mix(bg, g):X2}{Mix(bb, b):X2}";
+    }
+
     /// <summary>財の値段の表（国内価格・世界価格比・需要・供給・不足）。</summary>
     public static Table<MarketLine> Prices { get; } = new("market.prices", "財の値段", Page.Market, Lines, l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<MarketLine>("name", "財名", l => l.Name),
         Col.Number<MarketLine>("domestic", "国内価格", Unit.PricePerUnit, l => l.Domestic),
         // 世界価格を 100% とした国内価格（2026-11-11 作者指示）。高騰＝赤・下落＝青（世界価格そのものは出さない）
-        Col.Number<MarketLine>("gap", "世界価格比", Unit.Share, l => l.Gap + 1.0, ink: l => l.Gap > 0.005 ? "#B02418" : l.Gap < -0.005 ? "#2F6EA5" : null),
+        Col.Number<MarketLine>("gap", "世界価格比", Unit.Share, l => l.Gap + 1.0, ink: l => RatioInk(l.Gap)),
         Col.Number<MarketLine>("demand", "需要", Unit.Quantity, l => l.Demand),
         Col.Number<MarketLine>("supply", "供給", Unit.Quantity, l => l.Supply),
         Col.Number<MarketLine>("shortage", "不足", Unit.Quantity, l => l.Shortage),

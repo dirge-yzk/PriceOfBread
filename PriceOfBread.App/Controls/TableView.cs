@@ -85,7 +85,7 @@ public sealed class TableView : UserControl
     public int RowCount => _rows.Count;
 
     private readonly Grid _root = new() { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
-    private readonly TextBox _filterBox = new() { Watermark = "", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
+    private readonly TextBox _filterBox = new() { Watermark = "絞り込み", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
     private readonly StackPanel _body = new() { Spacing = 0 };
     private readonly Border _bodyHost = new() { ClipToBounds = true };   // 内側で流れる表の行が見出しに重ならない（流した行は見出しの下で切る）

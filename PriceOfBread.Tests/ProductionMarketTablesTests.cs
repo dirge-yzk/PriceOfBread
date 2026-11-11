@@ -122,8 +122,8 @@ public class ProductionMarketTablesTests
             var ratioCell = (NumberCell)r.Cells[2]!;
             double dom = ((NumberCell)r.Cells[1]!).Value, world = Sim.Market.Price[g], ratio = ratioCell.Value;
             if (!double.IsNaN(ratio)) Assert.Equal(dom / world, ratio, 9);
-            if (ratio > 1.005) Assert.Equal("#B02418", ratioCell.Ink);
-            else if (ratio < 0.995) Assert.Equal("#2F6EA5", ratioCell.Ink);
+            Assert.Equal(MarketTables.RatioInk(ratio - 1.0), ratioCell.Ink);   // 色は世界価格比の 1 本の関数（高騰は赤系・下落は青系・濃さは離れに比例）
+            if (ratio > 1.005) Assert.StartsWith("#", ratioCell.Ink);
             double dem = ((NumberCell)r.Cells[3]!).Value, sup = ((NumberCell)r.Cells[4]!).Value;
             Assert.True(dem > 0 || sup > 0);
         }
@@ -165,5 +165,16 @@ public class ProductionMarketTablesTests
             var plan = PagePlan.Plan(t, 700, 400);
             Assert.False(plan.SelectMany(c => c).First(p => p.Key == top.Key).Collapsed);
         }
+    }
+
+    [Fact]
+    public void 世界価格比の色は高騰が赤_下落が青で_濃さは100パーセントからの離れに比例する()
+    {
+        Assert.Null(MarketTables.RatioInk(0.0));
+        Assert.Null(MarketTables.RatioInk(double.NaN));
+        Assert.Equal("#B02418", MarketTables.RatioInk(1.0));    // 離れが 100% 以上＝最も濃い赤
+        Assert.Equal("#2F6EA5", MarketTables.RatioInk(-1.0));   // 下落の側の最も濃い青
+        Assert.NotEqual(MarketTables.RatioInk(0.01), MarketTables.RatioInk(0.07));   // 101% と 107% は濃さが違う
+        Assert.Equal(MarketTables.RatioInk(1.0), MarketTables.RatioInk(2.07));       // 307% は上限で頭打ち
     }
 }
