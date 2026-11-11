@@ -54,8 +54,8 @@ public class FiscalPopDiscoveryTablesTests
         var flows = new FiscalFlows(120, 340, 5, 7, new double[(int)TreasuryCat.Count]);
         var b = FiscalTables.Budget(w, flows);
         // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
-        double Fc(BudgetLine l) => l.NoAmounts ? 0 : l.Forecast;
-        double Ac(BudgetLine l) => l.NoAmounts ? 0 : l.Actual;
+        double Fc(BudgetLine l) => l.NoAmounts || l.Child ? 0 : l.Forecast;   // 内訳の行（陸軍・海軍）は軍事費の行に含まれる＝足さない
+        double Ac(BudgetLine l) => l.NoAmounts || l.Child ? 0 : l.Actual;
         Assert.Equal(b.SpendForecast, b.Spend.Sum(Fc), 6);
         Assert.Equal(b.SpendActual, b.Spend.Sum(Ac), 6);
         Assert.Equal(b.IncomeForecast, b.Income.Sum(Fc), 6);
@@ -93,7 +93,7 @@ public class FiscalPopDiscoveryTablesTests
         var b = FiscalTables.Budget(w, FiscalFlows.Zero);
         var admin = b.Spend.First(l => l.Key == "admin").Stage;
         Assert.Equal(5, admin.Labels.Count);
-        Assert.Equal("最大", admin.Labels[^1]);
+        Assert.Equal("100%", admin.Labels[^1]);   // 割合の段は最後も数（B31）
         Assert.Equal(0, admin.LevelBase);
         Assert.All(Enumerable.Range(0, 5), level => Assert.Null(admin.Hover(level)));   // 軸の無い行＝代価も賛否も無い（空の吹き出しを出さない）
         Assert.True(admin.CanSelect(admin.Current));
@@ -112,8 +112,11 @@ public class FiscalPopDiscoveryTablesTests
         Assert.Equal(w.Coef.TariffFloor, w.Policy.TariffTarget, 9);
         // 軍事費の最下段は 1（「なし」の段が無い）
         var mil = b.Spend.First(l => l.Key == "military");
-        Assert.True(mil.NoAmounts);
+        Assert.False(mil.NoAmounts);   // 段と合計の額を 1 行に置く（陸軍・海軍はその内訳の行）
         Assert.Equal(1, mil.Stage.LevelBase);
+        Assert.All(b.Spend.Where(l => l.Key is "army" or "navy"), l => Assert.True(l.Child));
+        Assert.Contains(b.Spend, l => l.Key == "debtRepay");   // 起債と償還は常に出す（B30）
+        Assert.Contains(b.Income, l => l.Key == "debtBorrow");
     }
 
     [Fact]
@@ -139,8 +142,9 @@ public class FiscalPopDiscoveryTablesTests
         Assert.Equal(120, b.Income.First(l => l.Key == "tariff").Actual, 9);
         Assert.Equal(400, b.Spend.First(l => l.Key == $"cat.{TreasuryCat.FactoryBuild}").Actual, 9);
         Assert.DoesNotContain(b.Spend, l => l.Key == $"cat.{TreasuryCat.Subsidy}");
-        Assert.Equal(b.Spend.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.SpendActual, 6);
-        Assert.Equal(b.Income.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.IncomeActual, 6);
+        Assert.Equal(b.Spend.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.SpendActual, 6);
+        Assert.Equal(b.Income.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.IncomeActual, 6);
+        Assert.Equal(300.25 + 10, b.Spend.First(l => l.Key == "military").Actual, 9);
     }
 
     [Fact]

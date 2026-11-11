@@ -280,11 +280,11 @@ public partial class GameViewModel
         // ★2026-08-18：給与の乗算は撤去（給与は帰属でなく規律・能力＝即応度を動かす）。即応度は軍事タブの側で見る。
         double lean = CrownParliament.SoldierCrownLean(w);                            // エンジンの関数をそのまま呼ぶ
         double milAff = c.ArmyMilitarismAffinity * PoliticalQuantities.OfficerAppointmentCrownward(w);   // ★2026-08-18＝将校の任免権の所在
-        ArmyLoyaltyText = $"{ArmyAllegianceText}　{Fmt.Signed2(w.ArmyAllegiance)}";
+        ArmyLoyaltyText = $"{ArmyAllegianceText}　{Fmt.SignedPct(w.ArmyAllegiance)}";   // −100%（議会）〜＋100%（王権）
         ArmyLoyaltyTip = $"兵士の思想の傾き {Fmt.Signed2(lean)}　将校の任免権 {Fmt.Signed2(milAff)}";
         // 政治力＝PolicyPreferences.ArmyPower（係数×兵士の人口比×(1−議会統制力)）。×100＝法律タブの賛否ホバーと同じ目盛り。
         double armyPower = PolicyPreferences.ArmyPower(w);
-        ArmyPowerText = (armyPower * 100).ToString("F1");
+        ArmyPowerText = Fmt.Share(armyPower);
         ArmyPowerTip = $"兵士の人口比 {(w.TotalPopulation > 1 ? w.SoldierSizeK() / w.TotalPopulation : 0):P1}"
                      + $"　議会統制力 {Fmt.Share(pc)}　係数 {c.ArmyPoliticalWeight:F1}";
 
