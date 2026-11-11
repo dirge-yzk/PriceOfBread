@@ -1,0 +1,5 @@
+m1053_work wt_m1053 2026-11-12 01:01:56
+wt_m1053z（枝 m1053z）
+keep_1053_rej（新しく作った）・ov の腕 B の生を c99ov_work/out_c99ovB_10 から移した
+ident_m1053z（腕 Z の ident）
+keep_1053（新しい基線の生・M〔base_ins〕と S11〔a11〕を out_*/ins から移した）
