@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PriceOfBread.App.Layout;
+using PriceOfBread.SimCore.Display;
 using PriceOfBread.SimCore;
 
 namespace PriceOfBread.App.ViewModels;
@@ -127,7 +128,7 @@ public partial class GameViewModel
             if (accrue) tr.CostShare += costShareMonth;
             tr.Civil = war.CivilWarParent is not null; tr.Secession = war.CivilWarSecession; tr.MeParent = war.CivilWarParent == me;
             tr.Demand = tr.Civil && war.CivilWarParent!.Nation?.Polity == war.CivilWarPolity;   // 同じ政体の要求戦
-            tr.EnemyName = SecessionNames.WarName(enemy, _sim.Diplomacy.Wars);   // 政体をめぐる内戦の政府側は戦争の間だけ頭書き＋国名（反乱側は名そのものが頭書きつき）
+            tr.EnemyName = PowerLabel.Of(enemy, _sim.Diplomacy.Wars);   // 政体をめぐる内戦の政府側は戦争の間だけ頭書き＋国名（反乱側は名そのものが頭書きつき）
             tr.LastScore = sc;
             tr.LastMonths = war.Months;
             tr.LastDeadSelf = meIsA ? war.DeadA : war.DeadB;
@@ -181,7 +182,7 @@ public partial class GameViewModel
             {
                 Key = $"{id}@{(int)_simDays}",
                 EndDay = _simDays,
-                Title = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}　{result}",
+                Title = $"{(ep is not null ? PowerLabel.Of(ep, _sim.Diplomacy.Wars) : (tr.EnemyName.Length > 0 ? tr.EnemyName : "—"))}　{result}",
                 Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}か月"
                        + $"\n戦死 自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(deadEnemy)}" : "")
                        + $"\n民間人の死 自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(civEnemy)}" : "")
@@ -195,7 +196,7 @@ public partial class GameViewModel
                 var lostRegions = _prevOwnRegionNames is null ? new List<string>() : _prevOwnRegionNames.Where(n => !curRegionNames.Contains(n)).ToList();
                 bool madeVassal = _prevDependentIds is not null && curDependentIds.Contains(id) && !_prevDependentIds.Contains(id);
                 bool becameVassal = _prevSuzerainId != id && curSuzerainId == id;
-                WarEndPopupBody = WarEndPopupText(ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—"), result, Fmt.SignedPct(scEnd), months,   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
+                WarEndPopupBody = WarEndPopupText(ep is not null ? PowerLabel.Of(ep, _sim.Diplomacy.Wars) : (tr.EnemyName.Length > 0 ? tr.EnemyName : "—"), result, Fmt.SignedPct(scEnd), months,   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     Fmt.PopFmt(deadSelf), ep?.Nation is not null ? Fmt.PopFmt(deadEnemy) : null,
                     Fmt.PopFmt(civSelf), ep?.Nation is not null ? Fmt.PopFmt(civEnemy) : null,
                     Fmt.Money(tr.CostShare),
@@ -222,7 +223,7 @@ public partial class GameViewModel
                 bool ok = _sim.Diplomacy.CanOfferPeace(me, war, cM, out var why);
                 double sc = war.Score;
                 // 政体をめぐる内戦の政府側は戦争の間だけ頭書き＋国名（戦争タブの自国の戦争と同じ表＝SimCore の1か所）
-                string aName = SecessionNames.WarName(war.A, _sim.Diplomacy.Wars), bName = SecessionNames.WarName(war.B, _sim.Diplomacy.Wars);
+                string aName = PowerLabel.Of(war.A, _sim.Diplomacy.Wars), bName = PowerLabel.Of(war.B, _sim.Diplomacy.Wars);
                 string lead = System.Math.Abs(sc) < 0.05 ? "拮抗" : (sc > 0 ? $"{aName}が優勢 {Fmt.Share(sc)}" : $"{bName}が優勢 {Fmt.Share(-sc)}");
                 mrows.Add(new MediationRow
                 {

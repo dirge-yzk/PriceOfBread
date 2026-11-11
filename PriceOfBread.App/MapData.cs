@@ -159,6 +159,9 @@ public static class MapData
         ["ヤウンデ"] = "Yaounde", ["ヤクーツク"] = "Yakutsk", ["ラパス"] = "La Paz",
         ["ルアンダ"] = "Luanda", ["レイキャヴィク"] = "Reykjavik", ["レオン"] = "Leon",
         ["ロレート"] = "Loreto", ["蘭州"] = "Lanzhou",
+        // ★2026-11-12（2 回目の目の点検 W11）：地図に和名で浮いていた 6 件。以後は MapLabelTests が「座標のある全ての場所は英語名を持つ」を固定する。
+        ["アジャクシオ"] = "Ajaccio", ["ラス・パルマス"] = "Las Palmas", ["モルッカ諸島"] = "Moluccas",
+        ["バハマ諸島"] = "Bahamas", ["パラワン"] = "Palawan", ["チロエ"] = "Chiloe",
     };
 
     /// <summary>州（都市）名の英語表記。未登録は日本語名を返す。</summary>

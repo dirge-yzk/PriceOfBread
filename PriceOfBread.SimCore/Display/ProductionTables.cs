@@ -190,6 +190,27 @@ public static class ProductionTables
         return result;
     }
 
+    /// <summary>止まっている工場の棟数（倒産した民営持分の棟数＋休止の割合×稼働中の棟数）。財カードの工場カウンター（<see cref="World.FactoryCounter"/>）と同じ集合・同じ棟数の式で数える
+    /// ＝技術ゲートが閉じた生産者は数えない（カードに棟が立たない財の「止まっている」を問題の一覧に出さない）・棟数は規模から出す（生産者 1 件を 1 棟と数えない）。
+    /// 問題の一覧「倒産と休止」はこの 1 本を読む（2 回目の目の点検 W5）。</summary>
+    public static double StoppedUnits(World w, int goodId)
+    {
+        double stopped = 0;
+        foreach (var r in w.Regions)
+        {
+            foreach (var p in r.Producers)
+            {
+                if (p.GoodId != goodId) continue;
+                if (!(Discovery.Gate(r, p) > ProductionDiag.TechGateClosed)) continue;   // 否定形＝NaN は数えない（FactoryCounter と同じ）
+                int priv = w.PrivateUnitsOf(p);
+                if (p.Bankrupt) { stopped += priv; continue; }   // 倒産中の民営持分はカードの合計に入らない棟＝止まっている棟
+                double moth = p.MothballFrac.Value;
+                if (moth > 0) stopped += moth * (w.StateUnitsOf(p) + priv);
+            }
+        }
+        return stopped;
+    }
+
     /// <summary>財の表の行＝休止でない財（国内に存在しない財は行ごと出さない）。工場生産の群が先・採取（RGO）の群が後・群の中は財の番号順。</summary>
     public static IReadOnlyList<GoodLine> ShownLines(IReadOnlyList<GoodLine> all)
         => all.Where(l => !l.Inactive).OrderBy(l => l.IsFactory ? 0 : 1).ThenBy(l => l.Good).ToList();

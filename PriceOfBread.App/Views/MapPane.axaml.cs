@@ -40,6 +40,7 @@ public partial class MapPane : UserControl
         MapHost.SizeChanged += OnHostSizeChanged;
         MapHost.PointerExited += (_, _) => { if (DataContext is ViewModels.GameViewModel vmx && !vmx.HoverPinned) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
         MapHost.Focusable = true;
+        DataContextChanged += (_, _) => _hoverGate.Reset();
         Loaded += OnMapLoaded;
         Unloaded += OnMapUnloaded;
         TryLoadWorldMap();
@@ -108,10 +109,13 @@ public partial class MapPane : UserControl
     //   州と州の境は塗りの境そのもの＝隣へ移れば持ち替え、海・塗られていない陸へ出れば閉じる（旧・○の縁の点滅止めの幅は不要＝境に隙間が無い）。
     private const double ClickSlop = 5.0;   // 押してから離すまでにこれ以内しか動かなければクリック（画面px）＝ドラッグのパンと分ける。値は旧・○のホバーの離脱幅を引き継ぐ
     private Point _pressAt;
+    private readonly ViewModels.PointerMoveGate _hoverGate = new();
 
     private void HoverAt(PointerEventArgs e)
     {
         if (DataContext is not ViewModels.GameViewModel vm || vm.HoverPinned) return;   // ピン留め中は持ち替えない（§7）
+        var host = e.GetPosition(MapHost);
+        if (!_hoverGate.Moved(host.X, host.Y)) return;   // 開始・読み込みの直後はポインタが実際に動くまで窓「州」の首都を上書きしない
         var p = e.GetPosition(MapRoot);   // キャンバス座標（拡縮・移動を織り込む）
         var hover = vm.MapHitAt(p.X, p.Y).Hover;
         if (!ReferenceEquals(vm.MapHover, hover)) vm.MapHover = hover;

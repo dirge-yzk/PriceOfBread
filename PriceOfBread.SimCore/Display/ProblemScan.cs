@@ -86,23 +86,16 @@ public static class ProblemScan
         }
     }
 
-    // 倒産と休止＝止まった工場の数（倒産は 1 棟・休止は止めている割合）。財ごとに自国の全州を足す。
+    // 倒産と休止＝止まった工場の棟数。財ごとに自国の全州を足す。数え方は財カードの工場カウンターと同じ 1 本（ProductionTables.StoppedUnits）。
     private static void Bankruptcy(World w, List<ProblemItem> o)
     {
         int n = Catalog.Goods.Length;
-        var stopped = new double[n];
-        foreach (var rg in w.Regions)
-        {
-            foreach (var p in rg.Producers)
-            {
-                int g = p.GoodId;
-                if (g < 0 || g >= n || Catalog.Goods[g].Tier == GoodTier.Service) continue;
-                if (p.Bankrupt) stopped[g] += 1.0;
-                else if (p.MothballFrac.Value > 0) stopped[g] += p.MothballFrac.Value;
-            }
-        }
         for (int g = 0; g < n; g++)
-            if (stopped[g] > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped[g], Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
+        {
+            if (Catalog.Goods[g].Tier == GoodTier.Service) continue;
+            double stopped = ProductionTables.StoppedUnits(w, g);
+            if (stopped > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped, Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
+        }
     }
 
     // 州の飢え＝必要量に対する主食の不足の割合（1 − 主食の充足・2026-11-11 作者指示）。州の表と同じ行。
@@ -152,7 +145,7 @@ public static class ProblemScan
             if (!meIsA && war.B != me) continue;
             var enemy = meIsA ? war.B : war.A;
             double sc = meIsA ? war.Score : -war.Score;
-            if (sc < 0) o.Add(new ProblemItem(ProblemKind.War, "war|" + enemy.Id, SecessionNames.WarName(enemy, sim.Diplomacy.Wars), -sc, Unit.Share, Page.DiplomacyWar, "", "", "war"));
+            if (sc < 0) o.Add(new ProblemItem(ProblemKind.War, "war|" + enemy.Id, PowerLabel.Of(enemy, sim.Diplomacy.Wars), -sc, Unit.Share, Page.DiplomacyWar, "", "", "war"));
         }
     }
 

@@ -113,7 +113,7 @@ public partial class GameViewModel
             else if (war) { badge = "戦争中"; badgeFill = NationInk.War; }
             else if (powSuz == me) { badge = "自国の属国"; badgeFill = NationInk.OwnVassal; }
             else if (_sim.Diplomacy.Suzerain(me) == pow) { badge = "自国の宗主"; badgeFill = NationInk.OwnSuzerain; }
-            else if (powSuz is not null) { badge = SecessionNames.DisplayName(powSuz, powSuz.Nation is { } snw ? PowerAffinity.PolityFromShares(snw) : null, _sim.Diplomacy.Wars); badgeFill = NationInk.OtherVassal; }   // 国名の列と同じ表（国号）から＝「マラーター帝国」と「マラーター王国」が食い違わない（B45）   // 宗主名だけ（長い「○○の属国」は末尾が落ちて別の語になる）。属国であることは色が担い、全文は行のホバーの「関係:」
+            else if (powSuz is not null) { badge = $"{PowerLabel.Of(powSuz, _sim.Diplomacy.Wars)}の属国"; badgeFill = NationInk.OtherVassal; }   // 国名の列と同じ表（国号）から＝「マラーター帝国」と「マラーター王国」が食い違わない（B45）   // 宗主名だけ（長い「○○の属国」は末尾が落ちて別の語になる）。属国であることは色が担い、全文は行のホバーの「関係:」
             else if (_sim.Diplomacy.HasAlliance(me, pow)) { badge = "同盟"; badgeFill = NationInk.Ally; }
             else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeFill = NationInk.NoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
             // 外交アクションの可否：弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
@@ -167,7 +167,7 @@ public partial class GameViewModel
                 if (_sim.Diplomacy.HasAlliance(me, pow)) rel.Add("防衛同盟");
                 if (_sim.Diplomacy.HasEmbargo(me, pow)) rel.Add("禁輸中");
                 if (powSuz == me) rel.Add("自国の属国");
-                else if (powSuz is not null) rel.Add($"{powSuz.Name}の属国");   // 帰属の明記（2026-07-19）：他国の勢力圏もホバーで判る
+                else if (powSuz is not null) rel.Add($"{PowerLabel.Of(powSuz, _sim.Diplomacy.Wars)}の属国");   // 帰属の明記（2026-07-19）：他国の勢力圏もホバーで判る
                 if (_sim.Diplomacy.Suzerain(me) == pow) rel.Add("自国の宗主");
                 if (rel.Count > 0) detail += "\n関係：" + string.Join("　", rel);
                 // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）

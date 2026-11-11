@@ -1223,12 +1223,12 @@ public partial class GameViewModel
             double pn = 0;
             foreach (var r in n.World.Regions) if (gi < r.Markets.Length) pn += r.Markets[gi].LastProduced;
             worldProd += pn;
-            if (pn > topProdV) { topProdV = pn; topProd = n.World.SelfPower?.Name ?? ""; }
+            if (pn > topProdV) { topProdV = pn; topProd = n.World.SelfPower is { } tp ? PowerLabel.Of(tp, _sim.Diplomacy.Wars) : ""; }
             if (ReferenceEquals(n.World, w)) myProd = pn;
             if (n.World.ExportsByGood is { } ne && gi < ne.Length)
             {
                 worldExp += ne[gi];
-                if (ne[gi] > topExpV) { topExpV = ne[gi]; topExp = n.World.SelfPower?.Name ?? ""; }
+                if (ne[gi] > topExpV) { topExpV = ne[gi]; topExp = n.World.SelfPower is { } te ? PowerLabel.Of(te, _sim.Diplomacy.Wars) : ""; }
                 if (ReferenceEquals(n.World, w)) myExp = ne[gi];
             }
         }

@@ -57,8 +57,6 @@ public static class Conv
 {
     public static readonly Avalonia.Data.Converters.IValueConverter BoolToWeight =
         new Avalonia.Data.Converters.FuncValueConverter<bool, FontWeight>(b => b ? FontWeight.Bold : FontWeight.Normal);
-    public static readonly Avalonia.Data.Converters.IValueConverter FracToWidth =
-        new Avalonia.Data.Converters.FuncValueConverter<double, double>(f => System.Math.Max(1.0, System.Math.Clamp(f, 0, 1) * 120.0   /* ★2026-08-24：議会が下段の50%（実効298px）へ移り、星列に残るのは約130px＝170のままだと議席列へはみ出す */));
     // ★半円グラフ（2026-08-22 円→2026-09-07 半円）：VM が組む SVG 記法の Path 文字列を Geometry へ。空文字は null＝描かない（シェア0の扇形）。
     public static readonly Avalonia.Data.Converters.IValueConverter PathData =
         new Avalonia.Data.Converters.FuncValueConverter<string?, Avalonia.Media.Geometry?>(s => string.IsNullOrEmpty(s) ? null : Avalonia.Media.Geometry.Parse(s));

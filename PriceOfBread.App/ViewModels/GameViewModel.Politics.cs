@@ -121,7 +121,7 @@ public partial class GameViewModel
 
     // ★★★権力の取り分（2026-08-21・作者設計「権力の取り分」＝2026-09-07 半円）＝PowerAffinity の連合後シェア（王権/議会/軍部/革命勢力・合計1）。
     //   ⚠これは表示＝観測。挙動はどこもこの値で分岐しない（作者裁定2026-08-19「政体は表示のみ」の帰結）。
-    //   帯グラフの幅は SeatRow と同じ Conv.FracToWidth（0..1→px）＝新しい部品を作らない。
+    //   議席の棒は FracBar（溝の全幅に比例）。
     public double ShareCrown { get; private set; }
     public double ShareParliament { get; private set; }
     public double ShareArmy { get; private set; }

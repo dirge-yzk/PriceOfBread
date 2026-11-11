@@ -111,7 +111,9 @@ public partial class GameViewModel
             // Military.Step の目標兵数と同一式（母数＝農民＋都市労働者＋現役の兵士）。★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ（Military.cs:187 と同じ述語）
             //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限は今の兵数（表示だけが別式になるのを避ける）。
             double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac.Value * gate * lawFrac * manpower : 0;
-            return Fmt.Men(Math.Max(soldiers, target));   // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝今の兵数が下限
+            // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない。目標が今の兵数以下なら総動員しても兵は増えない＝
+            //   今の兵数をそのまま出すと下の「兵士 実際」と同じ数が 2 行に並ぶ（2 回目の目の点検 W6）ので、増えないと出す。
+            return target > soldiers ? Fmt.Men(target) : "増員なし";
         }
     }
     // ★(195) 総動員の判断の材料＝AI と同じ1本（Diplomacy.WarScale・00一覧 §0-A の 0e）＝プレイヤーは同じ材料を見て自分で選ぶ（AI の線は出さない＝2026-09-23 裁定「閾値は出さない」）。

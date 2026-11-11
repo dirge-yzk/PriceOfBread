@@ -114,10 +114,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"
                                                FontWeight="{Binding IsGov, Converter={x:Static vm:Conv.BoolToWeight}}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <Border Grid.Column="1" Background="#E6DEC8" Height="14" VerticalAlignment="Center" CornerRadius="2">
-                                        <Border Background="{Binding Brush}" HorizontalAlignment="Left" CornerRadius="2"
-                                                Width="{Binding SeatFrac, Converter={x:Static vm:Conv.FracToWidth}}"/>
-                                    </Border>
+                                    <ctl:FracBar Grid.Column="1" Track="#E6DEC8" Height="14" VerticalAlignment="Center" Fill="{Binding Brush}" Frac="{Binding SeatFrac}"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Seats}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Votes}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
