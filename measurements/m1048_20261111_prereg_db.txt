@@ -1,0 +1,117 @@
+(1048) c99db 事前登録：地主の政治 D-1b＋D-2＝国教と官僚制度・土地改革の旧支配層の賛否を、層の札から〈次の一段で失う所得の割合〉へ（旗 LordReligionStake・LordIntermediaryStake を 1 本の腕で・底は残す＝案 A・挙動の線・3 回の規則の 1 回目）
+書いた日 2026-11-11・木 bb76c653（main＝基線 m1044）・担当 Claude Opus 5.5・腕の前に固定（結果を見た後に変えない・変えるなら〈結果の後の変更〉と名乗る）
+出発：作者 2026-11-04（要約・原文ではない）〈Vic3 の地主＝保守は向きは史実どおりだが札で決めている＝PoB は所得から導く〉。§0-2 ★(1035) ③〈底を残すか〉は推奨〈残す・案 A〉（作者「全て推奨で」で推奨を採った）。
+材料：docs/202611/20261110/20261110_地主の政治の導き直しの段D-1_国教と官僚制度_盤面m1001_下書き.md（§2・§5-2）・docs/202611/20261111/20261111_地主の政治の導き直しの段D-2_官僚制度と土地改革の仲介の取り分_盤面m1027_下書き.md（§2・§4・§5）・実装ログ (1039)（器と受け口・反証役 v の指摘）。
+形の種類：入口（旧支配層の選好＝毎回の法の純支持・要求の順位・議会の票に効く）。式・底 0.5・ρ の人口按分・減らす向きの得の読みは AI の案・確証なし。〈札でなく所得から〉の向きは作者の要約。
+
+[0] 先に知らせる物
+ a. D-2 の効き目は小さい（基線の生で S_mid の正の行の中央 官僚制度 0.0025・土地改革 0.0018・p90 0.014・0.010＝Pref −1→約 −1.005〜−1.03）。㉚ の意味では〈働いていない〉に近い。D-2 を採る理由は〈土地改革の LordStake が仲介の取り分を数えない非対称を消すこと〉だけ（(1035) の反証役 中①）。D-1b（国教）は中央 S 0.073＝Pref −1→約 −1.15。
+ b. 反証役 v（(1039)）の 3 点をこの線で直す：①Profile.ClergyIncome0（正規化の前の生の月額）を比 ClergyToIncome0＝ClergyInc0÷Income[0]（LordRentToIncome と同じ型・同じ関数 RentToIncomeOf）へ替える②母集合は軸ごとの列で数える（下 [4]）③D1a_5 の盤面は MeritExam×Full が対称（上げ cr・戻し cr）＝Spoils×Full（上げ cr×0.5・戻し 0）の盤面を足す。
+ c. 指示から外れる所：無し（下書きの G1〜G5 と M1〜M9 の形のまま。G1 の土地改革は (1035) 反証役 低② のとおり〈実際−旧の値〉で読む・旧の値の地代の損と得は計器が自分で数える＝低③）。
+
+[1] 形（新しい係数・閾値・状態は 0・Profile に readonly の欄 1 つ〔CutRhoToIncome0〕＋ClergyIncome0 を比 ClergyToIncome0 へ置き換え）
+ D-1b（国教・旧支配層・旗 LordReligionStake＞0）：
+   進める向き：Pref＝−StatusScale×(0.5＋S_up)・S_up＝(T(今)−T(次))÷T(今)×ClergyToIncome0
+   減らす向き：Pref＝−StatusScale×(0.5＋S_down)・S_down＝(T(前)−T(今))÷T(今)×ClergyToIncome0
+   T＝Privileges.TitheDegreeFor（同じ 1 本）・T(今)≦1e-9 なら S＝0。次＝国教→内心の自由→信仰の自由（信仰の自由と国家無神論は動かない＝法の梯子の上限 2）・前＝信仰の自由→内心の自由→国教（国教と国家無神論は動かない）＝計器 LdReligionNext/Prev と同じ。
+ D-2（旧支配層・旗 LordIntermediaryStake＞0）：
+   官僚制度 進める向き：−StatusScale×(0.5＋S_mid(官))・減らす向き：−StatusScale×(0.5＋S_gain(官))
+   土地改革 進める向き：−StatusScale×(0.5＋LordStake＋S_mid(土))・減らす向き：−StatusScale×(0.5＋LordStake〔＝得〕＋S_gain(土))
+   S_mid(軸)＝CutRhoToIncome0×(I−I′_軸)÷I・S_gain(軸)＝CutRhoToIncome0×(I_戻−I)÷I・I≦1e-9 なら 0。
+   I＝Privileges.IntermediaryDegreeFor(官僚制度, 土地改革)（同じ 1 本）・I′／I_戻＝その軸だけ 1 段進めた／戻した後（官僚制度 猟官→資格任用→専門・専門は動かない／土地改革は既存の Step）。
+   CutRhoToIncome0＝(Income[0]＞1e-9 ? LastRuleCut÷Income[0] : 0)×ρ・ρ＝Σ_州 n·R1·f ÷ Σ_州 n·(R1＋R0·(1−f))（Rule と RuleInit の長さ 4・n＝SumPopulation＞0・f＝AdminFill を否定形で [0,1]・分母 0 なら 0）。
+   ρ の州の走査は Build の中・旗＞0 のときだけ（BuildSums に入れない＝窓の写しは国の入力を読まない約束）。旗 0 は 0 を置く。I と I′ は Pref の中で今の法から読む（Government.Move が窓の中で法を動かす＝EffectiveRentShares と同じ理由）。
+ DirectionAware：（官僚制度, 0）は LordIntermediaryStake＞0・（国教, 0）は LordReligionStake＞0 のときだけ真（旗 0 は今のまま偽）。
+ 旗 0：今の行を逐語に通す（`return trad ? -1.0 : 1.0;` と土地改革の行は触らない）。受け口の `return -1.0` は本体に替える。
+ 窓：ClergyInc0 は既に BuildSums・Copy・CheckSame にある。CutRhoToIncome0 は窓に載せない（Build のたびに州から）＝窓の中と外で Build が一致（M8 の番人）。
+
+[2] 計器（教訓①・計器は事前登録の文から独立に書く）：lordstat_s の末尾に 2 列
+   d2LordLossLandExp・d2LordGainLandExp＝土地改革の地代の損と得（旧の値 −2×(0.5＋損) の損）を計器が自分で書く：慣習＝先頭の州の産地（IsRgo）の RentShare の最小（無ければ 0）・
+   上限＝全面 c・限定 c＋(1−c)×0.5・なし 1（c＝LandReformRentCap／SerfEmancipationRentCap）・実効＝min(慣習, 土地改革の上限, 農奴解放の上限)・損＝(今−次)÷今×地代÷所得（計器の d2Rent0OverIncome0 の和）。
+   走査の番人 L10（部分文字列）の禁止の名（LordIncomeLoss(・EffectiveRentShares(・LordStake(・IntermediaryDegree( ほか）を含む名を補助関数にも使わない。
+   列の数 50→52（㉑）。既存の列（実際の側 relPrefUpAct・d2PrefBurUpAct ほか）は Build/Pref を読むまま。
+ 時刻の照合（★(1011)）：Instruments.Quarter は StepQuarter の後（SelfPlay.cs:2183）・窓は Simulation.cs:1824〜1830 の中だけ＝呼び口で PopSums は null（D1a_4 が Assert）＝実際の側＝同じ時点の Build（求め直し）・期待の側＝同じ時点の計器の走査。G3〜G5 は 1e-9 の一致で読む。
+
+[3] 門（両側・旗 0 で落ちる・台本 scripts/instruments/c99db/gates_db.py・腕 B＝計器つき 10 種 種 1〜10 の lordstat_s）
+ D-1（国教）
+   R-G1 働いた：国教 段 0・聖職者の所得＞0 の行で relPrefUpAct と relClergyIncome0÷relIncome0 の順位相関 ≦−0.9・N≧200（旗 0＝定数＝相関 0 とみなす＝落ちる）
+   R-G2 構造の上限：全ての行で |relPrefUpAct|≦2.0・|relPrefDownAct|≦3.0（上げの度合いの差÷今 ≦0.5・戻し ≦1＝聖職者の所得⊂旧支配層の所得）＝破れ 0
+   R-G3 狙い：relStakeUpExp＞0 の行で |relPrefUpAct−(−2×(0.5＋relStakeUpExp))|≦1e-9 の割合 ≧0.999・N≧200
+   R-G4 向き：relStakeDownExp＞0 の行で |relPrefDownAct−(−2×(0.5＋relStakeDownExp))|≦1e-9 の割合 ≧0.999・N≧200
+ D-2（仲介の取り分）
+   I-G1 働いた：官僚制度＝d2SMidBurExp＞0 の行で d2PrefBurUpAct と d2SMidBurExp の順位相関 ≦−0.9／土地改革＝d2SMidLandExp＞0 の行で (d2PrefLandUpAct−(−2×(0.5＋d2LordLossLandExp))) と d2SMidLandExp の順位相関 ≦−0.9・N≧200
+   I-G2 形に固有の誤り（max の外の損を数えない・底を残す）：官僚制度＝d2SMidBurExp が正でない行で d2PrefBurUpAct＝−1（1e-9）の割合 ≧0.999／土地改革＝d2SMidLandExp が正でない行で d2PrefLandUpAct＝−2×(0.5＋d2LordLossLandExp) の割合 ≧0.999
+   I-G3 狙い：官僚制度＝d2SMidBurExp＞0 の行で |d2PrefBurUpAct−(−2×(0.5＋d2SMidBurExp))|≦1e-9 ≧0.999／土地改革＝d2SMidLandExp＞0 の行で |d2PrefLandUpAct−(−2×(0.5＋d2LordLossLandExp＋d2SMidLandExp))|≦1e-9 ≧0.999・N≧200
+   I-G4 二重計上：d2SMidLandExp＞0 の行で |(d2PrefLandUpAct−(−2×(0.5＋d2LordLossLandExp)))÷(−2)−d2SMidLandExp|≦1e-9 ≧0.999（⚠I-G3 土と代数で同じ量の半分＝独立の門ではない・下書きの G4 の名のまま置く）
+   I-G5 減らす向き：官僚制度＝d2SGainBurExp＞0 の行で |d2PrefBurDownAct−(−2×(0.5＋d2SGainBurExp))|≦1e-9 ≧0.999／土地改革＝d2SGainLandExp＞0 の行で |d2PrefLandDownAct−(−2×(0.5＋d2LordGainLandExp＋d2SGainLandExp))|≦1e-9 ≧0.999・N≧200
+ 〈機構が狙いどおり働いたか〉の段＝R-G1・R-G3・R-G4・I-G1・I-G3・I-G5。どれかが落ちたら、その旗は採らない。
+ 旗ごとのアブレーション：D-1 の門（R-*）が赤で D-2 の門（I-*）が緑なら、LordReligionStake の既定を 0 に戻して D-2 だけを採る（逆も同じ）。旗の既定を戻すだけ＝形の変え直しに数えない。両方の旗は互いの式を読まない（触る case が別）＝片方の旗だけの盤面は、もう片方の旗 0 の盤面と同じ。
+ 旗 0 の値（紙・基線の生・paper.txt）：R-G1 0.0・R-G3 0.0・R-G4 0.0・I-G1 0.0／0.0・I-G3 官 0.0066・I-G5 は赤＝全て落ちる。R-G2・I-G2 は旗 0 で緑（G1 と組で読む）。
+
+[4] 母集合の件数（⑫・基線 keep_1044/base_ins の lordstat_s・旗 0・10 種 408,774 行）
+   官僚制度の一段で仲介の取り分を失う行 90,154／土地改革 183,994／両方 0／どちらか 274,148（(1039) の 276,086 は m1027 の OR）。
+   戻して得る行：官僚制度 100,696・土地改革 24,012。Cut÷Income0＞0 の行 406,251・ρ の 0〜1 の外 0。
+   国教：段 0 で聖職者の所得＞0 の行 369,707・上げで失う行 408,700・戻して得る行 38,993。
+   S の分布（正の行）：官 S_mid 中央 0.00254 p90 0.01402 最大 0.418／土 S_mid 中央 0.00183 p90 0.00964 最大 0.076／官 S_gain 中央 0.00298／土 S_gain 中央 0.00396／国教 S_up 中央 0.0733 p90 0.122 最大 0.5／S_down 中央 0.128 最大 0.667。
+   全ての門の N は下限 200 を超える。
+
+[5] 突然変異（㉚・紙の台本 gates_db.py --paper・measurements/m1048_20261111/paper.txt）
+   | 変異 | R-G1 | R-G2 | R-G3 | R-G4 | I-G1官 | I-G1土 | I-G2官 | I-G2土 | I-G3官 | I-G3土 | I-G4 | I-G5官 | I-G5土 | 試験 |
+   | 正しい実装 | g | g | g | g | g | g | g | g | g | g | g | g | g | 全て緑 |
+   | 旗 0 | R | g | R | R | R | R | g | g | R | R | R | R | R | D1b_*・D2_* |
+   | D2-M1 ρ＝1 | g | g | g | g | R | R | g | g | R | R | R | R | R | D2_手の式 |
+   | D2-M2 max でなく軸ごと | g | g | g | g | g | g | R | g | g | g | g | g | g | D2_手の式（猟官×なし） |
+   | D2-M3 底を外す（官） | g | g | g | g | g | g | R | g | R | g | g | R | g | D2_手の式 |
+   | D2-M4 旗を読まない | R | g | R | R | R | R | g | g | R | R | R | R | R | D2_手の式 |
+   | D2-M5 土地改革に足し忘れ | g | g | g | g | g | R | g | g | g | R | R | g | R | D2_土地改革 |
+   | D2-M6 取り分を地代の側にも | g | g | g | g | g | g | g | R | g | R | R | g | g | （Rs2 の手の式は Cut の盤面次第） |
+   | D2-M7 分母を Rent0 | g | g | g | g | g | g | g | g | R | R | R | g | g | D2_手の式 |
+   | D2-M8 減らす向きの得を落とす | g | g | g | g | g | g | g | g | g | g | g | R | R | D2_手の式 |
+   | D2-M9 DirectionAware に官僚制度を足し忘れ | g | g | g | g | g | g | g | g | g | g | g | g | g | 門は全て緑＝新しい試験 D2_要求の順位（官僚制度 資格任用×土地改革 限定＝上げ 0・戻し cr の非対称の盤面で ComputeDemands の点＝(1＋2·cr)×可動域）だけが拾う |
+   | D1-Ma 比でなく生の月額 | R | R | R | R | g | g | g | g | g | g | g | g | g | D1b_手の式 |
+   | D1-Mb 段を 1 つずらす | g | R | R | g | g | g | g | g | g | g | g | g | g | D1b_手の式 |
+   | D1-Mc 旗を読まない | R | g | R | R | R | R | g | g | R | R | R | R | R | D1b_手の式 |
+   | D1-M2 分母を Rent0 | g | R | R | R | g | g | g | g | g | g | g | g | g | D1b_手の式 |
+   | D1-M6b 減らす向きも損で読む | g | g | g | R | g | g | g | g | g | g | g | g | g | D1b_手の式 |
+   | D1-M6a DirectionAware に国教を足し忘れ | g | g | g | g | g | g | g | g | g | g | g | g | g | 門は全て緑＝新しい試験 D1b_要求の順位（国教 内心の自由＝上げ 0.5×比・戻し 0.667×比の非対称）だけが拾う |
+   | M8′ 窓の写しの足し忘れ（Copy か CheckSame） | 紙では出ない | | | | | | | | | | | | | D1a_3（窓の中と外の ClergyToIncome0 のビット一致） |
+   紙の限界：D2-M2 は官僚制度の身分の項だけで作った（土地改革の段は表に無い）。D2-M6 は土地改革の地代の損に (地代＋取り分)÷地代 を掛けた近似。
+   突然変異は使い捨ての木（D:/PoB_work/c99db_work/mut）で器と機構の試験を回して赤を確かめる（腕は回さない＝D: の床）。出力は measurements/m1048_20261111/mut.txt（落ちた試験の名の全文）。
+ 機構の試験（xUnit・新 LordStakeD1bD2Tests.cs・期待は手で書いた閉じた数と試験が POP・州から組んだ和＝エンジンの Pref・LordIncomeLoss を期待に使わない）：
+   D1b_手の式：旗 1・国教で S_up＝0.4×比・内心の自由で 0.5×比・信仰の自由で 0・国家無神論で 0（−1）・戻し：内心の自由 (1−0.6)÷0.6×比・信仰の自由 (0.6−0.3)÷0.3×比・国教 0。比＝試験が POP から数えた聖職者÷旧支配層の所得。近代と大衆は +1。
+   D1b_要求の順位：旗 1・FactionTargetsWeakAxis 0・内心の自由の盤面で、旧支配層の国教の要求（減らす向き）の点＝2×(0.5＋0.667×比)×可動域。
+   D2_手の式：旗 1・LastRuleCut を置いた盤面で、(猟官, なし) 官僚制度の上げ 0（底 −1）・(猟官, 全面) 上げ 0.5×cr・戻し 0・(資格任用, 全面) 上げ cr・戻し cr・(資格任用, 限定) 上げ 0・戻し cr・(専門, 全面) 0。cr＝試験が州から組んだ ρ×LastRuleCut÷試験の和の Income0。
+   D2_土地改革：旗 1・(専門, 限定) で土地改革の上げ＝−2×(0.5＋旗 0 の値の損＋cr)（旗 0 の値は同じ盤面で旗 0 の Pref を読む＝差だけを見る）。
+   D2_要求の順位：上の M9 の盤面。
+   D1a_5′：Spoils×Full の盤面（上げ cr×0.5・戻し 0）を D1a_5 の隣に足す（bprev と bnext の入れ替えで赤）。
+
+[6] 旗 1 で赤になる試験の予言（㉜）と走査の番人（㉘・㉑）
+   赤の見込みと扱い（★(743) の区分は下）：
+   ・LordstatD1aTests.D1a_2（:58〜:73）：既定 0 の Assert と旗 0 の −1.0。既定 1 のコミットで、Assert を既定 1 に替え、各国の w.Coef.LordReligionStake＝0・LordIntermediaryStake＝0 を置いた盤面で〈旗 0 の経路の番人〉として残す（−1.0 のビット一致・DirectionAware 偽の Assert の文は変えない）。区分＝④の類（消す欄でなく既定の値を名指す Assert の付け替え）＋盤面の旗の明示＝旧の盤面に機構の番人を固定する形ではない（旗 1 の機構は D1b_*・D2_* が別に見る）。
+   ・D1a_4（:101〜:122 の relPrefUpAct＝−1・relPrefDownAct＝−1）・D1a_5（d2PrefBurUpAct＝−1）：計器の列の旗 0 の値を見る試験＝Run の盤面で旗を 0 に置く（beforeLast で w.Coef の 2 本を 0）。Assert の文と閾値は変えない。旗 1 の列は G3 の型の新しい試験 D1a_7 で見る。
+   ・D1a_3（ClergyIncome0）：器のコミットで比 ClergyToIncome0 へ替える＝期待は試験が POP から組んだ聖職者÷旧支配層の和（自分の線の器の試験）。
+   ・列の数 50 の Assert（LordstatInstrumentTests:156・D1a_4:105）：器のコミットで 52（㉑）。
+   ・DormantIdentityTests の旗の表の 2 行（:21〜:22）：器のコミットでは残し、既定 1 のコミットで外す。
+   ・Rs2LordOppositionTests・Rs3LordReverseGainTests：緑の見込み。根拠＝盤面はロシアの単国（NationConfig.cs:66 Bureaucracy＝Spoils の既定）＝I＝max(1, ·)＝1＝土地改革の一段で I が動かない＝S_mid(土)＝S_gain(土)＝0。
+   ・WriterRatchetTests の軌道の件数の表：旧支配層の賛否が動く＝法の動きと要求の順位が動く＝赤の候補（★(749) の〈軌道の件数を写しただけの番人〉）＝線では書き換えず赤のまま報告し、合流の木で 1 回取り直す。
+   ・ComputeDemands の上位を固定する試験（PolicyPoliticsTests:544・:1939・RevoltIgnitionTests:1443〜:1448・AiFirstWaveTests:281）：旗 0 の盤面と旗 1 の盤面の比較・上位の集合の固定があれば赤の候補（国教の強さ 1→約 1.15）。赤なら区分を読んで報告（機構の番人が旧の規則を固定している型なら止めて作者に聞く）。
+   ・OpeningBakeTests：入力のハッシュ＝world.json だけ＝赤の見込みなし。
+   走査の番人（grep の結果）：工業化度の読み手の許可表＝PolicyPreferences.cs・Privileges.cs は Industrialization・Mechanization を読まない（0 件・新しい読み手を作らない）。new MoneyStock( の件数＝SimCore で 64（変えない）。
+     route_anchors.tsv（scripts/instruments/flow262/）に PolicyPreferences・Privileges・PopScan・InstrumentsLordstat の鍵の行は 0 件。WriterRatchetTests の宣言の表＝新しい書き手を作らない（予言 0 件の変化）。
+     OnDoubleReadScanTests＝PolicyPreferences.cs・Privileges.cs に Instruments.On の読みは 0 件（作らない）。L10（InstrumentsLordstat.cs の禁止の名）＝新しい列は禁止の名を含まない。
+   ident の宣言：--grown-ok lordstat・--tests-delta＝器のコミットで足した試験の数（そのとき数える）。
+
+[7] 計算量：割り当て ≦0.5 秒（ρ の州の走査は旗 1 の Build ごとに州の数×POP の Size の和・1 国 1 四半期に Build は数回〜十数回＝POP の走査 1 本ぶん未満）。
+   台帳（CostLedger）は c99cd の持ち物＝この線は台帳の行を足さない＝.cost の推定は ρ の走査を数えない（★(1035)）。実時間を腕 B と基線（同じ条件のバッチの所要時間）で並べて記録し、余りへの計上は合流に任せる。
+
+[8] 止める線（この回の標準をそのまま写す）
+   破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍の〈それ以外〉（建国の直後の型＝系列の最初の行から 4 四半期以内と ★(905) の区分と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期〔㊳〕は記録・基準とヌル腕を同じ台本で数え直す）・
+   1e10 倍・非有限・空洞化 1/10 未満の〈線が原因〉（規則 A2・an_h2.py -v4・基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）・推定 248.5 秒・機構の試験の赤（走査の番人を含む）。
+   NG（基準 rd:measurements/ng1044_20261111:m1044）・史実度・国力・常勝・開幕の 1000 倍は記録。名目 GDP 0 の続き（gdp_zero10.py）は記録の段の先頭。政府の人口の比（popjump1017.py）は記録。
+   記録の段：官僚制度・国教・土地改革の上げの年（国ごと）・目標＞今の件数・NetSupport の新÷旧（同じ盤面＝計器の relGateNetUp）・露の国教 段 1 の種の数・英の国債の不履行の種の数・同じ盤面の新÷旧。
+   S11 は回さない（合流で読む）。旗 1 の出力を見た後のエンジンの変更は〈形の変え直し〉に数える（枠 1 回）。
+
+[9] 周辺の点検（読むだけ・30〜40 分・欠損は別の線へ）：GateLaw と純支持の錠（関税の錠の型）・十分の一税の集め方（Privileges.cs:103 の墓標・Fiscal の税の走査）・秘密投票・検閲・徴兵の札。結果は報告に書く。
+
+[10] 他の線との重なり（持ち主の表から）：c99cd＝BilateralMarket.cs・InstrumentsTradeskip.cs・InstrumentsSellr.cs・MultiNationSim.cs・EconomyStep.cs（:1018 の 1 行）／c99ov＝EconomyStep.cs（:963）・Coefficients.cs（市場の係数の近く）／c99dv＝scripts/instruments/ident・batch.sh・tools。
+   共有＝Coefficients.cs（この線は :720〜:721 の 2 行の既定だけ）・DormantIdentityTests.cs（:21〜:22 の 2 行だけ）・WriterRatchetTests.cs（旗 1 で赤なら表の行・線では書き換えない）。Instruments.cs は触らない（lordstat は登録済み）。

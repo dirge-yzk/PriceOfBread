@@ -95,10 +95,13 @@ public static class PolicyPreferences
         public readonly double LordRentToIncome;
         // ★(937) 土地税の基数のシェア（Fiscal.LandTaxBase・旗 LandTaxFixedBasis＝0 では Rent と同じ値）。読むのは土地税の軸だけ（地代の保護と LordRentToIncome は所得の量＝Rent のまま）。
         public readonly double[] LandBase;
-        // ★(1039) c98da：旧支配層（ブロック 0）の聖職者の max(0, EarnedPerMonth) の和（正規化の前の額・BuildSums の 1 本）。読み手は D-1b の線（国教の反対の強さ）が足す＝今は計器だけ。
-        public readonly double ClergyIncome0;
-        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp, double lordRentToIncome, double[] landBase, double clergyIncome0 = 0.0)
-        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; LordRentToIncome = lordRentToIncome; LandBase = landBase; ClergyIncome0 = clergyIncome0; }
+        // ★(1048) c99db：旧支配層（ブロック 0）の所得のうち聖職者の所得の割合（正規化の前の和の比＝ClergyInc0÷Income[0]・所得 0 なら 0＝LordRentToIncome と同じ型）。国教の反対の強さ（D-1b）が読む。
+        //   (1039) の ClergyIncome0（生の月額）を比へ替えた（反証役 v：生の額を Income のシェアと並べると次元が合わない）。
+        public readonly double ClergyToIncome0;
+        // ★(1048) c99db：仲介者の取り分の旧支配層の所得に対する割合×仲介者の手に残る部分 ρ（LastRuleCut÷Income[0]×ρ）。官僚制度と土地改革の反対の強さ（D-2）が読む。旗 LordIntermediaryStake＝0 は 0（州を走査しない）。
+        public readonly double CutRhoToIncome0;
+        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp, double lordRentToIncome, double[] landBase, double clergyToIncome0 = 0.0, double cutRhoToIncome0 = 0.0)
+        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; LordRentToIncome = lordRentToIncome; LandBase = landBase; ClergyToIncome0 = clergyToIncome0; CutRhoToIncome0 = cutRhoToIncome0; }
     }
 
     /// <summary>大衆の平均失業率（人口加重・移民制限法の選好と SelfPlay の移民法の意図が読む＝唯一定義・2026-09-11 #13）。⚠労働市場の無い小シナリオでは0＝無影響。</summary>
@@ -123,6 +126,8 @@ public static class PolicyPreferences
         double[] wealth = sums.Wealth, rent = sums.Rent, income = sums.Income, poll = sums.Poll, old = sums.Old, blocPop = sums.BlocPop;
         double tw = sums.Tw, tr = sums.Tr, ti = sums.Ti, tp = sums.Tp, clergyInc0 = sums.ClergyInc0;
         double lordRentToIncome = RentToIncomeOf(rent[0], income[0]);   // ★(547) 正規化の前の和の比（正規化は同じ配列を書き換える）
+        double clergyToIncome0 = RentToIncomeOf(clergyInc0, income[0]);   // ★(1048) 同じ比の関数（所得 0 なら 0）＝聖職者の所得÷旧支配層の所得
+        double cutRhoToIncome0 = w.Coef.LordIntermediaryStake > 0 ? RentToIncomeOf(w.LastRuleCut, income[0]) * IntermediaryKeepShare(w) : 0.0;   // ★(1048) D-2：旗 0 は州を走査しない
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         double[] landBase = sums.LandBase; Normalize(landBase, sums.Tl);   // ★(937) 土地税の基数のシェア（旗 0 は rent と同じ値・同じ順の和）
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
@@ -133,7 +138,23 @@ public static class PolicyPreferences
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
             ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio.Value) + (ngdp > 1e-9 ? System.Math.Min(1.0, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp))).Value) : 0))
             : 0;
-        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp, lordRentToIncome, landBase, clergyInc0);
+        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp, lordRentToIncome, landBase, clergyToIncome0, cutRhoToIncome0);
+    }
+
+    /// <summary>★(1048) c99db D-2：仲介者の取り分のうち、在地の区分が国家の区分へ移ると仲介者の手を離れる部分 ρ＝Σ_州 n·R1·f ÷ Σ_州 n·(R1＋R0·(1−f))
+    /// （n＝州の人口・R1＝在地の区分・R0＝国家の区分・f＝AdminFill を [0,1] へ・Rule と RuleInit の長さ 4 の州だけ・分母 0 なら 0）。
+    /// ⚠限界：エンジンの取り分は査定で重みづく＝人口で按分するのは近似（計器 lordstat_s の ⚠限界① と同じ）。在地の目標の min(1−無統治, …) と支配度の遅れは数えない。純関数・状態なし。</summary>
+    internal static double IntermediaryKeepShare(World w)
+    {
+        double num = 0, den = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.Rule.Length != 4 || r.RuleInit.Length != 4) continue;
+            double pop = r.SumPopulation(); if (!(pop > 0)) continue;
+            double f = r.AdminFill > 0 ? (r.AdminFill < 1 ? r.AdminFill : 1.0) : 0.0;   // 否定形＝NaN は 0
+            num += pop * r.Rule[1] * f; den += pop * (r.Rule[1] + r.Rule[0] * (1.0 - f));
+        }
+        return den > 0 ? num / den : 0.0;
     }
 
     /// <summary><see cref="Build"/> の POP 由来の和（ブロックごと・正規化の前）。国の入力（法・国庫）は読まない＝窓の中の使い回し（<see cref="PopWindow"/>）に載せられる。</summary>
@@ -239,7 +260,7 @@ public static class PolicyPreferences
     // 「進める方向」への各ブロックの賛否（+賛成 / −反対）を**経済プロファイルから導出**。連続値（概ね −2..+2）。
     // ★internal（2026-10-01 (146)）：要求の順位（FactionSnapshot.ComputeDemands）が自分のブロックの1本だけを読む（旧＝Stance で3ブロックと純支持を全て計算して1本を捨てた）。
     // ★(558) 線 rs3：increasing＝**どちらの向きの選好として読むか**（既定 true＝進める向き）。返り値は常に「進める向き」の符号の値（呼び手が ×sign する）。減らす向き（false）で値が変わるのは
-    //   旧支配層の農奴解放・土地改革の 2 行だけ（<see cref="DirectionAware"/>）。他の全ての軸・ブロックは increasing を読まない。
+    //   旧支配層の農奴解放・土地改革の 2 行（★(1048)：旗＞0 なら官僚制度・国教の旧支配層も）だけ（<see cref="DirectionAware"/>）。他の全ての軸・ブロックは increasing を読まない。
     internal static double Pref(PolicyAxis a, int b, in Profile e, World w, bool increasing = true)
     {
         bool trad = b == 0, modern = b == 1, mass = b == 2;
@@ -318,15 +339,19 @@ public static class PolicyPreferences
                 // ★(558) 線 rs3：減らす向き（increasing=false）の強さは〈1 段戻したときの得〉（LordStake）。(803) で旗 LordOppositionReverseGain を焼き込んだ
                 return trad ? -StatusScale * (0.5 + LordStake(w, a, e, increasing)) : 1.0;
             case PolicyAxis.LandReform:       // 土地改革＝地主が強く抵抗・大衆が強く賛成
+                // ★(1048) c99db D-2：旗＞0 は地代の損（得）に仲介の取り分の損（得）を足す（同じ一段で I が動く分だけ・二重計上なし＝地代は Rent・取り分は EarnedPerMonth の側）
+                if (trad && w.Coef.LordIntermediaryStake > 0) return -StatusScale * (0.5 + LordStake(w, a, e, increasing) + IntermediaryStake(w, a, e, increasing));
                 return trad ? -StatusScale * (0.5 + LordStake(w, a, e, increasing)) : mass ? 2.0 : 1.0;
             case PolicyAxis.Censorship:       // 報道の自由化＝旧支配層が抵抗（検閲＝統制）・近代/大衆は自由を好む
             case PolicyAxis.SecretBallot:     // 秘密投票（E5）＝旧支配層が抵抗（票の買収/脅迫の力を失う）・近代/大衆が賛成（真の選挙）
                 return trad ? -1.0 : 1.0;   // (1039) 検閲と秘密投票は札のまま（下の官僚制度と国教の受け口の旗に巻き込まない）
             case PolicyAxis.Bureaucracy:      // 官僚制度の専門化（E5）＝旧支配層が抵抗（縁故任用の特権を失う）・近代/大衆が賛成（実力任用）
-                if (trad && w.Coef.LordIntermediaryStake > 0) return -1.0;   // ★(1039) D-2 の受け口：旗 >0 の本体（仲介の取り分）は D-2 の線が置く＝今は旗 0 と同じ札（旗 0 の経路の番人は LordstatD1aTests D1a_2）
+                // ★(1048) c99db D-2：旗＞0 は〈次の一段で失う仲介の取り分の割合〉（減らす向きは 1 段戻した得）＋底 0.5（LordStake と同じ型）。旗 0 は札 −1（番人 LordstatD1aTests D1a_2）
+                if (trad && w.Coef.LordIntermediaryStake > 0) return -StatusScale * (0.5 + IntermediaryStake(w, a, e, increasing));
                 return trad ? -1.0 : 1.0;
             case PolicyAxis.StateReligion:    // 国教の寛容化（E6）＝教会（旧支配層）が抵抗（十分の一税/地位）・近代/大衆が賛成（信仰の自由）
-                if (trad && w.Coef.LordReligionStake > 0) return -1.0;   // ★(1039) D-1b の受け口：旗 >0 の本体（失う十分の一税）は D-1b の線が置く＝今は旗 0 と同じ札
+                // ★(1048) c99db D-1b：旗＞0 は〈次の一段で失う十分の一税の度合い〉×聖職者の所得の割合（減らす向きは 1 段戻した得）＋底 0.5。旗 0 は札 −1
+                if (trad && w.Coef.LordReligionStake > 0) return -StatusScale * (0.5 + ReligionStake(w, e, increasing));
                 return trad ? -1.0 : 1.0;
             case PolicyAxis.Antitrust:        // 独占禁止（E6）＝独占レントを得る旧支配層(塩の王室のgabelle)/資本(茶・トラスト)がともに抵抗・高値を払わされる大衆が賛成
                 return mass ? 1.0 : -1.0;
@@ -663,9 +688,10 @@ public static class PolicyPreferences
         => !increasing ? LordIncomeGain(w, a, e.LordRentToIncome) : LordIncomeLoss(w, a, e.LordRentToIncome);
 
     /// <summary>この選好（軸×ブロック）の減らす向きの強さが、進める向きの符号反転と違う読みを持つか（<see cref="Pref"/> の <c>increasing=false</c> を別に呼ぶ価値があるか）。
-    /// 軸が農奴解放か土地改革・ブロックが旧支配層（0）のとき true。</summary>
+    /// 軸が農奴解放か土地改革・ブロックが旧支配層（0）のとき true。★(1048)：官僚制度は旗 LordIntermediaryStake＞0・国教は旗 LordReligionStake＞0 のときも true。</summary>
     internal static bool DirectionAware(World w, PolicyAxis a, int b)
-        => b == 0 && (a == PolicyAxis.SerfEmancipation || a == PolicyAxis.LandReform);
+        => b == 0 && (a == PolicyAxis.SerfEmancipation || a == PolicyAxis.LandReform
+                      || (a == PolicyAxis.Bureaucracy && w.Coef.LordIntermediaryStake > 0) || (a == PolicyAxis.StateReligion && w.Coef.LordReligionStake > 0));
 
     /// <summary>★(558) 線 rs3：<paramref name="axis"/> を 1 段戻したときに旧支配層が得る所得の割合＝
     /// (戻した段の実効の取り分−今の実効の取り分)÷今の実効の取り分 × <paramref name="lordRentToIncome"/>（損 <see cref="LordIncomeLoss"/> と分母の規則が同じ＝その動きの前の状態＝今で割る）。
@@ -675,5 +701,36 @@ public static class PolicyPreferences
         EffectiveRentShares(w, axis, out double now, out double prev, back: true);
         return now > 1e-9 ? (prev - now) / now * lordRentToIncome : 0.0;
     }
+
+    // ---------------------------------------------------------------- (1048) c99db：地主の政治 D-1b（国教）と D-2（官僚制度・土地改革の仲介の取り分） ----------------------------------------------------------------
+    // 型は LordStake と同じ〈次の一段で失う所得の割合〉（減らす向きは 1 段戻したときの得・分母はその動きの前＝今の度合い）。新しい係数・閾値・状態は 0。
+
+    /// <summary>D-2：<paramref name="a"/>（官僚制度か土地改革）の次の一段（<paramref name="increasing"/>＝false なら 1 段戻す）で動く仲介者の度合い I の割合×<see cref="Profile.CutRhoToIncome0"/>。
+    /// I＝<see cref="Privileges.IntermediaryDegreeFor"/>（官僚制度と土地改革の大きい方）＝その軸の一段で I が動かなければ 0（max の性質＝2 本の軸が両方動いて初めて仲介者が損をする）。I＝0 なら 0。</summary>
+    private static double IntermediaryStake(World w, PolicyAxis a, in Profile e, bool increasing)
+    {
+        var b = w.Bureaucracy; var lr = w.LandReform;
+        double now = Privileges.IntermediaryDegreeFor(b, lr);
+        double other = a == PolicyAxis.Bureaucracy ? Privileges.IntermediaryDegreeFor(BureaucracyStep(b, !increasing), lr) : Privileges.IntermediaryDegreeFor(b, Step(lr, !increasing));
+        return now > 1e-9 ? e.CutRhoToIncome0 * System.Math.Abs(now - other) / now : 0.0;
+    }
+
+    /// <summary>D-1b：国教の次の一段（<paramref name="increasing"/>＝false なら 1 段戻す）で動く十分の一税の度合いの割合×<see cref="Profile.ClergyToIncome0"/>。
+    /// 度合い＝<see cref="Privileges.TitheDegreeFor"/>（十分の一税の徴収と同じ 1 本）。今の度合いが 0（国家無神論・十分の一税の無い世界）なら 0。</summary>
+    private static double ReligionStake(World w, in Profile e, bool increasing)
+    {
+        var s = w.StateReligion; var c = w.Coef;
+        double now = Privileges.TitheDegreeFor(s, c), other = Privileges.TitheDegreeFor(ReligionStep(s, !increasing), c);
+        return now > 1e-9 ? e.ClergyToIncome0 * System.Math.Abs(now - other) / now : 0.0;
+    }
+
+    /// <summary>官僚制度を 1 段進める（猟官→資格任用→専門・専門の次は専門）か、1 段戻す（猟官の前は猟官）。</summary>
+    private static BureaucracyLaw BureaucracyStep(BureaucracyLaw b, bool back)
+        => back ? (b == BureaucracyLaw.Spoils ? b : b - 1) : (b == BureaucracyLaw.Professional ? b : b + 1);
+
+    /// <summary>国教を 1 段進める（国教→内心の自由→信仰の自由・信仰の自由は法の梯子の上限 2 で止まる）か、1 段戻す（信仰の自由→内心の自由→国教）。国家無神論はどちらにも動かない（政体の属性）。</summary>
+    private static StateReligionLaw ReligionStep(StateReligionLaw s, bool back)
+        => s == StateReligionLaw.StateAtheism ? s
+         : back ? (s == StateReligionLaw.StateChurch ? s : s - 1) : (s == StateReligionLaw.ReligiousFreedom ? s : s + 1);
 
 }
