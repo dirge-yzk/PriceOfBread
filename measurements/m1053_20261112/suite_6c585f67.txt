@@ -1,0 +1,19 @@
+(1053) 最後の木 6c585f67（docs・ident.cfg・measurements の後）のフルスイート・隔離ビルド
+list nonfull 2689
+list full 3
+nonfull rc=0 1118s
+full rc=0 205s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2688、スキップ:     1、合計:  2689、期間: 18 m 36 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 23 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 223s
+保存 46.5MB（566ms）／読込 524ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m1053_work/suite_f/leakhunt.txt　マニフェスト=D:/PoB_work/m1053_work/suite_f/leakhunt.txt.manifest（SOURCE-HASH=0d1c19b457b890a4）
+SL-END 04:07:38
+SAVELEAKDONE
