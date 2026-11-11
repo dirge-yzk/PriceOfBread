@@ -1222,6 +1222,7 @@ public static partial class Instruments
     /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
     internal static void RegionMoved(World from, World? to, Region r, Territory.Rehoming how)
     {
+        NgRegionMoved(from, r);   // (1028) nationgood_s の eventRegions
         CedeBefore(from, to, r, how);   // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：移る時点の前の値を貯める（最初の文＝建国と挙げていない受け手の行も落とさない・InstrumentsCede.cs）
         if (r.FleetUnits is { } fu)   // ★(669) 線 navf3：送り手の World ごとに、出ていく艦を出た州の格で分けて積む（(614) の [ThreadStatic] は種の数が違う腕を比べられなかった）
         {
@@ -1905,7 +1906,7 @@ public static partial class Instruments
         LandsaleTable(sim, seed, q);       // (983) 土地の持ち分の段 B-1 の段 0 の表 landsale_s（国×四半期・未払いの土地税と売りの期待）
         LandshareTable(sim, seed, q);      // (895) 土地の持ち分の段 B-0 の表 landshare_s（国×四半期・月の閉じで積んだ期待と実際）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
-        NationgoodTable(sim, seed, q); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // (1003) 貿易の計器 C1 nationgood_s・C2 tradeskip_s
+        NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // (1003) 貿易の計器 C1 nationgood_s・C2 tradeskip_s
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）

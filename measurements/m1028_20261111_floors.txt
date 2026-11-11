@@ -1,0 +1,28 @@
+(1028) c97ws 床 F1〜F3 の数え直し（keep_1027/base_ins＝m1027 の盤面・計器つき 10 種・記録・門ではない・波98 の戦争の段1 の材料）
+F1＝理由〈余剰戦力が不足〉の評価の行の和・F2＝invade_s の行・F3＝sh_calls の和（旧の値：m1022 の盤面で 206,759・1,280・1,683）
+total evals=862955 F1_will=205353 F2_invade=1351 F3_shcalls=2327 tauPos=593370 newOk=320703 oldOk=312294 newOnly=8409 rowsTau=10429
+--- ident の生（c97ws の木・同じ盤面）の門と交差の列（scripts/instruments/c97ws/gates.py）
+seed 1: groups=1128 eventGroups=0
+seed 2: groups=1111 eventGroups=3
+seed 3: groups=1164 eventGroups=5
+seed 4: groups=1146 eventGroups=5
+seed 5: groups=1101 eventGroups=3
+seed 6: groups=1109 eventGroups=3
+seed 7: groups=1101 eventGroups=4
+seed 8: groups=1120 eventGroups=0
+seed 9: groups=1100 eventGroups=3
+seed 10: groups=1098 eventGroups=2
+G1 比べた組 1311329・食い違い 0
+G2 eventRegions=0 の組 1449500・outputSum≠producedQty 0
+G3 eventRegions>0 の (種,年,国) 28／11178
+seed 1: cross=9190 sh_will=8226 r_weak=19478 F1_will=22060 evals=87399 F3_shcalls=222 F2_invade=134
+seed 2: cross=8251 sh_will=7908 r_weak=19782 F1_will=20907 evals=88403 F3_shcalls=276 F2_invade=122
+seed 3: cross=9674 sh_will=8990 r_weak=21196 F1_will=23053 evals=96832 F3_shcalls=213 F2_invade=155
+seed 4: cross=8395 sh_will=7651 r_weak=20016 F1_will=19351 evals=90627 F3_shcalls=228 F2_invade=139
+seed 5: cross=9123 sh_will=8515 r_weak=20682 F1_will=21922 evals=92401 F3_shcalls=315 F2_invade=139
+seed 6: cross=8687 sh_will=7816 r_weak=18680 F1_will=19660 evals=83347 F3_shcalls=212 F2_invade=147
+seed 7: cross=7623 sh_will=6597 r_weak=18161 F1_will=17689 evals=80614 F3_shcalls=185 F2_invade=128
+seed 8: cross=9051 sh_will=8016 r_weak=20083 F1_will=21545 evals=90218 F3_shcalls=216 F2_invade=132
+seed 9: cross=8248 sh_will=7430 r_weak=17097 F1_will=19830 evals=75897 F3_shcalls=196 F2_invade=123
+seed 10: cross=8723 sh_will=7643 r_weak=17320 F1_will=19336 evals=77217 F3_shcalls=264 F2_invade=132
+total cross=86965 sh_will=78792 r_weak=192495 F1_will=205353 evals=862955 F3_shcalls=2327 F2_invade=1351

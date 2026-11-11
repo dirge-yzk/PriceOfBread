@@ -11,7 +11,7 @@ namespace PriceOfBread.SimCore;
 //   priceMeanGold は州の Price の単純平均×国の FxRate（取引の重みなし）。量は財の単位（重さを掛けない）。
 public static partial class Instruments
 {
-    internal const string NationgoodHeaderText = "year\tnation\tgood\ttier\tproducedQty\tdemandQty\tshortageQty\tstockQty\tcrossImportValue\tcrossExportValue\tcrossImportQty\tcrossExportQty\tpriceMeanGold\tdutyTariffPaid\tdutyCornPaid\ttarEffAtPay\texRateAtPay";   // (1008) 末尾の 4 列：越境の成約で買い手が払った関税の分・穀物法の分（買い手の通貨）・その清算の頭の tar・exRate
+    internal const string NationgoodHeaderText = "year\tnation\tgood\ttier\tproducedQty\tdemandQty\tshortageQty\tstockQty\tcrossImportValue\tcrossExportValue\tcrossImportQty\tcrossExportQty\tpriceMeanGold\tdutyTariffPaid\tdutyCornPaid\ttarEffAtPay\texRateAtPay\toutputSum\teventRegions";   // (1008) 末尾の 4 列：越境の成約で買い手が払った関税の分・穀物法の分（買い手の通貨）・その清算の頭の tar・exRate
 
     /// <summary>越境の額と量を調べる年の間隔（年の数字がこの数の倍数と 1913）。既定 10＝trroute と同じ。番人だけが 1 にする。</summary>
     internal static int NgEveryYears = 10;
@@ -43,6 +43,27 @@ public static partial class Instruments
         for (int i = 0; i < nn; i++) { a.Tar[i] = tar is not null ? tar[i] : double.NaN; a.Ex[i] = exRate is not null ? exRate[i] : double.NaN; }   // (1008) 清算の頭の tar・exRate（エンジンの局所）
         a.Gc = gc; a.Idx.Clear(); a.Worlds = new World[nn]; a.LastB = a.LastS = null; a.Any = true;
         for (int i = 0; i < nn; i++) { a.Idx[nations[i].World] = i; a.Worlds[i] = nations[i].World; }
+    }
+
+    // (1028) eventRegions の蓄え：RegionMoved を通った州（Territory.TransferRegion＝Rehome は Ceded・Seceded・Returned＝Sovereign は通らない）と、前の四半期の末に居なかった州の参照（Adopt の植民地の州化）。
+    sealed class NgEv { public readonly HashSet<Region> Seen = new(ReferenceEqualityComparer.Instance); public readonly HashSet<Region> Moved = new(ReferenceEqualityComparer.Instance); public bool HaveSeen; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, NgEv> NgEvs = new();
+    internal static void NgRegionMoved(World from, Region r) { if (from.Diplomacy is { } dip) NgEvs.GetValue(dip, _ => new NgEv()).Moved.Add(r); }
+    /// <summary>四半期の末の最後：次の四半期のために、移った州の集合を空にし、居る州を覚える（最初の呼びは覚えるだけ＝新しい州に数えない）。</summary>
+    internal static void NgEventsRoll(MultiNationSim sim)
+    {
+        if (sim.Diplomacy is not { } dip) return;
+        var ev = NgEvs.GetValue(dip, _ => new NgEv());
+        ev.Moved.Clear();
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) ev.Seen.Add(r);
+        ev.HaveSeen = true;
+    }
+    static int NgEventCount(MultiNationSim sim, World w)
+    {
+        if (sim.Diplomacy is not { } dip || !NgEvs.TryGetValue(dip, out var ev)) return 0;
+        int n = 0;
+        foreach (var r in w.Regions) if (ev.Moved.Contains(r) || (ev.HaveSeen && !ev.Seen.Contains(r))) n++;
+        return n;
     }
 
     static int NgIdx(NgAcc a, World w, bool buyer)
@@ -85,6 +106,9 @@ public static partial class Instruments
         foreach (var w in rowWorlds)
         {
             string nm = NameOf(w);
+            var outSum = new double[Catalog.Goods.Length];   // (1028) その国の州の Producer.Output の和（財ごと・prodcap_s と同じ歩き方）
+            foreach (var r in w.Regions) foreach (var p in r.Producers) { int pg = p.GoodId; if (pg >= 0 && pg < r.Markets.Length && pg < outSum.Length) outSum[pg] += p.Output; }
+            string evr = I(NgEventCount(sim, w));
             for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)
             {
                 double prod = 0, dem = 0, sh = 0, stock = 0, price = 0; int n = 0;
@@ -97,7 +121,7 @@ public static partial class Instruments
                 int ci = a.Idx.TryGetValue(w, out var ix0) ? ix0 : -1; bool had = ci >= 0; int k = ci * a.Gc + g;
                 sk.W.WriteLine(string.Join('\t', I(yearLabel), nm, Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), F(prod), F(dem), F(sh), F(stock),
                     had ? F(a.ImpV[k]) : "0", had ? F(a.ExpV[k]) : "0", had ? F(a.ImpQ[k]) : "0", had ? F(a.ExpQ[k]) : "0", n > 0 ? F(price / n * w.FxRate) : "nan",
-                    had ? FR(a.DutyT[k]) : "0", had ? FR(a.DutyC[k]) : "0", had ? FR(a.Tar[ci]) : "nan", had ? FR(a.Ex[ci]) : "nan"));
+                    had ? FR(a.DutyT[k]) : "0", had ? FR(a.DutyC[k]) : "0", had ? FR(a.Tar[ci]) : "nan", had ? FR(a.Ex[ci]) : "nan", FR(outSum[g]), evr));
             }
         }
     }

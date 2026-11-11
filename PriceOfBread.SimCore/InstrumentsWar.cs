@@ -43,6 +43,7 @@ public static partial class Instruments
         public int TauPos, TauPosWeak;   // 評価の組の緊張が正の件数（弱小国の門で落ちた評価だけの件数も）
         public double CurLand, CurNeed, CurB;   // (1023) 呼び 1 回の最初の評価で読んだ陸の力・要求・前線の割合（評価ごとの新しい要求の比較に使う）
         public double SumNewNeed;        // (1023) Σ 評価ごとの新しい要求 need×(1−τ²)
+        public int CrossWeakWill;        // (1028) 標的が弱小国（理由〈弱小国が標的〉）かつ 膨張意欲が要求に足りない（ExpansionWill＜InvadeWillCost）評価の件数。sh_will（影の評価で最初に落ちた門が〈余剰戦力〉）は前の門で落ちた評価を含まない＝cross ≧ sh_will
         public int NewOk, OldOk, NewOnly;   // (1023) 評価のうち 新しい要求で余剰が足りる／S_C′（今の要求）で足りる／新しいだけで足りる件数
         public double SumTau2;           // Σ min(1, 緊張÷140)²（要求×(1−τ²) の τ² の和・F4 の材料）
         public double PrevWill;
@@ -65,7 +66,6 @@ public static partial class Instruments
         public readonly int[] QStarts = new int[WarCodeNames.Length];
         public System.IO.StreamWriter? We, Wp, Wb;
         public bool HeaderDone;
-        public int Samples;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, WarSt> WarSts = new();
     static WarSt WarOf(Diplomacy d) => WarSts.GetValue(d, _ => new WarSt());
@@ -107,7 +107,6 @@ public static partial class Instruments
 
     /// <summary>試験用：記録された (q, 札の番号) の並び（dip.Wars と同じ順）。</summary>
     internal static IReadOnlyList<(int Q, int Code)> WarMetaOf(Diplomacy d) => WarOf(d).WarMeta;
-    internal static IReadOnlyList<int> WarInvadeQsOf(Diplomacy d) => WarOf(d).InvadeQ;
 
     static WarPairAcc PairAccOf(WarSt st, Power a, Power b)
     {
@@ -265,6 +264,7 @@ public static partial class Instruments
         if (d.RankOf(target) != PowerRank.Minor) acc.TgtNonMinor++;
         if (reason == "弱小国が標的")
         {
+            if (gw.ExpansionWill < gw.InvadeWillCost(target)) acc.CrossWeakWill++;   // (1028)
             int gate = WarShadowGate(gw, d, c, great, target);
             acc.Shadow[gate]++;
             if (gate == 0)
@@ -309,7 +309,7 @@ public static partial class Instruments
         + "sh_pass\tsh_dependent\tsh_suzerainOf\tsh_noLand\tsh_atWar\tsh_maxDep\tsh_will\tsh_mil\tsh_ship\tsh_sea\tsh_canned\tsh_projFail\tsh_projPass\tsh_calls\t"
         + "willNow\twillPrev\twillInflowWar\twillInflowCommerce\twillDerivedUse\t"
         + "feverNow\tsumWill\tsumFever\tsumFMil\tsumFMilSpend\tsumFNoble\tsumFSoldier\tsumFThreat\tsumFDiversion\t"
-        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2\tsumNewNeed\tnewOk\toldOk\tnewOnly";
+        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2\tsumNewNeed\tnewOk\toldOk\tnewOnly\tcrossWeakWill";
 
     internal const string WarPairHeader = "quarter\tnationA\tnationB\ttensionEnd\ttensionMax\tmonthsGe140\tmonthsGt100\twarClock\tgateOpenMonths\tstarts\tsubmits\tpeaceResets\tsecessionResets\tgrudge\thostility";
     internal const string WarBandHeader = "quarter\tpairs\tpairsWritten\tpairsSkipped\tb0\tb0_20\tb20_70\tb70_100\tb100_140\tb140\tsubmits\tpeaceResets\tsecessionResets\tstart_unknown\tstart_main\tstart_subjugate\tstart_declare\tstart_ally\tstart_suzerain\tstart_civil\tstart_ultimatum\tstart_calltoarms\tstart_mediation\tstart_secession";
@@ -354,7 +354,7 @@ public static partial class Instruments
             Add(F(adv));
             Add(F(acc.Will)); Add(F(acc.Fever)); Add(F(acc.FMil)); Add(F(acc.FMilSpend)); Add(F(acc.FNoble)); Add(F(acc.FSoldier)); Add(F(acc.FThreat)); Add(F(acc.FDiv));
             Add(F(acc.Land)); Add(F(acc.Force)); Add(F(acc.NeedLand)); Add(F(acc.NeedInternal)); Add(F(acc.NeedSea)); Add(F(acc.PowerMil)); Add(F(acc.LandPower)); Add(F(acc.Own)); Add(F(acc.Reach)); Add(F(acc.Ratio));
-            Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess)); Add(WI(acc.TauPos)); Add(WI(acc.TauPosWeak)); Add(F(acc.SumTau2)); Add(F(acc.SumNewNeed)); Add(WI(acc.NewOk)); Add(WI(acc.OldOk)); Add(WI(acc.NewOnly));
+            Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess)); Add(WI(acc.TauPos)); Add(WI(acc.TauPosWeak)); Add(F(acc.SumTau2)); Add(F(acc.SumNewNeed)); Add(WI(acc.NewOk)); Add(WI(acc.OldOk)); Add(WI(acc.NewOnly)); Add(WI(acc.CrossWeakWill));
             st.We!.WriteLine(sb.ToString());
             // 次の四半期へ
             double pw = will;
