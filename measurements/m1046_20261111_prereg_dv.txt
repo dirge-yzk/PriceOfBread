@@ -1,0 +1,32 @@
+(1046) c99dv 事前登録（最初のコミット）　2026-11-11　書いたモデル：Claude Sonnet 5.5
+種類：恒等の線（台本だけ・エンジン 0 行・試験の .cs 0 行）。木：bb76c653。
+
+[1] 恒等の線・予言 0
+  - SimCore・Runner・App・Display・Tests の .cs と Instruments.cs の出力は 1 行も変えない。
+  - 変えるのは scripts/instruments/ident/ident.sh（判定の後の段を足す・既定は切る）と scripts/instruments/tools/（新 prune.py・pack.sh・unpack.sh・自己試験）だけ。
+  - 既定（PRUNE 未設定）では ident.sh は今と同じ命令列・同じ終了コード・同じ出力＝予言：素の 5 種・計器つき 10 種の成績表は m1044 と名乗り行を除いて全行一致、計器の表の差は 0。
+  - 浮動小数の順序が変わる箇所：なし（sha1 とファイルの削除だけ）。紙の台本の食い違い数：該当なし（0）。
+
+[2] 消す物と残す物の規則（PRUNE=1 のときだけ・判定の行が出た後だけ）
+  消す：ident の出力の ins/ の表のうち、基準（ident.cfg の INSRAW）の同名の表と〈行末を LF にそろえた全体の sha1〉が一致する表。
+  残す：基準と全体が違う表（食い違い・揺れ）・基準に無い表（足した表）・cfg の KNOWN の表・宣言した表（--added-tables --grown-ok --removed-tables --rows-grown-ok --known-extra）・列が増えた表（見出しが基準を先頭に含み長い）。
+  重い 4 表（cpop_s・cearn_s・subst_s・prodcap_s）：PRUNE_HEAVY=1 のときだけ消す対象に入れる（既定は切る）。HEAVY_KEEP に名指しがあれば一致していても残す。sha1 は消す前に必ず manifest に書く。
+  manifest：各表 2 本の sha1 ＝全体（LF にそろえる）と基準の列の数までの先頭の列（LF にそろえる）。置き場は ident の作業フォルダ（prune_manifest.tsv）と measurements/ の写し（--copy-to）。先頭の列の sha1 は prefix1044.py の形（表・列数・sha1）の別ファイルにも書く（30/30 の再現用）。
+  安全：(a) 最後の空でない行が〈判定: 恒等〉か〈判定: 不一致〉でなければ何も消さない（〈判定: 未了〉・行が無い・ファイルが無い）。(b) 消せる場所は /d/PoB_work/ident_* と /d/PoB_work/c99dv_work の下の ins/ だけ。keep_*・wt_*・branch_backup・PoB_play・他の線の *_work・INSRAW 自身とその下・シンボリックリンクは拒んで終了コード 3。(c) 消した名は deleted 型の一覧（パス 消した（理由））に書く。
+  読み手の grep（SimCore・Runner・App・Display・Tests の .cs）：ident.sh・ident_check.py・rmraw.sh・keepsum.py を参照する .cs は 0 件（git grep 済み）。scripts 側の読み手は scripts/instruments/c*/ident*.sh が ident.sh run を呼ぶだけ＝既定で挙動不変。POB_COEF の名前・SaveGame の名前の表：触れない。
+  他の線との重なり：c99cd（InstrumentsTradeskip/Sellr・EconomyStep・BilateralMarket・MultiNationSim）・c99ov（EconomyStep :963・Coefficients）・c99db（PolicyPreferences・Privileges・PopScan・InstrumentsLordstat）と持ち主のファイルは重ならない（c99dv は scripts/instruments/ident/ident.sh・tools/・measurements/m1046_*・c99dv_work だけ）。batch.sh は触らない（腕の後段の刈り込みは ident の後段に置く＝重い 4 表を消すのも判定の後。check が cearn_s を読むため腕の直後には消せない）。
+  圧縮：tools/pack.sh（包む）・unpack.sh（解く）＝gzip の tar。読み手が生を読む keep_* と INSRAW には使えない（拒む）。使う場所は、読み終えた腕の生（採否が決まった後）を合流が残す場合だけ＝使うかは合流が決める。この線は圧縮を ident に組み込まない。
+
+[3] 足す試験と突然変異（scripts/instruments/tools/prune_selftest.py・使い捨ての写しの表 D:/PoB_work/c99dv_work/selftest）
+  門：G1 刈った量が 0 でない　G2 一致しない表は 1 つも消えない　G3 keep_* へ向けた呼び出しが拒まれ中身が無傷　G4 判定の文が刈らない形と同じ（実走で m1044z の判定と比べる）　G5 manifest の先頭の列の sha1 が measurements/m1044_20261111/hash/ の基準と一致（実走）。
+  突然変異（各々でこの試験が赤）：
+   M1 判定の前に刈る（判定の行の確認を外す）→ G（判定が未了のとき消えない）が赤
+   M2 sha1 で最後の列を落とす（写しの表の最後の列の 1 バイトを変えて見逃す）→ G2 が赤
+   M3 食い違った表を消す → G2 が赤
+   M4 keep_* の拒みを外す → G3 が赤
+   M5 CRLF をそろえない → G1（LF の写しが一致として消えるはず）と基準の sha1 の期待値（リテラルから作る）が赤
+  期待値は同じ出所から作らない：sha1 の期待値は試験の中のリテラルのバイト列から hashlib で独立に作る。
+  ソースを走査する番人（㉘）の点検：この線は .cs を 0 行しか触らない＝dotnet test の㉘は ident のテスト数の腕（t）で足りる。WriterRatchetTests の宣言の表・MoneyStock( の件数・route_anchors.tsv の鍵の行：触れない（件数の予言：書き換え 0 件）。
+
+[4] 実走：e1.mark の後に main（bb76c653）の ident を 1 本。PRUNE=1・PRUNE_HEAVY=1。予言：判定の文は m1044z と同じ〈判定: 恒等〉・残る生は食い違い・揺れ・宣言の表だけ（足した表 sellr_s・lwk_s と列が増えた表は残る）・先頭の列の sha1 は基準と一致。素の 5 種・計器つき 10 種は m1044 と名乗り行を除いて全行一致。
+[5]〈判定: 恒等〉なら採る（既定は今の波では切る＝合流が PRUNE の既定を決め、README の道具の行を直す）。
