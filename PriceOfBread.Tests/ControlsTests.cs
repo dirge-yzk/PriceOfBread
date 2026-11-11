@@ -186,12 +186,14 @@ public class ControlsTests
         double mpc = w.Coef.MonthsPerClearing;
         double sumI = imp.Rows.Sum(r => ((NumberCell)r.Cells[1]!).Value) * mpc;
         double sumE = exp.Rows.Sum(r => ((NumberCell)r.Cells[1]!).Value) * mpc;
-        Assert.Equal(ti, sumI, 6);   // 総額は行の和（額が 0 の財は両方から外れる）
+        Assert.Equal(ti, sumI, 6);   // 総額は全額＝行の和（小さな財は「その他」の 1 行に入る）
         Assert.Equal(te, sumE, 6);
         Assert.True(imp.Rows.Count + exp.Rows.Count > 0, "清算を通しても貿易の行が 1 つも無い＝この試験の前提が崩れた");
         foreach (var d in new[] { imp, exp })
         {
-            var vals = d.Rows.Select(r => ((NumberCell)r.Cells[1]!).Value).ToList();
+            var named = d.Rows.Where(r => r.Key != TradeTables.OtherGood.ToString()).ToList();   // 「その他」は最後に置く（小さな財の合計）
+            Assert.True(d.Rows.Count == 0 || named.Count == d.Rows.Count || d.Rows[^1].Key == TradeTables.OtherGood.ToString());
+            var vals = named.Select(r => ((NumberCell)r.Cells[1]!).Value).ToList();
             Assert.Equal(vals.OrderByDescending(v => v).ToList(), vals);   // 額の降順
             Assert.Equal(d.Rows.Count, d.Rows.Select(r => r.Key).Distinct().Count());   // 行の鍵が重ならない
             Assert.All(d.Rows, r =>
@@ -199,7 +201,8 @@ public class ControlsTests
                 Assert.Equal(5, r.Cells.Count);
                 double ratio = ((NumberCell)r.Cells[2]!).Value;   // 価格比（旧は金額の後ろの「(×0.34)」）＝数でない行は「—」・数なら正
                 Assert.True(double.IsNaN(ratio) || ratio > 0);
-                Assert.True(((NumberCell)r.Cells[3]!).Value is >= 0 and <= 1.0000001);
+                double frac = ((NumberCell)r.Cells[3]!).Value;
+                Assert.True(frac is >= 0 and <= 1.0000001 || (r.Key == TradeTables.OtherGood.ToString() && double.IsNaN(frac)));   // 「その他」は割合を持たない
             });
         }
     }

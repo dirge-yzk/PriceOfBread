@@ -979,8 +979,10 @@ public partial class GameViewModel
         foreach (var mp in _sim.Diplomacy.Megaprojects)
         {
             if (mp.Owner is not { } o || !ReferenceEquals(o, Me)) continue;   // 自国が建設地を保有するものだけ
+            // 発見の門が閉じている物は並べない（解禁まで出さない＝B21 と同じ・S8）。判定は着工の可否と同じ Megaprojects.RequirementMet（古い技術水準の門は読まない）
+            bool reqOk = Megaprojects.RequirementMet(_player, mp.Id);
+            if (!mp.Started && !mp.IsComplete && !reqOk) continue;
             double pct = mp.BuildUnits > 1e-9 ? System.Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0;
-            bool techOk = _player.TechLevel >= mp.TechGate;
             var host = _player.Regions.FirstOrDefault(r => r.Name == mp.Host);
             double cost = host is null ? 0 : Megaprojects.EstimateCost(host, mp, _player.Coef);
             bool canStart = Megaprojects.CanStart(_player, mp);
@@ -991,13 +993,13 @@ public partial class GameViewModel
                 // ★行に「技術n%（不足）」は出さない（作者指示2026-08-02）＝押せない理由はボタンのホバーで読む。
                 State = mp.IsComplete ? "完成" : mp.Started ? $"建設中 {Fmt.Share(pct)}" : "未着工",
                 Effect = $"{JaEffect(mp.EffectTarget)} {(mp.EffectMode == "scale" ? $"×{1 + mp.EffectValue:F2}" : $"＋{mp.EffectValue:F0}")}",
-                Brush = mp.IsComplete ? PPlus : techOk ? PUtilText : PNameText,
+                Brush = mp.IsComplete ? PPlus : reqOk ? PUtilText : PNameText,
                 CanStart = canStart,
                 ShowStart = !mp.IsComplete,   // ボタンは完成後だけ消す（それ以外は出してグレーアウト＝工場の流儀）
                 StartLabel = $"着工 {Fmt.Money(cost)}",
                 // データのツールチップ（規律準拠＝説明文でなく値）。行には理由を書かない＝カーソルを合わせればここが出る。
                 StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}/見積 {Fmt.Money(cost)}"
-                            + (techOk ? "" : $"\n技術：{(mp.TechGate > 1e-9 ? _player.TechLevel / mp.TechGate : 1):P0}（不足）"),
+                            + (Megaprojects.StartRefusal(_player, mp) is { } refusal ? "\n" + refusal : ""),
                 Project = mp,
             });
         }
@@ -1263,7 +1265,8 @@ public partial class GameViewModel
         var h = _wpHist[gi];
         // 枠＝|ln(比)| の最大が収まる最小の段階。有限な点が1つも無ければ最小枠（×1.25）。
         double maxDev = 0, last = double.NaN;
-        foreach (double v in h) { if (!Finite(v)) continue; maxDev = Math.Max(maxDev, Math.Abs(Math.Log(v))); last = v; }
+        double lo = double.PositiveInfinity, hi = double.NegativeInfinity;
+        foreach (double v in h) { if (!Finite(v)) continue; maxDev = Math.Max(maxDev, Math.Abs(Math.Log(v))); last = v; lo = Math.Min(lo, v); hi = Math.Max(hi, v); }
         double frame = SparkBrackets[^1];
         foreach (double b in SparkBrackets) if (maxDev <= Math.Log(b) + 1e-12) { frame = b; break; }
         double lnFrame = Math.Log(frame);
@@ -1277,20 +1280,15 @@ public partial class GameViewModel
         }
         // 補助線＝枠以下の各段階とその逆数。1px の線が2行に滲まないよう半ピクセルへ寄せ、上下は中心から同じ距離に置く。
         var geo = new StreamGeometry();
-        var levels = new List<double>();
         using (var ctx = geo.Open())
             foreach (double b in SparkBrackets)
             {
                 if (b > frame + 1e-12) break;
-                levels.Add(1.0 / b); levels.Add(b);
                 double dy = Math.Round(Math.Log(b) / lnFrame * SparkHalfH) + 0.5;
                 Line(ctx, SparkMidY - dy); Line(ctx, SparkMidY + dy);
             }
-        levels.Sort();
-        string tip = $"枠 ×{1.0 / frame:0.##}〜×{frame:0.##}"
-                   + $"\n目盛り {string.Join("・", levels.Select(v => $"×{v:0.##}"))}"
-                   + $"\n直近 {(Finite(last) ? $"×{last:0.###}" : "—")}"
-                   + $"\n標本 {pts.Count}四半期";
+        // 図の下に出す 1 行＝枠の外へ張り付いた点も実数で読める（S3）
+        string tip = Finite(lo) && Finite(hi) ? $"最小 {Fmt.Share(lo)}　最大 {Fmt.Share(hi)}" : "";
         _wpSpark[gi] = pts; _wpGrid[gi] = geo; _wpTip[gi] = tip; _wpSparkVer[gi] = _wpVersion;
         return (pts, geo, tip);
 

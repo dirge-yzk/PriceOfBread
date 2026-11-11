@@ -261,6 +261,9 @@
                                 <Polyline Points="{Binding ProdSparkPoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
                             </Canvas>
                         </Border>
+                        <!-- 図の外へ張り付いた点の実数（世界価格比の最小と最大）＝データの 1 行 -->
+                        <TextBlock Text="{Binding ProdDetail.SparkScaleTip}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
+                                   IsVisible="{Binding ProdDetail.SparkScaleTip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         <!-- ⑥2段組＝【左】生産にかかるコスト（限界費用の内訳・合計＝生産コスト）／【右】価格の積み上げ（合計＝販売価格）。
                              どちらもエンジン（ProductionDiag）の実式そのもの＝番人テストが「積み上げ＝実際の値」を固定している
                              （左＝合計が限界費用 mc に一致／右＝合計が買い手の払う価格に一致）。
