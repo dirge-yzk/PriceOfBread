@@ -408,7 +408,7 @@ public partial class GameViewModel
                 {
                     Key = display,
                     Name = display,
-                    Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({Fmt.Share(f.Size / natPop)})"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
+                    Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"（{Fmt.Share(f.Size / natPop)}）"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
                     Cohesion = Fmt.Share(f.Cohesion),
                     Strength = Fmt.Share(ratio),
                     StrengthTip = tip,
@@ -427,7 +427,7 @@ public partial class GameViewModel
             {
                 Key = f.Name,
                 Name = f.Name,
-                Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({Fmt.Share(f.Size / natPop)})"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
+                Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"（{Fmt.Share(f.Size / natPop)}）"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
                 Cohesion = "—",   // スナップショット＝永続FactionState無し＝結束が定義されない
                 Strength = "—",   // スナップショット＝永続FactionState無し＝FactionStrengthが定義されない（結束・変異を持たない）
                 StrengthTip = "",

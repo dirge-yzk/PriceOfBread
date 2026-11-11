@@ -1142,7 +1142,7 @@ public partial class GameViewModel
             double ratio = hasRef ? it.UnitPrice / rp : 0;
             detail.CostRows.Add(new ProdCostRow(key + Catalog.Goods[it.GoodId].Name)
             {
-                Label = $"{Catalog.Goods[it.GoodId].Name}(×{it.Qty.ToString("0.###")})",
+                Label = $"{Catalog.Goods[it.GoodId].Name}（×{it.Qty.ToString("0.###")}）",
                 Fill = $"供給：{Fmt.Share(it.Fill)}",   // ★材別の供給率（作者指示2026-08-10 F）＝Market.LastRation（エンジンの配給率そのもの）
                 FillBrush = it.Fill < MaterialFillThreshold ? PMinus : PUtilText,
                 Ratio = hasRef ? $"£{rp:F2}×{Fmt.Share(ratio)}" : "—",   // 基準＝その材の基本価格の**実数**（項目1・2026-08-10 第5ラウンド）

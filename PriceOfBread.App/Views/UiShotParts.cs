@@ -77,12 +77,13 @@ internal static class UiShotParts
         };
         var lineFlat = new LineChart { Height = 40, Width = 150, Stroke = B("RustBrush", Brushes.Firebrick), Values = [3, 3, 3], ShowLabels = false };
         var lineEmpty = new LineChart { Height = 40, Width = 80, Stroke = B("BlueBrush", Brushes.SteelBlue), Values = [double.NaN, double.PositiveInfinity] };
+        var RuleBrushes = TableView.PaletteOf(new ShareCell([], PopTables.RulePalette));
         var pie = new HalfPie
         {
             Radius = 50,
-            Slices = [new(0.4, Brushes.SteelBlue), new(0.3, Brushes.Goldenrod), new(0.2, Brushes.IndianRed), new(0.1, Brushes.SeaGreen)],
+            Slices = [new(0.4, RuleBrushes[0]), new(0.3, RuleBrushes[1]), new(0.2, RuleBrushes[2]), new(0.1, RuleBrushes[3])],   // 支配度の 4 区分と同じ色（V4）
         };
-        var pieOne = new HalfPie { Radius = 30, Slices = [new(1.0, Brushes.SeaGreen)] };
+        var pieOne = new HalfPie { Radius = 30, Slices = [new(1.0, RuleBrushes[0])] };
         var pieNone = new HalfPie { Radius = 30, Slices = [new(0.0, Brushes.SeaGreen), new(double.NaN, Brushes.Red)] };
 
         var ink = B("InkBrush", Brushes.Black);

@@ -295,6 +295,9 @@ public static class ProductionTables
                 demand += m.LastDemand; supply += m.LastProduced; priceW += m.Price * m.LastProduced; priceSimple += m.Price; nr++;
                 double c = MinimumWageFloor.LaborSupply(r, id, out int lp);
                 cap += c;
+                // 供給（LastProduced）は畜力・蒸気機関などの人力でない行の産出も含む＝上限も同じ集合の能力で足す（分子と分母を同じ規則に・V7）。床の計算（c・capForFloor）は人力の行だけのまま
+                foreach (var s in r.Producers)
+                    if (s.GoodId == id && !s.Bankrupt && !EconomyStep.IsHumanLaborSupply(s)) cap += s.Capacity;
                 if (floorOn && c > 1e-9 && lp >= 0)
                 {
                     double f = MinimumWageFloor.PerUnit(r, id, law);

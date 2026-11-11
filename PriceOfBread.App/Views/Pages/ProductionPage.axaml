@@ -428,8 +428,8 @@
                                                    上の行の伸縮でボタンが数px動く＝離上時の当たり判定に頼ると押下が黙って捨てられる。
                                                  ★数字の列は Auto でなく * ＝1桁でも2桁でも ＋/− の位置が動かない（隣の州と縦に揃う）。 -->
                                             <!-- 左6の余白＝「−」が民営工場の数字と地続きに見えないための隙間（uishot 実測2026-08-10＝「3−」と読めた） -->
-                                            <Border Grid.Column="2" Background="Transparent" VerticalAlignment="Center" Margin="16,0,0,0"
->
+                                            <Border Grid.Column="2" Background="Transparent" VerticalAlignment="Center" Margin="16,0,0,0" Padding="3,0,0,0"
+                                                    BorderBrush="{StaticResource SandLightBrush}" BorderThickness="1,0,0,0"><!-- 左の縦線＝「−」を民営の数でなく国営の釦に結ぶ（V12） -->
                                                 <Panel>
                                                     <!-- 産地の無い州は「—」（他の列と同じ埋め方）＝空欄にしない。どちらも同じ 90px の枠に入るので位置は動かない -->
                                                     <TextBlock Text="{Binding StateFac}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Center"

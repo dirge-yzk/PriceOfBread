@@ -203,8 +203,8 @@ public static class PopTables
         => new("pop.classes", "階級", Page.Population, (_, w) => ClassLines(w), l => "class." + l.ClassId, l => l.Name,
         [
             Col.Text<ClassLine>("name", "階級", l => l.Name, l => l.Tip),
-            Col.Text<ClassLine>("size", "規模", l => $"{DisplayFormat.PopK(l.Size)}({DisplayFormat.Share(l.Share)})"),
-            Col.Text<ClassLine>("unemployed", "失業者", l => { string a = arrow?.Invoke(l, "unemployed") ?? ""; return l.UnempRate > 0.005 ? $"{DisplayFormat.PopK(l.Unemployed)}({DisplayFormat.Share(l.UnempRate)}){a}" : "—"; }),   // 丸めて 0% の階級は「—」。矢印の差分は表示の有無に依らず全階級で採る
+            Col.Text<ClassLine>("size", "規模", l => $"{DisplayFormat.PopK(l.Size)}（{DisplayFormat.Share(l.Share)}）"),
+            Col.Text<ClassLine>("unemployed", "失業者", l => { string a = arrow?.Invoke(l, "unemployed") ?? ""; return l.UnempRate > 0.005 ? $"{DisplayFormat.PopK(l.Unemployed)}（{DisplayFormat.Share(l.UnempRate)}）{a}" : "—"; }),   // 丸めて 0% の階級は「—」。矢印の差分は表示の有無に依らず全階級で採る
             Col.Text<ClassLine>("satisfaction", "満足度", l => $"{DisplayFormat.Share(l.Satisfaction)}{arrow?.Invoke(l, "satisfaction")}", l => l.SatisfactionTip),
             Col.Text<ClassLine>("discontent", "不満度", l => $"{DisplayFormat.Share(l.Discontent)}{arrow?.Invoke(l, "discontent")}"),
             Col.Text<ClassLine>("militancy", "闘争度", l => $"{DisplayFormat.Share(l.Militancy)}{arrow?.Invoke(l, "militancy")}", l => l.MilitancyTip),

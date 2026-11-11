@@ -15,6 +15,14 @@ public static class DisplayFormat
         return $"{sign}£{a:N0}";
     }
 
+    /// <summary>有効数字 3 桁の金額（£15.3k・£7.18k・£3.31M）。1000 未満は <see cref="Money"/> と同じ。欄の見出しの合計どうしを引き算で突き合わせられる桁（2 回目の目の点検 W14）。</summary>
+    public static string MoneyFine(double v)
+    {
+        double a = System.Math.Abs(v);
+        if (!(a >= 1e3) || !(a < double.MaxValue)) return Money(v);
+        return (v < 0 ? Minus : "") + "£" + Amount(a);
+    }
+
     /// <summary>負号（U+2212）。画面の負号はこの 1 字に揃える。</summary>
     public const string Minus = "−";
 

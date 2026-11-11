@@ -78,7 +78,7 @@ public partial class NationChoice : ObservableObject
     {
         Index = index; Name = name; _select = select;
         Description = description;
-        Title = difficulty.Length > 0 ? $"{name}({strength})" : name;
+        Title = difficulty.Length > 0 ? $"{name}（{strength}）" : name;
         Difficulty = difficulty;
         DifficultyBrush = difficulty switch { "簡単" => DiffEasy, "挑戦的" => DiffHard, _ => DiffNormal };
         StrengthLabel = strength.Length > 0 ? $"({strength})" : "";

@@ -32,6 +32,16 @@ public static class Fmt
         return s == Money(0) ? s + "/月" : (v < 0 ? DisplayFormat.Minus : "+") + body;
     }
 
+    /// <summary>欄の見出しの月あたりの金額（有効数字 3 桁）。見出しの合計どうしを引き算で突き合わせられる（W14）。</summary>
+    public static string MoneyPerMonthFine(double v) => DisplayFormat.MoneyFine(ZeroAt(v, 0)) + "/月";
+
+    /// <summary>符号つきの月あたりの金額（有効数字 3 桁）。</summary>
+    public static string SignedMoneyPerMonthFine(double v)
+    {
+        string s = DisplayFormat.MoneyFine(Math.Abs(v));
+        return s == Money(0) ? s + "/月" : (v < 0 ? DisplayFormat.Minus : "+") + s + "/月";
+    }
+
     public static string MoneyPerHead(double v)
         => v >= 100 ? $"£{v:N0}" : v >= 10 ? $"£{v:F1}" : v >= 1 ? $"£{v:F2}" : v >= 0.1 ? $"£{v:F3}" : $"£{v:F4}";
 

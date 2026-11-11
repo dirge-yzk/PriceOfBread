@@ -102,6 +102,10 @@ public partial class GameViewModel
         foreach (var rg in w.Regions)
             if (rg.LastTransportCap > 1e-9 && rg.LastTransportCap < 1e15) { pot += Math.Max(0, rg.LastTradePotential); cap += rg.LastTransportCap; }
         // 分母の行＝州ごとの配分の和（内陸州は陸と海の小さい方・港の拡張を足す）＝上の行の和ではない。これを出して 使用量÷この行＝使用率 を表の行から出せるようにする（V5）
+        // 上の行の和（基本＋鉄道＋海軍−植民地補給）と州に配った輸送力の差を 1 行で出す＝行の和が配った輸送力に一致する（内陸州は陸と海の小さい方・港の拡張を足す州ごとの配分の差）。
+        double rowsSum = Transport.PreRailCapacity(w, w.Coef) + Math.Max(0, w.RailCapacity) + w.ShipCapacity - burdenLoss;
+        double allocGap = cap - rowsSum;
+        if (Math.Abs(allocGap) > 1e-9 * Math.Max(1.0, Math.Abs(rowsSum))) tRows.Add(new TransportRow("州ごとの配分の差", Fmt.Qty(allocGap)));
         tRows.Add(new TransportRow("州に配った輸送力", Fmt.Qty(cap)));
         tRows.Add(new TransportRow("使用量", Fmt.Qty(pot)));
         TransportRows = tRows;

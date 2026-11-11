@@ -548,7 +548,7 @@ public sealed class TableView : UserControl
                 why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
                 wp.Children.Add(why);
             }
-            var reasons = new List<string>();
+            string? up = null, down = null;   // 理由は 1 つだけ＝進める側（現在の段より上の最初の押せない段）を優先・無ければ下げる側（V3）
             for (int i = 0; i < st.Labels.Count; i++)
             {
                 int level = st.LevelBase + i;
@@ -556,13 +556,16 @@ public sealed class TableView : UserControl
                 btn.Content = st.Labels[i];
                 btn.Tag = (st, level);   // 最新の段の中身を持たせる
                 btn.IsEnabled = st.CanSelect(level);
-                if (!btn.IsEnabled && st.Why?.Invoke(level) is { Length: > 0 } why && !reasons.Contains(why)) reasons.Add(why);
+                if (!btn.IsEnabled && st.Why?.Invoke(level) is { Length: > 0 } why)
+                {
+                    if (level > st.Current) up ??= why; else down = why;
+                }
                 btn.Classes.Set("current", st.Current == level);
                 btn.Classes.Set("target", st.Target == level && st.Target != st.Current);
             }
             var whyText = (TextBlock)wp.Children[^1];
-            whyText.Text = string.Join("　", reasons);
-            whyText.IsVisible = reasons.Count > 0;
+            whyText.Text = up ?? down ?? "";
+            whyText.IsVisible = whyText.Text.Length > 0;
         }
     }
 }

@@ -135,7 +135,7 @@ public partial class GameViewModel
             };
 
             // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝6 項の割合の点）＋緊張が高まっている要因。
-            string detail = $"{name}({rank})　{polity}";
+            string detail = $"{name}（{rank}）　{polity}";
             if (pow.Nation is { } nw)
             {
                 detail += $"\n列強スコア：{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}：{l.Points:F1}"));
