@@ -547,7 +547,7 @@ public sealed class Coefficients
     // ★(1037) c98lw 労働力の重み（作者 2026-11-11「成人男性1に対し、女性を0.7～0.5、子供を0.5～0.25(適切な数値）にしてください。しかしこれは純粋な肉体労働(手作業の採掘や農作業）に限り、この差は機械化により是正され、機械操作に限ってはほとんど差が出ないようにしてください。」）。
     //   旗 0＝旧の式（女 1・子 ChildWorkFactor）を逐語。旗が正＝労働力を売る POP は州の動力の割合 m（EconomyStep.PowerShare）で手と機械を按分（機械の端は 1.0＝係数なし）・
     //   農業労働力だけを売る POP は手（m＝0）・高度労働力だけを売る POP は旧の式。事前登録 measurements/m1037_20261111_prereg_lw.txt。
-    public double LaborWeightsByPower = 0;       // 旗（0＝旧の式・正＝重み）
+    public double LaborWeightsByPower = 1;       // 旗（0＝旧の式・正＝重み）。★(1037) c98lw で 1 に点火（旗 0 の器は ident c98lwz〈判定: 恒等〉・腕 B は事前登録の門で読む）
     public double FemaleHandLaborWeight = 0.6;   // 手作業の女の 1 時間の産出÷成人男性（比）。値は AI の推奨（作者の幅 0.5〜0.7 の内）
     public double ChildHandLaborWeight = 0.35;   // 手作業の子（10〜14 歳）の 1 時間の産出÷成人男性（比）。値は AI の推奨（作者の幅 0.25〜0.5 の内）
     // 倍率排除④：労働供給の時間配分化（労働/教育/休息）。女性参加・児童労働の2値切替を、家計困窮(満足)・賃金保持(財産権)・就学(教育充足)から創発させる連続モデルへ。
