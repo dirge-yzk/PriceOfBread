@@ -1067,7 +1067,7 @@ public sealed partial class InternationalMarket
                     }
                     if (!(qA > 1e-12))
                     {
-                        if (!(X > 1e-12)) { tsWhy = dealtRow ? Instruments.TsExit.Dealt : xPrice <= xNeed ? Instruments.TsExit.XPriceSmall : Instruments.TsExit.XNeedSmall; break; }          // 買い手が満ちた＝この財は終了
+                        if (!(X > 1e-12)) { tsWhy = dealtRow ? Instruments.TsExit.Dealt : xPrice <= xNeed ? Instruments.TsExit.XPriceSmall : Instruments.TsExit.XNeedSmall; if (ts is not null) Instruments.TsExitProbe?.Invoke(xPrice, xNeed, tsWhy); break; }          // 買い手が満ちた＝この財は終了
                         if (capLeft[t] <= 1e-12 && !(X - unmetQ > 1e-12)) { tsWhy = Instruments.TsExit.CapMid; break; }   // 買い手の容量が尽き、不足は全て数えた＝この行は終わり（以後の売り手は数え直しになるだけ）
                         if (!(budget[t] > 1e-12)) { tsWhy = Instruments.TsExit.Budget; break; }  // 払い手の支払能力が尽きた（この清算の中で増えない）
                         // 売り手側の事情（Y=0/容量0/在庫0）＝次善へ回る（旧＝一時スキップの印 skipS[bestA]）＝候補表から外す

@@ -31,6 +31,8 @@ public static partial class Instruments
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
         Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard, Count }
     internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
+    /// <summary>(1036) 試験の呼び口：買い手が満ちた行の終わり（X≦0）で、その行の xPrice・xNeed と計器が付けた理由を渡す（null＝何もしない）。</summary>
+    [System.ThreadStatic] internal static Action<double, double, TsExit>? TsExitProbe;
     internal const int TsOutIdle = 1, TsOutNoNeed = 2, TsOutBudget0 = 3;
     static readonly double[] TsRatioEdges = [0.5, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0, 4.0];
 

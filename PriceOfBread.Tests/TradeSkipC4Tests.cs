@@ -90,6 +90,21 @@ public class TradeSkipC4Tests
         Assert.Equal(live - listed, og);
     }
 
+    /// <summary>C4b の理由の振り分け：行の終わりで X≦0 になったとき、理由が XPriceSmall なら xPrice≦xNeed・XNeedSmall なら xNeed＜xPrice（取り違えは赤）。両方の理由が現れる対照つき。</summary>
+    [Fact]
+    public void C4b_買い手が満ちた行の理由はxPriceとxNeedの小さい側と合う()
+    {
+        int nP = 0, nN = 0, bad = 0;
+        Instruments.TsExitProbe = (xp, xn, why) =>
+        {
+            if (why == Instruments.TsExit.XPriceSmall) { nP++; if (!(xp <= xn)) bad++; }
+            else if (why == Instruments.TsExit.XNeedSmall) { nN++; if (!(xn < xp)) bad++; }
+        };
+        var (dir, restore) = Run(24);
+        try { Assert.Equal(0, bad); Assert.True(nP > 0 && nN > 0, $"対照：理由の両側が現れない xPriceSmall {nP}・xNeedSmall {nN}"); }
+        finally { Instruments.TsExitProbe = null; restore(); }
+    }
+
     /// <summary>C4b の計器側：1 本の行の xPass の組の数が、行の終わりの理由の列へ足される（紙の値）。</summary>
     [Fact]
     public void C4b_行の終わりの理由は組の数だけ該当の列へ足される()
