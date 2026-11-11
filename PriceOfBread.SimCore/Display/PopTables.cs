@@ -301,7 +301,10 @@ public static class PopTables
 
     // ===== 年齢の層・出生と死・児童の就業率 =====
 
-    /// <summary>年齢の層ごとの人数（男女別・千人）。層の数と名前は POP の年齢の器から引く（層の数を決め打ちしない）。</summary>
+    /// <summary>年齢の層ごとの人数（男女別・千人）。**表示のときだけ 10 年ごとに足し合わせる**（作者の指示 2026-11-11「データ的にはスケールを分けているが、他と同じく
+    /// 10 年単位で表示〔足し合わせ〕でよい」）＝POP の層は幅がそろっていない（11層は 0 歳＝1 年・1〜20 歳＝5 年・21 歳以上＝10 年）ので、そのまま並べると棒の高さの尺度がそろわず形が崩れて見える。
+    /// 足し合わせは前から、群の幅が 10 年に届くまで（11層なら 0〜10 歳の 3 層・11〜20 歳の 2 層・以降は 1 層ずつ）。名札は実際の年齢（0〜10・11〜20…・71以上）。
+    /// 10 歳刻みの旧の 8 層は足し合わせない（今のまま）。シミュの層・人数の和は変えない＝表示の写しだけ。</summary>
     public static AgePyramid Pyramid(World w)
     {
         AgeLayout? lay = null; double[] male = [], female = [];
@@ -313,14 +316,21 @@ public static class PopTables
             for (int b = 0; b < l.Bands; b++) { male[b] += p.Size * p.Ages[2 * b]; female[b] += p.Size * p.Ages[2 * b + 1]; }
         }
         if (lay is null) return AgePyramid.Empty;
-        var labels = new string[lay.Bands];
-        for (int b = 0; b < lay.Bands; b++)
+        var labels = new List<string>(); var m = new List<double>(); var f = new List<double>();
+        int start = 0;
+        while (start < lay.Bands)
         {
-            int lo = (int)Math.Round(lay.Lower[b]);
-            if (b == lay.Bands - 1) labels[b] = $"{lo}以上";
-            else { int hi = (int)Math.Round(lay.Upper[b]) - 1; labels[b] = hi <= lo ? $"{lo}" : $"{lo}〜{hi}"; }
+            int end = start;   // 群の最後の層
+            while (end < lay.Bands - 1 && lay.Upper[end] - lay.Lower[start] < 10.0 - 1e-9) end++;
+            double sm = 0, sf = 0;
+            for (int b = start; b <= end; b++) { sm += male[b]; sf += female[b]; }
+            int lo = (int)Math.Round(lay.Lower[start]);
+            if (end == lay.Bands - 1) labels.Add($"{lo}以上");
+            else labels.Add($"{lo}〜{(int)Math.Round(lay.Upper[end]) - 1}");
+            m.Add(sm); f.Add(sf);
+            start = end + 1;
         }
-        return new AgePyramid(labels, male, female);
+        return new AgePyramid(labels.ToArray(), m.ToArray(), f.ToArray());
     }
 
     /// <summary>出生と死の標本。出生と死亡は計器の累積（World.DiagBirths/DiagDeaths）。出産可能な女性は 15〜49 歳。</summary>

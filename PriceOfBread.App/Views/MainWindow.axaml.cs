@@ -160,6 +160,7 @@ public partial class MainWindow : Window
         bool ok = true;
         foreach (var (pane, slot, page, frame) in UiShotWindows.MountedAll(gv))
         {
+            if (page is MapPane) continue;   // 地図は箱の外へ描きが出ても箱で切られる絵＝流れの判定の対象外（中の絵が箱より大きいのは仕様）
             double hh = frame.Bounds.Height, ww = frame.Bounds.Width;
             var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
             foreach (var c in page.GetVisualDescendants().OfType<Control>())

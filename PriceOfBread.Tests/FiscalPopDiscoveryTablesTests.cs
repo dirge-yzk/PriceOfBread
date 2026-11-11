@@ -195,6 +195,25 @@ public class FiscalPopDiscoveryTablesTests
         Assert.True(d.FertileWomen > 0 && d.FertileWomen < total);
     }
 
+    [Fact]
+    public void 年齢のピラミッドは表示のとき10年ごとに足し合わせる_11層は先頭の5層を2群に束ねる_旧の8層はそのまま_人数の和は変わらない()
+    {
+        var (_, w) = Board(3);
+        var py = PopTables.Pyramid(w);
+        Assert.Equal(8, py.Labels.Count);   // 11層も8層も表示は8本（11層は先頭の3層と次の2層を束ねる）
+        if (py.Labels[0] == "0〜10")
+            Assert.Equal(["0〜10", "11〜20", "21〜30", "31〜40", "41〜50", "51〜60", "61〜70", "71以上"], py.Labels);
+        else
+            Assert.Equal("0〜9", py.Labels[0]);   // 旧の8層（POB_AGE_BANDS=8）＝10歳刻みのまま
+        // 先頭の群 0〜10 歳は 0・1〜5・6〜10 の 3 層の和
+        if (py.Labels[0] == "0〜10")
+        {
+            double m0 = 0, f0 = 0;
+            foreach (var p in w.AllPops()) for (int b = 0; b < 3; b++) { m0 += p.Size * p.Ages[2 * b]; f0 += p.Size * p.Ages[2 * b + 1]; }
+            Assert.Equal(m0, py.Male[0], 6); Assert.Equal(f0, py.Female[0], 6);
+        }
+    }
+
     // ===== 発見 =====
 
     [Fact]
