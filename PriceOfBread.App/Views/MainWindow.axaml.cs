@@ -254,6 +254,7 @@ public partial class MainWindow : Window
             bool spectate = gvm.Spectating;
             int k = 0;
             PointRecord(rootDir, $"撮影開始　{(spectate ? "観戦" : "通常")}　国={ShownNationName(gvm)}　年={string.Join(",", years)}");
+            SeedPastWars(gvm);
             for (int yi = 0; yi < years.Length; yi++)
             {
             int targetYear = years[yi];
@@ -269,7 +270,7 @@ public partial class MainWindow : Window
                 await Task.Delay(500);
                 FollowShownNation(rootDir, mwvm, ref gvm);   // 映す国が付け直された（再併合・添字のずれ）なら新しい画面の VM を握り直す（死んだ VM の日付を見続けて目標年に届かない事故の予防）
                 // 観戦ではモーダルを押さずに閉じるだけ（押すとシムへ書く＝AI の判断でなくなる）。開いたこと自体が「プレイヤー専用の経路が観戦で開いた」証拠なので記録する。
-                if (spectate) CloseModalsForSpectate(rootDir, gvm);
+                if (spectate) { NotePastWars(rootDir, gvm); CloseModalsForSpectate(rootDir, gvm); }
                 // ★2026-09-07：ポップアップは世界を止め、**閉じても時間は再開しない**（作者裁定2026-08-24＝プレイヤーが自分で再開する）。
                 //   無人撮影はここで詰む＝実測で開始から1年（1784/01/01）で緊張モーダルが開き、以後どれだけ回しても暦が動かなかった
                 //   （旧＝総選挙だけを流していた）。中身を変えない選択肢（総選挙＝棄権・緊張＝何もせず閉じる）で流し、閉じたら自分で再開する。
@@ -288,7 +289,10 @@ public partial class MainWindow : Window
             if (gvm.Playing) gvm.TogglePauseCommand.Execute(null);
             await Task.Delay(500);
             FollowShownNation(rootDir, mwvm, ref gvm);
-            PointBegin(rootDir, dir, gvm, targetYear);   // 表.txt と点検.txt を書き、この時点の判定の数えを始める
+            if (spectate) NotePastWars(rootDir, gvm);
+            // 観戦か年が複数なら、表.txt・点検.txt を画像より前に（世界を進めない）書き、画面の側の表も足す。03b（再生中の地図）だけは世界が進むので、この時点の最後へ回す（下）。
+            bool tableMode = spectate || years.Length > 1;
+            PointBegin(rootDir, dir, gvm, targetYear, tableMode);   // 表.txt と点検.txt を書き、この時点の判定の数えを始める
             // ★(501) 段2：地図は分割に単独で置ける 1 つのページ＝地図の撮影は〈1 枚の枠に地図〉で撮る（旧の中央の地図に近い絵）。最初に載せた瞬間に自国を中央へ寄せる（HomeView）。
             var lay = gvm.Layout;
             lay.Reset(); lay.Open(Slot.Map);
@@ -335,11 +339,14 @@ public partial class MainWindow : Window
                     BootLog.Write($"uishot: 州ホバー {hv.Title}\n  " + string.Join("\n  ", hv.Lines.Select(l => l.Text)));
                     if (seenHover.Count >= 12) break;
                 }
-            gvm.TogglePauseCommand.Execute(null);   // 再生（停止/再生の幅ブレ検証用に両状態を撮る）
-            await Task.Delay(300);
-            Capture(dir, "03b_地図_再生中.png");
-            gvm.TogglePauseCommand.Execute(null);   // 停止へ戻す
-            await Task.Delay(300);
+            if (!tableMode)   // 従来の撮影（年が 1 つ・通常）はここで撮る。観戦・多時点では世界が進むので時点の最後（PointEnd の後）で撮る
+            {
+                gvm.TogglePauseCommand.Execute(null);   // 再生（停止/再生の幅ブレ検証用に両状態を撮る）
+                await Task.Delay(300);
+                Capture(dir, "03b_地図_再生中.png");
+                gvm.TogglePauseCommand.Execute(null);   // 停止へ戻す
+                await Task.Delay(300);
+            }
             // 欧州へカメラを振って1枚（2026-09-02）＝政治の塗り分けは**国が密集した所**が本番（開始国の周りだけでは見えない）
             gvm.CenterNationCommand.Execute("フランス");
             await Task.Delay(600);
@@ -492,6 +499,17 @@ public partial class MainWindow : Window
             catch (Exception ex) { BootLog.Write($"uishot: 段6 失敗 {ex}"); }
             await ShootWindows(dir, gvm, gameView, () => k++);   // 浮かぶ窓（2026-11-11・Views/MainWindow.UiShotWindows.cs）
             PointEnd(rootDir, gvm, targetYear);   // この時点の判定（外側の流れ・表の左端・UI の例外・異常の行）を記録へ
+            if (tableMode)   // 03b：再生中の地図は世界を進める＝表.txt と他の画像の暦をずらさないよう最後に撮る（この絵だけ数日後）
+            {
+                lay.Reset(); lay.Open(Slot.Map);
+                await Task.Delay(800);
+                if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null);
+                await Task.Delay(300);
+                Capture(dir, "03b_地図_再生中.png");
+                PointRecord(rootDir, $"[{targetYear}年] 03b_地図_再生中.png は再生中の絵＝暦 {gvm.DateText}（表.txt の暦 {_pDumpDate} より後）");
+                if (gvm.Playing) gvm.TogglePauseCommand.Execute(null);
+                await Task.Delay(300);
+            }
             if (yi < years.Length - 1) { lay.Reset(); await Task.Delay(300); gvm.SetSpeedCommand.Execute("3"); if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null); }   // 続きを回す
             }   // for 年
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
