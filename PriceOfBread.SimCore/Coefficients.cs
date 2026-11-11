@@ -1415,6 +1415,13 @@ public sealed class Coefficients
     //   したがって区間(0.61, 0.9)。**0.65＝およそ2:1の明確な優勢**を採る（対抗上陸には数の互角では足りない、が本義）。⚠この1本が本機構の唯一の較正点。
     // 0 で常に1.0＝厳密恒等。陸続きの戦線には一切触れない。
     public double SeaInvasionControlMin = 0.65;
+    // ★(1038) c98wr 戦争の入口の統合 段1〜3（事前登録 measurements/m1038_20261111_prereg_wr.txt・既定 0＝旧の規則）。正で有効。
+    //   段1：侵略と介入の余剰の門を、軍の充足から導く余剰 S（陸の大きさ×(1−前線に縛られた割合)−陸と内の必要量）と要求 D0（屈服線の比×標的の陣営の陸）で読む＝ExpansionWill を読まず消費もしない。
+    public double WarSurplusFromFill = 0;
+    //   段2：要求に (1−τ²)・τ＝min(1, 緊張÷WarDeclareTension)。侵略の〈弱小国が標的〉の門を外す。
+    public double WarTensionDiscountOpen = 0;
+    //   段3：屈服の判定を 1 本（Diplomacy.SubmitYields＝陣営の陸×射程＞屈服線の比×相手の陣営の陸）。侵略の入口と緊張の入口が読む。帰結は入口ごとのまま。
+    public double WarSubmitUnified = 0;
     public double WarDeclareTension = 140.0;      // **2026-07-25採用（C-高6の次段＝下げ戻し）**：exact38/near71/◎20・人口一致30%（ともに梯子最高）。屈服経路（AISubmitMilRatio=3.0）の開通で一方的な組合せは戦わずに折れる＝旧140へ戻し互角の対立だけが戦争へ（160は屈服なし時代の戦争過多対策だった）。緊張上限200
     // 1934拡張 #106（外交・戦争UI）。総動員（World.Mobilized）の書き手＝プレイヤーの戦争タブと SelfPlay.DecideQuarter の AI 分岐（2026-09-20 に段の点火で常時 live）
     public Share MobilizationConscriptFrac = new(0.22);   // 総動員ONでの戦時徴兵の深さ（levée en masse＝働き盛りの男の22%まで兵士化＝人口の約6%〔1794 の仏 約4%・1813 の普 約6%〕・平時上限0.04/通常戦時0.12を超える。(145) で母数を働き盛りの男へ＝旧＝大衆の22%）。既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）。★M1（作者裁定2026-09-19）：効くのは徴兵法≥選抜の国だけ＝総動員は既存の徴兵を深めるのであって志願兵制を迂回しない

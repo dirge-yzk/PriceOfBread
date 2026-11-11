@@ -48,6 +48,10 @@ public static partial class Instruments
         public double SumTau2;           // Σ min(1, 緊張÷140)²（要求×(1−τ²) の τ² の和・F4 の材料）
         public double PrevWill;
         public bool HavePrev;
+        // (1038) c98wr 段1〜3 の門の列（計器が自分の式で数える）。CurS＝呼び 1 回の最初の評価の S_C′（land×(1−b)−need）。
+        public double CurS = double.NaN;
+        public int G1Pass, G1Viol, WillReach, WillReachTauPos, G2Rows, G2Bad, G2Zero, MWillFalse, MWillTrue, NonMinorPass;
+        public double SumD0;
     }
 
     sealed class WarPairAcc { public double MaxT; public int Ge140, Gt100, Gate, Starts, Submits, Peace, Secession; }
@@ -64,8 +68,10 @@ public static partial class Instruments
         public int[] Band = new int[6];
         public int QSubmits, QPeace, QSecession;
         public readonly int[] QStarts = new int[WarCodeNames.Length];
-        public System.IO.StreamWriter? We, Wp, Wb;
+        public System.IO.StreamWriter? We, Wp, Wb, Wi, Ws;
         public bool HeaderDone;
+        public readonly List<string> InvRows = new(), SubRows = new();   // (1038) warinv_s・warsub_s の行（四半期の末に書く）
+        public string? PendingInv;                                        // (1038) 侵略 1 件の行（屈服の判定〔入口 2〕が来たら結果を足して InvRows へ）
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, WarSt> WarSts = new();
     static WarSt WarOf(Diplomacy d) => WarSts.GetValue(d, _ => new WarSt());
@@ -260,6 +266,7 @@ public static partial class Instruments
             WarOkPair(acc.CurLand, acc.CurB, acc.CurNeed, newNeed, out bool nOk, out bool oOk);
             acc.SumNewNeed += newNeed; if (nOk) acc.NewOk++; if (oOk) acc.OldOk++; if (nOk && !oOk) acc.NewOnly++;
         }
+        WarGateEval(d, c, gw, great, target, reason, tens, acc);   // (1038)
         if (tens > 0) { acc.TauPos++; if (reason == "弱小国が標的") acc.TauPosWeak++; double tau = System.Math.Min(1.0, tens / c.WarDeclareTension); acc.SumTau2 += tau * tau; }
         if (d.RankOf(target) != PowerRank.Minor) acc.TgtNonMinor++;
         if (reason == "弱小国が標的")
@@ -273,6 +280,91 @@ public static partial class Instruments
                 else { acc.ShadowProjPass++; acc.CallShadowPass = true; }
             }
         }
+    }
+
+    // ---------------------------------------------------------------- (1038) c98wr 段1〜3 の門 ----------------------------------------------------------------
+    /// <summary>(1038) 陣営の和を計器が自分で数える（自国＋同盟・相手と非交戦・相手との緊張≧参戦の閾値の同盟国）。land＝陸の大きさ（頭数×質）・でなければ軍の総合ゲージ。</summary>
+    internal static double WarInsCamp(Diplomacy d, Coefficients c, Power p, Power foe, bool land)
+    {
+        double m = land ? ArmyShape.LandPotential(p) : p.Military;
+        double jt = double.NaN;
+        foreach (var ally in d.Powers)
+        {
+            if (ally == p || ally == foe || !d.HasAlliance(p, ally) || d.IsAtWar(ally, foe)) continue;
+            if (double.IsNaN(jt)) jt = d.AllyJoinThreshold(foe, c);
+            if (d.Tension(ally, foe) >= jt) m += land ? ArmyShape.LandPotential(ally) : ally.Military;
+        }
+        return m;
+    }
+
+    /// <summary>(1038) 要求 D0＝屈服線の比×max(床, 標的の陣営の陸)（計器の式）。</summary>
+    internal static double WarInsD0(Diplomacy d, Coefficients c, Power self, Power target)
+        => c.AISubmitMilRatio * System.Math.Max(c.ColonizeSubmitFloorMilitary, WarInsCamp(d, c, target, self, true));
+
+    /// <summary>(1038) 1 本の屈服の式（計器）：強い側の陣営の陸×max(0.05, 射程) ＞ 比×max(床, 弱い側の陣営の陸)。</summary>
+    internal static bool WarInsUnified(Diplomacy d, Coefficients c, Power s, Power w)
+        => WarInsCamp(d, c, s, w, true) * System.Math.Max(0.05, d.Projection(s, w, c)) > c.AISubmitMilRatio * System.Math.Max(c.ColonizeSubmitFloorMilitary, WarInsCamp(d, c, w, s, true));
+
+    /// <summary>(1038) 評価 1 件の門の数え（余剰の門まで来た評価だけ）。G1＝通った評価で S≥D0(1−τ²)・G2＝エンジンの要求÷計器の D0＝1−τ²・余剰の判定の一致。</summary>
+    static void WarGateEval(Diplomacy d, Coefficients c, World gw, Power great, Power target, string reason, double tens, WarEntryAcc acc)
+    {
+        int ri = WarReasonIndex(reason);
+        bool reached = ri == 0 || (ri >= 9 && ri <= 13);   // ok・will・mil・ship・sea・canned
+        if (!reached) return;
+        double d0 = WarInsD0(d, c, great, target);
+        double disc = WarNewNeed(1.0, tens, c.WarDeclareTension);   // 1−τ²
+        double dn = d0 * disc;
+        bool instPass = acc.CurS >= dn;
+        acc.WillReach++; acc.SumD0 += d0;
+        if (tens > 0) acc.WillReachTauPos++;
+        double eng = gw.LastInvadeNeed;
+        if (tens > 0 && !double.IsNaN(eng))
+        {
+            acc.G2Rows++;
+            if (!(System.Math.Abs(eng / d0 - disc) <= 1e-12)) acc.G2Bad++;
+        }
+        if (disc > 0 && eng == 0) acc.G2Zero++;
+        if (ri != 9 && !instPass) acc.MWillFalse++;
+        if (ri == 9 && instPass) acc.MWillTrue++;
+        if (ri == 0)
+        {
+            acc.G1Pass++;
+            if (acc.CurS < dn - 1e-9 * System.Math.Max(1.0, d0)) acc.G1Viol++;
+            if (d.RankOf(target) != PowerRank.Minor) acc.NonMinorPass++;
+        }
+    }
+
+    /// <summary>(1038) 侵略 1 件（World.Invade の Subjugate の前＝判断の時点の盤面）。屈服の結果は直後の入口 2 の WarSubmitRow で足す。</summary>
+    internal static void WarInvadeRow(Diplomacy d, Coefficients c, int year, World gw, Power great, Power target)
+    {
+        var st = WarOf(d);
+        double r = d.WarScale(great, c, out _);
+        double s = ArmyShape.LandPotential(great) * (1 - WarRatioClamp(r)) - (great.NeedLand + great.NeedInternal);
+        double d0 = WarInsD0(d, c, great, target);
+        double tens = d.Tension(great, target);
+        double tau = !(tens > 0) ? 0 : System.Math.Min(1.0, tens / c.WarDeclareTension);
+        st.PendingInv = string.Join('\t', WI(st.NextQ), WI(year), NameOf(great), NameOf(target), d.RankOf(target).ToString(), F(s), F(d0), F(tau), F(gw.LastInvadeNeed), F(great.Military), F(target.Military));
+    }
+
+    /// <summary>(1038) 屈服の判定 1 件（入口 1＝緊張・2＝侵略）。engine＝0 開戦／1 a が b を屈服させた／2 b が a を。計器が 1 本の式と旧の規則を自分で数える。</summary>
+    internal static void WarSubmitRow(Diplomacy d, Coefficients c, int entrance, Power a, Power b, int engine)
+    {
+        var st = WarOf(d);
+        int inst, old;
+        if (entrance == 2)
+        {
+            inst = WarInsUnified(d, c, a, b) ? 1 : 0;
+            old = a.LandPower * System.Math.Max(0.05, d.Projection(a, b, c)) >= c.ColonizeSubmitRatio * System.Math.Max(c.ColonizeSubmitFloorMilitary, b.Military) ? 1 : 0;
+            if (st.PendingInv is { } pi) { st.InvRows.Add(pi + "\t" + WI(engine)); st.PendingInv = null; }
+        }
+        else
+        {
+            inst = WarInsUnified(d, c, a, b) ? 1 : WarInsUnified(d, c, b, a) ? 2 : 0;
+            double aS = WarInsCamp(d, c, a, b, false), bS = WarInsCamp(d, c, b, a, false);
+            bool y = System.Math.Max(aS, bS) > System.Math.Min(aS, bS) * c.AISubmitMilRatio;
+            old = !(c.AISubmitMilRatio > 0 && y) ? 0 : aS > bS ? 1 : 2;
+        }
+        st.SubRows.Add(string.Join('\t', WI(st.NextQ), WI(entrance), NameOf(a), NameOf(b), WI(engine), WI(inst), WI(old)));
     }
 
     static void WarCallSnapshot(WarEntryAcc acc, Diplomacy d, Coefficients c, World gw, Power great)
@@ -291,6 +383,7 @@ public static partial class Instruments
         double own = WarOwnLand(d, great);
         double reach = own > 0 && !double.IsInfinity(ratio) ? ratio * own : double.NaN;
         WarSurplus(land, great.NeedLand, great.NeedInternal, ratio, out double sA, out double sC);
+        acc.CurS = sC;   // (1038)
         acc.FiniteCalls++; acc.CurLand = land; acc.CurNeed = great.NeedLand + great.NeedInternal; acc.CurB = WarRatioClamp(ratio);
         acc.Will += gw.ExpansionWill; acc.Fever += gw.WarFever();
         acc.FMil += mil; acc.FMilSpend += milSpend; acc.FNoble += trad; acc.FSoldier += soldierShare; acc.FThreat += threat; acc.FDiv += diversion;
@@ -309,7 +402,10 @@ public static partial class Instruments
         + "sh_pass\tsh_dependent\tsh_suzerainOf\tsh_noLand\tsh_atWar\tsh_maxDep\tsh_will\tsh_mil\tsh_ship\tsh_sea\tsh_canned\tsh_projFail\tsh_projPass\tsh_calls\t"
         + "willNow\twillPrev\twillInflowWar\twillInflowCommerce\twillDerivedUse\t"
         + "feverNow\tsumWill\tsumFever\tsumFMil\tsumFMilSpend\tsumFNoble\tsumFSoldier\tsumFThreat\tsumFDiversion\t"
-        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2\tsumNewNeed\tnewOk\toldOk\tnewOnly\tcrossWeakWill";
+        + "sumLand\tsumForce\tsumNeedLand\tsumNeedInternal\tsumNeedSea\tsumPowerMil\tsumLandPower\tsumOwn\tsumReach\tsumRatio\tsumSA\tsumSC\tsumRA\tsumRC\trCalls\tscLessCalls\ttauPos\ttauPosWeak\tsumTau2\tsumNewNeed\tnewOk\toldOk\tnewOnly\tcrossWeakWill"
+        + "\tg1Pass\tg1Viol\twillReach\twillReachTauPos\tg2Rows\tg2Bad\tg2Zero\tmWillFalse\tmWillTrue\tnonMinorPass\tsumD0";   // (1038)
+    internal const string WarInvHeader = "quarter\tyear\tinvader\ttarget\ttargetRank\tsurplusS\tneedD0\ttau\tengineNeed\tinvaderMilitary\ttargetMilitary\tsubmitCode";   // (1038)
+    internal const string WarSubHeader = "quarter\tentrance\tnationA\tnationB\tengineCode\tunifiedCode\toldCode";   // (1038)
 
     internal const string WarPairHeader = "quarter\tnationA\tnationB\ttensionEnd\ttensionMax\tmonthsGe140\tmonthsGt100\twarClock\tgateOpenMonths\tstarts\tsubmits\tpeaceResets\tsecessionResets\tgrudge\thostility";
     internal const string WarBandHeader = "quarter\tpairs\tpairsWritten\tpairsSkipped\tb0\tb0_20\tb20_70\tb70_100\tb100_140\tb140\tsubmits\tpeaceResets\tsecessionResets\tstart_unknown\tstart_main\tstart_subjugate\tstart_declare\tstart_ally\tstart_suzerain\tstart_civil\tstart_ultimatum\tstart_calltoarms\tstart_mediation\tstart_secession";
@@ -328,6 +424,8 @@ public static partial class Instruments
             st.We = Open("warentry", seed); st.We.WriteLine(WarEntryHeader);
             st.Wp = Open("warpair", seed); st.Wp.WriteLine(WarPairHeader);
             st.Wb = Open("warband", seed); st.Wb.WriteLine(WarBandHeader);
+            st.Wi = Open("warinv", seed); st.Wi.WriteLine(WarInvHeader);   // (1038)
+            st.Ws = Open("warsub", seed); st.Ws.WriteLine(WarSubHeader);   // (1038)
             st.HeaderDone = true;
         }
         // warentry_s：全ての国
@@ -355,6 +453,7 @@ public static partial class Instruments
             Add(F(acc.Will)); Add(F(acc.Fever)); Add(F(acc.FMil)); Add(F(acc.FMilSpend)); Add(F(acc.FNoble)); Add(F(acc.FSoldier)); Add(F(acc.FThreat)); Add(F(acc.FDiv));
             Add(F(acc.Land)); Add(F(acc.Force)); Add(F(acc.NeedLand)); Add(F(acc.NeedInternal)); Add(F(acc.NeedSea)); Add(F(acc.PowerMil)); Add(F(acc.LandPower)); Add(F(acc.Own)); Add(F(acc.Reach)); Add(F(acc.Ratio));
             Add(F(acc.SA)); Add(F(acc.SC)); Add(F(acc.RA)); Add(F(acc.RC)); Add(WI(acc.RCalls)); Add(WI(acc.SCLess)); Add(WI(acc.TauPos)); Add(WI(acc.TauPosWeak)); Add(F(acc.SumTau2)); Add(F(acc.SumNewNeed)); Add(WI(acc.NewOk)); Add(WI(acc.OldOk)); Add(WI(acc.NewOnly)); Add(WI(acc.CrossWeakWill));
+            Add(WI(acc.G1Pass)); Add(WI(acc.G1Viol)); Add(WI(acc.WillReach)); Add(WI(acc.WillReachTauPos)); Add(WI(acc.G2Rows)); Add(WI(acc.G2Bad)); Add(WI(acc.G2Zero)); Add(WI(acc.MWillFalse)); Add(WI(acc.MWillTrue)); Add(WI(acc.NonMinorPass)); Add(F(acc.SumD0));   // (1038)
             st.We!.WriteLine(sb.ToString());
             // 次の四半期へ
             double pw = will;
@@ -381,12 +480,17 @@ public static partial class Instruments
             WI(st.QSubmits), WI(st.QPeace), WI(st.QSecession),
             WI(st.QStarts[0]), WI(st.QStarts[1]), WI(st.QStarts[2]), WI(st.QStarts[3]), WI(st.QStarts[4]), WI(st.QStarts[5]), WI(st.QStarts[6]), WI(st.QStarts[7]), WI(st.QStarts[8]), WI(st.QStarts[9]), WI(st.QStarts[10])));
         st.Pair.Clear(); st.QSubmits = st.QPeace = st.QSecession = 0; System.Array.Clear(st.QStarts);
+        // (1038) warinv_s・warsub_s（屈服の結果が来なかった侵略の行は -1）
+        if (st.PendingInv is { } pq) { st.InvRows.Add(pq + "\t-1"); st.PendingInv = null; }
+        foreach (var row in st.InvRows) st.Wi!.WriteLine(row);
+        foreach (var row in st.SubRows) st.Ws!.WriteLine(row);
+        st.InvRows.Clear(); st.SubRows.Clear();
         st.NextQ = q + 1;
     }
 
     static void WarClose(MultiNationSim sim)
     {
         if (!WarSts.TryGetValue(sim.Diplomacy, out var st)) return;
-        st.We?.Dispose(); st.We = null; st.Wp?.Dispose(); st.Wp = null; st.Wb?.Dispose(); st.Wb = null;
+        st.We?.Dispose(); st.We = null; st.Wp?.Dispose(); st.Wp = null; st.Wb?.Dispose(); st.Wb = null; st.Wi?.Dispose(); st.Wi = null; st.Ws?.Dispose(); st.Ws = null;
     }
 }

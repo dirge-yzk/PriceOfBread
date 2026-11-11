@@ -1561,6 +1561,13 @@ public sealed class Diplomacy
                                 double sideRatio = Math.Max(aSide, bSide) / Math.Max(Math.Min(aSide, bSide), 1e-9);
                                 submitYields = submitRng.NextDouble() < PoliticalQuantities.Clamp01((sideRatio - 1.0) / (c.AISubmitMilRatio - 1.0));
                             }
+                            else if (c.WarSubmitUnified > 0)   // ★(1038) 段3：屈服の判定の 1 本（侵略の入口と同じ SubmitYields・確率化の経路〔既定 0〕は旧のまま）
+                            {
+                                if (SubmitYields(a, b, c)) { strong = a; weak = b; submitYields = true; }
+                                else if (SubmitYields(b, a, c)) { strong = b; weak = a; submitYields = true; }
+                                else submitYields = false;
+                            }
+                            if (ins) Instruments.WarSubmitRow(this, c, 1, a, b, !(c.AISubmitMilRatio > 0 && submitYields) ? 0 : strong == a ? 1 : 2);
                             if (c.AISubmitMilRatio > 0
                                 && submitYields)
                             {
@@ -1587,9 +1594,16 @@ public sealed class Diplomacy
 
     /// <summary>機能5-①-2（2026-07-28）：陣営戦力＝自軍＋参戦見込みの同盟軍。見込みは JoinAllies の一次条件（同盟・非交戦・緊張≥閾値）のみ
     /// ＝国難/勝ち目/プレイヤー要請の判定は含まない（参戦見込みの上限）。屈服判定（AI）とUI表示が読む。</summary>
-    public double SideMilitary(Power p, Power foe, Coefficients c)
+    public double SideMilitary(Power p, Power foe, Coefficients c) => SideSum(p, foe, c, static x => x.Military);
+
+    /// <summary>★(1038) 陣営の陸の大きさ＝<see cref="SideMilitary"/> と同じ参戦見込みの規則で <see cref="ArmyShape.LandPotential"/>（頭数×質）を足す
+    /// ＝導く余剰 S（<see cref="InvadeSurplus"/>）と同じ単位。段1 の要求 D0 と段3 の屈服の判定（<see cref="SubmitYields"/>）が読む。</summary>
+    internal double CampLand(Power p, Power foe, Coefficients c) => SideSum(p, foe, c, static x => ArmyShape.LandPotential(x));
+
+    /// <summary>陣営の和の 1 本（自国＋参戦見込みの同盟国＝同盟・相手と非交戦・相手との緊張≧<see cref="AllyJoinThreshold"/>）。足す量は呼び手が選ぶ。</summary>
+    private double SideSum(Power p, Power foe, Coefficients c, Func<Power, double> f)
     {
-        double m = p.Military;
+        double m = f(p);
         // ★参戦の閾値（覇権の判定＝国×国）は同盟の候補が居たときに初めて引く（2026-09-30 作者裁定「計算量の予算」・恒等）：
         //   AllyJoinThreshold は読むだけの純関数＝どこで引いても同じ値・閾値と比べる前に引く順は旧と同じ。同盟の無い国（大半）は引かない。
         double jt = 0; bool jtKnown = false;
@@ -1597,7 +1611,7 @@ public sealed class Diplomacy
             if (ally != p && ally != foe && HasAlliance(p, ally) && !AtWar(ally, foe))
             {
                 if (!jtKnown) { jt = AllyJoinThreshold(foe, c); jtKnown = true; }
-                if (Tension(ally, foe) >= jt) m += ally.Military;
+                if (Tension(ally, foe) >= jt) m += f(ally);
             }
         return m;
     }
@@ -2017,9 +2031,10 @@ public sealed class Diplomacy
         if (great.Nation is not { } gw) return;
         // 植民地過伸展ゲート（旧ColonialOverstretchBase/PerMil）はC裁定2026-07-09で撤去＝挑戦者の武器を奪い覇権が経済力で勝つ逆効果を実証済み（覇権抑制はキャッチアップ＋資本破壊＋過熱で）
         Power? best = null; double bestScore = 0;
+        double? surplus = c.WarSurplusFromFill > 0 ? InvadeSurplus(great, c) : null;   // ★(1038) 段1：導く余剰 S は思案 1 回に 1 回
         foreach (var q in Powers)
         {
-            { bool okInv = gw.CanInvade(q, out var invReason); if (Instruments.On) Instruments.WarEval(this, c, great, q, invReason); if (!okInv) continue; }   // 完全対等：プレイヤーと同じ単一ゲート（Minor標的・従属/交戦・余剰戦力・兵力比・物資）
+            { bool okInv = gw.CanInvade(q, out var invReason, surplus); if (Instruments.On) Instruments.WarEval(this, c, great, q, invReason); if (!okInv) continue; }   // 完全対等：プレイヤーと同じ単一ゲート（Minor標的・従属/交戦・余剰戦力・兵力比・物資）
             double proj = Projection(great, q, c);   // 到達可能性（距離・制海権。遠征技術の門は (613) 段3 の焼き込みで無く、(921) で呼び口ごと消した）
             if (proj < AiColonizeMinProjection) continue;
             // 魅力＝（植民地＋経済規模）×届きやすさ÷強さ。経済規模項（宗主の地理2026-07-12）＝植民地化の目的そのもの（市場・税基盤）。
@@ -2242,7 +2257,8 @@ public sealed class Diplomacy
     internal bool Subjugate(Power great, Power target, Coefficients c)
     {
         double force = ColonizeForce(great, target, c);   // 到達できねば屈服させられない（距離・制海権・遠征技術＝共通式。宗主の地理2026-07-12で一本化）
-        bool submit = force >= SubmitLine(target, c);
+        bool submit = c.WarSubmitUnified > 0 ? SubmitYields(great, target, c) : force >= SubmitLine(target, c);   // ★(1038) 段3：屈服の判定の 1 本
+        if (Instruments.On) Instruments.WarSubmitRow(this, c, 2, great, target, submit ? 1 : 0);
         RaiseColonizeTension(great, target, c);   // 他の列強との緊張↑（勢力圏争い・屈服でも開戦でも）
         if (submit)
         {
@@ -2292,6 +2308,35 @@ public sealed class Diplomacy
     public double SubmitLine(Power target, Coefficients c)
         => c.ColonizeSubmitRatio * Math.Max(c.ColonizeSubmitFloorMilitary, target.Military);
 
+    /// <summary>★(1038) 段3（旗 <see cref="Coefficients.WarSubmitUnified"/>）：屈服の判定の 1 本＝強い側の陣営の陸×射程（床 0.05＝<see cref="ColonizeForce"/> と同じ）が、
+    /// 屈服線の比（<see cref="Coefficients.AISubmitMilRatio"/>）×弱い側の陣営の陸（床 <see cref="Coefficients.ColonizeSubmitFloorMilitary"/>）を超えれば weak が屈服する。
+    /// 侵略の入口（<see cref="Subjugate"/>）と緊張の入口（<see cref="TriggerWars"/>）が読む。帰結は入口ごと。</summary>
+    public bool SubmitYields(Power strong, Power weak, Coefficients c)
+        => CampLand(strong, weak, c) * Math.Max(0.05, Projection(strong, weak, c))
+           > c.AISubmitMilRatio * Math.Max(c.ColonizeSubmitFloorMilitary, CampLand(weak, strong, c));
+
+    /// <summary>★(1038) 段1：導く余剰 S＝陸の大きさ×(1−前線に縛られた割合 b)−(陸の必要量＋内の守り)。b＝<see cref="WarScale"/> を [0,1] へ（NaN・負は 0・1 以上と +∞ は 1）。毎回導く・貯めない。</summary>
+    internal double InvadeSurplus(Power p, Coefficients c)
+    {
+        double r = WarScale(p, c, out _);
+        double b = !(r > 0) ? 0 : r >= 1 ? 1 : r;
+        return ArmyShape.LandPotential(p) * (1 - b) - (p.NeedLand + p.NeedInternal);
+    }
+
+    /// <summary>★(1038) 段2：緊張の割引 1−τ²・τ＝min(1, 緊張÷<see cref="Coefficients.WarDeclareTension"/>)（緊張が負・NaN は 0）。</summary>
+    internal static double TensionDiscount(double tension, double declare)
+    {
+        double tau = !(tension > 0) ? 0 : tension >= declare ? 1 : tension / declare;
+        return 1 - tau * tau;
+    }
+
+    /// <summary>★(1038) 段1 の要求 D＝屈服線の比×max(床, 標的の陣営の陸)。旗 <see cref="Coefficients.WarTensionDiscountOpen"/> で ×(1−τ²)。</summary>
+    internal double InvadeNeed(Power self, Power target, Coefficients c)
+    {
+        double d0 = c.AISubmitMilRatio * Math.Max(c.ColonizeSubmitFloorMilitary, CampLand(target, self, c));
+        return c.WarTensionDiscountOpen > 0 ? d0 * TensionDiscount(Tension(self, target), c.WarDeclareTension) : d0;
+    }
+
     /// <summary>侵略の実効戦力（ゲート・AI標的選好・UI表示・実行の共通式）：陸軍力×投射（距離減衰・制海権）×遠征技術ゲート。<see cref="SubmitLine"/> 以上で屈服。</summary>
     public double ColonizeForce(Power great, Power target, Coefficients c)
         => great.LandPower * Math.Max(0.05, Projection(great, target, c));
@@ -2336,7 +2381,7 @@ public sealed class Diplomacy
     private void ExecuteMediation(Power greatPower, War war, Coefficients c)
     {
         PeaceOffersMade++;
-        if (greatPower.Nation is { } gn) gn.ExpansionWill -= InterventionWillCost(greatPower, war, c);
+        if (!(c.WarSurplusFromFill > 0) && greatPower.Nation is { } gn) gn.ExpansionWill -= InterventionWillCost(greatPower, war, c);   // ★(1038) 段1：導く余剰は使って減らない＝消費しない
         RaiseColonizeTension(greatPower, war.A, c, war.B);   // 勢力圏へ手を突っ込む＝他の列強が警戒する（植民地化と同じ経路）。★是正（監査2026-09-02 #19）：war.Bも列強なら除外漏れで緊張が非対称に積まれていた（登録順で結果が変わる）
         // ★応諾の天秤（是正2026-08-01）。⚠旧＝植民地化の屈服判定（3倍優位）を流用していたが、**実測で応諾率0%**だった
         //   （調停の提案14.4回・白紙講和0回＝機構が目的を1度も果たさない）。列強が対等な列強に3倍差をつけることは無い。
@@ -2407,7 +2452,11 @@ public sealed class Diplomacy
         if (g.WarExhaustion > c.WarWearyThreshold) { reason = "厭戦"; return false; }
         if (Projection(g, war.A, c) < c.DefendProjectionMin || Projection(g, war.B, c) < c.DefendProjectionMin) { reason = "投射が届かない"; return false; }
         if (war.Months < (int)c.InterventionWarMinMonths) { reason = "戦争が始まったばかり"; return false; }
-        if (g.Nation is { } gw && gw.ExpansionWill < InterventionWillCost(g, war, c)) { reason = "膨張度が不足"; return false; }
+        if (c.WarSurplusFromFill > 0)   // ★(1038) 段1：介入の門も導く余剰 S と要求（両当事国の大きい方）で読む
+        {
+            if (g.Nation is not null && InvadeSurplus(g, c) < Math.Max(InvadeNeed(g, war.A, c), InvadeNeed(g, war.B, c))) { reason = "膨張度が不足"; return false; }
+        }
+        else if (g.Nation is { } gw && gw.ExpansionWill < InterventionWillCost(g, war, c)) { reason = "膨張度が不足"; return false; }
         return true;
     }
 

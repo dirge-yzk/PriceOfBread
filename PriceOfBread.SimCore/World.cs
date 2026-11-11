@@ -2181,18 +2181,33 @@ public sealed class World
     /// 戦争熱の別ゲート（旧 InvadeWarFeverMin=0.95）も撤去＝余剰戦力そのものが戦争熱と商業ロビーの蓄積＝意欲の物差しは1本でよい
     /// （0.95を植民地化にも課すと、熱の低い自由主義的な商業帝国が構造的に拡張不能になる＝2026-07-10に商業チャネルで直した穴を再び開ける）。
     /// 理由を out で返す（UIの非活性表示用）。</summary>
-    public bool CanInvade(Power target, out string reason)
+    public bool CanInvade(Power target, out string reason) => CanInvade(target, out reason, null);
+
+    /// <summary>★(1038) AI の思案の輪（Diplomacy.TryAiSubjugate）は導く余剰 S を 1 回だけ計算して渡す（null＝ここで導く）＝述語は同じ 1 本。</summary>
+    internal bool CanInvade(Power target, out string reason, double? surplus)
     {
         reason = "";
+        LastInvadeNeed = double.NaN;
         if (SelfPower is null || Diplomacy is null) { reason = "外交なし"; return false; }
         if (target == SelfPower) { reason = "自国"; return false; }
-        if (Diplomacy.RankOf(target) != PowerRank.Minor) { reason = "弱小国が標的"; return false; }
+        if (!(Coef.WarTensionDiscountOpen > 0) && Diplomacy.RankOf(target) != PowerRank.Minor) { reason = "弱小国が標的"; return false; }   // ★(1038) 段2：旗で列強も標的に
         if (Diplomacy.Suzerain(target) is not null) { reason = "既に従属"; return false; }
         if (Diplomacy.Suzerain(SelfPower) == target) { reason = "従属関係"; return false; }   // 監査2026-07-05：自国の宗主は狙えない（従属関係の内側では開戦しない）
         if (target.Nation is null && target.ColonyList.Count == 0) { reason = "奪う領土なし"; return false; }   // 全て接収済みの抽象標的＝余剰戦力を捨てて「植民地+0」の空振りになる
         if (Diplomacy.IsAtWar(SelfPower, target)) { reason = "交戦中"; return false; }
         if (Diplomacy.DependentCount(SelfPower) >= Coef.MaxDependents) { reason = "属国が上限"; return false; }   // 過伸展の上限＝AI側の呼び出しにしか無かった条件をゲートへ移設（対称）
-        if (ExpansionWill < InvadeWillCost(target)) { reason = "余剰戦力が不足"; return false; }
+        if (Coef.WarSurplusFromFill > 0)   // ★(1038) 段1：導く余剰 S と要求 D（戦力の単位）＝ExpansionWill を読まない
+        {
+            double need = Diplomacy.InvadeNeed(SelfPower, target, Coef);
+            LastInvadeNeed = need;
+            if (!((surplus ?? Diplomacy.InvadeSurplus(SelfPower, Coef)) >= need)) { reason = "余剰戦力が不足"; return false; }   // 否定形＝NaN は通さない
+        }
+        else
+        {
+            double need = WillNeed(target);
+            LastInvadeNeed = need;
+            if (ExpansionWill < need) { reason = "余剰戦力が不足"; return false; }
+        }
         // ★即応度は Power.Military に既に入っている（Diplomacy の戦力合成）＝ここでもう一度掛けない（2026-09-29 処理の一元化 段3 G・旧＝即応度の二乗で比べた）。
         if (SelfPower.Military < Coef.InvadeMilitaryFactor * target.Military) { reason = "兵力が不足"; return false; }
         // 海越え標的のみ船と制海権を要する（B-1）。陸続き標的（南独・満州・朝鮮など近接陸軍国の陸路侵攻）は船・制海権を免除＝距離減衰のみで律速。
@@ -2219,8 +2234,9 @@ public sealed class World
     public bool Invade(Power target, Colony? interest = null)
     {
         if (!CanInvade(target, out _)) return false;
+        if (Instruments.On) Instruments.WarInvadeRow(Diplomacy!, Coef, Year, this, SelfPower!, target);   // (1038) 判断の時点の盤面（消費・損耗の前）
         if (interest != null) interest.PlayerInterest = true;   // 植民地単位の侵略：狙った州を講和で優先的に取る（複数植民地の勢力で有効）
-        ExpansionWill -= InvadeWillCost(target);
+        if (!(Coef.WarSurplusFromFill > 0)) ExpansionWill -= WillNeed(target);   // ★(1038) 段1：導く余剰は使って減らない＝消費しない
         if (Diplomacy!.IsSeaCrossing(SelfPower!, target))   // 海越えのみ輸送船を消費（陸続きの陸路侵攻は船を使わない・B-1）
         {
             double need = InvadeShipReq(target), have = InvShipStock();   // 船は遠征で使い減り（在庫比で按分して need ぶん買う）
@@ -2262,8 +2278,19 @@ public sealed class World
     // 旧 CanColonize / Colonize / ColonizeCostFor は撤去（作者裁定2026-08-23＝侵略と植民地化の1本化）。
     // 可否＝CanInvade・実行＝Invade・表示コスト＝ExpansionCostFor の三者に集約した（同じ動詞に2組のAPIを置かない）。
 
-    /// <summary>標的への要求余剰戦力（UIの表示用）＝ゲート・実消費と同一の式（国力比）。</summary>
-    public double ExpansionCostFor(Power target) => InvadeWillCost(target);
+    /// <summary>標的への要求余剰戦力（UIの表示用）＝ゲート・実消費と同一の式（国力比）。
+    /// ★(1038) 旗 WarSurplusFromFill で値の意味が〈戦力の単位の要求 D〉へ変わる（画面の読み手は ⑲ へ）。</summary>
+    public double ExpansionCostFor(Power target) => Coef.WarSurplusFromFill > 0 && Diplomacy is not null && SelfPower is not null
+        ? Diplomacy.InvadeNeed(SelfPower, target, Coef) : WillNeed(target);
+
+    /// <summary>★(1038) 旗 WarSurplusFromFill＝0 の要求（意欲の単位）＝InvadeWillCost。旗 WarTensionDiscountOpen で ×(1−τ²)（旗 0 では掛けない＝旧の値そのもの）。</summary>
+    private double WillNeed(Power target)
+        => Coef.WarTensionDiscountOpen > 0 && Diplomacy is not null && SelfPower is not null
+            ? InvadeWillCost(target) * Diplomacy.TensionDiscount(Diplomacy.Tension(SelfPower, target), Coef.WarDeclareTension)
+            : InvadeWillCost(target);
+
+    /// <summary>★(1038) 計器へ渡すだけ：CanInvade が余剰の門で比べた要求（入口で NaN）。読み手は InstrumentsWar.WarEval だけ。</summary>
+    [System.NonSerialized] internal double LastInvadeNeed = double.NaN;
 
     // === P4 統一戦争（プレイヤーの動詞・AIと同条件＝RNGなし・無償＝緊張/膨張度の前提なし）===
     /// <summary>P4：現在狙える統一の変体（適格×ナショシェア×必要州が欠け）。null=機運なし（UIボタンの表示ゲート）。</summary>
