@@ -18,6 +18,8 @@ public class DormantIdentityTests
     /// <summary>★ここに並ぶのは「休眠0で入れた器」＝点火時にこの表からも外す（＝表そのものが休眠の一覧になる）。</summary>
     private static readonly string[] DormantZeroFields =
     [
+        "LordReligionStake",           // (1039) c98da 地主の政治 D-1b の旗（既定 0・読み手は D-1b の線が足す・旗 0 の経路の番人は LordstatD1aTests の D1a_2）
+        "LordIntermediaryStake",       // (1039) c98da 地主の政治 D-2 の旗（既定 0・読み手は D-2 の線が足す・番人は同じ D1a_2）
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         // ★AiBureaucracyFromPrereq は 2026-10-17 (389) に 2 で**点火**（欲しい法が官僚制度の前提で止まったとき、法律タブの門も通る法だけ官僚制度の目標を上げる）＝この表から外した。(599) で旗ごと削除（RetiredFields）。

@@ -1,0 +1,44 @@
+m1039 事前登録 (1039) c98da 地主の政治 D-1a 国教の計器と旗 0 の器（D-2 の受け口を含む）
+書いたモデル：Claude Sonnet 5.5。出発の木 a06f769b（基線 m1027）。
+形：恒等の線。旗 0 で全行バイト一致（lordstat_s は末尾の列の増えだけ）。新しい係数は旗 2 本のみ（既定 0）・力学 0。
+
+[1] 恒等の線・予言 0
+ - 素の 5 種・計器つき 10 種が m1027 と名乗り行を除いて全行一致。lordstat_s は先頭 28 列が一致し、末尾に列が増える（ident --grown-ok lordstat_s）。
+ - 旗は 2 本とも 0（LordReligionStake・LordIntermediaryStake）。旗 1 の中身は書かない（D-1b・D-2 の挙動は入れない）。旗の読み手は無い＝休眠の表 DormantZeroFields へ足す。
+ - 浮動小数の順序が変わる箇所：0。新しい累積器は ClergyInc0 の 1 本だけで既存の和の順序に触れない。
+
+[2] 足す物と触る行（読み手の grep はコミット時点）
+ Privileges.cs：EstateDegreeFor(BureaucracyLaw)・LandReformDegreeFor(ReformLevel)・IntermediaryDegreeFor(b, lr)・TitheDegreeFor(s, c)（段を受ける形）。今の EstateDegree・IntermediaryDegree・TitheDegree はそれを呼ぶ（式は逐語）。
+ Coefficients.cs：LordReligionStake・LordIntermediaryStake（double・0）を LandTaxFixedBasis の直後に。POB_COEF の名前解決と SaveGame の反射は欄の名前のまま。
+ PolicyPreferences.cs：BuildSums に ClergyInc0（Copy・CheckSame・ComputeBuildSums の 3 か所＝M8）・Profile に ClergyIncome0（末尾の既定引数つき）・Build が sums.ClergyInc0 を渡す。:317〜:321 の case と DirectionAware は触らない（触ると FactionSnapshot:193 が変わり非恒等）。
+ PopScan.cs：窓の写しは BuildSums.Copy を通る＝PopScan.cs 自体は触らない（Copy が窓の写しの本体）。
+ InstrumentsLordstat.cs：末尾に 28 列の後ろへ追記（D-1：relDegNow・relDegNext・relDegPrev・relClergyIncome0・relIncome0・relStakeUpExp・relStakeDownExp・relPrefUpAct・relPrefDownAct・relDoctrineCode・relGateNetUp／D-2：d2CutOverIncome0・d2Rent0OverIncome0・d2Rho・d2SMidBurExp・d2SMidLandExp・d2SGainBurExp・d2SGainLandExp・d2PrefBurUpAct・d2PrefLandUpAct・d2PrefBurDownAct・d2PrefLandDownAct）＝22 列追加・計 50 列。
+  期待の側は計器が自分の純関数で書く（Ld* の続き）。実際の側だけ PolicyPreferences.Build・Pref・NetSupport・SelfPlay.DoctrineFrom を読む（読むだけ・CostLedger に触れないことは grep 済み）。
+ 他の線との重なり：Coefficients.cs・Instruments.cs（触らない）。lc・lw・wr の持ち物には触れない。App・Display・Runner に触れない。
+ D-2 の Profile の欄（Cut÷Income0×ρ）は州の走査が要る本体＝D-2 の挙動の線で足す。この器では計器の列だけが受け口（欄を足すと読み手の無い欄になる）。
+
+[3] 時刻の照合
+ 計器の呼び口（四半期の末の LordstatTable）では World.PopSums は null（Simulation.cs の窓は try/finally で閉じる）。よって実際の側＝計器の時点で Build を呼び直した Profile の Pref・NetSupport。試験で PopSums==null を確かめる。
+
+[4] 母集合の件数（keep_1035/base_ins・10 種を数え直した値）
+ lordstat_s：414,445 国×四半期。うち聖職者の所得が正 412,603。官僚制度の一段で仲介の度合いが下がる行 95,625・下がらない 318,820。
+ 旧い値 93,847・186,059・132,697（合計 412,603）は聖職者の所得が正の行の内訳で、定義が違う＝ここの数と並べない。
+ 土地改革の段は lordstat_s に列が無い。rule_s（州の行）で数えると、州の行 1,356,518 のうち官僚制度の一段で下がる 346,043・土地改革の一段で下がる 551,826・どちらも下がらない 458,649（州の行の数で国×四半期の数ではない）。
+ 国×四半期の鍵で見た rule_s の被覆は 36%（lordstat_s 41,850 に対し rule_s 14,974 の種 1）。新しい列が入れば次から lordstat_s だけで数えられる。
+ 国教の一段で度合いが下がり聖職者が居る行：411,983。
+
+[5] 試験（Tests）と突然変異
+ 足す試験：段を受ける形の閉じた数（手書き）・旗 2 本の既定 0・旗 0 の経路の番人（Pref(StateReligion,0)・Pref(Bureaucracy,0) が BitConverter で −1.0・DirectionAware が false）・窓の中と外で Build の ClergyIncome0 が一致（M8）・lordstat の新しい列の期待の側（手で書く）・PopSums null の確認・聖職者の和がエンジンの Build と一致。
+ 突然変異：M-a 段を受ける形で段を 1 つずらす→段の試験・GL 型の十分の一税の試験／M-b Copy に和を足し忘れる→M8 の試験／M-c 計器の期待で LordIncomeLoss・EffectiveRentShares を呼ぶ→L10（禁止の名へ LordStake(・LordIncomeLoss(・LordIncomeGain(・EffectiveRentShares( を足す＝厳しくする側）／M-d 旗 0 の Pref の case に手を入れる→旗 0 の経路の番人。
+ ㉑ 書き換える件数：LordstatInstrumentTests.cs L9 の列数 28→50・L10 の禁止の名 +4・DormantIdentityTests の DormantZeroFields +2。WriterRatchetTests・route_anchors は触れない見込み（grep で確かめる）。
+
+[6] 門
+ ident〈判定: 恒等〉・lordstat_s の先頭 28 列と他の全表が一致・フルスイート緑・推定 248.5 秒以下・OnDoubleReadScan の許可表は同じか減る。
+ 記録（門でない）：新しい列の期待の側（relStakeUpExp）は聖職者の居る行で 0 でない。旗 0 の relPrefUpAct は −1 のまま＝D-1b の G1・G3 が旗 0 で落ちることを生で確かめる。
+ 計算量：計器の列は計器つきの帯だけ（素の 5 種に影響なし）。エンジン側は Build の加算 1 本＝誤差の内。
+
+[7] 結果の追記（2026-11-11・予言の変更ではない）
+ ident m1039（ラベル c98da・測った木 71c59a12）：判定: 恒等（測った種で一致）。素の 5 種・計器つき 10 種の成績表は m1027 と全行一致（名乗り行を除く）・注視の表 4692 行一致・NG 91 件で新しい 0・外れた 0・計器の表 1311 本のうち宣言の無い違い 0（lordstat_s 10 本が +22 列）・savetest OK・leakhunt 保存則違反なし・テスト 2657（基準 2651+6）／FullLength 3。
+ .cost：1 回目の ident は件数の行 2 本（着値の充填・着値の下界で飛ばした売り手）が基準 m1027 と違い不一致。原因は基準の .cost が (1035) の c97ws・c97sp より前の物（(1035) の m1035z と同じ 216.3／216.9 秒に一致）。--cost-allow で名乗って check をやり直した（挙動の出力は同じ生）。推定 216.3 秒（素）・216.9 秒（計器つき）＝上限 248.5 秒の内。
+ フルスイート：Category!=FullLength 2657（合格 2656・スキップ 1）・FullLength 3 緑（measurements/m1039_20261111_suite_*.txt）。突然変異 6 本は全て赤（a 段ずらし→D1a_1・GL／b Copy の忘れ・b2 和の忘れ→D1a_3／c エンジン呼び→L10／d 旗 0 の札の改変→D1a_2／e ρ の f 落とし→D1a_5）。緑の変異は 0。
+ 記録（gread.py・旗 0 の生 414,445 行）：聖職者の所得が正 412,603 行・relStakeUpExp が正 411,983 行（期待の側は 0 でない）・relPrefUpAct は全行 −1 のまま（実際の側）・G3 型（実際が −2×(0.5＋期待) に合う）の割合 0.0059＝旗 0 で落ちる・G4 型 0.8992（下げ側の期待が 0 の行で合う＝段≧1 に絞ると別）・官僚制度の一段で S_mid が正 276,086 行・戻す側 S_gain が正 106,043 行・ρ の範囲外 0 行。

@@ -711,6 +711,8 @@ public sealed class Coefficients
     // --- 税制の拡張（土地税の検地台帳の錠は (383) で物理削除。所得税の天井/ラッチは2026-09-12に廃止＝行政の弱さは汚職漏れが額で表す）---
     public double PollTaxRate = 0.15;            // 人頭税スライダー1.0時の1人あたり月額（労働者の月収2〜3に対し約5〜7%＝重い）
     public double LandTaxFixedBasis = 1.0;       // ★(958) c85lt・(964) c86lt で 1 に点火（腕つきの 2 回目＝(958) の枝を m961 の上で取り直した・事前登録 measurements/m958_20261108_prereg_lt.txt・measurements/m964_20261108_prereg_lt.txt・旗 0 の ident は (958) c85ltz〈判定: 恒等〉・1 回目 (945) は門の破れで採らず）。土地税の算定の基準 A-2（AI の案・確証なし・事前登録 measurements/m937_20261107_prereg_lt.txt）：> 0 のとき、world.json の landTaxBasis が "Fixed" の国（World.LandTaxBasisFixed）は、助走の最後の月の RGO の名目の地代（正のときだけ）を Producer.FrozenLandRentPerMonth に凍結し（助走の無い木は凍結しない）、土地税の基数を〈凍結した地代×持ち分〉にする（差分は Pop.LandTaxBasisAdjPerMonth・読み手は Fiscal.LandTaxBase の 1 本）。0＝基数は地代そのもの（今のまま）
+    public double LordReligionStake = 0;         // ★(1039) c98da 地主の政治 D-1b の旗（既定 0＝旧支配層の国教の寛容化への反対は層の札 −1 のまま・読み手は D-1b の線が足す＝今は休眠の器・事前登録 measurements/m1039_20261111_prereg_da.txt）
+    public double LordIntermediaryStake = 0;     // ★(1039) c98da 地主の政治 D-2 の旗（既定 0＝官僚制度の専門化への旧支配層の反対は札 −1・土地改革は LordStake のまま・読み手は D-2 の線が足す＝今は休眠の器）
     public double LandTaxPhiMove = 0.0;   // ★(990) c90px 土地税の基数の定額の度合い φ*（World.LandTaxBasisPhi）を動かす器の旗（AI の案・確証なし・事前登録 measurements/m990_20261109_prereg_px.txt）：> 0 のとき Government.Step が MoveLandTaxPhi を 1 回呼び（目標は引数＝この器は現在値を渡す＝動かない・目標の置き方は A-2b-1d）、建国の子は親の φ* を写し（World.CopyLawsFrom）、助走の後に定額へ入った RGO はその月の地代で凍結する（EconomyStep.PayOwnerRent）。0＝φ* は world.json の landTaxBasis のまま（恒等）
     public double AdminNeedPerPop = 0.04;        // 人口1単位あたりの行政の必要量。官僚・予算が足りないと AdminFill<1＝汚職
     // --- 社会移動（昇格・転落）：閾値は地域の1人あたり平均貯蓄に対する倍率＝経済規模で自動スケール ---

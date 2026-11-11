@@ -1,0 +1,1 @@
+{'rows': 414445, 'clergy_rows': 412603, 'stakeUp_pos': 411983, 'stakeDown_pos': 41781, 'G3_match_frac': 0.0059, 'G4_match_frac': 0.8992, 'pref_not_minus1': 0, 'rho_out_of_range': 0, 'smid_pos': 276086, 'sgain_pos': 106043, 'cut_pos': 410231}
