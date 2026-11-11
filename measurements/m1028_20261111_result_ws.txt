@@ -1,0 +1,7 @@
+(1028) c97ws 結果：できた（恒等の判定・測った種で一致）
+木：c97ws（8c9aee55 から）。ident c97ws：〈判定: 恒等〉（素の 5 種 b5_20261111_c97ws・計器つき 10 種 b10_20261111_c97ws_ins が m1027 と全行バイト一致〔名乗り行を除く・182 行〕・推定 230.3／231.0 秒・計器の表 1311 本＝バイト一致 1271＋既知の揺れ 20＋列が増えた 20・注視の表一致・テストの数 2646〔2642＋4〕＋FullLength 3・savetest OK・leakhunt 違反なし）。
+足した列：warentry_s＝crossWeakWill／nationgood_s＝outputSum・eventRegions。
+門：G1 比べた組 1,311,329・食い違い 0／G2 eventRegions＝0 の組 1,449,500・outputSum≠producedQty 0／G3 eventRegions＞0 の (種,年,国) 28／11,178（excl.py の数え直し＝28 と一致）／交差の列 cross ≧ sh_will・≦ r_weak（全ての国×四半期・違反 0）・合計 86,965（sh_will 78,792・r_weak 192,495）。
+試験：フルスイート Category!=FullLength 2645（合格 2644・スキップ 1）＋その後に足した 1 本を含む NationgoodOutputEventTests 2 本・FullLength 3 は緑。ident 後の最終木の Category!=FullLength は 2646（ident の --list-tests と一致）。
+突然変異：measurements/m1028_20261111_mutations.txt。M1〜M3・M5〜M7 は赤。M4（eventRegions を RegionMoved だけで数える）は最初の試験で緑＝穴 → F_新しく作られた州もeventRegionsに数える を足して赤（M0＝無変異は緑）。元の N3 は M1・τ 固定は M2 として、差し替えずに変異の表に残した。
+床 F1〜F3（m1027 の盤面）：205,353・1,351・2,327（旧 m1022 の盤面 206,759・1,280・1,683）＝measurements/m1028_20261111_floors.txt。

@@ -2,9 +2,10 @@
 import sys, csv, glob, os, re, collections
 csv.field_size_limit(1 << 30)
 d, outp = sys.argv[1], sys.argv[2]
+_keep = []
 def tab(p):
-    with open(p, encoding='utf-8', newline='') as f:
-        r = csv.reader(f, delimiter='\t'); h = next(r); return h, r
+    f = open(p, encoding='utf-8', newline=''); _keep.append(f)
+    r = csv.reader(f, delimiter='\t'); h = next(r); return h, r
 o = open(outp, 'w', encoding='utf-8', newline='\n')
 def W(s): print(s); o.write(s + '\n')
 seeds = sorted(int(re.findall(r'nationgood_s(\d+)\.tsv', p)[0]) for p in glob.glob(os.path.join(d, 'nationgood_s*.tsv')))
