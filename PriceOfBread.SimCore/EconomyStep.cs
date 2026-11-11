@@ -960,7 +960,14 @@ public static class EconomyStep
             //   （食料比0.81・主食シェア28%）。重み＝付加価値×**売れる量**（前期需要）＝「労働は市場価値（売れる量×単価）に比例して行く」。
             //   物量バイアスは単価（付加価値）が、過剰生産は需要が、それぞれ抑える。需要0の財は TargetStockFloor（既存の「量として意味を持つ最小」）で
             //   種火を残す＝再点火の入口（床撤去後の bootstrap）。新定数ゼロ。墓標＝×UnitCapacity（能力）＝過剰生産・×LastInputFill＝自己参照デッドロック。
-            double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
+            double sellR;
+            if (coef.SellRCountsTrade > 0)
+            {
+                // ★(1047) c99ov 案 A：売れる量＝州の需要＋州の外へ売れた量−州の外から入って埋めた量（どれも前の月のフロー・同じ財の量/月）。負と NaN は否定形で床へ。
+                double sold = mkR.LastDemand + mkR.PrevExport - mkR.PrevImport;
+                sellR = sold > coef.TargetStockFloor ? sold : coef.TargetStockFloor;
+            }
+            else sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
             if (sleep[pi] == 2) s.LaborWeight = rentR * sellR;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
             else s.LaborWeight = PoliticalQuantities.Toward(s.LaborWeight, rentR * sellR, coef.SupplyAdjustSpeed);
             if (eqOn && s.Bankrupt && FactoryEquipment.Eligible(s)) { prodW[pi] = 0; continue; }   // ★(495) 倒産しても設備は残る（Scale は据え置き）＝労働は取らない（旧は Scale=0 が重みを 0 にした）

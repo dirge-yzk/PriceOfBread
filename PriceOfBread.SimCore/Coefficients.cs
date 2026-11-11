@@ -49,6 +49,7 @@ public sealed class Coefficients
     // === テーマH（産業組織・固定資本・住宅）===
     public double InventoryAdjustGain = 0.1;     // メッツラー在庫循環＝在庫についての期待。05-B1（2026-07-29）点火：期待導入の最初の一歩（増幅側＝恐慌を増やす方向・05 §5）。0で旧恒等
     public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）。⚠TargetStockBuffer と対＝一致しないと定常でギャップが残る。片方だけ動かさない（GridReplaceRate/GridKeepPerMonthと同型）
+    public double SellRCountsTrade = 0;      // 旗（0＝旧の式・正＝労働の重みの売れる量に州の外への売り PrevExport と州の外からの買い PrevImport を両側で数える）。(1047) c99ov 案 A〈作りすぎの罰〉・EconomyStep の sellR・番人 SellRTradeTests
     public double TargetStockFloor = 1.0;    // 在庫目標の下限（需要≈0でのゼロ除算回避）＝**「量として意味を持たない」の既存の物差し**（下の幻の生産のスナップもこの実用スケールを流用する）
     // ★墓標（2026-08-22・需要と供給の組み換え＝点火と削除）：労働配分の重みは「需要量×Scale」から「準レント×単位能力×Scale」＋配分信念EMAへ**無条件**に切替（EconomyStep の prodW 注記）。
     //   LaborRentWeight（構造スイッチ）・CrowdRentExpectation（混雑予期＝効果−2.4回・赤1件）・LaborFloorMix（均等床0.15＝準レント下では不要）・ExportDemandWeight（0.25の別建て加算＝価格に輸出が載るので次元不整合）は削除。
