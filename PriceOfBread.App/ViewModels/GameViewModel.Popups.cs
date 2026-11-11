@@ -224,9 +224,9 @@ public partial class GameViewModel
         string myList = string.Join("・", myAl.Select(x => $"{x.Name} {Troops(x)}(参戦 {Fmt.Share(System.Math.Clamp(dip.Tension(x, pow) / jtMe, 0, 1))})"));
         string foeList = string.Join("・", foeAl.Select(x => $"{x.Name} {Troops(x)}(参戦 {Fmt.Share(System.Math.Clamp(dip.Tension(x, me) / jtFoe, 0, 1))})"));
         TensionPopupBody = $"{me.Name} {Troops(me)}　+ 同盟 {Fmt.Men(myAl.Sum(TroopUnits))}";
-        if (myAl.Count > 0) TensionPopupBody += $"\n{me.Name} の同盟：{myList}";
+        if (myAl.Count > 0) TensionPopupBody += $"\n{me.Name}の同盟：{myList}";
         TensionPopupBody += $"\n\n{pow.Name} {Troops(pow)}　+ 同盟 {Fmt.Men(foeAl.Sum(TroopUnits))}";
-        if (foeAl.Count > 0) TensionPopupBody += $"\n{pow.Name} の同盟：{foeList}";
+        if (foeAl.Count > 0) TensionPopupBody += $"\n{pow.Name}の同盟：{foeList}";
         BuildTensionActionTips(me, pow);   // 2つのボタンのホバー＝緊張量＋政治的帰結の3行（項5・2026-07-27／作者FB②・2026-08-10）
         double ramp = dip.TensionRampRemaining(me, pow);   // 自国が押してまだ反映されていない緊張（回8-1＝待ちの撤去の後はデータだけを出す）
         TensionRampText = System.Math.Abs(ramp) >= 0.5 ? $"反映待ちの緊張 {(ramp > 0 ? "+" : "−")}{System.Math.Abs(ramp):F0}" : "";
