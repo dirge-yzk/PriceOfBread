@@ -111,6 +111,7 @@ public partial class GameViewModel
                 double pop = rg.SumPopulation();
                 // ホバー詳細（ズーム時はキャッシュ）。★F7：当たりは塗り分けのセル（MapHitAt）がこのキャッシュを州で引く
                 if (!_provHoverCache.ContainsKey(rg)) _provHoverCache[rg] = BuildProvinceHover(rg, w, nation, pop);
+                if (ShownHover is null && ReferenceEquals(w, _player) && ReferenceEquals(rg, w.Region)) ShownHover = _provHoverCache[rg];   // 開始の直後は窓「州」を空にせず自国の首都の州を出す（B12）
                 if (rg.Tier != RegionTier.Colonial) { cenX += cx * pop; cenY += cy * pop; cenW += pop; if (cx < extMinX) extMinX = cx; if (cx > extMaxX) extMaxX = cx; }   // 国名の位置は**中核の重心**＝植民地格の州（州へ昇格した植民地）は入れない（西・葡・蘭の名が大西洋やインド洋へ流れる）
                 // ズーム時＝州名を英語で**州の座標の位置**に（世界全景では出さない＝密集を避ける・軽量化）。ズームを引くと消える。
                 // 括弧の数値＝州の開発度（項3・2026-07-27）＝工業化度×70（初期の最先進＝ロンドン0.42→29・マンチェスター→26。終盤は100超も正常）。表示のみ。
@@ -746,7 +747,7 @@ public partial class GameViewModel
             if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密(土地 {Fmt.Share(landFac)})", Brush = HoverWarn, Weight = FontWeight.Bold });
         }
         if (ownerWorld.EpidemicActiveYears > 0) info.Lines.Add(new MapHoverLine { Text = "疫病 流行中", Brush = HoverWarn, Weight = FontWeight.Bold });
-        if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足(充足 {Fmt.Share(rg.FoodFill)})", Brush = HoverWarn, Weight = FontWeight.Bold });
+        if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足 {Fmt.Share(1.0 - rg.FoodFill)}", Brush = HoverWarn, Weight = FontWeight.Bold });
         // 治安（作者指示2026-08-15＝ヘッダーの国スカラーを廃し州ホバーへ）：州別の窃盗率 rg.CrimeRate（Crime.cs が
         // 移民pushに使う州別値）をエンジン定数だけで治安率へ正規化＝1−率/(CrimeBase×(1+CrimeUrbanWeight))。
         // 分母は「秩序0・全都市」の理論最悪率＝新しい魔法数を作らない。悪化した州のみ表示（窃盗n/月の表記は廃止）。
@@ -756,7 +757,7 @@ public partial class GameViewModel
             {
                 double security = System.Math.Clamp(1.0 - rg.CrimeRate / crimeCap, 0, 1);
                 if (security < FillWarnThreshold)
-                    info.Lines.Add(new MapHoverLine { Text = $"治安 {Fmt.Share(security)}", Brush = HoverWarn, Weight = FontWeight.Bold });
+                    info.Lines.Add(new MapHoverLine { Text = $"治安の悪化 {Fmt.Share(1.0 - security)}", Brush = HoverWarn, Weight = FontWeight.Bold });
             }
         }
         if (rg.IsPort)

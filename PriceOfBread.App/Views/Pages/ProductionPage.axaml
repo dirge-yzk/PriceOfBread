@@ -388,18 +388,17 @@
         <ctl:Section x:Name="RegionsSection" Key="regions" Title="州別の工場">
             <ctl:Section.Body>
                 <Grid x:Name="RegionsBody" RowDefinitions="Auto,*" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
-                        <Grid ColumnDefinitions="*,50,90,40,40,40,40,50" Margin="0,0,12,0">
+                        <Grid ColumnDefinitions="*,36,72,44,44,52,60" Margin="0,0,12,0">
                             <!-- 見出し「州名」のホバー＝工業化の州別上位8（2026-09-23）。行は増やさず既にある見出しのセルに載せる。
                                  式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
                             <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"
 />
-                            <TextBlock Grid.Column="1" Text="民営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="2" Text="国営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="6,0,0,0"/>
+                            <TextBlock Grid.Column="1" Text="民営" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="2" Text="国営" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="6,0,0,0"/>
                             <TextBlock Grid.Column="3" Text="従業員" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="4" Text="失業者" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="5" Text="生産" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="6" Text="過不足" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="7" Text="材料価格" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="4" Text="生産" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="5" Text="過不足" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="6" Text="材料価格" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                         </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding ProdDetail.Regions}" Margin="0,0,12,0">
@@ -409,7 +408,7 @@
                                       <StackPanel>
                                         <!-- ★1行（作者フィードバック2026-08-10 項目3）。MinHeight はボタンの高さに固定＝
                                              カウンターを持たない州（産地なし）の行だけ低くならない＝行の高さが州によって変わらない。 -->
-                                        <Grid ColumnDefinitions="*,50,90,40,40,40,40,50" MinHeight="19">
+                                        <Grid ColumnDefinitions="*,36,72,44,44,52,60" MinHeight="19">
                                             <!-- 接17：州名ホバー＝工業化資本の新旧内訳（ヴィンテージ層が休眠なら CapitalTip=null＝出ない） -->
                                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
@@ -441,14 +440,13 @@
                                                 </Panel>
                                             </Border>
                                             <TextBlock Grid.Column="3" Text="{Binding Emp}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="4" Text="{Binding Idle}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
                                             <!-- 生産のホバー＝稼働率とその内訳（採算／投入充足／在庫調整／慣性）＝設備欄から移した全国値 -->
-                                            <TextBlock Grid.Column="5" Text="{Binding Prod}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"
+                                            <TextBlock Grid.Column="4" Text="{Binding Prod}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"
 />
                                             <!-- 過不足＝生産に対する比（2026-08-10 項目3）。絶対量（生産・消費・差）はホバーで読む -->
-                                            <TextBlock Grid.Column="6" Text="{Binding Surplus}" FontSize="{StaticResource FontSmall}" Foreground="{Binding SurplusBrush}" TextAlignment="Right" VerticalAlignment="Center"
+                                            <TextBlock Grid.Column="5" Text="{Binding Surplus}" FontSize="{StaticResource FontSmall}" Foreground="{Binding SurplusBrush}" TextAlignment="Right" VerticalAlignment="Center"
 />
-                                            <TextBlock Grid.Column="7" Text="{Binding MatCost}" FontSize="{StaticResource FontSmall}" Foreground="{Binding MatCostBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="6" Text="{Binding MatCost}" FontSize="{StaticResource FontSmall}" Foreground="{Binding MatCostBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                         <TextBlock Text="{Binding CounterNote}" IsVisible="{Binding CounterNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                    FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextWrapping="Wrap" Margin="2,0,0,2"/>
@@ -502,7 +500,7 @@
                                                            TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding State}" FontSize="{StaticResource FontTiny}" Foreground="{Binding Brush}"/>
                                                 <TextBlock Text="{Binding Effect}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding StartReason}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding StartReason}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>

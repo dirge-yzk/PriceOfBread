@@ -196,13 +196,13 @@ public static class ProductionTables
 
     private static double NanIf(bool cond, double v) => cond ? double.NaN : v;
 
-    /// <summary>財の表（価格差・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
+    /// <summary>財の表（世界価格比・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
     public static Table<GoodLine> Goods { get; } = new("production.goods", "財の表", Page.Production,
         (sim, w) => ShownLines(AllLines(sim, w, ProductionStats.Collect(w), ProductionDiag.UnavailableGoods(sim, w.Coef))),
         l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<GoodLine>("name", "財名", l => l.Name),
-        Col.Number<GoodLine>("gap", "価格差", Unit.Share, l => l.PriceGap),
+        Col.Number<GoodLine>("gap", "世界価格比", Unit.Share, l => l.PriceGap + 1.0, ink: l => MarketTables.RatioInk(l.PriceGap)),   // 市場の財の値段の表と同じ名・書式・色
         Col.Number<GoodLine>("prod", "生産量", Unit.Quantity, l => l.Prod),
         Col.Number<GoodLine>("exp", "輸出量", Unit.Quantity, l => l.Exp),
         Col.Number<GoodLine>("imp", "輸入量", Unit.Quantity, l => l.Imp),
@@ -289,15 +289,13 @@ public static class ProductionTables
         return result;
     }
 
-    /// <summary>労働の表（賃金・需要・供給・能力・最低賃金の床・床の近くの割合）。</summary>
+    /// <summary>労働の表（賃金・需要・供給・供給の上限）。最低賃金の床と床の近くの割合は閾値なので列に出さない（原則 3・B13）。</summary>
     public static Table<LaborLine> Labor { get; } = new("production.labor", "労働の表", Page.Production, LaborLines, l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<LaborLine>("name", "労働名", l => l.Name),
         Col.Number<LaborLine>("wage", "賃金", Unit.PricePerUnit, l => l.Wage),
         Col.Number<LaborLine>("demand", "需要", Unit.Quantity, l => l.Demand),
         Col.Number<LaborLine>("supply", "供給", Unit.Quantity, l => l.Supply),
-        Col.Number<LaborLine>("capacity", "人力の能力", Unit.Quantity, l => l.Capacity),
-        Col.Number<LaborLine>("floor", "賃金の床", Unit.PricePerUnit, l => l.Floor),
-        Col.Number<LaborLine>("bound", "床の近く", Unit.Share, l => l.BoundShare),
+        Col.Number<LaborLine>("capacity", "供給の上限", Unit.Quantity, l => l.Capacity),
     ]);
 }

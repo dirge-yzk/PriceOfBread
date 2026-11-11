@@ -38,11 +38,11 @@
                     </Grid>
                     <Grid ColumnDefinitions="*,12,*" Margin="0,6,0,0" IsVisible="{Binding ShownHover.ProducedGoods, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                         <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="生産材" FontWeight="Bold" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Text="主な産物" FontWeight="Bold" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
                             <TextBlock Text="{Binding ShownHover.ProducedGoods}" TextWrapping="Wrap" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="2">
-                            <TextBlock Text="輸入材" FontWeight="Bold" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Text="主な輸入品" FontWeight="Bold" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
                             <TextBlock Text="{Binding ShownHover.ImportedGoods}" TextWrapping="Wrap" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
                         </StackPanel>
                     </Grid>

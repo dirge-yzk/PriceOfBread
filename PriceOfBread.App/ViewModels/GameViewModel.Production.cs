@@ -578,7 +578,7 @@ public partial class GameViewModel
             //   「-+0%」という符号が2つ並んだ文字列を出していた（-0.002 → "-+0%"／-0.2 → "-20%" と挙動が割れる）。
             //   第3節を足すと 0 も −0.0 も0へ丸まる負も「0%」＝符号の無い零になる（丸めて消えた符号を書かない）。
             //   ⚠色は割れていなかった（`!(x < 0)` は -0.002 を正しく赤に落とす）＝色の式は触らない。
-            nd.PriceDiff = hasPd ? Fmt.SignedPct(pdg) : "";
+            nd.PriceDiff = hasPd ? Fmt.Share(pdg + 1.0) : "";   // 世界価格を 100% とした国内価格（市場の財の値段の表と同じ形・B14）
             nd.PriceDiffBrush = pdg <= 0 ? PPriceBelow : PPriceAbove;
             nd.Accent = blocked ? PAccTechShort : TierAccent(d.Tier);
             blockedOf[gi] = blocked; inactiveOf[gi] = inactive;   // 地色・枠・沈みは選択と併せて ApplyProdSelection が塗る（式は1箇所）
@@ -734,14 +734,7 @@ public partial class GameViewModel
             // （①投資済みで操業可→②操業可→③門が閉じた投資済み→④先頭の優先順）で個体を選ぶ＝表示も同じ個体に揃える
             // （並存レシピ財＝衣料の職人工房等で「表示と操作が別個体」になる齟齬をレビューで確認・2026-07-05）
             var pr = World.FindFactory(rg, gi);
-            // 失業した働き手（作者指示2026-08-03「工場労働者が余っている州に建てたい」）：この財の生産者が雇う pop
-            // （工場＝工場労働者・農場/鉱山＝農家）の失業数。どこに建てるかの判断材料＝2026-08-10に**列**へ昇格（項目6）。
-            double idle = 0;
-            if (pr is not null && pr.LaborPopIndex >= 0 && pr.LaborPopIndex < rg.Pops.Count)
-            {
-                var lp2 = rg.Pops[pr.LaborPopIndex];
-                idle = lp2.Size * lp2.UnemploymentRate.Value;
-            }
+            // 失業者の列は廃止（B15・州全体の値で財に依らず同じだった）。
             // 従業員（作者フィードバック2026-08-10 項目6）＝この州でこの財を作る全生産者の労働投入を人数へ換算した和。
             // 換算率は失業率の定義と整合する LaborRate（労働popの人数 ÷ 今月供給した労働units）＝旧・設備欄の全国「従業員」と同じ式の州版。
             double empR = 0;
@@ -827,10 +820,9 @@ public partial class GameViewModel
                 CanDown = pr is not null && target > 0,
                 CounterNote = counterNote,
                 PrivFac = pr is null ? "—" : privUnits.ToString(),
-                StateFac = pr is null ? "—" : $"{stateUnits}/{target}",
+                StateFac = pr is null ? "—" : target == stateUnits ? stateUnits.ToString() : $"{stateUnits}→{target}",   // 民営と同じ棟数の形・目標が違う時だけ目標を添える（B15）
                 // 従業員・失業者（項目6・2026-08-10）＝産地の無い州は「—」（0で埋めない＝行は残る＝レイアウトが上下しない）
                 Emp = pr is null ? "—" : Fmt.People(empR),
-                Idle = pr is null ? "—" : Fmt.People(idle),
                 Prod = unavail ? "—" : Fmt.Qty(m.LastProduced),   // まだ存在しない財は量も出さない（作者裁定2026-08-10）
                 ProdTip = utilTip,   // 稼働率とその内訳（項目5で設備欄から移設・全国値）
                 // 過不足＝生産に対する比（項目3・2026-08-10）。絶対量（生産・消費・その差）はツールチップで読む
@@ -937,7 +929,7 @@ public partial class GameViewModel
             Tier = TierLabel(gi),   // 見出しだけ素材の産地区分を出す（作者要望2026-09-07 (4)）
             // 項目7（2026-08-10）：詳細パネルでも財名の横に世界価格との比を出す（カードと同じ様式＝安い青・高い赤）。
             //   式はカード（RefreshProduction）と同一＝首都価格×為替／世界価格−1。
-            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? Fmt.SignedPct(local * ex / world - 1.0) : "",
+            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? Fmt.Share(local * ex / world) : "",   // 世界価格を 100% とした国内価格（B14）
             PriceDiffBrush = world > 1e-6 && local > 1e-9 && local * ex / world - 1.0 > 0 ? PPriceAbove : PPriceBelow,
             LegalMonopoly = legalMonopoly,
             // 数値ブロック＝**2行**（作者指示2026-08-10 C）：
@@ -1004,7 +996,7 @@ public partial class GameViewModel
                 ShowStart = !mp.IsComplete,   // ボタンは完成後だけ消す（それ以外は出してグレーアウト＝工場の流儀）
                 StartLabel = $"着工 {Fmt.Money(cost)}",
                 // データのツールチップ（規律準拠＝説明文でなく値）。行には理由を書かない＝カーソルを合わせればここが出る。
-                StartReason = $"{mp.Host}/残り {mp.BuildUnits - mp.BuildProgress:F0} 束/見積 {Fmt.Money(cost)}"
+                StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}/見積 {Fmt.Money(cost)}"
                             + (techOk ? "" : $"\n技術：{(mp.TechGate > 1e-9 ? _player.TechLevel / mp.TechGate : 1):P0}（不足）"),
                 Project = mp,
             });
@@ -1242,8 +1234,8 @@ public partial class GameViewModel
         // 実用ゼロ（QtyEps）で足切り＝世界の総量が事実上0の財で、ノイズ同士の比を「世界の12%」と出さない（幻の生産2026-08-10）
         return (worldProd > QtyEps ? $"生産シェア {Fmt.Share(myProd / worldProd)}" : "",
                 worldExp > QtyEps ? $"輸出シェア {Fmt.Share(myExp / worldExp)}" : "",
-                worldProd > QtyEps && topProdV > QtyEps ? $"{topProd}が世界の{Fmt.Share(topProdV / worldProd)}を生産" : "",
-                worldExp > QtyEps && topExpV > QtyEps ? $"{topExp}が世界の{Fmt.Share(topExpV / worldExp)}を輸出" : "");
+                worldProd > QtyEps && topProdV > QtyEps ? $"最大の生産国 {topProd} {Fmt.Share(topProdV / worldProd)}" : "",
+                worldExp > QtyEps && topExpV > QtyEps ? $"最大の輸出国 {topExp} {Fmt.Share(topExpV / worldExp)}" : "");
     }
 
     /// <summary>世界価格スパークラインの点列（2026-08-02に文字列→Points へ変更）。
@@ -1593,7 +1585,7 @@ public sealed partial class ProdCostRow : ObservableObject
 // ProdSeg（折返し可能な断片＋ホバー）は削除（2026-08-10）＝設備の節の全廃で参照が0件になった。
 // 文字だけの断片（NatSegs）は string 配列のままで足りる。
 
-// 州別の1行：州名・民営工場・国営工場（− 現在/目標 ＋）・従業員・失業者・生産・過不足・材料価格。キー＝州名（据え置き同期）。
+// 州別の1行：州名・民営工場・国営工場（− 現在 ＋）・従業員・生産・過不足・材料価格。キー＝州名（据え置き同期）。
 // ★着工/売却ボタンは廃止（作者裁定2026-08-10）＝操作はカウンター1本（目標を上げる＝建てさせる／下げる＝1棟ずつ払い下げる）。
 // ★カウンター列は廃止（作者フィードバック2026-08-10 項目5）＝国営工場の列に畳んだ（− 現在/目標 ＋）＝「今いくつ建っていて、いくつを目指しているか」が1つの場所で読める。
 public sealed partial class ProdRegionRow : ObservableObject
@@ -1607,9 +1599,8 @@ public sealed partial class ProdRegionRow : ObservableObject
     [ObservableProperty] private string _privFac = "";   // 民営工場（棟数＝(Scale−BuiltScale)/FactoryBuildScale）
     // 国営工場＝「現在/目標」（棟数。現在＝World.StateUnits・目標＝Producer.StateTarget＝−/＋で動かす当の数）。産地の無い州は「—」
     [ObservableProperty] private string _stateFac = "";
-    // 従業員・失業者（項目6・2026-08-10）＝旧・設備欄の全国「従業員」と、旧・着工ボタン脇の「失業者 nK」を列へ昇格。産地なしは —
+    // 従業員（項目6・2026-08-10）＝旧・設備欄の全国「従業員」を列へ昇格。産地なしは —
     [ObservableProperty] private string _emp = "";
-    [ObservableProperty] private string _idle = "";
     [ObservableProperty] private string _prod = "";
     [ObservableProperty] private string? _prodTip;         // 稼働率とその内訳（採算／投入充足／在庫調整／慣性）＝設備欄から移設した全国値（項目5）
     [ObservableProperty] private string _surplus = "";     // 過不足＝(生産−消費)÷生産（項目3・2026-08-10）。輸入は分子にも分母にも入らない
@@ -1630,7 +1621,7 @@ public sealed partial class ProdRegionRow : ObservableObject
         CapitalTip = s.CapitalTip;
         HasCounter = s.HasCounter; CanUp = s.CanUp; CanDown = s.CanDown; CounterNote = s.CounterNote;
         PrivFac = s.PrivFac; StateFac = s.StateFac;
-        Emp = s.Emp; Idle = s.Idle; Prod = s.Prod; ProdTip = s.ProdTip;
+        Emp = s.Emp; Prod = s.Prod; ProdTip = s.ProdTip;
         Surplus = s.Surplus; SurplusBrush = s.SurplusBrush; SurplusTip = s.SurplusTip; MatCost = s.MatCost; MatCostBrush = s.MatCostBrush;
     }
 }
