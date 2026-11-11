@@ -149,6 +149,7 @@ public class DormantIdentityTests
         "LandTaxPhiMove",               // (990) c90px 土地税の基数の定額の度合い φ* を動かす器（0＝world.json のまま・番人 LandTaxPhiTests）。点火は A-2b-1d（答え待ち）
         // ★ResourceRowsFix（(1025) c96rd 段0″a 資源のデータ＝world.json に足した史実の産地の 10 行を州の構築で使う旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ResourceRowsTests）
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
+        // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
         // ★UbiquitousMineralExempt（(1020) c95ub 遍在の財〔石灰石・珪砂・粘土〕を非産地の 0.4 の外へ出す旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 UbiquitousMineralTests）。
         // ★ColonyPettyEntryEmptyTarget（(1014) c94pe 小営業の入口の空の商人の行き先を飛ばさない旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ColonyPettyEntryTests）。
         // ★TakeFloorPositive（(984) c89dd ⑬ Pop.Take の額の床を〈正なら動かす〉にする旗）は 2026-11-09 に 1 で**点火**＝この表から外した（番人 TakeDustFloorTests）。

@@ -1,0 +1,28 @@
+# 旗 0 の木 d23e38c8（器）
+list full 3
+nonfull rc=0 2439s
+full rc=0 248s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2656、スキップ:     1、合計:  2657、期間: 40 m 36 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 4 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+# 旗 1 の木 666f76ef
+list nonfull 2658
+list full 3
+nonfull rc=0 1414s
+full rc=0 201s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2657、スキップ:     1、合計:  2658、期間: 23 m 31 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 19 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 194s
+保存 46.5MB（523ms）／読込 438ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c98lw_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c98lw_work/suite/leakhunt.txt.manifest（SOURCE-HASH=6de924f92c32ca93）
+SL-END 16:00:22
+SAVELEAKDONE

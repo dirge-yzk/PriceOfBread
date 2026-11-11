@@ -152,6 +152,7 @@ public static partial class Instruments
     sealed class PopCls
     {
         public double Size, Adult, Pool, FertWomen, Kids, Women2049, School, ClrW, ClrDen, EduFillW, LitW, PriceW, PubW, W0014, W60;
+        public double ClrWW;   // ★(1037) Σ(10〜14 歳×児童労働×計器の子の重み Instruments.LwkChildWeight)＝旗 LaborWeightsByPower が正の時の影の ChildWork の分子
     }
 
     /// <summary>★(490) 層ごとの列の名前は層の番号でなく**層の下端の年齢**を持つ（deathsFrom{下端}K・muFrom{下端}PerYear）。(478) の 11 層で層の番号の意味が変わり（8層の mu0＝0〜9歳・11層の mu0＝0歳）、
@@ -194,6 +195,7 @@ public static partial class Instruments
             double price = Catalog.EducationId < rg.Markets.Length ? rg.Markets[Catalog.EducationId].Price : double.NaN;
             cl.PriceW += sc * price; cl.PubW += sc * rg.CompulsoryEduFunding;
             double cw = s * p.AgeShare(10, 15); cl.ClrDen += cw; cl.ClrW += cw * p.ChildLaborRate.Value;
+            if (c.LaborWeightsByPower > 0) cl.ClrWW += cw * p.ChildLaborRate.Value * LwkChildWeight(p, c);   // ★(1037) 子の実効の重み（旗 0 は読まない）
             cl.LitW += s * p.Literacy;
         }
         if (!(popK > 0)) { a.Clear(w); return; }   // 死んだ国（人口 0）は行を出さない
@@ -234,7 +236,8 @@ public static partial class Instruments
             pub[k] = cl.School > 0 ? cl.PubW / cl.School : double.NaN;
             nsArr[k] = cl.Women2049 > 0 ? cl.Kids / cl.Women2049 : double.NaN;
             litArr[k] = cl.LitW / cl.Size;
-            ins[k] = new PopShadowIn(yAdult, basket, c.ChildWorkFactor, clr, c.EduPerChild, price, nFill, pub[k], s10, l60, nsArr[k], pi, litArr[k]);
+            double childWork = c.LaborWeightsByPower > 0 && cl.ClrW > 0 ? cl.ClrWW / cl.ClrW : c.ChildWorkFactor;   // ★(1037) 旗 0 は ChildWorkFactor をそのまま（pop_s は全行一致）・旗が正は階級の子の実効の重み
+            ins[k] = new PopShadowIn(yAdult, basket, childWork, clr, c.EduPerChild, price, nFill, pub[k], s10, l60, nsArr[k], pi, litArr[k]);
             outs[k] = PopShadow(ins[k]);
             aux[k * 5] = yAdult; aux[k * 5 + 1] = basket; aux[k * 5 + 2] = clr; aux[k * 5 + 3] = nFill; aux[k * 5 + 4] = litArr[k];
         }
