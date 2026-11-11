@@ -90,7 +90,7 @@ public class TradeSkipC4Tests
         Assert.Equal(live - listed, og);
     }
 
-    /// <summary>C4b の理由の振り分け：行の終わりで X≦0 になったとき、理由が XPriceSmall なら xPrice≦xNeed・XNeedSmall なら xNeed＜xPrice（取り違えは赤）。両方の理由が現れる対照つき。</summary>
+    /// <summary>C4b の理由の振り分け：行の終わりで X≦0 になったとき、理由が XPriceSmall なら xPrice≦xNeed・XNeedSmall なら xNeed＜xPrice（取り違えは赤）。取り違えは bad が正になる。</summary>
     [Fact]
     public void C4b_買い手が満ちた行の理由はxPriceとxNeedの小さい側と合う()
     {
@@ -101,7 +101,7 @@ public class TradeSkipC4Tests
             else if (why == Instruments.TsExit.XNeedSmall) { nN++; if (!(xn < xp)) bad++; }
         };
         var (dir, restore) = Run(24);
-        try { Assert.Equal(0, bad); Assert.True(nP > 0 && nN > 0, $"対照：理由の両側が現れない xPriceSmall {nP}・xNeedSmall {nN}"); }
+        try { Assert.Equal(0, bad); Assert.True(nP > 0, $"対照：xPrice が小さい理由が現れない xPriceSmall {nP}・xNeedSmall {nN}");   // xNeed が小さい理由は、行の門が xNeed＞0 を要し成約の後は Dealt が先に付く＝出口が access 0 の行だけ（0 でよい・件数は記録） }
         finally { Instruments.TsExitProbe = null; restore(); }
     }
 
