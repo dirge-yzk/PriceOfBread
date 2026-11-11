@@ -11,9 +11,12 @@ namespace PriceOfBread.SimCore;
 //   orderInMonthIndex（同じ月に同じ敗者が矯正された何本目か・1 始まり）。
 // ⚠限界（計器が自己申告する）：⓪crownpc_s の crownRegisterSourceCode は呼び口が印を付けた最後の書き手＝国の行に次の印が付くまで続く（符号 2 の行は矯正の後も続く）。同じ四半期に 2 つ以上の口が書けば最後の口が残る。①月は Diplomacy.Step の入口の月（CpMonth の値）＝四半期の AI・調停の歩の中の講和も同じ月で数える。②crushingFlag は矯正の門の中でしか書かないので恒に 1
 //   （門の定義に含まれる列＝列として残すのは read924 §5 の仕様どおり）。③orderInMonthIndex は矯正した件だけを数える（矯正に至らなかった同じ月の講和は数えない）。
+// (1056) c100ic 末尾 6 列（事前登録 measurements/m1056_20261112_prereg_ic.txt）：groupIdIndex（崩壊の講和の集合の番号＝cpeace と同じ Gids・単独の講和は 0）／groupRankIndex（集合の取り分の順の何番目か・単独は 0）／
+//   groupShare（集合の取り分・単独は nan）／tooFarToRuleFlag・cededFlag（呼び口の局所）／skippedByGroupFlag（旗 ImposeOncePerCollapse で飛ばした矯正の行＝1。前後の値は同じ・orderInMonthIndex は 0・王冠の書き手は付けない）。
+//   ④groupIdIndex は CpBefore が番号を付けた集合だけ（付いていなければ −1）。
 public static partial class Instruments
 {
-    internal const string ImpHeaderText = "quarter\tmonth\tyear\twinner\tloser\twinnerPolityCode\tloserPolityBeforeCode\tloserCrownBeforeCode\tloserCrownAfterCode\timposedPolityCode\tabsScoreIndex\tideologyGapIndex\tlegitimacyBeforeShare\tlegitimacyAfterShare\tcrushingFlag\torderInMonthIndex";
+    internal const string ImpHeaderText = "quarter\tmonth\tyear\twinner\tloser\twinnerPolityCode\tloserPolityBeforeCode\tloserCrownBeforeCode\tloserCrownAfterCode\timposedPolityCode\tabsScoreIndex\tideologyGapIndex\tlegitimacyBeforeShare\tlegitimacyAfterShare\tcrushingFlag\torderInMonthIndex\tgroupIdIndex\tgroupRankIndex\tgroupShare\ttooFarToRuleFlag\tcededFlag\tskippedByGroupFlag";
 
     /// <summary>矯正の前の敗者の断面（呼び口の局所に持たせる）。</summary>
     internal sealed class ImpPre { public Polity Polity; public CrownForm Crown; public double Legitimacy; }
@@ -37,17 +40,34 @@ public static partial class Instruments
     internal static ImpPre? ImpBeforeIfOn(World dw) => On ? ImpBefore(dw) : null;
 
     /// <summary>矯正の後（ログ〈政体を矯正〉の直後）：1 行を貯め、敗者の王冠の登録簿の最後の書き手を 2（矯正講和）にする。</summary>
-    internal static void ImpAfter(Diplomacy d, ImpPre pre, Power winner, Power loser, World ww, World dw, double absScore, bool crushing)
+    internal static void ImpAfter(Diplomacy d, ImpPre pre, Power winner, Power loser, World ww, World dw, double absScore, bool crushing,
+        Diplomacy.CollapseGroup? cg = null, double cgShare = double.NaN, bool tooFarToRule = false, bool ceded = false)
     {
         CrownSource(dw, 2);
         var st = ImpStates.GetValue(d, _ => new ImpState());
         var cp = CpOf(d);
         var key = (cp.Month, NameOf(loser));
         st.Seq.TryGetValue(key, out int n); n++; st.Seq[key] = n;
+        ImpRow(st, cp, pre, winner, loser, ww, dw, absScore, crushing, n, cg, cgShare, tooFarToRule, ceded, skipped: false);
+    }
+
+    /// <summary>(1056) 旗 ImposeOncePerCollapse で飛ばした矯正（門は越えたが集合の枠が 0）：1 行だけ貯める。王冠の書き手を付けない・orderInMonthIndex の番号を使わない（0）。</summary>
+    internal static void ImpSkipped(Diplomacy d, Power winner, Power loser, World ww, World dw, double absScore, bool crushing,
+        Diplomacy.CollapseGroup? cg, double cgShare, bool tooFarToRule, bool ceded)
+    {
+        var st = ImpStates.GetValue(d, _ => new ImpState());
+        ImpRow(st, CpOf(d), ImpBefore(dw), winner, loser, ww, dw, absScore, crushing, 0, cg, cgShare, tooFarToRule, ceded, skipped: true);
+    }
+
+    static void ImpRow(ImpState st, CpState cp, ImpPre pre, Power winner, Power loser, World ww, World dw, double absScore, bool crushing, int n,
+        Diplomacy.CollapseGroup? cg, double cgShare, bool tooFarToRule, bool ceded, bool skipped)
+    {
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int gid = cg is null ? 0 : cp.Gids.TryGetValue(cg, out int g) ? g : -1;
         st.Rows.Add(string.Join('\t',
             I(cp.Month / 3), I(cp.Month), I(cp.Year), NameOf(winner), NameOf(loser), I((int)ww.Polity), I((int)pre.Polity), I((int)pre.Crown), I((int)dw.Crown), I((int)dw.Polity),
-            F(absScore), F(System.Math.Abs(ImpPos(ww.Polity) - ImpPos(pre.Polity))), F(pre.Legitimacy), F(dw.Legitimacy), crushing ? "1" : "0", I(n)));
+            F(absScore), F(System.Math.Abs(ImpPos(ww.Polity) - ImpPos(pre.Polity))), F(pre.Legitimacy), F(dw.Legitimacy), crushing ? "1" : "0", I(n),
+            I(gid), I(cg is null ? 0 : cg.Rank), F(cg is null ? double.NaN : cgShare), tooFarToRule ? "1" : "0", ceded ? "1" : "0", skipped ? "1" : "0"));
     }
 
     static void ImpTable(Sink sk, Diplomacy d)

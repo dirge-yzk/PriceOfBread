@@ -11,7 +11,8 @@ namespace PriceOfBread.Tests;
 public class ImposeCrownFromLoserTests
 {
     /// <summary>勝者 fr（政体 winnerPol）が敗者 uk（政体 loserPol・王冠 loserCrown）に壊滅級で勝つ。second が非 null なら es（政体 second）も同じ月に uk に勝つ（押しは es の方が大きい＝先に講和する）。</summary>
-    private static (MultiNationSim sim, World uk) Run(double flag, Polity winnerPol, Polity loserPol, CrownForm loserCrown, Polity? second = null)
+    // viaScore（(1056) で足した盤面）：敗者の厭戦を 0 のままにし、戦勝点を ±1.5 に置く＝崩壊でなく戦勝点で決まった単独の講和 2 本（ConcludeWar(…, null)・崩壊の集合を通らない）。
+    private static (MultiNationSim sim, World uk) Run(double flag, Polity winnerPol, Polity loserPol, CrownForm loserCrown, Polity? second = null, bool viaScore = false)
     {
         var sim = new MultiNationSim(System.Array.ConvertAll(new[] { "フランス", "イギリス", "スペイン" }, OpeningFixture.Named), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var c = sim.Coef;
@@ -28,9 +29,9 @@ public class ImposeCrownFromLoserTests
         Assert.Equal(loserPol, uk.Nation!.Polity);
         CrownParliament.ApplyRegime(es.Nation!, c, second ?? winnerPol);
         foreach (var p in new[] { fr, uk, es }) p.WarExhaustion = 0;
-        uk.WarExhaustion = 1.0;
-        sim.Diplomacy.Wars.Add(new War { A = fr, B = uk, PushA = 1e12, PushB = 1 });
-        if (second is not null) sim.Diplomacy.Wars.Add(new War { A = uk, B = es, PushA = 1, PushB = 3e12 });
+        if (!viaScore) uk.WarExhaustion = 1.0;
+        sim.Diplomacy.Wars.Add(new War { A = fr, B = uk, PushA = 1e12, PushB = 1, Score = viaScore ? 1.5 : 0 });
+        if (second is not null) sim.Diplomacy.Wars.Add(new War { A = uk, B = es, PushA = 1, PushB = 3e12, Score = viaScore ? -1.5 : 0 });
         sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
         return (sim, uk.Nation!);
     }
@@ -88,12 +89,13 @@ public class ImposeCrownFromLoserTests
     [Fact]
     public void 旗1_同じ月の連鎖は段の頭の王冠から写す()
     {
-        // 専制の敗者（専制と共和の隔たり 0.45）に、同じ月に共和（押しが大きい＝先）と絶対が勝つ：共和の押し付けで王冠は無になるが、絶対の押し付けは段の頭の王冠（専制）から写す
-        var (s1, uk1) = Run(1, Polity.Absolutist, Polity.Despotic, CrownForm.Despotic, second: Polity.Republic);
+        // 専制の敗者（専制と共和の隔たり 0.45）に、同じ月に共和（添字が大きい＝先に講和する）と絶対が勝つ：共和の押し付けで王冠は無になるが、絶対の押し付けは段の頭の王冠（専制）から写す
+        // (1056) 盤面を戦勝点で決まった単独の講和 2 本へ取り直した（崩壊の集合は旗 ImposeOncePerCollapse で矯正 1 回まで＝同じ月の連鎖は集合の外の講和でだけ起きる・事前登録 m1056 §6）
+        var (s1, uk1) = Run(1, Polity.Absolutist, Polity.Despotic, CrownForm.Despotic, second: Polity.Republic, viaScore: true);
         Assert.Equal(2, Imposed(s1));
         Assert.Equal(Polity.Despotic, uk1.Polity);
         Assert.Equal(CrownForm.Despotic, uk1.Crown);
-        var (s0, uk0) = Run(0, Polity.Absolutist, Polity.Despotic, CrownForm.Despotic, second: Polity.Republic);
+        var (s0, uk0) = Run(0, Polity.Absolutist, Polity.Despotic, CrownForm.Despotic, second: Polity.Republic, viaScore: true);
         Assert.Equal(2, Imposed(s0));
         Assert.Equal(Polity.Absolutist, uk0.Polity);   // 旗 0＝勝者の政体
     }

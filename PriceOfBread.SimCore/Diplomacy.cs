@@ -2843,12 +2843,14 @@ public sealed class Diplomacy
         for (int k = 0; k < m; k++) share[k] = sum > 0 ? push[k] / sum : 1.0 / m;
         var order = new int[m]; for (int k = 0; k < m; k++) order[k] = k;
         Array.Sort(order, (x, y) => share[x] != share[y] ? share[y].CompareTo(share[x]) : pos[y].CompareTo(pos[x]));
-        var cg = new CollapseGroup { Sa = saGroup, AbsMax = absGroup, CedeLeft = 1 };
-        foreach (int k in order) { int ix = Wars.IndexOf(list[k]); if (ix >= 0) ConcludeWar(c, list[k], ix, cg, share[k]); }
+        var cg = new CollapseGroup { Sa = saGroup, AbsMax = absGroup, CedeLeft = 1, ImposeLeft = 1 };
+        int rank = 0;
+        foreach (int k in order) { cg.Rank = ++rank; int ix = Wars.IndexOf(list[k]); if (ix >= 0) ConcludeWar(c, list[k], ix, cg, share[k]); }
     }
 
     /// <summary>★(791) 崩壊の講和の集合の 1 回分（FlushCollapseGroup が立て、ResolvePeace が読む）。Sa＝1 回分の戦勝点（|クランプ後|の最大）・AbsMax＝1 回分の未クランプの |戦勝点| の最大（本国の割譲の門 TerritoryCessionScore が読む）・CedeLeft＝残りの本国の割譲の枠。月の中だけで捨てる。</summary>
-    internal sealed class CollapseGroup { public double Sa, AbsMax; public int CedeLeft; }
+    // (1056) ImposeLeft＝残りの矯正講和の枠（旗 ImposeOncePerCollapse > 0 のときだけ読む・実際に矯正したときに 0 へ）。Rank＝取り分の順の何番目か（計器 imp_s だけが読む）。
+    internal sealed class CollapseGroup { public double Sa, AbsMax; public int CedeLeft, ImposeLeft, Rank; }
 
     /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyCapPerMonth で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
     /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。
@@ -3227,7 +3229,12 @@ public sealed class Diplomacy
                         var headCrown = _crownAtPeaceHead is not null && _crownAtPeaceHead.TryGetValue(dw, out var hc) ? hc : dw.Crown;
                         imposeTarget = headCrown switch { CrownForm.Despotic => Polity.Despotic, CrownForm.Shogunate => Polity.Shogunate, _ => Polity.Absolutist };
                     }
-                    if (imposeTarget != dw.Polity)
+                    // (1056) 旗 ImposeOncePerCollapse（> 0）：崩壊の講和の集合（cg）の矯正は 1 回まで＝取り分の順で先に矯正した勝者がいれば、後の勝者は矯正しない（cg が null の単独の講和は旧のまま）。
+                    if (imposeTarget != dw.Polity && c.ImposeOncePerCollapse > 0 && cg is not null && cg.ImposeLeft <= 0)
+                    {
+                        if (Instruments.On) Instruments.ImpSkipped(this, winner, loser, ww0, dw, absScore, crushing, cg, cgShare, tooFarToRule, ceded);   // (1056) 計器（読むだけ）：飛ばした矯正の 1 行
+                    }
+                    else if (imposeTarget != dw.Polity)
                     {
                         var impPre = Instruments.ImpBeforeIfOn(dw);   // (928) 計器（読むだけ）：矯正の前の敗者の断面
                         CrownParliament.ApplyRegime(dw, c, imposeTarget);
@@ -3237,7 +3244,8 @@ public sealed class Diplomacy
                         if (dw.Legitimacy != legBeforeImpose)   // 説明API（#63）：未記帳の書き込み現場を解消（第1波点火でExplainTestsが捕捉・2026-07-28）
                             dw.Explain?.Add("Legitimacy", "矯正講和(銃剣の上の玉座)", dw.Legitimacy - legBeforeImpose);
                         Log.Add($"{_year} {winner.Name}が{loser.Name}の政体を矯正（矯正講和・戦勝点{absScore:0.00}）");
-                        if (impPre is not null) Instruments.ImpAfter(this, impPre, winner, loser, ww0, dw, absScore, crushing);   // (928) 計器（読むだけ）：imp_s の 1 行＋王冠の登録簿の書き手 2
+                        if (cg is not null) cg.ImposeLeft = 0;   // (1056) 実際に矯正した＝集合の矯正の枠を使い切る（旗 0 は読まない）
+                        if (impPre is not null) Instruments.ImpAfter(this, impPre, winner, loser, ww0, dw, absScore, crushing, cg, cgShare, tooFarToRule, ceded);   // (928) 計器（読むだけ）：imp_s の 1 行＋王冠の登録簿の書き手 2（(1056) 末尾 6 列）
                     }
                 }
                 // 宗主権の引き継ぎ（宗主の地理2026-07-12・第2レバー）：敗者が宗主なら、圧勝の勝者はその属国の宗主権を1件引き継ぐ

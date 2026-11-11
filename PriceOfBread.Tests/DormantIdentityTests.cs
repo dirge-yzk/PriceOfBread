@@ -27,6 +27,7 @@ public class DormantIdentityTests
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
         // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。(812) で旗ごと焼き込んだ（RetiredFields）。
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
+        "ImposeOncePerCollapse",       // (1056) c100ic：崩壊の講和の集合で矯正講和は 1 回まで（器・0 で旧のまま・番人 ImposeOncePerCollapseTests）
         // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
         // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
         "SubsistenceNoBoughtTech",     // ★(877) c73ts 自給の段 2′ Σ2′：技術の比 T を自給の 3 か所（焼く ρ・σ・(b′) の lneed）から外す旗（0＝S1-a のまま・番人 SubsistenceNoBoughtTechTests）。点火時にこの表から外す
