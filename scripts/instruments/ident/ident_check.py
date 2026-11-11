@@ -398,6 +398,28 @@ def _decl(known, t):   # (949) 既知の揺れの札に、その表の宣言の�
     return '（宣言の列 ' + ','.join(sorted(known[t])) + '）' if known.get(t) else ''
 
 
+def sha1(p):
+    h = hashlib.sha1()
+    with open(p, 'rb') as f:
+        for b in iter(lambda: f.read(1 << 22), b''):
+            h.update(b)
+    return h.hexdigest()
+
+
+def pruned_ok(new, base, fa, have):
+    """(1054) prune.py（PRUNE=1）が判定の後に消した表のうち、manifest の生の sha1・大きさが基準の同名の表と一致する物の名。manifest が無ければ空（今までと同じ）。"""
+    mp = J(os.path.dirname(os.path.dirname(os.path.abspath(new))), 'prune_manifest.tsv')
+    if not os.path.isfile(mp): return []
+    ok = []
+    for l in open(mp, encoding='utf-8'):
+        x = l.rstrip('\n').split('\t')
+        if l.startswith('#') or len(x) < 8 or not x[7].startswith('消す') or x[0] in have or x[0] not in fa: continue
+        bp = J(base, x[0])
+        if os.path.getsize(bp) == int(x[1]) and sha1(bp) == x[2]: ok.append(x[0])
+    if ok: say(f'  刈り済みの表 {len(ok)} 本は manifest の生の sha1 と基準が一致（バイト一致に数える）')
+    return ok
+
+
 def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}')
     if not os.path.isdir(new):
@@ -406,10 +428,13 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         miss(f'基準の生が無い（{base}）＝計器の表は突き合わせられない'); return
     fa = sorted(x for x in os.listdir(base) if os.path.isfile(J(base, x)))
     fb = sorted(x for x in os.listdir(new) if os.path.isfile(J(new, x)))
+    PR = pruned_ok(new, base, fa, set(fb))   # (1054) 刈り済みの表（manifest の生の sha1 が基準の生と一致した物）は〈バイト一致〉に数える
+    fb = sorted(fb + PR)
     sb, sa = set(fb), set(fa)
 
     def pair(f):
         pa, pb = J(base, f), J(new, f)
+        if f in PR: return f, 'same'
         if os.path.getsize(pa) == os.path.getsize(pb) and sha(pa) == sha(pb):
             return f, 'same'
         return f, 'diff'

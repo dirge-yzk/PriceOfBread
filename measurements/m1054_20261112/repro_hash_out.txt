@@ -1,0 +1,3 @@
+全体の sha1：腕 1326 本・基準 1326 本・一致（刈る）1246・違い（残す）80
+違いの表の頭：burscan,cearn,clock,cpop,flow,lordstat,sellr,tradeskip
+先頭の列：30/30
