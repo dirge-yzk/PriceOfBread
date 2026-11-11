@@ -2234,7 +2234,8 @@ public sealed class World
     public bool Invade(Power target, Colony? interest = null)
     {
         if (!CanInvade(target, out _)) return false;
-        if (Instruments.On) Instruments.WarInvadeRow(Diplomacy!, Coef, Year, this, SelfPower!, target);   // (1038) 判断の時点の盤面（消費・損耗の前）
+        bool ins = Instruments.On;   // (1038) 計器の門は関数の頭で 1 回だけ読む
+        if (ins) Instruments.WarInvadeRow(Diplomacy!, Coef, Year, this, SelfPower!, target);   // (1038) 判断の時点の盤面（消費・損耗の前）
         if (interest != null) interest.PlayerInterest = true;   // 植民地単位の侵略：狙った州を講和で優先的に取る（複数植民地の勢力で有効）
         if (!(Coef.WarSurplusFromFill > 0)) ExpansionWill -= WillNeed(target);   // ★(1038) 段1：導く余剰は使って減らない＝消費しない
         if (Diplomacy!.IsSeaCrossing(SelfPower!, target))   // 海越えのみ輸送船を消費（陸続きの陸路侵攻は船を使わない・B-1）
@@ -2268,7 +2269,7 @@ public sealed class World
         var targetPointsBefore = ProximityTargetPoints(target);
         bool submitted = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所
         var proximityAdded = AddProximityTension(target, targetPointsBefore);
-        if (Instruments.On) Instruments.Invaded(Diplomacy, Year, SelfPower!, target, submitted, proximityAdded.Total, proximityAdded.ToTarget);
+        if (ins) Instruments.Invaded(Diplomacy, Year, SelfPower!, target, submitted, proximityAdded.Total, proximityAdded.ToTarget);
         // ★A2-1（2026-09-26）：兵の疫病死と植民地の州化は信用の「月の中の定数」の入力＝表から外し、次の日次で求め直させる。
         //   AI は四半期末（境界相）にしか呼ばないので何も変わらない。プレイヤーは月の途中で呼べる＝旧と同じく翌日から新しい値を読む。
         Simulation.CreditMonth.Remove(this);

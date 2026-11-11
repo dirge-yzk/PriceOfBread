@@ -2256,9 +2256,10 @@ public sealed class Diplomacy
     /// 呼び手は <see cref="World.Invade"/> の 1 本だけで、計器 `invade_s` の〈屈服か〉の列がこの値を読む。</summary>
     internal bool Subjugate(Power great, Power target, Coefficients c)
     {
+        bool ins = Instruments.On;   // (1038) 計器の門は関数の頭で 1 回だけ読む
         double force = ColonizeForce(great, target, c);   // 到達できねば屈服させられない（距離・制海権・遠征技術＝共通式。宗主の地理2026-07-12で一本化）
         bool submit = c.WarSubmitUnified > 0 ? SubmitYields(great, target, c) : force >= SubmitLine(target, c);   // ★(1038) 段3：屈服の判定の 1 本
-        if (Instruments.On) Instruments.WarSubmitRow(this, c, 2, great, target, submit ? 1 : 0);
+        if (ins) Instruments.WarSubmitRow(this, c, 2, great, target, submit ? 1 : 0);
         RaiseColonizeTension(great, target, c);   // 他の列強との緊張↑（勢力圏争い・屈服でも開戦でも）
         if (submit)
         {
@@ -2279,7 +2280,7 @@ public sealed class Diplomacy
             }
             return true;
         }
-        if (Instruments.On) Instruments.WarTag(this, great, target, 2); StartWar(great, target, c);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
+        if (ins) Instruments.WarTag(this, great, target, 2); StartWar(great, target, c);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
         Log.Add($"{_year} {target.Name}が{great.Name}の侵略に抗して開戦");
         return false;
     }
