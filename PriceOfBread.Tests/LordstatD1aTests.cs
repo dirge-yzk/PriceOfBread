@@ -134,6 +134,17 @@ public class LordstatD1aTests
             Assert.Equal(cutShare, D(row, "d2CutOverIncome0"), 9);
             double rho = D(row, "d2Rho"); Assert.InRange(rho, 0.0, 1.0);
             Assert.True(rho > 0, "ρ が 0＝前提が崩れた（在地の区分か AdminFill が空）");
+            // 試験が州から組んだ ρ＝Σ n·R1·f ÷ Σ n·(R1＋R0·(1−f))（f＝AdminFill を [0,1] へ）
+            double num = 0, den = 0, f1 = 0;
+            foreach (var r in n.World.Regions)
+            {
+                if (r.Rule.Length != 4 || r.RuleInit.Length != 4) continue;
+                double pop = r.SumPopulation(); if (!(pop > 0)) continue;
+                double f = Math.Min(1.0, Math.Max(0.0, r.AdminFill)); if (f < 1.0) f1 += 1;
+                num += pop * r.Rule[1] * f; den += pop * (r.Rule[1] + r.Rule[0] * (1.0 - f));
+            }
+            Assert.True(f1 > 0, "AdminFill が全て 1＝f の項が検査できない盤面");
+            Assert.Equal(num / den, rho, 9);
             Assert.Equal(cutShare * rho, D(row, "d2SMidBurExp"), 9);
             Assert.Equal(cutShare * rho, D(row, "d2SGainBurExp"), 9);
             Assert.Equal(0.0, D(row, "d2SMidLandExp"), 12);
