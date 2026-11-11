@@ -502,7 +502,7 @@ public partial class MainWindow : Window
                 gvm.SaveSlotCommand.Execute("1");
                 var loaded = GameViewModel.TryLoad(1, null, null);
                 string a = gvm.SeriesSummary, b = loaded?.SeriesSummary ?? "（ロード失敗）";
-                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}");
+                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・観戦 {(loaded?.Spectating == gvm.Spectating ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}");
                 loaded?.Shutdown();
             }
             catch (Exception ex) { BootLog.Write($"uishot: セーブの往復 失敗 {ex}"); }

@@ -19,7 +19,7 @@ public static class UiShotDump
         "地図・線グラフ・半円・積み上げ棒・段の押し釦・動詞の押し釦の中身（文字にならないもの）",
         "吹き出しの文・ポップアップ・窓の中身・表の目録（TableCatalog）に載らない画面の欄",
         "GameViewModel が行を絞った表（生産の財の表の絞り込み）と、読みの中で前回との差を採る表の矢印",
-        "表どうしの突き合わせは同じ行の名前・同じ列の名前・同じ単位の組だけ（名前が違う量・単位が違う量は見ていない）",
+        "表どうしの突き合わせは同じ行の名前・同じ列の名前・同じ単位の組だけ（名前が違う量・単位が違う量・輸入と輸出の組は見ていない）",
         "構成比の和は列の鍵が share の列だけ（割合の意味で使われるほかの列は見ていない）",
         "見た目（切れ・重なり・色）は画像と LogOuterFlow の判定が見る分担で、ここでは見ない",
     ];
@@ -118,7 +118,7 @@ public static class UiShotDump
             }
         }
         // 4. 同じ名前の量が表によって違う値（行の名前・列の名前・単位が同じ組・別の表どうし。文字で比べる＝画面で見える差だけ）
-        var seen = new Dictionary<(string Row, string Col, Unit Unit), (string Table, string Text)>();
+        var seen = new Dictionary<(string Row, string Col, Unit Unit), (string Table, string Key, string Text)>();
         var reported = new HashSet<(string, string, Unit)>();
         foreach (var s in tables)
         {
@@ -133,10 +133,10 @@ public static class UiShotDump
                     if (!inThis.Add(key)) continue;   // 同じ表の中の重複（群違いの同名）は比べない
                     if (seen.TryGetValue(key, out var prev))
                     {
-                        if (prev.Table != s.Name && prev.Text != cell.Text && reported.Add(key))
+                        if (prev.Table != s.Name && prev.Text != cell.Text && !(prev.Key.StartsWith("trade.") && s.Key.StartsWith("trade.")) && reported.Add(key))   // 輸入と輸出は別の量（同じ財の名前で違って当然）
                             o.Add($"同じ量が表で違う：「{r.Name}／{s.Columns[i].Name}」{prev.Table}＝{prev.Text}・{s.Name}＝{cell.Text}");
                     }
-                    else seen[key] = (s.Name, cell.Text);
+                    else seen[key] = (s.Name, s.Key, cell.Text);
                 }
         }
         return o;
