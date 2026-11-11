@@ -96,7 +96,7 @@ public partial class GameViewModel
                 {
                     QueueNewsText("🏛", $"{p.Name}が独立して建国された", NewsGold, nw.Latitude, nw.Longitude, false); Annal("🏛", $"{p.Name}が独立して建国");
                     // ★内戦の陣営選択（P8・2026-09-06）：自国を親とする内戦タグの戦争の相手＝自国から立った反乱国家。既にモーダルが開いていれば今回は出さない（排他連鎖）。
-                    if (_player.SelfPower is { } meP && !AnyPopupOpen)
+                    if (_player.SelfPower is { } meP && !AnyPopupOpen && !Spectating)   // 観戦では陣営を選ばない（選ぶ主体が居ない）
                         foreach (var w2 in _sim.Diplomacy.Wars)
                             if (w2.CivilWarParent == meP && (w2.A == p || w2.B == p))
                             {

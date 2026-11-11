@@ -16,11 +16,15 @@ public partial class NationSelectViewModel : ViewModelBase
     // その他の国＝おすすめ以外の全国。★常時表示（作者指示2026-08-11）＝開閉でおすすめ国の位置が動かない。
     public ObservableCollection<NationChoice> Others { get; } = new();
 
-    private readonly Action<int> _onSelect;
+    private readonly Action<int, bool> _onSelect;
 
-    public NationSelectViewModel(Action<int> onSelect)
+    /// <summary>観戦（選んだ国の判断も全て AI が行う）。カードを押した時点の値が開始に渡る。</summary>
+    [ObservableProperty] private bool _spectate;
+
+    public NationSelectViewModel(Action<int, bool> onSelect, bool spectate = false)
     {
         _onSelect = onSelect;
+        _spectate = spectate;
         Fill();
     }
 
@@ -36,9 +40,9 @@ public partial class NationSelectViewModel : ViewModelBase
         {
             string name = all[i].Name, strength = rank.GetValueOrDefault(name, "");
             if (diff.TryGetValue(name, out var d))
-                reco.Add((new NationChoice(i, name, _onSelect, strength, d, NationBrief.Description(name)),
+                reco.Add((new NationChoice(i, name, idx => _onSelect(idx, Spectate), strength, d, NationBrief.Description(name)),
                           NationBrief.Ease(all[i], all, coef, soldiers)));
-            else others.Add((new NationChoice(i, name, _onSelect, strength), score.GetValueOrDefault(name)));
+            else others.Add((new NationChoice(i, name, idx => _onSelect(idx, Spectate), strength), score.GetValueOrDefault(name)));
         }
         // その他の国＝国力の降順（作者指示2026-08-11）。同点は名前順＝決定論。
         others.Sort((a, b) => b.Score != a.Score ? b.Score.CompareTo(a.Score) : string.CompareOrdinal(a.Card.Name, b.Card.Name));

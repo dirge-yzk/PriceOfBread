@@ -66,7 +66,10 @@
         <Image Source="avares://PriceOfBread.App/Assets/moonlit.jpg" Stretch="UniformToFill"/>
         <Border Background="#66000000"/>
         <DockPanel Margin="20,10">
-            <TextBlock DockPanel.Dock="Top" Text="国家選択" FontSize="22" FontWeight="Bold" Foreground="#F4EFE2" Margin="0,0,0,4"/>
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+                <CheckBox DockPanel.Dock="Right" Name="SpectateCheck" Content="観戦" IsChecked="{Binding Spectate, Mode=TwoWay}" Foreground="#F4EFE2" VerticalAlignment="Center"/>
+                <TextBlock Text="国家選択" FontSize="22" FontWeight="Bold" Foreground="#F4EFE2"/>
+            </DockPanel>
 
             <!-- おすすめ＝均等なカードを並べるだけ（作者指示2026-08-11）。★難易度はカードの見出しに書いてあるので
                  難易度で列を分けない＝2/4/1の列は高さが揃わず、形が崩れていた。枡を固定（ItemWidth/ItemHeight）＝
