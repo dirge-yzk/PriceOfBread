@@ -75,7 +75,18 @@ case "$CMD" in
     echo "rc=0 end=$(date '+%F %T')" > "$W/marks/all.done"
     echo "ident start：腕は全て終わった（$(ls "$W/marks" | grep -c '\.done$') 印）"
     if [ "$CMD" = run ]; then
-      exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
+      if [ "${PRUNE:-0}" != 1 ]; then   # (1046) 既定（PRUNE 未設定）は今までと同じ exec
+        exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
+      fi
+      # (1046) PRUNE=1：判定の行が出た後に限り、基準と全体が一致した表の生を消す（tools/prune.py・manifest は $W/prune_manifest.tsv）。PRUNE_HEAVY=1 で重い 4 表も対象（HEAVY_KEEP=表の頭,... は残す）。
+      bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}" | tee "$W/check_out.txt"
+      RCC=${PIPESTATUS[0]}
+      CF="${CFG:-$ROOT/scripts/instruments/ident/ident.cfg}"
+      BASEINS=$(grep '^INSRAW=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r')
+      KP=$(grep '^KNOWN=' "$CF" | head -1 | cut -d= -f2- | tr ',' '\n' | cut -d: -f1 | tr '\n' ',')
+      i=0; while [ $i -lt ${#EXTRA[@]} ]; do case "${EXTRA[$i]}" in --added-tables|--grown-ok|--removed-tables|--rows-grown-ok|--known-extra) KP="$KP$(echo "${EXTRA[$((i+1))]}" | tr ',' '\n' | cut -d: -f1 | cut -d@ -f1 | tr '\n' ',')" ;; esac; i=$((i+1)); done
+      python -X utf8 -I "$IS/tools/prune.py" prune "$W/out_ib_10/ins" "$BASEINS" --verdict-file "$W/check_out.txt" --manifest "$W/prune_manifest.tsv" --pre-out "$W/prune_pre.tsv" --deleted "$W/prune_deleted.txt" --keep-prefix "$KP" --heavy-keep "${HEAVY_KEEP:-}" $([ "${PRUNE_HEAVY:-0}" = 1 ] && echo --heavy) | tee -a "$W/check_out.txt"
+      exit $RCC
     fi ;;
   check)
     exec python -I "$SP/ident_check.py" "$LABEL" --root "$ROOT" "$@" ;;
