@@ -1,0 +1,12 @@
+seed 1: inv=134 matched=134 Spos=64 passD=31
+seed 2: inv=122 matched=122 Spos=54 passD=27
+seed 3: inv=155 matched=155 Spos=73 passD=41
+seed 4: inv=139 matched=139 Spos=67 passD=35
+seed 5: inv=139 matched=139 Spos=59 passD=38
+seed 6: inv=147 matched=147 Spos=54 passD=30
+seed 7: inv=128 matched=128 Spos=63 passD=39
+seed 8: inv=132 matched=132 Spos=72 passD=46
+seed 9: inv=123 matched=123 Spos=62 passD=38
+seed 10: inv=132 matched=132 Spos=70 passD=38
+total inv=1351 matched=1351 Spos=638 passD=363 tgtUnknown=49 calls=10429 callsSpos=3762
+calls with S>=0.15:2506 0.3:1884 0.75:1473 1.5:1008 3.0:690

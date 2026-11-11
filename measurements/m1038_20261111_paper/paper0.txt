@@ -1,0 +1,11 @@
+seed 1: invade=134 invadeWithSpos=64
+seed 2: invade=122 invadeWithSpos=54
+seed 3: invade=155 invadeWithSpos=73
+seed 4: invade=139 invadeWithSpos=67
+seed 5: invade=139 invadeWithSpos=59
+seed 6: invade=147 invadeWithSpos=54
+seed 7: invade=128 invadeWithSpos=63
+seed 8: invade=132 invadeWithSpos=72
+seed 9: invade=123 invadeWithSpos=62
+seed 10: invade=132 invadeWithSpos=70
+total inv=1351 invS=638 calls=10429 callsS=3762 callsSh=2327 callsShS=762

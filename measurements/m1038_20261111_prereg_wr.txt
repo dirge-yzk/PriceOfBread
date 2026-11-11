@@ -1,0 +1,79 @@
+(1038) c98wr 事前登録：戦争の入口の統合 段1〜3（旗 3 本・既定 0・腕 B は 3 本とも 1 の 1 回・3 回の規則の 1 回目）
+書いた担当：Claude Opus 5.5・2026-11-11・木 a06f769b から枝 c98wr（D:/PoB_work/wt_c98wr）。比べる盤面＝m1027（生 keep_1035/base_ins）。
+
+■ 形は〈入口〉（侵略・介入・緊張の屈服の門の判定を替える。帰結の形は替えない）。
+
+■ 作者の原文（下書き docs/202611/20261109/…_下書き.md §1）
+- 「緊張50%の場合、宣戦布告に必要な余剰戦力を緊張0%の際の75%ぐらいにする」・「余剰戦力をスタックではなく、軍隊の充足で出す」・列強どうしの宣戦「はい」・屈服の 1 本化「実装方法は任せる 効率の良い方法を」。
+- §0-2 ★(1006) ①〜④ は作者「全て推奨で」で推奨を採った。以下の細部（単位・比・陣営・射程）は AI の案・確証なし。
+
+■ 形（旗 3 本・新しい係数 0・新しい状態 0・タイマー 0）
+旗1 WarSurplusFromFill（段1）
+- 余剰 S＝LandPotential(自国)×(1−b)−(NeedLand＋NeedInternal)。b＝clamp(WarScale(自国), 0, 1)（NaN・負は 0・+∞ は 1）＝前線に縛られた割合。毎回導く・貯めない・使って減らない。
+- 要求 D0＝AISubmitMilRatio×max(ColonizeSubmitFloorMilitary, 標的の陣営の陸の大きさ)。陣営の陸の大きさ＝Σ LandPotential（標的と、SideMilitary と同じ参戦見込みの規則〔同盟・相手と非交戦・相手との緊張≧AllyJoinThreshold(相手)〕の同盟国）。単位は S と同じ LandPotential（頭数×質）＝分子と分母を同じ規則で。比は屈服線の比（段3 で寄せる AISubmitMilRatio＝3.0）＝★(1006) ②〈標的の陣営の陸の力×屈服線の比〉の文。
+- 旗1：CanInvade の余剰の門＝S＜D でなら〈余剰戦力が不足〉（D＝D0、旗2 なら D0×(1−τ²)）。Invade の ExpansionWill の消費（World.cs:2223）と介入の消費（Diplomacy.cs:2339）を飛ばす。介入の門（:2410）＝S(g)＜max(D(g,A), D(g,B)) で〈膨張度が不足〉（理由の文は変えない）。
+- ExpansionWill の欄と TickExpansionWill の積算は残す（消すのは採った後の恒等の線）。ExpansionCostFor の署名はそのまま＝旗1 で値の意味が〈戦力の単位の要求 D〉へ変わる＝記録して ⑲ へ（App GameViewModel.Diplomacy.cs:116〜122・Popups.cs:290〜321・Refresh.cs:53〜54・Header.cs:198〜210・War.cs:33・Runner Program.cs:867〜881・PlayHarness.cs:646）。
+- AI の輪（TryAiSubjugate）は S を 1 回だけ計算して CanInvade の内部の重ね書きへ渡す＝述語は同じ 1 本（AI とプレイヤーの対称）。
+旗2 WarTensionDiscountOpen（段2）
+- 要求に (1−τ²) を掛ける。τ＝min(1, 緊張(自国,標的)÷WarDeclareTension 140)・緊張が負・NaN は 0。τ≥1 で要求 0。緊張による自動開戦（TriggerWars）はそのまま。
+- CanInvade の〈弱小国が標的〉の門を外す。他の門はそのまま。
+- 介入：D(g,X)×(1−τ(g,X)²) の大きい方。
+- 旗1＝0・旗2＝1（アブレーション）：旧の要求 InvadeWillCost×(1−τ²) を ExpansionWill と比べる・弱小国の門を外す。旗2 は〈割引〉と〈門の撤去〉の 2 つを束ねる＝G2 と G3 が別々に落ちたとき旗では切り分けられない（名乗る）。
+旗3 WarSubmitUnified（段3）
+- 屈服の判定を 1 本の関数 Diplomacy.SubmitYields(strong, weak, c)＝CampLand(strong,weak)×max(0.05, Projection(strong,weak)) ＞ AISubmitMilRatio×max(ColonizeSubmitFloorMilitary, CampLand(weak,strong))。
+- 侵略の入口（Subjugate :2245）＝SubmitYields(侵略者, 標的)。緊張の入口（:1558）＝SubmitYields(a,b) なら b が屈服・でなく SubmitYields(b,a) なら a が屈服・どちらでもなければ開戦。帰結は入口ごとの今の形（属国化・併合／緊張を 110 へ・正統性の傷）。
+- 寄せる比＝AISubmitMilRatio（ColonizeSubmitRatio と同じ値 3.0＝値の衝突は無い）。等号は〈＞〉へ寄せる（侵略の旧は ≥）。SubmitProbabilistic＞0 の経路は旧のまま（既定 0）。
+- 第3の読み手（Diplomacy.cs:1399〜1404 の離反の可否・SideMilitary×AISubmitMilRatio）は通さない＝記録（指示の対象は 2 入口）。
+- 抽象標的（Nation なし）の陣営の陸＝Military×(1−NavalShare)（ArmyShape.LandPotential の抽象の枝）。
+
+■ 計器（エンジンの関数 CampLand・SubmitYields・InvadeSurplus を呼ばない・計器が自分で数える）
+- warentry_s の末尾に 13 列：g1Pass（通った評価）・g1Viol（通った評価で計器の S＜計器の D0×(1−τ²)）・willReach（余剰の門まで来た評価）・willReachTauPos（そのうち τ＞0）・g2Rows（エンジンの要求が渡された行で τ＞0）・g2Bad（|エンジンの要求÷計器の D0−(1−τ²)|＞1e-12）・g2Zero（τ＜1 でエンジンの要求が 0）・mWillFalse（エンジンは余剰の門を通したが計器は S＜D）・mWillTrue（エンジンは余剰で落としたが計器は S≥D）・sumS・sumD0・nonMinorPass・lastReason は持たない（列名は実装のとき見出しの定数で確定し報告に列挙）。
+- 新しい表 warinv_s（侵略 1 件ごと）：q・year・侵略者・標的・判断の時点の格・計器の S・計器の D0・τ・エンジンの要求・標的の Military・自国の Military・屈服か（エンジン）。
+- 新しい表 warsub_s（屈服の判定 1 件ごと・2 入口）：q・入口（1 緊張・2 侵略）・a・b・エンジンの結果（0 開戦／1 a 側が屈服させた／2 b 側が…）・計器の 1 本の式の結果・計器の旧の規則の結果。
+- エンジンの要求は World の [NonSerialized] の欄 LastInvadeNeed（CanInvade が余剰の門に来たとき書く・入口で NaN）で計器へ渡す。計器は自分の式の値と比べる（⑮）。
+- 計器の陣営の和は計器が自分で書く（HasAlliance・AtWar・Tension・AllyJoinThreshold・ArmyShape.LandPotential の低い読み手だけを呼ぶ）。b は既存の計器の CurB（WarScale の比を計器の WarRatioClamp で）。
+
+■ 門（両側・件数の床は F1〜F3〔m1028_20261111_floors.txt〕から・★(1027) ③）
+- G1 余剰（下と上）：(a) 上＝g1Viol の和＝0 かつ warinv_s で計器の S＜D0×(1−τ²)−1e-9×max(1,D0) の行＝0。(b) 下＝warinv_s の行の和 ≥135（F2 1351÷10）。(c) 下＝r_will の和 ≥20,535（F1 205,353÷10）。
+- G2 緊張の割引：(a) 下＝g2Rows の和 ≥5,934（tauPos 593,370÷100）。(b) g2Bad の和＝0。(c) 上＝g2Zero＝0。(d) mWillFalse＋mWillTrue＝0（エンジンの余剰の判定が計器の式と一致）。
+- G3 標的の開放：(a) 下＝warinv_s で判断の時点の格が非 Minor の行 ≥20（近似の床・下の紙の台本）。(b) 上＝その行で計器の S＜D0(1−τ²) か 自国 Military＜1.2×標的 Military の行＝0。
+- G4 屈服の 1 本化：(a) 下＝warsub_s の行 ≥2,327（F3）。(b) エンジン＝計器の 1 本の式の行が 100%。(c) 計器の旧＝計器の新が食い違う行（判別の行）≥10、その行でエンジン＝旧が 0。
+- 旗 0 で落ちること：G1(a)＝紙の台本 1 で基線の侵略 1351 件のうち新しい門を満たすのは近似で 363 件（988 件が違反）＝赤。G2(b)(d)＝旗 0 のエンジンの要求は InvadeWillCost（意欲の単位）＝比が 1−τ² でない＝赤。G3(a)＝旗 0 は CanInvade が Minor を要る＝判断の時点の非 Minor は 0＝赤。G4(c)＝旗 0 はエンジン＝旧＝判別の行があれば赤（判別の行が 10 以上あることは旗 0 の ident の生で確かめる＝紙では数えられない＝㉗：それでも回す理由＝判別の行は単位〔Military と LandPotential〕と射程の差から出るはず・ident の生で 10 未満なら G4(c) を記録へ下げると腕の前に追記する）。
+- 記録（門ではない）：戦争の頻度・期間・列強どうしの戦争の数・同じ組の再戦の間隔（narrative の 4 盤面の幅）・英仏の回数・侵略の件数の新÷旧・屈服の割合・ExpansionWill の貼り付き。
+
+■ 突然変異（㉚：使い捨ての木・計器つき 1 種＝種 1・旗 3 本 1）
+| 変異 | G1a | G1b | G1c | G2b | G2d | G3a | G4b | G4c | 番人 |
+| M1 余剰の門を ExpansionWill のまま | 赤 | - | - | 赤 | 赤 | - | - | - | - |
+| M2 S から前線の項を外す | 赤（b＞0 の行） | - | - | - | 赤 | - | - | - | WarEntrySurplusTests |
+| M3 1−τ | - | - | - | 赤 | 赤 | - | - | - | WarTensionDiscountTests |
+| M4 τ÷100 | - | - | - | 赤 | 赤 | - | - | - | WarTensionDiscountTests |
+| M5 弱小国の門を残す | - | - | - | - | - | 赤 | - | - | WarTargetOpenTests |
+| M6 侵略の入口だけ旧の屈服 | - | - | - | - | - | - | 赤 | 赤 | WarSubmitUnifiedTests |
+| M7 緊張 100% の自動開戦を外す | - | - | - | - | - | - | - | - | WarAutoDeclareTests（新しい番人） |
+M2 の G1a は 1 種で b＞0 かつ S の差で門を跨ぐ評価があるときだけ赤（無ければ番人の試験で落ちることを示す）。
+
+■ 段0 の予言（腕の前・ソースと keep_1035 から）
+- 紙の台本 0（scripts/instruments/c98wr/paper0.py）：基線の 10 種で侵略 1351 件・侵略した国のその四半期の S＞0 は 638 件（47%）。呼び（AI の侵略の思案）10,429 回のうち S＞0 は 3,762 回。
+- 紙の台本 1（paper1.py・近似）：基線の侵略のうち S≥3×max(0.05, 標的の陸) は 363 件・S≥0.3 の呼び 1,884・≥0.75 1,473・≥1.5 1,008。消費が無くなる＝S≥D の国は思案のたびに侵略できる（AiColonizeChance 0.12・1 回 1 件・属国の上限の門は残る）。
+- 主な観測量の符号と大きさの見込み：侵略の件数の新÷旧＝0.5〜1.5（S＜0 の国が 6 割で門が閉じる側と、消費が無い側が打ち消す・幅は大きい）。非 Minor の標的への侵略＝0→数十（大半は Middle の小さな陣営・列強の陣営の陸は大きく D が届かない）。屈服の割合＝上がる（段1 で S≥D0 の侵略者は陣営の陸で屈服線を越えやすい・射程の差で下がる側もある）。緊張の屈服は単位の差（Military→LandPotential・射程が掛かる）で増減の向きは読めない＝記録。見込みは〈悪くする〉ではない＝腕を回す。
+- 近似の名乗り：抽象標的の陸は world.json の military（海軍の割合を引かない）・実在の標的は直近の warentry の sumLand/calls・陣営の同盟を数えない・τ＝0。
+
+■ 旗 1 で赤になる試験の予言（㉑㉜・grep 済み）
+- DiplomacyPendingTests.cs:151〜156・:232〜235・:275〜278、MilitaryTests.cs:233〜261、PlayHarnessTests.cs:217〜237＝ExpansionWill を 1e12 か上限に置いて余剰の門を開ける前提の盤面＝旗1 では S≥D が要る＝〈前提が崩れた〉で赤になりうる（S が負の盤面なら赤）。
+- ConservationTests.cs:537〜550＝ColonizeSubmitRatio＝0 で必ず屈服させる前提＝旗3 は AISubmitMilRatio を読む＝赤になりうる。ColonyPromotionTests.cs:45 も屈服の前提。
+- WarInstrumentTests の見出しの列数を数える行（:271・:351 付近）＝列を足すので器のコミットで同時に直す（旗 0 で赤にしない）。
+- DormantIdentityTests の DormantZeroFields に旗 3 本を器のコミットで足し、旗 1 のコミットで外す。
+- 区分：上の前提の赤は〈試験の盤面が旧の門を開ける置き方〉＝★(743) の〈軌道に依る前提〉に近い〈前提の盤面〉の区分。㊴ に従い、直すなら試験だけの別のコミット・Assert の文と閾値は変えない・盤面の置き方だけ（ExpansionWill に加えて需要量を 0 に置く等）・直しを外す突然変異で赤・旗 0 と 1 で緑。機構の向き・大きさを主張する Assert（PlayHarnessTests:226 の〈挑めるが屈服線の下〉の帯の前提を含む）が旧の規則そのものを固定している型なら直さず止めて作者に聞く。
+
+■ 走査の番人の点検（㉘）
+- 工業化度の読み手の許可表：この線は工業化度を読まない。`new MoneyStock(` の件数＝SimCore で 64（増やさない）。route_anchors.tsv の鍵の行：触れない。WriterRatchetTests の宣言の表：warentry_s・warinv_s・warsub_s は宣言の表に無い（grep 0）＝変わる件数の予言は 0。
+- ㉜：旗 1 の木でフルスイートの番人が旧の規則を固定していないか＝上の予言の行を旗 1 のコミットの後に grep し直す。
+
+■ 止める線（この回の形をそのまま写す・結果を見る前）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍の〈それ以外〉（建国の直後の型と ★(905) の区分は記録・ヌル腕と並べる）・1e10 倍・非有限・空洞化 1/10 未満の〈線が原因〉（an_h2 -v4・規則 A2・基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）・推定 248.5 秒・機構の試験の赤。NG・史実度・国力・常勝は記録。
+
+■ 計算量の割り当て
+- S は思案 1 回に 1 回（WarScale 1 回）＝約 1 万回／種で無視できる。D0 は余剰の門に来た評価ごと＝陣営の輪（Powers×HasAlliance）＝評価 約 9 万／種×国 約 80。旗2 で非 Minor の標的が門の先へ来る＝船・制海権の門の評価が増える。侵略と戦争の件数の変化は戦争の歩の量を動かす。見積り +0.5〜2.0 秒（登録 2.0 秒・余り 約 17.5 秒の内）。
+
+■ S11 は回さない（合流で読む）。アブレーションの組（門が落ちたとき・合流が素の 10 種で読む）：旗1 だけ・旗2 だけ・旗3 だけ。
+■ 腕：器のコミット→㉘→フルスイート→ident c98wrz（旗 0）→旗 3 本を 1 にするコミット→計器の試験の束（㊴）→フルスイート・savetest・leakhunt→腕 B c98wrB（計器つき 10 種）。突然変異は計器つき 1 種（種 1）。
