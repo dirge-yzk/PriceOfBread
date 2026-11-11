@@ -249,6 +249,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? SbU, SbR, SbRReg; public bool SbUHeader, SbRHeader, SbRRegHeader;                  // (520) 交渉の取り分と地代の表 sbu_s（国×四半期）・sbr_s（国×四半期）・sbrreg_s（挙げた国×州×四半期）
         public System.IO.StreamWriter? Pay; public bool PayHeader;                         // (486) 売上の払いの保存則の穴の表 pay_s（国×四半期・累計）
         public System.IO.StreamWriter? House; public bool HouseHeader;                     // (418) 農家の手仕事の表（国×四半期）
+        public System.IO.StreamWriter? Lwk; public bool LwkHeader;                         // (1037) 労働力の重みの表 lwk_s（年末・州×労働の財を売る POP）
         public System.IO.StreamWriter? Chem, ChemGood; public bool ChemHeader, ChemGoodHeader;   // (493) 硫酸とソーダ灰の表（挙げた国×四半期×{ルブラン法・ソルベー法・電解・黄鉄鉱法}／×{硫酸・ソーダ灰}）
         public System.IO.StreamWriter? Fb; public bool FbHeader;   // (550) 工場の建屋の財（建造物）の表（旗 BuildingGoodBundle が正の国×四半期・InstrumentsFb.cs）
         public System.IO.StreamWriter? Wp; public bool WpHeader;   // (537) 旧と新の武器の並行の表（挙げた国×四半期×{小銃・火砲・蒸気機関}）
@@ -1864,6 +1865,7 @@ public static partial class Instruments
             SfFold(sk, seed, w, q, picked, yearEnd);        // (471) 兵士の年金・安く売る・議席の重み・負の予算の表
             AibFold(sk, seed, w, q, picked, yearEnd);       // (579) AI の国営工場の着工の門の表（呼ばれた回があった国だけ行を出す・蓄えは行を出したときに戻す）
             LwFold(sk, seed, w, q, picked, yearEnd);        // (459) 労働の値段の表（能力・需要・値段÷自己費用・法の床÷値段・賃金の支払い・失業）
+            LwkFold(sk, seed, w, q, yearEnd);               // (1037) 労働力の重みの表（旧と新の work・エンジンの work・計器の m）
             SbFold(sk, seed, w, q, picked);                 // (520) 交渉の取り分と地代の表（旗が正の国だけ行を出す・蓄えは四半期の末に戻す）
             InpFold(sk, seed, w, st, q, picked, yearEnd);   // (657) 工場に投入が届かない原因の表（挙げた国・年末）
             PayFold(sk, seed, w, q, picked, yearEnd);       // (486) 売上の払いの保存則の穴の表（直しが効いた回数・直した後も消える額）
@@ -1936,6 +1938,7 @@ public static partial class Instruments
         sk.Pinit?.Dispose(); sk.Pinit = null;   // (972)
         sk.Disc?.Dispose(); sk.Disc = null;   // (320)
         sk.Eng?.Dispose(); sk.Eng = null;     // (415)
+        sk.Lwk?.Dispose(); sk.Lwk = null;     // (1037)
         sk.Clock?.Dispose(); sk.Clock = null;   // (461)
         IdnClose(sim);   // (640)
         SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // (837)(1012)(1024)

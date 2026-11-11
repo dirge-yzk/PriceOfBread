@@ -35,6 +35,7 @@ public static class EconomyStep
         public double[] TrickleOwner = [];  // 同上の作業配列（持ち主POPごとの発注額の和→充足率）
         public int[] LaborCount = [];
         public double[] LastSupply = [];   // ★前月の補給の充足（Pop.SupplyFill）＝月頭のゼロ化の前に撮る作業配列（状態ではない・2026-09-22）
+        public byte[] LwRole = [];         // ★(1037) POP の役割（売る労働の財の印・LaborRoles）＝旗 LaborWeightsByPower が正の月だけ書く作業配列（状態ではない）
         public bool[] IsStaple = [], IsService = [];
         public double[] GoodGate = [], DemandGate = [];   // ★財の解禁（段2A・2026-10-01）＝Discovery.GoodGates を月の Run の頭で1回（国の解禁＝電化・効率化材／世界の解禁の和＝需要）
         public Good[] ConsumeOrder = [];
@@ -1013,6 +1014,18 @@ public static class EconomyStep
         foreach (var p in region.Pops) { totalPop += p.Size; if (p.IsUrban) urbanPop += p.Size; else ruralPop += p.Size; }
         regionLandFactor = Territory.LandFactor(region, ruralPop, coef);
 
+        // ★(1037) c98lw 労働力の重み：旗が正の時だけ、州の動力の割合 m と POP の役割（売る労働の財）を前の月の値から導く（新しい状態 0）。旗 0 は回さない。
+        bool lwOn = coef.LaborWeightsByPower > 0;
+        double mPow = 0.0;
+        byte[] lwRole = scratch.LwRole;
+        if (lwOn)
+        {
+            if (lwRole.Length < npops) scratch.LwRole = lwRole = new byte[npops];
+            LaborRoles(region, lwRole);
+            mPow = PowerShare(region, coef);
+        }
+        if (insOn) Instruments.LwkRegion(region, coef);   // (1037) 計器（読むだけ）：計器が自分で州の m と役割を数える
+
         // === ① 供給：能力＝労働（工業化度で生産性が上がる）。供給曲線。投入充足で律速（§9-A 注2）===
         for (int pi = 0; pi < np; pi++)
         {
@@ -1078,15 +1091,23 @@ public static class EconomyStep
                 //   旧＝成人（16歳以上＝子供比の補数）−(1−OldLaborFactor)×老年比（60歳以上）・子供は0〜16歳の全員（乳児も）が児童労働の母数だった。
                 //   起点合わせは要らない＝下の InitialWork の正規化が t=0 を等倍にする（設計書 §4-1）。
                 double part = LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]);
-                double adults = lpop.AgeShare(15, 65, 0) + lpop.AgeShare(15, 65, 1) * part
-                              + coef.OldLaborFactor * (lpop.AgeShare(65, double.PositiveInfinity, 0) + lpop.AgeShare(65, double.PositiveInfinity, 1) * part);
-                adults *= Habit.LaborFactor(coef, region);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）＝(342) 財の性質〈習慣性〉を読む1本（アヘンの行だけ 1 未満になりうる・他は ×1.0）
+                // ★(1037) c98lw：旗が正で、この POP が労働力か農業労働力を売るなら重みの式（WeightedWork）。高度労働力だけを売る POP と旗 0 は旧の式を逐語。
+                bool lwW = lwOn && (lwRole[lp] & 3) != 0;
+                double adults = 0.0;
+                if (!lwW)
+                {
+                    adults = lpop.AgeShare(15, 65, 0) + lpop.AgeShare(15, 65, 1) * part
+                           + coef.OldLaborFactor * (lpop.AgeShare(65, double.PositiveInfinity, 0) + lpop.AgeShare(65, double.PositiveInfinity, 1) * part);
+                    adults *= Habit.LaborFactor(coef, region);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）＝(342) 財の性質〈習慣性〉を読む1本（アヘンの行だけ 1 未満になりうる・他は ×1.0）
+                }
                 // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
                 lpop.ChildLaborRate = new Share(LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]));   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
-                double work = adults + lpop.AgeShare(10, 15) * coef.ChildWorkFactor * lpop.ChildLaborRate.Value;
+                double work = lwW ? WeightedWork(lpop, region, coef, part, (lwRole[lp] & 1) != 0 ? mPow : 0.0)
+                    : adults + lpop.AgeShare(10, 15) * coef.ChildWorkFactor * lpop.ChildLaborRate.Value;
                 // 倍率排除②：旧 work/0.64（標準構成を等倍化する正規化定数）を「各popの初期労働供給 work0」基準へ一般化。
                 // 初回（t=0）の work を基準に捕捉＝各popが自分の出発点に対する相対変化（女性財産権法・児童労働禁止・戦死）で効く。標準構成は work0=0.64 で旧挙動と一致＝較正中立。
                 if (lpop.InitialWork < 0) lpop.InitialWork = work;
+                if (insOn) Instruments.LwkWork(region, lp, part, work);   // (1037) 計器（読むだけ）：エンジンが使った work を受け取り、旧と新の式は計器が自分で書く
                 // ★段5＝民兵は畑と工場から抜ける（作者裁定3・2026-09-08）：武器を取った割合だけ労働供給が痩せる。
                 //   ⚠**新しい経路を作らない**＝既存の労働供給（この work）に乗せるだけ＝産出減・賃金上昇・食料不足は既存の市場が創発させる。
                 //   ⚠基準（InitialWork）の捕捉より**後**に掛ける＝平時の労働を基準に測る（動員中の細った労働を新しい基準にしてしまわない）。
@@ -3200,6 +3221,51 @@ public static class EconomyStep
         double gm = region.MineralGradeFactor;
         if (!(gm > Eps)) return own;   // 否定形＝NaN/非正の倍率は割らない側へ倒す（Clamp は NaN を消さない）
         return own / gm;
+    }
+
+    /// <summary>★(1037) c98lw：POP の役割＝その POP が州で売る労働の財の印（1＝労働力・2＝農業労働力・4＝高度労働力）。階級の番号でなく売る財で切る
+    /// （FullChain の簡易世界は ClassId が PopClass と食い違う・同じ POP に 1 つの InitialWork）。<paramref name="role"/> は POP の数以上の長さ。</summary>
+    internal static void LaborRoles(Region region, byte[] role)
+    {
+        System.Array.Clear(role, 0, region.Pops.Count);
+        foreach (var s in region.Producers)
+        {
+            int lp = s.LaborPopIndex;
+            if ((uint)lp >= (uint)region.Pops.Count) continue;
+            if (s.GoodId == Catalog.LaborId) role[lp] |= 1;
+            else if (s.GoodId == Catalog.FarmLaborId) role[lp] |= 2;
+            else if (s.GoodId == Catalog.AdvLaborId) role[lp] |= 4;
+        }
+    }
+
+    /// <summary>★(1037) c98lw：州の動力の割合 m＝Σ 労働力を投入する生産者の 産出×労働の実効の投入量×(電化＋(1−電化)×蒸気) ÷ 州の労働力の前の月の総需要（LastDemand）。
+    /// 分子も分母も前の月の需要の側（産出は前の月の供給の値・総需要は投入・建設・再点火・効率化を含む）。分母が正でない・m が NaN か負は 0（否定形）。天井で削らない（設計思想⑧）。</summary>
+    internal static double PowerShare(Region region, Coefficients coef)
+    {
+        double den = region.Markets[Catalog.LaborId].LastDemand;
+        if (!(den > 0)) return 0.0;
+        double num = 0.0;
+        foreach (var s in region.Producers)
+        {
+            double p = s.ElecFill + (1.0 - s.ElecFill) * s.SteamFill;
+            if (!(p > 0) || s.Output == 0) continue;
+            foreach (var inp in s.Inputs)
+                if (inp.GoodId == Catalog.LaborId) num += s.Output * EffectiveQty(s, region, inp, coef) * p;
+        }
+        double m = num / den;
+        return m >= 0 ? m : 0.0;
+    }
+
+    /// <summary>★(1037) c98lw：重みの入った work（POP の 1 か月の働ける量÷人数）。w_女＝手＋(1−手)×m・w_子＝手＋(1−手)×m（機械の端は 1.0）。
+    /// work＝[男15〜64＋女15〜64×参加×w_女＋OldLaborFactor×(男65〜＋女65〜×参加×w_女)]×Habit.LaborFactor＋10〜14×w_子×ChildLaborRate。ChildLaborRate は呼び手が先に書く。</summary>
+    internal static double WeightedWork(Pop lpop, Region region, Coefficients coef, double part, double m)
+    {
+        double wF = coef.FemaleHandLaborWeight + (1.0 - coef.FemaleHandLaborWeight) * m;
+        double wC = coef.ChildHandLaborWeight + (1.0 - coef.ChildHandLaborWeight) * m;
+        double adults = lpop.AgeShare(15, 65, 0) + lpop.AgeShare(15, 65, 1) * part * wF
+                      + coef.OldLaborFactor * (lpop.AgeShare(65, double.PositiveInfinity, 0) + lpop.AgeShare(65, double.PositiveInfinity, 1) * part * wF);
+        adults *= Habit.LaborFactor(coef, region);
+        return adults + lpop.AgeShare(10, 15) * wC * lpop.ChildLaborRate.Value;
     }
 
     /// <summary>投入の有効係数：電化した工場は労働力の投入が減る（機械化＝電力が人手を節約する）。他の投入は不変。
