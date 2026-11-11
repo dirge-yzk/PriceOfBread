@@ -177,8 +177,30 @@ public static class FiscalTables
         if (f.LedgerDiff.Any(x => x != 0) && rest >= 0.5) income.Add(Line("restIn", "その他", 0, rest, noFc: true));
         else if (f.LedgerDiff.Any(x => x != 0) && rest <= -0.5) spend.Add(Line("restOut", "その他", 0, -rest, noFc: true));
 
+        // 四半期に 1 回だけ動く区分（貢納の出入り）は、台帳の月の差分では払った月に 3 か月分・他の月は 0 になる＝「/月」の列の単位に合わない。
+        //   行の実績は予測と同じ月あたり（直近の四半期の額÷3）で出し、均した分と実際の差は同じ側の「その他」が受ける
+        //   ＝側ごとの実績の合計は国庫の台帳の額のまま（ヘッダーの収支・上の「その他」の畳みと一致を保つ）。台帳がまだ立っていない（0 のまま）時は実際の額をそのまま出す。
+        if (f.LedgerDiff.Any(x => x != 0))
+        {
+            Smooth(spend, "tributeOut", "restOut", tribOut, Paid(TreasuryCat.TributeOut));
+            Smooth(income, "tributeIn", "restIn", tribIn, In(TreasuryCat.TributeIn));
+        }
+
         double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child && !l.NoForecast).Sum(l => l.Forecast);
         return new BudgetResult(spend, income, Fc(spend), ActSum(spend), Fc(income), ActSum(income));
+    }
+
+    /// <summary>行 <paramref name="key"/> の実績を月あたりに均した額 <paramref name="avg"/> へ置き換え、実際の額 <paramref name="actual"/> との差を同じ側の <paramref name="restKey"/>（その他）へ入れる。行が無ければ何もしない。</summary>
+    private static void Smooth(List<BudgetLine> side, string key, string restKey, double avg, double actual)
+    {
+        int i = side.FindIndex(l => l.Key == key);
+        if (i < 0) return;
+        double diff = actual - avg;
+        side[i] = side[i] with { Actual = avg };
+        if (!(Math.Abs(diff) >= 0.5)) { side[i] = side[i] with { Actual = actual }; return; }   // 差が表示の解像度より小さければ均さない（実際の額のまま）
+        int r = side.FindIndex(l => l.Key == restKey);
+        if (r >= 0) side[r] = side[r] with { Actual = side[r].Actual + diff };
+        else side.Add(new BudgetLine(restKey, "その他", 0, diff, StageCell.None, null, NoForecast: true));
     }
 
     /// <summary>国庫の台帳のその区分の月の差分（正＝入り・負＝出）。台帳がまだ立っていなければ 0。</summary>
@@ -248,7 +270,8 @@ public static class FiscalTables
         // 政策金利＝5 段（兌換維持＋資本自由で自分のものでない時は段ごと掴めなくする。行は消さない＝いま金利がいくらかは見えている必要がある）
         // 無次元の値を百分率で出さない＝段の名で出す（現在の列・ホバーも同じ）。格子に乗らない値（金本位の自動の金利など）は最寄りの段の名
         var rate = Lever(w, "政策金利", 0, InterestCeil, () => w.InterestRate, () => w.Policy.InterestRateTarget, v => w.Policy.InterestRateTarget = Math.Min(v, InterestCeil), RateStageNames);
-        if (!InterestLeverEnabled(w)) rate = rate with { CanSelect = _ => false, Why = _ => "兌換維持中" };
+        // 錠の間はエンジンが目標を捨てて金利を自動で動かす（Government）＝段の列の目標は〈効いている値〉（今の金利）で出す。目標の欄（AI や過去の指定）を出し続けない
+        if (!InterestLeverEnabled(w)) rate = rate with { Target = rate.Current, CanSelect = _ => false, Why = _ => "兌換維持中" };
         rows.Add(new("policyRate", "政策金利", StageName(rate, rate.Current), rate, $"目標 {StageName(rate, rate.Target)}　実効 {StageName(rate, rate.Current)}"));
         // 通貨制度と資本移動は法（議会を通る）＝法の表の行。金本位は経済の画面で扱う（作者指示 2026-08-11）
         foreach (var def in LawCatalog.In(LawSlot.Econ))
