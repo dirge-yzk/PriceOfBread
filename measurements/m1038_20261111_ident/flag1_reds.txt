@@ -1,0 +1,30 @@
+(1038) c98wr 旗 1 の木（15b6eb21）の赤の一覧と区分（腕 B の前で止めた根拠）
+フルスイート Category!=FullLength（tests_s1）：失敗 14・合格 2644・スキップ 1・合計 2659（--list-tests の 2659 と一致）・savetest OK（12 四半期・61 カ国・最大相対差 0）・leakhunt 完走（200 四半期・保存則違反なし）。
+
+■ A. 侵略の前提の盤面が旧の門と旧の強さの物差しに依る（9 本）＝★(743) の区分で名乗れない（〈前提が崩れた〉の Assert の文が旧の規則の量を置く）
+| 試験 | 落ちた所 | 依っている旧の量 |
+| DiplomacyPendingTests.屈服の枝の積む量は標的の勢力圏までの距離で減衰する | 前提：侵略できない（余剰戦力が不足） | ExpansionWill=1e12 で余剰の門を開ける |
+| DiplomacyPendingTests.抽象標的の屈服でも近接の緊張が積まれる… | 同上 | ExpansionWill・me.Military=1e9 で屈服 |
+| DiplomacyPendingTests.Subjugateの戻り値は屈服したかで_拒否は戦争になる | Assert.Equal(submit, ret) | 前提の Assert が ColonizeForce≧SubmitLine（旧の規則の文） |
+| MilitaryTests.即応度はMilitaryに一度だけ掛かる_侵攻の門 | 理由が〈兵力が不足〉でなく〈余剰戦力が不足〉 | ExpansionWill=1e12（兵の頭数の S は置いていない） |
+| MilitaryTests.侵攻の物資は国家の調達で買って消費する… | 前提：侵攻できない（余剰戦力が不足） | ExpansionWill |
+| PlayHarnessTests.侵略_屈服線の下の盤面では拒否され開戦する… | 前提：挑める盤面でない（余剰戦力が不足） | ExpansionWill 上限・帯〈InvadeMilitaryFactor＜2＜ColonizeSubmitRatio〉＝旧の屈服線そのもの（事前登録で名指した型） |
+| ConservationTests.J006の吸収で住民は同名の州へ入る | 前提：屈服しなかった | ColonizeSubmitRatio=0 で必ず屈服（旗 3 は AISubmitMilRatio を読む） |
+| ColonyPromotionTests.回1_1_侵略で奪った植民地は住民ごと州になり台帳が閉じる | 前提：屈服しなかった | 同上 |
+| InvadeInstrumentTests.侵略の表は屈服か拒否かと積んだ量を行に残す | 余剰戦力が不足 | 侵略を通す盤面が ExpansionWill に依る |
+- 最後の 2 本は ★(743) ③（係数を統合先へ同じ値で付け替え＝ColonizeSubmitRatio=0 → AISubmitMilRatio=0）が当たりうる。ただし旗 3 の判定は CampLand×射程＞0 を要る＝盤面の LandPotential(侵略者)＞0 かは未確認。
+
+■ B. 計器の試験が旧の規則を写している（2 本）
+| WarInstrumentTests.理由の件数の和は評価の数と一致する | 対照〈弱小国の門で落ちた評価が 1 件はある〉 | 旗 2 で弱小国の門が無い＝影の評価（(1018)）の母集合が 0 |
+| WarInstrumentTests.影の評価の最初に落ちた門は本物の理由と一致する | 期待〈制海権が不足〉 | 影の評価 WarShadowGate が旧の余剰の門（ExpansionWill）を写す |
+
+■ C. 計算量の番人（機構の赤＝止める線）
+| WriterRatchetTests item 11〈外交：覇権の判定の国×国〉 | 最初の 40 四半期で 35,448,928 件（宣言 2,010,476・17.6 倍） | 旗 1 のエンジンの CampLand が評価ごとに AllyJoinThreshold→覇権の判定を呼ぶ（同盟国が居る標的の評価ごと）。全長の .cost の基準は 0.41 秒＝同じ倍率なら約 7 秒＝登録した 2.0 秒を超える見込み |
+
+■ D. 軌道の件数の写し（★(749)）
+| WriterRatchetTests item 2〈建設：見た生産者（旬）〉 | 1,792 件（宣言 1,995・10% を超えて下がった） | 軌道が動いた分（合流の木で 1 回だけ取り直す区分） |
+
+■ E. 軌道に依る前提（★(743) の〈軌道に依る前提〉＝盤面の取り直しは別の線）
+| InstrumentsTests.符号2の構造と飢えが法律タブの照会と…台帳が世界の目減りの差と合う | 場面 T の照合が空洞（飢え 6・構造 0） | 長い盤面の軌道が戦争の入口の変化で動いた（機構の主張ではなく場面の有無） |
+
+■ 運用の記録：計器の束（tests_f1ins）の走行中に、その木（tree_t_f1ins）を消した＝ソースを走査する 3 本（WarInstrumentTests 2 本・LordstatInstrumentTests.L10）がファイル無しで赤＝担当の誤り（走行中の木を消さない）。同じ 3 本はフルスイート（tests_s1）では赤でない。
