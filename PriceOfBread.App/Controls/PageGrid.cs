@@ -243,6 +243,7 @@ public sealed class Section : Border
     {
         if (Body is null) return false;
         if (Body is TableView tv0) return tv0.Snapshot is { } sn0 && sn0.Rows.Count == 0 && sn0.Columns.Count > 0;
+        if (Body.DataContext is null) return false;   // 畳まれて一度も開かれていない欄の中身は結線がまだ生きていない（「なし」の文字の IsVisible が既定の真のまま）＝空とは判定しない。開いて結線が生きてから判定し直す（V13）
         bool hasTable = false, allEmpty = true;
         foreach (var d in Body.GetVisualDescendants())
         {
@@ -296,8 +297,8 @@ public sealed class PageGrid : Panel
     {
         base.OnAttachedToVisualTree(e);
         Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateMeasure, Avalonia.Threading.DispatcherPriority.Loaded);
-        // 欄の中身が後から入る（外交の戦争・反乱勢力・他国の戦争は最初の測りの時点では「なし」の文字が見えている）＝空の欄の集合が変わったら測り直す。変わらなければ何もしない（V13）
-        _emptyTimer ??= new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        // 欄の中身が後から入る（畳まれた欄の結線は開くまで生きない）＝空の欄の集合が変わったら測り直す。変わらなければ何もしない（V13）
+        _emptyTimer ??= new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _emptyTimer.Tick -= OnEmptyTick; _emptyTimer.Tick += OnEmptyTick;
         _emptyTimer.Start();
     }
