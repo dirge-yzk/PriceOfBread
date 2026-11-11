@@ -50,7 +50,7 @@
                 <Grid ColumnDefinitions="*,*,*">
                     <StackPanel Grid.Column="0" Spacing="1" Background="Transparent">
                         <ctl:HalfPie Radius="29" Slices="{Binding LegitSlices}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="正統性" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="正統性の配分" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding LegitTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="1" Background="Transparent">

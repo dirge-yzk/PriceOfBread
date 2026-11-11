@@ -455,7 +455,7 @@ public partial class GameViewModel
     public ObservableCollection<ArmyNeedRow> ArmyNeeds { get; } = new();
     [ObservableProperty] private bool _noArmyNeeds = true;
     /// <summary>この節の見出し＝「軍事力:〇位(充足n%)」（ヘッダーから移設・作者指示2026-08-24）。
-    /// 順位＝自国より戦力ゲージ（質込み）が大きい国の数＋1。充足＝**この表に出ている行の平均**＝画面に無い第二の式を作らない
+    /// 順位＝自国より戦力ゲージ（質込み）が大きい国の数＋1。充足の平均＝**この表に出ている行の重みの無い平均**＝画面に無い第二の式を作らない
     /// （⚠エンジン集計の Region.MilitaryEquipFill は分母に陸海の再配分が入っておらず「軍艦1083%」を生んだ側＝読まない）。</summary>
     [ObservableProperty] private string _armyIdealHeader = "軍事力";
     [ObservableProperty] private string _armyIdealTip = "";
@@ -683,7 +683,7 @@ public partial class GameViewModel
         double fillSum = 0; int fillN = 0;
         foreach (var row in rows) if (row.IsRow) { fillSum += row.FillV; fillN++; }
         double fillAvg = fillN > 0 ? fillSum / fillN : 1.0;
-        ArmyIdealHeader = fillN > 0 ? $"軍事力：{milPos}位　充足{Fmt.Share(fillAvg)}" : $"軍事力：{milPos}位";   // ★(501) 段3：かっこの補足を外した（見出しに括弧を書かない）
+        ArmyIdealHeader = fillN > 0 ? $"軍事力：{milPos}位　充足の平均 {Fmt.Share(fillAvg)}" : $"軍事力：{milPos}位";   // ★(501) 段3：かっこの補足を外した（見出しに括弧を書かない）
         ArmyIdealTip = $"順位＝戦力ゲージ（質込み）が自国より大きい国の数＋1\n充足＝下の{fillN}行の平均　即応度 {Fmt.Share(_player.MilitaryReadiness)}";
     }
 

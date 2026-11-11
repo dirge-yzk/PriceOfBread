@@ -115,7 +115,7 @@ public partial class GameViewModel
             foreach (var (reason, value) in dip.TensionBreakdown(me, foe)) if (value > topV) { topV = value; issue = Diplomacy.TensionReasonJa(reason); }
             double tNow = dip.Tension(me, foe), tTo = _player.Coef.ConcedeTensionTarget;
             double legCost = System.Math.Min(_player.Coef.AISubmitLegitCost, _player.Legitimacy);
-            WarPopupBody = $"{foe.Name} との緊張が限界に達した。\n"
+            WarPopupBody = $"{foe.Name}との緊張が限界に達した。\n"
                 + (issue.Length > 0 ? $"争点：{issue} {topV:F0}/緊張 {tNow:F0}\n\n" : "\n")
                 + $"自軍　陸軍 {Fmt.Men(myU * (1 - me.NavalShare.Value))}/海軍 {Fmt.Men(myU * me.NavalShare.Value)}/空軍 {Fmt.Men(myU * myAirFill)}\n"
                 + $"{foe.Name}　陸軍 {Fmt.Men(enU * (1 - foe.NavalShare.Value))}/海軍 {Fmt.Men(enU * foe.NavalShare.Value)}/空軍 {Fmt.Men(enU * enAirFill)}\n\n"
@@ -131,7 +131,7 @@ public partial class GameViewModel
             double refuse = _player.Coef.AllyRefusalTension;
             CallToArmsBody = $"{call.Caller.Name} が同盟に基づき {call.Enemy.Name} への参戦を求めている。\n\n"
                 + $"自軍 {Troops(me)}　{call.Enemy.Name} {Troops(call.Enemy)}\n"
-                + $"断る場合：{call.Caller.Name} との緊張 +{refuse:F0}（同盟破棄の水準）";
+                + $"断る場合：{call.Caller.Name}との緊張 +{refuse:F0}（同盟破棄の水準）";
             CallToArmsOpen = true;
             return;
         }
@@ -190,7 +190,7 @@ public partial class GameViewModel
         var dip = _sim.Diplomacy;
         _tensionPopupFoe = pow;
         // ★2026-08-02：見出しに%を入れ、本文の同じ文言は消した（作者指摘「メインテキストとヘッダーで同じことを言っている」）
-        TensionPopupTitle = $"{pow.Name} との緊張({Fmt.Share(TensionPct(t))})";
+        TensionPopupTitle = $"{pow.Name}との緊張 {Fmt.Share(TensionPctUncapped(t))}";   // 題は 100%（開戦の閾値）で切らない値＝内訳の和と合わせる（B54）
         // ★緊張が高まった理由（作者FB①・2026-08-10）：エンジンの内訳台帳（合計＝現在の緊張）を寄与の大きい順に。
         //   単位は見出しの緊張%と同じ物差し（TensionPct＝開戦閾値で割る）。上位4件まで＝主因だけを出す。
         // ⚠表示名は多対一（アヘン交易・植民地の競合＝どちらも「経済摩擦」）なので**名前で束ねてから**並べる。
@@ -203,12 +203,17 @@ public partial class GameViewModel
             if (at >= 0) merged[at] = (name, merged[at].Value + v);
             else merged.Add((name, v));
         }
+        // 内訳の和が題と合うように：寄与の大きい順に上位 4 件・残りの正の寄与は「その他」・負の寄与（緊張を下げる物）は「緩和」の 1 行にまとめる
         var why = new List<string>();
+        double otherSum = 0, easeSum = 0;
         foreach (var (name, v) in merged.OrderByDescending(x => x.Value))
         {
-            if (why.Count >= 4 || TensionPct(v) < 0.005) break;   // 降順＝0%に丸まる寄与まで来たら終わり（「高まった理由」なので緩和側も出さない）
-            why.Add($"{name} +{Fmt.Share(TensionPct(v))}");
+            if (v < 0) easeSum += v;
+            else if (why.Count >= 4 || TensionPctUncapped(v) < 0.005) otherSum += v;   // 降順＝0%に丸まる寄与からはその他へ
+            else why.Add($"{name} +{Fmt.Share(TensionPctUncapped(v))}");
         }
+        if (otherSum > 0) why.Add($"その他 +{Fmt.Share(TensionPctUncapped(otherSum))}");
+        if (easeSum < 0) why.Add($"緩和 {PriceOfBread.SimCore.Display.DisplayFormat.Minus}{Fmt.Share(TensionPctUncapped(-easeSum))}");
         TensionPopupWhy = string.Join("\n", why);
         // 機能5-①-1（2026-07-28）：相手・自国の同盟関係と参戦見込み（表示のみ＝計算へは加算しない。閾値式はエンジンと単一ソース）
         double jtFoe = dip.AllyJoinThreshold(me, _player.Coef);    // 相手の同盟国が自国相手に参戦する閾値
@@ -271,7 +276,7 @@ public partial class GameViewModel
     // 政治的帰結の3行（作者指定の形・2026-08-10）。値が0でも行は出す＝押す前に必ず同じ3行が読める。
     private static string PoliticsLines(TensionPoliticsPreview pv)
         => $"国内{Fmt.Share(pv.HawkShare)}の国粋・帝国主義者からの支持：{Fmt.SignedPct1(pv.HawkDelta)}\n"
-         + $"国内{Fmt.Share(pv.DoveShare)}の自由・共和主義者派からの支持：{Fmt.SignedPct1(pv.DoveDelta)}\n"
+         + $"国内{Fmt.Share(pv.DoveShare)}の自由・共和派からの支持：{Fmt.SignedPct1(pv.DoveDelta)}\n"
          + $"正統性：{Fmt.SignedPct1(pv.LegitimacyDelta)}";
 
     // 要求を受け入れる＝屈服（緊張を下げて開戦を回避）。総動員には触れない（新たな戦争は始まらない＝進行中の別戦争の動員を巻き込まない・レビュー2026-07-20）。講和時は WarRows.Count==0 で自動解除。

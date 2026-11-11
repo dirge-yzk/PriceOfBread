@@ -329,6 +329,9 @@ public partial class GameViewModel : ViewModelBase
     private double TensionPct(double tension)
         => System.Math.Clamp(tension / _player.Coef.WarDeclareTension, 0, 1);
 
+    /// <summary>緊張の内訳と合わせる値＝宣戦の閾値で割るだけ（切らない）。緊張の窓の題と内訳が読む。</summary>
+    private double TensionPctUncapped(double tension) => tension / _player.Coef.WarDeclareTension;
+
 
     private double[] _ledgerPrev = new double[(int)TreasuryCat.Count];   // 台帳の前月値（月次差分の基準）
     private double _monthWarCost;      // 今月ぶんの戦費の実払い額（TreasuryLedger の陸軍・海軍・戦費の月次差分の和・符号反転）＝戦争タブが読む（GameViewModel.Refresh.cs）。SampleTreasuryLedgerが_ledgerPrevを上書きする前にOnTickで1回だけ取る

@@ -35,7 +35,7 @@ public partial class GameViewModel
     {
         get
         {
-            string crown = _player.Crown switch { CrownForm.Absolutist => "絶対王政", CrownForm.Despotic => "専制", CrownForm.Shogunate => "幕府", _ => "君主なし" };
+            string crown = _player.Crown switch { CrownForm.Absolutist => "貴族共治", CrownForm.Despotic => "官僚専制", CrownForm.Shogunate => "幕府", _ => "君主なし" };   // 王冠の形の中身（Model.cs の注）。政体の語（絶対君主制）と別の量
             string seize = _player.Seizure switch { SeizureForm.Bourgeois => "　ブルジョワの簒奪", SeizureForm.Proletarian => "　プロレタリアの簒奪", SeizureForm.Military => "　軍部の簒奪", SeizureForm.Anarchy => "　無政府", _ => "" };
             return crown + seize;
         }
@@ -77,11 +77,11 @@ public partial class GameViewModel
     // 「天命の有効度」の行は撤去（2026-08-09作者フィードバック）＝当時はヘッダーの王権支持度のホバーが同じ値を出していた。
     // ⚠2026-08-23の王権支持度の撤去で読み手ゼロ＝第5段5-3/5-4の母数（PoliticalQuantities.MandateBase）はエンジン専用に戻った。
 
-    // 総動員の兵士割合（旧名「総動員の深さ上限」→「総動員時の兵士割合」・2026-08-16に分母つきの名前へ）。
+    // 総動員時の兵数（2026-11-12 B50：割合・倍率をやめて兵数の実数を出す。基準の兵数は直下の兵士の行が持つ）。
     // ★2026-08-16 作者指摘「新たに集められる割合なのか、元から兵士だったPOPの割合なのか分からない」＝**どちらでもない**。
     //   実体＝Military.Step:191 の目標兵数 `conscriptFrac × lawFrac × 兵役の母数`＝総動員ONの戦時に、
-    //   徴兵対象人口（農民＋都市労働者＋**現役の兵士**＝Military.cs:166 の manpower）のうち兵士になる割合（新規分でなく到達点）。
-    //   よってラベルは分母を名乗る＝「総動員の兵士割合（徴兵対象人口比）」。
+    //   徴兵対象人口（農民＋都市労働者＋**現役の兵士**＝Military.cs:166 の manpower）のうち兵士になる到達点の兵数（新規分でなく到達点）。
+    //   徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝今の兵数を下回らない。
     // 内訳：levée en masse の深さ MobilizationConscriptFrac ×
     //   国民意識ゲート（低国民意識ほど動員が届かない・下限＝Military.MobilizationGateFloor／熟練度が緩める）× 徴兵法の倍率（皆兵＝UniversalConscriptionFactor）。
     // ⚠徴兵法の倍率（皆兵で2.5倍）は Military.cs:190-191 が最後に必ず掛けるのに表示だけが落としていた＝
@@ -109,9 +109,9 @@ public partial class GameViewModel
             }
             if (!(soldiers > 0)) return "—";
             // Military.Step の目標兵数と同一式（母数＝農民＋都市労働者＋現役の兵士）。★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ（Military.cs:187 と同じ述語）
-            //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限1.0倍（表示だけが別式になるのを避ける）。
+            //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限は今の兵数（表示だけが別式になるのを避ける）。
             double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac.Value * gate * lawFrac * manpower : 0;
-            return $"{Math.Max(1.0, target / soldiers):F1}倍";   // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝下限1.0倍
+            return Fmt.Men(Math.Max(soldiers, target));   // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝今の兵数が下限
         }
     }
     // ★(195) 総動員の判断の材料＝AI と同じ1本（Diplomacy.WarScale・00一覧 §0-A の 0e）＝プレイヤーは同じ材料を見て自分で選ぶ（AI の線は出さない＝2026-09-23 裁定「閾値は出さない」）。

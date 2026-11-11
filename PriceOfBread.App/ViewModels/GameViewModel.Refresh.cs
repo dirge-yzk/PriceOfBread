@@ -187,7 +187,7 @@ public partial class GameViewModel
             // #106 終戦ポップアップ：双方の戦死・戦費・得失を表示（同四半期に複数終戦なら最初の1件）
             if (!WarEndPopupOpen)
             {
-                WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")} との戦争が終結した。\n\n"
+                WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}との戦争が終結した。\n\n"
                     + $"結果：{result}(戦勝点 {Fmt.SignedPct(scEnd)})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"

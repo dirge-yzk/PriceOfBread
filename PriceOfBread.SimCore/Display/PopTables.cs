@@ -137,6 +137,7 @@ public static class PopTables
         {
             var members = agg[cid];
             var first = members[0].P;
+            if (!(members.Sum(m => m.P.Size) > 1e-9)) continue;   // 人数 0 の階級は行にしない（満足度・不満度などが 0% に見える）
             double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, disW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
             double leanC = 0, leanL = 0, leanS = 0;
             double mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;
@@ -260,7 +261,7 @@ public static class PopTables
         Col.Number<RegionLine>("food", "主食の充足", Unit.Share, l => l.FoodFill),
         Col.Number<RegionLine>("housing", "住居の充足", Unit.Share, l => l.HousingFill, hide: l => !l.HousingShown),
         Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule)),
-        Col.Number<RegionLine>("port", "港の容量", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
+        Col.Number<RegionLine>("port", "港の拡張", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
     ]);
 
     // ===== 宗教と文化の構成 =====

@@ -69,7 +69,7 @@
              需要が立っていない材は行そのものが出ない（「充足0%」と書かない）。見出しは順位と充足の平均を兼ねる -->
         <ctl:Section Key="army" Title="軍事力の必要量">
             <StackPanel Spacing="2" Grid.IsSharedSizeScope="True">
-                <ctl:StatRow Label="総動員規模" Value="{Binding PolityMobilizationText}"/>
+                <ctl:StatRow Label="総動員時の兵数" Value="{Binding PolityMobilizationText}"/>
                 <!-- 総動員の判断の材料＝AI と同じ 1 本（Diplomacy.WarScale）。交戦中だけ出す -->
                 <ctl:StatRow Label="戦争の規模" Value="{Binding WarScaleText}" IsVisible="{Binding PlayerAtWar}"/>
                 <ctl:StatRow Label="陣営の本国の敗色" Value="{Binding WarHomeLosingText}" IsVisible="{Binding PlayerAtWar}"/>

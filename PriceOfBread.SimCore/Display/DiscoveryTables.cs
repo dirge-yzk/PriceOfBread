@@ -63,7 +63,7 @@ public static class DiscoveryTables
         Col.Bar<DiscoveryLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, l.Transmit)),
         Col.Number<DiscoveryLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
         Col.Number<DiscoveryLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
-        Col.Number<DiscoveryLine>("transmit", "伝わり", Unit.Count, l => l.Transmit, ink: _ => TransmitInk),
+        Col.Number<DiscoveryLine>("transmit", "伝播", Unit.Count, l => l.Transmit, ink: _ => TransmitInk),
         Col.Text<DiscoveryLine>("era", "年代", l => l.Era),
     ];
 
