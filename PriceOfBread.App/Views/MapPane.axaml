@@ -45,7 +45,7 @@
                             <DataTemplate>
                                 <TextBlock Text="{Binding Text}" FontSize="{Binding FontSize}" Foreground="{Binding Brush}" LetterSpacing="{Binding LetterSpacing}"
                                            IsHitTestVisible="{Binding Tooltip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                           FontWeight="Bold" ToolTip.Tip="{Binding Tooltip}" ToolTip.ShowDelay="80"/>
+                                           FontWeight="Bold"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

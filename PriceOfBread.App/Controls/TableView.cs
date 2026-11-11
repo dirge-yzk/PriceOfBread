@@ -180,7 +180,6 @@ public sealed class TableView : UserControl
             if (row.Group is { Length: > 0 } g && g != lastGroup)
             {
                 if (!_groups.TryGetValue(g, out var gh)) _groups[g] = gh = MakeGroupHeader(g);
-                ToolTip.SetTip(gh, row.GroupTip);   // 空なら null＝空の吹き出しを出さない
                 wanted.Add(gh);
             }
             lastGroup = row.Group;
@@ -326,7 +325,6 @@ public sealed class TableView : UserControl
         {
             if (_sig != string.Join("|", cols.Select(c => c.Key + ":" + c.Kind))) Layout(cols);
             _key = row.Key;
-            ToolTip.SetTip(Root, string.IsNullOrEmpty(row.Tip) ? null : row.Tip);   // 空なら null＝空の吹き出しを出さない
             _emphasis = row.Emphasis; _selected = _owner.SelectedKey is not null && row.Key == _owner.SelectedKey;
             Paint();
             for (int i = 0; i < cols.Count && i < row.Cells.Count; i++)
@@ -416,7 +414,6 @@ public sealed class TableView : UserControl
             {
                 case TextBlock tb:
                     ApplyText(tb, spec, cell, index);
-                    ToolTip.SetTip(tb, cell.Tip ?? (spec.Kind == ColumnKind.Text && !rowHasTip ? cell.Text : null));   // 溢れて省略されても全文が読める・目録が文を持つ数と文字はその文
                     break;
                 case HalfPie pie when cell.Extra is ShareCell sc:
                     pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PiePalette[i % PiePalette.Length])).ToList();
@@ -425,17 +422,23 @@ public sealed class TableView : UserControl
                     FillStages(wp, st);
                     break;
                 case Border b:
-                    if (cell.Extra is not VerbCell vb) { b.Child = null; ToolTip.SetTip(b, null); break; }   // この行にこの動詞が無い（前の月にはあった行も空にする）
-                    if (b.Child is not Button btn)
+                    if (cell.Extra is not VerbCell vb) { b.Child = null; break; }   // この行にこの動詞が無い（前の月にはあった行も空にする）
+                    if (b.Child is not StackPanel sp)
                     {
-                        btn = new Button { Classes = { "mini" } };
-                        b.Child = btn;
+                        var note0 = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.Wrap, MaxWidth = 220, IsVisible = false };
+                        note0.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
+                        sp = new StackPanel { Spacing = 1, Children = { new Button { Classes = { "mini" } }, note0 } };
+                        b.Child = sp;
                     }
+                    var btn = (Button)sp.Children[0];
                     btn.Content = vb.Name; btn.IsEnabled = vb.Enabled;
                     btn.Tag = vb;   // 押した時に呼ぶのは最新の動詞
                     btn.Click -= OnVerbClick; btn.Click += OnVerbClick;
                     b.Background = Brushes.Transparent;
-                    ToolTip.SetTip(b, string.IsNullOrEmpty(vb.Tip) ? null : vb.Tip);   // 押せない理由は押し釦の外（無効の釦でもホバーを受ける）に付ける
+                    // 押せない理由は動詞の下に常に見せる（ホバーは廃止・作者の指示 2026-11-11）。押せる動詞には出さない
+                    var note = (TextBlock)sp.Children[1];
+                    note.Text = vb.Enabled || string.IsNullOrEmpty(vb.Tip) ? "" : vb.Tip;
+                    note.IsVisible = note.Text.Length > 0;
                     break;
             }
         }
@@ -468,7 +471,6 @@ public sealed class TableView : UserControl
                 btn.IsEnabled = st.CanSelect(level);
                 btn.Classes.Set("current", st.Current == level);
                 btn.Classes.Set("target", st.Target == level && st.Target != st.Current);
-                ToolTip.SetTip(border, st.Hover(level));   // 空なら null＝空の吹き出しを出さない
             }
         }
     }

@@ -145,7 +145,7 @@ public partial class GameViewModel
     [ObservableProperty] private string _politicalCapitalText = "";
     [ObservableProperty] private string _politicalCapitalTip = "";
     // ★2026-08-24作者指示：正統性・予算権・統帥権を**小さな半円グラフ**で（大きな半円＝権力の取り分と同じ色の文法・同じ HalfSlice）。
-    //   3つとも同じ (王権, 議会, 軍部) の3値＝軍が指揮権を独占している間は軍部100%の1色になる。値は半円の下の1行と ToolTip。
+    //   3つとも同じ (王権, 議会, 軍部) の3値＝軍が指揮権を独占している間は軍部100%の1色になる。値は半円の下の1行（吹き出しは廃止）。
     [ObservableProperty] private IReadOnlyList<HalfPieSlice> _legitSlices = [];
     [ObservableProperty] private IReadOnlyList<HalfPieSlice> _budgetSlices = [];
     [ObservableProperty] private IReadOnlyList<HalfPieSlice> _commandSlices = [];

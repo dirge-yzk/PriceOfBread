@@ -41,16 +41,7 @@
                                     <!-- 厭戦：内訳が空の間（ロード直後・開戦直後）は空の吹き出しを出さない＝2枚組で切替 -->
                                     <Panel>
                                         <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding !HasTerms}"/>
-                                        <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding HasTerms}" ToolTip.ShowDelay="200">
-                                            <ToolTip.Tip>
-                                                <ItemsControl ItemsSource="{Binding Terms}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:StatTerm">
-                                                            <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontSmall}"/>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </ToolTip.Tip>
+                                        <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding HasTerms}">
                                         </TextBlock>
                                     </Panel>
                                 </StackPanel>
@@ -93,7 +84,7 @@
                 <Button Classes="dialog" Content="{Binding MobilizeButtonText}" Command="{Binding ToggleMobilizeCommand}" IsVisible="{Binding PlayerAtWar}"
                         FontSize="{StaticResource FontBody}" Margin="0,2,0,2" HorizontalAlignment="Left"/>
                 <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4,0,2"/>
-                <TextBlock Text="{Binding ArmyIdealHeader}" Classes="section" ToolTip.Tip="{Binding ArmyIdealTip}" ToolTip.ShowDelay="200"/>
+                <TextBlock Text="{Binding ArmyIdealHeader}" Classes="section"/>
                 <Grid Margin="0,0,0,2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="40"/>
@@ -111,16 +102,13 @@
                             <!-- 段の小見出しと材の行を同じ一覧に混ぜる＝並びと区切りが 1 つのコレクションで決まる -->
                             <Panel>
                                 <TextBlock Text="{Binding Header}" IsVisible="{Binding IsHeader}" Foreground="{StaticResource BronzeBrush}" FontWeight="Bold" FontSize="{StaticResource FontTiny}" Margin="2,6,0,2"/>
-                                <Grid IsVisible="{Binding IsRow}" Margin="0,2" Background="Transparent" ToolTip.ShowDelay="200">
+                                <Grid IsVisible="{Binding IsRow}" Margin="0,2" Background="Transparent">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" MinWidth="40"/>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyNeed"/>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyHave"/>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyFill"/>
                                     </Grid.ColumnDefinitions>
-                                    <ToolTip.Tip>
-                                        <TextBlock Text="{Binding Tip}" FontSize="{StaticResource FontSmall}"/>
-                                    </ToolTip.Tip>
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Need}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Have}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
@@ -168,10 +156,7 @@
                                         <!-- 末列＝点火不等式の近接度。内訳ホバーの無い行は空の吹き出しを出さない＝2枚組で切替 -->
                                         <Panel Grid.Column="3" Margin="8,0,0,0">
                                             <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !HasStrengthTip}"/>
-                                            <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Background="Transparent" IsVisible="{Binding HasStrengthTip}" ToolTip.ShowDelay="200">
-                                                <ToolTip.Tip>
-                                                    <TextBlock Text="{Binding StrengthTip}" FontSize="{StaticResource FontSmall}"/>
-                                                </ToolTip.Tip>
+                                            <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Background="Transparent" IsVisible="{Binding HasStrengthTip}">
                                             </TextBlock>
                                         </Panel>
                                     </Grid>

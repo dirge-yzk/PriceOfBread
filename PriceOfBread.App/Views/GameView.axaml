@@ -214,16 +214,25 @@
                         <!-- 緊張が高まった理由＝内訳（寄与の大きい順・作者FB①・2026-08-10）。最上部に置く -->
                         <TextBlock Text="{Binding TensionPopupWhy}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding TensionPopupBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
-                        <!-- 2択＝ボタンは元のまま。緊張量と政治的帰結の3行はホバーで読む（作者裁定2026-08-10）。
-                             ツールチップはポップアップ＝中身が何行でもモーダルのレイアウトは動かない。 -->
+                        <!-- 2択の判断材料（緊張量と政治的帰結の3行）は常に見せる（作者の指示 2026-11-11：ヘッダー以外のホバーは廃止）。 -->
+                        <Grid ColumnDefinitions="*,*" Margin="0,2,0,0">
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
+                                <TextBlock Text="挑発する" FontWeight="Bold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                                <TextBlock Text="{Binding TensionProvokeTip}" TextWrapping="Wrap" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkSoftBrush}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="緊張を緩和する" FontWeight="Bold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                                <TextBlock Text="{Binding TensionEaseTip}" TextWrapping="Wrap" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkSoftBrush}"/>
+                            </StackPanel>
+                        </Grid>
                         <TextBlock Classes="dim" FontSize="{StaticResource FontSmall}" Height="16" Text="{Binding TensionRampText}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <Button x:Name="TensionProvokeButton" Classes="dialog" Content="挑発する"
                                     Command="{Binding TensionRaiseCommand}"
-                                    ToolTip.Tip="{Binding TensionProvokeTip}" ToolTip.ShowDelay="200"/>
+/>
                             <Button x:Name="TensionEaseButton" Classes="dialog" Content="緊張を緩和する"
                                     Command="{Binding TensionEaseCommand}"
-                                    ToolTip.Tip="{Binding TensionEaseTip}" ToolTip.ShowDelay="200"/>
+/>
                             <Button Classes="dialog" Content="静観する" Command="{Binding TensionIgnoreCommand}"/>
                         </StackPanel>
                     </StackPanel>
@@ -376,7 +385,7 @@
                                     <Border Background="{Binding RowBrush}" CornerRadius="3" Padding="6,2">
                                         <Grid ColumnDefinitions="34,150,86,120,110,70">
                                             <TextBlock Grid.Column="0" Text="{Binding Order}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource BronzeBrush}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" ToolTip.ShowDelay="200"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Grid.Column="2" Text="{Binding Score}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Polity}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
                                             <TextBlock Grid.Column="4" Text="{Binding Population}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>

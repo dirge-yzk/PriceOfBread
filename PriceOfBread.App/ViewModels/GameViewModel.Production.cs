@@ -802,11 +802,11 @@ public partial class GameViewModel
             int target = pr?.StateTarget ?? 0;
             // ★進まない月は理由を必ず出す（作者裁定2026-08-10 C節「無言にしない」）。常時ツールチップ＝
             //   目標＞現在は着工のゲート（建設中／技術／国庫／建材の採算）、目標＜現在は払い下げのゲート（CanSellFactory の理由）。
-            string counterTip = pr is null ? "この州に産地なし"
-                : $"国営 {stateUnits}棟/目標 {target}棟　民営 {privUnits}棟"
-                  + (target > stateUnits ? "\n" + (buildReason ?? "建設中") + "\n" + buildCostTip
-                     : target < stateUnits ? "\n" + (sale.Ok ? $"払い下げ 1棟 {Fmt.Money(sale.Price)}" : sale.Reason.Length > 0 ? sale.Reason : "払い下げ不可")
-                     : "\n" + buildCostTip);
+            // 目標と現在が食い違う月だけ、その行の下に理由を常に見せる（ホバーは廃止・作者の指示 2026-11-11。建設費・材料の内訳は画面から外した＝作者確認）。
+            string counterNote = pr is null ? ""
+                : target > stateUnits ? (buildReason ?? "建設中")
+                : target < stateUnits ? (sale.Ok ? $"払い下げ 1棟 {Fmt.Money(sale.Price)}" : sale.Reason.Length > 0 ? sale.Reason : "払い下げ不可")
+                : "";
             // ★行の命令は**州の実体**を捕まえる（2026-08-09）＝旧実装は生成時の添字 rIdx を閉じ込めていた。
             //   行は据え置き同期（CopyFrom）で使い回されるので、州の増減で添字がずれると**別の州を操作してしまう**。
             var rgRef = rg;
@@ -825,7 +825,7 @@ public partial class GameViewModel
                 HasCounter = pr is not null,
                 CanUp = pr is not null && target < _player.Coef.StateTargetMax,
                 CanDown = pr is not null && target > 0,
-                CounterTip = counterTip,
+                CounterNote = counterNote,
                 PrivFac = pr is null ? "—" : privUnits.ToString(),
                 StateFac = pr is null ? "—" : $"{stateUnits}/{target}",
                 // 従業員・失業者（項目6・2026-08-10）＝産地の無い州は「—」（0で埋めない＝行は残る＝レイアウトが上下しない）
@@ -1603,7 +1603,7 @@ public sealed partial class ProdRegionRow : ObservableObject
     [ObservableProperty] private bool _hasCounter;       // 産地のある州だけ ＋/− を出す（★出す/出さないは州で決まり、月ごとに入れ替わらない＝行の高さは動かない）
     [ObservableProperty] private bool _canUp;
     [ObservableProperty] private bool _canDown;
-    [ObservableProperty] private string? _counterTip;    // **常に**理由が読める＝目標と現在が食い違う月は「なぜ進まないか」（建材の採算／国庫不足／技術不足／赤字で買い手がつかない／資本家の資金不足／国有化法の対象／資本家が政府に不満）
+    [ObservableProperty] private string _counterNote = "";   // 目標と現在が食い違う月の「なぜ進まないか」（建材の採算／国庫不足／技術不足／赤字で買い手がつかない／資本家の資金不足／国有化法の対象／資本家が政府に不満・払い下げの理由）。行の下に常に見せる
     [ObservableProperty] private string _privFac = "";   // 民営工場（棟数＝(Scale−BuiltScale)/FactoryBuildScale）
     // 国営工場＝「現在/目標」（棟数。現在＝World.StateUnits・目標＝Producer.StateTarget＝−/＋で動かす当の数）。産地の無い州は「—」
     [ObservableProperty] private string _stateFac = "";
@@ -1628,7 +1628,7 @@ public sealed partial class ProdRegionRow : ObservableObject
     public void CopyFrom(ProdRegionRow s)
     {
         CapitalTip = s.CapitalTip;
-        HasCounter = s.HasCounter; CanUp = s.CanUp; CanDown = s.CanDown; CounterTip = s.CounterTip;
+        HasCounter = s.HasCounter; CanUp = s.CanUp; CanDown = s.CanDown; CounterNote = s.CounterNote;
         PrivFac = s.PrivFac; StateFac = s.StateFac;
         Emp = s.Emp; Idle = s.Idle; Prod = s.Prod; ProdTip = s.ProdTip;
         Surplus = s.Surplus; SurplusBrush = s.SurplusBrush; SurplusTip = s.SurplusTip; MatCost = s.MatCost; MatCostBrush = s.MatCostBrush;

@@ -137,7 +137,7 @@
                                     <DockPanel Margin="5,0">
                                         <!-- 縦線＝カテゴリの色（tier のアクセント）＋工場カウンター。説明は上の注記。 -->
                                         <Border DockPanel.Dock="Left" Width="56" Background="{Binding Accent}" CornerRadius="1" Margin="0,0,6,0"
-                                                ToolTip.Tip="{Binding FactoryTip}" ToolTip.ShowDelay="200">
+>
                                             <StackPanel VerticalAlignment="Center">
                                                 <Button Classes="counter" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
                                                         HorizontalAlignment="Stretch"
@@ -254,7 +254,7 @@
                                枠（どこまでが上下端か）と段階の一覧はホバーで読む＝グラフの中に文字を置かない。 -->
                         <TextBlock Text="{Binding ProdDetail.WorldPriceLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" Margin="0,4,0,0"/>
                         <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="68" HorizontalAlignment="Left"
-                                ToolTip.Tip="{Binding ProdDetail.SparkScaleTip}" ToolTip.ShowDelay="120">
+>
                             <Canvas Width="240" Height="64" Margin="3,1,0,0" ClipToBounds="True">
                                 <Path Data="{Binding ProdSparkGrid}" Stroke="#DBCDA6" StrokeThickness="1"/>
                                 <Rectangle Canvas.Left="0" Canvas.Top="31" Width="240" Height="2" Fill="#8A7A5E"/>
@@ -289,7 +289,7 @@
                                             <StackPanel>
                                                 <Grid ColumnDefinitions="Auto,42,*,Auto,Auto" ColumnSpacing="4" Margin="0,1" Background="Transparent"
                                                       IsVisible="{Binding !IsTotal}"
-                                                      ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+>
                                                     <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" TextTrimming="CharacterEllipsis" MaxWidth="128"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Fill}" FontSize="{StaticResource FontTiny}" Foreground="{Binding FillBrush}" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="3" Text="{Binding Ratio}" FontSize="{StaticResource FontTiny}" Foreground="{Binding RatioBrush}" VerticalAlignment="Center"/>
@@ -298,7 +298,7 @@
                                                 <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,3" IsVisible="{Binding IsTotal}"/>
                                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0,0,0,2" Background="Transparent"
                                                       IsVisible="{Binding IsTotal}"
-                                                      ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+>
                                                     <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"
                                                                TextTrimming="CharacterEllipsis" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="{StaticResource FontLead}" FontWeight="Bold"
@@ -314,7 +314,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:ProdPriceRow">
                                             <Grid ColumnDefinitions="*,54" Margin="0,1" Background="Transparent"
-                                                  ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+>
                                                 <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
                                                 <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right"/>
                                             </Grid>
@@ -323,7 +323,7 @@
                                 </ItemsControl>
                                 <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,3"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,2" Background="Transparent"
-                                            ToolTip.Tip="{Binding ProdDetail.PriceTotalTip}" ToolTip.ShowDelay="120">
+>
                                     <TextBlock Text="販売価格:" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource BronzeBrush}"/>
                                     <TextBlock Text="{Binding ProdDetail.PriceTotalText}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
                                 </StackPanel>
@@ -337,11 +337,13 @@
                             <!-- 補助金は国営持分に効かない（作者裁定2026-08-10「国営工場は補助金の対象外」）＝国営100%なら無効化する。
                                  ★無効なボタンはツールチップを出せないので透明Borderで包む（カウンター列と同じ作法）＝
                                    押せない理由（国営100%／産地なし）と、押せる時に効く持分（民営持分 n%）が読める。 -->
-                            <Border Background="Transparent" ToolTip.Tip="{Binding ProdDetail.SubsidyTip}" ToolTip.ShowDelay="120">
+                            <StackPanel Spacing="1">
                                 <Button Classes="mini" Classes.active="{Binding ProdDetail.SubsidyOn}" ClickMode="Press"
                                         IsEnabled="{Binding ProdDetail.CanSubsidize}"
                                         Content="補助金" Command="{Binding ProdDetail.ToggleSubsidyCommand}"/>
-                            </Border>
+                                <TextBlock Text="{Binding ProdDetail.SubsidyTip}" IsVisible="{Binding ProdDetail.SubsidyTip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                           FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}"/>
+                            </StackPanel>
                             <Button Classes="mini" Classes.active="{Binding ProdDetail.MonopolyOn}" ClickMode="Press"
                                     Content="専売" Command="{Binding ProdDetail.ToggleMonopolyCommand}"/>
                             <Button Classes="mini" Classes.active="{Binding ProdDetail.BuyDearOn}" ClickMode="Press"
@@ -367,7 +369,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ProdUseRow">
                                     <!-- 役務の消費先（教育・行政等）＝グラフに無い＝クリック不可（IsEnabled=false・レビュー2026-07-19） -->
-                                    <Border Background="Transparent" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="120">
+                                    <Border Background="Transparent">
                                         <Button Classes="row" Command="{Binding SelectCmd}" CommandParameter="{Binding GoodId}" IsEnabled="{Binding CanSelect}">
                                             <Grid ColumnDefinitions="*,Auto" Margin="0,2">
                                                 <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Classes="use" Classes.unused="{Binding !Used}"/>
@@ -390,7 +392,7 @@
                             <!-- 見出し「州名」のホバー＝工業化の州別上位8（2026-09-23）。行は増やさず既にある見出しのセルに載せる。
                                  式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
                             <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"
-                                       ToolTip.Tip="{Binding ProdRegionHeadTip}" ToolTip.ShowDelay="200"/>
+/>
                             <TextBlock Grid.Column="1" Text="民営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                             <TextBlock Grid.Column="2" Text="国営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="6,0,0,0"/>
                             <TextBlock Grid.Column="3" Text="従業員" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
@@ -404,13 +406,14 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ProdRegionRow">
                                     <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,2">
+                                      <StackPanel>
                                         <!-- ★1行（作者フィードバック2026-08-10 項目3）。MinHeight はボタンの高さに固定＝
                                              カウンターを持たない州（産地なし）の行だけ低くならない＝行の高さが州によって変わらない。 -->
                                         <Grid ColumnDefinitions="*,50,90,40,40,40,40,50" MinHeight="19">
                                             <!-- 接17：州名ホバー＝工業化資本の新旧内訳（ヴィンテージ層が休眠なら CapitalTip=null＝出ない） -->
                                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
-                                                       ToolTip.Tip="{Binding CapitalTip}" ToolTip.ShowDelay="200"/>
+/>
                                             <TextBlock Grid.Column="1" Text="{Binding PrivFac}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
                                             <!-- 国営工場＝「− 現在/目標 ＋」（作者フィードバック2026-08-10 項目5でカウンター列を統合）。
                                                  1カウント＝1棟＝Coefficients.FactoryBuildScale。現在＝実測（World.StateUnits）／目標＝−/＋で動かす当の数。
@@ -422,7 +425,7 @@
                                                  ★数字の列は Auto でなく * ＝1桁でも2桁でも ＋/− の位置が動かない（隣の州と縦に揃う）。 -->
                                             <!-- 左6の余白＝「−」が民営工場の数字と地続きに見えないための隙間（uishot 実測2026-08-10＝「3−」と読めた） -->
                                             <Border Grid.Column="2" Background="Transparent" VerticalAlignment="Center" Margin="6,0,0,0"
-                                                    ToolTip.Tip="{Binding CounterTip}" ToolTip.ShowDelay="80">
+>
                                                 <Panel>
                                                     <!-- 産地の無い州は「—」（他の列と同じ埋め方）＝空欄にしない。どちらも同じ 90px の枠に入るので位置は動かない -->
                                                     <TextBlock Text="{Binding StateFac}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Center"
@@ -441,12 +444,15 @@
                                             <TextBlock Grid.Column="4" Text="{Binding Idle}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
                                             <!-- 生産のホバー＝稼働率とその内訳（採算／投入充足／在庫調整／慣性）＝設備欄から移した全国値 -->
                                             <TextBlock Grid.Column="5" Text="{Binding Prod}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Right" VerticalAlignment="Center"
-                                                       ToolTip.Tip="{Binding ProdTip}" ToolTip.ShowDelay="200"/>
+/>
                                             <!-- 過不足＝生産に対する比（2026-08-10 項目3）。絶対量（生産・消費・差）はホバーで読む -->
                                             <TextBlock Grid.Column="6" Text="{Binding Surplus}" FontSize="{StaticResource FontSmall}" Foreground="{Binding SurplusBrush}" TextAlignment="Right" VerticalAlignment="Center"
-                                                       ToolTip.Tip="{Binding SurplusTip}" ToolTip.ShowDelay="200"/>
+/>
                                             <TextBlock Grid.Column="7" Text="{Binding MatCost}" FontSize="{StaticResource FontSmall}" Foreground="{Binding MatCostBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
+                                        <TextBlock Text="{Binding CounterNote}" IsVisible="{Binding CounterNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                   FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextWrapping="Wrap" Margin="2,0,0,2"/>
+                                      </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -487,7 +493,7 @@
                                             <Rectangle DockPanel.Dock="Left" Width="5" Fill="{Binding Brush}" Margin="0,0,6,0" RadiusX="1" RadiusY="1"/>
                                             <!-- 無効なボタンはツールチップを出せないので透明Borderで包む（工場の着工と同じ流儀） -->
                                             <Border DockPanel.Dock="Right" Background="Transparent" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                    IsVisible="{Binding ShowStart}" ToolTip.Tip="{Binding StartReason}" ToolTip.ShowDelay="80">
+                                                    IsVisible="{Binding ShowStart}">
                                                 <Button Classes="mini" Content="{Binding StartLabel}" IsEnabled="{Binding CanStart}" Focusable="False"
                                                         Command="{Binding $parent[ItemsControl].((vm:GameViewModel)DataContext).StartMegaCommand}" CommandParameter="{Binding}"/>
                                             </Border>
@@ -496,6 +502,7 @@
                                                            TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding State}" FontSize="{StaticResource FontTiny}" Foreground="{Binding Brush}"/>
                                                 <TextBlock Text="{Binding Effect}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding StartReason}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>

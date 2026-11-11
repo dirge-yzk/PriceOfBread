@@ -19,8 +19,7 @@
         <ctl:Section Key="power" Title="権力">
             <StackPanel Spacing="4">
                 <Grid ColumnDefinitions="Auto,12,*">
-                    <Border Grid.Column="0" Background="Transparent" ToolTip.ShowDelay="200">
-                        <ToolTip.Tip><TextBlock Text="{Binding ShareTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                    <Border Grid.Column="0" Background="Transparent">
                         <ctl:HalfPie Radius="68" Slices="{Binding PowerSlices}"/>
                     </Border>
                     <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
@@ -48,21 +47,18 @@
                 </Grid>
                 <!-- 正統性・予算権・統帥権：半円の下は 見出し／優勢な側とその割合／（予算権と統帥権のみ）今の法。内訳の実数はホバー -->
                 <Grid ColumnDefinitions="*,*,*">
-                    <StackPanel Grid.Column="0" Spacing="1" Background="Transparent" ToolTip.ShowDelay="200">
-                        <ToolTip.Tip><TextBlock Text="{Binding LegitTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                    <StackPanel Grid.Column="0" Spacing="1" Background="Transparent">
                         <ctl:HalfPie Radius="29" Slices="{Binding LegitSlices}" HorizontalAlignment="Center"/>
                         <TextBlock Text="正統性" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding LegitTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Spacing="1" Background="Transparent" ToolTip.ShowDelay="200">
-                        <ToolTip.Tip><TextBlock Text="{Binding BudgetTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                    <StackPanel Grid.Column="1" Spacing="1" Background="Transparent">
                         <ctl:HalfPie Radius="29" Slices="{Binding BudgetSlices}" HorizontalAlignment="Center"/>
                         <TextBlock Text="予算権" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding BudgetTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding BudgetLawName}" Foreground="{StaticResource InkFaintBrush}" FontSize="{StaticResource FontTiny}" HorizontalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel Grid.Column="2" Spacing="1" Background="Transparent" ToolTip.ShowDelay="200">
-                        <ToolTip.Tip><TextBlock Text="{Binding CommandTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                    <StackPanel Grid.Column="2" Spacing="1" Background="Transparent">
                         <ctl:HalfPie Radius="29" Slices="{Binding CommandSlices}" HorizontalAlignment="Center"/>
                         <TextBlock Text="統帥権" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding CommandTopText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
@@ -79,11 +75,11 @@
             <StackPanel>
                 <ctl:StatRow Label="政体" Value="{Binding PolityText}"/>
                 <ctl:StatRow Label="王冠の形" Value="{Binding CrownText}"/>
-                <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}" Tip="{Binding PolityAttractorTip}"/>
-                <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Tip="{Binding ParliamentControlTip}"/>
-                <ctl:StatRow Label="政治資本" Value="{Binding PoliticalCapitalText}" Tip="{Binding PoliticalCapitalTip}"/>
+                <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}"/>
+                <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Note="{Binding ParliamentControlTip}"/>
+                <ctl:StatRow Label="政治資本" Value="{Binding PoliticalCapitalText}"/>
                 <ctl:StatRow Label="王権と議会の協力度" Value="{Binding CoopParliamentText}"/>
-                <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" Tip="{Binding ChallengeTip}" ValueBrush="{Binding ChallengeBrush}"/>
+                <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" ValueBrush="{Binding ChallengeBrush}"/>
             </StackPanel>
         </ctl:Section>
 
@@ -101,7 +97,7 @@
             <ItemsControl ItemsSource="{Binding Blocs}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:BlocRow">
-                        <ctl:StatRow Label="{Binding Name}" Value="{Binding Percent}" Tip="{Binding Tip}" ValueBrush="{StaticResource BronzeBrush}"/>
+                        <ctl:StatRow Label="{Binding Name}" Value="{Binding Percent}" ValueBrush="{StaticResource BronzeBrush}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -112,14 +108,14 @@
             <StackPanel>
                 <TextBlock Text="動きなし" Classes="dim" IsVisible="{Binding !HasPowerStruggle}"/>
                 <StackPanel IsVisible="{Binding HasPowerStruggle}">
-                    <ctl:StatRow Label="議会統制力の今期の変化" Value="{Binding PcDeltaText}" Tip="{Binding PcDeltaTip}" ValueBrush="{Binding PcDeltaBrush}"/>
-                    <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}" Tip="{Binding ArmyLoyaltyTip}"/>
-                    <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}" Tip="{Binding ArmyPowerTip}"/>
+                    <ctl:StatRow Label="議会統制力の今期の変化" Value="{Binding PcDeltaText}" ValueBrush="{Binding PcDeltaBrush}"/>
+                    <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}"/>
+                    <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}"/>
                     <!-- 経路の内訳（緑＝議会が得る／赤＝王権と軍が取り返す）。動いていない経路は行を出さない -->
                     <ItemsControl ItemsSource="{Binding PowerShifts}" Margin="12,0,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:PowerShiftRow">
-                                <ctl:StatRow Label="{Binding Name}" Value="{Binding Value}" Tip="{Binding Tip}" ValueBrush="{Binding Brush}"/>
+                                <ctl:StatRow Label="{Binding Name}" Value="{Binding Value}" ValueBrush="{Binding Brush}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -204,7 +200,7 @@
                     </ItemsControl>
                     <Button Classes="dialog" Content="議会を解散" Command="{Binding DissolveParliamentCommand}"
                             IsVisible="{Binding CanDissolveParliament}" Margin="0,6,0,0" HorizontalAlignment="Left"
-                            ToolTip.Tip="{Binding DissolveParliamentTip}"/>
+/>
                 </StackPanel>
             </StackPanel>
         </ctl:Section>
