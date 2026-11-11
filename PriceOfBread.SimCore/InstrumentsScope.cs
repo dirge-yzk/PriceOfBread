@@ -33,7 +33,7 @@ public static partial class Instruments
         public readonly Dictionary<(string Nation, int Tier, int Payer), CscxAcc> MapX = new();
         public System.IO.StreamWriter? XW; public bool XHeader;
     }
-    sealed class CscxAcc { public long Rows, Fills, Invalid, ToBest; }
+    sealed class CscxAcc { public long Rows, Fills, Invalid, ToBest, SkippedLB; }
 
     /// <summary>(1024) 払い手の区分（買い手の州から計器が自分で読む・Cearn の ImpKind と同じ述語）：0＝手形あり商人（人数＞1e-12 かつ債務が正でない）・1＝手形なし商人（人数＞1e-12 かつ債務が正）・2＝空の商人（商人の POP はあるが人数 ≦1e-12）・3＝商人の POP 無し（全 POP が払い手）。
     /// 限界：行の終わりの時点の状態（エンジンの手形は清算の頭で決まる）。</summary>
@@ -47,12 +47,12 @@ public static partial class Instruments
     }
 
     /// <summary>(1024) K1：走査した買い手行の終わり（<c>BilateralMarket</c>・読むだけ）。<paramref name="fills"/>＝この行の着値の充填・<paramref name="invalid"/>＝うち着値≧自州価格・<paramref name="toBest"/>＝うち最良が替わった。</summary>
-    internal static void ScopeRowX(InternationalMarket m, World buyer, Region r, long fills, long invalid, long toBest)
+    internal static void ScopeRowX(InternationalMarket m, World buyer, Region r, long fills, long invalid, long toBest, long skippedLB)
     {
         var s = CscAccs.GetValue(m, _ => new CscState());
         var key = (NameOf(buyer), (int)r.Tier, CscxPayer(r));
         if (!s.MapX.TryGetValue(key, out var a)) s.MapX[key] = a = new CscxAcc();
-        a.Rows++; a.Fills += fills; a.Invalid += invalid; a.ToBest += toBest;
+        a.Rows++; a.Fills += fills; a.Invalid += invalid; a.ToBest += toBest; a.SkippedLB += skippedLB;
     }
 
     /// <summary>(1024) 試験の口：cscx の蓄え（全ての国・格・払い手の和）。</summary>
@@ -150,7 +150,7 @@ public static partial class Instruments
         CscxFold(s, seed, year);
     }
 
-    const string CscxHeader = "year\tnation\ttierCode\tpayerCode\trowsCount\tfillsCount\tfillsInvalidCount\tfillsToBestCount";
+    const string CscxHeader = "year\tnation\ttierCode\tpayerCode\trowsCount\tfillsCount\tfillsInvalidCount\tfillsToBestCount\tfillsSkippedLB";
 
     /// <summary>(1024) K1 cscx_s の年の終わり（と試合の終わりの残り）：csc_s と同じ呼びで行にして書き、0 へ戻す。tierCode＝Core／Integrated／Colonial の名・payerCode＝<see cref="CscxPayer"/>。</summary>
     static void CscxFold(CscState s, ulong seed, int year)
@@ -163,7 +163,8 @@ public static partial class Instruments
             var a = kv.Value;
             s.XW.WriteLine(string.Join('\t', TrI(year), kv.Key.Nation, ((RegionTier)kv.Key.Tier).ToString(), TrI(kv.Key.Payer),
                 a.Rows.ToString(System.Globalization.CultureInfo.InvariantCulture), a.Fills.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                a.Invalid.ToString(System.Globalization.CultureInfo.InvariantCulture), a.ToBest.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                a.Invalid.ToString(System.Globalization.CultureInfo.InvariantCulture), a.ToBest.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                a.SkippedLB.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         }
         s.MapX.Clear();
     }
