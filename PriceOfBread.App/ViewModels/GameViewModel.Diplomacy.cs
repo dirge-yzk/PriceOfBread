@@ -31,7 +31,7 @@ internal static class NationInk
         Polity.Republic => "#2E6E5E",
         Polity.MilitaryDictatorship => "#5A3A6A",
         Polity.BourgeoisDictatorship => OwnSuzerain,
-        Polity.ProletarianDictatorship => "#9A2A2A",
+        Polity.ProletarianDictatorship => "#E0402A",   // 絶対君主制の暗い赤と見分けられる明るい赤（V10）
         _ => Default,
     };
 }
@@ -118,7 +118,7 @@ public partial class GameViewModel
             else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeFill = NationInk.NoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
             // 外交アクションの可否：弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
             // ★2026-08-23作者裁定：植民地化と侵略は1本（侵略）。標的が弱小なら抽象標的でも実在国でも同じボタン＝エンジンの World.CanInvade にもランク条件は無い（AI と同じ動詞・同じ可否）。
-            bool showInvade = !isMe;   // 全ランクに宣戦布告の押し釦を出す（押せない理由つき・B47）。弱小以外はエンジンの理由「弱小国が標的」
+            bool showInvade = !isMe && powRank == PowerRank.Minor;   // 宣戦布告の釦は弱小の行だけ（弱小でない行は釦も理由も出さない＝19 行の同じ理由が並ばない・B47 の直し直し）
             string invReason = "";
             bool canInvade = showInvade && _player.CanInvade(pow, out invReason);
             if (!showInvade || canInvade) invReason = "";
@@ -131,14 +131,14 @@ public partial class GameViewModel
             {
                 "" => null,
                 "余剰戦力が不足" => "戦力余剰が不足",   // 語を「戦力余剰」へ統一（2026-09-23）
-                _ => reason,
+                _ => Fmt.Zen(reason),   // 括弧とコロンは全角（V11）
             };
 
             // ホバー詳細：スコアの内訳（NationalScore.Breakdowns の 1 本＝6 項の割合の点）＋緊張が高まっている要因。
             string detail = $"{name}({rank})　{polity}";
             if (pow.Nation is { } nw)
             {
-                detail += $"\n列強スコア：{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F1}"));
+                detail += $"\n列強スコア：{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}：{l.Points:F1}"));
                 if (unity.Length > 0) detail += "\n" + unity;
                 // 主流の文化/宗教（州ラベルの人口加重多数派）＝下の「民族の隔たり/宗教の隔たり」の素（#62）
                 if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化：{pow.Culture}　宗教：{pow.Religion}";

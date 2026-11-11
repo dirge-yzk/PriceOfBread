@@ -106,7 +106,7 @@ public sealed class TableView : UserControl
                 foreach (var r in snap.Rows)
                     if (shareCol < r.Cells.Count && r.Cells[shareCol].Extra is ShareCell sc && sc.Parts.Count > 0)
                     {
-                        items = sc.Parts.Select((p, i) => new LegendItem(p.Name, RowPresenter.PiePalette[i % RowPresenter.PiePalette.Length])).ToList();
+                        items = sc.Parts.Select((p, i) => new LegendItem(p.Name, PaletteOf(sc)[i % PaletteOf(sc).Count])).ToList();
                         break;
                     }
         }
@@ -217,6 +217,10 @@ public sealed class TableView : UserControl
     // ---- 資源（App.axaml のトークン。無ければ既定）----
     private static IBrush Brush(string key, IBrush fallback)
         => Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var v) && v is IBrush b ? b : fallback;
+    /// <summary>半円の区分の色の並び。支配度の 4 区分は専用の色（App.axaml の RuleStateBrush ほか＝州の窓と同じ）・他は既定の並び。</summary>
+    internal static IReadOnlyList<IBrush> PaletteOf(ShareCell sc) => sc.Palette == PopTables.RulePalette
+        ? [Brush("RuleStateBrush", Brushes.SteelBlue), Brush("RuleLocalBrush", Brushes.Peru), Brush("RuleForeignBrush", Brushes.IndianRed), Brush("RuleUngovernedBrush", Brushes.Gray)]
+        : RowPresenter.PiePalette;
     private static double Small => Application.Current is { } app && app.TryFindResource("FontSmall", app.ActualThemeVariant, out var v) && v is double d ? d : 12;
 
     /// <summary>表の中身が入れ替わった（<see cref="Section"/> が欄の並べを測り直す）。</summary>
@@ -493,7 +497,7 @@ public sealed class TableView : UserControl
                     bar.Cell = cell.Extra as BarCell;
                     break;
                 case HalfPie pie when cell.Extra is ShareCell sc:
-                    pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PiePalette[i % PiePalette.Length])).ToList();
+                    pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PaletteOf(sc)[i % PaletteOf(sc).Count])).ToList();
                     break;
                 case WrapPanel wp when cell.Extra is StageCell st:
                     FillStages(wp, st);
@@ -530,33 +534,35 @@ public sealed class TableView : UserControl
 
         private static void FillStages(WrapPanel wp, StageCell st)
         {
-            if (wp.Children.Count != st.Labels.Count)
+            // 段の釦は理由の有無で幅も間も変えない＝理由は釦の列の最後（右の続き・入りきらなければ次の行）に 1 つだけ置く（V2）
+            if (wp.Children.Count != st.Labels.Count + 1)
             {
                 wp.Children.Clear();
                 for (int i = 0; i < st.Labels.Count; i++)
                 {
                     var btn = new Button { Classes = { "lawstage" } };
                     btn.Click += (s, _) => { if (s is Button { Tag: (StageCell cell, int level) } && cell.CanSelect(level)) cell.Select(level); };
-                    var why = new TextBlock { FontSize = 10, TextWrapping = TextWrapping.NoWrap, IsVisible = false };
-                    why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
-                    wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = new StackPanel { Orientation = Orientation.Vertical, Children = { btn, why } } });   // 選べない段の釦の下に押せない理由（短い語）
+                    wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = btn });
                 }
+                var why = new TextBlock { FontSize = Small, TextWrapping = TextWrapping.NoWrap, IsVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 2) };
+                why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
+                wp.Children.Add(why);
             }
+            var reasons = new List<string>();
             for (int i = 0; i < st.Labels.Count; i++)
             {
                 int level = st.LevelBase + i;
-                var border = (Border)wp.Children[i];
-                var sp = (StackPanel)border.Child!;
-                var btn = (Button)sp.Children[0];
-                var whyText = (TextBlock)sp.Children[1];
+                var btn = (Button)((Border)wp.Children[i]).Child!;
                 btn.Content = st.Labels[i];
                 btn.Tag = (st, level);   // 最新の段の中身を持たせる
                 btn.IsEnabled = st.CanSelect(level);
-                whyText.Text = btn.IsEnabled ? "" : st.Why?.Invoke(level) ?? "";
-                whyText.IsVisible = whyText.Text.Length > 0;
+                if (!btn.IsEnabled && st.Why?.Invoke(level) is { Length: > 0 } why && !reasons.Contains(why)) reasons.Add(why);
                 btn.Classes.Set("current", st.Current == level);
                 btn.Classes.Set("target", st.Target == level && st.Target != st.Current);
             }
+            var whyText = (TextBlock)wp.Children[^1];
+            whyText.Text = string.Join("　", reasons);
+            whyText.IsVisible = reasons.Count > 0;
         }
     }
 }

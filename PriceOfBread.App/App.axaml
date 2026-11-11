@@ -27,6 +27,11 @@
         <SolidColorBrush x:Key="GreenBrush" Color="#2E7D32"/>   <!-- 緑（正・良） -->
         <SolidColorBrush x:Key="BlueBrush" Color="#1F5FA8"/>   <!-- 青（リンク・選択） -->
         <SolidColorBrush x:Key="SteelBrush" Color="#3A5A8A"/>   <!-- 鋼青（第二の強調） -->
+        <!-- 支配度の 4 区分の色（唯一の定義・州の窓・POP の州の表・部品の見本が読む）：国家＝鋼青・在地勢力＝褐・外国勢力＝琥珀・無統治＝淡墨（政治の金/錆と衝突させない） -->
+        <SolidColorBrush x:Key="RuleStateBrush" Color="#3A5A8A"/>
+        <SolidColorBrush x:Key="RuleLocalBrush" Color="#6B5230"/>
+        <SolidColorBrush x:Key="RuleForeignBrush" Color="#A05A28"/>
+        <SolidColorBrush x:Key="RuleUngovernedBrush" Color="#8A8070"/>
         <SolidColorBrush x:Key="SandBrush" Color="#C4B48A"/>   <!-- 砂（枠線） -->
         <SolidColorBrush x:Key="SandDarkBrush" Color="#B9A97F"/>   <!-- 濃い砂（区切り線・ボタン枠） -->
         <SolidColorBrush x:Key="SandLightBrush" Color="#D8CCAA"/>   <!-- 淡い砂（薄い枠線） -->
@@ -169,6 +174,12 @@
         </Style>
         <Style Selector="Button.mini:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#D4C8A4"/>
+        </Style>
+        <!-- 押せない時も文字の濃さは保つ（法の段の釦と同じ扱い・V2/B47）。地と枠だけで区別する -->
+        <Style Selector="Button.mini:disabled:not(.active) /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E3DCC4"/>
+            <Setter Property="BorderBrush" Value="#D6CBA8"/>
+            <Setter Property="Foreground" Value="#5A4526"/>
         </Style>
         <!-- 一覧の行に置くボタン（外交タブの植民地化・侵略・統一戦争／2026-08-10）。見た目は mini のまま余白だけ詰める＝
              650幅の2段組では1段が約298pxしかなく、mini の Padding 6,3（＝「植民地化」で62px）では国名の幅を食う。 -->

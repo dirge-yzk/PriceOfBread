@@ -81,6 +81,12 @@ public class PoliticsTablesTests
                 string? why = st.Why!(lv);
                 if (st.CanSelect(lv)) Assert.Null(why);
                 else if (why is not null) Assert.DoesNotMatch(@"\d", why);   // 閾値の数字を出さない
+                if (why is not null)
+                {
+                    Assert.DoesNotContain(':', why);   // 日本語の文中は全角のコロン（V11）
+                    Assert.DoesNotContain("（", why);   // 括弧の中の説明は出さない（V3）
+                    if (Math.Abs(lv - st.Current) > 1) Assert.NotEqual("前段階が必要", why);   // 理由は次に押せる段の 1 つだけ（V3）
+                }
             }
         }
     }
@@ -96,6 +102,8 @@ public class PoliticsTablesTests
         var joint = t.Rows.First(r => r.Name == "株式会社");
         Assert.Equal(w.PatentLaw ? "施行" : "未施行", (string)patent.Cells[state]!);
         Assert.Equal(w.JointStock ? "施行" : "未施行", (string)joint.Cells[state]!);
+        var rail = t.Rows.First(r => r.Name == "鉄道");   // 鉄道の施行も政府の行の状態の列に出る（V16）
+        Assert.Equal(w.Railways ? "施行" : "未施行", (string)rail.Cells[state]!);
         Assert.DoesNotContain(t.Rows, r => r.Name == "特許制度");   // 名の衝突を作らない
         Assert.DoesNotContain(DiscoveryTables.Discoveries.Read(sim, w).Rows, r => r.Name == "報せの速さ");
     }
