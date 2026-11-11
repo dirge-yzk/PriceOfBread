@@ -1,0 +1,36 @@
+(1028) 事前登録 c97ws：c96wn の残りと nationgood_s の outputSum・eventRegions（恒等の線・コードの前・最初のコミット）
+基準：m1027（main 8c9aee55）。枝 c97ws・worktree D:/PoB_work/wt_c97ws。
+
+[1] 種類と予言 0
+- 恒等の線。力学 0 行・新しい係数 0・乱数を引かない・INS=1 のときだけ動く。予言 0＝素の 5 種・計器つき 10 種は、warentry_s の末尾 1 列と nationgood_s の末尾 2 列を除き m1027 と全行一致。
+- 浮動小数の順序が変わる箇所：無い（新しい列は計器の読みの和・件数だけ・エンジンの式は触らない）。紙の台本で旧と新の食い違いを数える対象も 0。
+- 足す列（報告に列挙）：warentry_s＝crossWeakWill（理由〈弱小国が標的〉かつ ExpansionWill＜InvadeWillCost の評価の件数）／nationgood_s＝outputSum（国×財の州の Producer.Output の和・FR）・eventRegions（その四半期に RegionMoved〔Territory.TransferRegion＝Ceded・Seceded・Returned〕を通った州か、前の四半期の末に居なかった州〔植民地の州化＝Adopt〕の数）。
+
+[2] 消す物と残す物
+- 消す：InstrumentsWar.cs の WarSt.Samples（宣言だけ・書き手 0・読み手 0）・WarInvadeQsOf（読み手 0）。読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame）＝0 件（WarInvadeQ〔添字つき・Instruments.cs の invade_s の行〕と WarNoteInvade は残す）。
+- 残す：InvadeQ（invade_s の q の列が読む）。
+- 触る行（他の線との重なり）：InstrumentsWar.cs・InstrumentsNationgood.cs・Instruments.cs の 2 行（RegionMoved の頭に NgRegionMoved の 1 行・Quarter の NationgoodTable の行に NgEventsRoll の呼び）。エンジン（Territory.cs・Diplomacy.cs・World.cs）は触らない。sp は Instruments.cs を触らない（持ち物は InstrumentsScope.cs）。Instruments.cs の行は合流で解く。
+
+[3] 足す試験・突然変異・走査の番人（㉘）
+- WarInstrumentTests.cs＋2：T11〔評価を通すと newOnly＞0・紙の値〕・T12〔交差の列〕。
+- NationgoodOutputEventTests.cs（新）＋1：G1G2〔outputSum が試験の歩きの和・eventRegions＝0 の行で outputSum＝producedQty・州を移した四半期の受け手だけ eventRegions＝1〕。
+- 突然変異（それぞれ赤の予言）：
+  M1 元の N3（newOk に oldOk の条件を使う）→ T11 が赤（newOnly＝0）。
+  M2 τ を 0 に固定（WarNewNeed が need を返す）→ T11 が赤。
+  M3 outputSum を LastProduced の和にする → G1G2 が赤（移した州の行）。
+  M4 eventRegions を cederule だけで数える（NgRegionMoved だけ・新しい州の検出を外す）→ 試験の盤面では緑の見込み（試験は州の移しだけ）＝raw の G3（新しい州 8 組）で赤。緑なら穴として名乗る。
+  M5 交差の列から r_will の条件を落とす → T12 が赤（2 になる）。
+  M6 交差の列から〈弱小国が標的〉の条件を落とす → T12 が赤（3 になる）。
+  M7 NgRegionMoved の呼びを消す → G1G2 の E が赤。
+- 走査の番人（㉘）：ScalarDeletionTests・GoodIdGuardTests・OnDoubleReadScanTests・DiplomacyPendingTests・ResourceRowsTests・InstrumentsTests・WriterRatchetTests。書き換える件数の予言＝0（見出しを数える試験は列名で引く＝無い見込み・OnDoubleReadScan の許可表は新しい On の読みを足さない＝main と同じ）。
+- テストの数：Category!=FullLength は 2642＋3＝2645（--tests-delta 3）。
+
+[4] 門（ident の生で読む・両側）
+- ident〈判定: 恒等〉（--grown-ok warentry_s,nationgood_s）。フルスイート緑・savetest 合格・推定 248.5 秒以下。
+- G1：outputSum＝prodcap_s の Σoutput（全ての組・往復の桁）。
+- G2：eventRegions＝0 の組で outputSum＝producedQty（G10 の内）。
+- G3：eventRegions＞0 の (種,年,国) の数＝keep_1027 の excl.py の値 28（transfer 20・founded 8・種 1〜10）。多くても 0 でも赤。
+- 交差の列：T12 の紙の値と一致。raw では crossWeakWill ≧ sh_will・crossWeakWill ≦ r_weak。
+- 床 F1〜F3 の数え直し（keep_1027/base_ins の warentry_s・invade_s）は measurements/m1028_20261111_floors.txt（記録・門ではない）。
+
+[5] 採る条件：〈判定: 恒等〉・全ての試験の緑。一致しなければその変更を外して報告に回す。
