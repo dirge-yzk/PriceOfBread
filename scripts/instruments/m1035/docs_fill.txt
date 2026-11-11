@@ -3,3 +3,7 @@ H=9e08cb73
 TESTS=2651
 K35=6.5
 HL=1221
+KIT=D:/PoB_play/kit を 80ac31ee で建て直した（Runner・SimCore は最後の main の木と同じ・0 エラー・`measurements/m1035_20261111/kit_m1035.txt`）
+CLEAN=worktree wt_c97ws・wt_c97sp・wt_c97eb は git worktree remove・ローカルの枝 c97ws・c97sp・c97eb を消した（origin の枝は残す）。線の作業フォルダ c97ws_work・c97sp_work（ident の生 約22GB ずつ）・c97eb_work・r1031_work〜r1034_work は、合わせた木の ident が〈判定: 恒等〉の後・写した後に消した（**フルスイートの結果より前**＝赤なら帰属はファイルで決める前提だった）。keep_1035/base_ins の要約は `measurements/m1035_20261111/keep1035_base_ins_sum.tsv`（1311 本・sha256）・ハードリンクにしなかった 90 本の名は `keep1035_separate.txt`（実の増え 約 6.5GB）。wt_m1035・枝 m1035・ident_m1035z の残り（ins は keep_1035 へ移した）・m1035_work はこの記録の push の後に消す。D: の空き 157.2GB（線の片付けの後）。残留プロセス 0（他の担当のプロセスは無かった）。
+SUITE=Category!=FullLength 合格 2650・スキップ 1・合計 2651（16 分 40 秒）・FullLength 合格 3（3 分 17 秒）＝--list-tests の 2651＋3 と一致（`measurements/m1035_20261111/suite_9e08cb73_nonfull.txt`・`_full.txt`）・savetest・leakhunt は ident m1035z（同じ SOURCE-HASH f16351ceed96360a）で OK・㉘ の束は別に回していない（フルスイートが含む）
+WM=12

@@ -1,0 +1,5 @@
+D:/PoB_work/m1035_work
+D:/PoB_work/wt_m1035 (worktree・枝 m1035)
+D:/PoB_work/ident_m1035z (ident.sh)
+D:/PoB_work/m1035_work/mutn3 (使い捨ての worktree)・m1035_work/mut_art
+D:/PoB_work/keep_1035（base_ins＝ident m1035z の計器つき 10 種の生・keep_1027/base_ins とバイトで同じ表はハードリンク）
