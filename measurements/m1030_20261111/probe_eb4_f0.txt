@@ -1,0 +1,13 @@
+ PROBE default flag=0
+ PROBE 月 1 rent=0.170 投資家の差=0.170 scale=2.000
+ PROBE 月 2 rent=0.144 投資家の差=0.144 scale=2.000
+ PROBE 月 3 rent=0.123 投資家の差=0.123 scale=2.000
+ PROBE 月 4 rent=0.104 投資家の差=0.104 scale=2.000
+ PROBE 月 5 rent=0.089 投資家の差=0.089 scale=2.000
+ PROBE 月 6 rent=0.075 投資家の差=0.075 scale=2.000
+ PROBE 月 7 rent=0.064 投資家の差=0.064 scale=2.000
+ PROBE 月 8 rent=0.054 投資家の差=0.054 scale=2.000
+ PROBE 月 9 rent=0.046 投資家の差=0.046 scale=2.000
+ PROBE 月 10 rent=0.039 投資家の差=0.039 scale=2.000
+ PROBE 月 11 rent=0.033 投資家の差=0.033 scale=2.000
+ PROBE 月 12 rent=0.028 投資家の差=0.028 scale=2.000

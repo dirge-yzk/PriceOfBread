@@ -1,0 +1,54 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+
+// (1030) 使い捨てのプローブ（コミットしない）：旗 1 で赤になった盤面の前提を、木の既定（旗 0 の木と旗 1 の木）で読む。係数を渡さない（MultiNationSim の coef は共有の係数で、国の播種には効かない）。
+public class ProbeEb2
+{
+    private readonly ITestOutputHelper o; public ProbeEb2(ITestOutputHelper o) { this.o = o; }
+
+    [Fact]
+    public void Site()
+    {
+        o.WriteLine($"PROBE default flag={new Coefficients().EndowmentCostFollowsAbundance}");
+        foreach (string name in new[] { "ルイジアナの硫黄", "ジャワのキナ" })
+        {
+            int row = Array.FindIndex(Catalog.Sites, x => x.Name == name);
+            var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+                if (p.SiteRow == row) o.WriteLine($"PROBE 開幕 {name} {Instruments.NameOf(n.World)}/{r.Name} found={p.SiteFound} mc={p.MarginalCost} prod={p.Productivity} terms={Discovery.SiteTerms(n.World, r, p, n.World.Coef)}");
+            sim.StepQuarter();
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+                if (p.SiteRow == row) o.WriteLine($"PROBE 1四半期 {name} {Instruments.NameOf(n.World)}/{r.Name} found={p.SiteFound} mc={p.MarginalCost} prod={p.Productivity} terms={Discovery.SiteTerms(n.World, r, p, n.World.Coef)}");
+        }
+        // 開いた産地の行を数える（1 四半期の後・全ての行）
+        var s2 = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        s2.StepQuarter();
+        int found = 0, all = 0;
+        foreach (var n in s2.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+            if (p.SiteRow >= 0) { all++; if (p.SiteFound) { found++; o.WriteLine($"PROBE 開いた {Catalog.Sites[p.SiteRow].Name} {r.Name}"); } }
+        o.WriteLine($"PROBE 1四半期で開いた産地 {found}/{all}");
+    }
+
+    [Fact]
+    public void Colony()
+    {
+        foreach (int good in new[] { Catalog.CoffeeId, Catalog.SugarCaneId })
+            foreach (double up in new[] { 1000.0, 3000.0, 10000.0 })
+            {
+                var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+                var w = sim.Nations[0].World;
+                var col = w.Regions.FirstOrDefault(r => r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == good && Colonial.AbsenteeRgo(r, p)));
+                if (col is null) { o.WriteLine($"PROBE good {good} なし"); continue; }
+                double upscale = up / col.SumPopulation();
+                foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
+                EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+                double rent = 0, rev = 0, cost = 0, sc = 0, mc = 0;
+                foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) { rent += p.LastRevenue - p.LastCost; rev += p.LastRevenue; cost += p.LastCost; sc += p.Scale; mc = p.MarginalCost; }
+                o.WriteLine($"PROBE colony good {Catalog.Goods[good].Name} up {up} {col.Name} rent={rent:F3} rev={rev:F3} cost={cost:F3} scale={sc:F3} mc={mc}");
+            }
+    }
+}

@@ -1,0 +1,53 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+
+// (1030) 使い捨てのプローブ（コミットしない）：産地の行の全て（開幕・1 四半期後）と、英仏の植民地格の州の不在地主の RGO の 1 か月後の地代。
+public class ProbeEb3
+{
+    private readonly ITestOutputHelper o; public ProbeEb3(ITestOutputHelper o) { this.o = o; }
+
+    [Fact]
+    public void Sites()
+    {
+        o.WriteLine($"PROBE default flag={new Coefficients().EndowmentCostFollowsAbundance}");
+        var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        o.WriteLine($"PROBE 開幕の DiscoveryPrice null の国 {sim.Nations.Count(n => n.World.DiscoveryPrice is null)}/{sim.Nations.Count}");
+        sim.StepQuarter();
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+            if (p.SiteRow >= 0)
+            {
+                double settlers = r.Pops.Where(q => !q.IsSoldier && q.Size > 0).Sum(q => q.Size * Math.Clamp(q.CoreEthnicShare.Value, 0, 1));
+                o.WriteLine($"PROBE 産地 {Catalog.Sites[p.SiteRow].Name} {Catalog.Sites[p.SiteRow].Kind} {Instruments.NameOf(n.World)}/{r.Name} found={p.SiteFound} 入植者={settlers:F1}");
+            }
+    }
+
+    [Fact]
+    public void Colonies()
+    {
+        o.WriteLine($"PROBE default flag={new Coefficients().EndowmentCostFollowsAbundance}");
+        foreach (double up in new[] { 1000.0, 30000.0, 100000.0 })
+        {
+            var sim0 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+            int nc = sim0.Nations[0].World.Regions.Count(r => r.Tier == RegionTier.Colonial) + sim0.Nations[1].World.Regions.Count(r => r.Tier == RegionTier.Colonial);
+            for (int ni = 0; ni < 2; ni++)
+                for (int ci = 0; ; ci++)
+                {
+                    var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+                    var w = sim.Nations[ni].World;
+                    var cols = w.Regions.Where(r => r.Tier == RegionTier.Colonial && r.Producers.Any(p => Colonial.AbsenteeRgo(r, p))).ToList();
+                    if (ci >= cols.Count) break;
+                    var col = cols[ci];
+                    double upscale = up / col.SumPopulation();
+                    foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
+                    EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+                    double rent = 0; string goods = "";
+                    foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) { rent += p.LastRevenue - p.LastCost; goods += Catalog.Goods[p.GoodId].Name + " "; }
+                    o.WriteLine($"PROBE 植民地 up {up} {Instruments.NameOf(w)}/{col.Name} rent={rent:F3} 財={goods}");
+                }
+        }
+    }
+}

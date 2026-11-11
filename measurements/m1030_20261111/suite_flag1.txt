@@ -1,0 +1,69 @@
+# (1030) 旗 1 の木 47b9e43a のフルスイート（suite1030.sh full）
+list nonfull 2642
+list full 3
+nonfull rc=1 2385s
+full rc=0 235s
+[xUnit.net 00:01:57.68]     PriceOfBread.Tests.DiscoveryScoreTests.鉱床は入植者が居なければ見つけられない_植林は住民で見る [FAIL]
+[xUnit.net 00:09:35.69]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [FAIL]
+[xUnit.net 00:09:35.69]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 32392768) [FAIL]
+[xUnit.net 00:09:35.69]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1678) [FAIL]
+[xUnit.net 00:09:35.69]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17266684) [FAIL]
+失敗!   -失敗:     6、合格:  2635、スキップ:     1、合計:  2642、期間: 39 m 42 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 53 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [141 ms]
+  エラー メッセージ:
+   前提が崩れた：不在地主の大農園に国内の地代が立たない（-42.334348369467996）
+--
+  失敗 PriceOfBread.Tests.DiscoveryScoreTests.鉱床は入植者が居なければ見つけられない_植林は住民で見る [1 s]
+  エラー メッセージ:
+   入植者0の鉱床が開いた（Terms { Tech = 0, Need = 69.07894736842105, Transmit = 0, Score = 69.07894736842105 }）
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [< 1 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 1701 件（宣言 1995）＝10 % を超えて**下がった**＝表を 1701 へ下げて理由を書く（＝改善の宣言）。
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 32392768) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：着値の充填」が 27804112 件（宣言 32392768）＝10 % を超えて**下がった**＝表を 27804112 へ下げて理由を書く（＝改善の宣言）。
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1678) [< 1 ms]
+  エラー メッセージ:
+   計算量「請求：見た生産者（月）」が 1371 件（宣言 1678）＝10 % を超えて**下がった**＝表を 1371 へ下げて理由を書く（＝改善の宣言）。
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17266684) [< 1 ms]
+  エラー メッセージ:
+   計算量「価格：日次の写像の回」が 15280690 件（宣言 17266684）＝10 % を超えて**下がった**＝表を 15280690 へ下げて理由を書く（＝改善の宣言）。
+SUITEDONE
+saveleak rc=0 398s
+保存 47.1MB（765ms）／読込 763ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 56・その月の額の和 3.078E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c97eb_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c97eb_work/suite/leakhunt.txt.manifest（SOURCE-HASH=5059360586a74557）
+SL-END 11:05:27
+SAVELEAKDONE
+# 赤の行
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [141 ms]
+  失敗 PriceOfBread.Tests.DiscoveryScoreTests.鉱床は入植者が居なければ見つけられない_植林は住民で見る [1 s]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 32392768) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1678) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17266684) [< 1 ms]
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [141 ms]
+  エラー メッセージ:
+   前提が崩れた：不在地主の大農園に国内の地代が立たない（-42.334348369467996）
+--
+  失敗 PriceOfBread.Tests.DiscoveryScoreTests.鉱床は入植者が居なければ見つけられない_植林は住民で見る [1 s]
+  エラー メッセージ:
+   入植者0の鉱床が開いた（Terms { Tech = 0, Need = 69.07894736842105, Transmit = 0, Score = 69.07894736842105 }）
+# ㉘ の束（445fa73b）
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:04:30.19]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [FAIL]
+[xUnit.net 00:04:30.20]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 32392768) [FAIL]
+[xUnit.net 00:04:30.20]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1678) [FAIL]
+[xUnit.net 00:04:30.20]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17266684) [FAIL]
+[xUnit.net 00:18:40.96]     PriceOfBread.Tests.CorncfInstrumentTests.T5_輸入の割合 [FAIL]
+失敗!   -失敗:     5、合格:  1065、スキップ:     0、合計:  1070、期間: 18 m 49 s - PriceOfBread.Tests.dll (net10.0)
+GUARDSDONE

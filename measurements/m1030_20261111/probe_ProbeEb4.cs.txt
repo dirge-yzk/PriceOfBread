@@ -1,0 +1,34 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+
+// (1030) 使い捨てのプローブ（コミットしない）：ColonialPopTests の盤面（英仏・種 83・ジャマイカ・倍掛け 1000）で、月を重ねたときの不在地主の地代の符号。
+public class ProbeEb4
+{
+    private readonly ITestOutputHelper o; public ProbeEb4(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Months()
+    {
+        o.WriteLine($"PROBE default flag={new Coefficients().EndowmentCostFollowsAbundance}");
+        foreach (double up in new[] { 1000.0 })
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+            var w = sim.Nations[0].World;
+            var col = w.Regions.First(r => r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == Catalog.CoffeeId && Colonial.AbsenteeRgo(r, p)));
+            double upscale = up / col.SumPopulation();
+            foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
+            var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+            for (int m = 1; m <= 12; m++)
+            {
+                double i0 = inv.Savings.Value;
+                EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+                double rent = 0, sc = 0;
+                foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) { rent += p.LastRevenue - p.LastCost; sc += p.Scale; }
+                o.WriteLine($"PROBE 月 {m} rent={rent:F3} 投資家の差={inv.Savings.Value - i0:F3} scale={sc:F3}");
+            }
+        }
+    }
+}

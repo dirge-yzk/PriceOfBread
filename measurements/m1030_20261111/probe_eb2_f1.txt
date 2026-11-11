@@ -1,0 +1,15 @@
+ PROBE default flag=1
+ PROBE 開幕 ルイジアナの硫黄 アメリカ/西部 found=False mc=0.085 prod=84 terms=Terms { Tech = 59.72679328586568, Need = 0, Transmit = 0, Score = 59.72679328586568 }
+ PROBE 1四半期 ルイジアナの硫黄 アメリカ/西部 found=True mc=0.017 prod=420 terms=Terms { Tech = 59.8590834463042, Need = 67.56785318356023, Transmit = 0, Score = 127.42693662986443 }
+ PROBE 開幕 ジャワのキナ ネーデルラント/バタヴィア found=False mc=0.09714285714285716 prod=49 terms=Terms { Tech = 69.7211155378486, Need = 0, Transmit = 0, Score = 69.7211155378486 }
+ PROBE 1四半期 ジャワのキナ ネーデルラント/バタヴィア found=False mc=0.09714285714285716 prod=49 terms=Terms { Tech = 69.72125571307494, Need = 0, Transmit = 0, Score = 69.72125571307494 }
+ PROBE 開いた 九州の硫黄 北九州
+ PROBE 開いた ニルギリのキナ マドラス
+ PROBE 開いた ルイジアナの硫黄 西部
+ PROBE 1四半期で開いた産地 3/7
+ PROBE colony good コーヒー up 1000 ジャマイカ rent=-42.334 rev=36.632 cost=78.967 scale=2.020 mc=0.09714285714285716
+ PROBE colony good コーヒー up 3000 ジャマイカ rent=-17.337 rev=109.897 cost=127.234 scale=2.020 mc=0.09714285714285716
+ PROBE colony good コーヒー up 10000 ジャマイカ rent=-4.023 rev=182.607 cost=186.630 scale=2.020 mc=0.09714285714285716
+ PROBE colony good サトウキビ up 1000 ジャマイカ rent=-42.334 rev=36.632 cost=78.967 scale=2.020 mc=0.09714285714285716
+ PROBE colony good サトウキビ up 3000 ジャマイカ rent=-17.337 rev=109.897 cost=127.234 scale=2.020 mc=0.09714285714285716
+ PROBE colony good サトウキビ up 10000 ジャマイカ rent=-4.023 rev=182.607 cost=186.630 scale=2.020 mc=0.09714285714285716
