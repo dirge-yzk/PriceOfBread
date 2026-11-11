@@ -1,0 +1,31 @@
+F1 build rc=0
+F1   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [5 s]
+F1 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M1 build rc=0
+M1   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [7 s]
+M1 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+M2 build rc=0
+M2   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [6 s]
+M2   失敗 PriceOfBread.Tests.WarEntryUnifyTests.導く余剰は前線に縛られた割合を引く [16 ms]
+M2 失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+M3 build rc=0
+M3   失敗 PriceOfBread.Tests.WarEntryUnifyTests.緊張の割引は一から緊張の比の二乗を引く [344 ms]
+M3   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [7 s]
+M3   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗で要求に緊張の割引が掛かる [10 ms]
+M3 失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+M4 build rc=0
+M4   失敗 PriceOfBread.Tests.WarEntryUnifyTests.緊張の割引は一から緊張の比の二乗を引く [387 ms]
+M4   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [6 s]
+M4   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗で要求に緊張の割引が掛かる [11 ms]
+M4 失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+M5 build rc=0
+M5   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗で列強も侵略の標的になる [2 s]
+M5   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [4 s]
+M5 失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+M6 build rc=0
+M6   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗で侵略の屈服は一本の判定に従う [1 s]
+M6 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+M7 build rc=0
+M7   失敗 PriceOfBread.Tests.WarEntryUnifyTests.旗ゼロの侵略の屈服は旧の規則のまま [2 s]
+M7   失敗 PriceOfBread.Tests.WarEntryUnifyTests.緊張が開戦の線を続けば旗に関わらず開戦する(flag: 1) [32 ms]
+M7 失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 7 s - PriceOfBread.Tests.dll (net10.0)

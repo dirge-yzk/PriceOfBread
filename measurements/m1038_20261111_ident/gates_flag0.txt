@@ -1,0 +1,14 @@
+seeds=10
+r_will=205353 g1Pass=9034 g1Viol=5899 willReach=296017 willReachTauPos=136445 g2Rows=136445 g2Bad=136445 g2Zero=0 mWillFalse=77895 mWillTrue=11604 nonMinorPass=0 calls=10429 evals=862955 r_weak=192495 inv=1351 invViol=988 invNonMinor=0 invNonMinorBad=0 invSubmitted=631 invSubmitUnknown=0 subRows=13993 subAgree=11823 subDisc=2170 subDiscEngOld=2170 subEnt1=12642 subEnt2=1351 subEnt1War=1333 subEnt2War=720 invadeS=1351
+G1a 赤  g1Viol=5899 invViol=988（＝0）
+G1b 緑  warinv の行=1351（≧135）
+G1c 緑  r_will=205353（≧20535）
+G2a 緑  g2Rows=136445（≧5933）
+G2b 赤  g2Bad=136445（＝0）
+G2c 緑  g2Zero=0（＝0）
+G2d 赤  mWillFalse=77895 mWillTrue=11604（＝0）
+G3a 赤  非 Minor の標的への侵略=0（≧20）
+G3b 緑  その行で S<D′ か兵力の門の外=0（＝0）
+G4a 緑  warsub の行=13993（≧2327）
+G4b 赤  エンジン＝1 本の式 11823/13993（100%）
+G4c 赤  判別の行=2170（≧10）・そのうちエンジン＝旧=2170（＝0）

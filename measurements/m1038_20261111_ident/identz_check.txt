@@ -1,0 +1,34 @@
+=== 恒等の判定（測った種で一致） c98wrz（2026-11-11 14:40:11）===
+測った木：D:/PoB_work/wt_c98wr（HEAD dd963608・未コミット 2 本）
+基準の設定：D:/PoB_work/wt_c98wr/scripts/instruments/ident/ident.cfg
+宣言：added=['warinv', 'warsub'] grown=['warentry'] cost_allow=['清算：着値', '外交：覇権の判定'] tests_delta=8
+腕 a：rc=0 end=2026-11-11 14:28:45
+腕 b：rc=0 end=2026-11-11 14:35:50
+腕 t：rc=0 end=2026-11-11 14:02:39
+測る木の SOURCE-HASH：a6c60a041d75b229
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: a6c60a041d75b229
+[素の 5 種] b5_ia_5.txt 対 b5_20261110_m1027
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261110_m1027.cost
+  △ 宣言された例外（--cost-allow）2 本：清算：着値の下界で飛ばした売り手（距離と危険料を引かず下界の・清算：着値の充填
+  △ 推定 新 216.3 秒 対 基準 230.3 秒（宣言された例外の分）
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: a6c60a041d75b229
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261110_m1027_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261110_m1027_ins.cost
+  △ 宣言された例外（--cost-allow）3 本：外交：覇権の判定の国×国・清算：着値の下界で飛ばした売り手（距離と危険料を引かず下界の・清算：着値の充填
+  △ 推定 新 217.3 秒 対 基準 231.0 秒（宣言された例外の分）
+[計器の表] 腕 D:/PoB_work/c98wr_work/ident_z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1035/base_ins
+  基準 1311 本・腕 1331 本・バイト一致 1279 本
+  腕にだけある 20 本（うち宣言 20）
+  列が増えた表（--grown-ok の宣言）10 本：warentry_s1.tsv+11列・warentry_s10.tsv+11列・warentry_s2.tsv+11列・warentry_s3.tsv+11列・warentry_s4.tsv+11列・warentry_s5.tsv+11列
+  既知の揺れの列だけが違う表 22 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10・cpop_s:経路の行番号だけ（写して一致 1 欄）×1・flow_s:呼び出し位置だけ×1
+  ○ 計器の表は恒等（バイト一致 1279・既知の揺れ 22・宣言された増減 30）
+  内訳：共通の表 1311 本＝バイト一致 1279＋既知の揺れ 22＋列が増えた 10＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1311）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261110_m1027.txt（タグの行を除く）
+  ○ タグの行以外が一致（4692 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2659（基準 2651+8 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等

@@ -100,6 +100,7 @@ public class WarEntryUnifyTests
         var target = d.Powers.Find(p => p.Nation is null && p.ColonyList.Count > 0 && d.RankOf(p) == PowerRank.Minor && d.Suzerain(p) is null);
         Assert.NotNull(target);
         target!.Military = 0.01; c.ColonizeSubmitFloorMilitary = 0.001; me.Military = 1e-9;
+        c.WarSubmitUnified = 0;   // 対照＝旗 0 を明示（既定に依らない）
         Assert.True(d.SubmitYields(me, target, c), "前提が崩れた");
         Assert.False(d.Subjugate(me, target, c), "旗 0 なのに旧の規則（陸軍力×射程≧屈服線）で判定されていない");
     }
