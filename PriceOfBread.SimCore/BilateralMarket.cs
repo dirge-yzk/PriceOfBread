@@ -112,7 +112,16 @@ public sealed partial class InternationalMarket
         public bool[] Land = [];
         public int[] Gen = [];
         public long[] Sig = [], SigNext = [], RSig = [], RSigNext = [];
+        public double[] LbKm = [];   // (1029) 着値の下界の表＝買い手の州×売り手の国の最短距離（清算ごとに作り直す遅延の表・セーブに載らない）
+        public int[] NatOff = [], NatSt = [], NatCur = [];   // (1029) 国ごとの州の並び（NatSt[NatOff[n]..NatOff[n+1]]）
     }
+    /// <summary>(1029) 試験の口：着値の下界を使わない（比べる旧の道）。既定 false＝本番は常に下界を使う。</summary>
+    [System.ThreadStatic] internal static bool LbOffForTest;
+    /// <summary>(1029) 試験の口：下界の監査（下界の着値・真の着値・自州価格・買い手の州・売り手の州）。設定中は飛ばさず全て充填する＝充填した対ごとに下界と真の着値を並べて呼ぶ。</summary>
+    internal delegate void LbAuditFn(double delLB, double del2, double lp, int buyer, int seller);
+    [System.ThreadStatic] internal static LbAuditFn? LbAudit;
+    /// <summary>(1029) 下界の着値が自州価格以上なら飛ばす（肯定形の >= ＝NaN は飛ばさず旧の経路へ）。試験が境界（ちょうど等しい・1 ulp 下）をここで直に確かめる。</summary>
+    internal static bool LbSkip(double delLB, double lp) => delLB >= lp;
     [System.ThreadStatic] private static KmScratch? _kmScratch;
 
     /// <summary>★(347) 清算1回ぶんの作業用の配列と一覧の置き場＝スレッドごと（selfplay-batch は試合ごとにスレッド）。旧＝清算のたびに約40本の配列
@@ -413,6 +422,36 @@ public sealed partial class InternationalMarket
             kmLand[ix] = LastPairWasLand;
             kmGen[ix] = kmG;
             return v;
+        }
+        // ★(1029) 着値の下界の表（高速化・ビット恒等）：買い手の州 t × 売り手の国 nat の最短距離＝その国の全ての州の KmOf の最小（Math.Min＝NaN は伝播）。
+        //   表は清算ごとに空へ戻す（国の帰属・距離の表の捨て直しに依らない）。距離の表に無い対は KmOf と同じ向き（買い手の行・売り手の列）で同じ PairKm を書く。
+        //   ⚠距離の世代の印（kmGen）は刻まない＝刻むのは走査が実際に充填した対だけ（LandNow の読み手は最良の売り手＝必ず充填を通る）。
+        int nnLb = nn;
+        var lbTab = ks.LbKm; var natOff = ks.NatOff; var natSt = ks.NatSt;
+        {
+            if (lbTab.Length < tc * nnLb) lbTab = ks.LbKm = new double[tc * nnLb];
+            System.Array.Fill(lbTab, -1.0, 0, tc * nnLb);
+            if (natOff.Length < nnLb + 1) natOff = ks.NatOff = new int[nnLb + 1];
+            if (ks.NatCur.Length < nnLb) ks.NatCur = new int[nnLb];
+            if (natSt.Length < tc) natSt = ks.NatSt = new int[tc];
+            System.Array.Clear(natOff, 0, nnLb + 1);
+            for (int s0 = 0; s0 < tc; s0++) natOff[tr[s0].nation + 1]++;
+            for (int n0 = 0; n0 < nnLb; n0++) { natOff[n0 + 1] += natOff[n0]; ks.NatCur[n0] = natOff[n0]; }
+            for (int s0 = 0; s0 < tc; s0++) natSt[ks.NatCur[tr[s0].nation]++] = s0;
+        }
+        double LbKmOf(int t, int nat)
+        {
+            int li = t * nnLb + nat; double v = lbTab[li];
+            if (v >= 0) return v;
+            double mn = double.PositiveInfinity;
+            for (int q = natOff[nat]; q < natOff[nat + 1]; q++)
+            {
+                int s = natSt[q]; int ix = t * tc + s; double k = kmTab[ix];
+                if (!(k >= 0)) { k = PairKm(s, t); kmTab[ix] = k; kmLand[ix] = LastPairWasLand; }   // KmOf と同じ書き方（向き・値）＝世代の印だけ刻まない
+                mn = Math.Min(mn, k);
+            }
+            lbTab[li] = mn;
+            return mn;
         }
         bool LandNow(int ix) => kmGen[ix] == kmG && kmLand[ix];   // この清算で引いた対の印だけ（旧＝清算ごとに false の表から）
         // 対ごとの実距離（km）。SeaGraph が内部でキャッシュしているので引き直しても実質ゼロコスト
@@ -776,6 +815,9 @@ public sealed partial class InternationalMarket
             buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
             if (swSec is not null) { TimeListsTicks += swSec.ElapsedTicks; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
             var costC = Cost; costC[CostLedger.ClearingRows] += buyers.Count;   // 計算量の台帳（診断）：この財で見る買い手行（眠った行・飛ばした行も1件）
+            long nSkipLB = 0;   // (1029) 着値の下界で飛ばした売り手の数（財の終わりに台帳へ・計器 cscx_s の末尾の列）
+            // (1029) 下界を使う条件（足す項が全て負でない＝下界が真の下界）：TransportMargin×adValoremRev・WeightMarginAdd・BlockadeStapleBias・RiskLambda（危険料 1−exp(−λ…) ≧ 0）。NaN は否定形で外す
+            bool lbOn = c.TransportMargin >= 0 && adValoremRev >= 0 && weightAdd >= 0 && c.BlockadeStapleBias >= 0 && c.RiskLambda >= 0 && !LbOffForTest;
             long nFill = 0, nInv = 0, nBest = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）・(1024) 計器 K1 の整数の数え（着値≧自州価格の充填・最良が替わった充填＝無条件の加算で読みは増えない）
             foreach (var (t, lp) in buyers)
             {
@@ -801,7 +843,7 @@ public sealed partial class InternationalMarket
                     restrict = true; rowStamp++; if (MultiNationSim.TimeOn) CntScopeRows++;
                     foreach (var pr in pmem) if (pr.ClearSellerStamp == gStamp) member[pr.ClearSellerPos] = rowStamp;
                 }
-                bool scopeThr = false; long scopeFill0 = nFill, scopeInv0 = nInv, scopeBest0 = nBest;   // ★(434) 計器（読むだけ）：買い手の州が律速か（LastTradeThrottle＜1）・この行の着値の充填の始めの件数
+                bool scopeThr = false; long scopeFill0 = nFill, scopeInv0 = nInv, scopeBest0 = nBest, scopeSkip0 = nSkipLB;   // ★(434) 計器（読むだけ）：買い手の州が律速か（LastTradeThrottle＜1）・この行の着値の充填の始めの件数
                 int scopeCls = 0; bool scopeFell = false;   // ★(403) 計器（読むだけ）：行の種類（0 最初・1 最初で眠らせる対象・2 月で前の月に輸入があった行・3 月で覚えで絞った行・5 月で前の月に輸入が無く不足で起きた行）と探し直したか
                 if (Instruments.On) { scopeCls = thin ? (restrict ? 3 : (m.PrevImport > 0 ? 2 : 5)) : (!(m.PrevImport > 0) && (!(m.LastShortage > 0) || !stapleG) ? 1 : 0); scopeThr = !(tr[t].r.LastTradeThrottle >= 1.0); }
                 m.ClearFailLp = 0;   // 印は走査して成約しなかったときだけ（下の行の終わり）＝門で飛ばした行・成約した行は印なし
@@ -921,6 +963,16 @@ public sealed partial class InternationalMarket
                             // ★1c：売り手ごとの下界 Price·((1＋TM·adV)＋楔)≦着値 で無効と分かる売り手（関税・穀物法で閉じた外国の売り手）は、距離と危険料を引かずに飛ばす。
                             //   ⚠生きている売り手なので prevS を進める（進めないと上の連結リストの付け替えが壊れる）。打ち切りの位置は min(bestDelA, lp) で旧と同じ。
                             if (selP * (baseMul + wS2) >= lp) { if (MultiNationSim.TimeOn) CntWedgeSkips++; prevS = s2; s2 = nextS![s2]; continue; }
+                            double lbAud = double.NaN;   // 試験の監査のときだけ使う（下界の着値）
+                            if (lbOn && selP >= 0)
+                            {   // ★(1029) 売り手の国の最短距離で作った下界（fac2 と同じ順の式・km＝最小・risk＝0・bb＝0）が着値≧lp なら、真の着値も≧lp＝無効な売り手＝充填せず飛ばす（break にしない・prevS を進める＝1c と同じ）
+                                double kmL = LbKmOf(t, sNat);
+                                double marL = tMargin * (1.0 + kmL / Diplomacy.DistanceNormKm) * adValoremRev
+                                            + weightAdd * (kmL / Diplomacy.DistanceNormKm) + 0.0;
+                                double facL = 1 + marL + wS2 + 0.0;
+                                if (LbAudit is not null) lbAud = selP * facL;
+                                else if (LbSkip(selP * facL, lp)) { nSkipLB++; prevS = s2; s2 = nextS![s2]; continue; }
+                            }
                             if (MultiNationSim.TimeOn) CntFills++;   // ★計器（着値の計算）
                             nFill++;
                             int ix = rowBase + sn;   // KmOf・PairRisk と同じ添字（買い手 t の行・売り手 sn の列）
@@ -932,7 +984,8 @@ public sealed partial class InternationalMarket
                             double mar2 = tMargin * (1.0 + km2 / Diplomacy.DistanceNormKm) * adValoremRev
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
-                            double del2 = selP * fac2; if (del2 >= lp) nInv++;   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
+                            double del2 = selP * fac2; if (del2 >= lp) nInv++;
+                            if (LbAudit is not null && !double.IsNaN(lbAud)) LbAudit(lbAud, del2, lp, t, sn);   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
                             if (del2 < double.MaxValue)
                             {
                                 candS[candN] = s2; candD![candN] = del2; candK![candN] = km2; candF![candN] = fac2;
@@ -1084,10 +1137,10 @@ public sealed partial class InternationalMarket
                     else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
                 if (!thin && dealtN > 0) { var keep = new Region[dealtN]; Array.Copy(dealtTmp, keep, dealtN); m.ClearPartners = keep; }   // ★(403) 覚え＝最初の清算で相手にした売り手（先の K 人）
-                if (Instruments.On) { Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell, scopeThr, nFill - scopeFill0); Instruments.ScopeRowX(this, nations[ni].World, tr[t].r, nFill - scopeFill0, nInv - scopeInv0, nBest - scopeBest0); }   // ★(403) 計器（読むだけ）・(1024) K1 cscx_s
+                if (Instruments.On) { Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell, scopeThr, nFill - scopeFill0); Instruments.ScopeRowX(this, nations[ni].World, tr[t].r, nFill - scopeFill0, nInv - scopeInv0, nBest - scopeBest0, nSkipLB - scopeSkip0); }   // ★(403) 計器（読むだけ）・(1024) K1 cscx_s
                 if (!dealtRow) m.ClearFailLp = lp;   // ★走査して成約しなかった＝この自州価格を印に（月の清算で、これを超えて上がるまで眠る＝上の thin の注記）
             }
-            costC[CostLedger.ClearingFills] += nFill;   // 計算量の台帳（診断）：この財の着値の充填
+            costC[CostLedger.ClearingFills] += nFill; costC[CostLedger.ClearingSkipsLB] += nSkipLB;   // 計算量の台帳（診断）：この財の着値の充填
             // ---- 財の清算の終わり：売り手の受取を④の持分で分ける（段3-1・C4）----
             //   旧＝成約ごとに受取の半分（係数 ExportRevenueToProducers）を生産者の持ち主の貯蓄へ直接・残りは国の全POP の貯蓄比（Apply）＝賃金分が無く Earned を通らなかった。
             //   新＝州×財ごとに1回（成約あたりは O(1) の足し算だけ）：越境の分の仲介料（MerchantTradeMargin）を州の商人へ・残りを④の持分

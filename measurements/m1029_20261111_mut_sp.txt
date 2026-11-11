@@ -1,0 +1,30 @@
+==== M1 ====
+rc=1
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T3_下界が自州価格以上の対は真の着値も自州価格以上でその対が現れる [6 s]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T1_下界の着値は真の着値以下 [1 s]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T2_州の入力を途中で動かしても下界は真の着値以下 [898 ms]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T4_下界を使う道は旧と軌道が同じで件数が合い飛ばした件数は再現する [2 s]
+失敗!   -失敗:     4、合格:     0、スキップ:     0、合計:     4、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+==== M2 ====
+rc=1
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T3_下界が自州価格以上の対は真の着値も自州価格以上でその対が現れる [5 s]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T1_下界の着値は真の着値以下 [1 s]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T2_州の入力を途中で動かしても下界は真の着値以下 [793 ms]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T4_下界を使う道は旧と軌道が同じで件数が合い飛ばした件数は再現する [1 s]
+失敗!   -失敗:     4、合格:     0、スキップ:     0、合計:     4、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+==== M3 ====
+rc=1
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T4_下界を使う道は旧と軌道が同じで件数が合い飛ばした件数は再現する [1 s]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+==== M4 ====
+rc=1
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T3_下界が自州価格以上の対は真の着値も自州価格以上でその対が現れる [3 s]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T1_下界の着値は真の着値以下 [817 ms]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T2_州の入力を途中で動かしても下界は真の着値以下 [553 ms]
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T4_下界を使う道は旧と軌道が同じで件数が合い飛ばした件数は再現する [1 s]
+失敗!   -失敗:     4、合格:     0、スキップ:     0、合計:     4、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+==== M5 ====
+rc=1
+  失敗 PriceOfBread.Tests.ClearingLowerBoundTests.T3_下界が自州価格以上の対は真の着値も自州価格以上でその対が現れる [4 s]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
+done

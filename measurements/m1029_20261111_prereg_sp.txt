@@ -1,0 +1,57 @@
+m1029 事前登録（線 c97sp・(1029)・波97・恒等の高速化 C2）＝最初のコミット。腕の前・結果を見る前に書く。
+基準＝m1027（main 8c9aee55）。モデル＝Claude Sonnet 5.5。
+
+[1] 形と種類
+  恒等の線（予言 0）。清算の着値の充填で、買い手の州 t × 売り手の国 nat の最短距離で作った下界の着値が自州価格 lp 以上の売り手を、距離と危険料を引かずに飛ばす。
+  break にしない（連結リストの prevS を進める＝1c と同じ）。bestDelA 側の打ち切り（:912 相当）は旧のまま。新しい係数 0・乱数を引かない・セーブに載る欄 0。
+  下界の表（KmScratch.LbKm・NatOff・NatSt・NatCur）は計算のキャッシュ（ThreadStatic・セーブに載らない）。
+  ★作者の指示（3 条件）からの形の違いを先に名乗る：
+    ①条件 3〔署名で捨て直す〕は、署名で持ち越さず**清算ごとに空へ戻す**（下界の表は遅延＝引いた分だけ作る）。署名より厳しい＝国の帰属の変更（ks.Sig は州の nation 自体を持たない＝征服で国が変わってもスエズ・パナマの可否が同じなら署名は不変だが国ごとの最小の組み分けは壊れる）にも依らない。
+       作り直しの費用＝距離の表（持ち越し）の読み＋表に無い対の PairKm（KmOf と同じ向き〔買い手の行・売り手の列〕・同じ書き方で kmTab・kmLand に書く）。距離の世代の印 kmGen は刻まない（刻むのは走査が実際に充填した対だけ）。
+    ②最小は Math.Min（NaN を伝播）。飛ばす判定は肯定形 `selP*facL >= lp`（NaN は旧の経路へ落ちる）。+∞ は旧でも del2=+∞（nInv に数えられ候補表に入らない）＝飛ばして整合。
+
+[2] 3 条件（ビット一致）の写しと、消す物・残す物・読み手
+  条件 1（足す項が全て負でない）＝実行時の門 lbOn で守る（負なら下界を使わず旧の走査）：
+    (a) c.TransportMargin ≧ 0 かつ adValoremRev（FreightRevolution）≧ 0 ＝ 項 TransportMargin×(1+km/DistanceNormKm)×adValoremRev
+    (b) weightAdd（WeightMarginAdd）≧ 0 ＝ 項 weightAdd×(km/DistanceNormKm)
+    (c) risk2 ≧ 0 ＝ 1−exp(−RiskLambda×積分/DistanceNormKm)、積分 ≧ 0（natHostility ≧ 0・RouteBasinKm ≧ 0）ゆえ c.RiskLambda ≧ 0 で保つ（下界は risk＝0）
+    (d) bb2 ＝ stapleTier ? c.BlockadeStapleBias×risk2 : 0 ≧ 0 ゆえ c.BlockadeStapleBias ≧ 0（下界は bb＝0）
+    wS2（売り手の楔）は両辺で同じ値＝符号を問わない。selP ≧ 0 も門に含める（selP×fac の単調性）。NaN は否定形（>=）で外れる。
+  条件 2（fac2 と同じ順の式）＝ marL = tMargin*(1.0+kmL/D)*adValoremRev + weightAdd*(kmL/D) + 0.0 ／ facL = 1 + marL + wS2 + 0.0 ／ 下界 = selP*facL。IEEE の基本演算は各引数について単調（丸めは単調）＝km・risk・bb が小さい側なら delLB ≦ del2 がビットで成り立つ。
+  条件 3（最小の表）＝上の①。最小＝その国の全ての州の KmOf（陸路と海路の min＝PairKm の戻り値）の Math.Min。
+  消す物：なし。足す名前（全て新しい名前）：LbKm・NatOff・NatSt・NatCur（KmScratch）・LbKmOf・nSkipLB・lbOn・LbOffForTest・LbAudit・LbAuditFn（BilateralMarket.cs）・CostLedger.ClearingSkipsLB（=29・Count 29→30）・ClearingSkipUnitMicros・CscxAcc.SkippedLB。変える署名：Instruments.ScopeRowX（呼び手 1 箇所＝BilateralMarket.cs）。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements）：新しい名前の読み手は本線の試験と台本だけ。CostLedger.Count の読み手＝Runner/Program.cs 6030〜6036（Count で回す＝汎用）・AgeLedgerTests・DiscountedTests 等の Count==Names.Length の番人（長さを揃えるので通る）・WriterRatchetTests の宣言の表（下記）。cscx_s の読み手＝ClearingFillInstrumentTests（見出しの 1 本）・scripts/instruments/c96kf・r1021（列名で読む＝末尾の列は無害）。
+  他の線との重なり：c97ws＝InstrumentsWar.cs・InstrumentsNationgood.cs（重ならない）／c97eb＝Coefficients.cs の 1 行（重ならない）。同じファイルを触る行：WriterRatchetTests.cs（宣言の表の 2 行＝ClearingFills の件数・ClearingSkipsLB の新しい行）・MultiNationSim.cs の CostLedger（eb・ws は触らない）。合流が行を解く。
+
+[3] 試験・突然変異・㉘・㉑
+  足す試験（PriceOfBread.Tests/ClearingLowerBoundTests.cs）：T1 下界の着値≦真の着値（英仏普露・1783 年・4 四半期・全ての充填した対）／T2 途中で全州の PortLandKm を動かしても T1／T3 下界≧自州価格の対は真の着値も自州価格以上で、その対が 100 件以上現れる／T4 旧の道〔LbOffForTest〕と新の道で軌道の写し（市場の価格・在庫・貯蓄・国庫）が 1 ビットも違わず、充填＋飛ばした＝旧の充填、飛ばした件数が 2 回で同じ。
+  既存の試験の行：ClearingFillInstrumentTests.cs:29 の cscx_s の見出し（末尾に fillsSkippedLB）。
+  突然変異（使い捨ての木・出力の全文を measurements/m1029_20261111_mut_sp.txt へ）：M1 最小を陸路だけで取る→T1／M2 risk を 0 にしない（下界に危険料を足す）→T1／M3 break にする→T4／M4 表を清算ごとに作り直さない（持ち越す）→T2／M5 delLB ＞ lp×(1−1e-9) で飛ばす→T3。紙の台本：M5 は lp 付近の対が 1 件でもあれば T3 が落ちる（下界≧lp×(1−1e-9) の対のうち真の着値が lp 未満のもの）＝現れるかは実行で確かめる＝現れなければ穴と名乗る。
+  ㉘（走査の番人）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器の直後に回す。予言：許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行は触れない＝0 件の書き換え。WriterRatchetTests の宣言の表は 2 行（ClearingFills の件数が下がる＝許しの −10% を超えるなら表を下げる・ClearingSkipsLB の行を足す）＝★(749)（計算量の宣言の表＝軌道の件数の写し）の区分。㉑ 予言＝書き換える件数の行 2。
+
+[4] 計器の表の宣言と恒等の証し
+  素の 5 種・計器つき 10 種の成績表（b5・b10・b10_ins）は m1027 と名乗り行（SOURCE-HASH）を除いて全行一致。
+  計器の表の宣言の差（ここだけ）：csc_s の fills 列・cscx_s の fillsCount・fillsInvalidCount の値が減る（飛ばした分）・cscx_s の末尾に fillsSkippedLB を足す。それ以外の計器の表は全行一致。
+  台本 scripts/instruments/c97sp/sp_eq.py（keep_1027/base_ins と新の腕の cscx_s を行ごとに）：fills_new＋fillsSkippedLB＝fills_old・fillsInvalid_new＋fillsSkippedLB＝fillsInvalid_old（飛ばしたのは全て無効な売り手）・fillsToBest 不変・rowsCount 不変。
+  .cost：〈清算：着値の充填〉の件数が減り、新しい行〈清算：着値の下界で飛ばした売り手〉が増える（--cost-allow）。
+  App の LastLandPartner*（陸路の記帳）は同着の 1ulp で変わりうる＝記録（成績表は読まない）。
+
+[5] 削れる秒の予言と門
+  紙の見積り＝上限 27.4 秒（rec.txt：invalid÷fills 0.6887×39.8 秒＝下界が全ての無効な売り手を捕えた場合）。下界は国の最短距離＝同じ国の買い手・近い国の売り手には効かない＝実際は上限の 3〜5 割（約 8〜14 秒〈推〉）。小さな世界（英仏普露・12 四半期）で 8.6%（飛ばした 53,046／旧の充填 615,541）＝この世界では下限側（売り手が少ない）。全長 61 国では実測で確かめる。
+  作り直しの費用の見積り＝表に無い対の PairKm の追加＝上の小さな世界で飛ばした件数の約 32%（16,854／53,046）・充填の 2.7%。
+  門：①上の恒等の証しが全て通る ②フルスイート緑・savetest・leakhunt ③推定の秒の減りが 2 秒以上（新しい項 ClearingSkipsLB の費用を引いた後）。2 秒未満なら、恒等でも〈入れない推奨〉で名乗る。
+  ClearingSkipsLB の単価＝0.02 µs（上限の見積り・飛ばした 1 件＝表の引き 1 回＋式の評価＋比較）。小さな計り台で取り直した値があれば measurements/m1029_* に書く。
+  ⚠台帳の推定は充填の単価 0.0849 µs を据え置いたまま件数が減る＝推定の減りは〈充填 1 件の費用が飛ばした分も同じ〉という仮定。実時間の確かめ（同じ負荷で 1 種の CPU 秒を旧と新で並べる）は記録に書く。
+
+[6] 運用
+  worktree D:/PoB_work/wt_c97sp・枝 c97sp・作業フォルダ D:/PoB_work/c97sp_work・隔離ビルド D:/PoB_work/c97sp_art。重い腕は ident 1 本（約 21GB）。他の線の物には触れない。
+
+[追記 1・2026-11-11・フルスイートの後・結果の後の追記と名乗る]
+  ㉑ の予言の漏れ：台帳の行を 1 つ足すと SecessionLaborLawInstrumentTests.cs:280 の〈最後の行を名指しして Count と合わせる〉番人（NavalOrderScans + 1 == Count）が赤になる（予言した書き換えは WriterRatchetTests の 2 行だけだった＝漏れ）。
+  書き換え：Assert.Equal(CostLedger.NavalOrderScans + 1, CostLedger.Count) → Assert.Equal(CostLedger.ClearingSkipsLB + 1, CostLedger.Count)（区分＝★(764) の静的な件数の番人・新しい行を足す線が最後の行の名指しを移す慣行〔その行の注の (491)〕・機構の向きと大きさの Assert ではない）。
+  書き換えた全て（verdict に再掲）：WriterRatchetTests.cs の InlineData 2 行（ClearingFills 32392768→24761337・ClearingSkipsLB 7631431 を足す）・ClearingFillInstrumentTests.cs:29 の見出し・SecessionLaborLawInstrumentTests.cs:280。
+
+[追記 2・2026-11-11・ident の後・結果の後の追記と名乗る＝予言の誤りを直す（腕の結果は変えない）]
+  誤り：[4] と作者の指示にある〈fillsToBest は変わらない〉は誤り。nBest は〈走査の途中で最良を入れ替えた充填〉の数で、無効な売り手（着値≧自州価格）も途中の最良になる。飛ばす売り手と飛ばさない売り手が混じると、旧は A（無効・着値 4.5）が最良のあとの Q（無効・5）を数えず、新は A を飛ばして Q を数える＝両方向に動く（成績表・他の計器の表は 1 ビットも違わない＝軌道は同じ）。
+  ident の最初の判定＝不一致（宣言の無い違い＝cscx_s の fillsToBestCount の 10 本）。宣言に cscx_s:fillsToBestCount を足して check をやり直す（腕は同じ出力・走り直さない）。sp_eq.py は toBest を〈充填の数以下〉だけ確かめる形へ直した（直す前の台本で 29 行が不一致＝全て toBest が増えた行）。
+  csc_s は fillsCount に加えて throttledFillsCount も減る（宣言に足した・予言では fills 列だけと書いた）。

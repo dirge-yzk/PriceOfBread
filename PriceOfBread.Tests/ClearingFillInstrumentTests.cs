@@ -26,7 +26,7 @@ public class ClearingFillInstrumentTests
         try { for (int q = 0; q < 4; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
         finally { Instruments.Close(sim); Instruments.Configure(null, null); }
         var csc = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, "csc_s1789.tsv"), null);
-        var x = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, "cscx_s1789.tsv"), "year\tnation\ttierCode\tpayerCode\trowsCount\tfillsCount\tfillsInvalidCount\tfillsToBestCount");
+        var x = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, "cscx_s1789.tsv"), "year\tnation\ttierCode\tpayerCode\trowsCount\tfillsCount\tfillsInvalidCount\tfillsToBestCount\tfillsSkippedLB");
         long fCsc = 0, rCsc = 0; foreach (var r in csc) if (r["roleCode"] == "0" && r["classCode"] != "4") { fCsc += long.Parse(r["fillsCount"]); rCsc += long.Parse(r["rowsCount"]); }
         long fX = 0, rX = 0; foreach (var r in x)
         {
