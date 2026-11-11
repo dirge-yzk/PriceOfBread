@@ -1,0 +1,10 @@
+# (1029) 小さな計り台：SelfPlayMatch.Run(1, 40, null, lean:true) を LbOffForTest の on/off で交互に 4 回（使い捨ての木 benchwt・負荷はほぼ無し＝他の線の腕は走っていたかもしれない）。off 側の skips=0＝旗が効いた（ThreadStatic が同じスレッドに届いた）。
+rep=0 off=True ms=21122 fills=32486517 skips=0
+rep=0 off=False ms=15992 fills=24761337 skips=7725180
+rep=1 off=True ms=15757 fills=32486517 skips=0
+rep=1 off=False ms=15735 fills=24761337 skips=7725180
+rep=2 off=True ms=15783 fills=32486517 skips=0
+rep=2 off=False ms=16163 fills=24761337 skips=7725180
+rep=3 off=True ms=15576 fills=32486517 skips=0
+rep=3 off=False ms=15614 fills=24761337 skips=7725180
+# 読み：2 回目以降の中央値 off≈15.76 秒・on≈15.74 秒＝実時間の差は雑音の内（最初の 1 本は JIT の暖機）。台帳の推定（件数×単価）の減りは実時間に現れていない（最初の 40 四半期＝売り手が少ない時期）。全長は未計測（ident の .cost の実測 CPU は 805.0→798.0 秒・負荷の違いで約 7% 揺れる）。
