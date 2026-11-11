@@ -285,7 +285,7 @@ public static class ProductionTables
         var law = w.MinimumWage;
         foreach (int id in new[] { Catalog.LaborId, Catalog.FarmLaborId, Catalog.AdvLaborId })
         {
-            double demand = 0, supply = 0, cap = 0, priceW = 0, priceSimple = 0; int nr = 0;
+            double demand = 0, supply = 0, humanSupply = 0, cap = 0, priceW = 0, priceSimple = 0; int nr = 0;
             double floorW = 0, capForFloor = 0, bound = 0;
             bool floorOn = MinimumWageFloor.Applies(law, id);
             foreach (var r in w.Regions)
@@ -295,9 +295,11 @@ public static class ProductionTables
                 demand += m.LastDemand; supply += m.LastProduced; priceW += m.Price * m.LastProduced; priceSimple += m.Price; nr++;
                 double c = MinimumWageFloor.LaborSupply(r, id, out int lp);
                 cap += c;
-                // 供給（LastProduced）は畜力・蒸気機関などの人力でない行の産出も含む＝上限も同じ集合の能力で足す（分子と分母を同じ規則に・V7）。床の計算（c・capForFloor）は人力の行だけのまま
-                foreach (var s in r.Producers)
-                    if (s.GoodId == id && !s.Bankrupt && !EconomyStep.IsHumanLaborSupply(s)) cap += s.Capacity;
+                // 供給の列は上限と同じ集合（人力の行・同じ担い手の POP・倒産していない）の実産出で足す＝分子と分母を同じ規則に（供給 ≦ 上限・V7）。
+                //   州の市場の産出（LastProduced）には畜力・蒸気機関などの人力でない行の産出も入るので、そのまま足すと人力の上限を超える。賃金の重みと技師（上限なし）は州の市場の産出のまま。
+                if (id != Catalog.AdvLaborId)
+                    foreach (var sp in r.Producers)
+                        if (sp.GoodId == id && EconomyStep.IsHumanLaborSupply(sp) && !sp.Bankrupt && sp.LaborPopIndex == lp) humanSupply += sp.Output;
                 if (floorOn && c > 1e-9 && lp >= 0)
                 {
                     double f = MinimumWageFloor.PerUnit(r, id, law);
@@ -308,7 +310,7 @@ public static class ProductionTables
             double wage = supply > 1e-9 ? priceW / supply : nr > 0 ? priceSimple / nr : double.NaN;
             double floor = floorOn && capForFloor > 1e-9 ? floorW / capForFloor : double.NaN;
             double boundShare = floorOn && capForFloor > 1e-9 && floorW > 0 ? bound / capForFloor : double.NaN;
-            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, supply, id == Catalog.AdvLaborId ? double.NaN : cap,   // 供給の上限は人力の生産者の能力の和（MinimumWageFloor.LaborSupply・同じ POP を共有するレシピを重ねない）＝高度労働力（技師）には人力の上限の概念が無い＝「—」（供給 965・上限 0 と読めた・V7）
+            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, id == Catalog.AdvLaborId ? supply : humanSupply, id == Catalog.AdvLaborId ? double.NaN : cap,   // 供給の上限は人力の生産者の能力の和（MinimumWageFloor.LaborSupply・同じ POP を共有するレシピを重ねない）＝高度労働力（技師）には人力の上限の概念が無い＝「—」（供給 965・上限 0 と読めた・V7）
                  floor, boundShare));
         }
         return result;

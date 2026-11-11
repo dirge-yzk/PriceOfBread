@@ -97,9 +97,9 @@ public partial class GameViewModel
         for (int ni = 0; ni < _sim.Nations.Count; ni++)
         {
             var w = _sim.Nations[ni].World;
-            string nation = w.SelfPower?.Name ?? w.Region.Name;
+            string nation = w.SelfPower is { } spL ? Lbl(spL) : w.Region.Name;   // 国の一覧と同じ国号つきの名（W10）
             // 属国は「国名（○○の属国）」形式（作者指示2026-08-03）＝地図ホバーで主権の帰属が一目で読める
-            if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}・{suzN.Name}の属国";   // 括弧を入れ子にしない（州の題は「州（国・○○の属国）」になる）
+            if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}・{Lbl(suzN)}の属国";   // 括弧を入れ子にしない（州の題は「州（国・○○の属国）」になる）
             var homeCoords = new List<(double Lat, double Lon)>();
             double cenX = 0, cenY = 0, cenW = 0;
             double extMinX = double.PositiveInfinity, extMaxX = double.NegativeInfinity;   // B3（2026-09-05）：国名を領土の広がりに沿わせる   // 国名ラベルの位置＝中核州の人口重み重心（植民地・植民地格の州は入れない＝ラベルが海へ流れない）

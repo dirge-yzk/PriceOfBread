@@ -121,6 +121,8 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty] private MapHoverInfo? _mapHover;
     /// <summary>窓「州」が出す州＝最後に指した州（指す先が無くなっても残す＝窓へ移る間に消えない）。</summary>
     [ObservableProperty] private MapHoverInfo? _shownHover;
+    /// <summary>画面に出す国の名（国の一覧と同じ国号つきの名・<see cref="PowerLabel"/>）。欄ごとに同じ国が別の名で出ない（W10）。</summary>
+    private string Lbl(Power p) => PowerLabel.Of(p, _sim.Diplomacy.Wars);
     partial void OnMapHoverChanged(MapHoverInfo? value) { if (value is not null) ShownHover = value; }
     // ★州パネルのピン留め（支配度 §7「ホバーで要約・クリックでピン」・2026-09-07）：州の左クリックで左上パネルを固定。同じ州でもう一度＝解除。他の州＝持ち替え（当たりは塗り分けのセル＝MapHitAt）。
     [ObservableProperty] private bool _hoverPinned;

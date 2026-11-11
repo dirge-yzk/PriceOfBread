@@ -106,12 +106,19 @@ public class ProductionMarketTablesTests
     }
 
     [Fact]
+    public void 労働の表の供給は上限と同じ集合で数える_人力の上限を超えない()
+    {
+        foreach (var r in ProductionTables.LaborLines(Sim, W).Where(r => r.Good != Catalog.AdvLaborId))
+            Assert.True(r.Supply <= r.Capacity * 1.000001 + 1e-9, $"{Catalog.Goods[r.Good].Name}：供給 {r.Supply} が上限 {r.Capacity} を超えた");
+    }
+
+    [Fact]
     public void 財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_世界価格比は国内と世界の比()
     {
         var d = MarketTables.Prices.Read(Sim, W);
         Assert.NotEmpty(d.Rows);
         Assert.All(d.Rows, r => Assert.NotEqual(GoodTier.Service, Catalog.Goods[int.Parse(r.Key)].Tier));
-        var order = new[] { "素材", "主食", "日用品", "奢侈品", "生産財" };
+        var order = new[] { "素材", "加工素材", "主食", "日用品", "奢侈品", "生産財" };   // 層は凡例の順（素材のうち材料を持つ財は「加工素材」の群・W15）
         var groupIdx = d.Rows.Select(r => Array.IndexOf(order, r.Group)).ToList();
         Assert.DoesNotContain(-1, groupIdx);
         Assert.Equal(groupIdx.OrderBy(x => x).ToList(), groupIdx);   // 層は凡例の順
