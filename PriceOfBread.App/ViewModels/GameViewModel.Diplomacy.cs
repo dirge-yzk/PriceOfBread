@@ -115,13 +115,13 @@ public partial class GameViewModel
             if (!showUnif || canUnif) unifReason = "";
             double willCost = showInvade ? _player.ExpansionCostFor(pow) : 0;   // ゲート・実消費・表示は同一の式（国力比・2026-08-23）
             double wcap = _player.Coef.ExpansionWillCap;
-            // 不可の理由（グレーアウト時のツールチップ）：不足系は「必要量（現在値）」で言い換え。
+            // 不可の理由（グレーアウトした動詞の下に常に出す短い数の形）：不足系は「必要・現在」の数で言い換え。
             string? ReasonTip(string reason) => reason switch
             {
                 "" => null,
-                "余剰戦力が不足" => $"戦力余剰が{willCost / wcap:P0}必要(現在 {_player.ExpansionWill / wcap:P0})",   // ⚠case の文字列はエンジンの理由（World.CanInvade）＝変えない。変えたのは表示だけ
+                "余剰戦力が不足" => $"戦力余剰 必要{willCost / wcap:P0}・現在{_player.ExpansionWill / wcap:P0}",   // ⚠case の文字列はエンジンの理由（World.CanInvade）＝変えない。変えたのは表示だけ
                 "属国が上限" => $"属国 {_sim.Diplomacy.DependentCount(me)}/{_player.Coef.MaxDependents}",
-                "兵力が不足" => $"兵力が標的の{_player.Coef.InvadeMilitaryFactor:F1}倍必要(自国 {me.Military * _player.MilitaryReadiness:F2}/標的 {pow.Military:F2})",
+                "兵力が不足" => $"兵力 必要{_player.Coef.InvadeMilitaryFactor:F1}倍・自国{me.Military * _player.MilitaryReadiness:F2}／標的{pow.Military:F2}",
                 _ => reason,
             };
 

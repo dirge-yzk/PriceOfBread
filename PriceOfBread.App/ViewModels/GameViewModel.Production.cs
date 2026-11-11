@@ -390,7 +390,7 @@ public partial class GameViewModel
         double y = PMargin;
         ProdTierLines.Clear();
         int tier = 1;   // tier番号＝加工の深さ（上=素材=tier1・下ほど数字が大きい=作るのが難しい。作者指示2026-08-16）
-        ProdTierLines.Add(new ProdTierLine { X = 0, Y = -1, W = 0, Label = "tier1", LabelX = PMargin, LabelY = 6 });   // 最上層は区切り線なし＝ラベルのみ（上余白24の中）
+        ProdTierLines.Add(new ProdTierLine { X = 0, Y = -1, W = 0, Label = "層1", LabelX = PMargin, LabelY = 6 });   // 最上層は区切り線なし＝ラベルのみ（上余白24の中）
         for (int r = 0; r < screenRows.Count; r++)
         {
             var (sc, layerEnd) = screenRows[r];
@@ -409,7 +409,7 @@ public partial class GameViewModel
             {
                 tier++;
                 double lineY = y - PLayerGapY / 2;
-                ProdTierLines.Add(new ProdTierLine { X = 0, Y = lineY, W = maxW + PMargin * 2, Label = $"tier{tier}", LabelX = PMargin, LabelY = lineY - 15 });
+                ProdTierLines.Add(new ProdTierLine { X = 0, Y = lineY, W = maxW + PMargin * 2, Label = $"層{tier}", LabelX = PMargin, LabelY = lineY - 15 });
             }
         }
         ProdCanvasW = maxW + PMargin * 2;
@@ -948,8 +948,8 @@ public partial class GameViewModel
             // 廃棄率＝直近1年の廃棄量÷直近1年の生産量（生産0の月は「—」）。
             // ★まだ存在しない財は量も「—」（作者裁定2026-08-10）＝産出は0でも、開始在庫（Simulation の Stock=200）が
             //   交易で動くと輸出入だけ数字が立つ＝「誰も作っていない財の輸出」が見えてしまう。全部まとめて伏せる。
-            NatLine = unavail ? "RGO生産量:—　工場生産量:—　輸入量:—"
-                              : $"RGO生産量:{Fmt.Qty(prodRgo[gi])}　工場生産量:{Fmt.Qty(prodFac[gi])}　輸入量:{Fmt.Qty(imp[gi])}",
+            NatLine = unavail ? "採取生産量:—　工場生産量:—　輸入量:—"
+                              : $"採取生産量:{Fmt.Qty(prodRgo[gi])}　工場生産量:{Fmt.Qty(prodFac[gi])}　輸入量:{Fmt.Qty(imp[gi])}",
             NatLine2 = unavail ? "国内消費:—　輸出量:—　廃棄率:—"
                                : $"国内消費:{Fmt.Qty(sold[gi])}　輸出量:{Fmt.Qty(exp[gi])}　廃棄率:{(double.IsNaN(spoilRate) ? "—" : spoilRate.ToString("P0"))}",
             WorldPriceLine = !unavail && world > 1e-6 ? $"世界価格 £{world:F2}" : "世界価格 —",   // 価格グラフの中央線が指す実数値
