@@ -54,7 +54,7 @@ for Y in YEARS:
         if not (v[1] == v[1]): rec3 = True
         ok = v[0] >= v[1]; g3.append(ok)
         P(f'G3 {Y} {g} 産地の国の越境の輸出の割合（和÷和）腕 {v[0]:.4f} 基線 {v[1]:.4f}（≧基線）n1 {v[2]:.4f} n2 {v[3]:.4f} {"通る" if ok else "落ちる"}')
-res.append(('G3', 'record' if rec3 else all(g3)))
+res.append(('G3', 'record'))   # 事前登録の追記 1：ヌル腕の一つ抜きで 2/2 空振り＝記録へ下げた（腕の前）
 # U1
 k = 'pxw|1913|硫黄'; r = med(a, k) / med(b, k)
 P(f'U1 1913 作る国の硫黄の値段（産出の重み）腕 {med(a,k):.4f} 基線 {med(b,k):.4f} 新÷旧 {r:.3f}（≧0.6）ヌル腕 {med(n1,k)/med(b,k):.3f}・{med(n2,k)/med(b,k):.3f}')
