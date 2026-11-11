@@ -11,7 +11,7 @@ public static class TableCatalog
         FiscalTables.Finance, FiscalTables.Debt,
         PopTables.ClassesPlain, PopTables.Regions, PopTables.Religion, PopTables.Culture,
         PoliticsTables.Laws, PoliticsTables.Institutions,
-        DiscoveryTables.Discoveries, DiscoveryTables.Sites,
+        DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites,
     ];
 
     /// <summary>鍵で引く。無ければ null。</summary>

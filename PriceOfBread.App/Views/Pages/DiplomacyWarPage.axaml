@@ -15,13 +15,6 @@
             <ctl:TableView x:Name="NationList" Snapshot="{Binding NationTable}" Filterable="True" InnerScroll="True"/>
         </ctl:Section>
 
-        <!-- 地図：描き方は今のまま（政治の塗り分け・陸と海の線・文字・支配度の色・正距円筒）。箱の大きさだけが欄の大きさになる -->
-        <ctl:Section Key="map" Title="地図" Scrolls="False">
-            <Border x:Name="MapSlot" ClipToBounds="True">
-                <TextBlock x:Name="MapAway" Text="別の枠に表示中" Classes="dim" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-        </ctl:Section>
-
         <!-- 戦争：交戦中の戦況（戦勝点・戦死・民間人の死・戦費・厭戦）。厭戦はホバーで内訳 -->
         <ctl:Section Key="war" Title="戦争">
             <StackPanel>

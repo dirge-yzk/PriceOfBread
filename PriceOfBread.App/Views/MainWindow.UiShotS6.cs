@@ -68,22 +68,6 @@ public partial class MainWindow
             }
             gvm.SetNewsFilterCommand.Execute("world");
 
-            // ---- 外交と戦争の地図の欄：開くたびに自国の首都を映す ----
-            lay.Reset(); lay.Open(Slot.Production); UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar);   // 背景が生産の間、地図は外交と戦争の窓の欄に載る
-            await Task.Delay(1800);
-            BootLog.Write("uishot: 外交の地図の欄[開いた] " + gameView.MapView.BoxReport());
-            Capture(dir, $"{no():D2}_S6_外交_地図の欄.png");
-            LogOuterFlow(gameView, "外交と戦争の地図の欄");
-            gameView.MapView.SetZoomFactor(4.0);   // 倍率を上げてから首都を離す（開き直しで倍率は保ち・首都だけ映すこと）
-            await Task.Delay(300);
-            gvm.CenterNationCommand.Execute("日本");   // 首都から離して
-            await Task.Delay(500);
-            BootLog.Write("uishot: 外交の地図の欄[日本へ動かした] " + gameView.MapView.BoxReport());
-            lay.Close(Slot.DiplomacyWar); await Task.Delay(700);
-            UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar); await Task.Delay(1800);
-            BootLog.Write("uishot: 外交の地図の欄[開き直した] " + gameView.MapView.BoxReport());
-            Capture(dir, $"{no():D2}_S6_外交_地図の欄_開き直し.png");
-
             // ---- 列の左端の判定が働くことの確かめ：段の押し釦の入れ物を中央寄せに戻すと、判定が左端のずれを出す（直した判定は積み上げでなく中身の位置を測る）----
             lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
             await Task.Delay(1200);

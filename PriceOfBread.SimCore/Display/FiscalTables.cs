@@ -133,6 +133,9 @@ public static class FiscalTables
         };
         if (colonialUp > 1e-9) spend.Add(Line("colonial", "植民地の維持", 0, colonialUp, noFc: true));
         if (tribOut > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", 0, tribOut, noFc: true));
+        // 国債の元本の出入り（2026-11-11 作者指示「国債の支払いなどもここに入れる」）＝国庫の台帳の実績（月の差分）をそのまま読む
+        double repay = LedgerOf(f, TreasuryCat.DebtRepay), borrow = LedgerOf(f, TreasuryCat.Borrow);
+        if (repay < -1e-9) spend.Add(Line("debtRepay", "国債の償還", 0, -repay, noFc: true));
         spend.Add(Line("foreignOut", "外資の流出", 0, f.ForeignOutMonthly, noFc: true));
 
         var income = new List<BudgetLine>
@@ -149,13 +152,17 @@ public static class FiscalTables
             Line("foreignIn", "外資の流入", 0, f.ForeignInMonthly, tip: creditTip, noFc: true),
         };
         if (tribIn > 1e-9) income.Add(Line("tributeIn", "属国からの貢納", tribIn, tribIn));
+        if (borrow > 1e-9) income.Add(Line("debtBorrow", "国債の起債", 0, borrow, noFc: true));
 
         double spendTotal = interest + mil + pSoldier + admin + wel + pen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut;
         double revTotal = net + tariffGross + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn;
-        double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut;
-        double revActT = netA + tariffActMonthly + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn;
+        double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut + Math.Max(0, -repay);
+        double revActT = netA + tariffActMonthly + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn + Math.Max(0, borrow);
         return new BudgetResult(spend, income, spendTotal, spendActT, revTotal, revActT);
     }
+
+    /// <summary>国庫の台帳のその区分の月の差分（正＝入り・負＝出）。台帳がまだ立っていなければ 0。</summary>
+    private static double LedgerOf(FiscalFlows f, TreasuryCat cat) => (int)cat < f.LedgerDiff.Count ? f.LedgerDiff[(int)cat] : 0;
 
     /// <summary>対外信用の内訳の 4 項（信用は 4 項の積＝どれが足を引っ張っているかは各項を並べれば読める）。</summary>
     private static string CreditLines(World w)

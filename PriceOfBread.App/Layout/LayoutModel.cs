@@ -7,9 +7,9 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Layout;
 
-/// <summary>画面に出せるもの＝7 ページと地図。宣言の順が <see cref="PageKeys"/> のページの順（地図は最後＝キーを持たない）。
-/// 地図と生産は背景・それ以外の 6 ページは浮かぶ窓。</summary>
-public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Map }
+/// <summary>画面に出せるもの＝7 ページと地図と州の窓。宣言の順が <see cref="PageKeys"/> のページの順（地図・州は後ろ＝キーを持たない）。
+/// 地図と生産は背景・それ以外の 6 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
+public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Map, Province }
 
 /// <summary>画面に出せるものの名前とキー。キーは本体の <see cref="PageKeys"/> が持つ。ここは引くだけ。</summary>
 public static class SlotInfo
@@ -17,9 +17,9 @@ public static class SlotInfo
     public static readonly IReadOnlyList<Slot> All = Enum.GetValues<Slot>();
 
     /// <summary>ヘッダーの押し釦に並ぶもの（7 ページ。地図は釦を持たない）。</summary>
-    public static readonly IReadOnlyList<Slot> Pages = All.Where(s => s != Slot.Map).ToArray();
+    public static readonly IReadOnlyList<Slot> Pages = All.Where(s => s != Slot.Map && s != Slot.Province).ToArray();
 
-    public static string Name(Slot s) => s == Slot.Map ? PageKeys.MapName : PageKeys.Name((Page)s);
+    public static string Name(Slot s) => s == Slot.Map ? PageKeys.MapName : s == Slot.Province ? "州" : PageKeys.Name((Page)s);
     /// <summary>文字のキー。生産（Tab）と地図（キー無し）は '\0'。</summary>
     public static char Key(Slot s) => s == Slot.Map ? '\0' : PageKeys.Key((Page)s);
     public static string ButtonText(Slot s) => PageKeys.ButtonText((Page)s);
@@ -27,7 +27,7 @@ public static class SlotInfo
     /// <summary>文字のキーで引く。文字のキーを持つページでなければ null（空きのキー・生産の Tab・地図は何にも割り当てない）。</summary>
     public static Slot? OfKey(char key) => PageKeys.PageOfKey(key) is { } p ? (Slot)(int)p : null;
 
-    public static Page? PageOf(Slot s) => s == Slot.Map ? null : (Page)s;
+    public static Page? PageOf(Slot s) => s is Slot.Map or Slot.Province ? null : (Page)s;
 }
 
 /// <summary>浮かぶ窓の位置と大きさ（窓を置く領域の左上を原点とする画素）。</summary>
@@ -152,6 +152,7 @@ public sealed class LayoutModel
     /// <summary>まだ覚えていない窓の初めの位置と大きさ＝領域の大きさに応じ、窓ごとに少しずつずらした起点にする。</summary>
     public static WindowRect DefaultRect(Slot slot, double hostW, double hostH)
     {
+        if (slot == Slot.Province) return Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);   // 州の窓＝幅は固定（情報の量で変わらない）・左上
         double w = Math.Clamp(hostW * 0.55, MinWindowWidth, 900), h = Math.Clamp(hostH * 0.72, MinWindowHeight, 760);
         int step = (int)slot % 6;
         return Fit(new WindowRect(24 + 36 * step, 24 + 32 * step, w, h), hostW, hostH);

@@ -7,8 +7,14 @@
     <!-- Views/Pages/DiscoveryPage.axaml ＝ 発見のページ（(501) 段3）。欄の並べは .axaml.cs の PageTable（設計 §3-3）。
          行と列は本体の目録（SimCore/Display/DiscoveryTables）が渡す＝発見の行（Catalog.Discoveries）が増えてもこの XAML は直さない。割合は出す・閾値は出さない（作者裁定 2026-09-23）。 -->
     <ctl:PageGrid x:Name="PageBody">
-        <ctl:Section Key="discovery" Title="発見" Scrolls="False">
+        <ctl:Section Key="discovery" Title="技術" Scrolls="False">
             <ctl:TableView Snapshot="{Binding DiscoveryTable}" InnerScroll="True" ScrollX="True"/>
+        </ctl:Section>
+        <ctl:Section Key="social" Title="政府と思想" Scrolls="False">
+            <ctl:TableView Snapshot="{Binding SocialDiscoveryTable}" InnerScroll="True"/>
+        </ctl:Section>
+        <ctl:Section Key="institution" Title="制度" Scrolls="False">
+            <ctl:TableView Snapshot="{Binding InstitutionTable}" InnerScroll="True"/>
         </ctl:Section>
         <ctl:Section Key="sites" Title="産地" Scrolls="False">
             <ctl:TableView Snapshot="{Binding SiteTable}" InnerScroll="True" ScrollX="True"/>

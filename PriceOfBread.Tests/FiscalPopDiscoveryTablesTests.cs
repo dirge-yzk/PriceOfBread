@@ -19,7 +19,7 @@ public class FiscalPopDiscoveryTablesTests
     [
         FiscalTables.Spend(budget), FiscalTables.Income(budget), FiscalTables.Ledger(flows), FiscalTables.Finance, FiscalTables.Debt,
         PopTables.Classes(), PopTables.Regions, PopTables.Religion, PopTables.Culture,
-        DiscoveryTables.Discoveries, DiscoveryTables.Sites,
+        DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites,
     ];
 
     [Fact]

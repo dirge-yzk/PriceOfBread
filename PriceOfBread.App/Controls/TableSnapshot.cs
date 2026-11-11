@@ -55,7 +55,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
             double min = c.Kind switch
             {
                 ColumnKind.Number => MinWidthOf(c.Unit ?? Unit.Count),
-                ColumnKind.Text => firstText ? 40 : 24,
+                ColumnKind.Text => firstText ? 110 : 24,   // 最初の文字の列（名前）は潰さない（2026-11-11 作者指摘「国名がつぶれている」）
                 _ => 24,
             };
             // 最初の文字の列は残りの幅を全部取る（最大幅なし）。2 つ目以降の文字の列は長い名前で他を圧迫しない（末尾を省略記号）。
@@ -78,6 +78,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
                     string s => new CellView(s, double.NaN),
                     StageCell st => new CellView(st.Current - st.LevelBase >= 0 && st.Current - st.LevelBase < st.Labels.Count ? st.Labels[st.Current - st.LevelBase] : "", st.Current, st),
                     VerbCell vb => new CellView(vb.Name, double.NaN, vb),
+                    BarCell bc => new CellView("", bc.Parts.Sum(p => double.IsFinite(p.Value) ? p.Value : 0), bc),
                     ShareCell sh => new CellView(string.Join(" ", sh.Parts.Select(p => $"{p.Name} {Fmt.Of(Unit.Share, p.Share)}")), sh.Parts.Count > 0 ? sh.Parts[0].Share : double.NaN, sh),
                     _ => new CellView("", double.NaN),
                 };

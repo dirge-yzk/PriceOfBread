@@ -268,7 +268,7 @@ public sealed class TableView : UserControl
     private void UpdateHeaderMarks(TableSnapshot snap)
     {
         for (int i = 0; i < _headerCells.Length && i < snap.Columns.Count; i++)
-            _headerCells[i].Text = snap.Columns[i].Name + (i == _sortColumn ? (_sortDescending ? " ▼" : " ▲") : "");
+            _headerCells[i].Text = snap.Columns[i].Name + (i == _sortColumn ? (_sortDescending ? " ↓" : " ↑") : "");
     }
 
     private static Control MakeGroupHeader(string group) => new StackPanel
@@ -277,7 +277,7 @@ public sealed class TableView : UserControl
         Children =
         {
             new Border { Height = 1, Background = Brush("SandBrush", Brushes.Tan), Margin = new Thickness(0, 6, 0, 2) },
-            new TextBlock { Text = group, Foreground = Brush("BronzeBrush", Brushes.SaddleBrown), FontWeight = FontWeight.Bold, FontSize = Small, Margin = new Thickness(0, 0, 0, 1) },
+            new TextBlock { Text = group, Foreground = Brush("BronzeBrush", Brushes.SaddleBrown), FontWeight = FontWeight.Bold, FontSize = Small + 4, Margin = new Thickness(0, 0, 0, 2) },   // 群の題（素材・主食…）は表の字より大きく（2026-11-11 作者指示）
         },
     };
 
@@ -352,6 +352,8 @@ public sealed class TableView : UserControl
                         FontSize = Small, TextAlignment = TextAlignment.Right, Margin = margin, HorizontalAlignment = HorizontalAlignment.Right, Background = Brushes.Transparent,
                         Foreground = spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black),
                     };
+                case ColumnKind.Bar:
+                    return new StackBar { Margin = margin, Width = 120, Height = 10, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Share:
                     return new HalfPie { Radius = 16, Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Stage:
@@ -415,6 +417,9 @@ public sealed class TableView : UserControl
                 case TextBlock tb:
                     ApplyText(tb, spec, cell, index);
                     break;
+                case StackBar bar:
+                    bar.Cell = cell.Extra as BarCell;
+                    break;
                 case HalfPie pie when cell.Extra is ShareCell sc:
                     pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PiePalette[i % PiePalette.Length])).ToList();
                     break;
@@ -425,13 +430,15 @@ public sealed class TableView : UserControl
                     if (cell.Extra is not VerbCell vb) { b.Child = null; break; }   // この行にこの動詞が無い（前の月にはあった行も空にする）
                     if (b.Child is not StackPanel sp)
                     {
-                        var note0 = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.Wrap, MaxWidth = 220, IsVisible = false };
+                        var note0 = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.NoWrap, VerticalAlignment = VerticalAlignment.Center, IsVisible = false };
                         note0.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
-                        sp = new StackPanel { Spacing = 1, Children = { new Button { Classes = { "mini" } }, note0 } };
+                        sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { new Button { Classes = { "mini" } }, note0 } };   // 理由は押し釦の右＝行を 1 行に保つ（2026-11-11 作者指摘「2 行になっている」）
                         b.Child = sp;
                     }
                     var btn = (Button)sp.Children[0];
                     btn.Content = vb.Name; btn.IsEnabled = vb.Enabled;
+                    if (InkOf(vb.Fill) is { } fill) { btn.Background = fill; btn.Foreground = InkOf("#FFF6E8") ?? Brushes.White; }
+                    else { btn.ClearValue(Button.BackgroundProperty); btn.ClearValue(Button.ForegroundProperty); }
                     btn.Tag = vb;   // 押した時に呼ぶのは最新の動詞
                     btn.Click -= OnVerbClick; btn.Click += OnVerbClick;
                     b.Background = Brushes.Transparent;

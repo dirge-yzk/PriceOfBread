@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore.Display;
 /// <summary>階級の表の 1 行（全国の同じ階級の POP を集約した物）。割合は 0〜1・人数は千人。吹き出しの文は本体の目録の側で組む（書式は <see cref="DisplayFormat"/>）。</summary>
 public sealed record ClassLine(int ClassId, string Name, int Layer, double Size, double Share, double Unemployed, double UnempRate,
     double Satisfaction, double Militancy, double Literacy, double LeanNone, double LeanConservative, double LeanLiberal, double LeanSocialist,
-    string Tip, string? SatisfactionTip, string? MilitancyTip, string Privileges, string? PrivilegeTip, string? LayerTip);
+    string Tip, string? SatisfactionTip, string? MilitancyTip, string Privileges, string? PrivilegeTip, string? LayerTip, double Discontent = 0);
 
 /// <summary>州の表の 1 行。割合は 0〜1・人数は千人。<see cref="Rule"/>＝支配度の 4 区分（国家・在地・外国・無統治）。</summary>
 public sealed record RegionLine(string Name, double Population, double Unemployed, double FoodFill, double HousingFill, bool HousingShown, IReadOnlyList<(string Name, double Share)> Rule, bool IsPort, double PortCapacity);
@@ -129,12 +129,15 @@ public static class PopTables
             return s.Length == 0 ? null : s;
         }
 
+        // 不満度（階級ごと）＝ヘッダーの不満度と同じ式（Politics.Discontent）を階級の POP の人口加重で平均する
+        double[] disCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, w.Coef);
+        double[] disGap = w.Coef.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
         var lines = new List<ClassLine>();
         foreach (int cid in order)
         {
             var members = agg[cid];
             var first = members[0].P;
-            double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
+            double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, disW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
             double leanC = 0, leanL = 0, leanS = 0;
             double mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;
             double debt = 0;
@@ -143,7 +146,8 @@ public static class PopTables
             {
                 size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt.Value;
                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
-                satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
+                satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size;
+                disW += Politics.Discontent(w, w.Coef, p, disCoord, disGap.Length > 0 ? disGap[PolicyPreferences.BlocOf(p)] : 0) * p.Size; litW += p.Literacy * p.Size;
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
                 femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size;
                 if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
@@ -184,7 +188,7 @@ public static class PopTables
             var (held, privTip) = PrivilegeCells(w, cid);
             int layer = PlayText.ClassLayerOf(first);
             lines.Add(new ClassLine(cid, first.ClassName, layer, size, popTotal > 1e-9 ? size / popTotal : 0, size * unemp, unemp,
-                satAvg, milAvg, litAvg, leanNone * inv, leanC * inv, leanL * inv, leanS * inv, tip, satTip, milTip, held, privTip, LayerTip(layer)));
+                satAvg, milAvg, litAvg, leanNone * inv, leanC * inv, leanL * inv, leanS * inv, tip, satTip, milTip, held, privTip, LayerTip(layer), disW * inv));
         }
         return lines.Select((l, i) => (l, i)).OrderBy(t => t.l.Layer).ThenBy(t => t.i).Select(t => t.l).ToList();   // 層ごとにまとめる（層の中は最初に現れた順）
     }
@@ -192,24 +196,18 @@ public static class PopTables
     /// <summary>階級の表の既定の形（増減の矢印を添えない）。目録の一覧と問題の一覧・ピン留めが読む。画面は <see cref="Classes"/> に矢印の関数を渡して使う（行の鍵と列は同じ）。</summary>
     public static Table<ClassLine> ClassesPlain { get; } = Classes();
 
-    /// <summary>階級の表。規模と失業者の後ろに添える増減の矢印は、四半期の差分を採る側（App）が関数で渡す（差分は今の盤面から導けない）。</summary>
-    public static Table<ClassLine> Classes(Func<ClassLine, string>? sizeNote = null, Func<ClassLine, string>? unemployedNote = null)
+    /// <summary>階級の表（2026-11-11 作者指示）：規模（人数(構成比)）・失業者（人数(失業率)＋増減の矢印）・満足度・不満度・闘争度（増減の矢印）・識字率・特権。
+    /// 支持政党の列は政治の側にある＝ここには置かない。<paramref name="arrow"/>＝列の鍵（unemployed・satisfaction・discontent・militancy）ごとの増減の矢印（無ければ添えない）。</summary>
+    public static Table<ClassLine> Classes(Func<ClassLine, string, string>? arrow = null)
         => new("pop.classes", "階級", Page.Population, (_, w) => ClassLines(w), l => "class." + l.ClassId, l => l.Name,
         [
             Col.Text<ClassLine>("name", "階級", l => l.Name, l => l.Tip),
-            Col.Number<ClassLine>("size", "規模", Unit.People, l => l.Size),
-            Col.Number<ClassLine>("sizeShare", "構成比", Unit.Share, l => l.Share > 0 ? l.Share : double.NaN),
-            Col.Text<ClassLine>("sizeTrend", "規模増減", l => sizeNote?.Invoke(l) ?? ""),
-            Col.Number<ClassLine>("unemployed", "失業者", Unit.People, l => l.UnempRate > 0.005 ? l.Unemployed : double.NaN),   // 丸めて 0% の階級は「—」
-            Col.Number<ClassLine>("unempRate", "失業率", Unit.Share, l => l.UnempRate > 0.005 ? l.UnempRate : double.NaN),
-            Col.Text<ClassLine>("unempTrend", "失業増減", l => { string arrow = unemployedNote?.Invoke(l) ?? ""; return l.UnempRate > 0.005 ? arrow : ""; }),   // 矢印の差分は表示の有無に依らず全階級で採る
-            Col.Number<ClassLine>("satisfaction", "満足度", Unit.Share, l => l.Satisfaction, tip: l => l.SatisfactionTip),
-            Col.Number<ClassLine>("militancy", "闘争度", Unit.Share, l => l.Militancy, tip: l => l.MilitancyTip),
+            Col.Text<ClassLine>("size", "規模", l => $"{DisplayFormat.PopK(l.Size)}({l.Share:P0})"),
+            Col.Text<ClassLine>("unemployed", "失業者", l => { string a = arrow?.Invoke(l, "unemployed") ?? ""; return l.UnempRate > 0.005 ? $"{DisplayFormat.PopK(l.Unemployed)}({l.UnempRate:P0}){a}" : "—"; }),   // 丸めて 0% の階級は「—」。矢印の差分は表示の有無に依らず全階級で採る
+            Col.Text<ClassLine>("satisfaction", "満足度", l => $"{l.Satisfaction:P0}{arrow?.Invoke(l, "satisfaction")}", l => l.SatisfactionTip),
+            Col.Text<ClassLine>("discontent", "不満度", l => $"{l.Discontent:P0}{arrow?.Invoke(l, "discontent")}"),
+            Col.Text<ClassLine>("militancy", "闘争度", l => $"{l.Militancy:P0}{arrow?.Invoke(l, "militancy")}", l => l.MilitancyTip),
             Col.Number<ClassLine>("literacy", "識字率", Unit.Share, l => l.Literacy),
-            Col.Number<ClassLine>("none", "なし", Unit.Share, l => l.LeanNone),
-            Col.Number<ClassLine>("conservative", "保守", Unit.Share, l => l.LeanConservative),
-            Col.Number<ClassLine>("liberal", "自由", Unit.Share, l => l.LeanLiberal),
-            Col.Number<ClassLine>("socialist", "社会", Unit.Share, l => l.LeanSocialist),
             Col.Text<ClassLine>("privileges", "特権", l => l.Privileges, l => l.PrivilegeTip),
         ], l => PlayText.ClassLayerNames[l.Layer], l => l.LayerTip);
 

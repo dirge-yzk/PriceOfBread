@@ -35,8 +35,6 @@ public partial class GameViewModel
     // ---- 年次の線（名前つきの系列の倉から値を写す）----
     [ObservableProperty] private IReadOnlyList<double> _treasuryValues = [];
     [ObservableProperty] private IReadOnlyList<double> _govDebtValues = [];
-    [ObservableProperty] private IReadOnlyList<double> _techValues = [];
-    [ObservableProperty] private string _techLevelText = "";
 
     private const string GovDebtSeries = "fiscal.govDebt", FiscalYearSeries = "fiscal.sampleYear";
 
@@ -112,8 +110,6 @@ public partial class GameViewModel
         // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
         TreasuryValues = _histTreasury.ToArray();
         GovDebtValues = _series.Of(GovDebtSeries).ToArray();
-        TechValues = _histTech.ToArray();
-        TechLevelText = $"技術水準 {_player.TechLevel:F2}　世界の最先端 {_player.WorldTechLevel:F2}";
     }
 
     // 国債（借入）＝ヘッダー表示（借金ボタン廃止・2026-07-21／借入はエンジンが r＜1 の月に自動・2026-09-28）。DebtHeaderText＝残高（＋デフォルト予兆）／Tip＝内訳／Brush＝支払不能で赤。

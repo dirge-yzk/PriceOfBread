@@ -252,6 +252,8 @@ public sealed class MapHoverInfo
 {
     public string Title { get; init; } = "";
     public List<MapHoverLine> Lines { get; } = new();
+    public string ProducedGoods { get; set; } = "";   // 生産材（世界シェア上位）。窓「州」の左
+    public string ImportedGoods { get; set; } = "";   // 輸入材（所有国の輸入額の世界シェア上位）。窓「州」の右
     // ★支配度 §7（州パネル・2026-09-07）：4区分の半円（SVG 記法→Conv.PathData）＋外周の帯（10年前の国家区分）＋凡例の値。HasRule=false＝描かない（区分が動かない世界）。
     public bool HasRule { get; init; }
     public string RuleState { get; init; } = "";
@@ -262,6 +264,7 @@ public sealed class MapHoverInfo
     public string RuleStateText { get; init; } = "";
     public string RuleLocalText { get; init; } = "";
     public string RuleForeignText { get; init; } = "";
+    public string RuleForeignWho { get; init; } = "";   // 外国勢力の持ち主（国名と持分）
     public string RuleUngovernedText { get; init; } = "";
     public string RuleBandText { get; init; } = "";
 }

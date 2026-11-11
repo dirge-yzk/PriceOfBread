@@ -38,10 +38,13 @@ internal static class NationInk
 
 public partial class GameViewModel
 {
-    // 国の一覧は共通の表（Controls/TableView）。行は国（鍵＝国名）で、ランクごとの群・順位・国名・関係・緊張・動詞（侵略／統一戦争）。
+    // 国の一覧は共通の表（Controls/TableView）。行は国（鍵＝国名）で、ランクごとの群・順位・国名・関係・緊張・動詞（宣戦布告。統一戦争ができる相手は押し釦の色を変える）。
     // 列は下の NationColumns が名乗る。行は鍵で値だけ流す（SyncRows の規律＝押し釦とホバーを毎月壊さない）。
     // ★国の行の組み立ては App の状態（確かめの窓・狙い先・地図のカメラ）に依るので、本体の目録（PoliticsTables）ではなくここで TableData を組む。
     [ObservableProperty] private TableSnapshot _nationTable = TableSnapshot.Empty;
+
+    /// <summary>統一戦争ができる相手の宣戦布告の押し釦の地の色（金＝統一の機運）。</summary>
+    private const string UnificationFill = "#A8862B";
 
     private static readonly ColumnInfo[] NationColumns =
     [
@@ -49,8 +52,7 @@ public partial class GameViewModel
         new("name", "国名", ColumnKind.Text, null, false, null),
         new("relation", "関係", ColumnKind.Text, null, false, null),
         new("tension", "緊張", ColumnKind.Number, Unit.Share, false, null),
-        new("invade", "侵略", ColumnKind.Verb, null, false, null),
-        new("unify", "統一戦争", ColumnKind.Verb, null, false, null),
+        new("declare", "宣戦布告", ColumnKind.Verb, null, false, null),
     ];
 
     /// <summary>外交と戦争のページが見えた瞬間の更新（見えている間は毎月の Refresh が追従する）。国の並びに要る物（国力・ランク・戦争の相手・統一戦争の標的）をここで作り直す。</summary>
@@ -173,11 +175,14 @@ public partial class GameViewModel
 
             // 動詞：押すと確かめの窓（既存の DiploInvade／DiploUnifWar）が開く＝窓の中で実行を選ぶ（窓の本文は押した瞬間の値で組む）。この行に無い動詞は空のまま（前の月にあった釦は消える）。
             string powName = pow.Name;
-            object? invade = showInvade ? new VerbCell("侵略", canInvade, () => DiploInvadeCommand.Execute(powName), null, ReasonTip(invReason)) : null;
-            object? unify = showUnif ? new VerbCell("統一戦争", canUnif, () => DiploUnifWarCommand.Execute(powName), null, ReasonTip(unifReason)) : null;
+            // 宣戦布告は 1 本（2026-11-11 作者指示）：統一戦争ができる相手は同じ押し釦の地の色を変え、押すと統一戦争の確かめの窓へ
+            object? declare = showUnif && canUnif ? new VerbCell("宣戦布告", true, () => DiploUnifWarCommand.Execute(powName), null, null, UnificationFill)
+                            : showInvade ? new VerbCell("宣戦布告", canInvade, () => DiploInvadeCommand.Execute(powName), null, ReasonTip(invReason))
+                            : showUnif ? new VerbCell("宣戦布告", false, () => DiploUnifWarCommand.Execute(powName), null, ReasonTip(unifReason))
+                            : null;
             rows.Add(new RowData(pow.Name, name, rank,
                 [new NumberCell(oi + 1), new TextCell(name, null, Swatch: NationInk.PolityInk(derived)), new TextCell(badge, null, BadgeFill: badgeFill),
-                 new NumberCell(tensionShare, Ink: isMe ? null : NationInk.Tension(tensionShare)), invade, unify], detail, isMe));
+                 new NumberCell(tensionShare, Ink: isMe ? null : NationInk.Tension(tensionShare)), declare], detail, isMe));
         }
         NationTable = TableSnapshot.From(new TableData("diplomacy.nations", "国の一覧", NationColumns, rows, Page.DiplomacyWar));
     }

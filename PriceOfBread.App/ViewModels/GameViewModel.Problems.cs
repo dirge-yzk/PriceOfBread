@@ -1,5 +1,5 @@
 // GameViewModel.Problems.cs ＝ 問題の一覧（(501) UI の作り直し 段4・設計 §5）。左の列の上。
-// ・行は本体の目録（<see cref="ProblemScan"/>）が渡す。ここは種類ごとの見出しと上位の件数、前の四半期からの向き（▲▼）、押したときの飛び先を持つだけ。
+// ・行は本体の目録（<see cref="ProblemScan"/>）が渡す。ここは種類ごとの見出しと上位の件数、前の四半期からの向き（↑↓）、押したときの飛び先を持つだけ。
 // ・閾値で選ばない：0 でない物を大きさの順に並べる（どこからが問題かは画面に出さない）。上位の件数だけ見せ、見出しを押すと全部を見る。
 // ・更新は月ごと（ヘッダーと同じ）。向きは前の四半期の大きさとの比較＝四半期の境で基準を取り直す（基準は画面の側の記憶で、盤面には書かない）。
 using System;
@@ -72,7 +72,7 @@ public partial class GameViewModel
             var h = new ProblemRow("h|" + kind, ActivateProblem)
             {
                 IsHeader = true, Kind = ProblemScan.KindName(kind),
-                SizeText = open ? $"{list.Count}" : $"{ProblemTopN}/{list.Count}",
+                SizeText = $"{list.Count}件",   // 件数だけ（旧「4/81」＝見せている数/全数は意味が読めない・2026-11-11 作者指摘）
             };
             rows.Add(h);
             foreach (var p in open ? list : list.Take(ProblemTopN))
@@ -94,9 +94,9 @@ public partial class GameViewModel
     private string TrendOf(ProblemItem p)
     {
         if (!_problemBaseSet) return "";
-        if (!_problemBase.TryGetValue(p.Key, out double before)) return "▲";
-        if (p.Size > before * (1 + ProblemTrendBand)) return "▲";
-        if (p.Size < before * (1 - ProblemTrendBand)) return "▼";
+        if (!_problemBase.TryGetValue(p.Key, out double before)) return "↑";
+        if (p.Size > before * (1 + ProblemTrendBand)) return "↑";
+        if (p.Size < before * (1 - ProblemTrendBand)) return "↓";
         return "";
     }
 

@@ -363,12 +363,19 @@ public partial class MainWindow : Window
             // ★(501) 段2：旧の「タブを順に開く」は「ページを順に開く」になった。中央に 1 ページずつ。
             //   ページの外側が縦に流れていない判定（設計 §7-3）を各ページで BootLog に書く。
             int k = 4;
-            foreach (var slot in SlotInfo.All.Where(x => x != Slot.Map))
+            foreach (var slot in SlotInfo.All.Where(x => x != Slot.Map && x != Slot.Province))
             {
                 UiShotWindows.CloseAll(lay); UiShotWindows.OpenFull(gameView, lay, slot);
                 await Task.Delay(900);
                 Capture(dir, $"{k:D2}_ページ_{SlotInfo.Name(slot)}.png");
                 LogOuterFlow(gameView, SlotInfo.Name(slot));
+                if (slot == Slot.Market)   // 市場の 2 面目（貿易）
+                {
+                    gvm.MarketTradeView = true; await Task.Delay(700);
+                    Capture(dir, $"{k:D2}c_ページ_{SlotInfo.Name(slot)}_貿易.png");
+                    LogOuterFlow(gameView, SlotInfo.Name(slot) + " 貿易");
+                    gvm.MarketTradeView = false; await Task.Delay(300);
+                }
                 // 縦に長いページは最下端まで送った状態も撮る（下端見切れの検証・2026-07-25）
                 var sv = this.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "PageScroll");
                 if (sv is not null && sv.Extent.Height > sv.Viewport.Height + 1)

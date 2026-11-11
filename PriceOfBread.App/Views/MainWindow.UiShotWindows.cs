@@ -19,6 +19,17 @@ public partial class MainWindow
                         string.Join(" ", lay.OpenWindows.Select(s => lay.RectOf(s) is { } r ? $"{SlotInfo.Name(s)}({r.X:F0},{r.Y:F0},{r.W:F0}×{r.H:F0})" : $"{SlotInfo.Name(s)}(初め)"));
         try
         {
+            // 窓「州」：自国の首都を指した状態（幅は固定・生産材＝左・輸入材＝右）
+            lay.Reset();
+            lay.Open(Slot.Province);
+            if (gvm.PlayerCapitalCanvas() is { } pc && gvm.MapHitAt(pc.X, pc.Y).Hover is { } hv) gvm.MapHover = hv;
+            await Task.Delay(900);
+            BootLog.Write($"uishot: 窓[州] {Now()}・題 {gvm.ShownHover?.Title}・外国勢力 {gvm.ShownHover?.RuleForeignWho}");
+            Capture(dir, $"{no():D2}_窓_州.png");
+            LogOuterFlow(gameView, "窓 州");
+            gvm.MapHover = null;
+            await Task.Delay(300);
+            Capture(dir, $"{no():D2}_窓_州_地図の外.png");
             foreach (var background in new[] { Slot.Map, Slot.Production })
             {
                 string bg = background == Slot.Map ? "地図" : "生産";

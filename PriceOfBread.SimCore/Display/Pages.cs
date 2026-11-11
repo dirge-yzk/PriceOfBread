@@ -19,7 +19,7 @@ public static class PageKeys
         Page.Production => "生産",
         Page.Market => "市場・清算・貿易",
         Page.FiscalMoney => "財政と貨幣",
-        Page.Population => "人口",
+        Page.Population => "POP",
         Page.PoliticsLaw => "政治と法",
         Page.DiplomacyWar => "外交と戦争",
         Page.Discovery => "発見",

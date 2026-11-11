@@ -25,9 +25,12 @@ public partial class GameViewModel
     [ObservableProperty] private TableSnapshot _importTable = TableSnapshot.Empty;
     // 清算の線＝四半期ごとの輸出・輸入・収支（月割）。名前つきの系列の倉に貯め（セーブは倉が名前と値の組で往復する）、画面へは点列の写しを渡す。
     private const string ClearingExportKey = "clearing.export", ClearingImportKey = "clearing.import", ClearingBalanceKey = "clearing.balance";
-    [ObservableProperty] private IReadOnlyList<double> _clearingExportSeries = Array.Empty<double>();
-    [ObservableProperty] private IReadOnlyList<double> _clearingImportSeries = Array.Empty<double>();
-    [ObservableProperty] private IReadOnlyList<double> _clearingBalanceSeries = Array.Empty<double>();
+    // 市場のページの 2 面（2026-11-11 作者指示）：財の値段／貿易（輸出＝左・輸入＝右・輸送力。収支は枠の外）
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketPricesView))] private bool _marketTradeView;
+    public bool MarketPricesView => !MarketTradeView;
+    [CommunityToolkit.Mvvm.Input.RelayCommand] private void SetMarketView(string? p) => MarketTradeView = p == "trade";
+    [ObservableProperty] private string _transportUseText = "—";
+    [ObservableProperty] private Avalonia.Media.IBrush _transportUseBrush = Avalonia.Media.Brushes.Black;
     [ObservableProperty] private string _tradeExportTotal = "—";
     [ObservableProperty] private string _tradeImportTotal = "—";
     [ObservableProperty] private string _tradeBalance = "—";
@@ -58,7 +61,6 @@ public partial class GameViewModel
         if (!MarketShown) return;
         var w = _player;
         PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
-        ClearingExportSeries = _series.Of(ClearingExportKey).ToArray(); ClearingImportSeries = _series.Of(ClearingImportKey).ToArray(); ClearingBalanceSeries = _series.Of(ClearingBalanceKey).ToArray();
 
         // ---- 第1部：輸出入一覧（§3-4テレメトリ＝国際決済の国別×財別額。決済前/単一国は空） ----
         // 行は本体の貿易の表が組む（額の降順・世界価格比・依存度/世界シェア・相手）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing）。
@@ -96,6 +98,13 @@ public partial class GameViewModel
         if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"−{burdenLoss:F0}"));   // 符号は収支と同じ「−」・桁は他の輸送の行と同じ素の数
         if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料(通商破壊)", $"{w.LastBlockadeRisk:P0}"));
         TransportRows = tRows;
+        // 使用率＝運びたかった重量 ÷ 配られた輸送容量（州ごとの値を自国の活きている州で合算）。100% を超える＝輸送が交易を絞っている
+        double pot = 0, cap = 0;
+        foreach (var rg in w.Regions)
+            if (rg.LastTransportCap > 1e-9 && rg.LastTransportCap < 1e15) { pot += Math.Max(0, rg.LastTradePotential); cap += rg.LastTransportCap; }
+        double use = cap > 1e-9 ? pot / cap : double.NaN;
+        TransportUseText = double.IsFinite(use) ? $"{use:P0}" : "—";
+        TransportUseBrush = !double.IsFinite(use) ? Avalonia.Media.Brushes.Gray : use > 1.0 ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#B02418")) : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#2A2118"));
     }
 
     // ⚠撤去2026-08-23（読み手ゼロ）: 弧3-1/3-2 の計器板（ArcGrowthText/ArcCreditMultText/ArcSubsidyText/ArcCrowdingText/ArcWelfareText/ArcFiscalCapacityText と NotifyArc）＝どの axaml も束縛していなかった。

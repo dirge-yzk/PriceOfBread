@@ -119,6 +119,9 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty] private List<MapEdgeLine> _mapEdges = new();   // 03地理 手順1（§6作者裁定）：陸グラフの辺＝陸路の骨格を地図に出す（データそのものの表示＝思想⑦に反しない）
     // 州ホバー＝地図左上の固定パネルに詳細（ツールチップより長いリストを出せる・上位品目のハイライト付き）。
     [ObservableProperty] private MapHoverInfo? _mapHover;
+    /// <summary>窓「州」が出す州＝最後に指した州（指す先が無くなっても残す＝窓へ移る間に消えない）。</summary>
+    [ObservableProperty] private MapHoverInfo? _shownHover;
+    partial void OnMapHoverChanged(MapHoverInfo? value) { if (value is not null) ShownHover = value; }
     // ★州パネルのピン留め（支配度 §7「ホバーで要約・クリックでピン」・2026-09-07）：州の左クリックで左上パネルを固定。同じ州でもう一度＝解除。他の州＝持ち替え（当たりは塗り分けのセル＝MapHitAt）。
     [ObservableProperty] private bool _hoverPinned;
     private Region? _pinnedRegion;   // ピンの鍵＝州（MapHoverInfo は四半期ごとに作り直される＝実体で比べると「同じ州で解除」が壊れ、表示も固まる＝レビュー是正2026-09-07）

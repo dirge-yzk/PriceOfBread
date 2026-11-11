@@ -29,11 +29,5 @@
                 <ctl:LineChart x:Name="DebtChart" Values="{Binding GovDebtValues}" Height="56" Stroke="{StaticResource RustBrush}"/>
             </StackPanel>
         </ctl:Section>
-        <ctl:Section Key="tech" Title="技術水準">
-            <StackPanel Spacing="4">
-                <TextBlock Text="{Binding TechLevelText}" Classes="range"/>
-                <ctl:LineChart x:Name="TechChart" Values="{Binding TechValues}" Height="56" Stroke="{StaticResource BronzeBrush}"/>
-            </StackPanel>
-        </ctl:Section>
     </ctl:PageGrid>
 </UserControl>

@@ -295,9 +295,9 @@ public partial class GameViewModel
     {
         if (FindPower(name) is not { } t) return;
         bool can = _player.CanUnificationWar(t, out string reason);
-        ConfirmTitle = "統一戦争";
+        ConfirmTitle = "宣戦布告（統一戦争）";
         ConfirmBody = $"{t.Name}\n目標 {_player.UnificationRule?.NewName ?? ""}　必要州の保有国" + (can ? "" : $"\n不可:{reason}");
-        ConfirmAcceptLabel = "宣戦";
+        ConfirmAcceptLabel = "宣戦布告";
         ConfirmCan = can;
         _confirmDo = () => _player.DeclareUnificationWarOn(t);
         ConfirmOpen = true;
@@ -316,12 +316,12 @@ public partial class GameViewModel
         double force = _sim.Diplomacy.ColonizeForce(Me, t, _player.Coef);
         double need = _sim.Diplomacy.SubmitLine(t, _player.Coef);   // 屈服線＝エンジンと同じ1本（要求余剰戦力の分母と同一）
         string outlook = force >= need ? "屈服の見込み" : "拒否=開戦の見込み";
-        ConfirmTitle = "侵略";
+        ConfirmTitle = "宣戦布告";
         var aimCol = _interestColony is { } ic && t.ColonyList.Contains(ic) ? ic : null;   // 02断線走査2026-07-28：狙い先が標的国の植民地なら講和の優先割譲へ
         ConfirmBody = $"{t.Name}\n余剰戦力 {WillPct(cost)} を消費　現在 {WillPct(_player.ExpansionWill)}\n実効戦力 {Fmt.Men(force * _player.Coef.SoldiersPerMilitary)}/必要 {Fmt.Men(need * _player.Coef.SoldiersPerMilitary)}　→ {outlook}"
                       + (aimCol is not null ? $"\n狙い先 {aimCol.Name}" : "")
                       + (can ? "" : $"\n不可:{reason}");
-        ConfirmAcceptLabel = "侵略";
+        ConfirmAcceptLabel = "宣戦布告";
         ConfirmCan = can;
         _confirmDo = () => _player.Invade(t, aimCol);
         ConfirmOpen = true;

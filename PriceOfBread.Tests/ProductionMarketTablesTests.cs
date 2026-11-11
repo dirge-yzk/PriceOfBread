@@ -106,7 +106,7 @@ public class ProductionMarketTablesTests
     }
 
     [Fact]
-    public void 財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_価格差は国内と世界の比()
+    public void 財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_世界価格比は国内と世界の比()
     {
         var d = MarketTables.Prices.Read(Sim, W);
         Assert.NotEmpty(d.Rows);
@@ -117,9 +117,14 @@ public class ProductionMarketTablesTests
         Assert.Equal(groupIdx.OrderBy(x => x).ToList(), groupIdx);   // 層は凡例の順
         foreach (var r in d.Rows)
         {
-            double dom = ((NumberCell)r.Cells[1]!).Value, world = ((NumberCell)r.Cells[2]!).Value, gap = ((NumberCell)r.Cells[3]!).Value;
-            if (!double.IsNaN(gap)) Assert.Equal(dom / world - 1.0, gap, 9);
-            double dem = ((NumberCell)r.Cells[4]!).Value, sup = ((NumberCell)r.Cells[5]!).Value;
+            // 世界価格比＝国内価格 ÷ 世界価格（世界価格を 100%・2026-11-11）。高騰は赤・下落は青
+            int g = int.Parse(r.Key);
+            var ratioCell = (NumberCell)r.Cells[2]!;
+            double dom = ((NumberCell)r.Cells[1]!).Value, world = Sim.Market.Price[g], ratio = ratioCell.Value;
+            if (!double.IsNaN(ratio)) Assert.Equal(dom / world, ratio, 9);
+            if (ratio > 1.005) Assert.Equal("#B02418", ratioCell.Ink);
+            else if (ratio < 0.995) Assert.Equal("#2F6EA5", ratioCell.Ink);
+            double dem = ((NumberCell)r.Cells[3]!).Value, sup = ((NumberCell)r.Cells[4]!).Value;
             Assert.True(dem > 0 || sup > 0);
         }
     }
@@ -147,13 +152,14 @@ public class ProductionMarketTablesTests
                     }
             }
         // 市場ページ
-        foreach (int cols in Enumerable.Range(1, 3))
-        {
-            var arranged = PagePlan.Arrange(MarketPage.Plan, cols);
-            Assert.Equal(MarketPage.Plan.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
-        }
+        foreach (var plan2 in new[] { MarketPage.PricesPlan, MarketPage.TradePlan })
+            foreach (int cols in Enumerable.Range(1, 3))
+            {
+                var arranged = PagePlan.Arrange(plan2, cols);
+                Assert.Equal(plan2.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
+            }
         // 順位 1 の欄は最後まで残る（生産＝供給の網・市場＝財の値段）：低い高さでも畳まれるのは順位の低い欄から
-        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.Plan })
+        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.PricesPlan, MarketPage.TradePlan })
         {
             var top = t.Sections.OrderBy(s => s.Rank).First();
             var plan = PagePlan.Plan(t, 700, 400);

@@ -52,13 +52,13 @@ public static class MarketTables
         return result.OrderBy(l => TierOrder(Catalog.Goods[l.Good].Tier)).ThenBy(l => l.Good).ToList();
     }
 
-    /// <summary>財の値段の表（国内価格・世界価格・価格差・需要・供給・不足）。</summary>
+    /// <summary>財の値段の表（国内価格・世界価格比・需要・供給・不足）。</summary>
     public static Table<MarketLine> Prices { get; } = new("market.prices", "財の値段", Page.Market, Lines, l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<MarketLine>("name", "財名", l => l.Name),
         Col.Number<MarketLine>("domestic", "国内価格", Unit.PricePerUnit, l => l.Domestic),
-        Col.Number<MarketLine>("world", "世界価格", Unit.PricePerUnit, l => l.World),
-        Col.Number<MarketLine>("gap", "価格差", Unit.Share, l => l.Gap),
+        // 世界価格を 100% とした国内価格（2026-11-11 作者指示）。高騰＝赤・下落＝青（世界価格そのものは出さない）
+        Col.Number<MarketLine>("gap", "世界価格比", Unit.Share, l => l.Gap + 1.0, ink: l => l.Gap > 0.005 ? "#B02418" : l.Gap < -0.005 ? "#2F6EA5" : null),
         Col.Number<MarketLine>("demand", "需要", Unit.Quantity, l => l.Demand),
         Col.Number<MarketLine>("supply", "供給", Unit.Quantity, l => l.Supply),
         Col.Number<MarketLine>("shortage", "不足", Unit.Quantity, l => l.Shortage),

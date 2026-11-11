@@ -74,13 +74,13 @@ public static class ProblemScan
             .ToList();
     }
 
-    // 財の不足＝満たせなかった需要の額（前期の不足の量 × 自国の首都の値段）。財の値段の表と同じ行・同じ値から作る。
+    // 財の不足＝必要量（前期の総需要）に対して満たせなかった割合（2026-11-11 作者指示：額では程度が分からない）。財の値段の表と同じ行・同じ値から作る。
     private static void Shortage(MultiNationSim sim, World w, List<ProblemItem> o)
     {
         foreach (var l in MarketTables.Lines(sim, w))
         {
-            if (!(l.Shortage > 0) || !(l.Domestic > 0)) continue;   // 否定形＝NaN も落とす
-            o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, l.Shortage * l.Domestic, Unit.MoneyPerMonth, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
+            if (!(l.Shortage > 0) || !(l.Demand > 0)) continue;   // 否定形＝NaN も落とす
+            o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, Math.Min(1.0, l.Shortage / l.Demand), Unit.Share, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
         }
     }
 
@@ -103,14 +103,14 @@ public static class ProblemScan
             if (stopped[g] > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped[g], Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
     }
 
-    // 州の飢え＝主食の不足の人数（人口 × (1 − 主食の充足)）。州の表と同じ行。
+    // 州の飢え＝必要量に対する主食の不足の割合（1 − 主食の充足・2026-11-11 作者指示）。州の表と同じ行。
     private static void Hunger(World w, List<ProblemItem> o)
     {
         foreach (var l in PopTables.RegionLines(w))
         {
-            double short_ = l.Population * (1.0 - l.FoodFill);
-            if (!(short_ > 0)) continue;
-            o.Add(new ProblemItem(ProblemKind.RegionHunger, "hunger|" + l.Name, l.Name, short_, Unit.People, Page.Population, "pop.regions", l.Name));
+            double short_ = 1.0 - l.FoodFill;
+            if (!(short_ > 0) || !(l.Population > 0)) continue;
+            o.Add(new ProblemItem(ProblemKind.RegionHunger, "hunger|" + l.Name, l.Name, Math.Min(1.0, short_), Unit.Share, Page.Population, "pop.regions", l.Name));
         }
     }
 

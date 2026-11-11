@@ -49,16 +49,31 @@ public static class DiscoveryTables
         return gov.Concat(ideo).Concat(tech).ToList();
     }
 
-    /// <summary>発見の表（種類＝政府・思想・技術の群・割合・技術力・必要性・伝わり・年代）。</summary>
-    public static Table<DiscoveryLine> Discoveries { get; } = new("discovery.rows", "発見", Page.Discovery, (_, w) => DiscoveryLines(w), l => l.Key, l => l.Name,
+    /// <summary>棒の色（技術力・必要性・伝わり）。数の列の文字も同じ色＝棒の凡例を兼ねる。</summary>
+    public const string TechInk = "#2F6EA5", NeedInk = "#A8862B", TransmitInk = "#1E7A3E", KnownInk = "#6E6250";
+
+    /// <summary>発見の棒＝入れ物 100（<see cref="Discovery.GateScore"/>）に技術力・必要性・伝わりを積む。満ちれば解禁。解禁済みは入れ物いっぱいの 1 色。</summary>
+    private static BarCell DiscoveryBar(double fraction, double tech, double need, double transmit)
+        => double.IsNaN(tech) ? new BarCell([(fraction * Discovery.GateScore, KnownInk)], Discovery.GateScore)
+                              : new BarCell([(tech, TechInk), (need, NeedInk), (double.IsNaN(transmit) ? 0 : transmit, TransmitInk)], Discovery.GateScore);
+
+    private static IReadOnlyList<Column<DiscoveryLine>> DiscoveryColumns { get; } =
     [
         Col.Text<DiscoveryLine>("name", "名前", l => l.Name),
-        Col.Number<DiscoveryLine>("fraction", "割合", Unit.Share, l => l.Fraction),
-        Col.Number<DiscoveryLine>("tech", "技術力", Unit.Count, l => l.Tech),
-        Col.Number<DiscoveryLine>("need", "必要性", Unit.Count, l => l.Need),
-        Col.Number<DiscoveryLine>("transmit", "伝わり", Unit.Count, l => l.Transmit),
+        Col.Bar<DiscoveryLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, l.Transmit)),
+        Col.Number<DiscoveryLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
+        Col.Number<DiscoveryLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
+        Col.Number<DiscoveryLine>("transmit", "伝わり", Unit.Count, l => l.Transmit, ink: _ => TransmitInk),
         Col.Text<DiscoveryLine>("era", "年代", l => l.Era),
-    ], l => l.Group);
+    ];
+
+    /// <summary>発見の表・技術（2026-11-11 作者指示：棒＝100 の入れ物に技術力・必要性・伝わりを塗り分け。2 段組みの左）。</summary>
+    public static Table<DiscoveryLine> Discoveries { get; } = new("discovery.rows", "技術", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group == Groups[2]).ToList(), l => l.Key, l => l.Name,
+        DiscoveryColumns);
+
+    /// <summary>発見の表・政府と思想（2 段組みの右）。</summary>
+    public static Table<DiscoveryLine> SocialDiscoveries { get; } = new("discovery.social", "政府と思想", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group != Groups[2]).ToList(), l => l.Key, l => l.Name,
+        DiscoveryColumns, l => l.Group);
 
     /// <summary>産地の発見の行（自国の稼働中の州にある大鉱床と植林）。見つかった産地は 100%・まだの産地は点数（技術力＋必要性）の割合。値はエンジンが判定に読む同じ関数（国の中で 1 度の採点）。</summary>
     public static IReadOnlyList<SiteLine> SiteLines(World w)
@@ -90,14 +105,14 @@ public static class DiscoveryTables
         return lines.OrderByDescending(l => l.Fraction).ThenBy(l => l.Decade).ThenBy(l => l.Name, StringComparer.Ordinal).ThenBy(l => l.Region, StringComparer.Ordinal).ToList();
     }
 
-    /// <summary>産地の表（州名・産地・割合・技術力・必要性・年代）。</summary>
+    /// <summary>産地の表（州名・産地・棒・技術力・必要性・年代）。</summary>
     public static Table<SiteLine> Sites { get; } = new("discovery.sites", "産地", Page.Discovery, (_, w) => SiteLines(w), l => l.Key, l => l.Name,
     [
         Col.Text<SiteLine>("region", "州名", l => l.Region),
         Col.Text<SiteLine>("name", "名前", l => l.Name),
-        Col.Number<SiteLine>("fraction", "割合", Unit.Share, l => l.Fraction),
-        Col.Number<SiteLine>("tech", "技術力", Unit.Count, l => l.Tech),
-        Col.Number<SiteLine>("need", "必要性", Unit.Count, l => l.Need),
+        Col.Bar<SiteLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, 0)),
+        Col.Number<SiteLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
+        Col.Number<SiteLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
         Col.Text<SiteLine>("era", "年代", l => l.Era),
     ]);
 }

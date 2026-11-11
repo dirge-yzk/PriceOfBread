@@ -216,7 +216,7 @@ public sealed class PageGrid : Panel
     /// <summary>欄を開く（問題の一覧とピン留めの飛び先が畳まれていたとき）。見出しを押して開いたのと同じ扱い（代わりに順位の一番低い開いた欄が畳まれる）。</summary>
     public void Reveal(string sectionKey)
     {
-        _userClosed.Remove(sectionKey); _userOpened.Add(sectionKey);
+        OpenByUser(sectionKey);
         InvalidateMeasure();
         UserStateChanged?.Invoke();
     }
@@ -235,9 +235,18 @@ public sealed class PageGrid : Panel
         InvalidateMeasure();
     }
 
+    /// <summary>利用者が開いた＝この欄を一番最後に畳む。前に開いた欄は「開いた」の印を外す（高さが足りなければ先に畳まれる側へ回す）。
+    /// 印を残すと、窓が狭いとき前に開いた欄どうしで順位の低い欄（いま開いた欄）が畳まれ、押しても開かなかった（2026-11-11 作者指摘）。</summary>
+    private void OpenByUser(string key)
+    {
+        _userClosed.Remove(key);
+        _userOpened.Clear();
+        _userOpened.Add(key);
+    }
+
     private void OnHeader(Section s)
     {
-        if (s.IsCollapsed) { _userClosed.Remove(s.Key); _userOpened.Add(s.Key); }
+        if (s.IsCollapsed) OpenByUser(s.Key);
         else { _userOpened.Remove(s.Key); _userClosed.Add(s.Key); }
         InvalidateMeasure();
         UserStateChanged?.Invoke();

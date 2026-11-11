@@ -41,6 +41,7 @@ public partial class GameViewModel
 
     private void InitLayout()
     {
+        Layout.Open(Slot.Province);   // 窓「州」は最初から開く（地図で指した州の情報。閉じても D などのキーは無い＝ヘッダーの釦も無い）
         foreach (var s in SlotInfo.Pages) PageButtons.Add(new PageButtonVM(s));   // 地図は釦を持たない（Tab で生産と切り替える）
         _shownPrev = new HashSet<Slot>(Layout.Shown());
         Layout.Changed += OnLayoutChanged;

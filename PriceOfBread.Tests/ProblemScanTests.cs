@@ -92,7 +92,7 @@ public class ProblemScanTests
     }
 
     [Fact]
-    public void 州の飢えは主食の不足の人数_充足が満ちた州は並ばない()
+    public void 州の飢えは主食の不足の割合_充足が満ちた州は並ばない()
     {
         var (sim, w) = Board();
         foreach (var r in w.Regions) r.FoodFill = 1.0;
@@ -101,7 +101,8 @@ public class ProblemScanTests
         rg.FoodFill = 0.5;
         var h = Assert.Single(ProblemScan.Scan(sim, w), p => p.Kind == ProblemKind.RegionHunger);
         Assert.Equal(rg.Name, h.RowKey);
-        Assert.Equal(rg.SumPopulation() * 0.5, h.Size, 6);
+        Assert.Equal(0.5, h.Size, 6);
+        Assert.Equal(Unit.Share, h.Unit);
     }
 
     [Fact]

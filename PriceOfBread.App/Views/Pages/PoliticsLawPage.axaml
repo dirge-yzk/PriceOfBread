@@ -6,7 +6,8 @@
              x:DataType="vm:GameViewModel">
     <!-- Views/Pages/PoliticsLawPage.axaml ＝ 政治と法のページ（(501) 段3）。旧の法律タブと政治タブを 1 つのページに組み直した。
          欄の並べは .axaml.cs の PageTable（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）。ページの外側は縦に流れない。
-         法の表と制度の表は本体の目録（SimCore/Display/LawTables.cs）が行を並べる＝法を足すとき画面は直さない。
+         2026-11-11 作者指示：法の表が左の列いっぱい・右の列が政治（権力・政体・議会）。制度は発見のページへ移した。
+         法の表は本体の目録（SimCore/Display/LawTables.cs）が行を並べる＝法を足すとき画面は直さない。
          値の行は共通の部品 StatRow（名前と値とホバー）。半円は共通の HalfPie。-->
     <ctl:PageGrid x:Name="Sections" Margin="6">
 
@@ -71,55 +72,15 @@
         </ctl:Section>
 
         <!-- 王権と議会：政体の名前・望まれている政体・議会統制力・政治資本・協力度・政変圧力（政体が動くかの量） -->
-        <ctl:Section Key="crown" Title="王権と議会">
-            <StackPanel>
+        <ctl:Section Key="crown" Title="政体">
+            <StackPanel Spacing="2">
                 <ctl:StatRow Label="政体" Value="{Binding PolityText}"/>
                 <ctl:StatRow Label="王冠の形" Value="{Binding CrownText}"/>
                 <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}"/>
                 <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Note="{Binding ParliamentControlTip}"/>
-                <ctl:StatRow Label="政治資本" Value="{Binding PoliticalCapitalText}"/>
-                <ctl:StatRow Label="王権と議会の協力度" Value="{Binding CoopParliamentText}"/>
                 <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" ValueBrush="{Binding ChallengeBrush}"/>
-            </StackPanel>
-        </ctl:Section>
-
-        <!-- 政体：現政体で効いている量 -->
-        <ctl:Section Key="polity" Title="政体">
-            <StackPanel>
-                <ctl:StatRow Label="経済政策の決定" Value="{Binding PolityEconControlText}"/>
-                <ctl:StatRow Label="国債の信認割引" Value="{Binding PolityBondDiscountText}"/>
-                <ctl:StatRow Label="参政権と報道の剥奪" Value="{Binding PolityRollbackText}"/>
-            </StackPanel>
-        </ctl:Section>
-
-        <!-- 政治影響力：勢力ごとの割合。力の源泉の分解はホバー -->
-        <ctl:Section Key="bloc" Title="政治影響力">
-            <ItemsControl ItemsSource="{Binding Blocs}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:BlocRow">
-                        <ctl:StatRow Label="{Binding Name}" Value="{Binding Percent}" ValueBrush="{StaticResource BronzeBrush}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ctl:Section>
-
-        <!-- 権力の奪い合い：議会統制力を今期動かした経路（寄与の大きい順）。議会の成立を待たない -->
-        <ctl:Section Key="struggle" Title="権力の奪い合い">
-            <StackPanel>
-                <TextBlock Text="動きなし" Classes="dim" IsVisible="{Binding !HasPowerStruggle}"/>
-                <StackPanel IsVisible="{Binding HasPowerStruggle}">
-                    <ctl:StatRow Label="議会統制力の今期の変化" Value="{Binding PcDeltaText}" ValueBrush="{Binding PcDeltaBrush}"/>
-                    <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}"/>
-                    <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}"/>
-                    <!-- 経路の内訳（緑＝議会が得る／赤＝王権と軍が取り返す）。動いていない経路は行を出さない -->
-                    <ItemsControl ItemsSource="{Binding PowerShifts}" Margin="12,0,0,0">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:PowerShiftRow">
-                                <ctl:StatRow Label="{Binding Name}" Value="{Binding Value}" ValueBrush="{Binding Brush}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+                <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}" IsVisible="{Binding HasPowerStruggle}"/>
+                <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}" IsVisible="{Binding HasPowerStruggle}"/>
             </StackPanel>
         </ctl:Section>
 
@@ -203,33 +164,6 @@
 />
                 </StackPanel>
             </StackPanel>
-        </ctl:Section>
-
-        <!-- 政体の実績（信認⇔失望）：4 系統の固着⇔カオスのドライバ。緑＝信認・赤＝失望のバー -->
-        <ctl:Section Key="regime" Title="政体の実績">
-            <ItemsControl ItemsSource="{Binding RegimeRecords}" Grid.IsSharedSizeScope="True">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:RegimeRow">
-                        <Grid Margin="0,2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="regimeName"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="0,0,8,0"/>
-                            <Border Grid.Column="1" Width="130" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#E4DABE" CornerRadius="2">
-                                <Border Height="10" Width="{Binding BarWidth}" HorizontalAlignment="Left" Background="{Binding Brush}" CornerRadius="2"/>
-                            </Border>
-                            <TextBlock Grid.Column="2" Text="{Binding Value}" Foreground="{Binding Brush}" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,0,0"/>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ctl:Section>
-
-        <!-- 制度：特許制度・株式会社・鉄道。条件を満たせば自動で施行される＝押す物ではない（状態だけ） -->
-        <ctl:Section Key="institution" Title="制度">
-            <ctl:TableView Snapshot="{Binding InstitutionTable}"/>
         </ctl:Section>
     </ctl:PageGrid>
 </UserControl>

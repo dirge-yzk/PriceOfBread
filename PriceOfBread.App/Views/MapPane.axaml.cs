@@ -36,6 +36,7 @@ public partial class MapPane : UserControl
         MapHost.PointerPressed += OnPressed;
         MapHost.PointerMoved += OnMoved;
         MapHost.PointerReleased += OnReleased;
+        MapHost.PointerCaptureLost += (_, _) => _panning = false;   // 窓の外で離した・別のアプリへ移った＝離した知らせが来ない。パンが残るとホバーが効かなくなる
         MapHost.SizeChanged += OnHostSizeChanged;
         MapHost.PointerExited += (_, _) => { if (DataContext is ViewModels.GameViewModel vmx && !vmx.HoverPinned) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
         MapHost.Focusable = true;
@@ -66,7 +67,6 @@ public partial class MapPane : UserControl
     private ViewModels.GameViewModel? _vmHooked;   // CenterMap を購読したVM（解放用）
 
     private bool _homed;   // 自国センタリングを一度だけ実行
-    private bool _rehome;  // 外交の地図の欄を開き直した（倍率は今のまま・首都だけ映す）
     private Size? _lastBox;   // 直前の箱の大きさ（大きさが変わったとき中心を保つ）
 
     private void OnMapLoaded(object? sender, RoutedEventArgs e)
@@ -74,13 +74,12 @@ public partial class MapPane : UserControl
         // ツリー構築直後だと Border.Focus() が通らないことがあるので遅延実行。
         Dispatcher.UIThread.Post(() => MapHost.Focus(), DispatcherPriority.Loaded);
         if (_vmHooked is null && DataContext is ViewModels.GameViewModel vm) { _vmHooked = vm; vm.CenterMap += OnCenterMap; }
-        // 外交と戦争のページの地図の欄に載った（ページを開いた）ときは、開くたびに自国の首都を映す（作者の指示 2026-10-23）。単独の枠の地図は最初の 1 回だけ
-        if (this.FindAncestorOfType<Pages.DiplomacyWarPage>() is not null) { _rehome |= _homed; _homed = false; }   // 2 回目以降は倍率を保つ（首都を映すだけ）
         Dispatcher.UIThread.Post(HomeView, DispatcherPriority.Background);   // レイアウト確定後に自国を中央へ
     }
 
     private void OnMapUnloaded(object? sender, RoutedEventArgs e)
     {
+        _panning = false;
         if (_vmHooked is not null) { _vmHooked.CenterMap -= OnCenterMap; _vmHooked = null; }
     }
 
@@ -89,8 +88,7 @@ public partial class MapPane : UserControl
     {
         if (_homed) return;
         if (MapHost.Bounds.Width < 1 || MapHost.Bounds.Height < 1) { Dispatcher.UIThread.Post(HomeView, DispatcherPriority.Background); return; }
-        double s = Math.Clamp(_rehome ? _scale.ScaleX : MinScale() * 2.2, MinScale(), MaxScale);
-        _rehome = false;
+        double s = Math.Clamp(MinScale() * 2.2, MinScale(), MaxScale);
         _scale.ScaleX = _scale.ScaleY = s;
         _fitted = true;
         (DataContext as ViewModels.GameViewModel)?.SetMapFitScale(MinScale());   // 地名の表示閾値をフィット倍率基準に
@@ -467,6 +465,7 @@ public partial class MapPane : UserControl
 
     private void OnMoved(object? sender, PointerEventArgs e)
     {
+        if (_panning && !e.GetCurrentPoint(MapHost).Properties.IsLeftButtonPressed) _panning = false;   // 押していないのにパン中＝離しを取り逃した
         if (!_panning) { HoverAt(e); return; }   // パン中は持ち替えない（地図が動いているだけ）
         var cur = e.GetPosition(MapHost);
         _translate.X += cur.X - _last.X;

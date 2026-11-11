@@ -13,12 +13,16 @@ public class LayoutTests
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var expected = new (Slot Slot, char Key, string Name)[]
         {
-            (Slot.Market, 'Q', "市場・清算・貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "人口"),
+            (Slot.Market, 'Q', "市場・清算・貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
             (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"),
         };
-        Assert.Equal(8, SlotInfo.All.Count);
+        Assert.Equal(9, SlotInfo.All.Count);
         Assert.Equal(7, SlotInfo.Pages.Count);   // 押し釦に並ぶのは 7 ページ（地図は釦もキーも持たない）
         Assert.DoesNotContain(Slot.Map, SlotInfo.Pages);
+        Assert.DoesNotContain(Slot.Province, SlotInfo.Pages);   // 州の窓は釦もキーも持たない
+        Assert.Equal("州", SlotInfo.Name(Slot.Province));
+        Assert.True(LayoutModel.IsWindow(Slot.Province));
+        Assert.Equal(460, LayoutModel.DefaultRect(Slot.Province, 1600, 900).W);   // 幅は領域の大きさに依らず固定
         foreach (var (slot, key, name) in expected)
         {
             Assert.Equal(key, SlotInfo.Key(slot));

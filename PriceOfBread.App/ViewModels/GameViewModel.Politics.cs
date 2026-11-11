@@ -270,13 +270,8 @@ public partial class GameViewModel
         }
         if (!HasPowerStruggle) { PowerShifts.Clear(); return; }   // ★可視条件は節と同一（HasParliament ではない＝議会の成立前から組む・作者裁定2026-08-18）
 
-        // 床は**ラベルが動く境界**そのもの（CrownParliament.LabelFromAxes）＝いまどちら側に居て、あと何ポイントで名前が変わるかを出す。
-        // 現ラベルが立憲/共和なら下抜け床、それ以外は立憲の床が「次に越える線」＝ヒステリシスの向きに合わせて1本だけ示す。
-        bool inConstitutional = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
-        double edge = inConstitutional ? c.ConstitutionalControlExit : c.ConstitutionalControlFloor;
-        ParliamentControlTip = $"立憲の床 {c.ConstitutionalControlFloor:P0}　下抜け {c.ConstitutionalControlExit:P0}"
-                             + $"\n{(inConstitutional ? "下抜けまで" : "立憲まで")} {Math.Abs(pc - edge):P1}"
-                             + (w.ReformGrantCount > 0 ? $"\n上からの改革の下賜 {w.ReformGrantCount}回" : "");
+        // 閾値（立憲の床・下抜け）は出さない（作者裁定 2026-09-23・2026-11-11「下抜けは意味不明」）＝下賜の回数だけ
+        ParliamentControlTip = w.ReformGrantCount > 0 ? $"上からの改革の下賜 {w.ReformGrantCount}回" : "";
         PcDeltaTip = (_pcDeltaKnown ? $"前四半期 {_pcFrom:P1}　今期 {pc:P1}" : $"今期 {pc:P1}")
                    + (_pcGrantInQuarter > 0 ? $"\n上からの改革の下賜 {_pcGrantInQuarter}回" : "");
 

@@ -23,7 +23,7 @@ public partial class GameViewModel
         UpdateDate();
         RefreshDaily();   // 国庫の1行は日次と同じ1本（2026-09-11 #19d）＝物価/為替/詳細パネルの価格も同時に最新化
         TreasuryHover = StatG("", "国庫", _histTreasury, Fmt.Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
-        // 技術水準の年次推移（_histTech）は財政と貨幣のページの技術水準の線が読む（GameViewModel.Fiscal.cs の TechValues）。
+        // 技術水準の年次推移（_histTech）はセーブの系列として残す（財政と貨幣のページの技術水準の欄は 2026-11-11 作者指示で削除）。
         // ⚠ここで同じものを二度作らない（同じ量を2つの名前で呼ばない）。採取は SampleYearStats の _histTech.Add の1本だけ。
         RefreshTrade();   // 貿易タブ（2026-07-24）：開いている時のみ集計（閉＝即return）
         // 金融（物価・為替・金利・損失の負債化・家計債務・兌換カバー率）は財政と貨幣のページの金融の表（本体の目録 FiscalTables.Finance）が読む＝ここでは作らない。
