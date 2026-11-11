@@ -23,12 +23,14 @@ public static partial class Instruments
         + "xPairs\txSoldOut\txCap\txWedge\txWedgeA\txWedgeB\txWedgeC\txWedgeD\txPass\tdomPairs\t"
         + "ratioBin0\tratioBin1\tratioBin2\tratioBin3\tratioBin4\tratioBin5\tratioBin6\tratioBin7\tratioBin8\tratioBin9\t"
         + "sellerUnlinked\tsellerNoStock\tsellerOtherGate\tsellerListed\tgoodNoSellers\trowsLedger\t"
-        + "dutyMean\tdutyTariffMean\tdutyCornMean\txWedgeAT\txWedgeAC\txWedgeAB\t" + TsGateHeader + "ratioNaN\ttarEff\ttariffNow\ttariffTarget\ttreatyScale\texRate";   // (1008) 末尾の列（旧の列は同じ順・同じバイト）
+        + "dutyMean\tdutyTariffMean\tdutyCornMean\txWedgeAT\txWedgeAC\txWedgeAB\t" + TsGateHeader + "ratioNaN\ttarEff\ttariffNow\ttariffTarget\ttreatyScale\texRate"
+        + "\tsogStockLeTarget\tsogSellAcc0\tsogMilitary\tsogOther\txpEndPriceHigh\txpEndXPriceSmall\txpEndXNeedSmall\txpEndYZero\txpEndBudget\txpEndCapMid\txpEndDealt\txpEndGuard";   // (1008) 末尾の列（旧の列は同じ順・同じバイト）・(1036) C4a：売り手の〈その他の門〉の分け（在庫≦目標・sellAcc 0・軍需・その他＝和は sellerOtherGate）・C4b：xPass の組の行の終わりの理由（組の数で重みづけ＝和は xPass）
     static string TsGateHeader => string.Concat(new[] { "xSoldBin", "xCapBin", "xWedgeBin", "xPassBin" }.Select(g => string.Concat(Enumerable.Range(0, 10).Select(k => g + k + "\t"))));
-    internal const int TsNewCols = 3 + 3 + 40 + 1 + 5;   // (1008) ALL の行を同じ幅で埋める数
+    internal const int TsNewCols = 3 + 3 + 40 + 1 + 5 + 12;   // (1008) ALL の行を同じ幅で埋める数
 
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
-        Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, Count = GBin0 + 40 }
+        Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard, Count }
+    internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
     internal const int TsOutIdle = 1, TsOutNoNeed = 2, TsOutBudget0 = 3;
     static readonly double[] TsRatioEdges = [0.5, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0, 4.0];
 
@@ -37,7 +39,7 @@ public static partial class Instruments
         internal int Nn, Gc; internal string[] Names = []; internal int[] C = []; internal int[] NoSell = [];
         internal long Ledger0, LedgerDelta; internal bool Filled, Ended;
         internal double[] D = [], TarEff = [], TariffNow = [], Target = [], Treaty = [], ExRate = [];   // (1008) D＝国×財×{duty・関税の分・穀物法の分}の和（走査した行）・国の値は清算の頭で蓄える
-        int[] sNode = []; double[] sPrice = []; int sN;
+        int[] sNode = []; double[] sPrice = []; int sN; bool[] listedMark = []; int curXPass;
         int cur = -1, curBn, curG; bool scanned, dealtCross, dealtDom;
 
         internal int At(int bn, int g, TsCol c) => C[(bn * Gc + g) * (int)TsCol.Count + (int)c];
@@ -48,14 +50,25 @@ public static partial class Instruments
         internal void NoSellers(int g) { CloseRow(); NoSell[g]++; }
 
         /// <summary>売り手側（その財に 1 回）：全ての州を連結の有無・在庫で数える（売り手の表は AddSeller で渡した物）。</summary>
-        internal void SellerSide(TrEntry[] tr, int tc, double[] lpOf, Market[] mktOf, int g)
+        internal void SellerSide(TrEntry[] tr, int tc, double[] lpOf, Market[] mktOf, int g, bool milGood, double[] milExportAcc)
         {
+            if (listedMark.Length < tc) listedMark = new bool[Math.Max(64, tc * 2)]; else Array.Clear(listedMark, 0, tc);
+            for (int i = 0; i < sN; i++) listedMark[sNode[i]] = true;
             for (int s = 0; s < tc; s++)
             {
                 int sn = tr[s].nation;
                 if (!tr[s].linked) Add(sn, g, TsCol.SUnlinked);
                 else if (!(lpOf[s] > 1e-9) || !(mktOf[s].Stock > 1e-9)) Add(sn, g, TsCol.SNoStock);
-                else Add(sn, g, TsCol.SLive);
+                else
+                {
+                    Add(sn, g, TsCol.SLive);
+                    if (listedMark[s]) continue;
+                    // (1036) C4a：売り手の表に載らない生きた州の理由（排他・この順）＝在庫≦目標（P6・Market の欄の素の差）→ 出し手の係数が 0（州の access）→ 軍需の門（軍需の財で国の係数が 0）→ その他（鎖国・アヘンの輸出禁止ほか＝計器は再計算しない）
+                    if (!(mktOf[s].Stock - mktOf[s].TargetStock > 1e-12)) Add(sn, g, TsCol.OgStock);
+                    else if (tr[s].access <= 1e-12) Add(sn, g, TsCol.OgAcc0);
+                    else if (milGood && tr[s].access * milExportAcc[sn] <= 1e-12) Add(sn, g, TsCol.OgMil);
+                    else Add(sn, g, TsCol.OgOther);
+                }
             }
             for (int i = 0; i < sN; i++) Add(tr[sNode[i]].nation, g, TsCol.SListed);
         }
@@ -67,7 +80,9 @@ public static partial class Instruments
             cur = -1; scanned = dealtCross = dealtDom = false;
         }
 
-        internal void Row(int bn, int g) { CloseRow(); cur = 1; curBn = bn; curG = g; Add(bn, g, TsCol.Rows); }
+        internal void Row(int bn, int g) { CloseRow(); cur = 1; curBn = bn; curG = g; curXPass = 0; Add(bn, g, TsCol.Rows); }
+        /// <summary>(1036) C4b：走査した行の終わりの理由。その行の xPass の組の数だけ該当の列へ足す（組ごとの追跡ではなく行の終わりの理由を組の数で重みづけ）。</summary>
+        internal void Exit(TsExit why) { if (cur < 0 || !scanned || curXPass == 0 || why == TsExit.None) return; C[(curBn * Gc + curG) * (int)TsCol.Count + (int)TsCol.XeHigh + (int)why - 1] += curXPass; }
         internal void Outcome(int which) { if (cur < 0) return; Add(curBn, curG, which == TsOutIdle ? TsCol.Idle : which == TsOutNoNeed ? TsCol.NoNeed : TsCol.Budget0); }
         internal void Deal(bool cross) { if (cur < 0) return; if (cross) dealtCross = true; else dealtDom = true; }
 
@@ -103,7 +118,7 @@ public static partial class Instruments
                     else if (selP * (1.0 + wS2 - duty) < lp) Add(curBn, curG, TsCol.WC);
                     else Add(curBn, curG, TsCol.WD);
                 }
-                else { Add(curBn, curG, TsCol.XPass); if (!nan) Add(curBn, curG, TsCol.GBin0 + 30 + b); }
+                else { Add(curBn, curG, TsCol.XPass); curXPass++; if (!nan) Add(curBn, curG, TsCol.GBin0 + 30 + b); }
             }
         }
 
@@ -164,6 +179,7 @@ public static partial class Instruments
                 cols.Add(I(a.C[o + (int)TsCol.WAT])); cols.Add(I(a.C[o + (int)TsCol.WAC])); cols.Add(I(a.C[o + (int)TsCol.WAB]));
                 for (int c = (int)TsCol.GBin0; c < (int)TsCol.GBin0 + 40; c++) cols.Add(I(a.C[o + c]));
                 cols.Add(I(a.C[o + (int)TsCol.RNaN])); cols.Add(FR(a.TarEff[i])); cols.Add(FR(a.TariffNow[i])); cols.Add(FR(a.Target[i])); cols.Add(FR(a.Treaty[i])); cols.Add(FR(a.ExRate[i]));
+                for (int c = (int)TsCol.OgStock; c < (int)TsCol.Count; c++) cols.Add(I(a.C[o + c]));   // (1036) C4a・C4b
                 sk.W.WriteLine(string.Join('\t', cols));
             }
         }

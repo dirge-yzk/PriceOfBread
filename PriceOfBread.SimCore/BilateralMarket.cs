@@ -783,7 +783,7 @@ public sealed partial class InternationalMarket
             }
             if (sellers.Count == 0) { ts?.NoSellers(g); continue; }   // (1003) 計器 C2
             sellers.Sort((a, b) => a.Price != b.Price ? a.Price.CompareTo(b.Price) : string.CompareOrdinal(tr[a.Node].r.Name, tr[b.Node].r.Name));   // ★買い手ソート(:515)と統一＝カルチャ非依存の決定論的タイブレーク（wave2b是正）
-            if (ts is not null) { ts.GoodBegin(sellers.Count); for (int s0 = 0; s0 < sellers.Count; s0++) ts.AddSeller(sellers[s0].Node, sellers[s0].Price); ts.SellerSide(tr, tc, lpOf, mktOf, g); }   // (1003) 計器 C2：売り手の表の写しと売り手側の数え
+            if (ts is not null) { ts.GoodBegin(sellers.Count); for (int s0 = 0; s0 < sellers.Count; s0++) ts.AddSeller(sellers[s0].Node, sellers[s0].Price); ts.SellerSide(tr, tc, lpOf, mktOf, g, milGood, milExportAcc); }   // (1003) 計器 C2：売り手の表の写しと売り手側の数え
 
             bool[]? cheapAfter = null;   // ★(471) 売り手の位置 s 以後（s を含む）に −1 の売り手がいるか（昇順の打ち切りの下界を弱めるのはこの位置だけ＝−1 の財は余りもの＝安い側＝先頭に寄るので、後ろは強い下界のまま）
             if (cheapG)
@@ -815,6 +815,8 @@ public sealed partial class InternationalMarket
             buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
             if (swSec is not null) { TimeListsTicks += swSec.ElapsedTicks; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
             var costC = Cost; costC[CostLedger.ClearingRows] += buyers.Count;   // 計算量の台帳（診断）：この財で見る買い手行（眠った行・飛ばした行も1件）
+            long nEvalLB = 0;   // (1036) 下界を評価した売り手の数（飛ばした＋通した）＝台帳の行 ClearingSkipsLB（cscx_s の fillsSkippedLB は下の nSkipLB のまま）
+            bool lbAuditOn = LbAudit is not null;   // (1036) 監査の呼び口の有無を財の頭で 1 回だけ読む（熱いループの中で ThreadStatic を読まない）
             long nSkipLB = 0;   // (1029) 着値の下界で飛ばした売り手の数（財の終わりに台帳へ・計器 cscx_s の末尾の列）
             // (1029) 下界を使う条件（足す項が全て負でない＝下界が真の下界）：TransportMargin×adValoremRev・WeightMarginAdd・BlockadeStapleBias・RiskLambda（危険料 1−exp(−λ…) ≧ 0）。NaN は否定形で外す
             bool lbOn = c.TransportMargin >= 0 && adValoremRev >= 0 && weightAdd >= 0 && c.BlockadeStapleBias >= 0 && c.RiskLambda >= 0 && !LbOffForTest;
@@ -905,12 +907,12 @@ public sealed partial class InternationalMarket
                 double unitA = 0, rpT = 0, powVal = 0, sellAccB = 0, rpS = 0, frA = 0, sA = 0, dutyA = 0, portT = 0, portS = 0, premA = 0, costA = 0, sellSubA = 0;   // sellSubA＝★(471) この成約の売り手の奨励率（0＝なし）
                 int snA = 0, siA = 0; Market msA = null!; bool xPriceOn = false, crossA = false, seaA = false;
                 bool dealtRow = false;   // この行で1件でも成約したか（成約しなかった行に印＝ClearFailLp）
-                int guard = 0;
+                int guard = 0; var tsWhy = Instruments.TsExit.None; bool yRemoved = false;   // (1036) 計器 C4b：行の終わりの理由（ts が null のときは書き込みだけで読まない）
                 if (ts is not null) ts.Scan(tr, t, lp, left, capLeft, baseMul, wedge, duty, sellCheap, cornPen);   // (1003) 計器 C2：走査に入る行の売り手の表を最初に当たった門で数える
                 while (true)
                 {
                     if (MultiNationSim.TimeOn) CntRollIters++;   // ★計器
-                    if (++guard > RolloverGuardMax) break;   // 停止保証
+                    if (++guard > RolloverGuardMax) { tsWhy = Instruments.TsExit.Guard; break; }   // 停止保証
                     if (!keepBest)
                     {
                         dealConstStale = true;   // ★(335) 最良と次善が決まり直す＝下の反復不変の値を求め直す
@@ -965,12 +967,13 @@ public sealed partial class InternationalMarket
                             if (selP * (baseMul + wS2) >= lp) { if (MultiNationSim.TimeOn) CntWedgeSkips++; prevS = s2; s2 = nextS![s2]; continue; }
                             double lbAud = double.NaN;   // 試験の監査のときだけ使う（下界の着値）
                             if (lbOn && selP >= 0)
-                            {   // ★(1029) 売り手の国の最短距離で作った下界（fac2 と同じ順の式・km＝最小・risk＝0・bb＝0）が着値≧lp なら、真の着値も≧lp＝無効な売り手＝充填せず飛ばす（break にしない・prevS を進める＝1c と同じ）
+                            {   nEvalLB++;   // (1036) 評価した件数（台帳）
+                                // ★(1029) 売り手の国の最短距離で作った下界（fac2 と同じ順の式・km＝最小・risk＝0・bb＝0）が着値≧lp なら、真の着値も≧lp＝無効な売り手＝充填せず飛ばす（break にしない・prevS を進める＝1c と同じ）
                                 double kmL = LbKmOf(t, sNat);
                                 double marL = tMargin * (1.0 + kmL / Diplomacy.DistanceNormKm) * adValoremRev
                                             + weightAdd * (kmL / Diplomacy.DistanceNormKm) + 0.0;
                                 double facL = 1 + marL + wS2 + 0.0;
-                                if (LbAudit is not null) lbAud = selP * facL;
+                                if (lbAuditOn) lbAud = selP * facL;
                                 else if (LbSkip(selP * facL, lp)) { nSkipLB++; prevS = s2; s2 = nextS![s2]; continue; }
                             }
                             if (MultiNationSim.TimeOn) CntFills++;   // ★計器（着値の計算）
@@ -985,7 +988,7 @@ public sealed partial class InternationalMarket
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
                             double del2 = selP * fac2; if (del2 >= lp) nInv++;
-                            if (LbAudit is not null && !double.IsNaN(lbAud)) LbAudit(lbAud, del2, lp, t, sn);   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
+                            if (lbAuditOn && !double.IsNaN(lbAud)) LbAudit(lbAud, del2, lp, t, sn);   // (1024) 計器 K1：着値≧自州価格の充填（無効な売り手・NaN は数えない）
                             if (del2 < double.MaxValue)
                             {
                                 candS[candN] = s2; candD![candN] = del2; candK![candN] = km2; candF![candN] = fac2;
@@ -1003,6 +1006,7 @@ public sealed partial class InternationalMarket
                     {
                         // ★(403) 覚えの売り手が尽きた（売り手の在庫・容量が無い・着値が合わない）＝全ての売り手を探し直す（足す分だけ。覚えは先に当たる相手であって、買えない口実ではない）
                         if (restrict && capLeft[t] > 1e-12 && budget[t] > 1e-12) { restrict = false; scopeFell = true; candN = 0; resS = headS; resPrev = -1; if (MultiNationSim.TimeOn) CntScopeFallbacks++; continue; }
+                        tsWhy = dealtRow ? Instruments.TsExit.Dealt : yRemoved ? Instruments.TsExit.YZero : Instruments.TsExit.PriceHigh;
                         break;
                     }
                     if (dealConstStale || DealConstAlwaysStale)
@@ -1063,10 +1067,11 @@ public sealed partial class InternationalMarket
                     }
                     if (!(qA > 1e-12))
                     {
-                        if (!(X > 1e-12)) break;          // 買い手が満ちた＝この財は終了
-                        if (capLeft[t] <= 1e-12 && !(X - unmetQ > 1e-12)) break;   // 買い手の容量が尽き、不足は全て数えた＝この行は終わり（以後の売り手は数え直しになるだけ）
-                        if (!(budget[t] > 1e-12)) break;  // 払い手の支払能力が尽きた（この清算の中で増えない）
+                        if (!(X > 1e-12)) { tsWhy = dealtRow ? Instruments.TsExit.Dealt : xPrice <= xNeed ? Instruments.TsExit.XPriceSmall : Instruments.TsExit.XNeedSmall; break; }          // 買い手が満ちた＝この財は終了
+                        if (capLeft[t] <= 1e-12 && !(X - unmetQ > 1e-12)) { tsWhy = Instruments.TsExit.CapMid; break; }   // 買い手の容量が尽き、不足は全て数えた＝この行は終わり（以後の売り手は数え直しになるだけ）
+                        if (!(budget[t] > 1e-12)) { tsWhy = Instruments.TsExit.Budget; break; }  // 払い手の支払能力が尽きた（この清算の中で増えない）
                         // 売り手側の事情（Y=0/容量0/在庫0）＝次善へ回る（旧＝一時スキップの印 skipS[bestA]）＝候補表から外す
+                        yRemoved = true;
                         candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN];
                         continue;
                     }
@@ -1131,16 +1136,17 @@ public sealed partial class InternationalMarket
                     }
                     // ---- 容量の簿記 ----
                     capLeft[t] -= qA * Wg; capLeft[snA] -= qA * Wg;
-                    if (capLeft[t] <= 1e-12) break;   // この買い手は今清算これ以上運べない
+                    if (capLeft[t] <= 1e-12) { tsWhy = Instruments.TsExit.CapMid; break; }   // この買い手は今清算これ以上運べない
                     // 最良が有資格のまま（旧の走査の資格判定そのもの＝否定形の NaN も同じ側）なら (a)、外れたら (b)
                     if (!(left[bestA] <= 1e-12) && !(capLeft[snA] <= 1e-12)) keepBest = true;
                     else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
+                if (ts is not null) ts.Exit(tsWhy);   // (1036) 計器 C4b
                 if (!thin && dealtN > 0) { var keep = new Region[dealtN]; Array.Copy(dealtTmp, keep, dealtN); m.ClearPartners = keep; }   // ★(403) 覚え＝最初の清算で相手にした売り手（先の K 人）
                 if (Instruments.On) { Instruments.ScopeRow(this, nations[ni].World, scopeCls, dealtRow, scopeFell, scopeThr, nFill - scopeFill0); Instruments.ScopeRowX(this, nations[ni].World, tr[t].r, nFill - scopeFill0, nInv - scopeInv0, nBest - scopeBest0, nSkipLB - scopeSkip0); }   // ★(403) 計器（読むだけ）・(1024) K1 cscx_s
                 if (!dealtRow) m.ClearFailLp = lp;   // ★走査して成約しなかった＝この自州価格を印に（月の清算で、これを超えて上がるまで眠る＝上の thin の注記）
             }
-            costC[CostLedger.ClearingFills] += nFill; costC[CostLedger.ClearingSkipsLB] += nSkipLB;   // 計算量の台帳（診断）：この財の着値の充填
+            costC[CostLedger.ClearingFills] += nFill; costC[CostLedger.ClearingSkipsLB] += nEvalLB;   // 計算量の台帳（診断）：この財の着値の充填
             // ---- 財の清算の終わり：売り手の受取を④の持分で分ける（段3-1・C4）----
             //   旧＝成約ごとに受取の半分（係数 ExportRevenueToProducers）を生産者の持ち主の貯蓄へ直接・残りは国の全POP の貯蓄比（Apply）＝賃金分が無く Earned を通らなかった。
             //   新＝州×財ごとに1回（成約あたりは O(1) の足し算だけ）：越境の分の仲介料（MerchantTradeMargin）を州の商人へ・残りを④の持分

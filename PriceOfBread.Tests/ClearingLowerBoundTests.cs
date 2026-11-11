@@ -103,10 +103,34 @@ public class ClearingLowerBoundTests
         var on1 = RunPlain(false, 4);
         var on2 = RunPlain(false, 4);
         Assert.Equal(0L, off.Skips);
-        Assert.True(on1.Skips > 100, $"飛ばした件数が少ない（前提の破れ）{on1.Skips}");
+        Assert.True(on1.Skips > 100, $"評価した件数が少ない（前提の破れ）{on1.Skips}");
         Assert.Equal(off.D, on1.D);                         // 軌道の写しが 1 ビットも違わない
-        Assert.Equal(off.Fills, on1.Fills + on1.Skips);     // 充填＋飛ばした＝旧の充填
+        // (1036) 台帳の行 ClearingSkipsLB は〈下界を評価した件数（飛ばした＋通した）〉に変わった：期待は下界を使わない道（LbOffForTest）の充填から取る（同じ出所の和にしない）
+        Assert.Equal(off.Fills, on1.Skips);                 // 評価した件数＝旧の充填（訪問集合は同じ）
+        Assert.True(on1.Fills > 0 && on1.Fills < on1.Skips, $"通した件数が評価の内に収まらない {on1.Fills}/{on1.Skips}");
+        Assert.True(off.Fills - on1.Fills > 100, $"飛ばした件数が少ない（前提の破れ）{off.Fills - on1.Fills}");
         Assert.Equal(on1.Skips, on2.Skips);                 // 再現（並列・順に依らない）
         Assert.Equal(on1.D, on2.D);
+    }
+
+    private static (List<long> D, long Skips) RunNegative(bool lbOff)
+    {
+        InternationalMarket.LbOffForTest = lbOff;
+        try
+        {
+            var sim = Four(1783UL); sim.Coef.TransportMargin = -1e-6;   // lbOn の門（足す項が全て負でない）を閉じる向き
+            for (int q = 0; q < 4; q++) sim.StepQuarter();
+            return (Digest(sim), sim.CostTotals()[CostLedger.ClearingSkipsLB]);
+        }
+        finally { InternationalMarket.LbOffForTest = false; }
+    }
+
+    [Fact]
+    public void T5_運賃の係数が負なら下界の道は閉じて台帳は0で軌道は下界を使わない道と同じ()
+    {
+        var gateOff = RunNegative(false);
+        var forced = RunNegative(true);
+        Assert.Equal(0L, gateOff.Skips);          // 門が閉じる＝評価も 0（門を消す変異で赤）
+        Assert.Equal(forced.D, gateOff.D);        // 軌道は下界を使わない道と 1 ビットも違わない
     }
 }
