@@ -101,7 +101,7 @@ public class TradeSkipC4Tests
             else if (why == Instruments.TsExit.XNeedSmall) { nN++; if (!(xn < xp)) bad++; }
         };
         var (dir, restore) = Run(24);
-        try { Assert.Equal(0, bad); Assert.True(nP > 0, $"対照：xPrice が小さい理由が現れない xPriceSmall {nP}・xNeedSmall {nN}");   // xNeed が小さい理由は、行の門が xNeed＞0 を要し成約の後は Dealt が先に付く＝出口が access 0 の行だけ（0 でよい・件数は記録） }
+        try { Assert.Equal(0, bad); Assert.True(nP > 0, $"対照：xPrice が小さい理由が現れない xPriceSmall {nP}・xNeedSmall {nN}"); }   // xNeed が小さい理由は、行の門が xNeed＞0 を要し成約の後は Dealt が先に付く＝出口が access 0 の行だけ（0 でよい・件数は記録）
         finally { Instruments.TsExitProbe = null; restore(); }
     }
 
