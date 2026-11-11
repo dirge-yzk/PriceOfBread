@@ -54,7 +54,7 @@ public static class PopTables
     {
         var c = w.Coef;
         if (kind == Privileges.TaxExemption)   // 身分制免税だけは法の表に行が無い＝政体が決める
-            return c.PrivilegeFromCrownShare.Value > 0 ? null : "政体:" + PlayText.PolityRegimeJa(w.Polity);
+            return c.PrivilegeFromCrownShare.Value > 0 ? null : "政体：" + PlayText.PolityRegimeJa(w.Polity);
         string? title = kind switch
         {
             Privileges.Tithe => "国教",
@@ -93,9 +93,9 @@ public static class PopTables
             if (deg > 0) held.Add(Privileges.Names[k]);   // NaN は保有でない側へ落ちる
             string tip = Privileges.Names[k];
             if (PrivilegeSourceLine(w, k) is { } src) tip += "\n" + src;
-            tip += "\n残高:" + (!(deg >= 0) ? "—" : deg.ToString("P0"));   // 否定形＝NaN は「—」
+            tip += "\n残高：" + (!(deg >= 0) ? "—" : DisplayFormat.Share(deg));   // 否定形＝NaN は「—」
             string ben = PrivilegeBeneficiaries(w, k);
-            if (ben.Length > 0) tip += "\n受益:" + ben;
+            if (ben.Length > 0) tip += "\n受益：" + ben;
             tips.Add(tip);
         }
         return (held.Count == 0 ? "なし" : string.Join("　", held), tips.Count == 0 ? null : string.Join("\n\n", tips));
@@ -125,7 +125,7 @@ public static class PopTables
             string name = PlayText.ClassLayerNames[layer], s = "";
             foreach (var (label, rows) in new (string Label, List<(string Layer, double Mean)> Rows)[] { ("識字率", lit), ("満足度", sat), ("闘争度", mil) })
                 foreach (var (ly, mean) in rows)
-                    if (ly == name) s += (s.Length == 0 ? "" : "\n") + $"{label}　{mean:P0}";
+                    if (ly == name) s += (s.Length == 0 ? "" : "\n") + $"{label}　{DisplayFormat.Share(mean)}";
             return s.Length == 0 ? null : s;
         }
 
@@ -162,17 +162,17 @@ public static class PopTables
             // 満足度の吹き出し＝主食と主食以外の充足（満足度の台帳には食料が載っていない＝台帳そのものが「主食以外」）
             double foodFill = fNeed > 1e-9 ? Math.Clamp(fMet / fNeed, 0, 1) : 1.0;
             double othFill = nTot > 1e-9 ? Math.Clamp(nMet / nTot, 0, 1) : 1.0;
-            string satTip = $"主食の充足:{foodFill:P0}\n主食以外の充足:{othFill:P0}";
+            string satTip = $"主食の充足：{DisplayFormat.Share(foodFill)}\n主食以外の充足：{DisplayFormat.Share(othFill)}";
             string party = first.Closed ? "保守党" : first.IsModernElite ? "自由党" : "社会党";   // 支持政党＝利益ブロック
             string tip = first.ClassName
-                       + $"\n所得:{DisplayFormat.Money(earned)}　貯蓄:£{perCap:F1}　借金:£{(size > 1e-9 ? debt / size : 0):F1}";
+                       + $"\n所得：{DisplayFormat.Money(earned)}　貯蓄：£{perCap:F1}　借金：£{(size > 1e-9 ? debt / size : 0):F1}";
             foreach (var (rg, p) in members.Where(m => m.P.Size > 0.5).OrderByDescending(m => m.P.Size))
             {
                 double un = p.IsSoldier ? 0 : p.Size * p.UnemploymentRate.Value;
                 tip += $"\n{rg.Name}:{DisplayFormat.PopK(p.Size)}" + (un > 0.5 ? $"(失業{DisplayFormat.PopK(un)})" : "");
             }
-            tip += $"\n女性:{fem:P0}　子供:{child:P0}　老年:{old:P0}"
-                 + $"\n失業率:{unemp:P0}" + (parliamentActive ? $"　支持政党:{party}" : "");
+            tip += $"\n女性：{DisplayFormat.Share(fem)}　子供：{DisplayFormat.Share(child)}　老年：{DisplayFormat.Share(old)}"
+                 + $"\n失業率：{DisplayFormat.Share(unemp)}" + (parliamentActive ? $"　支持政党：{party}" : "");
             // 闘争度の要因内訳（全国 size 加重の各寄与・多い順・0.5% 未満は省略）
             var milb = new List<(string Label, double V)>
             {
@@ -182,7 +182,7 @@ public static class PopTables
             string? milTip = null;
             foreach (var (label, v) in milb.Where(x => x.V > 0.005).OrderByDescending(x => x.V))
             {
-                milTip = (milTip is null ? "" : milTip + "\n") + $"・{label}:+{v:P0}";
+                milTip = (milTip is null ? "" : milTip + "\n") + $"・{label}:+{DisplayFormat.Share(v)}";
             }
             double leanNone = Math.Max(0, size - (leanC + leanL + leanS));   // 差で取る＝4 列の合計は常に規模と一致する
             var (held, privTip) = PrivilegeCells(w, cid);
@@ -202,11 +202,11 @@ public static class PopTables
         => new("pop.classes", "階級", Page.Population, (_, w) => ClassLines(w), l => "class." + l.ClassId, l => l.Name,
         [
             Col.Text<ClassLine>("name", "階級", l => l.Name, l => l.Tip),
-            Col.Text<ClassLine>("size", "規模", l => $"{DisplayFormat.PopK(l.Size)}({l.Share:P0})"),
-            Col.Text<ClassLine>("unemployed", "失業者", l => { string a = arrow?.Invoke(l, "unemployed") ?? ""; return l.UnempRate > 0.005 ? $"{DisplayFormat.PopK(l.Unemployed)}({l.UnempRate:P0}){a}" : "—"; }),   // 丸めて 0% の階級は「—」。矢印の差分は表示の有無に依らず全階級で採る
-            Col.Text<ClassLine>("satisfaction", "満足度", l => $"{l.Satisfaction:P0}{arrow?.Invoke(l, "satisfaction")}", l => l.SatisfactionTip),
-            Col.Text<ClassLine>("discontent", "不満度", l => $"{l.Discontent:P0}{arrow?.Invoke(l, "discontent")}"),
-            Col.Text<ClassLine>("militancy", "闘争度", l => $"{l.Militancy:P0}{arrow?.Invoke(l, "militancy")}", l => l.MilitancyTip),
+            Col.Text<ClassLine>("size", "規模", l => $"{DisplayFormat.PopK(l.Size)}({DisplayFormat.Share(l.Share)})"),
+            Col.Text<ClassLine>("unemployed", "失業者", l => { string a = arrow?.Invoke(l, "unemployed") ?? ""; return l.UnempRate > 0.005 ? $"{DisplayFormat.PopK(l.Unemployed)}({DisplayFormat.Share(l.UnempRate)}){a}" : "—"; }),   // 丸めて 0% の階級は「—」。矢印の差分は表示の有無に依らず全階級で採る
+            Col.Text<ClassLine>("satisfaction", "満足度", l => $"{DisplayFormat.Share(l.Satisfaction)}{arrow?.Invoke(l, "satisfaction")}", l => l.SatisfactionTip),
+            Col.Text<ClassLine>("discontent", "不満度", l => $"{DisplayFormat.Share(l.Discontent)}{arrow?.Invoke(l, "discontent")}"),
+            Col.Text<ClassLine>("militancy", "闘争度", l => $"{DisplayFormat.Share(l.Militancy)}{arrow?.Invoke(l, "militancy")}", l => l.MilitancyTip),
             Col.Number<ClassLine>("literacy", "識字率", Unit.Share, l => l.Literacy),
             Col.Text<ClassLine>("privileges", "特権", l => l.Privileges, l => l.PrivilegeTip),
         ], l => PlayText.ClassLayerNames[l.Layer], l => l.LayerTip);

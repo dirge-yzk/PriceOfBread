@@ -60,11 +60,11 @@ public static class StageGate
         string head = $"{title}:{labels[level - levelBase]}";
         if (level == cur) return head + "\n現在の段階";
         if (level > cur && !CanReach(w, axis, level, cur))
-            return head + "\n制定:不可\n" + PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
+            return head + "\n制定：不可\n" + PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
         var (ok, cost, reason) = NextStep(w, axis, level, cur);
         // 下げる側の床（緊縮の下限・戦争中は軍を解散できない）も前提で止まる＝政治資本の問題と偽らず、理由そのものを出す
         if (PlayText.IsPrereqStop(ok, reason))
-            return head + "\n制定:不可\n" + PlayText.FormatPrereq(reason);
+            return head + "\n制定：不可\n" + PlayText.FormatPrereq(reason);
         var body = new System.Text.StringBuilder(head);
         body.Append('\n').Append(PlayText.GateLine(ok, cost, reason));
         foreach (var (who, wgt) in PolicyPreferences.SupportBreakdown(w, a, level > cur))

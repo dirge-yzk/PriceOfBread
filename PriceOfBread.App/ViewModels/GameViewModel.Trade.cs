@@ -75,7 +75,7 @@ public partial class GameViewModel
         // ★2026-08-15作者フィードバック(10)：関税行（財政タブと重複）・開放度行は撤去。収支は総額の下の大型表示へ（財政タブと同レイアウト）
         // ★条約港（2026-08-04・作者仕様(4)の可視化）：開かされた港の数と関税自主権の実効低下。0港なら行ごと出さない。
         TreatyPortLine = Politics.ForeignPortShare(w) > 0   // setter は private プロパティへ直接・★(402) 関税が目減りしている間は出す（旧＝UnequalTreatyInForce の半分の線で 0〜0.25 の持分が見えなかった・反証役 rs〔bv〕低#1）
-            ? $"条約港　外国持分 {Politics.ForeignPortShare(w):P0}　関税の実効 ×{InternationalMarket.TreatyPortTariffScale(w):F2}"
+            ? $"条約港　外国持分 {Fmt.Share(Politics.ForeignPortShare(w))}　関税の実効 ×{InternationalMarket.TreatyPortTariffScale(w):F2}"
             : "";
         OnPropertyChanged(nameof(TreatyPortLine)); OnPropertyChanged(nameof(HasTreatyPorts));
 
@@ -96,14 +96,14 @@ public partial class GameViewModel
             new("海軍輸送量", $"{w.ShipCapacity:F0}"),
         };
         if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給により", $"−{burdenLoss:F0}"));   // 符号は収支と同じ「−」・桁は他の輸送の行と同じ素の数
-        if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料(通商破壊)", $"{w.LastBlockadeRisk:P0}"));
+        if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料（通商破壊）", $"{Fmt.Share(w.LastBlockadeRisk)}"));
         TransportRows = tRows;
         // 使用率＝運びたかった重量 ÷ 配られた輸送容量（州ごとの値を自国の活きている州で合算）。100% を超える＝輸送が交易を絞っている
         double pot = 0, cap = 0;
         foreach (var rg in w.Regions)
             if (rg.LastTransportCap > 1e-9 && rg.LastTransportCap < 1e15) { pot += Math.Max(0, rg.LastTradePotential); cap += rg.LastTransportCap; }
         double use = cap > 1e-9 ? pot / cap : double.NaN;
-        TransportUseText = double.IsFinite(use) ? $"{use:P0}" : "—";
+        TransportUseText = double.IsFinite(use) ? $"{Fmt.Share(use)}" : "—";
         TransportUseBrush = !double.IsFinite(use) ? Avalonia.Media.Brushes.Gray : use > 1.0 ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#B02418")) : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#2A2118"));
     }
 

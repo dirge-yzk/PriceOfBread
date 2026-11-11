@@ -202,9 +202,9 @@ public partial class GameViewModel
     {
         var t = Catalog.Goods[gid].Tier;
         if (t != GoodTier.Intermediate) return TierName(t);
-        if (Catalog.IsScarceMineral(gid, _player.Coef)) return "素材(産地限定)";
-        if (Catalog.IsMineral(gid)) return "素材(普遍資源)";
-        if (Catalog.IsColonial(gid)) return "素材(気候限定)";
+        if (Catalog.IsScarceMineral(gid, _player.Coef)) return "素材（産地限定）";
+        if (Catalog.IsMineral(gid)) return "素材（普遍資源）";
+        if (Catalog.IsColonial(gid)) return "素材（気候限定）";
         return "素材";
     }
 
@@ -578,7 +578,7 @@ public partial class GameViewModel
             //   「-+0%」という符号が2つ並んだ文字列を出していた（-0.002 → "-+0%"／-0.2 → "-20%" と挙動が割れる）。
             //   第3節を足すと 0 も −0.0 も0へ丸まる負も「0%」＝符号の無い零になる（丸めて消えた符号を書かない）。
             //   ⚠色は割れていなかった（`!(x < 0)` は -0.002 を正しく赤に落とす）＝色の式は触らない。
-            nd.PriceDiff = hasPd ? pdg.ToString("+0%;-0%;0%") : "";
+            nd.PriceDiff = hasPd ? Fmt.SignedPct(pdg) : "";
             nd.PriceDiffBrush = pdg <= 0 ? PPriceBelow : PPriceAbove;
             nd.Accent = blocked ? PAccTechShort : TierAccent(d.Tier);
             blockedOf[gi] = blocked; inactiveOf[gi] = inactive;   // 地色・枠・沈みは選択と併せて ApplyProdSelection が塗る（式は1箇所）
@@ -598,7 +598,7 @@ public partial class GameViewModel
             nd.RunningBrush = totU > 0 ? UtilColor(utilV) : PDimText;
             nd.CanUpFactory = planU < _player.FactoryTargetMax;
             nd.CanDownFactory = planU > stU + pvU + pendU;
-            nd.FactoryTip = $"国営 {stU}棟　民営 {pvU}棟　建設予定 {pendU}棟　全国目標 {planU}棟　稼働率 {utilV:P0}";
+            nd.FactoryTip = $"国営 {stU}棟　民営 {pvU}棟　建設予定 {pendU}棟　全国目標 {planU}棟　稼働率 {Fmt.Share(utilV)}";
         }
         _sBlocked = blockedOf; _sInactive = inactiveOf;
         // 財の表・設備の表・労働の表（本体の目録が行と列を名乗る）。財の表は盤の節点と同じ集計から（二度走査しない）。
@@ -642,7 +642,7 @@ public partial class GameViewModel
     ///   1州の話なので、全国の順位をそこへ入れると36行ぶん同じ8行をくり返すことになる＝1つしかない見出しの側に置く。
     ///   縦線の工場カウンター（<c>FactoryTip</c>）には置かない＝▲▼で建つ州を選ぶのは工業化ではなく
     ///   <c>UtilityAgent.FacilityBuildScore</c>（不足の深さ×人が余っている）なので、上位8を並べると「次はこの州に建つ」と読める嘘になる。</summary>
-    public string ProdRegionHeadTip => $"工業化　{_player.MeanIndustrialization:P0}\n" + string.Join("\n", IndustrializationTerms().Select(t => t.Text));
+    public string ProdRegionHeadTip => $"工業化　{Fmt.Share(_player.MeanIndustrialization)}\n" + string.Join("\n", IndustrializationTerms().Select(t => t.Text));
 
     /// <summary>詳細パネルの据え置き適用（2026-07-19）：同じ財なら既存インスタンスへ値だけ流す＝州別の建設/売却ボタンを作り直さない
     /// （旧・毎日の丸ごと差し替えは最大20回/秒でボタンを破棄＝「時間を止めないと押せない」の主因）。</summary>
@@ -788,7 +788,7 @@ public partial class GameViewModel
                 : pr.ConstructionLeft > 0 ? $"建設中 あと{pr.ConstructionLeft / (double)Calendar.DaysPerYear:F1}年"
                 : cantMakeHere ? "技術不足"
                 : _player.Treasury.Value < payPerDay ? $"国庫不足(初日の労務費 {Fmt.Money(payPerDay)} が必要)"
-                : buildAfford < _player.Coef.FactoryStartAffordFloor ? $"建材の採算 {buildAfford:P0}/必要 {_player.Coef.FactoryStartAffordFloor:P0}"
+                : buildAfford < _player.Coef.FactoryStartAffordFloor ? $"建材の採算 {Fmt.Share(buildAfford)}/必要 {Fmt.Share(_player.Coef.FactoryStartAffordFloor)}"
                 : "建設不可";
             var sale = pr is not null && pr.BuiltScale > 1e-9 ? _player.CanSellFactory(ri, gi) : (Ok: false, Price: 0.0, Reason: "");
             // ★国営工場カウンター（作者裁定2026-08-10）＝目標（意志）と現在（実測）。1カウント＝1棟＝Coefficients.FactoryBuildScale。
@@ -834,10 +834,10 @@ public partial class GameViewModel
                 Prod = unavail ? "—" : Fmt.Qty(m.LastProduced),   // まだ存在しない財は量も出さない（作者裁定2026-08-10）
                 ProdTip = utilTip,   // 稼働率とその内訳（項目5で設備欄から移設・全国値）
                 // 過不足＝生産に対する比（項目3・2026-08-10）。絶対量（生産・消費・その差）はツールチップで読む
-                Surplus = !(surplusRate > double.MinValue && surplusRate < double.MaxValue) ? "—" : surplusRate.ToString("+0%;-0%;0%"),
+                Surplus = !(surplusRate > double.MinValue && surplusRate < double.MaxValue) ? "—" : Fmt.SignedPct(surplusRate),
                 SurplusBrush = !(surplusRate < 0) ? PPlus : PMinus,
                 SurplusTip = $"生産 {Fmt.Qty(m.LastProduced)}/月　消費 {Fmt.Qty(m.LastSold)}/月　差 {(m.LastProduced - m.LastSold >= 0 ? "＋" : "−")}{Fmt.Qty(Math.Abs(m.LastProduced - m.LastSold))}",
-                MatCost = matWorld > 1e-6 ? $"{mdiff:+0%;-0%;0%}" : "—",
+                MatCost = matWorld > 1e-6 ? $"{Fmt.SignedPct(mdiff)}" : "—",
                 MatCostBrush = mdiff <= 0 ? PPriceBelow : PPriceAbove,
             }));
         }
@@ -921,7 +921,7 @@ public partial class GameViewModel
             if (ok) { subOk = true; subPriv = Math.Max(subPriv, priv); }
             else if (reason == "国営100%") subTip = reason;
         }
-        if (subOk) subTip = subPriv < 1.0 ? $"民営持分 {subPriv:P0}" : null;
+        if (subOk) subTip = subPriv < 1.0 ? $"民営持分 {Fmt.Share(subPriv)}" : null;
 
         var trade = BuildTradeInfo(gi, unavail);
         var (sparkPts, sparkGrid, sparkTip) = unavail ? (new global::Avalonia.Points(), SparkGridEmpty, (string?)null) : BuildRatioSpark(gi);   // まだ存在しない財は価格グラフを描かない（枠は残る＝下が跳ねない）
@@ -937,7 +937,7 @@ public partial class GameViewModel
             Tier = TierLabel(gi),   // 見出しだけ素材の産地区分を出す（作者要望2026-09-07 (4)）
             // 項目7（2026-08-10）：詳細パネルでも財名の横に世界価格との比を出す（カードと同じ様式＝安い青・高い赤）。
             //   式はカード（RefreshProduction）と同一＝首都価格×為替／世界価格−1。
-            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? (local * ex / world - 1.0).ToString("+0%;-0%;0%") : "",
+            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? Fmt.SignedPct(local * ex / world - 1.0) : "",
             PriceDiffBrush = world > 1e-6 && local > 1e-9 && local * ex / world - 1.0 > 0 ? PPriceAbove : PPriceBelow,
             LegalMonopoly = legalMonopoly,
             // 数値ブロック＝**2行**（作者指示2026-08-10 C）：
@@ -948,10 +948,10 @@ public partial class GameViewModel
             // 廃棄率＝直近1年の廃棄量÷直近1年の生産量（生産0の月は「—」）。
             // ★まだ存在しない財は量も「—」（作者裁定2026-08-10）＝産出は0でも、開始在庫（Simulation の Stock=200）が
             //   交易で動くと輸出入だけ数字が立つ＝「誰も作っていない財の輸出」が見えてしまう。全部まとめて伏せる。
-            NatLine = unavail ? "採取生産量:—　工場生産量:—　輸入量:—"
-                              : $"採取生産量:{Fmt.Qty(prodRgo[gi])}　工場生産量:{Fmt.Qty(prodFac[gi])}　輸入量:{Fmt.Qty(imp[gi])}",
-            NatLine2 = unavail ? "国内消費:—　輸出量:—　廃棄率:—"
-                               : $"国内消費:{Fmt.Qty(sold[gi])}　輸出量:{Fmt.Qty(exp[gi])}　廃棄率:{(double.IsNaN(spoilRate) ? "—" : spoilRate.ToString("P0"))}",
+            NatLine = unavail ? "採取生産量：—　工場生産量：—　輸入量：—"
+                              : $"採取生産量：{Fmt.Qty(prodRgo[gi])}　工場生産量：{Fmt.Qty(prodFac[gi])}　輸入量：{Fmt.Qty(imp[gi])}",
+            NatLine2 = unavail ? "国内消費：—　輸出量：—　廃棄率：—"
+                               : $"国内消費：{Fmt.Qty(sold[gi])}　輸出量：{Fmt.Qty(exp[gi])}　廃棄率：{(double.IsNaN(spoilRate) ? "—" : Fmt.Share(spoilRate))}",
             WorldPriceLine = !unavail && world > 1e-6 ? $"世界価格 £{world:F2}" : "世界価格 —",   // 価格グラフの中央線が指す実数値
             WorldSparkPoints = sparkPts,
             SparkGrid = sparkGrid,
@@ -997,7 +997,7 @@ public partial class GameViewModel
                 Name = mp.Name,
                 Host = mp.Host,
                 // ★行に「技術n%（不足）」は出さない（作者指示2026-08-02）＝押せない理由はボタンのホバーで読む。
-                State = mp.IsComplete ? "完成" : mp.Started ? $"建設中 {pct:P0}" : "未着工",
+                State = mp.IsComplete ? "完成" : mp.Started ? $"建設中 {Fmt.Share(pct)}" : "未着工",
                 Effect = $"{JaEffect(mp.EffectTarget)} {(mp.EffectMode == "scale" ? $"×{1 + mp.EffectValue:F2}" : $"＋{mp.EffectValue:F0}")}",
                 Brush = mp.IsComplete ? PPlus : techOk ? PUtilText : PNameText,
                 CanStart = canStart,
@@ -1005,7 +1005,7 @@ public partial class GameViewModel
                 StartLabel = $"着工 {Fmt.Money(cost)}",
                 // データのツールチップ（規律準拠＝説明文でなく値）。行には理由を書かない＝カーソルを合わせればここが出る。
                 StartReason = $"{mp.Host}/残り {mp.BuildUnits - mp.BuildProgress:F0} 束/見積 {Fmt.Money(cost)}"
-                            + (techOk ? "" : $"\n技術:{(mp.TechGate > 1e-9 ? _player.TechLevel / mp.TechGate : 1):P0}(不足)"),
+                            + (techOk ? "" : $"\n技術：{(mp.TechGate > 1e-9 ? _player.TechLevel / mp.TechGate : 1):P0}（不足）"),
                 Project = mp,
             });
         }
@@ -1093,7 +1093,7 @@ public partial class GameViewModel
         // ★まだ存在しない財は**行を1つも積まない**（作者指示2026-08-11）＝「—」だけの積み上げは読む物がない。
         if (unavailable) return;
         // 「需要と供給」の駆動値＝在庫の詰まり具合・寡占の上乗せ・輸入の敷居（関税/穀物法）・世界価格。
-        string? sdTip = $"在庫/目標 {(double.IsNaN(p.StockRatio) ? "測定なし" : p.StockRatio.ToString("P0"))}"
+        string? sdTip = $"在庫/目標 {(double.IsNaN(p.StockRatio) ? "測定なし" : Fmt.Share(p.StockRatio))}"
                      + $"\n関税の楔 {Fmt.SignedPct(p.TariffWedge)}"
                      + $"\n穀物法の楔 {Fmt.SignedPct(p.CornLawWedge)}"
                      + $"\n世界価格 {(world > 1e-6 ? $"£{world:F2}" : "—")}";
@@ -1150,9 +1150,9 @@ public partial class GameViewModel
             detail.CostRows.Add(new ProdCostRow(key + Catalog.Goods[it.GoodId].Name)
             {
                 Label = $"{Catalog.Goods[it.GoodId].Name}(×{it.Qty.ToString("0.###")})",
-                Fill = $"供給:{it.Fill:P0}",   // ★材別の供給率（作者指示2026-08-10 F）＝Market.LastRation（エンジンの配給率そのもの）
+                Fill = $"供給：{Fmt.Share(it.Fill)}",   // ★材別の供給率（作者指示2026-08-10 F）＝Market.LastRation（エンジンの配給率そのもの）
                 FillBrush = it.Fill < MaterialFillThreshold ? PMinus : PUtilText,
-                Ratio = hasRef ? $"£{rp:F2}×{ratio:P0}" : "—",   // 基準＝その材の基本価格の**実数**（項目1・2026-08-10 第5ラウンド）
+                Ratio = hasRef ? $"£{rp:F2}×{Fmt.Share(ratio)}" : "—",   // 基準＝その材の基本価格の**実数**（項目1・2026-08-10 第5ラウンド）
                 RatioBrush = !hasRef ? PUtilText : ratio <= 1.0 ? PPriceBelow : PPriceAbove,
                 Amount = $"= £{it.Amount:F2}",
             });
@@ -1165,17 +1165,17 @@ public partial class GameViewModel
         foreach (var it in c.Items)
             if (it.IsLabor)
             {
-                lab.Append(lab.Length > 0 ? "\n" : "").Append($"{Catalog.Goods[it.GoodId].Name} ×{it.Qty:0.###}　供給:{it.Fill:P0}　£{it.Amount:F2}");
+                lab.Append(lab.Length > 0 ? "\n" : "").Append($"{Catalog.Goods[it.GoodId].Name} ×{it.Qty:0.###}　供給：{Fmt.Share(it.Fill)}　£{it.Amount:F2}");
                 if (double.IsNaN(labFill) || it.Fill < labFill) labFill = it.Fill;
             }
         detail.CostRows.Add(new ProdCostRow(key + "人件費")
         {
             Label = "人件費",
-            Fill = double.IsNaN(labFill) ? "供給:—" : $"供給:{labFill:P0}",
+            Fill = double.IsNaN(labFill) ? "供給：—" : $"供給：{Fmt.Share(labFill)}",
             FillBrush = !double.IsNaN(labFill) && labFill < MaterialFillThreshold ? PMinus : PUtilText,
             Amount = c.HasProducer ? $"£{c.LaborCost:F2}" : "—", RatioBrush = PUtilText, Tip = lab.Length > 0 ? lab.ToString() : null,
         });
-        detail.CostRows.Add(new ProdCostRow(key + "管理費と資本費") { Label = "管理費と資本費", Fill = "供給:—", Amount = c.HasProducer ? $"£{c.OwnCost:F2}" : "—", RatioBrush = PUtilText, FillBrush = PUtilText });
+        detail.CostRows.Add(new ProdCostRow(key + "管理費と資本費") { Label = "管理費と資本費", Fill = "供給：—", Amount = c.HasProducer ? $"£{c.OwnCost:F2}" : "—", RatioBrush = PUtilText, FillBrush = PUtilText });
         // 合計行＝左にレシピ式・右に生産コスト（右寄せ）。材料を買わない財（RGO）は式が空なのでレシピ名を出す。
         detail.CostRows.Add(new ProdCostRow(key + "合計")
         {
@@ -1196,10 +1196,10 @@ public partial class GameViewModel
     ///   分解は全国値（集計範囲は節点カードと同一＝active州・非倒産）なので、稼働率の行にも「全国の」と明記する。</summary>
     private string BuildUtilTip(ProductionDiag.UtilParts u)
     {
-        string P(double v) => u.Valid ? v.ToString("P0") : "—";
-        return $"全国の稼働率 {(u.Capacity > QtyEps ? u.Utilization.ToString("P0") : "—")}"
+        string P(double v) => u.Valid ? Fmt.Share(v) : "—";
+        return $"全国の稼働率 {(u.Capacity > QtyEps ? Fmt.Share(u.Utilization) : "—")}"
              + $"\n採算 {P(u.ProfitFactor)}"
-             + $"\n投入充足 {P(u.InputFill)}(素材のみ {(u.Output > QtyEps ? u.MaterialFill.ToString("P0") : "—")})"   // 産出が事実上0では加重平均の分母が消える＝「—」
+             + $"\n投入充足 {P(u.InputFill)}(素材のみ {(u.Output > QtyEps ? Fmt.Share(u.MaterialFill) : "—")})"   // 産出が事実上0では加重平均の分母が消える＝「—」
              + $"\n在庫調整 {P(u.InventoryAdjust)}"
              + $"\n慣性による遅れ {P(u.Inertia)}"
              + $"\n能力 {Fmt.Qty(u.Capacity)}　産出 {Fmt.Qty(u.Output)}";   // 量はk統一（項目4・2026-08-10）
@@ -1240,10 +1240,10 @@ public partial class GameViewModel
             }
         }
         // 実用ゼロ（QtyEps）で足切り＝世界の総量が事実上0の財で、ノイズ同士の比を「世界の12%」と出さない（幻の生産2026-08-10）
-        return (worldProd > QtyEps ? $"生産シェア {myProd / worldProd:P0}" : "",
-                worldExp > QtyEps ? $"輸出シェア {myExp / worldExp:P0}" : "",
-                worldProd > QtyEps && topProdV > QtyEps ? $"{topProd}が世界の{topProdV / worldProd:P0}を生産" : "",
-                worldExp > QtyEps && topExpV > QtyEps ? $"{topExp}が世界の{topExpV / worldExp:P0}を輸出" : "");
+        return (worldProd > QtyEps ? $"生産シェア {Fmt.Share(myProd / worldProd)}" : "",
+                worldExp > QtyEps ? $"輸出シェア {Fmt.Share(myExp / worldExp)}" : "",
+                worldProd > QtyEps && topProdV > QtyEps ? $"{topProd}が世界の{Fmt.Share(topProdV / worldProd)}を生産" : "",
+                worldExp > QtyEps && topExpV > QtyEps ? $"{topExp}が世界の{Fmt.Share(topExpV / worldExp)}を輸出" : "");
     }
 
     /// <summary>世界価格スパークラインの点列（2026-08-02に文字列→Points へ変更）。
@@ -1328,7 +1328,7 @@ public partial class GameViewModel
         foreach (var (ci, amt) in Enumerable.Range(0, u.ByClass.Length).Select(i => (i, u.ByClass[i]))
                                             .Where(t => t.Item2 > 1e-9).OrderByDescending(t => t.Item2).ThenBy(t => t.i))
             sb.Append(sb.Length > 0 ? "\n" : "")
-              .Append($"{(classNames.TryGetValue(ci, out var nm) ? nm : ci.ToString())} {amt / u.Total:P0}　{Fmt.Qty(amt)}");
+              .Append($"{(classNames.TryGetValue(ci, out var nm) ? nm : ci.ToString())} {Fmt.Share(amt / u.Total)}　{Fmt.Qty(amt)}");
         return sb.Length > 0 ? sb.ToString() : null;
     }
 

@@ -95,7 +95,7 @@ sealed class Program
         Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
             BootLog.UiExceptions++;
-            Log($"UIThread例外(握って継続): {e.Exception}");
+            Log($"UIThread例外（握って継続）: {e.Exception}");
             e.Handled = true;
         };
         System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (_, e) => Log($"UnobservedTaskException: {e.Exception}");
@@ -107,7 +107,7 @@ sealed class Program
         }
         catch (Exception ex)
         {
-            Log($"Main例外: {ex}");
+            Log($"Main例外：{ex}");
             throw;
         }
     }

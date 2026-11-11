@@ -144,7 +144,7 @@ public partial class GameViewModel
                     {
                         bool mineCw = cwp.Nation == _player;
                         QueueNews("ev_civilwar", cwp.Name, cwp.Nation?.Latitude ?? 0, cwp.Nation?.Longitude ?? 0, mineCw);
-                        Annal("⚔", $"{cwp.Name}で内戦:{reb.Name}が地図の上に立った");
+                        Annal("⚔", $"{cwp.Name}で内戦：{reb.Name}が地図の上に立った");
                     }
                 }
             foreach (var k in _prevCivilWarKeys)
@@ -167,7 +167,7 @@ public partial class GameViewModel
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
-                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{Fmt.PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
+                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治：旧支配層が粛清された（{Fmt.PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
             if (_prevTerror != null) _prevTerror[id] = w.TerrorPurgeCumulative;
             // 外国経済イベント（外国経済の可視化doc §3-2・2026-07-24）：恐慌入り/回復・金本位の離脱/復帰・デフォルト・大凶作を既存の距離遅延網へ。
             // 自国分は既存の自国エッジ（恐慌/金本位/デフォルト＝即時）が流すため他国のみ＝二重にしない。Id基準＝建国/消滅の国数変動に強い。
@@ -181,12 +181,12 @@ public partial class GameViewModel
                 {
                     // ★語と閾値の1対1（2026-08-23）：>0.25＝恐慌／それ以下＝景気後退＝自国側の通知（ev_depression/ev_recession）と同じ分け方
                     string word = SelfPlayMatch.DepressionWord(w.GdpPcDrawdown.Value);   // ★E2：以下この節は1人あたりで統一
-                    if (depN && !pe.Dep) { QueueNewsText("📉", $"{powers[i].Name}が{word}に入った（1人あたりの下落{w.GdpPcDrawdown.Value:P0}）", NewsRed, w.Latitude, w.Longitude, false); Annal("📉", $"{powers[i].Name}が{word}（下落{w.GdpPcDrawdown.Value:P0}）"); }
+                    if (depN && !pe.Dep) { QueueNewsText("📉", $"{powers[i].Name}が{word}に入った（1人あたりの下落{Fmt.Share(w.GdpPcDrawdown.Value)}）", NewsRed, w.Latitude, w.Longitude, false); Annal("📉", $"{powers[i].Name}が{word}（下落{Fmt.Share(w.GdpPcDrawdown.Value)}）"); }
                     else if (!depN && pe.Dep) QueueNewsText("📈", $"{powers[i].Name}の景気が回復した", NewsGreen, w.Latitude, w.Longitude, false);
                     if (w.OnGoldStandard && !pe.Gold) QueueNewsText("🪙", $"{powers[i].Name}が金本位制に加入した", NewsGold, w.Latitude, w.Longitude, false);
                     else if (!w.OnGoldStandard && pe.Gold) QueueNewsText("🪙", $"{powers[i].Name}が兌換を停止した", NewsGold, w.Latitude, w.Longitude, false);
                     if (w.HadSovereignDefault && !pe.Def) { QueueNewsText("💥", $"{powers[i].Name}が債務不履行に陥った", NewsRed, w.Latitude, w.Longitude, false); Annal("💥", $"{powers[i].Name}が債務不履行"); }
-                    if (famN && !pe.Fam) QueueNewsText("🌾", $"{powers[i].Name}が大凶作（収穫{w.HarvestFactor:P0}）", NewsRed, w.Latitude, w.Longitude, false);
+                    if (famN && !pe.Fam) QueueNewsText("🌾", $"{powers[i].Name}が大凶作（収穫{Fmt.Share(w.HarvestFactor)}）", NewsRed, w.Latitude, w.Longitude, false);
                 }
                 _prevEconState[id] = (depN, w.OnGoldStandard, w.HadSovereignDefault, famN);
             }
@@ -197,7 +197,7 @@ public partial class GameViewModel
         string me = PlayerNationName;
         double dd = _player.GdpPcDrawdown.Value, heat = _player.FinancialHeat, harvest = _player.HarvestFactor;   // ★E2：1人あたりで統一（外国側・初期基準値と同じ物差し）
         bool depression = SelfPlayMatch.InDepression(_prevDepression, dd);   // ★ヒステリシス（2026-08-23）＝外国側と同じ2値
-        if (depression && !_prevDepression) { QueueNews(SelfPlayMatch.IsGreatDepression(dd) ? "ev_depression" : "ev_recession", me, 0, 0, true, dd); Annal("📉", $"{me}が{SelfPlayMatch.DepressionWord(dd)}（下落{dd:P0}）"); }   // ★年代記の語も通知の分岐と一致させる
+        if (depression && !_prevDepression) { QueueNews(SelfPlayMatch.IsGreatDepression(dd) ? "ev_depression" : "ev_recession", me, 0, 0, true, dd); Annal("📉", $"{me}が{SelfPlayMatch.DepressionWord(dd)}（下落{Fmt.Share(dd)}）"); }   // ★年代記の語も通知の分岐と一致させる
         bool famine = harvest < FamineHarvest;
         if (famine && !_prevFamine) QueueNews("ev_famine", me, 0, 0, true, harvest);
         bool heatHot = heat > FinancialHeatHot;
@@ -232,7 +232,7 @@ public partial class GameViewModel
         if (_player.MigrantNativeSuffrage != _pfMigSuf) Notice("🗳", _player.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? "移民原住民参政権が施行された" : "移民原住民参政権が廃止された", NewsBlue);
         if (_player.GoverningParty != _pfParty) Notice("🗳", $"選挙で{GoverningName()}が与党になった", NewsBlue);
         if (_player.OnGoldStandard != _pfGold) Notice("🪙", _player.OnGoldStandard ? "金本位制に加入した" : "兌換を停止し、金本位制から離脱した", NewsGold);
-        if (_player.HadSovereignDefault && !_pfDefault) { Notice("💥", "債務不履行(デフォルト)に陥った", NewsRed); Annal("💥", $"{me}が債務不履行"); }
+        if (_player.HadSovereignDefault && !_pfDefault) { Notice("💥", "債務不履行（デフォルト）に陥った", NewsRed); Annal("💥", $"{me}が債務不履行"); }
         if (_player.PatentLaw && !_pfPatent) Notice("⚙", "特許制度が施行された", NewsGreen);
         if (_player.JointStock && !_pfJoint) Notice("⚙", "株式会社制度が施行された", NewsGreen);
         bool epiNow = _player.EpidemicActiveYears > 0;
@@ -241,7 +241,7 @@ public partial class GameViewModel
         bool orderLow = _player.PublicOrder < 0.5;
         // ⚠★指標名は**UIと通知で完全に一致させる**（2026-08-02・作者指示「治安と秩序など」）。
         //   同じ量を2つの名前で呼ぶと、プレイヤーは別々の量だと思う。ヘッダーの指標名（治安）が正。
-        if (orderLow != _pfOrderLow) Notice("🚨", orderLow ? $"治安が崩れている(治安{_player.PublicOrder:P0})" : "治安が回復した", orderLow ? NewsRed : NewsGreen);
+        if (orderLow != _pfOrderLow) Notice("🚨", orderLow ? $"治安が崩れている(治安{Fmt.Share(_player.PublicOrder)})" : "治安が回復した", orderLow ? NewsRed : NewsGreen);
         var rankNow = _sim.Diplomacy.RankOf(_sim.Diplomacy.Powers[_playerIndex]);
         if (rankNow != _pfRank) Notice("⭐", $"国家ランクが{RankJa(rankNow)}になった", NewsGold);
         SnapshotTurningPoints();

@@ -51,7 +51,7 @@ public partial class GameViewModel
         UnifLine = unifRule != null ? $"統一の機運　目標 {unifRule.NewName}" : "";   // 外交タブ上部の状態表示（機運なし＝非表示）
         if (Layout.IsShown(Slot.DiplomacyWar)) BuildNationTable(powers, scoreByPower, linesByPower, me, warEnemyIds, unifTargets);   // 国の一覧の表（外交と戦争のページが見えている間だけ）
         double willCap = _player.Coef.ExpansionWillCap;
-        ExpansionText = $"戦力余剰:{_player.ExpansionWill / willCap:P0}";   // ★2026-09-23作者指示「余剰戦力」→「戦力余剰」。好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
+        ExpansionText = $"戦力余剰：{Fmt.Share(_player.ExpansionWill / willCap)}";   // ★2026-09-23作者指示「余剰戦力」→「戦力余剰」。好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
         // ★政治資本（MandateSpent）のヘッダー表示は撤去（2026-08-15作者確認＝選挙梯子E5で廃止予定・表示部分を前倒し。内部は「紛争記憶」への改名待ち＝E5本体）
         OnPropertyChanged(nameof(ExpansionTip));   // 戦力余剰・好戦世論のホバー内訳を再計算
         // ★防衛同盟の枠数はヘッダーから撤去（2026-08-23作者指示）＝同盟の有無は外交タブの国カードのバッジ「同盟」で読む。
@@ -60,7 +60,7 @@ public partial class GameViewModel
         double corrRate = EffectiveCorruption();
         // 技術力＝世界前線比（自国技術÷各国最高＝0〜100%）。開始盤面は技術の助走（WarmupTech・2026-07-13）で前線t≈0.23まで育つ＝
         // 全国ゼロの「団子」を脱し、識字×世俗教育の差が前線比で見える（前線<0.05のみ「揺籃期」＝助走を通らない単一国/古いセーブの安全弁）。
-        // 旧表示「技術力:{TechLevel:P0}」は0〜3の絶対値を%扱い（後期300%超）＋「遅れ」を別スケールの前線比で出す不整合＝初期に0%/98%と矛盾表示になっていた（2026-07-12修正）。
+        // 旧表示「技術力:{Fmt.Share(TechLevel)}」は0〜3の絶対値を%扱い（後期300%超）＋「遅れ」を別スケールの前線比で出す不整合＝初期に0%/98%と矛盾表示になっていた（2026-07-12修正）。
         // ★技術力の対最先端比はヘッダーから撤去（2026-08-15＝財政タブの技術効率へ移設）
         // ★軍事力（順位＋即応度）はヘッダーから撤去（2026-08-24作者指示）＝戦争タブの「理想の軍隊」の節見出しへ移設（ArmyIdealHeader）。
         // 地位：列強は順位付き「列強3位」・それ以外は「準列強」「中堅」「弱小」。★2026-09-23に1行目（国名の隣）から概況行へ移したので、
@@ -89,10 +89,10 @@ public partial class GameViewModel
         double sat = NationalScore.MeanSatisfaction(_player), dis = Politics.AvgMassDiscontent(_player), mil = Politics.AvgMassMilitancy(_player);
         var stats = new List<HeaderStat>
         {
-            Sev(StatG($"満足度:{sat:P0}", "満足度", _histSat, v => v.ToString("P0"), 76), SeverityBrushes.LowIsBad(sat, 0.5, 0.25)),
-            Sev(StatG($"不満度:{dis:P0}", "不満度", _histDis, v => v.ToString("P0"), 76), SeverityBrushes.HighIsBad(dis, 0.25, 0.5)),
-            Sev(StatG($"闘争度:{mil:P0}", "闘争度", _histMil, v => v.ToString("P0"), 76), SeverityBrushes.HighIsBad(mil, 0.25, 0.5)),
-            Sev(StatG($"正統性:{_player.Legitimacy:P0}", "正統性", _histLeg, v => v.ToString("F3"), 76), SeverityBrushes.LowIsBad(_player.Legitimacy, 0.6, 0.4)),
+            Sev(StatG($"満足度：{Fmt.Share(sat)}", "満足度", _histSat, v => Fmt.Share(v), 76), SeverityBrushes.LowIsBad(sat, 0.5, 0.25)),
+            Sev(StatG($"不満度：{Fmt.Share(dis)}", "不満度", _histDis, v => Fmt.Share(v), 76), SeverityBrushes.HighIsBad(dis, 0.25, 0.5)),
+            Sev(StatG($"闘争度：{Fmt.Share(mil)}", "闘争度", _histMil, v => Fmt.Share(v), 76), SeverityBrushes.HighIsBad(mil, 0.25, 0.5)),
+            Sev(StatG($"正統性：{Fmt.Share(_player.Legitimacy)}", "正統性", _histLeg, v => v.ToString("F3"), 76), SeverityBrushes.LowIsBad(_player.Legitimacy, 0.6, 0.4)),
         };
         SyncRows(HeaderStats, stats, h => h.Key, (t, s) => t.CopyFrom(s));   // 据え置き同期＝ヘッダー2行目が点滅しない（キーは GraphTitle でなく Key＝空にならない）
 
@@ -138,16 +138,16 @@ public partial class GameViewModel
             {
                 Key = enemy.Id.ToString(),
                 Enemy = tr.EnemyName,
-                Score = $"戦勝点 {sc:+0%;-0%;0%}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
+                Score = $"戦勝点 {Fmt.SignedPct(sc)}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
                 Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
-                Forces = $"自軍 {Troops(me)}　即応度 {_player.MilitaryReadiness:P0}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
+                Forces = $"自軍 {Troops(me)}　即応度 {Fmt.Share(_player.MilitaryReadiness)}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
                 // ★2026-09-23：兵士の戦死と民間人の死を**別の行**で出す（民間は兵の17〜25倍＝1本に足すと兵の戦死が桁で消える）
                 Losses = $"戦死 自国 {Fmt.PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastDeadEnemy)}" : "")
                        + $"\n民間人の死 自国 {Fmt.PopFmt(tr.LastCivDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastCivDeadEnemy)}" : ""),
                 Cost = $"戦費 {Fmt.Money(tr.CostShare)}",
-                Exhaustion = $"厭戦 自国 {me.WarExhaustion:P0}　相手 {enemy.WarExhaustion:P0}",
-                Terms = ExplainTerms("Exhaustion", v => v.ToString("P0")),   // 自国の厭戦の内訳（説明API#63）
+                Exhaustion = $"厭戦 自国 {Fmt.Share(me.WarExhaustion)}　相手 {Fmt.Share(enemy.WarExhaustion)}",
+                Terms = ExplainTerms("Exhaustion", v => Fmt.Share(v)),   // 自国の厭戦の内訳（説明API#63）
             });
         }
         SyncRows(WarRows, wrows, r => r.Key, (t, s) => t.CopyFrom(s));
@@ -188,14 +188,14 @@ public partial class GameViewModel
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")} との戦争が終結した。\n\n"
-                    + $"結果:{result}(戦勝点 {scEnd:+0%;-0%;0%})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
+                    + $"結果：{result}(戦勝点 {Fmt.SignedPct(scEnd)})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Fmt.Money(tr.CostShare)}\n\n"
                     + (tr.Civil ? CivilWarOutcome(tr, won)
-                       : won is null ? "得たもの:なし(白紙講和)"
-                       : won.Value ? "得たもの:賠償金"
-                       : "失ったもの:賠償金");
+                       : won is null ? "得たもの：なし（白紙講和）"
+                       : won.Value ? "得たもの：賠償金"
+                       : "失ったもの：賠償金");
                 WarEndPopupOpen = true;
             }
             _warTracks.Remove(id);
@@ -301,10 +301,10 @@ public partial class GameViewModel
             if (pp.Closed) { nobSav += System.Math.Max(0, pp.Savings.Value); nobLand += _player.Coef.LandedPowerCapitalization * System.Math.Max(0, pp.LandRentPerMonth.Value); }
         double nobTot = nobSav + nobLand;
         // ★括弧書きの内訳（貴族と聖職／ブルジョワと専門職／労働者と農民）は削除（2026-08-23作者指示）
-        Blocs.Add(new BlocRow { Name = "旧支配層", Percent = (trad / bsum).ToString("P0"),
-            Tip = nobTot > 1e-9 ? $"力の源泉　流動資産 {nobSav / nobTot:P0}/土地(地代の資本化) {nobLand / nobTot:P0}" : "" });
-        Blocs.Add(new BlocRow { Name = "近代エリート", Percent = (modern / bsum).ToString("P0") });
-        Blocs.Add(new BlocRow { Name = "大衆", Percent = (mass / bsum).ToString("P0") });
+        Blocs.Add(new BlocRow { Name = "旧支配層", Percent = Fmt.Share((trad / bsum)),
+            Tip = nobTot > 1e-9 ? $"力の源泉　流動資産 {Fmt.Share(nobSav / nobTot)}/土地（地代の資本化） {Fmt.Share(nobLand / nobTot)}" : "" });
+        Blocs.Add(new BlocRow { Name = "近代エリート", Percent = Fmt.Share((modern / bsum)) });
+        Blocs.Add(new BlocRow { Name = "大衆", Percent = Fmt.Share((mass / bsum)) });
 
         // 政体別実績ストック（信認⇔失望∈[-1,+1]・4系統）＝固着⇔カオスのドライバ。正=緑/負=赤のバーで符号を色分け。
         RegimeRecords.Clear();
@@ -317,7 +317,7 @@ public partial class GameViewModel
             RegimeRecords.Add(new RegimeRow
             {
                 Name = regimeNames[ri],
-                Value = $"{(v >= 0 ? "＋" : "−")}{Math.Abs(v):P0}",
+                Value = $"{(v >= 0 ? "＋" : "−")}{Fmt.Share(Math.Abs(v))}",
                 BarWidth = Math.Min(1.0, Math.Abs(v)) * 130,
                 Brush = v >= 0 ? TermPlus : TermMinus,
             });

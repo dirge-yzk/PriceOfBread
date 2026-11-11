@@ -93,7 +93,7 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
         VerbColumn<TRow> => ColumnKind.Verb,
         ShareColumn<TRow> => ColumnKind.Share,
         BarColumn<TRow> => ColumnKind.Bar,
-        _ => throw new NotSupportedException($"列の種類が未対応: {c.GetType().Name}"),
+        _ => throw new NotSupportedException($"列の種類が未対応：{c.GetType().Name}"),
     };
 
     public IReadOnlyList<ColumnInfo> ColumnInfos => Columns.Select(c =>
@@ -144,7 +144,7 @@ public static class Col
     /// <summary>型つきの数の列（単位は型から）。型が 9 つのどれでもなければ例外＝<see cref="Number"/> で単位を名乗る。</summary>
     public static NumberColumn<TRow> Of<TRow, TUnit>(string key, string name, Func<TRow, TUnit> read, string? explainKey = null, bool series = false)
         where TUnit : struct, IUnitValue
-        => new(key, name, UnitOf(typeof(TUnit)) ?? throw new ArgumentException($"単位の型でない: {typeof(TUnit).Name}"), r => read(r).Value, explainKey, series);
+        => new(key, name, UnitOf(typeof(TUnit)) ?? throw new ArgumentException($"単位の型でない：{typeof(TUnit).Name}"), r => read(r).Value, explainKey, series);
 
     /// <summary>型の無い数の列（人口・財の量・件数・型の無い割合など）。単位は名乗る。</summary>
     public static NumberColumn<TRow> Number<TRow>(string key, string name, Unit unit, Func<TRow, double> read, string? explainKey = null, bool series = false,

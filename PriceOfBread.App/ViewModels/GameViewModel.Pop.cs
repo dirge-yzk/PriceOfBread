@@ -35,7 +35,7 @@ public partial class GameViewModel
     // 満足度・不満度・闘争度の四半期の増減（2026-11-11 作者指示：矢印を添える）。キー＝ClassId×4＋列（0 満足度・1 不満度・2 闘争度）
     private readonly Dictionary<int, double> _prevPopMood = new(), _popMoodDelta = new();
     private const double MoodTrendFlat = 0.005;   // 割合の矢印の平ら（表示の解像度 P0 の半分）
-    private static string MoodArrow(double? delta) => delta is not double d ? "" : Math.Abs(d) < MoodTrendFlat ? "→" : d > 0 ? "↑" : "↓";
+    private static string MoodArrow(double? delta) => delta is not double d ? "" : Math.Abs(d) < MoodTrendFlat ? "" : d > 0 ? "↑" : "↓";
     private int _prevPopQuarterStamp = -1;   // 年×4＋四半期。-1＝未捕捉＝初回は基準化のみ（矢印なし）
 
     /// <summary>横ばいと見なす幅（千人）＝人数の書式が丸めて 0K になる幅。</summary>
@@ -52,9 +52,9 @@ public partial class GameViewModel
         return delta.TryGetValue(key, out var d) ? d : null;
     }
 
-    /// <summary>増減の向き＝矢印。未確定は空文字（矢印そのものを出さない）・横ばいは「→」。</summary>
+    /// <summary>増減の向き＝矢印。未確定と横ばいは空文字（何も出さない・A6）。</summary>
     private static string PopArrow(double? delta)
-        => delta is not double d ? "" : Math.Abs(d) < PopTrendFlatK ? "→" : d > 0 ? "↑" : "↓";
+        => delta is not double d ? "" : Math.Abs(d) < PopTrendFlatK ? "" : d > 0 ? "↑" : "↓";
 
     // ---- 年に 1 回の出生と死の標本（累積の出生・死亡・人口・出産可能な女性）。年は系列に持つ＝ロード後も重ならない ----
     private const string PopYearSeries = "pop.sampleYear", BirthsCumSeries = "pop.birthsCum", DeathsCumSeries = "pop.deathsCum", PopSizeSeries = "pop.size", FertileSeries = "pop.fertileWomen";
@@ -115,7 +115,7 @@ public partial class GameViewModel
         ReligionTable = TableSnapshot.From(PopTables.Religion.Read(_sim, _player));
         CultureTable = TableSnapshot.From(PopTables.Culture.Read(_sim, _player));
         AgePyramid = PopTables.Pyramid(_player);
-        ChildLaborLine = PopTables.ChildLaborRate(_player) is double r ? $"児童の就業率 {r:P0}" : "";
+        ChildLaborLine = PopTables.ChildLaborRate(_player) is double r ? $"児童の就業率 {Fmt.Share(r)}" : "";
         RebuildDemographyLines();
     }
 }

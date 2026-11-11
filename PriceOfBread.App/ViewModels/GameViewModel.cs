@@ -396,7 +396,7 @@ public partial class GameViewModel : ViewModelBase
                 {
                     bool absorbed = !_sim.Nations.Exists(n => ReferenceEquals(n.World, _player));
                     string newName = _sim.Nations[follow].World.SelfPower!.Name;
-                    string notice = absorbed ? $"{PlayerNationName}は{newName}へ再併合された。\n\n操作国:{newName}" : "";
+                    string notice = absorbed ? $"{PlayerNationName}は{newName}へ再併合された。\n\n操作国：{newName}" : "";
                     OnFollowPlayer?.Invoke(follow, notice);
                     return;
                 }
@@ -418,7 +418,7 @@ public partial class GameViewModel : ViewModelBase
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫:{Fmt.Money(_player.Treasury.Value)}（{(_monthDelta >= 0 ? "＋" : "−")}{Fmt.Money(Math.Abs(_monthDelta))}）";   // ★2026-11-03 作者「国庫:£n(+£n)」＝括弧の中は先月の収支
+        TreasuryText = $"国庫：{Fmt.Money(_player.Treasury.Value)}（{Fmt.SignedMoneyPerMonth(_monthDelta)}）";   // ★2026-11-03 作者「国庫:£n(+£n)」＝括弧の中は先月の収支
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }
 

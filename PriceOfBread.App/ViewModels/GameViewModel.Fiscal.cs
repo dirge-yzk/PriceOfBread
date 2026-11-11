@@ -106,7 +106,7 @@ public partial class GameViewModel
         SpendTitle = $"支出　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendForecast)}　実効 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendActual)}";
         IncomeTitle = $"収入　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeForecast)}　実効 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeActual)}";
         double bal = FiscalTables.LedgerBalance(flows), fb = budget.BalanceForecast;
-        LedgerTitle = $"国庫の台帳　収支 {(bal >= 0 ? "+" : "-")}{Fmt.Money(Math.Abs(bal))}　予測 {(fb >= 0 ? "+" : "-")}{Fmt.Money(Math.Abs(fb))}";
+        LedgerTitle = $"国庫の台帳　収支 {Fmt.SignedMoneyPerMonth(bal)}　予測 {Fmt.SignedMoneyPerMonth(fb)}";
         // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
         TreasuryValues = _histTreasury.ToArray();
         GovDebtValues = _series.Of(GovDebtSeries).ToArray();
@@ -121,15 +121,15 @@ public partial class GameViewModel
         double arrearsLeft = Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyMonths);
         double gameMonthsLeft = Math.Max(0, Calendar.YearsToMonths(Calendar.EndYear - Calendar.StartYear) - _simDays / Calendar.DaysPerMonth);
         bool showDefaultEta = _player.InsolvencyMonths > 0 && unpaidShare > 0 && arrearsLeft <= unpaidShare * gameMonthsLeft;
-        DebtHeaderText = $"国債:{Fmt.Money(_player.GovDebt.Value)}"
+        DebtHeaderText = $"国債：{Fmt.Money(_player.GovDebt.Value)}"
                        + (showDefaultEta
                           ? $"　デフォルトまで{Math.Ceiling(arrearsLeft / unpaidShare):F0}か月" : "");   // ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数
         // 財7単位フリップ（2026-07-26）：表示も対年GDP（史実の債務比率と直接比較できる単位）。分母＝年次名目（月次 NominalGdpPerMonth×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位
-        DebtHeaderTip = $"国債 {Fmt.Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
+        DebtHeaderTip = $"国債 {Fmt.Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {Fmt.Share(_player.GovBondRatePerYear)}　債券価格 {Fmt.Share(_player.BondPrice)}"
                        + (_player.ForeignDebt.Value > 1 ? $"\nうち対外 {Fmt.Money(_player.ForeignDebt.Value)}" : "")
-                       + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
+                       + (_player.AusterityIntensity > 0 ? $"\n緊縮 {Fmt.Share(_player.AusterityIntensity)}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Fmt.Money(_player.CumulativeDevaluation)}" : "")
-                       + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {_player.FiscalFundingRatio:P0}" : "");
+                       + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {Fmt.Share(_player.FiscalFundingRatio)}" : "");
         DebtHeaderBrush = _player.InsolvencyMonths > 0 ? NewsRed : TermNeutral;
     }
     [ObservableProperty] private string _debtHeaderText = "";

@@ -651,7 +651,7 @@ public partial class GameViewModel
             string state = cp.IsOpen ? "開通" : $"未開通(進捗 {(cp.BuildCost > 1e-9 ? cp.BuildProgress / cp.BuildCost : 0):P0})";
             string basins = string.Join("・", cp.ServesBasins.Select(b => BasinLabels.FirstOrDefault(x => x.Basin == b).Ja ?? b.ToString()));
             info.Lines.Add(new MapHoverLine { Text = $"{cp.Name}({kind}・{state})", Brush = HoverHead, Weight = FontWeight.Bold });
-            info.Lines.Add(new MapHoverLine { Text = $"扼者: {cp.Owner?.Name ?? "なし"}" + (basins.Length > 0 ? $"　通航: {basins}" : ""), Brush = HoverDim });
+            info.Lines.Add(new MapHoverLine { Text = $"扼者：{cp.Owner?.Name ?? "なし"}" + (basins.Length > 0 ? $"　通航：{basins}" : ""), Brush = HoverDim });
         }
     }
 
@@ -706,27 +706,27 @@ public partial class GameViewModel
             for (int k = 0; k < rg.ForeignRulers.Length && k < rg.ForeignShares.Length; k++)
                 if (rg.ForeignShares[k] > 0.0005 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) parts.Add((rg.ForeignRulers[k], rg.ForeignShares[k]));
             parts.Sort((x, y) => y.Share.CompareTo(x.Share));
-            who = string.Join("・", parts.Take(4).Select(t => $"{t.Name} {t.Share:P0}"));
+            who = string.Join("・", parts.Take(4).Select(t => $"{t.Name} {Fmt.Share(t.Share)}"));
         }
         string rb = "", rbText = "";
         double ago = rg.RuleStateTenYearsAgo();
-        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {ago:P0}"; }
+        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {Fmt.Share(ago)}"; }
         var info = new MapHoverInfo
         {
             // ★2026-09-23（作者指摘「フィラデルフィア(アメリカ(シャムの属国))」＝括弧が二重）：州名と国名は**全角スペースで並べる**。
             //   nation は属国のとき既に「アメリカ(シャムの属国)」という括弧付きの名前（:124・作者指示2026-08-03）＝これを更に括弧で包まない。
             Title = $"{rg.Name}（{nation}）", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
             RuleState = rs, RuleLocal = rl, RuleForeign = rf, RuleUngoverned = ru, RuleBand = rb,
-            RuleStateText = $"{dom:P0}", RuleLocalText = $"{fLocal:P0}",
-            RuleForeignText = $"{fForeign:P0}", RuleForeignWho = who, RuleUngovernedText = $"{fUngov:P0}", RuleBandText = rbText,
+            RuleStateText = $"{Fmt.Share(dom)}", RuleLocalText = $"{Fmt.Share(fLocal)}",
+            RuleForeignText = $"{Fmt.Share(fForeign)}", RuleForeignWho = who, RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
-        info.Lines.Add(new MapHoverLine { Text = $"人口: {Fmt.PopFmt(pop)}(失業者: {Fmt.PopFmt(unemployed)})", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
+        info.Lines.Add(new MapHoverLine { Text = $"人口：{Fmt.PopFmt(pop)}(失業者：{Fmt.PopFmt(unemployed)})", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
         // 開発度（2026-08-02・作者指摘「名前出てない州のプロヴィンスの開発度が見れない」）：ズームを引くと州名ラベル
         // （＝括弧の開発度）が消える／重なり回避で小さい州のラベルは出ないため、ホバーでも同じ値を出す。
         // ★定義も丸めもラベルと完全一致（TotalIndustrialization×70・指標名はUIと通知で完全一致の規約）。2026-08-31にラベルが小数1桁(F1)へ変わったのに合わせる。
-        info.Lines.Add(new MapHoverLine { Text = $"開発度: {rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
+        info.Lines.Add(new MapHoverLine { Text = $"開発度：{rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
         // ★2026-09-03（キューA-12／出典 トリアージ 2-A 11-2）：国民意識は距離減衰で州ごとに違う（首都から遠い州ほど遅い）のに
         //   どこにも出ていなかった。動員上限（Military の国民意識ゲート）が州で違う理由がこれで読める。
         //   ⚠値は POP 属性（Pop.NationalConsciousness）の人口加重平均＝エンジンと同じ量。未捕捉(-1)の pop は分母から外す。
@@ -734,19 +734,19 @@ public partial class GameViewModel
             double ncW = 0, ncSum = 0;
             foreach (var pp in rg.Pops) if (pp.NationalConsciousness >= 0) { ncW += pp.Size; ncSum += pp.Size * pp.NationalConsciousness; }
             if (ncW > 1e-9)
-                info.Lines.Add(new MapHoverLine { Text = $"国民意識: {ncSum / ncW:P0}", Brush = HoverText });
+                info.Lines.Add(new MapHoverLine { Text = $"国民意識：{Fmt.Share(ncSum / ncW)}", Brush = HoverText });
         }
         if (!string.IsNullOrEmpty(rg.Culture) || !string.IsNullOrEmpty(rg.Religion))
-            info.Lines.Add(new MapHoverLine { Text = $"文化: {rg.Culture}　宗教: {rg.Religion}", Brush = HoverDim });
+            info.Lines.Add(new MapHoverLine { Text = $"文化：{rg.Culture}　宗教：{rg.Religion}", Brush = HoverDim });
         // 状態：過密（収穫逓減）・疫病・主食不足（該当時のみ）
         if (rg.ArableLand < 1e8)
         {
             double rural = 0; foreach (var p in rg.Pops) if (!p.IsUrban) rural += p.Size;
             double landFac = Territory.LandFactor(rg, rural, ownerWorld.Coef);
-            if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密(土地 {landFac:P0})", Brush = HoverWarn, Weight = FontWeight.Bold });
+            if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密(土地 {Fmt.Share(landFac)})", Brush = HoverWarn, Weight = FontWeight.Bold });
         }
         if (ownerWorld.EpidemicActiveYears > 0) info.Lines.Add(new MapHoverLine { Text = "疫病 流行中", Brush = HoverWarn, Weight = FontWeight.Bold });
-        if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足(充足 {rg.FoodFill:P0})", Brush = HoverWarn, Weight = FontWeight.Bold });
+        if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足(充足 {Fmt.Share(rg.FoodFill)})", Brush = HoverWarn, Weight = FontWeight.Bold });
         // 治安（作者指示2026-08-15＝ヘッダーの国スカラーを廃し州ホバーへ）：州別の窃盗率 rg.CrimeRate（Crime.cs が
         // 移民pushに使う州別値）をエンジン定数だけで治安率へ正規化＝1−率/(CrimeBase×(1+CrimeUrbanWeight))。
         // 分母は「秩序0・全都市」の理論最悪率＝新しい魔法数を作らない。悪化した州のみ表示（窃盗n/月の表記は廃止）。
@@ -756,11 +756,11 @@ public partial class GameViewModel
             {
                 double security = System.Math.Clamp(1.0 - rg.CrimeRate / crimeCap, 0, 1);
                 if (security < FillWarnThreshold)
-                    info.Lines.Add(new MapHoverLine { Text = $"治安 {security:P0}", Brush = HoverWarn, Weight = FontWeight.Bold });
+                    info.Lines.Add(new MapHoverLine { Text = $"治安 {Fmt.Share(security)}", Brush = HoverWarn, Weight = FontWeight.Bold });
             }
         }
         if (rg.IsPort)
-            info.Lines.Add(new MapHoverLine { Text = $"港 容量:{rg.PortCapacity:F0} 取引額:{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
+            info.Lines.Add(new MapHoverLine { Text = $"港 容量：{rg.PortCapacity:F0} 取引額：{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
         AppendChokepoint(info, rg.Name);   // 海峡/運河のhost州はここに統合表示
         AppendWorldShare(info, rg, ownerWorld);
         return info;
@@ -837,7 +837,7 @@ public partial class GameViewModel
         //   1材は最長でも「ジャガイモ 1234.5k(世界100%)」≈190px でパネルの内幅470px（GameView.axaml:304 Width=500・Padding14）に必ず収まり、
         //   折返しそのものが起きない。2行目以降は全角スペース1つ下げて頭の「生産材:」の続きだと分かる形にする。
         static string Top3(List<(string Name, double Amt, double Share)> src)
-            => src.Count == 0 ? "なし" : string.Join("\n", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : t.Share.ToString("P0"))})"));
+            => src.Count == 0 ? "なし" : string.Join("\n", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : Fmt.Share(t.Share))})"));
         info.ProducedGoods = Top3(top3Prod); info.ImportedGoods = Top3(top3Imp);   // 窓「州」で 生産材＝左・輸入材＝右（2026-11-11 作者指示）
     }
 
@@ -877,12 +877,12 @@ public partial class GameViewModel
     private MapHoverInfo BuildColonyHover(Colony col, string owner)
     {
         var info = new MapHoverInfo { Title = $"{col.Name}（{owner}）" };   // ★2026-09-23：州ホバーと同じ＝owner が「アメリカ(シャムの属国)の植民地」のとき括弧が二重にならない
-        info.Lines.Add(new MapHoverLine { Text = $"不満 {col.Militancy:P0}　規模指数 {col.Population:F1}", Brush = HoverDim });
+        info.Lines.Add(new MapHoverLine { Text = $"不満 {Fmt.Share(col.Militancy)}　規模指数 {col.Population:F1}", Brush = HoverDim });
         AppendChokepoint(info, col.Name);
         var names = (col.Resources ?? []).Where(id => id >= 0 && id < Catalog.Goods.Length).Select(id => Catalog.Goods[id].Name).ToList();
         if (names.Count > 0)
         {
-            info.Lines.Add(new MapHoverLine { Text = "生産物:", Brush = HoverHead, Weight = FontWeight.Bold });
+            info.Lines.Add(new MapHoverLine { Text = "生産物：", Brush = HoverHead, Weight = FontWeight.Bold });
             info.Lines.Add(new MapHoverLine { Text = string.Join("、", names), Brush = HoverText });   // 読点区切りの1行（折返しに任せる）
         }
         return info;

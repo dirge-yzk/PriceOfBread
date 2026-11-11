@@ -16,7 +16,7 @@ public partial class MainWindow
     {
         var lay = gvm.Layout;
         string Now() => $"背景 {lay.Background}・窓の順 [{string.Join(" → ", lay.OpenWindows.Select(SlotInfo.Name))}]（右が前）・位置 " +
-                        string.Join(" ", lay.OpenWindows.Select(s => lay.RectOf(s) is { } r ? $"{SlotInfo.Name(s)}({r.X:F0},{r.Y:F0},{r.W:F0}×{r.H:F0})" : $"{SlotInfo.Name(s)}(初め)"));
+                        string.Join(" ", lay.OpenWindows.Select(s => lay.RectOf(s) is { } r ? $"{SlotInfo.Name(s)}({r.X:F0},{r.Y:F0},{r.W:F0}×{r.H:F0})" : $"{SlotInfo.Name(s)}（初め）"));
         try
         {
             // 窓「州」：自国の首都を指した状態（幅は固定・生産材＝左・輸入材＝右）

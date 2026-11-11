@@ -78,14 +78,14 @@ public partial class GameViewModel
     {
         string foe = tr.EnemyName;
         if (won is null)
-            return tr.MeParent ? $"失ったもの:{foe}の州(分断)" : "得たもの:独立(分断)";
+            return tr.MeParent ? $"失ったもの：{foe}の州（分断）" : "得たもの：独立（分断）";
         if (won.Value)
-            return tr.MeParent ? $"得たもの:{foe}の再併合"
-                 : tr.Secession ? "得たもの:独立"
-                 : tr.Demand ? "得たもの:要求の受諾" : "得たもの:政体の転換";
-        return !tr.MeParent ? "失ったもの:国家(再併合)"
-             : tr.Secession ? $"失ったもの:{foe}の独立"
-             : tr.Demand ? "失ったもの:要求の受諾" : "失ったもの:政体";
+            return tr.MeParent ? $"得たもの：{foe}の再併合"
+                 : tr.Secession ? "得たもの：独立"
+                 : tr.Demand ? "得たもの：要求の受諾" : "得たもの：政体の転換";
+        return !tr.MeParent ? "失ったもの：国家（再併合）"
+             : tr.Secession ? $"失ったもの：{foe}の独立"
+             : tr.Demand ? "失ったもの：要求の受諾" : "失ったもの：政体";
     }
     private int _warCostStamp = -1;   // 戦費按分の月スタンプ（Refreshは月次以外にも呼ばれる＝二重加算の防止）
     private bool _warSeeded;          // 初回Refresh（新規開始/ロード直後）は戦争タブを自動オープンしない

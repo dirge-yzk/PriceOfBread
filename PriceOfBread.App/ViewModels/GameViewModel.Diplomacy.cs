@@ -92,7 +92,7 @@ public partial class GameViewModel
             string score = pow.Nation != null ? scoreByPower[pow.Id].ToString("F1") : "—";
             string polity = PolityRegimeJa(derived);
             // 低い＝多民族/多宗派（移民を引く・分離圧力）。宗教統一は民族統一と対称の派生スカラー＝州宗教の最大シェア（#62で露出）
-            string unity = pow.Nation is { EthnicEnabled: true } nn ? $"民族統一 {nn.EthnicUnity:P0}　宗教統一 {nn.ReligiousUnity:P0}" : "";
+            string unity = pow.Nation is { EthnicEnabled: true } nn ? $"民族統一 {Fmt.Share(nn.EthnicUnity)}　宗教統一 {Fmt.Share(nn.ReligiousUnity)}" : "";
             // 緊張：自国は「—」、それ以外は開戦までの近さ（100%＝宣戦の閾値・TensionPct）。交戦は関係の列で示す。
             double tensionShare = isMe ? double.NaN : TensionPct(_sim.Diplomacy.Tension(me, pow));
             // 関係（優先順）：戦争中＞属国/宗主（自国）＞他国の属国＞同盟＞領土なし（帰属の明記・2026-07-19）
@@ -121,7 +121,7 @@ public partial class GameViewModel
             string? ReasonTip(string reason) => reason switch
             {
                 "" => null,
-                "余剰戦力が不足" => $"戦力余剰 必要{willCost / wcap:P0}・現在{_player.ExpansionWill / wcap:P0}",   // ⚠case の文字列はエンジンの理由（World.CanInvade）＝変えない。変えたのは表示だけ
+                "余剰戦力が不足" => $"戦力余剰 必要{Fmt.Share(willCost / wcap)}・現在{Fmt.Share(_player.ExpansionWill / wcap)}",   // ⚠case の文字列はエンジンの理由（World.CanInvade）＝変えない。変えたのは表示だけ
                 "属国が上限" => $"属国 {_sim.Diplomacy.DependentCount(me)}/{_player.Coef.MaxDependents}",
                 "兵力が不足" => $"兵力 必要{_player.Coef.InvadeMilitaryFactor:F1}倍・自国{me.Military * _player.MilitaryReadiness:F2}／標的{pow.Military:F2}",
                 _ => reason,
@@ -131,10 +131,10 @@ public partial class GameViewModel
             string detail = $"{name}({rank})　{polity}";
             if (pow.Nation is { } nw)
             {
-                detail += $"\n列強スコア:{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F1}"));
+                detail += $"\n列強スコア：{score} " + string.Join(" ", linesByPower[pow.Id].Select(l => $"{l.Label}:{l.Points:F1}"));
                 if (unity.Length > 0) detail += "\n" + unity;
                 // 主流の文化/宗教（州ラベルの人口加重多数派）＝下の「民族の隔たり/宗教の隔たり」の素（#62）
-                if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化: {pow.Culture}　宗教: {pow.Religion}";
+                if (pow.Culture.Length > 0 || pow.Religion.Length > 0) detail += $"\n文化：{pow.Culture}　宗教：{pow.Religion}";
                 if (!isMe && me.Nation is not null)
                 {
                     // 緊張要因＝UIで再導出せず、エンジンの理由別台帳（TensionBreakdown）をそのまま出す（二重真理の解消）。
@@ -152,7 +152,7 @@ public partial class GameViewModel
                     {
                         detail += "\n緊張要因";
                         foreach (var f in factors)
-                            detail += $"\n・{f.Name} +{TensionPct(f.Value):P0}";
+                            detail += $"\n・{f.Name} +{Fmt.Share(TensionPct(f.Value))}";
                     }
                 }
                 // 自国との関係（同盟・禁輸・属国/宗主）＝意思決定情報
@@ -162,12 +162,12 @@ public partial class GameViewModel
                 if (powSuz == me) rel.Add("自国の属国");
                 else if (powSuz is not null) rel.Add($"{powSuz.Name}の属国");   // 帰属の明記（2026-07-19）：他国の勢力圏もホバーで判る
                 if (_sim.Diplomacy.Suzerain(me) == pow) rel.Add("自国の宗主");
-                if (rel.Count > 0) detail += "\n関係: " + string.Join("　", rel);
+                if (rel.Count > 0) detail += "\n関係：" + string.Join("　", rel);
                 // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）
                 if (pow.Nation is { } enw)
                 {
-                    detail += $"\n経済: GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
-                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
+                    detail += $"\n経済：GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
+                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {Fmt.Share(enw.Tariff)}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
                 }
             }
             else detail += $"\n残る領土 {pow.ColonyList.Count}";   // 抽象標的＝未接収の植民地数（0=領土なし・奪う物が無い）
