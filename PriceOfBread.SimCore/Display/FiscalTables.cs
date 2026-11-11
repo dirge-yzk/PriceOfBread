@@ -20,6 +20,8 @@ public sealed record BudgetResult(IReadOnlyList<BudgetLine> Spend, IReadOnlyList
     public static BudgetResult Empty { get; } = new([], [], 0, 0, 0, 0);
     /// <summary>予測の収支（収入−支出）。</summary>
     public double BalanceForecast => IncomeForecast - SpendForecast;
+    /// <summary>実績の収支（入った額−払った額）＝国庫の台帳の収支＝ヘッダーの国庫の月の増減。</summary>
+    public double BalanceActual => IncomeActual - SpendActual;
 }
 
 /// <summary>金融の表の 1 行（名前・値の文字・段の押し釦）。</summary>
@@ -115,7 +117,6 @@ public static class FiscalTables
         }
         string adminTip = $"行政力　{DisplayFormat.Share(w.AdminEfficiency)}\n行政費　目標 {DisplayFormat.Share(w.Policy.AdminSpendingTarget)}　実効 {DisplayFormat.Share(w.AdminSpending)}"
             + string.Concat(PlayText.ExplainTerms(w, "AdminEfficiency").Select(t => "\n" + PlayText.SignedLine(t.Delta, t.Reason, v => DisplayFormat.Share(v))));
-        string creditTip = $"外資信用　{DisplayFormat.Share(w.CreditRating)}\n" + CreditLines(w);
         string Pair(double target, double eff) => $"目標 {DisplayFormat.Share(target)}　実効 {DisplayFormat.Share(eff)}";
 
         BudgetLine Line(string key, string name, double fc, double ac, StageCell? st = null, string? tip = null, bool noFc = false, bool noAmounts = false, bool child = false)
@@ -133,15 +134,15 @@ public static class FiscalTables
             // 開幕の 8% は段の格子（0・25・50・75・最大）に乗らない＝どの段も光らせず、ホバーに目標と実効の本当の値を出す
             Line("modernization", OffGrid(w.ModernizationFrac) ? $"近代化投資 {DisplayFormat.Share(w.ModernizationFrac)}" : "近代化投資", ind, Paid(TreasuryCat.Modernization), Lever(w, "近代化投資", 0, 1, () => w.ModernizationFrac, () => w.ModernizationFrac, v => w.ModernizationFrac = v, offGridDark: true), indTip + "\n" + Pair(w.ModernizationFrac, w.ModernizationFrac)),
             Line("interest", "国債の利払い", interest, Paid(TreasuryCat.Interest)),
-            Line("pension", "年金", pen, Paid(TreasuryCat.Pension)),
+            Line("pension", "年金の給付", pen, Paid(TreasuryCat.Pension)),
         };
         // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
-        if (colonialUp > 1e-9 || Paid(TreasuryCat.ColonialUpkeep) > 1e-9) spend.Add(Line("colonial", "植民地の維持", colonialUp, Paid(TreasuryCat.ColonialUpkeep), noFc: true));
-        if (tribOut > 1e-9 || Paid(TreasuryCat.TributeOut) > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", tribOut, Paid(TreasuryCat.TributeOut), noFc: true));
+        if (colonialUp > 1e-9 || Paid(TreasuryCat.ColonialUpkeep) > 1e-9) spend.Add(Line("colonial", "植民地の維持", colonialUp, Paid(TreasuryCat.ColonialUpkeep)));   // 予測の列も出す＝見出しの予測は見える行の和（V1）
+        if (tribOut > 1e-9 || Paid(TreasuryCat.TributeOut) > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", tribOut, Paid(TreasuryCat.TributeOut)));
         // 国債の元本の出入り（2026-11-11 作者指示「国債の支払いなどもここに入れる」）＝国庫の台帳の実績（月の差分）をそのまま読む
         double repay = Paid(TreasuryCat.DebtRepay), borrow = In(TreasuryCat.Borrow);
         spend.Add(Line("debtRepay", "国債の償還", 0, Math.Max(0, repay), noFc: true));   // 起債と対で常に出す（B30）
-        spend.Add(Line("foreignOut", "民間の外資流出", f.ForeignOutMonthly, f.ForeignOutMonthly, noFc: true));
+        // 民間の外資の流れ（流入・流出）は国庫に入らない＝この表には置かない（国債と外資信用の表へ・V1）
 
         var income = new List<BudgetLine>
         {
@@ -154,7 +155,6 @@ public static class FiscalTables
             Line("tariff", "関税", tariffGross, In(TreasuryCat.Tariff),
                  Lever(w, "関税", c.TariffFloor, TariffCeil, () => w.Tariff, () => w.Policy.TariffTarget, v => w.Policy.TariffTarget = Math.Clamp(v, c.TariffFloor, TariffCeil)),
                  Pair(w.Policy.TariffTarget, w.Tariff)),
-            Line("foreignIn", "民間の外資流入", f.ForeignInMonthly, f.ForeignInMonthly, tip: creditTip, noFc: true),
         };
         if (tribIn > 1e-9 || In(TreasuryCat.TributeIn) > 1e-9) income.Add(Line("tributeIn", "属国からの貢納", tribIn, In(TreasuryCat.TributeIn)));
         income.Add(Line("debtBorrow", "国債の起債", 0, Math.Max(0, borrow), noFc: true));   // 償還と対で常に出す・外資の流入（民間）とは別の量（B30）
@@ -166,24 +166,23 @@ public static class FiscalTables
         {
             if (covered.Contains(item.Cat)) continue;
             double d = LedgerOf(f, item.Cat);
-            if (!(Math.Abs(d) >= 50.0)) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない
+            if (!(Math.Abs(d) >= 50.0)) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない（下の「その他」へ畳む）
             if (item.Side == FiscalSide.Outlay) spend.Add(Line("cat." + item.Cat, item.Name, 0, -d, noFc: true));
             else income.Add(Line("cat." + item.Cat, item.Name, 0, d, noFc: true));
         }
 
-        double spendTotal = interest + mil + pSoldier + admin + wel + pen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut;
-        double revTotal = net + tariffGross + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn;
-        double spendActT = spend.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual);
-        double revActT = income.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual);
-        return new BudgetResult(spend, income, spendTotal, spendActT, revTotal, revActT);
+        // 行にしなかった小さい区分と税の 4 行の食い違いは、台帳の収支との差として側ごとに「その他」へ畳む＝実績の合計の差が国庫の収支（台帳）と厳密に一致する（V1）
+        double ActSum(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual);
+        double rest = LedgerBalance(f) - (ActSum(income) - ActSum(spend));
+        if (f.LedgerDiff.Any(x => x != 0) && rest >= 0.5) income.Add(Line("restIn", "その他", 0, rest, noFc: true));
+        else if (f.LedgerDiff.Any(x => x != 0) && rest <= -0.5) spend.Add(Line("restOut", "その他", 0, -rest, noFc: true));
+
+        double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child && !l.NoForecast).Sum(l => l.Forecast);
+        return new BudgetResult(spend, income, Fc(spend), ActSum(spend), Fc(income), ActSum(income));
     }
 
     /// <summary>国庫の台帳のその区分の月の差分（正＝入り・負＝出）。台帳がまだ立っていなければ 0。</summary>
     private static double LedgerOf(FiscalFlows f, TreasuryCat cat) => (int)cat < f.LedgerDiff.Count ? f.LedgerDiff[(int)cat] : 0;
-
-    /// <summary>対外信用の内訳の 4 項（信用は 4 項の積＝どれが足を引っ張っているかは各項を並べれば読める）。</summary>
-    private static string CreditLines(World w)
-        => $"国債残高の評点　{DisplayFormat.Share(w.CreditDebtTerm)}\n兌換の評点　{DisplayFormat.Share(w.CreditGoldTerm)}\n為替の評点　{DisplayFormat.Share(w.CreditFxTerm)}\n国債の利回りの評点　{DisplayFormat.Share(w.CreditBondTerm)}";
 
     /// <summary>支出と収入の表の列。実績の列は国庫の台帳が書いた実際の額（支出＝払った額・収入＝入った額）。</summary>
     private static IReadOnlyList<Column<BudgetLine>> BudgetColumns(string actualName) =>
@@ -274,7 +273,7 @@ public static class FiscalTables
 
     // ===== 国債と外資信用 =====
 
-    private static IReadOnlyList<DebtLine> DebtLines(World w)
+    private static IReadOnlyList<DebtLine> DebtLines(World w, FiscalFlows f)
     {
         var rows = new List<DebtLine>();
         double gdpYear = w.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value) : 0;
@@ -291,13 +290,19 @@ public static class FiscalTables
         rows.Add(new("creditGold", "外資信用", "兌換の評点", $"{DisplayFormat.Share(w.CreditGoldTerm)}"));
         rows.Add(new("creditFx", "外資信用", "為替の評点", $"{DisplayFormat.Share(w.CreditFxTerm)}"));
         rows.Add(new("creditBond", "外資信用", "国債の利回りの評点", $"{DisplayFormat.Share(w.CreditBondTerm)}"));
+        // 民間の外資の流れは国庫に入らない＝支出・収入の表でなくここに置く（V1）。流入と流出は片方が £0
+        rows.Add(new("foreignIn", "外資信用", "民間の外資流入", DisplayFormat.Money(f.ForeignInMonthly) + "/月"));
+        rows.Add(new("foreignOut", "外資信用", "民間の外資流出", DisplayFormat.Money(f.ForeignOutMonthly) + "/月"));
         return rows;
     }
 
-    /// <summary>国債と外資信用の表（群＝国債・外資信用）。</summary>
-    public static Table<DebtLine> Debt { get; } = new("fiscal.debt", "国債と外資信用", Page.FiscalMoney, (_, w) => DebtLines(w), l => l.Key, l => l.Name,
+    /// <summary>国債と外資信用の表（群＝国債・外資信用）。外資の流れの月の標本は App が採る（<see cref="FiscalFlows"/>）。</summary>
+    public static Table<DebtLine> DebtOf(FiscalFlows f) => new("fiscal.debt", "国債と外資信用", Page.FiscalMoney, (_, w) => DebtLines(w, f), l => l.Key, l => l.Name,
     [
         Col.Text<DebtLine>("name", "項目", l => l.Name),
         Col.Text<DebtLine>("value", "現在", l => l.Value),
     ], l => l.Group);
+
+    /// <summary>外資の流れの標本が無い（0）時の国債と外資信用の表（表の目録の一覧用）。</summary>
+    public static Table<DebtLine> Debt { get; } = DebtOf(FiscalFlows.Zero);
 }

@@ -27,7 +27,7 @@ public static class FiscalCatalog
         I(TreasuryCat.TributeIn, "貢納の受取", FiscalSide.Income), I(TreasuryCat.OtherIn, "その他の収入", FiscalSide.Income),
         I(TreasuryCat.Army, "陸軍", FiscalSide.Outlay), I(TreasuryCat.Navy, "海軍", FiscalSide.Outlay),
         I(TreasuryCat.Admin, "行政", FiscalSide.Outlay), I(TreasuryCat.Education, "教育", FiscalSide.Outlay),
-        I(TreasuryCat.Welfare, "社会保障", FiscalSide.Outlay), I(TreasuryCat.Pension, "年金", FiscalSide.Outlay),
+        I(TreasuryCat.Welfare, "社会保障", FiscalSide.Outlay), I(TreasuryCat.Pension, "年金の給付", FiscalSide.Outlay),
         I(TreasuryCat.Modernization, "近代化投資", FiscalSide.Outlay), I(TreasuryCat.AntiCorruption, "汚職の根絶", FiscalSide.Outlay),
         I(TreasuryCat.Interest, "国債の利払い", FiscalSide.Outlay), I(TreasuryCat.DebtRepay, "国債の償還", FiscalSide.Outlay),
         I(TreasuryCat.FactoryBuild, "工場の建設", FiscalSide.Outlay), I(TreasuryCat.Subsidy, "補助金", FiscalSide.Outlay),

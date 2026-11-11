@@ -50,11 +50,12 @@ public class FiscalPopDiscoveryTablesTests
     [Fact]
     public void 予算の項の合計は_行の予測と実効の和に一致する()
     {
-        var (_, w) = Board(8);
+        var (sim8, w) = Board(8);
         var flows = new FiscalFlows(120, 340, 5, 7, new double[(int)TreasuryCat.Count]);
         var b = FiscalTables.Budget(w, flows);
         // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
-        double Fc(BudgetLine l) => l.NoAmounts || l.Child ? 0 : l.Forecast;   // 内訳の行（陸軍・海軍）は軍事費の行に含まれる＝足さない
+        double Fc(BudgetLine l) => l.NoAmounts || l.Child || l.NoForecast ? 0 : l.Forecast;   // 見出しの予測＝列に見える行の和(V1)
+        //    // 内訳の行（陸軍・海軍）は軍事費の行に含まれる＝足さない
         double Ac(BudgetLine l) => l.NoAmounts || l.Child ? 0 : l.Actual;
         Assert.Equal(b.SpendForecast, b.Spend.Sum(Fc), 6);
         Assert.Equal(b.SpendActual, b.Spend.Sum(Ac), 6);
@@ -65,9 +66,29 @@ public class FiscalPopDiscoveryTablesTests
         Assert.Equal(120, b.Spend.First(l => l.Key == "education").Forecast, 9);
         Assert.Equal(0, b.Spend.First(l => l.Key == "education").Actual, 9);
         Assert.Equal(340, b.Income.First(l => l.Key == "monopoly").Forecast, 9);
-        Assert.Equal(5, b.Income.First(l => l.Key == "foreignIn").Actual, 9);
-        Assert.Equal(7, b.Spend.First(l => l.Key == "foreignOut").Actual, 9);
+        Assert.DoesNotContain(b.Income, l => l.Key == "foreignIn");   // 民間の外資の流れは国庫に入らない＝国債と外資信用の表へ(V1)
+        Assert.DoesNotContain(b.Spend, l => l.Key == "foreignOut");
+        var debt = FiscalTables.DebtOf(flows).Read(sim8, w);
+        Assert.Contains(debt.Rows, r => r.Key == "foreignIn");
+        Assert.Contains(debt.Rows, r => r.Key == "foreignOut");
         Assert.All(b.Spend.Concat(b.Income), l => Assert.False(double.IsNaN(l.Forecast) || double.IsNaN(l.Actual), $"{l.Key} が NaN"));
+    }
+
+    [Fact]
+    public void 支出と収入の実績の差は国庫の増減と一致し_行にならない残りは_その他_に畳まれる()
+    {
+        var (sim, w) = Board(6);
+        var before = (double[])w.TreasuryLedger.Clone();
+        double t0 = w.Treasury.Value;
+        sim.StepQuarter();
+        var diff = w.TreasuryLedger.Select((x, i) => (x - before[i]) / 3.0).ToArray();   // 四半期の差分の月平均（App の月の差分と同じ単位）
+        var b = FiscalTables.Budget(w, new FiscalFlows(0, 0, 0, 0, diff));
+        double tDelta = (w.Treasury.Value - t0) / 3.0;
+        Assert.True(Math.Abs(tDelta - b.BalanceActual) < 0.5, $"収支が国庫の増減と合わない: {tDelta} / {b.BalanceActual}");   // 入った額−払った額＝国庫の増減（ヘッダーの月の増減と同じ量）
+        Assert.Equal(tDelta, FiscalTables.LedgerBalance(new FiscalFlows(0, 0, 0, 0, diff)), 4);
+        double rest = b.Income.Where(l => l.Key == "restIn").Concat(b.Spend.Where(l => l.Key == "restOut")).Sum(l => l.Actual);
+        double big = Math.Max(Math.Abs(b.IncomeActual), Math.Abs(b.SpendActual));
+        Assert.True(rest <= 0.05 * big + 1e-6, $"その他に畳まれた残りが大きい: {rest} / {big}");   // 残りが大きいなら行の漏れ（税の 4 行と台帳の食い違いなど）
     }
 
     [Fact]

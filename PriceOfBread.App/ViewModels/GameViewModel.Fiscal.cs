@@ -100,9 +100,9 @@ public partial class GameViewModel
         SpendTable = SnapFiscal(FiscalTables.Spend(budget));
         IncomeTable = SnapFiscal(FiscalTables.Income(budget));
         FinanceTable = SnapFiscal(FiscalTables.Finance);
-        DebtTable = SnapFiscal(FiscalTables.Debt);
+        DebtTable = SnapFiscal(FiscalTables.DebtOf(flows));
         SpendTitle = $"支出　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendForecast)}　{FiscalTables.SpendActualName} {Fmt.Of(Unit.MoneyPerMonth, budget.SpendActual)}";
-        IncomeTitle = $"収入　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeActual)}";
+        IncomeTitle = $"収入　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeActual)}　収支 {Fmt.SignedMoneyPerMonth(budget.BalanceActual)}";
         // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
         TreasuryValues = _histTreasury.ToArray();
         GovDebtValues = _series.Of(GovDebtSeries).ToArray();
