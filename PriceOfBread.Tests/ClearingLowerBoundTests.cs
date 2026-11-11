@@ -40,7 +40,7 @@ public class ClearingLowerBoundTests
             else
             {
                 if (delLB > del2) a.LbOverTrue++;
-                if (delLB >= lp) { a.LbGeLp++; if (!(del2 >= lp)) a.LbGeLpTrueLt++; }
+                if (InternationalMarket.LbSkip(delLB, lp)) { a.LbGeLp++; if (!(del2 >= lp)) a.LbGeLpTrueLt++; }
             }
         });
         try
@@ -75,6 +75,12 @@ public class ClearingLowerBoundTests
         var a = RunAudited(4);
         Assert.True(a.LbGeLp > 100, $"下界で飛ばせる対が現れない（前提の破れ）{a.LbGeLp}");
         Assert.Equal(0L, a.LbGeLpTrueLt);
+        // 境界（手で置く）：ちょうど等しい＝飛ばす・1 ulp 下＝飛ばさない・1e-9 だけ下＝飛ばさない・NaN＝飛ばさない（旧の経路へ）
+        double lp0 = 1.2345;
+        Assert.True(InternationalMarket.LbSkip(lp0, lp0));
+        Assert.False(InternationalMarket.LbSkip(Math.BitDecrement(lp0), lp0));
+        Assert.False(InternationalMarket.LbSkip(lp0 * (1 - 1e-9), lp0));
+        Assert.False(InternationalMarket.LbSkip(double.NaN, lp0));
     }
 
     private static (List<long> D, long Fills, long Skips) RunPlain(bool lbOff, int quarters)

@@ -120,6 +120,8 @@ public sealed partial class InternationalMarket
     /// <summary>(1029) 試験の口：下界の監査（下界の着値・真の着値・自州価格・買い手の州・売り手の州）。設定中は飛ばさず全て充填する＝充填した対ごとに下界と真の着値を並べて呼ぶ。</summary>
     internal delegate void LbAuditFn(double delLB, double del2, double lp, int buyer, int seller);
     [System.ThreadStatic] internal static LbAuditFn? LbAudit;
+    /// <summary>(1029) 下界の着値が自州価格以上なら飛ばす（肯定形の >= ＝NaN は飛ばさず旧の経路へ）。試験が境界（ちょうど等しい・1 ulp 下）をここで直に確かめる。</summary>
+    internal static bool LbSkip(double delLB, double lp) => delLB >= lp;
     [System.ThreadStatic] private static KmScratch? _kmScratch;
 
     /// <summary>★(347) 清算1回ぶんの作業用の配列と一覧の置き場＝スレッドごと（selfplay-batch は試合ごとにスレッド）。旧＝清算のたびに約40本の配列
@@ -969,7 +971,7 @@ public sealed partial class InternationalMarket
                                             + weightAdd * (kmL / Diplomacy.DistanceNormKm) + 0.0;
                                 double facL = 1 + marL + wS2 + 0.0;
                                 if (LbAudit is not null) lbAud = selP * facL;
-                                else if (selP * facL >= lp) { nSkipLB++; prevS = s2; s2 = nextS![s2]; continue; }
+                                else if (LbSkip(selP * facL, lp)) { nSkipLB++; prevS = s2; s2 = nextS![s2]; continue; }
                             }
                             if (MultiNationSim.TimeOn) CntFills++;   // ★計器（着値の計算）
                             nFill++;
