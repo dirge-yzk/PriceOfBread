@@ -1,0 +1,34 @@
+(1042) c98rm 事前登録（数える前に書いた・2026-11-11・Claude Opus 5.5）
+読むだけの線＝門は置かない（採否が無い）。ここに書くのは、数え方を結果の前に固定するためだけ。結果を見た後に数え方を変えたら〈結果の後の変更〉と名乗る。
+
+盤面
+- 基線 B＝keep_1035/base_ins（xmig_s は keep_1027/base_ins とハードリンク＝m1027 と同じバイト）。ヌル腕 N1・N2＝keep_1027/n1・n2。種 1〜10。
+- ヌル腕の幅＝B・N1・N2 の 3 本の、10 種を合わせた量の最小〜最大。種ごとの最小〜最大も別に書く。
+
+流れの量
+- xmig_s の movedKPerQuarter（求めた流量＝受入の上限で縮めた後・MoveAbroad の前＝Instruments.cs:18 の定義）。全ての四半期・全ての行の和。比は和÷和（四半期ごとの比の平均にしない）。
+
+札の分類（州の札の組で・出身の州 × 行き先の州）
+- 州の札：world.json の provinces[].city→culture・religion。表に出るが world.json に無い州（植民地から昇格した州）は Simulation.cs:1626 のとおり昇格させた国の Regions[0] の札＝region_s でその州が最初に現れた行の nation の、world.json の provinces[0] の札で近似する（〈近似〉と名乗る・国が world.json に無ければ〈札なし〉）。
+- 文化：同じ（札が等しく空でない）／族が同じ（Diplomacy.cs:1199 CultureGroup が等しく札は違う）／違う／札なし（どちらかが空）。
+- 宗教：同じ／家族が同じ（Diplomacy.cs:1214 ReligionFamily が等しく札は違う）／違う／札なし。
+- CultureGroup と ReligionFamily は C# の switch を Python へ写す（写しの確かめ＝world.json の全ての札について表を出力に並べる）。
+- 期間：全体・1783〜1849・1850〜1899・1900〜1950。
+
+比べる参照（札に中立な配り）
+- 送出州ごとの流量を、その四半期の他国の全ての州へ人口（region_s populationK・activeFlag=1）比で配ったときの〈同じ〉の割合＝札が流れに効かないときの基準。距離は入れない（距離の分は別の参照：同じ四半期の実際の行き先の距離の分布はそのまま）。
+- 見る量＝実際の割合÷中立の割合。
+
+問2（項の大きさ）
+- 行き先の州の Opportunity の因子（region_s の wageFactor・landFactor・employmentShare・pushFactor・housingFactor・opportunityIndex）を、流量で重みを付けた分布（中央・10%・90%）と、全ての活きた州の分布で並べる。
+- 距離：greatCircleKm の流量で重みを付けた分布。減衰 1/(1+km/10000/Era) の Era は計器に無い＝Era=1 の値を〈上限側の近似〉として書く。
+- EthnicDraw：dstA=(1+0.7×(1−EthnicUnity))×clamp(平均識字/0.45)。計器の 9 国だけで近似：EthnicUnity≈secession_s の coreShareMeanShare を popK で重みを付けた平均（首都を除く＝近似）、識字≈lawgate_s literacyHome（兵士を含む・本国だけ＝近似）。式の構造（dstA は送出州の中の配りだけを変え、総量は gMax で決まる）はソースで読む。
+
+問3（史実の形）
+- 連鎖：国の組（fromNation→toNation）について、四半期 t の流れの割合と、t より前の累計の流れの割合の順位相関（年ごとに）。今のコードには累計の項が無い＝どれだけ持続が地理と機会だけで出るかの基準。
+- 米：アメリカへの流入の札の分類の構成を 1850〜1881・1882〜1923・1924〜1950 で。monlaw_s の アメリカ の ImmigrationRestriction の値の推移。
+- ユグノー型（国教の国からの異教の少数派の出国）：POP に宗教が無い＝読めないと書く。代わりに、出身の州の宗教が出身の国の多数派と違う流れの量（州の札で）を出す。
+- 国教の法：行き先の StateReligion（monlaw_s・9 国）ごとの、宗教が違う流れの割合。
+
+結論の書き方
+- 数は台本の出力から写す。近似は近似と名乗る。決めない（作者に聞く物は推奨つき）。

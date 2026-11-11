@@ -1,0 +1,47 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (83 ミリ秒)。
+  D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (1 秒)。
+  D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (1000 ミリ秒)。
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\BilateralMarket.cs(991,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\EconomyStep.cs(1767,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\Instruments.cs(2560,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\m1044_work\m4\art_orig\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.App\Controls\TableView.cs(74,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\m1044_work\m4\art_orig\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\ConservationTests.cs(956,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\UnitTypeTests.cs(322,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\UnitTypeTests.cs(322,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\UnitTypeTests.cs(323,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\UnitTypeTests.cs(323,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\m1044_work\m4\src_orig\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\m1044_work\m4\art_orig\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\m1044_work\m4\art_orig\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.92]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.31]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.36]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4b_買い手が満ちた行の理由はxPriceとxNeedの小さい側と合う [11 s]
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4c_sellRの旧と両側は紙の値(demand: 0, exp: 0, imp: 4, floor: 1, expectOld: 1, expectBoth: 1) [2 ms]
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4c_sellRの旧と両側は紙の値(demand: 5, exp: 3, imp: 2, floor: 1, expectOld: 5, expectBoth: 6) [< 1 ms]
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4c_sellRの旧と両側は紙の値(demand: 5, exp: 2, imp: 3, floor: 1, expectOld: 5, expectBoth: 4) [< 1 ms]
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4b_行の終わりの理由は組の数だけ該当の列へ足される [< 1 ms]
+C4c �L�^�F�s 33084�E�������� 314�E���̎��~rentR��laborWeight �̊��� 20/31792
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4c_sellr表の行は列から再計算でき両側は旧と違う行がある [3 s]
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4a_C4b_分けた列の和は旧の列と全行で等しく区分は配線されている [3 s]
+[xUnit.net 00:00:19.69]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.TradeSkipC4Tests.C4a_売り手の表に載らない州は4区分に排他で数えられる [< 1 ms]
+
+テストの実行に成功しました。
+テストの合計数: 8
+     成功: 8
+合計時間: 22.1451 秒

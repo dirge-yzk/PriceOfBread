@@ -1,0 +1,28 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+
+// (1041) 使い捨てのプローブ（コミットしない）：CorncfInstrumentTests.T5 と同じ盤面（英仏・DiplomacyFrozen・3 四半期）で、
+// 種 1791〜1802 の穀物の輸入が正の組（国×穀物）の数を数える。旗は木の既定値（引数で渡さない＝国の播種に届く値）。
+public class ProbeT5Sweep
+{
+    private readonly ITestOutputHelper o; public ProbeT5Sweep(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Sweep()
+    {
+        var corn = Enumerable.Range(0, Catalog.Goods.Length).Where(g => Catalog.Goods[g].Tier == GoodTier.Staple || Catalog.Goods[g].GrainChain).ToArray();
+        double flag = new Coefficients().EndowmentCostFollowsAbundance;
+        for (ulong seed = 1791; seed < 1803; seed++)
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: seed) { DiplomacyFrozen = true };
+            for (int q = 0; q < 3; q++) sim.StepQuarter();
+            int pos = 0;
+            foreach (var n in sim.Nations)
+                foreach (int g in corn) if (n.World.ImportsByGood![g] > 0) pos++;
+            o.WriteLine($"T5SWEEP flag={flag} seed={seed} pos={pos} pairs={sim.Nations.Count * corn.Length}");
+        }
+    }
+}

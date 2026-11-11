@@ -1,0 +1,39 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+
+// (1041) 使い捨てのプローブの素案（コミットしない・まだ回していない）：ColonialPopTests の盤面（英仏・種 83・英のジャマイカ・住民 1000 千人へ倍掛け）で
+// 12 か月、不在地主の大農園ごとに〈判断の側〉と〈損益の側〉の量を並べる。(1030) の ProbeEb4 は地代と操業規模の和だけ＝どちらの側が動いたかを読めなかった。
+// 列：月・財・値段（市場）・mc（MineralSelfCost＋InputCostPerUnit＝:1118 と同じ）・採算の率（ProfitFactor）・margin（:2817 と同じ式・清算の値段の代わりに市場の値段）
+//     ・産出・国内で売れた量（LastRevenue÷値段の近似）・在庫・LastRevenue・LastCost・操業規模。
+// 判定に使わない（読むだけ）。旗は木の既定値で切り替える（t5sweep.sh と同じく木を 2 本）。
+public class ProbeEbLedger
+{
+    private readonly ITestOutputHelper o; public ProbeEbLedger(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Ledger()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        var col = w.Regions.First(r => r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == Catalog.CoffeeId && Colonial.AbsenteeRgo(r, p)));
+        double upscale = 1000.0 / col.SumPopulation();
+        foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
+        double flag = w.Coef.EndowmentCostFollowsAbundance;
+        for (int m = 1; m <= 12; m++)
+        {
+            EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+            foreach (var p in col.Producers.Where(p => Colonial.AbsenteeRgo(col, p)))
+            {
+                var mk = col.Markets[p.GoodId];
+                double mc = EconomyStep.MineralSelfCost(p, col, w.Coef, w) + EconomyStep.InputCostPerUnit(p, col, col, w.Coef);
+                double pf = EconomyStep.ProfitFactor(p, mk.Price, mc, w.Coef);
+                double margin = mc > 1e-12 ? (mk.Price - mc) / mc : 0;
+                double sold = mk.Price > 0 ? p.LastRevenue / mk.Price : double.NaN;
+                o.WriteLine($"LEDGER flag={flag} m={m} good={Catalog.Goods[p.GoodId].Name} price={mk.Price:G6} mc={mc:G6} pf={pf:G6} margin={margin:G6} out={p.Output:G6} sold~={sold:G6} stock={mk.Stock:G6} rev={p.LastRevenue:G6} cost={p.LastCost:G6} scale={p.Scale:G6}");
+            }
+        }
+    }
+}

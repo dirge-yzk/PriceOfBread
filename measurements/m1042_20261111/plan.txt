@@ -1,0 +1,23 @@
+(1042) c98rm 宗教と移民の段0 ― 作業の場所と読む生（読むだけの線・腕 0 本・コミットしない）
+2026-11-11 Claude Opus 5.5
+
+作業の場所
+- D:/PoB_work/r1042_work/（この線が作った唯一のフォルダ）。worktree・枝は作らない（読むだけ＝main の作業ツリー a06f769b を grep で読むだけ・書かない）。
+- 台本 D:/PoB_work/r1042_work/scripts/・出力 D:/PoB_work/r1042_work/out/。
+
+読む生（全て読むだけ）
+- 基線（m1035＝m1027 と同じ盤面）：D:/PoB_work/keep_1035/base_ins/{xmig,migration,region,monlaw,lawgate,secession,nation}_s1..10.tsv
+- ヌル腕：D:/PoB_work/keep_1027/n1・n2 の同じ表（盤面 m1027 の揺らし）
+- 州の札：PriceOfBread.SimCore/world.json（provinces[].city/culture/religion・nations[].initialColonies・abstractTargets[].colonies）
+- 植民地から昇格した州の札＝昇格させた国の Regions[0] の札（Simulation.cs:1626）＝表の最初の持ち主の国の首都の札で近似する。
+
+読むソース（a06f769b・grep し直した行）
+- MultiNationSim.cs:1695 MigrateBetweenNations・:1706〜1708 dstA（EthnicDraw）・:1747 差・:1749 距離の減衰・:1770 配分・:1782 受入の上限・:1818 coreAtDest=0
+- Territory.cs:93 MigrationDecay・:134 Opportunity・:182 Holding・:203 AbsorbCap
+- Coefficients.cs:927 EthnicDraw=0.7・:944 DiscriminationLiteracy=0.45・:751〜752・:2687・:2692・:2708〜2709
+- Diplomacy.cs:1183 MajorityCultureReligion・:1199 CultureGroup・:1214 ReligionFamily
+- World.cs:882 EthnicUnity・:884 ReligiousUnity・Policy.cs:193 StateReligion・Model.cs:1039 Region.Culture/Religion・Model.cs:238 CoreEthnicShare
+- Instruments.cs:18（xmig_s の定義＝求めた流量）・:2045 CrossBorder
+
+順
+1 事前登録 prereg.txt（数える前）→ 2 札の表（州→文化・宗教・族）→ 3 問1 の表（3 腕×10 種）→ 4 問2 の項の表 → 5 問3 の形 → 6 問4 計器の仕様 → 7 結論と次の波の素案（report.txt）
