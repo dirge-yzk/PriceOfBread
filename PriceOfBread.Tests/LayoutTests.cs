@@ -30,7 +30,7 @@ public class LayoutTests
             Assert.Equal(slot, SlotInfo.OfKey(key));
             Assert.Equal(slot, SlotInfo.OfKey(char.ToLowerInvariant(key)));   // 小文字でも引ける
         }
-        Assert.Equal("Tab:生産", SlotInfo.ButtonText(Slot.Production));
+        Assert.Equal("Tab：生産", SlotInfo.ButtonText(Slot.Production));
         Assert.Equal("生産", SlotInfo.Name(Slot.Production));
         Assert.Equal("地図", SlotInfo.Name(Slot.Map));
         Assert.Null(SlotInfo.OfKey('\0'));   // 生産（Tab）と地図は文字のキーで引けない

@@ -35,7 +35,7 @@ public class DisplayCatalogTests
         {
             Assert.True(DisplayNames.IsValid(PageKeys.Name(p)), $"ページの名前が規則に合わない: {p}");
             if (p == Page.Production) continue;   // 生産は Tab＝文字で引かない
-            Assert.Equal($"{PageKeys.Key(p)}:{PageKeys.Name(p)}", PageKeys.ButtonText(p));
+            Assert.Equal($"{PageKeys.Key(p)}：{PageKeys.Name(p)}", PageKeys.ButtonText(p));
             Assert.Equal(p, PageKeys.PageOfKey(PageKeys.Key(p)));
             Assert.Equal(p, PageKeys.PageOfKey(char.ToLowerInvariant(PageKeys.Key(p))));
         }
@@ -43,8 +43,8 @@ public class DisplayCatalogTests
         Assert.Null(PageKeys.PageOfKey('\0'));
         Assert.Null(PageKeys.PageOfKey('Z'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
-        Assert.Equal("Tab:生産", PageKeys.ButtonText(Page.Production));
-        Assert.Equal("Q:市場と貿易", PageKeys.ButtonText(Page.Market));
+        Assert.Equal("Tab：生産", PageKeys.ButtonText(Page.Production));
+        Assert.Equal("Q：市場と貿易", PageKeys.ButtonText(Page.Market));
         Assert.True(DisplayNames.IsValid(PageKeys.MapName));
     }
 

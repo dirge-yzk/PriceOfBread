@@ -174,7 +174,7 @@ public partial class GameViewModel
                 if (pow.Nation is { } enw)
                 {
                     detail += $"\n経済：GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}/月　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
-                            + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {Fmt.Share(enw.Tariff)}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
+                            + $"\n通貨制度 {MonetaryLawName(enw.MonetaryLaw)}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {Fmt.Share(enw.Tariff)}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
                 }
             }
             else detail += $"\n残る領土 {pow.ColonyList.Count}";   // 抽象標的＝未接収の植民地数（0=領土なし・奪う物が無い）
@@ -193,6 +193,9 @@ public partial class GameViewModel
         }
         NationTable = TableSnapshot.From(new TableData("diplomacy.nations", "国の一覧", NationColumns, rows, Page.DiplomacyWar));
     }
+
+    /// <summary>通貨制度の名（法の表の通貨制度の段の名と同じ語）。兌換の維持の旗（OnGoldStandard）は金属の種類を見ない＝銀本位の国に金本位と出さないため、法の値で出す。</summary>
+    private static string MonetaryLawName(MonetaryStandardLaw law) => law switch { MonetaryStandardLaw.Gold => "金本位", MonetaryStandardLaw.Silver => "銀本位", _ => "不換紙幣" };
 
     /// <summary>行クリック＝その国の中心（首都州／なければ最初の植民地）へカメラを移動（View が購読して translate を合わせる）。</summary>
     public event Action<double, double>? CenterMap;

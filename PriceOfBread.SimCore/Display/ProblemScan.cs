@@ -156,10 +156,18 @@ public static class ProblemScan
         }
     }
 
+    /// <summary>いま自国の州に本拠のある反乱勢力（表示用の 1 本）。World.Factions は州を手放した後も勢力を持ち続ける（シミュの側に残る）ので、本拠の州が自国の州に無い勢力は出さない。</summary>
+    public static List<FactionState> LiveFactions(World w)
+    {
+        var o = new List<FactionState>();
+        foreach (var f in w.Factions) if (w.Regions.Contains(f.Region)) o.Add(f);
+        return o;
+    }
+
     // 反乱勢力＝勢力の強さ（エンジンの勢力の強さの式 1 本）。永続の勢力があるときだけ（無い間のスナップショットは強さを持たない）。
     private static void Factions(World w, List<ProblemItem> o)
     {
-        foreach (var f in w.Factions)
+        foreach (var f in LiveFactions(w))
         {
             string name = PriceOfBread.SimCore.Factions.DisplayName(f);
             double strength = Politics.FactionStrength(w, w.Coef, f);

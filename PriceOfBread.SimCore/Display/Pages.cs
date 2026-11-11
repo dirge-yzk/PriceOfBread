@@ -47,5 +47,5 @@ public static class PageKeys
     }
 
     /// <summary>押し釦の文字（「Tab:生産」「Q:市場・清算・貿易」の形）。</summary>
-    public static string ButtonText(Page page) => $"{(page == Page.Production ? ProductionKeyName : Key(page).ToString())}:{Name(page)}";
+    public static string ButtonText(Page page) => $"{(page == Page.Production ? ProductionKeyName : Key(page).ToString())}：{Name(page)}";
 }

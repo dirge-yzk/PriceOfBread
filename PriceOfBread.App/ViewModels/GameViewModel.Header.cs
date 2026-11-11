@@ -217,7 +217,7 @@ public partial class GameViewModel
     }
 
     // 自国の国力スコア4分解（勝利条件の可視化・2026-07-15）：軍事/生産の豊かさ/金融/技術＋首位との差。国名/地位のホバーに出す（順位だけでは何を伸ばせば良いか読めない）。
-    public string PlayerScoreTip => PlayText.ScoreBreakdownText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
+    public string PlayerScoreTip => Fmt.Zen(PlayText.ScoreBreakdownText(_player));   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
     // 反体制派の戦力比＝動員（改革派＋急進派）÷鎮圧（治安維持力×人口）。100%超＝鎮圧を上回る＝政変圏
     //（Politics.Transition の `challenge <= coerce なら政体は動かない` と同じ不等式＝表示と点火が同じ物差し）。
     // ★2026-08-16 作者指摘「マイナスの軍事力は意味が通らない」の是正：旧＝(challenge−coerce)/(challenge+coerce) の
@@ -315,7 +315,7 @@ public partial class GameViewModel
     {
         var rows = new List<StatTerm>();
         foreach (var t in PlayText.ExplainTerms(_player, quantity))   // ★(435) 間引きと並べ方・書式は SimCore の 1 本（Runner の play の報告と同じ）
-            rows.Add(new StatTerm { Text = PlayText.SignedLine(t.Delta, t.Reason, fmt), Brush = t.Delta >= 0 ? TermPlus : TermMinus });
+            rows.Add(new StatTerm { Text = Fmt.Zen(PlayText.SignedLine(t.Delta, t.Reason, fmt)), Brush = t.Delta >= 0 ? TermPlus : TermMinus });
         return rows;
     }
 
@@ -352,7 +352,7 @@ public partial class GameViewModel
     // 説明API内訳の共通整形（緑=加算/赤=減算・|Δ|<5e-4は呼び出し側で除外済み前提）。
     private static readonly IBrush TermNeutral = new SolidColorBrush(Color.Parse("#5A4E3C"));
     private static StatTerm Signed(double delta, string reason, Func<double, string> fmt)
-        => new StatTerm { Text = PlayText.SignedLine(delta, reason, fmt), Brush = delta >= 0 ? TermPlus : TermMinus };
+        => new StatTerm { Text = Fmt.Zen(PlayText.SignedLine(delta, reason, fmt)), Brush = delta >= 0 ? TermPlus : TermMinus };
     private static StatTerm Neutral(string text) => new StatTerm { Text = text, Brush = TermNeutral };
 
     // === VM側の内訳ビルダー（SimCore非改変・確定値を横で読み直して構築＝ビット恒等自明）===

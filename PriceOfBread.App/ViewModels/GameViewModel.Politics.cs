@@ -370,7 +370,8 @@ public partial class GameViewModel
         double natPop = _player.TotalPopulation;
         // F3a（2026-07-12）：永続クラスタ（World.Factions＝結束・変異の旗を持つ運動体）があればそれを表示。
         // 無ければ従来のスナップショット（F2互換＝ロード直後や闘争度の低い平時）。
-        if (_player.Factions.Count > 0)
+        var liveFactions = PriceOfBread.SimCore.Display.ProblemScan.LiveFactions(_player);   // 失った州の勢力は出さない（シミュの側には残る）
+        if (liveFactions.Count > 0)
         {
             var demandsByBloc = new List<FactionSnapshot.Demand>?[PolicyPreferences.BlocCount];
             // 強さ比（UI修正R7・2026-08-16 診断「警告と点火の乖離」）：闘争度はどの点火不等式にも単独で現れない＝
@@ -378,7 +379,7 @@ public partial class GameViewModel
             // ＝旧は力の門（FactionStrength > 保持力+郷勇）、段4の点火後は連言2門（下の RevoltIgnitionIntensity 分岐）。
             // いずれも純関数の再計算＝World非変更。分母ガードは PoliticalQuantities.ChallengeRatio と同じ Max(1,·)。
             double coerce = PoliticalQuantities.EffectiveCoerce(_player, _player.Coef);   // エンジンの判定と同一式（第5段5-1の一元化・ChallengeTipと同じ）
-            foreach (var f in _player.Factions.OrderByDescending(x => x.Size))
+            foreach (var f in liveFactions.OrderByDescending(x => x.Size))
             {
                 demandsByBloc[f.Bloc] ??= FactionSnapshot.ComputeDemands(_player, f.Bloc);
                 var dl = demandsByBloc[f.Bloc]!;
