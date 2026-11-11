@@ -1373,7 +1373,7 @@ public sealed class Coefficients
     //   新＝費用 ＝ 自己費用÷賦存倍率 ＋ 投入費用（Simulation.ApplyEndowment が播種で1回だけ畳む）。
     //     割り算の形は MineralCostFollowsGrade（鉱脈の品位）と同じ＝あちらは月ごとに動く鉱脈の質、こちらは動かない地理。両方点火すれば積として重なる。
     //   ⚠豊富側と希少側で**別のゲート**＝非対称を選べる（希少側は費用を上げる方向＝非産地を殺しうる。2026-09-07 の MineralCostFollowsGrade 点火で人口21.8→7.1 の前例）。
-    public double EndowmentCostFollowsAbundance = 0.0;   // 賦存倍率>1 の州：自己費用÷倍率^これ（0＝割らない＝厳密恒等／1＝完全に「同一費用あたりの産出能力」）
+    public double EndowmentCostFollowsAbundance = 1.0;   // ★(1030) c97eb で既定 0→1 に点火（豊富側だけ・事前登録 measurements/m1030_20261111_prereg_eb.txt）。賦存倍率>1 の州：自己費用÷倍率^これ（0＝割らない＝厳密恒等／1＝完全に「同一費用あたりの産出能力」）
     public double EndowmentCostFollowsScarcity = 0.0;    // 賦存倍率<1（非産地 0.4）の州：自己費用÷倍率^これ＝**費用が上がる**（0＝上げない＝厳密恒等）
     /// <summary>★(328) 流れG ①（★(331) 合流で既定 0→1 に点火＝**有効**・0＝旧の挙動〔走査もしない〕）：労働力の財に並ぶ動力の別レシピ（畜力・蒸気機関・電動・水車）の自己費用を、〈そのレシピの生産性÷人力の生産性〉のこの乗で割る（播種で1回）。
     /// 旧＝生産性は能力（EconomyStep の Capacity）にだけ乗り、1単位の費用に入らない＝蒸気機関の動力は人力の2倍を出すのに自己費用が人力と同じ 0.35＋投入で必ず高く、必要性（ln(v÷cost)）が構造的に0になる。
