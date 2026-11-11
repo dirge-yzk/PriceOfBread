@@ -433,13 +433,14 @@ public sealed class TableView : UserControl
                 case ColumnKind.Share:
                     return new HalfPie { Radius = 16, Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Stage:
-                    return new WrapPanel { Orientation = Orientation.Horizontal, Margin = margin, MaxWidth = StageMaxWidth, HorizontalAlignment = HorizontalAlignment.Left };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
+                    return new BalancedWrapPanel { Margin = margin, MaxWidth = StageMaxWidth, HorizontalAlignment = HorizontalAlignment.Left };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
                 case ColumnKind.Verb:
                     return new Border { Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 default:
                     return new TextBlock
                     {
-                        FontSize = Small, TextTrimming = TextTrimming.CharacterEllipsis, Margin = margin, Background = Brushes.Transparent, MaxWidth = MaxTextWidth, HorizontalAlignment = HorizontalAlignment.Left,   // 最大の幅より広い欄でも左に寄せる（中央に寄せない）
+                        FontSize = Small, TextTrimming = TextTrimming.CharacterEllipsis, Margin = index == 0 ? new Thickness(0, 0, 4, 0) : margin,   // 先頭の名前の列は右に隙間＝長い名前が次の列の数に接しない（W18）
+                         Background = Brushes.Transparent, MaxWidth = MaxTextWidth, HorizontalAlignment = HorizontalAlignment.Left,   // 最大の幅より広い欄でも左に寄せる（中央に寄せない）
                         Foreground = index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray),
                     };
             }
@@ -499,7 +500,7 @@ public sealed class TableView : UserControl
                 case HalfPie pie when cell.Extra is ShareCell sc:
                     pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PaletteOf(sc)[i % PaletteOf(sc).Count])).ToList();
                     break;
-                case WrapPanel wp when cell.Extra is StageCell st:
+                case BalancedWrapPanel wp when cell.Extra is StageCell st:
                     FillStages(wp, st);
                     break;
                 case Border b:
@@ -532,7 +533,7 @@ public sealed class TableView : UserControl
                 DispatchVerb(vb, (btn.FindAncestorOfType<TableView>()?.ConfirmVerb) ?? DefaultConfirm);
         }
 
-        private static void FillStages(WrapPanel wp, StageCell st)
+        private static void FillStages(BalancedWrapPanel wp, StageCell st)
         {
             // 段の釦は理由の有無で幅も間も変えない＝理由は釦の列の最後（右の続き・入りきらなければ次の行）に 1 つだけ置く（V2）
             if (wp.Children.Count != st.Labels.Count + 1)

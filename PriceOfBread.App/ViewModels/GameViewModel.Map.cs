@@ -747,7 +747,7 @@ public partial class GameViewModel
             }
         }
         if (rg.IsPort)
-            info.Lines.Add(new MapHoverLine { Text = $"港 容量：{rg.PortCapacity:F0} 取引額：{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
+            info.Lines.Add(new MapHoverLine { Text = $"港の拡張：{rg.PortCapacity:F0}　取引額：{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
         AppendChokepoint(info, rg.Name);   // 海峡/運河のhost州はここに統合表示
         AppendWorldShare(info, rg, ownerWorld);
         return info;

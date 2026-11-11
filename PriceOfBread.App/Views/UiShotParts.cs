@@ -25,7 +25,7 @@ internal static class UiShotParts
             new SectionSpec("supply", "供給の網", 1, 8), new SectionSpec("goods", "財の表", 2, 8), new SectionSpec("detail", "選んだ財の詳細", 3, 6),
             new SectionSpec("factory", "州別の工場", 4, 6), new SectionSpec("equip", "設備", 6, 5), new SectionSpec("mega", "巨大建造物", 7, 4),
         ], [["supply", "detail"], ["goods", "factory"], ["equip", "mega"]]);
-        Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　£{(i + 1) * 137}.0k/月", Margin = new Thickness(0, 1) }); });
+        Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　{Fmt.Of(Unit.MoneyPerMonth, (i + 1) * 137000.0)}", Margin = new Thickness(0, 1) }); });
         PageGrid Make(double w, double h)
         {
             var g = new PageGrid { Table = table, Width = w, Height = h };

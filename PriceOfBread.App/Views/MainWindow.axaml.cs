@@ -340,7 +340,8 @@ public partial class MainWindow : Window
             var pin = gvm.PlayerCapitalCanvas() is { } pc ? gvm.MapHitAt(pc.X, pc.Y) : default;
             if (pin.Region is not null && pin.Hover is not null)
             {
-                gvm.TogglePin(pin.Hover, pin.Region); await Task.Delay(400); Capture(dir, "03f_州パネル.png");
+                gvm.TogglePin(pin.Hover, pin.Region); gvm.Layout.Open(Slot.Province); await Task.Delay(500); Capture(dir, "03f_州パネル.png");   // 州の窓を開いて撮る（W20＝窓が写っていなかった）
+                gvm.Layout.Close(Slot.Province);
                 gvm.HoverPinned = false; gvm.MapHover = null; await Task.Delay(200);
             }
             // 全景（2026-09-02）＝州名が消えて**国名（英語）**が出る帯。政治の塗り分けの全体像もここで見る。

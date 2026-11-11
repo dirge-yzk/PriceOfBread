@@ -73,7 +73,7 @@ public partial class MainWindow
             await Task.Delay(1200);
             var lawPage = UiShotWindows.PageOf(gameView, Slot.PoliticsLaw);
             var lawTv = lawPage?.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == "politics.laws");
-            var stagePanel = lawTv?.GetVisualDescendants().OfType<WrapPanel>().FirstOrDefault();
+            var stagePanel = lawTv?.GetVisualDescendants().OfType<BalancedWrapPanel>().FirstOrDefault();
             if (lawTv is not null && stagePanel is not null)
             {
                 var a0 = lawTv.MeasureAlignment();

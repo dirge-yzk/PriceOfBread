@@ -92,6 +92,25 @@ public class ProblemScanTests
     }
 
     [Fact]
+    public void 止まった棟数は財カードの棟数を超えない_技術ゲートの閉じた生産者は数えない()
+    {
+        var (sim, w) = Board();
+        foreach (var r in w.Regions) foreach (var p in r.Producers) p.Bankrupt = false;
+        w.Regions.First().Producers.First(p => Catalog.Goods[p.GoodId].Tier != GoodTier.Service).Bankrupt = true;
+        for (int g = 0; g < Catalog.Goods.Length; g++)
+        {
+            double cap = 0;   // 財カードの工場カウンターと同じ集合（技術ゲートが開いた生産者）の棟数（国営＋民営）
+            foreach (var r in w.Regions)
+                foreach (var p in r.Producers)
+                    if (p.GoodId == g && Discovery.Gate(r, p) > ProductionDiag.TechGateClosed) cap += w.StateUnitsOf(p) + w.PrivateUnitsOf(p);
+            double stopped = ProductionTables.StoppedUnits(w, g);
+            Assert.True(stopped <= cap + 1e-9, $"{Catalog.Goods[g].Name}：止まった棟数 {stopped} が棟数 {cap} を超えた");
+        }
+        foreach (var it in ProblemScan.Scan(sim, w).Where(p => p.Kind == ProblemKind.Bankruptcy))
+            Assert.Equal(ProductionTables.StoppedUnits(w, int.Parse(it.RowKey)), it.Size, 9);   // 一覧と数え方の 1 本が同じ
+    }
+
+    [Fact]
     public void 州の飢えは主食の不足の割合_充足が満ちた州は並ばない()
     {
         var (sim, w) = Board();

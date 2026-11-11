@@ -40,10 +40,10 @@
             <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
         </Style>
         <Style Selector="Button.card TextBlock.cardBody">
-            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontSize" Value="10"/>
             <Setter Property="Foreground" Value="#4A3F30"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="LineHeight" Value="13.5"/>
+            <Setter Property="LineHeight" Value="12.5"/>
             <Setter Property="Margin" Value="0,3,0,0"/>
             <!-- 作者指示2026-08-16「テキスト欄が足りていない」：行の途中でぶつ切りにしない＝行境界で終わらせる。
                  ★2026-09-23：**MaxLines="9" を撤去し、本文を Grid の `*` 行に置いて「残りの高さそのもの」を制約にした**。

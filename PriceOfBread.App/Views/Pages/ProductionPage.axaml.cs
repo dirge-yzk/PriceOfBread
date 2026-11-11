@@ -61,7 +61,7 @@ public partial class ProductionPage : UserControl
 
     /// <summary>盤を主にした並びのとき、右の列（財の表ほか）の固定の幅。旧の生産タブの右パネルは 530 だったが、左右の縁の釦・枠・欄の縁の分（約 60）が盤の視野を削るので、
     /// 盤の視野が旧と同じ約 1380（1 行 6 枚）になるようその分を引いた（530 のままでは視野 1306＝5 枚だった）。</summary>
-    public const double FullSideWidth = 440;
+    public const double FullSideWidth = 500;   // 440 では財の表の右端の見出し（国営・民営）が切れた（V19）
 
     public ProductionPage()
     {
