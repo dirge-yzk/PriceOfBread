@@ -1,0 +1,4 @@
+G1 cg の同じ集合の 2 本目以降 = 30 → FAIL
+G2 events_cg = 89（[71, 107]・0 でない）→ PASS
+G3 飛ばす前の cpeace の不一致の種 = 0 → PASS
+記録: imp=321 events=291 skipped=0 nocg=202 roundtrip=17 imp_uk=41 events_uk=36 skipped_uk=0 crown2=64803 wars=4835 seeds_uk=10
