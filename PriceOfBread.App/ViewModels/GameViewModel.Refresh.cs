@@ -153,6 +153,9 @@ public partial class GameViewModel
         SyncRows(WarRows, wrows, r => r.Key, (t, s) => t.CopyFrom(s));
         // 終わった戦争：追跡中だが Wars に無い＝講和済み。エンジンの終戦記録（EndedWars＝終戦月の最終値）を一次ソースに、
         // 無い場合のみ勝敗回数の増分でフォールバック（レビュー2026-07-19：ログ文字列照合は包含国名で誤爆するため廃止）。
+        var curRegionNames = new HashSet<string>(_player.Regions.Select(r => r.Name));
+        var curDependentIds = new HashSet<long>(_sim.Diplomacy.DependentsOf(me).Select(d => (long)d.Id));
+        long curSuzerainId = _sim.Diplomacy.Suzerain(me)?.Id ?? -1;
         foreach (var (id, tr) in _warTracks.Where(kv => !nowEnemies.Contains(kv.Key)).ToList())
         {
             var ep = _sim.Diplomacy.Powers.FirstOrDefault(p => p.Id == id);
@@ -187,19 +190,21 @@ public partial class GameViewModel
             // #106 終戦ポップアップ：双方の戦死・戦費・得失を表示（同四半期に複数終戦なら最初の1件）
             if (!WarEndPopupOpen)
             {
-                WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}との戦争が終結した。\n\n"
-                    + $"結果：{result}（戦勝点 {Fmt.SignedPct(scEnd)}）　{months}か月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
-                    + $"戦死　自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(deadEnemy)}" : "") + "\n"
-                    + $"民間人の死　自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {Fmt.PopFmt(civEnemy)}" : "") + "\n"
-                    + $"戦費　{Fmt.Money(tr.CostShare)}\n\n"
-                    + (tr.Civil ? CivilWarOutcome(tr, won)
-                       : won is null ? "得たもの：なし（白紙講和）"
-                       : won.Value ? "得たもの：賠償金"
-                       : "失ったもの：賠償金");
+                // 得失の州と属国化＝前回の Refresh の自国の州の名・属国の集合との差（SimCore に欄を足さない・割譲の記録は年表の文字列にしか無い）
+                var gainedRegions = _prevOwnRegionNames is null ? new List<string>() : curRegionNames.Where(n => !_prevOwnRegionNames.Contains(n)).ToList();
+                var lostRegions = _prevOwnRegionNames is null ? new List<string>() : _prevOwnRegionNames.Where(n => !curRegionNames.Contains(n)).ToList();
+                bool madeVassal = _prevDependentIds is not null && curDependentIds.Contains(id) && !_prevDependentIds.Contains(id);
+                bool becameVassal = _prevSuzerainId != id && curSuzerainId == id;
+                WarEndPopupBody = WarEndPopupText(ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—"), result, Fmt.SignedPct(scEnd), months,   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
+                    Fmt.PopFmt(deadSelf), ep?.Nation is not null ? Fmt.PopFmt(deadEnemy) : null,
+                    Fmt.PopFmt(civSelf), ep?.Nation is not null ? Fmt.PopFmt(civEnemy) : null,
+                    Fmt.Money(tr.CostShare),
+                    tr.Civil ? CivilWarOutcome(tr, won) : null, won, gainedRegions, lostRegions, madeVassal, becameVassal);
                 WarEndPopupOpen = true;
             }
             _warTracks.Remove(id);
         }
+        _prevOwnRegionNames = curRegionNames; _prevDependentIds = curDependentIds; _prevSuzerainId = curSuzerainId;
         for (int pi2 = PastWarRows.Count - 1; pi2 >= 0; pi2--)
             if (_simDays - PastWarRows[pi2].EndDay > Calendar.DaysPerYear * PastWarKeepYears) PastWarRows.RemoveAt(pi2);
         PlayerAtWar = WarRows.Count > 0;

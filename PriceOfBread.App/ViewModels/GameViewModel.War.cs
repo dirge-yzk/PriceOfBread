@@ -87,6 +87,35 @@ public partial class GameViewModel
              : tr.Secession ? $"失ったもの：{foe}の独立"
              : tr.Demand ? "失ったもの：要求の受諾" : "失ったもの：政体";
     }
+    // 終戦の窓の得失（州・属国化）を読むための前回の Refresh の写し（割譲の構造のある記録が SimCore に無い＝年表の文字列にしか出ない。セーブしない＝ロード後の最初の Refresh で入る）
+    private HashSet<string>? _prevOwnRegionNames;
+    private HashSet<long>? _prevDependentIds;
+    private long _prevSuzerainId = -1;
+
+    /// <summary>終戦の窓の本文（純粋な関数＝試験から呼ぶ）。内戦は <paramref name="civilOutcome"/> を得失の行にする。州・属国化は賠償金の行へ並べる。</summary>
+    public static string WarEndPopupText(string foe, string result, string scorePct, int months, string deadSelf, string? deadFoe, string civSelf, string? civFoe, string cost,
+        string? civilOutcome, bool? won, IReadOnlyList<string> gained, IReadOnlyList<string> lost, bool madeVassal, bool becameVassal)
+    {
+        string head = $"{foe}との戦争が終結した。\n\n"
+            + $"結果：{result}（戦勝点 {scorePct}）　{months}か月\n"
+            + $"戦死　自国 {deadSelf}" + (deadFoe is not null ? $"/相手 {deadFoe}" : "") + "\n"
+            + $"民間人の死　自国 {civSelf}" + (civFoe is not null ? $"/相手 {civFoe}" : "") + "\n"
+            + $"戦費　{cost}\n\n";
+        if (civilOutcome is not null) return Fmt.Zen(head + civilOutcome);
+        var got = new List<string>(); var gone = new List<string>();
+        if (won == true) got.Add("賠償金");
+        else if (won == false) gone.Add("賠償金");
+        if (gained.Count > 0) got.Add($"州　{string.Join("、", gained)}");
+        if (lost.Count > 0) gone.Add($"州　{string.Join("、", lost)}");
+        if (madeVassal) got.Add($"{foe}を属国に");
+        if (becameVassal) gone.Add($"{foe}の属国に");
+        var lines = new List<string>();
+        if (got.Count > 0) lines.Add("得たもの：" + string.Join("、", got));
+        if (gone.Count > 0) lines.Add("失ったもの：" + string.Join("、", gone));
+        if (lines.Count == 0) lines.Add("得たもの：なし（白紙講和）");
+        return Fmt.Zen(head + string.Join("\n", lines));
+    }
+
     private int _warCostStamp = -1;   // 戦費按分の月スタンプ（Refreshは月次以外にも呼ばれる＝二重加算の防止）
     private bool _warSeeded;          // 初回Refresh（新規開始/ロード直後）は戦争タブを自動オープンしない
     // ロード時に復元する戦争UI状態（セーブ末尾の追記ブロック POBWAR2）。旧セーブには無い＝null（新規追跡で再開）。
