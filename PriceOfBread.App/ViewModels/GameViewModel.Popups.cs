@@ -261,10 +261,10 @@ public partial class GameViewModel
     {
         var c = _player.Coef;
         var (neighbors, spreadSum) = _sim.Diplomacy.PreviewProvocationSpread(me, foe, c);   // ★(474) 近隣への波及はエンジンの 1 本を読む（旧は距離の式を画面に書き写していた）
-        TensionProvokeTip = $"緊張 +{c.ActionTensionStep:F0}({c.TensionActionRampMonths}ヶ月かけて)"
+        TensionProvokeTip = $"緊張 +{c.ActionTensionStep:F0}（{c.TensionActionRampMonths}ヶ月かけて）"
             + (neighbors > 0 ? $"　近隣 {neighbors}カ国へ波及 計+{spreadSum:F0}" : "")
             + "\n" + PoliticsLines(Diplomacy.PreviewTensionPolitics(me, foe, TensionPoliticsKind.Provoke, c));
-        TensionEaseTip = $"緊張 -{c.ActionTensionStep:F0}({c.TensionActionRampMonths}ヶ月かけて)"
+        TensionEaseTip = $"緊張 −{c.ActionTensionStep:F0}（{c.TensionActionRampMonths}ヶ月かけて）"
             + "\n" + PoliticsLines(Diplomacy.PreviewTensionPolitics(me, foe, TensionPoliticsKind.Appease, c));
     }
 

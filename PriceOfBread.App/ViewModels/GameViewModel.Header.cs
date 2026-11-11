@@ -73,7 +73,7 @@ public partial class GameViewModel
         ? "議会の承認"
         : "君主の直接統制";
     public string PolityBondDiscountText => _player.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
-        ? $"-{Fmt.Share(_player.Coef.BondRateRepresentationDiscount)}" : "0%";
+        ? $"−{Fmt.Share(_player.Coef.BondRateRepresentationDiscount)}" : "0%";
     // 「天命の有効度」の行は撤去（2026-08-09作者フィードバック）＝当時はヘッダーの王権支持度のホバーが同じ値を出していた。
     // ⚠2026-08-23の王権支持度の撤去で読み手ゼロ＝第5段5-3/5-4の母数（PoliticalQuantities.MandateBase）はエンジン専用に戻った。
 

@@ -26,13 +26,13 @@ public class ControlsTests
     }
 
     [Fact]
-    public void 表の列の名前と値は単位から決まる書式で文字になる_最初の文字の列は幅を取り_二つ目以降は上限を持つ()
+    public void 表の列の名前と値は単位から決まる書式で文字になる_最初の文字の列は名前の幅だけ_二つ目以降は上限を持つ()
     {
         var s = Snap(new R("a", "茶", null, 1200, 0.45, "(×1.50)"));
         Assert.Equal(new[] { "名前", "金額", "割合", "備考" }, s.Columns.Select(c => c.Name).ToArray());
         Assert.Equal(new[] { ColumnKind.Text, ColumnKind.Number, ColumnKind.Number, ColumnKind.Text }, s.Columns.Select(c => c.Kind).ToArray());
-        Assert.True(double.IsPositiveInfinity(s.Columns[0].MaxWidth));   // 最初の文字の列＝残りを全部取る
-        Assert.Equal(96, s.Columns[3].MaxWidth);                           // 二つ目以降＝長い名前で他を圧迫しない
+        Assert.Equal(TableView.MaxTextWidth, s.Columns[0].MaxWidth);   // 最初の文字の列（名前）＝残りの幅は取らず、数の列を直後に寄せる（A8）
+        Assert.Equal(TableSnapshot.LaterTextMaxWidth, s.Columns[3].MaxWidth);                           // 二つ目以降＝長い名前で他を圧迫しない
         Assert.All(s.Columns.Where(c => c.Kind == ColumnKind.Number), c => Assert.True(c.MinWidth > 0));   // 固定の幅でなく最小幅
         var cells = s.Rows[0].Cells;
         Assert.Equal("茶", cells[0].Text);

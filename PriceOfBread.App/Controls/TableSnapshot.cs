@@ -31,6 +31,9 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
         return this with { Rows = rows };
     }
 
+    /// <summary>2 つ目以降の文字の列の最大の幅（これを超える長い文字は末尾を省略記号にする。最後の列で「身分制免税 …」のように切れすぎない幅）。</summary>
+    public const double LaterTextMaxWidth = 180;
+
     /// <summary>単位から決まる最小幅（FontSmall=12px で半角の数字 約 6.65px・全角 12px）。</summary>
     public static double MinWidthOf(Unit unit) => unit switch
     {
@@ -58,8 +61,8 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
                 ColumnKind.Text => firstText ? 110 : 24,   // 最初の文字の列（名前）は潰さない（2026-11-11 作者指摘「国名がつぶれている」）
                 _ => 24,
             };
-            // 最初の文字の列は残りの幅を全部取る（最大幅なし）。2 つ目以降の文字の列は長い名前で他を圧迫しない（末尾を省略記号）。
-            double max = c.Kind == ColumnKind.Text ? (firstText ? double.PositiveInfinity : 96) : double.PositiveInfinity;
+            // 最初の文字の列（名前）は残りの幅を取らない（数の列を直後に寄せる・A8）。長い名前は MaxTextWidth で省略記号。2 つ目以降の文字の列は長い名前で他を圧迫しない（末尾を省略記号）。
+            double max = c.Kind == ColumnKind.Text ? (firstText ? TableView.MaxTextWidth : LaterTextMaxWidth) : double.PositiveInfinity;
             if (c.Kind == ColumnKind.Text) firstText = false;
             cols.Add(new ColumnSpec(c.Key, c.Name, c.Kind, c.Unit, min, max));
         }

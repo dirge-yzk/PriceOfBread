@@ -67,6 +67,20 @@ public sealed class TableView : UserControl
         return m is { } a ? (a.Gaps, a.Columns) : (0, 0);
     }
 
+    /// <summary>中身の高さの見積り（絞り込みの欄・見出し・行・群の見出し・横の流れの目盛りの分）。欄の高さを中身に合わせる上限に使う（A10）。
+    /// 押し釦の行は高いので行の高さを大きく見積もる＝足りなくて最後の行が半分に切れることのないよう、やや多めに取る。</summary>
+    public double EstimatedHeight()
+    {
+        var snap = Snapshot ?? TableSnapshot.Empty;
+        bool tall = snap.Columns.Any(c => c.Kind is ColumnKind.Stage or ColumnKind.Verb or ColumnKind.Share);
+        double row = tall ? 34 : 24;
+        int groups = snap.Rows.Select(r => r.Group ?? "").Distinct().Count(g => g.Length > 0);
+        return ChromeHeight() + snap.Rows.Count * row + groups * 34;
+    }
+
+    /// <summary>行の外の高さ（絞り込みの欄・見出し・横の流れの目盛り・余白）。</summary>
+    public double ChromeHeight() => (Filterable ? 28 : 0) + 24 + (ScrollX ? 14 : 0) + 6;
+
     /// <summary>表の行の数（撮影の検査用）。</summary>
     public int RowCount => _rows.Count;
 
@@ -193,12 +207,18 @@ public sealed class TableView : UserControl
         UpdateHeaderMarks(snap);
     }
 
-    /// <summary>残りの幅を全部取る列（1 つだけ）。段の列があれば段の列（段の押し釦は幅が足りなければ折り返す）・無ければ最初の文字の列。</summary>
+    /// <summary>伸びる列。段の列があれば段の列（段の幅まで・押し釦は幅が足りなければ折り返す）。無ければ取らない＝名前の列を引き伸ばさず、
+    /// 数の列を名前の直後に寄せて、余りは行の右に空ける（<see cref="AddSpacer"/>・A8）。</summary>
     private static int StarIndex(IReadOnlyList<ColumnSpec> cols)
     {
         for (int i = 0; i < cols.Count; i++) if (cols[i].Kind == ColumnKind.Stage) return i;
-        for (int i = 0; i < cols.Count; i++) if (cols[i].Kind == ColumnKind.Text) return i;
         return -1;
+    }
+
+    /// <summary>星の列が無い表は、最後に空の星の列を足して余りの幅を受ける（見出しと行で同じ）。</summary>
+    private static void AddSpacer(ColumnDefinitions defs, int starAt)
+    {
+        if (starAt < 0) defs.Add(new ColumnDefinition(1, GridUnitType.Star));
     }
 
     /// <summary>見出しの文字と、最初の行の各セルの中身の位置のずれ（撮影の確かめ・設計 §7-3）。列ごとに、見出しの文字の左端と値の左端（数の列は右端どうし）を、この表の左上からの位置で比べる。
@@ -228,7 +248,7 @@ public sealed class TableView : UserControl
 
     private static ColumnDefinition DefinitionOf(ColumnSpec c, int index, bool star)
     {
-        if (star) return new ColumnDefinition(1, GridUnitType.Star) { MinWidth = c.MinWidth };   // 残りの幅を全部取る列
+        if (star) return new ColumnDefinition(1, GridUnitType.Star) { MinWidth = c.MinWidth, MaxWidth = StageMaxWidth };   // 段の列は段の幅まで（広い欄でも数の列を段の直後に寄せる・A8）
         var d = new ColumnDefinition(GridLength.Auto) { MinWidth = c.MinWidth, SharedSizeGroup = "c" + index };
         if (!double.IsPositiveInfinity(c.MaxWidth)) d.MaxWidth = c.MaxWidth;
         return d;
@@ -263,6 +283,7 @@ public sealed class TableView : UserControl
             _header.Children.Add(tb);
             _headerCells[i] = tb;
         }
+        AddSpacer(_header.ColumnDefinitions, starAt);
     }
 
     private void UpdateHeaderMarks(TableSnapshot snap)
@@ -319,6 +340,7 @@ public sealed class TableView : UserControl
             _cells = new Control?[cols.Count];
             int starAt = StarIndex(cols);
             for (int i = 0; i < cols.Count; i++) Root.ColumnDefinitions.Add(DefinitionOf(cols[i], i, i == starAt));
+            AddSpacer(Root.ColumnDefinitions, starAt);
         }
 
         public void Update(IReadOnlyList<ColumnSpec> cols, RowView row)
@@ -350,7 +372,7 @@ public sealed class TableView : UserControl
                     return new TextBlock
                     {
                         FontSize = Small, TextAlignment = TextAlignment.Right, Margin = margin, HorizontalAlignment = HorizontalAlignment.Right, Background = Brushes.Transparent,
-                        Foreground = spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black),
+                        Foreground = Brush("InkBrush", Brushes.Black),   // 割合の列も本文の色（青は意味のある所だけ・A5）
                     };
                 case ColumnKind.Bar:
                     return new StackBar { Margin = margin, Width = 120, Height = 10, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
@@ -385,7 +407,7 @@ public sealed class TableView : UserControl
         /// <summary>文字のセルの中身と飾り（色の丸・バッジの背景・数の文字色）。飾りが無いセルは既定の見た目へ戻す（前の月に飾りがあった行も）。</summary>
         private static void ApplyText(TextBlock tb, ColumnSpec spec, CellView cell, int index)
         {
-            IBrush defaultInk = spec.Kind == ColumnKind.Number ? (spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black))
+            IBrush defaultInk = spec.Kind == ColumnKind.Number ? Brush("InkBrush", Brushes.Black)
                                                                 : index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray);
             var badge = InkOf(cell.BadgeFill);
             tb.Foreground = badge is not null ? InkOf("#FFF6E8") ?? Brushes.White : InkOf(cell.Color) ?? defaultInk;

@@ -273,8 +273,16 @@
             <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="Background" Value="#F3E6BE"/>
         </Style>
-        <Style Selector="Button.lawstage:disabled">
-            <Setter Property="Opacity" Value="0.35"/>
+        <!-- 選べない段：文字の濃さは保ち、地と枠だけで区別する（A9・2026-11-12）。Fluent の無効の見た目（薄い文字）を段の釦の中身で打ち消す -->
+        <Style Selector="Button.lawstage:disabled:not(.current) /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E3DCC4"/>
+            <Setter Property="BorderBrush" Value="#D6CBA8"/>
+            <Setter Property="Foreground" Value="#4A3E2C"/>
+        </Style>
+        <Style Selector="Button.lawstage.current:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#6B5230"/>
+            <Setter Property="BorderBrush" Value="#6B5230"/>
+            <Setter Property="Foreground" Value="#FFF6E8"/>
         </Style>
         <Style Selector="TextBlock.amend">
             <Setter Property="Foreground" Value="#B8860B"/>

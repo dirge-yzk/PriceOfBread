@@ -340,6 +340,29 @@ public class LayoutTests
     }
 
     [Fact]
+    public void 空の欄は見出しの1行へ畳む_利用者が開けば開く_高さは中身の上限で止め余りは他の欄へ回す()
+    {
+        var col = new[] { new SectionSpec("a", "甲", 1, 6), new SectionSpec("b", "乙", 2, 6), new SectionSpec("c", "丙", 3, 6) };
+        var empty = new HashSet<string> { "b" };
+        var p = PagePlan.PlanColumn(col, 3000, null, null, empty);
+        Assert.Equal(new[] { false, true, false }, p.Select(x => x.Collapsed).ToArray());
+        Assert.Equal(PagePlan.HeaderHeight, p[1].Height);
+        // 空でも利用者が開いた欄は開く
+        p = PagePlan.PlanColumn(col, 3000, new HashSet<string> { "b" }, null, empty);
+        Assert.False(p[1].Collapsed);
+        // 上限：甲は中身が少ない → 上限で止まり、余りは丙へ回る（全体の高さは使い切る）
+        var caps = new Dictionary<string, double> { ["a"] = 100 };
+        p = PagePlan.PlanColumn(col, 1000, null, null, null, caps);
+        Assert.Equal(100, p[0].Height, 6);
+        Assert.Equal(1000 - 2 * PagePlan.SectionGap, p.Sum(x => x.Height), 6);
+        Assert.True(p[1].Height > PagePlan.MinHeight(col[1]) && p[2].Height > PagePlan.MinHeight(col[2]));
+        // 全部が上限なら余りは空ける
+        var allCaps = new Dictionary<string, double> { ["a"] = 100, ["b"] = 100, ["c"] = 100 };
+        p = PagePlan.PlanColumn(col, 3000, null, null, null, allCaps);
+        Assert.All(p, x => Assert.Equal(100, x.Height, 6));
+    }
+
+    [Fact]
     public void ページ全体の割り当て_どの幅と高さでも欄が高さを超えない_欄は全て出てくる()
     {
         var t = Sample();
