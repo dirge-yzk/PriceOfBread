@@ -45,3 +45,8 @@ m1029 事前登録（線 c97sp・(1029)・波97・恒等の高速化 C2）＝最
 
 [6] 運用
   worktree D:/PoB_work/wt_c97sp・枝 c97sp・作業フォルダ D:/PoB_work/c97sp_work・隔離ビルド D:/PoB_work/c97sp_art。重い腕は ident 1 本（約 21GB）。他の線の物には触れない。
+
+[追記 1・2026-11-11・フルスイートの後・結果の後の追記と名乗る]
+  ㉑ の予言の漏れ：台帳の行を 1 つ足すと SecessionLaborLawInstrumentTests.cs:280 の〈最後の行を名指しして Count と合わせる〉番人（NavalOrderScans + 1 == Count）が赤になる（予言した書き換えは WriterRatchetTests の 2 行だけだった＝漏れ）。
+  書き換え：Assert.Equal(CostLedger.NavalOrderScans + 1, CostLedger.Count) → Assert.Equal(CostLedger.ClearingSkipsLB + 1, CostLedger.Count)（区分＝★(764) の静的な件数の番人・新しい行を足す線が最後の行の名指しを移す慣行〔その行の注の (491)〕・機構の向きと大きさの Assert ではない）。
+  書き換えた全て（verdict に再掲）：WriterRatchetTests.cs の InlineData 2 行（ClearingFills 32392768→24761337・ClearingSkipsLB 7631431 を足す）・ClearingFillInstrumentTests.cs:29 の見出し・SecessionLaborLawInstrumentTests.cs:280。
