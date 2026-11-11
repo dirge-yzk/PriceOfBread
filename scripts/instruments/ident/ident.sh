@@ -63,7 +63,7 @@ case "$CMD" in
     rm -f "$W/marks/"*.done "$W/tests_count.txt"
     # 前の回の出力を消す（同じラベルで回し直して腕が走らなかったとき、古い出力で〈恒等〉にならないように）。写しの木 src_*・ビルド art_* は prep が作り直す
     rm -rf "$W"/b5_ia_5.txt* "$W"/b10_ib_10.txt* "$W/mon_ib_10.txt" "$W/out_ia_5" "$W/out_ib_10" "$W"/tests_list_*.txt "$W/tests_build.txt" \
-           "$W/savetest.txt" "$W/leakhunt.txt" "$W/saveleak.log" "$W/ng" "$W/marks/tree_hash.txt"
+           "$W/savetest.txt" "$W/leakhunt.txt" "$W/saveleak.log" "$W/ng" "$W/marks/tree_hash.txt" "$W/prune_manifest.tsv" "$W/prune_deleted.txt" "$W/check_out.txt"
     # 測る木の SOURCE-HASH（measure.sh の src_manifest と同じ数え方＝写した後と同じ値）。check が腕 a・b のマニフェストと突き合わせる
     ( cd "$TREE" && find . \( -name bin -o -name obj -o -name docs -o -name dist -o -name .vs -o -name .git -o -name measurements -o -name uishot \) -prune \
         -o -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) -print | sort | xargs sha256sum ) | sha256sum | cut -c1-16 > "$W/marks/tree_hash.txt"
@@ -75,7 +75,21 @@ case "$CMD" in
     echo "rc=0 end=$(date '+%F %T')" > "$W/marks/all.done"
     echo "ident start：腕は全て終わった（$(ls "$W/marks" | grep -c '\.done$') 印）"
     if [ "$CMD" = run ]; then
-      exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
+      if [ "${PRUNE:-0}" != 1 ]; then   # (1046) 既定（PRUNE 未設定）は今までと同じ exec
+        exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
+      fi
+      # (1046) PRUNE=1：判定の行が出た後に限り、基準と全体が一致した表の生を消す（tools/prune.py・manifest は $W/prune_manifest.tsv）。PRUNE_HEAVY=1 で重い 4 表も対象（HEAVY_KEEP=表の頭,... は残す）。
+      bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}" | tee "$W/check_out.txt"
+      RCC=${PIPESTATUS[0]}
+      CF="${CFG:-$ROOT/scripts/instruments/ident/ident.cfg}"
+      BASEINS=$(grep '^INSRAW=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r')
+      KP=$(grep '^KNOWN=' "$CF" | head -1 | cut -d= -f2- | tr ',' '\n' | cut -d: -f1 | tr '\n' ',')
+      i=0; while [ $i -lt ${#EXTRA[@]} ]; do case "${EXTRA[$i]}" in --added-tables|--grown-ok|--removed-tables|--rows-grown-ok|--known-extra) KP="$KP$(echo "${EXTRA[$((i+1))]}" | tr ',' '\n' | cut -d: -f1 | cut -d@ -f1 | tr '\n' ',')" ;; esac; i=$((i+1)); done
+      SAVED=""; i=0; while [ $i -lt ${#EXTRA[@]} ]; do [ "${EXTRA[$i]}" = "--save" ] && SAVED="${EXTRA[$((i+1))]}_"; i=$((i+1)); done
+      PRESPEC=$(ls "$ROOT"/measurements/m1053_*/hash/pre_base.tsv 2>/dev/null | head -1)
+      # (1054) manifest は measurements/ident_<日付>_<ラベル>_manifest.tsv へ写す（--save が無ければ日付なし）。--allow は自分の作業フォルダの名だけ。
+      python -X utf8 -I "$IS/tools/prune.py" prune "$W/out_ib_10/ins" "$BASEINS" --verdict-file "$W/check_out.txt" --manifest "$W/prune_manifest.tsv" --copy-to "$ROOT/measurements/ident_${SAVED}${LABEL}_manifest.tsv" ${PRESPEC:+--pre-spec "$PRESPEC"} --allow "$(basename "$W")" --deleted "$W/prune_deleted.txt" --keep-prefix "$KP" --heavy-keep "${HEAVY_KEEP:-}" $([ "${PRUNE_HEAVY:-0}" = 1 ] && echo --heavy) | tee -a "$W/check_out.txt"
+      exit $RCC
     fi ;;
   check)
     exec python -I "$SP/ident_check.py" "$LABEL" --root "$ROOT" "$@" ;;
