@@ -1907,6 +1907,7 @@ public static partial class Instruments
         LandshareTable(sim, seed, q);      // (895) 土地の持ち分の段 B-0 の表 landshare_s（国×四半期・月の閉じで積んだ期待と実際）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
         NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // (1003) 貿易の計器 C1 nationgood_s・C2 tradeskip_s
+        SellrTable(sim, seed, q);          // (1036) C4c 労働の重みの売れる量の旧と両側の表 sellr_s（調べる年の第 4 四半期の末）
         TransportFold(sk, seed, q, sim);   // (380) 輸送の段0 の計器（成約の蓄えを年の終わりに行にする）
         ScopeFold(sk, seed, q, sim);       // (403) 清算の見る範囲の絞りの表（年の終わり）
         ScoreFold(sk, seed, q, sim);       // (416) 国力の旧と新の表（年の終わり・全ての国）
@@ -1940,7 +1941,7 @@ public static partial class Instruments
         IdnClose(sim);   // (640)
         SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // (837)(1012)(1024)
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
-        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim);   // (970)(1003)   // (970) basisx_s
+        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim);   // (1036)(970)(1003)   // (970) basisx_s
         CrownClose(sim);   // (889) crownpc_s
         CwClose(sim); WarClose(sim);   // (903) cwmult_s・(1018) warentry_s・warpair_s・warband_s
         LandsaleClose(sim);   // (983) landsale_s

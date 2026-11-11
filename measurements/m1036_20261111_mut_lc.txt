@@ -1,0 +1,8 @@
+(1036) c98lc 突然変異（使い捨ての木 = git worktree at HEAD・scripts/instruments/c98lc/mut.sh・runmuts.sh）。署名 Claude Sonnet 5.5。
+M1 台帳を飛ばした件数だけに戻す（ClearingSkipsLB += nSkipLB）→ 赤：ClearingLowerBoundTests＋WriterRatchetTests 54 本中 2 本失敗。
+M2 lbOn の門を消す（lbOn = true || …）→ 赤：ClearingLowerBoundTests 5 本中 2 本失敗（T5 を含む）。
+M3 C4a の access 0 の区分を落とす → 赤：TradeSkipC4Tests 7 本中 1 本失敗（C4a の紙の試験）。
+M4 C4b で xPrice と xNeed を取り違える → 初版は緑のまま（TradeSkipC4Tests＋TradeInstrumentTests 18 本全て合格）→ 穴を名乗り、同じ線で C4b_買い手が満ちた行の理由は… を足した。
+M4b 同じ変異を足した試験の後で → 赤：TradeSkipC4Tests 8 本中 1 本失敗。
+M5 C4c で PrevImport の符号を逆 → 赤：TradeSkipC4Tests 7 本中 4 本失敗。
+出力の原文は mut_all.txt（D:/PoB_work/c98lc_work/mut_all.txt）の各 MUT 行の直前の行。
