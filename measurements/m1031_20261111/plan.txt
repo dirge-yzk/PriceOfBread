@@ -1,0 +1,10 @@
+(1031) c97mg 読む線 計画（腕 0 本・コミットしない）
+作業の場所：D:/PoB_work/r1031_work/（worktree・枝は作らない＝main の木 8c9aee55 のソースを読むだけ）
+読む生（読むだけ・書き換えない）：
+  D:/PoB_work/keep_1027/base_ins/merch_s1..10.tsv（末尾 7 列・種 1〜10）
+  D:/PoB_work/keep_1027/base_ins/cpop_s1..10.tsv（植民地格の州の POP ごとの頭数＝行き先の有無）
+  D:/PoB_work/keep_1027/base_ins/region_s1..10.tsv（本国格の州の人口・農村人口）
+  D:/PoB_work/keep_1027/a11/merch_s11..20.tsv（種 11〜20・cpop 無し）
+読むソース：Meritocracy.cs（:22 Step・:345〜:368 商人の転落・:413 RouteViaPool・:609 AssetPerCap・:616 FallAnchor・:627 FallDepth・:655 Move）
+  InstrumentsMerch.cs（:41 MerchGate・:34 MerchRoute・:66 MerchLocks・:86 MerchEnter・:105 MerchTable）・Model.cs:400 Pop.Blend・Simulation.cs:1929〜1930
+手順：prereg.txt → 台本 mg1031.py → 表 out/ → 根の形 → 次の波の素案（findings.txt）
