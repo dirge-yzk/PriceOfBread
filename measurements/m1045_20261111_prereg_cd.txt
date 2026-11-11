@@ -1,0 +1,99 @@
+(1045) 線 c99cd 事前登録（最初のコミット）　2026-11-11　書き手 Claude Sonnet 5.5
+基線 m1044（bb76c653）。恒等の線（旗なし・新しい係数 0・力学 0・乱数を引かない）。形＝〈尾〉でも〈入口〉でもない（計器と台帳の直しの束）。
+出所：docs/202611/20261111/20261111_貿易の買い手の量の規則_案B_xNeed_盤面m1027_材料.md §7・§8 と末尾の反証役の訂正／実装ログ (1036) の反証役 v の低／README ★(1044)(1035)(1027)(1022)(749)。
+
+[1] 恒等の線・予言 0
+  - 素の 5 種・素の 10 種・計器つき 10 種の成績表は m1044（b5_/b10_20261111_m1044・b10_20261111_m1044_ins）と名乗り行を除き全行一致。
+  - 計器の表の差は下の〈宣言〉だけ。宣言した列の他は全行一致（tradeskip_s の旧の列・sellr_s の旧の列・nationgood_s ほか）。
+  - 推定の計算量：台帳の新しい 1 行（下の B）の分だけ増える。宣言：件数の見込み 1 試合 約 1.2〜1.5 億（生産者×月・眠った生産者も走査する）× 単価 0.01 µs＝推定 約 1.2〜1.5 秒の増え。
+    単価 0.01 は〈上限の見積り〉（ClearingSkipUnitMicros 0.02 の半分・読みと比較の数回）。同じ機械の計り台での取り直しは e1（c99e1）が名目の余りの真値を出した後の申し送り（本線は計り台を回さない）。
+    増えを入れても推定 ≦248.5 秒（m1044 の推定 222.7 秒＋最大 1.5 秒）。
+
+[2] 触る物と読み手
+  A. tradeskip_s の末尾に 16 列を足す（旧の列は同じ順・同じバイト）
+     整数 13：ubRows ubInf rpIter rpDiff rpCtrl rpCtrlDiff gdRows gdIterX gdIterY gdIterLeft gdIterBudget gdIterCap gdIterRemove
+     実数 3 ：ubD rpSumXOld rpSumXBb
+     - ubRows/ubD/ubInf＝BilateralMarket.cs:887 で xNeed≦0 のため飛ばした行のうち、案 B-b の上界 TS＋D·(rpT/sellers[headS].Price)^ε−P−S ＞0 の行の数／その D の和／先頭の売り手が居ない・値段が正でない・NaN の行（上界を ∞ と読む＝飛ばさない側）。
+       指数は ^ε（draft §3 の B-b と同じ式を 1 本だけ書く・material §7 の ^2ε は訂正済み＝反証役の【中】）。P＝LastProduced（xNeed の式と同じ）。
+     - rpIter/rpDiff/rpSumXOld/rpSumXBb＝走査した行で、最良と次善が決まり直した反復（dealConstStale）ごとに、旧の X＝access·max(0,min(xPrice,xNeed))と B-b の X＝access·max(0,min(xPrice,xNeedB))（xNeedB＝TS＋D·(rpT/unitA)^ε−P−S）を同じ盤面で記帳した反復の数／差のある反復の数／X の和。
+       W3 の r は〈その行の最後に成約した反復の unitA〉ではなく〈反復ごとの unitA〉で数える（反証役の【中】＝r は下がるだけ・最後の反復の r では偽の赤）。
+       rpCtrl/rpCtrlDiff＝統制（紙で X が一致する側）＝ r≦1 かつ S−I＜TS の反復の数と、そのうち旧≠B-b の数（予言：rpCtrlDiff＝0）。
+     - gdRows＝ガード（RolloverGuardMax＝400）で終わった走査の行の数。gdIter*＝その行の反復の内訳（成約の判定の反復で X・Y・売り手の残り・予算の項・容量の項のうち最小の項〔同値は左・NaN は選ばない〕が縛った数／売り手を外した反復の数）。
+       行のキーは年×買い手の国×財（＝財×国の内訳）。他の理由の行の内訳は足さない。
+     - 計器は Market の欄（TargetStock・LastDemand・LastProduced・LastImport・Stock）と売り手の表（TsAcc の sPrice）を自分で読む。エンジンの関数は呼ばない。エンジンの局所から受け取る物（宣言）：
+       gd.RefPrice・tr[t].r.PriceLevel・exRate[ni]・tr[t].access・headS・unitA（決まり直した反復の単価）・c.PriceElasticity、および Iter の 5 項（X・Y・left[bestA]・予算の項・容量の項＝反復の局所の値）。アヘンの係数（LeakFraction）は掛けない（宣言した限界）。
+     - 呼び口（BilateralMarket.cs）：:887 の飛ばしに ts.SkipNeed（1 行）・dealConstStale の塊の終わりに ts.Repick（1 行）・pot の後に ts.Iter（1 行）・yRemoved に ts.IterRemove（同じ行）。ts が null のときは何も起きない（熱い所は null の確かめだけ）。
+  B. C4a の区分をエンジンの門の順へ（sogStockLeTarget・sogSellAcc0・sogMilitary・sogOther の 4 列）
+     - 旧の順：在庫−目標≦0 → access≦0 → 軍需 → その他。エンジンの順（BilateralMarket.cs:770〜:783）：出し手の係数 sellAcc≦1e-12〔access → 軍需の係数 → 鎖国・アヘン〕→ 在庫−目標≦1e-12。新の順：access≦0 → 軍需 → 在庫−目標 → その他。
+     - 〈宣言〉値が変わる列：sogStockLeTarget（減る側）・sogSellAcc0 と sogMilitary（増える側）。sogOther は変わらない〔計器は鎖国・アヘンの係数を再導出しない＝その 2 つで落ちた州は在庫−目標≦0 なら sogStockLeTarget に残る（宣言した限界）〕。
+     - 和（sellerOtherGate＝4 列の和）は全行で変わらない。
+  C. sellr_s の末尾に rentRMul を 1 列足す＝エンジン（EconomyStep.cs:963 の周り）が sellR に掛ける形に丸めた rentR（正でなければ 0・NaN も 0）。旧の列は同じバイト。
+     - rentR の列そのもの（InputCostPerUnit を呼ぶ）は変えない＝★(1035) の〈計器が純関数を呼ぶ〉先例のまま残す（理由：式の写しを作らない・この線の持ち物ではなく ov〔:963〕と同じ式の根）。読む時刻のずれ（四半期末の値段と、眠りの月の最後の値の違い）は直さない＝限界の自己申告のまま。
+  D. 台帳の新しい行：CostLedger.LaborPowerScans＝30（Count 31）〈m の生産者の走査〉。EconomyStep.cs:1025 の mPow の行に 1 文だけ足す（costL[LaborPowerScans] += np・旗 LaborWeightsByPower が正の州×月だけ）。
+     - 数えるのは、PowerShare が走査する州の生産者の数 np（早期の return〔労働の市場なし・総需要が正でない〕の月も数える＝わずかな上限。単位は〈生産者×lw の月〉）。
+     - 単価 LaborPowerScanUnitMicros＝0.01（上の [1]）。名前の行を Names に足す。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF・SaveGame）：
+     - tradeskip_s の列を名前で読む：scripts/instruments/c92tg/read_g.py・c93tq/read_tq.py（名前の引きで末尾の増えは影響しない）。位置で読む台本は無い。
+     - SellrHeaderText の読み手は TradeSkipC4Tests.cs:145（見出しの一致＝新しい見出しで通る）。
+     - CostLedger.Count の読み手：SecessionLaborLawInstrumentTests.cs:280（最後の行の名指し＝★(749) の表の更新で LaborPowerScans + 1 へ）・AgeLedgerTests・DiscontentReaderTests・DiscoveryClockTests（Count と配列の長さの一致＝そのまま通る）。
+     - SaveGame：台帳は作業領域（[NonSerialized]・CostOrNull）＝新しい型もフィールドも無い。POB_COEF：新しい係数 0。
+  他の線との重なり：BilateralMarket.cs は cd だけ。EconomyStep.cs:1025 は cd の 1 文・ov は :963 の 1 か所（行が違う＝合流で衝突しない見込み）。MultiNationSim.cs の CostLedger 周りは cd だけ。Instruments.cs の登録の行は触らない（新しい表を作らず既存の 2 表の列を足すだけ）。
+  触らない物：案 A（:963）・案 B-b の挙動・関税・EconomyStep の労働の塊・ov/db/dv の持ち物・App・Display・Runner。
+
+[3] 足す試験と突然変異・㉘・㉑
+  新しい試験（PriceOfBread.Tests/TradeSkipC4dTests.cs）：
+   T1 C4d_上界は紙の値でイプシロン乗（紙：rpT/p＝4・D＝100・TS＝10・P＝100・S＝160/60・先頭の値段 0）
+   T2 C4d_決まり直した反復の旧とBbのXは紙の値で統制は一致する（紙：75/175、統制 30/30）
+   T3 C4a_順はエンジンの門の順で出し手の係数が在庫より先
+   T4 ガード終わりの内訳は縛った項ごとに数えガードの行だけ足される
+   T5 C4d_盤面の新しい列は配線されていて統制の差は0でsellrの丸めは合う（4 国 24 四半期・rpIter>0・rpCtrl>0・rpCtrlDiff＝0・上界の行〔正か ∞〕が 0 でない・rentR が正でない行が現れる対照つき）
+   T6 sellrの丸めは負とNaNを0にする
+   T7 台帳の労働の重みの走査は旗1で州の生産者の数だけ旗0で0（France・FullChain）
+  書き換える既存の試験（★(749) の表の更新・件数の宣言）：
+   - SecessionLaborLawInstrumentTests.cs:280  ClearingSkipsLB + 1 → LaborPowerScans + 1（行を足した線が直す約束）。
+   - WriterRatchetTests.cs の 計算量の見た件数は宣言した表を超えない  に InlineData(CostLedger.LaborPowerScans, <1 種 40 四半期の実測>) を 1 行足す（値はビルド後の実測を verdict に書く＝旗 0 では 0 件〔宣言しない〕）。
+   ㉑ 予言：書き換える件数の番人＝既存の行の値は 0 本（他の台帳の行は動かない＝エンジンの数え方は不変）、足す行 1 本。
+  ㉘ ソースを走査する番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）：器のコミットの直後に回す。許可表・new MoneyStock( の件数（SimCore の grep：64）・route_anchors の鍵の行は触らない。予言＝全て緑（赤なら ident の前に直すか止める）。
+  突然変異（使い捨ての木・出力の全文を measurements/m1045_20261111_mut/ に残す・試験を足した後の木で回す）：
+   M1 上界の指数を 2ε にする → T1 が赤（2 行目〔S＝160〕が正に出て ubRows が 2）
+   M2 C4a の区分の順を旧の順（在庫−目標が先）に戻す → T3 が赤
+   M3 台帳を〈飛ばした件数だけ〉にする（np でなく眠り・動力 0 の生産者だけ数える）→ T7 が赤
+   M4 rentRMul を丸めない（rentR をそのまま）→ T5 / T6 が赤
+   M5 統制の判定を外す（rpCtrl を全反復に）→ T2 が赤（統制の行 1 つのはずが 2）
+   M6 Iter の分類で予算の項と容量の項を取り違える → T4 が赤
+   緑の変異は名乗り、赤になる試験を足す（★(1027)）。
+  門ごとの落ち先（㉚）：M1→T1・M2→T3・M3→T7・M4→T5/T6・M5→T2・M6→T4。旗 0 の盤面（何もしない実装）で落ちることの紙の確かめ：T1/T2/T4 は計器の直呼び＝何もしない実装は 0 を返し紙の値と食い違う。T5 は rpIter>0 と rpCtrl>0 が要る。T7 は 0 件で落ちる。
+
+[4] 恒等の判定
+  `bash scripts/instruments/ident/ident.sh run c99cd --tree D:/PoB_work/wt_c99cd` ＋宣言（tradeskip_s の末尾 16 列・sogStockLeTarget/sogSellAcc0/sogMilitary の値・sellr_s の末尾 1 列・.cost の新しい行）。
+  ident の前にフルスイート（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる・★(1044)）。腕の枠は arms.sh free が 3 以上のとき。e1 が D:/PoB_work/r1049_work/e1.mark を書くまでビルド・試験・シミュを起こさない。
+  行の大きさ：計器つき 1 種のプローブで tradeskip_s のサイズを測ってから 10 種へ（新しい 16 列の分＝1 行あたり 約 +90 バイト〔旧の行は約 1.5KB〕・予言 +6% 以内）。
+
+[5] 採る条件
+  〈判定: 恒等〉・フルスイート緑・推定 ≦248.5 秒・台帳の新しい行の件数が T7 で一致（少なすぎても多すぎても赤）・B-b の上界の列が旗 0 の盤面で 0 でない（T5）・C4a の和が全行で旧の列と等しい（T5 の前の既存試験 C4a_C4b）・突然変異が全て赤（緑は試験を足す）。
+  一致しなければ、その変更を外して報告に回す。限界の自己申告：計器が受け取るエンジンの局所（[2] A）・アヘンの係数を掛けない・鎖国とアヘンの区分は再導出しない・rentR の時刻のずれは残す。
+
+[4 追記・結果を見る前] ident の宣言（文字どおり）
+  --grown-ok tradeskip,sellr
+  --known-extra tradeskip:sogStockLeTarget,tradeskip:sogSellAcc0,tradeskip:sogMilitary
+  --cost-allow 労働の重み
+  --tests-delta <T1〜T7 の分＝--list-tests の差を ident が出す数>（TradeSkipC4dTests の Fact 6 本＋Theory 2 件＝8）
+  限界の追記：Repick は DealConstAlwaysStale が立つ試験では毎反復数える（盤面の ident では立たない）。台帳の単価は上限の見積り 0.01 のまま出す場合、verdict の先頭に〈指示から外れた〉と書く。
+  単価の計り：e1.mark の後、温まった盤面の Region で PowerShare を N 回呼ぶ使い捨ての計り（コミットしない）で µs/生産者 を取れたなら、その値と計りの条件をこの追記の下に書き、定数を直してから ident を回す。
+
+[3 追記・単価の計り（e1.mark の後・使い捨ての計りはコミットしない）]
+  計り：12 四半期進めた 4 国盤面（308 州・生産者 53,983）で EconomyStep.PowerShare を全州に呼ぶ。結果は measurements/m1045_20261111_bench_powershare.txt：
+    冷え（四半期直後）50.7〜54.2 ナノ秒/件（外れ値 142.9）・熱（50 回の繰り返し）46.6〜64.8 ナノ秒/件。
+  単価 LaborPowerScanUnitMicros を 0.01 から 0.055 へ（予見の 0.01 は外れた＝1 件はメモリの待ちが主で 5 倍重い）。
+  件数：1 種 40 四半期で 9,723,312（WriterRatchetTests の InlineData に置く）。全長の推定の増え＝約 1.6 億×0.055＝約 8.9 秒（推定 222.7→約 231.6 秒・≦248.5）。
+  含意（合流へ）：この走査は台帳の外で既に実時間を使っていた（c98lw の新しいループは台帳が数えなかった）＝名目の余り 13.8〜15.8 秒のうち、実際は約 9 秒が既に使われていた。台帳に載せると推定が約 9 秒増え、余りは名目 約 5〜7 秒になる。
+
+[結果の記録・事前登録の後]（採否の規則は変えていない）
+  判定: 恒等（ident c99cd・素の 5 種・計器つき 10 種とも m1044 と全行一致〔名乗り行を除く〕・計器の表 1326 本中 バイト一致 1256・既知の揺れ 50・列が増えた 20・宣言の無い違い 0）。savetest OK・leakhunt 保存則違反なし。
+  テスト：Category!=FullLength 2682（基準 2673＋9＝新しい 8 件＋WriterRatchetTests の InlineData 1 件）・FullLength 3（基準 3）・フルスイート 2681 合格 1 スキップ 0 失敗・FullLength 3 合格。
+  推定：素の 5 種 223.6→230.1 秒、計器つき 10 種 222.7→229.2 秒（+6.5 秒＝台帳の新しい行の分・≦248.5）。宣言の 8.9 秒の見込みは全長の件数の見込み（1.6 億）が多めだった。
+  tradeskip_s の大きさ（種 1）：46.10→52.27 MB（+13.4%・事前登録の予言 +6% 以内は外れた＝新しい 16 列は 0 の多い整数・指数の長い実数）。
+  種 1 の列の和（ALL 以外の行）：ubRows 25,352・ubInf 114・ubD 9.01e6・rpIter 503,075・rpDiff 97,184（19.3%）・rpCtrl 289,102・rpCtrlDiff 0・gdRows 382・xpEndGuard 39,566。
+    ガード終わりの行の反復（gdIter*）は X 5,647・Y 147,135・売り手の残り 0・予算 0・容量 18＝縛った項は Y（売り手の値段静止の量）が 96%。gdIterRemove 14,717 は gdIter* と同じ反復を重ねて数える部分集合（売り手を外した反復は Iter の後で外す）。
+    sogSellAcc0・sogMilitary・sogOther は種 1 で 0（C4a の順の入れ替えで値が変わる列は、この盤面では動かなかった）。
+  事前登録との差：突然変異 M5 は T2 が緑だった（T2 に r＝4・S＝5 の反復を足して赤にした）。単価は 0.01→0.055（計り台）。

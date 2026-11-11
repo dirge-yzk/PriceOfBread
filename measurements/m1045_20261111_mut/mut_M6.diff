@@ -1,0 +1,15 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsTradeskip.cs b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+index 022206c82..990913c13 100644
+--- a/PriceOfBread.SimCore/InstrumentsTradeskip.cs
++++ b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+@@ -142,8 +142,8 @@ public static partial class Instruments
+             int k = 0; double v = x;
+             if (y < v || double.IsNaN(v)) { k = 1; v = y; }
+             if (left < v || double.IsNaN(v)) { k = 2; v = left; }
+-            if (budgetTerm < v || double.IsNaN(v)) { k = 3; v = budgetTerm; }
+-            if (capTerm < v || double.IsNaN(v)) { k = 4; v = capTerm; }
++            if (budgetTerm < v || double.IsNaN(v)) { k = 4; v = budgetTerm; }
++            if (capTerm < v || double.IsNaN(v)) { k = 3; v = capTerm; }
+             gd[k]++;
+         }
+         internal void IterRemove() { if (cur < 0 || !scanned) return; gd[5]++; }

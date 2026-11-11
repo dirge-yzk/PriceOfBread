@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+index 66b31023b..1ea692b73 100644
+--- a/PriceOfBread.SimCore/EconomyStep.cs
++++ b/PriceOfBread.SimCore/EconomyStep.cs
+@@ -1022,7 +1022,7 @@ public static class EconomyStep
+         {
+             if (lwRole.Length < npops) scratch.LwRole = lwRole = new byte[npops];
+             LaborRoles(region, lwRole);
+-            mPow = PowerShare(region, coef); if (costL is not null) costL[CostLedger.LaborPowerScans] += np;   // (1045) 計算量の台帳：m の生産者の走査（州の生産者の数×lw が正の月）
++            mPow = PowerShare(region, coef); if (costL is not null) costL[CostLedger.LaborPowerScans] += np - 1;   // (1045) 計算量の台帳：m の生産者の走査（州の生産者の数×lw が正の月）
+         }
+         if (insOn) Instruments.LwkRegion(region, coef);   // (1037) 計器（読むだけ）：計器が自分で州の m と役割を数える
+ 

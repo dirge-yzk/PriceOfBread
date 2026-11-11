@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/InstrumentsTradeskip.cs b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+index 022206c82..7623250dc 100644
+--- a/PriceOfBread.SimCore/InstrumentsTradeskip.cs
++++ b/PriceOfBread.SimCore/InstrumentsTradeskip.cs
+@@ -110,7 +110,7 @@ public static partial class Instruments
+             double p = headS >= 0 && headS < sN ? sPrice[headS] : double.NaN;
+             if (!(p > 0)) { Add(curBn, curG, TsCol.UbInf); return; }
+             double rpT = refPrice * priceLevel * exRate;
+-            double ub = m.TargetStock + m.LastDemand * Math.Pow(rpT / p, eps) - m.LastProduced - m.Stock;
++            double ub = m.TargetStock + m.LastDemand * Math.Pow(rpT / p, 2.0 * eps) - m.LastProduced - m.Stock;
+             if (!(ub > 0)) return;
+             Add(curBn, curG, TsCol.UbRows);
+             if (D.Length > 0) D[(curBn * Gc + curG) * DStride + 3] += m.LastDemand;

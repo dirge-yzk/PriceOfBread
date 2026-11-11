@@ -884,7 +884,7 @@ public sealed partial class InternationalMarket
                 //   ⇒ 有効な売り手の集合・訪ねる順・各反復で起きること（成約／外す／行を終える）が旧と同じ＝同じ組が同じ順・量・単価で成約する。
                 // 1a：行を丸ごと飛ばす＝最初の反復が書き込みの前に必ず終わる行（X≦0・NaN か pot≦0・NaN）。どれも買い手だけで決まり、行の始めの値が最初の反復で読む値そのもの。
                 //   ⚠買い手の容量が尽きた行（capLeft[t]≦0）は飛ばさない＝有効な売り手ごとに potNew を書く（翌月の輸送容量の配分の入力）。
-                if (!(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0)) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }   // 物理の不足 xNeed≦0（下の xNeed と同じ式）
+                if (!(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0)) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }   // (1045) C4d   // 物理の不足 xNeed≦0（下の xNeed と同じ式）
                 if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }   // rpT≦1e-9＝xPrice が0の枝（下の rpT と同じ式）
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }   // 需要0＝D·Pow≦0 から P+I≧0 を引く＝xPrice≦0
                 if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; if (ts is not null) ts.Outcome(Instruments.TsOutBudget0); continue; }   // 支払能力0＝pot≦0（この清算の中で増えない）
@@ -1039,6 +1039,7 @@ public sealed partial class InternationalMarket
                         premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
                         costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃＋港湾料＋保険料・自国通貨＝A7）
                         if (sellSubA > 0) costA = sA * (1 + dutyA + frA + portT + portS + premA - sellSubA) / exRate[ni];   // ★(471) 買い手の実際の支払いは積出し価格の (1−s)（差は売り手の国庫が出す）
+                        if (ts is not null) ts.Repick(m, tr[t].access, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], unitA, c.PriceElasticity);   // (1045) C4d：決まり直した反復の旧の X と B-b の X
                     }
                     // --- 買い手 X（§1-2）：価格静止と物理の2腕 min（低すぎる着値で静止点が無い穴を X_need が塞ぐ）---
                     double xPrice = xPriceOn ? m.LastDemand * powVal - (m.LastProduced + m.LastImport) : 0.0;
@@ -1052,6 +1053,7 @@ public sealed partial class InternationalMarket
                     pot = Math.Min(pot, budget[t] / Math.Max(1e-12, costA));   // 支払能力（捌き手の貯蓄）
                     double qA = pot;
                     qA = Math.Min(qA, Math.Min(capLeft[t], capLeft[snA]) / Math.Max(1e-9, Wg));
+                    if (ts is not null) ts.Iter(X, Y, left[bestA], budget[t] / Math.Max(1e-12, costA), Math.Min(capLeft[t], capLeft[snA]) / Math.Max(1e-9, Wg));   // (1045) ガード終わりの内訳（反復ごとの縛り）
                     // 潜在量（容量で切る**前**＝θ/T4 の分母）＝成約した量＋容量で切られた不足。★不足は組ごとに1回（作者裁定 2026-09-29 の2）：
                     //   旧＝切られた不足を次善の売り手ごとに数え直した（同じ不足が売り手の数だけ重なる＝思想⑨）。
                     //   新＝この売り手で切られた分のうち、この行の不足（X）でまだ数えていない分だけを足す（行の潜在量は X を超えない）。
@@ -1071,7 +1073,7 @@ public sealed partial class InternationalMarket
                         if (capLeft[t] <= 1e-12 && !(X - unmetQ > 1e-12)) { tsWhy = Instruments.TsExit.CapMid; break; }   // 買い手の容量が尽き、不足は全て数えた＝この行は終わり（以後の売り手は数え直しになるだけ）
                         if (!(budget[t] > 1e-12)) { tsWhy = Instruments.TsExit.Budget; break; }  // 払い手の支払能力が尽きた（この清算の中で増えない）
                         // 売り手側の事情（Y=0/容量0/在庫0）＝次善へ回る（旧＝一時スキップの印 skipS[bestA]）＝候補表から外す
-                        yRemoved = true;
+                        yRemoved = true; if (ts is not null) ts.IterRemove();   // (1045)
                         candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN];
                         continue;
                     }
