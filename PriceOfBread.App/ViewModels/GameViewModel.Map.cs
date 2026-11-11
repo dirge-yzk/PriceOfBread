@@ -99,7 +99,7 @@ public partial class GameViewModel
             var w = _sim.Nations[ni].World;
             string nation = w.SelfPower?.Name ?? w.Region.Name;
             // 属国は「国名（○○の属国）」形式（作者指示2026-08-03）＝地図ホバーで主権の帰属が一目で読める
-            if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}({suzN.Name}の属国)";
+            if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}（{suzN.Name}の属国）";
             var homeCoords = new List<(double Lat, double Lon)>();
             double cenX = 0, cenY = 0, cenW = 0;
             double extMinX = double.PositiveInfinity, extMaxX = double.NegativeInfinity;   // B3（2026-09-05）：国名を領土の広がりに沿わせる   // 国名ラベルの位置＝中核州の人口重み重心（植民地・植民地格の州は入れない＝ラベルが海へ流れない）
@@ -627,7 +627,7 @@ public partial class GameViewModel
             var members = new List<string>();
             foreach (var sim in _sim.Nations)
                 if (sim.World.SelfPower is { } bp && sim.World.Regions.Exists(rg => rg.IsPort && rg.SeaBasin == basin)) members.Add(bp.Name);   // ★2026-09-06：国単位の海盆を撤去＝この海盆に港州を持つ国（州単位の SeaBasin）
-            string tipB = $"{bja}\n港を持つ国({members.Count}):";
+            string tipB = $"{bja}\n港を持つ国（{members.Count}）：";
             for (int i = 0; i < members.Count; i += 4)
                 tipB += "\n" + string.Join("・", members.Skip(i).Take(4));
             double fs = 15.0 / _zd;
@@ -651,9 +651,9 @@ public partial class GameViewModel
             // 発見の門が閉じている運河は並べない（巨大建造物の一覧と同じ Megaprojects.RequirementMet・どの国の発見で読むかは扼者の国。扼者が居なければ自国）
             if (!cp.IsOpen && !Megaprojects.RequirementMet(cp.Owner?.Nation ?? _player, cp.Id)) continue;
             string kind = cp.IsCanal ? "運河" : "海峡";
-            string state = cp.IsOpen ? "開通" : $"未開通(進捗 {(cp.BuildCost > 1e-9 ? cp.BuildProgress / cp.BuildCost : 0):P0})";
+            string state = cp.IsOpen ? "開通" : $"未開通（進捗 {(cp.BuildCost > 1e-9 ? cp.BuildProgress / cp.BuildCost : 0):P0}）";
             string basins = string.Join("・", cp.ServesBasins.Select(b => BasinLabels.FirstOrDefault(x => x.Basin == b).Ja ?? b.ToString()));
-            info.Lines.Add(new MapHoverLine { Text = $"{cp.Name}({kind}・{state})", Brush = HoverHead, Weight = FontWeight.Bold });
+            info.Lines.Add(new MapHoverLine { Text = $"{cp.Name}（{kind}・{state}）", Brush = HoverHead, Weight = FontWeight.Bold });
             info.Lines.Add(new MapHoverLine { Text = $"扼者：{cp.Owner?.Name ?? "なし"}" + (basins.Length > 0 ? $"　通航：{basins}" : ""), Brush = HoverDim });
         }
     }
@@ -682,24 +682,8 @@ public partial class GameViewModel
         // ★4区分を何から作るか（(399) で更新）：区分は (399) で点火した＝rg.Rule が毎四半期 Politics.CheckSecession で目標へ寄る live な量（合計 1・州の課税・徴兵・公共財・法の浸透が読む）。
         //   国家・在地・外国・無統治をそのまま出す（0% はそのまま 0% と出す＝**無い値をUIで作らない**）。Rule が無い（4 要素でない）州だけ、国家＝支配度 rg.Dominance・残りは無統治。
         //   ⚠エンジンの目標式（Politics.cs の CheckSecession＝仲介者の権利の残高・首都からの到達・外国持分）をここへ書き写さない。同じ量の定義がエンジンとUIの2本になるのが最も再発するバグ型。
-        double dom, fLocal = 0, fForeign = 0, fUngov = 0;
-        if (rg.Rule.Length == 4)
-        {
-            double s0 = rg.Rule[0], s1 = rg.Rule[1], s2 = rg.Rule[2], s3 = rg.Rule[3];
-            if (!(s0 > 0)) s0 = 0;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
-            if (!(s1 > 0)) s1 = 0;
-            if (!(s2 > 0)) s2 = 0;
-            if (!(s3 > 0)) s3 = 0;
-            double sAll = s0 + s1 + s2 + s3;
-            if (sAll > 1e-9) { dom = s0 / sAll; fLocal = s1 / sAll; fForeign = s2 / sAll; fUngov = s3 / sAll; }
-            else { dom = 0; fUngov = 1.0; }
-        }
-        else
-        {
-            dom = rg.Dominance;
-            if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;
-            fUngov = 1.0 - dom;
-        }
+        var rp = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg);   // 4 区分の定義は表と同じ 1 本（国家・在地勢力・外国勢力・無統治）
+        double dom = rp[0].Share, fLocal = rp[1].Share, fForeign = rp[2].Share, fUngov = rp[3].Share;
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
         string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2), rf = HalfPie.Slice(35, 35, 34, f2, f3), ru = HalfPie.Slice(35, 35, 34, f3, 1.0);
         string who = "";   // 外国勢力の持ち主（2026-11-11 作者指示「どこの国か知りたい」）＝持分の大きい順
@@ -746,7 +730,7 @@ public partial class GameViewModel
         {
             double rural = 0; foreach (var p in rg.Pops) if (!p.IsUrban) rural += p.Size;
             double landFac = Territory.LandFactor(rg, rural, ownerWorld.Coef);
-            if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密(土地 {Fmt.Share(landFac)})", Brush = HoverWarn, Weight = FontWeight.Bold });
+            if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密（土地 {Fmt.Share(landFac)}）", Brush = HoverWarn, Weight = FontWeight.Bold });
         }
         if (ownerWorld.EpidemicActiveYears > 0) info.Lines.Add(new MapHoverLine { Text = "疫病 流行中", Brush = HoverWarn, Weight = FontWeight.Bold });
         if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足 {Fmt.Share(1.0 - rg.FoodFill)}", Brush = HoverWarn, Weight = FontWeight.Bold });
@@ -840,7 +824,7 @@ public partial class GameViewModel
         //   1材は最長でも「ジャガイモ 1234.5k(世界100%)」≈190px でパネルの内幅470px（GameView.axaml:304 Width=500・Padding14）に必ず収まり、
         //   折返しそのものが起きない。2行目以降は全角スペース1つ下げて頭の「生産材:」の続きだと分かる形にする。
         static string Top3(List<(string Name, double Amt, double Share)> src)
-            => src.Count == 0 ? "なし" : string.Join("\n", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : Fmt.Share(t.Share))})"));
+            => src.Count == 0 ? "なし" : string.Join("\n", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}（世界{(t.Share < 0.01 ? t.Share.ToString("P1") : Fmt.Share(t.Share))}）"));
         info.ProducedGoods = Top3(top3Prod); info.ImportedGoods = Top3(top3Imp);   // 窓「州」で 生産材＝左・輸入材＝右（2026-11-11 作者指示）
     }
 

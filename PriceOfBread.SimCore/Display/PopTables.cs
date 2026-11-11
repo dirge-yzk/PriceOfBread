@@ -170,7 +170,7 @@ public static class PopTables
             foreach (var (rg, p) in members.Where(m => m.P.Size > 0.5).OrderByDescending(m => m.P.Size))
             {
                 double un = p.IsSoldier ? 0 : p.Size * p.UnemploymentRate.Value;
-                tip += $"\n{rg.Name}:{DisplayFormat.PopK(p.Size)}" + (un > 0.5 ? $"(失業{DisplayFormat.PopK(un)})" : "");
+                tip += $"\n{rg.Name}：{DisplayFormat.PopK(p.Size)}" + (un > 0.5 ? $"（失業{DisplayFormat.PopK(un)}）" : "");
             }
             tip += $"\n女性：{DisplayFormat.Share(fem)}　子供：{DisplayFormat.Share(child)}　老年：{DisplayFormat.Share(old)}"
                  + $"\n失業率：{DisplayFormat.Share(unemp)}" + (parliamentActive ? $"　支持政党：{party}" : "");
@@ -214,6 +214,9 @@ public static class PopTables
 
     // ===== 州の表 =====
 
+    /// <summary>支配度の 4 区分の名と色の組の名（唯一の定義）。POP の州の表・州の窓・部品の見本が全てここを読む（色の組は App.axaml の RuleStateBrush ほか）。</summary>
+    public const string RuleStateName = "国家", RuleLocalName = "在地勢力", RuleForeignName = "外国勢力", RuleUngovernedName = "無統治", RulePalette = "rule";
+
     /// <summary>支配度の 4 区分（国家・在地・外国・無統治）。区分は州ごとに毎四半期 Politics.CheckSecession が目標へ寄せる live な量＝そのまま出す（0% は 0% と出す）。
     /// 4 要素でない州だけ、国家＝支配度・残りは無統治。</summary>
     public static IReadOnlyList<(string Name, double Share)> RuleParts(Region rg)
@@ -236,7 +239,7 @@ public static class PopTables
             if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;
             ungov = 1.0 - dom;
         }
-        return [("国家", dom), ("在地", loc), ("外国", foreign), ("無統治", ungov)];
+        return [(RuleStateName, dom), (RuleLocalName, loc), (RuleForeignName, foreign), (RuleUngovernedName, ungov)];
     }
 
     /// <summary>自国の稼働中の州（人口の降順）。</summary>
@@ -260,7 +263,7 @@ public static class PopTables
         Col.Number<RegionLine>("unemployed", "失業者", Unit.People, l => l.Unemployed),
         Col.Number<RegionLine>("food", "主食の充足", Unit.Share, l => l.FoodFill),
         Col.Number<RegionLine>("housing", "住居の充足", Unit.Share, l => l.HousingFill, hide: l => !l.HousingShown),
-        Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule)),
+        Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule, RulePalette)),
         Col.Number<RegionLine>("port", "港の拡張", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
     ]);
 

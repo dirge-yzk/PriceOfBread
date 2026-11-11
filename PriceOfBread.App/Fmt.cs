@@ -20,6 +20,9 @@ public static class Fmt
     //   桁に応じて小数を詰める作法は MoneyPerHead と同じ（あちらは1未満の小数まで扱うので刻みが細かい）。
     public static string Money(double v) => DisplayFormat.Money(v);   // 実体は本体の目録の側（吹き出しの文を本体で組むのに同じ書式が要る）
 
+    /// <summary>エンジンが返す理由の文（半角の括弧・コロン）を日本語の文中の字種（全角）へ。画面に出す前に通す（V11）。</summary>
+    public static string Zen(string s) => s.Replace('(', '（').Replace(')', '）').Replace(':', '：');
+
     // 1人あたりの金額（ヘッダーの一人当たりGDP）。Money の k/M 表記は人数で割った桁を全部「£0.0k」に潰すので、桁に応じて小数を詰める。
     /// <summary>符号つきの月あたりの金額（+£100/月・−£163/月）。丸めて 0 になる値は符号なしの「£0/月」。</summary>
     public static string SignedMoneyPerMonth(double v)

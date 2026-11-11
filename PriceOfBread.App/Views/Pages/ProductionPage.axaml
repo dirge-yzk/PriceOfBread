@@ -253,6 +253,8 @@
                              ★縦は対数（項目2）＝×1.25/1.5/2/3/5 とその逆数が中心線から等距離に並ぶ。補助線は淡い1px・中心線は濃い2px。
                                枠（どこまでが上下端か）と段階の一覧はホバーで読む＝グラフの中に文字を置かない。 -->
                         <TextBlock Text="{Binding ProdDetail.WorldPriceLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" Margin="0,4,0,0"/>
+                        <!-- 図の外へ張り付いた点の実数（世界価格比の最小と最大）＝図の右に置く（図の下の行にすると下の積み上げが押し出される・V8） -->
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                         <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="68" HorizontalAlignment="Left"
 >
                             <Canvas Width="240" Height="64" Margin="3,1,0,0" ClipToBounds="True">
@@ -261,9 +263,9 @@
                                 <Polyline Points="{Binding ProdSparkPoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
                             </Canvas>
                         </Border>
-                        <!-- 図の外へ張り付いた点の実数（世界価格比の最小と最大）＝データの 1 行 -->
-                        <TextBlock Text="{Binding ProdDetail.SparkScaleTip}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
-                                   IsVisible="{Binding ProdDetail.SparkScaleTip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <TextBlock Text="{Binding ProdDetail.SparkScaleTip}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" VerticalAlignment="Bottom"
+                                       IsVisible="{Binding ProdDetail.SparkScaleTip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </StackPanel>
                         <!-- ⑥2段組＝【左】生産にかかるコスト（限界費用の内訳・合計＝生産コスト）／【右】価格の積み上げ（合計＝販売価格）。
                              どちらもエンジン（ProductionDiag）の実式そのもの＝番人テストが「積み上げ＝実際の値」を固定している
                              （左＝合計が限界費用 mc に一致／右＝合計が買い手の払う価格に一致）。
@@ -290,7 +292,7 @@
                                                  合計行＝左にレシピ式（グアノ×1／硫酸×0.35 ＋ 硫黄×0.25）・右に「生産コスト £n」を右寄せ。
                                                  レシピが1本の財でも同じ形（従来の器の外の合計は廃止＝どのレシピの合計かが言えなかった）。 -->
                                             <StackPanel>
-                                                <Grid ColumnDefinitions="Auto,42,*,Auto,Auto" ColumnSpacing="4" Margin="0,1" Background="Transparent"
+                                                <Grid ColumnDefinitions="Auto,58,*,Auto,Auto" ColumnSpacing="4" Margin="0,1" Background="Transparent"
                                                       IsVisible="{Binding !IsTotal}"
 >
                                                     <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" TextTrimming="CharacterEllipsis" MaxWidth="128"/>
@@ -327,7 +329,7 @@
                                 <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,3"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,2" Background="Transparent"
 >
-                                    <TextBlock Text="販売価格:" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource BronzeBrush}"/>
+                                    <TextBlock Text="販売価格：" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource BronzeBrush}"/>
                                     <TextBlock Text="{Binding ProdDetail.PriceTotalText}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
                                 </StackPanel>
                             </StackPanel>
@@ -391,13 +393,13 @@
         <ctl:Section x:Name="RegionsSection" Key="regions" Title="州別の工場">
             <ctl:Section.Body>
                 <Grid x:Name="RegionsBody" RowDefinitions="Auto,*" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
-                        <Grid ColumnDefinitions="*,36,72,44,44,52,60" Margin="0,0,12,0">
+                        <Grid ColumnDefinitions="*,36,82,44,44,52,60" Margin="0,0,12,0">
                             <!-- 見出し「州名」のホバー＝工業化の州別上位8（2026-09-23）。行は増やさず既にある見出しのセルに載せる。
                                  式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
                             <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"
 />
                             <TextBlock Grid.Column="1" Text="民営" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
-                            <TextBlock Grid.Column="2" Text="国営" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="6,0,0,0"/>
+                            <TextBlock Grid.Column="2" Text="国営" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="16,0,0,0"/>
                             <TextBlock Grid.Column="3" Text="従業員" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                             <TextBlock Grid.Column="4" Text="生産" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                             <TextBlock Grid.Column="5" Text="過不足" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
@@ -411,7 +413,7 @@
                                       <StackPanel>
                                         <!-- ★1行（作者フィードバック2026-08-10 項目3）。MinHeight はボタンの高さに固定＝
                                              カウンターを持たない州（産地なし）の行だけ低くならない＝行の高さが州によって変わらない。 -->
-                                        <Grid ColumnDefinitions="*,36,72,44,44,52,60" MinHeight="19">
+                                        <Grid ColumnDefinitions="*,36,82,44,44,52,60" MinHeight="19">
                                             <!-- 接17：州名ホバー＝工業化資本の新旧内訳（ヴィンテージ層が休眠なら CapitalTip=null＝出ない） -->
                                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
@@ -426,7 +428,7 @@
                                                    上の行の伸縮でボタンが数px動く＝離上時の当たり判定に頼ると押下が黙って捨てられる。
                                                  ★数字の列は Auto でなく * ＝1桁でも2桁でも ＋/− の位置が動かない（隣の州と縦に揃う）。 -->
                                             <!-- 左6の余白＝「−」が民営工場の数字と地続きに見えないための隙間（uishot 実測2026-08-10＝「3−」と読めた） -->
-                                            <Border Grid.Column="2" Background="Transparent" VerticalAlignment="Center" Margin="6,0,0,0"
+                                            <Border Grid.Column="2" Background="Transparent" VerticalAlignment="Center" Margin="16,0,0,0"
 >
                                                 <Panel>
                                                     <!-- 産地の無い州は「—」（他の列と同じ埋め方）＝空欄にしない。どちらも同じ 90px の枠に入るので位置は動かない -->

@@ -284,7 +284,8 @@ public static class ProductionTables
             double wage = supply > 1e-9 ? priceW / supply : nr > 0 ? priceSimple / nr : double.NaN;
             double floor = floorOn && capForFloor > 1e-9 ? floorW / capForFloor : double.NaN;
             double boundShare = floorOn && capForFloor > 1e-9 && floorW > 0 ? bound / capForFloor : double.NaN;
-            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, supply, cap, floor, boundShare));
+            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, supply, id == Catalog.AdvLaborId ? double.NaN : cap,   // 供給の上限は人力の生産者の能力の和（MinimumWageFloor.LaborSupply・同じ POP を共有するレシピを重ねない）＝高度労働力（技師）には人力の上限の概念が無い＝「—」（供給 965・上限 0 と読めた・V7）
+                 floor, boundShare));
         }
         return result;
     }

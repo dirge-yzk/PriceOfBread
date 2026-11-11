@@ -63,7 +63,7 @@ internal static class UiShotParts
         for (int i = 0; i < names.Length; i++)
         {
             double a = (i + 1) * 913.7 * (i % 3 == 0 ? -1 : 1);
-            var share = new ShareCell([("国家", 0.55 - i * 0.03), ("在地", 0.25), ("外国", 0.1), ("無統治", 0.1 + i * 0.03)]);
+            var share = new ShareCell([(PopTables.RuleStateName, 0.55 - i * 0.03), (PopTables.RuleLocalName, 0.25), (PopTables.RuleForeignName, 0.1), (PopTables.RuleUngovernedName, 0.1 + i * 0.03)], PopTables.RulePalette);
             var stage = new StageCell(labels, 0, i % 4, (i + 1) % 4, l => l != 3, l => l == 3 ? null : $"{names[0]}:{labels[l]}", _ => { });
             rows.Add(new RowData("r" + i, names[i], i < 5 ? "列強" : "その他", [i % 3 == 0 ? new TextCell(names[i], null, Swatch: "#2E6E5E", BadgeFill: i == 3 ? "#A0432D" : null) : names[i], new NumberCell(a), new NumberCell(0.04 * i - 0.001, Ink: i % 2 == 0 ? "#B8860B" : null), new NumberCell(-0.0001 * i), share, stage, new VerbCell("侵略", i % 2 == 0, () => { })]));
         }

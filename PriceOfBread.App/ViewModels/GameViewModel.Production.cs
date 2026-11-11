@@ -780,7 +780,7 @@ public partial class GameViewModel
                 : pr is null ? "この州に産地なし"
                 : pr.ConstructionLeft > 0 ? $"建設中 あと{pr.ConstructionLeft / (double)Calendar.DaysPerYear:F1}年"
                 : cantMakeHere ? "技術不足"
-                : _player.Treasury.Value < payPerDay ? $"国庫不足(初日の労務費 {Fmt.Money(payPerDay)} が必要)"
+                : _player.Treasury.Value < payPerDay ? $"国庫不足（初日の労務費 {Fmt.Money(payPerDay)} が必要）"
                 : buildAfford < _player.Coef.FactoryStartAffordFloor ? $"建材の採算 {Fmt.Share(buildAfford)}/必要 {Fmt.Share(_player.Coef.FactoryStartAffordFloor)}"
                 : "建設不可";
             var sale = pr is not null && pr.BuiltScale > 1e-9 ? _player.CanSellFactory(ri, gi) : (Ok: false, Price: 0.0, Reason: "");
@@ -992,13 +992,13 @@ public partial class GameViewModel
                 Host = mp.Host,
                 // ★行に「技術n%（不足）」は出さない（作者指示2026-08-02）＝押せない理由はボタンのホバーで読む。
                 State = mp.IsComplete ? "完成" : mp.Started ? $"建設中 {Fmt.Share(pct)}" : "未着工",
-                Effect = $"{JaEffect(mp.EffectTarget)} {(mp.EffectMode == "scale" ? $"×{1 + mp.EffectValue:F2}" : $"＋{mp.EffectValue:F0}")}",
+                Effect = $"{JaEffect(mp.EffectTarget)} {(mp.EffectMode == "scale" ? $"×{1 + mp.EffectValue:F2}" : System.Math.Round(mp.EffectValue) == 0 ? "0" : $"＋{mp.EffectValue:F0}")}",   // 0 は符号なしの「0」（V9）
                 Brush = mp.IsComplete ? PPlus : reqOk ? PUtilText : PNameText,
                 CanStart = canStart,
                 ShowStart = !mp.IsComplete,   // ボタンは完成後だけ消す（それ以外は出してグレーアウト＝工場の流儀）
                 StartLabel = $"着工 {Fmt.Money(cost)}",
                 // データのツールチップ（規律準拠＝説明文でなく値）。行には理由を書かない＝カーソルを合わせればここが出る。
-                StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}/見積 {Fmt.Money(cost)}",   // 1 行（カードの 4 行目）。門が閉じた物は一覧に並べないので理由の行は要らない
+                StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}",   // 1 行（見積は着工の釦の額と同じ＝重ねて出さない・V9）（カードの 4 行目）。門が閉じた物は一覧に並べないので理由の行は要らない
                 Project = mp,
             });
         }
@@ -1192,7 +1192,7 @@ public partial class GameViewModel
         string P(double v) => u.Valid ? Fmt.Share(v) : "—";
         return $"全国の稼働率 {(u.Capacity > QtyEps ? Fmt.Share(u.Utilization) : "—")}"
              + $"\n採算 {P(u.ProfitFactor)}"
-             + $"\n投入充足 {P(u.InputFill)}(素材のみ {(u.Output > QtyEps ? Fmt.Share(u.MaterialFill) : "—")})"   // 産出が事実上0では加重平均の分母が消える＝「—」
+             + $"\n投入充足 {P(u.InputFill)}（素材のみ {(u.Output > QtyEps ? Fmt.Share(u.MaterialFill) : "—")}）"   // 産出が事実上0では加重平均の分母が消える＝「—」
              + $"\n在庫調整 {P(u.InventoryAdjust)}"
              + $"\n慣性による遅れ {P(u.Inertia)}"
              + $"\n能力 {Fmt.Qty(u.Capacity)}　産出 {Fmt.Qty(u.Output)}";   // 量はk統一（項目4・2026-08-10）
@@ -1286,8 +1286,8 @@ public partial class GameViewModel
                 double dy = Math.Round(Math.Log(b) / lnFrame * SparkHalfH) + 0.5;
                 Line(ctx, SparkMidY - dy); Line(ctx, SparkMidY + dy);
             }
-        // 図の下に出す 1 行＝枠の外へ張り付いた点も実数で読める（S3）
-        string tip = Finite(lo) && Finite(hi) ? $"最小 {Fmt.Share(lo)}　最大 {Fmt.Share(hi)}" : "";
+        // 図の右に出す 3 行＝枠の外へ張り付いた点も実数で読める（S3・量の名は世界価格比・V8）
+        string tip = Finite(lo) && Finite(hi) ? $"世界価格比\n最小 {Fmt.Share(lo)}\n最大 {Fmt.Share(hi)}" : "";
         _wpSpark[gi] = pts; _wpGrid[gi] = geo; _wpTip[gi] = tip; _wpSparkVer[gi] = _wpVersion;
         return (pts, geo, tip);
 

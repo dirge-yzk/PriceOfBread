@@ -95,12 +95,14 @@ public partial class GameViewModel
         };
         if (w.RailCapacity > 1e-9) tRows.Add(new TransportRow("鉄道輸送力", Fmt.Qty(w.RailCapacity)));   // 鉄道が無い間は出さない（0 の行を並べない・B21）
         tRows.Add(new TransportRow("海軍輸送力", Fmt.Qty(w.ShipCapacity)));
-        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給", Fmt.Qty(-burdenLoss)));   // 差し引く量＝負号は「−」（Fmt.Qty）
+        if (burdenLoss > 1e-9) tRows.Add(new TransportRow("植民地補給で差引", Fmt.Qty(-burdenLoss)));   // 海軍輸送力から差し引く量＝負号は「−」（Fmt.Qty）・名は何から引くかを言う（V5）
         if (w.LastBlockadeRisk > 1e-9) tRows.Add(new TransportRow("リスク料（通商破壊）", $"{Fmt.Share(w.LastBlockadeRisk)}"));
         // 使用率＝運びたかった重量 ÷ 配られた輸送容量（州ごとの値を自国の活きている州で合算）。100% を超える＝輸送が交易を絞っている
         double pot = 0, cap = 0;
         foreach (var rg in w.Regions)
             if (rg.LastTransportCap > 1e-9 && rg.LastTransportCap < 1e15) { pot += Math.Max(0, rg.LastTradePotential); cap += rg.LastTransportCap; }
+        // 分母の行＝州ごとの配分の和（内陸州は陸と海の小さい方・港の拡張を足す）＝上の行の和ではない。これを出して 使用量÷この行＝使用率 を表の行から出せるようにする（V5）
+        tRows.Add(new TransportRow("州に配った輸送力", Fmt.Qty(cap)));
         tRows.Add(new TransportRow("使用量", Fmt.Qty(pot)));
         TransportRows = tRows;
         double use = cap > 1e-9 ? pot / cap : double.NaN;

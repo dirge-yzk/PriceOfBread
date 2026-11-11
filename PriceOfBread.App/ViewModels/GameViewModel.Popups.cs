@@ -184,6 +184,9 @@ public partial class GameViewModel
             }
     }
 
+    /// <summary>割合（0〜1）を整数のパーセントへ（Fmt.Share の 0.5% 以上の丸めと同じ向き）。</summary>
+    private static int WholePercent(double share) => (int)System.Math.Round(share * 100.0, System.MidpointRounding.AwayFromZero);
+
     // 緊張ポップアップの中身（検出経路と撮影フックが共有＝二実装にしない）。時間停止中＝開いた瞬間の構成で固定。
     private void BuildTensionPopup(Power me, Power pow, double t)
     {
@@ -203,17 +206,18 @@ public partial class GameViewModel
             if (at >= 0) merged[at] = (name, merged[at].Value + v);
             else merged.Add((name, v));
         }
-        // 内訳の和が題と合うように：寄与の大きい順に上位 4 件・残りの正の寄与は「その他」・負の寄与（緊張を下げる物）は「緩和」の 1 行にまとめる
+        // 内訳の和が題と合うように：寄与の大きい順に上位 4 件・負の寄与（緊張を下げる物）は「緩和」の 1 行。「その他」＝題−画面に出した行の和（丸めた整数のパーセントで差を取る＝画面の上で和が必ず題に合う・V6）
         var why = new List<string>();
-        double otherSum = 0, easeSum = 0;
+        double easeSum = 0; int shown = 0;
         foreach (var (name, v) in merged.OrderByDescending(x => x.Value))
         {
             if (v < 0) easeSum += v;
-            else if (why.Count >= 4 || TensionPctUncapped(v) < 0.005) otherSum += v;   // 降順＝0%に丸まる寄与からはその他へ
-            else why.Add($"{name} +{Fmt.Share(TensionPctUncapped(v))}");
+            else if (why.Count < 4 && TensionPctUncapped(v) >= 0.005) { int p = WholePercent(TensionPctUncapped(v)); why.Add($"{name} +{p}%"); shown += p; }   // 降順＝0%に丸まる寄与以降はその他へ
         }
-        if (otherSum > 0) why.Add($"その他 +{Fmt.Share(TensionPctUncapped(otherSum))}");
-        if (easeSum < 0) why.Add($"緩和 {PriceOfBread.SimCore.Display.DisplayFormat.Minus}{Fmt.Share(TensionPctUncapped(-easeSum))}");
+        int easePct = easeSum < 0 ? WholePercent(TensionPctUncapped(-easeSum)) : 0;
+        int otherPct = WholePercent(TensionPctUncapped(t)) - shown + easePct;
+        if (otherPct != 0) why.Add($"その他 {PriceOfBread.SimCore.Display.DisplayFormat.SignedPercent(otherPct / 100.0)}");
+        if (easePct > 0) why.Add($"緩和 {PriceOfBread.SimCore.Display.DisplayFormat.Minus}{easePct}%");
         TensionPopupWhy = string.Join("\n", why);
         // 機能5-①-1（2026-07-28）：相手・自国の同盟関係と参戦見込み（表示のみ＝計算へは加算しない。閾値式はエンジンと単一ソース）
         double jtFoe = dip.AllyJoinThreshold(me, _player.Coef);    // 相手の同盟国が自国相手に参戦する閾値
@@ -221,8 +225,8 @@ public partial class GameViewModel
         var foeAl = dip.AlliesOf(pow).ToList();
         var myAl = dip.AlliesOf(me).ToList();
         // ★戦力は「自国＋同盟の合計」を先に出し、その内訳を次の行に置く（作者指摘「戦力比較しづらい」）
-        string myList = string.Join("・", myAl.Select(x => $"{x.Name} {Troops(x)}(参戦 {Fmt.Share(System.Math.Clamp(dip.Tension(x, pow) / jtMe, 0, 1))})"));
-        string foeList = string.Join("・", foeAl.Select(x => $"{x.Name} {Troops(x)}(参戦 {Fmt.Share(System.Math.Clamp(dip.Tension(x, me) / jtFoe, 0, 1))})"));
+        string myList = string.Join("・", myAl.Select(x => $"{x.Name} {Troops(x)}（参戦 {Fmt.Share(System.Math.Clamp(dip.Tension(x, pow) / jtMe, 0, 1))}）"));
+        string foeList = string.Join("・", foeAl.Select(x => $"{x.Name} {Troops(x)}（参戦 {Fmt.Share(System.Math.Clamp(dip.Tension(x, me) / jtFoe, 0, 1))}）"));
         TensionPopupBody = $"{me.Name} {Troops(me)}　+ 同盟 {Fmt.Men(myAl.Sum(TroopUnits))}";
         if (myAl.Count > 0) TensionPopupBody += $"\n{me.Name}の同盟：{myList}";
         TensionPopupBody += $"\n\n{pow.Name} {Troops(pow)}　+ 同盟 {Fmt.Men(foeAl.Sum(TroopUnits))}";
@@ -301,7 +305,7 @@ public partial class GameViewModel
         if (FindPower(name) is not { } t) return;
         bool can = _player.CanUnificationWar(t, out string reason);
         ConfirmTitle = "宣戦布告（統一戦争）";
-        ConfirmBody = $"{t.Name}\n目標 {_player.UnificationRule?.NewName ?? ""}　必要州の保有国" + (can ? "" : $"\n不可：{reason}");
+        ConfirmBody = $"{t.Name}\n目標 {_player.UnificationRule?.NewName ?? ""}　必要州の保有国" + (can ? "" : $"\n不可：{Fmt.Zen(reason)}");
         ConfirmAcceptLabel = "宣戦布告";
         ConfirmCan = can;
         _confirmDo = () => _player.DeclareUnificationWarOn(t);
@@ -325,7 +329,7 @@ public partial class GameViewModel
         var aimCol = _interestColony is { } ic && t.ColonyList.Contains(ic) ? ic : null;   // 02断線走査2026-07-28：狙い先が標的国の植民地なら講和の優先割譲へ
         ConfirmBody = $"{t.Name}\n余剰戦力 {WillPct(cost)} を消費　現在 {WillPct(_player.ExpansionWill)}\n実効戦力 {Fmt.Men(force * _player.Coef.SoldiersPerMilitary)}/必要 {Fmt.Men(need * _player.Coef.SoldiersPerMilitary)}　→ {outlook}"
                       + (aimCol is not null ? $"\n狙い先 {aimCol.Name}" : "")
-                      + (can ? "" : $"\n不可：{reason}");
+                      + (can ? "" : $"\n不可：{Fmt.Zen(reason)}");
         ConfirmAcceptLabel = "宣戦布告";
         ConfirmCan = can;
         _confirmDo = () => _player.Invade(t, aimCol);

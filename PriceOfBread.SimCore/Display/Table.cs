@@ -28,8 +28,8 @@ public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? 
 /// <paramref name="Parts"/>＝（値・色「#RRGGBB」）。和が入れ物を超えた分は描かない。</summary>
 public sealed record BarCell(IReadOnlyList<(double Value, string Color)> Parts, double Full);
 
-/// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。</summary>
-public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts);
+/// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。<paramref name="Palette"/>＝区分の色の組の名（null＝既定の色の並び・"rule"＝支配度の 4 区分の専用の色）。</summary>
+public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts, string? Palette = null);
 
 /// <summary>列＝名前と単位と読み口。説明文の欄は持たない（画面に説明文を書かない）。閾値の欄も持たない。</summary>
 public abstract record Column<TRow>(string Key, string Name);

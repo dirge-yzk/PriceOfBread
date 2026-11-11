@@ -38,6 +38,9 @@ public static class DiscoveryTables
             string group = d.Field == DiscoveryField.Institution ? Groups[0] : d.Field == DiscoveryField.Idea ? Groups[1] : Groups[2];
             var line = new DiscoveryLine("row." + row, group, d.Name, s, known ? double.NaN : tm.Tech, known ? double.NaN : tm.Need, known ? double.NaN : tm.Transmit, $"{d.Decade}年代", d.Decade, group == Groups[0] ? (known ? "施行" : "未施行") : "");
             (group == Groups[0] ? gov : group == Groups[1] ? ideo : tech).Add(line);
+            // 鉄道の施行は「機関車」の行の 2 値（World.Railways と同じ物）＝政府の群へ制度の行として並べる（制度の表を吸収した時に画面から消えていた・V16）
+            if (row == Discovery.LocomotiveRow)
+                gov.Add(line with { Key = "rail", Group = Groups[0], Name = "鉄道", State = known ? "施行" : "未施行" });
         }
         gov.Sort(ByGate); ideo.Sort(ByGate); tech.Sort(ByGate);
         return gov.Concat(ideo).Concat(tech).ToList();

@@ -72,7 +72,7 @@ public static class MarketTables
         // 世界価格を 100% とした国内価格（2026-11-11 作者指示）。高騰＝赤・下落＝青（世界価格そのものは出さない）
         Col.Number<MarketLine>("gap", "世界価格比", Unit.Share, l => l.Gap + 1.0, ink: l => RatioInk(l.Gap)),
         Col.Number<MarketLine>("demand", "需要", Unit.Quantity, l => l.Demand),
-        Col.Number<MarketLine>("supply", "供給", Unit.Quantity, l => l.Supply),
+        Col.Number<MarketLine>("supply", "産出", Unit.Quantity, l => l.Supply),
         Col.Number<MarketLine>("shortage", "不足", Unit.Quantity, l => l.Shortage),
     ], l => l.Tier);
 }
