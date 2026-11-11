@@ -4,7 +4,7 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(501) 段2：画面の配置（中央に出すもの・キー・保存）と、ページの欄の並べの計算の番人。描画そのものは --uishot が見る＝ここは Avalonia に依らない部分だけを見る。</summary>
+/// <summary>★(501) 段2：画面の配置（背景・浮かぶ窓・キー・保存）と、ページの欄の並べの計算の番人。描画そのものは --uishot が見る＝ここは Avalonia に依らない部分だけを見る。</summary>
 public class LayoutTests
 {
     [Fact]
@@ -36,66 +36,152 @@ public class LayoutTests
     }
 
     [Fact]
-    public void 初めの配置は地図_左の列は開く_中央に出るのは常に1つ()
+    public void 初めの配置は地図の背景_窓は無い_左の列は開く()
     {
         var m = new LayoutModel();
-        Assert.Equal(Slot.Map, m.Current);
+        Assert.Equal(Slot.Map, m.Background);
+        Assert.Empty(m.OpenWindows);
+        Assert.Null(m.Front);
         Assert.True(m.LeftOpen);
         Assert.Equal([Slot.Map], m.Shown().ToArray());
         Assert.True(m.IsShown(Slot.Map));
         Assert.False(m.IsShown(Slot.Production));
+        Assert.False(m.IsShown(Slot.Market));
     }
 
     [Fact]
-    public void 開く操作は中央を差し替える_同じ物を開いても変わりとしない()
+    public void 地図と生産は背景_それ以外のページは窓()
+    {
+        Assert.False(LayoutModel.IsWindow(Slot.Map));
+        Assert.False(LayoutModel.IsWindow(Slot.Production));
+        foreach (var s in new[] { Slot.Market, Slot.FiscalMoney, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery })
+            Assert.True(LayoutModel.IsWindow(s), s.ToString());
+        var m = new LayoutModel();
+        m.Open(Slot.Production);   // 背景が替わるだけ（窓は増えない）
+        Assert.Equal(Slot.Production, m.Background);
+        Assert.Empty(m.OpenWindows);
+        Assert.False(m.IsShown(Slot.Map));
+    }
+
+    [Fact]
+    public void 窓は複数を同時に開ける_開いた順に重なる_開き直すと前へ_同じ物を開いても変わりとしない()
     {
         var m = new LayoutModel();
         int changed = 0; m.Changed += () => changed++;
-        m.Open(Slot.Market);
-        Assert.Equal(Slot.Market, m.Current);
-        Assert.Equal([Slot.Market], m.Shown().ToArray());
-        Assert.Equal(1, changed);
-        m.Open(Slot.Market);   // すでに出ている＝変わらない
-        Assert.Equal(1, changed);
-        m.Open(Slot.Map);
-        Assert.Equal(Slot.Map, m.Current);
-        Assert.Equal(2, changed);
+        m.Open(Slot.Market); m.Open(Slot.FiscalMoney); m.Open(Slot.Population);
+        Assert.Equal([Slot.Market, Slot.FiscalMoney, Slot.Population], m.OpenWindows.ToArray());
+        Assert.Equal(Slot.Population, m.Front);
+        Assert.Equal(3, changed);
+        Assert.Equal([Slot.Map, Slot.Market, Slot.FiscalMoney, Slot.Population], m.Shown().ToArray());
+        m.Open(Slot.Population);   // すでに一番前
+        Assert.Equal(3, changed);
+        m.Open(Slot.Market);       // 開いている窓を開き直す＝前へ（増えない）
+        Assert.Equal([Slot.FiscalMoney, Slot.Population, Slot.Market], m.OpenWindows.ToArray());
+        Assert.Equal(4, changed);
     }
 
     [Fact]
-    public void ページのキーは出ていなければ出す_もう出ていれば地図へ戻る()
+    public void ページのキーは窓の開閉の切り替え_閉じても位置は覚えている()
     {
         var m = new LayoutModel();
         m.Toggle(Slot.Market);
-        Assert.Equal(Slot.Market, m.Current);
-        m.Toggle(Slot.FiscalMoney);   // 別のページのキー＝そのページへ（地図を経由しない）
-        Assert.Equal(Slot.FiscalMoney, m.Current);
-        m.Toggle(Slot.FiscalMoney);   // 同じキーをもう一度＝地図へ戻る
-        Assert.Equal(Slot.Map, m.Current);
+        Assert.True(m.IsShown(Slot.Market));
+        m.SetRect(Slot.Market, new WindowRect(100, 80, 600, 400));
+        m.Toggle(Slot.Market);   // 同じキー＝閉じる
+        Assert.False(m.IsShown(Slot.Market));
+        Assert.Empty(m.OpenWindows);
+        Assert.Equal(new WindowRect(100, 80, 600, 400), m.RectOf(Slot.Market));
+        m.Toggle(Slot.Market);
+        Assert.True(m.IsShown(Slot.Market));
+        Assert.Equal(new WindowRect(100, 80, 600, 400), m.RectOf(Slot.Market));   // 開き直しても同じ位置
+        m.Close(Slot.FiscalMoney);   // 開いていない窓を閉じても何も起きない
     }
 
     [Fact]
-    public void Tabは生産と地図の切り替え_他のページからは生産へ()
+    public void 押した窓が前に出る_すでに前なら変わりとしない_開いていない窓は無視()
     {
         var m = new LayoutModel();
-        m.ToggleProductionMap();
-        Assert.Equal(Slot.Production, m.Current);
-        m.ToggleProductionMap();
-        Assert.Equal(Slot.Map, m.Current);
-        m.Open(Slot.Discovery);
-        m.ToggleProductionMap();   // 地図以外（発見）からは生産へ
-        Assert.Equal(Slot.Production, m.Current);
+        m.Open(Slot.Market); m.Open(Slot.FiscalMoney);
+        int changed = 0; m.Changed += () => changed++;
+        m.BringToFront(Slot.Market);
+        Assert.Equal([Slot.FiscalMoney, Slot.Market], m.OpenWindows.ToArray());
+        Assert.Equal(1, changed);
+        m.BringToFront(Slot.Market);
+        m.BringToFront(Slot.Discovery);   // 開いていない
+        Assert.Equal(1, changed);
+        Assert.Equal([Slot.FiscalMoney, Slot.Market], m.OpenWindows.ToArray());
     }
 
     [Fact]
-    public void Escは地図へ戻る_もう地図なら何もしない_戻ったときだけ真()
+    public void Tabは背景の地図と生産の切り替え_窓には触れない()
     {
         var m = new LayoutModel();
-        Assert.False(m.LeaveToMap());   // 地図＝Esc はメニューの仕事
-        m.Open(Slot.Production);
-        Assert.True(m.LeaveToMap());
-        Assert.Equal(Slot.Map, m.Current);
-        Assert.False(m.LeaveToMap());
+        m.Open(Slot.Market);
+        m.ToggleProductionMap();
+        Assert.Equal(Slot.Production, m.Background);
+        Assert.Equal([Slot.Market], m.OpenWindows.ToArray());
+        m.ToggleProductionMap();
+        Assert.Equal(Slot.Map, m.Background);
+        Assert.Equal([Slot.Market], m.OpenWindows.ToArray());
+    }
+
+    [Fact]
+    public void Escは一番前の窓を閉じる_窓が無ければ生産の背景から地図へ_地図ならメニューの仕事で偽()
+    {
+        var m = new LayoutModel();
+        Assert.False(m.Escape());   // 地図・窓なし＝Esc はメニューの仕事
+        m.Open(Slot.Production); m.Open(Slot.Market); m.Open(Slot.Population);
+        Assert.True(m.Escape());    // 一番前（人口）が閉じる
+        Assert.Equal([Slot.Market], m.OpenWindows.ToArray());
+        Assert.Equal(Slot.Production, m.Background);
+        Assert.True(m.Escape());    // 市場が閉じる
+        Assert.Empty(m.OpenWindows);
+        Assert.Equal(Slot.Production, m.Background);
+        Assert.True(m.Escape());    // 窓が無い＝生産から地図へ
+        Assert.Equal(Slot.Map, m.Background);
+        Assert.False(m.Escape());
+    }
+
+    [Fact]
+    public void 窓の位置と大きさ_最小の大きさへ丸める_非有限は捨てる_変わらなければ知らせない_背景には置けない()
+    {
+        var m = new LayoutModel();
+        int changed = 0; m.Changed += () => changed++;
+        m.SetRect(Slot.Market, new WindowRect(10, 20, 100, 50));
+        Assert.Equal(new WindowRect(10, 20, LayoutModel.MinWindowWidth, LayoutModel.MinWindowHeight), m.RectOf(Slot.Market));
+        Assert.Equal(1, changed);
+        m.SetRect(Slot.Market, new WindowRect(10, 20, 100, 50));   // 同じ（丸めた後も同じ）
+        Assert.Equal(1, changed);
+        m.SetRect(Slot.Market, new WindowRect(double.NaN, 0, 500, 400));
+        m.SetRect(Slot.Market, new WindowRect(0, double.PositiveInfinity, 500, 400));
+        m.SetRect(Slot.Map, new WindowRect(0, 0, 500, 400));
+        m.SetRect(Slot.Production, new WindowRect(0, 0, 500, 400));
+        Assert.Equal(1, changed);
+        Assert.Null(m.RectOf(Slot.Map));
+        Assert.Null(m.RectOf(Slot.Production));
+    }
+
+    [Fact]
+    public void 初めの位置と収め直し_窓ごとにずれる_領域の外へ出ない_覚えている値は書き換えない()
+    {
+        var a = LayoutModel.DefaultRect(Slot.Market, 1600, 900);
+        var b = LayoutModel.DefaultRect(Slot.FiscalMoney, 1600, 900);
+        Assert.NotEqual((a.X, a.Y), (b.X, b.Y));
+        foreach (var s in new[] { Slot.Market, Slot.FiscalMoney, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery })
+        {
+            var r = LayoutModel.DefaultRect(s, 1600, 900);
+            Assert.True(r.X >= 0 && r.Y >= 0 && r.X + r.W <= 1600 && r.Y + r.H <= 900, s.ToString());
+            Assert.True(r.W >= LayoutModel.MinWindowWidth && r.H >= LayoutModel.MinWindowHeight);
+        }
+        // 収め直し：大きすぎる大きさは領域まで・外へ出た位置は内側へ
+        var f = LayoutModel.Fit(new WindowRect(-50, 2000, 3000, 2000), 1200, 800);
+        Assert.Equal(new WindowRect(0, 0, 1200, 800), f);
+        var g = LayoutModel.Fit(new WindowRect(1100, 700, 500, 300), 1200, 800);
+        Assert.Equal(new WindowRect(700, 500, 500, 300), g);
+        // 覚えている値は表示のためには書き換えない
+        var m = new LayoutModel(); m.SetRect(Slot.Market, new WindowRect(5000, 5000, 600, 400));
+        _ = LayoutModel.Fit(m.RectOf(Slot.Market)!.Value, 1200, 800);
+        Assert.Equal(new WindowRect(5000, 5000, 600, 400), m.RectOf(Slot.Market));
     }
 
     [Fact]
@@ -111,21 +197,30 @@ public class LayoutTests
     }
 
     [Fact]
-    public void 配置の保存は往復する_中央に出すものは保存しない_壊れた保存は初めの配置へ_廃止した分割の保存も読める()
+    public void 配置の保存は往復する_窓の位置と左の列は覚える_背景と開いた窓は覚えない_壊れた保存は初めの配置へ_廃止した分割の保存も読める()
     {
         var m = new LayoutModel();
-        m.Open(Slot.Production); m.SetLeftOpen(false);
+        m.Open(Slot.Production); m.Open(Slot.Market); m.SetLeftOpen(false);
+        m.SetRect(Slot.Market, new WindowRect(120, 60, 700, 500));
         var back = LayoutModel.FromJson(m.ToJson());
         Assert.Equal(m.ToJson(), back.ToJson());
         Assert.False(back.LeftOpen);
-        Assert.Equal(Slot.Map, back.Current);   // 起動は地図から
+        Assert.Equal(new WindowRect(120, 60, 700, 500), back.RectOf(Slot.Market));
+        Assert.Equal(Slot.Map, back.Background);   // 起動は地図から
+        Assert.Empty(back.OpenWindows);            // 窓は開かない
         Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("").ToJson());
         Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("{壊れた").ToJson());
         Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("null").ToJson());
+        // 壊れた窓の記録は捨てる（知らない窓・背景の窓・要素の数が違う・非有限）
+        var junk = LayoutModel.FromJson("{\"Windows\":{\"Nope\":[1,2,3,4],\"Map\":[1,2,500,400],\"Production\":[1,2,500,400],\"Market\":[1,2,3],\"Population\":[1,2,500,400]}}");
+        Assert.Equal(new WindowRect(1, 2, 500, 400), junk.RectOf(Slot.Population));
+        Assert.Null(junk.RectOf(Slot.Market));
+        Assert.Null(junk.RectOf(Slot.Map));
+        Assert.Null(junk.RectOf(Slot.Production));
         // 分割を廃止する前の保存（形・席・割合を持つ）＝知らない項目は読み捨て・左の列と欄の記録は生きる
         var old = LayoutModel.FromJson("{\"Shape\":\"Four\",\"Seats\":[\"Production\",\"Market\",\"FiscalMoney\",\"Population\"],\"Selected\":2,\"MainRatio\":0.4,\"SubRatio\":0.5,\"LeftOpen\":false,\"RightOpen\":false,\"Sections\":{\"Market\":{\"Opened\":[\"a\"],\"Closed\":[]}}}");
         Assert.False(old.LeftOpen);
-        Assert.Equal(Slot.Map, old.Current);
+        Assert.Equal(Slot.Map, old.Background);
         Assert.Equal(["a"], old.SectionState("Market").Opened);
     }
 

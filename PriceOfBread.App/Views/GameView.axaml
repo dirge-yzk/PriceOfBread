@@ -10,9 +10,9 @@
              x:DataType="vm:GameViewModel"
              Background="#EFE8D8" Foreground="{StaticResource InkBrush}" FontFamily="Yu Gothic UI, Meiryo, MS Gothic, sans-serif" FontWeight="Medium">
     <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・中央のページ・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
-    <!-- ページ中心UI（ライトテーマ）：7ページ＋地図を分割に置く。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
+    <!-- ページ中心UI（ライトテーマ）：背景（地図か生産）に 6 ページが浮かぶ窓で重なる。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
          外交＝行にホバーでアクションメニュー・クリックでカメラ移動。侵略/統一戦争＝確認モーダル（侵略は膨張度消費）。実国家間の開戦＝緊張の創発のみ。
-         スペース=停止/再開・1〜3=速度・Tab=生産と地図の全面の切替。 -->
+         スペース=停止/再開・1〜3=速度・Tab=背景の地図と生産の切替・Q〜S=窓の開閉。 -->
 
     <Grid RowDefinitions="Auto,*">
 
@@ -109,9 +109,9 @@
         </Border>
 
         <Grid Grid.Row="1">
-        <!-- ★(501) 段2：本体＝左の列（問題の一覧・年表）｜中央（いま出している 1 つ）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
+        <!-- ★(501) 段2：本体＝左の列（問題の一覧・年表）｜中央（背景＋浮かぶ窓）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
              旧は中央が地図・右にタブのドック・年表が地図の左下に浮いていた。地図は中央に出せる 1 つのページ（Views/MapPane）。
-             中央の箱は Views/PageHost（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
+             背景の箱は Views/PageHost・窓の層は Views/WindowLayer（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
         <Grid ColumnDefinitions="Auto,*" RowDefinitions="*">
             <!-- 左の列（畳める）。畳むと細い取っ手だけが残り、押すと開く。 -->
             <StackPanel Grid.Column="0" Orientation="Horizontal">
@@ -170,8 +170,10 @@
                 <Button Classes="edge" IsVisible="{Binding LeftClosed}" Content="▶" Command="{Binding ToggleLeftColumnCommand}" VerticalAlignment="Top" Margin="2,6,0,0"/>
             </StackPanel>
 
-            <!-- 中央＝いま出している 1 つ（7 ページか地図）。分割とピン留めは廃止（2026-11-04） -->
+            <!-- 中央＝背景（地図か生産・Tab で切り替え）＋その上に浮かぶ窓（それ以外のページ）。分割とピン留めは廃止（2026-11-04） -->
             <v:PageHost x:Name="Center" Grid.Column="1"/>
+            <!-- 浮かぶ窓の層（作者の指示 2026-11-11）：背景の上に重ねる。窓の無い所の押下は下の背景へ通る -->
+            <v:WindowLayer x:Name="Windows" Grid.Column="1"/>
         </Grid>
 
         <!-- モーダル層（レビュー2026-07-19）：外側Gridの兄弟として配置＝ZIndexが生産タブ(8)・出来事パネル(8)と正しく比較される

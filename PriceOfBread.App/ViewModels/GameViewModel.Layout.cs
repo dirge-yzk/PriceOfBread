@@ -87,9 +87,9 @@ public partial class GameViewModel
 
     partial void OnPlayerAtWarChanged(bool value) => SyncPageButtons();
 
-    /// <summary>ヘッダーの押し釦＝キーと同じ（出ていなければ出す・もう出ていれば地図へ戻る）。</summary>
+    /// <summary>ヘッダーの押し釦＝キーと同じ（窓は開閉・生産は背景の地図と切り替え）。</summary>
     [RelayCommand]
-    private void OpenSlot(Slot slot) => Layout.Toggle(slot);
+    private void OpenSlot(Slot slot) { if (slot == Slot.Production) Layout.ToggleProductionMap(); else Layout.Toggle(slot); }
 
     /// <summary>Tab（作者の指示 2026-11-04）：生産と地図（背景）を切り替える。</summary>
     public void ToggleProductionMap() => Layout.ToggleProductionMap();

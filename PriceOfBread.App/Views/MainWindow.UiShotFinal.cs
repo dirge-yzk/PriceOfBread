@@ -21,9 +21,9 @@ public partial class MainWindow
     private int _gateOuter, _gateOuterFlowing, _gateTables, _gateTablesBad;
 
     /// <summary>載っているページの全ての表について、見出しの列の左端と値の列の左端が揃っているかを数える（ずれた表は名前を BootLog に残す）。</summary>
-    private void TallyAlignment(PageHost host, string tag)
+    private void TallyAlignment(GameView gv, string tag)
     {
-        foreach (var (_, _, page) in host.Mounted())
+        foreach (var (_, _, page, _) in UiShotWindows.MountedAll(gv))
             foreach (var tv in page.GetVisualDescendants().OfType<TableView>())
             {
                 if (!tv.IsEffectivelyVisible || !(tv.Bounds.Width > 0)) continue;
@@ -58,8 +58,6 @@ public partial class MainWindow
         BootLog.Write($"uishot: 総括 外側の流れ {_gateOuter}回の判定中 流れている{_gateOuterFlowing}回・表の左端 {_gateTables}表の判定中 ずれた{_gateTablesBad}表・"
                     + $"UIの例外 この走り{BootLog.UiExceptions}件・crash.log の行 前{crashBefore}→後{crashAfter}（他のプロセスの分も含む）");
     }
-
-    private PageHost? Host(GameView gv) => gv.FindControl<PageHost>("Center");
 
     /// <summary>問題の一覧（上位・全部）と、押して飛ぶ確かめ。</summary>
     private async Task ShootFinal(string dir, GameViewModel gvm, GameView gameView, Func<int> no)
@@ -108,7 +106,7 @@ public partial class MainWindow
     {
         var lay = gvm.Layout;
         bool shown = lay.IsShown(slot);
-        var page = shown ? Host(gameView)?.Page : null;
+        var page = shown ? UiShotWindows.PageOf(gameView, slot) : null;
         string place = shown ? "中央に開いた" : "開いていない";
         string landed = "";
         if (page is not null && tableKey.Length > 0)

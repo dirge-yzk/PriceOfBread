@@ -63,10 +63,11 @@ public partial class GameView : UserControl
         if (DataContext is ViewModels.GameViewModel vm)
         {
             Center.Attach(vm.Layout, PartOf);
+            Windows.Attach(vm.Layout, PartOf);
             _layoutVm = vm; vm.Layout.Changed += SyncMapHost;   // 中央の箱（PageHost）の購読より後に走る＝付け替えが済んでから、地図の置き場を決める
             SyncMapHost();
         }
-        else Center.Detach();
+        else { Center.Detach(); Windows.Detach(); }
     }
 
     /// <summary>地図の置き場を決める。地図が単独の枠にあればそこ・無ければ外交と戦争のページの欄（ページが作られていれば。見えていなくても欄が持つ）。
@@ -182,11 +183,11 @@ public partial class GameView : UserControl
             if (_keyTop is Window w) w.WindowState = w.WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
             e.Handled = true;
         }
-        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・市場が Q・地図のキーは無い」）：
+        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・市場が Q・地図のキーは無い」・2026-11-11「窓の開閉」）：
         // 割り当ては本体の PageKeys が持つ（Q 市場・清算・貿易・W 財政と貨幣・E 人口・R 政治と法・A 外交と戦争・S 発見・DFZXCV 空き）。
-        // 出ていなければ出す・もう出ていれば地図へ戻る。空きのキーは何もしない。Tab（生産と地図の切り替え）は上で処理する。
+        // 浮かぶ窓の開閉の切り替え（開いていれば閉じ・閉じていれば開いて前へ）。空きのキーは何もしない。Tab（背景の生産と地図の切り替え）は上で処理する。
         else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotCommand.Execute(slot); e.Handled = true; }
-        else if (isPriorityKey) { vm.Layout.LeaveToMap(); e.Handled = true; }   // 空きのキー＝何も開かないが、開いているページからは地図へ戻る
+        else if (isPriorityKey) e.Handled = true;   // 空きのキー＝何も開かない（押下だけ握る）
         // ESC＝一元処理：開いている物（メニュー→モーダル）を手前から閉じ、何も無ければメニューを開く（ページは常に枠にある＝閉じる物ではない）
         else if (e.Key == Key.Escape) { vm.HandleEscape(); e.Handled = true; }
         // F5＝クイックセーブ／F9＝クイックロード

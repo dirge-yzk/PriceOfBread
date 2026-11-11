@@ -156,33 +156,31 @@ public partial class MainWindow : Window
     /// ②欄の中の流れ（ScrollViewer）の数と、そのうち実際に流れている（中身が枠より長い）数。縦にはみ出したものは名前を出して「流れている」とする。横に切れるものは別に名前を出す（旧のタブの固定幅の列＝段3 で直す物）。外側＝枠・左右の列・窓のどれにも外側の流れが無いこと。</summary>
     private void LogOuterFlow(GameView gv, string tag)
     {
-        var host = gv.FindControl<PageHost>("Center");
-        if (host is null) { BootLog.Write($"uishot: 外側の流れ[{tag}] 中央の箱が見つからない"); return; }
         var parts = new System.Collections.Generic.List<string>();
         bool ok = true;
-        foreach (var (pane, slot, page) in host.Mounted())
+        foreach (var (pane, slot, page, frame) in UiShotWindows.MountedAll(gv))
         {
-            double hh = host.Bounds.Height, ww = host.Bounds.Width;
+            double hh = frame.Bounds.Height, ww = frame.Bounds.Width;
             var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
             foreach (var c in page.GetVisualDescendants().OfType<Control>())
             {
                 if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳まれた欄の中身（親が隠れている）は対象外・畳んだ欄の中身は測り直されない＝前に配った大きさが残る
                 if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).Any(a => a is ScrollViewer or MapPane)) continue;   // 欄の中の流れの中身と、地図の中の絵（箱で切られる）は対象外
-                var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), host);
+                var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), frame);
                 if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
                 else if (br is { } q2 && q2.X > ww + 1 && wide.Count < 2) wide.Add($"{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q2.X - ww:F0})");
             }
             var scrolls = page.GetVisualDescendants().OfType<ScrollViewer>().ToList();
             int flowing = scrolls.Count(v => v.Extent.Height > v.Viewport.Height + 1);
             if (over.Count > 0) ok = false;
-            parts.Add($"{SlotInfo.Name(slot)} 中央{ww:F0}×{hh:F0} 欄の中で流れる{flowing}/{scrolls.Count}" + (over.Count > 0 ? " 縦にはみ出し " + string.Join(" ", over) : "") + (wide.Count > 0 ? " 横にはみ出し（切れる）" + string.Join(" ", wide) : ""));
+            parts.Add($"{SlotInfo.Name(slot)}{(pane == 0 ? "（背景）" : "（窓）")} {ww:F0}×{hh:F0} 欄の中で流れる{flowing}/{scrolls.Count}" + (over.Count > 0 ? " 縦にはみ出し " + string.Join(" ", over) : "") + (wide.Count > 0 ? " 横にはみ出し（切れる）" + string.Join(" ", wide) : ""));
         }
         // 窓全体：外側の ScrollViewer が無い（枠・列・本体の直下に ScrollViewer が居ない）＝中身の高さが窓を超えない
         double winH = Bounds.Height;
         double gvH = gv.DesiredSize.Height;
         bool outerFlowing = !(ok && gvH <= winH + 1);
         _gateOuter++; if (outerFlowing) _gateOuterFlowing++;
-        TallyAlignment(host, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
+        TallyAlignment(gv, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
         BootLog.Write($"uishot: 外側の流れ[{tag}] {(!outerFlowing ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
     }
 
@@ -366,7 +364,7 @@ public partial class MainWindow : Window
             int k = 4;
             foreach (var slot in SlotInfo.All.Where(x => x != Slot.Map))
             {
-                lay.Open(slot);
+                UiShotWindows.CloseAll(lay); UiShotWindows.OpenFull(gameView, lay, slot);
                 await Task.Delay(900);
                 Capture(dir, $"{k:D2}_ページ_{SlotInfo.Name(slot)}.png");
                 LogOuterFlow(gameView, SlotInfo.Name(slot));
@@ -465,6 +463,7 @@ public partial class MainWindow : Window
             // 段 6（2026-10-23）：生産と地図の Tab 切り替え・年表の 3 つの絞り・外交の地図の欄の首都・流した表（Views/MainWindow.UiShotS6.cs）
             try { await ShootS6(dir, gvm, gameView, () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 段6 失敗 {ex}"); }
+            await ShootWindows(dir, gvm, gameView, () => k++);   // 浮かぶ窓（2026-11-11・Views/MainWindow.UiShotWindows.cs）
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
             try
             {

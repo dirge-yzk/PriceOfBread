@@ -29,7 +29,7 @@ internal static class UiShotPageP1
         capture($"{nextNo():D2}_生産.png");
         logOuter("生産");
         Report(window, "生産");
-        lay.Open(Slot.Market);
+        if (UiShotWindows.GameViewOf(window) is { } gvw) UiShotWindows.OpenFull(gvw, lay, Slot.Market); else lay.Open(Slot.Market);
         await Task.Delay(900);
         capture($"{nextNo():D2}_市場.png");
         logOuter("市場");

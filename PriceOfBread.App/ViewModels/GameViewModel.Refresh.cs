@@ -231,7 +231,7 @@ public partial class GameViewModel
             NoMediation = MediationRows.Count == 0;
         }
         WarTabVisible = true;   // 戦争タブは常時表示（国内勢力を統合＝戦争がなくても勢力の閲覧/鎮圧に使う・2026-07-20）
-        if (newEnemy && Layout.Current != Slot.Production) Layout.Open(Slot.DiplomacyWar);   // 開戦＝外交と戦争のページを選んでいる枠へ自動で開く（生産を見ている枠は邪魔しない）
+        if (newEnemy && !Layout.IsShown(Slot.DiplomacyWar)) Layout.Open(Slot.DiplomacyWar);   // 開戦＝外交と戦争のページを選んでいる枠へ自動で開く（生産を見ている枠は邪魔しない）
 
         // 外交ログ（開戦・講和・同盟・植民地化・独立…）を事件ログへ（新規分のみ）。
         // 日付は yyyy/mm/dd（事件の発生日）。発生地＝本文に最初に現れる国の首都＝遠い事件ほど遅れて届く（QueueNews と同じ距離ラグ）。

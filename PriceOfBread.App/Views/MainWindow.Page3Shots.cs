@@ -24,7 +24,7 @@ public partial class MainWindow
         {
             foreach (var slot in new[] { Slot.PoliticsLaw, Slot.DiplomacyWar })
             {
-                lay.Reset(); lay.Open(slot);
+                lay.Reset(); UiShotWindows.OpenFull(gameView, lay, slot);
                 await Task.Delay(1100);
                 string tag = SlotInfo.Name(slot);
                 Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}.png");
@@ -34,19 +34,19 @@ public partial class MainWindow
 
             // ---- 仕組みの確かめ ----
             // 段の押し釦：法の表の段を 1 つ押すと目標が置かれる（置く先は AI・議会と同じ口）。押した後の表が読み直されて目標の印が付く。確かめたら元の目標に戻す。
-            lay.Reset(); lay.Open(Slot.PoliticsLaw);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
             await Task.Delay(700);
             CheckLawSelect(gvm);
 
             // 動詞：国の一覧の侵略は押すと確かめの窓が開く（押しただけでは侵略は起きない）。窓は取り消す。
-            lay.Reset(); lay.Open(Slot.DiplomacyWar);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar);
             await Task.Delay(700);
             CheckNationVerb(gvm);
 
             // 地図の往復：欄（外交と戦争）→ 中央 → 欄。同じ部品が 2 か所の親に付く瞬間が無いこと（例外が出ないこと）と、各時点で欄が空かを書く。
-            lay.Reset(); lay.Open(Slot.DiplomacyWar);
+            lay.Reset(); lay.Open(Slot.Production); UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar);   // 背景が生産の間は地図は外交と戦争の窓の欄に載る
             await Task.Delay(900);
-            var dw = host().Mounted().Select(m => m.Page).OfType<DiplomacyWarPage>().FirstOrDefault();
+            var dw = UiShotWindows.PageOf(gameView, Slot.DiplomacyWar) as DiplomacyWarPage;
             // 直前までのカメラは全景（撮影順の産物）＝自国の名の国の中心へ振る。行を押すと地図が動く経路（CenterNationCommand）の確かめも兼ねる
             gvm.CenterNationCommand.Execute(gvm.PlayerName.Split('　')[0]);
             await Task.Delay(600);
@@ -54,14 +54,13 @@ public partial class MainWindow
             Capture(dir, "p3_外交と戦争_地図の欄.png");
             lay.Open(Slot.Map);
             await Task.Delay(900);
-            BootLog.Write($"uishot: 地図の往復 2/4 単独の枠へ 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・親={gameView.MapView.Parent?.GetType().Name}");
+            BootLog.Write($"uishot: 地図の往復 2/4 背景の地図へ 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・親={gameView.MapView.Parent?.GetType().Name}");
             Capture(dir, "p3_外交と戦争_地図は別の枠.png");
             lay.Open(Slot.Production);
             await Task.Delay(900);
             BootLog.Write($"uishot: 地図の往復 3/4 欄へ戻った 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・親={gameView.MapView.Parent?.GetType().Name}");
-            lay.Open(Slot.Map); await Task.Delay(500); lay.Open(Slot.Discovery); await Task.Delay(500);
+            lay.Open(Slot.Map); await Task.Delay(500); lay.Close(Slot.DiplomacyWar); lay.Open(Slot.Discovery); await Task.Delay(500);
             BootLog.Write($"uishot: 地図の往復 4/4 もう一度 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}");
-            PageHost host() => gameView.FindControl<PageHost>("Center")!;
         }
         catch (Exception ex) { BootLog.Write($"uishot: 段3の撮影 失敗 {ex}"); }
         finally { lay.Reset(); }
@@ -70,9 +69,7 @@ public partial class MainWindow
     /// <summary>ページの欄の鍵・畳んだ欄・表の列の揃いを BootLog に書く。</summary>
     private static void LogPage3(GameView gameView, Slot slot, string tag)
     {
-        var host = gameView.FindControl<PageHost>("Center");
-        if (host is null) return;
-        foreach (var (pane, s, page) in host.Mounted())
+        foreach (var (pane, s, page, _) in UiShotWindows.MountedAll(gameView))
         {
             if (s != slot) continue;
             var grid = page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault();

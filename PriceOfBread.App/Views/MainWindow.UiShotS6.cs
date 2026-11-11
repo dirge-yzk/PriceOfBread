@@ -22,7 +22,7 @@ public partial class MainWindow
             // ---- Tab：地図（背景）⇄ 生産。Esc・同じページのキーで地図へ戻る ----
             lay.Reset();
             await Task.Delay(900);
-            string Now() => $"中央 {lay.Current}・左{(lay.LeftOpen ? "開" : "閉")}";
+            string Now() => $"背景 {lay.Background}・窓 [{string.Join(",", lay.OpenWindows)}]・左{(lay.LeftOpen ? "開" : "閉")}";
             Capture(dir, $"{no():D2}_S6_起動_地図.png");
             BootLog.Write($"uishot: 起動 {Now()}（地図から始まる）");
             gvm.ToggleProductionMap();   // Tab
@@ -45,14 +45,14 @@ public partial class MainWindow
             // Esc で地図へ戻る（メニューは開かない）・もう一度 Esc でメニュー・別のキー（市場）で開いて同じキーで戻る
             gvm.ToggleProductionMap(); await Task.Delay(700);
             gvm.HandleEscape(); await Task.Delay(500);
-            BootLog.Write($"uishot: 生産[Esc] {Now()}・メニュー {(gvm.MenuOpen ? "開いた" : "開かない")}");
+            BootLog.Write($"uishot: 生産[Esc＝地図へ] {Now()}・メニュー {(gvm.MenuOpen ? "開いた" : "開かない")}");
             gvm.HandleEscape(); await Task.Delay(300);
             BootLog.Write($"uishot: 地図[Esc] {Now()}・メニュー {(gvm.MenuOpen ? "開いた" : "開かない")}");
             if (gvm.MenuOpen) gvm.MenuOpen = false;
             gvm.OpenSlotCommand.Execute(Slot.Market); await Task.Delay(700);
-            BootLog.Write($"uishot: 市場[Q] {Now()}");
+            BootLog.Write($"uishot: 市場[Q＝窓が開く] {Now()}");
             gvm.OpenSlotCommand.Execute(Slot.Market); await Task.Delay(500);
-            BootLog.Write($"uishot: 市場[もう一度Q] {Now()}（地図へ戻る）");
+            BootLog.Write($"uishot: 市場[もう一度Q＝窓が閉じる] {Now()}");
 
             // ---- 年表の 3 つの絞り（左の列）----
             lay.Reset();
@@ -69,7 +69,7 @@ public partial class MainWindow
             gvm.SetNewsFilterCommand.Execute("world");
 
             // ---- 外交と戦争の地図の欄：開くたびに自国の首都を映す ----
-            lay.Reset(); lay.Open(Slot.DiplomacyWar);
+            lay.Reset(); lay.Open(Slot.Production); UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar);   // 背景が生産の間、地図は外交と戦争の窓の欄に載る
             await Task.Delay(1800);
             BootLog.Write("uishot: 外交の地図の欄[開いた] " + gameView.MapView.BoxReport());
             Capture(dir, $"{no():D2}_S6_外交_地図の欄.png");
@@ -79,15 +79,15 @@ public partial class MainWindow
             gvm.CenterNationCommand.Execute("日本");   // 首都から離して
             await Task.Delay(500);
             BootLog.Write("uishot: 外交の地図の欄[日本へ動かした] " + gameView.MapView.BoxReport());
-            lay.Open(Slot.Market); await Task.Delay(700);
-            lay.Open(Slot.DiplomacyWar); await Task.Delay(1800);
+            lay.Close(Slot.DiplomacyWar); await Task.Delay(700);
+            UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar); await Task.Delay(1800);
             BootLog.Write("uishot: 外交の地図の欄[開き直した] " + gameView.MapView.BoxReport());
             Capture(dir, $"{no():D2}_S6_外交_地図の欄_開き直し.png");
 
             // ---- 列の左端の判定が働くことの確かめ：段の押し釦の入れ物を中央寄せに戻すと、判定が左端のずれを出す（直した判定は積み上げでなく中身の位置を測る）----
-            lay.Reset(); lay.Open(Slot.PoliticsLaw);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
             await Task.Delay(1200);
-            var lawPage = Host(gameView)?.Page;
+            var lawPage = UiShotWindows.PageOf(gameView, Slot.PoliticsLaw);
             var lawTv = lawPage?.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == "politics.laws");
             var stagePanel = lawTv?.GetVisualDescendants().OfType<WrapPanel>().FirstOrDefault();
             if (lawTv is not null && stagePanel is not null)
@@ -104,9 +104,9 @@ public partial class MainWindow
             else BootLog.Write("uishot: 左端の判定の感度 法の表または段の入れ物が見つからない");
 
             // ---- 内側で流れる表を流した図（行が見出しに重ならない）----
-            lay.Reset(); lay.Open(Slot.Market);   // 財の値段の表の行が欄の中で流れる
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.Market);   // 財の値段の表の行が欄の中で流れる
             await Task.Delay(1200);
-            var page = Host(gameView)?.Page;
+            var page = UiShotWindows.PageOf(gameView, Slot.Market);
             var tv = page?.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == "market.prices");
             var sv = tv?.GetVisualDescendants().OfType<ScrollViewer>().OrderByDescending(v => v.Extent.Height).FirstOrDefault();   // 絞り込みの文字の欄の中の流れ（小さい）でなく行の流れ
             if (sv is not null)
@@ -126,7 +126,7 @@ public partial class MainWindow
     /// <summary>生産の盤の幅と並び（旧の生産タブ＝盤の視野 約 1380・1 行の幅予算 1330・1 行 6 枚と並べて見る）。</summary>
     private void ReportProductionBoard(GameView gameView, GameViewModel gvm, string tag)
     {
-        var page = Host(gameView)?.Mounted().FirstOrDefault(m => m.Slot == Slot.Production).Page;
+        var page = UiShotWindows.PageOf(gameView, Slot.Production);
         var ps = page?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "ProdScroll");
         if (ps is null) { BootLog.Write($"uishot: 生産の盤[{tag}] 見つからない"); return; }
         var rows = gvm.ProdNodes.GroupBy(n => Math.Round(n.Y)).OrderBy(g => g.Key).Select(g => g.Count()).ToList();

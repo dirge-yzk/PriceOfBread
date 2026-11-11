@@ -19,7 +19,7 @@ public partial class MainWindow
     {
         foreach (var slot in new[] { Slot.FiscalMoney, Slot.Population, Slot.Discovery })
         {
-            lay.Reset(); lay.Open(slot);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, slot);
             await Task.Delay(1300);
             string tag = SlotInfo.Name(slot);
             Capture(dir, $"P2_{SlotInfo.Name(slot)}.png");
@@ -28,7 +28,7 @@ public partial class MainWindow
         }
 
         // 段の押し釦の書き込み：行政費を最上段へ置く→表の目標の段が動く→元へ戻す（押した直後に停止中でも表が読み直されること）
-        lay.Reset(); lay.Open(Slot.FiscalMoney);
+        lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.FiscalMoney);
         await Task.Delay(900);
         try
         {
@@ -57,9 +57,7 @@ public partial class MainWindow
     /// <summary>ページの表ごとに、見出しの列と値の列の左端が揃っているか・行の数・畳まれた欄を BootLog に書く（設計 §7-3）。</summary>
     private void LogTables(GameView gv, Slot slot, string tag)
     {
-        var host = gv.FindControl<PageHost>("Center");
-        if (host is null) return;
-        foreach (var (_, s, page) in host.Mounted())
+        foreach (var (_, s, page, _) in UiShotWindows.MountedAll(gv))
         {
             if (s != slot) continue;
             var parts = new System.Collections.Generic.List<string>();
