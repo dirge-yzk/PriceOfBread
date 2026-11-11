@@ -2084,10 +2084,11 @@ public static class CostLedger
         ClearingSkipUnitMicros,   // ★(1029) 清算：着値の下界で飛ばした売り手あたり（下の定数の注記）
         LaborPowerScanUnitMicros,   // ★(1045) 労働の重み：m の生産者の走査 1 件あたり（下の定数の注記）
     ];
-    /// <summary>★(1045) 労働の重みの m（EconomyStep.PowerShare）の生産者の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。
-    /// 動力のある工場だけが投入の実効量（EffectiveQty）まで進む＝多くの件は読み 3 つと比較だけ。1 件は読み・比較の数回＝ClearingSkipUnitMicros（0.02＝配列の引きを含む）の半分に置く。
-    /// 事前登録 measurements/m1045_*_prereg_cd.txt の [3]。</summary>
-    public const double LaborPowerScanUnitMicros = 0.01;   // 件数の見込み＝1 試合の生産者×月 約 1.2〜1.5 億（睡眠の生産者も走査する）→ 推定 約 1.2〜1.5 秒（計り台で取り直すのは e1 の後の申し送り）
+    /// <summary>★(1045) 労働の重みの m（EconomyStep.PowerShare）の生産者の走査の単価（マイクロ秒/件）＝計り台の実測（measurements/m1045_20261111_bench_powershare.txt・
+    /// 12 四半期ほど進めた 4 国盤面の全州〔308 州・生産者 53,983〕で PowerShare を呼び、四半期直後〔冷え〕4 回 50.7〜54.2 ナノ秒/件〔外れ値 142.9〕・同じ呼びの繰り返し〔熱〕5 組 46.6〜64.8 ナノ秒/件）。
+    /// 1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。州の生産者の走査は生産者の物（ポインタ）をなぞる＝メモリの待ちが主。
+    /// 件数は 1 種 40 四半期で 9,723,312（生産者×月の 1.37 倍＝眠った生産者も走査する）＝全長で約 1.6 億→推定 約 8.9 秒。事前登録 measurements/m1045_20261111_prereg_cd.txt の [3]・追記。</summary>
+    public const double LaborPowerScanUnitMicros = 0.055;
     /// <summary>★(1029) 着値の下界で飛ばした売り手の単価（マイクロ秒/件）＝**上限の見積り**：1 件＝下界の表の引き（国の表の添字）＋下界の式の評価＋比較＋連結リストを進める。単価の根拠は measurements/m1029_*（小さな計り台）。</summary>
     public const double ClearingSkipUnitMicros = 0.02;
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値

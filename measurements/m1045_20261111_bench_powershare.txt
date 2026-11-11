@@ -1,0 +1,3 @@
+regions 308 producers 53983 sink 25100.33438908965
+cold ns/producer: 52.76 50.74 142.92 54.22
+hot ns/producer: 61.48 61.17 64.79 62.97 46.62
