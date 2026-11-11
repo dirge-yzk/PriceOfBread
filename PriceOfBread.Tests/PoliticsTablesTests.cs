@@ -86,12 +86,18 @@ public class PoliticsTablesTests
     }
 
     [Fact]
-    public void 制度の表は特許制度_株式会社_鉄道の3行で_状態は発見の2値を読むだけ()
+    public void 制度は政府の行の状態の列が持ち_発見の2値と同じ()
     {
         var (sim, w) = Board();
-        var t = PoliticsTables.Institutions.Read(sim, w);
-        Assert.Equal(new[] { "特許制度", "株式会社", "鉄道" }, t.Rows.Select(r => r.Key).ToArray());
-        Assert.Equal(new[] { w.PatentLaw, w.JointStock, w.Railways }.Select(b => b ? "施行" : "未施行").ToArray(), t.Rows.Select(r => (string)r.Cells[1]!).ToArray());
+        var t = DiscoveryTables.SocialDiscoveries.Read(sim, w);
+        int state = t.Columns.ToList().FindIndex(c => c.Key == "state");
+        Assert.True(state >= 0);
+        var patent = t.Rows.First(r => r.Name == "特許");
+        var joint = t.Rows.First(r => r.Name == "株式会社");
+        Assert.Equal(w.PatentLaw ? "施行" : "未施行", (string)patent.Cells[state]!);
+        Assert.Equal(w.JointStock ? "施行" : "未施行", (string)joint.Cells[state]!);
+        Assert.DoesNotContain(t.Rows, r => r.Name == "特許制度");   // 名の衝突を作らない
+        Assert.DoesNotContain(DiscoveryTables.Discoveries.Read(sim, w).Rows, r => r.Name == "報せの速さ");
     }
 
     [Fact]

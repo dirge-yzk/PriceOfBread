@@ -8,10 +8,10 @@ public partial class DiscoveryPage : UserControl
 {
     public static PageTable Plan { get; } = new(
     [
-        new SectionSpec("discovery", "技術", 1, 10), new SectionSpec("social", "政府と思想", 2, 8), new SectionSpec("institution", "制度", 3, 3), new SectionSpec("sites", "産地", 4, 3),
+        new SectionSpec("discovery", "技術", 1, 10), new SectionSpec("social", "政府と思想", 2, 8), new SectionSpec("sites", "産地", 3, 3),
     ],
-    // 2 段組み（2026-11-11 作者指示「空白が多すぎる」）：技術＝左・政府と思想・制度・産地＝右
-    [["discovery"], ["social", "institution", "sites"]],
+    // 2 段組み（2026-11-11 作者指示「空白が多すぎる」）：技術＝左・政府と思想・産地＝右（制度は政府の行の状態の列へ吸収・2026-11-12）
+    [["discovery"], ["social", "sites"]],
     ColumnMinWidth: 520);
 
     public DiscoveryPage()

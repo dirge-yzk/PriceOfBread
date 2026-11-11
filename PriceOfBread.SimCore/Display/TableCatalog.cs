@@ -10,7 +10,7 @@ public static class TableCatalog
         ProductionTables.Goods, ProductionTables.Equipment, ProductionTables.Labor,
         FiscalTables.Finance, FiscalTables.Debt,
         PopTables.ClassesPlain, PopTables.Regions, PopTables.Religion, PopTables.Culture,
-        PoliticsTables.Laws, PoliticsTables.Institutions,
+        PoliticsTables.Laws,
         DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites,
     ];
 

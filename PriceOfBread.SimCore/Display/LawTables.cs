@@ -23,9 +23,6 @@ public static class LawView
 /// <summary>法の表の 1 行（法 1 本と、読み書きする世界）。群は画面の見出し。</summary>
 public sealed record LawLine(LawDef Def, World W, string Group);
 
-/// <summary>制度の表の 1 行（特許制度・株式会社・鉄道）。施行は発見の 2 値を読むだけ（自動で効く＝押す物ではない）。</summary>
-public sealed record InstitutionLine(string Name, bool Enacted);
-
 /// <summary>政治と法のページの表（設計 §3-3・§6-2）。法の表は <see cref="LawCatalog"/> を回して並べる＝法を足すとき画面は直さない。</summary>
 public static class PoliticsTables
 {
@@ -55,13 +52,4 @@ public static class PoliticsTables
             new StageColumn<LawLine>("stage", "段階", StageOf),
         ],
         l => l.Group);
-
-    /// <summary>制度の表（施行か未施行か）。</summary>
-    public static Table<InstitutionLine> Institutions { get; } = new("politics.institutions", "制度", Page.PoliticsLaw,
-        (sim, w) => new InstitutionLine[] { new("特許制度", w.PatentLaw), new("株式会社", w.JointStock), new("鉄道", w.Railways) },
-        l => l.Name, l => l.Name,
-        [
-            Col.Text<InstitutionLine>("name", "名前", l => l.Name),
-            Col.Text<InstitutionLine>("state", "状態", l => l.Enacted ? "施行" : "未施行"),
-        ]);
 }

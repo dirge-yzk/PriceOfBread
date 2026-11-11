@@ -13,9 +13,6 @@
         <ctl:Section Key="social" Title="政府と思想" Scrolls="False">
             <ctl:TableView Snapshot="{Binding SocialDiscoveryTable}" InnerScroll="True"/>
         </ctl:Section>
-        <ctl:Section Key="institution" Title="制度" Scrolls="False">
-            <ctl:TableView Snapshot="{Binding InstitutionTable}" InnerScroll="True"/>
-        </ctl:Section>
         <ctl:Section Key="sites" Title="産地" Scrolls="False">
             <ctl:TableView Snapshot="{Binding SiteTable}" InnerScroll="True" ScrollX="True"/>
         </ctl:Section>

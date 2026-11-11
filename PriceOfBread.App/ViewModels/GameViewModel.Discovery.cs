@@ -20,6 +20,5 @@ public partial class GameViewModel
         DiscoveryTable = TableSnapshot.From(DiscoveryTables.Discoveries.Read(_sim, _player));
         SocialDiscoveryTable = TableSnapshot.From(DiscoveryTables.SocialDiscoveries.Read(_sim, _player));
         SiteTable = TableSnapshot.From(DiscoveryTables.Sites.Read(_sim, _player));
-        InstitutionTable = TableSnapshot.From(PoliticsTables.Institutions.Read(_sim, _player));   // 制度は発見のページ（2026-11-11 作者指示）
     }
 }

@@ -45,7 +45,6 @@ public partial class GameViewModel
 
     // === 政治と法のページの表（共通の表）。行は本体の目録（PoliticsTables）が組み、鍵で値だけ流す（表を作り直さない）。
     [ObservableProperty] private TableSnapshot _lawTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _institutionTable = TableSnapshot.Empty;
 
     /// <summary>政治と法のページが枠に載った瞬間の更新（以後は見えている間の毎回の Refresh が追従する）。</summary>
     public void RefreshPoliticsLawPage() => RefreshLawTables();

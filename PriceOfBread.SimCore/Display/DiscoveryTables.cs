@@ -1,8 +1,8 @@
 namespace PriceOfBread.SimCore.Display;
 
 /// <summary>発見の表の 1 行（政府・思想・技術のどれか）。<see cref="Fraction"/>＝解禁済みは 1・まだの行は点数（技術力＋必要性＋伝わり）÷門。
-/// 3 項はまだの行だけ（解禁済みは NaN＝「—」）。<see cref="Era"/>＝年代の文字（無ければ空）。</summary>
-public sealed record DiscoveryLine(string Key, string Group, string Name, double Fraction, double Tech, double Need, double Transmit, string Era, double Decade);
+/// 3 項はまだの行だけ（解禁済みは NaN＝「—」）。<see cref="Era"/>＝年代の文字（無ければ空）。<see cref="State"/>＝制度の行（政府の群）の施行か未施行（発見の 2 値と同じ物・他の行は空）。</summary>
+public sealed record DiscoveryLine(string Key, string Group, string Name, double Fraction, double Tech, double Need, double Transmit, string Era, double Decade, string State = "");
 
 /// <summary>産地の発見の表の 1 行（大鉱床・植林）。2 項（技術力・必要性）。</summary>
 public sealed record SiteLine(string Key, string Region, string Name, double Fraction, double Tech, double Need, string Era, double Decade);
@@ -36,14 +36,8 @@ public static class DiscoveryTables
             double s = known ? 1.0 : Math.Clamp(tm.Score / Discovery.GateScore, 0, 1);
             if (!(s >= 0)) s = 0;
             string group = d.Field == DiscoveryField.Institution ? Groups[0] : d.Field == DiscoveryField.Idea ? Groups[1] : Groups[2];
-            var line = new DiscoveryLine("row." + row, group, d.Name, s, known ? double.NaN : tm.Tech, known ? double.NaN : tm.Need, known ? double.NaN : tm.Transmit, $"{d.Decade}年代", d.Decade);
+            var line = new DiscoveryLine("row." + row, group, d.Name, s, known ? double.NaN : tm.Tech, known ? double.NaN : tm.Need, known ? double.NaN : tm.Transmit, $"{d.Decade}年代", d.Decade, group == Groups[0] ? (known ? "施行" : "未施行") : "");
             (group == Groups[0] ? gov : group == Groups[1] ? ideo : tech).Add(line);
-        }
-        // 財に紐づかない世界のゲート：電信・鉄道・汽船＝報せの速さ（News の距離ラグが読む世界技術のランプ＝TransportRevolutionOnset/Span）
-        if (c.TransportRevolutionSpan > 0)
-        {
-            double tr = 0.0;   // ★(613) 段4（旗 EraOff は (843) で焼き込み）：前線の技術水準のランプを読まない
-            tech.Add(new DiscoveryLine("transport", Groups[2], "報せの速さ", tr, double.NaN, double.NaN, double.NaN, "", c.TransportRevolutionOnset));
         }
         gov.Sort(ByGate); ideo.Sort(ByGate); tech.Sort(ByGate);
         return gov.Concat(ideo).Concat(tech).ToList();
@@ -71,9 +65,9 @@ public static class DiscoveryTables
     public static Table<DiscoveryLine> Discoveries { get; } = new("discovery.rows", "技術", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group == Groups[2]).ToList(), l => l.Key, l => l.Name,
         DiscoveryColumns);
 
-    /// <summary>発見の表・政府と思想（2 段組みの右）。</summary>
+    /// <summary>発見の表・政府と思想（2 段組みの右）。政府の行（特許・株式会社）は制度の施行か未施行を「状態」の列に持つ。</summary>
     public static Table<DiscoveryLine> SocialDiscoveries { get; } = new("discovery.social", "政府と思想", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group != Groups[2]).ToList(), l => l.Key, l => l.Name,
-        DiscoveryColumns, l => l.Group);
+        [.. DiscoveryColumns, Col.Text<DiscoveryLine>("state", "状態", l => l.State)], l => l.Group);
 
     /// <summary>産地の発見の行（自国の稼働中の州にある大鉱床と植林）。見つかった産地は 100%・まだの産地は点数（技術力＋必要性）の割合。値はエンジンが判定に読む同じ関数（国の中で 1 度の採点）。</summary>
     public static IReadOnlyList<SiteLine> SiteLines(World w)
