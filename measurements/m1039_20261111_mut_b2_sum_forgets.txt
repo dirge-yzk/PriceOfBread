@@ -1,0 +1,35 @@
+変異 b2_sum_forgets: PriceOfBread.SimCore/PolicyPreferences.cs の 'if (b == 0 && p.ClassId == PopClass.Clergy) o.ClergyInc0 += inc;' を '' へ
+フィルタ: FullyQualifiedName~LordstatD1aTests.D1a_3|FullyQualifiedName~LordstatD1aTests.D1a_4
+終了コード: 1
+--- 出力（失敗・成功・エラーの行）---
+  失敗 PriceOfBread.Tests.LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致 [570 ms]
+   Assert.True() Failure
+Expected: True
+Actual:   False
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+--- 出力の全文 ---
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c98da\PriceOfBread.SimCore\EconomyStep.cs(1746,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c98da\PriceOfBread.SimCore\Instruments.cs(2556,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c98da\PriceOfBread.SimCore\InstrumentsSubst.cs(191,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c98da\PriceOfBread.SimCore\InstrumentsSubst.cs(207,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c98da\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c98da\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c98da_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c98da_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c98da_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c98da_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致 [570 ms]
+  エラー メッセージ:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  スタック トレース:
+     at PriceOfBread.Tests.LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致() in D:\PoB_work\wt_c98da\PriceOfBread.Tests\LordstatD1aTests.cs:line 87
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:04.15]     PriceOfBread.Tests.LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致 [FAIL]
