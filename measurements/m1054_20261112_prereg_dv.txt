@@ -1,0 +1,50 @@
+(1054) c100dv 事前登録（腕の前・実装の前のコミット）　2026-11-12　書いたモデル：Claude Sonnet 5.5
+種類：恒等の線（台本だけ・エンジン 0 行・.cs 0 行）。出発の木：56f176a72 に c99dv の 2 コミット（事前登録 965cd6ec1・prune 95205f8bd）を載せ直した物（adb0e4051・c0c4db1fc）。これは出発の木として残し、この事前登録をその次のコミットにする。
+c99dv の反証役 v の指摘（高 1・中 3・低 4）の直し。AI の案・作者の承認は無い（作者「全て推奨で」で推奨を採った）。
+
+【指示から外れる所（先頭）】
+  X1. 指示の門〈同じ木で check を回し直しても〈判定: 恒等〉のまま〉は、刈った後の ins では今の ident_check（cmp_ins）が成り立たない：基準にあって腕に無い表は missing → 不一致になる。
+      直し：ident_check.py に加算だけの 1 関数 pruned_ok を足す（cmp_ins の頭で呼ぶ・manifest＝作業フォルダの prune_manifest.tsv があるときだけ働く・無ければ今までと同じ）。
+      刈り済みの表は、manifest の〈生の sha1・大きさ〉が基準の同名の表と一致したときだけ〈バイト一致〉に数える。一致しなければ今までどおり未了・不一致。
+      これは〈判定の行を読む口だけ〉の持ち主の範囲を 1 関数ぶん超える（加算のみ・既定の経路は不変）。使わなければ門は成り立たない。
+  X2. 指示の突然変異〈判定の前に刈る〉は、刈った後の再 check が不一致になることでは赤にならない（再 check は pruned_ok で通る）。赤にする門は自己試験の G（判定が未了・無しのときに消えない）。
+  X3. G5：今の盤面では〈列が増えた表〉が無い（main 対 基線 keep_1053/base_ins は同じエンジン）。(1053) の 30/30 は pre_base.tsv＝keep_1044/base_ins の頭 50/15/101 列の sha1（keep_1053/base_ins の頭からは 0/30）。
+      そこで G5 を二つに分ける：G5a＝hash/ の sha1 だけから (1053) の 30/30 を manifest の形で再現（生を読まない・repro_hash_out.txt）。G5b＝新しい ident の manifest の先頭の列（--pre-spec の 30 表）が、別の読み手 prefix1044.py を INSRAW に回した値と 30/30 一致。
+  X4. manifest の置き場の名：measurements/ident_<日付>_<ラベル>_manifest.tsv（--save が無ければ日付なし）。
+
+[1] 恒等の線・予言 0
+  - SimCore・Runner・App・Display・Tests の .cs と Instruments.cs の出力は 1 行も変えない。浮動小数の順序が変わる箇所：なし（紙の台本の食い違い数＝該当なし・0）。
+  - 変えるのは scripts/instruments/ident/ident.sh・ident_check.py（pruned_ok の 1 関数）・scripts/instruments/tools/（prune.py・prune_selftest.py・prune_repro.py・pack.sh・unpack.sh）・measurements/m1054_*・D:/PoB_work/c100dv_work だけ。
+  - 既定（PRUNE 未設定＝0）の ident は今と同じ命令列・同じ出力。ident.sh の start が消す物に prune_manifest.tsv・prune_deleted.txt・check_out.txt を足す（古い manifest が次の回の判定に混ざらないように）。
+  - 予言：素の 5 種・計器つき 10 種の成績表は m1053（b5_20261112_m1053・b10_20261112_m1053_ins）と名乗り行の SOURCE-HASH を除いて全行一致・計器の表の差は 0。
+
+[2] 消す物と残す物（PRUNE=1 のときだけ・最後の判定が〈判定: 恒等〉のときだけ）
+  消す：ident の出力 out_ib_10/ins の表のうち、基準（ident.cfg の INSRAW）の同名の表と〈生のバイトの sha1〉が一致する表。行末はそろえない。
+  残す：生が食い違う表・基準に無い表・cfg の KNOWN の表と宣言の表（--added-tables ほか）・列が増えた表・リンクのファイル・重い 4 表（PRUNE_HEAVY=1 でないとき。名指し HEAVY_KEEP は常に残す）。
+  記録だけ（消す鍵にしない）：LF にそろえた全体の sha1・--pre-spec の表の先頭の列の sha1・基準の生の sha1。manifest の列：name・bytes・sha1_raw・sha1_full_LF・cols・sha1_prefix_LF・base_sha1_raw・action。
+  guard（消す・包む・解く）：/d/・D:/・D:\ の 3 つの形を同じ場所に直し、realpath で実体を解いて元と違えば拒む（リンク・ジャンクション）。/d/PoB_work の外・keep_*・wt_*・base_ins・branch_backup・--allow に名指しされた作業フォルダ以外・末尾が ins でない場所（prune のみ）・基準の生と重なる場所を拒む。ident.sh は --allow に自分の作業フォルダの名だけを渡す。
+  読み手の grep（git grep 済み）：prune.py を呼ぶのは ident.sh の PRUNE 段と tools/pack.sh・unpack.sh だけ。ident_check.py を読む scripts は c10tg・c67id・c70gt・c71gt・c82it・c86sm・c87mt・c88sm の自己試験（関数の呼び出しで、既定の経路は不変）。SimCore・Runner・App・Display・Tests の .cs が ident.sh・ident_check.py・prune*.py を参照する件数：0。POB_COEF の名前・SaveGame の名前の表：触れない。
+  他の線との重なり：mx（Meritocracy.cs・Coefficients.cs・InstrumentsMerch.cs・MerchInstrumentTests.cs・scripts/instruments/c100mx）・ic（Diplomacy.cs・Coefficients.cs・InstrumentsImpose.cs・ImposeAndCrownSourceTests.cs・scripts/instruments/c100ic）・wo・pq・ci（コミットなし）。重なるファイル：0（c100dv は scripts/instruments/ident/・scripts/instruments/tools/・measurements/m1054_*・c100dv_work だけ）。
+  D:：作業は D:/PoB_work/c100dv_work・D:/PoB_work/ident_c100dv（この線の ident の作業）・D:/PoB_work/c100dv_art（隔離ビルド）だけ。keep_*・他の線の物に触れない。
+
+[3] 足す試験（scripts/instruments/tools/prune_selftest.py）と門の表（使い捨ての写しの表 D:/PoB_work/c100dv_work/selftest・期待値は試験のリテラルのバイト列から hashlib で独立に作る）
+  門：G1 刈った量が 0 でない（生が一致した表が消える）　G2 一致しない表・揺れの表・列が増えた表・足した表・行末だけ違う表が 1 つも消えない　G3 keep_・ジャンクション・wt_・他の線の作業フォルダ・ins/ の外が 3 つの書き方の全てで拒まれ、中身が無傷　G4 刈った後の ident_check.cmp_ins が刈った表を不問にし、manifest が無いか sha1 が壊れていれば不問にしない　G5a・G5b（X3）　G6 manifest の写し（--copy-to）が測定の置き場に出る。
+  突然変異（各々でどの門が赤か）：
+   M1 判定の前に刈る（VERDICT_GATE=False）　→ G（未了・無しで消える）が赤
+   M2 不一致でも刈る（ONLY_IDENT=False）　　 → G（不一致で消える）が赤
+   M3 LF にそろえた sha1 で消す（RAW_KEY=False）→ G2（行末だけ違う表が消える）が赤
+   M4 揺れの表を消す（KEEP_FLAKY=False）　　 → G2（揺れ・宣言の表が消える）が赤
+   M5 /d/ の形・リンクの拒みを外す（実体を調べる側を元の形に戻す）→ G3（ジャンクション経由が消す）が赤
+   M6 --copy-to を落とす（COPY_TO=False）　　 → G6 が赤
+  ソースを走査する番人（㉘）の点検：.cs を 0 行しか触らない。IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests の宣言の表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行には触れない（書き換える件数の予言＝0）。㉘ の束は走らせて緑を確かめる。
+
+[4] 実走（フルスイートの後・arms.sh free が 3 以上のとき・D: の空きが 21GB＋5GB 以上のとき）：この木で PRUNE=1 PRUNE_HEAVY=1 の ident を 1 本（基準 keep_1053/base_ins）。
+  予言：
+   P1 判定の文は PRUNE=0 と同じ〈判定: 恒等〉（同じ木で check を回し直しても〈判定: 恒等〉のまま）。
+   P2 残る生は KNOWN の burscan_s・clock_s の 20 本（10 種×2）だけ。消える本数＝基準の表の数−20＝約 1307 本（揺れが他にあれば残る＝その表の名と理由を書く）。刈った量は 0 でなく、残る量は約 数 MB〜数 GB の桁で、21GB から大きく減る。
+   P3 manifest が measurements/ident_<日付>_c100dv_manifest.tsv にある（行数＝出力の表の数）。
+   P4 G5b：manifest の先頭の列 30/30（lordstat_s・sellr_s・tradeskip_s の各 10 種）。
+   P5 素の 5 種・計器つき 10 種の成績表・計器の表は m1053 と名乗り行を除いて全行一致。
+   P6 テストの数は 2689＋FullLength 3 のまま。
+  門（実走・両側）：同じ木で check の回し直しが〈判定: 恒等〉のまま／刈った量が 0 でない／揺れ・宣言の表が 1 つも消えていない／keep_*・INSRAW・/d/ の形の呼び出しが拒まれる。
+[5]〈判定: 恒等〉なら採る（既定は切ったまま＝PRUNE=0。既定を変えるのと README の道具の行の直しは合流）。判定が恒等でなければ、PRUNE の段を外して報告に回す。
