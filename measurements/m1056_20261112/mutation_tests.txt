@@ -1,0 +1,17 @@
+(1056) c100ic 突然変異の試験（使い捨ての木 wt_mut・器のコミット 7d48c36d5・mutate.py の置き換え・ImposeOncePerCollapseTests と ImposeCrownFromLoserTests）
+== M1
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_崩壊の集合では最初の勝者だけが矯正し後の勝者は飛ばす [2 s]
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_割譲で集合の割譲の枠を使っても矯正の枠は別 [53 ms]
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M2
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_崩壊の集合では最初の勝者だけが矯正し後の勝者は飛ばす [2 s]
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_割譲で集合の割譲の枠を使っても矯正の枠は別 [137 ms]
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M3
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_崩壊の集合では最初の勝者だけが矯正し後の勝者は飛ばす [1 s]
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_割譲で集合の割譲の枠を使っても矯正の枠は別 [65 ms]
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M4
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_崩壊の集合では最初の勝者だけが矯正し後の勝者は飛ばす [1 s]
+失敗 PriceOfBread.Tests.ImposeOncePerCollapseTests.旗1_割譲で集合の割譲の枠を使っても矯正の枠は別 [220 ms]
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
