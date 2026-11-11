@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\benchwt\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj" />
+  </ItemGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>PobBench1049</AssemblyName>
+    <!-- Runner と同じ GC の設定（サーバー GC・DATAS 切り） -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
+  </PropertyGroup>
+</Project>

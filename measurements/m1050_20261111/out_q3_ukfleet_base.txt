@@ -1,0 +1,14 @@
+イギリス base （各年の最初の行・種の中央）
+年	fleetUnitsStock	fleetGaugeIndex	navalPowerIndex	navyUpkeepShare	capitalWarshipStock	portFleetGoodsStock	capitalFleetGoodsOutputPerMonth	otherFleetGoodsOutputPerMonth	navalBudgetCapitalPerMonth	navalBudgetOtherPerMonth	navyPaidPerMonth	fleetUnitsMovedOutHomeCum	fleetUnitsMovedOutColonialCum	fleetUnitsMovedOutCededCum	fleetUnitsReceivedCededCum	soldierK	gdpRealPerYear	atWarFlag
+1783	0	0	0	0.03	537	1.8e+03	1.5	46.5	0	0	0	0	0	0	0	29.5	nan	0
+1785	4.08e+03	0.296	0.324	0.0168	341	1.15e+03	0	0	0	0	0	0	0	0	0	86.3	7.77e+05	0
+1788	2.99e+03	0.217	0.261	0.02	283	962	0	0	0	0	0	0	0	0	0	94	7.72e+05	0
+1790	2.86e+03	0.208	0.247	0.0246	169	645	0	0.0221	13.2	52.4	40.1	0	0	0	0	100	1.02e+06	0.5
+1793	1.95e+03	0.141	0.176	0.0294	6.81	487	0	3.18	10.5	84.2	38.8	0	0	0	0	245	9.63e+05	1
+1796	1.38e+03	0.1	0.12	0.0206	2.24	411	0.106	3.53	9.45	13.5	13.2	0	0	0	0	1.25e+03	9.48e+05	1
+1800	918	0.0665	0.0834	0.0375	0.949	330	0.372	7.95	46	56.9	63.1	0	0	0	0	571	9.13e+05	1
+1805	1.25e+03	0.0908	0.119	0.0597	2.63	267	4.26	25.3	72.6	127	142	0	0	0	0	361	9.46e+05	0
+1810	1.42e+03	0.103	0.134	0.082	4.98	187	4.24	20.1	136	135	140	0	0	0	0	432	9.92e+05	1
+1820	1.73e+03	0.126	0.165	0.0755	4.43	109	7.22	19.8	72.9	94	169	0	0	0	0	474	1e+06	0
+1850	7.82e+03	0.57	0.783	0.116	33.3	146	20.3	15.6	237	262	259	0	0	0	0	337	1.01e+06	0
+1900	9.43e+03	1.22	1.59	0.0885	29.1	75.6	30.1	53.7	548	336	519	0	0	0	0	384	1.49e+06	1

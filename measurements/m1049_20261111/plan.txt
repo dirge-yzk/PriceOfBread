@@ -1,0 +1,22 @@
+(1049) c99e1 計算量の余りの真値（E1）— 作業の場所と読む物（2026-11-11 20:05）
+担当：Claude Opus 5.5。読む線・リポジトリのコードの変更 0・コミット 0・push 0。
+
+作業の場所（この回に作ったフォルダ）
+- D:/PoB_work/r1049_work/            作業フォルダ（合流が写すまで消さない）
+- D:/PoB_work/r1049_work/benchwt     使い捨ての木（git worktree --detach・bb76c653・コミットも push もしない・最後に外す）
+- D:/PoB_work/r1049_work/bench       計り台（Bench.csproj・Program.cs＝リポジトリの外・SimCore を参照・LbOffForTest は反射で立てる）
+- D:/PoB_work/r1049_work/art         隔離ビルド（--artifacts-path）
+- D:/PoB_work/r1049_work/e1.mark     計時の終わり（打ち切りを含む）に書く印＝他の線が待つ
+
+読む物（生の計器は読まない＝腕 0 本・計器つきの腕なし）
+- measurements/m1029_20261111_bench.txt（40 四半期の計り台）
+- 実装ログ (1044)（docs/202609/99_実装ログ_20260903.md の 56378 行〜）：m1027 231.0 秒・lw の軌道 +0.7・lc +約 5・名目の余り 13.8〜15.8
+- docs/202611/20261111/20261111_残りタスクの組み直しと方針.md §2-2 の 5・§2-3 の 3・§4-1 の 1
+- README ★(1035)（台帳の新しい行の扱い）
+- ソース：BilateralMarket.cs:119 LbOffForTest・:818〜822 lbOn/nEvalLB・MultiNationSim.cs:2007〜 CostLedger・:2146 BudgetLimitEstSeconds・:2162 EstimatedSeconds・EconomyStep.cs:1018 lwOn・Coefficients.cs:550 LaborWeightsByPower・:3636 POB_COEF
+
+計る物（全長 668 四半期・種 1・1 プロセス 1 構成・順に 1 本ずつ）
+- A＝既定／B＝C2 切（LbOffForTest＝true）／C＝POB_COEF="LaborWeightsByPower=0"
+- 周 0（暖機・捨てる）＋周 1・周 2 を ABC の順で交互
+- 各回：実時間・プロセスの CPU 時間・台帳の EstimatedSeconds・清算の 2 行の件数・軌道の札
+- 始めと終わりに他のプロセスの CPU を記録

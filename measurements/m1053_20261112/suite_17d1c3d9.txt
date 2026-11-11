@@ -1,0 +1,29 @@
+(1053) 合わせた木 17d1c3d9（旗 1・WriterRatchet の item 6 を取り直した後）のフルスイート・隔離ビルド（scripts/instruments/m1053/suite1053.sh）
+list nonfull 2689
+list full 3
+nonfull rc=0 1154s
+full rc=0 207s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2688、スキップ:     1、合計:  2689、期間: 19 m 11 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 25 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 213s
+保存 46.5MB（702ms）／読込 635ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m1053_work/suite_a/leakhunt.txt　マニフェスト=D:/PoB_work/m1053_work/suite_a/leakhunt.txt.manifest（SOURCE-HASH=b356f86038e7707e）
+SL-END 01:40:51
+SAVELEAKDONE
+--- 取り直しの前（bf2e6c57）の WriterRatchetTests だけ
+list nonfull 2689
+list full 3
+ratchet rc=1 31s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:29.07]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1678) [FAIL]
+失敗!   -失敗:     1、合格:    49、スキップ:     0、合計:    50、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+RATCHETDONE
+  エラー メッセージ:
+   計算量「請求：見た生産者（月）」が 1744 件（宣言 1678・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分

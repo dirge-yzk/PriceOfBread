@@ -1,0 +1,14 @@
+フランス base （各年の最初の行・種の中央）
+年	fleetUnitsStock	fleetGaugeIndex	navalPowerIndex	navyUpkeepShare	capitalWarshipStock	portFleetGoodsStock	capitalFleetGoodsOutputPerMonth	otherFleetGoodsOutputPerMonth	navalBudgetCapitalPerMonth	navalBudgetOtherPerMonth	navyPaidPerMonth	fleetUnitsMovedOutHomeCum	fleetUnitsMovedOutColonialCum	fleetUnitsMovedOutCededCum	fleetUnitsReceivedCededCum	soldierK	gdpRealPerYear	atWarFlag
+1783	0	0	0	0.03	1.32e+03	2.4e+03	1.5	19.5	0	0	0	0	0	0	0	74	nan	0
+1785	1.22e+03	0.0881	0.0959	0.0107	869	1.43e+03	0	0	0	0	0	0	0	0	0	180	1.14e+06	0
+1788	746	0.0541	0.0636	0.0122	726	1.04e+03	0	0.276	0	14.9	3.21	0	0	0	0	173	9.31e+05	0
+1790	724	0.0525	0.0609	0.0121	643	913	0	1.95	0	18.7	10.4	0	0	0	0	169	1.26e+06	0.5
+1793	544	0.0394	0.0482	0.0175	537	722	0	4.95	0	50	24.2	0	0	0	0	167	1.28e+06	0
+1796	538	0.039	0.0482	0.0219	449	600	0	17.2	0	53.1	45.5	0	0	0	0	363	1.06e+06	0.5
+1800	1.1e+03	0.0794	0.0985	0.026	353	466	0	31.9	0	117	112	0	0	0	0	225	1.02e+06	0
+1805	1.67e+03	0.121	0.147	0.0299	261	379	0	28.8	0	96.7	86.4	0	0	0	0	248	1.08e+06	1
+1810	2.45e+03	0.177	0.224	0.0345	193	285	0	52.8	0	121	117	0	0	0	0	314	1.14e+06	0
+1820	4.08e+03	0.296	0.384	0.0586	106	202	0	34.7	0	87.6	81.4	0	0	0	0	244	1.32e+06	0
+1850	5.56e+03	0.403	0.52	0.0619	17.4	147	0	28.6	0	0	0	0	0	0	0	202	1.72e+06	0
+1900	3.99e+03	0.529	0.652	0.0596	0.861	246	0	62.2	0	360	231	0	0	0	0	776	3.02e+06	0.5

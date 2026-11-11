@@ -1,0 +1,9 @@
+(1050) c99uk 読む線 計画（2026-11-11・Opus 5.5）
+作業の場所：D:/PoB_work/r1050_work（台本・表・下書き。合流が measurements/m1050_20261111/ と scripts/instruments/r1050/ へ写す）
+worktree・枝は作らない（読むだけ・コミット0・腕0）。ソースは main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD bb76c653）を読むだけ。
+読む生（読むだけ）：
+  D:/PoB_work/keep_1044/base_ins/{imp,crownpc,cpeace,cess,cessp,wars,warpair,nation,port}_s1..10.tsv（基線 m1044・種1〜10）
+  D:/PoB_work/keep_1044/n1・n2（ヌル腕・種1〜10）
+  D:/PoB_work/keep_1044/a11（種11〜20・POB_CEARN=0）
+順：prereg.txt → 問い1（imp_s と crownpc の数え直し）→ 問い2（英の各回の戦勝点・敵・期間・艦隊）→ 問い3（ソースの経路）→ 問い4（他国）→ 問い5・6（素案と問い）
+台本：python -X utf8 -I。出力は r1050_work/out_*.txt
