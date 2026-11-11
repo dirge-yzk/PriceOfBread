@@ -197,6 +197,9 @@ public static class MapData
         ["大チベット"] = "Greater Tibet", ["マラーター帝国"] = "Maratha Empire", ["越南"] = "Vietnam",
         ["シャム帝国"] = "Siamese Empire", ["ビルマ帝国"] = "Burmese Empire", ["統一朝鮮"] = "Unified Korea",
         ["満洲国"] = "Manchuria",
+        // 文化の統一国（CultureRealms.Table の名前と大統一の名前）＝地図の国名が 1 つだけ日本語にならないよう揃える（V20）
+        ["イタリア王国"] = "Italy", ["ローマ帝国"] = "Roman Empire", ["ドイツ帝国"] = "German Empire", ["神聖ローマ帝国"] = "Holy Roman Empire",
+        ["アラブ王国"] = "Arab Kingdom", ["マラーター王国"] = "Maratha Kingdom", ["中華帝国"] = "Chinese Empire",
     };
 
     /// <summary>国名の英語表記。未登録は日本語名を返す（分離独立で生まれた国など）。</summary>

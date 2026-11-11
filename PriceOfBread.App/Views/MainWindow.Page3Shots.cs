@@ -30,6 +30,17 @@ public partial class MainWindow
                 Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}.png");
                 LogOuterFlow(gameView, tag);
                 LogPage3(gameView, slot, tag);
+                // 外交のページの畳まれた欄（他国の戦争・軍事力の必要量・反乱勢力）は撮影の時だけ開いた姿も撮る（B48・B50・B17 と同じ段）
+                if (slot == Slot.DiplomacyWar
+                    && gameView.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(x => x.Key == "army")) is { } dgrid)
+                {
+                    dgrid.SetUserState(["army", "mediation", "faction"], []);
+                    await Task.Delay(900);
+                    Capture(dir, "p3_外交と戦争_欄を開く.png");
+                    LogOuterFlow(gameView, tag + "・欄を開く");
+                    dgrid.SetUserState([], []);
+                    await Task.Delay(300);
+                }
             }
 
             // ---- 仕組みの確かめ ----

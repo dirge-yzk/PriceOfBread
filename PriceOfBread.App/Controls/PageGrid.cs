@@ -146,6 +146,24 @@ public static class PagePlan
         return result;
     }
 
+    /// <summary>畳んだ欄だけの列（開いた欄が 1 つも無い列）の幅。見出しが読める幅に狭める＝空いた幅を開いた欄のある列へ回す（V13）。</summary>
+    public const double CollapsedColumnWidth = 220;
+
+    /// <summary>列ごとの幅。畳んだ欄だけの列は <see cref="CollapsedColumnWidth"/>（均等割りより狭い時だけ）・残りの幅を開いた欄のある列で均等に分ける。全部が畳みか全部が開きなら均等割り。</summary>
+    public static double[] ColumnWidths(IReadOnlyList<IReadOnlyList<SectionPlace>> plan, double width)
+    {
+        int n = plan.Count;
+        var result = new double[n];
+        if (n == 0) return result;
+        double avail = Math.Max(0, width - ColumnGap * (n - 1)), even = avail / n;
+        var shut = plan.Select(c => c.Count > 0 && c.All(p => p.Collapsed)).ToArray();
+        int open = shut.Count(x => !x);
+        if (open == 0 || open == n) { Array.Fill(result, even); return result; }
+        double narrow = Math.Min(CollapsedColumnWidth, even), rest = (avail - narrow * (n - open)) / open;
+        for (int i = 0; i < n; i++) result[i] = shut[i] ? narrow : rest;
+        return result;
+    }
+
     /// <summary>ページ全体の割り当て。</summary>
     public static IReadOnlyList<IReadOnlyList<SectionPlace>> Plan(PageTable t, double width, double height, ISet<string>? userOpened = null, ISet<string>? userClosed = null,
                                                                   ISet<string>? empty = null, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null)
@@ -278,6 +296,27 @@ public sealed class PageGrid : Panel
     {
         base.OnAttachedToVisualTree(e);
         Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateMeasure, Avalonia.Threading.DispatcherPriority.Loaded);
+        // 欄の中身が後から入る（外交の戦争・反乱勢力・他国の戦争は最初の測りの時点では「なし」の文字が見えている）＝空の欄の集合が変わったら測り直す。変わらなければ何もしない（V13）
+        _emptyTimer ??= new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _emptyTimer.Tick -= OnEmptyTick; _emptyTimer.Tick += OnEmptyTick;
+        _emptyTimer.Start();
+    }
+
+    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        _emptyTimer?.Stop();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private Avalonia.Threading.DispatcherTimer? _emptyTimer;
+    private string _emptyKey = "";
+    private string EmptyKey() => string.Join(",", Children.OfType<Section>().Where(x => x.IsEmptyContent()).Select(x => x.Key));
+    private void OnEmptyTick(object? sender, EventArgs e)
+    {
+        string key = EmptyKey();
+        if (key == _emptyKey) return;
+        _emptyKey = key;
+        InvalidateMeasure();
     }
 
     protected override void ChildrenChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -339,14 +378,16 @@ public sealed class PageGrid : Panel
             if (s0.ContentHeightCap() is double cap) caps[s0.Key] = cap;
             if (s0.Body is TableView tv) chrome[s0.Key] = tv.ChromeHeight();
         }
+        _emptyKey = EmptyKey();
         var plan = PagePlan.Plan(t, w, h, _userOpened, _userClosed, empty, caps, chrome);
         _lastPlan = plan;
         int cols = plan.Count;
-        double colW = (w - PagePlan.ColumnGap * (cols - 1)) / cols;
+        var colWs = PagePlan.ColumnWidths(plan, w);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
-        double used = 0;
+        double used = 0; int ci = 0;
         foreach (var col in plan)
         {
+            double colW = colWs[ci++];
             double y = 0;
             foreach (var p in col)
             {
@@ -367,14 +408,16 @@ public sealed class PageGrid : Panel
     {
         if (Table is not { } t || _lastPlan is not { } plan) { foreach (var c in Children) c.Arrange(new Rect(finalSize)); return finalSize; }
         int cols = plan.Count;
-        double colW = (finalSize.Width - PagePlan.ColumnGap * (cols - 1)) / cols;
+        var colWs = PagePlan.ColumnWidths(plan, finalSize.Width);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
+        double x = 0;
         for (int i = 0; i < cols; i++)
         {
-            double y = 0;
+            double y = 0, colW = colWs[i], x0 = x;
+            x += colW + PagePlan.ColumnGap;
             foreach (var p in plan[i])
             {
-                if (sections.TryGetValue(p.Key, out var s)) s.Arrange(new Rect(i * (colW + PagePlan.ColumnGap), y, colW, p.Height));
+                if (sections.TryGetValue(p.Key, out var s)) s.Arrange(new Rect(x0, y, colW, p.Height));
                 y += p.Height + PagePlan.SectionGap;
             }
         }

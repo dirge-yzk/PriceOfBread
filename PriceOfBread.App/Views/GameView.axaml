@@ -424,7 +424,7 @@
                     </Grid>
                     <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="8">
-                        <Button Classes="dialog" Content="セーブ" Command="{Binding SaveGameNowCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Classes="dialog" Content="クイックセーブ" Command="{Binding SaveGameNowCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         <!-- スロット1〜3（2026-09-06）：各行＝日時・セーブ・ロード -->
                         <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="1" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
@@ -440,7 +440,7 @@
                             <Button Grid.Row="2" Grid.Column="2" Classes="dialog" Content="セーブ" Command="{Binding SaveSlotCommand}" CommandParameter="3"/>
                             <Button Grid.Row="2" Grid.Column="3" Classes="dialog" Content="ロード" Command="{Binding RequestLoadSlotCommand}" CommandParameter="3" IsEnabled="{Binding CanLoadSlot3}"/>
                         </Grid>
-                        <Button Classes="dialog" Content="ロード" Command="{Binding RequestLoadCommand}" IsEnabled="{Binding CanLoadSave}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Classes="dialog" Content="クイックロード" Command="{Binding RequestLoadCommand}" IsEnabled="{Binding CanLoadSave}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         <Button Classes="dialog" Content="タイトルに戻る" Command="{Binding RequestReturnToTitleCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>

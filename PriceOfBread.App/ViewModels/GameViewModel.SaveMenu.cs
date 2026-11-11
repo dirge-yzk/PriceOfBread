@@ -83,7 +83,7 @@ public partial class GameViewModel
         }
         catch (Exception ex)
         {
-            DeliverNews("⚠", $"セーブに失敗({ex.Message})", NewsRed, _simDays);
+            DeliverNews("⚠", $"セーブに失敗（{ex.Message}）", NewsRed, _simDays);
         }
     }
 
@@ -147,7 +147,7 @@ public partial class GameViewModel
         int slot = int.Parse(slotText);
         if (!SaveExistsAt(slot)) return;
         MenuOpen = false;   // メニュー（ZIndex10）が確認モーダル（ZIndex9）を覆わないよう先に閉じる（RequestReturnToTitleと同型）
-        ConfirmTitle = slot == 0 ? "ロード" : $"ロード（スロット{slot}）";
+        ConfirmTitle = slot == 0 ? "クイックロード" : $"ロード（スロット{slot}）";
         ConfirmBody = $"{SlotLabel(slot)}\n現在 {DateText}　{PlayerNationName}";
         ConfirmAcceptLabel = "ロード";
         ConfirmCan = true;
@@ -230,7 +230,7 @@ public partial class GameViewModel
         }
         EndingRows = rows;
         EndingAnnals = _annals.ToList();   // 終局年代記（#129）：このプレイの政変・戦争・恐慌・デフォルト・建国の年表
-        EndingTitle = $"{Calendar.EndYear}年 最終ランキング　{PlayerNationName}:{ranked.FindIndex(s => s.IsPlayer) + 1}位";
+        EndingTitle = $"{Calendar.EndYear}年 最終ランキング　{PlayerNationName}：{ranked.FindIndex(s => s.IsPlayer) + 1}位";
         Playing = false;
         EndingOpen = true;
     }

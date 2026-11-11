@@ -433,6 +433,8 @@ public partial class MainWindow : Window
             lay.Open(Slot.Discovery);
             await Task.Delay(600);
             BootLog.Write($"uishot: 発見のページ 行数={gvm.DiscoveryTable.Rows.Count}");
+            lay.Close(Slot.Discovery);   // 発見の窓を開いたまま次を撮らない（生産の供給の網の左 2/3 が隠れていた・撮影の台本の直し）
+            await Task.Delay(300);
             lay.Open(Slot.Production);
             await Task.Delay(900);
             Capture(dir, $"{k++:D2}_生産タブ.png");
