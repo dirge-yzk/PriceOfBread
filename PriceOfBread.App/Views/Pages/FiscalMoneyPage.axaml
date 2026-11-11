@@ -17,9 +17,6 @@
         <ctl:Section Key="finance" Title="金融" Scrolls="False">
             <ctl:TableView Snapshot="{Binding FinanceTable}" InnerScroll="True"/>
         </ctl:Section>
-        <ctl:Section Key="ledger" Title="{Binding LedgerTitle}" Scrolls="False">
-            <ctl:TableView Snapshot="{Binding LedgerTable}" InnerScroll="True"/>
-        </ctl:Section>
         <ctl:Section Key="debt" Title="国債と外資信用">
             <StackPanel Spacing="4">
                 <ctl:TableView Snapshot="{Binding DebtTable}"/>

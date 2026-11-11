@@ -53,7 +53,6 @@ public static class PoliticsTables
         [
             Col.Text<LawLine>("name", "名前", l => l.Def.Name),
             new StageColumn<LawLine>("stage", "段階", StageOf),
-            Col.Text<LawLine>("cost", "条件", l => LawView.Detail(l.W, l.Def.Axis, l.Def.Current(l.W), l.Def.Target(l.W)).Detail),
         ],
         l => l.Group);
 

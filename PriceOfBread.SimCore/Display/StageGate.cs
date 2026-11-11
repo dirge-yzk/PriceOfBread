@@ -23,7 +23,17 @@ public static class StageGate
         return new StageCell(labels, levelBase, cur, tgt,
             level => CanReachAndAfford(w, axis, level, cur),
             level => Hint(w, axis, title, labels, levelBase, level, cur),
-            setTarget);
+            setTarget,
+            level => Why(w, axis, level, cur));
+    }
+
+    /// <summary>選べない段の押せない理由（短い語）。選べる段は null。前提法は「前提 ◯◯:△△」・政治の門は賛成不足など（<see cref="Government"/> の理由の語）。</summary>
+    public static string? Why(World w, PolicyAxis? axis, int level, int cur)
+    {
+        if (CanReachAndAfford(w, axis, level, cur) || axis is not { } a) return null;
+        if (level > cur && !CanReach(w, axis, level, cur)) return PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
+        var (_, _, reason) = NextStep(w, axis, level, cur);
+        return reason.Length == 0 ? null : Government.IsPoliticalGateReason(reason) ? reason : PlayText.FormatPrereq(reason);
     }
 
     /// <summary>その段へ届くか（前提法の連なり）。現行以下（降格）は常に可。</summary>

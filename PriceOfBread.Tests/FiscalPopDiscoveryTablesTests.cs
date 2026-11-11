@@ -17,7 +17,7 @@ public class FiscalPopDiscoveryTablesTests
 
     private static IReadOnlyList<ITable> Tables(FiscalFlows flows, BudgetResult budget) =>
     [
-        FiscalTables.Spend(budget), FiscalTables.Income(budget), FiscalTables.Ledger(flows), FiscalTables.Finance, FiscalTables.Debt,
+        FiscalTables.Spend(budget), FiscalTables.Income(budget), FiscalTables.Finance, FiscalTables.Debt,
         PopTables.Classes(), PopTables.Regions, PopTables.Religion, PopTables.Culture,
         DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites,
     ];
@@ -53,17 +53,18 @@ public class FiscalPopDiscoveryTablesTests
         var (_, w) = Board(8);
         var flows = new FiscalFlows(120, 340, 5, 7, new double[(int)TreasuryCat.Count]);
         var b = FiscalTables.Budget(w, flows);
-        // 予測の列を持たない項（実績だけの項）は実効の額を合計に足している
-        double Fc(BudgetLine l) => l.NoAmounts ? 0 : l.NoForecast ? l.Actual : l.Forecast;
+        // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
+        double Fc(BudgetLine l) => l.NoAmounts ? 0 : l.Forecast;
         double Ac(BudgetLine l) => l.NoAmounts ? 0 : l.Actual;
         Assert.Equal(b.SpendForecast, b.Spend.Sum(Fc), 6);
         Assert.Equal(b.SpendActual, b.Spend.Sum(Ac), 6);
         Assert.Equal(b.IncomeForecast, b.Income.Sum(Fc), 6);
         Assert.Equal(b.IncomeActual, b.Income.Sum(Ac), 6);
         Assert.Equal(b.IncomeForecast - b.SpendForecast, b.BalanceForecast, 6);
-        // 標本の流れ（教育費・専売益・外資）はそのまま実効の欄に載る
-        Assert.Equal(120, b.Spend.First(l => l.Key == "education").Actual, 9);
-        Assert.Equal(340, b.Income.First(l => l.Key == "monopoly").Actual, 9);
+        // 標本の流れ（教育費・専売益）は予測に載り、実績は国庫の台帳（ここでは 0）。外資の流れは台帳に区分が無く標本のまま実績に載る
+        Assert.Equal(120, b.Spend.First(l => l.Key == "education").Forecast, 9);
+        Assert.Equal(0, b.Spend.First(l => l.Key == "education").Actual, 9);
+        Assert.Equal(340, b.Income.First(l => l.Key == "monopoly").Forecast, 9);
         Assert.Equal(5, b.Income.First(l => l.Key == "foreignIn").Actual, 9);
         Assert.Equal(7, b.Spend.First(l => l.Key == "foreignOut").Actual, 9);
         Assert.All(b.Spend.Concat(b.Income), l => Assert.False(double.IsNaN(l.Forecast) || double.IsNaN(l.Actual), $"{l.Key} が NaN"));
@@ -116,23 +117,54 @@ public class FiscalPopDiscoveryTablesTests
     }
 
     [Fact]
-    public void 国庫の台帳_収入と支出の差が収支に一致し_小さい差は行にせず_空の側は1行の印を置く()
+    public void 支出と収入の実績の列は国庫の台帳の実際の額で_台帳に無い区分は行を足す()
     {
+        var (_, w) = Board(4);
         var diff = new double[(int)TreasuryCat.Count];
         diff[(int)TreasuryCat.Tax] = 900.5;
+        diff[(int)TreasuryCat.Tariff] = 120;
         diff[(int)TreasuryCat.Army] = -300.25;
-        diff[(int)TreasuryCat.Navy] = -10;   // 50 未満＝行にしない
+        diff[(int)TreasuryCat.Education] = -77;
+        diff[(int)TreasuryCat.Modernization] = -132;
+        diff[(int)TreasuryCat.Navy] = -10;
+        diff[(int)TreasuryCat.FactoryBuild] = -400;   // 上の行に属さない区分＝行を足す
+        diff[(int)TreasuryCat.Subsidy] = -20;         // 50 未満＝行にしない
         var flows = new FiscalFlows(0, 0, 0, 0, diff);
-        Assert.Equal(900.5 - 300.25 - 10, FiscalTables.LedgerBalance(flows), 9);
-        var t = FiscalTables.Ledger(flows);
-        var data = t.Read(new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789), new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789).Nations[0].World);
-        Assert.Equal(["国庫の支出", "国庫の収入"], data.Rows.Select(r => r.Group!).Distinct().ToArray());
-        Assert.Equal(2, data.Rows.Count);
-        Assert.Contains(data.Rows, r => r.Name == FiscalCatalog.LedgerName(TreasuryCat.Army) && r.Group == "国庫の支出");
-        Assert.Contains(data.Rows, r => r.Name == FiscalCatalog.LedgerName(TreasuryCat.Tax) && r.Group == "国庫の収入");
-        var empty = FiscalTables.Ledger(FiscalFlows.Zero).Read(new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789), new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789).Nations[0].World);
-        Assert.Equal(2, empty.Rows.Count);   // 両側とも「—」の 1 行
-        Assert.All(empty.Rows, r => Assert.Equal("—", r.Name));
+        Assert.Equal(900.5 + 120 - 300.25 - 77 - 132 - 10 - 400 - 20, FiscalTables.LedgerBalance(flows), 9);
+        var b = FiscalTables.Budget(w, flows);
+        Assert.Equal(300.25, b.Spend.First(l => l.Key == "army").Actual, 9);
+        Assert.Equal(10, b.Spend.First(l => l.Key == "navy").Actual, 9);
+        Assert.Equal(77, b.Spend.First(l => l.Key == "education").Actual, 9);
+        Assert.Equal(132, b.Spend.First(l => l.Key == "modernization").Actual, 9);   // 予算の要求でなく払った額
+        Assert.Equal(120, b.Income.First(l => l.Key == "tariff").Actual, 9);
+        Assert.Equal(400, b.Spend.First(l => l.Key == $"cat.{TreasuryCat.FactoryBuild}").Actual, 9);
+        Assert.DoesNotContain(b.Spend, l => l.Key == $"cat.{TreasuryCat.Subsidy}");
+        Assert.Equal(b.Spend.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.SpendActual, 6);
+        Assert.Equal(b.Income.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.IncomeActual, 6);
+    }
+
+    [Fact]
+    public void 開幕の近代化投資は格子に乗らない_どの段も光らせず_ホバーに本当の値を出す()
+    {
+        var (_, w) = Board(0);
+        w.ModernizationFrac = 0.08;
+        var row = FiscalTables.Budget(w, FiscalFlows.Zero).Spend.First(l => l.Key == "modernization");
+        Assert.Equal(-1, row.Stage.Current);
+        Assert.Contains("8%", row.Tip!);
+        w.ModernizationFrac = 0.5;
+        Assert.Equal(2, FiscalTables.Budget(w, FiscalFlows.Zero).Spend.First(l => l.Key == "modernization").Stage.Current);
+    }
+
+    [Fact]
+    public void 政策金利は段の名で出し_百分率を出さない()
+    {
+        var (sim, w) = Board(2);
+        var row = FiscalTables.Finance.Read(sim, w).Rows.First(r => r.Key == "policyRate");
+        var st = (StageCell)row.Cells[2]!;
+        Assert.Equal(5, st.Labels.Count);
+        Assert.DoesNotContain(st.Labels, l => l.Contains('%'));
+        Assert.DoesNotContain("%", (string)row.Cells[1]!);
+        Assert.Contains((string)row.Cells[1]!, st.Labels);
     }
 
     [Fact]

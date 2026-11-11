@@ -65,17 +65,23 @@ public class PoliticsTablesTests
     }
 
     [Fact]
-    public void 条件の列は法の行の右の条件と同じ()
+    public void 法の表は条件の列を持たず_選べない段にだけ短い理由を持つ()
     {
         var (sim, w) = Board();
         var t = PoliticsTables.Laws.Read(sim, w);
-        int costColumn = t.Columns.ToList().FindIndex(c => c.Key == "cost");
-        Assert.True(costColumn >= 0);
+        Assert.DoesNotContain(t.Columns, c => c.Key == "cost");
+        int stageColumn = t.Columns.ToList().FindIndex(c => c.Key == "stage");
         foreach (var r in t.Rows)
         {
-            var def = LawCatalog.ByField(r.Key)!;
-            var vm = new LawRowVM(w, def);
-            Assert.Equal(vm.Detail, (string)r.Cells[costColumn]!);
+            var st = (StageCell)r.Cells[stageColumn]!;
+            Assert.NotNull(st.Why);
+            for (int i = 0; i < st.Labels.Count; i++)
+            {
+                int lv = st.LevelBase + i;
+                string? why = st.Why!(lv);
+                if (st.CanSelect(lv)) Assert.Null(why);
+                else if (why is not null) Assert.DoesNotMatch(@"\d", why);   // 閾値の数字を出さない
+            }
         }
     }
 

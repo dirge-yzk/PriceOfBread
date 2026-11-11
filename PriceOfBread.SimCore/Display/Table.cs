@@ -12,9 +12,9 @@ public enum Unit
     Multiple,
 }
 
-/// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。</summary>
+/// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。<paramref name="Why"/>＝選べない段の押せない理由（短い語・閾値を出さない・選べる段は null。釦の下に出す）。</summary>
 /// <summary><see cref="Labels"/> の添字 i はエンジン側の段番号 <paramref name="LevelBase"/> + i。<see cref="Current"/>・<see cref="Target"/> はエンジン側の段番号。</summary>
-public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select)
+public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select, Func<int, string?>? Why = null)
 {
     /// <summary>段の無い行の段の列（押し釦を 1 つも出さない）。</summary>
     public static StageCell None { get; } = new([], 0, 0, 0, _ => false, _ => null, _ => { });

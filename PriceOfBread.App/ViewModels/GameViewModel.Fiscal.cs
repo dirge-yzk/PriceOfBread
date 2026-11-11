@@ -1,5 +1,5 @@
 ﻿// GameViewModel.Fiscal.cs ＝ 財政と貨幣のページ（(501) UI の作り直し 段3）。
-// 支出・収入・国庫の台帳・金融・国債と外資信用は、本体の目録（SimCore/Display/FiscalTables）が渡す表を共通の表（Controls/TableView）が描く。
+// 支出・収入・金融・国債と外資信用は、本体の目録（SimCore/Display/FiscalTables）が渡す表を共通の表（Controls/TableView）が描く。
 // 予測と実効の額・段の押し釦（税・教育費・軍事費・社会保障・行政費・近代化投資・関税・政策金利・通貨制度・資本移動・通貨改革）の読み口と書き口は目録の側（AI と同じ門を通る）。
 // ここに残すのは、App だけが採れる標本（教育費・専売益・外資の流れの四半期差分／国庫の台帳の月の差分）と、ヘッダーの国債の文字と、年次系列（国庫・国債・技術水準）の値の写し。
 using System;
@@ -27,11 +27,10 @@ public partial class GameViewModel
     // ---- 表（本体の目録が行と列を渡す）----
     [ObservableProperty] private TableSnapshot _spendTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _incomeTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _ledgerTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _financeTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _debtTable = TableSnapshot.Empty;
-    // 欄の見出しに合計を載せる（表の列と合計の位置を揃える仕掛けを作らない）：支出・収入＝予測と実効の合計／国庫の台帳＝今月の収支と予測の収支
-    [ObservableProperty] private string _spendTitle = "支出", _incomeTitle = "収入", _ledgerTitle = "国庫の台帳";
+    // 欄の見出しに合計を載せる（表の列と合計の位置を揃える仕掛けを作らない）：支出＝予測と払った額の合計／収入＝予測と入った額の合計（国庫の台帳は両方の表の実績の列へ吸収した）
+    [ObservableProperty] private string _spendTitle = "支出", _incomeTitle = "収入";
     // ---- 年次の線（名前つきの系列の倉から値を写す）----
     [ObservableProperty] private IReadOnlyList<double> _treasuryValues = [];
     [ObservableProperty] private IReadOnlyList<double> _govDebtValues = [];
@@ -100,13 +99,10 @@ public partial class GameViewModel
         var budget = FiscalTables.Budget(_player, flows);
         SpendTable = SnapFiscal(FiscalTables.Spend(budget));
         IncomeTable = SnapFiscal(FiscalTables.Income(budget));
-        LedgerTable = SnapFiscal(FiscalTables.Ledger(flows));
         FinanceTable = SnapFiscal(FiscalTables.Finance);
         DebtTable = SnapFiscal(FiscalTables.Debt);
-        SpendTitle = $"支出　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendForecast)}　実効 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendActual)}";
-        IncomeTitle = $"収入　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeForecast)}　実効 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeActual)}";
-        double bal = FiscalTables.LedgerBalance(flows), fb = budget.BalanceForecast;
-        LedgerTitle = $"国庫の台帳　収支 {Fmt.SignedMoneyPerMonth(bal)}　予測 {Fmt.SignedMoneyPerMonth(fb)}";
+        SpendTitle = $"支出　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendForecast)}　{FiscalTables.SpendActualName} {Fmt.Of(Unit.MoneyPerMonth, budget.SpendActual)}";
+        IncomeTitle = $"収入　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeActual)}";
         // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
         TreasuryValues = _histTreasury.ToArray();
         GovDebtValues = _series.Of(GovDebtSeries).ToArray();

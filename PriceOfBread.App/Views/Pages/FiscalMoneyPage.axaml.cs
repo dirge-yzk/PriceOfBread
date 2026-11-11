@@ -11,10 +11,10 @@ public partial class FiscalMoneyPage : UserControl
     public static PageTable Plan { get; } = new(
     [
         new SectionSpec("spend", "支出", 1, 10), new SectionSpec("income", "収入", 1, 8), new SectionSpec("finance", "金融", 2, 8),
-        new SectionSpec("debt", "国債と外資信用", 2, 8), new SectionSpec("ledger", "国庫の台帳", 3, 6),
+        new SectionSpec("debt", "国債と外資信用", 2, 8),
     ],
-    // 2 列（2026-11-11 作者指示）：支出＝左・収入＝右／その下に金融（左）と国債と外資信用（右）を隣に並べる／台帳は左の一番下
-    [["spend", "finance", "ledger"], ["income", "debt"]],
+    // 2 列（2026-11-11 作者指示）：支出＝左・収入＝右／その下に金融（左）と国債と外資信用（右）を隣に並べる（国庫の台帳は支出と収入の表へ吸収・2026-11-12）
+    [["spend", "finance"], ["income", "debt"]],
     ColumnMinWidth: 430);   // 支出と収入の表は段の押し釦（約 236）を持つ＝項目の名前が読める幅（約 430）を下回る列には割らない
 
     public FiscalMoneyPage()

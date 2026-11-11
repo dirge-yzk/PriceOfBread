@@ -492,17 +492,23 @@ public sealed class TableView : UserControl
                 {
                     var btn = new Button { Classes = { "lawstage" } };
                     btn.Click += (s, _) => { if (s is Button { Tag: (StageCell cell, int level) } && cell.CanSelect(level)) cell.Select(level); };
-                    wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = btn });
+                    var why = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.NoWrap, IsVisible = false };
+                    why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
+                    wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = new StackPanel { Orientation = Orientation.Vertical, Children = { btn, why } } });   // 選べない段の釦の下に押せない理由（短い語）
                 }
             }
             for (int i = 0; i < st.Labels.Count; i++)
             {
                 int level = st.LevelBase + i;
                 var border = (Border)wp.Children[i];
-                var btn = (Button)border.Child!;
+                var sp = (StackPanel)border.Child!;
+                var btn = (Button)sp.Children[0];
+                var whyText = (TextBlock)sp.Children[1];
                 btn.Content = st.Labels[i];
                 btn.Tag = (st, level);   // 最新の段の中身を持たせる
                 btn.IsEnabled = st.CanSelect(level);
+                whyText.Text = btn.IsEnabled ? "" : st.Why?.Invoke(level) ?? "";
+                whyText.IsVisible = whyText.Text.Length > 0;
                 btn.Classes.Set("current", st.Current == level);
                 btn.Classes.Set("target", st.Target == level && st.Target != st.Current);
             }

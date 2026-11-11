@@ -48,7 +48,7 @@ public partial class MainWindow
             else BootLog.Write("uishot: 段の押し釦の書き込み 行政費の段が表に無い");
         }
         catch (Exception ex) { BootLog.Write($"uishot: 段の押し釦の書き込み 失敗 {ex}"); }
-        BootLog.Write($"uishot: 財政の表 支出{gvm.SpendTable.Rows.Count}行・収入{gvm.IncomeTable.Rows.Count}行・台帳{gvm.LedgerTable.Rows.Count}行・金融{gvm.FinanceTable.Rows.Count}行・国債{gvm.DebtTable.Rows.Count}行・見出し「{gvm.SpendTitle}」「{gvm.IncomeTitle}」「{gvm.LedgerTitle}」");
+        BootLog.Write($"uishot: 財政の表 支出{gvm.SpendTable.Rows.Count}行・収入{gvm.IncomeTable.Rows.Count}行・金融{gvm.FinanceTable.Rows.Count}行・国債{gvm.DebtTable.Rows.Count}行・見出し「{gvm.SpendTitle}」「{gvm.IncomeTitle}」");
         BootLog.Write($"uishot: 年次の線の点の数 国庫{gvm.TreasuryValues.Count}・国債{gvm.GovDebtValues.Count}・粗出生率{gvm.BirthRateValues.Count}・粗死亡率{gvm.DeathRateValues.Count}・合計出生率{gvm.FertilityValues.Count}（人口の線は人口のページを開いた後）　年齢の層{gvm.AgePyramid.Labels.Count}層");
         lay.Reset();
         await Task.Delay(300);

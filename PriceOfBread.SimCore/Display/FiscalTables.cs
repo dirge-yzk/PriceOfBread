@@ -21,9 +21,6 @@ public sealed record BudgetResult(IReadOnlyList<BudgetLine> Spend, IReadOnlyList
     public double BalanceForecast => IncomeForecast - SpendForecast;
 }
 
-/// <summary>国庫の台帳の 1 行（区分の月の差分の絶対値と向き）。</summary>
-public sealed record LedgerLine(string Key, string Name, double Amount, FiscalSide Side, bool Placeholder);
-
 /// <summary>金融の表の 1 行（名前・値の文字・段の押し釦）。</summary>
 public sealed record FinanceLine(string Key, string Name, string Value, StageCell Stage, string? Tip);
 
@@ -45,14 +42,23 @@ public static class FiscalTables
 
     /// <summary>レバーの 5 段。値＝そのレバー自身の下限と上限を 4 等分してエンジンの 0.05 格子へ乗せた 5 点。最上段だけ「最大」。
     /// 現在段＝施行値・目標段＝目標値の写像（税の段と同じ）。新しい上限・下限は作らない。</summary>
-    private static StageCell Lever(World w, string title, double lo, double hi, Func<double> cur, Func<double> tgt, Action<double> set)
+    /// <param name="names">段の名（5 個）。無ければ割合の文字（最上段だけ「最大」）。無次元の値を百分率で出さない行（政策金利）が渡す。</param>
+    /// <param name="offGridDark">真＝段の値の格子に乗らない値（開幕の近代化投資 8% など）は最寄りの段を光らせず、どの段も光らせない（−1）。</param>
+    private static StageCell Lever(World w, string title, double lo, double hi, Func<double> cur, Func<double> tgt, Action<double> set, string[]? names = null, bool offGridDark = false)
     {
         double Value(int k) => Government.Q5(lo + (hi - lo) * k / (double)LeverStages);
-        int Stage(double v) => !(hi - lo > 1e-9) ? 0 : Math.Clamp((int)Math.Round((v - lo) / (hi - lo) * LeverStages, MidpointRounding.AwayFromZero), 0, LeverStages);   // 否定形＝NaN/退化した幅は最下段へ
+        int Nearest(double v) => !(hi - lo > 1e-9) ? 0 : Math.Clamp((int)Math.Round((v - lo) / (hi - lo) * LeverStages, MidpointRounding.AwayFromZero), 0, LeverStages);   // 否定形＝NaN/退化した幅は最下段へ
+        int Stage(double v) { int k = Nearest(v); return offGridDark && !(Math.Abs(v - Value(k)) < 1e-6) ? -1 : k; }
         var labels = new string[LeverStages + 1];
-        for (int i = 0; i < labels.Length; i++) labels[i] = i == LeverStages ? "最大" : DisplayFormat.Share(Value(i));
+        for (int i = 0; i < labels.Length; i++) labels[i] = names is not null ? names[i] : i == LeverStages ? "最大" : DisplayFormat.Share(Value(i));
         return StageGate.Make(w, null, title, labels, 0, () => Stage(cur()), () => Stage(tgt()), v => set(Value(v)));
     }
+
+    /// <summary>政策金利の 5 段の名（緩い方から）。</summary>
+    private static readonly string[] RateStageNames = ["大幅な緩和", "緩和", "中立", "引締め", "大幅な引締め"];
+
+    /// <summary>段の名（段の外は「—」）。</summary>
+    private static string StageName(StageCell st, int level) => level - st.LevelBase >= 0 && level - st.LevelBase < st.Labels.Count ? st.Labels[level - st.LevelBase] : DisplayFormat.NoValue;
 
     private static StageCell FiscalStageOf(World w, string key) => StageGate.Of(w, FiscalCatalog.Stages.First(s => s.Key == key));
 
@@ -76,7 +82,6 @@ public static class FiscalTables
         double tImpVal = w.LastImportValue / (double)c.MonthsPerClearing, tExpVal = w.LastExportValue / (double)c.MonthsPerClearing;
         double TariffRev(double rate) => (rate >= 0 ? tImpVal : tExpVal) * rate;
         double tariffGross = TariffRev(w.Policy.TariffTarget);
-        double tariffActMonthly = w.LastTariffRevenuePerClearing / (double)c.MonthsPerClearing;
         double interest = Calendar.PerYearToPerMonth(w.GovDebt.Value * w.GovBondRatePerYear.Value);
         // 軍事費の器（段×器の割合×使える歳入＋戦時段の割合×借入の余地）から兵士の給与の請求を引いた残り＝装備の上限（エンジンの Military.EnvelopeAt と同じ 1 本）
         double mil = Math.Max(0, Military.EnvelopeAt(w, c, Government.MilitaryTotalTarget(w, w.Policy)) - w.LastSoldierPayPerMonth.Value);
@@ -87,19 +92,13 @@ public static class FiscalTables
         double pen = Math.Min(c.PensionCostRatePerMonth * penLevel * oldSize, welCap);
         double ind = Calendar.PerQuarterToPerMonth(w.ModernizationBudget());
 
-        // 実効＝エンジンが予算表向けに書く実績診断（税は種類ごとの実際の税収・支出は当月の請求と国家の支払い率）
+        // 実績＝国庫の台帳の月の差分（実際に払った額・入った額）。税の 4 行だけは種類ごとの実際の税収（台帳では税収の 1 区分）
         double aIncome = w.LastTaxIncomePerMonth.Value, aProg = w.LastTaxProgressivePerMonth.Value, aPoll = w.LastTaxPollPerMonth.Value, aLand = w.LastTaxLandPerMonth.Value;
-        double netA = aIncome + aProg + aPoll + aLand;
-        double aMilGoods = w.LastMilitaryClaimPerMonth.Value;
-        double aSoldier = (w.LastSoldierPayPerMonth * w.FiscalFundingRatio).Value;   // 兵の給与＝請求×国家の支払い率 r＝陸軍の行だけ
-        double aMil = aMilGoods + aSoldier;
-        double aAdmin = w.LastAdminClaimPerMonth.Value;
-        double aWel = (w.LastWelfareCostPerMonth * w.FiscalFundingRatio).Value;
-        double aPen = (w.LastPensionCostPerMonth * w.FiscalFundingRatio).Value;
-        double aInterest = w.LastInterestPerMonth.Value;
+        double Paid(TreasuryCat cat) => -LedgerOf(f, cat);   // 支出側の払った額（出る＝負なので反転）
+        double In(TreasuryCat cat) => LedgerOf(f, cat);      // 収入側の入った額
 
-        double navShare = w.NavalSpendShare.Value;   // 陸海の配分はエンジン自身の 1 本（NavyUpkeep/(Army+Navy)）
         double pSoldier = w.LastSoldierPayPerMonth.Value;
+        double navShare = w.NavalSpendShare.Value;   // 陸海の配分はエンジン自身の 1 本（NavyUpkeep/(Army+Navy)）
         double colonialUp = (w.LastColonialUpkeepPerMonth * w.FiscalFundingRatio).Value;
         double tribOut = Calendar.PerQuarterToPerMonth(w.LastTributeOutPerQuarter * w.FiscalFundingRatio.Value);
         double tribIn = Calendar.PerQuarterToPerMonth(w.LastTributeInPerQuarter);
@@ -120,23 +119,25 @@ public static class FiscalTables
 
         var spend = new List<BudgetLine>
         {
-            Line("army", "陸軍維持費", mil * (1 - navShare) + pSoldier, aMilGoods * (1 - navShare) + aSoldier, tip: Pair(w.Policy.ArmyUpkeepTarget, w.ArmyUpkeep.Value)),
-            Line("navy", "海軍維持費", mil * navShare, aMilGoods * navShare, tip: Pair(w.Policy.NavyUpkeepTarget, w.NavyUpkeep.Value)),
+            Line("army", "陸軍維持費", mil * (1 - navShare) + pSoldier, Paid(TreasuryCat.Army), tip: Pair(w.Policy.ArmyUpkeepTarget, w.ArmyUpkeep.Value)),
+            Line("navy", "海軍維持費", mil * navShare, Paid(TreasuryCat.Navy), tip: Pair(w.Policy.NavyUpkeepTarget, w.NavyUpkeep.Value)),
             // 軍事費の段は合計だけに掛かる（陸海の 2 行は地理が決めた比で合計が割れた結果）＝金額は上の 2 行が名乗る
             Line("military", "軍事費", 0, 0, FiscalStageOf(w, nameof(NationPolicy.MilitarySpendingTarget)), noAmounts: true),
-            Line("admin", "行政費", admin, aAdmin, Lever(w, "行政費", 0, 1, () => w.AdminSpending, () => w.Policy.AdminSpendingTarget, v => w.Policy.AdminSpendingTarget = v), adminTip),
-            Line("education", "教育費", f.EduMonthly, f.EduMonthly, FiscalStageOf(w, nameof(NationPolicy.EducationSpendingTarget)), PlayText.EducationSpendingText(w)),
-            Line("welfare", "社会保障", wel, aWel, StageGate.Of(w, LawCatalog.In(LawSlot.Welfare).First()), Pair(w.Policy.SocialSecurityTarget, w.SocialSecurity)),
-            Line("modernization", "近代化投資", ind, ind, Lever(w, "近代化投資", 0, 1, () => w.ModernizationFrac, () => w.ModernizationFrac, v => w.ModernizationFrac = v), indTip),
-            Line("interest", "国債の利払い", interest, aInterest),
-            Line("pension", "年金", pen, aPen),
+            Line("admin", "行政費", admin, Paid(TreasuryCat.Admin), Lever(w, "行政費", 0, 1, () => w.AdminSpending, () => w.Policy.AdminSpendingTarget, v => w.Policy.AdminSpendingTarget = v), adminTip),
+            Line("education", "教育費", f.EduMonthly, Paid(TreasuryCat.Education), FiscalStageOf(w, nameof(NationPolicy.EducationSpendingTarget)), PlayText.EducationSpendingText(w)),
+            Line("welfare", "社会保障", wel, Paid(TreasuryCat.Welfare), StageGate.Of(w, LawCatalog.In(LawSlot.Welfare).First()), Pair(w.Policy.SocialSecurityTarget, w.SocialSecurity)),
+            // 開幕の 8% は段の格子（0・25・50・75・最大）に乗らない＝どの段も光らせず、ホバーに目標と実効の本当の値を出す
+            Line("modernization", "近代化投資", ind, Paid(TreasuryCat.Modernization), Lever(w, "近代化投資", 0, 1, () => w.ModernizationFrac, () => w.ModernizationFrac, v => w.ModernizationFrac = v, offGridDark: true), indTip + "\n" + Pair(w.ModernizationFrac, w.ModernizationFrac)),
+            Line("interest", "国債の利払い", interest, Paid(TreasuryCat.Interest)),
+            Line("pension", "年金", pen, Paid(TreasuryCat.Pension)),
         };
-        if (colonialUp > 1e-9) spend.Add(Line("colonial", "植民地の維持", 0, colonialUp, noFc: true));
-        if (tribOut > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", 0, tribOut, noFc: true));
+        // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
+        if (colonialUp > 1e-9 || Paid(TreasuryCat.ColonialUpkeep) > 1e-9) spend.Add(Line("colonial", "植民地の維持", colonialUp, Paid(TreasuryCat.ColonialUpkeep), noFc: true));
+        if (tribOut > 1e-9 || Paid(TreasuryCat.TributeOut) > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", tribOut, Paid(TreasuryCat.TributeOut), noFc: true));
         // 国債の元本の出入り（2026-11-11 作者指示「国債の支払いなどもここに入れる」）＝国庫の台帳の実績（月の差分）をそのまま読む
-        double repay = LedgerOf(f, TreasuryCat.DebtRepay), borrow = LedgerOf(f, TreasuryCat.Borrow);
-        if (repay < -1e-9) spend.Add(Line("debtRepay", "国債の償還", 0, -repay, noFc: true));
-        spend.Add(Line("foreignOut", "外資の流出", 0, f.ForeignOutMonthly, noFc: true));
+        double repay = Paid(TreasuryCat.DebtRepay), borrow = In(TreasuryCat.Borrow);
+        if (repay > 1e-9) spend.Add(Line("debtRepay", "国債の償還", 0, repay, noFc: true));
+        spend.Add(Line("foreignOut", "外資の流出", f.ForeignOutMonthly, f.ForeignOutMonthly, noFc: true));
 
         var income = new List<BudgetLine>
         {
@@ -145,19 +146,31 @@ public static class FiscalTables
             Line("pollTax", "人頭税", gPoll, aPoll, FiscalStageOf(w, nameof(NationPolicy.PollTaxTarget)), Pair(w.Policy.PollTaxTarget, w.PollTax)),
             Line("landTax", "土地税", gLand, aLand, FiscalStageOf(w, nameof(NationPolicy.LandTaxTarget)), Pair(w.Policy.LandTaxTarget, w.LandTax)),
             // 専売に率のレバーは無い（材を選ぶのみ＝生産ページの財ごと）。ここは対象の広さ・実効率・実績
-            Line("monopoly", "専売", f.StateMonopolyMonthly, f.StateMonopolyMonthly, tip: $"負担 {DisplayFormat.Share(w.StateMonopolyBreadth)}　実効 {DisplayFormat.Share(w.StateMonopolyBreadth * c.StateMonopolyMargin)}"),
-            Line("tariff", "関税", tariffGross, tariffActMonthly,
+            Line("monopoly", "専売", f.StateMonopolyMonthly, In(TreasuryCat.StateMonopoly), tip: $"負担 {DisplayFormat.Share(w.StateMonopolyBreadth)}　実効 {DisplayFormat.Share(w.StateMonopolyBreadth * c.StateMonopolyMargin)}"),
+            Line("tariff", "関税", tariffGross, In(TreasuryCat.Tariff),
                  Lever(w, "関税", c.TariffFloor, TariffCeil, () => w.Tariff, () => w.Policy.TariffTarget, v => w.Policy.TariffTarget = Math.Clamp(v, c.TariffFloor, TariffCeil)),
                  Pair(w.Policy.TariffTarget, w.Tariff)),
-            Line("foreignIn", "外資の流入", 0, f.ForeignInMonthly, tip: creditTip, noFc: true),
+            Line("foreignIn", "外資の流入", f.ForeignInMonthly, f.ForeignInMonthly, tip: creditTip, noFc: true),
         };
-        if (tribIn > 1e-9) income.Add(Line("tributeIn", "属国からの貢納", tribIn, tribIn));
+        if (tribIn > 1e-9 || In(TreasuryCat.TributeIn) > 1e-9) income.Add(Line("tributeIn", "属国からの貢納", tribIn, In(TreasuryCat.TributeIn)));
         if (borrow > 1e-9) income.Add(Line("debtBorrow", "国債の起債", 0, borrow, noFc: true));
+
+        // 台帳の区分のうち上の行に属さない物（工場の建設・補助金・戦費など）は、0 でない時だけ行を足す＝実績の合計が台帳と同じ物を数える
+        var covered = new HashSet<TreasuryCat> { TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.Admin, TreasuryCat.Education, TreasuryCat.Welfare, TreasuryCat.Modernization, TreasuryCat.Interest,
+            TreasuryCat.Pension, TreasuryCat.ColonialUpkeep, TreasuryCat.TributeOut, TreasuryCat.DebtRepay, TreasuryCat.Tax, TreasuryCat.StateMonopoly, TreasuryCat.Tariff, TreasuryCat.TributeIn, TreasuryCat.Borrow };
+        foreach (var item in FiscalCatalog.Items)
+        {
+            if (covered.Contains(item.Cat)) continue;
+            double d = LedgerOf(f, item.Cat);
+            if (!(Math.Abs(d) >= 50.0)) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない
+            if (item.Side == FiscalSide.Outlay) spend.Add(Line("cat." + item.Cat, item.Name, 0, -d, noFc: true));
+            else income.Add(Line("cat." + item.Cat, item.Name, 0, d, noFc: true));
+        }
 
         double spendTotal = interest + mil + pSoldier + admin + wel + pen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut;
         double revTotal = net + tariffGross + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn;
-        double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut + Math.Max(0, -repay);
-        double revActT = netA + tariffActMonthly + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn + Math.Max(0, borrow);
+        double spendActT = spend.Where(l => !l.NoAmounts).Sum(l => l.Actual);
+        double revActT = income.Where(l => !l.NoAmounts).Sum(l => l.Actual);
         return new BudgetResult(spend, income, spendTotal, spendActT, revTotal, revActT);
     }
 
@@ -168,50 +181,32 @@ public static class FiscalTables
     private static string CreditLines(World w)
         => $"国債残高　{DisplayFormat.Share(w.CreditDebtTerm)}\n兌換　{DisplayFormat.Share(w.CreditGoldTerm)}\n為替　{DisplayFormat.Share(w.CreditFxTerm)}\n国債の利回り　{DisplayFormat.Share(w.CreditBondTerm)}";
 
-    private static IReadOnlyList<Column<BudgetLine>> BudgetColumns { get; } =
+    /// <summary>支出と収入の表の列。実績の列は国庫の台帳が書いた実際の額（支出＝払った額・収入＝入った額）。</summary>
+    private static IReadOnlyList<Column<BudgetLine>> BudgetColumns(string actualName) =>
     [
         Col.Text<BudgetLine>("name", "項目", l => l.Name, l => l.Tip),
         Col.Stage<BudgetLine>("stage", "段階", l => l.Stage),
         Col.Number<BudgetLine>("forecast", "予測", Unit.MoneyPerMonth, l => l.Forecast, hide: l => l.NoAmounts || l.NoForecast),
-        Col.Number<BudgetLine>("actual", "実効", Unit.MoneyPerMonth, l => l.Actual, hide: l => l.NoAmounts),
+        Col.Number<BudgetLine>("actual", actualName, Unit.MoneyPerMonth, l => l.Actual, hide: l => l.NoAmounts),
     ];
+
+    /// <summary>支出の表の実績の列の名。</summary>
+    public const string SpendActualName = "払った額";
+    /// <summary>収入の表の実績の列の名。</summary>
+    public const string IncomeActualName = "入った額";
 
     /// <summary>支出の表（予算の予想の支出の項）。</summary>
     public static Table<BudgetLine> Spend(BudgetResult r)
-        => new("fiscal.spend", "支出", Page.FiscalMoney, (_, _) => r.Spend, l => l.Key, l => l.Name, BudgetColumns);
+        => new("fiscal.spend", "支出", Page.FiscalMoney, (_, _) => r.Spend, l => l.Key, l => l.Name, BudgetColumns(SpendActualName));
 
     /// <summary>収入の表（予算の予想の収入の項）。</summary>
     public static Table<BudgetLine> Income(BudgetResult r)
-        => new("fiscal.income", "収入", Page.FiscalMoney, (_, _) => r.Income, l => l.Key, l => l.Name, BudgetColumns);
+        => new("fiscal.income", "収入", Page.FiscalMoney, (_, _) => r.Income, l => l.Key, l => l.Name, BudgetColumns(IncomeActualName));
 
-    // ===== 国庫の台帳 =====
+    // ===== 国庫の台帳の合計 =====
 
-    /// <summary>国庫の台帳の月の差分の合計（＝収支。ヘッダーの収支と厳密に一致する）。</summary>
+    /// <summary>国庫の台帳の月の差分の合計（＝収支。ヘッダーの収支と厳密に一致する）。台帳の表は支出と収入の表へ吸収した（2026-11-12）。</summary>
     public static double LedgerBalance(FiscalFlows f) => f.LedgerDiff.Sum();
-
-    private static IReadOnlyList<LedgerLine> LedgerLines(FiscalFlows f)
-    {
-        var outLines = new List<LedgerLine>(); var inLines = new List<LedgerLine>();
-        for (int i = 0; i < f.LedgerDiff.Count && i < FiscalCatalog.Items.Count; i++)
-        {
-            double d = f.LedgerDiff[i];
-            if (Math.Abs(d) < 50.0) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない
-            var item = FiscalCatalog.Items.First(x => (int)x.Cat == i);
-            (d >= 0 ? inLines : outLines).Add(new LedgerLine("cat." + item.Cat, item.Name, Math.Abs(d), d >= 0 ? FiscalSide.Income : FiscalSide.Outlay, false));
-        }
-        // 開幕直後（最初の月の差分が立つ前）は両側が空＝「機能していない」ように見える。空の側は「—」の 1 行を置く
-        if (outLines.Count == 0) outLines.Add(new LedgerLine("none.out", "—", 0, FiscalSide.Outlay, true));
-        if (inLines.Count == 0) inLines.Add(new LedgerLine("none.in", "—", 0, FiscalSide.Income, true));
-        return outLines.Concat(inLines).ToList();
-    }
-
-    /// <summary>国庫の台帳の表（群＝国庫の支出・国庫の収入）。区分の名前と向きは <see cref="FiscalCatalog"/>。</summary>
-    public static Table<LedgerLine> Ledger(FiscalFlows f)
-        => new("fiscal.ledger", "国庫の台帳", Page.FiscalMoney, (_, _) => LedgerLines(f), l => l.Key, l => l.Name,
-        [
-            Col.Text<LedgerLine>("name", "項目", l => l.Name),
-            Col.Number<LedgerLine>("amount", "金額", Unit.MoneyPerMonth, l => l.Amount, hide: l => l.Placeholder),
-        ], l => l.Side == FiscalSide.Outlay ? "国庫の支出" : "国庫の収入");
 
     // ===== 金融 =====
 
@@ -248,9 +243,10 @@ public static class FiscalTables
             rows.Add(new("cover", "兌換カバー率", PlayText.CoverText(w), StageCell.None,
                 w.BroadMoney.Value <= 1e-9 ? null : $"基礎貨幣 {DisplayFormat.Money(w.BaseMoney.Value)}\n広義貨幣 {DisplayFormat.Money(w.BroadMoney.Value)}"));
         // 政策金利＝5 段（兌換維持＋資本自由で自分のものでない時は段ごと掴めなくする。行は消さない＝いま金利がいくらかは見えている必要がある）
-        var rate = Lever(w, "政策金利", 0, InterestCeil, () => w.InterestRate, () => w.Policy.InterestRateTarget, v => w.Policy.InterestRateTarget = Math.Min(v, InterestCeil));
-        if (!InterestLeverEnabled(w)) rate = rate with { CanSelect = _ => false };
-        rows.Add(new("policyRate", "政策金利", $"{DisplayFormat.Share(w.InterestRate)}", rate, $"目標 {DisplayFormat.Share(w.Policy.InterestRateTarget)}　実効 {DisplayFormat.Share(w.InterestRate)}"));
+        // 無次元の値を百分率で出さない＝段の名で出す（現在の列・ホバーも同じ）。格子に乗らない値（金本位の自動の金利など）は最寄りの段の名
+        var rate = Lever(w, "政策金利", 0, InterestCeil, () => w.InterestRate, () => w.Policy.InterestRateTarget, v => w.Policy.InterestRateTarget = Math.Min(v, InterestCeil), RateStageNames);
+        if (!InterestLeverEnabled(w)) rate = rate with { CanSelect = _ => false, Why = _ => "兌換維持中" };
+        rows.Add(new("policyRate", "政策金利", StageName(rate, rate.Current), rate, $"目標 {StageName(rate, rate.Target)}　実効 {StageName(rate, rate.Current)}"));
         // 通貨制度と資本移動は法（議会を通る）＝法の表の行。金本位は経済の画面で扱う（作者指示 2026-08-11）
         foreach (var def in LawCatalog.In(LawSlot.Econ))
             if (def.IsVisible(w)) rows.Add(new("law." + def.Key, def.Name, "", StageGate.Of(w, def), null));
