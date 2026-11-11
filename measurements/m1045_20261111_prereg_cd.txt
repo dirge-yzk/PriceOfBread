@@ -72,3 +72,11 @@
 [5] 採る条件
   〈判定: 恒等〉・フルスイート緑・推定 ≦248.5 秒・台帳の新しい行の件数が T7 で一致（少なすぎても多すぎても赤）・B-b の上界の列が旗 0 の盤面で 0 でない（T5）・C4a の和が全行で旧の列と等しい（T5 の前の既存試験 C4a_C4b）・突然変異が全て赤（緑は試験を足す）。
   一致しなければ、その変更を外して報告に回す。限界の自己申告：計器が受け取るエンジンの局所（[2] A）・アヘンの係数を掛けない・鎖国とアヘンの区分は再導出しない・rentR の時刻のずれは残す。
+
+[4 追記・結果を見る前] ident の宣言（文字どおり）
+  --grown-ok tradeskip,sellr
+  --known-extra tradeskip:sogStockLeTarget,tradeskip:sogSellAcc0,tradeskip:sogMilitary
+  --cost-allow 労働の重み
+  --tests-delta <T1〜T7 の分＝--list-tests の差を ident が出す数>（TradeSkipC4dTests の Fact 6 本＋Theory 2 件＝8）
+  限界の追記：Repick は DealConstAlwaysStale が立つ試験では毎反復数える（盤面の ident では立たない）。台帳の単価は上限の見積り 0.01 のまま出す場合、verdict の先頭に〈指示から外れた〉と書く。
+  単価の計り：e1.mark の後、温まった盤面の Region で PowerShare を N 回呼ぶ使い捨ての計り（コミットしない）で µs/生産者 を取れたなら、その値と計りの条件をこの追記の下に書き、定数を直してから ident を回す。

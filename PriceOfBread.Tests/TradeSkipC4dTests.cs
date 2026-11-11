@@ -39,8 +39,8 @@ public class TradeSkipC4dTests
     public void C4d_決まり直した反復の旧とBbのXは紙の値で統制は一致する()
     {
         var a = Acc();
-        a.GoodBegin(1); a.AddSeller(0, 1.0);
-        a.Row(0, 0); a.Scan(NoTr(), 0, 2.0, [1.0], [1.0], 1.0, 0.0, 0.0, null);
+        a.GoodBegin(0);   // Repick は売り手の表を読まない（Scan が売り手の表を引くので表は空）
+        a.Row(0, 0); a.Scan(NoTr(), 0, 2.0, [], [1.0], 1.0, 0.0, 0.0, null);
         // r＝4（rpT＝4・unitA＝1）：xPrice＝100·4−20＝380・xNeed＝10＋100−20−15＝75・xNeedB＝10＋200−35＝175 → X 旧 75・B-b 175（access 1）
         a.Repick(Mk(10, 100, 20, 0, 15), 1.0, 2.0, 2.0, 1.0, 1.0, Eps);
         Assert.Equal(1, At(a, Instruments.TsCol.RpIter));
