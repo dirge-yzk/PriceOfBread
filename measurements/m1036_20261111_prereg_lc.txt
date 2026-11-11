@@ -1,0 +1,20 @@
+(1036) 線 c98lc 事前登録（恒等の線・波98 の先頭）。書いた担当：Claude Sonnet 5.5。腕の前に固定する。
+[1] 恒等の線・予言 0。新しい係数 0・力学 0・乱数を引かない・EconomyStep.cs は変えない。変えるのは台帳の数え方と計器だけ。
+    計算量の台帳（診断）の行 ClearingSkipsLB の意味を〈飛ばした件数〉から〈下界を評価した件数（飛ばした＋通した）〉へ（README ★(1035)）。
+    cscx_s の fillsSkippedLB は飛ばした件数のまま（局所 nSkipLB を残す）＝cscx_s は全行バイト一致。
+[2] 消す物と残す物
+    残す：nSkipLB（cscx_s の末尾の列の読み手）。足す：局所 nEvalLB・lbAuditOn（LbAudit is not null を財の頭で 1 回読む）。
+    足す計器の列（tradeskip_s の末尾 12 列）：sogStockLeTarget・sogSellAcc0・sogMilitary・sogOther（和＝sellerOtherGate）／xpEndPriceHigh・xpEndXPriceSmall・xpEndXNeedSmall・xpEndYZero・xpEndBudget・xpEndCapMid・xpEndDealt・xpEndGuard（和＝xPass）。
+    足す表：sellr_s（調べる年の第 4 四半期の末・州×生産者）。列は InstrumentsSellr.cs の見出し。
+    読み手の grep：ClearingSkipsLB は MultiNationSim.cs・BilateralMarket.cs・SecessionLaborLawInstrumentTests.cs:280（最後の行の名指し＝名前は変えない）・WriterRatchetTests.cs・ClearingLowerBoundTests.cs。Runner・App・Display に無し。
+    他の線との重なり：BilateralMarket.cs・MultiNationSim.cs の文字列 1 行・InstrumentsTradeskip.cs は lc だけ。Instruments.cs は登録 2 行（TransportFold の直前の行・Close の行）。
+[3] 試験と突然変異
+    ClearingLowerBoundTests T4（書き換え＝意味の変更に追従：台帳の値＝評価した件数。期待は下界を使わない道 LbOffForTest の充填から取る）・T5（新・係数を負にすると台帳 0 で軌道が下界を使わない道と同じ）。
+    TradeSkipC4Tests（新）：C4a_C4b の和の試験・C4b の行の終わりの理由（紙）・C4c の紙の値 3 本・C4c の表の試験。
+    ㉑ の予言：tradeskip_s の見出しを Assert する既存の試験は 0 本（TradeInstrumentTests は列名で引く）。WriterRatchetTests の書き換えは 1 行（ClearingSkipsLB 7631431→32392768＝旧の充填 32392768 と一致する予言・評価＝飛ばした＋通した＝c97sp の前の充填）。OnDoubleReadScan の許可表は増やさない。
+    突然変異（使い捨ての木）：M1 台帳を飛ばした件数だけに戻す→T4・WriterRatchetTests／M2 lbOn の門を消す→T5／M3 C4a の区分を 1 つ落とす→C4a_C4b／M4 C4b で xPrice と xNeed を取り違える→（試験は合成の盤面を持たない＝緑のまま残る見込み・名乗る）／M5 C4c で PrevImport の符号を逆→C4c の紙の値。
+    門の両側：C4a 0 でない区分 ≧2・C4b ≧3（全て 0 なら赤）。C4c は両側が旧と違う行 ＞0。旧の式×rentR＝laborWeight の割合は Toward の平滑で眠りの月以外は一致しない＝記録（門は紙の値の試験）。
+[4] 判定：素の 5 種・計器つき 10 種が m1027 と名乗り行を除いて全行一致（宣言：tradeskip_s の末尾の列・sellr_s・台帳の行 ClearingSkipsLB）。
+    計算量の見積り（紙）：keep_1035 の .cost で ClearingFills 250629182 ＋ ClearingSkipsLB(飛ばした) 217149772 ＝ 評価 467778954。単価 0.02µs（上限の見積り・据え置き）→ 9.36 秒（旧 4.34）＝+5.0 秒。計器つき 231.0→約 236.0 秒（上限 248.5 の内・余りは約 12.5）。実時間は旧の木と同じ負荷で並べてから余りに計上する。
+    sellr_s の大きさ：prodcap_s が 1 種 約 121MB（約 108 万行）。同じ行数×列が多い＝1 種 200MB を超えたら列を減らす。
+[5]〈判定: 恒等〉なら採る。
