@@ -1,0 +1,31 @@
+using System;
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+
+// (1030) 使い捨てのプローブ（コミットしない）：CorncfInstrumentTests.T5 の盤面（英仏・3 四半期）で、種ごとに穀物の輸入の正の組の数を旗 0 と旗 1 で数える。
+public class ProbeCorncf
+{
+    private readonly ITestOutputHelper o; public ProbeCorncf(ITestOutputHelper o) { this.o = o; }
+    [Fact]
+    public void Probe()
+    {
+        var corn = Enumerable.Range(0, Catalog.Goods.Length).Where(g => Catalog.Goods[g].Tier == GoodTier.Staple || Catalog.Goods[g].GrainChain).ToArray();
+        for (ulong seed = 1791; seed < 1803; seed++)
+        {
+            var line = $"seed {seed}";
+            foreach (double f in new[] { 0.0, 1.0 })
+            {
+                var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: seed, coef: new Coefficients { EndowmentCostFollowsAbundance = f }) { DiplomacyFrozen = true };
+                for (int q = 0; q < 3; q++) sim.StepQuarter();
+                int pos = 0;
+                foreach (var n in sim.Nations)
+                    foreach (int g in corn) if (n.World.ImportsByGood![g] > 0) pos++;
+                line += $" flag{f} pos={pos}";
+            }
+            o.WriteLine(line);
+        }
+    }
+}
