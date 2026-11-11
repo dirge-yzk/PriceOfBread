@@ -1,0 +1,52 @@
+(1048) c99db 突然変異の出力（木 90c2f268・試験の束 FullyQualifiedName~Lordstat|FullyQualifiedName~LordStakeD1bD2|FullyQualifiedName~Rs2LordOpposition|FullyQualifiedName~Rs3LordReverseGain）
+## 元の形
+  合計:    36、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+  赤 0: （無し）
+## D2-M1 ρ＝1
+  合計:    36、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+  赤 4: LordStakeD1bD2Tests.D2_土地改革は旗0の値に仲介の取り分の損と得だけを足す, LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M2 max でなく軸ごと（官僚制度は身分の項だけ）
+  合計:    36、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+  赤 2: LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M3 底を外す（官僚制度）
+  合計:    36、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+  赤 3: LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M4 旗を読まない
+  合計:    36、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+  赤 4: LordStakeD1bD2Tests.D2_土地改革は旗0の値に仲介の取り分の損と得だけを足す, LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M5 土地改革に足し忘れ
+  合計:    36、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+  赤 2: LordStakeD1bD2Tests.D2_土地改革は旗0の値に仲介の取り分の損と得だけを足す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M6 取り分を地代の側にも足す
+  合計:    36、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+  赤 7: LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う, Rs2LordOppositionTests.旧支配層の反対の強さは損の式の手の値と一致する, Rs2LordOppositionTests.農奴解放の反対は次の一段で失う所得の割合になり段ごとの値が手の式と合う, Rs3LordReverseGainTests.減らす向きで内訳の合計は純支持と一致し議会の保守党の項が得に替わる, Rs3LordReverseGainTests.減らす向きは1段戻したときの得になり段ごとの値が手の式と合う, Rs3LordReverseGainTests.要求の順位は旧支配層の土地改革を減らす要求の強さを得から取り直す, Rs3LordReverseGainTests.進める向きと近代エリートと大衆の項は減らす向きでも変わらない
+## D2-M7 分母を Rent0
+  合計:    36、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+  赤 4: LordStakeD1bD2Tests.D2_土地改革は旗0の値に仲介の取り分の損と得だけを足す, LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M8 減らす向きの得を落とす
+  合計:    36、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+  赤 4: LordStakeD1bD2Tests.D2_土地改革は旗0の値に仲介の取り分の損と得だけを足す, LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D2-M9 DirectionAware に官僚制度を足し忘れ
+  合計:    36、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+  赤 2: LordStakeD1bD2Tests.D2_官僚制度の反対は失う仲介の取り分で段ごとに手の式と合う, LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要求の強さを得から取り直す
+## D1-Ma 比でなく生の月額
+  合計:    36、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+  赤 4: LordStakeD1bD2Tests.D1b_国教の反対は失う十分の一税の度合いと聖職者の所得の割合で手の式と合う, LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D1-Mb 段を 1 つずらす
+  合計:    36、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+  赤 2: LordStakeD1bD2Tests.D1b_国教の反対は失う十分の一税の度合いと聖職者の所得の割合で手の式と合う, LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す
+## D1-Mc 旗を読まない
+  合計:    36、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+  赤 3: LordStakeD1bD2Tests.D1b_国教の反対は失う十分の一税の度合いと聖職者の所得の割合で手の式と合う, LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D1-M2 分母を Rent0
+  合計:    36、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+  赤 4: LordStakeD1bD2Tests.D1b_国教の反対は失う十分の一税の度合いと聖職者の所得の割合で手の式と合う, LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D1-M6b 減らす向きも損で読む
+  合計:    36、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+  赤 3: LordStakeD1bD2Tests.D1b_国教の反対は失う十分の一税の度合いと聖職者の所得の割合で手の式と合う, LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す, LordstatD1aTests.D1a_7_旗0と旗1で実際の側が期待の形に合う
+## D1-M6a DirectionAware に国教を足し忘れ
+  合計:    36、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+  赤 2: LordStakeD1bD2Tests.D1b_国教の反対は失う十分の一税の度合いと聖職者の所得の割合で手の式と合う, LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す
+## M8' 窓の写しの足し忘れ（Copy）
+  合計:    36、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+  赤 1: LordstatD1aTests.D1a_3_窓の中と外で聖職者の所得の和が一致
