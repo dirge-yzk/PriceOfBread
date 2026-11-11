@@ -20,7 +20,7 @@ public partial class MainWindow : Window
         // 開発ビルドの実地UI確認を無人化する恒久機能（外部の画面操作ツールに依存しない）。
         if (Program.UiShotDir is not null) Opened += (_, _) => RunUiShot(Program.UiShotDir);
         if (Program.PerfOut is not null) Opened += (_, _) => RunPerf(Program.PerfOut);
-        if (Program.BakeMaskOut is not null) Opened += (_, _) => { try { MapPane.BakeLandmask(Program.BakeMaskOut, Program.BakeMaskForRoads); } catch (Exception ex) { BootLog.Write("bakemask 失敗：" + ex.Message); } Environment.Exit(0); };
+        if (Program.BakeMaskOut is not null) Opened += (_, _) => { try { MapPane.BakeLandmask(Program.BakeMaskOut, Program.BakeMaskForRoads); } catch (Exception ex) { BootLog.Write("bakemask 失敗: " + ex.Message); } Environment.Exit(0); };
     }
 
     private void Capture(string dir, string name)
@@ -503,7 +503,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            BootLog.Write($"uishot失敗：{ex}");
+            BootLog.Write($"uishot失敗: {ex}");
             Environment.Exit(4);
         }
     }

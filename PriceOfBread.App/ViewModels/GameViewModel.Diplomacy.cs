@@ -166,7 +166,7 @@ public partial class GameViewModel
                 // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）
                 if (pow.Nation is { } enw)
                 {
-                    detail += $"\n経済：GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
+                    detail += $"\n経済：GDP {Fmt.Money(enw.NominalGdpPerMonth.Value)}/月　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
                             + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(SelfPlayMatch.IsGreatDepression(enw.GdpPcDrawdown.Value) ? "○" : "×")}　関税率 {Fmt.Share(enw.Tariff)}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
                 }
             }

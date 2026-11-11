@@ -108,7 +108,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
         }
-        catch (Exception ex) { BootLog.Write($"助走キャッシュ読み込み失敗（従来どおり組む）：{ex.Message}"); }
+        catch (Exception ex) { BootLog.Write($"助走キャッシュ読み込み失敗（従来どおり組む）: {ex.Message}"); }
         var built = BuildWarmedSimFresh(playerIndex);
         try
         {
@@ -123,7 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveGame.Save(built.Sim, fs);
             BootLog.Write($"助走キャッシュを書いた（{System.IO.Path.GetFileName(cachePath)}）");
         }
-        catch (Exception ex) { BootLog.Write($"助走キャッシュ書き込み失敗：{ex.Message}"); }
+        catch (Exception ex) { BootLog.Write($"助走キャッシュ書き込み失敗: {ex.Message}"); }
         return built;
     }
 

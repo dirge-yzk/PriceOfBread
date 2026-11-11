@@ -61,7 +61,7 @@ public partial class MainWindow
             string collapsed = grid?.LastPlan is { } plan ? string.Join("・", plan.SelectMany(c => c).Where(p => p.Collapsed).Select(p => table.Sections.First(q => q.Key == p.Key).Title)) : "?";
             string cols = grid?.LastPlan is { } pl ? pl.Count.ToString() : "?";
             var al = page.GetVisualDescendants().OfType<TableView>().Select(t => t.MeasureAlignment()).Where(a => a is not null).Select(a => a!.Value).ToList();
-            string align = al.Count == 0 ? "表なし" : string.Join(" / ", al.Select(a => $"{a.Columns}列 ずれ最大{a.MaxDelta:F1}" + (a.MaxDelta > 0.5 ? $"（列「{a.Worst}」）" : "")));
+            string align = al.Count == 0 ? "表なし" : string.Join(" / ", al.Select(a => $"{a.Columns}列 ずれ最大{a.MaxDelta:F1}" + (a.MaxDelta > 0.5 ? $"(列「{a.Worst}」)" : "")));
             BootLog.Write($"uishot: 段3[{tag}] 欄の鍵 {(keys.SequenceEqual(want) ? "表と一致" : "不一致 画面=" + string.Join(",", keys) + " 表=" + string.Join(",", want))}・{cols}列・畳んだ欄 {(collapsed.Length == 0 ? "なし" : collapsed)}・見出しと値の列の左端 {align}");
         }
     }

@@ -63,8 +63,8 @@ public static class PagePlan
     public static IReadOnlyList<IReadOnlyList<SectionSpec>> Arrange(PageTable t, int columns)
     {
         var byKey = new Dictionary<string, SectionSpec>();
-        foreach (var s in t.Sections) if (!byKey.TryAdd(s.Key, s)) throw new ArgumentException($"欄の鍵が重なっている：{s.Key}");
-        var three = t.Columns3.Select(c => (IReadOnlyList<SectionSpec>)c.Select(k => byKey.TryGetValue(k, out var s) ? s : throw new ArgumentException($"表に無い欄：{k}")).ToList()).ToList();
+        foreach (var s in t.Sections) if (!byKey.TryAdd(s.Key, s)) throw new ArgumentException($"欄の鍵が重なっている: {s.Key}");
+        var three = t.Columns3.Select(c => (IReadOnlyList<SectionSpec>)c.Select(k => byKey.TryGetValue(k, out var s) ? s : throw new ArgumentException($"表に無い欄: {k}")).ToList()).ToList();
         if (three.SelectMany(c => c).Select(s => s.Key).Distinct().Count() != three.Sum(c => c.Count)) throw new ArgumentException("同じ欄を 2 つの列に置いている");
         if (columns >= 3 || columns >= three.Count || three.Count <= 1) return columns == 1 ? [three.SelectMany(c => c).ToList()] : three;
         var flat = three.SelectMany(c => c).ToList();
@@ -170,7 +170,19 @@ public sealed class Section : Border
 
     /// <summary>欄の中身（XAML では子として書く）。</summary>
     [Avalonia.Metadata.Content]
-    public Control? Body { get => _inner.Content as Control; set => _inner.Content = value; }
+    public Control? Body
+    {
+        get => _inner.Content as Control;
+        set
+        {
+            if (_inner.Content is TableView old) old.SnapshotChanged -= OnBodyTableChanged;
+            _inner.Content = value;
+            if (value is TableView tv) tv.SnapshotChanged += OnBodyTableChanged;
+        }
+    }
+
+    /// <summary>表の中身が入れ替わった（0 行↔行あり）。欄の空と高さの上限が変わるので、並べ直す（中の流れが大きさの変化を吸うため、親の測り直しが届かない）。</summary>
+    private void OnBodyTableChanged() => (Parent as PageGrid)?.InvalidateMeasure();
 
     /// <summary>見出しを押した。</summary>
     public event Action<Section>? HeaderPressed;
@@ -217,7 +229,7 @@ public sealed class Section : Border
         foreach (var d in Body.GetVisualDescendants())
         {
             if (d is TableView tv) { hasTable = true; if (!(tv.Snapshot is { } sn && sn.Rows.Count == 0 && sn.Columns.Count > 0)) allEmpty = false; }
-            else if (d is TextBlock { IsEffectivelyVisible: true, Text: { } t } && t.EndsWith("なし", StringComparison.Ordinal) && d.Classes.Contains("dim")) return true;
+            else if (d is TextBlock { IsVisible: true, Text: { } t } && t.EndsWith("なし", StringComparison.Ordinal) && d.Classes.Contains("dim")) return true;   // 欄が畳まれて親が隠れても見える（IsEffectivelyVisible だと畳む↔開くを繰り返す）
         }
         return hasTable && allEmpty;
     }
@@ -259,6 +271,13 @@ public sealed class PageGrid : Panel
     static PageGrid()
     {
         AffectsMeasure<PageGrid>(TableProperty);
+    }
+
+    /// <summary>画面に付いた直後にもう一度測る（欄の中の表がまだ中身を持たないうちに最初の測りが済み、空の欄を見落とすことがある・A10）。</summary>
+    protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateMeasure, Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
     protected override void ChildrenChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

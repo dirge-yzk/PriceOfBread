@@ -175,9 +175,14 @@ public sealed class TableView : UserControl
         => Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var v) && v is IBrush b ? b : fallback;
     private static double Small => Application.Current is { } app && app.TryFindResource("FontSmall", app.ActualThemeVariant, out var v) && v is double d ? d : 12;
 
+    /// <summary>表の中身が入れ替わった（<see cref="Section"/> が欄の並べを測り直す）。</summary>
+    public event Action? SnapshotChanged;
+    private int _lastRowCount = -1;
+
     private void Rebuild()
     {
         var snap = Snapshot ?? TableSnapshot.Empty;
+        if (snap.Rows.Count != _lastRowCount) { _lastRowCount = snap.Rows.Count; SnapshotChanged?.Invoke(); }   // 行の数が変わった時だけ（毎月の値の更新では並べ直さない）
         string sig = string.Join("|", snap.Columns.Select(c => c.Key + ":" + c.Kind));
         if (sig != _columnSig)
         {
