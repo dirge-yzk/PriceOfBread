@@ -1,0 +1,86 @@
+(1056) c100ic 事前登録：矯正講和の束ね〈崩壊 1 回に矯正 1 回〉（波100・挙動の線・新しいテーマの 3 回の規則の 1 回目）
+書いた日 2026-11-12・枝 c100ic（56f176a72 から）・worktree D:/PoB_work/wt_c100ic・作業 D:/PoB_work/c100ic_work
+形は〈入口〉（矯正の門の手前で、崩壊の集合の 2 本目以降を止める）。基線は m1053（keep_1053/base_ins・ヌル腕 keep_1053/n1・n2）。
+
+■ 0. 動機と材料
+- 実装ログ (1050)・measurements/m1050_20261111/read1050.txt 問い 5 の案 a。c99uk の問い ②〈崩壊 1 回に矯正 1 回＝する〉は作者「全て推奨で」で推奨を採った。
+- 根 2：CollapseGroup（Diplomacy.cs:2851）は割譲（CedeLeft）と賠償を 1 回分に束ねたが、矯正には束ねの数が無い＝同じ月に同じ敗者の政体が 2〜3 回変わる。
+- read1050 の数（矯正 347・2 本目以降 45・英 53）は keep_1044 の盤面。今の盤面 keep_1053 で取り直した（教訓 ⑧）＝下の §2。
+
+■ 1. 形（新しい係数・状態・閾値は 0）
+- 旗 ImposeOncePerCollapse（Coefficients.cs・ImposeRegimeIdeologyGap の近く・器のコミットは既定 0）。名は全域 grep で衝突なし。
+- CollapseGroup に ImposeLeft を持たせる（FlushCollapseGroup が CedeLeft と並べて 1 で立てる）。月の中だけで捨てる（新しい永続の状態ではない）。
+- 矯正の門（:3218〜:3241）は旧の式のまま評価する。門を越え imposeTarget != dw.Polity のとき：
+  旗 > 0 かつ cg が null でなく cg.ImposeLeft <= 0 なら矯正しない（ApplyRegime・正統性・ログを通らない）。計器が skippedByGroupFlag=1 の行を 1 行書く。
+  それ以外は旧の塊を逐語に通し、旗 > 0 かつ cg が null でないときだけ ImposeLeft を 0 にする（実際に ApplyRegime を通ったときだけ減る＝CedeLeft の〈実際に移ったときに 1 つ減る〉と同じ規則）。
+  門を越えたが imposeTarget == dw.Polity の勝者は残りを使わない（矯正していない）。
+- 取り分の順（:2845 の降順）で、最初に実際に矯正した勝者だけが矯正する。cg が null（単独の講和）は今のまま。CedeLeft とは別の数（M3）。
+- 旗 0 の経路は逐語（ImposeLeft は書くが読まない）。
+- 計器 imp_s（InstrumentsImpose.cs）の末尾に 6 列：groupIdIndex（cpeace と同じ Gids の番号＝CpOf(d).Gids を共有・cg が null なら 0）／groupRankIndex（FlushCollapseGroup の取り分の順の何番目か・1 始まり・cg が null なら 0）／groupShare（ResolvePeace の cgShare）／tooFarToRuleFlag・cededFlag（呼び口の局所）／skippedByGroupFlag。
+  groupRankIndex は CollapseGroup の月の中の欄 Rank に FlushCollapseGroup が書き、計器だけが読む（力学は読まない）。エンジンの関数は呼ばない。
+  飛ばした行は CrownSource(dw, 2) を呼ばない・orderInMonthIndex の番号を使わない（0 を書く）・前後の値は同じ（矯正していない）・imposedPolityCode は今の敗者の政体。
+  ImpAfter の新しい引数は既定値つき（既存の試験の直の呼び出し ImposeAndCrownSourceTests.cs:83・:93・:94 の形を保つ）。
+
+■ 2. 紙の台本（今の盤面 keep_1053・scripts/instruments/c100ic/paper_ic.py・出力 measurements/m1056_20261112/paper_*.txt）
+ 数え方：imp_s の同じ（月・敗者）の 2 本目以降。cg を通ったか＝cpeace の nGrouped ≥2 かつ shares にその勝者の名がある（基線は列が無いので近似）。
+ events＝矯正の事象（月×敗者）・events_cg＝事象の最初の矯正が cg を通った物。
+            imp  events  2本目以降  うち cg  うち cg 外  英の矯正  英の事象  英の cg 2本目  英が矯正される種  events_cg
+  base      321    291       30        30        0         41        36          5            10/10          89
+  N1        273    234       39        39        0         48        38         10            10/10          97
+  N2        243    204       39        39        0         38        32          6             8/10          79
+ cg 外の 2 本目以降は 3 腕とも 0＝この盤面では空（記録の列として残す）。
+ 予言（近似・軌道が分かれた後は動く）：矯正 321→291（−30）・英 41→36・英の〈10 種の全て〉は変わらない。
+ 同じ月の往復（後の矯正が前の行の矯正の前の政体へ戻す）：base 17・N1 16・N2 25＝旗 1 で 0 へ（cg の中の往復は全て 2 本目以降のため）。
+ cg の事象のうち同じ月に割譲があった物：base 70/89・N1 71/97・N2 63/79。集合が 3 本以上：base 40・N1 41・N2 40。
+
+■ 3. 門（両側・旗 0 で落ちる・腕 B の生で読む・台本 scripts/instruments/c100ic/gate_ic.py）
+- G1 働いた（主）：cg を通った（groupIdIndex > 0）矯正のうち、同じ（月・敗者・groupIdIndex）の 2 本目以降（skippedByGroupFlag=0 の行だけ）＝0。
+  旗 0 の値＝基線 30（N1 39・N2 39）で赤。cg を通らない 2 本目以降の数は記録。
+- G2 消しすぎない：events_cg（最初の矯正が cg を通った事象の数）が [71, 107] の中（base 89 ± ヌル腕の幅 18＝max(89,97,79)−min）。下側は 0 でない。
+  形から必ず通る門（旗 1 は集合の最初の矯正を残す）＝働いた証拠にしない。
+- G3 割譲と賠償は変えない：種ごとに、最初の飛ばした行の月より前の cpeace の全行が基線と全列一致（旗 1 は飛ばすまで軌道が同じ）。
+  飛ばした月そのものの（月・敗者）の行の cedeRealCount・repRealIndex の差は記録（:3163 の ratifyRefused が敗者の政体を読む＝旗 0 の 2 本目の矯正が 3 本目の割譲を変えうる＝形の結合）。
+  飛ばした行が無い種は全行一致を求める（旗 1 は何もしていない）。
+- 記録（結果の側・ヌル腕の幅で読む・★(1053)）：矯正の総数・英の件数と種の数・同じ月の往復・王冠の出どころ 2 の数（crownpc_s の crownRegisterSourceCode=2 の国×四半期）・戦争の頻度（wars_s の本数）・飛ばした行の数（基線の 2 本目以降 30 と並べる＝同じ盤面の新÷旧）。
+
+■ 4. 突然変異（使い捨ての木・腕の前に紙で表を置く・腕 B の後に 1 本ずつ回せれば回す）
+  M1 残りを減らさない（ImposeLeft を 0 にする行を消す）       → G1 赤（2 本目以降が残る＝基線 30 前後）。G2・G3 緑。
+  M2 残りを 0 から始める（ImposeLeft = 0 で立てる）           → G2 赤（events_cg が 0＝下側）。G1 緑（0）。G3 は飛ばす前まで一致。
+  M3 CedeLeft と共有する（矯正の残りに CedeLeft を読み、減らす） → G2 赤の見込み（cg の事象 89 のうち 70 で同じ月に割譲＝割譲の後の矯正が飛ぶ）・G3 赤の見込み（矯正が割譲の枠を食う集合で割譲が減る）。
+  M4 旗を読まない（飛ばす判定の旗の項を常に偽）                → G1 赤（旗 0 と同じ 30 前後）。
+ 旗 0 で門が落ちることの確かめ：G1 は基線 30 で赤（paper_base_ins.txt）。G2・G3 は旗 0 で緑（形から通る門・働いた証拠にしない）。
+ 機構の試験（新・ImposeOncePerCollapseTests.cs）で M1〜M4 を 1 本ずつ赤にする（突然変異の木で dotnet test・出力を measurements/m1056_20261112/ へ）。
+
+■ 5. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表：触らない（新しい工業化度の読みは無い）。
+- new MoneyStock( の件数：SimCore で 64（変えない）。
+- route_anchors.tsv（scripts/instruments/flow262/）の Diplomacy.cs の鍵の行：:44 の拿捕品の行だけ＝触らない。
+- WriterRatchetTests の宣言の表：新しい計数の処理は無い＝変わらない予言（旗 1 で軌道が動けば★(749) の区分で合流が取り直す）。
+- DormantIdentityTests：器のコミットで DormantZeroFields に ImposeOncePerCollapse を 1 行足す（件数 +1）。旗 1 のコミットで表から外し、点火の注を 1 行。
+- InstrumentsTests ほか計器の列の数の Assert：imp の列数を数える Assert は ImposeAndCrownSourceTests が Header.Length（ImpHeaderText から）で読む＝列の増えで赤にならない予言。16 を固定した試験は grep で 0 件。
+
+■ 6. ㉜ 旗 1 の木で赤になる既存の試験の予言（grep の結果）
+- ImposeCrownFromLoserTests.旗1_同じ月の連鎖は段の頭の王冠から写す（:85〜:98）：同じ敗者の厭戦の崩壊の戦争 2 本＝cg を通る＝Imposed==2 が旗 1 で 1 になり赤。
+  処置（腕の前に決める）：この試験の主張は (943) の〈同じ月の 2 本目は段の頭の王冠から写す〉で、旗 1 の後も cg を通らない同じ月の連鎖（厭戦の崩壊でなく戦勝点で決まった講和 2 本＝ConcludeWar(…, null, 1.0)）では 2 本目が起きうる。
+  盤面を cg を通らない経路へ取り直す（敗者の厭戦を 0 のままにし、2 本の戦争の戦勝点を ±1.5 に置く＝decisive〔|Score|≥1.0〕で単独の講和）。Imposed==2・王冠の Assert・旗 0／1 の対比は変えない。新しい旗は 0 にも 1 にも置かない（既定のまま）。
+  取り直しは器のコミット（旗 0）で入れ、旗 0 でも緑を確かめる。到達できない（盤面で 2 本目が起きない）なら、旧の規則を固定した番人の型として腕 B の前で止め、作者に聞く物の先頭へ。
+- ImposeAndCrownSourceTests：RunImpose は仏（絶対）とスペイン（開幕の政体を grep で確かめる）が英に勝つ＝1 本目の後に英が絶対になり 2 本目は門を越えない＝旗 1 で不変の予言。直の ImpAfter の呼び出しは引数の既定値で形を保つ。
+- CollapsePeaceTests：矯正の件数を数える Assert は grep で無い（割譲と賠償だけ）＝不変の予言。
+- DormantIdentityTests：旗 1 のコミットで表から外す（上の §5）。
+
+■ 7. 止める線（この回の形をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期の名目 100 倍の〈それ以外〉（建国の直後と政府の人口の 1/10・10 倍の四半期はヌル腕の件数と並べる）・1e10 倍・非有限。
+- 空洞化：an_h2.py -v4 で 1/10 未満、規則 A2 の名簿の外、線が原因と読めた件（基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）が 1 件（T1）。
+- 推定の計算量 ＞248.5 秒・機構の試験の赤（ソースを走査する番人を含む）。
+- 記録：建国の直後の 100 倍と gdp_zero10（ヌル腕と並べる）・人口の比 1/10 未満か 10 倍以上の行（popjump1017.py）・史実度・NG（ng.sh・基準 rd:measurements/ng1053_20261112:m1053）・◎・英の国債の不履行・空洞化 1/4 未満・開幕の 1000 倍以上。
+
+■ 8. 計算量の割り当て
+- .cost の増え：ほぼ 0〈推〉（矯正 1 件あたり整数の比べ 1 回と代入 1 回・矯正は 10 種で約 300 件）。割り当て 0.0 秒（名目の余り 5.8 秒の保守側に対し使わない）。S11 は合流が読む。
+
+■ 9. 周辺の点検（読むだけ・欠損は別の線へ）
+- 厭戦崩壊の戦勝点 1.5（:2746〜:2770）・crushing の門 1.4（:3159）・Ideology の隔たり（:1156）・王冠の登録簿の書き手 2（InstrumentsCrown.cs）。報告に所見を書く。
+
+■ 10. 手順と D:
+- 器（旗 0・列・試験）→ ㉘ → フルスイート → ident.sh run c100icz --grown-ok imp（旗 0）→ 旗の既定 1 → ㉘ → 計器の束 → フルスイート（分けて・--list-tests と突き合わせ）・savetest・leakhunt → 腕 B（INS=1 batch.sh run c100icB 10）。
+- 重い仕事の前に shutil で〈21GB＋走っている重い仕事の残り＋5GB〉の空きを確かめる。足りなければ起こさずその段まで push して〈D: の空き不足で止めた〉と報告する。
+- 旗 1 の出力を見た後のエンジンの変更は 1 回まで（⑭）。結果を見た後で門を変えない。

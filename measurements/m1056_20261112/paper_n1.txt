@@ -1,0 +1,11 @@
+seed 1: imp=24 events=20 second_all=4 second_cg=4 second_nocg=0 skipped=0 imp_uk=3 events_uk=2 second_cg_uk=1
+seed 2: imp=23 events=19 second_all=4 second_cg=4 second_nocg=0 skipped=0 imp_uk=5 events_uk=3 second_cg_uk=2
+seed 3: imp=27 events=24 second_all=3 second_cg=3 second_nocg=0 skipped=0 imp_uk=10 events_uk=8 second_cg_uk=2
+seed 4: imp=24 events=22 second_all=2 second_cg=2 second_nocg=0 skipped=0 imp_uk=5 events_uk=4 second_cg_uk=1
+seed 5: imp=25 events=20 second_all=5 second_cg=5 second_nocg=0 skipped=0 imp_uk=6 events_uk=5 second_cg_uk=1
+seed 6: imp=42 events=38 second_all=4 second_cg=4 second_nocg=0 skipped=0 imp_uk=6 events_uk=4 second_cg_uk=2
+seed 7: imp=15 events=13 second_all=2 second_cg=2 second_nocg=0 skipped=0 imp_uk=1 events_uk=1 second_cg_uk=0
+seed 8: imp=50 events=40 second_all=10 second_cg=10 second_nocg=0 skipped=0 imp_uk=5 events_uk=5 second_cg_uk=0
+seed 9: imp=20 events=17 second_all=3 second_cg=3 second_nocg=0 skipped=0 imp_uk=3 events_uk=3 second_cg_uk=0
+seed 10: imp=23 events=21 second_all=2 second_cg=2 second_nocg=0 skipped=0 imp_uk=4 events_uk=3 second_cg_uk=1
+合計: imp=273 events=234 second_all=39 second_cg=39 second_nocg=0 skipped=0 imp_uk=48 events_uk=38 second_cg_uk=10 seed_uk=10 events_cg=97
