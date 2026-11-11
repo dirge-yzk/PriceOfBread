@@ -152,8 +152,9 @@ public class CorncfInstrumentTests
     [Fact]
     public void T5_輸入の割合()
     {
-        var (dir, sim) = Run(3);
-        var rows = Last(dir, 3); int pos = 0;
+        const ulong seed = 1794UL;   // (1030) 盤面の種を取り直した（正の組がある前提は種の軌道に依る＝旧 1791 は旗 EndowmentCostFollowsAbundance 1 で 0 組・事前登録 m1030 の追記 2）
+        var (dir, sim) = Run(3, null, seed);
+        var rows = Last(dir, 3, seed); int pos = 0, seen = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World; var row = rows.Single(r => r["nation"] == Instruments.NameOf(w));
@@ -163,8 +164,10 @@ public class CorncfInstrumentTests
                 double imp = w.ImportsByGood![g], want = imp + pv > 0 ? imp / (imp + pv) : 0.0;
                 Assert.True(Math.Abs(D(row, $"cfImportShare_g{g}") - want) <= 1e-9, $"m {g}");
                 if (want > 0) pos++;
+                seen++;
             }
         }
+        Assert.True(seen >= 2 * CornIds().Length, $"調べた組 {seen} が国×穀物の数に届かない");
         Assert.True(pos > 0, "輸入の割合が全て 0＝試験にならない");
     }
 
