@@ -1,0 +1,14 @@
+共通 1321・全体の一致 1291・先頭の列で一致 0・揺れの表の違い 20・それ以外の違い 10・a だけ 0・b だけ 10
+違い lordstat_s1.tsv
+違い lordstat_s10.tsv
+違い lordstat_s2.tsv
+違い lordstat_s3.tsv
+違い lordstat_s4.tsv
+違い lordstat_s5.tsv
+違い lordstat_s6.tsv
+違い lordstat_s7.tsv
+違い lordstat_s8.tsv
+違い lordstat_s9.tsv
+a だけ（頭） []
+b だけ（頭） ['lwk']
+先頭の列：共通 30・一致 30・違い 0

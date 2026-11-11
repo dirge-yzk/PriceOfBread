@@ -1,0 +1,44 @@
+共通 1316・全体の一致 1246・先頭の列で一致 0・揺れの表の違い 20・それ以外の違い 50・a だけ 0・b だけ 10
+違い cearn_s1.tsv
+違い cearn_s10.tsv
+違い cearn_s2.tsv
+違い cearn_s3.tsv
+違い cearn_s4.tsv
+違い cearn_s5.tsv
+違い cearn_s6.tsv
+違い cearn_s7.tsv
+違い cearn_s8.tsv
+違い cearn_s9.tsv
+違い cpop_s1.tsv
+違い cpop_s10.tsv
+違い cpop_s2.tsv
+違い cpop_s3.tsv
+違い cpop_s4.tsv
+違い cpop_s5.tsv
+違い cpop_s6.tsv
+違い cpop_s7.tsv
+違い cpop_s8.tsv
+違い cpop_s9.tsv
+違い flow_s1.tsv
+違い flow_s10.tsv
+違い flow_s2.tsv
+違い flow_s3.tsv
+違い flow_s4.tsv
+違い flow_s5.tsv
+違い flow_s6.tsv
+違い flow_s7.tsv
+違い flow_s8.tsv
+違い flow_s9.tsv
+違い lordstat_s1.tsv
+違い lordstat_s10.tsv
+違い lordstat_s2.tsv
+違い lordstat_s3.tsv
+違い lordstat_s4.tsv
+違い lordstat_s5.tsv
+違い lordstat_s6.tsv
+違い lordstat_s7.tsv
+違い lordstat_s8.tsv
+違い lordstat_s9.tsv
+a だけ（頭） []
+b だけ（頭） ['sellr']
+先頭の列：共通 30・一致 30・違い 0

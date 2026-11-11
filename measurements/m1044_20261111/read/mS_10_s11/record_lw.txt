@@ -1,0 +1,25 @@
+# 腕÷基準（同じ種・国・年末の行の比の中央値と十分位の 1・9）。失業率は差（腕−基準）
+plainWageBillPerMonth	1783-1849	N=40266	中央 1.0096	十分位1 0.6942	十分位9 1.4621
+plainWageBillPerMonth	1850-1899	N=30547	中央 0.9958	十分位1 0.5439	十分位9 1.7502
+plainWageBillPerMonth	1900-1950	N=31161	中央 0.8113	十分位1 0.3315	十分位9 1.9124
+plainUnemploymentShare	1783-1849	N=40267	中央 0.0000	十分位1 -0.1203	十分位9 0.1225
+plainUnemploymentShare	1850-1899	N=30547	中央 0.0000	十分位1 -0.1398	十分位9 0.1376
+plainUnemploymentShare	1900-1950	N=31161	中央 0.0000	十分位1 -0.1079	十分位9 0.1002
+plainRealPriceIndex	1783-1849	N=40267	中央 1.0028	十分位1 0.8467	十分位9 1.1891
+plainRealPriceIndex	1850-1899	N=30547	中央 0.9872	十分位1 0.7702	十分位9 1.2614
+plainRealPriceIndex	1900-1950	N=31161	中央 0.8943	十分位1 0.5508	十分位9 1.3156
+plainCapPerMonth	1783-1849	N=40267	中央 1.0008	十分位1 0.8459	十分位9 1.2319
+plainCapPerMonth	1850-1899	N=30547	中央 1.0490	十分位1 0.7514	十分位9 1.4804
+plainCapPerMonth	1900-1950	N=31161	中央 1.1120	十分位1 0.7229	十分位9 1.7038
+farmWageBillPerMonth	1783-1849	N=40266	中央 1.0271	十分位1 0.7742	十分位9 1.3800
+farmWageBillPerMonth	1850-1899	N=30547	中央 1.0218	十分位1 0.5588	十分位9 1.8339
+farmWageBillPerMonth	1900-1950	N=31161	中央 0.8546	十分位1 0.3322	十分位9 2.3177
+farmUnemploymentShare	1783-1849	N=40267	中央 0.0000	十分位1 0.0000	十分位9 0.0000
+farmUnemploymentShare	1850-1899	N=30547	中央 0.0000	十分位1 0.0000	十分位9 0.0000
+farmUnemploymentShare	1900-1950	N=31161	中央 0.0000	十分位1 0.0000	十分位9 0.0000
+farmRealPriceIndex	1783-1849	N=40267	中央 1.0262	十分位1 0.8132	十分位9 1.3222
+farmRealPriceIndex	1850-1899	N=30547	中央 1.0090	十分位1 0.6797	十分位9 1.5817
+farmRealPriceIndex	1900-1950	N=31161	中央 0.9197	十分位1 0.4446	十分位9 1.6783
+farmCapPerMonth	1783-1849	N=40267	中央 0.9781	十分位1 0.7794	十分位9 1.2172
+farmCapPerMonth	1850-1899	N=30547	中央 0.9933	十分位1 0.6354	十分位9 1.5052
+farmCapPerMonth	1900-1950	N=31161	中央 1.0493	十分位1 0.6349	十分位9 1.7821
