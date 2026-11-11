@@ -3242,6 +3242,7 @@ public static class EconomyStep
     /// 分子も分母も前の月の需要の側（産出は前の月の供給の値・総需要は投入・建設・再点火・効率化を含む）。分母が正でない・m が NaN か負は 0（否定形）。天井で削らない（設計思想⑧）。</summary>
     internal static double PowerShare(Region region, Coefficients coef)
     {
+        if (Catalog.LaborId >= region.Markets.Length) return 0.0;   // 財の少ない世界（労働力の市場が無い）＝工場の労働の需要も無い
         double den = region.Markets[Catalog.LaborId].LastDemand;
         if (!(den > 0)) return 0.0;
         double num = 0.0;

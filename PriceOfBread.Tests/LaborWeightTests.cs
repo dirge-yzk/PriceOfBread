@@ -115,6 +115,17 @@ public class LaborWeightTests
     }
 
     [Fact]
+    public void T7_労働力の市場が無い小さな世界でも旗1が回り_動力の割合は0()
+    {
+        var sim = Sim(ScenarioKind.RegionalFamine, 1);
+        var r = sim.World.Regions[0];
+        Assert.True(Catalog.LaborId >= r.Markets.Length, "前提：この世界には労働力の市場が無い");
+        Assert.Equal(0.0, EconomyStep.PowerShare(r, sim.World.Coef));
+        var ex = Record.Exception(() => sim.Run(4));
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void T6_2か月目に動力を入れると工員だけが紙のbで伸び_農民は手のまま_技師は旧のまま()
     {
         var a = Sim(ScenarioKind.France, 0, femaleNeed: 0); var b = Sim(ScenarioKind.France, 1, femaleNeed: 0);
