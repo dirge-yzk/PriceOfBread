@@ -27,7 +27,8 @@ public static partial class Instruments
         + "\tsogStockLeTarget\tsogSellAcc0\tsogMilitary\tsogOther\txpEndPriceHigh\txpEndXPriceSmall\txpEndXNeedSmall\txpEndYZero\txpEndBudget\txpEndCapMid\txpEndDealt\txpEndGuard"
         + "\tubRows\tubInf\trpIter\trpDiff\trpCtrl\trpCtrlDiff\tgdRows\tgdIterX\tgdIterY\tgdIterLeft\tgdIterBudget\tgdIterCap\tgdIterRemove\tubD\trpSumXOld\trpSumXBb";   // (1045) C4d・ガード終わりの内訳（末尾に足す・旧の列は同じ順・同じバイト）   // (1008) 末尾の列（旧の列は同じ順・同じバイト）・(1036) C4a：売り手の〈その他の門〉の分け（在庫≦目標・sellAcc 0・軍需・その他＝和は sellerOtherGate）・C4b：xPass の組の行の終わりの理由（組の数で重みづけ＝和は xPass）
     static string TsGateHeader => string.Concat(new[] { "xSoldBin", "xCapBin", "xWedgeBin", "xPassBin" }.Select(g => string.Concat(Enumerable.Range(0, 10).Select(k => g + k + "\t"))));
-    internal const int TsNewCols = 3 + 3 + 40 + 1 + 5 + 12 + 13 + 3;   // (1008) ALL の行を同じ幅で埋める数
+    internal const int TsNewCols = 3 + 3 + 40 + 1 + 5 + 12 + 13 + 3;
+    const int DStride = TsAcc.DStride;   // (1045) 走査した行の実数の和の幅（旧の 3＋C4d の 3）   // (1008) ALL の行を同じ幅で埋める数
 
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
         Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard,
