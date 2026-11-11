@@ -2008,7 +2008,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, Count = 30;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, LaborPowerScans = 30, Count = 31;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2028,6 +2028,7 @@ public static class CostLedger
         "主食の台帳と配り直し：POP×月×段（旗 StapleLedgerSum が正のとき決済後の締め 1 段・旗 StapleDemandRebalance が正のとき月の頭の前計算 1 段・(504)）",
         "海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
         "清算：着値の下界を評価した売り手（飛ばした＋通した・距離と危険料を引かず下界の比較だけ・(1029)(1036)）",
+        "労働の重み：州の動力の割合 m の生産者の走査（旗 LaborWeightsByPower が正の州×月・州の生産者の数・(1045)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2081,7 +2082,12 @@ public static class CostLedger
         StapleLedgerUnitMicros,   // ★(504) 主食の台帳と配り直し：POP×月×段あたり（**上限の見積り**・census は無い・下の定数の注記）
         NavalOrderScanUnitMicros,   // ★(669) 海軍の発注の配り：州×月×周あたり（**上限の見積り**・census は無い・下の定数の注記）
         ClearingSkipUnitMicros,   // ★(1029) 清算：着値の下界で飛ばした売り手あたり（下の定数の注記）
+        LaborPowerScanUnitMicros,   // ★(1045) 労働の重み：m の生産者の走査 1 件あたり（下の定数の注記）
     ];
+    /// <summary>★(1045) 労働の重みの m（EconomyStep.PowerShare）の生産者の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。
+    /// 動力のある工場だけが投入の実効量（EffectiveQty）まで進む＝多くの件は読み 3 つと比較だけ。1 件は読み・比較の数回＝ClearingSkipUnitMicros（0.02＝配列の引きを含む）の半分に置く。
+    /// 事前登録 measurements/m1045_*_prereg_cd.txt の [3]。</summary>
+    public const double LaborPowerScanUnitMicros = 0.01;   // 件数の見込み＝1 試合の生産者×月 約 1.2〜1.5 億（睡眠の生産者も走査する）→ 推定 約 1.2〜1.5 秒（計り台で取り直すのは e1 の後の申し送り）
     /// <summary>★(1029) 着値の下界で飛ばした売り手の単価（マイクロ秒/件）＝**上限の見積り**：1 件＝下界の表の引き（国の表の添字）＋下界の式の評価＋比較＋連結リストを進める。単価の根拠は measurements/m1029_*（小さな計り台）。</summary>
     public const double ClearingSkipUnitMicros = 0.02;
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値

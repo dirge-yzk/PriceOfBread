@@ -13,7 +13,10 @@ namespace PriceOfBread.SimCore;
 //   ・laborWeight は平滑 Toward の途中の値（目覚めた月を除き sellROld×rentR とは一致しない）＝一致の割合は記録で、門は合成の盤面。
 public static partial class Instruments
 {
-    internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth";
+    internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth\trentRMul";   // (1045) 末尾：エンジン（EconomyStep.cs:963 の周り）が重みに掛ける形＝rentR が正でなければ 0（NaN も 0）
+
+    /// <summary>(1045) エンジンが sellR に掛ける rentR の形（否定形で丸める＝NaN・負は 0）。計器自身の写し。</summary>
+    internal static double RentRMulOf(double rentR) => rentR > 0 ? rentR : 0.0;
 
     sealed class SrSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, SrSink> SrSinks = new();
@@ -50,7 +53,7 @@ public static partial class Instruments
                     var (sOld, sBoth) = SellrOf(m, floor);
                     double rentR = m.Price - EconomyStep.InputCostPerUnit(p, r, r, w.Coef);
                     sk.W.WriteLine(string.Join('\t', I(yearLabel), I(q), r.Name, nm, Catalog.Goods[g].Name,
-                        FR(m.LastDemand), FR(m.PrevExport), FR(m.PrevImport), FR(m.LastProduced), FR(m.Stock), FR(m.TargetStock), FR(p.LaborWeight), FR(rentR), FR(sOld), FR(sBoth)));
+                        FR(m.LastDemand), FR(m.PrevExport), FR(m.PrevImport), FR(m.LastProduced), FR(m.Stock), FR(m.TargetStock), FR(p.LaborWeight), FR(rentR), FR(sOld), FR(sBoth), FR(RentRMulOf(rentR))));
                 }
         }
     }

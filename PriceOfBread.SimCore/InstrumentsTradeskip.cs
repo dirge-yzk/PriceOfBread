@@ -24,12 +24,14 @@ public static partial class Instruments
         + "ratioBin0\tratioBin1\tratioBin2\tratioBin3\tratioBin4\tratioBin5\tratioBin6\tratioBin7\tratioBin8\tratioBin9\t"
         + "sellerUnlinked\tsellerNoStock\tsellerOtherGate\tsellerListed\tgoodNoSellers\trowsLedger\t"
         + "dutyMean\tdutyTariffMean\tdutyCornMean\txWedgeAT\txWedgeAC\txWedgeAB\t" + TsGateHeader + "ratioNaN\ttarEff\ttariffNow\ttariffTarget\ttreatyScale\texRate"
-        + "\tsogStockLeTarget\tsogSellAcc0\tsogMilitary\tsogOther\txpEndPriceHigh\txpEndXPriceSmall\txpEndXNeedSmall\txpEndYZero\txpEndBudget\txpEndCapMid\txpEndDealt\txpEndGuard";   // (1008) 末尾の列（旧の列は同じ順・同じバイト）・(1036) C4a：売り手の〈その他の門〉の分け（在庫≦目標・sellAcc 0・軍需・その他＝和は sellerOtherGate）・C4b：xPass の組の行の終わりの理由（組の数で重みづけ＝和は xPass）
+        + "\tsogStockLeTarget\tsogSellAcc0\tsogMilitary\tsogOther\txpEndPriceHigh\txpEndXPriceSmall\txpEndXNeedSmall\txpEndYZero\txpEndBudget\txpEndCapMid\txpEndDealt\txpEndGuard"
+        + "\tubRows\tubInf\trpIter\trpDiff\trpCtrl\trpCtrlDiff\tgdRows\tgdIterX\tgdIterY\tgdIterLeft\tgdIterBudget\tgdIterCap\tgdIterRemove\tubD\trpSumXOld\trpSumXBb";   // (1045) C4d・ガード終わりの内訳（末尾に足す・旧の列は同じ順・同じバイト）   // (1008) 末尾の列（旧の列は同じ順・同じバイト）・(1036) C4a：売り手の〈その他の門〉の分け（在庫≦目標・sellAcc 0・軍需・その他＝和は sellerOtherGate）・C4b：xPass の組の行の終わりの理由（組の数で重みづけ＝和は xPass）
     static string TsGateHeader => string.Concat(new[] { "xSoldBin", "xCapBin", "xWedgeBin", "xPassBin" }.Select(g => string.Concat(Enumerable.Range(0, 10).Select(k => g + k + "\t"))));
-    internal const int TsNewCols = 3 + 3 + 40 + 1 + 5 + 12;   // (1008) ALL の行を同じ幅で埋める数
+    internal const int TsNewCols = 3 + 3 + 40 + 1 + 5 + 12 + 13 + 3;   // (1008) ALL の行を同じ幅で埋める数
 
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
-        Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard, Count }
+        Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard,
+        UbRows, UbInf, RpIter, RpDiff, RpCtrl, RpCtrlDiff, GdRows, GdX, GdY, GdLeft, GdBudget, GdCap, GdRemove, Count }   // (1045) 末尾の 13 列
     internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
     /// <summary>(1036) 試験の呼び口：買い手が満ちた行の終わり（X≦0）で、その行の xPrice・xNeed と計器が付けた理由を渡す（null＝何もしない）。</summary>
     [System.ThreadStatic] internal static Action<double, double, TsExit>? TsExitProbe;
@@ -65,10 +67,11 @@ public static partial class Instruments
                 {
                     Add(sn, g, TsCol.SLive);
                     if (listedMark[s]) continue;
-                    // (1036) C4a：売り手の表に載らない生きた州の理由（排他・この順）＝在庫≦目標（P6・Market の欄の素の差）→ 出し手の係数が 0（州の access）→ 軍需の門（軍需の財で国の係数が 0）→ その他（鎖国・アヘンの輸出禁止ほか＝計器は再計算しない）
-                    if (!(mktOf[s].Stock - mktOf[s].TargetStock > 1e-12)) Add(sn, g, TsCol.OgStock);
-                    else if (tr[s].access <= 1e-12) Add(sn, g, TsCol.OgAcc0);
+                    // (1045) C4a の順をエンジンの門の順へ（BilateralMarket.cs の売り手の表の構築＝出し手の係数 sellAcc≦1e-12〔州の access → 軍需 → 鎖国・アヘン〕→ 在庫−目標≦1e-12）。
+                    //   計器は鎖国とアヘンの係数を再導出しない（エンジンの関数を呼ばない）＝その 2 つで落ちた州は、在庫−目標≦1e-12 でもあれば OgStock、無ければ OgOther に数える（宣言した限界）。
+                    if (tr[s].access <= 1e-12) Add(sn, g, TsCol.OgAcc0);
                     else if (milGood && tr[s].access * milExportAcc[sn] <= 1e-12) Add(sn, g, TsCol.OgMil);
+                    else if (!(mktOf[s].Stock - mktOf[s].TargetStock > 1e-12)) Add(sn, g, TsCol.OgStock);
                     else Add(sn, g, TsCol.OgOther);
                 }
             }
@@ -84,7 +87,67 @@ public static partial class Instruments
 
         internal void Row(int bn, int g) { CloseRow(); cur = 1; curBn = bn; curG = g; curXPass = 0; Add(bn, g, TsCol.Rows); }
         /// <summary>(1036) C4b：走査した行の終わりの理由。その行の xPass の組の数だけ該当の列へ足す（組ごとの追跡ではなく行の終わりの理由を組の数で重みづけ）。</summary>
-        internal void Exit(TsExit why) { if (cur < 0 || !scanned || curXPass == 0 || why == TsExit.None) return; C[(curBn * Gc + curG) * (int)TsCol.Count + (int)TsCol.XeHigh + (int)why - 1] += curXPass; }
+        internal void Exit(TsExit why)
+        {
+            if (cur >= 0 && scanned && why == TsExit.Guard)   // (1045) ガードで終わった走査の行の反復の内訳（xPass が 0 の行も数える＝行の数 gdRows）
+            {
+                int o = (curBn * Gc + curG) * (int)TsCol.Count;
+                C[o + (int)TsCol.GdRows]++;
+                for (int k = 0; k < GdLen; k++) C[o + (int)TsCol.GdX + k] += gd[k];
+            }
+            ExitXPass(why);
+        }
+
+        // (1045) C4d・ガード終わりの内訳：三つの呼び口（計器は Market の欄と売り手の表 sPrice を自分で読む・エンジンの関数を呼ばない）。
+        internal const int DStride = 6, GdLen = 6;
+        readonly int[] gd = new int[GdLen];   // 行の中の反復の内訳＝X・Y・left・予算・容量が縛った反復、売り手を外した反復
+
+        /// <summary>:887 の xNeed≦0 の飛ばし：案 B-b の上界 TS＋D·(rpT/先頭の売り手の値段)^ε−P−S ＞ 0 の行を数える（先頭の売り手が居ない・値段が正でない・NaN は ubInf）。</summary>
+        internal void SkipNeed(Market m, double refPrice, double priceLevel, double exRate, int headS, double eps)
+        {
+            if (cur < 0) return;
+            double p = headS >= 0 && headS < sN ? sPrice[headS] : double.NaN;
+            if (!(p > 0)) { Add(curBn, curG, TsCol.UbInf); return; }
+            double rpT = refPrice * priceLevel * exRate;
+            double ub = m.TargetStock + m.LastDemand * Math.Pow(rpT / p, eps) - m.LastProduced - m.Stock;
+            if (!(ub > 0)) return;
+            Add(curBn, curG, TsCol.UbRows);
+            if (D.Length > 0) D[(curBn * Gc + curG) * DStride + 3] += m.LastDemand;
+        }
+
+        /// <summary>最良と次善が決まり直した反復（dealConstStale）：旧の X と案 B-b の X を同じ盤面で両方記帳する（不透明の漏れ＝アヘンの係数は掛けない）。
+        /// 統制の行＝r≦1 かつ S−I＜TS（紙で X が一致する側）。</summary>
+        internal void Repick(Market m, double access, double refPrice, double priceLevel, double exRate, double unitA, double eps)
+        {
+            if (cur < 0 || !scanned) return;
+            double rpT = refPrice * priceLevel * exRate;
+            bool on = rpT > 1e-9 && unitA > 1e-9;
+            double r = rpT / unitA;
+            double xPrice = on ? m.LastDemand * Math.Pow(r, 2.0 * eps) - (m.LastProduced + m.LastImport) : 0.0;
+            double xNeed = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+            double xNeedB = on ? m.TargetStock + m.LastDemand * Math.Pow(r, eps) - m.LastProduced - m.Stock : xNeed;
+            double xOld = access * Math.Max(0, Math.Min(xPrice, xNeed));
+            double xBb = access * Math.Max(0, Math.Min(xPrice, xNeedB));
+            bool diff = xOld != xBb && !(double.IsNaN(xOld) && double.IsNaN(xBb));
+            Add(curBn, curG, TsCol.RpIter); if (diff) Add(curBn, curG, TsCol.RpDiff);
+            if (on && r <= 1.0 && m.Stock - m.LastImport < m.TargetStock) { Add(curBn, curG, TsCol.RpCtrl); if (diff) Add(curBn, curG, TsCol.RpCtrlDiff); }
+            if (D.Length > 0) { int di = (curBn * Gc + curG) * DStride; D[di + 4] += xOld; D[di + 5] += xBb; }
+        }
+
+        /// <summary>成約の判定の反復：X・Y・売り手の残り・予算の項・容量の項のうち最小のもの（同値は左）を数える。NaN は選ばない。</summary>
+        internal void Iter(double x, double y, double left, double budgetTerm, double capTerm)
+        {
+            if (cur < 0 || !scanned) return;
+            int k = 0; double v = x;
+            if (y < v || double.IsNaN(v)) { k = 1; v = y; }
+            if (left < v || double.IsNaN(v)) { k = 2; v = left; }
+            if (budgetTerm < v || double.IsNaN(v)) { k = 3; v = budgetTerm; }
+            if (capTerm < v || double.IsNaN(v)) { k = 4; v = capTerm; }
+            gd[k]++;
+        }
+        internal void IterRemove() { if (cur < 0 || !scanned) return; gd[5]++; }
+
+        void ExitXPass(TsExit why) { if (cur < 0 || !scanned || curXPass == 0 || why == TsExit.None) return; C[(curBn * Gc + curG) * (int)TsCol.Count + (int)TsCol.XeHigh + (int)why - 1] += curXPass; }
         internal void Outcome(int which) { if (cur < 0) return; Add(curBn, curG, which == TsOutIdle ? TsCol.Idle : which == TsOutNoNeed ? TsCol.NoNeed : TsCol.Budget0); }
         internal void Deal(bool cross) { if (cur < 0) return; if (cross) dealtCross = true; else dealtDom = true; }
 
@@ -94,7 +157,8 @@ public static partial class Instruments
             if (cur < 0) return;
             scanned = true; Add(curBn, curG, TsCol.Scan);
             double protect = TarEff.Length > curBn ? Math.Max(0, TarEff[curBn]) : duty - cornPen;   // (1008) 関税の分＝エンジンの protect の写し（tar の局所から）・合成の盤面だけ差で出す
-            if (D.Length > 0) { int di = (curBn * Gc + curG) * 3; D[di] += duty; D[di + 1] += protect; D[di + 2] += cornPen; }
+            for (int k = 0; k < GdLen; k++) gd[k] = 0;   // (1045) 行ごとの反復の内訳を空にする
+            if (D.Length > 0) { int di = (curBn * Gc + curG) * DStride; D[di] += duty; D[di + 1] += protect; D[di + 2] += cornPen; }
             for (int i = 0; i < sN; i++)
             {
                 int sn = sNode[i]; int sNat = tr[sn].nation; double selP = sPrice[i];
@@ -141,7 +205,7 @@ public static partial class Instruments
         if (a.C.Length != len) a.C = new int[len]; else Array.Clear(a.C);
         if (a.NoSell.Length != gc) a.NoSell = new int[gc]; else Array.Clear(a.NoSell);
         a.Names = new string[nn]; for (int i = 0; i < nn; i++) a.Names[i] = NameOf(nations[i].World);
-        if (a.D.Length != nn * gc * 3) a.D = new double[nn * gc * 3]; else Array.Clear(a.D);
+        if (a.D.Length != nn * gc * DStride) a.D = new double[nn * gc * DStride]; else Array.Clear(a.D);   // (1045) 3 → DStride（先頭の 3 つは旧のまま・後ろ 3 つは C4d の和）
         a.TarEff = new double[nn]; a.TariffNow = new double[nn]; a.Target = new double[nn]; a.Treaty = new double[nn]; a.ExRate = new double[nn];   // (1008) 国の値は清算の頭の写し（tar・exRate はエンジンの局所・他は World から計器が自分で写す）
         for (int i = 0; i < nn; i++)
         {
@@ -176,12 +240,13 @@ public static partial class Instruments
                 cols.Clear(); cols.Add(I(year)); cols.Add(nm); cols.Add(Catalog.Goods[g].Name);
                 for (int c = (int)TsCol.Rows; c <= (int)TsCol.Bin9; c++) cols.Add(I(a.C[o + c]));
                 cols.Add(I(a.C[o + (int)TsCol.SUnlinked])); cols.Add(I(a.C[o + (int)TsCol.SNoStock])); cols.Add(I(live - listed)); cols.Add(I(listed)); cols.Add("0"); cols.Add("0");
-                double ns = a.C[o + (int)TsCol.Scan]; int di = (i * a.Gc + g) * 3;   // (1008) 末尾の列：走査した行の平均（走査 0 の行は 0）・小数は往復の桁（門の 1e-12 のため）
+                double ns = a.C[o + (int)TsCol.Scan]; int di = (i * a.Gc + g) * DStride;   // (1008) 末尾の列：走査した行の平均（走査 0 の行は 0）・小数は往復の桁（門の 1e-12 のため）
                 for (int k = 0; k < 3; k++) cols.Add(ns > 0 ? FR(a.D[di + k] / ns) : "0");
                 cols.Add(I(a.C[o + (int)TsCol.WAT])); cols.Add(I(a.C[o + (int)TsCol.WAC])); cols.Add(I(a.C[o + (int)TsCol.WAB]));
                 for (int c = (int)TsCol.GBin0; c < (int)TsCol.GBin0 + 40; c++) cols.Add(I(a.C[o + c]));
                 cols.Add(I(a.C[o + (int)TsCol.RNaN])); cols.Add(FR(a.TarEff[i])); cols.Add(FR(a.TariffNow[i])); cols.Add(FR(a.Target[i])); cols.Add(FR(a.Treaty[i])); cols.Add(FR(a.ExRate[i]));
-                for (int c = (int)TsCol.OgStock; c < (int)TsCol.Count; c++) cols.Add(I(a.C[o + c]));   // (1036) C4a・C4b
+                for (int c = (int)TsCol.OgStock; c < (int)TsCol.Count; c++) cols.Add(I(a.C[o + c]));   // (1036) C4a・C4b・(1045) C4d の整数の列
+                for (int k = 3; k < DStride; k++) cols.Add(FR(a.D[di + k]));   // (1045) C4d の和（ubD・rpSumXOld・rpSumXBb）
                 sk.W.WriteLine(string.Join('\t', cols));
             }
         }
