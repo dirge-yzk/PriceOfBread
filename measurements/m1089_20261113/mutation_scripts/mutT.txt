@@ -1,0 +1,30 @@
+=== 変異なし（絞った試験）
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 59 s - PriceOfBread.Tests.dll (net10.0)
+applied M1
+=== M1
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 1 m 14 s - PriceOfBread.Tests.dll (net10.0)
+applied M2
+=== M2
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 1 m 15 s - PriceOfBread.Tests.dll (net10.0)
+applied M3
+=== M3
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 1 m 17 s - PriceOfBread.Tests.dll (net10.0)
+applied M4
+=== M4
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 1 m 1 s - PriceOfBread.Tests.dll (net10.0)
+applied M7
+=== M7
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 1 m 1 s - PriceOfBread.Tests.dll (net10.0)
+applied M8
+=== M8
+  失敗 PriceOfBread.Tests.RuleSharesFormTests.D2_座標が未登録の州と首都の近傍は到達1で無統治が立たない [2 s]
+  失敗 PriceOfBread.Tests.RuleSharesFormTests.D2_無統治の目標は秩序と首都からの距離で決まり支配度に依らない [506 ms]
+失敗!   -失敗:     2、合格:    92、スキップ:     0、合計:    94、期間: 56 s - PriceOfBread.Tests.dll (net10.0)
+applied M9
+=== M9
+  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗0は等重みの自走査と一致し_値1は値2と全ての列で同じAプライムの注入になる [3 s]
+  失敗 PriceOfBread.Tests.SilverParityDemandWeightedTests+OnTheBoard.旗2の注入は計器の自走査のAプライムとビット一致し_w1とも等重みとも違う [1 s]
+失敗!   -失敗:     2、合格:    92、スキップ:     0、合計:    94、期間: 1 m - PriceOfBread.Tests.dll (net10.0)
+applied M10
+=== M10
+成功!   -失敗:     0、合格:    94、スキップ:     0、合計:    94、期間: 51 s - PriceOfBread.Tests.dll (net10.0)

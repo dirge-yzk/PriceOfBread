@@ -1,0 +1,4 @@
+gated=2662.8
+sharedGate0=84
+closed=84
+bitsame=True

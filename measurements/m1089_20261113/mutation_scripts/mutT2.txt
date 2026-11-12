@@ -1,0 +1,22 @@
+=== 変異なし（クラス単位）
+成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 5 m 36 s - PriceOfBread.Tests.dll (net10.0)
+applied M1
+=== M1
+  失敗 PriceOfBread.Tests.SulfuricAcidSodaAshTests.順序_草木灰が最も高くルブラン法_電解_ソルベー法の順に安い [16 ms]
+  失敗 PriceOfBread.Tests.FullChainTests.全50財がロードされ放置で破綻せず基礎貨幣を保存する [2 ms]
+失敗!   -失敗:     2、合格:   163、スキップ:     0、合計:   165、期間: 6 m 43 s - PriceOfBread.Tests.dll (net10.0)
+applied M2
+=== M2
+成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 9 m 13 s - PriceOfBread.Tests.dll (net10.0)
+applied M3
+=== M3
+成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 16 m 42 s - PriceOfBread.Tests.dll (net10.0)
+applied M4
+=== M4
+成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 8 m 4 s - PriceOfBread.Tests.dll (net10.0)
+applied M7
+=== M7
+成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 7 m 43 s - PriceOfBread.Tests.dll (net10.0)
+applied M9
+=== M9
+成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 5 m 7 s - PriceOfBread.Tests.dll (net10.0)

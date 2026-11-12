@@ -35,3 +35,10 @@
     希少鉱物は共有世界の非産地で厳密に0_密閉世界では0でない（ident に入った 1 本）  変異なし緑／M5 赤
     M9 は SilverParityDemandWeightedTests の 2 本が赤にする（[B]）。M10・M11 は ident の成績表（[A]）。M8 は RuleSharesFormTests の 2 本。M6 は EconomyTests の既存 1 本。
     テストの数：基準 2768 → ident の木 2769（+1・宣言どおり）→ 最終の HEAD 2772（+4）。FullLength 3 のまま。
+
+[D] 補足（記録の置き場と近似の名乗り）
+    スクリプトと生の出力は measurements/m1089_20261113/mutation_scripts/（mut.py＝変異の表・mutdrive.sh・mutT*.sh・mutN.sh・mut56.sh・mut5b.sh と各出力）と mutation_raw/（[A] の 1 種の素の成績表 b1_*.txt〔.cost は残していない〕）。
+    [A] は ident ではなく 1 種の素の腕の成績表を、同じ木の変異なしの対照（m0・m0b は一致＝決定論）と比べた近似。M10・M11 は ident を回していない。
+    変異の腕・絞った試験は、フルスイートと ident に重ねて回した時間がある（結果の判定には影響しない）。
+    最終 HEAD c8ef31ccc の確かめ＝head_check/：隔離ビルド・--list-tests（Category!=FullLength 2772・FullLength 3）・新旧の 5 本緑・㉘ の 5 クラス 143 本緑。SimCore の差は ident の木 2917f5aaf と 0。
+    フルスイートの trx（nonfull 2768 合格 2767 スキップ 1・FullLength 3）は 8d7389c5f のビルドで回した物（その後の差は試験 4 本と注）。
