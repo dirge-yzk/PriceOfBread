@@ -1,0 +1,28 @@
+(1079) c103tr 事前登録（別のコミット・変更の前）。出発＝origin/c102tr dfd86976a に origin/main decb50fa5 を merge した木（c98edd89d）。
+作者「全て推奨で」で推奨を採った（§0-2 ★(1078) ①）。承認済みとは書かない。
+
+[1] 恒等の線・挙動の予言 0
+  エンジンの差分は c102tr のまま（Simulation.cs ApplyEndowment と呼び口・Discovery.cs OpenSite・InstrumentsRecipeout.cs・InstrumentsTradeskip.cs・Instruments.cs の呼び口 1 行）。
+  この線で足すのは 試験と注（コメント）だけ。SimCore の実行文は 1 文字も変えない。新しい係数・状態・旗は 0。
+  merge の予言＝衝突 0（計画の担当が git merge-tree で確認・木 89e458144）。実際の merge も衝突 0・記録のファイルの食い違い 0。
+
+[2] 消す物 0・残す物＝全て。
+  T4 の比べる列は c102tr の 83f177e66 で既に IfBprime（RecipeoutInstrumentTests.cs:188）。この線で替えるのは 名前・<summary>・:9 の要約・InstrumentsRecipeout.cs の頭の注（unitCostIfAbundance の今の意味を 1 行）だけ。
+  旗 1 の道の試験の grep（EndowmentCostFollowsAbundance）：DormantIdentityTests.cs:97・EconomyTests.cs:325〜368・RecipeoutInstrumentTests.cs T4・TradePhase0Tests.cs:8〜85。
+  T4 の外に書き換えが要るなら書き換えず止めて作者に聞く物へ（予言＝書き換え 0）。
+  他の線との重なり＝RecipeoutInstrumentTests.cs・InstrumentsRecipeout.cs（注だけ）は tr の持ち主。dm の Simulation.cs/Instruments.cs の行とは別の行。
+
+[3] 足す試験（1 本）：RecipeoutInstrumentTests.B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す
+  旗 0 の盤面だけ。期待は試験の中で 紙の式（unitCostIfBprime＝自己費用÷(ResourceEndowment×Scale)＋投入費・RE は鉱物 4.0／他 3.5 の文字列の値・自己費用は Producer.MarginalCost×CostPriceLevel×LocalPriceMultiplier・投入費は州の市場の値段×数量）から作る。エンジンの ApplyEndowment・計器の IfBprime 以外の関数は呼ばない（観測側＝RoRead の IfBprime だけ）。
+  級 E（希少鉱物の産地を含む・規則の倍率>10 でも割る数は RE×Scale だけ）・級 X（開いた大鉱床は RE×Scale・開く前は 1）・級 S/N/F（割らない）を分けて件数の対照を置く。
+  突然変異（使い捨ての木）：M1 割る数を ResourceEndowment だけ（Scale を落とす…ではなく 規則の倍率＝ScarceEndowment 全体にする）→ B1 が赤（E の希少鉱物の行）。M2 T4 の列を IfAbundance に戻す→ T4 が赤。M3 旗 0 で割り算を通す（ApplyEndowment の costDiv を旗 0 でも適用）→ ident が赤。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を器のコミットの直後に回す。書き換える件数の予言＝0。
+  テストの数：基線 2769 ＋ tr の増分 5（TradePhase0Tests の [Fact] 5・[Theory] 0）＋ 新 1 ＝ 2775（合格 2774・スキップ 1）＋ FullLength 3。--list-tests と突き合わせる。
+
+[4] 素の 5 種と計器つき 10 種は m1069 と名乗り行を除いて全行一致の予言。
+  足す表＝tskpair_s・tskshadow_s（--added-tables tskpair,tskshadow）。列が増える表＝recipeout_s の末尾 1 列 unitCostIfBprime（--grown-ok recipeout）。
+  行が動くファイルの cearn_s・cpop_s・flow_s の経路の名は〈ident_check.py の行の写しで違い 0〉と宣言する。
+  浮動小数の順序が変わる箇所＝0（実行文を変えない）。
+  ident は段 2（stage.py）。ident.sh run c103tr --tree <木> --saveleak --tests-delta 6 --added-tables tskpair,tskshadow --grown-ok recipeout。
+
+[5] 〈判定: 恒等（測った種で一致）〉なら採る。一致しなければ変更を外して報告に回す。
