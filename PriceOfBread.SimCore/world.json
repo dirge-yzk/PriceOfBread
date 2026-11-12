@@ -273,7 +273,7 @@
      "resources": [],
      "coastal": false,
      "culture": "",
-     "religion": "",
+     "religion": "土着信仰",
      "arableLand": 8000
     }
    ],
@@ -634,8 +634,8 @@
      "share": 0.01342741,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": "",
+     "culture": "アメリカ",
+     "religion": "プロテスタント",
      "arableLand": 25000
     },
     {
@@ -647,7 +647,7 @@
      ],
      "coastal": false,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     }
    ],
    "latitude": 40.7,
@@ -852,8 +852,8 @@
      "share": 0.00201087,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": "",
+     "culture": "ロシア",
+     "religion": "正教",
      "arableLand": 6000
     },
     {
@@ -862,8 +862,8 @@
      "share": 0.00163394,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": "",
+     "culture": "ロシア",
+     "religion": "正教",
      "arableLand": 9000
     },
     {
@@ -873,7 +873,7 @@
      "resources": [],
      "coastal": true,
      "culture": "",
-     "religion": "",
+     "religion": "土着信仰",
      "arableLand": 3000
     },
     {
@@ -883,7 +883,7 @@
      "resources": [],
      "coastal": false,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "オホーツク",
@@ -892,7 +892,7 @@
      "resources": [],
      "coastal": true,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "ペトロパヴロフスク",
@@ -901,7 +901,7 @@
      "resources": [],
      "coastal": true,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "スレドネコリムスク",
@@ -910,7 +910,7 @@
      "resources": [],
      "coastal": false,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "アナディリ",
@@ -919,7 +919,7 @@
      "resources": [],
      "coastal": true,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "トゥルハンスク",
@@ -928,7 +928,7 @@
      "resources": [],
      "coastal": false,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "オブドルスク",
@@ -937,7 +937,7 @@
      "resources": [],
      "coastal": false,
      "culture": "",
-     "religion": ""
+     "religion": "土着信仰"
     },
     {
      "city": "バルナウル",
@@ -945,8 +945,8 @@
      "share": 0.00673941,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": ""
+     "culture": "ロシア",
+     "religion": "正教"
     },
     {
      "city": "グリエフ",
@@ -955,7 +955,7 @@
      "resources": [],
      "coastal": true,
      "culture": "",
-     "religion": ""
+     "religion": "イスラム"
     }
    ],
    "latitude": 59.9,
@@ -2179,8 +2179,8 @@
      "share": 0.003,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": ""
+     "culture": "満洲",
+     "religion": "儒仏"
     },
     {
      "city": "ハミ",
@@ -2188,8 +2188,8 @@
      "share": 0.002,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": ""
+     "culture": "ウイグル",
+     "religion": "イスラム"
     },
     {
      "city": "ホータン",
@@ -2197,8 +2197,8 @@
      "share": 0.003,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": ""
+     "culture": "ウイグル",
+     "religion": "イスラム"
     },
     {
      "city": "蘭州",
@@ -2206,8 +2206,8 @@
      "share": 0.02,
      "resources": [],
      "coastal": false,
-     "culture": "",
-     "religion": ""
+     "culture": "漢",
+     "religion": "儒仏"
     }
    ],
    "latitude": 39.9,
@@ -2987,8 +2987,8 @@
      "share": 0.05,
      "resources": [],
      "coastal": true,
-     "culture": "",
-     "religion": ""
+     "culture": "アラブ",
+     "religion": "イスラム"
     }
    ],
    "latitude": 23.6,
@@ -3421,7 +3421,7 @@
      "resources": [],
      "coastal": true,
      "culture": "",
-     "religion": ""
+     "religion": "プロテスタント"
     }
    ],
    "latitude": 55.85,
