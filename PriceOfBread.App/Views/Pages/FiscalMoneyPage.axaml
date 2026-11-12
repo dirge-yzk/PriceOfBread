@@ -7,7 +7,7 @@
     <!-- Views/Pages/FiscalMoneyPage.axaml ＝ 財政と貨幣のページ（(501) 段3）。欄の並べは .axaml.cs の PageTable（設計 §3-3）。
          行と列は本体の目録（SimCore/Display/FiscalTables）が渡す＝財政の項・段・金融の行を足すときにこの XAML は直さない。
          ページの外側は流れない（長い一覧は表の中だけで流れ、見出しの行は止まる）。 -->
-    <ctl:PageGrid x:Name="PageBody">
+    <ctl:PageGrid x:Name="PageBody" Margin="4">
         <ctl:Section Key="spend" Title="{Binding SpendTitle}" Scrolls="False">
             <ctl:TableView Snapshot="{Binding SpendTable}" InnerScroll="True"/>
         </ctl:Section>

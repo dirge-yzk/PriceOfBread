@@ -6,7 +6,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
+using PriceOfBread.App.Controls;
 using PriceOfBread.App.Layout;
 
 namespace PriceOfBread.App.Views;
@@ -96,16 +98,29 @@ public sealed class WindowLayer : Canvas
         Place();
     }
 
-    /// <summary>覚えている位置と大きさ（無ければ初めの値）を領域の中に収めて窓へ置く。ドラッグ中の窓は触らない。</summary>
+    /// <summary>利用者が動かした位置と大きさ（無ければ開いたときに置いた物）を領域の中に収めて窓へ置く。開いたときの置き場は 1 度だけ決める（以後は動かさない）。ドラッグ中の窓は触らない。</summary>
     private void Place()
     {
         if (_layout is null || !(Bounds.Width > 0) || !(Bounds.Height > 0)) return;
-        foreach (var (slot, w) in _windows)
+        foreach (var slot in _layout.OpenWindows)
         {
-            if (w.Interacting) continue;
-            var r = _layout.RectOf(slot) ?? LayoutModel.DefaultRect(slot, Bounds.Width, Bounds.Height);
+            if (!_windows.TryGetValue(slot, out var w) || w.Interacting) continue;
+            var r = _layout.RectOf(slot) ?? _layout.AutoRectOf(slot) ?? Open(slot, w);
             w.SetRect(LayoutModel.Fit(r, Bounds.Width, Bounds.Height));
         }
+    }
+
+    /// <summary>開いた窓の置き場を決める：中身の自然な幅と高さ（盤の高さまで）で、既に開いている窓と重ならない次の空き場所へ。州の窓は左上の決まった所（他の窓の邪魔にしない）。</summary>
+    private WindowRect Open(Slot slot, FloatingWindow w)
+    {
+        if (slot == Slot.Province) return LayoutModel.ProvinceRect(Bounds.Width, Bounds.Height);
+        double width = LayoutModel.DefaultWidth(slot);
+        double fit = w.Page?.GetLogicalDescendants().OfType<PageGrid>().FirstOrDefault()?.FitHeight(width - FloatingWindow.PagePad) ?? 0;
+        double height = Math.Clamp(FloatingWindow.TitleHeight + 2 + FloatingWindow.PagePad + fit, LayoutModel.MinWindowHeight, Bounds.Height);
+        var occupied = _layout!.OpenWindows.Where(s => s != slot && s != Slot.Province).Select(s => _layout.RectOf(s) ?? _layout.AutoRectOf(s)).OfType<WindowRect>().ToList();
+        var r = LayoutModel.AutoPlace(slot, width, height, occupied, Bounds.Width, Bounds.Height);
+        _layout.SetAuto(slot, r);
+        return r;
     }
 }
 
@@ -114,7 +129,9 @@ public sealed class WindowLayer : Canvas
 /// （配置の保存を毎フレーム書かない）。</summary>
 public sealed class FloatingWindow : Border
 {
-    private const double Grip = 6, CornerGrip = 14, TitleHeight = 30;
+    private const double Grip = 6, CornerGrip = 14;
+    public const double TitleHeight = 26;   // 題の帯の高さ
+    public const double PagePad = 8;        // ページの左右（上下も）の余白の合計（ページの欄の並べの Margin 4＋4）
 
     private readonly Slot _slot;
     private readonly LayoutModel _layout;

@@ -7,7 +7,7 @@
     <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ（設計 §3-3）。1 枚：左に財の値段、右に輸出と輸入（作者指示 2026-11-12）。
          欄の並べ（幅で 2／1 列）は PageGrid が決める（並べの表は MarketPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。
          ページの外側は縦に流れない＝表は欄の中だけで流れ、見出しは止まる（SectionFit）。 -->
-    <Grid Margin="6">
+    <Grid Margin="4">
         <ctl:PageGrid x:Name="MarketGrid">
         <ctl:Section x:Name="PricesSection" Key="prices" Title="財の値段">
             <ctl:Section.Body>

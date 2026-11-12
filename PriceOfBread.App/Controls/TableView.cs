@@ -76,7 +76,7 @@ public sealed class TableView : UserControl
     {
         var snap = Snapshot ?? TableSnapshot.Empty;
         bool tall = snap.Columns.Any(c => c.Kind is ColumnKind.Stage or ColumnKind.Verb or ColumnKind.Share);
-        double row = tall ? 34 : 24;
+        double row = tall ? 34 : 20;
         int groups = snap.Rows.Select(r => r.Group ?? "").Distinct().Count(g => g.Length > 0);
         return ChromeHeight() + snap.Rows.Count * row + groups * 34;
     }

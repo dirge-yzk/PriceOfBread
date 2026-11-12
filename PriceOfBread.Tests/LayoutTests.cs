@@ -22,7 +22,7 @@ public class LayoutTests
         Assert.DoesNotContain(Slot.Province, SlotInfo.Pages);   // 州の窓は釦もキーも持たない
         Assert.Equal("州", SlotInfo.Name(Slot.Province));
         Assert.True(LayoutModel.IsWindow(Slot.Province));
-        Assert.Equal(460, LayoutModel.DefaultRect(Slot.Province, 1600, 900).W);   // 幅は領域の大きさに依らず固定
+        Assert.Equal(460, LayoutModel.ProvinceRect(1600, 900).W);   // 幅は領域の大きさに依らず固定
         foreach (var (slot, key, name) in expected)
         {
             Assert.Equal(key, SlotInfo.Key(slot));
@@ -166,17 +166,38 @@ public class LayoutTests
     }
 
     [Fact]
-    public void 初めの位置と収め直し_窓ごとにずれる_領域の外へ出ない_覚えている値は書き換えない()
+    public void 初めの位置と収め直し_空き場所へ並ぶ_空きが無ければ重ねる_領域の外へ出ない_覚えている値は書き換えない()
     {
-        var a = LayoutModel.DefaultRect(Slot.Market, 1600, 900);
-        var b = LayoutModel.DefaultRect(Slot.FiscalMoney, 1600, 900);
-        Assert.NotEqual((a.X, a.Y), (b.X, b.Y));
-        foreach (var s in new[] { Slot.Market, Slot.FiscalMoney, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery })
+        // 空き場所：左から右・上から下。幅 540 の窓は 1660 の領域に 3 枚が横に並ぶ
+        var placed = new List<WindowRect>();
+        foreach (var s in new[] { Slot.Market, Slot.FiscalMoney, Slot.Population })
         {
-            var r = LayoutModel.DefaultRect(s, 1600, 900);
-            Assert.True(r.X >= 0 && r.Y >= 0 && r.X + r.W <= 1600 && r.Y + r.H <= 900, s.ToString());
-            Assert.True(r.W >= LayoutModel.MinWindowWidth && r.H >= LayoutModel.MinWindowHeight);
+            var r = LayoutModel.AutoPlace(s, 540, 600, placed, 1660, 1030);
+            Assert.All(placed, o => Assert.False(r.X < o.X + o.W && o.X < r.X + r.W && r.Y < o.Y + o.H && o.Y < r.Y + r.H, $"{s} が重なった"));
+            Assert.Equal(0, r.Y);
+            placed.Add(r);
         }
+        Assert.True(placed[0].X < placed[1].X && placed[1].X < placed[2].X);
+        // 4 枚目は横に入らないので、下の空き（高さ 600 のあと 430 残る）へ
+        var fourth = LayoutModel.AutoPlace(Slot.PoliticsLaw, 540, 400, placed, 1660, 1030);
+        Assert.Equal(0, fourth.X);
+        Assert.True(fourth.Y >= 600);
+        // 空きが無ければ重ねる（領域の中に収まる）
+        var full = LayoutModel.AutoPlace(Slot.DiplomacyWar, 900, 1030, placed, 1660, 1030);
+        Assert.True(full.X >= 0 && full.Y >= 0 && full.X + full.W <= 1660 && full.Y + full.H <= 1030);
+        // 領域より大きい窓は領域まで
+        var big = LayoutModel.AutoPlace(Slot.Market, 3000, 3000, [], 1200, 800);
+        Assert.Equal(new WindowRect(0, 0, 1200, 800), big);
+        foreach (var s in new[] { Slot.Market, Slot.FiscalMoney, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery })
+            Assert.True(LayoutModel.DefaultWidth(s) >= LayoutModel.MinWindowWidth, s.ToString());
+        // 置き場は開いている間だけ・保存しない・閉じると消える
+        var am = new LayoutModel(); am.Open(Slot.Market);
+        am.SetAuto(Slot.Market, new WindowRect(1, 2, 500, 400));
+        Assert.Equal(new WindowRect(1, 2, 500, 400), am.AutoRectOf(Slot.Market));
+        Assert.Null(am.RectOf(Slot.Market));
+        Assert.Null(LayoutModel.FromJson(am.ToJson()).RectOf(Slot.Market));
+        am.Close(Slot.Market);
+        Assert.Null(am.AutoRectOf(Slot.Market));
         // 収め直し：大きすぎる大きさは領域まで・外へ出た位置は内側へ
         var f = LayoutModel.Fit(new WindowRect(-50, 2000, 3000, 2000), 1200, 800);
         Assert.Equal(new WindowRect(0, 0, 1200, 800), f);

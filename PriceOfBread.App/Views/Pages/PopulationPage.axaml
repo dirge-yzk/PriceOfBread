@@ -6,7 +6,7 @@
              x:DataType="vm:GameViewModel">
     <!-- Views/Pages/PopulationPage.axaml ＝ 人口のページ（(501) 段3）。欄の並べは .axaml.cs の PageTable（設計 §3-3）。
          行と列は本体の目録（SimCore/Display/PopTables）が渡す＝階級の表の列を足すときにこの XAML は直さない（見出しと行の列の定義は共通の表が 1 つの定義から作る）。 -->
-    <ctl:PageGrid x:Name="PageBody">
+    <ctl:PageGrid x:Name="PageBody" Margin="4">
         <ctl:Section Key="classes" Title="階級" Scrolls="False">
             <ctl:TableView Snapshot="{Binding ClassTable}" InnerScroll="True" ScrollX="True"/>
         </ctl:Section>

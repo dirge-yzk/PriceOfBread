@@ -32,9 +32,10 @@ public readonly record struct SectionPlace(string Key, double Height);
 /// </list></summary>
 public static class PagePlan
 {
-    public const double HeaderHeight = 26;   // 欄の見出しの 1 行
+    public const double HeaderHeight = 22;   // 欄の見出しの 1 行
     public const double RowHeight = 22;      // 行の高さの見積り（最小の行数 × これ＝最小の高さ）
-    public const double ColumnGap = 12, SectionGap = 8;
+    public const double ColumnGap = 4, SectionGap = 4;   // 欄どうしの隙間（作者の指示 2026-11-12：空白を詰める）
+    public const double BodyPadV = 4;                    // 欄の中身の上下の余白の合計（Section の中身の Margin の上 2＋下 2）
 
     public static int ColumnCount(double width) => width >= 1200 ? 3 : width >= 700 ? 2 : 1;
 
@@ -171,7 +172,7 @@ public sealed class Section : Border
     private readonly TextBlock _title = new() { FontSize = 13, VerticalAlignment = VerticalAlignment.Center };
     private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
     private readonly Border _body = new();   // 中身の入れ物（流す欄は ScrollViewer を、流さない欄は中身そのものを持つ）
-    private readonly Avalonia.Controls.Presenters.ContentPresenter _inner = new() { Margin = new Thickness(8, 4, 12, 6) };   // 余白は中身の Margin（スクロールの Padding はスクロールの範囲に入らない）
+    private readonly Avalonia.Controls.Presenters.ContentPresenter _inner = new() { Margin = new Thickness(6, 2, 8, 2) };   // 余白は中身の Margin（スクロールの Padding はスクロールの範囲に入らない）
 
     static Section()
     {
@@ -185,7 +186,7 @@ public sealed class Section : Border
         MountBody();
         var header = new Border
         {
-            Height = PagePlan.HeaderHeight, Padding = new Thickness(8, 0), Background = Brush("TraceBrush", Brushes.Beige),
+            Height = PagePlan.HeaderHeight, Padding = new Thickness(6, 0), Background = Brush("TraceBrush", Brushes.Beige),
             Child = _title,
         };
         var line = new Border { Height = 1, Background = Brush("LineBrush", Brushes.Tan) };
@@ -197,9 +198,18 @@ public sealed class Section : Border
         ClipToBounds = true;
     }
 
-    /// <summary>中身に合わせた高さの上限（見出しを含む・A10）。表だけを入れる欄（中身が表）にだけ付ける。他は null＝上限なし。</summary>
-    public double? ContentHeightCap()
-        => Body is TableView tv ? PagePlan.HeaderHeight + 1 + 10 + tv.EstimatedHeight() : null;
+    /// <summary>中身に合わせた高さの上限（見出しを含む・A10）。表（直接か、入れ物の最初の子）は行数からの見積り・他の流れる中身は幅 <paramref name="width"/> で測った自然な高さ。
+    /// 流さない欄（自分で見出しを止める物）で表でなければ null＝上限なし。</summary>
+    public double? ContentHeightCap(double width)
+    {
+        double chrome = PagePlan.HeaderHeight + 1 + PagePlan.BodyPadV;
+        if (Body is TableView tv) return chrome + tv.EstimatedHeight();
+        if (Body is Panel p && p.Children.OfType<TableView>().FirstOrDefault() is { } t)
+            return chrome + t.EstimatedHeight() + p.Children.Where(c => c != t).Sum(c => c.DesiredSize.Height);   // 表の下の合計の行など
+        if (!Scrolls || Body is null) return null;
+        _inner.Measure(new Size(Math.Max(0, width - 2 - 10), double.PositiveInfinity));   // 欄の枠と縦の目盛りの帯の分を引く（中身の左右の余白は測りが引く）
+        return chrome + _inner.DesiredSize.Height - 4;   // 中身の Margin は BodyPadV に含めて数え済み
+    }
 
     private void MountBody()
     {
@@ -234,19 +244,35 @@ public sealed class PageGrid : Panel
         Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateMeasure, Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
+    /// <summary>欄ごとの高さの上限（中身に合わせる）と、表の見出し・絞り込みの高さ。幅 <paramref name="w"/> の列に割ったときの見積り。</summary>
+    private (Dictionary<string, double> Caps, Dictionary<string, double> Chrome) CapsOf(PageTable t, double w)
+    {
+        var caps = new Dictionary<string, double>();
+        var chrome = new Dictionary<string, double>();
+        double colW = PagePlan.ColumnWidths(PagePlan.ColumnCount(w, t), w, t.ColumnWeights).Min();
+        foreach (var s in Children.OfType<Section>())
+        {
+            if (s.ContentHeightCap(colW) is double cap) caps[s.Key] = cap;
+            if (s.Body is TableView tv) chrome[s.Key] = tv.ChromeHeight();
+        }
+        return (caps, chrome);
+    }
+
+    /// <summary>幅 <paramref name="width"/> に置いたとき、中身がちょうど収まる高さ（列ごとに欄の中身の高さを積んだ最大）。窓の初めの高さに使う。</summary>
+    public double FitHeight(double width)
+    {
+        if (Table is not { } t) return 0;
+        var (caps, _) = CapsOf(t, width);
+        return PagePlan.Arrange(t, PagePlan.ColumnCount(width, t))
+            .Max(col => col.Sum(s => caps.TryGetValue(s.Key, out double c) ? c : PagePlan.MinHeight(s)) + Math.Max(0, col.Count - 1) * PagePlan.SectionGap);
+    }
+
     protected override Size MeasureOverride(Size available)
     {
         if (Table is not { } t) { foreach (var c in Children) c.Measure(available); return default; }
         double w = double.IsPositiveInfinity(available.Width) ? 1200 : available.Width;
         double h = available.Height;
-        var sectionsNow = Children.OfType<Section>().ToList();
-        var caps = new Dictionary<string, double>();
-        var chrome = new Dictionary<string, double>();
-        foreach (var s0 in sectionsNow)
-        {
-            if (s0.ContentHeightCap() is double cap) caps[s0.Key] = cap;
-            if (s0.Body is TableView tv) chrome[s0.Key] = tv.ChromeHeight();
-        }
+        var (caps, chrome) = CapsOf(t, w);
         var plan = PagePlan.Plan(t, w, h, caps, chrome);
         _lastPlan = plan;
         int cols = plan.Count;

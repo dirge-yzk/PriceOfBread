@@ -30,6 +30,17 @@ public partial class MainWindow
             gvm.MapHover = null;
             await Task.Delay(300);
             Capture(dir, $"{no():D2}_窓_州_地図の外.png");
+            // 各ページを初めの大きさで 1 枚ずつ（作者の指示 2026-11-12：生産以外の窓は小さく・空白なし）
+            lay.Reset();
+            foreach (var s in SlotInfo.Pages.Where(LayoutModel.IsWindow))
+            {
+                gvm.OpenSlotCommand.Execute(s);
+                await Task.Delay(900);
+                BootLog.Write($"uishot: 窓[初めの大きさ・{SlotInfo.Name(s)}] {Now()}");
+                Capture(dir, $"{no():D2}_窓_既定_{SlotInfo.Name(s)}.png");
+                gvm.OpenSlotCommand.Execute(s);
+                await Task.Delay(300);
+            }
             foreach (var background in new[] { Slot.Map, Slot.Production })
             {
                 string bg = background == Slot.Map ? "地図" : "生産";
@@ -45,6 +56,13 @@ public partial class MainWindow
                 BootLog.Write($"uishot: 窓[{bg}の背景・3枚を開いた] {Now()}");
                 Capture(dir, $"{no():D2}_窓_{bg}_3枚.png");
                 LogOuterFlow(gameView, $"窓 {bg}の背景・3枚");
+                gvm.OpenSlotCommand.Execute(Slot.PoliticsLaw);
+                await Task.Delay(700);
+                BootLog.Write($"uishot: 窓[{bg}の背景・4枚を開いた] {Now()}");
+                Capture(dir, $"{no():D2}_窓_{bg}_4枚.png");
+                LogOuterFlow(gameView, $"窓 {bg}の背景・4枚");
+                gvm.OpenSlotCommand.Execute(Slot.PoliticsLaw);
+                await Task.Delay(300);
 
                 // 動かして大きさを変える（市場を右上へ・広く）
                 var host = gameView.FindControl<WindowLayer>("Windows")!;

@@ -47,7 +47,8 @@ public sealed class LayoutModel
     public bool LeftOpen { get; private set; } = true;
 
     private readonly List<Slot> _open = new();                       // 開いている窓。後ろほど前（重なりの順）
-    private readonly Dictionary<Slot, WindowRect> _rects = new();    // 覚えている位置と大きさ（開閉に依らず残る）
+    private readonly Dictionary<Slot, WindowRect> _rects = new();    // 覚えている位置と大きさ（利用者が動かした物・開閉に依らず残る・保存する）
+    private readonly Dictionary<Slot, WindowRect> _auto = new();     // 開いたときに空き場所へ置いた位置と大きさ（開いている間だけ・保存しない）
 
     /// <summary>開いている窓（重なりの順・最後が一番前）。</summary>
     public IReadOnlyList<Slot> OpenWindows => _open;
@@ -87,6 +88,7 @@ public sealed class LayoutModel
     /// <summary>窓を閉じる（開いていなければ何もしない）。位置と大きさは覚えたまま。</summary>
     public void Close(Slot slot)
     {
+        _auto.Remove(slot);
         if (_open.Remove(slot)) Raise();
     }
 
@@ -132,14 +134,45 @@ public sealed class LayoutModel
         Raise();
     }
 
-    /// <summary>まだ覚えていない窓の初めの位置と大きさ＝領域の大きさに応じ、窓ごとに少しずつずらした起点にする。</summary>
-    public static WindowRect DefaultRect(Slot slot, double hostW, double hostH)
+    /// <summary>窓を開いたときに置いた位置と大きさ（利用者が動かしていない窓。開いている間だけ・無ければ null）。</summary>
+    public WindowRect? AutoRectOf(Slot slot) => _auto.TryGetValue(slot, out var r) ? r : null;
+
+    /// <summary>開いたときの置き場を覚える（保存しない・配置の変更の通知も出さない＝置いた窓は開いている間は動かない）。</summary>
+    public void SetAuto(Slot slot, WindowRect rect) { if (IsWindow(slot)) _auto[slot] = rect; }
+
+    /// <summary>州の窓の位置と大きさ（幅は固定・左上）。</summary>
+    public static WindowRect ProvinceRect(double hostW, double hostH) => Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);
+
+    /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。市場・財政・POP の 3 枚が 1920 幅の盤（左の列を除く約 1660）に横に並ぶ幅。</summary>
+    public static double DefaultWidth(Slot slot) => slot switch
     {
-        if (slot == Slot.Province) return Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);   // 州の窓＝幅は固定（情報の量で変わらない）・左上
-        double w = Math.Clamp(hostW * 0.55, MinWindowWidth, 900), h = Math.Clamp(hostH * 0.72, MinWindowHeight, 760);
+        Slot.Market => 480,        // 1 列に積む（値段の表と輸出入の表が縦に並ぶ）
+        Slot.Population => 620,    // 階級の表の幅
+        _ => 540,
+    };
+
+    /// <summary>大きさ（<paramref name="w"/>×<paramref name="h"/>）の窓を、<paramref name="occupied"/> の窓と重ならない次の空き場所（左から右・上から下）へ置く。
+    /// 空きが無ければ窓ごとに少しずつずらした重ね方（<paramref name="slot"/> の番号で決まる起点）。領域の中に収める。</summary>
+    public static WindowRect AutoPlace(Slot slot, double w, double h, IReadOnlyCollection<WindowRect> occupied, double hostW, double hostH)
+    {
+        w = Math.Min(w, Math.Max(hostW, 1)); h = Math.Min(h, Math.Max(hostH, 1));
+        var xs = new SortedSet<double> { 0 }; var ys = new SortedSet<double> { 0 };
+        foreach (var o in occupied) { xs.Add(o.X + o.W + WindowGap); ys.Add(o.Y + o.H + WindowGap); }
+        foreach (double y in ys)
+            foreach (double x in xs)
+            {
+                if (x + w > hostW + 1e-9 || y + h > hostH + 1e-9) continue;
+                var c = new WindowRect(x, y, w, h);
+                if (!occupied.Any(o => Overlaps(c, o))) return c;
+            }
         int step = (int)slot % 6;
         return Fit(new WindowRect(24 + 36 * step, 24 + 32 * step, w, h), hostW, hostH);
     }
+
+    private const double WindowGap = 4;   // 窓どうしの隙間
+
+    private static bool Overlaps(WindowRect a, WindowRect b)
+        => a.X < b.X + b.W - 1e-9 && b.X < a.X + a.W - 1e-9 && a.Y < b.Y + b.H - 1e-9 && b.Y < a.Y + a.H - 1e-9;
 
     /// <summary>領域の中に収める（大きさは領域まで・位置は領域の内側）。表示のときだけ使う＝覚えている値は書き換えない。</summary>
     public static WindowRect Fit(WindowRect r, double hostW, double hostH)
@@ -153,7 +186,7 @@ public sealed class LayoutModel
     public void Reset()
     {
         Background = Slot.Map; LeftOpen = true;
-        _open.Clear(); _rects.Clear();
+        _open.Clear(); _rects.Clear(); _auto.Clear();
         Raise();
     }
 

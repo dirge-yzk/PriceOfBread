@@ -9,7 +9,7 @@
          2026-11-11 作者指示：法の表が左の列いっぱい・右の列が政治（権力・政体・議会）。制度は発見のページへ移した。
          法の表は本体の目録（SimCore/Display/LawTables.cs）が行を並べる＝法を足すとき画面は直さない。
          値の行は共通の部品 StatRow（名前と値とホバー）。半円は共通の HalfPie。-->
-    <ctl:PageGrid x:Name="Sections" Margin="6">
+    <ctl:PageGrid x:Name="Sections" Margin="4">
 
         <!-- 法の表：群ごとに法の名前と段の押し釦。国有化の門が開いている間は末尾に国有化の群。見出しは止めて中身だけ流す -->
         <ctl:Section Key="law" Title="法の表" Scrolls="False">
