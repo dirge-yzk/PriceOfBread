@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1087\scripts\instruments\c103cr\rec1082.py", line 16, in <module>
+    with open(p, encoding='utf-8') as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:/PoB_work/m1087_work/out_mS_10_s11/ins\\nation_s1.tsv'
