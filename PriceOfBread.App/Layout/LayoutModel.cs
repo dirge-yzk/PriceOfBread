@@ -194,15 +194,19 @@ public sealed class LayoutModel
 
     private sealed class Dto
     {
+        public int Version { get; set; }      // 形の版。旧の版の窓の大きさと位置は読み捨てる
         public bool LeftOpen { get; set; } = true;
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<string, double[]>? Windows { get; set; }   // 窓の名前 → [X, Y, W, H]
     }
 
+    private const int FormatVersion = 2;   // 2＝窓の初めの大きさを小さくした版（旧の大きな窓の大きさを持ち越さない）
+
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, IncludeFields = false };
 
     public string ToJson() => JsonSerializer.Serialize(new Dto
     {
+        Version = FormatVersion,
         LeftOpen = LeftOpen,
         Windows = _rects.Count == 0 ? null : _rects.OrderBy(kv => (int)kv.Key).ToDictionary(kv => kv.Key.ToString(), kv => new[] { kv.Value.X, kv.Value.Y, kv.Value.W, kv.Value.H }),
     }, JsonOptions);
@@ -218,7 +222,7 @@ public sealed class LayoutModel
             var d = JsonSerializer.Deserialize<Dto>(json, JsonOptions);
             if (d is null) return m;
             m.LeftOpen = d.LeftOpen;
-            if (d.Windows is not null)
+            if (d.Windows is not null && d.Version >= FormatVersion)
                 foreach (var (name, v) in d.Windows)
                 {
                     if (!Enum.TryParse<Slot>(name, out var slot) || !Enum.IsDefined(slot) || !IsWindow(slot) || v is not { Length: 4 }) continue;   // 知らない窓・壊れた記録は捨てる

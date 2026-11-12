@@ -237,7 +237,7 @@ public class LayoutTests
         Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("{壊れた").ToJson());
         Assert.Equal(new LayoutModel().ToJson(), LayoutModel.FromJson("null").ToJson());
         // 壊れた窓の記録は捨てる（知らない窓・背景の窓・要素の数が違う・非有限）
-        var junk = LayoutModel.FromJson("{\"Windows\":{\"Nope\":[1,2,3,4],\"Map\":[1,2,500,400],\"Production\":[1,2,500,400],\"Market\":[1,2,3],\"Population\":[1,2,500,400]}}");
+        var junk = LayoutModel.FromJson("{\"Version\":2,\"Windows\":{\"Nope\":[1,2,3,4],\"Map\":[1,2,500,400],\"Production\":[1,2,500,400],\"Market\":[1,2,3],\"Population\":[1,2,500,400]}}");
         Assert.Equal(new WindowRect(1, 2, 500, 400), junk.RectOf(Slot.Population));
         Assert.Null(junk.RectOf(Slot.Market));
         Assert.Null(junk.RectOf(Slot.Map));
@@ -246,6 +246,10 @@ public class LayoutTests
         var old = LayoutModel.FromJson("{\"Shape\":\"Four\",\"Seats\":[\"Production\",\"Market\",\"FiscalMoney\",\"Population\"],\"Selected\":2,\"MainRatio\":0.4,\"SubRatio\":0.5,\"LeftOpen\":false,\"RightOpen\":false,\"Sections\":{\"Market\":{\"Opened\":[\"a\"],\"Closed\":[]}}}");
         Assert.False(old.LeftOpen);
         Assert.Equal(Slot.Map, old.Background);
+        // 旧の版（版の項目が無い）の窓の大きさと位置は読み捨てる・窓以外の設定は残す
+        var v1 = LayoutModel.FromJson("{\"LeftOpen\":false,\"Windows\":{\"Market\":[1,2,900,760]}}");
+        Assert.Null(v1.RectOf(Slot.Market));
+        Assert.False(v1.LeftOpen);
     }
 
     [Fact]

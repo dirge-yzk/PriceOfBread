@@ -41,6 +41,14 @@ public partial class MainWindow
                 gvm.OpenSlotCommand.Execute(s);
                 await Task.Delay(300);
             }
+            // 市場を広げる＝幅で 2 列（左に値段・右に輸出入）へ切り替わる
+            gvm.OpenSlotCommand.Execute(Slot.Market);
+            await Task.Delay(500);
+            if (gameView.FindControl<WindowLayer>("Windows") is { } wl) lay.SetRect(Slot.Market, new WindowRect(0, 0, 900, wl.Bounds.Height));
+            await Task.Delay(900);
+            BootLog.Write($"uishot: 窓[市場を広げた] {Now()}");
+            Capture(dir, $"{no():D2}_窓_市場_2列.png");
+            lay.Reset();
             foreach (var background in new[] { Slot.Map, Slot.Production })
             {
                 string bg = background == Slot.Map ? "地図" : "生産";

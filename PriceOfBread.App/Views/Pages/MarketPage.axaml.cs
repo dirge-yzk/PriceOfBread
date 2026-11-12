@@ -15,7 +15,8 @@ public partial class MarketPage : UserControl
         new SectionSpec("imports", "輸入", MinRows: 6),
     ],
     [["prices"], ["exports", "imports"]],
-    ColumnWeights: [3, 2]);
+    ColumnMinWidth: 420,    // 幅が 2 列（約 850 以上）入れば左に値段・右に輸出入・狭ければ 1 列に積む（幅で決まる 1 本の規則）
+    ColumnWeights: [1, 1]);
 
     public MarketPage()
     {
