@@ -663,4 +663,30 @@ public class EconomyTests
         double want = e / Simulation.ResourceEndowment(Catalog.SulfurId);
         Assert.True(System.Math.Abs(gated / open - want) < 1e-9 * want, $"パレルモの硫黄の生産性の比 {gated / open:F4}（期待 {want:F4}＝E {e:F2}÷4.0）");
     }
+
+    /// <summary>★(1089) 突然変異 M5（共有世界の非産地の希少鉱物の生産性 0 を外す）が緑のまま残ったので足した機構の試験（★(790)）：
+    /// 希少鉱物は共有世界（多国）では産地でない州に厳密に 0 の生産者しか持たず、密閉世界（単国シム）では産地でなくても従来の賦存の生産者を持つ。</summary>
+    [Fact]
+    public void 希少鉱物は共有世界の非産地で厳密に0_密閉世界では0でない()
+    {
+        static (int nonSite, int zero, int positive) Count(bool shared)
+        {
+            var sim = new Simulation(WorldData.ByName("フランス").ToScenario(1789, sharedWorld: shared), new NullAgent());
+            int non = 0, zero = 0, pos = 0;
+            foreach (var r in sim.World.Regions)
+            {
+                if (System.Array.IndexOf(r.Resources, Catalog.SulfurId) >= 0) continue;
+                var pr = r.Producers.FirstOrDefault(p => p.GoodId == Catalog.SulfurId && p.IsRgo);
+                if (pr is null) continue;
+                non++;
+                if (pr.Productivity == 0) zero++; else pos++;
+            }
+            return (non, zero, pos);
+        }
+        var (nS, zS, pS) = Count(true);
+        var (nC, zC, pC) = Count(false);
+        Assert.True(nS >= 5 && nC >= 5, $"調べた非産地の州が少ない（共有 {nS}・密閉 {nC}）");
+        Assert.True(zS == nS && pS == 0, $"共有世界の非産地の硫黄の生産性が 0 でない州がある（0 の州 {zS}／{nS}）");
+        Assert.True(pC > 0, $"密閉世界の非産地の硫黄の生産性が全て 0（産地ゲートを密閉世界に効かせている・{pC}／{nC}）");
+    }
 }

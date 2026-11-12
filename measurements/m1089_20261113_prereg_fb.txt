@@ -74,3 +74,9 @@
     フルスイートは Category!=FullLength と FullLength を分け、合計を --list-tests と突き合わせる。savetest・leakhunt。
 
 [6] 周辺の点検（読むだけ）：ScarceEndowment の読み手・CoreEthnicShare の読み手（Politics.cs の AvgRegionCoreShare）・FactoryBuildProgress の兄弟の門。結果は報告に書く。
+
+[追記 2026-11-13 腕の前・結果の後の変更ではない（ident より前）]
+    突然変異 M5（共有世界の非産地の希少鉱物の生産性 0 を外す）を既存の試験（EconomyTests 前半・後半）で確かめたところ緑のまま残った
+    （後半は産地のパレルモしか見ない）。★(790) のとおり同じ線で機構の試験を 1 本足す：
+    EconomyTests.希少鉱物は共有世界の非産地で厳密に0_密閉世界では0でない（フランスの州：共有世界の非産地の硫黄の生産性は全て 0・密閉世界は 0 でない州がある・調べた州の数の下限つき）。
+    よって [3] のテストの数の予言を 0 から +1 に改める（--tests-delta 1）。M5 を当てて赤になることはこの追記のコミットの後に確かめて m1089_mutation.txt に書く。
