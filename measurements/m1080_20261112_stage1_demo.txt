@@ -1,0 +1,9 @@
+# 基準の鍵(B5・TESTS_NONFULL)と注だけが違う木 vs 基準=c103st の HEAD
+段=1
+基準 ed4c92286209df426f157c866118df3a3dbf69d2 との差 0 本・段 2 の条件に当たった 0 本・ident.cfg は基準の鍵と注だけの差＝数えない
+STAGE_BASE=ed4c92286209df426f157c866118df3a3dbf69d2
+# SMALL も変えた木
+段=2
+基準 ed4c92286209df426f157c866118df3a3dbf69d2 との差 1 本・段 2 の条件に当たった 1 本・ident.cfg の判定を変える差：SMALL=nation_s,stock_s,wars_s,casualty_s,region_s,migration_ | SMALL=stock_s,wars_s,casualty_s,region_s,migration_s,pxmonth
+STAGE_BASE=ed4c92286209df426f157c866118df3a3dbf69d2
+  段 2 の理由：scripts/instruments/ident/ident.cfg
