@@ -1,0 +1,34 @@
+M1 ok
+M1 rc=1
+M1 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(Double flag)
+M1 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(flag: 1)
+M1 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+M2 ok
+M2 rc=1
+M2 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(Double flag)
+M2 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(flag: 1)
+M2 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+M3 ok
+M3 rc=1
+M3 赤 DependencyCycleTests.T4_既にある輪の上の国が宗主でも鎖のたどりは打ち切られて張られる
+M3 赤 DependencyCycleTests.T4_既にある輪の上の国が宗主でも鎖のたどりは打ち切られて張られる()
+M3 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 13 s - PriceOfBread.Tests.dll (net10.0)
+M4 ok
+M4 rc=1
+M4 赤 DependencyCycleTests.T1_2国の輪は旗1で勝者の宗主のリンクだけを切り旗0では輪が残る(Double flag)
+M4 赤 DependencyCycleTests.T1_2国の輪は旗1で勝者の宗主のリンクだけを切り旗0では輪が残る(flag: 1)
+M4 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(Double flag)
+M4 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(flag: 1)
+M4 赤 DependencyCycleTests.T5_計器は呼び1件に1行で輪の印と実際に切れたリンクと輪の数を書く(Double flag)
+M4 赤 DependencyCycleTests.T5_計器は呼び1件に1行で輪の印と実際に切れたリンクと輪の数を書く(flag: 1)
+M4 失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M5 ok
+M5 rc=1
+M5 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(Double flag)
+M5 赤 DependencyCycleTests.T2_3国の輪は旗1で勝者の宗主のリンクだけを切り鎖の上のリンクは残る(flag: 1)
+M5 赤 DependencyCycleTests.T3_輪にならない呼びは旗0と旗1で同じリンクの集合
+M5 赤 DependencyCycleTests.T3_輪にならない呼びは旗0と旗1で同じリンクの集合()
+M5 赤 DependencyCycleTests.T4_既にある輪の上の国が宗主でも鎖のたどりは打ち切られて張られる
+M5 赤 DependencyCycleTests.T4_既にある輪の上の国が宗主でも鎖のたどりは打ち切られて張られる()
+M5 失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+done
