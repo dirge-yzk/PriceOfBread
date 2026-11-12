@@ -10,7 +10,7 @@
         <Border Padding="14,10" IsVisible="{Binding ShownHover, Converter={x:Static ObjectConverters.IsNotNull}}">
             <StackPanel Spacing="3">
                     <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding ShownHover.Title}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}"/>
+                        <TextBlock Text="{Binding ShownHover.Title}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}" TextWrapping="Wrap" Margin="0,0,12,0"/>   <!-- 長い国名で「ピン留め」に迫らない（点検⑦）＝右に余白・収まらなければ折り返す -->
                         <TextBlock Grid.Column="1" Text="ピン留め" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding HoverPinned}"/>
                     </Grid>
 

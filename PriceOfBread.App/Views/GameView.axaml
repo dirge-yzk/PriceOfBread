@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="680"
              x:Class="PriceOfBread.App.Views.GameView"
              x:DataType="vm:GameViewModel"
-             Background="#EFE8D8" Foreground="{StaticResource InkBrush}" FontFamily="Yu Gothic UI, Meiryo, MS Gothic, sans-serif" FontWeight="Medium">
+             Background="{StaticResource PaperBrush}" Foreground="{StaticResource InkBrush}" FontFamily="{StaticResource UiFont}" FontWeight="Normal">
     <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・中央のページ・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
     <!-- ページ中心UI（ライトテーマ）：背景（地図か生産）に 6 ページが浮かぶ窓で重なる。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
          外交＝行にホバーでアクションメニュー・クリックでカメラ移動。侵略/統一戦争＝確認モーダル（侵略は膨張度消費）。実国家間の開戦＝緊張の創発のみ。
@@ -17,7 +17,7 @@
     <Grid RowDefinitions="Auto,*">
 
         <!-- 上部バー＝1段（2026-11-03 作者）：左＝国名（地位）・国庫・満足度〜正統性｜右＝ページの押し釦・速度の箱・日付。折り返さない（2段化は2026-08-02に却下済み）。 -->
-        <Border Grid.Row="0" Background="#E6DEC8" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8" ZIndex="2">
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,8" ZIndex="2">
             <Grid ColumnDefinitions="*,Auto">
                 <!-- 可変長の項目は画素の最小幅（MinWidth）＝桁が増減しても右の項目が動かない（2026-09-23「文字数固定」）。Width でなく MinWidth＝溢れる値は切れずに伸びる。
                      ToolTip.ShowDelay=30（2026-09-23）。国庫の 190＝「国庫:-£999.99M（−£999.99M）」の見積り。 -->
@@ -35,7 +35,7 @@
                         <ToolTip.Tip>
                             <StackPanel Width="272" Spacing="4">
                                 <TextBlock Text="{Binding TreasuryHover.GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}"/>
-                                <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding TreasuryHover.HasGraph}">
+                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding TreasuryHover.HasGraph}">
                                     <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
                                         <Polyline Points="{Binding TreasurySparkPoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
                                     </Canvas>
@@ -60,7 +60,7 @@
                                             <StackPanel Width="272" Spacing="4">
                                                 <TextBlock Text="{Binding GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
                                                            IsVisible="{Binding GraphTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                                <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding HasGraph}">
+                                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding HasGraph}">
                                                     <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
                                                         <Polyline Points="{Binding SafePoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
                                                     </Canvas>
@@ -115,14 +115,14 @@
         <Grid ColumnDefinitions="Auto,*" RowDefinitions="*">
             <!-- 左の列（畳める）。畳むと細い取っ手だけが残り、押すと開く。 -->
             <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <Border Width="260" IsVisible="{Binding LeftOpen}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,1,0">
+                <Border Width="260" IsVisible="{Binding LeftOpen}" Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
                     <Grid RowDefinitions="*,5,*">
                         <DockPanel Grid.Row="0">
                             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="10,6,4,4">
                                 <TextBlock Text="問題の一覧" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center"/>
                                 <Button Grid.Column="1" Classes="edge" Content="◀" Command="{Binding ToggleLeftColumnCommand}"/>
                             </Grid>
-                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
+                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <ItemsControl ItemsSource="{Binding ProblemRows}" Margin="10,4,10,6">
                                     <ItemsControl.ItemTemplate>
@@ -140,7 +140,7 @@
                                 </ItemsControl>
                             </ScrollViewer>
                         </DockPanel>
-                        <GridSplitter Grid.Row="1" Background="{StaticResource SandBrush}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
+                        <GridSplitter Grid.Row="1" Background="{StaticResource LineBrush}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
                         <!-- 年表（旧は地図の左下に浮いていた）。全国（すべて）・列強・自国の切替。列の幅に合わせて折り返す。 -->
                         <DockPanel Grid.Row="2">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="10,6,10,4">
@@ -149,7 +149,7 @@
                                 <Button Classes="mini" Classes.active="{Binding NewsGreat}" Content="列強" Command="{Binding SetNewsFilterCommand}" CommandParameter="great"/>
                                 <Button Classes="mini" Classes.active="{Binding NewsMine}" Content="自国" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
                             </StackPanel>
-                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
+                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                             <!-- 余白はスクロールの Padding でなく中身の Margin（Padding はスクロールの範囲に入らない） -->
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <ItemsControl ItemsSource="{Binding Alerts}" Margin="10,4,10,8">
@@ -158,7 +158,7 @@
                                             <Grid ColumnDefinitions="Auto,*" Margin="0,2">
                                                 <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="{StaticResource FontEmph}" Margin="0,0,7,0"/>
                                                 <!-- 切らずに折り返す（2026-08-01）。列の幅いっぱいまで -->
-                                                <TextBlock Grid.Column="1" Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="Wrap"/>
+                                                <TextBlock Grid.Column="1" ctl:LatinText.Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="Wrap"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -180,14 +180,14 @@
              （旧＝地図Grid内部にあり、外側の兄弟である出来事パネルが内側ZIndexに関係なく全モーダルの上に描画されていた） -->
             <!-- 確認モーダル（植民地化・侵略） -->
             <Border IsVisible="{Binding ConfirmOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6"
                     MinWidth="340" MaxWidth="420" Padding="0" ZIndex="9">
                 <DockPanel>
                     <!-- ★2026-08-24作者指示：✕は撤去（選択肢を選ばずに閉じる経路を作らない）＝残るのは「実行」と「中止」の2択。 -->
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,14,8">
                         <TextBlock Grid.Column="0" Text="{Binding ConfirmTitle}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
                     </Grid>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <TextBlock Text="{Binding ConfirmBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
@@ -201,7 +201,7 @@
 
             <!-- #106 緊張ポップアップ：同ランク列強と緊張が高まると出る（緊張増減の手動ボタンの代替） -->
             <Border IsVisible="{Binding TensionPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6"
                     MinWidth="360" MaxWidth="450" Padding="0" ZIndex="10">
                 <DockPanel>
                     <!-- ★2026-08-26作者裁定：✕は撤去し「静観する」を明示のボタンへ（選ばずに閉じる経路を作らない＝確認モーダルと同じ規律）。
@@ -209,7 +209,7 @@
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,14,8">
                         <TextBlock Grid.Column="0" Text="{Binding TensionPopupTitle}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
                     </Grid>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <!-- 緊張が高まった理由＝内訳（寄与の大きい順・作者FB①・2026-08-10）。最上部に置く -->
                         <TextBlock Text="{Binding TensionPopupWhy}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
@@ -241,11 +241,11 @@
 
             <!-- #106 最後通牒ポップアップ：プレイヤーが絡む開戦寸前。要求受諾（回避）か開戦か＋総動員チェック。閉じるボタンなし（選択必須） -->
             <Border IsVisible="{Binding WarPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
                     MinWidth="400" MaxWidth="480" Padding="0" ZIndex="10">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="開戦の危機" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource RustBrush}" Margin="14,10,14,8"/>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <TextBlock Text="{Binding WarPopupBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <CheckBox Content="総動員" IsChecked="{Binding WarPopupMobilize}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}"/>
@@ -259,14 +259,14 @@
 
             <!-- #106 終戦ポップアップ：双方の戦死・戦費・得失 -->
             <Border IsVisible="{Binding WarEndPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6"
                     MinWidth="380" MaxWidth="460" Padding="0" ZIndex="10">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,10,8">
                         <TextBlock Grid.Column="0" Text="終戦" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
                         <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding WarEndAckCommand}"/>
                     </Grid>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <TextBlock Text="{Binding WarEndPopupBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <Button Classes="dialog" Content="了解" HorizontalAlignment="Right" Command="{Binding WarEndAckCommand}"/>
@@ -277,11 +277,11 @@
             <!-- 国内危機（2026-07-20・戦争ポップアップと同型）：組織運動が蜂起寸前＝通知のみ（受諾は法律タブ・蜂起はエンジンの規則）。
                  ★要求は法の経路（作者裁定2026-09-11）：択のボタンは無い＝閉じるだけ（常に1つ＝時間停止のまま閉じられない形は作れない）。 -->
             <Border IsVisible="{Binding FactionCrisisOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
                     MinWidth="400" MaxWidth="520" Padding="0" ZIndex="10">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="国内の危機" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource RustBrush}" Margin="14,10,14,8"/>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <TextBlock Text="{Binding FactionCrisisBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <Button Classes="dialog" Content="閉じる" HorizontalAlignment="Right" Command="{Binding FactionCloseCommand}"/>
@@ -291,11 +291,11 @@
 
             <!-- ★E3（選挙doc §3-1/3-2）：総選挙の公示＝どの思想に加担するか1択（議題は情報） -->
             <Border IsVisible="{Binding ElectionPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
                     MinWidth="420" MaxWidth="540" Padding="0" ZIndex="10">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="{Binding ElectionPopupTitle}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource RustBrush}" Margin="14,10,14,8"/>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <!-- ★2026-08-24作者指示：**上から選択肢→金額**（2026-08-17の「レバーを上」を差し替え）。
                              加担ボタンを押した瞬間に、下のレバーで決めた割合が裁量余剰から国庫を出る＝金額はボタンのすぐ下に置く。 -->
@@ -322,11 +322,11 @@
 
             <!-- 機能5-③（2026-07-28）：同盟からの参戦要請＝受ける／断る（断ると要請元との緊張が同盟破棄水準へ） -->
             <Border IsVisible="{Binding CallToArmsOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
                     MinWidth="400" MaxWidth="500" Padding="0" ZIndex="10">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="参戦要請" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource RustBrush}" Margin="14,10,14,8"/>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <TextBlock Text="{Binding CallToArmsBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
@@ -339,11 +339,11 @@
 
             <!-- 内戦の陣営選択（P8・2026-09-06）：自国から反乱国家が立った四半期に1回 -->
             <Border IsVisible="{Binding SideChoiceOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"
                     MinWidth="400" MaxWidth="520" Padding="0" ZIndex="10">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="内戦" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource RustBrush}" Margin="14,10,14,8"/>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="10">
                         <TextBlock Text="{Binding SideChoiceBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
@@ -356,26 +356,26 @@
 
             <!-- 終局（1949年12月のあと＝GameQuarters 経過）：最終ランキング。閉じれば観戦続行可 -->
             <Border IsVisible="{Binding EndingOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6"
                     MinWidth="560" MaxWidth="640" MaxHeight="720" Padding="0" ZIndex="9">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,10,8">
                         <TextBlock Grid.Column="0" Text="{Binding EndingTitle}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
                         <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding CloseEndingCommand}"/>
                     </Grid>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="14,8,14,12">
                         <Button Classes="dialog" Content="観戦を続ける" Command="{Binding CloseEndingCommand}"/>
                         <Button Classes="dialog" Content="タイトルに戻る" Command="{Binding ReturnToTitleCommand}"/>
                     </StackPanel>
                     <!-- 列ヘッダー：行テンプレートと同じ列幅。Margin＝内容StackPanel Margin 14＋行Border Padding 6 で列を揃える -->
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="34,150,86,120,110,70" Margin="20,8,20,0">
-                        <TextBlock Grid.Column="0" Text="順位" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
-                        <TextBlock Grid.Column="1" Text="国名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
-                        <TextBlock Grid.Column="2" Text="国力" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
-                        <TextBlock Grid.Column="3" Text="政体" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
-                        <TextBlock Grid.Column="4" Text="人口" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
-                        <TextBlock Grid.Column="5" Text="鉄の産出" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
+                        <TextBlock Grid.Column="0" Text="順位" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
+                        <TextBlock Grid.Column="1" Text="国名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
+                        <TextBlock Grid.Column="2" Text="国力" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
+                        <TextBlock Grid.Column="3" Text="政体" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
+                        <TextBlock Grid.Column="4" Text="人口" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
+                        <TextBlock Grid.Column="5" Text="鉄の産出" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
                     </Grid>
                     <ScrollViewer MaxHeight="560">
                         <StackPanel Margin="14,8">
@@ -384,7 +384,7 @@
                                 <DataTemplate x:DataType="vm:EndingRow">
                                     <Border Background="{Binding RowBrush}" CornerRadius="3" Padding="6,2">
                                         <Grid ColumnDefinitions="34,150,86,120,110,70">
-                                            <TextBlock Grid.Column="0" Text="{Binding Order}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource BronzeBrush}"/>
+                                            <TextBlock Grid.Column="0" Text="{Binding Order}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource GrayBrush}"/>
                                             <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Grid.Column="2" Text="{Binding Score}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Polity}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
@@ -401,9 +401,9 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:AnnalRow">
                                     <Grid ColumnDefinitions="86,26,*" Margin="6,1">
-                                        <TextBlock Grid.Column="0" Text="{Binding Date}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}"/>
+                                        <TextBlock Grid.Column="0" Text="{Binding Date}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Icon}" FontSize="{StaticResource FontSmall}"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding Text}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock Grid.Column="2" ctl:LatinText.Text="{Binding Text}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}" TextWrapping="Wrap"/>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -415,14 +415,14 @@
 
             <!-- Escメニュー：セーブ・ロード・タイトルに戻る（復帰は確認モーダルを挟む） -->
             <Border IsVisible="{Binding MenuOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6"
                     MinWidth="260" Padding="0" ZIndex="10">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,10,10,8">
                         <TextBlock Grid.Column="0" Text="メニュー" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
                         <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding CloseMenuCommand}"/>
                     </Grid>
-                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="8">
                         <Button Classes="dialog" Content="クイックセーブ" Command="{Binding SaveGameNowCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         <!-- スロット1〜3（2026-09-06）：各行＝日時・セーブ・ロード -->

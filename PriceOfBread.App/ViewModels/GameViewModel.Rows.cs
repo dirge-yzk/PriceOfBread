@@ -128,7 +128,7 @@ public sealed partial class FactionRow : ObservableObject
     [ObservableProperty] private string _strength = "";
     [ObservableProperty] private string _strengthTip = "";      // 内訳ホバー（勢力の強さ／治安維持力／義勇兵＝ChallengeTipと同作法）
     [ObservableProperty] private bool _hasStrengthTip;          // 空ホバーの吹き出しを出さない2枚組切替（HeaderStatのTermsと同方式）
-    [ObservableProperty] private IBrush _strengthBrush = new SolidColorBrush(Color.Parse("#6B5230"));
+    [ObservableProperty] private IBrush _strengthBrush = UiRes.Brush("GrayBrush", Brushes.Gray);
     [ObservableProperty] private string _demands = "";
     public string Key { get; init; } = "";                       // 据え置き同期のキー（安定＝結束%を含めない）
     public void CopyFrom(FactionRow s) { Name = s.Name; Size = s.Size; Cohesion = s.Cohesion; Strength = s.Strength; StrengthTip = s.StrengthTip; HasStrengthTip = s.HasStrengthTip; StrengthBrush = s.StrengthBrush; Demands = s.Demands; }
@@ -207,7 +207,7 @@ public sealed partial class HeaderStat : ObservableObject
 /// <summary>ヘッダーの深刻度の色（2026-11-03）。通常＝墨・注意＝琥珀・危険＝赤。帯の境目は各項目の側（Refresh.cs）。</summary>
 public static class SeverityBrushes
 {
-    public static readonly IBrush Normal = new SolidColorBrush(Color.Parse("#4A3E2E"));
+    public static readonly IBrush Normal = UiRes.Brush("InkBrush", Brushes.Black);
     public static readonly IBrush Caution = new SolidColorBrush(Color.Parse("#B7791F"));
     public static readonly IBrush Danger = new SolidColorBrush(Color.Parse("#B23A2E"));
     /// <summary>悪いほど大きい量。<paramref name="caution"/> 以上で琥珀・<paramref name="danger"/> 以上で赤（NaN は通常）。</summary>

@@ -61,7 +61,7 @@ public partial class GameViewModel : ViewModelBase
     private static readonly IBrush NewsGold = new SolidColorBrush(Color.Parse("#8A6A20"));
     private static readonly IBrush NewsRed = new SolidColorBrush(Color.Parse("#A0432D"));
     private static readonly IBrush NewsGreen = new SolidColorBrush(Color.Parse("#2E7D32"));
-    private static readonly IBrush SelfRowHighlight = new SolidColorBrush(Color.Parse("#C7DCF2"));   // 自国行のハイライト（終局ランキング）
+    private static readonly IBrush SelfRowHighlight = UiRes.Brush("AccentFaintBrush", Brushes.Orange);   // 自国行のハイライト（終局ランキング）
     // 報せの伝播：遠い国の事件は距離分だけ遅れて届く（配達待ちキュー）。電信の普及（年代）でラグは縮み、1870年に実質リアルタイム。
     private readonly List<PendingNews> _pending = new();
     private sealed record PendingNews(double DeliveryDay, double EventDay, string Icon, string Body, IBrush Color, bool Mine);   // 表示日付＝届いた日・遅延分は「（nヶ月前）」を付す

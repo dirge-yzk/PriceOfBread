@@ -134,18 +134,17 @@ public sealed class FloatingWindow : Border
     {
         _slot = slot; _layout = layout;
         MinWidth = LayoutModel.MinWindowWidth; MinHeight = LayoutModel.MinWindowHeight;
-        Background = Brush("ParchmentBrush", Brushes.Beige);
-        BorderThickness = new Thickness(1.5);
-        CornerRadius = new CornerRadius(4);
+        Background = Brush("PaperBrush", Brushes.Beige);
+        BorderThickness = new Thickness(1);   // 様式（2026-11-12）：線 1・角 3・影なし
+        CornerRadius = new CornerRadius(3);
         ClipToBounds = true;
-        BoxShadow = BoxShadows.Parse("0 4 16 0 #55000000");
 
         var close = new Button { Content = "×", Classes = { "edge" }, Padding = new Thickness(10, 0), FontSize = 16, VerticalAlignment = VerticalAlignment.Stretch };
         close.Click += (_, _) => _layout.Close(_slot);
         var name = new TextBlock { Text = title, FontWeight = FontWeight.Bold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0), Foreground = Brush("InkBrush", Brushes.Black) };
         var bar = new Grid { ColumnDefinitions = { new ColumnDefinition(1, GridUnitType.Star), new ColumnDefinition(GridLength.Auto) } };
         bar.Children.Add(name); Grid.SetColumn(close, 1); bar.Children.Add(close);
-        _titleBar = new Border { Height = TitleHeight, Background = Brush("SandBrush", Brushes.Tan), Child = bar, Cursor = new Cursor(StandardCursorType.SizeAll) };
+        _titleBar = new Border { Height = TitleHeight, Background = Brush("TraceBrush", Brushes.Tan), Child = bar, Cursor = new Cursor(StandardCursorType.SizeAll) };
         _titleBar.PointerPressed += (s, e) => Begin(s, e, Mode.Move, false, false, false, false);
         _titleBar.PointerMoved += OnMoved;
         _titleBar.PointerReleased += OnReleased;
@@ -197,7 +196,7 @@ public sealed class FloatingWindow : Border
     }
 
     public void SetFront(bool front)
-        => BorderBrush = front ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("SandDarkBrush", Brushes.Tan);
+        => BorderBrush = front ? Brush("AccentBrush", Brushes.Orange) : Brush("LineBrush", Brushes.Tan);
 
     /// <summary>層の座標での位置と大きさを置く（Canvas の置き方）。</summary>
     public void SetRect(WindowRect r)

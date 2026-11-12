@@ -215,26 +215,26 @@ public sealed class Section : Border
     {
         IsCollapsedProperty.Changed.AddClassHandler<Section>((s, _) => s.Sync());
         ScrollsProperty.Changed.AddClassHandler<Section>((s, _) => s.MountBody());
-        TitleProperty.Changed.AddClassHandler<Section>((s, _) => s._title.Text = s.Title);
+        TitleProperty.Changed.AddClassHandler<Section>((s, _) => LatinText.Fill(s._title, s.Title, Brush("GrayBrush", Brushes.Gray)));   // 見出しの中の数字は本文の灰（見出しの字は淡い灰・点検⑯）
     }
 
     public Section()
     {
         _title.Classes.Add("section");
-        _glyph.Foreground = Brush("BronzeBrush", Brushes.SaddleBrown);
+        _glyph.Foreground = Brush("GrayBrush", Brushes.SaddleBrown);
         MountBody();
         var header = new Border
         {
-            Height = PagePlan.HeaderHeight, Padding = new Thickness(8, 0), Background = Brush("ParchmentDimBrush", Brushes.Beige), Cursor = new Cursor(StandardCursorType.Hand),
+            Height = PagePlan.HeaderHeight, Padding = new Thickness(8, 0), Background = Brush("TraceBrush", Brushes.Beige), Cursor = new Cursor(StandardCursorType.Hand),
             Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { _glyph, _title } },
         };
         header.PointerPressed += (_, e) => { if (e.GetCurrentPoint(header).Properties.IsLeftButtonPressed) HeaderPressed?.Invoke(this); };
-        var line = new Border { Height = 1, Background = Brush("SandDarkBrush", Brushes.Tan) };
+        var line = new Border { Height = 1, Background = Brush("LineBrush", Brushes.Tan) };
         var dock = new DockPanel();
         DockPanel.SetDock(header, Dock.Top); DockPanel.SetDock(line, Dock.Top);
         dock.Children.Add(header); dock.Children.Add(line); dock.Children.Add(_body);
         Child = dock;
-        BorderThickness = new Thickness(1); BorderBrush = Brush("SandBrush", Brushes.Tan); Background = Brush("ParchmentBrush", Brushes.Beige);
+        BorderThickness = new Thickness(1); BorderBrush = Brush("LineBrush", Brushes.Tan); Background = Brush("PaperBrush", Brushes.Beige);
         ClipToBounds = true;
     }
 

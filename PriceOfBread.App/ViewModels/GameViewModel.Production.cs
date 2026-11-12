@@ -75,6 +75,9 @@ public partial class GameViewModel
     ///   ⚠2026-09-23に実測して書き直した：旧コメントは「工場カウンター46」「可用幅139px／選択中136px」と書いていたが、
     ///     ProductionTab.axaml の縦線の実値は **56**（2026-09-08に民営/国営の2行を入れた時に46→56へ広げ、コメントだけ据え置かれた）
     ///     ＝10px ぶん本文の見積もりが甘く、下の「収まる」の判定が全部ずれていた。
+    ///   ⚠2026-11-12：字体を Times New Roman（英数字）と Noto Sans JP（かなと漢字）へ替えた。下の幅の実測値は旧書体（Yu Gothic UI）のもので**今は当てはまらない**
+    ///     （Noto Sans JP の仮名と漢字は 1.000em の全角・数字と % は Times New Roman の比例幅）。品名は 17→15px・世界価格との比は 15→13px に落として、
+    ///     6 文字の「トウモロコシ」と比が収まるようにした（実写で確認）。
     ///   ⚠2026-09-23（2度目）：幅は Yu Gothic UI（GameView.axaml の FontFamily）の hmtx から**字ごとに**積み直した。
     ///     旧の「半角は一律6.1」は誤り＝この書体の数字は**プロポーショナル**で、11pxでの送り幅は
     ///     漢字11.000／太字の 0=6.107・1=4.426・4=6.338（数字の最大）・+=7.638・/=4.549・%=9.244・半角スペース=3.024／
@@ -121,9 +124,9 @@ public partial class GameViewModel
     private static readonly IBrush PBgLuxury   = new SolidColorBrush(Color.Parse("#EFE1EF"));
     private static readonly IBrush PBgInter    = new SolidColorBrush(Color.Parse("#EDE4D2"));
     private static readonly IBrush PBgProducer = new SolidColorBrush(Color.Parse("#DEE9F6"));
-    private static readonly IBrush PNodeBgSel  = new SolidColorBrush(Color.Parse("#C6DCF4"));
+    private static readonly IBrush PNodeBgSel  = UiRes.Brush("AccentSoftBrush", Brushes.Orange);
     // 供給が十分な財の地色（作者要望2026-09-07 (2)）＝tier色より濃い緑。主食の淡緑 PBgStaple(#E2EFE0) と紛れない濃さにする。
-    private static readonly IBrush PBorderSel  = new SolidColorBrush(Color.Parse("#16478F"));
+    private static readonly IBrush PBorderSel  = UiRes.Brush("AccentBrush", Brushes.Orange);
     private static readonly IBrush PBorderIn   = new SolidColorBrush(Color.Parse("#1F5FA8"));
     private static readonly IBrush PBorderOut  = new SolidColorBrush(Color.Parse("#A0432D"));
     private static readonly IBrush PEdgeDim    = new SolidColorBrush(Color.Parse("#9A8A66"));
@@ -131,9 +134,9 @@ public partial class GameViewModel
     private static readonly IBrush PEdgeOut    = new SolidColorBrush(Color.Parse("#A0432D"));
     private static readonly IBrush PPlus       = new SolidColorBrush(Color.Parse("#1E7A3E"));
     private static readonly IBrush PMinus      = new SolidColorBrush(Color.Parse("#B02418"));
-    private static readonly IBrush PDimText    = new SolidColorBrush(Color.Parse("#8A7A5E"));
-    private static readonly IBrush PNameText   = new SolidColorBrush(Color.Parse("#2A2118"));   // 財名の通常色（ボトルネック時は PMinus 赤）
-    private static readonly IBrush PUtilText   = new SolidColorBrush(Color.Parse("#5A4E3C"));   // 稼働率行の通常色（原料欠乏時は PMinus 赤）
+    private static readonly IBrush PDimText    = UiRes.Brush("Gray70Brush", Brushes.Gray);
+    private static readonly IBrush PNameText   = UiRes.Brush("InkBrush", Brushes.Black);   // 財名の通常色（ボトルネック時は PMinus 赤）
+    private static readonly IBrush PUtilText   = UiRes.Brush("InkMutedBrush", Brushes.Gray);   // 稼働率行の通常色（原料欠乏時は PMinus 赤）
 
     // 稼働率の色＝赤（0%）→黄（50%）→緑（100%）の連続（作者の指示 2026-11-04）。10% 刻みに量子化して筆を使い回す（毎月 数百枚のカードで筆を作らない）。
     private static readonly IBrush[] UtilBrushes = BuildUtilBrushes();

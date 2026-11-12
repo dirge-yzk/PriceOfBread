@@ -14,7 +14,7 @@
             <Button Classes="mini" Classes.active="{Binding MarketPricesView}" Content="財の値段" Command="{Binding SetMarketViewCommand}" CommandParameter="prices"/>
             <Button Classes="mini" Classes.active="{Binding MarketTradeView}" Content="貿易" Command="{Binding SetMarketViewCommand}" CommandParameter="trade"/>
             <Grid IsVisible="{Binding MarketTradeView}" ColumnDefinitions="Auto,12,Auto" Margin="12,0,0,0" VerticalAlignment="Center">
-                <TextBlock Grid.Column="0" Text="貿易収支" Foreground="{StaticResource BronzeBrush}" FontWeight="Bold" FontSize="{StaticResource FontLead}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" Text="貿易収支" Foreground="{StaticResource GrayBrush}" FontWeight="Bold" FontSize="{StaticResource FontLead}" VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="2" Text="{Binding TradeBalance}" Foreground="{StaticResource InkBrush}" FontWeight="Bold" FontSize="{StaticResource FontLead}" VerticalAlignment="Center"/>
             </Grid>
         </StackPanel>
