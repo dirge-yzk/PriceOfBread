@@ -1,0 +1,2 @@
+D:/PoB_work/ident_c100dv（c100dv の ident の生・刈った後 1.3GB・判定と manifest は measurements にコミット済み）
+D:/PoB_work/ident_c100icz（c100ic の旗 0 の ident の作業・6MB・成績表は measurements/m1056_20261112/identz にコミット済み）

@@ -1,0 +1,119 @@
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+正しい実装：緑
+刈り込み：判定=None・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=None・表 6 本・消した 0 本（0.00GB）・残した 6 本
+刈り込み：判定=None・表 6 本・消した 0 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 6 本・消した 0 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+M1 判定の前に刈る：赤を確認（3 件）← G：判定が「判定: 未了」なのに消えた
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 不一致・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 恒等・表 6 本・消した 0 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+M2 不一致でも刈る：赤を確認（3 件）← G：判定が「判定: 不一致」なのに消えた
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 4 本（0.00GB）・残した 4 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 4 本（0.00GB）・残した 4 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+M3 LF にそろえた sha1 で消す：赤を確認（4 件）← M3：行末だけ違う表（生は違う）が消えた
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 4 本（0.00GB）・残した 4 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 4 本（0.00GB）・残した 4 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+M4 揺れの表を消す：赤を確認（2 件）← M4：揺れ・宣言の表が消えた
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+刈らない：フォルダが無い
+刈り込み：判定=判定: 恒等・表 1 本・消した 1 本（0.00GB）・残した 0 本
+刈り込み：判定=判定: 恒等・表 0 本・消した 0 本（0.00GB）・残した 0 本
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+M5 /d/ の形・リンクの拒みを外す：赤を確認（6 件）← G3：ジャンクション経由が /d/PoB_work/c100dv_work/selftest/jt/ins の形で拒まれず消えた
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 2 本（0.00GB）・残した 6 本
+刈り込み：判定=判定: 恒等・表 8 本・消した 3 本（0.00GB）・残した 5 本
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：保護された場所：/d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+拒む：リンクかジャンクションを通る：/d/pob_work/c100dv_work/selftest/jt/ins → /d/pob_work/c100dv_work/selftest/keep_dummy
+包んだ：D:/pob_work/c100dv_work/selftest/packme.tar.gz（1 本）
+元を消した：D:/pob_work/c100dv_work/selftest/packme
+解いた：D:/PoB_work/c100dv_work/selftest\unp
+M6 --copy-to を落とす：赤を確認（1 件）← M6：manifest の写し（--copy-to）が無いか違う

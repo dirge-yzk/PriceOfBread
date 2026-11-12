@@ -1,0 +1,2 @@
+D:/PoB_work/m1060_work（合流の作業フォルダ・この回に作った）
+D:/PoB_work/keep_1060_rej（採らなかった腕の生の置き場・この回に作った・ic_armB＝c100ic の腕 B の生 23GB を c100ic_work から移した）
