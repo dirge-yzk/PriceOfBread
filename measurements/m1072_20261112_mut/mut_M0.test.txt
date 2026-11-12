@@ -1,0 +1,34 @@
+D:\PoB_work\c102em_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:38.58]     PriceOfBread.Tests.ZeroPopSkipTests.飛ばした件数は独立に数えた人数0の件数と種ごとに一致し0より大きい [FAIL]
+  失敗 PriceOfBread.Tests.ZeroPopSkipTests.飛ばした件数は独立に数えた人数0の件数と種ごとに一致し0より大きい [37 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 5200190
+Actual:   0
+  スタック トレース:
+     at PriceOfBread.Tests.ZeroPopSkipTests.飛ばした件数は独立に数えた人数0の件数と種ごとに一致し0より大きい() in D:\PoB_work\wt_c102em\PriceOfBread.Tests\ZeroPopSkipTests.cs:line 39
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:38.61]     PriceOfBread.Tests.ZeroPopSkipTests.人数が0より大きく1e6未満のPOPは飛ばさない [FAIL]
+[xUnit.net 00:00:38.73]     PriceOfBread.Tests.ZeroPopSkipTests.飛ばした道と旧の道は1か月の状態がビットで一致する [FAIL]
+  失敗 PriceOfBread.Tests.ZeroPopSkipTests.人数が0より大きく1e6未満のPOPは飛ばさない [32 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 78
+Actual:   0
+  スタック トレース:
+     at PriceOfBread.Tests.ZeroPopSkipTests.人数が0より大きく1e6未満のPOPは飛ばさない() in D:\PoB_work\wt_c102em\PriceOfBread.Tests\ZeroPopSkipTests.cs:line 100
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.ZeroPopSkipTests.飛ばした道と旧の道は1か月の状態がビットで一致する [123 ms]
+  エラー メッセージ:
+   前提：飛ばした道に人数 0.0 の POP が入る
+  スタック トレース:
+     at PriceOfBread.Tests.ZeroPopSkipTests.飛ばした道と旧の道は1か月の状態がビットで一致する() in D:\PoB_work\wt_c102em\PriceOfBread.Tests\ZeroPopSkipTests.cs:line 87
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     3、合格:     2、スキップ:     0、合計:     5、期間: 37 s - PriceOfBread.Tests.dll (net10.0)
