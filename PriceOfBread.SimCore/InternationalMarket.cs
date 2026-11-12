@@ -140,10 +140,18 @@ public sealed partial class InternationalMarket
     /// <summary>★市場の外の買い付けの1本（2026-09-30 処理の一元化 段4e K の <c>Procure</c>）＝州の市場から財 <paramref name="g"/> を <paramref name="want"/> だけ買って消費する：
     /// 需要を計上（在庫が無くても＝生産を駆動する）→ 在庫と買い手の貯蓄で律速 → 在庫を減らし財の出入りの台帳へ → 代金はその財の生産者の④の持分（<see cref="PaySales"/>）。
     /// 買い手＝POP（<paramref name="buyer"/>＝汽船の燃料と船と線路の商人・投資家＝貯蓄まで・台帳は販売 LastSold）／null＝国庫（国家の調達＝<see cref="Colonial.BuyUpkeepGood"/>＝
-    /// 価格の門と国家の支払い率 r は呼び手が量に掛けた後・台帳は域外 LastExport・区分 <paramref name="cat"/>）。戻り値＝買えた量。
+    /// 価格の門と国家の支払い率 r は呼び手が量に掛けた後・台帳は域外 LastExport〔(1063) 旗 ProcureStateAsSale 1 で販売 LastSold〕・区分 <paramref name="cat"/>）。戻り値＝買えた量。
     /// ⚠旧＝国家の調達（BuyUpkeepGood）と汽船の燃料（Transport.BuyShipFuel）と船と線路（Transport.BuyToward）が同じ手順を3つ写した。
     /// 価格が付いていない財（≦1e-9）は買わない（国家の側は旧＝床 1e-9 で買った＝価格は帯の床で常に正＝同じ）。</summary>
     internal static double Procure(World w, Region r, int g, double want, Pop? buyer, TreasuryCat cat = TreasuryCat.OtherIn, [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
+    {
+        var px = Instruments.On && buyer is null ? Instruments.ProcxBegin(w, r, g, want, cat) : null;   // (1063) 計器 procx_s（読むだけ・国家の枝だけ）
+        double got = ProcureBody(w, r, g, want, buyer, cat, routeFile, routeLine);
+        if (px is not null) Instruments.ProcxEnd(px, got);
+        return got;
+    }
+
+    private static double ProcureBody(World w, Region r, int g, double want, Pop? buyer, TreasuryCat cat, string routeFile, int routeLine)
     {
         var m = r.Markets[g];
         m.LastDemand += want;                  // 在庫が無くても需要を計上＝価格上昇と増産を駆動（鶏卵回避）
@@ -153,8 +161,10 @@ public sealed partial class InternationalMarket
         if (buyer is not null && pay > buyer.Savings.Value) { pay = Math.Max(0, buyer.Savings.Value); buy = pay / m.Price; }   // 買い手の貯蓄まで
         if (buy <= 1e-9) return 0;
         m.Stock -= buy;
-        if (buyer is null) m.LastExport += buy;   // 国家の調達＝域外（植民地・艦隊・遠征）へ出る
-        else m.LastSold += buy;                   // 私の買い付け＝販売（財収支に計上）
+        // (1063) 形 Y（旗 ProcureStateAsSale）：国家の調達も国内の国家の購入（EconomyStep の教育ほか）と同じ販売へ＝需要 want は上で 1 度・買えた量は販売。
+        //   旧（旗 0）＝域外 LastExport＝PriceLawSeesExports の価格の需要の側（MarketFlow）と清算の売り手（BilateralMarket）が LastDemand＋LastExport で同じ買いを 2 度数えた。
+        if (buyer is null && !(w.Coef.ProcureStateAsSale > 0)) m.LastExport += buy;   // 旧：国家の調達＝域外（植民地・艦隊・遠征）へ出る（否定形＝NaN も旧の側）
+        else m.LastSold += buy;                   // 私の買い付け＝販売（財収支に計上）／旗 1 の国家の調達
         PaySales(buyer is null ? (w, null) : (w, [buyer]), r, g, pay, w, cat, routeFile: routeFile, routeLine: routeLine);
         return buy;
     }

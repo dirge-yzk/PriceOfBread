@@ -85,6 +85,7 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TradeBuyerSolvesAtUnitPrice＝買い手の静止点を実際に払う単価で解く（2026-09-08 点火・PriceLawSupplyIncludesStock と対）
     // 【墓標2026-10-25 (551)・恒等の線 gc1】WorldPriceStatUnclamped（0＝表示用の世界価格の平均を参照の 0.1〜10 倍へ挟む／1＝挟まない）＝既定 0 の差し戻し・採否未決の休眠を作者の答え〈推奨で消す〉で削除。BilateralMarket の世界価格は常に挟む。挟み自体の扱いは古い設計の一覧 H22。
     public double PriceLawSeesExports = 1.0;   // ★点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
+    public double ProcureStateAsSale = 0.0;    // (1063) 形 Y：国家の調達（Procure の buyer==null）の買えた量を販売 LastSold へ（0＝旧＝域外 LastExport）。需要 want は両方で LastDemand へ 1 度
     public int ClearingsPerYear => Calendar.MonthsPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
     public int MonthsPerClearing => 1;                    // 1清算が覆う月数（月割の単位ヘルパー）
     /* ★幻の生産の根絶（作者2度指摘・2026-08-10）＝1783年に内燃機関が「生産量0.0kなのに生産シェア3%・清が世界の12%」、
