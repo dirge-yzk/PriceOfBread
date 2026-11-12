@@ -1,0 +1,5 @@
+(1069) 合流が消した物（自分で作っていない線の生・表ごとの sha1 は m1069_work/hash/ → measurements/m1069_20261112/hash/ に取った後・合わせた木のフルスイート〔2749＋3 緑〕・savetest・leakhunt の後＝2026-11-12 15:03:19）
+- D:/PoB_work/ident_c101ufz（uf の ident の生・全表 1327 本＝基準と一致 1307・揺れ 20・hash/ufz.tsv）
+- D:/PoB_work/ident_c101sel・ident_c101selS1（sel の ident の生・刈り済みの残りと段 1 の生）
+- D:/PoB_work/c101py_work/armB/out_c101pyB_10（py の腕 B の生 23GB・hash/pyB.tsv・procx_s と nation_s は keep_1069_rej/py_armB_small へ写した）
+- D:/PoB_work/c101vs_work/out_c101vsB_10（vs の腕 B の生 23GB・M の生と共通 1337 本＝一致 1317・揺れ 20・違い 0〔read/rawcmp_M_vs_c101vsB.txt〕・hash/vsB.tsv・2026-11-12 15:56:44）

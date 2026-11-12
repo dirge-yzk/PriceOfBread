@@ -1,0 +1,6 @@
+(1069) 合流が作ったフォルダ（作った順）
+D:/PoB_work/m1069_work（合流の作業）
+D:/PoB_work/wt_m1069（合わせた木・枝 m1069）
+D:/PoB_work/wt_m1069z（腕 Z の使い捨ての木・枝 m1069z・DependencyCycleBreak 0）
+D:/PoB_work/keep_1069_rej（採らなかった腕の生・py の腕 B の小さい表 procx_s・nation_s）
+D:/PoB_work/keep_1069（新しい基線の生 base_ins・a11・n1・n2）
