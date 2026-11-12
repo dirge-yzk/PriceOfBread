@@ -43,11 +43,12 @@ public class SpectateTests
         Assert.NotEqual(b, SimFactory.WarmCacheFileName("abc", 2, 20, true, 7UL));                  // 別の種は別の鍵＝別の世界を混ぜない
     }
 
+    // 期待値は年の並びを「,」でつないだ文字で書く（整数の配列の字面は財の番号の番人 GoodIdGuardTests に財の番号と読まれる）。
     [Theory]
-    [InlineData("1790", new[] { 1790 })]
-    [InlineData("1790,1800,1810", new[] { 1790, 1800, 1810 })]
-    [InlineData("1810, 1790,1790", new[] { 1790, 1810 })]
-    public void ParseYears_Valid(string s, int[] expected) => Assert.Equal(expected, UiShotArgs.ParseYears(s));
+    [InlineData("1790", "1790")]
+    [InlineData("1790,1800,1810", "1790,1800,1810")]
+    [InlineData("1810, 1790,1790", "1790,1810")]
+    public void ParseYears_Valid(string s, string expected) => Assert.Equal(expected, string.Join(",", UiShotArgs.ParseYears(s)!));
 
     [Theory]
     [InlineData(null)]

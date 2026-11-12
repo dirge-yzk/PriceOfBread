@@ -53,7 +53,7 @@ public class UiShotRuleTests
     [Fact]
     public void LockedButProduced_Hit_And_Miss()
     {
-        CellView Bar(bool known) => new("", 0, known ? new BarCell([(100, DiscoveryTables.KnownInk)], 100) : new BarCell([(40, "#2F6EA5"), (10, "#A8862B")], 100));
+        CellView Bar(bool known) => new("", 0, known ? new BarCell([(100, DiscoveryTables.KnownInk)], 100) : new BarCell([(40.0, "#2F6EA5"), (10.0, "#A8862B")], 100));
         TableSnapshot Disc(bool known) => Tab("discovery.rows", "技術", [C("名前"), C("解禁")], ("ガス灯", null, [T("ガス灯"), Bar(known)]));
         var social = Tab("discovery.social", "政府と思想", [C("名前"), C("解禁")]);
         TableSnapshot Goods(double q) => Tab("production.goods", "財の表", [C("財名"), C("生産量", Unit.Quantity), C("輸出量", Unit.Quantity), C("輸入量", Unit.Quantity)],
@@ -134,7 +134,7 @@ public class UiShotRuleTests
         Assert.Equal("15%→0%", UiShotDump.CellText(new CellView("15%", 1, stage)));
         Assert.Equal("15%", UiShotDump.CellText(new CellView("15%", 1, stage with { Target = 1 })));
         Assert.Equal("済", UiShotDump.CellText(new CellView("", 0, new BarCell([(100, DiscoveryTables.KnownInk)], 100))));
-        Assert.Equal("未 95/100", UiShotDump.CellText(new CellView("", 0, new BarCell([(54, "a"), (39, "b"), (2, "c")], 100))));
+        Assert.Equal("未 95/100", UiShotDump.CellText(new CellView("", 0, new BarCell([(54.0, "a"), (39.0, "b"), (2.0, "c")], 100))));
         Assert.Equal("宣戦布告（不可）「余剰戦力が不足」", UiShotDump.CellText(new CellView("宣戦布告", double.NaN, new VerbCell("宣戦布告", false, () => { }, null, "余剰戦力が不足"))));
     }
 
