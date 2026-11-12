@@ -40,7 +40,7 @@ case "$CMD" in
     export POB_WORK="$W" POB_REPO="$TREE" MEASURE_CACHE=0
     case "$ARM" in
       a) bash "$IS/batch.sh" prep ia "dir:$TREE" plain && bash "$IS/batch.sh" run ia 5 ;;
-      b) bash "$IS/batch.sh" prep ib "dir:$TREE" plain && INS=1 bash "$IS/batch.sh" run ib 10 ;;
+      b) bash "$IS/batch.sh" prep ib "dir:$TREE" plain && { [ -s "$M/small.txt" ] && export POB_INSTRUMENTS_TABLES="$(cat "$M/small.txt")"; INS=1 bash "$IS/batch.sh" run ib 10; } ;;
       t) bash "$IS/batch.sh" prep it "dir:$TREE" plain && {
            T="$W/src_it"
            dotnet build "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --artifacts-path "$W/art_it" --disable-build-servers > "$W/tests_build.txt" 2>&1 || exit 1
@@ -54,10 +54,10 @@ case "$CMD" in
     echo "rc=$RC end=$(date '+%F %T')" > "$M/$ARM.done"
     exit 0 ;;
   start|run)
-    TREE="$ROOT"; W=""; CFG=""; SAVELEAK=0; NOINS=0; NOTESTS=0; EXTRA=()
+    TREE="$ROOT"; W=""; CFG=""; SAVELEAK=0; NOINS=0; NOTESTS=0; FORCE2=0; EXTRA=()
     while [ $# -gt 0 ]; do case "$1" in
       --tree) TREE="$2"; shift 2 ;; --work) W="$2"; shift 2 ;; --cfg) CFG="$2"; shift 2 ;;
-      --saveleak) SAVELEAK=1; shift ;; --no-ins) NOINS=1; shift ;; --no-tests) NOTESTS=1; shift ;;
+      --saveleak) SAVELEAK=1; shift ;; --stage2) FORCE2=1; shift ;; --no-ins) NOINS=1; shift ;; --no-tests) NOTESTS=1; shift ;;
       *) EXTRA+=("$1"); shift ;; esac; done
     TREE="$(cd "$TREE" && pwd)"; W="${W:-/d/PoB_work/ident_$LABEL}"; mkdir -p "$W/marks"
     rm -f "$W/marks/"*.done "$W/tests_count.txt"
@@ -67,6 +67,13 @@ case "$CMD" in
     # 測る木の SOURCE-HASH（measure.sh の src_manifest と同じ数え方＝写した後と同じ値）。check が腕 a・b のマニフェストと突き合わせる
     ( cd "$TREE" && find . \( -name bin -o -name obj -o -name docs -o -name dist -o -name .vs -o -name .git -o -name measurements -o -name uishot \) -prune \
         -o -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) -print | sort | xargs sha256sum ) | sha256sum | cut -c1-16 > "$W/marks/tree_hash.txt"
+    # (1061) 判定の段：stage.py が基準のコミットとの差から決める（段 1 → 2 へ上げる --stage2 だけがある＝段 2 から 1 へ手で下げる口は無い）。段 1 の腕 b は SMALL の表だけを出す。
+    CF0="${CFG:-$ROOT/scripts/instruments/ident/ident.cfg}"; SBASE=$(grep '^STAGE_BASE=' "$CF0" | head -1 | cut -d= -f2- | tr -d '\r')
+    if [ -n "$SBASE" ]; then python -X utf8 -I "$SP/stage.py" "$TREE" "$SBASE" > "$W/marks/stage.txt" 2>&1; else printf '段=2\nSTAGE_BASE が cfg に無い\n' > "$W/marks/stage.txt"; fi
+    [ "$FORCE2" = 1 ] && printf '段=2\n--stage2 で上げた\n' > "$W/marks/stage.txt"
+    head -1 "$W/marks/stage.txt" | grep -q '^段=[12]$' || { echo "stage.py が段を返さなかった＝段 2 で回す" >&2; printf '段=2\nstage.py 失敗\n' > "$W/marks/stage.txt"; }
+    if head -1 "$W/marks/stage.txt" | grep -q '^段=1$'; then grep '^SMALL=' "$CF0" | head -1 | cut -d= -f2- | tr -d '\r' > "$W/marks/small.txt"; else rm -f "$W/marks/small.txt"; fi
+    echo "ident start：$(head -1 "$W/marks/stage.txt")（$(sed -n 2p "$W/marks/stage.txt")）"
     ARMS="a"; [ $NOINS = 0 ] && ARMS="$ARMS b"; [ $NOTESTS = 0 ] && ARMS="$ARMS t"; [ $SAVELEAK = 1 ] && ARMS="$ARMS s"
     echo "ident start：ラベル=$LABEL 木=$TREE 作業=$W 腕=[$ARMS] 開始=$(date '+%F %T')"
     echo "$ARMS" > "$W/marks/arms.txt"
@@ -75,7 +82,7 @@ case "$CMD" in
     echo "rc=0 end=$(date '+%F %T')" > "$W/marks/all.done"
     echo "ident start：腕は全て終わった（$(ls "$W/marks" | grep -c '\.done$') 印）"
     if [ "$CMD" = run ]; then
-      if [ "${PRUNE:-0}" != 1 ]; then   # (1046) 既定（PRUNE 未設定）は今までと同じ exec
+      if [ "${PRUNE:-0}" != 1 ] || ! head -1 "$W/marks/stage.txt" | grep -q '^段=2$'; then   # 段 1 の生は小さい表だけ＝刈らない   # (1046) 既定（PRUNE 未設定）は今までと同じ exec
         exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
       fi
       # (1046) PRUNE=1：判定の行が出た後に限り、基準と全体が一致した表の生を消す（tools/prune.py・manifest は $W/prune_manifest.tsv）。PRUNE_HEAVY=1 で重い 4 表も対象（HEAVY_KEEP=表の頭,... は残す）。
@@ -83,12 +90,15 @@ case "$CMD" in
       RCC=${PIPESTATUS[0]}
       CF="${CFG:-$ROOT/scripts/instruments/ident/ident.cfg}"
       BASEINS=$(grep '^INSRAW=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r')
-      KP=$(grep '^KNOWN=' "$CF" | head -1 | cut -d= -f2- | tr ',' '\n' | cut -d: -f1 | tr '\n' ',')
+      KP=$(grep '^KNOWN=' "$CF" | head -1 | cut -d= -f2- | tr ',' '\n' | cut -d: -f1 | tr '\n' ',')$(grep '^PRUNE_KEEP=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r'),   # (1061) NG の読み手の 4 表は刈らない
       i=0; while [ $i -lt ${#EXTRA[@]} ]; do case "${EXTRA[$i]}" in --added-tables|--grown-ok|--removed-tables|--rows-grown-ok|--known-extra) KP="$KP$(echo "${EXTRA[$((i+1))]}" | tr ',' '\n' | cut -d: -f1 | cut -d@ -f1 | tr '\n' ',')" ;; esac; i=$((i+1)); done
       SAVED=""; i=0; while [ $i -lt ${#EXTRA[@]} ]; do [ "${EXTRA[$i]}" = "--save" ] && SAVED="${EXTRA[$((i+1))]}_"; i=$((i+1)); done
-      PRESPEC=$(ls "$ROOT"/measurements/m1053_*/hash/pre_base.tsv 2>/dev/null | head -1)
+      PRESPEC=$(grep '^PRESPEC=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r'); [ -n "$PRESPEC" ] && PRESPEC="$ROOT/$PRESPEC"   # (1061) cfg の物（m1053 の決め打ちをやめた）
       # (1054) manifest は measurements/ident_<日付>_<ラベル>_manifest.tsv へ写す（--save が無ければ日付なし）。--allow は自分の作業フォルダの名だけ。
       python -X utf8 -I "$IS/tools/prune.py" prune "$W/out_ib_10/ins" "$BASEINS" --verdict-file "$W/check_out.txt" --manifest "$W/prune_manifest.tsv" --copy-to "$ROOT/measurements/ident_${SAVED}${LABEL}_manifest.tsv" ${PRESPEC:+--pre-spec "$PRESPEC"} --allow "$(basename "$W")" --deleted "$W/prune_deleted.txt" --keep-prefix "$KP" --heavy-keep "${HEAVY_KEEP:-}" $([ "${PRUNE_HEAVY:-0}" = 1 ] && echo --heavy) | tee -a "$W/check_out.txt"
+      RCP=${PIPESTATUS[0]}
+      # (1061) 刈り込みの結果を check_out の末尾 1 行で名乗る（拒み・刈らないも含む）
+      echo "刈り込みの結果：rc=$RCP・$(grep -E '^(刈り込み|刈らない|拒む)' "$W/check_out.txt" | tail -1)" | tee -a "$W/check_out.txt"
       exit $RCC
     fi ;;
   check)
