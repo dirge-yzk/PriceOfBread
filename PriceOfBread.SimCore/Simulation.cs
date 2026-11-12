@@ -3010,8 +3010,7 @@ public sealed class Simulation
             //   これが「本位金属の準備需要が消えれば需要曲線そのものが下へ落ちる」（銀本位doc §3-1の心臓）が効かない理由である。
             // ★市場外の買い手はこのコードベースの作法として全て LastDemand を計上している
             //   （Colonial.cs:234/325 の捕囚市場・EconomyStep.cs:1271 の国家購入・Transport.cs:72 の鉄道船）。造幣だけが外れていた。
-            // ⚠0（対照腕）で書かない＝厳密恒等。既定1.0でlive（★点火2026-08-14。金の造幣は既定 live なので、点火は必ず単独バッチで測る）。
-            if (World.Coef.MintDemandCounted > 0) m.LastDemand += qty * World.Coef.MintDemandCounted;
+            m.LastDemand += qty;   // ★常に計上（(1089)・旧の旗 MintDemandCounted の焼き込み）
             //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
             // ★床モード＝吸った現物を国の準備として保持（旧来は「コインになって消える」＝追跡しない＝恒等）。
             //   法が本位を捨てたとき、この準備が市場へ売られる＝暴落を深める投げ売りが台本なしで出る。
