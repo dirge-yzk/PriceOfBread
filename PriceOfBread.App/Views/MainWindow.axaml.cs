@@ -247,7 +247,7 @@ public partial class MainWindow : Window
             Capture(dir, "02_開始直後.png");
             BootLog.Write("uishot: 02撮影済み");
             gvm.SetSpeedCommand.Execute("3");
-            if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null);
+            gvm.Playing = false;   // 撮影は実時間で進めない（下の進行の輪が日を数えて回す）
             // ★多時点の撮影（観戦モードの撮影の土台）：年を複数渡すと、各年に着くたびに一時停止して全ページを <rootDir>/<年>/ へ撮り、続きを回す。
             //   映す国が途中で消えたら（再併合）付け直した国で撮り続け、<rootDir>/撮影の記録.txt に年と国の名を書く。年が 1 つなら従来どおり（rootDir 直下）。
             var years = Program.UiShotYears;
@@ -260,33 +260,41 @@ public partial class MainWindow : Window
             int targetYear = years[yi];
             dir = years.Length == 1 ? rootDir : Path.Combine(rootDir, targetYear.ToString());
             Directory.CreateDirectory(dir);
-            // ★2026-09-07 修正：上限が実時間240秒の固定で、既定の1793年より先を渡すと必ず届かなかった
-            //   （戦争中・国内勢力ありの画面を無人で撮れない＝戦争タブ／政治タブの恒久的な検証の穴）。
-            //   1年あたり20秒（実測＝速度3で約5秒/四半期）を目安に、渡された目標年まで待つ。既定の1793年では 480 のまま。
-            int nowYear = int.TryParse(gvm.DateText.Split('/')[0], out int ny0) ? ny0 : 1783;
-            int spin = Math.Max(480, (targetYear - nowYear) * 40);
-            for (int i = 0; i < spin; i++)   // 目標年まで高速進行
+            // ★撮影の進行は実時間に合わせない（2026-11-12）：画面の速度 3 を 500 ミリ秒ごとに覗くと 1950 年まで 1 時間かかり、
+            //   窓への答えが効く日も実時間で決まって走るたびに別の世界になった。遊ぶ時と同じ日ごとの道（GameViewModel.StepDaysForShot＝OnTick と共通の本体）を
+            //   1 四半期ずつ回し、窓が開いた日で止めて台本の答えを返す。目標の年の 1 月 1 日でちょうど止まる。
+            int targetDay = (targetYear - SimCore.Calendar.StartYear) * SimCore.Calendar.DaysPerYear;
+            int stuck = 0;
+            for (int guard = 0; guard < 200000; guard++)
             {
-                await Task.Delay(500);
-                FollowShownNation(rootDir, mwvm, ref gvm);   // 映す国が付け直された（再併合・添字のずれ）なら新しい画面の VM を握り直す（死んだ VM の日付を見続けて目標年に届かない事故の予防）
+                FollowShownNation(rootDir, mwvm, ref gvm);   // 映す国が付け直された（再併合・添字のずれ）なら新しい画面の VM を握り直す
+                gvm.Playing = false;                          // 時間は撮影が進める（タイマーの実時間では進めない）
                 // 観戦ではモーダルを押さずに閉じるだけ（押すとシムへ書く＝AI の判断でなくなる）。開いたこと自体が「プレイヤー専用の経路が観戦で開いた」証拠なので記録する。
                 if (spectate) { NotePastWars(rootDir, gvm); CloseModalsForSpectate(rootDir, gvm); }
-                // ★2026-09-07：ポップアップは世界を止め、**閉じても時間は再開しない**（作者裁定2026-08-24＝プレイヤーが自分で再開する）。
-                //   無人撮影はここで詰む＝実測で開始から1年（1784/01/01）で緊張モーダルが開き、以後どれだけ回しても暦が動かなかった
-                //   （旧＝総選挙だけを流していた）。中身を変えない選択肢（総選挙＝棄権・緊張＝何もせず閉じる）で流し、閉じたら自分で再開する。
-                if (gvm.ElectionPopupOpen) { gvm.ElectionAbstainCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.TensionPopupOpen) { gvm.TensionIgnoreCommand.Execute(null); await Task.Delay(200); }
-                // 最後通牒＝受けて立つ（屈服は正統性を削って世界を大きく変える／開戦は戦争タブ・戦線の画面を実際に撮れる）。
-                if (gvm.WarPopupOpen) { gvm.WarDeclareGoCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.WarEndPopupOpen) { gvm.WarEndAckCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.CallToArmsOpen) { gvm.CallToArmsRefuseCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.FactionCrisisOpen) { gvm.FactionCloseCommand.Execute(null); await Task.Delay(200); }   // ★要求は法の経路＝通知は閉じるだけ
-                if (gvm.SideChoiceOpen) { gvm.SideChoiceStayCommand.Execute(null); await Task.Delay(200); }
-                if (!gvm.AnyPopupOpen) { if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null); }
-                else if (i % 20 == 0) BootLog.Write($"uishot: 進行が止まっている {gvm.DateText}（緊張{gvm.TensionPopupOpen} 開戦{gvm.WarPopupOpen} 終戦{gvm.WarEndPopupOpen} 危機{gvm.FactionCrisisOpen} 総選挙{gvm.ElectionPopupOpen} 参戦{gvm.CallToArmsOpen} 陣営{gvm.SideChoiceOpen} 確認{gvm.ConfirmOpen}「{gvm.ConfirmTitle}」 メニュー{gvm.MenuOpen} 終局{gvm.EndingOpen}）");
-                if (int.TryParse(gvm.DateText.Split('/')[0], out int y) && y >= targetYear) break;
+                // ★2026-09-07：ポップアップは世界を止め、閉じても時間は再開しない（作者裁定2026-08-24）。台本の答えは中身を変えない選択肢。
+                if (gvm.ElectionPopupOpen) gvm.ElectionAbstainCommand.Execute(null);
+                if (gvm.TensionPopupOpen) gvm.TensionIgnoreCommand.Execute(null);
+                if (gvm.WarPopupOpen) gvm.WarDeclareGoCommand.Execute(null);   // 最後通牒＝受けて立つ
+                if (gvm.WarEndPopupOpen) gvm.WarEndAckCommand.Execute(null);
+                if (gvm.CallToArmsOpen) gvm.CallToArmsRefuseCommand.Execute(null);
+                if (gvm.FactionCrisisOpen) gvm.FactionCloseCommand.Execute(null);   // 要求は法の経路＝通知は閉じるだけ
+                if (gvm.SideChoiceOpen) gvm.SideChoiceStayCommand.Execute(null);
+                if (gvm.SimDayNumber >= targetDay) break;
+                if (gvm.AnyPopupOpen)
+                {
+                    if (++stuck % 20 == 1) BootLog.Write($"uishot: 進行が止まっている {gvm.DateText}（緊張{gvm.TensionPopupOpen} 開戦{gvm.WarPopupOpen} 終戦{gvm.WarEndPopupOpen} 危機{gvm.FactionCrisisOpen} 総選挙{gvm.ElectionPopupOpen} 参戦{gvm.CallToArmsOpen} 陣営{gvm.SideChoiceOpen} 確認{gvm.ConfirmOpen}「{gvm.ConfirmTitle}」 メニュー{gvm.MenuOpen} 終局{gvm.EndingOpen}）");
+                    if (stuck > 200) break;
+                    if (gvm.EndingOpen) { PointRecord(rootDir, $"{gvm.DateText}　終局の窓が開いた＝閉じて続ける"); gvm.CloseEndingCommand.Execute(null); }
+                    await Task.Delay(20);
+                    continue;
+                }
+                stuck = 0;
+                gvm.StepDaysForShot(Math.Min(SimCore.Calendar.DaysPerQuarter, targetDay - gvm.SimDayNumber), out _);
+                await Task.Delay(1);   // 描画へ手番を返す（画面が固まらない）
             }
-            if (gvm.Playing) gvm.TogglePauseCommand.Execute(null);
+            gvm.Playing = false;
+            // 目標の年が終局の年なら終局の窓（順位）が最後の四半期で開く＝画像を隠すので撮る前に閉じる。
+            if (gvm.EndingOpen) { PointRecord(rootDir, $"{gvm.DateText}　終局の窓を閉じてから撮る"); gvm.CloseEndingCommand.Execute(null); }
             await Task.Delay(500);
             FollowShownNation(rootDir, mwvm, ref gvm);
             if (spectate) NotePastWars(rootDir, gvm);
@@ -506,14 +514,13 @@ public partial class MainWindow : Window
             {
                 lay.Reset(); lay.Open(Slot.Map);
                 await Task.Delay(800);
-                if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null);
+                gvm.StepDaysForShot(5, out _);   // 再生中の絵＝数日進めて撮る（実時間で回さない）
                 await Task.Delay(300);
                 Capture(dir, "03b_地図_再生中.png");
                 PointRecord(rootDir, $"[{targetYear}年] 03b_地図_再生中.png は再生中の絵＝暦 {gvm.DateText}（表.txt の暦 {_pDumpDate} より後）");
-                if (gvm.Playing) gvm.TogglePauseCommand.Execute(null);
                 await Task.Delay(300);
             }
-            if (yi < years.Length - 1) { lay.Reset(); await Task.Delay(300); gvm.SetSpeedCommand.Execute("3"); if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null); }   // 続きを回す
+            if (yi < years.Length - 1) { lay.Reset(); await Task.Delay(300); gvm.SetSpeedCommand.Execute("3"); }   // 続きを回す
             }   // for 年
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
             try

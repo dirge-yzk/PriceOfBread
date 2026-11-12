@@ -368,77 +368,103 @@ public partial class GameViewModel : ViewModelBase
         if (whole > 0)
         {
             _daysSinceStep -= whole;
-            bool monthCrossed = false, quarterCrossed = false;
-            for (int d = 0; d < whole; d++)
-            {
-                var swDay = System.Diagnostics.Stopwatch.StartNew();   // A1 計測（2026-09-05）：1四半期あたりの内訳＝StepDay／日次更新／月次・四半期更新
-                bool qDone = _sim.StepDay();
-                PerfStepDayMs += swDay.Elapsed.TotalMilliseconds;   // 1日進める（StepDay内で月次決算・四半期戦略が境界発火。RNG順はStepQuarterと同一＝決定論不変）
-                _dayInQuarterUI = (_dayInQuarterUI + 1) % Calendar.DaysPerQuarter;
-                if (_dayInQuarterUI % Calendar.DaysPerMonth == 0) monthCrossed = true;   // 30/60/0(=90日)＝月次決算の境界
-                if (qDone) quarterCrossed = true;
-            }
-            if (monthCrossed)
-            {
-                _monthDelta = _player.Treasury.Value - _treasuryMStart; _treasuryMStart = _player.Treasury.Value;
-                // ★戦争タブの「戦費」はエンジンが実際に払った軍の支出を読む＝UIで係数から再計算しない。
-                //   2026-09-30（支払いの一元化 段3-2）から戦費の独自の支払い（旧 Diplomacy.Fund）は無い＝戦争の費用は軍需の調達と兵士の給与（区分 陸軍・海軍）＋賠償（区分 戦費）。
-                //   SampleTreasuryLedger が _ledgerPrev を「今」へ上書きする前に、その直前の月次差分を取る（符号は支出が負＝反転）。
-                {
-                    double warOut = 0;
-                    foreach (var wc in new[] { TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.WarCost })
-                    {
-                        int wcIdx = (int)wc;
-                        if (wcIdx < _player.TreasuryLedger.Length && wcIdx < _ledgerPrev.Length) warOut += _ledgerPrev[wcIdx] - _player.TreasuryLedger[wcIdx];
-                    }
-                    _monthWarCost = Math.Max(0, warOut);
-                }
-                SampleTreasuryLedger();   // ★台帳の月次差分を**ヘッダーの収支と同じ瞬間に**取る（2026-08-13）＝両者が構成上一致する   // 月次収支（先月の国庫増減・四半期境界も月境界）
-            }
-            // 戦費の按分累計は Refresh 内（月スタンプで1回/月・戦線数で均等按分）＝レビュー2026-07-19で移設
-            if (quarterCrossed)
-            {
-                // ★作者裁定 f（2026-09-28）：操作国が再併合で吸収された（反乱側に乗り換えた後に親が勝った・革命が成就した）＝エンジンは親の国へ
-                //   IsPlayer と操作者を移している（MultiNationSim.ReabsorbNations）。画面を親の国へ付け直して報せる。
-                //   ⚠国を除くと Nations の添字が動く＝操作国より前の反乱国が消えても _playerIndex がずれる＝同じ付け直しで直す（報せは出さない）。
-                if (Spectating)
-                {
-                    // 観戦＝IsPlayer で国を探せない。映している国の世界そのものを探す：添字だけずれたなら付け直し・消えた（再併合）なら州を受け取った国（無ければ最大の国）へ付け直して報せる。
-                    int me = _sim.Nations.FindIndex(n => ReferenceEquals(n.World, _player));
-                    if (me >= 0 && me == _playerIndex) _watchHome = _player.Regions.Count > 0 ? _player.Regions[0] : _watchHome;
-                    else
-                    {
-                        int to = me >= 0 ? me : SimFactory.SuccessorIndex(_sim, _watchHome);
-                        if (to >= 0)
-                        {
-                            string toName = _sim.Nations[to].World.SelfPower?.Name ?? _sim.Nations[to].World.Region.Name;
-                            OnFollowPlayer?.Invoke(to, me >= 0 ? "" : $"{PlayerNationName}は{toName}へ再併合された。\n\n映す国:{toName}");
-                            return;
-                        }
-                    }
-                }
-                int follow = _sim.Nations.FindIndex(n => n.World.SelfPower?.IsPlayer == true);
-                if (follow >= 0 && (follow != _playerIndex || !ReferenceEquals(_sim.Nations[follow].World, _player)))
-                {
-                    bool absorbed = !_sim.Nations.Exists(n => ReferenceEquals(n.World, _player));
-                    string newName = _sim.Nations[follow].World.SelfPower!.Name;
-                    string notice = absorbed ? $"{PlayerNationName}は{newName}へ再併合された。\n\n操作国：{newName}" : "";
-                    OnFollowPlayer?.Invoke(follow, notice);
-                    return;
-                }
-                // （借入はエンジンが自動で借りる＝Fiscal の1行・国家の支払い率 r＜1 の月・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝画面の自動起債の予約2行を削除）
-                // 法律の自動決定（UtilityAgent.DecideLaws の四半期呼び出し）は廃止＝プレイヤーが政治タブで目標を置く（AIボタンで随時助言）。
-                DetectEvents();
-                // _satHistory（四半期満足度＝旧SatBars用）は読者消滅につき削除（監査2026-07-12 死16/他20。年次の満足度グラフ_histSatが現役）
-                if (_player.Year > _lastSampledYear) { _lastSampledYear = _player.Year; SampleYearStats(); }   // 年次グラフの採点（年が変わった四半期に1回）
-                if (!_endingShown && PlayText.IsEnded(Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear)) ShowEnding();   // 終局：**表示暦**の1949年12月が終わったら（＝GameQuarters 経過）ランキング（以後は観戦続行可）。★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した（旧＝助走で+1年先行し、表示上の最終年が丸ごと失われていた＝監査2026-07-11 他9）
-                { var swQ = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: true); PerfQuarterRefreshMs += swQ.Elapsed.TotalMilliseconds; }          // 四半期＝地図含む全再構築（政策・議会・所有権が変わる層）
-            }
-            else if (monthCrossed) { var swM = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: false); PerfMonthRefreshMs += swM.Elapsed.TotalMilliseconds; }   // 月次＝地図以外（生産グラフ・POP・外交・州＝MonthSettle の層）
-            else { var swR = System.Diagnostics.Stopwatch.StartNew(); RefreshDaily(); PerfDailyMs += swR.Elapsed.TotalMilliseconds; }   // 日次＝価格のみ（物価・国庫・生産詳細＝MarketFlow の層・価格そのものは旬の最終日に動く）
+            if (!AdvanceDays(whole)) return;   // 日を進める本体は撮影の口（StepDaysForShot）と共有
         }
         UpdateDate();           // 毎tick 日付を進める（経過日だけ安く更新＝UIスレッドを塞がず入力が通る）
         FlushPending();         // 報せの配達は毎日判定（遠い事件ほど遅れて到着＝距離分のラグ）
+    }
+
+    /// <summary>whole 日ぶん世界を進め、月・四半期の境界で遊ぶ時と同じ画面の更新を走らせる（OnTick と撮影 StepDaysForShot の共通の本体）。画面の VM を付け直す必要が出たら false。</summary>
+    private bool AdvanceDays(int whole)
+    {
+        bool monthCrossed = false, quarterCrossed = false;
+        for (int d = 0; d < whole; d++)
+        {
+            var swDay = System.Diagnostics.Stopwatch.StartNew();   // A1 計測（2026-09-05）：1四半期あたりの内訳＝StepDay／日次更新／月次・四半期更新
+            bool qDone = _sim.StepDay();
+            PerfStepDayMs += swDay.Elapsed.TotalMilliseconds;   // 1日進める（StepDay内で月次決算・四半期戦略が境界発火。RNG順はStepQuarterと同一＝決定論不変）
+            _dayInQuarterUI = (_dayInQuarterUI + 1) % Calendar.DaysPerQuarter;
+            if (_dayInQuarterUI % Calendar.DaysPerMonth == 0) monthCrossed = true;   // 30/60/0(=90日)＝月次決算の境界
+            if (qDone) quarterCrossed = true;
+        }
+        if (monthCrossed)
+        {
+            _monthDelta = _player.Treasury.Value - _treasuryMStart; _treasuryMStart = _player.Treasury.Value;
+            // ★戦争タブの「戦費」はエンジンが実際に払った軍の支出を読む＝UIで係数から再計算しない。
+            //   2026-09-30（支払いの一元化 段3-2）から戦費の独自の支払い（旧 Diplomacy.Fund）は無い＝戦争の費用は軍需の調達と兵士の給与（区分 陸軍・海軍）＋賠償（区分 戦費）。
+            //   SampleTreasuryLedger が _ledgerPrev を「今」へ上書きする前に、その直前の月次差分を取る（符号は支出が負＝反転）。
+            {
+                double warOut = 0;
+                foreach (var wc in new[] { TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.WarCost })
+                {
+                    int wcIdx = (int)wc;
+                    if (wcIdx < _player.TreasuryLedger.Length && wcIdx < _ledgerPrev.Length) warOut += _ledgerPrev[wcIdx] - _player.TreasuryLedger[wcIdx];
+                }
+                _monthWarCost = Math.Max(0, warOut);
+            }
+            SampleTreasuryLedger();   // ★台帳の月次差分を**ヘッダーの収支と同じ瞬間に**取る（2026-08-13）＝両者が構成上一致する   // 月次収支（先月の国庫増減・四半期境界も月境界）
+        }
+        // 戦費の按分累計は Refresh 内（月スタンプで1回/月・戦線数で均等按分）＝レビュー2026-07-19で移設
+        if (quarterCrossed)
+        {
+            // ★作者裁定 f（2026-09-28）：操作国が再併合で吸収された（反乱側に乗り換えた後に親が勝った・革命が成就した）＝エンジンは親の国へ
+            //   IsPlayer と操作者を移している（MultiNationSim.ReabsorbNations）。画面を親の国へ付け直して報せる。
+            //   ⚠国を除くと Nations の添字が動く＝操作国より前の反乱国が消えても _playerIndex がずれる＝同じ付け直しで直す（報せは出さない）。
+            if (Spectating)
+            {
+                // 観戦＝IsPlayer で国を探せない。映している国の世界そのものを探す：添字だけずれたなら付け直し・消えた（再併合）なら州を受け取った国（無ければ最大の国）へ付け直して報せる。
+                int me = _sim.Nations.FindIndex(n => ReferenceEquals(n.World, _player));
+                if (me >= 0 && me == _playerIndex) _watchHome = _player.Regions.Count > 0 ? _player.Regions[0] : _watchHome;
+                else
+                {
+                    int to = me >= 0 ? me : SimFactory.SuccessorIndex(_sim, _watchHome);
+                    if (to >= 0)
+                    {
+                        string toName = _sim.Nations[to].World.SelfPower?.Name ?? _sim.Nations[to].World.Region.Name;
+                        OnFollowPlayer?.Invoke(to, me >= 0 ? "" : $"{PlayerNationName}は{toName}へ再併合された。\n\n映す国:{toName}");
+                        return false;
+                    }
+                }
+            }
+            int follow = _sim.Nations.FindIndex(n => n.World.SelfPower?.IsPlayer == true);
+            if (follow >= 0 && (follow != _playerIndex || !ReferenceEquals(_sim.Nations[follow].World, _player)))
+            {
+                bool absorbed = !_sim.Nations.Exists(n => ReferenceEquals(n.World, _player));
+                string newName = _sim.Nations[follow].World.SelfPower!.Name;
+                string notice = absorbed ? $"{PlayerNationName}は{newName}へ再併合された。\n\n操作国：{newName}" : "";
+                OnFollowPlayer?.Invoke(follow, notice);
+                return false;
+            }
+            // （借入はエンジンが自動で借りる＝Fiscal の1行・国家の支払い率 r＜1 の月・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝画面の自動起債の予約2行を削除）
+            // 法律の自動決定（UtilityAgent.DecideLaws の四半期呼び出し）は廃止＝プレイヤーが政治タブで目標を置く（AIボタンで随時助言）。
+            DetectEvents();
+            // _satHistory（四半期満足度＝旧SatBars用）は読者消滅につき削除（監査2026-07-12 死16/他20。年次の満足度グラフ_histSatが現役）
+            if (_player.Year > _lastSampledYear) { _lastSampledYear = _player.Year; SampleYearStats(); }   // 年次グラフの採点（年が変わった四半期に1回）
+            if (!_endingShown && PlayText.IsEnded(Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear)) ShowEnding();   // 終局：**表示暦**の1949年12月が終わったら（＝GameQuarters 経過）ランキング（以後は観戦続行可）。★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した（旧＝助走で+1年先行し、表示上の最終年が丸ごと失われていた＝監査2026-07-11 他9）
+            { var swQ = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: true); PerfQuarterRefreshMs += swQ.Elapsed.TotalMilliseconds; }          // 四半期＝地図含む全再構築（政策・議会・所有権が変わる層）
+        }
+        else if (monthCrossed) { var swM = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: false); PerfMonthRefreshMs += swM.Elapsed.TotalMilliseconds; }   // 月次＝地図以外（生産グラフ・POP・外交・州＝MonthSettle の層）
+        else { var swR = System.Diagnostics.Stopwatch.StartNew(); RefreshDaily(); PerfDailyMs += swR.Elapsed.TotalMilliseconds; }   // 日次＝価格のみ（物価・国庫・生産詳細＝MarketFlow の層・価格そのものは旬の最終日に動く）
+        return true;
+    }
+
+    /// <summary>暦の通し日（1783/01/01 からの整数日）。撮影が目標の年の頭を日で数える。</summary>
+    internal int SimDayNumber => (int)_simDays;
+
+    /// <summary>撮影（--uishot）専用：実時間に依らず n 日を 1 日ずつ進める。窓が開いた日で止め、回した日数を返す。国の付け直しが起きたら followed を立てる。</summary>
+    internal int StepDaysForShot(int n, out bool followed)
+    {
+        followed = false;
+        int done = 0;
+        while (done < n && !AnyPopupOpen)
+        {
+            _simDays += 1;
+            done++;
+            if (!AdvanceDays(1)) { followed = true; return done; }
+            UpdateDate();
+            FlushPending();
+        }
+        return done;
     }
 
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
