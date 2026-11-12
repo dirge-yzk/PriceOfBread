@@ -1,0 +1,4 @@
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+  失敗 PriceOfBread.Tests.TradePhase0Tests.R1a_費用を割る数は能力の倍率と別 [18 ms]
+  失敗 PriceOfBread.Tests.EconomyTests.器_賦存が同一費用あたりの産出能力になる_ゲート0は厳密恒等 [2 s]
+失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
