@@ -279,7 +279,12 @@ public class SecessionLaborLawInstrumentTests
         Assert.True(CostLedger.AiBureaucracyScans < CostLedger.Count);   // この行は表の中にある（★(417) 行が後ろに足されても赤にならない形へ＝複数の線が行を足すので合流のたびに直さない）
         Assert.Equal(CostLedger.DeadMarketMonth + 1, CostLedger.Count);   // ★(1072) 最後の行は DeadMarketMonth（40＝中身の無い物 ③・件数だけの 10 行〔31〜40〕を足した・★(749) の表の更新）／旧：LaborPowerScans + 1／★(1045) 最後の行は LaborPowerScans（30＝労働の重みの m の走査・★(749) の表の更新）／旧：ClearingSkipsLB（29）／★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝★(679) 最後の行は NavalOrderScans（28＝海軍の発注の配り）・行を足す線は ここを直す／旧：25 は年齢の層の歩／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
         Assert.Equal(CostLedger.AiBureaucracyScanUnitMicros, CostLedger.UnitMicros[CostLedger.AiBureaucracyScans]);
-        Assert.True(CostLedger.UnitMicros.Take(CostLedger.ConsumeSkipZeroPop).All(u => u > 0 && double.IsFinite(u)), "単価が 0 以下か有限でない行がある");   // ★(1072) 件数だけの 10 行〔ConsumeSkipZeroPop 以後〕は単価 0 が設計（ZeroPopSkipTests が 0.0 を確かめる）＝母集合をその手前までにした
+        var countOnlyRows = new HashSet<int> { CostLedger.ConsumeSkipZeroPop, CostLedger.ConsumeZeroPopIndep, CostLedger.DeadProdZeroPop, CostLedger.DeadProdBankrupt, CostLedger.DeadProdService, CostLedger.DeadProdRgo, CostLedger.DeadProdOther, CostLedger.ZeroPopMonth, CostLedger.ZeroPopEmptyMonth, CostLedger.DeadMarketMonth };   // ★(1080) 件数だけの 10 行〔31〜40〕を名で列挙（★(1072) は Take(31) で狭めた＝以後に足す単価つきの行が黙って検査の外に出た）
+        Assert.Equal(10, countOnlyRows.Count);
+        Assert.All(countOnlyRows, r => Assert.True(CostLedger.UnitMicros[r] == 0.0, $"件数だけの行 {r} の単価が 0 でない（単価つきの行は集合に入れない）"));   // 単価 0 が設計（ZeroPopSkipTests が 0.0 を確かめる）
+        var checkedRows = Enumerable.Range(0, CostLedger.Count).Where(r => !countOnlyRows.Contains(r)).ToList();
+        Assert.Equal(CostLedger.Count - 10, checkedRows.Count);   // 検査した行の数
+        Assert.All(checkedRows, r => Assert.True(CostLedger.UnitMicros[r] > 0 && double.IsFinite(CostLedger.UnitMicros[r]), $"単価が 0 以下か有限でない行がある（行 {r}）"));
         var (dir, sim) = Run(8);
         try
         {
