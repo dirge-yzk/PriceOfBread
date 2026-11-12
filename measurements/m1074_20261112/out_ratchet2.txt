@@ -1,0 +1,44 @@
+=== ratchet2 base_ins 種 1〜10
+  X_peace_serfFull_law0	77
+  X_peace_serfFull_law1	503
+  X_peace_serfFull_law2	255213
+  X_peace_serfNotFull_law0	22
+  X_peace_serfNotFull_law1	19287
+  X_war_mob_serfFull_law0	4
+  X_war_mob_serfFull_law1	18
+  X_war_mob_serfFull_law2	6723
+  X_war_mob_serfNotFull_law1	1259
+  X_war_nomob_serfFull_law0	6
+  X_war_nomob_serfFull_law1	35
+  X_war_nomob_serfFull_law2	5573
+  X_war_nomob_serfNotFull_law1	1091
+  down_want_code0	14
+  down_want_code2	5202
+  down_want_code3	905
+  down_want_code4	43209
+  down_want_rows	49330
+  enf_down_peace	622
+  enf_down_war	128
+  enf_up_peace	928
+  enf_up_war	825
+  rows_peace	373194
+  rows_war	34233
+  spell_end_drop	345
+  spell_end_war	1515
+  spells	2384
+  spells_open_at_end	82
+  sum_down_peace_x1e4	2222556
+  sum_down_war_x1e4	481047
+  sum_up_peace_x1e4	1850392
+  sum_up_war_x1e4	3086198
+  up_want_code2	14
+  up_want_code3	16768
+  up_want_code4	167
+  up_want_rows	16949
+  down_want_step	p10 -0.00208	med -0.00157	p90 0.00000	mean -0.00146	N 49330
+  down_want_stepfrac	p10 0.00687	med 0.00849	p90 0.01024	mean 0.00881	N 49316
+  spell_len	p10 2.00000	med 10.00000	p90 58.00000	mean 20.37584	N 2384
+  spell_len_open	p10 2.00000	med 22.00000	p90 66.00000	mean 28.68293	N 82
+  up_want_step	p10 0.00284	med 0.00651	p90 0.01156	mean 0.00690	N 16949
+  up_want_stepfrac	p10 0.01731	med 0.04000	p90 0.04536	mean 0.03573	N 16949
+  種1 q0 不安≧0.5・農奴解放が全面でない・選抜：ロシア・プロイセン・サルデーニャ＝ピエモンテ・ビルマ・シャム・カンボジア・ラオス・ポルトガル・ライン諸邦・教皇領・バイエルン・ザクセン・ハノーファー・ヴュルテンベルク

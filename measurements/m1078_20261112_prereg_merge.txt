@@ -1,0 +1,30 @@
+# (1078) 合流（波102）の予言（merge の前にコミットする）
+# 担当 Opus 5.5（合流）。基点 7bb40c772。基準＝基線 m1069（ident.cfg：B5 b5_20261112_m1069・B10INS b10_20261112_m1069_ins・MON mon_20261112_m1069.txt・NG_BASE ng1069〔100 件〕）。
+# 指示文の雛形にある m797・ng797 は古い基準＝この回は ident.cfg の m1069 を使う。
+
+[1] 入れる線と外す線（結果を見る前に決める）
+- 入れる：c102ui (1070)・c102rp (1071)・c102em (1072)（3 本とも〈判定: 恒等〉・反証役の高 0）。順は ui → rp → em（git merge --no-ff）。
+- 外す：c102tr (1073)＝手続きの不採用。RecipeoutInstrumentTests.cs:188 の T4 の書き換え（83f177e66）は、旗 1 のエンジンの費用と比べる列を同じ線の中で替えた＝README ★(743) の ①〜④ の外（担当が自ら名乗った）・事前登録 [3] の止める条件に当たる＝★(1069)・㉜ の後半の型（波101 の c101py と同じ扱い）。83f177e66 だけを戻すと T1・T4 が赤＝R1 を抜く部分採用はエンジンの .cs の手術になる＝合流はしない。tr の記録（measurements/m1073_* と scripts/instruments/c102tr/）だけを名指しで写す（(1060) の c100ic の前例）。00一覧 §0-2 の先頭へ〈T4 の書き換えを認めるか〉を推奨つきで置く。
+- 挙動の線は 0 本＝基線は m1069 のまま（M・N1・N2・S11・アブレーションは回さない）。
+
+[2] 消す名前
+- ui・rp・em の SimCore で消すメンバーは 0（rp の PairKm は局所関数の中身を純関数へ移しただけ）。tr が変える名前（ApplyEndowment・RoProd・RoRows・GoodBegin・TradeskipClose・RecipeoutHeaderText）は ui・rp・em の枝で main と同じ件数（tr は入れないので無関係）。
+- 3 本の枝が触れるファイルの重なりは 0（files.txt）＝衝突 0 の見込み。
+
+[3] 合わせた木の予言
+- テストの数：Category!=FullLength 2749＋ui 1＋rp 4＋em 15＝2769・FullLength 3（--list-tests で確かめる）。
+- 腕 Z（合わせた木そのもの・旗の切り替えなし＝挙動の線が無い）を ident で回す（段 2・--saveleak・--ng・--tests-delta 20・--added-tables rulepower_s,rulepeace_s・--cost-allow 中身の無い物：,消費：飛ばした,消費：人口 0）。
+  - 予言：〈判定: 恒等〉（測った種で一致）。素の 5 種が b5_20261112_m1069 と全行バイト一致（名乗り行を除く）・計器つき 10 種が b10_20261112_m1069_ins と全行バイト一致・注視の表 4612 行一致・.cost の推定 229.7 秒／227.7 秒・計器の表は宣言の無い違い 0・NG は ng1069 と同じ集合（新しい 0・外れた 0）。
+  - em の飛ばしの道は素の 5 種だけが見る（計器つきは insOn で旧の道）＝素の 5 種の一致が飛ばしの恒等の根拠。
+  - ★(933) の型：em は EconomyStep.cs の行を、rp は BilateralMarket.cs の行を動かす。どちらも足した列（--known-extra）は無い＝cearn_s の経路の行の写しで一致の見込み。〈不一致〉が出たら道具を直さず zcheck933.py で〈宣言の列〉〈経路の行の写しで一致〉〈その他〉に分けて数え、その他 0 なら〈不一致・道具の限界〉と名乗る。
+- 止める線の段：ident の〈判定: 不一致〉（宣言の無い違い）・フルスイートの赤（★(743) の外の直しはしない）・savetest／leakhunt の不合格。
+- 記録の段：.cost の実時間（CPU 秒）・em の G4（未測）・NG は恒等なので記録。
+
+[4] ident.cfg
+- 基線の成績表（B5・B10INS・MON・NG_BASE）は m1069 のまま。
+- TESTS_NONFULL 2749→2769。BASE_COMMIT・STAGE_BASE は合わせた木（段 1／段 2 の差を新しい計器の後から数える）。
+- INSRAW は D:/PoB_work/keep_1078/base_ins を新しく作る（腕 Z の計器つき 10 種の生・keep_1069/base_ins とバイトで同じ表はハードリンク＝(1035) の前例）＝rulepower_s・rulepeace_s を基準に含める。KEEPNULL（keep_1069/n1・n2・a11）は動かさない。
+
+[5] 外さない物（入れる線の反証役の中・低）は記録へ（合流はエンジンの .cs と試験を直さない）
+- em の SecessionLaborLawInstrumentTests.cs:280（行を足す線が直す型・★(1045) の前例）・:282（母集合を ConsumeSkipZeroPop の手前へ狭めた＝★(749) の文言の外・定数の表の形の番人でエンジンの挙動を固定する Assert ではない）は verdict と ⑧ に前後を列挙し、名指しの集合へ直す線を次の波へ申し送る。
+- ui の FiscalPopDiscoveryTablesTests.cs:89-91 の番人の目隠し・AddRest の突然変異は未実施＝申し送り。

@@ -1,0 +1,21 @@
+(1070) c102ui 事前登録（最初のコミット・merge より前）
+[1] 形: 恒等の線。予言 0（全行バイト一致）。基準 m1069。
+    入れる物: git merge --no-ff 601cd9c2e（uifix, a7d854dd3 の後 5 コミット・38 ファイル・+1142/-304）。それより先は入れない。
+[2] 差分の範囲の予言:
+    App 約 31 ファイル / SimCore/Display/FiscalTables.cs(AddRest) / Tests/ObservationFixTests.cs([Fact] +1) / .gitignore / THIRD_PARTY_NOTICES.md / docs 設計 doc 1。
+    Display の外の SimCore・Runner は 0。
+    読み手 grep（「その他」「その他の収入」cat.OtherIn cat.OtherOut）: Runner 0・Instruments*.cs 0・
+    scripts/instruments と measurements の台本は分析用 py 数本の別名のみで FiscalTables を呼ばない。
+    FiscalTables は SimCore の外では App が読む。エンジンの状態・計器の出力へは書き込まない（表示専用）。
+    浮動小数の順序が変わる箇所: AddRest は表示行の Actual 加算のみ（エンジンの量ではない）。紙の台本の食い違い 0 件の予言。
+    新しい計器の列 0・新しい表 0・SaveGame 新しい型 0・係数 0・POB_COEF 0。
+[3] 足す試験: ObservationFixTests.cs の [Fact] +1（uifix 側で書かれた物・そのまま）。
+    テスト数の予言: 2749 + 1 = 2750 ＋ FullLength 3（--list-tests で突き合わせる）。
+    ㉘ の走査の番人（IndustrializationReaderTests/UnitTypeTests/InstrumentsTests/WriterRatchetTests/DormantIdentityTests）: 書き換え 0 件・赤 0 の予言。
+    突然変異: 新しい試験 1 本は uifix の側のもの。AddRest を元の「その他」2 行へ戻すと赤になることを確かめる(可能なら)。
+    ソース走査の件数(工業化度の読み手の許可表・new MoneyStock(・route_anchors.tsv の鍵の行・WriterRatchetTests 宣言の表): 触れない＝件数の変化 0。
+[4] 段: stage.py が決める。Display に触れる→段 2 の予言。
+    素の 5 種・計器つき 10 種が m1069 と名乗り行(SOURCE-HASH)を除いて全行一致。計器の表の差は宣言なし(0)。
+    .cost の推定は m1069 と一致。
+[5] 〈判定: 恒等〉なら採る(測った種で一致)。赤なら画面のコードは直さず、赤の一覧を書いて止める。
+    他の線との重なり: ui だけが App・Display に触れる。rp(BilateralMarket/Instruments.cs:1921)・em(EconomyStep/MarketFlow/MultiNationSim)・tr(Simulation/Discovery/Instruments.cs:1945) とファイルの重なり 0。

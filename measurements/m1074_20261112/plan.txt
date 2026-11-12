@@ -1,0 +1,15 @@
+(1074) c102sy 読む線：S23 軍備と動員の確かめ＋消す候補（2026-11-12）
+作業の場所
+- 作業フォルダ D:/PoB_work/r1074_work（この回に作ったフォルダはこれ 1 つ）。worktree・枝は作らない。
+- ソースは main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 7bb40c772）を読むだけ（書かない・git の操作は log/show/grep だけ）。
+- 腕 0 本・ビルド 0・試験 0・コミット 0。
+読む生（keep_1069＝基線 m1069・計器つき 10 種）
+- D:/PoB_work/keep_1069/base_ins/{nation,stock,fm,fiscal,casualty,crownpc,coupgate,score,wp,monlaw,admrule,warentry,wars}_s1..10.tsv
+- ヌル腕 D:/PoB_work/keep_1069/n1・n2（頻度の揺れの比較だけ）。a11 は読まない（POB_CEARN=0 で別の盤面）。
+読む文書
+- docs/機能の台帳.md §0・§1 の S23 の行・§3 の S23-H001〜H044
+- docs/ゲーム概要と実装機能.md L4614〜L4863
+- measurements/m1065_20261112/notes.txt（兵 0 の原因）・(1050) 英の艦隊
+出力
+- D:/PoB_work/r1074_work/ledger_S23.tsv（12 列）・ledger_S23.md（判定・消す候補・素案・作者に聞く物・計器の仕様）
+- 台本 D:/PoB_work/r1074_work/*.py と out_*.txt

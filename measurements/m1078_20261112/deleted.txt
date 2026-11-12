@@ -1,0 +1,35 @@
+# (1078) 合流が消した物（D:/PoB_work）
+ident_m1078z（腕 Z の生の残り・ins は keep_1078/base_ins へ移した）
+ident_c102ui・ident_c102rp2・ident_c102tr・c102em_work/identC（線の ident の生・判定と manifest はコミット済み）
+worktree wt_c102ui・wt_c102rp・wt_c102em・wt_c102tr・wt_m1078z
+keep_1069_rej（c101py の procx_s と nation_s だけ・30 本・0.79GB・記録は (1069) で写し済み・ident.cfg の push〔6f4693ea1〕の後に消した＝指示どおり合流が消す）：
+  keep_1069_rej/py_armB_small/nation_s1.tsv
+  keep_1069_rej/py_armB_small/nation_s10.tsv
+  keep_1069_rej/py_armB_small/nation_s2.tsv
+  keep_1069_rej/py_armB_small/nation_s3.tsv
+  keep_1069_rej/py_armB_small/nation_s4.tsv
+  keep_1069_rej/py_armB_small/nation_s5.tsv
+  keep_1069_rej/py_armB_small/nation_s6.tsv
+  keep_1069_rej/py_armB_small/nation_s7.tsv
+  keep_1069_rej/py_armB_small/nation_s8.tsv
+  keep_1069_rej/py_armB_small/nation_s9.tsv
+  keep_1069_rej/py_armB_small/procx_s1.tsv
+  keep_1069_rej/py_armB_small/procx_s10.tsv
+  keep_1069_rej/py_armB_small/procx_s2.tsv
+  keep_1069_rej/py_armB_small/procx_s3.tsv
+  keep_1069_rej/py_armB_small/procx_s4.tsv
+  keep_1069_rej/py_armB_small/procx_s5.tsv
+  keep_1069_rej/py_armB_small/procx_s6.tsv
+  keep_1069_rej/py_armB_small/procx_s7.tsv
+  keep_1069_rej/py_armB_small/procx_s8.tsv
+  keep_1069_rej/py_armB_small/procx_s9.tsv
+  keep_1069_rej/py_identz_procx/procx_s1.tsv
+  keep_1069_rej/py_identz_procx/procx_s10.tsv
+  keep_1069_rej/py_identz_procx/procx_s2.tsv
+  keep_1069_rej/py_identz_procx/procx_s3.tsv
+  keep_1069_rej/py_identz_procx/procx_s4.tsv
+  keep_1069_rej/py_identz_procx/procx_s5.tsv
+  keep_1069_rej/py_identz_procx/procx_s6.tsv
+  keep_1069_rej/py_identz_procx/procx_s7.tsv
+  keep_1069_rej/py_identz_procx/procx_s8.tsv
+  keep_1069_rej/py_identz_procx/procx_s9.tsv

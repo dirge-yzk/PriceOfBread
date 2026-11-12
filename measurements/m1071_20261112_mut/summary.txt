@@ -1,0 +1,7 @@
+M1_対称化 rc=1
+M3_Onでなくても計算 rc=1
+M4_Openを通さず直に rc=1
+M2_口の中でLastPairWasLandを書く rc=1
+END
+M4_Openを通さず直に rc=1
+M3_Onでなくても計算(門を呼ばれた側へ移した後の版) rc=1

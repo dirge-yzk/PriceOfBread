@@ -1,0 +1,8 @@
+(1076) c102fl 読む線 計画（2026-11-12）
+作業の場所：D:/PoB_work/r1076_work（台本・出力・事前登録）。worktree と枝は作らない（main の作業ツリーは読むだけ・HEAD 7bb40c772）。
+読む生（keep_1069・消さない・移さない）：
+  base_ins（種 1〜10）・n1・n2（ヌル腕・種 1〜10）・a11（種 11〜20・POB_CEARN=0）
+  表：stock_s（fleetUnitsStock ほか艦隊の列）・fm_s（needSea・理想の海軍の割合）・spend_s/fiscal_s/pay_s（予算と支払い・要る列があれば）・wars_s（戦没の帰属があれば）
+国：イギリス・フランス・スペイン・オランダ・ロシア　年：1783〜1830 毎年（各年の最初の行・種の中央と幅）
+読むソース：EconomyStep.cs（FleetOrder・navBudget・fAfford）・Simulation.cs（NavalBudget の書き手）・ArmyShape.cs・Diplomacy.cs（摩耗）・Coefficients.cs（海軍の係数）・Scenario/NationConfig（開幕の艦）・Instruments の列の書き手（単位）
+腕 0・コミット 0。

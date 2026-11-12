@@ -14,203 +14,448 @@
     </Application.DataTemplates>
 
     <Application.Resources>
-        <!-- ★B5 UI統一（2026-09-05）：色とフォント寸法のトークン。出現4回以上の色だけを役割名で束ねた（一点物はビューに残す）。値は従来の実色と同一＝描画は不変。 -->
-        <SolidColorBrush x:Key="InkBrush" Color="#2A2118"/>   <!-- 本文の墨（最濃） -->
-        <SolidColorBrush x:Key="InkSoftBrush" Color="#4A3E2C"/>   <!-- 本文の墨（やや薄い＝表の数字・副見出し） -->
-        <SolidColorBrush x:Key="InkMutedBrush" Color="#5A4E3C"/>   <!-- 補助の墨（ラベル・単位） -->
-        <SolidColorBrush x:Key="InkFaintBrush" Color="#8A8070"/>   <!-- 淡い墨（注記・無効） -->
-        <SolidColorBrush x:Key="InkDimBrush" Color="#7A6A55"/>   <!-- 薄墨（区切り文字） -->
-        <SolidColorBrush x:Key="BronzeBrush" Color="#6B5230"/>   <!-- 見出し・強調の褐色 -->
-        <SolidColorBrush x:Key="GoldBrush" Color="#8A6A2A"/>   <!-- 金（王権・称号） -->
-        <SolidColorBrush x:Key="RustBrush" Color="#A0432D"/>   <!-- 赤褐色（負・警告） -->
-        <SolidColorBrush x:Key="AmberBrush" Color="#A05A28"/>   <!-- 琥珀（注意） -->
-        <SolidColorBrush x:Key="GreenBrush" Color="#2E7D32"/>   <!-- 緑（正・良） -->
-        <SolidColorBrush x:Key="BlueBrush" Color="#1F5FA8"/>   <!-- 青（リンク・選択） -->
-        <SolidColorBrush x:Key="SteelBrush" Color="#3A5A8A"/>   <!-- 鋼青（第二の強調） -->
-        <!-- 支配度の 4 区分の色（唯一の定義・州の窓・POP の州の表・部品の見本が読む）：国家＝鋼青・在地勢力＝褐・外国勢力＝琥珀・無統治＝淡墨（政治の金/錆と衝突させない） -->
-        <SolidColorBrush x:Key="RuleStateBrush" Color="#3A5A8A"/>
-        <SolidColorBrush x:Key="RuleLocalBrush" Color="#6B5230"/>
-        <SolidColorBrush x:Key="RuleForeignBrush" Color="#A05A28"/>
-        <SolidColorBrush x:Key="RuleUngovernedBrush" Color="#8A8070"/>
-        <SolidColorBrush x:Key="SandBrush" Color="#C4B48A"/>   <!-- 砂（枠線） -->
-        <SolidColorBrush x:Key="SandDarkBrush" Color="#B9A97F"/>   <!-- 濃い砂（区切り線・ボタン枠） -->
-        <SolidColorBrush x:Key="SandLightBrush" Color="#D8CCAA"/>   <!-- 淡い砂（薄い枠線） -->
-        <SolidColorBrush x:Key="ParchmentBrush" Color="#F5F0E2"/>   <!-- 羊皮紙（面） -->
-        <SolidColorBrush x:Key="ParchmentDimBrush" Color="#F0EAD8"/>   <!-- 羊皮紙（沈んだ面＝交互行） -->
-        <x:Double x:Key="FontTiny">11</x:Double>
-        <x:Double x:Key="FontSmall">12</x:Double>
-        <x:Double x:Key="FontBody">13</x:Double>
-        <x:Double x:Key="FontEmph">14</x:Double>
-        <x:Double x:Key="FontLead">15</x:Double>
-        <x:Double x:Key="FontTitle">17</x:Double>
-        <!-- Fluent の Slider 横テンプレートは 行=[SliderPreContentMargin / サム20 / SliderPostContentMargin] の固定余白行を持ち、
-             上下余白は「中央寄せ」でなく固定ピクセル行。よって Slider に Height を被せても内部Gridは自然高のまま上詰めで並び、
-             溝の中心が箱の中心から下へずれてサムが箱外へ突出する（2026-07-26 の Height=28 が項(1)(2)の真因）。
-             縦を詰めるときは箱でなく余白行そのものを詰める＝4+20+4=28 で従来と同じ行高のまま溝が中心に来る。 -->
-        <GridLength x:Key="SliderPreContentMargin">4</GridLength>
-        <GridLength x:Key="SliderPostContentMargin">4</GridLength>
-        <x:Double x:Key="SliderHorizontalHeight">28</x:Double>
+        <!-- ★画面の様式の組み直し（2026-11-12・作者指定「Basic Forms UI Kit Sketch Resource を見た目を模倣」）：
+             色・線・角の丸み・余白・字体の**唯一の定義**はこの辞書。各画面と部品（TableView・PageGrid・WindowLayer など）は**名前**で読む。
+             手本のファイルは使わず、様式（平らな地・1 画素の線・橙の差し色 1 色・灰の字）だけを自前の値で再現した。
+             ⚠意味を持つ色（政体・支配度の 4 区分・半円の各区分・地図の塗り分け・高騰の赤と下落の青・増減の緑と赤）は様式の色に寄せない。 -->
+        <ResourceDictionary>
+                    <!-- 地と面 -->
+                    <SolidColorBrush x:Key="PaperBrush" Color="#F8F8F4"/>   <!-- 地（背景） -->
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#FDFDFB"/>   <!-- 窓・欄・釦の面（地と同じ系統の白） -->
+                    <SolidColorBrush x:Key="ClearBrush" Color="Transparent"/>
+                    <!-- 差し色（橙 1 色）：選んだ物と動かしている物だけに使う -->
+                    <SolidColorBrush x:Key="AccentBrush" Color="#FAA02A"/>   <!-- 橙 -->
+                    <SolidColorBrush x:Key="AccentSoftBrush" Color="#F9DDB7"/>   <!-- 橙の 30%（押した釦の丸・選んだ頁の地） -->
+                    <SolidColorBrush x:Key="AccentFaintBrush" Color="#F8E6CB"/>   <!-- 橙の 20%（選んだ行の地） -->
+                    <SolidColorBrush x:Key="OnAccentBrush" Color="#3A3737"/>   <!-- 橙の地に載せる字（橙に灰 #686565 では 2.8:1 で読めない・#4A4747 でも 4.43:1 なので #3A3737＝4.5 以上） -->
+                    <!-- 灰（字や主の線） -->
+                    <SolidColorBrush x:Key="GrayBrush" Color="#686565"/>   <!-- 灰（字や主の線・見出し・補助の字） -->
+                    <SolidColorBrush x:Key="Gray70Brush" Color="#92908F"/>   <!-- 灰の 70%（淡い字・使えない物） -->
+                    <SolidColorBrush x:Key="Gray30Brush" Color="#DBDAD7"/>   <!-- 灰の 30%（停止・薄い塗り） -->
+                    <!-- 線と状態の地 -->
+                    <SolidColorBrush x:Key="LineBrush" Color="#DDDDD9"/>   <!-- 欄や箱の 1 画素の線 -->
+                    <SolidColorBrush x:Key="LineSoftBrush" Color="#E4E3E0"/>   <!-- 淡い線・区切り -->
+                    <SolidColorBrush x:Key="TraceBrush" Color="#EEEEEA"/>   <!-- なぞった行の地（ホバー） -->
+                    <SolidColorBrush x:Key="PressBrush" Color="#DCDBD8"/>   <!-- 押している間の地 -->
+                    <SolidColorBrush x:Key="GrooveBrush" Color="#DFDEDB"/>   <!-- 滑り棒の溝 -->
+                    <!-- 字 -->
+                    <SolidColorBrush x:Key="InkBrush" Color="#656262"/>   <!-- 本文の字 -->
+                    <SolidColorBrush x:Key="InkSoftBrush" Color="#656262"/>   <!-- 表の数字・副見出し -->
+                    <SolidColorBrush x:Key="InkMutedBrush" Color="#686565"/>   <!-- 補助の字（ラベル・単位） -->
+                    <SolidColorBrush x:Key="InkFaintBrush" Color="#92908F"/>   <!-- 淡い字（注記・無効） -->
+                    <SolidColorBrush x:Key="InkDimBrush" Color="#92908F"/>   <!-- 区切りの字 -->
+                    <SolidColorBrush x:Key="HeadingBrush" Color="#767371"/>   <!-- 見出しの小さい字（地 #F8F8F4 との比 4.4 以上。旧 #B7B5B3 は 1.92 で淡すぎた・手本の淡い灰は線と枠だけに使う） -->
+                    <SolidColorBrush x:Key="OnImageBrush" Color="#F4EFE2"/>   <!-- 背景の絵画に載せる明るい字 -->
+                    <SolidColorBrush x:Key="OnImageDimBrush" Color="#C9BFA8"/>
+                    <SolidColorBrush x:Key="OnFillBrush" Color="#FFF6E8"/>   <!-- 意味の色（国の色・警告の赤）の塗りに載せる字 -->
+                    <!-- 意味を持つ色（様式の対象外＝従来の値のまま） -->
+                    <SolidColorBrush x:Key="PartyConservativeBrush" Color="#2A2118"/>   <!-- 議会の保守党の棒（組み直しの前の値） -->
+                    <SolidColorBrush x:Key="PartyLiberalBrush" Color="#5A4E3C"/>   <!-- 議会の自由党の棒（組み直しの前の値） -->
+                    <SolidColorBrush x:Key="ArmyBrush" Color="#7A6A55"/>   <!-- 権力の凡例の軍部（円の SliceArmy と同じ） -->
+                    <SolidColorBrush x:Key="GoldBrush" Color="#8A6A2A"/>   <!-- 金（王権・称号） -->
+                    <SolidColorBrush x:Key="RustBrush" Color="#A0432D"/>   <!-- 赤褐色（負・警告・交戦） -->
+                    <SolidColorBrush x:Key="AmberBrush" Color="#A05A28"/>   <!-- 琥珀（注意） -->
+                    <SolidColorBrush x:Key="GreenBrush" Color="#2E7D32"/>   <!-- 緑（正・良） -->
+                    <SolidColorBrush x:Key="BlueBrush" Color="#1F5FA8"/>   <!-- 青（下落・リンク） -->
+                    <SolidColorBrush x:Key="SteelBrush" Color="#3A5A8A"/>   <!-- 鋼青（国家の色） -->
+                    <!-- 支配度の 4 区分の色（唯一の定義・州の窓・POP の州の表・部品の見本が読む）：国家＝鋼青・在地勢力＝褐・外国勢力＝琥珀・無統治＝淡墨（政治の金/錆と衝突させない） -->
+                    <SolidColorBrush x:Key="RuleStateBrush" Color="#3A5A8A"/>
+                    <SolidColorBrush x:Key="RuleLocalBrush" Color="#6B5230"/>
+                    <SolidColorBrush x:Key="RuleForeignBrush" Color="#A05A28"/>
+                    <SolidColorBrush x:Key="RuleUngovernedBrush" Color="#8A8070"/>
+                    <!-- 警告の 2 段（頁の釦の「動かせる法」＝金・「交戦」＝赤／法の段の「目標」）：意味の色なので様式の橙とは別 -->
+                    <SolidColorBrush x:Key="AlertBorderBrush" Color="#C99A2E"/>
+                    <SolidColorBrush x:Key="AlertFillBrush" Color="#F3E6BE"/>
+                    <SolidColorBrush x:Key="AlertInkBrush" Color="#8A6A14"/>
+                    <SolidColorBrush x:Key="WarFillBrush" Color="#F3D8CE"/>
+                    <SolidColorBrush x:Key="WarHoverBrush" Color="#B23A2E"/>
+                    <SolidColorBrush x:Key="AmendBrush" Color="#B8860B"/>   <!-- 改正の目標の金 -->
+
+                    <!-- 角の丸み・線・余白 -->
+                    <CornerRadius x:Key="RadiusS">2</CornerRadius>
+                    <CornerRadius x:Key="RadiusM">3</CornerRadius>
+                    <CornerRadius x:Key="ControlCornerRadius">3</CornerRadius>
+                    <CornerRadius x:Key="OverlayCornerRadius">3</CornerRadius>
+                    <Thickness x:Key="PadButton">10,4</Thickness>
+                    <Thickness x:Key="PadMini">6,3</Thickness>
+                    <Thickness x:Key="PadTab">14,5</Thickness>
+
+                    <!-- 字体：英数字は Times New Roman（システムの字体・同梱しない）、かなと漢字は同梱の Noto Sans JP（Assets/Fonts）。
+                         ⚠複合の名前だけでは字ごとの落ち先にならない（実測）＝Program.cs の FontFallbacks が同じ Noto Sans JP を落ち先に置く。 -->
+                    <FontFamily x:Key="UiFont">Times New Roman, avares://PriceOfBread.App/Assets/Fonts#Noto Sans JP</FontFamily>
+                    <FontFamily x:Key="ContentControlThemeFontFamily">Times New Roman, avares://PriceOfBread.App/Assets/Fonts#Noto Sans JP</FontFamily>
+
+                    <!-- Fluent の既定の青い差し色を橙へ（選択・チェック・滑り棒の塗り・入力欄の焦点） -->
+                    <Color x:Key="SystemAccentColor">#FAA02A</Color>
+                    <Color x:Key="SystemAccentColorDark1">#E08A18</Color>
+                    <Color x:Key="SystemAccentColorDark2">#C77A12</Color>
+                    <Color x:Key="SystemAccentColorDark3">#A8650E</Color>
+                    <Color x:Key="SystemAccentColorLight1">#F9DDB7</Color>
+                    <Color x:Key="SystemAccentColorLight2">#F8E6CB</Color>
+                    <Color x:Key="SystemAccentColorLight3">#FBEFDD</Color>
+                    <StaticResource x:Key="SystemControlHighlightAccentBrush" ResourceKey="AccentBrush"/>
+
+                    <!-- 釦 -->
+                    <StaticResource x:Key="ButtonBackground" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="PressBrush"/>
+                    <StaticResource x:Key="ButtonBackgroundDisabled" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="ButtonForeground" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ButtonForegroundPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ButtonForegroundPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ButtonForegroundDisabled" ResourceKey="Gray70Brush"/>
+                    <StaticResource x:Key="ButtonBorderBrush" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ButtonBorderBrushDisabled" ResourceKey="LineSoftBrush"/>
+                    <!-- 入力欄 -->
+                    <StaticResource x:Key="TextControlBackground" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="TextControlBackgroundDisabled" ResourceKey="PaperBrush"/>
+                    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="TextControlBorderBrushDisabled" ResourceKey="LineSoftBrush"/>
+                    <StaticResource x:Key="TextControlForeground" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TextControlForegroundPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TextControlForegroundFocused" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TextControlForegroundDisabled" ResourceKey="Gray70Brush"/>
+                    <StaticResource x:Key="TextControlPlaceholderForeground" ResourceKey="Gray70Brush"/>
+                    <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+                    <!-- 選択欄 -->
+                    <StaticResource x:Key="ComboBoxBackground" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ComboBoxBackgroundUnfocused" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ComboBoxBackgroundDisabled" ResourceKey="PaperBrush"/>
+                    <StaticResource x:Key="ComboBoxBorderBrush" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ComboBoxBorderBrushPointerOver" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ComboBoxBorderBrushPressed" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ComboBoxBackgroundBorderBrushFocused" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ComboBoxBackgroundBorderBrushUnfocused" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ComboBoxForeground" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxForegroundFocused" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxForegroundFocusedPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxDropDownBackground" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ComboBoxDropDownBorderBrush" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ComboBoxDropDownGlyphForeground" ResourceKey="GrayBrush"/>
+                    <StaticResource x:Key="ComboBoxItemBackgroundPointerOver" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="ComboBoxItemBackgroundPressed" ResourceKey="PressBrush"/>
+                    <StaticResource x:Key="ComboBoxItemBackgroundSelected" ResourceKey="AccentFaintBrush"/>
+                    <StaticResource x:Key="ComboBoxItemBackgroundSelectedPointerOver" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="ComboBoxItemBackgroundSelectedPressed" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="ComboBoxItemForeground" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxItemForegroundPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxItemForegroundPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxItemForegroundSelected" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxItemForegroundSelectedPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ComboBoxItemForegroundSelectedPressed" ResourceKey="InkBrush"/>
+                    <!-- チェック欄・ラジオ -->
+                    <StaticResource x:Key="CheckBoxCheckBackgroundFillUnchecked" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" ResourceKey="PressBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUnchecked" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundFillChecked" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundFillCheckedPressed" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundStrokeChecked" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckGlyphForegroundChecked" ResourceKey="OnAccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" ResourceKey="OnAccentBrush"/>
+                    <StaticResource x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" ResourceKey="OnAccentBrush"/>
+                    <StaticResource x:Key="CheckBoxForegroundUnchecked" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="CheckBoxForegroundUncheckedPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="CheckBoxForegroundUncheckedPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="CheckBoxForegroundChecked" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="CheckBoxForegroundCheckedPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="CheckBoxForegroundCheckedPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="RadioButtonForeground" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="RadioButtonForegroundPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="RadioButtonForegroundPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseFill" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseFillPointerOver" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseFillPressed" ResourceKey="PressBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseStroke" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseStrokePointerOver" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseStrokePressed" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseCheckedFill" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseCheckedFillPointerOver" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseCheckedFillPressed" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseCheckedStroke" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseCheckedStrokePointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="RadioButtonOuterEllipseCheckedStrokePressed" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="RadioButtonCheckGlyphFill" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="RadioButtonCheckGlyphFillPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="RadioButtonCheckGlyphFillPressed" ResourceKey="AccentBrush"/>
+                    <!-- 滑り棒：溝＝細い線・選んだ側の塗り＝橙・つまみ＝橙の小さい丸 -->
+                    <StaticResource x:Key="SliderTrackFill" ResourceKey="GrooveBrush"/>
+                    <StaticResource x:Key="SliderTrackFillPointerOver" ResourceKey="GrooveBrush"/>
+                    <StaticResource x:Key="SliderTrackFillPressed" ResourceKey="GrooveBrush"/>
+                    <StaticResource x:Key="SliderTrackFillDisabled" ResourceKey="GrooveBrush"/>
+                    <StaticResource x:Key="SliderTrackValueFill" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="SliderTrackValueFillPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="SliderTrackValueFillPressed" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="SliderTrackValueFillDisabled" ResourceKey="Gray30Brush"/>
+                    <StaticResource x:Key="SliderThumbBackground" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="SliderThumbBackgroundPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="SliderThumbBackgroundPressed" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="SliderThumbBackgroundDisabled" ResourceKey="Gray30Brush"/>
+                    <StaticResource x:Key="SliderContainerBackground" ResourceKey="ClearBrush"/>
+                    <StaticResource x:Key="SliderContainerBackgroundPointerOver" ResourceKey="ClearBrush"/>
+                    <StaticResource x:Key="SliderContainerBackgroundPressed" ResourceKey="ClearBrush"/>
+                    <x:Double x:Key="SliderTrackThemeHeight">2</x:Double>
+                    <x:Double x:Key="SliderHorizontalThumbWidth">14</x:Double>
+                    <x:Double x:Key="SliderHorizontalThumbHeight">14</x:Double>
+                    <CornerRadius x:Key="SliderThumbCornerRadius">7</CornerRadius>
+                    <!-- 切り替え -->
+                    <StaticResource x:Key="ToggleSwitchFillOff" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ToggleSwitchFillOffPointerOver" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="ToggleSwitchFillOffPressed" ResourceKey="PressBrush"/>
+                    <StaticResource x:Key="ToggleSwitchStrokeOff" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ToggleSwitchStrokeOffPointerOver" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ToggleSwitchStrokeOffPressed" ResourceKey="LineBrush"/>
+                    <StaticResource x:Key="ToggleSwitchKnobFillOff" ResourceKey="Gray70Brush"/>
+                    <StaticResource x:Key="ToggleSwitchKnobFillOffPointerOver" ResourceKey="Gray70Brush"/>
+                    <StaticResource x:Key="ToggleSwitchKnobFillOffPressed" ResourceKey="Gray70Brush"/>
+                    <StaticResource x:Key="ToggleSwitchFillOn" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ToggleSwitchFillOnPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ToggleSwitchFillOnPressed" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="ToggleSwitchStrokeOn" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ToggleSwitchStrokeOnPointerOver" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ToggleSwitchStrokeOnPressed" ResourceKey="AccentBrush"/>
+                    <StaticResource x:Key="ToggleSwitchKnobFillOn" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ToggleSwitchKnobFillOnPointerOver" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ToggleSwitchKnobFillOnPressed" ResourceKey="SurfaceBrush"/>
+                    <!-- 巻物の棒 -->
+                    <StaticResource x:Key="ScrollBarThumbFill" ResourceKey="Gray30Brush"/>
+                    <StaticResource x:Key="ScrollBarThumbFillPointerOver" ResourceKey="Gray70Brush"/>
+                    <StaticResource x:Key="ScrollBarThumbFillPressed" ResourceKey="GrayBrush"/>
+                    <StaticResource x:Key="ScrollBarTrackFill" ResourceKey="ClearBrush"/>
+                    <StaticResource x:Key="ScrollBarTrackFillPointerOver" ResourceKey="PaperBrush"/>
+                    <StaticResource x:Key="ScrollBarTrackStroke" ResourceKey="ClearBrush"/>
+                    <StaticResource x:Key="ScrollBarTrackStrokePointerOver" ResourceKey="ClearBrush"/>
+                    <!-- 札（TabItem 相当） -->
+                    <StaticResource x:Key="TabItemHeaderBackgroundUnselected" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="TabItemHeaderBackgroundUnselectedPointerOver" ResourceKey="TraceBrush"/>
+                    <StaticResource x:Key="TabItemHeaderBackgroundUnselectedPressed" ResourceKey="PressBrush"/>
+                    <StaticResource x:Key="TabItemHeaderBackgroundSelected" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="TabItemHeaderBackgroundSelectedPointerOver" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="TabItemHeaderBackgroundSelectedPressed" ResourceKey="AccentSoftBrush"/>
+                    <StaticResource x:Key="TabItemHeaderForegroundUnselected" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TabItemHeaderForegroundUnselectedPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TabItemHeaderForegroundUnselectedPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TabItemHeaderForegroundSelected" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TabItemHeaderForegroundSelectedPointerOver" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TabItemHeaderForegroundSelectedPressed" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="TabItemHeaderSelectedPipeFill" ResourceKey="AccentBrush"/>
+                    <!-- 吹き出し -->
+                    <StaticResource x:Key="ToolTipBackground" ResourceKey="SurfaceBrush"/>
+                    <StaticResource x:Key="ToolTipForeground" ResourceKey="InkBrush"/>
+                    <StaticResource x:Key="ToolTipBorderBrush" ResourceKey="LineBrush"/>
+
+            <x:Double x:Key="FontTiny">11</x:Double>
+            <x:Double x:Key="FontSmall">12</x:Double>
+            <x:Double x:Key="FontBody">13</x:Double>
+            <x:Double x:Key="FontEmph">14</x:Double>
+            <x:Double x:Key="FontLead">15</x:Double>
+            <x:Double x:Key="FontTitle">17</x:Double>
+            <!-- Fluent の Slider 横テンプレートは 行=[SliderPreContentMargin / つまみ / SliderPostContentMargin] の固定余白行を持ち、
+                 上下余白は「中央寄せ」でなく固定ピクセル行。よって Slider に Height を被せても内部Gridは自然高のまま上詰めで並び、
+                 溝の中心が箱の中心から下へずれてつまみが箱外へ突出する（2026-07-26 の Height=28 が項(1)(2)の真因）。
+                 縦を詰めるときは箱でなく余白行そのものを詰める＝7+14+7=28 で従来と同じ行高のまま溝が中心に来る（つまみを 20→14 にした 2026-11-12 に余白 4→7）。 -->
+            <GridLength x:Key="SliderPreContentMargin">7</GridLength>
+            <GridLength x:Key="SliderPostContentMargin">7</GridLength>
+            <x:Double x:Key="SliderHorizontalHeight">28</x:Double>
+        </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
-        <Style Selector="Button.speed">
-            <Setter Property="Background" Value="#E2D8BE"/>
-            <Setter Property="Foreground" Value="#2A2118"/>
-            <Setter Property="BorderBrush" Value="#B9A97F"/>
+        <!-- 字体の適用先（窓・吹き出し・ポップアップは別の根なので GameView の指定が届かない）。定義は上の UiFont の 1 本 -->
+        <Style Selector="Window"><Setter Property="FontFamily" Value="{DynamicResource UiFont}"/></Style>
+        <Style Selector="PopupRoot"><Setter Property="FontFamily" Value="{DynamicResource UiFont}"/></Style>
+        <Style Selector="ToolTip"><Setter Property="FontFamily" Value="{DynamicResource UiFont}"/></Style>
+        <!-- 平らな様式：全ての釦の既定（角 3・線 1・影なし）。classed の釦は下で個別に上書きする -->
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,4"/>
-            <Setter Property="CornerRadius" Value="3"/>
+        </Style>
+        <Style Selector="Button.speed">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="{StaticResource PadButton}"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.speed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#D4C8A4"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.speed.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#3A5A8A"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.speed.active">
-            <Setter Property="Foreground" Value="#FFF6E8"/>
-            <Setter Property="BorderBrush" Value="#2A4A78"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
         <!-- 速度の箱 [1][2][3]：塗り＝速度・停止中は塗りの箱を灰色に -->
         <Style Selector="Button.speedbox">
-            <Setter Property="Background" Value="#E2D8BE"/>
-            <Setter Property="Foreground" Value="#2A2118"/>
-            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Width" Value="26"/>
             <Setter Property="Height" Value="26"/>
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.speedbox:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#D4C8A4"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.speedbox.filled /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#3A5A8A"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.speedbox.filled">
-            <Setter Property="Foreground" Value="#FFF6E8"/>
-            <Setter Property="BorderBrush" Value="#2A4A78"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.speedbox.filled.paused /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#8C8C8C"/>
+            <Setter Property="Background" Value="{StaticResource Gray30Brush}"/>
         </Style>
         <Style Selector="Button.speedbox.filled.paused">
-            <Setter Property="BorderBrush" Value="#6E6E6E"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Gray70Brush}"/>
         </Style>
         <Style Selector="Button.tab">
-            <Setter Property="Background" Value="#EDE5D0"/>
-            <Setter Property="Foreground" Value="#5A4526"/>
-            <Setter Property="BorderBrush" Value="#C4B48A"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="14,5"/>
-            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="{StaticResource PadTab}"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#DCD0B0"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <!-- ★(501) 段2：ヘッダーのページの押し釦。枠の太さは常に 2（見えているか＝Active で色だけが変わる＝押し釦の幅が動かない）。
-             Active は alert／war の前に置く＝同じ重さなら後ろが勝つので、動かせる法（金）と交戦（赤）が青より優先される。 -->
+             Active は alert／war の前に置く＝同じ重さなら後ろが勝つので、動かせる法（金）と交戦（赤）が選んだ頁（橙）より優先される。 -->
         <Style Selector="Button.tab.page">
             <Setter Property="Padding" Value="9,4"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <Style Selector="Button.tab.page.active">
-            <Setter Property="BorderBrush" Value="#3A5A8A"/>
-            <Setter Property="Background" Value="#D9E2EE"/>
-            <Setter Property="Foreground" Value="#2A2118"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.tab.page.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="TextElement.Foreground" Value="{StaticResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.tab.page.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
         </Style>
         <!-- 左右の列の畳み・開きの取っ手（細い押し釦）。 -->
         <Style Selector="Button.edge">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#6B5230"/>
+            <Setter Property="Foreground" Value="{StaticResource GrayBrush}"/>
             <Setter Property="Padding" Value="5,2"/>
             <Setter Property="MinWidth" Value="0"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.edge:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E4DABE"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.tab.alert">
-            <Setter Property="BorderBrush" Value="#C99A2E"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AlertBorderBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
-            <Setter Property="Foreground" Value="#8A6A14"/>
-            <Setter Property="Background" Value="#F3E6BE"/>
+            <Setter Property="Foreground" Value="{StaticResource AlertInkBrush}"/>   <!-- 地は塗らない（選んだ頁の橙の地と見分ける・2026-11-12 点検⑪）＝枠と字の色だけ -->
         </Style>
         <Style Selector="Button.tab.war">
-            <Setter Property="BorderBrush" Value="#A0432D"/>
+            <Setter Property="BorderBrush" Value="{StaticResource RustBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
-            <Setter Property="Foreground" Value="#A0432D"/>
-            <Setter Property="Background" Value="#F3D8CE"/>
+            <Setter Property="Foreground" Value="{StaticResource RustBrush}"/>
+            <Setter Property="Background" Value="{StaticResource WarFillBrush}"/>
         </Style>
         <Style Selector="Button.mini.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#3A5A8A"/>
-            <Setter Property="Foreground" Value="#FFF6E8"/>   <!-- 文字の色は枠の中身（ContentPresenter）に直接置く＝ボタンの Foreground だけでは濃い地に濃い字になった（年表の選んだ釦） -->
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>   <!-- 文字の色は枠の中身（ContentPresenter）に直接置く＝ボタンの Foreground だけでは濃い地に濃い字になった（年表の選んだ釦） -->
         </Style>
         <Style Selector="Button.mini.active">
-            <Setter Property="Foreground" Value="#FFF6E8"/>
-            <Setter Property="BorderBrush" Value="#2A4A78"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.mini">
-            <Setter Property="Background" Value="#E2D8BE"/>
-            <Setter Property="Foreground" Value="#5A4526"/>
-            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Padding" Value="{StaticResource PadMini}"/>
             <Setter Property="MinHeight" Value="22"/>
-            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusS}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.mini:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#D4C8A4"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
-        <!-- 押せない時も文字の濃さは保つ（法の段の釦と同じ扱い・V2/B47）。地と枠だけで区別する -->
+        <!-- 押せない時は字を薄い灰・地を帯の灰・枠を淡くする（2026-11-12 点検⑤。旧 V2/B47 の「文字の濃さを保つ」は使える釦と見分けられなかった） -->
         <Style Selector="Button.mini:disabled:not(.active) /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E3DCC4"/>
-            <Setter Property="BorderBrush" Value="#D6CBA8"/>
-            <Setter Property="Foreground" Value="#5A4526"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineSoftBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource Gray70Brush}"/>   <!-- 使えない物は薄い灰（点検⑤＝使える物と見分ける） -->
         </Style>
         <!-- 一覧の行に置くボタン（外交タブの植民地化・侵略・統一戦争／2026-08-10）。見た目は mini のまま余白だけ詰める＝
              650幅の2段組では1段が約298pxしかなく、mini の Padding 6,3（＝「植民地化」で62px）では国名の幅を食う。 -->
         <Style Selector="Button.mini.dense">
             <Setter Property="Padding" Value="4,2"/>
         </Style>
-        <!-- 国営工場カウンターの ＋/−（生産タブの州別テーブル・2026-08-10）。Button.mini より詰めた版＝
-             州の行を1行に保ったまま「−  n  ＋」を 64px の列へ収める（mini の Padding 6,3 では2つ並べると溢れる）。 -->
+        <!-- 国営工場カウンターの ＋/−（生産タブの州別テーブル・2026-08-10）。「−　数　＋」の横並びの釦＝平らで線なし、
+             細い線の枠（押せる物と分かる）・押した時だけ橙の淡い地（2026-11-12 様式・点検③）。州の行を1行に保ったまま 64px の列へ収める（mini の Padding 6,3 では2つ並べると溢れる）。 -->
         <Style Selector="Button.counter">
-            <Setter Property="Background" Value="#E2D8BE"/>
-            <Setter Property="Foreground" Value="#5A4526"/>
-            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="Padding" Value="3,0"/>
-            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="MinWidth" Value="20"/>
             <Setter Property="MinHeight" Value="20"/>
-            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="CornerRadius" Value="3"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.counter:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#D4C8A4"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
+        </Style>
+        <Style Selector="Button.counter:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
         </Style>
         <!-- ★押せない状態でも記号を残す（作者指示2026-09-07・再指摘2026-09-08「押せなくてもよいので、マイナスは出したままに」）。
-             Fluent 既定の :disabled は前景を低コントラストの灰へ落とすので、地の #E2D8BE に対して記号が消える
-             （＋は押せるので見え、−だけ消える＝「マイナスが無い」に見える）。地は同じまま、記号だけ薄い墨にする。 -->
+             Fluent 既定の :disabled は前景を低コントラストの灰へ落とすので、記号が消える。地は透明のまま、記号だけ淡い灰にする。 -->
         <Style Selector="Button.counter:disabled /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E2D8BE"/>
-            <Setter Property="TextElement.Foreground" Value="#8C7A55"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="TextElement.Foreground" Value="{StaticResource Gray70Brush}"/>
+        </Style>
+        <!-- 供給の網の札の上下（▲▼）：tier の色の縦線の上に載る＝線の枠を付けず、明るい字（OnFill）で描く。押せない時も▲と同じ濃さ（点検④＝茶の地に灰で見えなかった・点検2回目 1-4＝▼だけ淡く見えた） -->
+        <Style Selector="Button.counter.updown">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource OnFillBrush}"/>
+        </Style>
+        <Style Selector="Button.counter.updown:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="TextElement.Foreground" Value="{StaticResource OnFillBrush}"/>
         </Style>
         <Style Selector="Button.row">
             <Setter Property="Background" Value="Transparent"/>
@@ -221,89 +466,88 @@
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E4DABE"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.warn">
-            <Setter Property="Background" Value="#A0432D"/>
-            <Setter Property="Foreground" Value="#FFF6E8"/>
-            <Setter Property="BorderBrush" Value="#A0432D"/>
+            <Setter Property="Background" Value="{StaticResource RustBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnFillBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource RustBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,3"/>
-            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusS}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.warn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#B23A2E"/>
+            <Setter Property="Background" Value="{StaticResource WarHoverBrush}"/>
         </Style>
         <Style Selector="Button.dialog">
-            <Setter Property="Background" Value="#E2D8BE"/>
-            <Setter Property="Foreground" Value="#2A2118"/>
-            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,4"/>
-            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="{StaticResource PadButton}"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
         <Style Selector="Button.dialog:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#D4C8A4"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.close">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#6B5230"/>
+            <Setter Property="Foreground" Value="{StaticResource GrayBrush}"/>
             <Setter Property="Padding" Value="8,2"/>
             <Setter Property="Focusable" Value="False"/>
         </Style>
-        <!-- 法律の段階ボタン（1934拡張E8）：横並び・現行は濃い塗り・目標は金枠・改正可否は Detail の発光で伝える -->
+        <!-- 法律の段階ボタン（1934拡張E8）：横並び・現行は橙の塗り・目標は金枠・改正可否は Detail の発光で伝える -->
         <Style Selector="Button.lawstage">
-            <Setter Property="Background" Value="#EFE7CE"/>
-            <Setter Property="BorderBrush" Value="#C4B48A"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#4A3E2C"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
             <Setter Property="Padding" Value="7,2"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="MinWidth" Value="0"/>
             <Setter Property="Focusable" Value="False"/>
-            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
         </Style>
         <Style Selector="Button.lawstage:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E4D8B4"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.lawstage.current">
-            <Setter Property="Background" Value="#6B5230"/>
-            <Setter Property="Foreground" Value="#FFF6E8"/>
-            <Setter Property="BorderBrush" Value="#6B5230"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style Selector="Button.lawstage.current /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Foreground" Value="#FFF6E8"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
         </Style>
         <Style Selector="Button.lawstage.target">
-            <Setter Property="BorderBrush" Value="#B8860B"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>   <!-- 目標＝橙の枠だけ（今＝橙の地と形で分ける・点検⑭） -->
             <Setter Property="BorderThickness" Value="2"/>
-            <Setter Property="Background" Value="#F3E6BE"/>
         </Style>
         <!-- 選べない段：文字の濃さは保ち、地と枠だけで区別する（A9・2026-11-12）。Fluent の無効の見た目（薄い文字）を段の釦の中身で打ち消す -->
         <Style Selector="Button.lawstage:disabled:not(.current) /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E3DCC4"/>
-            <Setter Property="BorderBrush" Value="#D6CBA8"/>
-            <Setter Property="Foreground" Value="#4A3E2C"/>
+            <Setter Property="Background" Value="{StaticResource PaperBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineSoftBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
         </Style>
         <Style Selector="Button.lawstage.current:disabled /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#6B5230"/>
-            <Setter Property="BorderBrush" Value="#6B5230"/>
-            <Setter Property="Foreground" Value="#FFF6E8"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
         </Style>
         <Style Selector="TextBlock.amend">
-            <Setter Property="Foreground" Value="#B8860B"/>
+            <Setter Property="Foreground" Value="{StaticResource AmendBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style Selector="Slider:disabled">
             <Setter Property="Opacity" Value="0.35"/>
         </Style>
         <!-- FluentテーマのSlider既定MinWidth(約200)が財政タブ2列グリッドの最小幅を押し広げ右端見切れの元凶だった（2026-07-25）＝列内で素直に縮ませる。
-             縦圧縮は Height では行わない（2026-07-27）＝上の UserControl.Resources で余白行を詰める（Heightを被せると溝が中心からずれサムが箱外へ出る）。 -->
+             縦圧縮は Height では行わない（2026-07-27）＝上の Application.Resources で余白行を詰める（Heightを被せると溝が中心からずれつまみが箱外へ出る）。 -->
         <Style Selector="Slider:horizontal">
             <Setter Property="MinWidth" Value="60"/>
         </Style>
@@ -313,10 +557,10 @@
         <!-- 用途行（2026-08-02・作者指摘「用途の灰色が使っているのか使っていないのかよくわからない」）：
              灰色＝今月の消費が無い。役務でクリックできない行を Fluent の無効表示で灰色にするのを止め、
              色の意味を「使っている／使っていない」の1本に絞る（クリック可否は押せば分かる） -->
-        <Style Selector="TextBlock.use"><Setter Property="Foreground" Value="#2A2118"/></Style>
-        <Style Selector="TextBlock.useamt"><Setter Property="Foreground" Value="#6B5230"/></Style>
-        <Style Selector="TextBlock.use.unused"><Setter Property="Foreground" Value="#A79C86"/></Style>
-        <Style Selector="TextBlock.useamt.unused"><Setter Property="Foreground" Value="#A79C86"/></Style>
+        <Style Selector="TextBlock.use"><Setter Property="Foreground" Value="{StaticResource InkBrush}"/></Style>
+        <Style Selector="TextBlock.useamt"><Setter Property="Foreground" Value="{StaticResource GrayBrush}"/></Style>
+        <Style Selector="TextBlock.use.unused"><Setter Property="Foreground" Value="{StaticResource Gray70Brush}"/></Style>
+        <Style Selector="TextBlock.useamt.unused"><Setter Property="Foreground" Value="{StaticResource Gray70Brush}"/></Style>
         <!-- TextBlock.supply / .alert は削除（2026-08-10）＝集計値「材料供給:n%」の行そのものを廃止し、
              材別の供給率を生産コスト欄の各行（ProdCostRow.Fill / FillBrush＝色はVM側）へ移したため参照0件。 -->
         <!-- 役務の消費先はクリックできない（グラフに無い）が、Fluent の無効表示（減光＋灰色の帯）が
@@ -327,29 +571,30 @@
             <Setter Property="BorderBrush" Value="Transparent"/>
         </Style>
         <!-- ToggleSwitch.mini は削除（2026-08-09 項目2）＝生産タブの4レバーがスイッチ式ボタン（Button.mini.active）へ移り、参照が0件になった -->
+        <!-- 見出しの小さい字（様式：灰 #B7B5B3 の控えめな扱い）。段の見出しの字高は PagePlan.HeaderHeight が決める＝大きさは据え置き -->
         <Style Selector="TextBlock.section">
-            <Setter Property="Foreground" Value="#6B5230"/>
+            <Setter Property="Foreground" Value="{StaticResource HeadingBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="FontSize" Value="14"/>
         </Style>
         <Style Selector="TextBlock.dim">
-            <Setter Property="Foreground" Value="#5A4E3C"/>
+            <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
         <Style Selector="TextBlock.range">
-            <Setter Property="Foreground" Value="#8A8070"/>
+            <Setter Property="Foreground" Value="{StaticResource InkFaintBrush}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="TextBlock.val">
-            <Setter Property="Foreground" Value="#2A2118"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextAlignment" Value="Right"/>
         </Style>
         <Style Selector="TextBlock.lever">
-            <Setter Property="Foreground" Value="#5A4526"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>

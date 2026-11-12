@@ -1,0 +1,28 @@
+m1071 事前登録 c102rp (1071)：支配の力の段 B（影の計器・PairKm の純関数の口）
+書いたモデル：Claude Sonnet 5.5。基準 m1069（main 7bb40c772）。形＝入口（恒等の線・挙動を変えない）。下書き＝docs/202611/20261112/design_rule_power_2026-11-12.md（作者 2026-11-12「読みました。問題ない。それでいこう」「全て推奨でよい」で推奨を採った）。
+
+[1] 恒等の線・予言 0
+ - 素の 5 種・10 種・計器つき 10 種が m1069 と名乗り行を除いて全行一致（計器つきの表の差は新しい表 rulepower_s・rulepeace_s の追加だけ＝--added-tables で宣言）。
+ - 計算量：素は 0 秒（Instruments.On が偽なら新しい計算に入らない）。計器つきだけ +0.3〜1.5 秒（見積り・実測は .cost）。推定は素の 10 種で一致。
+ - 浮動小数の順序が変わる箇所：PairKm の式を静的な純関数へ移す（式は逐語・引数の順だけ増える）。局所関数の呼び手は同じ入力を渡す。同じ盤面で旧と新を比べる紙の台本＝番人（下 [3]）が 全ての組・両向きでビット一致を数える。食い違い 0 でなければ口を外す。
+ - cearn_s・cpop_s・flow_s の経路の名（ファイル:行）：BilateralMarket.cs の route_anchors.tsv の鍵の行は 1 行も書き換えない・移さない＝〈ident_check.py の行の写しで違い 0〉と宣言する（前例 m843）。
+
+[2] 消す物と残す物
+ - 消す物：0（RevoltVoiceFloor の削除は F2 の線へ）。
+ - 足す物：BilateralMarket.PairKmCore（静的・internal・純関数）・清算の局所関数 PairKm はその薄い呼び手（LastPairWasLand は呼び手で書く）。InstrumentsRulePower.cs（新・部分クラス Instruments）。呼び口 Instruments.cs の CedeTable の次に 1 行。BilateralMarket.cs に Instruments.On のときだけ働く複写の呼び 1 行（TsBegin の次）。
+ - 新しい係数 0・新しいエンジンの状態 0・セーブに載る欄 0（計器の状態は ConditionalWeakTable）。
+ - 読み手の grep：PairKm は BilateralMarket.cs の中だけ（局所関数）。LastPairWasLand は BilateralMarket.cs の中だけ。名前 RulePower・rulepower_s・rulepeace_s は grep で衝突 0 を確かめる。
+ - 他の線との重なり：BilateralMarket.cs は rp だけ（tr は TsBegin を読むだけで BilateralMarket.cs に触れない）。Instruments.cs は rp が :1921 の次の 1 行・tr が :1945 の次の 1 行（別の行）。MultiNationSim.cs・Politics.cs・Diplomacy.cs・Territory.cs・App・Display・Runner は触れない。
+
+[3] 足す試験と突然変異
+ - 番人 RulePowerPairKmTests：口の値（km・陸の印）が 清算の局所の表の値と全ての組でビット一致（両向き）。清算の局所の表は期待値を口から作らない＝清算を実際に走らせて 同じ試合の盤面から別に取る（表の値は TsBegin と同じ複写から読み、口の呼びとは別の経路で比べる）。
+ - 計器の自己検査 RulePowerInstrumentTests：開幕の影の目標−RuleInit が 1e-9 以内（RuleInit[0]＞0 かつ F_S0＞0 かつ開幕の抵抗 0 かつ外国の取り分 0 の州）／4 区分の和が 1／計器が切れている時 件数の番人が増えない。
+ - 突然変異：(M1) 口が組を並べ替えて対称にする→番人が赤。(M2) LastPairWasLand を口の中で書く→ident が赤の見込み（静的な口は状態を持てないので コンパイルで落ちる場合は〈型で防がれた〉と記録）。(M3) On でない時も計算する→件数の番人が赤。(M4) Open を通さず直に書く→InstrumentsTablesSelectTests.S2 が赤。出力の全文は measurements/m1071_20261112_mut/ へ。
+ - ㉘：ソースを走査する番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）の書き換え件数の予言＝0。WriterRatchetTests の宣言の表の増減＝0。`new MoneyStock(` の件数＝増減 0。route_anchors.tsv の鍵の行＝増減 0。
+
+[4] 影の計器の予言（開幕の州別・材料 M11）
+ - 開幕の最初の観測の行で、影の持ち主の側が最大でない州＝無統治 6・外国 1（マサワ）・自立 0。
+ - 影の表の大きさ：rule_s が seed あたり 約 40MB（keep_1069/base_ins の rule_s1.tsv 132816 行）。影の表は全州×全四半期（約 308 州×668 四半期＝約 20 万行）×約 300 バイト＝seed あたり 約 60MB・10 種で 約 0.6GB（5GB 未満＝全四半期で書く）。
+ - 限界（計器が自己申告する）：①F_R の圧力は Politics.CheckSecession の局所変数でなく、計器が自分で書いた近似（闘争度×(1−国民意識の割引)×(1−算入率)×群衆の飽和）。②届き ρ は四半期の最初の清算の複写から求める（冬の港の凍結は署名に残る＝設計の PairKm′ ではなく PairKm）。③州の線路の器が無い＝鉄道は 線路なし／発見の門（今）／満線 の 3 通りの 首都→州の直の届きを並べる。④W は候補 2 つを並べる。⑤講和の寄せ切りは 四半期の末に終戦の記録の増分から検出（時刻は最大 1 四半期ずれる）・海軍の配りは含めない。⑥外国の取り分 F_f の ρ は二重に掛かりうる（重みと表の式）＝式は表の文のとおり 1 回掛けて列に 配り前の値も出す。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ その変更を外して報告に回す。

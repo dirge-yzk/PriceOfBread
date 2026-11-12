@@ -60,6 +60,9 @@ public partial class GameViewModel
         }
     }
 
+    // 議会の党の棒の色＝意味の色（保守・自由を見分ける）。様式の灰（InkBrush 系）に寄せない＝App.axaml の専用の資源から読む
+    private static readonly IBrush PartyConservative = UiRes.Brush("PartyConservativeBrush", Brushes.Black), PartyLiberal = UiRes.Brush("PartyLiberalBrush", Brushes.DimGray);
+
     private void BuildParliament()
     {
         // ⚠通知は**先に**出す＝false→true へ転じた四半期に画面が追従する（早期returnの後ろに置くと、
@@ -80,7 +83,7 @@ public partial class GameViewModel
                 SeatFrac = System.Math.Clamp(_player.PartySeats[i], 0, 1),
                 Votes = Fmt.Share(_player.VoteShares[i]),
                 IsGov = _player.GoverningParty == i,
-                Brush = i == 0 ? PNameText : i == 1 ? PUtilText : PPlus,
+                Brush = i == 0 ? PartyConservative : i == 1 ? PartyLiberal : PPlus,
             });
         SeatRows = rows;
         // 支持基盤＝階級ごとの票の重みと族の割れ方（SimCore と同じ式）。上位8階級（票の多い順）。
@@ -348,7 +351,7 @@ public partial class GameViewModel
 
     // 反乱勢力の戦力比の色：通常＝反乱規模列と同じ茶／100%超＝蜂起圏＝警告赤。
     // internal＝ヘッダーの「反体制派の戦力比」（GameViewModel.Header.cs）も同じ2色を読む＝同一の物差しは同一の配色。
-    internal static readonly IBrush FactionStrengthCalm = new SolidColorBrush(Color.Parse("#6B5230"));
+    internal static readonly IBrush FactionStrengthCalm = UiRes.Brush("GrayBrush", Brushes.Gray);
     internal static readonly IBrush FactionStrengthDanger = new SolidColorBrush(Color.Parse("#A0432D"));
     // 反乱勢力の末列の見出し＝その世界で実際に点火を決めている量の名前（段4の点火後は戦力比でなく2門の近接度）。3文字＝列幅48pxのまま。
     public string FactionProximityHeader => _player.Coef.RevoltIgnitionIntensity > 0 ? "近接度" : "戦力比";

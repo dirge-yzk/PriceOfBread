@@ -57,7 +57,7 @@ public sealed class LineChart : Control
         if (ShowLabels)
         {
             var fmt = LabelFormat ?? (v => v.ToString("0.##", CultureInfo.InvariantCulture));
-            var tf = new Typeface(FontFamily.Default);
+            var tf = new Typeface(UiRes.Font);
             IBrush ink = Application.Current?.TryFindResource("InkMutedBrush", out var b) == true && b is IBrush ib ? ib : Brushes.Gray;
             var top = new FormattedText(fmt(max), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, 10, ink);
             if (flat)

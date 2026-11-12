@@ -21,3 +21,6 @@ uishot/
 ## Python のキャッシュ（2026-10-17 (392)）
 __pycache__/
 *.pyc
+
+# 字体の原本（可変字体）は同梱しない・C:/Windows/Fonts から make_static_instances.py で作る
+PriceOfBread.App/FontSource/*.ttf

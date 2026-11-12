@@ -10,7 +10,10 @@
         <Border Padding="14,10" IsVisible="{Binding ShownHover, Converter={x:Static ObjectConverters.IsNotNull}}">
             <StackPanel Spacing="3">
                     <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding ShownHover.Title}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}"/>
+                        <WrapPanel Orientation="Horizontal" Margin="0,0,12,0">   <!-- 長い国名で「ピン留め」に迫らない（点検⑦）＝右に余白。折り返すときは括弧の前で切る（点検2回目 2-4） -->
+                            <TextBlock Text="{Binding ShownHover.TitleHead}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ShownHover.TitleNote}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}" TextWrapping="Wrap"/>
+                        </WrapPanel>
                         <TextBlock Grid.Column="1" Text="ピン留め" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding HoverPinned}"/>
                     </Grid>
 

@@ -13,7 +13,7 @@
              ＝点の増減で本文が左右へ揺れない（中央寄せのTextBlock1本だと毎フレーム全体が動いて見える）。 -->
         <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="{Binding MessageWidest}" FontSize="24" Opacity="0"/>
-            <TextBlock Text="{Binding Message}" FontSize="24" Foreground="#F4EFE2" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding Message}" FontSize="24" Foreground="{StaticResource OnImageBrush}" HorizontalAlignment="Left"/>
         </Panel>
     </Panel>
 </UserControl>

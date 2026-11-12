@@ -1,0 +1,105 @@
+S23-H001	Coefficients.cs:2505:MaxSoldierFraction;Coefficients.cs:2391:SoldierRecruitClassA;Coefficients.cs:2392:SoldierRecruitClassB
+S23-H002	Coefficients.cs:2474:MilitaryEnvelopeShare;Coefficients.cs:2157:MilitaryUpkeepScale;Coefficients.cs:2508:SoldierPayMult
+S23-H003	Diplomacy.cs:22:Military
+S23-H004	Government.cs:48:MilitaryLawStages
+S23-H005	Coefficients.cs:781:MilitaryCadrePayRatio;Coefficients.cs:2474:MilitaryEnvelopeShare
+S23-H006	World.cs:1367:SecurityThreat;MultiNationSim.cs:58:MultiNationSim;MultiNationSim.cs:1566:StepSecurityThreat
+S23-H007	MultiNationSim.cs:58:MultiNationSim;MultiNationSim.cs:1566:StepSecurityThreat;ArmyShape.cs:198:Borders
+S23-H008	Coefficients.cs:2240:WartimeUpkeepFloor
+S23-H009	Coefficients.cs:2510:ConscriptionFraction
+S23-H010	Coefficients.cs:2728:ConscriptionEnemyRatioWeight;Coefficients.cs:2726:ConscriptionExhaustionWeight;Coefficients.cs:2725:ConscriptionFloorFraction;Coefficients.cs:2727:ConscriptionFrontStep
+S23-H011	Coefficients.cs:1428:MobilizationConscriptFrac
+S23-H012	SelfPlay.cs:478:MobilizeLosingScore;SelfPlay.cs:475:MobilizeOutmatchRatio
+S23-H013	Coefficients.cs:3291:NationBuildMobilizationWeight;Coefficients.cs:2239:SkillMobilizationRelief
+S23-H014	—
+S23-H015	SelfPlay.cs:609:ConscriptionLowerMargin;SelfPlay.cs:604:ConscriptionRaiseShare;Coefficients.cs:2711:UniversalConscriptionFactor
+S23-H016	Government.cs:622:UniversalConscriptionOpen;Privileges.cs:28:SeigneurialDegree
+S23-H017	Scenario.cs:69:NationConfig;Simulation.cs:62:Simulation
+S23-H018	CapitalMarket.cs:24:Step;World.cs:129:ConscriptionPreWar
+S23-H019	Coefficients.cs:2111:ConscriptGrievanceRate
+S23-H020	Coefficients.cs:2786:PeacetimeConscriptGrievance
+S23-H021	Diplomacy.cs:22:Military
+S23-H022	Coefficients.cs:2229:SkillCombatMax;Coefficients.cs:2228:SkillDecayPerQuarter;Coefficients.cs:2226:SkillGainRate;Coefficients.cs:2225:SkillUpkeepThreshold
+S23-H023	Diplomacy.cs:22:Military;PowerShares.cs:149:SoldierWelfare
+S23-H024	Coefficients.cs:2114:MilitaryGoods;Coefficients.cs:2115:MilitaryRates;Coefficients.cs:2182:MilitaryWarMult;Coefficients.cs:2183:WarMobilizationDepth
+S23-H025	Coefficients.cs:2215:MilitaryAirGoods;Coefficients.cs:2216:MilitaryAirRates;Coefficients.cs:2190:MilitaryQualityBonus;Coefficients.cs:2188:MilitaryQualityGoods
+S23-H026	Coefficients.cs:1403:ArmsWarWearScale
+S23-H027	—
+S23-H028	Coefficients.cs:2181:InitialArsenalMonths
+S23-H029	Discovery.cs:323:GoodGate
+S23-H030	Coefficients.cs:2066:MusketProductivity
+S23-H031	Simulation.cs:62:Simulation
+S23-H032	Coefficients.cs:1125:MilitaryProcurePriceGateScale
+S23-H033	—
+S23-H034	Coefficients.cs:3574:AirFuelRate;Coefficients.cs:3576:MotorFuelRate
+S23-H035	Coefficients.cs:2393:SoldiersPerMilitary;Coefficients.cs:953:UnityMilitaryQuality
+S23-H036	MultiNationSim.cs:12:Diplomacy
+S23-H037	MultiNationSim.cs:12:Diplomacy
+S23-H038	Coefficients.cs:2506:MilitarismStrengthBonus
+S23-H039	MultiNationSim.cs:12:Diplomacy;Simulation.cs:53:World;Simulation.cs:62:Simulation
+S23-H040	—
+S23-H041	Coefficients.cs:2322:AbstractNavalShare;Coefficients.cs:2285:FleetGoodIds;Coefficients.cs:2190:MilitaryQualityBonus;Coefficients.cs:2213:MilitaryTier3Bonus
+S23-H042	Simulation.cs:62:Simulation
+S23-H043	MultiNationSim.cs:12:Diplomacy
+S23-H044	Coefficients.cs:2218:AirCasualtyWeight;Coefficients.cs:2217:AirControlPushWeight;Coefficients.cs:2220:ChemExhaustionWeight;Coefficients.cs:2219:WarExhaustionAirRaid
+--- 追加の錨
+Military.cs:113:EstablishmentOf
+Military.cs:58:EnvelopeAt
+Military.cs:23:StepSkill
+Military.cs:274:DrawFromPool
+Military.cs:340:MoveCohort
+Military.cs:300:NavalFuelStep
+Military.cs:120:RegionManpower
+Coefficients.cs:2184:MilitaryWarMultFromContact
+Coefficients.cs:2185:WarArmsDemandPerContact
+Coefficients.cs:2490:GarrisonProcurement
+Coefficients.cs:3552:NavalFuelPerGauge
+Coefficients.cs:1402:ArmsWearRatePerMonth
+Coefficients.cs:2156:MilitaryWearRatesPerMonth
+Coefficients.cs:2253:NavalAttritionRatePerMonth
+Coefficients.cs:2227:SkillWarGain
+Coefficients.cs:2511:ConscriptionRatePerMonth
+Coefficients.cs:2509:SoldierMigrationRatePerMonth
+Coefficients.cs:2188:MilitaryQualityGoods
+Coefficients.cs:2211:MilitaryTier3Goods
+Coefficients.cs:2284:NavalCrewPerGauge
+Government.cs:622:UniversalConscriptionOpen
+Government.cs:312:MilitaryTotalTarget
+Government.cs:320:WarStageOpen
+SelfPlay.cs:635:SecurityStageTarget
+SelfPlay.cs:618:ConscriptionLowerTarget
+SelfPlay.cs:597:ArmyShareOrNaN
+ArmyShape.cs:139:Quality
+Diplomacy.cs:851:SyncPowers
+Diplomacy.cs:44:LandPower
+Diplomacy.cs:36:NavalPower
+PowerShares.cs:149:SoldierWelfare
+PowerShares.cs:100:LockedSpending
+Meritocracy.cs:446:JobIncome
+World.cs:129:ConscriptionPreWar
+World.cs:1376:SecurityThreatArmy
+World.cs:499:NavySkill
+MultiNationSim.cs:820:StepSecurityThreat
+Simulation.cs:589:InitialArsenalMonths
+EconomyStep.cs:277:FleetGaugeDenominator
+EconomyStep.cs:1384:MotorFuelRate
+EconomyStep.cs:1430:AirFuelRate
+Discovery.cs:323:GoodGate
+Catalog.cs:705:Retirements
+Diplomacy.cs:2241:AirControlPushWeight
+Diplomacy.cs:2882:AirCasualtyWeight
+Diplomacy.cs:2562:WarExhaustionAirRaid
+Diplomacy.cs:2563:ChemExhaustionWeight
+EconomyStep.cs:3096:MilitaryProcurePriceGateScale
+Simulation.cs:2086:MilitaryWarMultFromContact
+Military.cs:273:PeacetimeConscriptGrievance
+Military.cs:287:GarrisonProcurement
+Military.cs:215:NationBuildMobilizationWeight
+Military.cs:342:ConscriptGrievanceRate
+Military.cs:203:ConscriptionFrontStep
+Government.cs:678:WartimeUpkeepFloor
+SelfPlay.cs:475:MobilizeOutmatchRatio
+Diplomacy.cs:897:NavalAttritionRatePerMonth
+EconomyStep.cs:582:ArmsWarWearScale
+ArmyShape.cs:301:MilitarismStrengthBonus
+ArmyShape.cs:298:UnityMilitaryQuality

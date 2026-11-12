@@ -35,7 +35,7 @@
                             <TextBlock Grid.Column="3" Text="{Binding ShareParliament, StringFormat=P0}" Classes="val" FontSize="{StaticResource FontSmall}"/>
                         </Grid>
                         <Grid ColumnDefinitions="12,4,*,Auto">
-                            <Rectangle Width="10" Height="10" Fill="{StaticResource InkDimBrush}" VerticalAlignment="Center"/>
+                            <Rectangle Width="10" Height="10" Fill="{StaticResource ArmyBrush}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="2" Text="軍部" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
                             <TextBlock Grid.Column="3" Text="{Binding ShareArmy, StringFormat=P0}" Classes="val" FontSize="{StaticResource FontSmall}"/>
                         </Grid>
@@ -114,7 +114,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"
                                                FontWeight="{Binding IsGov, Converter={x:Static vm:Conv.BoolToWeight}}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <ctl:FracBar Grid.Column="1" Track="#E6DEC8" Height="14" VerticalAlignment="Center" Fill="{Binding Brush}" Frac="{Binding SeatFrac}"/>
+                                    <ctl:FracBar Grid.Column="1" Track="{StaticResource TraceBrush}" Height="14" VerticalAlignment="Center" Fill="{Binding Brush}" Frac="{Binding SeatFrac}"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Seats}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Votes}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
@@ -148,7 +148,7 @@
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="supSoc"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Class}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Share}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Share}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Cons}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Lib}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="4" Text="{Binding Soc}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextAlignment="Right" Margin="8,0,0,0"/>

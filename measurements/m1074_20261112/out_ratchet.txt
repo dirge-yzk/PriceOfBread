@@ -1,0 +1,42 @@
+=== base_ins
+  blocked_capital_down	12741
+  blocked_capital_up	367
+  enf_stage_down	345
+  enf_stage_up	918
+  moved_down	106365
+  moved_up	117825
+  peace	368581
+  share_down	106365
+  share_up	101765
+  tgt_above_enf	16409
+  tgt_below_enf	49253
+  med share_down	0.00087	N 106365
+  med share_up	0.00025	N 101765
+=== n1
+  blocked_capital_down	13435
+  blocked_capital_up	393
+  enf_stage_down	371
+  enf_stage_up	924
+  moved_down	111205
+  moved_up	106031
+  peace	370362
+  share_down	111004
+  share_up	92798
+  tgt_above_enf	16078
+  tgt_below_enf	50692
+  med share_down	0.00084	N 111004
+  med share_up	0.00039	N 92798
+=== n2
+  blocked_capital_down	13000
+  blocked_capital_up	380
+  enf_stage_down	390
+  enf_stage_up	927
+  moved_down	113119
+  moved_up	105590
+  peace	371825
+  share_down	112990
+  share_up	92743
+  tgt_above_enf	16499
+  tgt_below_enf	48192
+  med share_down	0.00079	N 112990
+  med share_up	0.00035	N 92743

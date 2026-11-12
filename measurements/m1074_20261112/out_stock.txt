@@ -1,0 +1,66 @@
+=== stock/admrule/fm/wp base_ins 種 1〜10
+  stock の国の数 95
+  adm_excess_pos_peace	100483
+  adm_excess_pos_war	18342
+  adm_popside_peace	122935
+  adm_popside_war	18706
+  adm_rows_peace	127618
+  adm_rows_war	19521
+  equip_lt05_peace	29553
+  equip_lt05_war	12544
+  fleet_pos	119881
+  fleet_rows	147735
+  fm_landbinds	89595
+  fm_rows	147111
+  navalpower_pos	119860
+  navalpower_rows	147735
+  navyshare_pos	147735
+  navyshare_rows	147735
+  ready_lt05_peace	39439
+  ready_lt05_war	14167
+  stock_open_rows	610
+  stock_rows	147735
+  stock_rows_peace	128214
+  stock_rows_war	19521
+  train_full	112603
+  train_gt0	131301
+  train_gt_thr	117964
+  train_rows	147735
+  wp_known0_小銃	252502
+  wp_known0_火砲	252502
+  wp_known0_蒸気機関	252502
+  wp_known1_小銃	155706
+  wp_known1_火砲	155706
+  wp_known1_蒸気機関	155706
+  wp_newpos_小銃	154669
+  wp_newpos_火砲	155079
+  wp_newpos_蒸気機関	119007
+  wp_oldpos_小銃	195851
+  wp_oldpos_火砲	235616
+  wp_oldpos_蒸気機関	24749
+  wp_out_小銃	346654
+  wp_out_火砲	381579
+  wp_out_蒸気機関	124648
+  wp_rows_小銃	408208
+  wp_rows_火砲	408208
+  wp_rows_蒸気機関	408208
+  equip_peace	p10 0.2791	med 0.7891	p90 0.9883	mean 0.7097	N 128214
+  equip_war	p10 0.0313	med 0.3007	p90 0.8918	mean 0.3882	N 19521
+  fm_navalIdeal	p10 0.0225	med 0.1153	p90 0.5078	mean 0.1913	N 147111
+  fm_quality	p10 1.0277	med 1.0999	p90 1.1426	mean 1.0945	N 147111
+  naval_over_total_power	p10 0.0000	med 0.1530	p90 0.8675	mean 0.2962	N 147734
+  navyshare	p10 0.0226	med 0.1154	p90 0.5081	mean 0.1909	N 147735
+  ready_peace	p10 0.2035	med 0.6706	p90 0.9232	mean 0.6162	N 128214
+  ready_war	p10 0.0194	med 0.2200	p90 0.7782	mean 0.3164	N 19521
+  seats_over_manlimit_peace	p10 1.0000	med 1.0000	p90 1.0000	mean 0.9910	N 127618
+  seats_over_manlimit_war	p10 1.0000	med 1.0000	p90 1.0000	mean 0.9887	N 19521
+  sold_over_seats_peace	p10 0.9966	med 1.0024	p90 1.5081	mean 1.2550	N 127618
+  sold_over_seats_war	p10 0.9958	med 1.8235	p90 7.3817	mean 3.0190	N 19521
+  train_peace	p10 0.0664	med 1.0000	p90 1.0000	mean 0.8635	N 128214
+  train_war	p10 0.0000	med 0.0181	p90 1.0000	mean 0.3944	N 19521
+  wp_oldshare_小銃_post1860	p10 0.0000	med 0.0000	p90 1.0000	mean 0.2239	N 178926
+  wp_oldshare_小銃_pre1860	p10 1.0000	med 1.0000	p90 1.0000	mean 0.9127	N 167728
+  wp_oldshare_火砲_post1860	p10 0.0000	med 0.0000	p90 1.0000	mean 0.3481	N 212853
+  wp_oldshare_火砲_pre1860	p10 1.0000	med 1.0000	p90 1.0000	mean 0.9146	N 168726
+  wp_oldshare_蒸気機関_post1860	p10 0.0000	med 0.0000	p90 0.0000	mean 0.0396	N 94704
+  wp_oldshare_蒸気機関_pre1860	p10 0.0000	med 0.8966	p90 1.0000	mean 0.6232	N 29944

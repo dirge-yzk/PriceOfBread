@@ -21,7 +21,7 @@
                 <ItemsControl ItemsSource="{Binding WarRows}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:WarRow">
-                            <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,6,0,10">
+                            <Border BorderBrush="{StaticResource LineSoftBrush}" BorderThickness="0,0,0,1" Padding="0,6,0,10">
                                 <StackPanel Spacing="3">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock Text="{Binding Enemy}" Foreground="{StaticResource InkBrush}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
@@ -53,7 +53,7 @@
                 <ItemsControl ItemsSource="{Binding PastWarRows}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:PastWarRow">
-                            <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
+                            <Border BorderBrush="{StaticResource LineSoftBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold" TextWrapping="Wrap"/>
                                     <TextBlock Text="{Binding Detail}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
@@ -76,8 +76,8 @@
                 <!-- 総動員：開戦ポップアップで選び損ねても、戦争中はここで後から追加できる。スイッチ式（総動員中は「復員」に変わる） -->
                 <Button Classes="dialog" Content="{Binding MobilizeButtonText}" Command="{Binding ToggleMobilizeCommand}" IsVisible="{Binding PlayerAtWar}"
                         FontSize="{StaticResource FontBody}" Margin="0,2,0,2" HorizontalAlignment="Left"/>
-                <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4,0,2"/>
-                <TextBlock Text="{Binding ArmyIdealHeader}" Classes="section"/>
+                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,4,0,2"/>
+                <TextBlock ctl:LatinText.Text="{Binding ArmyIdealHeader}" ctl:LatinText.NumberBrush="{StaticResource GrayBrush}" Classes="section"/>
                 <Grid Margin="0,0,0,2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="40"/>
@@ -94,7 +94,7 @@
                         <DataTemplate x:DataType="vm:ArmyNeedRow">
                             <!-- 段の小見出しと材の行を同じ一覧に混ぜる＝並びと区切りが 1 つのコレクションで決まる -->
                             <Panel>
-                                <TextBlock Text="{Binding Header}" IsVisible="{Binding IsHeader}" Foreground="{StaticResource BronzeBrush}" FontWeight="Bold" FontSize="{StaticResource FontTiny}" Margin="2,6,0,2"/>
+                                <TextBlock Text="{Binding Header}" IsVisible="{Binding IsHeader}" Foreground="{StaticResource GrayBrush}" FontWeight="Bold" FontSize="{StaticResource FontTiny}" Margin="2,6,0,2"/>
                                 <Grid IsVisible="{Binding IsRow}" Margin="0,2" Background="Transparent">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" MinWidth="40"/>
@@ -103,8 +103,8 @@
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyFill"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Need}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Have}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Need}" Foreground="{StaticResource GrayBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Have}" Foreground="{StaticResource GrayBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Fill}" Foreground="{Binding FillBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
                             </Panel>
@@ -133,7 +133,7 @@
                 <ItemsControl ItemsSource="{Binding DomesticFactions}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FactionRow">
-                            <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,5">
+                            <Border BorderBrush="{StaticResource LineSoftBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,5">
                                 <StackPanel Spacing="2">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -144,8 +144,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextWrapping="Wrap"/>
                                         <!-- 反乱規模＝「n人(n%)」。(n%) の分母は自国人口 -->
-                                        <TextBlock Grid.Column="1" Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding Cohesion}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Size}" Foreground="{StaticResource GrayBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Cohesion}" Foreground="{StaticResource GrayBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                         <!-- 末列＝点火不等式の近接度。内訳ホバーの無い行は空の吹き出しを出さない＝2枚組で切替 -->
                                         <Panel Grid.Column="3" Margin="8,0,0,0">
                                             <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !HasStrengthTip}"/>
@@ -169,7 +169,7 @@
                 <ItemsControl ItemsSource="{Binding MediationRows}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:MediationRow">
-                            <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
+                            <Border BorderBrush="{StaticResource LineSoftBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>

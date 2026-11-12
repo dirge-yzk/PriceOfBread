@@ -1,0 +1,317 @@
+cls	file	coll	world	n	secs	first_start_min	last_end_min
+MultiNationTests3	MultiNationTests.cs		True	3	426.349	0.622	7.727
+InstrumentsTests	InstrumentsTests.cs	Instruments	True	40	398.601	10.153	16.797
+MultiNationTests	MultiNationTests.cs		True	6	345.515	0.077	5.836
+ProductionDiagTests	ProductionDiagTests.cs		True	4	295.674	0.131	5.059
+TreasuryLedgerTests	TreasuryLedgerTests.cs		True	11	288.496	0.566	5.374
+MultiNationTests2	MultiNationTests.cs		True	4	274.203	0.868	5.439
+StartWarmupTests2	StartWarmupTests.cs		True	3	239.520	0.015	4.007
+StartWarmupTests	StartWarmupTests.cs		True	4	206.141	0.694	4.129
+NationModelTests	NationModelTests.cs		True	6	194.441	0.143	3.384
+ProductionDiagTests2	ProductionDiagTests.cs		True	2	177.502	0.789	3.748
+ConservationTests	ConservationTests.cs		True	30	172.785	0.042	2.923
+ExplainTests	ExplainTests.cs		True	2	170.630	2.144	4.988
+TechInstitutionTests	TechInstitutionTests.cs		True	4	170.075	3.096	5.931
+MultiNationTests4	MultiNationTests.cs		True	5	166.791	2.710	5.490
+ProductionDiagTests3	ProductionDiagTests.cs		True	3	149.235	0.862	3.350
+PolicyPoliticsTests	PolicyPoliticsTests.cs		True	84	146.482	3.384	5.826
+PlayHarnessTests	PlayHarnessTests.cs		True	45	133.811	1.493	3.723
+StartWarmupTests3	StartWarmupTests.cs		True	4	120.915	2.936	4.951
+WarThemeTests	WarThemeTests.cs		True	43	120.430	4.129	6.137
+DiscoveryScoreTests	DiscoveryScoreTests.cs		True	41	107.220	0.508	2.296
+StartWarmupTests4	StartWarmupTests.cs		True	5	106.147	4.359	6.128
+ProductionDiagTests4	ProductionDiagTests.cs		True	6	90.950	4.439	5.954
+PhantomProductionTests	PhantomProductionTests.cs		True	7	69.993	1.295	2.461
+SaveRoundTripTests	SaveRoundTripTests.cs		True	3	67.825	1.095	2.225
+OpeningBakeTests	OpeningBakeTests.cs		True	9	67.219	3.738	4.858
+RevoltIgnitionTests	RevoltIgnitionTests.cs		True	56	64.476	3.370	4.445
+ScoreReaderTests	ScoreReaderTests.cs		True	5	63.690	3.882	4.942
+OtherThemeTests	OtherThemeTests.cs		True	3	56.966	0.134	1.084
+TradeThemeTests	TradeThemeTests.cs		True	6	48.291	0.484	1.289
+GoodIdGuardTests	GoodIdGuardTests.cs		True	43	43.924	0.015	0.747
+SbBargainTests	SbBargainTests.cs		True	12	42.379	1.437	2.144
+CrimeTests	CrimeTests.cs		True	3	41.138	0.015	0.701
+MobilityTests	MobilityTests.cs		True	12	37.808	0.015	0.645
+NationBriefTests	NationBriefTests.cs		True	10	33.731	2.600	3.162
+OpeningFiscalAlignTests	OpeningFiscalAlignTests.cs		True	11	30.846	0.127	0.641
+SeaStitchBudgetTests	SeaStitchBudgetTests.cs		True	7	30.250	0.015	0.519
+ReformPathTests	ReformPathTests.cs		True	24	28.119	0.015	0.484
+TaxTests	TaxTests.cs		True	9	26.927	0.100	0.549
+TensionPoliticsTests	TensionPoliticsTests.cs		True	9	25.636	2.225	2.652
+OpeningForcesTests	OpeningForcesTests.cs		True	5	23.798	0.347	0.744
+TradeInstrumentTests	TradeInstrumentTests.cs	Instruments	True	11	19.498	8.687	9.012
+FiscalPopDiscoveryTablesTests	FiscalPopDiscoveryTablesTests.cs		True	16	19.152	2.652	2.972
+MilitaryTests	MilitaryTests.cs		True	69	18.490	0.043	0.351
+DiscoveryClockTests	DiscoveryClockTests.cs		True	10	18.272	3.860	4.165
+ElectionAiTests	ElectionAiTests.cs		True	12	16.864	0.169	0.451
+WriterRatchetTests	WriterRatchetTests.cs	Instruments	True	50	15.922	7.786	8.051
+ProblemScanTests	ProblemScanTests.cs		True	10	12.802	0.549	0.763
+IndustryThemeTests	IndustryThemeTests.cs		True	4	12.729	4.226	4.439
+MoneyThemeTests	MoneyThemeTests.cs		True	8	12.617	1.084	1.294
+CohortPhase3Tests	CohortPhase3Tests.cs		True	3	12.034	1.070	1.271
+TransportInstrumentTests	TransportInstrumentTests.cs	Instruments	True	5	11.817	8.308	8.505
+PoorPopBriberyTests	PoorPopBriberyTests.cs		True	4	11.691	2.366	2.561
+PolityTests	PolityTests.cs		True	3	11.585	0.814	1.007
+SecessionLaborLawInstrumentTests	SecessionLaborLawInstrumentTests.cs	Instruments	True	5	11.252	9.046	9.234
+SaveVersionTests	SaveVersionTests.cs		True	2	11.042	0.747	0.931
+InstrumentsMonTests	InstrumentsMonTests.cs	Instruments	True	8	10.987	16.857	17.040
+UnitTypeTests	UnitTypeTests.cs		True	25	10.708	3.188	3.367
+ServiceEconomyTests	ServiceEconomyTests.cs		True	13	10.173	0.451	0.620
+EquipDiscoveryTests	EquipDiscoveryTests.cs		True	6	9.513	3.388	3.547
+CriminalVesselTests	CriminalVesselTests.cs		True	10	9.264	0.015	0.169
+IdeaNeedBoardTests	IdeaNeedBoardTests.cs		True	5	9.114	4.462	4.614
+FiscalTests	FiscalTests.cs		True	73	8.853	0.641	0.789
+TradeSkipC4Tests	TradeSkipC4Tests.cs	Instruments	True	8	8.190	8.505	8.642
+HouseholdProductionTests	HouseholdProductionTests.cs		True	8	7.822	2.461	2.591
+InstitutionAnchorTests	InstitutionAnchorTests.cs		True	5	7.462	0.223	0.347
+RouteTensionTests	RouteTensionTests.cs		True	2	7.147	0.015	0.134
+ObservationFixTests	ObservationFixTests.cs		True	6	6.555	4.672	4.781
+WarInstrumentTests	WarInstrumentTests.cs	Instruments	True	20	6.333	8.051	8.156
+ElectionEventTests	ElectionEventTests.cs		True	1	6.332	2.987	3.092
+FsxTests	FsxTests.cs	Instruments	True	13	6.246	17.271	17.375
+LaborMarketFormTests	LaborMarketFormTests.cs		True	17	6.182	1.312	1.416
+DiscoveryTierTests	DiscoveryTierTests.cs		True	3	6.034	3.723	3.824
+RouteKmTests	RouteKmTests.cs	Instruments	True	5	5.998	9.267	9.367
+Rs3LordReverseGainTests	Rs3LordReverseGainTests.cs		True	6	5.635	0.015	0.109
+FactoryIdeologyInstrumentTests	FactoryIdeologyInstrumentTests.cs	Instruments	True	2	5.174	17.447	17.534
+FranceTests	FranceTests.cs		True	7	5.158	4.007	4.093
+ProdcapInstrumentTests	ProdcapInstrumentTests.cs	Instruments	True	4	5.149	9.444	9.530
+U4InstrumentTests	U4InstrumentTests.cs	Instruments	True	3	5.034	8.224	8.308
+GenderTests	GenderTests.cs		True	7	4.750	1.016	1.095
+DiscoveryEngineerTests	DiscoveryEngineerTests.cs		True	7	4.619	3.575	3.652
+RecipeoutInstrumentTests	RecipeoutInstrumentTests.cs	Instruments	True	6	4.571	9.367	9.443
+HarvestThemeTests	HarvestThemeTests.cs		True	3	4.538	0.763	0.838
+SubsistenceStage2Tests	SubsistenceStage2Tests.cs		True	7	4.328	0.143	0.215
+ControlsTests	ControlsTests.cs		True	12	4.301	1.417	1.489
+FullChainTests	FullChainTests.cs		True	10	4.264	4.265	4.336
+InheritIntentTests	InheritIntentTests.cs	Instruments	True	9	4.249	17.077	17.148
+FlowMInstrumentTests	FlowMInstrumentTests.cs	Instruments	True	2	4.220	17.377	17.447
+PopulationInstrumentTests	PopulationInstrumentTests.cs	Instruments	True	7	4.218	9.719	9.790
+PrdsShadowTests	PrdsShadowTests.cs	Instruments	True	9	4.162	9.615	9.684
+FamineTests	FamineTests.cs		True	9	4.151	4.113	4.182
+StateFactoryTests	StateFactoryTests.cs		True	23	4.107	2.591	2.660
+UrxInstrumentTests	UrxInstrumentTests.cs	Instruments	True	6	4.051	8.156	8.224
+LordStakeD1bD2Tests	LordStakeD1bD2Tests.cs		True	5	4.016	3.814	3.882
+DevaluationCapReliefTests	DevaluationCapReliefTests.cs	Instruments	True	13	3.996	17.663	17.730
+SocialThemeTests	SocialThemeTests.cs		True	2	3.955	0.949	1.015
+HabitTests	HabitTests.cs	Instruments	True	11	3.924	17.148	17.214
+ClearScratchTests	ClearScratchTests.cs		True	2	3.862	3.749	3.814
+CrownParliamentTests	CrownParliamentTests.cs		True	10	3.851	1.314	1.379
+LaborInstrumentTests	LaborMarketFormTests.cs	Instruments	True	5	3.824	10.090	10.153
+RuleSharesFormTests	RuleSharesFormTests.cs		True	17	3.817	1.007	1.070
+IndustrializationReaderTests	IndustrializationReaderTests.cs		True	13	3.761	0.039	0.102
+NutritionTests	NutritionTests.cs		True	2	3.737	0.069	0.131
+AgeStructureTests	GenderTests.cs		True	11	3.705	0.368	0.430
+DiscoveryClockInstrumentTests	DiscoveryClockTests.cs	Instruments	True	1	3.648	17.541	17.602
+GeographyCoverageTests	GeographyCoverageTests.cs		True	6	3.622	4.165	4.225
+InstrumentsTablesSelectTests	InstrumentsTablesSelectTests.cs	Instruments	True	2	3.617	16.797	16.857
+ModernizeReturnAndScoreTests	ModernizeReturnAndScoreTests.cs		True	12	3.602	0.015	0.075
+HabitLogisticTests	HabitLogisticTests.cs	Instruments	False	5	3.425	17.214	17.271
+NationgoodOutputEventTests	NationgoodOutputEventTests.cs	Instruments	True	2	3.324	9.791	9.846
+CorncfInstrumentTests	CorncfInstrumentTests.cs	Instruments	True	27	3.211	17.767	17.821
+PopScanTests	PopScanTests.cs		True	13	3.205	0.701	0.754
+DiplomacyPendingTests	DiplomacyPendingTests.cs		True	8	2.993	2.660	2.710
+LordstatInstrumentTests	LordstatInstrumentTests.cs	Instruments	True	12	2.946	9.908	9.957
+PriceLevelPressureTests	PriceLevelPressureTests.cs	Instruments	True	8	2.867	9.530	9.577
+ProductionMarketTablesTests	ProductionMarketTablesTests.cs		True	9	2.761	4.183	4.229
+TradeSkipC4dTests	TradeSkipC4dTests.cs	Instruments	True	8	2.747	8.642	8.687
+DiscontentReaderTests	DiscontentReaderTests.cs	Instruments	True	9	2.647	17.616	17.660
+OpeningColonyDominanceTests	OpeningColonyDominanceTests.cs		True	5	2.610	1.271	1.314
+LuxuryIncomeTests	LuxuryIncomeTests.cs		True	9	2.533	0.036	0.078
+MandateWallStockCapTests	MandateWallStockCapTests.cs		True	8	2.525	0.441	0.483
+RootSupplyTests	RootSupplyTests.cs		True	9	2.492	2.296	2.337
+SubsistenceNoBoughtTechTests	SubsistenceNoBoughtTechTests.cs		True	5	2.468	0.525	0.566
+ConsumptionEntryTests	ConsumptionEntryTests.cs	Instruments	True	2	2.460	17.821	17.862
+NationIdentityTests	NationIdentityTests.cs		True	6	2.399	3.698	3.738
+Hz8IdentityTests	Hz8IdentityTests.cs		True	5	2.313	2.561	2.600
+PriceLevelCeilFreeTests	PriceLevelCeilFreeTests.cs	Instruments	True	7	2.264	9.577	9.615
+EpidemicByUrbanContactTests	EpidemicByUrbanContactTests.cs		True	11	2.225	4.614	4.651
+InpFillTests	InpFillTests.cs	Instruments	True	6	2.216	17.040	17.077
+DormantIdentityTests	DormantIdentityTests.cs		False	5	2.169	0.090	0.127
+MonopolyPushTests	MonopolyPushTests.cs		True	21	2.168	0.777	0.814
+ScholarshipTests	ScholarshipTests.cs		True	12	2.166	1.381	1.417
+SpectateTests	SpectateTests.cs		True	17	2.139	0.055	0.090
+CearnInstrumentTests	CearnInstrumentTests.cs	Instruments	True	13	2.108	17.973	18.008
+PortlmInstrumentTests	PortByLandTests.cs	Instruments	True	1	2.099	9.684	9.719
+CapitalCouponWriteDownTests	CapitalCouponWriteDownTests.cs		True	11	2.084	0.015	0.050
+IdeaBoardLoadTests	IdeaBoardLoadTests.cs		True	2	1.989	0.780	0.813
+LandShareTests	LandShareTests.cs	Instruments	True	18	1.857	9.988	10.019
+PartyTests	PartyTests.cs		True	14	1.846	3.824	3.854
+LordstatD1aTests	LordstatD1aTests.cs	Instruments	True	8	1.827	9.957	9.988
+SilverstInstrumentTests+OnTheBoard				3	1.792	7.727	7.757
+ClearingFillInstrumentTests	ClearingFillInstrumentTests.cs	Instruments	True	10	1.781	17.925	17.955
+ModernizationAbolishedTests	ModernizationAbolishedTests.cs		True	2	1.743	0.748	0.777
+MobilityPushTests	MobilityPushTests.cs		True	1	1.737	3.547	3.575
+ClearingLowerBoundTests	ClearingLowerBoundTests.cs	Instruments	True	5	1.704	17.897	17.925
+SilverParityDemandWeightedTests+OnTheBoard				2	1.694	7.757	7.785
+RuleInstrumentTests	RuleInstrumentTests.cs	Instruments	True	5	1.691	9.239	9.267
+FuelOperatingCostTests	FuelOperatingCostTests.cs		True	18	1.678	0.107	0.135
+InvariantTests	InvariantTests.cs		True	5	1.649	0.015	0.043
+Rs2LordOppositionTests	Rs2LordOppositionTests.cs		True	5	1.598	0.646	0.673
+BasisxInstrumentTests	BasisxInstrumentTests.cs	Instruments	True	11	1.592	18.030	18.057
+ConsDepartTests	ConsDepartTests.cs	Instruments	True	1	1.583	17.862	17.888
+EconomyTests	EconomyTests.cs		True	20	1.555	3.162	3.188
+TerritoryTests	TerritoryTests.cs		True	10	1.497	4.239	4.264
+ImportPayerLiveTests	ImportPayerLiveTests.cs		True	6	1.464	0.015	0.039
+TradeClearingTests	TradeClearingTests.cs		True	18	1.397	1.289	1.312
+MoTrendInitTests	MoTrendInitTests.cs	Instruments	True	7	1.303	9.864	9.886
+ColonyPromotionTests	ColonyPromotionTests.cs		True	10	1.263	3.367	3.388
+OpeningFiscalRuleTests	OpeningFiscalRuleTests.cs		True	4	1.232	3.666	3.686
+LandbaseInstrumentTests	LandbaseInstrumentTests.cs	Instruments	True	13	1.206	10.069	10.090
+CreditTests	CreditTests.cs		True	10	1.185	4.093	4.113
+SuffrageScopeTests	SuffrageScopeTests.cs		True	2	1.180	0.835	0.854
+CornintInstrumentTests	CornintInstrumentTests.cs	Instruments	True	5	1.176	17.747	17.767
+LandfixInstrumentTests	LandfixInstrumentTests.cs	Instruments	True	5	1.165	10.050	10.069
+LandTaxFixedBasisTests	LandTaxFixedBasisTests.cs		True	14	1.120	0.489	0.508
+CapacityAnchorTests	CapacityAnchorTests.cs	Instruments	True	9	1.110	18.008	18.027
+PowerSharesTests	PowerSharesTests.cs		True	8	1.095	3.350	3.368
+FactoryTierTests	FactoryTierTests.cs		True	8	1.085	0.756	0.774
+LandsaleInstrumentTests	LandsaleInstrumentTests.cs	Instruments	True	11	1.077	10.032	10.050
+SilverParityInstrumentTests	MultiNationTests.cs	Instruments	True	3	1.071	9.846	9.864
+AdminServesRuleTests	AdminServesRuleTests.cs		True	8	1.071	0.851	0.868
+MerchInstrumentTests	MerchInstrumentTests.cs	Instruments	True	10	1.027	9.891	9.908
+UnderconsumptionTests	UnderconsumptionTests.cs		True	3	1.022	0.351	0.368
+FactoryCounterTests	FactoryCounterTests.cs		True	6	1.021	4.445	4.462
+SubstInstrumentTests	SubstInstrumentTests.cs	Instruments	True	6	0.990	9.013	9.030
+SmallFixes471Tests	SmallFixes471Tests.cs	Instruments	True	22	0.978	9.030	9.046
+AiFirstWaveTests	AiFirstWaveTests.cs		True	26	0.924	0.128	0.143
+WeaponParallelTests	WeaponParallelTests.cs		True	7	0.918	0.039	0.055
+Stage3Tests	Stage3Tests.cs		True	4	0.882	0.015	0.030
+BuildingGoodBundleTests	BuildingGoodBundleTests.cs		True	16	0.876	4.344	4.359
+HigherEduEntryTests	HigherEduEntryTests.cs		True	2	0.871	0.027	0.042
+DiscontentSplitTests	DiscontentSplitTests.cs	Instruments	True	7	0.824	17.602	17.616
+TechLevelRemovalTests	TechLevelRemovalTests.cs		True	13	0.796	1.416	1.429
+OnDoubleReadScanTests	OnDoubleReadScanTests.cs		True	3	0.779	0.085	0.098
+CrownPcInstrumentTests	CrownPcInstrumentTests.cs	Instruments	True	12	0.768	17.731	17.744
+PrivilegeDisplayTests	PrivilegeDisplayTests.cs		True	8	0.759	3.652	3.666
+SteelMarketAiTests	SteelMarketAiTests.cs		True	9	0.742	0.813	0.826
+TransitTests	TransitTests.cs		True	5	0.738	0.838	0.851
+NearSortTests	NearSortTests.cs		True	4	0.682	3.686	3.698
+Stage2Tests	Stage2Tests.cs		True	7	0.665	2.925	2.936
+ChainTests	ChainTests.cs		True	4	0.658	2.346	2.357
+ClearingScopeTests	ClearingScopeTests.cs		True	16	0.642	0.430	0.441
+FactoryEquipmentTests	FactoryEquipmentTests.cs		True	28	0.638	4.657	4.667
+NavalPortProcurementTests	NavalPortProcurementTests.cs		True	6	0.612	0.937	0.947
+LandShareCrownTests	LandShareCrownTests.cs	Instruments	True	10	0.503	10.019	10.027
+ArsenalOpeningTests	ArsenalOpeningTests.cs		True	2	0.485	0.854	0.862
+LawGateFromBoardTests	LawGateFromBoardTests.cs		True	10	0.478	4.336	4.344
+MigrationPairTests	MigrationPairTests.cs		True	2	0.477	1.429	1.437
+CedeRuleToLocalTests	CedeRuleToLocalTests.cs		True	6	0.450	0.135	0.143
+SulfuricAcidSodaAshTests	SulfuricAcidSodaAshTests.cs		True	7	0.442	4.229	4.236
+NavalCedeFleetReturnTests	NavalCedeFleetReturnTests.cs		True	3	0.431	0.673	0.680
+MapLabelTests	MapLabelTests.cs		False	2	0.425	0.058	0.065
+LandTaxPhiTests	LandTaxPhiTests.cs		True	5	0.395	2.980	2.987
+BureaucracyFromPrereqTests	BureaucracyFromPrereqTests.cs		True	11	0.379	0.687	0.694
+EngineReadIdentityTests	EngineReadIdentityTests.cs		True	10	0.375	2.360	2.366
+MinimumWageAiFloorTests	MinimumWageAiFloorTests.cs		True	7	0.369	0.483	0.489
+CedeRuleInstrumentTests	CedeRuleInstrumentTests.cs	Instruments	True	8	0.367	17.964	17.970
+CivilWarArmsDemandTests	CivilWarArmsDemandTests.cs	Instruments	True	2	0.356	17.955	17.961
+RecipeCostTests	RecipeCostTests.cs		True	6	0.348	0.117	0.123
+DomesticServiceProductivityTests	DomesticServiceProductivityTests.cs		True	2	0.347	4.651	4.657
+PrivateInvestmentScaleTests	PrivateInvestmentScaleTests.cs		True	2	0.343	0.030	0.036
+ImposeCrownFromLoserTests	ImposeCrownFromLoserTests.cs		True	5	0.337	0.931	0.937
+LayoutTests	LayoutTests.cs		False	19	0.335	3.854	3.860
+ProtectorTests	ProtectorTests.cs		True	4	0.334	2.341	2.346
+CapitalDividendHostRentTests	CapitalDividendHostRentTests.cs		True	8	0.328	0.080	0.085
+ScalarDeletionTests	ScalarDeletionTests.cs	Instruments	True	15	0.327	9.234	9.239
+CalendarTests	CalendarTests.cs		True	2	0.323	0.519	0.525
+EmptyPopEstateTests	EmptyPopEstateTests.cs	Instruments	True	9	0.316	17.534	17.539
+ForceReadGuardTests	ForceReadGuardTests.cs		True	2	0.316	2.972	2.977
+MilitaryWarMultContactTests	MilitaryWarMultContactTests.cs	Instruments	True	6	0.315	9.886	9.891
+SpoiledLastYearTests	SpoiledLastYearTests.cs		True	1	0.309	0.110	0.115
+LandSaleTests	LandSaleTests.cs	Instruments	True	11	0.290	10.027	10.032
+UiShotRuleTests	UiShotRuleTests.cs		True	11	0.290	0.102	0.107
+IvfInitialValuesTests	IvfInitialValuesTests.cs		True	5	0.275	0.218	0.223
+PoliticsTablesTests	PoliticsTablesTests.cs		True	5	0.240	0.826	0.830
+TradeTreatyAbolishTests	TradeTreatyAbolishTests.cs		True	1	0.229	1.489	1.493
+RuleOrderP1Tests	RuleOrderP1Tests.cs		True	7	0.225	0.684	0.687
+ClearingThrottleScanTests	ClearingThrottleScanTests.cs	Instruments	False	8	0.225	17.893	17.896
+PlaceAdditionTests	PlaceAdditionTests.cs		True	9	0.220	0.744	0.748
+BillBlockedColumnsTests	BillBlockedColumnsTests.cs	Instruments	True	5	0.220	18.027	18.030
+TreatyPortLapseTests	TreatyPortLapseTests.cs		True	2	0.219	0.680	0.684
+LiteracyTests	LiteracyTests.cs		True	7	0.211	0.215	0.218
+NcOpennessTests	NcOpennessTests.cs		True	10	0.191	2.337	2.340
+StateEduDemandTests	StateEduDemandTests.cs		True	14	0.188	2.977	2.980
+ResourceRowsTests	ResourceRowsTests.cs		True	7	0.184	0.055	0.057
+CearnTradeColumnsTests	CearnTradeColumnsTests.cs	Instruments	True	6	0.184	17.970	17.973
+CrimeBasisTests	CrimeBasisTests.cs		True	3	0.184	0.123	0.126
+GuildLawTests	GuildLawTests.cs		True	1	0.183	0.831	0.834
+InvadeInstrumentTests	DiplomacyPendingTests.cs	Instruments	True	2	0.181	17.660	17.663
+CoupGateNanMarkTests	CoupGateNanMarkTests.cs	Instruments	True	1	0.180	17.744	17.747
+LandOwnershipDataTests	LandOwnershipDataTests.cs		True	2	0.180	3.094	3.096
+ColonialPopTests	ColonialPopTests.cs		True	7	0.161	4.237	4.239
+SouthAsiaPopulationTests	SouthAsiaPopulationTests.cs		True	2	0.158	2.357	2.360
+OpeningProvinceHeldTests	OpeningProvinceHeldTests.cs		True	1	0.157	0.115	0.117
+ColonyPettyEntryTests	ColonyPettyEntryTests.cs	Instruments	True	5	0.157	17.888	17.891
+EmptyPopDebtFirstTests	EmptyPopDebtFirstTests.cs	Instruments	True	7	0.157	17.539	17.541
+ColonyCessionDistanceTests	ColonyCessionDistanceTests.cs		True	4	0.155	4.667	4.670
+TensionTableOrderTests	TensionTableOrderTests.cs		True	1	0.150	1.379	1.381
+InitialDefaultsTests	InitialDefaultsTests.cs		True	8	0.148	2.923	2.925
+Stage1Tests	Stage1Tests.cs		True	3	0.148	0.777	0.780
+DisplayCatalogTests	DisplayCatalogTests.cs		True	13	0.145	0.098	0.100
+PortRewireTests	PortRewireTests.cs		True	2	0.137	0.774	0.776
+AiBuildOutlayGateTests	AiBuildOutlayGateTests.cs		True	5	0.136	4.670	4.672
+CessionUnifiedTests	CessionUnifiedTests.cs	Instruments	True	8	0.131	17.961	17.963
+CollapsePeaceTests	CollapsePeaceTests.cs	Instruments	True	13	0.116	17.891	17.893
+PortByLandTests	PortByLandTests.cs		True	13	0.113	0.947	0.949
+Hz6IdentityTests	Hz6IdentityTests.cs		True	5	0.103	3.748	3.749
+UbiquitousMineralTests	UbiquitousMineralTests.cs		True	7	0.093	3.368	3.370
+DependencyCycleTests	DependencyCycleTests.cs	Instruments	True	8	0.090	17.730	17.731
+AdminDeletionTests	AdminDeletionTests.cs		True	10	0.087	4.225	4.226
+GoodDurabilityTests	GoodDurabilityTests.cs		True	11	0.079	0.127	0.128
+ForcedPeaceBlankTests	ForcedPeaceBlankTests.cs	Instruments	True	8	0.074	17.375	17.376
+HistoricalReferenceTests	HistoricalReferenceTests.cs		True	9	0.066	0.126	0.127
+SerfInitialDataTests	SerfInitialDataTests.cs		True	2	0.064	0.755	0.756
+SoldierHoldSplitTests	SoldierHoldSplitTests.cs		True	10	0.064	0.620	0.622
+CessionInstrumentTests	CessionInstrumentTests.cs	Instruments	True	6	0.063	17.963	17.964
+AgeLayoutTests	AgeLayoutTests.cs		False	24	0.062	4.182	4.183
+DomesticServiceRationTests	DomesticServiceRationTests.cs		True	5	0.061	3.092	3.094
+MintAtMarketTests	MintAtMarketTests.cs		True	5	0.052	0.079	0.080
+LaborClosedTests	LaborClosedTests.cs		True	7	0.051	0.776	0.777
+StanceEduHoldsLawTests	StanceEduHoldsLawTests.cs		True	14	0.050	0.645	0.646
+FoodLedgerTests	FoodLedgerTests.cs	Instruments	True	11	0.048	17.376	17.377
+PaySalesMerchantTests	PaySalesMerchantTests.cs	Instruments	True	6	0.045	9.790	9.791
+ServiceClosedTests	ServiceClosedTests.cs		True	3	0.044	0.078	0.079
+LandGraphFixTests	LandGraphFixTests.cs		False	21	0.043	0.830	0.831
+WarVerdictTests	WarVerdictTests.cs		True	3	0.041	0.831	0.831
+NationalConsciousnessGateTests	NationalConsciousnessGateTests.cs		True	1	0.040	4.264	4.265
+PriceStepDaysTests	PriceStepDaysTests.cs		True	2	0.037	1.015	1.016
+DeterminismTests	DeterminismTests.cs		True	3	0.035	0.754	0.755
+FmtTests	FmtTests.cs		False	8	0.022	0.748	0.748
+TradeClearingBoardTests	TradeClearingBoardTests.cs	Instruments	True	4	0.022	9.012	9.013
+RdhInstrumentTests	RdhInstrumentTests.cs	Instruments	True	3	0.020	9.443	9.444
+ClearingScopePriceTests	ClearingScopeTests.cs	Instruments	True	2	0.018	17.896	17.897
+ImposeAndCrownSourceTests	ImposeAndCrownSourceTests.cs	Instruments	True	3	0.017	17.148	17.148
+HousingGateSharedTests	HousingGateSharedTests.cs		True	4	0.017	0.109	0.110
+CpeaceColumnsTests	CpeaceColumnsTests.cs	Instruments	True	2	0.017	17.744	17.744
+UrbanFlowRealTests	UrbanFlowRealTests.cs	Instruments	True	17	0.016	8.224	8.224
+PlayTextTests	PlayTextTests.cs		True	6	0.014	4.264	4.264
+BreakDetectionTests	BreakDetectionTests.cs		True	2	0.014	4.782	4.782
+Lawgate2InstrumentTests	Lawgate2InstrumentTests.cs	Instruments	True	2	0.014	9.988	9.988
+SummonByInterestShareTests	SummonByInterestShareTests.cs	Instruments	True	6	0.014	9.013	9.013
+LaborWeightTests	LaborWeightTests.cs		True	7	0.010	3.092	3.092
+TakeDustFloorTests	TakeDustFloorTests.cs	Instruments	True	13	0.008	9.013	9.013
+PathGraphTests	PathGraphTests.cs		False	5	0.007	0.483	0.483
+AgeLedgerTests	AgeLedgerTests.cs		True	2	0.007	3.882	3.882
+Hz7IdentityTests	Hz7IdentityTests.cs		True	3	0.006	0.549	0.549
+LuxuryRatioDiagTests	LuxuryRatioDiagTests.cs	Instruments	True	3	0.005	9.908	9.908
+InheritanceLawTests	InheritanceLawTests.cs		True	8	0.004	0.215	0.215
+CurrencyMemoryBrokenTests	CurrencyMemoryBrokenTests.cs		False	11	0.004	0.483	0.483
+SecondRecipeContentsTests	SecondRecipeContentsTests.cs		True	2	0.004	2.461	2.461
+HeirDebtAfterSettleColumnsTests	HeirDebtAfterSettleColumnsTests.cs	Instruments	True	3	0.004	17.148	17.148
+RuleOrderP1InstrumentTests	RuleOrderP1Tests.cs	Instruments	True	2	0.004	9.239	9.239
+HeirDebtSettledMovedTests	HeirDebtSettledMovedTests.cs	Instruments	False	1	0.003	17.148	17.148
+StateEduDemandInstrumentTests	StateEduDemandTests.cs	Instruments	True	1	0.003	9.030	9.030
+SeaGraphTests	SeaGraphTests.cs		False	5	0.003	2.296	2.296
+CorruptionCoreV2Tests	CorruptionCoreV2Tests.cs		True	1	0.003	1.015	1.015
+ParliamentGripYearTests	ParliamentGripYearTests.cs		True	3	0.002	3.094	3.094
+SilverParityDemandWeightedTests	SilverParityDemandWeightedTests.cs		True	3	0.002	0.078	0.078
+DemographyBirthWeightTests	DemographyBirthWeightTests.cs		True	3	0.002	2.337	2.337
+MegaprojectCatalogTests	MegaprojectCatalogTests.cs		True	5	0.002	2.360	2.360
+LandmassTests	LandmassTests.cs		False	3	0.001	0.223	0.223
+PointerMoveGateTests	PointerMoveGateTests.cs		False	3	0.001	4.781	4.782
+SilverstInstrumentTests	SilverstInstrumentTests.cs		True	1	0.001	4.614	4.614
+CultureRealmTests	CultureRealmTests.cs		True	2	0.001	3.368	3.368
+CoefficientRelationTests	CoefficientRelationTests.cs		False	2	0.001	2.337	2.337
+Dsc2InstrumentTests	Dsc2InstrumentTests.cs		False	2	0.000	3.738	3.738
+DisplayFineTests	DisplayFineTests.cs		False	1	0.000	0.748	0.748

@@ -1,0 +1,65 @@
+MaxSoldierFraction => 2505:    public Share MaxSoldierFraction = new(0.04);               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合（�
+SoldierRecruitClassA => 2391:    public int SoldierRecruitClassA = 1;                     // 徴募/復員プールその1＝農民
+SoldierRecruitClassB => 2392:    public int SoldierRecruitClassB = 2;                     // 徴募/復員プールその2＝都市労働者
+SoldierMigrationRatePerMonth => 2509:    public RatePerMonth SoldierMigrationRatePerMonth = new(0.08);             // 平時の徴募/離職速度（月次）。★(155) 読み手＝徴兵制の国の�
+MilitaryEnvelopeShare => 2474:    public Share MilitaryEnvelopeShare = new(0.7);
+MilitaryUpkeepScale => 2157:    public double MilitaryUpkeepScale = 0.18 / Military.WorkingMenStdShare;                 // 兵士1人あたりの平時軍需消費スケール（0.12→0.18＝�
+SoldierPayMult => 2508:    public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×�
+MilitaryCadrePayRatio => 781:    public double MilitaryCadrePayRatio = 1.0;
+WartimeUpkeepFloor => 2240:    public Share WartimeUpkeepFloor = new(0.8);        // 戦時の維持費の下限＝現在値のこの割合を下回れない（戦争中に軍を解散でき�
+ConscriptionFraction => 2510:    public Share ConscriptionFraction = new(0.12);            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポ
+ConscriptionRatePerMonth => 2511:    public RatePerMonth ConscriptionRatePerMonth = new(0.15);               // 戦時の動員速度（平時より速い）
+ConscriptionEnemyRatioWeight => 2728:    public double ConscriptionEnemyRatioWeight = 1.0;   // 外12：敵陸軍優勢(比>1)→動員深度の重み（同上）
+ConscriptionExhaustionWeight => 2726:    public double ConscriptionExhaustionWeight = 1.0;   // 外12：厭戦(WarExhaustion)→動員深度の重み（同上）
+ConscriptionFloorFraction => 2725:    public Share ConscriptionFloorFraction = new(0.02);   // 外12：限定戦争の徴兵下限（depth=0の徴兵率＝働き盛りの男の割合・(145)。旧の
+ConscriptionFrontStep => 2727:    public double ConscriptionFrontStep = 0.34;   // 外12：追加戦線1本あたりの動員深度増分（単一戦線=0で恒等。同上）
+MobilizationConscriptFrac => 1428:    public Share MobilizationConscriptFrac = new(0.22);   // 総動員ONでの戦時徴兵の深さ（levée en masse＝働き盛りの男の22%まで兵士化＝人
+NationBuildMobilizationWeight => 3291:    public double NationBuildMobilizationWeight = 0.5;  // **主フラグ**：戦時徴兵の深さ（conscriptFrac）を国民意識でゲート＝大規模動員�
+SkillMobilizationRelief => 2239:    public double SkillMobilizationRelief = 0.5;   // 熟練度1.0で総動員のペナルティがこの割合だけ軽くなる
+UniversalConscriptionFactor => 2711:    public double UniversalConscriptionFactor = 2.5;
+ConscriptGrievanceRate => 2111:    public double ConscriptGrievanceRate = 0.05;      // 戦時の強制徴兵（徴兵法≥選抜の国・総動員はその深さを上げる）で徴兵された
+PeacetimeConscriptGrievance => 2786:    public double PeacetimeConscriptGrievance = 0.0;
+RuleSharesTaxBase => NONE
+SkillCombatMax => 2229:    public double SkillCombatMax = 0.5;            // ★熟練度1.0での戦力倍率の上乗せ＝**最大1.5倍**（2026-08-04・作者の問い「最大2倍は
+SkillDecayPerQuarter => 2228:    public double SkillDecayPerQuarter = 0.0115;   // 平時に閾値を下回るときの減衰率／四半期。約2世代（60年=240四半期）でほぼ完全�
+SkillGainRate => 2226:    public double SkillGainRate = 0.02;            // 熟練度の四半期あたり獲得率（閾値超過分×これ）
+SkillUpkeepThreshold => 2225:    public double SkillUpkeepThreshold = 0.5;      // 平時にこの維持費を超えると熟練度が育ち、下回ると錆びる（作者仕様「50%以上で
+SkillWarGain => 2227:    public double SkillWarGain = 0.05;             // 戦争中（内戦含む）の四半期あたり獲得率＝実戦は訓練に勝る
+MilitaryGoods => 2114:    public int[] MilitaryGoods = [Catalog.RifleId, Catalog.AmmunitionId, Catalog.ArtilleryId, Catalog.WarshipId, Catalog.SteamshipId, Catalog.HorseId, Catalog.Automo
+MilitaryRates => 2115:    public double[] MilitaryRates = [1.0, 0.8, 0.4, 0.15, 0.2, 0.1, 0.02]; // 各軍需財の消費比率。馬=0.1（初期0.25は畜産＝食料源と競合しNY�
+MilitaryWarMult => 2182:    public double MilitaryWarMult = 9.0;                      // 旗 MilitaryWarMultFromContact 0 のときだけ交戦中の軍需消費の倍率（武器需要ブ�
+WarMobilizationDepth => 2183:    public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：旗 MilitaryWarMultFromContact 0 のと�
+MilitaryAirGoods => 2215:    public int[] MilitaryAirGoods = [Catalog.MilitaryAircraftId, Catalog.ChemicalWeaponId];         // 飛行機（偵察/輸送）・戦闘機・化学兵器
+MilitaryAirRates => 2216:    public double[] MilitaryAirRates = [0.05, 0.02];   // 各空軍財の消費比率（tier3級の少量＝最晩期の高価な装備）
+MilitaryQualityBonus => 2190:    public double MilitaryQualityBonus = 0.6;                // 上位軍需を満たした時の Power.Military 乗数の最大上乗せ（+60%）
+MilitaryQualityGoods => 2188:    public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
+MilitaryTier3Bonus => 2213:    public double MilitaryTier3Bonus = 1.2;                  // tier3を満たした時の Power.Military 乗数の最大上乗せ（+120%＝tier2の+60%を圧倒）
+ArmsWarWearScale => 1403:    public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
+ArmsWearRate => NONE
+InitialArsenalMonths => 2181:    public double InitialArsenalMonths = 60.0;
+MusketProductivity => 2066:    public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）。武器の旧は退場しな
+MilitaryProcurePriceGateScale => 1125:    public double MilitaryProcurePriceGateScale = 1.0;
+AirFuelRate => 3574:    public double AirFuelRate = 0.045;          // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30・0.03〜0.06帯の中央）。#4 空軍の燃料：M
+MotorFuelRate => 3576:    public double MotorFuelRate = 0.05;         // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30）。#4b 輜重自動車（MilitaryGoods の132・rat
+SoldiersPerMilitary => 2393:    public double SoldiersPerMilitary = 250.0 * Military.WorkingMenStdShare;              // 戦力ゲージ1.0 ＝ 兵士約69単位（×1000人）。ゲージ＝�
+UnityMilitaryQuality => 953:    public double UnityMilitaryQuality = 0.2;       // 〔軍の結束〕Power.Military ×(1+これ×(統一度−0.5))＝同質な軍は強い・多民族軍は脆�
+MilitarismStrengthBonus => 2506:    public double MilitarismStrengthBonus = 1.3;            // 軍の練度：軍事力（戦力評価）の乗数の**満額**＝実効は 1+(これ−1)×軍の練
+AbstractNavalShare => 2322:    public Share AbstractNavalShare = new(0.10);      // 抽象標的（被植民地勢力）の海軍シェア＝弱小（陸の守りが主）
+FleetGoodIds => 2285:    public int[] FleetGoodIds = [Catalog.WarshipId, Catalog.IroncladId, Catalog.DreadnoughtId];   // 軍艦・装甲艦・弩級戦艦（＝戦闘艦。汽船85/帆�
+NavalCrewPerGauge => 2284:    public double NavalCrewPerGauge = 0.5;
+NavalAttritionRate => NONE
+NavalProcurementNeedsPort => NONE
+AirCasualtyWeight => 2218:    public double AirCasualtyWeight = 0.3;                   // 制空劣勢側の戦死増幅＝cas×(1＋これ×(2×(1−AirControl)−1)クランプ正)。優勢
+AirControlPushWeight => 2217:    public double AirControlPushWeight = 0.3;                // 制空の押し合い補正＝aPush×(1−これ/2＋これ×AirControl)。制空満点で+15%・劣�
+ChemExhaustionWeight => 2220:    public double ChemExhaustionWeight = 0.04;               // 化学兵器の泥沼＝相互保有 min(自Fill,敵Fill)×これ を双方の厭戦へ（イーペ�
+WarExhaustionAirRaid => 2219:    public double WarExhaustionAirRaid = 0.03;               // 空襲の厭戦（封鎖と同型）＝これ×(1−AirControl)×敵AirPower実在ゲート。都市�
+GarrisonProcurement => 2490:    public double GarrisonProcurement = 0.0;       // 【棄却2026-08-08＝1.0/0.5とも硬性赤（公教育テスト）＝首都市場の需要構成が較正の�
+NavalFuelPerGauge => 3552:    public double NavalFuelPerGauge = 0.0;      // #1 海軍の運用燃料：石炭需要/月 = これ×FleetGauge×NavyUpkeep×汽船の門（(150)・旧＝蒸気�
+StateProcurePriceGate => NONE
+TechMilLowFloor => NONE
+TechMilFullLevel => NONE
+DecayMilitaryWeight => NONE
+ArmsStockEnabled => NONE
+BaseArmsStockEnabled => NONE
+MilitaryWearRates => NONE
+NavalFuelFillSmoothing => 3557:    public double NavalFuelFillSmoothing = 0.25; // #1 燃料充足EMAの月次平滑（艦隊は数ヶ月分の炭庫を持つ＝月次の品切れで即座に港�

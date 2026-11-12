@@ -1,0 +1,75 @@
+署名を取れた試験 186・同じ署名の組（ファイルの中・[Fact] 2 本以上）19・共有の上限の秒（各組で最長 1 本を残した残りの和）132.7
+注：共有の上限は〈作って進めた後に盤面を替えない〉が成り立つ場合だけ＝本文を読まずに数えた上限。並列の段の中なので壁時計への効きは ÷16 程度（直列の集まりの中なら秒のまま）。
+
+== 上位 25 組：上限の秒・本数・ファイル・作り方・進め方・〔クラス.試験 秒〕
+49.7	4	PolicyPoliticsTests.cs	newMultiNationSim(WorldData.Nations(),1789,_=>newUtilityAgent())	for(intq=0;q<12;q++)sim.StepQuarter
+		PolicyPoliticsTests.潤沢の減税もAIの税の目標を門の外へ置かない	51.3
+		PolicyPoliticsTests.国庫が潤沢でも専売の対象は削られない	21.0
+		PolicyPoliticsTests.専売を広げても政治資本を1ミリも消費しない	15.6
+		PolicyPoliticsTests.専売はAIもプレイヤーも同じ口を通り教義が対象の広さを選ぶ	13.1
+30.0	2	ScoreReaderTests.cs	newMultiNationSim(WorldData.Nations(),1789UL,_=>newNullAgent())	.StartWarmup()
+		ScoreReaderTests.条約港の風化は列強の中央値を基準にする	31.1
+		ScoreReaderTests.助走の直後にランクを取り直し_その時点で6項とも総量が正である	30.0
+13.9	11	InstrumentsTests.cs	Make()	.StartWarmup()
+		InstrumentsTests.発見の表の出来事は解禁の集合の増えに閉じ軌道は未解禁の蒸気機関と機関車だけを書く	2.9
+		InstrumentsTests.線Kの列が別の経路と合い国の個体の番号は安定し呼び手の位置は定義に潰れない	2.9
+		InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる	2.4
+		InstrumentsTests.運河の開通の四半期が出る	1.6
+		InstrumentsTests.切り下げで埋める前の払えない額は当座借越を数えない	1.1
+		InstrumentsTests.州の割譲の盤面で貯蓄の台帳の割譲の3種が閉じる	1.1
+8.9	3	PlayHarnessTests.cs	Board()	.StartWarmup()
+		PlayHarnessTests.時間を止める待ち_進めた途中で新しい危機の札が立つと次の四半期の前に止まる	7.3
+		PlayHarnessTests.時間を止める待ち_国内の危機は通知_最初に立っていた札では止めず_別の札が立てば止める	4.5
+		PlayHarnessTests.時間を止める待ち_最後通牒と参戦要請と総選挙の公示が立っていれば一歩も進めず_下ろせば進む	4.4
+6.3	2	WarThemeTests.cs	newMultiNationSim(FourNations(),seed:1789)	.Run(120)
+		WarThemeTests.海軍シェアは艦の乗員と兵士の比から決まる	7.1
+		WarThemeTests.民間人の死を数えても保存則は保たれる	6.3
+5.3	2	RevoltIgnitionTests.cs	newMultiNationSim([NationConfig.Britain(),NationConfig.France(),NationConfig.Japan(),Natio	.Run(8)
+		RevoltIgnitionTests.F1法の経路_AIとプレイヤーは同じ一揆に同じ目標を置く	5.5
+		RevoltIgnitionTests.法の経路_AIとプレイヤーは同じ危機に同じ目標を置く	5.3
+3.7	6	WarInstrumentTests.cs	Make()	.StartWarmup()
+		WarInstrumentTests.影の評価は乱数を引かず状態を書かない	1.3
+		WarInstrumentTests.出来事のqはループの変数と一致する	1.1
+		WarInstrumentTests.理由の件数の和は評価の数と一致する	0.8
+		WarInstrumentTests.影の評価の最初に落ちた門は本物の理由と一致する	0.7
+		WarInstrumentTests.参戦以外の札で数えた交戦ペアが再戦の診断と一致する	0.6
+		WarInstrumentTests.影の篩の順は交戦中が余剰戦力より先	0.5
+2.7	2	FsxTests.cs	newMultiNationSim([..WorldData.Nations()],1789UL,_=>newUtilityAgent())	.StartWarmup(null,4)
+		FsxTests.効いている圧はS案で_穏やかな切り下げの月はSがMより小さい_計器の和が本体の圧と一致する	3.3
+		FsxTests.計器fsxは挙げていない国からも出し_超過とMとSの両方を出す	2.7
+2.7	2	MultiNationTests.cs	FourNations()	.Run(8)
+		MultiNationTests4.近代化投資はプレイヤー国だけ毎期の自動値に上書きされない	2.8
+		MultiNationTests4.プレイヤー印の無い世界では近代化投資が全国自動のまま	2.7
+2.5	2	U4InstrumentTests.cs	newMultiNationSim([NationConfig.France(),NationConfig.Prussia(),uk,NationConfig.Austria()]	.StartWarmup()
+		U4InstrumentTests.全期間の表の払った額と判定の月数は区分ごとにも州の表の和に合う_本国と植民地を取り違えない	2.5
+		U4InstrumentTests.全期間の表の今の規則の列は州の表の和に合い流れの影が立つ	2.5
+1.6	2	OpeningBakeTests.cs	Fresh()	.StartWarmup(quartersOverride:1)
+		OpeningBakeTests.鍵が1つでも違えば何も書かずに例外_国_州_財_生産者の財_階級	15.4
+		OpeningBakeTests.旗は既定0で表を開かずに助走へ入り_世界の頭書きと同じ形の空の表では旗1が例外で止まる	1.6
+1.6	2	FlowMInstrumentTests.cs	Make()	.StartWarmup()
+		FlowMInstrumentTests.陸と海の必要量の組成の和が本体に合い_海の金の割合の分母が式に閉じる	2.7
+		FlowMInstrumentTests.純支持の項の和が本体の純支持に合い_軍の項は係数に比例し向きで符号が反転する	1.6
+1.5	2	NationgoodOutputEventTests.cs	Make()	.StartWarmup()
+		NationgoodOutputEventTests.G1G2_outputSumは州の産出の和でありeventRegionsの行だけが産出量と食い違う	1.8
+		NationgoodOutputEventTests.F_新しく作られた州もeventRegionsに数える	1.5
+0.9	2	LaborMarketFormTests.cs	newMultiNationSim([NationConfig.France(),NationConfig.Britain()],1789UL,_=>newUtilityAgent	.StartWarmup()
+		LaborInstrumentTests.縛りの列は値段と床の比の閾値で決まり_州の粒度の列は実質の値段の閾値で決まる	1.0
+		LaborInstrumentTests.N2の診断の列は最後の歩の直後の値段と床を残し_四半期末の床の下を原因に分ける	0.9
+0.5	3	CearnInstrumentTests.cs	Two(1789UL)	for(intq=0;q<3;q++){sim.StepQuarter
+		CearnInstrumentTests.POPの行は閉じ_群の和はcgrpに合い_人数と在庫は州のPOPに合う	0.3
+		CearnInstrumentTests.群の表は州の台帳の和に合い_群と月の窓の台帳が閉じる	0.3
+		CearnInstrumentTests.州の台帳は閉じ_税の列は国庫の区分の台帳に合う	0.3
+0.5	2	ScoreReaderTests.cs	Four()	.Run(2)
+		ScoreReaderTests.内訳は6項の点で_その和が国力で_首位との差も同じ物差しである	0.9
+		ScoreReaderTests.国力の総量の集合は実在の国だけで_抽象の勢力が盤に居ても動かない	0.5
+0.3	4	BasisxInstrumentTests.cs	NewSim()	.StartWarmup(quartersOverride:1)
+		BasisxInstrumentTests.T6_合成の盤面_危機の述語	0.1
+		BasisxInstrumentTests.T7_合成の盤面_規則S	0.1
+		BasisxInstrumentTests.T4_合成の盤面_凍結なし	0.1
+		BasisxInstrumentTests.T5_合成の盤面_凍結あり	0.1
+0.0	2	PortRewireTests.cs	newMultiNationSim(World2(),seed:17){DiplomacyFrozen=true}	.Run(1)
+		PortRewireTests.点火時_割譲で港を失った国の最寄り港配線が更新され通過港へ落ちる	0.1
+		PortRewireTests.既定は点火済みで盤面が動かない四半期にも張り直す	0.0
+0.0	2	BuildingGoodBundleTests.cs	Make(NationConfig.Britain(),c=>c.BuildingGoodBundle=flag)	.Run(r,w.Coef,1.0,w.Bank,w)
+		BuildingGoodBundleTests.資本家の建設の月は建造物の組の需要を立てる_量の差は手の値	0.0
+		BuildingGoodBundleTests.工場建設の材料は建造物の組	0.0

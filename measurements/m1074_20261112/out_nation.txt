@@ -1,0 +1,257 @@
+=== arm base_ins (種 1〜10・人口 10 千以上の国×四半期)
+  cw_rows	1002
+  dec_mid	11053
+  dec_mid_mob	2664
+  dec_rule_off	12175
+  dec_rule_off_mob	0
+  dec_rule_on	11109
+  dec_rule_on_mob	11109
+  dec_scale0	7254
+  dec_war	34337
+  dec_war_mob	13773
+  enf1_peace	19601
+  enf1_war	1699
+  enf2_peace	100630
+  enf2_war	11077
+  enf3_peace	253677
+  enf3_war	20195
+  enf4_in_open	1262
+  enf4_outside_open	5
+  enf4_peace	5
+  enf4_war	1262
+  gate_closed_law0	4628
+  gate_closed_law1	29464
+  gate_closed_rows	34092
+  law0	42295
+  law1	62230
+  law2	303621
+  law_down_peace	859
+  law_up_peace	494
+  law_up_war	1187
+  mob_off_inwar	738
+  mob_on_inwar	1998
+  move_code-1	104
+  move_code0	135428
+  move_code2	15075
+  move_code3	135001
+  move_code4	122538
+  open_law0	120
+  open_law1	390
+  open_law2	100
+  opp_stage4	13877
+  peace_athr_ge05	275102
+  peace_athr_ge05_law0	99
+  peace_athr_ge05_law1	19790
+  peace_athr_ge05_law2	255213
+  peace_athr_rows	373913
+  peace_tgt_ge2	357117
+  peace_thr_rows	373913
+  rows	408146
+  rows_peace	373913
+  rows_war	34233
+  sold_pos	408146
+  tgt1_peace	16796
+  tgt1_war	1716
+  tgt2_peace	140063
+  tgt2_war	14605
+  tgt3_peace	217042
+  tgt3_war	7542
+  tgt4_in_open	10370
+  tgt4_outside_open	12
+  tgt4_peace	12
+  tgt4_war	10370
+  tgtNEenf_peace	68040
+  tgtNEenf_war	19728
+  war_end	4618
+  war_end_law_down	809
+  war_rows	34233
+  med sh_peace_law0	0.00661	mean 0.00775	N 35546
+  med sh_peace_law1	0.00594	mean 0.00711	N 54137
+  med sh_peace_law2	0.00571	mean 0.00674	N 284230
+  med sh_war_law0	0.00684	mean 0.00747	N 6749
+  med sh_war_law1	0.01241	mean 0.01322	N 8093
+  med sh_war_law2	0.03332	mean 0.03373	N 19391
+  med sh_warmob_law0	0.00474	mean 0.00538	N 209
+  med sh_warmob_law1	0.01698	mean 0.01705	N 2820
+  med sh_warmob_law2	0.04040	mean 0.04133	N 10848
+  med tgt_by_thr0	1.00000	mean 1.08651	N 15547
+  med tgt_by_thr1	2.00000	mean 1.88835	N 22267
+  med tgt_by_thr2	2.00000	mean 2.00106	N 58326
+  med tgt_by_thr3	2.00000	mean 2.29848	N 82451
+  med tgt_by_thr4	3.00000	mean 2.98446	N 195322
+  era 1783-1814	law0=9373 law1=24766 law2=43521 rows=77660
+  era 1815-1849	law0=8861 law1=14037 law2=62616 rows=85514
+  era 1850-1913	law0=15270 law1=15035 law2=125916 rows=156221
+  era 1914-1950	law0=8791 law1=8392 law2=71568 rows=88751
+=== arm n1 (種 1〜10・人口 10 千以上の国×四半期)
+  cw_rows	983
+  dec_mid	11268
+  dec_mid_mob	2562
+  dec_rule_off	11740
+  dec_rule_off_mob	0
+  dec_rule_on	11164
+  dec_rule_on_mob	11164
+  dec_scale0	6825
+  dec_war	34172
+  dec_war_mob	13726
+  enf1_peace	19788
+  enf1_war	1953
+  enf2_peace	102416
+  enf2_war	10824
+  enf3_peace	253504
+  enf3_war	20044
+  enf4_in_open	1249
+  enf4_outside_open	8
+  enf4_peace	8
+  enf4_war	1249
+  gate_closed_law0	4635
+  gate_closed_law1	31166
+  gate_closed_rows	35801
+  law0	43834
+  law1	59814
+  law2	306138
+  law_down_peace	850
+  law_down_war	1
+  law_up_peace	495
+  law_up_war	1223
+  mob_off_inwar	783
+  mob_on_inwar	2107
+  move_code-1	102
+  move_code0	143599
+  move_code2	15627
+  move_code3	123645
+  move_code4	126813
+  open_law0	122
+  open_law1	388
+  open_law2	100
+  opp_stage4	13828
+  peace_athr_ge05	276514
+  peace_athr_ge05_law0	91
+  peace_athr_ge05_law1	19623
+  peace_athr_ge05_law2	256800
+  peace_athr_rows	375716
+  peace_tgt_ge2	357875
+  peace_thr_rows	375716
+  rows	409786
+  rows_peace	375716
+  rows_war	34070
+  sold_pos	409782
+  sold_zero	4
+  tgt1_peace	17841
+  tgt1_war	1750
+  tgt2_peace	141891
+  tgt2_war	14349
+  tgt3_peace	215971
+  tgt3_war	7845
+  tgt4_in_open	10126
+  tgt4_outside_open	13
+  tgt4_peace	13
+  tgt4_war	10126
+  tgtNEenf_peace	69148
+  tgtNEenf_war	19402
+  war_end	4642
+  war_end_law_down	810
+  war_rows	34070
+  med sh_peace_law0	0.00657	mean 0.00788	N 37428
+  med sh_peace_law1	0.00594	mean 0.00703	N 52003
+  med sh_peace_law2	0.00573	mean 0.00677	N 286285
+  med sh_war_law0	0.00650	mean 0.00729	N 6406
+  med sh_war_law1	0.01306	mean 0.01358	N 7811
+  med sh_war_law2	0.03230	mean 0.03277	N 19853
+  med sh_warmob_law0	0.00492	mean 0.00562	N 111
+  med sh_warmob_law1	0.01739	mean 0.01728	N 3152
+  med sh_warmob_law2	0.03959	mean 0.04096	N 10565
+  med tgt_by_thr0	1.00000	mean 1.06545	N 16487
+  med tgt_by_thr1	2.00000	mean 1.89831	N 22874
+  med tgt_by_thr2	2.00000	mean 2.00109	N 61673
+  med tgt_by_thr3	2.00000	mean 2.31135	N 81046
+  med tgt_by_thr4	3.00000	mean 2.98426	N 193636
+  era 1783-1814	law0=9385 law1=24859 law2=43453 rows=77697
+  era 1815-1849	law0=9161 law1=14226 law2=62221 rows=85608
+  era 1850-1913	law0=16149 law1=13881 law2=127099 rows=157129
+  era 1914-1950	law0=9139 law1=6848 law2=73365 rows=89352
+=== arm n2 (種 1〜10・人口 10 千以上の国×四半期)
+  cw_rows	991
+  dec_mid	10741
+  dec_mid_mob	2350
+  dec_rule_off	13579
+  dec_rule_off_mob	0
+  dec_rule_on	10321
+  dec_rule_on_mob	10321
+  dec_scale0	8417
+  dec_war	34641
+  dec_war_mob	12671
+  enf1_peace	18012
+  enf1_war	1762
+  enf2_peace	105719
+  enf2_war	12569
+  enf3_peace	253256
+  enf3_war	19072
+  enf4_in_open	1123
+  enf4_outside_open	2
+  enf4_peace	2
+  enf4_war	1123
+  gate_closed_law0	4730
+  gate_closed_law1	29053
+  gate_closed_rows	33783
+  law0	43439
+  law1	63831
+  law2	304245
+  law_down_peace	821
+  law_up_peace	518
+  law_up_war	1084
+  mob_off_inwar	685
+  mob_on_inwar	1958
+  move_code-1	115
+  move_code0	144048
+  move_code2	15111
+  move_code3	122339
+  move_code4	129902
+  open_law0	123
+  open_law1	387
+  open_law2	100
+  opp_stage4	12786
+  peace_athr_ge05	276776
+  peace_athr_ge05_law0	118
+  peace_athr_ge05_law1	18356
+  peace_athr_ge05_law2	258302
+  peace_athr_rows	376989
+  peace_tgt_ge2	361389
+  peace_thr_rows	376989
+  rows	411515
+  rows_peace	376989
+  rows_war	34526
+  sold_pos	411515
+  tgt1_peace	15600
+  tgt1_war	1667
+  tgt2_peace	142986
+  tgt2_war	15409
+  tgt3_peace	218396
+  tgt3_war	8243
+  tgt4_in_open	9207
+  tgt4_outside_open	7
+  tgt4_peace	7
+  tgt4_war	9207
+  tgtNEenf_peace	66910
+  tgtNEenf_war	18150
+  war_end	4439
+  war_end_law_down	754
+  war_rows	34526
+  med sh_peace_law0	0.00654	mean 0.00758	N 36075
+  med sh_peace_law1	0.00606	mean 0.00708	N 55723
+  med sh_peace_law2	0.00568	mean 0.00661	N 285191
+  med sh_war_law0	0.00671	mean 0.00739	N 7364
+  med sh_war_law1	0.01294	mean 0.01357	N 8108
+  med sh_war_law2	0.03095	mean 0.03204	N 19054
+  med sh_warmob_law0	0.00457	mean 0.00772	N 172
+  med sh_warmob_law1	0.01733	mean 0.01713	N 2906
+  med sh_warmob_law2	0.03985	mean 0.04124	N 9708
+  med tgt_by_thr0	1.00000	mean 1.09746	N 14191
+  med tgt_by_thr1	2.00000	mean 1.89245	N 25003
+  med tgt_by_thr2	2.00000	mean 2.00060	N 60196
+  med tgt_by_thr3	2.00000	mean 2.28640	N 78864
+  med tgt_by_thr4	3.00000	mean 2.98465	N 198735
+  era 1783-1814	law0=9438 law1=24579 law2=43712 rows=77729
+  era 1815-1849	law0=8826 law1=14299 law2=62904 rows=86029
+  era 1850-1913	law0=15763 law1=16123 law2=125890 rows=157776
+  era 1914-1950	law0=9412 law1=8830 law2=71739 rows=89981
