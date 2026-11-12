@@ -1,0 +1,66 @@
+(1087) 合流（波103）の予言（merge より前に書く・結果を見た後に直すなら追記で名乗る）
+基点 decb50fa5（m1069 の盤面・(1078) の木）。線：恒等 c103tr (1079) bcbe20100・恒等 c103st (1080) 57d5ba159・挙動 c103dm (1081) 07f6c7c37・挙動 c103cr (1082) 01b1bb225・読む c103rb (1083)・c103ld (1084)・c103s18 (1085)・設計の材料 c103rm (1086)（コミットなし・D:/PoB_work/r10xx_work）。
+
+[0] 入れる線と外す線（結果を見る前に決める）
+- c103tr：入れる（段 2〈判定: 恒等〉・反証役 v に高なし・中 1〈旗 1 で B′ の列を読む試験が無い〉は旗 1 の腕の前に閉じる＝次の波へ）。
+  記録の先頭：tr の merge コミット c98edd89d（decb50fa5 と origin/c102tr の merge）に署名の行が無い＝push 済みの枝の物＝直さずに main へ入る（〈外れた所〉の先頭に書く）。
+- c103st：入れる（段 2〈判定: 恒等〉・反証役 v は低 5 だけ）。
+- c103dm：入れる（DM-B の門 T0〜T3 が両側で通り、DM-D′ が腕 B と〈判定: 恒等（段 1）〉・止める線 0・反証役 v・v2 に高なし）。最終の採否は S11 で 1 回だけ（下の [4] の門）。
+  試験の書き換えの区分（結果の前に固定・和らげずに列挙する）：
+  ① 消した機能の試験の削除 10 本（MegaprojectCatalogTests 5・FiscalTests 2・PlayHarnessTests 2・TechLevelRemovalTests〈段1_門は発見の行〉1）＝消したメンバーの試験の削除（★(743) ① の型・事前登録 §7 で予言）。
+  ② TechLevelRemovalTests〈段1_requiresの表〉を運河の 2 対へ＝消したデータの行を母集合から外した（§7 で予言・作者「全て推奨で」で推奨を採った〈事 8〉）。Assert の形は同じ。
+  ③ ScholarshipTests.cs:242 の道具（請求を膨らませる予約）を MonumentBuildQueue→HigherEduFunding＝Assert の文と閾値は不変・消した欄の代わり（§7 で予言・追記 1 で候補を替えたと名乗った・突然変異 J3c で赤を確かめた）。
+  ④ 許可表と名の表（IndustrializationReaderTests:25・TechLevelRemovalTests:22・UnitTypeTests の名・InstrumentsTests:2207・route_anchors.tsv）＝番人を写しただけ（§7）。
+  ⑤ SecessionLaborLawInstrumentTests.cs:250（35→32）＝§7 で予言した scalars_s の −3 列（★(764) ② の型・追記 2）。
+  ⑥ **WriterRatchetTests.cs:552 の DiploHegemonScans を線の木で取り直した（2,010,476→1,491,449）＝★(778)〈線の担当は計算量の宣言の表を自分の木で取り直さない〉に反する**＝違反として ⑩ に書く。値は合流の木で 1 回だけ取り直す（★(749)）＝線の値は採らない。
+  ①〜⑤ は機構の向き・大きさ・判定の Assert を書き換えていない＝手続きの不採用の型（c101py・c102tr＝Assert の列や旧の規則を固定した番人の書き換え）に当たらない＝入れる。
+- c103cr：入れる（門 G-W1・G-W2 が両側で通る・止める線 0・反証役 v・v2 に高なし）。最終の採否は S11 で 1 回だけ。
+  **違反（記録の先頭）**：㉜ の〈旗 1 の木のフルスイートが赤なら腕 B を回さない〉と ★(885)〈予言に無い赤を結果の後に軌道の番人と診断して進めない〉・★(899)〈item 11 は動きうると種類で予言する〉に反して、予言に無い WriterRatchetTests item 11 の赤（+3.3%）のまま腕 B を回した。
+  入れる理由：試験は書き換えていない・赤は ★(749) の軌道の件数の型（機構の向きと大きさを主張しない）・★(885) の救済の道〈合流が ★(749) で表を取り直す〉そのもの・腕 B の成績表と門の値はこの番人に依らない・反証役 v の重さは〈中〉。
+- 3 回の規則：dm と cr はどちらも腕つきの 1 回目。
+- 読む線 rb・ld・s18 と設計の材料 rm：写すだけ（台本・表・下書き）。反証役 v の中・低は和らげずに記録へ書く（rb の凍結の母集合・ρ の回数の門・s18 の G2・G4 は正しい実装でも赤・不信任 133〜168・P2d の一部外れ・rm の日本は種しだい・市民権と core の重なり・ld の ForcedPeaceBlankOverCollapse は名指しなし・行数 436）。
+
+[1] 順と衝突
+- 順＝tr → st → dm → cr（`--no-ff`・全ての merge コミットに署名の行）。git merge-tree で 4 本を順に合わせて衝突 0（確かめた）。
+- dm が消す名前 34（係数 11・州の欄・計器の列・Megaprojects.cs の関数ほか）を tr・st・cr の追加の行で grep＝当たり 0（m1087_work/delnames.txt）。tr が変える ApplyEndowment は dm・cr の追加の行に無い（反証役 v）。
+- 触る行の重なり：Simulation.cs（tr＝ApplyEndowment と呼び口・dm＝巨大建造物の項）・Instruments.cs（tr＝呼び口 1 行・dm＝巨大建造物の請求と列）・SecessionLaborLawInstrumentTests.cs（st :278〜:282・dm :250）＝塊が離れて衝突 0。
+
+[2] 焼き直しと取り直し（合わせた木で 1 回だけ・挙動を変えない）
+- opening_bake.json：cr と dm の両方が入力のハッシュを動かす（cr＝world.json・dm＝megaprojects.json の埋め込みを消す）＝合わせた木で bake.sh（種 1・上限 200）で 1 回だけ焼き直す（★(764)・cr の焼いた値は採らない）。旗 OpeningBakeEnabled＝0＝成績表に効かない（下の [3] の一致で示す）。
+- WriterRatchetTests item 11（DiploHegemonScans）：合わせた木の実測で 1 回だけ取り直す（★(749)・前後の値を書く）。他の item は動かない（Legitimacy・StateSpent は〈n ≦ 表〉で緑のまま＝dm の予言）。値の予言は無い（軌道の件数）。
+
+[3] 試験の数と成績表のバイト一致
+- --list-tests：Category!=FullLength＝2769＋tr 6＋cr 3−dm 10＝2768・FullLength 3。焼き直しと取り直しの後の赤 0。savetest OK・leakhunt 保存則違反なし。
+- 腕 Z（decb＋tr＋st・wt_m1087z・挙動の線なし）：ident（段 2・PRUNE=0）で m1069（b5_20261112_m1069・b10_20261112_m1069_ins・keep_1078/base_ins）と全行一致＝〈判定: 恒等〉。宣言：--tests-delta 6・--added-tables tskpair_s,tskshadow_s・--grown-ok recipeout_s・--cost-allow〈中身の無い物：・消費：飛ばした・消費：人口 0〉（identz1078 の 3 本）。Z の成績表は tr の b5_20261113_m1079tr・b10_20261113_m1079tr_ins とも全行一致（名乗り行を除く）。
+- 腕 A_dm（cr なし＝decb＋tr＋st＋dm・枝 m1087a・計器つき 10 種・表は SMALL＋flow_s・anchor_s・eq_s・cessp_s・secession_s）：成績表は dm の D′ の成績表 measurements/m1081_20261112/b10_c103dmD_ins.txt と全行一致（名乗り行を除く）。生は D′ の生（c103dm_work/identD/out_ib_10/ins）と共通の表で一致（flow_s は sourceFile・sourceLine を除いた行の多重集合＝tr が Simulation.cs の行を動かす＝★(899) の既知の揺れ）。
+- 腕 A_cr（dm なし＝decb＋tr＋st＋cr・枝 m1087b・表は同じ）：成績表は cr の腕 B measurements/m1082_20261113/armB/b10_c103crB_10.txt と全行一致（名乗り行を除く）。生は cr の腕 B の生（c103cr_work/out_c103crB_10/ins）と共通の表で一致（flow_s は同じ規則）。
+- M（合わせた木・焼き直しと取り直しの後・全表・計器つき 10 種・種 1〜10）：どの線の腕とも全行一致しない（2 本の挙動の合成）＝予言しない。推定の計算量 ≦248.5 秒（dm 228.2・cr 226.9 の近く）。
+
+[4] 門（M・S11 で読む・台本は線の物を変えずに・最終の採否は S11 で 1 回）
+- cr：gate1082.py（G-W1 両側・G-W2 両側・対照）を M の生（種 1〜10）と S11 の生（種 11〜20）に当てる。旗 0 の側＝keep_1078/base_ins（種 1〜10）・keep_1069/a11（種 11〜20）で落ちる。G-W1 か G-W2 が落ちたら cr を採らない（読み替えない）。
+  注（反証役 v・v2・記録）：G-W1・G-W2 は最初の四半期の値＝構築のデータで決まる門＝〈データが読まれたこと〉の門で、下流の効きは示さない。
+- dm：合わせた木では係数と 8 列が消える＝gate_dm.py の T0〜T2 はそのまま読めない（列の欠けで赤になる作り）＝読み替えずに、次の 3 つで読む（この文は M の出力の前に固定）。
+  T3：gate_dm.py の T3 と同じ規則（flow_s の sourceFile=Megaprojects.cs の行＝0・種 1〜3）を M と S11 に当てる。旗 0 の側＝keep_1078/base_ins の種 1〜3（dm の gate_flag0.txt は 5,424／6,240／5,496）・keep_1069/a11 の種 11〜13 で 0 でない。
+  T1′：残した帳簿の列 fiscal_s の ledgerMegaprojectPerMonth の 0 でない行＝0（M・S11）。旗 0 の側＝keep_1078/base_ins（dm の gate_flag0.txt の値）・keep_1069/a11 で 0 でない。
+  T0′・T2′（構造）：合わせた木の Coefficients.cs に係数 11 本の名が 0 件・M の nation_s・fiscal_s・scalars_s の見出しに消した 8 列が無い。
+  加えて足し算の確かめ：腕 A_dm の成績表と生が D′ と一致（[3]）。
+  T3 か T1′ が落ちたら dm を採らない。
+- 足し算（㉞）：A_dm で dm の門（T3・T1′）・A_cr で cr の門（G-W1・G-W2）を読み、M の値と同じか（cr の G-W2 の値 0.1382 は最初の四半期のデータで決まる＝M と A_cr と cr の腕 B で同じ・dm の T3・T1′ は全て 0）。門が落ちる組は後から入れた側（cr）を外す。
+
+[5] 止める線（M・S11 と新しい N1・N2 を同じ台本 stoplines1002・an_h2 -v4・gdp_zero10・popjump1017 で数える）
+- M・S11：100 倍の〈それ以外〉0・1e10 倍 0・非有限 0・名目 GDP 0 の続き 0・空洞化 1/10 未満（名簿の外）0・推定 ≦248.5 秒と予言。建国の直後の型はヌル腕の件数と並べて記録。
+- 空洞化 1/10 未満は件ごとに基線の同じ種で同じ州が 1/4 未満だったかを表に書く（種 1〜10＝keep_1078/base_ins・種 11〜20＝keep_1069/a11）。〈線が原因〉が 1 件でもあれば帰属の腕（A_dm・A_cr）で線を決めて外す。
+- ヌル腕の空洞化の事象は記録（(685)・★(778)）。
+
+[6] 記録の段（採否に使わない）
+- 英の国債の不履行の種（M・S11・N1・N2・m1069 と並べる）・NG（ng1069 と比べる）・nullgate・home_break ①・開幕の 1000 倍以上・popjump（㊳）・exact・near・ハーネス不合格・変名の数（dm の腕 B 21・基線 28・N1 28・N2 29）。
+
+[7] D: と順（空き 77GB で始まる＝計画の 119GB より少ない）
+- 線の ident の生（c103st_work/ident 約 9.4GB・ident_c103tr 約 11.2GB）は判定と成績表がコミット済み＝合流が消す（deleted.txt）。dm・cr の腕の生は [3] の一致を読むまで残す。
+- 順：番人の束（腕 Z と並べる・フルスイートではない）→ Z（ident・PRUNE=0）・M・S11（3 本）→ フルスイート・savetest・leakhunt（腕と並べない）→ A_dm・A_cr（絞った表）・素の 5 種と 10 種 → N1・N2。毎回〈空き ≧ 山＋10〉を数える。
+- 古い keep（keep_1069・keep_1078・keep_1078_rej）は新しい ident.cfg を push した後だけ消してよい（INSRAW・KEEPNULL が keep_1087 へ移った後）。
+
+[8] 採ったときの新しい基線 m1087
+- 成績表 b5_20261113_m1087・b10_20261113_m1087・b10_20261113_m1087_ins・mon_20261113_m1087.txt・ヌル腕 b10_20261113_m1087_n1_ins・_n2_ins・b10s11_20261113_m1087_ins・NG の基準 measurements/ng1087_20261113・止める線の基準 measurements/m1087_20261113/stopbase/・生 D:/PoB_work/keep_1087/{base_ins,n1,n2,a11}。
+- ident.cfg：B5・B10INS・MON・INSRAW・BASE_COMMIT・STAGE_BASE（測った木）・TESTS_NONFULL 2768・NG_BASE ng1087。新しい基準の .cost は em の件数の行を含む＝以後の恒等の線に --cost-allow は要らない（st の申し送り）。
+- 片方だけ採るときは、採らない線を抜いた木で M・S11・N1・N2 を取り直す。両方とも採らないときは基線 m1069 のまま・INSRAW を Z の生（keep_1087/base_ins）へ。
