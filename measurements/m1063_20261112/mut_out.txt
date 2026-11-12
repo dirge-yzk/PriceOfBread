@@ -1,0 +1,106 @@
+(1063) c101py 突然変異の表（試験ごと・Passed＝緑 / Failed＝赤）
+
+== M0 変異なし（旗の既定 0）：赤 0 / 13
+  緑	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  緑	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  緑	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
+
+== M0f1 変異なし（旗の既定 1）：赤 0 / 13
+  緑	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  緑	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  緑	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
+
+== M1 どちらの台帳にも足さない（国家の枝）：赤 8 / 13
+  赤	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  赤	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  赤	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  赤	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  赤	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  赤	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
+
+== M2 両方に足す（旗 1 でも LastExport に）：赤 4 / 13
+  緑	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  赤	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  赤	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  赤	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  緑	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
+
+== M3 LastDemand を足さない：赤 6 / 13
+  緑	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  赤	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  赤	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  赤	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  赤	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
+
+== M4 LastDemand に want でなく buy：赤 4 / 13
+  緑	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  赤	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  赤	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
+
+== M5 旗を読まない（常に旧）：赤 3 / 13
+  緑	MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る
+  緑	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 0)
+  赤	ProcureStateAsSaleTests.T1_国家の調達の買えた量は旗1で販売へ旗0で輸出へ(flag: 1)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 0, stock: 15)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 1000)
+  緑	ProcureStateAsSaleTests.T2_国家の調達の需要はwantを1度だけ在庫が足りなくても(flag: 1, stock: 15)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 0)
+  緑	ProcureStateAsSaleTests.T3_国家の調達の後も在庫の恒等式が通る(flag: 1)
+  緑	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 0)
+  赤	ProcureStateAsSaleTests.T4_旗1で国家の調達の値段の需要は私の買い付けと同じ(flag: 1)
+  緑	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 0)
+  赤	ProcxInstrumentTests.計器procxは価格の需要の側の国家の分を台帳の差で数える(flag: 1)
