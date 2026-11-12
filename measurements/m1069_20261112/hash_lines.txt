@@ -1,0 +1,105 @@
+ok D:/PoB_work/m1069_work/hash/ufz.tsv
+ufz 0
+ok D:/PoB_work/m1069_work/hash/pyB.tsv
+pyB 0
+ok D:/PoB_work/m1069_work/hash/vsB.tsv
+vsB 0
+ok D:/PoB_work/m1069_work/hash/pyz.tsv
+pyz 0
+== ufz vs base1053
+共通 1327・全体の一致 1307・先頭の列で一致 0・揺れの表の違い 20・それ以外の違い 0・a だけ 0・b だけ 0
+a だけ（頭） []
+b だけ（頭） []
+== pyB vs base1053
+共通 1323・全体の一致 10・先頭の列で一致 0・揺れの表の違い 20・それ以外の違い 1293・a だけ 4・b だけ 15
+違い admrule_s1.tsv
+違い admrule_s10.tsv
+違い admrule_s2.tsv
+違い admrule_s3.tsv
+違い admrule_s4.tsv
+違い admrule_s5.tsv
+違い admrule_s6.tsv
+違い admrule_s7.tsv
+違い admrule_s8.tsv
+違い admrule_s9.tsv
+違い age_s1.tsv
+違い age_s10.tsv
+違い age_s2.tsv
+違い age_s3.tsv
+違い age_s4.tsv
+違い age_s5.tsv
+違い age_s6.tsv
+違い age_s7.tsv
+違い age_s8.tsv
+違い age_s9.tsv
+違い aib_s1.tsv
+違い aib_s10.tsv
+違い aib_s2.tsv
+違い aib_s3.tsv
+違い aib_s4.tsv
+違い aib_s5.tsv
+違い aib_s6.tsv
+違い aib_s7.tsv
+違い aib_s8.tsv
+違い aib_s9.tsv
+違い anchor_s1.tsv
+違い anchor_s10.tsv
+違い anchor_s2.tsv
+違い anchor_s3.tsv
+違い anchor_s4.tsv
+違い anchor_s5.tsv
+違い anchor_s6.tsv
+違い anchor_s7.tsv
+違い anchor_s8.tsv
+違い anchor_s9.tsv
+a だけ（頭） ['pclamp']
+b だけ（頭） ['devcap', 'pclamp', 'procx']
+== vsB vs base1053
+共通 1327・全体の一致 419・先頭の列で一致 0・揺れの表の違い 20・それ以外の違い 888・a だけ 0・b だけ 10
+違い admrule_s1.tsv
+違い admrule_s10.tsv
+違い admrule_s3.tsv
+違い admrule_s5.tsv
+違い admrule_s7.tsv
+違い admrule_s8.tsv
+違い admrule_s9.tsv
+違い age_s1.tsv
+違い age_s10.tsv
+違い age_s3.tsv
+違い age_s5.tsv
+違い age_s7.tsv
+違い age_s8.tsv
+違い age_s9.tsv
+違い aib_s1.tsv
+違い aib_s10.tsv
+違い aib_s3.tsv
+違い aib_s5.tsv
+違い aib_s7.tsv
+違い aib_s8.tsv
+違い aib_s9.tsv
+違い anchor_s1.tsv
+違い anchor_s10.tsv
+違い anchor_s3.tsv
+違い anchor_s5.tsv
+違い anchor_s7.tsv
+違い anchor_s8.tsv
+違い anchor_s9.tsv
+違い basisx_s1.tsv
+違い basisx_s10.tsv
+違い basisx_s3.tsv
+違い basisx_s5.tsv
+違い basisx_s7.tsv
+違い basisx_s8.tsv
+違い basisx_s9.tsv
+違い burblock_s1.tsv
+違い burblock_s10.tsv
+違い burblock_s3.tsv
+違い burblock_s5.tsv
+違い burblock_s7.tsv
+a だけ（頭） []
+b だけ（頭） ['dep']
+== pyz vs base1053
+共通 20・全体の一致 0・先頭の列で一致 0・揺れの表の違い 20・それ以外の違い 0・a だけ 1307・b だけ 10
+a だけ（頭） ['admrule', 'age', 'aib', 'anchor', 'basisx', 'burblock', 'canal', 'casualty', 'ce', 'cearn', 'cederule', 'cess', 'cessp', 'cgrp', 'chem', 'chemgood', 'class', 'cons', 'consf', 'corncf', 'cornint', 'coupgate', 'cpeace', 'cpmed', 'cpop', 'cpwd', 'cpwdft', 'cpworld', 'crownpc', 'csc', 'cscx', 'cwmult', 'dcont', 'disc', 'disccontact', 'discflow', 'divhost', 'ed', 'engineer', 'epi', 'eq', 'eqr', 'factory', 'fb', 'fd', 'fiscal', 'flow', 'fm', 'fsx', 'goods', 'habitlg', 'house', 'ideology', 'idn', 'imp', 'inheritintent', 'inheritpar', 'inpb', 'inpf', 'invade', 'ivf', 'labor', 'landbase', 'landbasereg', 'landfix', 'landsale', 'landshare', 'lawgate', 'lawgate2', 'lordstat', 'lwk', 'merch', 'metal', 'metalnat', 'migration', 'modsig', 'monai', 'money', 'mongood', 'monlaw', 'nation', 'nationgood', 'opium', 'pay', 'pclamp', 'pinit', 'pop', 'port', 'portch', 'portlm', 'prdf', 'prds', 'prodcap', 'pxgoods', 'pxmonth', 'pxstep', 'recipeout', 'reform', 'region', 'rule', 'sbr', 'sbrreg', 'sbu', 'scalars', 'score', 'secession', 'sellr', 'sf', 'silverpar', 'silverst', 'silverwt', 'site', 'spend', 'stock', 'subst', 'svc', 'svcbuy', 'tradeskip', 'trbin', 'trnation', 'trroute', 'trstat', 'urx', 'urxpd', 'urxrt', 'warband', 'warentry', 'warpair', 'wars', 'wp', 'xmig']
+b だけ（頭） ['procx']
+HASHDONE

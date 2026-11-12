@@ -1,0 +1,13 @@
+(1069) 合わせた木 b0edc8963 のフルスイート（suite1069.sh full・隔離ビルド・--logger trx）
+list nonfull 2749
+list full 3
+nonfull rc=0 1085s
+full rc=0 189s
+saveleak rc=0 194s
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m1069_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/m1069_work/suite/leakhunt.txt.manifest（SOURCE-HASH=846ede9a1cadf24d）
+番人の束（2a6a6ea1d・guards）：成功!   -失敗:     0、合格:  1142、スキップ:     0、合計:  1142、期間: 13 m 9 s - PriceOfBread.Tests.dll (net10.0)
+Category!=FullLength：成功・失敗 0・合格 2748・スキップ 1・合計 2749（18 分 2 秒）／FullLength：合格 3・合計 3（3 分 8 秒）＝--list-tests の 2749＋3 と一致（予言 [2] どおり）
+trx：measurements/m1069_20261112/trx/nonfull.trx・full.trx（原本 D:/PoB_work/m1069_work/suite/trx）
