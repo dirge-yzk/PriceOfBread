@@ -256,7 +256,7 @@ public class MilitaryTests
         var m = w.Region.Markets;
         foreach (int g in goods) m[g].Stock = 1e6;
         var st0 = new double[goods.Length]; var ex0 = new double[goods.Length]; var px = new double[goods.Length];
-        for (int k = 0; k < goods.Length; k++) { st0[k] = m[goods[k]].Stock; ex0[k] = m[goods[k]].LastExport; px[k] = System.Math.Max(m[goods[k]].Price, 1e-9); }
+        for (int k = 0; k < goods.Length; k++) { st0[k] = m[goods[k]].Stock; ex0[k] = m[goods[k]].LastExport + m[goods[k]].LastSold; px[k] = System.Math.Max(m[goods[k]].Price, 1e-9); }
         double led0 = w.TreasuryLedger[(int)TreasuryCat.WarCost];
         Assert.True(w.CanInvade(target, out string why), $"前提が崩れた：侵攻できない（{why}）");
 
@@ -266,7 +266,7 @@ public class MilitaryTests
         for (int k = 0; k < goods.Length; k++)
         {
             double u = st0[k] - m[goods[k]].Stock;
-            Assert.Equal(u, m[goods[k]].LastExport - ex0[k], 6);   // 市場から出た量＝財の出入りの台帳に載った量
+            Assert.Equal(u, m[goods[k]].LastExport + m[goods[k]].LastSold - ex0[k], 6);   // 市場から出た量＝財の出入りの台帳に載った量（(1063) 形 Y：国家の調達の台帳は旗 ProcureStateAsSale で域外の輸出か販売＝どちらかに 1 度）
             used += u; paid += u * px[k];
         }
         Assert.True(used > 0, "前提が崩れた：物資を1つも消費していない");
