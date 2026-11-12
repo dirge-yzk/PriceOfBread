@@ -1,6 +1,6 @@
-SOURCE-HASH: 8b5125f9c2773f67
+SOURCE-HASH: d00c69e756943e9b
 FILES: 595
-RUN: selfplay-batch 10（10種＝採否）（計器 POB_INSTRUMENTS=/d/PoB_work/ident_c102rp/out_ib_10/ins NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ）
+RUN: selfplay-batch 10（10種＝採否）（計器 POB_INSTRUMENTS=/d/PoB_work/ident_c102rp2/out_ib_10/ins NATIONS=清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ）
 ---
 89d472642c0fbd70f4e3c40fca8b06ed6d6324e1e33b3b965603344f843219bd *./PriceOfBread.App/App.axaml
 564bb04598bde21617c7faac429a5b21feaba184ad15f8a47997ec676b6933b3 *./PriceOfBread.App/App.axaml.cs
@@ -107,7 +107,7 @@ cec2af988e03a9c0c6a01746aae815d9607eab885034073ed292e90776707aaa *./PriceOfBread
 f61d2ccd77fa6a7440ddbd079ac93807b9ed38d61ee5ad16a6957501e0703bc2 *./PriceOfBread.SimCore/ArmyShape.cs
 f4fe3615f70f2298aaa93d6bfdae1fe3d975a1c6c3b10fe6c6937438f2ac08de *./PriceOfBread.SimCore/AssemblyInfo.cs
 8c26e17d2dba4263e8cccebb73125ac9aff5ff6f5ed2d71c069d28cb1c12087e *./PriceOfBread.SimCore/Bank.cs
-5e13483194d921bf5fe3e2edbad09e46f936f551e1b3dfe9069f20d76a6c960a *./PriceOfBread.SimCore/BilateralMarket.cs
+052bf42fb377f69f2dfdd03adfbf0e78849aa697dbe92b5012b6674f93cf2d53 *./PriceOfBread.SimCore/BilateralMarket.cs
 a715fcafc31d1aea193eda429433be7355fe448a97fa8f34afd2a51d75e7403f *./PriceOfBread.SimCore/BudgetBindDiag.cs
 6be5081cb62332eeaac303313a1d160114420a1a3e80d0b59dbf674e5cb7a477 *./PriceOfBread.SimCore/Calendar.cs
 54ca0163a5d2881b19816ebca86f5705e41607651056bc34e4637914d0084508 *./PriceOfBread.SimCore/CapitalMarket.cs
@@ -217,7 +217,7 @@ a0e0e8344a85ef380087c7aaf6668ad9c88e4477c766f4cfeb18c58695f82978 *./PriceOfBread
 bb396ec311c0a37f32d033e2d50ec4de405aa7dcd3fb79b15e5731fc7a87d8a9 *./PriceOfBread.SimCore/InstrumentsReform.cs
 4566b6cbafb69808a84e6aa1f0304da0095221d4ac7e4ad560f460114b9474da *./PriceOfBread.SimCore/InstrumentsRegionProd.cs
 583dea56810982a827c9c275bec1b2c88f9e8107dbb922d9c9c092939aab0c8a *./PriceOfBread.SimCore/InstrumentsRule.cs
-088ac8652067d8b9483b057deec63735b846b05a969940ead34549f6ef4d11f7 *./PriceOfBread.SimCore/InstrumentsRulePower.cs
+caa07e470e8c9c57327650d00976183d53faacfee41f8f2a7de46a3104cc3f6f *./PriceOfBread.SimCore/InstrumentsRulePower.cs
 f54b47bd79f1de17faa12bbd84ec1eb442ee78559fe7d7a0f811109fcbb90eb0 *./PriceOfBread.SimCore/InstrumentsSb.cs
 360cbdbcc3f28daec9fccf94c6dd656b4965c7dbd10b90617ffaa520c449afd1 *./PriceOfBread.SimCore/InstrumentsScalars.cs
 ff3ad876d06b6fdc6b065aa8e88efdcc5db56e52371ca987269eb238403789cf *./PriceOfBread.SimCore/InstrumentsScope.cs
