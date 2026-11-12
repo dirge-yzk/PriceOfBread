@@ -16,7 +16,9 @@ namespace PriceOfBread.SimCore;
 //   国＝ALL・財＝名前の行：goodNoSellers（その財に売り手が 0 人＝ClearingRows に数えない）。国＝ALL・財＝ALL の行：rowsLedger＝この清算の Cost[ClearingRows] の増分（エンジンの台帳）。
 // ⚠限界（計器が自己申告する）：呼び口の引数でエンジンの局所（lp・capLeft・left・売り手の表・baseMul・wS2・duty）を受け取る（ScopeSkip・ScopeDeal の先例）＝再導出ではない。
 //   数え上げ（行の結果の排他・和・台帳との突き合わせ）は計器のコード。着値（距離）の判定はしない＝xPass は距離を含めた着値が lp 未満かを見ていない。
-//   売り手の国の次元は行に持たない。国内の売り手は xPairs に数えない。
+//   売り手の国の次元はこの表の行に持たない。国内の売り手は xPairs に数えない。
+// (1073) 売り手の国の次元は別の表 tskpair_s（買い手の国×売り手の国×財・年 1870 と 1913・和は上の行と一致）に持つ。置き換えの影 tskshadow_s（売り手の州の級別・今の規則と案 B′ の両方・
+//   着値は距離・危険料を含まない＝KmOf・PairRisk を呼ばない）も同じ年・同じ呼び口から書く。計器の RoRead（InstrumentsRecipeout.cs）を再利用し、エンジンの関数は呼ばない。
 public static partial class Instruments
 {
     internal static readonly string TradeskipHeaderText = "year\tnation\tgood\trows\trowIdle\trowNoNeed\trowBudget0\trowScan\trowDealtCross\trowDealtDomOnly\trowNoDeal\t"
@@ -36,6 +38,8 @@ public static partial class Instruments
     internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
     /// <summary>(1036) 試験の呼び口：買い手が満ちた行の終わり（X≦0）で、その行の xPrice・xNeed と計器が付けた理由を渡す（null＝何もしない）。</summary>
     [System.ThreadStatic] internal static Action<double, double, TsExit>? TsExitProbe;
+    /// <summary>(1073) 試験の呼び口：国の組の内訳と置き換えの影を全ての調べる年で取る（本番は 1870 と 1913 だけ）。</summary>
+    [System.ThreadStatic] internal static bool TsPairAllYears;
     internal const int TsOutIdle = 1, TsOutNoNeed = 2, TsOutBudget0 = 3;
     static readonly double[] TsRatioEdges = [0.5, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0, 4.0];
 
@@ -47,10 +51,35 @@ public static partial class Instruments
         int[] sNode = []; double[] sPrice = []; int sN; bool[] listedMark = []; int curXPass;
         int cur = -1, curBn, curG; bool scanned, dealtCross, dealtDom;
 
+        // (1073) 国の組の門の内訳（tskpair_s）と置き換えの影（tskshadow_s）：年が 1870 と 1913 の清算だけ蓄える（PairOn）。
+        internal bool PairOn; internal int[] Pair = []; internal double[] Sh = []; internal World[] Worlds = [];
+        internal const int PairCols = 8, ShCols = 11, ShCls = 8;
+        int[] pcStamp = []; string[] pcCls = []; double[] pcNow = [], pcBp = []; int stamp;
+        readonly bool[] shRowShort = new bool[ShCls];
+        static int ClsIx(string c) => c switch { "E" => 0, "N" => 1, "S" => 2, "F" => 3, "X" => 4, "Z" => 5, "U" => 6, _ => 7 };
+        internal static readonly string[] ClsNames = ["E", "N", "S", "F", "X", "Z", "U", "-"];
+        void P(int sn, int k) => Pair[((curBn * Nn + sn) * Gc + curG) * PairCols + k]++;
+        /// <summary>その州のその財の最安の生産者の級・今の単位費用・案 B′ の単位費用（名目・RoRead と同じ式＝計器が自分で組む）。無ければ級 "-"・NaN。財ごとに 1 度だけ引く（GoodBegin で札を替える）。</summary>
+        (string Cls, double Now, double Bp) CostOf(int node, TrEntry[] tr)
+        {
+            if (pcStamp.Length < tr.Length) { pcStamp = new int[tr.Length]; pcCls = new string[tr.Length]; pcNow = new double[tr.Length]; pcBp = new double[tr.Length]; }
+            if (pcStamp[node] == stamp) return (pcCls[node], pcNow[node], pcBp[node]);
+            string cls = "-"; double now = double.NaN, bp = double.NaN; var r = tr[node].r; var w = Worlds[tr[node].nation];
+            foreach (var p in r.Producers)
+            {
+                if (p.GoodId != curG) continue;
+                var x = RoRead(w, r, p);
+                if (!(x.Mc >= 0) || !(x.IfBprime >= 0)) continue;
+                if (cls == "-" || x.Mc < now) { cls = x.Class; now = x.Mc; bp = x.IfBprime; }
+            }
+            pcStamp[node] = stamp; pcCls[node] = cls; pcNow[node] = now; pcBp[node] = bp;
+            return (cls, now, bp);
+        }
+
         internal int At(int bn, int g, TsCol c) => C[(bn * Gc + g) * (int)TsCol.Count + (int)c];
         void Add(int bn, int g, TsCol c) => C[(bn * Gc + g) * (int)TsCol.Count + (int)c]++;
 
-        internal void GoodBegin(int cnt) { sN = 0; if (sNode.Length < cnt) { sNode = new int[Math.Max(64, cnt * 2)]; sPrice = new double[sNode.Length]; } }
+        internal void GoodBegin(int cnt) { sN = 0; stamp++; if (sNode.Length < cnt) { sNode = new int[Math.Max(64, cnt * 2)]; sPrice = new double[sNode.Length]; } }
         internal void AddSeller(int node, double price) { sNode[sN] = node; sPrice[sN] = price; sN++; }
         internal void NoSellers(int g) { CloseRow(); NoSell[g]++; }
 
@@ -160,39 +189,75 @@ public static partial class Instruments
             double protect = TarEff.Length > curBn ? Math.Max(0, TarEff[curBn]) : duty - cornPen;   // (1008) 関税の分＝エンジンの protect の写し（tar の局所から）・合成の盤面だけ差で出す
             for (int k = 0; k < GdLen; k++) gd[k] = 0;   // (1045) 行ごとの反復の内訳を空にする
             if (D.Length > 0) { int di = (curBn * Gc + curG) * DStride; D[di] += duty; D[di + 1] += protect; D[di + 2] += cornPen; }
+            double bCostNow = double.NaN, bCostBp = double.NaN;
+            if (PairOn) { var bc = CostOf(t, tr); bCostNow = bc.Now; bCostBp = bc.Bp; Array.Clear(shRowShort); }
             for (int i = 0; i < sN; i++)
             {
                 int sn = sNode[i]; int sNat = tr[sn].nation; double selP = sPrice[i];
                 if (sNat == curBn) { Add(curBn, curG, TsCol.DomPairs); continue; }
                 Add(curBn, curG, TsCol.XPairs);
+                if (PairOn) P(sNat, 0);
                 double ratio = selP / lp; int b = 0; while (b < TsRatioEdges.Length && ratio >= TsRatioEdges[b]) b++;
                 bool nan = double.IsNaN(ratio);
                 if (!nan) Add(curBn, curG, TsCol.Bin0 + b); else Add(curBn, curG, TsCol.RNaN);
-                if (left[i] <= 1e-12) { Add(curBn, curG, TsCol.XSold); if (!nan) Add(curBn, curG, TsCol.GBin0 + b); continue; }
-                if (capLeft[sn] <= 1e-12 || capLeft[t] <= 1e-12) { Add(curBn, curG, TsCol.XCap); if (!nan) Add(curBn, curG, TsCol.GBin0 + 10 + b); continue; }
+                if (left[i] <= 1e-12) { Add(curBn, curG, TsCol.XSold); if (PairOn) P(sNat, 1); if (!nan) Add(curBn, curG, TsCol.GBin0 + b); continue; }
+                if (capLeft[sn] <= 1e-12 || capLeft[t] <= 1e-12) { Add(curBn, curG, TsCol.XCap); if (PairOn) P(sNat, 2); if (!nan) Add(curBn, curG, TsCol.GBin0 + 10 + b); continue; }
                 double wS2 = wedge - (sellCheap is not null ? sellCheap[sNat] : 0.0);
+                bool wedgeD = false;
                 if (selP * (baseMul + wS2) >= lp)
                 {
                     Add(curBn, curG, TsCol.XWedge); if (!nan) Add(curBn, curG, TsCol.GBin0 + 20 + b);
                     if (selP * (baseMul + wS2 - duty) < lp)
                     {
-                        Add(curBn, curG, TsCol.WA);
+                        Add(curBn, curG, TsCol.WA); if (PairOn) P(sNat, 3);
                         if (selP * (baseMul + wS2 - protect) < lp) Add(curBn, curG, TsCol.WAT);
                         else if (selP * (baseMul + wS2 - cornPen) < lp) Add(curBn, curG, TsCol.WAC);
                         else Add(curBn, curG, TsCol.WAB);
                     }
-                    else if (selP * (1.0 + wS2) < lp) Add(curBn, curG, TsCol.WB);
-                    else if (selP * (1.0 + wS2 - duty) < lp) Add(curBn, curG, TsCol.WC);
-                    else Add(curBn, curG, TsCol.WD);
+                    else if (selP * (1.0 + wS2) < lp) { Add(curBn, curG, TsCol.WB); if (PairOn) P(sNat, 4); }
+                    else if (selP * (1.0 + wS2 - duty) < lp) { Add(curBn, curG, TsCol.WC); if (PairOn) P(sNat, 5); }
+                    else { Add(curBn, curG, TsCol.WD); wedgeD = true; if (PairOn) P(sNat, 6); }
                 }
-                else { Add(curBn, curG, TsCol.XPass); curXPass++; if (!nan) Add(curBn, curG, TsCol.GBin0 + 30 + b); }
+                else { Add(curBn, curG, TsCol.XPass); curXPass++; if (!nan) Add(curBn, curG, TsCol.GBin0 + 30 + b); if (PairOn) P(sNat, 7); }
+                if (PairOn) Shadow(tr, t, sn, sNat, selP, baseMul, wS2, lp, wedgeD, bCostNow, bCostBp);
+            }
+        }
+
+        /// <summary>(1073) 置き換えの影：容量・売り切れを通った越境の組（楔で飛ばす組と通る組）ごとに、売り手の州の級（E/N/S/F/X/Z/U/-）別に、
+        /// 着値÷買い手の自己費用＋投入費を今の規則と案 B′ の両方で数える。着値＝selP×(baseMul＋楔)＝**距離・危険料は含まない**（KmOf・PairRisk を呼ばない＝BilateralMarket に呼び口を足さない・完全な着値は波103 へ）。
+        /// 案 B′ の売り手の値段＝selP×（売り手の最安の生産者の B′ 費用÷今の費用）・買い手の lp も同じ比で動かす（値段が費用に従う近似＝計器の読み・確証なし）。
+        /// 不足の額＝max(0, 目標＋需要−生産−在庫)×lp（行ごとに級ごとに 1 回）。summary>/summary>
+        void Shadow(TrEntry[] tr, int t, int sn, int sNat, double selP, double baseMul, double wS2, double lp, bool wedgeD, double bCostNow, double bCostBp)
+        {
+            var sc = CostOf(sn, tr); int k = ClsIx(sc.Cls);
+            int o = ((curBn * Gc + curG) * ShCls + k) * ShCols;
+            double landed = selP * (baseMul + wS2);
+            double sRatio = sc.Now > 0 && sc.Bp >= 0 ? sc.Bp / sc.Now : 1.0, bRatio = bCostNow > 0 && bCostBp >= 0 ? bCostBp / bCostNow : 1.0;
+            double landedBp = landed * sRatio, lpBp = lp * bRatio;
+            bool nowPass = !(landed >= lp), bpPass = !(landedBp >= lpBp);
+            Sh[o]++; if (nowPass) Sh[o + 1]++; if (wedgeD) Sh[o + 2]++; if (bpPass) Sh[o + 3]++;
+            if (wedgeD && bpPass)
+            {
+                Sh[o + 4]++;
+                if (!shRowShort[k])
+                {
+                    shRowShort[k] = true; var m = tr[t].r.Markets[curG];
+                    double need = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+                    if (need > 0) Sh[o + 5] += need * lp;
+                }
+            }
+            double ex = ExRate.Length > curBn ? ExRate[curBn] : double.NaN, cn = bCostNow * ex, cb = bCostBp * ex;
+            if (cn > 0 && cb > 0 && landed >= 0)
+            {
+                double rn = landed / cn, rb = landedBp / cb;
+                Sh[o + 6]++; Sh[o + 7] += rn; Sh[o + 8] += rb; if (rn < 1.0) Sh[o + 9]++; if (rb < 1.0) Sh[o + 10]++;
             }
         }
 
         internal void End(long ledger) { CloseRow(); LedgerDelta = ledger - Ledger0; Ended = true; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, TsAcc> TsAccs = new();
-    sealed class TsSink { public System.IO.StreamWriter? W; }
+    sealed class TsSink { public System.IO.StreamWriter? W, WPair, WShadow; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, TsSink> TsSinks = new();
 
     /// <summary>清算の頭：調べる年の第 4 四半期の最初の清算なら蓄えを返す（それ以外・計器が切れていれば null）。呼び口は null の確かめだけを熱い所に置く。</summary>
@@ -214,7 +279,15 @@ public static partial class Instruments
             a.TariffNow[i] = wi.Tariff; a.Treaty[i] = 1.0 - Politics.ForeignPortShare(wi);
             double tg = Government.Q5(wi.Policy.TariffTarget) + wi.TariffRetaliationBias; a.Target[i] = tg < wi.Coef.TariffFloor ? wi.Coef.TariffFloor : tg > 1 ? 1 : tg;
         }
-        a.Nn = nn; a.Gc = gc; a.Ledger0 = ledger; a.LedgerDelta = 0; a.Filled = true; a.Ended = false;
+        a.Nn = nn; a.Gc = gc;
+        a.PairOn = TsPairAllYears || w0.Year + 1 == 1870 || w0.Year + 1 == 1913;   // (1073) 国の組の内訳と置き換えの影は 2 年だけ（行が多い）
+        if (a.PairOn)
+        {
+            a.Worlds = new World[nn]; for (int i = 0; i < nn; i++) a.Worlds[i] = nations[i].World;
+            a.Pair = new int[nn * nn * gc * TsAcc.PairCols]; a.Sh = new double[nn * gc * TsAcc.ShCls * TsAcc.ShCols];
+        }
+        else { a.Worlds = []; a.Pair = []; a.Sh = []; }
+        a.Ledger0 = ledger; a.LedgerDelta = 0; a.Filled = true; a.Ended = false;
         return a;
     }
 
@@ -255,8 +328,44 @@ public static partial class Instruments
         for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)
             sk.W.WriteLine(string.Join('\t', I(year), "ALL", Catalog.Goods[g].Name) + "\t" + zeros + "\t" + I(a.NoSell[g]) + "\t0\t" + zerosNew);
         sk.W.WriteLine(string.Join('\t', I(year), "ALL", "ALL") + "\t" + zeros + "\t0\t" + I(a.LedgerDelta) + "\t" + zerosNew);
+        if (a.PairOn && a.Pair.Length > 0) TradeskipPairTables(sk, a, year, seed);
         a.Filled = false; a.Ended = false;
     }
 
-    static void TradeskipClose(MultiNationSim sim) { if (TsSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; } }
+    internal const string TskpairHeaderText = "year\tnation\tseller\tgood\txPairs\txSoldOut\txCap\txWedgeA\txWedgeB\txWedgeC\txWedgeD\txPass";
+    internal const string TskshadowHeaderText = "year\tnation\tgood\tsellerClass\tpairs\tnowPass\tnowWedgeD\tbpPass\tdToBpPass\tdToBpShort\townN\townNowSum\townBpSum\townNowLt1\townBpLt1";
+
+    /// <summary>(1073) tskpair_s（買い手の国×売り手の国×財の門の内訳・和は tradeskip_s の行と一致）と tskshadow_s（置き換えの影）。年が 1870 と 1913 の清算だけ。</summary>
+    static void TradeskipPairTables(TsSink sk, TsAcc a, int year, ulong seed)
+    {
+        if (sk.WPair is null) { sk.WPair = Open("tskpair", seed); sk.WPair.WriteLine(TskpairHeaderText); }
+        if (sk.WShadow is null) { sk.WShadow = Open("tskshadow", seed); sk.WShadow.WriteLine(TskshadowHeaderText); }
+        string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int pc = TsAcc.PairCols;
+        for (int b = 0; b < a.Nn; b++)
+            for (int s = 0; s < a.Nn; s++)
+                for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)
+                {
+                    int o = ((b * a.Nn + s) * a.Gc + g) * pc;
+                    if (a.Pair[o] == 0) continue;
+                    var sb = new System.Text.StringBuilder();
+                    sb.Append(I(year)).Append('\t').Append(a.Names[b]).Append('\t').Append(a.Names[s]).Append('\t').Append(Catalog.Goods[g].Name);
+                    for (int k = 0; k < pc; k++) sb.Append('\t').Append(I(a.Pair[o + k]));
+                    sk.WPair.WriteLine(sb.ToString());
+                }
+        for (int b = 0; b < a.Nn; b++)
+            for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)
+                for (int k = 0; k < TsAcc.ShCls; k++)
+                {
+                    int o = ((b * a.Gc + g) * TsAcc.ShCls + k) * TsAcc.ShCols;
+                    if (a.Sh[o] == 0) continue;
+                    var sb = new System.Text.StringBuilder();
+                    sb.Append(I(year)).Append('\t').Append(a.Names[b]).Append('\t').Append(Catalog.Goods[g].Name).Append('\t').Append(TsAcc.ClsNames[k]);
+                    for (int j = 0; j < TsAcc.ShCols; j++) sb.Append('\t').Append(FR(a.Sh[o + j]));
+                    sk.WShadow.WriteLine(sb.ToString());
+                }
+        a.Pair = []; a.Sh = [];
+    }
+
+    static void TradeskipClose(MultiNationSim sim) { if (TsSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.WPair?.Dispose(); sk.WPair = null; sk.WShadow?.Dispose(); sk.WShadow = null; } }
 }
