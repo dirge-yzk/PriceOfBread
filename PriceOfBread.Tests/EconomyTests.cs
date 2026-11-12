@@ -689,4 +689,64 @@ public class EconomyTests
         Assert.True(zS == nS && pS == 0, $"共有世界の非産地の硫黄の生産性が 0 でない州がある（0 の州 {zS}／{nS}）");
         Assert.True(pC > 0, $"密閉世界の非産地の硫黄の生産性が全て 0（産地ゲートを密閉世界に効かせている・{pC}／{nC}）");
     }
+
+    /// <summary>★(1089) 突然変異 M2・M4（蒸気タービン／堆肥の生産者を足さない）と M1（黄鉄鉱法）が、既存の絞った試験で緑のまま残ったので足した機構の試験（★(790)）：
+    /// 旗を焼いた後は、電力の第4レシピ「蒸気タービン」・肥料の第4レシピ「堆肥」・硫酸の第2レシピ「黄鉄鉱法」を、どの州の構築も常に生産者として持つ。</summary>
+    [Fact]
+    public void 代替レシピの生産者は構築で常に入る_黄鉄鉱法_蒸気タービン_堆肥()
+    {
+        var sim = new Simulation(WorldData.ByName("フランス").ToScenario(1789, sharedWorld: true), new NullAgent());
+        int n = 0, pyrite = 0, turbine = 0, compost = 0;
+        foreach (var r in sim.World.Regions)
+        {
+            n++;
+            if (r.Producers.Any(p => p.GoodId == Catalog.SulfuricAcidId && p.RecipeName == "黄鉄鉱法")) pyrite++;
+            if (r.Producers.Any(p => p.GoodId == Catalog.ElectricityId && p.RecipeName == "蒸気タービン")) turbine++;
+            if (r.Producers.Any(p => p.GoodId == Catalog.FertilizerId && p.RecipeName == "堆肥")) compost++;
+        }
+        Assert.True(n >= 5, $"調べた州が少ない（{n}）");
+        Assert.True(pyrite == n && turbine == n && compost == n, $"代替レシピを持たない州がある（州 {n}・黄鉄鉱法 {pyrite}・蒸気タービン {turbine}・堆肥 {compost}）");
+    }
+
+    /// <summary>★(1089) 突然変異 M3（原油の投入から機械を外す）が緑のまま残ったので足した機構の試験（★(790)）：
+    /// 原油の採掘（RGO）は掘削の機械の投入を常に持つ（OilMachineryInput）。</summary>
+    [Fact]
+    public void 原油の採掘は機械の投入を常に持つ()
+    {
+        var sim = new Simulation(WorldData.ByName("フランス").ToScenario(1789, sharedWorld: true), new NullAgent());
+        int oil = 0, withMachinery = 0;
+        foreach (var r in sim.World.Regions)
+            foreach (var p in r.Producers.Where(p => p.GoodId == Catalog.CrudeOilId && p.IsRgo))
+            {
+                oil++;
+                if (p.Inputs.Any(i => i.GoodId == Catalog.MachineryId && i.QtyPerOutput > 0)) withMachinery++;
+            }
+        Assert.True(oil >= 5, $"調べた原油の採掘が少ない（{oil}）");
+        Assert.Equal(oil, withMachinery);
+    }
+
+    /// <summary>★(1089) 突然変異 M7（開幕の中核の度合いを一律 1.0 のままにする）が緑のまま残ったので足した機構の試験（★(790)）：
+    /// 文化の違う州を持つ国（オーストリア）は、開幕の中核の度合いが州の文化で 1.0 と 0.0 に分かれ、同じ文化の州は同じ値になる。</summary>
+    [Fact]
+    public void 開幕の中核の度合いは州の文化で1_0か0_0に分かれる()
+    {
+        var sim = new Simulation(WorldData.ByName("オーストリア").ToScenario(1789, sharedWorld: false), new NullAgent());
+        var byCulture = new Dictionary<string, HashSet<double>>();
+        int ones = 0, zeros = 0;
+        foreach (var r in sim.World.Regions)
+        {
+            if (string.IsNullOrEmpty(r.Culture)) continue;
+            foreach (var p in r.Pops)
+            {
+                double v = p.CoreEthnicShare.Value;
+                Assert.True(v == 0.0 || v == 1.0, $"{r.Name} の中核の度合いが 0 か 1 でない: {v}");
+                if (v == 1.0) ones++; else zeros++;
+                if (!byCulture.TryGetValue(r.Culture, out var set)) byCulture[r.Culture] = set = [];
+                set.Add(v);
+            }
+        }
+        Assert.True(byCulture.Count >= 2, $"文化ラベルの種類が少ない（{byCulture.Count}）");
+        Assert.True(ones > 0 && zeros > 0, $"1.0 の州 {ones}・0.0 の州 {zeros}＝文化で分かれていない");
+        Assert.All(byCulture.Values, s => Assert.Single(s));
+    }
 }
