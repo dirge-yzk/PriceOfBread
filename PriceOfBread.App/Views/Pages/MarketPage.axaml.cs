@@ -22,9 +22,5 @@ public partial class MarketPage : UserControl
     {
         InitializeComponent();
         MarketGrid.Table = Plan;
-        // 表は欄の高さに合わせる＝見出しを止めて行だけを欄の中で流す
-        SectionFit.Attach(PricesSection, PricesTable);
-        SectionFit.Attach(ImportsSection, ImportsBody);
-        SectionFit.Attach(ExportsSection, ExportsBody);
     }
 }

@@ -75,6 +75,7 @@ public partial class MainWindow
                 // 動かして大きさを変える（市場を右上へ・広く）
                 var host = gameView.FindControl<WindowLayer>("Windows")!;
                 lay.SetRect(Slot.Market, new WindowRect(host.Bounds.Width * 0.42, 16, host.Bounds.Width * 0.56, host.Bounds.Height * 0.55));
+                lay.BringToFront(Slot.Market);   // 本物の操作は題の帯をつかんだ時点で前へ出る（FloatingWindow の押下の受け）＝撮影も同じ順にする
                 await Task.Delay(700);
                 BootLog.Write($"uishot: 窓[{bg}の背景・市場を動かして大きさを変えた] {Now()}");
                 Capture(dir, $"{no():D2}_窓_{bg}_動かした.png");

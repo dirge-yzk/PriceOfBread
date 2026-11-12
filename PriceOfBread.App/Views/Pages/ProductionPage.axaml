@@ -188,7 +188,7 @@
         </ctl:Section>
 
         <!-- 選んだ財の詳細：全国の需給・費用の積み上げ・価格・世界価格の線・補助金/専売/売買の方針・用途。 -->
-        <ctl:Section x:Name="DetailSection" Key="detail" Title="選んだ財">
+        <ctl:Section x:Name="DetailSection" Key="detail" Title="選んだ財" FitContent="True" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ctl:Section.Body>
                 <StackPanel Spacing="4" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
                         <!-- 見出し行（作者仕様2026-08-10 再構成）＝カテゴリ　材名　価格割合。
@@ -395,7 +395,7 @@
         </ctl:Section>
 
         <!-- 州別の工場：州ごとの工場・従業員・生産・過不足・材料価格。国営工場の − ＋ が建設の押し釦（目標を上げる＝建てさせる）。 -->
-        <ctl:Section x:Name="RegionsSection" Key="regions" Title="州別の工場">
+        <ctl:Section x:Name="RegionsSection" Key="regions" Title="州別の工場" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ctl:Section.Body>
                 <Grid x:Name="RegionsBody" RowDefinitions="Auto,*" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
                         <Grid ColumnDefinitions="*,36,82,44,44,52,60" Margin="0,0,12,0">

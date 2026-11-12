@@ -6,9 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
-using PriceOfBread.App.Controls;
 using PriceOfBread.App.Layout;
 
 namespace PriceOfBread.App.Views;
@@ -107,6 +105,7 @@ public sealed class WindowLayer : Canvas
             if (!_windows.TryGetValue(slot, out var w) || w.Interacting) continue;
             var r = _layout.RectOf(slot) ?? _layout.AutoRectOf(slot) ?? Open(slot, w);
             w.SetRect(LayoutModel.Fit(r, Bounds.Width, Bounds.Height));
+            if (slot == Slot.Province) { w.Height = double.NaN; w.MaxHeight = Bounds.Height; }   // 州の窓の高さは中身に合わせる
         }
     }
 
@@ -115,8 +114,8 @@ public sealed class WindowLayer : Canvas
     {
         if (slot == Slot.Province) return LayoutModel.ProvinceRect(Bounds.Width, Bounds.Height);
         double width = LayoutModel.DefaultWidth(slot);
-        double fit = w.Page?.GetLogicalDescendants().OfType<PageGrid>().FirstOrDefault()?.FitHeight(width - FloatingWindow.PagePad) ?? 0;
-        double height = Math.Clamp(FloatingWindow.TitleHeight + 2 + FloatingWindow.PagePad + fit, LayoutModel.MinWindowHeight, Bounds.Height);
+        w.Page?.Measure(new Size(width - 2, double.PositiveInfinity));   // 自然な高さ（ページの欄は上限なしで測ると自然な高さになる）
+        double height = Math.Clamp(FloatingWindow.TitleHeight + 2 + (w.Page?.DesiredSize.Height ?? 0), LayoutModel.MinWindowHeight, Bounds.Height);
         var occupied = _layout!.OpenWindows.Where(s => s != slot && s != Slot.Province).Select(s => _layout.RectOf(s) ?? _layout.AutoRectOf(s)).OfType<WindowRect>().ToList();
         var r = LayoutModel.AutoPlace(slot, width, height, occupied, Bounds.Width, Bounds.Height);
         _layout.SetAuto(slot, r);
@@ -131,11 +130,11 @@ public sealed class FloatingWindow : Border
 {
     private const double Grip = 6, CornerGrip = 14;
     public const double TitleHeight = 26;   // 題の帯の高さ
-    public const double PagePad = 8;        // ページの左右（上下も）の余白の合計（ページの欄の並べの Margin 4＋4）
 
     private readonly Slot _slot;
     private readonly LayoutModel _layout;
     private readonly Border _body = new();
+    private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };   // 窓全体を 1 本で流す（欄ごとの短い流しにしない）
     private readonly Border _titleBar;
     private enum Mode { None, Move, Resize }
     private Mode _mode;
@@ -150,7 +149,7 @@ public sealed class FloatingWindow : Border
     public FloatingWindow(Slot slot, string title, LayoutModel layout)
     {
         _slot = slot; _layout = layout;
-        MinWidth = LayoutModel.MinWindowWidth; MinHeight = LayoutModel.MinWindowHeight;
+        MinWidth = LayoutModel.MinWindowWidth; MinHeight = slot == Slot.Province ? 0 : LayoutModel.MinWindowHeight;
         Background = Brush("PaperBrush", Brushes.Beige);
         BorderThickness = new Thickness(1);   // 様式（2026-11-12）：線 1・角 3・影なし
         CornerRadius = new CornerRadius(3);
@@ -207,9 +206,11 @@ public sealed class FloatingWindow : Border
 
     public void SetPage(Control? page)
     {
-        if (Page is { } old) { old.DataContext = null; _body.Child = null; }
+        if (Page is { } old) { old.DataContext = null; _scroll.Content = null; _body.Child = null; }
         Page = page;
-        if (page is not null) _body.Child = page;
+        if (page is null) return;
+        if (_slot == Slot.Province) _body.Child = page;   // 州の窓は中身の高さに合わせる（流さない）
+        else { _scroll.Content = page; _body.Child = _scroll; }
     }
 
     public void SetFront(bool front)

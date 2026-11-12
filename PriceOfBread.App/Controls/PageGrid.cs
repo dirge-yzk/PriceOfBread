@@ -50,8 +50,9 @@ public static class PagePlan
     public static double MinHeight(SectionSpec s) => HeaderHeight + Math.Max(0, s.MinRows) * RowHeight;
 
     /// <summary>最小の高さ。中身の高さの上限（<paramref name="caps"/>）が小さい欄は、その上限まで（中身より高く確保せず・最後の行も切らない・A10・A11）。</summary>
-    private static double MinHeight(SectionSpec s, IReadOnlyDictionary<string, double>? caps, IReadOnlyDictionary<string, double>? chrome = null)
+    private static double MinHeight(SectionSpec s, IReadOnlyDictionary<string, double>? caps, IReadOnlyDictionary<string, double>? chrome = null, IReadOnlySet<string>? exact = null)
     {
+        if (exact is not null && exact.Contains(s.Key) && caps is not null && caps.TryGetValue(s.Key, out double natural)) return Math.Max(HeaderHeight, natural);   // 自然な高さで止める欄＝最小もその高さ（他の欄が譲る）
         double min = MinHeight(s);
         if (caps is null || !caps.TryGetValue(s.Key, out double cap)) return min;
         // 中身が最小の高さに近い（全部の行が収まる）なら中身の全部を最小にする＝最後の行が半分に切れない（A11）。
@@ -84,20 +85,30 @@ public static class PagePlan
     /// <summary>1 つの列の割り当て。<paramref name="height"/> が無限大なら最小の高さのまま。</summary>
     /// <param name="chrome">表の見出し・絞り込みの欄の高さ（最小の行数に足す＝データの行が最低でも最小の行数だけ見える）。</param>
     /// <param name="caps">欄ごとの高さの上限（中身に合わせる。見出しを含む）。余りの高さをこの上限を超えて分けない（超えた分は他の欄へ回し、全部が上限なら空ける）。</param>
-    public static IReadOnlyList<SectionPlace> PlanColumn(IReadOnlyList<SectionSpec> column, double height, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null)
+    public static IReadOnlyList<SectionPlace> PlanColumn(IReadOnlyList<SectionSpec> column, double height, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null, IReadOnlySet<string>? exact = null)
     {
         int n = column.Count;
         var mins = new double[n];
         double gaps = Math.Max(0, n - 1) * SectionGap, need = gaps;
-        for (int i = 0; i < n; i++) { mins[i] = MinHeight(column[i], caps, chrome); need += mins[i]; }
+        for (int i = 0; i < n; i++) { mins[i] = MinHeight(column[i], caps, chrome, exact); need += mins[i]; }
         bool finite = !double.IsPositiveInfinity(height);
         double spare = finite ? Math.Max(0, height - need) : 0;
         if (finite && need > height + 1e-9)
         {
-            // 入らない：床（見出し＋1 行）まで、最小の高さを同じ比で狭める
-            double floor = HeaderHeight + RowHeight, sumFloor = n * floor, sumMin = mins.Sum(), room = height - gaps;
+            // 入らない：床（見出し＋1 行）まで、最小の高さを同じ比で狭める（自然な高さで止める欄は狭めず、他の欄が譲る）
+            double floor = HeaderHeight + RowHeight;
+            bool Fixed(int i) => exact is not null && exact.Contains(column[i].Key);
+            double fixedSum = 0, sumFloor = 0, sumMin = 0;
+            for (int i = 0; i < n; i++) { if (Fixed(i)) fixedSum += mins[i]; else { sumFloor += floor; sumMin += mins[i]; } }
+            double fixedRoom = Math.Max(0, height - gaps - sumFloor);   // 自然な高さの欄も、他の欄の床（見出し＋1 行）を残す所までしか取らない（列からはみ出さない）
+            if (fixedSum > fixedRoom && fixedSum > 1e-9)
+            {
+                double scale = fixedRoom / fixedSum; fixedSum = 0;
+                for (int i = 0; i < n; i++) if (Fixed(i)) { mins[i] = Math.Max(floor, mins[i] * scale); fixedSum += mins[i]; }
+            }
+            double room = height - gaps - fixedSum;
             double k = sumMin - sumFloor > 1e-9 ? Math.Clamp((room - sumFloor) / (sumMin - sumFloor), 0, 1) : 0;
-            for (int i = 0; i < n; i++) mins[i] = Math.Min(mins[i], floor + (mins[i] - floor) * k);
+            for (int i = 0; i < n; i++) if (!Fixed(i)) mins[i] = Math.Min(mins[i], floor + (mins[i] - floor) * k);
         }
         // 余りの高さを重みの比で分ける。上限（caps）に届いた欄はそこで止め、残りを他の欄へ回す
         var extra = new double[n];
@@ -136,8 +147,8 @@ public static class PagePlan
     }
 
     /// <summary>ページ全体の割り当て。</summary>
-    public static IReadOnlyList<IReadOnlyList<SectionPlace>> Plan(PageTable t, double width, double height, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null)
-        => Arrange(t, ColumnCount(width, t)).Select(c => PlanColumn(c, height, caps, chrome)).ToList();
+    public static IReadOnlyList<IReadOnlyList<SectionPlace>> Plan(PageTable t, double width, double height, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null, IReadOnlySet<string>? exact = null)
+        => Arrange(t, ColumnCount(width, t)).Select(c => PlanColumn(c, height, caps, chrome, exact)).ToList();
 }
 
 /// <summary>ページの欄 1 つ＝見出しの 1 行（名前）と、その下の中身（<see cref="Body"/>）。中身は欄の中だけで縦に流れる（ページの外側は流れない）。高さは <see cref="PageGrid"/> が決める。</summary>
@@ -198,18 +209,12 @@ public sealed class Section : Border
         ClipToBounds = true;
     }
 
-    /// <summary>中身に合わせた高さの上限（見出しを含む・A10）。表（直接か、入れ物の最初の子）は行数からの見積り・他の流れる中身は幅 <paramref name="width"/> で測った自然な高さ。
-    /// 流さない欄（自分で見出しを止める物）で表でなければ null＝上限なし。</summary>
-    public double? ContentHeightCap(double width)
-    {
-        double chrome = PagePlan.HeaderHeight + 1 + PagePlan.BodyPadV;
-        if (Body is TableView tv) return chrome + tv.EstimatedHeight();
-        if (Body is Panel p && p.Children.OfType<TableView>().FirstOrDefault() is { } t)
-            return chrome + t.EstimatedHeight() + p.Children.Where(c => c != t).Sum(c => c.DesiredSize.Height);   // 表の下の合計の行など
-        if (!Scrolls || Body is null) return null;
-        _inner.Measure(new Size(Math.Max(0, width - 2 - 10), double.PositiveInfinity));   // 欄の枠と縦の目盛りの帯の分を引く（中身の左右の余白は測りが引く）
-        return chrome + _inner.DesiredSize.Height - 4;   // 中身の Margin は BodyPadV に含めて数え済み
-    }
+    /// <summary>中身に合わせた高さの上限（見出しを含む・A10）。表だけを入れる欄（中身が表）にだけ付ける。他は null＝上限なし（<see cref="FitContent"/> の欄は <see cref="PageGrid"/> が自然な高さを測る）。</summary>
+    public double? ContentHeightCap()
+        => Body is TableView tv ? PagePlan.HeaderHeight + 1 + PagePlan.BodyPadV + tv.EstimatedHeight() : null;
+
+    /// <summary>中身の自然な高さで止める欄か（高さを外から決めない中身＝文字と絵の積み重ね。盤のように大きさを自分で決める中身には付けない）。</summary>
+    public bool FitContent { get; set; }
 
     private void MountBody()
     {
@@ -252,19 +257,11 @@ public sealed class PageGrid : Panel
         double colW = PagePlan.ColumnWidths(PagePlan.ColumnCount(w, t), w, t.ColumnWeights).Min();
         foreach (var s in Children.OfType<Section>())
         {
-            if (s.ContentHeightCap(colW) is double cap) caps[s.Key] = cap;
+            if (s.ContentHeightCap() is double cap) caps[s.Key] = cap;
+            else if (s.FitContent && s.IsVisible) { s.Measure(new Size(colW, double.PositiveInfinity)); caps[s.Key] = s.DesiredSize.Height; }   // 自然な高さ（欄そのものを測る）
             if (s.Body is TableView tv) chrome[s.Key] = tv.ChromeHeight();
         }
         return (caps, chrome);
-    }
-
-    /// <summary>幅 <paramref name="width"/> に置いたとき、中身がちょうど収まる高さ（列ごとに欄の中身の高さを積んだ最大）。窓の初めの高さに使う。</summary>
-    public double FitHeight(double width)
-    {
-        if (Table is not { } t) return 0;
-        var (caps, _) = CapsOf(t, width);
-        return PagePlan.Arrange(t, PagePlan.ColumnCount(width, t))
-            .Max(col => col.Sum(s => caps.TryGetValue(s.Key, out double c) ? c : PagePlan.MinHeight(s)) + Math.Max(0, col.Count - 1) * PagePlan.SectionGap);
     }
 
     protected override Size MeasureOverride(Size available)
@@ -272,12 +269,37 @@ public sealed class PageGrid : Panel
         if (Table is not { } t) { foreach (var c in Children) c.Measure(available); return default; }
         double w = double.IsPositiveInfinity(available.Width) ? 1200 : available.Width;
         double h = available.Height;
-        var (caps, chrome) = CapsOf(t, w);
-        var plan = PagePlan.Plan(t, w, h, caps, chrome);
-        _lastPlan = plan;
-        int cols = plan.Count;
-        var colWs = PagePlan.ColumnWidths(plan.Count, w, t.ColumnWeights);
+        var hidden = Children.OfType<Section>().Where(c => !c.IsVisible).Select(c => c.Key).ToHashSet();   // 見えない欄は置かない（空の欄の分の隙間を作らない）
+        if (hidden.Count > 0)
+            t = new PageTable(t.Sections.Where(sp => !hidden.Contains(sp.Key)).ToList(), t.Columns3.Select(c => (IReadOnlyList<string>)c.Where(k => !hidden.Contains(k)).ToList()).ToList(), t.ColumnMinWidth, t.ColumnWeights);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
+        if (double.IsPositiveInfinity(h))
+        {
+            // 高さに上限が無い（窓の中＝外側を 1 本で流す）：欄は自然な高さ。列ごとに積んだ高さの最大がページの高さ
+            var cols = PagePlan.Arrange(t, PagePlan.ColumnCount(w, t));
+            var widths = PagePlan.ColumnWidths(cols.Count, w, t.ColumnWeights);
+            var natural = new List<IReadOnlyList<SectionPlace>>();
+            double tallest = 0;
+            for (int i = 0; i < cols.Count; i++)
+            {
+                var col = new List<SectionPlace>(); double y = 0;
+                foreach (var sp in cols[i])
+                {
+                    double hh = 0;
+                    if (sections.TryGetValue(sp.Key, out var sec)) { sec.Measure(new Size(widths[i], double.PositiveInfinity)); hh = sec.DesiredSize.Height; }
+                    col.Add(new SectionPlace(sp.Key, hh)); y += hh + PagePlan.SectionGap;
+                }
+                natural.Add(col); tallest = Math.Max(tallest, y - PagePlan.SectionGap);
+            }
+            _lastPlan = natural;
+            foreach (var c in Children) if (c is not Section) c.Measure(default);
+            return new Size(w, Math.Max(0, tallest));
+        }
+        var (caps, chrome) = CapsOf(t, w);
+        var exact = Children.OfType<Section>().Where(c => c.FitContent && c.IsVisible).Select(c => c.Key).ToHashSet();
+        var plan = PagePlan.Plan(t, w, h, caps, chrome, exact);
+        _lastPlan = plan;
+        var colWs = PagePlan.ColumnWidths(plan.Count, w, t.ColumnWeights);
         double used = 0; int ci = 0;
         foreach (var col in plan)
         {
@@ -294,7 +316,7 @@ public sealed class PageGrid : Panel
             used = Math.Max(used, y - PagePlan.SectionGap);
         }
         foreach (var c in Children) if (c is not Section) c.Measure(default);
-        return new Size(w, double.IsPositiveInfinity(h) ? used : Math.Min(h, Math.Max(used, 0)));
+        return new Size(w, Math.Min(h, Math.Max(used, 0)));
     }
 
     protected override Size ArrangeOverride(Size finalSize)
