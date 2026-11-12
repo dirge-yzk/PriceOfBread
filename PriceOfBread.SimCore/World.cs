@@ -1381,7 +1381,7 @@ public sealed class World
     //   陸海の配分は ArmyUpkeep / NavyUpkeep（払う金）で既に表現済み＝注力度はその上に乗る二重表現だった。
     //   ⚠状態が1つ減る＝POBSIM1 セーブは読めない（v2 以後はフィールドの増減を名前表で吸収＝<see cref="SaveGame"/>）。
 
-    public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠CenterIsFirstProvince>0 では1番目の州の座標へ差し替わる（J-003）
+    public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠1番目の州の座標へ差し替わる（J-003・(1089) で旗 CenterIsFirstProvince を焼いた）
     public double Longitude { get; internal set; }   // 首都の経度（度）。日本の遠さ＝交易の天然の障壁
 
     /// <summary>★遷都の1本（2026-09-28 処理の一元化 段2 B）＝首都（Id0・Regions[0]）を <paramref name="capital"/> へ移し、距離の基準の座標も同じ州へ。
