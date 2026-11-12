@@ -1,0 +1,47 @@
+arm	class	rows	mismatch	share	empty	note
+m1069	yearend_elected	66130	3856	0.0583	133	
+m1069	yearend_nonelected	35919	35287	0.9824	3	
+m1069	q9_elected_normal	26152	24	0.0009	20	
+m1069	q9_elected_trans	3393	1510	0.4450	0	
+m1069	q9_nonelected	30575	30308	0.9913	0	
+m1069	nonelected_gp_not_ruling_q9	-	lag=156 same=4	-	-	P2a
+m1069	elected_normal_mm_q9	-	lag=1 same=23	-	-	P2b
+m1069	nopolity	0				結べなかった行
+n1	yearend_elected	65737	3840	0.0584	133	
+n1	yearend_nonelected	36711	35956	0.9794	3	
+n1	q9_elected_normal	26692	18	0.0007	20	
+n1	q9_elected_trans	3288	1470	0.4471	0	
+n1	q9_nonelected	30140	29767	0.9876	0	
+n1	nonelected_gp_not_ruling_q9	-	lag=154 same=0	-	-	P2a
+n1	elected_normal_mm_q9	-	lag=1 same=17	-	-	P2b
+n1	nopolity	0				結べなかった行
+n2	yearend_elected	67953	3518	0.0518	168	
+n2	yearend_nonelected	34929	34336	0.9830	3	
+n2	q9_elected_normal	28700	1	0.0000	20	
+n2	q9_elected_trans	2819	1297	0.4601	0	
+n2	q9_nonelected	28601	28402	0.9930	0	
+n2	nonelected_gp_not_ruling_q9	-	lag=123 same=0	-	-	P2a
+n2	elected_normal_mm_q9	-	lag=0 same=1	-	-	P2b
+n2	nopolity	0				結べなかった行
+s11	yearend_elected	65637	3686	0.0562	155	
+s11	yearend_nonelected	37293	36430	0.9769	6	
+s11	q9_elected_normal	25211	19	0.0008	20	
+s11	q9_elected_trans	3237	1394	0.4306	0	
+s11	q9_nonelected	31672	31327	0.9891	0	
+s11	nonelected_gp_not_ruling_q9	-	lag=152 same=0	-	-	P2a
+s11	elected_normal_mm_q9	-	lag=1 same=18	-	-	P2b
+s11	nopolity	0				結べなかった行
+
+# 非選挙政体の年末の食い違いの内訳: arm polity governing seatArgmax count
+m1069	0	0	1	23345
+m1069	1	0	1	11909
+m1069	2	0	1	33
+n1	0	0	1	23182
+n1	1	0	1	12736
+n1	2	0	1	38
+n2	0	0	1	21985
+n2	1	0	1	12319
+n2	2	0	1	32
+s11	0	0	1	24159
+s11	1	0	1	12246
+s11	2	0	1	25

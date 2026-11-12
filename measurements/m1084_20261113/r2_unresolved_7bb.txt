@@ -1,0 +1,6 @@
+  引けない: S26-24 Diplomacy.cs:1126:ThreatExcess 行に名が無い
+  引けない: S26-28 EconomyStep.cs:908 形が違う
+  引けない: S26-40 EconomyStep.cs:908 形が違う
+  引けない: S26-44 Politics.cs:1475 形が違う
+  引けない: S26-46 Politics.cs:293 形が違う
+  引けない: S26-46 Politics.cs:1475 形が違う

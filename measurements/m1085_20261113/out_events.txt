@@ -1,0 +1,5 @@
+arm	elections	intervals_16	intervals_lt16	intervals_gt16	gov_change_share	transitions	trans_mm_any	mm_len_median	mm_len_max	mm_end_by_election	mm_end_by_other	mm_open_at_end	normal_mm_dist_hist
+m1069	opening=20	1838	1592	0	14	0.121	217	216	4	27	212	3	1	
+n1	opening=20	1863	1635	0	6	0.108	211	208	4	31	202	5	1	
+n2	opening=20	1955	1754	0	5	0.091	183	180	4.0	17	174	4	2	
+s11	opening=20	1760	1528	0	12	0.118	208	204	4.0	32	196	6	2	

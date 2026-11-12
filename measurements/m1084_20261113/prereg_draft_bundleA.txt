@@ -1,0 +1,46 @@
+(番号) c<波>dz 休眠の旗 束A 7 本の削除（恒等の線）事前登録の素案（(1084) の下書き・AI の案・確証なし）
+基線＝その時点の main（dm の合流の後・MC の線と同じ波に置くなら EconomyStep.cs の行の範囲を宣言）。枝 c<波>dz。
+出発＝(1084) flags50.tsv の〈束A〉。作者 2026-11-12「推奨で進めて」で紙の段の推奨を採った（承認と書かない）。
+このコミットは事前登録だけ。数と門は腕の前に固定する。
+
+[0] 形＝尾（旗 0／DormantOne の 1 の道だけを残す）。新しい係数 0・状態 0・上限と下限 0・補助関数 0。AI とプレイヤーで同じ経路。
+    浮動小数の式を書き換えるのは ×1.0 の除去 1 か所（EconomyStep.cs:2108 EduReachFromAdmin）だけ＝1.0×y＝y（NaN・−0 も保つ・前例 (804)(843)）。
+    StapleDemandRebalance は束から外した（紙 S04-10〈線 S04-L5 で 1 回試す〉）。
+    ⚠ 精査 10-18（作者「全て推奨でよい」で採った）の〈必要／修正／残す〉を 11-12 の削減の推奨で覆す物：EduReachFromAdmin（経11）・PeacetimeConscriptGrievance（軍8）・
+      TeacherQualityWeight（経6）・MilitaryProcurePriceGateScale（:235）・FactoryBuildRefIsReal（経3＝作者 11-12 の裁定③が後）と、作者 2026-09-08 の裁定を覆す EduReachFromAdmin（紙 S04-33 が名乗り作者「全て推奨で」で決定済み）＝コミットの本文の先頭に名乗る。
+
+[1] 恒等・予言 0（段は stage.py が決める）。素の 5 種・計器つき 10 種が基線と名乗り行を除いて全行一致。
+    行が動くファイル（EconomyStep.cs・Simulation.cs・Military.cs・Coefficients.cs）の cearn_s・cpop_s・flow_s の経路の名は
+    〈ident_check.py の行の写しで違い 0〉と宣言する。消す行に route_anchors.tsv の鍵の行が無いことを書く前に grep する。
+    .cost の推定の差 0（構築と月の走査の数は変わらない＝TeacherQualityWeight の枝は旗 0 で走らない）。
+
+[2] 消す物（decb50fa5 の行・コミットの前に grep し直す）
+  SubsistenceNoBoughtTech        Coef:531   EconomyStep.cs:113・:134（三項の右 StapleEffTech を残す）
+  ConsumeBudgetSavingsRatePerMonth Coef:2340 EconomyStep.cs:1737〜（if の塊）
+  EduReachFromAdmin              Coef:183   EconomyStep.cs:2108（`* (…? … : 1.0)` を消す）
+  FactoryBuildRefIsReal          Coef:1157  Coefficients.cs:1161（関数の中の if 1 行）
+  PeacetimeConscriptGrievance    Coef:2786  Military.cs:273・:274（引数は `wartimeConscript`・`1.0` の字）
+  TeacherQualityWeight           Coef:178   Simulation.cs:2247・:2268（枝ごと）
+  MilitaryProcurePriceGateScale  Coef:1125  EconomyStep.cs:3135（DormantOne＝1：`if (… < 1.0 …)` の行）
+  欄は消して DormantIdentityTests の DormantZeroFields／DormantOneFields から外し RetiredFields へ 7 名を 1 行（★(743)）。
+  孤児の係数：書く前に各枝の中だけが読む係数を grep（PeacetimeConscriptGrievance は値そのもの）。
+  App・Runner・Display の読み手 0（flags50.tsv）。scripts の読み手は閉じた線の記録＝触らない。
+
+[3] 試験（★(743) の札で名乗る・書き換える前に〈旧の道の番人〉か〈環境固定〉かを読む）
+  SubsistenceNoBoughtTechTests.cs:19・SubsistenceStage2Tests.cs:14・SubstInstrumentTests.cs:185
+  EconomyTests.cs:591・InstrumentsTests.cs:845・:874（ConsumeBudget）
+  ServiceEconomyTests.cs:78・:103・StateEduDemandTests.cs:27・:197・:223（EduReach）
+  DormantIdentityTests.cs:33・:82・:101・:103・:118・:119・:165
+  テストの数の予言（--tests-delta）＝旧の道の番人を ① で消す本数だけ負（腕の前に数えて書く）。
+
+[4] 突然変異（使い捨ての木・消した後のソースに当てる）＝どの門で赤かを 1 本ずつ表に
+  M1 EconomyStep.cs:113 の StapleEffTech を 1.0 に（消した旗の 1 の側の道を戻す）→ ident 赤のはず・試験は SubsistenceStage2Tests が赤か記録
+  M2 EconomyStep.cs:2108 に `* 0.5` を足す → ident 赤・StateEduDemandTests が赤か記録
+  M3 Military.cs:274 の 1.0 を 0.5 に → ident 赤・試験が緑なら機構の試験を足す（★(790)）
+  M4 Coefficients.cs:1161 の進捗に ×PriceLevel を戻す → ident 赤・試験が緑なら足す
+  M5 EconomyStep.cs:3135 の軍需の門の混ぜを戻す（scale 0.5）→ ident 赤
+  （旗 0 で落ちる確かめ＝恒等の線では〈消す前の木で ident が一致する〉ことが旗 0 の道の確かめ）
+
+[5] 腕＝ident.sh だけ（腕 A・段 2 なら約 24GB・空き ≧ 34GB で起こす）。〈判定: 恒等〉なら採る（測った種で一致と名乗る）。
+    一致しない旗はその変更だけ外して報告に回す。
+[6] 周辺の点検：StapleEffTech の他の読み手・FactoryBuildProgress の兄弟の門（FactoryBuildPriceGateScale＝点火の線）・DrawFromPool の他の呼び手。

@@ -1,0 +1,23 @@
+旗	flags50	台帳の行(紙)	紙の判定	紙の12列目(先頭70)
+MineralCostFollowsGrade	点火の線	S03-33	未確かめ	〈その設計で書き直す〉（貿易の置き換え T2 の鉱脈の品位＝MineralCostFollowsGrade の点火か削除と同じ読みで、鉱物ご
+SilverRushEnabled	点火の線	S03-34	働く	消す（読み手 エンジン 8＝ScarceMineralGate 3・ScarceCountsIncludeColonies 1・Scarce
+EndowmentCostFollowsAbundance	点火の線	S03-35	働かない	〈その設計で書き直す〉（貿易の置き換え T1 の B-1＝EndowmentCostFollowsAbundance の焼き込み・T2 の 
+EndowmentCostFollowsScarcity	点火の線	S03-35	働かない	〈その設計で書き直す〉（貿易の置き換え T1 の B-1＝EndowmentCostFollowsAbundance の焼き込み・T2 の 
+MineralCostFollowsGrade	点火の線	S03-35	働かない	〈その設計で書き直す〉（貿易の置き換え T1 の B-1＝EndowmentCostFollowsAbundance の焼き込み・T2 の 
+MilitiaCombatValue	残す（消す推奨を取り下げ）	S04-06	働かない	〈その設計で書き直す〉（王権と議会 §1-3・§4-2：内戦は寝返った守備兵と民兵〔兵の 1 未満の重み＝MilitiaCombatValu
+RevoltMilitiaRaise	残す（消す推奨を取り下げ）	S04-06	働かない	〈その設計で書き直す〉（王権と議会 §1-3・§4-2：内戦は寝返った守備兵と民兵〔兵の 1 未満の重み＝MilitiaCombatValu
+StapleDemandRebalance	消す	S04-10	働かない	直す（線 S04-L5 で 1 回試す・不採用なら器を消す〔読み手 エンジン 2＝EconomyStep.cs:1792・MultiNati
+PopDebtDriven	作者に聞く	S04-20	働かない	消す（線 S04-L1・S22-63 と 1 本）〈作者裁定を上書き・推奨で〉09-26 B18〜B21〈家計の借入の上限は 1.0 か月か
+SubsistenceNoBoughtTech	消す	S04-23	働く	直す（文書：段 2 の式の見出しを足す）・旗 SubsistenceStage2 を焼く（線 S04-L2・(870)・入れ子の Subsi
+SubsistenceNoBoughtTech	消す	S04-24	働かない	消す（i）＝消す候補 K3（線 S04-L1・読み手 エンジン 2・試験 4・11-12 の旗の仕分け :93 も〈消す（恒等）〉）
+UrbanFlowReal	点火の線	S04-26	働かない	残す（urbd 段 3＝3 回目の点火）・採らなければ UrbanFlowReal と SubsistenceValuePerMonth の
+EduReachFromAdmin	消す	S04-33	働かない	消す（i）＝消す候補 K4（線 S04-L1・読み手 エンジン 1・試験 6）〈作者裁定を上書き・推奨で〉2026-09-08〈行政を通る給
+GuildLawGate	消す	S04-39	働かない	消す（線 S04-L3・法の軸ごと・恒等でなければ軸を残して効き先だけ消す）〈作者裁定を上書き・推奨で〉2026-09-07 の特権の段 4
+GuildRentPremium	消す	S04-39	働かない	消す（線 S04-L3・法の軸ごと・恒等でなければ軸を残して効き先だけ消す）〈作者裁定を上書き・推奨で〉2026-09-07 の特権の段 4
+TradeCheapSellSubsidy	消す	S09-35	働かない	消す〈作者「全て推奨で」で決定（2026-11-12）〉（i・線 L1（恒等〈S09 の死に枝〉））：旗 TradeCheapSellSub
+UrbanFlowReal	点火の線	S13-14	一部だけ働く	残す（O4 の線で採るか消すかを決める・読み手 エンジン 1〔PopDecision.cs:75〕・計器 1〔InstrumentsUrx.
+CriminalClassEnabled	点火の線	S13-24	働く	消す〈作者「それで確定させてください。」で決定〉：大衆への配りを犯罪者 POP へ置き換える（W13・器 CriminalClassEnab
+AssimilationRevival	点火の線	S13-54	働かない	残す〈作者「全て推奨で」で決定（2026-11-12）〉：同化の片方向の錠（README §1-8）を外す器＝10-18 精査 人20〈必要
+SilverRushEnabled	点火の線	S28-26	働かない	直す（線8・S22-68 の形＝旗を消して表の行を置く・作者「銀鉱脈の後期産地を採用。ゴールドラッシュと同じ仕組みに」〔2026-09-07
+MineralCostFollowsGrade	点火の線	S28-27	働かない	〈その設計で書き直す〉
+RebelArmsMarketEnabled	残す（消す推奨を取り下げ）	S29-83	未確かめ	残す：消すと 8 か所の試行と成立の数を失い代わりが無い（読み手 エンジン 16 行・Runner 8）。PowerAffinity の 4

@@ -1,0 +1,15 @@
+(1083) c103rb 読む線 計画（Claude Opus 5.5・2026-11-12）
+作業の場所: D:/PoB_work/r1083_work（worktree・枝は作らない＝main の作業ツリー decb50fa5 を読むだけ・コミット 0・腕 0）
+読む生:
+ - D:/PoB_work/keep_1078/base_ins/rulepower_s1..10.tsv（55 列・開幕の四半期だけ使う）
+ - D:/PoB_work/keep_1078/base_ins/rulepeace_s1..10.tsv（講和の材料）
+ - 必要なら同フォルダの region_s・nation_s（持ち主の確かめ）
+読むソース（main decb50fa5）:
+ - PriceOfBread.SimCore/InstrumentsRulePower.cs（Forces・Classes・O の配り）
+ - PriceOfBread.SimCore/InstrumentsRule.cs:17
+ - PriceOfBread.SimCore/Politics.cs の Rule の寄せる段
+ - InternationalMarket.PairKmCore
+ - docs/202611/20261112/design_rule_power_2026-11-12*.md（§3・§8・§12）
+材料: measurements/m1071_20261112_results.txt・_an_rp_10seeds.txt・scripts/instruments/c102rp/an_rp.py・実装ログ 56734 行（反証役 v）
+順: prereg.txt → 台本 q1（外国 110）・q2（同点 72）→ q3 の写しの一覧（grep）→ q4 紙の再計算 → q5 門の素案 → q6 作者に聞く物
+出力: q*_*.py・q*_out.txt・report.txt（合流が measurements/m1083_<日付>/・scripts/instruments/r1083/ へ写す）

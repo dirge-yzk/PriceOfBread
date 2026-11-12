@@ -1,0 +1,51 @@
+名	表	既定(decb50fa5)	Coef行(decb50fa5)	SimCore	App	Runner	Tests	scripts	紙の推奨(9b18137a)	(1084) の推奨	区分	束・順	支配の力との重なり	理由・読み手の行
+AssimilationRevival	DormantZeroFields	0.0	1990	2	0	0	2	0	点火の線を組む（優先は低い）	点火の線	—	順 8	弱い重なり：文化の札を動かす＝分離の圧力の入力（設計の名指しは無い）	19 世紀の民族の復興（チェコ・フィンランド）は史実の重さがある。読むのは POP の識字＝文化の札ではない
+CapitalDividendFromHostRent	DormantZeroFields	0	1020	1	0	0	4	2	点火の線（3 回目＝最後）	点火の線	—	順 6	—（3 回の規則の最後）	金利生活者のポンプ（補給崩壊の根）に触る大きな線。次に採らなければ消す
+CapitalHeadroomFromReturn	DormantZeroFields	0	1961	1	0	0	3	3	消す（恒等）	残す（消す推奨を取り下げ）	NO	—	—	0 の道（CapitalMarket.cs:22）は `CapitalIndTarget − MeanIndustrialization`＝工業化度を読む側＝旗を消すと工業化度の読み手が固まる。資本の在庫と投資の設計（20261030 §⑥・:273〈別の腕 ★(665)③〉）で両方の道を置き換える
+CessionUnified	DormantZeroFields	0	1569	2	0	0	2	0	支配の力に畳む（段 F で消す）	支配の力に畳む	—	段 F（§7 :420）	畳む（設計が名指し）	支配の力 §7 の行「割譲の予算・選び・CessionUnified」＝段 F で消す
+ConsumeBudgetSavingsRatePerMonth	DormantZeroFields	new(0)	2340	2	0	0	4	0	消す（恒等）	消す	E0	束A	—	EconomyStep.cs:1737 の if の塊・相方は 10-16 に削除・精査 経7〈不要〉
+CriminalClassEnabled	DormantZeroFields	0.0	493	2	0	0	5	0	点火の線を組む	点火の線	—	順 8	—	作者の設計の段1 が予定どおり残る・犯罪は治安と窃盗の既存の流れの受け皿＝既存の大きな機能の結果として出る形
+DiscontentLawGap	DormantZeroFields	0.0	313	5	0	1	4	0	点火の線（蜂起の回と同じ）	点火の線	—	順 1	—（紙の旗の表は RV と同じ回とした＝紙 RV は名指ししない＝RV-1 の事前登録で決める・未確認・Display/PopTables.cs:134 の口）	作者の二量分離の設計の一部
+DiscoveryClockMotorParent	DormantZeroFields	0	1947	2	0	0	4	1	消す（恒等）	消す	E4	LR-a	—	紙 LR-a（電動のレシピ・電動機の行・欄 EngineerParent と一緒）＝その線が表の差を宣言する（engineer_s ほか）・InstrumentsClock.cs:57 は false の字
+EduProducersCoexist	DormantZeroFields	0.0	520	3	0	0	3	0	点火の線を組む	点火の線	—	順 8	—（教育と医療の回）	作者の教育の三層化の段1 の器・教育と医療の回の予定
+EduReachFromAdmin	DormantZeroFields	0.0	183	1	0	0	6	1	消す（恒等）	消す	E0	束A	—	EconomyStep.cs:2108 の `* (旗>0 ? … : 1.0)`＝×1.0 の除去（前例 (804)(843)）・⚠精査 経11〈修正〉と作者 2026-09-08 の裁定を覆す（紙 S04-33〈作者裁定を上書き・推奨で〉が作者「全て推奨で」で決定済み）
+EmptyPopDebtFirst	DormantZeroFields	0.0	3348	1	0	0	5	4	残す（B1 の結果で決める）	残す（答え待ち）	—	—	—	後継 B1 の結果で決める（S07-P03）
+EndowmentCostFollowsAbundance	DormantZeroFields	0.0	1384	2	0	0	5	0	点火の線（進行中）	点火の線	—	順 2	重ならない（貿易の置き換え B＝作者 11-12〈支配の力の段 B の後〉）	貿易の主の線の案 B そのもの
+EndowmentCostFollowsScarcity	DormantZeroFields	0.0	1385	1	0	0	3	0	点火の線（案 B と同じ線で判定）	点火の線	—	順 2	同上・非産地を殺しうる向き＝単独で測る	非産地を殺しうる向き＝単独で測る（00一覧:1773）
+FactoryBuildPriceGateScale	DormantOneFields	1.0	1153	1	0	0	3	0	点火の線（参照価格の作り直しで 1 回・採らなければ消す）	点火の線	—	順 7	—（参照価格の作り直しと一緒・作者 10-20〈参照価格は気に入っていない〉）	作者裁定② 09-07〈高いものをより生産・より高く輸入〉の器＝裁定の器なので 1 回は試す
+FactoryBuildRefIsReal	DormantZeroFields	0.0	1157	1	0	0	1	0	消す（恒等・作者の裁定③）	消す	E0	束A	—	Coefficients.cs:1161 の関数の中の if 1 行だけ（作者 11-12 の裁定③）・⚠精査 経3〈修正（点火）〉は 11-12 の裁定が後
+ForcedPeaceBlankOverCollapse	DormantZeroFields	0	1534	1	0	0	3	0	支配の力に畳む（段 F で消す）	支配の力に畳む	—	段 F（§4-3）	畳む（設計が名指し）	崩壊の講和の上書きは段 F の講和の寄せ切りに替わる（§4-3）
+GuildLawGate	DormantZeroFields	0.0	3362	11	0	0	7	0	消す（3 本とも・恒等）	消す	E3+E2+E1	束B	—	法の軸 Guild ごと（Government.cs:147・Parliament.cs:371・PolicyPreferences.cs:360・Politics.cs:1294・SelfPlay.cs:364・:972・Privileges.cs:88・Meritocracy.cs:193・EconomyStep.cs:643）・Display/LawCatalog.cs:102・lawgate_s の列 F(GuildLawGate) と GCode（-1）・PolicyAxis の添字が動く（要求の符号 PendingRevoltDemand は軸＋1 の int）・⚠精査 政4〈修正〉と作者 09-07 の特権の段 4 を覆す（紙 S04-39〈作者裁定を上書き・推奨で〉が作者「全て推奨で」で決定済み・〈恒等でなければ軸を残して効き先だけ消す〉）
+GuildMobilityDrag	DormantZeroFields	0.0	3366	1	0	0	2	1	消す（恒等）	消す	E0	束B	—	Meritocracy.cs:193 の if（GuildLawGate と同じ束）
+GuildRentPremium	DormantZeroFields	0.0	3364	3	0	0	5	0	消す（恒等）	消す	E2	束B	—	EconomyStep.cs:643・:695・Privileges.cs:88・ProductionDiag.GuildRent と App GameViewModel.Production.cs:1110 の表示の口
+ImportPayerLive	DormantZeroFields	0	3620	2	0	0	6	38	消す（恒等）	消す	E4	束C	—	BilateralMarket.cs:631・:632（`!(0>0 && …)` は真）＝貿易の線（BilateralMarket.cs の持ち主）の中で・scripts 38 行は閉じた線の記録
+LandTaxPhiMove	DormantZeroFields	0.0	722	3	0	0	4	3	残す（答え待ち）	残す（答え待ち）	—	—	—	A-2b-1d の答え待ち
+MilitaryProcurePriceGateScale	DormantOneFields	1.0	1125	1	0	0	1	1	消す（恒等・1 の側だけ残す）	消す	E0	束A	—	DormantOne＝1：EconomyStep.cs:3135 の `if (1.0 < 1.0 …)` の行を消す・⚠精査 :235〈残す（参照価格の作り直しの受け皿）〉を覆す
+MilitiaCombatValue	DormantZeroFields	0.0	3072	3	0	0	3	0	消す（恒等）	残す（消す推奨を取り下げ）	NO	—	—	同上・Diplomacy.cs:872 `soldiersNow + c.MilitiaCombatValue * militiaMen` と :2639 `1.0 + c.MilitiaCombatValue * m` は式の書き換え（−0・NaN）＝消すなら E5（区分 II か式の形を残す）
+MineralCostFollowsGrade	DormantZeroFields	0.0	1376	2	0	0	5	0	点火の線（貿易の第1期の採取の地理と同じ線）	点火の線	—	順 2	同上	進行中の貿易の線が読む・09-07 の点火で人口 21.8→7.1 の前例＝単独で測る
+MintParitySells	DormantZeroFields	0.0	3483	1	0	0	4	0	点火の線（波28 の銀の自由鋳造で 1 回・採らなければ消す）	点火の線	—	順 6	—（造幣の組＝表 1 の群8 と同じ回）	試した腕は全世界が銀を掘る（00一覧:1768）＝そのままでは採れない
+NationConsciousnessDerived	DormantZeroFields	0.0	3170	2	0	0	4	1	点火の線を組む	点火の線	—	順 5	弱い重なり：支配の力の押し返し A は州の国民意識（Politics.cs:1693）を読む＝国のスカラー（CrownParliament.cs:278・:361）とは別の量・設計の名指しは無い	作者の裁定 5 の器。思想⑩（導ける量は貯めない）に合う。表 1 の NationConsciousnessPerPop の焼き込みと同じファイル（CrownParliament.cs）＝順を合わせる
+NiterBedEnabled	DormantZeroFields	0.0	2838	1	0	0	1	0	消す（恒等）	消す	E0	群1	—	Simulation.cs:1419 の if（構築）＝紙の群1（CompostFertilizer の直後）と同じ線で・tr の後
+OpeningBakeEnabled	DormantZeroFields	0	1948	1	0	0	3	1	消す（恒等・表と動詞も）〈未確認：初期値の線が使う予定か〉	残す（消す推奨を取り下げ）	NO	—	—	11-01 洗い出し :259〈焼き込みは残りタスクにある＝推奨は消さず、焼き直しだけ止める〉・:179 ③〈旗 0 の間は焼き直さない＝OpeningBakeTests の入力のハッシュの番人を旗 1 のときだけ〉＝恒等の小さな線へ。cr がこの波にも焼き直す（11-01 の洗い出しが数えた焼き直し 約 20 回と同じ型・紙 CU も最初のコミットで焼き直す）
+PeacetimeConscriptGrievance	DormantZeroFields	0.0	2786	2	0	0	1	2	消す（恒等）	消す	E0	束A	—	Military.cs:273 の bool を false に畳み :274 の引数を `wartimeConscript`・`1.0` の字のまま・⚠精査 軍8〈修正〉を覆す
+PopDebtDriven	DormantZeroFields	0（初期化子なし＝既定の 0）	742	5	0	0	2	0	消す（恒等・下位の 4 本も ZeroDefaultLedger から）	消す	E2	束B	—	⚠作者裁定の上書き＝紙 S04-20〈作者裁定を上書き・推奨で〉が作者「全て推奨で」で決定済み（09-26 B18〜B21〈点火〉と精査 経8〈必要〉を覆す）・EconomyStep.cs:1958・Meritocracy.cs:313・Simulation.cs:3068・:3110・Display/FiscalTables.cs:252・下位の係数 4 本（HouseholdCreditMonths・DebtRuinRatio・DebtRepayFrac・PopDebtLossShare＝読み手は旗の枝の中だけ）・09-26 外部レビュー B18〜B21〈点火〉と精査 経8〈必要〉を覆す（紙 S04-20 が名乗る）
+PrivilegeFromCrownShare	DormantZeroFields	new(0.0)	1866	8	0	0	6	0	点火の線を組む	点火の線	—	順 4	疑い：王冠の取り分を読む＝王権の作り直しの段 P と同じ量（設計の名指しは無い）	旗 0 の旧の道は政体の札で免税 0.3 を入れ切りする＝作者 08-19〈政体は表示のみ〉に反する枝が毎月効いている（H29 は〈確かめた〉）
+PrivilegeLedgerEnabled	DormantZeroFields	0.0	3323	7	0	0	6	0	点火の線を組む（特権の回）	点火の線	—	順 4	—（特権の回）	作者 10-11〈これは残す〉（剥離の怒り）の前提＝台帳が走らないと剥離の怒りに届かない
+PrivilegeMonopolyInLedger	DormantZeroFields	0.0	3332	1	0	0	1	0	点火の線（台帳と同じ回）	点火の線	—	順 4	—（特権の回）	金の流れは変えない記帳＝台帳の点火と一緒
+PrivilegeStripMilitancy	DormantZeroFields	0.0	3329	2	0	0	4	0	点火の線を組む（特権の回）	点火の線	—	順 4	—（特権の回・作者 10-11〈残す〉）	作者が明示に残すと答えた
+ProjectionUsesLand	DormantZeroFields	0.0	2784	2	0	0	1	2	支配の力に畳む（段 C′ で消す）	支配の力に畳む	—	段 C′（§7 :431・§3-4 :183）	畳む（設計が名指し）	起点は〈取り分の連続量〉と PairKm の陸の直行に畳まれる
+RebelArmsMarketEnabled	DormantZeroFields	0.0	3025	9	0	0	2	0	消す（恒等）	残す（消す推奨を取り下げ）	NO	—	—	紙 RV（19:05・紙の旗の表 17:04 より後）§9〈民兵と武器の市場は今は消さない・法の軸 CivilianArms ごとの広さ＝読む線で範囲を確かめ王権の段 P2 へ〉・王権の作り直し（design_crown_power :325〈内戦は寝返った守備兵と民兵（兵の 1 未満の重み）で戦う〉）が民兵を前提・紙 S04-06〈その設計で書き直す〉・紙 S29-83〈残す（読み手 エンジン 16 行・Runner 8）〉・⚠頼み文の〈削減の方針で消す推奨〉から外れる。読む線の材料＝SimCore の読み手 9 行（EconomyStep.cs:1502・Government.cs:153・Parliament.cs:376・PolicyPreferences.cs:363・Politics.cs:1140・:1299・SelfPlay.cs:369・:753・Display/LawCatalog.cs:106）
+RevoltGrievanceWeight	DormantZeroFields	0.0	3052	1	1	1	4	0	点火の線（RevoltIgnitionIntensity と同じ回・採らなければ消す）	消す（RV-D の中）	E4	RV-D	—	紙 RV §4〈RevoltGrievanceWeight は 0 のまま・RV-D で消す〉＝紙の旗の表の〈点火（RevoltIgnitionIntensity と同じ回）〉を後の紙が替えた・App 1・Runner 1 の読み手
+RevoltIgnitionIntensity	DormantZeroFields	0.0	3047	3	4	1	11	2	点火の線を組む（最優先）	点火の線	—	順 1	重なる：支配の力の段 E が RevoltIgnitionTests の分離の部分を変える・RV-1 は段 B の後の最初の波（紙 RV）・RV-0 の計器が先・App 4・Runner 1 の読み手	旧の 2 門は点火＝勝利（同じ不等式）・清の太平天国が最も出にくい逆理（H33）。支配の力は蜂起を残す（設計 §2-1:89・§7:435）＝畳まれない
+RevoltMilitiaRaise	DormantZeroFields	0.0	3067	2	0	0	2	0	消す（恒等）	残す（消す推奨を取り下げ）	NO	—	—	同上（紙 RV §9）
+RevoltVoiceFloor	DormantZeroFields	0.0	3060	1	0	0	9	1	支配の力に畳む（段 B で消す）	支配の力に畳む	—	段 B（§7 :432・:472）	畳む（設計が名指し）	設計が名指しで消す。思想⑧（床）にも反する（台帳:102）
+SerfGateCoversPool	DormantZeroFields	0.0	836	1	0	0	2	0	点火の線を組む（小）	点火の線	—	順 8	—	同じ法が 2 経路の片方しか縛らない穴＝新しい数なし・式は同じ
+SilverParityDemandWeighted	DormantZeroFields	0.0	3466	1	0	0	5	4	点火の線（値 2 の A′ を 1 回・採らなければ消す）	点火の線	—	順 6	—（3 回の規則の最後・値 2）	予定が 00一覧に生きている・4 週未満
+SilverRushEnabled	DormantZeroFields	0.0	1371	2	0	0	2	0	点火の線を組む	点火の線	—	順 7	—	銀の暴落（1873〜）は史実の重さが大きい・作者の裁定の器
+StapleDemandRebalance	DormantZeroFields	0	1137	4	0	0	3	0	消す（恒等）	点火の線（紙 S04-L5 で 1 回・不採用なら器を消す）	E1	S04-L5	—	紙 S04-10（19:14・旗の表 17:04 より後）〈直す（線 S04-L5 で 1 回試す）〉作者「全て推奨で」で決定＝消すのは不採用の後。消すときは：EconomyStep.cs:1819 の項・InstrumentsFd.cs:60 の条件と :72 の段の符号（+0）は列の値を変えない・MultiNationSim.cs:202 は CostLedger の説明の文字列＝字を残すか .cost の説明の差を宣言
+SubsistenceNoBoughtTech	DormantZeroFields	0	531	2	0	0	4	7	消す（恒等）	消す	E0	束A	—	EconomyStep.cs:113・:134 の三項の右（StapleEffTech）を残す・3 回の不採用で閉じた
+TeacherQualityWeight	DormantZeroFields	0.0	178	4	0	0	1	0	消す（恒等）	消す	E0	束A	—	Simulation.cs:2247・:2268 の枝（教師の質の q）・⚠精査 経6〈必要〉を覆す・高等教育の鎖そのものが休眠（精査の引く作者 08-17「研究者や技師を増やす補助金」は高等教育の鎖の話＝この旗は教師の質の倍率＝作者 10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」に当たる）
+TechProductivityBracketOff	DormantZeroFields	0	2879	1	0	0	2	0	点火の線（倍率の一掃の技術水準の線で旗 1＝括弧を外し、旗ごと消す）	点火の線	—	順 3	—（倍率の一掃 11-11 の A）	11-11 の作者の答え（推奨を全て採った）の A（大）
+TradeCheapSellSubsidy	DormantZeroFields	0	1038	2	0	0	4	1	消す（恒等）	消す	E4	束C	—	BilateralMarket.cs:731・Simulation.cs:2347（清算の最も内側の分岐と配列）＝貿易の線の中で
+UnificationV1Only	DormantOneFields	1.0	3124	1	0	0	1	0	点火の線（0 へ倒して一般化し旗を消す）	点火の線	—	順 9	重なる：作者 10-20「統一戦争は名指ししないという原則に反しているので、廃止寄りです。すぐに実装はしませんが、汎用的なものに置き替えたい所存」＝支配の力の作者の言葉「完全に支配した州は宗主国のものとしよう。これにより自然な併合となる筈だ。」が汎用の置き換えに当たる（AI の読み）＝段 F・G で旧の道ごと消す候補（設計の名指しは無い＝疑い）	作者裁定 09-03〈40 件すべてへ一般化〉と 11-11 の A
+UrbanFlowReal	DormantZeroFields	0	1960	2	0	0	16	0	点火の線（3 回目＝最後）	点火の線	—	順 6	—（3 回の規則の最後・空洞化の根に近い）	都市化は空洞化（作者 09-30〈不具合〉）の根に近い大きな機能。3 回の規則で次に採らなければ消す

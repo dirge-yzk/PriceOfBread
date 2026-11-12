@@ -1,0 +1,27 @@
+(1085) c103s18 読む線の計画（2026-11-12・読むだけ・腕 0・コミット 0）
+
+作業の場所
+- D:/PoB_work/r1085_work/（台本・出力・下書き。合流が写すまで消さない）
+- worktree は作らない（main の作業ツリー decb50fa5 を読むだけ・書かない）
+
+読むソース（decb50fa5）
+- PriceOfBread.SimCore/Parliament.cs（493 行）・InterestGroups.cs（122 行）・PolicyPreferences.cs（BlocOf ほか）
+- Politics.cs（FactionStrength）・FactionSnapshot.cs・Coefficients.cs の S18 の係数・World.cs（ResolveElection・買収）
+- 読み手の数：GoverningParty・PartySeats・VoteShares・BlocOf・IsModernElite・IsMassPop・Closed を SimCore/App/Runner/Tests で grep
+
+読む文書
+- docs/機能の台帳.md §1 の S18 行・§3 の S18（1152 行〜）
+- docs/ゲーム概要と実装機能.md L3230〜3399
+- docs/202611/20261112/20261112_3つのブロックの単位_材料.md・_下書き.md・measurements/m1077_20261112/
+- 形の見本：scratchpad の ledger_S05_2026-11-12.md・ledger_S01_2026-11-12.md
+
+読む生（列は head -1 で確かめた）
+- 基線 m1069：D:/PoB_work/keep_1078/base_ins（10 種）
+  - sf_s{1..10}.tsv：seatCons・seatLib・seatSoc・governingParty・voteWeight*（国×四半期）
+  - fm_s{1..10}.tsv：polityCode・parliamentControlShare・netStreet*・netParliamentIndex
+  - scalars_s・nation_s（polityCode・suffrage・parliamentGripIndex）・dcont_s（factionsCount）・reform_s・crownpc_s
+- ヌル腕：D:/PoB_work/keep_1069/n1/ins・n2/ins・a11/ins（同じ表があれば）
+
+出力
+- prereg.txt（読む問いと読み方を先に）
+- out_*.txt（台本の出力）・ledger_S18_2026-11-12.tsv／.md（行の表）・readers_*.txt（読み手の数）

@@ -1,0 +1,11 @@
+SyncDynamicParties	SimCore=2	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+AnyQualifying	SimCore=2	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+Qualifies\(	SimCore=6	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+PartyAbsenceDissolveQuarters	SimCore=2	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+AbsentQuarters	SimCore=5	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+GoverningPartyOf	SimCore=2	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+GoverningPartyName	SimCore=2	App=1	Runner=0	Tests=1	scripts=0	docs/README.md=0
+PartyFormCohesion	SimCore=2	App=0	Runner=0	Tests=0	scripts=0	docs/README.md=0
+\.Parties\b	SimCore=14	App=0	Runner=0	Tests=5	scripts=0	docs/README.md=0
+PoliticalParty\b	SimCore=8	App=0	Runner=0	Tests=1	scripts=0	docs/README.md=0
+ElectionBribePovertyWeight	SimCore=3	App=0	Runner=0	Tests=11	scripts=0	docs/README.md=0

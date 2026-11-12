@@ -1,0 +1,21 @@
+(1084) c103ld 成果物と作業くずの一覧（合流が写す物＝成果物だけ）
+成果物（measurements/m1084_20261113/ と scripts/instruments/r1084/ へ写す候補）
+  prereg.txt                  事前登録（向きを掴む読みの後に書いた・規則 1〜5）
+  flags50.tsv / flags50.py    休眠 50 本の確かめ直し（読み手の数・区分 E0〜E5/NO・束・支配の力との重なり）
+  rd50.tsv / rd50.py          50 本の読み手の数（decb50fa5・SimCore/App/Runner/Tests/scripts）
+  prereg_draft_bundleA.txt    次の波の素案：束A 7 本の削除（恒等の線）
+  empty16.tsv                 台帳 §4 の 12 列目が〈—〉の 16 行の推奨（decb50fa5 の錨・紙の新しい行への指し）
+  spectate15.tsv              観戦の 15 行の写しの表（13 行は 12 列＋写し方＋支配の力・2 行は足さない）
+  round2_rows.tsv             紙の段 9 系統の新しい行 →台帳 §3 の仮の行（id@台帳の行・decb50fa5）
+  ledger_Sxx_r1084fix.tsv ×9  写せる形に直した写し（門 9 の読み手の数・Runner/ のパス・S09 のコミット・S26 の判定の型〔(1084) が入れたと根拠に名乗る〕）
+  round2_fixlog.tsv           直した列の一覧（40 件＝12 列目 22・判定の型 10・錨 5・最後に確かめた 3）
+  ledger_dryrun_a.md          写しを当てた台帳の写し（案 a＝仮の行の判定は書き換えず根拠の先頭に割った先）
+  lc_head.txt / lc_dry_a.txt / lc_dry_a_7bb.txt  本物の ledger_check.py の出力（main・写しの後 decb50fa5・写しの後 7bb40c77）
+  r2_unresolved_7bb.txt       写しの行で 7bb40c77 でも引けない錨 6 本（S26・持ち主の直しが要る）
+  papers11_ledger.tsv         紙 CS〜RV 11 題の台帳への写し（残りタスクの列に足す句・大まかな対応）
+  ask_and_specs.txt           作者に聞く物（0）・推奨で進めた物・足すべき道具の仕様 S1〜S3
+  copy_r2.py / map_round2.py / empty16.py / anchor_r2.py  台本
+  xcheck50.tsv                50 本の名を紙の 9 系統の行と突き合わせた表（食い違いの元）
+  orig/                       紙の段の元の TSV 9 本（台本の入力の写し）
+作業くず（写さない）
+  t2_paper.tsv・paper50.txt・now50.txt・dz.txt・d1.txt・del21_readers.txt・empty_rows.tsv・e16.tsv・anc16.tsv・anc15.txt・round2_anchors.tsv・round2_summary.txt・a29.py・plan.txt

@@ -1,0 +1,41 @@
+行	直した列	前	後
+S04-20	12列目	消す（線 S04-L1・S22-63 と 1 本）〈作者裁定を上書き・推奨で〉0…	…（読み手 7＝SimCore のコード行 PopDebtDriven 5・HouseholdCreditMonths 2・decb50fa5・(1084) が数えた）
+S04-38	12列目	消す（線 S04-L4・09-26 Q11 で決定済み・未実装〔回 9-1〕）・…	…（読み手 6＝SimCore のコード行 MonopolyDegree 5・CartelBanRent 1・decb50fa5・(1084) が数えた）
+S04-39	12列目	消す（線 S04-L3・法の軸ごと・恒等でなければ軸を残して効き先だけ消す）〈作…	…（読み手 14＝SimCore のコード行 GuildRentPremium 3・GuildLawGate 11・decb50fa5・(1084) が数えた）
+S04-41	12列目	消す（11-11 問い 8 の決定・9-2 の扶養力の線で器ごと・S04 の線は…	…（読み手 1＝SimCore のコード行 HealthCrowdingBoost 1・decb50fa5・(1084) が数えた）
+S04-42	12列目	消す＝K6（線 S04-L8・09-26 項目 14 で決定済み・未実装）…	…（読み手 1＝SimCore のコード行 MedicalWelfareBoost 1・decb50fa5・(1084) が数えた）
+S09-05	12列目	消す〈作者 2026-11-11「13 の問い→全て推奨でよい」の問い10〉で …	…（読み手 9＝SimCore のコード行 IsolationExportWeight 3・IsolationExportFactor 3・IsolationExportWeight 3・decb50fa5・(1084) が数えた）
+S09-07	最後に確かめた	fc9aeb4c	7bb40c77（錨の座標は 7bb40c77 の物）
+S09-10	最後に確かめた	fc9aeb4c	7bb40c77（錨の座標は 7bb40c77 の物）
+S09-22	12列目	消す〈作者「全て推奨で」で決定（2026-11-12）〉：11-11 の分類（取…	…（読み手 6＝SimCore のコード行 blockStaple 2・BlockadeStapleBias 2・BlockadeStapleBias 2・decb50fa5・(1084) が数えた）
+S09-26	12列目	消す〈作者「全て推奨で」で決定（2026-11-12）〉（i・線 L1（恒等〈S…	…（読み手 6＝SimCore のコード行 LastBlockadeRisk 4・InsurancePayoutFrac 2・decb50fa5・(1084) が数えた）
+S09-27	最後に確かめた	fc9aeb4c	7bb40c77（錨の座標は 7bb40c77 の物）
+S09-29	12列目	消す〈作者 2026-09-26「全て推奨で」の回 4-2 の削除〉（11-11…	…（読み手 8＝SimCore のコード行 ApplyHegemonContainment 2・_hegemonContainLost 4・HegemonContainmentTrade 2・decb50fa5・(1084) が数えた）
+S09-34	12列目	消す〈作者裁定を上書き・推奨で〉（2026-08-04「AIも使用できるように」…	…（読み手 14＝SimCore のコード行 buyDear 4・paySub 3・TradeBiasStrength 7・decb50fa5・(1084) が数えた）
+S09-35	12列目	消す〈作者「全て推奨で」で決定（2026-11-12）〉（i・線 L1（恒等〈S…	…（読み手 4＝SimCore のコード行 TradeCheapSellSubsidy 2・TradeCheapSellSubsidy 2・decb50fa5・(1084) が数えた）
+S09-38	錨	Program.cs:…	PriceOfBread.Runner/Program.cs:…（名だけでは 3 本の Program.cs から選べない）
+S09-39	錨	Program.cs:…	PriceOfBread.Runner/Program.cs:…（名だけでは 3 本の Program.cs から選べない）
+S09-40	錨	Program.cs:…	PriceOfBread.Runner/Program.cs:…（名だけでは 3 本の Program.cs から選べない）
+S09-41	錨	Program.cs:…	PriceOfBread.Runner/Program.cs:…（名だけでは 3 本の Program.cs から選べない）
+S09-41	12列目	消す〈作者「全て推奨で」で決定（2026-11-12）〉（i・線 L1（恒等〈S…	…（読み手 0＝SimCore のコード行 tradeprobe 0・tradewhy 0・tariffprobe 0・decb50fa5・(1084) が数えた）
+S09-42	錨	Program.cs:…	PriceOfBread.Runner/Program.cs:…（名だけでは 3 本の Program.cs から選べない）
+S13-51	12列目	消す〈作者裁定を上書き・推奨で〉（2026-08-17 作者裁定〈法律で対応〉）…	…（読み手 2＝SimCore のコード行 SpecialistExitBanPrefScale 1・SpecialistExitBanPrefScale 1・decb50fa5・(1084) が数えた）
+S21-05	12列目	消す（i・恒等の線）：外資のプールの信認の倍率の上限 ForeignBondYi…	…（読み手 5＝SimCore のコード行 ForeignBondCapacity 1・ForeignBondInvestorPool 2・ForeignBondInvestorPool 2・decb50fa5・(1084) が数えた）
+S21-09	12列目	消す（S21-08 と同じ線）〈作者裁定を上書き・推奨で〉：人頭税の下限の門（G…	…（読み手 3＝SimCore のコード行 AusterityStage 2・AusterityTaxHike 1・decb50fa5・(1084) が数えた）
+S21-20	12列目	消す（i・恒等の線）：DevaluationCapReliefExp と Dev…	…（読み手 5＝SimCore のコード行 DevaluationCapReliefExp 2・DevaluationCapFracPerMonth 1・DevaluationAllowed 2・decb50fa5・(1084) が数えた）
+S21-23	12列目	消す（ii・挙動の線）：再改革の禁止 120 か月。理由は作者の一般の方針〈根拠…	…（読み手 7＝SimCore のコード行 CurrencyReformCooldown 5・CurrencyReformCooldownMonths 1・CurrencyReformCooldownMonths 1・decb50fa5・(1084) が数えた）
+S21-32	12列目	消す（i・恒等の線）：HadSovereignDefault を Soverei…	…（読み手 5＝SimCore のコード行 HadSovereignDefault 1・SovereignDefaultCount 4・decb50fa5・(1084) が数えた）
+S26-14	判定の型	—	読まれない欄
+S26-15	判定の型	—	読まれない欄
+S26-20	12列目	消す（線 L1・S26-21 と同じ線・D2）…	…（読み手 10＝SimCore のコード行 MalariaQuininePerColony 1・BuyUpkeepGood 8・MalariaQuininePerColony 1・decb50fa5・(1084) が数えた）
+S26-21	12列目	消す（線 L1・D2）：植民地格の州の毎月のキニーネを消す＝遠征のキニーネ〔Wo…	…（読み手 8＝SimCore のコード行 BuyUpkeepGood 8・decb50fa5・(1084) が数えた）
+S26-23	12列目	消す（線 L1・D1）：読み手 ColonialUnrestHomeWeight…	…（読み手 66＝SimCore のコード行 homePressure 4・Militancy 60・ColonialUnrestHomeWeight 2・decb50fa5・(1084) が数えた）
+S26-36	判定の型	—	読まれない欄
+S26-37	判定の型	—	読まれない欄
+S26-39	判定の型	—	読まれない欄
+S26-40	判定の型	—	読まれない欄
+S26-41	12列目	消す（線 L3・D3）：61 カ国では恒等・単一国の試験の盤面は変わる。Colo…	…（読み手 13＝SimCore のコード行 ColonialResources 7・ColonialAccess 4・colonialAccess 2・decb50fa5・(1084) が数えた）
+S26-42	判定の型	—	読まれない欄
+S26-43	判定の型	—	読まれない欄
+S26-47	判定の型	—	読まれない欄
+S26-49	判定の型	—	読まれない欄

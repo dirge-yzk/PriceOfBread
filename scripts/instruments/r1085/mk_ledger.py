@@ -1,0 +1,142 @@
+"""(1085) S18 の台帳の行（12 列の TSV）を書く。数は out_*.txt から写した（4 腕の幅＝m1069・N1・N2・S11）。
+使い方: python -X utf8 -I mk_ledger.py <out.tsv>
+"""
+import sys
+
+C = "decb50fa5"
+H = ["行", "系統", "機能", "期待する動き（出典）", "錨", "持ち主のファイル", "判定の型", "最後に確かめた", "判定", "根拠", "残りタスク", "直す／消す／残す"]
+R = []
+
+
+def row(i, name, expect, anchor, files, kind, verdict, basis, rest, act, commit=C):
+    R.append([f"S18-{i:02d}", "S18", name, expect, anchor, files, kind, commit, verdict, basis, rest, act])
+
+
+row(1, "得票の算出", "有権者（規模×発言権）×思想の比で 3 族の票（L3230・H001）",
+    "Parliament.cs:176:ComputeVotes;InterestGroups.cs:117:SeatVoice", "Parliament.cs InterestGroups.cs",
+    "頻度", "働く（票が与党と議席に届くのは選挙政体の行 63.8〜66.1%）",
+    "毎期 Step の門（:38 議会・政治・内戦でない）の内で走る。sf_s の voteWeightUsed÷voteWeightAll 中央 0.9988〜0.9989（out_freq.txt）。〔札〕FranchiseVoice 経由で Closed・IsModernElite を読む", "—", "—")
+row(2, "参政権のゲート", "閉鎖＝常に票・近代＝制限選挙から・大衆＝男子普選から・女性は男女普選から（L3234・H002）",
+    "InterestGroups.cs:102:FranchiseVoice;InterestGroups.cs:109:Suffrage.Universal", "InterestGroups.cs Parliament.cs Politics.cs",
+    "頻度", "一部だけ働く（男女普選の段 3 の行 0／4 腕）",
+    "scalars_s の suffrage（(int)w.Suffrage）の年末の行：なし 33.5〜35.4%・制限 54.0〜54.6%・男子 10.6〜11.9%・男女 0（out_freq.txt）。選挙政体の行では制限 82.2〜83.5%・男子 16.5〜17.8%（out_seatdist.txt）＝:109〜:110 の女性の票の分岐の男女普選の側は届かない。〔札〕:104〜:105 Closed・IsModernElite＝制限選挙の門が財産でなく階級",
+    "男女普選に届かない根は S19（法の成立）の側＝この線では読まない", "残す（届かない根を S19 の確かめで読む）")
+row(3, "選挙（4 年周期）", "16 四半期ごとに総選挙（L3239・H003）",
+    "Parliament.cs:98:ElectionIntervalQuarters", "Parliament.cs",
+    "頻度", "働く（間隔 16 の選挙 99.1〜99.7%）",
+    "9 国の毎四半期の行で、前の四半期の議席が空でなく議席が動いた四半期＝選挙 1838・1863・1955・1760（m1069・N1・N2・S11・開院の 20 件は別に数えた）。前の選挙からの間隔 16＝1592・1635・1754・1528・16 未満 0・16 超 5〜14（内戦で数えが止まる・out_events.txt）", "—", "—")
+row(4, "第一党が組閣・選挙で政権交代", "最大党が組閣（過半数なくても）・選挙で政権交代→通る向きが変わる（L3239・Parliament.cs:22）",
+    "Parliament.cs:102:Winner;Parliament.cs:405:Winner;SelfPlay.cs:1624:Parliament.Party.Liberal", "Parliament.cs SelfPlay.cs",
+    "頻度", "一部だけ働く（通常の選挙で与党の族が替わる 0〜0.77%＝腕あたり 0〜12 回）",
+    "通常の選挙 1626・1661・1781・1564 回のうち与党の族が替わった 10・0・3・12（out_elect2.txt・開院 20 件と移行の後の片づけ 174〜212 件は別に数えた）。選挙政体の年末の行の与党＝自由 93.2〜93.8%・保守 5.5〜6.1%・社会 0.35〜0.70%、議席の第一党＝自由 99.2〜99.6%（out_episodes.txt）。自由の議席 中央 0.735〜0.748・最大会派 0.6 超 78.8〜81.4%（out_seatdist.txt）＝PartyDominanceThreshold 0.6（Politics.cs:423 の一党支配の侵食）を常に越える。AI の意図の段（SelfPlay.cs:1624〜1636）は選挙政体の 93% で自由党の段を読む。〔札〕SelfPlay.cs:1624・:1630 の注は与党の族をブロックとして読む",
+    "自由の独占の根（票の重みと思想の族の写像）は 3 つのブロックの答え（§0-2 ★(1078) ⓪）と S19 の材料", "残す（作者に聞く物 Q-s18-2）")
+row(5, "不信任と繰り上げ選挙", "与党の得票が 0.2 を割ると任期途中でも総選挙・前回から 4 四半期未満では起きない（L3245・H004）",
+    "Parliament.cs:80:EarlyElectionMinQuarters;Parliament.cs:81:NoConfidenceThreshold", "Parliament.cs SelfPlay.cs",
+    "頻度", "一部だけ働く（発火は移行の後の古い与党の片づけだけ・任期中の繰り上げ 0）",
+    "任期中の繰り上げ（前の選挙から 16 未満の選挙）0 回（4 腕・out_events.txt）。非選挙→選挙の移行の後の食い違いが長さ 4 で消えた 120〜148 件・5〜15 で 13〜23 件（out_episodes.txt）＝最短の 4 四半期で保守の得票が 0.2 を割って発火。片づけの選挙 174〜212 回のうち与党の族を替えたのは 174〜212（S11 は 196 のうち 195・out_elect2.txt）。⚠9 国の毎四半期の行だけ",
+    "S18-31 を直すと届く先がほぼ 0 になる（段0 の予言に入れる）", "S18-31 の線の後に消す候補（届く先 0 なら〈働かない〉）")
+row(6, "議会の解散", "プレイヤーの動詞で繰り上げ選挙（L3251・H005）",
+    "Parliament.cs:133:Dissolve;GameViewModel.Popups.cs:89:Parliament.Dissolve", "Parliament.cs PriceOfBread.App",
+    "読み手", "未確かめ（AI 側の呼び手 0・プレイヤーの動詞は AI だけの生では測れない）",
+    "呼び手は App の 1 か所だけ（grep：SimCore 0・Runner 0・試験 0）。注（:132）は AI の等価物を不信任（機構）とするが、AI が選んで解散する動詞は無い＝AI・プレイヤーの等価の点検の材料。不信任の届く先は移行の後の片づけだけ（S18-05）",
+    "等価の原則（作者 2026-08-17）の点検", "作者に聞く物 Q-s18-3（消すなら App の解散の口〔GameViewModel.Popups.cs:89〕に及ぶ）")
+row(7, "総選挙の公示と加担", "定期の選挙の 1 四半期前に公示・上位 3 思想の議題・加担の代価と逓減（L3255・H006）",
+    "Parliament.cs:94:BuildElectionEvent;Parliament.cs:96:DecideElection", "Parliament.cs World.cs SelfPlay.cs",
+    "計器なし", "未確かめ（公示は定期の選挙ごと＝届く・加担の額と効きは列が無い）",
+    "公示の門（:91〜:92）は定期の選挙の前の四半期＝定期の選挙 97.9〜98.7% に届く（S18-03）。ElectionPushStrength・投入額の列は無い", "計器 ep_s（下の仕様）", "—")
+row(8, "買収しやすさの富加重", "半減点を有権者の所得で重み付け（L3263・H007）",
+    "World.cs:611:ElectionBribePovertyWeight", "World.cs",
+    "休眠", "休眠（係数 0）",
+    "Coefficients.cs ElectionBribePovertyWeight＝0.0。読み手 SimCore 3・試験 11（PoorPopBriberyTests）。DormantIdentityTests.cs:230 の休眠の表にある＝消してよい条件（差し戻し・却下の記録）に当たらない",
+    "—", "残す（休眠の表の規則）・機能の削減の方針の候補として作者に聞く物 Q-s18-3 に並べる")
+row(9, "マニフェスト", "加担した議題が公約・達成で思想の支持が乗り減衰（L3268・H008）",
+    "Parliament.cs:427:StepManifesto;Ideology.cs:93:ManifestoCredit", "Parliament.cs Ideology.cs World.cs",
+    "計器なし", "未確かめ（達成の件数と ManifestoCredit の列が無い）",
+    "読み手は Ideology.cs:92〜:93 の 1 本（力学に届く経路はある）。prdf_s の manifestoCom は共産の行の写しで達成を数えない", "計器 ep_s（下の仕様）", "—")
+row(10, "議席の凍結（レームダック）", "選挙の間は議席が動かず得票だけ動く（L3276・H009）",
+    "Parliament.cs:105:SnapshotSeats;Parliament.cs:140:SnapshotSeats", "Parliament.cs",
+    "頻度", "働く（選挙政体で議席が動くのは選挙の四半期だけ）",
+    "議席の変化の四半期＝選挙の数（S18-03）。得票と議席の差の大きさは VoteShares の列が無く未計測", "計器 sf_s に voteCons・voteLib・voteSoc（下の仕様）", "—")
+row(11, "開院時の議席", "開幕の選挙政体の議席を 1 回だけ確定（L3281・H010）",
+    "Parliament.cs:65:seatsEmpty;Parliament.cs:70:Winner", "Parliament.cs",
+    "頻度", "働く（9 国で 20 件が四半期 1 に埋まる・4 腕とも）",
+    "out_elect2.txt。⚠:64 の注のとおり、非選挙→選挙の移行では議席が毎期の写し（:120）で空でない＝この分岐に入らない＝S18-31 の根", "S18-31", "—")
+row(12, "選挙制度の歪み", "得票を凸変換して第一党に上乗せ（L3286・H011）",
+    "Parliament.cs:219:ElectoralDistortion", "Parliament.cs",
+    "式", "働く（第一党の上乗せ 中央 0.067・p90 0.081〜0.082）",
+    "議席から逆に解いた得票（v∝s^(1/1.3)）との差・選挙政体の年末の行（out_elect2.txt）。ElectoralDistortion 0.3", "—", "—")
+row(13, "3 党の綱領（法軸だけ）（廃止）", "廃止＝議会は目標を書かない（L3291・H012）",
+    "Parliament.cs:124:墓標", "Parliament.cs SelfPlay.cs",
+    "読み手", "廃止（定義と呼び手 0 を確かめた）",
+    "ApplyPlatform は定義と呼び手 0・注に名だけ（Parliament.cs:125・SelfPlay.cs:806・:1701・Coefficients.cs:2859・PartyTests.cs:53）。法軸の段は AI の意図（SelfPlay.cs:1617〜1636）へ移った＝文書の〈廃止〉と合う", "—", "—")
+row(14, "少数与党は綱領を通せない（廃止）", "廃止（L3297・H013）", "Parliament.cs:124:墓標", "—", "読み手", "廃止（定義と呼び手 0）", "CoalitionWeakensPlatform・CoalitionCoversContinuousTargets は SimCore・App・Runner・試験の .cs に 0 件（注にも無い）", "—", "—")
+row(15, "連立相手への歩み寄り（廃止）", "廃止（L3302・H014）", "Parliament.cs:124:墓標", "—", "読み手", "廃止（定義と呼び手 0）", "CoalitionPartnerPlatform は .cs に 0 件（注にも無い）", "—", "—")
+row(16, "非選挙政体は綱領を持たない（廃止）", "廃止（L3307・H015）", "Parliament.cs:127:NonElectedSkipsPlatform", "—", "読み手", "廃止（定義と呼び手 0）", "NonElectedSkipsPlatform は定義と呼び手 0・注に名だけ（Parliament.cs:127・Coefficients.cs:2858）", "—", "—")
+row(17, "動的な政党の結党と解党", "結束した運動が政党化・10 年不在で解党・国民政党（L3311・H016）",
+    "Parliament.cs:252:SyncDynamicParties;Parliament.cs:280:Qualifies;Parliament.cs:296:GoverningPartyOf", "Parliament.cs World.cs",
+    "読み手", "働かない（力学の読み手 0）",
+    "族の和は不変（:230〜:245・PartyTests の恒等）＝議席・与党・法の純支持は動かない。動的政党を読むのは GoverningPartyName（:123→App GameViewModel.Politics.cs:349 の与党名・試験 1）と記録の文（:275 結党）だけ。w.Parties の読み手は SimCore で Parliament.cs だけ。〔札〕:283〜:285 が発言権の式の写し（f.Bloc）",
+    "—", "消す候補 K1")
+row(18, "政党は「族」と「出自」の 2 つを持つ", "族＝互換の射影・出自＝給源ブロック（L3318・H017）",
+    "Parliament.cs:13:Bloc", "Parliament.cs FactionSnapshot.cs",
+    "読み手", "文書が古い（出自 Bloc は 2026-09-26 に削除）",
+    "PoliticalParty に Bloc の欄は無い（:13 の墓標）。族だけが残る", "文書の直し", "直す（文書）")
+row(19, "利益集団 3 ブロックの力", "力＝富のシェア×発言権・旧支配層に軍の優位と制度疲労（L3326・S14-H032 と同じ題）",
+    "InterestGroups.cs:13:Blocs;InterestGroups.cs:42:closedMul", "InterestGroups.cs PolicyPreferences.cs",
+    "読み手", "働く（制度疲労の乗数は文書が古い）",
+    "closedMul＝1＋MilitarismClout×軍の政治的優位（:42）。制度疲労の乗数は (373) で削除（:37 の注）＝文書の〈制度疲労が乗る〉は古い。〔札〕:52〜:53 Closed・IsModernElite・:95 Closed",
+    "§0-2 ★(1078) ⓪ の答え待ち（向きは決めない）", "直す（文書）")
+row(20, "土地は旧支配層の政治力", "地代を資本化して旧支配層の政治力へ（L3334・H018）",
+    "InterestGroups.cs:62:LandedPowerCapitalization", "InterestGroups.cs",
+    "効き", "一部だけ働く（(932) の判定を継ぐ・この線は数え直していない）",
+    "ソースは 11c35e54 から変わらない（decb50fa5 で :62 を確かめた）。(1077) §3-1：旧支配層の所得の 95.4〜97.5% が地代・取り分・十分の一税＝地代の項は旧支配層の札と同じ所から来る。〔札〕:62 Closed",
+    "地主の政治の導き直し C-1", "—", "11c35e54")
+row(21, "政策の好みは経済から出る", "賛否は保有から・保有から導けない約 14 軸は札（L3341・H019）",
+    "PolicyPreferences.cs:264:Pref", "PolicyPreferences.cs",
+    "効き", "一部だけ働く（41 の case のうち札だけ 14・札＋闘争度 5）",
+    "(1077) §2-1 の数え（keep_1069 の盤面＝m1069）。〔札〕:266 trad・modern・mass＝BlocOf の添字", "§0-2 ★(1078) ⓪ の答え待ち", "—")
+row(22, "議席が法を動かす重み", "議会のある国で議席×党の選好を純支持へ（L3347・H020）",
+    "PolicyPreferences.cs:488:ParliamentNet;PolicyPreferences.cs:492:PartySeats", "PolicyPreferences.cs",
+    "頻度", "働く（軍事費の合計の一歩で議会の項が 0 でない 98.99〜99.21%）",
+    "fm_s は軍事費の合計の施行の一歩が来た四半期だけの行（NaN の行 32445〜36103 を除いた）。選挙政体の |議会の項|÷Σ|項| 中央 0.268〜0.275・p10 0.085〜0.105・p90 0.422〜0.433（out_freq.txt）。〔札〕:492・:511・:608 は党の添字をブロックの添字として Pref を読む（保守の議席＝旧支配層の選好）",
+    "党の票のうち各ブロックから来た割合は未計測＝計器 sbase_s", "—")
+row(23, "議会の二重票の是正", "議会のある国では 3 ブロックの街頭の力の半分を議席へ譲る（L3352・H021）",
+    "PolicyPreferences.cs:631:ParliamentStreetSupersede", "PolicyPreferences.cs",
+    "頻度", "働く（選挙政体の行 63.8〜66.1% で街頭×0.5）",
+    "門は ParliamentEnabled かつ立憲・共和（:631〜:632）。〔札〕3 ブロックの街頭", "—", "—")
+row(24, "参政権の梯子と革命の脅威", "大衆の闘争度で旧支配層と近代の反対が緩む（L3358・H022）",
+    "PolicyPreferences.cs:477:SuffrageConcession", "PolicyPreferences.cs",
+    "頻度", "一部だけ働く（緩みは中央で −1 のうち 0.046〜0.049）",
+    "大衆の闘争度（dcont_s militancyMeanShare）年末の行 中央 0.046〜0.049・p90 0.224〜0.234（out_freq.txt）×SuffrageConcession 1.0。〔札〕:478〜:480 trad・modern・AvgMassMilitancy（IsMassPop）", "—", "残す")
+row(25, "労働闘争による資本の譲歩", "闘争度が暴動の閾値 0.5 を越えた分だけ労組・時短の反対が緩む（L3363・H023）",
+    "PolicyPreferences.cs:319:LaborMilitancyConcession", "PolicyPreferences.cs",
+    "頻度", "一部だけ働く（届く行 0.32〜0.36%）",
+    "闘争度 0.5 超の年末の行 331〜373（out_freq.txt）。〔札〕AvgMassMilitancy（IsMassPop）",
+    "—", "残す（閾値の門＝設計思想〈閾値より比例〉の点検の候補）")
+row(26, "国家の歳入要求（第 4 の主体）", "国庫が苦しいと国家が増税側に（L3368・H024）",
+    "PolicyPreferences.cs:299:TariffStateRevenueWeight", "PolicyPreferences.cs",
+    "式", "働く（門なし・基礎 0.5）", "大きさの列は無い（未計測）", "—", "—")
+row(27, "年金の高齢受益者", "高齢化で年金の支持（L3374・H025）",
+    "PolicyPreferences.cs:282:PensionOldWeight", "PolicyPreferences.cs",
+    "式", "働く（門なし）", "Old[b]＝ブロックの高齢比率。〔札〕Old[b] はブロックごと", "—", "—")
+row(28, "州の関税利害と輸出利害", "州の採算と輸出の利害が近代の関税選好へ（L3379・H026）",
+    "PolicyPreferences.cs:291:TariffInterestPrefWeight;PolicyPreferences.cs:303:TariffExportOppositionWeight;PolicyPreferences.cs:314:RentProtectionWeightCoef", "PolicyPreferences.cs",
+    "式", "働く（係数>0・近代の行）", "〔札〕modern だけ（:291・:303）", "地主の政治の導き直し C-1", "—")
+row(29, "統帥権（軍＝第 4 の勢力）", "兵士の人口シェア×(1−議会統制力)で軍が政治力（L3387・H027）",
+    "PolicyPreferences.cs:571:ArmyPower", "PolicyPreferences.cs",
+    "頻度", "働く（軍事費の一歩で |軍の項|÷Σ|項| 中央 0.098〜0.099）",
+    "fm_s（out_freq.txt）。兵士の頭数は BlocOf==2 の Power[2] と ArmyPower の両方に入る＝(1077) Q2 の二重計上の候補〈推測〉", "§0-2 ★(1078) ⓪ Q2", "—")
+row(30, "小営業（第 4 の束）", "職人と商人の第 4 束（L3394・H028）",
+    "InterestGroups.cs:12:PettyInterestGate", "InterestGroups.cs",
+    "読み手", "文書が古い（(271) で削除）", "PettyInterestGate・PettyPops・BlocsSplit は定義と呼び手 0・注に名だけ（InterestGroups.cs:12・:93・PolicyPreferences.cs:117・:560・Coefficients.cs:3235）・DormantIdentityTests.cs:282 の消えた名の表", "文書の直し", "直す（文書を打消しへ）")
+row(31, "与党と議席の食い違い（観戦 (c)）", "与党＝議席の第一党（選挙政体）・非選挙政体は統治ブロックの党（Parliament.cs:70・:102・:113）",
+    "Parliament.cs:66:QuartersSinceElection;Parliament.cs:113:RulingParty;Parliament.cs:120:SnapshotSeats", "Parliament.cs",
+    "頻度", "一部だけ働く（選挙政体の年末の行の 5.18〜5.84% で与党≠議席の第一党）",
+    "out_mismatch.txt：選挙政体の食い違いは全て非選挙→選挙の移行の後（9 国の毎四半期：移行の後 16 四半期の窓で 43.1〜46.0%・窓の外 0.00〜0.09%＝窓を越えた 1〜24 行は全て内戦で長引いた移行〔out_episodes.txt の 17 超 0〜4 件が全て内戦〕）。移行 174〜217 件のほぼ全てが〈前の政体 絶対 0 か専制 1・与党 保守・議席の第一党 自由〉。非選挙政体の年末の行 97.7〜98.3% も食い違う（与党＝RulingParty の保守・議席＝毎期の得票の写しで自由）が画面（HasParliament）には出ない。非選挙の議席を読む力学は PoliticalCapitalRate の分裂の項だけ（pe≒統制力×握り＞0.01 の行 9.4〜11.3%・pe×split 中央 0.027〜0.030・out_pesplit.txt・軍事費の一歩の行の標本）。9 国の与党の族の交代 320〜397 のうち 123〜155 は選挙でない交代（App GameViewModel.News.cs:233 は〈選挙で〉と出す）",
+    "次の波の挙動の線（下の素案）", "直す（線 s18gp の素案）")
+
+out = open(sys.argv[1], "w", encoding="utf-8", newline="\n")
+out.write("\t".join(H) + "\n")
+for r in R:
+    out.write("\t".join(r) + "\n")
+out.close()
