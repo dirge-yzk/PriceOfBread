@@ -1,0 +1,40 @@
+(1080) 線 c103st 事前登録（最初のコミット）　2026-11-12　書き手 Claude Sonnet 5.5
+基線 m1069（decb50fa5 から）。恒等の線（旗なし・新しい係数 0・力学 0・SimCore と Runner の .cs は 0 行）。形＝道具と試験だけ。
+出所：実装ログ (1061)・(1072)・(1078) の記録の先頭。反証役 v ①（(1061)）。
+
+[1] 恒等の線・予言 0
+  - 素の 5 種・計器つき 10 種の成績表は m1069（b5_20261112_m1069・b10_20261112_m1069_ins）と名乗り行を除き全行一致。計器の表の差は 0。
+  - 推定の計算量は m1069 と同じ（エンジンに触れない）。
+
+[2] 触る物と読み手（grep し直した結果）
+  - scripts/instruments/ident/stage.py：読み手は ident.sh:73（引数 <木> <基準のコミット>・出力の 1 行目 段=1|2 と 2 行目を marks/stage.txt へ）。出力の行を足すだけ＝ident.sh は 1 行目と 2 行目しか読まない。
+  - scripts/instruments/ident/stage_selftest.py：自己試験。
+  - PriceOfBread.Tests/SecessionLaborLawInstrumentTests.cs:278〜:282 だけ。
+  - 段 2 の条件から外す ident.cfg の鍵（名で列挙・模様にしない）：B5・B10INS・MON・NG_BASE・INSRAW・BASE_COMMIT・STAGE_BASE・TESTS_NONFULL・TESTS_FULL。
+    ヌル腕の鍵：ident.cfg に無い（grep で `^[A-Z0-9_]+=` の鍵は B5 B10INS MON INSRAW BASE_COMMIT KNOWN TESTS_NONFULL TESTS_FULL NG_BASE SMALL BYPASS STAGE_BASE PRUNE_KEEP PRESPEC の 15 本）＝足す物は 0。
+    段 2 のまま：SMALL・BYPASS・PRESPEC・KNOWN・PRUNE_KEEP と、その他の全ての鍵・未知の鍵。注の行（# 始まり）と空行は数えない。
+  - 他の線との重なり：c103tr・c103dm・c103cr は上の 3 ファイルに触れない（ファイルの持ち主の表のとおり）。
+
+[3] 足す試験と突然変異
+  - stage_selftest.py に 3 例（git の使い捨ての木で実際の diff を測る）：基準の鍵だけ→段 1／SMALL の差→段 2／注と基準の鍵と BYPASS が混ざる→段 2。
+  - 突然変異（使い捨ての木・全文を measurements/m1080_20261112_mut_st.txt）：
+      M1 stage.py が ident.cfg を丸ごと外す → SMALL の例が赤。
+      M2 鍵の一覧に SMALL を混ぜる → 赤。
+  - :282 の区分＝★(749) の型の直し（母集合を広げる＝強める側）。em の 10 行を名で列挙した集合（ConsumeSkipZeroPop〜DeadMarketMonth の定数 10 本）で除き、残る全ての行を検査する。
+    Assert：除いた行の数は 10・検査した行の数は Count−10・除いた行の単価は全て 0（単価つきの行を集合に足すと赤）。
+      M3 集合に単価つきの行を 1 本足す（PriceGoods）→ 赤。
+  - テストの数：[Fact]・[Theory] は増減 0（SecessionLaborLawInstrumentTests.cs は 5 のまま）。TESTS_NONFULL 2769・TESTS_FULL 3 は変わらない。
+  - 書き換える試験の行：SecessionLaborLawInstrumentTests.cs:282 の 1 行を置き換え（ファイル:行・区分 ★(749)）。件数の番人の期待値（㉑）：変わる件数 0。
+  - ㉘の点検：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests は SimCore に触れない＝赤にならない見込み（回して確かめる）。
+
+[4] 段の予言
+  - ident/ に触れる（stage.py）＝この線の ident は段 2（STAGE_BASE 2ea6e338c からの差に ident.cfg が入る件と別に、stage.py 自身が STAGE2_RX に当たる）。
+  - 刈った後、ident.cfg の基準の鍵だけが違う使い捨ての木で stage.py を回し、段=1 が返ることを示す。
+
+[5]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
+
+[追記 1]（腕の前・反証役 advisor の指摘）
+  - :282 に独立の下限 Assert を足す：検査した行の数 ≧ 31（今日の単価つきの行は 0〜30 の 31 本・リテラル）。Count−10 は集合の大きさ 10 から導かれる同語反復に近い＝集合を広げて検査を縮める誤りはこの下限が拾う。
+  - M3 は PriceGoods を集合へ足す＝先に落ちる Assert は集合の大きさ（10）・次に単価 0 の Assert。どちらでも赤。
+  - 実物の差の確かめ：ident.cfg の 2ea6e338c→decb50fa5 の差を cfg_diff_baseline_only に渡すと (True, [])・差の中で段 2 の条件に当たるのは ident.cfg だけ＝この線の直しが動機の場合を段 1 にする（結果は mut_st.txt の末尾）。
+  - 合流への申し送り：この線が入った後も、STAGE_BASE が stage.py の差より前のままなら stage.py 自身が段 2 の条件に当たる＝合流で STAGE_BASE を進めること。

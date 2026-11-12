@@ -1,0 +1,11 @@
+M3 (PriceGoods を名指しの集合へ足す) -> 赤
+  失敗 PriceOfBread.Tests.SecessionLaborLawInstrumentTests.計算量の台帳のAIの官僚制度の走査の行は表に揃い_件数は計器の走査の呼びの数に合う [93 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 10
+Actual:   11
+  スタック トレース:
+     at PriceOfBread.Tests.SecessionLaborLawInstrumentTests.計算量の台帳のAIの官僚制度の走査の行は表に揃い_件数は計器の走査の呼びの数に合う() in D:\PoB_work\c103s
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+

@@ -1,0 +1,7 @@
+正しい実装：緑
+MU8 git の失敗を空の差と読む：赤を確認（2 件）
+MU4 段 2 の条件から Instruments*.cs を外す：赤を確認（3 件）
+MU1 ident.cfg を丸ごと外す：赤を確認（3 件）ident.cfg の例 SMALL の差 期待 2 実際 1（基準 HEAD  / ident.cfg の例 注と基準の鍵と BYPASS 期待 2 実際 1（基準 / ident.cfg の例 未知の鍵の追加 期待 2 実際 1（基準 HEAD と
+MU2 基準の鍵の一覧に SMALL を混ぜる：赤を確認（1 件）ident.cfg の例 SMALL の差 期待 2 実際 1（基準 HEAD 
+MU5 SMALL から nation_s を落とす：赤を確認（2 件）
+ident.cfg 2ea6e338c -> decb50fa5: (True, [])
