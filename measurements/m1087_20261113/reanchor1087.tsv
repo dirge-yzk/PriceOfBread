@@ -749,7 +749,6 @@ S27-H046	Coefficients.cs:2889:ConquestColonyMilitancy	Coefficients.cs:2889:Conqu
 S27-H049	Coefficients.cs:1025:TreatyPortReparationMult	Coefficients.cs:1025:TreatyPortReparationMult	もとから引けない
 S27-H049	Coefficients.cs:1020:TreatyPortWinnerDistanceKm	Coefficients.cs:1020:TreatyPortWinnerDistanceKm	もとから引けない
 S27-H050	Coefficients.cs:1790:TreatyRatificationControlThreshold	Coefficients.cs:1790:TreatyRatificationControlThreshold	もとから引けない
-S27-H057	Coefficients.cs:3284:FormationLegitimacyBoost	Coefficients.cs:3284:FormationLegitimacyBoost	もとから引けない
 S27-H058	Coefficients.cs:3116:UnificationNatioShare	Coefficients.cs:3116:UnificationNatioShare	もとから引けない
 S17-H001	Coefficients.cs:3368:ConstitutionalControlExit	Coefficients.cs:3368:ConstitutionalControlExit	もとから引けない
 S17-H001	Coefficients.cs:3367:ConstitutionalControlFloor	Coefficients.cs:3367:ConstitutionalControlFloor	もとから引けない
@@ -1091,6 +1090,7 @@ S28-H014	Coefficients.cs:611:EpidemicTradeTransmit	Coefficients.cs:611:EpidemicT
 S28-H014	Coefficients.cs:609:EpidemicTransmitChance	Coefficients.cs:609:EpidemicTransmitChance	もとから引けない
 S28-H014	Coefficients.cs:610:EpidemicTransmitRange	Coefficients.cs:610:EpidemicTransmitRange	もとから引けない
 S28-H020	Coefficients.cs:1035:LandDiminishExponent	Coefficients.cs:1035:LandDiminishExponent	もとから引けない
+S28-H022	Megaprojects.cs:33:CanStart	Megaprojects.cs:33:CanStart	もとから引けない
 S28-H023	Coefficients.cs:3409:DepositGradeFloor	Coefficients.cs:3409:DepositGradeFloor	もとから引けない
 S28-H023	Coefficients.cs:3408:DepositGradeKnee	Coefficients.cs:3408:DepositGradeKnee	もとから引けない
 S28-H023	Coefficients.cs:3407:DepositYearsAtBirth	Coefficients.cs:3407:DepositYearsAtBirth	もとから引けない
@@ -1485,8 +1485,7 @@ S28-20	Simulation.cs:759:ApplyEndowment	Simulation.cs:760:ApplyEndowment	近く�
 S28-20	Simulation.cs:828:ProvinceResources	Simulation.cs:837:ProvinceResources	写した
 S28-21	EconomyStep.cs:1120:regionLandFactor	EconomyStep.cs:1120:regionLandFactor	もとから引けない
 S28-22	Coefficients.cs:3542:RentScarcityElasticity	Coefficients.cs:3520:RentScarcityElasticity	写した
-S28-23	Megaprojects.cs:259:ArableLand	Megaprojects.cs:259:ArableLand	写せない
-S28-23	Simulation.cs:2649:arableSum	Simulation.cs:2648:arableSum	写した
+S28-23	Megaprojects.cs:33:CanStart	Megaprojects.cs:33:CanStart	もとから引けない
 S28-24	Coefficients.cs:3423:DepositYearsAtBirth	Coefficients.cs:3401:DepositYearsAtBirth	写した
 S28-24	Coefficients.cs:3424:DepositGradeKnee	Coefficients.cs:3402:DepositGradeKnee	写した
 S28-24	Coefficients.cs:3425:DepositGradeFloor	Coefficients.cs:3403:DepositGradeFloor	写した
