@@ -1,3 +1,3 @@
 正しい実装：緑
 MU4 段 2 の条件から Instruments*.cs を外す：赤を確認（3 件）
-MU5 SMALL から nation_s を落とす：赤を確認（1 件）
+MU5 SMALL から nation_s を落とす：赤を確認（2 件）

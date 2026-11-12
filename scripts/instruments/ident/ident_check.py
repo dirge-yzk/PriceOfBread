@@ -714,6 +714,8 @@ def main():
         say(f'未了 {len(MISSING)} 件：')
         for m in MISSING:
             say('  - ' + m)
+    if STAGE == 1:
+        say('段 1 は集合の外の計器の表を見ていない' + ('＝不一致は --stage2 を付けて全表の段 2 を回して読む' if verdict != '恒等' else ''))
     say(f'判定: {verdict}' + ('（段 1）' if STAGE == 1 else ''))
     if a['save']:
         d, mdir = a['save'], J(root, 'measurements')

@@ -25,8 +25,17 @@ def check(st, cfg_text):
         if l.startswith('SMALL='): small = [x.strip() for x in l[6:].split(',') if x.strip()]
     for t in ('nation_s', 'stock_s', 'wars_s', 'casualty_s'):   # NG の読み手（ng.sh）
         if t not in small: bad.append(f'SMALL に {t} が無い（NG の読み手の表）')
-    for t in ('region_s', 'migration_s', 'pxmonth_s', 'scalars_s', 'monlaw_s', 'mongood_s', 'monai_s'):   # 止める線・注視の読み手
+    for t in ('region_s', 'migration_s', 'pxmonth_s', 'scalars_s', 'monlaw_s', 'mongood_s', 'monai_s', 'lawgate_s', 'reform_s', 'sbu_s', 'sf_s'):   # 止める線・注視の読み手（an_mon.py の名簿が読む表も）
         if t not in small: bad.append(f'SMALL に {t} が無い')
+    # an_mon.py が読む表（名簿の第 3 要素・P('…')・need('…')・tcols の鍵）は全て SMALL に在る＝読み手のソースから独立に数える（i・ban・rev は辞書の鍵なので除く）
+    import re
+    src = open(os.path.join(HERE, '..', 'mon', 'an_mon.py'), encoding='utf-8').read()
+    used = set(re.findall(r"\('[^']*', \d, '([a-z0-9]+)'", src)) | set(re.findall(r"P\('([a-z0-9]+)'\)", src)) | set(re.findall(r"need\('([a-z0-9]+)'\)", src))
+    tc = re.search(r"tcols = \{(.*?)\}\s*\n\s*for ", src, re.S) or re.search(r"tcols = \{(.*?)'sf': \['quarter', 'nation'\]\}", src, re.S)
+    if tc: used |= set(re.findall(r"'([a-z0-9]+)':", tc.group(1)))
+    for t in sorted(used - {'i', 'ban', 'rev'}):
+        if t + '_s' not in small: bad.append(f'SMALL に an_mon.py が読む {t}_s が無い')
+    if len(used) < 15: bad.append('an_mon.py から読む表を拾えていない（正規表現が壊れた）')
     keep = []
     for l in cfg_text.splitlines():
         if l.startswith('PRUNE_KEEP='): keep = [x.strip() for x in l[11:].split(',') if x.strip()]
