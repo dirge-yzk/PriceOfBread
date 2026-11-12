@@ -865,6 +865,17 @@ public static class EconomyStep
             p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasisAdjPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
             p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
         }
+        if (costL is not null)   // (1072) 計器②（件数だけ・単価 0・読むだけ）：人数がちょうど 0.0 の POP の数と、そのうちお金・債務・前月の所得が全て 0 の数
+        {
+            long zeroPops = 0, zeroEmpty = 0;
+            foreach (var pz in region.Pops)
+            {
+                if (pz.Size != 0.0) continue;
+                zeroPops++;
+                if (pz.Savings.Value == 0.0 && pz.Debt.Value == 0.0 && pz.LastEarnedPerMonth.Value == 0.0) zeroEmpty++;
+            }
+            costL[CostLedger.ZeroPopMonth] += zeroPops; costL[CostLedger.ZeroPopEmptyMonth] += zeroEmpty;
+        }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
             region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
@@ -1160,6 +1171,22 @@ public static class EconomyStep
                 else if (!(target > 0) && s.Output < coef.TargetStockFloor) s.Output = 0;
             }
             produced[s.GoodId] += s.Output;
+        }
+        if (costL is not null)   // (1072) 計器①（件数だけ・単価 0・読むだけ）：回した生産者のうち能力 0・産出 0・工事の残り ≦0 の数を担い手の人口 0／倒産／役務／産地／その他に分ける。熱いループの中で台帳に足さず局所の和を周の後に足す
+        {
+            long deadZ = 0, deadB = 0, deadS = 0, deadR = 0, deadO = 0;
+            for (int pd = 0; pd < np; pd++)
+            {
+                if (sleep[pd] == 1) continue;
+                var sd = region.Producers[pd];
+                if (sd.Capacity != 0.0 || sd.Output != 0.0 || !(sd.ConstructionLeft <= 0.0)) continue;
+                if (sd.LaborPopIndex >= 0 && sd.LaborPopIndex < region.Pops.Count && region.Pops[sd.LaborPopIndex].Size == 0.0) deadZ++;
+                else if (sd.Bankrupt) deadB++;
+                else if (isService[sd.GoodId]) deadS++;
+                else if (sd.IsRgo) deadR++;
+                else deadO++;
+            }
+            costL[CostLedger.DeadProdZeroPop] += deadZ; costL[CostLedger.DeadProdBankrupt] += deadB; costL[CostLedger.DeadProdService] += deadS; costL[CostLedger.DeadProdRgo] += deadR; costL[CostLedger.DeadProdOther] += deadO;
         }
 
         // 地域の工業化投資：投資家（資本家）が貯蓄から「建設の束」を買い工業化度を積む（→生産性↑・都市化上限↑）
@@ -1800,6 +1827,10 @@ public static class EconomyStep
             fdSelf = scratch.StapleSelf; fdNorm = scratch.PopNorm; fdOvf = scratch.FoodOvf; fdDfc = scratch.FoodDfc;
             if (costL is not null && (fdLedger || fdRebalance)) costL[CostLedger.StapleLedgerPops] += (long)region.Pops.Count * ((fdRebalance ? 1 : 0) + (fdLedger ? 1 : 0));   // 計算量の台帳：前計算 1 段＋決済後の締め 1 段
         }
+        // ★(1072) 人数がちょうど 0.0 の POP は、必要量の輪と支払いの輪で飛ばす（計器が全て無い時だけ）。飛ばす側でも GoodNeed・GoodDemand には +0 を書く（財ごとの作業欄＝飛ばすと前の財の値が残る）。
+        //   飛ばさなくても必要量＝x×0＝+0・買う量＝0・支払い＝0×配給＝+0 で、各欄へ +0 を足すだけ（受け手は月初・財の頭で +0 に置く）。役務の輪は飛ばさない。
+        bool skipZeroPop = !insOn && insSpend is null && insEnt is null && fdd is null && !BudgetBindDiag.On;
+        long skippedZero = 0;
         int consumedGoods = 0;   // POP のループを回した財（必要の無い財を除く）＝計算量の台帳の「消費：POP×財」（財のループの後にまとめて足す）
         for (int coi = 0; coi < ngoods; coi++)
         {
@@ -1880,6 +1911,7 @@ public static class EconomyStep
             foreach (var p in region.Pops)
             {
                 pIdx++;
+                if (skipZeroPop && p.Size == 0.0) { p.GoodNeed = 0; p.GoodDemand = 0; skippedZero++; continue; }   // (1072)
                 p.GoodNeed = effBaseNeed * p.Size;
                 if (housingGood && !p.IsUrban) p.GoodNeed = 0;   // 家賃は都市住民のみ（レビュー2026-07-19：全popに掛かり需要を最大2倍過大計上→摩擦点火で過密ペナルティが過大化していた）
                 if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.AgeShare(5, 15) * p.Size;   // ★年齢の層（段4e 後半）：学齢＝5〜14歳（旧＝子供比0〜16歳×0.2）   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
@@ -2157,6 +2189,7 @@ public static class EconomyStep
                 for (int fdI = 0; fdI < region.Pops.Count; fdI++)   // ★(504) foreach をそろえた添字つきの for（POP の添字が要る＝旗①の過分・不足の作業配列）
                 {
                     var p = region.Pops[fdI];
+                    if (skipZeroPop && p.Size == 0.0) continue;   // (1072) 必要量の輪で GoodDemand=0 を書いた POP＝qty＝0・支払い＝0＝各欄へ +0 を足すだけ
                     double qty = p.GoodDemand * ration[gi];
                     if (insEnt is not null) insI++;
                     if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
@@ -2252,6 +2285,12 @@ public static class EconomyStep
                 }
                 if (fdd is not null) Instruments.FdPop(fdd, p, oldMet);   // (504) 計器（読むだけ）
             }
+        }
+        if (costL is not null)   // (1072) 数え口 2 本：飛ばした件数（計器つきでは 0）と、POP を自分で 1 周して数えた人数 0.0 の POP×見た財（独立の数え）
+        {
+            long zeroNow = 0;
+            foreach (var pq in region.Pops) if (pq.Size == 0.0) zeroNow++;
+            costL[CostLedger.ConsumeSkipZeroPop] += skippedZero; costL[CostLedger.ConsumeZeroPopIndep] += zeroNow * consumedGoods;
         }
         if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)consumedGoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見た POP×財（必要の無い財を除く）
         if (insOn) Instruments.ConsumeMonth(world!, insRows, insBound, insDesired, insDemand);   // (271) 計器（読むだけ）

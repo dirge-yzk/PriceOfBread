@@ -277,9 +277,9 @@ public class SecessionLaborLawInstrumentTests
         Assert.Equal(CostLedger.Count, CostLedger.Names.Length);
         Assert.Equal(CostLedger.Count, CostLedger.UnitMicros.Length);
         Assert.True(CostLedger.AiBureaucracyScans < CostLedger.Count);   // この行は表の中にある（★(417) 行が後ろに足されても赤にならない形へ＝複数の線が行を足すので合流のたびに直さない）
-        Assert.Equal(CostLedger.LaborPowerScans + 1, CostLedger.Count);   // ★(1045) 最後の行は LaborPowerScans（30＝労働の重みの m の走査・★(749) の表の更新）／旧：ClearingSkipsLB（29）／★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝★(679) 最後の行は NavalOrderScans（28＝海軍の発注の配り）・行を足す線は ここを直す／旧：25 は年齢の層の歩／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
+        Assert.Equal(CostLedger.DeadMarketMonth + 1, CostLedger.Count);   // ★(1072) 最後の行は DeadMarketMonth（40＝中身の無い物 ③・件数だけの 10 行〔31〜40〕を足した・★(749) の表の更新）／旧：LaborPowerScans + 1／★(1045) 最後の行は LaborPowerScans（30＝労働の重みの m の走査・★(749) の表の更新）／旧：ClearingSkipsLB（29）／★(491) 合流：最後の行を名指しする形へ戻した（反証役 hz4〔v〕中#1＝(490) の〈表の中にある〉は定数どうしで常に真＝(436) dq〔bv〕中#1 の裁定を黙って戻していた）＝★(679) 最後の行は NavalOrderScans（28＝海軍の発注の配り）・行を足す線は ここを直す／旧：25 は年齢の層の歩／旧：★(469) 24＝最低賃金の籠の走査／★(461) 23＝発見の世界の合計の巡回／★(436) 合流：最後の行を名指しする（緩めた主張は常に真で何も確かめない）
         Assert.Equal(CostLedger.AiBureaucracyScanUnitMicros, CostLedger.UnitMicros[CostLedger.AiBureaucracyScans]);
-        Assert.True(CostLedger.UnitMicros.All(u => u > 0 && double.IsFinite(u)), "単価が 0 以下か有限でない行がある");
+        Assert.True(CostLedger.UnitMicros.Take(CostLedger.ConsumeSkipZeroPop).All(u => u > 0 && double.IsFinite(u)), "単価が 0 以下か有限でない行がある");   // ★(1072) 件数だけの 10 行〔ConsumeSkipZeroPop 以後〕は単価 0 が設計（ZeroPopSkipTests が 0.0 を確かめる）＝母集合をその手前までにした
         var (dir, sim) = Run(8);
         try
         {

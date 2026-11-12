@@ -2008,7 +2008,8 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, LaborPowerScans = 30, Count = 31;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, LaborPowerScans = 30,
+        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, Count = 41;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2029,6 +2030,16 @@ public static class CostLedger
         "海軍の発注の配り：州×月×3 周（NavalPortSplit の本国格の港の取扱高の和と割合の 2 周＋予算の配りの州ループ 1 周・(669)）",
         "清算：着値の下界を評価した売り手（飛ばした＋通した・距離と危険料を引かず下界の比較だけ・(1029)(1036)）",
         "労働の重み：州の動力の割合 m の生産者の走査（旗 LaborWeightsByPower が正の州×月・州の生産者の数・(1045)）",
+        "消費：飛ばした人口 0 の POP×財（人数がちょうど 0.0 の POP を必要量の輪と支払いの輪で飛ばした件数・計器つきでは 0・(1072)）",
+        "消費：人口 0 の POP×財（独立）（州×月に POP を自分で 1 周して人数 0.0 を数え、見た財の数を掛けた・(1072)）",
+        "中身の無い物：能力0・産出0の生産者×月（担い手の人口 0・計器 (1072)）",
+        "中身の無い物：能力0・産出0の生産者×月（倒産）",
+        "中身の無い物：能力0・産出0の生産者×月（役務）",
+        "中身の無い物：能力0・産出0の生産者×月（産地）",
+        "中身の無い物：能力0・産出0の生産者×月（その他）",
+        "中身の無い物：人数 0.0 の POP×月（月の頭・計器 (1072)）",
+        "中身の無い物：そのうちお金も債務も所得も無い POP×月",
+        "中身の無い物：州×財で需要・産出・在庫が全て 0（州×月・計器 (1072)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2083,6 +2094,7 @@ public static class CostLedger
         NavalOrderScanUnitMicros,   // ★(669) 海軍の発注の配り：州×月×周あたり（**上限の見積り**・census は無い・下の定数の注記）
         ClearingSkipUnitMicros,   // ★(1029) 清算：着値の下界で飛ばした売り手あたり（下の定数の注記）
         LaborPowerScanUnitMicros,   // ★(1045) 労働の重み：m の生産者の走査 1 件あたり（下の定数の注記）
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,   // ★(1072) 件数だけの 10 行（飛ばした・独立・中身の無い物 ①〜③）＝単価 0＝推定の計算量に出ない
     ];
     /// <summary>★(1045) 労働の重みの m（EconomyStep.PowerShare）の生産者の走査の単価（マイクロ秒/件）＝計り台の実測（measurements/m1045_20261111_bench_powershare.txt・
     /// 12 四半期ほど進めた 4 国盤面の全州〔308 州・生産者 53,983〕で PowerShare を呼び、四半期直後〔冷え〕4 回 50.7〜54.2 ナノ秒/件〔外れ値 142.9〕・同じ呼びの繰り返し〔熱〕5 組 46.6〜64.8 ナノ秒/件）。
