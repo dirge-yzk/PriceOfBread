@@ -1,0 +1,85 @@
+(1072) 線 c102em 事前登録（最初のコミット）　2026-11-12　書き手 Claude Sonnet 5.5
+基線 m1069（7bb40c772）。恒等の線（旗なし・新しい係数 0・力学 0・乱数を引かない）。形＝〈尾〉でも〈入口〉でもない（中身の無い物を見ない・余りを作る）。
+出所：measurements/m1066_20261112/report.txt 問い 3〜5・作者 2026-11-12「軽くする方は推奨でよい」(ウ)①。
+このコミットはコードを含まない。計器のコミット→飛ばしのコミットの順に入れ、各コミットの間に ㉘ と ident を挟む。
+
+[1] 恒等の線・予言 0
+  - 素の 5 種・素の 10 種・計器つき 10 種の成績表は m1069（b5_/b10_20261112_m1069・b10_20261112_m1069_ins）と名乗り行を除き全行一致。
+  - 計器の表の差：なし（Instruments.Open の表は足さない＝--added-tables の宣言は 0 本）。足すのは .cost の件数の行だけ（下の [2] A）。
+  - 推定の計算量：新しい行の単価は全て 0 ＝推定は m1069 と同じ（.cost の推定の行も一致）。消費：POP×財（月）の件数と単価は変えない。
+    ＝この線の1本の腕では G4（推定が減る）は動かない。単価の取り直し（A/B）はこの線の外（下の G4）。
+
+[2] 触る物と読み手
+  A. 件数の行（CostLedger・MultiNationSim.cs の列挙の末尾に足す・Count 31→41・Names と UnitMicros も 10 行足す・単価は全て 0.0）
+     31 ConsumeSkipZeroPop  「消費：飛ばした人口 0 の POP×財」　          （飛ばす変更のコミットで増える）
+     32 ConsumeZeroPopIndep 「消費：人口 0 の POP×財（独立）」           （同上）
+     33〜37 PlainDead*      「中身の無い物：能力0・産出0の生産者×月（担い手の人口0／倒産／役務／産地／その他）」　5 行（計器①）
+     38 ZeroPopMonth        「中身の無い物：人数 0.0 の POP×月」　（計器②）
+     39 ZeroPopEmptyMonth   「中身の無い物：そのうちお金も債務も所得も無い POP×月」（計器②）
+     40 DeadMarketDays      「中身の無い物：州×財で需要・産出・在庫が全て 0（州×月）」（計器③）
+     実装：番号 31〜40 の 10 行を計器のコミットで全て足す（31・32 は書き手が無く件数 0 のまま）。飛ばすコミットで 31・32 に書き手を足す。
+  B. 計器①（EconomyStep.cs・供給の段 :1030〜:1137 の直後）：costL が非 null の月に、sleep[pi]!=1 の生産者を州ごとに 1 周。
+     能力 0・産出 0・ConstructionLeft≦0 の数を分類して局所の long に溜め、周の後に台帳へ足す（熱いループの中で台帳に足さない）。
+     分類の優先：担い手 POP の Size==0.0 → 倒産（Bankrupt）→ 役務（isService）→ 産地（IsRgo）→ その他。
+     ⚠倒産の生産者は供給の段で Capacity を書き直さない（古い値が残る）＝〈能力 0〉は書いてある欄の値で読む（記録）。
+  C. 計器②（EconomyStep.cs・月の頭 :860〜:867 の後）：costL が非 null の月に POP を 1 周。Size==0.0 の数、うち Savings・Debt・LastEarnedPerMonth が全て 0 の数。
+     ⚠report の〈持ち主の行〉は生産者の持ち主の表を引く必要がある＝この計器は読まない（記録：持ち主の行 2.5% の分は数えない）。
+  D. 計器③（MarketFlow.cs・StepDay の頭）：monthStart が真で cost が非 null の呼びだけ、州の全市場（Goods の順）で LastDemand==0 && LastProduced==0 && Stock==0 の数。
+     ⚠旬ごとの呼びでは数えない（1 月に 1 回＝州×月）。live の一覧とは別の定義（live は Eps 未満で外す・ここは厳密な 0）。
+  E. 飛ばす変更（EconomyStep.cs・消費の段 :1803〜:2256 だけ）
+     - 必要量の輪（:1880〜）：skipZeroPop && p.Size == 0.0 なら pIdx を進め、GoodNeed=0・GoodDemand=0 を書いて次へ（popDemand += 0 は省く）。
+     - 支払いの輪（:2157〜）：同じ述語で飛ばす（fdI は for が進める・insI は計器つきでは飛ばさないので不要）。
+     - 役務の輪（:2008〜:2044）は飛ばさない。
+     - skipZeroPop ＝ !Instruments.On && insEnt is null && insSpend is null && fdd is null && !BudgetBindDiag.On（財ごとの計器が全て無い時だけ）。
+     - 数え口 31：必要量の輪で飛ばした POP 1 件ごとに局所の long に +1、州の消費の段の終わりに台帳へ（計器つきでは 0）。
+     - 数え口 32：州×月の終わり（:2256 の ConsumePopGoods の行の隣）で POP を自分で 1 周し Size==0.0 を数え、consumedGoods を掛けて台帳へ（計器つきでも数える）。
+       ⚠決まり ① の穴を名乗る：consumedGoods（needless でない財の数）はエンジンの局所変数を読む。needless の定義は財・係数・習慣の状態に依り、計器が独立に写すと
+         2 本目の規則を作る（食い違いは計器の誤りに見える）＝POP の側（Size==0.0 の POP の数）だけ独立、財の側はエンジンの値を使う。
+         G1 の食い違いが検出するのは〈POP の述語の誤り〉と〈飛ばしの未実施〉であって、財の数え方の誤りではない。
+  F. 読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements）
+     - CostLedger.Count／Names.Length／UnitMicros.Length を結ぶ試験：AgeLedgerTests・DiscontentReaderTests・DiscoveryClockTests（Count と長さの一致）＝Count を上げ、Names・UnitMicros を同じ数だけ足せば通る。
+     - Program.cs:6030〜6036 は CostLedger.Count を回して名前・単価・件数を出す＝新しい行は自動で出る（Runner は触らない）。
+     - ident_check.py の cmp_cost は行の名前の和集合で比べる＝腕にだけある行は〈違う〉になる＝--cost-allow に行の頭を名乗る（計器コミット：「中身の無い物：」・「消費：」）。
+     - WriterRatchetTests.cs:424〜 の InlineData（宣言の表）：新しい行の宣言を足す（前例＝CostLedger.LaborPowerScans の ★(1045) 新しい行・:433）。
+     - SaveGame：台帳は [NonSerialized]（計算量の台帳はセーブに載らない＝既存の試験）。新しい型・欄は足さない。
+     - POB_COEF・係数：触らない。
+  G. 他の線との重なり：MultiNationSim.cs は CostLedger の列挙の末尾だけ（rp・tr は触らない）。EconomyStep.cs・MarketFlow.cs は em だけ。Instruments*.cs には触れない。
+     WriterRatchetTests.cs は自分の行だけ（rp・tr が新しい行を足すなら合流で番号を振り直す＝Count の競合は合流で解く）。
+
+[3] 足す試験と突然変異
+  試験（新しいファイル PriceOfBread.Tests/ZeroPopSkipTests.cs）
+    T1 台帳：Count・Names・UnitMicros の長さが一致し、新しい行の単価が 0.0（推定を動かさない）。
+    T2 機構：1 種 40 四半期（Cost40 と同じ SelfPlayMatch.Run(1, 40, null, lean: true)）で、飛ばした件数＝独立の件数（＞0）。
+    T3 機構（飛ばしの値の同一）：POP を 1 人 Size=0.0 にした小世界で EconomyStep.Run を飛ばし有り・無し（Instruments.On を一時的に真にして旧の道）で 1 月回し、
+       POP の PaidPerMonth・EarnedPerMonth・RemainingBudget・GoodNeed・GoodDemand と州の StateSpent・国庫・市場の在庫・価格が全て一致（double のビット比較）。
+    T4 機構（述語）：0 < Size < 1e-6 の POP を飛ばさない（飛ばした件数が増えない）。
+  突然変異（使い捨ての木で回し、どれで赤になるかを腕の前に表へ書く＝㉚。出力は measurements/ にコミット）
+    M0 述語を常に偽（何もしない）           → T2 赤（飛ばした 0≠独立）・G1 赤・G4 は元から動かない
+    M1 述語を Size ≦ 1e-12                    → T2 赤（飛ばした＞独立）・T4 赤・G1 赤・G3 赤の見込み
+    M2 飛ばす側で GoodDemand に 0 を書かない  → T3 赤・G3 赤（前の財の値が残る）
+    M3 飛ばす側で GoodNeed に 0 を書かない    → T3 赤・G3 赤
+    M4 支払いの輪で +0 を足さず、符号を見ずに省く → 受け手が −0 でなければ緑（穴として名乗る）。−0 の受け手を作る T3b を足し、M4 で赤になることを確かめる
+    M5 計器つきでも飛ばす                      → 計器つきの G3 赤の見込み（計器の呼びが減る）
+  ㉘ ソースを走査する番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）を、各コミットの直後に回す。
+     書き換える件数の予言（㉑）：WriterRatchetTests の宣言の表に新しい行を足す以外は書き換えない。工業化度の読み手の許可表は触らない。`new MoneyStock(` の件数は 64 のまま。
+     route_anchors.tsv の鍵の行は触らない（EconomyStep.cs の鍵は 0 行）。--tests-delta は --list-tests で数えてから渡す。
+
+[4] 経路の名の宣言
+  EconomyStep.cs の行は動く（計器 B・C・飛ばし E）。cearn_s・cpop_s・flow_s の経路の名（ファイル:行）は〈ident_check.py の行の写しで違い 0〉と宣言する（前例 m843）。
+  新しい件数の行は [2] A の 10 行（前例＝(1045) の LaborPowerScans）。表（Instruments.Open）は足さない。
+
+[5] 門（両側）
+  G1 飛ばした件数＝独立の件数。バッチの .cost は 5 種の平均しか出さない＝平均の等しさ（和の等しさ）を ident の後に読む。種ごとの一致は T2（1 種）で見る＝弱さを名乗る。
+     計器つきの腕では飛ばさない（0）＝読まない。何もしない実装は 0≠独立（＞0）で赤。
+  G2 独立の件数÷〈消費：POP×財（月）〉 ＜1.0（上限）。下限は計器 ②（人数 0.0 の POP の数÷POP×月）の素の 5 種の実測から腕の前に置き直す（0.183 は使わない・計器コミットの ident の後に数を事前登録の追記へ）。
+  G3 〈判定: 恒等〉（段は stage.py が決める）。
+  G4 推定が減る：この線の 1 本の腕では動かさない（件数・単価を変えない）。単価の取り直し（A/B）は余りの数字（目安 1.98 秒・2 秒以下）で、
+     合流の累計で読む＝門にしない。A/B をこの線で回さない理由：同じプロセスの月交互の測りが要り、数字の目安が 2 秒以下で空振りの率が高い。
+  浮動小数の順序が変わる箇所：なし（足す項を省くだけ・式の順は変えない）。紙で数えた旧≠新の比較の食い違い：Size==0.0 の POP で +0 を足す項は −0 の受け手でなければ同一。
+  −0 の受け手の紙の確認：popDemand・revenue[]・PaidPerMonth・EarnedPerMonth は月初・財の頭で +0 に置く／popBought は Array.Clear（+0）／StateSpent は x -= qty*… で qty=+0。
+     −0 になる経路：Size が −0.0（==0.0 に当たる）・effBaseNeed が負・買い手の楔の項が負 → 0 を掛けると −0。計器コミットの ② の分類に〈Size が −0.0〉の数は出さない（記録：出れば ident で見える）。
+
+[6] .cost の見積り：上界は出せない・下界は約 0（記憶〈ループの統合は 1 周 0.5%〉）。新しい計器のコスト：①は costL 非 null の月に生産者を 1 周（約 0.01 µs/件×約 1 億＝約 1 秒の読み・台帳の外）、
+    ②は POP 1 周（約 8.4 百万×月）、③は州×財（月に 1 回）。単価 0 のため推定には出ない（実時間の増え＝ヌル腕の揺れ以下の見込み・確証なし）。
+    costL は world.Cost（遅延で確保）で素の走りでも非 null＝計器コミットの腕でも回る。
+[7] 判定：〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
