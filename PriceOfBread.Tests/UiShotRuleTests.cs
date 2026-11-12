@@ -71,6 +71,13 @@ public class UiShotRuleTests
         Assert.Contains(Run("満足度 0% の階級が人口の 1% 超", Cls(0, "249K(5%)")), f => f.Contains("満足度"));
         Assert.Empty(Run("満足度 0% の階級が人口の 1% 超", Cls(0, "10K(0%)")));    // 1% 以下
         Assert.Empty(Run("満足度 0% の階級が人口の 1% 超", Cls(0.5, "249K(5%)")));   // 満足度が 0 でない
+        // 画面の本物の文字（全角の括弧・満足度は文字の列で Sort が無い）でも当たる
+        TableSnapshot Real(string sat, string size) => Tab("pop.classes", "階級", [C("階級"), C("規模"), C("満足度")],
+            ("使用人", null, [T("使用人"), T(size), T(sat)]));
+        Assert.Contains(Run("満足度 0% の階級が人口の 1% 超", Real("0%", "249K（5%）")), f => f.Contains("満足度"));
+        Assert.Contains(Run("満足度 0% の階級が人口の 1% 超", Real("0% ▼", "249K（7%）")), f => f.Contains("満足度"));
+        Assert.Empty(Run("満足度 0% の階級が人口の 1% 超", Real("30%", "249K（5%）")));
+        Assert.Empty(Run("満足度 0% の階級が人口の 1% 超", Real("0%", "10K（0%）")));
     }
 
     [Fact]

@@ -62,6 +62,7 @@ public partial class GameViewModel
     private sealed class WarTrack
     {
         public int Won0, Lost0;                       // 開戦時の勝敗回数（結果推定のフォールバック）
+        public double StartDay;                       // 開戦の通し日（初めて見た時に経過月から 1 回だけ置く＝交戦中の表と終わった戦争の欄が同じ日を出す。終わった時の経過月は終戦の検知が四半期遅れて数か月ずれた）
         public double LastScore;                      // 直近の戦勝点（自国視点）
         public int LastMonths;                        // 直近の経過月
         public double LastDeadSelf, LastDeadEnemy;    // 直近の戦争別戦死（War.DeadA/DeadB＝兵士＋将校）

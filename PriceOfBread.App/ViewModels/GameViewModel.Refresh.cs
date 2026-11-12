@@ -122,7 +122,7 @@ public partial class GameViewModel
             double sc = meIsA ? war.Score : -war.Score;
             if (!_warTracks.TryGetValue(enemy.Id, out var tr))
             {
-                _warTracks[enemy.Id] = tr = new WarTrack { Won0 = me.WarsWon, Lost0 = me.WarsLost };
+                _warTracks[enemy.Id] = tr = new WarTrack { Won0 = me.WarsWon, Lost0 = me.WarsLost, StartDay = _simDays - war.Months * (double)Calendar.DaysPerMonth };
                 if (seeded) newEnemy = true;   // 初回Refresh（新規開始/ロード直後）は既存の戦争で自動オープンしない
             }
             if (accrue) tr.CostShare += costShareMonth;
@@ -141,7 +141,7 @@ public partial class GameViewModel
                 Enemy = tr.EnemyName,
                 Score = $"戦勝点 {Fmt.SignedPct(sc)}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
-                Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}か月経過",
+                Info = $"{DateAt(tr.StartDay)} 開戦　{war.Months}か月経過",
                 Forces = $"自軍 {Troops(me)}　即応度 {Fmt.Share(_player.MilitaryReadiness)}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
                 // ★2026-09-23：兵士の戦死と民間人の死を**別の行**で出す（民間は兵の17〜25倍＝1本に足すと兵の戦死が桁で消える）
                 Losses = $"戦死 自国 {Fmt.PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {Fmt.PopFmt(tr.LastDeadEnemy)}" : "")
@@ -183,7 +183,7 @@ public partial class GameViewModel
                 Key = $"{id}@{(int)_simDays}",
                 EndDay = _simDays,
                 Title = $"{(ep is not null ? PowerLabel.Of(ep, _sim.Diplomacy.Wars) : (tr.EnemyName.Length > 0 ? tr.EnemyName : "—"))}　{result}",
-                Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}か月"
+                Detail = $"{DateAt(tr.StartDay)}〜{EventDate()}　{months}か月"
                        + $"\n戦死 自国 {Fmt.PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(deadEnemy)}" : "")
                        + $"\n民間人の死 自国 {Fmt.PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {Fmt.PopFmt(civEnemy)}" : "")
                        + $"\n戦費 {Fmt.Money(tr.CostShare)}",

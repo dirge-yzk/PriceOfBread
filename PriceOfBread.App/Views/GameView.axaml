@@ -215,12 +215,12 @@
                         <TextBlock Text="{Binding TensionPopupWhy}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding TensionPopupBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <!-- 2択の判断材料（緊張量と政治的帰結の3行）は常に見せる（作者の指示 2026-11-11：ヘッダー以外のホバーは廃止）。 -->
-                        <Grid ColumnDefinitions="*,*" Margin="0,2,0,0">
-                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
+                        <Grid RowDefinitions="Auto,Auto" Margin="0,2,0,0">   <!-- 縦に 2 つ並べる＝窓の全幅で「…からの支持：」と値が折り返して離れない（V6） -->
+                            <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,6">
                                 <TextBlock Text="挑発する" FontWeight="Bold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
                                 <TextBlock Text="{Binding TensionProvokeTip}" TextWrapping="Wrap" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkSoftBrush}"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="2">
+                            <StackPanel Grid.Row="1" Spacing="2">
                                 <TextBlock Text="緊張を緩和する" FontWeight="Bold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
                                 <TextBlock Text="{Binding TensionEaseTip}" TextWrapping="Wrap" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkSoftBrush}"/>
                             </StackPanel>

@@ -359,10 +359,18 @@ public static class UiShotDump
         if (sat < 0 || size < 0) yield break;
         foreach (var r in s.Rows)
         {
-            var m = Regex.Match(r.Cells[size].Text, @"\((?<p>[\d.]+)%\)");
+            // 規模の割合は全角の括弧（Fmt.Zen 後の画面の文字）でも半角でも読む／満足度は文字の列なので Sort が無い（NaN）→ 先頭の「n%」を読む（旧は半角の括弧だけ・Sort だけで、一度も当たらなかった）
+            var m = Regex.Match(r.Cells[size].Text, @"[（(](?<p>[\d.]+)%[）)]");
             if (!m.Success) continue;
             double share = double.Parse(m.Groups["p"].Value, System.Globalization.CultureInfo.InvariantCulture) / 100;
-            if (r.Cells[sat].Sort <= 0 && share > 0.01) yield return $"{s.Name}／{r.Name}：満足度 {r.Cells[sat].Text} で規模 {r.Cells[size].Text}";
+            double satValue = r.Cells[sat].Sort;
+            if (double.IsNaN(satValue))
+            {
+                var sm = Regex.Match(r.Cells[sat].Text, @"^\s*(?<v>[-−+]?[\d.]+)%");
+                if (!sm.Success) continue;
+                satValue = double.Parse(sm.Groups["v"].Value.Replace('−', '-'), System.Globalization.CultureInfo.InvariantCulture) / 100;
+            }
+            if (satValue <= 0 && share > 0.01) yield return $"{s.Name}／{r.Name}：満足度 {r.Cells[sat].Text} で規模 {r.Cells[size].Text}";
         }
     }
 
