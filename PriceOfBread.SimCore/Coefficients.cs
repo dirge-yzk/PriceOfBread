@@ -2810,7 +2810,7 @@ public sealed class Coefficients
     // ★堆肥＝肥料の低効率レシピ（作者裁定2026-09-06「肥料を低効率でRGOに生産させる（堆肥など）」＝E-13 硫黄の産地化を「代替が機能する」形で再開するための器）。
     //   肥料(109)の並存レシピ「堆肥」＝畜産(19)＋労働・解禁0（厩肥は最古の肥料）・化学法（硫酸＝硫黄鎖）より高い（生産性×CompostProductivity・畜産 CompostLivestockInput/単位）。
     //   市場が安い方を採る＝硫黄が届く所では化学肥料、届かない所・硫黄が跳ねた時は堆肥＝下流（作物）が死なない。0＝Producer を足さない＝厳密恒等。
-    public double CompostFertilizerEnabled = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-13 再開＝堆肥（肥料の低効率レシピ）・作者裁定2026-09-06 */
+    // 【墓標2026-11-13 (1089)・旗の焼き込み】CompostFertilizerEnabled（既定1.0・点火2026-09-05）を消した＝堆肥（肥料の低効率レシピ＝畜産 CompostLivestockInput＋労働・生産性×CompostProductivity）は常に足す。
     public double CompostProductivity = 0.5;        //   化学法（グアノ法と同じ2.0）比。RefPrice 肥料0.84／畜産0.54＝畜産1.0投入＋低生産性で化学法の約1.6〜2倍
     public double CompostLivestockInput = 1.0;      //   肥料1単位あたりの畜産（厩肥）
     // ★硝石丘（2026-09-06・財の3分類の再開）：硝石(118)の低効率レシピ（畜産＋労働・解禁0）。0＝足さない（厳密恒等）。生産性は堆肥と同じ比率（化学法/産地の数分の1）。
