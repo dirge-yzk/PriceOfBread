@@ -151,3 +151,14 @@
   残る口（TreasuryCat の名 Megaproject・ledgerMegaprojectPerMonth・ファイル Megaprojects.cs）を指す台本だけ。現役の読み手（止める線・NG・mon・門）の当たりは 0。
 - §6 の下見は、D′ の木で変わる試験の束（304 本）を回して代えた（同じ世界・赤は上の 1 本）。フルスイートは D′ の I5 で回す。
 - Model.cs は欄 3 本の直前の注 3 行（:1134〜:1136・この欄の説明）も一緒に消した。
+
+== ★追記 2（2026-11-13・D′ のフルスイートの後・試験だけの直しの前）
+- D′（3f165ac0d）のフルスイート：Category!=FullLength 2759（合格 2755・スキップ 1・失敗 3）・FullLength 3 合格。--list-tests 2759＋3 と一致。savetest OK・leakhunt 保存則違反なし。
+- 赤 3 本の区分：
+  - OpeningBakeTests 2 本（入力のハッシュ 5433e32c6b866642 ≠ 世界 ff069d3f88fe05d9）：★(764)〈派生の表と件数の写し〉の区分。
+    InputHash は SimCore の埋め込みの資源を全て数える（OpeningBake.cs:45）＝megaprojects.json を消すと必ず変わる。
+    opening_bake.json はこの波 cr の持ち物＝★(764) のとおり線は触らず赤のまま報告し、合流の木で 1 回だけ焼き直す。旗 OpeningBakeEnabled＝0＝成績表に効かない。
+  - SecessionLaborLawInstrumentTests.cs:250〈scalars_s の列の数 23+4+2+6〉→ 35 対 32：§7 で消すと予言した scalars_s の 3 列（megaStarted*）そのもの。
+    ★(764) ② の型（静的な件数の番人＝変わった値が事前登録の予言〔scalars_s −3 列〕と一致）。:250 は st の持ち分（:278〜:282）の外。
+    直し：23+4+2+3（注に消した 3 列を書く）。機構の向き・大きさ・判定・母集合の Assert ではない。試験だけの別のコミット。
+- ㉘ の束に SecessionLaborLawInstrumentTests を入れていなかった（㊴ の `FullyQualifiedName~Instrument` で拾える物）＝走査の束の取りこぼしと名乗る。
