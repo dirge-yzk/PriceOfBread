@@ -65,27 +65,47 @@ public class PoliticsTablesTests
     }
 
     [Fact]
-    public void 条件の列は法の行の右の条件と同じ()
+    public void 法の表は条件の列を持たず_選べない段にだけ短い理由を持つ()
     {
         var (sim, w) = Board();
         var t = PoliticsTables.Laws.Read(sim, w);
-        int costColumn = t.Columns.ToList().FindIndex(c => c.Key == "cost");
-        Assert.True(costColumn >= 0);
+        Assert.DoesNotContain(t.Columns, c => c.Key == "cost");
+        int stageColumn = t.Columns.ToList().FindIndex(c => c.Key == "stage");
         foreach (var r in t.Rows)
         {
-            var def = LawCatalog.ByField(r.Key)!;
-            var vm = new LawRowVM(w, def);
-            Assert.Equal(vm.Detail, (string)r.Cells[costColumn]!);
+            var st = (StageCell)r.Cells[stageColumn]!;
+            Assert.NotNull(st.Why);
+            for (int i = 0; i < st.Labels.Count; i++)
+            {
+                int lv = st.LevelBase + i;
+                string? why = st.Why!(lv);
+                if (st.CanSelect(lv)) Assert.Null(why);
+                else if (why is not null) Assert.DoesNotMatch(@"\d", why);   // 閾値の数字を出さない
+                if (why is not null)
+                {
+                    Assert.DoesNotContain(':', why);   // 日本語の文中は全角のコロン（V11）
+                    Assert.DoesNotContain("（", why);   // 括弧の中の説明は出さない（V3）
+                    if (Math.Abs(lv - st.Current) > 1) Assert.NotEqual("前段階が必要", why);   // 理由は次に押せる段の 1 つだけ（V3）
+                }
+            }
         }
     }
 
     [Fact]
-    public void 制度の表は特許制度_株式会社_鉄道の3行で_状態は発見の2値を読むだけ()
+    public void 制度は政府の行の状態の列が持ち_発見の2値と同じ()
     {
         var (sim, w) = Board();
-        var t = PoliticsTables.Institutions.Read(sim, w);
-        Assert.Equal(new[] { "特許制度", "株式会社", "鉄道" }, t.Rows.Select(r => r.Key).ToArray());
-        Assert.Equal(new[] { w.PatentLaw, w.JointStock, w.Railways }.Select(b => b ? "施行" : "未施行").ToArray(), t.Rows.Select(r => (string)r.Cells[1]!).ToArray());
+        var t = DiscoveryTables.SocialDiscoveries.Read(sim, w);
+        int state = t.Columns.ToList().FindIndex(c => c.Key == "state");
+        Assert.True(state >= 0);
+        var patent = t.Rows.First(r => r.Name == "特許");
+        var joint = t.Rows.First(r => r.Name == "株式会社");
+        Assert.Equal(w.PatentLaw ? "施行" : "未施行", (string)patent.Cells[state]!);
+        Assert.Equal(w.JointStock ? "施行" : "未施行", (string)joint.Cells[state]!);
+        var rail = t.Rows.First(r => r.Name == "鉄道");   // 鉄道の施行も政府の行の状態の列に出る（V16）
+        Assert.Equal(w.Railways ? "施行" : "未施行", (string)rail.Cells[state]!);
+        Assert.DoesNotContain(t.Rows, r => r.Name == "特許制度");   // 名の衝突を作らない
+        Assert.DoesNotContain(DiscoveryTables.Discoveries.Read(sim, w).Rows, r => r.Name == "報せの速さ");
     }
 
     [Fact]

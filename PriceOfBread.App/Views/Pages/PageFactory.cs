@@ -27,6 +27,7 @@ public static class PageFactory
         Slot.PoliticsLaw => new PoliticsLawPage(),
         Slot.DiplomacyWar => new DiplomacyWarPage(),
         Slot.Discovery => new DiscoveryPage(),
+        Slot.Province => new ProvincePage(),
         _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, "地図はページの作り手の外（GameView.MapView）"),
     };
 }

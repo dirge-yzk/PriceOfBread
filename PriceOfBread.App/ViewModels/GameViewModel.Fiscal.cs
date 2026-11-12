@@ -1,5 +1,5 @@
 ﻿// GameViewModel.Fiscal.cs ＝ 財政と貨幣のページ（(501) UI の作り直し 段3）。
-// 支出・収入・国庫の台帳・金融・国債と外資信用は、本体の目録（SimCore/Display/FiscalTables）が渡す表を共通の表（Controls/TableView）が描く。
+// 支出・収入・金融・国債と外資信用は、本体の目録（SimCore/Display/FiscalTables）が渡す表を共通の表（Controls/TableView）が描く。
 // 予測と実効の額・段の押し釦（税・教育費・軍事費・社会保障・行政費・近代化投資・関税・政策金利・通貨制度・資本移動・通貨改革）の読み口と書き口は目録の側（AI と同じ門を通る）。
 // ここに残すのは、App だけが採れる標本（教育費・専売益・外資の流れの四半期差分／国庫の台帳の月の差分）と、ヘッダーの国債の文字と、年次系列（国庫・国債・技術水準）の値の写し。
 using System;
@@ -27,16 +27,13 @@ public partial class GameViewModel
     // ---- 表（本体の目録が行と列を渡す）----
     [ObservableProperty] private TableSnapshot _spendTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _incomeTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _ledgerTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _financeTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _debtTable = TableSnapshot.Empty;
-    // 欄の見出しに合計を載せる（表の列と合計の位置を揃える仕掛けを作らない）：支出・収入＝予測と実効の合計／国庫の台帳＝今月の収支と予測の収支
-    [ObservableProperty] private string _spendTitle = "支出", _incomeTitle = "収入", _ledgerTitle = "国庫の台帳";
+    // 欄の見出しに合計を載せる（表の列と合計の位置を揃える仕掛けを作らない）：支出＝予測と払った額の合計／収入＝予測と入った額の合計（国庫の台帳は両方の表の実績の列へ吸収した）
+    [ObservableProperty] private string _spendTitle = "支出", _incomeTitle = "収入";
     // ---- 年次の線（名前つきの系列の倉から値を写す）----
     [ObservableProperty] private IReadOnlyList<double> _treasuryValues = [];
     [ObservableProperty] private IReadOnlyList<double> _govDebtValues = [];
-    [ObservableProperty] private IReadOnlyList<double> _techValues = [];
-    [ObservableProperty] private string _techLevelText = "";
 
     private const string GovDebtSeries = "fiscal.govDebt", FiscalYearSeries = "fiscal.sampleYear";
 
@@ -102,18 +99,13 @@ public partial class GameViewModel
         var budget = FiscalTables.Budget(_player, flows);
         SpendTable = SnapFiscal(FiscalTables.Spend(budget));
         IncomeTable = SnapFiscal(FiscalTables.Income(budget));
-        LedgerTable = SnapFiscal(FiscalTables.Ledger(flows));
         FinanceTable = SnapFiscal(FiscalTables.Finance);
-        DebtTable = SnapFiscal(FiscalTables.Debt);
-        SpendTitle = $"支出　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendForecast)}　実効 {Fmt.Of(Unit.MoneyPerMonth, budget.SpendActual)}";
-        IncomeTitle = $"収入　予測 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeForecast)}　実効 {Fmt.Of(Unit.MoneyPerMonth, budget.IncomeActual)}";
-        double bal = FiscalTables.LedgerBalance(flows), fb = budget.BalanceForecast;
-        LedgerTitle = $"国庫の台帳　収支 {(bal >= 0 ? "+" : "-")}{Fmt.Money(Math.Abs(bal))}　予測 {(fb >= 0 ? "+" : "-")}{Fmt.Money(Math.Abs(fb))}";
+        DebtTable = SnapFiscal(FiscalTables.DebtOf(flows));
+        SpendTitle = $"支出　予測 {Fmt.MoneyPerMonthFine(budget.SpendForecast)}　{FiscalTables.SpendActualName} {Fmt.MoneyPerMonthFine(budget.SpendActual)}";
+        IncomeTitle = $"収入　予測 {Fmt.MoneyPerMonthFine(budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.MoneyPerMonthFine(budget.IncomeActual)}　収支 {Fmt.SignedMoneyPerMonthFine(budget.BalanceActual)}";
         // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
         TreasuryValues = _histTreasury.ToArray();
         GovDebtValues = _series.Of(GovDebtSeries).ToArray();
-        TechValues = _histTech.ToArray();
-        TechLevelText = $"技術水準 {_player.TechLevel:F2}　世界の最先端 {_player.WorldTechLevel:F2}";
     }
 
     // 国債（借入）＝ヘッダー表示（借金ボタン廃止・2026-07-21／借入はエンジンが r＜1 の月に自動・2026-09-28）。DebtHeaderText＝残高（＋デフォルト予兆）／Tip＝内訳／Brush＝支払不能で赤。
@@ -125,15 +117,15 @@ public partial class GameViewModel
         double arrearsLeft = Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyMonths);
         double gameMonthsLeft = Math.Max(0, Calendar.YearsToMonths(Calendar.EndYear - Calendar.StartYear) - _simDays / Calendar.DaysPerMonth);
         bool showDefaultEta = _player.InsolvencyMonths > 0 && unpaidShare > 0 && arrearsLeft <= unpaidShare * gameMonthsLeft;
-        DebtHeaderText = $"国債:{Fmt.Money(_player.GovDebt.Value)}"
+        DebtHeaderText = $"国債：{Fmt.Money(_player.GovDebt.Value)}"
                        + (showDefaultEta
                           ? $"　デフォルトまで{Math.Ceiling(arrearsLeft / unpaidShare):F0}か月" : "");   // ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数
         // 財7単位フリップ（2026-07-26）：表示も対年GDP（史実の債務比率と直接比較できる単位）。分母＝年次名目（月次 NominalGdpPerMonth×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位
-        DebtHeaderTip = $"国債 {Fmt.Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
+        DebtHeaderTip = $"国債 {Fmt.Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {Fmt.Share(_player.GovBondRatePerYear)}　債券価格 {Fmt.Share(_player.BondPrice)}"
                        + (_player.ForeignDebt.Value > 1 ? $"\nうち対外 {Fmt.Money(_player.ForeignDebt.Value)}" : "")
-                       + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
+                       + (_player.AusterityIntensity > 0 ? $"\n緊縮 {Fmt.Share(_player.AusterityIntensity)}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Fmt.Money(_player.CumulativeDevaluation)}" : "")
-                       + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {_player.FiscalFundingRatio:P0}" : "");
+                       + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {Fmt.Share(_player.FiscalFundingRatio)}" : "");
         DebtHeaderBrush = _player.InsolvencyMonths > 0 ? NewsRed : TermNeutral;
     }
     [ObservableProperty] private string _debtHeaderText = "";

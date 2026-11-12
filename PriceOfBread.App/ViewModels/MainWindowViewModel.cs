@@ -19,7 +19,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _currentPage = new TitleViewModel(GoToNationSelect, LoadQuick);
     }
 
-    private void GoToNationSelect() => CurrentPage = new NationSelectViewModel(StartGame);
+    /// <summary>観戦モード（画面は通常と同じで、選んだ国の判断も全て AI が行う）。国の選択の切り替えと `--autoplay` が立てる。新規ゲームの組み立てだけが読む
+    /// （ロードしたゲームの観戦かどうかは世界から導く＝<see cref="SimFactory.IsSpectating"/>・セーブには旗を足さない）。</summary>
+    public bool Spectate { get; set; } = Program.Autoplay;
+
+    private void GoToNationSelect() => CurrentPage = new NationSelectViewModel((i, spectate) => { Spectate = spectate; StartGame(i); }, Spectate);
 
     /// <summary>国を選んでからゲーム画面へ。間に「価格を設定中」を挟む（作者指示2026-08-11）。
     /// ★2026-08-15：開始前の助走（数秒）を**裏スレッド**へ移した＝UIスレッドが空くので読み込み画面の点が動く
@@ -31,13 +35,14 @@ public partial class MainWindowViewModel : ViewModelBase
     /// （Dispatcher.UnhandledException が crash.log へ記録する既存経路・Program.cs）＝投げっぱなしのTaskで握り潰さない。</summary>
     private void StartGame(int playerIndex)
     {
+        bool spectate = Spectate;   // 裏スレッドへ渡す前に UI スレッドで確定
         var loading = new LoadingViewModel("価格を設定中");
         CurrentPage = loading;
         _ = Task.Run(() =>
         {
             try
             {
-                var (sim, prices) = BuildWarmedSim(playerIndex);
+                var (sim, prices) = BuildWarmedSim(playerIndex, spectate);
                 Dispatcher.UIThread.Post(() => FinishStart(loading, sim, playerIndex, prices));
             }
             catch (Exception ex)
@@ -74,16 +79,16 @@ public partial class MainWindowViewModel : ViewModelBase
     // ★A2'（2026-09-05・動作改善）：助走済みの世界の**キャッシュ**。起動の約31秒は StartWarmupQuarters=20 の助走（シム定義＝変えない）。
     //   2回目以降は SaveGame（savetest でビット恒等）から読むだけ＝数秒。鍵＝SimCore の MVID（ビルドごとに変わる＝コード/埋め込みデータの変更で自動失効）
     //   ＋playerIndex（プレイヤー国だけ NullAgent＝国ごとに別）＋助走長。書けない/読めないときは従来どおり組む（致命的にしない）。
-    private static string WarmCachePath(int playerIndex)
+    private static string WarmCachePath(int playerIndex, bool spectate)
     {
         var mvid = typeof(MultiNationSim).Assembly.ManifestModule.ModuleVersionId.ToString("N");
-        return System.IO.Path.Combine(GameViewModel.SaveDir, $"warm_{mvid}_{playerIndex}_{new Coefficients().StartWarmupQuarters}.pob");
+        return System.IO.Path.Combine(GameViewModel.SaveDir, SimFactory.WarmCacheFileName(mvid, playerIndex, new Coefficients().StartWarmupQuarters, spectate, Program.Seed));   // 観戦は鍵が別（世界が別物）・種も鍵
     }
     private const string WarmMagic = "POBWARM1";
 
-    private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSim(int playerIndex)
+    private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSim(int playerIndex, bool spectate)
     {
-        string cachePath = WarmCachePath(playerIndex);
+        string cachePath = WarmCachePath(playerIndex, spectate);
         try
         {
             if (System.IO.File.Exists(cachePath))
@@ -109,7 +114,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
         catch (Exception ex) { BootLog.Write($"助走キャッシュ読み込み失敗（従来どおり組む）: {ex.Message}"); }
-        var built = BuildWarmedSimFresh(playerIndex);
+        var built = BuildWarmedSimFresh(playerIndex, spectate);
         try
         {
             System.IO.Directory.CreateDirectory(GameViewModel.SaveDir);
@@ -127,14 +132,10 @@ public partial class MainWindowViewModel : ViewModelBase
         return built;
     }
 
-    private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSimFresh(int playerIndex)
+    private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSimFresh(int playerIndex, bool spectate)
     {
-        NationConfig[] cfgs = WorldData.Nations();
-        var playerCfg = cfgs[playerIndex];
-        // プレイヤー国は NullAgent（介入なし）＝UIが政策を握る。他国は効用AI。
-        var sim = new MultiNationSim(cfgs, 1789UL,
-            cfg => ReferenceEquals(cfg, playerCfg) ? new NullAgent() : new UtilityAgent());
-        sim.Diplomacy.Powers[playerIndex].IsPlayer = true;   // 外交AIも自国を介入しない
+        // プレイヤー国は NullAgent（介入なし）＝UIが政策を握る。他国は効用AI。観戦は全国が効用AIで IsPlayer なし（SimFactory.Make）。
+        var sim = SimFactory.Make(WorldData.Nations(), playerIndex, spectate, Program.Seed);
         var player = sim.Nations[playerIndex].World;
         // ★専売は材を1つも選ばない状態で開始（作者裁定2026-09-20＝率という状態が無い）＝World.StateMonopolyMargins が全て0の既定そのもの。書き込みは不要。
         List<double>[]? hist = null;
@@ -146,7 +147,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // 「盤面が出ている」前提で次の操作へ進むため、裏スレッド化しない（uishot 専用の入口・実プレイヤーは通らない）。
     public void AutoStart(int playerIndex)
     {
-        var (sim, prices) = BuildWarmedSim(playerIndex);
+        var (sim, prices) = BuildWarmedSim(playerIndex, Spectate);
         CurrentPage = Wire(new GameViewModel(sim, playerIndex, prices, GoToTitle, LoadQuick));
     }
     // 同モード：国選択画面そのものを撮るための入口（AutoStart はここを飛ばすので、この画面だけ無人で確認できなかった）。
@@ -180,6 +181,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (CurrentPage is not GameViewModel old) return;
         var sim = old.Sim;
         if (newIndex < 0 || newIndex >= sim.Nations.Count) return;
+        if (old.Spectating) { old.Shutdown(); CurrentPage = Wire(new GameViewModel(sim, newIndex, null, GoToTitle, LoadQuick)); return; }   // 観戦は操作者も IsPlayer も触らず画面だけ付け替える
         int oldIndex = old.PlayerIndex;
         sim.Nations[oldIndex].SetAgent(new UtilityAgent());
         sim.Nations[newIndex].SetAgent(new NullAgent());

@@ -36,9 +36,11 @@ public partial class MapPane : UserControl
         MapHost.PointerPressed += OnPressed;
         MapHost.PointerMoved += OnMoved;
         MapHost.PointerReleased += OnReleased;
+        MapHost.PointerCaptureLost += (_, _) => _panning = false;   // 窓の外で離した・別のアプリへ移った＝離した知らせが来ない。パンが残るとホバーが効かなくなる
         MapHost.SizeChanged += OnHostSizeChanged;
         MapHost.PointerExited += (_, _) => { if (DataContext is ViewModels.GameViewModel vmx && !vmx.HoverPinned) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
         MapHost.Focusable = true;
+        DataContextChanged += (_, _) => _hoverGate.Reset();
         Loaded += OnMapLoaded;
         Unloaded += OnMapUnloaded;
         TryLoadWorldMap();
@@ -66,7 +68,6 @@ public partial class MapPane : UserControl
     private ViewModels.GameViewModel? _vmHooked;   // CenterMap を購読したVM（解放用）
 
     private bool _homed;   // 自国センタリングを一度だけ実行
-    private bool _rehome;  // 外交の地図の欄を開き直した（倍率は今のまま・首都だけ映す）
     private Size? _lastBox;   // 直前の箱の大きさ（大きさが変わったとき中心を保つ）
 
     private void OnMapLoaded(object? sender, RoutedEventArgs e)
@@ -74,13 +75,12 @@ public partial class MapPane : UserControl
         // ツリー構築直後だと Border.Focus() が通らないことがあるので遅延実行。
         Dispatcher.UIThread.Post(() => MapHost.Focus(), DispatcherPriority.Loaded);
         if (_vmHooked is null && DataContext is ViewModels.GameViewModel vm) { _vmHooked = vm; vm.CenterMap += OnCenterMap; }
-        // 外交と戦争のページの地図の欄に載った（ページを開いた）ときは、開くたびに自国の首都を映す（作者の指示 2026-10-23）。単独の枠の地図は最初の 1 回だけ
-        if (this.FindAncestorOfType<Pages.DiplomacyWarPage>() is not null) { _rehome |= _homed; _homed = false; }   // 2 回目以降は倍率を保つ（首都を映すだけ）
         Dispatcher.UIThread.Post(HomeView, DispatcherPriority.Background);   // レイアウト確定後に自国を中央へ
     }
 
     private void OnMapUnloaded(object? sender, RoutedEventArgs e)
     {
+        _panning = false;
         if (_vmHooked is not null) { _vmHooked.CenterMap -= OnCenterMap; _vmHooked = null; }
     }
 
@@ -89,8 +89,7 @@ public partial class MapPane : UserControl
     {
         if (_homed) return;
         if (MapHost.Bounds.Width < 1 || MapHost.Bounds.Height < 1) { Dispatcher.UIThread.Post(HomeView, DispatcherPriority.Background); return; }
-        double s = Math.Clamp(_rehome ? _scale.ScaleX : MinScale() * 2.2, MinScale(), MaxScale);
-        _rehome = false;
+        double s = Math.Clamp(MinScale() * 2.2, MinScale(), MaxScale);
         _scale.ScaleX = _scale.ScaleY = s;
         _fitted = true;
         (DataContext as ViewModels.GameViewModel)?.SetMapFitScale(MinScale());   // 地名の表示閾値をフィット倍率基準に
@@ -110,10 +109,13 @@ public partial class MapPane : UserControl
     //   州と州の境は塗りの境そのもの＝隣へ移れば持ち替え、海・塗られていない陸へ出れば閉じる（旧・○の縁の点滅止めの幅は不要＝境に隙間が無い）。
     private const double ClickSlop = 5.0;   // 押してから離すまでにこれ以内しか動かなければクリック（画面px）＝ドラッグのパンと分ける。値は旧・○のホバーの離脱幅を引き継ぐ
     private Point _pressAt;
+    private readonly ViewModels.PointerMoveGate _hoverGate = new();
 
     private void HoverAt(PointerEventArgs e)
     {
         if (DataContext is not ViewModels.GameViewModel vm || vm.HoverPinned) return;   // ピン留め中は持ち替えない（§7）
+        var host = e.GetPosition(MapHost);
+        if (!_hoverGate.Moved(host.X, host.Y)) return;   // 開始・読み込みの直後はポインタが実際に動くまで窓「州」の首都を上書きしない
         var p = e.GetPosition(MapRoot);   // キャンバス座標（拡縮・移動を織り込む）
         var hover = vm.MapHitAt(p.X, p.Y).Hover;
         if (!ReferenceEquals(vm.MapHover, hover)) vm.MapHover = hover;
@@ -467,6 +469,7 @@ public partial class MapPane : UserControl
 
     private void OnMoved(object? sender, PointerEventArgs e)
     {
+        if (_panning && !e.GetCurrentPoint(MapHost).Properties.IsLeftButtonPressed) _panning = false;   // 押していないのにパン中＝離しを取り逃した
         if (!_panning) { HoverAt(e); return; }   // パン中は持ち替えない（地図が動いているだけ）
         var cur = e.GetPosition(MapHost);
         _translate.X += cur.X - _last.X;

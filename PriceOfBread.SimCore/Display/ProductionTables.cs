@@ -190,19 +190,40 @@ public static class ProductionTables
         return result;
     }
 
+    /// <summary>止まっている工場の棟数（倒産した民営持分の棟数＋休止の割合×稼働中の棟数）。財カードの工場カウンター（<see cref="World.FactoryCounter"/>）と同じ集合・同じ棟数の式で数える
+    /// ＝技術ゲートが閉じた生産者は数えない（カードに棟が立たない財の「止まっている」を問題の一覧に出さない）・棟数は規模から出す（生産者 1 件を 1 棟と数えない）。
+    /// 問題の一覧「倒産と休止」はこの 1 本を読む（2 回目の目の点検 W5）。</summary>
+    public static double StoppedUnits(World w, int goodId)
+    {
+        double stopped = 0;
+        foreach (var r in w.Regions)
+        {
+            foreach (var p in r.Producers)
+            {
+                if (p.GoodId != goodId) continue;
+                if (!(Discovery.Gate(r, p) > ProductionDiag.TechGateClosed)) continue;   // 否定形＝NaN は数えない（FactoryCounter と同じ）
+                int priv = w.PrivateUnitsOf(p);
+                if (p.Bankrupt) { stopped += priv; continue; }   // 倒産中の民営持分はカードの合計に入らない棟＝止まっている棟
+                double moth = p.MothballFrac.Value;
+                if (moth > 0) stopped += moth * (w.StateUnitsOf(p) + priv);
+            }
+        }
+        return stopped;
+    }
+
     /// <summary>財の表の行＝休止でない財（国内に存在しない財は行ごと出さない）。工場生産の群が先・採取（RGO）の群が後・群の中は財の番号順。</summary>
     public static IReadOnlyList<GoodLine> ShownLines(IReadOnlyList<GoodLine> all)
         => all.Where(l => !l.Inactive).OrderBy(l => l.IsFactory ? 0 : 1).ThenBy(l => l.Good).ToList();
 
     private static double NanIf(bool cond, double v) => cond ? double.NaN : v;
 
-    /// <summary>財の表（価格差・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
+    /// <summary>財の表（世界価格比・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
     public static Table<GoodLine> Goods { get; } = new("production.goods", "財の表", Page.Production,
         (sim, w) => ShownLines(AllLines(sim, w, ProductionStats.Collect(w), ProductionDiag.UnavailableGoods(sim, w.Coef))),
         l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<GoodLine>("name", "財名", l => l.Name),
-        Col.Number<GoodLine>("gap", "価格差", Unit.Share, l => l.PriceGap),
+        Col.Number<GoodLine>("gap", "世界価格比", Unit.Share, l => l.PriceGap + 1.0, ink: l => MarketTables.RatioInk(l.PriceGap)),   // 市場の財の値段の表と同じ名・書式・色
         Col.Number<GoodLine>("prod", "生産量", Unit.Quantity, l => l.Prod),
         Col.Number<GoodLine>("exp", "輸出量", Unit.Quantity, l => l.Exp),
         Col.Number<GoodLine>("imp", "輸入量", Unit.Quantity, l => l.Imp),
@@ -264,7 +285,7 @@ public static class ProductionTables
         var law = w.MinimumWage;
         foreach (int id in new[] { Catalog.LaborId, Catalog.FarmLaborId, Catalog.AdvLaborId })
         {
-            double demand = 0, supply = 0, cap = 0, priceW = 0, priceSimple = 0; int nr = 0;
+            double demand = 0, supply = 0, humanSupply = 0, cap = 0, priceW = 0, priceSimple = 0; int nr = 0;
             double floorW = 0, capForFloor = 0, bound = 0;
             bool floorOn = MinimumWageFloor.Applies(law, id);
             foreach (var r in w.Regions)
@@ -274,6 +295,11 @@ public static class ProductionTables
                 demand += m.LastDemand; supply += m.LastProduced; priceW += m.Price * m.LastProduced; priceSimple += m.Price; nr++;
                 double c = MinimumWageFloor.LaborSupply(r, id, out int lp);
                 cap += c;
+                // 供給の列は上限と同じ集合（人力の行・同じ担い手の POP・倒産していない）の実産出で足す＝分子と分母を同じ規則に（供給 ≦ 上限・V7）。
+                //   州の市場の産出（LastProduced）には畜力・蒸気機関などの人力でない行の産出も入るので、そのまま足すと人力の上限を超える。賃金の重みと技師（上限なし）は州の市場の産出のまま。
+                if (id != Catalog.AdvLaborId)
+                    foreach (var sp in r.Producers)
+                        if (sp.GoodId == id && EconomyStep.IsHumanLaborSupply(sp) && !sp.Bankrupt && sp.LaborPopIndex == lp) humanSupply += sp.Output;
                 if (floorOn && c > 1e-9 && lp >= 0)
                 {
                     double f = MinimumWageFloor.PerUnit(r, id, law);
@@ -284,20 +310,19 @@ public static class ProductionTables
             double wage = supply > 1e-9 ? priceW / supply : nr > 0 ? priceSimple / nr : double.NaN;
             double floor = floorOn && capForFloor > 1e-9 ? floorW / capForFloor : double.NaN;
             double boundShare = floorOn && capForFloor > 1e-9 && floorW > 0 ? bound / capForFloor : double.NaN;
-            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, supply, cap, floor, boundShare));
+            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, id == Catalog.AdvLaborId ? supply : humanSupply, id == Catalog.AdvLaborId ? double.NaN : cap,   // 供給の上限は人力の生産者の能力の和（MinimumWageFloor.LaborSupply・同じ POP を共有するレシピを重ねない）＝高度労働力（技師）には人力の上限の概念が無い＝「—」（供給 965・上限 0 と読めた・V7）
+                 floor, boundShare));
         }
         return result;
     }
 
-    /// <summary>労働の表（賃金・需要・供給・能力・最低賃金の床・床の近くの割合）。</summary>
+    /// <summary>労働の表（賃金・需要・供給・供給の上限）。最低賃金の床と床の近くの割合は閾値なので列に出さない（原則 3・B13）。</summary>
     public static Table<LaborLine> Labor { get; } = new("production.labor", "労働の表", Page.Production, LaborLines, l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<LaborLine>("name", "労働名", l => l.Name),
         Col.Number<LaborLine>("wage", "賃金", Unit.PricePerUnit, l => l.Wage),
         Col.Number<LaborLine>("demand", "需要", Unit.Quantity, l => l.Demand),
         Col.Number<LaborLine>("supply", "供給", Unit.Quantity, l => l.Supply),
-        Col.Number<LaborLine>("capacity", "人力の能力", Unit.Quantity, l => l.Capacity),
-        Col.Number<LaborLine>("floor", "賃金の床", Unit.PricePerUnit, l => l.Floor),
-        Col.Number<LaborLine>("bound", "床の近く", Unit.Share, l => l.BoundShare),
+        Col.Number<LaborLine>("capacity", "供給の上限", Unit.Quantity, l => l.Capacity),
     ]);
 }

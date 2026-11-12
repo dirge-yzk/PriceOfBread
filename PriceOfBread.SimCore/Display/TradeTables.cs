@@ -9,9 +9,15 @@ namespace PriceOfBread.SimCore.Display;
 public sealed record TradeLine(int Good, string Name, double Raw, double MonthlyValue, double PriceRatio, double Fraction, string Partner);
 
 /// <summary>貿易の表（輸入・輸出）。旧 App の貿易タブが手で組んでいた行を本体の目録へ移した（設計 §3-3・§7-1 段1）。
-/// 盤面は読むだけ・書かない。額の降順（同額は財の番号順）。額が 0 の財の行は出さない。</summary>
+/// 盤面は読むだけ・書かない。額の降順（同額は財の番号順）。月割で £0 に丸まる小さな財は 1 行の「その他」にまとめて最後に置く（行の和＝総額）。</summary>
 public static class TradeTables
 {
+    /// <summary>行に出す月割の額の下限（これ未満は表示の桁 £0 に丸まる＝「その他」の 1 行にまとめる）。総額は全額のまま（行の和が総額）。</summary>
+    private const double MinMonthlyRow = 0.5;
+
+    /// <summary>「その他」の行の財番号（財の添字と重ならない）。</summary>
+    public const int OtherGood = -1;
+
     private static IReadOnlyList<TradeLine> Lines(MultiNationSim sim, World w, bool exports)
     {
         var result = new List<TradeLine>();
@@ -33,10 +39,18 @@ public static class TradeTables
                 for (int g = 0; g < gc && g < r.Markets.Length; g++) demandByGood[g] += r.Markets[g].LastDemand;
 
         // 相手＝実際に取引した相手の州（二国間交易）。エンジンが財ごとに最大額の相手を記録する。台帳が無い（置換前の経路）時だけ、その財を最も多く出している国で近似する。
+        // 相手の名は国の一覧・外交の表と同じ取り方（PowerLabel）へ揃える。台帳が持つ文字がどの国の名でもなければ（州の名など）そのまま
+        string Label(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return raw;
+            foreach (var p in sim.Diplomacy.Powers)
+                if (p.Name == raw || p.BaseName == raw) return PowerLabel.Of(p, sim.Diplomacy.Wars);
+            return raw;
+        }
         string TopPartner(int g, bool wantExporter)
         {
             var mine = wantExporter ? w.ImportFromByGood : w.ExportToByGood;   // 輸入の相手＝売り手／輸出の相手＝買い手
-            if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return mine[g];
+            if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return Label(mine[g]);
             string best = ""; double bv = 0;
             foreach (var n in sim.Nations)
             {
@@ -45,13 +59,15 @@ public static class TradeTables
                 if (arr is null || g >= arr.Length || !(arr[g] > bv)) continue;
                 bv = arr[g]; best = n.World.SelfPower?.Name ?? n.World.Region.Name;
             }
-            return best;
+            return Label(best);
         }
 
         var src = exports ? eg : ig;
+        double otherRaw = 0;
         for (int g = 0; g < gc; g++)
         {
             if (!(g < src.Length && src[g] > 1e-9)) continue;
+            if (!(src[g] / mpc >= MinMonthlyRow)) { otherRaw += src[g]; continue; }   // 月割で £0 に丸まる行は「その他」へ（下半分を「£0/月」が埋めない・B22）
             double p = g < wp.Count ? Math.Max(wp[g], 1e-9) : 1.0;
             double dom = g < w.Region.Markets.Length ? w.Region.Markets[g].Price : p;   // 自国（首都州）の相場＝世界価格比の分子
             double ratio = p > 1e-9 ? dom / p : double.NaN;
@@ -66,7 +82,9 @@ public static class TradeTables
             }
             result.Add(new TradeLine(g, Catalog.Goods[g].Name, src[g], src[g] / mpc, ratio, fraction, TopPartner(g, !exports)));
         }
-        return result.OrderByDescending(l => l.Raw).ToList();   // 額の降順（安定＝同額は財の番号順）
+        var sorted = result.OrderByDescending(l => l.Raw).ToList();   // 額の降順（安定＝同額は財の番号順）
+        if (otherRaw > 0) sorted.Add(new TradeLine(OtherGood, "その他", otherRaw, otherRaw / mpc, double.NaN, double.NaN, ""));
+        return sorted;
     }
 
     private static Table<TradeLine> Make(string key, string name, bool exports, string fractionName, string partnerName)
@@ -74,7 +92,7 @@ public static class TradeTables
         [
             Col.Text<TradeLine>("name", "財名", l => l.Name),
             Col.Number<TradeLine>("value", "金額", Unit.MoneyPerMonth, l => l.MonthlyValue),
-            Col.Number<TradeLine>("priceRatio", "価格比", Unit.Multiple, l => l.PriceRatio),   // 取引の単価÷標準の値段（旧は金額の後ろの「(×0.34)」）
+            Col.Number<TradeLine>("priceRatio", "世界価格比", Unit.Share, l => l.PriceRatio, ink: l => MarketTables.RatioInk(l.PriceRatio - 1.0)),   // 財の値段の表と同じ名・書式・色（旧は「価格比 ×0.34」）
             Col.Number<TradeLine>("fraction", fractionName, Unit.Share, l => l.Fraction),
             Col.Text<TradeLine>("partner", partnerName, l => l.Partner),
         ]);
@@ -85,7 +103,7 @@ public static class TradeTables
     /// <summary>輸出の表（額の降順・世界シェア・輸出先）。</summary>
     public static Table<TradeLine> Exports { get; } = Make("trade.exports", "輸出", true, "世界シェア", "輸出先");
 
-    /// <summary>清算 1 回分の輸出と輸入の総額（額が 0 の財は足さない＝行に出す財と同じ母集団）。月割は呼び手が <see cref="Coefficients.MonthsPerClearing"/> で割る。</summary>
+    /// <summary>清算 1 回分の輸出と輸入の総額（全額＝台帳と同じ。小さな財は表の「その他」の 1 行に入っている）。月割は呼び手が <see cref="Coefficients.MonthsPerClearing"/> で割る。</summary>
     public static (double Export, double Import) Totals(World w)
     {
         double e = 0, i = 0;

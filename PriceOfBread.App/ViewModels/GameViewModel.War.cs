@@ -27,7 +27,7 @@ public partial class GameViewModel
         var war = FindWarByKey(key);
         if (war is null) return;
         var c = _player.Coef;
-        if (!_sim.Diplomacy.CanOfferPeace(me, war, c, out var reason)) { DeliverNews("⚖", $"調停できない：{reason}", NewsRed, _simDays); return; }
+        if (!_sim.Diplomacy.CanOfferPeace(me, war, c, out var reason)) { DeliverNews("⚖", $"調停できない：{Fmt.Zen(reason)}", NewsRed, _simDays); return; }
         double cost = _sim.Diplomacy.InterventionWillCost(me, war, c);
         ConfirmTitle = "調停の提案";
         ConfirmBody = $"{war.A.Name} と {war.B.Name}\n余剰戦力 {WillPct(cost)} を消費　現在 {WillPct(_player.ExpansionWill)}\n拒まれれば面子＝緊張";
@@ -62,6 +62,7 @@ public partial class GameViewModel
     private sealed class WarTrack
     {
         public int Won0, Lost0;                       // 開戦時の勝敗回数（結果推定のフォールバック）
+        public double StartDay;                       // 開戦の通し日（初めて見た時に経過月から 1 回だけ置く＝交戦中の表と終わった戦争の欄が同じ日を出す。終わった時の経過月は終戦の検知が四半期遅れて数か月ずれた）
         public double LastScore;                      // 直近の戦勝点（自国視点）
         public int LastMonths;                        // 直近の経過月
         public double LastDeadSelf, LastDeadEnemy;    // 直近の戦争別戦死（War.DeadA/DeadB＝兵士＋将校）
@@ -78,15 +79,44 @@ public partial class GameViewModel
     {
         string foe = tr.EnemyName;
         if (won is null)
-            return tr.MeParent ? $"失ったもの:{foe}の州(分断)" : "得たもの:独立(分断)";
+            return tr.MeParent ? $"失ったもの：{foe}の州（分断）" : "得たもの：独立（分断）";
         if (won.Value)
-            return tr.MeParent ? $"得たもの:{foe}の再併合"
-                 : tr.Secession ? "得たもの:独立"
-                 : tr.Demand ? "得たもの:要求の受諾" : "得たもの:政体の転換";
-        return !tr.MeParent ? "失ったもの:国家(再併合)"
-             : tr.Secession ? $"失ったもの:{foe}の独立"
-             : tr.Demand ? "失ったもの:要求の受諾" : "失ったもの:政体";
+            return tr.MeParent ? $"得たもの：{foe}の再併合"
+                 : tr.Secession ? "得たもの：独立"
+                 : tr.Demand ? "得たもの：要求の受諾" : "得たもの：政体の転換";
+        return !tr.MeParent ? "失ったもの：国家（再併合）"
+             : tr.Secession ? $"失ったもの：{foe}の独立"
+             : tr.Demand ? "失ったもの：要求の受諾" : "失ったもの：政体";
     }
+    // 終戦の窓の得失（州・属国化）を読むための前回の Refresh の写し（割譲の構造のある記録が SimCore に無い＝年表の文字列にしか出ない。セーブしない＝ロード後の最初の Refresh で入る）
+    private HashSet<string>? _prevOwnRegionNames;
+    private HashSet<long>? _prevDependentIds;
+    private long _prevSuzerainId = -1;
+
+    /// <summary>終戦の窓の本文（純粋な関数＝試験から呼ぶ）。内戦は <paramref name="civilOutcome"/> を得失の行にする。州・属国化は賠償金の行へ並べる。</summary>
+    public static string WarEndPopupText(string foe, string result, string scorePct, int months, string deadSelf, string? deadFoe, string civSelf, string? civFoe, string cost,
+        string? civilOutcome, bool? won, IReadOnlyList<string> gained, IReadOnlyList<string> lost, bool madeVassal, bool becameVassal)
+    {
+        string head = $"{foe}との戦争が終結した。\n\n"
+            + $"結果：{result}（戦勝点 {scorePct}）　{months}か月\n"
+            + $"戦死　自国 {deadSelf}" + (deadFoe is not null ? $"/相手 {deadFoe}" : "") + "\n"
+            + $"民間人の死　自国 {civSelf}" + (civFoe is not null ? $"/相手 {civFoe}" : "") + "\n"
+            + $"戦費　{cost}\n\n";
+        if (civilOutcome is not null) return Fmt.Zen(head + civilOutcome);
+        var got = new List<string>(); var gone = new List<string>();
+        if (won == true) got.Add("賠償金");
+        else if (won == false) gone.Add("賠償金");
+        if (gained.Count > 0) got.Add($"州　{string.Join("、", gained)}");
+        if (lost.Count > 0) gone.Add($"州　{string.Join("、", lost)}");
+        if (madeVassal) got.Add($"{foe}を属国に");
+        if (becameVassal) gone.Add($"{foe}の属国に");
+        var lines = new List<string>();
+        if (got.Count > 0) lines.Add("得たもの：" + string.Join("、", got));
+        if (gone.Count > 0) lines.Add("失ったもの：" + string.Join("、", gone));
+        if (lines.Count == 0) lines.Add("得たもの：なし（白紙講和）");
+        return Fmt.Zen(head + string.Join("\n", lines));
+    }
+
     private int _warCostStamp = -1;   // 戦費按分の月スタンプ（Refreshは月次以外にも呼ばれる＝二重加算の防止）
     private bool _warSeeded;          // 初回Refresh（新規開始/ロード直後）は戦争タブを自動オープンしない
     // ロード時に復元する戦争UI状態（セーブ末尾の追記ブロック POBWAR2）。旧セーブには無い＝null（新規追跡で再開）。

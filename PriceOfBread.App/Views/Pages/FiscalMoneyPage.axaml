@@ -17,22 +17,13 @@
         <ctl:Section Key="finance" Title="金融" Scrolls="False">
             <ctl:TableView Snapshot="{Binding FinanceTable}" InnerScroll="True"/>
         </ctl:Section>
-        <ctl:Section Key="ledger" Title="{Binding LedgerTitle}" Scrolls="False">
-            <ctl:TableView Snapshot="{Binding LedgerTable}" InnerScroll="True"/>
-        </ctl:Section>
         <ctl:Section Key="debt" Title="国債と外資信用">
             <StackPanel Spacing="4">
                 <ctl:TableView Snapshot="{Binding DebtTable}"/>
                 <TextBlock Text="国庫" Classes="range" Margin="0,6,0,0"/>
-                <ctl:LineChart x:Name="TreasuryChart" PinKey="chart.treasury" PinName="国庫" PinPage="FiscalMoney" Values="{Binding TreasuryValues}" Height="56" Stroke="{StaticResource BlueBrush}"/>
+                <ctl:LineChart x:Name="TreasuryChart" Values="{Binding TreasuryValues}" Height="56" Stroke="{StaticResource BlueBrush}"/>
                 <TextBlock Text="国債" Classes="range"/>
-                <ctl:LineChart x:Name="DebtChart" PinKey="chart.govdebt" PinName="国債" PinPage="FiscalMoney" Values="{Binding GovDebtValues}" Height="56" Stroke="{StaticResource RustBrush}"/>
-            </StackPanel>
-        </ctl:Section>
-        <ctl:Section Key="tech" Title="技術水準">
-            <StackPanel Spacing="4">
-                <TextBlock Text="{Binding TechLevelText}" Classes="range"/>
-                <ctl:LineChart x:Name="TechChart" PinKey="chart.tech" PinName="技術水準" PinPage="FiscalMoney" Values="{Binding TechValues}" Height="56" Stroke="{StaticResource BronzeBrush}"/>
+                <ctl:LineChart x:Name="DebtChart" Values="{Binding GovDebtValues}" Height="56" Stroke="{StaticResource RustBrush}"/>
             </StackPanel>
         </ctl:Section>
     </ctl:PageGrid>

@@ -1,0 +1,20 @@
+m1062 事前登録 (1062) c101uf  枝 uifix a7d854dd3 を基線 9b18137a2 へ入れる恒等の線
+[1] 恒等の線・予言 0。挙動を変えない。浮動小数の順序が変わる箇所は無い（SimCore は Display の外に差分 0 の予言）。
+[2] 差分 git diff 9b18137a2...a7d854dd3 = 110 ファイル。App 約76・SimCore/Display 15・Tests 17・docs。
+    予言: SimCore の Display の外・Runner・scripts・Instruments*.cs の差分 0。docs 以外で外のファイルが出たら名乗る。
+    消す物は無い。名前の変更: Display/FiscalCatalog.cs:30 の行の名 年金 -> 年金の給付。
+    読み手の grep（Runner・Instruments*.cs・scripts/instruments・measurements の .py/.sh）: 行の名としての 年金 の読み手 0
+    （Runner/Program.cs:5762 は年齢の式の別件、Instruments*.cs の年金は注・変数名、scripts の年金は注・ラベル）。
+    他の線との重なり: App と Display に触れるのは uf だけ。Coefficients.cs・Instruments.cs・DormantIdentityTests.cs・WriterRatchetTests.cs は触れない予言。
+[3] 足す試験は無い（枝の積みを入れるだけ）。㉘ 走査の番人（IndustrializationReaderTests/UnitTypeTests/InstrumentsTests/WriterRatchetTests/DormantIdentityTests）は
+    merge 直後に回す。書き換える件数の予言 0（㉑）。枝の側が既に書き換えた Tests 17 ファイルは枝の差分として名乗る。
+    テストの数の予言: 基線 2689（非 Full）+ FullLength 3 = 2692。枝の作者の測定 2704（合格 2703・失敗 1 は a7d854dd3 で直済）。差 +12 を --list-tests で突き合わせる。
+[4] 素の 5 種・計器つき 10 種は m1053 と名乗り行を除いて全行一致の予言。t 腕の期待の数は --tests-delta で宣言（実測の差）。
+[5] 判定: 恒等 なら採る（測った種で一致）。赤（画面や表示の試験・ビルド・素の5種の不一致）なら赤の一覧を書いて止め、画面のコードは直さない。
+既知の崩れ（直さない）: 世界価格比の列の式が2つ・終戦の窓の州の帰属・緊張の窓の切り落とし・人の数の小数。
+
+[結果 追記] 判定: 恒等（測った種で一致）。素の 5 種 181 行・計器つき 10 種 182 行・計器の表 1327 本（バイト一致 1307・既知の揺れ 20）・注視 4628 行が m1053 と一致。推定 230.0／227.6 秒。
+ ㉘ 133 件緑。フルスイート Category!=FullLength 2739（合格 2738・スキップ 1・失敗 0）、FullLength 3 緑、savetest・leakhunt 合格。
+ 予言の外れ（正直に）：テストの数の予言は +12（作者の 2704 は古い基線上の数）だったが、実測は 2689→2739 で +50（--tests-delta 50 を宣言）。--list-tests は 2742＝2739+3 で一致。
+ 差分は App・Display・Tests・docs のみ（docs の 1 ファイルの名前は引用符つきの日本語名）。Runner・SimCore の Display の外は 0。行の名 年金 の読み手は 0。
+ 行末: 新たに化けた物なし（NationSelectViewModel.cs は元から i/crlf）。

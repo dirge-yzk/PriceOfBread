@@ -21,7 +21,7 @@ public static class ProblemScan
         ProblemKind.Bankruptcy => "倒産と休止",
         ProblemKind.RegionHunger => "州の飢え",
         ProblemKind.Unemployment => "失業",
-        ProblemKind.Discontent => "不満と闘争",
+        ProblemKind.Discontent => "闘争に加わる人数",
         ProblemKind.Deficit => "赤字と支払い",
         ProblemKind.War => "戦況",
         ProblemKind.Faction => "反乱勢力",
@@ -74,47 +74,42 @@ public static class ProblemScan
             .ToList();
     }
 
-    // 財の不足＝満たせなかった需要の額（前期の不足の量 × 自国の首都の値段）。財の値段の表と同じ行・同じ値から作る。
+    // 財の不足＝必要量（前期の総需要）に対して満たせなかった割合（2026-11-11 作者指示：額では程度が分からない）。財の値段の表と同じ行・同じ値から作る。
     private static void Shortage(MultiNationSim sim, World w, List<ProblemItem> o)
     {
+        var unavailable = ProductionDiag.UnavailableGoods(sim, w.Coef);   // まだ世界のどこにも作れない財（技術が無い）は不足に並べない
         foreach (var l in MarketTables.Lines(sim, w))
         {
-            if (!(l.Shortage > 0) || !(l.Domestic > 0)) continue;   // 否定形＝NaN も落とす
-            o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, l.Shortage * l.Domestic, Unit.MoneyPerMonth, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
+            if (l.Good >= 0 && l.Good < unavailable.Length && unavailable[l.Good]) continue;
+            if (!(l.Shortage > 0) || !(l.Demand > 0)) continue;   // 否定形＝NaN も落とす
+            o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, Math.Min(1.0, l.Shortage / l.Demand), Unit.Share, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
         }
     }
 
-    // 倒産と休止＝止まった工場の数（倒産は 1 棟・休止は止めている割合）。財ごとに自国の全州を足す。
+    // 倒産と休止＝止まった工場の棟数。財ごとに自国の全州を足す。数え方は財カードの工場カウンターと同じ 1 本（ProductionTables.StoppedUnits）。
     private static void Bankruptcy(World w, List<ProblemItem> o)
     {
         int n = Catalog.Goods.Length;
-        var stopped = new double[n];
-        foreach (var rg in w.Regions)
-        {
-            foreach (var p in rg.Producers)
-            {
-                int g = p.GoodId;
-                if (g < 0 || g >= n || Catalog.Goods[g].Tier == GoodTier.Service) continue;
-                if (p.Bankrupt) stopped[g] += 1.0;
-                else if (p.MothballFrac.Value > 0) stopped[g] += p.MothballFrac.Value;
-            }
-        }
         for (int g = 0; g < n; g++)
-            if (stopped[g] > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped[g], Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
+        {
+            if (Catalog.Goods[g].Tier == GoodTier.Service) continue;
+            double stopped = ProductionTables.StoppedUnits(w, g);
+            if (stopped > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped, Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
+        }
     }
 
-    // 州の飢え＝主食の不足の人数（人口 × (1 − 主食の充足)）。州の表と同じ行。
+    // 州の飢え＝必要量に対する主食の不足の割合（1 − 主食の充足・2026-11-11 作者指示）。州の表と同じ行。
     private static void Hunger(World w, List<ProblemItem> o)
     {
         foreach (var l in PopTables.RegionLines(w))
         {
-            double short_ = l.Population * (1.0 - l.FoodFill);
-            if (!(short_ > 0)) continue;
-            o.Add(new ProblemItem(ProblemKind.RegionHunger, "hunger|" + l.Name, l.Name, short_, Unit.People, Page.Population, "pop.regions", l.Name));
+            double short_ = 1.0 - l.FoodFill;
+            if (!(short_ > 0) || !(l.Population > 0)) continue;
+            o.Add(new ProblemItem(ProblemKind.RegionHunger, "hunger|" + l.Name, l.Name, Math.Min(1.0, short_), Unit.Share, Page.Population, "pop.regions", l.Name));
         }
     }
 
-    // 失業＝失業者の数（階級ごと）／不満と闘争＝闘争度 × 人数（階級ごと）。階級の表と同じ行（兵士の〈失業〉は給与の未払い＝失業に数えない規則も表の側）。
+    // 失業＝失業者の数（階級ごと）／闘争に加わる人数＝闘争度 × 人数（階級ごと）。階級の表と同じ行（兵士の〈失業〉は給与の未払い＝失業に数えない規則も表の側）。
     private static void Classes(World w, List<ProblemItem> o)
     {
         foreach (var l in PopTables.ClassLines(w))
@@ -150,14 +145,22 @@ public static class ProblemScan
             if (!meIsA && war.B != me) continue;
             var enemy = meIsA ? war.B : war.A;
             double sc = meIsA ? war.Score : -war.Score;
-            if (sc < 0) o.Add(new ProblemItem(ProblemKind.War, "war|" + enemy.Id, SecessionNames.WarName(enemy, sim.Diplomacy.Wars), -sc, Unit.Share, Page.DiplomacyWar, "", "", "war"));
+            if (sc < 0) o.Add(new ProblemItem(ProblemKind.War, "war|" + enemy.Id, PowerLabel.Of(enemy, sim.Diplomacy.Wars), -sc, Unit.Share, Page.DiplomacyWar, "", "", "war"));
         }
+    }
+
+    /// <summary>いま自国の州に本拠のある反乱勢力（表示用の 1 本）。World.Factions は州を手放した後も勢力を持ち続ける（シミュの側に残る）ので、本拠の州が自国の州に無い勢力は出さない。</summary>
+    public static List<FactionState> LiveFactions(World w)
+    {
+        var o = new List<FactionState>();
+        foreach (var f in w.Factions) if (w.Regions.Contains(f.Region)) o.Add(f);
+        return o;
     }
 
     // 反乱勢力＝勢力の強さ（エンジンの勢力の強さの式 1 本）。永続の勢力があるときだけ（無い間のスナップショットは強さを持たない）。
     private static void Factions(World w, List<ProblemItem> o)
     {
-        foreach (var f in w.Factions)
+        foreach (var f in LiveFactions(w))
         {
             string name = PriceOfBread.SimCore.Factions.DisplayName(f);
             double strength = Politics.FactionStrength(w, w.Coef, f);

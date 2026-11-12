@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace PriceOfBread.App.Controls;
 
@@ -47,6 +48,17 @@ public static class PagePlan
 
     public static double MinHeight(SectionSpec s) => HeaderHeight + Math.Max(0, s.MinRows) * RowHeight;
 
+    /// <summary>最小の高さ。中身の高さの上限（<paramref name="caps"/>）が小さい欄は、その上限まで（中身より高く確保せず・最後の行も切らない・A10・A11）。</summary>
+    private static double MinHeight(SectionSpec s, IReadOnlyDictionary<string, double>? caps, IReadOnlyDictionary<string, double>? chrome = null)
+    {
+        double min = MinHeight(s);
+        if (caps is null || !caps.TryGetValue(s.Key, out double cap)) return min;
+        // 中身が最小の高さに近い（全部の行が収まる）なら中身の全部を最小にする＝最後の行が半分に切れない（A11）。
+        // 中身が多い欄は最小の行数のまま（表の見出しと絞り込みの欄の分だけ足す＝最小の行数はデータの行数）
+        if (cap <= min + 3 * RowHeight) return Math.Max(HeaderHeight, cap);
+        return chrome is not null && chrome.TryGetValue(s.Key, out double ch) ? min + ch : min;
+    }
+
     /// <summary>欄を <paramref name="columns"/> 列へ置く。表に無い鍵・重複は例外（宣言の間違いは起動時に落とす）。</summary>
     public static IReadOnlyList<IReadOnlyList<SectionSpec>> Arrange(PageTable t, int columns)
     {
@@ -69,15 +81,20 @@ public static class PagePlan
     }
 
     /// <summary>1 つの列の割り当て。<paramref name="height"/> が無限大なら畳まず、最小の高さのまま。</summary>
-    public static IReadOnlyList<SectionPlace> PlanColumn(IReadOnlyList<SectionSpec> column, double height, ISet<string>? userOpened = null, ISet<string>? userClosed = null)
+    /// <param name="empty">中身が空の欄（0 行の表・「なし」だけの欄）。利用者が開いていなければ最初から見出しの 1 行へ畳む。</param>
+    /// <param name="chrome">表の見出し・絞り込みの欄の高さ（最小の行数に足す＝データの行が最低でも最小の行数だけ見える）。</param>
+    /// <param name="caps">欄ごとの高さの上限（中身に合わせる。見出しを含む）。余りの高さをこの上限を超えて分けない（超えた分は他の欄へ回し、全部が上限なら空ける）。</param>
+    public static IReadOnlyList<SectionPlace> PlanColumn(IReadOnlyList<SectionSpec> column, double height, ISet<string>? userOpened = null, ISet<string>? userClosed = null,
+                                                         ISet<string>? empty = null, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null)
     {
         int n = column.Count;
         var collapsed = new bool[n];
-        for (int i = 0; i < n; i++) if (userClosed?.Contains(column[i].Key) == true) collapsed[i] = true;
+        for (int i = 0; i < n; i++)
+            if (userClosed?.Contains(column[i].Key) == true || (empty?.Contains(column[i].Key) == true && userOpened?.Contains(column[i].Key) != true)) collapsed[i] = true;
         double Need()
         {
             double sum = Math.Max(0, n - 1) * SectionGap;
-            for (int i = 0; i < n; i++) sum += collapsed[i] ? HeaderHeight : MinHeight(column[i]);
+            for (int i = 0; i < n; i++) sum += collapsed[i] ? HeaderHeight : MinHeight(column[i], caps, chrome);
             return sum;
         }
         if (!double.IsPositiveInfinity(height))
@@ -99,21 +116,58 @@ public static class PagePlan
             }
         }
         double spare = double.IsPositiveInfinity(height) ? 0 : Math.Max(0, height - Need());
-        double weights = 0;
-        for (int i = 0; i < n; i++) if (!collapsed[i]) weights += Math.Max(0, column[i].Weight);
         double over = double.IsPositiveInfinity(height) ? 0 : Math.Max(0, Need() - height);   // 開いている欄が 1 つになってもまだ入らない分（その欄を狭める）
+        // 余りの高さを重みの比で分ける。上限（caps）に届いた欄はそこで止め、残りを他の欄へ回す
+        var extra = new double[n];
+        var capped = new bool[n];
+        for (int round = 0; round < n && spare > 1e-9; round++)
+        {
+            double weights = 0;
+            for (int i = 0; i < n; i++) if (!collapsed[i] && !capped[i]) weights += Math.Max(0, column[i].Weight);
+            if (!(weights > 0)) break;
+            double given = 0; bool any = false;
+            for (int i = 0; i < n; i++)
+            {
+                if (collapsed[i] || capped[i]) continue;
+                double want = spare * Math.Max(0, column[i].Weight) / weights;
+                double room = caps is not null && caps.TryGetValue(column[i].Key, out double cap) ? Math.Max(0, cap - MinHeight(column[i], caps, chrome) - extra[i]) : double.PositiveInfinity;
+                if (want > room) { extra[i] += room; given += room; capped[i] = true; any = true; }
+                else { extra[i] += want; given += want; }
+            }
+            spare -= given;
+            if (!any) break;
+        }
         var result = new List<SectionPlace>(n);
         for (int i = 0; i < n; i++)
         {
-            double h = collapsed[i] ? HeaderHeight : Math.Max(HeaderHeight, MinHeight(column[i]) + (weights > 0 ? spare * Math.Max(0, column[i].Weight) / weights : 0) - over);
+            double h = collapsed[i] ? HeaderHeight : Math.Max(HeaderHeight, MinHeight(column[i], caps, chrome) + extra[i] - over);
             result.Add(new SectionPlace(column[i].Key, collapsed[i], h));
         }
         return result;
     }
 
+    /// <summary>畳んだ欄だけの列（開いた欄が 1 つも無い列）の幅。見出しが読める幅に狭める＝空いた幅を開いた欄のある列へ回す（V13）。</summary>
+    public const double CollapsedColumnWidth = 220;
+
+    /// <summary>列ごとの幅。畳んだ欄だけの列は <see cref="CollapsedColumnWidth"/>（均等割りより狭い時だけ）・残りの幅を開いた欄のある列で均等に分ける。全部が畳みか全部が開きなら均等割り。</summary>
+    public static double[] ColumnWidths(IReadOnlyList<IReadOnlyList<SectionPlace>> plan, double width)
+    {
+        int n = plan.Count;
+        var result = new double[n];
+        if (n == 0) return result;
+        double avail = Math.Max(0, width - ColumnGap * (n - 1)), even = avail / n;
+        var shut = plan.Select(c => c.Count > 0 && c.All(p => p.Collapsed)).ToArray();
+        int open = shut.Count(x => !x);
+        if (open == 0 || open == n) { Array.Fill(result, even); return result; }
+        double narrow = Math.Min(CollapsedColumnWidth, even), rest = (avail - narrow * (n - open)) / open;
+        for (int i = 0; i < n; i++) result[i] = shut[i] ? narrow : rest;
+        return result;
+    }
+
     /// <summary>ページ全体の割り当て。</summary>
-    public static IReadOnlyList<IReadOnlyList<SectionPlace>> Plan(PageTable t, double width, double height, ISet<string>? userOpened = null, ISet<string>? userClosed = null)
-        => Arrange(t, ColumnCount(width, t)).Select(c => PlanColumn(c, height, userOpened, userClosed)).ToList();
+    public static IReadOnlyList<IReadOnlyList<SectionPlace>> Plan(PageTable t, double width, double height, ISet<string>? userOpened = null, ISet<string>? userClosed = null,
+                                                                  ISet<string>? empty = null, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null)
+        => Arrange(t, ColumnCount(width, t)).Select(c => PlanColumn(c, height, userOpened, userClosed, empty, caps, chrome)).ToList();
 }
 
 /// <summary>ページの欄 1 つ＝見出しの 1 行（名前・開閉の印）と、その下の中身（<see cref="Body"/>）。中身は欄の中だけで縦に流れる（ページの外側は流れない）。見出しを押すと開閉する。
@@ -134,7 +188,19 @@ public sealed class Section : Border
 
     /// <summary>欄の中身（XAML では子として書く）。</summary>
     [Avalonia.Metadata.Content]
-    public Control? Body { get => _inner.Content as Control; set => _inner.Content = value; }
+    public Control? Body
+    {
+        get => _inner.Content as Control;
+        set
+        {
+            if (_inner.Content is TableView old) old.SnapshotChanged -= OnBodyTableChanged;
+            _inner.Content = value;
+            if (value is TableView tv) tv.SnapshotChanged += OnBodyTableChanged;
+        }
+    }
+
+    /// <summary>表の中身が入れ替わった（0 行↔行あり）。欄の空と高さの上限が変わるので、並べ直す（中の流れが大きさの変化を吸うため、親の測り直しが届かない）。</summary>
+    private void OnBodyTableChanged() => (Parent as PageGrid)?.InvalidateMeasure();
 
     /// <summary>見出しを押した。</summary>
     public event Action<Section>? HeaderPressed;
@@ -172,6 +238,25 @@ public sealed class Section : Border
         ClipToBounds = true;
     }
 
+    /// <summary>中身が空か（A10）。表の欄＝全ての表が 0 行・それ以外＝見えている「…なし」の薄い文字がある。空の欄は <see cref="PageGrid"/> が見出しの 1 行へ畳む。</summary>
+    public bool IsEmptyContent()
+    {
+        if (Body is null) return false;
+        if (Body is TableView tv0) return tv0.Snapshot is { } sn0 && sn0.Rows.Count == 0 && sn0.Columns.Count > 0;
+        if (Body.DataContext is null) return false;   // 畳まれて一度も開かれていない欄の中身は結線がまだ生きていない（「なし」の文字の IsVisible が既定の真のまま）＝空とは判定しない。開いて結線が生きてから判定し直す（V13）
+        bool hasTable = false, allEmpty = true;
+        foreach (var d in Body.GetVisualDescendants())
+        {
+            if (d is TableView tv) { hasTable = true; if (!(tv.Snapshot is { } sn && sn.Rows.Count == 0 && sn.Columns.Count > 0)) allEmpty = false; }
+            else if (d is TextBlock { IsVisible: true, Text: { } t } && t.EndsWith("なし", StringComparison.Ordinal) && d.Classes.Contains("dim")) return true;   // 欄が畳まれて親が隠れても見える（IsEffectivelyVisible だと畳む↔開くを繰り返す）
+        }
+        return hasTable && allEmpty;
+    }
+
+    /// <summary>中身に合わせた高さの上限（見出しを含む・A10）。表だけを入れる欄（中身が表）にだけ付ける。他は null＝上限なし。</summary>
+    public double? ContentHeightCap()
+        => Body is TableView tv ? PagePlan.HeaderHeight + 1 + 10 + tv.EstimatedHeight() : null;
+
     private void MountBody()
     {
         _scroll.Content = null; _body.Child = null;   // 中身の入れ物は同時に 1 か所にしか置けない
@@ -207,6 +292,34 @@ public sealed class PageGrid : Panel
         AffectsMeasure<PageGrid>(TableProperty);
     }
 
+    /// <summary>画面に付いた直後にもう一度測る（欄の中の表がまだ中身を持たないうちに最初の測りが済み、空の欄を見落とすことがある・A10）。</summary>
+    protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateMeasure, Avalonia.Threading.DispatcherPriority.Loaded);
+        // 欄の中身が後から入る（畳まれた欄の結線は開くまで生きない）＝空の欄の集合が変わったら測り直す。変わらなければ何もしない（V13）
+        _emptyTimer ??= new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _emptyTimer.Tick -= OnEmptyTick; _emptyTimer.Tick += OnEmptyTick;
+        _emptyTimer.Start();
+    }
+
+    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        _emptyTimer?.Stop();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private Avalonia.Threading.DispatcherTimer? _emptyTimer;
+    private string _emptyKey = "";
+    private string EmptyKey() => string.Join(",", Children.OfType<Section>().Where(x => x.IsEmptyContent()).Select(x => x.Key));
+    private void OnEmptyTick(object? sender, EventArgs e)
+    {
+        string key = EmptyKey();
+        if (key == _emptyKey) return;
+        _emptyKey = key;
+        InvalidateMeasure();
+    }
+
     protected override void ChildrenChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         base.ChildrenChanged(sender, e);
@@ -216,7 +329,7 @@ public sealed class PageGrid : Panel
     /// <summary>欄を開く（問題の一覧とピン留めの飛び先が畳まれていたとき）。見出しを押して開いたのと同じ扱い（代わりに順位の一番低い開いた欄が畳まれる）。</summary>
     public void Reveal(string sectionKey)
     {
-        _userClosed.Remove(sectionKey); _userOpened.Add(sectionKey);
+        OpenByUser(sectionKey);
         InvalidateMeasure();
         UserStateChanged?.Invoke();
     }
@@ -235,9 +348,18 @@ public sealed class PageGrid : Panel
         InvalidateMeasure();
     }
 
+    /// <summary>利用者が開いた＝この欄を一番最後に畳む。前に開いた欄は「開いた」の印を外す（高さが足りなければ先に畳まれる側へ回す）。
+    /// 印を残すと、窓が狭いとき前に開いた欄どうしで順位の低い欄（いま開いた欄）が畳まれ、押しても開かなかった（2026-11-11 作者指摘）。</summary>
+    private void OpenByUser(string key)
+    {
+        _userClosed.Remove(key);
+        _userOpened.Clear();
+        _userOpened.Add(key);
+    }
+
     private void OnHeader(Section s)
     {
-        if (s.IsCollapsed) { _userClosed.Remove(s.Key); _userOpened.Add(s.Key); }
+        if (s.IsCollapsed) OpenByUser(s.Key);
         else { _userOpened.Remove(s.Key); _userClosed.Add(s.Key); }
         InvalidateMeasure();
         UserStateChanged?.Invoke();
@@ -248,14 +370,25 @@ public sealed class PageGrid : Panel
         if (Table is not { } t) { foreach (var c in Children) c.Measure(available); return default; }
         double w = double.IsPositiveInfinity(available.Width) ? 1200 : available.Width;
         double h = available.Height;
-        var plan = PagePlan.Plan(t, w, h, _userOpened, _userClosed);
+        var sectionsNow = Children.OfType<Section>().ToList();
+        var empty = new HashSet<string>(sectionsNow.Where(s0 => s0.IsEmptyContent()).Select(s0 => s0.Key));
+        var caps = new Dictionary<string, double>();
+        var chrome = new Dictionary<string, double>();
+        foreach (var s0 in sectionsNow)
+        {
+            if (s0.ContentHeightCap() is double cap) caps[s0.Key] = cap;
+            if (s0.Body is TableView tv) chrome[s0.Key] = tv.ChromeHeight();
+        }
+        _emptyKey = EmptyKey();
+        var plan = PagePlan.Plan(t, w, h, _userOpened, _userClosed, empty, caps, chrome);
         _lastPlan = plan;
         int cols = plan.Count;
-        double colW = (w - PagePlan.ColumnGap * (cols - 1)) / cols;
+        var colWs = PagePlan.ColumnWidths(plan, w);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
-        double used = 0;
+        double used = 0; int ci = 0;
         foreach (var col in plan)
         {
+            double colW = colWs[ci++];
             double y = 0;
             foreach (var p in col)
             {
@@ -276,14 +409,16 @@ public sealed class PageGrid : Panel
     {
         if (Table is not { } t || _lastPlan is not { } plan) { foreach (var c in Children) c.Arrange(new Rect(finalSize)); return finalSize; }
         int cols = plan.Count;
-        double colW = (finalSize.Width - PagePlan.ColumnGap * (cols - 1)) / cols;
+        var colWs = PagePlan.ColumnWidths(plan, finalSize.Width);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
+        double x = 0;
         for (int i = 0; i < cols; i++)
         {
-            double y = 0;
+            double y = 0, colW = colWs[i], x0 = x;
+            x += colW + PagePlan.ColumnGap;
             foreach (var p in plan[i])
             {
-                if (sections.TryGetValue(p.Key, out var s)) s.Arrange(new Rect(i * (colW + PagePlan.ColumnGap), y, colW, p.Height));
+                if (sections.TryGetValue(p.Key, out var s)) s.Arrange(new Rect(x0, y, colW, p.Height));
                 y += p.Height + PagePlan.SectionGap;
             }
         }

@@ -57,12 +57,11 @@ public partial class ProductionPage : UserControl
     }
 
     private GameViewModel? _vm;
-    private (bool Wide, bool Equipment, bool Full)? _applied;   // 今の並べ（広い・設備の欄を出すか・全面か）
-    private PriceOfBread.App.Layout.LayoutModel? _layout;   // 全面の入り切りを聞く配置（解放用）
+    private (bool Wide, bool Equipment, bool Full)? _applied;   // 今の並べ（広い・設備の欄を出すか・盤を主にした並べか）
 
-    /// <summary>全面のとき、右の列（財の表ほか）の固定の幅。旧の生産タブの右パネルは 530 だったが、左右の縁の釦・枠・欄の縁の分（約 60）が盤の視野を削るので、
+    /// <summary>盤を主にした並びのとき、右の列（財の表ほか）の固定の幅。旧の生産タブの右パネルは 530 だったが、左右の縁の釦・枠・欄の縁の分（約 60）が盤の視野を削るので、
     /// 盤の視野が旧と同じ約 1380（1 行 6 枚）になるようその分を引いた（530 のままでは視野 1306＝5 枚だった）。</summary>
-    public const double FullSideWidth = 440;
+    public const double FullSideWidth = 500;   // 440 では財の表の右端の見出し（国営・民営）が切れた（V19）
 
     public ProductionPage()
     {
@@ -85,11 +84,8 @@ public partial class ProductionPage : UserControl
     private void AttachVm()
     {
         if (_vm is not null) _vm.PropertyChanged -= OnVmChanged;
-        if (_layout is not null) _layout.Changed -= ApplyLayout;
         _vm = DataContext as GameViewModel;
-        _layout = _vm?.Layout;
         if (_vm is not null) _vm.PropertyChanged += OnVmChanged;
-        if (_layout is not null) _layout.Changed += ApplyLayout;
         ApplyLayout();
         FeedViewport();
     }
@@ -104,7 +100,7 @@ public partial class ProductionPage : UserControl
     {
         bool wide = PageRoot.Bounds.Width >= WideWidth;
         bool equipment = _vm?.ProdEquipmentOn ?? true;
-        bool full = wide && (_layout?.IsFull ?? false);   // 全面（Q）のときだけ盤を主にした並べ
+        bool full = wide;   // 生産は中央いっぱいに出る（2026-11-04 に分割を廃止）＝広ければ盤を主にした並べ
         if (_applied == (wide, equipment, full)) return;   // 同じ形なら置き直さない（幅が少し動くたびに並べの表を付け直して測り直しを連鎖させない）
         _applied = (wide, equipment, full);
         var sideSections = new Control[] { GoodsSection, DetailSection, RegionsSection, LaborSection, EquipSection };

@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace PriceOfBread.App.Views;
 
-// Views/MainWindow.UiShotS6.cs ＝ --uishot の段 6（2026-10-23・作者の指示）：生産の全面（Q）と戻り・年表の 3 つの絞り・外交と戦争の地図の欄の首都・流した表。
-// 数字は BootLog（外側の流れ・表の列の左端は LogOuterFlow が数える）。キーは打てないので、キーの処理が呼ぶ口（OpenSlotByKey・HandleEscape）をそのまま呼ぶ。
+// Views/MainWindow.UiShotS6.cs ＝ --uishot の段 6（2026-10-23・作者の指示）：生産と地図の Tab 切り替え・戻り・年表の 3 つの絞り・外交と戦争の地図の欄の首都・流した表。
+// 数字は BootLog（外側の流れ・表の列の左端は LogOuterFlow が数える）。キーは打てないので、キーの処理が呼ぶ口（ToggleProductionMap・OpenSlotCommand・HandleEscape）をそのまま呼ぶ。
 public partial class MainWindow
 {
     private async Task ShootS6(string dir, GameViewModel gvm, GameView gameView, Func<int> no)
@@ -19,48 +19,43 @@ public partial class MainWindow
         var lay = gvm.Layout;
         try
         {
-            // ---- 生産の全面（Q）：既定の配置から Q → 全面（1 枚・左右の列を畳む）→ もう一度 Q → 前の配置 ----
-            lay.Reset(); lay.SetColumns(true, true);
+            // ---- Tab：地図（背景）⇄ 生産。Esc・同じページのキーで地図へ戻る ----
+            lay.Reset();
             await Task.Delay(900);
-            string Now() => $"形 {lay.Shape}・席 {string.Join(",", lay.Seats)}・選択 {lay.Selected}・左{(lay.LeftOpen ? "開" : "閉")}右{(lay.RightOpen ? "開" : "閉")}・全面 {lay.IsFull}";
-            string before = Now();
-            Capture(dir, $"{no():D2}_S6_配置_既定.png");
-            gvm.OpenSlotByKey(Slot.Production, false);   // Q
+            string Now() => $"背景 {lay.Background}・窓 [{string.Join(",", lay.OpenWindows)}]・左{(lay.LeftOpen ? "開" : "閉")}";
+            Capture(dir, $"{no():D2}_S6_起動_地図.png");
+            BootLog.Write($"uishot: 起動 {Now()}（地図から始まる）");
+            gvm.ToggleProductionMap();   // Tab
             await Task.Delay(1800);
-            BootLog.Write($"uishot: 生産の全面[Q] {Now()}");
-            Capture(dir, $"{no():D2}_S6_生産_全面.png");
-            LogOuterFlow(gameView, "生産の全面");
-            ReportProductionBoard(gameView, gvm, "全面");
+            BootLog.Write($"uishot: 生産[Tab] {Now()}");
+            Capture(dir, $"{no():D2}_S6_生産.png");
+            LogOuterFlow(gameView, "生産");
+            ReportProductionBoard(gameView, gvm, "生産");
             gvm.SelectProdGood(Catalog.SteelId);
             await Task.Delay(1000);
-            Capture(dir, $"{no():D2}_S6_生産_全面_財を選んだ.png");
-            LogOuterFlow(gameView, "生産の全面・財を選んだ");
+            Capture(dir, $"{no():D2}_S6_生産_財を選んだ.png");
+            LogOuterFlow(gameView, "生産・財を選んだ");
             gvm.SelectProdGood(Catalog.SteelId);   // 同じ財をもう一度＝選び直しで外す
             await Task.Delay(300);
-            gvm.OpenSlotByKey(Slot.Production, false);   // もう一度 Q
+            gvm.ToggleProductionMap();   // もう一度 Tab
             await Task.Delay(1200);
-            BootLog.Write($"uishot: 生産の全面[もう一度Q] {Now()}　前の配置と{(Now() == before ? "一致" : "不一致（前 " + before + "）")}");
-            Capture(dir, $"{no():D2}_S6_生産_戻り.png");
-            LogOuterFlow(gameView, "全面から戻った配置");
+            BootLog.Write($"uishot: 生産[もう一度Tab] {Now()}（地図へ戻る）");
+            Capture(dir, $"{no():D2}_S6_地図へ戻った.png");
 
-            // Esc で戻る・別のキー（市場）で戻って市場が開く・分割の見出しから生産を選ぶと全面にならない
-            gvm.OpenSlotByKey(Slot.Production, false); await Task.Delay(700);
+            // Esc で地図へ戻る（メニューは開かない）・もう一度 Esc でメニュー・別のキー（市場）で開いて同じキーで戻る
+            gvm.ToggleProductionMap(); await Task.Delay(700);
             gvm.HandleEscape(); await Task.Delay(500);
-            BootLog.Write($"uishot: 生産の全面[Esc] {Now()}　前の配置と{(Now() == before ? "一致" : "不一致")}・メニュー {(gvm.MenuOpen ? "開いた" : "開かない")}");
+            BootLog.Write($"uishot: 生産[Esc＝地図へ] {Now()}・メニュー {(gvm.MenuOpen ? "開いた" : "開かない")}");
+            gvm.HandleEscape(); await Task.Delay(300);
+            BootLog.Write($"uishot: 地図[Esc] {Now()}・メニュー {(gvm.MenuOpen ? "開いた" : "開かない")}");
             if (gvm.MenuOpen) gvm.MenuOpen = false;
-            gvm.OpenSlotByKey(Slot.Production, false); await Task.Delay(700);
-            gvm.OpenSlotByKey(Slot.Market, false); await Task.Delay(700);
-            BootLog.Write($"uishot: 生産の全面[別のキーW] {Now()}・市場は枠{lay.PaneOf(Slot.Market)}に{(lay.IsShown(Slot.Market) ? "開いた" : "開かない")}");
-            lay.Reset(); lay.SetColumns(true, true); await Task.Delay(500);
-            lay.Open(Slot.Production, 0);   // 分割の見出しから選ぶ
-            await Task.Delay(1000);
-            BootLog.Write($"uishot: 生産[見出しから] {Now()}（全面にならない）");
-            Capture(dir, $"{no():D2}_S6_生産_分割の中.png");
-            LogOuterFlow(gameView, "生産を分割の中に");
-            ReportProductionBoard(gameView, gvm, "分割の中");
+            gvm.OpenSlotCommand.Execute(Slot.Market); await Task.Delay(700);
+            BootLog.Write($"uishot: 市場[Q＝窓が開く] {Now()}");
+            gvm.OpenSlotCommand.Execute(Slot.Market); await Task.Delay(500);
+            BootLog.Write($"uishot: 市場[もう一度Q＝窓が閉じる] {Now()}");
 
             // ---- 年表の 3 つの絞り（左の列）----
-            lay.Reset(); lay.SetColumns(true, true);
+            lay.Reset();
             await Task.Delay(800);
             foreach (var (key, name) in new[] { ("world", "全国"), ("great", "列強"), ("mine", "自国") })
             {
@@ -73,28 +68,12 @@ public partial class MainWindow
             }
             gvm.SetNewsFilterCommand.Execute("world");
 
-            // ---- 外交と戦争の地図の欄：開くたびに自国の首都を映す ----
-            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.DiplomacyWar, 0);
-            await Task.Delay(1800);
-            BootLog.Write("uishot: 外交の地図の欄[開いた] " + gameView.MapView.BoxReport());
-            Capture(dir, $"{no():D2}_S6_外交_地図の欄.png");
-            LogOuterFlow(gameView, "外交と戦争の地図の欄");
-            gameView.MapView.SetZoomFactor(4.0);   // 倍率を上げてから首都を離す（開き直しで倍率は保ち・首都だけ映すこと）
-            await Task.Delay(300);
-            gvm.CenterNationCommand.Execute("日本");   // 首都から離して
-            await Task.Delay(500);
-            BootLog.Write("uishot: 外交の地図の欄[日本へ動かした] " + gameView.MapView.BoxReport());
-            lay.Open(Slot.Market, 0); await Task.Delay(700);
-            lay.Open(Slot.DiplomacyWar, 0); await Task.Delay(1800);
-            BootLog.Write("uishot: 外交の地図の欄[開き直した] " + gameView.MapView.BoxReport());
-            Capture(dir, $"{no():D2}_S6_外交_地図の欄_開き直し.png");
-
             // ---- 列の左端の判定が働くことの確かめ：段の押し釦の入れ物を中央寄せに戻すと、判定が左端のずれを出す（直した判定は積み上げでなく中身の位置を測る）----
-            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.PoliticsLaw, 0);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
             await Task.Delay(1200);
-            var lawPage = Host(gameView)?.PaneAt(0)?.Page;
+            var lawPage = UiShotWindows.PageOf(gameView, Slot.PoliticsLaw);
             var lawTv = lawPage?.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == "politics.laws");
-            var stagePanel = lawTv?.GetVisualDescendants().OfType<WrapPanel>().FirstOrDefault();
+            var stagePanel = lawTv?.GetVisualDescendants().OfType<BalancedWrapPanel>().FirstOrDefault();
             if (lawTv is not null && stagePanel is not null)
             {
                 var a0 = lawTv.MeasureAlignment();
@@ -109,9 +88,9 @@ public partial class MainWindow
             else BootLog.Write("uishot: 左端の判定の感度 法の表または段の入れ物が見つからない");
 
             // ---- 内側で流れる表を流した図（行が見出しに重ならない）----
-            lay.Reset(); lay.SetShape(SplitShape.Four); lay.Open(Slot.Market, 0);   // 4 分割＝枠が低く、財の値段の表の行が欄の中で流れる
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.Market);   // 財の値段の表の行が欄の中で流れる
             await Task.Delay(1200);
-            var page = Host(gameView)?.PaneAt(0)?.Page;
+            var page = UiShotWindows.PageOf(gameView, Slot.Market);
             var tv = page?.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == "market.prices");
             var sv = tv?.GetVisualDescendants().OfType<ScrollViewer>().OrderByDescending(v => v.Extent.Height).FirstOrDefault();   // 絞り込みの文字の欄の中の流れ（小さい）でなく行の流れ
             if (sv is not null)
@@ -131,7 +110,7 @@ public partial class MainWindow
     /// <summary>生産の盤の幅と並び（旧の生産タブ＝盤の視野 約 1380・1 行の幅予算 1330・1 行 6 枚と並べて見る）。</summary>
     private void ReportProductionBoard(GameView gameView, GameViewModel gvm, string tag)
     {
-        var page = Host(gameView)?.Mounted().FirstOrDefault(m => m.Slot == Slot.Production).Page;
+        var page = UiShotWindows.PageOf(gameView, Slot.Production);
         var ps = page?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "ProdScroll");
         if (ps is null) { BootLog.Write($"uishot: 生産の盤[{tag}] 見つからない"); return; }
         var rows = gvm.ProdNodes.GroupBy(n => Math.Round(n.Y)).OrderBy(g => g.Key).Select(g => g.Count()).ToList();

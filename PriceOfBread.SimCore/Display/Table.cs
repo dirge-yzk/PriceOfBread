@@ -12,35 +12,40 @@ public enum Unit
     Multiple,
 }
 
-/// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。</summary>
+/// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。<paramref name="Why"/>＝選べない段の押せない理由（短い語・閾値を出さない・選べる段は null。釦の下に出す）。</summary>
 /// <summary><see cref="Labels"/> の添字 i はエンジン側の段番号 <paramref name="LevelBase"/> + i。<see cref="Current"/>・<see cref="Target"/> はエンジン側の段番号。</summary>
-public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select)
+public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select, Func<int, string?>? Why = null)
 {
     /// <summary>段の無い行の段の列（押し釦を 1 つも出さない）。</summary>
     public static StageCell None { get; } = new([], 0, 0, 0, _ => false, _ => null, _ => { });
 }
 
 /// <summary>行の動詞 1 つの中身（侵略・統一戦争・調停・補助金・専売・建設）。押した時に呼ぶのは本体の口だけ。
-/// <paramref name="Tip"/>＝押し釦のホバーの文（押せない理由など。null か空なら出さない）。</summary>
-public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null);
+/// <paramref name="Tip"/>＝押せない理由（押し釦の右に出す。null か空なら出さない）。<paramref name="Fill"/>＝押し釦の地の色（「#RRGGBB」・統一戦争ができる宣戦布告など）。</summary>
+public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null, string? Fill = null);
 
-/// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。</summary>
-public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts);
+/// <summary>積み上げの棒 1 本の中身（<paramref name="Full"/> の入れ物に、項ごとに色を塗り分けた長さを積む。発見の技術力・必要性・伝わり＝100 で解禁）。
+/// <paramref name="Parts"/>＝（値・色「#RRGGBB」）。和が入れ物を超えた分は描かない。</summary>
+public sealed record BarCell(IReadOnlyList<(double Value, string Color)> Parts, double Full);
+
+/// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。<paramref name="Palette"/>＝区分の色の組の名（null＝既定の色の並び・"rule"＝支配度の 4 区分の専用の色）。</summary>
+public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts, string? Palette = null);
 
 /// <summary>列＝名前と単位と読み口。説明文の欄は持たない（画面に説明文を書かない）。閾値の欄も持たない。</summary>
 public abstract record Column<TRow>(string Key, string Name);
 /// <summary><paramref name="Tip"/>＝その数にカーソルを合わせた時の内訳の文（null なら出さない）。
-/// <paramref name="Hide"/>＝真の行は値を出さない（空欄・数でない値の「—」とは別）。数に添える文字（かっこの添え書き）は持たない＝別の列にする。</summary>
+/// <paramref name="Ink"/>＝数の文字の色（「#RRGGBB」・null なら列の既定。上昇＝赤・下落＝青など）。<paramref name="Hide"/>＝真の行は値を出さない（空欄・数でない値の「—」とは別）。数に添える文字（かっこの添え書き）は持たない＝別の列にする。</summary>
 public sealed record NumberColumn<TRow>(string Key, string Name, Unit Unit, Func<TRow, double> Read, string? ExplainKey = null, bool Series = false,
-                                        Func<TRow, string?>? Tip = null, Func<TRow, bool>? Hide = null) : Column<TRow>(Key, Name);
+                                        Func<TRow, string?>? Tip = null, Func<TRow, bool>? Hide = null, Func<TRow, string?>? Ink = null) : Column<TRow>(Key, Name);
 /// <summary><paramref name="Tip"/>＝その文字にカーソルを合わせた時の文（null なら文字そのもの）。</summary>
 public sealed record TextColumn<TRow>(string Key, string Name, Func<TRow, string> Read, Func<TRow, string?>? Tip = null) : Column<TRow>(Key, Name);
 public sealed record StageColumn<TRow>(string Key, string Name, Func<TRow, StageCell> Read) : Column<TRow>(Key, Name);
 public sealed record VerbColumn<TRow>(string Key, string Name, Func<TRow, VerbCell> Read) : Column<TRow>(Key, Name);
 public sealed record ShareColumn<TRow>(string Key, string Name, Func<TRow, ShareCell> Read) : Column<TRow>(Key, Name);
+public sealed record BarColumn<TRow>(string Key, string Name, Func<TRow, BarCell> Read) : Column<TRow>(Key, Name);
 
 /// <summary>列の種類（共通の表が描き分ける）。</summary>
-public enum ColumnKind { Number, Text, Stage, Verb, Share }
+public enum ColumnKind { Number, Text, Stage, Verb, Share, Bar }
 
 /// <summary>列の実行時の情報（行の型に依らない）。<see cref="Unit"/> は数の列だけ。<see cref="Series"/>＝この列は線グラフの系列になる。</summary>
 public sealed record ColumnInfo(string Key, string Name, ColumnKind Kind, Unit? Unit, bool Series, string? ExplainKey);
@@ -87,6 +92,7 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
         StageColumn<TRow> => ColumnKind.Stage,
         VerbColumn<TRow> => ColumnKind.Verb,
         ShareColumn<TRow> => ColumnKind.Share,
+        BarColumn<TRow> => ColumnKind.Bar,
         _ => throw new NotSupportedException($"列の種類が未対応: {c.GetType().Name}"),
     };
 
@@ -103,11 +109,12 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
             for (int i = 0; i < cells.Length; i++)
                 cells[i] = Columns[i] switch
                 {
-                    NumberColumn<TRow> n => n.Hide?.Invoke(r) == true ? NumberCell.Empty : new NumberCell(n.Read(r), n.Tip?.Invoke(r)),
+                    NumberColumn<TRow> n => n.Hide?.Invoke(r) == true ? NumberCell.Empty : new NumberCell(n.Read(r), n.Tip?.Invoke(r), false, n.Ink?.Invoke(r)),
                     TextColumn<TRow> t => t.Tip is null ? t.Read(r) : new TextCell(t.Read(r), t.Tip(r)),
                     StageColumn<TRow> s => s.Read(r),
                     VerbColumn<TRow> v => v.Read(r),
                     ShareColumn<TRow> sh => sh.Read(r),
+                    BarColumn<TRow> b => b.Read(r),
                     _ => null,
                 };
             list.Add(new RowData(RowKey(r), RowName(r), Group?.Invoke(r), cells, GroupTip: GroupTip?.Invoke(r)));
@@ -141,8 +148,11 @@ public static class Col
 
     /// <summary>型の無い数の列（人口・財の量・件数・型の無い割合など）。単位は名乗る。</summary>
     public static NumberColumn<TRow> Number<TRow>(string key, string name, Unit unit, Func<TRow, double> read, string? explainKey = null, bool series = false,
-                                                  Func<TRow, string?>? tip = null, Func<TRow, bool>? hide = null)
-        => new(key, name, unit, read, explainKey, series, Tip: tip, Hide: hide);
+                                                  Func<TRow, string?>? tip = null, Func<TRow, bool>? hide = null, Func<TRow, string?>? ink = null)
+        => new(key, name, unit, read, explainKey, series, Tip: tip, Hide: hide, Ink: ink);
+
+    /// <summary>積み上げの棒の列。</summary>
+    public static BarColumn<TRow> Bar<TRow>(string key, string name, Func<TRow, BarCell> read) => new(key, name, read);
 
     public static TextColumn<TRow> Text<TRow>(string key, string name, Func<TRow, string> read, Func<TRow, string?>? tip = null) => new(key, name, read, tip);
 

@@ -7,82 +7,54 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Layout;
 
-/// <summary>分割の1枠に置けるもの＝7 ページと地図（設計 §2・§3-4）。宣言の順が <see cref="PageKeys"/> のキーの割り当ての順（ページの宣言順・地図は最後）。</summary>
-public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Map }
+/// <summary>画面に出せるもの＝7 ページと地図と州の窓。宣言の順が <see cref="PageKeys"/> のページの順（地図・州は後ろ＝キーを持たない）。
+/// 地図と生産は背景・それ以外の 6 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
+public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Map, Province }
 
-/// <summary>分割の形（設計 §2-3）。</summary>
-public enum SplitShape { One, LeftRight, TopBottom, LeftAndRightStack, Four }
-
-/// <summary>枠と区切りの置き場所（3×3 の格子の中）。枠は A→D の順。</summary>
-public readonly record struct Cell(int Row, int Col, int RowSpan, int ColSpan);
-
-/// <summary>枠の置き場所と区切り（境目）の置き場所。Avalonia に依らない＝番人から直接見る。区切りは 縦（列の境目）と 横（行の境目）が各 0〜1 本。</summary>
-public sealed record ShapeLayout(Cell[] Panes, Cell? VerticalSplitter, Cell? HorizontalSplitter);
-
-/// <summary>枠に置くものの名前とキー。キーは本体の <see cref="PageKeys"/> が持つ（作者の指示 QWERASDFZXCV の順）。ここは引くだけ。</summary>
+/// <summary>画面に出せるものの名前とキー。キーは本体の <see cref="PageKeys"/> が持つ。ここは引くだけ。</summary>
 public static class SlotInfo
 {
     public static readonly IReadOnlyList<Slot> All = Enum.GetValues<Slot>();
 
-    public static string Name(Slot s) => s == Slot.Map ? PageKeys.MapName : PageKeys.Name((Page)s);
-    public static char Key(Slot s) => s == Slot.Map ? PageKeys.MapKey : PageKeys.Key((Page)s);
-    public static string ButtonText(Slot s) => $"{Key(s)}:{Name(s)}";
+    /// <summary>ヘッダーの押し釦に並ぶもの（7 ページ。地図は釦を持たない）。</summary>
+    public static readonly IReadOnlyList<Slot> Pages = All.Where(s => s != Slot.Map && s != Slot.Province).ToArray();
 
-    /// <summary>キーで引く。ページのキーでも地図のキーでもなければ null（空きのキーは何にも割り当てない）。</summary>
-    public static Slot? OfKey(char key)
-    {
-        char k = char.ToUpperInvariant(key);
-        foreach (var s in All) if (Key(s) == k) return s;
-        return null;
-    }
+    public static string Name(Slot s) => s == Slot.Map ? PageKeys.MapName : s == Slot.Province ? "州" : PageKeys.Name((Page)s);
+    /// <summary>文字のキー。生産（Tab）と地図（キー無し）は '\0'。</summary>
+    public static char Key(Slot s) => s == Slot.Map ? '\0' : PageKeys.Key((Page)s);
+    public static string ButtonText(Slot s) => PageKeys.ButtonText((Page)s);
 
-    public static Page? PageOf(Slot s) => s == Slot.Map ? null : (Page)s;
+    /// <summary>文字のキーで引く。文字のキーを持つページでなければ null（空きのキー・生産の Tab・地図は何にも割り当てない）。</summary>
+    public static Slot? OfKey(char key) => PageKeys.PageOfKey(key) is { } p ? (Slot)(int)p : null;
 
-    public static string ShapeName(SplitShape s) => s switch
-    {
-        SplitShape.One => "1枚",
-        SplitShape.LeftRight => "左右に2つ",
-        SplitShape.TopBottom => "上下に2つ",
-        SplitShape.LeftAndRightStack => "左に1つ右に2つ",
-        SplitShape.Four => "4つ",
-        _ => "",
-    };
-
-    public static int PaneCount(SplitShape s) => s switch { SplitShape.One => 1, SplitShape.LeftRight or SplitShape.TopBottom => 2, SplitShape.LeftAndRightStack => 3, _ => 4 };
-
-    /// <summary>3×3 の格子（列 0・境目 1・列 2／行 0・境目 1・行 2）の中の置き場所。</summary>
-    public static ShapeLayout Place(SplitShape s) => s switch
-    {
-        SplitShape.One => new([new(0, 0, 3, 3)], null, null),
-        SplitShape.LeftRight => new([new(0, 0, 3, 1), new(0, 2, 3, 1)], new(0, 1, 3, 1), null),
-        SplitShape.TopBottom => new([new(0, 0, 1, 3), new(2, 0, 1, 3)], null, new(1, 0, 1, 3)),
-        SplitShape.LeftAndRightStack => new([new(0, 0, 3, 1), new(0, 2, 1, 1), new(2, 2, 1, 1)], new(0, 1, 3, 1), new(1, 2, 1, 1)),
-        _ => new([new(0, 0, 1, 1), new(0, 2, 1, 1), new(2, 0, 1, 1), new(2, 2, 1, 1)], new(0, 1, 3, 1), new(1, 0, 1, 3)),
-    };
+    public static Page? PageOf(Slot s) => s is Slot.Map or Slot.Province ? null : (Page)s;
 }
 
-/// <summary>画面の配置＝分割の形・各枠に置くもの・選んでいる枠・区切りの位置・左右の列の開閉（設計 §2）。Avalonia に依らない。
-/// <list type="bullet">
-/// <item>各枠に置くものは 4 つの席で持ち、**4 つは常に互いに違う**（同じページを2枠に置かない＝ページの部品は盤面に1つだけ）。形が小さい間は後ろの席が見えないだけで、中身は残る。</item>
-/// <item>開く操作は「すでに別の席にあれば入れ替え・どの席にも無ければ置き換え」＝4 つが違う性質を保つ。</item>
-/// <item>見えているもの＝先頭から <see cref="PaneCount"/> 席。</item>
-/// </list></summary>
+/// <summary>浮かぶ窓の位置と大きさ（窓を置く領域の左上を原点とする画素）。</summary>
+public readonly record struct WindowRect(double X, double Y, double W, double H);
+
+/// <summary>画面の配置＝背景（地図か生産）・浮かぶ窓（開いている順＝重なりの順）・各窓の位置と大きさ・左の列の開閉・ページごとの開け閉めした欄（設計 §2-6「畳んだ欄」）。Avalonia に依らない。
+/// 作者の指示 2026-11-04：分割とピン留めは廃止。2026-11-11：背景は地図と生産の 2 枚の切り替え（Tab）・それ以外のページは浮かぶ窓＝
+/// 開閉・動かす・大きさを変える・複数を同時に開く・押した窓が前に出る。窓の位置と大きさは配置の保存（アプリの設定）に覚える＝セーブには入れない。
+/// 起動は地図の背景で窓は 1 つも開いていない。</summary>
 public sealed class LayoutModel
 {
-    public const double DefaultMainRatio = 0.62;   // 左右に分ける形の左の枠の割合（既定は生産を広め）
-    public const double DefaultSubRatio = 0.5;
-    public const double LeftWidth = 260, RightWidth = 300;   // 左右の列の幅（開いているとき）
+    public const double LeftWidth = 260;   // 左の列の幅（開いているとき）
+    public const double MinWindowWidth = 420, MinWindowHeight = 280;
 
-    private readonly Slot[] _seats = [Slot.Production, Slot.Market, Slot.FiscalMoney, Slot.Population];
-
-    public SplitShape Shape { get; private set; } = SplitShape.LeftRight;
-    public int Selected { get; private set; }
-    /// <summary>縦の境目（左右に分ける）の、左の枠の割合。</summary>
-    public double MainRatio { get; private set; } = DefaultMainRatio;
-    /// <summary>横の境目（上下に分ける）の、上の枠の割合。</summary>
-    public double SubRatio { get; private set; } = DefaultSubRatio;
+    /// <summary>背景＝地図か生産（この 2 つだけ）。初めは地図。</summary>
+    public Slot Background { get; private set; } = Slot.Map;
     public bool LeftOpen { get; private set; } = true;
-    public bool RightOpen { get; private set; } = true;
+
+    private readonly List<Slot> _open = new();                       // 開いている窓。後ろほど前（重なりの順）
+    private readonly Dictionary<Slot, WindowRect> _rects = new();    // 覚えている位置と大きさ（開閉に依らず残る）
+
+    /// <summary>開いている窓（重なりの順・最後が一番前）。</summary>
+    public IReadOnlyList<Slot> OpenWindows => _open;
+    /// <summary>一番前の窓（無ければ null）。</summary>
+    public Slot? Front => _open.Count > 0 ? _open[^1] : null;
+    /// <summary>窓として開くものか（背景の地図・生産以外）。</summary>
+    public static bool IsWindow(Slot s) => s != Slot.Map && s != Slot.Production;
 
     // ページごとの、プレイヤーが見出しを押して開け閉めした欄（設計 §2-6「畳んだ欄」）。鍵＝ページの名前（<see cref="Slot"/> の名前）。
     private readonly Dictionary<string, (string[] Opened, string[] Closed)> _sections = new();
@@ -101,132 +73,115 @@ public sealed class LayoutModel
         Raise();
     }
 
-    // ---- 全面（生産のキーを押したとき・作者の指示 2026-10-23「生産は大きくあってほしい」）----
-    // 1 枚の枠に置き、左右の列を畳む。入る前の配置の写しを 1 つだけ持ち（これが全面の印）、出るときに戻す。保存するのは写しの方（全面のまま落ちても、次の起動は元の配置）。
-
-    /// <summary>全面に入る前の配置（形・席・選択・区切り・左右の列）。</summary>
-    private sealed record Before(SplitShape Shape, Slot[] Seats, int Selected, double MainRatio, double SubRatio, bool LeftOpen, bool RightOpen);
-    private Before? _before;
-
-    /// <summary>いま全面か（ページを 1 枚の全面に置き、左右の列を畳んでいる）。</summary>
-    public bool IsFull => _before is not null;
-
-    /// <summary>全面にしているページ（全面でなければ null）。</summary>
-    public Slot? FullSlot => IsFull ? _seats[0] : null;
-
-    /// <summary>全面の入り切り。全面でなければ入る（入る前の配置を写す）・全面なら前の配置へ戻る。</summary>
-    public void ToggleFull(Slot slot)
-    {
-        if (IsFull) { LeaveFull(); return; }
-        _before = new Before(Shape, [.. _seats], Selected, MainRatio, SubRatio, LeftOpen, RightOpen);
-        int at = Array.IndexOf(_seats, slot);
-        if (at > 0) (_seats[at], _seats[0]) = (_seats[0], _seats[at]);
-        else if (at < 0) _seats[0] = slot;
-        Shape = SplitShape.One; Selected = 0; LeftOpen = false; RightOpen = false;
-        Raise();
-    }
-
-    /// <summary>全面から前の配置へ戻る。全面でなければ何もしない（戻ったときだけ真）。</summary>
-    public bool LeaveFull()
-    {
-        if (_before is not { } b) return false;
-        _before = null;
-        for (int i = 0; i < _seats.Length; i++) _seats[i] = b.Seats[i];
-        Shape = b.Shape; Selected = b.Selected; MainRatio = b.MainRatio; SubRatio = b.SubRatio; LeftOpen = b.LeftOpen; RightOpen = b.RightOpen;
-        Raise();
-        return true;
-    }
-
-    /// <summary>配置が変わった（形・席・選択・区切り・列の開閉のどれでも）。</summary>
+    /// <summary>配置が変わった（背景・窓の開閉と重なりと位置・左の列の開閉・欄の開け閉めのどれでも）。</summary>
     public event Action? Changed;
 
-    public int PaneCount => SlotInfo.PaneCount(Shape);
-    public Slot SlotAt(int pane) => _seats[pane];
-    public IReadOnlyList<Slot> Seats => _seats;
-    public IEnumerable<Slot> Shown() => _seats.Take(PaneCount);
-    public bool IsShown(Slot s) => PaneOf(s) >= 0;
-    /// <summary>見えている枠のうち、そのものが入っている枠の番号。見えていなければ -1。</summary>
-    public int PaneOf(Slot s) { for (int i = 0; i < PaneCount; i++) if (_seats[i] == s) return i; return -1; }
+    /// <summary>見えているか＝背景であるか、窓として開いている。</summary>
+    public bool IsShown(Slot s) => s == Background || _open.Contains(s);
+    /// <summary>見えているもの（背景→開いている窓の順）。</summary>
+    public IEnumerable<Slot> Shown() { yield return Background; foreach (var w in _open) yield return w; }
 
     private void Raise() => Changed?.Invoke();
 
-    /// <summary>枠 <paramref name="pane"/> に <paramref name="slot"/> を開く。別の席にあれば入れ替え、どの席にも無ければ置き換える。開いた枠が選んでいる枠になる。</summary>
-    public void Open(Slot slot, int pane)
+    /// <summary><paramref name="slot"/> を出す。地図・生産は背景にする・それ以外は窓を開いて一番前に出す（すでに開いていれば前へ）。
+    /// 問題の一覧の飛び先・戦争の自動表示が使う。</summary>
+    public void Open(Slot slot)
     {
-        if (LeaveFull()) pane = Selected;   // 全面の間に別のページを開く＝前の配置へ戻り、その配置で選んでいた枠へ開く（全面の枠の番号は使わない）
-        pane = Math.Clamp(pane, 0, PaneCount - 1);
-        int at = Array.IndexOf(_seats, slot);
-        if (at >= 0 && at != pane) (_seats[at], _seats[pane]) = (_seats[pane], _seats[at]);
-        else if (at < 0) _seats[pane] = slot;
-        Selected = pane;
+        if (!IsWindow(slot))
+        {
+            if (slot == Background) return;
+            Background = slot;
+            Raise();
+            return;
+        }
+        int at = _open.IndexOf(slot);
+        if (at >= 0 && at == _open.Count - 1) return;   // すでに一番前
+        if (at >= 0) _open.RemoveAt(at);
+        _open.Add(slot);
         Raise();
     }
 
-    /// <summary>選んでいる枠へ開く（ヘッダーの押し釦とキー）。</summary>
-    public void OpenInSelected(Slot slot) => Open(slot, Selected);
-
-    /// <summary>次の枠へ開く（Shift を足したキー）。枠が1つなら選んでいる枠のまま。</summary>
-    public void OpenInNext(Slot slot) => Open(slot, (Selected + 1) % PaneCount);
-
-    public void Select(int pane)
+    /// <summary>窓を閉じる（開いていなければ何もしない）。位置と大きさは覚えたまま。</summary>
+    public void Close(Slot slot)
     {
-        pane = Math.Clamp(pane, 0, PaneCount - 1);
-        if (pane == Selected) return;
-        Selected = pane;
+        if (_open.Remove(slot)) Raise();
+    }
+
+    /// <summary>ページのキーと押し釦：窓は開いていれば閉じ・閉じていれば開く。生産と地図は背景にする。</summary>
+    public void Toggle(Slot slot)
+    {
+        if (IsWindow(slot) && _open.Contains(slot)) Close(slot); else Open(slot);
+    }
+
+    /// <summary>窓を一番前に出す（押された窓。すでに一番前なら何もしない）。</summary>
+    public void BringToFront(Slot slot) { if (_open.Contains(slot)) Open(slot); }
+
+    /// <summary>Tab：背景の地図と生産の切り替え。</summary>
+    public void ToggleProductionMap() => Open(Background == Slot.Production ? Slot.Map : Slot.Production);
+
+    /// <summary>Esc：一番前の窓を閉じる→無ければ生産の背景から地図へ。どちらもしなければ false（メニューの仕事）。</summary>
+    public bool Escape()
+    {
+        if (Front is { } f) { Close(f); return true; }
+        if (Background == Slot.Production) { Open(Slot.Map); return true; }
+        return false;
+    }
+
+    public void SetLeftOpen(bool left)
+    {
+        if (left == LeftOpen) return;
+        LeftOpen = left;
         Raise();
     }
 
-    public void SetShape(SplitShape shape)
+    // ---- 窓の位置と大きさ ----
+
+    /// <summary>覚えている位置と大きさ（無ければ null）。</summary>
+    public WindowRect? RectOf(Slot slot) => _rects.TryGetValue(slot, out var r) ? r : null;
+
+    /// <summary>位置と大きさを覚える（ドラッグや大きさの変更が終わったとき）。非有限の値は捨てる・最小の大きさへ丸める。変わらなければ何もしない。</summary>
+    public void SetRect(Slot slot, WindowRect rect)
     {
-        if (shape == Shape) return;
-        LeaveFull();   // 分割の形を選び直す＝前の配置へ戻ってから変える
-        if (shape == Shape) return;
-        Shape = shape;
-        Selected = Math.Min(Selected, PaneCount - 1);
+        if (!IsWindow(slot) || !(double.IsFinite(rect.X) && double.IsFinite(rect.Y) && double.IsFinite(rect.W) && double.IsFinite(rect.H))) return;
+        rect = new WindowRect(rect.X, rect.Y, Math.Max(MinWindowWidth, rect.W), Math.Max(MinWindowHeight, rect.H));
+        if (_rects.TryGetValue(slot, out var cur) && cur == rect) return;
+        _rects[slot] = rect;
         Raise();
     }
 
-    public void SetRatios(double main, double sub)
+    /// <summary>まだ覚えていない窓の初めの位置と大きさ＝領域の大きさに応じ、窓ごとに少しずつずらした起点にする。</summary>
+    public static WindowRect DefaultRect(Slot slot, double hostW, double hostH)
     {
-        double m = Clamp(main, DefaultMainRatio), s = Clamp(sub, DefaultSubRatio);
-        if (Math.Abs(m - MainRatio) < 1e-9 && Math.Abs(s - SubRatio) < 1e-9) return;
-        MainRatio = m; SubRatio = s;
-        Raise();
+        if (slot == Slot.Province) return Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);   // 州の窓＝幅は固定（情報の量で変わらない）・左上
+        double w = Math.Clamp(hostW * 0.55, MinWindowWidth, 900), h = Math.Clamp(hostH * 0.72, MinWindowHeight, 760);
+        int step = (int)slot % 6;
+        return Fit(new WindowRect(24 + 36 * step, 24 + 32 * step, w, h), hostW, hostH);
     }
 
-    public void SetColumns(bool left, bool right)
+    /// <summary>領域の中に収める（大きさは領域まで・位置は領域の内側）。表示のときだけ使う＝覚えている値は書き換えない。</summary>
+    public static WindowRect Fit(WindowRect r, double hostW, double hostH)
     {
-        if (left == LeftOpen && right == RightOpen) return;
-        _before = null;   // 列を自分で開け閉めした＝全面の印を外す（今の配置のまま）
-        LeftOpen = left; RightOpen = right;
-        Raise();
+        double w = Math.Min(r.W, Math.Max(hostW, 1)), h = Math.Min(r.H, Math.Max(hostH, 1));
+        double x = Math.Clamp(r.X, 0, Math.Max(0, hostW - w)), y = Math.Clamp(r.Y, 0, Math.Max(0, hostH - h));
+        return new WindowRect(x, y, w, h);
     }
-
-    // 区切りを端までは動かさない（枠が消えて取り戻せなくなる）。非有限は既定へ。
-    private static double Clamp(double v, double fallback) => double.IsFinite(v) ? Math.Clamp(v, 0.15, 0.85) : fallback;
 
     /// <summary>初めの配置へ戻す（撮影が毎回同じ所から始める）。</summary>
     public void Reset()
     {
-        var d = new LayoutModel();
-        for (int i = 0; i < _seats.Length; i++) _seats[i] = d._seats[i];
-        Shape = d.Shape; Selected = d.Selected; MainRatio = d.MainRatio; SubRatio = d.SubRatio; LeftOpen = d.LeftOpen; RightOpen = d.RightOpen;
+        Background = Slot.Map; LeftOpen = true;
+        _open.Clear(); _rects.Clear();
         _sections.Clear();
-        _before = null;
         Raise();
     }
 
-    // ---- 保存（%LOCALAPPDATA%/PriceOfBread/配置.json）----
+    // ---- 保存（%LOCALAPPDATA%/PriceOfBread/配置.json）＝左の列の開閉・窓の位置と大きさ・欄の開け閉めだけ（背景と開く窓は起動のたびに地図・窓なし）----
 
     private sealed class Dto
     {
-        public string Shape { get; set; } = "";
-        public string[] Seats { get; set; } = [];
-        public int Selected { get; set; }
-        public double MainRatio { get; set; } = DefaultMainRatio;
-        public double SubRatio { get; set; } = DefaultSubRatio;
         public bool LeftOpen { get; set; } = true;
-        public bool RightOpen { get; set; } = true;
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, double[]>? Windows { get; set; }   // 窓の名前 → [X, Y, W, H]
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<string, SectionDto>? Sections { get; set; }
     }
@@ -241,13 +196,13 @@ public sealed class LayoutModel
 
     public string ToJson() => JsonSerializer.Serialize(new Dto
     {
-        // 全面の間は入る前の配置を書く（全面は一時の見え方＝次の起動は元の配置から）
-        Shape = (_before?.Shape ?? Shape).ToString(), Seats = (_before?.Seats ?? _seats).Select(s => s.ToString()).ToArray(), Selected = _before?.Selected ?? Selected,
-        MainRatio = _before?.MainRatio ?? MainRatio, SubRatio = _before?.SubRatio ?? SubRatio, LeftOpen = _before?.LeftOpen ?? LeftOpen, RightOpen = _before?.RightOpen ?? RightOpen,
+        LeftOpen = LeftOpen,
+        Windows = _rects.Count == 0 ? null : _rects.OrderBy(kv => (int)kv.Key).ToDictionary(kv => kv.Key.ToString(), kv => new[] { kv.Value.X, kv.Value.Y, kv.Value.W, kv.Value.H }),
         Sections = _sections.Count == 0 ? null : _sections.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToDictionary(kv => kv.Key, kv => new SectionDto { Opened = kv.Value.Opened, Closed = kv.Value.Closed }),
     }, JsonOptions);
 
-    /// <summary>JSON から配置を作る。読めない・不正な物は初めの配置（保存の壊れで画面が出なくなる道を作らない）。</summary>
+    /// <summary>JSON から配置を作る。読めない・不正な物は初めの配置（保存の壊れで画面が出なくなる道を作らない）。
+    /// 分割の廃止前の保存（Shape・Seats などを持つ）も読める＝知らない項目は読み捨てる。</summary>
     public static LayoutModel FromJson(string? json)
     {
         var m = new LayoutModel();
@@ -256,17 +211,14 @@ public sealed class LayoutModel
         {
             var d = JsonSerializer.Deserialize<Dto>(json, JsonOptions);
             if (d is null) return m;
-            if (!Enum.TryParse<SplitShape>(d.Shape, out var shape) || !Enum.IsDefined(shape)) return m;
-            var seats = new List<Slot>();
-            foreach (var name in d.Seats ?? [])
-                if (Enum.TryParse<Slot>(name, out var s) && Enum.IsDefined(s) && !seats.Contains(s)) seats.Add(s);
-            if (seats.Count != 4) return m;   // 4 席が揃って違う物でなければ捨てる
-            for (int i = 0; i < 4; i++) m._seats[i] = seats[i];
-            m.Shape = shape;
-            m.Selected = Math.Clamp(d.Selected, 0, m.PaneCount - 1);
-            m.MainRatio = Clamp(d.MainRatio, DefaultMainRatio);
-            m.SubRatio = Clamp(d.SubRatio, DefaultSubRatio);
-            m.LeftOpen = d.LeftOpen; m.RightOpen = d.RightOpen;
+            m.LeftOpen = d.LeftOpen;
+            if (d.Windows is not null)
+                foreach (var (name, v) in d.Windows)
+                {
+                    if (!Enum.TryParse<Slot>(name, out var slot) || !Enum.IsDefined(slot) || !IsWindow(slot) || v is not { Length: 4 }) continue;   // 知らない窓・壊れた記録は捨てる
+                    if (!v.All(double.IsFinite)) continue;
+                    m._rects[slot] = new WindowRect(v[0], v[1], Math.Max(MinWindowWidth, v[2]), Math.Max(MinWindowHeight, v[3]));
+                }
             if (d.Sections is not null)
                 foreach (var (page, s) in d.Sections)
                 {

@@ -53,18 +53,14 @@ public partial class GameViewModel
     // 州ホバーの「世界の n%」の分母＝財別の世界計。⚠州ごとに組み直すと 162州 × 全モデル国 × 全州 × 全財 の走査になる＝
     // ホバー詳細を作り直す時（RefreshMap の非ズーム）に**1回だけ**組んで全州で使い回す。
     private double[]? _worldProdByGood;   // 生産＝全モデル国の active 州の Market.LastProduced 合算（月次・数量）
-    private double[]? _worldExpByGood;    // 輸出＝全モデル国の World.ExportsByGood 合算（四半期・世界価格建ての額）
+    private double[]? _worldImpByGood;    // 輸入＝全モデル国の World.ImportsByGood 合算（四半期・世界価格建ての額）
     private double _worldProdValueTotal;  // 上の生産量を参照価格で額にした総和（幻の生産の足切りの母数）
-    private double _worldExpTotal;        // 上の輸出額の総和（同・輸出側の母数）
+    private double _worldImpTotal;        // 上の輸入額の総和（同・輸入側の母数）
 
     // ホバー詳細のキャッシュ：ズーム再構築では再計算しない（内容は四半期でしか変わらない）。
     private readonly Dictionary<Region, MapHoverInfo> _provHoverCache = new();
     private readonly Dictionary<Colony, MapHoverInfo> _colHoverCache = new();
     private readonly Dictionary<string, List<Chokepoint>> _cpByHost = new();
-    // ★2026-09-03（キューA-13／出典 トリアージ 2-A 11-6）：巨大建造物の host 州名→情報。
-    //   ⚠建造物は「地理に固定され所有は政治で動く」物なのに、地図から完全に読めなかった（生産タブの帯は自国の建設地しか出さない）。
-    //   _cpByHost（海峡/運河）と同じ多値辞書＝同じ州に複数建つ場合も落とさない。
-    private readonly Dictionary<string, List<Megaproject>> _megaByHost = new();   // 海峡/運河/建造物の host 州名→情報（州ホバーに統合表示）。**多値**＝同一 host に複数の個体が載る（2026-07-28：旧 1対1 辞書は最後の1件で静かに上書きしていた）
     private double _zd = 1.0;   // サイズ用ズーム係数（5.0でクランプ＝それ以上ズームしても文字/線が縮まない）
     // 02断線走査2026-07-28：講和の優先割譲（Colony.PlayerInterest）の唯一の書き手＝他国植民地のクリックで狙いを付ける（再クリックで解除・地名を金で表示）
     private SimCore.Colony? _interestColony;
@@ -96,20 +92,14 @@ public partial class GameViewModel
                 if (!_cpByHost.TryGetValue(cp.Host, out var lst)) _cpByHost[cp.Host] = lst = new List<Chokepoint>();
                 lst.Add(cp);
             }
-            _megaByHost.Clear();
-            foreach (var mp in _sim.Diplomacy.Megaprojects)   // ★A-13：巨大建造物も host 州名で引けるようにする
-            {
-                if (!_megaByHost.TryGetValue(mp.Host, out var mlst)) _megaByHost[mp.Host] = mlst = new List<Megaproject>();
-                mlst.Add(mp);
-            }
             RefreshPoliticalFill();   // 政治の塗り分け（2026-09-02）＝所有が変わった時だけ焼き直す（ズームだけの更新では触らない）
         }
         for (int ni = 0; ni < _sim.Nations.Count; ni++)
         {
             var w = _sim.Nations[ni].World;
-            string nation = w.SelfPower?.Name ?? w.Region.Name;
+            string nation = w.SelfPower is { } spL ? Lbl(spL) : w.Region.Name;   // 国の一覧と同じ国号つきの名（W10）
             // 属国は「国名（○○の属国）」形式（作者指示2026-08-03）＝地図ホバーで主権の帰属が一目で読める
-            if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}({suzN.Name}の属国)";
+            if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}・{Lbl(suzN)}の属国";   // 括弧を入れ子にしない（州の題は「州（国・○○の属国）」になる）
             var homeCoords = new List<(double Lat, double Lon)>();
             double cenX = 0, cenY = 0, cenW = 0;
             double extMinX = double.PositiveInfinity, extMaxX = double.NegativeInfinity;   // B3（2026-09-05）：国名を領土の広がりに沿わせる   // 国名ラベルの位置＝中核州の人口重み重心（植民地・植民地格の州は入れない＝ラベルが海へ流れない）
@@ -121,6 +111,7 @@ public partial class GameViewModel
                 double pop = rg.SumPopulation();
                 // ホバー詳細（ズーム時はキャッシュ）。★F7：当たりは塗り分けのセル（MapHitAt）がこのキャッシュを州で引く
                 if (!_provHoverCache.ContainsKey(rg)) _provHoverCache[rg] = BuildProvinceHover(rg, w, nation, pop);
+                if (ShownHover is null && ReferenceEquals(w, _player) && ReferenceEquals(rg, w.Region)) ShownHover = _provHoverCache[rg];   // 開始の直後は窓「州」を空にせず自国の首都の州を出す（B12）
                 if (rg.Tier != RegionTier.Colonial) { cenX += cx * pop; cenY += cy * pop; cenW += pop; if (cx < extMinX) extMinX = cx; if (cx > extMaxX) extMaxX = cx; }   // 国名の位置は**中核の重心**＝植民地格の州（州へ昇格した植民地）は入れない（西・葡・蘭の名が大西洋やインド洋へ流れる）
                 // ズーム時＝州名を英語で**州の座標の位置**に（世界全景では出さない＝密集を避ける・軽量化）。ズームを引くと消える。
                 // 括弧の数値＝州の開発度（項3・2026-07-27）＝工業化度×70（初期の最先進＝ロンドン0.42→29・マンチェスター→26。終盤は100超も正常）。表示のみ。
@@ -133,7 +124,7 @@ public partial class GameViewModel
                 //     地図の開発度も明らかにそちら側である。⚠SimCore の値は1つも変えない（表示だけ）。
                 // ここでは候補に積むだけ＝州ループ後に重なり回避の貪欲配置（2026-07-27ユーザー指摘「文字がかぶらないように」）
                 if (_mapZoom >= LabelThreshold)
-                    labelCands.Add((cx, cy, $"{MapData.En(rg.Name)}({rg.TotalIndustrialization * 70:F1})", 0, rg.TotalIndustrialization, ProvinceNameBrush));   // ★2026-08-31：開発度は小数1桁
+                    labelCands.Add((cx, cy, MapData.En(rg.Name), 0, rg.TotalIndustrialization, ProvinceNameBrush));   // ★2026-08-31：開発度は小数1桁
             }
             if (_mapZoom < LabelThreshold && cenW > 1e-9)   // 州名が消えている帯＝入れ替わりで国名を出す（両方は出さない）
                 nationCands.Add((cenX / cenW, cenY / cenW, MapData.EnNation(w.SelfPower?.Name ?? w.Region.Name), cenW, extMaxX > extMinX ? extMaxX - extMinX : 0));
@@ -636,7 +627,7 @@ public partial class GameViewModel
             var members = new List<string>();
             foreach (var sim in _sim.Nations)
                 if (sim.World.SelfPower is { } bp && sim.World.Regions.Exists(rg => rg.IsPort && rg.SeaBasin == basin)) members.Add(bp.Name);   // ★2026-09-06：国単位の海盆を撤去＝この海盆に港州を持つ国（州単位の SeaBasin）
-            string tipB = $"{bja}\n港を持つ国({members.Count}):";
+            string tipB = $"{bja}\n港を持つ国（{members.Count}）：";
             for (int i = 0; i < members.Count; i += 4)
                 tipB += "\n" + string.Join("・", members.Skip(i).Take(4));
             double fs = 15.0 / _zd;
@@ -657,41 +648,13 @@ public partial class GameViewModel
         if (!_cpByHost.TryGetValue(hostName, out var list)) return;
         foreach (var cp in list)
         {
+            // 発見の門が閉じている運河は並べない（巨大建造物の一覧と同じ Megaprojects.RequirementMet・どの国の発見で読むかは扼者の国。扼者が居なければ自国）
+            if (!cp.IsOpen && !Megaprojects.RequirementMet(cp.Owner?.Nation ?? _player, cp.Id)) continue;
             string kind = cp.IsCanal ? "運河" : "海峡";
-            string state = cp.IsOpen ? "開通" : $"未開通(進捗 {(cp.BuildCost > 1e-9 ? cp.BuildProgress / cp.BuildCost : 0):P0})";
+            string state = cp.IsOpen ? "開通" : $"未開通（進捗 {(cp.BuildCost > 1e-9 ? cp.BuildProgress / cp.BuildCost : 0):P0}）";
             string basins = string.Join("・", cp.ServesBasins.Select(b => BasinLabels.FirstOrDefault(x => x.Basin == b).Ja ?? b.ToString()));
-            info.Lines.Add(new MapHoverLine { Text = $"{cp.Name}({kind}・{state})", Brush = HoverHead, Weight = FontWeight.Bold });
-            info.Lines.Add(new MapHoverLine { Text = $"扼者: {cp.Owner?.Name ?? "なし"}" + (basins.Length > 0 ? $"　通航: {basins}" : ""), Brush = HoverDim });
-        }
-    }
-
-    /// <summary>★A-13（2026-09-03）：その州に建つ巨大建造物を州ホバーへ。⚠データだけを置く（説明文を書かない＝規律⑦）。
-    /// 未着工／建設中（進捗）／完成 の3状態と、効果の宛先（耕地・送電容量・工業化）を出す。</summary>
-    private void AppendMegaprojects(MapHoverInfo info, string hostName)
-    {
-        if (!_megaByHost.TryGetValue(hostName, out var list)) return;
-        foreach (var mp in list)
-        {
-            string state = mp.IsComplete ? "完成"
-                : !mp.Started ? "未着工"
-                : $"建設中 {(mp.BuildUnits > 1e-9 ? mp.BuildProgress / mp.BuildUnits : 0):P0}";
-            // ★2026-09-07 作者指示「名前と効果を1行で・効果が全て0なのを修正」：
-            //   旧＝2行に割れ、しかも effectValue だけを読んでいた。威信型（87/119件）は effectValue=0 かつ Megaprojects.ApplyEffect に
-            //   分岐が無い＝州への効果は無いが、**完成には全件 MegaprojectPrestige の正統性加算が付く**（Megaprojects.cs:102-107・稼働中）。
-            //   UIはエンジンと同じ1本を読む＝州への効果（あれば）と正統性を続けて1行に出す。
-            string target = mp.EffectTarget switch
-            {
-                "ArableLand" => "耕地",
-                "GridCapacity" => "送電容量",
-                "Industrialization" => "工業化",
-                _ => "",   // 威信型は州への効果を持たない（正統性だけ）
-            };
-            string eff = target.Length > 0 && System.Math.Abs(mp.EffectValue) > 1e-9
-                ? $"{target} {(mp.EffectMode == "scale" ? $"×{1 + mp.EffectValue:F2}" : $"+{mp.EffectValue:F2}")}"
-                : "";
-            double leg = _player.Coef.MegaprojectPrestige;
-            if (leg > 1e-9) eff = eff.Length > 0 ? $"{eff}・正統性 +{leg:F2}" : $"正統性 +{leg:F2}";
-            info.Lines.Add(new MapHoverLine { Text = eff.Length > 0 ? $"{mp.Name}({state}) {eff}" : $"{mp.Name}({state})", Brush = HoverHead, Weight = FontWeight.Bold });
+            info.Lines.Add(new MapHoverLine { Text = $"{cp.Name}（{kind}・{state}）", Brush = HoverHead, Weight = FontWeight.Bold });
+            info.Lines.Add(new MapHoverLine { Text = $"扼者：{cp.Owner?.Name ?? "なし"}" + (basins.Length > 0 ? $"　通航：{basins}" : ""), Brush = HoverDim });
         }
     }
 
@@ -719,45 +682,38 @@ public partial class GameViewModel
         // ★4区分を何から作るか（(399) で更新）：区分は (399) で点火した＝rg.Rule が毎四半期 Politics.CheckSecession で目標へ寄る live な量（合計 1・州の課税・徴兵・公共財・法の浸透が読む）。
         //   国家・在地・外国・無統治をそのまま出す（0% はそのまま 0% と出す＝**無い値をUIで作らない**）。Rule が無い（4 要素でない）州だけ、国家＝支配度 rg.Dominance・残りは無統治。
         //   ⚠エンジンの目標式（Politics.cs の CheckSecession＝仲介者の権利の残高・首都からの到達・外国持分）をここへ書き写さない。同じ量の定義がエンジンとUIの2本になるのが最も再発するバグ型。
-        double dom, fLocal = 0, fForeign = 0, fUngov = 0;
-        if (rg.Rule.Length == 4)
-        {
-            double s0 = rg.Rule[0], s1 = rg.Rule[1], s2 = rg.Rule[2], s3 = rg.Rule[3];
-            if (!(s0 > 0)) s0 = 0;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
-            if (!(s1 > 0)) s1 = 0;
-            if (!(s2 > 0)) s2 = 0;
-            if (!(s3 > 0)) s3 = 0;
-            double sAll = s0 + s1 + s2 + s3;
-            if (sAll > 1e-9) { dom = s0 / sAll; fLocal = s1 / sAll; fForeign = s2 / sAll; fUngov = s3 / sAll; }
-            else { dom = 0; fUngov = 1.0; }
-        }
-        else
-        {
-            dom = rg.Dominance;
-            if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;
-            fUngov = 1.0 - dom;
-        }
+        var rp = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg);   // 4 区分の定義は表と同じ 1 本（国家・在地勢力・外国勢力・無統治）
+        double dom = rp[0].Share, fLocal = rp[1].Share, fForeign = rp[2].Share, fUngov = rp[3].Share;
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
         string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2), rf = HalfPie.Slice(35, 35, 34, f2, f3), ru = HalfPie.Slice(35, 35, 34, f3, 1.0);
+        string who = "";   // 外国勢力の持ち主（2026-11-11 作者指示「どこの国か知りたい」）＝持分の大きい順
+        if (fForeign > 0.0005 && rg.ForeignRulers.Length > 0)
+        {
+            var parts = new List<(string Name, double Share)>();
+            for (int k = 0; k < rg.ForeignRulers.Length && k < rg.ForeignShares.Length; k++)
+                if (rg.ForeignShares[k] > 0.0005 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) parts.Add((rg.ForeignRulers[k], rg.ForeignShares[k]));
+            parts.Sort((x, y) => y.Share.CompareTo(x.Share));
+            who = string.Join("・", parts.Take(4).Select(t => $"{t.Name} {Fmt.Share(t.Share)}"));
+        }
         string rb = "", rbText = "";
         double ago = rg.RuleStateTenYearsAgo();
-        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {ago:P0}"; }
+        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {Fmt.Share(ago)}"; }
         var info = new MapHoverInfo
         {
             // ★2026-09-23（作者指摘「フィラデルフィア(アメリカ(シャムの属国))」＝括弧が二重）：州名と国名は**全角スペースで並べる**。
             //   nation は属国のとき既に「アメリカ(シャムの属国)」という括弧付きの名前（:124・作者指示2026-08-03）＝これを更に括弧で包まない。
-            Title = $"{rg.Name}　{nation}", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
+            Title = $"{rg.Name}（{nation}）", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
             RuleState = rs, RuleLocal = rl, RuleForeign = rf, RuleUngoverned = ru, RuleBand = rb,
-            RuleStateText = $"{dom:P0}", RuleLocalText = $"{fLocal:P0}",
-            RuleForeignText = $"{fForeign:P0}", RuleUngovernedText = $"{fUngov:P0}", RuleBandText = rbText,
+            RuleStateText = $"{Fmt.Share(dom)}", RuleLocalText = $"{Fmt.Share(fLocal)}",
+            RuleForeignText = $"{Fmt.Share(fForeign)}", RuleForeignWho = who, RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
-        info.Lines.Add(new MapHoverLine { Text = $"人口: {Fmt.PopFmt(pop)}(失業者: {Fmt.PopFmt(unemployed)})", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
+        info.Lines.Add(new MapHoverLine { Text = $"人口：{Fmt.PopFmt(pop)}（失業者：{Fmt.PopFmt(unemployed)}）", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
         // 開発度（2026-08-02・作者指摘「名前出てない州のプロヴィンスの開発度が見れない」）：ズームを引くと州名ラベル
         // （＝括弧の開発度）が消える／重なり回避で小さい州のラベルは出ないため、ホバーでも同じ値を出す。
         // ★定義も丸めもラベルと完全一致（TotalIndustrialization×70・指標名はUIと通知で完全一致の規約）。2026-08-31にラベルが小数1桁(F1)へ変わったのに合わせる。
-        info.Lines.Add(new MapHoverLine { Text = $"開発度: {rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
+        info.Lines.Add(new MapHoverLine { Text = $"開発度：{rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
         // ★2026-09-03（キューA-12／出典 トリアージ 2-A 11-2）：国民意識は距離減衰で州ごとに違う（首都から遠い州ほど遅い）のに
         //   どこにも出ていなかった。動員上限（Military の国民意識ゲート）が州で違う理由がこれで読める。
         //   ⚠値は POP 属性（Pop.NationalConsciousness）の人口加重平均＝エンジンと同じ量。未捕捉(-1)の pop は分母から外す。
@@ -765,23 +721,19 @@ public partial class GameViewModel
             double ncW = 0, ncSum = 0;
             foreach (var pp in rg.Pops) if (pp.NationalConsciousness >= 0) { ncW += pp.Size; ncSum += pp.Size * pp.NationalConsciousness; }
             if (ncW > 1e-9)
-                info.Lines.Add(new MapHoverLine { Text = $"国民意識: {ncSum / ncW:P0}", Brush = HoverText });
+                info.Lines.Add(new MapHoverLine { Text = $"国民意識：{Fmt.Share(ncSum / ncW)}", Brush = HoverText });
         }
         if (!string.IsNullOrEmpty(rg.Culture) || !string.IsNullOrEmpty(rg.Religion))
-            info.Lines.Add(new MapHoverLine { Text = $"文化: {rg.Culture}　宗教: {rg.Religion}", Brush = HoverDim });
+            info.Lines.Add(new MapHoverLine { Text = $"文化：{rg.Culture}　宗教：{rg.Religion}", Brush = HoverDim });
         // 状態：過密（収穫逓減）・疫病・主食不足（該当時のみ）
         if (rg.ArableLand < 1e8)
         {
             double rural = 0; foreach (var p in rg.Pops) if (!p.IsUrban) rural += p.Size;
             double landFac = Territory.LandFactor(rg, rural, ownerWorld.Coef);
-            if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密(土地 {landFac:P0})", Brush = HoverWarn, Weight = FontWeight.Bold });
+            if (landFac < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"過密（土地 {Fmt.Share(landFac)}）", Brush = HoverWarn, Weight = FontWeight.Bold });
         }
         if (ownerWorld.EpidemicActiveYears > 0) info.Lines.Add(new MapHoverLine { Text = "疫病 流行中", Brush = HoverWarn, Weight = FontWeight.Bold });
-        if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足(充足 {rg.FoodFill:P0})", Brush = HoverWarn, Weight = FontWeight.Bold });
-        if (ownerWorld.Coef.OpiumAddictionGrowth > 0 && rg.OpiumAddiction > 0.0005)   // P3：州の依存が有意な時のみ表示
-            info.Lines.Add(new MapHoverLine { Text = $"アヘン中毒度 {rg.OpiumAddiction:P1}", Brush = HoverWarn, Weight = FontWeight.Bold });
-        if (ownerWorld.Coef.HousingNeedPerUrban > 0 && rg.HousingFill < FillWarnThreshold)   // 都市家賃（2026-07-18）：住居が足りない州のみ表示
-            info.Lines.Add(new MapHoverLine { Text = $"住居不足(充足 {rg.HousingFill:P0})", Brush = HoverWarn, Weight = FontWeight.Bold });
+        if (rg.FoodFill < FillWarnThreshold) info.Lines.Add(new MapHoverLine { Text = $"主食不足 {Fmt.Share(1.0 - rg.FoodFill)}", Brush = HoverWarn, Weight = FontWeight.Bold });
         // 治安（作者指示2026-08-15＝ヘッダーの国スカラーを廃し州ホバーへ）：州別の窃盗率 rg.CrimeRate（Crime.cs が
         // 移民pushに使う州別値）をエンジン定数だけで治安率へ正規化＝1−率/(CrimeBase×(1+CrimeUrbanWeight))。
         // 分母は「秩序0・全都市」の理論最悪率＝新しい魔法数を作らない。悪化した州のみ表示（窃盗n/月の表記は廃止）。
@@ -791,13 +743,12 @@ public partial class GameViewModel
             {
                 double security = System.Math.Clamp(1.0 - rg.CrimeRate / crimeCap, 0, 1);
                 if (security < FillWarnThreshold)
-                    info.Lines.Add(new MapHoverLine { Text = $"治安 {security:P0}", Brush = HoverWarn, Weight = FontWeight.Bold });
+                    info.Lines.Add(new MapHoverLine { Text = $"治安の悪化 {Fmt.Share(1.0 - security)}", Brush = HoverWarn, Weight = FontWeight.Bold });
             }
         }
         if (rg.IsPort)
-            info.Lines.Add(new MapHoverLine { Text = $"港 容量:{rg.PortCapacity:F0} 取引額:{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
+            info.Lines.Add(new MapHoverLine { Text = $"港の拡張：{rg.PortCapacity:F0}　取引額：{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
         AppendChokepoint(info, rg.Name);   // 海峡/運河のhost州はここに統合表示
-        AppendMegaprojects(info, rg.Name);   // ★A-13：巨大建造物も同じ州の情報として統合表示
         AppendWorldShare(info, rg, ownerWorld);
         return info;
     }
@@ -825,14 +776,14 @@ public partial class GameViewModel
     private void AppendWorldShare(MapHoverInfo info, Region rg, World ownerWorld)
     {
         var top3Prod = new List<(string Name, double Amt, double Share)>();
-        var top3Exp = new List<(string Name, double Amt, double Share)>();
+        var top3Imp = new List<(string Name, double Amt, double Share)>();
         var wp = _sim.Market.Price;
-        var oeg = ownerWorld.ExportsByGood;
+        var oimp = ownerWorld.ImportsByGood;
         var wprod = _worldProdByGood;
         int gn = System.Math.Min(rg.Markets.Length, Catalog.Goods.Length);
         double prodFloor = MarketPresenceShare * _worldProdValueTotal;   // 生産材の候補：財ごとの世界生産**額**の下限
         double madeFloor = MadeInWorldShare * _worldProdValueTotal;      // 世界のどこかで作られている最低線（輸出材の生産ゲート）
-        double expFloor = MadeInWorldShare * _worldExpTotal;             // 輸出材の候補：財ごとの世界輸出額の下限（無視できる取引だけを切る）
+        double impFloor = MadeInWorldShare * _worldImpTotal;             // 輸出材の候補：財ごとの世界輸出額の下限（無視できる取引だけを切る）
         for (int gi = 0; gi < Catalog.Goods.Length; gi++)
         {
             if (Catalog.Goods[gi].Tier == GoodTier.Service || Catalog.Goods[gi].NonTradeable) continue;   // 役務・非交易財は世界市場を持たない
@@ -845,15 +796,15 @@ public partial class GameViewModel
                 double share = amt / wprod![gi];
                 if (amt >= DisplayGrainQty && share >= ShareFloor) top3Prod.Add((Catalog.Goods[gi].Name, amt, share));
             }
-            if (existsInWorld && _worldExpByGood is { } wexp && gi < wexp.Length && wexp[gi] >= expFloor && wexp[gi] > 1e-9
-                && oeg is not null && gi < oeg.Length && oeg[gi] > 1e-9)
+            if (existsInWorld && _worldImpByGood is { } wimp && gi < wimp.Length && wimp[gi] >= impFloor && wimp[gi] > 1e-9
+                && oimp is not null && gi < oimp.Length && oimp[gi] > 1e-9)
             {
                 double p = gi < wp.Count ? System.Math.Max(wp[gi], 1e-9) : 1.0;
-                double share = oeg[gi] / wexp[gi];
-                double qty = oeg[gi] / p / ownerWorld.Coef.MonthsPerClearing;   // 清算単位→月割＝貿易タブの輸出一覧と同一の式（2026-08-23）
+                double share = oimp[gi] / wimp[gi];
+                double qty = oimp[gi] / p / ownerWorld.Coef.MonthsPerClearing;   // 清算単位→月割＝貿易タブの輸出一覧と同一の式（2026-08-23）
                 // 作者指摘2026-08-16「輸出0.0kなのに世界の83%」＝世界貿易が細い間は微小値どうしの比が高シェアを名乗る。
                 // 表示粒度未満（Qtyで0.0kに丸まる量）は世界シェアを語る資格がない＝量の下限で切る（分母側の相対floorでは細い世界を切れない）。
-                if (share >= ShareFloor && qty >= DisplayGrainQty) top3Exp.Add((Catalog.Goods[gi].Name, qty, share));
+                if (share >= ShareFloor && qty >= DisplayGrainQty) top3Imp.Add((Catalog.Goods[gi].Name, qty, share));
             }
         }
         // シェア降順→同率は量の多い順→名前順（同率が並ぶ序盤でも並びが揺れない＝決定論）
@@ -863,7 +814,7 @@ public partial class GameViewModel
             c = y.Amt.CompareTo(x.Amt); return c != 0 ? c : string.CompareOrdinal(x.Name, y.Name);
         }
         top3Prod.Sort(ByShare);
-        top3Exp.Sort(ByShare);
+        top3Imp.Sort(ByShare);
         // 1%未満は小数1桁（P0だと全て「0%」に潰れて情報が消える）。1%以上は他のUIと同じ P0。
         // 表記＝「材名 量(世界n%)」（作者指摘2026-08-16「材名(量) 世界のn% は読みづらい」＝POPタブ規模の「量(比%)」と同じ読み順に統一）。
         // 該当なしは「なし」（旧「—」・無理に3つ出さない＝資格を満たした分だけ並ぶ）。
@@ -873,9 +824,8 @@ public partial class GameViewModel
         //   1材は最長でも「ジャガイモ 1234.5k(世界100%)」≈190px でパネルの内幅470px（GameView.axaml:304 Width=500・Padding14）に必ず収まり、
         //   折返しそのものが起きない。2行目以降は全角スペース1つ下げて頭の「生産材:」の続きだと分かる形にする。
         static string Top3(List<(string Name, double Amt, double Share)> src)
-            => src.Count == 0 ? "なし" : string.Join("\n　", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : t.Share.ToString("P0"))})"));
-        info.Lines.Add(new MapHoverLine { Text = $"生産材: {Top3(top3Prod)}", Brush = HoverText });
-        info.Lines.Add(new MapHoverLine { Text = $"輸出材: {Top3(top3Exp)}", Brush = HoverText });
+            => src.Count == 0 ? "なし" : string.Join("\n", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}（世界{(t.Share < 0.01 ? t.Share.ToString("P1") : Fmt.Share(t.Share))}）"));
+        info.ProducedGoods = Top3(top3Prod); info.ImportedGoods = Top3(top3Imp);   // 窓「州」で 生産材＝左・輸入材＝右（2026-11-11 作者指示）
     }
 
     /// <summary>州ホバーの世界シェアの分母（財別の世界計）。エンジンの実式をそのまま合算する＝
@@ -894,7 +844,7 @@ public partial class GameViewModel
                 int n = System.Math.Min(rr.Markets.Length, gc);
                 for (int gi = 0; gi < n; gi++) prod[gi] += rr.Markets[gi].LastProduced;
             }
-            if (w.ExportsByGood is { } eg)
+            if (w.ImportsByGood is { } eg)
                 for (int gi = 0; gi < gc && gi < eg.Length; gi++) exp[gi] += eg[gi];
         }
         // 足切りの基準＝世界の総生産額／総輸出額（財の重みを測る母数）。生産は参照価格で額へ直す
@@ -906,21 +856,20 @@ public partial class GameViewModel
             if (gi < Catalog.RefPrices.Length) prodValue += prod[gi] * Catalog.RefPrices[gi];
             expValue += exp[gi];
         }
-        _worldProdByGood = prod; _worldExpByGood = exp;
-        _worldProdValueTotal = prodValue; _worldExpTotal = expValue;
+        _worldProdByGood = prod; _worldImpByGood = exp;
+        _worldProdValueTotal = prodValue; _worldImpTotal = expValue;
     }
 
     // 植民地/未領有標的のホバー：名称（帰属）・不満・海峡/運河（hostなら）・生産物（名前のみ・4品目/行）。
     private MapHoverInfo BuildColonyHover(Colony col, string owner)
     {
-        var info = new MapHoverInfo { Title = $"{col.Name}　{owner}" };   // ★2026-09-23：州ホバーと同じ＝owner が「アメリカ(シャムの属国)の植民地」のとき括弧が二重にならない
-        info.Lines.Add(new MapHoverLine { Text = $"不満 {col.Militancy:P0}　規模指数 {col.Population:F1}", Brush = HoverDim });
+        var info = new MapHoverInfo { Title = $"{col.Name}（{owner}）" };   // ★2026-09-23：州ホバーと同じ＝owner が「アメリカ(シャムの属国)の植民地」のとき括弧が二重にならない
+        info.Lines.Add(new MapHoverLine { Text = $"不満 {Fmt.Share(col.Militancy)}　規模指数 {col.Population:F1}", Brush = HoverDim });
         AppendChokepoint(info, col.Name);
-        AppendMegaprojects(info, col.Name);   // ★A-13
         var names = (col.Resources ?? []).Where(id => id >= 0 && id < Catalog.Goods.Length).Select(id => Catalog.Goods[id].Name).ToList();
         if (names.Count > 0)
         {
-            info.Lines.Add(new MapHoverLine { Text = "生産物:", Brush = HoverHead, Weight = FontWeight.Bold });
+            info.Lines.Add(new MapHoverLine { Text = "生産物：", Brush = HoverHead, Weight = FontWeight.Bold });
             info.Lines.Add(new MapHoverLine { Text = string.Join("、", names), Brush = HoverText });   // 読点区切りの1行（折返しに任せる）
         }
         return info;

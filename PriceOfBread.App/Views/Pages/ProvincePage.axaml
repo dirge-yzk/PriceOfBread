@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:sd="using:PriceOfBread.SimCore.Display"
+             x:Class="PriceOfBread.App.Views.Pages.ProvincePage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/ProvincePage.axaml ＝ 浮かぶ窓「州」（2026-11-11 作者指示）：地図で指した州の情報。窓の幅は固定・長いときは縦に送る。
+         指した州が無くなっても最後に指した州を出したままにする（窓へ移る間に消えない）。 -->
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <Border Padding="14,10" IsVisible="{Binding ShownHover, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Spacing="3">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding ShownHover.Title}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}"/>
+                        <TextBlock Grid.Column="1" Text="ピン留め" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding HoverPinned}"/>
+                    </Grid>
+
+                    <!-- ★支配度 §7（2026-09-07 作者指示「半円で」）：4区分の半円＋外周の帯（10年前の国家区分）＋凡例。区分が動く世界だけ（HasRule）。
+                         色＝国家:鋼青（議会と同じ「制度」）・在地勢力:褐（Bronze）・外国勢力:琥珀（Amber）・無統治:淡墨＝政治タブ（王権=金・革命=錆）と同時に見えるので金/錆は使わない（レビュー2026-09-07）
+                         ★2026-09-23：①箱を**幅70×高さ36**へ（VM は中心(35,35)・半径34で描いている＝GameViewModel.Map.cs:869。旧140×72だと半円が左上へ寄っていた）
+                         ②10年前の帯は半径32＝線の太さを 2.5→2 ③凡例を2×2の二段組 ④語を「在地」→「在地勢力」「外国」→「外国勢力」
+                         ⑤このブロックを**州の詳細の下へ**（作者指示「円グラフは詳細の下に」） -->
+                    <Grid ColumnDefinitions="Auto,10,*" Margin="0,4,0,0" IsVisible="{Binding ShownHover.HasRule}">
+                        <Canvas Grid.Column="0" Width="70" Height="36" Background="Transparent">
+                            <Path Data="{Binding ShownHover.RuleState, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource RuleStateBrush}"/>
+                            <Path Data="{Binding ShownHover.RuleLocal, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource RuleLocalBrush}"/>
+                            <Path Data="{Binding ShownHover.RuleForeign, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource RuleForeignBrush}"/>
+                            <Path Data="{Binding ShownHover.RuleUngoverned, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource RuleUngovernedBrush}"/>
+                            <Path Data="{Binding ShownHover.RuleBand, Converter={x:Static vm:Conv.PathData}}" Stroke="{StaticResource InkBrush}" StrokeThickness="2" Fill="{x:Null}"/>
+                        </Canvas>
+                        <!-- 凡例＝2列×2行（国家/在地勢力 上段・外国勢力/無統治 下段）＋帯の注記は下に全幅で1行 -->
+                        <Grid Grid.Column="2" ColumnDefinitions="*,14,*" RowDefinitions="Auto,Auto,Auto,Auto" VerticalAlignment="Center">
+                            <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource RuleStateBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="{x:Static sd:PopTables.RuleStateName}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding ShownHover.RuleStateText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="0" Grid.Column="2" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource RuleLocalBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="{x:Static sd:PopTables.RuleLocalName}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding ShownHover.RuleLocalText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource RuleForeignBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="{x:Static sd:PopTables.RuleForeignName}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding ShownHover.RuleForeignText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="1" Grid.Column="2" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource RuleUngovernedBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="{x:Static sd:PopTables.RuleUngovernedName}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding ShownHover.RuleUngovernedText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ShownHover.RuleBandText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding ShownHover.RuleBandText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ShownHover.RuleForeignWho}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}" TextWrapping="Wrap" IsVisible="{Binding ShownHover.RuleForeignWho, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </Grid>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,12,*" Margin="0,6,0,0" IsVisible="{Binding ShownHover.ProducedGoods, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="主な産物" FontWeight="Bold" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Text="{Binding ShownHover.ProducedGoods}" TextWrapping="Wrap" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="2">
+                            <TextBlock Text="主な輸入品" FontWeight="Bold" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/>
+                            <TextBlock Text="{Binding ShownHover.ImportedGoods}" TextWrapping="Wrap" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
+                        </StackPanel>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding ShownHover.Lines}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontWeight="{Binding Weight}" FontSize="{StaticResource FontEmph}" TextWrapping="{Binding Wrap}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>
