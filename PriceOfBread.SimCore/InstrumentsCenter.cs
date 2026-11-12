@@ -146,6 +146,7 @@ public static partial class Instruments
             B(ver.Violent), B(ver.Peaceful), B(ver.Immediate), B(ver.Coup), B(w.InCivilWar), B(w.PendingRebelRegions is not null),
             I((int)kNow), "0", I((int)w.Crown), I((int)w.Seizure), I((int)w.Polity), I((int)nm), I((int)PowerAffinity.PolityFromShares(w)),
             F(sfDown), F(res.Safety), F(sfUp), "-1", F(refSide > 0 ? radSide / refSide : double.NaN), F(g > 0 ? qv * (mRad + mRefOut) / g : double.NaN)));
+        PopPrefFold(sk, seed, w, q);   // (1090) 段 B1：POP の好みの影 poppref_s（四半期 0 と 40 おきだけ）
     }
 
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
