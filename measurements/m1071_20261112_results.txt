@@ -1,0 +1,41 @@
+m1071 結果 c102rp (1071)：支配の力の段 B（影の計器・PairKm の口）
+書いたモデル：Claude Sonnet 5.5。事前登録 m1071_20261112_prereg_rp.txt に対する結果。
+
+[恒等の判定（測った種で一致）] 判定: 恒等 ×2
+ - 1 回目 HEAD ea14fd0fb：素の 5 種・計器つき 10 種の全行一致・計器の表 バイト一致 1287＋既知の揺れ 50＋宣言 20・テストの数 2753（2749＋4）＋FullLength 3・savetest OK・leakhunt 保存則違反なし。
+   その後のフルスイートで OnDoubleReadScanTests が赤（BilateralMarket.cs::StepBilateral#0 の Instruments.On の読み 12→13＝私の複写の呼びが On を読んだ）。
+ - 修正（結果の後の変更ではない＝機構の番人の赤を物差しを替えず直した）：On の門を呼ばれた側（InstrumentsRulePower.RpSnapshot）へ移し、清算の側は無条件の呼び 1 行。番人は書き換えていない。
+ - 2 回目 HEAD 159defa6e：同じ判定 恒等（SOURCE-HASH d00c69e756943e9b）。成績表 measurements/b5_20261112_c102rp・b10_20261112_c102rp_ins（.cost・.manifest）・mon_20261112_c102rp.txt・m1071_20261112_ident_check.txt。
+ - 推定 .cost：素 229.7 秒・計器つき 227.7 秒＝基準と一致（.cost は件数からの推定で、計器だけの実時間の上乗せは映らない。実測の上乗せは未計測＝事前登録の +0.3〜1.5 秒の見積りは未検証）。
+
+[予言の判定]
+ - 開幕に持ち主の側が最大でない州（今の Rule・RuleInit が出所）：10 種で 無統治 60・外国 10＝1 種あたり 6＋1 ＝予言どおり ✓（nowBestClass）。
+ - 影の目標（生きた抵抗 F_R と他国の外への力 F_f を入れたもの）で 持ち主の側が最大でない州：10 種で 無統治 156・外国 282・自立 10（1 種あたり 約 44）＝設計 §3-9 の〈開幕の目標≈RuleInit〉は 抵抗が 0 でない州で成り立たない。
+   原因の記録：①F_R の近似圧力（闘争度×割引）が大きい州（植民地）で N×圧力÷1.43 が F_S と同じ桁になる ②他国の O の配りが 開幕から外国の力（米の英領カナダ等・蘭印）を立てる。段 C′ の前に 抵抗の項と O の配りの大きさを決める材料（限界①⑥の近似つき）。
+ - 開幕の自己検査（RuleInit[0]＞0・F_S0＞0・開幕の抵抗 0・外国の取り分 0 の州）：当たる州 888（10 種）・差の最大 1.1e-16（1e-9 以内 ✓）・4 区分の和の逸脱 0 ✓。
+
+[数える物（段 C′ 以降の門の材料・10 種・影の表 rulepower_s・rulepeace_s）]
+ - 国ごとの O の世界の取り分（平均）：清 0.435・マラータ同盟 0.122・日本 0.063・ロシア 0.049・オーストリア 0.034・フランス 0.032・オスマン 0.027・シク連邦 0.020＝清の型は残る（影の力の式では消えない＝段 C′ の式で F_S の分母に入る H の比と L の取り方を決めるときの材料）。
+ - 露の O の行き先（影の外国の最大が露になる州の持ち主・20 四半期おき・10 種の延べ）：清 587・オスマン 443・英 298・ポーランド 227・ペルシャ 222・オーストリア 174・プロイセン 151・スウェーデン 109。
+ - 講和（終戦の記録 4101 件・10 種）：影の寄せ切りで取る州の数 中央 1・平均 2.57・0 件の割合 0.49。大圏の届きだけで数えた場合も中央 1（届きを PairKm にしても中央は動かない）。φ*（持ち主の側が最大でなくなる国家の力の比）の中央の中央 2.14（＞1＝敗者の国家の力が 2 倍でも取られる州が半数＝抵抗と外国の項が大きい）。
+ - 平時に外へ向けられる国（O＞0）の数：開幕 17〜22・中盤 38〜50・終盤 46〜54（全 61 国のうち）。q＝開幕の世界の陸軍力÷人口K＝2.7e-5〜2.9e-5。
+ - 切る前の被覆 L÷ΣN（1 種の開幕）：中央 0.80・最小 0.21・最大 2.48・1 以上の国 22/61。
+ - 助走の直後 5 四半期の L の比（対 最初の観測）：中央 1.03・最大 4.72（小国で L が跳ぶ国あり＝助走の終わりの L の跳びは国によって大きい）。
+ - 海軍の単位：navalNationIndex（Power.NavalPower）と lNationIndex（LandPower）を同じ表に並べた（足せる単位かの決定は段 C′ の前に表で行う・未決）。
+ - 鉄道の 2 通り：州の線路の器が無く 計算不能。代わりに 首都→州の直の届きを 線なし／発見の門（今）／満線 の 3 列で出した（rhoDirectNoRailIndex・rhoDirectRailGateIndex・rhoDirectFullRailIndex）。
+
+[突然変異]（出力 measurements/m1071_20261112_mut/・summary.txt）
+ - M1 口が組を並べ替えて対称にする→P1 赤（ビットが違う組が実在する）。
+ - M2 LastPairWasLand を口の中で書く→コンパイルで落ちる（CS0120＝静的な口は実体の欄に触れない＝型で防がれた）。ident が赤になる以前に書けない。
+ - M3 On でない時も計算する→P3 赤（On の門を RpSnapshot の中へ移した版で撮り直し）。
+ - M4 Wants を通さず直に書く→InstrumentsTablesSelectTests.S2 赤。
+ - ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・InstrumentsTablesSelectTests・RulePowerTests）139 本緑。書き換えた番人 0・許可表の行の変更 0。
+
+[足した列] rulepower_s（見出し RulePowerHeaderText の 55 列）と rulepeace_s（14 列）。1 種あたり rulepower_s 約 107MB（全四半期・10 種で 約 1.1GB＝5GB 未満）。
+[行が動くファイル] BilateralMarket.cs（PairKm の口・複写の呼び 1 行）・Instruments.cs（RulePowerTable の呼び 1 行）。route_anchors.tsv の鍵の行は 1 行も動かしていない（cearn_s・cpop_s・flow_s は ident_check.py で違い 0＝既知の揺れの欄のみ）。
+
+[フルスイート（HEAD 159defa6e の木・--logger trx・measurements/m1071_20261112_trx/）]
+ - Category!=FullLength：合計 2753（合格 2752・スキップ 1・失敗 0）＝--list-tests の 2753 と一致。FullLength：3（合格 3）。1 回目の赤（OnDoubleReadScanTests）は上の修正で解消。
+ - 書き換えた試験：0 本。足した試験：RulePowerTests.cs P1〜P4（+4）。
+[運用の記録] 腕の枠で待った時間 0（arms.sh free が 5〜6 の時に ident を起こした）。覗いた回数は waitmark の待ちのみ。hook に止められた回数 1（誤って書いた sed -i の 1 行・言い換えず外して再実行）。
+[生のパス] D:/PoB_work/ident_c102rp2（out_ib_10/ins に rulepower_s・rulepeace_s 10 種ずつ・合流の判断まで残す）。

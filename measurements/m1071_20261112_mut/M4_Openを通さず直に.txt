@@ -1,0 +1,25 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\BilateralMarket.cs(1001,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\EconomyStep.cs(1767,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\Instruments.cs(2576,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\InstrumentsSubst.cs(193,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\InstrumentsSubst.cs(209,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c102rp\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c102rp_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\c102rp_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests -> D:\PoB_work\c102rp_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c102rp_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:15.82]     PriceOfBread.Tests.InstrumentsTablesSelectTests.S2_S3_S4_選んだ表は全表の走りとバイト一致で選ばない表は0本 [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTablesSelectTests.S2_S3_S4_選んだ表は全表の走りとバイト一致で選ばない表は0本 [14 s]
+  エラー メッセージ:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["rulepower_s"]
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTablesSelectTests.S2_S3_S4_選んだ表は全表の走りとバイト一致で選ばない表は0本() in D:\PoB_work\wt_c102rp\PriceOfBread.Tests\InstrumentsTablesSelectTests.cs:line 74
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 14 s - PriceOfBread.Tests.dll (net10.0)

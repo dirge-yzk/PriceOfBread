@@ -86,7 +86,31 @@ public sealed partial class InternationalMarket
 
     /// <summary>売り手候補1件（財ごとに作り直す小さな配列＝毎月の割り当てを避けるため上限で確保して使い回す）。</summary>
     [System.NonSerialized] private int _scopeStamp;   // ★(403) 係数 ClearingPartnerScope：財の清算ごとの通し番号（Region.ClearSellerStamp と照らす・結果に効かない）
-    private bool LastPairWasLand;   // ★陸路可視化：直近 PairKm の勝者が陸直行か（Step 内でのみ読み書き・純テレメトリ）
+    /// <summary>(1071) 対ごとの実距離（換算 km）の純関数の口＝清算の局所関数 PairKm の式を逐語で移した物（清算の外から呼べる・状態を持たない・陸の印は out で返す）。
+    /// 引数の配列は州の表 tr と同じ添字（tr[i] の seaOk・lat・lon・landKm・nation）。向きは a＝売り手・b＝買い手（鏡像は同じ値と限らない＝ビット単位で非対称）。</summary>
+    internal static double PairKmCore(TrEntry[] tr, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, double[] terrCost, double[] landRatio, int[] landNode, double[] landGraft, double landRouteEnabled, int a, int b, out bool land)
+    {
+        double viaSea = double.PositiveInfinity;
+        if (tr[a].seaOk && tr[b].seaOk)
+        {
+            double sea = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);   // ★(335) Geo.SeaDistanceKm と同じ値（最寄りの海ノードと接ぎ木の片側は州ごとに求めた物）
+            viaSea = sea + tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b];   // ★(3)＋鉄道低下：陸脚＝地形×実効比
+        }
+        land = false;   // ★既定＝海（下の陸直行が勝ったときだけ true）
+        if (!(landRouteEnabled > 0)) return viaSea;   // 否定形＝NaNも従来側。⚠休眠時は seaOk==linked なので両者とも真＝従来と厳密同値
+        // ★(1.5) 陸直行：州自身の座標どうしを陸グラフの最短路で結ぶ。別陸塊なら +∞ ＝ 自動的に海が選ばれる。
+        //   ⚠全点対の行列を引くだけ（PathGraph.LandMatrix）＝州の二乗のループでも Dijkstra を回さない。
+        int na = landNode[a], nb = landNode[b];
+        if (na < 0 || nb < 0) return viaSea;
+        double raw = PathGraph.LandMatrix()[na * PathGraph.Nodes.Length + nb];
+        if (double.IsPositiveInfinity(raw)) return viaSea;
+        // ★(3)＋鉄道低下：陸直行にも両端の地形係数と実効比（経路の中間はタグを見ない＝粗いコア・思想⑧）
+        double viaLand = (raw + landGraft[a] + landGraft[b]) * 0.5 * (terrCost[a] * landRatio[a] + terrCost[b] * landRatio[b]);
+        land = viaLand < viaSea;   // ★純テレメトリ（戻り値・算術は不変）
+        return Math.Min(viaSea, viaLand);
+    }
+
+    private bool LastPairWasLand;   //★陸路可視化：直近 PairKm の勝者が陸直行か（Step 内でのみ読み書き・純テレメトリ）
 
     private readonly struct Seller(int node, double price, double stock)
     {
@@ -458,24 +482,9 @@ public sealed partial class InternationalMarket
         // （実測 routecost＝港81件・3240対で2回目 0ms）。陸路は LandSeaCostRatio 倍して足す＝港湾都市の優位が距離から出る。
         double PairKm(int a, int b)
         {
-            double viaSea = double.PositiveInfinity;
-            if (tr[a].seaOk && tr[b].seaOk)
-            {
-                double sea = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);   // ★(335) Geo.SeaDistanceKm と同じ値（最寄りの海ノードと接ぎ木の片側は州ごとに求めた物）
-                viaSea = sea + tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b];   // ★(3)＋鉄道低下：陸脚＝地形×実効比
-            }
-            LastPairWasLand = false;   // ★既定＝海（下の陸直行が勝ったときだけ true）
-            if (!(c.LandRouteEnabled > 0)) return viaSea;   // 否定形＝NaNも従来側。⚠休眠時は seaOk==linked なので両者とも真＝従来と厳密同値
-            // ★(1.5) 陸直行：州自身の座標どうしを陸グラフの最短路で結ぶ。別陸塊なら +∞ ＝ 自動的に海が選ばれる。
-            //   ⚠全点対の行列を引くだけ（PathGraph.LandMatrix）＝州の二乗のループでも Dijkstra を回さない。
-            int na = landNode[a], nb = landNode[b];
-            if (na < 0 || nb < 0) return viaSea;
-            double raw = PathGraph.LandMatrix()[na * PathGraph.Nodes.Length + nb];
-            if (double.IsPositiveInfinity(raw)) return viaSea;
-            // ★(3)＋鉄道低下：陸直行にも両端の地形係数と実効比（経路の中間はタグを見ない＝粗いコア・思想⑧）
-            double viaLand = (raw + landGraft[a] + landGraft[b]) * 0.5 * (terrCost[a] * landRatio[a] + terrCost[b] * landRatio[b]);
-            LastPairWasLand = viaLand < viaSea;   // ★純テレメトリ（戻り値・算術は不変）
-            return Math.Min(viaSea, viaLand);
+            double km = PairKmCore(tr, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled, a, b, out bool land);
+            LastPairWasLand = land;   // ★純テレメトリ（戻り値・算術は不変）。口は状態を持たない＝陸の印は呼び手の側で書く
+            return km;
         }
         // ★(380) 輸送の段0 の計器（Instruments.On のときだけ呼ぶ・読むだけ）：PairKm の式を海脚・陸脚・換算 km に分けて書き直した物（sea＝その成約の経路が海経由か）。
         //   値は書かない・状態を持たない。PairKm の式が変われば食い違う（番人 TransportInstrumentTests が〈海脚＋陸脚の換算 km ＝ 成約の換算 km〉を確かめる）。
@@ -536,6 +545,7 @@ public sealed partial class InternationalMarket
         }
         Instruments.NgHead(this, nations, gc, tar, exRate);   // (1003) 計器 C1：越境の蓄えを清算の頭で 0 へ（World.ImportsByGood と同じ範囲・計器が切れていれば即戻る）
         var ts = Instruments.TsBegin(this, nations, gc, firstClearingOfQuarter, Cost[CostLedger.ClearingRows], tar, exRate);   // (1003) 計器 C2：調べる年の第 4 四半期の最初の清算だけ非 null
+        Instruments.RpSnapshot(firstClearingOfQuarter, nations, tr, tc, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled);   // (1071) 支配の力の影の計器：四半期の最初の清算の州の表を複写（On の門は呼ばれた側で読む＝この関数の On の読みを増やさない・読むだけ）
 
         // ★支払いの一元化 段3-1（貿易・2026-09-29・計画 §10-12-9 の 3-1・C1〜C5・D4・A7・econ-07/B21）：旧＝国ごとの純流入 netFlow を Apply で
         //   国の全POP の貯蓄比に配っていた（輸入代金を払うのは国の全POP・運賃も関税の残りも同じ）＝払い手と受け手が名目と違った。
