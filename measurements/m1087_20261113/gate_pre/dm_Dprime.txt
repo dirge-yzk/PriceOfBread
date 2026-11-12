@@ -1,0 +1,13 @@
+== T3 経路（flow_s の sourceFile=Megaprojects.cs の行）
+  種 1：Megaprojects.cs 0 行・他 1027173 行
+  種 2：Megaprojects.cs 0 行・他 1034463 行
+  種 3：Megaprojects.cs 0 行・他 1037672 行
+== T1′ 帳簿（fiscal_s の ledgerMegaprojectPerMonth の 0 でない行・nan も数える）
+  行 180270・0 でない行 0
+== T2′ 見出し（消した 8 列が無い）
+  fiscal_s：列 96・消した列のうち残る物 []
+  nation_s：列 252・消した列のうち残る物 []
+  scalars_s：列 32・消した列のうち残る物 []
+== T0′ 係数の名（木の Coefficients.cs）
+  残る名 {}
+判定: 緑（全て）

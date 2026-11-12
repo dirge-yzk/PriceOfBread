@@ -1,0 +1,21 @@
+== T3 経路（flow_s の sourceFile=Megaprojects.cs の行）
+  種 1：Megaprojects.cs 5424 行・他 1032391 行
+  ✕ T3: 種 1 に Megaprojects.cs の行 5424
+  種 2：Megaprojects.cs 6240 行・他 1078325 行
+  ✕ T3: 種 2 に Megaprojects.cs の行 6240
+  種 3：Megaprojects.cs 5496 行・他 1053815 行
+  ✕ T3: 種 3 に Megaprojects.cs の行 5496
+== T1′ 帳簿（fiscal_s の ledgerMegaprojectPerMonth の 0 でない行・nan も数える）
+  行 180270・0 でない行 54452
+  ✕ T1′: 0 でない行 54452
+== T2′ 見出し（消した 8 列が無い）
+  fiscal_s：列 98・消した列のうち残る物 ['claimMegaForeignYieldAtQuarterEnd', 'claimMonumentBuildPerMonth']
+  ✕ T2′: fiscal_s に ['claimMegaForeignYieldAtQuarterEnd', 'claimMonumentBuildPerMonth']
+  nation_s：列 255・消した列のうち残る物 ['monumentPaidPerMonth', 'megaCrisisPassCount', 'megaCrisisGateOpenCount']
+  ✕ T2′: nation_s に ['monumentPaidPerMonth', 'megaCrisisPassCount', 'megaCrisisGateOpenCount']
+  scalars_s：列 35・消した列のうち残る物 ['megaStartedCount', 'megaStartedUnmetCount', 'megaStartedOldGateClosedCount']
+  ✕ T2′: scalars_s に ['megaStartedCount', 'megaStartedUnmetCount', 'megaStartedOldGateClosedCount']
+== T0′ 係数の名（木の Coefficients.cs）
+  残る名 {'MegaprojectEnabled': 1, 'MegaprojectStateFrac': 1, 'MegaprojectStateCap': 1, 'MegaprojectPrestige': 1, 'MegaprojectCounterCyclical': 1, 'MegaprojectCrisisDrawdown': 1, 'MegaprojectForeignShare': 1, 'MegaprojectForeignMinRank': 1, 'MegaprojectForeignDrawFrac': 1, 'MegaprojectForeignYield': 1, 'FormationLegitimacyBoost': 1}
+  ✕ T0′: {'MegaprojectEnabled': 1, 'MegaprojectStateFrac': 1, 'MegaprojectStateCap': 1, 'MegaprojectPrestige': 1, 'MegaprojectCounterCyclical': 1, 'MegaprojectCrisisDrawdown': 1, 'MegaprojectForeignShare': 1, 'MegaprojectForeignMinRank': 1, 'MegaprojectForeignDrawFrac': 1, 'MegaprojectForeignYield': 1, 'FormationLegitimacyBoost': 1}
+判定: 赤 T0′,T1′,T2′,T3

@@ -64,3 +64,22 @@
 - 成績表 b5_20261113_m1087・b10_20261113_m1087・b10_20261113_m1087_ins・mon_20261113_m1087.txt・ヌル腕 b10_20261113_m1087_n1_ins・_n2_ins・b10s11_20261113_m1087_ins・NG の基準 measurements/ng1087_20261113・止める線の基準 measurements/m1087_20261113/stopbase/・生 D:/PoB_work/keep_1087/{base_ins,n1,n2,a11}。
 - ident.cfg：B5・B10INS・MON・INSRAW・BASE_COMMIT・STAGE_BASE（測った木）・TESTS_NONFULL 2768・NG_BASE ng1087。新しい基準の .cost は em の件数の行を含む＝以後の恒等の線に --cost-allow は要らない（st の申し送り）。
 - 片方だけ採るときは、採らない線を抜いた木で M・S11・N1・N2 を取り直す。両方とも採らないときは基線 m1069 のまま・INSRAW を Z の生（keep_1087/base_ins）へ。
+
+== 追記 1（2026-11-13・merge の前・腕の前・結果を見る前）
+- dm の門の台本 scripts/instruments/m1087/gate_dm1087.py（T3・T1′・T2′・T0′）を書き、腕の前に 3 つの生へ当てた（measurements/m1087_20261113/gate_pre/）：
+  旗 0＝keep_1078/base_ins（種 1〜10）→ 赤（T3 5,424／6,240／5,496 行・T1′ 0 でない行あり・T2′ 8 列が残る・T0′ main の Coefficients.cs に 11 本）。
+  旗 0＝keep_1069/a11（種 11〜20・flow 11〜13）→ 赤（T3 6,024／5,286／5,550・T1′ 55,170 行・T2′）。
+  dm の D′ の生（c103dm_work/identD/out_ib_10/ins・dm の木の Coefficients.cs）→ 緑（T3 0／0／0・T1′ 0／180,270 行・T2′ 残る列なし・T0′ 0）。
+  ledgerMegaprojectPerMonth は D′ の fiscal_s に残る（列 96 のうち）＝T1′ は合わせた木で読める。
+- cr の門 gate1082.py（cr の枝の物を変えずに）を腕の前に当てた：旗 0＝keep_1078/base_ins・keep_1069/a11 → G-W1・G-W2 とも赤（10/10 種）・cr の腕 B の生 → 緑（10/10 種）。
+- アブレーションの逆側（同じ木の旗 0 の側・★(778)）：A_dm（cr なし）で cr の門 G-W1・G-W2 が赤・A_cr（dm なし）で dm の門 T3・T1′・T2′ が赤。A の表は和集合（SMALL＋flow_s・anchor_s・eq_s・cessp_s・secession_s）なので両方の門が読める。
+- 片方だけ落ちたとき：残る線の採否は最初の S11 の読みで決めたまま。取り直す腕（落ちた線を抜いた木の M・S11・N1・N2）は新しい基線を作るためだけで、採否を読み直さない。
+- 台帳の門（docs/機能の台帳.md・scripts/instruments/r900/ledger_check.py <repo> <木> <台帳>）：
+  写す前（main decb50fa5）＝行 1,143・門 1 落ちる・門 8 落ちる（S23-H044 の重複）・他は通る（m1087_work/lc_main_r900.txt＝ld の lc_head.txt と同じ）。
+  写した後＝ld の ledger_dryrun_a.md（紙の段 9 系統 436 行＋観戦 13 行＝行 1,592・ld の報告の 406 は数え違い）＋ s18 の 31 行を新しい節 §2f に足す（§3 の S18 の仮の行は残す＝(1078) の S23 と同じ形）＝行 1,623 と予言。門 1・門 8 は main と同じく落ちる（門 1 は 1 つの木で全ての錨を引く道具の限界・門 8 は既存の重複）・他の門は通る。
+  dm は SimCore の行を動かす＝錨の行番号は合わせた木で reanchor899.py で写す（名と他の欄は変えない・〈最後に確かめた〉は読んだ木のまま）。挙動を変えた線の行（dm＝巨大建造物・威信の行、cr＝州の文化と宗教の行）の〈最後に確かめた〉を合わせた木へ書き、直した行の数を記録に書く。
+- WriterRatchetTests item 11：合わせた木は dm の線の値 1,491,449 を持って入る。合わせた木の試験で緑なら取り直さない（許し +2%／−10% の内＝実数は緑の試験から出ない＝(1053) 前後の前例 53367 行）。赤なら失敗の文の実数で 1 回だけ取り直す。前後の値は 基線 2,010,476・dm の線 1,491,449・合流（実数か〈許しの内〉）の 3 つを書く。
+- cr を入れる根拠の前例：(1025) c96rd（実装ログ 56257〜）と波74 c74ts（★(885)）。
+- dm の紙（paper_DM_2026-11-12.md）の〈推奨で決めた事 8〉は実在する（作者「全て推奨で」で決定）。同じ紙の〈決めた事 3〉は TreasuryCat.Megaproject を消すと書くが、dm の D′ は残す口に入れた（事前登録 §7）＝紙との食い違いとして記録に書く（合流は直さない）。
+- Z の宣言の綴りは tr の ident の宣言の行〈added=['tskpair', 'tskshadow'] grown=['recipeout']〉に合わせる（--added-tables tskpair,tskshadow・--grown-ok recipeout）。
+- Z は M の祖先にする（m1087 に tr→st を merge した点へ m1087z を合わせ、A の枝もそこから切る）。
