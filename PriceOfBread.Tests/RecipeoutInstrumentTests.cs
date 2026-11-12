@@ -74,7 +74,7 @@ public class RecipeoutInstrumentTests
         }
         finally { restore(); }
     }
-    private const string RecipeoutHeaderExpected = "year\tnation\tgood\trecipe\tclass\tproducers\toutputSum\tcapacitySum\tscaleSum\tunitCostOutW\tselfCostOutW\tunitCostIfAbundance\tendowFromProductivity\tsiteFound";
+    private const string RecipeoutHeaderExpected = "year\tnation\tgood\trecipe\tclass\tproducers\toutputSum\tcapacitySum\tscaleSum\tunitCostOutW\tselfCostOutW\tunitCostIfAbundance\tendowFromProductivity\tsiteFound	unitCostIfBprime";
 
     /// <summary>T2：州ごとに値段を変えた盤面で、計器の生産者ごとの mc・自己費用が ExplainCostByRecipe の同じレシピ（名前と投入の財の列）の Mc・OwnCost と合う。</summary>
     [Fact]
@@ -185,7 +185,7 @@ public class RecipeoutInstrumentTests
                     { Discovery.OpenSite(w0, r0, p0, w0.Coef); Discovery.OpenSite(w1, r1, p1, w1.Coef); deposit++; }
                     var x0 = Instruments.RoRead(w0, r0, p0); var x1 = Instruments.RoRead(w1, r1, p1);
                     double engine1 = EconomyStep.MineralSelfCost(p1, r1, w1.Coef, w1) + EconomyStep.InputCostPerUnit(p1, r1, r1, w1.Coef);
-                    Assert.True(Close(x0.IfAbundance, engine1, 1e-9), $"{cfg.Name}/{r0.Name}/財{p0.GoodId}：旗0の計器 {x0.IfAbundance}・旗1のエンジン {engine1}");
+                    Assert.True(Close(x0.IfBprime, engine1, 1e-9), $"{cfg.Name}/{r0.Name}/財{p0.GoodId}：旗0の計器（案 B′ の列）{x0.IfBprime}・旗1のエンジン {engine1}");   // (1073) R1：割る数が RE×Scale になった＝比べる列は B′ の列（旧の列は希少鉱物の逆算の倍率・富鉱の 5.0 で割る）
                     Assert.True(Close(x1.IfAbundance, x1.Mc, 1e-12), "旗 1 の盤面で二重に割っている");
                     if (x0.Rule > 1.0) { abund++; if (x0.Rule > 10.0) big++; if (x0.Class == "E" && x0.Rule > 10.0) bigE++; }
                 }
