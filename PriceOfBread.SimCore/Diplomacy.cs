@@ -447,13 +447,23 @@ public sealed class Diplomacy
         Powers.Remove(p);
     }
 
-    /// <summary>宗主→従属の属国関係を張る（従属は1宗主のみ＝既存リンクを外す）。</summary>
-    public void SetDependency(Power suzerain, Power dependent)
+    /// <summary>宗主→従属の属国関係を張る（従属は1宗主のみ＝既存リンクを外す）。
+    /// ★(1064) 旗 <see cref="Coefficients.DependencyCycleBreak"/>（宗主の Nation の係数）＞0：属国が宗主の宗主の鎖の上にいたら、宗主自身の宗主のリンクを外してから張る
+    /// ＝輪（A が B の宗主で B が A の宗主…）を作らない。鎖のたどりは国の数の歩で打ち切る。0＝旧（自分自身だけを拒む）。呼び手の名と行は計器 dep_s だけが読む。</summary>
+    public void SetDependency(Power suzerain, Power dependent, [System.Runtime.CompilerServices.CallerMemberName] string callerMember = "", [System.Runtime.CompilerServices.CallerLineNumber] int callerLine = 0)
     {
         if (suzerain == dependent) return;
+        var depPre = Instruments.On ? Instruments.DepBefore(this, suzerain, dependent) : null;   // (1064) 計器（読むだけ）
+        if (suzerain.Nation?.Coef.DependencyCycleBreak > 0)
+        {
+            var up = Suzerain(suzerain);
+            for (int step = 0, cap = Powers.Count; up is not null && step < cap; step++, up = Suzerain(up))
+                if (up == dependent) { if (Suzerain(suzerain) is { } own) RemoveDependency(own, suzerain); break; }
+        }
         foreach (var s in Powers) _dependency.Remove(DirKey(s, dependent));   // 従属は1宗主のみ＝他の宗主リンクを外す
         long k = DirKey(suzerain, dependent);
         _dependency.Add(k);
+        if (depPre is not null) Instruments.DepAfter(this, depPre, callerMember, callerLine);
     }
     public void RemoveDependency(Power suzerain, Power dependent) => _dependency.Remove(DirKey(suzerain, dependent));
     public bool IsDependentOf(Power suzerain, Power dependent) => _dependency.Contains(DirKey(suzerain, dependent));

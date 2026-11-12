@@ -1928,6 +1928,7 @@ public static partial class Instruments
         CpTable(sk, sim.Diplomacy);   // (791)
         CmTable(sk, sim.Diplomacy);   // (821) 調停の戦争の講和の表 cpmed_s
         ImpTable(sk, sim.Diplomacy);   // (928) 矯正講和の表 imp_s
+        DepTable(sk, sim.Diplomacy);   // (1064) 宗主と属国のリンクの表 dep_s
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
         CeTable(sk);      // (345)
