@@ -104,6 +104,12 @@ public static class MarketFlow
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
+        if (monthStart && cost is not null)   // (1072) 計器③（件数だけ・単価 0・読むだけ）：州×財で需要・産出・在庫が全て厳密に 0 の数（月に 1 回＝旬ごとの呼びでは数えない・live の一覧とは別の定義）
+        {
+            long deadM = 0;
+            foreach (var mk in region.Markets) if (mk.LastDemand == 0.0 && mk.LastProduced == 0.0 && mk.Stock == 0.0) deadM++;
+            cost[CostLedger.DeadMarketMonth] += deadM;
+        }
         var live = region.EnsureLiveGoods();
         Prefetch(region, live);   // ★(spq) 先読み（読むだけ・値を書かない＝恒等。Prefetch の注）
         long nAsleep = 0;

@@ -865,6 +865,17 @@ public static class EconomyStep
             p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasisAdjPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
             p.SubsistenceValuePerMonth = new MoneyPerMonth(0);   // ★(706) 線 urb3：その月の自給の値を 0 へ戻す（積むのは主食の充足の行・読み手は PopDecision.MigrationValues と計器だけ）
         }
+        if (costL is not null)   // (1072) 計器②（件数だけ・単価 0・読むだけ）：人数がちょうど 0.0 の POP の数と、そのうちお金・債務・前月の所得が全て 0 の数
+        {
+            long zeroPops = 0, zeroEmpty = 0;
+            foreach (var pz in region.Pops)
+            {
+                if (pz.Size != 0.0) continue;
+                zeroPops++;
+                if (pz.Savings.Value == 0.0 && pz.Debt.Value == 0.0 && pz.LastEarnedPerMonth.Value == 0.0) zeroEmpty++;
+            }
+            costL[CostLedger.ZeroPopMonth] += zeroPops; costL[CostLedger.ZeroPopEmptyMonth] += zeroEmpty;
+        }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
             region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
@@ -1160,6 +1171,22 @@ public static class EconomyStep
                 else if (!(target > 0) && s.Output < coef.TargetStockFloor) s.Output = 0;
             }
             produced[s.GoodId] += s.Output;
+        }
+        if (costL is not null)   // (1072) 計器①（件数だけ・単価 0・読むだけ）：回した生産者のうち能力 0・産出 0・工事の残り ≦0 の数を担い手の人口 0／倒産／役務／産地／その他に分ける。熱いループの中で台帳に足さず局所の和を周の後に足す
+        {
+            long deadZ = 0, deadB = 0, deadS = 0, deadR = 0, deadO = 0;
+            for (int pd = 0; pd < np; pd++)
+            {
+                if (sleep[pd] == 1) continue;
+                var sd = region.Producers[pd];
+                if (sd.Capacity != 0.0 || sd.Output != 0.0 || !(sd.ConstructionLeft <= 0.0)) continue;
+                if (sd.LaborPopIndex >= 0 && sd.LaborPopIndex < region.Pops.Count && region.Pops[sd.LaborPopIndex].Size == 0.0) deadZ++;
+                else if (sd.Bankrupt) deadB++;
+                else if (isService[sd.GoodId]) deadS++;
+                else if (sd.IsRgo) deadR++;
+                else deadO++;
+            }
+            costL[CostLedger.DeadProdZeroPop] += deadZ; costL[CostLedger.DeadProdBankrupt] += deadB; costL[CostLedger.DeadProdService] += deadS; costL[CostLedger.DeadProdRgo] += deadR; costL[CostLedger.DeadProdOther] += deadO;
         }
 
         // 地域の工業化投資：投資家（資本家）が貯蓄から「建設の束」を買い工業化度を積む（→生産性↑・都市化上限↑）
