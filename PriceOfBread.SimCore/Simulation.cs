@@ -1063,7 +1063,7 @@ public sealed class Simulation
                 IsRgo = !isFactory,
                 EffGoods = isFactory ? [] : Catalog.RgoBoosterGoods(d.Id),   // RGOの効率化材の候補（肥料/帆船/飼料/工具・火薬）。工場は空（電化を使う）
                 Inputs = isFactory ? [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(d.Id))]
-                                   : coef.OilNeedsMachinery > 0 && d.Id == Catalog.CrudeOilId
+                                   : d.Id == Catalog.CrudeOilId
                                        ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(Catalog.MachineryId, coef.OilMachineryInput)]   // ★原油＝掘削機（機械）を要する（2026-09-05・器）
                                        : [new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],
             });

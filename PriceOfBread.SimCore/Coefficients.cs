@@ -1395,7 +1395,7 @@ public sealed class Coefficients
     // 【削除2026-10-01 段2A】SteamTurbineOnset（蒸気タービンの解禁の技術水準 1.35）＝発見の表の行（蒸気タービン・1880年代）へ
     public double SteamTurbineCoalInput = 0.6;      //   石炭火力0.9に対し熱効率で0.6
     public double SteamTurbineProductivity = 1.25;  //   石炭火力比
-    public double OilNeedsMachinery = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-19 原油の機械投入＝batch10 硬性ゲート緑（列強再現16.3/清30%）・作者指示「石油は採掘機をサプライチェーンに加えて解決」 */          // 原油の採掘に機械（掘削機＝機械53）の投入を要求し、技術水準0.6の閾値（DefaultRecipeOnset）を外す（作者指示9/4「石油は採掘機をサプライチェーンに加えて解決」）。0＝従来＝恒等
+    // 【墓標2026-11-13 (1089)・旗の焼き込み】OilNeedsMachinery（既定1.0・点火2026-09-05）を消した＝原油の採掘は機械（掘削機）の投入 OilMachineryInput を常に要し、技術水準0.6の閾値（DefaultRecipeOnset）を外す（作者指示9/4「石油は採掘機をサプライチェーンに加えて解決」）。
     public double OilMachineryInput = 0.05;         //   原油1単位あたりの機械投入（RefPrice 4.39×0.05≈+0.22＝原油0.54→0.76）
     // 【墓標2026-11-05 (843)・旗の焼き込み】ArmsStockEnabled（既定 1.0）を消した＝上位段の耐久装備は在庫＝不足分だけ発注（旧＝毎期フロー全量の枝は消した）。
     public RatePerMonth ArmsWearRatePerMonth = new(0.02);            // 平時の月次摩耗率（定常で 目標×これ ＝ 現行の平時フローに一致するよう逆算）
