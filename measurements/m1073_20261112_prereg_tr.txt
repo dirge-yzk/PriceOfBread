@@ -1,0 +1,78 @@
+m1073 事前登録 (1073) c102tr  貿易の段 0：R1 の (a)(b)（旗 0 で恒等）＋計器〈置き換えの影〉〈国の組の門の内訳〉＋世界の U1a の物差しの台本
+基線 7bb40c772（m1069）。恒等の線・予言 0。新しい係数・状態・旗は 0。形の種類＝入口でなく尾でもない（計器と器の準備）。
+材料：紙 trade_paper_2026-11-12.md §1-6・§3 推奨 (2)・§4／docs/202611/20261111/20261111_貿易の案Bの再開とB′_盤面m1027_下書き.md §2 R1 (a)(b)・§3 段 0。
+
+[1] 恒等の線・予言 0（旗 0 で恒等の根拠）
+- R1 (a)：Simulation.ApplyEndowment(pr, endowment, c) を ApplyEndowment(pr, capMul, costDiv, c) へ。Productivity *= capMul は旧の endowment と同じ式・同じ評価順
+  （呼び口 6 の第 2 引数の式は 1 文字も変えない）。費用を割る口は DivideCostByEndowment に切り出し、旧と同じ門（costDiv>1 は EndowmentCostFollowsAbundance・<1 は …Scarcity・
+  どちらも 0 のとき !(gate>0) で戻る）＝旗 0（既定の 0）では Math.Pow を 1 度も通らず MarginalCost を書かない。
+  割る数の式：産地の発見の行〔Simulation.cs の呼び口 :851・:1537〕＝1.0（播種で割らない）・希少鉱物〔:857・:1543〕＝ResourceEndowment(good)×ResourceEndowmentScale（旧は ScarceEndowment×Scale〔最大 126.8〕）・
+  非産地〔:872・:1555〕＝旧と同じ ResourceScarcity×ResourceScarcityScale。旗 0 ではどの割る数でも戻るので結果は同じ。
+- R1 (b) 級 X：Discovery.OpenSite（:1224〜）の ApplyEndowment(p, GoldRushEndowment, siteCostDiv, c)＝能力の 5.0 は変えない・割る数は開始時の賦存に載らない行〔Region.Resources に無い〕だけ RE×Scale・載る行は 1.0。
+  植林は DivideCostByEndowment の割るだけの口。旗 0 では全て戻る。
+- 浮動小数の順序が変わる箇所：無い（Productivity の掛け算は同じ式・同じ順。割る数の式 ResourceEndowment×Scale は旗 0 では使われない値）。紙の台本で旧≠新の比較の食い違いの数を数える必要のある箇所は 0。
+- 計器：読むだけ。乱数を引かない・エンジンの欄を足さない・エンジンの関数でなく計器の RoRead（InstrumentsRecipeout.cs）を再利用する・KmOf／PairRisk を呼ばない。Instruments.Open を通す。
+- 経路の名（cearn_s・cpop_s・flow_s の sourceFile:sourceLine）：行が動くファイルは Simulation.cs（ApplyEndowment 付近。:759 以降の行がずれる）・Discovery.cs（OpenSite〔:1224 以降〕の下は無い＝末尾の行だけ）。
+  〈ident_check.py の行の写しで違い 0〉と宣言する（前例 m843）。経路の名の差は --known-extra などで宣言しない＝出たら不一致として止める。
+
+[2] 消す物と残す物
+- 消す物：ApplyEndowment の旧の署名（3 引数）。読み手（呼び口）は Simulation.cs 6 箇所・Discovery.cs 1 箇所だけ（grep：Runner 0・App 0・Display 0・Tests 0〔コメントのみ〕）。
+  scripts の mut1020.sh・mut1025.py は旧の呼び口の文字列を突然変異に使う閉じた台本（試験からは呼ばれない）＝残す（古い文字列で空振りする・記録）。
+- 残す物：recipeout_s の旧の列（unitCostIfAbundance ほか）は 1 バイトも変えない。新しい列 unitCostIfBprime は末尾に足す。
+- 足す物：
+  (a) recipeout_s の末尾 1 列 unitCostIfBprime（案 B′＝割る数 RE×Scale・産地の発見の行は開いた後だけ割る・旗の盤面で既に割った分は二重に割らない）。
+  (b) 新しい表 tskpair_s（国の組の門の内訳）：年 1870・1913 の第 4 四半期の最初の清算だけ。列＝year nation seller good xPairs xSoldOut xCap xWedgeA xWedgeB xWedgeC xWedgeD xPass。
+      買い手の国×売り手の国×財（越境だけ・xPairs>0 の行だけ書く）。和が tradeskip_s の行（買い手の国×財）と一致する。
+      表の大きさの見込み：1 種あたり 20 万〜100 万行・50MB 以下（測って報告）。10 種で 0.5GB 以下の見込み。
+  (c) 新しい表 tskshadow_s（置き換えの影）：年 1870・1913。列＝year nation good sellerClass pairs nowPass nowWedgeD bpPass dToBpPass dToBpShort ownN ownNowSum ownBpSum ownNowLt1 ownBpLt1。
+      買い手の国×財×売り手の州の級（E N S F X Z U -）。pairs＝容量・売り切れを通った越境の組（楔で飛ばす組＋通る組）・nowPass＝今の規則で通る組（＝xPass）・nowWedgeD＝楔 D の組（＝xWedgeD）。
+      bpPass＝案 B′ の影で通る組・dToBpPass＝D のうち B′ で通る組・dToBpShort＝その行の不足の額（max(0,目標＋需要−生産−在庫)×lp・行×級で 1 回）・own＝着値÷買い手の自己費用＋投入費（金建て）の和と 1 未満の組の数。
+      着値＝selP×(baseMul＋楔)＝**距離・危険料を含まない**（KmOf・PairRisk を呼ばない・BilateralMarket.cs に新しい呼び口を足さない）。完全な着値（運賃の距離・危険料込み）は波 103（rp の合流の後）の置き換えの線へ渡す。
+      案 B′ の影の価格＝売り手の selP×（売り手の州の最安の生産者の B′ 費用÷今の費用）・買い手の lp も同じ比で動かす（値段が費用に従う近似＝AI の読み・確証なし）。紙の「最良の売り手」でなく全ての越境の組を級別に数える（差の名乗り）。
+  (d) 呼び口：既存の TsBegin／Scan／TradeskipTable の中だけ（Instruments.cs・BilateralMarket.cs の行は 0 行）。tr の指示の「Instruments.cs の :1945 の次に 1 行」は、書き出しが TradeskipTable の中で済むため要らない（0 行）。
+  (e) 世界の U1a の物差しの台本 scripts/instruments/c102tr/u1aw.py（fric.py の U1aW を門の形に：基線とヌル腕 2 本の幅・腕の基線比と合格の線）。
+- 他の線との重なり：Simulation.cs は tr だけ（ApplyEndowment と呼び口・:754 の注）。Discovery.cs は tr だけ（OpenSite）。InstrumentsRecipeout.cs・InstrumentsTradeskip.cs は tr だけ。
+  Instruments.cs・Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs は触らない予言（0 行）。BilateralMarket.cs（rp）・EconomyStep.cs（em）・App・Display・Runner は触らない。
+- ㉘ 点検の grep（腕の前）：工業化度の読み手の許可表＝触れない／new MoneyStock( は 64 件のまま（SimCore で数えた・増減 0）／route_anchors.tsv の鍵の行は書き足さない／WriterRatchetTests の宣言の表は書き換え 0。
+
+[3] 足す試験（PriceOfBread.Tests/TradePhase0Tests.cs・新・5 本）と突然変異（どの試験で赤になるか）
+- R1a_費用を割る数は能力の倍率と別（単体）／R1a_希少鉱物の産地は通常の賦存で割られる_能力は変わらない（旗 1・共有世界の実経路）／R1b_産地の発見の行は播種で割らず開いた時に割る（旗 1・鉱床と植林）／
+  RecipeoutBprime_割る数は通常の賦存／Pair_内訳の和はtradeskipの行と一致し_影の組の数が合う。
+- 突然変異：
+  M1 割る数を倍率に戻す（Simulation.cs の希少鉱物の呼び口 2 箇所の第 3 引数を第 2 引数と同じ式に）→ R1a の 2 本が赤。
+  M2 播種で割る（産地の発見の行の呼び口の 1.0 を RE×Scale に）→ R1b が赤。
+  M3 内訳の 1 列を落とす（P(sNat, 6)＝楔 D の内訳を数えない）→ Pair が赤。
+  M4 旗 0 で割り算を通す（DivideCostByEndowment の門を常に 1 にする）→ ident（素の 5 種）が赤の見込み＋EconomyTests.器_賦存が同一費用あたりの産出能力になる_ゲート0は厳密恒等 が赤。
+  M5 recipeout の B′ の割る数を規則値（126.8）に戻す → RecipeoutBprime が赤。
+- 既存の試験の書き換え：RecipeoutInstrumentTests.T4（旗 1 のエンジンの費用＝旗 0 の計器の unitCostIfAbundance）が、希少鉱物の産地（倍率 10 超）で割る数が変わるため赤になる見込み＝
+  ★(743) の区分で名乗れるなら書き換える（比べる列を unitCostIfBprime にする）。名乗れないなら止めて報告。書き換えたら verdict に〈ファイル:行・区分・前と後〉で列挙する。
+- 安い確かめ（記録だけ・門にしない）：使い捨ての木で EndowmentCostFollowsAbundance=1 にして ColonialPopTests・DiscoveryScoreTests・CorncfInstrumentTests.T5 だけを回し、赤の数と名を書く。
+
+[4] 判定：素の 5 種・計器つき 10 種が m1069 と名乗り行を除いて全行一致。計器の表の差は宣言だけ：
+  --added-tables tskpair,tskshadow／--grown-ok recipeout（末尾の列 unitCostIfBprime）。tradeskip_s は 1 バイトも変わらない予言（新しい表は別の表）。
+  テストの数の予言：基線 2749（非 Full）→ +5（新）＝2754 ± 既存の書き換えで増減 0。FullLength 3。
+  推定の計算量：m1069 の 227.7 秒から変わらない（.cost の件数の行が一致・計器は Instruments.On のときだけで、新しい計算は 1870・1913 の 2 年の走査の行だけ）。
+[5] 〈判定: 恒等〉なら採る（測った種で一致）。不一致ならその変更を外して報告に回す。
+
+[6] U1a の物差し（W1 の材料・門ではない）：u1aw.py が keep_1069 の基線・n1・n2 でヌル腕の幅を出す（紙の値 1870 1.013・1913 1.049 は m1053 の盤面＝差は名乗る）。
+  試験の台本：基線の値を再現する（同じ seed の中央値）。
+
+[結果 追記] 判定: 恒等（測った種で一致）。ident c102tr（段 2・--saveleak・--tests-delta 5・--added-tables tskpair,tskshadow・--grown-ok recipeout）。
+ 素の 5 種 179 行（名乗り行を除く）が b5_20261112_m1069 と全行バイト一致・計器つき 10 種 181 行が b10_20261112_m1069_ins と全行バイト一致・推定 229.7／227.7 秒（件数の行 31 本が一致）。
+ 計器の表：基準 1337 本・腕 1357 本・バイト一致 1277・既知の揺れ 50・宣言した追加 20（tskpair 10＋tskshadow 10）＋列が増えた 10（recipeout_s 末尾の 1 列）・宣言の無い違い 0。注視 4612 行一致。
+ savetest OK・leakhunt 完走（保存則違反なし）。テストの数 Category!=FullLength 2754（2749＋5）・FullLength 3。
+ フルスイート（--logger trx・measurements/m1073_20261112/trx/）：非 Full 2754（合格 2753・スキップ 1・失敗 0）・FullLength 3 緑・--list-tests 2757＝2754＋3 と一致。㉘ の 5 クラス 133 件緑。
+ 予言との差：なし（テストの数 +5・書き換え 0 の予言は外れた→下の既存の試験の書き換え 2 件）。tskpair は 1 種あたり約 10MB（予言の 50MB 以下に収まった）・tskshadow は約 0.6MB。
+ 既存の試験の書き換え（★(743) の ①〜④ に名乗れない＝作者に聞く物として報告）：
+  RecipeoutInstrumentTests.cs:77 T1 の見出しの期待に末尾の \tunitCostIfBprime を足した（列を足す宣言どおり）。
+  RecipeoutInstrumentTests.cs:188 T4 の比べる列を旗 0 の計器の unitCostIfAbundance（x0.IfAbundance）から unitCostIfBprime（x0.IfBprime）へ。T4 は旗 1 のエンジンの費用＝計器の読みを確かめる試験で、R1 で旗 1 の割る数が
+  通常の賦存になったため旧の列とは希少鉱物の産地（倍率 10 超）と開いた大鉱床で合わなくなる（日本/北九州/財5：0.217 対 0.285）。母集合・閾値は変えていない。機構の向きを固定する Assert ではないが、区分は名乗れない。
+  戻す場合は 83f177e66 を戻し、T4 は R1 の本体と一緒に外すしかない。
+ 突然変異（measurements/m1073_20261112/mut/）：M1 割る数を倍率に戻す→R1a_希少鉱物 が赤（1 本）。M2 播種で割る→R1b が赤。M3 内訳の楔 D を落とす→Pair が赤。M5 B′ の割る数を規則値に→RecipeoutBprime が赤。
+  M4 旗 0 で割り算を通す→R1a_費用を割る数 と EconomyTests.器_賦存が同一費用あたりの産出能力になる_ゲート0は厳密恒等 が赤（ident での M4 は未実施＝単体の試験での確認だけ）。全て元に戻して確認済み。
+ 安い確かめ（記録・旗 1 の使い捨ての木）：基線（7bb40c772）＋旗 1 は 3 本赤＝ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く／DiscoveryScoreTests.鉱床は入植者が居なければ見つけられない_植林は住民で見る／CorncfInstrumentTests.T5_輸入の割合。
+  R1 の木＋旗 1 は 2 本赤＝ColonialPopTests（同じ 1 本）と CorncfInstrumentTests.T5。DiscoveryScoreTests は R1 で緑に戻った。R1 だけでは ColonialPopTests の赤は消えない。
+ U1aW の基線（u1aw.py・keep_1069・種の中央値）：1870 基線 0.02133・n1 0.02238・n2 0.02265＝幅 1.062／1913 基線 0.01822・n1 0.01700・n2 0.01939＝幅 1.140（紙の値 1.013／1.049 は m1053 の盤面＝差は名乗る）。
+  W1 の閾値 ≧1.10 は 1913 の幅の 2 倍の外（≧1.28）に届かない＝1913 では閾値 1.10 がヌル腕の幅の内側に入る（事前登録で閾値を決める時の材料）。
+ W2 の材料（shadow_w2.py・m1073_20261112_shadow_w2_ident.txt・種の中央値・着値は距離と危険料を含まない）：級 E の売り手の楔 D の組 1870 2466→B′で通る 1806（不足の額 36246）／1913 3966→3022（28567）。他の級は B′ で通る組が 0（級 X は 3 と 6）。
+  着値÷自己費用＜1 の組（級 E）：今 2036→B′ 10762（1870）・1671→9175（1913）。内訳の和＝tradeskip_s の行は 10 種 158990 行で食い違い 0（pair_sum_check.py）。

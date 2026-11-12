@@ -1,0 +1,3 @@
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+  失敗 PriceOfBread.Tests.TradePhase0Tests.Pair_内訳の和はtradeskipの行と一致し_影の組の数が合う [15 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 17 s - PriceOfBread.Tests.dll (net10.0)

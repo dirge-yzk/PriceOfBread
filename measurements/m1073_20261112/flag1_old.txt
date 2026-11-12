@@ -1,0 +1,4 @@
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [2 s]
+  失敗 PriceOfBread.Tests.DiscoveryScoreTests.鉱床は入植者が居なければ見つけられない_植林は住民で見る [509 ms]
+  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T5_輸入の割合 [375 ms]
+失敗!   -失敗:     3、合格:    72、スキップ:     0、合計:    75、期間: 36 s - PriceOfBread.Tests.dll (net10.0)
