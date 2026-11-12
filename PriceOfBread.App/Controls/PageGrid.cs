@@ -18,7 +18,8 @@ public sealed record SectionSpec(string Key, string Title, int Rank, int MinRows
 /// 2 列・1 列のときは 3 列の並びを左の列から順に下へ積んだ列を、最小の高さの合計が半分になる所で割る（表に書かない）。</summary>
 /// <param name="ColumnMinWidth">1 列の最小の幅。null（既定）なら幅で決める（1200 以上＝3 列・700 以上＝2 列）。幅の広い表を持つページは、列を増やしすぎない最小の幅を宣言する
 /// （列の数＝幅 ÷ 最小の幅・1〜3 の間・置き場の列の数を超えない）。</param>
-public sealed record PageTable(IReadOnlyList<SectionSpec> Sections, IReadOnlyList<IReadOnlyList<string>> Columns3, double? ColumnMinWidth = null);
+/// <param name="ColumnWeights">3 列のときの列の幅の比。null（既定）なら均等。幅の広い表を持つ欄がある列だけを広げる（列の数は変えずに、広い表を欄の外へ押し出さない）。</param>
+public sealed record PageTable(IReadOnlyList<SectionSpec> Sections, IReadOnlyList<IReadOnlyList<string>> Columns3, double? ColumnMinWidth = null, IReadOnlyList<double>? ColumnWeights = null);
 
 /// <summary>欄 1 つの割り当て＝畳むか・高さ（見出しを含む）。</summary>
 public readonly record struct SectionPlace(string Key, bool Collapsed, double Height);
@@ -150,7 +151,7 @@ public static class PagePlan
     public const double CollapsedColumnWidth = 220;
 
     /// <summary>列ごとの幅。畳んだ欄だけの列は <see cref="CollapsedColumnWidth"/>（均等割りより狭い時だけ）・残りの幅を開いた欄のある列で均等に分ける。全部が畳みか全部が開きなら均等割り。</summary>
-    public static double[] ColumnWidths(IReadOnlyList<IReadOnlyList<SectionPlace>> plan, double width)
+    public static double[] ColumnWidths(IReadOnlyList<IReadOnlyList<SectionPlace>> plan, double width, IReadOnlyList<double>? weights = null)
     {
         int n = plan.Count;
         var result = new double[n];
@@ -158,7 +159,12 @@ public static class PagePlan
         double avail = Math.Max(0, width - ColumnGap * (n - 1)), even = avail / n;
         var shut = plan.Select(c => c.Count > 0 && c.All(p => p.Collapsed)).ToArray();
         int open = shut.Count(x => !x);
-        if (open == 0 || open == n) { Array.Fill(result, even); return result; }
+        if (open == 0 || open == n)
+        {
+            if (weights is { } w && w.Count == n && w.All(x => x > 0)) { double sum = w.Sum(); for (int i = 0; i < n; i++) result[i] = avail * w[i] / sum; }
+            else Array.Fill(result, even);
+            return result;
+        }
         double narrow = Math.Min(CollapsedColumnWidth, even), rest = (avail - narrow * (n - open)) / open;
         for (int i = 0; i < n; i++) result[i] = shut[i] ? narrow : rest;
         return result;
@@ -383,7 +389,7 @@ public sealed class PageGrid : Panel
         var plan = PagePlan.Plan(t, w, h, _userOpened, _userClosed, empty, caps, chrome);
         _lastPlan = plan;
         int cols = plan.Count;
-        var colWs = PagePlan.ColumnWidths(plan, w);
+        var colWs = PagePlan.ColumnWidths(plan, w, t.ColumnWeights);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
         double used = 0; int ci = 0;
         foreach (var col in plan)
@@ -409,7 +415,7 @@ public sealed class PageGrid : Panel
     {
         if (Table is not { } t || _lastPlan is not { } plan) { foreach (var c in Children) c.Arrange(new Rect(finalSize)); return finalSize; }
         int cols = plan.Count;
-        var colWs = PagePlan.ColumnWidths(plan, finalSize.Width);
+        var colWs = PagePlan.ColumnWidths(plan, finalSize.Width, t.ColumnWeights);
         var sections = Children.OfType<Section>().ToDictionary(s => s.Key);
         double x = 0;
         for (int i = 0; i < cols; i++)

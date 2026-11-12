@@ -24,7 +24,7 @@ public partial class DiplomacyWarPage : UserControl
         ["war", "past"],
         ["nations"],
         ["army", "faction", "mediation"],
-    ], ColumnMinWidth: 700);   // 国の一覧は列が多い（順位・国名・関係・緊張・宣戦布告とその理由＝約 650）＝字体を替えて理由の列が欄の外へ出た（2026-11-12 点検①）ので、それより狭くなる列には割らない
+    ], ColumnWeights: [1, 1.4, 1]);   // 国の一覧は列が多い（順位・国名・関係・緊張・宣戦布告とその理由＝約 650）＝真ん中の列だけを広げ、理由の列が欄の外へ出ないようにする。列の数は幅で決まる（広い幅では 3 列のまま・2026-11-12 点検2回目 2-2）
 
     public DiplomacyWarPage()
     {
