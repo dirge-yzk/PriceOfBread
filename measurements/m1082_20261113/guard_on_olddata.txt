@@ -1,0 +1,9 @@
+  失敗 PriceOfBread.Tests.RegionLabelInvariantTests.構築した全ての州に文化と宗教の札がある_例外は文化の名指しの許しだけ [3 s]
+   札の欠けた州 30：日本/蝦夷地:宗教・アメリカ/西部:文化・アメリカ/西部:宗教・アメリカ/セントポール:宗教・ロシア/ウラル:文化・ロシア/ウラル:宗教・ロシア/シベリア:文化・ロシア/シベリア:宗教・ロシア/ウラジオストク:宗教・ロシア/ヤクーツク:宗教・ロシア/オホーツク:宗教・ロシア/ペトロパヴロフスク:宗教・ロシア/スレドネコリムスク:宗教・ロシア/アナディリ:宗教・ロシア/トゥルハンスク:宗教・ロシア/オブドルスク:宗教・ロシア/バルナウル:文化・ロシア/バルナウル:宗教・ロシア/グリエフ:宗教・清/アイグン:文化・清/アイグン:宗教・清/ハミ:文化・清/ハミ:宗教・清/ホータン:文化・清/ホータン:宗教・清/蘭州:文化・清/蘭州:宗教・オマーン/サラーラ:文化・オマーン/サラーラ:宗教・デンマーク/レイキャヴィク:宗教
+[xUnit.net 00:00:06.07]     PriceOfBread.Tests.RegionLabelInvariantTests.名指しの許しの州は今も文化だけが空で宗教はある_古い許しを残さない [FAIL]
+  失敗 PriceOfBread.Tests.RegionLabelInvariantTests.名指しの許しの州は今も文化だけが空で宗教はある_古い許しを残さない [569 ms]
+   許しの州 日本/蝦夷地 の宗教が空＝宗教の例外は置かない
+     at PriceOfBread.Tests.RegionLabelInvariantTests.名指しの許しの州は今も文化だけが空で宗教はある_古い許しを残さない() in D:\PoB_work\wt_c103cr\PriceOfBread.Tests\RegionLabelInvariantTests.cs:line 76
+  失敗 PriceOfBread.Tests.RegionLabelInvariantTests.番人は構築した州を読む_昇格した植民地の州の札を空にすると名指しで赤 [265 ms]
+   Assert.Empty() Failure: Collection was not empty
+失敗!   -失敗:     3、合格:     9、スキップ:     0、合計:    12、期間: 38 s - PriceOfBread.Tests.dll (net10.0)
