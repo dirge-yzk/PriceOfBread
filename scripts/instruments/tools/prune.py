@@ -2,9 +2,9 @@
 #   python -X utf8 -I prune.py prune <ins フォルダ> <基準の ins フォルダ> --verdict-file <判定を含む出力> --manifest <出力 tsv> --allow <作業フォルダ名>
 #        [--pre-spec <表・列数・sha1 の tsv>] [--copy-to <measurements の写し>] [--deleted <消した名の一覧>] [--keep-prefix 表の頭,...]
 #        [--heavy] [--heavy-keep 表の頭,...] [--dry]
-#   python -X utf8 -I prune.py guard <パス> [--allow 作業フォルダ名] [--any]   ＝消してよい場所か（0＝よい・3＝拒む・--any は ins/ の名を問わない）
-#   python -X utf8 -I prune.py pack <フォルダ> [--rm] [--allow 名]   ＝<フォルダ>.tar.gz に包む（--rm は包めたと確かめた後に元を消す）
-#   python -X utf8 -I prune.py unpack <tar.gz> <出力先> [--allow 名]
+#   python -X utf8 -I prune.py guard <パス> --allow 作業フォルダ名 [--any]   ＝消してよい場所か（0＝よい・3＝拒む・--any は ins/ の名を問わない）
+#   python -X utf8 -I prune.py pack <フォルダ> --allow 名 [--rm]   ＝<フォルダ>.tar.gz に包む（--rm は包めたと確かめた後に元を消す）
+#   python -X utf8 -I prune.py unpack <tar.gz> <出力先> --allow 名
 # 規則（measurements/m1054_20261112_prereg_dv.txt）：
 #   ・最後の〈判定:〉の行が〈判定: 恒等〉のときだけ刈る（不一致・未了・行が無い・ファイルが無いときは何も消さない）。
 #   ・消すかどうかは〈生のバイトの sha1〉が基準の同名の表と一致するかだけで決める（行末はそろえない）。LF にそろえた sha1・先頭の列の sha1 は manifest への記録だけ。

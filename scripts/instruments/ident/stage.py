@@ -22,16 +22,25 @@ def stage_of(files, rx=None):
 
 
 def changed_files(tree, base):
+    """基準との差のファイル名。git が失敗したとき（基準のコミットが引けない・git の木でない）は None（呼び手が段 2 にする＝差が空で段 1 にならない）。"""
     def git(*a):
-        return subprocess.run(['git', '-C', tree] + list(a), capture_output=True, text=True, encoding='utf-8').stdout.splitlines()
-    fs = set(git('diff', '--name-only', base)) | set(git('ls-files', '-o', '--exclude-standard'))
-    return sorted(f.strip('"') for f in fs if f)
+        r = subprocess.run(['git', '-C', tree] + list(a), capture_output=True, text=True, encoding='utf-8')
+        return r.stdout.splitlines() if r.returncode == 0 else None
+    d, u = git('diff', '--name-only', base), git('ls-files', '-o', '--exclude-standard')
+    if d is None or u is None: return None
+    return sorted(f.strip('"') for f in set(d) | set(u) if f)
+
+
+def decide(tree, base):
+    """(段, 理由, 当たったファイル)。差が測れなければ段 2。"""
+    files = changed_files(tree, base)
+    if files is None: return 2, '基準のコミットとの差が測れない（git が失敗）＝段 2', []
+    st, hit = stage_of(files)
+    return st, f'基準 {base} との差 {len(files)} 本・段 2 の条件に当たった {len(hit)} 本', hit
 
 
 if __name__ == '__main__':
-    tree, base = sys.argv[1], sys.argv[2]
-    files = changed_files(tree, base)
-    st, hit = stage_of(files)
+    st, why, hit = decide(sys.argv[1], sys.argv[2])
     print(f'段={st}')
-    print(f'基準 {base} との差 {len(files)} 本・段 2 の条件に当たった {len(hit)} 本')
+    print(why)
     for h in hit[:12]: print('  ' + h)

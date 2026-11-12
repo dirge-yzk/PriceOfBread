@@ -41,7 +41,7 @@ case "$CMD" in
     export POB_WORK="$W" POB_REPO="$TREE" MEASURE_CACHE=0
     case "$ARM" in
       a) bash "$IS/batch.sh" prep ia "dir:$TREE" plain && bash "$IS/batch.sh" run ia 5 ;;
-      b) bash "$IS/batch.sh" prep ib "dir:$TREE" plain && { [ -s "$M/small.txt" ] && export POB_INSTRUMENTS_TABLES="$(cat "$M/small.txt")"; INS=1 bash "$IS/batch.sh" run ib 10; } ;;
+      b) bash "$IS/batch.sh" prep ib "dir:$TREE" plain && { unset POB_INSTRUMENTS_TABLES; [ -s "$M/small.txt" ] && export POB_INSTRUMENTS_TABLES="$(cat "$M/small.txt")"; INS=1 bash "$IS/batch.sh" run ib 10; } ;;
       t) bash "$IS/batch.sh" prep it "dir:$TREE" plain && {
            T="$W/src_it"
            dotnet build "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --artifacts-path "$W/art_it" --disable-build-servers > "$W/tests_build.txt" 2>&1 || exit 1
