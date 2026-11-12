@@ -47,3 +47,18 @@ if peace:
         '大圏だけで数えた取る州の中央', st.median([p[5] for p in peace]), 'φ* 中央の中央', round(st.median([p[6] for p in peace if p[6] == p[6]] or [float('nan')]), 3))
 else: print('講和 0 件')
 if ljump: print('開幕後 5 四半期の L の比（対 最初の観測）の中央/最大', round(st.median(ljump), 3), round(max(ljump), 3))
+# ---- 追加（被覆と露の O の行き先）----
+cov = []; rus = collections.Counter(); rusq = 0
+for s in seeds[:10]:
+    p = os.path.join(d, f'rulepower_s{s}.tsv')
+    if not os.path.exists(p): continue
+    nsum = collections.defaultdict(float); L = {}; q0 = None; lastq = None
+    for x in csv.DictReader(open(p, encoding='utf-8'), delimiter='\t'):
+        q = int(x['quarter'])
+        if q0 is None: q0 = q
+        if q == q0: nsum[x['nation']] += f(x['nIndex']); L[x['nation']] = f(x['lNationIndex'])
+        if q % 40 == 20 and x['foreignTopKey'] == 'ロシア': rus[x['nation']] += 1
+for n in L: pass
+cv = sorted((L[n] / nsum[n]) for n in L if nsum[n] > 0)
+print('被覆 L÷ΣN（最後の種の開幕・国の数', len(cv), '）：中央', round(st.median(cv), 3), '最小', round(cv[0], 3), '最大', round(cv[-1], 3), '1 以上の国', sum(1 for v in cv if v >= 1))
+print('露が影の外国の最大になる州の持ち主（20 四半期おき・10 種の延べ）', rus.most_common(8))

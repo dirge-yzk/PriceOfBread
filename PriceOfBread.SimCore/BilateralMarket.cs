@@ -545,7 +545,7 @@ public sealed partial class InternationalMarket
         }
         Instruments.NgHead(this, nations, gc, tar, exRate);   // (1003) 計器 C1：越境の蓄えを清算の頭で 0 へ（World.ImportsByGood と同じ範囲・計器が切れていれば即戻る）
         var ts = Instruments.TsBegin(this, nations, gc, firstClearingOfQuarter, Cost[CostLedger.ClearingRows], tar, exRate);   // (1003) 計器 C2：調べる年の第 4 四半期の最初の清算だけ非 null
-        if (Instruments.On && firstClearingOfQuarter) Instruments.RpSnapshot(nations, tr, tc, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled);   // (1071) 支配の力の影の計器：四半期の最初の清算の州の表を複写（Instruments.On のときだけ・読むだけ）
+        Instruments.RpSnapshot(firstClearingOfQuarter, nations, tr, tc, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled);   // (1071) 支配の力の影の計器：四半期の最初の清算の州の表を複写（On の門は呼ばれた側で読む＝この関数の On の読みを増やさない・読むだけ）
 
         // ★支払いの一元化 段3-1（貿易・2026-09-29・計画 §10-12-9 の 3-1・C1〜C5・D4・A7・econ-07/B21）：旧＝国ごとの純流入 netFlow を Apply で
         //   国の全POP の貯蓄比に配っていた（輸入代金を払うのは国の全POP・運賃も関税の残りも同じ）＝払い手と受け手が名目と違った。

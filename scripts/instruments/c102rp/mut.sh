@@ -19,12 +19,11 @@ open(p,'wb').write(b.encode())
 P
 run M1_対称化 "FullyQualifiedName~RulePowerTests.P1"
 python - <<'P'
-p='D:/PoB_work/wt_c102rp/PriceOfBread.SimCore/BilateralMarket.cs'
+p='D:/PoB_work/wt_c102rp/PriceOfBread.SimCore/InstrumentsRulePower.cs'
 b=open(p,'rb').read().decode()
-a="if (Instruments.On && firstClearingOfQuarter) Instruments.RpSnapshot"
+a="if (!On || !firstClearingOfQuarter) return;"
 assert a in b
-b=b.replace(a,"if (firstClearingOfQuarter) Instruments.RpSnapshot",1)
-open(p,'wb').write(b.encode())
+open(p,'wb').write(b.replace(a,"if (!firstClearingOfQuarter) return;   // M3",1).encode())
 P
 run M3_Onでなくても計算 "FullyQualifiedName~RulePowerTests.P3"
 python - <<'P'
