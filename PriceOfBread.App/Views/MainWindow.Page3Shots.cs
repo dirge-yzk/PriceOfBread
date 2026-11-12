@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 namespace PriceOfBread.App.Views;
 
 // Views/MainWindow.Page3Shots.cs ＝ --uishot の撮影の段（(501) 段3：政治と法・外交と戦争）。
-// 各ページを 1 枚・左右 2・4 分割で撮り、外側が縦に流れていないこと・欄の鍵が並べの表と一致すること・表の見出しと値の列の左端が揃うことを BootLog に書く。
-// 加えて、仕組みの確かめ（段の押し釦が目標を置く・動詞が確かめの窓を開く・地図が欄と単独の枠を往復する）を BootLog に書く。
+// 各ページを撮り、外側が縦に流れていないこと・欄の鍵が並べの表と一致すること・表の見出しと値の列の左端が揃うことを BootLog に書く。
+// 加えて、仕組みの確かめ（段の押し釦が目標を置く・動詞が確かめの窓を開く・地図が欄と中央を往復する）を BootLog に書く。
 public partial class MainWindow
 {
     private async Task Page3Shots(GameView gameView, GameViewModel gvm, string dir)
@@ -22,54 +22,48 @@ public partial class MainWindow
         var lay = gvm.Layout;
         try
         {
-            string[] shapeTags = ["1枚", "左右2", "4分割"];
             foreach (var slot in new[] { Slot.PoliticsLaw, Slot.DiplomacyWar })
             {
-                for (int s = 0; s < 3; s++)
+                lay.Reset(); UiShotWindows.OpenFull(gameView, lay, slot);
+                await Task.Delay(1100);
+                string tag = SlotInfo.Name(slot);
+                Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}.png");
+                LogOuterFlow(gameView, tag);
+                LogPage3(gameView, slot, tag);
+                // 政治のページの畳まれた議会の欄も撮影の時だけ開いた姿を撮る（議席の棒の長さの確かめ・W3）
+                if (slot == Slot.PoliticsLaw
+                    && gameView.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(x => x.Key == "parliament")) is { } pgrid)
                 {
-                    lay.Reset();
-                    var shape = s == 0 ? SplitShape.One : s == 1 ? SplitShape.LeftRight : SplitShape.Four;
-                    lay.SetShape(shape);
-                    // 左右 2 は生産と並べる（既定の配置と同じ組＝このページは右の枠）。4 分割は残りの席に別のページが並ぶ。
-                    lay.Open(slot, s == 0 ? 0 : 1);
-                    await Task.Delay(1100);
-                    string tag = $"{SlotInfo.Name(slot)} {shapeTags[s]}";
-                    Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}_{shapeTags[s]}.png");
-                    LogOuterFlow(gameView, tag);
-                    LogPage3(gameView, slot, tag);
+                    pgrid.SetUserState(["parliament"], ["power"]);
+                    await Task.Delay(900);
+                    Capture(dir, "p3_政治と法_議会を開く.png");
+                    pgrid.SetUserState([], []);
+                    await Task.Delay(300);
+                }
+                // 外交のページの畳まれた欄（他国の戦争・軍事力の必要量・反乱勢力）は撮影の時だけ開いた姿も撮る（B48・B50・B17 と同じ段）
+                if (slot == Slot.DiplomacyWar
+                    && gameView.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(x => x.Key == "army")) is { } dgrid)
+                {
+                    dgrid.SetUserState(["army", "mediation", "faction"], []);
+                    await Task.Delay(900);
+                    Capture(dir, "p3_外交と戦争_欄を開く.png");
+                    LogOuterFlow(gameView, tag + "・欄を開く");
+                    dgrid.SetUserState([], []);
+                    await Task.Delay(300);
                 }
             }
 
             // ---- 仕組みの確かめ ----
             // 段の押し釦：法の表の段を 1 つ押すと目標が置かれる（置く先は AI・議会と同じ口）。押した後の表が読み直されて目標の印が付く。確かめたら元の目標に戻す。
-            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.PoliticsLaw, 0);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
             await Task.Delay(700);
             CheckLawSelect(gvm);
 
             // 動詞：国の一覧の侵略は押すと確かめの窓が開く（押しただけでは侵略は起きない）。窓は取り消す。
-            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.DiplomacyWar, 0);
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.DiplomacyWar);
             await Task.Delay(700);
             CheckNationVerb(gvm);
 
-            // 地図の往復：欄（外交と戦争）→ 単独の枠 → 欄。同じ部品が 2 か所の親に付く瞬間が無いこと（例外が出ないこと）と、各時点で欄が空かを書く。
-            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.DiplomacyWar, 0);
-            await Task.Delay(900);
-            var dw = host().Mounted().Select(m => m.Page).OfType<DiplomacyWarPage>().FirstOrDefault();
-            // 直前までのカメラは全景（撮影順の産物）＝自国の名の国の中心へ振る。行を押すと地図が動く経路（CenterNationCommand）の確かめも兼ねる
-            gvm.CenterNationCommand.Execute(gvm.PlayerName.Split('　')[0]);
-            await Task.Delay(600);
-            BootLog.Write($"uishot: 地図の往復 1/4 欄に載せた 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・{gameView.MapView.BoxReport()}");
-            Capture(dir, "p3_外交と戦争_地図の欄.png");
-            lay.SetShape(SplitShape.LeftRight); lay.Open(Slot.Map, 1);
-            await Task.Delay(900);
-            BootLog.Write($"uishot: 地図の往復 2/4 単独の枠へ 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・親={gameView.MapView.Parent?.GetType().Name}");
-            Capture(dir, "p3_外交と戦争_地図は別の枠.png");
-            lay.Open(Slot.Production, 1);
-            await Task.Delay(900);
-            BootLog.Write($"uishot: 地図の往復 3/4 欄へ戻った 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}・親={gameView.MapView.Parent?.GetType().Name}");
-            lay.Open(Slot.Map, 1); await Task.Delay(500); lay.Open(Slot.Discovery, 1); await Task.Delay(500);
-            BootLog.Write($"uishot: 地図の往復 4/4 もう一度 欄={(dw?.HostsMap == true)}・地図の部品 Loaded={gameView.MapView.IsLoaded}");
-            SplitHost host() => gameView.FindControl<SplitHost>("Splits")!;
         }
         catch (Exception ex) { BootLog.Write($"uishot: 段3の撮影 失敗 {ex}"); }
         finally { lay.Reset(); }
@@ -78,9 +72,7 @@ public partial class MainWindow
     /// <summary>ページの欄の鍵・畳んだ欄・表の列の揃いを BootLog に書く。</summary>
     private static void LogPage3(GameView gameView, Slot slot, string tag)
     {
-        var host = gameView.FindControl<SplitHost>("Splits");
-        if (host is null) return;
-        foreach (var (pane, s, page) in host.Mounted())
+        foreach (var (pane, s, page, _) in UiShotWindows.MountedAll(gameView))
         {
             if (s != slot) continue;
             var grid = page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault();
@@ -89,6 +81,8 @@ public partial class MainWindow
             var want = table.Sections.Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
             string collapsed = grid?.LastPlan is { } plan ? string.Join("・", plan.SelectMany(c => c).Where(p => p.Collapsed).Select(p => table.Sections.First(q => q.Key == p.Key).Title)) : "?";
             string cols = grid?.LastPlan is { } pl ? pl.Count.ToString() : "?";
+            string empties = string.Join("・", page.GetVisualDescendants().OfType<Section>().Where(x => x.IsEmptyContent()).Select(x => x.Key));   // 空と判定された欄（畳まれた欄の理由を読む・V13）
+            BootLog.Write($"uishot: 段3[{tag}] 空と判定 {empties}");
             var al = page.GetVisualDescendants().OfType<TableView>().Select(t => t.MeasureAlignment()).Where(a => a is not null).Select(a => a!.Value).ToList();
             string align = al.Count == 0 ? "表なし" : string.Join(" / ", al.Select(a => $"{a.Columns}列 ずれ最大{a.MaxDelta:F1}" + (a.MaxDelta > 0.5 ? $"(列「{a.Worst}」)" : "")));
             BootLog.Write($"uishot: 段3[{tag}] 欄の鍵 {(keys.SequenceEqual(want) ? "表と一致" : "不一致 画面=" + string.Join(",", keys) + " 表=" + string.Join(",", want))}・{cols}列・畳んだ欄 {(collapsed.Length == 0 ? "なし" : collapsed)}・見出しと値の列の左端 {align}");

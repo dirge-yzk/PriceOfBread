@@ -23,8 +23,38 @@ public static class StageGate
         return new StageCell(labels, levelBase, cur, tgt,
             level => CanReachAndAfford(w, axis, level, cur),
             level => Hint(w, axis, title, labels, levelBase, level, cur),
-            setTarget);
+            setTarget,
+            level => Why(w, axis, level, cur));
     }
+
+    /// <summary>選べない段の押せない理由（短い語）。選べる段は null。前提法は「前提 ◯◯:△△」・政治の門は賛成不足など（<see cref="Government"/> の理由の語）。</summary>
+    public static string? Why(World w, PolicyAxis? axis, int level, int cur)
+    {
+        string? r = WhyRaw(w, axis, level, cur);
+        // 理由は「次に押せるはずの段」（現在の隣）の 1 つだけに出す＝その先の段の同じ理由・「前段階が必要」の繰り返しは出さない（V3）
+        if (r is not null && Math.Abs(level - cur) > 1)
+        {
+            if (r == "前段階が必要") return null;
+            if (r == WhyRaw(w, axis, cur + Math.Sign(level - cur), cur)) return null;
+        }
+        return r;
+    }
+
+    private static string? WhyRaw(World w, PolicyAxis? axis, int level, int cur)
+    {
+        if (CanReachAndAfford(w, axis, level, cur) || axis is not { } a) return null;
+        if (level > cur && !CanReach(w, axis, level, cur)) return Plain(PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason));
+        var (_, _, reason) = NextStep(w, axis, level, cur);
+        return reason.Length == 0 ? null : Plain(Government.IsPoliticalGateReason(reason) ? reason : PlayText.FormatPrereq(reason));
+    }
+
+    /// <summary>エンジンの理由の語を、遊ぶ人に通じる短い語へ（エンジンの文字列は変えない・括弧の中の説明は消す）。</summary>
+    private static string Plain(string reason) => (reason switch
+    {
+        "払えない請求が前提" => "財政難が前提",
+        _ when reason.StartsWith("後退不能（", StringComparison.Ordinal) => "後退不能",
+        _ => reason,
+    }).Replace(':', '：');   // 日本語の文中のコロンは全角（V11）
 
     /// <summary>その段へ届くか（前提法の連なり）。現行以下（降格）は常に可。</summary>
     private static bool CanReach(World w, PolicyAxis? axis, int level, int cur)
@@ -60,11 +90,11 @@ public static class StageGate
         string head = $"{title}:{labels[level - levelBase]}";
         if (level == cur) return head + "\n現在の段階";
         if (level > cur && !CanReach(w, axis, level, cur))
-            return head + "\n制定:不可\n" + PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
+            return head + "\n制定：不可\n" + PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
         var (ok, cost, reason) = NextStep(w, axis, level, cur);
         // 下げる側の床（緊縮の下限・戦争中は軍を解散できない）も前提で止まる＝政治資本の問題と偽らず、理由そのものを出す
         if (PlayText.IsPrereqStop(ok, reason))
-            return head + "\n制定:不可\n" + PlayText.FormatPrereq(reason);
+            return head + "\n制定：不可\n" + PlayText.FormatPrereq(reason);
         var body = new System.Text.StringBuilder(head);
         body.Append('\n').Append(PlayText.GateLine(ok, cost, reason));
         foreach (var (who, wgt) in PolicyPreferences.SupportBreakdown(w, a, level > cur))

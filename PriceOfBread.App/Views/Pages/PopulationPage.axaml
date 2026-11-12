@@ -15,18 +15,19 @@
         </ctl:Section>
         <ctl:Section Key="age" Title="年齢の層">
             <StackPanel Spacing="4">
+                <!-- 児童の就業率は図の上（図の下に浮かせない）・字は本文の小（B36） -->
+                <TextBlock Text="{Binding ChildLaborLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" IsVisible="{Binding ChildLaborLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 <ctl:AgeBars Data="{Binding AgePyramid}"/>
-                <TextBlock Text="{Binding ChildLaborLine}" Classes="range" IsVisible="{Binding ChildLaborLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
             </StackPanel>
         </ctl:Section>
         <ctl:Section Key="births" Title="出生と死">
             <StackPanel Spacing="6">
                 <TextBlock Text="粗出生率" Classes="range"/>
-                <ctl:LineChart x:Name="BirthChart" PinKey="chart.birth" PinName="粗出生率" PinPage="Population" Values="{Binding BirthRateValues}" Height="44" Stroke="{StaticResource BlueBrush}"/>
+                <ctl:LineChart x:Name="BirthChart" Values="{Binding BirthRateValues}" Height="44" Stroke="{StaticResource BlueBrush}"/>
                 <TextBlock Text="粗死亡率" Classes="range"/>
-                <ctl:LineChart x:Name="DeathChart" PinKey="chart.death" PinName="粗死亡率" PinPage="Population" Values="{Binding DeathRateValues}" Height="44" Stroke="{StaticResource RustBrush}"/>
+                <ctl:LineChart x:Name="DeathChart" Values="{Binding DeathRateValues}" Height="44" Stroke="{StaticResource RustBrush}"/>
                 <TextBlock Text="合計出生率" Classes="range"/>
-                <ctl:LineChart x:Name="FertilityChart" PinKey="chart.fertility" PinName="合計出生率" PinPage="Population" Values="{Binding FertilityValues}" Height="44" Stroke="{StaticResource BronzeBrush}"/>
+                <ctl:LineChart x:Name="FertilityChart" Values="{Binding FertilityValues}" Height="44" Stroke="{StaticResource BronzeBrush}"/>
             </StackPanel>
         </ctl:Section>
         <ctl:Section Key="religion" Title="宗教" Scrolls="False">

@@ -35,7 +35,7 @@ namespace PriceOfBread.App;
 /// ⚠表示のみ＝ここで作った物をエンジンは一切読まない（塗りは観測であって領有ではない）。</summary>
 public static class MapFill
 {
-    public readonly record struct Seed(double Lat, double Lon, Color Color, double Weight = 1.0);   // Weight＝塗りの濃さ（0..1）。地図モード「支配度」＝国家区分で薄める（無統治が多い州は塗りが抜ける）
+    public readonly record struct Seed(double Lat, double Lon, Color Color, double Weight = 1.0);   // Weight＝支配度（0..1）。1−Weight のぶんだけ塗りの色を黒へ寄せる（支配の届かない州は暗い）
 
     public const double CellDeg = Landmask.Step;   // 0.1°（陸マスクと同じ）
     public const int Nx = 3600;                    // 表示は経度360°ぶん＝東西で巻く
@@ -332,10 +332,11 @@ public static class MapFill
             ownFinal[c] = own;
             var col = seeds[own].Color;
             int o = c * 4;
-            int a = (int)Math.Clamp(FillAlpha * seeds[own].Weight, 0, 255);   // 支配度モード＝国家区分の濃淡（Weight=1 で従来と同じ値）
-            px[o] = (byte)(col.B * a / 255);       // プリマルチプライ済みBGRA
-            px[o + 1] = (byte)(col.G * a / 255);
-            px[o + 2] = (byte)(col.R * a / 255);
+            // 支配度＝色を黒へ寄せる（濃さは変えない＝背景の透け方は同じ・Weight=1 で従来と同じ値）
+            int a = FillAlpha, k = (int)(255 * seeds[own].Weight);
+            px[o] = (byte)(col.B * k / 255 * a / 255);       // プリマルチプライ済みBGRA
+            px[o + 1] = (byte)(col.G * k / 255 * a / 255);
+            px[o + 2] = (byte)(col.R * k / 255 * a / 255);
             px[o + 3] = (byte)a;
         }
         // 国境線＝東または南の隣が別の国（両方とも塗られている所だけ）。線の色＝自国色を暗く・不透明寄り（1格子＝約0.5画面px＝細線）。

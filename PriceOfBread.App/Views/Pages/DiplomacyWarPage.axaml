@@ -15,13 +15,6 @@
             <ctl:TableView x:Name="NationList" Snapshot="{Binding NationTable}" Filterable="True" InnerScroll="True"/>
         </ctl:Section>
 
-        <!-- 地図：描き方は今のまま（政治の塗り分け・陸と海の線・文字・支配度の色・正距円筒）。箱の大きさだけが欄の大きさになる -->
-        <ctl:Section Key="map" Title="地図" Scrolls="False">
-            <Border x:Name="MapSlot" ClipToBounds="True">
-                <TextBlock x:Name="MapAway" Text="別の枠に表示中" Classes="dim" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-        </ctl:Section>
-
         <!-- 戦争：交戦中の戦況（戦勝点・戦死・民間人の死・戦費・厭戦）。厭戦はホバーで内訳 -->
         <ctl:Section Key="war" Title="戦争">
             <StackPanel>
@@ -41,16 +34,7 @@
                                     <!-- 厭戦：内訳が空の間（ロード直後・開戦直後）は空の吹き出しを出さない＝2枚組で切替 -->
                                     <Panel>
                                         <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding !HasTerms}"/>
-                                        <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding HasTerms}" ToolTip.ShowDelay="200">
-                                            <ToolTip.Tip>
-                                                <ItemsControl ItemsSource="{Binding Terms}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:StatTerm">
-                                                            <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontSmall}"/>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </ToolTip.Tip>
+                                        <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding HasTerms}">
                                         </TextBlock>
                                     </Panel>
                                 </StackPanel>
@@ -85,7 +69,7 @@
              需要が立っていない材は行そのものが出ない（「充足0%」と書かない）。見出しは順位と充足の平均を兼ねる -->
         <ctl:Section Key="army" Title="軍事力の必要量">
             <StackPanel Spacing="2" Grid.IsSharedSizeScope="True">
-                <ctl:StatRow Label="総動員規模" Value="{Binding PolityMobilizationText}"/>
+                <ctl:StatRow Label="総動員時の兵数" Value="{Binding PolityMobilizationText}"/>
                 <!-- 総動員の判断の材料＝AI と同じ 1 本（Diplomacy.WarScale）。交戦中だけ出す -->
                 <ctl:StatRow Label="戦争の規模" Value="{Binding WarScaleText}" IsVisible="{Binding PlayerAtWar}"/>
                 <ctl:StatRow Label="陣営の本国の敗色" Value="{Binding WarHomeLosingText}" IsVisible="{Binding PlayerAtWar}"/>
@@ -93,7 +77,7 @@
                 <Button Classes="dialog" Content="{Binding MobilizeButtonText}" Command="{Binding ToggleMobilizeCommand}" IsVisible="{Binding PlayerAtWar}"
                         FontSize="{StaticResource FontBody}" Margin="0,2,0,2" HorizontalAlignment="Left"/>
                 <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4,0,2"/>
-                <TextBlock Text="{Binding ArmyIdealHeader}" Classes="section" ToolTip.Tip="{Binding ArmyIdealTip}" ToolTip.ShowDelay="200"/>
+                <TextBlock Text="{Binding ArmyIdealHeader}" Classes="section"/>
                 <Grid Margin="0,0,0,2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="40"/>
@@ -111,16 +95,13 @@
                             <!-- 段の小見出しと材の行を同じ一覧に混ぜる＝並びと区切りが 1 つのコレクションで決まる -->
                             <Panel>
                                 <TextBlock Text="{Binding Header}" IsVisible="{Binding IsHeader}" Foreground="{StaticResource BronzeBrush}" FontWeight="Bold" FontSize="{StaticResource FontTiny}" Margin="2,6,0,2"/>
-                                <Grid IsVisible="{Binding IsRow}" Margin="0,2" Background="Transparent" ToolTip.ShowDelay="200">
+                                <Grid IsVisible="{Binding IsRow}" Margin="0,2" Background="Transparent">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" MinWidth="40"/>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyNeed"/>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyHave"/>
                                         <ColumnDefinition Width="Auto" SharedSizeGroup="armyFill"/>
                                     </Grid.ColumnDefinitions>
-                                    <ToolTip.Tip>
-                                        <TextBlock Text="{Binding Tip}" FontSize="{StaticResource FontSmall}"/>
-                                    </ToolTip.Tip>
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Need}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Have}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
@@ -168,10 +149,7 @@
                                         <!-- 末列＝点火不等式の近接度。内訳ホバーの無い行は空の吹き出しを出さない＝2枚組で切替 -->
                                         <Panel Grid.Column="3" Margin="8,0,0,0">
                                             <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !HasStrengthTip}"/>
-                                            <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Background="Transparent" IsVisible="{Binding HasStrengthTip}" ToolTip.ShowDelay="200">
-                                                <ToolTip.Tip>
-                                                    <TextBlock Text="{Binding StrengthTip}" FontSize="{StaticResource FontSmall}"/>
-                                                </ToolTip.Tip>
+                                            <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Background="Transparent" IsVisible="{Binding HasStrengthTip}">
                                             </TextBlock>
                                         </Panel>
                                     </Grid>
@@ -195,7 +173,12 @@
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
-                                    <Button Classes="mini dense" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" HorizontalAlignment="Left" Margin="0,2,0,0"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                                        <Button Classes="mini dense" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" HorizontalAlignment="Left"/>
+                                        <!-- 押せない理由は釦の右（B48） -->
+                                        <TextBlock Text="{Binding Reason}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
+                                                   IsVisible="{Binding !CanMediate}"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

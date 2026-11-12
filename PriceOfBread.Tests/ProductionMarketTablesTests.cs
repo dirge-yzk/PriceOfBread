@@ -106,20 +106,32 @@ public class ProductionMarketTablesTests
     }
 
     [Fact]
-    public void 財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_価格差は国内と世界の比()
+    public void 労働の表の供給は上限と同じ集合で数える_人力の上限を超えない()
+    {
+        foreach (var r in ProductionTables.LaborLines(Sim, W).Where(r => r.Good != Catalog.AdvLaborId))
+            Assert.True(r.Supply <= r.Capacity * 1.000001 + 1e-9, $"{Catalog.Goods[r.Good].Name}：供給 {r.Supply} が上限 {r.Capacity} を超えた");
+    }
+
+    [Fact]
+    public void 財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_世界価格比は国内と世界の比()
     {
         var d = MarketTables.Prices.Read(Sim, W);
         Assert.NotEmpty(d.Rows);
         Assert.All(d.Rows, r => Assert.NotEqual(GoodTier.Service, Catalog.Goods[int.Parse(r.Key)].Tier));
-        var order = new[] { "素材", "主食", "日用品", "奢侈品", "生産財" };
+        var order = new[] { "素材", "加工素材", "主食", "日用品", "奢侈品", "生産財" };   // 層は凡例の順（素材のうち材料を持つ財は「加工素材」の群・W15）
         var groupIdx = d.Rows.Select(r => Array.IndexOf(order, r.Group)).ToList();
         Assert.DoesNotContain(-1, groupIdx);
         Assert.Equal(groupIdx.OrderBy(x => x).ToList(), groupIdx);   // 層は凡例の順
         foreach (var r in d.Rows)
         {
-            double dom = ((NumberCell)r.Cells[1]!).Value, world = ((NumberCell)r.Cells[2]!).Value, gap = ((NumberCell)r.Cells[3]!).Value;
-            if (!double.IsNaN(gap)) Assert.Equal(dom / world - 1.0, gap, 9);
-            double dem = ((NumberCell)r.Cells[4]!).Value, sup = ((NumberCell)r.Cells[5]!).Value;
+            // 世界価格比＝国内価格 ÷ 世界価格（世界価格を 100%・2026-11-11）。高騰は赤・下落は青
+            int g = int.Parse(r.Key);
+            var ratioCell = (NumberCell)r.Cells[2]!;
+            double dom = ((NumberCell)r.Cells[1]!).Value, world = Sim.Market.Price[g], ratio = ratioCell.Value;
+            if (!double.IsNaN(ratio)) Assert.Equal(dom / world, ratio, 9);
+            Assert.Equal(MarketTables.RatioInk(ratio - 1.0), ratioCell.Ink);   // 色は世界価格比の 1 本の関数（高騰は赤系・下落は青系・濃さは離れに比例）
+            if (ratio > 1.005) Assert.StartsWith("#", ratioCell.Ink);
+            double dem = ((NumberCell)r.Cells[3]!).Value, sup = ((NumberCell)r.Cells[4]!).Value;
             Assert.True(dem > 0 || sup > 0);
         }
     }
@@ -147,17 +159,29 @@ public class ProductionMarketTablesTests
                     }
             }
         // 市場ページ
-        foreach (int cols in Enumerable.Range(1, 3))
-        {
-            var arranged = PagePlan.Arrange(MarketPage.Plan, cols);
-            Assert.Equal(MarketPage.Plan.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
-        }
+        foreach (var plan2 in new[] { MarketPage.PricesPlan, MarketPage.TradePlan })
+            foreach (int cols in Enumerable.Range(1, 3))
+            {
+                var arranged = PagePlan.Arrange(plan2, cols);
+                Assert.Equal(plan2.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
+            }
         // 順位 1 の欄は最後まで残る（生産＝供給の網・市場＝財の値段）：低い高さでも畳まれるのは順位の低い欄から
-        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.Plan })
+        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.PricesPlan, MarketPage.TradePlan })
         {
             var top = t.Sections.OrderBy(s => s.Rank).First();
             var plan = PagePlan.Plan(t, 700, 400);
             Assert.False(plan.SelectMany(c => c).First(p => p.Key == top.Key).Collapsed);
         }
+    }
+
+    [Fact]
+    public void 世界価格比の色は高騰が赤_下落が青で_濃さは100パーセントからの離れに比例する()
+    {
+        Assert.Null(MarketTables.RatioInk(0.0));
+        Assert.Null(MarketTables.RatioInk(double.NaN));
+        Assert.Equal("#B02418", MarketTables.RatioInk(1.0));    // 離れが 100% 以上＝最も濃い赤
+        Assert.Equal("#2F6EA5", MarketTables.RatioInk(-1.0));   // 下落の側の最も濃い青
+        Assert.NotEqual(MarketTables.RatioInk(0.01), MarketTables.RatioInk(0.07));   // 101% と 107% は濃さが違う
+        Assert.Equal(MarketTables.RatioInk(1.0), MarketTables.RatioInk(2.07));       // 307% は上限で頭打ち
     }
 }

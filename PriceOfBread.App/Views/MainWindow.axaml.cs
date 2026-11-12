@@ -54,7 +54,7 @@ public partial class MainWindow : Window
             for (int i = 0; i < 360 && mwvm.CurrentPage is not GameViewModel; i++) await Task.Delay(250);
             await Task.Delay(1500);
             if (mwvm.CurrentPage is not GameViewModel gvm) { lines.Add("error	盤面に到達しない"); try { System.IO.File.WriteAllLines(outPath, lines); } catch { } Environment.Exit(3); return; }
-            gvm.Layout.SetShape(Layout.SplitShape.One); gvm.Layout.Open(Layout.Slot.Map, 0);   // 計測は地図が枠にある状態（(501) 段2：地図は枠に置かれて初めて見える）
+            gvm.Layout.Open(Layout.Slot.Map);   // 計測は地図が中央にある状態（地図は中央に出て初めて見える）
             await Task.Delay(800);
             lines.Add($"startup_s\t{(DateTime.Now - procStart).TotalSeconds:F1}");
             // 四半期ms（速度3・40四半期）
@@ -156,34 +156,32 @@ public partial class MainWindow : Window
     /// ②欄の中の流れ（ScrollViewer）の数と、そのうち実際に流れている（中身が枠より長い）数。縦にはみ出したものは名前を出して「流れている」とする。横に切れるものは別に名前を出す（旧のタブの固定幅の列＝段3 で直す物）。外側＝枠・左右の列・窓のどれにも外側の流れが無いこと。</summary>
     private void LogOuterFlow(GameView gv, string tag)
     {
-        var host = gv.FindControl<SplitHost>("Splits");
-        if (host is null) { BootLog.Write($"uishot: 外側の流れ[{tag}] 分割の外枠が見つからない"); return; }
         var parts = new System.Collections.Generic.List<string>();
         bool ok = true;
-        foreach (var (pane, slot, page) in host.Mounted())
+        foreach (var (pane, slot, page, frame) in UiShotWindows.MountedAll(gv))
         {
-            var paneView = host.PaneAt(pane);
-            double hh = paneView.Bounds.Height, ww = paneView.Bounds.Width;
+            if (page is MapPane) continue;   // 地図は箱の外へ描きが出ても箱で切られる絵＝流れの判定の対象外（中の絵が箱より大きいのは仕様）
+            double hh = frame.Bounds.Height, ww = frame.Bounds.Width;
             var over = new System.Collections.Generic.List<string>(); var wide = new System.Collections.Generic.List<string>();
             foreach (var c in page.GetVisualDescendants().OfType<Control>())
             {
                 if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳まれた欄の中身（親が隠れている）は対象外・畳んだ欄の中身は測り直されない＝前に配った大きさが残る
                 if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).Any(a => a is ScrollViewer or MapPane)) continue;   // 欄の中の流れの中身と、地図の中の絵（箱で切られる）は対象外
-                var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), paneView);
+                var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), frame);
                 if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
                 else if (br is { } q2 && q2.X > ww + 1 && wide.Count < 2) wide.Add($"{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q2.X - ww:F0})");
             }
             var scrolls = page.GetVisualDescendants().OfType<ScrollViewer>().ToList();
             int flowing = scrolls.Count(v => v.Extent.Height > v.Viewport.Height + 1);
             if (over.Count > 0) ok = false;
-            parts.Add($"{(char)('A' + pane)}:{SlotInfo.Name(slot)} 枠{ww:F0}×{hh:F0} 欄の中で流れる{flowing}/{scrolls.Count}" + (over.Count > 0 ? " 縦にはみ出し " + string.Join(" ", over) : "") + (wide.Count > 0 ? " 横にはみ出し（切れる）" + string.Join(" ", wide) : ""));
+            parts.Add($"{SlotInfo.Name(slot)}{(pane == 0 ? "（背景）" : "（窓）")} {ww:F0}×{hh:F0} 欄の中で流れる{flowing}/{scrolls.Count}" + (over.Count > 0 ? " 縦にはみ出し " + string.Join(" ", over) : "") + (wide.Count > 0 ? " 横にはみ出し（切れる）" + string.Join(" ", wide) : ""));
         }
         // 窓全体：外側の ScrollViewer が無い（枠・列・本体の直下に ScrollViewer が居ない）＝中身の高さが窓を超えない
         double winH = Bounds.Height;
         double gvH = gv.DesiredSize.Height;
         bool outerFlowing = !(ok && gvH <= winH + 1);
         _gateOuter++; if (outerFlowing) _gateOuterFlowing++;
-        TallyAlignment(host, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
+        TallyAlignment(gv, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
         BootLog.Write($"uishot: 外側の流れ[{tag}] {(!outerFlowing ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
     }
 
@@ -198,10 +196,11 @@ public partial class MainWindow : Window
         BootLog.Write($"uishot: 窓 {Bounds.Width:F0}×{Bounds.Height:F0}（状態 {WindowState}）");
     }
 
-    private async void RunUiShot(string dir)
+    private async void RunUiShot(string rootDir)
     {
         try
         {
+            string dir = rootDir;   // 複数の年を渡した時は時点ごとに <rootDir>/<年> へ付け替える（年が 1 つなら rootDir 直下＝従来どおり）
             Directory.CreateDirectory(dir);
             int crashBefore = CrashLogUiExceptions();   // crash.log の UI の例外の数を前後で数える（総括）
             await Task.Delay(1200);   // タイトル描画待ち
@@ -224,6 +223,7 @@ public partial class MainWindow : Window
                 var pick = nsvm.Recommended.FirstOrDefault(c => c.Index == Program.UiShotNation)
                            ?? nsvm.Others.FirstOrDefault(c => c.Index == Program.UiShotNation)
                            ?? nsvm.Recommended.FirstOrDefault();
+                nsvm.Spectate = Program.Autoplay;   // --autoplay ＝観戦で開始（国の選択の切り替えと同じ口）
                 pick?.ChooseCommand.Execute(null);
                 BootLog.Write($"uishot: 選んだ国 index={pick?.Index} {pick?.Name}");
                 // ★読み込み画面の初回フレームを撮る＝レイアウトを明示的に走らせてから撮る。
@@ -247,34 +247,63 @@ public partial class MainWindow : Window
             Capture(dir, "02_開始直後.png");
             BootLog.Write("uishot: 02撮影済み");
             gvm.SetSpeedCommand.Execute("3");
-            if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null);
-            // ★2026-09-07 修正：上限が実時間240秒の固定で、既定の1793年より先を渡すと必ず届かなかった
-            //   （戦争中・国内勢力ありの画面を無人で撮れない＝戦争タブ／政治タブの恒久的な検証の穴）。
-            //   1年あたり20秒（実測＝速度3で約5秒/四半期）を目安に、渡された目標年まで待つ。既定の1793年では 480 のまま。
-            int spin = Math.Max(480, (Program.UiShotYear - 1783) * 40);
-            for (int i = 0; i < spin; i++)   // 目標年まで高速進行
+            gvm.Playing = false;   // 撮影は実時間で進めない（下の進行の輪が日を数えて回す）
+            // ★多時点の撮影（観戦モードの撮影の土台）：年を複数渡すと、各年に着くたびに一時停止して全ページを <rootDir>/<年>/ へ撮り、続きを回す。
+            //   映す国が途中で消えたら（再併合）付け直した国で撮り続け、<rootDir>/撮影の記録.txt に年と国の名を書く。年が 1 つなら従来どおり（rootDir 直下）。
+            var years = Program.UiShotYears;
+            bool spectate = gvm.Spectating;
+            int k = 0;
+            PointRecord(rootDir, $"撮影開始　{(spectate ? "観戦" : "通常")}　国={ShownNationName(gvm)}　年={string.Join(",", years)}　種={Program.Seed}");
+            SeedPastWars(gvm);
+            for (int yi = 0; yi < years.Length; yi++)
             {
-                await Task.Delay(500);
-                // ★2026-09-07：ポップアップは世界を止め、**閉じても時間は再開しない**（作者裁定2026-08-24＝プレイヤーが自分で再開する）。
-                //   無人撮影はここで詰む＝実測で開始から1年（1784/01/01）で緊張モーダルが開き、以後どれだけ回しても暦が動かなかった
-                //   （旧＝総選挙だけを流していた）。中身を変えない選択肢（総選挙＝棄権・緊張＝何もせず閉じる）で流し、閉じたら自分で再開する。
-                if (gvm.ElectionPopupOpen) { gvm.ElectionAbstainCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.TensionPopupOpen) { gvm.TensionIgnoreCommand.Execute(null); await Task.Delay(200); }
-                // 最後通牒＝受けて立つ（屈服は正統性を削って世界を大きく変える／開戦は戦争タブ・戦線の画面を実際に撮れる）。
-                if (gvm.WarPopupOpen) { gvm.WarDeclareGoCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.WarEndPopupOpen) { gvm.WarEndAckCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.CallToArmsOpen) { gvm.CallToArmsRefuseCommand.Execute(null); await Task.Delay(200); }
-                if (gvm.FactionCrisisOpen) { gvm.FactionCloseCommand.Execute(null); await Task.Delay(200); }   // ★要求は法の経路＝通知は閉じるだけ
-                if (gvm.SideChoiceOpen) { gvm.SideChoiceStayCommand.Execute(null); await Task.Delay(200); }
-                if (!gvm.AnyPopupOpen) { if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null); }
-                else if (i % 20 == 0) BootLog.Write($"uishot: 進行が止まっている {gvm.DateText}（緊張{gvm.TensionPopupOpen} 開戦{gvm.WarPopupOpen} 終戦{gvm.WarEndPopupOpen} 危機{gvm.FactionCrisisOpen} 総選挙{gvm.ElectionPopupOpen} 参戦{gvm.CallToArmsOpen} 陣営{gvm.SideChoiceOpen} 確認{gvm.ConfirmOpen}「{gvm.ConfirmTitle}」 メニュー{gvm.MenuOpen} 終局{gvm.EndingOpen}）");
-                if (int.TryParse(gvm.DateText.Split('/')[0], out int y) && y >= Program.UiShotYear) break;
+            int targetYear = years[yi];
+            dir = years.Length == 1 ? rootDir : Path.Combine(rootDir, targetYear.ToString());
+            Directory.CreateDirectory(dir);
+            // ★撮影の進行は実時間に合わせない（2026-11-12）：画面の速度 3 を 500 ミリ秒ごとに覗くと 1950 年まで 1 時間かかり、
+            //   窓への答えが効く日も実時間で決まって走るたびに別の世界になった。遊ぶ時と同じ日ごとの道（GameViewModel.StepDaysForShot＝OnTick と共通の本体）を
+            //   1 四半期ずつ回し、窓が開いた日で止めて台本の答えを返す。目標の年の 1 月 1 日でちょうど止まる。
+            int targetDay = (targetYear - SimCore.Calendar.StartYear) * SimCore.Calendar.DaysPerYear;
+            int stuck = 0;
+            for (int guard = 0; guard < 200000; guard++)
+            {
+                FollowShownNation(rootDir, mwvm, ref gvm);   // 映す国が付け直された（再併合・添字のずれ）なら新しい画面の VM を握り直す
+                gvm.Playing = false;                          // 時間は撮影が進める（タイマーの実時間では進めない）
+                // 観戦ではモーダルを押さずに閉じるだけ（押すとシムへ書く＝AI の判断でなくなる）。開いたこと自体が「プレイヤー専用の経路が観戦で開いた」証拠なので記録する。
+                if (spectate) { NotePastWars(rootDir, gvm); CloseModalsForSpectate(rootDir, gvm); }
+                // ★2026-09-07：ポップアップは世界を止め、閉じても時間は再開しない（作者裁定2026-08-24）。台本の答えは中身を変えない選択肢。
+                if (gvm.ElectionPopupOpen) gvm.ElectionAbstainCommand.Execute(null);
+                if (gvm.TensionPopupOpen) gvm.TensionIgnoreCommand.Execute(null);
+                if (gvm.WarPopupOpen) gvm.WarDeclareGoCommand.Execute(null);   // 最後通牒＝受けて立つ
+                if (gvm.WarEndPopupOpen) gvm.WarEndAckCommand.Execute(null);
+                if (gvm.CallToArmsOpen) gvm.CallToArmsRefuseCommand.Execute(null);
+                if (gvm.FactionCrisisOpen) gvm.FactionCloseCommand.Execute(null);   // 要求は法の経路＝通知は閉じるだけ
+                if (gvm.SideChoiceOpen) gvm.SideChoiceStayCommand.Execute(null);
+                if (gvm.SimDayNumber >= targetDay) break;
+                if (gvm.AnyPopupOpen)
+                {
+                    if (++stuck % 20 == 1) BootLog.Write($"uishot: 進行が止まっている {gvm.DateText}（緊張{gvm.TensionPopupOpen} 開戦{gvm.WarPopupOpen} 終戦{gvm.WarEndPopupOpen} 危機{gvm.FactionCrisisOpen} 総選挙{gvm.ElectionPopupOpen} 参戦{gvm.CallToArmsOpen} 陣営{gvm.SideChoiceOpen} 確認{gvm.ConfirmOpen}「{gvm.ConfirmTitle}」 メニュー{gvm.MenuOpen} 終局{gvm.EndingOpen}）");
+                    if (stuck > 200) break;
+                    if (gvm.EndingOpen) { PointRecord(rootDir, $"{gvm.DateText}　終局の窓が開いた＝閉じて続ける"); gvm.CloseEndingCommand.Execute(null); }
+                    await Task.Delay(20);
+                    continue;
+                }
+                stuck = 0;
+                gvm.StepDaysForShot(Math.Min(SimCore.Calendar.DaysPerQuarter, targetDay - gvm.SimDayNumber), out _);
+                await Task.Delay(1);   // 描画へ手番を返す（画面が固まらない）
             }
-            if (gvm.Playing) gvm.TogglePauseCommand.Execute(null);
+            gvm.Playing = false;
+            // 目標の年が終局の年なら終局の窓（順位）が最後の四半期で開く＝画像を隠すので撮る前に閉じる。
+            if (gvm.EndingOpen) { PointRecord(rootDir, $"{gvm.DateText}　終局の窓を閉じてから撮る"); gvm.CloseEndingCommand.Execute(null); }
             await Task.Delay(500);
+            FollowShownNation(rootDir, mwvm, ref gvm);
+            if (spectate) NotePastWars(rootDir, gvm);
+            // 観戦か年が複数なら、表.txt・点検.txt を画像より前に（世界を進めない）書き、画面の側の表も足す。03b（再生中の地図）だけは世界が進むので、この時点の最後へ回す（下）。
+            bool tableMode = spectate || years.Length > 1;
+            PointBegin(rootDir, dir, gvm, targetYear, tableMode);   // 表.txt と点検.txt を書き、この時点の判定の数えを始める
             // ★(501) 段2：地図は分割に単独で置ける 1 つのページ＝地図の撮影は〈1 枚の枠に地図〉で撮る（旧の中央の地図に近い絵）。最初に載せた瞬間に自国を中央へ寄せる（HomeView）。
             var lay = gvm.Layout;
-            lay.Reset(); lay.SetShape(SplitShape.One); lay.Open(Slot.Map, 0);
+            lay.Reset(); lay.Open(Slot.Map);
             await Task.Delay(1500);
             var gameView = this.GetVisualDescendants().OfType<GameView>().First();
             BootLog.Write("uishot: " + gameView.MapView.BoxReport());
@@ -318,19 +347,18 @@ public partial class MainWindow : Window
                     BootLog.Write($"uishot: 州ホバー {hv.Title}\n  " + string.Join("\n  ", hv.Lines.Select(l => l.Text)));
                     if (seenHover.Count >= 12) break;
                 }
-            gvm.TogglePauseCommand.Execute(null);   // 再生（停止/再生の幅ブレ検証用に両状態を撮る）
-            await Task.Delay(300);
-            Capture(dir, "03b_地図_再生中.png");
-            gvm.TogglePauseCommand.Execute(null);   // 停止へ戻す
-            await Task.Delay(300);
+            if (!tableMode)   // 従来の撮影（年が 1 つ・通常）はここで撮る。観戦・多時点では世界が進むので時点の最後（PointEnd の後）で撮る
+            {
+                gvm.TogglePauseCommand.Execute(null);   // 再生（停止/再生の幅ブレ検証用に両状態を撮る）
+                await Task.Delay(300);
+                Capture(dir, "03b_地図_再生中.png");
+                gvm.TogglePauseCommand.Execute(null);   // 停止へ戻す
+                await Task.Delay(300);
+            }
             // 欧州へカメラを振って1枚（2026-09-02）＝政治の塗り分けは**国が密集した所**が本番（開始国の周りだけでは見えない）
             gvm.CenterNationCommand.Execute("フランス");
             await Task.Delay(600);
             Capture(dir, "03c_地図_欧州.png");
-            // ★(843) 支配度の塗り（国家でない割合のぶんだけ薄くする・塗りの元は Rule の国家の区分）：同じ欧州で 1 枚
-            gvm.MapDominanceMode = true; await Task.Delay(1500);
-            Capture(dir, "03c2_地図_欧州_支配度.png");
-            gvm.MapDominanceMode = false; await Task.Delay(800);
             // Escメニュー（2026-09-06・セーブのスロット化の確認）
             gvm.MenuOpen = true; await Task.Delay(300); Capture(dir, "11b_Escメニュー.png"); gvm.MenuOpen = false; await Task.Delay(200);
             // 州名の帯（2026-09-05）＝フィット×4 でパリを中心に＝州名の出方を決定的に撮る（作者裁定＝地図のアイコン類は置かない）。
@@ -346,7 +374,8 @@ public partial class MainWindow : Window
             var pin = gvm.PlayerCapitalCanvas() is { } pc ? gvm.MapHitAt(pc.X, pc.Y) : default;
             if (pin.Region is not null && pin.Hover is not null)
             {
-                gvm.TogglePin(pin.Hover, pin.Region); await Task.Delay(400); Capture(dir, "03f_州パネル.png");
+                gvm.TogglePin(pin.Hover, pin.Region); gvm.Layout.Open(Slot.Province); await Task.Delay(500); Capture(dir, "03f_州パネル.png");   // 州の窓を開いて撮る（W20＝窓が写っていなかった）
+                gvm.Layout.Close(Slot.Province);
                 gvm.HoverPinned = false; gvm.MapHover = null; await Task.Delay(200);
             }
             // 全景（2026-09-02）＝州名が消えて**国名（英語）**が出る帯。政治の塗り分けの全体像もここで見る。
@@ -366,15 +395,22 @@ public partial class MainWindow : Window
                 gv.ZoomToWorld();
                 await Task.Delay(300);
             }
-            // ★(501) 段2：旧の「タブを順に開く」は「ページを順に開く」になった。1 枚の枠に 1 ページずつ（旧のタブの撮影に近い広さ以上）。
+            // ★(501) 段2：旧の「タブを順に開く」は「ページを順に開く」になった。中央に 1 ページずつ。
             //   ページの外側が縦に流れていない判定（設計 §7-3）を各ページで BootLog に書く。
-            int k = 4;
-            foreach (var slot in SlotInfo.All.Where(x => x != Slot.Map))
+            k = 4;
+            foreach (var slot in SlotInfo.All.Where(x => x != Slot.Map && x != Slot.Province))
             {
-                lay.SetShape(SplitShape.One); lay.Open(slot, 0);
+                UiShotWindows.CloseAll(lay); UiShotWindows.OpenFull(gameView, lay, slot);
                 await Task.Delay(900);
                 Capture(dir, $"{k:D2}_ページ_{SlotInfo.Name(slot)}.png");
-                LogOuterFlow(gameView, $"1枚 {SlotInfo.Name(slot)}");
+                LogOuterFlow(gameView, SlotInfo.Name(slot));
+                if (slot == Slot.Market)   // 市場の 2 面目（貿易）
+                {
+                    gvm.MarketTradeView = true; await Task.Delay(700);
+                    Capture(dir, $"{k:D2}c_ページ_{SlotInfo.Name(slot)}_貿易.png");
+                    LogOuterFlow(gameView, SlotInfo.Name(slot) + " 貿易");
+                    gvm.MarketTradeView = false; await Task.Delay(300);
+                }
                 // 縦に長いページは最下端まで送った状態も撮る（下端見切れの検証・2026-07-25）
                 var sv = this.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "PageScroll");
                 if (sv is not null && sv.Extent.Height > sv.Viewport.Height + 1)
@@ -388,31 +424,23 @@ public partial class MainWindow : Window
                 k++;
             }
             await Page3Shots(gameView, gvm, dir);   // (501) 段3：政治と法・外交と戦争の撮影と確かめ（Views/MainWindow.Page3Shots.cs）
-            // 配置の見本：既定・左右に2つ（既定）・上下に2つ・左に1つ右に2つ・4つ・左右の列を畳んだ図
+            // 配置の見本：既定（地図）・左の列を畳んだ図
             lay.Reset();
             await Task.Delay(1200);
             Capture(dir, $"{k++:D2}_配置_既定.png");
             LogOuterFlow(gameView, "既定の配置");
-            foreach (var shape in new[] { SplitShape.TopBottom, SplitShape.LeftAndRightStack, SplitShape.Four })
-            {
-                lay.SetShape(shape);
-                await Task.Delay(1000);
-                Capture(dir, $"{k++:D2}_配置_{SlotInfo.ShapeName(shape)}.png");
-                LogOuterFlow(gameView, SlotInfo.ShapeName(shape));
-            }
-            lay.SetShape(SplitShape.LeftRight); lay.SetColumns(false, false);
+            lay.SetLeftOpen(false);
             await Task.Delay(800);
-            Capture(dir, $"{k++:D2}_配置_左右の列を畳む.png");
-            LogOuterFlow(gameView, "左右の列を畳む");
-            // 境目を動かす（割合の読み書きと保存の確かめ）：割合を変えて配置を JSON に直し、読み直して一致するか
-            lay.SetColumns(true, true); lay.SetRatios(0.4, 0.5);
+            Capture(dir, $"{k++:D2}_配置_左の列を畳む.png");
+            LogOuterFlow(gameView, "左の列を畳む");
+            lay.SetLeftOpen(true);
             var back = LayoutModel.FromJson(lay.ToJson());
-            BootLog.Write($"uishot: 配置の往復 {(back.ToJson() == lay.ToJson() ? "一致" : "不一致")}・形 {back.Shape}・席 {string.Join(",", back.Seats)}・割合 {back.MainRatio:F2}");
+            BootLog.Write($"uishot: 配置の往復 {(back.ToJson() == lay.ToJson() ? "一致" : "不一致")}・左 {(back.LeftOpen ? "開" : "閉")}");
             lay.Reset();
             await Task.Delay(300);
-            await ShootPagesFiscalPopulationDiscovery(dir, gvm, gameView, lay);   // 段3：財政と貨幣・人口・発見の 3 ページを左右 2・4 分割で撮る（Views/MainWindow.UiShot.P2.cs）
-            // 地図が枠に載っていない間の動き（枠から外れた地図に触れない）
-            BootLog.Write($"uishot: 地図が枠に無い間 Loaded={gameView.MapView.IsLoaded}・既定の配置の見えているもの={string.Join(",", lay.Shown())}");
+            await ShootPagesFiscalPopulationDiscovery(dir, gvm, gameView, lay);   // 段3：財政と貨幣・人口・発見の 3 ページを撮る（Views/MainWindow.UiShot.P2.cs）
+            // 地図が中央に出ていない間の動き（外れた地図に触れない）
+            BootLog.Write($"uishot: 地図が中央に無い間 Loaded={gameView.MapView.IsLoaded}・既定の配置の見えているもの={string.Join(",", lay.Shown())}");
             // 緊張モーダル（2026-08-10）：ポップアップ類は無人撮影の穴だった（発火待ちでは撮れない）。
             // 検出経路と同じ組み立てを通して最も緊張の高い相手で開く＝理由の内訳とボタン脇3行を実画面で確認できる。
             if (gvm.OpenTensionPopupForCapture())
@@ -437,10 +465,12 @@ public partial class MainWindow : Window
                 await Task.Delay(300);
             }
             // 発見のページの行数（旧は発見パネル）
-            lay.SetShape(SplitShape.One); lay.Open(Slot.Discovery, 0);
+            lay.Open(Slot.Discovery);
             await Task.Delay(600);
             BootLog.Write($"uishot: 発見のページ 行数={gvm.DiscoveryTable.Rows.Count}");
-            lay.SetShape(SplitShape.One); lay.Open(Slot.Production, 0);
+            lay.Close(Slot.Discovery);   // 発見の窓を開いたまま次を撮らない（生産の供給の網の左 2/3 が隠れていた・撮影の台本の直し）
+            await Task.Delay(300);
+            lay.Open(Slot.Production);
             await Task.Delay(900);
             Capture(dir, $"{k++:D2}_生産タブ.png");
             BootLog.Write($"uishot: 生産タブ撮影済み CurrentPage={mwvm.CurrentPage?.GetType().Name}");
@@ -472,12 +502,26 @@ public partial class MainWindow : Window
             // 生産ページと市場ページの撮影の段と検査（(501) 段3・Views/UiShotPageP1.cs）
             try { await UiShotPageP1.Run(this, gvm, dir, n => Capture(dir, n), tag => LogOuterFlow(gameView, tag), () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 生産と市場の段 失敗 {ex}"); }
-            // ピン留め・問題の一覧・狭い分割で畳んだ欄の撮影と、飛び先の確かめ（(501) 段4・段5・Views/MainWindow.UiShotFinal.cs）。ピン留めは以後の往復の確かめまで残す
+            // 問題の一覧の撮影と、飛び先の確かめ（(501) 段4・段5・Views/MainWindow.UiShotFinal.cs）
             try { await ShootFinal(dir, gvm, gameView, () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 最後の段 失敗 {ex}"); }
-            // 段 6（2026-10-23）：生産の全面（Q）と戻り・年表の 3 つの絞り・外交の地図の欄の首都・流した表（Views/MainWindow.UiShotS6.cs）
+            // 段 6（2026-10-23）：生産と地図の Tab 切り替え・年表の 3 つの絞り・外交の地図の欄の首都・流した表（Views/MainWindow.UiShotS6.cs）
             try { await ShootS6(dir, gvm, gameView, () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 段6 失敗 {ex}"); }
+            await ShootWindows(dir, gvm, gameView, () => k++);   // 浮かぶ窓（2026-11-11・Views/MainWindow.UiShotWindows.cs）
+            PointEnd(rootDir, gvm, targetYear);   // この時点の判定（外側の流れ・表の左端・UI の例外・異常の行）を記録へ
+            if (tableMode)   // 03b：再生中の地図は世界を進める＝表.txt と他の画像の暦をずらさないよう最後に撮る（この絵だけ数日後）
+            {
+                lay.Reset(); lay.Open(Slot.Map);
+                await Task.Delay(800);
+                gvm.StepDaysForShot(5, out _);   // 再生中の絵＝数日進めて撮る（実時間で回さない）
+                await Task.Delay(300);
+                Capture(dir, "03b_地図_再生中.png");
+                PointRecord(rootDir, $"[{targetYear}年] 03b_地図_再生中.png は再生中の絵＝暦 {gvm.DateText}（表.txt の暦 {_pDumpDate} より後）");
+                await Task.Delay(300);
+            }
+            if (yi < years.Length - 1) { lay.Reset(); await Task.Delay(300); gvm.SetSpeedCommand.Execute("3"); }   // 続きを回す
+            }   // for 年
             // セーブの往復（(501) 段1）：年次系列を名前と値の組で書く形の確かめ。一時の置き場へセーブ→ロードして、系列の名前・点数・和と日付が一致するかをログへ。作者の本物のセーブには触れない。
             try
             {
@@ -486,8 +530,7 @@ public partial class MainWindow : Window
                 gvm.SaveSlotCommand.Execute("1");
                 var loaded = GameViewModel.TryLoad(1, null, null);
                 string a = gvm.SeriesSummary, b = loaded?.SeriesSummary ?? "（ロード失敗）";
-                string pa = gvm.PinSummary, pb = loaded?.PinSummary ?? "（ロード失敗）";
-                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・ピン留め {(pa == pb ? "一致" : "不一致")}（{gvm.Pins.Count}枠）・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}\n  ピン {pa}\n  ピン {pb}");
+                BootLog.Write($"uishot: セーブの往復 系列 {(a == b ? "一致" : "不一致")}・日付 {(loaded?.DateText == gvm.DateText ? "一致" : "不一致")}・観戦 {(loaded?.Spectating == gvm.Spectating ? "一致" : "不一致")}・系列{gvm.SeriesSummary.Split(',').Length}本\n  {a}\n  {b}");
                 loaded?.Shutdown();
             }
             catch (Exception ex) { BootLog.Write($"uishot: セーブの往復 失敗 {ex}"); }

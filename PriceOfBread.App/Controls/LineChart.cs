@@ -18,38 +18,7 @@ public sealed class LineChart : Control
     public static readonly StyledProperty<Func<double, string>?> LabelFormatProperty = AvaloniaProperty.Register<LineChart, Func<double, string>?>(nameof(LabelFormat));
     public static readonly StyledProperty<bool> ShowLabelsProperty = AvaloniaProperty.Register<LineChart, bool>(nameof(ShowLabels), true);
 
-    /// <summary>ピン留めの鍵・枠の名前・元のページの名前（<c>SimCore.Display.Page</c> の名前）。鍵が空なら右クリックのピン留めを出さない（部品の見本など）。</summary>
-    public static readonly StyledProperty<string> PinKeyProperty = AvaloniaProperty.Register<LineChart, string>(nameof(PinKey), "");
-    public static readonly StyledProperty<string> PinNameProperty = AvaloniaProperty.Register<LineChart, string>(nameof(PinName), "");
-    public static readonly StyledProperty<string> PinPageProperty = AvaloniaProperty.Register<LineChart, string>(nameof(PinPage), "");
-    public string PinKey { get => GetValue(PinKeyProperty); set => SetValue(PinKeyProperty, value); }
-    public string PinName { get => GetValue(PinNameProperty); set => SetValue(PinNameProperty, value); }
-    public string PinPage { get => GetValue(PinPageProperty); set => SetValue(PinPageProperty, value); }
-
     static LineChart() => AffectsRender<LineChart>(ValuesProperty, StrokeProperty, StrokeThicknessProperty, LabelFormatProperty, ShowLabelsProperty);
-
-    public LineChart()
-    {
-        var flyout = new MenuFlyout();
-        flyout.Opening += (_, _) => flyout.ItemsSource = PinMenuItems();
-        ContextFlyout = flyout;
-    }
-
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-        if (PinKey.Length > 0) PinHost.Current?.ChartSeen(PinKey, this);   // ピン留めが値と書式を引き直せるよう名乗る
-    }
-
-    private IReadOnlyList<object> PinMenuItems()
-    {
-        var host = PinHost.Current;
-        if (host is null || PinKey.Length == 0) return [];
-        var pin = new PinRef(PinKind.Chart, PinPage, PinKey, "", PinName.Length > 0 ? PinName : PinKey, "");
-        var mi = new MenuItem { Header = host.IsPinned(pin.Id) ? "ピン留めを外す" : "ピン留め" };
-        mi.Click += (_, _) => host.Toggle(pin);
-        return [mi];
-    }
 
     public IReadOnlyList<double>? Values { get => GetValue(ValuesProperty); set => SetValue(ValuesProperty, value); }
     public IBrush? Stroke { get => GetValue(StrokeProperty); set => SetValue(StrokeProperty, value); }
@@ -83,21 +52,37 @@ public sealed class LineChart : Control
         double w = Bounds.Width, h = Bounds.Height;
         if (!(w > 4 && h > 4)) return;
         double padL = 0;
-        FormattedText? top = null, bottom = null;
+        double span = max - min;
+        bool flat = !(span > Math.Max(Math.Abs(max), 1.0) * 1e-9);   // 点が 1 つ・値が変わっていない＝上下の目盛りが同じ値になる
         if (ShowLabels)
         {
             var fmt = LabelFormat ?? (v => v.ToString("0.##", CultureInfo.InvariantCulture));
             var tf = new Typeface(FontFamily.Default);
             IBrush ink = Application.Current?.TryFindResource("InkMutedBrush", out var b) == true && b is IBrush ib ? ib : Brushes.Gray;
-            top = new FormattedText(fmt(max), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, 10, ink);
-            bottom = new FormattedText(fmt(min), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, 10, ink);
-            padL = Math.Min(w / 3, Math.Max(top.Width, bottom.Width) + 4);
-            context.DrawText(top, new Point(0, 0));
-            context.DrawText(bottom, new Point(0, Math.Max(0, h - bottom.Height)));
+            var top = new FormattedText(fmt(max), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, 10, ink);
+            if (flat)
+            {
+                // 目盛りは 1 つ（線と同じ高さ）
+                padL = Math.Min(w / 3, top.Width + 4);
+                context.DrawText(top, new Point(0, Math.Max(0, (h - top.Height) / 2)));
+            }
+            else
+            {
+                var bottom = new FormattedText(fmt(min), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, 10, ink);
+                padL = Math.Min(w / 3, Math.Max(top.Width, bottom.Width) + 4);
+                context.DrawText(top, new Point(0, 0));
+                context.DrawText(bottom, new Point(0, Math.Max(0, h - bottom.Height)));
+            }
         }
         double x0 = padL + 1, x1 = w - 1, y0 = h - 2, y1 = 2;   // y0=最小の高さ・y1=最大の高さ
-        double span = max - min;
         int n = values.Count;
+        var pen = new Pen(stroke, StrokeThickness, lineJoin: PenLineJoin.Round);
+        if (flat)
+        {
+            // 値が変わっていない＝横 1 本（点が 1 つでも線が見える）
+            context.DrawLine(pen, new Point(x0, (y0 + y1) / 2), new Point(x1, (y0 + y1) / 2));
+            return;
+        }
         var geo = new StreamGeometry();
         using (var g = geo.Open())
         {
@@ -113,6 +98,6 @@ public sealed class LineChart : Control
             }
             if (open) g.EndFigure(false);
         }
-        context.DrawGeometry(null, new Pen(stroke, StrokeThickness, lineJoin: PenLineJoin.Round), geo);
+        context.DrawGeometry(null, pen, geo);
     }
 }

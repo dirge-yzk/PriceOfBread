@@ -17,9 +17,9 @@ public class FiscalPopDiscoveryTablesTests
 
     private static IReadOnlyList<ITable> Tables(FiscalFlows flows, BudgetResult budget) =>
     [
-        FiscalTables.Spend(budget), FiscalTables.Income(budget), FiscalTables.Ledger(flows), FiscalTables.Finance, FiscalTables.Debt,
+        FiscalTables.Spend(budget), FiscalTables.Income(budget), FiscalTables.Finance, FiscalTables.Debt,
         PopTables.Classes(), PopTables.Regions, PopTables.Religion, PopTables.Culture,
-        DiscoveryTables.Discoveries, DiscoveryTables.Sites,
+        DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites,
     ];
 
     [Fact]
@@ -50,23 +50,45 @@ public class FiscalPopDiscoveryTablesTests
     [Fact]
     public void 予算の項の合計は_行の予測と実効の和に一致する()
     {
-        var (_, w) = Board(8);
+        var (sim8, w) = Board(8);
         var flows = new FiscalFlows(120, 340, 5, 7, new double[(int)TreasuryCat.Count]);
         var b = FiscalTables.Budget(w, flows);
-        // 予測の列を持たない項（実績だけの項）は実効の額を合計に足している
-        double Fc(BudgetLine l) => l.NoAmounts ? 0 : l.NoForecast ? l.Actual : l.Forecast;
-        double Ac(BudgetLine l) => l.NoAmounts ? 0 : l.Actual;
+        // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
+        double Fc(BudgetLine l) => l.NoAmounts || l.Child || l.NoForecast ? 0 : l.Forecast;   // 見出しの予測＝列に見える行の和(V1)
+        //    // 内訳の行（陸軍・海軍）は軍事費の行に含まれる＝足さない
+        double Ac(BudgetLine l) => l.NoAmounts || l.Child ? 0 : l.Actual;
         Assert.Equal(b.SpendForecast, b.Spend.Sum(Fc), 6);
         Assert.Equal(b.SpendActual, b.Spend.Sum(Ac), 6);
         Assert.Equal(b.IncomeForecast, b.Income.Sum(Fc), 6);
         Assert.Equal(b.IncomeActual, b.Income.Sum(Ac), 6);
         Assert.Equal(b.IncomeForecast - b.SpendForecast, b.BalanceForecast, 6);
-        // 標本の流れ（教育費・専売益・外資）はそのまま実効の欄に載る
-        Assert.Equal(120, b.Spend.First(l => l.Key == "education").Actual, 9);
-        Assert.Equal(340, b.Income.First(l => l.Key == "monopoly").Actual, 9);
-        Assert.Equal(5, b.Income.First(l => l.Key == "foreignIn").Actual, 9);
-        Assert.Equal(7, b.Spend.First(l => l.Key == "foreignOut").Actual, 9);
+        // 標本の流れ（教育費・専売益）は予測に載り、実績は国庫の台帳（ここでは 0）。外資の流れは台帳に区分が無く標本のまま実績に載る
+        Assert.Equal(120, b.Spend.First(l => l.Key == "education").Forecast, 9);
+        Assert.Equal(0, b.Spend.First(l => l.Key == "education").Actual, 9);
+        Assert.Equal(340, b.Income.First(l => l.Key == "monopoly").Forecast, 9);
+        Assert.DoesNotContain(b.Income, l => l.Key == "foreignIn");   // 民間の外資の流れは国庫に入らない＝国債と外資信用の表へ(V1)
+        Assert.DoesNotContain(b.Spend, l => l.Key == "foreignOut");
+        var debt = FiscalTables.DebtOf(flows).Read(sim8, w);
+        Assert.Contains(debt.Rows, r => r.Key == "foreignIn");
+        Assert.Contains(debt.Rows, r => r.Key == "foreignOut");
         Assert.All(b.Spend.Concat(b.Income), l => Assert.False(double.IsNaN(l.Forecast) || double.IsNaN(l.Actual), $"{l.Key} が NaN"));
+    }
+
+    [Fact]
+    public void 支出と収入の実績の差は国庫の増減と一致し_行にならない残りは_その他_に畳まれる()
+    {
+        var (sim, w) = Board(6);
+        var before = (double[])w.TreasuryLedger.Clone();
+        double t0 = w.Treasury.Value;
+        sim.StepQuarter();
+        var diff = w.TreasuryLedger.Select((x, i) => (x - before[i]) / 3.0).ToArray();   // 四半期の差分の月平均（App の月の差分と同じ単位）
+        var b = FiscalTables.Budget(w, new FiscalFlows(0, 0, 0, 0, diff));
+        double tDelta = (w.Treasury.Value - t0) / 3.0;
+        Assert.True(Math.Abs(tDelta - b.BalanceActual) < 0.5, $"収支が国庫の増減と合わない: {tDelta} / {b.BalanceActual}");   // 入った額−払った額＝国庫の増減（ヘッダーの月の増減と同じ量）
+        Assert.Equal(tDelta, FiscalTables.LedgerBalance(new FiscalFlows(0, 0, 0, 0, diff)), 4);
+        double rest = b.Income.Where(l => l.Key == "restIn").Concat(b.Spend.Where(l => l.Key == "restOut")).Sum(l => l.Actual);
+        double big = Math.Max(Math.Abs(b.IncomeActual), Math.Abs(b.SpendActual));
+        Assert.True(rest <= 0.05 * big + 1e-6, $"その他に畳まれた残りが大きい: {rest} / {big}");   // 残りが大きいなら行の漏れ（税の 4 行と台帳の食い違いなど）
     }
 
     [Fact]
@@ -92,7 +114,7 @@ public class FiscalPopDiscoveryTablesTests
         var b = FiscalTables.Budget(w, FiscalFlows.Zero);
         var admin = b.Spend.First(l => l.Key == "admin").Stage;
         Assert.Equal(5, admin.Labels.Count);
-        Assert.Equal("最大", admin.Labels[^1]);
+        Assert.Equal("100%", admin.Labels[^1]);   // 割合の段は最後も数（B31）
         Assert.Equal(0, admin.LevelBase);
         Assert.All(Enumerable.Range(0, 5), level => Assert.Null(admin.Hover(level)));   // 軸の無い行＝代価も賛否も無い（空の吹き出しを出さない）
         Assert.True(admin.CanSelect(admin.Current));
@@ -111,28 +133,63 @@ public class FiscalPopDiscoveryTablesTests
         Assert.Equal(w.Coef.TariffFloor, w.Policy.TariffTarget, 9);
         // 軍事費の最下段は 1（「なし」の段が無い）
         var mil = b.Spend.First(l => l.Key == "military");
-        Assert.True(mil.NoAmounts);
+        Assert.False(mil.NoAmounts);   // 段と合計の額を 1 行に置く（陸軍・海軍はその内訳の行）
         Assert.Equal(1, mil.Stage.LevelBase);
+        Assert.All(b.Spend.Where(l => l.Key is "army" or "navy"), l => Assert.True(l.Child));
+        Assert.Contains(b.Spend, l => l.Key == "debtRepay");   // 起債と償還は常に出す（B30）
+        Assert.Contains(b.Income, l => l.Key == "debtBorrow");
     }
 
     [Fact]
-    public void 国庫の台帳_収入と支出の差が収支に一致し_小さい差は行にせず_空の側は1行の印を置く()
+    public void 支出と収入の実績の列は国庫の台帳の実際の額で_台帳に無い区分は行を足す()
     {
+        var (_, w) = Board(4);
         var diff = new double[(int)TreasuryCat.Count];
         diff[(int)TreasuryCat.Tax] = 900.5;
+        diff[(int)TreasuryCat.Tariff] = 120;
         diff[(int)TreasuryCat.Army] = -300.25;
-        diff[(int)TreasuryCat.Navy] = -10;   // 50 未満＝行にしない
+        diff[(int)TreasuryCat.Education] = -77;
+        diff[(int)TreasuryCat.Modernization] = -132;
+        diff[(int)TreasuryCat.Navy] = -10;
+        diff[(int)TreasuryCat.FactoryBuild] = -400;   // 上の行に属さない区分＝行を足す
+        diff[(int)TreasuryCat.Subsidy] = -20;         // 50 未満＝行にしない
         var flows = new FiscalFlows(0, 0, 0, 0, diff);
-        Assert.Equal(900.5 - 300.25 - 10, FiscalTables.LedgerBalance(flows), 9);
-        var t = FiscalTables.Ledger(flows);
-        var data = t.Read(new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789), new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789).Nations[0].World);
-        Assert.Equal(["国庫の支出", "国庫の収入"], data.Rows.Select(r => r.Group!).Distinct().ToArray());
-        Assert.Equal(2, data.Rows.Count);
-        Assert.Contains(data.Rows, r => r.Name == FiscalCatalog.LedgerName(TreasuryCat.Army) && r.Group == "国庫の支出");
-        Assert.Contains(data.Rows, r => r.Name == FiscalCatalog.LedgerName(TreasuryCat.Tax) && r.Group == "国庫の収入");
-        var empty = FiscalTables.Ledger(FiscalFlows.Zero).Read(new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789), new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789).Nations[0].World);
-        Assert.Equal(2, empty.Rows.Count);   // 両側とも「—」の 1 行
-        Assert.All(empty.Rows, r => Assert.Equal("—", r.Name));
+        Assert.Equal(900.5 + 120 - 300.25 - 77 - 132 - 10 - 400 - 20, FiscalTables.LedgerBalance(flows), 9);
+        var b = FiscalTables.Budget(w, flows);
+        Assert.Equal(300.25, b.Spend.First(l => l.Key == "army").Actual, 9);
+        Assert.Equal(10, b.Spend.First(l => l.Key == "navy").Actual, 9);
+        Assert.Equal(77, b.Spend.First(l => l.Key == "education").Actual, 9);
+        Assert.Equal(132, b.Spend.First(l => l.Key == "modernization").Actual, 9);   // 予算の要求でなく払った額
+        Assert.Equal(120, b.Income.First(l => l.Key == "tariff").Actual, 9);
+        Assert.Equal(400, b.Spend.First(l => l.Key == $"cat.{TreasuryCat.FactoryBuild}").Actual, 9);
+        Assert.DoesNotContain(b.Spend, l => l.Key == $"cat.{TreasuryCat.Subsidy}");
+        Assert.Equal(b.Spend.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.SpendActual, 6);
+        Assert.Equal(b.Income.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.IncomeActual, 6);
+        Assert.Equal(300.25 + 10, b.Spend.First(l => l.Key == "military").Actual, 9);
+    }
+
+    [Fact]
+    public void 開幕の近代化投資は格子に乗らない_どの段も光らせず_ホバーに本当の値を出す()
+    {
+        var (_, w) = Board(0);
+        w.ModernizationFrac = 0.08;
+        var row = FiscalTables.Budget(w, FiscalFlows.Zero).Spend.First(l => l.Key == "modernization");
+        Assert.Equal(-1, row.Stage.Current);
+        Assert.Contains("8%", row.Tip!);
+        w.ModernizationFrac = 0.5;
+        Assert.Equal(2, FiscalTables.Budget(w, FiscalFlows.Zero).Spend.First(l => l.Key == "modernization").Stage.Current);
+    }
+
+    [Fact]
+    public void 政策金利は段の名で出し_百分率を出さない()
+    {
+        var (sim, w) = Board(2);
+        var row = FiscalTables.Finance.Read(sim, w).Rows.First(r => r.Key == "policyRate");
+        var st = (StageCell)row.Cells[2]!;
+        Assert.Equal(5, st.Labels.Count);
+        Assert.DoesNotContain(st.Labels, l => l.Contains('%'));
+        Assert.DoesNotContain("%", (string)row.Cells[1]!);
+        Assert.Contains((string)row.Cells[1]!, st.Labels);
     }
 
     [Fact]
@@ -193,6 +250,25 @@ public class FiscalPopDiscoveryTablesTests
         var d = PopTables.Demography(w);
         Assert.Equal(total, d.Population, 6);
         Assert.True(d.FertileWomen > 0 && d.FertileWomen < total);
+    }
+
+    [Fact]
+    public void 年齢のピラミッドは表示のとき10年ごとに足し合わせる_11層は先頭の5層を2群に束ねる_旧の8層はそのまま_人数の和は変わらない()
+    {
+        var (_, w) = Board(3);
+        var py = PopTables.Pyramid(w);
+        Assert.Equal(8, py.Labels.Count);   // 11層も8層も表示は8本（11層は先頭の3層と次の2層を束ねる）
+        if (py.Labels[0] == "0〜10")
+            Assert.Equal(["0〜10", "11〜20", "21〜30", "31〜40", "41〜50", "51〜60", "61〜70", "71以上"], py.Labels);
+        else
+            Assert.Equal("0〜9", py.Labels[0]);   // 旧の8層（POB_AGE_BANDS=8）＝10歳刻みのまま
+        // 先頭の群 0〜10 歳は 0・1〜5・6〜10 の 3 層の和
+        if (py.Labels[0] == "0〜10")
+        {
+            double m0 = 0, f0 = 0;
+            foreach (var p in w.AllPops()) for (int b = 0; b < 3; b++) { m0 += p.Size * p.Ages[2 * b]; f0 += p.Size * p.Ages[2 * b + 1]; }
+            Assert.Equal(m0, py.Male[0], 6); Assert.Equal(f0, py.Female[0], 6);
+        }
     }
 
     // ===== 発見 =====

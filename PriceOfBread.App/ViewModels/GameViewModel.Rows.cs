@@ -57,8 +57,6 @@ public static class Conv
 {
     public static readonly Avalonia.Data.Converters.IValueConverter BoolToWeight =
         new Avalonia.Data.Converters.FuncValueConverter<bool, FontWeight>(b => b ? FontWeight.Bold : FontWeight.Normal);
-    public static readonly Avalonia.Data.Converters.IValueConverter FracToWidth =
-        new Avalonia.Data.Converters.FuncValueConverter<double, double>(f => System.Math.Max(1.0, System.Math.Clamp(f, 0, 1) * 120.0   /* ★2026-08-24：議会が下段の50%（実効298px）へ移り、星列に残るのは約130px＝170のままだと議席列へはみ出す */));
     // ★半円グラフ（2026-08-22 円→2026-09-07 半円）：VM が組む SVG 記法の Path 文字列を Geometry へ。空文字は null＝描かない（シェア0の扇形）。
     public static readonly Avalonia.Data.Converters.IValueConverter PathData =
         new Avalonia.Data.Converters.FuncValueConverter<string?, Avalonia.Media.Geometry?>(s => string.IsNullOrEmpty(s) ? null : Avalonia.Media.Geometry.Parse(s));
@@ -181,6 +179,8 @@ public sealed partial class HeaderStat : ObservableObject
 {
     [ObservableProperty] private string _text = "";
     [ObservableProperty] private bool _hasGraph;
+    /// <summary>字の色（深刻度・2026-11-03 作者「深刻度に合わせて色分け」）。既定＝ふつうの墨。</summary>
+    [ObservableProperty] private IBrush _brush = SeverityBrushes.Normal;
     public string GraphTitle { get; init; } = "";
     /// <summary>据え置き同期（SyncRows）の突き合わせキー。★グラフも内訳も持たない項目は GraphTitle が空で、
     /// **空キーが2つ並んだ瞬間に SyncRows がキー重複と見て全行の作り直しへ落ちる**（ヘッダー14項目の破棄・再生成が
@@ -196,14 +196,24 @@ public sealed partial class HeaderStat : ObservableObject
     public global::Avalonia.Points SafePoints => Points ?? new();
     partial void OnPointsChanged(global::Avalonia.Points value) => OnPropertyChanged(nameof(SafePoints));
     [ObservableProperty] private string _rangeText = "";
-    /// <summary>年次の系列そのもの（ピン留めの小さな線が描く元。系列の実体への参照で、年ごとに伸びる）。グラフを持たない項目は null。</summary>
-    public IReadOnlyList<double>? Values { get; set; }
     // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：説明API内訳（Terms）はヘッダーから撤去した。
     //   内訳の行き先＝外資信用/行政力→財政タブ・正統性/国民意識→政治タブ・人口/識字率/満足度/闘争度→POPタブ。
     public bool HasHover => HasGraph;   // ホバー＝折れ線だけ
     public bool Plain => !HasGraph;     // 素のテキスト（ホバーなし）
     partial void OnHasGraphChanged(bool value) { OnPropertyChanged(nameof(HasHover)); OnPropertyChanged(nameof(Plain)); }
-    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Points = s.Points; RangeText = s.RangeText; Values = s.Values; }
+    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Brush = s.Brush; Points = s.Points; RangeText = s.RangeText; }
+}
+
+/// <summary>ヘッダーの深刻度の色（2026-11-03）。通常＝墨・注意＝琥珀・危険＝赤。帯の境目は各項目の側（Refresh.cs）。</summary>
+public static class SeverityBrushes
+{
+    public static readonly IBrush Normal = new SolidColorBrush(Color.Parse("#4A3E2E"));
+    public static readonly IBrush Caution = new SolidColorBrush(Color.Parse("#B7791F"));
+    public static readonly IBrush Danger = new SolidColorBrush(Color.Parse("#B23A2E"));
+    /// <summary>悪いほど大きい量。<paramref name="caution"/> 以上で琥珀・<paramref name="danger"/> 以上で赤（NaN は通常）。</summary>
+    public static IBrush HighIsBad(double v, double caution, double danger) => v >= danger ? Danger : v >= caution ? Caution : Normal;
+    /// <summary>良いほど大きい量。<paramref name="caution"/> 未満で琥珀・<paramref name="danger"/> 未満で赤（NaN は通常）。</summary>
+    public static IBrush LowIsBad(double v, double caution, double danger) => v < danger ? Danger : v < caution ? Caution : Normal;
 }
 
 // 説明API（#63）の内訳1行＝理由＋符号つき寄与量。正の寄与は緑・負は赤で色分け（データ表示＝UI規律に適合）。
@@ -240,6 +250,8 @@ public sealed class MapHoverInfo
 {
     public string Title { get; init; } = "";
     public List<MapHoverLine> Lines { get; } = new();
+    public string ProducedGoods { get; set; } = "";   // 生産材（世界シェア上位）。窓「州」の左
+    public string ImportedGoods { get; set; } = "";   // 輸入材（所有国の輸入額の世界シェア上位）。窓「州」の右
     // ★支配度 §7（州パネル・2026-09-07）：4区分の半円（SVG 記法→Conv.PathData）＋外周の帯（10年前の国家区分）＋凡例の値。HasRule=false＝描かない（区分が動かない世界）。
     public bool HasRule { get; init; }
     public string RuleState { get; init; } = "";
@@ -250,6 +262,7 @@ public sealed class MapHoverInfo
     public string RuleStateText { get; init; } = "";
     public string RuleLocalText { get; init; } = "";
     public string RuleForeignText { get; init; } = "";
+    public string RuleForeignWho { get; init; } = "";   // 外国勢力の持ち主（国名と持分）
     public string RuleUngovernedText { get; init; } = "";
     public string RuleBandText { get; init; } = "";
 }

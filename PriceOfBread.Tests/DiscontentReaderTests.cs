@@ -285,7 +285,7 @@ public class DiscontentReaderTests
     public void Politics_Discontentの呼び手の本数がファイルごとに増えていない()
     {
         // 製品コード（SimCore）の中の `Discontent(` の出現（コメント行を除く・`AvgMassDiscontent(` のような前に英字が付く名前は数えない）。
-        // 想定＝Politics.cs 2（定義＋AvgMassDiscontent）・FactionSnapshot.cs 1（参加の述語）・InstrumentsDiscontent.cs 1（計器）。増やすときはこの表と事前登録を直す。
+        // 想定＝Politics.cs 2（定義＋AvgMassDiscontent）・FactionSnapshot.cs 1（参加の述語）・InstrumentsDiscontent.cs 1（計器）・PopTables.cs 1（POP の階級の表の不満度＝表示だけ・2026-11-11）。増やすときはこの表と事前登録を直す。
         var re = new System.Text.RegularExpressions.Regex(@"(?<![A-Za-z])Discontent\(");
         var found = new SortedDictionary<string, int>();
         string root = System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
@@ -303,6 +303,6 @@ public class DiscontentReaderTests
             }
             if (n > 0) found[System.IO.Path.GetFileName(f)] = n;
         }
-        Assert.Equal("FactionSnapshot.cs=1;InstrumentsDiscontent.cs=1;Politics.cs=2", string.Join(";", found.Select(kv => kv.Key + "=" + kv.Value)));
+        Assert.Equal("FactionSnapshot.cs=1;InstrumentsDiscontent.cs=1;Politics.cs=2;PopTables.cs=1", string.Join(";", found.Select(kv => kv.Key + "=" + kv.Value)));
     }
 }

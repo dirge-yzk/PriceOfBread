@@ -92,7 +92,26 @@ public class ProblemScanTests
     }
 
     [Fact]
-    public void 州の飢えは主食の不足の人数_充足が満ちた州は並ばない()
+    public void 止まった棟数は財カードの棟数を超えない_技術ゲートの閉じた生産者は数えない()
+    {
+        var (sim, w) = Board();
+        foreach (var r in w.Regions) foreach (var p in r.Producers) p.Bankrupt = false;
+        w.Regions.First().Producers.First(p => Catalog.Goods[p.GoodId].Tier != GoodTier.Service).Bankrupt = true;
+        for (int g = 0; g < Catalog.Goods.Length; g++)
+        {
+            double cap = 0;   // 財カードの工場カウンターと同じ集合（技術ゲートが開いた生産者）の棟数（国営＋民営）
+            foreach (var r in w.Regions)
+                foreach (var p in r.Producers)
+                    if (p.GoodId == g && Discovery.Gate(r, p) > ProductionDiag.TechGateClosed) cap += w.StateUnitsOf(p) + w.PrivateUnitsOf(p);
+            double stopped = ProductionTables.StoppedUnits(w, g);
+            Assert.True(stopped <= cap + 1e-9, $"{Catalog.Goods[g].Name}：止まった棟数 {stopped} が棟数 {cap} を超えた");
+        }
+        foreach (var it in ProblemScan.Scan(sim, w).Where(p => p.Kind == ProblemKind.Bankruptcy))
+            Assert.Equal(ProductionTables.StoppedUnits(w, int.Parse(it.RowKey)), it.Size, 9);   // 一覧と数え方の 1 本が同じ
+    }
+
+    [Fact]
+    public void 州の飢えは主食の不足の割合_充足が満ちた州は並ばない()
     {
         var (sim, w) = Board();
         foreach (var r in w.Regions) r.FoodFill = 1.0;
@@ -101,7 +120,8 @@ public class ProblemScanTests
         rg.FoodFill = 0.5;
         var h = Assert.Single(ProblemScan.Scan(sim, w), p => p.Kind == ProblemKind.RegionHunger);
         Assert.Equal(rg.Name, h.RowKey);
-        Assert.Equal(rg.SumPopulation() * 0.5, h.Size, 6);
+        Assert.Equal(0.5, h.Size, 6);
+        Assert.Equal(Unit.Share, h.Unit);
     }
 
     [Fact]
@@ -135,5 +155,18 @@ public class ProblemScanTests
                 Assert.Contains(LawCatalog.All, d => d.Axis == ProblemScan.ReformSteps[i].Axis && d.Slot == LawSlot.Law && d.IsVisible(w));
         Assert.Equal(lit, items.Count);
         Assert.All(items, p => Assert.True(LawCatalog.ByField(p.RowKey)!.IsVisible(w)));
+    }
+
+    [Fact]
+    public void 財の不足はまだ世界のどこにも作れない財を並べない()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789);
+        var w = sim.Nations[0].World;
+        var unavailable = ProductionDiag.UnavailableGoods(sim, w.Coef);
+        foreach (var p in ProblemScan.Scan(sim, w).Where(p => p.Kind == ProblemKind.GoodShortage))
+        {
+            int g = int.Parse(p.Key["short|".Length..]);
+            Assert.False(unavailable[g], $"作れない財が不足に並んだ: {p.Target}");
+        }
     }
 }

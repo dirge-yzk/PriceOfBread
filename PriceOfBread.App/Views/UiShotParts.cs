@@ -25,7 +25,7 @@ internal static class UiShotParts
             new SectionSpec("supply", "供給の網", 1, 8), new SectionSpec("goods", "財の表", 2, 8), new SectionSpec("detail", "選んだ財の詳細", 3, 6),
             new SectionSpec("factory", "州別の工場", 4, 6), new SectionSpec("equip", "設備", 6, 5), new SectionSpec("mega", "巨大建造物", 7, 4),
         ], [["supply", "detail"], ["goods", "factory"], ["equip", "mega"]]);
-        Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　£{(i + 1) * 137}.0k/月", Margin = new Thickness(0, 1) }); });
+        Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　{Fmt.Of(Unit.MoneyPerMonth, (i + 1) * 137000.0)}", Margin = new Thickness(0, 1) }); });
         PageGrid Make(double w, double h)
         {
             var g = new PageGrid { Table = table, Width = w, Height = h };
@@ -63,7 +63,7 @@ internal static class UiShotParts
         for (int i = 0; i < names.Length; i++)
         {
             double a = (i + 1) * 913.7 * (i % 3 == 0 ? -1 : 1);
-            var share = new ShareCell([("国家", 0.55 - i * 0.03), ("在地", 0.25), ("外国", 0.1), ("無統治", 0.1 + i * 0.03)]);
+            var share = new ShareCell([(PopTables.RuleStateName, 0.55 - i * 0.03), (PopTables.RuleLocalName, 0.25), (PopTables.RuleForeignName, 0.1), (PopTables.RuleUngovernedName, 0.1 + i * 0.03)], PopTables.RulePalette);
             var stage = new StageCell(labels, 0, i % 4, (i + 1) % 4, l => l != 3, l => l == 3 ? null : $"{names[0]}:{labels[l]}", _ => { });
             rows.Add(new RowData("r" + i, names[i], i < 5 ? "列強" : "その他", [i % 3 == 0 ? new TextCell(names[i], null, Swatch: "#2E6E5E", BadgeFill: i == 3 ? "#A0432D" : null) : names[i], new NumberCell(a), new NumberCell(0.04 * i - 0.001, Ink: i % 2 == 0 ? "#B8860B" : null), new NumberCell(-0.0001 * i), share, stage, new VerbCell("侵略", i % 2 == 0, () => { })]));
         }
@@ -77,12 +77,13 @@ internal static class UiShotParts
         };
         var lineFlat = new LineChart { Height = 40, Width = 150, Stroke = B("RustBrush", Brushes.Firebrick), Values = [3, 3, 3], ShowLabels = false };
         var lineEmpty = new LineChart { Height = 40, Width = 80, Stroke = B("BlueBrush", Brushes.SteelBlue), Values = [double.NaN, double.PositiveInfinity] };
+        var RuleBrushes = TableView.PaletteOf(new ShareCell([], PopTables.RulePalette));
         var pie = new HalfPie
         {
             Radius = 50,
-            Slices = [new(0.4, Brushes.SteelBlue), new(0.3, Brushes.Goldenrod), new(0.2, Brushes.IndianRed), new(0.1, Brushes.SeaGreen)],
+            Slices = [new(0.4, RuleBrushes[0]), new(0.3, RuleBrushes[1]), new(0.2, RuleBrushes[2]), new(0.1, RuleBrushes[3])],   // 支配度の 4 区分と同じ色（V4）
         };
-        var pieOne = new HalfPie { Radius = 30, Slices = [new(1.0, Brushes.SeaGreen)] };
+        var pieOne = new HalfPie { Radius = 30, Slices = [new(1.0, RuleBrushes[0])] };
         var pieNone = new HalfPie { Radius = 30, Slices = [new(0.0, Brushes.SeaGreen), new(double.NaN, Brushes.Red)] };
 
         var ink = B("InkBrush", Brushes.Black);

@@ -9,50 +9,29 @@
              x:Class="PriceOfBread.App.Views.GameView"
              x:DataType="vm:GameViewModel"
              Background="#EFE8D8" Foreground="{StaticResource InkBrush}" FontFamily="Yu Gothic UI, Meiryo, MS Gothic, sans-serif" FontWeight="Medium">
-    <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・分割・右の列・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
-    <!-- ページ中心UI（ライトテーマ）：7ページ＋地図を分割に置く。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
+    <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・中央のページ・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
+    <!-- ページ中心UI（ライトテーマ）：背景（地図か生産）に 6 ページが浮かぶ窓で重なる。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
          外交＝行にホバーでアクションメニュー・クリックでカメラ移動。侵略/統一戦争＝確認モーダル（侵略は膨張度消費）。実国家間の開戦＝緊張の創発のみ。
-         スペース=停止/再開・1〜3=速度。 -->
+         スペース=停止/再開・1〜3=速度・Tab=背景の地図と生産の切替・Q〜S=窓の開閉。 -->
 
     <Grid RowDefinitions="Auto,*">
 
-        <!-- 上部バー＝2行×2列（項2,3・2026-07-26）：行0=一次指標＋(右)速度/日付・行1=概況＋(右)タブボタン列（時間の真下）。
-             左の列は*幅＝有限幅で測られる（旧Auto列は無限幅測定で右側と重なるリスクがあった）。
-             ★2026-09-23：行0の左は Grid（国名だけ*）・行1の左は横StackPanel＝**どちらも折り返さない**（2段化は2026-08-02に却下済み）。 -->
+        <!-- 上部バー＝1段（2026-11-03 作者）：左＝国名（地位）・国庫・満足度〜正統性｜右＝ページの押し釦・速度の箱・日付。折り返さない（2段化は2026-08-02に却下済み）。 -->
         <Border Grid.Row="0" Background="#E6DEC8" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8" ZIndex="2">
-            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                <!-- ★2026-09-23（作者指示「文字数固定」）：桁が増減しても右の項目が動かないよう、可変長の項目に**画素の最小幅**を置く
-                     （既存の先例＝日付 Width=100・一時停止 Width=88）。⚠Width でなく MinWidth：見積りを超える値が来たとき
-                     Avalonia の TextBlock は固定 Width の行を黙ってクリップするが、MinWidth なら伸びる（切れない）。
-                       国庫:-£999.99M       → 114
-                       収支:＋£999.99M/月    → 144
-                       国債:£999.99M        → 106（⚠支払不能中は「　デフォルトまで12四半期」が続いて実測246pxになる＝ここだけ伸びる）
-                       戦力余剰:100%        → 102
-                     ★ToolTip.ShowDelay 80→30（作者指示2026-09-23「詳細表示までの時間を減らす」）。遅延はこの属性1つで決まる（App.axaml に既定の Style は無い）。
-                     ⚠0 にはしない＝ヘッダーを横切っただけで吹き出しが出て、タブボタンや速度ボタンへ向かうカーソルの前に被る。
-
-                     ★★2026-09-23：WrapPanel をやめて **Grid（国名だけ *・残りは Auto）** にした＝1行目が2段にならないことを**構造で**保証する
-                     （2026-08-02作者裁定「ヘッダーが2段になるのは望まない」）。⚠MinWidth を積むやり方では保証にならない
-                     ＝WrapPanel は総和が可用幅を超えた瞬間に黙って折り返す。実測（サルデーニャ＝ピエモンテ1783・1920全画面）：
-                       右のかたまり（タブ10個 745 ＋群隙間10 ＋速度284 ＋群隙間10 ＋日付100）＝**1149px**（⚠タブは
-                         WarTabVisible=true で常時10個・支配度も RuleSharesLive=true で常時出る＝これが最大でなく**常態**）
-                       可用（1920 − Border Padding 12×2）＝1896 ⇒ 1行目の左のかたまりに使えるのは **747px**
-                       旧の左＝国名171＋余白10＋地位76＋12＋国庫114＋12＋収支144＋12＋国債106＋12＋戦力余剰102＋12＝**783px**
-                       ⇒ 783 > 747 で36px溢れ、**戦力余剰が2段目へ落ちていた**（撮影で確認）。
-                     直した後：Auto側＝国庫114＋12＋収支144＋12＋国債106＋12＋戦力余剰102＋12＝**514px**（位置が固定＝作者の「文字数固定」の目的を構造で達成）、
-                       国名の * ＝747−514＝**233px**（最長の国名「サルデーニャ＝ピエモンテ」実測171px＋余白10＝181 に対し52pxの余り）。
-                     ⚠国名だけ TextTrimming＝溢れるときに削られるのは**国名の末尾**（省略記号が出る＝無言クリップでない）。
-                     ⚠支払不能中は国債が106→246へ伸びて Auto側が654になる＝国名の * が93pxまで痩せる。
-                       根治は「デフォルトまで○四半期」を DebtHeaderTip 側へ畳むこと（GameViewModel.Fiscal.cs＝財政タブの担当）。 -->
-                <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto" VerticalAlignment="Center">
-                    <TextBlock Grid.Column="0" Text="{Binding PlayerName}" FontWeight="Bold" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- 可変長の項目は画素の最小幅（MinWidth）＝桁が増減しても右の項目が動かない（2026-09-23「文字数固定」）。Width でなく MinWidth＝溢れる値は切れずに伸びる。
+                     ToolTip.ShowDelay=30（2026-09-23）。国庫の 190＝「国庫:-£999.99M（−£999.99M）」の見積り。 -->
+                <!-- ★2026-11-03（作者）：ヘッダーは1段＝国名（地位）・国庫（先月の収支）・満足度・不満度・闘争度・正統性（4つは深刻度の色）。
+                     外した項目は docs/202610/20261023/20261023_UIの作り直し_設計.md「ヘッダーから外した項目（2026-11-03）」に控えた（再配置の待ち）。
+                     列＝左詰め（国名・国庫は Auto・概況の列が *＝右の余りを取る）。 -->
+                <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0" Text="{Binding PlayerTitle}" FontWeight="Bold" FontSize="18" Margin="0,0,16,0" VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <TextBlock Text="{Binding PlayerScoreTip}" FontSize="{StaticResource FontSmall}"/>
                         </ToolTip.Tip>
                     </TextBlock>
-                    <!-- 地位（列強12位／準列強／中堅／弱小）は概況（2行目）へ移した（2026-09-23・上の算術）。順位もランクも世界が動かす量＝概況の他11項と同類。 -->
-                    <TextBlock Grid.Column="1" Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="114" Margin="0,0,12,0" ToolTip.ShowDelay="30">
+                    <TextBlock Grid.Column="1" Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="190" Margin="0,0,16,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <StackPanel Width="272" Spacing="4">
                                 <TextBlock Text="{Binding TreasuryHover.GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}"/>
@@ -65,22 +44,35 @@
                             </StackPanel>
                         </ToolTip.Tip>
                     </TextBlock>
-                    <!-- ★2026-09-23：収支は国庫と**別の枠**にする（1枚だと箱の右端は止まっても中の収支の桁が動いて読み位置がずれる） -->
-                    <TextBlock Grid.Column="2" Text="{Binding BalanceText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="144" Margin="0,0,12,0"/>
-                    <!-- 国債（借入）＝国庫/収支のすぐ隣（2026-08-02ユーザー指示：収支と戦力余剰の間）。ホバーで内訳・支払不能で赤 -->
-                    <TextBlock Grid.Column="3" Text="{Binding DebtHeaderText}" VerticalAlignment="Center" Foreground="{Binding DebtHeaderBrush}" FontSize="{StaticResource FontLead}" MinWidth="106" Margin="0,0,12,0" ToolTip.ShowDelay="30">
-                        <ToolTip.Tip><TextBlock Text="{Binding DebtHeaderTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
-                    </TextBlock>
-                    <!-- 🚂鉄道/⚓船舶はヘッダから貿易タブへ移設（2026-07-24 §3-7・ヘッダに空きを作る） -->
-                    <TextBlock Grid.Column="4" Text="{Binding ExpansionText}" VerticalAlignment="Center" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontLead}" MinWidth="102" Margin="0,0,12,0" ToolTip.ShowDelay="30">
-                        <ToolTip.Tip>
-                            <TextBlock Text="{Binding ExpansionTip}" FontSize="{StaticResource FontSmall}"/>
-                        </ToolTip.Tip>
-                    </TextBlock>
-                    <!-- 政治資本を余剰戦力の隣へ（2026-07-20ユーザー指示） -->
-                    <!-- ★政治資本の表示は撤去（2026-08-15＝選挙梯子E5の表示部分を前倒し） -->
-                    <!-- ★防衛同盟の枠数は撤去（2026-08-23作者指示）＝外交タブの国カードのバッジ「同盟」で読む -->
-                    <!-- ★統一の機運（UnifLine）も概況（2行目）へ移した（2026-09-23・上の算術）＝長い国名の国ほど機運が立つ（サルデーニャ＝ピエモンテ→イタリア・プロイセン→ドイツ） -->
+                    <ItemsControl x:Name="HeaderStatList" Grid.Column="2" ItemsSource="{Binding HeaderStats}" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:HeaderStat">
+                                <Panel Margin="0,0,12,0" MinWidth="{Binding BoxWidth}" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}" IsVisible="{Binding Plain}"/>
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}" IsVisible="{Binding HasHover}"
+                                               ToolTip.ShowDelay="30">
+                                        <ToolTip.Tip>
+                                            <StackPanel Width="272" Spacing="4">
+                                                <TextBlock Text="{Binding GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
+                                                           IsVisible="{Binding GraphTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding HasGraph}">
+                                                    <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
+                                                        <Polyline Points="{Binding SafePoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
+                                                    </Canvas>
+                                                </Border>
+                                                <TextBlock Text="{Binding RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding HasGraph}"/>
+                                            </StackPanel>
+                                        </ToolTip.Tip>
+                                    </TextBlock>
+                                </Panel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </Grid>
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <!-- タブボタン列＝**速度の左**（2026-08-02ユーザー指示）。ボタンの並び（左から）は主題のまとまり順で固定。
@@ -102,69 +94,25 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                        <!-- 停止⏸と再生▶で字形幅が違い、内容任せだとボタン幅→速度ボタン列全体が押されて動く。固定幅で根絶（2026-07-25ユーザー指摘） -->
-                        <Button Classes="speed" Classes.active="{Binding Playing}" Content="{Binding PlayIcon}" Command="{Binding TogglePauseCommand}"
-                                Width="88" HorizontalContentAlignment="Center"/>
-                        <Button Classes="speed" Classes.active="{Binding IsSpeed1}" Content="1:低速" Command="{Binding SetSpeedCommand}" CommandParameter="1"/>
-                        <Button Classes="speed" Classes.active="{Binding IsSpeed2}" Content="2:中速" Command="{Binding SetSpeedCommand}" CommandParameter="2"/>
-                        <Button Classes="speed" Classes.active="{Binding IsSpeed3}" Content="3:高速" Command="{Binding SetSpeedCommand}" CommandParameter="3"/>
+                    <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                        <!-- 速度の箱 [1][2][3]（2026-11-03 作者）：速度 n なら 1〜n を塗る・停止中は塗りのまま灰色。停止/再開のボタンは外した（スペースのまま・いまの速度の箱を押しても入り切り） -->
+                        <Button Classes="speedbox filled" Classes.paused="{Binding Paused}" Content="1" Command="{Binding ClickSpeedCommand}" CommandParameter="1"/>
+                        <Button Classes="speedbox" Classes.filled="{Binding SpeedFill2}" Classes.paused="{Binding Paused}" Content="2" Command="{Binding ClickSpeedCommand}" CommandParameter="2"/>
+                        <Button Classes="speedbox" Classes.filled="{Binding SpeedFill3}" Classes.paused="{Binding Paused}" Content="3" Command="{Binding ClickSpeedCommand}" CommandParameter="3"/>
                         <!-- ★2026-08-31：最高速(4)は廃止＝45日/秒はかくつく（作者指示）。SpeedDays[4]とIsSpeed4は互換のため残置 -->
                     </StackPanel>
                     <!-- Width固定（2026-07-27ユーザー指摘）：可変幅数字で日付の幅が毎日揺れ→Auto列→ヘッダー全体が毎tick再レイアウトされていた -->
                     <TextBlock Text="{Binding DateText}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                VerticalAlignment="Center" HorizontalAlignment="Right" Width="100" TextAlignment="Right"/>
                 </StackPanel>
-            <!-- 概況（2行目）：国家指標のリスト。グラフ付き項目はホバーで年次推移 -->
-            <!-- ⚠★2列にまたがらせる（2026-08-02）。Grid の列幅は**全行で共有**されるので、行0の右列（速度＋タブ＋日付≈1000px）が
-                 行1の左列まで狭めてしまい、概況の末尾（国民意識・軍事力）が切れていた。行1の右列はタブ移動で空なので跨げばよい。 -->
-            <ItemsControl x:Name="HeaderStatList" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,4,0,0" ItemsSource="{Binding HeaderStats}">
-                <!-- ★2026-08-02：**折り返さない**（作者指摘「ヘッダーが2段になっている。これは望んでいない」）。
-                     WrapPanel だと項目が増えたぶんだけ段が増え、ヘッダーの高さが勝手に伸びて地図を押し下げていた。
-                     StackPanel（横）にして余白と字を詰め、12項目が1段に収まるようにする。
-                     ★2026-09-23の内訳＝地位・GDP・人口・識字率・満足度・不満度・闘争度・工業化・外資信用・行政力・正統性・国民意識（＋統一の機運は機運が立つ間だけ末尾に出る）
-                     ＝最小幅の合計1044px＋余白9px×12＝1152px（機運が立つと最大+189で1341px。全画面1920なら可用1896px）。
-                     ⚠この行の実測（1783・1920全画面）＝末尾の国民意識のインク右端が1142px＝**744pxが空いている**。
-                       1行目から移した2つ（地位・統一の機運）はその空きに置いた（技術水準は財政タブへ移した分の96pxが空く）。 -->
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <!-- ★2026-09-23（作者指示）：①各項目に**画素の最小幅**（BoxWidth）＝桁が動いても右の項目が動かない
-                     （⚠Width でなく MinWidth＝見積りを超える値で無言に切れるのでなく伸びる）。値の算術は Refresh.cs の stats の直前に一覧。
-                     ②ホバーは**折れ線だけ**＝説明API内訳（Terms）はここから撤去し、財政/政治/POPの各タブへ移した。 -->
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:HeaderStat">
-                        <Panel Margin="0,0,9,2" MinWidth="{Binding BoxWidth}">
-                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" IsVisible="{Binding Plain}"/>
-                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" IsVisible="{Binding HasHover}"
-                                       ToolTip.ShowDelay="30">
-                                <ToolTip.Tip>
-                                    <StackPanel Width="272" Spacing="4">
-                                        <TextBlock Text="{Binding GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
-                                                   IsVisible="{Binding GraphTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                        <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding HasGraph}">
-                                            <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
-                                                <Polyline Points="{Binding SafePoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
-                                            </Canvas>
-                                        </Border>
-                                        <TextBlock Text="{Binding RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding HasGraph}"/>
-                                    </StackPanel>
-                                </ToolTip.Tip>
-                            </TextBlock>
-                        </Panel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
             </Grid>
         </Border>
 
         <Grid Grid.Row="1">
-        <!-- ★(501) 段2：本体＝左の列（問題の一覧・年表）｜分割（ページ）｜右の列（ピン留め）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
-             旧は中央が地図・右にタブのドック・年表が地図の左下に浮いていた。地図は分割に単独で置ける 1 つのページ（Views/MapPane）。
-             ページの外側の枠・分割の形・境目は Views/SplitHost（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
-        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="*">
+        <!-- ★(501) 段2：本体＝左の列（問題の一覧・年表）｜中央（背景＋浮かぶ窓）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
+             旧は中央が地図・右にタブのドック・年表が地図の左下に浮いていた。地図は中央に出せる 1 つのページ（Views/MapPane）。
+             背景の箱は Views/PageHost・窓の層は Views/WindowLayer（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*">
             <!-- 左の列（畳める）。畳むと細い取っ手だけが残り、押すと開く。 -->
             <StackPanel Grid.Column="0" Orientation="Horizontal">
                 <Border Width="260" IsVisible="{Binding LeftOpen}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,1,0">
@@ -222,53 +170,10 @@
                 <Button Classes="edge" IsVisible="{Binding LeftClosed}" Content="▶" Command="{Binding ToggleLeftColumnCommand}" VerticalAlignment="Top" Margin="2,6,0,0"/>
             </StackPanel>
 
-            <!-- 中央＝分割（枠の中にページが載る） -->
-            <v:SplitHost x:Name="Splits" Grid.Column="1"/>
-
-            <!-- 右の列（畳める）＝ピン留め -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button Classes="edge" IsVisible="{Binding RightClosed}" Content="◀" Command="{Binding ToggleRightColumnCommand}" VerticalAlignment="Top" Margin="0,6,2,0"/>
-                <Border Width="300" IsVisible="{Binding RightOpen}" Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1,0,0,0">
-                    <DockPanel>
-                        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" Margin="4,6,10,4">
-                            <Button Classes="edge" Content="▶" Command="{Binding ToggleRightColumnCommand}"/>
-                            <TextBlock Grid.Column="1" Text="ピン留め" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </Grid>
-                        <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding Pins}" Margin="10,6,10,8">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:PinSlot">
-                                        <Border BorderBrush="{StaticResource SandBrush}" BorderThickness="1" CornerRadius="3" Margin="0,0,0,6" Opacity="{Binding Opacity}">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <Button Classes="row" Command="{Binding OpenCommand}" Padding="8,4">
-                                                    <StackPanel Spacing="1">
-                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding Source}" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontTiny}" TextTrimming="CharacterEllipsis"/>
-                                                        <!-- 数字は組ごとに折り返す（名前と値が別の行に割れない） -->
-                                                        <ItemsControl ItemsSource="{Binding Pairs}">
-                                                            <ItemsControl.ItemsPanel>
-                                                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-                                                            </ItemsControl.ItemsPanel>
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate x:DataType="x:String">
-                                                                    <TextBlock Text="{Binding}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="0,0,12,0"/>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                        <ctl:LineChart Values="{Binding Line}" IsVisible="{Binding HasLine}" Height="30" ShowLabels="False" Stroke="{StaticResource BlueBrush}" Margin="0,2,0,0"/>
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button Grid.Column="1" Classes="mini" Content="外す" Command="{Binding UnpinCommand}" VerticalAlignment="Top" Margin="0,4,4,0"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </DockPanel>
-                </Border>
-            </StackPanel>
+            <!-- 中央＝背景（地図か生産・Tab で切り替え）＋その上に浮かぶ窓（それ以外のページ）。分割とピン留めは廃止（2026-11-04） -->
+            <v:PageHost x:Name="Center" Grid.Column="1"/>
+            <!-- 浮かぶ窓の層（作者の指示 2026-11-11）：背景の上に重ねる。窓の無い所の押下は下の背景へ通る -->
+            <v:WindowLayer x:Name="Windows" Grid.Column="1"/>
         </Grid>
 
         <!-- モーダル層（レビュー2026-07-19）：外側Gridの兄弟として配置＝ZIndexが生産タブ(8)・出来事パネル(8)と正しく比較される
@@ -309,16 +214,25 @@
                         <!-- 緊張が高まった理由＝内訳（寄与の大きい順・作者FB①・2026-08-10）。最上部に置く -->
                         <TextBlock Text="{Binding TensionPopupWhy}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding TensionPopupBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
-                        <!-- 2択＝ボタンは元のまま。緊張量と政治的帰結の3行はホバーで読む（作者裁定2026-08-10）。
-                             ツールチップはポップアップ＝中身が何行でもモーダルのレイアウトは動かない。 -->
+                        <!-- 2択の判断材料（緊張量と政治的帰結の3行）は常に見せる（作者の指示 2026-11-11：ヘッダー以外のホバーは廃止）。 -->
+                        <Grid RowDefinitions="Auto,Auto" Margin="0,2,0,0">   <!-- 縦に 2 つ並べる＝窓の全幅で「…からの支持：」と値が折り返して離れない（V6） -->
+                            <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,6">
+                                <TextBlock Text="挑発する" FontWeight="Bold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                                <TextBlock Text="{Binding TensionProvokeTip}" TextWrapping="Wrap" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkSoftBrush}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Spacing="2">
+                                <TextBlock Text="緊張を緩和する" FontWeight="Bold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                                <TextBlock Text="{Binding TensionEaseTip}" TextWrapping="Wrap" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkSoftBrush}"/>
+                            </StackPanel>
+                        </Grid>
                         <TextBlock Classes="dim" FontSize="{StaticResource FontSmall}" Height="16" Text="{Binding TensionRampText}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <Button x:Name="TensionProvokeButton" Classes="dialog" Content="挑発する"
                                     Command="{Binding TensionRaiseCommand}"
-                                    ToolTip.Tip="{Binding TensionProvokeTip}" ToolTip.ShowDelay="200"/>
+/>
                             <Button x:Name="TensionEaseButton" Classes="dialog" Content="緊張を緩和する"
                                     Command="{Binding TensionEaseCommand}"
-                                    ToolTip.Tip="{Binding TensionEaseTip}" ToolTip.ShowDelay="200"/>
+/>
                             <Button Classes="dialog" Content="静観する" Command="{Binding TensionIgnoreCommand}"/>
                         </StackPanel>
                     </StackPanel>
@@ -471,7 +385,7 @@
                                     <Border Background="{Binding RowBrush}" CornerRadius="3" Padding="6,2">
                                         <Grid ColumnDefinitions="34,150,86,120,110,70">
                                             <TextBlock Grid.Column="0" Text="{Binding Order}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource BronzeBrush}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" ToolTip.ShowDelay="200"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Grid.Column="2" Text="{Binding Score}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Polity}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
                                             <TextBlock Grid.Column="4" Text="{Binding Population}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}"/>
@@ -510,7 +424,7 @@
                     </Grid>
                     <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandBrush}"/>
                     <StackPanel Margin="14,10,14,12" Spacing="8">
-                        <Button Classes="dialog" Content="セーブ" Command="{Binding SaveGameNowCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Classes="dialog" Content="クイックセーブ" Command="{Binding SaveGameNowCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         <!-- スロット1〜3（2026-09-06）：各行＝日時・セーブ・ロード -->
                         <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="1" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
@@ -526,7 +440,7 @@
                             <Button Grid.Row="2" Grid.Column="2" Classes="dialog" Content="セーブ" Command="{Binding SaveSlotCommand}" CommandParameter="3"/>
                             <Button Grid.Row="2" Grid.Column="3" Classes="dialog" Content="ロード" Command="{Binding RequestLoadSlotCommand}" CommandParameter="3" IsEnabled="{Binding CanLoadSlot3}"/>
                         </Grid>
-                        <Button Classes="dialog" Content="ロード" Command="{Binding RequestLoadCommand}" IsEnabled="{Binding CanLoadSave}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Classes="dialog" Content="クイックロード" Command="{Binding RequestLoadCommand}" IsEnabled="{Binding CanLoadSave}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         <Button Classes="dialog" Content="タイトルに戻る" Command="{Binding RequestReturnToTitleCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>

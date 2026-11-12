@@ -18,6 +18,9 @@ namespace PriceOfBread.App.Controls;
 /// ・<see cref="Filterable"/> が真なら絞り込みの文字の欄を出す。
 /// ・列の幅は単位から決めた最小幅（<c>MinWidth</c>）。固定の <c>Width</c> は値を黙って切るので使わない。見出しと行は列の大きさを共有する。
 /// ・Avalonia の描画の部品だけ。XAML を持たない＝結線は <see cref="SnapshotProperty"/> の 1 本（呼び手の XAML が x:DataType 付きで束縛する）。</summary>
+/// <summary>凡例の 1 項（色の丸と名）。</summary>
+public readonly record struct LegendItem(string Name, IBrush Brush);
+
 public sealed class TableView : UserControl
 {
     public static readonly StyledProperty<TableSnapshot?> SnapshotProperty = AvaloniaProperty.Register<TableView, TableSnapshot?>(nameof(Snapshot));
@@ -53,8 +56,8 @@ public sealed class TableView : UserControl
         confirm(vb);
     }
 
-    /// <summary>段の列の最大の幅（これを超える段の押し釦は欄の中で折り返す）。</summary>
-    public const double StageMaxWidth = 236;
+    /// <summary>段の列の最大の幅（これを超える段の押し釦は欄の中で折り返す）。選べない段の下の短い理由が横に並ぶ分まで広げた（B42・2026-11-12）。</summary>
+    public const double StageMaxWidth = 440;
 
     /// <summary>文字の 1 つのセルの最大の幅（これを超える長い文字は末尾を省略記号にして全文を吹き出しに出す）。</summary>
     public const double MaxTextWidth = 260;
@@ -67,11 +70,65 @@ public sealed class TableView : UserControl
         return m is { } a ? (a.Gaps, a.Columns) : (0, 0);
     }
 
+    /// <summary>中身の高さの見積り（絞り込みの欄・見出し・行・群の見出し・横の流れの目盛りの分）。欄の高さを中身に合わせる上限に使う（A10）。
+    /// 押し釦の行は高いので行の高さを大きく見積もる＝足りなくて最後の行が半分に切れることのないよう、やや多めに取る。</summary>
+    public double EstimatedHeight()
+    {
+        var snap = Snapshot ?? TableSnapshot.Empty;
+        bool tall = snap.Columns.Any(c => c.Kind is ColumnKind.Stage or ColumnKind.Verb or ColumnKind.Share);
+        double row = tall ? 34 : 24;
+        int groups = snap.Rows.Select(r => r.Group ?? "").Distinct().Count(g => g.Length > 0);
+        return ChromeHeight() + snap.Rows.Count * row + groups * 34;
+    }
+
+    /// <summary>行の外の高さ（絞り込みの欄・見出し・横の流れの目盛り・余白）。</summary>
+    public double ChromeHeight() => (Filterable ? 28 : 0) + (_legendCount > 0 ? 20 : 0) + 24 + (ScrollX ? 14 : 0) + 6;
+
     /// <summary>表の行の数（撮影の検査用）。</summary>
     public int RowCount => _rows.Count;
 
+    /// <summary>表の上に出す色の凡例（呼び手が渡す・例：国名の前の丸の政体の色）。割合の列（半円）がある表は、その区分の色と名を自動で出す（B34・B49）。</summary>
+    public IReadOnlyList<LegendItem>? Legend { get => _legend; set { _legend = value; RefreshLegend(); } }
+    private IReadOnlyList<LegendItem>? _legend;
+    private readonly WrapPanel _legendPanel = new() { Orientation = Orientation.Horizontal, IsVisible = false, Margin = new Thickness(0, 0, 0, 2) };
+    private int _legendCount;
+
+    /// <summary>凡例の中身を作り直す。呼び手の凡例が無ければ、割合の列の最初の行の区分（名と半円の色）。</summary>
+    private void RefreshLegend()
+    {
+        IReadOnlyList<LegendItem>? items = _legend;
+        var snap = Snapshot ?? TableSnapshot.Empty;
+        if (items is null)
+        {
+            int shareCol = -1;
+            for (int i = 0; i < snap.Columns.Count; i++) if (snap.Columns[i].Kind == ColumnKind.Share) { shareCol = i; break; }
+            if (shareCol >= 0)
+                foreach (var r in snap.Rows)
+                    if (shareCol < r.Cells.Count && r.Cells[shareCol].Extra is ShareCell sc && sc.Parts.Count > 0)
+                    {
+                        items = sc.Parts.Select((p, i) => new LegendItem(p.Name, PaletteOf(sc)[i % PaletteOf(sc).Count])).ToList();
+                        break;
+                    }
+        }
+        _legendPanel.Children.Clear();
+        _legendCount = items?.Count ?? 0;
+        if (items is not null)
+            foreach (var it in items)
+                _legendPanel.Children.Add(new StackPanel
+                {
+                    Orientation = Orientation.Horizontal, Spacing = 3, Margin = new Thickness(0, 0, 10, 0),
+                    Children =
+                    {
+                        new Avalonia.Controls.Shapes.Ellipse { Width = 8, Height = 8, Fill = it.Brush, VerticalAlignment = VerticalAlignment.Center },
+                        new TextBlock { Text = it.Name, FontSize = Small - 1, Foreground = Brush("InkSoftBrush", Brushes.Gray), VerticalAlignment = VerticalAlignment.Center },
+                    },
+                });
+        _legendPanel.IsVisible = _legendCount > 0;
+    }
+
+    private readonly StackPanel _top = new() { Orientation = Orientation.Vertical };
     private readonly Grid _root = new() { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
-    private readonly TextBox _filterBox = new() { Watermark = "", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
+    private readonly TextBox _filterBox = new() { Watermark = "絞り込み", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
     private readonly StackPanel _body = new() { Spacing = 0 };
     private readonly Border _bodyHost = new() { ClipToBounds = true };   // 内側で流れる表の行が見出しに重ならない（流した行は見出しの下で切る）
@@ -99,7 +156,7 @@ public sealed class TableView : UserControl
         foreach (var kv in _rows) kv.Value.SetSelected(SelectedKey is not null && kv.Key == SelectedKey);
     }
 
-    /// <summary>行へ飛ぶ（問題の一覧とピン留めから）。行を見える所へ送り、目印の背景を付ける。行が無ければ false（表がまだ読まれていない・消えた行）。</summary>
+    /// <summary>行へ飛ぶ（問題の一覧から）。行を見える所へ送り、目印の背景を付ける。行が無ければ false（表がまだ読まれていない・消えた行）。</summary>
     public bool FocusRow(string rowKey)
     {
         if (!_rows.TryGetValue(rowKey, out var rp)) return false;
@@ -112,24 +169,12 @@ public sealed class TableView : UserControl
     /// <summary>最後に飛んできた行の鍵（撮影の検査が飛び先の行に着いたかを読む）。</summary>
     public string? FocusedKey { get; private set; }
 
-    /// <summary>行の右クリックのメニュー（ピン留め／ピン留めを外す）。表の鍵・ページの無い表（見本など）は出さない。</summary>
-    private IReadOnlyList<object> PinMenuItems(string rowKey)
-    {
-        var host = PinHost.Current; var snap = Snapshot;
-        if (host is null || snap is null || snap.Key.Length == 0 || snap.Page is null) return [];
-        var row = snap.Rows.FirstOrDefault(r => r.Key == rowKey);
-        if (row is null) return [];
-        var pin = new PinRef(PinKind.Row, snap.Page.Value.ToString(), snap.Key, rowKey, row.Name, snap.Name);
-        var mi = new MenuItem { Header = host.IsPinned(pin.Id) ? "ピン留めを外す" : "ピン留め" };
-        mi.Click += (_, _) => host.Toggle(pin);
-        return [mi];
-    }
-
     public TableView()
     {
         Grid.SetIsSharedSizeScope(_root, true);   // 見出しと行が同じ列の大きさを共有する
-        Grid.SetRow(_filterBox, 0); Grid.SetRow(_header, 1); Grid.SetRow(_bodyHost, 2);
-        _root.Children.Add(_filterBox); _root.Children.Add(_header); _root.Children.Add(_bodyHost);
+        _top.Children.Add(_legendPanel); _top.Children.Add(_filterBox);   // 行 0＝凡例と絞り込み（行の番号は変えない＝見出しは 1・行は 2）
+        Grid.SetRow(_top, 0); Grid.SetRow(_header, 1); Grid.SetRow(_bodyHost, 2);
+        _root.Children.Add(_top); _root.Children.Add(_header); _root.Children.Add(_bodyHost);
         _filterBox.TextChanged += (_, _) => { _filter = _filterBox.Text ?? ""; Rebuild(); };
         Content = _root;
         AttachBody();
@@ -172,12 +217,21 @@ public sealed class TableView : UserControl
     // ---- 資源（App.axaml のトークン。無ければ既定）----
     private static IBrush Brush(string key, IBrush fallback)
         => Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var v) && v is IBrush b ? b : fallback;
+    /// <summary>半円の区分の色の並び。支配度の 4 区分は専用の色（App.axaml の RuleStateBrush ほか＝州の窓と同じ）・他は既定の並び。</summary>
+    internal static IReadOnlyList<IBrush> PaletteOf(ShareCell sc) => sc.Palette == PopTables.RulePalette
+        ? [Brush("RuleStateBrush", Brushes.SteelBlue), Brush("RuleLocalBrush", Brushes.Peru), Brush("RuleForeignBrush", Brushes.IndianRed), Brush("RuleUngovernedBrush", Brushes.Gray)]
+        : RowPresenter.PiePalette;
     private static double Small => Application.Current is { } app && app.TryFindResource("FontSmall", app.ActualThemeVariant, out var v) && v is double d ? d : 12;
+
+    /// <summary>表の中身が入れ替わった（<see cref="Section"/> が欄の並べを測り直す）。</summary>
+    public event Action? SnapshotChanged;
+    private int _lastRowCount = -1;
 
     private void Rebuild()
     {
         var snap = Snapshot ?? TableSnapshot.Empty;
-        if (snap.Key.Length > 0) PinHost.Current?.SnapshotSeen(snap);   // ピン留めが引き直す元（見えていないページの表も最後に見えた形が残る）
+        RefreshLegend();
+        if (snap.Rows.Count != _lastRowCount) { _lastRowCount = snap.Rows.Count; SnapshotChanged?.Invoke(); }   // 行の数が変わった時だけ（毎月の値の更新では並べ直さない）
         string sig = string.Join("|", snap.Columns.Select(c => c.Key + ":" + c.Kind));
         if (sig != _columnSig)
         {
@@ -194,7 +248,6 @@ public sealed class TableView : UserControl
             if (row.Group is { Length: > 0 } g && g != lastGroup)
             {
                 if (!_groups.TryGetValue(g, out var gh)) _groups[g] = gh = MakeGroupHeader(g);
-                ToolTip.SetTip(gh, row.GroupTip);   // 空なら null＝空の吹き出しを出さない
                 wanted.Add(gh);
             }
             lastGroup = row.Group;
@@ -208,12 +261,18 @@ public sealed class TableView : UserControl
         UpdateHeaderMarks(snap);
     }
 
-    /// <summary>残りの幅を全部取る列（1 つだけ）。段の列があれば段の列（段の押し釦は幅が足りなければ折り返す）・無ければ最初の文字の列。</summary>
+    /// <summary>伸びる列。段の列があれば段の列（段の幅まで・押し釦は幅が足りなければ折り返す）。無ければ取らない＝名前の列を引き伸ばさず、
+    /// 数の列を名前の直後に寄せて、余りは行の右に空ける（<see cref="AddSpacer"/>・A8）。</summary>
     private static int StarIndex(IReadOnlyList<ColumnSpec> cols)
     {
         for (int i = 0; i < cols.Count; i++) if (cols[i].Kind == ColumnKind.Stage) return i;
-        for (int i = 0; i < cols.Count; i++) if (cols[i].Kind == ColumnKind.Text) return i;
         return -1;
+    }
+
+    /// <summary>星の列が無い表は、最後に空の星の列を足して余りの幅を受ける（見出しと行で同じ）。</summary>
+    private static void AddSpacer(ColumnDefinitions defs, int starAt)
+    {
+        if (starAt < 0) defs.Add(new ColumnDefinition(1, GridUnitType.Star));
     }
 
     /// <summary>見出しの文字と、最初の行の各セルの中身の位置のずれ（撮影の確かめ・設計 §7-3）。列ごとに、見出しの文字の左端と値の左端（数の列は右端どうし）を、この表の左上からの位置で比べる。
@@ -243,7 +302,7 @@ public sealed class TableView : UserControl
 
     private static ColumnDefinition DefinitionOf(ColumnSpec c, int index, bool star)
     {
-        if (star) return new ColumnDefinition(1, GridUnitType.Star) { MinWidth = c.MinWidth };   // 残りの幅を全部取る列
+        if (star) return new ColumnDefinition(1, GridUnitType.Star) { MinWidth = c.MinWidth, MaxWidth = StageMaxWidth };   // 段の列は段の幅まで（広い欄でも数の列を段の直後に寄せる・A8）
         var d = new ColumnDefinition(GridLength.Auto) { MinWidth = c.MinWidth, SharedSizeGroup = "c" + index };
         if (!double.IsPositiveInfinity(c.MaxWidth)) d.MaxWidth = c.MaxWidth;
         return d;
@@ -278,12 +337,13 @@ public sealed class TableView : UserControl
             _header.Children.Add(tb);
             _headerCells[i] = tb;
         }
+        AddSpacer(_header.ColumnDefinitions, starAt);
     }
 
     private void UpdateHeaderMarks(TableSnapshot snap)
     {
         for (int i = 0; i < _headerCells.Length && i < snap.Columns.Count; i++)
-            _headerCells[i].Text = snap.Columns[i].Name + (i == _sortColumn ? (_sortDescending ? " ▼" : " ▲") : "");
+            _headerCells[i].Text = snap.Columns[i].Name + (i == _sortColumn ? (_sortDescending ? " ↓" : " ↑") : "");
     }
 
     private static Control MakeGroupHeader(string group) => new StackPanel
@@ -292,7 +352,7 @@ public sealed class TableView : UserControl
         Children =
         {
             new Border { Height = 1, Background = Brush("SandBrush", Brushes.Tan), Margin = new Thickness(0, 6, 0, 2) },
-            new TextBlock { Text = group, Foreground = Brush("BronzeBrush", Brushes.SaddleBrown), FontWeight = FontWeight.Bold, FontSize = Small, Margin = new Thickness(0, 0, 0, 1) },
+            new TextBlock { Text = group, Foreground = Brush("BronzeBrush", Brushes.SaddleBrown), FontWeight = FontWeight.Bold, FontSize = Small + 4, Margin = new Thickness(0, 0, 0, 2) },   // 群の題（素材・主食…）は表の字より大きく（2026-11-11 作者指示）
         },
     };
 
@@ -309,9 +369,6 @@ public sealed class TableView : UserControl
         public RowPresenter(TableView owner, IReadOnlyList<ColumnSpec> cols)
         {
             _owner = owner;
-            var flyout = new MenuFlyout();
-            flyout.Opening += (_, _) => { var items = owner.PinMenuItems(_key); flyout.ItemsSource = items; };
-            Root.ContextFlyout = flyout;
             Layout(cols);
             Root.PointerPressed += (_, e) =>
             {
@@ -337,13 +394,13 @@ public sealed class TableView : UserControl
             _cells = new Control?[cols.Count];
             int starAt = StarIndex(cols);
             for (int i = 0; i < cols.Count; i++) Root.ColumnDefinitions.Add(DefinitionOf(cols[i], i, i == starAt));
+            AddSpacer(Root.ColumnDefinitions, starAt);
         }
 
         public void Update(IReadOnlyList<ColumnSpec> cols, RowView row)
         {
             if (_sig != string.Join("|", cols.Select(c => c.Key + ":" + c.Kind))) Layout(cols);
             _key = row.Key;
-            ToolTip.SetTip(Root, string.IsNullOrEmpty(row.Tip) ? null : row.Tip);   // 空なら null＝空の吹き出しを出さない
             _emphasis = row.Emphasis; _selected = _owner.SelectedKey is not null && row.Key == _owner.SelectedKey;
             Paint();
             for (int i = 0; i < cols.Count && i < row.Cells.Count; i++)
@@ -369,24 +426,27 @@ public sealed class TableView : UserControl
                     return new TextBlock
                     {
                         FontSize = Small, TextAlignment = TextAlignment.Right, Margin = margin, HorizontalAlignment = HorizontalAlignment.Right, Background = Brushes.Transparent,
-                        Foreground = spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black),
+                        Foreground = Brush("InkBrush", Brushes.Black),   // 割合の列も本文の色（青は意味のある所だけ・A5）
                     };
+                case ColumnKind.Bar:
+                    return new StackBar { Margin = margin, Width = 120, Height = 10, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Share:
                     return new HalfPie { Radius = 16, Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 case ColumnKind.Stage:
-                    return new WrapPanel { Orientation = Orientation.Horizontal, Margin = margin, MaxWidth = StageMaxWidth, HorizontalAlignment = HorizontalAlignment.Left };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
+                    return new BalancedWrapPanel { Margin = margin, MaxWidth = StageMaxWidth, HorizontalAlignment = HorizontalAlignment.Left };   // 段が多い行は欄の中で折り返す（段の列が名前の列を押しつぶさない）
                 case ColumnKind.Verb:
                     return new Border { Margin = margin, HorizontalAlignment = HorizontalAlignment.Left };
                 default:
                     return new TextBlock
                     {
-                        FontSize = Small, TextTrimming = TextTrimming.CharacterEllipsis, Margin = margin, Background = Brushes.Transparent, MaxWidth = MaxTextWidth, HorizontalAlignment = HorizontalAlignment.Left,   // 最大の幅より広い欄でも左に寄せる（中央に寄せない）
+                        FontSize = Small, TextTrimming = TextTrimming.CharacterEllipsis, Margin = index == 0 ? new Thickness(0, 0, 4, 0) : margin,   // 先頭の名前の列は右に隙間＝長い名前が次の列の数に接しない（W18）
+                         Background = Brushes.Transparent, MaxWidth = MaxTextWidth, HorizontalAlignment = HorizontalAlignment.Left,   // 最大の幅より広い欄でも左に寄せる（中央に寄せない）
                         Foreground = index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray),
                     };
             }
         }
 
-        private static readonly IBrush[] PiePalette = [Brushes.SteelBlue, Brushes.Goldenrod, Brushes.IndianRed, Brushes.SeaGreen, Brushes.MediumPurple, Brushes.Peru];
+        internal static readonly IBrush[] PiePalette = [Brushes.SteelBlue, Brushes.Goldenrod, Brushes.IndianRed, Brushes.SeaGreen, Brushes.MediumPurple, Brushes.Peru];
 
         private static readonly Dictionary<string, IBrush> InkCache = new();
 
@@ -402,7 +462,7 @@ public sealed class TableView : UserControl
         /// <summary>文字のセルの中身と飾り（色の丸・バッジの背景・数の文字色）。飾りが無いセルは既定の見た目へ戻す（前の月に飾りがあった行も）。</summary>
         private static void ApplyText(TextBlock tb, ColumnSpec spec, CellView cell, int index)
         {
-            IBrush defaultInk = spec.Kind == ColumnKind.Number ? (spec.Unit == Unit.Share ? Brush("BlueBrush", Brushes.SteelBlue) : Brush("InkBrush", Brushes.Black))
+            IBrush defaultInk = spec.Kind == ColumnKind.Number ? Brush("InkBrush", Brushes.Black)
                                                                 : index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray);
             var badge = InkOf(cell.BadgeFill);
             tb.Foreground = badge is not null ? InkOf("#FFF6E8") ?? Brushes.White : InkOf(cell.Color) ?? defaultInk;
@@ -433,26 +493,36 @@ public sealed class TableView : UserControl
             {
                 case TextBlock tb:
                     ApplyText(tb, spec, cell, index);
-                    ToolTip.SetTip(tb, cell.Tip ?? (spec.Kind == ColumnKind.Text && !rowHasTip ? cell.Text : null));   // 溢れて省略されても全文が読める・目録が文を持つ数と文字はその文
+                    break;
+                case StackBar bar:
+                    bar.Cell = cell.Extra as BarCell;
                     break;
                 case HalfPie pie when cell.Extra is ShareCell sc:
-                    pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PiePalette[i % PiePalette.Length])).ToList();
+                    pie.Slices = sc.Parts.Select((p, i) => new HalfPieSlice(p.Share, PaletteOf(sc)[i % PaletteOf(sc).Count])).ToList();
                     break;
-                case WrapPanel wp when cell.Extra is StageCell st:
+                case BalancedWrapPanel wp when cell.Extra is StageCell st:
                     FillStages(wp, st);
                     break;
                 case Border b:
-                    if (cell.Extra is not VerbCell vb) { b.Child = null; ToolTip.SetTip(b, null); break; }   // この行にこの動詞が無い（前の月にはあった行も空にする）
-                    if (b.Child is not Button btn)
+                    if (cell.Extra is not VerbCell vb) { b.Child = null; break; }   // この行にこの動詞が無い（前の月にはあった行も空にする）
+                    if (b.Child is not StackPanel sp)
                     {
-                        btn = new Button { Classes = { "mini" } };
-                        b.Child = btn;
+                        var note0 = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.NoWrap, VerticalAlignment = VerticalAlignment.Center, IsVisible = false };
+                        note0.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
+                        sp = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { new Button { Classes = { "mini" } }, note0 } };   // 理由は押し釦の右＝行を 1 行に保つ（2026-11-11 作者指摘「2 行になっている」）
+                        b.Child = sp;
                     }
+                    var btn = (Button)sp.Children[0];
                     btn.Content = vb.Name; btn.IsEnabled = vb.Enabled;
+                    if (InkOf(vb.Fill) is { } fill) { btn.Background = fill; btn.Foreground = InkOf("#FFF6E8") ?? Brushes.White; }
+                    else { btn.ClearValue(Button.BackgroundProperty); btn.ClearValue(Button.ForegroundProperty); }
                     btn.Tag = vb;   // 押した時に呼ぶのは最新の動詞
                     btn.Click -= OnVerbClick; btn.Click += OnVerbClick;
                     b.Background = Brushes.Transparent;
-                    ToolTip.SetTip(b, string.IsNullOrEmpty(vb.Tip) ? null : vb.Tip);   // 押せない理由は押し釦の外（無効の釦でもホバーを受ける）に付ける
+                    // 押せない理由は動詞の下に常に見せる（ホバーは廃止・作者の指示 2026-11-11）。押せる動詞には出さない
+                    var note = (TextBlock)sp.Children[1];
+                    note.Text = vb.Enabled || string.IsNullOrEmpty(vb.Tip) ? "" : vb.Tip;
+                    note.IsVisible = note.Text.Length > 0;
                     break;
             }
         }
@@ -463,9 +533,10 @@ public sealed class TableView : UserControl
                 DispatchVerb(vb, (btn.FindAncestorOfType<TableView>()?.ConfirmVerb) ?? DefaultConfirm);
         }
 
-        private static void FillStages(WrapPanel wp, StageCell st)
+        private static void FillStages(BalancedWrapPanel wp, StageCell st)
         {
-            if (wp.Children.Count != st.Labels.Count)
+            // 段の釦は理由の有無で幅も間も変えない＝理由は釦の列の最後（右の続き・入りきらなければ次の行）に 1 つだけ置く（V2）
+            if (wp.Children.Count != st.Labels.Count + 1)
             {
                 wp.Children.Clear();
                 for (int i = 0; i < st.Labels.Count; i++)
@@ -474,19 +545,28 @@ public sealed class TableView : UserControl
                     btn.Click += (s, _) => { if (s is Button { Tag: (StageCell cell, int level) } && cell.CanSelect(level)) cell.Select(level); };
                     wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = btn });
                 }
+                var why = new TextBlock { FontSize = Small, TextWrapping = TextWrapping.NoWrap, IsVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 2) };
+                why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
+                wp.Children.Add(why);
             }
+            string? up = null, down = null;   // 理由は 1 つだけ＝進める側（現在の段より上の最初の押せない段）を優先・無ければ下げる側（V3）
             for (int i = 0; i < st.Labels.Count; i++)
             {
                 int level = st.LevelBase + i;
-                var border = (Border)wp.Children[i];
-                var btn = (Button)border.Child!;
+                var btn = (Button)((Border)wp.Children[i]).Child!;
                 btn.Content = st.Labels[i];
                 btn.Tag = (st, level);   // 最新の段の中身を持たせる
                 btn.IsEnabled = st.CanSelect(level);
+                if (!btn.IsEnabled && st.Why?.Invoke(level) is { Length: > 0 } why)
+                {
+                    if (level > st.Current) up ??= why; else down = why;
+                }
                 btn.Classes.Set("current", st.Current == level);
                 btn.Classes.Set("target", st.Target == level && st.Target != st.Current);
-                ToolTip.SetTip(border, st.Hover(level));   // 空なら null＝空の吹き出しを出さない
             }
+            var whyText = (TextBlock)wp.Children[^1];
+            whyText.Text = up ?? down ?? "";
+            whyText.IsVisible = whyText.Text.Length > 0;
         }
     }
 }

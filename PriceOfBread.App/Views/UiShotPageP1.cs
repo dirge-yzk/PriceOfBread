@@ -12,8 +12,8 @@ using PriceOfBread.App.ViewModels;
 namespace PriceOfBread.App.Views;
 
 /// <summary>--uishot の生産ページ・市場ページの撮影の段と検査（(501) 段3）。MainWindow の撮影の流れから 1 行で呼ぶ。
-/// ・1 枚／左右 2（既定の形）／4 分割で、生産と市場を並べて撮る。外側が縦に流れていないことは呼び手の判定（<c>LogOuterFlow</c>）を使う。
-/// ・各表について〈見出しの列の左端＝値の列の左端〉を測って BootLog に書く。盤（財カード）が分割の枠の幅に追従したことも書く。</summary>
+/// ・生産と市場を 1 枚ずつ撮る。外側が縦に流れていないことは呼び手の判定（<c>LogOuterFlow</c>）を使う。
+/// ・各表について〈見出しの列の左端＝値の列の左端〉を測って BootLog に書く。盤（財カード）が中央の幅に追従したことも書く。</summary>
 internal static class UiShotPageP1
 {
     /// <summary>撮影の段。<paramref name="capture"/>＝画面を名前つきで保存する口／<paramref name="logOuter"/>＝外側の流れの判定を BootLog に書く口。</summary>
@@ -24,27 +24,27 @@ internal static class UiShotPageP1
         foreach (var sv in window.GetVisualDescendants().OfType<ScrollViewer>().Where(v => v.Name == "ProdScroll")) sv.Offset = default;
         // 財を 1 つ選んだ状態（詳細と州別の工場に中身が出る）
         gvm.SelectProdGood(PriceOfBread.SimCore.Catalog.SteelId);
-        foreach (var (shape, name) in new[] { (SplitShape.One, "1枚"), (SplitShape.LeftRight, "左右2"), (SplitShape.Four, "4分割") })
+        lay.Open(Slot.Production);
+        await Task.Delay(1400);
+        capture($"{nextNo():D2}_生産.png");
+        logOuter("生産");
+        Report(window, "生産");
+        // 巨大建造物の欄は 1920×1080 では畳まれて始まる＝撮影の時だけ開いて、カードの 4 行目が切れていないかを撮る（B17）
+        var prodGrid = window.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(s => s.Key == "mega"));
+        if (prodGrid is not null)
         {
-            lay.SetShape(shape);
-            lay.Open(Slot.Production, 0);
-            if (shape != SplitShape.One) lay.Open(Slot.Market, 1);
-            await Task.Delay(1400);
-            capture($"{nextNo():D2}_生産と市場_{name}.png");
-            logOuter($"生産と市場 {name}");
-            Report(window, name);
-            if (shape == SplitShape.One)
-            {
-                // 市場だけを 1 枚でも撮る
-                lay.Open(Slot.Market, 0);
-                await Task.Delay(900);
-                capture($"{nextNo():D2}_市場_{name}.png");
-                logOuter($"市場 {name}");
-                Report(window, "市場 " + name);
-                lay.Open(Slot.Production, 0);
-                await Task.Delay(600);
-            }
+            prodGrid.SetUserState(["mega"], []);
+            await Task.Delay(900);
+            capture($"{nextNo():D2}_生産_巨大建造物を開く.png");
+            Report(window, "生産・巨大建造物を開く");
+            prodGrid.SetUserState([], []);
+            await Task.Delay(300);
         }
+        if (UiShotWindows.GameViewOf(window) is { } gvw) UiShotWindows.OpenFull(gvw, lay, Slot.Market); else lay.Open(Slot.Market);
+        await Task.Delay(900);
+        capture($"{nextNo():D2}_市場.png");
+        logOuter("市場");
+        Report(window, "市場");
         lay.Reset();
         await Task.Delay(300);
     }

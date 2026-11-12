@@ -18,7 +18,7 @@ public sealed class AgeBars : Control
 
     public AgePyramid? Data { get => GetValue(DataProperty); set => SetValue(DataProperty, value); }
 
-    public const double RowHeight = 17, HeaderHeight = 16;
+    public const double RowHeight = 19, HeaderHeight = 18;
 
     protected override Size MeasureOverride(Size availableSize)
     {
@@ -43,13 +43,13 @@ public sealed class AgeBars : Control
         var tf = new Typeface(FontFamily.Default);
         var ink = Brush("InkBrush", Brushes.Black); var muted = Brush("InkMutedBrush", Brushes.Gray);
         var male = Brush("BlueBrush", Brushes.SteelBlue); var female = Brush("RustBrush", Brushes.IndianRed);
-        FormattedText Text(string s, IBrush b, double size = 11) => new(s, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, size, b);
+        FormattedText Text(string s, IBrush b, double size = 12) => new(s, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, size, b);
         double labelW = 0;
         for (int i = 0; i < n; i++) labelW = Math.Max(labelW, Text(d.Labels[i], ink).Width);
         labelW += 10;
         double cx = w / 2, half = cx - labelW / 2;   // 中央の名前の左右に残る長さ
         // 凡例（男性と女性）
-        var hm = Text("男性", male, 11); var hf = Text("女性", female, 11);
+        var hm = Text("男性", male); var hf = Text("女性", female);
         context.DrawText(hm, new Point(cx - labelW / 2 - hm.Width, 0));
         context.DrawText(hf, new Point(cx + labelW / 2, 0));
         for (int i = 0; i < n; i++)
@@ -70,11 +70,11 @@ public sealed class AgeBars : Control
         double bar = RowHeight - 5;
         if (len > 0.5) context.DrawRectangle(brush, null, new Rect(toLeft ? x0 - len : x0, y + 2.5, len, bar));
         string s = PriceOfBread.App.Fmt.PopFmtK(value);
-        var num = text(s, muted, 10);
+        var num = text(s, muted, 11);
         // 数字は棒の外側（入らなければ棒の内側＝紙の色で）
         double room = half - len;
         bool outside = room >= num.Width + 2;
-        if (!outside) num = text(s, Brushes.White, 10);
+        if (!outside) num = text(s, Brushes.White, 11);
         double nx = outside ? (toLeft ? x0 - len - 2 - num.Width : x0 + len + 2) : (toLeft ? x0 - len + 2 : x0 + len - 2 - num.Width);
         context.DrawText(num, new Point(nx, y + (RowHeight - num.Height) / 2));
     }

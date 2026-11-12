@@ -45,16 +45,14 @@ public partial class GameViewModel
 
     // === 政治と法のページの表（共通の表）。行は本体の目録（PoliticsTables）が組み、鍵で値だけ流す（表を作り直さない）。
     [ObservableProperty] private TableSnapshot _lawTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _institutionTable = TableSnapshot.Empty;
 
     /// <summary>政治と法のページが枠に載った瞬間の更新（以後は見えている間の毎回の Refresh が追従する）。</summary>
     public void RefreshPoliticsLawPage() => RefreshLawTables();
 
-    /// <summary>法の表と制度の表を読み直す。段の押し釦を押した直後と、ページが見えた瞬間と、見えている間の毎回の更新。</summary>
+    /// <summary>法の表を読み直す（制度の表は発見のページ＝RefreshDiscovery）。段の押し釦を押した直後と、ページが見えた瞬間と、見えている間の毎回の更新。</summary>
     private void RefreshLawTables()
     {
         LawTable = TableSnapshot.From(AfterSelect(PoliticsTables.Laws.Read(_sim, _player), RefreshLawTables));
-        InstitutionTable = TableSnapshot.From(PoliticsTables.Institutions.Read(_sim, _player));
     }
 
     /// <summary>表の段の押し釦を押した直後に <paramref name="after"/> を呼ぶ形に包む（目標を置いた後の表を読み直す）。置く先は本体の口のまま（AI・議会と同じ門）。</summary>

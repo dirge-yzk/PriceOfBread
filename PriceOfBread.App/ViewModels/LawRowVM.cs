@@ -19,7 +19,7 @@ public sealed partial class LawStageVM : ObservableObject
     public bool IsCurrent => Row.CurrentLevel == Index;   // 現在施行中の段階（濃い塗り）
     public bool IsTarget => Row.TargetLevel == Index && Row.TargetLevel != Row.CurrentLevel;   // プレイヤーが置いた目標（枠強調）
     public bool Enabled => Row.CanReachAndAfford(Index);  // 前提法が未達 or 政治資本が足りない段階はグレーアウト（押せない）
-    /// <summary>ホバー：必要な政治資本／不可の理由。**空なら null**＝Avalonia の ToolTip.Tip は null なら吹き出しを出さないが空文字では空の吹き出しを出す。
+    /// <summary>必要な政治資本／不可の理由（吹き出しは廃止した＝画面への出し方は作者確認の待ち）。**空なら null**。
     /// 軸の無い行（財政のレバーの5段）は代価も賛否も無く null（<see cref="StageGate.Hint"/> が最初から null を返す＝ここで畳まない）。</summary>
     public string? Hint => Row.StageHint(Index);
     internal void Notify() { OnPropertyChanged(nameof(IsCurrent)); OnPropertyChanged(nameof(IsTarget)); OnPropertyChanged(nameof(Enabled)); OnPropertyChanged(nameof(Hint)); }

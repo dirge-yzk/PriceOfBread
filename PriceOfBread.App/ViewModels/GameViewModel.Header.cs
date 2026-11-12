@@ -35,7 +35,7 @@ public partial class GameViewModel
     {
         get
         {
-            string crown = _player.Crown switch { CrownForm.Absolutist => "絶対王政", CrownForm.Despotic => "専制", CrownForm.Shogunate => "幕府", _ => "君主なし" };
+            string crown = _player.Crown switch { CrownForm.Absolutist => "貴族共治", CrownForm.Despotic => "官僚専制", CrownForm.Shogunate => "幕府", _ => "君主なし" };   // 王冠の形の中身（Model.cs の注）。政体の語（絶対君主制）と別の量
             string seize = _player.Seizure switch { SeizureForm.Bourgeois => "　ブルジョワの簒奪", SeizureForm.Proletarian => "　プロレタリアの簒奪", SeizureForm.Military => "　軍部の簒奪", SeizureForm.Anarchy => "　無政府", _ => "" };
             return crown + seize;
         }
@@ -45,7 +45,7 @@ public partial class GameViewModel
     //   ＝絶対王政で積み上がっている最中にこそ見たい数字を隠していた（1789三部会が画面に出ない）。
     //   ⚠「議会なし」を残すのは CoopParliamentText（協力度＝議会という相手が居ないと定義できない量）だけ＝そちらは伏せたまま。
     public string ParliamentControlText => _player.ParliamentControl < 0 ? "計測前"
-        : $"{Math.Clamp(_player.ParliamentControl, 0, 1):P0}";
+        : $"{Fmt.Share(Math.Clamp(_player.ParliamentControl, 0, 1))}";
     public string CoopParliamentText => _player.ParliamentEnabled && _player.Polity is Polity.ConstitutionalMonarchy or Polity.Republic ? Fmt.SignedPct(_player.CoopParliamentCrown) : "議会なし";
     // 「世論の王権支持率」の行は撤去（2026-08-09作者フィードバック）＝当時はヘッダーの王権支持度とそのホバーで同じ量が読めた。
     // ⚠2026-08-23にその王権支持度もヘッダーから撤去＝**天命・世論の王権支持率はUIのどこからも読めない**（エンジンは稼働中）。
@@ -73,15 +73,15 @@ public partial class GameViewModel
         ? "議会の承認"
         : "君主の直接統制";
     public string PolityBondDiscountText => _player.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
-        ? $"-{_player.Coef.BondRateRepresentationDiscount:P0}" : "0%";
+        ? $"−{Fmt.Share(_player.Coef.BondRateRepresentationDiscount)}" : "0%";
     // 「天命の有効度」の行は撤去（2026-08-09作者フィードバック）＝当時はヘッダーの王権支持度のホバーが同じ値を出していた。
     // ⚠2026-08-23の王権支持度の撤去で読み手ゼロ＝第5段5-3/5-4の母数（PoliticalQuantities.MandateBase）はエンジン専用に戻った。
 
-    // 総動員の兵士割合（旧名「総動員の深さ上限」→「総動員時の兵士割合」・2026-08-16に分母つきの名前へ）。
+    // 総動員時の兵数（2026-11-12 B50：割合・倍率をやめて兵数の実数を出す。基準の兵数は直下の兵士の行が持つ）。
     // ★2026-08-16 作者指摘「新たに集められる割合なのか、元から兵士だったPOPの割合なのか分からない」＝**どちらでもない**。
     //   実体＝Military.Step:191 の目標兵数 `conscriptFrac × lawFrac × 兵役の母数`＝総動員ONの戦時に、
-    //   徴兵対象人口（農民＋都市労働者＋**現役の兵士**＝Military.cs:166 の manpower）のうち兵士になる割合（新規分でなく到達点）。
-    //   よってラベルは分母を名乗る＝「総動員の兵士割合（徴兵対象人口比）」。
+    //   徴兵対象人口（農民＋都市労働者＋**現役の兵士**＝Military.cs:166 の manpower）のうち兵士になる到達点の兵数（新規分でなく到達点）。
+    //   徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝今の兵数を下回らない。
     // 内訳：levée en masse の深さ MobilizationConscriptFrac ×
     //   国民意識ゲート（低国民意識ほど動員が届かない・下限＝Military.MobilizationGateFloor／熟練度が緩める）× 徴兵法の倍率（皆兵＝UniversalConscriptionFactor）。
     // ⚠徴兵法の倍率（皆兵で2.5倍）は Military.cs:190-191 が最後に必ず掛けるのに表示だけが落としていた＝
@@ -109,9 +109,11 @@ public partial class GameViewModel
             }
             if (!(soldiers > 0)) return "—";
             // Military.Step の目標兵数と同一式（母数＝農民＋都市労働者＋現役の兵士）。★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ（Military.cs:187 と同じ述語）
-            //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限1.0倍（表示だけが別式になるのを避ける）。
+            //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限は今の兵数（表示だけが別式になるのを避ける）。
             double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac.Value * gate * lawFrac * manpower : 0;
-            return $"{Math.Max(1.0, target / soldiers):F1}倍";   // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝下限1.0倍
+            // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない。目標が今の兵数以下なら総動員しても兵は増えない＝
+            //   今の兵数をそのまま出すと下の「兵士 実際」と同じ数が 2 行に並ぶ（2 回目の目の点検 W6）ので、増えないと出す。
+            return target > soldiers ? Fmt.Men(target) : "増員なし";
         }
     }
     // ★(195) 総動員の判断の材料＝AI と同じ1本（Diplomacy.WarScale・00一覧 §0-A の 0e）＝プレイヤーは同じ材料を見て自分で選ぶ（AI の線は出さない＝2026-09-23 裁定「閾値は出さない」）。
@@ -166,7 +168,7 @@ public partial class GameViewModel
                 list.Add((pol, Ideologies.SupportAt(agg, Ideologies.BasePolityCoord(pol), _player.Coef.IdeologyAffinitySlope)));
             var current = PowerAffinity.PolityFromShares(_player);
             return string.Join("\n", list.OrderByDescending(x => x.Sup)
-                .Select(x => $"{PolityRegimeJa(x.Pol)}　{x.Sup:P0}{(x.Pol == current ? "　◀ 現政体" : "")}"));
+                .Select(x => $"{PolityRegimeJa(x.Pol)}　{Fmt.Share(x.Sup)}{(x.Pol == current ? "　◀ 現政体" : "")}"));
         }
     }
     // 国民意識はヘッダーの年次グラフへ一本化＝政治タブの重複行と専用プロパティは撤去（2026-07-16）。
@@ -202,22 +204,22 @@ public partial class GameViewModel
             double cap = Math.Max(1e-9, c.ExpansionWillCap);
             double gain = fever > c.WarFeverThreshold ? c.ExpansionWillGrowth * (fever - c.WarFeverThreshold) : 0;
             double bourg = c.ExpansionWillBourgeois > 0 ? c.ExpansionWillBourgeois * blocs.Modern : 0;
-            string tip = $"好戦世論 {Math.Min(1.0, fever):P0}";
-            if (mil > 1e-9) tip += $"\n+{c.WarFeverMilitarism * mil:P0}　好戦世論の公共圏";
-            tip += $"\n+{c.WarFeverMilSpend * _player.MilitarySpending:P0}　軍事費"
-                 + $"\n+{c.WarFeverNoble * trad:P0}　将校貴族"
-                 + $"\n+{c.WarFeverSoldier * soldierShare:P0}　兵士規模"
-                 + $"\n+{c.WarFeverThreat * threat:P0}　外的脅威"
-                 + $"\n+{diversion:P0}　大衆の闘争の外征転化"
+            string tip = $"好戦世論 {Fmt.Share(Math.Min(1.0, fever))}";
+            if (mil > 1e-9) tip += $"\n+{Fmt.Share(c.WarFeverMilitarism * mil)}　好戦世論の公共圏";
+            tip += $"\n+{Fmt.Share(c.WarFeverMilSpend * _player.MilitarySpending)}　軍事費"
+                 + $"\n+{Fmt.Share(c.WarFeverNoble * trad)}　将校貴族"
+                 + $"\n+{Fmt.Share(c.WarFeverSoldier * soldierShare)}　兵士規模"
+                 + $"\n+{Fmt.Share(c.WarFeverThreat * threat)}　外的脅威"
+                 + $"\n+{Fmt.Share(diversion)}　大衆の闘争の外征転化"
                  + $"\n\n戦力余剰の今四半期の増加"   // ★2026-09-23作者指示：語を「戦力余剰」へ
-                 + $"\n+{gain / cap:P0}　戦争熱の超過分";
-            if (bourg > 1e-9) tip += $"\n+{bourg / cap:P0}　商業ロビー";
+                 + $"\n+{Fmt.Share(gain / cap)}　戦争熱の超過分";
+            if (bourg > 1e-9) tip += $"\n+{Fmt.Share(bourg / cap)}　商業ロビー";
             return tip;
         }
     }
 
     // 自国の国力スコア4分解（勝利条件の可視化・2026-07-15）：軍事/生産の豊かさ/金融/技術＋首位との差。国名/地位のホバーに出す（順位だけでは何を伸ばせば良いか読めない）。
-    public string PlayerScoreTip => PlayText.ScoreBreakdownText(_player);   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
+    public string PlayerScoreTip => Fmt.Zen(PlayText.ScoreBreakdownText(_player));   // ★(435) 式は SimCore の 1 本（Runner の play の報告の〈自国の内訳〉と同じ）
     // 反体制派の戦力比＝動員（改革派＋急進派）÷鎮圧（治安維持力×人口）。100%超＝鎮圧を上回る＝政変圏
     //（Politics.Transition の `challenge <= coerce なら政体は動かない` と同じ不等式＝表示と点火が同じ物差し）。
     // ★2026-08-16 作者指摘「マイナスの軍事力は意味が通らない」の是正：旧＝(challenge−coerce)/(challenge+coerce) の
@@ -315,9 +317,12 @@ public partial class GameViewModel
     {
         var rows = new List<StatTerm>();
         foreach (var t in PlayText.ExplainTerms(_player, quantity))   // ★(435) 間引きと並べ方・書式は SimCore の 1 本（Runner の play の報告と同じ）
-            rows.Add(new StatTerm { Text = PlayText.SignedLine(t.Delta, t.Reason, fmt), Brush = t.Delta >= 0 ? TermPlus : TermMinus });
+            rows.Add(new StatTerm { Text = Fmt.Zen(PlayText.SignedLine(t.Delta, t.Reason, fmt)), Brush = t.Delta >= 0 ? TermPlus : TermMinus });
         return rows;
     }
+
+    /// <summary>項目に深刻度の色を付けて返す（2026-11-03）。</summary>
+    private static HeaderStat Sev(HeaderStat s, IBrush brush) { s.Brush = brush; return s; }
 
     /// <summary>年次グラフの Stat。<paramref name="boxWidth"/>＝桁が動いても右の項目を押さないための箱の最小幅（画素）。
     /// <paramref name="hoverTitle"/>＝ホバー1行目（既定は title と同じ。GDP だけは「一人当たりGDPと世界順位」をここに載せる
@@ -338,8 +343,7 @@ public partial class GameViewModel
             Key = title,
             BoxWidth = boxWidth,
             Points = has ? pts : new(),
-            Values = has ? series : null,
-            RangeText = has ? $"{startYear}〜{startYear + series.Count - 1}年　最小:{fmt(min)}　最大:{fmt(max)}" : "",
+            RangeText = has ? $"{startYear}〜{startYear + series.Count - 1}年　最小：{fmt(min)}　最大：{fmt(max)}" : "",
         };
     }
 
@@ -350,7 +354,7 @@ public partial class GameViewModel
     // 説明API内訳の共通整形（緑=加算/赤=減算・|Δ|<5e-4は呼び出し側で除外済み前提）。
     private static readonly IBrush TermNeutral = new SolidColorBrush(Color.Parse("#5A4E3C"));
     private static StatTerm Signed(double delta, string reason, Func<double, string> fmt)
-        => new StatTerm { Text = PlayText.SignedLine(delta, reason, fmt), Brush = delta >= 0 ? TermPlus : TermMinus };
+        => new StatTerm { Text = Fmt.Zen(PlayText.SignedLine(delta, reason, fmt)), Brush = delta >= 0 ? TermPlus : TermMinus };
     private static StatTerm Neutral(string text) => new StatTerm { Text = text, Brush = TermNeutral };
 
     // === VM側の内訳ビルダー（SimCore非改変・確定値を横で読み直して構築＝ビット恒等自明）===
@@ -385,24 +389,24 @@ public partial class GameViewModel
         double other = _player.PopulationDelta + war;   // 戦没を戻した自然増減・移民・領土の累積
         Func<double, string> pf = v => Fmt.PopFmt(v);
         if (Math.Abs(baseP) >= 5e-4) rows.Add(Signed(baseP, "初期人口", pf));
-        if (Math.Abs(other) >= 5e-4) rows.Add(Signed(other, "自然増減と移民と領土(累積)", pf));
-        if (Math.Abs(war) >= 5e-4) rows.Add(Signed(-war, "戦没と粛清(累積)", pf));
+        if (Math.Abs(other) >= 5e-4) rows.Add(Signed(other, "自然増減と移民と領土（累積）", pf));
+        if (Math.Abs(war) >= 5e-4) rows.Add(Signed(-war, "戦没と粛清（累積）", pf));
         // 今四半期の移民（要素ごと）：流入＝越境（他国から）／流出＝越境（他国へ）。★回1-2（2026-09-27）で国際移民（世界プール）の内訳は削除。
         double crossIn = _player.LastImmigration, crossOut = _player.LastEmigration;
         if (crossIn >= 5e-4)
         {
-            rows.Add(Neutral("流入(今四半期)"));
-            rows.Add(Signed(crossIn, "越境移民(他国から)", pf));
+            rows.Add(Neutral("流入（今四半期）"));
+            rows.Add(Signed(crossIn, "越境移民（他国から）", pf));
         }
         if (crossOut >= 5e-4)
         {
-            rows.Add(Neutral("流出(今四半期)"));
-            rows.Add(Signed(-crossOut, "越境移民(他国へ)", pf));
+            rows.Add(Neutral("流出（今四半期）"));
+            rows.Add(Signed(-crossOut, "越境移民（他国へ）", pf));
         }
         // 年齢構成（高齢化採用2026-07-18＝OldLaborFactor<1で老年が労働から退く）：人口加重平均の実値
         double childSum = 0, oldSum = 0, szSum = 0;
         foreach (var p in _player.AllPops()) { childSum += p.AgeShare(0, 15) * p.Size; oldSum += p.AgeShare(60, double.PositiveInfinity) * p.Size; szSum += p.Size; }   // 年齢の層：15歳未満・60歳以上
-        if (szSum > 1e-9) rows.Add(Neutral($"子供比 {childSum / szSum:P0}　老年比 {oldSum / szSum:P0}"));
+        if (szSum > 1e-9) rows.Add(Neutral($"子供比 {Fmt.Share(childSum / szSum)}　老年比 {Fmt.Share(oldSum / szSum)}"));
         return rows;
     }
     // ★2026-09-23（作者指示「素材などの表示は削除」）：GDPホバーのティア内訳（主食/日用品/奢侈品/素材/生産財/役務）は撤去。

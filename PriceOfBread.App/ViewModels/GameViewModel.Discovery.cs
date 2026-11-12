@@ -11,12 +11,14 @@ namespace PriceOfBread.App.ViewModels;
 public partial class GameViewModel
 {
     [ObservableProperty] private TableSnapshot _discoveryTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _socialDiscoveryTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _siteTable = TableSnapshot.Empty;
 
     /// <summary>発見のページの再計算（見えている間は四半期の Refresh から追従・見えた瞬間にも 1 回）。</summary>
     public void RefreshDiscovery()
     {
         DiscoveryTable = TableSnapshot.From(DiscoveryTables.Discoveries.Read(_sim, _player));
+        SocialDiscoveryTable = TableSnapshot.From(DiscoveryTables.SocialDiscoveries.Read(_sim, _player));
         SiteTable = TableSnapshot.From(DiscoveryTables.Sites.Read(_sim, _player));
     }
 }

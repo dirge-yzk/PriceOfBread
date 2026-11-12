@@ -30,8 +30,8 @@ public partial class GameViewModel
     /// 達成すると加担した思想の支持が伸びる（Parliament.StepManifesto → Ideology）＝表示は同じ状態を映すだけ。</summary>
     public string ParliamentText => !HasParliament ? ""
         : _player.ManifestoIdeology < 0
-            ? $"与党:{GoverningName()}"
-            : $"与党:{GoverningName()}　マニフェスト:{FactionSnapshot.DemandJa(_player.ManifestoAxis, _player.ManifestoIncrease)}　{(_player.ManifestoDone ? "達成" : "未達成")}";   // 節の見出しが既に「議会」＝重ねない
+            ? $"与党：{GoverningName()}"
+            : $"与党：{GoverningName()}　マニフェスト：{FactionSnapshot.DemandJa(_player.ManifestoAxis, _player.ManifestoIncrease)}　{(_player.ManifestoDone ? "達成" : "未達成")}";   // 節の見出しが既に「議会」＝重ねない
     private static string PartyName(int i) => i switch { 0 => "保守党", 1 => "自由党", _ => "社会党" };
     // ★議会の実体（2026-08-04・作者指摘「議会の存在感が薄い」）＝議席・得票・次の選挙・支持基盤。
     //   旧＝1行の文字列だけで、何が議席を決め議席が何を決めるかが画面に一切出ていなかった。
@@ -76,9 +76,9 @@ public partial class GameViewModel
             rows.Add(new SeatRow
             {
                 Name = fam[i],
-                Seats = _player.PartySeats[i].ToString("P0"),
+                Seats = Fmt.Share(_player.PartySeats[i]),
                 SeatFrac = System.Math.Clamp(_player.PartySeats[i], 0, 1),
-                Votes = _player.VoteShares[i].ToString("P0"),
+                Votes = Fmt.Share(_player.VoteShares[i]),
                 IsGov = _player.GoverningParty == i,
                 Brush = i == 0 ? PNameText : i == 1 ? PUtilText : PPlus,
             });
@@ -95,8 +95,8 @@ public partial class GameViewModel
             sup.Add(new SupportRow
             {
                 Class = b.Class,
-                Share = tot > 1e-9 ? (v / tot).ToString("P0") : "—",
-                Cons = (b.Cons / v).ToString("P0"), Lib = (b.Lib / v).ToString("P0"), Soc = (b.Soc / v).ToString("P0"),   // ★カラム式（2026-08-22）
+                Share = tot > 1e-9 ? Fmt.Share((v / tot)) : "—",
+                Cons = Fmt.Share((b.Cons / v)), Lib = Fmt.Share((b.Lib / v)), Soc = Fmt.Share((b.Soc / v)),   // ★カラム式（2026-08-22）
             });
         }
         SupportRows = sup;
@@ -121,7 +121,7 @@ public partial class GameViewModel
 
     // ★★★権力の取り分（2026-08-21・作者設計「権力の取り分」＝2026-09-07 半円）＝PowerAffinity の連合後シェア（王権/議会/軍部/革命勢力・合計1）。
     //   ⚠これは表示＝観測。挙動はどこもこの値で分岐しない（作者裁定2026-08-19「政体は表示のみ」の帰結）。
-    //   帯グラフの幅は SeatRow と同じ Conv.FracToWidth（0..1→px）＝新しい部品を作らない。
+    //   議席の棒は FracBar（溝の全幅に比例）。
     public double ShareCrown { get; private set; }
     public double ShareParliament { get; private set; }
     public double ShareArmy { get; private set; }
@@ -145,7 +145,7 @@ public partial class GameViewModel
     [ObservableProperty] private string _politicalCapitalText = "";
     [ObservableProperty] private string _politicalCapitalTip = "";
     // ★2026-08-24作者指示：正統性・予算権・統帥権を**小さな半円グラフ**で（大きな半円＝権力の取り分と同じ色の文法・同じ HalfSlice）。
-    //   3つとも同じ (王権, 議会, 軍部) の3値＝軍が指揮権を独占している間は軍部100%の1色になる。値は半円の下の1行と ToolTip。
+    //   3つとも同じ (王権, 議会, 軍部) の3値＝軍が指揮権を独占している間は軍部100%の1色になる。値は半円の下の1行（吹き出しは廃止）。
     [ObservableProperty] private IReadOnlyList<HalfPieSlice> _legitSlices = [];
     [ObservableProperty] private IReadOnlyList<HalfPieSlice> _budgetSlices = [];
     [ObservableProperty] private IReadOnlyList<HalfPieSlice> _commandSlices = [];
@@ -161,8 +161,8 @@ public partial class GameViewModel
         double sum = crown + parl + army;
         if (!(sum > 1e-9)) return ([], "—");
         double fc = crown / sum, fp = parl / sum;
-        string top = army >= crown && army >= parl ? $"軍部 {army / sum:P0}"
-                   : crown >= parl ? $"王権 {fc:P0}" : $"議会 {fp:P0}";
+        string top = army >= crown && army >= parl ? $"軍部 {Fmt.Share(army / sum)}"
+                   : crown >= parl ? $"王権 {Fmt.Share(fc)}" : $"議会 {Fmt.Share(fp)}";
         return ([new(fc, SliceCrown), new(fp, SliceParliament), new(army / sum, SliceArmy)], top);
     }
     [ObservableProperty] private string _pcDeltaText = "—";           // 今期の変化＝観測値（前四半期との差）
@@ -219,18 +219,18 @@ public partial class GameViewModel
             ShareRevolution = eff[(int)PowerAffinity.Holder.Revolution];
             string armyAlly = co.Ally[(int)PowerAffinity.Holder.Army] == PowerAffinity.Holder.Army
                 ? "単独" : PowerAffinity.HolderNames[(int)co.Ally[(int)PowerAffinity.Holder.Army]];
-            ShareTip = $"連合前　王権 {co.Raw[0]:P0}　議会 {co.Raw[1]:P0}　軍部 {co.Raw[2]:P0}　革命勢力 {co.Raw[3]:P0}"
+            ShareTip = $"連合前　王権 {Fmt.Share(co.Raw[0])}　議会 {Fmt.Share(co.Raw[1])}　軍部 {Fmt.Share(co.Raw[2])}　革命勢力 {Fmt.Share(co.Raw[3])}"
                      + $"\n軍部の同盟先　{armyAlly}"
                      + (co.SoleRuler is { } sr ? $"\n単独支配　{PowerAffinity.HolderNames[(int)sr]}" : "\n連合政治（単独支配なし）");
             var (l2c, l2p) = PowerAffinity.Legitimacy2(w);
-            LegitimacySplitText = $"王権 {l2c:P0}　議会 {l2p:P0}";
+            LegitimacySplitText = $"王権 {Fmt.Share(l2c)}　議会 {Fmt.Share(l2p)}";
             var (bC, bP, bA) = PowerAffinity.BudgetShares(w);
             var (mC, mP, mA) = PowerAffinity.CommandShares(w);
             BudgetLawName = w.BudgetLaw switch { BudgetLaw.Decree => "勅令", BudgetLaw.Partial => "部分承認", _ => "議会承認" };
             CommandLawName = w.CommandLaw switch { CommandLaw.Crown => "王権", CommandLaw.Split => "分割", _ => "議会統制" };
             ArmyHoldsCommand = PowerAffinity.ArmyHoldsCommand(w);
-            BudgetPowerText = ArmyHoldsCommand ? "軍部 100%" : $"王権 {bC:P0}　議会 {bP:P0}";
-            CommandPowerText = ArmyHoldsCommand ? "軍部 100%" : $"王権 {mC:P0}　議会 {mP:P0}";
+            BudgetPowerText = ArmyHoldsCommand ? "軍部 100%" : $"王権 {Fmt.Share(bC)}　議会 {Fmt.Share(bP)}";
+            CommandPowerText = ArmyHoldsCommand ? "軍部 100%" : $"王権 {Fmt.Share(mC)}　議会 {Fmt.Share(mP)}";
             // 小半円グラフ（作者指示2026-08-24・2026-09-07 半円化）＝上と同じ値をそのまま扇形にする（第二の式を置かない）。正統性は王権と議会の2者だけ。
             var lp = SmallPie(l2c, l2p, 0);
             var bp = SmallPie(bC, bP, bA);
@@ -253,7 +253,7 @@ public partial class GameViewModel
             var ncTerms = ExplainTerms("NationalConsciousness", v => v.ToString("P1"));
             if (ncTerms.Count > 0)
             {
-                legitTip += $"\n国民意識　{_player.NationalConsciousnessDisplay:P0}";
+                legitTip += $"\n国民意識　{Fmt.Share(_player.NationalConsciousnessDisplay)}";
                 foreach (var t in ncTerms) legitTip += "\n" + t.Text;
             }
             LegitTip = legitTip;
@@ -270,13 +270,8 @@ public partial class GameViewModel
         }
         if (!HasPowerStruggle) { PowerShifts.Clear(); return; }   // ★可視条件は節と同一（HasParliament ではない＝議会の成立前から組む・作者裁定2026-08-18）
 
-        // 床は**ラベルが動く境界**そのもの（CrownParliament.LabelFromAxes）＝いまどちら側に居て、あと何ポイントで名前が変わるかを出す。
-        // 現ラベルが立憲/共和なら下抜け床、それ以外は立憲の床が「次に越える線」＝ヒステリシスの向きに合わせて1本だけ示す。
-        bool inConstitutional = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
-        double edge = inConstitutional ? c.ConstitutionalControlExit : c.ConstitutionalControlFloor;
-        ParliamentControlTip = $"立憲の床 {c.ConstitutionalControlFloor:P0}　下抜け {c.ConstitutionalControlExit:P0}"
-                             + $"\n{(inConstitutional ? "下抜けまで" : "立憲まで")} {Math.Abs(pc - edge):P1}"
-                             + (w.ReformGrantCount > 0 ? $"\n上からの改革の下賜 {w.ReformGrantCount}回" : "");
+        // 閾値（立憲の床・下抜け）は出さない（作者裁定 2026-09-23・2026-11-11「下抜けは意味不明」）＝下賜の回数だけ
+        ParliamentControlTip = w.ReformGrantCount > 0 ? $"上からの改革の下賜 {w.ReformGrantCount}回" : "";
         PcDeltaTip = (_pcDeltaKnown ? $"前四半期 {_pcFrom:P1}　今期 {pc:P1}" : $"今期 {pc:P1}")
                    + (_pcGrantInQuarter > 0 ? $"\n上からの改革の下賜 {_pcGrantInQuarter}回" : "");
 
@@ -285,13 +280,13 @@ public partial class GameViewModel
         // ★2026-08-18：給与の乗算は撤去（給与は帰属でなく規律・能力＝即応度を動かす）。即応度は軍事タブの側で見る。
         double lean = CrownParliament.SoldierCrownLean(w);                            // エンジンの関数をそのまま呼ぶ
         double milAff = c.ArmyMilitarismAffinity * PoliticalQuantities.OfficerAppointmentCrownward(w);   // ★2026-08-18＝将校の任免権の所在
-        ArmyLoyaltyText = $"{ArmyAllegianceText}　{Fmt.Signed2(w.ArmyAllegiance)}";
+        ArmyLoyaltyText = $"{ArmyAllegianceText}　{Fmt.SignedPct(w.ArmyAllegiance)}";   // −100%（議会）〜＋100%（王権）
         ArmyLoyaltyTip = $"兵士の思想の傾き {Fmt.Signed2(lean)}　将校の任免権 {Fmt.Signed2(milAff)}";
         // 政治力＝PolicyPreferences.ArmyPower（係数×兵士の人口比×(1−議会統制力)）。×100＝法律タブの賛否ホバーと同じ目盛り。
         double armyPower = PolicyPreferences.ArmyPower(w);
-        ArmyPowerText = (armyPower * 100).ToString("F1");
+        ArmyPowerText = Fmt.Share(armyPower);
         ArmyPowerTip = $"兵士の人口比 {(w.TotalPopulation > 1 ? w.SoldierSizeK() / w.TotalPopulation : 0):P1}"
-                     + $"　議会統制力 {pc:P0}　係数 {c.ArmyPoliticalWeight:F1}";
+                     + $"　議会統制力 {Fmt.Share(pc)}　係数 {c.ArmyPoliticalWeight:F1}";
 
         // --- 議会統制力を動かした経路（CrownParliament.Step と1対1・寄与の大きい順） -------------------------
         var rows = new List<PowerShiftRow>();
@@ -305,7 +300,7 @@ public partial class GameViewModel
         // ① 破産召集（1789三部会）＝CrownParliament.Step の SummonParliamentRate 節
         if (c.SummonParliamentRate > 0 && w.AusterityIntensity > 0.5)
             Add("破産による議会の召集", c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0,
-                $"債務緊縮の強度 {w.AusterityIntensity:P0}　発火の下限 50%");
+                $"債務緊縮の強度 {Fmt.Share(w.AusterityIntensity)}　発火の下限 50%");
         // ② 王権の巻き返し（1907六三クーデタ）＝CrownParliament.Step の巻き返しの節（率は SummonParliamentRate・閾値の定数もエンジンから読む）
         if (c.SummonParliamentRate > 0
             && w.Crown != CrownForm.None
@@ -313,7 +308,7 @@ public partial class GameViewModel
             && w.Legitimacy > CrownParliament.CrownRollbackLegitimacyMin
             && w.ArmyAllegiance > CrownParliament.CrownRollbackArmyAllegianceMin)
             Add("王権の巻き返し", -c.SummonParliamentRate,
-                $"王権と議会の協力度 {Fmt.Signed2(w.CoopParliamentCrown)}　正統性 {w.Legitimacy:P0}　軍の忠誠 {Fmt.Signed2(w.ArmyAllegiance)}");
+                $"王権と議会の協力度 {Fmt.Signed2(w.CoopParliamentCrown)}　正統性 {Fmt.Share(w.Legitimacy)}　軍の忠誠 {Fmt.Signed2(w.ArmyAllegiance)}");
 
         // ③〜⑤ 連続動学（P3b）＝CrownParliament.Step の該当節。外周ゲート（奪取中は凍結）もエンジンと同じ形で持つ。
         if (w.Seizure == SeizureForm.None)
@@ -335,7 +330,7 @@ public partial class GameViewModel
                 double crown = Math.Max(S(Polity.Absolutist), Math.Max(S(Polity.Despotic), S(Polity.Shogunate)));
                 if (crown > rep)
                     Add("王権の圧力", -c.ParliamentPressureRate * (crown - rep) * w.Legitimacy,
-                        $"王権の形の支持 {crown:F2}　代議制の支持 {rep:F2}　正統性 {w.Legitimacy:P0}");
+                        $"王権の形の支持 {crown:F2}　代議制の支持 {rep:F2}　正統性 {Fmt.Share(w.Legitimacy)}");
             }
             // ⑤ 軍の圧力（統帥権＝プロイセン憲法紛争1862）＝ArmyPcPressure
             if (c.ArmyPcPressure > 0 && lean > 0)
@@ -375,7 +370,8 @@ public partial class GameViewModel
         double natPop = _player.TotalPopulation;
         // F3a（2026-07-12）：永続クラスタ（World.Factions＝結束・変異の旗を持つ運動体）があればそれを表示。
         // 無ければ従来のスナップショット（F2互換＝ロード直後や闘争度の低い平時）。
-        if (_player.Factions.Count > 0)
+        var liveFactions = PriceOfBread.SimCore.Display.ProblemScan.LiveFactions(_player);   // 失った州の勢力は出さない（シミュの側には残る）
+        if (liveFactions.Count > 0)
         {
             var demandsByBloc = new List<FactionSnapshot.Demand>?[PolicyPreferences.BlocCount];
             // 強さ比（UI修正R7・2026-08-16 診断「警告と点火の乖離」）：闘争度はどの点火不等式にも単独で現れない＝
@@ -383,13 +379,13 @@ public partial class GameViewModel
             // ＝旧は力の門（FactionStrength > 保持力+郷勇）、段4の点火後は連言2門（下の RevoltIgnitionIntensity 分岐）。
             // いずれも純関数の再計算＝World非変更。分母ガードは PoliticalQuantities.ChallengeRatio と同じ Max(1,·)。
             double coerce = PoliticalQuantities.EffectiveCoerce(_player, _player.Coef);   // エンジンの判定と同一式（第5段5-1の一元化・ChallengeTipと同じ）
-            foreach (var f in _player.Factions.OrderByDescending(x => x.Size))
+            foreach (var f in liveFactions.OrderByDescending(x => x.Size))
             {
                 demandsByBloc[f.Bloc] ??= FactionSnapshot.ComputeDemands(_player, f.Bloc);
                 var dl = demandsByBloc[f.Bloc]!;
                 string demands = dl.Count > 0
-                    ? "要求:" + string.Join("・", dl.Select(d => FactionSnapshot.DemandJa(d.Axis, d.Increase)))
-                    : "要求:なし";
+                    ? "要求：" + string.Join("・", dl.Select(d => FactionSnapshot.DemandJa(d.Axis, d.Increase)))
+                    : "要求：なし";
                 string display = Factions.DisplayName(f);
                 double strength = Politics.FactionStrength(_player, _player.Coef, f);
                 double militia = Politics.LoyalistMilitia(_player, _player.Coef, f);   // internal（InternalsVisibleTo・読み取り専用）
@@ -412,9 +408,9 @@ public partial class GameViewModel
                 {
                     Key = display,
                     Name = display,
-                    Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
-                    Cohesion = f.Cohesion.ToString("P0"),
-                    Strength = ratio.ToString("P0"),
+                    Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"（{Fmt.Share(f.Size / natPop)}）"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
+                    Cohesion = Fmt.Share(f.Cohesion),
+                    Strength = Fmt.Share(ratio),
                     StrengthTip = tip,
                     HasStrengthTip = true,
                     StrengthBrush = ratio >= 1.0 ? FactionStrengthDanger : FactionStrengthCalm,
@@ -425,13 +421,13 @@ public partial class GameViewModel
         else foreach (var f in FactionSnapshot.Compute(_player))
         {
             string demands = f.Demands.Count > 0
-                ? "要求:" + string.Join("・", f.Demands.Select(d => FactionSnapshot.DemandJa(d.Axis, d.Increase)))
-                : "要求:なし";
+                ? "要求：" + string.Join("・", f.Demands.Select(d => FactionSnapshot.DemandJa(d.Axis, d.Increase)))
+                : "要求：なし";
             rows.Add(new FactionRow
             {
                 Key = f.Name,
                 Name = f.Name,
-                Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
+                Size = Fmt.PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"（{Fmt.Share(f.Size / natPop)}）"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
                 Cohesion = "—",   // スナップショット＝永続FactionState無し＝結束が定義されない
                 Strength = "—",   // スナップショット＝永続FactionState無し＝FactionStrengthが定義されない（結束・変異を持たない）
                 StrengthTip = "",
@@ -460,7 +456,7 @@ public partial class GameViewModel
     public ObservableCollection<ArmyNeedRow> ArmyNeeds { get; } = new();
     [ObservableProperty] private bool _noArmyNeeds = true;
     /// <summary>この節の見出し＝「軍事力:〇位(充足n%)」（ヘッダーから移設・作者指示2026-08-24）。
-    /// 順位＝自国より戦力ゲージ（質込み）が大きい国の数＋1。充足＝**この表に出ている行の平均**＝画面に無い第二の式を作らない
+    /// 順位＝自国より戦力ゲージ（質込み）が大きい国の数＋1。充足の平均＝**この表に出ている行の重みの無い平均**＝画面に無い第二の式を作らない
     /// （⚠エンジン集計の Region.MilitaryEquipFill は分母に陸海の再配分が入っておらず「軍艦1083%」を生んだ側＝読まない）。</summary>
     [ObservableProperty] private string _armyIdealHeader = "軍事力";
     [ObservableProperty] private string _armyIdealTip = "";
@@ -486,7 +482,7 @@ public partial class GameViewModel
             // ★(149) 反証の指摘：軍事費の段は (145) から平時の兵数を動かさない（装備の予算・即応度・治安維持力を動かす）＝兵の目標の行から装備の行へ移した。
             string solTip = $"徴募可能人口 {Fmt.PopFmtK(sol.Manpower)}"
                           + (sol.Sustain > Eps ? $"\n扶養限界の目標 {Fmt.PopFmtK(sol.Sustain)}" : "")
-                          + $"\n軍事費 {_player.MilitarySpending:P0}　装備の充足 {_player.Region.MilitaryEquipFill:P0}　給与の充足 {payFill:P0}　即応度 {_player.MilitaryReadiness:P0}";   // ★2026-09-03（A-14）：装備の充足を復帰＝エンジンの分母（equipWant）が陸海再配分込みになり、直下の材別行と同じ定義になった（旧＝定義が2つあるので非表示にしていた）
+                          + $"\n軍事費 {Fmt.Share(_player.MilitarySpending)}　装備の充足 {Fmt.Share(_player.Region.MilitaryEquipFill)}　給与の充足 {Fmt.Share(payFill)}　即応度 {Fmt.Share(_player.MilitaryReadiness)}";   // ★2026-09-03（A-14）：装備の充足を復帰＝エンジンの分母（equipWant）が陸海再配分込みになり、直下の材別行と同じ定義になった（旧＝定義が2つあるので非表示にしていた）
             rows.Add(NeedRow("兵士", "兵士", sol.Target, sol.Now, sol.Target > Eps ? sol.Now / sol.Target : 1.0, solTip, Fmt.PopFmtK, ""));
         }
 
@@ -541,7 +537,7 @@ public partial class GameViewModel
                     double bWear = Math.Max(1e-6, BaseWear(b));
                     double bWarWear = bWear * (1.0 + c.ArmsWarWearScale * Math.Max(0, r.MilitaryWarMultLast - 1.0));
                     string tipS = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(orderS * afford * MilMul(g) * PriceAfford(g))}"
-                                + $"\n月次の摩耗 {Math.Min(0.9, bWarWear):P1}　予算の充足 {afford:P0}　市場の配給 {Ration(g):P0}";
+                                + $"\n月次の摩耗 {Math.Min(0.9, bWarWear):P1}　予算の充足 {Fmt.Share(afford)}　市場の配給 {Fmt.Share(Ration(g))}";
                     tier1.Add(NeedRow("基本" + g, Catalog.Goods[g].Name, needS, haveS, Math.Min(1.0, haveS / needS), tipS, Fmt.MilQty, "", needS * Price(g)));
                     continue;
                 }
@@ -560,7 +556,7 @@ public partial class GameViewModel
                 double need = r.MilitaryScale * c.MotorFuelRate;
                 if (need > Eps && r.Markets[Catalog.CrudeOilId].LastProduced > Colonial.OilViableProductionFrac * need && !Unavail(Catalog.CrudeOilId))
                     tier1.Add(FlowRow("輜重燃料", Catalog.CrudeOilId, need, afford * PriceAfford(Catalog.CrudeOilId) * Ration(Catalog.CrudeOilId),
-                                      afford, Ration(Catalog.CrudeOilId), PriceAfford(Catalog.CrudeOilId), 1.0, Price(Catalog.CrudeOilId), "原油(輜重)"));
+                                      afford, Ration(Catalog.CrudeOilId), PriceAfford(Catalog.CrudeOilId), 1.0, Price(Catalog.CrudeOilId), "原油（輜重）"));
             }
             AddGroup(rows, "基本装備", tier1);
 
@@ -600,7 +596,7 @@ public partial class GameViewModel
                         }
                         if (airFuelNeed > Eps && !Unavail(Catalog.CrudeOilId))
                             air.Add(FlowRow("空軍燃料", Catalog.CrudeOilId, airFuelNeed, aAfford * PriceAfford(Catalog.CrudeOilId) * Ration(Catalog.CrudeOilId),
-                                            aAfford, Ration(Catalog.CrudeOilId), PriceAfford(Catalog.CrudeOilId), 1.0, Price(Catalog.CrudeOilId), "原油(空軍)"));
+                                            aAfford, Ration(Catalog.CrudeOilId), PriceAfford(Catalog.CrudeOilId), 1.0, Price(Catalog.CrudeOilId), "原油（空軍）"));
                         AddGroup(rows, "空軍装備", air);
                     }
                 }
@@ -622,8 +618,8 @@ public partial class GameViewModel
                     if (!(need > Eps) || Unavail(g)) continue;
                     double order = fleetQ is { } fq ? fq[k] * fAfford * PriceAfford(g) : 0;
                     string tip = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(order)}"
-                               + $"\n海軍の予算の充足 {fAfford:P0}　市場の配給 {Ration(g):P0}"
-                               + $"\n乗員の充足 {(_player.SelfPower?.CrewFill ?? 1.0):P0}　海軍維持費 {_player.NavyUpkeep:P0}";
+                               + $"\n海軍の予算の充足 {Fmt.Share(fAfford)}　市場の配給 {Fmt.Share(Ration(g))}"
+                               + $"\n乗員の充足 {Fmt.Share((_player.SelfPower?.CrewFill ?? 1.0))}　海軍維持費 {Fmt.Share(_player.NavyUpkeep)}";
                     fleetRows.Add(NeedRow("艦隊" + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, Fmt.MilQty, "", need * Price(g)));
                 }
                 AddGroup(rows, "艦隊", fleetRows);
@@ -641,9 +637,9 @@ public partial class GameViewModel
                     if (fg < ng && want > Eps && !Unavail(fg))
                     {
                         double fill = Math.Clamp(_player.NavalFuelFillEma, 0, 1);
-                        string nm = Catalog.Goods[fg].Name + "(艦隊)";
+                        string nm = Catalog.Goods[fg].Name + "（艦隊）";
                         string tip = $"単価 {Fmt.Money(Price(fg))}　必要額 {Fmt.Money(want * Price(fg))}/月"
-                                   + $"\n市場の配給 {Ration(fg):P0}　艦隊ゲージ {gauge:F1}　海軍維持費 {_player.NavyUpkeep:P0}";
+                                   + $"\n市場の配給 {Fmt.Share(Ration(fg))}　艦隊ゲージ {gauge:F1}　海軍維持費 {Fmt.Share(_player.NavyUpkeep)}";
                         AddGroup(rows, "運用燃料", new List<ArmyNeedRow> { NeedRow("艦隊燃料", nm, want, want * fill, fill, tip, Fmt.MilQty, "/月") });
                     }
                 }
@@ -662,7 +658,7 @@ public partial class GameViewModel
                         if (!(need > Eps)) continue;
                         double have = Held(g, rates[b]), order = StockOrder(g, rates[b]);
                         string tip = $"単価 {Fmt.Money(Price(g))}　今月の発注 {Fmt.MilQty(order * tierAfford * MilMul(g) * PriceAfford(g))}"
-                                   + $"\n月次の摩耗 {Math.Min(0.9, warWear):P1}　予算の充足 {tierAfford:P0}　市場の配給 {Ration(g):P0}";
+                                   + $"\n月次の摩耗 {Math.Min(0.9, warWear):P1}　予算の充足 {Fmt.Share(tierAfford)}　市場の配給 {Fmt.Share(Ration(g))}";
                         list.Add(NeedRow(tag + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, Fmt.MilQty, "", need * Price(g)));
                     }
                 }
@@ -672,8 +668,8 @@ public partial class GameViewModel
             ArmyNeedRow FlowRow(string tag, int g, double need, double fill, double budget, double ration, double gate, double mul, double price, string? label = null)
             {
                 string tip = $"単価 {Fmt.Money(price)}　必要額 {Fmt.Money(need * price)}/月"
-                           + $"\n予算の充足 {budget:P0}　市場の配給 {ration:P0}"
-                           + (gate < 1 - 1e-6 ? $"　価格による買い控え {1 - gate:P0}" : "")
+                           + $"\n予算の充足 {Fmt.Share(budget)}　市場の配給 {Fmt.Share(ration)}"
+                           + (gate < 1 - 1e-6 ? $"　価格による買い控え {Fmt.Share(1 - gate)}" : "")
                            + (Math.Abs(mul - 1.0) > 1e-6 ? $"\n陸海の再配分 ×{mul:F2}" : "");
                 return NeedRow(tag + g, label ?? Catalog.Goods[g].Name, need, need * fill, fill, tip, Fmt.MilQty, "/月", need * price);
             }
@@ -688,8 +684,8 @@ public partial class GameViewModel
         double fillSum = 0; int fillN = 0;
         foreach (var row in rows) if (row.IsRow) { fillSum += row.FillV; fillN++; }
         double fillAvg = fillN > 0 ? fillSum / fillN : 1.0;
-        ArmyIdealHeader = fillN > 0 ? $"軍事力:{milPos}位　充足{fillAvg:P0}" : $"軍事力:{milPos}位";   // ★(501) 段3：かっこの補足を外した（見出しに括弧を書かない）
-        ArmyIdealTip = $"順位＝戦力ゲージ（質込み）が自国より大きい国の数＋1\n充足＝下の{fillN}行の平均　即応度 {_player.MilitaryReadiness:P0}";
+        ArmyIdealHeader = fillN > 0 ? $"軍事力：{milPos}位　充足の平均 {Fmt.Share(fillAvg)}" : $"軍事力：{milPos}位";   // ★(501) 段3：かっこの補足を外した（見出しに括弧を書かない）
+        ArmyIdealTip = $"順位＝戦力ゲージ（質込み）が自国より大きい国の数＋1\n充足＝下の{fillN}行の平均　即応度 {Fmt.Share(_player.MilitaryReadiness)}";
     }
 
 
@@ -709,7 +705,7 @@ public partial class GameViewModel
             Name = name,
             Need = fmt(need) + unit,
             Have = fmt(have) + unit,
-            Fill = fill.ToString("P0"),
+            Fill = Fmt.Share(fill),
             FillV = fill,   // 節見出しの平均に使う実数（丸めた文字から平均を作らない）
             FillBrush = fill < FillWarnThreshold ? FactionStrengthDanger : FactionStrengthCalm,   // 既存パレット（国内勢力の強さ比と同じ2色）・閾値も既存（充足率の不足警告）
             Tip = tip,
