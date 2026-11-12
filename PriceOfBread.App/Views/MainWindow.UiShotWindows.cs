@@ -30,6 +30,25 @@ public partial class MainWindow
             gvm.MapHover = null;
             await Task.Delay(300);
             Capture(dir, $"{no():D2}_窓_州_地図の外.png");
+            // 各ページを初めの大きさで 1 枚ずつ（作者の指示 2026-11-12：生産以外の窓は小さく・空白なし）
+            lay.Reset();
+            foreach (var s in SlotInfo.Pages.Where(LayoutModel.IsWindow))
+            {
+                gvm.OpenSlotCommand.Execute(s);
+                await Task.Delay(900);
+                BootLog.Write($"uishot: 窓[初めの大きさ・{SlotInfo.Name(s)}] {Now()}");
+                Capture(dir, $"{no():D2}_窓_既定_{SlotInfo.Name(s)}.png");
+                gvm.OpenSlotCommand.Execute(s);
+                await Task.Delay(300);
+            }
+            // 市場を広げる＝幅で 2 列（左に値段・右に輸出入）へ切り替わる
+            gvm.OpenSlotCommand.Execute(Slot.Market);
+            await Task.Delay(500);
+            if (gameView.FindControl<WindowLayer>("Windows") is { } wl) lay.SetRect(Slot.Market, new WindowRect(0, 0, 900, wl.Bounds.Height));
+            await Task.Delay(900);
+            BootLog.Write($"uishot: 窓[市場を広げた] {Now()}");
+            Capture(dir, $"{no():D2}_窓_市場_2列.png");
+            lay.Reset();
             foreach (var background in new[] { Slot.Map, Slot.Production })
             {
                 string bg = background == Slot.Map ? "地図" : "生産";
@@ -45,10 +64,18 @@ public partial class MainWindow
                 BootLog.Write($"uishot: 窓[{bg}の背景・3枚を開いた] {Now()}");
                 Capture(dir, $"{no():D2}_窓_{bg}_3枚.png");
                 LogOuterFlow(gameView, $"窓 {bg}の背景・3枚");
+                gvm.OpenSlotCommand.Execute(Slot.PoliticsLaw);
+                await Task.Delay(700);
+                BootLog.Write($"uishot: 窓[{bg}の背景・4枚を開いた] {Now()}");
+                Capture(dir, $"{no():D2}_窓_{bg}_4枚.png");
+                LogOuterFlow(gameView, $"窓 {bg}の背景・4枚");
+                gvm.OpenSlotCommand.Execute(Slot.PoliticsLaw);
+                await Task.Delay(300);
 
                 // 動かして大きさを変える（市場を右上へ・広く）
                 var host = gameView.FindControl<WindowLayer>("Windows")!;
                 lay.SetRect(Slot.Market, new WindowRect(host.Bounds.Width * 0.42, 16, host.Bounds.Width * 0.56, host.Bounds.Height * 0.55));
+                lay.BringToFront(Slot.Market);   // 本物の操作は題の帯をつかんだ時点で前へ出る（FloatingWindow の押下の受け）＝撮影も同じ順にする
                 await Task.Delay(700);
                 BootLog.Write($"uishot: 窓[{bg}の背景・市場を動かして大きさを変えた] {Now()}");
                 Capture(dir, $"{no():D2}_窓_{bg}_動かした.png");

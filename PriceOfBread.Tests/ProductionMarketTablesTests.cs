@@ -159,18 +159,17 @@ public class ProductionMarketTablesTests
                     }
             }
         // 市場ページ
-        foreach (var plan2 in new[] { MarketPage.PricesPlan, MarketPage.TradePlan })
+        foreach (var plan2 in new[] { MarketPage.Plan })
             foreach (int cols in Enumerable.Range(1, 3))
             {
                 var arranged = PagePlan.Arrange(plan2, cols);
                 Assert.Equal(plan2.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
             }
-        // 順位 1 の欄は最後まで残る（生産＝供給の網・市場＝財の値段）：低い高さでも畳まれるのは順位の低い欄から
-        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.PricesPlan, MarketPage.TradePlan })
+        // 欄は常に開いている：低い高さでも全ての欄が割り当てを持つ（生産＝供給の網・市場＝財の値段ほか）
+        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.Plan })
         {
-            var top = t.Sections.OrderBy(s => s.Rank).First();
             var plan = PagePlan.Plan(t, 700, 400);
-            Assert.False(plan.SelectMany(c => c).First(p => p.Key == top.Key).Collapsed);
+            Assert.Equal(t.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), plan.SelectMany(c => c).Select(p => p.Key).OrderBy(k => k).ToList());
         }
     }
 

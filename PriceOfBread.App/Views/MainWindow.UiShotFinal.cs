@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 using PriceOfBread.App.Controls;
@@ -18,7 +19,36 @@ namespace PriceOfBread.App.Views;
 public partial class MainWindow
 {
     // ---- 検査の数え（LogOuterFlow が足す・総括が読む）----
-    private int _gateOuter, _gateOuterFlowing, _gateTables, _gateTablesBad;
+    private int _gateOuter, _gateOuterFlowing, _gateTables, _gateTablesBad, _gateCollapsed, _gateClipped;
+
+    /// <summary>画像でしか拾えなかった壊れ方の検査（作者の指示 2026-11-12・点検 重い1〜3）：
+    /// 〈潰れた欄〉＝見えている欄で、中身の高さが 14 未満（中身の無い表と、隠れている中身は除く）。〈欠けた題〉＝大きい字の文字が、それを囲む箱の右端より外へ出ている（箱で切られる）。
+    /// 例外も表の左端のずれも出ないまま、供給の網の欄が 0 の高さに潰れ・財の名前が 1 文字で切れていた。</summary>
+    private void TallyBroken(GameView gv, string tag)
+    {
+        foreach (var (_, _, page, _) in UiShotWindows.MountedAll(gv))
+        {
+            if (page is MapPane) continue;
+            foreach (var sec in page.GetVisualDescendants().OfType<Section>())
+            {
+                if (!sec.IsEffectivelyVisible || !(sec.Bounds.Width > 0)) continue;
+                if (sec.Body is TableView { RowCount: 0 } || sec.Body is { IsVisible: false }) continue;
+                double bodyH = sec.Bounds.Height - PagePlan.HeaderHeight - 1;
+                if (bodyH < 14) { _gateCollapsed++; BootLog.Write($"uishot: 欄が潰れている[{tag}] {sec.Key}「{sec.Title}」中身の高さ {bodyH:F0}"); }
+            }
+            foreach (var tb in page.GetVisualDescendants().OfType<TextBlock>())
+            {
+                if (!tb.IsEffectivelyVisible || tb.FontSize < 16 || string.IsNullOrEmpty(tb.Text) || !(tb.Bounds.Width > 0)) continue;
+                if (tb.Bounds.Width + 1 < tb.DesiredSize.Width && tb.TextTrimming == Avalonia.Media.TextTrimming.None) { _gateClipped++; BootLog.Write($"uishot: 題が欠けている[{tag}] 「{tb.Text}」自分の幅 {tb.Bounds.Width:F0} が望む幅 {tb.DesiredSize.Width:F0} に足りない"); continue; }
+                foreach (var a in tb.GetVisualAncestors().TakeWhile(x => !ReferenceEquals(x, page)).OfType<Control>())
+                {
+                    if (a is ScrollViewer || !(a.Bounds.Width > 0)) continue;
+                    if (tb.TranslatePoint(new Point(tb.Bounds.Width, 0), a) is { } q && q.X > a.Bounds.Width + 1)
+                    { _gateClipped++; BootLog.Write($"uishot: 題が欠けている[{tag}] 「{tb.Text}」{a.GetType().Name} の右端を {q.X - a.Bounds.Width:F0} 超える"); break; }
+                }
+            }
+        }
+    }
 
     /// <summary>載っているページの全ての表について、見出しの列の左端と値の列の左端が揃っているかを数える（ずれた表は名前を BootLog に残す）。</summary>
     private void TallyAlignment(GameView gv, string tag)
@@ -55,7 +85,7 @@ public partial class MainWindow
     private void LogUiShotSummary(int crashBefore)
     {
         int crashAfter = CrashLogUiExceptions();
-        BootLog.Write($"uishot: 総括 外側の流れ {_gateOuter}回の判定中 流れている{_gateOuterFlowing}回・表の左端 {_gateTables}表の判定中 ずれた{_gateTablesBad}表・"
+        BootLog.Write($"uishot: 総括 外側の流れ {_gateOuter}回の判定中 流れている{_gateOuterFlowing}回・表の左端 {_gateTables}表の判定中 ずれた{_gateTablesBad}表・潰れた欄 {_gateCollapsed}・欠けた題 {_gateClipped}・"
                     + $"UIの例外 この走り{BootLog.UiExceptions}件・crash.log の行 前{crashBefore}→後{crashAfter}（他のプロセスの分も含む）");
     }
 
@@ -92,7 +122,7 @@ public partial class MainWindow
                 await Task.Delay(500);
                 row.ActivateCommand.Execute(null);
                 await Task.Delay(1300);
-                ReportJump($"問題「{ProblemScan.KindName(g.Key)}・{it.Target}」", (Slot)(int)it.Page, it.TableKey, it.RowKey, gvm, gameView, it.Section);
+                ReportJump($"問題「{ProblemScan.KindName(g.Key)}・{it.Target}」", (Slot)(int)it.Page, it.TableKey, it.RowKey, gvm, gameView);
             }
             lay.Reset();
             await Task.Delay(600);
@@ -101,8 +131,8 @@ public partial class MainWindow
         finally { lay.Reset(); }
     }
 
-    /// <summary>飛び先の確かめ：そのページが中央に開いたか・表の行に着いたか（表を持たない対象は欄が畳まれていないか）。</summary>
-    private void ReportJump(string what, Slot slot, string tableKey, string rowKey, GameViewModel gvm, GameView gameView, string section = "")
+    /// <summary>飛び先の確かめ：そのページが中央に開いたか・表の行に着いたか。</summary>
+    private void ReportJump(string what, Slot slot, string tableKey, string rowKey, GameViewModel gvm, GameView gameView)
     {
         var lay = gvm.Layout;
         bool shown = lay.IsShown(slot);
@@ -114,8 +144,6 @@ public partial class MainWindow
             var tv = page.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == tableKey);
             landed = tv is null ? "・表が見つからない" : $"・表の行 {(tv.FocusedKey == rowKey ? "に着いた" : $"に着かない（着いたのは{tv.FocusedKey ?? "なし"}・行は{(tv.Snapshot!.Rows.Any(r => r.Key == rowKey) ? "ある" : "表に無い")}）")}";
         }
-        if (page is not null && section.Length > 0 && page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault() is { LastPlan: { } plan })
-            landed += $"・欄「{section}」{(plan.SelectMany(c => c).FirstOrDefault(p => p.Key == section) is { } sp ? (sp.Collapsed ? "は畳まれている" : "は開いている") : "が無い")}";
         BootLog.Write($"uishot: {what} → {SlotInfo.Name(slot)}が{place}{landed}");
     }
 }

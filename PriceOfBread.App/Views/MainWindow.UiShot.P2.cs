@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace PriceOfBread.App.Views;
 
 /// <summary>--uishot の撮影の段（(501) 段3・財政と貨幣／人口／発見）。各ページを撮り、外側が縦に流れていないこと（LogOuterFlow）・
-/// 表の見出しの列と値の列の左端が揃うこと・畳まれた欄・段の押し釦の書き込みが表へ戻ることを BootLog に書く。</summary>
+/// 表の見出しの列と値の列の左端が揃うこと・段の押し釦の書き込みが表へ戻ることを BootLog に書く。</summary>
 public partial class MainWindow
 {
     private async Task ShootPagesFiscalPopulationDiscovery(string dir, GameViewModel gvm, GameView gameView, LayoutModel lay)
@@ -54,7 +54,7 @@ public partial class MainWindow
         await Task.Delay(300);
     }
 
-    /// <summary>ページの表ごとに、見出しの列と値の列の左端が揃っているか・行の数・畳まれた欄を BootLog に書く（設計 §7-3）。</summary>
+    /// <summary>ページの表ごとに、見出しの列と値の列の左端が揃っているか・行の数を BootLog に書く（設計 §7-3）。</summary>
     private void LogTables(GameView gv, Slot slot, string tag)
     {
         foreach (var (_, s, page, _) in UiShotWindows.MountedAll(gv))
@@ -69,10 +69,7 @@ public partial class MainWindow
                 gaps += g; measured += m;
                 parts.Add($"{tv.Snapshot?.Name}:{tv.RowCount}行{(g > 0 ? "・左端のずれ" + g : "")}");
             }
-            string collapsed = "";
-            if (page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault() is { LastPlan: { } plan })
-                collapsed = "畳んだ欄=" + string.Join(",", plan.SelectMany(c => c).Where(p => p.Collapsed).Select(p => p.Key));
-            BootLog.Write($"uishot: 表の左端[{tag}] 見出しと値の列の左端のずれ {gaps}/{measured}列　{string.Join(" ", parts)}　{collapsed}");
+            BootLog.Write($"uishot: 表の左端[{tag}] 見出しと値の列の左端のずれ {gaps}/{measured}列　{string.Join(" ", parts)}");
         }
     }
 }

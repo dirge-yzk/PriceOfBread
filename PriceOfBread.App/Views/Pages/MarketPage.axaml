@@ -4,29 +4,17 @@
              xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.MarketPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ（設計 §3-3）。欄＝財の値段の表・輸入・輸出・輸送・清算の線。
-         欄の並べ（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）は PageGrid が決める（並べの表は MarketPage.axaml.cs）。
-         表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。ページの外側は縦に流れない＝表は欄の中だけで流れ、見出しは止まる（SectionFit）。 -->
-    <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ（設計 §3-3）。上の切り替えで 2 面：「財の値段」（財の値段の表）と「貿易」（輸出＝左・輸入＝右・輸送力。収支は枠の外に 1 行）。
-         欄の並べは PageGrid が決める（並べの表は MarketPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。 -->
-    <Grid RowDefinitions="Auto,*" Margin="6">
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
-            <Button Classes="mini" Classes.active="{Binding MarketPricesView}" Content="財の値段" Command="{Binding SetMarketViewCommand}" CommandParameter="prices"/>
-            <Button Classes="mini" Classes.active="{Binding MarketTradeView}" Content="貿易" Command="{Binding SetMarketViewCommand}" CommandParameter="trade"/>
-            <Grid IsVisible="{Binding MarketTradeView}" ColumnDefinitions="Auto,12,Auto" Margin="12,0,0,0" VerticalAlignment="Center">
-                <TextBlock Grid.Column="0" Text="貿易収支" Foreground="{StaticResource GrayBrush}" FontWeight="Bold" FontSize="{StaticResource FontLead}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="{Binding TradeBalance}" Foreground="{StaticResource InkBrush}" FontWeight="Bold" FontSize="{StaticResource FontLead}" VerticalAlignment="Center"/>
-            </Grid>
-        </StackPanel>
-        <ctl:PageGrid x:Name="PriceGrid" Grid.Row="1" IsVisible="{Binding MarketPricesView}">
+    <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ（設計 §3-3）。1 枚：左に財の値段、右に輸出と輸入（作者指示 2026-11-12）。
+         欄の並べ（幅で 2／1 列）は PageGrid が決める（並べの表は MarketPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。
+         窓の中は 1 本で流れる＝欄は自然な高さ（PageGrid の高さに上限が無いとき）。 -->
+    <Grid Margin="4">
+        <ctl:PageGrid x:Name="MarketGrid">
         <ctl:Section x:Name="PricesSection" Key="prices" Title="財の値段">
             <ctl:Section.Body>
                 <ctl:TableView x:Name="PricesTable" Snapshot="{Binding PriceTable}" InnerScroll="True" Filterable="True"/>
             </ctl:Section.Body>
         </ctl:Section>
 
-        </ctl:PageGrid>
-        <ctl:PageGrid x:Name="TradeGrid" Grid.Row="1" IsVisible="{Binding MarketTradeView}">
         <ctl:Section x:Name="ExportsSection" Key="exports" Title="輸出">
             <ctl:Section.Body>
                 <Grid x:Name="ExportsBody" RowDefinitions="*,Auto">
@@ -51,27 +39,6 @@
             </ctl:Section.Body>
         </ctl:Section>
 
-        <ctl:Section x:Name="TransportSection" Key="transport" Title="輸送力">
-            <ctl:Section.Body>
-                <StackPanel Spacing="4">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Text="使用率" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="{Binding TransportUseText}" Foreground="{Binding TransportUseBrush}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" TextAlignment="Right"/>
-                    </Grid>
-                    <ItemsControl ItemsSource="{Binding TransportRows}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:TransportRow">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Text="{Binding Label}" Classes="dim" FontSize="{StaticResource FontSmall}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <TextBlock Text="{Binding TreatyPortLine}" Foreground="{StaticResource RustBrush}" FontSize="{StaticResource FontSmall}" IsVisible="{Binding HasTreatyPorts}" TextWrapping="Wrap"/>
-                </StackPanel>
-            </ctl:Section.Body>
-        </ctl:Section>
         </ctl:PageGrid>
     </Grid>
 </UserControl>

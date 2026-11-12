@@ -47,7 +47,8 @@ public sealed class LayoutModel
     public bool LeftOpen { get; private set; } = true;
 
     private readonly List<Slot> _open = new();                       // 開いている窓。後ろほど前（重なりの順）
-    private readonly Dictionary<Slot, WindowRect> _rects = new();    // 覚えている位置と大きさ（開閉に依らず残る）
+    private readonly Dictionary<Slot, WindowRect> _rects = new();    // 覚えている位置と大きさ（利用者が動かした物・開閉に依らず残る・保存する）
+    private readonly Dictionary<Slot, WindowRect> _auto = new();     // 開いたときに空き場所へ置いた位置と大きさ（開いている間だけ・保存しない）
 
     /// <summary>開いている窓（重なりの順・最後が一番前）。</summary>
     public IReadOnlyList<Slot> OpenWindows => _open;
@@ -56,24 +57,7 @@ public sealed class LayoutModel
     /// <summary>窓として開くものか（背景の地図・生産以外）。</summary>
     public static bool IsWindow(Slot s) => s != Slot.Map && s != Slot.Production;
 
-    // ページごとの、プレイヤーが見出しを押して開け閉めした欄（設計 §2-6「畳んだ欄」）。鍵＝ページの名前（<see cref="Slot"/> の名前）。
-    private readonly Dictionary<string, (string[] Opened, string[] Closed)> _sections = new();
-
-    /// <summary>そのページの、プレイヤーが開けた欄・閉じた欄の鍵。</summary>
-    public (IReadOnlyList<string> Opened, IReadOnlyList<string> Closed) SectionState(string page)
-        => _sections.TryGetValue(page, out var s) ? (s.Opened, s.Closed) : ([], []);
-
-    /// <summary>そのページの開け閉めを置く（見出しを押すたび）。変わらなければ何もしない。</summary>
-    public void SetSectionState(string page, IEnumerable<string> opened, IEnumerable<string> closed)
-    {
-        var o = opened.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        var c = closed.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        if (_sections.TryGetValue(page, out var cur) && cur.Opened.SequenceEqual(o) && cur.Closed.SequenceEqual(c)) return;
-        if (o.Length == 0 && c.Length == 0) _sections.Remove(page); else _sections[page] = (o, c);
-        Raise();
-    }
-
-    /// <summary>配置が変わった（背景・窓の開閉と重なりと位置・左の列の開閉・欄の開け閉めのどれでも）。</summary>
+    /// <summary>配置が変わった（背景・窓の開閉と重なりと位置・左の列の開閉のどれでも）。</summary>
     public event Action? Changed;
 
     /// <summary>見えているか＝背景であるか、窓として開いている。</summary>
@@ -104,6 +88,7 @@ public sealed class LayoutModel
     /// <summary>窓を閉じる（開いていなければ何もしない）。位置と大きさは覚えたまま。</summary>
     public void Close(Slot slot)
     {
+        _auto.Remove(slot);
         if (_open.Remove(slot)) Raise();
     }
 
@@ -149,14 +134,45 @@ public sealed class LayoutModel
         Raise();
     }
 
-    /// <summary>まだ覚えていない窓の初めの位置と大きさ＝領域の大きさに応じ、窓ごとに少しずつずらした起点にする。</summary>
-    public static WindowRect DefaultRect(Slot slot, double hostW, double hostH)
+    /// <summary>窓を開いたときに置いた位置と大きさ（利用者が動かしていない窓。開いている間だけ・無ければ null）。</summary>
+    public WindowRect? AutoRectOf(Slot slot) => _auto.TryGetValue(slot, out var r) ? r : null;
+
+    /// <summary>開いたときの置き場を覚える（保存しない・配置の変更の通知も出さない＝置いた窓は開いている間は動かない）。</summary>
+    public void SetAuto(Slot slot, WindowRect rect) { if (IsWindow(slot)) _auto[slot] = rect; }
+
+    /// <summary>州の窓の位置と大きさ（幅は固定・左上）。</summary>
+    public static WindowRect ProvinceRect(double hostW, double hostH) => Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);
+
+    /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。市場・財政・POP の 3 枚が 1920 幅の盤（左の列を除く約 1660）に横に並ぶ幅。</summary>
+    public static double DefaultWidth(Slot slot) => slot switch
     {
-        if (slot == Slot.Province) return Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);   // 州の窓＝幅は固定（情報の量で変わらない）・左上
-        double w = Math.Clamp(hostW * 0.55, MinWindowWidth, 900), h = Math.Clamp(hostH * 0.72, MinWindowHeight, 760);
+        Slot.Market => 480,        // 1 列に積む（値段の表と輸出入の表が縦に並ぶ）
+        Slot.Population => 620,    // 階級の表の幅
+        _ => 540,
+    };
+
+    /// <summary>大きさ（<paramref name="w"/>×<paramref name="h"/>）の窓を、<paramref name="occupied"/> の窓と重ならない次の空き場所（左から右・上から下）へ置く。
+    /// 空きが無ければ窓ごとに少しずつずらした重ね方（<paramref name="slot"/> の番号で決まる起点）。領域の中に収める。</summary>
+    public static WindowRect AutoPlace(Slot slot, double w, double h, IReadOnlyCollection<WindowRect> occupied, double hostW, double hostH)
+    {
+        w = Math.Min(w, Math.Max(hostW, 1)); h = Math.Min(h, Math.Max(hostH, 1));
+        var xs = new SortedSet<double> { 0 }; var ys = new SortedSet<double> { 0 };
+        foreach (var o in occupied) { xs.Add(o.X + o.W + WindowGap); ys.Add(o.Y + o.H + WindowGap); }
+        foreach (double y in ys)
+            foreach (double x in xs)
+            {
+                if (x + w > hostW + 1e-9 || y + h > hostH + 1e-9) continue;
+                var c = new WindowRect(x, y, w, h);
+                if (!occupied.Any(o => Overlaps(c, o))) return c;
+            }
         int step = (int)slot % 6;
         return Fit(new WindowRect(24 + 36 * step, 24 + 32 * step, w, h), hostW, hostH);
     }
+
+    private const double WindowGap = 4;   // 窓どうしの隙間
+
+    private static bool Overlaps(WindowRect a, WindowRect b)
+        => a.X < b.X + b.W - 1e-9 && b.X < a.X + a.W - 1e-9 && a.Y < b.Y + b.H - 1e-9 && b.Y < a.Y + a.H - 1e-9;
 
     /// <summary>領域の中に収める（大きさは領域まで・位置は領域の内側）。表示のときだけ使う＝覚えている値は書き換えない。</summary>
     public static WindowRect Fit(WindowRect r, double hostW, double hostH)
@@ -170,35 +186,29 @@ public sealed class LayoutModel
     public void Reset()
     {
         Background = Slot.Map; LeftOpen = true;
-        _open.Clear(); _rects.Clear();
-        _sections.Clear();
+        _open.Clear(); _rects.Clear(); _auto.Clear();
         Raise();
     }
 
-    // ---- 保存（%LOCALAPPDATA%/PriceOfBread/配置.json）＝左の列の開閉・窓の位置と大きさ・欄の開け閉めだけ（背景と開く窓は起動のたびに地図・窓なし）----
+    // ---- 保存（%LOCALAPPDATA%/PriceOfBread/配置.json）＝左の列の開閉・窓の位置と大きさだけ（背景と開く窓は起動のたびに地図・窓なし）----
 
     private sealed class Dto
     {
+        public int Version { get; set; }      // 形の版。旧の版の窓の大きさと位置は読み捨てる
         public bool LeftOpen { get; set; } = true;
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<string, double[]>? Windows { get; set; }   // 窓の名前 → [X, Y, W, H]
-        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-        public Dictionary<string, SectionDto>? Sections { get; set; }
     }
 
-    private sealed class SectionDto
-    {
-        public string[] Opened { get; set; } = [];
-        public string[] Closed { get; set; } = [];
-    }
+    private const int FormatVersion = 2;   // 2＝窓の初めの大きさを小さくした版（旧の大きな窓の大きさを持ち越さない）
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, IncludeFields = false };
 
     public string ToJson() => JsonSerializer.Serialize(new Dto
     {
+        Version = FormatVersion,
         LeftOpen = LeftOpen,
         Windows = _rects.Count == 0 ? null : _rects.OrderBy(kv => (int)kv.Key).ToDictionary(kv => kv.Key.ToString(), kv => new[] { kv.Value.X, kv.Value.Y, kv.Value.W, kv.Value.H }),
-        Sections = _sections.Count == 0 ? null : _sections.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToDictionary(kv => kv.Key, kv => new SectionDto { Opened = kv.Value.Opened, Closed = kv.Value.Closed }),
     }, JsonOptions);
 
     /// <summary>JSON から配置を作る。読めない・不正な物は初めの配置（保存の壊れで画面が出なくなる道を作らない）。
@@ -212,20 +222,12 @@ public sealed class LayoutModel
             var d = JsonSerializer.Deserialize<Dto>(json, JsonOptions);
             if (d is null) return m;
             m.LeftOpen = d.LeftOpen;
-            if (d.Windows is not null)
+            if (d.Windows is not null && d.Version >= FormatVersion)
                 foreach (var (name, v) in d.Windows)
                 {
                     if (!Enum.TryParse<Slot>(name, out var slot) || !Enum.IsDefined(slot) || !IsWindow(slot) || v is not { Length: 4 }) continue;   // 知らない窓・壊れた記録は捨てる
                     if (!v.All(double.IsFinite)) continue;
                     m._rects[slot] = new WindowRect(v[0], v[1], Math.Max(MinWindowWidth, v[2]), Math.Max(MinWindowHeight, v[3]));
-                }
-            if (d.Sections is not null)
-                foreach (var (page, s) in d.Sections)
-                {
-                    if (!Enum.TryParse<Slot>(page, out var slot) || !Enum.IsDefined(slot) || s is null) continue;   // 知らないページの記録は捨てる
-                    var o = (s.Opened ?? []).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x, StringComparer.Ordinal).Take(32).ToArray();
-                    var c = (s.Closed ?? []).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x, StringComparer.Ordinal).Take(32).ToArray();
-                    if (o.Length > 0 || c.Length > 0) m._sections[page] = (o, c);
                 }
             return m;
         }

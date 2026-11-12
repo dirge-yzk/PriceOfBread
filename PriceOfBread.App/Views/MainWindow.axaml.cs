@@ -168,7 +168,8 @@ public partial class MainWindow : Window
                 if (c.Bounds.Width <= 0 || c.Bounds.Height <= 0 || !c.IsEffectivelyVisible) continue;   // 畳まれた欄の中身（親が隠れている）は対象外・畳んだ欄の中身は測り直されない＝前に配った大きさが残る
                 if (c.GetVisualAncestors().TakeWhile(a => !ReferenceEquals(a, page)).Any(a => a is ScrollViewer or MapPane)) continue;   // 欄の中の流れの中身と、地図の中の絵（箱で切られる）は対象外
                 var br = c.TranslatePoint(new Point(c.Bounds.Width, c.Bounds.Height), frame);
-                if (br is { } q && q.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q.Y - hh:F0})"); if (over.Count >= 3) break; }
+                if (br is { } qa && qa.Y > hh + 1 && frame is FloatingWindow) { }   // 窓は全体を 1 本で流す（作者の指示 2026-11-12）＝窓の下へ伸びた中身は窓の流れの中
+                else if (br is { } qb && qb.Y > hh + 1) { over.Add($"縦に{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{qb.Y - hh:F0})"); if (over.Count >= 3) break; }
                 else if (br is { } q2 && q2.X > ww + 1 && wide.Count < 2) wide.Add($"{c.GetType().Name}{(string.IsNullOrEmpty(c.Name) ? "" : "#" + c.Name)}(+{q2.X - ww:F0})");
             }
             var scrolls = page.GetVisualDescendants().OfType<ScrollViewer>().ToList();
@@ -181,7 +182,8 @@ public partial class MainWindow : Window
         double gvH = gv.DesiredSize.Height;
         bool outerFlowing = !(ok && gvH <= winH + 1);
         _gateOuter++; if (outerFlowing) _gateOuterFlowing++;
-        TallyAlignment(gv, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
+        TallyAlignment(gv, tag);
+        TallyBroken(gv, tag);   // 同じ撮影で、載っている表の見出しと値の列の左端が揃っているかも数える
         BootLog.Write($"uishot: 外側の流れ[{tag}] {(!outerFlowing ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
     }
 
@@ -404,13 +406,6 @@ public partial class MainWindow : Window
                 await Task.Delay(900);
                 Capture(dir, $"{k:D2}_ページ_{SlotInfo.Name(slot)}.png");
                 LogOuterFlow(gameView, SlotInfo.Name(slot));
-                if (slot == Slot.Market)   // 市場の 2 面目（貿易）
-                {
-                    gvm.MarketTradeView = true; await Task.Delay(700);
-                    Capture(dir, $"{k:D2}c_ページ_{SlotInfo.Name(slot)}_貿易.png");
-                    LogOuterFlow(gameView, SlotInfo.Name(slot) + " 貿易");
-                    gvm.MarketTradeView = false; await Task.Delay(300);
-                }
                 // 縦に長いページは最下端まで送った状態も撮る（下端見切れの検証・2026-07-25）
                 var sv = this.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "PageScroll");
                 if (sv is not null && sv.Extent.Height > sv.Viewport.Height + 1)

@@ -30,27 +30,6 @@ public partial class MainWindow
                 Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}.png");
                 LogOuterFlow(gameView, tag);
                 LogPage3(gameView, slot, tag);
-                // 政治のページの畳まれた議会の欄も撮影の時だけ開いた姿を撮る（議席の棒の長さの確かめ・W3）
-                if (slot == Slot.PoliticsLaw
-                    && gameView.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(x => x.Key == "parliament")) is { } pgrid)
-                {
-                    pgrid.SetUserState(["parliament"], ["power"]);
-                    await Task.Delay(900);
-                    Capture(dir, "p3_政治と法_議会を開く.png");
-                    pgrid.SetUserState([], []);
-                    await Task.Delay(300);
-                }
-                // 外交のページの畳まれた欄（他国の戦争・軍事力の必要量・反乱勢力）は撮影の時だけ開いた姿も撮る（B48・B50・B17 と同じ段）
-                if (slot == Slot.DiplomacyWar
-                    && gameView.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault(g => g.IsEffectivelyVisible && g.Children.OfType<Section>().Any(x => x.Key == "army")) is { } dgrid)
-                {
-                    dgrid.SetUserState(["army", "mediation", "faction"], []);
-                    await Task.Delay(900);
-                    Capture(dir, "p3_外交と戦争_欄を開く.png");
-                    LogOuterFlow(gameView, tag + "・欄を開く");
-                    dgrid.SetUserState([], []);
-                    await Task.Delay(300);
-                }
             }
 
             // ---- 仕組みの確かめ ----
@@ -69,7 +48,7 @@ public partial class MainWindow
         finally { lay.Reset(); }
     }
 
-    /// <summary>ページの欄の鍵・畳んだ欄・表の列の揃いを BootLog に書く。</summary>
+    /// <summary>ページの欄の鍵・表の列の揃いを BootLog に書く。</summary>
     private static void LogPage3(GameView gameView, Slot slot, string tag)
     {
         foreach (var (pane, s, page, _) in UiShotWindows.MountedAll(gameView))
@@ -79,13 +58,10 @@ public partial class MainWindow
             var table = slot == Slot.PoliticsLaw ? PoliticsLawPage.Table : DiplomacyWarPage.Table;
             var keys = page.GetVisualDescendants().OfType<Section>().Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
             var want = table.Sections.Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
-            string collapsed = grid?.LastPlan is { } plan ? string.Join("・", plan.SelectMany(c => c).Where(p => p.Collapsed).Select(p => table.Sections.First(q => q.Key == p.Key).Title)) : "?";
             string cols = grid?.LastPlan is { } pl ? pl.Count.ToString() : "?";
-            string empties = string.Join("・", page.GetVisualDescendants().OfType<Section>().Where(x => x.IsEmptyContent()).Select(x => x.Key));   // 空と判定された欄（畳まれた欄の理由を読む・V13）
-            BootLog.Write($"uishot: 段3[{tag}] 空と判定 {empties}");
             var al = page.GetVisualDescendants().OfType<TableView>().Select(t => t.MeasureAlignment()).Where(a => a is not null).Select(a => a!.Value).ToList();
             string align = al.Count == 0 ? "表なし" : string.Join(" / ", al.Select(a => $"{a.Columns}列 ずれ最大{a.MaxDelta:F1}" + (a.MaxDelta > 0.5 ? $"(列「{a.Worst}」)" : "")));
-            BootLog.Write($"uishot: 段3[{tag}] 欄の鍵 {(keys.SequenceEqual(want) ? "表と一致" : "不一致 画面=" + string.Join(",", keys) + " 表=" + string.Join(",", want))}・{cols}列・畳んだ欄 {(collapsed.Length == 0 ? "なし" : collapsed)}・見出しと値の列の左端 {align}");
+            BootLog.Write($"uishot: 段3[{tag}] 欄の鍵 {(keys.SequenceEqual(want) ? "表と一致" : "不一致 画面=" + string.Join(",", keys) + " 表=" + string.Join(",", want))}・{cols}列・見出しと値の列の左端 {align}");
         }
     }
 

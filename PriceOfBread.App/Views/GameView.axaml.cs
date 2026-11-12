@@ -42,14 +42,6 @@ public partial class GameView : UserControl
         if (!_pages.TryGetValue(slot, out var c))
         {
             _pages[slot] = c = Pages.PageFactory.Create(slot);
-            // 見出しを押して開け閉めした欄は配置と一緒に保存する（前回の開け閉めを戻し、変わるたびに渡す）
-            if (DataContext is ViewModels.GameViewModel gv && c.GetLogicalDescendants().OfType<Controls.PageGrid>().FirstOrDefault() is { } grid)
-            {
-                string pageKey = slot.ToString();
-                var (opened, closed) = gv.Layout.SectionState(pageKey);
-                grid.SetUserState(opened, closed);
-                grid.UserStateChanged += () => gv.Layout.SetSectionState(pageKey, grid.UserOpened, grid.UserClosed);
-            }
         }
         return c;
     }
@@ -109,12 +101,11 @@ public partial class GameView : UserControl
         _vmHooked = null;
     }
 
-    /// <summary>問題の一覧の飛び先：欄を開き（畳まれていれば）、表の行を見える所へ送って目印を付ける。生産の財の表は財を選ぶ（行を押したのと同じ）。
+    /// <summary>問題の一覧の飛び先：表の行を見える所へ送って目印を付ける。生産の財の表は財を選ぶ（行を押したのと同じ）。
     /// 部品の配置が済むまで 1 回後ろへ回し、行がまだ無ければ数回だけ待つ。</summary>
     private void OnFocusRequested(ViewModels.FocusRequest r)
     {
         if (!_pages.TryGetValue((Slot)(int)r.Page, out var page)) return;
-        if (r.Section.Length > 0 && page.GetVisualDescendants().OfType<Controls.PageGrid>().FirstOrDefault() is { } grid) grid.Reveal(r.Section);
         if (r.TableKey == "production.goods" && int.TryParse(r.RowKey, out int gid) && DataContext is ViewModels.GameViewModel vm) vm.SelectProdGoodIfNew(gid);
         if (r.TableKey.Length > 0) Dispatcher.UIThread.Post(() => FocusRow(page, r, 0), DispatcherPriority.Background);
     }
