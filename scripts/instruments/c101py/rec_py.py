@@ -1,6 +1,6 @@
 # (1063) c101py 記録（門ではない・ヌル腕の幅と並べる・事前登録 §5 の記録）：
 #   ①貿易÷GDP（6 大国の各国と世界）＝nation_s の exportsPerClearing×clearingsPerYear ÷（nominalGdpPerYear×fxRate）〈推：輸出は世界価格建て・GDP は自国の通貨＝fxRate で金へ〉
-#   ②調達の財（石炭・原油・キニーネ・缶詰・帆船・汽船）の値段 priceMeanGold（nationgood_s・6 大国）の 腕÷基準（種ごとの比の中央）
+#   ②調達の財（腕の procx_s に出た財の名＝表を手で書かない）の値段 priceMeanGold（nationgood_s・6 大国）の 腕÷基準（種ごとの比の中央）
 #   ③エネルギーの取り分 share4Energy（score_s・6 大国）
 #   年＝1850・1880・1913・1950（その年の最後の四半期の行）。種ごとの値の中央。
 #   使い方：python -X utf8 -I rec_py.py <出力> base=<ins> n1=<ins> n2=<ins> B=<ins> ...（最初の腕が比の分母）
@@ -8,7 +8,6 @@ import sys, os, statistics as st
 from collections import defaultdict
 MAJ = ['イギリス', 'フランス', 'プロイセン', 'ロシア', 'アメリカ', '清']
 YEARS = ['1850', '1880', '1913', '1950']
-GOODS = ['石炭', '原油', 'キニーネ', '缶詰', '帆船', '汽船']
 OUT = sys.argv[1]; ARMS = [a.split('=', 1) for a in sys.argv[2:]]
 
 
@@ -21,6 +20,19 @@ def rows(p):
 def fl(x):
     try: return float(x)
     except ValueError: return float('nan')
+
+
+def procured(arms):
+    s = set()
+    for _, d in arms:
+        for k in range(1, 11):
+            p = os.path.join(d, 'procx_s%d.tsv' % k)
+            if os.path.exists(p):
+                for ix, v in rows(p): s.add(v[ix['good']])
+    return sorted(s)
+
+
+PROCURED = procured(ARMS)
 
 
 def arm_data(d):
@@ -43,7 +55,7 @@ def arm_data(d):
         p = os.path.join(d, 'nationgood_s%d.tsv' % s)
         if os.path.exists(p):
             for ix, v in rows(p):
-                if v[ix['year']] in YEARS and v[ix['nation']] in MAJ and v[ix['good']] in GOODS:
+                if v[ix['year']] in YEARS and v[ix['nation']] in MAJ and v[ix['good']] in PROCURED:
                     px[(v[ix['year']], v[ix['nation']], v[ix['good']])][s] = fl(v[ix['priceMeanGold']])
         p = os.path.join(d, 'score_s%d.tsv' % s)
         if os.path.exists(p):
@@ -63,7 +75,7 @@ with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
     f.write('\n== ② 調達の財の値段 priceMeanGold の 腕÷%s（種ごとの比の中央・6 大国をまとめた中央）\n' % D[0][0])
     b = D[0][1][1]
     for y in YEARS:
-        for g in GOODS:
+        for g in PROCURED:
             cells = []
             for nm, dd in D[1:]:
                 rs = []
