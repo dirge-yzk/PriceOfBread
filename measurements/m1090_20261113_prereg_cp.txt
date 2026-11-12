@@ -12,7 +12,7 @@
   ②K±1 の一歩が今の門を通るか（純支持と政治資本）は、門の関数がエンジンの書き込みを含むため影では出さない。列 kStepGateCode は −1（未計算）で固定し、次の波へ回す。
   ③X_V（革命の位置）は動員の重み（急進と道の無い改革の項）で集めた思想の理想点。K±1 の変種では X_V・d_V・d_A を今の値のまま持ち、変わるのは w・任免・票の道（参政権 ±1 段）だけ。
   ④T_年÷R は LastTaxIncomePerMonth と LastTaxProgressivePerMonth の和を LastRevenuePerMonth で割った値（年ごとに査定する税の代理・AI の読み）。
-  ⑤前の版の DefectionShare の列は、引力点を「Ideologies.Polities の中で国民の集計の支持が最大の政体」（bourgeoisCoup と実績の乗数を入れない簡易版）で当てた値。
+  ⑤前の版の DefectionShare の列は、引力点を〈Ideologies.Polities の中で国民の集計の支持が最大の政体〉（bourgeoisCoup と実績の乗数を入れない簡易版）で当てた値。
   ⑥B1 の関税の露出の項は T3 の前なので 0。B1 が扱う軸は IncomeTax・LandTax・PollTax・SocialSecurity・Tariff・CornLaws の 6 本（残りの軸は B2 の前に足す）。
 
 [1] 恒等の線・予言 0
@@ -24,7 +24,7 @@
 [2] 消す物と残す物
 - 消す物：なし。
 - 足す物（ファイル）：PriceOfBread.SimCore/PowerCenter.cs（新）・InstrumentsCenter.cs（新）・PopPreference.cs（新）・InstrumentsPopPref.cs（新）、PriceOfBread.Tests/PowerCenterTests.cs（新）・PopPreferenceTests.cs（新）、Instruments.cs の呼び口 2 行（CrownFold の隣に CenterFold・CrownClose の隣に CenterClose）、docs/202611/20261112/ に設計 3 本の写し。
-- 読み手の grep（足す名の衝突）：center_s・poppref_s・PowerCenter・PopPreference・InstrumentsCenter・InstrumentsPopPref は SimCore・Runner・App・Display・Tests・scripts・measurements に 0 件（git grep で確認・docs の下書きを除く）。
+- 読み手の grep（足す名の衝突）：center_s・poppref_s・PowerCenter・PopPreference・InstrumentsCenter・InstrumentsPopPref は SimCore・Runner・App・Display・Tests・scripts・measurements に 0 件（git grep で確認・docs の下書きを除く）。呼ぶ読み手の副作用の無さは grep ではなく ident の一致（素の 5 種・計器つき 10 種）で確かめた。
 - 他の線との重なり：Instruments.cs は c104si が :1908 と閉じる行の隣、この線が :1847 と :1950 の隣＝行が違う（合流で解ける）。Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs には触れない。
 
 [3] 足す表
