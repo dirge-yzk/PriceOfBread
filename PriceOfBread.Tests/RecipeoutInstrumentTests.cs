@@ -207,9 +207,10 @@ public class RecipeoutInstrumentTests
     public void B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す()
     {
         int divided = 0, scarceDivided = 0, openedDeposit = 0, unopenedDeposit = 0, undivided = 0;
+        foreach (var scale in new[] { 1.0, 1.5 })   // Scale≠1 の盤面でも割る数は RE×Scale（Scale を落とす誤りはここで赤になる）
         foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
         {
-            var w = Solo(cfg, new Coefficients()).World;
+            var w = Solo(cfg, new Coefficients { ResourceEndowmentScale = scale }).World;
             var c = w.Coef;
             Assert.True(!(c.EndowmentCostFollowsAbundance > 0) && !(c.MineralCostFollowsGrade > 0));
             foreach (var r in w.Regions)
@@ -235,8 +236,11 @@ public class RecipeoutInstrumentTests
                 inputs += (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length ? r.Markets[inp.GoodId].Price : 0.0) * qty;
             }
             double re = (Catalog.IsMineral(p.GoodId) ? 4.0 : 3.5) * c.ResourceEndowmentScale;
-            bool unopenedSite = x.Class == "X" && !p.SiteFound && Array.IndexOf(r.Resources, p.GoodId) < 0;
-            bool dividesNow = (x.Class == "E" || x.Class == "X") && re > 1.0 && !unopenedSite;
+            // 割るかどうかは計器の級を借りず、州の資源・産地の行・発見の印・既定の生産者かどうかから決める
+            bool eligible = p.IsRgo || (p.RecipeName.Length == 0 && p.GoodId >= 0 && p.GoodId < Catalog.Goods.Length && Catalog.Goods[p.GoodId].Tier != GoodTier.Service);
+            bool inRes = Array.IndexOf(r.Resources, p.GoodId) >= 0;
+            bool foundSite = p.IsRgo && p.SiteRow >= 0 && p.SiteFound;
+            bool dividesNow = eligible && re > 1.0 && (inRes || foundSite);
             double expected = (dividesNow ? self / re : self) + inputs;
             Assert.True(Close(x.IfBprime, expected, 1e-9), $"{r.Name}/財{p.GoodId}/級{x.Class}：計器 {x.IfBprime}・紙の式 {expected}");
             if (dividesNow) { divided++; if (x.Rule > re * 1.5) scarceDivided++; } else undivided++;
