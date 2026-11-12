@@ -1,0 +1,70 @@
+(1090) c104cp 事前登録：王権と議会の段 P1（中心の影の計器 center_s）と段 B1（POP の好みの影の計器 poppref_s）の恒等の線（計器だけ・旗なし・係数 0・状態 0・Instruments.On のときだけ）
+書いた担当＝Claude Sonnet 5.5。木＝main 23aa9d11a から枝 c104cp（worktree D:/PoB_work/wt_c104cp）。作業フォルダ D:/PoB_work/c104cp_work（この回に作った）。
+盤面＝基線 m1087（成績表 b10_20261113_m1087・b5_20261113_m1087・b10_20261113_m1087_ins・生 D:/PoB_work/keep_1087/base_ins）。
+
+[0] 線の頭の宣言
+- 形＝入口（計器）。エンジンの挙動 0・新しい係数 0・新しい状態 0・旗 0。World に欄を足さない。計器の持ち物は Instruments の既存の流儀（ConditionalWeakTable）だけ。
+- 〈旗 0／旗 1〉は無い（恒等の線）。合否＝〈判定: 恒等〉（足した 2 表を除く）。
+- 設計は scratchpad の下書き（作者「それでよい」2026-11-12 の向きを受けた AI の推奨・式と段は AI の推奨・確証なし）。〈3 つのブロックの解体を作者が採った〉とは書かない（⓪ は作者のセッションが B2 の前に確かめる）。この線は影の計器だけ。
+- 入れない物：P2（取り分を一次量に・政変の置き換え）・P3・B2・I・CrownParliament.cs と Politics.cs と world.json の書き換え・App・Display・Runner。
+- 限界の名乗り（先に書く）：
+  ①K の開幕は world.json に欄が無い（この回は誰も触れない）＝今の政体から写像（立憲→部分・共和→議会・他→勅令）で導く。列 kSourceCode＝0。英の 1689 の欄は P2 のデータ＝英の名の予言は写像の下で外れうる。
+  ②K±1 の一歩が今の門を通るか（純支持と政治資本）は、門の関数がエンジンの書き込みを含むため影では出さない。列 kStepGateCode は −1（未計算）で固定し、次の波へ回す。
+  ③X_V（革命の位置）は動員の重み（急進と道の無い改革の項）で集めた思想の理想点。K±1 の変種では X_V・d_V・d_A を今の値のまま持ち、変わるのは w・任免・票の道（参政権 ±1 段）だけ。
+  ④T_年÷R は LastTaxIncomePerMonth と LastTaxProgressivePerMonth の和を LastRevenuePerMonth で割った値（年ごとに査定する税の代理・AI の読み）。
+  ⑤前の版の DefectionShare の列は、引力点を「Ideologies.Polities の中で国民の集計の支持が最大の政体」（bourgeoisCoup と実績の乗数を入れない簡易版）で当てた値。
+  ⑥B1 の関税の露出の項は T3 の前なので 0。B1 が扱う軸は IncomeTax・LandTax・PollTax・SocialSecurity・Tariff・CornLaws の 6 本（残りの軸は B2 の前に足す）。
+
+[1] 恒等の線・予言 0
+- 挙動を変える物は 1 行も書かない。エンジンの関数は読みだけ（呼ぶ物の中身は書き込み・遅延キャッシュが無いことを grep で確かめた物だけ）：Ideologies.Soldiers／SupportAt／IdealPoint／DefectionShare／BasePolityCoord、PoliticalQuantities.MilitaryPush／DriftedPolityCoord、InterestGroups.FranchiseVoice／SeatVoice、Diplomacy.FrontPush、PowerAffinity.PolityFromShares、Pop の読み。
+- Politics.MeasureMobilization と Ideologies.UpdateShares は呼ばない（w.ReformistPower／RadicalPower を書く）。M_急・M_改外 は計器側に式を写す。
+- 入力の束（PowerCenter.Inputs）は World を持たない数だけ＝段 P2 が同じ関数を呼べる・試験の期待値を手計算で作れる。
+- 倒し先（否定形）：兵の思想の質量の和が正でなければ ℓ=1（d_A=d_V=0）／G+qM_外 が正でなければ執政=1／歳入が正でなければ w=0／NaN は 0 に倒す。
+
+[2] 消す物と残す物
+- 消す物：なし。
+- 足す物（ファイル）：PriceOfBread.SimCore/PowerCenter.cs（新）・InstrumentsCenter.cs（新）・PopPreference.cs（新）・InstrumentsPopPref.cs（新）、PriceOfBread.Tests/PowerCenterTests.cs（新）・PopPreferenceTests.cs（新）、Instruments.cs の呼び口 2 行（CrownFold の隣に CenterFold・CrownClose の隣に CenterClose）、docs/202611/20261112/ に設計 3 本の写し。
+- 読み手の grep（足す名の衝突）：center_s・poppref_s・PowerCenter・PopPreference・InstrumentsCenter・InstrumentsPopPref は SimCore・Runner・App・Display・Tests・scripts・measurements に 0 件（git grep で確認・docs の下書きを除く）。
+- 他の線との重なり：Instruments.cs は c104si が :1908 と閉じる行の隣、この線が :1847 と :1950 の隣＝行が違う（合流で解ける）。Coefficients.cs・DormantIdentityTests.cs・WriterRatchetTests.cs には触れない。
+
+[3] 足す表
+- center_s（国×四半期・全ての国・州が 0 の国は出さない）。列は接尾辞の作法（Share・Index・Flag・Code）：
+  quarter year nation lCount wCount gMinusWIndex gHIndex qIndex popK / splitMassIndex loyalShare armyShare revoltShare defectionOldShare / pushIndex valveIndex autonomyIndex / walletInterestShare walletTaxYearShare walletShare / mRadIndex mRefOutIndex mRefOutClosedIndex mRefOutEliteIndex mRefOutMassIndex mRefOutAdultIndex / xvPart xvCiv xvEco xvArmy / forceExecIndex forcePartIndex forceArmyIndex forceRevIndex sumForceIndex sumCheckIndex / shareExec sharePart shareArmy shareRev shareRegime / nu nuCoupIndex / ignitionViolentFlag ignitionPeacefulFlag immediateFlag coupFlag / inCivilWarFlag pendingRebelFlag / kCode kSourceCode crownCode seizureCode polityCode nameCode / derivedPolityCode / safetyKMinus safetyK safetyKPlus / kStepGateCode / radicalToReformRatio / popCrowdRatioIndex
+  （正確な列名と順は InstrumentsCenter.CenterHeaderText が持つ。）
+- poppref_s（四半期 0 と 40 おき・全ての国）：
+  種別 A 行（国×軸×ブロック）：quarter year nation axis bloc meanPi oldPref diffPi sdPi oppositeSignShare popCount
+  種別 B 行（国）：quarter year nation seatCons seatLib seatSoc oldSeatCons oldSeatLib oldSeatSoc
+  （2 種の行は rowKind 列で分ける。）
+
+[4] 予言（記録・門にしない・外れても式を予言に合わせて直さない）
+ 1. 開幕（q0・61 か国）：体制の取り分が軍と革命より大きい国 61／61。名が今の名と一致 61／61（K が今の政体からの写像なので構造上 61。名乗りだけ）。体制の中の大きい方は君主 53 で執政・英と共和 7 で議会（英は立憲→部分の写像で執政になる見込み＝限界①）。開幕の d_A×m_A＞ℓ の国 0。
+ 2. 暴力の点火（連続を 1 回に畳む）：今の暴力の点火＝coupgate_s の経路 3（38）＋経路 5（28）＝66（keep_1087 の生を python -I で数えた値・畳み後 66・台本 c104cp_work/cnt_ign.py）。新しい形の ignitionViolentFlag の畳み後の回数が 22〜198（1/3〜3 倍）に入る見込みは薄い（下に外れる恐れ・設計 §4-2）。平和な転換の回数は記録。
+ 3. クーデタ：coupFlag の回数が 1 以上・議会の段（共和・立憲の部分／議会）の英米蘭は 0。d_A＞0.65 の国×四半期の数と年代を記録。
+ 4. 群衆の重み qM_外÷G の分布（政体ごと）と radicalToReformRatio の分布を記録。
+ 5. 財布：walletShare の四半期ごとの |Δw| の 99% 点が 0.05 未満。
+ 6. 安全の比：safetyKPlus＜safetyK となる四半期の国と年（日本の mRefOut の階級の内訳を含む）を記録。
+ 7. 名と導出の政体の一致率を記録。
+- 点火の件数（各項）：ignitionViolentFlag・ignitionPeacefulFlag・coupFlag・immediateFlag を種×政体で数える（報告に表で書く・P2 の事前登録の材料）。点火が少なすぎるなら、〈守備兵の闘争度で寝返る兵を比べ合いに足す〉を P2 の材料にする。
+
+[5] 計算量（.cost の項ごと）
+- P1：計器つきだけで +0.2 秒未満（兵の思想の集計 1 回・思想 11×位置 3・動員の走査 1 回）。素の走りは 0（Instruments.On のときだけ動く）。
+- B1：POP 数×6 軸を 40 四半期おきに 1 回。1 試合で 17 回×約 5 千 POP×6 軸×2 ≒ 100 万評価＝+0.1 秒未満の見込み。素の走りは 0。
+- 素の 10 種・5 種の .cost の推定は m1087 と一致（恒等）。
+
+[6] 試験（足す件数の予言）
+- PowerCenterTests.cs：兵の分かれの和が 1・倒し先／ΣF＝G＋qM_外 が 1e-9 以内（紙の式）／取り分の和 1／財布の 3 つの型／名の写像／点火・クーデタの紙の盤面／G＝L−W と G＝H が違う盤面／切れている時に仕事の件数が増えない・入れた時は増える。約 9 本。
+- PopPreferenceTests.cs：π の紙の値（IncomeTax・LandTax・PollTax）／ブロック 0/1 と違う／PolicyPreferences の BurdenScale の写しの一致（Pref を呼んで逆算）／切れている時に仕事が増えない。約 4 本。
+- 合計 +13 本の見込み（TESTS_NONFULL 2768 → 2781）。--tests-delta で宣言する。
+- ㉘ の走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）：新しい .cs を足すだけで既存の件数・許可表を書き換える予定は 0（㉑ の予言＝書き換える件数 0）。UnitTypeTests が新しい .cs の double 裸の単位を走査して赤になる場合は、その行を単位型に直す（番人は書き換えない）。
+- 点検（grep）：工業化度の読み手の許可表＝触れない／new MoneyStock( の件数 64（変えない）／route_anchors.tsv は無い（scripts/instruments に無し）／WriterRatchetTests の宣言の表＝触れない。
+
+[7] 突然変異（使い捨ての木・出力は measurements/m1090_20261113/ にコミット）
+ M1 ℓ・d_A・d_V を総和で割らない → 兵の分かれの和の試験が赤。
+ M2 d_V に DefectionShare を使う → 和の試験が赤。
+ M3 G＝L−W を G＝H にする → G の 2 列の違いを調べる試験が赤（人口×q＜L−W の盤面）。
+ M4 B1 の π をブロックの 0/1 に戻す → π の紙の値の試験が赤・差の列が全て 0。
+ M5 ΣF の定義で M_外 の q を落とす → ΣF の試験が赤。
+
+[8] 判定
+- 素の 5 種・10 種・計器つき 10 種が m1087 と名乗り行を除いて全行一致（計器の表の差は宣言 center_s・poppref_s だけ）。ident は段 2（--added-tables center_s,poppref_s・--tests-delta 13）。〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ B1 だけを外して報告（削らない＝次の波へ）。
+- 止める線：破綻・発散・空洞化・計算量・機構の試験の赤。挙動の線ではないので 100 倍の読みは対象外。
