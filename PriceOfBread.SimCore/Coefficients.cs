@@ -1392,7 +1392,7 @@ public sealed class Coefficients
     /// 実装＝<see cref="Simulation.ApplyRecipeCostFollowsProductivity"/>。</summary>
     public double RecipeCostFollowsProductivity = 1.0;   // ★(331) 点火（枝 gp の腕 B〔b10_20261014_gp329B_ins〕の形・合流の担当が作者 2026-10-14 の止める線の規則で読み直して採った）
     // ★C群（作者裁定2026-09-05「すべてやる」・Vic3抽出の採用分 9/4）：新しい財を足さず**レシピ**で表す（「幅に足さない」規約）。
-    public double SteamTurbineEnabled = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-18 蒸気タービン＝batch10 硬性ゲート緑（◎16/人口11.6/貿易10.4%）・作者裁定「C群すべてやる」 */        // 蒸気タービン発電＝電力の第4レシピ（発電機0.2＋石炭 SteamTurbineCoalInput・生産性×SteamTurbineProductivity）。パーソンズ1884→普及1890s。0＝Producer を足さない＝恒等
+    // 【墓標2026-11-13 (1089)・旗の焼き込み】SteamTurbineEnabled（既定1.0・点火2026-09-05）を消した＝蒸気タービン発電（電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput・生産性×SteamTurbineProductivity）は常に足す。解禁は発見の表の行。
     // 【削除2026-10-01 段2A】SteamTurbineOnset（蒸気タービンの解禁の技術水準 1.35）＝発見の表の行（蒸気タービン・1880年代）へ
     public double SteamTurbineCoalInput = 0.6;      //   石炭火力0.9に対し熱効率で0.6
     public double SteamTurbineProductivity = 1.25;  //   石炭火力比

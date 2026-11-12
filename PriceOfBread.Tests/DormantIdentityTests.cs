@@ -251,7 +251,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
-        "MintDemandCounted",   // (1089) 線 c104fb：旗の焼き込み（既定 1 の旧い枝を消した。各欄の意味は Coefficients.cs の墓標）
+        "MintDemandCounted", "SteamTurbineEnabled",   // (1089) 線 c104fb：旗の焼き込み（既定 1 の旧い枝を消した。各欄の意味は Coefficients.cs の墓標）
         "HeldSinceFromData",          // (956) 線 c85hs：B14＝world.json の heldSince を読む旗〔既定0〕。heldSince のデータと CoreHeldYears〔150〕とあわせて削除（全州 Core・支配度1.0 の経路だけ残した）
         "WageClampIndScale",          // (605) 線 ind4：賃金の天井の工業化度の項〔R2 点火 1.0・(495) で IndustrializationOff が 0 を掛けていた〕。項ごと削除（天井そのものの WageClampMax は残る）
         "MonopolyDissolveInd",        // (605) 同：独占が解体する工業化度〔0.3〕。解体は独占禁止法の係数 MonopolyRentFactor に任せる

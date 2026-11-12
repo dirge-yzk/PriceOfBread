@@ -1368,9 +1368,8 @@ public sealed class Simulation
         // 石炭が高い州でのみ火力に勝つ＝スイス/伊/ノルウェー型の水力国が価格から創発（1914年に伊約2/3・スイス/ノルウェーほぼ100%水力）。
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MachineryId, 0.647), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
-        // ★蒸気タービン（2026-09-05・器 SteamTurbineEnabled）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
-        //   パーソンズ1884→1890s＝発見の表の蒸気タービン（1880年代・2026-10-01 段2A）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。0＝足さない＝恒等。
-        if (coef.SteamTurbineEnabled > 0)
+        // ★蒸気タービン（2026-09-05・(1089) で器を焼いた）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
+        //   パーソンズ1884→1890s＝発見の表の蒸気タービン（1880年代・2026-10-01 段2A）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。
             producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "蒸気タービン", Productivity = 1.4 * coef.SteamTurbineProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 2, OwnerPopIndex = 3, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.MachineryId, 0.199), new Input(Catalog.CoalId, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：肉(畜産)の代わりに漁獲を缶詰める＝缶詰の軍需増を漁業からも賄える。漁獲に第2の消費先を与える（従来は干物のみ）。
