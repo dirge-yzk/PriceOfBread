@@ -165,6 +165,15 @@ public sealed class LayoutModel
                 var c = new WindowRect(x, y, w, h);
                 if (!occupied.Any(o => Overlaps(c, o))) return c;
             }
+        // 入る高さの空きが無い：同じ幅のまま、空きの高さまで縮めて（最小の高さまで）置く＝既に開いている窓を覆わない
+        foreach (double y in ys)
+            foreach (double x in xs)
+            {
+                double room = hostH - y;
+                if (x + w > hostW + 1e-9 || room < MinWindowHeight - 1e-9) continue;
+                var c = new WindowRect(x, y, w, Math.Min(h, room));
+                if (!occupied.Any(o => Overlaps(c, o))) return c;
+            }
         int step = (int)slot % 6;
         return Fit(new WindowRect(24 + 36 * step, 24 + 32 * step, w, h), hostW, hostH);
     }

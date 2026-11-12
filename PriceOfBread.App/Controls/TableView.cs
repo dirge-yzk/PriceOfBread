@@ -131,7 +131,7 @@ public sealed class TableView : UserControl
     private readonly TextBox _filterBox = new() { Watermark = "絞り込み", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
     private readonly StackPanel _body = new() { Spacing = 0 };
-    private readonly Border _bodyHost = new() { ClipToBounds = true };   // 内側で流れる表の行が見出しに重ならない（流した行は見出しの下で切る）
+    private readonly RowSnapBorder _bodyHost = new() { ClipToBounds = true };   // 内側で流れる表の行が見出しに重ならない（流した行は見出しの下で切る）
     private readonly Dictionary<string, RowPresenter> _rows = new();
     private readonly Dictionary<string, Control> _groups = new();
     private string _columnSig = "";
@@ -173,6 +173,7 @@ public sealed class TableView : UserControl
     {
         Grid.SetIsSharedSizeScope(_root, true);   // 見出しと行が同じ列の大きさを共有する
         _top.Children.Add(_legendPanel); _top.Children.Add(_filterBox);   // 行 0＝凡例と絞り込み（行の番号は変えない＝見出しは 1・行は 2）
+        _bodyHost.RowControls = () => _body.Children;
         Grid.SetRow(_top, 0); Grid.SetRow(_header, 1); Grid.SetRow(_bodyHost, 2);
         _root.Children.Add(_top); _root.Children.Add(_header); _root.Children.Add(_bodyHost);
         _filterBox.TextChanged += (_, _) => { _filter = _filterBox.Text ?? ""; Rebuild(); };

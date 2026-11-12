@@ -192,7 +192,7 @@ public static class CrownParliament
                 w.RegimeTenureQuarters = 0;   // 実績：床交差の再ラベルも政体交代＝在任年数リセット
                 w.Polity = derived;
                 Politics.RaiseFoundingInstitutions(w, allowRevoke: true, c);
-                w.LogAdd($"{w.Year} {w.SelfPower?.Name}の統治が変わった（{derived}）");
+                w.LogAdd($"{w.Year} {w.SelfPower?.Name}の統治が変わった（{PlayText.PolityRegimeJa(derived)}）");
             }
         }
 

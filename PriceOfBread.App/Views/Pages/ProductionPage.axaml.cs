@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,7 +19,7 @@ public partial class ProductionPage : UserControl
     private const double MainShare = 0.56, SideShare = 1 - MainShare;
 
     /// <summary>欄の宣言（鍵・名前・最小の行数・余りの高さの重み）と置き場（列ごとに上から下）。
-    /// 狭いとき＝1 つの PageGrid（全部を 1 列）／広いとき＝盤の列（供給の網・巨大建造物）と他の欄の列（財の表・選んだ財｜州別の工場・労働・設備＝他の列が 700 以上なら 2 列）の 2 つの PageGrid。
+    /// 狭いとき＝1 つの PageGrid（全部を 1 列）／広いとき＝盤の列（供給の網）と他の欄の列（財の表・選んだ財｜州別の工場・労働・設備＝他の列が 700 以上なら 2 列）の 2 つの PageGrid。
     /// 戻り値は [主の表] か [主の表, 側の表]。</summary>
     public static PageTable[] BuildPlans(bool wide, bool equipment, bool full = false)
     {
@@ -28,21 +29,19 @@ public partial class ProductionPage : UserControl
         var regions = new SectionSpec("regions", "州別の工場", MinRows: 6);
         var labor = new SectionSpec("labor", "労働", MinRows: 3);
         var equip = new SectionSpec("equipment", "設備", MinRows: 5);
-        var mega = new SectionSpec("mega", "巨大建造物", MinRows: 4);
         var lower = new System.Collections.Generic.List<SectionSpec> { regions, labor };
         if (equipment) lower.Add(equip);
         if (!wide)
         {
             var all = new System.Collections.Generic.List<SectionSpec> { supply, goods, detail };
-            all.AddRange(lower); all.Add(mega);
+            all.AddRange(lower);
             return [new PageTable(all, [all.Select(s => s.Key).ToList()])];
         }
         var side = new System.Collections.Generic.List<SectionSpec> { goods, detail };
         side.AddRange(lower);
         if (full)
         {
-            // 全面（Q）：盤だけで左の列を使い切り（高さも幅も盤が主）・巨大建造物は右の列の最後へ。右の列は旧の生産タブの右パネルと同じ固定の幅で 1 列に積む
-            side.Add(mega);
+            // 全面（Q）：盤だけで左の列を使い切り（高さも幅も盤が主）。右の列は旧の生産タブの右パネルと同じ固定の幅で 1 列に積む
             return
             [
                 new PageTable([supply], [["supply"]]),
@@ -51,7 +50,7 @@ public partial class ProductionPage : UserControl
         }
         return
         [
-            new PageTable([supply, mega], [["supply", "mega"]]),
+            new PageTable([supply], [["supply"]]),
             new PageTable(side, [["goods", "detail"], lower.Select(s => s.Key).ToList()]),
         ];
     }
@@ -72,6 +71,8 @@ public partial class ProductionPage : UserControl
         SectionFit.Attach(RegionsSection, RegionsBody);
         SectionFit.Attach(LaborSection, LaborTable);
         SectionFit.Attach(EquipSection, EquipTable);
+        // 州別の工場は自前の行の並び＝行の下端を欄へ教え、最後の行が半分で切れないようにする
+        RegionsRows.RowControls = () => RegionsList.ItemsPanelRoot?.Children ?? (IEnumerable<Control>)System.Array.Empty<Control>();
         // 財の表の行を押す＝その財を選ぶ（盤の財を押したのと同じ動詞）
         GoodsTable.RowActivated += key => { if (_vm is not null && int.TryParse(key, out int gid)) _vm.SelectProdGood(gid); };
         // 盤は視野の幅に追従する（分割の枠の幅に合わせて並べ直す）
@@ -107,8 +108,6 @@ public partial class ProductionPage : UserControl
         var home = wide ? SideGrid : MainGrid;
         foreach (var s in sideSections)
             if (!ReferenceEquals(s.Parent, home)) { (s.Parent as Panel)?.Children.Remove(s); home.Children.Add(s); }
-        var megaHome = full ? SideGrid : MainGrid;   // 巨大建造物は全面のとき右の列の最後（盤の高さを取らない）
-        if (!ReferenceEquals(MegaSection.Parent, megaHome)) { (MegaSection.Parent as Panel)?.Children.Remove(MegaSection); megaHome.Children.Add(MegaSection); }
         EquipSection.IsVisible = equipment;
         var plans = BuildPlans(wide, equipment, full);
         MainGrid.Table = plans[0];
