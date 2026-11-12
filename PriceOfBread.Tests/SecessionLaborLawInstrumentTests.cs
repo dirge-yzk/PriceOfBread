@@ -284,6 +284,7 @@ public class SecessionLaborLawInstrumentTests
         Assert.All(countOnlyRows, r => Assert.True(CostLedger.UnitMicros[r] == 0.0, $"件数だけの行 {r} の単価が 0 でない（単価つきの行は集合に入れない）"));   // 単価 0 が設計（ZeroPopSkipTests が 0.0 を確かめる）
         var checkedRows = Enumerable.Range(0, CostLedger.Count).Where(r => !countOnlyRows.Contains(r)).ToList();
         Assert.Equal(CostLedger.Count - 10, checkedRows.Count);   // 検査した行の数
+        Assert.True(checkedRows.Count >= 31, "単価つきの行が 31 本を割った（今日の単価つきの行は 0〜30 の 31 本＝下限）");   // 独立の下限（集合を広げて検査を縮める誤りを拾う・行を足す線は直さなくてよい）
         Assert.All(checkedRows, r => Assert.True(CostLedger.UnitMicros[r] > 0 && double.IsFinite(CostLedger.UnitMicros[r]), $"単価が 0 以下か有限でない行がある（行 {r}）"));
         var (dir, sim) = Run(8);
         try

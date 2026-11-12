@@ -77,10 +77,10 @@ if __name__ == '__main__':
     r = check(m8, cfg); print('MU8 git の失敗を空の差と読む：' + ('赤を確認（' + str(len(r)) + ' 件）' if r else '緑のまま（穴）')); ok &= bool(r)
     m4 = load(os.path.join(HERE, 'stage.py'), 'stage4'); m4.STAGE2_RX = [x for x in m4.STAGE2_RX if 'Instruments[^/]' not in x]
     r = check(m4, cfg); print('MU4 段 2 の条件から Instruments*.cs を外す：' + ('赤を確認（' + str(len(r)) + ' 件）' if r else '緑のまま（穴）')); ok &= bool(r)
-    m1 = load(os.path.join(HERE, 'stage.py'), 'stage1'); _c1 = m1.changed_files; m1.changed_files = lambda t, bs: [f for f in (_c1(t, bs) or []) if not f.endswith('ident.cfg')]
-    r = check(m1, cfg); print('MU1 ident.cfg を丸ごと外す：' + ('赤を確認（' + str(len(r)) + ' 件）' if r else '緑のまま（穴）')); ok &= bool(r)
+    m1 = load(os.path.join(HERE, 'stage.py'), 'stage1'); _c1 = m1.changed_files; m1.changed_files = lambda t, bs: (lambda r: None if r is None else [f for f in r if not f.endswith('ident.cfg')])(_c1(t, bs))
+    r = check(m1, cfg); print('MU1 ident.cfg を丸ごと外す：' + ('赤を確認（' + str(len(r)) + ' 件）' + ' / '.join(x[:40] for x in r) if r else '緑のまま（穴）')); ok &= bool(r)
     m2 = load(os.path.join(HERE, 'stage.py'), 'stage2'); m2.BASELINE_KEYS = m2.BASELINE_KEYS + ('SMALL',)
-    r = check(m2, cfg); print('MU2 基準の鍵の一覧に SMALL を混ぜる：' + ('赤を確認（' + str(len(r)) + ' 件）' if r else '緑のまま（穴）')); ok &= bool(r)
+    r = check(m2, cfg); print('MU2 基準の鍵の一覧に SMALL を混ぜる：' + ('赤を確認（' + str(len(r)) + ' 件）' + ' / '.join(x[:40] for x in r) if r else '緑のまま（穴）')); ok &= bool(r)
     lines = [(l.replace('nation_s,', '').replace(',nation_s', '') if l.startswith('SMALL=') else l) for l in cfg.splitlines()]
     r = check(st, '\n'.join(lines)); print('MU5 SMALL から nation_s を落とす：' + ('赤を確認（' + str(len(r)) + ' 件）' if r else '緑のまま（穴）')); ok &= bool(r)
     sys.exit(0 if ok else 1)
