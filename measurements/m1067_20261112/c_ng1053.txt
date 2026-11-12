@@ -1,0 +1,31 @@
+post fin アメリカ 1940-1950 軍÷GDP
+straddle fin イギリス 1910-1919 借入÷GDP
+straddle fin イギリス 1910-1919 国債÷GDP
+post fin イギリス 1920-1929 国債÷GDP
+post fin イギリス 1930-1939 国債÷GDP
+post fin イギリス 1940-1950 借入÷GDP
+post fin イギリス 1940-1950 国債÷GDP
+post fin イギリス 1940-1950 軍÷GDP
+straddle fin オーストリア 1910-1919 軍÷GDP
+straddle fin フランス 1910-1919 借入÷GDP
+straddle fin フランス 1910-1919 国債÷GDP
+straddle fin フランス 1910-1919 軍÷GDP
+straddle fin プロイセン 1910-1919 借入÷GDP
+straddle fin プロイセン 1910-1919 軍÷GDP
+post fin プロイセン 1940-1950 軍÷GDP
+straddle fin ロシア 1910-1919 軍÷GDP
+post fin ロシア 1940-1950 軍÷GDP
+post fin 日本 1940-1950 借入÷GDP
+post fin 日本 1940-1950 国債÷GDP
+post fin 日本 1940-1950 軍÷GDP
+none hist171 プロイセン 兵士÷人口
+post law アメリカ 1944
+post law イギリス 1944
+post law 日本 1914
+post law 日本 1934
+post law 日本 1944
+post law 清 1934
+post law 清 1944
+post wardead 1940年代
+none warlaw オスマン
+## m1053 の NG 97 件の内訳（種類, 区分）: {('fin', 'post'): 11, ('fin', 'pre'): 9, ('fin', 'straddle'): 9, ('hist171', 'none'): 1, ('law', 'post'): 7, ('law', 'pre'): 18, ('navy', 'pre'): 18, ('rail', 'pre'): 7, ('steam', 'pre'): 12, ('trade', 'pre'): 2, ('wardead', 'post'): 1, ('wardead', 'pre'): 1, ('warlaw', 'none'): 1}

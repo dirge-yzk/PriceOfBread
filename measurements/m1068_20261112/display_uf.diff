@@ -1,0 +1,1398 @@
+diff --git a/PriceOfBread.SimCore/Display/DiscoveryTables.cs b/PriceOfBread.SimCore/Display/DiscoveryTables.cs
+index 32a444907..de41f613f 100644
+--- a/PriceOfBread.SimCore/Display/DiscoveryTables.cs
++++ b/PriceOfBread.SimCore/Display/DiscoveryTables.cs
+@@ -1,8 +1,8 @@
+ namespace PriceOfBread.SimCore.Display;
+ 
+ /// <summary>発見の表の 1 行（政府・思想・技術のどれか）。<see cref="Fraction"/>＝解禁済みは 1・まだの行は点数（技術力＋必要性＋伝わり）÷門。
+-/// 3 項はまだの行だけ（解禁済みは NaN＝「—」）。<see cref="Era"/>＝年代の文字（無ければ空）。</summary>
+-public sealed record DiscoveryLine(string Key, string Group, string Name, double Fraction, double Tech, double Need, double Transmit, string Era, double Decade);
++/// 3 項はまだの行だけ（解禁済みは NaN＝「—」）。<see cref="Era"/>＝年代の文字（無ければ空）。<see cref="State"/>＝制度の行（政府の群）の施行か未施行（発見の 2 値と同じ物・他の行は空）。</summary>
++public sealed record DiscoveryLine(string Key, string Group, string Name, double Fraction, double Tech, double Need, double Transmit, string Era, double Decade, string State = "");
+ 
+ /// <summary>産地の発見の表の 1 行（大鉱床・植林）。2 項（技術力・必要性）。</summary>
+ public sealed record SiteLine(string Key, string Region, string Name, double Fraction, double Tech, double Need, string Era, double Decade);
+@@ -36,29 +36,41 @@ public static class DiscoveryTables
+             double s = known ? 1.0 : Math.Clamp(tm.Score / Discovery.GateScore, 0, 1);
+             if (!(s >= 0)) s = 0;
+             string group = d.Field == DiscoveryField.Institution ? Groups[0] : d.Field == DiscoveryField.Idea ? Groups[1] : Groups[2];
+-            var line = new DiscoveryLine("row." + row, group, d.Name, s, known ? double.NaN : tm.Tech, known ? double.NaN : tm.Need, known ? double.NaN : tm.Transmit, $"{d.Decade}年代", d.Decade);
++            var line = new DiscoveryLine("row." + row, group, d.Name, s, known ? double.NaN : tm.Tech, known ? double.NaN : tm.Need, known ? double.NaN : tm.Transmit, $"{d.Decade}年代", d.Decade, group == Groups[0] ? (known ? "施行" : "未施行") : "");
+             (group == Groups[0] ? gov : group == Groups[1] ? ideo : tech).Add(line);
+-        }
+-        // 財に紐づかない世界のゲート：電信・鉄道・汽船＝報せの速さ（News の距離ラグが読む世界技術のランプ＝TransportRevolutionOnset/Span）
+-        if (c.TransportRevolutionSpan > 0)
+-        {
+-            double tr = 0.0;   // ★(613) 段4（旗 EraOff は (843) で焼き込み）：前線の技術水準のランプを読まない
+-            tech.Add(new DiscoveryLine("transport", Groups[2], "報せの速さ", tr, double.NaN, double.NaN, double.NaN, "", c.TransportRevolutionOnset));
++            // 鉄道の施行は「機関車」の行の 2 値（World.Railways と同じ物）＝政府の群へ制度の行として並べる（制度の表を吸収した時に画面から消えていた・V16）
++            if (row == Discovery.LocomotiveRow)
++                gov.Add(line with { Key = "rail", Group = Groups[0], Name = "鉄道", State = known ? "施行" : "未施行" });
+         }
+         gov.Sort(ByGate); ideo.Sort(ByGate); tech.Sort(ByGate);
+         return gov.Concat(ideo).Concat(tech).ToList();
+     }
+ 
+-    /// <summary>発見の表（種類＝政府・思想・技術の群・割合・技術力・必要性・伝わり・年代）。</summary>
+-    public static Table<DiscoveryLine> Discoveries { get; } = new("discovery.rows", "発見", Page.Discovery, (_, w) => DiscoveryLines(w), l => l.Key, l => l.Name,
++    /// <summary>棒の色（技術力・必要性・伝わり）。数の列の文字も同じ色＝棒の凡例を兼ねる。</summary>
++    public const string TechInk = "#2F6EA5", NeedInk = "#A8862B", TransmitInk = "#1E7A3E", KnownInk = "#6E6250";
++
++    /// <summary>発見の棒＝入れ物 100（<see cref="Discovery.GateScore"/>）に技術力・必要性・伝わりを積む。満ちれば解禁。解禁済みは入れ物いっぱいの 1 色。</summary>
++    private static BarCell DiscoveryBar(double fraction, double tech, double need, double transmit)
++        => double.IsNaN(tech) ? new BarCell([(fraction * Discovery.GateScore, KnownInk)], Discovery.GateScore)
++                              : new BarCell([(tech, TechInk), (need, NeedInk), (double.IsNaN(transmit) ? 0 : transmit, TransmitInk)], Discovery.GateScore);
++
++    private static IReadOnlyList<Column<DiscoveryLine>> DiscoveryColumns { get; } =
+     [
+         Col.Text<DiscoveryLine>("name", "名前", l => l.Name),
+-        Col.Number<DiscoveryLine>("fraction", "割合", Unit.Share, l => l.Fraction),
+-        Col.Number<DiscoveryLine>("tech", "技術力", Unit.Count, l => l.Tech),
+-        Col.Number<DiscoveryLine>("need", "必要性", Unit.Count, l => l.Need),
+-        Col.Number<DiscoveryLine>("transmit", "伝わり", Unit.Count, l => l.Transmit),
++        Col.Bar<DiscoveryLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, l.Transmit)),
++        Col.Number<DiscoveryLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
++        Col.Number<DiscoveryLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
++        Col.Number<DiscoveryLine>("transmit", "伝播", Unit.Count, l => l.Transmit, ink: _ => TransmitInk),
+         Col.Text<DiscoveryLine>("era", "年代", l => l.Era),
+-    ], l => l.Group);
++    ];
++
++    /// <summary>発見の表・技術（2026-11-11 作者指示：棒＝100 の入れ物に技術力・必要性・伝わりを塗り分け。2 段組みの左）。</summary>
++    public static Table<DiscoveryLine> Discoveries { get; } = new("discovery.rows", "技術", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group == Groups[2]).ToList(), l => l.Key, l => l.Name,
++        DiscoveryColumns);
++
++    /// <summary>発見の表・政府と思想（2 段組みの右）。政府の行（特許・株式会社）は制度の施行か未施行を「状態」の列に持つ。</summary>
++    public static Table<DiscoveryLine> SocialDiscoveries { get; } = new("discovery.social", "政府と思想", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group != Groups[2]).ToList(), l => l.Key, l => l.Name,
++        [.. DiscoveryColumns, Col.Text<DiscoveryLine>("state", "状態", l => l.State)], l => l.Group);
+ 
+     /// <summary>産地の発見の行（自国の稼働中の州にある大鉱床と植林）。見つかった産地は 100%・まだの産地は点数（技術力＋必要性）の割合。値はエンジンが判定に読む同じ関数（国の中で 1 度の採点）。</summary>
+     public static IReadOnlyList<SiteLine> SiteLines(World w)
+@@ -90,14 +102,14 @@ public static class DiscoveryTables
+         return lines.OrderByDescending(l => l.Fraction).ThenBy(l => l.Decade).ThenBy(l => l.Name, StringComparer.Ordinal).ThenBy(l => l.Region, StringComparer.Ordinal).ToList();
+     }
+ 
+-    /// <summary>産地の表（州名・産地・割合・技術力・必要性・年代）。</summary>
++    /// <summary>産地の表（州名・産地・棒・技術力・必要性・年代）。</summary>
+     public static Table<SiteLine> Sites { get; } = new("discovery.sites", "産地", Page.Discovery, (_, w) => SiteLines(w), l => l.Key, l => l.Name,
+     [
+         Col.Text<SiteLine>("region", "州名", l => l.Region),
+         Col.Text<SiteLine>("name", "名前", l => l.Name),
+-        Col.Number<SiteLine>("fraction", "割合", Unit.Share, l => l.Fraction),
+-        Col.Number<SiteLine>("tech", "技術力", Unit.Count, l => l.Tech),
+-        Col.Number<SiteLine>("need", "必要性", Unit.Count, l => l.Need),
++        Col.Bar<SiteLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, 0)),
++        Col.Number<SiteLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
++        Col.Number<SiteLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
+         Col.Text<SiteLine>("era", "年代", l => l.Era),
+     ]);
+ }
+diff --git a/PriceOfBread.SimCore/Display/DisplayFormat.cs b/PriceOfBread.SimCore/Display/DisplayFormat.cs
+index 73984ab3c..78260e784 100644
+--- a/PriceOfBread.SimCore/Display/DisplayFormat.cs
++++ b/PriceOfBread.SimCore/Display/DisplayFormat.cs
+@@ -1,19 +1,101 @@
+ namespace PriceOfBread.SimCore.Display;
+ 
+-/// <summary>画面の文字にする書式のうち、本体の目録の側で吹き出しの文を組むのに要る 2 本（金額と人数）。
+-/// 画面の書式の 1 本（App の Fmt）はこの 2 本を呼ぶ＝同じ書式を 2 か所に書かない。文字と読み口だけ（盤面に書かない・状態を持たない）。</summary>
++/// <summary>画面の文字にする書式のうち、本体の目録の側で文を組むのに要る物（金額・人数と量・符号つきの割合）。
++/// 画面の書式の 1 本（App の Fmt）はこれを呼ぶ＝同じ書式を 2 か所に書かない。文字と読み口だけ（盤面に書かない・状態を持たない）。
++/// 人数と量は <see cref="Amount"/> の 1 本（k・M・有効数字 3 桁）。負号は全て「−」（U+2212）。</summary>
+ public static class DisplayFormat
+ {
+     /// <summary>金額の書式。1000 未満は素のポンド・1 万未満は小数 1 桁の k・1 万以上は小数なしの k・100 万以上は M。</summary>
+     public static string Money(double v)
+     {
+-        double a = System.Math.Abs(v); string sign = v < 0 ? "-" : "";
++        double a = System.Math.Abs(v); string sign = v < 0 && a >= 0.5 ? Minus : "";   // 丸めて £0 になる負は符号なし（A7）
+         if (a >= 1e6) return $"{sign}£{a / 1e6:F2}M";
+         if (a >= 1e4) return $"{sign}£{a / 1e3:F0}k";
+         if (a >= 1e3) return $"{sign}£{a / 1e3:F1}k";
+         return $"{sign}£{a:N0}";
+     }
+ 
+-    /// <summary>人数（千人単位）の書式＝桁区切りの K（5,430K）。</summary>
+-    public static string PopK(double thousands) => thousands.ToString("N0") + "K";
++    /// <summary>有効数字 3 桁の金額（£15.3k・£7.18k・£3.31M）。1000 未満は <see cref="Money"/> と同じ。欄の見出しの合計どうしを引き算で突き合わせられる桁（2 回目の目の点検 W14）。</summary>
++    public static string MoneyFine(double v)
++    {
++        double a = System.Math.Abs(v);
++        if (!(a >= 1e3) || !(a < double.MaxValue)) return Money(v);
++        return (v < 0 ? Minus : "") + "£" + Amount(a);
++    }
++
++    /// <summary>負号（U+2212）。画面の負号はこの 1 字に揃える。</summary>
++    public const string Minus = "−";
++
++    /// <summary>数でない値（NaN・無限）の表示。</summary>
++    public const string NoValue = "—";
++
++    /// <summary>人数に付ける語。空なら付けない（前の名前が何の数かを言う）。付けるならここ 1 か所を書き換える（「人」）。</summary>
++    public const string PersonSuffix = "";
++
++    /// <summary>人数と量の書式（実数を受ける）。小文字の k・大文字の M・有効数字 3 桁（789・45.6k・6.82M）。
++    /// 丸めてから単位を決める（999.6 は 1.00k・999.6k は 1.00M）。丸めて 0 になる値は符号なしの「0」・数でない値は「—」。負号は「−」。</summary>
++    public static string Amount(double v)
++    {
++        if (!(v > double.MinValue && v < double.MaxValue)) return NoValue;
++        double a = System.Math.Abs(v);
++        if (!(a >= 0.0005)) return "0";
++        string sign = v < 0 ? Minus : "";
++        if (a < 1000)
++        {
++            double r = Sig3(a);
++            if (r < 1000) return sign + r.ToString(Decimals(r), System.Globalization.CultureInfo.InvariantCulture);
++            a = r;   // 999.6 → 1000 → 1.00k
++        }
++        if (a < 1e6)
++        {
++            double r = Sig3(a / 1e3);
++            if (r < 1000) return sign + r.ToString(Decimals(r), System.Globalization.CultureInfo.InvariantCulture) + "k";
++            a = r * 1e3;   // 999.6k → 1.00M
++        }
++        double m = Sig3(a / 1e6);
++        return sign + m.ToString(Decimals(m), System.Globalization.CultureInfo.InvariantCulture) + "M";
++    }
++
++    /// <summary>人数（千人単位）の書式＝<see cref="Amount"/>（k・M・3 桁）に <see cref="PersonSuffix"/>。</summary>
++    public static string PopK(double thousands)
++    {
++        string s = Amount(thousands * 1000.0);
++        return s == NoValue ? s : s + PersonSuffix;
++    }
++
++    /// <summary>割合（0〜1）の書式。整数のパーセント・0.05% 以上 0.5% 未満は小数 1 桁（丸めて 0% にしない）・丸めても 0 なら「0%」・数でない値は「—」。</summary>
++    public static string Share(double v)
++    {
++        if (!(v > double.MinValue && v < double.MaxValue)) return NoValue;
++        double a = System.Math.Abs(v);
++        int digits = a >= 0.0005 && a < 0.005 ? 1 : 0;
++        double p = System.Math.Round(v * 100.0, digits, System.MidpointRounding.AwayFromZero);
++        return (p < 0 ? Minus : "") + System.Math.Abs(p).ToString(digits == 0 ? "0" : "F1", System.Globalization.CultureInfo.InvariantCulture) + "%";
++    }
++
++    /// <summary>専用の値型の割合（<see cref="Share(double)"/> と同じ）。</summary>
++    public static string Share<T>(T v) where T : struct, IUnitValue => Share(v.Value);
++
++    /// <summary>符号つきの割合（0.05 → +5%）。<paramref name="digits"/> 桁に丸めてから符号を決める（丸めて 0 になる値は符号なしの 0）。
++    /// 書式文字列の "+0%;-0%" は負の零を "-+0%" にするので使わない。</summary>
++    public static string SignedPercent(double v, int digits = 0)
++    {
++        if (!(v > double.MinValue && v < double.MaxValue)) return NoValue;
++        double p = System.Math.Round(v * 100.0, digits, System.MidpointRounding.AwayFromZero);
++        string body = System.Math.Abs(p).ToString(digits == 0 ? "0" : "F" + digits, System.Globalization.CultureInfo.InvariantCulture) + "%";
++        return p > 0 ? "+" + body : p < 0 ? Minus + body : body;
++    }
++
++    /// <summary>有効数字 3 桁に丸める（桁は値の大きさで決める）。</summary>
++    private static double Sig3(double a)
++    {
++        int d = 2 - (int)System.Math.Floor(System.Math.Log10(a));
++        if (d < 0) return System.Math.Round(a, 0, System.MidpointRounding.AwayFromZero);
++        d = System.Math.Min(d, 15);
++        double r = System.Math.Round(a, d, System.MidpointRounding.AwayFromZero);
++        return r;
++    }
++
++    /// <summary>丸めた後の値に合う小数の桁（1 未満は 3 桁・10 未満は 2 桁・100 未満は 1 桁・以上は 0）。</summary>
++    private static string Decimals(double r) => r < 1 ? "0.###" : r < 10 ? "0.00" : r < 100 ? "0.0" : "0";
+ }
+diff --git a/PriceOfBread.SimCore/Display/FiscalCatalog.cs b/PriceOfBread.SimCore/Display/FiscalCatalog.cs
+index fd053724e..492abcd67 100644
+--- a/PriceOfBread.SimCore/Display/FiscalCatalog.cs
++++ b/PriceOfBread.SimCore/Display/FiscalCatalog.cs
+@@ -27,7 +27,7 @@ public static class FiscalCatalog
+         I(TreasuryCat.TributeIn, "貢納の受取", FiscalSide.Income), I(TreasuryCat.OtherIn, "その他の収入", FiscalSide.Income),
+         I(TreasuryCat.Army, "陸軍", FiscalSide.Outlay), I(TreasuryCat.Navy, "海軍", FiscalSide.Outlay),
+         I(TreasuryCat.Admin, "行政", FiscalSide.Outlay), I(TreasuryCat.Education, "教育", FiscalSide.Outlay),
+-        I(TreasuryCat.Welfare, "社会保障", FiscalSide.Outlay), I(TreasuryCat.Pension, "年金", FiscalSide.Outlay),
++        I(TreasuryCat.Welfare, "社会保障", FiscalSide.Outlay), I(TreasuryCat.Pension, "年金の給付", FiscalSide.Outlay),
+         I(TreasuryCat.Modernization, "近代化投資", FiscalSide.Outlay), I(TreasuryCat.AntiCorruption, "汚職の根絶", FiscalSide.Outlay),
+         I(TreasuryCat.Interest, "国債の利払い", FiscalSide.Outlay), I(TreasuryCat.DebtRepay, "国債の償還", FiscalSide.Outlay),
+         I(TreasuryCat.FactoryBuild, "工場の建設", FiscalSide.Outlay), I(TreasuryCat.Subsidy, "補助金", FiscalSide.Outlay),
+diff --git a/PriceOfBread.SimCore/Display/FiscalTables.cs b/PriceOfBread.SimCore/Display/FiscalTables.cs
+index c6de466cf..1487cb1c6 100644
+--- a/PriceOfBread.SimCore/Display/FiscalTables.cs
++++ b/PriceOfBread.SimCore/Display/FiscalTables.cs
+@@ -9,8 +9,9 @@ public sealed record FiscalFlows(double EduMonthly, double StateMonopolyMonthly,
+ 
+ /// <summary>予算の表の 1 行（支出か収入の 1 項）。<see cref="Forecast"/>＝予測（目標の段ベース）・<see cref="Actual"/>＝実効（今いま実際に流れている額）。
+ /// <see cref="Stage"/>＝その項の段の押し釦（無ければ <see cref="StageCell.None"/>）。<see cref="Tip"/>＝項の名前にカーソルを合わせた時の文。
+-/// <see cref="NoForecast"/>＝予測を出さない項（実績だけの項）。<see cref="NoAmounts"/>＝金額を出さない項（段だけの項）。</summary>
+-public sealed record BudgetLine(string Key, string Name, double Forecast, double Actual, StageCell Stage, string? Tip, bool NoForecast = false, bool NoAmounts = false);
++/// <see cref="NoForecast"/>＝予測を出さない項（実績だけの項）。<see cref="NoAmounts"/>＝金額を出さない項。
++/// <see cref="Child"/>＝上の行の内訳（陸軍と海軍は軍事費の内訳＝合計には足さない）。</summary>
++public sealed record BudgetLine(string Key, string Name, double Forecast, double Actual, StageCell Stage, string? Tip, bool NoForecast = false, bool NoAmounts = false, bool Child = false);
+ 
+ /// <summary>予算の予想（支出と収入の項・合計）。<see cref="FiscalTables.Budget"/> が盤面を読んで組む。</summary>
+ public sealed record BudgetResult(IReadOnlyList<BudgetLine> Spend, IReadOnlyList<BudgetLine> Income,
+@@ -19,11 +20,10 @@ public sealed record BudgetResult(IReadOnlyList<BudgetLine> Spend, IReadOnlyList
+     public static BudgetResult Empty { get; } = new([], [], 0, 0, 0, 0);
+     /// <summary>予測の収支（収入−支出）。</summary>
+     public double BalanceForecast => IncomeForecast - SpendForecast;
++    /// <summary>実績の収支（入った額−払った額）＝国庫の台帳の収支＝ヘッダーの国庫の月の増減。</summary>
++    public double BalanceActual => IncomeActual - SpendActual;
+ }
+ 
+-/// <summary>国庫の台帳の 1 行（区分の月の差分の絶対値と向き）。</summary>
+-public sealed record LedgerLine(string Key, string Name, double Amount, FiscalSide Side, bool Placeholder);
+-
+ /// <summary>金融の表の 1 行（名前・値の文字・段の押し釦）。</summary>
+ public sealed record FinanceLine(string Key, string Name, string Value, StageCell Stage, string? Tip);
+ 
+@@ -43,17 +43,29 @@ public static class FiscalTables
+ 
+     // ===== レバーの 5 段（法ではない 4 本＝行政費・近代化投資・関税・政策金利）=====
+ 
+-    /// <summary>レバーの 5 段。値＝そのレバー自身の下限と上限を 4 等分してエンジンの 0.05 格子へ乗せた 5 点。最上段だけ「最大」。
++    /// <summary>レバーの 5 段。値＝そのレバー自身の下限と上限を 4 等分してエンジンの 0.05 格子へ乗せた 5 点。最上段も数（B31）。
+     /// 現在段＝施行値・目標段＝目標値の写像（税の段と同じ）。新しい上限・下限は作らない。</summary>
+-    private static StageCell Lever(World w, string title, double lo, double hi, Func<double> cur, Func<double> tgt, Action<double> set)
++    /// <param name="names">段の名（5 個）。無ければ割合の文字（最上段だけ「最大」）。無次元の値を百分率で出さない行（政策金利）が渡す。</param>
++    /// <param name="offGridDark">真＝段の値の格子に乗らない値（開幕の近代化投資 8% など）は最寄りの段を光らせず、どの段も光らせない（−1）。</param>
++    private static StageCell Lever(World w, string title, double lo, double hi, Func<double> cur, Func<double> tgt, Action<double> set, string[]? names = null, bool offGridDark = false)
+     {
+         double Value(int k) => Government.Q5(lo + (hi - lo) * k / (double)LeverStages);
+-        int Stage(double v) => !(hi - lo > 1e-9) ? 0 : Math.Clamp((int)Math.Round((v - lo) / (hi - lo) * LeverStages, MidpointRounding.AwayFromZero), 0, LeverStages);   // 否定形＝NaN/退化した幅は最下段へ
++        int Nearest(double v) => !(hi - lo > 1e-9) ? 0 : Math.Clamp((int)Math.Round((v - lo) / (hi - lo) * LeverStages, MidpointRounding.AwayFromZero), 0, LeverStages);   // 否定形＝NaN/退化した幅は最下段へ
++        int Stage(double v) { int k = Nearest(v); return offGridDark && !(Math.Abs(v - Value(k)) < 1e-6) ? -1 : k; }
+         var labels = new string[LeverStages + 1];
+-        for (int i = 0; i < labels.Length; i++) labels[i] = i == LeverStages ? "最大" : Value(i).ToString("P0");
++        for (int i = 0; i < labels.Length; i++) labels[i] = names is not null ? names[i] : DisplayFormat.Share(Value(i));   // 割合の段は最後も数（行政費・近代化投資は 100%・関税は 75%）
+         return StageGate.Make(w, null, title, labels, 0, () => Stage(cur()), () => Stage(tgt()), v => set(Value(v)));
+     }
+ 
++    /// <summary>0〜1 の割合の 5 段（0・25・50・75・100%）の格子に乗らない値か（開幕の近代化投資 8% など）。乗らない値は段を光らせず、名に値を添える。</summary>
++    private static bool OffGrid(double v) => !(Math.Abs(v * LeverStages - Math.Round(v * LeverStages)) < 1e-6);
++
++    /// <summary>政策金利の 5 段の名（緩い方から）。</summary>
++    private static readonly string[] RateStageNames = ["大幅な緩和", "緩和", "中立", "引締め", "大幅な引締め"];
++
++    /// <summary>段の名（段の外は「—」）。</summary>
++    private static string StageName(StageCell st, int level) => level - st.LevelBase >= 0 && level - st.LevelBase < st.Labels.Count ? st.Labels[level - st.LevelBase] : DisplayFormat.NoValue;
++
+     private static StageCell FiscalStageOf(World w, string key) => StageGate.Of(w, FiscalCatalog.Stages.First(s => s.Key == key));
+ 
+     // ===== 予算（支出と収入）=====
+@@ -76,7 +88,6 @@ public static class FiscalTables
+         double tImpVal = w.LastImportValue / (double)c.MonthsPerClearing, tExpVal = w.LastExportValue / (double)c.MonthsPerClearing;
+         double TariffRev(double rate) => (rate >= 0 ? tImpVal : tExpVal) * rate;
+         double tariffGross = TariffRev(w.Policy.TariffTarget);
+-        double tariffActMonthly = w.LastTariffRevenuePerClearing / (double)c.MonthsPerClearing;
+         double interest = Calendar.PerYearToPerMonth(w.GovDebt.Value * w.GovBondRatePerYear.Value);
+         // 軍事費の器（段×器の割合×使える歳入＋戦時段の割合×借入の余地）から兵士の給与の請求を引いた残り＝装備の上限（エンジンの Military.EnvelopeAt と同じ 1 本）
+         double mil = Math.Max(0, Military.EnvelopeAt(w, c, Government.MilitaryTotalTarget(w, w.Policy)) - w.LastSoldierPayPerMonth.Value);
+@@ -87,19 +98,13 @@ public static class FiscalTables
+         double pen = Math.Min(c.PensionCostRatePerMonth * penLevel * oldSize, welCap);
+         double ind = Calendar.PerQuarterToPerMonth(w.ModernizationBudget());
+ 
+-        // 実効＝エンジンが予算表向けに書く実績診断（税は種類ごとの実際の税収・支出は当月の請求と国家の支払い率）
++        // 実績＝国庫の台帳の月の差分（実際に払った額・入った額）。税の 4 行だけは種類ごとの実際の税収（台帳では税収の 1 区分）
+         double aIncome = w.LastTaxIncomePerMonth.Value, aProg = w.LastTaxProgressivePerMonth.Value, aPoll = w.LastTaxPollPerMonth.Value, aLand = w.LastTaxLandPerMonth.Value;
+-        double netA = aIncome + aProg + aPoll + aLand;
+-        double aMilGoods = w.LastMilitaryClaimPerMonth.Value;
+-        double aSoldier = (w.LastSoldierPayPerMonth * w.FiscalFundingRatio).Value;   // 兵の給与＝請求×国家の支払い率 r＝陸軍の行だけ
+-        double aMil = aMilGoods + aSoldier;
+-        double aAdmin = w.LastAdminClaimPerMonth.Value;
+-        double aWel = (w.LastWelfareCostPerMonth * w.FiscalFundingRatio).Value;
+-        double aPen = (w.LastPensionCostPerMonth * w.FiscalFundingRatio).Value;
+-        double aInterest = w.LastInterestPerMonth.Value;
++        double Paid(TreasuryCat cat) => -LedgerOf(f, cat);   // 支出側の払った額（出る＝負なので反転）
++        double In(TreasuryCat cat) => LedgerOf(f, cat);      // 収入側の入った額
+ 
+-        double navShare = w.NavalSpendShare.Value;   // 陸海の配分はエンジン自身の 1 本（NavyUpkeep/(Army+Navy)）
+         double pSoldier = w.LastSoldierPayPerMonth.Value;
++        double navShare = w.NavalSpendShare.Value;   // 陸海の配分はエンジン自身の 1 本（NavyUpkeep/(Army+Navy)）
+         double colonialUp = (w.LastColonialUpkeepPerMonth * w.FiscalFundingRatio).Value;
+         double tribOut = Calendar.PerQuarterToPerMonth(w.LastTributeOutPerQuarter * w.FiscalFundingRatio.Value);
+         double tribIn = Calendar.PerQuarterToPerMonth(w.LastTributeInPerQuarter);
+@@ -108,32 +113,36 @@ public static class FiscalTables
+         {
+             var (trad, modern, mass) = InterestGroups.Blocs(w);
+             double tot = trad + modern + mass; double tradShare = tot > 1e-9 ? trad / tot : 0;
+-            indTip = $"旧体制の反対 -{Math.Min(1.0, c.ModernizationOldGuardResist * tradShare):P0}　旧支配層の政治力 {tradShare:P0}";
++            indTip = $"旧体制の反対 -{DisplayFormat.Share(Math.Min(1.0, c.ModernizationOldGuardResist * tradShare))}　旧支配層の政治力 {DisplayFormat.Share(tradShare)}";
+         }
+-        string adminTip = $"行政力　{w.AdminEfficiency:P0}\n行政費　目標 {w.Policy.AdminSpendingTarget:P0}　実効 {w.AdminSpending:P0}"
+-            + string.Concat(PlayText.ExplainTerms(w, "AdminEfficiency").Select(t => "\n" + PlayText.SignedLine(t.Delta, t.Reason, v => v.ToString("P0"))));
+-        string creditTip = $"外資信用　{w.CreditRating:P0}\n" + CreditLines(w);
+-        string Pair(double target, double eff) => $"目標 {target:P0}　実効 {eff:P0}";
++        string adminTip = $"行政力　{DisplayFormat.Share(w.AdminEfficiency)}\n行政費　目標 {DisplayFormat.Share(w.Policy.AdminSpendingTarget)}　実効 {DisplayFormat.Share(w.AdminSpending)}"
++            + string.Concat(PlayText.ExplainTerms(w, "AdminEfficiency").Select(t => "\n" + PlayText.SignedLine(t.Delta, t.Reason, v => DisplayFormat.Share(v))));
++        string Pair(double target, double eff) => $"目標 {DisplayFormat.Share(target)}　実効 {DisplayFormat.Share(eff)}";
+ 
+-        BudgetLine Line(string key, string name, double fc, double ac, StageCell? st = null, string? tip = null, bool noFc = false, bool noAmounts = false)
+-            => new(key, name, fc, ac, st ?? StageCell.None, tip, noFc, noAmounts);
++        BudgetLine Line(string key, string name, double fc, double ac, StageCell? st = null, string? tip = null, bool noFc = false, bool noAmounts = false, bool child = false)
++            => new(key, name, fc, ac, st ?? StageCell.None, tip, noFc, noAmounts, child);
+ 
+         var spend = new List<BudgetLine>
+         {
+-            Line("army", "陸軍維持費", mil * (1 - navShare) + pSoldier, aMilGoods * (1 - navShare) + aSoldier, tip: Pair(w.Policy.ArmyUpkeepTarget, w.ArmyUpkeep.Value)),
+-            Line("navy", "海軍維持費", mil * navShare, aMilGoods * navShare, tip: Pair(w.Policy.NavyUpkeepTarget, w.NavyUpkeep.Value)),
+-            // 軍事費の段は合計だけに掛かる（陸海の 2 行は地理が決めた比で合計が割れた結果）＝金額は上の 2 行が名乗る
+-            Line("military", "軍事費", 0, 0, FiscalStageOf(w, nameof(NationPolicy.MilitarySpendingTarget)), noAmounts: true),
+-            Line("admin", "行政費", admin, aAdmin, Lever(w, "行政費", 0, 1, () => w.AdminSpending, () => w.Policy.AdminSpendingTarget, v => w.Policy.AdminSpendingTarget = v), adminTip),
+-            Line("education", "教育費", f.EduMonthly, f.EduMonthly, FiscalStageOf(w, nameof(NationPolicy.EducationSpendingTarget)), PlayText.EducationSpendingText(w)),
+-            Line("welfare", "社会保障", wel, aWel, StageGate.Of(w, LawCatalog.In(LawSlot.Welfare).First()), Pair(w.Policy.SocialSecurityTarget, w.SocialSecurity)),
+-            Line("modernization", "近代化投資", ind, ind, Lever(w, "近代化投資", 0, 1, () => w.ModernizationFrac, () => w.ModernizationFrac, v => w.ModernizationFrac = v), indTip),
+-            Line("interest", "国債の利払い", interest, aInterest),
+-            Line("pension", "年金", pen, aPen),
++            // 軍事費の段は合計だけに掛かる＝段と合計の額を 1 行に置く。陸海の 2 行は地理が決めた比で合計が割れた結果＝その内訳（合計には足さない）
++            Line("military", "軍事費", mil + pSoldier, Paid(TreasuryCat.Army) + Paid(TreasuryCat.Navy), FiscalStageOf(w, nameof(NationPolicy.MilitarySpendingTarget))),
++            Line("army", "うち陸軍維持費", mil * (1 - navShare) + pSoldier, Paid(TreasuryCat.Army), tip: Pair(w.Policy.ArmyUpkeepTarget, w.ArmyUpkeep.Value), child: true),
++            Line("navy", "うち海軍維持費", mil * navShare, Paid(TreasuryCat.Navy), tip: Pair(w.Policy.NavyUpkeepTarget, w.NavyUpkeep.Value), child: true),
++            Line("admin", "行政費", admin, Paid(TreasuryCat.Admin), Lever(w, "行政費", 0, 1, () => w.AdminSpending, () => w.Policy.AdminSpendingTarget, v => w.Policy.AdminSpendingTarget = v), adminTip),
++            Line("education", "教育費", f.EduMonthly, Paid(TreasuryCat.Education), FiscalStageOf(w, nameof(NationPolicy.EducationSpendingTarget)), PlayText.EducationSpendingText(w)),
++            Line("welfare", "社会保障", wel, Paid(TreasuryCat.Welfare), StageGate.Of(w, LawCatalog.In(LawSlot.Welfare).First()), Pair(w.Policy.SocialSecurityTarget, w.SocialSecurity)),
++            // 開幕の 8% は段の格子（0・25・50・75・最大）に乗らない＝どの段も光らせず、ホバーに目標と実効の本当の値を出す
++            Line("modernization", OffGrid(w.ModernizationFrac) ? $"近代化投資 {DisplayFormat.Share(w.ModernizationFrac)}" : "近代化投資", ind, Paid(TreasuryCat.Modernization), Lever(w, "近代化投資", 0, 1, () => w.ModernizationFrac, () => w.ModernizationFrac, v => w.ModernizationFrac = v, offGridDark: true), indTip + "\n" + Pair(w.ModernizationFrac, w.ModernizationFrac)),
++            Line("interest", "国債の利払い", interest, Paid(TreasuryCat.Interest)),
++            Line("pension", "年金の給付", pen, Paid(TreasuryCat.Pension)),
+         };
+-        if (colonialUp > 1e-9) spend.Add(Line("colonial", "植民地の維持", 0, colonialUp, noFc: true));
+-        if (tribOut > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", 0, tribOut, noFc: true));
+-        spend.Add(Line("foreignOut", "外資の流出", 0, f.ForeignOutMonthly, noFc: true));
++        // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
++        if (colonialUp > 1e-9 || Paid(TreasuryCat.ColonialUpkeep) > 1e-9) spend.Add(Line("colonial", "植民地の維持", colonialUp, Paid(TreasuryCat.ColonialUpkeep)));   // 予測の列も出す＝見出しの予測は見える行の和（V1）
++        if (tribOut > 1e-9 || Paid(TreasuryCat.TributeOut) > 1e-9) spend.Add(Line("tributeOut", "宗主への貢納", tribOut, Paid(TreasuryCat.TributeOut)));
++        // 国債の元本の出入り（2026-11-11 作者指示「国債の支払いなどもここに入れる」）＝国庫の台帳の実績（月の差分）をそのまま読む
++        double repay = Paid(TreasuryCat.DebtRepay), borrow = In(TreasuryCat.Borrow);
++        spend.Add(Line("debtRepay", "国債の償還", 0, Math.Max(0, repay), noFc: true));   // 起債と対で常に出す（B30）
++        // 民間の外資の流れ（流入・流出）は国庫に入らない＝この表には置かない（国債と外資信用の表へ・V1）
+ 
+         var income = new List<BudgetLine>
+         {
+@@ -142,70 +151,90 @@ public static class FiscalTables
+             Line("pollTax", "人頭税", gPoll, aPoll, FiscalStageOf(w, nameof(NationPolicy.PollTaxTarget)), Pair(w.Policy.PollTaxTarget, w.PollTax)),
+             Line("landTax", "土地税", gLand, aLand, FiscalStageOf(w, nameof(NationPolicy.LandTaxTarget)), Pair(w.Policy.LandTaxTarget, w.LandTax)),
+             // 専売に率のレバーは無い（材を選ぶのみ＝生産ページの財ごと）。ここは対象の広さ・実効率・実績
+-            Line("monopoly", "専売", f.StateMonopolyMonthly, f.StateMonopolyMonthly, tip: $"負担 {w.StateMonopolyBreadth:P0}　実効 {w.StateMonopolyBreadth * c.StateMonopolyMargin:P0}"),
+-            Line("tariff", "関税", tariffGross, tariffActMonthly,
++            Line("monopoly", "専売", f.StateMonopolyMonthly, In(TreasuryCat.StateMonopoly), tip: $"負担 {DisplayFormat.Share(w.StateMonopolyBreadth)}　実効 {DisplayFormat.Share(w.StateMonopolyBreadth * c.StateMonopolyMargin)}"),
++            Line("tariff", "関税", tariffGross, In(TreasuryCat.Tariff),
+                  Lever(w, "関税", c.TariffFloor, TariffCeil, () => w.Tariff, () => w.Policy.TariffTarget, v => w.Policy.TariffTarget = Math.Clamp(v, c.TariffFloor, TariffCeil)),
+                  Pair(w.Policy.TariffTarget, w.Tariff)),
+-            Line("foreignIn", "外資の流入", 0, f.ForeignInMonthly, tip: creditTip, noFc: true),
+         };
+-        if (tribIn > 1e-9) income.Add(Line("tributeIn", "属国からの貢納", tribIn, tribIn));
++        if (tribIn > 1e-9 || In(TreasuryCat.TributeIn) > 1e-9) income.Add(Line("tributeIn", "属国からの貢納", tribIn, In(TreasuryCat.TributeIn)));
++        income.Add(Line("debtBorrow", "国債の起債", 0, Math.Max(0, borrow), noFc: true));   // 償還と対で常に出す・外資の流入（民間）とは別の量（B30）
++
++        // 台帳の区分のうち上の行に属さない物（工場の建設・補助金・戦費など）は、0 でない時だけ行を足す＝実績の合計が台帳と同じ物を数える
++        var covered = new HashSet<TreasuryCat> { TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.Admin, TreasuryCat.Education, TreasuryCat.Welfare, TreasuryCat.Modernization, TreasuryCat.Interest,
++            TreasuryCat.Pension, TreasuryCat.ColonialUpkeep, TreasuryCat.TributeOut, TreasuryCat.DebtRepay, TreasuryCat.Tax, TreasuryCat.StateMonopoly, TreasuryCat.Tariff, TreasuryCat.TributeIn, TreasuryCat.Borrow };
++        foreach (var item in FiscalCatalog.Items)
++        {
++            if (covered.Contains(item.Cat)) continue;
++            double d = LedgerOf(f, item.Cat);
++            if (!(Math.Abs(d) >= 50.0)) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない（下の「その他」へ畳む）
++            if (item.Cat == TreasuryCat.WarCost && d > 0) income.Add(Line("reparationsIn", "賠償の受け取り", 0, d, noFc: true));   // 賠償を受け取った月は戦費の区分が正＝収入の側の行にする（戦費の行は払った額だけ）
++            else if (item.Side == FiscalSide.Outlay) spend.Add(Line("cat." + item.Cat, item.Name, 0, -d, noFc: true));
++            else income.Add(Line("cat." + item.Cat, item.Name, 0, d, noFc: true));
++        }
++
++        // 行にしなかった小さい区分と税の 4 行の食い違いは、台帳の収支との差として側ごとに「その他」へ畳む＝実績の合計の差が国庫の収支（台帳）と厳密に一致する（V1）
++        double ActSum(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual);
++        double rest = LedgerBalance(f) - (ActSum(income) - ActSum(spend));
++        if (f.LedgerDiff.Any(x => x != 0) && rest >= 0.5) income.Add(Line("restIn", "その他", 0, rest, noFc: true));
++        else if (f.LedgerDiff.Any(x => x != 0) && rest <= -0.5) spend.Add(Line("restOut", "その他", 0, -rest, noFc: true));
++
++        // 四半期に 1 回だけ動く区分（貢納の出入り）は、台帳の月の差分では払った月に 3 か月分・他の月は 0 になる＝「/月」の列の単位に合わない。
++        //   行の実績は予測と同じ月あたり（直近の四半期の額÷3）で出し、均した分と実際の差は同じ側の「その他」が受ける
++        //   ＝側ごとの実績の合計は国庫の台帳の額のまま（ヘッダーの収支・上の「その他」の畳みと一致を保つ）。台帳がまだ立っていない（0 のまま）時は実際の額をそのまま出す。
++        if (f.LedgerDiff.Any(x => x != 0))
++        {
++            Smooth(spend, "tributeOut", "restOut", "cat.OtherOut", tribOut, Paid(TreasuryCat.TributeOut));
++            Smooth(income, "tributeIn", "restIn", "cat.OtherIn", tribIn, In(TreasuryCat.TributeIn));
++        }
++
++        double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child && !l.NoForecast).Sum(l => l.Forecast);
++        return new BudgetResult(spend, income, Fc(spend), ActSum(spend), Fc(income), ActSum(income));
++    }
+ 
+-        double spendTotal = interest + mil + pSoldier + admin + wel + pen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut;
+-        double revTotal = net + tariffGross + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn;
+-        double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + f.EduMonthly + f.ForeignOutMonthly + colonialUp + tribOut;
+-        double revActT = netA + tariffActMonthly + f.StateMonopolyMonthly + f.ForeignInMonthly + tribIn;
+-        return new BudgetResult(spend, income, spendTotal, spendActT, revTotal, revActT);
++    /// <summary>行 <paramref name="key"/> の実績を月あたりに均した額 <paramref name="avg"/> へ置き換え、実際の額 <paramref name="actual"/> との差を同じ側の <paramref name="restKey"/>（その他）へ入れる。行が無ければ何もしない。</summary>
++    private static void Smooth(List<BudgetLine> side, string key, string restKey, string otherKey, double avg, double actual)
++    {
++        int i = side.FindIndex(l => l.Key == key);
++        if (i < 0) return;
++        double diff = actual - avg;
++        side[i] = side[i] with { Actual = avg };
++        if (!(Math.Abs(diff) >= 0.5)) { side[i] = side[i] with { Actual = actual }; return; }   // 差が表示の解像度より小さければ均さない（実際の額のまま）
++        int r = side.FindIndex(l => l.Key == restKey);
++        if (r < 0) r = side.FindIndex(l => l.Key == otherKey);   // 「その他」の行が無くても、同じ側に「その他の収入／支出」の行があればそこが受ける（2 行に分かれて並べない）
++        if (r >= 0) side[r] = side[r] with { Actual = side[r].Actual + diff };
++        else side.Add(new BudgetLine(restKey, "その他", 0, diff, StageCell.None, null, NoForecast: true));
+     }
+ 
+-    /// <summary>対外信用の内訳の 4 項（信用は 4 項の積＝どれが足を引っ張っているかは各項を並べれば読める）。</summary>
+-    private static string CreditLines(World w)
+-        => $"国債残高　{w.CreditDebtTerm:P0}\n兌換　{w.CreditGoldTerm:P0}\n為替　{w.CreditFxTerm:P0}\n国債の利回り　{w.CreditBondTerm:P0}";
++    /// <summary>国庫の台帳のその区分の月の差分（正＝入り・負＝出）。台帳がまだ立っていなければ 0。</summary>
++    private static double LedgerOf(FiscalFlows f, TreasuryCat cat) => (int)cat < f.LedgerDiff.Count ? f.LedgerDiff[(int)cat] : 0;
+ 
+-    private static IReadOnlyList<Column<BudgetLine>> BudgetColumns { get; } =
++    /// <summary>支出と収入の表の列。実績の列は国庫の台帳が書いた実際の額（支出＝払った額・収入＝入った額）。</summary>
++    private static IReadOnlyList<Column<BudgetLine>> BudgetColumns(string actualName) =>
+     [
+         Col.Text<BudgetLine>("name", "項目", l => l.Name, l => l.Tip),
+         Col.Stage<BudgetLine>("stage", "段階", l => l.Stage),
+         Col.Number<BudgetLine>("forecast", "予測", Unit.MoneyPerMonth, l => l.Forecast, hide: l => l.NoAmounts || l.NoForecast),
+-        Col.Number<BudgetLine>("actual", "実効", Unit.MoneyPerMonth, l => l.Actual, hide: l => l.NoAmounts),
++        Col.Number<BudgetLine>("actual", actualName, Unit.MoneyPerMonth, l => l.Actual, hide: l => l.NoAmounts),
+     ];
+ 
++    /// <summary>支出の表の実績の列の名。</summary>
++    public const string SpendActualName = "払った額";
++    /// <summary>収入の表の実績の列の名。</summary>
++    public const string IncomeActualName = "入った額";
++
+     /// <summary>支出の表（予算の予想の支出の項）。</summary>
+     public static Table<BudgetLine> Spend(BudgetResult r)
+-        => new("fiscal.spend", "支出", Page.FiscalMoney, (_, _) => r.Spend, l => l.Key, l => l.Name, BudgetColumns);
++        => new("fiscal.spend", "支出", Page.FiscalMoney, (_, _) => r.Spend, l => l.Key, l => l.Name, BudgetColumns(SpendActualName));
+ 
+     /// <summary>収入の表（予算の予想の収入の項）。</summary>
+     public static Table<BudgetLine> Income(BudgetResult r)
+-        => new("fiscal.income", "収入", Page.FiscalMoney, (_, _) => r.Income, l => l.Key, l => l.Name, BudgetColumns);
++        => new("fiscal.income", "収入", Page.FiscalMoney, (_, _) => r.Income, l => l.Key, l => l.Name, BudgetColumns(IncomeActualName));
+ 
+-    // ===== 国庫の台帳 =====
++    // ===== 国庫の台帳の合計 =====
+ 
+-    /// <summary>国庫の台帳の月の差分の合計（＝収支。ヘッダーの収支と厳密に一致する）。</summary>
++    /// <summary>国庫の台帳の月の差分の合計（＝収支。ヘッダーの収支と厳密に一致する）。台帳の表は支出と収入の表へ吸収した（2026-11-12）。</summary>
+     public static double LedgerBalance(FiscalFlows f) => f.LedgerDiff.Sum();
+ 
+-    private static IReadOnlyList<LedgerLine> LedgerLines(FiscalFlows f)
+-    {
+-        var outLines = new List<LedgerLine>(); var inLines = new List<LedgerLine>();
+-        for (int i = 0; i < f.LedgerDiff.Count && i < FiscalCatalog.Items.Count; i++)
+-        {
+-            double d = f.LedgerDiff[i];
+-            if (Math.Abs(d) < 50.0) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない
+-            var item = FiscalCatalog.Items.First(x => (int)x.Cat == i);
+-            (d >= 0 ? inLines : outLines).Add(new LedgerLine("cat." + item.Cat, item.Name, Math.Abs(d), d >= 0 ? FiscalSide.Income : FiscalSide.Outlay, false));
+-        }
+-        // 開幕直後（最初の月の差分が立つ前）は両側が空＝「機能していない」ように見える。空の側は「—」の 1 行を置く
+-        if (outLines.Count == 0) outLines.Add(new LedgerLine("none.out", "—", 0, FiscalSide.Outlay, true));
+-        if (inLines.Count == 0) inLines.Add(new LedgerLine("none.in", "—", 0, FiscalSide.Income, true));
+-        return outLines.Concat(inLines).ToList();
+-    }
+-
+-    /// <summary>国庫の台帳の表（群＝国庫の支出・国庫の収入）。区分の名前と向きは <see cref="FiscalCatalog"/>。</summary>
+-    public static Table<LedgerLine> Ledger(FiscalFlows f)
+-        => new("fiscal.ledger", "国庫の台帳", Page.FiscalMoney, (_, _) => LedgerLines(f), l => l.Key, l => l.Name,
+-        [
+-            Col.Text<LedgerLine>("name", "項目", l => l.Name),
+-            Col.Number<LedgerLine>("amount", "金額", Unit.MoneyPerMonth, l => l.Amount, hide: l => l.Placeholder),
+-        ], l => l.Side == FiscalSide.Outlay ? "国庫の支出" : "国庫の収入");
+-
+     // ===== 金融 =====
+ 
+     /// <summary>貸出金利を出すか＝年率換算の係数が 0 のあいだは常に 0.0%（エンジンに量が無い）＝行ごと隠す。</summary>
+@@ -231,19 +260,21 @@ public static class FiscalTables
+     {
+         var rows = new List<FinanceLine>
+         {
+-            new("price", "物価", PlayText.PriceLevelText(w), StageCell.None, null),
++            new("price", "物価（開始時比）", PlayText.PriceLevelText(w), StageCell.None, null),
+             new("fx", "為替", PlayText.ExchangeRateText(w), StageCell.None, null),
+         };
+         if (LoanRateVisible(w)) rows.Add(new("loan", "貸出金利", $"{w.LoanRatePerYear:P1}", StageCell.None, null));
+-        rows.Add(new("lossFinanced", "損失の負債化", DisplayFormat.Money(w.LossFinanced), StageCell.None, null));
++        rows.Add(new("lossFinanced", "損失の負債化の累計", DisplayFormat.Money(w.LossFinanced), StageCell.None, null));
+         if (HouseholdLoanVisible(w)) rows.Add(new("householdLoan", "家計債務", w.Bank is { } bank ? DisplayFormat.Money(bank.HouseholdLoans.Value) : "—", StageCell.None, null));
+         if (CoverVisible(w))
+             rows.Add(new("cover", "兌換カバー率", PlayText.CoverText(w), StageCell.None,
+                 w.BroadMoney.Value <= 1e-9 ? null : $"基礎貨幣 {DisplayFormat.Money(w.BaseMoney.Value)}\n広義貨幣 {DisplayFormat.Money(w.BroadMoney.Value)}"));
+         // 政策金利＝5 段（兌換維持＋資本自由で自分のものでない時は段ごと掴めなくする。行は消さない＝いま金利がいくらかは見えている必要がある）
+-        var rate = Lever(w, "政策金利", 0, InterestCeil, () => w.InterestRate, () => w.Policy.InterestRateTarget, v => w.Policy.InterestRateTarget = Math.Min(v, InterestCeil));
+-        if (!InterestLeverEnabled(w)) rate = rate with { CanSelect = _ => false };
+-        rows.Add(new("policyRate", "政策金利", $"{w.InterestRate:P0}", rate, $"目標 {w.Policy.InterestRateTarget:P0}　実効 {w.InterestRate:P0}"));
++        // 無次元の値を百分率で出さない＝段の名で出す（現在の列・ホバーも同じ）。格子に乗らない値（金本位の自動の金利など）は最寄りの段の名
++        var rate = Lever(w, "政策金利", 0, InterestCeil, () => w.InterestRate, () => w.Policy.InterestRateTarget, v => w.Policy.InterestRateTarget = Math.Min(v, InterestCeil), RateStageNames);
++        // 錠の間はエンジンが目標を捨てて金利を自動で動かす（Government）＝段の列の目標は〈効いている値〉（今の金利）で出す。目標の欄（AI や過去の指定）を出し続けない
++        if (!InterestLeverEnabled(w)) rate = rate with { Target = rate.Current, CanSelect = _ => false, Why = _ => "兌換維持中" };
++        rows.Add(new("policyRate", "政策金利", StageName(rate, rate.Current), rate, $"目標 {StageName(rate, rate.Target)}　実効 {StageName(rate, rate.Current)}"));
+         // 通貨制度と資本移動は法（議会を通る）＝法の表の行。金本位は経済の画面で扱う（作者指示 2026-08-11）
+         foreach (var def in LawCatalog.In(LawSlot.Econ))
+             if (def.IsVisible(w)) rows.Add(new("law." + def.Key, def.Name, "", StageGate.Of(w, def), null));
+@@ -267,30 +298,36 @@ public static class FiscalTables
+ 
+     // ===== 国債と外資信用 =====
+ 
+-    private static IReadOnlyList<DebtLine> DebtLines(World w)
++    private static IReadOnlyList<DebtLine> DebtLines(World w, FiscalFlows f)
+     {
+         var rows = new List<DebtLine>();
+         double gdpYear = w.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value) : 0;
+         rows.Add(new("debt", "国債", "残高", DisplayFormat.Money(w.GovDebt.Value)));
+-        rows.Add(new("debtGdp", "国債", "対年GDP", $"{gdpYear:P0}"));
+-        rows.Add(new("bondRate", "国債", "金利", $"{w.GovBondRatePerYear:P0}"));
+-        rows.Add(new("bondPrice", "国債", "債券価格", $"{w.BondPrice:P0}"));
++        rows.Add(new("debtGdp", "国債", "対年GDP", $"{DisplayFormat.Share(gdpYear)}"));
++        rows.Add(new("bondRate", "国債", "金利", $"{DisplayFormat.Share(w.GovBondRatePerYear)}"));
++        rows.Add(new("bondPrice", "国債", "債券価格", $"{DisplayFormat.Share(w.BondPrice)}"));
+         if (w.ForeignDebt.Value > 1) rows.Add(new("foreignDebt", "国債", "うち対外", DisplayFormat.Money(w.ForeignDebt.Value)));
+-        if (w.AusterityIntensity > 0) rows.Add(new("austerity", "国債", "緊縮", $"{w.AusterityIntensity:P0}"));
++        if (w.AusterityIntensity > 0) rows.Add(new("austerity", "国債", "債務緊縮の強度", $"{DisplayFormat.Share(w.AusterityIntensity)}"));
+         if (w.CumulativeDevaluation > 1) rows.Add(new("devaluation", "国債", "切下げ累計", DisplayFormat.Money(w.CumulativeDevaluation)));
+-        if (w.FiscalFundingRatio.Value < 1) rows.Add(new("funding", "国債", "支払い率", $"{w.FiscalFundingRatio:P0}"));
+-        rows.Add(new("credit", "外資信用", "総合", $"{w.CreditRating:P0}"));
+-        rows.Add(new("creditDebt", "外資信用", "国債残高", $"{w.CreditDebtTerm:P0}"));
+-        rows.Add(new("creditGold", "外資信用", "兌換", $"{w.CreditGoldTerm:P0}"));
+-        rows.Add(new("creditFx", "外資信用", "為替", $"{w.CreditFxTerm:P0}"));
+-        rows.Add(new("creditBond", "外資信用", "国債の利回り", $"{w.CreditBondTerm:P0}"));
++        if (w.FiscalFundingRatio.Value < 1) rows.Add(new("funding", "国債", "支払い率", $"{DisplayFormat.Share(w.FiscalFundingRatio)}"));
++        rows.Add(new("credit", "外資信用", "総合の評点", $"{DisplayFormat.Share(w.CreditRating)}"));
++        rows.Add(new("creditDebt", "外資信用", "国債残高の評点", $"{DisplayFormat.Share(w.CreditDebtTerm)}"));
++        rows.Add(new("creditGold", "外資信用", "兌換の評点", $"{DisplayFormat.Share(w.CreditGoldTerm)}"));
++        rows.Add(new("creditFx", "外資信用", "為替の評点", $"{DisplayFormat.Share(w.CreditFxTerm)}"));
++        rows.Add(new("creditBond", "外資信用", "国債の利回りの評点", $"{DisplayFormat.Share(w.CreditBondTerm)}"));
++        // 民間の外資の流れは国庫に入らない＝支出・収入の表でなくここに置く（V1）。流入と流出は片方が £0
++        rows.Add(new("foreignIn", "外資信用", "民間の外資流入", DisplayFormat.Money(f.ForeignInMonthly) + "/月"));
++        rows.Add(new("foreignOut", "外資信用", "民間の外資流出", DisplayFormat.Money(f.ForeignOutMonthly) + "/月"));
+         return rows;
+     }
+ 
+-    /// <summary>国債と外資信用の表（群＝国債・外資信用）。</summary>
+-    public static Table<DebtLine> Debt { get; } = new("fiscal.debt", "国債と外資信用", Page.FiscalMoney, (_, w) => DebtLines(w), l => l.Key, l => l.Name,
++    /// <summary>国債と外資信用の表（群＝国債・外資信用）。外資の流れの月の標本は App が採る（<see cref="FiscalFlows"/>）。</summary>
++    public static Table<DebtLine> DebtOf(FiscalFlows f) => new("fiscal.debt", "国債と外資信用", Page.FiscalMoney, (_, w) => DebtLines(w, f), l => l.Key, l => l.Name,
+     [
+         Col.Text<DebtLine>("name", "項目", l => l.Name),
+         Col.Text<DebtLine>("value", "現在", l => l.Value),
+     ], l => l.Group);
++
++    /// <summary>外資の流れの標本が無い（0）時の国債と外資信用の表（表の目録の一覧用）。</summary>
++    public static Table<DebtLine> Debt { get; } = DebtOf(FiscalFlows.Zero);
+ }
+diff --git a/PriceOfBread.SimCore/Display/LawTables.cs b/PriceOfBread.SimCore/Display/LawTables.cs
+index 5597d99ea..7d6abbb71 100644
+--- a/PriceOfBread.SimCore/Display/LawTables.cs
++++ b/PriceOfBread.SimCore/Display/LawTables.cs
+@@ -23,9 +23,6 @@ public static class LawView
+ /// <summary>法の表の 1 行（法 1 本と、読み書きする世界）。群は画面の見出し。</summary>
+ public sealed record LawLine(LawDef Def, World W, string Group);
+ 
+-/// <summary>制度の表の 1 行（特許制度・株式会社・鉄道）。施行は発見の 2 値を読むだけ（自動で効く＝押す物ではない）。</summary>
+-public sealed record InstitutionLine(string Name, bool Enacted);
+-
+ /// <summary>政治と法のページの表（設計 §3-3・§6-2）。法の表は <see cref="LawCatalog"/> を回して並べる＝法を足すとき画面は直さない。</summary>
+ public static class PoliticsTables
+ {
+@@ -53,16 +50,6 @@ public static class PoliticsTables
+         [
+             Col.Text<LawLine>("name", "名前", l => l.Def.Name),
+             new StageColumn<LawLine>("stage", "段階", StageOf),
+-            Col.Text<LawLine>("cost", "条件", l => LawView.Detail(l.W, l.Def.Axis, l.Def.Current(l.W), l.Def.Target(l.W)).Detail),
+         ],
+         l => l.Group);
+-
+-    /// <summary>制度の表（施行か未施行か）。</summary>
+-    public static Table<InstitutionLine> Institutions { get; } = new("politics.institutions", "制度", Page.PoliticsLaw,
+-        (sim, w) => new InstitutionLine[] { new("特許制度", w.PatentLaw), new("株式会社", w.JointStock), new("鉄道", w.Railways) },
+-        l => l.Name, l => l.Name,
+-        [
+-            Col.Text<InstitutionLine>("name", "名前", l => l.Name),
+-            Col.Text<InstitutionLine>("state", "状態", l => l.Enacted ? "施行" : "未施行"),
+-        ]);
+ }
+diff --git a/PriceOfBread.SimCore/Display/MarketTables.cs b/PriceOfBread.SimCore/Display/MarketTables.cs
+index ced98e28d..59533ad9d 100644
+--- a/PriceOfBread.SimCore/Display/MarketTables.cs
++++ b/PriceOfBread.SimCore/Display/MarketTables.cs
+@@ -19,6 +19,10 @@ public static class MarketTables
+         _ => 5,
+     };
+ 
++    // 素材（層が中間財）のうち、材料を持つ財（鉄・鋼・小麦粉・肥料など）は採取した素材と別の群にする（群の見出しが「素材」1 つだけで、加工した財まで同じ群に並んでいた・W15）。
++    private static bool Processed(GoodDef d) => d.Tier == GoodTier.Intermediate && d.Inputs.Length > 0;
++    private static string GroupName(GoodDef d) => Processed(d) ? "加工素材" : ProductionTables.TierName(d.Tier);
++
+     /// <summary>行＝役務でない財のうち、自国で需要か産出が立っている財（実用ゼロの足切りは係数 <see cref="Coefficients.TargetStockFloor"/> の 1 本）。層の順・同じ層の中は財の番号順
+     /// （目録は文化に依らない＝50 音順の比較子は使わない。名前の列の見出しを押すと文字の順に並べ替わる）。</summary>
+     internal static IReadOnlyList<MarketLine> Lines(MultiNationSim sim, World w)
+@@ -47,20 +51,32 @@ public static class MarketTables
+             double world = g < wp.Count ? wp[g] : double.NaN;
+             double dom = g < cap.Markets.Length ? cap.Markets[g].Price * ex : double.NaN;
+             double gap = world > 1e-6 && dom > 1e-9 ? dom / world - 1.0 : double.NaN;
+-            result.Add(new MarketLine(g, d.Name, ProductionTables.TierName(d.Tier), dom, world, gap, demand[g], supply[g], shortage[g]));
++            result.Add(new MarketLine(g, d.Name, GroupName(d), dom, world, gap, demand[g], supply[g], shortage[g]));
+         }
+-        return result.OrderBy(l => TierOrder(Catalog.Goods[l.Good].Tier)).ThenBy(l => l.Good).ToList();
++        return result.OrderBy(l => TierOrder(Catalog.Goods[l.Good].Tier)).ThenBy(l => Processed(Catalog.Goods[l.Good]) ? 1 : 0).ThenBy(l => l.Good).ToList();
++    }
++
++    /// <summary>世界価格比の文字の色（高騰＝赤・下落＝青）。濃さは 100% からの離れに比例する（離れが 100% 以上で最も濃い）。世界価格と同じ（離れが 0.5% 以内）は既定の色（null）。
++    /// 財の値段・財の表・貿易の表が同じ関数を通る。<paramref name="gap"/>＝国内価格 ÷ 世界価格 − 1。</summary>
++    public static string? RatioInk(double gap)
++    {
++        if (!(Math.Abs(gap) > 0.005)) return null;   // 否定形＝NaN も既定の色
++        double t = Math.Min(1.0, Math.Abs(gap));
++        var (r, g, b) = gap > 0 ? (0xB0, 0x24, 0x18) : (0x2F, 0x6E, 0xA5);
++        const int br = 0x6A, bg = 0x62, bb = 0x58;   // 離れが小さい時は本文に近い灰
++        int Mix(int a, int c) => (int)Math.Round(a + (c - a) * t);
++        return $"#{Mix(br, r):X2}{Mix(bg, g):X2}{Mix(bb, b):X2}";
+     }
+ 
+-    /// <summary>財の値段の表（国内価格・世界価格・価格差・需要・供給・不足）。</summary>
++    /// <summary>財の値段の表（国内価格・世界価格比・需要・供給・不足）。</summary>
+     public static Table<MarketLine> Prices { get; } = new("market.prices", "財の値段", Page.Market, Lines, l => l.Good.ToString(), l => l.Name,
+     [
+         Col.Text<MarketLine>("name", "財名", l => l.Name),
+         Col.Number<MarketLine>("domestic", "国内価格", Unit.PricePerUnit, l => l.Domestic),
+-        Col.Number<MarketLine>("world", "世界価格", Unit.PricePerUnit, l => l.World),
+-        Col.Number<MarketLine>("gap", "価格差", Unit.Share, l => l.Gap),
++        // 世界価格を 100% とした国内価格（2026-11-11 作者指示）。高騰＝赤・下落＝青（世界価格そのものは出さない）
++        Col.Number<MarketLine>("gap", "世界価格比", Unit.Share, l => l.Gap + 1.0, ink: l => RatioInk(l.Gap)),
+         Col.Number<MarketLine>("demand", "需要", Unit.Quantity, l => l.Demand),
+-        Col.Number<MarketLine>("supply", "供給", Unit.Quantity, l => l.Supply),
++        Col.Number<MarketLine>("supply", "産出", Unit.Quantity, l => l.Supply),
+         Col.Number<MarketLine>("shortage", "不足", Unit.Quantity, l => l.Shortage),
+     ], l => l.Tier);
+ }
+diff --git a/PriceOfBread.SimCore/Display/Pages.cs b/PriceOfBread.SimCore/Display/Pages.cs
+index 3e71f7c60..4c286fbc9 100644
+--- a/PriceOfBread.SimCore/Display/Pages.cs
++++ b/PriceOfBread.SimCore/Display/Pages.cs
+@@ -4,47 +4,48 @@ namespace PriceOfBread.SimCore.Display;
+ /// （<see cref="PlayText"/> と同じ立場＝シムの軌道に触れない）。</summary>
+ public enum Page { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery }
+ 
+-/// <summary>ページと地図の切り替えキー（作者の指示 2026-10-23「切り替えキーは QWERASDFZXCV の優先度で、順に埋める」）。
+-/// 優先度の列 <see cref="Priority"/> を前から順に、ページ（<see cref="Page"/> の宣言順）・地図の順で割り当てる。残りは空き。
++/// <summary>ページの切り替えキー。生産は Tab（地図との切り替え・作者の指示 2026-11-04）・残りのページは優先度の列 <see cref="Priority"/>（作者の指示 2026-10-23
++/// 「QWERASDFZXCV の優先度で、順に埋める」）を前から、<see cref="Page"/> の宣言順に割り当てる（生産を除く＝市場が Q）。残りは空き。
++/// 地図にはキーが無い（Tab で生産と切り替える・開いているページのキーをもう一度押すか Esc で戻る）。
+ /// 割り当ては列と宣言順から導く＝表を手で書かない（ページを足すと自動で次のキーが埋まる）。</summary>
+ public static class PageKeys
+ {
+     /// <summary>キーの優先度の列（作者の指示）。</summary>
+     public const string Priority = "QWERASDFZXCV";
+ 
+-    /// <summary>ページの名前（ヘッダーの押し釦・分割の見出し）。漢字 1 字の名前・かっこの補足は置かない。</summary>
++    /// <summary>ページの名前（ヘッダーの押し釦）。漢字 1 字の名前・かっこの補足は置かない。</summary>
+     public static string Name(Page page) => page switch
+     {
+         Page.Production => "生産",
+-        Page.Market => "市場・清算・貿易",
++        Page.Market => "市場と貿易",
+         Page.FiscalMoney => "財政と貨幣",
+-        Page.Population => "人口",
++        Page.Population => "POP",
+         Page.PoliticsLaw => "政治と法",
+         Page.DiplomacyWar => "外交と戦争",
+         Page.Discovery => "発見",
+         _ => "",
+     };
+ 
+-    /// <summary>地図（分割に単独で置く）の名前。</summary>
++    /// <summary>地図の名前。</summary>
+     public const string MapName = "地図";
+ 
+-    /// <summary>ページのキー（<see cref="Priority"/> の前から、ページの宣言順）。</summary>
+-    public static char Key(Page page) => Priority[(int)page];
++    /// <summary>生産のキーの名前（押し釦の文字）。生産だけは文字のキーでなく Tab。</summary>
++    public const string ProductionKeyName = "Tab";
+ 
+-    /// <summary>地図のキー＝ページの次の優先度。</summary>
+-    public static char MapKey => Priority[System.Enum.GetValues<Page>().Length];
++    /// <summary>ページの文字のキー（<see cref="Priority"/> の前から、生産を除くページの宣言順）。生産は文字のキーを持たない（'\0'）。</summary>
++    public static char Key(Page page) => page == Page.Production ? '\0' : Priority[(int)page - 1];
+ 
+-    /// <summary>空きのキー（地図の次から末尾まで）。</summary>
+-    public static string FreeKeys => Priority[(System.Enum.GetValues<Page>().Length + 1)..];
++    /// <summary>空きのキー（最後のページの次から末尾まで）。</summary>
++    public static string FreeKeys => Priority[(System.Enum.GetValues<Page>().Length - 1)..];
+ 
+-    /// <summary>キーで引くページ。ページのキーでなければ null。</summary>
++    /// <summary>キーで引くページ。文字のキーを持つページでなければ null（生産の Tab は文字でないので引かない）。</summary>
+     public static Page? PageOfKey(char key)
+     {
+         char k = char.ToUpperInvariant(key);
+-        foreach (var p in System.Enum.GetValues<Page>()) if (Key(p) == k) return p;
++        foreach (var p in System.Enum.GetValues<Page>()) if (p != Page.Production && Key(p) == k) return p;
+         return null;
+     }
+ 
+-    /// <summary>押し釦の文字（今の「Q:財政」の形）。</summary>
+-    public static string ButtonText(Page page) => $"{Key(page)}:{Name(page)}";
++    /// <summary>押し釦の文字（「Tab:生産」「Q:市場・清算・貿易」の形）。</summary>
++    public static string ButtonText(Page page) => $"{(page == Page.Production ? ProductionKeyName : Key(page).ToString())}：{Name(page)}";
+ }
+diff --git a/PriceOfBread.SimCore/Display/PopTables.cs b/PriceOfBread.SimCore/Display/PopTables.cs
+index eb7cd8bae..76c9cac58 100644
+--- a/PriceOfBread.SimCore/Display/PopTables.cs
++++ b/PriceOfBread.SimCore/Display/PopTables.cs
+@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore.Display;
+ /// <summary>階級の表の 1 行（全国の同じ階級の POP を集約した物）。割合は 0〜1・人数は千人。吹き出しの文は本体の目録の側で組む（書式は <see cref="DisplayFormat"/>）。</summary>
+ public sealed record ClassLine(int ClassId, string Name, int Layer, double Size, double Share, double Unemployed, double UnempRate,
+     double Satisfaction, double Militancy, double Literacy, double LeanNone, double LeanConservative, double LeanLiberal, double LeanSocialist,
+-    string Tip, string? SatisfactionTip, string? MilitancyTip, string Privileges, string? PrivilegeTip, string? LayerTip);
++    string Tip, string? SatisfactionTip, string? MilitancyTip, string Privileges, string? PrivilegeTip, string? LayerTip, double Discontent = 0);
+ 
+ /// <summary>州の表の 1 行。割合は 0〜1・人数は千人。<see cref="Rule"/>＝支配度の 4 区分（国家・在地・外国・無統治）。</summary>
+ public sealed record RegionLine(string Name, double Population, double Unemployed, double FoodFill, double HousingFill, bool HousingShown, IReadOnlyList<(string Name, double Share)> Rule, bool IsPort, double PortCapacity);
+@@ -54,7 +54,7 @@ public static class PopTables
+     {
+         var c = w.Coef;
+         if (kind == Privileges.TaxExemption)   // 身分制免税だけは法の表に行が無い＝政体が決める
+-            return c.PrivilegeFromCrownShare.Value > 0 ? null : "政体:" + PlayText.PolityRegimeJa(w.Polity);
++            return c.PrivilegeFromCrownShare.Value > 0 ? null : "政体：" + PlayText.PolityRegimeJa(w.Polity);
+         string? title = kind switch
+         {
+             Privileges.Tithe => "国教",
+@@ -93,9 +93,9 @@ public static class PopTables
+             if (deg > 0) held.Add(Privileges.Names[k]);   // NaN は保有でない側へ落ちる
+             string tip = Privileges.Names[k];
+             if (PrivilegeSourceLine(w, k) is { } src) tip += "\n" + src;
+-            tip += "\n残高:" + (!(deg >= 0) ? "—" : deg.ToString("P0"));   // 否定形＝NaN は「—」
++            tip += "\n残高：" + (!(deg >= 0) ? "—" : DisplayFormat.Share(deg));   // 否定形＝NaN は「—」
+             string ben = PrivilegeBeneficiaries(w, k);
+-            if (ben.Length > 0) tip += "\n受益:" + ben;
++            if (ben.Length > 0) tip += "\n受益：" + ben;
+             tips.Add(tip);
+         }
+         return (held.Count == 0 ? "なし" : string.Join("　", held), tips.Count == 0 ? null : string.Join("\n\n", tips));
+@@ -125,16 +125,20 @@ public static class PopTables
+             string name = PlayText.ClassLayerNames[layer], s = "";
+             foreach (var (label, rows) in new (string Label, List<(string Layer, double Mean)> Rows)[] { ("識字率", lit), ("満足度", sat), ("闘争度", mil) })
+                 foreach (var (ly, mean) in rows)
+-                    if (ly == name) s += (s.Length == 0 ? "" : "\n") + $"{label}　{mean:P0}";
++                    if (ly == name) s += (s.Length == 0 ? "" : "\n") + $"{label}　{DisplayFormat.Share(mean)}";
+             return s.Length == 0 ? null : s;
+         }
+ 
++        // 不満度（階級ごと）＝ヘッダーの不満度と同じ式（Politics.Discontent）を階級の POP の人口加重で平均する
++        double[] disCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, w.Coef);
++        double[] disGap = w.Coef.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
+         var lines = new List<ClassLine>();
+         foreach (int cid in order)
+         {
+             var members = agg[cid];
+             var first = members[0].P;
+-            double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
++            if (!(members.Sum(m => m.P.Size) > 1e-9)) continue;   // 人数 0 の階級は行にしない（満足度・不満度などが 0% に見える）
++            double size = 0, sav = 0, earned = 0, satW = 0, milW = 0, disW = 0, litW = 0, femW = 0, childW = 0, oldW = 0, unempW = 0;
+             double leanC = 0, leanL = 0, leanS = 0;
+             double mVoice = 0, mWar = 0, mNation = 0, mFamine = 0;
+             double debt = 0;
+@@ -143,7 +147,8 @@ public static class PopTables
+             {
+                 size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt.Value;
+                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
+-                satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
++                satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size;
++                disW += Politics.Discontent(w, w.Coef, p, disCoord, disGap.Length > 0 ? disGap[PolicyPreferences.BlocOf(p)] : 0) * p.Size; litW += p.Literacy * p.Size;
+                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
+                 femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size;
+                 if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
+@@ -158,17 +163,17 @@ public static class PopTables
+             // 満足度の吹き出し＝主食と主食以外の充足（満足度の台帳には食料が載っていない＝台帳そのものが「主食以外」）
+             double foodFill = fNeed > 1e-9 ? Math.Clamp(fMet / fNeed, 0, 1) : 1.0;
+             double othFill = nTot > 1e-9 ? Math.Clamp(nMet / nTot, 0, 1) : 1.0;
+-            string satTip = $"主食の充足:{foodFill:P0}\n主食以外の充足:{othFill:P0}";
++            string satTip = $"主食の充足：{DisplayFormat.Share(foodFill)}\n主食以外の充足：{DisplayFormat.Share(othFill)}";
+             string party = first.Closed ? "保守党" : first.IsModernElite ? "自由党" : "社会党";   // 支持政党＝利益ブロック
+             string tip = first.ClassName
+-                       + $"\n所得:{DisplayFormat.Money(earned)}　貯蓄:£{perCap:F1}　借金:£{(size > 1e-9 ? debt / size : 0):F1}";
++                       + $"\n所得：{DisplayFormat.Money(earned)}　貯蓄：£{perCap:F1}　借金：£{(size > 1e-9 ? debt / size : 0):F1}";
+             foreach (var (rg, p) in members.Where(m => m.P.Size > 0.5).OrderByDescending(m => m.P.Size))
+             {
+                 double un = p.IsSoldier ? 0 : p.Size * p.UnemploymentRate.Value;
+-                tip += $"\n{rg.Name}:{DisplayFormat.PopK(p.Size)}" + (un > 0.5 ? $"(失業{DisplayFormat.PopK(un)})" : "");
++                tip += $"\n{rg.Name}：{DisplayFormat.PopK(p.Size)}" + (un > 0.5 ? $"（失業{DisplayFormat.PopK(un)}）" : "");
+             }
+-            tip += $"\n女性:{fem:P0}　子供:{child:P0}　老年:{old:P0}"
+-                 + $"\n失業率:{unemp:P0}" + (parliamentActive ? $"　支持政党:{party}" : "");
++            tip += $"\n女性：{DisplayFormat.Share(fem)}　子供：{DisplayFormat.Share(child)}　老年：{DisplayFormat.Share(old)}"
++                 + $"\n失業率：{DisplayFormat.Share(unemp)}" + (parliamentActive ? $"　支持政党：{party}" : "");
+             // 闘争度の要因内訳（全国 size 加重の各寄与・多い順・0.5% 未満は省略）
+             var milb = new List<(string Label, double V)>
+             {
+@@ -178,13 +183,13 @@ public static class PopTables
+             string? milTip = null;
+             foreach (var (label, v) in milb.Where(x => x.V > 0.005).OrderByDescending(x => x.V))
+             {
+-                milTip = (milTip is null ? "" : milTip + "\n") + $"・{label}:+{v:P0}";
++                milTip = (milTip is null ? "" : milTip + "\n") + $"・{label}:+{DisplayFormat.Share(v)}";
+             }
+             double leanNone = Math.Max(0, size - (leanC + leanL + leanS));   // 差で取る＝4 列の合計は常に規模と一致する
+             var (held, privTip) = PrivilegeCells(w, cid);
+             int layer = PlayText.ClassLayerOf(first);
+             lines.Add(new ClassLine(cid, first.ClassName, layer, size, popTotal > 1e-9 ? size / popTotal : 0, size * unemp, unemp,
+-                satAvg, milAvg, litAvg, leanNone * inv, leanC * inv, leanL * inv, leanS * inv, tip, satTip, milTip, held, privTip, LayerTip(layer)));
++                satAvg, milAvg, litAvg, leanNone * inv, leanC * inv, leanL * inv, leanS * inv, tip, satTip, milTip, held, privTip, LayerTip(layer), disW * inv));
+         }
+         return lines.Select((l, i) => (l, i)).OrderBy(t => t.l.Layer).ThenBy(t => t.i).Select(t => t.l).ToList();   // 層ごとにまとめる（層の中は最初に現れた順）
+     }
+@@ -192,29 +197,26 @@ public static class PopTables
+     /// <summary>階級の表の既定の形（増減の矢印を添えない）。目録の一覧と問題の一覧・ピン留めが読む。画面は <see cref="Classes"/> に矢印の関数を渡して使う（行の鍵と列は同じ）。</summary>
+     public static Table<ClassLine> ClassesPlain { get; } = Classes();
+ 
+-    /// <summary>階級の表。規模と失業者の後ろに添える増減の矢印は、四半期の差分を採る側（App）が関数で渡す（差分は今の盤面から導けない）。</summary>
+-    public static Table<ClassLine> Classes(Func<ClassLine, string>? sizeNote = null, Func<ClassLine, string>? unemployedNote = null)
++    /// <summary>階級の表（2026-11-11 作者指示）：規模（人数(構成比)）・失業者（人数(失業率)＋増減の矢印）・満足度・不満度・闘争度（増減の矢印）・識字率・特権。
++    /// 支持政党の列は政治の側にある＝ここには置かない。<paramref name="arrow"/>＝列の鍵（unemployed・satisfaction・discontent・militancy）ごとの増減の矢印（無ければ添えない）。</summary>
++    public static Table<ClassLine> Classes(Func<ClassLine, string, string>? arrow = null)
+         => new("pop.classes", "階級", Page.Population, (_, w) => ClassLines(w), l => "class." + l.ClassId, l => l.Name,
+         [
+             Col.Text<ClassLine>("name", "階級", l => l.Name, l => l.Tip),
+-            Col.Number<ClassLine>("size", "規模", Unit.People, l => l.Size),
+-            Col.Number<ClassLine>("sizeShare", "構成比", Unit.Share, l => l.Share > 0 ? l.Share : double.NaN),
+-            Col.Text<ClassLine>("sizeTrend", "規模増減", l => sizeNote?.Invoke(l) ?? ""),
+-            Col.Number<ClassLine>("unemployed", "失業者", Unit.People, l => l.UnempRate > 0.005 ? l.Unemployed : double.NaN),   // 丸めて 0% の階級は「—」
+-            Col.Number<ClassLine>("unempRate", "失業率", Unit.Share, l => l.UnempRate > 0.005 ? l.UnempRate : double.NaN),
+-            Col.Text<ClassLine>("unempTrend", "失業増減", l => { string arrow = unemployedNote?.Invoke(l) ?? ""; return l.UnempRate > 0.005 ? arrow : ""; }),   // 矢印の差分は表示の有無に依らず全階級で採る
+-            Col.Number<ClassLine>("satisfaction", "満足度", Unit.Share, l => l.Satisfaction, tip: l => l.SatisfactionTip),
+-            Col.Number<ClassLine>("militancy", "闘争度", Unit.Share, l => l.Militancy, tip: l => l.MilitancyTip),
++            Col.Text<ClassLine>("size", "規模", l => $"{DisplayFormat.PopK(l.Size)}（{DisplayFormat.Share(l.Share)}）"),
++            Col.Text<ClassLine>("unemployed", "失業者", l => { string a = arrow?.Invoke(l, "unemployed") ?? ""; return l.UnempRate > 0.005 ? $"{DisplayFormat.PopK(l.Unemployed)}（{DisplayFormat.Share(l.UnempRate)}）{a}" : "—"; }),   // 丸めて 0% の階級は「—」。矢印の差分は表示の有無に依らず全階級で採る
++            Col.Text<ClassLine>("satisfaction", "満足度", l => $"{DisplayFormat.Share(l.Satisfaction)}{arrow?.Invoke(l, "satisfaction")}", l => l.SatisfactionTip),
++            Col.Text<ClassLine>("discontent", "不満度", l => $"{DisplayFormat.Share(l.Discontent)}{arrow?.Invoke(l, "discontent")}"),
++            Col.Text<ClassLine>("militancy", "闘争度", l => $"{DisplayFormat.Share(l.Militancy)}{arrow?.Invoke(l, "militancy")}", l => l.MilitancyTip),
+             Col.Number<ClassLine>("literacy", "識字率", Unit.Share, l => l.Literacy),
+-            Col.Number<ClassLine>("none", "なし", Unit.Share, l => l.LeanNone),
+-            Col.Number<ClassLine>("conservative", "保守", Unit.Share, l => l.LeanConservative),
+-            Col.Number<ClassLine>("liberal", "自由", Unit.Share, l => l.LeanLiberal),
+-            Col.Number<ClassLine>("socialist", "社会", Unit.Share, l => l.LeanSocialist),
+             Col.Text<ClassLine>("privileges", "特権", l => l.Privileges, l => l.PrivilegeTip),
+         ], l => PlayText.ClassLayerNames[l.Layer], l => l.LayerTip);
+ 
+     // ===== 州の表 =====
+ 
++    /// <summary>支配度の 4 区分の名と色の組の名（唯一の定義）。POP の州の表・州の窓・部品の見本が全てここを読む（色の組は App.axaml の RuleStateBrush ほか）。</summary>
++    public const string RuleStateName = "国家", RuleLocalName = "在地勢力", RuleForeignName = "外国勢力", RuleUngovernedName = "無統治", RulePalette = "rule";
++
+     /// <summary>支配度の 4 区分（国家・在地・外国・無統治）。区分は州ごとに毎四半期 Politics.CheckSecession が目標へ寄せる live な量＝そのまま出す（0% は 0% と出す）。
+     /// 4 要素でない州だけ、国家＝支配度・残りは無統治。</summary>
+     public static IReadOnlyList<(string Name, double Share)> RuleParts(Region rg)
+@@ -237,7 +239,7 @@ public static class PopTables
+             if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;
+             ungov = 1.0 - dom;
+         }
+-        return [("国家", dom), ("在地", loc), ("外国", foreign), ("無統治", ungov)];
++        return [(RuleStateName, dom), (RuleLocalName, loc), (RuleForeignName, foreign), (RuleUngovernedName, ungov)];
+     }
+ 
+     /// <summary>自国の稼働中の州（人口の降順）。</summary>
+@@ -261,8 +263,8 @@ public static class PopTables
+         Col.Number<RegionLine>("unemployed", "失業者", Unit.People, l => l.Unemployed),
+         Col.Number<RegionLine>("food", "主食の充足", Unit.Share, l => l.FoodFill),
+         Col.Number<RegionLine>("housing", "住居の充足", Unit.Share, l => l.HousingFill, hide: l => !l.HousingShown),
+-        Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule)),
+-        Col.Number<RegionLine>("port", "港の容量", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
++        Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule, RulePalette)),
++        Col.Number<RegionLine>("port", "港の拡張", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
+     ]);
+ 
+     // ===== 宗教と文化の構成 =====
+@@ -301,7 +303,10 @@ public static class PopTables
+ 
+     // ===== 年齢の層・出生と死・児童の就業率 =====
+ 
+-    /// <summary>年齢の層ごとの人数（男女別・千人）。層の数と名前は POP の年齢の器から引く（層の数を決め打ちしない）。</summary>
++    /// <summary>年齢の層ごとの人数（男女別・千人）。**表示のときだけ 10 年ごとに足し合わせる**（作者の指示 2026-11-11「データ的にはスケールを分けているが、他と同じく
++    /// 10 年単位で表示〔足し合わせ〕でよい」）＝POP の層は幅がそろっていない（11層は 0 歳＝1 年・1〜20 歳＝5 年・21 歳以上＝10 年）ので、そのまま並べると棒の高さの尺度がそろわず形が崩れて見える。
++    /// 足し合わせは前から、群の幅が 10 年に届くまで（11層なら 0〜10 歳の 3 層・11〜20 歳の 2 層・以降は 1 層ずつ）。名札は実際の年齢（0〜10・11〜20…・71以上）。
++    /// 10 歳刻みの旧の 8 層は足し合わせない（今のまま）。シミュの層・人数の和は変えない＝表示の写しだけ。</summary>
+     public static AgePyramid Pyramid(World w)
+     {
+         AgeLayout? lay = null; double[] male = [], female = [];
+@@ -313,14 +318,21 @@ public static class PopTables
+             for (int b = 0; b < l.Bands; b++) { male[b] += p.Size * p.Ages[2 * b]; female[b] += p.Size * p.Ages[2 * b + 1]; }
+         }
+         if (lay is null) return AgePyramid.Empty;
+-        var labels = new string[lay.Bands];
+-        for (int b = 0; b < lay.Bands; b++)
++        var labels = new List<string>(); var m = new List<double>(); var f = new List<double>();
++        int start = 0;
++        while (start < lay.Bands)
+         {
+-            int lo = (int)Math.Round(lay.Lower[b]);
+-            if (b == lay.Bands - 1) labels[b] = $"{lo}以上";
+-            else { int hi = (int)Math.Round(lay.Upper[b]) - 1; labels[b] = hi <= lo ? $"{lo}" : $"{lo}〜{hi}"; }
++            int end = start;   // 群の最後の層
++            while (end < lay.Bands - 1 && lay.Upper[end] - lay.Lower[start] < 10.0 - 1e-9) end++;
++            double sm = 0, sf = 0;
++            for (int b = start; b <= end; b++) { sm += male[b]; sf += female[b]; }
++            int lo = (int)Math.Round(lay.Lower[start]);
++            if (end == lay.Bands - 1) labels.Add($"{lo}以上");
++            else labels.Add($"{lo}〜{(int)Math.Round(lay.Upper[end]) - 1}");
++            m.Add(sm); f.Add(sf);
++            start = end + 1;
+         }
+-        return new AgePyramid(labels, male, female);
++        return new AgePyramid(labels.ToArray(), m.ToArray(), f.ToArray());
+     }
+ 
+     /// <summary>出生と死の標本。出生と死亡は計器の累積（World.DiagBirths/DiagDeaths）。出産可能な女性は 15〜49 歳。</summary>
+diff --git a/PriceOfBread.SimCore/Display/PowerLabel.cs b/PriceOfBread.SimCore/Display/PowerLabel.cs
+new file mode 100644
+index 000000000..608644ce0
+--- /dev/null
++++ b/PriceOfBread.SimCore/Display/PowerLabel.cs
+@@ -0,0 +1,9 @@
++namespace PriceOfBread.SimCore.Display;
++
++/// <summary>画面に出す国の名の取り方の 1 本。同じ国が欄ごとに別の名（データの名・国号つきの名・頭書きだけの名）で出ないよう、
++/// 国の一覧と同じ表（<see cref="SecessionNames.DisplayName"/>・政体は権力の取り分から導いた政体）から作る。データの名（<see cref="Power.Name"/>）は変えない。読むだけ。</summary>
++public static class PowerLabel
++{
++    public static string Of(Power p, IReadOnlyList<War> wars)
++        => SecessionNames.DisplayName(p, p.Nation is { } n ? PowerAffinity.PolityFromShares(n) : null, wars);
++}
+diff --git a/PriceOfBread.SimCore/Display/ProblemScan.cs b/PriceOfBread.SimCore/Display/ProblemScan.cs
+index 49d5ec04a..3c54ac988 100644
+--- a/PriceOfBread.SimCore/Display/ProblemScan.cs
++++ b/PriceOfBread.SimCore/Display/ProblemScan.cs
+@@ -21,7 +21,7 @@ public static class ProblemScan
+         ProblemKind.Bankruptcy => "倒産と休止",
+         ProblemKind.RegionHunger => "州の飢え",
+         ProblemKind.Unemployment => "失業",
+-        ProblemKind.Discontent => "不満と闘争",
++        ProblemKind.Discontent => "闘争に加わる人数",
+         ProblemKind.Deficit => "赤字と支払い",
+         ProblemKind.War => "戦況",
+         ProblemKind.Faction => "反乱勢力",
+@@ -74,47 +74,42 @@ public static class ProblemScan
+             .ToList();
+     }
+ 
+-    // 財の不足＝満たせなかった需要の額（前期の不足の量 × 自国の首都の値段）。財の値段の表と同じ行・同じ値から作る。
++    // 財の不足＝必要量（前期の総需要）に対して満たせなかった割合（2026-11-11 作者指示：額では程度が分からない）。財の値段の表と同じ行・同じ値から作る。
+     private static void Shortage(MultiNationSim sim, World w, List<ProblemItem> o)
+     {
++        var unavailable = ProductionDiag.UnavailableGoods(sim, w.Coef);   // まだ世界のどこにも作れない財（技術が無い）は不足に並べない
+         foreach (var l in MarketTables.Lines(sim, w))
+         {
+-            if (!(l.Shortage > 0) || !(l.Domestic > 0)) continue;   // 否定形＝NaN も落とす
+-            o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, l.Shortage * l.Domestic, Unit.MoneyPerMonth, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
++            if (l.Good >= 0 && l.Good < unavailable.Length && unavailable[l.Good]) continue;
++            if (!(l.Shortage > 0) || !(l.Demand > 0)) continue;   // 否定形＝NaN も落とす
++            o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, Math.Min(1.0, l.Shortage / l.Demand), Unit.Share, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
+         }
+     }
+ 
+-    // 倒産と休止＝止まった工場の数（倒産は 1 棟・休止は止めている割合）。財ごとに自国の全州を足す。
++    // 倒産と休止＝止まった工場の棟数。財ごとに自国の全州を足す。数え方は財カードの工場カウンターと同じ 1 本（ProductionTables.StoppedUnits）。
+     private static void Bankruptcy(World w, List<ProblemItem> o)
+     {
+         int n = Catalog.Goods.Length;
+-        var stopped = new double[n];
+-        foreach (var rg in w.Regions)
++        for (int g = 0; g < n; g++)
+         {
+-            foreach (var p in rg.Producers)
+-            {
+-                int g = p.GoodId;
+-                if (g < 0 || g >= n || Catalog.Goods[g].Tier == GoodTier.Service) continue;
+-                if (p.Bankrupt) stopped[g] += 1.0;
+-                else if (p.MothballFrac.Value > 0) stopped[g] += p.MothballFrac.Value;
+-            }
++            if (Catalog.Goods[g].Tier == GoodTier.Service) continue;
++            double stopped = ProductionTables.StoppedUnits(w, g);
++            if (stopped > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped, Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
+         }
+-        for (int g = 0; g < n; g++)
+-            if (stopped[g] > 0) o.Add(new ProblemItem(ProblemKind.Bankruptcy, "bankrupt|" + g, Catalog.Goods[g].Name, stopped[g], Unit.Count, Page.Production, "production.goods", g.ToString(), "regions"));
+     }
+ 
+-    // 州の飢え＝主食の不足の人数（人口 × (1 − 主食の充足)）。州の表と同じ行。
++    // 州の飢え＝必要量に対する主食の不足の割合（1 − 主食の充足・2026-11-11 作者指示）。州の表と同じ行。
+     private static void Hunger(World w, List<ProblemItem> o)
+     {
+         foreach (var l in PopTables.RegionLines(w))
+         {
+-            double short_ = l.Population * (1.0 - l.FoodFill);
+-            if (!(short_ > 0)) continue;
+-            o.Add(new ProblemItem(ProblemKind.RegionHunger, "hunger|" + l.Name, l.Name, short_, Unit.People, Page.Population, "pop.regions", l.Name));
++            double short_ = 1.0 - l.FoodFill;
++            if (!(short_ > 0) || !(l.Population > 0)) continue;
++            o.Add(new ProblemItem(ProblemKind.RegionHunger, "hunger|" + l.Name, l.Name, Math.Min(1.0, short_), Unit.Share, Page.Population, "pop.regions", l.Name));
+         }
+     }
+ 
+-    // 失業＝失業者の数（階級ごと）／不満と闘争＝闘争度 × 人数（階級ごと）。階級の表と同じ行（兵士の〈失業〉は給与の未払い＝失業に数えない規則も表の側）。
++    // 失業＝失業者の数（階級ごと）／闘争に加わる人数＝闘争度 × 人数（階級ごと）。階級の表と同じ行（兵士の〈失業〉は給与の未払い＝失業に数えない規則も表の側）。
+     private static void Classes(World w, List<ProblemItem> o)
+     {
+         foreach (var l in PopTables.ClassLines(w))
+@@ -150,14 +145,22 @@ public static class ProblemScan
+             if (!meIsA && war.B != me) continue;
+             var enemy = meIsA ? war.B : war.A;
+             double sc = meIsA ? war.Score : -war.Score;
+-            if (sc < 0) o.Add(new ProblemItem(ProblemKind.War, "war|" + enemy.Id, SecessionNames.WarName(enemy, sim.Diplomacy.Wars), -sc, Unit.Share, Page.DiplomacyWar, "", "", "war"));
++            if (sc < 0) o.Add(new ProblemItem(ProblemKind.War, "war|" + enemy.Id, PowerLabel.Of(enemy, sim.Diplomacy.Wars), -sc, Unit.Share, Page.DiplomacyWar, "", "", "war"));
+         }
+     }
+ 
++    /// <summary>いま自国の州に本拠のある反乱勢力（表示用の 1 本）。World.Factions は州を手放した後も勢力を持ち続ける（シミュの側に残る）ので、本拠の州が自国の州に無い勢力は出さない。</summary>
++    public static List<FactionState> LiveFactions(World w)
++    {
++        var o = new List<FactionState>();
++        foreach (var f in w.Factions) if (w.Regions.Contains(f.Region)) o.Add(f);
++        return o;
++    }
++
+     // 反乱勢力＝勢力の強さ（エンジンの勢力の強さの式 1 本）。永続の勢力があるときだけ（無い間のスナップショットは強さを持たない）。
+     private static void Factions(World w, List<ProblemItem> o)
+     {
+-        foreach (var f in w.Factions)
++        foreach (var f in LiveFactions(w))
+         {
+             string name = PriceOfBread.SimCore.Factions.DisplayName(f);
+             double strength = Politics.FactionStrength(w, w.Coef, f);
+diff --git a/PriceOfBread.SimCore/Display/ProductionTables.cs b/PriceOfBread.SimCore/Display/ProductionTables.cs
+index d32eb2fc4..605911d7b 100644
+--- a/PriceOfBread.SimCore/Display/ProductionTables.cs
++++ b/PriceOfBread.SimCore/Display/ProductionTables.cs
+@@ -190,19 +190,40 @@ public static class ProductionTables
+         return result;
+     }
+ 
++    /// <summary>止まっている工場の棟数（倒産した民営持分の棟数＋休止の割合×稼働中の棟数）。財カードの工場カウンター（<see cref="World.FactoryCounter"/>）と同じ集合・同じ棟数の式で数える
++    /// ＝技術ゲートが閉じた生産者は数えない（カードに棟が立たない財の「止まっている」を問題の一覧に出さない）・棟数は規模から出す（生産者 1 件を 1 棟と数えない）。
++    /// 問題の一覧「倒産と休止」はこの 1 本を読む（2 回目の目の点検 W5）。</summary>
++    public static double StoppedUnits(World w, int goodId)
++    {
++        double stopped = 0;
++        foreach (var r in w.Regions)
++        {
++            foreach (var p in r.Producers)
++            {
++                if (p.GoodId != goodId) continue;
++                if (!(Discovery.Gate(r, p) > ProductionDiag.TechGateClosed)) continue;   // 否定形＝NaN は数えない（FactoryCounter と同じ）
++                int priv = w.PrivateUnitsOf(p);
++                if (p.Bankrupt) { stopped += priv; continue; }   // 倒産中の民営持分はカードの合計に入らない棟＝止まっている棟
++                double moth = p.MothballFrac.Value;
++                if (moth > 0) stopped += moth * (w.StateUnitsOf(p) + priv);
++            }
++        }
++        return stopped;
++    }
++
+     /// <summary>財の表の行＝休止でない財（国内に存在しない財は行ごと出さない）。工場生産の群が先・採取（RGO）の群が後・群の中は財の番号順。</summary>
+     public static IReadOnlyList<GoodLine> ShownLines(IReadOnlyList<GoodLine> all)
+         => all.Where(l => !l.Inactive).OrderBy(l => l.IsFactory ? 0 : 1).ThenBy(l => l.Good).ToList();
+ 
+     private static double NanIf(bool cond, double v) => cond ? double.NaN : v;
+ 
+-    /// <summary>財の表（価格差・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
++    /// <summary>財の表（世界価格比・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
+     public static Table<GoodLine> Goods { get; } = new("production.goods", "財の表", Page.Production,
+         (sim, w) => ShownLines(AllLines(sim, w, ProductionStats.Collect(w), ProductionDiag.UnavailableGoods(sim, w.Coef))),
+         l => l.Good.ToString(), l => l.Name,
+     [
+         Col.Text<GoodLine>("name", "財名", l => l.Name),
+-        Col.Number<GoodLine>("gap", "価格差", Unit.Share, l => l.PriceGap),
++        Col.Number<GoodLine>("gap", "世界価格比", Unit.Share, l => l.PriceGap + 1.0, ink: l => MarketTables.RatioInk(l.PriceGap)),   // 市場の財の値段の表と同じ名・書式・色
+         Col.Number<GoodLine>("prod", "生産量", Unit.Quantity, l => l.Prod),
+         Col.Number<GoodLine>("exp", "輸出量", Unit.Quantity, l => l.Exp),
+         Col.Number<GoodLine>("imp", "輸入量", Unit.Quantity, l => l.Imp),
+@@ -264,7 +285,7 @@ public static class ProductionTables
+         var law = w.MinimumWage;
+         foreach (int id in new[] { Catalog.LaborId, Catalog.FarmLaborId, Catalog.AdvLaborId })
+         {
+-            double demand = 0, supply = 0, cap = 0, priceW = 0, priceSimple = 0; int nr = 0;
++            double demand = 0, supply = 0, humanSupply = 0, cap = 0, priceW = 0, priceSimple = 0; int nr = 0;
+             double floorW = 0, capForFloor = 0, bound = 0;
+             bool floorOn = MinimumWageFloor.Applies(law, id);
+             foreach (var r in w.Regions)
+@@ -274,6 +295,11 @@ public static class ProductionTables
+                 demand += m.LastDemand; supply += m.LastProduced; priceW += m.Price * m.LastProduced; priceSimple += m.Price; nr++;
+                 double c = MinimumWageFloor.LaborSupply(r, id, out int lp);
+                 cap += c;
++                // 供給の列は上限と同じ集合（人力の行・同じ担い手の POP・倒産していない）の実産出で足す＝分子と分母を同じ規則に（供給 ≦ 上限・V7）。
++                //   州の市場の産出（LastProduced）には畜力・蒸気機関などの人力でない行の産出も入るので、そのまま足すと人力の上限を超える。賃金の重みと技師（上限なし）は州の市場の産出のまま。
++                if (id != Catalog.AdvLaborId)
++                    foreach (var sp in r.Producers)
++                        if (sp.GoodId == id && EconomyStep.IsHumanLaborSupply(sp) && !sp.Bankrupt && sp.LaborPopIndex == lp) humanSupply += sp.Output;
+                 if (floorOn && c > 1e-9 && lp >= 0)
+                 {
+                     double f = MinimumWageFloor.PerUnit(r, id, law);
+@@ -284,20 +310,19 @@ public static class ProductionTables
+             double wage = supply > 1e-9 ? priceW / supply : nr > 0 ? priceSimple / nr : double.NaN;
+             double floor = floorOn && capForFloor > 1e-9 ? floorW / capForFloor : double.NaN;
+             double boundShare = floorOn && capForFloor > 1e-9 && floorW > 0 ? bound / capForFloor : double.NaN;
+-            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, supply, cap, floor, boundShare));
++            result.Add(new LaborLine(id, Catalog.Goods[id].Name, wage, demand, id == Catalog.AdvLaborId ? supply : humanSupply, id == Catalog.AdvLaborId ? double.NaN : cap,   // 供給の上限は人力の生産者の能力の和（MinimumWageFloor.LaborSupply・同じ POP を共有するレシピを重ねない）＝高度労働力（技師）には人力の上限の概念が無い＝「—」（供給 965・上限 0 と読めた・V7）
++                 floor, boundShare));
+         }
+         return result;
+     }
+ 
+-    /// <summary>労働の表（賃金・需要・供給・能力・最低賃金の床・床の近くの割合）。</summary>
++    /// <summary>労働の表（賃金・需要・供給・供給の上限）。最低賃金の床と床の近くの割合は閾値なので列に出さない（原則 3・B13）。</summary>
+     public static Table<LaborLine> Labor { get; } = new("production.labor", "労働の表", Page.Production, LaborLines, l => l.Good.ToString(), l => l.Name,
+     [
+         Col.Text<LaborLine>("name", "労働名", l => l.Name),
+         Col.Number<LaborLine>("wage", "賃金", Unit.PricePerUnit, l => l.Wage),
+         Col.Number<LaborLine>("demand", "需要", Unit.Quantity, l => l.Demand),
+         Col.Number<LaborLine>("supply", "供給", Unit.Quantity, l => l.Supply),
+-        Col.Number<LaborLine>("capacity", "人力の能力", Unit.Quantity, l => l.Capacity),
+-        Col.Number<LaborLine>("floor", "賃金の床", Unit.PricePerUnit, l => l.Floor),
+-        Col.Number<LaborLine>("bound", "床の近く", Unit.Share, l => l.BoundShare),
++        Col.Number<LaborLine>("capacity", "供給の上限", Unit.Quantity, l => l.Capacity),
+     ]);
+ }
+diff --git a/PriceOfBread.SimCore/Display/StageGate.cs b/PriceOfBread.SimCore/Display/StageGate.cs
+index 43aabd7fa..e71a1f703 100644
+--- a/PriceOfBread.SimCore/Display/StageGate.cs
++++ b/PriceOfBread.SimCore/Display/StageGate.cs
+@@ -23,9 +23,39 @@ public static class StageGate
+         return new StageCell(labels, levelBase, cur, tgt,
+             level => CanReachAndAfford(w, axis, level, cur),
+             level => Hint(w, axis, title, labels, levelBase, level, cur),
+-            setTarget);
++            setTarget,
++            level => Why(w, axis, level, cur));
+     }
+ 
++    /// <summary>選べない段の押せない理由（短い語）。選べる段は null。前提法は「前提 ◯◯:△△」・政治の門は賛成不足など（<see cref="Government"/> の理由の語）。</summary>
++    public static string? Why(World w, PolicyAxis? axis, int level, int cur)
++    {
++        string? r = WhyRaw(w, axis, level, cur);
++        // 理由は「次に押せるはずの段」（現在の隣）の 1 つだけに出す＝その先の段の同じ理由・「前段階が必要」の繰り返しは出さない（V3）
++        if (r is not null && Math.Abs(level - cur) > 1)
++        {
++            if (r == "前段階が必要") return null;
++            if (r == WhyRaw(w, axis, cur + Math.Sign(level - cur), cur)) return null;
++        }
++        return r;
++    }
++
++    private static string? WhyRaw(World w, PolicyAxis? axis, int level, int cur)
++    {
++        if (CanReachAndAfford(w, axis, level, cur) || axis is not { } a) return null;
++        if (level > cur && !CanReach(w, axis, level, cur)) return Plain(PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason));
++        var (_, _, reason) = NextStep(w, axis, level, cur);
++        return reason.Length == 0 ? null : Plain(Government.IsPoliticalGateReason(reason) ? reason : PlayText.FormatPrereq(reason));
++    }
++
++    /// <summary>エンジンの理由の語を、遊ぶ人に通じる短い語へ（エンジンの文字列は変えない・括弧の中の説明は消す）。</summary>
++    private static string Plain(string reason) => (reason switch
++    {
++        "払えない請求が前提" => "財政難が前提",
++        _ when reason.StartsWith("後退不能（", StringComparison.Ordinal) => "後退不能",
++        _ => reason,
++    }).Replace(':', '：');   // 日本語の文中のコロンは全角（V11）
++
+     /// <summary>その段へ届くか（前提法の連なり）。現行以下（降格）は常に可。</summary>
+     private static bool CanReach(World w, PolicyAxis? axis, int level, int cur)
+     {
+@@ -60,11 +90,11 @@ public static class StageGate
+         string head = $"{title}:{labels[level - levelBase]}";
+         if (level == cur) return head + "\n現在の段階";
+         if (level > cur && !CanReach(w, axis, level, cur))
+-            return head + "\n制定:不可\n" + PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
++            return head + "\n制定：不可\n" + PlayText.FormatPrereq(Government.LawPrereq(w, a, level, w.Coef).Reason);
+         var (ok, cost, reason) = NextStep(w, axis, level, cur);
+         // 下げる側の床（緊縮の下限・戦争中は軍を解散できない）も前提で止まる＝政治資本の問題と偽らず、理由そのものを出す
+         if (PlayText.IsPrereqStop(ok, reason))
+-            return head + "\n制定:不可\n" + PlayText.FormatPrereq(reason);
++            return head + "\n制定：不可\n" + PlayText.FormatPrereq(reason);
+         var body = new System.Text.StringBuilder(head);
+         body.Append('\n').Append(PlayText.GateLine(ok, cost, reason));
+         foreach (var (who, wgt) in PolicyPreferences.SupportBreakdown(w, a, level > cur))
+diff --git a/PriceOfBread.SimCore/Display/Table.cs b/PriceOfBread.SimCore/Display/Table.cs
+index 9cab828d0..582965e9e 100644
+--- a/PriceOfBread.SimCore/Display/Table.cs
++++ b/PriceOfBread.SimCore/Display/Table.cs
+@@ -12,35 +12,40 @@ public enum Unit
+     Multiple,
+ }
+ 
+-/// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。</summary>
++/// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。<paramref name="Why"/>＝選べない段の押せない理由（短い語・閾値を出さない・選べる段は null。釦の下に出す）。</summary>
+ /// <summary><see cref="Labels"/> の添字 i はエンジン側の段番号 <paramref name="LevelBase"/> + i。<see cref="Current"/>・<see cref="Target"/> はエンジン側の段番号。</summary>
+-public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select)
++public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int Current, int Target, Func<int, bool> CanSelect, Func<int, string?> Hover, Action<int> Select, Func<int, string?>? Why = null)
+ {
+     /// <summary>段の無い行の段の列（押し釦を 1 つも出さない）。</summary>
+     public static StageCell None { get; } = new([], 0, 0, 0, _ => false, _ => null, _ => { });
+ }
+ 
+ /// <summary>行の動詞 1 つの中身（侵略・統一戦争・調停・補助金・専売・建設）。押した時に呼ぶのは本体の口だけ。
+-/// <paramref name="Tip"/>＝押し釦のホバーの文（押せない理由など。null か空なら出さない）。</summary>
+-public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null);
++/// <paramref name="Tip"/>＝押せない理由（押し釦の右に出す。null か空なら出さない）。<paramref name="Fill"/>＝押し釦の地の色（「#RRGGBB」・統一戦争ができる宣戦布告など）。</summary>
++public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null, string? Fill = null);
+ 
+-/// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。</summary>
+-public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts);
++/// <summary>積み上げの棒 1 本の中身（<paramref name="Full"/> の入れ物に、項ごとに色を塗り分けた長さを積む。発見の技術力・必要性・伝わり＝100 で解禁）。
++/// <paramref name="Parts"/>＝（値・色「#RRGGBB」）。和が入れ物を超えた分は描かない。</summary>
++public sealed record BarCell(IReadOnlyList<(double Value, string Color)> Parts, double Full);
++
++/// <summary>割合の内訳 1 つの中身（半円で描く。支配度の 4 区分・権力）。<paramref name="Palette"/>＝区分の色の組の名（null＝既定の色の並び・"rule"＝支配度の 4 区分の専用の色）。</summary>
++public sealed record ShareCell(IReadOnlyList<(string Name, double Share)> Parts, string? Palette = null);
+ 
+ /// <summary>列＝名前と単位と読み口。説明文の欄は持たない（画面に説明文を書かない）。閾値の欄も持たない。</summary>
+ public abstract record Column<TRow>(string Key, string Name);
+ /// <summary><paramref name="Tip"/>＝その数にカーソルを合わせた時の内訳の文（null なら出さない）。
+-/// <paramref name="Hide"/>＝真の行は値を出さない（空欄・数でない値の「—」とは別）。数に添える文字（かっこの添え書き）は持たない＝別の列にする。</summary>
++/// <paramref name="Ink"/>＝数の文字の色（「#RRGGBB」・null なら列の既定。上昇＝赤・下落＝青など）。<paramref name="Hide"/>＝真の行は値を出さない（空欄・数でない値の「—」とは別）。数に添える文字（かっこの添え書き）は持たない＝別の列にする。</summary>
+ public sealed record NumberColumn<TRow>(string Key, string Name, Unit Unit, Func<TRow, double> Read, string? ExplainKey = null, bool Series = false,
+-                                        Func<TRow, string?>? Tip = null, Func<TRow, bool>? Hide = null) : Column<TRow>(Key, Name);
++                                        Func<TRow, string?>? Tip = null, Func<TRow, bool>? Hide = null, Func<TRow, string?>? Ink = null) : Column<TRow>(Key, Name);
+ /// <summary><paramref name="Tip"/>＝その文字にカーソルを合わせた時の文（null なら文字そのもの）。</summary>
+ public sealed record TextColumn<TRow>(string Key, string Name, Func<TRow, string> Read, Func<TRow, string?>? Tip = null) : Column<TRow>(Key, Name);
+ public sealed record StageColumn<TRow>(string Key, string Name, Func<TRow, StageCell> Read) : Column<TRow>(Key, Name);
+ public sealed record VerbColumn<TRow>(string Key, string Name, Func<TRow, VerbCell> Read) : Column<TRow>(Key, Name);
+ public sealed record ShareColumn<TRow>(string Key, string Name, Func<TRow, ShareCell> Read) : Column<TRow>(Key, Name);
++public sealed record BarColumn<TRow>(string Key, string Name, Func<TRow, BarCell> Read) : Column<TRow>(Key, Name);
+ 
+ /// <summary>列の種類（共通の表が描き分ける）。</summary>
+-public enum ColumnKind { Number, Text, Stage, Verb, Share }
++public enum ColumnKind { Number, Text, Stage, Verb, Share, Bar }
+ 
+ /// <summary>列の実行時の情報（行の型に依らない）。<see cref="Unit"/> は数の列だけ。<see cref="Series"/>＝この列は線グラフの系列になる。</summary>
+ public sealed record ColumnInfo(string Key, string Name, ColumnKind Kind, Unit? Unit, bool Series, string? ExplainKey);
+@@ -87,6 +92,7 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
+         StageColumn<TRow> => ColumnKind.Stage,
+         VerbColumn<TRow> => ColumnKind.Verb,
+         ShareColumn<TRow> => ColumnKind.Share,
++        BarColumn<TRow> => ColumnKind.Bar,
+         _ => throw new NotSupportedException($"列の種類が未対応: {c.GetType().Name}"),
+     };
+ 
+@@ -103,11 +109,12 @@ public sealed record Table<TRow>(string Key, string Name, Page Page, Func<MultiN
+             for (int i = 0; i < cells.Length; i++)
+                 cells[i] = Columns[i] switch
+                 {
+-                    NumberColumn<TRow> n => n.Hide?.Invoke(r) == true ? NumberCell.Empty : new NumberCell(n.Read(r), n.Tip?.Invoke(r)),
++                    NumberColumn<TRow> n => n.Hide?.Invoke(r) == true ? NumberCell.Empty : new NumberCell(n.Read(r), n.Tip?.Invoke(r), false, n.Ink?.Invoke(r)),
+                     TextColumn<TRow> t => t.Tip is null ? t.Read(r) : new TextCell(t.Read(r), t.Tip(r)),
+                     StageColumn<TRow> s => s.Read(r),
+                     VerbColumn<TRow> v => v.Read(r),
+                     ShareColumn<TRow> sh => sh.Read(r),
++                    BarColumn<TRow> b => b.Read(r),
+                     _ => null,
+                 };
+             list.Add(new RowData(RowKey(r), RowName(r), Group?.Invoke(r), cells, GroupTip: GroupTip?.Invoke(r)));
+@@ -141,8 +148,11 @@ public static class Col
+ 
+     /// <summary>型の無い数の列（人口・財の量・件数・型の無い割合など）。単位は名乗る。</summary>
+     public static NumberColumn<TRow> Number<TRow>(string key, string name, Unit unit, Func<TRow, double> read, string? explainKey = null, bool series = false,
+-                                                  Func<TRow, string?>? tip = null, Func<TRow, bool>? hide = null)
+-        => new(key, name, unit, read, explainKey, series, Tip: tip, Hide: hide);
++                                                  Func<TRow, string?>? tip = null, Func<TRow, bool>? hide = null, Func<TRow, string?>? ink = null)
++        => new(key, name, unit, read, explainKey, series, Tip: tip, Hide: hide, Ink: ink);
++
++    /// <summary>積み上げの棒の列。</summary>
++    public static BarColumn<TRow> Bar<TRow>(string key, string name, Func<TRow, BarCell> read) => new(key, name, read);
+ 
+     public static TextColumn<TRow> Text<TRow>(string key, string name, Func<TRow, string> read, Func<TRow, string?>? tip = null) => new(key, name, read, tip);
+ 
+diff --git a/PriceOfBread.SimCore/Display/TableCatalog.cs b/PriceOfBread.SimCore/Display/TableCatalog.cs
+index a4d85903a..9df02e7c6 100644
+--- a/PriceOfBread.SimCore/Display/TableCatalog.cs
++++ b/PriceOfBread.SimCore/Display/TableCatalog.cs
+@@ -10,8 +10,8 @@ public static class TableCatalog
+         ProductionTables.Goods, ProductionTables.Equipment, ProductionTables.Labor,
+         FiscalTables.Finance, FiscalTables.Debt,
+         PopTables.ClassesPlain, PopTables.Regions, PopTables.Religion, PopTables.Culture,
+-        PoliticsTables.Laws, PoliticsTables.Institutions,
+-        DiscoveryTables.Discoveries, DiscoveryTables.Sites,
++        PoliticsTables.Laws,
++        DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites,
+     ];
+ 
+     /// <summary>鍵で引く。無ければ null。</summary>
+diff --git a/PriceOfBread.SimCore/Display/TradeTables.cs b/PriceOfBread.SimCore/Display/TradeTables.cs
+index 943b9e2ea..0640b3555 100644
+--- a/PriceOfBread.SimCore/Display/TradeTables.cs
++++ b/PriceOfBread.SimCore/Display/TradeTables.cs
+@@ -9,9 +9,15 @@ namespace PriceOfBread.SimCore.Display;
+ public sealed record TradeLine(int Good, string Name, double Raw, double MonthlyValue, double PriceRatio, double Fraction, string Partner);
+ 
+ /// <summary>貿易の表（輸入・輸出）。旧 App の貿易タブが手で組んでいた行を本体の目録へ移した（設計 §3-3・§7-1 段1）。
+-/// 盤面は読むだけ・書かない。額の降順（同額は財の番号順）。額が 0 の財の行は出さない。</summary>
++/// 盤面は読むだけ・書かない。額の降順（同額は財の番号順）。月割で £0 に丸まる小さな財は 1 行の「その他」にまとめて最後に置く（行の和＝総額）。</summary>
+ public static class TradeTables
+ {
++    /// <summary>行に出す月割の額の下限（これ未満は表示の桁 £0 に丸まる＝「その他」の 1 行にまとめる）。総額は全額のまま（行の和が総額）。</summary>
++    private const double MinMonthlyRow = 0.5;
++
++    /// <summary>「その他」の行の財番号（財の添字と重ならない）。</summary>
++    public const int OtherGood = -1;
++
+     private static IReadOnlyList<TradeLine> Lines(MultiNationSim sim, World w, bool exports)
+     {
+         var result = new List<TradeLine>();
+@@ -33,10 +39,18 @@ public static class TradeTables
+                 for (int g = 0; g < gc && g < r.Markets.Length; g++) demandByGood[g] += r.Markets[g].LastDemand;
+ 
+         // 相手＝実際に取引した相手の州（二国間交易）。エンジンが財ごとに最大額の相手を記録する。台帳が無い（置換前の経路）時だけ、その財を最も多く出している国で近似する。
++        // 相手の名は国の一覧・外交の表と同じ取り方（PowerLabel）へ揃える。台帳が持つ文字がどの国の名でもなければ（州の名など）そのまま
++        string Label(string raw)
++        {
++            if (string.IsNullOrEmpty(raw)) return raw;
++            foreach (var p in sim.Diplomacy.Powers)
++                if (p.Name == raw || p.BaseName == raw) return PowerLabel.Of(p, sim.Diplomacy.Wars);
++            return raw;
++        }
+         string TopPartner(int g, bool wantExporter)
+         {
+             var mine = wantExporter ? w.ImportFromByGood : w.ExportToByGood;   // 輸入の相手＝売り手／輸出の相手＝買い手
+-            if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return mine[g];
++            if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return Label(mine[g]);
+             string best = ""; double bv = 0;
+             foreach (var n in sim.Nations)
+             {
+@@ -45,13 +59,15 @@ public static class TradeTables
+                 if (arr is null || g >= arr.Length || !(arr[g] > bv)) continue;
+                 bv = arr[g]; best = n.World.SelfPower?.Name ?? n.World.Region.Name;
+             }
+-            return best;
++            return Label(best);
+         }
+ 
+         var src = exports ? eg : ig;
++        double otherRaw = 0;
+         for (int g = 0; g < gc; g++)
+         {
+             if (!(g < src.Length && src[g] > 1e-9)) continue;
++            if (!(src[g] / mpc >= MinMonthlyRow)) { otherRaw += src[g]; continue; }   // 月割で £0 に丸まる行は「その他」へ（下半分を「£0/月」が埋めない・B22）
+             double p = g < wp.Count ? Math.Max(wp[g], 1e-9) : 1.0;
+             double dom = g < w.Region.Markets.Length ? w.Region.Markets[g].Price : p;   // 自国（首都州）の相場＝世界価格比の分子
+             double ratio = p > 1e-9 ? dom / p : double.NaN;
+@@ -66,7 +82,9 @@ public static class TradeTables
+             }
+             result.Add(new TradeLine(g, Catalog.Goods[g].Name, src[g], src[g] / mpc, ratio, fraction, TopPartner(g, !exports)));
+         }
+-        return result.OrderByDescending(l => l.Raw).ToList();   // 額の降順（安定＝同額は財の番号順）
++        var sorted = result.OrderByDescending(l => l.Raw).ToList();   // 額の降順（安定＝同額は財の番号順）
++        if (otherRaw > 0) sorted.Add(new TradeLine(OtherGood, "その他", otherRaw, otherRaw / mpc, double.NaN, double.NaN, ""));
++        return sorted;
+     }
+ 
+     private static Table<TradeLine> Make(string key, string name, bool exports, string fractionName, string partnerName)
+@@ -74,7 +92,7 @@ public static class TradeTables
+         [
+             Col.Text<TradeLine>("name", "財名", l => l.Name),
+             Col.Number<TradeLine>("value", "金額", Unit.MoneyPerMonth, l => l.MonthlyValue),
+-            Col.Number<TradeLine>("priceRatio", "価格比", Unit.Multiple, l => l.PriceRatio),   // 取引の単価÷標準の値段（旧は金額の後ろの「(×0.34)」）
++            Col.Number<TradeLine>("priceRatio", "世界価格比", Unit.Share, l => l.PriceRatio, ink: l => MarketTables.RatioInk(l.PriceRatio - 1.0)),   // 財の値段の表と同じ名・書式・色（旧は「価格比 ×0.34」）
+             Col.Number<TradeLine>("fraction", fractionName, Unit.Share, l => l.Fraction),
+             Col.Text<TradeLine>("partner", partnerName, l => l.Partner),
+         ]);
+@@ -85,7 +103,7 @@ public static class TradeTables
+     /// <summary>輸出の表（額の降順・世界シェア・輸出先）。</summary>
+     public static Table<TradeLine> Exports { get; } = Make("trade.exports", "輸出", true, "世界シェア", "輸出先");
+ 
+-    /// <summary>清算 1 回分の輸出と輸入の総額（額が 0 の財は足さない＝行に出す財と同じ母集団）。月割は呼び手が <see cref="Coefficients.MonthsPerClearing"/> で割る。</summary>
++    /// <summary>清算 1 回分の輸出と輸入の総額（全額＝台帳と同じ。小さな財は表の「その他」の 1 行に入っている）。月割は呼び手が <see cref="Coefficients.MonthsPerClearing"/> で割る。</summary>
+     public static (double Export, double Import) Totals(World w)
+     {
+         double e = 0, i = 0;

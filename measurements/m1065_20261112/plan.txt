@@ -1,0 +1,12 @@
+(1065) c101sz 州の兵士 POP が 0 の原因（読む線・腕 0・コミット 0）  2026-11-12  書いた担当：Claude Opus 5.5
+作業の場所：D:/PoB_work/r1065_work（scripts/・out/）。worktree・枝は作らない（ソースは main の作業ツリー 9b18137a2 を読むだけ）。
+読む生（全て読むだけ・消さない・移さない）：
+  D:/PoB_work/keep_1053/base_ins  種 1〜10（cpop_s・region_s・nation_s・secession_s・admrule_s）
+  D:/PoB_work/keep_1053/n1        種 1〜10（同上）
+  D:/PoB_work/keep_1053/n2        種 1〜10（同上）
+  D:/PoB_work/keep_1053/a11       種 11〜20（POB_CEARN=0＝cpop_s が無い＝州の兵の数は読めない・region_s・nation_s・secession_s だけ）
+州ごとの兵の数を持つ表は cpop_s だけ（InstrumentsCearn.cs:627〜 CpopRows＝四半期の末に格が Colonial の州の全 POP を書く・人数 0 の POP も書く）。
+  ＝本国格・統合格の州の兵の数は生に無い（要る計器の仕様を書く）。
+読む材料：docs/202611/20261112/20261112_植民地の独立の計器とD1の最小の段_盤面m1053_下書き.md（:110 反証役の高）・同 _材料.md・scripts/instruments/r1059/・measurements/m1059_20261112/
+読むソース：Military.cs（EstablishmentOf・RegionManpower・Step・DrawFromPool）・Meritocracy.cs（⑦ 兵士の席・FillJobs・JobIncome）・Simulation.cs（植民地の州の昇格の器）・Territory.cs（MoveBetweenRegions・州の移り）・Politics.RuleDelivery
+手順：prereg.txt（読む前の見込み）→ 台本 scripts/sz_count.py → out/ の表 → 根のソースの行 → 素案・申し送り・作者への問い（notes.txt）

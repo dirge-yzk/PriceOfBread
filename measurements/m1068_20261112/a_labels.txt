@@ -1,0 +1,86 @@
+消えた語 67 足された語 59
+見た所 3358
+消えた (失業 0 
+消えた \n主食以外の充足: 0 
+消えた \n兌換 0 
+消えた \n制定:不可\n 0 
+消えた \n受益: 0 
+消えた \n国債の利回り 0 
+消えた \n失業率: 0 
+消えた \n女性: 0 
+消えた \n所得: 0 
+消えた \n残高: 0 
+消えた \n為替 0 
+消えた なし 17 main:PriceOfBread.Tests:ControlsTests.cs main:PriceOfBread.Tests:DisplayCatalogTests.cs main:PriceOfBread.Tests:InitialDefaultsTests.cs main:PriceOfBread.Runner:PlayFacts.cs main:PriceOfBread.Runner:PlayHarness.cs main:PriceOfBread.Runner:Program.cs
+消えた 不満と闘争 0 
+消えた 世界価格 3 scripts:scripts\instruments\de\an_de.py scripts:scripts\instruments\m205\an_fx205.py scripts:scripts\instruments\m205\inj_fx205.py
+消えた 主食の充足: 0 
+消えた 人力の能力 2 uf:PriceOfBread.Tests:UiShotRuleTests.cs scripts:scripts\instruments\spb\spb_labor.py
+消えた 人口 6 main:PriceOfBread.Tests:DisplayCatalogTests.cs main:PriceOfBread.Tests:LayoutTests.cs main:PriceOfBread.Runner:Program.cs uf:PriceOfBread.Tests:DisplayCatalogTests.cs uf:PriceOfBread.Tests:SpectateTests.cs uf:PriceOfBread.Runner:Program.cs
+消えた 伝わり 0 
+消えた 供給 1 uf:PriceOfBread.Tests:UiShotRuleTests.cs
+消えた 価格差 0 
+消えた 価格比 0 
+消えた 保守 0 
+消えた 借金:£ 0 
+消えた 兌換 2 main:PriceOfBread.Runner:Program.cs uf:PriceOfBread.Runner:Program.cs
+消えた 制度 0 
+消えた 割合 9 main:PriceOfBread.Tests:ControlsTests.cs main:PriceOfBread.Tests:DisplayCatalogTests.cs main:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs main:PriceOfBread.Runner:Program.cs uf:PriceOfBread.Tests:ControlsTests.cs uf:PriceOfBread.Tests:DisplayCatalogTests.cs
+消えた 名前 7 main:PriceOfBread.Tests:ControlsTests.cs main:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs main:PriceOfBread.Tests:PinsTests.cs uf:PriceOfBread.Tests:ControlsTests.cs uf:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs uf:PriceOfBread.Tests:SpectateTests.cs
+消えた 国債の利回り 1 scripts:scripts\instruments\pb\an_pb_div.py
+消えた 国債残高 0 
+消えた 国庫の収入 1 main:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs
+消えた 国庫の台帳 7 uf:PriceOfBread.Tests:UiShotRuleTests.cs scripts:scripts\instruments\an_fiscal242.py scripts:scripts\instruments\ce\an_ce_rev.py scripts:scripts\instruments\d289\an_d289.py scripts:scripts\instruments\f1s0\an_f1s0_savings_chain.py scripts:scripts\instruments\m201\an_chain201.py
+消えた 国庫の支出 2 main:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs uf:PriceOfBread.Tests:UiShotRuleTests.cs
+消えた 在地 2 main:PriceOfBread.Tests:ControlsTests.cs uf:PriceOfBread.Tests:ControlsTests.cs
+消えた 報せの速さ 1 uf:PriceOfBread.Tests:PoliticsTablesTests.cs
+消えた 外国 0 
+消えた 外資の流入 1 scripts:scripts\instruments\r966\r966_chain.py
+消えた 外資の流出 0 
+消えた 失業増減 0 
+消えた 失業率 0 
+消えた 子供: 0 
+消えた 市場・清算・貿易 1 main:PriceOfBread.Tests:LayoutTests.cs
+消えた 年金 15 main:PriceOfBread.Tests:DisplayCatalogTests.cs main:PriceOfBread.Tests:StartWarmupTests.cs main:PriceOfBread.SimCore:SelfPlay.cs uf:PriceOfBread.Tests:DisplayCatalogTests.cs uf:PriceOfBread.Tests:StartWarmupTests.cs uf:PriceOfBread.SimCore:SelfPlay.cs
+消えた 床の近く 0 
+消えた 損失の負債化 5 scripts:scripts\instruments\cp448\backstop_by_class.py scripts:scripts\instruments\cp448\descent.py scripts:scripts\instruments\cp448\loss_by_size.py scripts:scripts\instruments\cp448\loss_vs_gdp.py scripts:scripts\instruments\flow262\route_anchors.tsv
+消えた 支持政党: 0 
+消えた 政体: 0 
+消えた 最大 1 main:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs
+消えた 条件 2 main:PriceOfBread.Runner:Program.cs uf:PriceOfBread.Runner:Program.cs
+消えた 株式会社 31 main:PriceOfBread.Tests:InstitutionAnchorTests.cs main:PriceOfBread.Tests:PoliticsTablesTests.cs main:PriceOfBread.SimCore:Catalog.cs main:PriceOfBread.SimCore:Discovery.cs uf:PriceOfBread.Tests:InstitutionAnchorTests.cs uf:PriceOfBread.Tests:PoliticsTablesTests.cs
+消えた 構成比 0 
+消えた 海軍維持費 0 
+消えた 港の容量 6 scripts:scripts\instruments\cs\an_cs403.py scripts:scripts\instruments\hx442\cl_arms.py scripts:scripts\instruments\p292\an_p292.py scripts:scripts\instruments\rd411\port_cmp.py scripts:scripts\instruments\rd434\judge434.py scripts:scripts\instruments\rd434\port434.py
+消えた 為替 0 
+消えた 物価 0 
+消えた 特許制度 2 main:PriceOfBread.Tests:PoliticsTablesTests.cs uf:PriceOfBread.Tests:PoliticsTablesTests.cs
+消えた 発見 2 main:PriceOfBread.Tests:LayoutTests.cs uf:PriceOfBread.Tests:LayoutTests.cs
+消えた 社会 0 
+消えた 緊縮 0 
+消えた 総合 0 
+消えた 老年: 0 
+消えた 自由 2 main:PriceOfBread.Runner:PlayHarness.cs uf:PriceOfBread.Runner:PlayHarness.cs
+消えた 規模増減 0 
+消えた 貯蓄:£ 0 
+消えた 賃金の床 1 scripts:scripts\instruments\spb\spb_labor.py
+消えた 金額 3 main:PriceOfBread.Tests:ControlsTests.cs uf:PriceOfBread.Tests:ControlsTests.cs uf:PriceOfBread.Tests:UiShotRuleTests.cs
+消えた 陸軍維持費 2 main:PriceOfBread.Tests:PlayHarnessTests.cs uf:PriceOfBread.Tests:PlayHarnessTests.cs
+消えた 項目 1 uf:PriceOfBread.Tests:UiShotRuleTests.cs
+---- 足された語で外に読み手がいる物
+足された 中立 4 main:PriceOfBread.SimCore:Megaprojects.cs main:PriceOfBread.SimCore:MultiNationSim.cs uf:PriceOfBread.SimCore:Megaprojects.cs uf:PriceOfBread.SimCore:MultiNationSim.cs
+足された 供給の上限 1 scripts:scripts\instruments\edu\stage0_edu2.py
+足された 入った額 2 scripts:scripts\instruments\c13fl\nl_income.py scripts:scripts\instruments\m988\docs988_next.md
+足された 前段階が必要 5 main:PriceOfBread.Tests:PlayTextTests.cs main:PriceOfBread.SimCore:Government.cs uf:PriceOfBread.Tests:PlayTextTests.cs uf:PriceOfBread.Tests:PoliticsTablesTests.cs uf:PriceOfBread.SimCore:Government.cs
+足された 加工素材 1 uf:PriceOfBread.Tests:ProductionMarketTablesTests.cs
+足された 市場と貿易 1 uf:PriceOfBread.Tests:LayoutTests.cs
+足された 後退不能 1 scripts:scripts\instruments\m189\inj_law189.py
+足された 払えない請求が前提 4 main:PriceOfBread.Tests:TaxTests.cs main:PriceOfBread.SimCore:Government.cs uf:PriceOfBread.Tests:TaxTests.cs uf:PriceOfBread.SimCore:Government.cs
+足された 払った額 10 scripts:scripts\instruments\c72ip\gates869.py scripts:scripts\instruments\c73ip\gates876.py scripts:scripts\instruments\c75ip\gates887.py scripts:scripts\instruments\g278\an_g278.py scripts:scripts\instruments\p292\an_p292.py scripts:scripts\instruments\q286\an_q286.py
+足された 技術 5 main:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs main:PriceOfBread.Tests:TechLevelRemovalTests.cs uf:PriceOfBread.Tests:FiscalPopDiscoveryTablesTests.cs uf:PriceOfBread.Tests:TechLevelRemovalTests.cs uf:PriceOfBread.Tests:UiShotRuleTests.cs
+足された 政府と思想 1 uf:PriceOfBread.Tests:UiShotRuleTests.cs
+足された 港の拡張 1 scripts:scripts\instruments\rd434\judge434.py
+足された 産出 2 main:PriceOfBread.Tests:DisplayCatalogTests.cs uf:PriceOfBread.Tests:DisplayCatalogTests.cs
+足された 緩和 2 main:PriceOfBread.Runner:PlayHarness.cs uf:PriceOfBread.Runner:PlayHarness.cs
+足された 解禁 1 uf:PriceOfBread.Tests:UiShotRuleTests.cs
+足された 賠償の受け取り 1 uf:PriceOfBread.Tests:ObservationFixTests.cs

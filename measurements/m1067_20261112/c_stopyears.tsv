@@ -1,0 +1,88 @@
+# 読んだファイル 318・事象の延べ 2655
+## 延べ（種類・札・1914 年より前 pre／以後 post）
+gdpjump:	建国の直後	pre	2
+gdpjump:D:/PoB_work/keep_818/base_ins	建国の直後	pre	2
+gdpjump:gdpjump	それ以外	post	70
+gdpjump:gdpjump	それ以外	pre	62
+gdpjump:gdpjump	建国の直後	pre	63
+gdpjump:gdpjump833	それ以外	post	4
+gdpjump:gdpjump833	それ以外	pre	26
+gdpjump:gdpjump833	分母の痩せ	post	64
+gdpjump:gdpjump833	分母の痩せ	pre	33
+gdpjump:gdpjump833	建国の直後	pre	49
+gdpjump:gdpjump890	それ以外	pre	1
+gdpjump:gdpjump890	人口の分母の痩せ	pre	1
+gdpjump:gdpjump890	建国の直後	pre	1
+gdpjump:記録	それ以外	post	4
+gdpjump:記録	それ以外	pre	12
+gdpjump:記録	分母の痩せ	post	63
+gdpjump:記録	分母の痩せ	pre	31
+gdpjump:記録	建国の後の0の続き	pre	11
+gdpjump:記録	建国の直後	pre	23
+hol1/10	移民	post	9
+hol1/10	移民・例外の名簿	post	17
+hol1/10	移民・例外の名簿	pre	2
+hol1/4	その他	post	98
+hol1/4	その他	pre	5
+hol1/4	その他・例外の名簿	post	6
+hol1/4	移民	post	491
+hol1/4	移民	pre	50
+hol1/4	移民・例外の名簿	post	647
+hol1/4	移民・例外の名簿	pre	121
+hol1/4	飢え	post	67
+hol1/4	飢え	pre	109
+hol1/4	飢え・例外の名簿	post	4
+hol1/4	飢え・例外の名簿	pre	2
+popjump	人口の比	post	39
+popjump	人口の比	pre	260
+rows:記録	それ以外	post	3
+rows:記録	それ以外	pre	26
+rows:記録	分母の痩せ	post	28
+rows:記録	分母の痩せ	pre	99
+rows:記録	州の出入り	post	25
+rows:記録	州の出入り	pre	25
+## 異なる事象（種類・札・国か州・年）797： 止める線の区分/post:41  止める線の区分/pre:120  記録の区分/post:394  記録の区分/pre:242
+## 異なる事象の年代（10 年刻み）: 1780:1  1790:25  1800:30  1810:19  1820:23  1830:22  1840:12  1850:6  1860:16  1870:29  1880:43  1890:37  1900:65  1910:80  1920:111  1930:132  1940:142  1950:4
+## うち止める線の区分（それ以外・hol 1/10・popjump）の年代: 1790:8  1800:11  1810:6  1820:9  1830:10  1840:6  1850:5  1860:8  1870:12  1880:14  1890:13  1900:14  1910:11  1920:19  1930:9  1940:6
+## 止める線の区分の 1914 年以後の事象
+  1915	gdpjump:gdpjump	それ以外	ポルトガル	m929_20261107\armB\stop906.txt
+  1916	gdpjump:gdpjump	それ以外	ライン諸邦	m887_20261106\stop_S.txt
+  1916	gdpjump:gdpjump	それ以外	ポルトガル	m975_20261109\null\stop906_n2.txt
+  1917	rows:記録	それ以外	ブラワヨ王国	m1020_20261110\read_B\stop1002.txt
+  1917	gdpjump:gdpjump	それ以外	ライン諸邦	m852_20261105\null\stop_n2_852.txt
+  1918	popjump	人口の比	ポルトガル	m1056_20261112\armB\popjump_B.txt
+  1918	gdpjump:gdpjump	それ以外	ポルトガル	m905_20261106\null\stop_n1.txt
+  1920	gdpjump:gdpjump	それ以外	ライン諸邦	m961_20261108\combo_kp_lt\armS11\stop906.txt
+  1920	gdpjump:gdpjump	それ以外	ポルトガル	m984_20261109\armS11\stop906.txt
+  1921	popjump	人口の比	イエメン	m1025_20261110\readS\popjump.txt
+  1921	gdpjump:gdpjump	それ以外	ポルトガル	m961_20261108\null\stop906_n2.txt
+  1922	popjump	人口の比	ポルトガル	m1017_20261110\popjump_s1.txt
+  1922	gdpjump:gdpjump	それ以外	ライン諸邦	m915_20261107\stop906_c79ceS_10_s11.txt
+  1922	gdpjump:gdpjump	それ以外	ポルトガル	m947_20261108\null\stop906_n2.txt
+  1923	gdpjump:gdpjump	それ以外	ヒヴァ	m870_20261106\stop_c70ssB_s1.txt
+  1925	popjump	人口の比	ポルトガル	m1027_20261110\read\n2_10\popjump.txt
+  1926	popjump	人口の比	ポルトガル	m1027_20261110\read\n2_10\popjump.txt
+  1926	gdpjump:gdpjump	それ以外	ポルトガル	m1027_20261110\read\n2_10\stop1002.txt
+  1927	gdpjump:gdpjump	それ以外	ライン諸邦	m1014_20261110\readB\stop1002.txt
+  1927	popjump	人口の比	ライン諸邦	m1017_20261110\popjump_s1.txt
+  1927	gdpjump:gdpjump	それ以外	ヒヴァ	m933_20261107\null\stop906_n2.txt
+  1928	hol1/10	移民	バーミンガム	m839_20261105\stop_abDW0.txt
+  1928	gdpjump:gdpjump	それ以外	ハイデラバード	m947_20261108\null\stop906_n1.txt
+  1928	gdpjump:gdpjump833	それ以外	ハイデラバード	m947_20261108\null\stop906_n1.txt
+  1928	gdpjump:記録	それ以外	ハイデラバード	m947_20261108\null\stop906_n1.txt
+  1928	gdpjump:gdpjump	それ以外	ポルトガル	m984_20261109\armS11\stop906.txt
+  1930	gdpjump:gdpjump	それ以外	コーカンド	m919_20261107\null\stop906_n2.txt
+  1931	popjump	人口の比	シク連邦	m1044_20261111\read\mS_10_s11\popjump.txt
+  1933	gdpjump:gdpjump	それ以外	ヒヴァ	m947_20261108\null\stop906_n2.txt
+  1934	hol1/10	移民	フォートウィリアム	m862_20261105\stop_B.txt
+  1935	gdpjump:gdpjump	それ以外	ポルトガル	m961_20261108\combo_kp_lt\null\stop906_n1.txt
+  1935	gdpjump:gdpjump	それ以外	共和制モロッコ	m971_20261108\armS11\stop949.txt
+  1935	gdpjump:gdpjump833	それ以外	共和制モロッコ	m971_20261108\armS11\stop949.txt
+  1935	gdpjump:記録	それ以外	共和制モロッコ	m971_20261108\armS11\stop949.txt
+  1938	gdpjump:gdpjump	それ以外	スペイン	m826_20261104\stop_n2.txt
+  1940	hol1/10	移民	セントポール	m826_20261104\stop_n2.txt
+  1942	hol1/10	移民	フォートウィリアム	m834_20261104\stop_c67svB.txt
+  1943	gdpjump:gdpjump	それ以外	プロイセン	m852_20261105\null\stop_n1_852.txt
+  1944	gdpjump:gdpjump	それ以外	ポルトガル	m832_20261104\stop_mS.txt
+  1945	hol1/10	移民	フォートウィリアム	m876_20261106\stop_B.txt
+  1948	gdpjump:gdpjump	それ以外	ポルトガル	m903_20261106\armS11\stop_cwS.txt

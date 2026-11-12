@@ -1,0 +1,31 @@
+## c10cp/ukdefault.py
+## c11fl/pxjump.py
+23:                    if ra >= 100: px100 += 1
+40:                    if ra >= 100:
+45:    print(f'{name}\t種 {len(seeds)}\tpxmonth 3 か月比の最大 {pxmax:.4g}（100 倍以上 {px100}・1e10 倍以上 {px1e10}）\tnation_s priceLevel 四�
+## m797/gdp_jump797.py
+24:                    if ra >= 100:
+## r833/gdp_jump833.py
+13:JUMP = 100.0
+## m808/gdp_zero10.py
+## brk693/plvl_seeds.py
+2:"""(693) 準備：価格水準（nation_s の priceLevel）の発散の読み手（種の起点を取れる版・読むだけ）。
+4:出す物：全体の P の最大（国・年・種）・四半期の比 P[t]/P[t-1] の最大（国・年・種）・比 100 以上の行・非有限の行�
+24:            if ra >= 100: j100 += 1
+31:print('価格水準の最大', pmax, '四半期の比の最大', rmax, '比>=100の行', j100, '非有限', nonf, '>=1e10', ge1e10, '開幕の1000倍以上�
+## c78gz/gdp_jump906.py
+16:JUMP = 100.0
+79:        print(f'{name}	種 {len(seeds)}	100 倍以上 {j100}（建国の直後〔≦{K} 四半期〕{len(found)}・建国の後の 0 の続き〔直前 {WIN}
+## c78gz/gdp_zero906.py
+## hol/an_h2.py
+2:  入力＝標準の計器（`INS=1 bash batch.sh run <腕>` の <出力>/ins または POB_INSTRUMENTS）の region_s<seed>.tsv と migration_s<seed>.tsv（(
+37:EXEMPT = EXEMPT_OLD   # (718) 実体は hol_common.py。指示文に写された作者の回答〈例外はそれでよい〉（2026-10-26・原文は未確�
+63:                b = (r['yr'] - 1775) // 25 * 25 + 1775
+121:szc = collections.Counter(('≥1000' if e['pk'] >= 1000 else '100-1000' if e['pk'] >= 100 else '10-100' if e['pk'] >= 10 else '<10', e['cause']) for e in EV
+124:print('## 都市化率（世界）: ' + '  '.join(f'{y} {u / t:.3f}' for y, (u, t) in sorted(URB.items()) if y in (1790, 1820, 1850, 1880, 1910, 1940, 1950)
+## c92gf/gdp_jump1002.py
+9:JUMP = 100.0             # 旧の止める線の倍率
+92:    print(f'{name}\t種 {len(seeds)}\t記録（1002）上がり≧100 {found100 + sum(1 for e in ev if up100(e))}（建国の直後 {found100}・建国の後
+93:    print(f'{name}\t記録（1002）下がり≦1/100 {sum(1 for e in ev if dn100(e))}（{cnt(dn100, K3)}）\t10〜100 倍の跳びと落ち {sum(1 for e in 
+97:                dir='上がり' if e['up'] else '下がり', bg='≧100' if e['big'] else '10〜100', nc=(e['ra'] / e['cr'] if e['cr'] == e['cr'] and e['cr']
+## m1017/popjump1017.py

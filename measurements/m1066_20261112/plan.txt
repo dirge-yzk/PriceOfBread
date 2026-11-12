@@ -1,0 +1,10 @@
+(1066) c101em 中身の無い物を見る回数と秒 — 読むだけの線（腕 0・コミット 0・.cs の変更 0）
+作業の場所: D:/PoB_work/r1066_work（台本・表・下書き・事前登録 prereg.txt）。worktree・枝は作らない。ソースは main の木 C:/Users/dirge/Documents/PriceOfBread（HEAD 9b18137a2）を読むだけ。
+読む生:
+  D:/PoB_work/keep_1053/base_ins/prodcap_s{1..10}.tsv（年末の全生産者・capacity/output/siteRow/siteFound）
+  D:/PoB_work/keep_1053/base_ins/recipeout_s{1..10}.tsv（国×財×レシピの生産者数と能力の和）
+  D:/PoB_work/keep_1053/base_ins/cpop_s{1..10}.tsv（四半期×POP の popK）
+  D:/PoB_work/keep_1053/base_ins/pop_s*・region_s*・factory_s*（参照）
+  measurements/b5_20261112_m1053.cost・b10_20261112_m1053(.cost)・b10_20261112_m1053_ins.cost（件数と単価）
+ソース（grep し直す）: EconomyStep.cs（Run・SleepState・消費の財ループ・月次の POP）・MarketFlow（財の歩）・MultiNationSim.cs の CostLedger と単価の表。
+台本: D:/PoB_work/r1066_work/*.py（python -X utf8 -I）。出力: D:/PoB_work/r1066_work/out_*.txt。

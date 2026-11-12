@@ -1,0 +1,40 @@
+== 木 src_main
+Display のファイル 15 行 2025 型 64 （public 64 ）
+エンジンの型と同名の Display の型（名前だけでは向きが決まらない）: []
+global using Display の件数 0
+-- エンジン（SimCore の Display 以外）: ファイル 166・Display を using する 0・使う Display の型 0・呼びの数 0
+-- Runner: ファイル 5・Display を using する 2・使う Display の型 4・呼びの数 9
+    LawCatalog:3/1f PopTables:2/1f FiscalSide:2/1f FiscalCatalog:2/1f
+    ファイル: PlayFacts.cs PlayHarness.cs
+-- Tests: ファイル 289・Display を using する 10・使う Display の型 38・呼びの数 386
+    Unit:69/6f LawCatalog:61/4f PageKeys:24/2f Col:21/3f DisplayNames:21/5f ProblemScan:19/1f NumberCell:15/3f FiscalCatalog:15/2f FiscalTables:15/1f ColumnKind:11/4f PopTables:10/1f ProductionTables:10/1f LawSlot:9/3f Page:8/3f TableCatalog:8/3f FiscalFlows:8/2f VerbCell:7/2f ProblemKind:7/1f PoliticsTables:6/1f StageCell:5/3f TradeTables:5/1f DiscoveryTables:4/1f RowData:4/2f FiscalSide:3/1f ITable:3/3f Table:2/1f DisplayFormat:2/1f BudgetLine:2/1f MarketTables:2/1f ProductionStats:2/1f ShareCell:1/1f StageColumn:1/1f VerbColumn:1/1f ShareColumn:1/1f BudgetResult:1/1f ColumnInfo:1/1f TextCell:1/1f TableData:1/1f
+    ファイル: ControlsTests.cs DisplayCatalogTests.cs FiscalPopDiscoveryTablesTests.cs FmtTests.cs LayoutTests.cs PinsTests.cs PlayHarnessTests.cs PoliticsTablesTests.cs ProblemScanTests.cs ProductionMarketTablesTests.cs
+-- App: ファイル 69・Display を using する 27・使う Display の型 37・呼びの数 251
+    Unit:59/11f ColumnKind:33/5f Page:21/9f VerbCell:12/5f Table:12/7f StageCell:11/7f PopTables:8/2f AgePyramid:7/3f NumberCell:7/3f FiscalTables:7/1f ProductionTables:7/1f ProblemScan:6/3f TableData:5/4f PageKeys:5/2f ProblemItem:5/1f TextCell:4/3f Col:4/2f RowData:4/2f TradeTables:4/1f ShareCell:3/3f ProblemKind:3/1f LawCatalog:2/2f DisplayFormat:2/1f ColumnInfo:2/2f DiscoveryTables:2/1f FiscalFlows:2/2f PoliticsTables:2/1f ProductionStats:2/1f StageGate:2/1f ITable:1/1f LawSlot:1/1f TableCatalog:1/1f MarketTables:1/1f FiscalStage:1/1f LawDef:1/1f LawView:1/1f FiscalCatalog:1/1f
+-- Display がエンジンの型を読む: 型 74・呼び 606・うち internal の型 1 ['FactoryEquipment']
+   多い順: World:72 PolicyAxis:61 NationPolicy:56 Share:44 TreasuryCat:37 Catalog:30 PlayText:21 GoodTier:18 Good:16 Government:15 Privileges:15 Nationalization:13 Discovery:12 ReformLevel:12 MultiNationSim:12 Region:11 MoneyPerMonth:10 Market:9 EducationLaw:8 Suffrage:8 Calendar:6 WorkHours:6 ConscriptionLaw:6 SiteRow:5 SpecialistExitLaw:5 MoneyStock:5 SocialSecurityLaw:4 Demand:4 Polity:4 Factions:4
+-- エンジンの internal のメンバー（宣言 1244 名）のうち Display が名で呼ぶ（上界）: 31
+    Applies Borrow Cap Coef Count CurrencyMemoryBroken Discontent Eligible ForecastTax Gate GateInfo IdeologyShares LaborSupply LastDiscoveryView MilitaryLawStages MilitaryStage MilitaryTotalTarget NearFloorMargin Of PerUnit Pops Price Q5 Regions Scan StateMonopolyBreadth TaxStage TaxValue Unemployment VisitSiteTerms W
+   うち同じ名の public の宣言がエンジンに無い（internal だけの名）: 19 Applies@MinimumWageFloor.cs Borrow@Fiscal.cs/Instruments.cs CurrencyMemoryBroken@Fiscal.cs Discontent@Politics.cs Eligible@FactoryEquipment.cs ForecastTax@Fiscal.cs LastDiscoveryView@World.cs MilitaryLawStages@Government.cs MilitaryStage@Government.cs MilitaryTotalTarget@Government.cs NearFloorMargin@MinimumWageFloor.cs PerUnit@MinimumWageFloor.cs Q5@Government.cs Scan@InstrumentsTradeskip.cs StateMonopolyBreadth@World.cs TaxStage@Government.cs TaxValue@Government.cs Unemployment@MinimumWageFloor.cs VisitSiteTerms@Discovery.cs
+-- Display の public でない型: []
+-- Display の internal のメンバー 2 名・外（Runner・Tests・App）が名で呼ぶ組 3: App:Lines Runner:Lines Tests:Lines
+== 木 src_uf
+Display のファイル 16 行 2267 型 65 （public 65 ）
+エンジンの型と同名の Display の型（名前だけでは向きが決まらない）: []
+global using Display の件数 0
+-- エンジン（SimCore の Display 以外）: ファイル 164・Display を using する 0・使う Display の型 0・呼びの数 0
+-- Runner: ファイル 5・Display を using する 2・使う Display の型 4・呼びの数 9
+    LawCatalog:3/1f PopTables:2/1f FiscalSide:2/1f FiscalCatalog:2/1f
+    ファイル: PlayFacts.cs PlayHarness.cs
+-- Tests: ファイル 289・Display を using する 13・使う Display の型 39・呼びの数 505
+    Unit:91/8f LawCatalog:60/4f DisplayFormat:40/3f FiscalTables:28/2f PageKeys:24/2f ProblemScan:22/2f DisplayNames:21/5f Col:17/2f FiscalFlows:17/3f ColumnKind:16/6f NumberCell:14/3f Page:13/4f FiscalCatalog:13/1f ProductionTables:13/2f PopTables:11/1f MarketTables:11/1f StageCell:10/5f LawSlot:9/3f DiscoveryTables:9/3f ProblemKind:9/1f VerbCell:8/3f TradeTables:8/1f TableCatalog:8/3f PoliticsTables:5/1f RowData:4/2f BarCell:4/1f FiscalSide:3/1f ITable:3/3f Table:2/1f BudgetLine:2/1f ProductionStats:2/1f ShareCell:1/1f StageColumn:1/1f VerbColumn:1/1f ShareColumn:1/1f BudgetResult:1/1f ColumnInfo:1/1f TextCell:1/1f TableData:1/1f
+    ファイル: ControlsTests.cs DisplayCatalogTests.cs DisplayFineTests.cs FiscalPopDiscoveryTablesTests.cs FmtTests.cs LayoutTests.cs ObservationFixTests.cs PlayHarnessTests.cs PoliticsTablesTests.cs ProblemScanTests.cs ProductionMarketTablesTests.cs SpectateTests.cs UiShotRuleTests.cs
+-- App: ファイル 77・Display を using する 33・使う Display の型 39・呼びの数 329
+    Unit:61/9f ColumnKind:36/5f Page:29/8f DisplayFormat:27/2f PopTables:16/5f VerbCell:14/6f StageCell:13/8f Table:12/7f PowerLabel:10/4f AgePyramid:8/4f NumberCell:7/3f PageKeys:7/3f FiscalTables:7/1f ProblemScan:7/4f ProductionTables:7/1f BarCell:6/4f ShareCell:6/3f ProblemItem:6/1f TableData:5/4f ProblemKind:5/1f TextCell:4/3f DiscoveryTables:4/2f Col:4/2f RowData:4/2f TradeTables:4/1f LawCatalog:2/2f TableCatalog:2/1f ColumnInfo:2/2f FiscalFlows:2/2f ProductionStats:2/1f StageGate:2/1f ITable:1/1f LawSlot:1/1f PoliticsTables:1/1f MarketTables:1/1f FiscalStage:1/1f LawDef:1/1f LawView:1/1f FiscalCatalog:1/1f
+-- Display がエンジンの型を読む: 型 80・呼び 723・うち internal の型 1 ['FactoryEquipment']
+   多い順: TreasuryCat:80 World:74 Share:74 PolicyAxis:63 NationPolicy:56 Catalog:34 PlayText:23 Good:20 GoodTier:19 Discovery:18 Government:17 Privileges:15 Nationalization:13 Region:12 ReformLevel:12 MultiNationSim:12 Suffrage:9 Market:9 MoneyPerMonth:8 EducationLaw:8 Calendar:6 WorkHours:6 ConscriptionLaw:6 Demand:6 SiteRow:5 SpecialistExitLaw:5 Polity:5 MoneyStock:5 SocialSecurityLaw:4 War:4
+-- エンジンの internal のメンバー（宣言 1216 名）のうち Display が名で呼ぶ（上界）: 35
+    Applies BlocOf Borrow Cap Coef Count CurrencyMemoryBroken Discontent Eligible ForecastTax Gate GateInfo IdeologyShares IsHumanLaborSupply LaborSupply LastDiscoveryView LawGap LedgerOf MilitaryLawStages MilitaryStage MilitaryTotalTarget NearFloorMargin Of PerUnit Pops Price Q5 Regions Scan StateMonopolyBreadth TaxStage TaxValue Unemployment VisitSiteTerms W
+   うち同じ名の public の宣言がエンジンに無い（internal だけの名）: 23 Applies@MinimumWageFloor.cs BlocOf@PolicyPreferences.cs Borrow@Fiscal.cs/Instruments.cs CurrencyMemoryBroken@Fiscal.cs Discontent@Politics.cs Eligible@FactoryEquipment.cs ForecastTax@Fiscal.cs IsHumanLaborSupply@EconomyStep.cs LastDiscoveryView@World.cs LawGap@PolicyPreferences.cs LedgerOf@Instruments.cs MilitaryLawStages@Government.cs MilitaryStage@Government.cs MilitaryTotalTarget@Government.cs NearFloorMargin@MinimumWageFloor.cs PerUnit@MinimumWageFloor.cs Q5@Government.cs Scan@InstrumentsTradeskip.cs StateMonopolyBreadth@World.cs TaxStage@Government.cs TaxValue@Government.cs Unemployment@MinimumWageFloor.cs VisitSiteTerms@Discovery.cs
+-- Display の public でない型: []
+-- Display の internal のメンバー 2 名・外（Runner・Tests・App）が名で呼ぶ組 3: App:Lines Runner:Lines Tests:Lines

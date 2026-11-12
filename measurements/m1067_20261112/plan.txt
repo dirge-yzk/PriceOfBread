@@ -1,0 +1,12 @@
+(1067) c101tk 読むだけの線＝盤面と刻みの面で軽くする案 A・B・C を測る（採否は決めない）
+作業の場所
+  D:/PoB_work/r1067_work/   計画・事前登録・台本・表（合流が measurements/m1067_<日付>/ と scripts/instruments/r1067/ へ写す）
+  D:/PoB_work/c101tk_work/  B の腕の作業フォルダ（POB_WORK）＝batch.sh prep c101tkB commit:9b18137a2 plain → run c101tkB 5
+  worktree・枝は作らない（読むだけ・コミットしない）。C: に作業フォルダを作らない。
+読む生
+  B：比べる側＝measurements/b5_20261112_m1053（報告）・.cost・.manifest
+  C：D:/PoB_work/keep_1053/base_ins（clock_s〔時刻の表〕）・measurements/b10_20261112_m1053_ins.cost
+     scripts/instruments/ の止める線・NG・mon・史実の帯の台本（grep で年代の定数）
+     measurements/ の成績表と ng 集合（止める線・NG の新しい件の年）
+  A：keep_1053/base_ins の pxgoods_s か sellr_s（列は head -1 で確かめる）・b10_20261112_m1053_ins.cost の価格・清算の行
+腕：B の素の 5 種 1 本だけ（POB_COEF="PriceFlowStepDays=30;PriceOnlyStepDays=30"）。計器つきの腕・2 本目の腕は回さない。

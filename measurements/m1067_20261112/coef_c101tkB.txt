@@ -1,0 +1,1 @@
+PriceFlowStepDays=30;PriceOnlyStepDays=30

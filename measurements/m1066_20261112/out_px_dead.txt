@@ -1,0 +1,5 @@
+year	regions	stepped_per_region_step	dormant_per_region_step	live_per_region_step	outside_live_share	(G=130・10種の中央値)
+1800	309.000	61.168	1.615	62.889	0.516
+1850	323.500	62.017	0.908	62.979	0.516
+1900	334.500	64.915	0.597	65.185	0.499
+1950	337.000	66.333	0.311	66.578	0.488

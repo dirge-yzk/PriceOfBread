@@ -1,0 +1,66 @@
+件	名	拾った所	ログの行	型	触ったファイル	触った型	本数の全体	D	S	P0	P	P（今日の束）	データを触った	P+R	P+R の割合	触った型の名
+660	mon2	線（旗0）	51511	走査	9	3	1999	1637	382	1637	1674	1679	False	1674	0.84	Instruments,Simulation,TurnSnapshot
+	CalendarTests	CalendarTests.cs	D	-	-	S	P
+	GoodIdGuardTests	GoodIdGuardTests.cs	D	-	-	S	P
+665	igi3	合流	51611	走査	16	3	1997	1581	382	1581	1642	1642	False	1642	0.82	Coefficients,EconomyStep,Instruments
+	ScalarDeletionTests	ScalarDeletionTests.cs	D	-	-	S	P
+694	urb2×navf5	合流（組み合わせ）	51986	軌道（重ね）	34	5	2032	1644	381	1644	1705	1705	False	1705	0.84	Coefficients,EconomyStep,GameViewModel,Instruments,Territory
+	InstrumentsTests	InstrumentsTests.cs	D	-	-	S	P
+727	dsc2	合流	52588	走査	8	2	2076	449	381	449	702	707	False	702	0.34	Improvement,Instruments
+	ScalarDeletionTests	ScalarDeletionTests.cs	D	-	-	S	P
+	TechLevelRemovalTests	TechLevelRemovalTests.cs	D	-	-	S	P
+810	c13fl	線（旗1）	53601	走査（㉘の起こり）	17	3	2210	1628	392	1628	1735	1735	False	1735	0.79	CapitalMarket,Coefficients,Instruments
+	IndustrializationReaderTests	IndustrializationReaderTests.cs	D	-	-	S	P
+	InstrumentsTests	InstrumentsTests.cs	D	-	-	S	P
+	UnitTypeTests	UnitTypeTests.cs	D	-	-	S	P
+817	c14id	線	53720	走査（台本）	20	15	2206	1762	393	1797	1804	1804	False	1804	0.82	Chokepoint,Coefficients,Colony,Diplomacy,EndedWarRecord,EventLog,Instruments,Megaproject,Power,TensionPoliticsKind,TensionPoliticsPreview,TensionReason
+	GoodIdGuardTests	GoodIdGuardTests.cs	D	-	-	S	P
+845	c68ui	線	54229	走査	54	70	2220	2178	404	2178	2178	2178	False	2178	0.98	AgePyramid,ArmyShape,BatchSummary,BudgetLine,BudgetResult,Chokepoint,ClassLine,Coefficients,Colony,CompositionLine,CostLedger,CostSys
+	TechLevelRemovalTests	TechLevelRemovalTests.cs	D	T	-	S	P
+863	c71ip	線（旗1）	54534	軌道（旗1）	14	3	2277	1694	406	1740	1801	1801	False	1801	0.79	Coefficients,Instruments,InternationalMarket
+	TradeClearingTests	TradeClearingTests.cs	D	-	-	-	P
+909	c78ls	線（旗1・データ）	55127	軌道（データ）	7	0	2377	0	413	145	420	622	True	2377	1.00	
+	StateFactoryTests	StateFactoryTests.cs	-	-	-	-	×
+	CornintInstrumentTests	CornintInstrumentTests.cs	-	-	-	-	×
+	AiFirstWaveTests	AiFirstWaveTests.cs	-	-	-	-	×
+	ReformPathTests	ReformPathTests.cs	-	-	-	S	P
+	InstrumentsTests	InstrumentsTests.cs	-	-	B	S	P
+952	c84kp	線（旗1）	55559	軌道（旗1・対照の件数）	9	3	2411	2038	422	2066	2116	2116	False	2116	0.88	Coefficients,CostLedger,MultiNationSim
+	SecessionLaborLawInstrumentTests	SecessionLaborLawInstrumentTests.cs	D	-	B	-	P
+956	c85hs	線	55606	データ（inputHash）	9	28	2410	2345	423	2352	2352	2352	True	2410	1.00	Basin,Basins,Coefficients,CrownForm,EducationLaw,Good,GoodTier,Ideology,Input,Market,NationConfig,Polity
+	OpeningBakeTests	OpeningBakeTests.cs	D	-	-	-	P
+959	c85mw	線（旗1）	55624	軌道（旗1）＋計算量の表	11	16	2415	2215	423	2215	2215	2215	False	2215	0.92	Chokepoint,Coefficients,Colony,Diplomacy,EndedWarRecord,EventLog,Instruments,Megaproject,Power,Simulation,TensionPoliticsKind,TensionPoliticsPreview
+	TransportInstrumentTests	TransportInstrumentTests.cs	D	-	B	-	P
+	WriterRatchetTests	WriterRatchetTests.cs	D	-	B	S	P
+961	c85lt×c85kp	合流（組み合わせ）	55637	軌道（重ね・対照の件数）	19	3	2434	2061	423	2089	2139	2139	False	2139	0.88	Coefficients,CostLedger,MultiNationSim
+	SecessionLaborLawInstrumentTests	SecessionLaborLawInstrumentTests.cs	D	T	B	-	P
+978	c88cs	線（旗1）	55765	走査（台本）	17	7	2466	2398	423	2398	2398	2398	True	2466	1.00	Coefficients,EconomyStep,Instruments,InternationalMarket,Simulation,TurnSnapshot,World
+	GoodIdGuardTests	GoodIdGuardTests.cs	D	-	-	S	P
+1017	c94cl	合流	56112	走査	8	1	2569	905	463	978	1128	1128	False	1128	0.44	Instruments
+	ScalarDeletionTests	ScalarDeletionTests.cs	D	-	-	S	P
+1022	c95pc	合流	56212	走査（台本）	7	1	2584	920	463	993	1143	1143	False	1143	0.44	Instruments
+	GoodIdGuardTests	GoodIdGuardTests.cs	-	-	B	S	P
+1022.5	c95wn	合流	56180	走査＋表の見出し	8	14	2590	2496	474	2501	2512	2512	False	2512	0.97	Chokepoint,Colony,Diplomacy,EndedWarRecord,EventLog,Instruments,Megaproject,Power,TensionPoliticsKind,TensionPoliticsPreview,TensionReason,War
+	OnDoubleReadScanTests	OnDoubleReadScanTests.cs	D	-	B	S	P
+	InvadeInstrumentTests	DiplomacyPendingTests.cs	D	-	B	-	P
+1030	c97eb	線（旗1）	56321	軌道（旗1・試験のバグ㊴）	14	1	2626	1646	481	1922	1960	1960	False	1960	0.75	Coefficients
+	ClearingFillInstrumentTests	ClearingFillInstrumentTests.cs	-	-	B	-	P
+	SecessionLaborLawInstrumentTests	SecessionLaborLawInstrumentTests.cs	-	-	B	-	P
+	EconomyTests	EconomyTests.cs	D	T	-	-	P
+	RecipeoutInstrumentTests	RecipeoutInstrumentTests.cs	D	T	B	-	P
+	CorncfInstrumentTests	CorncfInstrumentTests.cs	D	T	B	S	P
+1038	c98wr	線（旗1）	56395	軌道（旗1）＋旧の規則の番人	12	15	2643	2577	484	2577	2577	2577	False	2577	0.98	Chokepoint,Coefficients,Colony,Diplomacy,EndedWarRecord,EventLog,Instruments,Megaproject,Power,TensionPoliticsKind,TensionPoliticsPreview,TensionReason
+	ColonyPromotionTests	ColonyPromotionTests.cs	D	-	-	-	P
+	ConservationTests	ConservationTests.cs	D	-	-	-	P
+	DiplomacyPendingTests	DiplomacyPendingTests.cs	D	-	B	-	P
+	InstrumentsTests	InstrumentsTests.cs	D	-	B	S	P
+	InvadeInstrumentTests	DiplomacyPendingTests.cs	D	-	B	-	P
+	LordstatInstrumentTests	LordstatInstrumentTests.cs	D	-	B	S	P
+	MilitaryTests	MilitaryTests.cs	D	-	-	-	P
+	PlayHarnessTests	PlayHarnessTests.cs	D	-	-	S	P
+	WarInstrumentTests	WarInstrumentTests.cs	D	-	B	S	P
+	WriterRatchetTests	WriterRatchetTests.cs	D	-	B	S	P
+1044	c98lc	合流	0	ビルド	11	4	2644	2094	484	2142	2196	2196	False	2196	0.83	CostLedger,Instruments,InternationalMarket,MultiNationSim
+	(試験のビルドの失敗)	木に無い					
+赤のクラスの延べ 43 P で拾う 39 P+R で拾う 42 P0（S なし）で拾う 38 その時点の束 B だけで拾う 18
+P+R の割合（名目＝本数の割合）: 最小 0.34 中央 0.84 最大 1.00 ・0.5 未満の件 3 / 20

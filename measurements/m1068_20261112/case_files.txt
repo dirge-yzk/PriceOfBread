@@ -1,0 +1,42 @@
+== mon2
+PriceOfBread.SimCore/Instruments.cs PriceOfBread.SimCore/InstrumentsMon.cs PriceOfBread.SimCore/Simulation.cs PriceOfBread.Tests/InstrumentsMonTests.cs scripts/instruments/mon/an_mon.py scripts/instruments/mon/fixtures/make_fixtures.py scripts/instruments/mon/selftest.py 
+
+== igi3
+PriceOfBread.SimCore/Coefficients.cs PriceOfBread.SimCore/EconomyStep.cs PriceOfBread.SimCore/Instruments.cs PriceOfBread.SimCore/InstrumentsInp.cs PriceOfBread.Tests/IndustrializationReaderTests.cs PriceOfBread.Tests/InpFillTests.cs PriceOfBread.Tests/PolicyPoliticsTests.cs scripts/instruments/fas659/an_fas0.py scripts/instruments/igi3_657/an_inp.py scripts/instruments/igi3_657/arm_sum.py scripts/instruments/igi3_657/cmp_band.sh scripts/instruments/igi3_657/cmp_ins.py scripts/instruments/igi3_657/k_urb_delta.py scripts/instruments/igi3_657/obs4.py scripts/instruments/igi3_657/s0.py 
+
+== urb2
+PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DevaluationCapReliefTests.cs PriceOfBread.Tests/DormantIdentityTests.cs PriceOfBread.Tests/HabitTests.cs PriceOfBread.Tests/IndustrializationReaderTests.cs PriceOfBread.Tests/InstrumentsTests.cs PriceOfBread.Tests/MobilityTests.cs PriceOfBread.Tests/NavalCedeFleetReturnTests.cs PriceOfBread.Tests/PolicyPoliticsTests.cs PriceOfBread.Tests/UrxInstrumentTests.cs PriceOfBread.Tests/WriterRatchetTests.cs scripts/instruments/brk693/home_break.py scripts/instruments/brk693/plvl_seeds.py scripts/instruments/m694/extra694.py scripts/instruments/m694/rec694.sh scripts/instruments/rd47/class_share.py scripts/instruments/rd47/collapse_events.py scripts/instruments/rd47/colony_loss.py scripts/instruments/rd47/fi_median.py scripts/instruments/rd47/first_idea.py scripts/instruments/rd47/home_accounting.py scripts/instruments/rd47/mil_terms.py scri
+
+== navf5
+PriceOfBread.App/ViewModels/GameViewModel.Politics.cs PriceOfBread.SimCore/Coefficients.cs PriceOfBread.SimCore/EconomyStep.cs PriceOfBread.SimCore/Instruments.cs PriceOfBread.SimCore/Territory.cs PriceOfBread.Tests/DormantIdentityTests.cs PriceOfBread.Tests/InstrumentsTests.cs PriceOfBread.Tests/NavalCedeFleetReturnTests.cs PriceOfBread.Tests/NavalPortProcurementTests.cs scripts/instruments/hol/edge_689.py scripts/instruments/m694/extra694.py scripts/instruments/m694/rec694.sh scripts/instruments/navf688/cmp_ins.py scripts/instruments/navf688/fleet_rec.py scripts/instruments/navf688/g688.py scripts/instruments/navf688/p0_events.py scripts/instruments/navf688/p0_nByNation.py scripts/instruments/navf688/p0_retained_vs_null.py scripts/instruments/navf688/top_share.py 
+
+== dsc2
+PriceOfBread.SimCore/Improvement.cs PriceOfBread.SimCore/Instruments.cs PriceOfBread.SimCore/InstrumentsDsc.cs PriceOfBread.Tests/Dsc2InstrumentTests.cs PriceOfBread.Tests/TechLevelRemovalTests.cs scripts/instruments/dsc2_725/replay2.py 
+
+== c68ui
+PriceOfBread.Tests/TechLevelRemovalTests.cs 
+
+== c84kp
+PriceOfBread.SimCore/Coefficients.cs PriceOfBread.SimCore/MultiNationSim.cs PriceOfBread.Tests/DormantIdentityTests.cs PriceOfBread.Tests/OpeningColonyDominanceTests.cs scripts/instruments/c84kp/arm952.sh scripts/instruments/c84kp/mutate952.py scripts/instruments/c84kp/mutrun952.sh scripts/instruments/c84kp/paper952.py scripts/instruments/c84kp/reads952.sh scripts/instruments/c84kp/suite952.sh scripts/instruments/c84lb/flag1_951.sh scripts/instruments/c84lb/mut951.sh scripts/instruments/c84lb/paper951.py scripts/instruments/r950/r950_bottom.py scripts/instruments/r950/r950_nat.py scripts/instruments/r950/r950_reg.py scripts/instruments/r950/r950_sec.py scripts/instruments/r950/r950_tier.py scripts/instruments/r950/r950_type.py scripts/instruments/r950/r950_u2.py scripts/instruments/r953/r953read.py 
+
+== c85lt
+PriceOfBread.SimCore/Coefficients.cs PriceOfBread.Tests/DormantIdentityTests.cs PriceOfBread.Tests/InstrumentsTests.cs PriceOfBread.Tests/LandfixInstrumentTests.cs scripts/instruments/c85lt/arm958.sh scripts/instruments/c85lt/gate958.py scripts/instruments/c85lt/mut958.py scripts/instruments/c85lt/mut958lb.sh scripts/instruments/c85lt/read958.sh scripts/instruments/m961/copy961.py scripts/instruments/m961/kit961.sh scripts/instruments/m961/ledger961.py scripts/instruments/m961/read961.sh scripts/instruments/m961/shrink961.sh scripts/instruments/m961/suite961.sh 
+
+== c85kp
+PriceOfBread.Tests/OpeningColonyDominanceTests.cs scripts/instruments/c85kp/arm957.sh scripts/instruments/c85kp/mutate957.py scripts/instruments/c85kp/mutrun957.sh scripts/instruments/c85kp/reads957.sh scripts/instruments/c85kp/reads_all957.sh scripts/instruments/c85kp/recount957.sh scripts/instruments/c85kp/suite957.sh scripts/instruments/m961/cfg961.py scripts/instruments/m961/copy961.py scripts/instruments/m961/kit961.sh scripts/instruments/m961/ledger961.py scripts/instruments/m961/read961.sh scripts/instruments/m961/shrink961.sh scripts/instruments/m961/suite961.sh 
+
+== c94cl
+PriceOfBread.SimCore/Instruments.cs PriceOfBread.SimCore/InstrumentsCorncf.cs PriceOfBread.SimCore/InstrumentsLordstat.cs PriceOfBread.Tests/CorncfInstrumentTests.cs PriceOfBread.Tests/LordstatInstrumentTests.cs scripts/instruments/c94cl/gi_read.py scripts/instruments/c94cl/mutate.sh scripts/instruments/c94cl/mutations.py 
+
+== c95wn
+scripts/instruments/c96wn/mut.py scripts/instruments/c96wn/mut.sh 
+
+== c95pc
+PriceOfBread.Tests/ProdcapInstrumentTests.cs PriceOfBread.Tests/WriterRatchetTests.cs scripts/instruments/c95pc/mutate.py scripts/instruments/c95pc/record.py scripts/instruments/m1022/cfg1022.py scripts/instruments/m1022/rocols1022.py scripts/instruments/r1021/costdecomp1021.py scripts/instruments/r1021/fill1021.py scripts/instruments/r1021/good1021.py scripts/instruments/r1021/merch1021.py scripts/instruments/r1021/thr1021.py 
+
+== c98wr
+PriceOfBread.SimCore/Coefficients.cs PriceOfBread.SimCore/Diplomacy.cs PriceOfBread.SimCore/InstrumentsWar.cs PriceOfBread.SimCore/World.cs PriceOfBread.Tests/DormantIdentityTests.cs PriceOfBread.Tests/WarEntryUnifyTests.cs scripts/instruments/c98wr/flag1.py scripts/instruments/c98wr/gates.py scripts/instruments/c98wr/mut.py scripts/instruments/c98wr/mutt.sh scripts/instruments/c98wr/paper0.py scripts/instruments/c98wr/paper1.py 
+
+== c98lc
+PriceOfBread.SimCore/BilateralMarket.cs PriceOfBread.SimCore/Instruments.cs PriceOfBread.SimCore/InstrumentsSellr.cs PriceOfBread.SimCore/InstrumentsTradeskip.cs PriceOfBread.SimCore/MultiNationSim.cs PriceOfBread.Tests/ClearingLowerBoundTests.cs PriceOfBread.Tests/TradeSkipC4Tests.cs PriceOfBread.Tests/WriterRatchetTests.cs scripts/instruments/c98lc/full.sh scripts/instruments/c98lc/mut.sh scripts/instruments/c98lc/runmuts.sh scripts/instruments/m1044/arm1044.sh scripts/instruments/m1044/identz1044.sh scripts/instruments/m1044/m4lc1044.sh scripts/instruments/m1044/prefix1044.py scripts/instruments/m1044/suite1044.sh scripts/instruments/r1040/xn_cost.py scripts/instruments/r1040/xn_glut.py scripts/instruments/r1040/xn_need.py scripts/instruments/r1041/bprime_paper.py scripts/instruments/r1041/halfledger.py scripts/instruments/r1041/t5sweep.sh scripts/instruments/r1042/rm_clean.py scripts
+
