@@ -1845,6 +1845,7 @@ public static partial class Instruments
             FmFold(sk, seed, w, st, q, picked, yearEnd);    // (371) 流れM の計器（純支持の項と陸の必要量の組成・MmNet などを ResetQuarter が戻す前に読む）
             ScalarsFold(sk, seed, w, q, picked, yearEnd);   // (373) 政治のスカラーの表
             CrownFold(sim, seed, w, q);                     // (889) 議会の統制力の項ごとの寄与の表 crownpc_s（全ての国・毎四半期・前の四半期の末の断面を計器が貯める）
+            CenterFold(sim, seed, w, q);                    // (1090) 王権と議会の段 P1 の影の計器 center_s（国×四半期・読むだけ）
             CwFold(sim, seed, w, q);   // (903) cwmult_s
             IvfFold(sk, seed, w, q, picked, yearEnd);       // (536) 初期値の直し（資本の土台）の表（本土と植民地の物価の乗数・石炭の費用・建設の組の選び・資本財の需給）
             BurFold(sk, seed, w, st, q);   // (389) AI の官僚制度の判断の表
@@ -1948,6 +1949,7 @@ public static partial class Instruments
         LandbaseClose(sim);   // (894) landbase_s・landbasereg_s
         BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim);   // (1036)(970)(1003)   // (970) basisx_s
         CrownClose(sim);   // (889) crownpc_s
+        CenterClose(sim);  // (1090) center_s・poppref_s
         CwClose(sim); WarClose(sim);   // (903) cwmult_s・(1018) warentry_s・warpair_s・warband_s
         LandsaleClose(sim);   // (983) landsale_s
         LandshareClose(sim);   // (895) landshare_s
