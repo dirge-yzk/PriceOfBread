@@ -1,0 +1,28 @@
+=== 恒等の判定（測った種で一致） c103dmD（2026-11-13 00:57:59）===
+測った木：D:/PoB_work/wt_c103dm（HEAD 3f165ac0d・未コミット 1 本）
+基準の設定：D:/PoB_work/c103dm_work/identD/identD.cfg
+宣言：removed_cols=['fiscal_s:claimMegaForeignYieldAtQuarterEnd', 'fiscal_s:claimMonumentBuildPerMonth', 'nation_s:monumentPaidPerMonth', 'nation_s:megaCrisisPassCount', 'nation_s:megaCrisisGateOpenCount', 'scalars_s:megaStartedCount', 'scalars_s:megaStartedUnmetCount', 'scalars_s:megaStartedOldGateClosedCount'] tests_delta=-10
+腕 b：rc=0 end=2026-11-13 00:57:50
+腕 t：rc=0 end=2026-11-13 00:39:01
+判定の段：段 1（素の 5 種の全行＋.cost の件数の行＋計器つき 10 種の小さい表の集合 33 表）
+測る木の SOURCE-HASH：3d1094510f23ced5
+
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 3d1094510f23ced5
+[計器つき 10 種] b10_ib_10.txt 対 b10_c103dmB_10.txt
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_c103dmB_10.txt.cost
+  ○ 件数の行 41 本・推定 228.2 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c103dm_work/identD/out_ib_10/ins  対  基準 D:/PoB_work/c103dm_work/out_c103dmB_10/ins  ※段 1＝集合 33 表だけ
+  ○ 段 1：選ばない表のファイルは 0 本（Open を通らない表 3 種は除く）
+  基準 324 本・腕 324 本・バイト一致 284 本
+  列が消えた表（--removed-cols の宣言・残りの列は全行バイト一致）30 本：fiscal_s:claimMegaForeignYieldAtQuarterEnd,claimMonumentBuildPerMonth・nation_s:megaCrisisPassCount,megaCrisisGateOpenCount,monumentPaidPerMonth・scalars_s:megaStartedCount,megaStartedUnmetCount,megaStartedOldGateClosedCount
+  既知の揺れの列だけが違う表 10 本：flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 284・既知の揺れ 10・宣言された増減 30）
+  内訳：共通の表 324 本＝バイト一致 284＋既知の揺れ 10＋列が増えた 0＋行が増えた 0＋列が消えた 30＋宣言の無い違い 0＋その他 0（和 324）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_c103dmB_10.txt（タグの行を除く）
+  ○ タグの行以外が一致（4666 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2759（基準 2769-10 を宣言）・FullLength 3（基準 3）
+
+段 1 は集合の外の計器の表を見ていない
+判定: 恒等（段 1）

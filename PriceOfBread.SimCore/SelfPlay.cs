@@ -1106,7 +1106,6 @@ public sealed class UtilityAgent : INationAgent
         SetNavalUpkeepShare(w);// 陸海の維持費の割り振り（2026-08-04）＝陸と海の必要量が指針（(151)・旧＝地理）
         TryTradeBias(w);       // 財ごとの売買方針（2026-08-04）＝プレイヤーと同じ動詞（World.SetTradeBias）
         TryBuildFacility(w);   // 工場/プランテーションの着工（2026-08-04）＝プレイヤーと同じ動詞（2026-08-10から World.SetStateTarget＝国営工場カウンター）
-        StartMegaproject(w);   // 巨大建造物の着工（2026-08-02）＝恐慌の失業対策／平時は国庫に余裕がある時だけ
         // ★侵略の標的選択は Diplomacy の TryAiSubjugate へ1本化（作者裁定2026-08-23の「植民地化と侵略の1本化」）。
         //   旧＝ここ（毎四半期・戦争熱で選ぶ）と Diplomacy（確率で・富と到達で選ぶ）の2経路が同じ動詞を叩いていた。
         // ※国家主導の工業化（AIが1棟単位の手動建設＝旧 BuildIndustry で後発を追い上げる）は実験した結果、ロシアが工業化すると
@@ -1477,17 +1476,6 @@ public sealed class UtilityAgent : INationAgent
     {
         double payPerDay = World.FactoryPayPerDay(bp.GoodId, w.Coef, out _);
         return Calendar.PerDayToPerMonth(payPerDay) + World.ConstructionMaterialPerMonth(rg, bp, w.Coef);
-    }
-
-    /// <summary>巨大建造物の着工（2026-08-02）。★作者裁定＝**着工はプレイヤーの判断**とし、AIの挙動は動詞の導入前と同じにする。
-    /// したがってAIの規則は「着工できるものは即座に全部着工する」＝技術ゲートと国庫が許せば建て始める、という旧挙動の再現。
-    /// 拠出の有界化は従来どおり MegaprojectStateCap（1国あたり総額）が効くので、同時着工しても国庫は一気に吸われない。
-    /// 着工そのものは Megaprojects.TryStart＝プレイヤーのボタンと同一経路（機構は対称・判断だけが違う）。
-    /// 単一国（Diplomacy/SelfPower=null）では何もしない＝較正に無影響。</summary>
-    private static void StartMegaproject(World w)
-    {
-        if (w.Diplomacy is not { } dip || w.SelfPower is null) return;
-        foreach (var mp in dip.Megaprojects) Megaprojects.TryStart(w, mp);
     }
 
     internal static void Apply(World w, Stance s)   // internal＝番人テストがスタンスを固定して呼ぶためだけ（回5-1 項目19・可視性のみ）

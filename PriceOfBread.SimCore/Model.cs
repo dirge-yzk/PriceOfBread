@@ -1131,12 +1131,6 @@ public sealed class Region
     public double CumStateMonopolyRevenue;                  // 専売益の累積（診断・UI予算表示用。同上）
     // （株式会社の州の倍率 IndustrializationBoost と、その適用済みの印 JointStockApplied・JointStockMulApplied は 2026-10-01 (152) に削除
     //   ＝所有国の発見の2値〔World.JointStock〕から導ける量＝EconomyStep が所有国の値を直に読む・割譲された州は次の月から新しい所有国の制度に従う）
-    // 巨大建造物（2026-07-28）：国家建設とは**別キュー・別アキュムレータ**にする。理由＝StateBuildQueue に相乗りさせると
-    // EconomyStep の州上限5.0のヘッドルーム（stateHeadroomUnits）に巻き込まれ、建造物が置かれる先進州（上限に張り付く州）で
-    // ちょうど建設速度が0に落ちる（設計書§6 地雷#4）。建造物は工業化度に溶かさず専用の変換先を持つ。
-    public double MonumentBuildQueue;                 // 巨大建造物への国庫予約額。EconomyStep が建設の束＋労働を買い MonumentBuiltUnits へ積む（ヘッドルーム非適用）
-    public double MonumentBuiltUnits;                 // 今四半期に建った建設の束（MultiNationSim が四半期末に回収して個体の進捗へ足しゼロ化＝2相方式）
-    public List<string> MonumentApplied = [];         // この州で恒久効果を適用済みの建造物Id（征服で州ごと移るので効果も州に付いて回る）
     // ★(608) 恒等の線 gc7：欄 StateBuildQueue〔国庫の建設の予約額・書き手は (583) から 0 本〕を物理削除した（名前の復活は DormantIdentityTests.RetiredFields が禁じる）。残る予約は下の MonumentBuildQueue・HigherEduFunding。
     // ★段③（2026-08-17・作者裁定「工業化投資は銅やセメントを買うのではなく、研究者や技師を増やす補助金として機能させたい」）：
     //   近代化投資のうち高等教育の学費を肩代わりする分の**予約額**（MonumentBuildQueue と同型＝請求権であってカネはまだ国庫にある）。

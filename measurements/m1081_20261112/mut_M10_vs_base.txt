@@ -1,0 +1,88 @@
+=== 恒等の判定（測った種で一致） c103dmM10（2026-11-13 01:04:35）===
+測った木：D:/PoB_work/wt_c103dm（HEAD 3f165ac0d・未コミット 1 本）
+基準の設定：D:/PoB_work/c103dm_work/identD/identM10.cfg
+宣言：removed_cols=['fiscal_s:claimMegaForeignYieldAtQuarterEnd', 'fiscal_s:claimMonumentBuildPerMonth', 'nation_s:monumentPaidPerMonth', 'nation_s:megaCrisisPassCount', 'nation_s:megaCrisisGateOpenCount', 'scalars_s:megaStartedCount', 'scalars_s:megaStartedUnmetCount', 'scalars_s:megaStartedOldGateClosedCount'] tests_delta=-10
+腕 b：rc=0 end=2026-11-13 00:57:50
+腕 t：rc=0 end=2026-11-13 00:39:01
+判定の段：段 1（素の 5 種の全行＋.cost の件数の行＋計器つき 10 種の小さい表の集合 33 表）
+測る木の SOURCE-HASH：3d1094510f23ced5
+
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 3d1094510f23ced5
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261112_m1069_ins
+  ✗ 不一致：計器つき 10 種：行数 180 対 181・違う行 145
+      4: 新 デッドロック発生: 0/10    終盤決着(最終1割の四半期): 0/10    異常総数: 0
+         基 デッドロック発生: 0/10    終盤決着(最終1割の四半期): 0/10    異常総数: 1
+      5: 新 ハーネス不合格を含む試合: 7/10
+         基 ハーネス不合格を含む試合: 3/10
+      6: 新 恐慌統計: 平均最大ドローダウン 90.0%　大恐慌(25%超)を含む試合 10/10　平均恐慌回数 92.0
+         基 恐慌統計: 平均最大ドローダウン 88.5%　大恐慌(25%超)を含む試合 10/10　平均恐慌回数 93.0
+      7: 新 恐慌統計（大国8・1人あたり実質GDP・史実比較用）: エピソード 12.0/試合（史実参照 5〜7）　最大DD 79.0%（史実参照 ≤40%・平時≤15%）　出所 プロイセン・Q582・seed9
+         基 恐慌統計（大国8・1人あたり実質GDP・史実比較用）: エピソード 11.3/試合（史実参照 5〜7）　最大DD 90.6%（史実参照 ≤40%・平時≤15%）　出所 サルデーニャ＝ピエモンテ・Q560・seed2
+      8: 新 恐慌の原因: 信用過熱先行 81%　不作先行 33%（残りは複合/その他）
+         基 恐慌の原因: 信用過熱先行 79%　不作先行 30%（残りは複合/その他）
+      9: 新 金本位の強制離脱（兌換停止）: 総51回（うちカバー率割れ 3回）・発生試合 10/10
+         基 金本位の強制離脱（兌換停止）: 総42回（うちカバー率割れ 0回）・発生試合 10/10
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261112_m1069_ins.cost
+  ✗ 不一致：計器つき 10 種の .cost：件数の行 41 本が違う
+      AI の官僚制度の走査：国×四半期（欲しい法の表の走査と前提・門の照会）
+         新 42161	12.76000	0.54
+         基 42041	12.76000	0.54
+      GDP：州×生産者の和（取り直した分）
+         新 118698092	0.01550	1.84
+         基 118238486	0.01550	1.83
+      レシピごとの設備の配り：購入が起きた州×月の生産者の数（旗 RecipeEquipment が正のとき・配りは 3 周・
+         新 293548243	0.00604	1.77
+         基 291178860	0.00604	1.76
+      不満度を読む：POP×国×四半期（参加の述語〔旗 ParticipationDiscontent が正のとき〕と思想の更
+         新 5306193	1.20000	6.37
+         基 5275931	1.20000	6.33
+      中身の無い物：そのうちお金も債務も所得も無い POP×月
+         新 941271	0.00000	0.00
+         基 None
+      中身の無い物：人数 0.0 の POP×月（月の頭・計器 (1072)）
+         新 1004232	0.00000	0.00
+         基 None
+  ✗ 不一致：計器つき 10 種の .cost：推定 新 228.2 秒 対 基準 227.7 秒
+  ✗ 不一致：計器つき 10 種の .cost：種ごとの忠実度の行が違う
+[計器の表] 腕 D:/PoB_work/c103dm_work/identD/out_ib_10/ins  対  基準 D:/PoB_work/keep_1078/base_ins  ※段 1＝集合 33 表だけ
+  ○ 段 1：選ばない表のファイルは 0 本（Open を通らない表 3 種は除く）
+  基準 327 本・腕 324 本・バイト一致 0 本
+  基準にあって腕に無い 3 本（うち宣言 0）
+  ✗ 不一致：計器の表：基準にあって腕に無い 3 本 ['pclamp_s10.tsv', 'pclamp_s3.tsv', 'pclamp_s4.tsv']
+  ✗ 不一致：計器の表：宣言の無い違い 324 本
+      aib_s1.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bufferEntryMean', 'builtIdleGoods', 'builtIdleUnits']
+      aib_s10.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+      aib_s2.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bufferEntryMean', 'builtIdleGoods', 'builtIdleUnits']
+      aib_s3.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+      aib_s4.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+      aib_s5.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+      aib_s6.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+      aib_s7.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+      aib_s8.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bufferEntryMean', 'builtIdleGoods', 'builtIdleUnits']
+      aib_s9.tsv	['ROWS', 'artilleryScaleSum', 'bestRegionCount', 'bestRootDeadCount', 'bestRootDeadGoods', 'bufferEntryMean']
+  内訳：共通の表 324 本＝バイト一致 0＋既知の揺れ 0＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 324＋その他 0（和 324）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261112_m1069.txt（タグの行を除く）
+  ✗ 不一致：注視の表：行数 4666 対 4612・違う行 4584
+      4: 新 MONHEAD	封鎖：blockadeRiskShare は全期間 0(409409 行・World.LastBlockadeRisk の書き手が無い)＝封鎖は拾えない
+         基 MONHEAD	封鎖：blockadeRiskShare は全期間 0(408208 行・World.LastBlockadeRisk の書き手が無い)＝封鎖は拾えない
+      7: 新 MONSEED	種1	国数=69	政体PDあり=0	年内往復=276	分母が痩せた年=0
+         基 MONSEED	種1	国数=71	政体PDあり=0	年内往復=251	分母が痩せた年=0
+      8: 新 MONSEED	種2	国数=65	政体PDあり=0	年内往復=277	分母が痩せた年=0
+         基 MONSEED	種2	国数=74	政体PDあり=0	年内往復=285	分母が痩せた年=0
+      9: 新 MONSEED	種3	国数=70	政体PDあり=0	年内往復=267	分母が痩せた年=0
+         基 MONSEED	種3	国数=70	政体PDあり=0	年内往復=307	分母が痩せた年=0
+      10: 新 MONSEED	種4	国数=67	政体PDあり=0	年内往復=288	分母が痩せた年=0
+         基 MONSEED	種4	国数=69	政体PDあり=0	年内往復=311	分母が痩せた年=0
+[テストの数] --list-tests
+  ○ Category!=FullLength 2759（基準 2769-10 を宣言）・FullLength 3（基準 3）
+
+不一致の理由 7 件：
+  - 計器つき 10 種：行数 180 対 181・違う行 145
+  - 計器つき 10 種の .cost：件数の行 41 本が違う
+  - 計器つき 10 種の .cost：推定 新 228.2 秒 対 基準 227.7 秒
+  - 計器つき 10 種の .cost：種ごとの忠実度の行が違う
+  - 計器の表：基準にあって腕に無い 3 本 ['pclamp_s10.tsv', 'pclamp_s3.tsv', 'pclamp_s4.tsv']
+  - 計器の表：宣言の無い違い 324 本
+  - 注視の表：行数 4666 対 4612・違う行 4584
+段 1 は集合の外の計器の表を見ていない＝不一致は --stage2 を付けて全表の段 2 を回して読む
+判定: 不一致（段 1）

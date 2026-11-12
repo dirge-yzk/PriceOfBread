@@ -1,0 +1,5 @@
+# (1081) ScholarshipTests J3c（道具を HigherEduFunding へ替えた後）の突然変異：使い捨ての木 mut2（df2a6d275 から・消した）
+# 変異：EconomyStep.ScholarshipCover の戻り値に ×0.9（r をもう 1 回掛けた形）
+  失敗 PriceOfBread.Tests.ScholarshipTests.J3c_支払い率が1未満の月_割合は財源率と一致し_rを二重に掛けない [1 s]
+   Assert.Equal() Failure: Values are not within 9 decimal places
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

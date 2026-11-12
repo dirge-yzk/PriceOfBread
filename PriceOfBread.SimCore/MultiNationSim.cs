@@ -132,16 +132,6 @@ public sealed class MultiNationSim
             });
         }
 
-        // 巨大建造物（2026-07-28）：**MegaprojectEnabled=0 では1件も生成しない**＝以後の全処理が空回りせず厳密恒等。
-        // host は州名のみ（植民地は host にしない）＝将来の植民地→州の格上げで自然に建てられるようになる。
-        if (_coef.MegaprojectEnabled > 0)
-            foreach (var mp in WorldData.Megaprojects())
-                Diplomacy.Megaprojects.Add(new Megaproject
-                {
-                    Id = mp.Id, Name = mp.Name, Host = mp.Host, BuildUnits = mp.BuildUnits, TechGate = mp.TechGate,
-                    EffectTarget = mp.EffectTarget, EffectMode = mp.EffectMode, EffectValue = mp.EffectValue,
-                });
-
         // 国家ランク（列強/中堅/弱小）を開始盤面のスコアで初期化。Diplomacy.Step は四半期末にしか走らないため、
         // これが無いと最初の四半期が締まるまで RankOf が既定値=弱小を返し、UI で全国が「弱小」に見える（純関数＝ダイナミクス不変・四半期末に再計算で上書き）。
         Diplomacy.ComputeRanks(_coef);
@@ -826,9 +816,6 @@ public sealed class MultiNationSim
                 Diplomacy.EndQuarterSyncWindow();
             }
             StepCanals(); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
-            // ★助走中は巨大建造物を進めない（2026-08-10 追加裁定＝能力の凍結）。着工も進捗も完成効果（工業化度・耕地・送電容量）も
-            //   「年月をかけて建つ」もの＝暦の進まない助走で建ててはいけない。1783年は技術ゲートでほぼ全件が未解禁＝需要への影響も無い。
-            if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }   // 巨大建造物：保有国を解決し国庫から資材＋労働を買って建て、完成したら州へ恒久効果を貼る（2026-07-28）
             { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: false); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）

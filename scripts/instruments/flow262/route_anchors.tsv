@@ -30,7 +30,6 @@ CapitalMarket.cs	if (taken[i] > 0) GiveGold(w[i], taken[i]);	還流の返金(対
 CapitalMarket.cs	double k = TakeGold(w[i], supply[i] * sFill / e[i]);	資本の輸出の送り出し(投資家→国境の外)	
 CapitalMarket.cs	w[i].ForeignCapitalIn += new MoneyStock(k); GiveGold(w[i], k); fx += k;	資本の輸出の受け入れ(国境の外→受け入れ国の投資家)	
 CapitalMarket.cs	if (k > 0) { GiveGold(w[i], k); fx += k; }	外債の利子と元本の配分(国境の外→債権国の投資家)	
-Megaprojects.cs	if (pay > 1e-9) CapitalMarket.GiveGold(fw, pay, (hw, null), TreasuryCat.Megaproject);	巨大建造物の外資の利回り(保有国の国庫→外資国の投資家)	
 MultiNationSim.cs	paid += CapitalMarket.GiveGold(iw, amount * (kv.Value / totalShare), (payer, null), TreasuryCat.OtherOut);	運河の通行料の配当(国庫→拠出国の投資家)	
 Colonial.cs	double moved = World.Transfer((w, [payer]), (w, [payee], [1.0]), Math.Abs(a), income: true);	植民地の口座の相殺(在地⇄不在地主)	
 Credit.cs	if (lent > 0) World.Transfer((null, null), (w, [inv], [1.0]), lent, outside: World.Outside.Credit);	企業への与信・貸し(銀行→投資家)	
@@ -54,7 +53,6 @@ Fiscal.cs	World.Transfer((w, null), (w, masses, null), welfareCost, TreasuryCat.
 Fiscal.cs	World.Transfer((w, null), (w, elderly, elderW), reached, TreasuryCat.Pension);	年金(国庫→高齢者)	
 Fiscal.cs	domesticMoved = World.Transfer((w, capitalists), (w, null, null), domesticPortion, TreasuryCat.Borrow, taken: paid);	国債の国内購入(資本家→国庫)	
 Fiscal.cs	World.Transfer((null, null), (w, null, null), foreignPortion, TreasuryCat.Borrow);	国債の海外購入	
-Megaprojects.cs	double give = World.Transfer((fw, investors), (hw, null, null), ask, TreasuryCat.OtherIn);	巨大建造物への外資の拠出	
 MultiNationSim.cs	World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac.Value * throughput * risk);	海上保険の保険金(商人→被害の商人)	
 MultiNationSim.cs	dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);	招聘の支度金(国庫→到着した人)	
 MultiNationSim.cs	double k = World.Transfer((lw, lenders[li]), (null, null, null), oweGold * (heldBy[li] / lendTotal) / lw.FxRate);	外国債務の返済(貸し手のPOP→国境の外)	

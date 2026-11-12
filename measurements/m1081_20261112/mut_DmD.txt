@@ -1,0 +1,12 @@
+# (1081) DM-D′ の突然変異（使い捨ての木 D:/PoB_work/c103dm_work/mut・木 3f165ac0d から・消した）
+== M6 json を消して csproj の埋め込みを残す → ビルド rc=1（赤）
+CSC : error CS1566: リソース 'PriceOfBread.SimCore.megaprojects.json' を読み込み中にエラーが発生しました -- 'Could not find file 'D:\PoB_work\c103dm_work\mut\PriceOfBread.SimCore\megaprojects.json'.' [D:\PoB_work\c103dm_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+== M8 欄 MonumentBuildQueue を残して請求の和に 0 の項を戻す → I3 rc=1（赤）
+I3 読み手（許可表の外）2 件・履歴の台本と残る口を指す台本 24 件（直さない）
+   ('PriceOfBread.SimCore/Model.cs', 1138, ['Monument'], 'public double MonumentBuildQueue;')
+   ('PriceOfBread.SimCore/Simulation.cs', 2350, ['Monument'], '+ r.MonumentBuildQueue + r.HigherEduFunding')
+判定: 赤
+== M9 係数 FormationLegitimacyBoost を戻す（RetiredFields は足したまま）→ DormantIdentityTests 赤
+  失敗 PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる [1 s]
+  失敗 PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない [14 ms]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

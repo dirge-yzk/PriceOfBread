@@ -351,6 +351,7 @@ public class DormantIdentityTests
         "ServiceClosedFixedPoint", "LaborClosedForm", "HouseholdCreditStapleOnly", "StapleElasticityZero", "StateEduDemandInFront", "ArmsStockEnabled", "BaseArmsStockEnabled",   // (843) c68ui：I1 経済の旗（既定の経路だけ残した）
         "DistanceMarginScale",   // (843) c68ui：B12 既定 1.0 の距離の物差し（×1.0 の因子の除去）
         "MilitaryBudgetNeedCapped", "RegionalPriceBaseExcludesColonies", "MachineCastIronRecipe", "ParishEduFunded", "ChilledMeatEnabled", "KeroseneFromOilEnabled", "HouseholdProductionEnabled",   // (811) c13ia：Simulation.cs の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は MilitaryTests・IvfInitialValuesTests・ReformPathTests・HouseholdProductionTests ほか）
+        "MegaprojectEnabled", "MegaprojectStateFrac", "MegaprojectStateCap", "MegaprojectPrestige", "MegaprojectCounterCyclical", "MegaprojectCrisisDrawdown", "MegaprojectForeignShare", "MegaprojectForeignMinRank", "MegaprojectForeignDrawFrac", "MegaprojectForeignYield", "FormationLegitimacyBoost", "MonumentBuildQueue", "MonumentBuiltUnits", "MonumentApplied",   // (1081) c103dm：威信と巨大建造物を消した（係数 11 本・州の欄 3 本）
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

@@ -1,0 +1,164 @@
+(1081) c103dm 事前登録：威信と巨大建造物を消す（DM-B → 門が通れば DM-D′）
+書いた担当：Claude Opus 5.5・2026-11-12・枝 c103dm（decb50fa5 から）・腕を回す前に書いてコミットする
+題の決定：〈作者「全て推奨で」で推奨を採った〉（作者 2026-11-12 原文「威信は今、仕事していますか？ほとんど無意味なら威信ごと消してよい。また巨大建造物そのものの削除も検討」）。
+紙の段：scratchpad/paper_DM_2026-11-12.md（§2-1・§2-2・§3・§4-1・§4-2・§5）。行番号は decb50fa5 で grep し直した物。
+
+== 0. 形の種類
+- 挙動の線（3 回の規則の 1 回目）。形は〈入口〉（開幕から機構が無い世界にする＝尾の門ではない）。
+- DM-B：コードに触れない。腕 B＝POB_COEF="MegaprojectEnabled=0;FormationLegitimacyBoost=0"・種 1〜10・計器つき。
+- DM-D′：DM-B の門が全て緑のときだけ。物理の削除。照合の相手は腕 B（基線ではない）。App・Display・Runner には触れず口を残す。
+- 新しい旗・係数・状態は作らない。器の線と腕 A は無い（今のバイナリで腕 B が回る）。
+
+== 1. 腕 B の回し方
+- 木：prep commit:<この事前登録のコミット>（コードは decb50fa5 と同じ）。POB_WORK=D:/PoB_work/c103dm_work・腕の名 c103dmB・coef_c103dmB.txt に上の 1 行。
+- MEASURE_CACHE=0 を明示する。
+- POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国（keep_1078/base_ins と同じ）。
+- POB_INSTRUMENTS_TABLES＝tables.sh flow_s anchor_s eq_s cessp_s
+  ＝SMALL（29 表）＋flow_s（T3）・anchor_s（7 国の人口の記録）・eq_s（ポーランドの工業化の記録）・cessp_s（ukdefault の読み手）。
+  根拠：読む台本を grep した（stoplines906 の子 pxjump・gdp_jump*・gdp_zero*・plvl_seeds・ukdefault・an_h2・popjump1017・gdp_zero10・home_break・ng.sh・an_mon.py）。
+  SMALL の外で読む表は cessp_s だけだった（plvl_s・tnation_s は変数名で、表は無い）。
+  anchor_s・eq_s は全国（列外の国は年に 1 行）を持つ＝7 国とポーランドは入っている（keep_1078 で確かめた）。
+- 大きさの見積り：keep_1078 の同じ表の和 3.31GB（15GB の内）。D: の空き 103GB（腕の前）。
+- 忠実度の基線（紙 §2-2 と違う所を名乗る）：
+  - 紙は〈存在しない新しいパス〉を両側に渡すとした。batch.sh は腕ごとに 1a3c227 の基線を新しく写す（$W/fid_<腕>.tsv）。
+  - その写しには〈#条件〉の行が無い（grep で 0 行）。Program.cs:5562 は prevCond が null なら条件違いにしない。
+  - よって両側とも同じ〈前回比〉の行を出す＝差は :5397 の 1 行だけになる、という紙の狙いは同じに届く。batch.sh は変えない。
+- 旗 1 のフルスイートは回さない。理由：コードが decb50fa5 と 1 字も同じで、試験は POB_COEF を読まない走りで既に緑（main の 2769）。
+  代わりに §6 の〈D′ の世界の下見〉を腕 B の後に回す。
+
+== 2. 門（両側・旗 0 で全て赤）＝台本 measurements/m1081_20261112/gate_dm.py
+- T0 見出し：成績表の〈★係数の上書き（POB_COEF）:〉の行に MegaprojectEnabled=0 と FormationLegitimacyBoost=0 が両方ある。
+- T1 払い：0 でない行の数（和でなく行で数える）が 0。
+  - nation_s:monumentPaidPerMonth。
+  - fiscal_s:claimMonumentBuildPerMonth・claimMegaForeignYieldAtQuarterEnd・ledgerMegaprojectPerMonth。
+  - nan の規則（腕の前に固定）：1 行に nan の欄が 50 以上の行は〈反乱の国の最初の四半期の計器の nan〉として数えない。それ以外の nan は違反に数える。
+- T2 着工：scalars_s:megaStartedCount の 0 でない行が 0。
+- T3 経路：flow_s の sourceFile=Megaprojects.cs の行が 0（種 1〜3）。
+- T4 建国の威信：構成の門（T0 の FormationLegitimacyBoost=0 で代える。読み手は Formations.cs:389 の 1 か所。知らない名は Coefficients の構築子で投げる）。
+- 両側：下の側＝〈0 でない行が 0〉。上の側＝欠けで緑にしない。
+  - 10 種の表が全てある・列が名で見つかる・行の床（nation_s 1 万・fiscal_s と scalars_s 5 千／種）。
+  - flow_s は他の経路 10 万行以上・10 ファイル以上。欠けは赤。
+- 大きさの門（狙いどおり働いた）：T1〜T3 は基線の行の数から 0 へ（下）。旗 0 の値は下。
+- 旗 0 で取った紙の台本の出力（keep_1078/base_ins・成績表 b10_20261112_m1069_ins）：measurements/m1081_20261112/gate_flag0.txt
+  - T0 行なし・T1 nation_s 26,618 行／fiscal_s 1,838・53,564・54,452 行・T2 133,487 行・T3 種 1 5,424・種 2 6,240・種 3 5,496 行＝全て赤。
+
+== 3. 突然変異ごとの門（㉚・腕の前に紙で）
+| 変異 | T0 | T1 | T2 | T3 | 確かめ |
+| M1 POB_COEF 無し（旗 0） | 赤 | 赤 | 赤 | 赤 | 実測（gate_flag0.txt） |
+| M2 MegaprojectEnabled=0 だけ | 赤 | 緑 | 緑 | 緑 | 紙 |
+| M3 FormationLegitimacyBoost=0 だけ | 赤 | 赤 | 赤 | 赤 | 紙 |
+| M4 MegaprojectPrestige=0 だけ | 赤 | 赤 | 赤 | 赤 | 紙 |
+| M5 名を打ち違える（MegaprojectEnable=0） | 赤（構築子が投げ成績表が出ない） | 欠けで赤 | 欠けで赤 | 欠けで赤 | 紙（Coefficients.cs:3647） |
+- M2 の T1〜T3 が緑なのは正しい（巨大建造物は消えている）。威信の分を拾うのは T0 だけ＝T4 を構成の門と名乗る理由。
+
+== 4. 止める線（腕 B が自分で読む・結果を見る前に写す）
+- 破綻（クラッシュ・NaN・保存則・進行不能）0/10。nation_s の nan は §2 の型の行の数を n1・n2 と並べる。
+- 1 四半期に 100 倍以上・1e10 倍以上：stoplines1002.sh を腕 B に回し、基準とヌル腕は measurements/m1069_20261112/stopbase/ の同じ台本の出力と並べる（建国の直後の型はヌル腕の件数と並べる）。
+  popjump1017.py（㊳）を腕・M（keep_1078/base_ins）・N1・N2（keep_1069/n1・n2）で同じ台本で数える。
+- 空洞化：an_h2.py <出力>/ins -v4。1/10 未満が例外の規則 A2 の外に出たら、keep_1078/base_ins の同じ種・同じ州を読み、
+  基線ですでにピークの 1/4 未満なら〈元からの弱さ〉＝線を止めない。そうでなければ〈線が原因〉＝止める。
+  名指しで見る州：灌漑の 8 州（カイロ・デリー・ラホール・シュリーランガパトナ・ノヴァーラ・フィレンツェ・サイゴン・アムステルダム）と紙 §3-3 の小国の首都。
+- 飢えの死：灌漑の州の持ち主（オスマン・デリー・シク連邦・マイソール・サルデーニャ＝ピエモンテ・トスカーナ・阮氏・ネーデルラント）を an_h2 の区分で見る。
+- 計算量：.cost の推定 ≦248.5 秒（基線 227.7 秒）。割り当て 0 秒（コード 0）。予言：推定は変わらないか下がる。
+- 機構の試験の赤（§6 の下見を含む）。
+- 史実度の低下・NG・exact・near・国力は記録。
+
+== 5. 記録（門にしない・ヌル腕の幅と並べる）
+- 名目 GDP 0 の続き（gdp_zero10）・NG（ng.sh・基準 rd:measurements/ng1069_20261112:m1069）・開幕の 1000 倍以上・英の国債の不履行の種の数（ukdefault）。
+- nullgate.py <腕> b10_20261112_m1069_ins・_n1_ins・_n2_ins（指示の m797 の道は古い＝m1069 の同じ物を使う）。
+- 支払い率 r（全国）・正統性 1785〜1805 の差の分布・反乱と内戦の数。
+- 灌漑の持ち主 7 国の人口（anchor_s の popK・capacity・arableSum の 1800・1850・1900・1949）。予言は下がる向き（推測）。
+- 灌漑の 8 州の農村の人口・ポーランドの 1800 年の工業化（eq_s）。予言は下がる向き。
+- 小国の国庫・成績表の恐慌の回数（予言：下がる向き）・変名の回数。
+
+== 6. D′ の世界の下見（腕 B の後・腕 B と並べない）
+- decb50fa5 の試験を POB_COEF="MegaprojectEnabled=0;FormationLegitimacyBoost=0" のもとで Category!=FullLength で回す（Release・隔離ビルド D:/PoB_work/c103dm_work/art）。
+- 赤は ㊴・㉜ の区分で分ける：
+  ①§7 の〈変わる試験〉の名簿にある物＝予言どおり。
+  ②名簿の外で、試験のバグ（★(743) の区分）＝同じ線で直す前に事前登録へ追記。
+  ③名簿の外で〈機構の番人が旧の規則を固定〉＝止めて作者に聞く物へ。
+
+== 7. DM-D′（腕 B の門が全て緑のとき）
+-- 残す口（名乗って合流へ。DM-P は App・Display・Runner の束の線で）
+- 型 Megaproject と Diplomacy.Megaprojects（Diplomacy.cs＝持ち主でない＝触れない。常に空）。
+- Megaprojects.CanStart（常に false）・TryStart（常に false）・EstimateCost（0）・StartRefusal（定数の文言）。
+- RequirementMet・RequiresRowOf・RequiresNameOf と運河の表（world.json の chokepoints だけから作る）。
+- TreasuryCat.Megaproject と Display/FiscalCatalog.cs:34 の行（帳簿の列 ledgerMegaprojectPerMonth は 0 のまま残る）。
+- Runner の MegaStateText が読む欄（Megaproject の IsComplete・Started・BuildProgress・BuildUnits＝Diplomacy.cs）。
+-- 消す物
+- megaprojects.json・csproj の埋め込みの行・WorldData.cs:92〜105。
+- Megaprojects.cs：Step・CollectBuiltUnits・ChooseForeignPartner・PayForeignYield・ApplyEffect・TargetOf と、表の megaprojects の行。
+- MultiNationSim.cs:135〜143 の生成・:831 の Step の呼び。SelfPlay.cs:1109 と :1484〜1491。
+- Simulation.cs：:2332 megaMark・:2333〜:2340 の利回りの見込み・:2349 の計器の行・:2360 の + r.MonumentBuildQueue・:2464 の MonumentBuildQueue *= payRate。
+- EconomyStep.cs：:1197 の 2 つの局所・:1286〜:1306 の需要（bundleRef・bundleAfford は建造物だけが読む）・:2461〜:2491 の決済・:2496 の予約のゼロ化。
+- Model.cs:1137〜:1139（州の 3 欄）。Formations.cs:389〜:394。
+- Coefficients.cs の 11 本（MegaprojectEnabled・StateFrac・StateCap・Prestige・CounterCyclical・CrisisDrawdown・ForeignShare・ForeignMinRank・ForeignDrawFrac・ForeignYield・FormationLegitimacyBoost）。
+- 計器の列 8 本（紙の 9 本から ledgerMegaprojectPerMonth を除く）：
+  fiscal_s の claimMegaForeignYieldAtQuarterEnd・claimMonumentBuildPerMonth／nation_s の monumentPaidPerMonth・megaCrisisPassCount・megaCrisisGateOpenCount／
+  scalars_s の megaStartedCount・megaStartedUnmetCount・megaStartedOldGateClosedCount。
+- route_anchors.tsv:33・:57。instr.py の列の表の該当。
+-- 門 I1〜I5（照合の相手は腕 B）
+- I1 成績表：名乗りの行と〈★係数の上書き（POB_COEF）〉の 1 行を除いて腕 B とバイト一致。.cost の件数の行も一致・推定は記録。mon の出力も一致。
+- I2 計器：腕 B の全ての表で、列名で突き合わせ、消した 8 列を除いて全ての値が一致。
+  flow_s は sourceFile・sourceLine を除いた行の多重集合で比べる（ident_check.py の FLOW_LOC と同じ規則）。
+  腕 B と同じ POB_INSTRUMENTS_TABLES・同じ 9 国・係数の上書きなしで回す。
+- I3 読み手 0：SimCore・Tests・scripts/instruments の現役の読み手で `Monument`・`FormationLegitimacyBoost`・`megaprojects.json`・係数 11 本の名が 0 件。
+  `Megaproject` は残す口の許可表だけ（ファイル:模様を変更の前に固定）：
+  Megaprojects.cs（クラスと口の 7 関数）・Diplomacy.cs（型と列）・Model.cs:80 の列挙・Display/FiscalCatalog.cs:34・MultiNationSim.cs:1374 の RequirementMet・
+  ConservationTests.cs:840・TechLevelRemovalTests の運河の対・Runner と App（触れない）・DormantIdentityTests の RetiredFields・履歴の台本（ir505/mut.py・sm4_556/mut_sm4.py＝直さない）。
+- I4 番人：DormantIdentityTests の RetiredFields に 11 係数と州の 3 欄（MonumentBuildQueue・MonumentBuiltUnits・MonumentApplied）が入り緑（Region の欄も読む＝:386）。
+- I5 機構の試験：フルスイート（Category!=FullLength と =FullLength を分ける・合計を --list-tests と突き合わせる）・savetest・leakhunt・App と Runner のビルド。
+-- 変わる試験（予言）
+- 消す 10 本（全て Fact・FullLength でない）：MegaprojectCatalogTests 5・FiscalTests 2（巨大建造物の外資…・恐慌の拠出…）・
+  PlayHarnessTests 2（巨大建造物_技術が足りなければ…・着工の拒否は理由を返し…）・TechLevelRemovalTests 1（段1_門は発見の行）。
+  ＝TESTS_NONFULL 2769→2759（--tests-delta -10）・FullLength 3 のまま。
+- 書き直す：TechLevelRemovalTests〈段1_requiresの表は手で作った対と一致する〉→運河の 2 対（suez・panama）だけ（紙の推奨で決めた事 8）。
+  ScholarshipTests.cs:242 の請求を膨らませる道具→同じ請求の和に入る別の予約へ（紙 §4-2）。InstrumentsTests.cs:2207 の列の検査を外す。
+- 許可表と名の表（★(743)・番人を写しただけ）：IndustrializationReaderTests.cs:25 の ("Megaprojects.cs", 4) を外す（完全一致の表）・
+  TechLevelRemovalTests.cs:22 ("InstrumentsScalars.cs", 2)→1（完全一致）・UnitTypeTests.cs:252・:257〜:259・:681・:707 の名を外す・
+  route_anchors.tsv の 2 行（番人 InstrumentsTests の経路名の鍵）。
+- 走査の番人の件数（㉑・〈n ≦ 表〉の形＝緑のまま・表は直さない）：WriterRatchetTests の Legitimacy 13→11（Megaprojects.cs:134・Formations.cs:392）・
+  StateSpent 23→21（EconomyStep.cs:2477・:2483）。OnDoubleReadScanTests の表に Megaprojects.cs の行は無い。new MoneyStock( は Megaprojects.cs に 0。
+- TreasuryLedgerTests:171・DisplayCatalogTests:200 は触れない（列挙が残る）。
+-- 突然変異（DM-D′・使い捨ての木・出力を measurements/m1081_20261112/ へ）
+- M6 json だけ消して csproj の埋め込みを残す→ビルド赤。
+- M8 欄を残し 0 を足し続ける→I1・I2 は緑のまま・I3 の読み手 0 が赤。
+- M9 RetiredFields に FormationLegitimacyBoost を足したまま、係数を Coefficients に戻す→I4 の番人が赤（RetiredFields は〈消した名が戻ったら赤〉の番人＝紙の〈足さずに消す→赤〉は誤りなので向きを直した）。
+- M10 照合の相手を基線（keep_1078/base_ins・b10_20261112_m1069_ins）にする→I1・I2 が赤。
+- M7（列挙を消す）は列挙を残すので当てはまらない。
+-- 止める線：I1〜I5 のどれかが赤なら止める。2 回目の形の変え直しが要るなら止めて報告。
+
+== 8. 周辺の点検
+- 運河の門：RequirementMet の表は megaprojects.json と chokepoints の Id の重なり 0（紙 ids.py）＝運河の行は変わらない。腕 B では表は静的に同じ。
+- 高等教育の予約：HigherEduFunding は請求の和（Simulation.cs:2360）・支払い率（:2464）・ゼロ化（EconomyStep.cs:2497）で MonumentBuildQueue と隣り合う＝同じ行の自分の項だけを消し、HigherEduFunding の項は触らない。
+- 請求の和：+ r.MonumentBuildQueue（腕 B で 0.0）を外しても x+0.0＝x（-0.0 の経路は読んだ範囲に無い）。計器 Claim の和も 0 の項が抜けるだけ。
+- 既存の大きな機構から出せるか：耕地の拡大は投資の機構（鉱山と畑の上限 ③ の線・台帳 S05-H004 に残りタスク）・公共事業は財政と借入・正統性は Politics の再生・送電は州の予算（EconomyStep の GridBuildRate）＝この線では足さない。
+
+== 9. 持ち主のファイルと重なり
+- 指示の owns のとおり。Simulation.cs と Instruments.cs は tr（ApplyEndowment と呼び口 1 行）と塊で分かれる。EconomyStep.cs・MultiNationSim.cs は dm だけ。
+- 旗 1 の道を固定する試験の grep（㉜）：MegaprojectCatalogTests・FiscalTests:1360〜1422・PlayHarnessTests:190〜208・:474〜494・TechLevelRemovalTests:143〜182・
+  InstrumentsTests:2207・ScholarshipTests:242＝全て §7 の名簿の中。Formation の正統性を Assert する試験は 0（NationIdentityTests は Legitimacy を読まない）。
+
+== ★追記（2026-11-13・腕 B の門を読んだ後・DM-D′ のコミットの前）
+- 腕 B（c103dmB・木 6d70a1f39）：門 T0〜T3 全て緑（measurements/m1081_20261112/gate_armB.txt）。止める線に当たった物 0（stop1002_B.txt・popjump）。→ DM-D′ へ進む。
+- D′ の変わる試験の追加（§7 の名簿の外で、D′ の世界〔＝腕 B の世界〕の試験で赤になった物）：
+  - WriterRatchetTests〈計算量の見た件数は宣言した表を超えない(item 11)〉の宣言 DiploHegemonScans 2,010,476→1,491,449（−25.8%・下がった側の赤）。
+    区分：★(749) 計算量の宣言の表＝軌道の件数を写しただけの番人（機構の向きと大きさを主張しない）。Assert の文と許しの幅は変えない。
+- ScholarshipTests.cs:242 の道具（紙は MilitaryBudget を候補にした）：MilitaryBudget は月の中で請求の前に書き直される（Simulation.cs:2182 が :2349 の請求の和より前）＝上書きが効かない。
+  消した予約と同型（請求の和に入り EconomyStep が無条件にゼロ化）の HigherEduFunding を使う。この試験が見るのは義務教育の財源率 CompulsoryEduFunding で、別の欄。
+  道具の行を消しただけでは前提の Assert〈支払い率が 1 未満の月が作れない〉で赤になった（確かめた）。Assert の文と閾値は変えない。
+- I3 の明確化（結果の後と名乗る）：scripts/instruments の当たり 24 件は、紙 §1-2 の〈読む台本（履歴）〉の列名の読み手（閉じた線の台本）と、
+  残る口（TreasuryCat の名 Megaproject・ledgerMegaprojectPerMonth・ファイル Megaprojects.cs）を指す台本だけ。現役の読み手（止める線・NG・mon・門）の当たりは 0。
+- §6 の下見は、D′ の木で変わる試験の束（304 本）を回して代えた（同じ世界・赤は上の 1 本）。フルスイートは D′ の I5 で回す。
+- Model.cs は欄 3 本の直前の注 3 行（:1134〜:1136・この欄の説明）も一緒に消した。
+
+== ★追記 2（2026-11-13・D′ のフルスイートの後・試験だけの直しの前）
+- D′（3f165ac0d）のフルスイート：Category!=FullLength 2759（合格 2755・スキップ 1・失敗 3）・FullLength 3 合格。--list-tests 2759＋3 と一致。savetest OK・leakhunt 保存則違反なし。
+- 赤 3 本の区分：
+  - OpeningBakeTests 2 本（入力のハッシュ 5433e32c6b866642 ≠ 世界 ff069d3f88fe05d9）：★(764)〈派生の表と件数の写し〉の区分。
+    InputHash は SimCore の埋め込みの資源を全て数える（OpeningBake.cs:45）＝megaprojects.json を消すと必ず変わる。
+    opening_bake.json はこの波 cr の持ち物＝★(764) のとおり線は触らず赤のまま報告し、合流の木で 1 回だけ焼き直す。旗 OpeningBakeEnabled＝0＝成績表に効かない。
+  - SecessionLaborLawInstrumentTests.cs:250〈scalars_s の列の数 23+4+2+6〉→ 35 対 32：§7 で消すと予言した scalars_s の 3 列（megaStarted*）そのもの。
+    ★(764) ② の型（静的な件数の番人＝変わった値が事前登録の予言〔scalars_s −3 列〕と一致）。:250 は st の持ち分（:278〜:282）の外。
+    直し：23+4+2+3（注に消した 3 列を書く）。機構の向き・大きさ・判定・母集合の Assert ではない。試験だけの別のコミット。
+- ㉘ の束に SecessionLaborLawInstrumentTests を入れていなかった（㊴ の `FullyQualifiedName~Instrument` で拾える物）＝走査の束の取りこぼしと名乗る。

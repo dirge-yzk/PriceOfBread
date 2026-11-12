@@ -2338,15 +2338,6 @@ public sealed class Simulation
         if (payQuarter) claims += World.LastTributeOutPerQuarter + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
         if (Instruments.On && payQuarter) Instruments.ClaimsQuarter(World);
         double portThr = payQuarter ? World.PortThroughputTotal() : 0;   // ★(223) 国家の港建設も四半期の請求（混雑した港の州だけ・World.PortStateRequest）
-        double megaMark = claims;   // 計器（読むだけ）：外資の利回りの項の前の請求
-        if (payQuarter && World.SelfPower is not null && World.Diplomacy is { } payDip)
-        {
-            if (World.Coef.MegaprojectForeignYield > 0)
-                foreach (var mp in payDip.Megaprojects)
-                    if (mp.IsComplete && mp.ForeignPartnerId >= 0 && mp.ForeignPrincipal > 1e-9
-                        && World.Regions.Exists(hr => hr.Name == mp.Host))
-                        claims += World.Coef.MegaprojectForeignYield * mp.ForeignPrincipal / World.FxRate;   // 外資の利回り（四半期）＝元本は金建て（2026-09-30 段3-3）→自国の通貨へ＝Megaprojects.PayForeignYield と同じ式
-        }
         // 売買方針の代金とダンピング補助（清算ごと・清算の末尾の World.Transfer＝旧 InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
         //   ★段3-1（A7）：清算は金建て＝自国通貨へ為替で換算して見込む（清算と同じ守り＝為替≦1e-9 は1）。
         double erClaim = World.FxRate;
@@ -2355,7 +2346,6 @@ public sealed class Simulation
             for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g] / erClaim;
         if (World.Coef.TradeCheapSellSubsidy > 0 && World.ExportsByGood is { } payExp)   // ★(471) 〈安く売る〉の輸出奨励金の見込み（売り手の国庫が出す s×輸出額）＝+1 の輸入側と対の輸出側（r の分母が片側にならない）
             for (int g = 0; g < payExp.Length; g++) if (World.TradeBiasOf(g) < 0) tradeClaim += World.Coef.TradeBiasStrength * payExp[g] / erClaim;
-        if (Instruments.On) Instruments.Claim(World, Instruments.Item.MegaForeignYieldQ, claims - megaMark);
         claims += tradeClaim / World.Coef.MonthsPerClearing;
         if (Instruments.On) Instruments.Claim(World, Instruments.Item.TradePolicy, tradeClaim / World.Coef.MonthsPerClearing);
         // 先月の区分つき StateSpent で見込む行（義務教育・健康保険・工場の材料・民営の補助）は先月の r で払った額＝請求へ戻すには先月の r で割る
@@ -2366,7 +2356,7 @@ public sealed class Simulation
             {
                 if (payQuarter) claims += World.PortStateRequest(r, portThr);
                 claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本
-                        + r.MonumentBuildQueue + r.HigherEduFunding
+                        + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
                 if (Instruments.On) Instruments.ClaimRegion(World, r, regrow, payQuarter, portThr);
@@ -2470,7 +2460,7 @@ public sealed class Simulation
                 if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)
                     r.Pops[r.SoldierPopIndex].UnemploymentRate = new Share(1.0 - payRate * soldierPayFill);   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
-                r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
+                r.HigherEduFunding *= payRate;
                 double techProd = World.TechProductivity(r);   // ★(416) 式は World.TechProductivity へ抜き出した（技術の逓減・労働時間・労働組合・罷業の乗数）
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
                 if (Instruments.On) Instruments.PreEconomy(World, r);   // 計器（読むだけ・(265)）：段5 の上限の入力＝大衆の月初の貯蓄

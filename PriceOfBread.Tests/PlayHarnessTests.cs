@@ -186,28 +186,6 @@ public class PlayHarnessTests
         Assert.Equal(0, w.FactoryTargetOf(gi));                              // 下限 0（本体の SetFactoryTarget が丸める）
     }
 
-    // ===== 巨大建造物 =====
-
-    [Fact]
-    public void 巨大建造物_技術が足りなければ着工しない_足りれば着工する_自国が建設地でないものは引かない()
-    {
-        var (sim, w, me, foe, _) = Board();
-        Assert.True(sim.Diplomacy.Megaprojects.Count >= 2, "前提が崩れた：巨大建造物が 2 つ未満");
-        var mp = sim.Diplomacy.Megaprojects[0]; var other = sim.Diplomacy.Megaprojects[1];
-        mp.Owner = me; other.Owner = foe;   // 建設地の持ち主は毎四半期に解決される＝盤面で直に置く
-        Assert.StartsWith("⚠着工", PlayHarness.RunVerb(w, $"!mega {mp.Name}"));  // 1789 年の技術水準では着工できない
-        Assert.False(mp.Started);
-        { int rr = Megaprojects.RequiresRowOf(mp.Id); if (rr >= 0) w.Discovered[rr] = true; }   // ★(613) 旗 TechGateByDiscovery（既定 1）＝門は発見の行 requires
-        Assert.True(Megaprojects.CanStart(w, mp), "前提が崩れた：必要な発見を足しても着工できない");
-        string r = PlayHarness.RunVerb(w, $"!mega {mp.Name}");
-        Assert.True(mp.Started);
-        Assert.StartsWith("着工", r);
-        Assert.StartsWith("⚠着工", PlayHarness.RunVerb(w, $"!mega {mp.Name}"));  // 着工済みは再び着工しない
-        Assert.StartsWith("⚠自国が建設地の建造物に無い", PlayHarness.RunVerb(w, $"!mega {other.Name}"));
-        Assert.False(other.Started);
-        Assert.StartsWith("⚠自国が建設地の建造物に無い", PlayHarness.RunVerb(w, "!mega ありもしない建造物"));
-    }
-
     // ===== 侵略（屈服と開戦の枝） =====
 
     private static (MultiNationSim sim, World w, Power me, Power target) InvadeBoard(double myMilitary, double targetMilitary)
@@ -472,26 +450,6 @@ public class PlayHarnessTests
         Assert.Contains("発見の門が閉じている", s);                // 理由は本体の述語（CanBuildFactory）の文言
         Assert.DoesNotContain("目標は置いた", s);
         Assert.DoesNotContain("毎月の再試行で動く", s);
-    }
-
-    [Fact]
-    public void 巨大建造物の着工の拒否は理由を返し_CanStartと同じ条件で通る()
-    {
-        var (sim, w, me, foe, _) = Board();
-        var mp = sim.Diplomacy.Megaprojects[0]; var other = sim.Diplomacy.Megaprojects[1];
-        mp.Owner = me; other.Owner = foe;
-        Assert.Equal("必要な発見が済んでいない", Megaprojects.StartRefusal(w, mp));   // ★(613) 旗 TechGateByDiscovery（既定 1）
-        Assert.Contains("必要な発見が済んでいない", PlayHarness.RunVerb(w, $"!mega {mp.Name}"));
-        Assert.Equal("建設地の州を自国が領有していない", Megaprojects.StartRefusal(w, other));
-        { int rr = Megaprojects.RequiresRowOf(mp.Id); if (rr >= 0) w.Discovered[rr] = true; }
-        Assert.Null(Megaprojects.StartRefusal(w, mp)); Assert.True(Megaprojects.CanStart(w, mp));
-        Assert.StartsWith("着工", PlayHarness.RunVerb(w, $"!mega {mp.Name}"));
-        Assert.Equal("着工済み", Megaprojects.StartRefusal(w, mp)); Assert.False(Megaprojects.CanStart(w, mp));
-        mp.IsComplete = true;
-        Assert.Equal("完成している", Megaprojects.StartRefusal(w, mp));
-        var save = w.Coef.MegaprojectEnabled; w.Coef.MegaprojectEnabled = 0;
-        Assert.Equal("巨大建造物の機構が無効", Megaprojects.StartRefusal(w, other));
-        w.Coef.MegaprojectEnabled = save;
     }
 
     [Fact]
