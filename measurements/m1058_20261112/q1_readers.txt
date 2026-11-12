@@ -1,0 +1,39 @@
+(1058) 問い1 LastDemand と LastExport（PrevExport）の両方に触れる読み手（木 56f176a72・grep で実在を確かめた行）
+
+前提（ソース）
+- 国家の調達＝InternationalMarket.Procure の buyer==null の枝（InternationalMarket.cs:146〜160）。:149 LastDemand+=want（在庫が無くても）・:156 LastExport+=buy。
+- 呼び手は Colonial.BuyUpkeepGood（Colonial.cs:185〜200・:199 が Procure）だけ。全て首都州 w.Region で起きる：
+  植民地の補給線の燃料（Colonial.cs:80）とキニーネ（:82）・侵略の帆船・汽船・缶詰・キニーネ（World.cs:2230・2231・2234・2238）・海軍の燃料（Military.cs:321＝NavalFuelPerGauge 0 で不走行）。
+  Transport.cs:121（汽船の燃料）・:184（船と線路）は buyer あり＝LastSold へ＝国家の調達ではない。
+- want は呼び手で StatePriceAfford と支払い率 r（FiscalFundingRatio）を掛けた後の量。buy＝min(在庫, want)。
+- 時刻（1 か月）：月末の StepDayClose の EconomyStep.Run が PrevExport←LastExport・LastExport←0（EconomyStep.cs:901〜902）・LastDemand←totalDemand（:1976）
+  → Colonial.Step（Simulation.cs:2507＝Procure）→ 月末の清算（MultiNationSim.cs:799・832 の Market.Step＝BilateralMarket が LastExport+=qA・LastImport+=qA〔:1093〜1094〕）
+  → 翌月の日次の MarketFlow.StepDay（Simulation.cs:1725）。
+- 国内の国家の購入（教育ほか・EconomyStep.cs:2094〜2097・:2132〜2135）は需要を 1 度（take＋取れなかった分）・台帳は販売（sold→LastSold）＝Procure の国家の枝だけが LastExport へ書く。
+
+表（区分：和＝want と buy を 1 本の式で足す＝2 度数える／両動＝和ではないが両方の項が動く／1 度＝正しい／写し）
+| 行 | 式 | 区分 | 今の既定 | 案 A 旗 1 |
+| MarketFlow.cs:248 | demandRaw＝totalDemand(＝LastDemand・:116)＋LastExport（PriceLawSeesExports 既定 1.0・Coefficients.cs:87） | 和 | 2 度（want＋buy）＝首都州の値段の需要の側 | 同じ |
+| BilateralMarket.cs:1050 | yPrice＝(LastProduced＋LastImport)×unit/rpS − LastDemand − LastExport（売り手の州） | 和 | 2 度＝首都州の売り手の Y を want＋buy だけ絞る（清算は Procure の後の同じ月末） | 同じ |
+| EconomyStep.cs:963 sellR（案 A の場所） | 既定：max(LastDemand, 床)＝want 1 度。旗 1：LastDemand＋PrevExport−PrevImport | 既定 1 度／旗 1 和 | 1 度 | 2 度（want＋前の月の buy） |
+| InstrumentsSellr.cs:28 | sellRBoth＝LastDemand＋PrevExport−PrevImport（計器） | 和（計器） | 計器の列だけ | 同じ |
+| Discovery.cs:759 | imp＋＝LastImport−LastExport・dem＋＝LastDemand（:694 sup＝prod＋max(imp,0)・:617/786 Alive・:778 値段の重み） | 両動 | buy は純輸入を減らし自国の分を上げる・want は Alive と重みへ | 同じ |
+| MarketFlow.cs:121 TargetStock | TargetStockBuffer×LastDemand（LastExport は入れない） | 1 度 | 1 度 | 1 度 |
+| BilateralMarket.cs:887・1045〜1046（買い手 X） | TargetStock＋LastDemand−LastProduced−Stock ほか（LastExport を読まない） | 1 度 | 1 度 | 1 度 |
+| Invariants.cs:163 | 在庫＝PrevStock＋LastProduced＋LastImport−LastSold−LastExport | 1 度（buy） | 正しい | 正しい |
+| EconomyStep.cs:901 | PrevExport←LastExport | 写し | — | — |
+| Simulation.cs:2645 | 主食の純輸入 PrevImport−PrevExport | buy だけ（調達の財に主食は無い＝缶詰は主食の外〈推〉） | 影響なし〈推〉 | 同じ |
+| 記録：貿易÷GDP | nation_s exportsPerClearing＝Σ World.ExportsByGood（Instruments.cs:2416・清算の越境だけ） | 入らない | 入らない | 入らない |
+| 記録：U1a | nationgood crossExportQty（NgDeal・cross の成約だけ・InstrumentsNationgood.cs:76〜82） | 入らない | — | — |
+| 記録：U1b | sellr prevExportAll（＝PrevExport＝調達の buy を含む） | 入る | — | — |
+| 計器・画面 | Instruments.cs:1714・2516（dem と exp を別の列）・InstrumentsCorncf.cs:177・Display/ProductionTables.cs:41 | 列を並べるだけ | — | — |
+
+LastSold の読み手（直す形〈buy を LastSold へ〉で変わる所・D:/PoB_work/r1058_work/lastsold_readers.txt）
+- EconomyStep.cs:2235 `m.LastSold = sold`（Run の中で上書き＝前の月の Procure の LastSold は :903 の 0 で消える）。:2944・:2966 unsold＝1−LastSold/LastProduced は :2235 の後＝Procure の分は届かない〈推〉。
+- SelfPlay.cs:55〜56 エネルギーの消費＝石炭と原油の LastSold（Transport の汽船の燃料は既に入る・国家の燃料は今は入らない）＝直すと入る。
+- Invariants.cs:163（釣り合いは Sold と Export の入れ替えで保たれる）・EconomyStep.cs:112・133（農業の労働だけ）・Display と計器の列。
+
+【合流 (1060) が足した（反証役）】
+- Runner の LastExport の読み手（診断の出力・シミュの挙動には触れない）：Program.cs:1243〜1246（輸出特化の指標 LastExport÷LastProduced）・:2566〜2567・:5848〜5849・:5909・PlayHarness.cs:374。形 Y にすると首都州の調達がこれらの〈輸出〉から抜ける＝形 Y の事前登録に 1 行書く。
+- 表の行〈EconomyStep.cs:963 sellR 旗 1：LastDemand＋PrevExport−PrevImport〉の和の式は main ではなく origin/c99ov EconomyStep.cs:967。
+- 〈上界 0.24%〉は近似の上界：procF は flow_s の giveIncome（POP の階級の行）だけで、国営の持分が国庫へ行く分（stateCut）は入らない。首都＝sellr の最初の州の置き方も種により外れる。形 Y の計器 procx_s は pay の全額を書く。

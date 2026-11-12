@@ -1,0 +1,20 @@
+(1058) c100pq 事前登録（数える前・2026-11-12・Opus 5.5）
+形：読むだけ（腕 0・コミット 0）。〈入口〉の形の読み（国家の調達の台帳の入口）。
+
+ソースで読めた事（段0・grep 済み・木 56f176a72）
+- 国家の調達＝InternationalMarket.Procure の buyer==null の枝だけ。呼び手は Colonial.BuyUpkeepGood（Colonial.cs:199）1 本＝植民地の補給線の燃料とキニーネ（Colonial.cs:80・82）・侵略の帆船・汽船・缶詰・キニーネ（World.cs:2230〜2238）・海軍の燃料（Military.cs:321＝NavalFuelPerGauge 0 で不走行）。
+  Transport.cs:121・184 は buyer あり＝LastSold へ（国家の調達ではない）。
+- 時刻：月末の StepDayClose の EconomyStep.Run が LastExport を PrevExport へ写して 0（EconomyStep.cs:901〜902）・LastDemand を書き直す（:1976）→ Colonial.Step（Procure：LastDemand+=want・LastExport+=buy）→ 月末の清算（BilateralMarket・LastExport+=qA）→ 翌月の日次の MarketFlow。
+
+予言（符号と大きさの見込み・推）
+P1 両方を足す読み手：MarketFlow.cs:248（PriceLawSeesExports 既定 1）と BilateralMarket.cs:1050 の yPrice（既定）と案 A の sellRBoth（旗 1）＝want＋buy の 2 度。Discovery.cs:759 は両方を読むが和を取らない。Invariants.cs:163 は buy 1 度で正しい。
+P2 量：国家の調達の価額は州の外への輸出の全体（U1b の分子）の 5% 未満（6 大国・中央値）。越境の輸出の記録（nation_s exportsPerClearing＝ExportsByGood）には入らない。
+P3 U1b からこの分を除いても、案 A の新÷旧の動きはヌル腕の幅の 1/5 未満（〈採らない〉は変わらない）。
+
+数え方（結果の前に固定）
+- 量：flow_s の Colonial.cs:199 giveIncome の amountPerMonth（国の通貨・四半期の月平均）×FxRate＝金建ての近似。
+  FxRate は nationgood_s の priceMeanGold÷（国の通貨の値段）が無いため exRateAtPay を使う（近似と名乗る）。
+- 分母：U1b の分子＝sellr_s の Σ prevExportAll×px（px＝nationgood priceMeanGold）・越境＝nationgood Σ crossExportValue。
+- 6 大国（英・仏・普・露・米・清）・1870・1913・1950・10 種の中央値・base（keep_1053/base_ins）・n1・n2・ov_armB。
+- 時刻のずれ：sellr の PrevExport は四半期の 2 か月目の清算＋調達、flow は四半期の月平均＝近似。
+- 国家の調達の財ごとの量は既にある生に無い（予言：要る列が無い＝計器の仕様を書く）。

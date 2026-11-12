@@ -1,0 +1,38 @@
+Coefficients.cs:555:    public double WomenRightsFollowSpeed = 0.15;  // 法の浸透の月次収束速度＝女性財産権法→賃金保持(WomenWageRetention)・児童労働法→合法度(ChildLaborLegal)・実労�
+Coefficients.cs:556:    // 【削除 2026-11-01 (736)】ChildLaborFollowSpeed・WorkHoursFollowSpeed（既定 0.15）＝児童労働法と労働時間の浸透も WomenRightsFollowSpeed（0.15・同じ値）を読む（(
+Coefficients.cs:560:    //   「財産権と参政権を別の法にするか」というスイッチは、財産権→教育権→選挙権を1本の梯子（<see cref="WomenRightsLaw"/>）にした時点で
+Coefficients.cs:812:    // 【削除 2026-11-01 (736)】WorkHoursFollowSpeed＝実労働時間の法定上限への収束は WomenRightsFollowSpeed を読む（上の ChildLaborFollowSpeed の墓標）。
+CrownParliament.cs:573:        Enum2(w.WomenRights, p.WomenRights);
+FactionSnapshot.cs:293:        PolicyAxis.WomenRights => increase ? "女性の権利の拡大" : "家父長制の維持",   // ★統合法（2026-08-10）：段は「財産権→教育権→選挙権」＝向きで言�
+GovernanceSnapshot.cs:18:    private CensorshipLaw _censorship; private LaborUnionLaw _laborUnion; private WomenRightsLaw _womenRights;   // ★女性の権利（統合法・2026-08-10）＝旧・財産権/参政権の2b
+GovernanceSnapshot.cs:40:            _censorship = w.Censorship, _laborUnion = w.LaborUnion, _womenRights = w.WomenRights,
+GovernanceSnapshot.cs:57:        w.Censorship = _censorship; w.LaborUnion = _laborUnion; w.WomenRights = _womenRights;
+Government.cs:88:        new(PolicyAxis.WomenRights, w => (int)w.WomenRights, (w, v) => w.WomenRights = (WomenRightsLaw)v, (w, p) => (int)p.WomenRights, 3, Stage: 2),
+Government.cs:496:        || (a == PolicyAxis.WomenRights && targetLevel >= (int)WomenRightsLaw.Suffrage);
+Government.cs:734:            case PolicyAxis.WomenRights:
+Government.cs:739:                if (targetLevel >= (int)WomenRightsLaw.Suffrage && w.Suffrage < Suffrage.AdultMale) return (false, "男性普通選挙が前提");
+Government.cs:965:        PolicyAxis.Suffrage or PolicyAxis.WomenRights or PolicyAxis.SocialSecurity or PolicyAxis.ColonialSuffrage or PolicyAxis.MigrantNativeSuffrage => true,
+InstrumentsLawgate2.cs:64:            case PolicyAxis.WomenRights: return target >= (int)WomenRightsLaw.Suffrage && w.Suffrage < Suffrage.AdultMale ? 13 : 0;
+InstrumentsScalars.cs:70:            F(w.ExternalPressure), F(InternationalMarket.FreightRevolution(w.WorldTechLevel, c)), I((int)w.WomenRights), I(mega.Started), I(mega.Unmet), I(mega.OldClosed)));
+Meritocracy.cs:643:        double access = (int)w.WomenRights / (double)(int)WomenRightsLaw.Suffrage * w.WomenWageRetention;   // 選挙権=1.0／教育権=中（2/3）／財産権以下=低（≤1/3）
+Parliament.cs:338:            case PolicyAxis.WomenRights: p.WomenRights = (WomenRightsLaw)StepTo((int)w.WomenRights, 3); break;   // ★統合法（2026-08-10）：現行段から1段ずつ（旧・bool2本の直接反�
+Policy.cs:63:public enum WomenRightsLaw { None, Property, Education, Suffrage }
+Policy.cs:179:    public WomenRightsLaw WomenRights = WomenRightsLaw.None;  // ★女性の権利（統合法・2026-08-10）。なし→財産権→教育権→選挙権の目標段。旧3法（財産権/教育権/参�
+Policy.cs:263:        ChildLaborAllowed = o.ChildLaborAllowed; WorkHours = o.WorkHours; WomenRights = o.WomenRights;
+PolicyPreferences.cs:17:    WomenRights,                                                                   // ★女性の権利（統合法・2026-08-10）。なし→財産権→教育権→選挙権の**1本の梯子*
+PolicyPreferences.cs:333:            case PolicyAxis.WomenRights:      // ★女性の権利の梯子（統合法・2026-08-10）＝家父長制の根幹に触れるので旧支配層が強く抵抗・近代/大衆（女
+Politics.cs:1277:            PolicyAxis.WomenRights => StepEnumAxis((int)w.WomenRights, 3, v => { w.WomenRights = (WomenRightsLaw)v; p.WomenRights = w.WomenRights; }),
+SelfPlay.cs:355:        GateLaw(ref shared, w, PolicyAxis.WomenRights, (int)w.WomenRights, (int)p.WomenRights, (int)WomenRightsLaw.Suffrage, v => p.WomenRights = (WomenRightsLaw)v);
+SelfPlay.cs:738:    private static void RaiseWomenRights(NationPolicy p, WomenRightsLaw to)
+SelfPlay.cs:739:    { if (to > p.WomenRights) p.WomenRights = to; }
+SelfPlay.cs:1519:                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：成熟した近代国家＝女性の権利の最上段（選挙権）を願う。旧は財産権の段を先に願った�
+SelfPlay.cs:1534:                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // 労働者福祉＝女性の権利も梯子の最上段まで推進（北欧型・自分の賃金を持ち、学び、投票する）
+Simulation.cs:2070:        World.WorkHoursValue = PoliticalQuantities.Toward(World.WorkHoursValue, hoursTarget, World.Coef.WomenRightsFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0));
+Simulation.cs:2071:        // 法の浸透の速さ WomenRightsFollowSpeed（0.15）は労働時間・賃金保持・児童労働の 3 本の法で共有する（3 本とも同じ形・同じ月次）。
+Simulation.cs:2073:        World.WomenWageRetention = PoliticalQuantities.Toward(World.WomenWageRetention, World.WomenPropertyLaw ? 1.0 : 0.0, World.Coef.WomenRightsFollowSpeed * enforce);
+Simulation.cs:2080:            World.ChildLaborLegal = PoliticalQuantities.Toward(World.ChildLaborLegal, childTarget, World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce));
+Validation.cs:281:        if (!System.Enum.IsDefined(w.WomenRights) || !System.Enum.IsDefined(p.WomenRights)) return "女性の権利";
+World.cs:395:    public WomenRightsLaw WomenRights { get; internal set; } = WomenRightsLaw.None;
+World.cs:397:    public bool WomenPropertyLaw => WomenRights >= WomenRightsLaw.Property;
+World.cs:399:    public bool WomenEducationLaw => WomenRights >= WomenRightsLaw.Education;
+World.cs:401:    public bool WomenSuffrage => WomenRights >= WomenRightsLaw.Suffrage;

@@ -1,0 +1,10 @@
+(1058) c100pq 読む線の計画（2026-11-12・Opus 5.5）
+作業の場所：D:/PoB_work/r1058_work（この回に作ったフォルダはこれだけ・worktree と枝は作らない・コミットしない）
+ソース：main 56f176a72 を git show で src/ へ写して読む（main の作業ツリーでは作業しない）
+読む生（読むだけ）：
+  D:/PoB_work/keep_1053/base_ins（基線 m1053 計器つき10種）：sellr_s・nationgood_s・tradeskip_s・goods_s・fiscal_s・spend_s
+  D:/PoB_work/keep_1053/n1・n2（ヌル腕）
+  D:/PoB_work/keep_1053_rej/ov_armB（案 A の腕 B）
+  measurements/m1047_*（案 A の門 U1 の台本と表）
+順：事前登録 prereg.txt → 問い1（読み手の表）→ 問い2（量）→ 問い3（U1 の除いた近似）→ 問い4（素案）→ 問い5（作者に聞く物）
+腕 0 本・ident 0・コミット 0。要る列が無ければ計器の仕様を書いて止める。

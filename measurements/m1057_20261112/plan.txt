@@ -1,0 +1,19 @@
+(1057) c100wo 読む線 — 女性の権利の法が列強で通らない／通っても残らない根
+作業の場所: D:/PoB_work/r1057_work（コミット 0・腕 0・worktree なし）
+ソース: C:/Users/dirge/Documents/PriceOfBread（main 56f176a72・読むだけ・grep のみ）
+
+読む生（既にある物だけ）:
+  D:/PoB_work/keep_1053/base_ins/  m1053 計器つき 10 種（種 1〜10）
+  D:/PoB_work/keep_1053/n1/ n2/    ヌル腕（種 1〜10）
+  D:/PoB_work/keep_1053/a11/       種 11〜20（POB_CEARN=0）
+  列: monlaw_s（WomenRights・Suffrage・polityCode）・lawgate2_s（axis・engineCode・reasonCode・curStage・targetStage）
+      scalars_s（womenRightsCode・polityCode）・reform_s・crownpc_s・imp_s・nation_s・ideology_s
+
+手順:
+  1. prereg.txt（問いと数え方を結果の前に固定）
+  2. q1: 1870/1913/1950 の 6 国の段（4 腕×10 種）と上下の回の出どころ
+  3. q2: lawgate2 の WomenRights 行の engineCode/reasonCode の集計（どこで止まるか）
+  4. q3: 段が下がる経路をソースの行で（CrownParliament:573・ApplyRegime・Parliament StepTo・Politics StepEnumAxis）
+  5. q4: Pref の層の札の行と所得から導く候補
+  6. q5/q6: 直す形の素案・計器・作者の問い
+出力: q*.py・q*_out.txt・report.md（この中だけ）

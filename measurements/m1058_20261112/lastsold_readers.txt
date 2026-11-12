@@ -1,0 +1,32 @@
+56f176a72:PriceOfBread.SimCore/Display/FiscalTables.cs:82:        double mil = Math.Max(0, Military.EnvelopeAt(w, c, Government.MilitaryTotalTarget(w, w.Policy)) - w.Last
+56f176a72:PriceOfBread.SimCore/Display/FiscalTables.cs:94:        double aSoldier = (w.LastSoldierPayPerMonth * w.FiscalFundingRatio).Value;   // 兵の給与＝請求×�
+56f176a72:PriceOfBread.SimCore/Display/FiscalTables.cs:102:        double pSoldier = w.LastSoldierPayPerMonth.Value;
+56f176a72:PriceOfBread.SimCore/Display/ProductionTables.cs:8:    public required double[] Sold { get; init; }       // 国内消費（Market.LastSold）
+56f176a72:PriceOfBread.SimCore/Display/ProductionTables.cs:41:                prod[gi] += m.LastProduced; sold[gi] += m.LastSold; exp[gi] += m.LastExport; imp[gi] += m.La
+56f176a72:PriceOfBread.SimCore/EconomyStep.cs:112:        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+56f176a72:PriceOfBread.SimCore/EconomyStep.cs:133:        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+56f176a72:PriceOfBread.SimCore/EconomyStep.cs:2235:            m.LastSold = sold;
+56f176a72:PriceOfBread.SimCore/EconomyStep.cs:2944:                double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+56f176a72:PriceOfBread.SimCore/EconomyStep.cs:2966:                    double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+56f176a72:PriceOfBread.SimCore/Instruments.cs:828:            produced += m.LastProduced; sold += m.LastSold; shortage += m.LastShortage; demand += m.LastDemand; priceW +
+56f176a72:PriceOfBread.SimCore/Instruments.cs:1714:                prod += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; shortage += m.LastShortage; imp += m.L
+56f176a72:PriceOfBread.SimCore/Instruments.cs:2516:                prod += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; shortage += m.LastShortage; imp += m.L
+56f176a72:PriceOfBread.SimCore/InstrumentsChem.cs:65:                outp += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; imp += m.LastImport;
+56f176a72:PriceOfBread.SimCore/InstrumentsEd.cs:62:            demand += m.LastDemand; produced += m.LastProduced; sold += m.LastSold;
+56f176a72:PriceOfBread.SimCore/InstrumentsHouse.cs:60:            if (Catalog.FarmLaborId < r.Markets.Length) { var m = r.Markets[Catalog.FarmLaborId]; bought += m.LastSo
+56f176a72:PriceOfBread.SimCore/InstrumentsLw.cs:66:            double size = r.Pops[lpP].Size, sold = r.Markets[Catalog.LaborId].LastSold;
+56f176a72:PriceOfBread.SimCore/InstrumentsLw.cs:148:        a.Cap += cap; a.Demand += m.LastDemand; a.Sold += m.LastSold; a.Bill += m.LastSold * price;
+56f176a72:PriceOfBread.SimCore/InstrumentsSubst.cs:68:                if (lp >= 0 && Catalog.FarmLaborId < r.Markets.Length) { var fm = r.Markets[Catalog.FarmLaborId]; so
+56f176a72:PriceOfBread.SimCore/InstrumentsSubst.cs:170:        double sold = Catalog.FarmLaborId < r.Markets.Length ? r.Markets[Catalog.FarmLaborId].LastSold : 0;
+56f176a72:PriceOfBread.SimCore/InstrumentsSubst.cs:200:        double soldE = Catalog.FarmLaborId < r.Markets.Length ? r.Markets[Catalog.FarmLaborId].LastSold : 0;
+56f176a72:PriceOfBread.SimCore/Invariants.cs:163:                double expected = m.PrevStock + m.LastProduced + m.LastImport - m.LastSold - m.LastExport;
+56f176a72:PriceOfBread.SimCore/Invariants.cs:166:                        $"{Name}：在庫 {m.Stock} ≠ 前在庫{m.PrevStock}＋生産{m.LastProduced}＋輸入{m.LastIm
+56f176a72:PriceOfBread.SimCore/Model.cs:879:    //   財ごとに上書きされる（月末に残るのは最後に処理した財の値だけ）。Market.LastSold は�
+56f176a72:PriceOfBread.SimCore/PoliticalQuantities.cs:257:        double mil = Math.Max(0, w.LastMilitaryClaimPerMonth.Value) + Math.Max(0, w.LastSoldierPayPerMonth.Value
+56f176a72:PriceOfBread.SimCore/SelfPlay.cs:55:            if (Catalog.CoalId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CoalId].LastSold);
+56f176a72:PriceOfBread.SimCore/SelfPlay.cs:56:            if (Catalog.CrudeOilId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCo
+56f176a72:PriceOfBread.SimCore/SelfPlay.cs:59:        double mil = !(pl > 0) ? 0 : PoliticalQuantities.Pos(PoliticalQuantities.Pos(w.LastMilitaryClaimPerMonth.Value) + Po
+56f176a72:PriceOfBread.SimCore/SelfPlay.cs:539:        => (FiscalBufferOf(w) + (w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPayPe
+56f176a72:PriceOfBread.SimCore/Simulation.cs:2093:        World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後
+56f176a72:PriceOfBread.SimCore/Simulation.cs:2310:            World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が�
+56f176a72:PriceOfBread.SimCore/Territory.cs:266:            foreach (var m in r.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExpor

@@ -1,0 +1,32 @@
+(1057) から次の波への事前登録の素案（AI の案・確証なし・合流が写す・決めない）
+
+素案 W1：女性の権利の願いを、姿勢の switch の中（SelfPlay.cs:1519 Modernize・:1534 Welfare）から、既定の並び（SelfPlay.cs:1502〜:1503 報道の自由・組合の容認）へ移す。
+  新しい係数 0・新しい状態 0。可否は今の門（SelfPlay.cs:319 GateLaw・純支持・政治資本・前提 Government.cs:739）がそのまま決める。
+  形は〈入口〉（目標の書き手を足す）。旗 1 本（既定 0＝旧の位置）。
+
+門（両側）
+  下（大きさ）：6 国（イギリス・フランス・プロイセン・アメリカ・日本・ロシア、開幕の uid）×10 種のうち、1950 までに段 1 以上に届いた国×種が k 以上。
+    k は紙では出せない（純支持の計器が無い）。器（旗 0）の ident の生で計器 C を 6 国について読み、腕 B より前に k を固定してコミットする（固定の時点を事前登録に書く）。
+    ヌル腕（m1053・N1・N2）では 0/60（数えた：q12_out.txt）。
+  上（形に固有の誤り＝門を素通りする）：計器 C の行で〈段が上がった四半期に、純支持 ≤ −余白 かつ 政治資本の支払い 0〉の件数＝0。
+  壊さない：開幕の盤面の段は旧と一致（初期値の行）。ProtectedLaw（Government.cs:965）の下がり 0 を保つ。
+
+突然変異ごとの赤（腕の前に紙で）
+  M1 GateLaw を通さず目標を直に置く → 上の門で赤。
+  M2 何も書かない（旗 0 と同じ） → 下の門で赤（6 国 0/60）。
+  M3 男性普通選挙の前提（Government.cs:739）を外す → 前提の機構の試験で赤。
+旗 0 で落ちる確かめ：旗 0＝今の盤面＝6 国の L.WomenRights の戦線 0 四半期（4 腕×40,080）・段 1 以上 0/60 ＝下の門で赤（数えた）。
+予言〈推〉：戦線は開くが、符号 2（政治資本で固定）で止まる国が多い（今の非列強の戦線の 9 割以上が符号 2）。段 1 に届く国×種は少ない恐れ＝k は小さく出る。
+
+要る計器（仕様・計器は自分で導く・エンジンの関数を呼ばない・欄は [System.NonSerialized]）
+  A 姿勢の内訳：modsig_s の末尾に uMod・uInd・uWel・uFis・uMil の 5 列（国×四半期）。今は Runner の armstrace（Program.cs:604）だけ。
+  B 危機の要求の表（新）：危機が立った四半期ごとに 国・bloc・上位 3 軸と score・WomenRights の score と順位と OpposingPower（PolicyPreferences.cs:498 の写し）。今はログの文字だけ（Politics.cs:1042）。
+  C WomenRights の門の表（新）：国×四半期の 段・目標・純支持・余白・一歩の代価・政治資本の在庫と支払い。戦線が無い四半期も計器が自分で計算する。
+
+素案 W2：Pref（PolicyPreferences.cs:333〜:336）を層の札から所得の損得へ（LordStake・IntermediaryStake と同じ型）。D2（参加率）の後。
+素案 W3：反乱が勝ったときの反乱国の法の写し（MultiNationSim.cs:1160 ReabsorbNations・Politics.cs:841 SettleRevolt・建国の写しは MultiNationSim.cs:472 の 1 方向だけ）。作者に聞く。
+
+【合流 (1060) が足した（反証役）】
+- W1 は根（uMod から techGap が消えたこと）の迂回で、根の直しではない。
+- 全ての AI の国に及ぶ副作用を記録に置く：GateLaw（SelfPlay.cs:319〜:331）は支持が足りないと目標を次の 1 段のまま残す＝WomenRights の戦線が開いたままになり CountOpenFronts（Government.cs:513〜:529）の N が増え、政治押し予算 (1/N)^0.5 が他の連続の軸を薄める。CrownParliament.cs:573 の Enum2(w.WomenRights, p.WomenRights) は王権と議会の距離に入る。→ 同じ盤面の旧と新で数える記録：開いた戦線の数 N と PoliticalPushBudget・王権と議会の距離。6 国以外の段 1 以上の件数と最初の年を上の門の候補に置く。
+- lawgate2_s の WomenRights 行は 0 行（2505 行中 2504 行が SocialSecurity）＝計器が書かない（計器の限界）＝計器 C が要る理由。

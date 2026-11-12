@@ -1,0 +1,35 @@
+(1058) c100pq 読む線のまとめ（2026-11-12・Opus 5.5・腕 0・コミット 0）
+作ったフォルダ：D:/PoB_work/r1058_work だけ（worktree・枝は作らない）。
+
+読んだ生（読むだけ）
+- D:/PoB_work/keep_1053/{base_ins,n1,n2}：nationgood_s・sellr_s・nation_s（fxRate）・flow_s（Colonial.cs:199 giveIncome）・fiscal_s（claim/ledgerColonialUpkeep・payRateShare）
+- D:/PoB_work/keep_1044/{base_ins,n1,n2}：(1047) の門の基準（案 A の腕 B は 1044 の木から出た＝同じ木どうしの比較はこちら）
+- D:/PoB_work/keep_1053_rej/ov_armB/ins：案 A の腕 B
+- origin/c99ov の gates_ov.py・prereg_ov・readB/gates_ov.txt（ov/ に写し）
+
+台本と出力
+- q23.py → out_q23.txt：国家の調達の価額の割合・U1a・U1b・U1b_adj（調達を引いた）・問い3 の新÷旧と幅
+  再現：keep_1044 base 1913 U1a .015564・U1b .023134、腕 B .017374・.024271＝(1047) の gates_ov.txt と一致。
+- q3b.py → out_q3b.txt：首都州の調達の財の行の輸出で引いた上界 U1b_cap
+- q2local.py → out_q2local.txt：首都州の調達の財の行の 輸出÷需要 の分布
+- q1_readers.txt（問い1）・q4_draft.txt（問い4）・q5_questions.txt（問い5）・lastsold_readers.txt・prereg.txt・plan.txt
+
+問い2 の答え（近似）
+- 国家の調達の価額÷州の外への輸出の全体（U1b の分子）：6 大国の中央値 ≦0.0005（全ての腕・1870・1913・1950）。÷越境の輸出 ≦0.0006（6 大国）・国ごとの最大 清 1950 .0018（n1）。
+- 上界（首都州の調達の財の行の輸出の全て）でも ≦0.0024（6 大国・中央）。
+- 貿易÷GDP の記録（nation_s exportsPerClearing＝ExportsByGood）と U1a（crossExportQty）には入らない。U1b にだけ入る。
+- 局所：首都州の調達の財の行（6 大国×18 年×10 種＝各 1080 行）で 輸出÷需要＞0.5 の行は m1053 でキニーネ 28・原油 20・缶詰 16・汽船 7・帆船 0・石炭 0
+  （ヌル腕 n1 31・12・20・10・6・2／n2 29・17・10・6・3・0）。例：ロンドンの原油 1913 種 1 輸出 .574 需要 .610。上界（清算の輸出も含む）。
+  首都州の検出は〈sellr の国ごとの最初の州〉＝種によって外れる（ブレスラウ/ベルリン・オムスク/モスクワ・上海/済南・パリ/リヨン）＝q3b と q2local は副。主は U1b_adj（flow の procF＝首都の検出に依らない）。
+  prevExportAll は清算の輸出も含む＝ニューヨークの缶詰のような行は清算の輸出と読む方が自然（PriceLawSeesExports の設計どおり＝二重ではない）。
+  確かな例は清算の輸出が考えにくいロンドンの原油（1913・1920 種 1・1850 種 2〔n2〕・1880 種 1〔n1〕）＝輸出≒需要＝その行の需要の側は約 2 倍。本当の大きさは計器 procx_s が無いと出ない。
+- 傍証：flow の procF（全区分）と fiscal の ledC（植民地だけ・月指定）がどちらも ≦1e-4 で揃う＝通貨と時刻の近似が大きく外れていない。
+
+問い3 の答え（近似）
+- 案 A の U1b の新÷旧（腕 B÷keep_1044 base）1913：1.0491→調達を引いて 1.0491（U1b_adj）・1.0487（U1b_cap）。幅の上端 1.1536→1.1536・1.1531。赤のまま。
+- 1870・1950 も 4 桁目までしか動かない（1950 は引く前も後も緑：1.5896→1.5898・1.5895）。
+- ＝(1047) の〈旗 1 で 2 度数え U1 を緑に寄せる向き〉は、大きさで U1b の 0.24% 以下＝〈採らない〉の判定に効かない。
+- 腕 B÷keep_1053 base の行は木が違う（記録だけ）。
+
+予言の当落：P1 当たり（和の読み手は MarketFlow.cs:248・BilateralMarket.cs:1050・案 A の sellR の 3 本）・P2 当たり（5% 未満→0.05% 以下）・P3 当たり（幅の 1/5 未満→4 桁目まで）。
+自己申告：q23.py は bg.sh を通さず起こし、q23.log を 5 回覗いた（㉓ の 3 回を超えた）。q3b・q2local は bg.sh＋waitmark 各 1 回。keep_1044・keep_1053・keep_1053_rej は読んだだけ。残ったプロセス 0。
