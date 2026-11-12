@@ -61,4 +61,4 @@ for s in seeds[:10]:
 for n in L: pass
 cv = sorted((L[n] / nsum[n]) for n in L if nsum[n] > 0)
 print('被覆 L÷ΣN（最後の種の開幕・国の数', len(cv), '）：中央', round(st.median(cv), 3), '最小', round(cv[0], 3), '最大', round(cv[-1], 3), '1 以上の国', sum(1 for v in cv if v >= 1))
-print('露が影の外国の最大になる州の持ち主（20 四半期おき・10 種の延べ）', rus.most_common(8))
+print('露が影の外国の最大になる州の持ち主（40 四半期おき・10 種の延べ）', rus.most_common(8))
