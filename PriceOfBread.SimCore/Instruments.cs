@@ -1919,6 +1919,7 @@ public static partial class Instruments
         CpwdTable(sim, seed, q);           // (815) 払えない利札の落としの表
         CearnTable(sim, seed, q);          // (822) 植民地の稼ぎの表（全ての国の州×四半期）
         CedeTable(sim, q);                 // (888) 割譲の支配度 C1 の段 C-0 の表 cederule_s：貯めた事象の後の値を四半期の末に読む
+        RulePowerTable(sim, seed, q);      // (1071) 支配の力の段 B の影の計器 rulepower_s・rulepeace_s（Rule へは何も書かない・Wants で選ばれた時だけ）
         LandsaleTable(sim, seed, q);       // (983) 土地の持ち分の段 B-1 の段 0 の表 landsale_s（国×四半期・未払いの土地税と売りの期待）
         LandshareTable(sim, seed, q);      // (895) 土地の持ち分の段 B-0 の表 landshare_s（国×四半期・月の閉じで積んだ期待と実際）
         if (DscOn) DscTable(sim, seed, q); // (725) 段0′ の計器 dsc2_s（発見の連続化の L の再生の材料・POB_INSTRUMENTS_DSC=1 のときだけ）
