@@ -1,0 +1,21 @@
+=== MU1
+  失敗 PriceOfBread.Tests.InstrumentsTablesSelectTests.S1_未設定と空は全表 [194 ms]
+  エラー メッセージ:
+   Assert.True() Failure
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+=== MU2
+  失敗 PriceOfBread.Tests.InstrumentsTablesSelectTests.S2_S3_S4_選んだ表は全表の走りとバイト一致で選ばない表は0本 [12 s]
+  エラー メッセージ:
+   Assert.Empty() Failure: Collection was not empty
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+=== MU3
+  失敗 PriceOfBread.Tests.InstrumentsTablesSelectTests.S2_S3_S4_選んだ表は全表の走りとバイト一致で選ばない表は0本 [14 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Collections differ
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
