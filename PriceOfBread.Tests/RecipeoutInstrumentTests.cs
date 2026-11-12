@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// (1013) 線 c94ro：貿易の計器 C3 <c>recipeout_s</c>（国×財×レシピ×賦存の級の産出と単位費用・読むだけ）の番人。事前登録 measurements/m1013_20261110_prereg_ro.txt [3]。
 /// T1a＝(年,国,財) の Σ outputSum が同じ実行の nationgood_s の producedQty と合う（量の保存・1e-9）。T1b＝対照の件数。T2＝計器の生産者ごとの mc が ProductionDiag.ExplainCostByRecipe と合う（州ごとに値段を変えた盤面）。
-/// T3＝級の規則値と Productivity÷(財の生産性×7.0) の食い違い 0 件（級を計器が自分で決める＝同語反復にしない）。T4＝旗 EndowmentCostFollowsAbundance=1 の盤面のエンジンの mc が旗 0 の盤面の unitCostIfAbundance と合う（大鉱床 4.0×5.0 を含む）。T5＝表の存在。
+/// T3＝級の規則値と Productivity÷(財の生産性×7.0) の食い違い 0 件（級を計器が自分で決める＝同語反復にしない）。T4＝旗 EndowmentCostFollowsAbundance=1 の盤面のエンジンの mc が旗 0 の盤面の計器の案 B′ の列（unitCostIfBprime）と合う（大鉱床 4.0×5.0 を含む）。B1＝案 B′ の列が紙の式（自己費用÷(ResourceEndowment×Scale)＋投入費）と合う。T5＝表の存在。
 /// 期待は手で置く（T2 と T4 の相手はエンジンの別の経路・T1 は別の計器・T3 は Productivity と規則値の独立な 2 本）。何もしない計器は 0 で緑になる＝全ての門に〈正の行が 1 つ以上ある〉対照を置く。
 /// </summary>
 [Collection("Instruments")]
@@ -164,9 +164,9 @@ public class RecipeoutInstrumentTests
         return s;
     }
 
-    /// <summary>T4：旗 EndowmentCostFollowsAbundance=1 の盤面のエンジンの mc（MineralSelfCost＋InputCostPerUnit）が、旗 0 の盤面の計器の unitCostIfAbundance と合う。倍率>1 の全ての RGO と、同じ生産者を開いた大鉱床。旗 1 の盤面の計器は二重に割らない。</summary>
+    /// <summary>T4：旗 EndowmentCostFollowsAbundance=1 の盤面のエンジンの mc（MineralSelfCost＋InputCostPerUnit）が、旗 0 の盤面の計器の案 B′ の列（unitCostIfBprime）と合う。倍率>1 の全ての RGO と、同じ生産者を開いた大鉱床。旗 1 の盤面の計器は二重に割らない。</summary>
     [Fact]
-    public void T4_旗1のエンジンの費用は旗0の計器の豊富側の費用と合う()
+    public void T4_旗1のエンジンの費用は旗0の計器の案Bプライムの列と合う()
     {
         int abund = 0, big = 0, bigE = 0, deposit = 0;
         foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
@@ -195,6 +195,56 @@ public class RecipeoutInstrumentTests
         Assert.True(big >= 1, "倍率 10 超（希少鉱物か開いた大鉱床）の対照が無い");
         Assert.True(bigE >= 1, "希少鉱物の産地（E で倍率 10 超）の対照が無い");
         Assert.True(deposit >= 1, "大鉱床の盤面が無い");
+    }
+
+    /// <summary>
+    /// B1（1079）：旗 0 の盤面で、計器の案 B′ の列 unitCostIfBprime が紙の式と合う。
+    /// 紙の式＝自己費用 ÷ (ResourceEndowment × ResourceEndowmentScale) ＋ 投入費。割る数は級 E と、開いた後の級 X だけ（開く前の大鉱床・S・N・F は 1）。
+    /// 期待は Producer の欄と州の値段から試験の中で作る（RE は鉱物 4.0・他 3.5 の値を置く・ScarceEndowment や計器の関数は呼ばない）。
+    /// 能力の倍率（希少鉱物の逆算の倍率・大鉱床の 5.0）は割る数に入らない＝規則の倍率>10 の行でも割る数は RE×Scale だけ。
+    /// </summary>
+    [Fact]
+    public void B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す()
+    {
+        int divided = 0, scarceDivided = 0, openedDeposit = 0, unopenedDeposit = 0, undivided = 0;
+        foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
+        {
+            var w = Solo(cfg, new Coefficients()).World;
+            var c = w.Coef;
+            Assert.True(!(c.EndowmentCostFollowsAbundance > 0) && !(c.MineralCostFollowsGrade > 0));
+            foreach (var r in w.Regions)
+            {
+                // 大鉱床は開く前と開いた後の両方を見る（開く前の行は割らない・開いた後の行は割る）
+                var deps = r.Producers.Where(p => p.IsRgo && p.SiteRow >= 0 && Catalog.Sites[p.SiteRow].Kind == Catalog.SiteKind.Deposit && !p.SiteFound).ToList();
+                foreach (var p in deps) { CheckB(w, r, p); unopenedDeposit++; }
+                foreach (var p in deps) Discovery.OpenSite(w, r, p, c);
+                foreach (var p in r.Producers) CheckB(w, r, p);
+                openedDeposit += deps.Count;
+            }
+        }
+        void CheckB(World w, Region r, Producer p)
+        {
+            var c = w.Coef;
+            var x = Instruments.RoRead(w, r, p);
+            double self = p.MarginalCost * w.CostPriceLevel * r.LocalPriceMultiplier;
+            double inputs = 0;
+            foreach (var inp in p.Inputs)
+            {
+                double qty = inp.QtyPerOutput;
+                if (inp.GoodId == Catalog.LaborId && p.BuysLabor) qty = inp.QtyPerOutput * (1.0 - c.ElecLaborSave * p.ElecFill) * (1.0 - c.LaborSaveRate * r.Mechanization);
+                inputs += (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length ? r.Markets[inp.GoodId].Price : 0.0) * qty;
+            }
+            double re = (Catalog.IsMineral(p.GoodId) ? 4.0 : 3.5) * c.ResourceEndowmentScale;
+            bool unopenedSite = x.Class == "X" && !p.SiteFound && Array.IndexOf(r.Resources, p.GoodId) < 0;
+            bool dividesNow = (x.Class == "E" || x.Class == "X") && re > 1.0 && !unopenedSite;
+            double expected = (dividesNow ? self / re : self) + inputs;
+            Assert.True(Close(x.IfBprime, expected, 1e-9), $"{r.Name}/財{p.GoodId}/級{x.Class}：計器 {x.IfBprime}・紙の式 {expected}");
+            if (dividesNow) { divided++; if (x.Rule > re * 1.5) scarceDivided++; } else undivided++;
+        }
+        Assert.True(divided >= 20, $"割る行が少ない {divided}");
+        Assert.True(scarceDivided >= 1, "規則の倍率が RE×Scale を超える行（希少鉱物の産地か開いた大鉱床）の対照が無い");
+        Assert.True(unopenedDeposit >= 1 && openedDeposit >= 1, "大鉱床の開く前と後の対照が無い");
+        Assert.True(undivided >= 20, $"割らない行の対照が少ない {undivided}");
     }
 
     /// <summary>(1019) S1：siteFound の列。開く前の大鉱床の行は割合が下がり、OpenSite の後は上がる（Sites の Kind で決める変異では動かない）。級 X 以外は nan・級 X の行は 0〜1。</summary>
