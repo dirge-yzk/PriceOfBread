@@ -751,17 +751,26 @@ public sealed class Simulation
     /// ＝硫黄はパレルモも非産地も単位費用 0.540＝比較優位がデータ上ゼロ。
     /// 新＝賦存の高い州は同じ費用でより多く採れる＝<c>費用 ＝ 自己費用÷賦存倍率 ＋ 投入費用</c>。
     /// 割り算の形は <see cref="EconomyStep.MineralSelfCost"/>（鉱脈の品位）と同じ物理＝あちらは月ごとに動く鉱脈の質を毎月割り、
-    /// こちらは動かない地理なので播種で1回だけ MarginalCost に畳む（MarginalCost は播種後どこも書き換えない＝毎月割るのと厳密同値）。
+    /// こちらは動かない地理なので播種で1回だけ MarginalCost に畳む（毎月割るのと厳密同値）。⚠旗 1 では産地の発見の行（開始時の賦存に載らない行）の割り算だけは播種でなく開いた時
+    /// （<see cref="Discovery.OpenSite"/>）＝播種後に MarginalCost を書き換える口はそこ 1 つ（(1073) R1 (b)・旗 0 では割らない＝書き換えない）。
     /// 両方点火すれば mc の自己費用は 賦存倍率×鉱脈倍率 で割られる＝積として重なる。
     /// ⚠豊富側（倍率>1）と希少側（倍率<1＝非産地の 0.4）は別ゲート＝非対称を選べる：希少側は費用を上げる方向で、
     ///   効きが強すぎると石炭・鉄の非産地が死ぬ（2026-09-07 の MineralCostFollowsGrade 点火で人口21.8→7.1 の前例）。
     /// ゲート0では Math.Pow を1度も通らない＝×1.0 すら掛けない＝厳密恒等。倍率が NaN・非正なら費用を触らない（否定形の番人）。</summary>
-    internal static void ApplyEndowment(Producer pr, double endowment, Coefficients c)
+    internal static void ApplyEndowment(Producer pr, double capMul, double costDiv, Coefficients c)
     {
-        pr.Productivity *= endowment;
-        double gate = endowment > 1.0 ? c.EndowmentCostFollowsAbundance : endowment < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
-        if (!(gate > 0) || !(endowment > 0)) return;
-        pr.MarginalCost /= System.Math.Pow(endowment, gate);
+        pr.Productivity *= capMul;
+        DivideCostByEndowment(pr, costDiv, c);
+    }
+
+    /// <summary>(1073) R1 (a)：費用を割る数 <paramref name="costDiv"/> は能力の倍率 capMul と別の引数。割る数＝<see cref="ResourceEndowment"/>×ResourceEndowmentScale
+    /// （希少鉱物の逆算した高い賦存〔126.8〕と <see cref="Coefficients.GoldRushEndowment"/>〔5.0〕は能力にだけ掛ける＝総量保存のための倍率で、同じ費用で採れる量の物理ではない）。
+    /// 1.0 を渡せば割らない（産地の発見の行の播種）。旗 0 では Math.Pow を通らない。</summary>
+    internal static void DivideCostByEndowment(Producer pr, double costDiv, Coefficients c)
+    {
+        double gate = costDiv > 1.0 ? c.EndowmentCostFollowsAbundance : costDiv < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
+        if (!(gate > 0) || !(costDiv > 0)) return;
+        pr.MarginalCost /= System.Math.Pow(costDiv, gate);
     }
 
     /// <summary>★産地の発見の行（2026-10-01 (148)・<see cref="Catalog.Sites"/>）をこの場所・この財について引く（州の構築と植民地の昇格の2か所が呼ぶ＝同じ規則）。
@@ -848,13 +857,13 @@ public sealed class Simulation
             int site = pr.IsRgo ? SiteRowFor(city, pr.GoodId, coef, sharedWorld) : -1;
             if (site >= 0 && System.Array.IndexOf(resources, pr.GoodId) < 0)
             {
-                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
+                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // (1073) R1 (b)：産地の発見の行は播種で割らない（割るのは Discovery.OpenSite）
                 pr.SiteRow = site;
             }
             else if (System.Array.IndexOf(resources, pr.GoodId) >= 0)
             {
                 pr.SiteRow = site;
-                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, coef);   // 賦存量＝good の地理的性質（鉱物=集中4.0／他=中庸3.5）。希少鉱物は総量保存で逆算した高い賦存。★Scale=1.0（既定）でビット恒等＝診断用レバー
+                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 賦存量＝good の地理的性質（鉱物=集中4.0／他=中庸3.5）。希少鉱物は総量保存で逆算した高い賦存。★Scale=1.0（既定）でビット恒等＝診断用レバー
                 // D6（プランテーションdoc・2026-07-30）：**地代取り分を州別・財別へ**。旧＝`RentShare = max(0.3, farmLordShare)` の国家スカラー1個で、
                 // 同じ関数の中で Productivity だけが州の resources で財別に分化していた（器はあるのに使っていなかった）。
                 // 賦存財の RGO＝その州の輸出向け一次産品＝**大農園/鉱山の経営**なので、残余は経営者（地主階級）へ厚く落ちる。
@@ -869,7 +878,7 @@ public sealed class Simulation
             }
             // ★希少鉱物は**非産地では厳密に0**（2026-08-13・裁定⑥）。総量は産地の賦存を引き上げて保つ（ScarceEndowment）。
             else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
-            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
+            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
 
         // ★貴族・聖職の初期資産＝土地（2026-08-04・作者指示「現在の問題を全て解決して」の統一根）。
@@ -1534,13 +1543,13 @@ public sealed class Simulation
             int site = pr.IsRgo ? SiteRowFor(col.Name, pr.GoodId, coef, !w.StepsDiplomacy) : -1;
             if (site >= 0 && System.Array.IndexOf(col.Resources, pr.GoodId) < 0)
             {
-                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
+                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // (1073) R1 (b)：産地の発見の行は播種で割らない（割るのは Discovery.OpenSite）
                 pr.SiteRow = site;
             }
             else if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
             {
                 pr.SiteRow = site;
-                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
+                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
                 // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
                 //   （ベンガル/ジャワ/カリブは大農園）。Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。
                 // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
@@ -1552,7 +1561,7 @@ public sealed class Simulation
                 }
             }
             else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
-            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);
+            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
         // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。（入植者の着地〔農民/労働者〕は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）
         double natives = Math.Max(0, col.PopSize);

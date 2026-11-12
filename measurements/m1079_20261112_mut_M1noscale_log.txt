@@ -1,0 +1,38 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\BilateralMarket.cs(1001,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\EconomyStep.cs(1794,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\Instruments.cs(2576,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\InstrumentsSubst.cs(193,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\InstrumentsSubst.cs(209,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c103tr_work\mut1\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c103tr_work\mut1_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.App\Controls\TableView.cs(131,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c103tr_work\mut1\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c103tr_work\mut1_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(322,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(322,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(323,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\UnitTypeTests.cs(323,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\ConservationTests.cs(956,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c103tr_work\mut1_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c103tr_work\mut1_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:11.61]     PriceOfBread.Tests.RecipeoutInstrumentTests.B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す [FAIL]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す [6 ms]
+  エラー メッセージ:
+   ロンドン/財7/級E：計器 0.28500000000000003・紙の式 0.2566666666666667
+  スタック トレース:
+     at PriceOfBread.Tests.RecipeoutInstrumentTests.<B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す>g__CheckB|14_0(World w, Region r, Producer p, <>c__DisplayClass14_0&) in D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 245
+   at PriceOfBread.Tests.RecipeoutInstrumentTests.B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す() in D:\PoB_work\c103tr_work\mut1\PriceOfBread.Tests\RecipeoutInstrumentTests.cs:line 222
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 11 s - PriceOfBread.Tests.dll (net10.0)

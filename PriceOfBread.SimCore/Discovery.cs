@@ -1226,14 +1226,16 @@ public static class Discovery
         var site = Catalog.Sites[p.SiteRow];
         p.SiteFound = true;
         string gname = Catalog.Goods[site.Good].Name, who = w.SelfPower?.Name ?? w.Region.Name;
+        // (1073) R1 (b)：開始時の賦存に載らない産地の行は播種で費用を割っていない（Simulation.BuildProvince／昇格）＝開いた時に割る。載る行は播種で割ってある＝1.0（二重に割らない）。旗 0 では割り算を通らない。
+        double siteCostDiv = System.Array.IndexOf(r.Resources, p.GoodId) < 0 ? Simulation.ResourceEndowment(p.GoodId) * c.ResourceEndowmentScale : 1.0;
         if (site.Kind == Catalog.SiteKind.Deposit)
         {
-            Simulation.ApplyEndowment(p, c.GoldRushEndowment, c);
+            Simulation.ApplyEndowment(p, c.GoldRushEndowment, siteCostDiv, c);   // 富鉱の倍率は能力にだけ掛ける（費用を割るのは通常の賦存〔RE×Scale〕・(1073) R1）
             if (p.Scale < 1.0) p.Scale = 1.0;
             if (r.MineralDepositInitial > 0)
                 r.MineralDeposit += c.BonanzaDepositYears * r.MineralDepositInitial / System.Math.Max(1e-9, c.DepositYearsAtBirth);
             w.LogAdd($"{w.Year} {r.Name}で{gname}の大鉱脈が見つかった（{who}）");
         }
-        else w.LogAdd($"{w.Year} {r.Name}で{gname}の植林が始まった（{who}）");
+        else { Simulation.DivideCostByEndowment(p, siteCostDiv, c); w.LogAdd($"{w.Year} {r.Name}で{gname}の植林が始まった（{who}）"); }
     }
 }
