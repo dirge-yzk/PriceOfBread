@@ -1,0 +1,52 @@
+== 旗 0：種 10
+  呼び s1=97 s2=95 s3=75 s4=84 s5=100 s6=88 s7=109 s8=96 s9=101 s10=106
+  輪の印の呼び s1=2 s2=0 s3=1 s4=0 s5=1 s6=0 s7=3 s8=2 s9=2 s10=1・合計 12
+  呼びの直後の輪の数の最大 s1=1 s2=0 s3=1 s4=0 s5=1 s6=0 s7=1 s8=1 s9=1 s10=1
+  終わりの輪の数 s1=0 s2=0 s3=1 s4=0 s5=0 s6=0 s7=0 s8=0 s9=0 s10=0
+  輪の印で切った 0・輪の印 0 で切った 0・打ち切りに当たった 39・交戦中の呼び 149
+  呼び口 ResolvePeace:new=134 ResolvePeace:take=358 SeedDependencies:new=30 Subjugate:new=429
+  輪 s1 1906 ResolvePeace 3204 プロイセン スペイン 4
+  輪 s1 1907 ResolvePeace 3268 イギリス ロシア 1
+  輪 s3 1886 ResolvePeace 3268 清 ラオス 1
+  輪 s5 1853 ResolvePeace 3204 マラータ同盟 清 1
+  輪 s7 1841 ResolvePeace 3204 フランス オスマン 2
+  輪 s7 1843 ResolvePeace 3204 オスマン スペイン 2
+  輪 s7 1855 ResolvePeace 3268 オーストリア フランス 2
+  輪 s8 1870 ResolvePeace 3204 イエメン マラータ同盟 3
+  輪 s8 1870 ResolvePeace 3268 オスマン マラータ同盟 3
+  輪 s9 1859 ResolvePeace 3204 ロシア スペイン 3
+  輪 s9 1859 ResolvePeace 3268 ロシア オスマン 2
+  輪 s10 1825 ResolvePeace 3268 ビルマ ハイデラバード 1
+== 旗 1（腕 B）：種 10
+  呼び s1=100 s2=95 s3=77 s4=84 s5=126 s6=88 s7=89 s8=98 s9=105 s10=102
+  輪の印の呼び s1=2 s2=0 s3=2 s4=0 s5=6 s6=0 s7=3 s8=2 s9=3 s10=3・合計 21
+  呼びの直後の輪の数の最大 s1=0 s2=0 s3=0 s4=0 s5=0 s6=0 s7=0 s8=0 s9=0 s10=0
+  終わりの輪の数 s1=0 s2=0 s3=0 s4=0 s5=0 s6=0 s7=0 s8=0 s9=0 s10=0
+  輪の印で切った 21・輪の印 0 で切った 0・打ち切りに当たった 0・交戦中の呼び 162
+  呼び口 ResolvePeace:new=144 ResolvePeace:take=351 SeedDependencies:new=30 Subjugate:new=439
+  輪 s1 1906 ResolvePeace 3204 プロイセン スペイン 4
+  輪 s1 1907 ResolvePeace 3268 イギリス ロシア 1
+  輪 s3 1886 ResolvePeace 3268 清 ラオス 1
+  輪 s3 1948 ResolvePeace 3204 オスマン イギリス 1
+  輪 s5 1853 ResolvePeace 3204 マラータ同盟 清 1
+  輪 s5 1871 ResolvePeace 3268 オーストリア ブハラ 5
+  輪 s5 1875 ResolvePeace 3204 フランス オーストリア 3
+  輪 s5 1895 ResolvePeace 3204 ロシア ハイデラバード 2
+  輪 s5 1917 ResolvePeace 3268 マラータ同盟 イギリス 2
+  輪 s5 1938 ResolvePeace 3204 ブハラ マラータ同盟 3
+  輪 s7 1841 ResolvePeace 3204 フランス オスマン 2
+  輪 s7 1862 ResolvePeace 3268 フランス オスマン 2
+  輪 s7 1900 ResolvePeace 3204 イギリス フランス 2
+  輪 s8 1870 ResolvePeace 3204 イエメン マラータ同盟 3
+  輪 s8 1870 ResolvePeace 3204 オスマン イエメン 4
+  輪 s9 1859 ResolvePeace 3204 ロシア スペイン 3
+  輪 s9 1916 ResolvePeace 3204 ロシア アメリカ 2
+  輪 s9 1941 ResolvePeace 3204 オスマン ロシア 3
+  輪 s10 1825 ResolvePeace 3268 ビルマ ハイデラバード 1
+  輪 s10 1913 ResolvePeace 3268 イギリス ハイデラバード 5
+  輪 s10 1919 ResolvePeace 3268 清 ハイデラバード 4
+G1 働いた（旗 1 の全ての呼びの直後と終わりの輪の数＝0・10 種）：通る・旗 0 で落ちるか：落ちる・旗 0 の輪の印の呼び 12
+G1b 消しすぎない（旗 1：輪の印の呼びごとに切ったリンクが 1 本・輪の印 0 の呼びで切ったリンク 0）：通る
+G3（輪の印 0 の呼びは最初の輪まで同じ）：s1:77行同 s2:95行同 s3:62行同 s4:84行同 s5:83行同 s6:88行同 s7:68行同 s8:80行同 s9:70行同 s10:65行同＝通る
+G2（invade_s の Subjugate の属国化・10 種の合計）：腕 B 439・帯 [411, 465]（基線 429・N1 447・N2 429）＝通る
+記録：dep_s の呼びの合計 旗 0 951・腕 B 964・新÷旧 1.014
