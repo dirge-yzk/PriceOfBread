@@ -1,0 +1,11 @@
+(1069) 最後の木 c0d304824（docs・ident.cfg・measurements の後）のフルスイート（suite1069.sh full・SUF=2）
+list nonfull 2749
+list full 3
+nonfull rc=0 1175s
+full rc=0 194s
+saveleak rc=0 200s
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+Category!=FullLength：合格 2748・スキップ 1・合計 2749（19 分 32 秒）／FullLength：合格 3・合計 3（3 分 11 秒）＝--list-tests の 2749＋3 と一致
+SOURCE-HASH=846ede9a1cadf24d
