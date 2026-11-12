@@ -13,6 +13,7 @@
 - フルスイート Category!=FullLength：2701 件（2689＋新 12）＝合格 2699・スキップ 1・失敗 1（GoodIdGuardTests の 道具のPythonは財の番号を数字で書かない＝この線の台本 rec_py.py の財の表の直書き）
   → 台本だけの直し 3e6d6c5f4（SimCore・試験は触れない）→ GoodIdGuardTests のクラスを直した木で回し直して 43 件合格（suite/guard_rerun.txt）
 - FullLength 3 件合格。--list-tests の数と一致（2701＋3）。trx：D:/PoB_work/c101py_work/suite/trx/
+- フルスイートは e027dd94d で回した。その後の 3e6d6c5f4（台本）と記録のコミットの後、HEAD で scripts と measurements を走査する番人（GoodIdGuardTests・InstrumentsTests・PlayHarnessTests）と ㉘ の束・ProcureStateAsSaleTests・MilitaryTests を回し直した＝300 件合格（フルスイートの回し直しはしていない）
 - savetest OK（最大相対差 0）・leakhunt 終了コード 0
 
 == 止める線（事前登録 §11）
