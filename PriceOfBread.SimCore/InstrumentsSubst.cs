@@ -42,6 +42,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：全ての国の全ての州の行を書く。</summary>
     static void SubstTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Wants("subst_s")) return;   // (1061) 選ばれない表は組み立ても飛ばす
         var sk = SubstSinks.GetValue(sim, _ => new SubstSink());
         sk.W ??= Open("subst", seed);
         if (!sk.Header) { sk.W.WriteLine(SubstHeaderText); sk.Header = true; }
@@ -165,6 +166,7 @@ public static partial class Instruments
     /// <summary>月の頭（EconomyStep.Run の頭・エンジンの SubsistenceHead の前・助走の月は呼ばれない）：州の材料を撮る。前の月に焼いた州はエンジンの焼いた結果を点検する。</summary>
     internal static void SubstMonthHead(World w, Region r)
     {
+        if (!Wants("subst_s")) return;   // (1061) SubstHeads の読み手は SubstS2Columns（subst_s の行）だけ
         var h = SubstHeads.GetValue(r, _ => new SubstHeadState());
         var (cap, lp, _) = S2FarmLabor(r);
         double sold = Catalog.FarmLaborId < r.Markets.Length ? r.Markets[Catalog.FarmLaborId].LastSold : 0;

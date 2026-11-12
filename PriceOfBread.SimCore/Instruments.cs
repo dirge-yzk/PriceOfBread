@@ -44,6 +44,19 @@ public static partial class Instruments
     /// <summary>★(582) 物価の表 pclamp_s が〈旧の天井〉として数える観測の線（計算には使わない・物価の天井は廃止した）。番人が下げて使う。</summary>
     internal static double PxObserveCeil = 4.0;
     static string[] Picked = SplitNames(Environment.GetEnvironmentVariable("POB_INSTRUMENTS_NATIONS"));
+    /// <summary>(1061) 出す表の選び（POB_INSTRUMENTS_TABLES＝表の名前をカンマで並べる・<c>nation_s</c> の形・完全一致）。未設定・空＝null＝全表（今と同じ）。選ばれない表は <see cref="Open"/> が書き捨ての口を返す。</summary>
+    static HashSet<string>? TablesSel = ParseTables(Environment.GetEnvironmentVariable("POB_INSTRUMENTS_TABLES"));
+    static HashSet<string>? ParseTables(string? s) { var l = SplitNames(s); return l.Length == 0 ? null : new HashSet<string>(l, StringComparer.Ordinal); }
+    /// <summary>この表（<c>nation_s</c> の形）を出すか。</summary>
+    internal static bool Wants(string table) => TablesSel is null || TablesSel.Contains(table);
+    /// <summary>表の選びの環境変数を今読んだ値で見て、この中の 1 つでも選ばれるか（静的な初期化子から使う＝他の static 欄の初期化の順に依らない）。</summary>
+    static bool EnvWantsAny(params string[] tables) { var t = ParseTables(Environment.GetEnvironmentVariable("POB_INSTRUMENTS_TABLES")); return t is null || tables.Any(x => t.Contains(x)); }
+    /// <summary>試験用：出す表の選びを替える（null・空＝全表）。</summary>
+    internal static void SelectTables(string? csv)
+    {
+        TablesSel = ParseTables(csv);
+        CearnOn = System.Environment.GetEnvironmentVariable("POB_CEARN") != "0" && (TablesSel is null || Wants("cearn_s") || Wants("cgrp_s") || Wants("cpop_s"));   // 3 表とも選ばれなければ累積ごと飛ぶ（POB_CEARN=0 と同じ既存の切り口）
+    }
     static string[] SplitNames(string? s) => s is { Length: > 0 } ? s.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) : [];
 
     /// <summary>番人（テスト）が計器を入れ替えるための口。出力ディレクトリと国の選び方を渡す（本番は環境変数）。</summary>
@@ -1799,6 +1812,7 @@ public static partial class Instruments
 
     static System.IO.StreamWriter Open(string kind, ulong seed)
     {
+        if (!Wants(kind + "_s")) return new System.IO.StreamWriter(System.IO.Stream.Null);   // (1061) 選ばれない表は書き捨て（ファイルを作らない）
         System.IO.Directory.CreateDirectory(Dir);   // 環境変数が存在しないディレクトリを指しても試合ごとに落ちない（(244) 反証役 vi1#7）
         return new(System.IO.Path.Combine(Dir, $"{kind}_s{seed}.tsv"), false, new System.Text.UTF8Encoding(false), 1 << 16);
     }

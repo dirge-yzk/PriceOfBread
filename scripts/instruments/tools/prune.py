@@ -2,9 +2,9 @@
 #   python -X utf8 -I prune.py prune <ins フォルダ> <基準の ins フォルダ> --verdict-file <判定を含む出力> --manifest <出力 tsv> --allow <作業フォルダ名>
 #        [--pre-spec <表・列数・sha1 の tsv>] [--copy-to <measurements の写し>] [--deleted <消した名の一覧>] [--keep-prefix 表の頭,...]
 #        [--heavy] [--heavy-keep 表の頭,...] [--dry]
-#   python -X utf8 -I prune.py guard <パス> [--allow 作業フォルダ名] [--any]   ＝消してよい場所か（0＝よい・3＝拒む・--any は ins/ の名を問わない）
-#   python -X utf8 -I prune.py pack <フォルダ> [--rm] [--allow 名]   ＝<フォルダ>.tar.gz に包む（--rm は包めたと確かめた後に元を消す）
-#   python -X utf8 -I prune.py unpack <tar.gz> <出力先> [--allow 名]
+#   python -X utf8 -I prune.py guard <パス> --allow 作業フォルダ名 [--any]   ＝消してよい場所か（0＝よい・3＝拒む・--any は ins/ の名を問わない）
+#   python -X utf8 -I prune.py pack <フォルダ> --allow 名 [--rm]   ＝<フォルダ>.tar.gz に包む（--rm は包めたと確かめた後に元を消す）
+#   python -X utf8 -I prune.py unpack <tar.gz> <出力先> --allow 名
 # 規則（measurements/m1054_20261112_prereg_dv.txt）：
 #   ・最後の〈判定:〉の行が〈判定: 恒等〉のときだけ刈る（不一致・未了・行が無い・ファイルが無いときは何も消さない）。
 #   ・消すかどうかは〈生のバイトの sha1〉が基準の同名の表と一致するかだけで決める（行末はそろえない）。LF にそろえた sha1・先頭の列の sha1 は manifest への記録だけ。
@@ -15,7 +15,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 HEAVY = ('cpop_s', 'cearn_s', 'subst_s', 'prodcap_s')
 ROOT = '/d/pob_work'          # 判定は小文字にそろえて行う（Windows は大文字小文字を区別しない）
-DEFAULT_ALLOW = ('c100dv_work',)
+DEFAULT_ALLOW = ('c100dv_work',)     # 旧の既定（--allow が必須になった後は、REQUIRE_ALLOW を外した突然変異の再現のためだけに残る）
+REQUIRE_ALLOW = True          # (1061) 突然変異 M7 の差し替え点（--allow を渡さない呼びを拒む＝旧の既定の作業フォルダで通さない）
 LF_NORMALIZE = True           # 突然変異 M3 の差し替え点（記録の LF 列だけに効く）
 VERDICT_GATE = True           # 突然変異 M1 の差し替え点（判定の行の確認）
 ONLY_IDENT = True             # 突然変異 M2 の差し替え点（〈判定: 恒等〉だけを通す）
@@ -46,6 +47,15 @@ GUARD_NATIVE = native         # 突然変異 M5 の差し替え点（実体を�
 
 def resolved(p):
     return norm_path(os.path.realpath(GUARD_NATIVE(p))) if CAN_REALPATH else norm_path(p)
+
+
+def allow_of(a):
+    """--allow の作業フォルダ名の並び。渡されていなければ None（REQUIRE_ALLOW が真のとき）。"""
+    if a.get('allow'): return a['allow'].split(',')
+    return None if REQUIRE_ALLOW else list(DEFAULT_ALLOW)
+
+
+NEED_ALLOW_MSG = '拒む：--allow が必須（消してよい作業フォルダの名を渡す）'
 
 
 def guard(p, protect=(), allow=DEFAULT_ALLOW, need_ins=True):
@@ -144,11 +154,14 @@ def load_pre(p):
 
 def cmd_prune(a):
     ins, base = a['pos'][0], a['pos'][1]
+    al = allow_of(a)
+    if al is None:
+        print(NEED_ALLOW_MSG); return 2
     v = read_verdict(a.get('verdict-file'))
     if VERDICT_GATE and v is None:
         print('刈らない：最後の判定の行が〈判定: 恒等〉でない'); return 0
     if not a.get('dry'):
-        why = guard(ins, protect=(base,), allow=a.get('allow', ','.join(DEFAULT_ALLOW)).split(','))
+        why = guard(ins, protect=(base,), allow=al)
         if why: print('拒む：' + why); return 3
     if not os.path.isdir(ins) or not os.path.isdir(base):
         print('刈らない：フォルダが無い'); return 0
@@ -192,7 +205,10 @@ def cmd_prune(a):
 
 def cmd_pack(a):
     d = a['pos'][0]
-    why = guard(d, allow=a.get('allow', ','.join(DEFAULT_ALLOW)).split(','), need_ins=False)
+    al = allow_of(a)
+    if al is None:
+        print(NEED_ALLOW_MSG); return 2
+    why = guard(d, allow=al, need_ins=False)
     if why: print('拒む：' + why); return 3
     q = native(norm_path(d)); out = q + '.tar.gz'
     with tarfile.open(out, 'w:gz', compresslevel=6) as t:
@@ -208,7 +224,10 @@ def cmd_pack(a):
 
 def cmd_unpack(a):
     tgz, dst = a['pos'][0], a['pos'][1]
-    why = guard(dst, allow=a.get('allow', ','.join(DEFAULT_ALLOW)).split(','), need_ins=False)
+    al = allow_of(a)
+    if al is None:
+        print(NEED_ALLOW_MSG); return 2
+    why = guard(dst, allow=al, need_ins=False)
     if why: print('拒む：' + why); return 3
     os.makedirs(dst, exist_ok=True)
     with tarfile.open(tgz, 'r:gz') as t: t.extractall(dst, filter='data')
@@ -231,7 +250,10 @@ def parse(argv):
 def main():
     cmd = sys.argv[1]; a = parse(sys.argv[2:])
     if cmd == 'guard':
-        w = guard(a['pos'][0], allow=a.get('allow', ','.join(DEFAULT_ALLOW)).split(','), need_ins=not a.get('any')); print(w or 'ok'); return 3 if w else 0
+        al = allow_of(a)
+        if al is None:
+            print(NEED_ALLOW_MSG); return 2
+        w = guard(a['pos'][0], allow=al, need_ins=not a.get('any')); print(w or 'ok'); return 3 if w else 0
     return {'prune': cmd_prune, 'pack': cmd_pack, 'unpack': cmd_unpack}[cmd](a)
 
 

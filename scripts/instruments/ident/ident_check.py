@@ -420,14 +420,20 @@ def pruned_ok(new, base, fa, have):
     return ok
 
 
-def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=()):
-    say(f'[計器の表] 腕 {new}  対  基準 {base}')
+def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=(), only=None, bypass=()):
+    say(f'[計器の表] 腕 {new}  対  基準 {base}' + (f'  ※段 1＝集合 {len(only)} 表だけ' if only is not None else ''))
     if not os.path.isdir(new):
         miss('計器の出力フォルダが無い'); return
     if not os.path.isdir(base):
         miss(f'基準の生が無い（{base}）＝計器の表は突き合わせられない'); return
     fa = sorted(x for x in os.listdir(base) if os.path.isfile(J(base, x)))
     fb = sorted(x for x in os.listdir(new) if os.path.isfile(J(new, x)))
+    if only is not None:   # (1061) 段 1：集合の中の表だけを比べる（基準の側も腕の側も）・集合の外のファイルは 0 本のはず（Open を通らない表 bypass を除く）
+        outside = [x for x in fb if table_of(x) not in only and table_of(x) not in bypass]
+        if outside: fail(f'段 1：選ばない表のファイルが {len(outside)} 本出ている（{outside[:3]}）')
+        else: ok(f'段 1：選ばない表のファイルは 0 本（Open を通らない表 {len(bypass)} 種は除く）')
+        fa = [x for x in fa if table_of(x) in only]; fb = [x for x in fb if table_of(x) in only]
+        if not fa: miss('段 1：基準の生に集合の表が 1 本も無い（空の比べで恒等にしない）')
     PR = pruned_ok(new, base, fa, set(fb))   # (1054) 刈り済みの表（manifest の生の sha1 が基準の生と一致した物）は〈バイト一致〉に数える
     fb = sorted(fb + PR)
     sb, sa = set(fb), set(fa)
@@ -632,6 +638,9 @@ def norm(p):   # MSYS の /d/… も Windows の D:\… も D:/… に揃える
     return (p[1].upper() + ':/' + p[3:]) if re.match(r'^/[a-zA-Z]/', p) else p
 
 
+STAGE = 2   # (1061) 判定の段（main が marks/stage.txt から決める）
+
+
 def main():
     a = parse_args(sys.argv[1:])
     root = norm(a['root'])
@@ -661,6 +670,11 @@ def main():
                 # (880) 注だけの追記（判定の行・正規表現・メッセージの文字列は 1 字も変えない）：受け入れの 2（INS=1 で計器の国が空）を印の段で落とさないのは、その走りは計器の表が出ず、下の計器の表の突き合わせ（基準にある表が腕に無い）で不一致に落ちるから。受け入れの組 0|1|2 は今の batch.sh の終了コード 0・2・3・4 のうち 0 と 2 を受け 3 と 4 を受けない（1 は上の旧の木の場合だけ）。
                 miss(f'腕 {ar} の終了コードが測れた走りの物でない（{mk}）＝腕が満杯の 3・ビルドや measure.sh の失敗')
     pa, pb = J(W, 'b5_ia_5.txt'), J(W, 'b10_ib_10.txt')
+    global STAGE
+    stp = J(W, 'marks', 'stage.txt')   # (1061) ident.sh start が stage.py で決めた段（無ければ段 2＝全表）
+    STAGE = 1 if os.path.exists(stp) and open(stp, encoding='utf-8').read().splitlines()[0].strip() == '段=1' else 2
+    if STAGE == 1 and not cfg.get('SMALL'): miss('段 1 の集合 SMALL が cfg に無い')
+    say(f'判定の段：段 {STAGE}（' + ('素の 5 種の全行＋.cost の件数の行＋計器つき 10 種の小さい表の集合 ' + str(len([x for x in cfg.get("SMALL", "").split(",") if x])) + ' 表' if STAGE == 1 else '全表') + '）')
     # 測った木と出力の SOURCE-HASH を突き合わせる（ident.sh start が測る木から数えた値＝measure.sh の src_manifest と同じ数え方）
     thp = J(W, 'marks', 'tree_hash.txt')
     th = open(thp, encoding='utf-8').read().strip() if os.path.exists(thp) else ''
@@ -681,7 +695,8 @@ def main():
         say('SOURCE-HASH（計器つき 10 種）' + first_line(pb + '.manifest', 'SOURCE-HASH'))
         cmp_report('計器つき 10 種', pb, base('B10INS'))
         cmp_cost('計器つき 10 種の .cost', pb + '.cost', base('B10INS') + '.cost', a['cost_allow'])
-        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'], a['rows_grown'], a['removed_cols'])
+        cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'], a['rows_grown'], a['removed_cols'],
+                only=set(x for x in cfg.get('SMALL', '').split(',') if x) if STAGE == 1 else None, bypass=tuple(x for x in cfg.get('BYPASS', '').split(',') if x))
         cmp_mon(J(W, 'mon_ib_10.txt'), base('MON'))
         if a['ng']:
             run_ng(W, {**cfg}, root)
@@ -699,7 +714,9 @@ def main():
         say(f'未了 {len(MISSING)} 件：')
         for m in MISSING:
             say('  - ' + m)
-    say(f'判定: {verdict}')
+    if STAGE == 1:
+        say('段 1 は集合の外の計器の表を見ていない' + ('＝不一致は --stage2 を付けて全表の段 2 を回して読む' if verdict != '恒等' else ''))
+    say(f'判定: {verdict}' + ('（段 1）' if STAGE == 1 else ''))
     if a['save']:
         d, mdir = a['save'], J(root, 'measurements')
         lab = a['label']

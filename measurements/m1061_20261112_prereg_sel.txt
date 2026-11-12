@@ -1,0 +1,69 @@
+(1061) 線 c101sel 事前登録（最初のコミット・結果を見る前）。2026-11-12。基準 m1053（BASE_COMMIT 17d1c3d9・SimCore/Tests/Runner は 17d1c3d9..9b18137a2 で差分 0 を git diff で確認）。
+作者 2026-11-12 (ア)「それでよい。入れましょう」で二段の判定を入れる。(イ)（AI の推奨・作者の承認は未確認）。表の選び方・集合は AI の案。
+
+[1] 恒等の線・予言 0
+  - 力学・表の列・成績表は変えない。環境変数 POB_INSTRUMENTS_TABLES が未設定または空なら今と 1 ビットも変わらない。
+  - 浮動小数の順序が変わる箇所：なし（計算は足さない。早い return を足すだけ）。
+
+[2] 消す物と残す物・触る行
+  足す（SimCore）
+    - Instruments.cs :41〜:46 の隣に TablesSel（POB_INSTRUMENTS_TABLES・名前の完全一致のカンマ区切り・未設定／空＝null＝全表）と Wants(表名)。Open(:1800) が選ばれない表に new StreamWriter(Stream.Null)（毎回新しい物・共有の StreamWriter.Null は使わない）を返す。呼び口 133 か所は無変更。
+    - 試験用の口 SelectTables(string?)（Configure の署名は変えない）。
+    - 計算の切り（その表だけが読むと grep で示せた物だけ）：
+        prodcap_s  ProdcapTable の頭（RoRead は読むだけ・FirstYear は PcSink の中だけ）
+        sellr_s    SellrTable の頭（InputCostPerUnit は読むだけ）
+        subst_s    SubstTable の頭と SubstMonthHead の頭（SubstHeads の読み手は InstrumentsSubst.cs の SubstS2Columns だけ）
+        cpop_s     CpopRows の頭（672〜755 は sk 以外に書かない）
+        cearn_s・cgrp_s・cpop_s の 3 表が全て選ばれないとき  既存の CearnOn の 2 つの門（InstrumentsCearn.cs:113・:372）に連動（累積の入口ごと飛ぶ＝POB_CEARN=0 と同じ経路・既存の切り口）
+      共有の 0 戻し（Phase warm の ResetQuarter・ClearCons・CeClear ほか）・助走の捨ては飛ばさない。
+    - 口を通らない表（habitlg_s・inheritintent_s・inheritpar_s＝File.WriteAllText で直接書く・INSRAW に 30 本実在）は owns の外の 2 ファイルなので触らない＝選んでも選ばなくても出る。門の文から名指しで外す。合流へ申し送る。
+  足す（台本）
+    - ident/ident.cfg：SMALL（段 1 の小さい表の集合）・STAGE_BASE・PRUNE_KEEP・PRESPEC。
+    - ident/stage.py（段の決定＝ファイル名の一覧を受ける純関数）・ident/stage_selftest.py（期待値は試験側に直書き）・ident/trial_cmp.py（試走の比べ）・ident/tables.sh（標準の読み手＋名指しの表の名前を出す）。
+    - ident.sh：段の決定→ marks/stage.txt・段 1 の腕 b に POB_INSTRUMENTS_TABLES を渡す。ident_check.py：段 1 は集合の中だけを比べ、集合外のファイルが 0 であることを見る（口を通らない 3 表を除く）。判定の文に 段 1／段 2 を名乗る。
+    - dv：PRUNE の NG 4 表を keep-prefix へ（cfg の PRUNE_KEEP）・PRESPEC を cfg へ・prune.py の --allow を必須に・拒みを check_out の末尾 1 行で名乗る。最後の 1 コミットで PRUNE の既定を 1 に。
+  残す（触らない）：Instruments.cs :1900〜:1935・Habitlg／InheritIntent・EconomyStep.cs（:796 の呼び口は SubstMonthHead の頭の return で足りる）・App・Display・Runner・基線の生・keep_*。
+  他の線との重なり：py＝Instruments.cs の Quarter（:1900〜）と Coefficients.cs・vs＝Instruments.cs の Close（ImpTable の次）。c101sel の Instruments.cs の行は :41〜:50 付近と Open（:1800 付近）だけ＝別の行。DormantIdentityTests・WriterRatchetTests は触らない（㉑ の予言：書き換え 0 件）。scripts/instruments/ident と tools は sel だけが持つ。uf はどちらも触らない。
+  読み手の grep（POB_INSTRUMENTS_TABLES）：SimCore・Tests・Runner・scripts・measurements に既存の同名は 0（git grep で確認）。POB_COEF の名前・SaveGame の名前の表に載る物ではない（Instruments の static 欄・[NonSerialized] 不要）。
+
+  段 1 の小さい表（標準の読み手が読む物。AI の案）
+    nation_s・stock_s・wars_s・casualty_s（ng.sh）
+    nation_s・region_s・migration_s・pxmonth_s・scalars_s（stoplines906／1002・popjump1017・an_h2・gdp_zero10・plvl_seeds・home_break・pxjump）
+    an_mon.py が P('…') で読む表：aib・canal・class・disc・engineer・epi・goods・ideology・idn・invade・labor・monai・mongood・monlaw・nation・pclamp・pxgoods・stock・wars（＋scalars）
+    合計 24 表。keep_1053/base_ins での大きさは約 2.3GB（全体 23.9GB の約 10%）。大きい 5 表（cpop 3.8・sellr 1.9・cearn 1.6・subst 1.3・prodcap 1.2 GB）は入らない。
+  〈表示だけの台帳を写す表〉は、素案の grep（表示専用・表示だけ）が空で、ledger を写す表を作者の言葉から特定できなかった＝集合に入れず、段 2 に回す。今の集合は 標準の読み手の表だけ（AI の案・未確認）と名乗る。
+
+[3] 足す試験と突然変異
+  PriceOfBread.Tests/InstrumentsTablesSelectTests.cs（新）
+    S1 未設定と空は全表（Wants が全て真）  ←突然変異 MU1〈空を空集合として扱う〉で赤
+    S2 nation_s だけ選ぶ→ nation_s のファイルは全表の run とバイト一致・選ばない表のファイルは 0 本（口を通らない 3 表を除く）  ←MU2〈Open が選びを見ない〉で赤
+    S3 選ばない大きい表（prodcap・sellr・subst・cpop・cearn）のファイルが 0 かつ nation_s がバイト一致（計算の切りが他の表を変えない）  ←MU3〈共有の 0 戻しごと飛ばす〉で赤
+    S4 対照：全表の run の側で選ばなかった表が正の行数（何もしない実装で緑にならない）
+  ident の台本の自己試験（stage_selftest.py）
+    段 2 の条件に PriceOfBread.SimCore/Instruments*.cs・Display・scripts/instruments/{ident,tools,mon,hol,…の読み手}・top 直下を含む／c101py など線ごとの scripts/instruments/c1xx/ は段 1 のまま（線の使い捨ての台本で常に段 2 にならない）。
+    期待値は試験側に直書き：nation_s と NG の 4 表（nation_s・stock_s・wars_s・casualty_s）が SMALL に在る。
+    MU4〈段 2 の条件から Instruments*.cs を外す〉で赤・MU5〈SMALL から nation_s を落とす〉で赤。
+  prune_selftest：MU6〈--allow を省いて通す〉で赤（今の自己試験が必須を試す形になっていることを確認し、足りなければ足す）。
+  突然変異 MU1〜MU3 の出力の全文は measurements/m1061_*_mut*.txt へ。MU1 の〈全表の ident が赤〉は 24GB を使うので、使い捨ての木で 1 種の試走を基準の生と比べて赤にする（全表の ident の代わり・近似と名乗る）。
+  ㉘：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を器の直後に回す。
+    環境変数の読み：Instruments.cs の static 欄 1 本（TablesSel）＋ InstrumentsCearn の CearnOn の初期化子 1 行を変える。工業化度の読み手の許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行は変えない（予言：0 件）。WriterRatchetTests の宣言の表の書き換え：0 件。
+    ソースを走査する番人（OnDoubleReadScanTests ほか）の件数の予言：変わらない（足す物は Instruments の static の bool と HashSet の 2 つ・走査対象の語を使わない）。
+  テストの数の予言：Category!=FullLength が +4（S1〜S4）＝2689→2693。--tests-delta 4。FullLength 3 のまま。
+
+[4] 判定
+  素の 5 種・計器つき 10 種（全表・段 2）が m1053 と名乗り行を除いて全行バイト一致。計器の表の差は宣言なし（--added-tables なし）。件数の行（.cost）は一致。
+  段 2 の条件に当たる線（この線自身は Instruments.cs を触る）なので、この線の判定は段 2。判定文に 段 2 と名乗る。
+  試走（計器つき 3 種・小さい表の集合）：選んだ表が基準の生（INSRAW の種 1〜3・全表の ident が恒等なら同じ）とバイト一致・選ばない表のファイルが 0（口を通らない 3 表を除く）。CPU 秒（1 試合）を基準の 828.5 秒と並べて記録する。
+    件数の行（.cost の計数）は engine の関数の呼び数であり、計器の切りでは変わらない予言＝下がらない（〈件数の行が下がる〉の門は成り立たない＝計算の切りが件数に出ないと名乗り、CPU 秒の下がりだけを記録する）。
+  段 1 の判定を同じ木で回し〈判定: 恒等（段 1）〉を得る。
+
+[5] 段 1 が見逃す型（列挙）
+  ① 計器だけの計算の変更（集合外の表の中身だけが変わる）。② 表示だけの台帳・Display の変更。③ 力学に戻らない値（表にだけ出る値）。④ 集合外の表の列・行の増減。→ これらは Instruments*.cs・Display・計器の台本に触れる線＝段 2 が自動で取る。段 2 を取り損ねる型：Instruments*.cs 以外のファイル（SaveGame 等）に書いた計器用の欄。
+  過去の突然変異を段 1 が拾うか（記録から読む・回し直さない）
+    mut1（ident_20261101_mut1.txt）素の 5 種で違う行 120＝段 1 が拾う（素の 5 種は段 1 でも全行比べる）。
+    mut2（ident_20261101_mut2.txt）同じ＝拾う。
+    計器の表だけが違った 6 件（素の 5 種は一致）：m933z cearn_s・m827 cearn_s・m828 cearn_s・m849 subst_s・m959 cpop_s は集合外＝段 1 は拾わない（5/6）。m843 monlaw_s は集合内＝拾う。この 5 件は全て Instruments*.cs を触る線＝段 2 の自動の条件が拾う（段 1 だけなら見逃す＝設計上、段 2 の条件が要る理由）。
+
+[6] D: と時間の見込み
+  全表の ident（この線は段 2）：生 約 24GB → 刈った後 約 3GB。試走 3 種：小さい表だけ 約 0.7GB。段 1 の判定：生 約 2.3GB（刈りは不要）。腕 b の件数の減り＝ファイルの本数 133 種類→24 種類（口を通らない 3 表を加えて 27）。
+  開始前に df で（24＋走っている重い仕事の残り＋5）GB を確かめる。足りなければ起こさず push して報告。

@@ -1,0 +1,12 @@
+(1061) c101sel 結果の要約（事前登録 m1061_20261112_prereg_sel.txt との差を先に）
+事前登録との差
+  - 足した試験は 2 本（S1・S2_S3_S4 の 1 本にまとめた）＝Category!=FullLength 2689→2691（予言は +4＝2693）。--tests-delta 2 を宣言。
+  - 段 1 の小さい表の集合 SMALL は 24 表で登録したが、段 1 の最初の判定が mon の〈表なし：lawgate/reform/sbu/sf〉で不一致（measurements/m1061_20261112_ident_stage1_first_mismatch.txt）。4 表を足して 28 表（結果の後の追加）。an_mon.py が読む表は自己試験が読み手のソースから独立に数えるようにした。
+  - 〈表示だけの台帳を写す表〉は特定できず集合に入れていない（登録どおり）。
+  - 計算の切りは prodcap・sellr・subst（月の頭の撮りも）・cpop・cearn/cgrp/cpop 3 表とも不選択のとき CearnOn 経由。habitlg・inheritintent・inheritpar は Open を通らず owns の外＝触らない（選びの外）。
+  - 件数の行（.cost の計数）は engine の関数の呼び数で、計器の切りでは変わらない（予言どおり・全行一致）。変わったのは CPU 秒だけ：基準 828.5 秒／段 2 の ident 800.1 秒／段 1 の ident 715.7 秒／試走 3 種（小さい表 24）634.3 秒（他の線の負荷で揺れる・記録だけ）。
+結果
+  - 全表の ident（段 2・木 919f855f5 と同じ SOURCE-HASH b33452a59c18f5b2）：判定: 恒等（素の 5 種・計器つき 10 種・計器の表 1327 本・mon・テストの数・savetest・leakhunt）。刈り込み 23.01GB・残 60 本。
+  - 試走 3 種：選んだ 24 表がバイト一致 71 本・選ばない表のファイル 0 本。
+  - 段 1（同じ木・STAGE_BASE を木の HEAD に替えた cfg）：判定: 恒等（段 1）。計器の表 277 本バイト一致・mon 一致。生 約 2.5GB（全表の 23.9GB の約 1/10）。
+  - 突然変異：MU1（空を空集合）・MU2（Open が選びを見ない）・MU3（共有の 0 戻し）＝単体試験が赤（m1061_20261112_mut_unit.txt）。MU3 と MU2′（未設定を空の選択）＝試走が赤（m1061_20261112_mut_trial.txt・全表の ident の代わりに 1 種の試走＝近似）。MU4・MU5＝stage_selftest が赤。M7（--allow を省く）＝prune_selftest が赤。

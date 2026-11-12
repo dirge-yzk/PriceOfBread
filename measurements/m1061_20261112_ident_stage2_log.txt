@@ -1,0 +1,41 @@
+ident start：段=2（基準 9b18137a2d0cb8568a9f557cd9d59981a7283949 との差 19 本・段 2 の条件に当たった 14 本）
+ident start：ラベル=c101sel 木=/d/PoB_work/c101sel_work/tree_a 作業=/d/PoB_work/ident_c101sel 腕=[a b t s] 開始=2026-11-12 11:48:11
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c101sel（2026-11-12 12:18:55）===
+測った木：D:/PoB_work/c101sel_work/tree_a（HEAD 919f855f5・未コミット 0 本）
+基準の設定：D:/PoB_work/c101sel_work/tree_a/scripts/instruments/ident/ident.cfg
+宣言： tests_delta=2
+腕 a：rc=0 end=2026-11-12 12:04:40
+腕 b：rc=0 end=2026-11-12 12:18:54
+腕 t：rc=0 end=2026-11-12 11:51:50
+腕 s：rc=0 end=2026-11-12 11:59:51
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：b33452a59c18f5b2
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: b33452a59c18f5b2
+[素の 5 種] b5_ia_5.txt 対 b5_20261112_m1053
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261112_m1053.cost
+  ○ 件数の行 31 本・推定 230.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: b33452a59c18f5b2
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261112_m1053_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261112_m1053_ins.cost
+  ○ 件数の行 31 本・推定 227.6 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c101sel/out_ib_10/ins  対  基準 D:/PoB_work/keep_1053/base_ins
+  基準 1327 本・腕 1327 本・バイト一致 1307 本
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1307・既知の揺れ 20・宣言された増減 0）
+  内訳：共通の表 1327 本＝バイト一致 1307＋既知の揺れ 20＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1327）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261112_m1053.txt（タグの行を除く）
+  ○ タグの行以外が一致（4628 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2691（基準 2689+2 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
+成績表・マニフェスト・.cost・注視の表・この報告を D:/PoB_work/c101sel_work/tree_a/measurements に残した（20261112_c101sel）
+刈り込み：判定=判定: 恒等・表 1327 本・消した 1267 本（23.01GB）・残した 60 本
+刈り込みの結果：rc=0・刈り込み：判定=判定: 恒等・表 1327 本・消した 1267 本（23.01GB）・残した 60 本

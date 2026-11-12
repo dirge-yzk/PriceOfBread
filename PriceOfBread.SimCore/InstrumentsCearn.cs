@@ -441,7 +441,7 @@ public static partial class Instruments
     internal const double CgEmptyShare = 0.01;
 
     /// <summary>環境変数の門：POB_CEARN=0 で cearn_s と cgrp_s と cpop_s〔(836)〕を書かない（試験が切り替える）。</summary>
-    internal static bool CearnOn = System.Environment.GetEnvironmentVariable("POB_CEARN") != "0";
+    internal static bool CearnOn = System.Environment.GetEnvironmentVariable("POB_CEARN") != "0" && EnvWantsAny("cearn_s", "cgrp_s", "cpop_s");   // (1061) 3 表とも選ばれないときも切る
 
     /// <summary>群の台帳（州×群）。流れは州の台帳と同じ列。</summary>
     internal sealed class CgAcc
@@ -669,6 +669,7 @@ public static partial class Instruments
     /// <summary>四半期の末：植民地格の州の POP の行を書く（<paramref name="gStart"/>・<paramref name="gNet"/>＝群の台帳の始まりの在庫と流れの差＝POP の和の確かめ）。</summary>
     static void CpopRows(CearnSink sk, ulong seed, int q, World w, string nation, Region r, double[] gStart, double[] gNet)
     {
+        if (!Wants("cpop_s")) return;   // (1061) 読むだけ（sk 以外に書かない）
         sk.P ??= Open("cpop", seed);
         if (!sk.PHeader) { sk.P.WriteLine(CpopHeaderText); sk.PHeader = true; }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

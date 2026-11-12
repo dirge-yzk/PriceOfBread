@@ -15,6 +15,7 @@ public static partial class Instruments
 
     static void ProdcapTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Wants("prodcap_s")) return;   // (1061) 選ばれない表は組み立ても飛ばす（読むだけ・FirstYear も PcSink の中だけ）
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || sim.Nations.Count == 0) return;
         int yearLabel = sim.Nations[0].World.Year;

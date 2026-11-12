@@ -4,8 +4,8 @@
 import sys, os, shutil, hashlib, subprocess, importlib.util
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-WORK = 'D:/PoB_work/c100dv_work/selftest'
-ALLOW = 'c100dv_work'
+WORK = 'D:/PoB_work/c101sel_work/selftest'
+ALLOW = 'c101sel_work'
 
 
 def load(path, name):
@@ -86,6 +86,11 @@ def scenario(m, ck):
     for v in ('判定: 未了', '判定: 不一致', ''):
         before = names(ins); run(m, ins, base, v)
         if names(ins) != before: bad.append(f'G：判定が「{v or "無し"}」なのに消えた')
+    # (1061) M7：--allow を渡さない呼びは、判定が恒等でも何も消さず 2 で拒む（旧の既定の作業フォルダで通さない）
+    vf0 = os.path.join(WORK, 'check_out.txt'); open(vf0, 'w', encoding='utf-8').write('=== x ===' + chr(10) + '判定: 恒等' + chr(10))
+    before = names(ins)
+    rc0 = m.cmd_prune({'pos': [ins, base], 'verdict-file': vf0, 'manifest': os.path.join(WORK, 'man0.tsv')})
+    if rc0 != 2 or names(ins) != before: bad.append(f'M7：--allow が無い呼びが拒まれない（rc={rc0}）')
     # 恒等のとき
     run(m, ins, base, '判定: 恒等')
     left = names(ins)
@@ -169,6 +174,7 @@ def mutate(name):
     elif name == 'M4': m.KEEP_FLAKY = False               # 揺れの表を消す
     elif name == 'M5': m.CAN_REALPATH = False; m.GUARD_NATIVE = lambda p: p   # /d/ の形・リンクの拒みを外す（元の c99dv の形）
     elif name == 'M6': m.COPY_TO = False                  # --copy-to を落とす
+    elif name == 'M7': m.REQUIRE_ALLOW = False; m.DEFAULT_ALLOW = (ALLOW,)   # --allow を省いても旧の既定で通す
     return m
 
 
@@ -178,7 +184,7 @@ if __name__ == '__main__':
     g = scenario(load_prune(), ck)
     print('正しい実装：' + ('緑' if not g else '赤 ' + '; '.join(g))); ok &= not g
     for n, desc in (('M1', '判定の前に刈る'), ('M2', '不一致でも刈る'), ('M3', 'LF にそろえた sha1 で消す'), ('M4', '揺れの表を消す'),
-                    ('M5', '/d/ の形・リンクの拒みを外す'), ('M6', '--copy-to を落とす')):
+                    ('M5', '/d/ の形・リンクの拒みを外す'), ('M6', '--copy-to を落とす'), ('M7', '--allow を省いて通す')):
         r = scenario(mutate(n), ck)
         print(f'{n} {desc}：' + ('赤を確認（' + str(len(r)) + ' 件）← ' + r[0] if r else '緑のまま（穴）')); ok &= bool(r)
     cleanup()
