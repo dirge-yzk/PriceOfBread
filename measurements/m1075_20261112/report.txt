@@ -1,0 +1,117 @@
+(1075) c102tx：trx から試験のクラスごとの秒を読む（読むだけ・腕 0・ビルド 0・試験の実行 0・コミット 0）
+出発 main 7bb40c772・trx の木 b0edc8963（(1069) 合わせた木・nonfull 2749 件・FullLength 3 件）
+作ったフォルダ：D:/PoB_work/r1075_work だけ（worktree・枝は作らない）
+
+■ 読んだ生
+- measurements/m1069_20261112/trx/nonfull.trx・full.trx・suite_b0edc8963.txt・suite_c0d304824.txt
+- scripts/instruments/m1069/suite1069.sh（測った秒＝--no-build の dotnet test だけ・ビルドは含まない）
+- measurements/m1068_20261112/b_replay.txt・case_files.txt・suite_times.txt／scripts/instruments/r1068/replay_select.py
+- docs/202611/20261112/20261112_ソフトウェアの形と検証の段_下書き.md（B1〜B3）
+- b0edc8963 の PriceOfBread.Tests・SimCore（git archive で D:/PoB_work/r1075_work/tree へ・読み終えて消した）
+
+■ 台本と出力（合流の写し先：scripts/instruments/r1075/・measurements/m1075_20261112/）
+- scripts/trx_read.py → out/q1_classes.txt（問い 1）・out/q2_parallel.txt（問い 2）・out/class_secs.tsv
+- scripts/coll_why.py → out/q2b_serial_why.txt（直列の集まりの理由）
+- scripts/q3_secs.py → out/q3_select_secs.txt（問い 3・replay_select.py の定義を exec で借りる）
+- scripts/q4_dups.py → out/q4_dups.txt・out/q4b_serial_top.txt・out/q4c_warm_world.txt（問い 4）
+- 事前登録 prereg.txt・計画 plan.txt
+- 再現：`git archive b0edc8963 PriceOfBread.Tests PriceOfBread.SimCore PriceOfBread.Runner PriceOfBread.App | tar -x -C <木>` の後、trx_read.py <nonfull.trx> <木>/PriceOfBread.Tests out → coll_why.py → q3_secs.py <リポジトリ> <木> out/class_secs.tsv scripts/instruments/m1069/suite1069.sh out → q4_dups.py（全て `python -X utf8 -I`）
+
+■ 問い 1：秒（確証：trx の実測・1 回の走り）
+- 2749 件・316 クラス・試験の秒の和 5967.0・壁 1083.5 秒（18.06 分）・和÷壁 5.51。
+- 上位 10 クラスで 47.7%・上位 30 で 83.5%・上位 100 で 96.9%。
+- 上位 5 クラス：MultiNationTests3 426.3・InstrumentsTests 398.6・MultiNationTests 345.5・ProductionDiagTests 295.7・TreasuryLedgerTests 288.5。
+- 試験 1 本の上位：MultiNationTests3.戦闘ログは日付が二重にならない書式で出る 418.7・MultiNationTests.マクロ層の健全性が回帰しない 333.1・InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される 266.1・TreasuryLedgerTests 217.4・ExplainTests 162.1。
+- FullLength 3 件：189 秒。うち 1 件が 188.0 秒、残り 2 件は Lazy の共有で 0 秒（既にある共有の型）。
+
+■ 問い 2：内訳と並列（確証：trx の時刻の実測）
+- 試験 1 本の秒の分布（q1_classes.txt の末尾）が主な答え。字面の区分は上界。
+- 〈結果の後の変更〉：最初の字面の模様（new MultiNationSim( ほか）では〈並列・作らない〉が 828.4 秒（13.9%）＝見込み c は外れだった。
+  - 目で読んで StartWarmupShared.Build の `new(WorldData.Nations()…)`（対象の型の new）を拾えていないと分かり、模様を広げた。
+  - 広げた後は 316 クラス中 297 を〈作る〉と数え、〈作らない〉は 10.3 秒（0.2%）。
+  - 広げた模様は〈月を進めるか〉を見ておらず、判別の力は弱い＝上界と名乗る。
+- 並列を切った集まり（InstrumentsTests.cs:7 の [CollectionDefinition("Instruments", DisableParallelization = true)]・92 クラス・730 件）が、並列の段の後に 1 本の糸で回る。
+  - 並列の段：0.02〜7.79 分（2019 件・秒の和 5350.7）。
+  - 直列の段：7.79〜18.06 分（10.27 分・壁の 57%・秒の和 616.2）。
+- 同時に走る試験の数：16 本＝282 秒、1 本＝715 秒（壁の 66%）。
+  - 1 本の 715 秒は、直列の段 616 秒と、並列の段の尾（5〜7.8 分）の約 99 秒。尾は MultiNationTests3 の 418.7 秒の 1 本が 0.62〜7.73 分を走った区間。
+- 直列の段の中身：InstrumentsTests の 1 本（266.1 秒）が 43%、上位 10 本で 58%。
+- 92 と 90 の差：入れ子のクラス 2 本（SilverstInstrumentTests+OnTheBoard・SilverParityDemandWeightedTests+OnTheBoard・計 3.5 秒・7.73〜7.79 分に走った）は、ソースの宣言に引けず、表では並列の側に数えた。直列の段の始まりは実際は 7.73 分。
+- 直列にする理由（字面）：90 クラスのうち 80 クラス（592.5 秒）が Instruments.Configure か Instruments.On を書く（Configure は On を書く＝Instruments.cs:65）。計器に触れないクラスは 10 クラス・23.7 秒（WriterRatchetTests 15.9 を含む＝計算量の静的な数え）。
+
+■ 問い 3：B1・B2 を秒と壁に置き換える（確証：名目の見積り・方法は q3_secs.py の頭）
+- 壁の見積り＝max(並列の秒の和÷16, 並列の 1 本の最大)＋直列の秒の和。全体は 1034.9（実測 1083.5・−4.5%）。
+- 検算：guards の束は見積り 987.7・実測 789（別の木 2a6a6ea1d）＝見積りは 25% 大きい。16 並列の混み合いで 1 本の秒が膨らんでいる（418.7 秒の 1 本は軽い負荷なら 220 秒以下と読める・弱い）。下限の列も出した。
+- (1068) の 20 件を今の木へ写した結果（ファイルの粒度は (1068) と同じ規則・クラスの粒度は --filter の動きに近い変種）：
+  | 粒度 | 件の割合の中央 | 秒の割合の中央 | 壁の割合の中央 | 壁の下限の割合の中央 | 最小の壁の下限 |
+  | ファイル | 0.84 | 0.95 | 1.00 | 0.98 | 0.78 |
+  | クラス | 0.83 | 0.73 | 1.00 | 0.89 | 0.72 |
+- B2 の 3 件（dsc2・c94cl・c95pc）：クラスの粒度で件 0.43・秒 0.28・壁 0.91（下限 0.72）＝18 分のうち 1.6〜5.0 分の節約（名目）。下書きの〈10〜12 分〉には届かない。
+- 見積りの仮定に依らない床：選んだ直列の秒÷壁＝614/1083.5≈0.57。B2 の節約は最大でも約 7.8 分で、〈10〜12 分〉に届かない（並列の秒の和そのものが混み合いで膨らんでいるので、〈下限〉の列は本当の床ではない）。
+- 〈結果の後の変更〉：クラスの粒度の変種と〈下限〉の列は事前登録の方法 1・2 に無い。ファイルの粒度の結果を見た後に足した。
+- 理由：どの選び方も直列の段 614〜616 秒を丸ごと選ぶ（㊴ の ~Instrument と InstrumentsTests）。直列の段だけで壁の 57%。
+- ファイルの粒度では MultiNationTests.cs が SilverParityInstrumentTests を同居させているため、418.7 秒の試験まで連れてくる。
+- 赤のクラス（延べ 43 の重複を除き、今の木にある 29 クラス）：秒の和 951.1（全体の 15.9%）。InstrumentsTests 398.6・ConservationTests 172.8・PlayHarnessTests 133.8・OpeningBakeTests 67.2・GoodIdGuardTests 43.9 ほか。クラスの粒度でも取りこぼしは 0（ビルドの失敗 1 件は試験でないので除く）。
+- 見込み a（直列の段が壁の 3 割以上）は当たり（57%）。
+- 見込み b（秒の割合が件の割合より大きい）は外れ（秒 0.28＜件 0.43）。ただし壁の割合は 0.72〜0.91 で、件の割合より大きい。
+- 見込み c（世界を作らない試験は秒の 1 割未満）は、最初の模様では外れ（13.9%）。模様を広げた後は 0.2%＝結果の後の変更（問い 2）。
+
+■ 問い 4：結果を変えずに速くできる候補（壁への効きの順・名目）
+1. 直列の段の 1 本：InstrumentsTests.接触の内訳は…（InstrumentsTests.cs:2406・266.1 秒・混み合いの無い直列の秒なので、そのまま壁の秒）。
+   - 中身：61 国・450 四半期・Instruments.Configure(dir, "*")＝全ての国（第 2 引数は国の選び）。表の選び（TablesSel）は未設定＝全ての表を書く。読む表は disc_s・disccontact_s・nation_s・discflow_s の 4 本（b0edc8963 の InstrumentsTests.cs のメソッドの中の Table( を grep）。出力のフォルダは finally で消す（同じメソッドの末尾の Directory.Delete）。
+   - 候補：表の選び（Instruments.cs:48 TablesSel＝静的な初期化で POB_INSTRUMENTS_TABLES を読む）をこの試験で 4 表に絞る。
+   - 効きは未測：選ばれない表は Open が書き捨ての口を返すだけで、行の計算は残りうる（Instruments.cs:47）。上限は 266 秒（壁 18.1→13.6 分）。
+2. 並列の段の最長の 1 本：MultiNationTests3.戦闘ログは…（MultiNationTests.cs:385・418.7 秒）。
+   - 中身：書式の番人だが、戦いが出る種を 1806〜1819 から探し、1 種あたり最大 1200 か月を回す。
+   - 候補：書式の組み立て（Diplomacy.cs:2739 の if の中）を純関数に出して、その関数を直接試す。
+   - 効き：並列の段の下限が次の 1 本（333.1 秒）か、和÷16（308 秒）になる。名目で約 86 秒、実測の段（467 秒）からなら約 130 秒。
+3. 直列の集まりそのもの（616 秒・壁の 57%）。
+   - Instruments の静的な状態（On・Dir・Picked・TablesSel ほか）を試験の糸ごとにすれば、92 クラスを並列へ戻せる。全てが並列なら名目で壁 ≈ max(5967/16=373, 418.7)≈7 分。
+   - 重さ：SimCore で Instruments.On を読む所が 250・Instruments*.cs が 81 本・Instruments.cs の static 欄が 25 以上。AsyncLocal にすると熱い経路の読みが遅くなりうる（計算量の推定に触れる＝段 2・ident が要る）。
+4. 同じ世界の作り直し（Fixture の共有）。効きは小さい。
+   - 同じファイルの同じ署名の [Fact] は 19 組。共有の上限は 132.7 秒（PolicyPoliticsTests の 61 国×12 四半期 4 本で 49.7・ScoreReaderTests 30.0・InstrumentsTests Make() 11 本で 13.9 ほか）。
+   - 61 国・種 1789・既定の助走の世界を作る試験は 10 本・404.1 秒（StartWarmupTests2 の 2 本 71.1＋68.4 は同じ BuildRuleless＋Build を作る）。
+   - これらは並列の段にあるので、壁への効きは ÷16 程度（約 8〜25 秒）。作った後に盤面を替える試験を含む上界。
+5. 並列の段の並べ順（長いクラスから始める orderer）：MultiNationTests3 は既に 0.62 分に始まっている＝効きは 0.6 分以下。2 の後なら意味がある。
+
+■ 根ごとの形
+- 壁を決めているのは 2 本の試験と 1 つの宣言。
+  - 直列の段（InstrumentsTests.cs:7）＝壁の 57%。うち 1 本（266.1 秒）がその 43%。
+  - 並列の段の尾＝1 本（418.7 秒）。
+- 選び方（B1・B2）は、件や秒を減らしても、この 3 つを外さない限り壁がほとんど縮まない。
+
+■ 推奨（AI の推奨・確証なし）
+- B1・B2 は今は入れない（壁の割合の中央 1.00・下限 0.89・B2 の 3 件でも節約は 1.6〜5.0 分）。
+- 先に候補 1（表を絞る・試験の外の挙動は不変）の効きを、試験 1 本の時間の比べで測る。
+- 候補 2・3 は作者の判断の後（下の問い）。
+- B2 の条件の問題（dsc2 が当たらない・Tests.csproj:39・:40 のリンク）は、B2 を入れないなら後回しでよい。
+
+■ 次の波の事前登録の素案（候補 1・恒等の線か読む線＋プローブ）
+- 段 0（コードの変更なし・腕 0）：同じ木で、この 1 本を 2 回回して trx の秒を比べる。
+  - 回し方：`dotnet test --filter "FullyQualifiedName~InstrumentsTests.接触の内訳"` を、POB_INSTRUMENTS_TABLES 無しと `disc_s,disccontact_s,nation_s,discflow_s` ありで 1 回ずつ（環境変数はプロセスの頭で静的に読まれる）。
+  - 門（両側）：下側＝試験が 2 回とも緑。上側＝秒の比が 0.8 未満なら線 1 へ進む。0.8 以上なら〈行の計算が残る〉と名乗って止める。
+  - 表の sha1 の比べは今の形では取れない（出力のフォルダは finally で消える）。表を絞っても出力が同じことは (1061) の選びの試験（InstrumentsTablesSelectTests）に頼る＝未確認と名乗る。
+  - 何もしない実装で落ちる確かめ：環境変数を渡し忘れると秒の比 ≈1.0 で上側に落ちる。
+- 線 1（恒等・段 2）：Configure に表の選びの口を足し（既定は今と同じ全表）、この試験だけが 2 表を渡す。
+  - 門：〈判定: 恒等〉・試験は緑。突然変異（BilateralMarket.AccumulateDiscovery の呼びを述語の外へ）で赤のまま＝試験の効きが変わっていない。
+  - 突然変異ごとの赤の表：M1 口を無視する（全表を書く）→ 秒の門で赤。M2 4 表のどれか 1 本を選びから外す → 試験が赤（Table( が読む表が無い）。
+- 要る計器：無し（trx の duration で足りる）。フルスイートを回す担当が --logger trx を続けること（作者 2026-11-12 (オ)）。
+
+■ 作者に聞く物（3 行の形・決めない）
+① 問い：B1・B2（線の検証を二段に）を、今は入れないでよいか。
+   推奨：入れない。先に壁を決めている 2 本の試験と直列の集まりを直す。
+   材料：壁の割合は中央 1.00（下限 0.89）。B2 の 3 件でも 0.91（下限 0.72）。直列の段だけで壁の 57%＝B2 の節約は最大でも約 7.8 分。
+② 問い：書式の番人（MultiNationTests.cs:385・418.7 秒）を、書式の関数を直接試す形へ書き換えてよいか（★(743) の①〜④の外）。
+   推奨：書き換える。書式の組み立てを Diplomacy.cs から純関数へ出す（恒等の線）。今の軌道の試験は消すか FullLength へ移す。
+   材料：戦いが出る種を探す作りで、軌道が動くたびに種を足してきた（注の ★(573)・(667)・(679)）。並列の段の尾の約 99 秒は、この 1 本だけが走っていた。
+③ 問い：計器の静的な状態を試験の糸ごとにして、92 クラスの直列を外す改修を、高速化の対象に入れるか。
+   推奨：今は入れない。候補 1・2 の後に、壁の残りを見て決める。
+   材料：直列の段は 616 秒（壁の 57%）。Instruments.On を読む所は 250。熱い経路の読みが遅くなると計算量の推定に触れる。
+
+■ 確証の度合い
+- 秒と時刻：trx の実測・1 回の走り（16 並列の混み合いを含む）。
+- 壁の見積り：名目。guards の検算で 25% 大きい。
+- 共有の上限・世界を作るかの判定：字面の上界。
+- B1・B2 の写し：その時点の木ではなく今の木への写し。
+
+■ 覗いた回数 0・waitmark 0・背景の仕事 0・残ったプロセス 0

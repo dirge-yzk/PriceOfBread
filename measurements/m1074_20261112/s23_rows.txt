@@ -1,0 +1,56 @@
+### S23 軍備と動員
+
+ 行 | 機能 | 期待する動き（出典） | 錨 
+---|---|---|---
+ S23-H001 | 兵士は人口の一部 | 文書 L4614（粒＝見出し・未分割） | Coefficients.cs:2495:MaxSoldierFraction;Coefficients.cs:2381:SoldierRecruitClassA;Coefficients.cs:2382:SoldierRecruitClassB 
+ S23-H002 | 定員（制度が開く兵の席）＝旧の扶養限界 | 文書 L4620（粒＝見出し・未分割） | Coefficients.cs:2464:MilitaryEnvelopeShare;Coefficients.cs:2147:MilitaryUpkeepScale;Coefficients.cs:2498:SoldierPayMult 
+ S23-H003 | 軍拡競争 → 2026-10-02 (155) **削除**（廃止の見出し） | 文書 L4627（粒＝見出し・未分割） | Diplomacy.cs:22:Military 
+ S23-H004 | 軍事費の段（少額／中額／多額／戦時） | 文書 L4634（粒＝見出し・未分割） | Government.cs:48:MilitaryLawStages 
+ S23-H005 | 軍事費の吸い込み（給与→装備→質→使わない） | 文書 L4640（粒＝見出し・未分割） | Coefficients.cs:772:MilitaryCadrePayRatio;Coefficients.cs:2464:MilitaryEnvelopeShare 
+ S23-H006 | 安全保障の不安（AI の軍事費の段の唯一の入口） | 文書 L4645（粒＝見出し・未分割） | World.cs:1364:SecurityThreat;MultiNationSim.cs:58:MultiNationSim;MultiNationSim.cs:1566:StepSecurityThreat 
+ S23-H007 | 陸軍の不安（徴兵法の目標の入口） | 文書 L4650（粒＝見出し・未分割） | MultiNationSim.cs:58:MultiNationSim;MultiNationSim.cs:1566:StepSecurityThreat;ArmyShape.cs:198:Borders 
+ S23-H008 | 戦争中は軍を解散できない | 文書 L4655（粒＝見出し・未分割） | Coefficients.cs:2230:WartimeUpkeepFloor 
+ S23-H009 | 戦時の徴兵 | 文書 L4660（粒＝見出し・未分割） | Coefficients.cs:2500:ConscriptionFraction 
+ S23-H010 | 徴兵率は戦争の規模で変わる | 文書 L4665（粒＝見出し・未分割） | Coefficients.cs:2718:ConscriptionEnemyRatioWeight;Coefficients.cs:2716:ConscriptionExhaustionWeight;Coefficients.cs:2715:ConscriptionFloorFraction;Coefficients.cs:2717:ConscriptionFrontStep 
+ S23-H011 | 総動員 | 文書 L4670（粒＝見出し・未分割） | Coefficients.cs:1419:MobilizationConscriptFrac 
+ S23-H012 | AIの総動員 | 文書 L4675（粒＝見出し・未分割） | SelfPlay.cs:478:MobilizeLosingScore;SelfPlay.cs:475:MobilizeOutmatchRatio 
+ S23-H013 | 国民意識が動員の深さを決める | 文書 L4680（粒＝見出し・未分割） | Coefficients.cs:3281:NationBuildMobilizationWeight;Coefficients.cs:2229:SkillMobilizationRelief 
+ S23-H014 | 国民意識のない州からは兵が出ない → 2026-10-01 (145) **削除**（廃止の見出し） | 文書 L4685（粒＝見出し・未分割） | — 
+ S23-H015 | 徴兵法の3段 | 文書 L4691（粒＝見出し・未分割） | SelfPlay.cs:609:ConscriptionLowerMargin;SelfPlay.cs:604:ConscriptionRaiseShare;Coefficients.cs:2701:UniversalConscriptionFactor 
+ S23-H016 | 国民皆兵の門（封建の兵から国民の兵へ） | 文書 L4696（粒＝見出し・未分割） | Government.cs:621:UniversalConscriptionOpen;Privileges.cs:24:SeigneurialDegree 
+ S23-H017 | 開幕の徴兵法（1783 の史実） | 文書 L4701（粒＝見出し・未分割） | Scenario.cs:69:NationConfig;Simulation.cs:62:Simulation 
+ S23-H018 | 戦時に上げた徴兵法は戦後に戻る | 文書 L4706（粒＝見出し・未分割） | CapitalMarket.cs:24:Step;World.cs:127:ConscriptionPreWar 
+ S23-H019 | 徴兵の遺恨 | 文書 L4712（粒＝見出し・未分割） | Coefficients.cs:2101:ConscriptGrievanceRate 
+ S23-H020 | 植民地の平時の徴募にも遺恨 | 文書 L4718（粒＝見出し・未分割） | Coefficients.cs:2776:PeacetimeConscriptGrievance 
+ S23-H021 | 徴兵が村を変える | 文書 L4723（粒＝見出し・未分割） | Diplomacy.cs:22:Military 
+ S23-H022 | 陸海の熟練度 | 文書 L4729（粒＝見出し・未分割） | Coefficients.cs:2219:SkillCombatMax;Coefficients.cs:2218:SkillDecayPerQuarter;Coefficients.cs:2216:SkillGainRate;Coefficients.cs:2215:SkillUpkeepThreshold 
+ S23-H023 | 即応度 | 文書 L4734（粒＝見出し・未分割） | Diplomacy.cs:22:Military;PowerShares.cs:149:SoldierWelfare 
+ S23-H024 | 軍需の調達と装備の充足率 | 文書 L4739（粒＝見出し・未分割） | Coefficients.cs:2104:MilitaryGoods;Coefficients.cs:2105:MilitaryRates;Coefficients.cs:2172:MilitaryWarMult;Coefficients.cs:2173:WarMobilizationDepth 
+ S23-H025 | 装備の4段階 | 文書 L4745（粒＝見出し・未分割） | Coefficients.cs:2205:MilitaryAirGoods;Coefficients.cs:2206:MilitaryAirRates;Coefficients.cs:2180:MilitaryQualityBonus;Coefficients.cs:2178:MilitaryQualityGoods 
+ S23-H026 | 耐久装備は在庫になる（上位の段） | 文書 L4751（粒＝見出し・未分割） | Coefficients.cs:1394:ArmsWarWearScale 
+ S23-H027 | 基本装備も在庫になる | 文書 L4757（粒＝見出し・未分割） | — 
+ S23-H028 | 開幕の工廠備蓄 | 文書 L4763（粒＝見出し・未分割） | Coefficients.cs:2171:InitialArsenalMonths 
+ S23-H029 | 未発見の装備を必要量に入れない | 文書 L4768（粒＝見出し・未分割） | Discovery.cs:323:GoodGate 
+ S23-H030 | 前期の軍需レシピ（マスケット・鋳鉄砲） | 文書 L4773（粒＝見出し・未分割） | Coefficients.cs:2056:MusketProductivity 
+ S23-H031 | 開幕の軍需産業の播種（廃止の見出し） | 文書 L4778（粒＝見出し・未分割） | Simulation.cs:62:Simulation 
+ S23-H032 | 軍需財だけ価格関門を緩める器 | 文書 L4784（粒＝見出し・未分割） | Coefficients.cs:1116:MilitaryProcurePriceGateScale 
+ S23-H033 | 請求書駆動の軍事費（廃止の見出し） | 文書 L4794（粒＝見出し・未分割） | — 
+ S23-H034 | 輜重と航空機の燃料 | 文書 L4800（粒＝見出し・未分割） | Coefficients.cs:3558:AirFuelRate;Coefficients.cs:3560:MotorFuelRate 
+ S23-H035 | 戦力ゲージの合成 | 文書 L4805（粒＝見出し・未分割） | Coefficients.cs:2383:SoldiersPerMilitary;Coefficients.cs:944:UnityMilitaryQuality 
+ S23-H036 | 技術による質の差（アヘン戦争の非対称） | 文書 L4811（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy 
+ S23-H037 | 制度疲労で軍改革が失敗する | 文書 L4817（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy 
+ S23-H038 | 軍の練度（識字 × 組織 × 勤務年数） | 文書 L4824（粒＝見出し・未分割） | Coefficients.cs:2496:MilitarismStrengthBonus 
+ S23-H039 | 陸軍と海軍の分割は払った金の比 | 文書 L4829（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy;Simulation.cs:53:World;Simulation.cs:62:Simulation 
+ S23-H040 | 建艦の時間遅れ | 文書 L4836（粒＝見出し・未分割） | — 
+ S23-H041 | 海軍は艦ありき（艦隊ゲージ） | 文書 L4841（粒＝見出し・未分割） | Coefficients.cs:2312:AbstractNavalShare;Coefficients.cs:2275:FleetGoodIds;Coefficients.cs:2180:MilitaryQualityBonus;Coefficients.cs:2203:MilitaryTier3Bonus 
+ S23-H042 | 港のない国は軍艦を買わない | 文書 L4848（粒＝見出し・未分割） | Simulation.cs:62:Simulation 
+ S23-H043 | 艦隊の摩耗と修理需要 | 文書 L4853（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy 
+ S23-H044 | 空軍と制空権 | 文書 L4859（粒＝見出し・未分割） | Coefficients.cs:2208:AirCasualtyWeight;Coefficients.cs:2207:AirControlPushWeight;Coefficients.cs:2210:ChemExhaustionWeight;Coefficients.cs:2209:WarExhaustionAirRaid 
+
+
+### S24 開戦と戦争と講和
+
+ 行 | 機能 | 期待する動き（出典） | 錨 
+---|---|---|---
+ S24-H001 | 緊張から戦争が始まる（宣戦布告のボタンは無い） | 文書 L4864（粒＝見出し・未分割） | Coefficients.cs:1417:WarDeclareTension;Coefficients.cs:1267:WarTriggerMonths;Coefficients.cs:1435:WarWearyThreshold 
+ S24-H002 | 届かない相手には宣戦しない | 文書 L4870（粒＝見出し・未分割） | Coefficients.cs:1797:DefendProjectionMin 

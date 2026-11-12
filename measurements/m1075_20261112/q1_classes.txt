@@ -1,0 +1,92 @@
+件 2749・クラス 316・秒の和 5967.0・壁時計 1083.5（18.06 分）・平均の並列度（和÷壁）5.51
+outcome: Passed 2748, NotExecuted 1
+ソースに宣言が見つからないクラス 2: SilverParityDemandWeightedTests+OnTheBoard,SilverstInstrumentTests+OnTheBoard
+
+== クラスの秒の上位 30（件・秒・割合・累積・最初の開始〜最後の終了〔壁の分・開始からの分〕・集まり・世界）
+1	MultiNationTests3	3	426.3	0.071	0.071	0.62〜7.73		True
+2	InstrumentsTests	40	398.6	0.067	0.138	10.15〜16.80	Instruments	True
+3	MultiNationTests	6	345.5	0.058	0.196	0.08〜5.84		True
+4	ProductionDiagTests	4	295.7	0.050	0.246	0.13〜5.06		True
+5	TreasuryLedgerTests	11	288.5	0.048	0.294	0.57〜5.37		True
+6	MultiNationTests2	4	274.2	0.046	0.340	0.87〜5.44		True
+7	StartWarmupTests2	3	239.5	0.040	0.380	0.02〜4.01		True
+8	StartWarmupTests	4	206.1	0.035	0.415	0.69〜4.13		True
+9	NationModelTests	6	194.4	0.033	0.447	0.14〜3.38		True
+10	ProductionDiagTests2	2	177.5	0.030	0.477	0.79〜3.75		True
+11	ConservationTests	30	172.8	0.029	0.506	0.04〜2.92		True
+12	ExplainTests	2	170.6	0.029	0.535	2.14〜4.99		True
+13	TechInstitutionTests	4	170.1	0.029	0.563	3.10〜5.93		True
+14	MultiNationTests4	5	166.8	0.028	0.591	2.71〜5.49		True
+15	ProductionDiagTests3	3	149.2	0.025	0.616	0.86〜3.35		True
+16	PolicyPoliticsTests	84	146.5	0.025	0.641	3.38〜5.83		True
+17	PlayHarnessTests	45	133.8	0.022	0.663	1.49〜3.72		True
+18	StartWarmupTests3	4	120.9	0.020	0.683	2.94〜4.95		True
+19	WarThemeTests	43	120.4	0.020	0.703	4.13〜6.14		True
+20	DiscoveryScoreTests	41	107.2	0.018	0.721	0.51〜2.30		True
+21	StartWarmupTests4	5	106.1	0.018	0.739	4.36〜6.13		True
+22	ProductionDiagTests4	6	90.9	0.015	0.754	4.44〜5.95		True
+23	PhantomProductionTests	7	70.0	0.012	0.766	1.29〜2.46		True
+24	SaveRoundTripTests	3	67.8	0.011	0.778	1.09〜2.23		True
+25	OpeningBakeTests	9	67.2	0.011	0.789	3.74〜4.86		True
+26	RevoltIgnitionTests	56	64.5	0.011	0.800	3.37〜4.44		True
+27	ScoreReaderTests	5	63.7	0.011	0.810	3.88〜4.94		True
+28	OtherThemeTests	3	57.0	0.010	0.820	0.13〜1.08		True
+29	TradeThemeTests	6	48.3	0.008	0.828	0.48〜1.29		True
+30	GoodIdGuardTests	43	43.9	0.007	0.835	0.02〜0.75		True
+
+== クラスの秒の分布（区間・クラス数・秒の和）
+[0,0.1)	60	1.6
+[0.1,1)	83	32.5
+[1,5)	95	243.1
+[5,10)	20	137.2
+[10,30)	22	352.1
+[30,60)	9	365.3
+[60,120)	8	637.5
+[120,300)	16	3027.1
+[300,1000000000.0)	3	1170.5
+上位 10 クラスの割合 0.477
+上位 30 クラスの割合 0.835
+上位 50 クラスの割合 0.916
+上位 100 クラスの割合 0.969
+
+== 試験 1 本の秒の上位 30（秒・クラス・名の頭 80 字）
+418.7	MultiNationTests3	戦闘ログは日付が二重にならない書式で出る
+333.1	MultiNationTests	マクロ層の健全性が回帰しない
+266.1	InstrumentsTests	接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される
+217.4	TreasuryLedgerTests	多国でも全ての国で台帳の合計は国庫の変化に一致する
+162.1	ExplainTests	説明APIは全国家で正統性の内訳が最終値に一致する
+153.4	NationModelTests	七国家は並列に動き各国が保存する
+117.6	MultiNationTests2	四国は100年放置で破綻せず各国が基礎貨幣を保存する
+115.6	TechInstitutionTests	宗教教育の国は公教育国に追いつけず停滞する
+114.3	MultiNationTests2	同一シードで多国シミュは決定論的
+110.9	ProductionDiagTests	価格の分解は積み上げが市場価格と買い手価格に一致する
+109.2	StartWarmupTests	助走の長さを変えても人口と識字は動かない
+109.0	ProductionDiagTests2	稼働率の内訳は掛け合わせると稼働率に一致する
+108.5	ProductionDiagTests	生産コストの内訳は積み上げが限界費用に一致する
+100.4	ConservationTests	家計の与信は国ごとにPOPの債務の和に等しい
+100.1	StartWarmupTests2	助走は資本を一切育てない
+90.5	MultiNationTests4	国際市場ありでも決定論的
+78.2	ProductionDiagTests3	popの購入記帳は内訳の和が合計に一致し販売量を超えない
+72.1	PlayHarnessTests	時間を止める待ち_Runは待ちが立っていると進めず_答えの決定を適用してから進む
+71.1	StartWarmupTests2	助走は国債を動かさず開幕の英の国債は年GDPの約1倍
+68.5	ProductionDiagTests2	稼働率の内訳は労働不足を素材不足と混ぜない
+68.4	StartWarmupTests2	助走は国庫を動かさず開幕の国庫は年GDPの数パーセント
+68.2	ProductionDiagTests3	誰が買ったかは予算の差で階級に偏る
+62.9	StartWarmupTests	助走は暦を一切進めない(quarters: 40)
+61.6	SaveRoundTripTests	セーブとロードの往復で世界が一致する
+58.7	MultiNationTests4	国際市場ありでも各国と世界全体が保存する
+57.6	ConservationTests	多国の走行で保存量Dが動かない
+57.3	TreasuryLedgerTests	主要な区分に値が立つ
+55.2	OtherThemeTests	関税報復_有効化で偏倚が動くが保存則が保たれる
+51.7	TechInstitutionTests	制度は社会の発展で施行され宗教国は特許を自力で見つけない
+51.3	PolicyPoliticsTests	潤沢の減税もAIの税の目標を門の外へ置かない
+
+== 試験 1 本の秒の分布（区間・本数・秒の和）
+[0,0.01)	1058	1.9
+[0.01,0.1)	659	29.4
+[0.1,1)	617	214.3
+[1,5)	281	643.5
+[5,10)	55	383.6
+[10,30)	33	582.2
+[30,60)	22	934.3
+[60,1000000000.0)	24	3177.7

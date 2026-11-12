@@ -1,0 +1,44 @@
+S23-H001	Meritocracy.cs Military.cs MultiNationSim.cs Simulation.cs	文書の記号 ●（9-26・写さない）；消えた係数 SoldierMigrationRate
+S23-H002	EconomyStep.cs Military.cs Simulation.cs	文書の記号 ●（9-26・写さない）；消えた係数 ArmySustainWeight
+S23-H003	Diplomacy.cs Military.cs	文書の記号 ~（9-26・写さない）；消えた係数 ArmsRaceHigh・ArmsRaceLow・ArmsRaceTensionFloor
+S23-H004	FiscalCatalog.cs Government.cs Military.cs Parliament.cs SelfPlay.cs	文書の記号 ●（9-26・写さない）
+S23-H005	Fiscal.cs Military.cs Simulation.cs	文書の記号 ●（9-26・写さない）
+S23-H006	MultiNationSim.cs SelfPlay.cs World.cs	文書の記号 ●（9-26・写さない）
+S23-H007	ArmyShape.cs MultiNationSim.cs SelfPlay.cs	文書の記号 ●（9-26・写さない）
+S23-H008	Government.cs PowerShares.cs	文書の記号 ●（9-26・写さない）
+S23-H009	Military.cs	文書の記号 ●（9-26・写さない）；消えた係数 ConscriptionRate
+S23-H010	Military.cs	文書の記号 ●（9-26・写さない）；消えた係数 ConscriptionScalesWithWar
+S23-H011	Diplomacy.cs Fiscal.cs Military.cs	文書の記号 ●（9-26・写さない）
+S23-H012	SelfPlay.cs	文書の記号 ●（9-26・写さない）
+S23-H013	Military.cs	文書の記号 ●（9-26・写さない）
+S23-H014	—	文書の記号 ~（9-26・写さない）；消えた係数 ConscriptConsciousnessWeight
+S23-H015	Military.cs SelfPlay.cs	文書の記号 ●（9-26・写さない）
+S23-H016	Government.cs Privileges.cs	文書の記号 ●（9-26・写さない）
+S23-H017	NationConfig.cs Scenario.cs Simulation.cs world.json	文書の記号 ●（9-26・写さない）
+S23-H018	CapitalMarket.cs Government.cs World.cs	文書の記号 ●（9-26・写さない）
+S23-H019	Military.cs	文書の記号 ●（9-26・写さない）
+S23-H020	Military.cs	文書の記号 ○（9-26・写さない）；消えた係数 RuleSharesTaxBase
+S23-H021	Diplomacy.cs Military.cs	文書の記号 ●（9-26・写さない）；消えた係数 ConscriptExcludeOldMales・MigrationCarriesHumanCapital
+S23-H022	Military.cs	文書の記号 ●（9-26・写さない）
+S23-H023	Diplomacy.cs Military.cs PowerShares.cs	文書の記号 ●（9-26・写さない）
+S23-H024	EconomyStep.cs Military.cs Model.cs Simulation.cs	文書の記号 ●（9-26・写さない）；消えた係数 MilitaryRevenueShare・StateProcurePriceGate・WartimeBudgetFollowsNeed（2026-11-09 (973) c87mw を (975) で採った：旗 MilitaryWarMultFromContact 1 では Simulation は MilitaryWarMult・WarMobilizationDepth を読まない＝器と計器だけ〔読み手は旗 0 の枝・計器・WarThemeTests〕）
+S23-H025	Diplomacy.cs EconomyStep.cs	文書の記号 ●（9-26・写さない）
+S23-H026	EconomyStep.cs	文書の記号 ●（9-26・写さない）；消えた係数 ArmsStockEnabled・ArmsWearRate
+S23-H027	EconomyStep.cs	文書の記号 ●（9-26・写さない）；消えた係数 BaseArmsStockEnabled・MilitaryWearRates
+S23-H028	Simulation.cs	文書の記号 ●（9-26・写さない）
+S23-H029	Discovery.cs EconomyStep.cs	文書の記号 ●（9-26・写さない）；消えた係数 EquipNeedsDiscovery
+S23-H030	Catalog.cs Simulation.cs	文書の記号 ●（9-26・写さない）；消えた係数 MusketRecipeEnabled
+S23-H031	Simulation.cs	文書の記号 ~（9-26・写さない）；消えた係数 InitialArmsIndustryScale
+S23-H032	EconomyStep.cs	文書の記号 ○（9-26・写さない）
+S23-H033	SelfPlay.cs	文書の記号 ~（9-26・写さない）；消えた係数 SpendFromNeedMax・SpendFromNeedMin・SpendFromNeedWeight
+S23-H034	EconomyStep.cs	文書の記号 ●（9-26・写さない）
+S23-H035	ArmyShape.cs Diplomacy.cs EconomyStep.cs MultiNationSim.cs	文書の記号 ●（9-26・写さない）
+S23-H036	ArmyShape.cs Diplomacy.cs MultiNationSim.cs	文書の記号 ●（9-26・写さない）；消えた係数 TechMilFullLevel・TechMilLowFloor
+S23-H037	ArmyShape.cs Diplomacy.cs MultiNationSim.cs	文書の記号 ●（9-26・写さない）；消えた係数 DecayMilitaryWeight
+S23-H038	ArmyShape.cs Diplomacy.cs PoliticalQuantities.cs	文書の記号 ●（9-26・写さない）
+S23-H039	Diplomacy.cs MultiNationSim.cs SelfPlay.cs Simulation.cs World.cs	文書の記号 ●（9-26・写さない）
+S23-H040	—	文書の記号 ●（9-26・写さない）；消えた係数 NavalBuildRate
+S23-H041	ArmyShape.cs Diplomacy.cs EconomyStep.cs	文書の記号 ●（9-26・写さない）；消えた係数 NavalPowerFromFleet
+S23-H042	EconomyStep.cs Simulation.cs	文書の記号 ●（9-26・写さない）；消えた係数 NavalProcurementNeedsPort
+S23-H043	Diplomacy.cs EconomyStep.cs MultiNationSim.cs	文書の記号 ●（9-26・写さない）；消えた係数 NavalAttritionRate・NavalRepairPerLoss
+S23-H044	Diplomacy.cs EconomyStep.cs	文書の記号 ●（9-26・写さない）

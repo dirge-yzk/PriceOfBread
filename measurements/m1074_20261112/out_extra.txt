@@ -1,0 +1,17 @@
+=== extra base_ins 種 1〜10
+  art_pos	136787
+  fleet_drop5_peace	13738
+  fleet_drop5_war	4278
+  fleet_rows_peace	101116
+  fleet_rows_war	18251
+  peace_cont	368581
+  peace_enf_drop	345
+  rifle_pos	112682
+  scalars_cols=quarter,year,nation,born,popK,atWar,polityCode,educationLaw	1
+  stk_rows	147735
+  war_cont	29502
+  war_enf_drop	120
+  war_tgt_below_prev_enf	6054
+  fleet_ratio_peace	p10 0.94162	med 0.99967	p90 1.07619	N 101116
+  fleet_ratio_war	p10 0.91365	med 0.98480	p90 1.04337	N 18251
+  militancyMean	p10 0.01204	med 0.07335	p90 0.27972	N 147139

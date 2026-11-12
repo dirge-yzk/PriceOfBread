@@ -1,0 +1,18 @@
+nation s1: nations=71 quarters=668
+  conscriptionLaw: {'2': 30608, '1': 5554, '0': 4648}
+  militaryStageTargetEndStage: {'3': 21717, '2': 16103, '1': 2042, '4': 948}
+  militaryStageEnforcedEndStage: {'3': 26182, '2': 12394, '1': 2064, '4': 170}
+  serfEmancipation: {'2': 37363, '1': 3257, '0': 190}
+  mobilizedFlag: {'0': 39506, '1': 1304}
+  militaryMoveOutcomeCode: {'3': 16252, '0': 11947, '4': 11289, '2': 1309, '-1': 13}
+  aiPickedWarStageFlag: {'0': 39506, '1': 1304}
+  warStageOpenEndFlag: {'0': 39700, '1': 1110}
+stock: rows=14832 nations=69 times=670 key=time top=[('フランス', 670), ('日本', 670), ('イギリス', 670)] cols=48
+fm: rows=14707 nations=69 times=668 key=quarter top=[('フランス', 668), ('日本', 668), ('イギリス', 668)] cols=56
+monlaw: rows=40810 nations=71 times=668 key=quarter top=[('フランス', 668), ('日本', 668), ('イギリス', 668)] cols=83
+  monlaw head: quarter,year,nationUid,nationIndex,nation,polityCode,blockadeRiskShare,lawGateOpen:Guild,lawGateOpen:MinimumWage,lawGateOpen:CivilianArms,lawGateOpen:Inheritance,EducationLaw
+wp: rows=122430 nations=71 times=668 key=quarter top=[('フランス', 2004), ('日本', 2004), ('イギリス', 2004)] cols=27
+crownpc: rows=40810 nations=71 times=668 key=quarter top=[('フランス', 668), ('日本', 668), ('イギリス', 668)] cols=64
+admrule: rows=14710 nations=69 times=668 key=quarter top=[('フランス', 668), ('日本', 668), ('イギリス', 668)] cols=24
+  admrule head: quarter,year,nation,adminFillShare,ruleStateShare,ruleLocalShare,deliveryOldShare,deliveryShare,unservedStateShare,stateReachOldShare,stateReachShare,provincesCount,ruleCutRateAllShare,ruleCutRateLordedShare,lordlessPopShare,manLimitK,manLimitOldK,seatsK,popSideDecidesFlag,soldierK
+warentry: rows=40810 nations=71 times=668 key=quarter top=[('フランス', 668), ('日本', 668), ('イギリス', 668)] cols=75

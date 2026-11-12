@@ -1,0 +1,13 @@
+(1075) c102tx 読む線の計画（腕 0・ビルド 0・試験の実行 0・コミット 0）
+作業の場所：D:/PoB_work/r1075_work（worktree・枝は作らない＝main の作業ツリーは読むだけ・git archive で b0edc8963 の木を D: へ展開して読む）
+読む生：
+  measurements/m1069_20261112/trx/nonfull.trx（2749 件・木 b0edc8963・14:38:28〜14:56:31）
+  measurements/m1069_20261112/trx/full.trx（3 件）
+  measurements/m1069_20261112/suite_b0edc8963.txt・suite_c0d304824.txt
+  scripts/instruments/m1069/suite1069.sh（何を測った秒か＝--no-build の dotnet test だけ）
+  measurements/m1068_20261112/b_replay.txt・case_files.txt・suite_times.txt・reds_raw*.txt
+  scripts/instruments/r1068/replay_select.py（選び方 D/T/B/S/R の定義）
+  docs/202611/20261112/20261112_ソフトウェアの形と検証の段_下書き.md（B1〜B3・反証役の訂正）
+  PriceOfBread.Tests/*.cs（b0edc8963 の木・[Collection("Instruments")]・DisableParallelization の宣言）
+台本：D:/PoB_work/r1075_work/scripts/（trx の集計・並列の度合い・選び方を今の木で秒に置き換える）
+出力：D:/PoB_work/r1075_work/out/

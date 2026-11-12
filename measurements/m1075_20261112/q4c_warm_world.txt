@@ -1,0 +1,11 @@
+61 国・種 1789・既定の助走の世界を本文で作る試験 10 本・秒の和 404.1（字面の上界・作った後に盤面を替える試験を含む）
+71.1	StartWarmupTests.cs	StartWarmupTests2.助走は国債を動かさず開幕の英の国債は年GDPの約1倍	作る1・助走2
+68.4	StartWarmupTests.cs	StartWarmupTests2.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント	作る1・助走2
+61.6	SaveRoundTripTests.cs	SaveRoundTripTests.セーブとロードの往復で世界が一致する	作る1・助走1
+57.6	ConservationTests.cs	ConservationTests.多国の走行で保存量Dが動かない	作る1・助走1
+36.1	StartWarmupTests.cs	StartWarmupTests3.助走は法を動かさない	作る1・助走1
+35.4	StartWarmupTests.cs	StartWarmupTests3.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁	作る2・助走1
+31.1	ScoreReaderTests.cs	ScoreReaderTests.条約港の風化は列強の中央値を基準にする	作る1・助走1
+30.0	ScoreReaderTests.cs	ScoreReaderTests.助走の直後にランクを取り直し_その時点で6項とも総量が正である	作る1・助走1
+12.8	StartWarmupTests.cs	StartWarmupTests4.助走は二度目の呼び出しで何もしない	作る2・助走3
+0.0	InstrumentsTests.cs	InstrumentsTests.経路名の鍵の行は移し方の呼び出しを指す	作る1・助走5
