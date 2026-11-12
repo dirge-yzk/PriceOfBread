@@ -1,0 +1,4 @@
+# (1078) 合流が消した物（D:/PoB_work）
+ident_m1078z（腕 Z の生の残り・ins は keep_1078/base_ins へ移した）
+ident_c102ui・ident_c102rp2・ident_c102tr・c102em_work/identC（線の ident の生・判定と manifest はコミット済み）
+worktree wt_c102ui・wt_c102rp・wt_c102em・wt_c102tr・wt_m1078z
