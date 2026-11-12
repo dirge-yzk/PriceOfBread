@@ -1,0 +1,35 @@
+m1091 事前登録（線 c104si・仮番号 (1091)・2026-11-13・基準 m1087＝main 23aa9d11a）
+恒等の計器の小物：支配の力の S1〜S4（段 C′ の前）＋鉱山の計器 MCi（MC1 の前）。エンジンの挙動 0・新しい係数／状態／旗なし。
+
+[1] 恒等の線・予言 0
+- 形＝入口ではなく尾の計器（読むだけ）。素の 5 種・計器つき 10 種は m1087 と名乗り行を除いて全行バイト一致（計器の表の差は下の宣言だけ）。
+- 項（1 項 1 コミット）：(a) S1 表 rulepoweralloc_s／(b) S2〜S4 rulepower_s の末尾の列／(c) 注の直し（InstrumentsRulePower.cs の注・an_rp.py の〈20 四半期おき〉→40）／(d) MCi 表 minecap_s。
+- 使う .cost の見積もり（計器つきだけ・素の腕は 0）：(a) 0.0 秒（1/40 の四半期だけ行を書く）／(b) 約 0.3 秒（凍結を外した届きの遅延の表 1 枚・四半期の複写の copy 1 回）／(d) 約 0.0 秒（年 1 回・鉱山の生産者だけ）。合計 ≦ 0.5 秒。素の腕の推定は m1087 の 227.8 秒と一致。
+
+[2] 足す物と消す物
+- 足す表（--added-tables）：rulepoweralloc_s・minecap_s。
+- 末尾に足す列（--grown-ok rulepower_s・今の列の順と値は変えない）：rhoNoFreezeIndex・tauNoFreezeIndex・ruleInit0Share〜ruleInit3Share・ownerSideShareR・ungovSideShareR（書式 "R"）・iProbeShare・ownerWeightShare（計 10 列）。
+- rulepoweralloc_s の列：quarter・year・nation（配る国）・region（候補の州）・candKind（1 取り分・2 交戦・3 隣）・Y・rho_f・s・b・wgt・alloc・F_f。四半期 0 と 40 おきだけ。数の列は "R"。wgt＝0 の候補の行も書く。
+- minecap_s の列：year・nation・good・class・producers・outputSum・builtScaleSum・builtOver15N・builtOver15Output・depInitMissingOutShare（鉱脈の初期が未捕捉＝別の箱）・depFrac の産出加重の平均と 5 つの箱（0〜.1・.1〜.25・.25〜.5・.5〜1・>1）の産出の割合・grade の 4 つの箱（床・床〜.5・.5〜1・1）の産出の割合・目標 1＋margin が >1.5 と >3.0 の産出の割合・国有化の部門〈鉱山〉の産出の割合。年末の四半期に毎年。
+- 消す物：なし。エンジンのファイル（BilateralMarket.cs・EconomyStep.cs・Simulation.cs）は触らない（RpSnapshot は凍結の印 Region.LastPortFrozen を計器の側で読む）。
+- 読み手の grep（SimCore・Runner・App・Tests・scripts・measurements）：rulepower_s は an_rp.py と r1083 の台本（列の名前で読む＝末尾の列で壊れない）。rulepoweralloc／minecap の読み手は新しいので 0。
+- 他の線との重なり：Instruments.cs は呼び口 1〜2 行（RulePowerTable の隣）だけ（cp は :1847・:1950 の隣）。InstrumentsRulePower.cs・InstrumentsMineCap.cs は si だけ。fb の InstrumentsRecipeout.cs には触れない（recipeout_s に列を足さない）。
+
+[3] 足す試験（ファイル・突然変異ごとの赤）
+- PriceOfBread.Tests/RulePowerAllocTests.cs（3 本）
+  - A1 S1 の候補ごとの配りの和 Σ alloc×rho_f が、rulepower_s の fForeignSumIndex と州×四半期で一致（相対 1e-9）・wgt＝Y×rho_f×(1−min(1,s))×(1−b)（列だけで）・対照＝alloc>0 かつ rho_f<1 の行が 1 行以上。突然変異 M1＝S1 の rho_f を 2 回掛ける→A1 赤。
+  - A2 S3 の R 書式：ownerSideShareR と ungovSideShareR が double.Parse→ToString("R") で戻り、G10 の列と相対 1e-9 で一致・対照＝R と G10 の文字列が違う行が 1 行以上。M2＝書式を "G6" にする→A2 赤。
+  - A3 S2：凍った州（rhoNoFreezeIndex≠rhoNewIndex）の対照が 1 行以上、凍っていない州では rhoNoFreeze＝rhoNew（ビット）。tauNoFreeze が有限で正。
+- PriceOfBread.Tests/MineCapInstrumentTests.cs（2 本）
+  - B1 生産者ごとの目標が、試験の中で作る式（1＋(p−mc)/mc・p＝州の清算の値段・mc＝試験が MarginalCost×CostPriceLevel×LocalPriceMultiplier＋投入費で組む）と一致・対照＝州の値段が国の平均と違う生産者が 1 個以上。M3＝値段を国の平均にする→B1 赤。
+  - B2 depFrac が MineralDeposit÷MineralDepositInitial と一致し、品位が試験の中の式（膝・床は係数から）と一致（MultiNationSim・対照＝品位<1 の州が 1 つ以上または全て 1 と数える）。
+- テストの数：+5（--tests-delta 5）。FullLength は不変。
+- ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）：器のコミットの直後に回す。書き換える件数の予言（㉑）＝0。`new MoneyStock(` の件数・route_anchors.tsv の鍵・WriterRatchetTests の宣言の表は触らない（0 行）。
+- 計器が書かない行を 0 と数えない（★(1069)）：鉱脈の初期が未捕捉の州は別の箱。S1 は O＝0 の国の候補の行を書かない（エンジンの形の写し）＝q_t の下の数は下限と名乗る。
+
+[4] 旗 0 の盤面での門の赤（紙の台本 scripts/instruments/c104si/gates0.py・m1087 の INSRAW 10 種・今の列だけ）
+- 門〈同点〉＝持ち主の側と無統治が等しいのに無統治が最大の行：69 行（>0 で赤）。門〈凍結〉＝首都からの km が inf の行：18508（>0 で赤）。門〈q〉＝q 固定の四半期 600 の ΣO÷ΣL の種の中央：0.859（q_t なら 0.13〜0.23）。計器が入った後は gates.py が R の列・凍結を外した列で同じ門を読む。数字は旧の盤面の値で等式の門にしない。
+- 採否＝〈判定: 恒等〉（宣言：--added-tables rulepoweralloc_s,minecap_s --grown-ok rulepower_s --tests-delta 5）。一致しない項はその項を外して報告に回す。
+
+[5] 手順の記録
+- 段 2 の ident（stage.py が決める）。生は合流の判断まで残す。D: の空きは起こす前に 34GB 以上。
