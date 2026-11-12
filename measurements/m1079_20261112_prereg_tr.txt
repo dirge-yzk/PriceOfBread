@@ -26,3 +26,12 @@
   ident は段 2（stage.py）。ident.sh run c103tr --tree <木> --saveleak --tests-delta 6 --added-tables tskpair,tskshadow --grown-ok recipeout。
 
 [5] 〈判定: 恒等（測った種で一致）〉なら採る。一致しなければ変更を外して報告に回す。
+
+[結果 追記 2026-11-13]
+ merge＝衝突 0・木 89e458144（予言どおり・git merge-tree と一致）。記録のファイルの食い違い 0。
+ 判定: 恒等（測った種で一致）。ident c103tr（段 2・--saveleak・--tests-delta 6・--added-tables tskpair,tskshadow・--grown-ok recipeout・--cost-allow 中身の無い物：,消費：）。素の 5 種 179 行・計器つき 10 種 181 行が m1069 と全行バイト一致・推定 229.7／227.7 秒（m1069 と同じ）・計器の表 バイト一致 1297＋既知の揺れ 50＋宣言した追加 30（tskpair 10・tskshadow 10・recipeout の末尾 1 列 10）・宣言の無い違い 0・savetest OK・leakhunt 保存則違反なし。
+ 最初の ident run は .cost の件数の行 10 本で不一致（em の (1072) が足した行〈中身の無い物：〉〈消費：〉を --cost-allow に宣言し忘れた＝宣言の漏れ・生は同じ・check だけをやり直した）。
+ テスト：Category!=FullLength 2775（合格 2774・スキップ 1）＋FullLength 3・--list-tests 2778＝予言どおり（2769＋5＋1）。書き換え＝RecipeoutInstrumentTests の名前と summary だけ（T4 の Assert は c102tr のまま・:188 の IfBprime）。
+ 突然変異：M1 割る数から Scale を落とす→B1 が赤（T4 は緑のまま＝穴の補いが B1 の Scale 1.5 の盤面）。M1′ 規則の倍率で割る→B1 と T4 が赤。M2 T4 を IfAbundance に戻す→T4 が赤。M3 旗 0 で割り算を通す（DivideCostByEndowment の門を 1.0 に）→ ident 素の 5 種が不一致（行数 180 対 179・違う行 141）。全文は measurements/m1079_20261112_mut_*。
+ ㉘ 番人（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・Recipeout・TradePhase0・Economy）188 本緑・書き換え件数 0。旗 1 の道の試験の grep：書き換えが要る物 0。
+ 追加の計器の列：なし（足した表と列は tr のまま）。
