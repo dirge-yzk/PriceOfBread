@@ -22,7 +22,7 @@ public class IndustrializationReaderTests
     [
         ("CapitalMarket.cs", 1), ("Coefficients.cs", 1), ("Diplomacy.cs", 1), ("Discovery.cs", 1), ("EconomyStep.cs", 8),
         ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 1),
-        ("Megaprojects.cs", 4), ("Model.cs", 4), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
+        ("Model.cs", 4), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
         ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
     ];
 

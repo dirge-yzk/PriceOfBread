@@ -386,12 +386,6 @@ public static class Formations
             if (best is null) continue;
             if (!d.RenameNation(power, best.NewName)) continue;   // 世界に同名は一つ（先着＝統一の先取り競争）。失敗＝名が空くまで翌期再挑戦
             power.FormationTier = best.Tier;
-            if (c.FormationLegitimacyBoost > 0)   // 成立の威信（第4段4-2で0.1点火・2026-07-27）
-            {
-                double legBeforeForm = w.Legitimacy;
-                w.Legitimacy = PoliticalQuantities.Clamp01(w.Legitimacy + c.FormationLegitimacyBoost);
-                w.Explain?.Add("Legitimacy", "国家統一の威信（イタリア/ドイツ型の建国）", w.Legitimacy - legBeforeForm);   // 説明API（#63）
-            }
             // 第4段4-1（2026-07-27）：成立時の遷都＝NewCapital の州が自国 active 州にあれば首都(Id0)へ昇格（伊統一→ローマ等の死蔵データ約35規則を点火）。
             // 手順は割譲の遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B＝Idスワップ・Regions[0] の首都不変条件・座標・旧首都の植民地財）。
             if (best.NewCapital is { } capName)

@@ -239,7 +239,7 @@ public class ScholarshipTests
         for (int d = 0; d < 4 * Calendar.DaysPerQuarter && !below; d++)
         {
             if (w.Treasury.Value > 0) World.Transfer((w, null), (w, sink, null), w.Treasury.Value);   // 国庫を貨幣保存を保ったまま空にする（SetTreasuryRaw は保存を破る）
-            foreach (var rg in w.Regions) rg.MonumentBuildQueue = Math.Max(rg.MonumentBuildQueue, 1e7);   // 請求を払える額より大きくする（記念建造物の建築予約＝月初の請求に入る）
+            foreach (var rg in w.Regions) rg.HigherEduFunding = Math.Max(rg.HigherEduFunding, 1e7);   // 請求を払える額より大きくする（(1081) 旧は記念建造物の予約 MonumentBuildQueue＝消した。同型の予約〔請求の和に入り EconomyStep が無条件にゼロ化〕の高等教育の予約で代える＝この試験が見る義務教育の財源率とは別の欄）
             sim.StepDay();
             below = w.FiscalFundingRatio.Value < 0.999;
         }

@@ -88,22 +88,6 @@ public static class WorldData
         return JsonSerializer.Deserialize<WorldDoc>(s, Options) ?? throw new System.InvalidOperationException("world.json のデシリアライズに失敗");
     }
 
-    // === 巨大建造物のカタログ（megaprojects.json・埋め込み）＝個体別の値はデータが真実源 ===
-    internal sealed record MegaprojectDto(string Id, string Name, string Host, double BuildUnits, double TechGate,
-                                          string EffectTarget, string EffectMode, double EffectValue, string? Requires = null);   // ★(613) 段1：Requires＝着工に要る発見の行の名前（旗 TechGateByDiscovery が正のとき techGate の代わりに読む・無し＝門なし）
-    private sealed record MegaprojectDoc(List<MegaprojectDto> Projects);
-    /// <summary>埋め込み megaprojects.json から建造物カタログをロード（型初期化時に1回・goods.json と同じ二本立て構成）。</summary>
-    private static readonly MegaprojectDto[] _megaCache = LoadMegaprojects();
-    private static MegaprojectDto[] LoadMegaprojects()
-    {
-        var asm = typeof(WorldData).Assembly;
-        string? name = System.Array.Find(asm.GetManifestResourceNames(), n => n.EndsWith("megaprojects.json", System.StringComparison.Ordinal));
-        if (name is null) return [];   // 未同梱でも動く＝機構ごと不発（データが無い＝不発の原則）
-        using var s = asm.GetManifestResourceStream(name)!;
-        return [.. (JsonSerializer.Deserialize<MegaprojectDoc>(s, Options)?.Projects ?? [])];
-    }
-    internal static MegaprojectDto[] Megaprojects() => _megaCache;
-
     /// <summary>埋め込み world.json から全国家設定（型初期化時に1回）。</summary>
     private static readonly NationConfig[] _cache = [.. _doc.Nations];
     public static NationConfig[] Nations() => _cache;

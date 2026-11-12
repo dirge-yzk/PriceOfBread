@@ -1194,7 +1194,6 @@ public static class EconomyStep
         double privateIndPerConstruction = coef.IndPerConstruction;   // (300) 私的な建設 1 束が上げる工業化度（IndCapitalOutputYears>0 のとき州の経済の大きさで決まる）
         double maintenance = 0;
         double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
-        double monumentConstruction = 0, monumentLaborUnits = 0;
         ConsBundle bundle = ConsBundle.Steel(coef);   // ★(536)(550) 今月のこの州の建設の資材の組（旗 BuildingGoodBundle が 0 なら常に鋼の組＝今の束・正なら建造物＋機械の組）。資本家の建設の頭（BundleOf）か下の工場建設の頭で決め、需要・決済・繰越が同じ組を読む
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
@@ -1282,28 +1281,6 @@ public static class EconomyStep
             {
                 conLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * construction / lWagePrice;
                 investDemand[Catalog.LaborId] += conLaborUnits;
-            }
-            // ★束の採算（2026-08-03）：私的な工場建設は既に FactoryBuildAfford で絞っているのに、巨大建造物は
-            //   素通りで、高騰した束を国庫が買い切っていた。同じ式を通す。
-            //   ★(599) 国家の手動建設の段〔StateBuildQueue を束の単位に直す段・州上限のヘッドルーム・工賃〕は削除した＝StateBuildQueue の書き手は (583) から 0 本で、段は常に 0 だった。
-            double bundleRef = BundleRef(coef) * Math.Max(region.PriceLevel, Eps);   // ★実質で比べる（名目のままだと一般インフレで恒久的に絞られる・2026-08-04）
-            double bundleAfford = bundleRef > Eps
-                ? 1.0 - (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
-            // 巨大建造物（2026-07-28）：国家建設とは**別キュー**〔★(599) 国家建設の段は削除〕。★州上限5.0のヘッドルーム〔旧の stateHeadroomUnits〕を通さない＝
-            // 建造物は工業化度に溶かさず専用の変換先を持つため（設計書§6 地雷#4）。資材は国家建設と同じ束、労働も同経路で買う。
-            // MegaprojectEnabled=1.0（点火2026-07-28）で稼働。0 では MonumentBuildQueue を誰も積まず monumentConstruction=0＝このブロックは不実行。
-            monumentConstruction = costPerUnit > Eps ? region.MonumentBuildQueue / costPerUnit * bundleAfford : 0;   // ★束の採算（2026-08-03）＝国家建設と同じ式
-            if (monumentConstruction > 0)
-            {
-                investDemand[bundle.G0] += bundle.Q0 * monumentConstruction;
-                investDemand[bundle.G1] += bundle.Q1 * monumentConstruction;
-                investDemand[bundle.G2] += bundle.Q2 * monumentConstruction;
-                investDemand[bundle.G3] += bundle.Q3 * monumentConstruction;
-                if (Catalog.LaborId < ng && conWorker >= 0)
-                {
-                    monumentLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * monumentConstruction / lWagePrice;
-                    investDemand[Catalog.LaborId] += monumentLaborUnits;
-                }
             }
             // プレイヤーの工場建設（特定財）＝共通ヘルパーへ抽出（2026-08-09・capゲート穴の閉鎖）。式・順序は抽出前と同一＝
             // CapitalEnabled=true の州ではビット恒等。材料需要は国庫負担の物理＝資本区画の有無と無関係（非cap州は下のelse分岐が同じ式で積む）。
@@ -2458,42 +2435,9 @@ public static class EconomyStep
             }
         }
 
-        // === 巨大建造物の決済（2026-07-28）：買えた束だけ進捗に積む。支払いは国庫（StateSpent＝国庫→生産者で保存）===
-        // ★労働も律速に入れる（資材4種と同型）＝「資本があっても人がいないと建たない」を建造物にも適用。
-        //   これが無いと段7のニューディールで「国庫で建てる限り労働ゼロでも建つ」非対称が残る。
-        // ★工業化度には積まない（地雷#4）＝MonumentBuiltUnits へ積み、四半期末に MultiNationSim が回収して個体の進捗へ移す（2相方式）。
-        //   Diplomacy（個体）はここから見えないため2相方式。
-        if (cap && monumentConstruction > 0)
-        {
-            int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
-            double sGot = bundle.Q0 * monumentConstruction * ration[sg];
-            double mGot = bundle.Q1 * monumentConstruction * ration[mg];
-            double cGot = bundle.Q2 * monumentConstruction * ration[cg];
-            double lGot = bundle.Q3 * monumentConstruction * ration[lg];
-            double built = bundle.Units(sGot, mGot, cGot, lGot, Eps);   // ★(550) 同上
-            if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
-                built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
-            double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
-            region.StateSpent[(int)TreasuryCat.Megaproject] += cost;
-            if (insOn) Instruments.MonumentPaid(world!, cost);   // (289) 計器（読むだけ）：国庫が実際に払った巨大建造物
-            if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
-            {
-                double labQ = monumentLaborUnits * ration[Catalog.LaborId];
-                double labPay = labQ * clearPrice[Catalog.LaborId];
-                region.StateSpent[(int)TreasuryCat.Megaproject] += labPay;
-                if (insOn) Instruments.MonumentPaid(world!, labPay);   // (289) 計器（読むだけ）
-                revenue[Catalog.LaborId] += labPay;
-            }
-            revenue[sg] += sGot * clearPrice[sg];
-            revenue[mg] += mGot * clearPrice[mg];
-            revenue[cg] += cGot * clearPrice[cg];
-            revenue[lg] += lGot * clearPrice[lg];
-            region.MonumentBuiltUnits += built;   // 四半期末に MultiNationSim.StepMegaprojects が回収してゼロ化
-        }
         // ★予約のゼロ化は**無条件**（上のブロックの中に置かない）。国家の建設の予約はかつて `if (cap && stateConstruction > 0)` の内側で
         // ゼロ化しており、資本区画を持たない州や上限に張り付いた州で Queue が永久滞留する型があった（調査2026-07-28）ため、ここへ移した。
         // 予約は請求権でカネは国庫から未出なので、捨てても保存は不変（実支払いは StateSpent＝実購入分のみ）。同じ轍を踏まない。
-        region.MonumentBuildQueue = 0;
         region.HigherEduFunding = 0;   // ★段③：同上（無条件・買えた分だけ StateSpent 済み＝残額は国庫に残る＝空振り返金）
 
         // プレイヤーの手動工場建設の材料決済：着工中の工場へ材料束（鉄・機械・セメント・木材）を流す。

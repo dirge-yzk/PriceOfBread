@@ -19,7 +19,7 @@ public class TechLevelRemovalTests
     [
         ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),   // (843) c68ui：ArmyShape.cs・Diplomacy.cs・DiscoveryTables.cs・FiscalTables.cs・Megaprojects.cs（3→0）・PlayHarness.cs の行は段6 の旗の焼き込みで技術水準を読む行が無くなった（許可表の行を消す・MultiNationSim.cs 9→8・World.cs 5→4）
         ("PriceOfBread.SimCore", "Colonial.cs", 1), ("PriceOfBread.SimCore", "Discovery.cs", 2),
-        ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 2), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
+        ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 1), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
         ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 8),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 4),
@@ -133,52 +133,20 @@ public class TechLevelRemovalTests
     }
 
     // ---- 段1 門を発見の行へ（旗 TechGateByDiscovery）の番人 ------------------------------------------------------------
-    private static (MultiNationSim sim, World w, Power me) Board3()
-    {
-        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia(), NationConfig.France()], seed: 1789);
-        var w = sim.Nations[0].World;
-        return (sim, w, w.SelfPower!);
-    }
-
-    /// <summary>requires の表（megaprojects.json・world.json）の期待は、工法の根拠から手で作った対（Id と発見の行の名前）。表の読み込みが名前を添字へ落とすこと・無い個体は -1 であることを見る。
-    /// 突然変異＝megaprojects.json の requires を 1 件消す／名前を変える→赤。</summary>
+    /// <summary>requires の表（world.json の chokepoints）の期待は、工法の根拠から手で作った対（Id と発見の行の名前）。(1081) 巨大建造物を消した＝運河の 2 対だけ（紙の推奨で決めた事 8）。
+    /// 突然変異＝world.json の chokepoints の requires を 1 件消す／名前を変える→赤。</summary>
     [Fact]
     public void 段1_requiresの表は手で作った対と一致する()
     {
-        foreach (var (id, name) in new[]
-        {
-            ("yawata_steel", "転炉鋼"), ("brooklyn_bridge", "転炉鋼"), ("haarlemmermeer", "蒸気機関"), ("dover_calais_cable", "汽船"),
-            ("alpine_hydro", "水力発電"), ("zuiderzee", "鉄筋コンクリート"), ("daimler_works", "内燃機関"), ("abadan_refinery", "石油灯油"),
-            ("suez", "汽船"), ("panama", "ダイナマイト"),
-        })
+        foreach (var (id, name) in new[] { ("suez", "汽船"), ("panama", "ダイナマイト") })
             Assert.Equal(Catalog.DiscoveryRowNamed(name), Megaprojects.RequiresRowOf(id));
-        foreach (var none in new[] { "budapest_chain_bridge", "eiffel_tower", "crystal_palace", "ganges_canal", "cologne_cathedral", "washington_dc" })
+        foreach (var none in new[] { "gibraltar", "bosporus", "malacca", "oresund", "hormuz", "bab_el_mandeb" })
             Assert.Equal(-1, Megaprojects.RequiresRowOf(none));
         Assert.Equal(-1, Megaprojects.RequiresRowOf("存在しない個体"));
         // 物理の根拠のある行だけ（制度と思想の行を requires に使わない）
-        foreach (var m in WorldData.Megaprojects())
-            if (Megaprojects.RequiresRowOf(m.Id) is var r && r >= 0)
-                Assert.True(Catalog.Discoveries[r].Field is DiscoveryField.Process or DiscoveryField.Product or DiscoveryField.Weapon, m.Id);
-    }
-
-    /// <summary>(843) 旗 TechGateByDiscovery は焼き込み済み（旗 0 の techGate の対照は旗とともに消した）。技術水準を一切読まず、requires の無い個体は Q0 から着工でき、ある個体は自国がその行を開くまで拒否・開けば着工できる。
-    /// 拒否の理由に〈技術〉が出ない。突然変異＝旗の分岐を外す／requires の判定を常に true にする→赤。</summary>
-    [Fact]
-    public void 段1_門は発見の行()
-    {
-        var (sim, w, me) = Board3();
-        var free = sim.Diplomacy.Megaprojects.First(m => m.Host == "ロンドン" && Megaprojects.RequiresRowOf(m.Id) < 0);
-        var gated = sim.Diplomacy.Megaprojects.First(m => m.Host == "ロンドン" && Megaprojects.RequiresRowOf(m.Id) >= 0);
-        free.Owner = me; gated.Owner = me;
-        w.TechLevel = 0.0;   // 開幕の技術水準では techGate（0.95 以上）を満たさない
-        Assert.Null(Megaprojects.StartRefusal(w, free));   // requires が無い＝Q0 から着工できる
-        int row = Megaprojects.RequiresRowOf(gated.Id);
-        w.Discovered[row] = false;
-        w.TechLevel = 99.0;   // 技術水準がいくらあっても、行を開いていなければ拒否（技術を読まない）
-        string? why = Megaprojects.StartRefusal(w, gated);
-        Assert.NotNull(why); Assert.DoesNotContain("技術", why);
-        w.Discovered[row] = true; w.TechLevel = 0.0;   // 行を開けば技術水準 0 でも着工できる
-        Assert.Null(Megaprojects.StartRefusal(w, gated));
+        foreach (var c in WorldData.Setup().Chokepoints)
+            if (Megaprojects.RequiresRowOf(c.Id) is var r && r >= 0)
+                Assert.True(Catalog.Discoveries[r].Field is DiscoveryField.Process or DiscoveryField.Product or DiscoveryField.Weapon, c.Id);
     }
 
     // ---- 段2a 信号の削除（旗 TechSignalOff は (824) で焼き込み）--------------------------------------------------------------

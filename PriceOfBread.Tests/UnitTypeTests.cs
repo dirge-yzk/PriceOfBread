@@ -249,14 +249,10 @@ public class UnitTypeTests
         (typeof(Coefficients), "GoldCoverMin", typeof(Share)),
         (typeof(World), "GdpDrawdown", typeof(Share)),
         (typeof(Coefficients), "LolrDrawdownTrigger", typeof(Share)),
-        (typeof(Coefficients), "MegaprojectCrisisDrawdown", typeof(Share)),
         (typeof(Coefficients), "FactionStrikeDrawdown", typeof(Share)),
         (typeof(Coefficients), "DepressionScrapThreshold", typeof(Share)),
         // ★(343) 割合の型の残り その9＝景気後退の度合い（1人あたり）`World.GdpPcDrawdown`（派生）と、投資・取り分・率・床の係数 19 本（Share）。建造物・植民地・運河と港・保険・通行料・人口の床・後追いの先端比。EconomyStep を読み手に持つ物（`ReignitionDemandFrac`・`IndInvestmentFrac`・`RgoCapitalShare`・`ConstructionLaborWageFrac` ほか）は並行のアヘンの線が触る間は移さない。
         (typeof(World), "GdpPcDrawdown", typeof(Share)),
-        (typeof(Coefficients), "MegaprojectStateFrac", typeof(RatePerQuarter)),   // ★(344) 反証役 y9〔v〕中＝毎四半期の率（Share から型だけ直した・読み手は .Value のまま・改名は次の回）
-        (typeof(Coefficients), "MegaprojectForeignShare", typeof(Share)),
-        (typeof(Coefficients), "MegaprojectForeignDrawFrac", typeof(RatePerQuarter)),   // ★(344) 1四半期に引ける上限
         (typeof(Coefficients), "CanalInvestFrac", typeof(RatePerQuarter)),   // ★(344) 毎四半期
         (typeof(Coefficients), "PortInvestFrac", typeof(RatePerQuarter)),   // ★(344) 毎四半期
         (typeof(Coefficients), "PortStateFrac", typeof(Share)),
@@ -678,7 +674,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで兌換と恐慌の係数の欄が残る()
     {
-        string[] names = ["GoldCoverMin", "LolrDrawdownTrigger", "MegaprojectCrisisDrawdown", "FactionStrikeDrawdown", "DepressionScrapThreshold"];
+        string[] names = ["GoldCoverMin", "LolrDrawdownTrigger", "FactionStrikeDrawdown", "DepressionScrapThreshold"];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < names.Length; k++)
@@ -704,7 +700,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで投資と取り分と率の係数の欄が残る()
     {
-        string[] names = ["MegaprojectStateFrac", "MegaprojectForeignShare", "MegaprojectForeignDrawFrac", "CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
+        string[] names = ["CanalInvestFrac", "PortInvestFrac", "PortStateFrac", "CatchupFraction", "CatchupFractionAdvanced", "TransitTollShare", "RevoltSuppressDeadFrac", "InsurancePayoutFrac", "RecruitMaxFracOfSource", "SerfCashShareFloor", "FertileShareFloor", "UnificationNatioShare", "PlantationRentShare"];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < names.Length; k++)
