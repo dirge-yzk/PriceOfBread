@@ -1246,8 +1246,7 @@ public sealed class Simulation
         // ★E-15 手順1（2026-09-05）：硫酸(33)の第2レシピ「黄鉄鉱法」＝硫黄の代替（(493) 以後は銅鉱＋石炭＝含銅黄鉄鉱を焙焼して硫酸・旧は鉄鉱石＋石炭＋塩）。
         //   史実＝1838年の硫黄危機（シチリア独占）の後、世界は原料の代替（リオ・ティントの黄鉄鉱）で解いた。新しい財は足さない。
         //   解禁＝発見の表の黄鉄鉱法（1830年代・2026-10-01 段2A）・生産性は硫黄法×SulfurFromPyriteProductivity（高くついた）。
-        //   火薬(38)は代替しない（黒色火薬は元素硫黄が要る）。⚠SulfurFromPyriteEnabled=0 で Producer を1件も足さない＝厳密恒等。
-        if (coef.SulfurFromPyriteEnabled > 0)
+        //   火薬(38)は代替しない（黒色火薬は元素硫黄が要る）。(1089) で旗 SulfurFromPyriteEnabled を焼いた＝常に足す。
             {
                 Producer? leadChamber = null;
                 foreach (var pr in producers) if (pr.GoodId == Catalog.SulfuricAcidId) { leadChamber = pr; break; }

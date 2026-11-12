@@ -1362,8 +1362,7 @@ public sealed class Coefficients
     //   史実＝1838年の硫黄危機（ナポリ王国の独占権→英の艦隊威圧）の後、世界は産地の多重化でなく**原料の代替**で解いた。
     //   新しい財は足さない（「幅に足さない」規約）。解禁は発見（onset＝クロムなめし0.55と同尺度＝1840〜70年代）。生産性は硫黄法より低い（高くついた）。
     //   火薬は代替しない（黒色火薬は元素硫黄が要る＝1838年危機が火薬を直撃したのは史実）。
-    //   ⚠SulfurFromPyriteEnabled=0 で Producer を1件も足さない＝厳密恒等。点火は ScarceMineralGate と**同時**（E-15 手順3）。
-    public double SulfurFromPyriteEnabled = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-13 再開＝黄鉄鉱法（硫黄鎖の代替） */
+    // 【墓標2026-11-13 (1089)・旗の焼き込み】SulfurFromPyriteEnabled（既定1.0・点火2026-09-05）を消した＝硫酸の第2レシピ「黄鉄鉱法」（硫黄の代替・生産性×SulfurFromPyriteProductivity）は常に足す。
     public double SulfurFromPyriteProductivity = 0.7;   // 硫黄法比の生産性（黄鉄鉱法は歩留まりが低い＝高コスト）
     // 【削除2026-10-01 段2A】SulfurFromPyriteOnset（黄鉄鉱法の解禁の技術水準 0.55）＝発見の表の行（黄鉄鉱法・1830年代）へ
     // 【削除 2026-10-01 (148)】SulfurLateDepositOnset（0.75）・SilverLateDepositOnset（0.6）＝後期産地の技術水準の傾斜の始まり＝産地の発見の表（Catalog.Sites）の年代へ。
