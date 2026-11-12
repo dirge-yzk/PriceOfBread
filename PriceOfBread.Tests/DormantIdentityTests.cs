@@ -98,7 +98,6 @@ public class DormantIdentityTests
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
-        "FactoryBuildRefIsReal",        // 進捗/素材ゲートの参照束を実質（×PriceLevel）へ＝兄弟ゲートと同じ物差し（0＝名目＝旧恒等）
         // ★PriceLawSupplyIncludesStock と TradeBuyerSolvesAtUnitPrice は 2026-09-08 に 1.0 で**対で点火**（腕 price2b）＝この表から外した。
         "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
@@ -251,7 +250,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
-        "MintDemandCounted", "SteamTurbineEnabled", "CompostFertilizerEnabled", "SulfurFromPyriteEnabled", "OilNeedsMachinery", "CenterIsFirstProvince", "CoreInitByRegionCulture", "ScarceCountsIncludeColonies", "ScarceMineralGate",   // (1089) 線 c104fb：旗の焼き込み（既定 1 の旧い枝を消した。各欄の意味は Coefficients.cs の墓標）
+        "MintDemandCounted", "SteamTurbineEnabled", "CompostFertilizerEnabled", "SulfurFromPyriteEnabled", "OilNeedsMachinery", "CenterIsFirstProvince", "CoreInitByRegionCulture", "ScarceCountsIncludeColonies", "ScarceMineralGate", "FactoryBuildRefIsReal",   // (1089) 線 c104fb：旗の焼き込み（既定 1 の旧い枝を消した。各欄の意味は Coefficients.cs の墓標）
         "HeldSinceFromData",          // (956) 線 c85hs：B14＝world.json の heldSince を読む旗〔既定0〕。heldSince のデータと CoreHeldYears〔150〕とあわせて削除（全州 Core・支配度1.0 の経路だけ残した）
         "WageClampIndScale",          // (605) 線 ind4：賃金の天井の工業化度の項〔R2 点火 1.0・(495) で IndustrializationOff が 0 を掛けていた〕。項ごと削除（天井そのものの WageClampMax は残る）
         "MonopolyDissolveInd",        // (605) 同：独占が解体する工業化度〔0.3〕。解体は独占禁止法の係数 MonopolyRentFactor に任せる

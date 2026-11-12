@@ -1151,14 +1151,10 @@ public sealed class Coefficients
     //   工事の進捗と素材需要の採算ゲートを軍需の PriceAfford と同じ式で混合（1＝旧恒等・0＝価格を見ずに工事が進み素材を相場で買う＝需要が立つので生産と輸入が応える）。
     //   国家調達の PriceAfford と着工の床（FactoryStartAffordFloor）は別の器＝ここでは触らない。腕＝build2（床0＋これ0＋素材の律速）。
     public double FactoryBuildPriceGateScale = 1.0;
-    // ★参照束の物差し（レビュー2026-09-07 確定）：進捗/素材需要のゲートの参照束は名目（Cons×RefPrice）だが、兄弟ゲート（ConstructionAfford/PriceAfford/StateBuildQueue/Colonial）は
-    //   実質（×PriceLevel・2026-08-04「名目のままだと一般インフレで恒久的に着工不能」）＝同じ束を2つの物差しで測る非対称。1＝進捗側も実質へ（採算率の引数だけ。素材の必要量 u の分母は名目のまま）。
-    //   0＝名目＝旧恒等。⚠build2（価格ゲート0）の利得にはこの名目/実質の人工物が混ざる＝腕 realref を**別に**測って切り分ける。
-    public double FactoryBuildRefIsReal = 0.0;
-    /// <summary>建設の進捗・素材需要に使う採算率＝FactoryBuildAfford（参照束は FactoryBuildRefIsReal>0 で ×PriceLevel）を FactoryBuildPriceGateScale で混合（既定＝恒等）。</summary>
+    // 【墓標2026-11-13 (1089)・旗の焼き込み】FactoryBuildRefIsReal（既定0.0＝休眠・レビュー2026-09-07）を消した＝進捗/素材需要のゲートの参照束は名目のまま（実質〔×PriceLevel〕へ替える旗の1の道は一度も点火しなかった）。作者「全て推奨で」で推奨を採った（精査2026-10-18の〈必要〉を削減の推奨で覆す）。復活は git の履歴から。
+    /// <summary>建設の進捗・素材需要に使う採算率＝FactoryBuildAfford を FactoryBuildPriceGateScale で混合（既定＝恒等）。</summary>
     public double FactoryBuildProgress(double cpuNow, double cpuRef, double priceLevel)
     {
-        if (FactoryBuildRefIsReal > 0) cpuRef *= System.Math.Max(priceLevel, 1e-9);   // 兄弟ゲート ConstructionAfford と同じ形（新しい定数は置かない）
         double a = FactoryBuildAfford(cpuNow, cpuRef);
         return FactoryBuildPriceGateScale < 1.0 ? 1.0 - System.Math.Max(0, FactoryBuildPriceGateScale) * (1.0 - a) : a;
     }
