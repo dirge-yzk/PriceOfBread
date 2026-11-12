@@ -1,0 +1,6 @@
+procx_s の門 G1（D:/PoB_work/c101py_work/armB/out_c101pyB_10/ins）・旗の値 1・欠けた種 なし
+  母集合 want>0 の行 102540（buy>0 64709）・行のある種 10/10
+  G1 上限の違反 0 行（最大 termActual/want−1 = 0）例 None
+  G1 下限の違反 0 行（最大 1−termActual/want = 0）例 None
+  Σ：termActual/want 1.000000000・termOld/want 1.626757884・termNew/want 1.000000000・buy/want 0.626758
+  判定：上限 通る・下限 通る・母集合の床 通る

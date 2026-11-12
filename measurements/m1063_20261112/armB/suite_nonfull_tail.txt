@@ -1,0 +1,15 @@
+D:\PoB_work\c101py_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:08.32]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+[xUnit.net 00:08:28.14]     PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [FAIL]
+  失敗 PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [1 m 25 s]
+  エラー メッセージ:
+   Python の道具が財の番号を数字で書いている 1 件＝instr.good_id("名前") か Catalog の定数で書くこと：instruments/c101py/rec_py.py:11［財の表の直書き（GOODS = …）］GOODS = [（1 件・許可 0）
+  スタック トレース:
+     at PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない() in D:\PoB_work\wt_c101py\PriceOfBread.Tests\GoodIdGuardTests.cs:line 564
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果ファイル: D:\PoB_work\c101py_work\suite\trx\nonfull.trx
+
+失敗!   -失敗:     1、合格:  2699、スキップ:     1、合計:  2701、期間: 39 m 27 s - PriceOfBread.Tests.dll (net10.0)
