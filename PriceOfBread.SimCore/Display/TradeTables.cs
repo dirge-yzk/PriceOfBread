@@ -39,10 +39,18 @@ public static class TradeTables
                 for (int g = 0; g < gc && g < r.Markets.Length; g++) demandByGood[g] += r.Markets[g].LastDemand;
 
         // 相手＝実際に取引した相手の州（二国間交易）。エンジンが財ごとに最大額の相手を記録する。台帳が無い（置換前の経路）時だけ、その財を最も多く出している国で近似する。
+        // 相手の名は国の一覧・外交の表と同じ取り方（PowerLabel）へ揃える。台帳が持つ文字がどの国の名でもなければ（州の名など）そのまま
+        string Label(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return raw;
+            foreach (var p in sim.Diplomacy.Powers)
+                if (p.Name == raw || p.BaseName == raw) return PowerLabel.Of(p, sim.Diplomacy.Wars);
+            return raw;
+        }
         string TopPartner(int g, bool wantExporter)
         {
             var mine = wantExporter ? w.ImportFromByGood : w.ExportToByGood;   // 輸入の相手＝売り手／輸出の相手＝買い手
-            if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return mine[g];
+            if (mine is not null && g < mine.Length && !string.IsNullOrEmpty(mine[g])) return Label(mine[g]);
             string best = ""; double bv = 0;
             foreach (var n in sim.Nations)
             {
@@ -51,7 +59,7 @@ public static class TradeTables
                 if (arr is null || g >= arr.Length || !(arr[g] > bv)) continue;
                 bv = arr[g]; best = n.World.SelfPower?.Name ?? n.World.Region.Name;
             }
-            return best;
+            return Label(best);
         }
 
         var src = exports ? eg : ig;

@@ -320,7 +320,7 @@ public partial class GameViewModel
     // 配達：日付は「届いた日」。全件リストへ積み、フィルタ（世界⇄自国のみ）に合う分だけ表示へ。
     private void DeliverNews(string icon, string body, IBrush color, double eventDay, bool mine = true)
     {
-        var row = new AlertRow(icon, $"{EventDate()} {body}", color, mine, InvolvesGreatPower(body, mine));   // 経過の表記（nヶ月前）は付けない＝日付がある（B6）
+        var row = new AlertRow(icon, $"{EventDate()} {Fmt.Zen(body)}", color, mine, InvolvesGreatPower(body, mine));   // 経過の表記（nヶ月前）は付けない＝日付がある（B6）
         _allAlerts.Insert(0, row);
         while (_allAlerts.Count > AlertsKept) _allAlerts.RemoveAt(_allAlerts.Count - 1);
         if (NewsPasses(mine, row.Great))
