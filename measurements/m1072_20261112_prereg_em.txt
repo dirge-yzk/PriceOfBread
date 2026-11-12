@@ -91,3 +91,12 @@
     州×財で全てが 0 の州×月＝9,947,534。
   G2 を置き直す（旧の 0.183 は使わない）: 独立の件数÷〈消費：POP×財（月）〉 は 0.08 以上 0.16 未満（POP の割合 0.1228 を中心に、財の数が POP により偏る幅を見込む）。
   G4 は上のとおり門にしない。
+
+[追記 2026-11-12・飛ばす木 02e6af947 のフルスイートの赤 2 本の後・直しの前] フルスイート（Category!=FullLength）2764 のうち赤 2 本（結果を見た後の変更と名乗る）
+  赤 1 OnDoubleReadScanTests.InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない：EconomyStep.Run が Instruments.On を 2 回読むようになった（skipZeroPop の述語に `!Instruments.On` を足したため）。
+     直し＝SimCore 側：`!Instruments.On` を外し insOn（＝Instruments.On && world is not null）だけにする。世界が非 null の走行（本番・T3）では insOn ⇔ Instruments.On＝述語は同じ。試験は書き換えない。
+  赤 2 SecessionLaborLawInstrumentTests.計算量の台帳のAIの官僚制度の走査の行は表に揃い_件数は計器の走査の呼びの数に合う（SecessionLaborLawInstrumentTests.cs:280・:282）：
+     :280 最後の行の名指し（LaborPowerScans+1 → DeadMarketMonth+1）。コメントが〈行を足す線は ここを直す〉と明記している番人。区分＝計算量の台帳の形の番人（★(749) の表と同じ型＝機構の向き・大きさの主張ではない）。
+     :282 `UnitMicros.All(u > 0)` → `UnitMicros.Take(ConsumeSkipZeroPop).All(u > 0)`：件数だけの 10 行の単価 0 は設計（ZeroPopSkipTests T1 が 0.0 を確かめる）。母集合を新しい行の手前までにしただけで、既存の 31 行の主張（正で有限）は変えない。
+     旧の盤面へ番人を固定する形ではない：新しい行を足したことの反映だけ。
+  直しの後は ㉘ の束を回し、最終の木で ident と trx のフルスイートをやり直す。

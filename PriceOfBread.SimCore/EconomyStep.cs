@@ -1829,7 +1829,7 @@ public static class EconomyStep
         }
         // ★(1072) 人数がちょうど 0.0 の POP は、必要量の輪と支払いの輪で飛ばす（計器が全て無い時だけ）。飛ばす側でも GoodNeed・GoodDemand には +0 を書く（財ごとの作業欄＝飛ばすと前の財の値が残る）。
         //   飛ばさなくても必要量＝x×0＝+0・買う量＝0・支払い＝0×配給＝+0 で、各欄へ +0 を足すだけ（受け手は月初・財の頭で +0 に置く）。役務の輪は飛ばさない。
-        bool skipZeroPop = !insOn && !Instruments.On && insSpend is null && insEnt is null && fdd is null && !BudgetBindDiag.On;
+        bool skipZeroPop = !insOn && insSpend is null && insEnt is null && fdd is null && !BudgetBindDiag.On;
         long skippedZero = 0;
         int consumedGoods = 0;   // POP のループを回した財（必要の無い財を除く）＝計算量の台帳の「消費：POP×財」（財のループの後にまとめて足す）
         for (int coi = 0; coi < ngoods; coi++)
