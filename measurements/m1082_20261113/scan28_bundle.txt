@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2010476) [1 ms]
+失敗!   -失敗:     1、合格:   212、スキップ:     0、合計:   213、期間: 18 m 1 s - PriceOfBread.Tests.dll (net10.0)

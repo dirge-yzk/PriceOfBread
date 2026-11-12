@@ -1,0 +1,6 @@
+  失敗 PriceOfBread.Tests.RegionLabelInvariantTests.構築した全ての州に文化と宗教の札がある_例外は文化の名指しの許しだけ [2 s]
+   見た州 227 が json の州 227＋昇格 81 より少ない
+  失敗 PriceOfBread.Tests.RegionLabelInvariantTests.番人は構築した州を読む_昇格した植民地の州の札を空にすると名指しで赤 [244 ms]
+Expected: string[]     ["フランス/北部サン=ドマング:文化", "フランス/北部サン=ドマング:宗教"]
+Actual:   List<string> []
+失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
