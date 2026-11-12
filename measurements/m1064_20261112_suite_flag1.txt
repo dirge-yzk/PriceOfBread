@@ -1,0 +1,11 @@
+(1064) c101vs 旗 1 の木 5c4409d47：㊴ 計器の試験の束（Instrument・DependencyCycleTests・DormantIdentityTests）314 件 緑
+nonfull rc=0
+full rc=0
+saveleak rc=0
+成功!   -失敗:     0、合格:  2696、スキップ:     1、合計:  2697、期間: 36 m 22 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 35 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests：Category!=FullLength 2697・FullLength 3
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+trx：D:/PoB_work/c101vs_work/trx/nonfull.trx・full.trx
