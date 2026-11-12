@@ -1,2 +1,5 @@
 D:/PoB_work/ident_c100dv（c100dv の ident の生・刈った後 1.3GB・判定と manifest は measurements にコミット済み）
 D:/PoB_work/ident_c100icz（c100ic の旗 0 の ident の作業・6MB・成績表は measurements/m1056_20261112/identz にコミット済み）
+D:/PoB_work/ident_m1060a（合流の素の 5 種の ident・この回に作った・成績表は measurements/b5_20261112_m1060a へ）
+D:/PoB_work/m1060_work/suite・kitsrc（この回に作った・隔離ビルドと写し）
+worktree wt_c100dv・wt_c100ic・wt_c100mx（git worktree remove）とローカルの枝 c100dv・c100ic・c100mx
