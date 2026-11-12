@@ -329,7 +329,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.speedbox.filled.paused /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource Gray70Brush}"/>
+            <Setter Property="Background" Value="{StaticResource Gray30Brush}"/>
         </Style>
         <Style Selector="Button.speedbox.filled.paused">
             <Setter Property="BorderBrush" Value="{StaticResource Gray70Brush}"/>
@@ -449,14 +449,13 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="TextElement.Foreground" Value="{StaticResource Gray70Brush}"/>
         </Style>
-        <!-- 供給の網の札の上下（▲▼）：tier の色の縦線の上に載る＝線の枠を付けず、明るい字（OnFill）で描く。押せない時は透かす（点検④＝茶の地に灰で見えなかった） -->
+        <!-- 供給の網の札の上下（▲▼）：tier の色の縦線の上に載る＝線の枠を付けず、明るい字（OnFill）で描く。押せない時も▲と同じ濃さ（点検④＝茶の地に灰で見えなかった・点検2回目 1-4＝▼だけ淡く見えた） -->
         <Style Selector="Button.counter.updown">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="{StaticResource OnFillBrush}"/>
         </Style>
         <Style Selector="Button.counter.updown:disabled /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="TextElement.Foreground" Value="{StaticResource OnFillBrush}"/>
-            <Setter Property="Opacity" Value="0.45"/>
         </Style>
         <Style Selector="Button.row">
             <Setter Property="Background" Value="Transparent"/>

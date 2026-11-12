@@ -196,7 +196,10 @@ public sealed class FloatingWindow : Border
     }
 
     public void SetFront(bool front)
-        => BorderBrush = front ? Brush("AccentBrush", Brushes.Orange) : Brush("LineBrush", Brushes.Tan);
+    {
+        BorderBrush = front ? Brush("AccentBrush", Brushes.Orange) : Brush("LineBrush", Brushes.Tan);
+        _titleBar.Background = front ? Brush("AccentSoftBrush", Brushes.Orange) : Brush("TraceBrush", Brushes.Tan);   // 前の窓だけ題の帯も橙の淡い地＝重なった窓の前後が分かる（点検2回目 ⑤）
+    }
 
     /// <summary>層の座標での位置と大きさを置く（Canvas の置き方）。</summary>
     public void SetRect(WindowRect r)

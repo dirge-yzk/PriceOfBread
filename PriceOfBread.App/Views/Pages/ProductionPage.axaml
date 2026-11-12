@@ -279,8 +279,8 @@
                              どちらが長くても成り立つ（行が増減しても崩れない）。区切り線と合計の下余白も左右で同値にする。 -->
                         <!-- 左右の欄の見出し（W13）＝右の「物価水準」「需要と供給」が左の材料の行の数に見えないよう、欄ごとに名を付ける -->
                         <Grid ColumnDefinitions="*,8,140">
-                            <TextBlock Grid.Column="0" Text="費用の内訳" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkFaintBrush}"/>
-                            <TextBlock Grid.Column="2" Text="価格の積み上げ" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkFaintBrush}"/>
+                            <TextBlock Grid.Column="0" Text="費用の内訳" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource GrayBrush}"/>
+                            <TextBlock Grid.Column="2" Text="価格の積み上げ" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource GrayBrush}"/>
                         </Grid>
                         <Grid ColumnDefinitions="*,8,140">
                             <StackPanel Grid.Column="0" VerticalAlignment="Bottom">

@@ -249,6 +249,9 @@ public sealed class MapHoverLine
 public sealed class MapHoverInfo
 {
     public string Title { get; init; } = "";
+    /// <summary>題の名前の部分と括弧の部分（「ロンドン」と「（イギリス王国・…の属国）」）。窓の題は 2 つの塊として並べ、折り返すときは括弧の前で切る（語の途中で切らない）。</summary>
+    public string TitleHead => Title.IndexOf('（') is > 0 and var i ? Title[..i] : Title;
+    public string TitleNote => Title.IndexOf('（') is > 0 and var i ? Title[i..] : "";
     public List<MapHoverLine> Lines { get; } = new();
     public string ProducedGoods { get; set; } = "";   // 生産材（世界シェア上位）。窓「州」の左
     public string ImportedGoods { get; set; } = "";   // 輸入材（所有国の輸入額の世界シェア上位）。窓「州」の右
