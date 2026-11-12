@@ -175,8 +175,9 @@ public static class FiscalTables
         // 行にしなかった小さい区分と税の 4 行の食い違いは、台帳の収支との差として側ごとに「その他」へ畳む＝実績の合計の差が国庫の収支（台帳）と厳密に一致する（V1）
         double ActSum(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual);
         double rest = LedgerBalance(f) - (ActSum(income) - ActSum(spend));
-        if (f.LedgerDiff.Any(x => x != 0) && rest >= 0.5) income.Add(Line("restIn", "その他", 0, rest, noFc: true));
-        else if (f.LedgerDiff.Any(x => x != 0) && rest <= -0.5) spend.Add(Line("restOut", "その他", 0, -rest, noFc: true));
+        //   同じ側に台帳の区分の「その他の収入／その他の支出」の行が既にあれば、その行が受ける（「その他の収入」と「その他」の 2 行が並ばない・2026-11-12）
+        if (f.LedgerDiff.Any(x => x != 0) && rest >= 0.5) AddRest(income, "restIn", "cat.OtherIn", rest);
+        else if (f.LedgerDiff.Any(x => x != 0) && rest <= -0.5) AddRest(spend, "restOut", "cat.OtherOut", -rest);
 
         // 四半期に 1 回だけ動く区分（貢納の出入り）は、台帳の月の差分では払った月に 3 か月分・他の月は 0 になる＝「/月」の列の単位に合わない。
         //   行の実績は予測と同じ月あたり（直近の四半期の額÷3）で出し、均した分と実際の差は同じ側の「その他」が受ける
@@ -189,6 +190,14 @@ public static class FiscalTables
 
         double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child && !l.NoForecast).Sum(l => l.Forecast);
         return new BudgetResult(spend, income, Fc(spend), ActSum(spend), Fc(income), ActSum(income));
+    }
+
+    /// <summary>台帳との差 <paramref name="amount"/> を側へ足す。同じ側に <paramref name="otherKey"/>（その他の収入／支出）の行があればそこへ加え、無ければ「その他」の行を作る。</summary>
+    private static void AddRest(List<BudgetLine> side, string restKey, string otherKey, double amount)
+    {
+        int o = side.FindIndex(l => l.Key == otherKey);
+        if (o >= 0) side[o] = side[o] with { Actual = side[o].Actual + amount };
+        else side.Add(new BudgetLine(restKey, "その他", 0, amount, StageCell.None, null, NoForecast: true));
     }
 
     /// <summary>行 <paramref name="key"/> の実績を月あたりに均した額 <paramref name="avg"/> へ置き換え、実際の額 <paramref name="actual"/> との差を同じ側の <paramref name="restKey"/>（その他）へ入れる。行が無ければ何もしない。</summary>

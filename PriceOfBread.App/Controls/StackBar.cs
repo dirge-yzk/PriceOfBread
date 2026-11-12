@@ -12,8 +12,8 @@ public sealed class StackBar : Control
     private BarCell? _cell;
     public BarCell? Cell { get => _cell; set { _cell = value; InvalidateVisual(); } }
 
-    private static readonly IPen Frame = new Pen(new SolidColorBrush(Color.Parse("#8C7A5E")), 1);
-    private static readonly IBrush Empty = new SolidColorBrush(Color.Parse("#EFE6D2"));
+    private static readonly IPen Frame = new Pen(UiRes.Brush("Gray70Brush", Brushes.Gray), 1);
+    private static readonly IBrush Empty = UiRes.Brush("TraceBrush", Brushes.Gainsboro);
 
     public override void Render(DrawingContext context)
     {

@@ -27,7 +27,7 @@
                 <TextBlock Text="粗死亡率" Classes="range"/>
                 <ctl:LineChart x:Name="DeathChart" Values="{Binding DeathRateValues}" Height="44" Stroke="{StaticResource RustBrush}"/>
                 <TextBlock Text="合計出生率" Classes="range"/>
-                <ctl:LineChart x:Name="FertilityChart" Values="{Binding FertilityValues}" Height="44" Stroke="{StaticResource BronzeBrush}"/>
+                <ctl:LineChart x:Name="FertilityChart" Values="{Binding FertilityValues}" Height="44" Stroke="{StaticResource GrayBrush}"/>
             </StackPanel>
         </ctl:Section>
         <ctl:Section Key="religion" Title="宗教" Scrolls="False">

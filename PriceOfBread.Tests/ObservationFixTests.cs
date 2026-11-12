@@ -112,4 +112,21 @@ public class ObservationFixTests
         Assert.Equal(82_000, b.Income.Single(l => l.Key == "cat.OtherIn").Actual, 6);   // 80000＋均した差（3000−1000）
         Assert.Equal(FiscalTables.LedgerBalance(f), b.BalanceActual, 4);   // 側ごとの合計は台帳のまま
     }
+
+    [Fact]
+    public void Z2b_行にしない小さい区分の差も_同じ側のその他の収入の行が受け_その他の行を並べない()
+    {
+        var (_, w) = Board(4);
+        var led = new double[(int)TreasuryCat.Count];
+        led[(int)TreasuryCat.OtherIn] = 80_000;
+        var b0 = FiscalTables.Budget(w, new FiscalFlows(0, 0, 0, 0, led));
+        led[(int)TreasuryCat.Tax] = b0.Income.Where(l => l.Key.EndsWith("Tax")).Sum(l => l.Actual);   // 税の 4 行の実績は台帳の外から来る＝台帳の税収を合わせて差を 0 にする
+        led[(int)TreasuryCat.Devalue] = 20;   // 表示の解像度未満＝行にならず台帳との差（その他）へ畳まれる区分
+        var f = new FiscalFlows(0, 0, 0, 0, led);
+        var b = FiscalTables.Budget(w, f);
+        Assert.DoesNotContain(b.Income, l => l.Key == "restIn");   // 「その他の収入」と「その他」の 2 行が並ばない
+        Assert.DoesNotContain(b.Spend, l => l.Key == "restOut");
+        Assert.Equal(80_020, b.Income.Single(l => l.Key == "cat.OtherIn").Actual, 6);
+        Assert.Equal(FiscalTables.LedgerBalance(f), b.BalanceActual, 4);   // 側ごとの合計は台帳のまま
+    }
 }

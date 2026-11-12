@@ -34,12 +34,12 @@ internal static class UiShotParts
         }
         Border Frame(string caption, PageGrid g) => new()
         {
-            BorderBrush = B("SandDarkBrush", Brushes.Tan), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 0, 10),
+            BorderBrush = B("LineBrush", Brushes.Tan), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 0, 10),
             Child = new StackPanel { Children = { new TextBlock { Text = caption, FontWeight = FontWeight.Bold, Margin = new Thickness(6, 2), Foreground = B("InkBrush", Brushes.Black) }, g } },
         };
         var wide = Make(1280, 330); var mid = Make(900, 330); var narrowLow = Make(560, 250);
         var panel = new StackPanel { Margin = new Thickness(12), Width = 1300, Children = { Frame("幅 1280・高さ 330：3 列", wide), Frame("幅 900・高さ 330：2 列", mid), Frame("幅 560・高さ 250：1 列（低い欄から畳む）", narrowLow) } };
-        return new Border { Background = B("ParchmentBrush", Brushes.Beige), Child = panel, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+        return new Border { Background = B("PaperBrush", Brushes.Beige), Child = panel, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
     }
 
     private static T With<T>(this T x, Action<T> f) { f(x); return x; }
@@ -100,6 +100,6 @@ internal static class UiShotParts
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 24, Children = { pie, pieOne, pieNone } },
             },
         };
-        return new Border { Background = B("ParchmentBrush", Brushes.Beige), Child = parts, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+        return new Border { Background = B("PaperBrush", Brushes.Beige), Child = parts, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
     }
 }
