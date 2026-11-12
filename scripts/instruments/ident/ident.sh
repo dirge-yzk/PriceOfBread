@@ -24,6 +24,7 @@
 #   --cost-allow     <件数の行の名前の頭,...>  .cost の件数の行が違ってよい線（コードの削除で件数が変わる〈番人を写しただけ〉の例外＝線ごとに名乗る）
 #   --ng                                   ng.sh を回して NG の集合を基準と比べる（既定は回さない）
 # 終了コード：0＝恒等・1＝不一致・2＝走りが足りない（出力が無い・腕の終了コードが 0 でない・出力の SOURCE-HASH が測る木の物と違う）。最後の行が  判定: 恒等  か  判定: 不一致  か  判定: 未了。
+# 刈り込み（(1061) 以後の既定＝PRUNE=1）：段 2 の run で判定: 恒等 のとき、基準と生のバイトが一致した表を消す（PRUNE=0 で刈らない・重い 4 表は PRUNE_HEAVY=1）。
 # start は同じラベルの前の回の出力を消してから走る（古い出力で〈恒等〉にならない）。
 export PYTHONUTF8=1 AVALONIA_TELEMETRY_OPTOUT=1
 export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/Program Files/dotnet:$PATH"
@@ -82,10 +83,10 @@ case "$CMD" in
     echo "rc=0 end=$(date '+%F %T')" > "$W/marks/all.done"
     echo "ident start：腕は全て終わった（$(ls "$W/marks" | grep -c '\.done$') 印）"
     if [ "$CMD" = run ]; then
-      if [ "${PRUNE:-0}" != 1 ] || ! head -1 "$W/marks/stage.txt" | grep -q '^段=2$'; then   # 段 1 の生は小さい表だけ＝刈らない   # (1046) 既定（PRUNE 未設定）は今までと同じ exec
+      if [ "${PRUNE:-1}" != 1 ] || ! head -1 "$W/marks/stage.txt" | grep -q '^段=2$'; then   # PRUNE=0 か段 1（生が小さい表だけ）は刈らない   # (1046) 既定（PRUNE 未設定）は今までと同じ exec
         exec bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}"
       fi
-      # (1046) PRUNE=1：判定の行が出た後に限り、基準と全体が一致した表の生を消す（tools/prune.py・manifest は $W/prune_manifest.tsv）。PRUNE_HEAVY=1 で重い 4 表も対象（HEAVY_KEEP=表の頭,... は残す）。
+      # (1046) PRUNE（既定 1＝(1061) 以後。PRUNE=0 で刈らない）：判定の行が出た後に限り、基準と全体が一致した表の生を消す（tools/prune.py・manifest は $W/prune_manifest.tsv）。PRUNE_HEAVY=1 で重い 4 表も対象（HEAVY_KEEP=表の頭,... は残す）。
       bash "$W/ident_run.sh" check "$LABEL" --work "$W" --tree "$TREE" ${CFG:+--cfg "$CFG"} $([ $SAVELEAK = 1 ] && echo --saveleak) "${EXTRA[@]}" | tee "$W/check_out.txt"
       RCC=${PIPESTATUS[0]}
       CF="${CFG:-$ROOT/scripts/instruments/ident/ident.cfg}"
