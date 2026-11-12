@@ -1,0 +1,6 @@
+  失敗 PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [212 ms]
+Collection: ["入力のハッシュが違う（表 5433e32c6b866642 ≠ 世界 8f49062fc649ae7"···]
+[xUnit.net 00:00:39.81]     PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [FAIL]
+  失敗 PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない [6 ms]
+     at PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を読まない() in D:\PoB_work\wt_c103cr\PriceOfBread.Tests\OpeningBakeTests.cs:line 161
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 38 s - PriceOfBread.Tests.dll (net10.0)
