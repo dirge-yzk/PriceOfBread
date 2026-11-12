@@ -120,6 +120,7 @@ public partial class MainWindow
 
         Show(Slot.FiscalMoney);
         t.Add(g.SpendTable with { Name = g.SpendTitle });
+        t.Add(g.DebtTable);   // 国債と外資信用＝画面の値（目録の組は外資の流れを 0 にして読む）
         t.Add(g.IncomeTable with { Name = g.IncomeTitle });   // 国庫の台帳は支出と収入の表の「払った額／入った額」へ吸収済み（B26）＝別の表は無い
 
         Show(Slot.Population);
