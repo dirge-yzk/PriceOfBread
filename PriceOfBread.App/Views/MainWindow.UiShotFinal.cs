@@ -92,7 +92,7 @@ public partial class MainWindow
                 await Task.Delay(500);
                 row.ActivateCommand.Execute(null);
                 await Task.Delay(1300);
-                ReportJump($"問題「{ProblemScan.KindName(g.Key)}・{it.Target}」", (Slot)(int)it.Page, it.TableKey, it.RowKey, gvm, gameView, it.Section);
+                ReportJump($"問題「{ProblemScan.KindName(g.Key)}・{it.Target}」", (Slot)(int)it.Page, it.TableKey, it.RowKey, gvm, gameView);
             }
             lay.Reset();
             await Task.Delay(600);
@@ -101,8 +101,8 @@ public partial class MainWindow
         finally { lay.Reset(); }
     }
 
-    /// <summary>飛び先の確かめ：そのページが中央に開いたか・表の行に着いたか（表を持たない対象は欄が畳まれていないか）。</summary>
-    private void ReportJump(string what, Slot slot, string tableKey, string rowKey, GameViewModel gvm, GameView gameView, string section = "")
+    /// <summary>飛び先の確かめ：そのページが中央に開いたか・表の行に着いたか。</summary>
+    private void ReportJump(string what, Slot slot, string tableKey, string rowKey, GameViewModel gvm, GameView gameView)
     {
         var lay = gvm.Layout;
         bool shown = lay.IsShown(slot);
@@ -114,8 +114,6 @@ public partial class MainWindow
             var tv = page.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == tableKey);
             landed = tv is null ? "・表が見つからない" : $"・表の行 {(tv.FocusedKey == rowKey ? "に着いた" : $"に着かない（着いたのは{tv.FocusedKey ?? "なし"}・行は{(tv.Snapshot!.Rows.Any(r => r.Key == rowKey) ? "ある" : "表に無い")}）")}";
         }
-        if (page is not null && section.Length > 0 && page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault() is { LastPlan: { } plan })
-            landed += $"・欄「{section}」{(plan.SelectMany(c => c).FirstOrDefault(p => p.Key == section) is { } sp ? (sp.Collapsed ? "は畳まれている" : "は開いている") : "が無い")}";
         BootLog.Write($"uishot: {what} → {SlotInfo.Name(slot)}が{place}{landed}");
     }
 }

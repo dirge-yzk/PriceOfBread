@@ -9,16 +9,16 @@ namespace PriceOfBread.App.Views.Pages;
 /// 地図の欄は 2026-11-11 作者指示で削除（地図は背景だけ）。行を押すと背景の地図がその国の中心へ動く。</summary>
 public partial class DiplomacyWarPage : UserControl
 {
-    /// <summary>欄と畳む順位（1＝最後まで残る）・最小の行数・3 列のときの置き場（列ごとに上から下）。2 列・1 列は 3 列の並びを左から順に積む。
-    /// 国の一覧が最後まで残る。戦争は次。終わった戦争と他国の戦争と反乱勢力は先に見出しの 1 行へ畳まれる。</summary>
+    /// <summary>欄・最小の行数・3 列のときの置き場（列ごとに上から下）。2 列・1 列は 3 列の並びを左から順に積む。
+    /// 高さが足りない時は全ての欄を同じ比で狭める。</summary>
     public static PageTable Table { get; } = new(
     [
-        new SectionSpec("nations", "国の一覧", 1, 10, 3),
-        new SectionSpec("war", "戦争", 2, 6),
-        new SectionSpec("army", "軍事力の必要量", 4, 10),
-        new SectionSpec("faction", "反乱勢力", 5, 5),
-        new SectionSpec("mediation", "他国の戦争", 6, 4),
-        new SectionSpec("past", "終わった戦争", 7, 3),
+        new SectionSpec("nations", "国の一覧", 10, 3),
+        new SectionSpec("war", "戦争", 6),
+        new SectionSpec("army", "軍事力の必要量", 10),
+        new SectionSpec("faction", "反乱勢力", 5),
+        new SectionSpec("mediation", "他国の戦争", 4),
+        new SectionSpec("past", "終わった戦争", 3),
     ],
     [
         ["war", "past"],

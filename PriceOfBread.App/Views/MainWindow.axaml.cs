@@ -404,13 +404,6 @@ public partial class MainWindow : Window
                 await Task.Delay(900);
                 Capture(dir, $"{k:D2}_ページ_{SlotInfo.Name(slot)}.png");
                 LogOuterFlow(gameView, SlotInfo.Name(slot));
-                if (slot == Slot.Market)   // 市場の 2 面目（貿易）
-                {
-                    gvm.MarketTradeView = true; await Task.Delay(700);
-                    Capture(dir, $"{k:D2}c_ページ_{SlotInfo.Name(slot)}_貿易.png");
-                    LogOuterFlow(gameView, SlotInfo.Name(slot) + " 貿易");
-                    gvm.MarketTradeView = false; await Task.Delay(300);
-                }
                 // 縦に長いページは最下端まで送った状態も撮る（下端見切れの検証・2026-07-25）
                 var sv = this.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault(v => v.Name == "PageScroll");
                 if (sv is not null && sv.Extent.Height > sv.Viewport.Height + 1)

@@ -221,39 +221,10 @@ public class LayoutTests
         Assert.Null(junk.RectOf(Slot.Market));
         Assert.Null(junk.RectOf(Slot.Map));
         Assert.Null(junk.RectOf(Slot.Production));
-        // 分割を廃止する前の保存（形・席・割合を持つ）＝知らない項目は読み捨て・左の列と欄の記録は生きる
+        // 分割を廃止する前の保存（形・席・割合を持つ）＝知らない項目は読み捨て・左の列の記録は生きる
         var old = LayoutModel.FromJson("{\"Shape\":\"Four\",\"Seats\":[\"Production\",\"Market\",\"FiscalMoney\",\"Population\"],\"Selected\":2,\"MainRatio\":0.4,\"SubRatio\":0.5,\"LeftOpen\":false,\"RightOpen\":false,\"Sections\":{\"Market\":{\"Opened\":[\"a\"],\"Closed\":[]}}}");
         Assert.False(old.LeftOpen);
         Assert.Equal(Slot.Map, old.Background);
-        Assert.Equal(["a"], old.SectionState("Market").Opened);
-    }
-
-    [Fact]
-    public void 見出しを押して開け閉めした欄は保存される_往復する_知らないページや空の記録は捨てる_初めの配置に戻すと消える()
-    {
-        var m = new LayoutModel();
-        int changed = 0; m.Changed += () => changed++;
-        m.SetSectionState("Production", ["goods", "goods", "equipment"], ["supply"]);
-        Assert.Equal(1, changed);
-        m.SetSectionState("Production", ["equipment", "goods"], ["supply"]);   // 同じ内容（順が違うだけ）は変わりとしない
-        Assert.Equal(1, changed);
-        var (opened, closed) = m.SectionState("Production");
-        Assert.Equal(["equipment", "goods"], opened);
-        Assert.Equal(["supply"], closed);
-        var back = LayoutModel.FromJson(m.ToJson());
-        Assert.Equal(m.ToJson(), back.ToJson());
-        Assert.Equal(["equipment", "goods"], back.SectionState("Production").Opened);
-        Assert.Empty(back.SectionState("Market").Opened);
-        // 知らないページの記録・空の記録は読まない
-        var junk = LayoutModel.FromJson("{\"Sections\":{\"Nope\":{\"Opened\":[\"a\"],\"Closed\":[]},\"Market\":{\"Opened\":[],\"Closed\":[]}}}");
-        Assert.Empty(junk.SectionState("Market").Opened);
-        Assert.Empty(junk.SectionState("Market").Closed);
-        Assert.DoesNotContain("Nope", junk.ToJson());
-        m.SetSectionState("Production", [], []);   // 全部戻すと記録ごと消える
-        Assert.DoesNotContain("Sections", m.ToJson());
-        m.SetSectionState("Market", [], ["imports"]);
-        m.Reset();
-        Assert.Empty(m.SectionState("Market").Closed);
     }
 
     [Fact]
@@ -276,8 +247,8 @@ public class LayoutTests
 
     private static PageTable Sample() => new(
     [
-        new SectionSpec("a", "甲", 1, 8), new SectionSpec("b", "乙", 2, 6), new SectionSpec("c", "丙", 3, 6),
-        new SectionSpec("d", "丁", 4, 6), new SectionSpec("e", "戊", 5, 6),
+        new SectionSpec("a", "甲", 8), new SectionSpec("b", "乙", 6), new SectionSpec("c", "丙", 6),
+        new SectionSpec("d", "丁", 6), new SectionSpec("e", "戊", 6),
     ], [["a"], ["b", "c"], ["d", "e"]]);
 
     [Fact]
@@ -302,64 +273,61 @@ public class LayoutTests
         Assert.Single(c1);
         Assert.Equal("abcde", string.Concat(c1[0].Select(s => s.Key)));
         // 宣言の間違いは落とす
-        Assert.Throws<ArgumentException>(() => PagePlan.Arrange(new PageTable([new SectionSpec("a", "甲", 1)], [["x"]]), 3));
-        Assert.Throws<ArgumentException>(() => PagePlan.Arrange(new PageTable([new SectionSpec("a", "甲", 1), new SectionSpec("a", "乙", 2)], [["a"]]), 3));
-        Assert.Throws<ArgumentException>(() => PagePlan.Arrange(new PageTable([new SectionSpec("a", "甲", 1)], [["a"], ["a"]]), 3));
+        Assert.Throws<ArgumentException>(() => PagePlan.Arrange(new PageTable([new SectionSpec("a", "甲")], [["x"]]), 3));
+        Assert.Throws<ArgumentException>(() => PagePlan.Arrange(new PageTable([new SectionSpec("a", "甲"), new SectionSpec("a", "乙")], [["a"]]), 3));
+        Assert.Throws<ArgumentException>(() => PagePlan.Arrange(new PageTable([new SectionSpec("a", "甲")], [["a"], ["a"]]), 3));
     }
 
     [Fact]
-    public void 高さが足りなければ順位の数が大きい欄から見出しの1行へ畳む_利用者が開いた欄は最後_余りは重みで分ける()
+    public void 高さが足りなければ全ての欄を同じ比で狭める_欄は常に開いている_余りは重みで分ける()
     {
-        var col = new[] { new SectionSpec("a", "甲", 1, 6), new SectionSpec("b", "乙", 2, 6), new SectionSpec("c", "丙", 3, 6), new SectionSpec("d", "丁", 4, 6) };
+        var col = new[] { new SectionSpec("a", "甲", 6), new SectionSpec("b", "乙", 6), new SectionSpec("c", "丙", 6), new SectionSpec("d", "丁", 6) };
         double min = PagePlan.MinHeight(col[0]);
         double all = 4 * min + 3 * PagePlan.SectionGap;
         // 全部入る
         var p = PagePlan.PlanColumn(col, all + 100);
-        Assert.All(p, x => Assert.False(x.Collapsed));
         Assert.Equal(all + 100 - 3 * PagePlan.SectionGap, p.Sum(x => x.Height), 6);   // 余りは使い切る（欄の間の隙間を除いて）
-        // 1 つ足りない → 順位が最も低い（数が最大）の丁が畳まれる
-        p = PagePlan.PlanColumn(col, all - 1);
-        Assert.Equal(new[] { false, false, false, true }, p.Select(x => x.Collapsed).ToArray());
-        Assert.Equal(PagePlan.HeaderHeight, p[3].Height);
-        // 利用者が丁を開いた → 代わりに丙が畳まれる
-        p = PagePlan.PlanColumn(col, all - 1, new HashSet<string> { "d" });
-        Assert.Equal(new[] { false, false, true, false }, p.Select(x => x.Collapsed).ToArray());
-        // 利用者が畳んだ欄は、高さが十分でも畳まれたまま
-        p = PagePlan.PlanColumn(col, all + 100, null, new HashSet<string> { "b" });
-        Assert.True(p[1].Collapsed);
-        // うんと狭い → 最後まで残るのは順位 1
-        p = PagePlan.PlanColumn(col, min + 30);
-        Assert.False(p[0].Collapsed); Assert.All(p.Skip(1), x => Assert.True(x.Collapsed));
+        // 足りない → 全ての欄が同じ高さのまま狭まる（見出しの 1 行より下には潰れない）
+        p = PagePlan.PlanColumn(col, all - 80);
+        Assert.Equal(all - 80 - 3 * PagePlan.SectionGap, p.Sum(x => x.Height), 6);
+        Assert.All(p, x => Assert.Equal(p[0].Height, x.Height, 6));
+        Assert.All(p, x => Assert.True(x.Height > PagePlan.HeaderHeight));
+        // うんと狭い → 床（見出し＋1 行）で止まる
+        p = PagePlan.PlanColumn(col, 10);
+        Assert.All(p, x => Assert.Equal(PagePlan.HeaderHeight + PagePlan.RowHeight, x.Height, 6));
         // 重み
-        var w = new[] { new SectionSpec("a", "甲", 1, 6, 1), new SectionSpec("b", "乙", 2, 6, 3) };
+        var w = new[] { new SectionSpec("a", "甲", 6, 1), new SectionSpec("b", "乙", 6, 3) };
         var pw = PagePlan.PlanColumn(w, 2 * min + PagePlan.SectionGap + 400);
         Assert.Equal(100, pw[0].Height - min, 6); Assert.Equal(300, pw[1].Height - min, 6);
-        // 無限の高さ＝畳まず最小の高さのまま
+        // 無限の高さ＝最小の高さのまま
         var inf = PagePlan.PlanColumn(col, double.PositiveInfinity);
-        Assert.All(inf, x => { Assert.False(x.Collapsed); Assert.Equal(min, x.Height, 6); });
+        Assert.All(inf, x => Assert.Equal(min, x.Height, 6));
     }
 
     [Fact]
-    public void 空の欄は見出しの1行へ畳む_利用者が開けば開く_高さは中身の上限で止め余りは他の欄へ回す()
+    public void 欄の高さは中身の上限で止め_余りは他の欄へ回す()
     {
-        var col = new[] { new SectionSpec("a", "甲", 1, 6), new SectionSpec("b", "乙", 2, 6), new SectionSpec("c", "丙", 3, 6) };
-        var empty = new HashSet<string> { "b" };
-        var p = PagePlan.PlanColumn(col, 3000, null, null, empty);
-        Assert.Equal(new[] { false, true, false }, p.Select(x => x.Collapsed).ToArray());
-        Assert.Equal(PagePlan.HeaderHeight, p[1].Height);
-        // 空でも利用者が開いた欄は開く
-        p = PagePlan.PlanColumn(col, 3000, new HashSet<string> { "b" }, null, empty);
-        Assert.False(p[1].Collapsed);
+        var col = new[] { new SectionSpec("a", "甲", 6), new SectionSpec("b", "乙", 6), new SectionSpec("c", "丙", 6) };
         // 上限：甲は中身が少ない → 上限で止まり、余りは丙へ回る（全体の高さは使い切る）
         var caps = new Dictionary<string, double> { ["a"] = 100 };
-        p = PagePlan.PlanColumn(col, 1000, null, null, null, caps);
+        var p = PagePlan.PlanColumn(col, 1000, caps);
         Assert.Equal(100, p[0].Height, 6);
         Assert.Equal(1000 - 2 * PagePlan.SectionGap, p.Sum(x => x.Height), 6);
         Assert.True(p[1].Height > PagePlan.MinHeight(col[1]) && p[2].Height > PagePlan.MinHeight(col[2]));
         // 全部が上限なら余りは空ける
         var allCaps = new Dictionary<string, double> { ["a"] = 100, ["b"] = 100, ["c"] = 100 };
-        p = PagePlan.PlanColumn(col, 3000, null, null, null, allCaps);
+        p = PagePlan.PlanColumn(col, 3000, allCaps);
         Assert.All(p, x => Assert.Equal(100, x.Height, 6));
+    }
+
+    [Fact]
+    public void 列の幅は重みの比_無ければ均等()
+    {
+        var even = PagePlan.ColumnWidths(3, 1000);
+        Assert.All(even, x => Assert.Equal((1000 - 2 * PagePlan.ColumnGap) / 3, x, 6));
+        var w = PagePlan.ColumnWidths(2, 1000, [3, 2]);
+        Assert.Equal(3.0 / 2, w[0] / w[1], 6);
+        Assert.Equal(1000 - PagePlan.ColumnGap, w.Sum(), 6);
     }
 
     [Fact]
@@ -375,7 +343,7 @@ public class LayoutTests
                 foreach (var col in plan)
                 {
                     double used = col.Sum(s => s.Height) + (col.Count - 1) * PagePlan.SectionGap;
-                    double floor = col.Count * PagePlan.HeaderHeight + (col.Count - 1) * PagePlan.SectionGap;   // 見出しだけでも入らない高さは仕方がない
+                    double floor = col.Count * (PagePlan.HeaderHeight + PagePlan.RowHeight) + (col.Count - 1) * PagePlan.SectionGap;   // 床（見出し＋1 行）でも入らない高さは仕方がない
                     Assert.True(used <= Math.Max(height, floor) + 1e-6, $"{width}×{height}: 列が高さを超える {used}");
                 }
             }

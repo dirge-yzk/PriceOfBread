@@ -326,12 +326,12 @@ public class FiscalPopDiscoveryTablesTests
     [Fact]
     public void 欄の並べ_列の最小の幅を宣言したページは_広さに応じて列を減らし_置き場の列の数を超えず_2つの置き場は書いた通りに並ぶ()
     {
-        var three = new PageTable([new SectionSpec("a", "甲", 1), new SectionSpec("b", "乙", 2), new SectionSpec("c", "丙", 3)], [["a"], ["b"], ["c"]], ColumnMinWidth: 600);
+        var three = new PageTable([new SectionSpec("a", "甲"), new SectionSpec("b", "乙"), new SectionSpec("c", "丙")], [["a"], ["b"], ["c"]], ColumnMinWidth: 600);
         Assert.Equal(1, PagePlan.ColumnCount(500, three));
         Assert.Equal(1, PagePlan.ColumnCount(839, three));
         Assert.Equal(2, PagePlan.ColumnCount(1260, three));
         Assert.Equal(3, PagePlan.ColumnCount(1900, three));
-        var two = new PageTable([new SectionSpec("a", "甲", 1), new SectionSpec("b", "乙", 2)], [["a"], ["b"]], ColumnMinWidth: 500);
+        var two = new PageTable([new SectionSpec("a", "甲"), new SectionSpec("b", "乙")], [["a"], ["b"]], ColumnMinWidth: 500);
         Assert.Equal(2, PagePlan.ColumnCount(5000, two));   // 置き場の列の数（2）を超えない
         var arranged = PagePlan.Arrange(two, 2);
         Assert.Equal(["a"], arranged[0].Select(s => s.Key).ToArray());
@@ -339,7 +339,7 @@ public class FiscalPopDiscoveryTablesTests
         var one = PagePlan.Arrange(two, 1);
         Assert.Equal(["a", "b"], one[0].Select(s => s.Key).ToArray());
         // 宣言が無いページは今までの幅の閾値（1200・700）のまま
-        var plain = new PageTable([new SectionSpec("a", "甲", 1)], [["a"]]);
+        var plain = new PageTable([new SectionSpec("a", "甲")], [["a"]]);
         Assert.Equal(PagePlan.ColumnCount(839), PagePlan.ColumnCount(839, plain));
     }
 

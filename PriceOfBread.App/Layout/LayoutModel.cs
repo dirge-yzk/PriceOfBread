@@ -56,24 +56,7 @@ public sealed class LayoutModel
     /// <summary>窓として開くものか（背景の地図・生産以外）。</summary>
     public static bool IsWindow(Slot s) => s != Slot.Map && s != Slot.Production;
 
-    // ページごとの、プレイヤーが見出しを押して開け閉めした欄（設計 §2-6「畳んだ欄」）。鍵＝ページの名前（<see cref="Slot"/> の名前）。
-    private readonly Dictionary<string, (string[] Opened, string[] Closed)> _sections = new();
-
-    /// <summary>そのページの、プレイヤーが開けた欄・閉じた欄の鍵。</summary>
-    public (IReadOnlyList<string> Opened, IReadOnlyList<string> Closed) SectionState(string page)
-        => _sections.TryGetValue(page, out var s) ? (s.Opened, s.Closed) : ([], []);
-
-    /// <summary>そのページの開け閉めを置く（見出しを押すたび）。変わらなければ何もしない。</summary>
-    public void SetSectionState(string page, IEnumerable<string> opened, IEnumerable<string> closed)
-    {
-        var o = opened.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        var c = closed.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        if (_sections.TryGetValue(page, out var cur) && cur.Opened.SequenceEqual(o) && cur.Closed.SequenceEqual(c)) return;
-        if (o.Length == 0 && c.Length == 0) _sections.Remove(page); else _sections[page] = (o, c);
-        Raise();
-    }
-
-    /// <summary>配置が変わった（背景・窓の開閉と重なりと位置・左の列の開閉・欄の開け閉めのどれでも）。</summary>
+    /// <summary>配置が変わった（背景・窓の開閉と重なりと位置・左の列の開閉のどれでも）。</summary>
     public event Action? Changed;
 
     /// <summary>見えているか＝背景であるか、窓として開いている。</summary>
@@ -171,25 +154,16 @@ public sealed class LayoutModel
     {
         Background = Slot.Map; LeftOpen = true;
         _open.Clear(); _rects.Clear();
-        _sections.Clear();
         Raise();
     }
 
-    // ---- 保存（%LOCALAPPDATA%/PriceOfBread/配置.json）＝左の列の開閉・窓の位置と大きさ・欄の開け閉めだけ（背景と開く窓は起動のたびに地図・窓なし）----
+    // ---- 保存（%LOCALAPPDATA%/PriceOfBread/配置.json）＝左の列の開閉・窓の位置と大きさだけ（背景と開く窓は起動のたびに地図・窓なし）----
 
     private sealed class Dto
     {
         public bool LeftOpen { get; set; } = true;
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<string, double[]>? Windows { get; set; }   // 窓の名前 → [X, Y, W, H]
-        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-        public Dictionary<string, SectionDto>? Sections { get; set; }
-    }
-
-    private sealed class SectionDto
-    {
-        public string[] Opened { get; set; } = [];
-        public string[] Closed { get; set; } = [];
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, IncludeFields = false };
@@ -198,7 +172,6 @@ public sealed class LayoutModel
     {
         LeftOpen = LeftOpen,
         Windows = _rects.Count == 0 ? null : _rects.OrderBy(kv => (int)kv.Key).ToDictionary(kv => kv.Key.ToString(), kv => new[] { kv.Value.X, kv.Value.Y, kv.Value.W, kv.Value.H }),
-        Sections = _sections.Count == 0 ? null : _sections.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToDictionary(kv => kv.Key, kv => new SectionDto { Opened = kv.Value.Opened, Closed = kv.Value.Closed }),
     }, JsonOptions);
 
     /// <summary>JSON から配置を作る。読めない・不正な物は初めの配置（保存の壊れで画面が出なくなる道を作らない）。
@@ -218,14 +191,6 @@ public sealed class LayoutModel
                     if (!Enum.TryParse<Slot>(name, out var slot) || !Enum.IsDefined(slot) || !IsWindow(slot) || v is not { Length: 4 }) continue;   // 知らない窓・壊れた記録は捨てる
                     if (!v.All(double.IsFinite)) continue;
                     m._rects[slot] = new WindowRect(v[0], v[1], Math.Max(MinWindowWidth, v[2]), Math.Max(MinWindowHeight, v[3]));
-                }
-            if (d.Sections is not null)
-                foreach (var (page, s) in d.Sections)
-                {
-                    if (!Enum.TryParse<Slot>(page, out var slot) || !Enum.IsDefined(slot) || s is null) continue;   // 知らないページの記録は捨てる
-                    var o = (s.Opened ?? []).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x, StringComparer.Ordinal).Take(32).ToArray();
-                    var c = (s.Closed ?? []).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x, StringComparer.Ordinal).Take(32).ToArray();
-                    if (o.Length > 0 || c.Length > 0) m._sections[page] = (o, c);
                 }
             return m;
         }

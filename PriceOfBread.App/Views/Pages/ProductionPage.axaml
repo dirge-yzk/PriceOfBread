@@ -5,7 +5,7 @@
              x:Class="PriceOfBread.App.Views.Pages.ProductionPage"
              x:DataType="vm:GameViewModel">
     <!-- Views/Pages/ProductionPage.axaml ＝ 生産のページ（設計 §3-3・Qキー）。欄＝供給の網（盤）・財の表・選んだ財の詳細・州別の工場・労働の表・設備の表・巨大建造物。
-         旧の生産タブ（全画面の盤＋右の 530 幅のパネル）を欄に分けた物。欄の並べ（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）は PageGrid が決める
+         旧の生産タブ（全画面の盤＋右の 530 幅のパネル）を欄に分けた物。欄の並べ（幅で 3／2／1 列・欄は常に開いている）は PageGrid が決める
          （並べの表は ProductionPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の ProductionTables）が名乗る。
          盤は今の物をそのまま移した（共通の部品にしない）：座標は盤の視野の幅に追従して置き直す（GameViewModel.SetProdViewport）。
          ページの外側は縦に流れない＝表・盤・州別は欄の中だけで流れ、見出しは止まる（SectionFit）。

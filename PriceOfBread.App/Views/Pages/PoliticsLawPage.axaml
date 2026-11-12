@@ -5,7 +5,7 @@
              x:Class="PriceOfBread.App.Views.Pages.PoliticsLawPage"
              x:DataType="vm:GameViewModel">
     <!-- Views/Pages/PoliticsLawPage.axaml ＝ 政治と法のページ（(501) 段3）。旧の法律タブと政治タブを 1 つのページに組み直した。
-         欄の並べは .axaml.cs の PageTable（幅で 3／2／1 列・高さに入らなければ順位の低い欄から見出しの 1 行へ畳む）。ページの外側は縦に流れない。
+         欄の並べは .axaml.cs の PageTable（幅で 3／2／1 列・欄は常に開いている）。ページの外側は縦に流れない。
          2026-11-11 作者指示：法の表が左の列いっぱい・右の列が政治（権力・政体・議会）。制度は発見のページへ移した。
          法の表は本体の目録（SimCore/Display/LawTables.cs）が行を並べる＝法を足すとき画面は直さない。
          値の行は共通の部品 StatRow（名前と値とホバー）。半円は共通の HalfPie。-->

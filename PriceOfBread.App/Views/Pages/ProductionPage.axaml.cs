@@ -13,22 +13,22 @@ namespace PriceOfBread.App.Views.Pages;
 ///   ドラッグ量は e.GetPosition(this) の差分なので、基準を移しても原点差は打ち消し合う。</summary>
 public partial class ProductionPage : UserControl
 {
-    /// <summary>このページの幅がこれ以上のとき、盤の列と他の欄の列の 2 つに分ける（盤が幅の約 56%＝1 行に 3 枚以上並ぶ）。これ未満は 1 つの列に全部を積み、高さに入らない欄は順位の低い方から畳む。</summary>
+    /// <summary>このページの幅がこれ以上のとき、盤の列と他の欄の列の 2 つに分ける（盤が幅の約 56%＝1 行に 3 枚以上並ぶ）。これ未満は 1 つの列に全部を積み、高さに入らない欄は同じ比で狭める。</summary>
     public const double WideWidth = 1300;
     private const double MainShare = 0.56, SideShare = 1 - MainShare;
 
-    /// <summary>欄の宣言（鍵・名前・畳む順位・最小の行数・余りの高さの重み）と置き場（列ごとに上から下）。順位：供給の網 1・財の表 2・選んだ財 3・州別の工場 4・労働 5・設備 6・巨大建造物 7（数が大きいほど先に見出しの 1 行へ畳まれる）。
+    /// <summary>欄の宣言（鍵・名前・最小の行数・余りの高さの重み）と置き場（列ごとに上から下）。
     /// 狭いとき＝1 つの PageGrid（全部を 1 列）／広いとき＝盤の列（供給の網・巨大建造物）と他の欄の列（財の表・選んだ財｜州別の工場・労働・設備＝他の列が 700 以上なら 2 列）の 2 つの PageGrid。
     /// 戻り値は [主の表] か [主の表, 側の表]。</summary>
     public static PageTable[] BuildPlans(bool wide, bool equipment, bool full = false)
     {
-        var supply = new SectionSpec("supply", "供給の網", 1, MinRows: 14, Weight: 3);
-        var goods = new SectionSpec("goods", "財の表", 2, MinRows: 8, Weight: 2);
-        var detail = new SectionSpec("detail", "選んだ財", 3, MinRows: 9, Weight: 2);
-        var regions = new SectionSpec("regions", "州別の工場", 4, MinRows: 6);
-        var labor = new SectionSpec("labor", "労働", 5, MinRows: 3);
-        var equip = new SectionSpec("equipment", "設備", 6, MinRows: 5);
-        var mega = new SectionSpec("mega", "巨大建造物", 7, MinRows: 4);
+        var supply = new SectionSpec("supply", "供給の網", MinRows: 14, Weight: 3);
+        var goods = new SectionSpec("goods", "財の表", MinRows: 8, Weight: 2);
+        var detail = new SectionSpec("detail", "選んだ財", MinRows: 9, Weight: 2);
+        var regions = new SectionSpec("regions", "州別の工場", MinRows: 6);
+        var labor = new SectionSpec("labor", "労働", MinRows: 3);
+        var equip = new SectionSpec("equipment", "設備", MinRows: 5);
+        var mega = new SectionSpec("mega", "巨大建造物", MinRows: 4);
         var lower = new System.Collections.Generic.List<SectionSpec> { regions, labor };
         if (equipment) lower.Add(equip);
         if (!wide)
