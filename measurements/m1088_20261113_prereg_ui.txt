@@ -1,0 +1,24 @@
+# (1088) c104ui の予言（merge の前にコミットする）
+# 担当 Sonnet 5.5。基点 23aa9d11a。基準＝基線 m1087（ident.cfg：B5 b5_20261113_m1087・B10INS b10_20261113_m1087_ins・MON mon_20261113_m1087.txt・NG_BASE ng1087_20261113〔93 件〕）。指示文の雛形の m797・ng797 は古い基準＝ident.cfg の m1087 を使う。
+
+[1] 恒等の線・予言 0
+- 入れる物＝refs/heads/uifix の 601cd9c2e..18d6253e8 の 4 コミット（9f8119b57・04c8a61a6・6235b7a3e・18d6253e8）だけ。git merge --no-ff 18d6253e8。
+- merge の予言：衝突 0（計画の担当の merge-tree は木 148d12734）。33 ファイル・+402／−556。
+- 差分が App・SimCore/Display・Tests の外に触れる件数の予言：0。SimCore の Display 以外の .cs は 0 行。Runner は 0 行。
+- 画面のコードは直さない。行末は index の LF を git ls-files --eol で確かめる。
+
+[2] 消す物と残す物
+- 消す名前の一覧は uifix の差分に従う（App の折り畳み・市場のタブ・輸送量と貿易収支の列）。SimCore で消すメンバーは 0（Display は FiscalTables に 1 行追加・TradeTables の世界価格比の式の揃え）。
+- 他の線との重なり：c104fb（Coefficients・Simulation・EconomyStep・Tests/EconomyTests・DormantIdentityTests）・c104cp・c104si（Instruments.cs の呼び口）と持ち主のファイルの重なり 0。
+
+[3] 足す試験
+- 足さない（他人のコミットの取り込み）。差分の [Fact] は −1／+1。数は --list-tests で数える：Category!=FullLength 2768＋差（予言 2768）・FullLength 3。
+- ㉘ ソースを走査する番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）を ident の前に回す。書き換える件数の予言 0。
+- 突然変異（使い捨ての木・1 本）：FiscalTables.cs の足した貿易収支の 1 行を消す → FiscalPopDiscoveryTablesTests が赤になるかを記録（赤にならなければ穴を名乗るだけ）。
+
+[4] 恒等の予言
+- 段 2（Display に触れる）。--tests-delta は --list-tests の差。
+- 素の 5 種が b5_20261113_m1087 と・計器つき 10 種が b10_20261113_m1087_ins と、名乗り行の SOURCE-HASH を除いて全行バイト一致。計器の表のバイトは変わらない（SimCore の計算に触れない）。宣言なし。
+- 不一致なら差分を掘らず〈基線の疑い〉として表と行を報告して止める（この線は m1087 の照合を兼ねる）。
+
+[5] 〈判定: 恒等〉なら採る。赤なら画面のコードを直さず赤の一覧を報告して止める。
