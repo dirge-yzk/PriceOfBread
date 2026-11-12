@@ -141,14 +141,12 @@ public sealed class Simulation
         //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍の鉛室法を回し、硫酸〔当時は化学薬品〕の平均価格が16倍・中央値は2倍）。
         //   ★汽船(85)・機関車(88)の onset（リ5・SteamTransportOnset）も 2026-09-27 に AddAlternateRecipes へ移した（同じ穴＝植民地格の州は1783年から無ゲートだった）。
         // 倍率排除⑧：各popの中核民族割合を国の初期統一度で初期化（以後 移民[core=0で希釈]/同化/征服で per-pop に変動＝EthnicUnity が加重平均から創発）。
-        // ⑭-B（史実検証2026-07-22）：CoreInitByRegionCulture>0 では州の Culture ラベルで分化＝主流文化州は高・少数文化州は低（墺のボヘミア/ハンガリー・
-        // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。加重平均はデータ u0 と州構成のブレンド＝0で国一律u0＝厳密恒等。
+        // ⑭-B（史実検証2026-07-22・(1089) で旗 CoreInitByRegionCulture を焼いた）：州の Culture ラベルで分化＝主流文化州は高・少数文化州は低（墺のボヘミア/ハンガリー・
+        // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。
         if (World.EthnicEnabled && scenario.PrebuiltRegions is null)
         {
             const double u0 = 1.0;   // ★(232) 民族統一度の国の初期値 ethnicUnity（61）を廃止＝文化ラベルのある州は州のラベルだけで決まり（下）、ラベルが空の州は自国の文化（POP の既定 1.0）として始める（旧＝国の値 u0：日 0.97・米 0.45・露 0.55・清 0.75 ほか・空ラベルの州は人口の0.2〜5%だけ）
-            double g = scenario.Coef.CoreInitByRegionCulture;
             string majority = "";
-            if (g > 0)
             {
                 var byCulture = new Dictionary<string, double>();
                 foreach (var r in World.Regions)
@@ -162,8 +160,8 @@ public sealed class Simulation
             foreach (var r in World.Regions)
             {
                 double core = u0;
-                if (g > 0 && majority.Length > 0 && !string.IsNullOrEmpty(r.Culture))
-                    core = u0 + g * ((r.Culture == majority ? 1.0 : 0.0) - u0);
+                if (majority.Length > 0 && !string.IsNullOrEmpty(r.Culture))
+                    core = r.Culture == majority ? 1.0 : 0.0;   // 一致州 1.0／不一致州 0.0（旧の混ぜ u0+g×(x−u0) は u0=g=1 で x そのもの）
                 foreach (var p in r.Pops) p.CoreEthnicShare = new Share(core);
             }
         }   // 持ち込み州（建国）は民族構成を上書きしない（スポーン側で新中核へ再アンカー済み）
