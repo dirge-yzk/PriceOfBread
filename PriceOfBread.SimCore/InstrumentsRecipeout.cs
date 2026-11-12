@@ -48,7 +48,7 @@ public static partial class Instruments
                 if (p.SiteFound && Catalog.Sites[site].Kind == Catalog.SiteKind.Deposit) rule *= c.GoldRushEndowment;
             }
             else if (inRes) { cls = "E"; rule = Simulation.ScarceEndowment(g, c, shared) * c.ResourceEndowmentScale; }
-            else if (shared && c.ScarceMineralGate > 0 && Catalog.IsScarceMineral(g, c)) { cls = "Z"; rule = 0.0; }
+            else if (shared && Catalog.IsScarceMineral(g, c)) { cls = "Z"; rule = 0.0; }
             else if (!p.IsRgo) { cls = "F"; rule = 1.0; }
             else
             {

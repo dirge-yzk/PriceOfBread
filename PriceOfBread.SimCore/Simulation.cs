@@ -697,7 +697,7 @@ public sealed class Simulation
     //   （PromoteColonyToRegion）＝州だけを数えるのは分子と分母の非対称（硫黄＝門のある世界の採掘の能力の合計が門の無い世界の約0.75倍〔93.6÷124.4〕）。
     //   直しの旗 ScarceCountsIncludeColonies＝★2026-10-04 (197) で点火・(1089) で焼いた（常に植民地も数える・(196) の5種の腕 K と (197) の合わせた木の10種の腕 K＝実装ログ (197)・英の人口は記録）。
     // 硫黄は k=1（パレルモのみ。北九州は後期産地＝k に数えない・蝦夷地の抽象標的は 2026-09-28 に削除）→ 州だけの N＝225 で E = 4.0 + 224×0.4 = **93.6**（旧の注記の 183 州＝77.2 は州の追加の前の数）。
-    // ScarceMineralGate=0 で E を返さない＝厳密恒等。
+    // 旗 ScarceMineralGate は (1089) で焼いた＝共有世界では常に産地ゲートを効かせる（密閉世界では効かせない）。
     private static int[]? _scarceCountsWithColonies;   // 財ID→産地の数（world.json から1回だけ数える・決定論）。植民地の固有資源も数える（(1089) で旗 ScarceCountsIncludeColonies を焼いた）
     private static int _scarceTotalWithColonies;
 
@@ -729,7 +729,7 @@ public sealed class Simulation
     {
         // ★密閉世界（単国シム＝較正・テスト・sharedWorld=false）では産地ゲートを効かせない（2026-09-06）：運ぶ相手がいない世界で産地を絞るのは
         //   「地理」でなく「欠乏の注入」＝実測で硫黄0→化学→紙→教育→行政力の鎖が絶えた（TaxTests/MobilityTests）。史実の英は硫黄をシチリアから運んだ。
-        if (!sharedWorld || !(c.ScarceMineralGate > 0) || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
+        if (!sharedWorld || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
         EnsureScarceCounts();
         int k = _scarceCountsWithColonies![good];
         int total = _scarceTotalWithColonies;
@@ -870,7 +870,7 @@ public sealed class Simulation
                 }
             }
             // ★希少鉱物は**非産地では厳密に0**（2026-08-13・裁定⑥）。総量は産地の賦存を引き上げて保つ（ScarceEndowment）。
-            else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
+            else if (sharedWorld && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
 
@@ -1539,7 +1539,7 @@ public sealed class Simulation
             else if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
             {
                 pr.SiteRow = site;
-                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
+                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝密閉世界なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
                 // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
                 //   （ベンガル/ジャワ/カリブは大農園）。Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。
                 // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
@@ -1550,7 +1550,7 @@ public sealed class Simulation
                     pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;
                 }
             }
-            else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
+            else if (!w.StepsDiplomacy && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
         // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。（入植者の着地〔農民/労働者〕は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）

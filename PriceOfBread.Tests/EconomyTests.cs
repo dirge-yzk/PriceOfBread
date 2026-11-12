@@ -634,12 +634,11 @@ public class EconomyTests
     /// <summary>★2026-10-04 (197)（反証役 vq2#1・ScarceCountsIncludeColonies の点火）：希少鉱物の産地の賦存 E は「門の無い世界の採掘の能力の合計」を保つ
     /// （E×k＝k×4.0＋(N−k)×0.4・N は産出しうる全ての地点＝本国の州＋開幕の植民地〔ColoniesAreRegions で州へ昇格して生産者を持つ〕）。
     /// 旧（N を州だけで数えた）は硫黄の採掘の能力の合計が門の無い世界の約0.75倍（93.6÷124.4）＝分子と分母の非対称。
-    /// 呼び手の側（州の構築＝Simulation の播種）も同じ量を受ける＝両シチリアのパレルモの硫黄の生産者の生産性が、門を外した世界（ScarceMineralGate=0）の E÷4.0 倍。</summary>
+    /// 呼び手の側（州の構築＝Simulation の播種）も同じ量を受ける＝両シチリアのパレルモの硫黄の生産者の生産性が、密閉世界（産地ゲートなし）の E÷4.0 倍。</summary>
     [Fact]
     public void 希少鉱物の産地の賦存は門の無い世界の採掘の能力の合計を保つ_植民地も数える()
     {
         var c = new Coefficients();
-        Assert.True(c.ScarceMineralGate > 0, "前提：産地の門が点火済み");
         int k = 0, all = 0;
         foreach (var n in WorldData.Nations())
         {
@@ -651,11 +650,10 @@ public class EconomyTests
         double e = Simulation.ScarceEndowment(Catalog.SulfurId, c, sharedWorld: true);
         Assert.True(System.Math.Abs(k * e - ungated) < 1e-9 * ungated, $"産地の賦存の合計 {k * e:F3} が門の無い世界 {ungated:F3}（k={k}・N={all}）と違う");
 
-        // 呼び手の側：同じ盤面（共有世界の両シチリア）を門あり（既定）と門なしで作り、パレルモの硫黄の生産者の生産性の比が E÷4.0
-        static double PalermoSulfur(bool gate)
+        // 呼び手の側：同じ州（両シチリア）を共有世界（産地ゲートあり）と密閉世界（ゲートなし＝従来の賦存）で作り、パレルモの硫黄の生産者の生産性の比が E÷4.0
+        static double PalermoSulfur(bool shared)
         {
-            var sc = WorldData.ByName("両シチリア").ToScenario(1789, sharedWorld: true);
-            if (!gate) sc.Coef.ScarceMineralGate = 0;
+            var sc = WorldData.ByName("両シチリア").ToScenario(1789, sharedWorld: shared);
             var sim = new Simulation(sc, new NullAgent());
             var rg = sim.World.Regions.First(r => r.Name == "パレルモ");
             return rg.Producers.First(p => p.GoodId == Catalog.SulfurId).Productivity;
