@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="980" d:DesignHeight="640"
@@ -9,22 +10,22 @@
     <UserControl.Styles>
         <!-- 国選択ボタン：暗い背景画の上でも読めるよう不透明なパーチメント地＋濃色文字（既定Fluentボタンは半透明で沈む） -->
         <Style Selector="Button.nation">
-            <Setter Property="Background" Value="{StaticResource ParchmentDimBrush}"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource SandDarkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
         </Style>
         <Style Selector="Button.nation /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource ParchmentDimBrush}"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <Style Selector="Button.nation:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E4DABE"/>
-            <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
+            <Setter Property="TextBlock.Foreground" Value="{StaticResource InkBrush}"/>
         </Style>
         <Style Selector="Button.nation:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#D8CBA6"/>
-            <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
+            <Setter Property="Background" Value="{StaticResource PressBrush}"/>
+            <Setter Property="TextBlock.Foreground" Value="{StaticResource InkBrush}"/>
         </Style>
         <!-- おすすめカード：見出し（左＝国名（強さ）・右端＝難易度の色文字）＋説明（歴史的背景＋プレイフィール） -->
         <!-- ★2026-09-23：VerticalContentAlignment を Top から Stretch へ。中身を Grid(Auto,*) にしたので、
@@ -41,7 +42,7 @@
         </Style>
         <Style Selector="Button.card TextBlock.cardBody">
             <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="#4A3F30"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="12.5"/>
             <Setter Property="Margin" Value="0,3,0,0"/>
@@ -67,23 +68,25 @@
         <Border Background="#66000000"/>
         <DockPanel Margin="20,10">
             <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                <CheckBox DockPanel.Dock="Right" Name="SpectateCheck" Content="観戦" IsChecked="{Binding Spectate, Mode=TwoWay}" Foreground="#F4EFE2" VerticalAlignment="Center"/>
-                <TextBlock Text="国家選択" FontSize="22" FontWeight="Bold" Foreground="#F4EFE2"/>
+                <CheckBox DockPanel.Dock="Right" Name="SpectateCheck" Content="観戦" IsChecked="{Binding Spectate, Mode=TwoWay}" Foreground="{StaticResource OnImageBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="国家選択" FontSize="22" FontWeight="Bold" Foreground="{StaticResource OnImageBrush}"/>
             </DockPanel>
 
             <!-- おすすめ＝均等なカードを並べるだけ（作者指示2026-08-11）。★難易度はカードの見出しに書いてあるので
                  難易度で列を分けない＝2/4/1の列は高さが揃わず、形が崩れていた。枡を固定（ItemWidth/ItemHeight）＝
                  文章の長さが違っても段が揃う。並び順は易しい順（難易度の勾配は並びで伝わる）。
-                 ★カードの高さは188/181→152/145（全カ国1画面・2026-08-15）→172/165（作者指示2026-08-16「テキスト欄が
+                 ★2026-11-12（字体を Noto Sans JP へ替えた直し）：仮名が 1 字 1.000em の全角になり 1 行の字数が 2 割減って説明文が 11 行になった＝カードの高さを 172/165→188/181（本文の領域 145 ≧ 11 行×12.5＝137.5）・
+             その他の国の札は幅 150 のまま、長い名（「サルデーニャ＝ピエモンテ」）だけ Viewbox で縮めて切らない（幅を伸ばすと 1 つ余って 10 段になり、枠から溢れた）。総和＝33＋2×188＋4＋9段225 ≒ 638。
+             ★カードの高さは188/181→152/145（全カ国1画面・2026-08-15）→172/165（作者指示2026-08-16「テキスト欄が
                  足りていない」＝その他の下の遊休余白から+20pxずつ回収）。寸法の総和＝見出し33＋カード2段344＋余白4＋
                  その他6列8段200 ≒ 581 ≦ 実効高約609＝スクロールバーは出ない（出現→列減→溢れの自己増殖は起きない）。 -->
             <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Recommended}" Margin="0,0,0,4">
                 <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="235" ItemHeight="172"/></ItemsPanelTemplate>
+                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="235" ItemHeight="188"/></ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:NationChoice">
-                        <Button Classes="nation card" Command="{Binding ChooseCommand}" Width="227" Height="165">
+                        <Button Classes="nation card" Command="{Binding ChooseCommand}" Width="227" Height="181">
                             <!-- ★2026-09-23：StackPanel から Grid(Auto,*) へ。StackPanel は子を**高さ無限**で測るので、
                                  本文の TextBlock には高さの制約が一切届かず、行数は MaxLines の手計算だけが決めていた。
                                  `*` 行なら本文に「残りの高さ」が渡る＝入らない行が落ちる＝寸法が変われば行数も追随する。 -->
@@ -94,7 +97,7 @@
                                     <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Difficulty}"
                                                Foreground="{Binding DifficultyBrush}" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Grid.Row="1" Classes="cardBody" Text="{Binding Description}"/>
+                                <TextBlock Grid.Row="1" Classes="cardBody" ctl:LatinText.Text="{Binding Description}"/>
                             </Grid>
                         </Button>
                     </DataTemplate>
@@ -115,9 +118,10 @@
                             <Button Classes="nation" Command="{Binding ChooseCommand}"
                                     Width="150" Height="22" HorizontalContentAlignment="Stretch" Padding="6,0">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkBrush}"
-                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding StrengthLabel}" FontSize="{StaticResource FontTiny}" Foreground="#6A5C46"
+                                    <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center">   <!-- 長い名は枠に合わせて縮める（切らない） -->
+                                        <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkBrush}"/>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="1" Text="{Binding StrengthLabel}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource GrayBrush}"
                                                VerticalAlignment="Center" Margin="3,0,0,0"/>
                                 </Grid>
                             </Button>

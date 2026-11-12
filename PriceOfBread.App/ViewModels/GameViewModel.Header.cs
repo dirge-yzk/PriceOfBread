@@ -352,7 +352,7 @@ public partial class GameViewModel
     private static HeaderStat StatPlain(string text, string key, double boxWidth) => new() { Text = text, Key = key, BoxWidth = boxWidth };
 
     // 説明API内訳の共通整形（緑=加算/赤=減算・|Δ|<5e-4は呼び出し側で除外済み前提）。
-    private static readonly IBrush TermNeutral = new SolidColorBrush(Color.Parse("#5A4E3C"));
+    private static readonly IBrush TermNeutral = UiRes.Brush("InkMutedBrush", Brushes.Gray);
     private static StatTerm Signed(double delta, string reason, Func<double, string> fmt)
         => new StatTerm { Text = Fmt.Zen(PlayText.SignedLine(delta, reason, fmt)), Brush = delta >= 0 ? TermPlus : TermMinus };
     private static StatTerm Neutral(string text) => new StatTerm { Text = text, Brush = TermNeutral };

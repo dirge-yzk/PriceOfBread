@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using System;
 
 namespace PriceOfBread.App;
@@ -139,5 +139,10 @@ sealed class Program
             .WithDeveloperTools()
 #endif
             .WithInterFont()
+            // 字体（作者指定2026-11-12）：英数字は Times New Roman（システムの字体・同梱しない）、かなと漢字は同梱の Noto Sans JP。
+            // 並べ方の定義は App.axaml の UiFont（Times New Roman, Noto Sans JP）。
+            // ⚠複合の字体名（"A, B"）は字ごとの落ち先に**ならなかった**（実測＝Times の「あ」はシステムの代替字体 16.3px が当たり、Noto の 20px にならない）
+            //   ＝字が無い時の落ち先を FontFallbacks で明示する（同梱の Noto Sans JP の読み先）。
+            .With(new Avalonia.Media.FontManagerOptions { FontFallbacks = [new Avalonia.Media.FontFallback { FontFamily = new Avalonia.Media.FontFamily("avares://PriceOfBread.App/Assets/Fonts#Noto Sans JP") }] })
             .LogToTrace();
 }

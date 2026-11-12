@@ -40,7 +40,7 @@ public sealed class AgeBars : Control
         int n = d.Labels.Count;
         double max = 0;
         for (int i = 0; i < n; i++) max = Math.Max(max, Math.Max(Clean(d.Male[i]), Clean(d.Female[i])));
-        var tf = new Typeface(FontFamily.Default);
+        var tf = new Typeface(UiRes.Font);
         var ink = Brush("InkBrush", Brushes.Black); var muted = Brush("InkMutedBrush", Brushes.Gray);
         var male = Brush("BlueBrush", Brushes.SteelBlue); var female = Brush("RustBrush", Brushes.IndianRed);
         FormattedText Text(string s, IBrush b, double size = 12) => new(s, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, tf, size, b);

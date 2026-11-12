@@ -119,7 +119,7 @@ public sealed class TableView : UserControl
                     Orientation = Orientation.Horizontal, Spacing = 3, Margin = new Thickness(0, 0, 10, 0),
                     Children =
                     {
-                        new Avalonia.Controls.Shapes.Ellipse { Width = 8, Height = 8, Fill = it.Brush, VerticalAlignment = VerticalAlignment.Center },
+                        new Avalonia.Controls.Shapes.Ellipse { Width = 10, Height = 10, Fill = it.Brush, VerticalAlignment = VerticalAlignment.Center },
                         new TextBlock { Text = it.Name, FontSize = Small - 1, Foreground = Brush("InkSoftBrush", Brushes.Gray), VerticalAlignment = VerticalAlignment.Center },
                     },
                 });
@@ -351,8 +351,8 @@ public sealed class TableView : UserControl
         Background = Brushes.Transparent,   // 吹き出しの当たり判定（透明でも箱全体が当たる）
         Children =
         {
-            new Border { Height = 1, Background = Brush("SandBrush", Brushes.Tan), Margin = new Thickness(0, 6, 0, 2) },
-            new TextBlock { Text = group, Foreground = Brush("BronzeBrush", Brushes.SaddleBrown), FontWeight = FontWeight.Bold, FontSize = Small + 4, Margin = new Thickness(0, 0, 0, 2) },   // 群の題（素材・主食…）は表の字より大きく（2026-11-11 作者指示）
+            new Border { Height = 1, Background = Brush("LineBrush", Brushes.Tan), Margin = new Thickness(0, 6, 0, 2) },
+            new TextBlock { Text = group, Foreground = Brush("GrayBrush", Brushes.SaddleBrown), FontWeight = FontWeight.Bold, FontSize = Small + 4, Margin = new Thickness(0, 0, 0, 2) },   // 群の題（素材・主食…）は表の字より大きく（2026-11-11 作者指示）
         },
     };
 
@@ -384,8 +384,8 @@ public sealed class TableView : UserControl
         /// <summary>飛んできた行か（目印の背景）。</summary>
         public void SetFocused(bool focused) { _focused = focused; Paint(); }
 
-        private void Paint() => Root.Background = _focused ? Brush("SandBrush", Brushes.Tan)
-            : _emphasis || _selected ? Brush("SandLightBrush", Brushes.Tan) : Brushes.Transparent;   // 透明でも当たる＝行のホバーと押下を受ける
+        private void Paint() => Root.Background = _focused ? Brush("AccentSoftBrush", Brushes.Tan)
+            : _selected || _emphasis ? Brush("AccentFaintBrush", Brushes.Tan) : Brushes.Transparent;   // 選んだ行と自国の行＝淡い橙（手本の選んだ行・2026-11-12 点検⑫）   // 透明でも当たる＝行のホバーと押下を受ける
 
         private void Layout(IReadOnlyList<ColumnSpec> cols)
         {
@@ -460,6 +460,8 @@ public sealed class TableView : UserControl
         }
 
         /// <summary>文字のセルの中身と飾り（色の丸・バッジの背景・数の文字色）。飾りが無いセルは既定の見た目へ戻す（前の月に飾りがあった行も）。</summary>
+        private static readonly FontFamily BulletFont = new("avares://PriceOfBread.App/Assets/Fonts#Noto Sans JP");
+
         private static void ApplyText(TextBlock tb, ColumnSpec spec, CellView cell, int index)
         {
             IBrush defaultInk = spec.Kind == ColumnKind.Number ? Brush("InkBrush", Brushes.Black)
@@ -475,7 +477,7 @@ public sealed class TableView : UserControl
                 {
                     tb.Text = null; tb.Inlines?.Clear();
                     tb.Inlines ??= new Avalonia.Controls.Documents.InlineCollection();
-                    tb.Inlines.Add(new Avalonia.Controls.Documents.Run("● ") { Foreground = dot });
+                    tb.Inlines.Add(new Avalonia.Controls.Documents.Run("● ") { Foreground = dot, FontFamily = BulletFont, FontSize = tb.FontSize + 3 });   // 丸は日本語側の字体で描く（Times の「●」は点ほどに小さい・点検⑥）
                     tb.Inlines.Add(new Avalonia.Controls.Documents.Run(cell.Text));
                     tb.Tag = sig;
                 }

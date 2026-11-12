@@ -166,7 +166,8 @@ public partial class GameViewModel
         // ★F7（2026-09-28）：○を廃止＝文字は**座標を中心に**置く（旧＝○の右隣＋隣の○を避ける送り）。中央寄せは国名と同じ作法（文字数×幅の近似）。
         if (labelCands.Count > 0)
         {
-            double fsn = 9.5 / _zd;
+            double fsn = 10.5 / _zd;   // 描く字の大きさ。9.5→10.5（2026-11-12 点検⑩：Times New Roman の小さい都市名が前の字体より細く沈んだ＝1 画素ぶん大きく）
+            double fsnBox = 9.5 / _zd;   // 重なり判定の箱は前の大きさで測る（字を大きくしても間引きの数を変えない＝点検2回目 2-1）
             labelCands.Sort((a, b) =>
             {
                 int ct = a.Tier.CompareTo(b.Tier); if (ct != 0) return ct;   // 本国州→植民地→未領有
@@ -175,15 +176,15 @@ public partial class GameViewModel
             var placed = new List<(double X, double Y, double W, double H)>();
             foreach (var cand in labelCands)
             {
-                double lw = cand.Text.Length * fsn * 0.60, lh = fsn * 1.25;
-                double lx = cand.X - lw / 2, ly = cand.Cy - fsn * 0.62;
+                double lw = cand.Text.Length * fsnBox * 0.60, lh = fsnBox * 1.25;
+                double lx = cand.X - lw / 2, ly = cand.Cy - fsnBox * 0.62;
                 bool clash = false;
                 foreach (var r in placed)
                     if (lx < r.X + r.W && lx + lw > r.X && ly < r.Y + r.H && ly + lh > r.Y) { clash = true; break; }
                 if (clash) continue;
                 placed.Add((lx, ly, lw, lh));
                 for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（ClampAndWrap が translate.X を (−period, 0] に折り返す＝k=−1 は必ず画面外）
-                    labels.Add(new MapLabel { X = lx + k * MapData.MapWidth, Y = ly, Text = cand.Text, FontSize = fsn, Brush = cand.Brush });
+                    labels.Add(new MapLabel { X = lx + k * MapData.MapWidth - (cand.Text.Length * (fsn - fsnBox) * 0.60) / 2, Y = ly - (fsn - fsnBox) * 0.62, Text = cand.Text, FontSize = fsn, Brush = cand.Brush });
             }
         }
         // 国名ラベルの重なり回避＝州名と同じ貪欲（人口の多い国から置き、重なる後続は落とす＝全景で小国が潰し合わない）。
@@ -667,9 +668,9 @@ public partial class GameViewModel
         return v;
     }
 
-    private static readonly IBrush HoverText = new SolidColorBrush(Color.Parse("#2A2118"));
-    private static readonly IBrush HoverDim = new SolidColorBrush(Color.Parse("#5A4E3C"));
-    private static readonly IBrush HoverHead = new SolidColorBrush(Color.Parse("#6B5230"));
+    private static readonly IBrush HoverText = UiRes.Brush("InkBrush", Brushes.Black);
+    private static readonly IBrush HoverDim = UiRes.Brush("InkMutedBrush", Brushes.Gray);
+    private static readonly IBrush HoverHead = UiRes.Brush("GrayBrush", Brushes.Gray);
     private static readonly IBrush HoverWarn = new SolidColorBrush(Color.Parse("#A0432D"));  // 状態（過密・疫病・主食不足）
 
     // 州ホバー（左上パネル）：州名（所有国）・人口（失業者）・文化/宗教・状態（過密/疫病/主食不足）・港・海峡/運河・生産物。
