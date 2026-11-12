@@ -1,0 +1,13 @@
+== T0 見出し（成績表の〈★係数の上書き（POB_COEF）〉の行に 2 つの名が =0 で出る）
+  行：★係数の上書き（POB_COEF）: MegaprojectEnabled=0 FormationLegitimacyBoost=0
+== T1 払い（0 でない行の数・和でなく行で数える）
+  nation_s 行 409409・反乱の最初の四半期型の nan（数えない）88・0 でない行 {'monumentPaidPerMonth': 0}
+  fiscal_s 行 180270・0 でない行 {'claimMonumentBuildPerMonth': 0, 'claimMegaForeignYieldAtQuarterEnd': 0, 'ledgerMegaprojectPerMonth': 0}
+== T2 着工（scalars_s megaStartedCount の 0 でない行）
+  scalars_s 行 147446・0 でない行 {'megaStartedCount': 0}
+== T3 経路（flow_s の sourceFile=Megaprojects.cs の行・種 1〜3）
+  種 1：Megaprojects.cs 0 行・他 1027173 行（19 ファイル）
+  種 2：Megaprojects.cs 0 行・他 1034463 行（18 ファイル）
+  種 3：Megaprojects.cs 0 行・他 1037672 行（18 ファイル）
+== T4 建国の威信：構成の門（T0 の FormationLegitimacyBoost=0 で代える）
+判定: 緑（T0〜T3 全て）

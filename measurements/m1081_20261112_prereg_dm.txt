@@ -138,3 +138,16 @@
 - 指示の owns のとおり。Simulation.cs と Instruments.cs は tr（ApplyEndowment と呼び口 1 行）と塊で分かれる。EconomyStep.cs・MultiNationSim.cs は dm だけ。
 - 旗 1 の道を固定する試験の grep（㉜）：MegaprojectCatalogTests・FiscalTests:1360〜1422・PlayHarnessTests:190〜208・:474〜494・TechLevelRemovalTests:143〜182・
   InstrumentsTests:2207・ScholarshipTests:242＝全て §7 の名簿の中。Formation の正統性を Assert する試験は 0（NationIdentityTests は Legitimacy を読まない）。
+
+== ★追記（2026-11-13・腕 B の門を読んだ後・DM-D′ のコミットの前）
+- 腕 B（c103dmB・木 6d70a1f39）：門 T0〜T3 全て緑（measurements/m1081_20261112/gate_armB.txt）。止める線に当たった物 0（stop1002_B.txt・popjump）。→ DM-D′ へ進む。
+- D′ の変わる試験の追加（§7 の名簿の外で、D′ の世界〔＝腕 B の世界〕の試験で赤になった物）：
+  - WriterRatchetTests〈計算量の見た件数は宣言した表を超えない(item 11)〉の宣言 DiploHegemonScans 2,010,476→1,491,449（−25.8%・下がった側の赤）。
+    区分：★(749) 計算量の宣言の表＝軌道の件数を写しただけの番人（機構の向きと大きさを主張しない）。Assert の文と許しの幅は変えない。
+- ScholarshipTests.cs:242 の道具（紙は MilitaryBudget を候補にした）：MilitaryBudget は月の中で請求の前に書き直される（Simulation.cs:2182 が :2349 の請求の和より前）＝上書きが効かない。
+  消した予約と同型（請求の和に入り EconomyStep が無条件にゼロ化）の HigherEduFunding を使う。この試験が見るのは義務教育の財源率 CompulsoryEduFunding で、別の欄。
+  道具の行を消しただけでは前提の Assert〈支払い率が 1 未満の月が作れない〉で赤になった（確かめた）。Assert の文と閾値は変えない。
+- I3 の明確化（結果の後と名乗る）：scripts/instruments の当たり 24 件は、紙 §1-2 の〈読む台本（履歴）〉の列名の読み手（閉じた線の台本）と、
+  残る口（TreasuryCat の名 Megaproject・ledgerMegaprojectPerMonth・ファイル Megaprojects.cs）を指す台本だけ。現役の読み手（止める線・NG・mon・門）の当たりは 0。
+- §6 の下見は、D′ の木で変わる試験の束（304 本）を回して代えた（同じ世界・赤は上の 1 本）。フルスイートは D′ の I5 で回す。
+- Model.cs は欄 3 本の直前の注 3 行（:1134〜:1136・この欄の説明）も一緒に消した。
