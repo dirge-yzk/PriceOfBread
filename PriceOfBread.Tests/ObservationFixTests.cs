@@ -80,16 +80,36 @@ public class ObservationFixTests
     }
 
     [Fact]
-    public void U15_台帳の区分は側が固定_戻りで差分が正になった戦費も支出の側にある()
+    public void U15_賠償の受け取りで戦費の差分が正になった月は収入の側の行に出し_戦費の行は払った額だけ()
     {
         var (_, w) = Board(4);
         var led = new double[(int)TreasuryCat.Count];
         led[(int)TreasuryCat.Tax] = 500_000;
-        led[(int)TreasuryCat.WarCost] = +5000;   // 戻り・相殺で差分が正
+        led[(int)TreasuryCat.WarCost] = +5000;   // 賠償を受け取った月（戻り・相殺）で差分が正
         var b = FiscalTables.Budget(w, new FiscalFlows(0, 0, 0, 0, led));
-        Assert.DoesNotContain(b.Income, l => l.Key == "cat." + TreasuryCat.WarCost);
-        var war = b.Spend.First(l => l.Key == "cat." + TreasuryCat.WarCost);
-        Assert.Equal(-5000, war.Actual, 6);
+        Assert.DoesNotContain(b.Spend, l => l.Key == "cat." + TreasuryCat.WarCost);   // 戦費の行に負の払った額を出さない
+        var rep = b.Income.First(l => l.Key == "reparationsIn");
+        Assert.Equal("賠償の受け取り", rep.Name);
+        Assert.Equal(5000, rep.Actual, 6);
         Assert.Equal(FiscalTables.LedgerBalance(new FiscalFlows(0, 0, 0, 0, led)), b.BalanceActual, 4);
+        led[(int)TreasuryCat.WarCost] = -7000;   // 払った月は従来どおり支出の側の戦費
+        var b2 = FiscalTables.Budget(w, new FiscalFlows(0, 0, 0, 0, led));
+        Assert.Equal(7000, b2.Spend.First(l => l.Key == "cat." + TreasuryCat.WarCost).Actual, 6);
+        Assert.DoesNotContain(b2.Income, l => l.Key == "reparationsIn");
+    }
+
+    [Fact]
+    public void Z2_貢納を均した差は_同じ側のその他の収入の行が受け_その他の行を並べない()
+    {
+        var (_, w) = Board(4);
+        w.LastTributeInPerQuarter = 3000;
+        var led = new double[(int)TreasuryCat.Count];
+        led[(int)TreasuryCat.OtherIn] = 80_000;
+        led[(int)TreasuryCat.TributeIn] = 3000;   // 受け取った月だけ 3 か月分
+        var f = new FiscalFlows(0, 0, 0, 0, led);
+        var b = FiscalTables.Budget(w, f);
+        Assert.DoesNotContain(b.Income, l => l.Key == "restIn");   // 同じ側に「その他」と「その他の収入」が並ばない
+        Assert.Equal(82_000, b.Income.Single(l => l.Key == "cat.OtherIn").Actual, 6);   // 80000＋均した差（3000−1000）
+        Assert.Equal(FiscalTables.LedgerBalance(f), b.BalanceActual, 4);   // 側ごとの合計は台帳のまま
     }
 }

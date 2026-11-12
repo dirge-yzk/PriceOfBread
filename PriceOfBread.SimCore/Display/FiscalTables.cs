@@ -167,7 +167,8 @@ public static class FiscalTables
             if (covered.Contains(item.Cat)) continue;
             double d = LedgerOf(f, item.Cat);
             if (!(Math.Abs(d) >= 50.0)) continue;   // 表示の解像度（£0.1k 刻み）で 0 になる額は行にしない（下の「その他」へ畳む）
-            if (item.Side == FiscalSide.Outlay) spend.Add(Line("cat." + item.Cat, item.Name, 0, -d, noFc: true));
+            if (item.Cat == TreasuryCat.WarCost && d > 0) income.Add(Line("reparationsIn", "賠償の受け取り", 0, d, noFc: true));   // 賠償を受け取った月は戦費の区分が正＝収入の側の行にする（戦費の行は払った額だけ）
+            else if (item.Side == FiscalSide.Outlay) spend.Add(Line("cat." + item.Cat, item.Name, 0, -d, noFc: true));
             else income.Add(Line("cat." + item.Cat, item.Name, 0, d, noFc: true));
         }
 
@@ -182,8 +183,8 @@ public static class FiscalTables
         //   ＝側ごとの実績の合計は国庫の台帳の額のまま（ヘッダーの収支・上の「その他」の畳みと一致を保つ）。台帳がまだ立っていない（0 のまま）時は実際の額をそのまま出す。
         if (f.LedgerDiff.Any(x => x != 0))
         {
-            Smooth(spend, "tributeOut", "restOut", tribOut, Paid(TreasuryCat.TributeOut));
-            Smooth(income, "tributeIn", "restIn", tribIn, In(TreasuryCat.TributeIn));
+            Smooth(spend, "tributeOut", "restOut", "cat.OtherOut", tribOut, Paid(TreasuryCat.TributeOut));
+            Smooth(income, "tributeIn", "restIn", "cat.OtherIn", tribIn, In(TreasuryCat.TributeIn));
         }
 
         double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child && !l.NoForecast).Sum(l => l.Forecast);
@@ -191,7 +192,7 @@ public static class FiscalTables
     }
 
     /// <summary>行 <paramref name="key"/> の実績を月あたりに均した額 <paramref name="avg"/> へ置き換え、実際の額 <paramref name="actual"/> との差を同じ側の <paramref name="restKey"/>（その他）へ入れる。行が無ければ何もしない。</summary>
-    private static void Smooth(List<BudgetLine> side, string key, string restKey, double avg, double actual)
+    private static void Smooth(List<BudgetLine> side, string key, string restKey, string otherKey, double avg, double actual)
     {
         int i = side.FindIndex(l => l.Key == key);
         if (i < 0) return;
@@ -199,6 +200,7 @@ public static class FiscalTables
         side[i] = side[i] with { Actual = avg };
         if (!(Math.Abs(diff) >= 0.5)) { side[i] = side[i] with { Actual = actual }; return; }   // 差が表示の解像度より小さければ均さない（実際の額のまま）
         int r = side.FindIndex(l => l.Key == restKey);
+        if (r < 0) r = side.FindIndex(l => l.Key == otherKey);   // 「その他」の行が無くても、同じ側に「その他の収入／支出」の行があればそこが受ける（2 行に分かれて並べない）
         if (r >= 0) side[r] = side[r] with { Actual = side[r].Actual + diff };
         else side.Add(new BudgetLine(restKey, "その他", 0, diff, StageCell.None, null, NoForecast: true));
     }
