@@ -1,0 +1,6 @@
+(1087) 合流が作ったフォルダ（作った順）
+D:/PoB_work/m1087_work（合流の作業）
+D:/PoB_work/wt_m1087（合わせた木・枝 m1087）
+D:/PoB_work/wt_m1087z（腕 Z の木・枝 m1087z＝decb＋tr＋st）
+D:/PoB_work/ident_m1087z（腕 Z の ident・PRUNE=0）
+D:/PoB_work/keep_1087（新しい基線の生 base_ins〔M〕・n1・n2・a11〔S11〕＝腕の出力から mv）

@@ -35,6 +35,14 @@ for rid in ('S05-H014', 'S05-H015'):
     setcols(rid, {4: f'Megaprojects.cs:{cs[0]}:CanStart', 6: '読まれない欄', 7: H, 8: '働かない（消した＝(1081)・口だけ残る）', 9: dmwhy,
                   11: '消す（口を消す線 DM-P＝App・Display・Runner に触れてよい回・文書の見出しも直す）・残る口の読み手 SimCore 5 ファイル 7 行（Megaprojects.cs の外）・App 2 ファイル 13 行・Runner 1 ファイル 9 行（64e20d396 で git grep Megaproject）'}); n_fix += 1
 # 錨は名で引けるように宣言の行番号を後で reanchor ではなく実の行で入れる（下）
+# ④ dm で古くなった他の行（合流の grep：FormationLegitimacy・灌漑・Megaproject の錨）
+setcols('S27-H057', {4: '—', 6: '読まれない欄', 7: H, 8: '働かない（消した＝(1081)）',
+                     9: '(1081) c103dm の DM-D′ で係数 FormationLegitimacyBoost を消した（Formations.cs の変名の後の正統性への一回加算）＝(1087) 合流で main へ（S11 で採った）。DormantIdentityTests の RetiredFields が名の戻りを赤にする。文書 L6349 は古い',
+                     11: '消す（文書の見出しを直す・残る口は無い）・読み手 SimCore 0（係数ごと消えた）'}); n_fix += 1
+for rid in ('S28-H022', 'S28-23'):
+    setcols(rid, {4: f'Megaprojects.cs:{cs[0]}:CanStart', 6: '読まれない欄', 7: H, 8: '働かない（消した＝(1081)・灌漑ごと）',
+                  9: '(1081) c103dm で巨大建造物を灌漑ごと物理で消した（megaprojects.json の灌漑・干拓の行と耕地を足す ApplyEffect）＝(1087) 合流で main へ（S11 で採った）。実行時に今ある州の耕地を広げる道は 0 本（紙 Q-DM1）＝〈耕地を投資の結果として広げる〉は鉱山と畑の上限 ③ の線と S05-H004 の残りタスク。基線は requires の無い灌漑が 1800 年より前に全て完成していた（反証役 v2）',
+                  11: '消す（口を消す線 DM-P・文書の見出しを直す）・読み手 SimCore 5 ファイル 7 行（Megaprojects.cs の外・残る口）'}); n_fix += 1
 # ④ cr の 1 行
 setcols('S29-98', {7: H, 8: '働く（空文字の州 0・文化の空は名指しの許し 12 州だけ・宗教の例外 0）',
                    9: '(1082) c103cr＝world.json の 21 州に宗教（今ある名だけ）・9 州に文化・残る 12 州は文化を空のまま名指しの許し（理由つき）・番人 RegionLabelInvariantTests（構築した World.Regions を読む・開幕に昇格した植民地 81 州を含む・3 本）＝(1087) 合流で main へ（S11 で採った）。名が既にある名の集合に入るかを見る試験は無い（反証役 v・次の線）',
