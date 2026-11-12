@@ -695,17 +695,15 @@ public sealed class Simulation
     // ★N は**州のみ**（植民地は生産者を1つも持たないことを2026-08-13に確認済み）。
     //   ⚠2026-10-04 (196) の注記＝この確認は ColoniesAreRegions の前の話。今は開幕の植民地 77 が全て州へ昇格して生産者を持ち、同じ E を受ける
     //   （PromoteColonyToRegion）＝州だけを数えるのは分子と分母の非対称（硫黄＝門のある世界の採掘の能力の合計が門の無い世界の約0.75倍〔93.6÷124.4〕）。
-    //   直しの器 ScarceCountsIncludeColonies＝★2026-10-04 (197) で点火（(196) の5種の腕 K と (197) の合わせた木の10種の腕 K＝実装ログ (197)・英の人口は記録）。
+    //   直しの旗 ScarceCountsIncludeColonies＝★2026-10-04 (197) で点火・(1089) で焼いた（常に植民地も数える・(196) の5種の腕 K と (197) の合わせた木の10種の腕 K＝実装ログ (197)・英の人口は記録）。
     // 硫黄は k=1（パレルモのみ。北九州は後期産地＝k に数えない・蝦夷地の抽象標的は 2026-09-28 に削除）→ 州だけの N＝225 で E = 4.0 + 224×0.4 = **93.6**（旧の注記の 183 州＝77.2 は州の追加の前の数）。
     // ScarceMineralGate=0 で E を返さない＝厳密恒等。
-    private static int[]? _scarceCounts;   // 財ID→産地の州数（world.json から1回だけ数える・決定論）
-    private static int _scarceProvinceTotal;
-    private static int[]? _scarceCountsWithColonies;   // ★ScarceCountsIncludeColonies（2026-09-06）：植民地の固有資源も数えた版
+    private static int[]? _scarceCountsWithColonies;   // 財ID→産地の数（world.json から1回だけ数える・決定論）。植民地の固有資源も数える（(1089) で旗 ScarceCountsIncludeColonies を焼いた）
     private static int _scarceTotalWithColonies;
 
-    private static void EnsureScarceCounts(bool withColonies)
+    private static void EnsureScarceCounts()
     {
-        if ((withColonies ? _scarceCountsWithColonies : _scarceCounts) is not null) return;
+        if (_scarceCountsWithColonies is not null) return;
         var counts = new int[Catalog.Goods.Length];
         int total = 0;
         foreach (var n in WorldData.Nations())
@@ -716,16 +714,14 @@ public sealed class Simulation
                 foreach (var g in p.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
             }
             // ★植民地（ColoniesAreRegions で実体の生産者を持ち、Simulation:1242 で同じ ScarceEndowment を受ける）を数えないと
-            //   世界総産出が保存しない（分子と分母の非対称）。器 ScarceCountsIncludeColonies>0 でだけ数える（0＝従来）。
-            if (withColonies)
-                foreach (var col in n.InitialColonies)
-                {
-                    total++;
-                    foreach (var g in col.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
-                }
+            //   世界総産出が保存しない（分子と分母の非対称）。
+            foreach (var col in n.InitialColonies)
+            {
+                total++;
+                foreach (var g in col.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
+            }
         }
-        if (withColonies) { _scarceTotalWithColonies = total; _scarceCountsWithColonies = counts; }
-        else { _scarceProvinceTotal = total; _scarceCounts = counts; }   // ★最後に代入＝他スレッドが半端な配列を見ない（バッチは並列実行される）
+        _scarceTotalWithColonies = total; _scarceCountsWithColonies = counts;   // ★最後に代入＝他スレッドが半端な配列を見ない（バッチは並列実行される）
     }
 
     /// <summary>希少鉱物の産地での賦存量（総量保存で逆算）。対象外・未点火なら通常の賦存を返す。</summary>
@@ -734,10 +730,9 @@ public sealed class Simulation
         // ★密閉世界（単国シム＝較正・テスト・sharedWorld=false）では産地ゲートを効かせない（2026-09-06）：運ぶ相手がいない世界で産地を絞るのは
         //   「地理」でなく「欠乏の注入」＝実測で硫黄0→化学→紙→教育→行政力の鎖が絶えた（TaxTests/MobilityTests）。史実の英は硫黄をシチリアから運んだ。
         if (!sharedWorld || !(c.ScarceMineralGate > 0) || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
-        bool withCol = c.ScarceCountsIncludeColonies > 0;
-        EnsureScarceCounts(withCol);
-        int k = (withCol ? _scarceCountsWithColonies : _scarceCounts)![good];
-        int total = withCol ? _scarceTotalWithColonies : _scarceProvinceTotal;
+        EnsureScarceCounts();
+        int k = _scarceCountsWithColonies![good];
+        int total = _scarceTotalWithColonies;
         if (k <= 0) return ResourceEndowment(good);   // 産地が1つも無い財は触らない（fail-open）
         return (k * ResourceEndowment(good) + (total - k) * ResourceScarcity) / k;
     }
