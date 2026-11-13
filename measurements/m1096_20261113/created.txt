@@ -1,0 +1,5 @@
+D:/PoB_work/m1096_work
+D:/PoB_work/wt_m1096 (枝 m1096)
+D:/PoB_work/wt_m1096z（腕 Z の木）
+D:/PoB_work/ident_m1096z（腕 Z の ident の作業）
+D:/PoB_work/keep_1096（INSRAW の新しい base_ins）
