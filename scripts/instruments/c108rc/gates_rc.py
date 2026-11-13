@@ -29,6 +29,7 @@ def c8b_value(folder, rhocol):
         with open(p, encoding='utf-8') as f:
             h = f.readline().rstrip('\n').split('\t'); ix = {k: j for j, k in enumerate(h)}
             if rhocol not in ix: return None
+            if rhocol == 'rhoEngIndex': rhocol = 'tauEngIndex'   # 見出しの並びの誤りの写し替え（上と同じ）
             iq, ir, irho, i0, ii0 = ix['quarter'], ix['region'], ix[rhocol], ix['nowRule0Share'], ix['ruleInit0Share']
             for line in f:
                 c = line.rstrip('\n').split('\t')
@@ -67,6 +68,8 @@ for s in seeds:
         miss = [k for k in need if k not in ix]
         if miss: P('種', s, '列が無い', miss); continue
         g = {k: ix[k] for k in need}; iq, ir, inat = ix['quarter'], ix['region'], ix['nation']
+        # 計器の見出しの並びの誤り（(1117)・RpEngCols は Q・ρ・τ・i の順に書き、見出しは rhoEng・tauEng・iEng・qEng の順）＝読み手で写し替える（値の並びは RpEngCols のまま）
+        g['qEngIndex'], g['rhoEngIndex'], g['tauEngIndex'], g['iEngShare'] = ix['rhoEngIndex'], ix['tauEngIndex'], ix['iEngShare'], ix['qEngIndex']
         for line in f:
             c = line.rstrip('\n').split('\t')
             q = int(c[iq]); reg = c[ir]
