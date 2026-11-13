@@ -6,7 +6,7 @@
 /// 植民地の争奪（勝者が植民地素材の入手率を得る）、覇権防止（大国ほど周囲の緊張を集め孤立）。
 /// 各国の保存則（§11.6）は自国 CumulativeTradeFlow で閉じる（賠償は両国の貿易収支に相殺計上）。
 /// </summary>
-public sealed class MultiNationSim
+public sealed partial class MultiNationSim
 {
     public List<Simulation> Nations { get; } = [];
     public Diplomacy Diplomacy { get; } = new();
@@ -641,6 +641,7 @@ public sealed class MultiNationSim
             foreach (var sim in Nations) sim.StepDayDaily();    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
         // 締め境界＝**常に逐次**。〔履歴 MultiNationSim.cs#73〕
         if (_coef.LuxuryIncomeElasticity > 0 && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) DistributeWorldRealIncome();   // ε＝0 は走らない〔履歴 MultiNationSim.cs#74〕
+        if (_dayInQuarter == Calendar.QuarterEndDayIndex) RulePowerQuarterEnd();   // (1117) 支配の力の表（全ての国の Close の前の盤面から 1 回）
         foreach (var sim in Nations) sim.StepDayClose();
         foreach (var sim in Nations) sim.World.FlushLog();      // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
         if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
