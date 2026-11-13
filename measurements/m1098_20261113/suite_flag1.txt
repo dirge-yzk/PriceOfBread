@@ -1,0 +1,34 @@
+# (1098) c105mc 旗 1 の木 347b1642d のフルスイート（scripts/instruments/c105mc/suite1098.sh）・計器の束・探り
+list full 3
+nonfull rc=1 2643s
+full rc=0 270s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:17:16.95]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1491449) [FAIL]
+[xUnit.net 00:17:16.95]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 5321) [FAIL]
+[xUnit.net 00:17:26.75]     PriceOfBread.Tests.WarInstrumentTests.参戦以外の札で数えた交戦ペアが再戦の診断と一致する [FAIL]
+失敗!   -失敗:     3、合格:  2787、スキップ:     1、合計:  2791、期間: 43 m 52 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 17 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1491449) [2 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 1808756 件（宣言 1491449・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 5321) [< 1 ms]
+  エラー メッセージ:
+   計算量「中身の無い物：能力0・産出0の生産者×月（倒産）」が 2625 件（宣言 5321）＝10 % を超えて**下がった**＝表を 2625 へ下げて理由を書く（＝改善の宣言）。
+--
+  失敗 PriceOfBread.Tests.WarInstrumentTests.参戦以外の札で数えた交戦ペアが再戦の診断と一致する [1 s]
+  エラー メッセージ:
+   対照：同盟の参戦（ally）が通った経路を踏んだ（joins=0）
+saveleak rc=0 284s
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+SUITEDONE
+
+# 計器の束（Instrument|DormantIdentityTests|鉱山の天井の旗・旗 1）
+失敗!   -失敗:     1、合格:   311、スキップ:     0、合計:   312、期間: 15 m 31 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WarInstrumentTests.参戦以外の札で数えた交戦ペアが再戦の診断と一致する [1 s]
+
+# 探り（使い捨ての木で WarInstrumentTests の対照の文に外交の記録を足した・旗 1・試験の DeclareCivilWar の後に読んだ値なので civ=True は試験自身の内戦）
+対照：同盟の参戦（ally）が通った経路を踏んだ（joins=0） PROBE log=[1783 イギリスがプロイセンの参戦要請を見送り（勝ち目がない）] ukEx=0 civ=True food=1 fund=1 legit=1 min=(0.7,0.6,0.4) weary=0.5
