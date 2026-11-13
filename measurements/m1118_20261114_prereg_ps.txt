@@ -1,0 +1,117 @@
+(1118) c108ps 開院の空白を閉じる（案 1）事前登録（2026-11-14・腕の前・最初のコミット）
+枝 c108ps（cfd8de3e0 から）・worktree D:/PoB_work/wt_c108ps・作業 D:/PoB_work/c108ps_work/。形は〈入口〉（開院の条件と開幕の思想の 1 回）。
+
+[0] 先頭に名乗る物
+ ① 作者の向きと違う案を推奨で採った：案 1（Parliament.cs だけ・開幕の選挙政体は議会の前に思想を 1 回）。作者の確認 10-12〈初期値が先〉の向きは案 2（構築で 61 国）。
+    理由＝及ぶ範囲（開幕の選挙政体 8 国の四半期 0 と移行の次の四半期 対 61 国の四半期 0 と構築する全ての試験の盤面）。§0-2 ★(1110) ②・★(1116) ① の推奨。
+ ② 指示から外した所：計器の 3 列は monlaw_s の末尾でなく、同じ行の条件（四半期の末・TotalPopulation>0）で書く新しい表 parlseat_s に置く。
+    理由（grep）：scripts/instruments/mon/an_mon.py:186 が法の列の数を (len(h)−7−門の列)//2 で出す＝末尾に 3 列足すと法の名簿が 1 列ずれて注視の表 mon_ が変わる（bad_header）。
+    PriceOfBread.Tests/InstrumentsMonTests.cs:202 が monlaw_s の列の数を Assert で固定する＝末尾に足すと赤（★(743) の外の書き換えになる）。新しい表なら両方に触れない。
+ ③ UpdateShares の上の側の門は CostLedger.ParticipationPops の差で読む：計器が Parliament.Step の頭と ComputeVotes の直前の 2 か所で w.Cost を読み、差を parlUpdPops に書く（UpdateShares と MembershipContext が数える量＝実際に走った量）。
+ ④ 3 回の規則：〈開院の空白〉の 1 回目。
+ ⑤ G3 の基線は紙で数え直した（下の [4]）：M 219・N1 239・N2 211（指示の 220〜250 と定義が少し違う）。門の値は指示の ≧176 のまま（0.8×211＝169 より厳しい側）。
+
+[1] 形（旗 ParliamentSeatsWithoutGap・Coefficients.cs:88 NonElectiveSeatsEmpty の隣・既定 0）
+ Parliament.Step（PriceOfBread.SimCore/Parliament.cs）：
+  1. 旗が正・選挙政体（立憲君主制か共和制）・席の和が 0・思想が無い（全ての POP で IdeologyShares の和が 1e-9 未満）なら、ComputeVotes の前に Ideologies.UpdateShares(w) を 1 回呼ぶ。
+  2. 開院の条件：旗が正なら〈席が空 && 思想が有る && 選挙政体〉・旗 0 なら今のまま〈席が空 && QuartersSinceElection≥1 && 選挙政体〉。開院の中身（SnapshotSeats・Winner）と選挙の暦は変えない。
+ 新しい係数（旗の他）・新しい状態・天井・錠は無い。〈思想が有る〉は得票が定まるかの 2 値（調整する閾値ではない）。
+ 旗 0 では新しいコードは何も読まない（&& の短絡）＝恒等の見込み。
+
+[2] 計器（読むだけ・INS=1 の時だけ・エンジンの関数を呼ばない）
+ 表 parlseat_s<seed>.tsv：quarter year nationUid nationIndex nation polityCode parlHeadCode parlUpdPops seatSumEnd seatConsEnd（monlaw_s と同じ行の条件・同じ場所で書く）。
+ parlHeadCode＝Parliament.Step の頭（早い戻りの前）で計器が盤面を自分で読んだ符号：1 席の和が 0・2 QuartersSinceElection≥1・4 思想が有る（計器が POP を自分で走査）・8 選挙政体・16 早い戻り（!ParliamentEnabled・!PoliticsEnabled・InCivilWar）。その四半期に Parliament.Step が呼ばれなかった国は −1。
+ 旧の規則の開院＝1・2・8 が立ち 16 が無い。新の規則の開院＝1・8 が立ち 16 が無い（4 が無ければ 1. の後に立つ）。＝同じ盤面で旧と新を両方数える。
+ parlUpdPops＝頭から ComputeVotes の直前までの w.Cost[ParticipationPops] の増え（UpdateShares が走った時だけ正）。seatSumEnd・seatConsEnd＝行を書く時の席（席の書き手は Parliament.cs:71・:86〜88 だけ＝grep）。
+ 計器の欄はエンジンに足さない（計器の側の ConditionalWeakTable の MonW に置く）。
+
+[3] 番人（新しい試験 1 本・PriceOfBread.Tests/ParliamentSeatsWithoutGapTests.cs）
+ (a) 開幕：America() の盤面・旗 1・StepQuarter を 1 回。席の和 >0.5・保守の席 <0.99・与党＝席の第一党（試験の中で席から取る）。対照：旗 0 で席の和 0。
+ (b) 移行：NonElectiveSeatsTests と同じ盤面（フランス・SetIdeology 自由主義）・旗 1。移行の後 Parliament.Step を 1 回。席の和 >0.5・第一党＝自由（盤面の思想から）・与党＝第一党。対照：旗 0 で 1 回では席の和 0。
+ (c) 上の側：(a) の盤面で旗 1・思想を出した後の 2 回目の Parliament.Step では UpdateShares が走らない（ParticipationPops が増えない）。
+
+[4] 紙の台本（旗 0 の今の盤面＝keep_1116/base_ins・ヌル腕 keep_1103/n1・n2）
+ 台本 scripts/instruments/c108ps/paper_ps.py・出力 measurements/m1118_20261114/paper_flag0.txt。
+  O 四半期 0 の選挙政体の行 80（M・N1・N2 とも）・うち MinimumWage≥1 が 7・8・10・目標≥1 が 39。sf_s にある 20 行は末で全て席が空。
+  T 非選挙→選挙の距離 1（頭で内戦でない）1,710・1,829・1,733。最低賃金の上げ 92・94・77。
+  G3 最低賃金の 0→1 以上（距離 1 の移行を除く・四半期 0 は前の行が無い）219・239・211。
+  sf_s の国（席が分かる国）の旧≠新の行：T 184・207・205／C 内戦明け 6・6・4／X その他 0。
+ 旗 0 で門が落ちることの確かめ（紙）：G1 は T の席が空（sf_s で旧≠新 184/≒190）＝約 97〜99% ＞2% で赤・G1′ は 0/80 で赤・G2 は 72・65・60 ＞10 で赤・G4 は旗 0 そのもの＝基線の 100% ＞2% で赤・U は 0 行 対 80 行で赤。G3・G4b は旗 0 で緑（壊さない側の門）。
+ 旗 0 の正確な基線（G4 の分母・全ての国の T と C）は段 1 の ident の計器つき 10 種（ib）の parlseat_s で数え、腕 B の前に追記する（数を変えるならここに理由）。
+
+[5] 門（両側・母集合 P＝parlHeadCode≥0 で 8 が立ち 16 が立たない行＝頭で選挙政体・早い戻りでない）
+ G1 働いた（移行）：P のうち非選挙→選挙の距離 1（末(q−2) 非選挙・末(q−1) 選挙）の行で seatSumEnd＝0 の割合 ≦2%。
+ G1′ 働いた（開幕）：P のうち q＝0 の行で seatSumEnd＞0 の割合 ≧98%。
+ G2 狙いの大きさ：非選挙→選挙の距離 1 の最低賃金の上げの率÷他の選挙政体の四半期の率 ≦10（r1108/mw_ctrl.py と同じ数え方・回数と四半期の数を並べる）。
+    回数が少ない時の読み：比 ≦10 は〈上げの回数 ≦10×他の率×距離 1 の四半期の数〉と同じ（約 12 回）＝回数で読む。他の上げが 0 なら判定不能。
+ G3 下の側：最低賃金の 0→1 以上の上げ（距離 1 の移行と四半期 0 を除く）≧176。
+ G4 機構の数：P のうち seatSumEnd＝0 の行 ≦ 旗 0 の数（ident の ib）の 2%。
+ G4b 嘘の議会でない：P のうち q＝0 で seatSumEnd＞0 かつ seatConsEnd÷seatSumEnd≧0.99 の行＝0。
+ U  UpdateShares の上の側（両側の等号）：parlUpdPops＞0 の行の集合＝P のうち 1 が立ち 4 が立たない行の集合・その全てが q＝0・数＝P の q＝0 の行の数。
+ 検討した物（門にしない）：〈旗 1 の四半期 0 の席〉と〈旗 0 の四半期 1 の席〉の差＝大きさをソースから予言できない（UpdateShares が読む闘争度と意識が Politics.Step の前か後か）＝記録。
+
+[6] 突然変異（使い捨ての木・腕の前・紙の予言／確かめた結果は measurements/m1118_20261114/mut.txt）
+ | 変異 | G1 | G1′ | G2 | G4 | G4b | U | (a) | (b) | (c) | NonElectiveSeatsTests |
+ | M1 旗 1 でも何もしない（＝旗 0 の挙動・ident の ib の生で読む） | 赤 | 赤 | 赤 | 赤 | 緑 | 赤 | 赤 | 赤 | 緑 | 緑 |
+ | M2 開幕の思想の 1 回を外す（2. だけ） | 緑 | 赤 | 緑 | 赤 | 緑 | 赤 | 赤 | 緑 | 緑 | 緑 |
+ | M3 思想の 1 回を外し、開院から思想の条件も外す | 緑 | 緑 | 緑 | 緑 | 赤 | 赤 | 赤 | 緑 | 緑 | 緑 |
+ | M4 開院で席だけ写し与党を決めない | 緑 | 緑 | ？ | 緑 | 緑 | 緑 | 赤 | 赤 | 緑 | :71 赤（v の :66 は Assert の行でない＝ :71 の与党の Assert） |
+ | M5 Parliament.cs:71 の 0 戻しの分岐を外す（非選挙でも席を写す） | 緑 | 緑 | ？ | 緑 | 緑 | 緑 | 緑 | 赤（対照） | 緑 | :51 赤 |
+ | M6 UpdateShares を毎四半期呼ぶ（選挙政体の全ての頭） | 緑 | 緑 | ？ | 緑 | 緑 | 赤 | 緑 | 緑 | 赤 | 緑 |
+ | M7 〈思想が無い〉の条件を外す（席が空なら呼ぶ） | 緑 | 緑 | ？ | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 |
+ 腕で確かめる変異：M2・M3・M6・M7＝1 種（種 1）全長の計器つき（G の列）・M1＝ident の ib の生（旗 0 と同じ挙動）。M4・M5＝試験だけ（腕の G は「？」のまま・予言しない）。
+ 「？」は腕で読む物で門の予言ではない。
+
+[7] ソースを走査する番人（㉘）の点検と予言（㉑）
+ IndustrializationReaderTests の許可表に Parliament・InstrumentsMon の行は無い（grep 0）＝変わらない。new MoneyStock( は SimCore で 64＝足さない。
+ scripts/instruments/flow262/route_anchors.tsv に Parliament.cs・InstrumentsMon.cs の鍵の行は無い（grep 0）。
+ WriterRatchetTests の宣言の表：IdeologyShares・PartySeats の行は無い。ParticipationPops は :572 の 291450（1 種 40 四半期）。
+  旗 0＝件数は変わらない（計器は INS=1 の時だけ・旗 0 の新しいコードは数えない）。
+  旗 1＝ParticipationPops は開幕の選挙政体の四半期 0 の 1 回分だけ増える（+1% 未満の見込み・許し +2% の内）。他の行は最初の 40 四半期の軌道が動けば許しの外へ出うる＝赤なら ★(749)〈軌道の件数を写しただけの番人〉として旗 1 の木の実測で 1 回だけ取り直し、行と前後の値を verdict に列挙する。新しい計数の処理は無い。
+ 試験の数：Tests 2594→2597（新しい試験ファイルの [Fact] 3 本）・Tests.Ui 232 のまま・FullLength 3 のまま。
+
+[8] 旗 1 の木で旧の規則を固定する番人の grep（㉜）
+ grep -ln "PartySeats|QuartersSinceElection|GoverningParty" PriceOfBread.Tests*：CrownParliamentTests・ElectionAiTests・NonElectiveSeatsTests・PartyTests・PolicyPoliticsTests・PopScanTests・Rs3LordReverseGainTests・Tests.Ui/LawStakesTests。
+ どれも席を盤面に直に置くか選挙の暦を置く＝〈QuartersSinceElection≥1 で開院〉を固定する Assert は見当たらない。NonElectiveSeatsTests の 4 本は旗 1 でも緑の見込み（盤面に思想が有る・移行の後に 2 回回す・:108 の旗 0 の試験は NonElectiveSeatsEmpty=0 で席が空にならない）。
+ 赤が出たら ㉜ の区分で読む（旧の規則を固定する型なら止めて作者に聞く）。
+
+[9] 止める線（README のまま・結果を見る前に写す）
+ 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる）・1e10 倍以上・
+ 空洞化 1/10 未満の名簿の外（規則 A2＝an_h2.py -v4 の既定・植民地格・緯度の絶対値 55 度以上・開幕の人口 20 千人未満・主要国の州は例外にしない・線が原因と読めた件だけ＝基線 keep_1116/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）・
+ 推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。NG（ng.sh・基準 rd:measurements/ng1103_20261113:m1103）・exact・near・国力・史実度・開幕の 1000 倍以上・名目 GDP 0 の続きは記録。
+
+[10] 計算量の割り当て：+0.01 秒未満（開幕の 8 国×1 回の UpdateShares・席が空の時だけの POP の走査）。減る見込み：最低賃金の籠の走査 約 −0.6〜0.7 秒（(1108) の推・確証 低）。2 秒以下＝1 本の腕で門にしない（記録）。
+
+[11] 記録（門にしない）：アメリカの四半期 0 の最低賃金（基線 7〜10/10 種）・1894 年より前の施行の行・最初の施行の年・労組の法の非選挙→選挙の距離 1 の率（基線 7.5〜10.1）と選挙→選挙の率・誕生の国の距離 1 の山・
+ 開幕の 8 国の四半期 0 と 1 の席の組み（旗 1 の q0 と旗 0 の q1）・施行の行の総数・prds_s の q＝0 の行の増え（予言：+8/種＝開幕の選挙政体の数）・C（内戦明け）の旧≠新の行の数（紙は sf_s の国だけ 6・6・4）・nullgate.py の O・英の国債の不履行の種の数。
+
+[12] 周辺の点検（読むだけ）：労組の法の選挙→選挙の高さ（政体の移行の効果・別の型・直さない）。内戦の国の席の空（Parliament.Step が頭で戻る＝00一覧〈ver2.0 の後〉への 1 行の候補・新しい題は起こさない）。
+
+[13] 重なり：持ち主は Parliament.cs・Coefficients.cs（:88 の隣の 1 行）・Instruments/InstrumentsMon.cs・新しい試験 1 本・scripts/instruments/c108ps/・measurements/m1118_*。
+ rc（Politics・Diplomacy・MultiNationSim・Simulation・Model・BilateralMarket）・mc（EconomyStep・p10）・sm（試験と文書）と重ならない。Politics.cs・Simulation.cs・Government.cs・Ideology.cs に触れない。
+ Coefficients.cs は全ての線が自分の行だけ（この線は :88 の隣に 1 行）。
+
+[14] 段の順：この事前登録 → 器（旗 0・計器・試験）→ ㉘ の束 → フルスイート（★(1022)）→ ident c108psz（--added-tables parlseat --tests-delta 3）→ 番人 (a) を旗 0 の器の木で旗 1 に置いて回す（赤なら腕を回さない）→ 突然変異 → 旗 1 → ㊴ → フルスイート・savetest・leakhunt → 腕 B（INS=1 batch.sh run c108psB 10）→ 門・止める線 → 印 → push。形の変え直しは 1 回だけ。
+
+[追記 1]（2026-11-14・旗 1 のコミット 279c5d10c の後・腕 B の前）
+ ㊴ 計器の試験の束（FullyQualifiedName~Instrument ほか 317 本）で赤 2 本：
+  (i) OnDoubleReadScanTests：Parliament.Step が Instruments.On を 2 回読んだ（器のコードの誤り・旗 0 でも赤）。直し＝関数の頭で 1 回だけ読んで局所に置く（エンジンの出力のビットは同じ・計器の呼びの門だけ）。
+      旗 1 の木の試験の結果を見た後の SimCore の変更＝⑭ の〈形の変え直し〉の枠 1 回に数える（★(981)）。旗 0 の ident は 623750fd7 で取った＝この直しは計器の門の読みの回数だけ（呼ぶ計器と順は同じ）。
+  (ii) InstrumentsArmsTests.A2_戦力の指数は各項の積と合う（フランス/q2：積 1.1261947677567112・landPowerIndex 1.126194769）。
+      区分＝★(743) の〈軌道に依る前提〉：計器の列は G10（10 桁）で書かれ、試験は 8 つの丸めた因子の積を 1e-9 の相対で比べる＝丸めの誤差（因子ごとに最大 5e-10）の和が 1e-9 を超える行が軌道の運で出る。旗 1 は開幕の英（選挙政体）の四半期 0 を変える＝盤面の軌道が変わった。
+      旧の盤面に番人を固定する形に当たらない理由＝この試験は計器の列どうしの代数の恒等を見る（議会と開院の規則を読まない）。直しは盤面の種だけ（A2 だけ別の種・A1 は 1789 のまま）・Assert の文と閾値と母集合は変えない・調べた行の数の下限 ≧20 は元からある。
+      旗 0 と旗 1 の両方で緑・直しを外す（種 1789 に戻す）と旗 1 で赤＝確かめて記録する。SimCore に触れない。
+      ⚠ 限界（自己申告）：種の取り直しは丸めの運を替えるだけ＝別の挙動の線を重ねた合流の木で再び赤になりうる（★(961) の型）。本当の直しは許しを G10 の積の誤差に合わせること（閾値の変更＝この線ではしない・申し送り）。
+ G4 の旗 0 の数（ident c108psz の ib の parlseat_s）＝1,803（O 80・T 1,710・C 13・X 0）→ G4 の門 ≦36.06。符号が無い行（Parliament.Step が呼ばれていない＝その四半期に生まれた国）108。
+ G3 の紙の余り（㉗ と ★(859) の名乗り）：旗 0 で 219・239・211。うち同じ国が前に空白（距離 1 か四半期 0）で施行した後の再上げ 10・8・14（scripts/instruments/c108ps/paper_g3.py）＝空白を閉じて消えうる最大の分を引いても 209・231・197 ≧176（門との比 0.89）。
+  突然変異の 1 種（種 1）の腕で G3 は M2 13・M3 17（旗 0 の同じ種 22・1 種の門 17.6）＝1 種の揺れの内か外かは読めない（記録）。門は変えない。それでも回す理由＝紙の 10 種の見込みは門の内。
+ 突然変異の試験の結果（measurements/m1118_20261114/mut/mut_tests.txt）：M1〜M7 の全てで少なくとも 1 本が赤。紙の表との違い＝M1 は (c) も赤（前提の席の Assert）・M4 は NonElectiveSeatsTests の :58 と :75 の試験も赤（開院の与党の決めは旗 0 と共通の枝）・M7 は (c) が赤（席を空にした盤面で走る）。
+
+[追記 2]（2026-11-14・腕 B の前・突然変異の腕を読んだ後・門は変えない）
+ 突然変異の門の表（measurements/m1118_20261114/mut.txt・1 種＝種 1）：
+  M1（＝旗 0）G1 赤・G1′ 赤・G2 赤・G4 赤・U 赤（G3・G4b 緑）／M2 G1′ 赤・G4 赤・U 赤（G3 赤 13）／M3 G4b 赤・U 赤（G3 赤 17）／M6 U 赤（他は緑）／M7 U 赤（G3 赤 14）。
+  M4・M5 は試験で赤（M4：(a)(b)・NonElectiveSeatsTests :58・:75／M5：(b)・NonElectiveSeatsTests :46・:58・:75）。全ての変異が少なくとも 1 つの門か試験で赤。
+ ㉗ G3 の破れの恐れ：開院の空白を閉じる 4 つの変異（M2・M3・M6・M7）の種 1 の G3 は 13・17・18・14（旗 0 の種 1 は 22・1 種の門 17.6）＝4 本とも旗 0 より下。
+  旗 0 の種ごとの G3 は 10〜36（種 1〜10）＝1 種の値は種ごとの幅の内。それでも回す理由＝紙の 10 種の見込み（再上げの分を引いて 197〜231）は門の内・門は腕の前に固定した物で変えない。
+  G3 が腕 B で 176 を下回れば〈線の不採用〉（下の側の門の破れ）と報告し、事前登録の外の読み替えはしない。
+ savetest OK（12 四半期・61 国・最大相対差 0）・leakhunt 完走（保存則違反なし）＝旗 1 の木 4bb81a07b。

@@ -135,8 +135,45 @@ public static partial class Instruments
         public int[] Changed = new int[MonFields.Length], FirstYear = new int[MonFields.Length], LastYear = new int[MonFields.Length];
         public object?[] FirstVal = new object?[MonFields.Length], LastVal = new object?[MonFields.Length];
         public bool[] FirstSet = new bool[MonFields.Length];
+        // parlseat（(1118)）：Parliament.Step の頭の符号と、頭から得票の直前までの ParticipationPops の増え（行を書いたら戻す）
+        public int ParlCode = -1; public long ParlCost0, ParlUpd;
     }
-    sealed class MonSink { public readonly List<MonW> Ws = new(); public System.IO.StreamWriter? Law; public bool LawHeader; }
+    sealed class MonSink { public readonly List<MonW> Ws = new(); public System.IO.StreamWriter? Law, Parl; public bool LawHeader; }
+
+    internal const string ParlSeatHeader = "quarter\tyear\tnationUid\tnationIndex\tnation\tpolityCode\tparlHeadCode\tparlUpdPops\tseatSumEnd\tseatConsEnd";
+
+    /// <summary>(1118) Parliament.Step の頭（早い戻りの前）：盤面を計器が自分で読んで符号にする。1 席の和が 0・2 QuartersSinceElection≥1・4 思想が有る（POP を自分で走査）・8 選挙政体・16 早い戻り。</summary>
+    internal static void ParlHead(World w)
+    {
+        var mw = MonWs.GetValue(w, _ => new MonW());
+        int code = 0;
+        if (w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9) code |= 1;
+        if (w.QuartersSinceElection >= 1) code |= 2;
+        foreach (var (_, p) in w.AllPopsWithRegion())
+        {
+            double s = 0;
+            for (int i = 0; i < p.IdeologyShares.Length; i++) s += p.IdeologyShares[i];
+            if (s >= 1e-9) { code |= 4; break; }
+        }
+        if (w.Polity == Polity.ConstitutionalMonarchy || w.Polity == Polity.Republic) code |= 8;
+        if (!w.ParliamentEnabled || !w.PoliticsEnabled || w.InCivilWar) code |= 16;
+        mw.ParlCode = code; mw.ParlCost0 = w.Cost[CostLedger.ParticipationPops]; mw.ParlUpd = 0;
+    }
+
+    /// <summary>(1118) 得票（ComputeVotes）の直前：頭からの ParticipationPops の増え＝議会の中で思想の更新が走った量。</summary>
+    internal static void ParlPreVotes(World w)
+    {
+        if (MonWs.TryGetValue(w, out var mw)) mw.ParlUpd = w.Cost[CostLedger.ParticipationPops] - mw.ParlCost0;
+    }
+
+    static void ParlSeatRow(MonSink ms, ulong seed, World w, MonW mw, WState st, int q, int index)
+    {
+        if (ms.Parl is null) { ms.Parl = Open("parlseat", seed); ms.Parl.WriteLine(ParlSeatHeader); }
+        string I(int v) => v.ToString(Inv.InvariantCulture);
+        ms.Parl.WriteLine(string.Join('\t', I(q), I(w.Year), I(st.Uid), I(index), NameOf(w), I((int)w.Polity), I(mw.ParlCode),
+            mw.ParlUpd.ToString(Inv.InvariantCulture), F(w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2]), F(w.PartySeats[0])));
+        mw.ParlCode = -1; mw.ParlUpd = 0;
+    }
     static readonly ConditionalWeakTable<World, MonW> MonWs = new();
     static readonly ConditionalWeakTable<MultiNationSim, MonSink> MonSinks = new();
 
@@ -176,7 +213,7 @@ public static partial class Instruments
         var mw = MonWs.GetValue(w, _ => new MonW());
         mw.Uid = st.Uid; mw.Index = index; mw.Name = NameOf(w);
         if (!mw.Registered && st.Uid != 0) { ms.Ws.Add(mw); mw.Registered = true; }
-        if (w.TotalPopulation > 0) MonLawRow(ms, seed, w, st, q, index);
+        if (w.TotalPopulation > 0) { MonLawRow(ms, seed, w, st, q, index); ParlSeatRow(ms, seed, w, mw, st, q, index); }
         if (yearEnd && w.Regions.Count > 0 && st.Uid != 0) MonGoodYear(mw, w, w.Year);
     }
 
@@ -215,6 +252,7 @@ public static partial class Instruments
         if (!MonSinks.TryGetValue(sim, out var ms)) return;
         string I(int v) => v.ToString(Inv.InvariantCulture);
         ms.Law?.Dispose(); ms.Law = null;
+        ms.Parl?.Dispose(); ms.Parl = null;
         var ws = ms.Ws.OrderBy(m => m.Uid).ToList();
         if (ws.Any(m => m.Years.Count > 0))
         {

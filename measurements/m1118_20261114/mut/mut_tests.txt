@@ -1,0 +1,38 @@
+MUTOK M1
+== M1 rc=1
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.開幕の選挙政体は四半期0に席が座り_保守の退避ではなく_与党は席の第一党 [3 s]
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.非選挙から選挙の政体へ移った次の1回で席が座り_与党は席の第一党 [181 ms]
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.議会の中の思想の1回は思想が無い時だけ走る [50 ms]
+失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+MUTOK M2
+== M2 rc=1
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.開幕の選挙政体は四半期0に席が座り_保守の退避ではなく_与党は席の第一党 [4 s]
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.議会の中の思想の1回は思想が無い時だけ走る [28 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+MUTOK M3
+== M3 rc=1
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.開幕の選挙政体は四半期0に席が座り_保守の退避ではなく_与党は席の第一党 [3 s]
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.議会の中の思想の1回は思想が無い時だけ走る [35 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+MUTOK M4
+== M4 rc=1
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.開幕の選挙政体は四半期0に席が座り_保守の退避ではなく_与党は席の第一党 [4 s]
+  失敗 PriceOfBread.Tests.NonElectiveSeatsTests.選挙の政体が続く間は選挙の四半期の他に与党が替わらない [4 s]
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.非選挙から選挙の政体へ移った次の1回で席が座り_与党は席の第一党 [106 ms]
+  失敗 PriceOfBread.Tests.NonElectiveSeatsTests.非選挙から立憲へ移ると最初の選挙の前に与党は議席の第一党 [142 ms]
+失敗!   -失敗:     4、合格:     3、スキップ:     0、合計:     7、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTOK M5
+== M5 rc=1
+  失敗 PriceOfBread.Tests.NonElectiveSeatsTests.選挙の政体が続く間は選挙の四半期の他に与党が替わらない [4 s]
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.非選挙から選挙の政体へ移った次の1回で席が座り_与党は席の第一党 [85 ms]
+  失敗 PriceOfBread.Tests.NonElectiveSeatsTests.非選挙の政体では議席の和が0 [57 ms]
+  失敗 PriceOfBread.Tests.NonElectiveSeatsTests.非選挙から立憲へ移ると最初の選挙の前に与党は議席の第一党 [67 ms]
+失敗!   -失敗:     4、合格:     3、スキップ:     0、合計:     7、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTOK M6
+== M6 rc=1
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.議会の中の思想の1回は思想が無い時だけ走る [27 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+MUTOK M7
+== M7 rc=1
+  失敗 PriceOfBread.Tests.ParliamentSeatsWithoutGapTests.議会の中の思想の1回は思想が無い時だけ走る [69 ms]
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
