@@ -289,7 +289,7 @@ public class DiscontentReaderTests
         var re = new System.Text.RegularExpressions.Regex(@"(?<![A-Za-z])Discontent\(");
         var found = new SortedDictionary<string, int>();
         string root = System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
-        foreach (var f in System.IO.Directory.EnumerateFiles(root, "*.cs", System.IO.SearchOption.AllDirectories))
+        foreach (var f in new[] { root, System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Display") }.SelectMany(d => System.IO.Directory.EnumerateFiles(d, "*.cs", System.IO.SearchOption.AllDirectories)))
         {
             if (f.Contains(System.IO.Path.DirectorySeparatorChar + "obj" + System.IO.Path.DirectorySeparatorChar) || f.Contains(System.IO.Path.DirectorySeparatorChar + "bin" + System.IO.Path.DirectorySeparatorChar)) continue;
             int n = 0;

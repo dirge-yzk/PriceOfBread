@@ -6,3 +6,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("PriceOfBread.Runner")]
 // UI（戦争タブ・国内勢力の強さ比表示）から internal の純関数（Politics.LoyalistMilitia）を読めるようにする（表示のみ・書き込みには使わない・2026-08-16）。
 [assembly: InternalsVisibleTo("PriceOfBread.App")]
+// 表示の層（PriceOfBread.Display）と画面の試験から SimCore の internal を読む（旧 SimCore/Display は同じアセンブリだった）。
+[assembly: InternalsVisibleTo("PriceOfBread.Display")]
+[assembly: InternalsVisibleTo("PriceOfBread.Tests.Ui")]

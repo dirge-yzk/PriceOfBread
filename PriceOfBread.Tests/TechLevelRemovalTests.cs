@@ -31,7 +31,7 @@ public class TechLevelRemovalTests
     {
         string root = GoodIdGuardTests.RepoRoot();
         var counts = new SortedDictionary<string, int>();
-        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner" })
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.Runner" })
             foreach (var f in Directory.GetFiles(Path.Combine(root, dir), "*.cs", SearchOption.AllDirectories))
             {
                 string rel = f.Replace('\\', '/');

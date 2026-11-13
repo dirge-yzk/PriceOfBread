@@ -258,7 +258,7 @@ public class SulfuricAcidSodaAshTests
         string token = "Chemicals" + "Id";
         string root = GoodIdGuardTests.RepoRoot();
         var hits = new List<string>();
-        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App", "PriceOfBread.Tests" })
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.Runner", "PriceOfBread.App", "PriceOfBread.Tests", "PriceOfBread.Tests.Ui" })
             foreach (var f in Directory.EnumerateFiles(Path.Combine(root, dir), "*.cs", SearchOption.AllDirectories))
             {
                 if (f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}") || f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;

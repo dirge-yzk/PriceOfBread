@@ -1324,7 +1324,7 @@ public class PolicyPoliticsTests
     //   骨子＝新しい状態を作らず S（MandateSpent）を「b からの目減り」と読み替える：a＝max(0,b−S)／門＝S+代価≤b／回復＝b/40×実行度 の線形。
 
     /// <summary>政治資本の盤面（仏1789・8四半期）。★2026-09-21 ㉖で旗 PoliticalCapitalStock を焼き込み＝器は既定で点いている（旧＝Run の後に旗を立てた）。</summary>
-    private static Simulation CapitalBoard()
+    internal static Simulation CapitalBoard()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.World.Coef.MandateOverStockLegitPower = 0;   // ★(405)(419) 既定は採用値（壁の一歩を値段にする）。この盤面の番人は〈在庫の門だけ・壁は永久に通らない〉世界を見る＝払える量の指数を 0 に明示（旧の旗 0 と同じ振る舞い・壁の一歩の経路は ReformPathTests）
@@ -1744,37 +1744,6 @@ public class PolicyPoliticsTests
         Assert.False(g.Ok, "憲法級が在庫で押し切れた＝2026-08-04 の裁定が破れた");
         Assert.Equal(Government.ReasonNoMandate, g.Reason);
         Assert.False(Government.CanStep(w, PolicyAxis.Suffrage, i));
-    }
-
-    /// <summary>(h') 法律タブのホバーは門の理由をそのまま言う（2026-09-21 ㉖）。憲法級の否決（賛成不足＝硬い純支持&gt;0）に
-    /// 「政治資本消費:n　不足」を出さない＝政治資本をいくら貯めても開かない門を政治資本の不足と言わない。
-    /// 在庫の門の否決は従来どおり必要量＋不足。表示は <c>LawRowVM.StageHint</c>＝法律タブが実際に出す1本。</summary>
-    [Fact]
-    public void S1_法律タブのホバーは憲法級の否決を政治資本の不足と言わない()
-    {
-        var sim = CapitalBoard(); var w = sim.World;
-        w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;   // 在庫は潤沢＝止めているのが在庫でないことを盤面で保証する
-        string[] labels = ["0", "1", "2", "3", "4", "5", "6", "7"];
-        string Line2(PolicyAxis a, int level) =>
-            new PriceOfBread.App.ViewModels.LawRowVM(w, a, "法", labels, () => LawLevel(w, a), () => LawLevel(w, a), _ => { })
-                .StageHint(level)!.Split('\n')[1];
-        // ① 憲法級（参政権）の否決
-        (bool Inc, int Level)? opp = null;
-        foreach (bool inc in new[] { true, false })
-        {
-            int level = Government.NextStage(w, PolicyAxis.Suffrage, inc);
-            if (Government.GateInfo(w, PolicyAxis.Suffrage, inc, level).Reason == Government.ReasonNoMandate) { opp = (inc, level); break; }
-        }
-        Assert.True(opp != null, "テスト前提が崩れた：憲法級の否決（賛成不足）を作れていない");
-        string constitutional = Line2(PolicyAxis.Suffrage, opp!.Value.Level);
-        Assert.Equal($"制定:不可（{Government.ReasonNoMandate}）", constitutional);
-        Assert.DoesNotContain("政治資本", constitutional);
-        // ② 在庫の門の否決（非憲法級・残りが代価の半分）＝必要量と「不足」
-        var (a2, _, l2, cost) = FindOpposedStep(w);
-        w.PoliticalCapitalMax = cost * 0.5; w.MandateSpent = 0;
-        string stock = Line2(a2, l2);
-        Assert.StartsWith("制定:不可（政治資本消費:", stock);
-        Assert.EndsWith("　不足）", stock);
     }
 
     /// <summary>(i) 純支持が NaN の一歩は施行でも否決される＝門を無償で素通りしない（2026-09-21 ㉖・fail-closed）。

@@ -1,0 +1,13 @@
+(1111) c107di 結果（事前登録 m1111_20261113_prereg_di.txt と追記 1 のとおり）
+判定: 恒等（測った種で一致）＝ident.sh run c107di（段 2・基準 m1103）の最後の行。記録は m1111_20261113_di_ident.txt。
+  素の 5 種 全行バイト一致（178 行）・計器つき 10 種 全行バイト一致（180 行）・.cost 件数 43 本・推定 230.5／230.3 秒・計器の表 1437 本は恒等（バイト一致 1417＋既知の揺れ 20）・注視の表 4681 行一致。
+試験：Category!=FullLength 2826（基準 2823＋足した 3 本）・FullLength 3。エンジン 2593（Tests）＋画面 232（Tests.Ui）＝2825 は SourceScanCoverageTests を足す前の写し（m1111_20261113_di_tests_nonfull_copy.txt・失敗 0・スキップ 1）。
+  足した 1 本（SourceScanCoverageTests）は最後の頭の走査の番人の束（m1111_20261113_di_g28_final_head.txt・232 本・失敗 0）で緑。FullLength は Tests の 3 本（失敗 0）・Tests.Ui は 0 本。
+IL の門（G1a〜G1f・G2）：全て緑（m1111_20261113_di_il_gate.txt・型 769＝769・Display の型 119・SimCore.dll の Display の型 0・属性の差は IVT 2 本だけ・資源 10＝10）。
+  後の頭は IL の門を回したコミット 570ee4ba8 から SimCore・Display・App・Runner のソースが 0 差（以後は台本と試験だけ）。
+  突然変異：M1（Display に空の型）G1a・G2 が赤／M4（SimCore に PowerLabel の写し）G1b・G1c が赤（m1111_20261113_di_mut_il_*.txt）。
+試験の突然変異（m1111_20261113_di_mut_tests.txt）：M0 緑／M2 FmtTests をエンジンへ戻す→ビルド赤（CS0234）／M3 GoodIdGuard から Display を外す→SourceScanCoverageTests 赤／M3b DiscontentReader から外す→赤／M5・M6 Display に換算の口・年GDP比の口→DisplayUnitTypeTests 赤。
+  M3 の最初の回は SourceScanCoverageTests が元から赤（空の SimCore/Display フォルダが残る写しを読んだ）＝番人を .cs の有無で書き直し、M0 緑を確かめてから M3 を取り直した。
+エンジンの試験が App を建てない：scripts/instruments/c107di/noapp.sh が合格（エンジン assets の App・Display・Runner 0・画面 assets の App 9）。
+savetest OK・leakhunt 完走・保存則違反なし。刈り込み：表 1437 本のうち 1327 本（17.26GB）を消した。
+事前登録からの差：(1) 共有の補助は Link でなく Tests への ProjectReference＋IVT（Link だと GoodIdGuardTests・OpeningFiscalRuleTests の試験が 2 重に走る）(2) PolicyPoliticsTests は 1 本だけ Tests.Ui の PolicyPoliticsUiTests へ移し（CapitalBoard を private→internal）(3) 足した試験は 3 本（予言の追記 1）(4) ident.sh（試験の数え方を 2 プロジェクトの和に）を触った。

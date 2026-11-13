@@ -1,0 +1,45 @@
+緑 G1a 型の集合が前＝後（SimCore ∪ Display） 前 769 後 769 差 []
+赤 G1b 型ごとの IL・署名・定数・属性の写しが一致 違う型 5 例 ['<>z__ReadOnlyArray`1', '<>z__ReadOnlySingleElementList`1', '<>z__ReadOnlySingleElementList`1+Enumerator', '<PrivateImplementationDetails>', '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=12']
+    --- 
+    +++ 
+    @@ -232,0 +233,232 @@
+    +  type Sealed, BeforeFieldInit base System.Object impl System.Collections.IEnumerable impl System.Collections.ICollection impl System.Collections.IList impl System.Collections.Generic.IEnumerable`1<!
+    +  attr System.Runtime.CompilerServices.CompilerGeneratedAttribute::Void .ctor() inst [01000000]
+    +  field Private, InitOnly _items : !0[]
+    +    attr System.Runtime.CompilerServices.CompilerGeneratedAttribute::Void .ctor() inst [01000000]
+    +  method Public, HideBySig, SpecialName, RTSpecialName IL Void .ctor(!0[]) inst
+    +    param 1 items None
+    +    body maxstack=8 initlocals=False
+    +    0000 ldarg.0 
+    +    0001 call System.Object::Void .ctor() inst
+    --- 
+    +++ 
+    @@ -244,0 +245,244 @@
+    +  type Sealed, BeforeFieldInit base System.Object impl System.Collections.IEnumerable impl System.Collections.ICollection impl System.Collections.IList impl System.Collections.Generic.IEnumerable`1<!
+    +  attr System.Runtime.CompilerServices.CompilerGeneratedAttribute::Void .ctor() inst [01000000]
+    +  field Private, InitOnly _item : !0
+    +    attr System.Runtime.CompilerServices.CompilerGeneratedAttribute::Void .ctor() inst [01000000]
+    +  method Public, HideBySig, SpecialName, RTSpecialName IL Void .ctor(!0) inst
+    +    param 1 item None
+    +    body maxstack=8 initlocals=False
+    +    0000 ldarg.0 
+    +    0001 call System.Object::Void .ctor() inst
+    --- 
+    +++ 
+    @@ -51,0 +52,51 @@
+    +  type NestedPrivate, Sealed, BeforeFieldInit base System.Object impl System.IDisposable impl System.Collections.IEnumerator impl System.Collections.Generic.IEnumerator`1<!0> gp T
+    +  field Private, InitOnly _item : !0
+    +    attr System.Runtime.CompilerServices.CompilerGeneratedAttribute::Void .ctor() inst [01000000]
+    +  field Private _moveNextCalled : Boolean
+    +    attr System.Runtime.CompilerServices.CompilerGeneratedAttribute::Void .ctor() inst [01000000]
+    +  method Public, HideBySig, SpecialName, RTSpecialName IL Void .ctor(!0) inst
+    +    param 1 item None
+    +    body maxstack=8 initlocals=False
+    +    0000 ldarg.0 
+緑 G1c 後の SimCore.dll に Display の型が 0 SimCore 側の Display 型 0・Display.dll 側 119
+緑 G2 Display の型の名の列が前後で同じ 前 119 後 119
+緑 G1d アセンブリの属性の差が足した InternalsVisibleTo だけ（SimCore.dll 単体） 足 2（2 が IVT）・消 0
+緑 G1e 埋め込みの資源が同じ（SimCore.dll 単体） 前 10 後 10
+緑 G1f SimCore.dll の合成の型の名簿が同じ 前 0 後 0
+# Display.dll の合成の型の名簿 []
+rc=1

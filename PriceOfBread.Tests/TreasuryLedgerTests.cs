@@ -377,7 +377,7 @@ public class TreasuryLedgerTests
         var stepCallers = new System.Collections.Generic.List<string>();
         var borrowCallers = new System.Collections.Generic.List<string>();
         char sep = System.IO.Path.DirectorySeparatorChar;
-        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.App" })
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.App" })
             foreach (var f in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(root, dir), "*.cs", System.IO.SearchOption.AllDirectories))
             {
                 if (f.Contains($"{sep}obj{sep}") || f.Contains($"{sep}bin{sep}")) continue;

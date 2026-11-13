@@ -391,7 +391,7 @@ public class UnitTypeTests
         // `new RatioToGdpYear(` の直書き（コンストラクタ）は SimCore（Units.cs を除く）・Runner・App に無い
         string root = GoodIdGuardTests.RepoRoot();
         var hits = new List<string>();
-        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" })
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.Runner", "PriceOfBread.App" })
             foreach (var f in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(root, dir), "*.cs", System.IO.SearchOption.AllDirectories))
             {
                 string p = f.Replace('\\', '/');
@@ -864,7 +864,7 @@ public class UnitTypeTests
     public void 年の流れのお金をdoubleから作る所の数は宣言のとおり()
     {
         const int Declared = 1;   // 2026-10-11 (257)：1＝Credit 1（銀行の評価損の債務比の分母＝`Math.Max(1.0, Calendar.PerMonthToPerYear(月の名目GDP))`＝年の値を床で挟んでから包む）。(256) の Fiscal 1 は型つきの換算へ寄せた
-        var per = new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" }
+        var per = new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.Runner", "PriceOfBread.App" }
             .SelectMany(p => System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), p), "*.cs", System.IO.SearchOption.AllDirectories))
             .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))
             .Select(f => (File: System.IO.Path.GetFileName(f), N: System.Text.RegularExpressions.Regex.Matches(GoodIdGuardTests.StripCode(System.IO.File.ReadAllText(f)), @"\bnew\s+MoneyPerYear\s*\(").Count))
@@ -892,7 +892,7 @@ public class UnitTypeTests
         //   Credit +1＝銀行の準備 Bank.Gold を基礎貨幣から毎日導く 1 行／MultiNationSim +1＝対外借入の貸し手の国が払った額を貸し手の債権へ 1（World.Transfer が返す動いた額）／
         //   World −1＝台帳の記帳（Book）で動いた額の包みを5つの台帳が共有する 1 本にした（企業の与信と家計の与信の 2 行の包みが 1 行に畳まれた）。
         var dir = System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
-        var per = System.IO.Directory.EnumerateFiles(dir, "*.cs", System.IO.SearchOption.AllDirectories)
+        var per = new[] { dir, System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Display") }.SelectMany(d => System.IO.Directory.EnumerateFiles(d, "*.cs", System.IO.SearchOption.AllDirectories))
             .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))
             .Select(f => (File: System.IO.Path.GetFileName(f), N: System.Text.RegularExpressions.Regex.Matches(GoodIdGuardTests.StripCode(System.IO.File.ReadAllText(f)), @"\bnew\s+MoneyStock\s*\(").Count))
             .Where(x => x.N > 0).OrderBy(x => x.File, StringComparer.Ordinal).ToList();

@@ -1,0 +1,65 @@
+(1111) c107di 事前登録：表示の層を別アセンブリ PriceOfBread.Display へ・試験をエンジン用と画面用の 2 プロジェクトへ（⑤・段 2）
+基線 1cd66aae5（m1103 のまま）。このファイルは作業の最初のコミット（コードのコミットより前）。
+
+[1] 恒等の線・予言 0
+  挙動は変えない。名前空間 PriceOfBread.SimCore.Display・型・メンバー・ファイルの中身は 1 字も変えない（18 本を git mv で rename 100%）。
+  浮動小数の順序・係数のリテラルに触れない（ソースは動かすだけ）。紙の台本で数える食い違い＝0 件（比べる計算が存在しない）。
+  成績表（5 種・10 種・計器つき 10 種）は m1103 と名乗り行（SOURCE-HASH）を除いて全行一致。FILES の行は変わりうる（再編の分）。
+
+[2] 動かす物・残す物・読み手
+  動かす：PriceOfBread.SimCore/Display/*.cs 18 本（DiscoveryTables DisplayFormat FiscalCatalog FiscalTables LawCatalog LawOpenings LawStakes LawTables
+    MarketTables Pages PopTables PowerLabel ProblemScan ProductionTables StageGate Table TableCatalog TradeTables）→ PriceOfBread.Display/。
+  足す：PriceOfBread.Display/PriceOfBread.Display.csproj・AssemblyInfo.cs（IVT：App・Runner・Tests.Ui）／SimCore/AssemblyInfo.cs に IVT Display・Tests.Ui／
+    Runner・App の csproj に Display の ProjectReference 1 行／slnx に Display と Tests.Ui／PriceOfBread.Tests.Ui/（csproj・移す試験）／
+    Tests/AssemblyInfo.cs（IVT Tests.Ui）。
+  読み手（作業の前の grep）：Display の外の SimCore から Display への参照 0／Display を使うのは Runner の PlayFacts.cs・PlayHarness.cs と App／
+    scripts は stage.py・stage_selftest.py・r1068 の旧台本（道具・不変）／POB_COEF の名前・SaveGame の名前は Display に無い（係数も欄も持たない）。
+  入れない：名前空間の変更・App と Runner の .cs と .axaml・Instruments・Coefficients・注の移し・試験の Assert・閾値・許可表の書き換え。
+  他の線との重なり：ha・hb・hc は Tests・Display・AssemblyInfo.cs・stage.py・tests.sh・measure.sh に触れない（指示）。重なり 0。
+    di が触る共有の行：Coefficients.cs・Instruments.cs・DormantIdentityTests.cs・WriterRatchetTests.cs のうち WriterRatchetTests.cs の走査のパス 1 行だけ。
+
+[3] 試験
+  移す試験（Tests → Tests.Ui・git mv・クラス名不変）：ControlsTests DisplayCatalogTests DisplayFineTests DisplayTradeReadersTests
+    FiscalPopDiscoveryTablesTests FmtTests LawStakesTests LayoutTests MapLabelTests ObservationFixTests PlayHarnessTests PointerMoveGateTests
+    PoliticsTablesTests ProblemScanTests ProductionDiagTests ProductionMarketTablesTests SpectateTests UiShotRuleTests（18 本・App か Display か PlayHarness を型で使う）
+    ＋LaborMarketFormTests（PlayHarness.LawStatusRows を 1 行読む）＝19 本。
+  分ける 1 本：PolicyPoliticsTests は他の試験（MandateWallStockCapTests・ReformPathTests）が補助を読む＝本体は Tests に残し、App の LawRowVM を読む
+    1 本（S1_法律タブのホバーは憲法級の否決を政治資本の不足と言わない）だけを Tests.Ui の PolicyPoliticsUiTests へ移す（クラス名だけは分割で新しい）。
+    補助 CapitalBoard の可視性を private→internal にしただけ（本体は不変）。
+  共有する補助：GoodIdGuardTests.RepoRoot・OpeningFixture ほか＝Tests.Ui が Tests を ProjectReference し IVT で読む。
+    Compile Link にしない理由＝RepoRoot は GoodIdGuardTests（試験の入った公開クラス）の中・OpeningFixture は OpeningFiscalRuleTests.cs の中にあり、
+    ファイルごと Link すると試験が 2 重に走る。写しは作らない。
+  足す試験 2 本（Tests.Ui/DisplayUnitTypeTests.cs）：UnitTypeTests の型の反射の走査（typeof(IUnitValue).Assembly.GetTypes）は SimCore だけを数える＝Display の型が
+    抜けて目隠しになるので、同じ見方（型をまたぐ換算の口・年GDP比を作る口が無い）で Display のアセンブリを数える。突然変異：Display に
+    `public static MoneyStock X(RatePerYear a, MoneyPerYear b)` を足す→1 本目が赤／`public static RatioToGdpYear Y()` を足す→2 本目が赤。
+  試験の数の予言：旧 2823（非 FullLength）＋FullLength 3。新＝エンジン＋画面＋足した 2 本＝2825 ＋ FullLength 3（FullLength は Tests 側に残る想定・移した試験に FullLength が
+    あれば画面側へ分かれる＝--list-tests の和で合わせる）。〈2823〉からの差 +2 は上の足した 2 本だけ。失敗 0。
+  走査の番人（㉘）：旧は SimCore/Display を SimCore の再帰走査で読んでいた。新は Display も読むよう〈番人を写しただけ〉（★(743) ⑤ の拡張＝持ち主の移動に伴うパスの写し）で直す。
+    ファイル数（.cs・obj と bin を除く）：旧 SimCore 201（Display 18 を含む）・Tests 310。新 SimCore 183・Display 19（18＋AssemblyInfo）・Tests 292・Tests.Ui 21。
+    GoodIdGuardTests.cs:421・SulfuricAcidSodaAshTests.cs:261：旧 SimCore・Runner・App・Tests＝新 SimCore・Display・Runner・App・Tests・Tests.Ui（母集合は旧と同じ物＋Display の AssemblyInfo＋Tests.Ui の新 2 本）。
+    WriterRatchetTests.cs:217・UnitTypeTests.cs:394・868・ScoreReaderTests.cs:37・TechLevelRemovalTests.cs:34・TreasuryLedgerTests.cs:380：Display を足す。
+    DiscontentReaderTests.cs:292・UnitTypeTests.cs:895：SimCore だけの走査へ Display を足す（PopTables.cs の Discontent( 1 件・MoneyStock の new の数が旧と同じになるため）。
+    書き換える件数の予言（㉑）：件数・値・許可表の書き換え 0（走査のパスの写し 10 行だけ）。
+    AllDirectories を使わない走査（InstrumentsPlacementTests は SimCore の直下と Instruments/ だけ・Display は元から対象外）は変更なし。
+  突然変異（使い捨ての木）：M1 Display に空の型 1 つ→IL の門 1 が赤／M2 画面の試験 1 本（例 FmtTests）をエンジン側へ戻す→ビルドが赤（App が無い）／
+    M3 GoodIdGuardTests の走査から PriceOfBread.Display を外す→宣言の件数の番人（財の番号の走査の対照）か Discontent の件数が赤になる範囲を確かめて記録／
+    M4 SimCore に Display の 1 本を写しで残す→ビルドか型の集合の門が赤。
+
+[4] 恒等
+  素の 5 種・計器つき 10 種が m1103 と名乗り行を除き全行一致（計器の表の差は宣言だけ）。.cost の件数の差 0。経路の行（dep_s）も同じ座標（ソースの行は動かない）。
+
+[5] 門
+  1 IL の写し：scripts/instruments/c107di/ildump。前（1cd66aae5 の SimCore.dll）の型の集合＝後（SimCore.dll ∪ Display.dll）で、型・メンバーごとの署名・IL・定数・属性の写しが一致。
+    後の SimCore.dll に Display の型 0。アセンブリの属性の差は足した InternalsVisibleTo だけ。埋め込みの資源は同じ。
+    建て方：同じ絶対パスの木 D:/PoB_work/wt_c107di_il・Release・Deterministic・DebugType=none・IncludeSourceRevisionInInformationalVersion=false。
+  2 Display の型の名の列が前後で同じ。
+  3 〈判定: 恒等〉（段 2・全行一致）。
+  4 試験：エンジン＋画面の合計＝上の予言・失敗 0。エンジンの試験のビルドが App を建てない（obj/project.assets.json に PriceOfBread.App が無い）。
+  5 savetest・leakhunt 合格。
+  〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
+
+[追記 1]（実装の途中・ident の前・結果を見る前）
+  足す試験が 3 本になった：DisplayUnitTypeTests 2 本（Tests.Ui）＋SourceScanCoverageTests 1 本（Tests・走査の番人の一覧に PriceOfBread.Display が書いてあること・M3 で赤）。
+  試験の数の予言（改）：非 FullLength 2823＋3＝2826・FullLength 3 は変わらず。差 +3 は足した 3 本だけ。
+  突然変異の台本：scripts/instruments/c107di/mut_il.sh（M1・M4）・mut_tests.sh（M2・M3・M3b・M5・M6）。結果は measurements/m1111_20261113_di_mut_*.txt。
+  IL の写しの正規化：合成の型（名前が < で始まる型＝<Module>・<PrivateImplementationDetails>・<>z__ReadOnlyArray など＝アセンブリごとに同じ物を持つ）は塊で並べ重複を畳む。

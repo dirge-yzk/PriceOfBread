@@ -7,5 +7,10 @@ rm -rf $T && mkdir -p $T
 tar -cf - -C $SRC --exclude=bin --exclude=obj --exclude=.git --exclude=docs --exclude=measurements --exclude=uishot . | tar -xf - -C $T
 OUT=$W/tests_$1.txt
 echo "START $(date +%T) filter=$FIL src=$SRC" > $OUT
-dotnet build "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --artifacts-path $W/art_t$1 --disable-build-servers >> $OUT 2>&1; echo "build rc=$?" >> $OUT
-dotnet test "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --no-build --artifacts-path $W/art_t$1 --filter "$FIL" >> $OUT 2>&1; echo "rc=$? END $(date +%T)" >> $OUT
+# (1111) 試験はエンジン用（PriceOfBread.Tests）と画面用（PriceOfBread.Tests.Ui）の 2 プロジェクト＝順に回し、各の合計を出す（フルスイートの合計は 2 つの Passed の和）
+for P in PriceOfBread.Tests PriceOfBread.Tests.Ui; do
+  echo "== $P" >> $OUT
+  dotnet build "$T/$P/$P.csproj" -c Release --artifacts-path $W/art_t$1 --disable-build-servers >> $OUT 2>&1; echo "build rc=$?" >> $OUT
+  dotnet test "$T/$P/$P.csproj" -c Release --no-build --artifacts-path $W/art_t$1 --filter "$FIL" --logger "trx;LogFileName=$P.trx" --results-directory $W/trx_$1 >> $OUT 2>&1; echo "rc=$? $P" >> $OUT
+done
+echo "END $(date +%T)" >> $OUT

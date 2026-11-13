@@ -11,7 +11,7 @@ def load(p, n):
 def check(st, cfg_text):
     bad = []
     cases = [   # (ファイル一覧, 期待する段)
-        (['PriceOfBread.SimCore/Instruments/Instruments.cs'], 2), (['PriceOfBread.SimCore/Instruments/InstrumentsX.cs'], 2), (['PriceOfBread.SimCore/Instruments.cs'], 2), (['PriceOfBread.SimCore/InstrumentsNew.cs'], 2), (['PriceOfBread.SimCore/Display/Pages.cs'], 2),
+        (['PriceOfBread.SimCore/Instruments/Instruments.cs'], 2), (['PriceOfBread.SimCore/Instruments/InstrumentsX.cs'], 2), (['PriceOfBread.SimCore/Instruments.cs'], 2), (['PriceOfBread.SimCore/InstrumentsNew.cs'], 2), (['PriceOfBread.SimCore/Display/Pages.cs'], 2), (['PriceOfBread.Display/Pages.cs'], 2), (['PriceOfBread.Display/PriceOfBread.Display.csproj'], 2), (['PriceOfBread.Tests.Ui/LayoutTests.cs'], 1),
         (['scripts/instruments/batch.sh'], 2), (['scripts/instruments/ident/ident_check.py'], 2), (['scripts/instruments/tools/prune.py'], 2),
         (['scripts/instruments/mon/an_mon.py'], 2), (['measure.sh'], 2),
         (['PriceOfBread.SimCore/Fiscal.cs', 'PriceOfBread.Tests/FiscalTests.cs'], 1), (['scripts/instruments/c101py/paper.py'], 1), (['docs/x.md', 'measurements/m1.txt'], 1),

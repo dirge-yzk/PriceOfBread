@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj" />
+    <ProjectReference Include="..\PriceOfBread.Display\PriceOfBread.Display.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

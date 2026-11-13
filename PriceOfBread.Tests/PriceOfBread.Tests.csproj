@@ -26,18 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj" />
-    <!-- ★2026-09-20（M5）：生産タブの消費税チェックボックス（ProdDetail.TaxOn）が**エンジンへ届いている**ことを xUnit の射程に入れる。
-         ⚠「App はテストから触れない」は長く事実だったが、理由は GameViewModel が Dispatcher.UIThread を踏むことで、
-           ProdDetail 単体は ObservableObject＝Avalonia 型は既定値だけ（AppBuilder の初期化は要らない）。
-         ⚠新しいテストプロジェクトは作らない（増えるのは参照1つ）。往復の番人は ProductionDiagTests が持つ。 -->
-    <ProjectReference Include="..\PriceOfBread.App\PriceOfBread.App.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- ★(419) Runner play の動詞（PlayHarness）の番人：Runner は Exe で参照できない＝PlayHarness.cs だけをソースごとリンクする（SimCore だけに依る・Program.cs には触れない）。
-         これで動詞が App の画面と同じ口を叩く／待ちが無いとき何もしない、を xUnit の射程に入れる（PlayHarnessTests）。 -->
-    <Compile Include="..\PriceOfBread.Runner\PlayHarness.cs" Link="Linked\PlayHarness.cs" />
-    <Compile Include="..\PriceOfBread.Runner\PlayFacts.cs" Link="Linked\PlayFacts.cs" />
   </ItemGroup>
 
 </Project>

@@ -34,7 +34,7 @@ public class ScoreReaderTests
     private static IEnumerable<(string Name, int Line, string Code)> SourceLines()
     {
         var root = RepoRoot();
-        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.App", "PriceOfBread.Runner" })
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.App", "PriceOfBread.Runner" })
             foreach (var f in Directory.EnumerateFiles(Path.Combine(root, dir), "*.cs", SearchOption.AllDirectories))
             {
                 if (f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar) || f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar)) continue;
