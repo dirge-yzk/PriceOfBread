@@ -1,0 +1,5 @@
+  失敗 PriceOfBread.Tests.PowerCenterTests.T1_兵の分かれの和は1で_倒し先は体制 [1 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.PowerCenterTests.T7_表が出て_列が整い_自己検査が通り_Gは旧のHより大きい行がある [2 s]
+  エラー メッセージ:
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 12 s - PriceOfBread.Tests.dll (net10.0)

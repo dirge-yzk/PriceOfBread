@@ -1,0 +1,6 @@
+(1090) c104cp 突然変異（使い捨ての木 D:/PoB_work/c104cp_work/mut・PowerCenterTests／PopPreferenceTests）
+M1 SoldierSplit を総和で割らない -> 赤: T1
+M2 d_V を割合でない値（DefectionShare の型の代役＝v/total*0.5）-> 赤: T1・T7
+M3 G を H にする（InstrumentsCenter）-> 赤: T7（G が旧の H より大きい行が無い）。T6 は純関数の値の試験で緑のまま
+M4 B1 の π（所得税）をブロックの 0/1 の札に戻す -> 赤: Q1 のみ（他の 12 本は緑）
+M5 ΣF の定義から q を落とす -> 赤: T2・T7
