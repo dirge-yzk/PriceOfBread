@@ -1,0 +1,4 @@
+arm	non_rows	pc_pos	pe_gt_0.01	split_med	peSplit_med_when_pe	peSplit_p90_when_pe	split_if_gov_only(0)
+m1096	29895	0.5895	0.0939	0.298	0.0304	0.0979	0
+n1	29767	0.6015	0.0937	0.298	0.0292	0.0911	0
+n2	30484	0.5811	0.0847	0.293	0.0284	0.0912	0

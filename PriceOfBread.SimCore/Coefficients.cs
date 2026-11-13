@@ -230,6 +230,7 @@ public sealed class Coefficients
     public double MilitancySpeed = 0.30;              // 闘争度（ストック）の追従速度σ＝半減期5.8か月
     // 【墓標2026-10-18・旗の焼き込み】ParliamentSeatOnOpen（既定1.0・2026-08-04 作者指摘「議会の存在感が薄い」）を消した＝開院時に議席を1回だけ確定する（旧＝選挙政体の PartySeats は最初の総選挙〔16四半期後〕まで全て0だった）。
     public int ElectionIntervalQuarters = 16;         // 議会選挙の間隔（四半期）。16＝4年（自由な政体で与党が交代する周期）
+    public double NonElectiveSeatsEmpty = 1;          // ★(1099) c105gp（台帳 S18-31・推奨 (a)・2026-11-13 に 1 で点火）。0＝非選挙の政体は毎期 議席＝得票の写し（今のまま）。1＝非選挙の政体は議席を空（和 0）にする＝選挙の政体へ移ったら開院の分岐（Parliament.Step の議席が空のとき）が議席と与党を同じ得票で決める。新しい状態なし
     // 議会の力学（既存の正統性→保持力→政体遷移に信号を流す。ParliamentEnabled の国のみ＝較正不変）。
     public Share PartyDominanceThreshold = new(0.6);      // 一党支配と見なす議席シェアの閾値（これ超で多元性が崩れ始める）
     public double DominanceLegitimacyErosion = 0.05;  // 一党支配が正統性を削る強さ（支配＝多元的正統性の喪失→権威主義へ漂流）。**ストック意味論2026-07-10＝旧0.5（水準）×RegenRate0.02（平衡対応 erosion=regen×水準）＝四半期フローへ再スケール**
