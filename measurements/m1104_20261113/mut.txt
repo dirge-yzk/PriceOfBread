@@ -1,0 +1,4 @@
+# (1104) 突然変異（使い捨ての木・Release・フィルタ LawStakes|CrownParliament|Polity|InterestGroup の 24 本）
+M1 InterestGroups.PopWeight の β の項を ×0.5 → 24 本とも緑（赤にならない＝穴・Blocs の値を固定する試験が無い。成績表なら赤になるはずだが回していない）
+M2 CrownParliament.cs:195 の PolityRegimeJa を外す → 24 本とも緑（年表の文の試験が無い＝穴・成績表と計器の表は宣言 0 のため変わらない予言）
+フルスイート Category!=FullLength 2822（合格 2821・スキップ 1・失敗 0）・FullLength 3（合格 3）＝--list-tests と ident の数と一致・㉘ の束 254 本緑
