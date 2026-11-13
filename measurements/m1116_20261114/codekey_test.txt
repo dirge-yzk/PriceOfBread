@@ -1,0 +1,12 @@
+case1 期待 K.cs:3:out:x 実際 K.cs:3:out:x ok
+case2 期待 K.cs:5:out:x? 実際 K.cs:5:out:x? ok
+case3 期待 K.cs:6:out:x? 実際 K.cs:6:out:x? ok
+case4 期待 K.cs:7:out:x? 実際 K.cs:7:out:x? ok
+case5 期待 K.cs:7:out:x 実際 K.cs:7:out:x ok
+key b'  x; // c' → b'  x;' ok
+key b'  y = "a//b";' → b'  y = "a//b";' ok
+key b"  z = '\\'' ; // c" → b"  z = '\\'' ;" ok
+key b'  w = @"a//b"; // c' → b'  w = @"a//b"; // c' ok
+key b'  v = "\\"//"; // c' → b'  v = "\\"//";' ok
+突然変異 N（素朴な剥がし）case3 実際 K.cs:5:out:x → MUTRED
+GATEOK
