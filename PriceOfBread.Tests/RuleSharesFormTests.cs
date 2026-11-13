@@ -28,7 +28,7 @@ public class RuleSharesFormTests
     [Fact]
     public void D1_在地の目標は農奴解放の法で動かず官僚制度の専門化と土地改革の両方で消える()
     {
-        var sim = France(_ => { });
+        var sim = France(c => c.RuleFromPower = 0);   // (1117) 旗 0 の経路の番人（★(832) ① の (a)・段 C′ の旗 1 では旧の塊を通らない）
         var w = sim.World;
         w.PublicOrder = 1.0;   // 旗 RuleOrderByRegion 0 なら無統治の目標 0（治安が満ちている）・旗 1 は州の秩序 Clamp01(R×m̄÷m_r) で無統治が立ちうる（この試験の Assert は在地の Rule[1] だけ＝旗に依らない）
         foreach (var r in w.Regions) { r.Rule = [0.6, 0.4, 0.0, 0.0]; r.RuleInit = [0.6, 0.4, 0.0, 0.0]; }
@@ -78,7 +78,7 @@ public class RuleSharesFormTests
         // マルセイユ＝首都（パリ 48.85N 2.35E）から大圏距離 659.5km → 到達 1÷(1＋659.5÷10000)＝0.93813（別の道具〔Python の haversine〕で求めた値）
         foreach (double dom in new[] { 1.0, 0.2 })
         {
-            var sim = France(c => c.RuleOrderByRegion = 0);   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_6）
+            var sim = France(c => { c.RuleOrderByRegion = 0; c.RuleFromPower = 0; });   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_6）
             var w = sim.World;
             w.PublicOrder = 0.5;
             foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = dom; }
@@ -106,7 +106,7 @@ public class RuleSharesFormTests
     {
         // 1 四半期だけ踏む＝区分は目標へ DominanceSpeed(0.025) だけ寄る。マルセイユ（到達 0.93813）の無統治の目標 0.5×(1−0.93813)＝0.030935 → 0.025×0.030935＝約 0.00077。
         // 旧の目標（支配度 0.2 を読む形）なら 0.5×(1−0.2)＝0.4 → 約 0.0098 だった（突然変異「無統治を支配度へ戻す」で赤）。
-        var sim = France(c => c.RuleOrderByRegion = 0);   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_7）
+        var sim = France(c => { c.RuleOrderByRegion = 0; c.RuleFromPower = 0; });   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_7）
         var w = sim.World;
         w.PublicOrder = 0.5;
         foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = 0.2; }
@@ -157,6 +157,7 @@ public class RuleSharesFormTests
         // ★(449) 物差し〔世界の総量に対する割合の国力・基準は列強の中央値〕で測る。最強の列強は比が 1 以上＝風化の係数が張り付く。旧の旗の盤面に固定しない。
         var diplo = sim.Diplomacy;
         var c = sim.Nations[0].World.Coef;
+        c.RuleFromPower = 0;   // (1117) 旗 0 の経路の番人（★(832) ① の (a)・段 C′ の旗 1 では風化しない）
         diplo.ComputeRanks(c);
         var sc = NationalScore.ScoresByPower(diplo);
         var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.IsPort)).OrderByDescending(p => sc[p.Id]).First().Nation!;

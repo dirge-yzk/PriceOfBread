@@ -17,6 +17,7 @@ public class TreatyPortLapseTests
         // ★(449) 物差し（世界の総量に対する割合の国力・比の基準は列強の中央値）で測る。最強の列強は比が 1 以上＝風化の係数が張り付く（旧の腕の英と同じ位置）。旧の旗の盤面に固定しない。
         var diplo = sim.Diplomacy;
         var c0 = sim.Nations[0].World.Coef;
+        c0.RuleFromPower = 0;   // (1117) 旗 0 の経路の番人（★(832) ① の (a)・段 C′ の旗 1 では TreatyPortLapse は何もしない）
         diplo.ComputeRanks(c0);
         var sc = NationalScore.ScoresByPower(diplo);
         var strongest = diplo.Powers.Where(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Great && p.Nation!.Regions.Any(r => r.IsPort)).OrderByDescending(p => sc[p.Id]).First();
@@ -46,7 +47,7 @@ public class TreatyPortLapseTests
         var sim = new MultiNationSim(cfgs, 1789UL, _ => new NullAgent());
         var diplo = sim.Diplomacy;
         // 最弱級の国に持分を付与（国力比が閾値0.5に届かない代表として弱小ランク国を選ぶ）
-        var c = new Coefficients { TreatyPortLapseRatio = new Share(0.5) };
+        var c = new Coefficients { TreatyPortLapseRatio = new Share(0.5), RuleFromPower = 0 };
         diplo.ComputeRanks(c);
         var weak = diplo.Powers.First(p => p.Nation is { } && diplo.RankOf(p) == PowerRank.Minor);
         var port = weak.Nation!.Regions.First();
