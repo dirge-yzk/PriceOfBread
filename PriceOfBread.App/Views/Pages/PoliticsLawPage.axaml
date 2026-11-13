@@ -13,7 +13,27 @@
 
         <!-- 法の表：群ごとに法の名前と段の押し釦。国有化の門が開いている間は末尾に国有化の群。見出しは止めて中身だけ流す -->
         <ctl:Section Key="law" Title="法の表" Scrolls="False">
-            <ctl:TableView Snapshot="{Binding LawTable}" InnerScroll="True"/>
+            <ctl:TableView x:Name="LawTableView" Snapshot="{Binding LawTable}" SelectedKey="{Binding LawSelectedKey}" InnerScroll="True"/>
+        </ctl:Section>
+
+        <!-- 選んだ法：法の表の行を押して選ぶ。次の段・前の段の賛成と反対の半円と、階級ごとの人数・影響力・賛否。説明の文は置かない。 -->
+        <ctl:Section Key="stakes" Title="選んだ法">
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding StakeLawName}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
+                <Grid ColumnDefinitions="*,*">
+                    <StackPanel Grid.Column="0" Spacing="1" Background="Transparent" IsVisible="{Binding HasStakeNext}">
+                        <ctl:HalfPie Radius="29" Slices="{Binding StakeNextSlices}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding StakeNextCaption}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding StakeNextText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="1" Background="Transparent" IsVisible="{Binding HasStakePrev}">
+                        <ctl:HalfPie Radius="29" Slices="{Binding StakePrevSlices}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding StakePrevCaption}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding StakePrevText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+                <ctl:TableView Snapshot="{Binding StakeTable}"/>
+            </StackPanel>
         </ctl:Section>
 
         <!-- 権力の取り分（王権・議会・軍部・革命勢力の連合後のシェア）と、正統性・予算権・統帥権の小さな半円 -->
