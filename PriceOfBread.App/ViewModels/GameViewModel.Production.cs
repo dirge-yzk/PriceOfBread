@@ -18,13 +18,6 @@ namespace PriceOfBread.App.ViewModels;
 // レイアウトは静的（初回に一度だけ計算）：基本レシピの最長経路で層（代替レシピは辺だけ） →層内は tier→50音順にソート → 幅予算(PRowBudgetW)を超える層は複数行へ分割。
 public partial class GameViewModel
 {
-    // ★★巨大建造物の可視化（2026-08-02・作者指摘「巨大建築物がUI側にない」）。
-    // ⚠ App 側の参照が**0件**で、エンジンには megaprojects.json の20件・技術ゲート・進捗・効果が揃っているのに
-    //   プレイヤーは存在すら知れなかった（設計書も「最近点火した機構ほど見えない」と同じ穴を指摘していた）。
-    // ★着工は動詞（StartMega）＝Megaprojects.TryStart を通す（AIの SelfPlay と同一経路）。可否と理由はボタンのツールチップで示す。
-    [ObservableProperty] private List<MegaRow> _megaRows = new();
-    public bool HasMegaRows => MegaRows.Count > 0;
-
     /// <summary>サプライチェーン図の節点（財カード）と辺（レシピ）。★2026-08-10：**器を作り直さない**。
     /// 旧＝毎回 List を組んで丸ごと差し替え＝ItemsControl は Reset を受けて全コンテナを破棄・再生成する
     /// （節点テンプレートは1枚あたり約8視覚要素＝約1000要素＋辺の Path 165本。しかも財をクリックするたび全部）。
@@ -612,7 +605,6 @@ public partial class GameViewModel
         ProdEquipmentOn = _player.Coef.RecipeEquipment > 0;
         ApplyProdSelection();   // 選択に依存する見た目（節点の枠/地色/沈み・辺の強調）＝選択だけの塗り直しと同じ経路を通す
 
-        BuildMegaRows();
         // 統計配列を保持＝詳細パネル（価格は日次）だけを軽く再構築できるようにする（グラフ本体は四半期）
         // ★2026-08-10（作者フィードバック項目5）：設備欄の全廃で、全国の従業員（emp）・技術による産出上限（gate）・産地（hasProducer）・
         //   能力（cap）は詳細パネルから消えた＝保持もやめる（cap/gate/hasProducer は節点カードのために局所で使うだけ）。
@@ -971,58 +963,6 @@ public partial class GameViewModel
         foreach (var u in uses) detail.Uses.Add(u);
         return detail;
     }
-
-    /// <summary>巨大建造物の一覧（自国が建設地の州を持つものだけ）。★着工は**プレイヤーの判断**（作者裁定2026-08-02）＝
-    /// 工場と同じく「コストを出してクリック」。ボタンは常に出し、押せない時はグレーアウト＋理由をツールチップ（工場の流儀）。
-    /// 実体は StartMega → Megaprojects.TryStart で、AIの StartMegaproject と同一経路（機構は対称・判断だけが違う）。
-    /// コストは見積り＝資材相場で実支出は上下する（工場の FactorySpec.Cost のような固定額ではない）。取り消しは無い。</summary>
-    internal void BuildMegaRows()
-    {
-        var list = new List<MegaRow>();
-        foreach (var mp in _sim.Diplomacy.Megaprojects)
-        {
-            if (mp.Owner is not { } o || !ReferenceEquals(o, Me)) continue;   // 自国が建設地を保有するものだけ
-            // 発見の門が閉じている物は並べない（解禁まで出さない＝B21 と同じ・S8）。判定は着工の可否と同じ Megaprojects.RequirementMet（古い技術水準の門は読まない）
-            bool reqOk = Megaprojects.RequirementMet(_player, mp.Id);
-            if (!mp.Started && !mp.IsComplete && !reqOk) continue;
-            double pct = mp.BuildUnits > 1e-9 ? System.Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0;
-            var host = _player.Regions.FirstOrDefault(r => r.Name == mp.Host);
-            double cost = host is null ? 0 : Megaprojects.EstimateCost(host, mp, _player.Coef);
-            bool canStart = Megaprojects.CanStart(_player, mp);
-            list.Add(new MegaRow
-            {
-                Name = mp.Name,
-                Host = mp.Host,
-                // ★行に「技術n%（不足）」は出さない（作者指示2026-08-02）＝押せない理由はボタンのホバーで読む。
-                State = mp.IsComplete ? "完成" : mp.Started ? $"建設中 {Fmt.Share(pct)}" : "未着工",
-                Effect = $"{JaEffect(mp.EffectTarget)} {(mp.EffectMode == "scale" ? $"×{1 + mp.EffectValue:F2}" : System.Math.Round(mp.EffectValue) == 0 ? "0" : $"＋{mp.EffectValue:F0}")}",   // 0 は符号なしの「0」（V9）
-                Brush = mp.IsComplete ? PPlus : reqOk ? PUtilText : PNameText,
-                CanStart = canStart,
-                ShowStart = !mp.IsComplete,   // ボタンは完成後だけ消す（それ以外は出してグレーアウト＝工場の流儀）
-                StartLabel = $"着工 {Fmt.Money(cost)}",
-                // データのツールチップ（規律準拠＝説明文でなく値）。行には理由を書かない＝カーソルを合わせればここが出る。
-                StartReason = $"{mp.Host}/残りの建材 {Fmt.Qty(mp.BuildUnits - mp.BuildProgress)}",   // 1 行（見積は着工の釦の額と同じ＝重ねて出さない・V9）（カードの 4 行目）。門が閉じた物は一覧に並べないので理由の行は要らない
-                Project = mp,
-            });
-        }
-        list.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));   // 決定論の固定順
-        MegaRows = list;
-        OnPropertyChanged(nameof(HasMegaRows));
-    }
-    /// <summary>着工（動詞・2026-08-02）。★AIの StartMegaproject と**同じ Megaprojects.TryStart** を通る＝
-    /// プレイヤーだけが持つ経路も、AIだけが持つ経路も作らない。取り消しは無い（半分掘った運河は埋め戻せない）。</summary>
-    [RelayCommand]
-    private void StartMega(MegaRow? row)
-    {
-        if (row?.Project is not { } mp) return;
-        if (!Megaprojects.TryStart(_player, mp)) return;
-        BuildMegaRows();
-    }
-
-    private static string JaEffect(string t) => t switch
-    {
-        "ArableLand" => "耕地", "GridCapacity" => "送電容量", "Industrialization" => "工業化", "Prestige" => "威信", _ => t,
-    };
 
     /// <summary>用途行のクリック＝その財をグラフ上で選択（詳細パネルも切替）。</summary>
     [RelayCommand] private void SelectUseGood(int gid) => SelectProdGood(gid);
@@ -1643,19 +1583,4 @@ public sealed partial class ProdUseRow : ObservableObject
     public bool CanSelect { get; init; } = true;
     public IRelayCommand? SelectCmd { get; init; }
     public void CopyFrom(ProdUseRow s) { Amount = s.Amount; Used = s.Used; Tip = s.Tip; }
-}
-
-public sealed class MegaRow
-{
-    public string Name { get; init; } = "";
-    public string Host { get; init; } = "";
-    public string State { get; init; } = "";      // 完成／建設中 n%／未着工
-    public string Effect { get; init; } = "";
-    public IBrush Brush { get; init; } = Brushes.Gray;
-    public bool CanStart { get; init; }              // 着工できるか（2026-08-02）＝Megaprojects.CanStart と同一判定＝ボタンの活性
-    public bool ShowStart { get; init; }             // ボタンを出すか（完成後だけ消す）
-    public string StartLabel { get; init; } = "";    // 「着工 £1.20M」＝工場と同じ「コストを出してクリック」
-    public string StartReason { get; init; } = "";   // 押せない理由／押せる時は残量と見積（データのツールチップ）
-    // SubLine（状態＋効果を1行に畳んだ文字列）は削除（2026-08-10のカード化）＝カードは State と Effect を別の行で出す＝読み手0件
-    public Megaproject? Project { get; init; }
 }

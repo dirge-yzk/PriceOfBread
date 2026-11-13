@@ -117,6 +117,8 @@ public sealed class WindowLayer : Canvas
         w.Page?.Measure(new Size(width - 2, double.PositiveInfinity));   // 自然な高さ（ページの欄は上限なしで測ると自然な高さになる）
         double height = Math.Clamp(FloatingWindow.TitleHeight + 2 + (w.Page?.DesiredSize.Height ?? 0), LayoutModel.MinWindowHeight, Bounds.Height);
         var occupied = _layout!.OpenWindows.Where(s => s != slot && s != Slot.Province).Select(s => _layout.RectOf(s) ?? _layout.AutoRectOf(s)).OfType<WindowRect>().ToList();
+        // 3 枚目からは高さを領域の約 6 割までにする＝4 枚目以降の置き場を、3 枚目の下に空ける（窓を重ねず・小さな窓で見比べる）
+        if (occupied.Count >= 2) height = Math.Min(height, Math.Max(LayoutModel.MinWindowHeight, (Bounds.Height - 4) * 0.6));
         var r = LayoutModel.AutoPlace(slot, width, height, occupied, Bounds.Width, Bounds.Height);
         _layout.SetAuto(slot, r);
         return r;

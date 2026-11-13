@@ -346,7 +346,6 @@ public partial class GameViewModel
         if (ProductionShown) RefreshProduction();   // 生産タブが開いていれば四半期ごとに統計を追従
         if (DiscoveryShown) RefreshDiscovery();   // 発見パネル（F）も同じ追従
         if (DiplomacyShown) RefreshFactions();   // 外交と戦争のページが見えていれば国内勢力を四半期ごとに追従（2026-07-20移設・国内勢力は戦争タブが正位置）
-        // 巨大建造物は生産タブの左下（2026-08-10移設）＝上の RefreshProduction が BuildMegaRows を含む＝ここで別に組まない
         RefreshProblems();   // 左の列の問題の一覧（月ごと・向きの基準は四半期の番号で取り直す）
     }
 }

@@ -289,6 +289,33 @@
                 </DockPanel>
             </Border>
 
+            <!-- 新たに設定できる法：前提の門が初めて開いた法の段を四半期ごとに 1 枚へ束ねる。法ごとに 1 行（名・段・賛成と反対）。説明の文は置かない。観戦では出さない。 -->
+            <Border IsVisible="{Binding LawOpenPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="6"
+                    MinWidth="400" MaxWidth="520" Padding="0" ZIndex="10">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="新たな法" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" Margin="14,10,14,8"/>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
+                    <StackPanel Margin="14,10,14,12" Spacing="6">
+                        <ItemsControl ItemsSource="{Binding LawOpenRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:GameViewModel+LawOpenRow">
+                                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,2">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}"/>
+                                        <TextBlock Text="{Binding Stage}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                                        <TextBlock Text="{Binding Text}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                            <Button Classes="dialog" Content="法の表へ" Command="{Binding LawOpenGoCommand}"/>
+                            <Button Classes="dialog" Content="閉じる" Command="{Binding LawOpenCloseCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
             <!-- ★E3（選挙doc §3-1/3-2）：総選挙の公示＝どの思想に加担するか1択（議題は情報） -->
             <Border IsVisible="{Binding ElectionPopupOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource RustBrush}" BorderThickness="2" CornerRadius="6"

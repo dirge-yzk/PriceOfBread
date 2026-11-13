@@ -18,7 +18,7 @@ public partial class GameViewModel
     // ★2026-08-24作者指示「選挙含め全てのポップアップは時間停止に」＝確認モーダル・Escメニュー・終局もこの1本に載せる。
     //   ⚠ここに載せ忘れた画面があると、別のポップアップが閉じた瞬間に**開いたままの画面の裏で時間が動き出す**（旧＝確認モーダルが外にいた）。
     internal bool AnyPopupOpen => TensionPopupOpen || WarPopupOpen || WarEndPopupOpen || FactionCrisisOpen || ElectionPopupOpen || CallToArmsOpen
-                              || ConfirmOpen || MenuOpen || EndingOpen || SideChoiceOpen;
+                              || ConfirmOpen || MenuOpen || EndingOpen || SideChoiceOpen || LawOpenPopupOpen;
 
     // ★内戦の陣営選択（P8・作者裁定2026-09-06「プレイヤー側UIはやる」）：自国から反乱国家（内戦タグの戦争の相手）が立ったとき、
     //   政府側に残るか反乱側で続けるかを選ぶ。乗り換え＝MainWindowViewModel.SwitchPlayer（旧国は効用AIへ・新国は操作者へ）。
@@ -95,6 +95,48 @@ public partial class GameViewModel
     /// <summary>総動員（戦争タブのチェック＝後から追加できる）。交戦中ONで戦時徴兵を levée en masse 水準へ＝非兵士POP(農民/都市労働者)を兵士へ大量変換（Military.cs）。代償は自然（労働喪失で経済悪化・兵増で戦死増）。</summary>
     public bool PlayerMobilized { get => _player.Mobilized; set { _player.Mobilized = value; OnPropertyChanged(); } }
 
+    // === 新たに設定できる法（前提の門が初めて開いた法の段）：四半期ごとに 1 枚。時間は止まり、閉じても再開しない（他の窓と同じ）。世界には書かない。
+    /// <summary>窓の 1 行（法の名・段の名・賛成と反対）。</summary>
+    public sealed record LawOpenRow(string Key, string Name, string Stage, string Text);
+    [ObservableProperty] private bool _lawOpenPopupOpen;
+    partial void OnLawOpenPopupOpenChanged(bool value) { if (value) PopupPause(); else PopupResume(); }
+    public System.Collections.ObjectModel.ObservableCollection<LawOpenRow> LawOpenRows { get; } = [];
+
+    /// <summary>窓の中身を組んで開く（検出経路と撮影の口が共有）。賛否は次の段の賛成と反対（<see cref="PriceOfBread.SimCore.Display.LawStakes.Split"/>）。</summary>
+    private void ShowLawOpenPopup(IReadOnlyList<PriceOfBread.SimCore.Display.LawDef> laws)
+    {
+        LawOpenRows.Clear();
+        foreach (var d in laws)
+        {
+            var (_, text, _) = StakeView(PriceOfBread.SimCore.Display.LawStakes.Split(_player, d, true));
+            LawOpenRows.Add(new LawOpenRow(d.Key, d.Name, d.StageName(d.Current(_player) + 1), text));
+        }
+        LawOpenPopupOpen = true;
+    }
+
+    /// <summary>窓の釦「法の表へ」：閉じて政治と法のページを開き、束の先頭の法を選ぶ。</summary>
+    [RelayCommand]
+    private void LawOpenGo()
+    {
+        string? first = LawOpenRows.Count > 0 ? LawOpenRows[0].Key : null;
+        LawOpenPopupOpen = false;
+        Layout.Open(PriceOfBread.App.Layout.Slot.PoliticsLaw);
+        if (first is not null) SelectLaw(first);
+    }
+
+    [RelayCommand] private void LawOpenClose() => LawOpenPopupOpen = false;
+
+    /// <summary>uishot（無人撮影）専用フック：今の盤面で次の段が前提の門を越えている法を最大 3 本選び、検出と同じ組み立てで窓を開く。開けたら true。</summary>
+    public bool OpenLawOpenPopupForCapture()
+    {
+        var picks = PriceOfBread.SimCore.Display.LawCatalog.All
+            .Where(d => d.Slot != PriceOfBread.SimCore.Display.LawSlot.NoRow && d.IsVisible(_player) && PriceOfBread.SimCore.Display.StageGate.NextOpen(_player, d))
+            .Take(3).ToList();
+        if (picks.Count == 0) return false;
+        ShowLawOpenPopup(picks);
+        return true;
+    }
+
     // 緊張が高まった／開戦寸前を四半期ごとに検出（DetectEvents から）。プレイヤー経路のみ＝AI/自己対戦は従来どおり。
     private void DetectDiplomacyPopups()
     {
@@ -159,6 +201,13 @@ public partial class GameViewModel
             ElectionPopupTitle = $"{_player.Year}年 総選挙";   // ★2026-08-31作者指示：説明行（公示・開票まで・裁量余剰・半減点）は全て撤去＝タイトルと択と金額だけ
             OnPropertyChanged(nameof(ElectionSpendText));   // 原資は四半期ごとに動く＝開いた時点の実効値を出す
             ElectionPopupOpen = true;
+            return;
+        }
+        // ②''' 新たに設定できる法（四半期ごとに 1 枚へ束ねる・観戦では出さない）。他の窓が開いている間は出さず次の四半期へ持ち越す。
+        if (_lawOpenPending.Count > 0 && !AnyPopupOpen && !Spectating)
+        {
+            ShowLawOpenPopup(_lawOpenPending);
+            _lawOpenPending.Clear();
             return;
         }
         // ② 緊張ポップアップ：同ランク列強と緊張が高まった（閾値超え・未プロンプト・非交戦）

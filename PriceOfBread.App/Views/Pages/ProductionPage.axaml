@@ -4,7 +4,7 @@
              xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.ProductionPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/ProductionPage.axaml ＝ 生産のページ（設計 §3-3・Qキー）。欄＝供給の網（盤）・財の表・選んだ財の詳細・州別の工場・労働の表・設備の表・巨大建造物。
+    <!-- Views/Pages/ProductionPage.axaml ＝ 生産のページ（設計 §3-3・Qキー）。欄＝供給の網（盤）・財の表・選んだ財の詳細・州別の工場・労働の表・設備の表。
          旧の生産タブ（全画面の盤＋右の 530 幅のパネル）を欄に分けた物。欄の並べ（幅で 3／2／1 列・欄は常に開いている）は PageGrid が決める
          （並べの表は ProductionPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の ProductionTables）が名乗る。
          盤は今の物をそのまま移した（共通の部品にしない）：座標は盤の視野の幅に追従して置き直す（GameViewModel.SetProdViewport）。
@@ -410,8 +410,9 @@
                             <TextBlock Grid.Column="5" Text="過不足" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                             <TextBlock Grid.Column="6" Text="材料価格" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                         </Grid>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl ItemsSource="{Binding ProdDetail.Regions}" Margin="0,0,12,0">
+                    <ctl:RowSnapBorder Grid.Row="1" x:Name="RegionsRows" ClipToBounds="True">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="RegionsList" ItemsSource="{Binding ProdDetail.Regions}" Margin="0,0,12,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ProdRegionRow">
                                     <Border BorderBrush="{StaticResource LineSoftBrush}" BorderThickness="0,0,0,1" Padding="0,2">
@@ -466,6 +467,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+                    </ctl:RowSnapBorder>
                 </Grid>
             </ctl:Section.Body>
         </ctl:Section>
@@ -484,41 +486,6 @@
             </ctl:Section.Body>
         </ctl:Section>
 
-        <!-- 巨大建造物：材と同じ大きさのカード。着工は動詞（コストを出してクリック・押せない理由はボタンのホバー）。 -->
-        <ctl:Section x:Name="MegaSection" Key="mega" Title="巨大建造物">
-            <ctl:Section.Body>
-                        <ItemsControl ItemsSource="{Binding MegaRows}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="300" ItemHeight="92"/></ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:MegaRow">
-                                    <!-- 材の節点と同じ作り＝角丸の枠・左の色帯・中に3行。ClipToBounds＝長い品名が隣のカードへはみ出さない。
-                                         情報は移設前と同じ（品名／状態／効果／着工ボタン＋見積・残量・技術のツールチップ）。 -->
-                                    <Border Width="292" Height="84" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
-                                            BorderThickness="1" CornerRadius="3" ClipToBounds="True">
-                                        <DockPanel Margin="6,4">
-                                            <Rectangle DockPanel.Dock="Left" Width="5" Fill="{Binding Brush}" Margin="0,0,6,0" RadiusX="1" RadiusY="1"/>
-                                            <!-- 無効なボタンはツールチップを出せないので透明Borderで包む（工場の着工と同じ流儀） -->
-                                            <Border DockPanel.Dock="Right" Background="Transparent" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                    IsVisible="{Binding ShowStart}">
-                                                <Button Classes="mini" Content="{Binding StartLabel}" IsEnabled="{Binding CanStart}" Focusable="False"
-                                                        Command="{Binding $parent[ItemsControl].((vm:GameViewModel)DataContext).StartMegaCommand}" CommandParameter="{Binding}"/>
-                                            </Border>
-                                            <StackPanel VerticalAlignment="Center" Spacing="1">
-                                                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
-                                                           TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding State}" FontSize="{StaticResource FontTiny}" Foreground="{Binding Brush}"/>
-                                                <TextBlock Text="{Binding Effect}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding StartReason}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" TextTrimming="CharacterEllipsis"/>
-                                            </StackPanel>
-                                        </DockPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-            </ctl:Section.Body>
-        </ctl:Section>
     </ctl:PageGrid>
     <ctl:PageGrid x:Name="SideGrid" Grid.Column="1" Margin="8,0,0,0" IsVisible="False"/>
     </Grid>

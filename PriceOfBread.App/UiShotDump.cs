@@ -25,6 +25,13 @@ public static class UiShotDump
         public IReadOnlyList<TableSnapshot> Tables { get; } = tables;
         public IReadOnlyList<TableSnapshot>? Previous { get; } = previous;
         public TableSnapshot? Get(string key) => Tables.FirstOrDefault(t => t.Key == key);
+        /// <summary>規則が実際に判定した行の数（規則が <see cref="Examine"/> を呼んだときだけ数える）。呼んだのに 0 のまま＝規則が働いていない（黙って 0 件にしない）。</summary>
+        public int Examined { get; private set; }
+        public bool Counting { get; private set; }
+        public void Examine() { Counting = true; Examined++; }
+        /// <summary>この規則は判定した行を数える（1 行も <see cref="Examine"/> しなければ「対象 0 行」と申告する）。規則の頭で呼ぶ。</summary>
+        public void CountRows() => Counting = true;
+        public void ResetCount() { Counting = false; Examined = 0; }
     }
 
     public sealed record CheckReport(List<string> Findings, List<string> Ran, List<string> Skipped);
@@ -36,7 +43,6 @@ public static class UiShotDump
         "稼働率×工場数と生産量の桁の検算：工場 1 棟あたりの産出が表の文字に無い",
         "世界価格比が複数の財で同じ値にそろう：丸めた値の一致は普通に起こり、誤検出が多い",
         "解禁済みの財の親の行が未解禁：親子の関係が表の文字に無い",
-        "巨大建造物の年が史実より 30 年以上早い：巨大建造物の表も史実の年も表の文字に無い",
     ];
 
     /// <summary>点検の網が見ていない範囲（点検.txt の先頭に必ず出す）。</summary>
@@ -44,7 +50,7 @@ public static class UiShotDump
     [
         "地図・線グラフ・半円・積み上げ棒・段の押し釦・動詞の押し釦の押した結果（文字にならないもの）",
         "吹き出しの文・ポップアップ・窓の中身（表に載る吹き出しは国の一覧の行の詳細だけ書き出す）",
-        "生産ページの巨大建造物・問題の一覧・年表、政治と法ページの議会・支持基盤・勢力の表",
+        "生産ページの問題の一覧・年表、政治と法ページの議会・支持基盤・勢力の表",
         "GameViewModel が行を絞った表（生産の財の表の絞り込み）と、読みの中で前回との差を採る表の矢印",
         "表どうしの突き合わせは同じ行の名前・同じ列の名前・同じ単位の組だけ（名前が違う量・単位が違う量・輸入と輸出の組は見ていない）",
         "構成比の和は列の鍵が share の列だけ（割合の意味で使われるほかの列は見ていない）",
@@ -84,7 +90,13 @@ public static class UiShotDump
             catch (Exception ex) { failures.Add($"{t.Key}（{t.Name}）を読めない: {ex.GetType().Name} {ex.Message}"); }
         }
         int catalogRead = snaps.Count;
-        if (extra is not null) foreach (var s in extra.Tables) snaps.Add((s.Page, s));
+        // 画面の側の表が目録と同じ鍵なら、画面の値で置き換える（目録の側は流れを 0 にした組で読む表がある＝国債と外資信用の外資の行がいつも £0 になっていた）
+        if (extra is not null)
+            foreach (var s in extra.Tables)
+            {
+                int at = snaps.FindIndex(x => x.S.Key == s.Key);
+                if (at >= 0) snaps[at] = (s.Page, s); else snaps.Add((s.Page, s));
+            }
 
         var sb = new StringBuilder();
         sb.AppendLine($"# {label}");
@@ -186,15 +198,19 @@ public static class UiShotDump
             var missing = rule.Needs.Where(k => ctx.Get(k) is null).ToList();
             if (missing.Count > 0) { skipped.Add($"{rule.Name}：表が無い（{string.Join("・", missing)}）"); continue; }
             if (rule.NeedsPrevious && previous is null) { skipped.Add($"{rule.Name}：前回の撮影が無い（最初の時点）"); continue; }
+            ctx.ResetCount();
+            var found = rule.Run(ctx).ToList();
+            if (ctx.Counting && ctx.Examined == 0) { skipped.Add($"{rule.Name}：規則が対象 0 行"); continue; }
             ran.Add(rule.Name);
-            findings.AddRange(rule.Run(ctx));
+            findings.AddRange(found);
         }
         return new CheckReport(findings, ran, skipped);
     }
 
     private static int ColOf(TableSnapshot s, string name) { for (int i = 0; i < s.Columns.Count; i++) if (s.Columns[i].Name == name) return i; return -1; }
 
-    private static readonly Regex PeopleRe = new(@"(?<n>[\d.,]+)(?<u>[kM]?)人", RegexOptions.Compiled);
+    /// <summary>人数の文字（「1.3k」「20k人」）。人数の書式の単位の字は無くなった（<see cref="DisplayFormat.PersonSuffix"/>）ので、字が無くても読む。</summary>
+    private static readonly Regex PeopleRe = new(@"(?<n>\d[\d.,]*)(?<u>[kM]?)人?", RegexOptions.Compiled);
 
     /// <summary>「戦死 自国 1.3k人　相手 1.9k人」の形から、見出しの後ろの人数を順に取る（自国・相手）。取れなければ空。</summary>
     internal static List<double> CountsAfter(string text, string head)
@@ -210,7 +226,7 @@ public static class UiShotDump
         }
         foreach (Match m in PeopleRe.Matches(rest))
         {
-            double v = double.Parse(m.Groups["n"].Value.Replace(",", ""), System.Globalization.CultureInfo.InvariantCulture);
+            if (!double.TryParse(m.Groups["n"].Value.Replace(",", "").TrimEnd('.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double v)) continue;
             o.Add(v * (m.Groups["u"].Value == "k" ? 1e3 : m.Groups["u"].Value == "M" ? 1e6 : 1));
         }
         return o;
@@ -228,7 +244,7 @@ public static class UiShotDump
         new("未解禁の発見と同じ名前の財に量がある", ["discovery.rows", "discovery.social", "production.goods"], false, LockedButProduced),
         new("満足度 0% の階級が人口の 1% 超", ["pop.classes"], false, ZeroSatisfaction),
         new("戦争の民間人の死が兵の戦死の 5 倍超", ["diplomacy.wars", "diplomacy.pastWars"], false, CivilianToSoldier),
-        new("予算の支出・収入と国庫の台帳の同名項目の額の比が 0.5〜2 の外", ["fiscal.spend", "fiscal.income", "fiscal.ledger"], false, BudgetVsLedger),
+        new("予算の予測と実績（払った額・入った額）の比が 0.5〜2 の外", ["fiscal.spend", "fiscal.income"], false, BudgetVsActual),
         new("技術力が前回の撮影より下がった行", ["discovery.rows", "discovery.social", "discovery.sites"], true, TechDropped),
     ];
 
@@ -332,15 +348,20 @@ public static class UiShotDump
             if (r.Cells[sh].Sort >= 0.995) yield return $"{s.Name}／{r.Name}：世界シェア {r.Cells[sh].Text}";
     }
 
+    /// <summary>未解禁の発見と同じ名前の財に量がある。発見の行のうち財を生む物（新製品・新兵器）だけを財と同じ物とみる。
+    /// 製法の行（蒸気機関＝工場の原動機のレシピ・転炉鋼など）は既にある財の作り方で、同じ名前の財（蒸気機関＝機械）とは別の物＝みない。</summary>
     private static IEnumerable<string> LockedButProduced(CheckContext ctx)
     {
+        ctx.CountRows();
+        var makesGood = PriceOfBread.SimCore.Catalog.Discoveries
+            .Where(d => d.Field is PriceOfBread.SimCore.DiscoveryField.Product or PriceOfBread.SimCore.DiscoveryField.Weapon).Select(d => d.Name).ToHashSet();
         var locked = new HashSet<string>();
         foreach (var key in new[] { "discovery.rows", "discovery.social" })
         {
             var d = ctx.Get(key)!;
             int bar = ColOf(d, "解禁");
             if (bar < 0) continue;
-            foreach (var r in d.Rows) if (CellText(r.Cells[bar]).StartsWith("未", StringComparison.Ordinal)) locked.Add(r.Name);
+            foreach (var r in d.Rows) if (makesGood.Contains(r.Name) && CellText(r.Cells[bar]).StartsWith("未", StringComparison.Ordinal)) locked.Add(r.Name);
         }
         var g = ctx.Get("production.goods")!;
         foreach (var colName in new[] { "生産量", "輸出量", "輸入量" })
@@ -348,7 +369,10 @@ public static class UiShotDump
             int ci = ColOf(g, colName);
             if (ci < 0) continue;
             foreach (var r in g.Rows)
+            {
+                if (makesGood.Contains(r.Name)) ctx.Examine();   // 財を生む発見と同じ名前の財の行＝この規則が判定できる行
                 if (locked.Contains(r.Name) && r.Cells[ci].Sort > 0) yield return $"{g.Name}／{r.Name}／{colName}：発見の表で未解禁なのに {r.Cells[ci].Text}";
+            }
         }
     }
 
@@ -376,6 +400,7 @@ public static class UiShotDump
 
     private static IEnumerable<string> CivilianToSoldier(CheckContext ctx)
     {
+        ctx.CountRows();
         foreach (var key in new[] { "diplomacy.wars", "diplomacy.pastWars" })
             foreach (var r in ctx.Get(key)!.Rows)
             {
@@ -384,28 +409,32 @@ public static class UiShotDump
                 var civ = CountsAfter(text, "民間人の死");
                 string[] sides = ["自国", "相手"];
                 for (int i = 0; i < sides.Length && i < dead.Count && i < civ.Count; i++)
+                {
+                    ctx.Examine();
                     if (dead[i] > 0 && civ[i] > 5 * dead[i]) yield return $"戦争「{r.Name}」：{sides[i]}の民間人の死が兵の戦死の{civ[i] / dead[i]:F0}倍（{civ[i]:F0}人÷{dead[i]:F0}人）";
+                }
             }
     }
 
-    private static IEnumerable<string> BudgetVsLedger(CheckContext ctx)
+    /// <summary>予算の予測と実績の額の比（支出の表・収入の表＝国庫の台帳は両方の表へ合流した）。列は鍵 forecast（予測）と actual（払った額・入った額）。月 £100 未満は丸めの揺れ。</summary>
+    private static IEnumerable<string> BudgetVsActual(CheckContext ctx)
     {
-        var led = ctx.Get("fiscal.ledger")!;
-        int la = ColOf(led, "金額");
-        if (la < 0) yield break;
-        foreach (var (key, side) in new[] { ("fiscal.spend", "国庫の支出"), ("fiscal.income", "国庫の収入") })
+        ctx.CountRows();
+        foreach (var key in new[] { "fiscal.spend", "fiscal.income" })
         {
             var b = ctx.Get(key)!;
-            int ba = ColOf(b, "実効");
-            if (ba < 0) continue;
+            int fc = -1, ac = -1;
+            for (int i = 0; i < b.Columns.Count; i++) { if (b.Columns[i].Key == "forecast") fc = i; else if (b.Columns[i].Key == "actual") ac = i; }
+            if (fc < 0 || ac < 0) continue;
             foreach (var r in b.Rows)
             {
-                var lr = led.Rows.FirstOrDefault(x => x.Name == r.Name && x.Group == side);
-                if (lr is null) continue;
-                double bv = Math.Abs(r.Cells[ba].Sort), lv = Math.Abs(lr.Cells[la].Sort);
-                if (!(bv >= 100) || !(lv >= 100)) continue;   // 月 £100 未満は丸めの揺れ
-                double ratio = bv / lv;
-                if (!(ratio >= 0.5 && ratio <= 2)) yield return $"{b.Name}／{r.Name}：予算の実効 {r.Cells[ba].Text} と台帳の金額 {lr.Cells[la].Text} の比 {ratio:F2}";
+                double fv = r.Cells[fc].Sort, av = r.Cells[ac].Sort;
+                if (!double.IsFinite(fv) || !double.IsFinite(av)) continue;   // 予測か実績を出さない行（隠した列）は比べられない
+                ctx.Examine();
+                double f = Math.Abs(fv), a = Math.Abs(av);
+                if (!(f >= 100) || !(a >= 100)) continue;
+                double ratio = f / a;
+                if (!(ratio >= 0.5 && ratio <= 2)) yield return $"{b.Name}／{r.Name}：予測 {r.Cells[fc].Text} と{b.Columns[ac].Name} {r.Cells[ac].Text} の比 {ratio:F2}";
             }
         }
     }

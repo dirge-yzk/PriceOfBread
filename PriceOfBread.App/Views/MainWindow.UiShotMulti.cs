@@ -76,6 +76,7 @@ public partial class MainWindow
         if (g.WarPopupOpen) { Note("最後通牒"); g.WarPopupOpen = false; }
         if (g.WarEndPopupOpen) { Note("終戦・通知「" + (g.WarEndPopupBody ?? "").Replace('\n', ' ') + "」"); g.WarEndPopupOpen = false; }
         if (g.FactionCrisisOpen) { Note("国内勢力の危機"); g.FactionCrisisOpen = false; }
+        if (g.LawOpenPopupOpen) { Note("新たな法"); g.LawOpenPopupOpen = false; }
         if (g.ElectionPopupOpen) { Note("総選挙"); g.ElectionPopupOpen = false; }
         if (g.CallToArmsOpen) { Note("参戦の要請"); g.CallToArmsOpen = false; }
         if (g.SideChoiceOpen) { Note("陣営の選択"); g.SideChoiceOpen = false; }
@@ -120,6 +121,7 @@ public partial class MainWindow
 
         Show(Slot.FiscalMoney);
         t.Add(g.SpendTable with { Name = g.SpendTitle });
+        t.Add(g.DebtTable);   // 国債と外資信用＝画面の値（目録の組は外資の流れを 0 にして読む）
         t.Add(g.IncomeTable with { Name = g.IncomeTitle });   // 国庫の台帳は支出と収入の表の「払った額／入った額」へ吸収済み（B26）＝別の表は無い
 
         Show(Slot.Population);
