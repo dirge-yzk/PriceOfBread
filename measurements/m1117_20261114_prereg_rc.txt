@@ -1,0 +1,137 @@
+# (1117) c108rc 支配の力の段 C′ の事前登録（波108・挙動の線・3 回の規則の 1 回目・形の変え直しの枠 1）
+# 書いたモデル：Claude Opus 5.5。木：wt_c108rc（cfd8de3e0 から・枝 c108rc）。紙の盤面：keep_1116/base_ins（M）・keep_1103/n1・n2（N1・N2）。
+# 紙の出力：measurements/m1117_20261114/（c5_series.tsv・loo_out.txt・rows_m_out.txt・qing_root_out.txt）。台本：scripts/instruments/c108rc/（r1102 の写し＋この線の門の台本）。
+# 土台：docs/202611/20261113/20261113_支配の力の段C′_事前登録_下書き.md §6 と、その末尾の反証役 v の 13 件・段 R の v2 の〈旗 1 の影の ρ〉。
+# 「」は作者の原文だけ。〈〉は AI の案。
+
+## 0. 先頭
+
+- 作者の言葉：「読みました。問題ない。それでいこう」「全て推奨でよい」（設計 design_rule_power_2026-11-12.md）・「しばらくの間、全て推奨で」（2026-11-12）。§0-2 ★(1087) ①②（ρ を重みから外す Vb・q を四半期ごとに q_t）は作者の原文ではなく、推奨を採った物。
+- 計画の名乗り（波108 の計画の担当）：U0（P1 の〈警察×闘争度→無統治〉の経路を消し、闘争度は在地の抵抗 F_R にだけ効かせる）は設計 :86・:393・:398 の形。作者の裁定の上書きではない（反証 1 の直し）。
+- **清の取り分（今の盤面で数え直した）**：q_t の外への力 O の世界の取り分が 0.6 を超える種×四半期 M 2567／6680（N1 2477・N2 2825）。設計 §0-3（:18）・:122〈陸軍力へ替えて清が 62〜88% を持つ形を直した〉は、今の測りで成り立たない（反証 6）。
+  - 清の取り分は四半期 0 と 40 は 0、山は四半期 17（M の種の中央 0.997）＝〈開幕の頃〉ではなく〈四半期 20 の前後から〉（反証 13）。
+  - 大きさは人口の側（清の人口÷余りの国の人口 0.73・反実仮想〈清の人口を余りの国の平均に〉で取り分 0.16〜0.20）。
+  - 人口の側の手（q_t の分母の人口を一部に）は〈新しい定義の量〉が要る＝新しい係数か状態が 1 本増える。Vb と q_t は既にある量だけで書ける。この差で今回は採らない（反証 6 の比べ直し）。記録の先頭に置く。
+- **設計 :483 の開幕の門〈q0 の目標−RuleInit ≦1e-9〉を門から外す理由**：τ_r を F_S0÷(N×RuleInit[0]) で解くので、開幕の抵抗と外国が 0 の州では構築で必ず成り立つ（恒真＝何もしない実装でも計器の自己検査は通る）。記録（自己検査）へ。
+- **C9〈O の世界の取り分の最大＜0.3〉は記録へ下げる**（旗 0 で 5337／6680 が赤・清の外でも破れる〔マラータ同盟 938・露 223・日 197〕）。代わりに比べる形の C9′（〈壊さない〉）を置く。
+- **制海（設計 §3-4）は入れない**：海盆ごとの制海を州に当てる道（最寄りの海ノード→海盆）が無い。段 F（海軍の港への配り）と同じ段に送る。⇒ ρ は清算の距離の表（凍結を外した版）だけで決まる。C2 の等式はこの形で書く（反証 5）。
+- **段 R の g_r×s_n(r)（国ごとの線路の効き）も入れない**：清算の terrCost（φ で混ぜた値＝州の線路の充足）をそのまま使う＝線路は誰の物でも効く（貿易と同じ）。国ごとの比は段 F 以降（記録）。
+- **海軍は F_f に入れない**（C6）。設計 §3-3 の〈港へだけ届く海の外への力〉は段 F。
+- **圧力の定義**：F_R の圧力は設計 §3-2 のとおり今の分離の圧力（Politics.CheckSecession の式＝関税の向き×闘争度×規模×（1＋文化の距離）＋文化の加算、×(1−国民意識の割引)×(1−参政権の算入)×大衆の比）。段 B の影（rulepower_s の pressureIndex）は関税の向きと文化の項を含まない簡略の式だった＝紙の C3 の数（下）は簡略の式の物（㉗）。
+
+## 1. 形（旗 RuleFromPower・既定 0・Coefficients.p08_audit_soldiers.cs の RuleOrderByRegion の隣）
+
+### 1-1 置き場と時刻
+- 新しいファイル PriceOfBread.SimCore/RulePowerEngine.cs（MultiNationSim の partial・共有層）。MultiNationSim.cs は `partial` の 1 語と呼び口 1 行（四半期の最終日の Close の前）・台帳の行。
+- 時刻：四半期の最終日、全ての国の StepDayClose（＝Politics.Step→CheckSecession）の直前に、その時の盤面から 1 回だけ表を作る（国の並び順に依らない）。各国の CheckSecession は自国の州の目標を表から読むだけ。
+- 表はセーブに載らない（[NonSerialized]）。同じ StepDay の中で作って使い切る＝セーブの往復は〈表を作り直す〉で同じになる（セーブは四半期の境目）。
+- 距離の表：BilateralMarket.cs:582 の 1 行を、エンジンの口 `MultiNationSim.RulePowerCapture(...)` に替える。口は (a) 今の計器の複写 Instruments.RpSnapshot を同じ引数で呼ぶ（計器の挙動は同じ）(b) 旗 1 のときだけ、四半期の最初の清算の州の表を Diplomacy の [NonSerialized] の欄に写す（On を読まない）。
+- 助走の間（WarmupFrozen）は作らない。表が無い四半期（助走の直後の最初の四半期の前・単独の World の試験）は、旗 1 の CheckSecession は 4 区分を動かさない。
+
+### 1-2 式（設計 §3-1〜3-5・§3-9 に、推奨 Vb・q_t・I-a を当てた形）
+- q_t＝Σ_国 L ÷ Σ_国 人口K（その時刻の世界・L＝max(0, LandPower)）。N_r＝人口K_r×q_t。
+- W＝Σ_戦線 L÷戦線の数×min(1, 相手の押し÷自分の押し)（FrontPush・計器 :176〜181 と同じ定義）。H＝min(max(0, L−min(W,L)), Σ N)・O＝max(0, L−min(W,L)−H)。
+- κ＝RuleInit[0]＞0 なら min(1, Rule[0]÷RuleInit[0])・そうでなければ 1。
+- i（I-a）：τ が蓄えにある州は同じ四半期の i＝F_I÷(F_I＋F_R)。τ を解く州は τ＝1 の試し（N は約分される）。持ち主の重み OwnerWeight＝Rule[0]＋Rule[1]×i×κ。
+- ρ（持ち主）：首都は 1。他は D(首都,r) と、首都→自国の州 s→r の D(首都,s)×OwnerWeight_s×D(s,r) の最大（乗り継ぎ 1 回）。D＝1÷(1＋km÷DistanceNormKm)・km は清算の PairKmCore を**凍結を外した州の表**（凍っていた港だけ海へ戻す）で。表が無い・州が表に無いときは大圏の D（座標が無ければ 0）。
+- F_S＝H×人口K_r÷Σ人口K×ρ＋A×中核・F_I＝N×τ×RuleInit[1]×(仲介者の度合い÷τ を解いた時の度合い)・F_R＝N×圧力÷SecessionThreshold＋A×(1−中核)・F_U＝N×τ×RuleInit[3]・A＝N×国民意識×X（X＝持ち主と文化の違う外国の取り分の和）。
+- τ_r：州を最初に見た表で τ＝F_S÷(N×RuleInit[0])（解けない州はその国のその四半期に解いた τ の中央、無ければ世界の解けた τ の中央）。Region の欄 RuleTau と RuleTauInter（τ を解いた時の仲介者の度合い）＝セーブに載る 2 本（思想⑩の例外として名乗る＝設計 §3-9 の τ_r と、設計が国ごとに置いた〈開幕の仲介者の度合い〉を州ごとに持つ形）。
+- 外への配り（O＞0 の国だけ）：候補＝①その国が外国の取り分を持つ州 ②交戦の相手の州 ③①か自国の州と陸で隣り合う他国の州（CessionAdjacent）。重み **w＝Y×(1−min(1,s))×(1−b)**（Vb＝ρ を重みに入れない）・Y＝州の産出の値（Diplomacy.RegionOutputValue と同じ式）・s＝その州のその国の取り分・b＝その州の持ち主の OwnerWeight（0〜1）。配り＝O×w÷Σw。**F_f＝配り×ρ_f**（ρ は 1 回だけ）。ρ_f は首都と、自国の州（重み OwnerWeight）と取り分の州（重み s）を起点に、同じ D の規則。
+- 目標：t＝F÷(F_S＋F_I＋F_R＋Σ F_f＋F_U)。Rule[0]←F_S・Rule[1]←F_I＋F_R・各外国 x_f←F_f・Rule[3]←F_U。和が 0 以下なら寄せない。
+- 最大の区分（表示と後の段のため・この段では何も動かさない）：持ち主の側＝(F_S＋κF_I)・自立＝((1−κ)F_I＋F_R)・外国＝ΣF_f・無統治＝F_U。**同点の許容差は相対 1e-9**（より大きいと読むのは 1+1e-9 倍を超えたときだけ・同点は持ち主の側から順）。
+- 寄せ方（CheckSecession・旗 1）：Rule[0]・Rule[1]・Rule[3] と各 x_f を今の DominanceSpeed で目標へ（表に無い外国の x_f は 0 へ・新しい外国は ForeignRulers／ForeignShares の末尾に足す）。負は 0。4 区分と x_f をまとめて和で割り、Rule[2]＝Σx_f。RuleStateYears の記録は今のまま。
+
+### 1-3 旗 1 で外す物（旗の枝で外す・物理の削除は採った後の焼き込みの線）
+- P1（Politics.cs:937〜:957 の州の秩序 orderR と tUngov の (1−RegionReach)）＝旗 1 の CheckSecession は 4 区分の旧の塊を通らない。
+- RegionReach（大圏）：旗 1 の道に読み手が無くなる。
+- TreatyPortLapse（Diplomacy.cs:487〜）：旗 1 では何もしない（外国の取り分は自分の力で保てなければ寄せで減る）。
+- SecessionHoldProjection（Politics.cs:896〜:905・:972）：旗 1 では投射の枝を通らない（0 と同じ）。
+- ProjectionRuleMin・ProjectionUsesLand：既定で既に休眠（1.1＝到達不能・0）＝旗 1 の枝は要らない（何もしない）。
+
+### 1-4 計器（恒等の段・旗 0 で今ある行と列はバイトで一致し、足した行と列だけが違う）
+- S5（rulepoweralloc_s）：O＝0 かつ海軍＝0 の国の候補の行も書く・列 rhoFNoFreezeIndex（凍結を外した外国の ρ）・四半期 mod 40＝2 の行も書く。
+- S5（rulepower_s・新しい列）：計器が自分で数えた設計の形〈D〉（q_t・Vb・凍結を外した ρ・I-a・今の分離の圧力・自分の τ の蓄え）＝qNowIndex・rhoDIndex・tauDIndex・iDShare・hDNationIndex・oDNationIndex・fForeignVbIndex・t0DShare・t1DShare・t3DShare・bestClassD、と**エンジンの使った値〈実際の側〉**＝rhoEngIndex・tauEngIndex・iEngShare・qEngIndex・hEngNationIndex・oEngNationIndex・fForeignEngIndex・t0EngShare・t1EngShare・t3EngShare・bestClassEng（旗 0 は nan／none）。D とエンジンの値は同じ時刻（四半期の最終日の Close の前）の盤面から。計器はエンジンの関数を呼ばない（τ の蓄えも別）。
+- S5（rulepoweralloc_s・新しい列）：wDIndex・allocDIndex・rhoFDIndex・wEngIndex・allocEngIndex・fForeignEngIndex（旗 0 は nan）。
+- 影の ρ の直し（段 R の v2）：旗 RailByRegion が 1 の国では、影の 3 通りのうち rhoDirectNoRailIndex を地形の基礎（TerrainHorseCost・水の上書き）×12、rhoDirectFullRailIndex を TerrainRailCost×Clamp01(RailCostFraction)×12 から組み直す（今は φ で混ぜた terrCost に比を重ねていた）。**この 2 列は今ある列の値が変わる**＝ident に --known-extra で宣言する（全ての種で多くの行が変わる・rhoDirectRailGateIndex と他の列は不変）。
+- 予言（ident）：素の 5 種・成績表は全行一致・rulepower_s は列が末尾に増え（--grown-ok）、上の 2 列だけ値が違う（--known-extra）・rulepoweralloc_s は列が増え、行が増える（--rows-grown-ok・基準の行は腕の行の順序つき部分列）・他の表は一致・試験の数は足した試験の数だけ増える。
+
+## 2. 門（両側・〈実際の側〉はエンジンの列・期待の側は計器が自分で数えた D の列）
+
+読み手：scripts/instruments/c108rc/gates_rc.py <腕の生> [<基準の生> <N1> <N2>]。許容差は相対 1e-9（絶対 1e-12 の床）。母集合は旗 1 の表の中で取る（反証 9）。
+旗 0 では〈実際の側〉の列が nan＝全ての門が赤（何もしない実装で落ちる・★(790)）。
+
+| 門 | 下側（見分ける行の数・働いた） | 上側（食い違い・形に固有の誤り） |
+|---|---|---|
+| C1 同点 | bestClassEng と bestClassD を全ての行で比べた行 ≧100,000 | 食い違う行＝0（M2：許容差を外すと同点の行で割れる。同点の行が 0 なら M2 の見分けは〈判定不能〉と名乗る） |
+| C2 凍結（直の形） | rhoNewIndex≠rhoNoFreezeIndex の行（凍った季節）≧10,000 かつ その行で rhoEngIndex＝rhoDIndex | rhoEngIndex≠rhoDIndex の行＝0（全ての行・季節を問わず＝M3 凍結を戻す・M8 全ての港を海へ） |
+| C3 開幕 | エンジンの最初の表の四半期で bestClassEng≠owner の州（10 種の和）≧70 | ≦129（紙 123＋幅 6・㉗：紙は簡略の圧力・外国の凍結あり） |
+| C4 ρ の回数 | 配り＞0 かつ rhoFDIndex≠1 の配りの行 ≧1,000 で wEngIndex＝wDIndex（Va＝重みに ρ を残す誤りを拾う） | fForeignEngIndex＝allocEngIndex×rhoFDIndex が崩れる行＝0（M9＝力からも ρ を外す誤りを拾う） |
+| C5 q | qEngIndex＝qNowIndex（全ての行）・q_t≠最初の表の q の四半期 ≧600 | 食い違う行＝0（M6 q を開幕に固定）。加えて〈壊さない〉：エンジンの ΣO÷ΣL の種の中央が、基準・N1・N2 のうち 2 本の組の種の最小〜最大の幅の外に出る四半期の数の最大（3 通り）≦1（紙の 1 つ抜きの最大＝M 0・N1 0・N2 1） |
+| C6 海軍 | fForeignEngIndex＝fForeignVbIndex（全ての行）・配りの候補に港の州を持つ海軍＞0 の国の行 ≧1 | 食い違う行＝0（M4 海軍を F_f に足す） |
+| C7 i | τ を解く行の外で iDShare≠iProbeShare の行 ≧100,000 かつ そこで iEngShare＝iDShare | 食い違う行＝0（M5 試しへ戻す・M5′ 前の四半期の i） |
+| C10 目標の写し | t0／t1／t3 の Eng＝D（全ての行）・行 ≧100,000 | 食い違う行＝0（M7 RegionReach を F_U に残す・力の式の誤り） |
+| C8a 寄せが効いた | 前の四半期の nowRule0Share から、|t0Eng−前|＞1e-3 の行で、ΔRule0 が DominanceSpeed×(t0Eng−前) の ±50% に入る行の割合 ≧0.9（行 ≧10,000） | 割合の計算で、ΔRule0 が 2×DominanceSpeed×(t0Eng−前) を超える行の割合 ≦0.02（寄せの二重） |
+| C8b 届きが効いた（設計 :480） | 州の ρ（腕＝rhoEngIndex・ヌル腕＝rhoNoFreezeIndex）が最初の行の 1.5 倍以上の行の Rule[0]−RuleInit[0] の平均 − 0.95〜1.05 倍の行の同じ平均（四半期 40 以後・種ごと→種の中央）が、基準・N1・N2 の 3 本の値の最大を超える | 記録（上側の誤り〈ρ の重ね掛け〉は C4・C10 の等式で拾う＝理由） |
+| C8c 力の落ちが効いた（設計 :481） | O＝0 の国（oEngNationIndex＝0）で L が前の 4 四半期の平均の 0.8 倍以下の国×四半期の、t0Eng の 4 四半期の変化の平均 − L が 0.95〜1.05 倍の国×四半期の同じ平均（種の中央）≦−0.005 | ≧−0.3（H が 0 に落ちる類の誤り） |
+| C8d 対照（設計 :482） | O＞0 の国の同じ差の絶対値 ＜ C8c の絶対値÷2（外への力が先に削られる＝H は動かない） | 〈C8c が赤なら判定不能〉 |
+| C9′ 壊さない | エンジンの O の世界の取り分の最大の種の中央が、基準・N1・N2 の 2 本の組の種の最小〜最大の幅の外に出る四半期の数の最大（3 通り）≦2（紙の 1 つ抜きの最大＝M 0・N1 2・N2 0） | 〈壊さない〉の門（赤にする突然変異は無い＝名乗る） |
+
+- ヌル腕の値（C5・C9′・C8b）は L と人口K から q_t を組み直した数（c5_series.py の形）。腕は oEngNationIndex・lNationIndex を読む（反証 3 の〈実際の側〉）。
+- C9（O の世界の取り分の最大＜0.3）は記録。門 A′（nullgate）・exact・near・NG・補給崩壊は記録。
+- 狙いの数字は機構の観測量だけ（史実の大きさと暦の年は記録）。
+
+### 2-1 旗 0 の盤面で落ちることの確かめ（紙）
+- 旗 0 の今の盤面（keep_1116）には Eng と D の列が無い＝C1〜C8・C10 は〈実際の側〉が空＝赤。C9′・C5 の〈壊さない〉は旗 0 の基準そのものが 0（幅の内）＝緑（〈壊さない〉の門なので旗 0 で緑でよい）。
+- 恒等の段の後（S5 の木）で、旗 0 の ident の生に gates_rc.py を当て、C1〜C8・C10 が赤になることを確かめて measurements/ に書く（腕の前）。
+
+## 3. 突然変異（使い捨ての木・腕の前・どの門で赤か）
+
+| 突然変異 | 赤になる門 |
+|---|---|
+| M1 Va：重みに ρ を残す（w＝Y×ρ×(1−s)×(1−b)） | C4 下側（wEng≠wD） |
+| M2 同点の許容差を外す | C1（同点の行が 0 なら〈判定不能〉） |
+| M3 凍結を戻す（エンジンの表を凍結ありで） | C2 |
+| M4 海軍を F_f に足す | C6 |
+| M5 i を τ＝1 の試しへ | C7 |
+| M5′ i を前の四半期の値へ | C7 |
+| M6 q を最初の表の値に固定 | C5 |
+| M7 F_U に (1−RegionReach) を掛ける | C10 |
+| M8 凍結だけでなく全ての港を海へ | C2 |
+| M9 F_f から ρ も外す（0 回） | C4 上側 |
+| M10 目標を写さない（CheckSecession の寄せを外す） | C8a |
+
+- 突然変異の腕：計器つき 3 種（種 1〜3）・520 四半期・POB_INSTRUMENTS_TABLES＝rulepower_s,rulepoweralloc_s,nation_s（門の読む表だけ）。出力と門の集計は measurements/m1117_20261114/mut_*.txt。生は合流の判断まで残す（門の表だけ）。
+- 突然変異で緑のままの門は、穴を名乗り、同じ線で機構の試験を足す（★(790)）。
+
+## 4. 試験
+
+- 新しい試験 RulePowerEngineTests（エンジンの純関数と表の機構の番人：①Vb の重みに ρ が無い ②F_f は配り×ρ ③q_t は四半期ごと ④τ は 1 回だけ解いて州について行く ⑤同点の許容差 ⑥寄せの和は 1・Rule[2]＝Σx_f ⑦旗 0 で表を作らない ⑧旗 1 で TreatyPortLapse が何もしない ⑨セーブの往復で RuleTau・RuleTauInter が残る）。期待値は試験の中で手で組んだ盤面の数から（エンジンの関数を呼んで期待を作らない）。
+- 旗 1 で赤になると予言する試験（★(832)①(a) の型＝初期化子に RuleFromPower＝0 を足す・Assert の式とリテラルは 1 字も変えない）：RuleOrderP1Tests の P1_0〜P1_7（8 本）・RuleSharesFormTests の D1〈在地の目標〉・D2 の 3 本（:76・:93・:105）＝旧の規則の番人 12 本。TreatyPortLapseTests の 2 本と RuleSharesFormTests の D3〈風化〉も同じ型で旗 0 に止める（**計画の〈消す 3 本〉から外した**：消すのは物理の削除の焼き込みの線〔旗 0 の道が残る間は旗 0 の番人を残す〕＝★(743)①の削除は焼き込みの時）。
+- 上の外の赤は止める（★(866) の型〔前提の Assert だけが赤〕なら Theory 化を事前登録の追記に diff つきで書いてから）。軌道の件数の番人 WriterRatchetTests の計算量の表は〈動きうる・新しい行〈支配の届きの対〉の宣言を足す＝★(749)〉と種類で予言する。
+- ㉜ の grep（旗 1 の木で旧の規則を固定する番人）：`grep -ln "RuleOrderByRegion\|TreatyPortLapse\|RegionReach\|SecessionHoldProjection\|\.Rule\[3\]\|ForeignShares" PriceOfBread.Tests/*.cs` を旗 1 のコミットの直後に回し、出た Assert を読む（結果は追記）。
+
+## 5. ㉘ ソースを走査する番人の点検（cfd8de3e0 の grep）
+- IndustrializationReaderTests（262 行）：新しいファイルは工業化度を読まない。
+- `new MoneyStock(` の件数：SimCore 64（この線は足さない）。
+- route_anchors.tsv（scripts/instruments/flow262/）：新しいコードは金を動かさない＝鍵の行に触れない。
+- WriterRatchetTests の宣言の表：台帳に行〈支配の届きの対〉を 1 本足す＝旗 0 は件数 0。
+- 走査の束：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ScalarDeletionTests・GoodIdGuardTests・OnDoubleReadScanTests（器のコミットの直後と最終の頭で）。
+
+## 6. 計算量
+- 台帳に〈支配の届きの対〉（乗り継ぎの評価と距離の素の計算の件数）を足す。単価 0.05µs（AI の見積もり・腕 B の .cost で取り直す）。
+- 見込み：+0.5〜1.5 秒（名目の余り 約 3.1 秒の内・ps≒0・mc≒0）。2 秒以下は 1 本の腕で門にしない（★(694)）＝合流の木の累計で読む。推定 ＞248.5 秒は止める線。
+
+## 7. 止める線（README のまま・結果を見る前に写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後〈系列の最初の行から 4 四半期以内〉と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上になった四半期はヌル腕の件数と並べる・基準とヌル腕を同じ台本で数え直す）・1e10 倍以上・空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線 keep_1116/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）・推定の計算量 ＞248.5 秒・機構の試験の赤（ソースを走査する番人を含む）。
+- 記録：NG（ng.sh・基準 rd:measurements/ng1103_20261113:m1103）・nullgate・exact・near・名目 GDP 0 の続き（gdp_zero10.py・記録の先頭）・開幕の 1000 倍以上・英の国債の不履行の種の数・C9。
+
+## 8. 周辺の点検（★(885)）
+- 外国の取り分の読み手：BilateralMarket.cs:126〜132（港の関税の目減り TreatyPortTariffScale・取り分に比例）＝旗 1 で外国の取り分が陸の隣の州へ広がる→関税の目減りが内陸の州にも出る。腕 B で〈外国の取り分＞0 の州の数〉と関税の目減りの和を記録。
+- Territory.cs:243（移しで持ち主になった国の外国の取り分を 0 へ）・屈辱の項（PoliticalQuantities）・InstrumentsScore・InstrumentsCede：記録。
+- Rule[0] の読み手（税の届き RuleDelivery・法の浸透 StateReach）・Rule[3]：持ち主の側の伸び縮みが税と法に出る＝国の歳入の 1 四半期の比（記録）。
+- 警察（Coercion）と治安（PublicOrder）は支配の取り分に効かなくなる（蜂起・犯罪・王権と議会・政体の 5 か所では効き続ける）。
+- 分離の引き留めの投射が外れる＝Dominance の積分の引き留めが遠い州で強くなる→分離の点火が減る向き（記録：分離の建国の件数）。
+
+## 9. ㉗・3 回の規則
+- C3 の上側は、圧力を今の分離の圧力（関税の向きを含む）にしたことと外国の ρ の凍結を外したことで、紙（簡略の圧力・外国の凍結あり＝123）より上へ破れうる。それでも回す理由：開幕の在地の行は圧力の定義だけで決まり、腕の生で区分ごとに読み直せる（破れたら採らない）。
+- 段 C′ の 1 回目。形の変え直しの枠は 1（旗 1 の出力を見た後のエンジンの変更は理由に関係なく数える）。
