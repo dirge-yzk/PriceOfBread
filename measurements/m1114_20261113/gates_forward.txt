@@ -1,0 +1,51 @@
+OK  門1 履歴＋残り＝元（Coefficients.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.cs・1081 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.cs・125 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 126 本・120 字超 0・注の欠け 0・元から注なし 0（Coefficients.cs）
+   参考 行ごとの読み手の語の差 27 語（Coefficients.cs）：BilateralMarket,ClearingsPerYear,EconomyStep,LastExport,MarketFlow,MonthSettle,MonthsPerClearing,Output,PhantomOutputSnapFloor,PriceLawSeesExports,RGO,S1,S3,Simulation,SupplyAdjustSpeed,TargetStockFloor,TradeMonthlyClearing,_,docs,e,flow,git,k,md,n,profitFactor,target
+OK  門1 履歴＋残り＝元（Coefficients.p02_borrow_polity_epidemic.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p02_borrow_polity_epidemic.cs・826 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p02_borrow_polity_epidemic.cs・98 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 99 本・120 字超 0・注の欠け 0・元から注なし 1（Coefficients.p02_borrow_polity_epidemic.cs）
+   参考 行ごとの読み手の語の差 0 語（Coefficients.p02_borrow_polity_epidemic.cs）：
+OK  門1 履歴＋残り＝元（Coefficients.p03_debt_money.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p03_debt_money.cs・1096 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p03_debt_money.cs・128 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 129 本・120 字超 0・注の欠け 0・元から注なし 2（Coefficients.p03_debt_money.cs）
+   参考 行ごとの読み手の語の差 0 語（Coefficients.p03_debt_money.cs）：
+OK  門1 履歴＋残り＝元（Coefficients.p04_trade.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p04_trade.cs・1278 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p04_trade.cs・129 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 130 本・120 字超 0・注の欠け 0・元から注なし 10（Coefficients.p04_trade.cs）
+   参考 行ごとの読み手の語の差 2 語（Coefficients.p04_trade.cs）：gabelle,resentment
+OK  門1 履歴＋残り＝元（Coefficients.p05_port_insurance.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p05_port_insurance.cs・487 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p05_port_insurance.cs・58 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 59 本・120 字超 0・注の欠け 0・元から注なし 1（Coefficients.p05_port_insurance.cs）
+   参考 行ごとの読み手の語の差 1 語（Coefficients.p05_port_insurance.cs）：SeaInvasionControlMin
+OK  門1 履歴＋残り＝元（Coefficients.p06_rank_discovery.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p06_rank_discovery.cs・1010 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p06_rank_discovery.cs・122 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 124 本・120 字超 0・注の欠け 0・元から注なし 5（Coefficients.p06_rank_discovery.cs）
+   参考 行ごとの読み手の語の差 3 語（Coefficients.p06_rank_discovery.cs）：BilateralMarket,Climate,PortFrozen
+OK  門1 履歴＋残り＝元（Coefficients.p07_wiring_prewarm.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p07_wiring_prewarm.cs・1186 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p07_wiring_prewarm.cs・117 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 124 本・120 字超 0・注の欠け 0・元から注なし 2（Coefficients.p07_wiring_prewarm.cs）
+   参考 行ごとの読み手の語の差 3 語（Coefficients.p07_wiring_prewarm.cs）：B6,HousingUrbanThreshold,pop1
+OK  門1 履歴＋残り＝元（Coefficients.p08_audit_soldiers.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p08_audit_soldiers.cs・1092 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p08_audit_soldiers.cs・121 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 122 本・120 字超 0・注の欠け 0・元から注なし 6（Coefficients.p08_audit_soldiers.cs）
+   参考 行ごとの読み手の語の差 23 語（Coefficients.p08_audit_soldiers.cs）：A,AUD,B,B3,CurrentInputFillGates,E,G1,G3,InvestBudgetIncludesAllInputs,L1,L2,L3,OverworkHealthSlope,Phase2,PolicyPolitics,Polity,ReignitionTrickleConserves,Round2,S5,batch10,dorm,h,whOut
+OK  門1 履歴＋残り＝元（Coefficients.p09_kingship_tax.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p09_kingship_tax.cs・760 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p09_kingship_tax.cs・92 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 93 本・120 字超 0・注の欠け 0・元から注なし 1（Coefficients.p09_kingship_tax.cs）
+   参考 行ごとの読み手の語の差 0 語（Coefficients.p09_kingship_tax.cs）：
+OK  門1 履歴＋残り＝元（Coefficients.p10_ai_silver_overrides.cs・BOM 有・CR 0）
+OK  門2 注を除いた字句の列が一致（Coefficients.p10_ai_silver_overrides.cs・1214 字句）
+OK  名の列（ソース・宣言の順）が一致（Coefficients.p10_ai_silver_overrides.cs・65 件）
+OK  門5 元に注があった public の行は全て短い注を持つ・public 68 本・120 字超 0・注の欠け 0・元から注なし 3（Coefficients.p10_ai_silver_overrides.cs）
+   参考 行ごとの読み手の語の差 0 語（Coefficients.p10_ai_silver_overrides.cs）：
+全て OK
