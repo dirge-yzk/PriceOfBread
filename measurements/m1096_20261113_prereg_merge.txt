@@ -1,0 +1,39 @@
+# (1096) 合流（波104）の予言（merge の前にコミットする）
+# 担当 Opus 5.5（合流）。基点 23aa9d11a。基準＝基線 m1087（ident.cfg：B5 b5_20261113_m1087・B10INS b10_20261113_m1087_ins・MON mon_20261113_m1087.txt・NG_BASE ng1087〔93 件〕）。
+# 指示文の雛形にある m797・ng797 は古い基準＝この回は ident.cfg の m1087 を使う。作ったフォルダ：D:/PoB_work/m1096_work・wt_m1096（枝 m1096）。この後に wt_m1096z（腕 Z の木）・ident_m1096z・keep_1096 を作る。
+
+[1] 入れる線と外す線（結果を見る前に決める）
+- 入れる：c104ui (1088) e2ab566ac・c104fb (1089) 28b7e3f4f・c104cp (1090) ac7ac76d2・c104si (1091) d3e735797（4 本とも〈判定: 恒等〉・反証役 v の高 0）。順は ui → fb → cp → si（git merge --no-ff）。
+- 挙動の線は 0 本＝基線は m1087 のまま（M・N1・N2・S11・アブレーションは回さない）。
+- 読む線 ar (1092)・al (1093)・s14 (1094) と設計の材料 rc (1095) は写すだけ（コミットは合流が名指しで）。
+
+[2] 消す名前とファイルの重なり
+- fb が消す名前（旗 11 本の欄・_scarceCounts・_scarceProvinceTotal）と ui が消す名前（TransportRow・MarketPricesView・TreatyPortLine・HasTreatyPorts・DefaultRect・SetSectionState・SectionState・PricesPlan・TradePlan・SectionDto・TradeBalance・TransportRows・TransportUse*・SetMarketView）を、他の 3 本の枝の足した行で grep した＝ui・cp・si の足した行で 0（fb 自身の 24 は注・墓標・RetiredFields）。
+- 4 本の枝が触れるファイルの重なりは Instruments.cs だけ（cp：CrownFold と CrownClose の次の行・si：MinecapTable の 1 行）＝git merge-tree で衝突 0 の見込み。
+
+[3] 合わせた木の予言
+- テストの数：Category!=FullLength 2768＋ui 0＋fb 4＋cp 13＋si 5＝2790・FullLength 3（ビルドの後の --list-tests で先に確かめる。fb の ident が測ったのは +1＝最終の頭は +4）。
+- 腕 Z（合わせた木そのもの・旗の切り替えなし）を別の木 wt_m1096z で ident（段 2・PRUNE=0・--saveleak・--ng・--tests-delta 22・--added-tables center_s,poppref_s,rulepoweralloc_s,minecap_s・--grown-ok rulepower_s）。
+  - 予言：〈判定: 恒等〉（測った種で一致）。素の 5 種が b5_20261113_m1087 と全行バイト一致（名乗り行を除く）・計器つき 10 種が b10_20261113_m1087_ins と全行バイト一致・注視の表 4732 行一致・.cost の件数の行は差 0・推定 227.6 秒／227.8 秒・計器の表は宣言の無い違い 0（既知の揺れ＝burscan_s・clock_s の C 行、cearn_s・cpop_s・flow_s は fb の Simulation.cs の行ずれで経路の行番号だけが違う＝ident_check.py の行の写しで違い 0）・NG は ng1087 と同じ 93 件（新しい 0・外れた 0）。段は 2。
+  - WriterRatchetTests の宣言の表の取り直しは無い（4 本とも .cost の件数の行を足していない）。
+- 止める線の段：ident の〈判定: 不一致〉（宣言の無い違い）・savetest／leakhunt の不合格・フルスイートの赤（下の DiscoveryClockTests の規則に当たる物を除く）。2 本以上の線が同じ表・同じ行で不一致なら〈基線の疑い〉として止める。
+- 記録の段：.cost の実時間（CPU 秒）・cp の計器の秒（.cost に項が無い）・D: の空き（計画の表の 120.8GB と違い、この時点で 53.9GB＝線の ident の生 10.1＋10.3＋25.6＋9.3GB が残っている＝計画の外れとして名乗る）。
+
+[4] DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま（:349）の扱い（結果の前に固定）
+- c104si のフルスイートで 1 本赤（単独では緑）。DiscoveryClockTests.cs と MultiNationSim.cs は 4 本の枝のどれも触れていない。原因の読みは静的な Instruments.On の競合（MultiNationSim.cs:594 の `clockOn || Instruments.On`・本体のクラスに [Collection("Instruments")] が無い）＝実装ログ (1864 本の回・49422 行) と同じ型。
+- 合わせた木のフルスイートは 1 回だけ回す（緑が出るまで回し直さない）。
+  - 緑なら記録だけ。
+  - この 1 本だけが赤なら、同じビルドでそのクラスだけを 1 回単独で回す。単独で緑なら〈基線の側の静的な On の競合〉として記録し、4 本とも入れる（どの線も原因のファイルに触れていない）。直しは波105 の恒等の小物（DiscoveryClockTests を Instruments の集まりへ移すか、:594 で On を 1 回だけ局所へ読む）。単独でも赤なら〈基線の疑い〉として止めて報告する。
+  - 他の試験が赤なら、その試験を触った線を外す（★(743) の外の直しはしない）。
+- 合流は試験も MultiNationSim.cs も直さない。
+
+[5] ident.cfg
+- 基線の成績表（B5・B10INS・MON・NG_BASE）は m1087 のまま。
+- TESTS_NONFULL 2768→2790。BASE_COMMIT・STAGE_BASE は合わせた木。
+- INSRAW は D:/PoB_work/keep_1096/base_ins を新しく作る（腕 Z の計器つき 10 種の生・keep_1087/base_ins とバイトで同じ表はハードリンク＝(1078) の前例・mv と os.link だけ）＝center_s・poppref_s・rulepoweralloc_s・minecap_s と rulepower_s の末尾 10 列を基準に含める。KEEPNULL（keep_1087/n1・n2・a11）は動かさない。keep は何も消さない。
+
+[6] 外さない物（入れる線の反証役の中・低）は記録と次の波へ（合流はエンジンの .cs と試験を直さない）
+- ui：貿易収支の行・TradeTables.cs:72 の世界価格比を見張る試験が無い（突然変異で緑）＝波105 の恒等の小物。uifix の試験の書き換え 5 か所（画面の規則の置き換え）を ⑧ に列挙。
+- fb：Simulation.cs:1542 の昇格の道の突然変異が無い＝波105 の束 A の残りで。FactoryBuildRefIsReal は 10-18 の精査〈必要（経3）〉を推奨で覆した（報告の先頭に名乗る）。
+- cp：暴力の点火の〈約 65 倍〉は全ての政体を数えた値（君主政だけなら約 19 倍・反証役 v）。設計の写しの 7 行目の解体の記述。
+- si：門〈凍結〉の材料は凍結の誤りを分けられない（反証役 v）＝段 C′ の事前登録で門の形を直す。S1 と S2〜S4 の 1 コミット化。
