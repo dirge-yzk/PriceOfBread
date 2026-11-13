@@ -5,275 +5,121 @@ namespace PriceOfBread.SimCore;
 public sealed partial class Coefficients
 {
     // === POPの個人債務（設計＝docs/202608/20260802_POPの個人債務_部分完了.md・2026-08-02）===
-    // ★器は1つ（Pop.Debt）、入口は2つ（損失の記憶／消費者信用）、出口は1つ（返済規律）。
-    //   これでフィッシャーの負債デフレ（損失→債務→強制的なデレバレッジ→数年の投資抑制）と
-    //   19世紀の労働者家計の質屋サイクル（月曜に質入れ・土曜に請け出す）が同じ器から出る。
-    // ⚠貨幣は Bank.HouseholdLoans（Bank.Loans とは別ストック）。Pop.Debt は「誰の分か」の記録で貨幣ではない。
-    //   別ストックにする理由＝Credit.Step は目標追従の制御器で、Bank.Loans に載せると返済が**半減期1.16年で
-    //   機械的に貸し直され**、しかも再創造分は首都州の投資家POPへ渡る＝負債デフレが原理的に起きない。
     public double PopDebtDriven;                 // 主フラグ（0＝休眠＝誰も読み書きしない厳密恒等）
-    public double PopDebtLossShare;              // 入口A：backstop で消えた赤字のうち**個人が背負う割合**（有限責任の度合い）。
-                                                 // 1.0＝全額＝無限責任（1856年英有限責任法**以前**の既定）。0＝現行（社会化）
-    public double DebtRepayFrac;                 // 出口：黒字のうち毎月返済に回す割合。★質屋の週次サイクルは実質100%返済／
-                                                 // 露の買戻金は1861→1907の49年賦＝階級で違うが第一段は一律（目安 0.3〜1.0）
+    public double PopDebtLossShare;              // 入口A：backstop で消えた赤字のうち個人が背負う割合（有限責任の度合い）
+    public double DebtRepayFrac;                 // 出口：黒字のうち毎月返済に回す割合
     public double DebtRuinRatio;                 // 返済不能：債務が年所得のこの倍数を超えると階級転落の判定へ算入（目安 2.0〜3.0＝
-                                                 // 1875年デカン暴動の ryot は年収の数倍の債務を負っていた）。0＝転落に算入しない
     public double HouseholdCreditMonths;         // 入口B：借入枠＝月次所得のこの倍数（目安 1.0〜2.0＝19世紀ロンドンの労働者家計の
-                                                 // 家財＝質屋の担保が概ね数週間〜2ヶ月分の所得）。0＝借りない
-    // 【墓標2026-11-05 (843)・旗の焼き込み】HouseholdCreditStapleOnly（既定 1.0）を消した＝家計の借入は主食の tier だけ（旧＝全 tier の枝は消した）。
-    // ⚠利息の係数は立てない（設計§2-5）。LoanSpreadPerYear のB4が一度失敗している（教育アンカーが耐えなかった）ので同じ轍を踏まない。
-    //   利息なしでも「返済が将来の予算を食う」ので採用条件①は満たされる。
 
-    public double ClergyAttractThreshold = 2.5;  // 聖職者の魅力閾値（平均比の豊かさ）。これ超で識字の高い下層が教会へ
+    public double ClergyAttractThreshold = 2.5;  // 聖職者の魅力閾値（平均比の豊かさ）
     public RatePerQuarter ClergyJoinRatePerQuarter = new(0.004);        // 下層→聖職者の四半期移動率（宗教学校の社会のみ）
-    public RatePerQuarter ClergyExitRatePerQuarter = new(0.004);        // ★点火2026-08-31（ラウンドB）＝聖職者の退出（世俗化・AI審査3-5）：非宗教学校の社会で聖職の実入りが平均を割ると教師/都市労働者へ（入口ClergyJoinRatePerQuarter=0.004の対称・同率）。0で退出なし
+    public RatePerQuarter ClergyExitRatePerQuarter = new(0.004);        // 0で退出なし
     // --- 国家間移民（豊かさの引力で大衆が移る・ゼロサム＝人はゲームの外から来ない。回1-2・2026-09-27 に世界プール WorldMigrationPoolFrac を削除）---
     public double EmigrationRate = 0.004;        // 機会差1.0あたりの四半期流出率
     public RatePerQuarter EmigrationMaxPerQuarter = new(0.003);     // 四半期の流出上限（人口割合）＝大量流出の暴走防止
-    // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：人が減るほど賃金と機会が上がり縁故が細る＝流出は自然に止まる。
-    // ★国の消滅処理（ゾンビ清掃）は廃案＝「空になる」ことを後始末で対症せず、上流のフィードバックで防ぐ。
-    // 【墓標2026-10-01 (141)】EmigrationFloorSize（50＝送出 POP の規模の下限〔千人〕）・EmigrationFloorSpan（2＝絞りの幅）＝送出の床（下限のクランプ＝思想⑧）を削除。
-    //   越境の出る側は国内の移民と同じ「残る値打ち」＝機会×残る人の土地の持ち分（Territory.Holding）×州の食料充足＝人が抜けるほど残る人の持ち分が増えて流出が止まる（MultiNationSim.MigrateBetweenNations）。
-    // 【墓標2026-11-05 (843)・旗の焼き込み】DistanceMarginScale（既定 1.0・貿易重心からの距離 1 万 km あたり輸送マージンが何倍嵩むか）を消した＝距離の項は常に 1 倍（1.0 + 距離÷1万km）。
-    // 相対/地域距離：単一重心からの距離を「近隣相手への重力重み付き平均距離」へブレンド＝隣国が安く繋がる地域貿易ブロック。
-    // ⚠撤去2026-08-12（棄却確定（コメントに明記））: RegionalDistanceWeight  第3波の単離再点火（2026-07-28）＝**棄却確定**：相対距離が日本の実効距離を縮め「距離の遠い国は交易が細い」契約を反転（ServiceEconomyTests赤＝帯でなく硬性ゲート）。過去却下near−5の帰属疑義は解消＝本体の効果だった。休眠温存。  // 0=重心距離（現行・既定）。1=相対距離（近い大相手が居れば実効距離が縮む＝地域ブロック）。**2026-06-29検証：現7カ国は欧州単一クラスタゆえ相対≒重心で効果ほぼ無し（pricedist不変）＝複数の地理クラスタ（アジア圏等）を足した時に効く土台として温存**。多国のみ走行＝較正不発
-    public double RegionalDistanceHalf = 4000.0; // 表示専用（地図の交易重力円）・力学には効かない。力学読み手 RegionalDistanceWeight は2026-08-12撤去済み
-    // funding修正（2026-06-18）：公共サービス予算を**国庫ストックでなく税収フロー(FiscalCapacityPerMonth)から支弁**＝国庫が基礎義務に食われ常時0でも機能する。各係数は「歳入のうちその用途に充てる最大シェア（スライダー×これ）」。
-    // 旧は ×Treasury（≈0で全餓死）だったので値も歳入基準に再較正。支出は国庫から引く（不足は赤字→国債→緊縮の既存フィードバック）。
+    public double RegionalDistanceHalf = 4000.0; // 表示専用（地図の交易重力円）・力学には効かない
     public double FiscalCapacitySmoothing = 0.15; // 裁量余剰(FiscalCapacityPerMonth)EMAの平滑速度（豊作/恐慌の振れをならす）
     public double GdpTrendSmoothing = 0.18;       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
     public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflationPerYear)EMAの平滑速度（旧 World直書き0.34）
-    public Share AdminBudgetFrac = new(0.5);          // 行政＝歳入シェア（行政費スライダー×これ×歳入）。行政が薄いと汚職で歳入が漏れるので自己投資的
-    // 【墓標2026-11-03 (811)・旗の焼き込み】MilitaryBudgetNeedCapped（S3a・2026-07-31 再点火・既定 1）を消した＝軍需予算と艦の予算は常に必要額（全 4 段〔EconomyStep.MilitaryProcurementNeed〕・艦は EconomyStep.FleetOrder の必要額）で切る。旧の式〔0＝固定額を割り当てる〕は物理削除。
-    // 【削除2026-10-02 (155)】MilitaryRevenueShare（0.25＝軍需装備の上限＝軍事費×これ×歳入・給与と別の2本目の器）＝軍事費の器（MilitaryEnvelopeShare）の吸い込みの2段目（給与の後の残り・必要額まで）へ畳んだ。
-    //   旧の注記＝「45%は鋼を奪い私的工業化をクラウドアウトし過ぎた→0.25」（装備の上限）＝(155) は必要額（全4段）で切るので器が大きくても装備は必要額を超えない。
-    // ★(155) 軍事費の吸い込みの3段目＝質（幹部の給与＝訓練）の必要額＝規定の給与の満額×これ。将校と下士官の給与は兵卒の給与とほぼ同じ額（仏1788＝将校約4,600万リーヴル対
-    //   兵卒約4,400万リーヴル【推・記憶の概数】）＝1.0。訓練の充足（払えた÷これ）が熟練を育てる（Military.StepSkill・旧＝維持費の段 ArmyUpkeep が閾値0.5を超えるかで育った＝支出から直接の効き）。
-    //   ★(161)：「規定の給与」は働き盛り1人あたり（志願兵の給与）＝徴兵制で兵卒の給与が手当（頭数あたり）に下がっても、幹部の給与の必要額は規定の給与で数える（質の値段は法に依らない）。
-    public double MilitaryCadrePayRatio = 1.0;
+    public Share AdminBudgetFrac = new(0.5);          // 行政＝歳入シェア（行政費スライダー×これ×歳入）
+    public double MilitaryCadrePayRatio = 1.0;   // 旧の式〔0＝固定額を割り当てる〕は物理削除
     public Share WelfareRevenueShare = new(0.8);      // 福祉＝歳入シェア（社会保障スライダー×これ×歳入が給付の上限）
-    // ★撤去2026-08-16（掃除キューC2-C5・棚卸C群）：汚職根絶レバー（2026-07-06）の係数8本＝AntiCorruptionSpeed/CostRate/DebtLock/DebtFree/GraftLock/Floor/SpanPopWeight/SpanRegionWeight を物理削除。
-    //   汚職V2（旧係数 CorruptionCoreV2＝(1−行政)×(1−監視noisy-or)・2026-10-11 (253) に係数ごと削除）恒久ONの裁定済み＝読者は Fiscal の清廉度更新・根絶費請求のみで、いずれも同日撤去＝読者ゼロを確認。
-    // ★専売の標準率（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝**新設ではなく移設**。
-    //   旧＝App の GameViewModel.Production.cs の TaxOnRate=0.30（チェックした材に乗る唯一の率）。率を決めるのはエンジンなのでここへ移した。
-    //   ⚠0.6（旧 World の Clamp と SelfPlay の LuxuryConsumptionTaxCap）と 0.8（旧 Government.StateMonopolyTop）は**率ではなく天井**＝
-    //     天井を率として採るのは思想⑧が戒める category error。移設で専売の数は3個→1個へ純減した（3本とも物理削除済み）。
-    //   ⚠App/マニュアル.html「専売は入で30%」がこの値を名指ししている＝変えるならマニュアルも直す。
-    public double StateMonopolyMargin = 0.30;
-    // ★史実の検算（2026-09-30 (127)）＝0.30 は史実の物品税の財に掛かった平均の率の桁：英1788 の物品税と関税（消費の税）約 1,050万ポンド÷課された財の消費 約3,000〜3,500万ポンド＝約30〜35%・
-    //   仏の総徴税請負（塩税・aides・煙草）約2億リーヴル÷課された財の消費 約7億＝約28%＝据え置き。⚠率ではなく**広さ**（World.StateMonopolyStepOf の梯子＝史実の物品税の財が先）が歳入の桁を決める。
-    // ★漏れの最大（2026-09-30 (127)＝旧 EconomyStep.BuyerWedge のリテラル 0.5 を係数へ・値は 0.5→0.75）：実効＝標準率×(1−これ×(1−AdminFill))＝行政が全く無い州は標準率の25%だけが国庫へ届く。
-    //   史実＝弱い国家の間接税は請負と密輸で大半が国庫に届かなかった（露の酒の請負・清の塩引＝商人と役人の取り分・仏の塩の密売 faux-saunage）／英の物品税局（1780年代に約4,000人の徴税吏）は
-    //   額面の大半を届けた＝強い行政ほど同じ広さから多く取る（1784 の歳入÷年GDP の史実の並び＝英 約12・仏 約8・墺と普 6〜8・露 5〜6）。
-    //   ⚠禁制品の密輸（SmugglingMax＝0.5）とは別の量＝あちらは禁令をすり抜ける取引の割合（阿片）・こちらは課された上乗せのうち国庫へ届かない割合。
-    public double StateMonopolyLeakMax = 0.6;
-    // 【墓標2026-10-18・旗の焼き込み】IndirectTaxInBudgetBase（既定1.0・監査2026-07-11 接2）を消した＝関税（四半期実収/3）＋専売（当月実収）は予算基数（行政・軍装備・裁量余剰の請求権と LastRevenue）に常に全額算入（ユーザー裁定2026-07-12「史実どおりの物理で良い・間違っているのはテスト」）。0＝所得系のみの旧は git の履歴から戻せる。
-    public Share TitheRate = new(0.05);              // 十分の一税（教会税）：大衆（非特権・非兵士）の所得のこの割合を聖職者が受け取る（pop→聖職者の移転＝保存）。全員が満額払う訳でない想定で実効5%（要望）
+    public double StateMonopolyMargin = 0.30;   // 旧＝App の GameViewModel.Production.cs の TaxOnRate=0.30（チェックした材に乗る唯一の率）
+    public double StateMonopolyLeakMax = 0.6;   // 仏の総徴税請負（塩税・aides・煙草）約2億リーヴル÷課された財の消費 約7億＝約28%＝据え置き
+    public Share TitheRate = new(0.05);              // 十分の一税（教会税）：大衆（非特権・非兵士）の所得のこの割合を聖職者が受け取る（pop→聖職者の移転＝保存）
     public double HealthFillCapacityBonus = 0.05; // 医療（医者の役務）の消費が人口扶養力に与える上乗せ（小さく・創発の味付け）
-    public double WelfareCostRatePerMonth = 0.6;         // 社会保障1.0・大衆1単位あたりの月次給付（国庫→大衆）。高い＝福祉は財政を圧迫＝レッセフェールとの選択
-    // 倍率排除⑥：WelfareMilitancyRelief / LaborUnionMilitancyRelief（福祉・組合の闘争度直接減算）を撤去。
-    // ★満足度（＝生活水準）は NeedMet/NeedTotal（＝買えたか）だけで決まる（作者裁定2026-08-19）。労働保護の効果は出力減としてのみ残る。
-    //   満足度への直接バフ4件（ShorterHours/Elec・Welfare/Pension）は物理削除2026-08-21（各所に墓標）。残っていた器 UnionSatBonus も 2026-10-11 (271) に削除（下の墓標）。
-    // ★物理削除2026-08-21【墓標・再点火禁止】：ShorterHoursSatBonus（旧0.10→8/19に0・作者裁定「時短は落とす」）＝思想⑨違反＝**法を通しただけで満足度が上がり、財を1つも買っていない**。
-    //   Simulation の whWell 項ごと削除。★時短の効果は出力減（whOut＝LaborFatigueExp）としてのみ残る。
-    //   【教訓】8/17の「支出から直接バフを排除する」の洗い出しは「支出→バフ」を探したので、この「法/州の状態→バフ」の形が素通りしていた（網の穴）。
-    // 労働時間の連続化（倍率排除②）：実労働時間 WorkHoursValue ∈[8,14] を単一ソースに、出力/厚生/扶養力を連続関数で導く（3つの外科テーブルを廃止）。
-    public double LaborFatigueExp = 0.37;         // 労働時間→工場出力の疲労逓減指数：whOut=(hours/14)^exp。h=14で1.0、短いほど産出↓だが逓減（8h=0.81・10h=0.88・12h=0.94＝旧テーブルとほぼ一致）
-    public double LaborFatiguePenalty = 0.03;     // トレードオフ化2026-07-06:12h超の過労で産出が頭打ち〜微減（whOut×(1−これ×max(0,hours−12))）。0.03で14h=×0.94＝実効産出0.940<12hの0.944＝**12hが産出最適・無制限は好況でも損**（賞金消失）。0で旧（14h最大＝単調）＝要較正再走
+    public double WelfareCostRatePerMonth = 0.6;         // 社会保障1.0・大衆1単位あたりの月次給付（国庫→大衆）
+    public double LaborFatigueExp = 0.37;         // 労働時間→工場出力の疲労逓減指数：whOut=(hours/14)^exp
+    public double LaborFatiguePenalty = 0.03;     // 0.03で14h=×0.94＝実効産出0.940<12hの0.944＝12hが産出最適・無制限は好況でも損（賞金消失）
     public double OverworkHealthSlope = 0.015;    // 労働時間→扶養力：12時間（過重労働の基準）より短い1時間ごとに健康改善で扶養力↑（8h=+0.06・10h=+0.03・12h以上=±0＝旧テーブルと一致）
-    // 【削除 2026-11-01 (736)】WorkHoursFollowSpeed＝実労働時間の法定上限への収束は WomenRightsFollowSpeed を読む（上の ChildLaborFollowSpeed の墓標）。
-    // 【削除 2026-10-11 (271)】UnionSatBonus（組合の満足度への加算・既定 0）と、それだけを通して働いていた UnionWageRiseBoost（組合厚生 LaborWellbeing 1.0 あたりの留保賃金の上昇速度の上乗せ）＝
-    //   作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝満足度への上乗せは賃金の経路と二重（設計思想⑨）。旧＝作者裁定 2026-08-19「労働組合は団体交渉権などに使うので休眠」。
-    //   ⚠賃金交渉の経路（組織率→留保賃金の上昇速度）は LaborWellbeing（＝UnionSatBonus=0 のため常に 0）を通っていたので、削除で消えた挙動は無い（恒等）。団体交渉権として戻すなら、組織率を直接読む新しい線（挙動を変える）として起こす（棚卸し dorm-21）。
-    // ★物理削除2026-08-21【墓標・再点火禁止】：WelfareSatBonus（旧0.10→8/17に0）＝社会保障の満足度フラット加算（Region.WelfareSatComponent・困窮targeting読み手ごと削除）。
-    //   作者裁定2026-08-17「福祉を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝福祉の効果は現金給付（WelfareCostRatePerMonth＝国庫→大衆→消費→生活水準）だけが担う。
-    public double UnionMobilization = 0.15;        // B-5：容認組合の政治動員＝組織労働が改革派(reformist)を押し上げる（一方的な安定化でなく体制への改革圧力。1889ドック・スト型）。革命radicalは闘争度緩和で下げつつ改革圧力は上げる＝両義
+    public double UnionMobilization = 0.15;        // B-5：容認組合の政治動員＝組織労働が改革派(reformist)を押し上げる（一方的な安定化でなく体制への改革圧力。1889ドック・スト型）
 
     // --- メリトクラシー・昇格（教育2段階の社会的上昇）---
     public double MeritGroupWeight = 0.8;        // 近代的利益団体の勢力割合がメリトクラシー値に効く重み
     public RatePerQuarter PromotionSpeedPerQuarter = new(0.04);         // 教育済みPOPが上の階級へ昇る速さ（M×識字×これ）
     public Share ReligiousProfessionShare = new(0.05); // 宗教教育下の技師・教師・医者への昇格係数（神学校は技師をほぼ再生産できない＝世俗水路。官僚は例外）
     public double PromotionPremium = 1.5;        // 転職に要る給与倍率（機会費用＋資格取得の壁＝現状維持バイアス。雇用枠は廃止＝職の需給は給与が表現する）
-    public RatePerQuarter ArtisanDeclineRatePerQuarter = new(0.01);     // ★【点火0.01・2026-08-16】手工業の没落（**四半期率**＝QuarterEndのみ実行）：工場に所得で負けた職人→都市労働者。駆動は昇格①と同じ所得差の言語。値は手織工アンカー帯0.008-0.012の中央（24万→4.3万/36年＝年率−4.7%）。⚠入口PettyEntryRatePerQuarterと対で点火（出口単独は職人が単調消滅＝Japan実測でsize=0）。S級梯子r6+9＝35/70/56・合成で帯中立
-    public RatePerQuarter JobSearchRatePerQuarter = new(0.025);         // ★【点火0.025・2026-08-15】失業プール（作者指示）：失業者が四半期に階級のプール（上流/中流/下流）経由で職を探す割合（①''）。同階級のもっともマシな職へ資格（識字×高等教育）の按分で転職し、駄目なら1段下の最良職へ降格。>0で没落④⑤⑥・手工業の没落①'の行き先も同経路（無条件「→労働者」の廃止）。0.05は硬性赤（seed10リヴォルノ満足度0.12＝微小国が過流量で崩れる）→0.025×T0.15で硬性緑・near70/法57/貿易1.58%（exact−1は記録済み・修正方針20260801）。Search候補
-    public double JobPoolTemperature = 0.15;     // ★【点火0.15・2026-08-15】①''の着地温度（リアリティ監査rank2）：>0で着地を最良職総取りから「所得×資格×空き(1−受け皿失業率)の低温softmax按分」へ軟化（PopDecision MigrationTemperatureと同じ言語・£単位）。0＝総取りウォーターフォールに厳密一致（総取りはA/B実測で near−4＝差し戻し済み。softmaxで exact+2 を実測）。値はMigrationTemperature同値
+    public RatePerQuarter ArtisanDeclineRatePerQuarter = new(0.01);     // 駆動は昇格①と同じ所得差の言語
+    public RatePerQuarter JobSearchRatePerQuarter = new(0.025);         // 同階級のもっともマシな職へ資格（識字×高等教育）の按分で転職し、駄目なら1段下の最良職へ降格
+    public double JobPoolTemperature = 0.15;     // 値はMigrationTemperature同値
     // --- 社会移動リアリティ監査 2026-08-15（docs/202608/20260815_社会移動リアリティ監査_部分完了.md・点火状況は各行参照・点火は1本1バッチのA/B）---
-    public double MerchantArtisanCapitalRise = 1.0;  // 【点火1.0・2026-08-16＝S級梯子r1単独37/71/58・合成で帯中立】rank1：商業・手工業資本→産業資本（③の対象を商人・職人へ一般化＝Crouzet「第一世代工場主の過半が商人・職人出自」）。閾値/率は既存CapitalRiseThreshold/CapitalRiseRatePerQuarterを共用（これは率の乗数・1で専門職と同率）。>0で商人の転落（⑤同型）も解凍＝凍結を両方向解く。職人のSmoothedMarginゲート（儲かる工房だけ工場化）は初版見送り＝貯蓄閾値8×avgが好況を既に選別（§10記録）
-    public RatePerQuarter PettyEntryRatePerQuarter = new(0.02);             // 【点火0.02・2026-08-16＝出口ArtisanDeclineRatePerQuarterと対】rank6：小営業（職人・商人）への参入階段＝徒弟→親方・行商→店舗。労働者から所得差駆動（①'と対称・識字ゲート不要＝腕と元手の職）×元手ゲート（1人あたり貯蓄≥地域平均avgPerCap＝新自由度なし）。>0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖。⚠ArtisanDeclineRatePerQuarter（出口）と同時A/Bが条件
-    // ★2026-09-03（キューC-03／出典 トリアージ 2-C 5-7）：農奴の移動制限を**失業プール経路にも**広げる栓。
-    //   ⚠旧＝都市化の softmax（PopDecision）だけが SerfMobilityGate で縛られ、失業プール（Meritocracy の①''）は素通り
-    //   ＝**農奴が「職探し」なら都市へ入れる**。同じ法が2経路のうち片方しか縛らない＝「ゲート緑≠機構が働いた」の型。
-    //   ★1で同じ式 (1−g)+g×serfFree を同じ向き（農村→都市）にだけ掛ける＝新しい強さも新しい梯子も作らない。
-    //   ⚠0＝既定＝1命令も走らない厳密恒等。点火は単独A/B。
-    public double SerfGateCoversPool = 0.0;
-    public double SerfMobilityGate = 1.0;            // 【点火1.0・2026-08-16＝S級梯子r3単独37/70/58】rank3：農奴の移動不能＝都市化フロー（PopDecision 農村→都市方向のみ）に (1−これ)+これ×serfFree を乗算（serfFree=農奴解放 None:0/Limited:0.5/Full:1＝Colonial.cs入植と同じ梯子）。都市→農村は自由＝非対称。露普の都市化が解放後に始まる順序が法から出る。地域間移民(Territory系)への配線は次段（§10記録）
-    public double ServiceUnemployment = 1.0;         // 【点火1.0・2026-08-16＝S級梯子r11単独37/72/55】rank11：役務専任popの失業＝教育→教師/医療→医者/行政→官僚/家事奉仕→使用人にも売れ残り率でUnemploymentRateを立てる（式は労働3財と同一・これは強度乗数）。使用人の袋小路（U恒0＝プール対象外・出口ゼロ）の解消。U→闘争度/福祉targetingにも効く＝較正非中立・A/B必須
-    public double JobSearchLiteracyWeight = 0.5;     // 【点火0.5・2026-08-16＝S級梯子r10a単独35/72/56】rank10a：職探し効率の識字連動＝実効率=JobSearchRatePerQuarter×(1−これ×(1−識字))。1783年の教区縁故社会と1911年の職業紹介所社会の探索効率差＝識字（新聞求人・文書応募）が代理。固定年号ゲート不要
-    public double JobSearchUsesEma = 0.02;           // 【点火0.02・2026-08-16＝S級梯子r10b単独35/71/61】rank10b：>0＝月次EMA率（例0.02≈4年記憶）。プール流入の駆動を瞬間UでなくU多年EMAへ＝循環失業は滞留して闘争度になり（Politics既存）、慢性失業だけが職業転換を駆動（手織工の遅さと恐慌の怒りが同じ係数から分岐）。Pop.UnemploymentEmaを月次更新（0では読み書きなし＝恒等）
-    public double MinorityPenaltyModernBlend = 0.5;  // 【点火0.5・2026-08-16＝S級梯子r17単独37/73/61=単独帯最良（Search手掛かり）】rank17：ガラスの天井の時代ブレンド＝実効ペナルティ=MinorityPromotionPenalty×(1−これ×M)（M=メリトクラシー値）。開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）。①とプールJobGateの物差しも統一（プール側にminorityF追加）
+    public double MerchantArtisanCapitalRise = 1.0;  // 閾値/率は既存CapitalRiseThreshold/CapitalRiseRatePerQuarterを共用（これは率の乗数・1で専門職と同率）
+    public RatePerQuarter PettyEntryRatePerQuarter = new(0.02);             // >0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖
+    public double SerfGateCoversPool = 0.0;   // ＝農奴が「職探し」なら都市へ入れる
+    public double SerfMobilityGate = 1.0;            // 都市→農村は自由＝非対称
+    public double ServiceUnemployment = 1.0;         // 使用人の袋小路（U恒0＝プール対象外・出口ゼロ）の解消
+    public double JobSearchLiteracyWeight = 0.5;     // 1783年の教区縁故社会と1911年の職業紹介所社会の探索効率差＝識字（新聞求人・文書応募）が代理
+    public double JobSearchUsesEma = 0.02;           // プール流入の駆動を瞬間UでなくU多年EMAへ＝循環失業は滞留して闘争度になり（Politics既存）、慢性失業だけが職業転換を駆動（手織工の遅さと恐慌の怒りが同じ係数から分岐）
+    public double MinorityPenaltyModernBlend = 0.5;  // 開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）
     // --- 作者裁定2026-08-16（同監査 rank7/8/12・点火状況は各行参照・実装は Meritocracy.cs・点火は1本1バッチのA/B）---
-    public double FallAnchorReform = 0.3;            // 【点火0.3・2026-08-16】A/B＝1.0はexact39.7/法57.3だが小国満足度で硬性赤／0.5はバッチ緑(exact38.0・法58.1)だが**TaxTestsが赤＝英の行政成熟が止まる**（所得税の実効上限が238四半期で0.085→0.100・要求+0.1）＝中流（官僚）が転落で痩せる。カナリア二分探索で崖は0.4と0.5の間＝**崖の直下を避けて0.3**（テスト緑側の余裕）。rank7：転落物差し改革の束（3点を1本で・0=旧とビット恒等）。(a)③④⑤⑥の判定資産を(Savings+IlliquidWealth)/Sizeへ・分母の地域平均も同定義（⚠IWはSavingsの内数タグ（Model.cs）＝これは結晶資産を流動の2倍に重む加重＝土地・地金は没落判定で「恐慌に溶けない重い資産」）。(b)アンカーを他人の平均→**自分の平滑所得×年数**へブレンド（0=地域平均・1=年所得＝debtRuined判定の p.Earned×MonthsPerYear と同じ言語・平滑=max(当月,前月)=結晶化アンカー（EconomyStep）と同じ取り方）＝⚠>0では閾値係数（UpperFallThreshold=0.8等）の単位が「平均の何割」→「**年所得の何倍**」へ切替わる。(c)転落率を深さ連続化 rate×((1−f)+f×clamp((閾値−資産)/閾値,0,1))＝浅い割れはゆっくり・深い割れ（恐慌）は速い・debtRuinedは素通し。avgPerCap相対の「格差が没落を製造する因果の逆転」とClark比7-10倍速のエリート融解の是正
+    public double FallAnchorReform = 0.3;            // カナリア二分探索で崖は0.4と0.5の間＝崖の直下を避けて0.3（テスト緑側の余裕）
 
     // --- 信用・銀行（§2.5.1／§9-G・段4）---
-    public double CreditMultiplier = 3.0;     // 信用乗数（1/準備率）。広義マネー上限 ＝ 金×これ
+    public double CreditMultiplier = 3.0;     // 信用乗数（1/準備率）
     public double CreditAdjustSpeed = 0.05;   // 与信が目標へ寄る速さ（緩やか＝循環を滑らかに＝過剰変動の抑制）
-    public double InterestRateEffect = 1.5;   // 金利が貸出意欲を抑える強さ＝貸出 ×clamp(1−これ×金利)。金融政策の効き
-    // 政策金利（バンクレート）の配線：旧来は貸出意欲のみ。19世紀金融政策の核「バンクレート引上げで正貨を呼び戻す・為替を守る」を表現。
-    // すべて InterestRate に線形（較正は InterestRate=0＝中立／為替・資本流入は較正で非走行）。
+    public double InterestRateEffect = 1.5;   // 金利が貸出意欲を抑える強さ＝貸出 ×clamp(1−これ×金利)
     public double PolicyRateBondWeight = 0.02;   // 政策金利→国債金利の上乗せ（高金利＝政府の借入も高くつく）
     public double PolicyRateCapitalDraw = 1.0;   // 政策金利→外資の引き付け（高金利が資本を呼ぶ＝carry/正貨還流。uniform分は ret−worldRate で相殺＝相対金利差が効く）
     public double PolicyRateFxWeight = 0.2;      // 政策金利→自国通貨高（高金利でペッグ防衛・減価を抑える）
-    public double ConfidenceSpeed = 0.02;     // 信頼が育つ速さ（月次・遅い＝過信は平穏の**年月**が育てる。ミンスキー）
+    public double ConfidenceSpeed = 0.02;     // 信頼が育つ速さ（月次・遅い＝過信は平穏の年月が育てる。ミンスキー）
     public double PanicSpeed = 0.20;          // 信頼が崩れる速さ（速い＝取り付けは一夜。非対称が恐慌の形を作る）
-    // 平穏線を割った充足の不足幅→信頼目標の下げ感応度。★2026-09-22 分位の写像で導き直し（下の ConfidencePivot と対）：
-    //   旧5.0＝「平穏線0.65から0.2割る（水準0.45）で目標0」。水準0.45は旧分布（全国×四半期の平均満足度）の下から4.0%→ 新分布の4.0%分位＝0.11（2回目）
-    //   ＝新しい平穏線0.48から0.37割ると目標0 → 1/0.37≈2.7（2つの錨＝平穏線と信頼0の水準を両方とも同じ分位へ写す＝傾きは導出。1回目は 0.43/0.12→3.2）。
-    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
-    //   旧の信頼0の水準 0.48−1/2.7＝0.1096 は旧（全POP）分布の下から2.53% → 新（大衆）分布の2.53%分位＝1回目0.0861 → 2回目0.0872 → 0.09
-    //   ＝新しい平穏線0.49から0.40割ると目標0 → 1/(0.49−0.09)＝2.5（旧2.7）。
-    public double PanicSensitivity = 2.5;
-    public double DrawdownPanic = 3.0;        // 景気後退（トレンドGDPのピーク比収縮）→信頼目標の下げ感応度（収縮10%＝目標−0.3）。4.0は大恐慌77%と過多→3.0で適度。※十分の一税後の恐慌増は不作主導でこの信用ノブでは下がらない（HarvestVariation/税率が効く）
-    // シティ型恐慌（A・最終調整2026-06-29・ユーザー指示「恐慌で覇権を揺るがす」）：与信過熱(Heat)そのものが信頼を脆くする＝最も金融化した経済（深い与信＝高Heat）ほど
-    // 好況の絶頂でミンスキー暴落する。満足度が高くても過剰レバレッジなら崩れる＝覇権国（ロンドンのシティ）が自らの与信バブルで定期的に恐慌入りする経路。
-    // 既定0で恒等（較正中立）＝#17較正再走で有効化。Heat>閾値の超過分にのみ効く（健全なレバレッジは無傷）。
-    public double OverheatFragility = 1.1;        // 過熱(Heat)が閾値を超えた分×これ を信頼目標から減じる（0で無効＝較正中立）。Heat1.0超でミンスキー着火→既存DrawdownPanicが暴落へ増幅。※深め過ぎは逆効果（恐慌は脆弱な挑戦者をより壊す）＝中庸1.1が最適
+    public double PanicSensitivity = 2.5;   // 平穏線を割った充足の不足幅→信頼目標の下げ感応度
+    public double DrawdownPanic = 3.0;        // 景気後退（トレンドGDPのピーク比収縮）→信頼目標の下げ感応度（収縮10%＝目標−0.3）
+    public double OverheatFragility = 1.1;        // 過熱(Heat)が閾値を超えた分×これ を信頼目標から減じる（0で無効＝較正中立）
     public double OverheatFragilityThreshold = 1.0; // この与信使用率を超えると過熱が信頼を蝕む（1.0＝枠いっぱい超＝バブル領域。Heat は 0..1.5）
-    // 平穏線：これ以上の充足が続くと信頼が満枠へ漸増（割るとパニック側）。
-    // ★2026-09-22 分位の写像で導き直し（階層3分割で満足度の水準が構造的に下がったため）：比べる相手＝全国×四半期の人口加重平均満足度
-    //   （Credit の avgSat・隔離計器 tiersatprobe・seed1-3×604Q）。旧0.65は旧分布の下から39.1%→ 新分布の39.1%分位＝1回目0.43→2回目0.48
-    //   （1回目の値で再測定すると分位が32.6%へ6.5pt ずれた＝門の写像と連続の読み手の付け替えの帰還。写像は2回で打ち切り）。
-    //   ⚠この門は分割の後「大衆の食卓」ではなく日用品の充足を見る（食料の欠乏は闘争度の側へ移った）＝銀行は日用品の買い控え（消費の冷え）で身構える。
-    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃え、Credit の avgSat も NationalScore.MeanSatisfaction を呼ぶ形にした（旧＝全POPの手書きの複製）。
-    //   同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：旧0.48は旧（全POP）分布の下から36.61%
-    //   → 新（大衆）分布の36.61%分位＝1回目0.4915 → 2回目0.4903 → 0.49。
-    public double ConfidencePivot = 0.49;
+    public double ConfidencePivot = 0.49;   // 平穏線：これ以上の充足が続くと信頼が満枠へ漸増（割るとパニック側）
     // --- B-3 金融危機：銀行取り付け・最後の貸し手・民間負債デフレ伝播。すべて Confidence/maxLoans 経由＝実Loans変化は既存の保存安全コードを通る ---
-    // 預金者パニック：充足が平穏線を割った不足幅→実効準備(maxLoans)の縮み（正貨逃避）。取り付けは信頼(貸し手意欲)と別チャネル。
-    // ★2026-09-22 分位の写像で導き直し：旧2.0＝「平穏線0.65から0.25割る（水準0.40）で上限 BankRunMax=0.5 に飽和」。水準0.40は旧分布の下から1.6%
-    //   → 新分布の1.6%分位＝0.08＝新しい平穏線0.48から0.40割ると飽和 → 0.5/0.40＝1.25（1回目は 0.43/0.08→1.4）。
-    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
-    //   旧の飽和の水準 0.48−0.5/1.25＝0.08 は旧（全POP）分布の下から0.96% → 新（大衆）分布の0.96%分位＝1回目0.0544 → 2回目0.0559 → 0.06
-    //   ＝新しい平穏線0.49から0.43割ると飽和 → 0.5/(0.49−0.06)＝1.16（旧1.25）。
-    public double BankRunSensitivity = 1.16;
+    public double BankRunSensitivity = 1.16;   // 預金者パニック：充足が平穏線を割った不足幅→実効準備(maxLoans)の縮み（正貨逃避）
     public Share BankRunMax = new(0.5);           // 取り付けによる実効準備の最大縮小率（0.5＝半分まで）
     public double LolrHeatTrigger = 0.9;      // 最後の貸し手の発動：与信過熱度(Heat)がこれ超で危機と判定
     public Share LolrDrawdownTrigger = new(0.10); // 同：景気後退(GdpDrawdown)がこれ超で危機と判定
-    public double GdpPeakDecay = 0.02;        // GDPピークの忘却係数（四半期）。トレンドがピークを下回る間ピークをゆっくり再基準化＝構造的に縮小した国が「新しい長期水準」へ。0＝旧バグ（単調増加で永久恐慌）
+    public double GdpPeakDecay = 0.02;        // GDPピークの忘却係数（四半期）
     public Share LolrMinFunding = new(0.6);       // 最後の貸し手を担える財政健全度（FiscalFundingRatio）の下限＝破綻寸前の国は救えない（Bagehot：solventにのみ貸す）
     public Share LolrStrength = new(0.7);         // 危機時に取り付け(run)を打ち消す割合＝流動性供給で恐慌を和らげる（高利＝根治はせず底打ちのみ）
-    // ★恐慌AIの座標化（2026-08-22・二段構え較正＝作者裁定「まず裸の資本主義の帯・次にAIの対策で史実へ」）。旧 SelfPlay の private const を昇格＝既定値不変＝ビット恒等。
-    //   裸の測定腕＝POB_COEF "LolrStrength=0;LolrReserveBoost=0;PreTightenHeatFrac=1.0;CrisisAusterityRelief=1.0"（測定専用・恒久ONの裁定2026-07-25は不変）。
-    // 【墓標2026-09-28】AiCrisisBorrow（恐慌の谷での前倒し起債の予約・休眠0）＝借入が Fiscal の1行（r＜1 の月）へ自動化され、予約の列ごと消えた＝r＝1 の月には借りない（作者裁定 F3）ので器の働く月が無い。
     public Share PreTightenHeatFrac = new(0.75);      // 予防的引締めの発動＝過熱閾値のこの割合から（1.0＝予防なし＝素の過熱閾値のみ）
     public double CrisisAusterityRelief = 0.5;    // 恐慌の谷での緊縮反射の緩和（1.0＝緩和なし＝1930年代の緊縮の罠を素通し）
     // === テーマD 貨幣金融（価格・バランスシート層）===
-    public double LolrReserveBoost = 0.5;   /* リアリティ群点火2026-07-18＝最後の貸し手(バジョット) */     // 最後の貸し手の準備拡張（no-lolr-balance-sheet）：危機×財政健全時にmaxLoansを(1+これ)倍＝バジョット「平時の準備を危機に貸す」。信用創造はBaseMoney中立ゆえInvariants変更不要。0で恒等
-    // 金利doc B4（2026-07-30・点火）：与信の着地先（投資家）と利息の着地先（預金者＝全pop・預金額比例）が**別の階級**になる＝
-    // 「利下げも利上げも同じ財布に着地する」（診断③）が壊れ、金利が**分配のレバー**になる。値は年率＝ loanRate = 0.02 + 0.16×InterestRate。
-    // ⚠ 点火の前提＝B3（年率を日次へ落とす除数が /30 で12倍だったバグ）の是正。順序を守ること。
-    // ⚠⚠ **doc の値（0.02 / 0.16＝年率2〜10%）は実測で差し戻した**：`MobilityTests.教育市場は…`（英・単一国・240Q）の教育月産が
-    //   190.3 →（1/8）23.7 →（満額）5.6 の**構造的崩壊**（seed60=4.6・seed61=4.6＝軌道ノイズでない）。bisect で 1/16 が緑の上限。
-    //   診断＝利息は `bank.Loans`（**残高ストック**）に課され、支払いは `Min(利息, 借り手の Savings)` で**現金ストック**から取る。
-    //   与信を受けた投資家はその現金を投資に回して手元に残さないので、残高に対し現金が薄く**クランプが恒常的に binding** する
-    //   （利息は本来フロー＝当期の利潤から払うもの）。#17較正ラウンドで機構ごと見直す＝そこで初めて doc の水準へ上げられる。
-    //   1/16（0.00125/0.01＝年0.125〜0.625%）は単体では緑だったが、**同クラスの他テストと同一プロセスで走ると 22.4 まで落ちて赤**
-    //   （＝この教育アンカーは共有キャッシュ経由の相互汚染に対して余白がなく、B4を載せると耐えられない）。
-    // ★**結論＝この回は休眠へ差し戻す（0/0）。** 機構を作り直してから #17 較正ラウンドで点火する。B3（除数の是正）は恒等なので残す。
-    public RatePerYear LoanSpreadPerYear = new(0.0);           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
-    public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）。0で無効
-    // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が CreditRepayableYears を読む）
-    public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)。0で恒等。BondPriceは既存診断値を配線
-    public double DebtDeflationWeight = 4.0;  // フィッシャー民間負債デフレ：デフレ率×レバレッジ(Heat)→信頼目標の下げ（実質債務増→債務者破産→さらにデフレの渦）。MonetaryEnabled時のみ
+    public double LolrReserveBoost = 0.5;   // 最後の貸し手の準備拡張（no-lolr-balance-sheet）：危機×財政健全時にmaxLoansを(1+これ)倍＝バジョット「平時の準備を危機に貸す」
+    public RatePerYear LoanSpreadPerYear = new(0.0);           // 民間貸出金利の年率スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)
+    public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）
+    public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)
+    public double DebtDeflationWeight = 4.0;  // フィッシャー民間負債デフレ：デフレ率×レバレッジ(Heat)→信頼目標の下げ（実質債務増→債務者破産→さらにデフレの渦）
 
     // --- 国庫・財政（§9-F／§6.2・段4b）---
-    // BaseCoercion 自体が兵数×即応度×CoercionPerSoldier から出るので、これは軍と別立ての費用ではない。
-    // （治安維持費 CoercionUpkeepRate＝0.05×治安維持力の基礎×人口÷基準人口は 2026-09-30 (135) に削除＝治安維持力は兵数×即応度から＝軍そのもの・給与と装備に続く3度目の課金で人口の2乗に比例＝軍の費用は兵力と装備の購買の1本）
-    public double WarCoercionDrain = 0.15;    // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は前線に取られ国内の治安維持力が下がる。実効治安維持力 ×(1−これ×厭戦)。長期戦ほど本国で革命機会（1917型）。較正は無戦争＝不変
-    public double CoercionPerSoldier = 5.0 / Military.WorkingMenStdShare;   // （(145) 兵の単位の読み替え＝旧値 5.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。治安維持力＝**兵数×即応度×これ**（治安維持力=軍の一本化 2026-06-23）。装備された軍だけが治安維持力を持つ＝武器を買えぬ軍は即応度0→治安維持力0→革命。軍隊規模(兵数)＝扶養限界が駆動（(145)・旧＝軍事費スライダー）。CoercionMax で頭打ち（CoercionFollowsForce=true 時）
-    public double CoercionMax = 2000;   // 【点火2000・2026-08-16 点火梯子＝★2026-08-16に4000→2000（漸近化と同時）＝挑戦力の理論最大（BaseCoercion換算≈1250）の3.2倍だった壁を等号点の1.6倍へ。旧4000は「不満100%でも革命が代数的に不能」を作っていた。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】         // 治安維持力の上限（旧 Reactionary の最大治安維持力＝史実の最大動員）。装備された大軍でも2000で漸近（CoercionSoftCap）
+    public double WarCoercionDrain = 0.15;    // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は前線に取られ国内の治安維持力が下がる
+    public double CoercionPerSoldier = 5.0 / Military.WorkingMenStdShare;   // 装備された軍だけが治安維持力を持つ＝武器を買えぬ軍は即応度0→治安維持力0→革命
+    public double CoercionMax = 2000;   // 装備された大軍でも2000で漸近（CoercionSoftCap）
 
     // --- 領土・地域間移民（§5.2／§A-8・段4c）---
-    // 【墓標2026-10-25 (551)・恒等の線 gc1】FrontierDevelopmentRate（0.01＝locked 地域のインフラ開発速度）・FrontierUnlockThreshold（1.0＝インフラがこれを超えたら active 化）＝Territory.Step の locked 州の解錠の道ごと削除（本番の盤面は州を Locked にしない＝読み手は死んだ枝の中だけ）。
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
-    // 【墓標2026-10-01 (141)】MigrationSecondDestShare（0.3＝州間移民の第2目的地への分岐率・監査2026-07-05 D2）＝行き先は機会の差の比で全ての州へ（越境移民と同じ規則・Territory.Step）。
     public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（国内の移民は距離の項も同じ摩擦に掛けて差から引く＝Territory.EntryFrictionTerm／越境は別に乗算の減衰 Territory.MigrationDecay）
-    // 【墓標2026-11-02・旗の焼き込み（波55 c5bk）】ParliamentDebtGripYearGdp（既定 1・(756) 議会の掌握の起債の項の分母）＝1 の形だけを残した（国債÷年の名目GDP・分母の守りは否定形。0＝旧の月の名目GDP・床 1.0 で 1 に張り付く経路は消した）。
-    // 【墓標2026-11-02・旗の焼き込み（波54 c4bk）】MigrationEntryFriction（既定 1・(748) 国内の移民の入口の形）＝1 の形だけを残した（0＝差に乗算の減衰 MigrationDecay を掛ける旧の経路は消した）。越境は式を変えない。
-    // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。移民（国家間移民）で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
-    // ★段2で削除（設計メモ §7-3）：UnityMilitancyRelief（上昇鈍化）と UnitySecessionMilitancy（国項）。
-    //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**＝同じ民族統一度を闘争度の中で3度読んでいた
-    //   （国項×自分の中核度／pop項(1−中核度)／上昇鈍化）。pop解像度の1本（MinorityMilitancy）だけを残す＝国平均はそこから創発する。
-    // 倍率排除⑧：旧 EthnicDilution（国際移民で統一度を明示的に下げる外科係数）は撤去。希釈は移民が core=0 で混ざる帰結として創発する。
-    public double EthnicDraw = 0.7;                 // 低統一度は移民を引く：流入の引力 ×(1+これ×(1−統一度))＝坩堝。放置すると暴走するので同化が歯止め
-    // 同化：毎四半期 統一度 += (これ＋教育加点)×(1−統一度)。**世紀単位に弱めた（2026-06-18）**：旧0.008/0.02 は速すぎ1850までに全国が均質化＝多様性が中盤で消えた。
-    // 弱めて多民族帝国（墺洪/オスマン）が多様なまま不安定に推移し、同化しきれず**やがて分裂**（史実1918）＝多様性が持続的レバーになる。
-    // ★★段4で**さらに1桁遅くした**（2026-09-09・設計メモ§7-7バグa＝「同化が速すぎる」）。
-    //   旧＝0.0025+0.007=0.0095/四半期（英＝公教育）で**民族差の半減期が18年**＝アイルランドPOPの中核度が1803年に0.5・1849年に0.9
-    //   ＝大飢饉も自治運動も「モデルのアイルランドがイングランド人になった後」に来ていた。値は勘でなく**到達年から逆算**した：
-    //   ・公教育あり＝**民族差の半減期100年**＝1−2^(−1/400)=0.0017314/四半期。
-    //     根拠＝仏「革命(1789)から農民をフランス人にするのにほぼ1世紀」。検算＝81年後(1870)に閉じるのは 1−exp(−324×ln2/400)=**42.9%<50%**
-    //     ＝ブルターニュ／オクシタニアはまだフランス語の多数派でない（ウェーバーの窓1870-1914の入口と一致）。
-    //   ・公教育なし＝**半減期1000年**＝1−2^(−1/4000)=0.00017327/四半期＝**学校の有無がちょうど1桁**。
-    //     根拠＝墺の独語話者シェアが1880/1890/1900/1910の4回の国勢調査で横這い（この直下 AssimilationLiteracyResist の註が引いている同じ事実）。
-    //     検算＝1914断面(Q524)までに閉じるのは 1−exp(−524×ln2/4000)=**8.7%<10%**＝学校を持たない帝国は大戦まで多民族のまま
-    //     （1950延長後の全長668Qでは10.9%＝旧検算「全長151年で9.9%」は長さの主張だったので1914断面の主張へ書き直した・2026-09-22）。
-    //   ⚠単一文化国（仏など全州が同じ culture）は全popが core=1.0 なので (1−core)=0＝**1ビットも動かない**＝
-    //     影響は多文化19カ国と国際移民の希釈だけ（world.json 実測）。
+    public double EthnicDraw = 0.7;                 // 低統一度は移民を引く：流入の引力 ×(1+これ×(1−統一度))＝坩堝
     public double EthnicAssimilation = 0.00017327;   // 同化の基礎（公教育なし＝半減期1000年＝墺の横這い）
     public double AssimilationEducationBonus = 0.0015581;// 公教育/義務教育の同化加速（合計0.0017314＝半減期100年＝「学校が農民をフランス人にする」）
     public double DiscriminationLiteracy = 0.45;    // 平均識字がこれ未満だと差別で移民を阻む：流入 ×clamp(平均識字/これ)＝低教育＝排斥
-    public double UnityMilitaryQuality = 0.2;       // 〔軍の結束〕Power.Military ×(1+これ×(統一度−0.5))＝同質な軍は強い・多民族軍は脆い
-    // 【墓標2026-09-26】ConquestForeignWeight（植民地の奪取で勝者の全POPの中核民族割合を縮める換算）＝回1-1（col-04・mil-18）で削除。州になった植民地の住民は core=0 で作られる＝民族統一度は既に下がる（二重の希釈・思想⑨）
-    // #14 少数民族の経済的実体：少数派（CoreEthnicShare<1）の階級は昇格に摩擦・不満が高い＝同化までの過渡で「別挙動」を持つ（均質pop=core1で効果0＝較正中立）。EthnicEnabledでgate。
-    public double MinorityPromotionPenalty = 0.5;   // 昇格率 ×(1−これ×(1−core))＝完全少数派(core=0)で昇格半減＝ガラスの天井（移民/被征服層が下層に滞留）。0で無効
-    public double MinorityMilitancy = 0.2;          // ★段2以後の**民族項の唯一の形**（一本鎖）：闘争度 +これ×(1−core)＝差別・排斥が分離独立/ナショナリズムへ（被征服のCededColonyMilitancyと別＝恒常的な地位の不満）。0で無効
+    public double UnityMilitaryQuality = 0.2;       // Power.Military ×(1+これ×(統一度−0.5))＝同質な軍は強い・多民族軍は脆い
+    public double MinorityPromotionPenalty = 0.5;   // 昇格率 ×(1−これ×(1−core))＝完全少数派(core=0)で昇格半減＝ガラスの天井（移民/被征服層が下層に滞留）
+    public double MinorityMilitancy = 0.2;          // 0で無効
 
-    // 貨幣・物価水準（段4-貨幣 第1段。MonetaryEnabled の国のみ。較正＝P≡1で不変）。物価＝名目のヴェール（金は保存）。
-    public double MonetaryPriceSensitivity = 0.25;  // 物価水準の感応度：P を「広義マネー/実質産出 のトレンド比」へ寄せる速度。高いほど物価がキビキビ動く
-    public double MonetaryTrendSpeed = 0.02;        // M/Y トレンドの追従速度（遅い＝secular な産出成長を吸収。小さいほど長期デフレが残り、大きいほど純粋に循環のみ）。★同じ速さで自己費用の物価水準 World.CostPriceLevel が P を追う（2026-09-27 (73)）
-    // 鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣が増える（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→インフレ/好況）。
-    // 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。0=無効（較正中立）。保存：CumulativeGoldMinted 台帳で基礎貨幣増を追跡。
-    // 【墓標2026-11-05 (843)・読み手が無くなった係数の削除】GoldMintFraction（既定 0.2・金鉱の月次産出のうち鋳造に回る割合）を消した＝旗 MintPriceFloorGate の焼き込みで旧来の産出比例の枝が無くなり読み手が無くなった。
+    public double MonetaryPriceSensitivity = 0.25;  // 物価水準の感応度：P を「広義マネー/実質産出 のトレンド比」へ寄せる速度
+    public double MonetaryTrendSpeed = 0.02;        // M/Y トレンドの追従速度（遅い＝secular な産出成長を吸収。小さいほど長期デフレが残り、大きいほど純粋に循環のみ）
     public double PriceLevelFloor = 0.4;            // 物価水準の下限（深いデフレの底＝暴走防止）
-    public double MoTrendInitNeedsGdp = 1.0;        // ★(972) c87mt (D) で 1 に点火（AI の案・確証なし・事前登録 measurements/m972_20261108_prereg_mt.txt）：> 0 のとき World.UpdatePriceLevel は実質 GDP が正でない四半期に M/Y の趨勢の基準を置かない（0＝今の形・番人 MoTrendInitTests）
-    // ★(582) 物価水準の上限は廃止した（作者 2026-10-26「極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」）。物価は床 PriceLevelFloor までだけ切り、上は紙幣増発の掛け算（FiatInflationPressure→FiatInflationWeight）が複利で伸びうる。
-    //   P が正の有限でない四半期（NaN・無限＝増発の掛け算が桁あふれ・入力の NaN）は更新前の P を保つ否定形の番人だけが World.UpdatePriceLevel にある（天井ではない）。事前登録 measurements/svf2_582_20261026_prereg.txt
-    // 地域別の貨幣的物価水準（②集計粒度）：各州の物価水準＝国家物価×地域乗数。乗数＝(州の1人あたり貯蓄/国の1人あたり貯蓄)^Weight をクランプ。
-    // 現金の厚い金融中心州は物価/名目賃金が高く、現金の乏しい辺境州は低い（19世紀の地域物価・賃金格差・辺境デフレ）。1州なら乗数1＝較正中立。0で無効。
-    public double RegionalPriceLevelWeight = 0.3;   // 地域の現金の厚みの差→物価格差への感応度（0=地域差なし=従来一律）。緩め＝極端な州だけ大きく振れる
+    public double MoTrendInitNeedsGdp = 1.0;        // > 0 のとき World.UpdatePriceLevel は実質 GDP が正でない四半期に M/Y の趨勢の基準を置かない（0＝今の形・番人 MoTrendInitTests）
+    public double RegionalPriceLevelWeight = 0.3;   // 地域の現金の厚みの差→物価格差への感応度（0=地域差なし=従来一律）
     public double RegionalPriceLevelMin = 0.7;      // 地域物価乗数の下限（辺境デフレの底）
     public double RegionalPriceLevelMax = 1.45;     // 地域物価乗数の上限（金融中心の物価高の天井）
-    // 金本位制（信用ゲート＋黄金の足枷）。加入＝資格（コストでない）、加入中＝規律。
-    // 【削除2026-09-28（作者裁定 F6）】GoldStandardMaxDebt（加入：債務/年GDP≤4.2%）・GoldStandardSuspendDebt（停止：>7.5%）＝史実の英（1815年に債務が GDP の約2.5倍で1821年に兌換を再開）に合わない門。兌換の門は取り付け（GoldCoverMin）と財政（FiscalFundingRatio）だけ＝Fiscal.Step の注記
-    public Share GoldCoverMin = new(0.25);            // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney。これ未満で兌換停止クライシス(金流出で守れない)。
-                                                    // 有効化2026-07-10（キュー1）：実測（goldprobe 5seeds×500Q・加入国10.9万サンプル）＝健全帯 中央0.52/p25 0.48/p1 0.43・危機の谷は0.21以下〜負値へ突き抜ける。
-                                                    // 0.25＝健全帯の床(p1=0.43)より下・危機の谷より上＝下回りは加入四半期の約0.1%＝「実在するが常態でない」兌換停止（1797英/1893米型）。0.5だと36.6%が下回り常時発火＝不採用
-    public double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 GoldStandardMinFunding とは別（ヒステリシス）。旧＝Fiscal.cs の private const（(736) で係数表へ・同じ値）
-    public Share GoldStandardMinFunding = new(0.85);    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）。危機でこれを割ると強制離脱（兌換停止）
-    public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）。Convertibilityでlerp＝部分兌換は中間
-    // 兌換可能性 Convertibility∈[0,1]（倍率排除②）：金本位/不換の bool 分岐を連続化。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従＝部分兌換の移行を表現。
+    public Share GoldCoverMin = new(0.25);            // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney
+    public double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 GoldStandardMinFunding とは別（ヒステリシス）
+    public Share GoldStandardMinFunding = new(0.85);    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）
+    public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）
     public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
     public double ConvertibilityDropSpeed = 0.34;   // 危機で兌換が崩れる速さ（兌換停止は一夜＝速い・非対称）
-    public double ConvertibilityCoverageBand = 1.0; // 金利doc B5（2026-07-30・点火）：兌換目標を bool でなく**正貨カバー率の連続関数**へ（バンドは既存係数から導出＝lo=GoldCoverMin×GoldRejoinCoverMargin=0.325／hi=lo×(1+GoldCoverCreditRestraint)=0.4875）。加入していても準備が薄れれば兌換が目減りする＝金本位期でも物価/為替/国債金利のチャネルが死なない。0で旧bool（加入=1.0）へ縮退＝厳密恒等
-    // 貨幣と国債の紐づけ（#2 Fisher・#3 印刷インフレ）。#1（名目GDPで債務負担を測る＝負債デフレ）は World.NominalGdpPerMonth で実装。
+    public double ConvertibilityCoverageBand = 1.0; // 加入していても準備が薄れれば兌換が目減りする＝金本位期でも物価/為替/国債金利のチャネルが死なない
     public double FisherInflationWeight = 0.5;       // 名目国債金利＝実質＋これ×期待インフレ（高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い）
     public double FiatInflationWeight = 0.6;         // 通貨切下げ（紙幣増発）が物価を押し上げる強さ：P ×= 1+これ×(切下げ額/広義マネー)＝印刷→インフレ→実質債務減
-    // 為替レート（第3a段・不換国のみ変動。金本位は1.0固定）。レートは「決定」のみに効き決済額には掛からない＝保存不変。
     public double ExchangeRateSpeed = 0.2;           // レートが目標へ寄る速度（四半期）
     public double ExchangeTradeAdjust = 3.0;         // 貿易収支によるオーバーシュート強度（赤字→余分に減価＝輸出競争力／黒字→増価）
     // ==== 通貨改革（2026-08-13・作者採用）====
-    // 史実＝レンテンマルク（独1923）／ポワンカレ・フラン（仏1926）／英1925の旧平価復帰（失敗例）。
-    // 過去の減価の記憶を、**現に残っている預金を焼却する**代価で帳消しにし、実力に合った新平価で建て直す。
-    // ★2026-08-13（作者裁定「行政費は汚職などで抜け落ちるが、それ以外は価格相応の働きをするように」）：
-    //   行政（と行政費で買う上下水道）の調達に**買い控えのゲート**を掛けない（旗 AdminProcurePriceGate＝1が旧挙動・0＝裁定側）。
-    //   予算の制約（afford＝金で買える量）はどちらでも残る＝それ自体が「価格相応」。ここで外すのはその上に重ねた
-    //   「参照価格より高いから買わない」という追加の拒否で、金を持っていても行政が働かなくなる原因だった。
-    //   ★点火2026-08-13＝0（実測10シード・硬性ゲート全緑）：合計+18.8pt。**列強再現率 22.5→30.0**（本調査の対象軸）・
-    //   人口 17.1→21.4・領土本国 79.2→82.5・領土植民地 40.0→44.2・政体exact 35.3→37.6。経済規模だけ −3.7。
-    // 【墓標2026-09-26（棚卸し dorm-50）】AdminProcurePriceGate＝0で確定（上の裁定）＝旧挙動の枝ごと削除
-    //   ★点火2026-08-13（実測10シード・硬性ゲート全緑）：合計+10.0pt。経済規模 32.5→41.2・列強再現率 17.5→22.5・人口 11.4→17.1。
-    //   発動は131年55カ国で4回＝稀で重い事件（1797仏・1854西・1869モロッコ・1914マラータ）。スペインだけが実力の平価0.86を選んだ。
-    // 【墓標2026-10-18・旗の焼き込み】CurrencyReformEnabled（既定1.0・点火2026-08-13）を消した＝通貨改革の発動のブロックは常に走る（0＝発動しない旧は git の履歴から戻せる）。
     public Share CurrencyReformForgiveShare = new(1.0);   // 帳消しにする累積切下げの割合（1=全消し）
     public Share CurrencyReformBurnShare = new(0.5);      // 記憶の代価＝累積切下げのこの割合を貯蓄から焼却
     public Share CurrencyReformBurnCap = new(0.5);        // 焼却の上限＝総貯蓄のこの割合（1度で全財産は焼かない）
@@ -282,63 +128,27 @@ public sealed partial class Coefficients
     public int CurrencyReformCooldownMonths = 120;    // 濫用防止
     public double ExchangeRateFloor = 0.3;           // レート下限（極端な減価の底＝暴走防止）
     public double ExchangeRateCeil = 3.0;            // レート上限
-    // 国際金融（第3b段・民間外資＝A案）。資本は収益率（工業化伸びしろ×信用）の高い国へ流れ、工業化を支え、配当を送り、信用崩壊で逃避・伝染。
-    // ★(657) 単位の欄（README §1-9）：CapitalIndTarget に根拠は無い（4.0 の出所は不明＝確証なし）。旗 CapitalHeadroomFromReturn=0 では〈工業化度の目標〉の単位・=1 では設備の収益の持ち分（0〜1 の割合）に掛ける目盛りへ単位が変わる＝作者に聞く物（measurements/igi3_657_20261030_prereg.txt [7]）
-    public double CapitalIndTarget = 4.0;            // 投資収益率の素地＝(これ−工業化度)。伸びしろの大きい後発国ほど高収益＝外資を呼ぶ。※衰退実験(3.5)は逆効果（覇権はレンティア配当で富裕なまま首位維持）＝既定4.0に復帰
+    public double CapitalIndTarget = 4.0;            // 投資収益率の素地＝(これ−工業化度)
     public double OffGoldCapitalPenalty = 0.5;       // 不換国の対外信用の倍率（金本位＝1.0。不換は外資が付きにくく逃げやすい）
     public double CapitalDemandScale = 0.02;         // 流入需要＝(収益率−世界平均)×名目GDP×これ（吸収力＝経済規模）
-    public Share CapitalExportFrac = new(0.10);          // 資本余剰国が対外投資に回す投資家貯蓄の割合。※衰退実験(0.28)は逆効果（覇権がレンティア化し配当で首位維持）＝既定0.10に復帰
-    public RatePerQuarter CapitalDividendRatePerQuarter = new(0.02);        // 外資への四半期配当率（ForeignCapitalIn に対し・本国へ送金＝外資のコスト）。払えない配当は積まない（未払いの負債も未収の債権も立たない）
-    public double CapitalDividendFromHostRent = 0;   // (801) c11fl：外資の利札の旗（既定 0＝★(802) 合流で採らない：門は全て通ったが種 11〜20 で州の空洞化 1/10 未満 2 件＝止める線）＝0 で旧（外資の負債の全体×CapitalDividendRatePerQuarter＝産出と結ばない固定の率）・正で受け皿の投資家の工業レント（四半期分）×外資の負債÷(外資の負債＋投資家の貯蓄)（CapitalMarket.HostRentDividend・新しい係数なし）。確証なし（形 B は AI の推奨・金利生活者のポンプの同族の読み手 (794)）
-    public double CapitalCouponUnpaidWriteDown = 1;   // (815) c14fl：払えない利札で請求権を落とす旗（既定 1＝(819)(826) で点火・0＝旧の規則 C〔払えない利札は積まず、請求権も落とさない〕）＝正で、払えなかった利札（請求−払えた額）の分だけ外資の負債を落とし（外資の負債で頭打ち）、同じ額を金建てで逃避の消えた請求権へ足す＝還流の段で持ち主の対外資産も同じ額だけ減る（逃避の規則 C と同じ配り方・新しい係数なし）。確証なし（AI の推奨）・事前登録 measurements/m815_20261104_prereg_fl.txt
-    public double CapitalClaimCancelFromLedger = 1;   // (828) c66dw：消えた請求権の額（逃避と払えない利札の落とし＝持ち主の対外資産を減らす額）を、外資の負債が実際に減った額（落とす前−落とした後の台帳の差）で書く旗（既定 1＝線 c66dw の腕 B の木・0＝旧＝逃避の額・落とした額 divWo をそのまま足す）。正で両側が同じ数（double の引き算の丸め・1e-9 級の吸収で持ち主の側だけが落ちる片側の書き込みを閉じる）・新しい係数なし・新しい状態なし。確証なし（AI の推奨）・事前登録 measurements/m828_20261104_prereg_dw.txt
-    public RatePerQuarter CapitalFlightRatePerQuarter = new(0.15);          // 資本逃避：毎四半期 ForeignCapitalIn×これ×(1−信用) が本国送還（信用崩壊で急増）。払えない分は債権ごと消える（受入国の負債と持ち主の対外資産が同額減る・2026-09-27 C）
+    public Share CapitalExportFrac = new(0.10);          // 資本余剰国が対外投資に回す投資家貯蓄の割合
+    public RatePerQuarter CapitalDividendRatePerQuarter = new(0.02);        // 外資への四半期配当率（ForeignCapitalIn に対し・本国へ送金＝外資のコスト）
+    public double CapitalDividendFromHostRent = 0;   // 確証なし（形 B は AI の推奨・金利生活者のポンプの同族の読み手 (794)）
+    public double CapitalCouponUnpaidWriteDown = 1;   // 確証なし（AI の推奨）・事前登録 measurements/m815_20261104_prereg_fl.txt
+    public double CapitalClaimCancelFromLedger = 1;   // 正で両側が同じ数（double の引き算の丸め・1e-9 級の吸収で持ち主の側だけが落ちる片側の書き込みを閉じる）・新しい係数なし・新しい状態なし
+    public RatePerQuarter CapitalFlightRatePerQuarter = new(0.15);          // 資本逃避：毎四半期 ForeignCapitalIn×これ×(1−信用) が本国送還（信用崩壊で急増）
     public double CapitalContagion = 0.6;            // 伝染：危機国の割合×これだけ世界の資本意欲が縮む（サドンストップ）
-    public double CapitalCreditFloor = 0.5;          // 信用の床：収益率＝伸びしろ×(これ+(1−これ)×信用)。信用が低くても高潜在国は資本を呼ぶ（ゲートでなくプレミアム）。代償は高い逃避・配当
-    // 関税＝輸入関税（保護＋歳入）。19世紀国家財政の主柱（米：所得税前は歳入の過半）＋産業政策（リスト/ビスマルク/共和党）。
-    // ★財ごとの売買方針（2026-08-04・作者仕様(3)「高く買う/安く売る」）。関税ダンピングと同じ保存経路（国庫→商人）に載せる
-    // ★条約港（2026-08-04・作者仕様(4)「遠方の国に大勝しても属国化は不自然（日本の属国になったオスマン）＝多額の賠償金＋条約港へ」）
-    public double TreatyPortWinnerDistanceKm = 6000;  // 勝者と敗者がこれ以上離れていたら属国化しない（遠隔地の属国は統治できない）。0で従来どおり距離を見ない
-    // ★条約港の自然失効（案A・作者裁定2026-08-16「戦争で解除という例外を作らない。もっとシンプルに」）＝
-    //   不平等条約は「力の差が続く間だけ有効」。動詞・ボタン・交渉・戦争例外なし＝脱出路は「強くなる」だけ
-    //   （日本の条約改正1899/1911＝近代化を背景に条約が風化した、が創発）。AI対称は構造（同じ検査が全国に走る）。
-    public Share TreatyPortLapseRatio = new(0.5);         // 【点火0.5・2026-08-16＝A/B: 単独35/69/51・港配線との合成36/73/51=near+5優加法。法−5は記録・監視】ゲート兼閾値：国力（軍事+生産＝NationalScore既存成分）÷最強列強 がこれ以上なら条約港が風化。0＝1命令も走らない厳密恒等（片道ラチェット）
+    public double CapitalCreditFloor = 0.5;          // 信用の床：収益率＝伸びしろ×(これ+(1−これ)×信用)
+    public double TreatyPortWinnerDistanceKm = 6000;  // 勝者と敗者がこれ以上離れていたら属国化しない（遠隔地の属国は統治できない）
+    public Share TreatyPortLapseRatio = new(0.5);         // 0＝1命令も走らない厳密恒等（片道ラチェット）
     public double TreatyPortReparationMult = 2.5;     // 条約港の講和での賠償倍率（「多額の賠償金」＝属国化の代わりに金と通商特権を取る）
-    public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝（旗 TradeCheapSellSubsidy＞0 のとき）売り手の国の財の着値の楔を25%下げ、差を国庫が払う（★(475) 注を実装に合わせた・反証役 sf〔bv〕低#5）。0で厳密恒等
-    // ★(471) 〈安く売る〉（交-16）：0＝旧（清算は +1 の高く買うしか読まない＝−1 は効かない）／1＝−1 を +1 の鏡像として読む＝売り手の国が −1 を置いた財の越境の成約で、着値の楔を s（=TradeBiasStrength）下げ、買い手は積出し価格の (1−s) を払い、
-    //   売り手は満額を受け取り、差 s×積出し価格×r は売り手の国庫が出す（輸出奨励金・r＜1 の不足は売り手が食う）。越境だけ（AI の決め）。AI とプレイヤーは同じ `World.SetTradeBias` を通る。0 で厳密恒等。事前登録 measurements/sf471_20261020_prereg.txt。
-    public int TradeCheapSellSubsidy = 0;
-    // 【墓標2026-10-24・(532) hz7】TariffProtect（1.0・輸入の敷居を上げる強さ＝関税率×これ）＝常に 1 の倍率だったので消した（関税の楔は関税率そのもの・読み手は BilateralMarket・Discovery・ProductionDiag・Runner の診断）
-    // 【墓標2026-09-26（econ-15・sweep-20）】TariffExportDrag（0.3・保護の代償＝輸出閾値から関税×これを引く）＝唯一の読み手 Trade.cs が 2026-09-03 に削除されて読み手0だった
-    // 【墓標2026-09-29・支払いの一元化 段3-1】TariffRevenueRate を削除（関税収入＝輸入額×関税率×これ＝常に1。関税と穀物法の分は成約ごとに積出し価格×楔で通関の時点に輸入者から国庫へ＝BilateralMarket・econ-07）。
-    public double TariffFloor = -0.25;               // 関税の下限＝負の関税（ダンピング／輸出補助金）。負の関税は輸出閾値を|関税|ぶん引き上げ→輸出増（世界市場へ安売り）、国庫→商人の補助金。AI（産業スタンスのダンピング）とプレイヤーの双方が負値を使う。条約は負値を物差しにしない
-    // 土地（耕地）＝固定生産要素。農村人口が耕地賦存量(Region.ArableLand)を超えると土地作物RGOが収穫逓減し、食料/人↓→所得↓→移民が自然に止まる（room/容量番兵を撤去した本体）。
-    public double LandDiminishExponent = 0.7;       // landFactor=min(1,(耕地/農村人口)^これ)。農村が耕地の2倍で産出0.76倍・4倍で0.57倍。0＝逓減なし
+    public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）
+    public int TradeCheapSellSubsidy = 0;   // 売り手は満額を受け取り、差 s×積出し価格×r は売り手の国庫が出す（輸出奨励金・r＜1 の不足は売り手が食う）
+    public double TariffFloor = -0.25;               // 関税の下限＝負の関税（ダンピング／輸出補助金）
+    public double LandDiminishExponent = 0.7;       // landFactor=min(1,(耕地/農村人口)^これ)
 
     // --- 国際・世界市場（§5.1・段4d）---
-    // 【墓標2026-09-26（econ-15）】TradeSpeed（旧経路の交易量の速さ）・TradeArbitrageMax（旧経路の売り手の流量に価格差を効かせる器・2026-08-29 点火）
-    //   ＝どちらも読み手は旧経路（TradeArbitrageClearing=0）だけ＝S4 点火後は不読だった＝旧経路ごと削除
-    // ★植民地財の交易解禁（2026-08-21・反実仮想レバー／既定0＝BilateralMarket:245 の判定が旧と厳密同値＝ビット恒等）。
-    //   検証する主張＝「実在する定義の穴は植民地財が二国間交易にも貿易統計にも一切入らないことだけ（規模は数%）」。
-    //   >0 で IsColonial 財（生ゴム/金鶏樹皮/パーム油/象牙/サトウキビ/カカオ/茶葉/コーヒー豆/香辛料/アヘン/グアノ）を
-    //   通常財と同じ二国間交易へ載せる＝賦存州（world.json の provinces.resources に該当idを持つ24州）が輸出できるようになる。
-    //   ⚠旧注記「これは穴を塞いだ世界の反実仮想であって仕様提案ではない（抽象植民地機構からの流入と二重計上になる）」は
-    //     **2026-08-26の植民地の州昇格（ColoniesAreRegions）で失効した**。植民地が州になると、砂糖も茶も
-    //     **その州が自分で産んで自分で売る**（首都州の ColonialResources は空＝抽象機構からの流入が無い）＝二重計上の相手がいない。
-    //   ★これで1783〜1914年の長距離交易の主役（砂糖・茶・コーヒー・香辛料・生ゴム・パーム油・象牙…）が世界市場に載る。
-    //   ⚠0＝BilateralMarket:258 の判定が旧と厳密同値＝ビット恒等。ColoniesAreRegions と**対で**点火する。
-    //   ★点火2026-08-26：貿易/GDP 0.08%→0.13%（+63%）。⚠水準は依然ほぼゼロ＝縛っているのは「何を交易してよいか」ではなく
-    //     **運びたい量と運賃**（輸送容量は潜在量の10倍余り・内陸州は片脚4,788km相当）。次の本丸は陸路の直行と運賃。
-    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】TradeColonialGoods（上の注記・点火2026-08-26）＝植民地財も二国間清算に載る形だけを残し、
-    //   旧の採取決済（ColonialExtractionFraction・ColonialProfitMerchantShare/InvestorShare・Region.ColonialImportCost）ごと削除。
-    // ★賦存の反実仮想レバー（2026-08-21・診断専用／既定1.0＝×1.0はIEEE754で厳密恒等＝ビット恒等）。
-    //   「非賦存州も0.4で自給するから比較優位が価格差に翻訳されない」という主張をA/Bで検証/反証するために置く。
-    //   ResourceScarcityScale＝非賦存RGOの産出倍率(ResourceScarcity=0.4)に掛ける（0.1で0.04＝賦存比100倍・0で非産地は厳密0）。
-    //   ResourceEndowmentScale＝賦存州の産出倍率(4.0/3.5)に掛ける（賦存側から差を広げる対照）。
-    //   ⚠既定値は動かさない＝掃引の物差し専用。POB_COEF で切り替えて測る。
-    public double ResourceScarcityScale = 1.0;
+    public double ResourceScarcityScale = 1.0;   // 検証する主張＝「実在する定義の穴は植民地財が二国間交易にも貿易統計にも一切入らないことだけ（規模は数%）」
     public double ResourceEndowmentScale = 1.0;
-    // 【墓標2026-09-26（econ-15）】TradeBuyerScaleMult・TradeSellerFlowMult（旧経路の器 scaleT／流量の蓋を片側だけ倍する診断レバー）＝旧経路ごと削除
-    public double TransportMargin = 0.18;   // 世界価格との輸送マージン（この帯の中は裁定しない＝広いほど地域価格が割れる）。前鉄道の道路/河川は高コスト
-    // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: WorldPriceSpeed  国際市場（多国）の世界価格が需給差で動く速さ（§5.1 多国版）
+    public double TransportMargin = 0.18;   // 前鉄道の道路/河川は高コスト
 }

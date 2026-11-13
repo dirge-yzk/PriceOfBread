@@ -1,0 +1,43 @@
+m1114 事前登録（線 c107hc・(1114)・2026-11-13）＝Coefficients の部品 10 本の注を、今の意味と単位の短い注へ縮め、経緯を docs/history/<部品の名>.md へ写す（⑧）
+出発：1cd66aae5（main）。作者 2026-11-13〈注を履歴の文書へ移す〉の係数の分。
+
+[1] 恒等の線・予言 0
+- 挙動を変えない。係数の値・名前・部品の名と順・フィールドの宣言の順は変えない（反射の順＝SaveGame・DormantIdentityTests の GetFields）。
+- 変えるのは注（// と /* */ と ///）だけ。判定の予言：素の 5 種・10 種・計器つき 10 種は m1103 と名乗り行を除いて全行一致。
+- 形：尾でも入口でもない（注の書き換え）。腕 Z（ident の段 2）だけ回す。新しい成績表・ヌル腕は作らない。
+
+[2] 消す物・残す物（規則）
+- 規則：宣言の行末の注は、印の無い最初の 1 文（印＝★ ⚠ ✔ ※ ◎ △ 〔 【 ~ # (番号) と、日付・点火・墓標・作者・旗などの経緯の語を持つ文は後回し）を 120 字まで残す。無ければ印と括弧を外した最初の 1 文。切るときは括弧の釣り合いを保つ。
+  行頭の注（// /// /* */ の行）は全て履歴へ移す。ただし節見出し（// --- ・// === ・// ━ ・// ###）の行は残す。行末の注が元から無い宣言（public で始まる行）は、行頭の注から同じ規則で短い注を作って行末に足す。
+  `[PORT:Pn]` の印と、印の後ろの 90 字は残す（Runner の portledger の台帳の列が変わらない）。
+- 履歴：docs/history/<部品の名>.md（10 本・Coefficients.md ではなく部品の名＝ Coefficients.cs → Coefficients.md、Coefficients.p02_… → Coefficients.p02_….md）。見出しは係数の名前・元の注の全文と元の行の座標を載せる。
+- 道具：scripts/instruments/c107hc/cmove.py（forward＝縮める・restore＝新＋履歴から元を作る・tokens＝注を除いた字句の列）。バイトで読み書きする（BOM と CR の混在を保つ）。
+- 読み手（grep の結果）：
+  * 試験が Coefficients のファイルを行ごとに読む箇所＝IndustrializationReaderTests（// より前の字を数える・TopAndInstruments）・CalendarTests（同）・ScholarshipTests:179（Split("//")[0]）・DevaluationCapReliefTests:214／DormantIdentityTests:374（StripCode＝注を除く）・DormantIdentityTests:213（Coefficients. は飛ばす）。
+    行ごとの読み手は // より前だけを見る。/* */ の注の行は行ごとの読み手には〈コード〉に見える＝書き換えた前後で、// より前の字の英数字の語の数（部品ごとの多重集合）を比べ、差を列挙する（chk の表・下の [6]）。差は全て注の中の語（/* */ の中）で、試験が数える語（Industrialization 系・Calendar.*・ScholarshipTopStage）に当たるかは ㉘ とフルスイートで確かめる。赤なら注を戻す（試験は書き換えない）。
+  * 台本：scripts/recalib_search.py は `public double NAME = 値;` の正規表現（注を読まない）。r900/changed_rows.py は無い。旗の表を作る生きた台本は上の正規表現だけ。
+  * Runner の portledger（Program.cs:2923 の [PORT:Pn]）：行ごとに印と印の後ろの 90 字を読む＝上の規則で保つ（p06 の 1 件）。
+  * POB_COEF の名前解決・SaveGame・反射：名前と型だけを読む（注は読まない）。
+  * 〈呼び口の行の定数は Coefficients に無い〉：grep -c 'CallerLineNumber|CallerMemberName|CallerFilePath' Coefficients*.cs ＝ 10 本とも 0。よって行番号がずれても IL に入る定数は無い。
+  * route_anchors.tsv の鍵の行：Coefficients の部品の行は 0（Territory.cs の 1 行が Coefficients c を引数に持つだけ）。`new MoneyStock(` の件数：SimCore で 64（この線は変えない）。WriterRatchetTests の宣言の表：Coefficients の部品の宣言は無い。
+- 台帳の錨（file:line:名）の座標は動く＝合流が写す。
+- 他の線との重なり：ha（Instruments/・Diplomacy・MultiNationSim・Simulation・World・EconomyStep）・hb（SimCore の残り）・di（Display/・csproj・Tests）とファイルの集合は重ならない。docs/history/ のファイル名は部品の名で重ならない。Coefficients.cs・DormantIdentityTests.cs ほかの共有ファイルは、この線は Coefficients の部品の注の行だけを触る。
+
+[3] 足す試験と突然変異（試験の数の予言 +0）
+- 試験は足さない・書き換えない。TESTS_NONFULL 2823・TESTS_FULL 3 のまま（--list-tests と一致を確かめる）。
+- 門（scripts/instruments/c107hc/gates.py に置く）：
+  門 1＝履歴＋残り＝元の注：cmove.py restore で作った元が元のバイト列と全 10 本で一致（BOM と改行が同じ）。
+  門 2＝注を除いた字句の列が部品ごとに前後で一致。
+  門 3＝IL：同じ絶対パスの木 D:/PoB_work/wt_c107hc_il で変換なしに前後を建て（Release・Deterministic・DebugType none・IncludeSourceRevisionInInformationalVersion=false）、SimCore.dll がバイト一致。加えて typeof(Coefficients).GetFields の名の列が前後で同じ。
+  門 4＝〈判定: 恒等〉・フルスイートの失敗 0 と数の一致・savetest・leakhunt。
+- 突然変異（使い捨ての木）と、赤になる門：
+  M1 係数の既定値を 1 つ変える → 門 2 と門 3 が赤（門 1 は元のままなので緑）。
+  M2 履歴から 1 係数の節を落とす → 門 1 が赤。
+  M3 部品の中の宣言を 2 つ入れ替える → 名の列が赤（門 3 の後半）・門 2 も赤。
+  M4 行末の注の短い版を消す（注なしの宣言を作る）→ 〈係数ごとに短い注〉の検査（gates.py 門 5）が赤。
+- ㉘ 走査の番人（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests）：部品のコミットの直後に回す。書き換える件数の予言（㉑）＝0。
+
+[4] 素の 5 種・計器つき 10 種は m1103 と名乗り行を除いて全行一致（計器の表の差は宣言だけ＝計器は触らない）。.cost の推定は一致。
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
+[6] 浮動小数の順序が変わる箇所：無い（コードは 1 字も変えない）。紙の台本の旧≠新の行の数＝0。行ごとの読み手の多重集合の差は ㉘ で読む。
+[7] 止める線：挙動の線ではない。計算量・NG・空洞化は読まない。

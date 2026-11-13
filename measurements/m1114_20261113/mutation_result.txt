@@ -1,0 +1,23 @@
+M1 ä¿‚æ•°ã®æ—¢å®šå€¤ã‚’ 1 ã¤å¤‰ãˆã‚‹ï¼ˆPriceAdjustSpeed 0.13â†’0.14ï¼‰
+  RED –å1 —š—ð{Žc‚èŒ³iCoefficients.csEBOM —LECR 0j
+  RED –å2 ’‚ðœ‚¢‚½Žš‹å‚Ì—ñ‚ªˆê’viCoefficients.csE1081 Žš‹åj
+  RED ‡Œv 2
+  ï¼ˆèµ¤ã®è¡Œ 3ï¼‰
+  é–€3 IL ä¸ä¸€è‡´ï¼ˆèµ¤ï¼‰
+M2 å±¥æ­´ã‹ã‚‰ 1 ä¿‚æ•°ã®ç¯€ã‚’è½ã¨ã™ï¼ˆCoefficients.md ã® PriceElasticityï¼‰
+  RED –å1 —š—ð{Žc‚èŒ³iCoefficients.csEBOM —LECR 0j
+  RED ‡Œv 1
+  ï¼ˆèµ¤ã®è¡Œ 2ï¼‰
+M3 éƒ¨å“ã®ä¸­ã®å®£è¨€ã‚’ 2 ã¤å…¥ã‚Œæ›¿ãˆã‚‹ï¼ˆPriceAmpCenter ã¨ PriceAmpEdge ã®è¡Œï¼‰
+  RED –å1 —š—ð{Žc‚èŒ³iCoefficients.csEBOM —LECR 0j
+  RED –å2 ’‚ðœ‚¢‚½Žš‹å‚Ì—ñ‚ªˆê’viCoefficients.csE1081 Žš‹åj
+  RED –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.csE125 Œj
+  RED ‡Œv 3
+  ï¼ˆèµ¤ã®è¡Œ 4ï¼‰
+  é–€3 IL ä¸ä¸€è‡´ï¼ˆèµ¤ï¼‰
+M4 è¡Œæœ«ã®æ³¨ã®çŸ­ã„ç‰ˆã‚’æ¶ˆã™ï¼ˆPriceAmpPower ã®æ³¨ã‚’æ¶ˆã™ï¼‰
+  RED –å1 —š—ð{Žc‚èŒ³iCoefficients.csEBOM —LECR 0j
+  RED –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ðŽ‚ÂEpublic 126 –{E120 Žš’´ 0E’‚ÌŒ‡‚¯ 1EŒ³‚©‚ç’‚È‚µ 0iCoefficient
+  RED ‡Œv 2
+  ï¼ˆèµ¤ã®è¡Œ 3ï¼‰
+done

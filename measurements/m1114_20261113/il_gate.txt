@@ -1,0 +1,5 @@
+IL門3：同じ絶対パス D:/PoB_work/wt_c107hc_il で 1cd66aae5 と 4d15887eb を建て（Release・Deterministic・DebugType none・IncludeSourceRevisionInInformationalVersion=false）SimCore.dll をバイト比較
+前 sha256 322cc4613484156fbef67ccdbb426797369fbfa3c725947bbe2c3acd14493bc5
+後 sha256 322cc4613484156fbef67ccdbb426797369fbfa3c725947bbe2c3acd14493bc5
+判定：一致（dll が同一なので GetFields の名の列・順も同一）
+㉘（Industrialization|UnitType|Instruments|WriterRatchet|DormantIdentity|Calendar|Scholarship|DevaluationCapRelief）：170 本のうち 168 合格・2 本は C: の空き 5GB で IOException（環境）→ TEMP を D: にして再実行 2/2 合格
