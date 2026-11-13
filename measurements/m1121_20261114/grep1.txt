@@ -1,0 +1,62 @@
+== Coef
+Coefficients.cs:15:    public double SupplyAdjustSpeed = 0.15;  // 供給能力調整の速さ（§9-A 仕組み4）
+Coefficients.p04_trade.cs:111:    public double EndowmentCostFollowsAbundance = 0.0;   // 賦存倍率>1 の州：自己費用÷倍率^これ（0＝割らない＝厳密恒等／1＝完全に「同一費用あたりの産出能力」）
+Coefficients.p04_trade.cs:112:    public double EndowmentCostFollowsScarcity = 0.0;    // 賦存倍率<1（非産地 0.4）の州：自己費用÷倍率^これ＝費用が上がる（0＝上げない＝厳密恒等）
+Coefficients.p06_rank_discovery.cs:122:    public double IndustrializationOff = 1;         // 0＝今のまま＝厳密恒等
+== Econ
+215:            acc += q.Scale + q.Output + q.LaborWeight + q.DesiredOutput + q.GoodId + q.LaborPopIndex + q.ElecFill + q.Inputs.Count;
+852:            double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
+853:            if (sleep[pi] == 2) s.LaborWeight = rentR * sellR;   // LaborWeight〔履歴 EconomyStep.cs#105〕
+854:            else s.LaborWeight = PoliticalQuantities.Toward(s.LaborWeight, rentR * sellR, coef.SupplyAdjustSpeed);
+856:            prodW[pi] = s.LaborWeight * s.Scale;
+880:        double indMult = cap && !indOff   // indMult〔履歴 EconomyStep.cs#112〕
+902:        bool lwOn = coef.LaborWeightsByPower > 0;
+1006:            double profitFactor = ProfitFactor(s, price, mc, coef);   // profitFactor〔履歴 EconomyStep.cs#133〕
+1007:            s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
+1009:            double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
+1010:            // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
+1011:            target *= InventoryAdjust(region, s.GoodId, coef);
+1012:            s.Output = PoliticalQuantities.Toward(s.Output, target, coef.SupplyAdjustSpeed);
+1375:            if (s.Output == 0 && s.DesiredOutput == 0) continue;
+1974:            if (s.Output == 0 && s.DesiredOutput == 0)
+2350:            if (s.Inputs.Count == 0) { s.LastInputFill = 1.0; s.LastMaterialFill = 1.0; continue; }
+2358:            s.LastInputFill = fill;
+2732:    internal static double ProfitFactor(Producer s, double price, double mc, Coefficients coef)
+2747:    /// <summary>メッツラー在庫循環の産出目標への乗数（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）＝望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り、不足で1より上・過剰で下。
+2748:    /// InventoryAdjustGain が0以下なら1（項が消える）。①供給の産出目標と生産の診断（ProductionDiag.ExplainUtilization）が同じ1本を読む。</summary>
+2749:    internal static double InventoryAdjust(Region region, int goodId, Coefficients coef)
+2751:        if (!(coef.InventoryAdjustGain > 0)) return 1.0;
+2755:        return System.Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
+2811:        double wF = coef.FemaleHandLaborWeight + (1.0 - coef.FemaleHandLaborWeight) * m;
+2812:        double wC = coef.ChildHandLaborWeight + (1.0 - coef.ChildHandLaborWeight) * m;
+== Sim
+Simulation.cs:670:    internal static void ApplyEndowment(Producer pr, double capMul, double costDiv, Coefficients c)
+Simulation.cs:673:        DivideCostByEndowment(pr, costDiv, c);
+Simulation.cs:679:    internal static void DivideCostByEndowment(Producer pr, double costDiv, Coefficients c)
+Simulation.cs:681:        double gate = costDiv > 1.0 ? c.EndowmentCostFollowsAbundance : costDiv < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
+Simulation.cs:753:                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // ApplyEndowment〔履歴 Simulation.cs#61〕
+Simulation.cs:759:                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 賦存量＝good の地理的性質（鉱物=集中4.0／他=中庸3.5）。希少鉱物は総量保存で逆算した高い賦存。★Scale=1.0（既定）でビット恒等＝診断用レバー
+Simulation.cs:769:            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
+Simulation.cs:1295:                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // ApplyEndowment〔履歴 Simulation.cs#132〕
+Simulation.cs:1301:                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。〔履歴 Simulation.cs#133〕
+Simulation.cs:1309:            else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);
+== BM
+10:    internal static long CntRowSkipNeed, CntRowSkipRef, CntRowSkipDead, CntRowSkipBudget, CntCutLp, CntWedgeSkips;
+64:    internal static double PairKmCore(TrEntry[] tr, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, double[] terrCost, double[] landRatio, int[] landNode, double[] landGraft, double landRouteEnabled, int a, int b, out bool land)
+791:            bool lbOn = c.TransportMargin >= 0 && adValoremRev >= 0 && weightAdd >= 0 && c.BlockadeStapleBias >= 0 && c.RiskLambda >= 0 && !LbOffForTest;
+827:                if (!(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0)) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }
+828:                if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
+829:                if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
+830:                if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; if (ts is not null) ts.Outcome(Instruments.TsOutBudget0); continue; }
+838:                double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;
+844:                int snA = 0, siA = 0; Market msA = null!; bool xPriceOn = false, crossA = false, seaA = false;
+884:                            double lbv = selP * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul);
+894:                            if (lbOn && selP >= 0)
+943:                        xPriceOn = rpT > 1e-9 && unitA > 1e-9;
+944:                        if (xPriceOn) powVal = Math.Pow(rpT / unitA, twoEps);
+959:                        if (ts is not null) ts.Repick(m, tr[t].access, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], unitA, c.PriceElasticity);
+961:                    double xPrice = xPriceOn ? m.LastDemand * powVal - (m.LastProduced + m.LastImport) : 0.0;
+962:                    double xNeed = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+963:                    double X = tr[t].access * Math.Max(0, Math.Min(xPrice, xNeed));
+965:                    double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
+984:                        if (!(X > 1e-12)) { tsWhy = dealtRow ? Instruments.TsExit.Dealt : xPrice <= xNeed ? Instruments.TsExit.XPriceSmall : Instruments.TsExit.XNeedSmall; if (ts is not null) Instruments.TsExitProbe?.Invoke(xPrice, xNeed, tsWhy); break; }

@@ -1,0 +1,25 @@
+== indOff
+723:        bool indOff = coef.IndustrializationOff > 0;           // indOff〔履歴 EconomyStep.cs#80〕
+866:            if (coef.DevelopmentMemory > 0 && !indOff)   // DevelopmentMemory〔履歴 EconomyStep.cs#109〕
+878:        region.Mechanization = coef.LaborSaveRate > 0 && !indOff ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;   // Mechanization〔履歴 EconomyStep.cs#111〕
+880:        double indMult = cap && !indOff   // indMult〔履歴 EconomyStep.cs#112〕
+== Toward
+117:    internal static double Toward(double x, double target, double k) => x + k * (target - x);
+== names
+InstrumentsCorncf.cs
+InstrumentsProdcap.cs
+InstrumentsRecipeout.cs
+InstrumentsSellr.cs
+InstrumentsSubst.cs
+InstrumentsTradeskip.cs
+== tables
+      2 "cearn_s
+      1 "prodcap_s
+      1 "sellr_s
+== World clamp
+1:52:        if (Instruments.On && GoodTradeBias[goodId] != (sbyte)Math.Clamp(bias, -1, 1)) DiagSfBiasSwitchCum++;   // DiagSfBiasSwitchCum〔履歴 World.cs#7〕
+2:53:        GoodTradeBias[goodId] = (sbyte)Math.Clamp(bias, -1, 1);
+18:1380:        double bias = Math.Clamp(tradeBal / Math.Max(1.0, gdp * PriceLevel) * c.ExchangeTradeAdjust + c.PolicyRateFxWeight * InterestRate, -0.2, 0.2);   // gdp×PriceLevel＝NominalGdpPerMonth（MonetaryEnabled は冒頭で保証）
+19:1381:        double floatTarget = Math.Clamp(ppp * (1.0 + bias), c.ExchangeRateFloor, c.ExchangeRateCeil);
+== TargetStock
+67:            m.TargetStock = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * totalDemand) * region.StockpileFactor(gi, coef);
