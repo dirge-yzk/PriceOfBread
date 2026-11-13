@@ -1,0 +1,20 @@
+前：属性を外した数 8
+後：属性を外した数 8
+前 7881216 後 7881216 バイト一致
+rc=0
+== M2
+ead.SimCore\PriceOfBread.SimCore.csproj]
+    7 個の警告
+    21 エラー
+
+経過時間 00:00:08.79
+失敗: dotnet build PriceOfBread.SimCore/PriceOfBread.SimCore.csproj -c Release -nologo -v q -p:DebugType=none -p:DebugSymbols=false -p:Deterministic=true --artifacts-path D:/PoB_work/c107hb_art_il
+rc=0
+== M3
+後：属性を外した数 8
+前 7881216 後 7881216 不一致
+rc=0
+== M4
+後：属性を外した数 0
+前 7881216 後 7881728 不一致
+rc=1

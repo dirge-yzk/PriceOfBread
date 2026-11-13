@@ -1,0 +1,3894 @@
+# PriceOfBread.SimCore/SelfPlay.cs の注（1cd66aae5 の時点・注を履歴へ移した記録）
+
+見出しの数字は 1cd66aae5 の行番号。W＝行ぜんたいの注・T＝コードの後ろの注。
+
+## L3-6 W 直後 `public static class NationalScore`
+````
+/// <summary>
+/// 国力（列強の総合指数）＝世界の総量に対する本国の割合を 6 項（兵・軍事費・鉄の産出・動力の消費・都市人口・総人口）で均等に平均した値（全国の合計 100・★(449) 点火・(456) で旧の 4 項の式を消した）。
+/// 列強ランキングの基準＝勝利条件。
+/// </summary>
+````
+
+## L9-9 W 直後 `private const double FinancePerCapitaDivisor = 150.0; // 1人あたり与信の基準。★50→150（2026-08-04）：sc`
+````
+// マジックナンバー命名（挙動不変・値据え置き）：スコア合成の重み/スケール/上限。
+````
+
+## L10 T `private const double FinancePerCapitaDivisor = 150.0;`
+````
+// 1人あたり与信の基準。★50→150（2026-08-04）：scorebreak実測で**全53カ国が上限6.0に張り付き**（ラオスまで満点）＝軸が死んで差別化ゼロだった。信用が普遍化した世界では基準を上げないと「深さ」を測れない（ロンドンのシティ＝1人あたり与信の厚みが再び差になる）
+````
+
+## L11 T `private const double FinanceCap = 6.0;`
+````
+// 金融項の上限
+````
+
+## L15-16 W 直後 `public static double Standing(World w) => double.IsNaN(w.ScoreStanding) ? Of(w) : w.ScoreS`
+````
+/// <summary>序列に使う国力（2026-08-02）。★フローでなく**ストック**を返す。まだ種が無ければ現在値を返す
+/// （初期化前でも順位が壊れない）。更新は StepStanding が四半期に1度だけ行う。</summary>
+````
+
+## L19-20 W 直後 `public static void StepStanding(World w) => StepStanding(w, Of(w));`
+````
+/// <summary>国力の在庫を1四半期ぶん現在値へ寄せる（2026-08-02）。上がるのも落ちるのも同じ速さで遅い。
+/// ★rate=1 で在庫＝現在値＝厳密恒等（休眠）。決定論（新規 RNG draw なし）。</summary>
+````
+
+## L23-23 W 直後 `internal static void StepStanding(World w, double now)`
+````
+/// <summary>国力の在庫を寄せる先（now）を呼び手が渡す形。呼び手が世界の総量を 1 回求めた <see cref="ShareScores"/> の値を渡す（国ごとに総量を求め直さない）。</summary>
+````
+
+## L26 T `if (double.IsNaN(w.ScoreStanding)) { w.ScoreStanding = now; return; }`
+````
+// 開始時の種＝そのときの実力
+````
+
+## L30-31 W 直後 `internal readonly record struct ScoreTerms(double Soldiers, double MilitarySpend, double I`
+````
+// ===== ★(416) 国力の物差し＝世界の総量に対する本国の割合（事前登録 measurements/sc_20261019_prereg.txt D6・★(456) 旗 ScoreFromWorldShare は焼き込んだ＝この物差しが唯一の経路） =====
+/// <summary>国力の 6 項の素の量（本国の州だけ＝活きていて Tier≠Colonial）。兵・軍事費〔参照価格建て＝名目を物価水準で割る〕・鉄の産出（鋼は鉄を投入する＝入れると二重計上）・動力の消費（石炭＋原油×熱量比・満たされた量＝LastSold。満たされない需要〔LastDemand〕は数えない＝足りない国ほど増える歪みを避ける）・都市人口・総人口。</summary>
+````
+
+## L35 T `internal const int IronIndex = 2;`
+````
+// ★(605) 下の this[int] の 2 番＝鉄の産出（最終の表の物差し PlayText.EndingStandings が読む）
+````
+
+## L42 T `double oilToCoal = w.Coef.ColonyFuelOilEnergyRatio;`
+````
+// 既存の熱量の比（原油は同熱量の必要量が石炭の 1/これ＝原油の量×これ＝石炭換算）
+````
+
+## L63-64 W 直後 `internal static double[] ShareScores(IReadOnlyList<World> worlds, double[][]? shares = nul`
+````
+/// <summary>世界の総量に対する割合の国力＝100×(総量が正の項の割合の均等平均)。呼び手が総量を 1 回求める（World に総量を持たせない）。
+/// <paramref name="shares"/> を渡すと国×6 項の割合も返す（計器用・総量 0 の項は 0）。</summary>
+````
+
+## L72-72 W 直後 `internal static double[] SharesFromTerms(ScoreTerms[] terms, double[][]? shares = null)`
+````
+/// <summary>6 項の素の量から国力（割合の均等平均×100）を求める純関数（世界の総量は渡された国の和・総量が正でない項は平均から外す）。番人が素の量を直に渡せる。</summary>
+````
+
+## L87 T `if (tot[t] > 0) { sum += sh; used++; }`
+````
+// 総量が 0 の項は平均から外す
+````
+
+## L94-94 W 直後 `public static double[] Scores(IReadOnlyList<World> worlds) => ShareScores(worlds);`
+````
+/// <summary>国力を世界の全国分まとめて 1 回で求める（<see cref="ShareScores"/>）。</summary>
+````
+
+## L97-97 W 直後 `internal static void StepStandingAll(IReadOnlyList<World> worlds)`
+````
+/// <summary>四半期の序列の在庫の更新を全国分まとめて（総量を 1 回だけ求める）。</summary>
+````
+
+## L104-106 W 直後 `public readonly record struct ScoreLine(string Label, double Points);`
+````
+// ===== ★(449) 国力の内訳と国ごとの値の 1 本＝画面のホバー・国の一覧の詳細・Runner の報告・国名鑑が同じこの 1 本を読む =====
+// ★(456) 旧の 4 項〔軍事・生産の豊かさ・金融・技術〕の式は計器 score_s の旧の列だけが読んだ＝Instruments.OldScore に移し、(798) で列ごと消した（NationalScore には無い・番人 ScoreReaderTests が復活を禁じる）。
+/// <summary>国力の内訳 1 行（ラベルと点）。点の和は <see cref="Scores"/> の国力と同じ（6 項の割合の点〔100×割合÷使った項数〕の和）。</summary>
+````
+
+## L111-111 W 直後 `public static ScoreLine[][] Breakdowns(IReadOnlyList<World> worlds)`
+````
+/// <summary>全国分の内訳。世界の総量を 1 回だけ求める。</summary>
+````
+
+## L124 T `if (col > 0) used++;`
+````
+// 総量が正の項（SharesFromTerms の used と同じ数え方）
+````
+
+## L135-135 W 直後 `public static ScoreLine[] BreakdownOf(World w)`
+````
+/// <summary>この世界の国力の内訳。外交盤の全国から総量を求める（盤に居ない世界は自分だけ）。</summary>
+````
+
+## L142-142 W 直後 `public static Dictionary<int, double> ScoresByPower(Diplomacy d)`
+````
+/// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の国力を 1 回で求める（Power.Id → 国力）。画面の一覧・国名鑑は国ごとに <see cref="Of"/> を呼ばずこれを呼ぶ（国ごとに総量を求め直さない）。</summary>
+````
+
+## L153-153 W 直後 `public static Dictionary<int, ScoreLine[]> BreakdownsByPower(Diplomacy d)`
+````
+/// <summary>実在の国の国力の内訳を 1 回で求める（Power.Id → 内訳）。<see cref="ScoresByPower"/> と同じ国の集合。</summary>
+````
+
+## L164-165 W 直後 `internal static List<World> NationWorldsOf(World w)`
+````
+/// <summary>実在の国（<see cref="Power.Nation"/> が非 null）の世界の一覧。外交盤が無い単独の世界は自分だけ。
+/// ★(457) 外交盤を明示する多重定義は消した（呼び手は全て世界自身の盤＝MultiNationSim が sim.World.Diplomacy に共有の盤を入れる・反証役 hy3〔v〕低#6）。</summary>
+````
+
+## L171 T `if (!l.Contains(w)) { l.Clear(); l.Add(w); }`
+````
+// 盤に居ない世界（単独のテスト・較正）＝総量は自分だけ
+````
+
+## L181-182 W 直後 `public static double Finance(World w) =>`
+````
+// 金融の発達＝1人あたりの与信（信用残高÷人口）。近代的な金融経済の成熟度＝規模でなく「深さ」の指標（ロンドンのシティ的国力）。
+// 人口で割る＝反規模：工業化した英は1人あたり信用が深く高得点、大人口・農業の露は薄く低得点（GDP/GDP比だと全国が上限に張り付き差が出ないため人口あたりに）。
+````
+
+## L184 T `w.Bank is { } b && w.TotalPopulation > 1 ? Math.Clamp(b.Loans.Value / (w.TotalPopulation *`
+````
+// 上限12→6＝ロンドンのシティ（金融）一強を緩和（金融国力は残すが青天井にしない）
+````
+
+## L186-188 W 直後 `public static double MeanSatisfaction(World w)`
+````
+// 第5段5-1（2026-07-27）：これが唯一の実装（Politics.StepのMeanSatisfactionPol代入・Credit の avgSat・Validation の満足度もここを呼ぶ）。
+// ★2026-09-25：分母を**大衆のみ**（Politics.IsMassPop＝不満度・闘争度と同じ母集団）へ揃えた。旧＝全POP（閉鎖階級・近代エリート・兵士を含む）
+//   ＝満足度だけが別の母集団を見ていた（分子と分母の非対称）。述語は呼ぶだけ（式を二度書かない）。水準の門は分位の写像で導き直した（各係数の注記）。
+````
+
+## L197-197 W 直後 `public enum Doctrine { Balanced, Militarist, Industrialist, Modernizer }`
+````
+/// <summary>AIの教義（国の性格＝戦略の偏り）。均質化を避け、国ごとに異なる道を歩ませる。</summary>
+````
+
+## L200-203 W 直後 `public sealed class UtilityAgent : INationAgent`
+````
+/// <summary>
+/// 効用AI（§8 同一インターフェース）：政策スタンス（候補手）を国の状況に対する効用で点数化し、最良を選んで適用する。
+/// 効用＝そのスタンスが助けるスコア成分 × その不足（伸びしろ）。固定戦略でなく状況適応＝対戦の駆動。
+/// </summary>
+````
+
+## L206-206 W 直後 `private const double MilitaristBaseUtility = 2.5;           // 軍国教義の軍拡ベース効用`
+````
+// マジックナンバー命名（挙動不変・値据え置き）。※既存の c.Xxx 参照値・per-stance の政策設定値・自明値・εは対象外。
+````
+
+## L207 T `private const double MilitaristBaseUtility = 2.5;`
+````
+// 軍国教義の軍拡ベース効用
+````
+
+## L208 T `private const double MilitaristEscapeThreshold = 0.5;`
+````
+// 軍国の脱出弁：この国庫逼迫度からベース効用を減衰し始める（幅も同値）
+````
+
+## L209 T `private const double IndustrializationRoomTarget = 4.0;`
+````
+// 工業化余地の到達目標（4.0 は効用の目盛りの係数で上限ではない）
+````
+
+## L210-214 W 直後 `private const double UnrestSatisfactionThreshold = 0.62;`
+````
+// 不満＝満足がこれを下回る分。★2026-09-22 分位の写像で導き直し（階層3分割で満足度の水準が構造的に下がったため）：
+//   比べる相手＝全国×四半期の NationalScore.MeanSatisfaction（隔離計器 tiersatprobe・seed1-3×604Q）。旧0.7は旧分布の下から53.3%→ 新分布の53.3%分位
+//   ＝1回目0.53→2回目0.61（1回目の値で再測定すると分位が44.8%へ8.5pt ずれた＝帰還。写像は2回で打ち切り）。
+// ★2026-09-25 MeanSatisfaction の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
+//   旧0.61は旧（全POP）分布の下から51.89% → 新（大衆）分布の51.89%分位＝1回目0.6210 → 2回目0.6167 → 0.62。
+````
+
+## L216 T `private const double UModUnrestWeight = 0.3;`
+````
+// 近代化効用：不満の重み
+````
+
+## L217 T `private const double UIndRoomWeight = 1.2;`
+````
+// 工業化効用：余地の重み
+````
+
+## L218 T `private const double UModIndRoomWeight = 0.5;`
+````
+// 近代化効用：工業化余地の重み
+````
+
+## L219-221 W 直後 `private const double UWelUnrestWeight = 2.5;                // 福祉効用：不満の重み`
+````
+// ★2026-08-04（作者指示「不満度の社会保障への圧力を高め、より満足度を落ちづらくする」）：1.5→2.5。
+//   旧値では不満の理論最大（満足0＝unrest0.7）でも効用1.05＝工業化効用（≈4.0）に構造的に勝てず、
+//   福祉スタンスは飢饉か革命間際でしか選ばれなかった。それでも早期は工業化が勝つ（史実＝福祉国家は工業化の後）。
+````
+
+## L222 T `private const double UWelUnrestWeight = 2.5;`
+````
+// 福祉効用：不満の重み
+````
+
+## L223 T `private const double UWelFamineWeight = 2.0;`
+````
+// 福祉効用：飢饉の重み
+````
+
+## L224-225 W 直後 `private const double UnrestSSPressure = 1.0;`
+````
+// 不満→社会保障の**直接の床**（スタンスの勝者に関係なく掛かる＝ビスマルク反射「社会保険は社会主義への防波堤」）。
+// 床＝不満/閾値（0..1）。施行は従来の政治ゲート（法の梯子・1期1段）を通るので即時ではない＝目標だけが上がる。
+````
+
+## L227 T `private const double UFisWeight = 1.2;`
+````
+// 緊縮効用：国庫逼迫の重み
+````
+
+## L228 T `private const double ColonyDefenseWeight = 0.3;`
+````
+// 植民地防衛の軍拡効用
+````
+
+## L229-230 W 直後 `private const double FacilityBuildMinMargin = 0.05;   // 実質相対価格の超過がこれ以下なら建てない（不足していない物を建てな`
+````
+// 工場/プランテーションの着工（2026-08-04）。平時の規律＝借入と同じ（国家の支払い率 r＜1 の時だけ止まる）。
+//   （旧の定数 FacilityBuildStressCeiling=0.0〔2026-08-04 の再是正：0.5 の緩和で軍事独裁が 5%→34%〕は旗 AiBuildGuardRelax の焼き込み〔2026-10-18〕で消えた。）
+````
+
+## L231 T `private const double FacilityBuildMinMargin = 0.05;`
+````
+// 実質相対価格の超過がこれ以下なら建てない（不足していない物を建てない・2026-08-04にボトルネック駆動へ転用）
+````
+
+## L232 T `private const double FacilityBuildIdleWeight = 2.0;`
+````
+// 失業の重み＝同じ採算なら人の余っている州を選ぶ（作者のUI要求と同じ判断材料）
+````
+
+## L233 T `private const double FacilityBuildOutlayShare = 0.10;`
+````
+// 工事の月次出費が財政バッファのこの割合を超えたら新規着工を止める（同時工事の暴走を防ぐ・規模中立）
+````
+
+## L234-235 W 直後 `private const double AiChainStarvedFill = 0.9;   // 投入の配給率（Market.LastRation＝生産タブの「供給:n%」と`
+````
+//   （旧の定数 FacilityBuildCostCap=1.0〔建てられる工場の総費用の上限＝財政バッファ比・2026-08-04〕は (579) 線 ukf で削除した。総費用は数年の工期の全額をバッファ〔月次義務の数か月分〕と比べる量で、同時工事の暴走の守りは上の月の出費の上限が持つ。）
+// ★鋼市場診断#4（2026-08-16・旧の旗 AiSupplyChainEyes は 2026-10-18 に焼き込み）：
+````
+
+## L236 T `private const double AiChainStarvedFill = 0.9;`
+````
+// 投入の配給率（Market.LastRation＝生産タブの「供給:n%」と同じ出所）がこれ未満＝その材が連鎖の律速（上流を候補に足す）
+````
+
+## L237-237 W 直後 `private const double AiTariffSurgeRatio = 1.5;        // 対EMA比これ超＝輸入急増（1870年代の穀物侵入・英国鋼の輸出攻`
+````
+// ★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）判定線：
+````
+
+## L238 T `private const double AiTariffSurgeRatio = 1.5;`
+````
+// 対EMA比これ超＝輸入急増（1870年代の穀物侵入・英国鋼の輸出攻勢級の流入）
+````
+
+## L239 T `private const double AiTariffImportFloorShare = 0.001;`
+````
+// 急増と数える最小規模＝輸入額（清算単位＝月次清算では直近1か月分・NominalGdpPerMonth も月次フロー）>名目GDP×これ（規模中立＝微小財の雑音で関税を動かさない）
+````
+
+## L240 T `private const double TensionNormalizer = 100.0;`
+````
+// 緊張の正規化スケール
+````
+
+## L241 T `private const double TensionUtilityWeight = 2.0;`
+````
+// スタンス効用：緊張項の重み
+````
+
+## L242 T `private const double SurvivalRatioCap = 3.0;`
+````
+// 生存効用：脅威比超過分のクランプ上限
+````
+
+## L243 T `private const double IndustrialistIndBias = 1.6;`
+````
+// 資本主義教義：工業化効用の増幅
+````
+
+## L244 T `private const double IndustrialistModBias = 1.2;`
+````
+// 資本主義教義：近代化効用の増幅
+````
+
+## L245 T `private const double ModernizerModBias = 1.5;`
+````
+// 近代化教義：近代化効用の増幅
+````
+
+## L246 T `private const double ModernizerWelBias = 1.2;`
+````
+// 近代化教義：福祉効用の増幅
+````
+
+## L247-247 W 直後 `internal const double GoldLiteracyLine = 0.75;                   // 金本位を志向する本国の平均識字（銀行券・手形`
+````
+// ★(423) AI の法の門の線 3 本（★(599) 旗 AiLawGateFromBoard と工業化度を読む旧の式は削除した）。AI の選び＝確証なし（事前登録 [2] D1・D2）。識字＝本国の平均識字・都市＝本国（植民地格を除く）の都市人口の割合。
+````
+
+## L248 T `internal const double GoldLiteracyLine = 0.75;`
+````
+// 金本位を志向する本国の平均識字（銀行券・手形・債券を読み書きして扱う国民が大多数＝4 分の 3）。m420 の 10 種の全国の識字から、一度でも超えた国の数が 1913 年に基準 m412 の金の法の国の数（26）の近く〔27〕に来る線として選んだ AI の選び＝確証なし（追記1）
+````
+
+## L249 T `internal const double AntitrustUrbanLine = 1.0 / 3.0;`
+````
+// 談合禁止を目標に置く本国の都市の割合（独占の弊害が政治問題になる都市の多数派の手前＝米の 1890 年は 3 分の 1 強）
+````
+
+## L250 T `internal const double MinimumWageSufficiencyUrbanLine = 2.0 / 3.0;`
+````
+// ★最低賃金法（線 lw (459)）の充足を目標に置く本国の都市の割合（都市が3分の2＝賃金労働が圧倒的多数・AI の選択・確証なし）
+````
+
+## L251 T `internal const double TrustbustUrbanLine = 0.5;`
+````
+// 独占の解体を目標に置く本国の都市の割合（都市が過半）
+````
+
+## L252-253 W 直後 `internal const double MinimumWageUnempLowerLine = 0.5;           // 下げる：本国の労働の失業がこの割合以上で、か`
+````
+// ★(480) 線 ma（旗 MinimumWageAiFromFloor ＞ 0）の最低賃金法の線 4 本。AI の選び・確証なし（事前登録 measurements/ma480_20261021_prereg.txt [2] F2）。上げる線と下げる線を分け、間は現状維持（徴兵法の (193) と同じ作法）。
+//   1/3・1/2 は AI の既存の線（AntitrustUrbanLine・TrustbustUrbanLine）と同じ族の数。失業の線は法が None の行の分布から（失業 1/4 は約 95%・1/2 は 99% の外）。
+````
+
+## L254 T `internal const double MinimumWageUnempLowerLine = 0.5;`
+````
+// 下げる：本国の労働の失業がこの割合以上で、かつ今の段の床が縛る広がりが下の線以上
+````
+
+## L255 T `internal const double MinimumWageBindLowerMin = 0.5;`
+````
+// 下げる：今の段の床が縛る広がり（本国の能力のうち値段が床の 1.05 倍以下の州の割合）がこれ以上
+````
+
+## L256 T `internal const double MinimumWageUnempRaiseLine = 0.25;`
+````
+// 上げる：失業がこの割合未満（下げる線の半分＝間の帯は現状維持）
+````
+
+## L257 T `internal const double MinimumWageBindRaiseMax = 1.0 / 3.0;`
+````
+// 上げる：次の段の床が縛る広がりがこれ以下（賃金が次の段の籠をおおむね払えている＝法は生活費を書き留めるだけで広くは縛らない）
+````
+
+## L258 T `private const double CompulsoryEduBufferMult = 3.0;`
+````
+// 義務教育の財政バッファ倍率
+````
+
+## L259 T `private const double IndustrializeInvestFrac = 0.15;`
+````
+// 産業スタンスの近代化投資率
+````
+
+## L260 T `private const double ModernizeInvestFrac = 0.08;`
+````
+// 近代化スタンスの近代化投資率
+````
+
+## L261-276 W 直後 `public const double OpeningModernizationFrac = ModernizeInvestFrac;`
+````
+/// <summary>開始時に**全国が共有する**近代化投資率（プレイヤーとAIの出発点を揃える）。
+/// ⚠★2026-08-02：<c>World.ModernizationFrac</c> は既定0で、**AIだけが毎ステップ自分で設定していた**。
+///   プレイヤー国は NullAgent なので0のまま＝国家による工業化が一度も起きない。実測（indprobe 24 0 日本）＝
+///   Q24の国家累積が 普3.047・仏2.096・両シチリア2.179・英0.943 に対し**日本（プレイヤー）0.000**、
+///   工業化度は 0.136 対 1.900 の**14倍差**。民間累積はむしろプレイヤーの方が多い（0.180 対 0.066）ので、
+///   差は丸ごとこの1本のレバーから来ていた＝作者報告「プレイヤーの国家の数値が非常に低くなる」。
+/// ★機構は元から対称（同じ <c>ModernizationFrac</c> をUIもAIも書く）＝**壊れていたのは初期値だけ**。
+///   2つのうち控えめな近代化スタンスの率を共有の出発点に採る。
+///   AIは次のステップで自分の判断に上書きするので、この値が効くのは実質プレイヤー国だけ＝較正に無影響。
+/// ⚠★2026-08-10 の是正まで、この段落には「プレイヤーは財政タブのスライダーで上げ下げできる」と書いてあったが**実装と食い違っていた**：
+///   スライダーは XAML から撤去済みで、さらに <c>Simulation.QuarterStart</c> が**プレイヤー国を含む全国**に毎四半期
+///   <see cref="AutoModernizationFrac"/> を代入していた＝仮にUIから動かしても次の四半期に必ずこの値へ戻る二重の封鎖だった。
+///   現在は（a）財政タブにスライダーを復活、（b）QuarterStart は <c>Power.IsPlayer</c> の国を上書きしない、の2点で記述どおりになっている。
+/// ⚠なお裁量は依然として非対称：ここ（プレイヤーの出発点）は控えめな 0.08 だが、産業スタンスのAIは
+///   <see cref="IndustrializeInvestFrac"/>=0.15 まで採る。プレイヤーはスライダーで 0..1 を自分で選べる＝**上限側で対称性が回復**する
+///   （AIが賢く踏む率を、プレイヤーは手で踏める）。</summary>
+````
+
+## L278 T `private const double CornUrbanRepeal = 0.35;`
+````
+// 都市化がこれ超なら撤廃へ（都市が安いパンを要求＝反穀物法同盟）
+````
+
+## L279 T `private const double CornAgrarianKeep = 0.15;`
+````
+// 都市化がこれ未満なら維持へ（地主が支配的な農業国）
+````
+
+## L280 T `private const double EmancipationRentRoom = 0.05;`
+````
+// 地代の取り分が上限（土地改革と農奴解放の上限の小さい方）をこれ超で上回っていれば土地改革に余地がある（⚠農奴解放は読まない＝2026-10-03 (184)）
+````
+
+## L282-286 W 直後 `private static void StepLawToward(World w, NationPolicy p, PolicyAxis axis, int cur, int w`
+````
+/// <summary>★法の目標を**1段だけ**動かす（3法のAI・2026-08-02）。
+/// ⚠★置く前に <see cref="Government.GateInfo"/> を確認する＝**幽霊戦線の防壁**。
+///   通らない目標を置くだけで <c>CountOpenFronts</c> に毎期1本として数えられ続け、
+///   <c>PoliticalPushBudget=(1/N)^0.5</c> が**連続の軸（税と支出の段・軍事費・関税）の押しを一律に薄める**（段の法の歩幅には掛からない＝(275) 訂正・(274) の計器）。UI経路はボタンが無効化されるので防げるが、
+///   AI経路には防壁が無かった。新しい判定ではなく、UIが既に使っている関数を呼ぶだけ。</summary>
+````
+
+## L289-292 W 直後 `want = System.Math.Clamp(want, 0, max);`
+````
+// ★上限は必ず受け取ってクランプする（2026-08-02のバグ修正）：初版は want を無制限に受け、
+//   呼び手が cur+1 を渡していたため目標が四半期ごとに際限なく増え、604期で LandReform=601 という
+//   enum の定義外の値になっていた（法の多様性表に「6017 %」等の数値が並んで発覚）。
+//   下流は (int)w.LandReform / 2.0 のように序数を割合として読むので、定義外の値は静かに全部を汚す。
+````
+
+## L298 T `if (!ok) return;`
+````
+// 通らない目標は置かない（幽霊戦線を作らない）
+````
+
+## L302-318 W 直後 `private static void GateLaw(ref PolicyPreferences.Profile? shared, World w, PolicyAxis axi`
+````
+/// <summary>★AI第1波①（2026-08-16・旧の旗 AiLawGateUnified は 2026-10-18 に焼き込み）：AIの法目標の統一ゲート＝幽霊戦線の根絶。
+/// <see cref="StepLawToward"/> と同じ作法（GateInfo確認・1段ずつ）だが、基点を**現行法**に置き、**規則で**到達不能な段は目標＝現行法へ畳む
+/// ＝到達不能な法を目標に残さない（⚠2026-09-18まではここが「通らない段は一律で畳む」だった＝下の修正段落）。幽霊戦線の実体＝目標≠現在の軸が CountOpenFronts に毎期数えられ続け、
+/// 政治押し予算 (1/N)^0.5（Government.Step の PoliticalPushBudget）が**連続の軸（税と支出の段・軍事費・関税）の押しを一律に薄める**（段の法の歩幅には掛からない＝(275) 訂正・(274) の計器）こと。
+/// StepLawToward（基点＝前回目標）と違い基点＝現行法にする理由：ゲートが後から閉じても翌四半期に戦線が閉じる
+/// ＝「置いた時は通ったが今は通らない」目標も残さない。want は毎四半期再計算されるので、状況が変われば自然に再挑戦する（諦めの恒久化はしない）。
+/// 施行タイミングは不変：Government.StepEnum/StepBool は元々1期1段・同じ判定式（純支持＞−余白）なので、
+/// この整形で法の通り方は変わらず、**開きっぱなしの戦線数だけ**が変わる。
+/// ★2026-09-18 修正（AI＝プレイヤー対称・P5）：通らない段を一律 <c>set(cur)</c> で畳むのをやめ、**通らない理由で分ける**。
+///   旧＝支持が足りないだけの拒否でも目標＝現行法へ畳む⇒目標＝現状で戦線が閉じ、その軸は二度と押されない**0の吸収状態**。
+///   プレイヤーは法律タブが目標を書いたら（LawRowVM.Select）それが残るので畳まれない＝**AI だけが諦める**非対称だった
+///   （Government.GateInfo の注記が「プレイヤー国は NullAgent＝畳まれない＝等価の破れ」と既に自認していた側の鏡像）。
+///   段の財政法で害が見えたのは、段の軸では畳み先が現行法そのものでなく <c>TaxValue(TaxStage(w.X))</c>＝**下向きの新しい目標**になり、
+///   下向きは旧支配層が賛成側で Government.Move を通る＝凍結ではなく**後退**になるから（土地税・教育費が0へ落ちる直接経路）。
+///   新＝到達不能が**規則**による段（前提DAG・段の飛び越し・緊縮の床/天井・総動員・不可逆＝支持層が確立した法の後退）だけ畳む
+///   ＝プレイヤーもボタンを押せない段＝Move が前提DAGを迂回せず、永久に閉じない幽霊戦線も作らない。
+///   支持不足は**政治の争点**であって到達不能ではない＝目標は次の1段のまま残す（プレイヤーの置いた目標が消えないのと同じ）。</summary>
+````
+
+## L322 T `if (want == cur) { set(cur); return; }`
+````
+// 目標＝現状（過去に置いた残存目標も畳む＝戦線を閉じる）
+````
+
+## L324 T `var (ok, _, _) = Government.GateInfo(w, axis, want > cur, next, ref shared);`
+````
+// ★(146)：立場の土台は GateAllLawTargets の中で1回（下の注記）
+````
+
+## L325 T `if (ok) { set(next); return; }`
+````
+// 通る＝次の1段を目標に
+````
+
+## L326-327 W 直後 `bool barred = !Government.LawPrereq(w, axis, next, w.Coef).Ok`
+````
+// 通らない理由で分ける。照会するのは法律タブ（LawRowVM.CanReach）とエンジン（StepEnum/StepBool）が既に共有している副作用なしの2本だけ
+// ＝新しい判定式も新しい状態も新しいタイマーもゼロ。⚠LawPrereq は下げる側でも訊く（段そのものが規則で塞がれているかを訊いている）。
+````
+
+## L330 T `set(barred ? cur : next);`
+````
+// 規則で到達不能＝現行法へ畳む／支持が足りないだけ＝次の1段を目標に残す（凍結であって後退ではない）
+````
+
+## L333-340 W 直後 `internal static void GateAllLawTargets(World w, NationPolicy p)   // internal＝番人（潤沢の減税も門を通`
+````
+/// <summary>AI第1波①の適用パス：Apply が旧来どおり計算した法目標（want）を、
+/// 施行の現在値から「いま通る1段」だけに整形する。対象＝Apply が書く全法軸。
+/// ★税・支出・軍事費（作者裁定2026-09-12 R1/R2・2026-09-20 点火）も**対象**（末尾のブロック）＝法になった以上ここを通る。
+/// 対象外（理由つき）：関税＝R3で段にしない／行政費・金利＝利益集団の抵抗を受けない内部事項で政治軸を持たない／
+///   穀物法・土地改革・農奴解放＝既に StepLawToward 済み（Apply内）／
+/// 通貨制度（MonetaryTarget）＝CountOpenFronts に数えられない軸＝幽霊戦線を作らない（実加入も信用ゲートが握る）／
+/// 社会保障法＝Government.Step がスライダー（SocialSecurityTarget）から毎期導出＝法目標の書き込み口が別／
+/// 移民制限法・国教法＝AI の書き手が常に StepLawToward 経由（二重整形しない）。</summary>
+````
+
+## L341 T `internal static void GateAllLawTargets(World w, NationPolicy p)`
+````
+// internal＝番人（潤沢の減税も門を通る）が冪等性を確かめるためだけ（可視性のみ）
+````
+
+## L343-345 W 直後 `PolicyPreferences.Profile? shared = null;`
+````
+// ★立場の土台（PolicyPreferences.Build＝POP の数回の走査）は、この整形の中で最初に純支持を読むときに1回だけ取って全ての照会で分け合う（2026-10-01 (146) 計算量の予算・恒等）：
+//   土台の入力（POP の保有・現行法・軍事費の目標〔Government.MilitaryTotalTarget〕ほか）をこの整形は書かない＝書くのは法目標（NationPolicy）だけで、
+//   土台が読む軍事費の目標（陸海の維持費の目標）の書き込みは**最後の照会の後**（末尾の軍事費の段）。旧＝照会ごとに Build＝全長の1種で約18万回（Build の15%）。
+````
+
+## L347 T `{`
+````
+// (389) Q-a8：最初の GateLaw の前＝畳まれる前の〈欲しい〉を読む（★(599) 旗 AiBureaucracyFromPrereq〔既定 2〕は削除＝走査は常に走る）
+````
+
+## L348 T `long scanT0 = Instruments.On ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;`
+````
+// 走査の実時間（秒）は計器つきのときだけ測る（追記3）。呼びの数は下の台帳が数える
+````
+
+## L349 T `w.Cost[CostLedger.AiBureaucracyScans]++;`
+````
+// 計算量の台帳（診断）：官僚制度の走査は国×四半期（(395)＝(392) までは .cost の外だった）
+````
+
+## L364 T `if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p`
+````
+// ★特権 段4
+````
+
+## L365 T `GateLaw(ref shared, w, PolicyAxis.Inheritance, (int)w.Inheritance, (int)p.Inheritance, (in`
+````
+// ★相続法（線 inh (650)・門の係数 InheritanceLawGate は (843) で焼き込み）
+````
+
+## L366 T `GateLaw(ref shared, w, PolicyAxis.MinimumWage, (int)w.MinimumWage, (int)p.MinimumWage, (in`
+````
+// ★最低賃金法（線 lw (459)・門の係数 MinimumWageLawGate は (843) で焼き込み）
+````
+
+## L369 T `if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(ref shared, w, PolicyAxis.CivilianArms, w.C`
+````
+// ★民間の武器購入の法（2026-09-11）
+````
+
+## L379-383 W 直後 `void GateTax(PolicyAxis a, double cur, double tgt, Action<double> set)`
+````
+// ★税・支出・軍事費の段（作者裁定2026-09-12 R1/R2）：段になった軸も**現行段から・いま通る1段**へ整形する＝法と同じ作法。
+//   ⚠これが無いと、AIが置いた遠い目標（例：緊縮スタンスの所得税0.35＝段1）が通らないまま CountOpenFronts に数え続けられ、
+//     政治押し予算 (1/N)^0.5 が連続の軸の押しを薄める（段の法の歩幅には掛からない＝(275) 訂正）＝**AIだけが幽霊戦線を開く**（ゲート緑≠機構が働いた）。
+//   ⚠AI＝プレイヤー対称：置く/置かないの物差しは法律タブと同じ GateInfo（IsPlayer は読まない）。
+// ★錨2026-09-18：段序数↔率の写像は Government.TaxStage／TaxValue の2本だけ（軸ごとの錨を引く）＝ここに第二の式（v/3）を置かない。
+````
+
+## L389-389 W 直後 `GateTax(PolicyAxis.LandTax, w.LandTax, p.LandTaxTarget, v => p.LandTaxTarget = v);`
+````
+// ⚠専売は段にしない（作者裁定2026-09-20）＝AIの整形も通らない（商品ごとの率は下の奢侈品のブロックが置く）
+````
+
+## L392-392 W 直後 `GateLaw(ref shared, w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending.Va`
+````
+// 軍事費＝合計だけが段（陸海比は SetNavalUpkeepShare が続けて連続で決める＝D4）。書き込み口は比を保つ既存の1本。
+````
+
+## L394 T `Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Gov`
+````
+// Max(1,…)＝「なし」を作らない
+````
+
+## L397-405 W 直後 `internal static void BureaucracyFollowsWants(World w, NationPolicy p, ref PolicyPreference`
+````
+/// <summary>★(389) Q-a8 AI の官僚制度（★(599) 旗 AiBureaucracyFromPrereq〔既定 2〕は削除した＝走査は常に走り政治の門を通る）：AI が欲しい法（目標が現行より上）のうち、その一歩が
+/// 〈官僚制度が前提〉で止まっている法があれば、官僚制度の目標をその法が通る一番低い段まで上げる。直後の <c>GateLaw(官僚制度)</c> が法律タブと同じ門で一歩に整形する。
+/// 欲しい法＝<see cref="Government.LevelLaws"/>／<see cref="Government.RateLaws"/> の表の行で目標が現行より上（表を読むだけ＝法の一覧を作らない）。
+/// 止まっている＝<see cref="Government.LawPrereq"/> が不可で、官僚制度を仮に専門官僚制にすれば可（別の理由で止まる法は数えない）。必要な段＝仮に置いて通る最小の段。
+/// 官僚制度が足りていれば法律タブと同じ門 <see cref="Government.GateInfo"/>（純支持・政治資本の残り）も通る法だけ数える
+/// （段0 の実測：独占禁止は開幕の工業化度で全国が 1787 年ごろから欲しがるが、政治の支持が無ければ通らない欲しさ）。旧の旗 1〔欲しければ数える〕は削除した。
+/// 新しい定数・閾値・状態を置かない（**引き金**は毎四半期、盤面から導く）。下げない・止まる法が無ければ目標に触らない。
+/// ⚠**置いた目標は導き直されない**＝施行されるまで（欲しさが消えても）残る（プレイヤーの置いた目標・議会の綱領の目標と同じ。解放を足すなら番人を意図して書き換える）。事前登録 追記3 [A]。
+/// INS=1 のときは読むだけの記録を残す。</summary>
+````
+
+## L415 T `if (okNow && w.Bureaucracy == BureaucracyLaw.Spoils) return;`
+````
+// 今が猟官制で通る＝官僚制度に左右されない法
+````
+
+## L416 T `if (Government.LawPrereq(w, axis, next, coef, BureaucracyLaw.Spoils).Ok || !Government.Law`
+````
+// 官僚制度に左右される法だけ
+````
+
+## L425 T `bool feasible = Government.GateInfo(w, axis, true, next, ref sh, lawNeed).Ok;`
+````
+// 官僚制度が足りていれば法律タブで押せる法
+````
+
+## L436-436 W 直後 `public static double AutoModernizationFrac(World w, double fiscalStress)`
+````
+// ★撤去2026-08-16（C2-C5）：AutoAntiCorruptionTarget（汚職根絶の自動化・2026-08-02）を物理削除＝汚職V2恒久ONで根絶費の動詞ごと死骸（プレイヤー/AI対称のまま消滅）。
+````
+
+## L438-440 W 直後 `public static double AutoModernizationFrac(World w, double fiscalStress)`
+````
+/// <summary>近代化投資率の既定式＝Apply と同じ**設備の収益の持ち分×財政余力**×近代化スタンスの率（スタンスを持たない国の代役）。
+/// 書き手は Simulation.QuarterStart（非プレイヤー国のみ・DecideQuarter の前）。UtilityAgent 国は直後の Apply が上書きするので
+/// 実際に効くのは NullAgent の非プレイヤー国（テスト/warmtest）だけ。プレイヤー国は財政タブのスライダー（2026-08-10）。</summary>
+````
+
+## L444 T `double indGap = w.ModernizeReturnShare();`
+````
+// ★(416) 国庫の配り先の設備の収益の持ち分（Apply と同じ 1 本・片方だけ換えると非対称ができる）
+````
+
+## L448 T `private const double DumpingExportRatio = 1.3;`
+````
+// ダンピング発動の輸出超過比
+````
+
+## L449 T `private const double DumpingTariff = -0.10;`
+````
+// ダンピング（負関税）
+````
+
+## L450 T `internal const double RecessionDrawdownThreshold = 0.08;`
+````
+// 後退＝緩和のドローダウン閾値（★2026-08-26 に UI の前倒し起債と1本化・その起債は 2026-09-28 に借入の自動化で削除）
+````
+
+## L451-451 W 直後 `private const double PreTighteningInterestRate = 0.32; // 予防的引締め（過熱の兆候で早めに締めバブルを小さく＝恐慌原因の4`
+````
+// 恐慌AI対処（2026-07-25 #124・ユーザー裁定＝機構の振幅は触らずAIを賢く。プレイヤーも同じ手を打てる＝対称）：
+````
+
+## L452 T `private const double PreTighteningInterestRate = 0.32;`
+````
+// 予防的引締め（過熱の兆候で早めに締めバブルを小さく＝恐慌原因の41%が信用過熱先行）
+````
+
+## L453-460 W 直後 `private const double EasingInterestRate = 0.05;        // 緩和金利`
+````
+// ★係数へ昇格（2026-08-22・恐慌較正の二段構え＝作者裁定「まず裸の資本主義の値を予想し、素の経済をそこへ合わせ、AIの対策で史実へ」）。
+//   既定値は旧 const と同値＝**ビット恒等**。目的＝POB_COEF で「裸の測定腕」（安定化チャネル全OFF）を組めるようにする座標であって、
+//   ゲーム側の恒久ONの裁定（2026-07-25）は不変。裸腕＝ PreTightenHeatFrac=1.0（予防なし＝素の過熱閾値のみ）・CrisisAusterityRelief=1.0（緊縮の罠を素通し）
+//   ＋ LolrStrength=0・LolrReserveBoost=0（最後の貸し手なし）。読み手＝Apply の金利ブロック（PreTightenHeatFrac）と財政規律ブロック（CrisisAusterityRelief）の2箇所のみ。
+// #124裁定確定（2026-07-25）：切り分け実測＝a/bとも恐慌を減らすが near−5（帯が恐慌の多さに依存＝1848/1917型政変の駆動因は経済危機そのもの。
+// 逸脱の実体＝後進専制国が危機を凌いで近代化しすぎ・英が固着）。ユーザー裁定＝**賢いAIを固定し、帯は数値側で再較正する**
+//（AI=プレイヤー対称の原則＝バランスをAIの愚かさで取らない）。再較正の第一候補だった C-高7（共通床・2026-10-16に制度疲労ごと削除済み。後進国が「危機の破壊」でなく
+// 「制度の硬直」で後進に留まる経路＝新逸脱国ヒヴァ/エチオピア/マラータ等はdecayストックを持たない50カ国側）→次にDecay3チャネル強化。
+````
+
+## L461 T `private const double EasingInterestRate = 0.05;`
+````
+// 緩和金利
+````
+
+## L462 T `private const double OverheatHeatThreshold = 0.7;`
+````
+// 過熱＝引締の熱閾値
+````
+
+## L463 T `private const double TighteningInterestRate = 0.45;`
+````
+// 引締金利
+````
+
+## L464 T `private const double NeutralInterestRate = 0.22;`
+````
+// 平時中立金利
+````
+
+## L465 T `private const double EducationEaseFloor = 0.3;`
+````
+// 教育費の逼迫時下限
+````
+
+## L466 T `private const double EducationEaseSpan = 0.7;`
+````
+// 教育費の余裕連動幅
+````
+
+## L467 T `private const double FiscalTaxStressMult = 0.4;`
+````
+// 逼迫時の広い税の最低率係数
+````
+
+## L468 T `private const double OpiumBanHysteresis = 0.3;`
+````
+// アヘン禁令解除のヒステリシス比
+````
+
+## L469 T `private const double OpiumFullBanRatio = 2.0;`
+````
+// 全面禁止（国内生産も違法）へ進む中毒度＝輸入禁止の閾値の何倍か（禁制品doc C3・2026-07-30）
+````
+
+## L470-470 W 直後 `private const double FireSaleFiscalStress = 0.7;       // 国営工場売却の逼迫閾値`
+````
+// ★撤去2026-08-16（C2-C5）：反腐敗AI定数4本（CorruptionGraftThreshold/AntiCorruptionDebtGdpCap/AntiCorruptionGraftMult/AntiCorruptionCap）＝読者は根絶費の動詞のみ＝機構ごと物理削除。
+````
+
+## L471 T `private const double FireSaleFiscalStress = 0.7;`
+````
+// 国営工場売却の逼迫閾値
+````
+
+## L472-474 W 直後 `private const double MobilizeOutmatchRatio = 1.2;   // 戦争の規模（Diplomacy.WarScale＝相手の陣営の、自陣営`
+````
+// ★撤去2026-08-16（AI第1波・掃除）：POP動詞①（2026-07-20全廃）の残骸4定数
+//   （ParliamentaryStanceThreshold/NonParliamentaryStanceThreshold/StanceHysteresis/ClassSlotCount）＝全域grepで読み手ゼロを確認し物理削除（理念違反監査§6-5計上済み）。
+// AI第1波②（2026-08-16）総動員のAI分岐の判定線（SelfPlay.DecideQuarter・2026-09-20 に段の点火で常時 live）：
+````
+
+## L475 T `private const double MobilizeOutmatchRatio = 1.2;`
+````
+// 戦争の規模（Diplomacy.WarScale＝相手の陣営の、自陣営の本国へ届く陸の力÷自陣営の陸の力）がこの倍以上＝総動員（上げる線）。
+````
+
+## L476-477 W 直後 `private const double MobilizeLosingScore = 0.5;     // 存亡（Diplomacy.WarScale の out＝自陣営の本国の`
+````
+// ★(195) 下げる線＝この逆数（自陣営が相手の1.2倍）＝交戦中でも復員する。旧＝陣営戦力（SideMilitary＝届くかを読まない）の比。
+// 屈服線（AISubmitMilRatio=3.0）・宥和線（AppeaseMilitaryRatio=2.5）よりずっと手前＝「戦えるが苦しい」帯で踏む
+````
+
+## L478 T `private const double MobilizeLosingScore = 0.5;`
+````
+// 存亡（Diplomacy.WarScale の out＝自陣営の本国の敗色×味方の陸の力の重み）がこれを超えたら総動員＝本土が蹂躙されている（★(195) 下げる線＝敗色0＝戦況が五分に戻る）
+````
+
+## L479-486 W 直後 `private const double AiElectionIncumbentAffinity = 0.5;   // 与党（族）と同じ族の看板への上乗せ＝自派の候補を推す。`
+````
+// （レジームチェンジ1.0・割譲 TerritoryCessionScore=1.2 の手前で踏み込む＝間に合う総動員）
+// 【墓標2026-09-28（作者裁定 F5）】移民制限法のAI判定線3本（閉鎖1.0・選別0.4・開放へ戻す0.15）を削除。締める線は (63) の受入の上限の係数から導き、
+//   開放へ戻す枝は消した（DecideModernLaws の移民制限の段落）。
+// ★E4（総選挙の公示のAI等価物・2026-08-17）の判定線。
+// ⚠新しい係数は作らない（旧の旗 ElectionEventEnabled は 2026-10-18 に焼き込み＝公示はプレイヤーとAIで同時に有効）。ここはAIの判断線＝SelfPlay私有定数。
+// ⚠★E3''（確定形2026-08-17）で AiElectionMandateBudget は撤去した＝レバーは「政治資本の何割を賭けるか」ではなく
+//   **裁量余剰の何%を注ぐか**（＝金の予算制約）になったので、押しの大きさをマンデート余白から出す理由が消えた。
+//   余白は今も「そもそも動かせるか」の門（price ≤ margin）としてだけ効く＝二重に使わない。
+````
+
+## L487 T `private const double AiElectionIncumbentAffinity = 0.5;`
+````
+// 与党（族）と同じ族の看板への上乗せ＝自派の候補を推す。
+````
+
+## L488-488 W 直後 `private const double AiElectionMinPush = 0.05;            // 注ぐ額が裁量余剰のこの割合未満なら静観（微風に軍と学校の予`
+````
+// ブロック立場（概ね−2..+2）に対して控えめ＝支配ブロックの利害が主・党派心は従
+````
+
+## L489 T `private const double AiElectionMinPush = 0.05;`
+````
+// 注ぐ額が裁量余剰のこの割合未満なら静観（微風に軍と学校の予算を割かない＝加担しないことも択）
+````
+
+## L491-495 W 直後 `private const double MilitaristDoctrineDegree = 0.25;`
+````
+// ★軍国教義の判定線（2026-08-18・親軍法の撤去）＝**軍の政治的優位**（PoliticalQuantities.MilitaryPoliticalRatio∈[0,1]）がこれ以上なら軍事国家の教義。
+//   ⚠新しい係数は作らない（ここはAIの判断線＝SelfPlay私有定数＝E4の作法と同じ）。
+//   ⚠忠実度ハーネスの閾値（HistoricalReference.MilitarismDegreeOk）とは**別の定数**にする＝物差しを動かすと挙動が動く、を作らない
+//     （参照表はシミュレーションから読まれない＝帯リスクゼロ、という既存の性質を守る）。値の由来は docs/202608。
+//   ⚠**給与は1度も読まない**（金では将校は動かない＝西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）。
+````
+
+## L498-502 W 直後 `public static Doctrine DoctrineFrom(World w)`
+````
+/// <summary>倍率排除⑧：AIの教義（戦略バイアス）を政体ラベルでなく**支配ブロック（利益集団の力）＋軍国度**から創発させる。
+/// 旧支配層が支配＝軍国（軍が政治的に優位）なら軍事国家／否なら伝統的均衡・近代エリート支配＝資本主義(工業)・大衆支配＝近代化/福祉。
+/// 参政権の拡大で支配ブロックが移れば教義も動的に変わる（政体→固定挙動の写像を廃し、誰が権力を握るかという実体から創発）。
+/// ★2026-08-18（親軍法の撤去）：旧＝法のON/OFF。教義は離散なので判定線は残るが、線を引く量が「法があるか」から
+/// **「軍が文民制度を圧倒しているか」**へ変わった＝軍国は宣言でも金でもなく、人事と軍法の帰属で決まる。</summary>
+````
+
+## L506 T `if (trad >= modern && trad >= mass) return PoliticalQuantities.MilitaryPoliticalRatio(w) >`
+````
+// 旧支配層が支配（軍国＝軍事国家／否＝伝統的均衡）
+````
+
+## L507 T `if (modern >= mass) return Doctrine.Industrialist;`
+````
+// 近代エリート（ブルジョワ・専門職）が支配＝資本主義
+````
+
+## L508 T `return Doctrine.Modernizer;`
+````
+// 大衆（労働者・農民）が支配＝近代化・福祉
+````
+
+## L511 T `internal enum Stance { Modernize, Industrialize, Welfare, Fiscal, Militarize }`
+````
+// ★internal＝計器（Runner の armstrace）が読むためだけ。InternalsVisibleTo("PriceOfBread.Runner")
+````
+
+## L513-516 W 直後 `internal readonly record struct StanceBreakdown(`
+````
+/// <summary>★診断（2026-08-26・作者質問「史実の軍縮が創発されているか／理想の軍隊が発散していないか」）：
+/// スタンス選択の**内訳**。実測で「61カ国が全員 Militarize に永久固定・軍縮エピソード0件」が出たので、
+/// uMil のどの項が勝ち続けているのかを国ごとに読めるようにする。⚠**値を作る場所は増やさない**＝
+/// <see cref="UtilityAgent.ChooseStance(World, out StanceBreakdown)"/> の本体1つが計算し、これはその写しを運ぶだけ。</summary>
+````
+
+## L520 T `string ThreatFrom, double ThreatRatio);`
+````
+// ★脅威の出所＝生存効用の max を取った相手（argmax の写し）と、そのときの比
+````
+
+## L522-524 W 直後 `public static double FiscalBufferOf(World w)`
+````
+// 【墓標2026-09-26・回5-1 項目19】AIだけの伝統主義ゲート（旧 ModernizationLawsGated・係数 TraditionalistLawGate・裁定2026-07-09 黒船動学）を削除。
+//   プレイヤー（NullAgent）には無い門＝思想⑤の違反。近代化の法（教育法・参政権・女性の権利・秘密投票・専門官僚制・独禁・同業組合）を置けるかは
+//   法律タブと同じ GateInfo（GateAllLawTargets）・旧支配層の抵抗（PolicyPreferences）・政治資本の在庫で決まる＝プレイヤーと同じ物差し。
+````
+
+## L526-529 W 直後 `public static double FiscalBufferOf(World w)`
+````
+/// <summary>財政バッファ＝月次義務（維持費＋利払い＋行政・軍装備の請求権）の <see cref="Coefficients.FiscalStressBufferMonths"/> か月分。
+/// 財政逼迫の物差し（監査2026-07-11 リ4）：旧＝国庫50,000の絶対額固定を53カ国（初期国庫約370倍差）へ一律適用＝
+/// 小経済の国は恒久破産モード（福祉ほぼゼロ・汚職根絶が永久0・逆進課税の高止まり）・大経済の国は無風、という規模非中立の是正。
+/// 公開（2026-08-04・UI）：財政タブが「国庫の余裕＝月次義務の何か月分か」を表示する（AIと同じ物差し）。</summary>
+````
+
+## L531 T `=> Math.Max(1.0, (w.Coef.FiscalStressBufferMonths * (w.LastInterestPerMonth + w.LastAdminC`
+````
+// （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
+````
+
+## L532-534 W 直後 `public static double OpulenceLineOf(World w)`
+````
+// ⚠R3安定形（2026-08-08作者裁定「不具合として解決・安定するように」）：兵士給与は**ここ（緊縮反射の分母）には入れない**
+//   ＝R3=1.0の全面算入は世界的な緊縮暴発で棄却済み。給与は下の OpulenceLineOf（潤沢判定＝減税反射・支出反射の線）にだけ算入
+//   ＝清の「軍の請求書を見ない潤沢判定→減税」の嘘だけを閉じ、austerity側は不変。
+````
+
+## L536-537 W 直後 `public static double OpulenceLineOf(World w)`
+````
+/// <summary>潤沢線＝「これを超える国庫は取り過ぎ」の物差し（RelieveOpulence と SpendableRevenue が共有＝減税反射と支出反射の対）。
+/// 兵士給与（LastSoldierPayPerMonth＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。</summary>
+````
+
+## L541-543 W 直後 `public static double FiscalStressOf(World w)`
+````
+/// <summary>財政逼迫度∈[0,1]＝1−国家の支払い率 r（作者裁定 R4・2026-09-28 支払いの一元化 段2-1）＝全ての国家の支払いの請求のうち払えない割合（0=十分・1=1銭も払えない）。
+/// 旧＝国庫が財政バッファ（月次義務の何か月分か）を下回る度合い＝r と別の物差しで、請求の一部（維持費・利払い・行政・軍装備）しか見なかった。
+/// 公開＝Simulation.QuarterStart（AutoModernizationFrac）とテストが同じ物差しを読む。NaN は逼迫側＝fail-closed。</summary>
+````
+
+## L547 T `return s >= 0 ? (s <= 1 ? s : 1.0) : (s < 0 ? 0 : 1.0);`
+````
+// 否定形ガード＝NaN は逼迫側（1）
+````
+
+## L550-553 W 直後 `internal static double InterestBurdenStressOf(World w)`
+````
+/// <summary>★(337) 利払いの重さ∈[0,1)＝利払いのうち、歳入が借入の門の限界（<see cref="Coefficients.MaxInterestShareOfRevenue"/>＝<see cref="Fiscal.BorrowGateOpen"/> と同じ線）で支えきれない部分の割合
+/// ＝(利払い−限界×歳入)÷利払い（限界の下は 0・歳入が 0 なら 1 に近づく）。新しい数を持たない・上下を切らない（入力に比例して 0 から 1 へ連続に近づく）。
+/// 払えなかった割合 1−r（<see cref="FiscalStressOf"/>）は請求が実際に払えなくなってから立つ＝借入の門が閉じ国庫を食う間（利払い÷歳入が限界を超えて r＝1 のまま）は立たない。こちらはその間を読む。
+/// 定まらない（NaN）は 0。(319) 枝 fx の器と同じ式。</summary>
+````
+
+## L558 T `return excess > 0 ? excess / interest : 0.0;`
+````
+// 否定形の裏＝NaN は 0
+````
+
+## L561-562 W 直後 `internal static double MonopolyPushProbabilityOf(World w)`
+````
+/// <summary>★(337) 専売の段を広げる確率 p＝利払いの重さ B × 余裕の因子 S（S＝安全水準÷(安全水準＋国庫)。国庫が空なら 1・安全水準と同額で 0.5・潤沢で 0 へ。<see cref="SecurityShare"/> と同じ x/(x+y) の有界形）。
+/// 符号の段差でなく B に比例（B＝0 なら p＝0）・上下を切らない（B∈[0,1)・S∈(0,1] の積）。国庫が定まらない（NaN）は空（S＝1）として扱う（逼迫側へ倒す＝<see cref="FiscalStressOf"/> と同じ向き）。</summary>
+````
+
+## L566 T `if (!(b > 0)) return 0.0;`
+````
+// B＝0（または NaN）なら p＝0＝引く必要がない（符号の錠ではなく p＝B×S の積が 0 になるだけ。抽選を引かない最適化）
+````
+
+## L572-573 W 直後 `internal static bool MonopolyPushDraw(World w, out double p, out double u)`
+````
+/// <summary>★(337) 係数 <see cref="Coefficients.MonopolyBurdenPushMode"/>＞0 のとき、払えていて r＝1 のままでも利払いが重い間に専売の段を 1 段広げるか＝専用乱数 <see cref="World.AiRng"/> を 1 回引いて u＜p。
+/// 係数 0・p＝0・乱数の列なし（較正／最小世界）では**引かない**（旧の経路＝乱数を消費しない・★(388) 既定は 1）。</summary>
+````
+
+## L584-587 W 直後 `internal static double SecurityShare(World w, bool army = false)`
+````
+/// <summary>★脅威の割合∈[0,1)（2026-10-02 (155)）＝安全保障の不安（届く敵意の養える軍の和＝<see cref="World.SecurityThreat"/>）÷(それ＋自国の養える軍の人口の側＝<see cref="World.SecurityThreatOwnMass"/>)
+/// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
+/// 定まらない（単一国・分母0・NaN）は0。
+/// ★(178) <paramref name="army"/>＝分子を陸軍の不安（<see cref="World.SecurityThreatArmy"/>＝本国の国境＋投射×上陸の門＝自国の海軍で防げない分）に限る（同じ形・分母は同じ自国の養える軍）＝徴兵法の目標だけが読む。</summary>
+````
+
+## L595-596 W 直後 `internal static double ArmyShareOrNaN(World w)`
+````
+/// <summary>★(193) 陸軍の不安の割合（<see cref="SecurityShare"/> の army と同じ式）。定まらない（分母0・NaN・単一国）は NaN＝徴兵法の下げる線が「不安なし」と読まない
+/// （<see cref="SecurityShare"/> は定まらないを0へ倒す＝上げる比較〔≧線〕では偽で同じだが、下げる比較では0が「不安なし」になる）。</summary>
+````
+
+## L603-603 W 直後 `internal const double ConscriptionRaiseShare = 0.5;`
+````
+/// <summary>★(193) AI が徴兵法を上限へ上げる線（陸軍の不安の割合・値は (155) の 0.5 のまま＝新しい数ではない）。</summary>
+````
+
+## L605-608 W 直後 `internal const double ConscriptionLowerMargin = 1.0 / 3.0;`
+````
+/// <summary>★(193) 下げる線の幅（深さの単位＝<see cref="PoliticalQuantities.ConscriptionDepth"/>：志願0／選抜0.5／皆兵1）＝今の段の深さが求める深さ（割合÷上げる線）を
+/// この幅より超えたら下げる。1/3＝皆兵の下げる線が割合 1/3（上げる線 0.5 の 2/3）・選抜の下げる線が 1/12＝AI が選んだ値（推奨で進めた・作者の承認は未確認・
+/// 00一覧 §0-A の 0d の行に例の値は無い＝(197) 反証役 vp1#5 で出どころの書き方を直した）。
+/// 上げる線との間（皆兵 1/3〜1/2）が現状維持の帯＝入力の小さな揺れで段が往復しにくい（README §1-8・往復の件数は実装ログ (197) §7）。</summary>
+````
+
+## L611-617 W 直後 `internal static ConscriptionLaw ConscriptionLowerTarget(ConscriptionLaw cur, double share,`
+````
+/// <summary>★(193) 徴兵法の下げる目標＝入力の大きさで段を選ぶ。求める深さ d＝割合÷<see cref="ConscriptionRaiseShare"/>。
+/// 今の段（<paramref name="cur"/>）から、深さが d＋<see cref="ConscriptionLowerMargin"/> を超えない一番深い段まで（今の段より深くはしない＝上げは上げる線だけ）。
+/// 下げる理由が無い（今の段がその範囲＝線の間）なら現状維持＝<paramref name="hold"/>（前の目標）が今の段より上（上げる線で決めた上限への上げの続き）ならそれを保ち、
+/// ★(199) 今の段より下（前に下げる線の下で置いた下げの目標）なら**今の段へ戻す**＝下げる理由が去った目標を残さない
+/// （旧＝前の目標を保った＝門で止まった下げの目標が、割合が線の間へ戻った後も開いた戦線として残った＝平時の国×四半期の 1.1%〔5種〕・その四半期は他の全ての段の法とスライダーの押しが約6%遅い〔Government.Step の PoliticalPushBudget〕・
+///   門が後で開くと線の間で下がった〔下げた時の割合の最大 0.48〕＝(197) 反証役 vp1#4・実装ログ (199)。直した後＝線の間の下げの目標0・下げた時の割合の最大 0.33〔10種〕）。
+/// 下げる段は毎四半期その時の割合で選び直す（上の while）＝線の間の下げの目標は「その時の大きさ」が置かない＝上げ（上限という決まった段への上げ）の続きとは形が違う。</summary>
+````
+
+## L620 T `double keep = share / ConscriptionRaiseShare + ConscriptionLowerMargin;`
+````
+// この深さまでは保つ
+````
+
+## L621 T `if (!(PoliticalQuantities.ConscriptionDepth(cur) > keep)) return hold < cur ? cur : hold;`
+````
+// 否定形＝NaN は保つ側（線の間の保留中の下げの目標は今の段へ）
+````
+
+## L622-625 W 直後 `var k = cur;`
+````
+// ⚠(202) の訂正（反証役 vw2#7）：呼び手（DecideModernLaws）は割合が NaN〔定まらない＝単一国など〕のときこの関数を呼ばない（`armyShare >= 0` が偽）
+//   ＝その四半期は前の目標がそのまま残る（線の間の下げの目標も今の段へ戻らない）＝この関数の NaN の枝は呼び手からは通らない。
+// ⚠(202) の訂正（反証役 vw2#1）：上げの続き（前の目標が今の段より上）は割合が下げる線の上なら保つ＝今の段が志願（下げる線が無い）なら割合が0に近くても次の戦争が終わるまで残る
+//   （(199) の表 wsc199_20261004 §4＝平時に門で止まった上げの目標が5種で 122〔同じ種の腕A 7〕・10種で 135・原因は未特定）＝上げと下げで形が違う（README §1-8 の対称から外れる）＝申し送り（実装ログ (202)）。
+````
+
+## L631-634 W 直後 `internal static double SecurityStageTarget(World w)`
+````
+/// <summary>★AI の軍事費の段の目標＝安全保障の不安の唯一の入口（2026-10-02 (155)・作者 2026-10-01＝脅威の入口を軍事費の段の1つにする案に異議なし・推奨で進めた）。
+/// 目標＝平時の段の幅（最下段 段1〜平時の最上段 段3＝戦時経済の段4 の手前）を脅威の割合（<see cref="SecurityShare"/>）で内分＝不安のない国は段1・届く敵意が自国の養える軍と同じなら段2・
+/// 圧倒されるほど段3 へ近づく。段への丸めと1段ずつの登坂と戦時経済の門（総動員）は法の門（Government・GateAllLawTargets）が掛ける＝ここで上下を切らない（思想⑧＝割合が有界）。
+/// 不安が定まらない世界（単一国）は割合0＝最下段（旧の既定 0.25 と同じ段）。旧＝既定 0.25・軍備スタンスで 0.7（脅威は緊張・植民地防衛・生存の効用を通ってスタンスの2値で入った）。</summary>
+````
+
+## L637 T `double lo = 1.0 / Government.MilitaryLawStages, hi = (Government.MilitaryLawStages - 1.0) `
+````
+// 段1（0.25）〜段3（0.75）
+````
+
+## L641-641 W 直後 `private static Stance ChooseStance(World w) => ChooseStance(w, out _);`
+````
+// スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
+````
+
+## L644-645 W 直後 `internal static Stance ChooseStance(World w, out StanceBreakdown bd)`
+````
+/// <summary>★2026-08-26：内訳つきの本体。従来の <c>ChooseStance(World)</c> は out を捨てる薄いラッパー＝
+/// **式も順序も1文字も変えていない**（計器が uMil の各項を読めるようにするための抽出のみ）。</summary>
+````
+
+## L648 T `var doctrine = DoctrineFrom(w);`
+````
+// 倍率排除⑧：支配ブロック＋軍国度から創発（政体ラベルの写像を廃止・政変や参政権拡大で動的に変わる）
+````
+
+## L650 T `double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();`
+````
+// ★(416) 工業化の余地＝目盛り 4.0×国庫の配り先の設備の収益の持ち分（4.0 は効用の目盛りの係数で上限ではない・〈確証なし〉）。達成して収益が立たなくなれば uInd が下がり教義の道へ
+````
+
+## L651 T `double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);`
+````
+// 不満（満足の不足）
+````
+
+## L652 T `double fiscalNeed = FiscalStressOf(w);`
+````
+// 国庫の逼迫（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
+````
+
+## L654-654 W 直後 `double famine = Math.Max(0, 1.0 - w.FoodFill);   // 飢饉度（主食充足の不足∈[0,1]）。旧AIは FoodFill を一切読ま`
+````
+// スタンスごとの効用＝助ける成分×不足。最大を選ぶ。
+````
+
+## L655 T `double famine = Math.Max(0, 1.0 - w.FoodFill);`
+````
+// 飢饉度（主食充足の不足∈[0,1]）。旧AIは FoodFill を一切読まず飢饉を見殺しにしていた（AI監査2026-07-06）＝反応の入力を与える
+````
+
+## L658 T `double uWel = UWelUnrestWeight * unrest + UWelFamineWeight * famine;`
+````
+// 飢饉時は福祉スタンスの効用↑＝救済(社会保障)・逆進課税の緩和・労働短縮へ舵を切る（生存反射）
+````
+
+## L660-661 W 直後 `double tension = w.Diplomacy is { } dip && w.SelfPower is { } sp ? dip.MaxTension(sp) : 0;`
+````
+// 軍備の基礎効用：専制(軍国)は常に軍拡。加えて対外脅威(緊張)があればどの政体も防衛のため軍拡する
+// ＝緊張緩和（不満が出ない）と対(つい)で、軍が地政学に応答する（脅威下で軍拡・平時は控える）。代償は国庫の維持費。
+````
+
+## L663-670 W 直後 `double colonyUnits = w.SelfPower?.ColonyMassUnits() ?? 0;`
+````
+// 植民地防衛：帝国は海軍を維持して領土を守る（植民地ほど軍拡）。これがないと制海権を失い植民地を奪われる（英の海軍が消える問題）。
+// ★飽和（2026-08-03・作者報告「イギリスの開発度が異常に低い」の根）：旧＝植民地数に無限比例で、
+//   植民地11の英は恒久+3.3＝uInd(≈4.0)と拮抗し tension が少しでもあれば **131年間 Militarize に固定**＝
+//   近代化投資レバーが毎四半期0に潰され、開幕バーストも踏めず Ind 0.33→0.67 に沈んだ（実測 indprobe 120Q）。
+//   飽和は既存の「帝国規模の飽和」定数 ColoniesForFullColonial を再利用（Colonial.cs の反帝世論と同じ写像）＝
+//   新しいスカラーを置かない。守るべき帝国がある事実は残り、規模の無限加算だけが消える。
+// ★型統合後の旧読み手（wave2b G06#2）：NationalScore.Wealth は個数→質量へ切替済み（州細分化で「行を分けただけで増える」個数の是正）〔★(457) NationalScore.Wealth は (456) で消えた・錨の換算はここに残る〕。
+//   ここは旧単位のまま個数を読んでいた＝分子だけ質量へ揃える（換算は Wealth/:1558-1559 と同じ錨＝初期の 個数/質量）。
+````
+
+## L674-680 W 直後 `double survival = 0;`
+````
+// 生存効用（改修2026-06-28）：存亡の脅威なら、緊張に出る前から軍拡を強める（弱小・中堅の自衛＝生存目的の行動）。
+// 監査2026-07-11（リ3）：旧＝全球最強との単純比較＝53カ国中39カ国が開始時点で飽和値4.5を抱え、Welfare/Fiscalスタンスが
+// 数学的に選ばれ得ず、飢饉反射・緊縮反射が大半の国で発火不能だった（破産中の小国が軍拡を選び続ける）。
+// 「脅威は近接から来る」＝相手の軍×投射（距離減衰）＝実際に自国へ届く力との比較へ置換（近代化法ゲート側の全球比較撤去と同じ処方）。
+// ★届く力は実際の戦線と同じ押しの1本（Diplomacy.FrontPush＝陸軍力×投射×上陸×制空・戦線1・戦費満額）で測り、自国も同じ陸軍力で比べる
+//   （2026-09-29 処理の一元化 段3 G）。⚠旧＝陸海合計の Military×投射 ÷ 自国の Military＝画面の戦争見通しと戦線（陸軍力）と物差しが違った
+//   ＝AI とプレイヤーが別の物差しで相手を見ていた（設計思想⑤）。自国の側は本土で守る＝投射を掛けない（旧と同じ）。
+````
+
+## L682 T `string threatFrom = "-"; double threatRatio = 0;`
+````
+// ★診断のみ（値の生成には一切関与しない）
+````
+
+## L690 T `if (nextMax != maxReach) threatFrom = q.Name;`
+````
+// ★診断＝更新した相手を覚えるだけ
+````
+
+## L697 T `survival = w.Coef.SurvivalMilitaryWeight * PoliticalQuantities.ClampOr(ratio - w.Coef.Surv`
+````
+// (739) 群3：NaN は 0
+````
+
+## L698-698 W 直後 `if (w.Coef.SurvivalHopelessScale > 0)`
+````
+// ★②2026-08-26：見込みの薄さで割り引く（SurvivalHopelessScale=0 では分岐に入らない＝厳密恒等）。
+````
+
+## L703-704 W 直後 `double militaristBase = (doctrine == Doctrine.Militarist ? MilitaristBaseUtility : 0.0) * `
+````
+// 軍国の脱出弁（生存）：破産寸前（国庫逼迫>0.5）は軍国教義の底上げ2.5を緩め、緊縮(uFis)へ舵を切れるようにする。
+// 旧実装は軍国が固定2.5で福祉/緊縮を数学的に選べず、軍事費0.7＋逆進課税満額のまま破産スパイラルで見殺しになった（AI監査2026-07-06）。脅威(tension/survival)は残すので本当に攻められている時は軍拡を続ける。
+````
+
+## L706 T `double tensionTerm = TensionUtilityWeight * PoliticalQuantities.Clamp01(tension / TensionN`
+````
+// ★2026-08-26：計器が読むための命名のみ（評価順は ((mb+t)+cd)+s のまま＝ビット恒等）
+````
+
+## L709-711 W 直後 `double revolt = Politics.AvgMassMilitancy(w) * (1.0 - w.Legitimacy);`
+````
+// 第5段5-2（2026-07-27）体制AIに目：旧SelfPlayはLegitimacy/AvgMassMilitancyを一切読まず「革命が見えないAI」だった（中核ルールdoc §1-1）。
+// 革命の接近＝大衆闘争×正統性の欠乏（積＝どちらか単独では危機でない）。譲歩（福祉＝ビスマルク社会保険）と引き締め（武力→治安維持力）の
+// 両効用を押し上げ、どちらへ舵を切るかは教義バイアスと不足の大小に委ねる（政体ラベル分岐なし）。
+````
+
+## L715-715 W 直後 `uFis += w.Coef.StanceDrawdownFiscal * w.GdpDrawdown.Value;`
+````
+// 恐慌の目：GDPドローダウン→緊縮（国庫逼迫 fiscalNeed より早く点く先行指標。反景気循環の金融政策とは別レバー＝財政姿勢）。
+````
+
+## L718-718 W 直後 `switch (doctrine)`
+````
+// 教義バイアス（多様化）：得意分野の効用を増幅＝政体ごとに異なる戦略を歩ませる
+````
+
+## L730 T `bd = new StanceBreakdown(uMod, uInd, uWel, uFis, uMil, militaristBase, tensionTerm, colony`
+````
+// ★計器へ写すだけ（分岐に影響しない）
+````
+
+## L734-737 W 直後 `private static void RaiseWomenRights(NationPolicy p, WomenRightsLaw to)`
+````
+/// <summary>★女性の権利の梯子（統合法・2026-08-10）：AI は段を**上げるだけ**。
+/// ⚠下げ目標を書くと不可逆法（<see cref="Government.BlockedByIrreversibility"/>）と噛み合って
+/// 「現在値は降りられないのに目標だけ下がる」永久の開戦線になり、政治予算 PoliticalPushBudget が恒久的に目減りする（幽霊戦線）。
+/// 旧コードは bool を個別に true にするだけで後退が起こり得なかった＝統合で新たに生まれ得る退行を、単調化で構造的に封じる。</summary>
+````
+
+## L741-743 W 直後 `internal static void DecideModernLaws(World w, NationPolicy p, Stance s)   // internal＝番人テ`
+````
+/// <summary>E5/E6の9法へのAI目標書き手（02断線走査2026-07-28）：doctrine から新法の目標を導く。器・効果・主フラグは全て点火済みだったが
+/// 書き手が人間UIのみで、53カ国バッチでは9法が enum 既定値から永久に動かなかった（プロイセン文官改革もソ連国有化も英配給も原理的に不発）。
+/// 実際の施行は政治ゲート（Government.StepEnum/StepBool＝利益集団の抵抗）が決める。</summary>
+````
+
+## L744 T `internal static void DecideModernLaws(World w, NationPolicy p, Stance s)`
+````
+// internal＝番人テスト（LawGateFromBoardTests）が願いの配線を直に読むためだけ（可視性のみ）
+````
+
+## L747 T `p.WartimeRationing = atWar;`
+````
+// 交戦中のみ配給（平時は解除＝資本の反対を無用に買わない）
+````
+
+## L748-749 W 直後 `p.MilitaryExportBan = atWar || s == Stance.Militarize;`
+````
+// 軍需輸出の法（禁制品doc C5・2026-07-30）：交戦中＝自国の軍を優先して輸出を止める／軍拡スタンス＝平時から武器を溜め込む。
+// それ以外（産業・交易・近代化）は許可＝売って稼ぐ。★どの相手に売らないかは法が緊張で選ぶ（AIもプレイヤーも同じ1本の法＝思想⑤）。
+````
+
+## L751-752 W 直後 `if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale`
+````
+// ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：票を持たない大衆から武器を取り上げる＝男子普選前は禁止・普選後は許可
+//   （英1819六法→普選期の解禁／FactionStrength の発言権と同じ物差し＝新しい閾値を作らない）。AI/プレイヤー対称（同じ1本の法）。ゲート0＝目標を書かない＝恒等。
+````
+
+## L754-774 W 直後 `var csTop = w.ConscriptionLaw == ConscriptionLaw.Universal || Government.UniversalConscrip`
+````
+// ★(178) 徴兵法の目標（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」＝00一覧の軍の裁定の表「徴兵法＝封建の兵から国民の兵へ」で採った推奨①②④・AI の整理）：
+//   ①封建の兵から国民の兵へ＝目標の上限は皆兵の門（Government.UniversalConscriptionOpen＝身分の特権〔領主権の残高＝農奴解放が全面でない〕がある間は閉じる）が開いていれば国民皆兵・閉じていれば選抜。
+//     門の判定は Government.LawPrereq の1本（プレイヤーの法律タブ・勢力の要求・施行も同じ門）＝ここはどの段を目標に置くかだけ（既に皆兵なら皆兵のまま）。
+//   ②陸軍の不安の割合（SecurityShare の army＝本国の国境＋投射×上陸の門〔World.SecurityThreatArmy〕÷(それ＋自国の養える軍)）が半分以上＝上限まで／他は現状維持（線 0.5 は (155) のまま）→ ★(193) 下げる線を分けた（下の段落＝線の間だけが現状維持）。
+//     海の不安のうち自国の海軍で防げる分（海越えで相手の制海権が上陸の門に届かない投射）と植民地の国境は数えない＝英は海軍で防げるので志願・海軍の弱い国は海の向こうの陸軍も数える。
+//   ④交戦の枝は総動員の時だけ（総動員は劣勢と存亡で入る＝DecideQuarter の上の段落・旧＝交戦中なら徴兵制＝英の戦時の法の上げ下げ 36回/試合〔史実 1916・1939 の2回〕）。
+//     旧 (155) の「平時の男子普選以上なら志願制」の枝は外した（史実の向きは参政権でなく脅威と身分の特権で決まる＝仏の第三共和政は男子普選と国民皆兵）。
+//   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）と下の (193) の下げる線。NaN は比較が偽＝現状維持の側。
+//   【(162)① の「平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝パッチ measurements/m163_20261002_landthreat.diff。
+// ★(193) 上げる線と下げる線を分けた（00一覧 §0-A の 0d・0e の徴兵法の分・README §1-8「上げる線と下げる線を分ける＝状態で決める・片方向の錠を作らない」・推奨で進めた＝作者の承認は未確認）：
+//   旧（(188) の C）＝線の下は現状維持＝平時に上げた段は不安が去っても下がらない片方向の錠（平時に下げた件数 0.0／種・r192）。
+//   ・上げる線＝陸軍の不安の割合 ConscriptionRaiseShare（0.5＝(155) のまま）以上で上限（上の①②のまま）。
+//   ・下げる線＝**段は入力の大きさで選ぶ**：求める深さ＝割合÷上げる線（上げる線で 1＝皆兵の深さ・PoliticalQuantities.ConscriptionDepth と同じ物差し＝志願0／選抜0.5／皆兵1）。
+//     今の段の深さが求める深さを幅 ConscriptionLowerMargin（1/3）より超えたら、超えない一番深い段まで下げる＝皆兵は割合 1/3 未満で選抜へ・選抜は 1/12 未満で志願へ
+//     （上げる線と下げる線の間は現状維持＝反転を状態で決める・タイマーにしない・★(199) 線の間では前に置いた下げの目標を今の段へ戻す＝ConscriptionLowerTarget の注記）。下げるのは交戦していない四半期だけ（戦時の下げは作らない＝平時に置いて門で止まっていた下げの目標も交戦中は今の段へ畳む）。
+//     開幕の選抜（大陸の旧体制の割当て）は不安が0に近い時だけ下げの目標に入る（開幕の仏 0.17・西 0.13 は 1/12 より上）。
+//   ・戻しも上げと同じ門＝目標を置くだけ（GateAllLawTargets の GateLaw＝法律タブと同じ照会・施行は Government.Step の StepLevel＝純支持が負なら政治資本で払う）
+//     ＝下げに反対する旧支配層と軍（PolicyPreferences の徴兵法の立場）が強い国では下げは通らない（支持の構成で残る）。無償の失効（(190) の L）にはしない。
+//   ・割合が定まらない（分母0・NaN・単一国）＝現状維持（SecurityShare の 0 を「不安なし」と読まない＝下げの目標を置かない）。
+//   ・戦争が終わった最初の四半期（戦前の記録 ConscriptionPreWar がまだ残る＝この四半期の Government.Step が失効を掛ける）は、読む不安が交戦中に計算した値
+//     （MultiNationSim の四半期末の StepSecurityThreat は外交の前＝戦争の終わる前）＝目標は今の段に置く（戦時の値で上げも下げもしない）＝戦時でない四半期の不安を次の四半期に読む。
+````
+
+## L777 T `if (!atWar && w.ConscriptionPreWar >= 0) p.ConscriptionLaw = w.ConscriptionLaw;`
+````
+// 戦争が終わった最初の四半期＝戦時の値で動かさない
+````
+
+## L780 T `else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.Conscriptio`
+````
+// 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
+````
+
+## L781 T `if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;`
+````
+// 大衆選挙＝買収・威圧の排除が票の実在に直結
+````
+
+## L782-785 W 直後 `if (AntitrustTargetFromBoard(w) is { } antiTarget)`
+````
+// ★(383) 〈行政効率 > 0.6 で専門官僚制を目標に置く〉AI の規則（旧の 4 因子つきの閾値）は物理削除した＝作者 2026-10-16「行政効率→廃止」を AI がこの規則に当てはめた読み（承認は未確認）。
+//   ⚠(387) 反証役 ae〔bv〕高：これは対称にしたのではなく AI の手が減った（プレイヤーは法律タブで官僚制度の目標を置ける・AI は置く規則を失った）。腕 B では米 10/10 種が 1951 年まで猟官制（★(389) 段0 の実測で訂正：普は world.json で開幕から資格任用・英は m387 で 10/10 種が 1800 年前後に議会の経路で資格任用へ届く・計器のある 87 国のうち 51 国が 10 種とも最終まで猟官制）＝
+//   累進課税・失業保険・独占禁止・国有化の前提（Government.LawPrereq〈官僚制度（資格任用以上）が前提〉）が閉じる。次の線＝欲しい法がその前提で止まった四半期に官僚制度の次の段を目標に置く（00一覧 00-AE）。
+// ★(423) 反トラストの願いは本国の都市の割合（★(599) 旧の工業化度の式と旗 AiLawGateFromBoard は削除した）。
+````
+
+## L787 T `p.Antitrust = antiTarget;`
+````
+// 都市の消費者と賃金労働者が多数になる（旧＝工業化＝独占の弊害が政治問題化〔シャーマン法1890〕は削除）
+````
+
+## L788-788 W 直後 `if (GuildTargetFromBoard(w) is { } guildTarget)`
+````
+// ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
+````
+
+## L791-791 W 直後 `{   // ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。`
+````
+// ★最低賃金法（線 lw (459)）：★(486) から既定は旗 MinimumWageAiFromFloor＝1＝盤面の規則（本国の労働の失業と床が縛る広がり・線 4 本・AI の選び＝確証なし）。旗 0 の旧の規則＝賃金労働者（本国の都市人口）が多数になった国は床を求める（反トラスト・同業組合と同じ線）。ゲート0＝目標を書かない＝恒等
+````
+
+## L792 T `{`
+````
+// ★(480) 線 ma：選び方の入口は 1 本（旗 MinimumWageAiFromFloor＝0 なら今の都市の割合の規則・無変更）。
+````
+
+## L798 T `{`
+````
+// プロ独裁＝全部門国有化（5部門＋『全て』＝ソ連型計画経済。§11-6d統合後の全点灯）
+````
+
+## L803 T `p.NationalizeRailways = p.NationalizeElectricity = true;`
+````
+// 社会党執政＝自然独占2部門（アトリー型・戦後国有化。旧・通信は『全て』へ統合＝ソ連型以外は目標に置けない）
+````
+
+## L805-807 W 直後 `{`
+````
+// ★AI第1波③（2026-08-16・旧の旗 AiLawWriteCoverage は 2026-10-18 に焼き込み）：書き手ゼロ2法（移民制限法・国教法）のAI目標。
+// 旧＝議会与党の綱領（Parliament.ApplyPlatform・2026-09-26 に撤去＝回5-1）のみ＝非選挙政体（1783年の54カ国中46カ国）では誰もこの2法を動かさなかった。
+// ⚠書き込みは必ず StepLawToward 経由（GateInfo確認・1段ずつ）＝幽霊戦線を新設しない独立設計。
+````
+
+## L809-822 W 直後 `double inflowRate = w.TotalPopulation > 1e-9 ? System.Math.Max(0, w.LastImmigration) / w.T`
+````
+// 移民制限：読むのは**実際に起きている量**＝流入（前四半期の確定値÷人口）と大衆の失業。
+//   PolicyPreferences.ImmigrationRestriction（法選好の大衆スタンス）と同じ材料・同じ合成＝法が争点になる強さそのもの。
+//   ⚠⚠NetSupport（ゲートの出力）を意図として読んではならない（「通る法しか望まない」トートロジー＝Apply の3法ブロックの禁則）＝物質量を直接読む。
+// ★作者裁定 2026-09-28 F5：
+//   締める線＝**今の法の受入の上限まで流入が満ちたときの圧力**（失業0・受入能力1）。上限は (63) の
+//     ImmigrationReceiveCapPerQuarter×人口×法の率×受入能力（MultiNationSim.MigrateBetweenNations の lawCap と同じ係数）
+//     ＝開放 40×0.012＝0.48・選別 ×ImmigrationSelectiveFrac＝0.24。今の法の上限まで流入が届き、職が足りない（失業>0）ときに1段締める。
+//     流入は今の法の下で測った量（法は DecideQuarter の後の Government.Step で動き、移民は四半期末）＝線と同じ法を読む。
+//   旧＝絶対の線（閉鎖1.0・選別0.4・開放へ戻す0.15）。(63) の後は圧力の最大が 開放0.48・選別0.24・閉鎖0.096（×(1＋失業)）で、
+//     閉鎖へは届かず、閉鎖の下では必ず「開放へ戻す」線を下回った＝1783年の鎖国が1〜2四半期で開国した（(75) §5）。
+//   ★開く向きはここに書かない＝流入の圧力が無い間は現状維持（PolicyPreferences の「流入ゼロの国では争点にならない」と同じ読み）。
+//     開くのは資本の要求（危機の要求＝この後の Parliament.TargetCrisisDemands／内戦の講和＝Politics.ConcedeToFaction）か外圧だけ。
+//     外圧＝不平等条約で港を開かされていること（World.UnequalTreatyInForce＝港州の外国持分が付与の半分以上・南京条約1842／安政条約1858／江華島条約1876）。
+//   どの向きも StepLawToward＝法律タブ（LawRowVM）と同じ Government.GateInfo を通る。
+````
+
+## L824 T `double unemployment = PolicyPreferences.AvgUnemployment(w);`
+````
+// 唯一定義（旧＝口だけ複製を2026-09-11 #13 で畳んだ）
+````
+
+## L826 T `if (!(pressure >= 0)) pressure = 0;`
+````
+// NaNガードは否定形（Clamp/MaxはNaNを消さない）＝非有限は「圧力なし」＝現状維持側へ
+````
+
+## L827 T `int immWant = (int)p.ImmigrationRestriction;`
+````
+// 現状維持
+````
+
+## L832 T `if (w.UnequalTreatyInForce) immWant = (int)ImmigrationLaw.Open;`
+````
+// 外圧
+````
+
+## L836-839 W 直後 `if (w.Polity != Polity.ProletarianDictatorship)`
+````
+// 国教：支配ブロックの教義（DoctrineFrom＝発言権の実体）から。大衆支配＝信仰の自由（反教権・十分の一税の廃止圧力）・
+//   近代エリート支配＝内心の自由（商業社会の実利＝識字移民・宗派と取引しない）・旧支配層支配（Balanced/Militarist）＝現状維持（国教の防衛）。
+//   上げ目標のみ（Max）＝教義の揺れで宗教反動の台本を書かない（後退は断裂の窓など既存機構に委ねる）。
+//   プロレタリア独裁は書かない＝国家無神論は政体の属性（Government.Step が毎期強制・LawPrereq「プロレタリア独裁のみ」）。
+````
+
+## L846 T `_ => (int)p.StateReligion,`
+````
+// 伝統支配＝現状維持（開いた戦線も新設しない）
+````
+
+## L848 T `relWant = System.Math.Max(relWant, System.Math.Min((int)p.StateReligion, (int)StateReligio`
+````
+// 単調＝下げ目標を書かない（政体離脱後の残存 StateAtheism は上限クランプが2へ畳む）
+````
+
+## L855-882 W 直後 `public static void DecideElection(World w)`
+````
+/// <summary>★E4（選挙doc §3-2b「AIも同じ択を持つ＝綱領選好から自動で決める」・作者裁定2026-08-17「AI・プレイヤー完全等価」）：
+/// 総選挙の公示（<see cref="World.PendingElection"/>）へのAIの答え。**プレイヤーと同じ動詞**（<see cref="World.ResolveElection"/>）を叩く
+/// ＝加担の代価（余白判定・正統性の支払い・押し込みの記帳）は1つの関数に閉じている（別経路・別式を作らない）。
+///
+/// <para><b>選好（どの思想に加担するか）</b>＝AIが既に読んでいる量だけから導く（新しい観測を作らない・固有名詞/年号/IsPlayer分岐なし）：</para>
+/// <list type="bullet">
+/// <item>支配ブロックの立場＝<see cref="PolicyPreferences.Stance"/> の3ブロック成分のうち、
+///   <see cref="DoctrineFrom"/>（支配ブロック＋軍国度から創発する教義）が指す1つ。
+///   伝統/軍国＝旧支配層・資本主義＝近代エリート・近代化＝大衆。看板議題（法軸＋向き）への賛否そのもの＝「綱領選好」。</item>
+/// <item>与党族との一致＝<see cref="World.GoverningParty"/> と看板思想の族（<see cref="PoliticalQuantities.FamilyOf"/>）が同じなら
+///   <see cref="AiElectionIncumbentAffinity"/> を上乗せ＝自派の候補を推す。</item>
+/// </list>
+/// <para><b>レバー</b>（★E3''確定形2026-08-17）＝**裁量余剰の何%を注ぐか**＝軍事費・教育費と同じ物差しの上での配分判断。
+/// だからAIは「押したいか」ではなく<b>機会費用</b>で決める＝既にAIが持っている2つの量だけから：</para>
+/// <list type="bullet">
+/// <item><b>存亡の切迫</b>＝与党（族）の得票が不信任線（<see cref="Coefficients.NoConfidenceThreshold"/>）にどれだけ近いか。
+///   線の2倍の得票があれば0（平時）・線に触れれば1（倒れる寸前）＝**新しい閾値を置かず既存の線を物差しにする**。</item>
+/// <item><b>他の支出の逼迫</b>＝<see cref="FiscalStressOf"/>（国庫が維持費・利払い・行政・軍装備の請求書の何か月分か）。
+///   1に近い＝軍も行政も払えていない＝選挙に注ぐのは狂気。</item>
+/// </list>
+/// <para>＝<c>レバー ＝ 切迫 ×(1−逼迫)÷(1+紛争記憶 MandateSpent)</c>。「平時は狂気・政権が倒れそうなら合理的」（裁定 §3-②）が
+/// 罰を1つも作らずに出る。⚠プレイヤーが同じ盤面で採るべき手と同じ量＝対称（別の式・別の口を持たない）。</para>
+/// <para><b>余白</b>＝マンデート余白 θ＝MandateWeight×(正統性−0.5) は**「そもそも動かせるか」の門としてだけ**使う
+/// （<c>price=|純支持| ≤ θ</c>＝ResolveElection が拒む線と同一＝無駄玉を撃たない）。押しの大きさは金の予算制約が決める＝二重に使わない。</para>
+/// <para><b>静観</b>＝支配連合の利になる看板が1つも無い／注ぐ額が裁量余剰の <see cref="AiElectionMinPush"/> 未満＝
+/// <c>ResolveElection(-1, 0)</c>（UIの「静観」ボタンと同じ呼び出し）＝公示は消え、素の得票で開票される。</para>
+/// <para>決定論＝RNGを引かない（世論・教義・与党・正統性・国庫だけの関数）。同点は支持の高い議題（配列の先）が勝つ＝安定。
+/// （旧の旗 <c>ElectionEventEnabled</c> は 2026-10-18 に焼き込み。）</para></summary>
+````
+
+## L887-887 W 直後 `double margin = w.ElectionMargin;`
+````
+// 政治資本の余白＝ResolveElection が「動かせるか」に使うのと同じ量（別の物差しを持ち込まない）
+````
+
+## L889 T `if (!(margin > 0)) margin = 0;`
+````
+// NaNガードは否定形（Clamp/MaxはNaNを消さない）＝余白なし側へ倒す
+````
+
+## L890-891 W 直後 `double danger = 0;`
+````
+// ★機会費用でレバー（裁量余剰の何%）を決める＝新しい観測を作らない。
+//   ①存亡の切迫：与党族の得票が不信任線の2倍で0・線に触れて1（既存の線そのものを目盛りに使う＝新しい閾値を置かない）
+````
+
+## L898 T `if (!(d > 0)) d = 0;`
+````
+// 否定形＝NaN（得票が未初期化）は平時側へ倒す
+````
+
+## L901-901 W 直後 `double stress = FiscalStressOf(w);`
+````
+//   ②他の支出の逼迫：国庫が月次義務（維持費・利払い・行政・軍装備）の何か月分か＝AIが緊縮/減税で読むのと同じ物差し
+````
+
+## L903 T `if (!(stress >= 0)) stress = 1.0;`
+````
+// 否定形＝評価不能なら「逼迫している」側へ倒す（fail-closed＝選挙に注がない）
+````
+
+## L905-908 W 直後 `double spent = w.MandateSpent;`
+````
+//   ③紛争記憶（反対を押し切った履歴のストック）が厚い政府ほど政治工作に回す余力がない＝既存の政治資本の物差しに絡める
+//   ★レンジの実測（裁定S1・2026-09-21）＝**ここに書いてあった旧の予測「減衰が弱まる」は逆だった**（書き直し）。
+//     旧は青天井だが実測の S は 中央0.0041／最大0.1417＝1/(1+S)≈0.996＝この項は事実上働いていなかった。
+//     θ を退役して在庫だけの門にすると S は 中央0.1196（b 中央0.1804）＝1/(1+S)≈0.893＝**レバーが約10%渋る**＝ここで初めて効く。
+````
+
+## L913 T `if (!(lever >= AiElectionMinPush)) { w.ResolveElection(-1, 0); return; }`
+````
+// 平時＝1銭も注がない（静観も択）。NaNは否定形で静観へ
+````
+
+## L914 T `int bloc = DoctrineFrom(w) switch { Doctrine.Industrialist => 1, Doctrine.Modernizer => 2,`
+````
+// 教義→支配ブロック（DoctrineFromの逆写像＝新しい判定ではない）
+````
+
+## L919 T `double align = bloc == 0 ? trad : bloc == 1 ? modern : mass;`
+````
+// 支配ブロックの賛否＝加担したい度合い
+````
+
+## L921 T `if (!(align > 0)) continue;`
+````
+// 支配連合の利にならない看板には加担しない（NaNもここで落ちる）
+````
+
+## L922-925 W 直後 `double price = net < 0 ? -net : 0;`
+````
+// ⚠純支持は**代価**として読む（意図としてではない）＝「通る法しか望まない」トートロジーを持ち込まない。
+//   意図は上の align（ブロックの立場）が担い、ここは ResolveElection が実際に請求する正統性と同一。
+//   ⚠符号の分け方は ResolveElection と**同じ枝の形**（`net < 0`）＝非有限の純支持は両経路とも「無償」に落ちる＝対称
+//     （AI側だけ独自にNaNを弾くと、人が押せる看板をAIだけ押せない非対称になる）。
+````
+
+## L927 T `if (!(price <= margin)) continue;`
+````
+// 余白超え＝ResolveElection が拒む（世論に真っ向から逆らえない）。NaNは否定形で除外
+````
+
+## L928-929 W 直後 `double afford = margin > 1e-9 ? 1.0 - price / margin : (price > 0 ? 0 : 1.0);`
+````
+// 同じ額を注ぐなら効きは看板によらない（金の代価は曲がらない）＝選ぶ基準は「望みの強さ」と「食う正統性」だけ。
+// 余白をどれだけ食い潰すかで割り引く＝無償の看板（世論が既にその向き）は満額の魅力、余白すれすれの看板は魅力0。
+````
+
+## L935 T `if (bestK < 0) { w.ResolveElection(-1, 0); return; }`
+````
+// 静観＝プレイヤーの「静観」と同じ呼び出し（公示は消える）
+````
+
+## L939-940 W 直後 `internal static bool GoldWishFromBoard(World w) => w.MonetaryLaw == MonetaryStandardLaw.Go`
+````
+// ---------------------------------------------------------------- (423) 工業化度を読んでいた法の門の置き換え先（事前登録 measurements/lt_20261019_prereg.txt・★(599) 旧の式と旗は削除） ----------------------------------------------------------------
+// 純関数（状態なし・乱数なし）。AI の〈願い〉の側の式で、プレイヤーは法律タブから同じ政治の門（GateAllLawTargets／GateLaw）を通る。IsPlayer・IndustrialFrontier・MeanIndustrialization を読まない。
+````
+
+## L942-942 W 直後 `internal static bool GoldWishFromBoard(World w) => w.MonetaryLaw == MonetaryStandardLaw.Go`
+````
+/// <summary>金本位の願い＝金の法の国は降りない ‖ 本国の平均識字＞<see cref="GoldLiteracyLine"/>（0.75）。分母 0・NaN は偽（否定形でなく比較が偽に落ちる側＝望まない）。</summary>
+````
+
+## L945-945 W 直後 `internal static double HomeUrbanShare(World w)`
+````
+/// <summary>本国（植民地格を除く）の活きている州の都市人口の割合。人口 0 は 0。</summary>
+````
+
+## L957-959 W 直後 `internal static AntitrustLaw? AntitrustTargetFromBoard(World w)`
+````
+/// <summary>反トラストの目標＝本国の都市の割合＞1/2 で独占の解体・＞1/3 で談合禁止・それ以下は書かない（null）。
+/// ⚠下げる目標を書かない：1/3〜1/2 の帯で現行の法がすでに談合禁止以上なら書かない（現行を保つ）。都市の割合は 1870 年以後に 1/2 を割る国が多い〔m420 の本国のみ・英 9／10 種・仏 10／10 種〕
+/// ＝入力が可逆なので、帯で CartelBan を書くと施行済みの独占の解体を引き下げる目標が立つ（史実に法の廃止は無い）。旧の工業化度は戦争の摩耗以外で下がらず、旧の式も実質同じ向き（事前登録 追記3）。</summary>
+````
+
+## L968-969 W 直後 `internal static GuildLaw? GuildTargetFromBoard(World w)`
+````
+/// <summary>同業組合の目標＝GuildLawGate＞0 かつ本国の都市の割合＞1/2 で廃止・＞1/3 で制限・それ以外は書かない（null）。反トラストと同じく下げる目標を書かない
+/// （帯で現行の法がすでに制限以上なら書かない＝廃止済みの組合の保護を戻す目標を立てない）。</summary>
+````
+
+## L979-981 W 直後 `internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)`
+````
+/// <summary>★最低賃金法の目標（線 lw (459)）＝本国の都市の割合＞2/3 で充足・＞1/2 で生活・＞1/3 で生存・それ以下は書かない（null）。反トラストと同じく下げる目標を書かない
+/// （帯で現行の法がすでにその段以上なら書かない＝施行済みの床を引き下げる目標を立てない）。賛否の出所＝PolicyPreferences（大衆が賛成・資本が反対）が目標の施行を政治ゲートで決める。
+/// 線の値は反トラストの 1/3・1/2 と同じ（新しい数は 2/3 の1本＝AI の選択・確証なし）。AI とプレイヤーは同じ法の門・同じ段（目標の置き方だけが AI の規則）。</summary>
+````
+
+## L988-988 W 直後 `internal static MinimumWageLaw? MinimumWageTargetChosen(World w)`
+````
+/// <summary>★(480) 線 ma：最低賃金法の目標の選び方の入口（Apply が呼ぶ 1 本）。旗 <see cref="Coefficients.MinimumWageAiFromFloor"/> が 0 なら今の <see cref="MinimumWageTargetFromBoard"/>（無変更）・＞0 なら <see cref="MinimumWageTargetFromFloor"/>。</summary>
+````
+
+## L992-995 W 直後 `internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)`
+````
+/// <summary>★(480) 線 ma：盤面の実物から最低賃金法の目標を選ぶ（旗 MinimumWageAiFromFloor ＞ 0）。（門の係数 MinimumWageLawGate は (843) で焼き込み）。
+/// 読むもの＝本国の州の労働の失業（<see cref="MinimumWageFloor.ReadHomeLabor"/>）と、床が縛る広がり（<see cref="MinimumWageFloor.BindShare"/>）。広がりは必要な向きの 1 本だけ求める
+/// （失業が下げる線以上なら今の段・上げる線未満なら次の段。両方は同時に立たない＝財の走査は高々 1 回）。計算量の台帳（MinimumWageBasketScans）に走査の件数を足す。
+/// 書き方は <see cref="MinimumWageFloorWant"/>（純関数）。新しい状態・倍率を作らない。</summary>
+````
+
+## L1008-1012 W 直後 `internal static MinimumWageLaw? MinimumWageFloorWant(MinimumWageLaw cur, double unemployme`
+````
+/// <summary>★(480) 線 ma：最低賃金法の目標の純関数（盤面の読みを引数で受ける）。
+/// 下げる＝施行中で、失業が下げる線以上かつ今の段の床が縛る広がりが下げる線以上（床が失業を作っている）→ 今の段−1。
+/// 上げる＝充足の手前で、失業が上げる線未満かつ次の段の床が縛る広がりが 0 以上〜上げる上限以下（賃金が次の段の籠をおおむね払えている＝床を足しても広くは縛らない）→ 今の段+1。
+/// （(480) 追記 1：初版は〈0 超＝籠を割る賃金が実在する〉を願いの出所にしたが、canary で施行国が 17→1 に死んだ〈法を要る貧しい国ほど通す力が無い〉ので外した。）
+/// それ以外は今の段（前に置いた目標を現状へ戻す）。失業が読めない（NaN）なら null（何も書かない）。広がりの NaN は条件が偽＝現状維持の側。</summary>
+````
+
+## L1017-1017 W 直後 `if (cur < MinimumWageLaw.Sufficiency && unemployment < MinimumWageUnempRaiseLine && bindNe`
+````
+// ★bindNext >= 0 は NaN の除けでしかない（広がりは 0〜1 の割合＝実質の条件は bindNext <= 上限だけ）。上げる願いは 0 のとき（次の段の床が誰の賃金も縛らない）にも立つ＝AI の選び（確証なし）。
+````
+
+## L1022-1022 W 直後 `internal static MinimumWageLaw MinimumWageWant(double urbanShare)`
+````
+/// <summary>本国の都市の割合から、AI が最低賃金法に置く段（<see cref="MinimumWageTargetFromBoard"/> の純関数の部分）。NaN は否定形で None 側。</summary>
+````
+
+## L1030-1044 W 直後 `bool goldWish = GoldWishFromBoard(w);   // ★(423) 金の願いは本国の平均識字（★(599) 旧の工業化度の式と旗 AiLawGate`
+````
+// 金本位は**発展した交易経済の制度**＝AIは工業化が一定以上で志向（信用→安い外資・貿易円滑の実利が金の足枷の損を上回る）。
+// 未発展の農業経済では足枷（切下げ封印→危機で underfunding）の損が勝るので志向しない＝1789から即移行する不自然を解消（金本位era=19c後半が工業化から創発）。実加入は信用ゲートが決める。
+// ★2026-08-21点火後の形：金閾3.5＝前線だけが自力で金を志向（1853年前後）。残りの金への移行は MonetaryPeerPullScale の交易網の引力が
+//   **政治側**（PolicyPreferences→議会の要求/強制施行）から運ぶ＝この式は「自力の願望」のみを書く（願望と政治の分業）。
+// ★(210) 計器（scratchpad/m208/inj_s208）で読んだ事実：r207 の5種の金への移り 158 件中 154 件で目標を置いたのはこの閾の0か1（閾を越えた国が金へ移り、下の「降りない」で錠になる）・
+//   議会の要求と強制施行は 0〜2 件（施行は全て MandateGate を通る）。(210) の木で銀の下落（表示用の統計）を約0にしても 1913 年の金の国は 26→24（10種）
+//   ＝波を運ぶのは銀の下落の経路ではない（(212) 反証役 vs1#2 で書き直した）。R1（平価を同じ州の比から）で 1913 年の金の国が 29→9 に減る（5種・同じ種1〜5）のは、
+//   銀の国の工業化が閾に届かなくなるため【推】（閾を越えた国 5〜9→1〜3・為替の段は数えていない＝(212) 反証役 vs1#5）。⚠ 作者裁定 §10-11-7「比が平価から外れている間だけ取引の過半の相手へ揃える」を
+//   **AI の願望**として入れた6つの形（純支持＞0／相手が金の過半／銀が平価より安い／揃える線 0.5／R1 の上）は全て、比の雑音（四半期の |Δ比| の中央 1.4%）で
+//   始まる連鎖になった（1793〜1833 年に全ての国が金）＝README §1-8 で入れず、揃えるは政治の側の連続の圧力（PolicyPreferences の交易網の引力）に置いた（§1-7・推奨の形）。
+//   相対の線（工業化≥0.875×先端）は R1 の上でも 1913 年の金の国 29 を保つが波が早すぎる（1833 年に 21）＝入れない。
+// ★金の国は自分から金を降りない（外部レビューの検討 §10-11-6 F6 の表の行「英は金で始まり自分からは降りない」＝英だけ・全ての金の国への一般化は (79) の実装＝AI の意図〔(212) 反証役 vs2#5〕・片方向の錠＝README §1-8 とぶつかる所・作者への確認）：史実で金から銀へ法で戻った国は無い【推】。離脱は危機と政治の側が持つ
+//   （兌換停止＝Fiscal の OnGoldStandard／法を下げる要求＝PolicyPreferences の債務者の側→議会・蜂起の強制施行 Politics）。
+//   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
+// ★銀は誰でも持てる（銀本位doc G4・銀貨は普遍的だった＝清もインドも独も1783年に銀）＝不換の国は銀を志向する（旧の銀の閾 SilverStandardIndThreshold＝0 は常に真＝(210) で削除）。⚠国名も暦年も書かない。
+````
+
+## L1045 T `bool goldWish = GoldWishFromBoard(w);`
+````
+// ★(423) 金の願いは本国の平均識字（★(599) 旧の工業化度の式と旗 AiLawGateFromBoard は削除した）
+````
+
+## L1047-1049 W 直後 `{`
+````
+// ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
+// 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は
+// 金流出が止まらなくなってから敷かれた。⚠実際に法が通るかは資本の反対（PolicyPreferences）が決める＝プレイヤーと同じ政治ゲート。
+````
+
+## L1054-1064 W 直後 `if (w.SelfPower is { } mSelf && w.Diplomacy is { } mDip)`
+````
+// ★AI第1波②（2026-08-16）：総動員のAI分岐＝プレイヤーと同じレバー（World.Mobilized＝Military.cs:128 の徴兵深度0.12→0.22＝徴兵法≥選抜の国だけ・M1 2026-09-19）。
+// ★(195) 入る条件と出る条件＝下の段落（戦争の規模 Diplomacy.WarScale と存亡＝上げる線と下げる線・線の間は現状維持）。旧＝陣営戦力比（SideMilitary）で劣勢 or 敗色が深い で入り、講和まで戻さない。
+// 復員＝参戦中の戦争が消えた最初の四半期に false。プレイヤーは GameViewModel.Refresh（WarRows が空になった時）が講和で復員＝経路は分離・挙動は対称
+//（SimCore の講和処理 Diplomacy.EndWar には復員が無く、本ラウンドは Diplomacy.cs 不可侵＝AI側の唯一の書き手であるここに置く。設計判断は docs/20260816_AI第1波実装.md）。
+// ⚠NaNの war.Score/戦力は比較が偽に落ちる＝動員しない（fail-closed）。
+// ★軍事費の段（作者裁定2026-09-12 R2）＝最上段「戦時」は World.Mobilized が**解禁する**（M2 2026-09-19＝押し上げない・段は Apply が選ぶ）。その書き手はプレイヤー側3経路と
+//   ここ（AI）だけ＝ここが無いと**段4がプレイヤー専用になる**（AI＝プレイヤー等価の直接違反）。旧の2本のゲート（AiMobilization／FiscalLawStages）は
+//   2026-09-20 の段の点火で係数ごと削除＝この分岐は常時 live（戦時段とAI総動員は1テーマ）。
+//   ⚠判定の線は既存の MobilizeOutmatchRatio / MobilizeLosingScore の2本（(195) の下げる線はその逆数と敗色0＝新しい数は無い）。
+// ★位置（2026-09-19 M2）：Apply の**前**＝総動員した同じ四半期に Apply が戦時段を選べる（LawPrereq の「総動員が前提」が同じ四半期に真）。
+//   後ろ（旧位置）ではAIだけ1四半期遅れる＝プレイヤーは同じポーズ中にトグルと段ボタンを両方押せる（反応速度の非対称）。
+````
+
+## L1074-1082 W 直後 `double mLosing = 0;`
+````
+// ★(195) 総動員の判断を戦争の規模で読む（00一覧 §0-A の 0e・README §1-8「入力の大きさに応じた判断・上げる線と下げる線を分ける＝状態で決める」・推奨で進めた＝作者の承認は未確認）：
+//   材料＝Diplomacy.WarScale の1本（画面の戦争タブも同じ1本を出す＝プレイヤーは自分で選ぶ）：
+//   ・規模＝相手の陣営（自陣営のどれかと交戦している陣営の外の国）の、自陣営（自国＋同じ国を持つ敵と戦う国）の本国へ届く陸の力÷自陣営の陸の力＝植民地戦争と海の向こうへの遠征は0（攻める側が規模を選ぶ戦争）。
+//   ・存亡（out）＝自陣営の国ごとの本国の敗色×重み（自国1・味方＝味方の陸の力÷自国と味方の大きい方）の最大＝自国以上の味方の本国が蹂躙されていれば海の向こうの国も存亡（英 1916・米 1917）＝(198) で列強の札から重みへ。
+//   上げる線＝規模が MobilizeOutmatchRatio（1.2＝相手が自陣営の1.2倍）以上か、存亡が MobilizeLosingScore（0.5）を超える。
+//   下げる線＝規模が 1/MobilizeOutmatchRatio（自陣営が相手の1.2倍）未満で、存亡が0（戦況が五分に戻った）＝交戦中でも復員する（戦時段は Government.Step が解禁の外で段3 へ失効させる＝R2）。
+//   線の間は現状維持（総動員の入り切りを状態で決める・タイマーにしない）。定まらない規模（NaN）は現状維持。新しい数・新しい状態は無い。
+//   旧＝劣勢（SideMilitary＝海軍を含む軍の総合ゲージ×同盟の参戦見込み・届くかを読まない）か存亡で入り、講和まで戻さない（片方向の錠）
+//   ＝r193 の10種で交戦中の四半期の 74% が総動員・始まりの 95% が劣勢の枝・英の始まりの 97% は相手が全て海越え・英の戦時の徴兵法の上げ 45.8 四半期／種。
+````
+
+## L1085 T `if (!mAtWar) w.Mobilized = false;`
+````
+// 講和＝復員（既存機構＝徴兵深度が平時へ・定員を超えた兵は転職の仕組みが民間の職へ戻す＝Meritocracy の ⑦・(155)）
+````
+
+## L1086 T `else if (mScale >= MobilizeOutmatchRatio || mLosing > MobilizeLosingScore) w.Mobilized = t`
+````
+// 規模が大きい戦争/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
+````
+
+## L1087 T `else if (mScale < 1.0 / MobilizeOutmatchRatio && !(mLosing > 0)) w.Mobilized = false;`
+````
+// 規模が小さくなった＝交戦中でも復員
+````
+
+## L1088 T `if (Instruments.On) Instruments.Mobilization(w, mAtWar, mScale, mLosing);`
+````
+// 計器（読むだけ）：総動員の判断の材料（規模・存亡）と結果
+````
+
+## L1091-1094 W 直後 `if (!w.OnGoldStandard && w.CurrencyReformCooldown <= 0`
+````
+// （借入は 2026-09-28 に Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる形へ＝ここの予約の2行〔r＜1 と恐慌の谷の前倒し AiCrisisBorrow〕を削除。作者裁定「借入は自動化・借金ボタンは不要」）
+// 通貨改革（2026-08-13）：**プレイヤーのボタンと同じ口**（World.RequestCurrencyReform）を押す。
+// AIは実力どおりの新平価を選ぶ（ポワンカレ型）＝旧平価に戻すという自傷は**プレイヤーだけが選べる選択肢**。
+// 機構は対称で、判断だけが違う（巨大建造物と同じ作法）。ゲートは Fiscal が持つので、ここは意思だけ。
+````
+
+## L1099-1104 W 直後 `ReactProtectiveTariff(w);`
+````
+// ★潤沢の減税（RelieveOpulence）は Apply の中＝門（GateAllLawTargets）の前へ移した（2026-09-28 (85)）。
+//   旧はここ＝門の**後**に税の目標へ連続の倍率を掛け、門が拒む段を置けた（AI だけ・プレイヤーは法律タブで門を通る）。
+// ★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）：保護関税の反射。
+// ⚠**順序**＝関税目標を書く既存の3か所（Apply のスタンス定数／ダンピングの解除／RelieveOpulence の減税乗算）の**後**に置く。
+//   前に置くと同じ四半期の Apply が上書きし、反射が一度も効かない（衝突ではなく無効化になる）。
+//   逆に「条件時のみ書く」ので、条件が引けば翌四半期からは上の3か所が従来どおり単独で目標を決める＝恒久的な上書きにはしない。
+````
+
+## L1106 T `SetNavalUpkeepShare(w);`
+````
+// 陸海の維持費の割り振り（2026-08-04）＝陸と海の必要量が指針（(151)・旧＝地理）
+````
+
+## L1107 T `TryTradeBias(w);`
+````
+// 財ごとの売買方針（2026-08-04）＝プレイヤーと同じ動詞（World.SetTradeBias）
+````
+
+## L1108 T `TryBuildFacility(w);`
+````
+// 工場/プランテーションの着工（2026-08-04）＝プレイヤーと同じ動詞（2026-08-10から World.SetStateTarget＝国営工場カウンター）
+````
+
+## L1109-1112 W 直後 `}`
+````
+// ★侵略の標的選択は Diplomacy の TryAiSubjugate へ1本化（作者裁定2026-08-23の「植民地化と侵略の1本化」）。
+//   旧＝ここ（毎四半期・戦争熱で選ぶ）と Diplomacy（確率で・富と到達で選ぶ）の2経路が同じ動詞を叩いていた。
+// ※国家主導の工業化（AIが1棟単位の手動建設＝旧 BuildIndustry で後発を追い上げる）は実験した結果、ロシアが工業化すると
+//   規模(人口→GDP)で常勝になり競争バランスを壊したため不採用。再採用にはスコアの規模偏重の是正が前提。
+````
+
+## L1115-1124 W 直後 `private static void RelieveOpulence(World w)`
+````
+/// <summary>国庫が潤沢なら減税する（2026-08-04・P4「国家の退蔵」の是正）。
+/// ── 実測 ──────────────────────────────────────────────────────────────
+/// natprobe/powertrace＝プロイセンの国庫1.3M（GDP約30四半期分）・米38M（128四半期分）・日15M。
+/// スタンスの税目標は固定率で、**国庫がいくら積み上がっても下げる反射が無い**＝黒字国は経済から貨幣を
+/// 吸い上げ続け、需要（＝貯蓄駆動）が痩せてデフレ螺旋に入る（プロイセンのGDP 34k→17k の主因）。
+/// 税は潤沢線（<see cref="OpulenceLineOf"/>＝(財政バッファ〔月の義務の FiscalStressBufferMonths＝5か月分〕＋兵士給与の分)×OpulenceBufferQuarters＝8＝月の義務の約40か月分）を超える国庫を「取り過ぎ」とみなし、超過に比例して
+/// （⚠旧の注記「月次義務の OpulenceBufferQuarters 四半期分」は単位の誤り＝(181) §7-1・(203) で見つけ (207) で注記だけ直した）
+/// スタンスの税目標を連続に縮める（グラッドストン流の減税）。⚠増税側はいじらない＝財政逼迫の既存反射（uFis）が担う。
+/// ⚠プレイヤー国（NullAgent）はこの関数を通らない＝プレイヤーの税は自由。OpulenceTaxRelief=0 で厳密恒等。
+/// ⚠呼び手は Apply の末尾（GateAllLawTargets の前）だけ＝縮めた目標も法律タブと同じ門で段へ整形される（2026-09-28 (85)）。</summary>
+````
+
+## L1128 T `double buffer = OpulenceLineOf(w);`
+````
+// R3安定形（2026-08-08）＝給与算入は潤沢判定のみ（緊縮反射は不変）
+````
+
+## L1130 T `double mul = Math.Max(OpulenceTaxFloor, buffer / w.Treasury.Value);`
+````
+// 国庫が予備の2倍なら税目標×0.5（連続・床つき）
+````
+
+## L1131 T `mul = 1.0 - w.Coef.OpulenceTaxRelief * (1.0 - mul);`
+````
+// 適用率でブレンド（1=満額）
+````
+
+## L1135-1143 W 直後 `}`
+````
+// ★専売はこの割引から**外す**（2026-09-20・F3の是正）。専売の広さの規律は Apply の末尾（今の広さから・教義の床・安全水準で1段狭める＝2026-09-30 (127)）が持つ。
+//   旧は `SetStateMonopolyTier(Tier-1)` で段を丸ごと1つ落としていたが、
+//   この関数の操作は「率に 0.25 の床つき連続倍率を掛ける」＝取り過ぎの分だけ薄く下げ**決して無税にしない**もので、
+//   段を落とす翻訳はそれと等価でない：(a) 潤沢の度合いに比例しない (b) 床が無い (c) Apply が毎期教義の段を書いた直後に走る
+//   ＝定常で恒久的に教義−1段。教義段1の国（Modernize／Welfare）は毎期0へ落ちた。
+//   実測＝1914年に128カ国中76カ国（59.4%）が1財も課税しない世界になっていた（旧の率の世界では123カ国中0）。
+//   史実＝英の excise・仏の gabelle・清の塩引・露の酒専売＝1783-1934 に専売を全く取らない国は事実上存在しない。
+//   ⚠新しい床（「段1未満へは落とさない」）は作らない＝それは新しい天井の裏返し（思想⑧）。
+//   ⚠退蔵デフレの是正（2026-08-04 のこの関数の目的）は所得税・人頭税・土地税・累進・関税の5本が従来どおり担う＝instrument は失わない。
+````
+
+## L1145 T `internal const double OpulenceBufferQuarters = 8.0;`
+````
+// 財政バッファ（月の義務の FiscalStressBufferMonths＝5か月分）の8倍＝月の義務の約40か月分の戦費予備を超えたら「取り過ぎ」（旧の注記「月次義務の8四半期分＝2年分」は単位の誤り＝(203) で見つけ (207) で注記だけ直した）
+````
+
+## L1146 T `private const double OpulenceTaxFloor = 0.25;`
+````
+// 減税の床（無税国家にはしない＝行政・軍の最低限は回る）
+````
+
+## L1148-1169 W 直後 `private double[]? _importEma;   // 財別・輸入額（清算単位）のEMA（AI個体の記憶・四半期に1回更新）。`
+````
+/// <summary>★鋼市場診断#5（2026-08-16・旧の旗 AiProtectiveTariff は 2026-10-18 に焼き込み）：**保護関税の反射**＝防衛側の第二幕。
+/// 診断B-3の逆インセンティブ（#2で参入側を反転させた）に対して、こちらは「安い輸入に押されている国が壁を作る」側＝
+/// 史実「安い英国鋼→独米が製鉄所<b>と関税</b>」の後半分（1879年独の鉄と穀物の関税・1861年米モリル関税）。
+/// これが secondDeliver（次善の売り手の着値＝成約単価）の底上げとして働き、先行者レントを外から削る。
+/// ── 判定は既存の量だけ（新しい観測を作らない）──
+///  (1) <b>輸入急増</b>＝<see cref="World.ImportsByGood"/>（BilateralMarket が決済ごとに書く国際貿易統計）が自分の記憶（EMA）の
+///      <see cref="AiTariffSurgeRatio"/>倍を超える。EMAは**AI個体の記憶**（<c>_importEma</c>）＝Worldの力学状態を1ビットも増やさない。
+///  (2) <b>規模の床</b>＝輸入額（清算単位＝月次清算では直近1か月分・四半期に1回読む）が名目GDP×<see cref="AiTariffImportFloorShare"/>超（規模中立＝微小財の雑音で関税を動かさない）。
+///  (3) <b>自国財が赤字</b>＝その財の国内生産者の採算（<c>SmoothedMargin</c>＝倒産判定と同じ平滑値）が生産規模の加重平均で負
+///      ＝「押されている」の実体。★輸入急増だけでは足りない＝国内に産業が無い財（原料・熱帯産品）の輸入増で壁を作らない。
+/// ── 書き方 ──
+/// <c>TariffTarget = max(現行目標, 現在の関税 + TariffReactionMax×これ)</c>。振幅は既存の通商反応の較正済み量（0.25）を流用し、
+/// 実効上限は既存の <c>Government.Move</c> のクランプ [TariffFloor,1] が握る＝**新しい上限も新しい振幅も作らない**。
+/// 基点を「現在の関税」に取るので目標は w.Tariff+0.25α で有界＝毎四半期発火してもラチェットで発散しない。
+/// ⚠<b>条件時のみ書く</b>＝関税スライダーは <c>CountOpenFronts</c> の対象（Government.CountOpenFronts の Front）なので、
+///   毎期無条件に書くと幽霊戦線を1本増やし全軸の政治押し予算 (1/N)^0.5 を薄める。条件が引けば戦線は自然に閉じる
+///   ＝Move が w.Tariff を目標へ寄せる（差が5%量子化を割れば戦線から外れる）／産業・軍備スタンスは翌期に自分の定数で目標を書き直す。
+/// ⚠0＝EMAの確保も更新もしない＝厳密恒等（否定形ガード＝NaNも休眠側）。単一国シム（<see cref="World.ImportsByGood"/>=null）は不発＝較正・単体テスト不変。
+/// ★セーブ（設計判断・確認済み）：<b>専用処理は要らない</b>。<see cref="SaveGame"/> は <see cref="MultiNationSim"/> から
+///   全インスタンスフィールド（private/readonly含む）を辿るので、Simulation._agent → この UtilityAgent → _importEma（double[]）まで
+///   自動で往復する＝点火後も savetest はビット一致（AI個体の記憶を World の力学状態へ移す必要はない）。
+///   初回（と財数の変化）は現在値で初期化＝比1.0＝「いきなり急増」と誤認しない。</summary>
+````
+
+## L1170 T `private double[]? _importEma;`
+````
+// 財別・輸入額（清算単位）のEMA（AI個体の記憶・四半期に1回更新）。
+````
+
+## L1173 T `if (w.ImportsByGood is not { } imp) return;`
+````
+// 多国シムの決済がまだ／単一国＝材料なし
+````
+
+## L1176 T `_importEma = (double[])imp.Clone();`
+````
+// 初回（と財数の変化）＝現在値で初期化＝比1.0＝急増と誤認しない
+````
+
+## L1184 T `ema[g] = prev + w.Coef.AiTariffEmaRate * (cur - prev);`
+````
+// 記憶は毎期更新（判定の成否に依らない＝観測と判断を分ける）
+````
+
+## L1185 T `if (surge) continue;`
+````
+// 判定は済み。ただしEMAは全財ぶん更新しきる
+````
+
+## L1186 T `if (!(cur > floor)) continue;`
+````
+// 規模の床（否定形＝NaNは急増と数えない）
+````
+
+## L1187 T `if (!(prev > 1e-9)) continue;`
+````
+// 記憶が無い財は比が無限＝急増と数えない（初回輸入の雑音）
+````
+
+## L1188 T `if (!(cur > prev * AiTariffSurgeRatio)) continue;`
+````
+// 対EMA比＝「前年比」の最小実装
+````
+
+## L1189 T `if (!DomesticMarginNegative(w, g)) continue;`
+````
+// 自国財が押されている（産業の無い財では壁を作らない）
+````
+
+## L1194-1196 W 直後 `if (w.Coef.AiTariffRelaxation > 0 && w.Policy.TariffTarget > 0)`
+````
+// ★案A（AiTariffRelaxation・作者裁定2026-08-31）：急増の無い平時は目標を漸減＝保護の波→自由化の波の対称化。
+//   旧は「下げはしない」＝恐慌45回/試合の世界で全員が関税100%へ歩く片道ラチェットだった（tariffprobe実測）。
+//   振幅は上げ側と同じ TariffReactionMax（新しい数を作らない）。0＝旧の片道＝厳密恒等。
+````
+
+## L1201-1203 W 直後 `double want = System.Math.Min(1.0, w.Tariff + w.Coef.TariffReactionMax);`
+````
+// ★2026-09-04（tariffprobe実測）：目標が110〜125%へ出ていた＝Move の実効クランプ[TariffFloor,1]は関税を切るが**目標は切らない**ので、
+//   平時の漸減（TariffReactionMax×AiTariffRelaxation=0.025/四半期）が1.0を割るまで最大10四半期を空費し、自由化が2.5年遅れていた。
+//   目標も実効と同じ上限1で切る（新しい数ではない＝Move と同じクランプ）。
+````
+
+## L1205 T `if (want > w.Policy.TariffTarget) w.Policy.TariffTarget = want;`
+````
+// 急増時＝上げ（対動詞＝上の平時漸減）
+````
+
+## L1208-1210 W 直後 `private static bool DomesticMarginNegative(World w, int goodId)`
+````
+/// <summary>#5の材料：その財の国内生産者の採算が**生産規模で加重した平均**で赤字か。
+/// 加重＝Scale（現在の操業規模）＝止まっている棟の採算に世論を作らせない。倒産中は除外（既に退出している）。
+/// 生産者が1人もいない財は false＝「自国財でない」＝壁を作らない。NaN採算は num&lt;0 が偽＝fail-closed。</summary>
+````
+
+## L1226-1238 W 直後 `internal static void SetNavalUpkeepShare(World w)`
+````
+/// <summary>陸海の維持費の割り振り（2026-08-04）。合計は各スタンスが決めるので、ここは**比だけ**を置く。
+/// ★2026-10-01 (151)（作者裁定 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」）：指針は<b>陸と海の必要量</b>
+///   ＝<see cref="ArmyShape.NavalSpendShareOf"/>（陸＝国境の長さ×地形×隣国の陸軍・同盟は0・属国は弱く＋国内の秩序／海＝艦隊の比〔★(194) 重みに海路の接触＝越境の交易額〕と海を越えて来る陸軍・(183) で守る海の交易を外した）。
+///   旧＝地理（外洋に開けば+0.10・植民地の質量×0.05・下限0.05・上限0.60＝GeoNavalShare）＝陸続きの植民地格の州まで海軍に数え、清は上限の0.60に張り付いた。
+///   必要量がまだ一度も算出されていない（−1）ときは今の比のまま。
+///   海軍シェアは作者仕様(5)で「払った金の比」になったので、必要量は**AIとプレイヤーが金をどう割るかの指針**。
+/// ⚠これを配線し忘れていたため、全AI国が初期値10%の海軍シェアに永久固定され、1914年の海軍上位8国が
+///   全てアジア・**英の艦隊が圏外**という実測になっていた（2026-08-04の実バグ・作者仕様(5)の実装漏れ）。
+/// ★2026-09-23（作者裁定「海軍の比率のレバーを撤去し、プレイヤーもAIと同じ地理由来の配分に乗せる」）：**プレイヤー国もこの関数を通る**。
+///   呼び手は Simulation.QuarterStart（IsPlayer の枝＝NullAgent には DecideQuarter が無いため）＝AI とまったく同じ関数・同じ引数。
+///   AI 国の経路（DecideQuarter の中のこの呼び出し）は1命令も変えていない＝AI挙動はビット恒等。internal＝同一アセンブリからの呼び出しのため。
+/// ⚠勢力の要求「海軍の増強」（PolicyAxis.NavyUpkeep・2026-08-10）とは**衝突しない**：要求は海軍維持費を上げる＝
+///   合計を押し上げ、ここは合計を保ったまま比だけを置く。AIでは「要求で金が増え、割り方は陸と海の必要量」となる。</summary>
+````
+
+## L1241 T `if (w.SelfPower is not { } sp || w.Diplomacy is null) return;`
+````
+// 単一国（テスト・較正）では走らせない
+````
+
+## L1243 T `if (!(share >= 0)) return;`
+````
+// 必要量が未定義（理想の形が一度も算出されていない）＝今の比のまま（否定形＝NaN も）
+````
+
+## L1250-1255 W 直後 `private static void TryTradeBias(World w)`
+````
+/// <summary>財ごとの売買方針（2026-08-04・作者仕様(3)「AIも使用できるように」）。
+/// ★プレイヤーと**同じ動詞**（World.SetTradeBias）を通る＝国庫負担も効果も完全に同条件。
+/// 判断は既存の物質量だけ＝(1)**足りない財**（在庫が目標を大きく割る）は「高く買う」で引き込む
+///   (2)**だぶついた財**（在庫が目標を大きく超え、かつ国内で売れ残っている）は「安く売る」で放流する。
+/// 財政が逼迫していれば何もしない（どちらも国庫を食うので、借金してまでやる手ではない）。
+/// 1四半期に全財を見直す＝決定論（RNGなし・財id順）。</summary>
+````
+
+## L1258 T `if (w.SelfPower is null) return;`
+````
+// 単一国（テスト・較正）では走らせない＝較正に無影響
+````
+
+## L1263 T `if (broke) { if (w.TradeBiasOf(g) != 0) { w.SetTradeBias(g, 0); if (Instruments.On) w.Diag`
+````
+// 金が無い時は全部畳む（★(471) 計器：畳んだ財の数）
+````
+
+## L1276 T `private const double TradeBiasStressCeiling = 0.4;`
+````
+// 財政逼迫がこれを超えたら売買方針を畳む（国庫を食う手なので）
+````
+
+## L1277 T `private const double TradeBiasShortageRatio = 0.5;`
+````
+// 在庫が目標の半分を割ったら「高く買う」
+````
+
+## L1278 T `private const double TradeBiasGlutRatio = 2.0;`
+````
+// 在庫が目標の2倍を超えたら「安く売る」
+````
+
+## L1280-1292 W 直後 `public readonly record struct FacilityBuildValue(double Score, double Excess, bool WorldOp`
+````
+/// <summary>「この州にこの財の工場を建てる価値」＝<b>AIとプレイヤーが共有する唯一の物差し</b>（2026-09-07に括り出し）。
+/// <para><b>Excess</b>＝実質相対価格の超過＝ <c>Price ÷ (RefPrice×物価水準) − 1</c>。高い＝供給が需要に追いつかない
+/// ＝連鎖の律速点（市場自身が示すボトルネック。生産タブの赤字と同じ現象の価格側）。真の律速が上流にあるなら上流の財ほど
+/// 相対価格が高く出る（自分の材料は安いまま）＝この最大化は自然に連鎖を遡って律速点を選ぶ。</para>
+/// <para><b>WorldOpened</b>（鋼市場診断#2・旧の旗 AiWorldPriceEntry は 2026-10-18 に焼き込み）＝世界の着値（<see cref="World.WorldGoodsPrices"/>＝
+/// 265州平均）を自国の費用錨と比べた超過が国内チャネルを上回った＝「世界へ売れるレント」で開いた候補。旧は自国の局所価格だけを読むため
+/// 「安い輸入が来るほど建てない」＝史実（安い英国鋼→独米が製鉄所+関税）の真逆になっていた。輸送楔は TransportMargin を流用。</para>
+/// <para><b>Score</b>＝<c>Excess ×(1 + 失業の重み×失業率)</c>＝不足の深さ×人が余っている（同じ不足なら人の余る州を選ぶ）。</para>
+/// ★読み手は2つ＝AIの着工判断（TryBuildFacility）と、プレイヤーが置く全国工場目標の展開
+///   （World.StepFactoryTargets）。**第二の実装を作らない**＝州の選び方がAIとプレイヤーで食い違わない。
+/// ★基準価格や市場配列の範囲外＝測れない候補は Score/Excess とも NaN（比較は必ず偽＝fail-closed）。
+/// ★(260) 発見の門が閉じた生産者（まだ見つからない行・後継の発見で退場したレシピ・見つからない産地）も NaN＝作れない個体に建てても完成の月に操業規模が0に置かれる
+///   （技術ゲート0の操業規模0）＝建てる価値は測れない。述語は <see cref="Discovery.Gate(Region, Producer)"/>＞0（<see cref="World.FindFactory"/>・<see cref="World.FactoryCounter"/> と同じ1本）。</summary>
+````
+
+## L1297-1299 W 直後 `internal static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr, Roo`
+````
+/// <summary>★(595) 線 aic：<paramref name="rs"/>＝呼び手が 1 回の走査の間だけ持つ根の判定の表（<see cref="RootSupply"/>・null なら必要なときだけここで作る）。
+/// 根まで作れない候補は Score だけを NaN にして
+/// <see cref="FacilityBuildValue.Excess"/> は残す（呼び手の計器が〈需要の信号があったのに落ちた候補〉を数えるため・Score が NaN の候補は今までどおり落ちる）。</summary>
+````
+
+## L1303 T `if (pr.RecipeName == Simulation.HouseholdRecipeName) return new(double.NaN, double.NaN, fa`
+````
+// ★(418) 農家の手仕事の行は国営の工場として建てる対象ではない（AI も StepFactoryTargets もこの 1 本を読む＝対称・旗 0 では行が無く不発）
+````
+
+## L1304 T `if (!(Discovery.Gate(rg, pr) > 0)) return new(double.NaN, double.NaN, false);`
+````
+// (260) 門が閉じた個体は候補外（否定形＝NaN の門も閉じた側）
+````
+
+## L1312 T `if (worldRel > eff) { eff = worldRel; worldOpened = true; }`
+````
+// NaNは比較で偽＝開かない（fail-closed）
+````
+
+## L1321 T `if (!rs.Of(pr)) return new(double.NaN, eff, worldOpened);`
+````
+// ★(595) 根まで作れない候補は落とす（AI も StepFactoryTargets も同じ 1 本）
+````
+
+## L1325-1331 W 直後 `private static void TryBuildFacility(World w)`
+````
+/// <summary>工場・プランテーションの着工（2026-08-04・作者指示「AIも有用な場合、工場やプランテーションを建設するように」）。
+/// ★プレイヤーと**同じ動詞**（2026-08-10から <see cref="World.SetStateTarget"/>＝国営工場カウンターを1つ上げる）を通る
+///   ＝建材の高値ゲートも工期も国庫負担も完全に同条件。旧＝BuildFactory はUIからしか呼ばれず、
+///   **プレイヤーだけが持つ動詞**だった（AI=プレイヤー対称の破れ）。カウンター化でUIの動詞も1本に畳まれた。
+/// 判断は既存の物質量だけ＝(1)その財が儲かっているか（SmoothedMargin＝採算の平滑値・生産者自身が持つ）
+///   (2)その州にその財の働き手が余っているか（失業＝建てても人が集まる＝プレイヤーがUIで見ているのと同じ材料）。
+/// 1四半期に1件・決定論（同点は州順→財id順）。財政逼迫時は建てない（借入と同じ規律）。</summary>
+````
+
+## L1334 T `if (w.SelfPower is null) return;`
+````
+// 単一国（テスト・較正）では走らせない＝較正に無影響
+````
+
+## L1335-1338 W 直後 `if (!(w.FiscalFundingRatio.Value >= 1)) { if (Instruments.On) Instruments.AiBuildReturn(w,`
+````
+// ★鋼市場診断#3(b)（2026-08-16・旧の旗 AiBuildGuardRelax は 2026-10-18 に焼き込み）：財政ガードの緩和＝旧「FiscalStress>0.0で即return」（国庫がバッファ満額でないと建てない）を
+//   **借入と同じ規律**（Fiscal の借入の条件＝国家の支払い率 r＜1 の時だけ止まる・2026-09-28＝旧は維持費＋利払いを国庫で賄えない時）へ。否定形＝NaNは建てない側。
+//   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
+//   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和を広げるときは**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
+````
+
+## L1340-1344 W 直後 `double buffer = FiscalBufferOf(w);`
+````
+// ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
+//   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
+//   国庫が日次で流出し続けた。実測（R16）＝軍事独裁が 5.0%→53.4%＝**世界中で国家が財政破綻して軍が政権を取った**。
+//   プレイヤーは自分で押すので暴走しないが、AIは毎期押す＝同じ動詞でも**頻度が違う**＝ここで抑える必要がある。
+//   物差しは既存の財政バッファ（月次義務の N か月分・規模中立）＝新しいスカラーを置かない。
+````
+
+## L1347-1347 W 直後 `var pendingRegion = new int[w.Regions.Count];   // ★#3(a)：州ごとの意志`
+````
+// ★国営工場カウンターの**未達の意志**（2026-08-10）＝目標>現在の棟数。建材高騰で着工が拒まれた月も目標は残る（意志は消えない）＝これも律速に数える
+````
+
+## L1348 T `var pendingRegion = new int[w.Regions.Count];`
+````
+// ★#3(a)：州ごとの意志
+````
+
+## L1357 T `monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);`
+````
+// ★裁定②の安全弁＝素材も律速に数える（2026-09-27 焼き込み＝工事費の6割が律速から漏れていた）
+````
+
+## L1360 T `if (pw > 0 && pr0.ConstructionLeft <= 0) { double e0 = NewFacilityOutlayPerMonth(w, rg0, p`
+````
+// ★(400)：立てた意志がまだ着工していない（建材の採算などで拒まれ、月次の再挑戦 StepStateTargets を待つ）工事は、これから払う月の出費の見積りを数える（旧は着工した工事だけ数え、拒まれた意志の出費は上限に現れない＝英は Q0 に 31 州へ意志を立て、月次の再挑戦が上限の約 3 倍の工事を着工した）
+````
+
+## L1364-1366 W 直後 `double outlayCap = FacilityBuildOutlayShare * buffer;`
+````
+// ★鋼市場診断#3(a)（2026-08-16・旧の旗 AiBuildGuardRelax は 2026-10-18 に焼き込み）：旧＝全国のどこかに意志が残っていれば**全国 return**＝世界中のAI国が「同時1件」
+//   （四半期1回と合わせて年4棟が上限＝AI資本の参入が構造的に鈍い＝診断B-3の四重ガードの一角）。今＝州ごとの判定
+//   （下の候補ループで意志の残る州だけ静止・他州は並行着工）＝ラチェット防止の性格（意志は溜めない）は州単位で保つ。
+````
+
+## L1369 T `if (monthlyBuild > outlayCap) { if (Instruments.On) Instruments.AiBuildReturn(w, funding: `
+````
+// 工事の月次出費が財政バッファを食い過ぎていれば新規着工しない（#3の緩和でも**残す**＝本命の予算制約）
+````
+
+## L1370-1370 W 直後 `var bestGr = new int[w.Regions.Count]; var bestScoreR = new double[w.Regions.Count]; for (`
+````
+// 閾値は relExcess > FacilityBuildMinMargin 側で判定（2026-08-04）
+````
+
+## L1371 T `var bestGr = new int[w.Regions.Count]; var bestScoreR = new double[w.Regions.Count]; for (`
+````
+// ★#3(a)：州ごとの最良（並行着工の候補）
+````
+
+## L1372 T `void Consider(int cri, int gid, double sc)`
+````
+// NaNスコアは両比較とも偽＝落ちる（否定形と同じfail-closed）
+````
+
+## L1376-1378 W 直後 `var firstOf = new Producer?[Catalog.Goods.Length];`
+````
+// ★連鎖の目の読む個体（2026-10-01 (146) 計算量の予算・恒等＝全長の1種で連鎖の目 約1,340万回）：その州でその財を作る**先頭の生産者**
+//   （ProductionDiag.ExplainCost の規約＝FindProducer）。この走査は州の生産者を先頭から回す＝先頭の個体は既に通った
+//   ＝州ごとに「財→先頭の個体」を覚えて渡す（旧＝候補ごとに州の生産者を先頭から探し直した＝連鎖の目の時間の約半分）。
+````
+
+## L1380 T `var rootSupply = new RootSupply(w);`
+````
+// ★(595) この走査の間だけ生きる根の判定の表
+````
+
+## L1384 T `if (pendingRegion[ri] > 0) continue;`
+````
+// ★#3(a)：意志の残る州だけ静止（他州は動く）
+````
+
+## L1388 T `if (pr.GoodId >= 0 && pr.GoodId < firstOf.Length) firstOf[pr.GoodId] ??= pr;`
+````
+// 先頭の個体（下の continue より前＝建設中・倒産中も数える＝FindProducer と同じ）
+````
+
+## L1389 T `if (pr.ConstructionLeft > 0 || pr.Bankrupt) continue;`
+````
+// 建設中・倒産中は対象外
+````
+
+## L1391 T `if (Catalog.Goods[pr.GoodId].Tier == GoodTier.Service) continue;`
+````
+// 役務は工場として建たない（BuildFactory と同条件）
+````
+
+## L1393 T `if (double.IsNaN(val.Score))`
+````
+// 基準価格・市場の範囲外・門が閉じた・根まで作れない＝候補外
+````
+
+## L1395 T `if (Instruments.On && val.Excess > FacilityBuildMinMargin) Instruments.AiBuildRootDropped(`
+````
+// 計器（読むだけ）：需要の信号があるのに根が無くて落ちた候補（旗 1 のときだけ Excess が残る）
+````
+
+## L1400-1407 W 直後 `if (eff > FacilityBuildMinMargin)`
+````
+// ★鋼市場診断#4（2026-08-16・旧の旗 AiSupplyChainEyes は 2026-10-18 に焼き込み）：連鎖の律速を読む目。需要シグナル（eff>閾値）のある候補財について
+//   ProductionDiag.ExplainCost（純関数＝力学の状態を1ビットも書かない・従来は生産タブUIだけの読み手）を読み、
+//   配給率（CostItem.Fill＝Market.LastRation＝プレイヤーが生産タブの「供給:n%」で見るのと同じ値＝AI/プレイヤー対称）が
+//   最も低い非労働投入が AiChainStarvedFill を割っていれば、その**上流財を候補に足して優先**する
+//   （score＝下流eff×(1+係数×(1−fill))＞下流自身のscore＝律速点から建てる。StepLawToward が GateInfo を読むのと同じ作法）。
+//   上流には relExcess/SmoothedMargin の関門を課さない＝配給（fill<1）の事実が不足の証拠で、輸入錨や在庫クランプで
+//   価格シグナルが鈍る財こそこの目の出番（診断B-5「連鎖の逆算が実行不能」の是正）。身の丈ゲートは上流自身の工場費用で課す。
+//   労働3種（IsLabor）は建てられないので対象外。qty≈0の投入（電化の労働節約で消えた材）は律速と数えない。
+````
+
+## L1410 T `var chain = ProductionDiag.ExplainCost(w, rg, firstOf[pr.GoodId]!);`
+````
+// ＝ExplainCost(w, rg, pr.GoodId) と同じ個体（(146)）
+````
+
+## L1416 T `&& World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream `
+````
+// (260) 上流の個体も門が開いていること
+````
+
+## L1417 T `&& rootSupply.Of(upstream))`
+````
+// ★(595) 上流の個体も根まで作れること（作れない上流を建てに行かない）
+````
+
+## L1420-1425 W 直後 `if (!(eff > FacilityBuildMinMargin)) continue;   // 否定形＝NaNは建てない`
+````
+// ★身の丈ゲート（2026-08-04・R19の赤＝ジェノヴァ6/10最下位の是正：総費用が財政バッファを超える工場は建てない）は (579) 線 ukf で削除した。
+//   総費用は数年の工期の全額をバッファ（月次義務の数か月分）と比べる量で、同時工事の暴走を守るのは月の出費の上限（FacilityBuildOutlayShare）と国家の支払い率 r の門。
+//   根拠は設計思想⑧（天井の廃止）と AI とプレイヤーの対称（生産タブに総費用の門は無い）の当てはめ＝担当の読み・確証なし（腕 B2 は止める線と G6・G7 を通った・元の狙い〈英の崩れの直し〉は外れた＝(579)）。
+//   月の出費の上限（FacilityBuildOutlayShare）を外す腕は回していない＝外せるかは未確認（前半の旗 1 は別の形で国庫を流出させた）。
+//   ⚠#4の連鎖の目は上（このゲートがあった場所の前）で走らせ済み。
+// （軍需の身の丈ゲート倍率 MilitaryBuildCostCapScale は 2026-10-11 (253) に削除＝armscap 単独で基線とビット同一〔費用上限は軍需工場が建たない律速ではなかった〕）
+````
+
+## L1426 T `if (!(eff > FacilityBuildMinMargin)) continue;`
+````
+// 否定形＝NaNは建てない
+````
+
+## L1427-1432 W 直後 `if (!worldOpened && !(pr.SmoothedMargin > 0)) continue;   // ★(260) 眠った個体（SleepState＝1＝門が0`
+````
+// 採算>0 は残す（2026-08-04の設計）。★#2の例外＝世界チャネルが開いた候補は国内 margin で拒まない：輸入州の価格は
+//   自国の限界費用に錨（診断δ）＝margin≈0以下に潰されているのが「安い輸入に押されている」状態そのもので、
+//   ここで国内marginを課すと反転が原理的に起きない（世界チャネルの採算は worldRel>閾値 が既に判定している）。
+// ★眠った生産者（EconomyStep.SleepState＝1＝発見の門が0 で操業規模0・産出0）の採算は読まない（2026-10-03 (187)・反証役 vb2#1・推奨で進めた）
+//   ＝(186) の眠りの間は採算の平滑（SmoothedMargin）が止まる＝退場したレシピ（後継の発見で門が0）は二度と目覚めず、退場した月の値（値段がまだ落ちていない＝正になりやすい）で凍る
+//   ＝凍った正の値が、動いている後継が赤字の財でもこの門を通していた（旧＝門が0 の間も採算は値段を追った）。眠った個体は作れない＝その財の採算の証拠にならない。
+````
+
+## L1433 T `if (!worldOpened && !(pr.SmoothedMargin > 0)) continue;`
+````
+// ★(260) 眠った個体（SleepState＝1＝門が0）は FacilityBuildScore が NaN で落とす＝ここへ来ない（旧は SleepState != 1 をここで見ていた）
+````
+
+## L1434 T `if (Instruments.On && Catalog.FactorySpec(pr.GoodId).Cost > buffer) Instruments.AiBuildOve`
+````
+// 計器（読むだけ）：削除した旧の身の丈の門の線〔総費用 ＞ バッファ〕を越える候補の数
+````
+
+## L1435 T `Consider(ri, pr.GoodId, val.Score);`
+````
+// 不足の深さ×人が余っている
+````
+
+## L1438 T `if (Instruments.On)`
+````
+// 計器（読むだけ）：州の最良のうち、完成しても根が無い個体の数（旗の焼き込み前は旗 0 の腕で旧の選び方の結果を測った・今は 0 のはず）
+````
+
+## L1447-1452 W 直後 `for (int ri = 0; ri < w.Regions.Count; ri++)`
+````
+// ★AIも**同じカウンター**を1つ上げる（作者裁定2026-08-10 E節＝動詞を1本に統合して非対称を作らない）。
+//   SetStateTarget はその場で1歩試し（＝旧 BuildFactory 直呼びと同じ着工）、拒まれた月は目標が残って
+//   月次の StepStateTargets が再挑戦する＝「意志は消えない」。溜まらないのは上の pendingWill ガードが受ける。
+// ★鋼市場診断#3(a)（2026-08-16）：州ごとの並行着工＝州index順（決定論・同点規律は従来の「州順→財id順」を州内 best が引き継ぐ）。
+//   着工が実際に始まった分の月次出費をその場で加算し、outlayCap（本命の予算制約）を跨いだら残りの州は打ち切り
+//   ＝「全国同時1件」という人工的な直列化だけを外し、金の天井は従来の1本のまま。
+````
+
+## L1460 T `if (!(monthlyBuild + est <= outlayCap)) { if (Instruments.On) Instruments.AiBuildSkipRoom(`
+````
+// ★(400)：今ある工事（と未着工の意志）の月の出費に、これから立てる工事の月の出費を足して上限を超えるならこの州は飛ばす（continue＝後ろの州の小さい工事は塞がない・否定形＝NaN も飛ばす）
+````
+
+## L1462 T `if (Instruments.On) Instruments.AiBuildTried(w, bp.GoodId, est, bp.ConstructionLeft > 0, C`
+````
+// 計器（読むだけ）：着工した件か拒まれて意志が残った件か
+````
+
+## L1467 T `}`
+````
+// その月に始まった工事だけを律速へ（拒まれた月は目標が残り月次で再挑戦＝従来どおり）
+````
+
+## L1468 T `else monthlyBuild += est > 0 ? est : 0;`
+````
+// ★(400)：着工を拒まれた意志も月次の再挑戦で着工する＝見積りを足す（次の州の判断が見る）
+````
+
+## L1472-1474 W 直後 `internal static double NewFacilityOutlayPerMonth(World w, Region rg, Producer bp)`
+````
+/// <summary>★(400) これから着工する国営工場の工事の月の出費＝工賃（<see cref="World.BuildFactory"/> と同じ式）＋素材（着工後の律速の加算と同じ <see cref="World.ConstructionMaterialPerMonth"/>）。
+/// 着工の門（<see cref="TryBuildFacility"/>）が、今ある工事の月の出費 monthlyBuild に足してから上限と比べる。
+/// 工賃の式は <see cref="World.FactoryPayPerDay"/> の1本（BuildFactory・CanBuildFactory と共有＝(405) で3つの重複を畳んだ）。着工後の加算（ConstructionPayPerDay＝この payPerDay）と値が同じことは番人が見る。</summary>
+````
+
+## L1481 T `internal static void Apply(World w, Stance s)`
+````
+// internal＝番人テストがスタンスを固定して呼ぶためだけ（回5-1 項目19・可視性のみ）
+````
+
+## L1484 T `p.CoercionTarget = 400;`
+````
+// 既定＝低治安維持力（警察・内政の鎮圧）。軍備スタンス(Militarize)のみ4000へ
+````
+
+## L1485-1487 W 直後 `int stateMonopTier = 0;                // 既定＝非課税（旧 Policy.StateMonopolyTarget の開始0と同じ場所）`
+````
+// ★専売（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝教義が選ぶのは率でなく**対象の広さ**（World.StateMonopolyStepOf の段）。
+//   梯子の順＝史実の物品税の財（酒・煙草・茶・コーヒー・石鹸）→奢侈品→日用品→主食→役務（2026-09-30 (127)）。教義の段はこの広さの**床**
+//   ＝末尾の財政の規律が今の広さから広げ・保ち・狭める（新しい数も新しい状態変数も作らない＝今の広さは World.StateMonopolyTier の導出）。
+````
+
+## L1488 T `int stateMonopTier = 0;`
+````
+// 既定＝非課税（旧 Policy.StateMonopolyTarget の開始0と同じ場所）
+````
+
+## L1489 T `p.MilitarySpendingTarget = SecurityStageTarget(w);`
+````
+// ★(155) 軍事費の段＝安全保障の不安の唯一の入口（旧＝既定 0.25・軍備スタンスで 0.7＝脅威は緊張・植民地防衛・生存の効用を通ってスタンスの2値で入った）
+````
+
+## L1490 T `p.Censorship = CensorshipLaw.FreePress;`
+````
+// 既定＝自由化を目指す（革新↑だが政治意識↑）。政治ゲートが可否を決める（旧支配層が抵抗）
+````
+
+## L1491 T `p.LaborUnion = LaborUnionLaw.Tolerated;`
+````
+// 既定＝労働組合の容認を目指す（不満緩和だが出力↓・資本が抵抗）。軍備スタンスは統制へ戻す
+````
+
+## L1492 T `p.WorkHours = WorkHours.Twelve;`
+````
+// 既定＝12時間（LaborFatiguePenalty で12hが産出最適＝無制限14hより産出多。福祉スタンスは Ten/Eight へ短縮）。無制限放置の愚行を解消
+````
+
+## L1497-1497 W 直後 `if (w.EducationLaw >= EducationLaw.Public && w.Treasury.Value > CompulsoryEduBufferMult * `
+````
+// 豊かな近代化国は義務教育へ＝popが買えない教育を国庫が買い全民就学（多大な財政コスト＝豊かさが前提）。
+````
+
+## L1498 T `if (w.EducationLaw >= EducationLaw.Public && w.Treasury.Value > CompulsoryEduBufferMult * `
+````
+// 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
+````
+
+## L1500 T `p.EducationSpendingTarget = Government.EducationSpendingTop;`
+````
+// ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
+````
+
+## L1501 T `p.AdminSpendingTarget = 0.6;`
+````
+// 近代国家＝行政を整備（★(399) 汚職の財政の漏れは削除済み＝行政費は税にも法の浸透にも返らない・何を返すかは作者に聞く Q8＝(402)）
+````
+
+## L1502 T `p.IncomeTaxTarget = 0.25;`
+````
+// 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
+````
+
+## L1503 T `p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.3; p.PollTaxTarget = 0`
+````
+// 近代税制へ移行（人頭税は廃止）
+````
+
+## L1504 T `stateMonopTier = 1;`
+````
+// 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
+````
+
+## L1505 T `p.SocialSecurityTarget = 0.3;`
+````
+// 近代国家は公共医療を一定維持＝人口増（乳児死亡の低下）
+````
+
+## L1506 T `p.ChildLaborAllowed = false;`
+````
+// 近代化＝児童労働を禁止（出力↓だが識字↑＝教育→医療→人口）
+````
+
+## L1507 T `RaiseWomenRights(p, WomenRightsLaw.Suffrage);`
+````
+// ★統合法：成熟した近代国家＝女性の権利の最上段（選挙権）を願う。旧は財産権の段を先に願ったが、RaiseWomenRights は最大を取るので技術の閾値を外した後は財産権の行は常に no-op（(824) で消した・突然変異の記録 Mu4）。教育権の段は梯子が通る
+````
+
+## L1508 T `if (p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;`
+````
+// ★(613) 段2b（旗 TechThresholdOff は (824) で焼き込み）：技術の閾値の 4 本は無い（願いは無条件・可否は政治の門と国庫の緩衝が決める）
+````
+
+## L1511 T `p.EducationLaw = w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Publ`
+````
+// ★(680) 線 edq：願いは〈公教育以上〉＝義務教育の国に撤回の願いを書き戻さない（事前登録 measurements/edq680_20261030_prereg.txt・Modernize は国庫の述語で戻す願いを残す）。(772) 旗 StanceEduHoldsLaw を焼き込み（既定 1 の枝だけ残す）
+````
+
+## L1515 T `p.LandTaxTarget = 0.3; p.PollTaxTarget = 0;`
+````
+// 産業重視＝所得税を抑え土地・消費に課税
+````
+
+## L1516 T `stateMonopTier = 2;`
+````
+// 専売を奢侈品まで広げる（旧の率0.3）
+````
+
+## L1517-1517 W 直後 `break;`
+````
+// 金利は下の反景気循環ブロックが一元的に決める（旧・スタンス別の低金利0.1は直後に必ず上書きされる死書き込みだった＝監査2026-07-12 死10で削除。スタンス別金融政策を生かす改修は別件）
+````
+
+## L1522 T `RaiseWomenRights(p, WomenRightsLaw.Suffrage);`
+````
+// 労働者福祉＝女性の権利も梯子の最上段まで推進（北欧型・自分の賃金を持ち、学び、投票する）
+````
+
+## L1524 T `p.ProgressiveTaxTarget = 0.6; p.LandTaxTarget = Government.LandTaxTop; p.PollTaxTarget = 0`
+````
+// 福祉の財源＝富裕層から（再分配）
+````
+
+## L1525 T `stateMonopTier = 1;`
+````
+// 逆進税は最小限＝史実の物品税の財だけ（旧の率0.1）
+````
+
+## L1526 T `p.WorkHours = WorkHours.Ten;`
+````
+// 労働者福祉＝労働時間短縮（産出↓だが死亡率↓・不満↓）
+````
+
+## L1527 T `p.ChildLaborAllowed = false;`
+````
+// 労働者福祉＝児童労働の禁止
+````
+
+## L1530 T `p.IncomeTaxTarget = Government.IncomeTaxTop; p.EducationSpendingTarget = 0.2;`
+````
+// ★錨2026-09-18＝所得税の教義最大＝段の最上段（35%＝1918年の英標準税率30%超）
+````
+
+## L1531 T `p.AdminSpendingTarget = 0.3;`
+````
+// 緊縮＝行政費も削る（★(399) 以後は税の漏れの代償は無い・Q8＝(402)）
+````
+
+## L1532 T `p.PollTaxTarget = 0.3; p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0`
+````
+// 取れる所から全部取る（緊縮財政）
+````
+
+## L1533 T `stateMonopTier = 3;`
+````
+// 日用品まで広く課税（旧の率0.4）
+````
+
+## L1534 T `p.SocialSecurityTarget = 0.1;`
+````
+// 金利は下の反景気循環ブロックが一元的に決める（旧・緊縮の高金利0.4は死書き込み＝監査2026-07-12 死10で削除）
+````
+
+## L1537 T `p.CoercionTarget = 4000;`
+````
+// 治安維持力目標↑。※実ゲーム（多国）では CoercionFollowsForce=true が毎期 兵数×即応度 から再導出・上書きするため実効なし＝この書き込みが生きるのは単一Simulationのテストのみ（監査2026-07-12 死11の注記＝「革命抑止」はここでなく軍事費0.7→兵数増経由で効く〔⚠ (155) で軍備スタンスの軍事費 0.7 は削除＝軍事費の段を動かすのは安全保障の不安だけ（SecurityStageTarget）＝この経路はスタンスからは無い・(157) の注記〕）
+````
+
+## L1538-1543 W 直後 `p.AdminSpendingTarget = 0.5;`
+````
+// ⚠墓標2026-08-08：ここには「脅威に応じて軍事費を連続化する」(MilitarizeSpendThreatSpan) があったが、
+//   A/B実測で棄却され**再点火禁止**（「形が先・金が後」が代替）。★実装は 2026-08-12 に撤去（11行）。
+//   ⚠2026-10-02 (155)：同じ系統（脅威の連続値で軍事費の段を決める＝上の SecurityStageTarget＝脅威の割合で段1〜3 を内分）を、作者の承認の形
+//   （脅威の入口を軍事費の段の1つにする案・作者 2026-10-01 に異議なし）で再導入した（(157) で注記）。前回の棄却（0.4 の A/B＝政体 exact −4.3・法 −3.8・列強 −3.8・経済 −2.5）と
+//   (155) の10種（r154 比＝exact −5.1・法一致 −2pt・列強の再現率 +0.1・経済規模 −2.6）は exact と経済で同じ向き＝作者への確認（実装ログ (157)）。代替に挙げた SpendFromNeedWeight は 2026-09-26 に削除済み。
+// 【削除2026-10-02 (155)】p.MilitarySpendingTarget = 0.7（軍備スタンスの軍事費）＝軍事費の段は安全保障の不安の唯一の入口（上の SecurityStageTarget・作者 2026-10-01 に異議なし）。
+````
+
+## L1545 T `p.IncomeTaxTarget = 0.25;`
+````
+// 大軍を養う財源（⚠ (155) から軍備スタンスは軍事費の段を書かない＝残るのは増税だけ・段は安全保障の不安＝(157) の注記）
+````
+
+## L1546 T `p.PollTaxTarget = 0.4;`
+````
+// 戦費＝人頭税と専売（治安維持力で不満を抑え込む賭け）
+````
+
+## L1547 T `stateMonopTier = 2;`
+````
+// 物品税の財と奢侈品（2026-09-30 (127)＝旧の段3＝日用品の全てを外した）。史実の軍国の戦費＝酒・煙草・塩の専売と人頭税（露の酒の請負と魂の税・普の煙草とコーヒーの専売・仏の塩税と aides と煙草）
+````
+
+## L1548-1552 W 直後 `p.LandTaxTarget = Math.Max(p.LandTaxTarget, Government.LandTaxTop);`
+````
+//   ＝日用品の広い売上税は緊縮（取れる所から全部）と下の財政の規律（払えない請求で広げる）の仕事。
+// 露普歳入是正（2026-08-08）：Militarize が土地税・関税・教育を一切書かない唯一の主要スタンスだった＝
+// 軍国こそ地租と関税で軍を養い（地租改正・ユンカーのGrundsteuer）、義務教育は兵営国家の発明（プロイセン1763・明治学制）。
+// 露＝militarism固定でこのスタンスに130年閉じ込められ、教育が一度も目標化されず識字逆行→技術凍結が第一原因。
+// (772) 旗 MilitarizeAgrarianTaxes・MilitarizeEducationDrive を焼き込み（既定 1.0 の枝だけ残す）。
+````
+
+## L1555 T `p.EducationLaw = w.EducationLaw > EducationLaw.Public ? w.EducationLaw : EducationLaw.Publ`
+````
+// ★(680) 線 edq：Industrialize と同じ
+````
+
+## L1557 T `p.Censorship = CensorshipLaw.StatePressOnly;`
+````
+// 軍国＝報道統制（安定優先・革新は犠牲）
+````
+
+## L1558 T `p.LaborUnion = LaborUnionLaw.Illegal;`
+````
+// 軍国＝労働組合を非合法（統制）
+````
+
+## L1559-1563 W 直後 `if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && DoctrineFrom(w) == Doc`
+````
+// 民主的後退（ワイマール→ナチ型＝**合法的な選挙法の巻き戻し**）：軍国教義の議会制民主国（立憲/共和）は
+// 参政権の制限選挙（Census）への後退を**目標に置く**だけ＝実際に通るかは通常の政治ゲート（参政権は憲法級＝硬い純支持＞0）が決める。
+// ＝後退は支持が反対を上回るときだけ通る（参政権は 2026-08-04 から憲法級＝政治資本では押し切れない。旧注記「正統性の高い軍国民主国だけが
+//   大衆の反対を押し切って後退でき、その度に政治資本を燃やす」は余白 θ の世界の記述＝2026-09-21 ㉖で訂正）。
+// 高闘争時は下の譲歩（AdultMale目標）が上書き＝革命脅威下では後退できない。社会党与党は下の「議会の構成を読む」段落が引き上げる＝右派政権のみ実行可。
+````
+
+## L1568-1570 W 直後 `if (w.Coef.SovietTaxProfile > 0 && w.Polity == Polity.ProletarianDictatorship)`
+````
+// （形が先・金が後 配線C＝軍事費目標を理想軍の請求書へ寄せる器 SpendFromNeedWeight は 2026-08-08 に棄却・2026-09-26 に削除＝棚卸し mil-21）
+// ソ連風税制（2026-08-08作者裁定）：プロ独裁＝取引税型の極端な専売＋大規模な社会保障＋累進最大＝
+// 計画経済の財政的な顔（価格配分は触らない）。法の可否は通常の政治ゲートが決める＝台本でなく目標。
+````
+
+## L1573 T `stateMonopTier = World.StateMonopolyMaxTier;`
+````
+// ★取引税＝主食まで全ての消費財に課す（旧 Government.StateMonopolyTop=0.8 の翻訳・史実どおり全財）
+````
+
+## L1574 T `p.ProgressiveTaxTarget = Math.Max(p.ProgressiveTaxTarget, Government.ProgressiveTaxTop);`
+````
+// ★錨2026-09-18＝累進の教義最大＝段の最上段
+````
+
+## L1576 T `p.SocialSecurityLaw = SocialSecurityLaw.Pension;`
+````
+// 4段の最上位を目標化（実際の到達は政治ゲート）
+````
+
+## L1578-1581 W 直後 `if (Government.WarStageOpen(w))`
+````
+// ★戦時段の選択（作者裁定2026-09-19 M2）：総動員中かつ交戦中のAIは軍事費の最上段（戦時経済）を**選ぶ**＝プレイヤーの法律タブの段ボタン
+//   （GameViewModel.Law の `v / 段数`）と同じ書き込み口・同じ写像に v=最上段を入れる＝新しい数は置かない。総動員は段を解禁するだけで押し上げない
+//   （Government.MilitaryTotalTarget）＝AIが自分で選ばなければ戦時経済に届かない。1段ずつの登坂と「総動員が前提」の門は GateAllLawTargets が
+//   法律タブと同じ GateInfo で掛ける＝IsPlayer は読まない。講和の四半期は DecideQuarter の総動員分岐（Apply の前）が先に復員させる＝この行は不発で教義の値へ戻る。
+````
+
+## L1585 T `if (Instruments.On) Instruments.WarStagePicked(w);`
+````
+// 計器（読むだけ）：AI が最上段を選んだ
+````
+
+## L1588-1590 W 直後 `{`
+````
+// ★不満の社会保障圧力（2026-08-04・作者指示）：どのスタンスが勝っていても、不満が高いほど社会保障の目標に
+//   床を敷く＝満足度の下落に福祉が**必ず**応答する（旧＝Welfareスタンスが選ばれない限り目標は0.1〜0.3で凍結）。
+//   床＝不満の深さに線形（満足0.7で0・満足0で1.0）。下げ圧にはしない（Max）＝緊縮スタンスの意図的な0.1は保つ。
+````
+
+## L1598-1600 W 直後 `if (Politics.AvgMassMilitancy(w) > w.Coef.RiotMilitancyThreshold && p.Suffrage < Suffrage.`
+````
+// 革命を避ける参政権の譲歩（Reform Acts／ビスマルク型の上からの改革）：大衆の闘争度が高い＝革命脅威が迫ると、
+// AIは参政権を拡大して不満を**改革＝票**へ流す（転覆より分権が得）。空間モデルでは新規有権者の乖離が暴動でなく投票へ流れて沈静化。
+// ＝硬直して革命される（旧挙動）でなく、史実の英のように改革で生き延びる。実際に通るかは政治ロック（エリートの譲歩・PolicyPreferences）が決める。
+````
+
+## L1604-1608 W 直後 `if (w.ParliamentEnabled && w.PoliticsEnabled && !w.InCivilWar`
+````
+// ★議会の構成を読む（回5-1 項目17・2026-09-26）：旧 Parliament.ApplyPlatform の法軸の段を AI の意図へ移した＝値も適用範囲も同じ
+//   （議会あり・政治あり・内戦中でない・立憲か共和）。旧はプレイヤー国の目標まで毎四半期上書きし、門の畳み（GateAllLawTargets）の**後**に書いて幽霊戦線を作っていた。
+//   ここはスタンス既定（検閲・労組・労働時間の毎期の再代入）と軍国の民主的後退の後ろ＝旧と同じく与党の段がそれらを上書きし、
+//   危機の要求（TargetCrisisDemands）と門の畳みの前＝危機の要求が最後の言葉・通らない段は法律タブと同じ GateInfo で畳まれる。
+//   読むのは与党の札（第一党）＝プレイヤーも政治タブで同じ札を見る。⚠AI は Parliament.Step より前に判断する＝選挙の四半期だけ新しい与党の段が1期遅れる。
+````
+
+## L1612 T `if (w.GoverningParty == (int)Parliament.Party.Liberal)`
+````
+// 近代エリート＝公教育・制限選挙・10時間法
+````
+
+## L1618 T `else if (w.GoverningParty == (int)Parliament.Party.Socialist)`
+````
+// 大衆＝公教育・男子普選・労組の容認・8時間労働
+````
+
+## L1627 T `DecideModernLaws(w, p, s);`
+````
+// 02断線走査2026-07-28：E5/E6の9法にもAIの目標を置く（施行可否は政治ゲート）
+````
+
+## L1629-1630 W 直後 `double drawdown = w.GdpDrawdown.Value;`
+````
+// 反景気循環的金融政策（教義の金利を上書き）：景気後退で利下げ＝信用を支え恐慌を緩衝、過熱で利上げ＝引締。
+// ＝賢い中央銀行ほど恐慌を浅く短くできる（恐慌回避の巧拙が国力差に出るか計測する）。
+````
+
+## L1633 T `if (drawdown > RecessionDrawdownThreshold) p.InterestRateTarget = EasingInterestRate;`
+````
+// 後退＝緩和（恐慌の緩衝）
+````
+
+## L1634 T `else if (heat > OverheatHeatThreshold) p.InterestRateTarget = TighteningInterestRate;`
+````
+// 過熱＝引締
+````
+
+## L1635 T `else if (heat > OverheatHeatThreshold * w.Coef.PreTightenHeatFrac.Value) p.InterestRateTar`
+````
+// #124：過熱の兆候＝予防的引締め（バブルを小さく＝崩壊も浅く）。係数化2026-08-22＝裸腕の座標（既定0.75不変）
+````
+
+## L1636 T `else p.InterestRateTarget = NeutralInterestRate;`
+````
+// 平時＝中立
+````
+
+## L1638-1641 W 直後 `double fiscalStress = FiscalStressOf(w);   // 0=十分, 1=破産（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）`
+````
+// === 財政規律（死のスパイラルの防止）===
+// AIは放っておくと永久に工業化姿勢のまま国庫を0にし、行政費が払えず行政が崩壊→税収が汚職で漏れ続ける→破産が固定化する。
+// 国庫が薄い間は裁量支出（技術導入→福祉→過剰教育の順）を絞り、**行政費だけは維持**してスパイラルを断ち、
+// 広い税（人頭・消費）で黒字へ戻す＝行政が機能→漏れが減る→自立（所得税の解禁ラッチは2026-09-12に廃止）。
+````
+
+## L1642 T `double fiscalStress = FiscalStressOf(w);`
+````
+// 0=十分, 1=破産（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
+````
+
+## L1643 T `if (Instruments.On) Instruments.FiscalStress(w, fiscalStress);`
+````
+// 計器（読むだけ・(265)）：判断の時点の逼迫
+````
+
+## L1646-1647 W 直後 `double stressEff = drawdown > RecessionDrawdownThreshold ? fiscalStress * w.Coef.CrisisAus`
+````
+// #124 恐慌AI対処（2026-07-25）：恐慌の谷での緊縮増税・福祉削減は需要をさらに殺し恐慌を深くする（プロサイクリカル財政の罠＝1930年代の緊縮の再演）。
+// 恐慌中は stress 応答を半減＝借入で凌ぎ、回復後に締める。行政費の維持（スパイラルの要）は不変。プレイヤーも同じ判断ができる＝対称。
+````
+
+## L1648 T `double stressEff = drawdown > RecessionDrawdownThreshold ? fiscalStress * w.Coef.CrisisAus`
+````
+// 係数化2026-08-22＝裸腕の座標（既定0.5不変）
+````
+
+## L1650 T `p.SocialSecurityTarget *= ease;`
+````
+// 福祉も絞る（裁量支出を国庫逼迫時に削る。恐慌中は半減幅＝失業の怒りを煽らない）
+````
+
+## L1652 T `p.AdminSpendingTarget = Math.Max(p.AdminSpendingTarget, 0.5);`
+````
+// 行政費は維持＝スパイラルの要（行政が死ぬと所得税が永久ロック）
+````
+
+## L1653 T `p.PollTaxTarget = Math.Max(p.PollTaxTarget, FiscalTaxStressMult * stressEff);`
+````
+// 行政不要の確実な財源を確保（恐慌中は引上げ幅も半減）
+````
+
+## L1655-1664 W 直後 `if (!w.WarmupFrozen)`
+````
+// ★専売の広さの規律（2026-09-30 (127)）＝**今の広さから**動かす（教義の広さは床）：払えない請求（r＜1）＝1段広げる（上のコメントの「広い税で黒字へ戻す」）・
+//   国庫が安全水準（FiscalBufferOf＝月次義務の FiscalStressBufferMonths か月分＝この AI の逼迫の物差し）を超えた＝1段狭める・その間＝保つ。Clamp は SetStateMonopolyTier が持つ。
+//   ⚠旧＝「教義の段＋逼迫なら1」を毎四半期に教義の段から計算し直した＝広げた四半期に黒字→次の四半期に教義の段へ戻る→また払えない、の
+//     四半期ごとの往復（seed 1 の英＝段2↔3 を毎四半期・歳入÷年GDP 6%↔17%・日用品の買い手価格が四半期ごとに ±21%）。
+//   理由で動く（逼迫と余裕の2本の線＝既存の r と安全水準）＝タイマーでも新しい状態でもない（今の広さは StateMonopolyMargins からの導出）。
+//   ⚠潤沢の減税（RelieveOpulence・8四半期分の線）は使わない＝あちらは率への連続倍率・こちらは広さの1段＝同じ線に乗せると国庫が数年分積もるまで狭まらない
+//     （probe seed 1＝英が段3→4・蘭が段3 に張り付き 1784 の歳入÷年GDP 18・24%）。
+//   ⚠狭める側は教義の広さより下へ行かない＝旧 RelieveOpulence の注記が退けた「段を落とす翻訳」（床が無い・毎期 教義−1段）にならない。
+//   ⚠開始前の助走（World.WarmupFrozen）は今の広さを積まない＝教義の広さのまま〔★(400) ただし NationConfig の OpeningStateMonopolyTier を持つ国（英・蘭）は助走の間その段を教義との max で保つ＝下の else の行・(402)〕（助走は借りない＝r＜1 は「借りられない」助走の作りもの・
+//     広げた記憶は年月が経って積み上がる量＝国庫・国債・法と同じ門）。
+````
+
+## L1668 T `bool push = false; double pushP = double.NaN, pushU = double.NaN;`
+````
+// ★(337) MonopolyBurdenPushMode＝1：払えていて r＝1 でも利払いが重い間は、確率 p＝重さ×余裕の因子 で 1 段広げる（外れたら下の旧の枝）。0＝抽選せず偽＝旧と同じ
+````
+
+## L1670 T `if (Instruments.On) Instruments.MonopolyPush(w, InterestBurdenStressOf(w), pushP, pushU, p`
+````
+// 計器（読むだけ・(337)）：決断の時点の重さ・確率・抽選の目・当たり（抽選しなかった四半期は NaN・0）
+````
+
+## L1676 T `else if (w.OpeningStateMonopolyTier > 0) stateMonopTier = Math.Max(stateMonopTier, w.Openi`
+````
+// ★(400) 助走の間は専売の開幕の段（world.json）を保つ＝教義の段は床のまま max（助走の始めに置いた段を助走の各四半期の教義が下げて消さない）。規則なしの国ではこの行は走らない
+````
+
+## L1677-1678 W 直後 `if (Instruments.On) Instruments.MonopolyDecision(w, w.StateMonopolyTier, Math.Clamp(stateM`
+````
+// ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。
+//   ⚠旧はここが w.StateMonopolyMargins[] へ直書きしていた（天井の自動導出を避けるための意図的な迂回）＝P5の破れ。天井が消えたので迂回の理由も消えた。
+````
+
+## L1679 T `if (Instruments.On) Instruments.MonopolyDecision(w, w.StateMonopolyTier, Math.Clamp(stateM`
+````
+// 計器（読むだけ・(265)）：専売の段（今の段→置く段・Clamp は SetStateMonopolyTier と同じ）
+````
+
+## L1682-1683 W 直後 `{`
+````
+// ★撤去2026-08-16（C2-C5）：汚職根絶のAI目標（AntiCorruptionTarget）を物理削除＝汚職V2恒久ONで根絶費の動詞ごと死骸
+//   （V2点火2026-08-15で既に0固定＝挙動恒等・Fiscal側の請求遮断と対＝プレイヤー/AI対称のまま消滅。監視は法＝報道/資格任用/議会予算権で買う）。
+````
+
+## L1685-1685 W 直後 `{`
+````
+// P9改（2026-07-19ユーザー裁定）：国民形成費のレバーは廃止＝AI目標も不要。国民運動は「選挙を望む層」が自費で賄う（Fiscal の需要駆動ブロック・プレイヤー/AI対称）。
+````
+
+## L1687-1693 W 直後 `{`
+````
+// ★★3法のAI（設計＝docs/202608/20260802_3法の開放_部分完了.md【完了】.md・段2・2026-08-02）：穀物法・土地改革・農奴解放。
+// ⚠これまでAIは3軸に触れず「議会が自動で動かすから」とされていたが、**1783年の54カ国中46カ国は非選挙政体で
+//   ApplyPlatform（2026-09-26 に撤去＝回5-1）が丸ごとスキップされる**＝実際には誰も動かしていなかった。開放の主効果はここに出る（露・清・オスマン）。
+// ⚠⚠**PolicyPreferences を「AIの賛否」として読んではならない**＝あれはゲートの入力（物質的立場）で、
+//   それを意図として読むと「通る法しか望まない」トートロジーになり、自党を割って押し切る型が表現できなくなる。
+//   だからAIは**既存の物質量**だけを読む。
+// ⚠段は1つずつ動かす（プレイヤーの法律タブも1段ずつ置く＝手数を対称に保つ。施行は StepEnum が1期1段に律速）。
+````
+
+## L1695-1699 W 直後 `bool famine = !(w.FoodFill >= w.Coef.DynMandateFoodAnchor);   // 否定形＝NaN は飢饉側（fail-closed）`
+````
+// 穀物法＝食べられているかと、都市の重み。飢えているか都市化した国は撤廃へ、農業国で足りていれば維持へ。
+// ★飢饉の閾値は**コードベース既存の較正済み基準**を使う（2026-08-02修正）。初版は 1−FoodFill > 0.05 で、
+//   これは Coefficients.DynMandateFoodAnchor=0.8 のコメントが「1.0基準は慢性輸入国＝英を常時罰する。
+//   罰すべきは飢饉であって輸入依存ではない」と既に否定していた水準＝常態を飢饉と読んで第1分岐が常に真になり、
+//   都市化の2分岐が一度も効かず全54カ国が None へ落ちた（実測 穀物法 None 100%）。
+````
+
+## L1700 T `bool famine = !(w.FoodFill >= w.Coef.DynMandateFoodAnchor);`
+````
+// 否定形＝NaN は飢饉側（fail-closed）
+````
+
+## L1701 T `int cornWant = famine || w.UrbanShare > CornUrbanRepeal ? 0`
+````
+// なし＝安いパン
+````
+
+## L1702 T `: w.UrbanShare < CornAgrarianKeep ? 2 : (int)p.CornLaws;`
+````
+// 全面＝地主保護
+````
+
+## L1705-1712 W 直後 `double rentRoom = 0; int rentN = 0;`
+````
+// 土地改革＝**地代の取り分が上限を超えている余地**が改革の効き。超えていなければ動かす意味がない。
+//   ⚠農奴解放はこの余地で動かさない（下の注記・2026-10-03 (184)）。
+// ★走査は RGO に限る（2026-08-02修正）。FarmRentCap が実際に律速するのは RGO だけ（EconomyStep.cs の
+//   `s.IsRgo ? Min(...) : s.RentShare`）なのに初版は全生産者を見ていた。全州に必ず居る RentShare=1.0 の
+//   非RGO工場（坩堝鋼・錬鉄レール）が常に上限超過として数えられ、法が1段でも動くと room が恒久的に立つ
+//   自己触媒ラチェットになっていた（実測 土地改革/農奴解放 Full 100%）。
+// ★分母は**全RGO**（超過した数ではない）＝「どれだけ広く封建地代が残っているか」を表す量にする。
+//   超過件数で割ると、200件中1件でも200件全部でも同じ値になり問題の広がりが消える。
+````
+
+## L1724-1732 W 直後 `StepLawToward(w, p, PolicyAxis.SerfEmancipation, (int)p.SerfEmancipation, (int)p.SerfEmanc`
+````
+// ★農奴解放＝**次の段を毎四半期の目標に置く**（2026-10-03 (184)・推奨で進めた）＝可否は門（法律タブと同じ GateInfo＝旧支配層の反対と政治資本の在庫）が決める
+//   ＝検閲の既定（「自由化を目指す・政治ゲートが可否を決める」）と同じ形。⚠**量は読まない（門だけで決まる）**＝3法の AI の設計（2026-08-02「AIは既存の物質量だけを読む」・
+//   docs/202608/20260802_3法の開放 §3-2）から外れる（(187) 反証役 va2#3・推奨で進めた＝作者の承認は未確認）。⚠特権の見返り（貴族の行政の素地 NobleAdminFromSeigneurial は (383) で行政効率の 4 因子ごと物理削除した）。
+//   作者 2026-09-08「特権にメリットを持たせることで…どこかのタイミングで特権を剥がす、という判断が生まれます」の見返りは、行政の素地としては無くなった（00一覧）。
+//   旧＝余地（上の room）か飢饉の時だけ置いた。⚠余地は**今の法の上限**（FarmRentCap＝土地改革と農奴解放の上限の小さい方）に対して測る
+//   ＝土地改革がなしの間は、農奴解放もなし（上限1.0）なら余地0＝最初の入口は飢饉だけ（土地改革が進んだ後は余地でも入った＝(187) 反証役 va2#4）。
+//   飢饉の判定は開幕の10年に多い（腕A の10種＝清32%・オスマン48%・スペイン28%・墺16%・露15% の四半期）＝門が開く窓（立憲か共和＝全ての国の門が開いた四半期の99.8%）と
+//   開幕の飢饉が重なった種だけが開幕の数十年に解放し、他は1950年まで解放しなかった（日 1785/1787〔2/10〕・露 1790/1794〔2/10〕・仏 2/10）＝(178) の記録の二つの山の根。
+//   ⚠段は1つずつ（StepLawToward）・門が通らない段は置かない（幽霊戦線を作らない）＝プレイヤーが法律タブで同じ段を押すのと同じ1本。
+````
+
+## L1738-1741 W 直後 `if (w.Coef.OpiumAddictionGrowth > 0)`
+````
+// 阿片の法のAI（禁制品doc C3・2026-07-30。旧＝bool の行政禁令を即時に立てるだけだった）：
+// 中毒度が閾値を超えたら輸入禁止を、その2倍を超えたら全面禁止を**目標に置く**（施行は議会と利益集団の政治ゲート越し＝プレイヤーと同じ経路）。
+// 十分下がれば1段戻す（ヒステリシス・RNGなし決定論）。★輸出は「自国で全面禁止した国は他国へも売らない」＝
+// 保有法と輸出法が別の決定であることは保ちつつ、AIの立場が保有法から導かれる（英が1807→1833と60年かけた非対称もこの形で出る）。
+````
+
+## L1751 T `: p.OpiumPossession;`
+````
+// 閾値とヒステリシスの間＝現状維持
+````
+
+## L1752-1755 W 直後 `{`
+````
+// ③ 阿片の輸出法のAI規則（2026-07-31 裁定）：旧「自国が全面禁止に至った国だけ輸出も禁じる」は**英が出ない**
+// （史実の英は自国で禁じないまま輸出を続け、外交的代価が耐えられなくなって止めた＝1907英清阿片協定・1913インド阿片輸出終了）。
+// 新＝外圧 Σ(阿片を禁じていて、かつ緊張が高い相手の TradeWeight) が閾値を超えたら禁止。**新しいスカラーはゼロ**
+// （緊張・TradeWeight・相手の保有法はすべて既存）。この形は奴隷貿易（英海軍の圧力）・児童労働（国際労働規制）へ再利用できる。
+````
+
+## L1762 T `if (ow2.OpiumPossession == ReformLevel.None) continue;`
+````
+// 相手が阿片を禁じていない＝圧力にならない
+````
+
+## L1763 T `if (odip.Tension(oself, other) < w.Coef.OpiumExportPressureTension) continue;`
+````
+// 緊張が高い相手だけ
+````
+
+## L1770-1772 W 直後 `if (w.SelfPower is { } spv && w.Diplomacy is { } dipv)`
+````
+// === Phase2（AI動詞拡張 2026-07-08＝プレイヤー専用だった動詞の対等化）。多国世界（SelfPower あり＝実ゲーム/selfplay）限定＝単一国テスト・較正は不変。===
+// 軍需補助金（戦時）：交戦中は軍需カテゴリの工場へ補助金＝装備の増産（財政が保つ間）。平時は外す。
+// 売却（資産の現金化）：破産局面では国営工場を四半期1件ずつ売って現金化。
+````
+
+## L1775-1777 W 直後 `double easeInd = 1 - fiscalStress;`
+````
+// 近代化投資（国庫→全資本区画の建設予約＝マクロレバー）：産業/近代化スタンスのみ・財政余力でスケール。
+// 暴走防止＝設備の収益の持ち分で絞る（後発の国家主導工業化＝露/日型。収益が立たなくなるほど投資を止める。
+// 無制限だと小国が国庫を注ぎ込み工業化度20超＝旧実験「露が規模常勝」の再来になる＝batch30実測で確認済み）。
+````
+
+## L1779-1779 W 直後 `double retShare = w.ModernizeReturnShare();`
+````
+// ★(416) 止める信号＝国庫の配り先の設備の収益の持ち分（World.ModernizeReturnShare）。集計の工業化度の天井も世界前線も読まない（旧の腕・EffectiveIndCeiling・AiIndustrialCeilingFrontier は (591) で削除）。
+````
+
+## L1782 T `if (Instruments.On) Instruments.ModernizeSignal(w, s, indGap);`
+````
+// 計器（読むだけ・(416)）：Apply が使った gap を modsig へ
+````
+
+## L1783-1788 W 直後 `w.ModernizationFrac = indGap * easeInd * s switch`
+````
+// ★採算で絞る（2026-08-03・作者指示「AIがより効果的に近代化投資を行うように」）：
+//   建設は鋼/機械/セメント/製材の**束**を買う。束が参照価格より高騰していると、同じ国庫で買える単位が減り、
+//   さらに需要を足すぶん価格を押し上げる＝**産出は増えず物価だけ上がる**。実測（indprobe）で英の鋼は
+//   在庫0・価格8.6（参照2.18の約4倍）が常態＝注いだ国庫の大半が値を吊り上げるだけに消えていた。
+//   判断は**私的な工場建設が既に使っている同じ関数**（FactoryBuildAfford＝束の現在費用/参照費用の連続減衰）＝
+//   新しい定数も新しい判断も持ち込まない。国家だけが相場を無視して買い漁る非対称を消す。
+````
+
+## L1793-1805 W 直後 `Stance.Militarize => ModernizeInvestFrac,`
+````
+// ★富国強兵（2026-08-02・作者報告「イギリスの開発度が異常に低い」の根）：旧 `_ => 0` は「軍か工場か」の
+//   偽二分法だった。植民地防衛効用（colonyDefense=0.3×植民地数）は植民地11の英で恒久+3.3＝英は**一度も**
+//   工業化系スタンスを選べず、このレバーが毎四半期0に潰され、開幕バーストすら踏めないまま
+//   Ind 0.33→1.22(Q3)→0.67 と減価で沈んだ（実測 indprobe 120Q。仏は3.67まで積む）。
+//   史実は逆＝軍拡国家こそ製鉄と鉄道を建てた（明治の富国強兵・ヴィルヘルム期ドイツ）。
+//   犠牲はレバーの排他でなく**財政**で払わせる＝easeInd(=1−財政逼迫) が既に律速
+//   （軍事費0.7の国は国庫が細り自然に絞られる）。定数は Modernize と共有＝新しいスカラーを置かない。
+//   ★富国強兵（2026-08-03・作者指示「近代化投資を復活」）＝軍拡国家こそ製鉄と鉄道を建てた
+//     （明治の富国強兵・ヴィルヘルム期ドイツ）。旧 `_ => 0` は「軍か工場か」の偽二分法だった。
+//     ⚠R10（無条件・colonyDefense 無限比例のまま）は列強再現率−10＝清などアジア軍拡国まで一斉工業化。
+//       いまは colonyDefense が飽和済み（R12）で帝国が Militarize に固着しない＝前提が変わっている。
+//     犠牲はレバーの排他でなく**財政**が払う（easeInd＝1−財政逼迫が既に律速＝軍事費0.7の国は国庫が細る）。
+//     定数は Modernize と共有＝新しいスカラーを置かない。
+````
+
+## L1807 T `_ => 0,`
+````
+// Welfare/Fiscal＝緊縮と再分配は本当に投資を止める（こちらは真の二分法）
+````
+
+## L1809-1810 W 直後 `if (s == Stance.Industrialize && fiscalStress <= 1e-9 && w.LastExportValue > w.LastImportV`
+````
+// ダンピング（負関税＝輸出補助）：産業スタンスで輸出超過かつ財政健全なら世界市場へ安売り（後発の輸出攻勢）。
+// 後発限定（設備の収益がまだ立つ国）＝成熟した輸出大国が国庫で安売りを続けると輸出ブーム→私的建設の暴走（実測＝ロンドン工業化度35）になるため。
+````
+
+## L1812 T `&& retShare > 0)`
+````
+// ★(416) 後発＝設備の収益がまだ立つ（信号＞0）
+````
+
+## L1815 T `p.TariffTarget = 0;`
+````
+// ダンピング解除（監査2026-07-11 他6）：旧＝リセットなしでスタンス離脱後も輸出額×10%の国庫→商人補助金が恒久残留（緊縮中も垂れ流し＝財政規律と逆行）
+````
+
+## L1822-1827 W 直後 `if (Catalog.Goods[pr.GoodId].Tier == GoodTier.Service) continue;`
+````
+// RGO（投入ゼロ）の除外を撤去（プランテーションdoc D1・2026-07-30）＝補助金の動詞をプレイヤーとAIで揃える
+// （プレイヤーは World.SetSubsidyRate にRGO除外が無く生産タブから既にRGOへ補助できた＝思想⑤の片側欠落）。
+// ⚠ 実挙動は現時点で厳密恒等：RGO財は FactorySpec が既定("軽工業")へ落ちて「軍需」枝に入らず、
+//   もう一方の枝は AiDevelopmentalSubsidy=0（休眠）で不発。点火時に初めてRGOへ補助が届く。
+// ★国営持分の除外（作者裁定2026-08-10）はAI専用の判断を足さずに済む＝AIも同じ World.SetSubsidy を通り、
+//   国営100%なら動詞が0に落とし、部分国営なら EconomyStep が民営持分ぶんだけ効かせる（機構が対称・判断は不変）。
+````
+
+## L1834 T `if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr, want);`
+````
+// 計器（読むだけ）：補助の輪が掴む個体と動詞が掴む個体の食い違い
+````
+
+## L1838-1840 W 直後 `else if (w.Coef.AiDevelopmentalSubsidy > 0 && s == Stance.Industrialize`
+````
+// 産業政策 レバー3（2026-07-24・AI対称化）：産業スタンスの開発国家＝平時に民生上流（Intermediate/Producer）の
+// 赤字工場（数期EMA採算）へ時限補助・黒字化 or 戦時/財政悪化で解除（明治の官営→払い下げの型）。プレイヤーの補助金動詞と完全対称。
+// ⚠点火順序＝レバー1（軟予算）・2（財政規律）の後（コスト側なしで44カ国へ補助金ファームを配らない）。AiDevelopmentalSubsidy=0（既定）で不発＝厳密恒等。
+````
+
+## L1847 T `if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr, want);`
+````
+// 計器（読むだけ）
+````
+
+## L1853 T `if (Instruments.On && fiscalStress > FireSaleFiscalStress) Instruments.FireSaleRun(w);`
+````
+// 計器（読むだけ）：投げ売りの輪が回った回数
+````
+
+## L1859-1861 W 直後 `foreach (var pr in rg.Producers)`
+````
+// ★投げ売りも**同じカウンター**を1つ下げる（作者裁定2026-08-10 E節）。可否は CanSellFactory が握る＝
+//   「不満のある資本家は買わない」「国有化法の対象は売れない」がAIにもそのまま効く（対称）。
+//   売れる時だけ下げる＝売れないのに目標だけ下がって毎月再挑戦する空回りを作らない。
+````
+
+## L1864 T `if (Instruments.On && pr.BuiltScale > 1e-9) Instruments.FireSaleSeen(w, rg, pr);`
+````
+// 計器（読むだけ）：輪が掴む個体と動詞が掴む個体（FindFactory）の食い違い
+````
+
+## L1867 T `if (Instruments.On) Instruments.FireSaleFired(w, rg, pr);`
+````
+// 計器（読むだけ）
+````
+
+## L1874-1874 W 直後 `}`
+````
+// 〔POP動詞（2026-07-19）は全廃：①階級優遇/弾圧②職業誘導③選別的徴兵ともユーザー指示で撤去（2026-07-20/21）。武力鎮圧は国内危機イベント化（Politics.CheckFactionRevolt でAI即決）。〕
+````
+
+## L1877-1878 W 直後 `RelieveOpulence(w);`
+````
+// 〔②検討メモ〕債務感応の緊縮（債務が高い時に先回りで増税）を試したが、増税が pop の貯蓄/満足を削り急進化（立憲71→65%）＋技術テストに波及したため撤回。
+// 慢性赤字の根（特にイギリスの植民地防衛由来の軍事費）は per-nation の財政再均衡が要る別作業＝後回し。
+````
+
+## L1880-1891 W 直後 `RelieveOpulence(w);`
+````
+// ★AI第1波①（2026-08-16）：ここまでに計算した全法目標を「現行法から・いま通る1段」に統一（幽霊戦線の根絶）。
+// 必ず Apply の**最後**（全ての法書き込みの後）＝どの経路（スタンス既定・教義・譲歩・阿片・国有化）で置いた目標も一律に整形する。
+// ⚠0＝この if 以外は1命令も変わらない（従来の無ゲート代入がそのまま目標）＝ビット恒等。
+// ★要求は法の経路（作者裁定2026-09-11）：危機が立った運動（PendingFactionCrisis＝通知＝プレイヤーと同じ札）の要求と、
+//   F1 州一揆に譲歩した段（World.PendingRevoltDemand＝Politics.ConcedeToRevolt が記録）を法の目標に置く
+//   ＝下からの改革圧力（上の参政権の譲歩 RiotMilitancyThreshold）と同じ型＝**要求への応答も法目標の1つ**。置く/置かないは法律タブと同じ GateInfo
+//   （Parliament.TargetCrisisDemands＝gated）＝通らない段は置かない＝拒否。プレイヤー国は Apply を通らず法律タブで同じ p.X を書く＝IsPlayer で分岐しない。
+//   ⚠必ず全法書き込みの後・GateAllLawTargets の前＝スタンス既定（Censorship/LaborUnion/WorkHours の毎期再代入）や DecideModernLaws・財政逼迫の ×ease に
+//     上書きされない位置（危機の要求が最後の言葉・整形は GateAllLawTargets が旧どおり）。
+// ★潤沢の減税（2026-08-04）も**門の前**（2026-09-28 (85)）＝反射が縮めた税の目標も同じ GateTax で「いま通る1段」へ整形される
+//   ＝AI とプレイヤーが同じ門を通る（旧は DecideQuarter で Apply の後＝門の後に倍率を掛け、門が拒む段を置けた＝幽霊戦線）。
+//   危機の要求より前＝要求が最後の言葉のまま。Apply の後に走っていた処理（借入の予約・通貨改革の予約）は国庫も潤沢線も動かさない＝判定は同じ。
+````
+
+## L1898-1899 W 直後 `public sealed record NationStanding(`
+````
+/// <summary>1国の最終順位（国力＝列強ランキング）。Laws＝最終的な法体系（目標5：法の多様性の計測用）。
+/// Nation＝国名（Power.Name＝world.json）。Name＝首都州名（Regions[0]・割譲遷都で変わりうる）＝史実忠実度の照合キーは Nation。</summary>
+````
+
+## L1906-1908 W 直後 `double Militarism = 0, ConscriptionLaw Conscription = ConscriptionLaw.Selective,`
+````
+// ★2026-08-18（親軍法の撤去）：旧 bool Militarism を2本へ分ける。
+//   Militarism＝**軍の政治的優位**∈[0,1]（導出量＝軍の圧力×(1−文民制度の弁)）。忠実度は閾値 HistoricalReference.MilitarismDegreeOk で照合する。
+//   Conscription＝徴兵法（**法**なので法多様性の軸に載る＝旧「親軍」枠の後継）。
+````
+
+## L1910 T `string Nation = "", string Suzerain = "", string DisplayName = "",`
+````
+// Nation/Suzerain＝BaseName（不変鍵＝忠実度照合・集計）。DisplayName＝終局時の表示名（変名後の「ドイツ」等・表示専用）
+````
+
+## L1911 T `double PopGrowth = 0,`
+````
+// B-中7（史実検証2026-07-22）：1783年比の人口成長倍率。**領土不変な定義**＝本ゲームは国を消さないので絶対人口の±%は噛み合わない。0=初期人口不明（測定対象外）
+````
+
+## L1912-1912 W 直後 `int HomeProvinces = 0,  // 08の70%計器（2026-07-31）：本国州の保有数（Active な Region＝割譲/分離で減り征服で増える）。領土`
+````
+// 案Y（2026-08-21）：宣言と実装の乖離を解消＝分子から併合の持ち込み人口（Region.AnnexBaggage）を除く。旧定義は PopGrowthGross（末尾）に併走
+````
+
+## L1913 T `int HomeProvinces = 0,`
+````
+// 08の70%計器（2026-07-31）：本国州の保有数（Active な Region＝割譲/分離で減り征服で増える）。領土次元の分子
+````
+
+## L1914 T `double NavalPower = 0, double LandPower = 0, double FleetStock = 0,`
+````
+// ★2026-08-01（作者裁定「海軍の強さは測定するべき」）：陸海の内訳（★(189) FleetStock＝艦の強さの値＝EconomyStep.FleetPowerValue）。現行の忠実度6次元は兵力も海軍も装備も測らない＝改修の効果が検証できない
+````
+
+## L1915 T `double TradeGdp = 0,`
+````
+// ★貿易開放度次元（2026-08-15・作者承認「テスト速度に影響しないなら追加」）：(輸出+輸入)×年換算/GDP（国際のみ＝TariffBorderOnly点火後の定義）。照合＝HistoricalReference.TradeOpenness1913
+````
+
+## L1916-1917 W 直後 `double MilPush = 0, double MilValve = 0, double MilCourt = 0, double MilLegitimacy = 0,`
+````
+// ★計器のみ（2026-08-18）：Militarism＝軍の政治的優位の**内訳**。合成値だけを見て写像を2度誤った（旧弁＝国家の近代性／新弁＝露が沈む）ので、
+//   milgrade が分子と分母、さらに弁の2項を別々に印字できるようにする。⚠効果には一切接続しない＝挙動非接触。
+````
+
+## L1919-1921 W 直後 `Polity DerivedPolity = Polity.Absolutist,`
+````
+// ★★導出政体（2026-08-21・作者裁定「切り替えでよい」）：権力シェアから読み出した政体（PowerAffinity.PolityFromShares）。
+//   忠実度の政体次元は**これ**で照合する（政体は表示・照合のラベルであって挙動の分岐ではない＝2026-08-19裁定の帰結）。
+//   ⚠Polity（旧ラベル）は**比較可能性のために併走で残す**＝ハーネスが旧基準の exact も同走で数える（LabelExact）。
+````
+
+## L1923-1924 W 直後 `double PopGrowthGross = 0,`
+````
+// 案Y（人口物差しの脱汚染・2026-08-21）：旧定義の人口成長倍率＝総人口比（征服インフレ込み）。PopGrowth が新定義
+//（併合の持ち込み人口 AnnexBaggage を分子から除く＝宣言どおりの領土不変）へ替わったため、比較可能性の橋として併走。
+````
+
+## L1926 T `double ColonyMass = 0);`
+````
+// ★2026-08-28（作者裁定③）：植民地の質量（Colony.Population単位＝細分化で不変）。忠実度の植民地次元がこちらを読む（0=旧経路＝個数へ退避）
+````
+
+## L1928-1928 W 直後 `public sealed record MatchResult(`
+````
+/// <summary>1試合の構造化結果。</summary>
+````
+
+## L1934 T `IReadOnlyList<string> HarnessIssues,`
+````
+// 合格しなかった（△/×）検査の内訳（回帰の所在を可視化）
+````
+
+## L1935 T `double MaxDrawdown, int DepressionEpisodes, int OverheatDepressions, int HarvestDepression`
+````
+// GDP最大ドローダウン・恐慌数・うち信用過熱先行数・不作先行数（恐慌の原因分解・要望3）
+````
+
+## L1936 T `int LeadChanges = 0,`
+````
+// 首位交代の総回数（目標3：独走できず首位が入れ替わり続けるか）
+````
+
+## L1937 T `int GoldSuspensions = 0, int GoldCoverSuspensions = 0,`
+````
+// GoldCoverMin有効化2026-07-10：金本位の強制離脱（兌換停止）総数・うちカバー率割れ起因
+````
+
+## L1938 T `int SpawnedNations = 0, int Formations = 0,`
+````
+// 国家アイデンティティ2026-07-12：分離独立で建国した国数・変名（統一/formable）した国数＝状態由来（leanのログ抑制に非依存）
+````
+
+## L1939 T `int CivilWarSplits = 0,`
+````
+// ★2026-08-13：内戦分裂（CivilWarSplitEnabled）の成立回数。旧は World.CivilWarSplitCount に**読み手がゼロ**で、
+````
+
+## L1940-1941 W 直後 `IReadOnlyList<NationStanding>? StandingsAt1914 = null,   // 忠実度の照合断面（Q524＝1914年12月・1934延長2`
+````
+//   機構が働いたかどうかを**観測すらできなかった**（2026-08-01に「帝国を丸ごと解体する」として差し戻したまま）。
+//   ★2026-09-28（処理の一元化 段2 束3）：旧経路の国家分裂を削除＝政体をめぐる内戦が分断（白紙講和）で終わった回数（Diplomacy.ResolvePeace）。
+````
+
+## L1942 T `IReadOnlyList<NationStanding>? StandingsAt1914 = null,`
+````
+// 忠実度の照合断面（Q524＝1914年12月・1934延長2026-07-19）。null＝524以下の走行＝最終Standingsで照合（従来互換）
+````
+
+## L1943 T `bool Deadlocked = false,`
+````
+// ★ゲート3是正2（2026-08-01）：デッドロックの構造フィールド。⚠旧は Anomalies の文字列一致（"デッドロック" を含むか）で判定しており、
+````
+
+## L1944-1944 W 直後 `double WorstLossRate = 0,   // 慢性赤字の判定量（2026-07-21）：負債化フロー÷名目産出（四半期・EMA）のピーク。MaxLossFinanc`
+````
+//   メッセージ文言を変えた瞬間に**硬性ゲートが静かに恒真になる**（最終調整ハーネス設計 §1-3）。
+````
+
+## L1945 T `double WorstLossRate = 0,`
+````
+// 慢性赤字の判定量（2026-07-21）：負債化フロー÷名目産出（四半期・EMA）のピーク。MaxLossFinanced は記録用の累積で判定には使わない
+````
+
+## L1946 T `string WorstLossNation = "", double WorstLossGdpQ = 0, int WorstLossQuarter = -1,`
+````
+// ★診断2026-08-11：ピークを出した国・その時の四半期名目産出・四半期。
+````
+
+## L1947-1947 W 直後 `int WarMaxRepeat = 0, int WarPairsGe3 = 0, int WarPairs = 0, string WarWorstPair = "",`
+````
+//   率は比なので**分母が痩せただけでも跳ねる**（実測：産出が消えた残余国で13,537%）。誰の何が起きたかを常に一緒に出す。
+````
+
+## L1949 T `int InterveneChances = 0, int PeaceOffers = 0, int PeaceBlank = 0, int PeaceRefused = 0,`
+````
+// ★診断2026-08-01：列強の介入（Probeでも埋まる）   // ★診断2026-08-01：同一ペアの再戦（最多回数・3回以上のペア数・交戦ペア総数・最多ペア名）
+````
+
+## L1950 T `int ElectionsHeld = 0, int ElectionQuarters = 0,`
+````
+// ★E0計器（選挙doc §8-a・2026-08-15）：全国の総選挙回数と選挙政体在籍四半期（平均間隔＝Quarters/Held）
+````
+
+## L1951 T `double TradeGdpMajors = 0,`
+````
+// ★貿易復活計器（2026-08-15）：6大国の終局時 貿易(輸出+輸入・年換算)/GDP の平均。史実の側＝同じ6国の1913年の平均（MajorsTradeGdpRef1913＝(186)・旧＝英1国の約0.4）
+````
+
+## L1952-1952 W 直後 `int MajorDepressionEpisodes = 0, double MajorMaxDrawdown = 0, string MajorDdNote = "",`
+````
+// ★史実基準の恐慌計器（2026-08-22・作者指摘「恐慌回数・最大DDは史実基準ですか？」）：大国8（GdpRank1913参照国）の−20%級エピソード数と最大DD（産出床つき）。
+````
+
+## L1954-1956 W 直後 `IReadOnlyList<string>? Jumps = null,`
+````
+// ★2026-09-03（キューA-05／出典 トリアージ 2-A 10-2）：**跳躍ダイジェスト**＝7割帯は1914断面の一致率なので
+//   「逸脱3割の空間で起きた跳躍」を原理的に見ない。その盲点だけを埋める報告専用の窓（力学はこの列を読まない）。
+//   拾う3種＝①1年で順位10以上の跳躍 ②10年内に3回以上の政体フリップ ③1年で人口が物理上限を超えて増える。
+````
+
+## L1958-1958 W 直後 `IReadOnlyList<NationStanding>? StandingsAt1820 = null, IReadOnlyList<NationStanding>? Stan`
+````
+// ★E-08 多断面（2026-09-05）：1820/1870年12月の断面（延長走行のみ非null）。主指標は StandingsAt1914 のまま・これらは併記の物差し
+````
+
+## L1960 T `IReadOnlyList<NationStanding>? StandingsAt1920 = null,`
+````
+// ★E-09 WW1の帰結（1920年12月・政体のみ採点）
+````
+
+## L1961 T `IReadOnlyList<NationStanding>? StandingsAt1950 = null,`
+````
+// ★1950断面（2026-09-21・Q668＝1950年1月1日・政体と従属を採点）。全長がQ668未満の走行はnull
+````
+
+## L1962 T `long[]? Cost = null);`
+````
+// ★計算量の台帳（2026-09-30・CostLedger の添字＝この試合の見た件数・助走を含む）。報告専用＝帯の報告には書かない（Runner が別のファイルへ）
+````
+
+## L1964-1964 W 直後 `public sealed record BatchSummary(`
+````
+/// <summary>バッチ（複数seed）の集計。</summary>
+````
+
+## L1968 T `IReadOnlyList<(Polity Polity, int Count)> PolityDistribution,`
+````
+// 最終政体の分布（全国×全seed）
+````
+
+## L1969 T `IReadOnlyList<(Polity Polity, int Plays)> PolityPlayCount,`
+````
+// 各政体が「1国以上で出現したプレイ数」（要望4：希少政体も1/10プレイで出現するか）
+````
+
+## L1970 T `double AvgMaxDrawdown, int GreatDepressionMatches, double AvgDepressionEpisodes,`
+````
+// 恐慌統計（要望3）：平均最大ドローダウン・大恐慌(25%超収縮)を含む試合数・平均恐慌回数
+````
+
+## L1971 T `double OverheatShare, double HarvestShare,`
+````
+// 恐慌の原因分解：信用過熱先行（金融政策で回避）／不作先行（食糧安保・福祉で緩衝）の割合
+````
+
+## L1972 T `double AvgLeadChanges = 0,`
+````
+// 平均首位交代回数（目標3：独走せず首位が入れ替わり続けるか）
+````
+
+## L1973 T `IReadOnlyList<(string Axis, double MaxShare, string Dist)>? LawDiversity = null,`
+````
+// 法の多様性（目標5）：法軸ごとの最頻値シェア＋分布。MaxShare低いほど多様
+````
+
+## L1974 T `IReadOnlyList<NationFidelity>? Fidelity = null,`
+````
+// 史実忠実度（新較正基準2026-07-09）：国別の1914参照表一致率（exact/near/法）。◎7割帯=near55-85%
+````
+
+## L1976 T `int Independences = 0, int Formations = 0,`
+````
+// 国家アイデンティティ2026-07-12：分離独立の建国総数・変名（統一/formable）総数
+````
+
+## L1977 T `int CivilWarSplits = 0,`
+````
+// ★2026-08-13：内戦分裂の成立総数（再点火の判断に要る観測点）
+````
+
+## L1978 T `IReadOnlyList<string>? JumpLines = null,`
+````
+// ★2026-09-03（A-05）：跳躍ダイジェスト（順位跳躍・政変連発・人口の物理上限超）を種類で畳んだ内訳。報告専用＝硬性ゲートには入れない
+````
+
+## L1979 T `IReadOnlyList<string>? HarnessIssueLines = null,`
+````
+// 2026-07-31：合格しなかった検査を**検査名で畳んだ**内訳（seedと実測値つき）。要注意フラグとは別欄＝硬性ゲートの0件判定を汚さない
+````
+
+## L1981 T `double AvgInterveneChances = 0, double AvgPeaceOffers = 0, double AvgPeaceBlank = 0, doubl`
+````
+// ★診断2026-08-01：同一ペアの再戦（平均最多回数・3回以上ペア数・交戦ペア数・全seed中の最悪ペア）
+````
+
+## L1982 T `IReadOnlyList<(string Nation, double Naval, double Land)>? NavalRanking = null,`
+````
+// ★2026-08-01（作者裁定「海軍の強さは測定するべき」）：1914断面の海軍力の順位（全seed平均・上位のみ）
+````
+
+## L1983 T `double AvgElections = 0, double AvgElectionIntervalQ = 0,`
+````
+// ★E0計器（選挙doc §8-a・2026-08-15）：1試合あたりの総選挙回数と平均間隔（四半期）。史実英1832-1914＝約15.6Q
+````
+
+## L1984 T `double AvgTradeGdpMajors = 0,`
+````
+// ★貿易復活計器（2026-08-15）：6大国の終局 貿易/GDP 平均（史実の側＝同じ6国の1913年の平均＝MajorsTradeGdpRef1913・(186)）
+````
+
+## L1985-1988 W 直後 `double AvgMajorDepressionEpisodes = 0, double MaxMajorDrawdown = 0, string MaxMajorDdNote `
+````
+// ★史実基準の恐慌計器（2026-08-22・作者指摘「恐慌回数・最大DDは史実基準ですか？そうでないならハーネスが間違っている」）：
+//   大国8（GdpRank1913 参照国＝経済規模次元と同じ集合）の−20%級エピソード数（試合平均）と最大DD（全seed最大）＝Maddison系の史実と直接比較できる唯一の切り口。
+//   史実参照（実質GDP・1783-1934）＝大国8で計**5〜7回**・ほぼ全て1914-34の大戦/大恐慌型（露WWI+内戦≈40%・仏墺≈30%・米29-33≈27%）・
+//   **1783-1913の平時はほぼ0**（長い19世紀のパニックは実質−5〜10%の不況＝−20%崩落ではない）。
+````
+
+## L1990 T `long[]? CostTotals = null,`
+````
+// ★計算量の台帳（2026-09-30）＝全試合の見た件数の和（CostLedger の添字）。報告専用＝帯の報告には書かない（Runner が別のファイルへ）
+````
+
+## L1991 T `IReadOnlyList<(ulong Seed, double Exact, double Near)>? SeedFidelity = null);`
+````
+// ★止める規則（2026-09-30 計算量の予算 第2回）＝種ごとの政体 exact／near（その試合だけで照合した国の平均）＝標準誤差の材料。報告専用＝帯の報告には書かない（Runner が <出力>.cost へ）
+````
+
+## L1993-1993 W 直後 `public static class SelfPlayMatch`
+````
+/// <summary>各国に効用AIを差し、1試合を最後まで自動進行して構造化結果を返す。seed 固定で再現可能。</summary>
+````
+
+## L1996-2011 W 直後 `private const double LossRateMinOutputShare = 0.001;              // 世界の1国あたり平均産出のこの割合を下回る`
+````
+// マジックナンバー命名（挙動不変・値据え置き）。
+// 慢性赤字の異常閾値（2026-07-21・率へ是正）。旧＝累積の絶対値1000万で判定していたが、LossFinanced は減算のないグロス累積のため
+// 走行年数と経済規模に比例して必ず超え、実測でQ425(1889)通過・以後単調＝「健全性」でなく「通過時刻」を報告していた（30/30は恒真）。
+// 過去に5万→1000万へ200倍したが再点灯した前例もあり、閾値を上げる対処は無効。分母を入れて次元を合わせるのが正着。
+// **閾値の較正（2026-07-21・実測）**：604四半期×seed1-4 のピーク率＝20.35 / 17.36 / 23.64 / 19.32 %（平均≈20%・σ≈2.7pp）。
+// 累積は同じ4本で 49.6M / 39.6M / 12.8M / 56.5M と4.4倍ばらつき、ピーク率とほぼ無相関（seed3は累積最小なのにピーク最大）＝
+// 旧指標の絶対累積は実ストレスと別物を測っていた。全4本ともハーネスは〇10 △0 ×0（全検査合格）で、20%前後は**この経済の構造的な平常値**。
+// よって閾値は実測平常帯（最大23.6%）の上に十分な余裕を取り 35% とする（≈平常平均の1.75倍・σにして約5.5）。
+// ゴールポスト移動ではない根拠＝旧判定は構造上100%の走行で必ず点灯（通過時刻の報告）だったのに対し、本閾値は
+// 実測した平常分布の外側に置いており、かつ経済の健全性は独立の証拠（ハーネス全合格・貯蓄ゼロ床2%・倒産9%稼働・率はプラトー）で裏付けられている。
+// ★分母の床（2026-08-11）＝この率は「負債化フロー ÷ 名目産出」なので、**産出が痩せた国では分母だけで跳ねる**。
+//   旧ガードは `産出 > 1.0`＝**通貨の絶対額**で、世界の産出が百万単位の盤面では事実上ゼロ除算を許していた
+//   （実測：seed6 の マレー王国 が Q572 に四半期産出 £1 で 13,537% を記録＝£135の損失で硬性ゲートが赤になった）。
+//   閾値0.35は本物の国（産出が百万単位）で較正した量なので、そこへ残骸国家を混ぜてはいけない。
+//   床は**その時の世界の平均産出に対する割合**＝盤面の規模が変わっても意味が変わらない。
+//   ⚠除外は黙って行わない＝除外した国と四半期を数え、バッチ出力に出す（silent cap を作らない）。
+````
+
+## L2012 T `private const double LossRateMinOutputShare = 0.001;`
+````
+// 世界の1国あたり平均産出のこの割合を下回る国は率を計上しない（1/1000＝残骸）
+````
+
+## L2013 T `private const double LossFinancedRateThreshold = 0.35;`
+````
+// 負債化フロー ÷ 名目産出（四半期・EMA平滑）のピークがこれを超えたら異常
+````
+
+## L2014 T `private const int DeadlockFrozenQuarters = 20;`
+````
+// スコア不変がこの四半期数を超えたらデッドロック疑い
+````
+
+## L2015-2018 W 直後 `public const double DepressionEnterDrawdown = 0.20;               // 恐慌（景気後退）入り＝ピーク比の収縮がこれ`
+````
+// ★恐慌の閾値の唯一の定義（fis-24・2026-09-26）：画面の通知（GameViewModel）・年代記（Runner の chronicle）・このバッチが同じ3本を読む
+//   （旧＝画面とバッチと年代記に同じ値の写しが3組あった）。⚠物差しはまだ2つ：画面と年代記＝エンジンの World.GdpPcDrawdown（1人あたり・
+//   ピークの忘却あり＝作者裁定E2）／バッチ＝下の自前の EMA（総額・ピークの忘却なし・大国8だけ1人あたり）。バッチを揃えると帯の恐慌の数が変わる
+//   （段0＝帯を動かさない回なので持ち越し）。
+````
+
+## L2019 T `public const double DepressionEnterDrawdown = 0.20;`
+````
+// 恐慌（景気後退）入り＝ピーク比の収縮がこれ超
+````
+
+## L2020 T `public const double DepressionExitDrawdown = 0.08;`
+````
+// 回復＝ここまで戻れば脱出（入り0.20／出0.08の2値＝境界の点滅を止める）
+````
+
+## L2021 T `public const double GreatDepressionDrawdown = 0.25;`
+````
+// 大恐慌（ピーク比収縮）＝画面の語も「恐慌」（以下は「景気後退」）
+````
+
+## L2022-2024 W 直後 `public static bool InDepression(bool wasIn, double drawdownPerCapita) => wasIn ? drawdownP`
+````
+// ★(450) 景気後退の判定の 1 組（読む線 (441) 問い3 §2-5）：画面（GameViewModel の通知・年代記・外交ホバー）と Runner の play の報告が同じ 2 値のヒステリシスと語を呼ぶ（★(451) 自己対戦の採点〔このファイルの採点の式〕と Runner の Program の計器は別の式＝出口の等号が違う〔dd＜出口〕・寄せると成績表が変わりうるので別の線）
+//   （旧＝判定が App の GameViewModel.News にだけあり、play の報告は名目 GDP だけで景気後退の出来事を出せなかった）。引数 drawdownPerCapita＝World.GdpPcDrawdown（1人あたり）。
+/// <summary>景気後退の最中か（入りと出が別の水準の 2 値）。<paramref name="wasIn"/>＝前の判定で景気後退の最中だったか。</summary>
+````
+
+## L2026-2026 W 直後 `public static bool IsGreatDepression(double drawdownPerCapita) => drawdownPerCapita > Grea`
+````
+/// <summary>恐慌か（景気後退のうち深い方）。</summary>
+````
+
+## L2028-2028 W 直後 `public static string DepressionWord(double drawdownPerCapita) => IsGreatDepression(drawdow`
+````
+/// <summary>画面の語（恐慌／景気後退）。</summary>
+````
+
+## L2030 T `private const double LateDecisionQuarterFraction = 0.9;`
+````
+// 決着が遅い（総四半期に対する割合）
+````
+
+## L2031 T `private const double HeatPeakDecay = 0.97;`
+````
+// 直近ピーク過熱の減衰
+````
+
+## L2032 T `private const double HarvestBadDecay = 0.9;`
+````
+// 直近不作の深さの減衰
+````
+
+## L2036 T `NationConfig[] configs = WorldData.Nations();`
+````
+// 世界データ（world.json）から全国家。国の追加＝world.json編集のみ（Phase 3＝地ならし）
+````
+
+## L2037-2037 W 直後 `if (interestRate is { } ir)`
+````
+// 監査2026-07-12（他19）：金利実験は複製へ書く＝WorldData.Nations()の共有キャッシュを恒久汚染しない（旧＝実験後の同一プロセス実行が実験値の初期金利で汚染される地雷）。
+````
+
+## L2040 T `var sim = new MultiNationSim(configs, seed, _ => new UtilityAgent());`
+````
+// 挙動は政体別＝DecideQuarter内で動的に決まる
+````
+
+## L2041-2042 W 直後 `foreach (var nsim in sim.Nations) nsim.TelemetryEnabled = false;`
+````
+// 測定短縮①（2026-07-09）：Telemetryは読者なし＝常時停止（テストは個別Simulationを使うので不干渉）。
+// lean（バッチ用）＝外交ログも止める（並列30試合×3千行の保持を削減）。開戦数はWarsStartedカウンタ＝Validationは不変。
+````
+
+## L2045-2049 W 直後 `if (Instruments.On) Instruments.Phase(sim, seed, "open");   // 計器（読むだけ）：開幕の断面`
+````
+// ★開始前の助走（作者裁定2026-08-10）＝**Appの新規ゲームと同じ1本**（MultiNationSim.StartWarmup）。
+// ⚠2026-08-10以前は App だけが助走（4四半期＋技術8反復）を通り、ここは素の盤面から走っていた＝
+//   「遊ぶ世界」と「測る世界」の初期条件が別物だった（帯は、プレイヤーが決して見ない開始価格を測っていた）。
+// 助走は暦を進めない（World.WarmupFrozen）＝1783/Q1 のまま開始＝1914断面(Q524)も全長 GameQuarters も不変。
+// Telemetry を切った**後**に呼ぶ＝助走の四半期でスナップショットを積まない（バッチのメモリを増やさない）。
+````
+
+## L2050 T `if (Instruments.On) Instruments.Phase(sim, seed, "open");`
+````
+// 計器（読むだけ）：開幕の断面
+````
+
+## L2052 T `if (Instruments.On) Instruments.Phase(sim, seed, "warm");`
+````
+// 助走の直後の断面
+````
+
+## L2053-2058 W 直後 `var anomalies = new BoundedList(AnomalySampleCap);`
+````
+// ★異常リストの有界化（2026-08-01・docs/20260801「最終調整ハーネスの設計」§1-4）。
+// ⚠旧＝**非有界の文字列リスト**。異常②（工業化度の逸脱）は条件が続くかぎり毎四半期×毎国で1行積むので
+//   最悪 54カ国×604四半期＝約3.2万行／試合。96シードでは数百万の文字列が同時に生存する＝OOM の主因だった
+//   （実測：2026-07-19のフルスイート並列実行でホストごと落ちた事故と同じ筋）。
+// ★合否が読むのは **件数** だけ（ゲート＝「異常0件」）なので、**文字列は先頭AnomalySampleCapまで**に切り、
+//   総数は別のカウンタで正確に数える。⚠件数の意味は変えない＝ゲートの判定は旧と一致する。
+````
+
+## L2063-2063 W 直後 `var jumps = new BoundedList(AnomalySampleCap);`
+````
+// ★A-05 跳躍ダイジェスト（報告専用）：年に1回だけ順位と人口を撮り、跳んだ国を記録する。政変は毎四半期のエッジ。
+````
+
+## L2070 T `List<NationStanding>? standings1914 = null;`
+````
+// 忠実度の1914断面（Q524）。1934延長2026-07-19：物差しは1914固定＝走行中に捕捉
+````
+
+## L2071 T `List<NationStanding>? standings1820 = null, standings1870 = null, standings1920 = null, st`
+````
+// ★E-08（2026-09-05）：1820/1870年12月の断面（併記用・主指標は1914のまま）＋1920/1950
+````
+
+## L2072-2074 W 直後 `var initPop = new Dictionary<string, double>();`
+````
+// B-中7（史実検証2026-07-22）：人口の史実照合のため開始時（1783年）の国別人口を捕捉する。
+// 忠実度表に人口軸が無いため「テーマBの是正が帯に一切露出しない」＝計測器の欠落だった。領土不変な定義にするため
+// 絶対人口でなく**1783年比の成長倍率**を測る（本ゲームは国を消さず併合も起きるので絶対値は定義が噛み合わない）。
+````
+
+## L2081-2081 W 直後 `static int HomeProvinceCount(World w)`
+````
+// 08の70%計器（2026-07-31）：領土次元の分子＝**実効支配している本国州の数**。割譲・分離独立で減り、征服で増える。
+````
+
+## L2085-2088 W 直後 `foreach (var r in w.Regions) if (r.Tier != RegionTier.Colonial) n++;`
+````
+// ★2026-09-03（第0波W0-01）：**本国州だけ**を数える。ColoniesAreRegions=1 で植民地が州になって以降、
+//   ここは植民地格の州も本国州として数えており、忠実度の領土次元（HomeProvinces1914 との比）が
+//   分子だけ膨らんでいた＝**物差しそのものが壊れていた**（分子と分母の非対称の型）。
+//   ⚠差し戻し口＝Tier の条件を外せば旧挙動。観測専用（力学はこの値を読まない）。
+````
+
+## L2097-2100 W 直後 `double baggage = 0; foreach (var rb in w.Regions) baggage += rb.AnnexBaggage;`
+````
+// 案Y（人口物差しの脱汚染・2026-08-21・親承認）：PopGrowth＝**併合の持ち込み人口（Region.AnnexBaggage）を分子から除いた**1783年比
+// ＝宣言（NationStanding.PopGrowth の注記「領土不変な定義」）どおりの実装。旧値（総人口比＝征服インフレ込み）は PopGrowthGross として併走＝新旧併記の橋
+// （宗主厳格化2026-07-12・導出政体2026-08-21と同型）。分離・割譲で州を**失う**側は分子が減ったまま＝「帯を割る」設計意図を保存。
+// Σの範囲は TotalPopulation と同じ非Seceded＝州が去れば荷物ごと去る・内部移住にも自動整合（案X初期州フィルタの欠陥を回避）。
+````
+
+## L2102 T `double growthGross = initPop.TryGetValue(bn, out var p0) && p0 > 1e-9 ? w.TotalPopulation `
+````
+// 0=初期人口不明＝測定対象外（建国スポーンなど）
+````
+
+## L2104 T `return new NationStanding(w.Region.Name, NationalScore.Standing(w),`
+````
+// 序列は在庫（2026-08-02）＝忠実度の列強軸も首位交代も同じ物差しで見る
+````
+
+## L2108 T `PoliticalQuantities.MilitaryPoliticalRatio(w), w.ConscriptionLaw,`
+````
+// ★軍の政治的優位（導出量）＋徴兵法（法）＝2026-08-18の親軍法撤去で bool 1本が2本に分かれた
+````
+
+## L2110 T `(w.SelfPower is { } sp2 ? sim.Diplomacy.Suzerain(sp2)?.BaseName : null) ?? "",`
+````
+// 主権軸：宗主（BaseName＝変名後もSuzerainsOkと恒久一致）
+````
+
+## L2111 T `w.SelfPower?.Name ?? "",`
+````
+// 表示名（変名の物語はこちら）
+````
+
+## L2112 T `growth,`
+````
+// B-中7：1783年比の人口成長倍率
+````
+
+## L2113 T `HomeProvinceCount(w),`
+````
+// 08の70%計器（2026-07-31）：本国州の保有数＝領土次元の分子
+````
+
+## L2114 T `w.SelfPower?.NavalPower ?? 0, w.SelfPower?.LandPower ?? 0, EconomyStep.FleetPowerValue(w),`
+````
+// ★2026-08-01：陸海の内訳（海軍力の測定＝作者裁定）・★(189) 艦の強さの値（隻数×建造費×段の乗数の和）
+````
+
+## L2115-2119 W 直後 `((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * w.Coef.ClearingsPerYear `
+````
+// ★★物差し是正（2026-08-21・作者裁定「全て採用」）：旧＝分子（輸出入）は四半期フロー×4＝**年額**、分母 NominalGdpPerMonth は**月次フロー**
+//   ＝「年額÷月額」で**12倍過大**だった。⚠債務/GDPは同じ問題を DebtGdpAnnualized=1.0（2026-07-26点火）で是正済み＝
+//   貿易だけ取り残された内部矛盾の修正（Fiscal.cs 財7「債務/GDPの単位整合」の注記が「NominalGdpPerMonth は月次フロー」と明記）。
+//   分母を ×MonthsPerYear で年換算＝英1913 の実測は 0.43%→0.034%＝史実25%との差は×17でなく**×190**
+//   ＝「較正で届く段階ではなく構造をもう一段変える段階」と物差しが正しく教えるようになる。
+````
+
+## L2120 T `((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * w.Coef.ClearingsPerYear `
+````
+// 清算単位→年換算（月次清算に追随）
+````
+
+## L2121 T `PoliticalQuantities.MilitaryPush(w), PoliticalQuantities.CivilianValve(w),`
+````
+// ★計器（2026-08-18）：軍の政治的優位の分子と分母。⚠合成値だけを見て2度誤ったので内訳を運ぶ
+````
+
+## L2122 T `PoliticalQuantities.AppointmentAtCourt(w), w.Legitimacy,`
+````
+//   弁の2項（任免の所在・正統性）＝弁が飽和しているのか片方が死んでいるのかを分ける
+````
+
+## L2123 T `PowerAffinity.PolityFromShares(w),`
+````
+// ★導出政体（2026-08-21）＝忠実度の政体次元の新しい物差し
+````
+
+## L2124 T `growthGross,`
+````
+// 案Y：旧定義（総人口比＝征服インフレ込み）の併走＝新旧比較の橋
+````
+
+## L2125 T `(w.SelfPower?.ColonyMassUnits() ?? 0));`
+````
+// ★2026-08-28（裁定③）：質量を**個数単位へ換算**（錨＝初期の 個数/質量。1783年で両計測が厳密一致＝参照値の目盛りを保つ）
+````
+
+## L2128-2129 W 直後 `var gdpPeak = new double[configs.Length];`
+````
+// 恐慌計測（要望3）：各国の平滑化GDP（EMA・トレンド）のピークからの収縮を追う。高頻度ノイズでなく持続的な収縮＝恐慌。
+// 助走後から。トレンド比20%収縮で恐慌入り・8%まで回復で脱出。
+````
+
+## L2133 T `var heatPeak = new double[configs.Length];`
+````
+// 直近のピーク過熱（減衰保持）＝恐慌が信用バブルに先行されたかの判定
+````
+
+## L2134 T `var harvestBad = new double[configs.Length];`
+````
+// 直近の不作の深さ（減衰保持）＝恐慌が不作に先行されたかの判定
+````
+
+## L2135-2138 W 直後 `var prevLoss = new double[configs.Length];    // 前四半期の LossFinanced（差分＝当期の負債化フロー）`
+````
+// 慢性赤字の計測（2026-07-21・多エージェント調査で指標を是正）：LossFinanced はグロス累積（単調非減少・減算なし）なので
+// 絶対値を固定閾値と比べると、走行年数と経済規模に比例して必ず超える（実測＝Q425で通過し以後単調・財カタログ増で同一断面が9倍）。
+// つまり旧判定は健全性でなく「閾値の通過時刻」を報告していた。よって当期の負債化フローを同期の名目産出で割った**率**で見る
+// （同期間フロー同士の比＝次元が合い、規模にも年数にも非依存）。単発スパイクで鳴らないようEMAで平滑化する。
+````
+
+## L2139 T `var prevLoss = new double[configs.Length];`
+````
+// 前四半期の LossFinanced（差分＝当期の負債化フロー）
+````
+
+## L2140 T `var lossRate = new double[configs.Length];`
+````
+// 負債化フロー ÷ 名目産出（四半期）の平滑値
+````
+
+## L2141 T `var satWindow = new List<double[]>(Validation.SatRecentQuarters);`
+````
+// ★(68) 直近の四半期ごとの各国の満足度（ハーネスの最小国に添える・報告専用＝力学に触れない）
+````
+
+## L2144 T `double worldOutPrev = 0, worldOutThis = 0;`
+````
+// 世界の四半期名目産出（当期は集計中なので床には前期を使う＝決定論）
+````
+
+## L2145 T `int lossRateSkipped = 0; string lossRateSkipWorst = "";`
+````
+// 分母の床で計上しなかった件数と、その代表国   // ピークを出した国・その時の四半期産出・四半期（診断2026-08-11）
+````
+
+## L2147-2152 W 直後 `double majorMaxDrawdown = 0; int majorDepressionEpisodes = 0; string majorDdNote = "";`
+````
+// ★史実基準化（2026-08-22・作者指摘「恐慌回数・最大DDは史実基準ですか？そうでないならハーネスが間違っている」）。
+//   旧＝worstDrawdown の床が gdpPeak>£1 だけ＝**領土を失って消えていく国の〜100%収縮を拾う**（92〜97%は国家死の読み値＝経済恐慌の物差しではない）。
+//   新①＝DD は産出床つき（世界の1国あたり平均GDPトレンドの LossRateMinOutputShare 倍＝既存の残骸除外と同じ物差し・新定数なし）。
+//   新②＝**大国8（経済規模次元と同じ GdpRank1913 参照国）**のエピソード数と最大DDを別建てで数える＝史実（Maddison系）と直接比較できる唯一の切り口。
+//   史実参照（実質GDP・ピーク比−20%級・1783-1934）＝大国8で**計5〜7回**（露WWI+内戦≈−40%・仏墺WWI≈−30%・米1929-33≈−27%・独WWI≈−25%・英1919-21≈−20%が縁・日=0）。
+//   **1783-1913の平時に大国の−20%級はほぼ0**＝長い19世紀の恐慌（1825/1873/1893…）は実質GDPでは−5〜−10%の不況であって−20%崩落ではない。
+````
+
+## L2154-2155 W 直後 `var gdpPcTrend = new double[sim.Nations.Count]; var gdpPcPeak = new double[sim.Nations.Cou`
+````
+// ★大国8の計器は**1人あたり**実質GDP（w.Gdp/TotalPopulation）で測る（2026-08-22・実測＝最大DDの出所が仏1808の7州→5州・米1923の解体＝征服で領土と人口が同時に消える事象）。
+//   総額DDは国家解体を拾う（史実の大国は1783-1913に解体されていない）。1人あたりなら割譲は分子分母が同時に減り、残るのは**経済の収縮**＝史実のDD（米1929-33≈−27%・露WWI≈−40%）と同じ物差し。
+````
+
+## L2157 T `double worldTrendPrev = 0, worldTrendThis = 0;`
+````
+// DD床用＝世界のGDPトレンド計（前期値を床に使う＝当期は集計中・lossRate と同じ作法）
+````
+
+## L2171 T `if (Instruments.On) Instruments.Quarter(sim, seed, q);`
+````
+// 計器（読むだけ）
+````
+
+## L2172 T `if (sim.Nations.Count > gdpPeak.Length)`
+````
+// 建国スポーン（SecessionSpawnsNation）＝末尾拡張のみ・既存添字は不変＝決定論不変
+````
+
+## L2177 T `System.Array.Resize(ref prevLoss, nn); System.Array.Resize(ref lossRate, nn);`
+````
+// 建国スポーン＝末尾拡張（新国は prevLoss=0 から差分開始）
+````
+
+## L2178 T `System.Array.Resize(ref isMajor, nn);`
+````
+// 建国スポーンは大国8ではない（GdpRank1913 参照は既存国のみ）＝false のまま
+````
+
+## L2182 T `var scoresNow = NationalScore.Scores(sim.Nations.ConvertAll(sn => sn.World));`
+````
+// ★(416)(456) 国力を全国分 1 回で（国ごとに世界の総量を求め直さない）
+````
+
+## L2183 T `worldOutPrev = worldOutThis; worldOutThis = 0;`
+````
+// 分母の床に使う世界計＝**前の四半期**の値（当期は今から集計）
+````
+
+## L2184 T `worldTrendPrev = worldTrendThis; worldTrendThis = 0;`
+````
+// DD床用も同じ作法（前期の世界GDPトレンド計）
+````
+
+## L2189 T `scores[i] = NationalScore.Standing(w);`
+````
+// デッドロック/首位交代の判定も在庫で（序列と同じ物差し）
+````
+
+## L2190-2190 W 直後 `if (double.IsNaN(sc) || double.IsInfinity(sc) || double.IsNaN(scores[i]) || double.IsInfin`
+````
+// ★異常検出は**生のフロー**を見る＝在庫は平滑されるので NaN の混入を隠しうる。両方を検査する。
+````
+
+## L2193 T `if (!(w.Region.TotalIndustrialization is >= 0 and <= 10))`
+````
+// 否定形＝NaN も異常に数える（有限値では旧 `> 10 or < 0` と同値）
+````
+
+## L2194 T `anomalies.Add($"Q{q + 1} {w.Region.Name}: 工業化度が異常（{w.Region.TotalIndustrialization:F2}）");`
+````
+// 暴走監視は新旧合計（ヴィンテージ2026-07-10）
+````
+
+## L2195-2197 W 直後 `if (Validation.LawOutOfRange(w) is { } bad) anomalies.Add($"Q{q + 1} {w.Region.Name}: 法の値が`
+````
+// 法の序数が定義域の外（2026-08-02の番人）：★enum は範囲を強制しないので、クランプを1つ忘れると
+// 静かに定義外の値が入り、下流の (int)law/2.0 のような正規化を丸ごと汚す（実際に LandReform=601 が発生した）。
+// 硬性ゲートの「異常0」に載せる＝以後この種の取りこぼしは必ずバッチで落ちる。現在値と目標の両方を見る。
+````
+
+## L2199-2199 W 直後 `double dLoss = System.Math.Max(0, w.LossFinanced - prevLoss[i]);   // 累積は単調非減少だが分離/併合の再編に備`
+````
+// 慢性赤字：当期の負債化フロー ÷ 同期の名目産出。prevLoss は助走中も更新して差分の取りこぼしを防ぐ。
+````
+
+## L2200 T `double dLoss = System.Math.Max(0, w.LossFinanced - prevLoss[i]);`
+````
+// 累積は単調非減少だが分離/併合の再編に備えて負をクランプ
+````
+
+## L2202-2204 W 直後 `double outQ = (w.NominalGdpPerMonth * monthsPerQuarter).Value;   // NominalGdpPerMonth は月次`
+````
+// ★床の材料（worldOutThis）は助走中も積む（wave2b G06#5）：旧＝ q>=warmupQ の期しか積まず、
+//   warmupQ ちょうどの1期だけ worldOutPrev==0 で floorOut が絶対額1.0（通貨の絶対額＝:1475 のコメントが
+//   「誤り」と明記する床）に落ちていた。outQ は warmup に依存しない値＝計上先だけ外へ出す。
+````
+
+## L2205 T `double outQ = (w.NominalGdpPerMonth * monthsPerQuarter).Value;`
+````
+// NominalGdpPerMonth は月次フロー（Fiscal.cs 財7の注記）
+````
+
+## L2209-2209 W 直後 `double floorOut = worldOutPrev > 0 ? worldOutPrev / System.Math.Max(1, sim.Nations.Count) `
+````
+// 分母の床＝世界の1国あたり平均産出の LossRateMinOutputShare 倍。前期の世界計を使う（当期は集計中）。
+````
+
+## L2218-2220 W 直後 `worstLossNation = w.SelfPower?.Name ?? w.Region.Name;`
+````
+// ★誰の何が起きたかを一緒に持つ（2026-08-11）＝率は比なので分母が痩せただけでも跳ねる。
+//   国名・その時の四半期産出・四半期を残せば、次に赤が出た時に「本物の慢性赤字」か
+//   「産出が消えた残余国の見かけ」かを、再走なしで切り分けられる。
+````
+
+## L2226-2226 W 直後 `if (q >= warmupQ)`
+````
+// 恐慌計測：助走後、平滑化GDP（トレンド）のピーク比収縮を追う
+````
+
+## L2229 T `gdpTrend[i] = PoliticalQuantities.Toward(gdpTrend[i], w.GdpPerMonth.Value, w.Coef.GdpTrend`
+````
+// EMA＝高頻度の市場ノイズを除去
+````
+
+## L2232-2234 W 直後 `double ddFloor = worldTrendPrev > 0 ? worldTrendPrev / System.Math.Max(1, sim.Nations.Coun`
+````
+// ★DDの産出床（史実基準化）：残骸国家（世界平均の1/1000未満）の〜100%収縮を世界DDに数えない。
+//   床の物差しは lossRate の分母床と同一（LossRateMinOutputShare＝新定数なし）。床未満は自国のエピソード判定にも入れない
+//  （領土をほぼ失った国の「経済恐慌」は国家死の別事象＝恐慌の物差しから外す）。
+````
+
+## L2247 T `majorDdNote = $"{w.SelfPower?.Name ?? w.Region.Name}・Q{q + 1}{(w.AtWarNow ? "・戦時" : "")}";`
+````
+// ★出所＋戦時タグ（再走なしで切り分ける＝worstLossNation と同じ作法。戦時なら対策の対象外＝征服/戦災）
+````
+
+## L2252 T `heatPeak[i] = Math.Max(w.FinancialHeat, heatPeak[i] * HeatPeakDecay);`
+````
+// 直近ピーク過熱（緩やかに減衰。貸し剥がしは一夜＝恐慌と診断される頃にゲージ自体が蒸発しているため記憶は長く持つ）
+````
+
+## L2253 T `harvestBad[i] = Math.Max(1.0 - w.HarvestFactor, harvestBad[i] * HarvestBadDecay);`
+````
+// 直近の不作の深さ（緩やかに減衰）
+````
+
+## L2257 T `if (heatPeak[i] > overheatMark) overheatDepressions++;`
+````
+// 信用バブルに先行＝金融政策で避けられた類型
+````
+
+## L2258 T `if (harvestBad[i] > harvestMark) harvestDepressions++;`
+````
+// 不作に先行＝実体ショック起因（食糧安保・福祉で緩衝）
+````
+
+## L2262 T `else { gdpTrend[i] = w.GdpPerMonth.Value; gdpPeak[i] = w.GdpPerMonth.Value; double pc0 = (`
+````
+// 助走中はトレンドとピークを初期化（立ち上げを恐慌と誤認しない）
+````
+
+## L2264 T `if (q >= quarters - Validation.SatRecentQuarters)`
+````
+// ★(68) 添字は sim.Nations と同じ（Metrics.Compute と同じ順）
+````
+
+## L2268 T `if (q + 1 == Coefficients.FidelityQuarters1820 && quarters > Coefficients.FidelityQuarters`
+````
+// ★E-08
+````
+
+## L2270 T `if (q + 1 == Coefficients.FidelityQuarters1920 && quarters > Coefficients.FidelityQuarters`
+````
+// ★E-09   // 1914年12月の断面＝忠実度の照合対象（終局まで走っても物差しは1914）
+````
+
+## L2271 T `if (q + 1 == Coefficients.FidelityQuarters1950) standings1950 = BuildStandings();`
+````
+// ★1950断面＝終局の四半期（最終Standingsへ退避しない＝全長が届かない走行は null＝断面なし）
+````
+
+## L2274 T `string leader = sim.Nations[lead].World.SelfPower?.BaseName ?? sim.Nations[lead].World.Reg`
+````
+// 不変国名で追跡（監査2026-07-12 他17＝首都州名の分裂と同型で、変名（プロイセン→ドイツ）による偽の首位交代も防ぐ）
+````
+
+## L2275 T `if (leader != lastLeader) { decisionQ = q + 1; if (lastLeader.Length > 0) leadChanges++; l`
+````
+// 首位交代を数える（初回の首位設定は交代に数えない）
+````
+
+## L2276-2276 W 直後 `for (int ji = 0; ji < configs.Length && ji < sim.Nations.Count; ji++)`
+````
+// ★A-05 跳躍ダイジェスト（報告専用＝力学に触れない）。⚠開始時集合の範囲だけ見る（建国スポーンは対象外＝全走行で同一規約）。
+````
+
+## L2285 T `if (within == 3)`
+````
+// ちょうど3回目で1度だけ報告（4回目以降で毎期鳴らない）
+````
+
+## L2315-2316 W 直後 `catch (OutOfMemoryException) { throw; }`
+````
+// OOMだけは握り潰さない（2026-07-27）：ここで捕まえると「破綻(未完走)」の1件として BatchSummary に静かに混入し、
+// 実装バグと区別がつかなくなる。しかもどのシードが先にメモリ上限へ当たるかはスレッドの到達順次第＝runごとに変わり再現しない。
+````
+
+## L2323 T `finally { if (Instruments.On) Instruments.Close(sim); }`
+````
+// 計器（読むだけ）：書き出しを閉じる（例外の経路も）
+````
+
+## L2325 T `bool deadlocked = frozen > DeadlockFrozenQuarters;`
+````
+// ★構造フィールドへ（文字列一致をやめる）
+````
+
+## L2328 T `var standings = BuildStandings();`
+````
+// 終局（1950年1月1日）の最終順位＝勝者・スコア・法多様性・政体分布の対象。忠実度だけは standings1914（Q524断面）
+````
+
+## L2330-2331 W 直後 `var hm = Metrics.Compute(sim);`
+````
+// Round2 2026-07-08：「決着が遅い」を異常から除外。首位が終盤まで争われるのはバランス目標③（独走不可・首位交代）の達成であり
+// 病理ではない（旧＝異常扱いは「決着しないバグ」検出のためだったが、デッドロックは frozen 検査が別途担う）。指標としては BatchSummary.LateDecisions に残す。
+````
+
+## L2333-2333 W 直後 `var hm = Metrics.Compute(sim);`
+````
+// 検証ハーネスの合否（自己対戦の最終状態）。保存則・満足度などのマクロ健全性を記録。
+````
+
+## L2335-2335 W 直後 `hm = hm with { Nations = [.. hm.Nations.Select((nm, i) =>`
+````
+// ★(68)：最小国の文言に直近の平均と振れ幅を添える（判定は終局の値のまま＝Validation.SatRecentQuarters の注記）。
+````
+
+## L2338 T `var v = satWindow.Where(a => i < a.Length).Select(a => a[i]).ToList();`
+````
+// 窓の中で生まれた国は生まれてからの分だけ
+````
+
+## L2346 T `double maxLoss = sim.Nations.Max(n => n.World.LossFinanced);`
+````
+// 累積そのものは記録として MatchResult に残す（判定には使わない）
+````
+
+## L2349-2349 W 直後 `if (lossRateSkipped > 0)`
+````
+// ★分母の床で落とした件数は必ず出す（silent cap を作らない）＝「赤が消えた」のか「測るのをやめた」のかを読み手が区別できる。
+````
+
+## L2353 T `var wrs = sim.Diplomacy.WarRepeatStats();`
+````
+// 純関数（戦争履歴の集計）＝1度だけ
+````
+
+## L2354 T `return new MatchResult(seed, quarters, standings[0].Nation, standings[0].Score, decisionQ,`
+````
+// 勝者は国名（監査2026-07-12 他17：旧＝首都州名は遷都で分裂＝常勝検出漏れ。忠実度側と同じNation規約へ統一）
+````
+
+## L2356 T `sim.Nations.Sum(n => n.World.GoldSuspensions), sim.Nations.Sum(n => n.World.GoldCoverSuspe`
+````
+// GoldCoverMin有効化2026-07-10：兌換停止の頻度（leanでも数えるスカラーカウンタ）
+````
+
+## L2357 T `sim.Nations.Count - configs.Length, sim.Diplomacy.Powers.Count(p => p.FormationTier > 0),`
+````
+// 建国数・変名数（状態由来）
+````
+
+## L2358 T `sim.Nations.Sum(n => n.World.CivilWarSplitCount),`
+````
+// ★内戦分裂の成立回数（2026-08-13に配線＝それまで読み手ゼロ）
+````
+
+## L2359 T `standings1914,`
+````
+// 1914断面（延長走行のみ非null）＝忠実度の照合対象
+````
+
+## L2360 T `deadlocked,`
+````
+// ★ゲート3是正2：構造フィールド
+````
+
+## L2361 T `worstLossRate,`
+````
+// 慢性赤字の判定量（負債化フロー÷名目産出のピーク・2026-07-21）
+````
+
+## L2362 T `worstLossNation, worstLossGdpQ, worstLossQuarter,`
+````
+// ★そのピークの出所（診断2026-08-11）＝分母が痩せただけかを切り分ける
+````
+
+## L2363 T `wrs.MaxRepeat, wrs.PairsGe3, wrs.Pairs, wrs.Worst,`
+````
+// ★診断2026-08-01：同一ペアの再戦
+````
+
+## L2366 T `sim.Nations.Sum(n => n.World.ElectionsHeld), sim.Nations.Sum(n => n.World.QuartersWithElec`
+````
+// ★E0計器（2026-08-15）
+````
+
+## L2367 T `MajorsTradeGdp(sim),`
+````
+// ★貿易復活計器（2026-08-15）
+````
+
+## L2369 T `Jumps: [.. jumps], StandingsAt1820: standings1820, StandingsAt1870: standings1870, Standin`
+````
+// ★A-05：跳躍ダイジェスト（報告専用）
+````
+
+## L2370 T `Cost: sim.CostTotals());`
+````
+// ★計算量の台帳（2026-09-30・報告専用＝読むのは Runner の測りのファイルと番人だけ）
+````
+
+## L2374-2375 W 直後 `internal static double MajorsTradeGdpRef1913()`
+````
+/// <summary>★(186) 貿易復活計器の史実の側＝同じ6国の 1913 年の (輸出＋輸入)÷GDP の平均（<see cref="HistoricalReference.TradeOpenness1913"/>＝貿易開放度の次元と同じ参照表）。
+/// 旧＝報告の印字が英1国の約40% と比べていた（分母が1国＝申し送り vb#10）。表に無い国は数えない（読むだけ）。</summary>
+````
+
+## L2384-2385 W 直後 `private static double MajorsTradeGdp(MultiNationSim sim)`
+````
+// ★貿易復活計器：6大国の (輸出+輸入)×年換算/GDP の平均（終局断面・BaseName鍵＝変名不壊）。ExportsByGood/ImportsByGood は
+//   BilateralMarket が清算ごとに Array.Clear して書く清算単位の値（月次清算では直近1か月分＝ClearingsPerYear で年換算。TariffBorderOnly>0では国際のみ）。
+````
+
+## L2396 T `sum += (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYe`
+````
+// ★物差し是正（2026-08-21）＝分母を年換算（上の TradeGdp と同一の是正・単位＝年額÷年額）。分子は清算単位→年換算（月次清算に追随）
+````
+
+## L2401-2401 W 直後 `private const int JumpRankSteps = 10;            // 1年で順位がこれ以上跳んだら報告`
+````
+// ★A-05 跳躍ダイジェストの目盛り（報告専用＝力学に一切入らない）。出典＝トリアージ 10-2 の記述そのまま。
+````
+
+## L2402 T `private const int JumpRankSteps = 10;`
+````
+// 1年で順位がこれ以上跳んだら報告
+````
+
+## L2403 T `private const double JumpPopGrowthMax = 0.10;`
+````
+// 1年の人口増がこれを超えたら報告（自然増の物理上限＝併合・征服の混入を炙り出す）
+````
+
+## L2404 T `private const int AnomalySampleCap = 64;`
+````
+// 標本として残す異常メッセージの本数（総数は別に数える）
+````
+
+## L2406-2408 W 直後 `private sealed class BoundedList(int cap) : IReadOnlyList<string>`
+````
+/// <summary>件数は正確に数え、文字列は先頭 cap 本だけ保持するリスト（異常リストのOOM対策・2026-08-01）。
+/// ⚠Count は**打ち切り前の真の件数**を返す＝ゲート「異常0件」の判定は旧実装と厳密に一致する。
+/// 添字アクセスは保持している標本の範囲だけ有効（読み手は `Anomalies[^1]` と全列挙のみ＝下でクランプする）。</summary>
+````
+
+## L2414 T `public int Count => _total;`
+````
+// ★真の件数（打ち切りに影響されない）
+````
+
+## L2420-2420 W 直後 `public static BatchSummary RunBatch(int n, int quarters = Coefficients.GameQuarters, doubl`
+````
+/// <summary>seeds 1..N をバッチ実行し集計（破綻率・決着・勝者分布・デッドロック・合否・常勝/即死フラグ）。＝<see cref="RunMatches"/> ＋ <see cref="Summarize"/>（★2026-10-17 開発の高速化で2つに分けた・ビット恒等）。</summary>
+````
+
+## L2424-2424 W 直後 `public static MatchResult[] RunMatches(int n, int quarters = Coefficients.GameQuarters, do`
+````
+/// <summary>★2026-10-17（開発の高速化・ビット恒等）：試合だけを回して返す（集計は <see cref="Summarize"/>）。各試合は独立＝先頭の k 試合を集計すれば seeds 1..k のバッチと同じ報告になる（Runner の POB_FIRST5_OUT）。</summary>
+````
+
+## L2425 T `public static MatchResult[] RunMatches(int n, int quarters = Coefficients.GameQuarters, do`
+````
+// ★seedBase（2026-08-14）＝ノイズ床の測定（同一ソースでシード群を振り直す）。既定1＝seeds 1..n＝厳密恒等
+````
+
+## L2427-2428 W 直後 `var arr = new MatchResult[n];`
+````
+// 各シードは完全独立（自前の MultiNationSim・RNG・共有可変状態なし）＝シード並列で安全に高速化。
+// 結果はシード番号で添字付けして集める＝並列でも順序・集計は決定論的（各シードの結果は他シードに非依存）。
+````
+
+## L2430-2431 W 直後 `_ = WorldData.Nations();`
+````
+// WorldData の遅延初期化（LoadDoc/Nations）は lock も Lazy<T> も無い check-then-act。生成値はどの経路でも同一なので無害だが、
+// 並列度を上げるほど窓が広がるため Parallel.For の外で一度触って確定させる（プリウォーム＝ビット恒等）。
+````
+
+## L2433-2439 W 直後 `var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = parallel `
+````
+// 並列度：2026-07-27 実測（Ryzen 7 5825U＝物理8/論理16・RAM15.3GB）。1シード当たり par=6:91.0秒 → 8:76.6 → 12:66.8 → **16:61.3秒（1.48倍）**。
+// 物理8コアでも SMT が素直に伸びる（batch30 換算 48.4分→約33分）。旧既定 clamp(コア/2,2,6) の上限6は 2026-07-03 の Telemetry 常時ON時代の
+// メモリ見積りに由来し、2026-07-09 の常時OFF化で前提が失効していた。
+// ★GC（2026-09-29 高速化の段 S1・旧注記「GC設定は実測で効果なし〜逆効果（2026-07-27）」を訂正）：今の木ではワークステーション GC の1つのヒープを
+//   10試合が分け合い、GC の停止が全長のバッチの壁の34%だった（毎秒約11回・その度に全ての試合が止まる）。サーバー GC（DATAS 切）で 17分16秒→11分19秒・
+//   報告は全行バイト一致（実装ログ (111)）＝Runner の csproj で入れた（App と Tests は変えない）。
+// n でクランプするのは 30 シードに 32 ワーカーが純粋な遊休になるため。OOM は握り潰さず即 throw する（下の catch 参照）＝静かな帯汚染を防ぐ。
+````
+
+## L2441 T `System.Threading.Tasks.Parallel.For(0, n, opts, i => arr[i] = Run(seedBase + (ulong)i, qua`
+````
+// ★seedBase 起点（既定1＝旧 i+1 と同値）   // lean＝外交ログ停止（開戦数はカウンタ・イベント年表はバッチでは未使用）
+````
+
+## L2445-2445 W 直後 `public static BatchSummary Summarize(IReadOnlyList<MatchResult> arr, int quarters = Coeffi`
+````
+/// <summary>★2026-10-17：<see cref="RunMatches"/> の試合を集計する（旧 RunBatch の後半そのまま）。</summary>
+````
+
+## L2456 T `int deadlocks = results.Count(r => r.Deadlocked);`
+````
+// ★ゲート3是正2：文字列一致をやめる（文言変更で硬性ゲートが恒真になる罠）
+````
+
+## L2457 T `int late = completed.Count(r => r.DecisionQuarter > quarters * LateDecisionQuarterFraction`
+````
+// Round2：異常文字列の走査でなく DecisionQuarter から直接算出（情報指標として存続）
+````
+
+## L2459-2461 W 直後 `int harnessFail = results.Count(r => !r.Completed || r.HarnessFail > 0);`
+````
+// ★ゲート3是正1（2026-08-01）：**破綻した試合をハーネス不合格に算入する**。
+// ⚠旧＝例外パスが HarnessPass/Warn/Fail=0・HarnessIssues=[] を返すため、`HarnessFail > 0` に引っかからなかった＝
+//   **破綻が増えるほどハーネスが緑に近づく**（最終調整ハーネス設計 §1-3）。完走しなかった試合は定義上どの検査にも合格していない。
+````
+
+## L2471 T `foreach (var g in completed.GroupBy(r => r.Standings[^1].Nation))`
+````
+// 国名で集計（他17）
+````
+
+## L2473-2473 W 直後 `if (lossFin > 0)`
+````
+// Round2 2026-07-08：「決着しない疑い」フラグを撤去（終盤まで接戦＝目標③の達成。デッドロックは frozen 検査が別途検出）。決着遅延の数は表示指標として存続。
+````
+
+## L2476 T `var wl = results.OrderByDescending(r => r.WorstLossRate).First();`
+````
+// ★出所も一緒に出す（2026-08-11）＝再走なしで「本物の慢性赤字」か「産出が消えた残余国」かを見分ける
+````
+
+## L2479-2481 W 直後 `var harnessLines = results.SelectMany(r => r.HarnessIssues.Select(i => (r.Seed, Issue: i))`
+````
+// ハーネスの検査名をバッチ出力へ（2026-07-31）：MatchResult は HarnessIssues を持っているのに集計で捨てていたため、
+// 「不合格2/10」は分かっても**どの検査が落ちたか**が分からず、そのたびに単走（selfplay <seed>）を回し直していた。検査名で畳んで seed と実測値を並べる。
+// ⚠**要注意フラグ（硬性ゲートの0件判定）には入れない**＝△(注意)は元から出ていた情報で、フラグに混ぜるとゲートの意味が変わる。専用の欄で出す。
+````
+
+## L2488-2489 W 直後 `var jumpLines = results.SelectMany(r => (r.Jumps ?? []).Select(j => (r.Seed, Jump: j)))`
+````
+// ★A-05 跳躍ダイジェスト（2026-09-03）：1914断面の一致率が原理的に見ない「途中で起きた跳躍」を種類で畳んで出す。
+//   ⚠報告専用＝要注意フラグにも硬性ゲートにも入れない（△と同じ扱い＝ゲートの意味を変えない）。
+````
+
+## L2496-2496 W 直後 `double avgDrawdown = completed.Count > 0 ? completed.Average(r => r.MaxDrawdown) : 0;`
+````
+// 恐慌統計（要望3）：経済の波の基線。
+````
+
+## L2498 T `int greatDep = completed.Count(r => r.MaxDrawdown > GreatDepressionDrawdown);`
+````
+// ピーク比25%超の収縮＝大恐慌
+````
+
+## L2503 T `double overheatShare = totalDep > 0 ? (double)totalOverheat / totalDep : 0;`
+````
+// 恐慌のうち信用過熱起因の割合（＝金融政策で避けられた類型）
+````
+
+## L2504 T `double harvestShare = totalDep > 0 ? (double)totalHarvest / totalDep : 0;`
+````
+// 不作起因の割合（＝食糧安保・福祉で緩衝する類型）
+````
+
+## L2506-2506 W 直後 `var polityDist = completed.SelectMany(r => r.Standings).GroupBy(s => s.Polity)`
+````
+// 最終政体の分布（全国×全seed）。要望4：希少政体でも出現するか（10プレイに1回は1国）を可視化。
+````
+
+## L2509-2509 W 直後 `var polityPlays = completed.SelectMany(r => r.Standings.Select(s => s.Polity).Distinct())`
+````
+// 各政体が「1国以上で出現したプレイ数」（要望4の直接指標：N/総プレイ）。
+````
+
+## L2513-2513 W 直後 `double avgLeadChanges = completed.Count > 0 ? completed.Average(r => r.LeadChanges) : 0;`
+````
+// 首位交代（目標3）：平均交代回数。多いほど独走がなくレースが動いている。
+````
+
+## L2515-2515 W 直後 `var lawDiv = new List<(string Axis, double MaxShare, string Dist)>();`
+````
+// 法の多様性（目標5）：全国×全seed の最終法を軸ごとに分布集計。最頻値シェア(MaxShare)が低いほど多様＝国と乱数で法が分岐している。
+````
+
+## L2537 T `Axis("徴兵法", s => s.Conscription);`
+````
+// ★2026-08-18：旧「親軍」＝法でなくなったので多様性の軸から外し、軍国度の唯一の法である徴兵法へ差し替え
+````
+
+## L2540-2540 W 直後 `var fidelity = HistoricalReference.Evaluate(completed);`
+````
+// 史実忠実度（新較正基準2026-07-09）：1914参照表（HistoricalReference.Table）と完走試合の最終政体・法を国別に照合。
+````
+
+## L2542-2542 W 直後 `var seedFid = completed.Select(r =>`
+````
+// ★止める規則（2026-09-30 作者裁定「計算量の予算」の6）：種ごとの exact／near＝同じ照合（Evaluate）を1試合ずつ＝照合できた国の平均（NaN＝未定義の国は除く）。
+````
+
+## L2550-2550 W 直後 `int goldSusp = completed.Sum(r => r.GoldSuspensions);`
+````
+// GoldCoverMin有効化2026-07-10：金本位の強制離脱（兌換停止）頻度＝「実在するが常態でない危機」の帯を確認する集計。
+````
+
+## L2555-2555 W 直後 `int independences = completed.Sum(r => r.SpawnedNations);`
+````
+// 国家アイデンティティ（2026-07-12）：分離独立の建国と変名（統一/formable）の発生総数＝状態由来（leanのログ抑制に非依存）。
+````
+
+## L2563-2563 W 直後 `completed.Count > 0 ? completed.Average(r => r.WarMaxRepeat) : 0,`
+````
+// ★診断2026-08-01：同一ペアの再戦。作者指摘「同じ国が繰り返し開戦するのは不具合」を数で捕まえる
+````
+
+## L2572-2572 W 直後 `completed.SelectMany(r => r.StandingsAt1914 ?? r.Standings)`
+````
+// ★海軍力の順位（1914断面・全seed平均）＝「陸軍は兵士ありき・海軍は戦艦ありき」への改修の物差し。BaseName（変名不変鍵）で束ねる。
+````
+
+## L2576 T `.OrderByDescending(x => x.Naval).ToList(),`
+````
+// ⚠全国を保持する（艦隊ストック順の並べ替えを呼び手が行うため。海軍力上位8だけに絞ると英が消える）
+````
+
+## L2577-2577 W 直後 `completed.Count > 0 ? completed.Average(r => r.ElectionsHeld) : 0,`
+````
+// ★E0計器（選挙doc §8-a）：総選挙の回数と平均間隔。間隔＝Σ在籍四半期÷Σ回数（回数0は0扱い）
+````
+
+## L2580 T `completed.Count > 0 ? completed.Average(r => r.TradeGdpMajors) : 0,`
+````
+// ★貿易復活計器
+````
+
+## L2581-2581 W 直後 `completed.Count > 0 ? completed.Average(r => r.MajorDepressionEpisodes) : 0,`
+````
+// ★史実基準の恐慌計器（2026-08-22）：大国8の−20%級エピソード（試合平均）と最大DD（全seed最大＝最悪ケースの物差し）
+````
+
+## L2585 T `CostTotals: SumCost(results),`
+````
+// ★計算量の台帳（2026-09-30）＝全試合の和（報告専用）
+````
+
+## L2586 T `SeedFidelity: seedFid);`
+````
+// ★止める規則（2026-09-30 第2回）＝種ごとの exact／near（報告専用）
+````
+
+## L2589-2589 W 直後 `private static long[] SumCost(IEnumerable<MatchResult> results)`
+````
+/// <summary>計算量の台帳の全試合の和（<see cref="CostLedger"/> の添字・中断した試合もそこまでの件数を足す）。</summary>
+````
+

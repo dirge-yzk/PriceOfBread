@@ -1,0 +1,71 @@
+# PriceOfBread.SimCore/Places.cs の注（1cd66aae5 の時点・注を履歴へ移した記録）
+
+見出しの数字は 1cd66aae5 の行番号。W＝行ぜんたいの注・T＝コードの後ろの注。
+
+## L7-23 W 直後 `public static class Places`
+````
+/// <summary>★場所の一元表（2026-08-26・作者指示(1)「州情報が複数箇所にある問題を一元化する」）。
+///
+/// ── なぜ要るか（同じ場所の座標が3箇所にあった）──────────────────────────────
+/// 旧は同じ町の緯度経度が **Climate.CityCoord（255件・switch）／Geo.ColonyCoord（43件・switch）／
+/// App.MapData.CityCoords（258件・Dictionary）** の3表にあり、それぞれ別に手で維持されていた。
+/// 実害の記録：
+///   ・MapData.cs:30 の注記「陸グラフには居るのに**この表だけに無かった**15町（作者報告『ボルドーからの線が途切れている』）」
+///   ・旧 Climate.CityCoord の注記「Geo.ColonyCoord と同値・**両表を対で維持すること**」＝手で守るしかない不変条件だった
+///   ・実測（2026-08-26）：Climate と Geo で **蝦夷地だけ値が違っていた**（43.06,141.35 と 43.1,141.3）
+/// 登録漏れは例外も警告も出さず既定 (0,0)＝ギニア湾の海上に州が立つ（旧 Climate.CityCoord の既定と同じ）ので、
+/// **表が増えるほど静かに壊れる**構造だった。
+///
+/// ── 何を真実源にしたか ────────────────────────────────────────────────────
+/// <c>places.json</c> ただ1つ。name / lat / lon / kind（state・colony・frontier・target）。
+/// ⚠ここは**座標の**唯一の出所である。陸塊（landmass.json）・沿岸（world.json の provinces.coastal）は
+///   それぞれ別の一次データが既にあるので**写さない**（写した瞬間に同じ病が再発する）。
+/// ★(3) の地形（森林・山岳・運河・不毛）はこの表に列を足す＝「1枚の表」（作者指示）。</summary>
+````
+
+## L26-27 W 直後 `public sealed record Place(string Name, double Lat, double Lon, string Kind, string Terrai`
+````
+/// <summary>Terrain＝地形タグ（設計doc 20260826_地形と輸送コスト.DONE.md の7タグ）。空＝平地（既定）。
+/// ★(3)「1枚の表」＝地形はこの表の1列（作者指示）。清算は常に読む（旗 TerrainCostEnabled は 2026-09-26 に焼き込み）。</summary>
+````
+
+## L30-33 W 直後 `public const double MaxSpacingKm = 850.0;`
+````
+/// <summary>州を敷いたときの**最長の間隔**（km・作者指定 2026-08-27「州数1.5倍相当＝約850kmまで」）。
+/// ⚠これは座標表の生成規約そのもの＝「この距離より遠くに州は無い」。同じ規約を読む側（地図の政治塗り分けの
+/// 到達上限＝<c>MapFill</c>）はこの1本を参照する＝塗りが**未保有の州の領分**へはみ出さないことが規約で保証される
+/// （作者裁定 2026-09-02）。値を変えるときは places.json の生成規約と一緒に動かすこと。</summary>
+````
+
+## L49-50 W 直後 `foreach (var r in rows)`
+````
+// ★fail-open是正（監査G10#1）：同名行が2つあると後勝ちで黙って上書き＝座標の唯一の真実源で重複が検出されない。
+//   TryAdd＋例外で「後勝ち」を許さない＝現データに重複が無ければ挙動不変（実測0件・places.json 338件）。
+````
+
+## L63 T `public string Terrain { get; set; } = "";`
+````
+// 空＝平地
+````
+
+## L64 T `public double[]? Rule { get; set; }`
+````
+// ★(399) 開始時の支配の4区分〔国家・在地・外国・無統治・合計1〕（kind＝colony の行だけ・無ければ null）
+````
+
+## L67-67 W 直後 `public static Terrain TerrainOf(string name)`
+````
+/// <summary>名前→地形タグ（enum）。未登録・空欄は平地。</summary>
+````
+
+## L80-80 W 直後 `public static double[]? RuleOf(string name)`
+````
+/// <summary>★(399) 名前→開始時の支配の4区分（植民地の州の rule のデータ・土地の側）。無い・4 要素でない・合計が 1 でない行は null＝呼び手は一律の在地 1.0（間接統治）へ倒す。昇格する植民地の州（<c>Simulation.PromoteColonyToRegion</c>）が読む。</summary>
+````
+
+## L85-86 W 直後 `public static (double Lat, double Lon) Coord(string name)`
+````
+/// <summary>名前→座標。⚠未登録は (0,0)＝**旧 Climate.CityCoord の既定と同じ**（例外を投げない）。
+/// 0,0 はギニア湾の海上なので、登録漏れは「海の上の州」として現れる＝挙動は旧と厳密に同じ。</summary>
+````
+

@@ -1,0 +1,34 @@
+# (1113) c107hb 注を履歴の文書へ移す・組 B（SimCore の残り）の事前登録（最初のコミット）
+# 担当 Sonnet 5.5。基点 1cd66aae5。基線 m1103 のまま（挙動の線 0 本）。作ったフォルダ：D:/PoB_work/wt_c107hb・wt_c107hb_il・c107hb_work・c107hb_art（隔離ビルド）
+# 注意：指示文の〈ha と同じ文〉の規則の文は、木の中に見つからなかった（docs・measurements・scripts を grep した）＝下の [1] は担当が置いた規則（報告の先頭で名乗る）。
+
+[1] 規則（恒等の線・予言 0）
+- 消すもの：`//`（`///` を含む）と `/* */` の注の全て。文字列・逐語文字列・補間文字列・文字リテラルの中の `//` は注ではない（cslex.py が走査する・生の文字列 `"""` はこの組に無い＝出たら止まる）。
+- 残すもの：`[PORT:` を含む注（Government.cs・Politics.cs の注）はそのまま残す。それ以外に、試験・台本が注の字を読む所（下の表）が赤になった注は戻して残す。
+- 行ぜんたいが注の行は行ごと消し、コードの後ろの注は手前の空白ごと消す。塊の注がコードの途中にあるときは空白 1 つに替える。コードの字・インデント・改行の種類（CRLF 5 本＝Politics.cs・Invariants.cs・MechanismProbe.cs・SeaGraph.cs〔と ha の Diplomacy.cs〕）・BOM は変えない。
+- 移し先：docs/history/<ファイル名>.md（1 ファイルに 1 本・見出しに 1cd66aae5 の行番号と直後のコードの先頭 90 字・注の本文を 4 つのバッククォートの囲みで）。移した注の字数の合計は元の注の字数と一致する（strip.py の出力の TOTAL と .md の本文で突き合わせる）。
+- 台本：scripts/instruments/c107hb/（cslex.py・strip.py・gate 台本）。独立の字句の検査は Roslyn（D:/PoB_work/c107hb_work/tokgate・SDK の Microsoft.CodeAnalysis）。
+
+[2] 組 B のファイル（81 本・ls で数え直した）と他の線との重なり
+- PriceOfBread.SimCore 直下の .cs から Coefficients*.cs・AssemblyInfo.cs・Diplomacy.cs・MultiNationSim.cs・Simulation.cs・World.cs・EconomyStep.cs を除いた 81 本（一覧は D:/PoB_work/c107hb_work/hbfiles.txt）。Instruments/・Display/ には触れない。
+- 注の量（dry run）：消す注 11,448 件・約 79 万字（計画の約 84 万字との差は [PORT:] の注を残すことと数え方）。大きい物：SelfPlay 8.6 万・Politics 6.3 万・Model 5.1 万・Government 4.5 万・Fiscal 3.8 万・Catalog 3.4 万・Discovery 3.4 万・BilateralMarket 3.3 万。
+- 他の線との重なり：di は Display の git mv と csproj・Tests 側（組 B の .cs に触れない）。ha は組 A の 5 本＋Instruments。hc は Coefficients*。同じファイルを触る線は無い（owns が重ならない）。docs/history/ は線ごとに別のファイル名＝衝突しない（Instruments と組 B のファイル名は重ならない＝comm で確かめた）。
+- 試験・台本が読む字の表：Tests のうち SimCore と ReadAllText／EnumerateFiles を併せ持つ 75 ファイル（D:/PoB_work/c107hb_work/readers.txt）。注を自分で剥がす読み手（OnDoubleReadScanTests・ReformPathTests・DiscontentReaderTests・WarInstrumentTests）は影響なし。それ以外は注の字を直接数える可能性があるので、移したあとに走査の番人（㉘）を回し、赤になった所の注を戻す（試験は書き換えない）。route_anchors.tsv の鍵は〈行のコードの部分〉＝行番号を持たない（注を消しても引ける）。ファイル:行を固定する試験は grep で 0 件（BillBlockedColumnsTests の Bar.cs:7 は試験の中の文字列）。
+- [CallerLineNumber] の宣言：CapitalMarket.cs:323・:329・InternationalMarket.cs:70・:146・Model.cs:402（組 B）と World.cs:736・Diplomacy.cs:453（組 A）。行頭の注を消すと呼び口の行が動く＝IL の定数と、cearn_s・cpop_s・flow_s の経路の行・dep_s の callerLine が動く（宣言する）。
+
+[3] 足す試験：なし（テストの数の予言 +0＝2823＋FullLength 3）。ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests・PlayHarnessTests・InstrumentsPlacementTests と、75 の読み手の全て。書き換える試験の件数の予言（㉑）：0（赤は注を戻して直す）。
+- 門と突然変異（腕の前の紙の台本・どの門で赤になるか）：
+  門 1＝IL：前後とも [CallerLineNumber] の属性を全 SimCore から外し、同じ木のパス（wt_c107hb_il）で DebugType=none・Deterministic で建て、SimCore.dll のバイト一致。
+  門 2＝字句：Roslyn で注（トリビア）を除いた字句の列が 81 本とも一致。
+  門 3＝ident（stage.py の判定）：段 1 なら SMALL と素の成績表の全行一致。経路の行・dep_s の callerLine は動く（宣言）。
+  門 4＝残りの注の件数：消した後の行頭の `//`・`/*` の行数が、残した [PORT:] と戻した注の行数と一致。
+  M1 文字列の中の // の後ろを削る（cslex を使わない素朴な剥がし）→ 門 2 赤・門 1 赤。
+  M2 コードの 1 かたまり（5 行）を落とす→ 門 2 赤・門 1 赤（ビルドが通らなければ赤）。
+  M3 コードの数を 1 つ変える（定数）→ 門 2 赤・門 1 赤。
+  M4 変換を片方の木だけに当てる（後だけ [CallerLineNumber] を外さない）→ 門 1 赤・門 2 緑（門 1 が同じ変換を要することの確かめ）。
+
+[4] 段・成績表の予言
+- stage.py は段 1 と出す見込み。素の 5 種と計器つき 10 種は m1103 と名乗り行を除いて全行一致。計器の表の差の宣言：cearn_s・cpop_s・flow_s の経路の行・dep_s の callerLine（呼び口の行番号を載せる列）。それ以外の差は 0。.cost の件数の行の差 0・推定は m1103 と同じ。
+- NG：95 件・新しい 0・外れた 0。savetest・leakhunt 合格。フルスイートの失敗 0・合計は --list-tests と一致。
+
+[5] 採否：〈判定: 恒等〉（測った種で一致）なら採る。一致しなければ、その変更を外して報告に回す。
