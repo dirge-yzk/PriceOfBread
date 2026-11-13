@@ -380,6 +380,56 @@ public class EconomyTests
     }
 
     [Fact]
+    public void 鉱山の天井の旗_建てた分0の道_旗1は目標の側で1点5を越え_旗0は越えない()
+    {
+        // (1119) 線 c108mc。事前登録 measurements/m1119_20261114_prereg_mc.txt §単体 2。
+        //   上の試験は建てた分の床（BuiltScale 4.0）の道だけを通る＝〈Clamp の上側だけ max(floor, MineralScaleCap)〉の変種で緑のまま（(1098) 反証役 v2）。
+        //   この試験は BuiltScale 0（床＝ScaleFloor 0.1）＝目標 1＋margin が天井まで届く道。盤面：イギリス（種 41）・発見の門が開いた最初の鉱物の RGO を
+        //   Scale 1.5・BuiltScale 0・休止 0 に置き、その州のその財の値段を限界費用（試験が自分で出す）の 2.5 倍に置いて（開幕は値段＝費用で 1＋margin＝1）1 か月。
+        //   旗 1：1.5 ＜ 規模 ≦ 1.5＋速さ×(3.0−1.5)＝1.51875（速さ 0.05×0.25・天井 3.0 は手の値）。旗 0：規模 ≦ 1.5（天井 1.5）。
+        static double Mc(World w, Region r, Producer p)
+        {
+            double mc = p.MarginalCost * w.CostPriceLevel * r.LocalPriceMultiplier;
+            if (w.Coef.MineralCostFollowsGrade > 0 && r.MineralGradeFactor > 1e-9) mc /= r.MineralGradeFactor;
+            foreach (var inp in p.Inputs) mc += (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length ? r.Markets[inp.GoodId].Price : 0.0) * inp.QtyPerOutput;
+            return mc;
+        }
+        static (World W, Region R, int Pi, double T) Board(double lift)
+        {
+            var sc = NationConfig.Britain().ToScenario(41, sharedWorld: true);
+            var co = new Coefficients { MineralScaleCapLift = lift };
+            typeof(Scenario).GetProperty(nameof(Scenario.Coef))!.SetValue(sc, co);
+            var w = new Simulation(sc, new NullAgent()).World;
+            foreach (var r in w.Regions)
+                for (int i = 0; i < r.Producers.Count; i++)
+                {
+                    var p = r.Producers[i];
+                    if (!p.IsRgo || !Catalog.IsMineral(p.GoodId) || p.Bankrupt || p.GoodId >= r.Markets.Length || !(Discovery.Gate(r, p) > 0)) continue;
+                    double mc = Mc(w, r, p);
+                    if (!(mc > 1e-9)) continue;
+                    r.Markets[p.GoodId].Price = 2.5 * mc;
+                    p.Scale = 1.5; p.BuiltScale = 0.0; p.MothballFrac = new Share(0);
+                    return (w, r, i, r.Markets[p.GoodId].Price / Mc(w, r, p));
+                }
+            throw new Xunit.Sdk.XunitException("門の開いた鉱山が無い");
+        }
+        var on = Board(1.0); var off = Board(0.0);
+        Assert.Equal(off.R.Name, on.R.Name); Assert.Equal(off.Pi, on.Pi);
+        Console.WriteLine($"(1119) unit2: region#{on.R.Id} good#{on.R.Producers[on.Pi].GoodId} 1+margin(before the month)={on.T:R}");
+
+        EconomyStep.Run(on.R, on.W.Coef, 1.0, on.W.Bank, on.W);
+        EconomyStep.Run(off.R, off.W.Coef, 1.0, off.W.Bank, off.W);
+
+        double s1 = on.R.Producers[on.Pi].Scale, s0 = off.R.Producers[off.Pi].Scale;
+        Console.WriteLine($"(1119) unit2: scale flag1={s1:R} flag0={s0:R}");
+        Assert.True(s1 > 1.5 + 1e-9, $"旗 1 の規模 {s1:R} が 1.5 を越えない（目標の側の天井が 1.5 のまま）");
+        Assert.True(s1 <= 1.51875 + 1e-12, $"旗 1 の規模 {s1:R} が 1.51875（天井 3.0・速さ 0.0125 の 1 か月の最大）を越えた");
+        // 目標＝1＋margin＝2.5（値段＝費用×2.5）＜天井 3.0 ⇒ 規模＝1.5＋0.0125×(2.5−1.5)＝1.5125（天井 2.0 なら 1.50625・速さ 0.05 なら 1.55）
+        Assert.True(Math.Abs(s1 - 1.5125) <= 1e-9, $"旗 1 の規模 {s1:R} が 1.5125 でない");
+        Assert.Equal(1.5, s0);
+    }
+
+    [Fact]
     public void 器_賦存が同一費用あたりの産出能力になる_ゲート0は厳密恒等()
     {
         // ★器 EndowmentCostFollowsAbundance / EndowmentCostFollowsScarcity（2026-09-08・作者裁定「同一生産コスト辺りの産出能力」）。
