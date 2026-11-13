@@ -1,0 +1,41 @@
+(1115) c107op 事前登録（設計の材料・腕 0・コミット 0・2026-11-13）
+仮番号の名乗り：指示の見出しは (1115)・番号表は c107op (1115)・置き場の名は d1116_work と r1116 と r1115_work が混じる。材料と下書きは D:/PoB_work/r1115_work、事前登録はこのファイル、台本は D:/PoB_work/r1115_work/scripts/instruments/r1116/（合流が scripts/instruments/r1116/ へ写す）。
+
+書いた時点で既に見た物（名乗る）：
+- measurements/m1108_20261113/result.txt（反証役 v の指摘を含む）・prereg.txt・out_ctrl.txt（選挙→選挙の労組の距離 1 と距離 2〜4 の率）。
+- ソース（1cd66aae5）：Parliament.Step の開院の分岐・非選挙の枝・ComputeVotes の退避（思想の和 0 で保守 1）・PolicyPreferences.NetSupport／OpposingPower／ParliamentNet・CrownParliament の RegimeTenureQuarters の書き手・Simulation の Step の順・NonElectiveSeatsTests の全文。
+- 生：keep_1103/base_ins の monlaw_s1・s2 のアメリカの四半期 0・1 の 4 行だけ（MinimumWage 1・LaborUnion 1・polityCode 4）。他の集計はまだしていない。
+
+問い 1 開幕の四半期の空白
+  ソースの見込み：構築は PartySeats も QuartersSinceElection も書かない（書き手は Parliament.cs だけ＝grep）。四半期 0 の Parliament.Step は席が空・QuartersSinceElection＝0＝開院しない→同じ四半期の Government.Step は議会の項なし・街頭は半分。
+  ＝移行の空白（q0+1：席が空・QuartersSinceElection＝0）と同じ条件。違いは思想の分布：開幕は Politics.Step（Ideologies.UpdateShares）を 1 回も通っていない＝POP の IdeologyShares が全て 0＝ComputeVotes の退避で保守 100%。
+  見込み：移行の空白は条件の置き換えで閉じる。開幕の空白は、条件を置き換えるだけでは閉じない（思想が 0 のまま開院すると旧の注の〈丸ごと保守〉に戻る）＝構築の側の 1 行か、読み手の側の形が要る。
+  集計（規則を先に固定）：
+   (a) 四半期 0 の行で polityCode 3・4 の国を数える（種ごと・腕 M・N1・N2・S11・対照 c101sel 3 種）。
+   (b) 四半期 0 に MinimumWage≥1 の国×種を、選挙政体と非選挙政体に分けて数える（初期値は全国 None＝Scenario.cs に MinimumWage の行なし・World の既定 None）。
+   (c) 率の比：四半期 0 の選挙政体の上げ（0→≥1）の率 ÷ 他の選挙政体の四半期（移行の距離 1〜4 を除く）の上げの率。同じく非選挙政体の四半期 0 ÷ 他の非選挙政体の四半期（対照）。
+   (d) sf_s（9 国）の四半期 0・1 の席の和。
+   判定の規則：(c) の選挙政体の比が 10 以上で、非選挙政体の比が 3 未満なら〈開幕の空白は移行の空白と同じ型（法の門）〉と読む。非選挙政体も 10 以上なら〈開幕の四半期そのものの効果が混じる〉と名乗り、空白の分を言い切らない。
+  見込み：アメリカは選挙政体で上げあり（v の 7/10・8/10）。他の選挙政体（英・オランダ・スイス等）は国の数が少ない＝(c) は小さい数の比（確証：低〜中）。
+
+問い 2 置き換える条件
+  候補（新しい状態を作らない・grep で拾う）：
+   C1 RegimeTenureQuarters≥1（CrownParliament.Step＝Politics.Step の中で ++・ApplyRegime で 0）：開幕は立つ（四半期 1 から）が、移行の次の四半期は 0（移行の四半期の Politics.Step の後ろの ApplyRegime で 0）＝移行の空白を閉じない見込み＝不採用の見込み。
+   C2 思想の分布が有る（POP の IdeologyShares の和が正＝ComputeVotes の同じ走査の中の値 sum。退避した票の重みの割合として ComputeVotes の局所で数えられる）：移行の次の四半期は立つ・開幕の四半期 0 は立たない・試験の盤面（SetIdeology で 1.0 を置く）は立つ。
+   C3 QuartersSinceElection≥1 のまま（今の形）。
+  見込み：C2 を推す。開幕の空白は C2 だけでは閉じない＝問い 1 の〈別の 1 行〉と合わせる。
+
+問い 3 周辺（読むだけ）
+  労組の法：out_ctrl.txt で、非選挙→選挙は距離 1 だけが高く距離 2〜4 は 0.0〜0.1、選挙→選挙は距離 1 と距離 2〜4 の両方が 5.7〜12.3 倍。
+  見込み：選挙→選挙は議席が空にならない＝空白でなく政体の移行の効果（検閲と同じ型）。同じ穴ではない。新しく数えず、既にある表で読む（確証：中）。
+  1894 年より前の施行の行：アメリカの開幕の続き（四半期 0 から上げたまま）の割合を数える（v の 32% の取り直し・同じ台本で M・N1・N2・S11）。
+
+問い 4 素案（AI の案・確証なし）：問い 1〜3 の数を見た後で書く。G4 は〈開幕に席が空のまま法の門が回る行〉を数える側へ。
+
+問い 5 作者に聞く物：数を見た後で、本当に迷う物だけ 3 行の形。
+
+結果の後の追記（名乗る）：
+- op_us.py（選挙政体の国ごとの最初の施行の四半期）・op_birth2.py（試合の途中で生まれた選挙政体の国）・op_path.py（どの書き手か・内戦）は、op_open.py の結果を見た後に足した。問い 1 の判定の規則は変えていない。op_birth2.py の席の列は名前で結んだので使わない（op_path.py で置き換えた）。
+- 問い 1 の判定：選挙政体の四半期 0 の比 126〜194（c101sel 194）・非選挙の四半期 0 は 0/530（5 本とも）＝規則の〈同じ型〉の側。ただし上げはアメリカの 1 国だけ（他の選挙政体 7 国は 0/70）＝小さい数の比（確証：中）。
+- 問い 2 の C1 の見込み（移行の次の四半期は 0）は、ソースの順（CrownParliament.Step の ++ が Politics.Step の 512 行・ApplyRegime の 0 戻しが 713 行）から読んだ。腕では確かめていない。
+- 開幕の空白を閉じる形は、C2 だけでは閉じない（思想が 0）。UpdateShares は前の四半期の思想を不満度の理想点で読む（Ideology.cs:54 の注）＝〈前を読まない〉は誤り。下書きの案の比べに使う。
