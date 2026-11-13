@@ -1,0 +1,46 @@
+ConsciousnessSpeed	L163[問い1　政治の在庫の内側（85）]B
+NewsConsciousnessFloor	L194[問い2　数値の天井と床（37）]A
+UrbanConsciousnessBoost	L160[問い1　政治の在庫の内側（85）]A
+ConsciousnessFromSchoolingStock	（載らない）
+BandwagonSensitivity	L155[問い1　政治の在庫の内側（85）]?; L163[問い1　政治の在庫の内側（85）]B
+BandwagonWeight	L155[問い1　政治の在庫の内側（85）]?; L163[問い1　政治の在庫の内側（85）]B
+MilitancySpeed	L163[問い1　政治の在庫の内側（85）]B
+PoliticalDistanceWeight	L163[問い1　政治の在庫の内側（85）]B
+WantWeight	（載らない）
+WarWearinessMilitancy	L32[1-1. 付け直す（20）]C; L408[中（33）]?; L430[増幅の輪が残る組・流れが切れる組（歯止めだけを先に消すと危ない物）]?
+ParticipationDiscontent	（載らない）
+DiscontentLawGap	（載らない）
+LivingRefSpeed	（載らない）
+OpenBallotReality	L89[2-1. 前回が甲・今回が B（20）]今回 B が正しい
+PaperFranchiseReality	L89[2-1. 前回が甲・今回が B（20）]今回 B が正しい
+MinorityMilitancy	L163[問い1　政治の在庫の内側（85）]B
+NoblePrivilegeWeight	（載らない）
+ReactionFromLoss	（載らない）
+DefeatNationalism	L163[問い1　政治の在庫の内側（85）]B
+ExternalPressureNationalism	L162[問い1　政治の在庫の内側（85）]I
+LostLandNationalism	L163[問い1　政治の在庫の内側（85）]B
+VictoryImperialism	L163[問い1　政治の在庫の内側（85）]B
+VictoryNationalism	L163[問い1　政治の在庫の内側（85）]B
+DynMandateFoodAnchor	L154[問い1　政治の在庫の内側（85）]?; L163[問い1　政治の在庫の内側（85）]B
+FamineRepublicanism	L411[小（23）]?
+FamineSocialism	L411[小（23）]?
+FamineMemoryKeepPerQuarter	（載らない）
+DiscoveryContactHalf	（載らない）
+FascismCrisisLeftRef	L163[問い1　政治の在庫の内側（85）]B
+FascismCrisisSlumpRef	L163[問い1　政治の在庫の内側（85）]B
+FascismGate	（載らない）
+ManifestoCreditDecay	（載らない）
+ManifestoFulfillCredit	L163[問い1　政治の在庫の内側（85）]B
+IdeologyAffinitySlope	（載らない）
+IdeologyVoiceFloor	L163[問い1　政治の在庫の内側（85）]B
+PolityCoordDriftWeight	（載らない）
+ReformPressureBoost	L162[問い1　政治の在庫の内側（85）]I
+UnionMobilization	L312[問い7　政策の効きと国家・AI の規則（28）]B
+DesperationChallengeWeight	（載らない）
+DesperationConsciousnessGate	（載らない）
+RiotMilitancyThreshold	L215[問い3　離散の出来事の門と講和の条項（58）]B
+FamineDriveGain	（載らない）
+FamineDropOnset	（載らない）
+ExternalPressureInlandFactor	（載らない）
+BourgeoisCoupWeight	（載らない）
+DominanceInstabilitySatisfaction	L215[問い3　離散の出来事の門と講和の条項（58）]B

@@ -1,0 +1,6 @@
+凍結を外した行 {'ρ＞0 の州（比 k の中央に入る）': 60, 'ρ＝0 の州（τ を解き直す）': 20} ／ρ の比 k（州：最後の種の値） {'カナダ': 48.7, 'ナイン': 68.5, 'アラスカ': 1.0, 'セントマイケル': 1.0, 'フォートユーコン': 1.3, 'バロー': 1.0}
+① 許容差	owner 2872	local 12	foreign 116	ungov 80	none 0	持ち主でない 208
+①＋② u1（F_f は四半期 0）	owner 2903	local 12	foreign 105	ungov 60	none 0	持ち主でない 177
+①＋② u2（F_f は四半期 1）	owner 2892	local 12	foreign 116	ungov 60	none 0	持ち主でない 188
+①＋② u1＋③ 下	owner 2963	local 12	foreign 45	ungov 60	none 0	持ち主でない 117
+①＋② u1＋③ 上	owner 2917	local 12	foreign 91	ungov 60	none 0	持ち主でない 163

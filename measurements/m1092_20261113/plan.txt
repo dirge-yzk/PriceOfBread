@@ -1,0 +1,8 @@
+(1092) c104ar 読む線の計画（2026-11-13・腕 0・コミット 0）
+作業の場所：D:/PoB_work/r1092_work（この回に作ったフォルダはこれだけ・worktree と枝は作らない＝ソースは main の作業ツリー 23aa9d11a を読むだけ）
+読む生：
+- D:/PoB_work/keep_1087/base_ins：rulepower_s1..10（lNationIndex）・stock_s1..10（soldierK・militaryReadinessShare・capitalEquipFillShare・trainingFillShare・landPowerIndex・首都の市場の火砲/小銃/弾薬の在庫）・nation_s1..10（payRateMeanShare・ledgerArmyCumulative・atWarMonths）・nationgood（10 年ごと）・prodcap（1784 q3 の能力）
+- D:/PoB_work/keep_1087/n1・n2：同じ表（ヌル腕＝揺れの幅）
+- measurements/ng1087_20261113（陸軍力の行）・measurements/m1083_20261113（q1e_out・report）
+ソース（grep し直す）：Diplomacy.cs:44・:872（Military の式）・Military.cs:298（即応度）・EconomyStep.cs:2512〜2541（装備の決済）・:573（ArmsFillContribution）・ArmsHeld・BaseArmsTarget・InstrumentsRulePower.cs:150・Instruments.cs:2745〜2749
+台本：D:/PoB_work/r1092_work/*.py（python -X utf8 -I・出力 newline='\n'）・出力 *_out.txt

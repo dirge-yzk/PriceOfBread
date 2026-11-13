@@ -1,0 +1,13 @@
+(1093) c104al 読む線の計画（2026-11-13・Claude Opus 5.5）
+作業の場所：D:/PoB_work/r1093_work（このフォルダだけを作る・コミット 0・腕 0・worktree は作らない＝main の木 23aa9d11a を読むだけ）
+読むソース（23aa9d11a）：
+  PriceOfBread.SimCore/EconomyStep.cs（sellR と LaborWeight・Capacity・target・Toward・ProfitFactor）
+  PriceOfBread.SimCore/InstrumentsSellr.cs・InstrumentsTradeskip.cs・InstrumentsRecipeout.cs・InstrumentsProdcap.cs・InstrumentsSubst.cs
+  PriceOfBread.SimCore/Coefficients.cs（SellRWithTrade の有無・TradeBuyBySupplyCurve の有無）
+  PriceOfBread.SimCore/BilateralMarket.cs（読むだけ・PrevExport/PrevImport の書き手）・Model.cs
+読む生（D:/PoB_work/keep_1087/base_ins・m1087 の計器つき 10 種・種 1〜10）：
+  sellr_s{1..10}.tsv・prodcap_s{1..10}.tsv・recipeout_s{1..10}.tsv・tskpair_s{1..10}.tsv・tskshadow_s{1..10}.tsv・tradeskip_s・nationgood_s（2 度数えの分母）
+ヌル腕（読むときだけ）：D:/PoB_work/keep_1087/n1・n2（同じ表）
+材料：measurements/m1058_20261112/・m1073_20261112*・m1079_*・(1047) c99ov の記録・実装ログ (1073)(1079)
+設計：scratchpad の design_trade_replace_2026-11-12.md・_反証.md・_材料.md（読むだけ）
+出力：prereg.txt（問いを先に固定）→ 台本 *.py と出力 *.txt → draft_report.md（合流が measurements/m1093_20261113/・scripts/instruments/r1093/ へ写す）

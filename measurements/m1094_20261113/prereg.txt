@@ -1,0 +1,65 @@
+(1094) c104s14 事前登録（読むだけ・腕 0・生を読む前にソース 23aa9d11a だけから書いた）2026-11-13 Claude Opus 5.5
+
+形：読むだけ。門は無い（採否の線ではない）。下は〈生を読む前の予言〉で、外れたら記録の段で〈外れ〉と名乗る。結果を見た後にこの文を直さない（直すなら追記に日付と理由）。
+
+予言（ソースからの見込み・確証の度合いはソースの読みだけ）
+P1 政治意識（H001）：働く。意識の目標＝(識字×変換×都市＋便乗)×報道。国の意識は単調に近く上がる。
+P2 便乗（H002）：一部だけ働く見込み。momentum＝(改革＋急進)/保持力×0.45 を 1 で切る＝大きさは出ているが、意識の目標への寄与は 0.32×momentum×(1−識字)。計器に便乗の列が無い＝生では測れない見込み（計器の仕様へ）。
+P3 闘争度の成分（H003）：文書の〈5 成分〉は古い＝今は 4 成分（法・民族・厭戦・飢え・生活は不満度だけ）。dcont_s の milVoice・milWar・milNation・milFamine で 4 本とも 0 でない行がある。
+P4 不満度（H004）：働く（参加の述語と思想の入力が読む）。文書の〈表示専用〉は古い。
+P5 参加の述語（H005）：働く（ParticipationDiscontent＝1.0）。文書の〈休眠〉は古い。dcont_s の dGtMShare（不満度＞闘争度の割合）は 0 より大きい。
+P6 法の隔たりを動かせる法で（H006）：休眠（DiscontentLawGap＝0）。読み手は参加の述語の中だけ。
+P7 失望（H007）：働く（LivingRefSpeed 0.03）。
+P8 4 軸の疎外（H008）・3 層分割（H009）：働く。中間層の項は削除済み。
+P9 H010・H011：削除済み（(271)）＝文書は〈休眠〉で古い。
+P10 秘密投票（H012）：働く（S19-39 と同じ題・係数 0.9・0.7）。
+P11 H013・H014・H016：廃止を確かめる（墓標だけ・読み手 0）。
+P12 民族（H015）：働く（EthnicEnabled の国）。milNation が 0 でない行がある。
+P13 11 の思想（H017）：働く。ただし ReactionFromLoss＝0 の旧式の反動（2×mil×conserv）は小さい見込み（富裕層は闘争度が低い）＝国の反動の割合の中央は 0.05 未満。
+P14 貴族の所得構成（H018）：働く。
+P15 王党派（H019）：一部だけ働く見込み（閉鎖階級と近代エリートだけ＝国の王党派の割合は小さい・中央 0.05 未満）。
+P16 地位の喪失（H020）：休眠（ReactionFromLoss＝0）。
+P17 敗戦・失地・戦勝・外圧（H021）：働く。ただし外圧は国の海岸の距離の式で 0 でない国だけ。
+P18 H022 国民意識の底上げ：削除済み（(551)）。
+P19 H023 恐慌の両極化：削除済み（(384)・注だけ）＝文書の〈稼働中〉は古い。
+P20 飢えの記憶（H024）：働く（国の主食の充足が 0.8 未満の四半期がある国だけ）。
+P21 思想の門（H025）：働く（発見の 2 値）。社会主義の門は多くの国で早く開く（台帳 S01 の確かめと同じ）。
+P22 到達（H026）：働く（発見の伝わりの項）。
+P23 ファシズム（H027）：一部だけ働く見込み。門が開いた国でも国の割合は小さい（mil×(反動＋国民)×0.5）。
+P24 公約（H028）：一部だけ働く（議会の国で選挙のあと・ManifestoCredit が正の四半期だけ）。生に列が無い見込み。
+P25 親和（H029）・集計（H030）・座標のずれ（H031）：働く（Transition が毎四半期読む）。
+P26 3 ブロック（H032）：S18-19 と同じ題＝二度確かめない。
+P27 小営業（H033）：削除済み（PettyInterest の参照 0）＝文書の〈休眠〉は古い。
+P28 改革派・急進派（H034）：働く。ReformPressureBoost は外圧が 0 の国で効かない。
+P29 組合の動員（H035）：一部だけ働く（組合が容認か統制の国×四半期だけ）。
+P30 窮乏（H036）：一部だけ働く（闘争度＞0.5 の POP だけ）。
+P31 平均満足（H037）：働く（読み手はブルジョア独裁の門・協力度ほか）。
+
+頻度の定義（生を読む前に固定）
+- 〈届いた割合〉＝その項の入力が 0 でない国×四半期の割合（計器が毎四半期の行を持つ 9 国は毎四半期・他の国は年末の行だけ・どちらで数えたかを名乗る）。
+- 4 腕（M・N1・N2・S11）で同じ定義を数え、M とヌル腕の幅を並べる（門ではない）。
+- 〈働かない〉＝入力が 0 でない行が 4 腕とも 0。〈一部だけ〉＝入力が 0 でない行が 4 腕で 5% 未満か、効き先が門で止まる。
+
+消す候補の型（指示のとおり）：(i) 読み手 0／(ii) 量が小さい／(iii) 既存の機構から出るべき物を別の式で足す。
+
+追記 2026-11-13（生を読む前・反証役の指摘 6 点で直した）
+A. 外圧（P17・P28 の直し）：MultiNationSim.cs:858〜859 は gap＝0.0 を毎四半期書く（(613)(824) で技術の格差を外した）。予言＝scalars_s の externalPressure が 0 でない行は、各国の最初の四半期（NationConfig/Scenario の 0.3 が残る間）だけで、それ以外は 4 腕とも 0。よって ExternalPressureNationalism・ReformPressureBoost・ExternalPressureInlandFactor の効き先は 0（倍率の一掃の I の区分と一致の見込み）。
+B. 重なり（二度確かめない・行の id を引くだけ）：H029〜H031＝S15-23（引力点と慣性の門）・H034 の保持力の側＝S15-21・S15-28・H032＝S18-19・H033＝S18 の〈文書が古い〉・H028＝S18-09（列なし・計器 ep_s を引く）・H012 の法の段と門＝S19-39（S14 は発言権の効き＝3 つの枝の割合を数える側）。
+C. 行ごとの表と列（固定・結果の後に替えない）。全ての国の割合は年末の行（quarter%4==3）だけ。9 国が毎四半期の表（ideology_s・dcont_s・scalars_s・reform_s）と全ての国が毎四半期の表（idn_s・prds_s・monlaw_s・lordstat_s・crownpc_s）は quarter の数を国ごとに数えて確かめる。
+  H001 意識：列なし（secession_s の consciousnessMeanIndex は国民意識＝別の量）→ 計器の仕様で止める。ソースだけで判定。
+  H002 便乗：crownpc_s の mobilizationIndex（改革＋急進）と effectiveCoerceIndex（EffectiveCoerce と同じ式）の前の行から momentum＝clamp01(mob/max(1,coerce)×0.45)。意識の目標への寄与 0.32×momentum×(1−識字) は reform_s の literacyShare を使う（9 国だけ）＝〈近似〉（人口の 1 四半期のずれ）。
+  H003・H008・H015：dcont_s の milVoiceMeanShare・milWarMeanShare・milNationMeanShare・milFamineMeanShare が 1e-6 を超える行の割合と、4 本の和に占める中央の割合。
+  H004：dcont_s の discontentMeanShare＞1e-6 の割合と分位。H005：dcont_s の dGtMShare＞0 の割合・partNewK と partOldK の比。H007：livingDropMeanIndex＞1e-6 の割合。
+  H009：列なし（MandateBase）→ scalars_s の dynMandate の 0.5 からの幅を〈天命が動いた〉の近似として出すだけ。
+  H012：monlaw_s の polityCode・SecretBallot・Suffrage で枝（議会×秘密＝1.0／議会×公開＝0.9／非議会＝0.7）の割合を、Suffrage＞0 の行で出す。
+  H017・H019・H020・H027：ideology_s の国の割合（年末）。各思想が 0.01 を超える行の割合と中央。
+  H021：scalars_s の defeatShock＞1e-6・externalPressure＞1e-9 の割合。戦勝の衝撃・失地の在庫は列なし→計器の仕様。
+  H024：列なし（FamineMemory）→計器の仕様で止める。
+  H025・H027：idn_s の knownSoc/Com/Imp/Fas の割合と最初の年（国ごと）・crisis＞0 の割合。
+  H026：disc_s の思想の行の transmitTerm＞0 の割合（行の名は disc_s の row 列で思想を選ぶ）。
+  H034：crownpc_s の mobilizationIndex＞0 の割合。
+  H035：prds_s の unionLaw の割合（容認・統制＝組合の動員が届く）。設計 §13-2 の〈86% の行で非合法〉と突き合わせる。
+  H036：列なし（POP ごとの闘争度＞0.5）→ dcont_s の militancyMeanShare＞0.5 の行の割合を〈下限の近似〉として出すだけ。
+  H037：dcont_s の satMeanShare＜0.43 の行の割合（立憲・共和の行で＝ブルジョア独裁の門が開く割合）。scalars_s の polityCode で選ぶ。
+D. 読み手の数：readers.py（範囲＝SimCore・App・Runner・Tests・scripts・measure.sh・measurements の .py/.sh・docs）でコードの行と注の行を分ける。SimCore のコードの行は宣言の 1 行を含む＝読み手は〈コードの行−1〉。設計 §13-1 の数（意識：エンジン 14・試験 25）は数え方が違う（宣言・注・別の名を含むか）＝並べて名乗る。
+E. 消す候補は設計 §13-4 と突き合わせ、§13-4 に在る物は印だけ（新しい線にしない）。休眠の器（DiscontentLawGap・ReactionFromLoss）は DormantZeroFields に在る＝消さない（ReactionFromLoss は 10-18 の精査 ③-2 で〈政6・政5 の後〉の計画あり）。

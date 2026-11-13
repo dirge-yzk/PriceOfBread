@@ -1,0 +1,15 @@
+BilateralMarket.cs:263:            //   ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（Transport.PreRailCapacity・旧＝国ごとの定数 TransportBaseline 50＝大国の内陸が通した割合 0.26�
+BilateralMarket.cs:264:            double railCapNat = W.RailCapacity + Transport.PreRailCapacity(W, c);
+Coefficients.cs:1221:                                                    //   ②鉄道以前の陸の容量（Transport.PreRailCapacity＝人口×これ・(166)）＝同じ係数で2つの物理量を読む＝鉄道÷�
+Coefficients.cs:1232:    // 【削除2026-10-02 (166)】TransportBaseline（50.0＝前鉄道の基礎輸送＝国ごとの定数）＝鉄道以前の陸の容量は人口×TransportTargetPerPop（Transport.PreRailCapacit
+Diplomacy.cs:2625:                    wz.RailCapacity *= 1.0 - wear; wz.ShipCapacity *= 1.0 - wear;   // 05-A：輸送容量も戦災（鉄道の破壊・商船の徴用/喪失）
+Discovery.cs:1029:    ///   ★(166) 鉄道の前の陸の容量を人口に比例させた（<see cref="Transport.PreRailCapacity"/>）後は、大国の鉄道の前の通した割合は 0.36〜1.0（(166) の10種・17
+Territory.cs:313:        // ★輸送の容量は州と一緒に移る（2026-09-30 (118)・推奨で進めた＝保存）：鉄道と船は国の値（World.RailCapacity／ShipCapacity）で、
+Territory.cs:320:        double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
+Territory.cs:321:        from.RailCapacity -= rail; from.ShipCapacity -= ship;
+Transport.cs:13:        w.RailCapacity = System.Math.Max(0, w.RailCapacity * (1 - c.TransportDecay));   // 減耗（鉄道は0スタート）
+Transport.cs:66:    internal static double PreRailCapacity(World w, Coefficients c) => w.TotalPopulation * c.TransportTargetPerPop;
+Transport.cs:90:        if (rail > 0) to.RailCapacity += rail;
+Transport.cs:142:        double cap = rail ? w.RailCapacity : w.ShipCapacity;
+Transport.cs:187:                if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
+World.cs:1145:    public double RailCapacity { get; internal set; }          // 鉄道輸送容量（内陸→港）。0スタート、鉄道財の投資で積む（§5.1拡張）

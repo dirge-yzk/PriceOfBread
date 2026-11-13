@@ -1,0 +1,45 @@
+自己検査：写した式（G10 の値から）と表の bestClass の不一致 98 / 3080 （不一致は G10 の丸めで同点が逆に割れた行）
+ρ̄_n の近似の覆う割合（1 国だけの行の配り÷O_n）：国ごとの種の中央
+  フランス	覆う 0.727	ρ̄ 0.278
+  オーストリア	覆う 0.596	ρ̄ 0.716
+  プロイセン	覆う 0.151	ρ̄ 0.463
+  ロシア	覆う 0.498	ρ̄ 0.132
+  アメリカ	覆う 0.998	ρ̄ 0.140
+  ソコト	覆う 1.000	ρ̄ 0.468
+  西山朝	覆う 0.264	ρ̄ 0.592
+  ビルマ	覆う 0.108	ρ̄ 0.810
+  ジェノヴァ	覆う 0.116	ρ̄ 0.858
+  バイエルン	覆う 0.000	ρ̄ 0.895
+  ラオス	覆う 0.102	ρ̄ 0.801
+  マラータ同盟	覆う 0.559	ρ̄ 0.443
+  シク連邦	覆う 1.000	ρ̄ 0.615
+  ヴェネツィア	覆う 0.367	ρ̄ 0.786
+  両シチリア	覆う 0.327	ρ̄ 0.894
+  ラヘジ	覆う 0.585	ρ̄ 0.537
+  ブハラ	覆う 0.817	ρ̄ 0.203
+
+開幕 3080 行の影の最大の区分（版ごと）
+  V0	owner 2786	local 12	foreign 110	ungov 172	none 0	持ち主でない 294
+  V0+tol	owner 2878	local 12	foreign 110	ungov 80	none 0	持ち主でない 202
+  Va	owner 2719	local 12	foreign 191	ungov 158	none 0	持ち主でない 361
+  Va+tol	owner 2797	local 12	foreign 191	ungov 80	none 0	持ち主でない 283
+  Vb_lo+tol	owner 2929	local 12	foreign 59	ungov 80	none 0	持ち主でない 151
+  Vb_hi+tol	owner 2881	local 12	foreign 107	ungov 80	none 0	持ち主でない 199
+  Vn(海軍を足す・記録)	owner 2786	local 12	foreign 110	ungov 172	none 0	持ち主でない 294
+Vb で上下の幅が区分を割る行 48
+
+今（V0）外国の行（表の bestClass＝foreign・C の 0 行を含む全て）が各版でどこへ行くか
+  V0	owner 0	local 0	foreign 110	ungov 0
+  V0+tol	owner 0	local 0	foreign 110	ungov 0
+  Va	owner 0	local 0	foreign 110	ungov 0
+  Va+tol	owner 0	local 0	foreign 110	ungov 0
+  Vb_lo+tol	owner 51	local 0	foreign 59	ungov 0
+  Vb_hi+tol	owner 19	local 0	foreign 91	ungov 0
+  Vn(海軍を足す・記録)	owner 0	local 0	foreign 110	ungov 0
+
+O の大きさの感度（V0+tol の F_f を c 倍）：開幕の外国の行の数
+  c 1.0	外国 110
+  c 0.5	外国 42
+  c 0.25	外国 30
+  c 0.1	外国 22
+  c 0.05	外国 6

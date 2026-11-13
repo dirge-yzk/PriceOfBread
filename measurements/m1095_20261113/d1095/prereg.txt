@@ -1,0 +1,28 @@
+(1095) c104rc 設計の材料：支配の力の段 R（州の線路×支配度）と段 C′ の事前登録の素案 — この線の事前登録
+書いたモデル：Claude Opus 5.5・2026-11-13。腕 0・ビルド 0・コミット 0・worktree と枝は作らない（main の作業ツリー 23aa9d11a のソースを読むだけ）。
+作ったフォルダ：D:/PoB_work/d1095_work（この事前登録と抜き書き）・D:/PoB_work/r1095_work（material.md・draft.md・台本・出力）。
+
+■ 先に名乗る（順の破れ）
+- この事前登録を書く前に、読むだけの台本を 3 本と (1083) の紙の台本 7 本の取り直しを回した（腕 0・keep_1087/base_ins・n1・n2 を読むだけ）。
+  - (1083) の取り直し：r1095_work/rerun1083.sh → r1095_work/m1087/q0〜q7_out.txt
+  - q_railramp.py（国の鉄道の容量÷基礎の目標）・q_tradegdp.py（貿易÷GDP の M・N1・N2）・q_landfreight.py（運賃の陸の脚の割合）
+- その数は予言に使わない。材料の数として書く。
+- 下の予言は、この時点でまだ grep していない物だけに置く。
+
+■ 問い（指示の 1〜6）
+1. 段 R の中身：T_r の器（思想⑩の例外か・導けない理由）・敷き方・減り方・割譲の移しの削除・貿易の比を州の充足へ・開幕 T_r＝0。
+2. 段 R の門の両側・突然変異・止める線・.cost の項ごとの秒。
+3. 段 C′：Vb と q_t の式の素案・門（同点・凍結・開幕・ρ の回数・q）の両側を m1087 で取り直す・S1 の要る所は空欄・アブレーションの旗・変わる試験・消せる物・.cost。
+4. 波105 の推奨：R と C′ のどちらを先に・3 回の規則の数え・D: の床。
+5. 削減の方針：足す前に既存の大きな機構から出せないかを 1 行ずつ。
+6. 作者に聞く物（3 行の形・本当に迷う物だけ）。
+
+■ 予言（まだ読んでいない物・当否を material.md の末尾に書く）
+- P1 SaveGame は Region の double の欄を名前と型で書く＝T_r を足しても SaveGame の分岐は要らない（savetest の往復だけ）。
+- P2 WriterRatchetTests の宣言の表に World.RailCapacity の書き手の行がある（Transport・Territory・Diplomacy の 3 ファイル以上）。
+- P3 段 C′ の変わる試験の名（RuleSharesFormTests・RuleOrderP1Tests・CedeRuleToLocalTests・TreatyPortLapseTests）は全て今の木に実在する。
+- P4 RegionReach の読み手はエンジンで Politics.cs の 1 か所だけ（計器を除く）。
+- P5 鉄道の発見の門（Discovery.RailTransport）の読み手はエンジンで 4 か所以上（Transport・BilateralMarket・EconomyStep・Discovery）。
+
+■ 入れない物
+- .cs・試験・ビルド・腕・コミット・段 E／F／G の設計・〈決まった〉〈承認〉の語。

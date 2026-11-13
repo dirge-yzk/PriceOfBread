@@ -1,0 +1,24 @@
+(1094) 問い 4：王権の P1（cp・design_crown_power §3-5・§9-1）が読む〈急進の項・改革の項・離反〉の出どころ（木 23aa9d11a・行は grep で確かめた）
+
+| P1 の量 | 式の場所 | 入力（S14 の行） | 入力の判定（この線） |
+|---|---|---|---|
+| 急進の項（意識の側） | Politics.cs:536 radical += Size×Consciousness×Militancy | 意識 H001・便乗 H002・闘争度 H003 | 意識＝働く（列なし）・便乗＝働く（飽和 27.6%・out_freq と out_mom2）・闘争度の 4 成分＝下の行 |
+| 急進の項（窮乏の側） | Politics.cs:546〜547 Size×max(0,Mil−RiotMilitancyThreshold 0.5)×DesperationChallengeWeight 1.0×(1−DesperationConsciousnessGate 1.0×Consc) | H036 | 働く〔近似〕（闘争度＞0.5 の POP がいる行 44.6%・dcont_s の partOldK） |
+| 改革の項 | Politics.cs:535 Size×Consc×(1−Mil) | H034 | 働く |
+| 組合の動員 | Politics.cs:529・:537〜538 Size×Consc×UnionMobilization 0.15×UnionLegality（大衆だけ） | H035 | 一部だけ（組合が容認か統制の行だけ・out_freq） |
+| 外圧の追い風 | Politics.cs:551 reformist×(1＋ReformPressureBoost 0.5×ExternalPressure) | H034・H021 | 働かない（ExternalPressure は MultiNationSim.cs:858〜859 が毎四半期 0 を書く） |
+| 期待 η | Politics.cs:557 1/max(1, RecentRegimeChanges) | S15-20（S14 の外） | — |
+| 闘争度の目標：法の項 | Politics.cs:283→:171 PoliticalDistanceWeight 0.25×min(意識,識字)×(1−EffectiveVoice)×AxisDistance | H008・H009・H012（発言権の枝）・思想の理想点 H017〜H027・座標のずれ H031 | 働く（法の項は常に在るが小さい〔90% 点 0.024〕・大きい値は厭戦・飢え・民族＝out_freq） |
+| 闘争度の目標：民族 | Politics.cs:287〜293 MinorityMilitancy 0.2×(1−中核度)×(1−算入率) | H015 | 働く |
+| 闘争度の目標：厭戦 | Politics.cs:306・:312 WarWearinessMilitancy 0.35×厭戦 | H003 | 働く（交戦の国だけ）・倍率の一掃の 1-1 で〈裁定済み・削除〉の候補 |
+| 闘争度の目標：飢え | Politics.cs:300 FamineDrive（FamineDriveGain 30×(平常−充足−0.07)） | H003（S14 では文書の H016 の後継） | 一部だけ（急な落ち込みの四半期だけ） |
+| 闘争度の速さ | Politics.cs:317 MilitancySpeed 0.30 | H003 | 働く |
+| 道_p（票の道） | InterestGroups.cs:102 FranchiseVoice（設計 §3-5） | H030（同じ発言権）・S18-02 | 働く（男女普選の段は 0＝S18-02） |
+| 兵の離反 d_V・d_A | Ideology.cs:277 Soldiers・:345 DefectionShare・:260 AffinityOf（IdeologyAffinitySlope 2.3） | H017（兵の基底 Ideology.cs:183〜186）・H029 | 働く（S15-26 が数えた・二度数えない） |
+| 革命の位置 X_V | Ideology.cs:318 IdealPoint（動員で重みづけ・設計 §3-5） | H017・H029 | 働く |
+
+要点（P1 の担当への材料・決めない）
+1. 急進の項に〈生活の失望〉は直には入らない：(431) の二量分離で、闘争度の目標は法・民族・厭戦・飢えの 4 項だけ（Politics.cs:312）。失業・賃金の低下は、思想の更新（Ideology.cs:56〜59 の mil＝max(不満度, 闘争度)）→ 理想点 → 4 軸の距離 → 法の項、という間接の道でだけ急進の項へ届く。P1 の〈急進の項÷改革の項〉の分布はこの間接の道の強さに依る。
+2. 改革の項の外圧の因子は常に 1（ExternalPressure≡0）。設計 §3-5 の〈意味が替わる既存の係数〉に ReformPressureBoost を挙げているが、今は効き先が 0＝較正の対象にならない（食い違いとして名乗る）。
+3. 急進と改革を分ける闘争度の法の項は、思想の分布（IdeologyShares）と 4 軸の座標の表に依る＝設計 §13 の段 I（思想の分布を消す）が、P1 の入力の半分を置き換える。P1 の影の列は段 I の前の盤面で取る＝段 I の後に取り直しが要る（設計 §13-5 は〈B2 の次〉＝順は設計のとおりで食い違いは無い）。
+4. 窮乏の側の門 (1−DesperationConsciousnessGate×意識) は意識 1 の POP で 0＝高意識の層の窮乏は意識の側（Size×Consc×Mil）だけに乗る。両方の和は意識の 0〜1 で滑らかに入れ替わる（二重計上はない・ソースの読み）。

@@ -1,0 +1,6 @@
+base 1870 riseVal>0|all 0.1062 riseVal>1%|all 0.0851 CBrise>0 cnt 0.0310 val 0.0490
+base 1913 riseVal>0|all 0.0930 riseVal>1%|all 0.0820 CBrise>0 cnt 0.0280 val 0.0738
+n1 1870 riseVal>0|all 0.1125 riseVal>1%|all 0.0927 CBrise>0 cnt 0.0266 val 0.0299
+n1 1913 riseVal>0|all 0.1007 riseVal>1%|all 0.0903 CBrise>0 cnt 0.0275 val 0.0353
+n2 1870 riseVal>0|all 0.1159 riseVal>1%|all 0.1058 CBrise>0 cnt 0.0315 val 0.0487
+n2 1913 riseVal>0|all 0.0961 riseVal>1%|all 0.0863 CBrise>0 cnt 0.0213 val 0.0225

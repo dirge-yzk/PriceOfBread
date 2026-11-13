@@ -1,0 +1,30 @@
+(1094) c104s14 計画（読むだけ・腕 0・コミット 0）2026-11-13 Claude Opus 5.5
+
+作業の場所
+- D:/PoB_work/r1094_work/（この回に作ったフォルダはこれ 1 つ・worktree と枝は作らない）
+- 読む木：main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 23aa9d11a・git status 空を確かめた・書かない）
+
+読む生（4 腕・列は head -1 で確かめる）
+- 基線 M（m1087・種 1〜10）：D:/PoB_work/keep_1087/base_ins
+- N1・N2（ヌル腕・種 1〜10）：D:/PoB_work/keep_1087/n1・n2
+- S11（種 11〜20）：D:/PoB_work/keep_1087/a11
+- 表：ideology_s（国の思想の割合・年末の行だけの国あり）・dcont_s（不満度と闘争度の内訳）・scalars_s（defeatShock・externalPressure・militancyMean・dynMandate・legitimacy）・idn_s（knownSoc/Com/Imp/Fas・crisis・sFas）・prds_s／prdf_s（共産の影・組合の法）・coupgate_s（Transition の門）・reform_s・nation_s（政体）
+- 計器の行の範囲（9 国が毎四半期・他は年末か）は表ごとに quarter の数で確かめて名乗る
+
+材料
+- docs/機能の台帳.md §1 S14 行・§3 S14（H001〜H037）
+- docs/ゲーム概要と実装機能.md 2399〜2600（写し doc_S14.txt）
+- 王権の設計 scratchpad design_crown_power_2026-11-12.md §3-5・§9-1・§13-1・§13-4（重ねて書かない・食い違いは名乗る）
+- 倍率の一掃 docs/202611/20261111/20261111_倍率の一掃_分類の取りまとめ.md（区分の印）
+- 形の見本 measurements/m1085_20261113/ledger_S18_2026-11-12.md・.tsv
+
+手順
+1. prereg.txt（ソースだけからの予言）を書く
+2. 錨の grep（23aa9d11a）→ anchors.py → out_anchors.txt（行の実在と係数の値）
+3. 読み手の数 → readers.py → out_readers.txt
+4. 頻度 → freq.py（4 腕）→ out_freq.txt
+5. 倍率の一掃の区分 → mult.py → out_mult.txt
+6. P1 の入力の出どころ → p1src.txt（手書き・ソースの行つき）
+7. mk_ledger.py → ledger_S14_2026-11-13.tsv（12 列・37＋α 行）・check_tsv.py
+8. ledger_S14_2026-11-13.md（行の数・判定・直す/消す/残す・消す候補・P1 の出どころ・次の波の素案・計器の仕様・作者の問い・記録）
+- 写し先（合流が写す）：台帳の S14 の節・measurements/m1094_20261113/・scripts/instruments/r1094/
