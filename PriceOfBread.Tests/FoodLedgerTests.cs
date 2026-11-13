@@ -273,7 +273,7 @@ public class FoodLedgerTests
     {
         var rx = new Regex(@"\bFoodMet\s*(\+=|-=|\*=|/=|=(?![=>]))");
         int n = 0;
-        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
+        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(SimCoreDir()))
             foreach (var line in File.ReadLines(f))
             {
                 int c = line.IndexOf("//", StringComparison.Ordinal);

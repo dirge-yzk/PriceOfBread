@@ -182,7 +182,7 @@ public class ScalarDeletionTests
         {
             ["PriceOfBread.SimCore/Model.cs"] = 2,                    // 型の定義と Region.State の欄（sm4 が隣に行を足す＝消すのは sm4 の合流の後）
             ["PriceOfBread.SimCore/Discovery.cs"] = 9,                // ckf が書き直す所（発見の表の走査）
-            ["PriceOfBread.SimCore/InstrumentsClock.cs"] = 1,         // ckf（時計の計器）
+            ["PriceOfBread.SimCore/Instruments/InstrumentsClock.cs"] = 1,         // ckf（時計の計器）
             ["PriceOfBread.SimCore/MultiNationSim.cs"] = 1,           // ckf（時計の巡回のすぐ上）
             ["PriceOfBread.Runner/Program.cs"] = 2,                   // ckf（discprobe）
             ["PriceOfBread.Tests/DiscoveryClockTests.cs"] = 4,

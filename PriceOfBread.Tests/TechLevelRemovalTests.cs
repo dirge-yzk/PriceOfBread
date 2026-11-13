@@ -65,7 +65,7 @@ public class TechLevelRemovalTests
         string dir = Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
         var rx = new Regex(@"\btechLevel(Index)?\b");
         var hits = new List<string>();
-        foreach (var f in Directory.GetFiles(dir, "Instruments*.cs"))
+        foreach (var f in Directory.GetFiles(Path.Combine(dir, "Instruments"), "Instruments*.cs"))
         {
             int i = 0;
             foreach (var line in File.ReadAllLines(f))

@@ -160,7 +160,7 @@ public class LordstatInstrumentTests
     [Fact]
     public void L10_エンジンの物を読まない()
     {
-        string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "InstrumentsLordstat.cs"));
+        string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "Instruments", "InstrumentsLordstat.cs"));
         foreach (var bad in new[] { "TitheDegree(", "IntermediaryDegree(", "EstateDegree(", "EffectiveVoice(", "FranchiseVoice(", "IsMassPop(", "TitheClaim(", "LordStake(", "LordIncomeLoss(", "LordIncomeGain(", "EffectiveRentShares(" })   // (1039) 期待の側が使い回さない名を足した（実際の側の Build・Pref・NetSupport は読んでよい）
             Assert.False(src.Contains(bad), $"InstrumentsLordstat.cs が禁止の名 {bad} を含む");
     }

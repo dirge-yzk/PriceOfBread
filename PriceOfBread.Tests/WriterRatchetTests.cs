@@ -31,7 +31,7 @@ public class WriterRatchetTests
     private static int CountWriters(string member)
     {
         int n = 0;
-        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
+        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(SimCoreDir()))
             n += CountWritersIn(File.ReadLines(f), member);
         return n;
     }
