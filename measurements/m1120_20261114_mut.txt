@@ -1,0 +1,16 @@
+# (1120) c108sm の突然変異（使い捨ての木 D:/PoB_work/c108sm_work/mut_tree・Release・各変異は 1 か所・戻してから次）
+== M1 PopWeight の β の項を ×0.5（期待：画面の試験 1 が赤）
+  失敗 PriceOfBread.Tests.PopWeightRegimeTextTests.人口の重みは財産の取り分と頭数の取り分の混ぜ合わせで_階級ごとの合計は三つのブロックの力の和と一致する [20 ms]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.Ui.dll (net10.0)
+== M2 年表の政体名を英語の列挙名へ（期待：画面の試験 2 が赤）
+  失敗 PriceOfBread.Tests.PopWeightRegimeTextTests.年表の統治が変わった行の政体名は日本語で書かれる [1 s]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.Ui.dll (net10.0)
+== M3 見分けを直書きへ戻す（期待：走査の絞りの番人が赤）
+  失敗 PriceOfBread.Tests.SourceScanCoverageTests.走査の絞りはエンジンと試験の判定を通す_直書きは目的を名乗る [66 ms]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 107 ms - PriceOfBread.Tests.dll (net10.0)
+== M4 Tests.Ui だけが読む係数の欄を足す（期待：係数は全て本体のどこかで読まれる が赤）
+  失敗 PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる [277 ms]
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 291 ms - PriceOfBread.Tests.dll (net10.0)
+== M4b 旧の絞り（Tests だけ外す）へ戻して同じ欄（期待：緑のまま＝直す前は Tests.Ui の読みが本体に数えられた）
+成功!   -失敗:     0、合格:     1、スキップ:     0、合計:     1、期間: 309 ms - PriceOfBread.Tests.dll (net10.0)
+完了
