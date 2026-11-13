@@ -1,3 +1,4 @@
+# (1103) 追記（S11 の読みの後に直した＝結果の後の読み手の直し・門の規則は同じ）：G1′／G5 の定数の表 trstat を種 1 の名で決め打ちしていた（種 11〜20 で 0 件になる）＝その腕の最初の種の trstat を読む。
 # (1103) 合流の写し（gates_rr.py から変えたのは種の範囲を第 5 引数で渡す口〔既定 1-10〕・ヌル腕 N1・N2 の G6 と G5 は種 1〜10 のまま読む・無い表を飛ばす所だけ＝門の規則は同じ）。
 # (1097) c105rr 段 R の門の読み手（事前登録 measurements/m1097_20261113_prereg_rr.txt §3）。
 # 使い方: python -X utf8 -I gates_rr.py <腕の生 ins のフォルダ> <基準の生 keep_1096/base_ins> <ヌル腕 n1> <ヌル腕 n2> > out
@@ -139,8 +140,8 @@ G6 = 'pass' if not g6bad else f'FAIL（外の年 {g6bad}）'
 # ---------- G5 と働いた大きさ（G1′）：trroute の側（水運の州を除く）で、その年にその国が機関車を見つけている側のうち、陸の倍率が旧の式（3×鉄道の地形）と違う側の割合 ----------
 def g5(d, seeds=SEEDS):
     Z = {}
-    if not os.path.exists(os.path.join(d, 'trstat_s1.tsv')): return 0, 0, (float('nan'),) * 3
-    with open(os.path.join(d, 'trstat_s1.tsv'), encoding='utf-8') as f:
+    if not os.path.exists(os.path.join(d, f'trstat_s{seeds[0]}.tsv')): return 0, 0, (float('nan'),) * 3
+    with open(os.path.join(d, f'trstat_s{seeds[0]}.tsv'), encoding='utf-8') as f:
         h = f.readline().rstrip('\n').split('\t'); ix = {x: i for i, x in enumerate(h)}
         for ln in f:
             c = ln.rstrip('\n').split('\t')

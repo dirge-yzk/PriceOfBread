@@ -1,0 +1,6 @@
+(1103) 合流が作ったフォルダ（作った順）
+D:/PoB_work/m1103_work（合流の作業）
+D:/PoB_work/wt_m1103（合わせた木・枝 m1103）
+D:/PoB_work/wt_m1103z（腕 Z の木・使い捨ての枝 m1103z＝H＋旗の既定を 0 へ）
+D:/PoB_work/ident_m1103z（腕 Z の ident・PRUNE=0）
+D:/PoB_work/keep_1103（新しい基線の生 base_ins〔M・全表〕・n1・n2〔全表・cearn 0〕・a11〔S11・(イ) の表だけ〕＝腕の出力から mv）
