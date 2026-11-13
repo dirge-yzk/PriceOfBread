@@ -1,0 +1,13 @@
+list nonfull 2790
+list full 3
+guards rc=1 957s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:35.03]     PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま [FAIL]
+  失敗 PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま [4 s]
+     at PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま() in D:\PoB_work\m1096_work\suite\suitesrc\PriceOfBread.Tests\DiscoveryClockTests.cs:line 308
+[xUnit.net 00:00:38.12]     PriceOfBread.Tests.DiscoveryClockTests.世界の合計の巡回は旗が正のときだけ走り_台帳に数える [FAIL]
+  失敗 PriceOfBread.Tests.DiscoveryClockTests.世界の合計の巡回は旗が正のときだけ走り_台帳に数える [< 1 ms]
+     at PriceOfBread.Tests.DiscoveryClockTests.世界の合計の巡回は旗が正のときだけ走り_台帳に数える() in D:\PoB_work\m1096_work\suite\suitesrc\PriceOfBread.Tests\DiscoveryClockTests.cs:line 358
+[xUnit.net 00:00:40.04]     PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [FAIL]
+失敗!   -失敗:     3、合格:  1359、スキップ:     0、合計:  1362、期間: 15 m 54 s - PriceOfBread.Tests.dll (net10.0)
+GUARDSDONE
