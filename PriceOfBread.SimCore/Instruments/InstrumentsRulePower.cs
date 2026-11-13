@@ -10,11 +10,15 @@ public static partial class Instruments
         + "interShare\tkappaIndex\townerSideShare\tlocalSideShare\tforeignSideShare\tungovSideShare\tclassSumShare\tbestClass\tnowBestClass\tnowRule0Share\tnowRule1Share\tnowRule2Share\tnowRule3Share\tnewRule0Share\tnewRule1Share\t"
         + "rhoNewIndex\trhoSourceCode\treachGreatCircleIndex\trhoDirectRailGateIndex\trhoDirectNoRailIndex\trhoDirectFullRailIndex\tdirectKm\tdirectLandFlag\trailCapacityIndex\topenQualFlag\topenDiffIndex\tphiStarIndex"
         // trhoNoFreezeIndex〔履歴 InstrumentsRulePower.cs#2〕
-        + "\trhoNoFreezeIndex\ttauNoFreezeIndex\truleInit0Share\truleInit1Share\truleInit2Share\truleInit3Share\townerSideShareR\tungovSideShareR\tiProbeShare\townerWeightShare";
+        + "\trhoNoFreezeIndex\ttauNoFreezeIndex\truleInit0Share\truleInit1Share\truleInit2Share\truleInit3Share\townerSideShareR\tungovSideShareR\tiProbeShare\townerWeightShare"
+        // (1117) S5：計器が自分で数えた段 C′ の形〈D〉と、エンジンの使った値〈Eng〉（旗 RuleFromPower＝0 は nan）。どちらも四半期の最終日の Close の前の盤面。数は "R"。
+        + "\tqNowIndex\trhoDIndex\ttauDIndex\tiDShare\thDNationIndex\toDNationIndex\tfForeignVbIndex\tt0DShare\tt1DShare\tt3DShare\tbestClassD"
+        + "\trhoEngIndex\ttauEngIndex\tiEngShare\tqEngIndex\thEngNationIndex\toEngNationIndex\tfForeignEngIndex\tt0EngShare\tt1EngShare\tt3EngShare\tbestClassEng";
     /// <summary>
     /// 数は "R"。〔履歴 InstrumentsRulePower.cs#3〕
     /// </summary>
-    internal const string RpAllocHeaderText = "quarter\tyear\tnation\tregion\tcandKind\tyIndex\trhoF\tsShare\tbShare\twgtIndex\tallocIndex\tfForeignIndex";
+    internal const string RpAllocHeaderText = "quarter\tyear\tnation\tregion\tcandKind\tyIndex\trhoF\tsShare\tbShare\twgtIndex\tallocIndex\tfForeignIndex"
+        + "\trhoFNoFreezeIndex\twDIndex\tallocDIndex\trhoFDIndex\twEngIndex\tallocEngIndex\tfForeignEngIndex";   // (1117) S5
     internal const string RulePeaceHeaderText = "quarter\tyear\twinner\tloser\tscoreIndex\tmonths\tloserRegionCount\ttakenCount\ttakenPopShare\tflowIndex\tloserLandIndex\twinnerLandIndex\tphiStarMedianIndex\tgreatCircleOnlyTakenCount";
 
     /// <summary>力の式の結果（陸軍力の単位）。</summary>
@@ -72,6 +76,8 @@ public static partial class Instruments
         }
         static double[] NewKm(int tc) { var k = new double[tc * tc]; System.Array.Fill(k, double.NaN); return k; }
         double PairKmCoreOf(int a, int b, double[] lr) => InternationalMarket.PairKmCore(Tr, SeaNodeOf, SeaHalf, SuezOkN, PanOkN, TerrCost, lr, LandNode, LandGraft, LandRoute, a, b, out _);
+        /// <summary>(1117) 影の ρ の直し：地形の係数も差し替える（旗 RailByRegion の国の〈線路なし〉〈満線〉）。</summary>
+        public double GetTerr(int a, int b, double[] lr, double[] terr) => InternationalMarket.PairKmCore(Tr, SeaNodeOf, SeaHalf, SuezOkN, PanOkN, terr, lr, LandNode, LandGraft, LandRoute, a, b, out _);
         // 凍結の印は清算が表を組む時に書く計器でない欄を読むだけ。〔履歴 InstrumentsRulePower.cs#4〕
         public TrEntry[] TrNf = [];
         public double[]? KmNf;
@@ -110,6 +116,15 @@ public static partial class Instruments
         public readonly HashSet<EndedWarRecord> PeaceSeen = new(); public bool PeaceInit;
         public bool HeaderPower, HeaderPeace, HeaderAlloc;
         public readonly Dictionary<Region, double> TauNf = new();   // TauNf〔履歴 InstrumentsRulePower.cs#6〕
+        // (1117) 段 C′ の形〈D〉：計器の側の τ の蓄え（エンジンの Region.RuleTau とは別）と、四半期の最終日の Close の前に数えた行の写し。
+        public readonly Dictionary<Region, double> TauD = new(), TauDInter = new();
+        public readonly Dictionary<Region, RpDRow> D = new(ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
+        public readonly Dictionary<(string Key, Region R), (double W, double Alloc, double RhoF)> DAlloc = new();
+    }
+    /// <summary>(1117) 〈D〉の 1 州の値（持ち主の国の値も写す）。</summary>
+    sealed class RpDRow
+    {
+        public double Q = double.NaN, Rho = double.NaN, Tau = double.NaN, I = double.NaN, H = double.NaN, O = double.NaN, FSum, T0 = double.NaN, T1 = double.NaN, T3 = double.NaN; public string Best = "none";
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, RpState> RpStates = new();
 
@@ -129,6 +144,17 @@ public static partial class Instruments
         public double RhoNf, TauNf, HShareNf;   // HShareNf〔履歴 InstrumentsRulePower.cs#7〕
         public double RhoRailGate, RhoNoRail, RhoFullRail, DirectKm; public bool DirectLand;
         public double ForeignRaw, ForeignSum, ForeignTop; public string TopKey = ""; public double NavalAlloc;
+    }
+
+    /// <summary>(1117) 地形の基礎（清算の BilateralMarket の旗 RailByRegion の枝と同じ定義を計器の側で書く）：馬の係数（水の上書き）と、満線の係数＝鉄道の係数×Clamp01(RailCostFraction)。</summary>
+    static (double Horse, double Rail) RpTerrBase(Region r, Coefficients c)
+    {
+        int ti = (int)r.Terrain; double rcf = PoliticalQuantities.Clamp01(c.RailCostFraction);
+        double bh = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+        double br = (ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0) * rcf;
+        if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) { bh = c.TerrainWaterMajorCost; br = bh * rcf; }
+        else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) { bh = c.TerrainWaterMinorCost; br = bh * rcf; }
+        return (bh, br);
     }
 
     static double RpOutputValue(Region r)
@@ -244,7 +270,16 @@ public static partial class Instruments
                     var lr = snap.LandRatio; double[] noRail = new double[snap.Tc], full = new double[snap.Tc];
                     // 鉄道の 3 通り：発見の門（今）＝複写の比／線路なし＝LandSeaCostRatio／満線＝LandSeaCostRatio×RailCostFraction
                     System.Array.Fill(noRail, c.LandSeaCostRatio); System.Array.Fill(full, c.LandSeaCostRatio * PoliticalQuantities.Clamp01(c.RailCostFraction));
-                    rr.RhoRailGate = RulePowerReach(km); rr.RhoNoRail = RulePowerReach(snap.Get(capIx, di, noRail)); rr.RhoFullRail = RulePowerReach(snap.Get(capIx, di, full));
+                    rr.RhoRailGate = RulePowerReach(km);
+                    if (c.RailByRegion > 0)
+                    {
+                        // (1117) 段 R の v2：州の terrCost は φ で混ぜた値＝比だけ差し替えると〈満線〉は RailCostFraction を 2 回・〈線路なし〉は φ の分が残る。地形の基礎から組み直す（端の 2 州だけ）。
+                        System.Array.Fill(noRail, c.LandSeaCostRatio); System.Array.Fill(full, c.LandSeaCostRatio);
+                        double[] tNo = (double[])snap.TerrCost.Clone(), tFull = (double[])snap.TerrCost.Clone();
+                        foreach (int e in (ReadOnlySpan<int>)[capIx, di]) { var (bh, br) = RpTerrBase(snap.Tr[e].r, c); tNo[e] = bh; tFull[e] = br; }
+                        rr.RhoNoRail = RulePowerReach(snap.GetTerr(capIx, di, noRail, tNo)); rr.RhoFullRail = RulePowerReach(snap.GetTerr(capIx, di, full, tFull));
+                    }
+                    else { rr.RhoNoRail = RulePowerReach(snap.Get(capIx, di, noRail)); rr.RhoFullRail = RulePowerReach(snap.Get(capIx, di, full)); }
                     InternationalMarket.PairKmCore(snap.Tr, snap.SeaNodeOf, snap.SeaHalf, snap.SuezOkN, snap.PanOkN, snap.TerrCost, lr, snap.LandNode, snap.LandGraft, snap.LandRoute, capIx, di, out bool landFlag);
                     rr.DirectLand = landFlag;
                 }
@@ -304,7 +339,7 @@ public static partial class Instruments
         var foreignAt = new Dictionary<Region, List<(string key, double f, double raw)>>(ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
         foreach (var nn in nats)
         {
-            if (!(nn.O > 0) && !(nn.Navy > 0)) continue;
+            if (!(nn.O > 0) && !(nn.Navy > 0) && !wantA) continue;   // (1117) S5：配りの表を書く四半期は O＝0 かつ海軍＝0 の国の候補の行も書く（配り 0）
             var c = nn.W.Coef; var cap = nn.W.Regions[0];
             int capIx = snap is not null && snap.Idx.TryGetValue(cap, out var ci) ? ci : -1;
             var winNodes = Diplomacy.CessionWinnerNodes(nn.P);
@@ -343,7 +378,20 @@ public static partial class Instruments
             foreach (var cd in cand)
             {
                 double alloc = sumW > 0 ? nn.O * cd.wgt / sumW : 0;
-                allocSb?.Append(string.Join('\t', I(q), I(nn.W.Year), nn.Key, cd.r.Name, I(cd.kind), RpR(cd.rr.Y), RpR(cd.rho), RpR(cd.s), RpR(Math.Min(1.0, Math.Max(0.0, cd.rr.OwnerWeight))), RpR(cd.wgt), RpR(alloc), RpR(alloc > 0 ? alloc * cd.rho : 0))).Append('\n');
+                if (allocSb is not null)
+                {
+                    // (1117) S5：凍結を外した外国の ρ（同じ起点と重み）・〈D〉と〈Eng〉の配り（同じ国×州の行へ）
+                    double rhoNf = cd.rho;
+                    if (snap is not null && capIx >= 0 && snap.Idx.TryGetValue(cd.r, out var rf))
+                    {
+                        rhoNf = RulePowerReach(snap.GetNf(capIx, rf));
+                        foreach (var (si, w) in stakes) { if (si == rf || si == capIx) continue; double via = RulePowerReach(snap.GetNf(capIx, si)) * w * RulePowerReach(snap.GetNf(si, rf)); if (via > rhoNf) rhoNf = via; }
+                    }
+                    var dA = st.D.Count > 0 && st.DAlloc.TryGetValue((nn.Key, cd.r), out var da) ? da : (double.NaN, double.NaN, double.NaN);
+                    var eA = RpEngAllocOf(dip, nn.Key, cd.r);
+                    allocSb.Append(string.Join('\t', I(q), I(nn.W.Year), nn.Key, cd.r.Name, I(cd.kind), RpR(cd.rr.Y), RpR(cd.rho), RpR(cd.s), RpR(Math.Min(1.0, Math.Max(0.0, cd.rr.OwnerWeight))), RpR(cd.wgt), RpR(alloc), RpR(alloc > 0 ? alloc * cd.rho : 0),
+                        RpR(rhoNf), RpR(dA.Item1), RpR(dA.Item2), RpR(dA.Item3), RpR(eA.W), RpR(eA.Alloc), RpR(eA.F))).Append('\n');
+                }
                 if (alloc > 0)
                 {
                     if (!foreignAt.TryGetValue(cd.r, out var lst)) foreignAt[cd.r] = lst = [];
@@ -402,7 +450,8 @@ public static partial class Instruments
                         F(iShare), F(rr.Kappa), F(cls.Owner), F(cls.Local), F(cls.Foreign), F(cls.Ungov), F(cls.Owner + cls.Local + cls.Foreign + cls.Ungov), cn, RpClassNames[nb], F(nr[0]), F(nr[1]), F(nr[2]), F(nr[3]),
                         F(cls.Total > 0 ? f.FS / cls.Total : double.NaN), F(cls.Total > 0 ? (f.FI + f.FR) / cls.Total : double.NaN),
                         F(rr.Rho), I(rr.RhoSource), F(rr.RhoGc), F(rr.RhoRailGate), F(rr.RhoNoRail), F(rr.RhoFullRail), F(rr.DirectKm), rr.DirectLand ? "1" : "0", F(nn.W.RailCapacity), qual ? "1" : "0", F(openDiff), F(phi),
-                        F(rr.RhoNf), F(rr.TauNf), F(ri0), F(ri1), F(ri2), F(ri3), RpR(cls.Owner), RpR(cls.Ungov), F(rr.I), F(rr.OwnerWeight))).Append('\n');
+                        F(rr.RhoNf), F(rr.TauNf), F(ri0), F(ri1), F(ri2), F(ri3), RpR(cls.Owner), RpR(cls.Ungov), F(rr.I), F(rr.OwnerWeight),
+                        RpDCols(st.D.TryGetValue(r, out var dRow) ? dRow : null), RpEngCols(dip, r))).Append('\n');
                 }
             }
             System.IO.File.AppendAllText(System.IO.Path.Combine(Dir, $"rulepower_s{seed}.tsv"), sb.ToString(), new System.Text.UTF8Encoding(false));
@@ -465,6 +514,228 @@ public static partial class Instruments
                     sb.Append(string.Join('\t', I(q), I(wn.W.Year), wn.Key, ln.Key, F(e.Score), I(e.Months), I(ln.Rows.Length), I(taken), F(popAll > 0 ? takenPop / popAll : double.NaN), F(flow), F(ln.L), F(wn.L), F(phiMed), I(takenGc))).Append('\n');
                 }
                 if (sb.Length > 0) System.IO.File.AppendAllText(System.IO.Path.Combine(Dir, $"rulepeace_s{seed}.tsv"), sb.ToString(), new System.Text.UTF8Encoding(false));
+            }
+        }
+        st.D.Clear(); st.DAlloc.Clear();   // (1117) 〈D〉はこの四半期の行だけに写す
+    }
+
+    // ===================== (1117) S5：段 C′ の形〈D〉を計器の側で数える（エンジンの関数を呼ばない・エンジンの τ の蓄えを読まない） =====================
+
+    static string RpDCols(RpDRow? d) => d is null
+        ? "nan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnone"
+        : string.Join('\t', RpR(d.Q), RpR(d.Rho), RpR(d.Tau), RpR(d.I), RpR(d.H), RpR(d.O), RpR(d.FSum), RpR(d.T0), RpR(d.T1), RpR(d.T3), d.Best);
+
+    /// <summary>〈Eng〉の列（エンジンの表の [NonSerialized] の写し・旗 0 は nan）。</summary>
+    static string RpEngCols(Diplomacy dip, Region r) => "nan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnone";
+
+    static (double W, double Alloc, double F) RpEngAllocOf(Diplomacy dip, string key, Region r) => (double.NaN, double.NaN, double.NaN);
+
+    /// <summary>今の分離の圧力（Politics.CheckSecession の式を計器の側で書き直した物・首都〔Id 0〕は 0）。</summary>
+    static double RpSecessionPressure(World w, Coefficients c, Region r, Region cap)
+    {
+        if (r.Id == 0) return 0;
+        double stance = w.Tariff * 2 - 1;
+        double cult = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Culture) ? 0.5 : 0)
+                    + ((r.Religion.Length > 0 && cap.Religion.Length > 0 && r.Religion != cap.Religion) ? 0.5 : 0);
+        double core = Politics.AvgRegionCoreShare(r);
+        if (c.CultureDistanceFromEthnic > 0) cult = PoliticalQuantities.Toward(cult, 1.0 - core, c.CultureDistanceFromEthnic);
+        double mil = Politics.AvgRegionMilitancy(r);
+        double p = Math.Abs(stance - r.TariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cult);
+        if (c.SecessionCultureAdditive > 0 && w.EthnicEnabled) p += c.SecessionCultureAdditive * c.MinorityMilitancy * cult * (1.0 - core) * mil;
+        if (c.SecessionConsciousnessWeight > 0) p *= Math.Max(0, 1.0 - c.SecessionConsciousnessWeight * Politics.AvgRegionConsciousness(r));
+        p *= 1.0 - PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(w, r));
+        double crowd = Politics.RegionCrowd(r);
+        p *= crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0;
+        return p;
+    }
+
+    sealed class RpDNat
+    {
+        public World W = null!; public Power P = null!; public string Key = ""; public Region[] Regs = [];
+        public double L, Wf, H, O, SumPop; public double[] PopK = [], N = [], Press = [], Consc = [], X = [], Core = [], Kappa = [], I = [], Ow = [], Rho = [], Tau = [], Y = [];
+        public bool[] Solved = [];
+    }
+
+    /// <summary>
+    /// 呼び口：MultiNationSim の四半期の最終日・全ての国の Close の前（エンジンの表と同じ盤面）。計器の門は呼び手が読む。
+    /// q_t・Vb（重みに ρ なし）・凍結を外した距離の表・I-a（τ を解く州だけ τ＝1 の試し）・今の分離の圧力で、各州の 4 区分の目標を数え、四半期の末の表へ写す。
+    /// </summary>
+    internal static void RpDesign(MultiNationSim sim)
+    {
+        if (!(Wants("rulepower_s") || Wants("rulepoweralloc_s"))) return;
+        if (sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
+        var dip = sim.Diplomacy;
+        var st = RpStates.GetValue(dip, _ => new RpState());
+        RpSnaps.TryGetValue(dip, out var snap);
+        st.D.Clear(); st.DAlloc.Clear();
+        var nats = new List<RpDNat>();
+        double totL = 0, totPop = 0;
+        foreach (var sm in sim.Nations)
+        {
+            var w = sm.World; if (w.SelfPower is not { } p || w.Regions.Count == 0) continue;
+            var d = new RpDNat { W = w, P = p, Key = p.BaseName.Length > 0 ? p.BaseName : p.Name, Regs = [.. w.Regions], L = Math.Max(0, p.LandPower) };
+            int n = d.Regs.Length;
+            d.PopK = new double[n]; d.N = new double[n]; d.Press = new double[n]; d.Consc = new double[n]; d.X = new double[n]; d.Core = new double[n]; d.Kappa = new double[n];
+            d.I = new double[n]; d.Ow = new double[n]; d.Rho = new double[n]; d.Tau = new double[n]; d.Y = new double[n]; d.Solved = new bool[n];
+            for (int k = 0; k < n; k++) { d.PopK[k] = Math.Max(0, d.Regs[k].SumPopulation()); d.SumPop += d.PopK[k]; }
+            nats.Add(d); totL += d.L; totPop += d.SumPop;
+        }
+        if (!(totL > 0 && totPop > 0)) return;
+        double q = totL / totPop;
+        foreach (var d in nats)
+        {
+            var c = d.W.Coef;
+            int fronts = 0; foreach (var wr in dip.Wars) if (ReferenceEquals(wr.A, d.P) || ReferenceEquals(wr.B, d.P)) fronts++;
+            fronts = Math.Max(1, fronts);
+            foreach (var wr in dip.Wars)
+            {
+                Power y; if (ReferenceEquals(wr.A, d.P)) y = wr.B; else if (ReferenceEquals(wr.B, d.P)) y = wr.A; else continue;
+                int yf = 0; foreach (var w2 in dip.Wars) if (ReferenceEquals(w2.A, y) || ReferenceEquals(w2.B, y)) yf++;
+                double ps = dip.FrontPush(d.P, y, c, fronts), po = dip.FrontPush(y, d.P, c, Math.Max(1, yf));
+                double ratio = ps > 0 ? Math.Min(1.0, po / ps) : (po > 0 ? 1.0 : 0.0);
+                d.Wf += d.L / fronts * ratio;
+            }
+            double wUse = Math.Min(d.Wf, d.L);
+            d.H = Math.Min(Math.Max(0, d.L - wUse), d.SumPop * q);
+            d.O = Math.Max(0, d.L - wUse - d.H);
+        }
+        // 州の段（持ち主）
+        foreach (var d in nats)
+        {
+            var c = d.W.Coef; var cap = d.Regs[0]; double inter = Privileges.IntermediaryDegree(d.W);
+            for (int k = 0; k < d.Regs.Length; k++)
+            {
+                var r = d.Regs[k];
+                d.N[k] = d.PopK[k] * q;
+                d.Press[k] = RpSecessionPressure(d.W, c, r, cap);
+                d.Consc[k] = Politics.AvgRegionConsciousness(r); d.Core[k] = Politics.AvgRegionCoreShare(r); d.Y[k] = RpOutputValue(r);
+                double x = 0;
+                for (int j = 0; j < r.ForeignShares.Length && j < r.ForeignRulers.Length; j++)
+                {
+                    if (!(r.ForeignShares[j] > 0)) continue;
+                    var rp = dip.Powers.Find(pp => (pp.BaseName.Length > 0 ? pp.BaseName : pp.Name) == r.ForeignRulers[j]);
+                    if (rp is null || rp.Culture != d.P.Culture) x += r.ForeignShares[j];
+                }
+                d.X[k] = x;
+                double ri0 = r.RuleInit.Length > 0 ? r.RuleInit[0] : 0, ri1 = r.RuleInit.Length > 1 ? r.RuleInit[1] : 0;
+                double rule0 = r.Rule.Length > 0 ? r.Rule[0] : 0, rule1 = r.Rule.Length > 1 ? r.Rule[1] : 0;
+                d.Kappa[k] = ri0 > 0 ? Math.Min(1.0, rule0 / ri0) : 1.0;
+                double core01 = d.Core[k] > 1 ? 1 : d.Core[k] > 0 ? d.Core[k] : 0;
+                double a = d.N[k] * Math.Max(0, d.Consc[k]) * Math.Max(0, x);
+                double fr = d.N[k] * Math.Max(0, d.Press[k]) / c.SecessionThreshold + a * (1 - core01);
+                double fi;
+                if (st.TauD.TryGetValue(r, out var tau)) { d.Tau[k] = tau; double i0 = st.TauDInter[r]; fi = d.N[k] * tau * Math.Max(0, ri1) * (i0 > 0 ? inter / i0 : 1.0); }
+                else { d.Tau[k] = double.NaN; fi = d.N[k] * Math.Max(0, ri1); }   // τ＝1 の試し（解く州）
+                d.I[k] = fi + fr > 0 ? fi / (fi + fr) : 1.0;
+                d.Ow[k] = rule0 + rule1 * d.I[k] * d.Kappa[k];
+            }
+            int capIx = snap is not null && snap.Idx.TryGetValue(cap, out var ci) ? ci : -1;
+            for (int k = 0; k < d.Regs.Length; k++)
+            {
+                var r = d.Regs[k]; double rho;
+                if (ReferenceEquals(r, cap)) rho = 1.0;
+                else if (snap is not null && capIx >= 0 && snap.Idx.TryGetValue(r, out var ri))
+                {
+                    rho = RulePowerReach(snap.GetNf(capIx, ri));
+                    for (int s = 0; s < d.Regs.Length; s++)
+                    {
+                        if (!snap.Idx.TryGetValue(d.Regs[s], out var si) || si == ri || si == capIx) continue;
+                        double via = RulePowerReach(snap.GetNf(capIx, si)) * d.Ow[s] * RulePowerReach(snap.GetNf(si, ri)); if (via > rho) rho = via;
+                    }
+                }
+                else { var rc = Places.Coord(r.Name); rho = (rc.Lat == 0 && rc.Lon == 0) ? 0 : RulePowerReach(Geo.DistanceKm(d.W.Latitude, d.W.Longitude, rc.Lat, rc.Lon)); }
+                d.Rho[k] = rho >= 0 ? rho : 0;
+            }
+            // τ を解く（最初に見た州）
+            var raw = new List<double>(); var pending = new List<int>();
+            for (int k = 0; k < d.Regs.Length; k++)
+            {
+                if (!double.IsNaN(d.Tau[k])) continue;
+                var r = d.Regs[k]; double ri0 = r.RuleInit.Length > 0 ? r.RuleInit[0] : 0;
+                double hs = d.SumPop > 0 ? d.H * d.PopK[k] / d.SumPop * d.Rho[k] : 0;
+                if (ri0 > 0 && hs > 0 && d.N[k] > 0) { d.Tau[k] = hs / (d.N[k] * ri0); raw.Add(d.Tau[k]); d.Solved[k] = true; }
+                else pending.Add(k);
+            }
+            if (pending.Count > 0)
+            {
+                double med;
+                if (raw.Count > 0) { raw.Sort(); med = raw[raw.Count / 2]; }
+                else { var all = new List<double>(st.TauD.Values); all.Sort(); med = all.Count > 0 ? all[all.Count / 2] : 0; }
+                foreach (var k in pending) { d.Tau[k] = med; d.Solved[k] = true; }
+            }
+            for (int k = 0; k < d.Regs.Length; k++) if (d.Solved[k]) { st.TauD[d.Regs[k]] = d.Tau[k]; st.TauDInter[d.Regs[k]] = inter; }
+        }
+        // 外への配り（O＞0 の国）
+        var regOf = new Dictionary<Region, (RpDNat d, int k)>(ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
+        foreach (var d in nats) for (int k = 0; k < d.Regs.Length; k++) regOf[d.Regs[k]] = (d, k);
+        var fsum = new Dictionary<Region, double>(ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
+        foreach (var d in nats)
+        {
+            if (!(d.O > 0)) continue;
+            var cap = d.Regs[0]; int capIx = snap is not null && snap.Idx.TryGetValue(cap, out var ci) ? ci : -1;
+            var winNodes = Diplomacy.CessionWinnerNodes(d.P);
+            var stakes = new List<(int ix, double w)>();
+            if (snap is not null)
+            {
+                for (int k = 0; k < d.Regs.Length; k++) if (snap.Idx.TryGetValue(d.Regs[k], out var si)) stakes.Add((si, d.Ow[k]));
+                foreach (var kv in regOf) { var rg = kv.Key; for (int j = 0; j < rg.ForeignRulers.Length && j < rg.ForeignShares.Length; j++) if (rg.ForeignRulers[j] == d.Key && rg.ForeignShares[j] > 0 && snap.Idx.TryGetValue(rg, out var si)) stakes.Add((si, rg.ForeignShares[j])); }
+            }
+            var cand = new List<(Region r, double w, double rho)>(); double sumW = 0;
+            foreach (var kv in regOf)
+            {
+                var (od, ok) = kv.Value; if (ReferenceEquals(od, d)) continue;
+                var rg = kv.Key; double s = 0;
+                for (int j = 0; j < rg.ForeignRulers.Length && j < rg.ForeignShares.Length; j++) if (rg.ForeignRulers[j] == d.Key && rg.ForeignShares[j] > 0) s += rg.ForeignShares[j];
+                bool isCand = s > 0;
+                if (!isCand) foreach (var wr in dip.Wars) if ((ReferenceEquals(wr.A, d.P) && ReferenceEquals(wr.B, od.P)) || (ReferenceEquals(wr.B, d.P) && ReferenceEquals(wr.A, od.P))) { isCand = true; break; }
+                if (!isCand) { var rc = Places.Coord(rg.Name); int nd = Diplomacy.CessionNode(rc.Lat, rc.Lon); isCand = nd >= 0 && Diplomacy.CessionAdjacent(nd, winNodes, out _); }
+                if (!isCand) continue;
+                double rho = 0;
+                if (snap is not null && capIx >= 0 && snap.Idx.TryGetValue(rg, out var ri))
+                {
+                    rho = RulePowerReach(snap.GetNf(capIx, ri));
+                    foreach (var (si, w) in stakes) { if (si == ri || si == capIx) continue; double via = RulePowerReach(snap.GetNf(capIx, si)) * w * RulePowerReach(snap.GetNf(si, ri)); if (via > rho) rho = via; }
+                }
+                else { var rc = Places.Coord(rg.Name); rho = (rc.Lat == 0 && rc.Lon == 0) ? 0 : RulePowerReach(Geo.DistanceKm(d.W.Latitude, d.W.Longitude, rc.Lat, rc.Lon)); }
+                double b = Math.Min(1.0, Math.Max(0.0, od.Ow[ok]));
+                double wgt = od.Y[ok] * (1 - Math.Min(1.0, s)) * (1 - b);   // Vb：重みに ρ を入れない
+                if (!(wgt > 0)) wgt = 0;
+                cand.Add((rg, wgt, rho)); sumW += wgt;
+            }
+            foreach (var (rg, wgt, rho) in cand)
+            {
+                double alloc = sumW > 0 ? d.O * wgt / sumW : 0;
+                st.DAlloc[(d.Key, rg)] = (wgt, alloc, rho);
+                if (alloc > 0) { fsum.TryGetValue(rg, out var fs0); fsum[rg] = fs0 + alloc * rho; }
+            }
+        }
+        // 目標と最大の区分
+        foreach (var d in nats)
+        {
+            var c = d.W.Coef;
+            for (int k = 0; k < d.Regs.Length; k++)
+            {
+                var r = d.Regs[k];
+                double ri1 = r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, ri3 = r.RuleInit.Length > 3 ? r.RuleInit[3] : 0;
+                double i0 = st.TauDInter.TryGetValue(r, out var iv) ? iv : 0, inter = Privileges.IntermediaryDegree(d.W);
+                double core01 = d.Core[k] > 1 ? 1 : d.Core[k] > 0 ? d.Core[k] : 0;
+                double a = d.N[k] * Math.Max(0, d.Consc[k]) * Math.Max(0, d.X[k]);
+                double fS = (d.SumPop > 0 ? d.H * d.PopK[k] / d.SumPop * d.Rho[k] : 0) + a * core01;
+                double fI = d.N[k] * Math.Max(0, d.Tau[k]) * Math.Max(0, ri1) * (i0 > 0 ? inter / i0 : 1.0);
+                double fR = d.N[k] * Math.Max(0, d.Press[k]) / c.SecessionThreshold + a * (1 - core01);
+                double fU = d.N[k] * Math.Max(0, d.Tau[k]) * Math.Max(0, ri3);
+                fsum.TryGetValue(r, out var fF);
+                double tot = fS + fI + fR + fF + fU;
+                var row = new RpDRow { Q = q, Rho = d.Rho[k], Tau = d.Tau[k], I = d.I[k], H = d.H, O = d.O, FSum = fF };
+                if (tot > 0)
+                {
+                    row.T0 = fS / tot; row.T1 = (fI + fR) / tot; row.T3 = fU / tot;
+                    double kap = d.Kappa[k];
+                    double[] v = [(fS + kap * fI) / tot, ((1 - kap) * fI + fR) / tot, fF / tot, fU / tot];
+                    int best = 0; for (int j = 1; j < 4; j++) if (v[j] > v[best] * (1 + 1e-9)) best = j;
+                    row.Best = RpClassNames[best];
+                }
+                st.D[r] = row;
             }
         }
     }
