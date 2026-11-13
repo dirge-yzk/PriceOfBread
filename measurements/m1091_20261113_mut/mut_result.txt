@@ -1,0 +1,8 @@
+M0 成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 22 s - PriceOfBread.Tests.dll (net10.0)
+M1 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 21 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerAllocTests.A1_配りの和は外国の力に一致し_重みの式は列だけで成り立つ [9 s]
+M2 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 22 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerAllocTests.A2_丸め戻せる書式はG10の列と一致し_文字列の違う行がある [3 s]
+M3 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.MineCapInstrumentTests.B1_目標は試験の中の式と一致し_州の値段が国の平均と違う個体がある [2 s]
+done

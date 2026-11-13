@@ -4,7 +4,8 @@ namespace PriceOfBread.SimCore;
 
 // ---------------------------------------------------------------- (1071) 支配の力の段 B の影の計器 rulepower_s・rulepeace_s（読むだけ・恒等） ----------------------------------------------------------------
 // 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsCede.cs の型）。力学の値を 1 つも書かない・乱数を引かない・エンジンの状態を作らない（蓄えは計器の側の ConditionalWeakTable〈試合の Diplomacy ごと〉）。
-//   Instruments.On のときだけ動く（呼び口 Quarter の 1 行・複写 RpSnapshot は BilateralMarket が On のときだけ呼ぶ）。表は Instruments.Open を通す（選ばれない表は作らない＝Wants）。
+//   Instruments.On のときだけ動く（呼び口 Quarter の 1 行。複写 RpSnapshot は BilateralMarket が四半期の最初の清算で毎回呼び、On と Wants の門は RpSnapshot の頭で読む）。表は Instruments.Open を通す（選ばれない表は作らない＝Wants）。
+//   (1091) 表は rulepower_s・rulepeace_s・rulepoweralloc_s（S1・四半期 0 と 40 おきだけ）の 3 本。rulepower_s の末尾 10 列は S2〜S4（凍結を外した届きと τ・開幕の RuleInit・丸め戻せる書式・i の試しと持ち主の重み）。
 // 目的＝事前登録 measurements/m1071_20261112_prereg_rp.txt・下書き docs/202611/20261112/design_rule_power_2026-11-12.md §3・§4・§8 段 B（作者 2026-11-12「読みました。問題ない。それでいこう」「全て推奨でよい」で推奨を採った）。
 //   今の支配度（Region.Rule）はそのまま動く。影＝同じ盤面で 〈力の足し算〉の目標がどうなるかを並べて書くだけ（Rule へは何も書かない）。
 //   力の式は純関数 RulePowerForces／RulePowerClasses の 2 本（段 C′ でエンジンが同じ関数を呼ぶ）。
@@ -15,12 +16,18 @@ namespace PriceOfBread.SimCore;
 //   ③複写に無い州（清算に出ない州）の ρ は大圏の届きで代用（rhoSourceCode＝0）。④W は候補 2 つ（相手を止める分 A／交戦の接触 B）を並べ、H と O は A で決める。
 //   ⑤講和の寄せ切りは四半期の末に終戦の記録の増分から検出（時刻は最大 1 四半期ずれる）・海軍の配りは取る州の数に含めない。⑥外国 F_f は 配る重みに ρ を含み、表の式（取り分 × ρ）でもう一度掛ける＝二重に掛かりうる（配り前の値 fForeignRawIndex も出す）。
 //   ⑦τ_r は計器が最初に見た四半期の値で解く（助走の後の最初の観測）。人口 0・F_S0＝0 の州はその国の τ の中央値（国に 1 州も無ければ世界の中央値）。
+//   ⑧(1091) i の試しは τ＝1（列 iProbeShare・ownerWeightShare）で、設計の i（τ を含む）と最大 0.79 違う。⑨(1091) 講和の ρ は乗り継ぎなし（rulepeace_s の配りは首都からの直の届き）。
+//   ⑩(1091) rulepoweralloc_s は O＝0 かつ海軍＝0 の国の候補の行を書かない（エンジンの形の写し）＝q_t の下で O が正になる国の数は下限。
 public static partial class Instruments
 {
     internal const string RulePowerHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\tqIndex\tnIndex\ttauIndex\tlNationIndex\twNationIndex\twEngageNationIndex\thNationIndex\toNationIndex\toWorldShare\tnavalNationIndex\tnavalAllocIndex\t"
         + "fStateIndex\tfInterIndex\tfResistIndex\tfPushbackIndex\tfUngovIndex\tfForeignRawIndex\tfForeignSumIndex\tfForeignTopIndex\tforeignTopKey\tpressureIndex\tinterRatioIndex\t"
         + "interShare\tkappaIndex\townerSideShare\tlocalSideShare\tforeignSideShare\tungovSideShare\tclassSumShare\tbestClass\tnowBestClass\tnowRule0Share\tnowRule1Share\tnowRule2Share\tnowRule3Share\tnewRule0Share\tnewRule1Share\t"
-        + "rhoNewIndex\trhoSourceCode\treachGreatCircleIndex\trhoDirectRailGateIndex\trhoDirectNoRailIndex\trhoDirectFullRailIndex\tdirectKm\tdirectLandFlag\trailCapacityIndex\topenQualFlag\topenDiffIndex\tphiStarIndex";
+        + "rhoNewIndex\trhoSourceCode\treachGreatCircleIndex\trhoDirectRailGateIndex\trhoDirectNoRailIndex\trhoDirectFullRailIndex\tdirectKm\tdirectLandFlag\trailCapacityIndex\topenQualFlag\topenDiffIndex\tphiStarIndex"
+        // (1091) 末尾に足した列（今の列の順と値は変えない）：S2 凍結を外した届きと τ／S3 開幕の RuleInit と持ち主の側・無統治の割合の丸め戻せる書式（R）／S4 i の試しと持ち主の重み
+        + "\trhoNoFreezeIndex\ttauNoFreezeIndex\truleInit0Share\truleInit1Share\truleInit2Share\truleInit3Share\townerSideShareR\tungovSideShareR\tiProbeShare\townerWeightShare";
+    /// <summary>(1091) S1 rulepoweralloc_s：外国の力 O を候補の州へ配る 1 行＝配る国×候補の州（四半期 0 と 40 おきだけ）。数は "R"。</summary>
+    internal const string RpAllocHeaderText = "quarter\tyear\tnation\tregion\tcandKind\tyIndex\trhoF\tsShare\tbShare\twgtIndex\tallocIndex\tfForeignIndex";
     internal const string RulePeaceHeaderText = "quarter\tyear\twinner\tloser\tscoreIndex\tmonths\tloserRegionCount\ttakenCount\ttakenPopShare\tflowIndex\tloserLandIndex\twinnerLandIndex\tphiStarMedianIndex\tgreatCircleOnlyTakenCount";
 
     /// <summary>力の式の結果（陸軍力の単位）。</summary>
@@ -56,6 +63,8 @@ public static partial class Instruments
         return (o, l, fo, u, tot, best);
     }
 
+    static string RpR(double v) => double.IsNaN(v) ? "nan" : double.IsInfinity(v) ? (v > 0 ? "inf" : "-inf") : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
     static readonly string[] RpClassNames = ["owner", "local", "foreign", "ungov"];
 
     /// <summary>届き D(a,b)＝1÷(1＋km÷DistanceNormKm)（設計 §3-4）。km が非有限なら 0。</summary>
@@ -76,23 +85,34 @@ public static partial class Instruments
         }
         static double[] NewKm(int tc) { var k = new double[tc * tc]; System.Array.Fill(k, double.NaN); return k; }
         double PairKmCoreOf(int a, int b, double[] lr) => InternationalMarket.PairKmCore(Tr, SeaNodeOf, SeaHalf, SuezOkN, PanOkN, TerrCost, lr, LandNode, LandGraft, LandRoute, a, b, out _);
+        // (1091) S2：冬の港の凍結を外した表（seaOk を凍結の印 Region.LastPortFrozen で戻す）。凍結の印は清算が表を組む時に書く計器でない欄を読むだけ。
+        public TrEntry[] TrNf = [];
+        public double[]? KmNf;
+        public double GetNf(int a, int b)
+        {
+            KmNf ??= NewKm(Tc); int ix = a * Tc + b; double v = KmNf[ix];
+            if (double.IsNaN(v)) { v = InternationalMarket.PairKmCore(TrNf, SeaNodeOf, SeaHalf, SuezOkN, PanOkN, TerrCost, LandRatio, LandNode, LandGraft, LandRoute, a, b, out _); KmNf[ix] = v; }
+            return v;
+        }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, RpSnap> RpSnaps = new();
     /// <summary>計器の仕事の回数（番人が〈計器が切れている時は増えない〉を数える・純カウンタ）。</summary>
     internal static long RpSnapCount, RpTableCount;
     internal static RpSnap? RpSnapOf(Diplomacy d) => RpSnaps.TryGetValue(d, out var s) ? s : null;
 
-    /// <summary>複写の口（BilateralMarket.StepBilateral の中・Instruments.On のときだけ・四半期の最初の清算）。値を書かない・清算の配列を握らない（長さ tc だけ写す）。</summary>
+    /// <summary>複写の口（BilateralMarket.StepBilateral の中で毎回呼ばれ、頭の On／Wants の門で何もせず戻る・実際に写すのは四半期の最初の清算）。値を書かない・清算の配列を握らない（長さ tc だけ写す）。</summary>
     internal static void RpSnapshot(bool firstClearingOfQuarter, IReadOnlyList<Simulation> nations, TrEntry[] tr, int tc, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, double[] terrCost, double[] landRatio, int[] landNode, double[] landGraft, double landRoute)
     {
         if (!On || !firstClearingOfQuarter) return;   // 計器の門はここで読む（清算の側の On の読みを増やさない・OnDoubleReadScanTests）
-        if (!(Wants("rulepower_s") || Wants("rulepeace_s"))) return;
+        if (!(Wants("rulepower_s") || Wants("rulepeace_s") || Wants("rulepoweralloc_s"))) return;
         if (nations.Count == 0 || nations[0].World.Diplomacy is not { } dip) return;
         RpSnapCount++;
         var s = new RpSnap { Tc = tc, LandRoute = landRoute, Tr = new TrEntry[tc], SeaNodeOf = new int[tc], SeaHalf = new double[tc], TerrCost = new double[tc], LandRatio = new double[tc], LandNode = new int[tc], LandGraft = new double[tc], SuezOkN = (bool[])suezOkN.Clone(), PanOkN = (bool[])panOkN.Clone() };
         System.Array.Copy(tr, s.Tr, tc); System.Array.Copy(seaNodeOf, s.SeaNodeOf, tc); System.Array.Copy(seaHalf, s.SeaHalf, tc); System.Array.Copy(terrCost, s.TerrCost, tc);
         System.Array.Copy(landRatio, s.LandRatio, tc); System.Array.Copy(landNode, s.LandNode, tc); System.Array.Copy(landGraft, s.LandGraft, tc);
         for (int i = 0; i < tc; i++) s.Idx[tr[i].r] = i;
+        s.TrNf = new TrEntry[tc];
+        for (int i = 0; i < tc; i++) { var e = tr[i]; if (!e.seaOk && e.r.LastPortFrozen) e.seaOk = true; s.TrNf[i] = e; }   // (1091) 凍っていた港だけ海に出られる側へ戻す（凍結以外の理由で seaOk が偽の州は戻さない）
         RpSnaps.Remove(dip); RpSnaps.Add(dip, s);
     }
 
@@ -101,7 +121,8 @@ public static partial class Instruments
         public bool Init; public double Q;
         public readonly Dictionary<Region, double> Tau = new(); public readonly HashSet<Region> Seen = new(); public readonly Dictionary<Simulation, double> Inter0 = new();
         public readonly HashSet<EndedWarRecord> PeaceSeen = new(); public bool PeaceInit;
-        public bool HeaderPower, HeaderPeace;
+        public bool HeaderPower, HeaderPeace, HeaderAlloc;
+        public readonly Dictionary<Region, double> TauNf = new();   // (1091) S2：凍結を外した ρ で解いた τ（最初に見た四半期の値で固定）
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, RpState> RpStates = new();
 
@@ -118,6 +139,7 @@ public static partial class Instruments
     {
         public Region R = null!; public double PopK, N, Tau, Pressure, Rho, RhoGc, Y, Consc, X, Core, Kappa, I, OwnerWeight;
         public int RhoSource; public RpForces F; public double HShare;
+        public double RhoNf, TauNf, HShareNf;   // (1091) S2
         public double RhoRailGate, RhoNoRail, RhoFullRail, DirectKm; public bool DirectLand;
         public double ForeignRaw, ForeignSum, ForeignTop; public string TopKey = ""; public double NavalAlloc;
     }
@@ -132,8 +154,8 @@ public static partial class Instruments
     /// <summary>四半期の末：影の表を全ての国の全ての州へ書く。呼び口は Quarter の 1 行。</summary>
     static void RulePowerTable(MultiNationSim sim, ulong seed, int q)
     {
-        bool wantP = Wants("rulepower_s"), wantW = Wants("rulepeace_s");
-        if (!(wantP || wantW) || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
+        bool wantP = Wants("rulepower_s"), wantW = Wants("rulepeace_s"), wantA = Wants("rulepoweralloc_s") && q % 40 == 0;
+        if (!(wantP || wantW || wantA) || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         RpTableCount++;
         var dip = sim.Diplomacy;
         var st = RpStates.GetValue(dip, _ => new RpState());
@@ -242,6 +264,15 @@ public static partial class Instruments
                 else { rr.RhoRailGate = rr.RhoNoRail = rr.RhoFullRail = rr.DirectKm = double.NaN; }
                 if (!(rr.Rho >= 0)) rr.Rho = 0;
                 rr.HShare = nn.SumPop > 0 ? nn.H * rr.PopK / nn.SumPop * rr.Rho : 0;
+                // (1091) S2：同じ式を凍結を外した表で（首都は 1・複写に無い州は大圏の届きのまま＝今の ρ と同じ）
+                rr.RhoNf = rr.Rho;
+                if (!ReferenceEquals(r, cap) && snap is not null && capIx >= 0 && snap.Idx.TryGetValue(r, out var rn))
+                {
+                    double bestNf = RulePowerReach(snap.GetNf(capIx, rn));
+                    foreach (var (si, w) in stakes) { if (si == rn || si == capIx) continue; double via = RulePowerReach(snap.GetNf(capIx, si)) * w * RulePowerReach(snap.GetNf(si, rn)); if (via > bestNf) bestNf = via; }
+                    rr.RhoNf = bestNf >= 0 ? bestNf : 0;
+                }
+                rr.HShareNf = nn.SumPop > 0 ? nn.H * rr.PopK / nn.SumPop * rr.RhoNf : 0;
             }
             // τ：最初に見た州は F_S0 から解く。解けない州は国の τ の中央値
             var raw = new List<double>(); var pending = new List<RpReg>();
@@ -257,6 +288,21 @@ public static partial class Instruments
                 raw.Sort(); double med = raw.Count > 0 ? raw[raw.Count / 2] : 0;
                 if (raw.Count == 0) { var all = st.Tau.Values.OrderBy(v => v).ToList(); med = all.Count > 0 ? all[all.Count / 2] : 0; }
                 foreach (var rr in pending) { rr.Tau = med; st.Tau[rr.R] = med; }
+            }
+            // (1091) S2：τ を凍結を外した ρ で解く（同じ規則・別の蓄え）
+            var rawNf = new List<double>(); var pendingNf = new List<RpReg>();
+            foreach (var rr in rows)
+            {
+                if (st.TauNf.TryGetValue(rr.R, out var tvn)) { rr.TauNf = tvn; continue; }
+                double ri0n = rr.R.RuleInit.Length > 0 ? rr.R.RuleInit[0] : 0;
+                if (ri0n > 0 && rr.HShareNf > 0 && rr.N > 0) { rr.TauNf = rr.HShareNf / (rr.N * ri0n); st.TauNf[rr.R] = rr.TauNf; rawNf.Add(rr.TauNf); }
+                else pendingNf.Add(rr);
+            }
+            if (pendingNf.Count > 0)
+            {
+                rawNf.Sort(); double medNf = rawNf.Count > 0 ? rawNf[rawNf.Count / 2] : 0;
+                if (rawNf.Count == 0) { var allNf = st.TauNf.Values.OrderBy(v => v).ToList(); medNf = allNf.Count > 0 ? allNf[allNf.Count / 2] : 0; }
+                foreach (var rr in pendingNf) { rr.TauNf = medNf; st.TauNf[rr.R] = medNf; }
             }
             foreach (var rr in rows)
             {
@@ -283,13 +329,14 @@ public static partial class Instruments
             }
             var opps = new HashSet<Power>(ReferenceEqualityComparer.Instance as IEqualityComparer<Power>);
             foreach (var wr in dip.Wars) { if (ReferenceEquals(wr.A, nn.P)) opps.Add(wr.B); else if (ReferenceEquals(wr.B, nn.P)) opps.Add(wr.A); }
-            var cand = new List<(Region r, RpNation on, RpReg rr, double wgt, double rho, double s)>();
+            var cand = new List<(Region r, RpNation on, RpReg rr, double wgt, double rho, double s, int kind)>();
             foreach (var kv in regOwner)
             {
                 var (on, rr) = kv.Value; if (ReferenceEquals(on, nn)) continue;
                 double s = 0; var rg = kv.Key;
                 for (int j = 0; j < rg.ForeignRulers.Length && j < rg.ForeignShares.Length; j++) if (rg.ForeignRulers[j] == nn.Key && rg.ForeignShares[j] > 0) s += rg.ForeignShares[j];
                 bool isCand = s > 0 || opps.Contains(on.P);
+                int kind = s > 0 ? 1 : isCand ? 2 : 3;   // (1091) S1：1 取り分・2 交戦・3 隣
                 if (!isCand) { var rc = Places.Coord(rg.Name); int nd = Diplomacy.CessionNode(rc.Lat, rc.Lon); isCand = nd >= 0 && Diplomacy.CessionAdjacent(nd, winNodes, out _); }
                 if (!isCand) continue;
                 double rho = 0;
@@ -301,12 +348,15 @@ public static partial class Instruments
                 else { var rc = Places.Coord(rg.Name); rho = (rc.Lat == 0 && rc.Lon == 0) ? 0 : RulePowerReach(Geo.DistanceKm(nn.W.Latitude, nn.W.Longitude, rc.Lat, rc.Lon)); }
                 double b = Math.Min(1.0, Math.Max(0.0, rr.OwnerWeight));
                 double wgt = rr.Y * rho * (1 - Math.Min(1.0, s)) * (1 - b);
-                cand.Add((rg, on, rr, wgt > 0 ? wgt : 0, rho, s));
+                cand.Add((rg, on, rr, wgt > 0 ? wgt : 0, rho, s, kind));
             }
             double sumW = 0, sumWPort = 0; foreach (var cd in cand) { sumW += cd.wgt; if (cd.r.IsPort && (cd.s > 0 || opps.Contains(cd.on.P))) sumWPort += cd.wgt; }
+            if (wantA && !st.HeaderAlloc) { using (var wa0 = Open("rulepoweralloc", seed)) wa0.WriteLine(RpAllocHeaderText); st.HeaderAlloc = true; }
+            var allocSb = wantA ? new System.Text.StringBuilder() : null;
             foreach (var cd in cand)
             {
                 double alloc = sumW > 0 ? nn.O * cd.wgt / sumW : 0;
+                allocSb?.Append(string.Join('\t', I(q), I(nn.W.Year), nn.Key, cd.r.Name, I(cd.kind), RpR(cd.rr.Y), RpR(cd.rho), RpR(cd.s), RpR(Math.Min(1.0, Math.Max(0.0, cd.rr.OwnerWeight))), RpR(cd.wgt), RpR(alloc), RpR(alloc > 0 ? alloc * cd.rho : 0))).Append('\n');
                 if (alloc > 0)
                 {
                     if (!foreignAt.TryGetValue(cd.r, out var lst)) foreignAt[cd.r] = lst = [];
@@ -314,6 +364,7 @@ public static partial class Instruments
                 }
                 if (sumWPort > 0 && cd.r.IsPort && (cd.s > 0 || opps.Contains(cd.on.P))) cd.rr.NavalAlloc += nn.Navy * cd.wgt / sumWPort;
             }
+            if (allocSb is { Length: > 0 }) System.IO.File.AppendAllText(System.IO.Path.Combine(Dir, $"rulepoweralloc_s{seed}.tsv"), allocSb.ToString(), new System.Text.UTF8Encoding(false));
         }
         foreach (var kv in foreignAt)
         {
@@ -363,7 +414,8 @@ public static partial class Instruments
                         F(f.FS), F(f.FI), F(f.FR), F(f.A), F(f.FU), F(rr.ForeignRaw), F(rr.ForeignSum), F(rr.ForeignTop), rr.TopKey, F(rr.Pressure), F(nn.InterRatio),
                         F(iShare), F(rr.Kappa), F(cls.Owner), F(cls.Local), F(cls.Foreign), F(cls.Ungov), F(cls.Owner + cls.Local + cls.Foreign + cls.Ungov), cn, RpClassNames[nb], F(nr[0]), F(nr[1]), F(nr[2]), F(nr[3]),
                         F(cls.Total > 0 ? f.FS / cls.Total : double.NaN), F(cls.Total > 0 ? (f.FI + f.FR) / cls.Total : double.NaN),
-                        F(rr.Rho), I(rr.RhoSource), F(rr.RhoGc), F(rr.RhoRailGate), F(rr.RhoNoRail), F(rr.RhoFullRail), F(rr.DirectKm), rr.DirectLand ? "1" : "0", F(nn.W.RailCapacity), qual ? "1" : "0", F(openDiff), F(phi))).Append('\n');
+                        F(rr.Rho), I(rr.RhoSource), F(rr.RhoGc), F(rr.RhoRailGate), F(rr.RhoNoRail), F(rr.RhoFullRail), F(rr.DirectKm), rr.DirectLand ? "1" : "0", F(nn.W.RailCapacity), qual ? "1" : "0", F(openDiff), F(phi),
+                        F(rr.RhoNf), F(rr.TauNf), F(ri0), F(ri1), F(ri2), F(ri3), RpR(cls.Owner), RpR(cls.Ungov), F(rr.I), F(rr.OwnerWeight))).Append('\n');
                 }
             }
             System.IO.File.AppendAllText(System.IO.Path.Combine(Dir, $"rulepower_s{seed}.tsv"), sb.ToString(), new System.Text.UTF8Encoding(false));

@@ -1,0 +1,17 @@
+D:\PoB_work\c104si_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:56.77]     PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま [FAIL]
+  失敗 PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま [6 s]
+  エラー メッセージ:
+   Assert.Null() Failure: Value of type 'Nullable<double>' has a value
+Expected: null
+Actual:   1678.3536195849306
+  スタック トレース:
+     at PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま() in D:\PoB_work\wt_c104si\PriceOfBread.Tests\DiscoveryClockTests.cs:line 349
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:33.39]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+結果ファイル: D:\PoB_work\wt_c104si\measurements\m1091_20261113\trx\nonfull.trx
+
+失敗!   -失敗:     1、合格:  2771、スキップ:     1、合計:  2773、期間: 40 m 24 s - PriceOfBread.Tests.dll (net10.0)

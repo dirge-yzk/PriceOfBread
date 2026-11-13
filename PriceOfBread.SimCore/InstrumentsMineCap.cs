@@ -1,0 +1,88 @@
+using System.Collections.Generic;
+namespace PriceOfBread.SimCore;
+
+// ---------------------------------------------------------------- (1091) 鉱山の計器 MCi minecap_s（MC1 の腕 B より先に入れる・読むだけ・恒等・事前登録 measurements/m1091_20261113_prereg_si.txt）
+// 部分クラス（InstrumentsRecipeout.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。表は Instruments.Open を通す（選ばれない表は作らない＝Wants）。
+// 行＝国×財（鉱物の RGO）×級（RoRead の級）・年末の四半期に毎年。recipeout_s には列を足さない。
+// 列：producers／outputSum／builtScaleSum（BuiltScale の和）／builtOver15N・builtOver15Output（BuiltScale>1.5 の個体の数と産出）／
+//   depInitMissingOutShare（鉱脈の初期が未捕捉の州の産出の割合＝別の箱）／depFracOutW（残り÷初期の産出加重の平均・未捕捉の州は除く）／depBin0〜4（0〜.1・.1〜.25・.25〜.5・.5〜1・>1 の産出の割合）／
+//   gradeOutW・gradeBin0〜3（品位の値＝床〔以下〕・床〜.5・.5〜1 未満・1 の産出の割合）／target15Share・target30Share（州の清算の値段で出した目標 1＋margin が >1.5・>3.0 の産出の割合）／
+//   nationalMinesShare（国有化の部門〈鉱山〉の産出の割合）。
+// ⚠限界（計器が自己申告する）：①目標は計器が組む mc（RoRead：自己費用×物価水準×州の物価＋投入費）で、補助金の緩和〔margin<0 の枝〕と外挿は含めない。②価格は年末の四半期の末の州の値段（月の中の清算の値ではない）。
+//   ③残り÷初期は計器の側で割る（Region.MineralDeposit と MineralDepositInitial の読み）＝初期が 0 以下の州は別の箱。④産出 0 の個体は産出加重に入らない（個体数は producers に残る）。
+public static partial class Instruments
+{
+    internal const string MineCapHeaderText = "year\tnation\tgood\tclass\tproducers\toutputSum\tbuiltScaleSum\tbuiltOver15N\tbuiltOver15Output\tdepInitMissingOutShare\tdepFracOutW\tdepBin0\tdepBin1\tdepBin2\tdepBin3\tdepBin4\t"
+        + "gradeOutW\tgradeBin0\tgradeBin1\tgradeBin2\tgradeBin3\ttarget15Share\ttarget30Share\tnationalMinesShare";
+
+    /// <summary>鉱物の RGO 1 個体の読み（番人用）。DepFrac は鉱脈の初期が未捕捉なら NaN。</summary>
+    internal readonly record struct McProd(int Good, string Class, double Output, double BuiltScale, double DepFrac, double Grade, double Target, bool NationalMines, double Price, double Mc);
+
+    /// <summary>国 1 つの鉱物の RGO を全て読む。目標＝1＋(p−mc)/mc（p＝その州の清算の値段・mc＝RoRead の mc）・mc が Eps 以下なら margin＝0。</summary>
+    internal static List<McProd> McProducers(World w)
+    {
+        var rows = new List<McProd>();
+        foreach (var r in w.Regions)
+        {
+            foreach (var p in r.Producers)
+            {
+                int g = p.GoodId;
+                if (!p.IsRgo || g < 0 || g >= Catalog.Goods.Length || !Catalog.IsMineral(g) || g >= r.Markets.Length) continue;
+                var x = RoRead(w, r, p);
+                double price = r.Markets[g].Price;
+                double margin = x.Mc > 1e-9 ? (price - x.Mc) / x.Mc : 0.0;
+                double dep = r.MineralDepositInitial > 0 ? r.MineralDeposit / r.MineralDepositInitial : double.NaN;
+                bool nat = r.NationalizedMask != 0 && Nationalization.SectorOf(g) == NationalizedSector.Mines && (r.NationalizedMask & (1 << (int)NationalizedSector.Mines)) != 0;
+                rows.Add(new McProd(g, x.Class, p.Output, p.BuiltScale, dep, r.MineralGradeFactor, 1.0 + margin, nat, price, x.Mc));
+            }
+        }
+        return rows;
+    }
+
+    static void MinecapTable(MultiNationSim sim, ulong seed, int q)
+    {
+        bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
+        if (!yearEnd || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen || !Wants("minecap_s")) return;
+        var st = McStates.GetValue(sim, _ => new McState());
+        if (!st.Header) { using (var w0 = Open("minecap", seed)) w0.WriteLine(MineCapHeaderText); st.Header = true; }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var sb = new System.Text.StringBuilder();
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; if (w.Regions.Count == 0) continue;
+            double floor = w.Coef.DepositGradeFloor;
+            var acc = new SortedDictionary<(int, string), McAcc>(Comparer<(int, string)>.Create((a, b) => { int t = a.Item1.CompareTo(b.Item1); return t != 0 ? t : string.CompareOrdinal(a.Item2, b.Item2); }));
+            foreach (var m in McProducers(w))
+            {
+                var key = (m.Good, m.Class);
+                if (!acc.TryGetValue(key, out var a)) acc[key] = a = new McAcc();
+                a.N++; double o = m.Output > 0 ? m.Output : 0; a.O += o; a.Built += m.BuiltScale;
+                if (m.BuiltScale > 1.5) { a.BuiltN++; a.BuiltO += o; }
+                if (double.IsNaN(m.DepFrac)) a.DepMissing += o;
+                else
+                {
+                    a.DepO += o; a.DepSum += o * m.DepFrac;
+                    a.Dep[m.DepFrac < 0.1 ? 0 : m.DepFrac < 0.25 ? 1 : m.DepFrac < 0.5 ? 2 : m.DepFrac <= 1.0 ? 3 : 4] += o;
+                }
+                a.GradeSum += o * m.Grade;
+                a.Grade[m.Grade <= floor ? 0 : m.Grade < 0.5 ? 1 : m.Grade < 1.0 ? 2 : 3] += o;
+                if (m.Target > 1.5) a.T15 += o;
+                if (m.Target > 3.0) a.T30 += o;
+                if (m.NationalMines) a.Nat += o;
+            }
+            string nm = NameOf(w);
+            foreach (var kv in acc)
+            {
+                var a = kv.Value; double o = a.O;
+                string S(double v) => RpR(o > 0 ? v / o : double.NaN);
+                sb.Append(string.Join('\t', I(w.Year), nm, Catalog.Goods[kv.Key.Item1].Name, kv.Key.Item2, I(a.N), RpR(o), RpR(a.Built), I(a.BuiltN), RpR(a.BuiltO), S(a.DepMissing), RpR(a.DepO > 0 ? a.DepSum / a.DepO : double.NaN),
+                    S(a.Dep[0]), S(a.Dep[1]), S(a.Dep[2]), S(a.Dep[3]), S(a.Dep[4]), S(a.GradeSum), S(a.Grade[0]), S(a.Grade[1]), S(a.Grade[2]), S(a.Grade[3]), S(a.T15), S(a.T30), S(a.Nat))).Append('\n');
+            }
+        }
+        if (sb.Length > 0) System.IO.File.AppendAllText(System.IO.Path.Combine(Dir, $"minecap_s{seed}.tsv"), sb.ToString(), new System.Text.UTF8Encoding(false));
+    }
+
+    sealed class McAcc { public int N, BuiltN; public double O, Built, BuiltO, DepMissing, DepO, DepSum, GradeSum, T15, T30, Nat; public readonly double[] Dep = new double[5], Grade = new double[4]; }
+    sealed class McState { public bool Header; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, McState> McStates = new();
+}
