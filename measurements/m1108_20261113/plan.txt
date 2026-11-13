@@ -1,0 +1,11 @@
+(1108) c106mw 読む線の計画（2026-11-13・読むだけ・腕0・コミット0）
+作業の場所: D:/PoB_work/r1108_work（台本・表・下書き）。worktree は作らない（main の木 ffb383805 を読むだけ）。
+読む生:
+  D:/PoB_work/keep_1103/base_ins（M＝rr+gp・種1〜10）・n1・n2（m1103 のヌル腕・POB_CEARN=0）・a11（S11・種11〜20・表が少ない）
+  表: monlaw_s（MinimumWage・lawGateOpen:MinimumWage・polityCode）・labor_s（lawCode・enactedBindShare 他）・lawgate2_s（axis・reasonCode・curStage・targetStage）・sf_s（seat・voteWeight）・reform_s
+読む写し（m1087 の生は消えた＝写しだけ）:
+  measurements/b10_20261113_m1087*_ins.cost・m1103_20261113/b10_aRr_10.cost・b10_aGp_10.cost・b10_20261113_m1103*_ins.cost（籠の走査の件数）
+  measurements/m1103_20261113/read/*/rec_mw.txt（国×四半期の施行の行・上位6国）・D:/PoB_work/c105gp_work/b/mon_c105gpB_10.txt と c105rr の mon（読むだけ）
+  mon_20261113_m1087.txt・mon_20261113_m1103.txt の法の列
+ソース: MinimumWageFloor.cs・MarketFlow.StepDay・SelfPlay の MinimumWage*・Government の PolicyAxis.MinimumWage・Parliament の NonElectiveSeatsEmpty・InstrumentsLw.cs
+台本: D:/PoB_work/r1108_work/*.py（合流が scripts/instruments/r1108/ へ写す）

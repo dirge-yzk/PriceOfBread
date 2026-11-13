@@ -1,0 +1,58 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (141 ミリ秒)。
+  D:\PoB_work\c106im_work\mut\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (1.67 秒)。
+  D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (1.66 秒)。
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PopDecision.cs(53,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\BilateralMarket.cs(1159,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\EconomyStep.cs(1771,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\Instruments\Instruments.cs(2567,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(193,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(209,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(102,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c106im_work\mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c106im_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\c106im_work\mut\PriceOfBread.App\Controls\TableView.cs(131,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c106im_work\mut\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c106im_mutart\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\ClearingScopeTests.cs(360,21): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\ClearingScopeTests.cs(365,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\ConservationTests.cs(268,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\ConservationTests.cs(965,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\UnitTypeTests.cs(318,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\UnitTypeTests.cs(318,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\UnitTypeTests.cs(319,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\UnitTypeTests.cs(319,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c106im_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c106im_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:03.01]     PriceOfBread.Tests.InstrumentsPlacementTests.計器はInstrumentsフォルダの下にあり_SimCoreの直下に無い [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsPlacementTests.計器はInstrumentsフォルダの下にあり_SimCoreの直下に無い [160 ms]
+  エラー メッセージ:
+   SimCore の直下に計器がある（SimCore/Instruments/ へ置く）：InstrumentsX.cs
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsPlacementTests.計器はInstrumentsフォルダの下にあり_SimCoreの直下に無い() in D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\InstrumentsPlacementTests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:08.31]     PriceOfBread.Tests.TechLevelRemovalTests.計器の列に技術水準が無い [FAIL]
+  失敗 PriceOfBread.Tests.TechLevelRemovalTests.計器の列に技術水準が無い [26 ms]
+  エラー メッセージ:
+   計器に技術水準の列が戻った：InstrumentsDsc.cs:116
+  スタック トレース:
+     at PriceOfBread.Tests.TechLevelRemovalTests.計器の列に技術水準が無い() in D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\TechLevelRemovalTests.cs:line 65
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:00.16]     PriceOfBread.Tests.FoodLedgerTests.T0_ラチェット_FoodMetの書き手は増えない [FAIL]
+  失敗 PriceOfBread.Tests.FoodLedgerTests.T0_ラチェット_FoodMetの書き手は増えない [59 ms]
+  エラー メッセージ:
+   FoodMet の書き手が増えた 5 > 4（増やすなら基準値の更新を宣言する）
+  スタック トレース:
+     at PriceOfBread.Tests.FoodLedgerTests.T0_ラチェット_FoodMetの書き手は増えない() in D:\PoB_work\c106im_work\mut\PriceOfBread.Tests\FoodLedgerTests.cs:line 282
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     3、合格:    81、スキップ:     0、合計:    84、期間: 57 s - PriceOfBread.Tests.dll (net10.0)
+exit=1

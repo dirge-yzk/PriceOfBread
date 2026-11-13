@@ -1,0 +1,24 @@
+== M
+   非選挙→選挙 距離 1：四半期 1720・MinimumWage 上げ 92（率÷他 72.2）・Censorship 上げ 222（率÷他 25.2）・LaborUnion 上げ 194（率÷他 10.1）
+   非選挙→選挙 距離 2-4：四半期 5128・MinimumWage 上げ 1（率÷他 0.3）・Censorship 上げ 615（率÷他 23.4）・LaborUnion 上げ 3（率÷他 0.1）
+   選挙→選挙 距離 1：四半期 73・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 15（率÷他 40.1）・LaborUnion 上げ 10（率÷他 12.3）
+   選挙→選挙 距離 2-4：四半期 218・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 3（率÷他 2.7）・LaborUnion 上げ 20（率÷他 8.3）
+   他 距離 -：四半期 256572・MinimumWage 上げ 190（率÷他 1.0）・Censorship 上げ 1314（率÷他 1.0）・LaborUnion 上げ 2852（率÷他 1.0）
+== N1
+   非選挙→選挙 距離 1：四半期 1837・MinimumWage 上げ 94（率÷他 65.4）・Censorship 上げ 238（率÷他 22.4）・LaborUnion 上げ 170（率÷他 8.9）
+   非選挙→選挙 距離 2-4：四半期 5491・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 547（率÷他 17.2）・LaborUnion 上げ 5（率÷他 0.1）
+   選挙→選挙 距離 1：四半期 75・MinimumWage 上げ 1（率÷他 17.1）・Censorship 上げ 18（率÷他 41.5）・LaborUnion 上げ 6（率÷他 7.7）
+   選挙→選挙 距離 2-4：四半期 225・MinimumWage 上げ 1（率÷他 5.7）・Censorship 上げ 2（率÷他 1.5）・LaborUnion 上げ 19（率÷他 8.1）
+   他 距離 -：四半期 250680・MinimumWage 上げ 196（率÷他 1.0）・Censorship 上げ 1450（率÷他 1.0）・LaborUnion 上げ 2620（率÷他 1.0）
+== N2
+   非選挙→選挙 距離 1：四半期 1739・MinimumWage 上げ 76（率÷他 60.1）・Censorship 上げ 209（率÷他 21.7）・LaborUnion 上げ 136（率÷他 7.5）
+   非選挙→選挙 距離 2-4：四半期 5185・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 540（率÷他 18.8）・LaborUnion 上げ 5（率÷他 0.1）
+   選挙→選挙 距離 1：四半期 92・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 18（率÷他 35.4）・LaborUnion 上げ 9（率÷他 9.4）
+   選挙→選挙 距離 2-4：四半期 275・MinimumWage 上げ 1（率÷他 5.0）・Censorship 上げ 2（率÷他 1.3）・LaborUnion 上げ 21（率÷他 7.3）
+   他 距離 -：四半期 244962・MinimumWage 上げ 178（率÷他 1.0）・Censorship 上げ 1354（率÷他 1.0）・LaborUnion 上げ 2548（率÷他 1.0）
+== S11
+   非選挙→選挙 距離 1：四半期 1819・MinimumWage 上げ 89（率÷他 45.6）・Censorship 上げ 211（率÷他 19.7）・LaborUnion 上げ 192（率÷他 9.6）
+   非選挙→選挙 距離 2-4：四半期 5411・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 583（率÷他 18.3）・LaborUnion 上げ 2（率÷他 0.0）
+   選挙→選挙 距離 1：四半期 95・MinimumWage 上げ 1（率÷他 9.8）・Censorship 上げ 18（率÷他 32.1）・LaborUnion 上げ 6（率÷他 5.7）
+   選挙→選挙 距離 2-4：四半期 282・MinimumWage 上げ 1（率÷他 3.3）・Censorship 上げ 3（率÷他 1.8）・LaborUnion 上げ 18（率÷他 5.8）
+   他 距離 -：四半期 253429・MinimumWage 上げ 272（率÷他 1.0）・Censorship 上げ 1495（率÷他 1.0）・LaborUnion 上げ 2800（率÷他 1.0）

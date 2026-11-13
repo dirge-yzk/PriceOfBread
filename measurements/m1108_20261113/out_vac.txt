@@ -1,0 +1,68 @@
+== M：選挙政体が続く四半期の対のうち、移行の直後の 1 期 1722・それ以外 261989
+   最低賃金：施行の行 42703・うち移行の直後（距離 0〜1）に上げた段が続いた行 13677（0.320）
+   法	直後の率÷他の率	直後の変化	他の変化	直後の上げ	他の上げ
+   ImmigrationRestriction	108.7	5	7	0	0
+   Censorship	63.7	1135	2710	223	1946
+   MinimumWage	48.3	92	290	92	191
+   ChildLabor	38.0	6	24	0	0
+   Nationalization	34.6	5	22	5	22
+   StateReligion	10.9	2	28	2	28
+   CornLaws	9.0	39	660	1	11
+   WomenRights	8.2	2	37	2	36
+   MonetaryStandard	6.2	11	272	9	222
+   MilitaryExport	5.5	214	5887	86	2970
+   LaborUnion	5.4	199	5637	194	2885
+   SerfEmancipation	5.2	7	206	7	206
+   ConscriptionLaw	5.1	41	1226	10	833
+   Suffrage	4.6	2	66	2	63
+== N1：選挙政体が続く四半期の対のうち、移行の直後の 1 期 1837・それ以外 256471
+   最低賃金：施行の行 46885・うち移行の直後（距離 0〜1）に上げた段が続いた行 15914（0.339）
+   法	直後の率÷他の率	直後の変化	他の変化	直後の上げ	他の上げ
+   ImmigrationRestriction	139.6	5	5	0	0
+   Censorship	63.6	1334	2927	238	2017
+   MinimumWage	42.5	94	309	94	198
+   CornLaws	7.3	36	687	0	22
+   WomenRights	6.3	1	22	1	19
+   Nationalization	5.4	1	26	1	26
+   MilitaryExport	4.8	185	5349	78	2693
+   LaborUnion	4.8	177	5160	170	2650
+   Antitrust	4.7	5	149	5	142
+   MonetaryStandard	4.7	10	299	10	235
+   SocialSecurity	4.3	10	328	10	322
+   CapitalMobility	3.7	3	114	3	62
+   WartimeRationing	3.7	89	3392	6	1586
+   ConscriptionLaw	3.4	31	1263	9	871
+== N2：選挙政体が続く四半期の対のうち、移行の直後の 1 期 1740・それ以外 250513
+   最低賃金：施行の行 39712・うち移行の直後（距離 0〜1）に上げた段が続いた行 11852（0.298）
+   法	直後の率÷他の率	直後の変化	他の変化	直後の上げ	他の上げ
+   Nationalization#2	inf	1	0	1	0
+   Censorship	64.8	1245	2767	209	1914
+   ImmigrationRestriction	48.0	2	6	0	0
+   MinimumWage	39.6	76	276	76	179
+   WomenRights	18.0	3	24	3	24
+   ChildLabor	18.0	2	16	0	0
+   CornLaws	8.6	40	668	0	21
+   Antitrust	6.0	6	144	6	142
+   CapitalMobility	5.8	4	100	4	53
+   MilitaryExport	5.1	189	5363	89	2696
+   Nationalization	5.0	1	29	1	29
+   LaborUnion	4.3	148	4972	136	2583
+   SocialSecurity	3.8	8	304	8	304
+   WartimeRationing	3.7	83	3192	6	1499
+== S11：選挙政体が続く四半期の対のうち、移行の直後の 1 期 1821・それ以外 259215
+   最低賃金：施行の行 48131・うち移行の直後（距離 0〜1）に上げた段が続いた行 15728（0.327）
+   法	直後の率÷他の率	直後の変化	他の変化	直後の上げ	他の上げ
+   ImmigrationRestriction	237.2	5	3	0	0
+   Censorship	58.6	1259	3058	211	2099
+   MinimumWage	31.4	89	403	89	274
+   ChildLabor	27.1	4	21	0	0
+   WomenRights	19.0	2	15	2	15
+   CornLaws	8.9	41	655	0	13
+   Nationalization	8.4	2	34	2	34
+   ConscriptionLaw	5.4	46	1204	5	838
+   LaborUnion	5.3	202	5474	192	2826
+   MonetaryStandard	4.9	9	262	7	212
+   MilitaryExport	4.7	182	5558	82	2801
+   CapitalMobility	4.6	4	123	4	63
+   OpiumPossession	4.0	20	715	10	439
+   WartimeRationing	3.3	75	3265	6	1532

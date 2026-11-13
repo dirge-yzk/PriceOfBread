@@ -1,0 +1,6 @@
+== C101sel
+   非選挙→選挙 距離 1：四半期 549・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 207（率÷他 72.4）・LaborUnion 上げ 1（率÷他 0.2）
+   非選挙→選挙 距離 2-4：四半期 1634・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 22（率÷他 2.6）・LaborUnion 上げ 15（率÷他 0.8）
+   選挙→選挙 距離 1：四半期 32・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 5（率÷他 30.0）・LaborUnion 上げ 2（率÷他 5.6）
+   選挙→選挙 距離 2-4：四半期 96・MinimumWage 上げ 0（率÷他 0.0）・Censorship 上げ 2（率÷他 4.0）・LaborUnion 上げ 9（率÷他 8.4）
+   他 距離 -：四半期 76235・MinimumWage 上げ 55（率÷他 1.0）・Censorship 上げ 397（率÷他 1.0）・LaborUnion 上げ 855（率÷他 1.0）
