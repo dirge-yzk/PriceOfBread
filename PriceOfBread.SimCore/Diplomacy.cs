@@ -267,6 +267,9 @@ public readonly record struct TensionPoliticsPreview(
 /// </summary>
 public sealed class Diplomacy
 {
+    [System.NonSerialized] internal RulePowerSnap? RpEngSnap;   // (1117) 支配の力の距離の表（四半期の最初の清算の写し）
+    [System.NonSerialized] internal long RpEngStamp;
+    [System.NonSerialized] internal Dictionary<(string Key, Region R), (double W, double Alloc, double F)>? RpEngAlloc;   // (1117) 計器つきの走りだけ
     public List<Power> Powers = [];
     public List<Chokepoint> Chokepoints = [];   // 海峡・運河（§B）
     public List<Megaproject> Megaprojects = [];   // MegaprojectEnabled=0 では生成されず空＝厳密恒等〔履歴 Diplomacy.cs#41〕
@@ -486,7 +489,7 @@ public sealed class Diplomacy
     /// </summary>
     internal void TreatyPortLapse(Coefficients c, int month)
     {
-        if (c.TreatyPortLapseRatio.Value <= 0) return;
+        if (c.TreatyPortLapseRatio.Value <= 0 || c.RuleFromPower > 0) return;   // (1117) 旗 1：外国の取り分は自分の力で保てなければ寄せで減る
         if (month % Calendar.MonthsPerQuarter != 0) return;
         // 向きは同じ（自国÷列強の基準・近いほど風化が速い）。〔履歴 Diplomacy.cs#83〕
         var shareScore = NationalScore.ScoresByPower(this);
@@ -2921,7 +2924,7 @@ public sealed class Diplomacy
     }
 
     /// <summary>州の生産の名目の価値（役務を除く・Output×RefPrice の和）＝割譲の選びの GDP（境界改定は小さい順・戦利品は大きい順）。</summary>
-    private static double RegionOutputValue(Region r)
+    internal static double RegionOutputValue(Region r)
     {
         double g = 0;
         foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
