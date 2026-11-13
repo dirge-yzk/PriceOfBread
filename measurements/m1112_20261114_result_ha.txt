@@ -1,0 +1,13 @@
+(1112) c107ha 結果（注を履歴の文書へ移す・組 A・恒等）  頭＝6a8b08054 ＋ 記録のコミット  基点 1cd66aae5
+判定: 恒等（測った種で一致）＝measurements/ident_20261114_c107ha.txt（段 2・素の 5 種と計器つき 10 種が m1103 と全行一致・計器の表 1437 本のうち 1377 本バイト一致・既知の揺れ 60 本＝burscan_s:seconds×10・clock_s×10・cearn_s 経路の行番号だけ×10・cpop_s 経路の行番号だけ×10・dep_s:callerLine×10 ほか・宣言の無い違い 0）。savetest OK・leakhunt 保存則違反なし。
+移した量：91 ファイル（Instruments 86＋Diplomacy・MultiNationSim・Simulation・World・EconomyStep）・注のかたまり 2529 件・docs/history/*.md 91 本（計 約 1.5MB）。SimCore の行：増 3445・減 6641。
+残した注：経路の鍵の 2 行（Simulation.cs の ★(351)・★(650) の行末の注・cearn_s／cpop_s の鍵の行が変わると ident_check の行の写しが外れる）・玩具の世界の印 2 行（GoodIdGuardTests が注の字を読む）・[PORT: の行と前処理。
+試験・台本が読む注の字の表（確定）：◆玩具の世界ここから／ここまで（GoodIdGuardTests.cs:ToyStart・ToyEnd）。ほかの試験は注を読まない。
+試験：Category!=FullLength 2823（1 件赤＝上の印→残して再試験で緑）・FullLength 3 合格・㉘ の束＋GoodIdGuard・OnDoubleReadScan・ReformPath を最終の頭で再実行（tests_s28b）。試験の数の差 0（ident の数の行が一致）。書き換えた試験 0。
+門 1・門 2：check_notes.py で 91 ファイルとも bad=0（組み直しが元とバイト一致・字句の列一致・前処理の指令一致）。警告 97＝xml の整形などで 1 文が元と部分一致しない行（逐語は履歴に残る）。
+門 3：measurements/m1112_20261114_il_gate.txt（変換ありの前後は SimCore.dll がバイト一致＝違うバイト 0・変換なしの前後は 80 バイト違う＝行の定数が原因）。
+dep_s：dep_remap.py（git の行の写像＋コードの字の一致の確認）911 行・写して 881 行・不一致 0。
+突然変異：measurements/m1112_20261113_mut_gates12.txt（M1・M2・M3 とも赤・M0 は緑）・門 3 の M1＝3849164 バイト違う・M3＝20 バイト違う・M4＝5959720 バイト違う（いずれも 0 でない＝赤）。
+.cost：ident の件数の行 43 本が一致・推定 230.5 秒（素の 5 種）・230.3 秒（計器つき 10 種）＝m1103 と同じ。
+腕の枠で待った時間 0（arms.sh free＝6）。
+最終の頭の走査の番人（㉘の束＋GoodIdGuard・OnDoubleReadScan・ReformPath）213 本合格・失敗 0。

@@ -1,11 +1,7 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1019) 貿易の段0″ の計器 prodcap_s（年×州×生産者の播種の能力と賦存の級・読むだけ・恒等・事前登録 measurements/m1019_20261110_prereg_pc.txt）
-// 部分クラス（InstrumentsRecipeout.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。
-// 級と賦存の倍率は recipeout_s と同じ RoRead を呼ぶ（規則の写しを作らない）。productivity・capacity・output・marginalCost・siteRow は Producer の欄の素の値。
-// 年：recipeout_s と同じ呼び口（q%4==3）の NgYear の年に加え、開幕の最初の q%4==3 の年（nationgood_s には無い＝突き合わせは両方にある年だけ）。
-// ⚠限界（計器が自己申告する）：marginalCost は参照価格の単位の素の値（州の物価水準を掛けない）。1 種で約 100 万行。
+// 力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。〔履歴 InstrumentsProdcap.cs#1〕
 public static partial class Instruments
 {
     internal const string ProdcapHeaderText = "year\tq\tregion\townerNation\tgood\trecipe\tisRgo\tclass\tproductivity\tendowFromProductivity\tcapacity\toutput\tmarginalCost\tsiteRow\tsiteFound";
@@ -15,7 +11,7 @@ public static partial class Instruments
 
     static void ProdcapTable(MultiNationSim sim, ulong seed, int q)
     {
-        if (!Wants("prodcap_s")) return;   // (1061) 選ばれない表は組み立ても飛ばす（読むだけ・FirstYear も PcSink の中だけ）
+        if (!Wants("prodcap_s")) return;   // prodcap_s〔履歴 InstrumentsProdcap.cs#2〕
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || sim.Nations.Count == 0) return;
         int yearLabel = sim.Nations[0].World.Year;

@@ -1,18 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (649) 都市と農村の規模の差の区間別の表 urx_s と PopDecision の駆動の表 urxpd_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsEpi.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・シミュの状態を足さない・係数を足さない・CostLedger を触らない。
-// 事前登録 measurements/urx_649_20261030_prereg.txt（[2]・追記 1 の [9]・追記 2 の [10] ⓔⓕ）。
-// ■urx_s<種>.tsv（POB_INSTRUMENTS_NATIONS に挙げた国だけ）：国×群（Core／Other＝州の Tier の 2 群）×区間×四半期の、都市と農村の POP の規模の差（千人）。
-//   印＝ProbeCheck の頭（UrxMark）。区間名＝その印の名前＝直前の印から今の印までの差。UrxEnter／UrxExit＝社会移動（Meritocracy.Step）と疫病（ApplyEpidemicDeaths）の前後で差を切り出す。
-//   全ての区間の差の和＝（最後の水準−最初の水準）に構成上一致する（桁落ちの残差だけ）。助走（WarmupFrozen）の間は印を打たず、助走が明けた最初の印で据え直す（その印の差は書かない）。
-//   列：quarter／year／nation／group／section／months（印の数）／dUrbanK／dRuralK。四半期の末に section＝_level（Fold の時点の水準）、最初の Fold に section＝_base（据え直した水準）。
-// ■urxpd_s<種>.tsv：本国（Tier＝Core）の州の PopDecision.Run の直前の駆動（読むだけ・同じ式を組み直す）。列は UrxPdHeaderText。重みの付く列（w*）は total（pair の規模）で重みを付けた和＝読み手が sumTotal で割る。
-// ■(706) urb3：urxpd_s の末尾に 4 列（既存の列の並びと値は変えない）。wSubV＝対の農村の 1 人あたりの自給の値（月・名目）×total の和／wHousU＝対の都市の 1 人あたりの住居の費用×total の和／wGsym＝〈移る値打ち〉の対称の相対差 g×total の和（式は本物の PopDecision.MigrationValues＝旗が 0 でも出す）／
-//   flowFlipRegionMonths＝流れの向きが前の月と逆の州×月の数（前の月も今の月も流れが 0 でなく、符号が違う＝飢えの門で 0 になった月は数えず、その次の月の比べ先にもならない）。読み手が wX÷sumTotal で重みを付けた平均にする。
-//   ■(713) urb4：その後ろに wAbsGsym＝|g|×total の和（wGsym は符号つきの和＝旗 1 で州×月の符号が混ざると打ち消し合い、差が閉じていなくても小さく出る＝W1 の門はこの列で読む）。
-// ⚠限界（計器が自己申告する）：①印の区間は〈その区間の間に起きた全て〉の差（月次政治には PopDecision のほか外交の間に挟まる人の動きも入る＝urxpd_s の sumFlowPos−sumFlowNeg と比べる）
-//   ②群は州の Tier の印＝印の間に Tier が変わった州の差は変わった側の群へ入る（国の合計では消える）③urxpd_s は PopDecision の式の写し＝式が変わったら番人（UrxInstrumentTests）が赤になる。
+// 力学の値を 1 つも書かない・乱数を引かない・シミュの状態を足さない・係数を足さない・CostLedger を触らない。〔履歴 InstrumentsUrx.cs#1〕
 public static partial class Instruments
 {
     internal const string UrxHeaderText = "quarter	year	nation	group	section	months	dUrbanK	dRuralK";
@@ -30,10 +18,10 @@ public static partial class Instruments
         // urxpd_s の累積
         public long PdRegionMonths, PdNoPair, PdCapBound, PdSerfGated, PdFamineGated;
         public double PdFlowPos, PdFlowNeg, PdTotal, PdPairUrban, PdRegionPop, PdRegionUrban, PdWTargetPre, PdWTargetCapped, PdWCur, PdWCap, PdWIncU, PdWIncR, PdWZ;
-        public double PdWSubV, PdWHousU, PdWGsym;                                     // (706) urb3：〈移る値打ち〉の列（total で重みを付けた和）
-        public long PdFlipRegionMonths;                                               // (706) urb3：流れの向きが前の月と逆の州×月の数
-        public double PdWAbsGsym;                                                     // (713) urb4：|g|×total の和（W1 の門の分母の定義＝符号が混ざっても打ち消し合わない）
-        public readonly Dictionary<Region, int> PdPrevSign = new(ReferenceEqualityComparer.Instance);   // (706) urb3：州ごとの前の月の流れの向き（−1／0／+1）。四半期をまたいで持つ（累積と違い Fold で消さない）
+        public double PdWSubV, PdWHousU, PdWGsym;                                     // PdWGsym〔履歴 InstrumentsUrx.cs#2〕
+        public long PdFlipRegionMonths;                                               // PdFlipRegionMonths〔履歴 InstrumentsUrx.cs#3〕
+        public double PdWAbsGsym;                                                     // PdWAbsGsym〔履歴 InstrumentsUrx.cs#4〕
+        public readonly Dictionary<Region, int> PdPrevSign = new(ReferenceEqualityComparer.Instance);   // 四半期をまたいで持つ（累積と違い Fold で消さない）〔履歴 InstrumentsUrx.cs#5〕
     }
     sealed class UrxAcc { public readonly double[] U = new double[2], R = new double[2]; public int N; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, UrxState> UrxStates = new();
@@ -97,7 +85,9 @@ public static partial class Instruments
         a.N++;
     }
 
-    /// <summary>PopDecision.Run の直前：本国の州の駆動を PopDecision.Run と同じ式で組み直して累積する（読むだけ）。（都市化の天井と UrbanIndSmoothed は (812) で削除＝cap・capBound の列は定数。）</summary>
+    /// <summary>
+    /// PopDecision.Run の直前：本国の州の駆動を PopDecision.Run と同じ式で組み直して累積する（読むだけ）。〔履歴 InstrumentsUrx.cs#6〕
+    /// </summary>
     internal static void UrxPd(World w, Region region, double serfFree)
     {
         if (!On || w.WarmupFrozen || region.Tier != RegionTier.Core) return;
@@ -113,14 +103,16 @@ public static partial class Instruments
         ux.PdRegionPop += region.SumPopulation(); ux.PdRegionUrban += region.SumUrbanPopulation();
         ux.PdWTargetPre += d.Total * d.TargetPre; ux.PdWTargetCapped += d.Total * d.TargetCapped; ux.PdWCur += d.Total * d.Cur; ux.PdWCap += d.Total * d.Cap;
         ux.PdWIncU += d.Total * d.IncUrban; ux.PdWIncR += d.Total * d.IncRural; ux.PdWZ += d.Total * d.Z;
-        ux.PdWSubV += d.Total * d.SubsistenceValue; ux.PdWHousU += d.Total * d.HousingCost; ux.PdWGsym += d.Total * d.Gsym;   // (706) urb3
-        ux.PdWAbsGsym += d.Total * Math.Abs(d.Gsym);   // (713) urb4
-        int sgn = d.Flow > 0 ? 1 : d.Flow < 0 ? -1 : 0;   // (706) urb3：流れの向きの反転（前の月も今の月も 0 でなく、向きが逆）
+        ux.PdWSubV += d.Total * d.SubsistenceValue; ux.PdWHousU += d.Total * d.HousingCost; ux.PdWGsym += d.Total * d.Gsym;   // SubsistenceValue〔履歴 InstrumentsUrx.cs#7〕
+        ux.PdWAbsGsym += d.Total * Math.Abs(d.Gsym);   // Abs〔履歴 InstrumentsUrx.cs#8〕
+        int sgn = d.Flow > 0 ? 1 : d.Flow < 0 ? -1 : 0;   // sgn〔履歴 InstrumentsUrx.cs#9〕
         if (ux.PdPrevSign.TryGetValue(region, out int prevSgn) && prevSgn != 0 && sgn != 0 && prevSgn != sgn) ux.PdFlipRegionMonths++;
         ux.PdPrevSign[region] = sgn;
     }
 
-    /// <summary>番人用：今の四半期の urxpd_s の積みの写し（積みは消さない）。(706) 流れの向きの反転と〈移る値打ち〉の列を単体で確かめる口。</summary>
+    /// <summary>
+    /// 番人用：今の四半期の urxpd_s の積みの写し（積みは消さない）。〔履歴 InstrumentsUrx.cs#10〕
+    /// </summary>
     internal static (long RegionMonths, long FlipRegionMonths, double WSubV, double WHousU, double WGsym, double SumTotal, double WAbsGsym) UrxPdPeek(World w)
     {
         var ux = Ux(w);
@@ -144,8 +136,7 @@ public static partial class Instruments
         double targetPre = 1.0 / (1.0 + Math.Exp(-z));
         double target = targetPre, cur = urban.Size / total, cap = 1.0;
         bool capBound = false;
-        // (812) 旗 UrbanCapOff の焼き込み：天井なし＝cap は 1.0・capBound は false のまま（計器の列は残す）
-        // (706) urb3：〈移る値打ち〉V の列は常に出す（本物の式 PopDecision.MigrationValues を呼ぶ＝写しではない）。流れは旗 UrbanFlowReal に従い Run と同じ式
+        // 流れは旗 UrbanFlowReal に従い Run と同じ式〔履歴 InstrumentsUrx.cs#11〕
         var mv = PopDecision.MigrationValues(region, coef, rural, urban);
         double flow = coef.UrbanFlowReal > 0 ? (mv.Gsym > 0 ? coef.Mobility * mv.Gsym * rural.Size : coef.Mobility * mv.Gsym * urban.Size) : coef.Mobility * (target - cur) * total;
         bool serf = false, famine = false;
@@ -160,12 +151,7 @@ public static partial class Instruments
         return true;
     }
 
-    // ---------------------------------------------------------------- (697) 往復の表 urxrt_s（読むだけ・恒等） ----------------------------------------------------------------
-    // 人の移し方の 1 本（Pop.Blend）の呼び手のファイルごとに、国の都市 POP への入りと出の総量（千人）を数える。純（入−出）は urx_s の区間・urxpd_s の流れと同じ向きで、往復の総量＝入＋出。
-    // 数え方：同じ国の中の移動は農村→都市が入り・都市→農村が出（都市どうし・農村どうしは数えない）。国境を越える移動（越境移民・招聘）は受け手の国の都市 POP への着が入り・送り手の国の都市 POP からの発が出。
-    // route＝Blend の呼び手のファイル名（PopDecision＝州の中の農村↔都市・Meritocracy＝社会移動の職の移し・Territory＝州の間の移民と入植・Military＝徴兵と復員・MultiNationSim＝越境）。
-    // ⚠限界：①挙げた国の POP だけ（PopOwner の登録は月初＝その月の途中に生まれた POP の移動は数えない）②助走（その国の月が Active でない間）は数えない③呼び手のファイル 1 本の中に別の動詞が混ざる（Territory など）ときは区別しない
-    //   ④疫病・出生・死は人の移し方を通らない＝数えない（urx_s の区間の差とは別の物）。
+    // 純（入−出）は urx_s の区間・urxpd_s の流れと同じ向きで、往復の総量＝入＋出。〔履歴 InstrumentsUrx.cs#12〕
     internal const string UrxRtHeaderText = "quarter\tyear\tnation\troute\turbanInK\turbanOutK\tcalls";
     sealed class UrxRtAcc { public readonly Dictionary<string, double[]> Routes = new(); public readonly List<string> Order = []; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<WState, UrxRtAcc> UrxRtStates = new();
@@ -219,7 +205,7 @@ public static partial class Instruments
     static void UrxFold(Sink sk, ulong seed, World w, WState st, int q)
     {
         if (!IsPicked(w, st)) return;
-        UrxRtFold(sk, seed, w, st, q);   // (697) 往復の表（Armed でなくても書く）
+        UrxRtFold(sk, seed, w, st, q);   // UrxRtFold〔履歴 InstrumentsUrx.cs#13〕
         if (!UrxStates.TryGetValue(w, out var ux) || !ux.Armed) return;
         UrxMark(w, "四半期末後");   // Fold の時点までの差を締める＝_level が region_s と同じ時点の水準になる
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -251,8 +237,8 @@ public static partial class Instruments
             ux.PdRegionMonths = ux.PdNoPair = ux.PdCapBound = ux.PdSerfGated = ux.PdFamineGated = 0;
             ux.PdFlowPos = ux.PdFlowNeg = ux.PdTotal = ux.PdPairUrban = ux.PdRegionPop = ux.PdRegionUrban = 0;
             ux.PdWTargetPre = ux.PdWTargetCapped = ux.PdWCur = ux.PdWCap = ux.PdWIncU = ux.PdWIncR = ux.PdWZ = 0;
-            ux.PdWSubV = ux.PdWHousU = ux.PdWGsym = 0; ux.PdFlipRegionMonths = 0;   // (706) urb3
-            ux.PdWAbsGsym = 0;   // (713) urb4
+            ux.PdWSubV = ux.PdWHousU = ux.PdWGsym = 0; ux.PdFlipRegionMonths = 0;   // PdWSubV〔履歴 InstrumentsUrx.cs#14〕
+            ux.PdWAbsGsym = 0;   // PdWAbsGsym〔履歴 InstrumentsUrx.cs#15〕
         }
     }
 }

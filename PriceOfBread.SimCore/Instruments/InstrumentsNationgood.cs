@@ -1,17 +1,10 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1003) 貿易の計器 C1 nationgood_s（国×財の断面・読むだけ・恒等・事前登録 measurements/m1003_20261110_prereg_tg.txt）
-// 部分クラス（InstrumentsBasisx.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。
-// 越境の額と量は、清算の成約の位置（BilateralMarket の TradeDeal の呼び口）で計器が自分で積む（財×国）。
-//   輸入＝積出し価格＋運賃（vA＋frG）・輸出＝積出し価格（vA）・量は qA。読むのは越境の成約だけ（国内の取引は積まない）。
-//   積む範囲は World.ImportsByGood・ExportsByGood と同じ〈清算 1 回分〉＝清算の頭（NgHead）で 0 へ戻す＝四半期の末には最後の清算（月 3）の分が残る。
-// 行＝調べる年（NgEveryYears の倍数と 1913）の四半期の末×全ての国×全ての財。州の断面（産出・需要・不足・在庫・価格）は四半期の末の値を州から読む。
-// ⚠限界（計器が自己申告する）：subsistenceShare の列は作らない（Pop.SubsistenceShare は POP の食べる割合で、国×財に導けない）。
-//   priceMeanGold は州の Price の単純平均×国の FxRate（取引の重みなし）。量は財の単位（重さを掛けない）。
+// 力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。〔履歴 InstrumentsNationgood.cs#1〕
 public static partial class Instruments
 {
-    internal const string NationgoodHeaderText = "year\tnation\tgood\ttier\tproducedQty\tdemandQty\tshortageQty\tstockQty\tcrossImportValue\tcrossExportValue\tcrossImportQty\tcrossExportQty\tpriceMeanGold\tdutyTariffPaid\tdutyCornPaid\ttarEffAtPay\texRateAtPay\toutputSum\teventRegions";   // (1008) 末尾の 4 列：越境の成約で買い手が払った関税の分・穀物法の分（買い手の通貨）・その清算の頭の tar・exRate
+    internal const string NationgoodHeaderText = "year\tnation\tgood\ttier\tproducedQty\tdemandQty\tshortageQty\tstockQty\tcrossImportValue\tcrossExportValue\tcrossImportQty\tcrossExportQty\tpriceMeanGold\tdutyTariffPaid\tdutyCornPaid\ttarEffAtPay\texRateAtPay\toutputSum\teventRegions";   // NationgoodHeaderText〔履歴 InstrumentsNationgood.cs#2〕
 
     /// <summary>越境の額と量を調べる年の間隔（年の数字がこの数の倍数と 1913）。既定 10＝trroute と同じ。番人だけが 1 にする。</summary>
     internal static int NgEveryYears = 10;
@@ -40,12 +33,12 @@ public static partial class Instruments
         if (a.ImpV.Length != nn * gc) { a.ImpV = new double[nn * gc]; a.ExpV = new double[nn * gc]; a.ImpQ = new double[nn * gc]; a.ExpQ = new double[nn * gc]; a.DutyT = new double[nn * gc]; a.DutyC = new double[nn * gc]; }
         else { Array.Clear(a.ImpV); Array.Clear(a.ExpV); Array.Clear(a.ImpQ); Array.Clear(a.ExpQ); Array.Clear(a.DutyT); Array.Clear(a.DutyC); }
         if (a.Tar.Length != nn) { a.Tar = new double[nn]; a.Ex = new double[nn]; }
-        for (int i = 0; i < nn; i++) { a.Tar[i] = tar is not null ? tar[i] : double.NaN; a.Ex[i] = exRate is not null ? exRate[i] : double.NaN; }   // (1008) 清算の頭の tar・exRate（エンジンの局所）
+        for (int i = 0; i < nn; i++) { a.Tar[i] = tar is not null ? tar[i] : double.NaN; a.Ex[i] = exRate is not null ? exRate[i] : double.NaN; }   // exRate〔履歴 InstrumentsNationgood.cs#3〕
         a.Gc = gc; a.Idx.Clear(); a.Worlds = new World[nn]; a.LastB = a.LastS = null; a.Any = true;
         for (int i = 0; i < nn; i++) { a.Idx[nations[i].World] = i; a.Worlds[i] = nations[i].World; }
     }
 
-    // (1028) eventRegions の蓄え：RegionMoved を通った州（Territory.TransferRegion＝Rehome は Ceded・Seceded・Returned＝Sovereign は通らない）と、前の四半期の末に居なかった州の参照（Adopt の植民地の州化）。
+    // NgEv〔履歴 InstrumentsNationgood.cs#4〕
     sealed class NgEv { public readonly HashSet<Region> Seen = new(ReferenceEqualityComparer.Instance); public readonly HashSet<Region> Moved = new(ReferenceEqualityComparer.Instance); public bool HaveSeen; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, NgEv> NgEvs = new();
     internal static void NgRegionMoved(World from, Region r) { if (from.Diplomacy is { } dip) NgEvs.GetValue(dip, _ => new NgEv()).Moved.Add(r); }
@@ -80,7 +73,7 @@ public static partial class Instruments
         if (bi < 0 || si < 0 || good >= a.Gc) return;
         a.ImpV[bi * a.Gc + good] += value + freight; a.ImpQ[bi * a.Gc + good] += qty;
         a.ExpV[si * a.Gc + good] += value; a.ExpQ[si * a.Gc + good] += qty;
-        a.DutyT[bi * a.Gc + good] += dutyT; a.DutyC[bi * a.Gc + good] += dutyC;   // (1008) 買い手の通貨・越境の成約だけ
+        a.DutyT[bi * a.Gc + good] += dutyT; a.DutyC[bi * a.Gc + good] += dutyC;   // dutyT〔履歴 InstrumentsNationgood.cs#5〕
     }
 
     /// <summary>番人用：国の添字×財の越境の蓄え（輸入額・輸出額・輸入量・輸出量）。蓄えが無ければ null。</summary>
@@ -106,7 +99,7 @@ public static partial class Instruments
         foreach (var w in rowWorlds)
         {
             string nm = NameOf(w);
-            var outSum = new double[Catalog.Goods.Length];   // (1028) その国の州の Producer.Output の和（財ごと・prodcap_s と同じ歩き方）
+            var outSum = new double[Catalog.Goods.Length];   // outSum〔履歴 InstrumentsNationgood.cs#6〕
             foreach (var r in w.Regions) foreach (var p in r.Producers) { int pg = p.GoodId; if (pg >= 0 && pg < r.Markets.Length && pg < outSum.Length) outSum[pg] += p.Output; }
             string evr = I(NgEventCount(sim, w));
             for (int g = 0; g < Catalog.Goods.Length && g < a.Gc; g++)

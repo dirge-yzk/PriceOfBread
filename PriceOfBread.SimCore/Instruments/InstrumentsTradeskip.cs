@@ -2,23 +2,7 @@ using System.Collections.Generic;
 using TrEntry = (int nation, PriceOfBread.SimCore.Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk);
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1003) 貿易の計器 C2 tradeskip_s（成約 0 の理由・読むだけ・恒等・事前登録 measurements/m1003_20261110_prereg_tg.txt）
-// 部分クラス。力学の値を 1 つも書かない・乱数を引かない・距離の表（KmOf・PairRisk）を呼ばない（表に副作用を作らない）。
-// 読む清算＝調べる年（NgEveryYears の倍数と 1913）の第 4 四半期の**最初の清算**（全ての行が走る清算）。C1（nationgood_s）は四半期の最後の清算を読む＝別の清算。
-// 行＝年×買い手の国×財（＋国＝ALL の財ごとの行と合計の行）。買い手の行（BilateralMarket の buyers の 1 行＝CostLedger.ClearingRows に数える行）ごとにちょうど 1 つの結果：
-//   rowIdle（番の標本の飛ばし）・rowNoNeed（需要なし＝xNeed≦0・参照価格≦1e-9・需要 0）・rowBudget0（予算 0）・rowScan（走査に入った行）。
-//   走査に入った行は rowDealtCross（越境の成約あり）・rowDealtDomOnly（国内の成約だけ）・rowNoDeal に分ける。
-//   走査に入った行ごとに、その財の売り手の表の越境の売り手を最初に当たった門で 1 つに数える：xSoldOut（残り 0）・xCap（輸送の容量）・xWedge（楔で飛ばす）・xPass（楔を通った）。
-//   xWedge は互いに排他の 4 区分：xWedgeA 関税を抜けば通る・xWedgeB A でなく運賃を抜けば通る・xWedgeC A でも B でもないが両方抜けば通る・xWedgeD 両方抜いても通らない。
-//     式＝selP×(baseMul＋wS2)≧lp（現物）・A＝selP×(baseMul＋wS2−duty)＜lp・B＝selP×(1＋wS2)＜lp・C＝selP×(1＋wS2−duty)＜lp。距離・危険料は引かない。
-//   ratioBin0〜9＝越境の売り手の selP÷lp（金建て）の度数（境 0.5・0.8・0.9・1.0・1.1・1.25・1.5・2・4）。domPairs＝国内の売り手の数。
-//   売り手側（財ごとに 1 回・売り手の国の行）：sellerUnlinked（連結なし）・sellerNoStock（lp≦1e-9 か在庫≦1e-9）・sellerOtherGate（それ以外の門で売り手の表に載らない）・sellerListed。
-//   国＝ALL・財＝名前の行：goodNoSellers（その財に売り手が 0 人＝ClearingRows に数えない）。国＝ALL・財＝ALL の行：rowsLedger＝この清算の Cost[ClearingRows] の増分（エンジンの台帳）。
-// ⚠限界（計器が自己申告する）：呼び口の引数でエンジンの局所（lp・capLeft・left・売り手の表・baseMul・wS2・duty）を受け取る（ScopeSkip・ScopeDeal の先例）＝再導出ではない。
-//   数え上げ（行の結果の排他・和・台帳との突き合わせ）は計器のコード。着値（距離）の判定はしない＝xPass は距離を含めた着値が lp 未満かを見ていない。
-//   売り手の国の次元はこの表の行に持たない。国内の売り手は xPairs に数えない。
-// (1073) 売り手の国の次元は別の表 tskpair_s（買い手の国×売り手の国×財・年 1870 と 1913・和は上の行と一致）に持つ。置き換えの影 tskshadow_s（売り手の州の級別・今の規則と案 B′ の両方・
-//   着値は距離・危険料を含まない＝KmOf・PairRisk を呼ばない）も同じ年・同じ呼び口から書く。計器の RoRead（InstrumentsRecipeout.cs）を再利用し、エンジンの関数は呼ばない。
+// 力学の値を 1 つも書かない・乱数を引かない・距離の表（KmOf・PairRisk）を呼ばない（表に副作用を作らない）。〔履歴 InstrumentsTradeskip.cs#1〕
 public static partial class Instruments
 {
     internal static readonly string TradeskipHeaderText = "year\tnation\tgood\trows\trowIdle\trowNoNeed\trowBudget0\trowScan\trowDealtCross\trowDealtDomOnly\trowNoDeal\t"
@@ -27,18 +11,22 @@ public static partial class Instruments
         + "sellerUnlinked\tsellerNoStock\tsellerOtherGate\tsellerListed\tgoodNoSellers\trowsLedger\t"
         + "dutyMean\tdutyTariffMean\tdutyCornMean\txWedgeAT\txWedgeAC\txWedgeAB\t" + TsGateHeader + "ratioNaN\ttarEff\ttariffNow\ttariffTarget\ttreatyScale\texRate"
         + "\tsogStockLeTarget\tsogSellAcc0\tsogMilitary\tsogOther\txpEndPriceHigh\txpEndXPriceSmall\txpEndXNeedSmall\txpEndYZero\txpEndBudget\txpEndCapMid\txpEndDealt\txpEndGuard"
-        + "\tubRows\tubInf\trpIter\trpDiff\trpCtrl\trpCtrlDiff\tgdRows\tgdIterX\tgdIterY\tgdIterLeft\tgdIterBudget\tgdIterCap\tgdIterRemove\tubD\trpSumXOld\trpSumXBb";   // (1045) C4d・ガード終わりの内訳（末尾に足す・旧の列は同じ順・同じバイト）   // (1008) 末尾の列（旧の列は同じ順・同じバイト）・(1036) C4a：売り手の〈その他の門〉の分け（在庫≦目標・sellAcc 0・軍需・その他＝和は sellerOtherGate）・C4b：xPass の組の行の終わりの理由（組の数で重みづけ＝和は xPass）
+        + "\tubRows\tubInf\trpIter\trpDiff\trpCtrl\trpCtrlDiff\tgdRows\tgdIterX\tgdIterY\tgdIterLeft\tgdIterBudget\tgdIterCap\tgdIterRemove\tubD\trpSumXOld\trpSumXBb";   // tgdIterBudget〔履歴 InstrumentsTradeskip.cs#2〕
     static string TsGateHeader => string.Concat(new[] { "xSoldBin", "xCapBin", "xWedgeBin", "xPassBin" }.Select(g => string.Concat(Enumerable.Range(0, 10).Select(k => g + k + "\t"))));
     internal const int TsNewCols = 3 + 3 + 40 + 1 + 5 + 12 + 13 + 3;
-    const int DStride = TsAcc.DStride;   // (1045) 走査した行の実数の和の幅（旧の 3＋C4d の 3）   // (1008) ALL の行を同じ幅で埋める数
+    const int DStride = TsAcc.DStride;   // DStride〔履歴 InstrumentsTradeskip.cs#3〕
 
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
         Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard,
-        UbRows, UbInf, RpIter, RpDiff, RpCtrl, RpCtrlDiff, GdRows, GdX, GdY, GdLeft, GdBudget, GdCap, GdRemove, Count }   // (1045) 末尾の 13 列
+        UbRows, UbInf, RpIter, RpDiff, RpCtrl, RpCtrlDiff, GdRows, GdX, GdY, GdLeft, GdBudget, GdCap, GdRemove, Count }   // RpCtrlDiff〔履歴 InstrumentsTradeskip.cs#4〕
     internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
-    /// <summary>(1036) 試験の呼び口：買い手が満ちた行の終わり（X≦0）で、その行の xPrice・xNeed と計器が付けた理由を渡す（null＝何もしない）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsTradeskip.cs#5〕
+    /// </summary>
     [System.ThreadStatic] internal static Action<double, double, TsExit>? TsExitProbe;
-    /// <summary>(1073) 試験の呼び口：国の組の内訳と置き換えの影を全ての調べる年で取る（本番は 1870 と 1913 だけ）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsTradeskip.cs#6〕
+    /// </summary>
     [System.ThreadStatic] internal static bool TsPairAllYears;
     internal const int TsOutIdle = 1, TsOutNoNeed = 2, TsOutBudget0 = 3;
     static readonly double[] TsRatioEdges = [0.5, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0, 4.0];
@@ -47,11 +35,11 @@ public static partial class Instruments
     {
         internal int Nn, Gc; internal string[] Names = []; internal int[] C = []; internal int[] NoSell = [];
         internal long Ledger0, LedgerDelta; internal bool Filled, Ended;
-        internal double[] D = [], TarEff = [], TariffNow = [], Target = [], Treaty = [], ExRate = [];   // (1008) D＝国×財×{duty・関税の分・穀物法の分}の和（走査した行）・国の値は清算の頭で蓄える
+        internal double[] D = [], TarEff = [], TariffNow = [], Target = [], Treaty = [], ExRate = [];   // D〔履歴 InstrumentsTradeskip.cs#7〕
         int[] sNode = []; double[] sPrice = []; int sN; bool[] listedMark = []; int curXPass;
         int cur = -1, curBn, curG; bool scanned, dealtCross, dealtDom;
 
-        // (1073) 国の組の門の内訳（tskpair_s）と置き換えの影（tskshadow_s）：年が 1870 と 1913 の清算だけ蓄える（PairOn）。
+        // PairOn〔履歴 InstrumentsTradeskip.cs#8〕
         internal bool PairOn; internal int[] Pair = []; internal double[] Sh = []; internal World[] Worlds = [];
         internal const int PairCols = 8, ShCols = 11, ShCls = 8;
         int[] pcStamp = []; string[] pcCls = []; double[] pcNow = [], pcBp = []; int stamp;
@@ -97,8 +85,7 @@ public static partial class Instruments
                 {
                     Add(sn, g, TsCol.SLive);
                     if (listedMark[s]) continue;
-                    // (1045) C4a の順をエンジンの門の順へ（BilateralMarket.cs の売り手の表の構築＝出し手の係数 sellAcc≦1e-12〔州の access → 軍需 → 鎖国・アヘン〕→ 在庫−目標≦1e-12）。
-                    //   計器は鎖国とアヘンの係数を再導出しない（エンジンの関数を呼ばない）＝その 2 つで落ちた州は、在庫−目標≦1e-12 でもあれば OgStock、無ければ OgOther に数える（宣言した限界）。
+                    // 計器は鎖国とアヘンの係数を再導出しない（エンジンの関数を呼ばない）＝その 2 つで落ちた州は、在庫−目標≦1e-12 でもあれば OgStock、無ければ OgOther に数える（宣言した限界）。〔履歴 InstrumentsTradeskip.cs#9〕
                     if (tr[s].access <= 1e-12) Add(sn, g, TsCol.OgAcc0);
                     else if (milGood && tr[s].access * milExportAcc[sn] <= 1e-12) Add(sn, g, TsCol.OgMil);
                     else if (!(mktOf[s].Stock - mktOf[s].TargetStock > 1e-12)) Add(sn, g, TsCol.OgStock);
@@ -116,10 +103,12 @@ public static partial class Instruments
         }
 
         internal void Row(int bn, int g) { CloseRow(); cur = 1; curBn = bn; curG = g; curXPass = 0; Add(bn, g, TsCol.Rows); }
-        /// <summary>(1036) C4b：走査した行の終わりの理由。その行の xPass の組の数だけ該当の列へ足す（組ごとの追跡ではなく行の終わりの理由を組の数で重みづけ）。</summary>
+        /// <summary>
+        /// その行の xPass の組の数だけ該当の列へ足す（組ごとの追跡ではなく行の終わりの理由を組の数で重みづけ）。〔履歴 InstrumentsTradeskip.cs#10〕
+        /// </summary>
         internal void Exit(TsExit why)
         {
-            if (cur >= 0 && scanned && why == TsExit.Guard)   // (1045) ガードで終わった走査の行の反復の内訳（xPass が 0 の行も数える＝行の数 gdRows）
+            if (cur >= 0 && scanned && why == TsExit.Guard)   // scanned〔履歴 InstrumentsTradeskip.cs#11〕
             {
                 int o = (curBn * Gc + curG) * (int)TsCol.Count;
                 C[o + (int)TsCol.GdRows]++;
@@ -128,7 +117,7 @@ public static partial class Instruments
             ExitXPass(why);
         }
 
-        // (1045) C4d・ガード終わりの内訳：三つの呼び口（計器は Market の欄と売り手の表 sPrice を自分で読む・エンジンの関数を呼ばない）。
+        // DStride〔履歴 InstrumentsTradeskip.cs#12〕
         internal const int DStride = 6, GdLen = 6;
         readonly int[] gd = new int[GdLen];   // 行の中の反復の内訳＝X・Y・left・予算・容量が縛った反復、売り手を外した反復
 
@@ -186,8 +175,8 @@ public static partial class Instruments
         {
             if (cur < 0) return;
             scanned = true; Add(curBn, curG, TsCol.Scan);
-            double protect = TarEff.Length > curBn ? Math.Max(0, TarEff[curBn]) : duty - cornPen;   // (1008) 関税の分＝エンジンの protect の写し（tar の局所から）・合成の盤面だけ差で出す
-            for (int k = 0; k < GdLen; k++) gd[k] = 0;   // (1045) 行ごとの反復の内訳を空にする
+            double protect = TarEff.Length > curBn ? Math.Max(0, TarEff[curBn]) : duty - cornPen;   // protect〔履歴 InstrumentsTradeskip.cs#13〕
+            for (int k = 0; k < GdLen; k++) gd[k] = 0;   // GdLen〔履歴 InstrumentsTradeskip.cs#14〕
             if (D.Length > 0) { int di = (curBn * Gc + curG) * DStride; D[di] += duty; D[di + 1] += protect; D[di + 2] += cornPen; }
             double bCostNow = double.NaN, bCostBp = double.NaN;
             if (PairOn) { var bc = CostOf(t, tr); bCostNow = bc.Now; bCostBp = bc.Bp; Array.Clear(shRowShort); }
@@ -223,10 +212,9 @@ public static partial class Instruments
             }
         }
 
-        /// <summary>(1073) 置き換えの影：容量・売り切れを通った越境の組（楔で飛ばす組と通る組）ごとに、売り手の州の級（E/N/S/F/X/Z/U/-）別に、
-        /// 着値÷買い手の自己費用＋投入費を今の規則と案 B′ の両方で数える。着値＝selP×(baseMul＋楔)＝**距離・危険料は含まない**（KmOf・PairRisk を呼ばない＝BilateralMarket に呼び口を足さない・完全な着値は波103 へ）。
-        /// 案 B′ の売り手の値段＝selP×（売り手の最安の生産者の B′ 費用÷今の費用）・買い手の lp も同じ比で動かす（値段が費用に従う近似＝計器の読み・確証なし）。
-        /// 不足の額＝max(0, 目標＋需要−生産−在庫)×lp（行ごとに級ごとに 1 回）。summary>/summary>
+        /// <summary>
+        /// 案 B′ の売り手の値段＝selP×（売り手の最安の生産者の B′ 費用÷今の費用）・買い手の lp も同じ比で動かす（値段が費用に従う近似＝計器の読み・確証なし）。〔履歴 InstrumentsTradeskip.cs#15〕
+        /// </summary>
         void Shadow(TrEntry[] tr, int t, int sn, int sNat, double selP, double baseMul, double wS2, double lp, bool wedgeD, double bCostNow, double bCostBp)
         {
             var sc = CostOf(sn, tr); int k = ClsIx(sc.Cls);
@@ -271,8 +259,8 @@ public static partial class Instruments
         if (a.C.Length != len) a.C = new int[len]; else Array.Clear(a.C);
         if (a.NoSell.Length != gc) a.NoSell = new int[gc]; else Array.Clear(a.NoSell);
         a.Names = new string[nn]; for (int i = 0; i < nn; i++) a.Names[i] = NameOf(nations[i].World);
-        if (a.D.Length != nn * gc * DStride) a.D = new double[nn * gc * DStride]; else Array.Clear(a.D);   // (1045) 3 → DStride（先頭の 3 つは旧のまま・後ろ 3 つは C4d の和）
-        a.TarEff = new double[nn]; a.TariffNow = new double[nn]; a.Target = new double[nn]; a.Treaty = new double[nn]; a.ExRate = new double[nn];   // (1008) 国の値は清算の頭の写し（tar・exRate はエンジンの局所・他は World から計器が自分で写す）
+        if (a.D.Length != nn * gc * DStride) a.D = new double[nn * gc * DStride]; else Array.Clear(a.D);   // DStride〔履歴 InstrumentsTradeskip.cs#16〕
+        a.TarEff = new double[nn]; a.TariffNow = new double[nn]; a.Target = new double[nn]; a.Treaty = new double[nn]; a.ExRate = new double[nn];   // TarEff〔履歴 InstrumentsTradeskip.cs#17〕
         for (int i = 0; i < nn; i++)
         {
             var wi = nations[i].World; a.TarEff[i] = tar is not null ? tar[i] : double.NaN; a.ExRate[i] = exRate is not null ? exRate[i] : double.NaN;
@@ -280,7 +268,7 @@ public static partial class Instruments
             double tg = Government.Q5(wi.Policy.TariffTarget) + wi.TariffRetaliationBias; a.Target[i] = tg < wi.Coef.TariffFloor ? wi.Coef.TariffFloor : tg > 1 ? 1 : tg;
         }
         a.Nn = nn; a.Gc = gc;
-        a.PairOn = TsPairAllYears || w0.Year + 1 == 1870 || w0.Year + 1 == 1913;   // (1073) 国の組の内訳と置き換えの影は 2 年だけ（行が多い）
+        a.PairOn = TsPairAllYears || w0.Year + 1 == 1870 || w0.Year + 1 == 1913;   // PairOn〔履歴 InstrumentsTradeskip.cs#18〕
         if (a.PairOn)
         {
             a.Worlds = new World[nn]; for (int i = 0; i < nn; i++) a.Worlds[i] = nations[i].World;
@@ -294,7 +282,7 @@ public static partial class Instruments
     /// <summary>番人用：蓄え（無ければ null）。</summary>
     internal static TsAcc? TsSnapshot(InternationalMarket m) => TsAccs.TryGetValue(m, out var a) && a.Filled ? a : null;
 
-    internal static string FR(double v) => double.IsNaN(v) ? "nan" : double.IsInfinity(v) ? (v > 0 ? "inf" : "-inf") : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);   // (1008) 往復の桁
+    internal static string FR(double v) => double.IsNaN(v) ? "nan" : double.IsInfinity(v) ? (v > 0 ? "inf" : "-inf") : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);   // FR〔履歴 InstrumentsTradeskip.cs#19〕
     static void TradeskipTable(MultiNationSim sim, ulong seed, int q)
     {
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
@@ -314,13 +302,13 @@ public static partial class Instruments
                 cols.Clear(); cols.Add(I(year)); cols.Add(nm); cols.Add(Catalog.Goods[g].Name);
                 for (int c = (int)TsCol.Rows; c <= (int)TsCol.Bin9; c++) cols.Add(I(a.C[o + c]));
                 cols.Add(I(a.C[o + (int)TsCol.SUnlinked])); cols.Add(I(a.C[o + (int)TsCol.SNoStock])); cols.Add(I(live - listed)); cols.Add(I(listed)); cols.Add("0"); cols.Add("0");
-                double ns = a.C[o + (int)TsCol.Scan]; int di = (i * a.Gc + g) * DStride;   // (1008) 末尾の列：走査した行の平均（走査 0 の行は 0）・小数は往復の桁（門の 1e-12 のため）
+                double ns = a.C[o + (int)TsCol.Scan]; int di = (i * a.Gc + g) * DStride;   // ns〔履歴 InstrumentsTradeskip.cs#20〕
                 for (int k = 0; k < 3; k++) cols.Add(ns > 0 ? FR(a.D[di + k] / ns) : "0");
                 cols.Add(I(a.C[o + (int)TsCol.WAT])); cols.Add(I(a.C[o + (int)TsCol.WAC])); cols.Add(I(a.C[o + (int)TsCol.WAB]));
                 for (int c = (int)TsCol.GBin0; c < (int)TsCol.GBin0 + 40; c++) cols.Add(I(a.C[o + c]));
                 cols.Add(I(a.C[o + (int)TsCol.RNaN])); cols.Add(FR(a.TarEff[i])); cols.Add(FR(a.TariffNow[i])); cols.Add(FR(a.Target[i])); cols.Add(FR(a.Treaty[i])); cols.Add(FR(a.ExRate[i]));
-                for (int c = (int)TsCol.OgStock; c < (int)TsCol.Count; c++) cols.Add(I(a.C[o + c]));   // (1036) C4a・C4b・(1045) C4d の整数の列
-                for (int k = 3; k < DStride; k++) cols.Add(FR(a.D[di + k]));   // (1045) C4d の和（ubD・rpSumXOld・rpSumXBb）
+                for (int c = (int)TsCol.OgStock; c < (int)TsCol.Count; c++) cols.Add(I(a.C[o + c]));   // OgStock〔履歴 InstrumentsTradeskip.cs#21〕
+                for (int k = 3; k < DStride; k++) cols.Add(FR(a.D[di + k]));   // DStride〔履歴 InstrumentsTradeskip.cs#22〕
                 sk.W.WriteLine(string.Join('\t', cols));
             }
         }
@@ -335,7 +323,9 @@ public static partial class Instruments
     internal const string TskpairHeaderText = "year\tnation\tseller\tgood\txPairs\txSoldOut\txCap\txWedgeA\txWedgeB\txWedgeC\txWedgeD\txPass";
     internal const string TskshadowHeaderText = "year\tnation\tgood\tsellerClass\tpairs\tnowPass\tnowWedgeD\tbpPass\tdToBpPass\tdToBpShort\townN\townNowSum\townBpSum\townNowLt1\townBpLt1";
 
-    /// <summary>(1073) tskpair_s（買い手の国×売り手の国×財の門の内訳・和は tradeskip_s の行と一致）と tskshadow_s（置き換えの影）。年が 1870 と 1913 の清算だけ。</summary>
+    /// <summary>
+    /// 年が 1870 と 1913 の清算だけ。〔履歴 InstrumentsTradeskip.cs#23〕
+    /// </summary>
     static void TradeskipPairTables(TsSink sk, TsAcc a, int year, ulong seed)
     {
         if (sk.WPair is null) { sk.WPair = Open("tskpair", seed); sk.WPair.WriteLine(TskpairHeaderText); }

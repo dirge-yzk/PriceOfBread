@@ -1,24 +1,7 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (895) 土地の持ち分の段 B-0 の恒等の計器 landshare_s（読むだけ・恒等・事前登録 measurements/m895_20261106_prereg_ls.txt） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsCornint.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（出力の口は ConditionalWeakTable だけ）。INS=1 のときだけ動く。
-// 目的＝土地の持ち分（Producer.LandShares・NationConfig.LandOwnership）の器が地代を持ち分どおりに受け手へ渡したかを、期待（計器が自分で掛けた値）と実際（POP の LandRentPerMonth）で比べる＋B-2a の予言の材料（非賦存の地代を今の持ち主の階級で分けた和）。
-// 行＝国×四半期（全ての国）。額は国の通貨・四半期の月の和（…PerQuarter）。助走の月（World.WarmupFrozen）は数えない。階級の 5 区分＝Noble（PopClass.Noble）・Clergy（Clergy）・Peasant（Peasant）・Capitalist（Capitalist）・Other（その他）。
-// エンジンの関数を呼ばない：受け手の枠（0 貴族＝持ち主・1 教会＝州の聖職者・2 農民＝担い手・3 市民＝州の投資家・範囲の外は持ち主へ寄せる）・賦存の判別（州の Resources に載る財）・不在地主の判別・データの正規化・掛け算を自分で書く
-//   （EconomyStep.LandShareRecipient・PayOwnerRent・Colonial.AbsenteeRgo・Simulation.LandOwnershipShares と同じ規則の写し＝片方の誤りをもう片方で拾う）。エンジンの局所から受けるのは受け口の地代の総額 rent だけ（SbRgo の先例）。
-// 受け口：EconomyStep の④（国営持分と赤字の枝の後・割る前の総額）＝LandshareRgo・InternationalMarket.PaySales（国営持分を引いた後の正の rent）＝LandshareExp。月の閉じ＝Instruments.MonthClose の頭＝LandshareMonth。
-// 期待（expectedByClass）＝非植民地格の州の全ての RGO の rent>0×欄の重み（null＝持ち主に 1）→受け手の POP の ClassId。
-//   ＋送金の項（事前登録 [3]・反証役の訂正 1 の (a)）：植民地格の州の輸出作物の大農園の地代は月末に首都の投資家の LandRent へ移る（Colonial.RemitAbsenteeRent）＝計器は植民地格の州の POP ごとに
-//   その月の LandRent の積み pre（受け口の rent>0 を同じ受け手で足した値）を数え、月の閉じで残った LandRent post との差 max(0, pre−post) を送った額として首都の投資家の ClassId へ足す（期待と data の両方）。
-// data（dataByClass）＝同じ集合で、欄の代わりに world.json の側（WorldData.Nations() の同じ名の国の LandOwnership を計器が自分で正規化）を、非賦存×持ち主が貴族の RGO にだけ掛けた期待（他とデータの無い国は持ち主に 1）。
-// 実際（landRentActual）＝月の閉じの非植民地格の州の POP の LandRentPerMonth（階級ごと）。
-// ⚠限界（計器が自己申告する）：①実際の側は国内だけ（輸出の地代は LandRent に載らない＝expRent・expSlotExpected は門にしない）②植民地格の州は外し送金だけを足す③rent≦0 は LandRent が立たない＝期待も rent>0 の分だけ
-//   ④期待も実際も受け手の POP の ClassId で積む⑤昇格した植民地は Integrated＝本国の側・欄は null＝data は欄を持つ州だけの列か最初の四半期で読む⑥rentNonEndowByOwnerClass は受け口の時点の持ち主の階級
-//   ⑦data は国の名で world.json の国を引く＝建国の国・名の変わった国はデータ無し⑧割譲で州が月の途中に動けば旧の国の受け口と新の国の LandRent が分かれる（外交は四半期の境＝見込み 0）⑨slotFallbackCount は計器が自分で引いた受け手の寄せの回数
-//   ⑪（★(978)）鉱山の列：植民地格の州の鉱物は国内の列に入らない・造幣と輸出を分けない・受け口の rent は国営持分の後・国の和だけ。国家の枠の列：期待は data（world.json の 5 個目 c）×非賦存×持ち主が貴族×非植民地格・国有化の州（NationalizedMask≠0）は外して件数だけ
-//   ＝後から立つ RGO（欄が無い）は期待に入って実際 0＝門は q0〜q11 で読む。basisx_s（InstrumentsBasisx）と landbase_s（InstrumentsLandbase）の枠の周回は長さで回す＝旗 1 の 5 枠では国家の枠を持ち主へ寄せて数える（持ち主の範囲の外・記録）。
-//   ⑩持ち分に合わせた他の計器＝cornint_s（InstrumentsCornint の所有の値・按分・輸出の層）と cearn_s（InstrumentsCearn の地代の受け手の行）。sbr_s の自営の数（InstrumentsSb.SbRgo の owner==labor）は今のまま＝欄を持つ RGO の農民の枠は数えない。
+// 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（出力の口は ConditionalWeakTable だけ）。〔履歴 InstrumentsLandshare.cs#1〕
 public static partial class Instruments
 {
     const int LsNC = 5;
@@ -36,7 +19,9 @@ public static partial class Instruments
         return s.OwnerPopIndex;
     }
 
-    /// <summary>データの正規化（計器の写し・純関数）：長さ 4 か 5（★(978) 5 個目＝国家の枠）・全て有限で 0 以上・和が正なら和で割った同じ長さの写し（長さ 5 で 5 個目が 1 以上なら null）、そうでなければ null。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandshare.cs#2〕
+    /// </summary>
     internal static double[]? LsNormalize(double[]? lo)
     {
         if (lo is null || (lo.Length != 4 && lo.Length != 5)) return null;
@@ -48,15 +33,21 @@ public static partial class Instruments
         return o.Length == 5 && !(1.0 - o[4] > 0) ? null : o;
     }
 
-    /// <summary>★(978) 枠の周回の数と重み（計器の写し）：旗 LandShareCrownSlot＞0 かつ長さ 5 なら私の 4 枠を ls[k]÷(1−ls[4])・それ以外は全ての枠を ls[k]（5 個目は受け手の寄せで持ち主へ＝旗 0 のエンジンと同じ）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandshare.cs#3〕
+    /// </summary>
     internal static int LsSlots(World w, double[] ls) => w.Coef.LandShareCrownSlot > 0 && ls.Length == 5 ? 4 : ls.Length;
     internal static double LsW(World w, double[] ls, int k) => w.Coef.LandShareCrownSlot > 0 && ls.Length == 5 ? ls[k] / (1.0 - ls[4]) : ls[k];
 
-    /// <summary>★(978) 鉱物の財（計器が自分で持つ 14 個の表＝Catalog.IsMineral を呼ばない・番人 LandShareCrownTests.T_M1 が突き合わせる）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandshare.cs#4〕
+    /// </summary>
     static readonly int[] LsMineralIds = [Catalog.IronOreId, Catalog.CoalId, Catalog.CopperOreId, Catalog.LeadOreId, Catalog.GoldOreId, Catalog.SulfurId, Catalog.LimestoneId, Catalog.SilicaSandId, Catalog.ClayId, Catalog.CrudeOilId, Catalog.ChromeId, Catalog.TinOreId, Catalog.SaltpeterId, Catalog.SilverId];   // ★GoodIdGuardTests＝数値の財 id を書かない（定数の名で同じ 14 財）
     internal static bool LsMineral(int id) => System.Array.IndexOf(LsMineralIds, id) >= 0;
 
-    /// <summary>★(978) 計器が自分で組む建てた容量の持分（World.StateProfitShare を呼ばない・国有化の下限は写さない＝その州は門の母集合から外す）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandshare.cs#5〕
+    /// </summary>
     static double LsBuiltShare(Producer s) => s.BuiltScale > 1e-9 ? System.Math.Min(1.0, s.BuiltScale / System.Math.Max(s.Scale, 1e-9)) : 0.0;
 
     /// <summary>月の相対の差（純関数）＝Σ_c|a_c−b_c|÷Σ_c b_c。分母が正でなければ差 0 で 0・差が正なら +∞。</summary>
@@ -111,12 +102,12 @@ public static partial class Instruments
         public readonly double[] QByOwner = new double[LsNC], QExpected = new double[LsNC], QData = new double[LsNC], QActual = new double[LsNC],
             QActualF = new double[LsNC], QExpectedF = new double[LsNC], QExpSlot = new double[LsNC];
         public double MaxSlot, MaxData; public long Fallback; public int Months;
-        // (904) 末尾の 3 列の積み：送金が期待へ入らなかった月（首都が植民地格・首都の投資家の添字が範囲の外）の額・首都が植民地格だった月数・その規則（Tier≠Colonial の月だけ送金を期待へ足す）での月ごとの相対差の最大
+        // MaxSlotTierRule〔履歴 InstrumentsLandshare.cs#6〕
         public double QRemitNotAdded, MaxSlotTierRule; public int CapColonialMonths;
-        // ★(978) 鉱山の地代の列（四半期の和・助走の月は積まない）
+        // QExpNeNobleMin〔履歴 InstrumentsLandshare.cs#7〕
         public double QMinNonEndow, QMinEndow, QExpMin, QExpNeNoble, QExpNeNobleMin;
         public readonly double[] QMinByOwner = new double[LsNC];
-        // ★(978) 国家の枠（crown）の列：月の和（月の閉じで国の相対差の最大を取り四半期へ足す）・四半期の和・件数
+        // MCrownXAct〔履歴 InstrumentsLandshare.cs#8〕
         public double MCrownExp, MCrownAct, MCrownXExp, MCrownXAct;
         public double QCrownExp, QCrownAct, QCrownXExp, QCrownXAct, QCrownAll, QCrownDef, MaxCrown, MaxCrownX;
         public long CrownProp, CrownNatSkip;
@@ -138,7 +129,7 @@ public static partial class Instruments
     /// <summary>受け口（EconomyStep の④・RGO だけ・INS のときだけ）：国営持分と赤字の枝の後・割る前の地代の総額 <paramref name="rent"/>。</summary>
     internal static void LandshareRgo(World w, Region r, Producer s, double rent, double sf0)
     {
-        // ★(978) 国家の枠の積み（rent≦0 の赤字の月も数える＝下の rent>0 の返りより前）：stA＝国営工場の区分の台帳が受け口の前後で国庫へ動いた額（移した直後の値・⑮）
+        // WarmupFrozen〔履歴 InstrumentsLandshare.cs#9〕
         if (!w.WarmupFrozen && s.IsRgo)
         {
             var a0 = LsAccs.GetValue(w, _ => new LsAcc());
@@ -177,7 +168,7 @@ public static partial class Instruments
         bool endow = LsEndow(r, s);
         int ownerCls = LsClass(r.Pops[s.OwnerPopIndex].ClassId);
         if (endow) a.MEndow += rent; else { a.MNonEndow += rent; a.MByOwner[ownerCls] += rent; }
-        if (!w.WarmupFrozen && LsMineral(s.GoodId))   // ★(978) 鉱山の地代の列（受け口の時点の持ち主の階級で分ける）
+        if (!w.WarmupFrozen && LsMineral(s.GoodId))   // WarmupFrozen〔履歴 InstrumentsLandshare.cs#10〕
         {
             if (endow) a.QMinEndow += rent; else { a.QMinNonEndow += rent; a.QMinByOwner[ownerCls] += rent; }
         }
@@ -192,13 +183,15 @@ public static partial class Instruments
         else g.Dat[ownerCls] += rent;
     }
 
-    /// <summary>受け口（InternationalMarket.PaySales・INS のときだけ）：国営持分を引いた後の正の輸出の地代 <paramref name="rent"/>。★(978) <paramref name="sc"/>＝同じ代金の国営持分（エンジンの局所＝写しの門 G-S2 の輸出の列だけが読む）。</summary>
+    /// <summary>
+    /// 受け口（InternationalMarket.PaySales・INS のときだけ）：国営持分を引いた後の正の輸出の地代 rent。〔履歴 InstrumentsLandshare.cs#11〕
+    /// </summary>
     internal static void LandshareExp(World w, Region r, Producer s, double rent, double sc)
     {
         if (!(rent > 0)) return;
         var a = LsAccs.GetValue(w, _ => new LsAcc());
         a.MExp += rent;
-        if (!w.WarmupFrozen)   // ★(978) 鉱山の列と国家の枠の輸出の写し（非植民地格・非賦存・持ち主が貴族＝data の側と同じ判別）
+        if (!w.WarmupFrozen)   // WarmupFrozen〔履歴 InstrumentsLandshare.cs#12〕
         {
             if (!a.DataReady) { a.Data = LsDataFor(w); a.DataReady = true; }
             bool min = LsMineral(s.GoodId);
@@ -246,14 +239,14 @@ public static partial class Instruments
                 if (g is not null) { LsAdd(exp, g.Exp); LsAdd(dat, g.Dat); }
                 if (field) { LsAdd(actF, actR); if (g is not null) LsAdd(expF, g.Exp); }
             }
-            var expTier = (double[])exp.Clone();   // (904) 送金を足す前の期待＝下の Tier≠Colonial の規則の期待の元
+            var expTier = (double[])exp.Clone();   // expTier〔履歴 InstrumentsLandshare.cs#13〕
             var capR = w.Region;
             bool capColonial = capR.Tier == RegionTier.Colonial;
             if (capColonial) a.CapColonialMonths++;
             if (remit > 0)
             {
                 var cap = w.Region;
-                bool capIn = cap.InvestorPopIndex >= 0 && cap.InvestorPopIndex < cap.Pops.Count;   // (904) LsAbsenteeOwner と同じ範囲の確かめ（範囲の外は足さず末尾の列へ）
+                bool capIn = cap.InvestorPopIndex >= 0 && cap.InvestorPopIndex < cap.Pops.Count;   // capIn〔履歴 InstrumentsLandshare.cs#14〕
                 if (capIn)
                 {
                     int ci = LsClass(cap.Pops[cap.InvestorPopIndex].ClassId);
@@ -269,7 +262,7 @@ public static partial class Instruments
             a.QNonEndow += a.MNonEndow; a.QEndow += a.MEndow; a.QColonial += a.MColonial; a.QExp += a.MExp; a.QRemit += remit;
             LsAdd(a.QByOwner, a.MByOwner); LsAdd(a.QExpected, exp); LsAdd(a.QData, dat); LsAdd(a.QActual, act); LsAdd(a.QActualF, actF); LsAdd(a.QExpectedF, expF); LsAdd(a.QExpSlot, a.MExpSlot);
             a.Months++;
-            // ★(978) 国家の枠：月ごとの国の |Σ実際−Σ期待|÷Σ期待（期待 0 で実際も 0 なら 0・期待 0 で実際が 0 でなければ +∞）の四半期の最大
+            // CrRel〔履歴 InstrumentsLandshare.cs#15〕
             static double CrRel(double act, double exp) => exp > 0 ? System.Math.Abs(act - exp) / exp : act == 0 ? 0.0 : double.IsNaN(act) ? double.NaN : double.PositiveInfinity;
             LsMax(ref a.MaxCrown, CrRel(a.MCrownAct, a.MCrownExp)); LsMax(ref a.MaxCrownX, CrRel(a.MCrownXAct, a.MCrownXExp));
             a.QCrownExp += a.MCrownExp; a.QCrownAct += a.MCrownAct; a.QCrownXExp += a.MCrownXExp; a.QCrownXAct += a.MCrownXAct;
@@ -337,9 +330,9 @@ public static partial class Instruments
             cols.Add(("fieldSumMaxAbsDev", F(sumDev))); cols.Add(("slotFallbackCount", I(a.Fallback)));
             cols.Add(("expRentPerQuarter", F(a.QExp)));
             Add5("expSlotExpected", a.QExpSlot, "PerQuarter");
-            // (904) 末尾に足した 3 列（既にある列の値は変えない）：首都が植民地格だった月数・送金が期待へ入らなかった額・Tier≠Colonial の月だけ送金を期待へ足す規則での相対差の最大
+            // Add〔履歴 InstrumentsLandshare.cs#16〕
             cols.Add(("capColonialMonths", I(a.CapColonialMonths))); cols.Add(("remitNotAddedPerQuarter", F(a.QRemitNotAdded))); cols.Add(("maxRelDiffSlotVsActualTierRule", F(a.MaxSlotTierRule)));
-            // ★(978) 末尾に足した列（既にある列の値は変えない）：鉱山の地代の 10 列（§2-1）と国家の枠の 10 列（§2-2・事前登録 measurements/m978_20261109_prereg_cs.txt）
+            // Add〔履歴 InstrumentsLandshare.cs#17〕
             cols.Add(("rentNonEndowMineralPerQuarter", F(a.QMinNonEndow)));
             Add5("rentNonEndowMineralByOwnerClass", a.QMinByOwner, "PerQuarter");
             cols.Add(("rentEndowMineralPerQuarter", F(a.QMinEndow))); cols.Add(("expRentMineralPerQuarter", F(a.QExpMin)));

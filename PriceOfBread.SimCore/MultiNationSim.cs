@@ -17,10 +17,10 @@ public sealed class MultiNationSim
     private readonly Coefficients _coef;
     private readonly ulong _seed;   // 建国スポーンの国別乱数種の派生元（MixSeed(_seed, 新index)＝純関数・決定論）。リフレクション直列化で自動保存
     internal Coefficients Coef => _coef;   // 共有外交/国際市場の係数（テストのON経路検証用にinternal公開・InternalsVisibleTo）
-    /// <summary>地図が**実際に使われた航路**を太さ付きで描くための半減距離km。
-    /// ⚠旧・重力カーネル（世界の交易重心・単一世界価格）は2026-08-12撤去＝現在の清算（二国間交易）はこの値を読まない。
-    /// RegionalDistanceHalf の読み手はこの地図描画スケールのみ（死蔵係数を1本だけ描画用に流用）。</summary>
-    public double TradeGravityHalfKm => _coef.RegionalDistanceHalf;   // （EraRegionalHalf は読み手ゼロで2026-08-29撤去＝×1恒等だった）
+    /// <summary>
+    /// 地図が**実際に使われた航路**を太さ付きで描くための半減距離km。〔履歴 MultiNationSim.cs#1〕
+    /// </summary>
+    public double TradeGravityHalfKm => _coef.RegionalDistanceHalf;   // TradeGravityHalfKm〔履歴 MultiNationSim.cs#2〕
     private int _quarter;
     private bool _calendarFrozen;   // 開始前の助走中＝共有層の四半期カウンタも止める（World.WarmupFrozen と対。WarmupEconomy だけが立てて必ず戻す）
     private int _nextPowerId;   // ★建国スポーンの採番（wave2b是正）：Diplomacy.Powers.Count は RemovePower 後に既存Idと衝突する（再併合で欠番が生まれても番号を再利用しない・単調増加）
@@ -31,12 +31,15 @@ public sealed class MultiNationSim
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
 
     // splitmix64（Diplomacy.Hash01と同系の混合）：国別乱数種の生成（他16）。
-    /// <summary>★(807) 注入の対数平均の最後の 1 行。旗 0＝州の数で割る（今の形）／旗が正＝票の和で割る（和が正でなければ 0＝比が不正の扱い）。</summary>
+    /// <summary>
+    /// 旗 0＝州の数で割る（今の形）／旗が正＝票の和で割る（和が正でなければ 0＝比が不正の扱い）。〔履歴 MultiNationSim.cs#3〕
+    /// </summary>
     internal static double SilverMeanRatio(bool weighted, double lnSum, int count, double weightedLnSum, double weightSum)
         => weighted ? (weightSum > 1e-9 ? System.Math.Exp(weightedLnSum / weightSum) : 0) : (count > 0 ? System.Math.Exp(lnSum / count) : 0);
 
-    /// <summary>★(827) 旗が正（A′・点火の値 2・(834) で値 1 の w1 の枝を消した）の 1 州ぶんの票＝薄い側の額（参照価格建て）＝min(dAg×refAg, dAu×refAu)。2 つの積をそれぞれ非有限・非正なら 0（否定形）にしてから小さい方
-    /// （片側が無い州は票なし）。計器の <c>Instruments.SilverMinWeight</c> は呼ばない＝計器の自走査と独立（門 S1）。純関数（試験が手の値で読む）。</summary>
+    /// <summary>
+    /// 2 つの積をそれぞれ非有限・非正なら 0（否定形）にしてから小さい方 （片側が無い州は票なし）。〔履歴 MultiNationSim.cs#4〕
+    /// </summary>
     internal static double SilverMinRefWeight(double demandAg, double demandAu, double refAg, double refAu)
     {
         double sideAg = demandAg * refAg, sideAu = demandAu * refAu;
@@ -53,8 +56,7 @@ public sealed class MultiNationSim
         return x ^ (x >> 31);
     }
 
-    /// <param name="coef">★2026-08-26：係数を外から渡せるようにした（既定 null＝new Coefficients()＝従来と厳密同値）。
-    /// ⚠**構築時に走る機構**（植民地の州昇格 PromoteAllColonies）があるので、構築後に w.Coef を書き換えても間に合わない場合は、構築の前に係数を渡す口がここ。</param>
+    /// ⚠**構築時に走る機構**（植民地の州昇格 PromoteAllColonies）があるので、構築後に w.Coef を書き換えても間に合わない場合は、構築の前に係数を渡す口がここ。〔履歴 MultiNationSim.cs#5〕
     public MultiNationSim(IReadOnlyList<NationConfig> configs, ulong seed, Func<NationConfig, INationAgent>? agentFactory = null, Coefficients? coef = null)
     {
         _coef = coef ?? new Coefficients();
@@ -63,57 +65,46 @@ public sealed class MultiNationSim
         _weatherRng = new DeterministicRng(seed ^ 0xC11A7E_5EEDUL);   // 緯度帯天候の独立系列
         Diplomacy.UnificationRng = new DeterministicRng(seed ^ 0xF0E1_D2C3_B4A5UL);   // P4 統一戦争の専用系列（既存系列のdraw数を乱さない・主フラグOFFでは未消費）
         Diplomacy.SubmitRng = new DeterministicRng(seed ^ 0xA5B4_C3D2_E1F0UL);        // ★屈服の確率化（AI審査3-1）の専用系列（SubmitProbabilistic=0では未消費＝恒等）
-        // ★(227)：植民地の質量の単位（千人）＝構築時の全ての初期の植民地（国の植民地と抽象標的）の住民数の平均。Colony.Population（質量）＝住民数÷これ。
+        // Colony.Population（質量）＝住民数÷これ。〔履歴 MultiNationSim.cs#6〕
         {
             double sumK = 0; int nCol = 0;
             foreach (var cfg0 in configs) foreach (var c0 in cfg0.InitialColonies) { sumK += c0.PopK; nCol++; }
             foreach (var t0 in WorldData.Setup().Targets) foreach (var c0 in t0.Colonies) { sumK += c0.PopK; nCol++; }
             Diplomacy.ColonyUnitPop = nCol > 0 && sumK > 1e-9 ? sumK / nCol : 1.0;
         }
-        Market = new InternationalMarket(Catalog.Goods.Length);   // A-低7（2026-07-24配線・点火2026-07-27）：世界価格の初期値をRefPriceから初期化（既定1.0）。0で全財1.0の旧初期化
+        Market = new InternationalMarket(Catalog.Goods.Length);   // 0で全財1.0の旧初期化〔履歴 MultiNationSim.cs#7〕
         for (int i = 0; i < configs.Count; i++)
         {
             var cfg = configs[i];
-            // agentFactory 省略時は NullAgent（放置＝検証ハーネス用の後方互換）。自己対戦では効用AIを差す。
-            // 国別乱数種＝splitmix64混合（監査2026-07-12 他16・裁定同梱）：旧 seed+i+1 の直接種付けは「試合sの国i」と「試合s+1の国i−1」が
-            // 同一系列＝batch30の試合間の統計的独立性を毀損していた。混合で全ペアが独立系列に。決定論は不変（純関数・同seed同結果）。
+            // agentFactory 省略時は NullAgent（放置＝検証ハーネス用の後方互換）。〔履歴 MultiNationSim.cs#8〕
             var sim = new Simulation(cfg.ToScenario(MixSeed(seed, (ulong)i), sharedWorld: true), agentFactory?.Invoke(cfg) ?? new NullAgent());
             var power = new Power
             {
                 Id = i, Name = cfg.Name, BaseName = cfg.Name, Nation = sim.World,
-                // ★2026-08-02：初期ゲージも**兵士POPから導出**する（国別の military の手置きは撤去・world.json の欄も (231) で外した）。
-                // ⚠旧は手置きの数を入れていたが、最初の Diplomacy.Step が兵士POPから作り直すので、
-                //   **1783年の画面だけが別のスケール**を映していた（実測＝英450→翌年20＝20倍の段差）。
-                //   同じ式で播けば段差が消える（充足度と質の乗数は初回Stepで乗る）。
+                // ⚠旧は手置きの数を入れていたが、最初の Diplomacy.Step が兵士POPから作り直すので、   **1783年の画面だけが別のスケール**を映していた（実測＝英450→翌年20＝20倍の段差）。〔履歴 MultiNationSim.cs#9〕
                 Military = sim.World.SoldierSizeK() / _coef.SoldiersPerMilitary,
                 GdpPerMonth = sim.World.GdpPerMonth,
-                TradeWeight = DefaultTradeWeightBase,   // ★(667) 開幕の交易の比重は全ての初期国で基準の均等（入力データの工業化度では傾けない・最初の四半期の末の UpdateTradeWeights が貿易取扱高のシェアから上書きする）
+                TradeWeight = DefaultTradeWeightBase,   // TradeWeight〔履歴 MultiNationSim.cs#10〕
             };
             foreach (var (cname, cres, cpopK) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpopK / Diplomacy.ColonyUnitPop, PopSize = cpopK, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
             sim.World.Diplomacy = Diplomacy;     // 読み取り用（植民地アクセス・交易）
             sim.World.SelfPower = power;
-            // ★近代化投資レバーの出発点を全国で揃える（2026-08-02・UtilityAgent.OpeningModernizationFrac を見よ）。
-            // ⚠既定0のままだと、AIだけが毎ステップ自分で設定し、NullAgent のプレイヤー国は**永久に0**＝
-            //   国家による工業化が一度も起きない（実測でQ24に14倍の差）。AIは次のステップで上書きする＝較正に無影響。
+            // ⚠既定0のままだと、AIだけが毎ステップ自分で設定し、NullAgent のプレイヤー国は**永久に0**＝   国家による工業化が一度も起きない（実測でQ24に14倍の差）。〔履歴 MultiNationSim.cs#11〕
             sim.World.ModernizationFrac = UtilityAgent.OpeningModernizationFrac;
             sim.World.StepsDiplomacy = false;    // 共有外交は本クラスが進める
-            sim.World.CoercionFollowsForce = true;   // 武力統合：実ゲーム＝多国シム＝治安維持力は軍事費スライダーから導出（治安維持力スライダー廃止）。較正/単体は単一 Simulation＝既定 false で旧挙動
+            sim.World.CoercionFollowsForce = true;   // 較正/単体は単一 Simulation＝既定 false で旧挙動〔履歴 MultiNationSim.cs#12〕
             Diplomacy.Powers.Add(power);
             Nations.Add(sim);
-            // 案Y（人口物差しの脱汚染・2026-08-21）：1783年の州所有を恒久ラベルとして焼き込む＝「故地」判定の基準。
-            // 征服割譲で他国州を得ると持ち込み人口（AnnexBaggage）が記帳され PopGrowth の分子から除かれるが、
-            // 故地への復帰（OriginPowerId 一致＝再征服・回復）は記帳0＝清の太平天国回復型が帯へ戻れる。書くだけ＝力学は読まない。
+            // 征服割譲で他国州を得ると持ち込み人口（AnnexBaggage）が記帳され PopGrowth の分子から除かれるが、 故地への復帰（OriginPowerId 一致＝再征服・回復）は記帳0＝清の太平天国回復型が帯へ戻れる。〔履歴 MultiNationSim.cs#13〕
             foreach (var r0 in sim.World.Regions) r0.OriginPowerId = power.Id;
         }
-        WireTransitPorts();   // Stage C（裁定A3）：内陸国の外国港トランジット候補＝全国が出揃った後の国境跨ぎ配線（WirePortDistances は国内のみ）。旧の旗 TransitEnabled は 2026-10-18 に焼き込み
-        // 清・インド・東南アジア・近東・中央アジア・北アフリカ温帯は実国化（Phase 3・world.json 駆動）＝抽象 Power は廃止（上の configs ループが生成）。
-        // 能動侵略の抽象標的（段C・案Y）：Nation=null・Gdp=0＝ThreatTension を生まず自動では緊張も溜まらない＝Invade 動詞でのみ取れる。熱帯内陸（アシャンティ/ソコト/コンゴ）はマラリア付き（硬直でなく実コストで律速）。
-        // 抽象標的・史実ライバル・従属・海峡運河は WorldData.Setup()（world.json、無ければ BootstrapSetup）へデータ化。順序厳守＝Power.Id は Powers.Count で連番付与＝配列順が挙動を決める。
+        WireTransitPorts();   // WireTransitPorts〔履歴 MultiNationSim.cs#14〕
+        // 能動侵略の抽象標的（段C・案Y）：Nation=null・Gdp=0＝ThreatTension を生まず自動では緊張も溜まらない＝Invade 動詞でのみ取れる。〔履歴 MultiNationSim.cs#15〕
         var setup = WorldData.Setup();
         foreach (var t in setup.Targets)
         {
             var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = new RealGdpPerMonth(0), TradeWeight = 0.0, RequiresQuinine = t.Quinine };
-            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
+            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // 熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。〔履歴 MultiNationSim.cs#16〕
             Diplomacy.Powers.Add(p);
         }
         _nextPowerId = Diplomacy.Powers.Count;   // ★建国スポーンはここから単調採番（起動時のId=Powers.Countの連番と同じ値で始まり、以後は欠番があっても戻らない）
@@ -121,7 +112,7 @@ public sealed class MultiNationSim
         SeedRivalries(setup);   // 初期の史実ライバル（必要悪：これが無いと ThreatTension/Ideology だけでは戦争が点火せず＝load-bearing な初期条件）
         SeedDependencies(setup);   // 初期の史実従属（属国一本化）＝シャムの朝貢属国・ムガル傀儡
 
-        // 海峡・運河（§B）：自然海峡は開通済み、運河は host 保有国の資本家が建設して開通。扼者は host から毎四半期解決（征服で交代）。**Id/BuildCost/TechGate はデータ側（world.json）が真実源**（2026-07-28・CanalKey 分岐を廃止）。
+        // 海峡・運河（§B）：自然海峡は開通済み、運河は host 保有国の資本家が建設して開通。〔履歴 MultiNationSim.cs#17〕
         foreach (var cp in setup.Chokepoints)
         {
             Diplomacy.Chokepoints.Add(new Chokepoint
@@ -136,17 +127,16 @@ public sealed class MultiNationSim
         // これが無いと最初の四半期が締まるまで RankOf が既定値=弱小を返し、UI で全国が「弱小」に見える（純関数＝ダイナミクス不変・四半期末に再計算で上書き）。
         Diplomacy.ComputeRanks(_coef);
 
-        // ★植民地の州昇格（2026-08-26・旧の旗 ColoniesAreRegions は 2026-10-18 に焼き込み）＝開始時点で全植民地を州にする。
-        //   ⚠植民地総数の基準線を取る**前**に走らせる＝昇格した分は最初から植民地でない（保存検査の基準線と整合）。
+        // ⚠植民地総数の基準線を取る**前**に走らせる＝昇格した分は最初から植民地でない（保存検査の基準線と整合）。〔履歴 MultiNationSim.cs#18〕
         PromoteAllColonies();
 
-        // 植民地総数の初期値（監査2026-07-12 死12）：Validationの保存検査の基準線＝植民地は移転（戦争・植民地化）と独立（IndependentColoniesへ）だけで増減しない。
+        // InitialColonyCount〔履歴 MultiNationSim.cs#19〕
         foreach (var p in Diplomacy.Powers) Diplomacy.InitialColonyCount += p.Colonies;
     }
 
-    /// <summary>★開始時点の一括昇格（2026-08-26・旧の旗 ColoniesAreRegions）。入植者昇格（Colonial.Step）と**同じ動詞**を通す
-    /// ＝人口・蓄え・資源賦存・気候ゲート・保存の記帳を二重定義しない。格は Colonial のまま（議会代表なし・維持費あり）。
-    /// ⚠同名の州が既に居る国では昇格しない＝州名の一意性（座標表・地図・扼者解決のキー）を守る＝既存ガードと同じ規律。</summary>
+    /// <summary>
+    /// 入植者昇格（Colonial.Step）と**同じ動詞**を通す ＝人口・蓄え・資源賦存・気候ゲート・保存の記帳を二重定義しない。〔履歴 MultiNationSim.cs#20〕
+    /// </summary>
     private void PromoteAllColonies()
     {
         foreach (var sim in Nations)
@@ -162,38 +152,20 @@ public sealed class MultiNationSim
                 //   数えると保存検査（Validation「植民地の保存」＝残り＋独立＋昇格＝初期）が二重計上で落ちる
                 //   （実測 37+0+42=79 vs 初期43）。初期の総数はこの直後に Colonies から取り直される。
                 var reg = Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
-                // ★(952) 初期条件＝Privileges.cs:131 と同じ作法（1783 年に既に支配している植民地は、本国の州と同じ 1.0 から数える）。
-                //   途中の接収（Diplomacy.cs:2269）は 0 のまま＝実際に取った年から。Tier・Rule・RuleInit は変えない（Rule[0] と二重に数えない）。
+                // 途中の接収（Diplomacy.cs:2269）は 0 のまま＝実際に取った年から。〔履歴 MultiNationSim.cs#21〕
                 if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;
             }
         }
     }
 
-    /// <summary>経路グラフ第1段 Stage C（03 §11-6・裁定A3・2026-08-09）：港州ゼロ国の各州へ、外国港州トランジットの静的候補（上位2件）を配線する。
-    /// ・純地理（PathGraph は国境を知らない）＝構築時に1回だけ計算。Region の string/double フィールドに記憶
-    ///   （NearestPortName/PortLandKm と同型＝リフレクション直列化に安全な型・ロード後も値がそのまま復元＝再計算不要でビット一致）。
-    /// ・候補1＝陸グラフ最短の外国港州。候補2＝候補1と**構築時所有国が違う**次点（戦時封鎖の迂回先＝同一所有国の第2港は封鎖で一緒に閉まるので迂回にならない）。
-    /// ・現所有国の解決（征服で動く）と交戦判定は四半期側（InternationalMarket.Step）＝ここは距離だけ。
-    /// ・到達不能（別陸塊・孤立成分）は候補にしない＝内陸国は定義上どこかの大陸にいるので通常は必ず届く。
-    /// ・植民地昇格などで後から生まれる州・分離独立の新国家は初期配線の対象外だが、下の RewirePorts が四半期ごとに盤面から張り直す。
-    /// ・（旧の旗 TransitEnabled=1.0 は点火済み・2026-10-18 に焼き込み。）決定論＝距離同率は港州名の序数順。</summary>
-    // ★港の配線を領土に追随させる（W3・2026-08-13／案1へ簡素化・2026-09-21・doc 20260812_港の配線を領土に追随させる・20260816_港配線の簡素化案）。
-    //
-    // 旧＝トランジットの配線は**構築時に1回**しか張られず、内陸国が港を割譲されても外国港への通行料を払い続け、
-    // 逆に港を失っても自国港のまま扱われた。
-    //
-    // 触発の仕方＝**呼び出し忘れが起きない形**にする。割譲・分離独立・植民地の州昇格は別ファイルに散らばっており、
-    // 「territory が動いたら Mark を呼ぶ」規約は必ずどこかで破られる（本プロジェクトの前科＝再配分側の lawCap 掛け忘れ）。
-    // ⚠旧はそこへ**国ごとの領土署名（FNV-1a）を毎四半期比べる層**を置いていたが、キャッシュ無効化は状態管理で最も事故りやすい
-    //   種類の複雑さ（署名・呼び忘れ・同時性・セーブ追随が全部付いてくる）。配線は盤面の純関数（乱数不使用・冪等）なので、
-    //   ★2026-09-21＝**署名の層を削除**し、毎四半期・全国を無条件で張り直す（案1）。状態ゼロ＝セーブ追随の考慮も消える。
-    //   恒等の実証＝seed 1/6/25 の `selfplay 1 200` が署名層ありと sha256 で一致。⚠旧の「ビット恒等でない」根拠（構築時に候補へ入った
-    //   Locked 沿岸辺境＝ウラジオストク）は **2026-08-26 の辺境の廃止（Simulation.cs:571-573）で盤面から消えている**＝構築時 Locked の州は無い。
+    /// <summary>
+    /// ・純地理（PathGraph は国境を知らない）＝構築時に1回だけ計算。〔履歴 MultiNationSim.cs#22〕
+    /// </summary>
+    // 触発の仕方＝**呼び出し忘れが起きない形**にする。〔履歴 MultiNationSim.cs#23〕
 
-    /// <summary>港の配線を盤面から張り直す（四半期末に1回・無状態＝doc 20260816 案1）。冪等＝盤面だけから決まる・RNG不使用。
-    /// ★領土（active州の集合）へ追随して WirePortDistances を張り直す（是正1・旧の旗 PortRewireEnabled は点火2026-08-16・2026-10-18 焼き込み）。
-    /// 通過港は係数によらず毎四半期張り直す（是正3＝港州0になった国へ WireTransitPorts の hasPort 現在判定で配布・
-    /// 内陸州だけの移動でも移動州の TransitPort* が現所有構成で引き直る）。</summary>
+    /// <summary>
+    /// 港の配線を盤面から張り直す（四半期末に1回・無状態＝doc 20260816 案1）。〔履歴 MultiNationSim.cs#24〕
+    /// </summary>
     private void RewirePorts()
     {
         for (int i = 0; i < Nations.Count; i++) Simulation.WirePortDistances(Nations[i].World.Regions, rewire: true);
@@ -219,8 +191,7 @@ public sealed class MultiNationSim
                     ports.Add((i, r.Name, node, Geo.DistanceKm(pc.Lat, pc.Lon, PathGraph.Nodes[node].Lat, PathGraph.Nodes[node].Lon)));
                 }
         if (ports.Count == 0) return;   // 港のない世界（較正・最小テスト世界）＝対象なし
-        // ★2026-09-26（econ-04 の残り）：州ごとに四半期ごと Dijkstra（LandDistancesFrom）を回し直していた＝起動時に1回だけ作る全点対の表
-        //   PathGraph.LandMatrix の行を読む（表の各行は LandDistancesFrom(s) そのもの＝同じ double が返る＝厳密恒等）。
+        // landMatrix〔履歴 MultiNationSim.cs#25〕
         var landMatrix = PathGraph.LandMatrix();
         int landN = PathGraph.Nodes.Length;
         for (int i = 0; i < Nations.Count; i++)
@@ -266,21 +237,14 @@ public sealed class MultiNationSim
         foreach (var d in setup.Dependencies) { if (P(d.Suzerain) is { } s && P(d.Dependent) is { } dep) Diplomacy.SetDependency(s, dep); }
     }
 
-    // 蜂起と分離独立の建国：Politics が親Worldへ記録した建国要求（蜂起＝PendingRebelRegions・分離独立＝PendingSecessionWars）を四半期末に回収し、
-    // 州を物理移転して新国家（新World＋新Power）を立て、内戦タグの戦争を開く（決着は Diplomacy.ResolvePeace の戦後処理の1本）。
-    // 保存則＝割譲（Diplomacy.CedeTerritory）と同型の両建て記帳。決定論＝親のindex昇順・乱数種は MixSeed(_seed, 新index) の純関数・乱数不使用。
-    // ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（Politics.ProcessCivilWar）が決着で積んだ2本の予約（国家分裂 PendingSplitRegions／
-    //   単一州の分離戦の勝利 PendingSecessionRegion）は旧経路ごと削除（作者裁定 a・g）＝建国は全て開戦時（戦争の形）。
-    // internal＝番人（RevoltIgnitionTests の守備兵の寝返り）が四半期の他の流れを挟まずにこの1段だけを踏む（ReabsorbNations と同じ作法）。
+    // 保存則＝割譲（Diplomacy.CedeTerritory）と同型の両建て記帳。〔履歴 MultiNationSim.cs#26〕
     internal void SpawnSecededNations()
     {
         int count0 = Nations.Count;   // 走査前の国数を固定（追記しても再走査しない）
         for (int i = 0; i < count0; i++)
         {
             var pw = Nations[i].World;
-            // ★内戦一元化（2026-08-30）：蜂起＝開戦時の建国。SpawnNation（同じ建国路）＋内戦タグ付き開戦。
-            // ★首都の分離独立（2026-09-28 段2 束3・作者裁定 a）：蜂起が首都州に拠ったら、蜂起側が首都州を握り、政府は残る州のうち最大GDPの州へ遷都して戦う
-            //   （Territory.TransferRegion の首都を失ったときの遷都＝World.SetCapital の1本）。決着で首都を返すために首都州を記す（World.SecedingRegion）。
+            // SpawnNation（同じ建国路）＋内戦タグ付き開戦。〔履歴 MultiNationSim.cs#27〕
             if (pw.PendingRebelRegions is { Count: > 0 } rebelRegs)
             {
                 var rebelPolity = pw.PendingRebelPolity;
@@ -303,15 +267,12 @@ public sealed class MultiNationSim
                             Diplomacy.DeclareCivilWar(parentPw, rebelPw, rebelPolity, _coef);
                         }
                     }
-                    // 本拠州が同じ四半期に離れられなくなった（割譲・首都への昇格）＝蜂起は地図の上に立たなかった＝運動の参照を外す（燃え尽きではない）。
-                    //   ⚠旧＝参照が残り、次にどこかの再併合が無条件に外すまで「内戦中の運動」として数えられた（分離の共有分母 civilFronts）。
-                    //   2026-09-28（処理の一元化 段2 束2）で再併合はその戦争の運動だけを外すようになった＝ここで外す。
+                    // 本拠州が同じ四半期に離れられなくなった（割譲・首都への昇格）＝蜂起は地図の上に立たなかった＝運動の参照を外す（燃え尽きではない）。〔履歴 MultiNationSim.cs#28〕
                     else if (pw.RevoltingFaction is { } stillborn && rebelRegs.Contains(stillborn.Region)) pw.RevoltingFaction = null;
                 }
                 continue;   // 同じ親から同四半期に2国は作らない（他レーンの予約は翌期へ持ち越し）
             }
-            // ★同時独立（SecessionAsWar・2026-09-06）：分離独立の戦争へ入る州を**州ごとに**建国し分離戦を開く（同じ親から同四半期に複数可＝「バラバラに分裂してもよい」）。
-            //   首都（Id0）は出ない・親に州が1つしか残らないなら出ない（首都不変条件）。決着は Diplomacy.ResolvePeace の内戦分岐（CivilWarSecession）。
+            // 首都（Id0）は出ない・親に州が1つしか残らないなら出ない（首都不変条件）。〔履歴 MultiNationSim.cs#29〕
             if (pw.PendingSecessionWars is { Count: > 0 } secWars)
             {
                 pw.PendingSecessionWars = null;
@@ -327,34 +288,16 @@ public sealed class MultiNationSim
         }
     }
 
-    /// <summary>★建国路の1本＝反乱国家の建国（呼び手が直ちに内戦タグの戦争を開く＝講和相当の状態は張らない・ログも開戦側）。
-    /// regs[0] が新首都（World.Region=Regions[0] 規約）。polity=null で親の政体を継ぐ（分離独立）／指定で蜂起側の目指す政体を持って出る（政体戦・要求戦）。
-    /// ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦の決着で建てた2本（国家分裂＝多州・単一州の分離戦の勝利）は旧経路ごと削除＝独立の確定は決着（ConfirmIndependence）。</summary>
+    /// <summary>
+    /// ★建国路の1本＝反乱国家の建国（呼び手が直ちに内戦タグの戦争を開く＝講和相当の状態は張らない・ログも開戦側）。〔履歴 MultiNationSim.cs#30〕
+    /// </summary>
     private void SpawnNation(Simulation parent, System.Collections.Generic.IReadOnlyList<Region> regs, Polity? polity)
     {
         var reg = regs[0];
         var pw = parent.World;
         var parentPower = pw.SelfPower!;   // SpawnSecededNations 側で非nullゲート済み
 
-        // --- 0) 段5＝守備兵の寝返りは**割合**（作者裁定3・2026-09-08／点火＝2026-09-29 処理の一元化 段3・作者裁定＝推奨）---
-        // ⚠旧（休眠の間）＝離脱する州の兵士POPは州ごと新国家へ移る＝**常に全員が寝返る**（「政府が軍を丸ごと敵に渡す」が全建国で起きる＝
-        //   首都の分離独立の反乱の勝ち 94.6%〔r95〕）。C案の「守備兵は寝返らない」も常に寝返らない側の絶対規則＝どちらも非歴史的最適解の型。
-        //   史実の寝返りは最大の機序（セポイ1857・ペトログラード守備隊1917・キール軍港1918）だが常時ではない
-        //   （鎮圧＝パリ1848年6月・ウィーン1848年10月・コミューン1871・ダブリン1916）＝**寝返る割合は守備兵（兵士POP）の闘争度そのもの**
-        //   （二値にしない・つまみを持たない＝旧係数 SoldierDefectionByMilitancy は1で焼き込んで削除）。
-        // ⚠寝返らなかった分は親の政府の座の兵士POPへ移す＝親に留まる（「離脱州の守備隊のうち忠誠を守った部隊は本国軍へ復帰した」）。
-        // ★武器も兵と一緒に（2026-09-29 段3・分子と分母の対称）：出ていく州の武器庫（Region.ArmsStock＝耐久装備の在庫）のうち、
-        //   寝返らなかった兵と**同じ割合**を忠誠の兵と同じ州の武器庫へ移す（旧＝兵は割合でも武器庫は州ごと全部が反乱国へ渡った＝
-        //   首都の武器庫は全国軍の分〔GarrisonProcurement=0＝調達は首都の1州〕）。移すのは財の量そのもの（出る側から引いた量を受ける側へ足す＝財は湧かず消えない）。
-        //   ⚠読むのは在庫にある財だけ（未初期化の財を目標と読むのは一度も開いていない1783年の開幕の武器庫だけ＝EconomyStep.ArmsHeld）。
-        //   守備兵がいない州は割合が定まらない＝武器庫は州ごと反乱国へ（兵のいない武器庫は蜂起した側の手に落ちる）。
-        // ★忠誠の兵と武器庫は政府について行く（2026-09-29）＝行き先は**政府の座**：首都が出ていくなら遷都先（下の段2 の Territory.TransferRegion が
-        //   遷都する州＝選び方の1本 Territory.NextCapital を先に読む）・首都が残るなら首都。
-        //   ⚠旧＝親の Regions の順で最初の残る活動州＝首都の分離独立では遷都先と違う州になりえた（英＝マンチェスターへ遷都・兵と武器庫はダブリンへ）＝
-        //   軍需の調達は首都の1州だけ＝移した武器庫は読まれず、遷都先は「未初期化は目標」で満額の在庫が湧いた。
-        // ⚠**人口台帳の順序に手を入れない**＝下の 1) S/P 確定より前・親の内側だけで動かす。親の総人口も総貨幣も不変で、
-        //   確定される移転量 P が「寝返った分だけ」になる（S/P 確定と PopulationDelta -= P の間には1命令も入れない＝Invariants の帯）。
-        // ⚠移す動詞は既存の Military.MoveCohort（規模・貯蓄・債務・結晶資産・年齢/男女コホートを既存の作法で運ぶ）＝新しい経路を作らない。
+        // C案の「守備兵は寝返らない」も常に寝返らない側の絶対規則＝どちらも非歴史的最適解の型。〔履歴 MultiNationSim.cs#31〕
         bool capitalRising = regs.Contains(pw.Regions[0]);   // 首都発の建国（首都の蜂起＝同じ社会の首都の住民）。下の厭戦の継承も読む（段2 の遷都で Regions[0] が変わる前に取る）
         Region? loyalRegion = capitalRising ? Territory.NextCapital(pw, regs) : pw.Regions[0];
         Pop? loyalPop = loyalRegion?.Pops.Find(x => x.IsSoldier);
@@ -385,26 +328,19 @@ public sealed class MultiNationSim
         double parentPop = pw.TotalPopulation;   // 移転前（reg込み）
         double T = Math.Max(0, pw.Treasury.Value) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
 
-        // --- 2) 親から外す＋付け直し（州の移し替えの1本 Territory.TransferRegion の建国＝新しい国の器は下で州から組む・2026-09-28 処理の一元化 段2 B）---
-        //   親の台帳（割譲の送り手と同じ「同一値を両辺に使う」作法）・首都を失えば遷都（首都の分離独立＝政府は残る州の最大GDPの州へ・2026-09-28 段2 束3）・
-        //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）・
-        //   併合の荷物0（案Y・2026-08-21：分離建国の創設州は新国家の「生まれの人口」）・市場の台帳のリセット・植民地財の空化。
-        //   ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。
-        double railIn = 0, shipIn = 0;   // ★輸送の容量は州と一緒に移る（2026-09-30 (118)）＝新しい国の器を組んだ後に受け取る（下の段5）
+        // ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。〔履歴 MultiNationSim.cs#32〕
+        double railIn = 0, shipIn = 0;   // railIn〔履歴 MultiNationSim.cs#33〕
         foreach (var rr in regs) { var (rlMoved, shMoved) = Territory.TransferRegion(pw, null, rr, Territory.Rehoming.Seceded); railIn += rlMoved; shipIn += shMoved; }
         // 国庫の分与は移し方の1本で世界の外へ（段4f）＝親の国庫から引き、同じ額を国境の出入りの台帳へ（子は生まれの基礎貨幣 S＋T で基線を取り直す＝下の注）。
         World.Transfer((pw, null), (null, null, null), T, TreasuryCat.OtherOut);
-        // （Bank.Gold の親⇄新国家の移し替え2行は 2026-09-28 に削除＝Bank.Gold は導出量で、翌日の Credit.Step が BaseMoney から上書きするまで読み手が無い）
+        // Count〔履歴 MultiNationSim.cs#34〕
 
         // --- 3) 新世界の州Id＝0が首都（World.Region=Regions[0] 規約）---
         for (int k = 0; k < regs.Count; k++) regs[k].Id = k;
-        // ★建国の新しい首都の武器庫は開いた空で来る＝無い財は0（2026-09-29・遷都の World.SetCapital と同じ規則）＝未初期化を目標と読むのは
-        //   一度も開いていない1783年の開幕の武器庫だけ（EconomyStep.ArmsHeld）。首都の蜂起は寝返った分の武器庫（段0）だけを持って立ち、分離独立の州は丸腰から買う。
+        // 首都の蜂起は寝返った分の武器庫（段0）だけを持って立ち、分離独立の州は丸腰から買う。〔履歴 MultiNationSim.cs#35〕
         reg.ArmsStock ??= new System.Collections.Generic.Dictionary<int, double>();
 
-        // --- 4) 名前・設定（親の現行法・税を継承した NationConfig 経由＝ToScenario と同形の手組み）---
-        //   名前（作者承認 2026-09-28）＝分離独立（polity=null）は史実の国名（SecessionNames の対応表）／政体をめぐる内戦は目指す政体の頭書き＋親の国名
-        //   （共和制フランス）／同じ政体の要求戦は運動の表示名を頭に（本拠州がこの建国の州の運動＝TriggerFactionRevolt が立てた主体）。表は SecessionNames の1か所。
+        // 表は SecessionNames の1か所。〔履歴 MultiNationSim.cs#36〕
         string? movement = pw.RevoltingFaction is { } mv && regs.Contains(mv.Region) ? Factions.DisplayName(mv) : null;
         string name = polity is { } pol
             ? SecessionNames.CivilWarName(parentPower.Name, pol, pw.Polity, movement, Diplomacy.Powers)
@@ -421,7 +357,7 @@ public sealed class MultiNationSim
         };
         var scenario = new Scenario
         {
-            SharedWorld = true,   // ★建国された国も共有世界＝産地ゲートが効く（2026-09-06）
+            SharedWorld = true,   // SharedWorld〔履歴 MultiNationSim.cs#37〕
             Seed = MixSeed(_seed, (ulong)Nations.Count), StartYear = pw.Year, Kind = ScenarioKind.Nation,
             NationConfig = cfg, PrebuiltRegions = [.. regs], Coef = pw.Coef,   // 係数は親インスタンスを共有（テスト/実験の書き込みが分裂しない）
             PoliticsEnabled = true, InitialPolity = polity ?? pw.Polity, FiscalEnabled = true,
@@ -432,38 +368,29 @@ public sealed class MultiNationSim
             InitialSuffrage = pw.Suffrage, InitialCensorship = pw.Censorship,
             InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation,
             InitialImmigration = pw.ImmigrationRestriction,   // 移民制限法の継承（E7・独立は制度を巻き戻さない＝他の法と同じ規則）
-            InitialConscription = pw.ConscriptionLaw,         // 徴兵法の継承（(178)・同じ規則＝この後の World.CopyLawsFrom も同じ値を写す）
+            InitialConscription = pw.ConscriptionLaw,         // InitialConscription〔履歴 MultiNationSim.cs#38〕
             InitialMonetaryLaw = pw.MonetaryLaw,              // 通貨制度の継承（F6・金の親から独立した国は金で始まる＝同じ規則）
         };
-        // 新国家は常に効用AI（プレイヤー国から独立してもUI操作者はいない＝NullAgentのゾンビ国家を作らない）
+        // sim〔履歴 MultiNationSim.cs#39〕
         var sim = new Simulation(scenario, new UtilityAgent()) { TelemetryEnabled = parent.TelemetryEnabled };
-        // ★国債の保有台帳（2026-09-21）：出ていく州のPOPが持つ親の国債は**親の対外債へ振替**＝新国家の対外債権になる
-        //   （フランクフルト条約1871と同じ扱い＝債務者は親のまま）。新国家の構築（上）は台帳の立っているPOPに起票しない＝ここで0へ落ちる。
-        //   ⚠構築の後に置く理由＝持ち手の国（sim.World）が要る。この間に不変条件の検査は走らない（検査は月次の Step の末尾だけ）。
-        // ★為替は親の値から始まる（2026-09-30 段3-3）＝生まれた瞬間の通貨は親の通貨（州の貯蓄も物価も親の通貨のまま移る）。国境をまたぐ払いは為替で換算する
-        //   （振り替えた保有の債権もここで換算される）＝旧の既定値1（平価）から始めると、銀の親から離れた州の請求権と資本移動が生まれた月に約2倍に跳ねた。以後は自国の月次の為替の式で動く。
+        // 新国家の構築（上）は台帳の立っているPOPに起票しない＝ここで0へ落ちる。〔履歴 MultiNationSim.cs#40〕
         sim.World.ExchangeRate = pw.ExchangeRate;
         foreach (var rr in regs) foreach (var p in rr.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, pw, sim.World);
 
         // --- 5) Scenario に載らない現在値の継承（技術・法・行政の到達＝独立は文明を巻き戻さない。正統性は既定＝新政権の蜜月）---
         var nw = sim.World;
-        // 保存則の注（#107・2026-07-19）：子の CumulativeTradeFlow は**0のまま**が正しい。ランタイムの per-nation 不変量プローブは
-        // 新国家を birth BaseMoney(=S+T) で再基線化するため、子は baseline=S+T・TradeFlow=0 で保存が閉じる（親は −(S+T) を BaseMoney/TradeFlow 両方に記帳）。
-        // ここに +S+T を足すと二重計上でプローブが即例外（検証済み）。MultiNationTestの世界合計式がspawnの子baselineを勘定しない側の非対応でありコードは正しい。
+        // ここに +S+T を足すと二重計上でプローブが即例外（検証済み）。〔履歴 MultiNationSim.cs#41〕
         nw.TechLevel = pw.TechLevel; nw.Elite = pw.Elite;
         // ★発見は親から（段2A・独立は文明を巻き戻さない＝技術水準と同じ）。移った州は新しい国の配列を読む（月次の写しを待たない）。
         System.Array.Copy(pw.Discovered, nw.Discovered, System.Math.Min(pw.Discovered.Length, nw.Discovered.Length));
         nw.WorldDiscovered = pw.WorldDiscovered;   // 世界の解禁の和は全ての国で同じ配列
         foreach (var rr in regs) rr.Discovered = nw.Discovered;
-        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShare.Value);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
-        // ★法の継承は1本（World.CopyLawsFrom＝段の法と税・支出の段は法の軸の表のまま・政策の目標は丸ごと・2026-09-28 処理の一元化 段2 C）。
-        //   旧＝ここに World と Policy の対を軸ごとに約40行＝女性の権利は Policy だけ写し漏れた前歴・累進課税／植民地参政権／移民原住民参政権／
-        //   技術者流出禁止法／行政費は漏れたままだった。政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。
+        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShare.Value);   // Receive〔履歴 MultiNationSim.cs#42〕
+        // 政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。〔履歴 MultiNationSim.cs#43〕
         nw.CopyLawsFrom(pw);
         Politics.RaiseFoundingInstitutions(nw);
         nw.BornOfSecession = true;   // P9：独立戦争の危機乗数（レヴェ・アン・マス）の判定用（分離で生まれた国＋交戦中）
-        // ★保持力の測定は親の値から始まる（2026-09-29 線2）＝治安の強度（人口あたり）は構築の BaseCoercion と同じく親から＝次の四半期末の Politics.Step が自国の軍と正統性で測り直す。
-        //   ⚠旧＝新しい国の測定は0（最初の四半期は保持力0）＝開戦で動員を自国の POP で測る（Diplomacy.DeclareCivilWar）と革命圧力が「保持力0」で満杯になる。
+        // Coercion〔履歴 MultiNationSim.cs#44〕
         nw.Coercion = pw.Coercion;
         nw.Quarter = pw.Quarter;
 
@@ -474,18 +401,12 @@ public sealed class MultiNationSim
             Military = parentPower.Military * (parentPop > 1e-9 ? P / parentPop : 0),   // 初期表示値のみ（次の Diplomacy.Step が兵士POPから再導出＝実体は移転した兵士）
             GdpPerMonth = nw.GdpPerMonth, TradeWeight = DefaultTradeWeightBase,
             Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
-            // ★厭戦の継承（2026-09-29）：首都発の建国は親の厭戦を継ぐ（厭戦は前の戦争の疲れが住民に残った量＝首都の蜂起は同じ社会の、いちばん疲れた首都の住民が立てる）。
-            //   ⚠旧＝新しい国は厭戦0から＝首都発の内戦で政府（持ち越しの厭戦 中央0.52）だけが先に崩壊の線に届いた（反乱の勝ち 93.8%・(97) §8）。
-            // ★地方の建国（分離独立・地方の組織運動の蜂起）は0から（2026-09-29 線2＝(100) の申し送り4 (b)・推奨で進めた）＝親の戦争の疲れは親の政府と首都の住民のもの
-            //   ＝(100) で全ての建国に継がせた結果、疲れ切った親から離れた州が生まれた月に講和の線を越えた（分離独立の戦争の月数の中央 18→1）。
-            //   史実の独立戦争は年単位（ギリシア1821-29・スペイン領アメリカ1810-25・ハンガリー1848-49・合衆国1861-65）。
+            // 史実の独立戦争は年単位（ギリシア1821-29・スペイン領アメリカ1810-25・ハンガリー1848-49・合衆国1861-65）。〔履歴 MultiNationSim.cs#45〕
             WarExhaustion = capitalRising ? parentPower.WarExhaustion : 0,
         };
         power.SpawnedDuringPlay = true;   // ★プレイ中に生まれた国＝ハーネスの「満足度・最小国」の対象外（Validation.WorstSat）
         nw.Diplomacy = Diplomacy; nw.SelfPower = power;
-        // ⚠★診断台帳は親から受け継ぐ（2026-08-02）。無いと、途中で生まれた国だけ Explain が null になり、
-        //   台帳を読む側が NullReferenceException で落ちる（実測＝ExplainTests が分離独立の起きるシードで死んだ）。
-        //   ★診断が入っているかどうかは「世界の設定」であって国の属性ではない＝親に合わせるのが正しい。
+        // 無いと、途中で生まれた国だけ Explain が null になり、   台帳を読む側が NullReferenceException で落ちる（実測＝ExplainTests が分離独立の起きるシードで死んだ）。〔履歴 MultiNationSim.cs#46〕
         if (pw.Explain is not null)
         {
             nw.Explain = new ExplainLedger();
@@ -500,52 +421,36 @@ public sealed class MultiNationSim
 
     public void Run(int quarters) { for (int q = 0; q < quarters; q++) StepQuarter(); }
 
-    /// <summary>★開始前の助走の**唯一の入口**（作者裁定2026-08-10）。App（新規ゲーム）も自己対戦バッチ（<see cref="SelfPlayMatch"/>）も
-    /// このメソッドだけを通る＝「遊ぶ世界」と「測る世界」の初期条件が同じになる。
-    /// <para>⚠2026-08-10以前は App だけが <c>WarmupEconomy(4)＋WarmupTech(8)</c> を回し、selfplay/fidelity は素の盤面から走っていた
-    /// ＝**プレイヤーが見る開始価格と、帯を測っている開始価格が別物**だった。長さは <see cref="Coefficients.StartWarmupQuarters"/> の1本で決める。</para>
-    /// <para>中身＝①価格の助走（暦・政治・外交・人口・識字・技術・移民・資本形成を止めて価格と在庫だけ実勢へ寄せる）②技術の助走
-    /// （識字差を技術差へ実体化）③保存則の基準線の取り直し。<b>暦は1四半期も進まず、生産能力も1783年のまま</b>
-    /// （<see cref="World.WarmupFrozen"/>）＝助走を何年に延ばしても「開始盤面が先へ進む」ことがない。</para>
-    /// <para><paramref name="onQuarter"/>＝助走の各四半期末に呼ばれる**観測だけ**の手（UIの価格グラフの標本）。力学には触れない。
-    /// <paramref name="quartersOverride"/>＝**診断専用**（Runner の warmupprobe が 4/20/40 を並べて測る）。本番は null＝係数一本。</para>
-    /// <para>★<see cref="Coefficients.StartWarmupQuarters"/>=0 で**助走を丸ごとしない**（技術の助走も基準線の取り直しもしない）＝
-    /// 2026-08-10以前のバッチと厳密恒等の逃げ道。帯が動いたときの二分探索の基線に使う。</para></summary>
+    /// <summary>
+    /// App（新規ゲーム）も自己対戦バッチ（SelfPlayMatch）も このメソッドだけを通る＝「遊ぶ世界」と「測る世界」の初期条件が同じになる。〔履歴 MultiNationSim.cs#47〕
+    /// </summary>
     public void StartWarmup(Action? onQuarter = null, int? quartersOverride = null)
     {
         if (_startWarmupDone) return;   // 二重呼び出しの防止（ロード経路・診断からの再呼び出しで盤面が二度助走しない）
         _startWarmupDone = true;
         int quarters = quartersOverride ?? _coef.StartWarmupQuarters;
         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
-        if (_coef.OpeningBakeEnabled > 0) OpeningBake.Apply(this);   // ★(490) 開幕の焼き込み（既定 0＝表を開きもしない）＝構築直後の盤面に焼いた状態を書いてから助走（今の 20 四半期）に入る
-        //   ⚠(449) 助走なし（quarters<=0）では下の取り直しも通らない＝（★(456) 旗は焼き込んだ＝常に）開幕のランクは構築時の 3 項のまま（市場が回る前の盤面は取り直しても同じ 3 項で意味がない）。助走のある通常の開始だけが取り直す。
+        if (_coef.OpeningBakeEnabled > 0) OpeningBake.Apply(this);   // OpeningBakeEnabled〔履歴 MultiNationSim.cs#48〕
+        // 助走のある通常の開始だけが取り直す。〔履歴 MultiNationSim.cs#49〕
         WarmupEconomy(quarters, onQuarter);
         WarmupTech(_coef.StartWarmupTechIterations);
-        // ★開幕の既知の集合（(169)）＝データ（NationConfig.KnownDiscoveries＝world.json・1783年より前に史実でその国が使っていた発見）＝構築で置いた（Simulation のコンストラクタ）。
-        //   ここでは世界の解禁の和（需要の門）を配るだけ。判定は最初の四半期の終わりから（他の四半期と同じ1本）。
-        //   旧（段2A・2026-10-01〜(167)）＝助走の終わりの盤面で1度だけ点数を判定した＝1780年代の行は技術力が最大＝必要性が30に届く国が開幕から持った
-        //   （(165)＝主要国の全てが1784年に蒸気機関・データの史実〔英だけ〕と食い違った）。
+        // ここでは世界の解禁の和（需要の門）を配るだけ。〔履歴 MultiNationSim.cs#50〕
         ShareWorldDiscovered();
         OpenForces();
-        // ★(449)(456) 開幕のランクの取り直し（旗 ScoreFromWorldShare は焼き込んだ＝助走のある通常の開始は必ず通る）：コンストラクタの ComputeRanks は市場が 1 度も回る前＝鉄の産出・動力の消費・軍事費が 0 で
-        //   国力の 6 項が 3 項（兵・都市人口・総人口）に退化し、助走は外交を凍結する（DiplomacyFrozen）ので次の ComputeRanks は暦で 1 年後＝最初の 1 年の外交はこの退化したランクで動いた。助走の直後（流れの値が出そろった盤面）で 1 度だけ取り直す（純関数・乱数なし）。
+        // 助走の直後（流れの値が出そろった盤面）で 1 度だけ取り直す（純関数・乱数なし）。〔履歴 MultiNationSim.cs#51〕
         Diplomacy.ComputeRanks(_coef);
         RebaselineInvariants();
     }
     private bool _startWarmupDone;
 
-    /// <summary>★(231) 開幕の軍の確定（助走の直後・初期値の整備の段5）＝構築の一律の播種（艦 0）を、助走で出そろった入力（歳入・賃金・参照価格）から既存の式で置き直す。新しい表は無い。
-    /// 艦（陸海の比と播種・払える側の上限）。人と金は動かさない。
-    /// 置き直さないもの：治安維持力＝(233) で差し戻した（兵数×即応度×CoercionPerSoldier は絶対の兵数に比例し、使う側 PoliticalQuantities.EffectiveCoerce は人口あたりの強度として読む＝単位が合わない・world.json の国の coercion 欄に戻した）／
-    /// 測って落としたもの：兵＝助走の直後の兵は構築の播種から軍の定員の式（<see cref="Military.EstablishmentOf"/>）と徴兵・志願の動きで寄った、シム自身の釣り合い
-    /// （志願制の国は定員の一部しか埋まらない＝定員まで置くと英が釣り合いの約3倍・史実の約5倍）／軍事費の段＝AI の関数（UtilityAgent.SecurityStageTarget）で置いても史実との差は縮まらず
-    /// 史実比較の桁の NG が増えた（測定の表 measurements/mil231_20261010）。</summary>
+    /// <summary>
+    /// 新しい表は無い。〔履歴 MultiNationSim.cs#52〕
+    /// </summary>
     private void OpenForces() => Diplomacy.OpenGame(_coef);
 
-    /// <summary>★発見の段（段2A・2026-10-01・設計 §1A-2・§1A-7）＝四半期末の共有層。
-    /// 接触（行ごと）＝①取引：その行を解禁済みの国から、まだの自国が買った運び手の財の額 ÷ 世界のその運び手の財の取引額の和（思想の伝播 StepDiffusion と同じ「世界の取引に占める割合」＝小国を過大に見ない）
-    /// ＋②技師：この四半期に解禁済みの国から呼んだ技師・研究者 ÷ 自国の技師・研究者（招聘 RecruitSpecialists が記帳）。
-    /// 全ての国の接触を先に求めてから判定する（判定の順で他国の接触が変わらない）。記帳は毎四半期0へ戻す（助走も）。</summary>
+    /// <summary>
+    /// 全ての国の接触を先に求めてから判定する（判定の順で他国の接触が変わらない）。〔履歴 MultiNationSim.cs#53〕
+    /// </summary>
     private void StepDiscoveries(bool evaluate)
     {
         if (evaluate)
@@ -553,7 +458,7 @@ public sealed class MultiNationSim
             int nr = Catalog.Discoveries.Length, n = Nations.Count;
             var gf = Market.DiscoveryGoodFlowQ;
             var carriers = Market.DiscoveryCarriers(Nations, _coef);
-            if (Instruments.On && gf is not null) Instruments.DiscoveryFlow(Nations[0].World, gf, carriers);   // (360) 計器（読むだけ）：接触の分母
+            if (Instruments.On && gf is not null) Instruments.DiscoveryFlow(Nations[0].World, gf, carriers);   // DiscoveryFlow〔履歴 MultiNationSim.cs#54〕
             var contacts = new double[n][];
             for (int i = 0; i < n; i++)
             {
@@ -584,11 +489,9 @@ public sealed class MultiNationSim
                 }
                 contacts[i] = ct;
             }
-            // ★(159) 平滑化した値段（作者裁定 Q12）を全ての国で先に1歩進めてから判定する（判定は読むだけ＝書き手は判定の段の頭の1か所）。
-            //   ★(165) 世界の平滑化した値段（導出量）も同じ段の頭で1回だけ求めて全ての国の判定へ渡す。
+            // market〔履歴 MultiNationSim.cs#55〕
             var market = AdvanceDiscoveryPrices();
-            // ★(461) 世界の高度労働力の雇用の合計 W（技術力の時計 S・全ての財の和・全ての国と行で共通の 1 つのスカラー）＝旗 DiscoveryClockWorldPerMonth が正（技師の形の上）か計器のときだけ
-            //   全ての国を 1 巡して求め、各国の判定へ渡す（導出量・状態ではない・読むだけ）。台帳 DiscoveryWorldScans は旗が正のときだけ数える（計器だけの巡回は軌道の外）。
+            // 台帳 DiscoveryWorldScans は旗が正のときだけ数える（計器だけの巡回は軌道の外）。〔履歴 MultiNationSim.cs#56〕
             double? worldAdv = null;
             bool clockOn = _coef.DiscoveryEngineerHalfPerMonth > 0 && _coef.DiscoveryClockWorldPerMonth > 0 && _coef.DiscoveryClockRampWidth > 0;
             if (clockOn || Instruments.On)
@@ -599,22 +502,24 @@ public sealed class MultiNationSim
                 if (Instruments.On)
                 {
                     _clockTicks += System.Diagnostics.Stopwatch.GetTimestamp() - ct0; _clockVisits += scanned;
-                    if (Calendar.QuarterIndexOfTick(Nations[0].World.Tick) % 8 == 0) Instruments.ClockSample(this, worldAdv.Value, _clockTicks, _clockVisits);   // (461) 計器だけ
+                    if (Calendar.QuarterIndexOfTick(Nations[0].World.Tick) % 8 == 0) Instruments.ClockSample(this, worldAdv.Value, _clockTicks, _clockVisits);   // QuarterIndexOfTick〔履歴 MultiNationSim.cs#57〕
                 }
             }
-            double[]? scoreNow = _coef.SpreadNeedFascismDecline > 0 || Instruments.On ? NationalScore.ShareScores(Nations.ConvertAll(s => s.World)) : null; for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv, scoreNow?[i]), _coef);   // ★(640) 線 idn：国力の今の値を判定の直前に 1 回だけ求めて渡す（旗 SpreadNeedFascismDecline が正か計器のときだけ・導出量・行数を増やさない＝flow_s が行番号を鍵にする）
+            double[]? scoreNow = _coef.SpreadNeedFascismDecline > 0 || Instruments.On ? NationalScore.ShareScores(Nations.ConvertAll(s => s.World)) : null; for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market, worldAdv, scoreNow?[i]), _coef);   // scoreNow〔履歴 MultiNationSim.cs#58〕
             ShareWorldDiscovered();
         }
-        foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
+        foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // DiscoveryImportQ〔履歴 MultiNationSim.cs#59〕
         Market.DiscoveryGoodFlowQ = null;
         _recruitLog?.Clear();
     }
-    /// <summary>判定の段の頭＝全ての国の平滑化した値段を1歩進め（<see cref="Discovery.AdvancePrice"/>・作者裁定 Q12）、世界の市場を返す（★(165)(169)・<see cref="Discovery.WorldPrices"/>＝導出量）。</summary>
+    /// <summary>
+    /// 〔履歴 MultiNationSim.cs#60〕
+    /// </summary>
     private Discovery.WorldMarket AdvanceDiscoveryPrices()
     {
         var worlds = new World[Nations.Count];
         var obs = new (double[] Inst, double[] Sold)[Nations.Count];
-        double frontier = 0;   // ★(169) 運賃革命の倍率（清算と同じ1本＝前線の技術水準＝全ての国の技術水準の最大）
+        double frontier = 0;   // frontier〔履歴 MultiNationSim.cs#61〕
         for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); if (worlds[i].TechLevel > frontier) frontier = worlds[i].TechLevel; }
         return Discovery.WorldPrices(worlds, obs, InternationalMarket.FreightRevolution(frontier, _coef));
     }
@@ -627,34 +532,19 @@ public sealed class MultiNationSim
     }
     private bool[]? _worldDiscovered;   // ⚠セーブに載る（全ての国の World と同じ配列＝参照は1つ）
 
-    // （人件費の世界の平均 WorldLaborWage は 2026-10-02 (159) に削除＝発見の必要性は生み出す物の値段だけを読む〔作者 2026-10-02〕）
+    // _recruitLog〔履歴 MultiNationSim.cs#62〕
     /// <summary>この四半期の招聘（送り手・受け手・人数）＝発見の段が読んで空にする。作業領域（同じ四半期末の中で書いて読む＝セーブを挟まない）。</summary>
     [System.NonSerialized] private List<(World Src, World Dst, double Heads)>? _recruitLog;
 
-    /// <summary>**価格の助走**：暦・政治・外交・人口・識字・技術・移民・**資本形成**を凍結したまま指定四半期を回す＝
-    /// 価格・在庫・クリアリング・賃金/地代/税という初期過渡だけを実勢へ落ち着かせる。開始スナップショットを
-    /// 「1783年の生産能力のまま、価格だけが均衡に居る盤面」にするため。
-    /// <para>★資本形成の凍結は作者裁定2026-08-10 追加分（「価格のみ試走することはできない？　問題は開始時の振動なので」）。
-    /// 詳細と理由は <see cref="World.WarmupFrozen"/> の説明を見よ。</para>
-    /// <para>★2026-08-10（作者裁定）：暦を止めた（<see cref="World.WarmupFrozen"/>）。旧は <see cref="StepQuarter"/> をそのまま回していたので
-    /// 4四半期の助走で**エンジンの年が1783→1784へ進み**、表示暦（1783起点）と1年ずれていた（監査2026-07-11 他9で既知の未修正バグ）。
-    /// 5〜10年へ延ばす裁定と両立しないため、暦・人口・識字・技術・膨張意欲を止める方式へ改めた。</para>
-    /// <para>外交（戦争・緊張・植民地）もこの間だけ凍結する＝呼び出し側が <see cref="DiplomacyFrozen"/> を立て忘れても
-    /// 「経済だけの助走」という名前どおりに動く（旧は App だけが外から立てており、Runner の各プローブでは外交が走っていた）。</para>
-    /// <para><paramref name="onQuarter"/>＝各四半期の終わりに呼ばれる**観測だけ**の手（既定 null＝一切呼ばれない）。
-    /// UI が助走中の価格を標本に採るために使う（生産タブの価格グラフ・2026-08-10）。力学には触れない。</para>
-    /// <para>★**助走は国庫を動かさない**（2026-09-29）＝各四半期の終わりに国庫を助走の前の値へ戻し、台帳も捨てる（<see cref="World.RebaseTreasury"/>＝暦の外で動いた金は歴史に属さない）
-    /// ＝国債（Fiscal の3つの門）・人口・資本と同じ「年月が経って積み上がる量」。税と支出の流れは止めない（価格の均衡の一部）。
-    /// 旧＝開幕の歳入が請求の約2〜4倍（歳入 年GDP の15〜50%・請求 6〜16%＝初期の人頭税の最上段と所得税10%）の余剰を5年積み、開幕の国庫が年GDP の約1〜2
-    /// （英 0.79→0.97・仏 0.26→0.83・清 0.01→1.19・日 0.23→0.99）＝史実の国庫（年GDP の数%・普の戦時財宝 約0.3 は例外）の数十倍だった。
-    /// 四半期ごとに戻す＝助走の国庫が潤沢線（<see cref="UtilityAgent.OpulenceLineOf"/>）へ届かない＝開幕と同じ予算の形のまま価格が落ち着く（終わりに1度だけ戻すと、
-    /// 助走の後半に潤沢の支出が乗った均衡から開幕に支出が抜ける）。戻した分は基礎貨幣から消えるので保存則の基準線を取り直す（<see cref="RebaselineInvariants"/>）。</para></summary>
+    /// <summary>
+    /// **価格の助走**：暦・政治・外交・人口・識字・技術・移民・**資本形成**を凍結したまま指定四半期を回す＝ 価格・在庫・クリアリング・賃金/地代/税という初期過渡だけを実勢へ落ち着かせる。〔履歴 MultiNationSim.cs#63〕
+    /// </summary>
     public void WarmupEconomy(int quarters, Action? onQuarter = null)
     {
         if (quarters <= 0) return;   // 助走なし＝素の構築直後の盤面と厳密恒等（フラグの上げ下げすらしない）
         var prevPolitics = Nations.Select(n => n.World.PoliticsEnabled).ToArray();
         var treasury0 = Nations.Select(n => n.World.Treasury.Value).ToArray();   // 助走の前の国庫（world.json の初期値）
-        foreach (var n in Nations) if (n.World.OpeningStateMonopolyTier > 0) n.World.SetStateMonopolyTier(n.World.OpeningStateMonopolyTier);   // ★(400) 専売の開幕の段（world.json の英・蘭＝3）＝税の段（InitialPollTax／InitialLandTax）と同じ開幕の入力。助走の始めに置く＝AI もプレイヤー（NullAgent）も同じ段で助走に入る。助走の各四半期の教義は Apply の else 側で max を取って保つ
+        foreach (var n in Nations) if (n.World.OpeningStateMonopolyTier > 0) n.World.SetStateMonopolyTier(n.World.OpeningStateMonopolyTier);   // 助走の始めに置く＝AI もプレイヤー（NullAgent）も同じ段で助走に入る。〔履歴 MultiNationSim.cs#64〕
         bool prevDiplomacy = DiplomacyFrozen;
         foreach (var n in Nations) { n.World.PoliticsEnabled = false; n.World.WarmupFrozen = true; }
         DiplomacyFrozen = true;
@@ -662,7 +552,7 @@ public sealed class MultiNationSim
         for (int q = 0; q < quarters; q++)
         {
             StepQuarter();
-            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseOpeningFiscal(treasury0[i]);   // ★(332) 規則のある国（TreasuryMonths／GovDebtToGdpYear が正）は歳入×月数と比×年名目GDP を置く・無い国は旧の戻し（★(388) 既定の world.json は 61 国が規則を持つ・無いのは分離独立の国と番人の国）
+            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseOpeningFiscal(treasury0[i]);   // RebaseOpeningFiscal〔履歴 MultiNationSim.cs#65〕
             RebaselineInvariants();
             onQuarter?.Invoke();
         }
@@ -676,13 +566,9 @@ public sealed class MultiNationSim
         }
     }
 
-    /// <summary>技術の助走（2026-07-13）：暦を一切進めず（TechOnset等の年ゲートを乱さない）、各国の技術水準だけを
-    /// 教育制度の均衡へ寄せる＝開始盤面で欧州とアジア（あるいは欧州内）の技術が「団子」にならないよう、
-    /// 識字×世俗水路（Elite）の差を技術差へ実体化する。GrowTech は StepQuarter と同一の後追い/革新/フロンティア追随機構
-    /// （＝較正済みの技術ダイナミクスそのもの）を回すだけで、係数の外科補正は一切足さない＝差は制度から創発する。
-    /// ★2026-08-10：selfplay/fidelity も <see cref="StartWarmup"/> 経由でこの助走を通るようになった（旧コメントの
-    /// 「selfplay/fidelity はこの助走を通らない」「1789→1914を厳密500四半期」は二重に陳腐化していた＝起点は1783・全長 GameQuarters）。
-    /// 暦を動かさないので1914断面（Q524）も全長も不変。</summary>
+    /// <summary>
+    /// GrowTech は StepQuarter と同一の後追い/革新/フロンティア追随機構 （＝較正済みの技術ダイナミクスそのもの）を回すだけで、係数の外科補正は一切足さない＝差は制度から創発する。〔履歴 MultiNationSim.cs#66〕
+    /// </summary>
     public void WarmupTech(int iterations)
     {
         for (int it = 0; it < iterations; it++)
@@ -706,11 +592,7 @@ public sealed class MultiNationSim
     /// ＝テスト・self-play は StepQuarter を呼べば従来の合成順を踏む（各国の RNG ストリームは独立なので日次インターリーブでも結果は不変）。</summary>
     public void StepQuarter() { for (int d = 0; d < Calendar.DaysPerQuarter; d++) StepDay(); }
 
-    // 保存量プローブ（leakhunt・恒久計測器）：共有層のどのサブステップで D＝基礎貨幣−累積台帳 が動いたかを特定する。
-    // 既定OFF（Simulation.ConservationProbe）＝実行ゼロ。詳細は Simulation.ProbeCheck の説明を参照。
-    // ★世界の合計（fis-21・2026-09-26）：国ごとの D は**片側記帳**（払った側だけが記帳し、受け取る国が無い／受け取った側だけが記帳する）を拾えない。
-    //   配列の最後の1枠に世界の W＝Σ現存国（基礎貨幣−鋳造−不換発行）を持ち、共有層の段ごとに ΔW を見る（国ごとの D が閉じていれば ΔW＝ΣΔ累積貿易＝世界の外との出入り）。
-    //   新しい状態は作らない（既存の配列を1枠伸ばすだけ）。★回1-2（2026-09-27）で世界プール（ゲーム外から湧く持参金＝旧の既知の湧き口）は消えた。
+    // 保存量プローブ（leakhunt・恒久計測器）：共有層のどのサブステップで D＝基礎貨幣−累積台帳 が動いたかを特定する。〔履歴 MultiNationSim.cs#67〕
     private double[]? _probeD;
     private static double ProbeD(World w) => (w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued).Value;
     private double ProbeWorldW() { double s = -Diplomacy.CumulativeFxResidual; foreach (var n in Nations) { var w = n.World; s += (w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued).Value; } return s; }   // ★段3-1（A7）：為替の換算の台帳を差し引く
@@ -739,49 +621,32 @@ public sealed class MultiNationSim
     }
 
     /// <summary>1日進める（UIの日次描画用）。各国を1日進め、四半期末に共有層をまとめて発火。四半期が締まった日に true を返す。</summary>
-    // ★所要時間の計器（2026-08-26・作者報告「シミュレートに時間がかかりすぎ」）。環境変数 POB_TIME=1 のときだけ計る。
-    //   ⚠既定は Stopwatch を1度も触らない＝実行ゼロ・ビット恒等（分岐は静的 readonly bool の判定1回のみ）。
+    // 環境変数 POB_TIME=1 のときだけ計る。〔履歴 MultiNationSim.cs#68〕
     internal static readonly bool TimeOn = System.Environment.GetEnvironmentVariable("POB_TIME") == "1";
-    /// <summary>各国の日次（純粋日次相のみ）を並列に回すか。★**既定 true**（2026-08-29 高速化裁定＝StepDay 3相分割で決定論を確保して点火）。
-    /// POB_PAR=0 で逐次へ倒す（レース疑いの切り分け・非常口）。
-    /// ★履歴：2026-08-26 の全相並列は armstrace のビット一致に失敗（1788年分岐）＝月次決算が共有（Diplomacy.Log 等）へ触るため。
-    ///   2026-08-29 に純粋日次（価格形成・建設・信用＝実測74%）だけを並列化し、境界相（四半期首・月次決算・四半期末）を逐次に残す形で
-    ///   **ビット一致を実証**＝armstrace seed1 で（旧一体型≡新逐次）と（新逐次≡新並列）・selfplay seed2 全出力一致・savetest 0.0E+000。
-    /// ⚠この保証は Simulation.StepDayDaily の国ローカル不変条件（同所コメント）に立つ＝共有へ触る処理は StepDayClose 側へ。</summary>
+    /// <summary>
+    /// 各国の日次（純粋日次相のみ）を並列に回すか。〔履歴 MultiNationSim.cs#69〕
+    /// </summary>
     internal static readonly bool ParallelDays = System.Environment.GetEnvironmentVariable("POB_PAR") != "0";
-    public static long TicksNations, TicksMarket;   // POB_TIME=1 の計器。★2026-09-26（sweep-25）：selfplay-batch は1プロセスで試合を並列に回す＝素の += は数が欠ける＝Interlocked で足す
+    public static long TicksNations, TicksMarket;   // POB_TIME=1 の計器。〔履歴 MultiNationSim.cs#70〕
 
     public bool StepDay()
     {
-        // ★各国の日次を3相の段階実行で回す（2026-08-29 高速化裁定＝StepDay分割）。
-        //   相1 Open（四半期首）＝逐次　→　相2 Daily（価格形成・建設・信用＝実測74%）＝**並列**　→　相3 Close（月次決算・四半期末）＝逐次。
-        //   2026-08-26 の全相並列はビット一致に失敗（1788年分岐）＝月次決算が共有（Diplomacy.Log 等）へ触るため。
-        //   純粋日次は国ローカル（自国 World/Region のみ・乱数なし・共有 static は読み取り専用か ConcurrentDictionary）＝
-        //   実行順に依存しない ⇒ 並列/逐次でビット一致する（番人＝armstrace diff。Simulation.StepDayDaily の不変条件コメント参照）。
-        //   ⚠診断の静的カウンタ（TradeReachDiag/ConservationProbe）ONのときは逐次へ倒す（診断は再現性が命）。
-        //   ⚠逐次モードも同じ3相順で回す＝並列との差分が「レースの有無」だけになる（単国 Simulation.StepDay() も同じ3相を順に呼ぶ＝恒等）。
-        //   POB_PAR=0 で並列を切る（レース疑いの切り分け用）。
+        // 相1 Open（四半期首）＝逐次　→　相2 Daily（価格形成・建設・信用＝実測74%）＝**並列**　→　相3 Close（月次決算・四半期末）＝逐次。〔履歴 MultiNationSim.cs#71〕
         long t0 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
-        bool par = ParallelDays && Nations.Count > 1 && !Simulation.ConservationProbe && !TradeReachDiag.On && !BudgetBindDiag.On;   // ★2026-09-26（sweep-25）：BudgetBindDiag も逐次へ（ByWorld は通常の Dictionary＝並列の日次から書くと壊れる）
+        bool par = ParallelDays && Nations.Count > 1 && !Simulation.ConservationProbe && !TradeReachDiag.On && !BudgetBindDiag.On;   // par〔履歴 MultiNationSim.cs#72〕
         foreach (var sim in Nations) sim.StepDayOpen();
         if (par)
             System.Threading.Tasks.Parallel.For(0, Nations.Count, i => Nations[i].StepDayDaily());
         else
             foreach (var sim in Nations) sim.StepDayDaily();    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
-        // 締め境界＝**常に逐次**。★月次決算の並列化は2026-08-29に実測で差し戻し：ログを国別バッファへ退避しても
-        //   armstrace が1788年（助走明け最初の断面）から発散＝決算は**他国の当日更新を恒常的に読む**（旧調査の疑いどおり。
-        //   候補＝金融の相互参照：通貨ペア引力・金利・金流。ログ退避（World.PendingLog）は恒等が証明できたので恒久採用＝
-        //   共有 List へのレース類を根絶）。再挑戦するなら国別状態ハッシュのフェーズ計器で読み手を特定してから。
-        if (_coef.LuxuryIncomeElasticity > 0 && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) DistributeWorldRealIncome();   // ★(302) 月次決算の前に世界の1人あたり実質所得を全国へ配る（本体と置き場の理由は DistributeWorldRealIncome の注）。ε＝0 は走らない
+        // 締め境界＝**常に逐次**。〔履歴 MultiNationSim.cs#73〕
+        if (_coef.LuxuryIncomeElasticity > 0 && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) DistributeWorldRealIncome();   // ε＝0 は走らない〔履歴 MultiNationSim.cs#74〕
         foreach (var sim in Nations) sim.StepDayClose();
         foreach (var sim in Nations) sim.World.FlushLog();      // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
         if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
 
         bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
-        // ★月次清算（2026-08-22・旧の旗 TradeMonthlyClearing は 2026-10-18 に焼き込み）：量の式が月次規模（LastDemand/LastProduced/TargetStock）を読むのに清算が四半期1回＝
-        //   単位混在（年間輸出≤年産出の1.67%の算術天井の半分はこれ）。四半期の第1・第2月末にも清算する＝全国 Simulation.MonthSettle の後＝
-        //   scale/Stock 更新済み・Invariants 検査後＝四半期末の既存呼び出し（下）と同じ相対順序。0＝追加呼び出しゼロ＝ビット恒等。
-        //   第1清算（月0）だけ四半期累計（LastPortThroughput）をリセット＝四半期末の読み手（港湾投資・保険・通行料・ArmyShape）の物差しを保つ。
+        // 四半期の第1・第2月末にも清算する＝全国 Simulation.MonthSettle の後＝   scale/Stock 更新済み・Invariants 検査後＝四半期末の既存呼び出し（下）と同じ相対順序。〔履歴 MultiNationSim.cs#75〕
         if (!quarterDone && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0)
         {
             int monthIdx = (_dayInQuarter + 1) / Calendar.DaysPerMonth - 1;   // 0 or 1（2＝四半期末は下の既存呼び出し）
@@ -789,42 +654,30 @@ public sealed class MultiNationSim
             { long t1 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: monthIdx == 0); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t1); }
             ProbeDiff("国際市場(月)");
         }
-        // ★(351) 州×POP の走査の表③＝四半期末の共有層（下のブロック・全国の四半期末の後に逐次・国をまたぐ）の段の並び・読む欄／書く欄。順序は変えない。
-        //   集合＝各国の国家会計の集合（World.AllPopsWithRegion）。この層が書いた POP の欄は次の四半期首（Simulation.QuarterStart）が読む＝四半期首の読む時点は「共有層の後」。
-        //   ・NationalScore.StepStanding／StepSecurityThreat／UpdateTradeWeights　読む：兵の規模・前の月の所得　書く：国の欄
-        //   ・Diplomacy.Step×3（BeginQuarterSyncWindow の窓）　読む：規模・民兵・閉鎖　書く：規模（KillPops＝戦死）・闘争度・貯蓄（賠償・戦利品）
-        //   ・StepCanals／Megaprojects／Market.Step／StepPorts／StepMarineInsurance　読む：投資家と商人の貯蓄・規模　書く：貯蓄
-        //   ・StepAssimilation　読む：識字　書く：中核民族の割合
-        //   ・MigrateBetweenNations／RecruitSpecialists　読む：食料の充足・貯蓄・規模・失業　書く：規模・貯蓄・Blend の全欄・閉鎖（為替で運ぶ）
-        //   ・StepDiscoveries　読む：規模　書く：国の欄
-        //   ・銀の平価の注入（下のブロックの銀の世界価格）　読む：各州の銀と金鉱の値段（旗 SilverParityDemandWeighted が正のときは銀と金鉱の需要も＝薄い側の額を票）　書く：各国の WorldSilverPrice・SilverGoldRatio
-        //   ・CapitalMarket.Step／対外借入の貸し手の引き落とし　読む：投資家の貯蓄（旗 CapitalDividendFromHostRent が正のときは投資家の工業レント〔第 3 月の流れ＝(801) の外資の利札〕も）　書く：貯蓄
-        //   ・ReabsorbNations／SpawnSecededNations　州ごと移す　・StepDiffusion　読む：識字・報道・ラジオ・規模・思想　書く：国の欄
-        //   順番に依存する所：戦死と移民（規模・貯蓄）を四半期首の地域価格・Blocs・Build が読む／移民が混ぜた思想を次の四半期首の議会が読む。
+        // 順序は変えない。〔履歴 MultiNationSim.cs#76〕
         if (quarterDone)
         {
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
-            NationalScore.StepStandingAll(Nations.ConvertAll(n => n.World));   // ★(416)(456) 世界の総量を 1 回だけ求めて全国の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
-            // （★(456) 国ごとに求め直す旧の経路は旗と一緒に消えた＝この 1 行コメントは行番号を動かさないための穴埋め〔計器 flow_s が MultiNationSim.cs の行番号を鍵にする〕）
-            StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の目標（陸軍の不安）・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
+            NationalScore.StepStandingAll(Nations.ConvertAll(n => n.World));   // 外交(ComputeRanks)より前〔履歴 MultiNationSim.cs#77〕
+            // StepSecurityThreat〔履歴 MultiNationSim.cs#78〕
+            StepSecurityThreat();   // StepSecurityThreat〔履歴 MultiNationSim.cs#79〕
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期
             if (!DiplomacyFrozen)
             {
-                Diplomacy.BeginQuarterSyncWindow();   // ★同じ瞬間の3回＝GDP の同期を使い回す窓（2026-09-30 計算量の予算・恒等＝Diplomacy.SyncGdp）
+                Diplomacy.BeginQuarterSyncWindow();   // BeginQuarterSyncWindow〔履歴 MultiNationSim.cs#80〕
                 for (int m = 0; m < Calendar.MonthsPerQuarter; m++) { Diplomacy.Step(_coef, Rng, _quarter * Calendar.MonthsPerQuarter + m); ProbeDiff($"外交m{m}"); }   // 共有外交を月次3回（戦争の月次カデンス）。凍結中＝経済助走で戦争・緊張を進めない
                 Diplomacy.EndQuarterSyncWindow();
             }
             StepCanals(); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
             { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: false); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
-            StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
-            StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）
-            // 移民は助走では動かさない（2026-08-10）。移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。
+            StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。〔履歴 MultiNationSim.cs#81〕
+            StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。〔履歴 MultiNationSim.cs#82〕
+            // 移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。〔履歴 MultiNationSim.cs#83〕
             if (!_calendarFrozen)
             {
                 StepAssimilation(); ProbeDiff("同化");                       // 民族の同化（移民の希釈への歯止め）
-                // ★2026-09-03（J-004）：⚠移民は**受入国/送出国のPOP構成**を変えるので、国の国民意識（POPのsize加重平均）が動く。
-                //   ⇒ 説明台帳へ1行足す。⚠Explain は既定 null＝バッチ/較正では getter を1回も余分に呼ばない（恒等・ゼロコスト）。
+                // ⇒ 説明台帳へ1行足す。〔履歴 MultiNationSim.cs#84〕
                 double[]? ncBeforeMig = null;
                 for (int ei = 0; ei < Nations.Count; ei++)
                     if (Nations[ei].World.Explain is not null)
@@ -846,38 +699,25 @@ public sealed class MultiNationSim
             double frontier = 0;                                       // 世界の技術水準＝各国の最高水準（後発の優位・§5.1）
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;
-            // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
-            // 「先進勢力との接触」の実体から四半期導出する形で点火した（2026-07-27・旧の旗 ExternalPressureDerived は 2026-10-18 に焼き込み）。★(824) 以後：外圧＝技術の格差 gap（下で 0 を書く）×海からの接触係数（港あり=1／内陸=InlandFactor）＝**常に 0**。
-            //   技術水準の削除（段2a・旧の旗 TechSignalOff の焼き込み）で技術の格差は外圧に入れない。書き込みは残す（NationConfig の死んだ定数 0.3 を残さない）。
-            // 海軍格差の精密化（艦隊到達力の重み）は今後の検討課題。
+            // 書き込みは残す（NationConfig の死んだ定数 0.3 を残さない）。〔履歴 MultiNationSim.cs#85〕
             foreach (var n in Nations)
             {
                 var w = n.World;
                 bool coastal = false;
                 foreach (var r in w.Regions) if (r.IsPort) { coastal = true; break; }
-                double gap = 0.0;   // ★(613) 段2a（旗 TechSignalOff は (824) で焼き込み）：技術の格差は外圧に入れない＝格差 0（書き込みは残して 0 を書く＝NationConfig の死んだ定数 0.3 を残さない）。旧の ExternalPressureGapScale は読み手が無くなったので削除
+                double gap = 0.0;   // 旧の ExternalPressureGapScale は読み手が無くなったので削除〔履歴 MultiNationSim.cs#86〕
                 w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
             }
-            // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
-            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。★(640) Ideology の発展度は読み手ごと消した＝本体の読み手は 0（計器と試験だけが読む・欄と注入の削除は igi2 の回）。
-            // （思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
+            // indFrontier〔履歴 MultiNationSim.cs#87〕
             double indFrontier = 0;
             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
-            // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
-            //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
-            // ★銀と金の比（(210)・00一覧 §0-A の 10＝金への入力を同じ州の比の世界で＝表示用の統計に乗せない）：同一市場内の 銀/金鉱 比の全 Active 州の対数平均 R
-            //   を RefPrice 比で正規化（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）＝World.SilverGoldRatio（通貨制度の選好の入力）。
-            //   器 SilverParityFromRatio（R1・(775) で既定 1 に点火）は同じ R を銀本位国の平価の元へ使う＝走査はこの1本（旧＝器の枝の中だけで数えた）。
-            //   ⚠平均は**対数平均**・両市場が生きている州だけ（レビュー是正2026-09-07）：局所価格は rp×[PriceFloorFactor,PriceCeilFactor] の帯を持つので
-            //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
-            //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
-            //   走査順＝Nations 順×Regions 順（決定論）。有効な州が無い／比が不正なら 1（平価どおり）・R1 は旧統計へ倒す。
+            // World は国際市場を見られないので、   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。〔履歴 MultiNationSim.cs#88〕
             if (Catalog.SilverId < Market.Price.Count)
             {
                 double ratioSum = 0; int ratioCnt = 0;
-                bool demandWeighted = _coef.SilverParityDemandWeighted > 0;   // ★(807)(834) 旗：正のとき対数平均の票を A′（薄い側の額・参照価格建て）にする・値 0 は等重みのまま
-                double refAgW = Catalog.RefPrices[Catalog.SilverId], refAuW = Catalog.RefPrices[Catalog.GoldOreId];   // (827) A′ の票の参照価格（読むだけ）
+                bool demandWeighted = _coef.SilverParityDemandWeighted > 0;   // demandWeighted〔履歴 MultiNationSim.cs#89〕
+                double refAgW = Catalog.RefPrices[Catalog.SilverId], refAuW = Catalog.RefPrices[Catalog.GoldOreId];   // refAgW〔履歴 MultiNationSim.cs#90〕
                 double wLnSum = 0, wSum = 0;
                 foreach (var n in Nations)
                     foreach (var r in n.World.Regions)
@@ -890,34 +730,23 @@ public sealed class MultiNationSim
                         double lnRatio = System.Math.Log(pAg / pAu);
                         ratioSum += lnRatio; ratioCnt++;   // 対数平均
                         double dAu = mAu.LastDemand;
-                        double wState = demandWeighted ? SilverMinRefWeight(mAg.LastDemand, dAu, refAgW, refAuW) : 1.0;   // ★(827)(834) 旗が正＝A′（値 1 の w1 の枝は (834) で消した）／旗 0＝等しい 1 票
+                        double wState = demandWeighted ? SilverMinRefWeight(mAg.LastDemand, dAu, refAgW, refAuW) : 1.0;   // wState〔履歴 MultiNationSim.cs#91〕
                         if (demandWeighted) { wLnSum += wState * lnRatio; wSum += wState; }
-                        if (Instruments.On) Instruments.SilverWeightState(this, r, wState, lnRatio, dAu, mAu.LastProduced, mAg.LastDemand, mAg.LastProduced);   // (807) 計器（読むだけ）：エンジンが実際に使った票／(827) 州と銀の需要・産出
+                        if (Instruments.On) Instruments.SilverWeightState(this, r, wState, lnRatio, dAu, mAu.LastProduced, mAg.LastDemand, mAg.LastProduced);   // SilverWeightState〔履歴 MultiNationSim.cs#92〕
                     }
                 double refAu = Catalog.RefPrices[Catalog.GoldOreId];
                 double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
-                double meanRatio = SilverMeanRatio(demandWeighted, ratioSum, ratioCnt, wLnSum, wSum);   // ★(807) 旗 1：重みの和が正でなければ 0＝比が不正（旧の統計へ倒れる）
+                double meanRatio = SilverMeanRatio(demandWeighted, ratioSum, ratioCnt, wLnSum, wSum);   // meanRatio〔履歴 MultiNationSim.cs#93〕
                 bool ratioOk = ratioCnt > 0 && meanRatio > 1e-9 && refRatio > 1e-9;
                 double rel = ratioOk ? meanRatio / refRatio : 1.0;
-                // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
-                //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
-                // ★器 SilverParityFromRatio（2026-09-07 の器・(775) で既定 1 に点火）：Market.Price[銀] は「局所価格×ExchangeRate」の平均＝銀本位国の E がこの平均から
-                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1（既定）＝上の R を RefPrices[銀] の単位へ戻して平価の元にする。0＝旧統計。
+                // World は国際市場を見られないので、   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。〔履歴 MultiNationSim.cs#94〕
                 double silverWorld = Market.Price[Catalog.SilverId];
                 if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
                 foreach (var n in Nations) { n.World.WorldSilverPrice = silverWorld; n.World.SilverGoldRatio = rel; }
-                if (Instruments.On && !_calendarFrozen) Instruments.SilverParityCapture(this, silverWorld, rel, ratioOk);   // (775) 計器（読むだけ）：注入の直後の旧と新の平価
-                if (Instruments.On) Instruments.SilverWeightEnd(this, _calendarFrozen, ratioOk);   // (807) 計器（読むだけ）：助走の注入も含めて 1 注入 1 行
+                if (Instruments.On && !_calendarFrozen) Instruments.SilverParityCapture(this, silverWorld, rel, ratioOk);   // SilverParityCapture〔履歴 MultiNationSim.cs#95〕
+                if (Instruments.On) Instruments.SilverWeightEnd(this, _calendarFrozen, ratioOk);   // SilverWeightEnd〔履歴 MultiNationSim.cs#96〕
             }
-            // ★交易網の引力（タスク#75再開・2026-08-21・(210) で組ごとの相手へ）：TradeGoldPull_i ＝（自国の取引の相手の本位の差）×（自国の貿易開放度）。
-            //   相手の本位の差＝World.TradePartnerStandardBalance（BilateralMarket が越境の成約ごとに相手の本位の符号で積む＝金＋1・銀−1・不換0・−1..1）。
-            //   開放度＝(輸出+輸入)×年換算/年GDP（MajorsTradeGdp と同一の物差し）。
-            //   ★(210) 外部レビューの検討 §10-11-6 F6 の表の行（金本位の波は組ごとの相手で作り直す＝AI が要約した行・作者の原文ではない）と §10-11-7 の行（比が平価から外れている間だけ取引の過半の相手へ揃える＝AI の推奨・作者「質問を確認しました。推奨でよいと思います。」で承認）：
-            //   旧＝世界共通の金建て比率×自国の開放度（ペア別の行列を持たないための近似）＝自分の相手が銀の国ばかりでも世界の金の割合で引かれた（全ての国に同じ向き）。
-            //   新＝相手が金の過半なら＋・銀の過半なら−＝貿易の大きい国が金へ移るほどその相手の差が金へ傾く（英→独の正帰還＝雪崩）・相手が銀の国（アジア内陸）は銀圏に残る。
-            //   比が平価から外れている大きさは読み手（PolicyPreferences）が掛ける。⚠ 今の世界では同じ州の銀と金の比が 0.96〜1.13＝|1−比| が小さく引力はほぼ0（(210) の10種で移った四半期の中央 −0.055）
-            //   ＝上の正帰還（雪崩）は比が動く世界でだけ起きる＝今は起きない（(212) 反証役 vs1#6）。⚠国名も年号も書かない。
-            //   MonetaryPeerPullScale=0（旧既定・点火5.0=2026-08-21銀本位ラウンド）では注入自体をスキップ（TradeGoldPull は0のまま）。
+            // 相手の本位の差＝World.TradePartnerStandardBalance（BilateralMarket が越境の成約ごとに相手の本位の符号で積む＝金＋1・銀−1・不換0・−1..1）。〔履歴 MultiNationSim.cs#97〕
             if (_coef.MonetaryPeerPullScale > 0)
             {
                 Span<double> natTrade = Nations.Count <= 128 ? stackalloc double[Nations.Count] : new double[Nations.Count];
@@ -954,11 +783,7 @@ public sealed class MultiNationSim
                     wn.TradeGoldPull = bal * Math.Min(1.0, rel);
                 }
             }
-            // ★鋼市場診断#2（2026-08-16・旧の旗 AiWorldPriceEntry は 2026-10-18 に焼き込み）：国際市場の平均価格（Market.Price＝BilateralMarket が成約から書く265州平均）を
-            //   各国 World へ**読み取り専用**注入＝WorldTechLevel/IndustrialFrontier と同型の四半期同期・WorldSilverPrice(G6) と同じ
-            //   「World は国際市場を見られない（層の分離）」ための配布。⚠新しい価格を作らない——既存の平均価格をそのまま渡すだけ。
-            //   読み手＝SelfPlay.TryBuildFacility（AIの参入判断＝逆インセンティブの反転）のみ。
-            //   毎四半期注入する。
+            // ⚠新しい価格を作らない——既存の平均価格をそのまま渡すだけ。〔履歴 MultiNationSim.cs#98〕
             foreach (var n in Nations)
             {
                 var wn = n.World;
@@ -966,8 +791,7 @@ public sealed class MultiNationSim
                     wn.WorldGoodsPrices = wgp = new double[Market.Price.Count];
                 for (int gi = 0; gi < wgp.Length; gi++) wgp[gi] = Market.Price[gi];
             }
-            // ★(595) 線 aic 追記 3：財ごとの世界の産出の和（全国の active 州の LastProduced）を各国 World へ読み取り専用で注入（WorldGoodsPrices と同型・毎四半期）。
-            //   読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定：世界のどこかで作られている投入は根が無いとは言えない）。旗は 2026-10-27 に焼き込み＝常に注入。
+            // 読み手＝RootSupply のみ（AI の工場の選び方・根まで作れるかの判定：世界のどこかで作られている投入は根が無いとは言えない）。〔履歴 MultiNationSim.cs#99〕
             {
                 int ng = Catalog.Goods.Length;
                 var prod = new double[ng];
@@ -984,11 +808,7 @@ public sealed class MultiNationSim
                     Array.Copy(prod, wgq, ng);
                 }
             }
-            // 財5（対外国債の他国資本引き当て・プール注入）：各国の対外国債プールに『他モデル国の資本家貯蓄の合計』＝対外国債の引き受け余力を注入。
-            // Fiscal.Step はこれを上限に対外債発行をクランプする（実引き当て/保有国配分は #17 の CapitalMarket 経路で・notes 参照）。
-            // 毎四半期このプールへ注入し Fiscal 側が上限として読む（★2026-09-26：旗 ForeignBondFromInvestors を焼き込み・x-01）。
-            // ★段3-3（C13・2026-09-30）：貸し手は投資家の述語の1本（CapitalMarket.Investors＝国際金融の払い手・受け手と同じ集合）・余力は**金建て**で集めて借り手の通貨へ
-            //   （旧＝近代エリート〔活きた州〕の貯蓄を国をまたいで名目のまま足した）。
+            // 財5（対外国債の他国資本引き当て・プール注入）：各国の対外国債プールに『他モデル国の資本家貯蓄の合計』＝対外国債の引き受け余力を注入。〔履歴 MultiNationSim.cs#100〕
             {
                 Span<double> inv = Nations.Count <= 128 ? stackalloc double[Nations.Count] : new double[Nations.Count];
                 double worldCapSavings = 0;
@@ -996,16 +816,7 @@ public sealed class MultiNationSim
                 for (int k = 0; k < Nations.Count; k++)   // 各国の余力＝世界の資本家貯蓄から自国ぶんを除いた合計（他国だけが自国債を引き受けられる）
                     Nations[k].World.ForeignBondInvestorPool = Math.Max(0, worldCapSavings - inv[k]) / Nations[k].World.FxRate;
             }
-            // ★§1-4（ForeignLendingDebits・2026-08-30）：対外借入元本の貸し手側引き落とし。借り手は Fiscal で +CumulativeTradeFlow 済み＝
-            //   ここで他国資本家の貯蓄から比例控除し、貸し手国の CumulativeTradeFlow を同額 − する＝両建てで世界の貨幣創造を閉じる。
-            //   比例の物差し＝国内債と同じ max(0,Savings) 比（Fiscal の domestic 枝と同型）。★2026-09-26：旗 ForeignLendingDebits を焼き込み（x-01）。
-            //   ★支払いの一元化 段2-2（A5・2026-09-29）：貸し手の払いは**貸し手の貯蓄まで**（移し方の1本 World.Transfer＝払い手は他国の資本家・受け手は世界の外）。
-            //   払えなかった分（貸し手不在・月初のプールが四半期末までに痩せた）は**その借入が立たなかった**＝借り手の国債・対外債を同じ額だけ減らし、
-            //   受け取った額を国庫から世界の外へ戻す（Fiscal の借入の入金の逆＝量を減らす）。旧＝貸し手不在なら控除なし（借り手の受領だけが残る湧き口）・
-            //   貸し手の貯蓄を負へ押した（他人から取る）。
-            // ★段3-3（2026-09-30）：①貸し手は投資家の述語の1本（C13）②**払った額そのもの**を貸し手の国の対外債権へ（払った比＝債権の比・旧＝翌四半期の外債レグが
-            //   その時の投資家の貯蓄の比で配った）③借りた額は金の値打ちで貸し手の通貨へ換算（貿易と同じ為替・差は為替の換算の台帳）。払えなかった分は国債・対外債・
-            //   繰上げ済みの印（PrevForeignDebt＝借入の月に Fiscal.Borrow が上げた）から同じ額を戻す。
+            // 借り手は Fiscal で +CumulativeTradeFlow 済み＝   ここで他国資本家の貯蓄から比例控除し、貸し手国の CumulativeTradeFlow を同額 − する＝両建てで世界の貨幣創造を閉じる。〔履歴 MultiNationSim.cs#101〕
             {
                 List<Pop>[]? lenders = null;   // 各国の貸し手（投資家）＝四半期に1回だけ組む（POP の顔ぶれはこのループで変わらない）
                 double fxLend = 0;
@@ -1051,30 +862,19 @@ public sealed class MultiNationSim
             }
             ReabsorbNations();       // ★内戦一元化：内戦決着の再統合（州の返還・国家除去）。SpawnSecededNations の前＝同四半期の建国と衝突しない
             SpawnSecededNations();   // 建国キューの回収（分離戦勝利の州→新国家）。Nations走査の外＝リスト追記が安全・新国家は次の四半期から鼓動
-            // ★港の配線を盤面から張り直す（毎四半期・無状態＝2026-09-21 案1。旧＝署名で条件付き・2026-08-13）。
-            //   ★置き場所＝その四半期の領土の動き（講和の割譲・再併合・建国）が全て済んだ後（2026-09-28 処理の一元化 段2 B）。
-            //   ⚠旧＝国際市場の直後（再併合と建国の前）＝返った州と建った国の配線が1四半期遅れた。配線を読むのは国際市場の清算（BilateralMarket）だけ
-            //   ＝旧の位置からここまでの間（港湾・海上保険・移民・国際金融・疫病・天候・伝播）に読み手は無い＝動いたのは再併合と建国の四半期だけ。
+            // 配線を読むのは国際市場の清算（BilateralMarket）だけ   ＝旧の位置からここまでの間（港湾・海上保険・移民・国際金融・疫病・天候・伝播）に読み手は無い＝動いたのは再併合と建国の四半期だけ。〔履歴 MultiNationSim.cs#102〕
             RewirePorts();
             StepDiffusion();         // ★発見・段7：思想の伝播（貿易路×メディア・前四半期読み＝閉路なし）。DiffusionWeight=0で即return＝恒等
-            // 助走中は共有層の四半期カウンタも止める（2026-08-10）＝本編は必ず _quarter=0（外交の月次索引 _quarter*3+m の起点）から始まる。
-            // 助走では DiplomacyFrozen＝Diplomacy.Step を1度も呼ばないので、止めても飛ばした索引は存在しない。
+            // 助走では DiplomacyFrozen＝Diplomacy.Step を1度も呼ばないので、止めても飛ばした索引は存在しない。〔履歴 MultiNationSim.cs#103〕
             if (!_calendarFrozen) _quarter++;
         }
         _dayInQuarter = (_dayInQuarter + 1) % Calendar.DaysPerQuarter;
         return quarterDone;
     }
 
-    /// <summary>★内戦一元化（CivilWarAsWar・2026-08-30）：内戦決着の再統合＝SpawnNation の厳密な逆。
-    /// 政府勝利＝反乱国の全州を親へ返還し国家を除去／反乱勝利＝同じ返還の後に政体変更の実行部（Politics.SettleRevolt＝旧経路の内戦の決着と同じ1本・革命の成就）。
-    /// 保存則＝反乱国の基礎貨幣（S=貯蓄和＋T=国庫−L=与信）と人口 P を親の台帳へ（貸借の仕分けは ReabsorbNations の★2026-09-22）。民族反転（建国時の 1−x）も戻す。
-    /// 白紙講和はここへ来ない＝分断がそのまま残る（台湾・南北型）。</summary>
-    /// <summary>★発見・段7（2026-08-31）：思想と制度の伝播。到達(A→B)＝貿易額(A,B)の世界の貿易に占める割合×メディアA×メディアB×**前四半期の**放射A
-    /// （疫病の伝播と同型＝各到達国が新たな発信源・再放射。前四半期スナップショット＝同期読みの閉路禁止・原典§5-5）。
-    /// メディア＝NewsFill×識字＋RadioFill（pop加重・全て既存量）。ペア行列は四半期で消費しゼロ化。
-    /// ★2026-10-01 (152)：到達の欄は発見の表の思想と制度の行（<see cref="Discovery.SpreadRows"/>・<see cref="World.SpreadReach"/>）＝発見の「伝わり」の項が読む（設計 §1A-7＝距離ではなく取引量）。
-    ///   放射＝max(自国に届いた到達, 自国の種)・種＝思想はその思想を持つ人の割合（国の思想の集計＝旧と同じ）・制度は解禁済みなら1（<see cref="Discovery.SpreadSource"/>）。
-    /// ⚠DiffusionWeight=0＝即return（ペア記帳側も同ゲート）。</summary>
+    /// <summary>
+    /// 政府勝利＝反乱国の全州を親へ返還し国家を除去／反乱勝利＝同じ返還の後に政体変更の実行部（Politics.SettleRevolt＝旧経路の内戦の決着と同じ1本・革命の成就）。〔履歴 MultiNationSim.cs#104〕
+    /// </summary>
     private void StepDiffusion()
     {
         var c = _coef;
@@ -1096,10 +896,7 @@ public sealed class MultiNationSim
         for (int i2 = 0; i2 < n; i2++)
         {
             var wr = Nations[i2].World;
-            // ★段8の種（2026-09-04）：思想を**持つ**国が放射源＝到達を自国の種で下支え（名前で起点を書かない・対称）。
-            // ★2026-09-04 E-12実測（差し戻し）：種を到達に**書き戻す**と「自国シェア→自国到達→自国の門→自国シェア」の
-            //   正帰還が国内で閉じ、社会主義が61/61カ国へ1792〜95年に自家発火した。種は**放射側（prev）だけ**に使い、発見が読む
-            //   受信側 SpreadReach には他国から届いた分しか積まない（＝伝播の定義）。
+            // 種は**放射側（prev）だけ**に使い、発見が読む   受信側 SpreadReach には他国から届いた分しか積まない（＝伝播の定義）。〔履歴 MultiNationSim.cs#105〕
             prev[i2] = (double[])wr.SpreadReach.Clone();
             var nat = Ideologies.National(wr);
             for (int k2 = 0; k2 < prev[i2].Length; k2++)
@@ -1108,13 +905,10 @@ public sealed class MultiNationSim
                 if (src > prev[i2][k2]) prev[i2][k2] = src;
             }
         }
-        // 正規化＝**世界総貿易に占めるペアのシェア**（実測2026-08-31：買い手GDP割は小国を過大評価し
-        //   「英→ハワイ・阿爾及が仏独より先」の逆転を生んだ。絶対量の大きい経路＝英仏・英米が太い＝史実の順序。
-        //   世界貿易の成長とともに伝播も速くなる＝グローバル化が思想を速めた、も自然に出る）。
+        // 絶対量の大きい経路＝英仏・英米が太い＝史実の順序。〔履歴 MultiNationSim.cs#106〕
         double worldFlow = 0;
         for (int a0 = 0; a0 < n; a0++) for (int b0 = 0; b0 < n; b0++) worldFlow += pf[a0][b0];
-        // ★接触度（作者採用2026-09-06・知識doc §4／2026-09-07 是正）：自国の貿易の**強度**（(入＋出)÷自国名目GDP）÷世界の強度（世界貿易×2÷世界名目GDP）
-        //   ＝平均1.0・鎖国0。世界シェアだと経済の大きさに比例して清が最大になる（実測 6.8〜7.5）＝接触は量でなく強度。思想の到達と同じ入力＝新しい量を作らない。
+        // 世界シェアだと経済の大きさに比例して清が最大になる（実測 6.8〜7.5）＝接触は量でなく強度。〔履歴 MultiNationSim.cs#107〕
         {
             double worldGdp = 0; for (int a1 = 0; a1 < n; a1++) worldGdp += System.Math.Max(0, Nations[a1].World.NominalGdpPerMonth.Value);
             double worldIntensity = worldGdp > 1e-9 ? 2.0 * worldFlow / worldGdp : 0;
@@ -1147,9 +941,7 @@ public sealed class MultiNationSim
     internal void ReabsorbNations()   // internal＝番人（FiscalTests の再併合の貸借）が四半期の他の流れを挟まずにこの1段だけを踏む
     {
         System.Collections.Generic.HashSet<Power>? peaceful = null;   // 残骸の平和的復帰＝戦争の決着ではない＝決着の当てはめ（政体・鎮圧の後始末）を通さない
-        // ★残骸国家の自然再併合（2026-08-31・清プレイレポート同日ラウンド）：内戦の白紙分断で生まれた国が
-        //   親のGDP1%未満（スケールフリーの親相対・⚠構造定数＝連続性docの対象として記録）を RumpReabsorbYears 年続けたら
-        //   平和的に親へ戻す（産出1の死骸が61カ国の外交・清算・ハーネスを漂う問題の是正）。親が交戦中/不在なら持ち越し。
+        // 親が交戦中/不在なら持ち越し。〔履歴 MultiNationSim.cs#108〕
         if (_coef.RumpReabsorbYears > 0)
             for (int ri2 = 0; ri2 < Nations.Count; ri2++)
             {
@@ -1175,23 +967,10 @@ public sealed class MultiNationSim
             int ri = Nations.FindIndex(n => n.World.SelfPower == rebelP);
             if (pi < 0 || ri < 0 || pi == ri) continue;   // どちらかが既に消滅（防御・二重予約）
             var pw = Nations[pi].World; var rw = Nations[ri].World;
-            // ★政体の変更は州が戻った後（下の決着の当てはめ）＝革命の後始末（失脚・恐怖政治・土地改革）が再統一した国の全POPに掛かる（旧経路の内戦の勝ちと同じ範囲）。
-            // ★再併合の貸借（2026-09-22・作者裁定「全て推奨」）：反乱国の貸借の各行を「州について親へ行く」か「請求権として消える（金は動かない）」かに仕分ける。
-            //   規則＝貨幣であるものは湧きも消えもしない＝世界の基礎貨幣 Σ(貯蓄＋国庫−与信) は再併合の前後で同じ。
-            //   旧＝親へ渡すのは貯蓄と**正の**国庫だけで、反乱国の与信と負の国庫が国ごと消えた＝世界の貨幣がその額だけ湧いた（㉚の前の木・seed1789・604四半期の一時計器で +10,241）。
-            //   親へ：貯蓄（POPごと）・国庫（負＝当座借越も）・与信（Loans＝預金の対／HouseholdLoans＝POPと一緒に動く Pop.Debt の対）・
-            //         外資の負債と対外資産（ForeignCapitalIn／CapitalAbroad＝工場も投資家も州にいる）・対外債権（ForeignBondClaims）・
-            //         途中の管（元利の管／借入の予約＝同じ四半期の CapitalMarket.Step と貸し手の引き落としで空だが、順序に頼らない）・造幣局の金属準備（現物）。
-            //   反乱国の国債＝★作者裁定 2026-09-29（段3-3 で実施・2026-09-30）＝**勝った側の国債は統一後の国が引き継ぐ**：
-            //     反乱の勝ち＝反乱国の国債（国内の保有と対外債）を親へ（下の決着の当てはめの後＝急進革命の否認は旧政府の国債だけに掛かる＝既存の規則）。
-            //     政府の勝ち（と残骸の平和的復帰）＝反乱国の国債は消える＝国内の保有（下の BondHoldings）と対外債（ForeignDebt）の両方。対外債は債権国の
-            //     ForeignBondClaims を債権の比で落とす（損は持ち手。落とさないと相手のいない債権が元利の配当を吸う）。★史実＝米の南部連合の債務は修正14条4節（1868）で否認。
-            //   Bank.Gold は導出量（Credit.Step が毎日 BaseMoney から上書き）＝貨幣の行ではない（返還の1行も 2026-09-28 に削除）。
+            // ★政体の変更は州が戻った後（下の決着の当てはめ）＝革命の後始末（失脚・恐怖政治・土地改革）が再統一した国の全POPに掛かる（旧経路の内戦の勝ちと同じ範囲）。〔履歴 MultiNationSim.cs#109〕
             double T = rw.Treasury.Value;
             var moving = new System.Collections.Generic.List<Region>(rw.Regions);
-            // ★国債の保有台帳（2026-09-21）：政府の勝ち＝反乱国の国債は誰にも継承されない＝国が払うのを止めた割合（全額）だけ保有を消す＝損は持ち手（金は動かない）。
-            //   rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。★史実：合衆国憲法修正14条4節（1868）は南部連合の債務の継承・支払いを明文で禁じた。
-            //   反乱の勝ち＝保有を預かり（0へ）、決着の当てはめ（急進革命の否認・恐怖政治の没収＝旧政府と旧支配層に掛かる）の後に持ち手へ戻し、親の国債へ足す。
+            // rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。〔履歴 MultiNationSim.cs#110〕
             List<(Pop Pop, MoneyStock Held)>? inherit = rebelWon ? [] : null;
             foreach (var rr in moving)
                 foreach (var pp in rr.Pops)
@@ -1200,23 +979,12 @@ public sealed class MultiNationSim
                     else rw.GovDebt -= pp.BondHoldings;
                     pp.BondHoldings = default;
                 }
-            // 州は移し替えの1本（Territory.TransferRegion の再併合・2026-09-28 処理の一元化 段2 B）＝貯蓄と人口は州ごとに両国の台帳へ（同一値を両辺）・
-            //   建国時の反転を戻す（親の中核定義へ復帰）・市場の台帳のリセット・植民地財の空化（null にしない＝col-02）。
-            //   ★返還州の Id は親の中で最大＋1（Territory.Adopt）。⚠旧＝`親の州の数` で振った＝建国で親の州が抜けて Id が歯抜けのとき
-            //   既存の州と同じ Id が付いた（0..9 から 4 が抜けて数が9 → 返還州に 9）。Id で州を引く所（Politics の州の索引）と割譲先の同点決着が崩れていた。
+            // ★返還州の Id は親の中で最大＋1（Territory.Adopt）。〔履歴 MultiNationSim.cs#111〕
             foreach (var rr in moving) Territory.TransferRegion(rw, pw, rr, Territory.Rehoming.Returned);
-            // ★首都を返す（2026-09-28 処理の一元化 段2 束3・作者裁定 a）：首都の分離独立の反乱国が握っていた首都州が戻った＝政府は戦時の首都から戻る
-            //   （反乱の勝ち＝革命政府が首都で新しい政体を敷く／政府の勝ち＝首都を再征服）。遷都の1本（World.SetCapital＝Id と Regions[0]・距離の基準の座標・植民地財）。
-            //   返還州は Territory.Adopt が最大＋1の Id を振った後＝SetCapital が戦時の首都と Id を入れ替える。
-            //   首都州がこの国へ戻らなかった（戦中に第三国へ割譲された）ままこの親の内戦が全て終わったら、記しだけを外す（戦時の首都が首都のまま）。
+            // 遷都の1本（World.SetCapital＝Id と Regions[0]・距離の基準の座標・植民地財）。〔履歴 MultiNationSim.cs#112〕
             if (pw.SecedingRegion is { } seat && moving.Contains(seat)) pw.SetCapital(seat);
             if (pw.SecedingRegion is { } seat2 && (moving.Contains(seat2) || !Diplomacy.Wars.Exists(x => x.CivilWarParent == parentP))) pw.SecedingRegion = null;
-            // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：反乱国の国庫・与信・対外の残高は反乱国の通貨＝親の通貨へ換算して足す
-            //   （換算の1本 World.CrossFx＝国庫と与信は基礎貨幣＝差は換算の台帳へ・与信は負の額として・対外の資本と債権と途中の管は名目の残高＝台帳に積まない）。
-            //   旧＝名目のまま足した（反乱国の為替は建国の時は親の値だが、戦争の間に自国の月次の式で離れる）。金属の準備は現物＝換算しない。
-            // ★2026-09-30 段4g：国庫は移し方の1本（反乱国の国庫→親の国庫・国をまたぐ＝換算の1本・台帳は国境の出入り＝親の CumulativeTradeFlow へ動いた額）。
-            //   負の国庫（当座借越）は逆向き（親の国庫→反乱国の国庫＝反乱国の借越を埋める額を親が負う）＝親の国庫が同じ換算の額だけ減る（旧の Pay(負の額) と同じ量）。
-            //   旧＝親の国庫の片側の記帳（Pay）と台帳の手書き。反乱国の側の台帳と国庫は反乱国ごと消える（読み手なし）。
+            // 金属の準備は現物＝換算しない。〔履歴 MultiNationSim.cs#113〕
             double Tin = World.CrossFx(rw, pw, T, book: false);   // 換算の目安（台帳には積まない＝移し方の1本が積む）
             if (T > 0) World.Transfer((rw, null), (pw, null, null), T, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
             else if (T < 0) World.Transfer((pw, null), (rw, null, null), -Tin, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
@@ -1237,20 +1005,14 @@ public sealed class MultiNationSim
             // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
             foreach (var col in rebelP.ColonyList) Diplomacy.AcquireColony(parentP, col, _coef);   // 植民地の受け取りの1本（講和の奪取・無血併合と同じ＝国を持つ受け手は植民地格の州へ）
             rebelP.ColonyList.Clear();
-            // ★決着の当てはめ＝③政体・⑤人と政治（2026-09-28 処理の一元化 段2 束2）＝旧経路の内戦の決着と同じ1本（Politics.SettleRevolt）。
-            //   反乱の勝ち＝政体変更の実行部（急進革命だけ国債の否認・失脚・土地改革・覚醒・断裂の窓＝即時の政変と同じ規則）／同じ政体の要求戦は要求をのむ（ConcedeToFaction）。
-            //   政府の勝ち＝鎮圧の後始末は**反乱していた州（返還州）の住民だけ**（作者裁定 d）＋断裂の窓。運動はどちらでも燃え尽きる。
-            //   ⚠旧＝革命の勝ちは登録簿と建国制度の2行だけ・要求戦の勝ちは何も起きない・鎮圧の後始末は休眠の係数（RevoltAftermathOnWarPath＝0）の裏
-            //     ＝旧経路の鎮圧の行（Politics.ProcessCivilWar）を正本に1本へ畳み、係数は削除した（旧の休眠の枝が足していた正統性の減算は旧経路の鎮圧の行に無い＝持ち込まない）。
-            //   運動＝本拠州がこの反乱国の州だった運動だけ（同じ親で別の内戦が進んでいても他の運動を解かない）。残骸の平和的復帰は戦争の決着ではない＝当てはめない。
+            // 反乱の勝ち＝政体変更の実行部（急進革命だけ国債の否認・失脚・土地改革・覚醒・断裂の窓＝即時の政変と同じ規則）／同じ政体の要求戦は要求をのむ（ConcedeToFaction）。〔履歴 MultiNationSim.cs#114〕
             var movement = pw.RevoltingFaction is { } mv && moving.Contains(mv.Region) ? mv : null;
             // ★計器（F3b蜂起doc §5 段1・純記帳）：鎮圧の実体は「親が内戦に勝って再併合する」この経路＝決着した運動の名をここで出す（力学は読まない）。
             string spentName = movement is not null && !rebelWon ? $"（{Factions.DisplayName(movement)}の蜂起を鎮圧）" : "";
             var polityBefore = pw.Polity;
             if (pw.PoliticsEnabled && !(peaceful?.Contains(rebelP) ?? false))
                 Politics.SettleRevolt(pw, _coef, rebelWon, rebelPolity, movement, moving.SelectMany(r => r.Pops));
-            // 反乱の勝ち＝反乱国の国債を統一後の国が引き継ぐ（作者裁定 2026-09-29）＝預かった保有を持ち手へ戻し、国債・対外債・繰上げ済みの印を親へ足す
-            //   （対外債の債権国の債権はそのまま＝請求の相手が統一後の国になるだけ）。国内元本＝Σ保有＝rw.GovDebt−rw.ForeignDebt＝親の不変条件も閉じる。
+            // 国内元本＝Σ保有＝rw.GovDebt−rw.ForeignDebt＝親の不変条件も閉じる。〔履歴 MultiNationSim.cs#115〕
             if (inherit is not null)
             {
                 // ★人と動くお金の換算（段4e）：反乱国の国債の元本と保有は反乱国の通貨＝親の通貨へ（名目の残高＝換算の台帳に積まない・Σ保有＝国内元本の不変条件は同じ比で保つ）。
@@ -1259,8 +1021,7 @@ public sealed class MultiNationSim
                 pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
                 if (pw.GovDebt.Value > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt.Value * rw.GovAvgCouponPerYear) / pw.GovDebt.Value;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
             }
-            // ★作者裁定 f（2026-09-28）：反乱側に乗り換えたプレイヤーの国が吸収された＝親の国で続ける（操作者と外交の IsPlayer を親へ・画面は GameViewModel が追従して通知）。
-            //   ⚠AI の国は何もしない（操作者が居ない）＝エンジンの規則は同じ。
+            // IsPlayer〔履歴 MultiNationSim.cs#116〕
             if (rebelP.IsPlayer)
             {
                 rebelP.IsPlayer = false; parentP.IsPlayer = true;
@@ -1270,9 +1031,7 @@ public sealed class MultiNationSim
             Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
             CostLedger.AddInto(_costDeparted ??= new long[CostLedger.Count], Nations[ri].World.CostOrNull);   // 計算量の台帳：消える国の件数を受け皿へ（診断・軌道に触れない）
             Nations.RemoveAt(ri);
-            // ★国の番号のずれ（2026-09-28 処理の一元化 段2 B）：四半期のペア貿易額 PairFlowQ は国の番号（Nations の添字）で引く＝除いた国の行と列を落とす。
-            //   ⚠旧＝そのまま残った＝この後の StepDiffusion（思想の伝播・交易の接触度）が ri より後ろの国に1つ前の国の行を読ませた
-            //   （除いた国の番号より後ろの全ての国が、隣の国の貿易で接触度と思想の到達を受け取った）。
+            // PairFlowQ〔履歴 MultiNationSim.cs#117〕
             if (Market.PairFlowQ is { } pfq && ri < pfq.Length)
                 Market.PairFlowQ = pfq.Where((_, a) => a != ri).Select(row => row.Where((_, b) => b != ri).ToArray()).ToArray();
             Diplomacy.Log.Add(!rebelWon
@@ -1304,14 +1063,14 @@ public sealed class MultiNationSim
                 var m = Nations[j].World;
                 if (m.EpidemicActiveYears <= 0) continue;   // 感染源でない
                 double km = Geo.DistanceKm(w.Latitude, w.Longitude, m.Latitude, m.Longitude);
-                double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));   // ★時代関数化（掃討第2波2026-08-13）：鉄道と汽船で伝播距離が伸びる（2026-08-29点火＝既定1。=0で×1恒等）              // 陸路＝近いほど強い
+                double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));   // =0で×1恒等）              // 陸路＝近いほど強い〔履歴 MultiNationSim.cs#118〕
                 double trade = _coef.EpidemicTradeTransmit * w.ExternalTradeAccess() * m.ExternalTradeAccess();   // 海路＝両国が交易に開かれているほど（港経由のコレラ）
                 // 戦争＝距離に依らない強制的な濃厚接触（軍営・前線・補給線・復員兵）＝最強の伝播経路（スペイン風邪1918型）。
                 double war = w.SelfPower is { } sp && m.SelfPower is { } mp && Diplomacy.IsAtWar(sp, mp) ? _coef.EpidemicWarTransmit : 0;
                 exposure = Math.Max(exposure, Math.Max(Math.Max(proximity, trade), war));   // 最も近い/繋がった/交戦中の感染国からの曝露
             }
             if (exposure <= 1e-9) continue;
-            double chance = _coef.EpidemicTransmitChance * exposure * w.UrbanShare;   // 受け手も都市が多いほど定着（(638) 国の都市の人口÷国の人口＝発生の危険度の和と同じ割合）
+            double chance = _coef.EpidemicTransmitChance * exposure * w.UrbanShare;   // chance〔履歴 MultiNationSim.cs#119〕
             var rng = Nations[i].EpidemicRng;   // 受け手の専用RNG（各国独立＝盤面非依存の決定論）
             if (rng.NextDouble() < chance) w.TriggerEpidemic(_coef, EpidemicTransmitSeverityFloor + rng.NextDouble(), transmitted: true, pickRng: rng);   // 伝染＝死亡スパイク＋感染窓（連鎖しうる）
         }
@@ -1334,8 +1093,7 @@ public sealed class MultiNationSim
                 double bandEps = 1.0 + (_weatherRng.NextDouble() - 0.5) * 2.0 * _coef.WeatherBandVariation;   // 帯全体の豊凶（同じ帯の国は同じ値＝気候相関）
                 double brho = _coef.WeatherBandPersistence;
                 double bprev = _prevBandFactor.TryGetValue(band, out double bp) ? bp : 1.0;
-                // 他15（監査2026-07-11・2026-07-25修正）：革新係数を(1−ρ)から√(1−ρ²)へ＝分散保存AR(1)。旧凸結合はρ>0で実効振幅が縮む
-                //（ρ=0.5で0.69倍＝持続性を上げるほど天候がおとなしくなる逆効果）。brho=0 では √1=1＝純IID（既定0.35＝多年相関あり・有効化2026-07-07）。
+                // 旧凸結合はρ>0で実効振幅が縮む （ρ=0.5で0.69倍＝持続性を上げるほど天候がおとなしくなる逆効果）。〔履歴 MultiNationSim.cs#120〕
                 f = brho > 0 ? 1.0 + brho * (bprev - 1.0) + Math.Sqrt(1.0 - brho * brho) * (bandEps - 1.0) : bandEps;
                 bandFactor[band] = f;
                 _prevBandFactor[band] = f;
@@ -1358,41 +1116,30 @@ public sealed class MultiNationSim
             foreach (var sim in Nations)
             {
                 var w = sim.World; year = w.Year;
-                if (!Megaprojects.RequirementMet(w, cp.Id)) continue;   // ★(613) 段1（旗 TechGateByDiscovery は (843) で焼き込み）：拠出する国の自国の発見の行 requires。近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。技術を持つ国だけが拠出できる
+                if (!Megaprojects.RequirementMet(w, cp.Id)) continue;   // 近代土木の技術ゲート＝運河の時代を出す（スエズ1869/パナマ1914）。〔履歴 MultiNationSim.cs#121〕
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
                 if (_coef.CanalInvestReturns.Value > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
-                // ★段3-3（C13・2026-09-30）：出資者＝投資家の述語の1本（CapitalMarket.Investors＝配当の受け手と同じ集合）。旧＝各州の資本家1人（InvestorPopIndex・活きた州）。
+                // investors〔履歴 MultiNationSim.cs#122〕
                 var investors = CapitalMarket.Investors(w);
                 double pool = 0; foreach (var ip in investors) pool += Math.Max(0, ip.Savings.Value);
                 if (pool <= 1e-6) continue;
-                // ★支払いの一元化 段2-3（E1・2026-09-29）：投資家（貯蓄の比）→建設の工賃を移し方の1本で＝動いた額が進捗と持分になる。
-                // ★段3-2（2026-09-30・C9）：工賃は**自国の労働の④の持分**（全ての活きた州の労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales の国の枝）。
-                //   旧＝自国の全POP へ頭数（財を買わない＝建設の工賃なのに農民・貴族・兵士まで受け取った）。労働の担い手がいなければ動かない（進捗も持分も立たない）。
+                // 労働の担い手がいなければ動かない（進捗も持分も立たない）。〔履歴 MultiNationSim.cs#123〕
                 double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);
                 if (!(inv > 0)) continue;
                 cp.BuildProgress += inv;
-                // 外7：拠出国の持分（累計拠出額）を記録＝後で通行料を持分比で分配（配当）。既定0.5＝この持分が配当に効く。0では通行料が扼者総取りのままなので持分は参照されず無影響。
-                //   ★段3-3（2026-09-30）：持分は**金建て**（拠出×為替）＝国をまたぐ配当の比を1つの物差しで（進捗 BuildProgress は建設の工賃＝国内の払いの額のまま）。
+                // 外7：拠出国の持分（累計拠出額）を記録＝後で通行料を持分比で分配（配当）。〔履歴 MultiNationSim.cs#124〕
                 if (_coef.CanalInvestReturns.Value > 0 && w.SelfPower is { } shp)
                 {
                     double invG = inv * w.FxRate;
                     cp.InvestorShares[shp.Id] = cp.InvestorShares.TryGetValue(shp.Id, out double prev) ? prev + invG : invG;
                 }
             }
-            // ★即開通ガード（2026-07-28）：下限が無いと BuildCost 未設定（データ記述漏れ＝0）のとき 0>=0 が真になり、
-            // **1783年の最初の四半期にその運河が開通**して海路距離が全世界で即変わる（604四半期が全面的に別物になる）。
-            // 「データが無い＝不発」を保証する安全弁。ログは従来「スエズ運河運河が開通」と重複していたので是正（Runner の集計語も同時に追随）。
+            // 「データが無い＝不発」を保証する安全弁。〔履歴 MultiNationSim.cs#125〕
             if (cost > 1e-9 && cp.BuildProgress >= cost) { cp.IsOpen = true; Diplomacy.Log.Add($"{year} {cp.Name}が開通（{(cp.Owner is { } o ? o.Name + "が扼す" : "中立")}）"); }
         }
 
-        // 通行料：開通済みの咽喉の利用国から扼者の国庫へ（迂回より安い＝使う方が得）。実在の扼者のみ徴収。保存＝両国の CumulativeTradeFlow。
-        // 監査2026-07-11（リ2・CanalTollByRoute=1既定）：旧＝「本国の海盆所属（ServesBasins）」で課金対象を決めていた＝スエズの支払国が
-        // 日本・清など東方勢のみで、史実の最大利用者（対印交易の英仏）が1銭も払わない逆転＋自然海峡（ジブラルタル等＝19世紀に通航税は実在しない）
-        // まで課金していた。新＝(a)課金は運河（IsCanal）のみ＝自然海峡は封鎖の物理（ChokeBlockadePenalty）だけ残す
-        // (b)課金対象＝「交易重心への海路がこの運河の開通で実際に縮む国」（利用の物理＝Geo.SeaDistanceKm の開通あり/なし差分）
-        // (c)基数＝海運取扱高（通航トン数課金）。CanalTollByRoute=0 で旧挙動（海盆所属判定）。
-        // 02断線走査2026-07-28：CanalTollByRoute=1恒久確定＝旧・海盆所属判定の分岐（CanalTollRate GDP比例/CanalTollByTraffic）を係数ごと削除＝ルート判定（海路が実際に縮む国だけ課金）一本化
-        double tollCx = 0, tollCy = 0, tollCz = 0, tollTw = 0;   // 手順3.5（2026-07-28）：球面重心（InternationalMarket と同型＝円柱平均のずれを是正）
+        // 通行料：開通済みの咽喉の利用国から扼者の国庫へ（迂回より安い＝使う方が得）。〔履歴 MultiNationSim.cs#126〕
+        double tollCx = 0, tollCy = 0, tollCz = 0, tollTw = 0;   // tollCx〔履歴 MultiNationSim.cs#127〕
         bool suezOpenNow = false, panOpenNow = false;
         foreach (var cp2 in Diplomacy.Chokepoints) { if (cp2.Id == Diplomacy.SuezId) suezOpenNow = cp2.IsOpen; else if (cp2.Id == Diplomacy.PanamaId) panOpenNow = cp2.IsOpen; }
         foreach (var sim in Nations)
@@ -1419,20 +1166,16 @@ public sealed class MultiNationSim
                 if (dWithout - dWith < 1.0) continue;   // この運河で海路が縮まない国＝通らない＝課金しない（英仏の対印交易はスエズで縮む＝払う）
                 double traffic = 0; foreach (var r in uw.Regions) traffic += r.LastPortThroughput;
                 double tollBase = _coef.CanalTollTrafficRate * traffic;   // 通航トン数課金（取扱高の代理・前四半期値）＝取扱高は金建て（積出し価格）
-                double toll = tollBase / uw.FxRate * uw.FiscalFundingRatio.Value;   // 使用国の通貨（★段3-3・2026-09-30）×国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+                double toll = tollBase / uw.FxRate * uw.FiscalFundingRatio.Value;   // toll〔履歴 MultiNationSim.cs#128〕
                 if (toll <= 1e-9) continue;
-                // 外7：CanalInvestReturns>0 なら通行料の一部を建設拠出国の**投資家**へ持分（累計拠出額）比で配当し、残りを扼者の国庫へ。既定0.5＝配当あり。0＝全額扼者。
-                //   ★段3-3（C9・2026-09-30）：配当の受け手は出資した国の投資家（出資者と同じ集合・旧＝拠出国の国庫）。払いは使用国の国庫から直接・国境をまたげば為替で換算（移し方の1本）。
+                // 外7：CanalInvestReturns>0 なら通行料の一部を建設拠出国の**投資家**へ持分（累計拠出額）比で配当し、残りを扼者の国庫へ。〔履歴 MultiNationSim.cs#129〕
                 double dividend = _coef.CanalInvestReturns.Value > 0 ? DistributeCanalDividend(cp, toll * _coef.CanalInvestReturns.Value, uw) : 0;
                 World.Transfer((uw, null), (ow, null, null), toll - dividend, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);   // 配当されなかった残余（＝扼者取り分）。分配失敗時も toll 全額が扼者へ回り保存
             }
         }
     }
 
-    // 外7：通行料の配当ぶんを、この運河の建設拠出国へ持分（InvestorShares＝累計拠出額・金建て）比で配分。
-    // ★段3-3（C9・2026-09-30）：受け手は拠出国の**投資家**（CapitalMarket.GiveGold＝投資家だけ・投資家のいない国は国庫）・払い手は使用国の国庫（区分 その他の支出）。
-    //   扼者の国も出資していればその投資家が持分どおり受け取る（旧＝国庫⇄国庫で、扼者自身の持分は扼者本人の徴収と二重になるため除外していた＝受け手が投資家になり二重ではなくなった）。
-    // 返り値＝実際に配当した総額（使用国の通貨・≦amount）。抽象/消滅国の持分は配らない＝呼び手が残余として扼者へ。
+    // 外7：通行料の配当ぶんを、この運河の建設拠出国へ持分（InvestorShares＝累計拠出額・金建て）比で配分。〔履歴 MultiNationSim.cs#130〕
     internal double DistributeCanalDividend(Chokepoint cp, double amount, World payer)   // internal＝番人（FiscalTests の運河の配当）がこの1段だけを踏む
     {
         if (amount <= 1e-12 || cp.InvestorShares.Count == 0) return 0;
@@ -1449,10 +1192,9 @@ public sealed class MultiNationSim
         return paid;
     }
 
-    /// <summary>★(292) 港の州の混雑を解くのに要る建設費（自国通貨・四半期に1回の額）＝[(混雑の目標 PortCongestionTarget − 律速率 LastTradeThrottle)×潜在量 LastTradePotential ÷ PortCapToThroughput ＋ 今期の減耗で失った容量]×PortBuildCostPerUnit。
-    /// 導出：律速率＝min(1, cap÷potential)・cap＝船腹の実効＋PortCapToThroughput×PortCapacity（加法的＝BilateralMarket）。混雑の門（律速率＜目標＜1）の中では 律速率×potential が今の cap そのもの＝目標へ上げる不足は (目標−律速率)×potential・
-    /// 港の容量 1 単位が cap を PortCapToThroughput だけ足す。律速率は減耗の前の容量で測った値なので、減耗で失った容量（StepPorts の減耗の前後の差）を補う（無いと毎四半期 PortDecay×PortCapacity だけ足りず門のすぐ下で振動する）。
-    /// 新しい状態は作らない（四半期の最初の清算が書く律速率と潜在量は同じ瞬間の値）。0 以下・NaN は 0。internal＝番人（ConservationTests.港の混雑を解くのに要る建設費は手で打った数と一致する）が手で組んだ州に当てる。</summary>
+    /// <summary>
+    /// 導出：律速率＝min(1, cap÷potential)・cap＝船腹の実効＋PortCapToThroughput×PortCapacity（加法的＝BilateralMarket）。〔履歴 MultiNationSim.cs#131〕
+    /// </summary>
     internal static double PortCapitalNeed(Region r, Coefficients c, double lostCapacity)
     {
         if (!(c.PortCapToThroughput > 0)) return 0;
@@ -1460,9 +1202,7 @@ public sealed class MultiNationSim
         return units > 0 ? units * c.PortBuildCostPerUnit : 0;   // 否定形＝NaN は払わない
     }
 
-    // 港湾の建設（改修2026-06-28）：StepCanals の雛形を Region に移植＝各国の港州を、交易が容量で律速（混雑）している時に**資本家が主導・国家が上乗せ**して拡張する。
-    // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。
-    // ★2026-09-30（段3-4・C10）：港湾料は成約の時点の上乗せへ移した（BilateralMarket.StepBilateral＝荷主〔輸入の捌き手〕が払い、港の州の投資家が受け取る）＝ここは容量だけ。
+    // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。〔履歴 MultiNationSim.cs#132〕
     private void StepPorts()
     {
         foreach (var sim in Nations)
@@ -1470,40 +1210,34 @@ public sealed class MultiNationSim
             var w = sim.World;
             double natPop = 0; foreach (var (_, p) in w.AllPopsWithRegion()) natPop += p.Size;
             if (natPop <= 1e-9) continue;
-            double natThr = w.PortThroughputTotal();   // ★(223) 国家ルートの請求の分母（World.PortStateRequest）
-            bool techOk = Discovery.SteamPower(w.Discovered);   // ★近代港湾（蒸気の浚渫・埠頭）の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の閾値 PortTechOnset 0.2）
+            double natThr = w.PortThroughputTotal();   // natThr〔履歴 MultiNationSim.cs#133〕
+            bool techOk = Discovery.SteamPower(w.Discovered);   // techOk〔履歴 MultiNationSim.cs#134〕
             foreach (var r in w.Regions)
             {
                 if (!r.IsPort) continue;
-                double capBeforeDecay = r.PortCapacity;   // (292) 減耗で失った容量を要る分へ（計器でも読む）
+                double capBeforeDecay = r.PortCapacity;   // capBeforeDecay〔履歴 MultiNationSim.cs#135〕
                 if (!_calendarFrozen) r.PortCapacity = Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
-                //（港湾料は 2026-09-30 に成約の時点へ＝旧＝四半期末に取扱高×率を国の全POP から貯蓄の比で・段3-4 C10）
-                // 拡張は混雑時のみ（律速率<目標＝容量が交易を絞っている）＝採算ゲートで過剰投資しない。技術ゲート（近代港湾）。
+                // 技術ゲート（近代港湾）。〔履歴 MultiNationSim.cs#136〕
                 if (_calendarFrozen || !techOk || r.LastTradeThrottle >= _coef.PortCongestionTarget) continue;   // ★助走：港湾も「年月をかけて広がる」能力＝凍結
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
-                double need = Instruments.On ? PortCapitalNeed(r, _coef, capBeforeDecay - r.PortCapacity) : double.NaN;   // (292) 計器（読むだけ）：混雑を解くのに要る分（反事実）
+                double need = Instruments.On ? PortCapitalNeed(r, _coef, capBeforeDecay - r.PortCapacity) : double.NaN;   // need〔履歴 MultiNationSim.cs#137〕
                 double cCap = _coef.PortInvestFrac.Value * Math.Max(0, ip.Savings.Value);          // 資本家ルート
-                double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio.Value;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
+                double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio.Value;   // cState〔履歴 MultiNationSim.cs#138〕
                 double invest = cCap + cState;
-                if (Instruments.On) Instruments.PortGate(w, r, ip.Savings.Value, need, cCap, cState);   // (292) 計器（読むだけ）
+                if (Instruments.On) Instruments.PortGate(w, r, ip.Savings.Value, need, cCap, cState);   // Instruments〔履歴 MultiNationSim.cs#139〕
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
-                // ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。
-                //   旧＝自国の全POP へ頭数（財を買わない）。進捗は動いた額（資本家の分＋国庫の分）。
+                // 進捗は動いた額（資本家の分＋国庫の分）。〔履歴 MultiNationSim.cs#140〕
                 double paidCap = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);
                 double paidState = InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);
                 invest = paidCap + paidState;
                 r.PortCapacity += invest / _coef.PortBuildCostPerUnit;
-                if (Instruments.On) Instruments.PortPaid(w, r, paidCap, paidState, invest / _coef.PortBuildCostPerUnit);   // (292) 計器（読むだけ）
+                if (Instruments.On) Instruments.PortPaid(w, r, paidCap, paidState, invest / _coef.PortBuildCostPerUnit);   // PortBuildCostPerUnit〔履歴 MultiNationSim.cs#141〕
             }
         }
     }
 
-    // 海上保険（改修2026-06-28・金融改革③）：商人pop＝引受手。封鎖損失時は損失×給付率を商人基金→荷主へ（基金=商人貯蓄の範囲で部分払い＝ロイズの破綻リスク）。
-    // すべてpop⇄pop移転＝基礎貨幣不変。多国シム(StepDay四半期)からのみ呼ばれる＝単一国較正は不走行で中立。商人不在の国は保険市場が立たない。
-    // ★2026-09-30（段3-4・C10＝処理の一元化 段4d）：保険料は成約の時点の上乗せへ移した（BilateralMarket.StepBilateral＝輸入の捌き手が払い、輸入国の商人が受け取る）。
-    //   保険金の受け手は**損をした荷主**＝各州の捌き手の商人（その州の海路の取扱高の比）。旧＝保険料は全POP の貯蓄の比・保険金は全POP の頭数（荷主でも損をした者でもない）。
-    //   ⚠封鎖の危険 LastBlockadeRisk の書き手が無い＝常に0（棚卸し econ-14）＝保険金は実ゲームでは立たない（形だけを直した）。
+    // 封鎖損失時は損失×給付率を商人基金→荷主へ（基金=商人貯蓄の範囲で部分払い＝ロイズの破綻リスク）。〔履歴 MultiNationSim.cs#142〕
     private void StepMarineInsurance()
     {
         if (_coef.InsurancePayoutFrac.Value <= 0) return;
@@ -1541,15 +1275,9 @@ public sealed class MultiNationSim
         return null;
     }
 
-    /// <summary>★安全保障の不安（2026-10-02 (155) 作り直し・作者 2026-10-01 の名前「安全保障の不安」・推奨で進めた）＝全国の受ける脅威を四半期1回計算する。
-    /// 脅威(B←A)＝A の養える軍（定員＝<see cref="Military.EstablishmentOf"/>＝A が選んだ軍事費の段×歳入÷1人あたりの費用と人口の側の小さい方＝相手の今の兵数〔戦時の徴兵の跳ね〕は読まない・⚠(177) 注記の一巡〔反証役 vc2#5〕＝(175) から A が交戦×総動員の間は器に戦時段の借入の1件の額が入る＝戦時の跳ねの一部が入る）のうち
-    /// B に向く注意配分 a(A→B)＝hr(A→B)÷(u(A)＋Σ_K hr(A→K))。hr＝敵意 h（<see cref="ArmyShape.Hostility"/>＝同盟0・宗主と属国の間×(1−AllyAttentionDiscount)・緊張の有理飽和）
-    /// ×届く強さ（国境の長さと地形〔陸路グラフで隣り合う州の組×地形の通りにくさ・植民地格の州も＝<see cref="ArmyShape.Borders"/>〕＋投射〔距離減衰×海越えの制海権＝<see cref="Diplomacy.Projection"/>〕）
-    /// ・u＝内向きに使われる軍（<see cref="ArmyShape.Unrest"/>）＝**(151) の理想の軍隊の形の陸の必要量と同じ物差しと同じ注意配分**（相手の軍は同時に全方位へ向けられない＝世界の脅威の和は世界の養える軍の和より小さい
-    /// ＝軍拡が縮小写像。⚠正規化しない総和は全ての国が全ての国から脅威を受け、61カ国の中央の国の脅威の割合が0.9を超えた＝(155) の試走）。
-    /// 自国の分母＝養える軍の人口の側（兵役の母数×MaxSoldierFraction＝自分の軍事費の段に依らない＝自国の段を上げても不安は下がらない＝段の往復を作らない）。
-    /// 読み手＝AI の軍事費の段（唯一の入口・SelfPlay の脅威の割合）・徴兵法の目標（(178) から陸軍の不安 SecurityThreatArmy の割合＝本国の国境＋投射×上陸の門）・戦略鉄道（Transport の目標・脅威÷自国の養える軍・前期の値）。旧＝州の経済質量×距離減衰の最大の和（同盟も国境も海も読まない）。
-    /// 世界の中央との比（作者のメモ M4「100%を基本に」＝表示だけ）は UI の回で（導出＝持たない）。</summary>
+    /// <summary>
+    /// 自国の分母＝養える軍の人口の側（兵役の母数×MaxSoldierFraction＝自分の軍事費の段に依らない＝自国の段を上げても不安は下がらない＝段の往復を作らない）。〔履歴 MultiNationSim.cs#143〕
+    /// </summary>
     private void StepSecurityThreat()
     {
         int n = Nations.Count;
@@ -1563,10 +1291,10 @@ public sealed class MultiNationSim
             seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
             own[i] = w.Coef.MaxSoldierFraction.Value * man;
         }
-        var borderHome = new double[n * n];   // ★(178) 両側とも本国の州（Core・Integrated）の国境だけ（対称）
+        var borderHome = new double[n * n];   // borderHome〔履歴 MultiNationSim.cs#144〕
         var border = ArmyShape.Borders(ps, _coef, borderHome);
         var hr = new double[n * n];   // hr[a*n+b]＝A の軍が B に届く強さ×敵意
-        var hrArmy = new double[n * n];   // ★(178) そのうち陸軍の不安＝h×(本国の国境＋投射×上陸の門)＝B の海軍で防げない分（海越えで A の制海権が門に届く投射）だけを数える＝徴兵法の目標が読む
+        var hrArmy = new double[n * n];   // hrArmy〔履歴 MultiNationSim.cs#145〕
         var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)（陸と海越えの両方へ配る同じ1つの分母＝ArmyShape と同じ）
         long pairs = 0;
         for (int a = 0; a < n; a++)
@@ -1605,11 +1333,7 @@ public sealed class MultiNationSim
         Cost[CostLedger.ThreatReachPairs] += pairs;   // 計算量の台帳（診断）：脅威の届き方の組（安全保障の不安＝四半期1回・同盟の組を除く）
     }
 
-    // 外1：交易比重（TradeWeight）を貿易取扱高のシェアから四半期同期（A-中6 で GDP シェアから置き換え＝下の注記）。1789固定値だと1900年に経済覇権となった国を禁輸しても痛みが初期比重のまま＝関税報復/禁輸/国際価格形成の比重が化石化する問題を解く。
-    // 既定1.0（点火2026-07-23）＝取扱高シェアで毎四半期更新。0で即 return＝コンストラクタで設定した 0.15+0.10×Industrialization を1789固定維持。抽象標的（Nation=null）は据え置き。
-    // A-中6（史実検証2026-07-22）：駆動変数を GDP シェアから**貿易取扱高**（LastExportValue+LastImportValue の EMA）のシェアへ。
-    // GDP駆動だと開放度を無視して1913年の米・清・露を過大にする（清は巨大GDPだが広東体制の閉鎖経済）。旧＝1783年の値で604四半期凍結＝
-    // 英の山形（1870年前後ピーク24-25%→1913年約14%）も独米の台頭も、禁輸/交戦の痛み・関税報復の観測重みに一切反映されなかった。
+    // 外1：交易比重（TradeWeight）を貿易取扱高のシェアから四半期同期（A-中6 で GDP シェアから置き換え＝下の注記）。〔履歴 MultiNationSim.cs#146〕
     private void UpdateTradeWeights()
     {
         double total = 0; int count = 0;
@@ -1629,8 +1353,8 @@ public sealed class MultiNationSim
         }
     }
 
-    // 民族の同化の段（回1-2・2026-09-27＝旧 MigrateInternational の同化の部分だけを残した。世界プール＝ゲーム外から人と持参金が湧く経路は削除）。
-    internal void StepAssimilation()   // ★段4（2026-09-09）：internal＝同化の式をテストから単離して検証するため（AccumulatePopConsciousness と同じ扱い）
+    // 世界プール＝ゲーム外から人と持参金が湧く経路は削除）。〔履歴 MultiNationSim.cs#147〕
+    internal void StepAssimilation()   // StepAssimilation〔履歴 MultiNationSim.cs#148〕
     {
         foreach (var sim in Nations)
         {
@@ -1639,17 +1363,13 @@ public sealed class MultiNationSim
             if (w.EthnicEnabled)
             {
                 double assim = _coef.EthnicAssimilation + (w.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory ? _coef.AssimilationEducationBonus : 0);
-                // B-高3（史実検証2026-07-22）：識字の高い少数派は同化を拒む（ボヘミアのチェコ人＝識字95%超で同化拒否・バデーニ暴動1897。
-                // 識字は「自民族語の学校網・出版市場を持てたか」の代理変数）。Resist=0 で×1.0＝厳密恒等。
-                // ★逆流（民族復興・段4 2026-09-09・設計メモ§7-7バグa）：AssimilationRevival>0 で床 max(0,·) を外し、
-                //   識字が 1/AssimilationRevival を超えた少数派では resist が**負**＝中核度が下がる（自民族語の学校網と
-                //   出版市場を持てた少数派は同化を押し返す）。0＝床あり＝厳密恒等。
+                // 識字は「自民族語の学校網・出版市場を持てたか」の代理変数）。〔履歴 MultiNationSim.cs#149〕
                 bool revive = _coef.AssimilationRevival > 0;
                 double rr = revive ? _coef.AssimilationRevival : _coef.AssimilationLiteracyResist;
                 foreach (var (_, p) in w.AllPopsWithRegion())
                 {
                     double resist = rr > 0 ? 1.0 - rr * p.Literacy : 1.0;
-                    if (!revive) resist = Math.Max(0.0, resist);   // 旧＝床あり（同化は遅くなるが止まらない）
+                    if (!revive) resist = Math.Max(0.0, resist);   // revive〔履歴 MultiNationSim.cs#150〕
                     // 逆流の核＝core×(1−core)：中核度1のPOPは1ビットも動かない（**持っていない民族は復興できない**＝
                     // 単一文化国の自国民が自分から離反する暴走を構造で閉じる）。同化側の核は従来どおり (1−core)＝core=0 から立ち上がる。
                     double kernel = resist > 0 ? 1.0 - p.CoreEthnicShare.Value : p.CoreEthnicShare.Value * (1.0 - p.CoreEthnicShare.Value);
@@ -1659,26 +1379,7 @@ public sealed class MultiNationSim
         }
     }
 
-    // 国家間移民（回1-2・2026-09-27＝国際移民を閉じる・外部レビューの検討 §10-3 Q3／項目3）：機会（Territory.Opportunity＝土地逓減・住宅摩擦・
-    // 賃金プレミアムを含む飽和しない実体量）の差で、各州の大衆（農民・労働者）が豊かな国の州へ移る。「アメリカに流すのではなく、アメリカが豊かだから流入する」。
-    // ★人はゲームの外から来ない＝送出州から引いた分だけ受入州に着く（旧の世界プール＝世界人口×0.004/四半期を送出国から1人も引かずに配り、
-    //   持参金を世界平均の貯蓄から湧かせた経路は削除）。保存：出る側 PopulationDelta−/持参金は CumulativeTradeFlow−、入る側 ＋（両国で閉じる）。
-    // ★2026-10-01 (141)：**国内の移民（Territory.Step）と同じ規則**＝行き先は全ての国の全ての州（旧＝各国の最良の1州に着いた＝米東部の混んだ州に積もり、
-    //   国内の移民で西部へ抜けて1/4 未満〔(125) の申し送り5〕）・距離は州の座標の間（越境は Territory.MigrationDecay・旧＝国の座標の間）〔★(748) 国内の移民（Territory.Step）は乗算の減衰でなく距離を摩擦の項で差から引く＝越境の乗算の減衰とは別の規則（棚卸し pop-24 の非対称が戻った・揃えるのは次の線）〕・
-    //   受け入れの上限は州ごと（国内の移民と同じ＝受け入れる州の人口×受け入れの能力・越境だけ移民制限法を掛ける）・
-    //   出る側は国内と同じ「残る値打ち」＝機会×残る人の土地の持ち分（Territory.Holding）×州の食料充足（旧＝機会×食料充足に、送出 POP の規模の下限のクランプ
-    //   EmigrationFloorSize〔50千人・幅 EmigrationFloorSpan 2〕＝A4 裁定「人が減るほど賃金が上がる」を床で書いたもの＝思想⑧＝残る人の持ち分が同じことを収穫逓減で言う）。
-    // 流量はすべて四半期の初めの値で決め、決め終えてから移す。
-    //   1 行き先 x＝全ての国の稼働中の州（機会が評価できる州）＝機会 O_x・座標・受入国 d の重み a_d（民族：低統一度は引く・低識字は差別で阻む）・
-    //     州の受入の上限 C_x（州の人口×受入の上限率×移民制限法×州の受入能力）
-    //   2 送出州 r（全ての Active 州）＝残る値打ち P_r＝機会×持ち分×州の食料充足。差 g_rx＝(O_x−P_r−閾値)×距離の減衰（正のものだけ）・重み w_rx＝g_rx×a_d
-    //   3 階級ごとの流出 F＝min(EmigrationRate×最良の行き先の差, 上限×(1＋飢え))×人数。**流出の上限はここで1回だけ**＝行き先がいくつあっても同じ
-    //     （旧＝「最悪の1州→最良の1国」の1組だけ動かしていた。全組で上限まで抜くと1国が多重に排水される＝プロイセン技術0.38への空洞化を実測したため。
-    //     上限を1回だけ掛ければ、1つの州が多くの州へ同時に上限まで流れ出ることが構造的に起きない）。
-    //   4 F を、その階級の POP が居る行き先へ w_rx の比で割り当てる（居ない行き先の分は送出州に残る＝国内の移民の Movable と同じ）。
-    //     受入州ごとの合計が C_x を超えたら x への分をすべて C_x÷合計で縮める
-    //     ＝**縮んだ分は送出州に残る**（消えない・湧かない。移民制限法は「別の国へ回す」でなく「流れを減らす」法＝作者裁定 B3）。
-    //   5 移す（MoveMigrants＝決まった人数を1つの階級だけ・属性の運搬は旧のまま）。
+    // 「アメリカに流すのではなく、アメリカが豊かだから流入する」。〔履歴 MultiNationSim.cs#151〕
     internal void MigrateBetweenNations()   // internal＝番人テストが段を単離して1回だけ呼ぶため（StepAssimilation・MoveMigrants と同じ扱い）
     {
         foreach (var sim0 in Nations) { var w0 = sim0.World; w0.LastImmigration = 0; w0.LastEmigration = 0; w0.LastSpecialistExit = 0; }   // 診断（UI）：四半期の移民収支カウンタ（★段⑤：専門職の流出カウンタも同じ場所で0に＝無条件＝滞留しない）
@@ -1693,9 +1394,7 @@ public sealed class MultiNationSim
             dstA[d] = w.EthnicEnabled
                 ? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * PoliticalQuantities.Clamp01(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy)
                 : 1.0;
-            // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapPerQuarter/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。
-            // ★移民制限法（法の棚卸しdoc L2・2026-08-01）：Open＝1.0／Selective＝選別で細る／Closed＝ほぼ閉じる
-            //   （史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義）。★(141)：州ごと（国内の移民の受け入れの上限と同じ＝その州の人口×その州の受入能力）
+            // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapPerQuarter/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。〔履歴 MultiNationSim.cs#152〕
             double lawCap = w.ImmigrationRestriction switch
             {
                 ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac.Value,
@@ -1705,7 +1404,7 @@ public sealed class MultiNationSim
             foreach (var r in w.Regions)
             {
                 double o = Territory.Opportunity(r, _coef);
-                if (!double.IsFinite(o)) continue;   // ★非有限の遮断（2026-07-31・Territory 側と同じ流儀）：評価できない州は選ばない
+                if (!double.IsFinite(o)) continue;   // IsFinite〔履歴 MultiNationSim.cs#153〕
                 var (la, lo) = Places.Coord(r.Name);
                 int classes = 0;
                 foreach (var p in r.Pops) if (!p.IsSoldier) classes |= 1 << p.ClassId;   // MoveMigrants が移せる相手（PopOf と同じ述語）
@@ -1716,7 +1415,7 @@ public sealed class MultiNationSim
         // 2〜4. 送出州ごと・階級ごとの流量を決める（まだ移さない）
         var plan = new List<(World Src, Region SrcR, int Cls, int X, double Flow)>();
         var toX = new double[m]; var gap = new double[m];
-        long seenPairs = 0;   // 計算量の台帳（診断）：送出州×他国の州の組（(146)＝O(州²)・旧は数えず単価に入っていた）
+        long seenPairs = 0;   // seenPairs〔履歴 MultiNationSim.cs#154〕
         for (int s = 0; s < n; s++)
         {
             var src = Nations[s].World;
@@ -1744,8 +1443,7 @@ public sealed class MultiNationSim
                 {
                     var sp = r.PopOf(cls);
                     if (sp is null || !(sp.Size >= 1e-9)) continue;   // ★否定形＝NaN の Size も弾く
-                    // 危機時の上限緩和：故郷の飢饉(1-FoodFill)に比例して MaxFrac を引き上げ＝アイルランド型の大量脱出。
-                    // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド。
+                    // 危機時の上限緩和：故郷の飢饉(1-FoodFill)に比例して MaxFrac を引き上げ＝アイルランド型の大量脱出。〔履歴 MultiNationSim.cs#155〕
                     double effFill = src.FoodFill + (r.FoodFill - src.FoodFill);
                     double srcFamine = Math.Max(0.0, 1.0 - effFill);
                     double maxFrac = _coef.EmigrationMaxPerQuarter.Value * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
@@ -1787,13 +1485,9 @@ public sealed class MultiNationSim
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）：越境の流出/流入
     }
 
-    /// <summary>★国境をまたぐ人の運搬の1本（2026-09-30 処理の一元化 段4e I＋人と動くお金の換算）＝越境移民（<see cref="MoveMigrants"/>）と招聘（<see cref="MoveSpecialists"/>）。
-    /// 旧＝2つが同じ運搬を逐語で写していた。人数と属性は人の移し方の1本（<see cref="Pop.Blend"/>）＝移民は家族で動く（年齢と男女の構成・識字・闘争度・政治意識・国民意識・思想を携えて混ざる）・
-    /// 受入国では中核民族ではない（core＝0 で希釈＝EthnicUnity の加重平均が下がる・お雇い外国人も同じ＝契約が切れれば帰る人々）。
-    /// お金＝持参金（1人あたりの貯蓄）と債務（債務は債務者について行く）を**受入国の通貨へ換算**して運ぶ（移し方の1本と同じ規則
-    /// ＝<see cref="World.CrossFx"/>・差は換算の台帳へ＝旧は名目のまま＝(120) の残り）。（旧の渡航運賃 MigrationFarePerkKm は (551) で削除）。
-    /// 国債の保有は発行国の対外債へ振り替える（<see cref="Fiscal.BookForeignDebt"/>）＝運ばない。人口の台帳・国境の出入りの台帳（持参金−債務・各自の通貨）・家計の与信（S3b）を両国で閉じる。
-    /// 戻り値＝動いた人数。</summary>
+    /// <summary>
+    /// 国債の保有は発行国の対外債へ振り替える（Fiscal.BookForeignDebt）＝運ばない。〔履歴 MultiNationSim.cs#156〕
+    /// </summary>
     private static double MoveAbroad(World src, World dst, Pop sp, Pop dp, double flow)
     {
         double frac = flow / sp.Size;
@@ -1801,7 +1495,7 @@ public sealed class MultiNationSim
         // 持参金＝持っている貯蓄のまま（負の貯蓄〔借越〕も移民に付いて行く）。
         MoneyStock savOut = new MoneyStock(sav);
         MoneyStock debtOut = sp.Debt * frac;
-        Fiscal.BookForeignDebt(sp, sp.BondHoldings * frac, src, dst);   // ★国債の保有台帳（2026-09-21）：発行国（src）の対外債へ振替＝受入国の対外債権
+        Fiscal.BookForeignDebt(sp, sp.BondHoldings * frac, src, dst);   // BookForeignDebt〔履歴 MultiNationSim.cs#157〕
         double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare.Value, money: false);
         if (!(moved > 0)) return 0;
         MoneyStock savIn = World.CrossFx(src, dst, savOut);     // 換算（差は換算の台帳へ）
@@ -1816,34 +1510,12 @@ public sealed class MultiNationSim
     private static readonly int[] MigrantClasses = [PopClass.Peasant, PopClass.Worker];   // 農民・労働者
     private static readonly int[] SpecialistClasses = [PopClass.Engineer, PopClass.Researcher];   // ★段④：技師・研究者（インテリ＝希少資源）
 
-    // ★★★ 段④ 招聘（2026-08-17・作者指示「工業化投資は…研究者や技師を増やす補助金として機能させたい」）
-    //
-    // ⚠⚠ 大衆移民（MigrateBetweenNations）と**主語が逆**である。ここを混ぜてはならない：
-    //   ★大衆は【自発的に】動く＝機会の高い方へ流れる（欧州→新大陸）。
-    //   ⚠技師は【呼ばれて】動く＝**機会の勾配に逆らって**動く（英→明治日本）。
-    //   ★史実：お雇い外国人の俸給は**日本の大臣より高かった**。つまり逆風を買っているのであり、
-    //     予算がその逆風の値段を払う。だから「相手が豊かなほど1人が高くつく」が正しい形になる。
-    //
-    // ⚠ `MigrantClasses` に技師を足す実装は**禁忌**：技師は数が桁違いに少ないので、大衆と同じ流量式では
-    //   先進国が一瞬で空になる（既に前例＝MigrateBetweenNations の旧・全組判定でプロイセン技術0.38への空洞化を実測）。
-    //
-    // ★ 保存（作者裁定2026-08-16「保存です。POPは無からわかない」）：送出国が減り受入国が増える＝ゼロサム。
-    //   ★大衆移民も同じくゼロサム（回1-2・2026-09-27＝ゲーム外から湧く世界プールを削除）。
-    //   世界全体の技師の総数は**高等教育で育つ分だけ**増える。奪い合いでは増えない。
-    //
-    // ★★ 自己制限的である（新しい上限は要らない）：A が B から呼ぶ→B の技師が減る→B の賃金が上がる→
-    //   割増が上がる→呼びにくくなる。既存の `Territory.Opportunity` 差がそのままブレーキになる。
-    //
-    // ⚠ 7h（受入国に技師POPが無いと空振りする）は**構造で解決済み**：`Simulation.BuildProvince` は全州に
-    //   技師(ClassId 4)を作るので、「技師が一人もいない国」でも Size≈0 の受け皿が既に居る。研究者(13)は
-    //   ResearcherFrac>0 の世界にしか居ないが、それは招聘が意味を持つ条件と一致する（居なければ skip）。
+    // ここを混ぜてはならない：   ★大衆は【自発的に】動く＝機会の高い方へ流れる（欧州→新大陸）。〔履歴 MultiNationSim.cs#158〕
     private void RecruitSpecialists()
     {
-        if (!(_coef.RecruitCostPerHead > 0)) return;   // ⚠0なら経路に入らない（0除算も踏まない。★2026-08-29点火＝既定100）
+        if (!(_coef.RecruitCostPerHead > 0)) return;   // ⚠0なら経路に入らない（0除算も踏まない。〔履歴 MultiNationSim.cs#159〕
         int n = Nations.Count;
-        // ★A2-3（2026-09-26・結果を変えない高速化）：送出国ごとの送出州・専門職の数・その州の機会は1回だけ求めて使い回す
-        //   （旧＝受入国ごとに全送出国の全州を引き直す）。MoveSpecialists が書くのは送出州と受入州の POP と2国の台帳だけ
-        //   ＝招聘が起きた2国だけ引き直せば、旧と同じ値を同じ順で比べる。
+        // MoveSpecialists が書くのは送出州と受入州の POP と2国の台帳だけ   ＝招聘が起きた2国だけ引き直せば、旧と同じ値を同じ順で比べる。〔履歴 MultiNationSim.cs#160〕
         var srcBest = new Region?[n]; var srcPool = new double[n]; var srcOpp = new double[n]; var srcKnown = new bool[n];
         for (int d = 0; d < n; d++)
         {
@@ -1921,26 +1593,22 @@ public sealed class MultiNationSim
             moved += MoveAbroad(src, dst, sp, dp, flow);
         }
         if (!(moved > 0)) return;
-        // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ呼ばれた人の貯蓄が増える）。
-        //   ★支払いの一元化 段2-3（C16・2026-09-29）：受け手＝呼ばれた本人が入った POP へ人数の比（旧＝研究者の分も含めて受入州の技師 POP へ全額）。
-        //   移し方の1本（World.Transfer）＝受け手不在なら払わない（国庫に残る）。
-        double cost = System.Math.Min(perHead * moved, dst.RecruitBudget) * dst.FiscalFundingRatio.Value;   // 予約の範囲×国家の支払い率 r（2026-09-28 段2-1）
+        // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。〔履歴 MultiNationSim.cs#161〕
+        double cost = System.Math.Min(perHead * moved, dst.RecruitBudget) * dst.FiscalFundingRatio.Value;   // cost〔履歴 MultiNationSim.cs#162〕
         dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）
         src.LastSpecialistExit += moved;                                     // ★段⑤：抜かれた側の実測＝流出禁止法の選好の入力（抜かれていない国では法が争点にならない）
         (_recruitLog ??= new()).Add((src, dst, moved));                      // ★段2A：発見の伝わりの技師の移動（同じ四半期末の発見の段が読んで空にする）
     }
 
-    // 【削除2026-09-30 段4e I】EffectiveConsciousness（越境移民の国民意識の未捕捉〔−1〕を国の実効値で読む）＝人の移し方の1本 Pop.Blend は未捕捉を重み0で混ぜる
-    //   （書き手が触らない POP は読み手も見ない＝World.NationalConsciousness と同じ規則・国内の移動も同じ1本）。
+    // Year〔履歴 MultiNationSim.cs#163〕
 
     public int Year => Nations.Count > 0 ? Nations[0].World.Year : 0;
 
-    // ★計算量の台帳（2026-09-30 作者裁定「計算量の予算」）＝共有層の台帳（四半期末の共有層）と、消えた国の台帳の受け皿。
-    //   ⚠作業領域＝セーブに載らない（[NonSerialized]＝SaveGame が辿らない）・シミュの値はどれも読まない。
+    // ⚠作業領域＝セーブに載らない（[NonSerialized]＝SaveGame が辿らない）・シミュの値はどれも読まない。〔履歴 MultiNationSim.cs#164〕
     [System.NonSerialized] private long[]? _cost;
     [System.NonSerialized] private long[]? _costDeparted;
-    [System.NonSerialized] private long _clockTicks, _clockVisits;   // ★(461) 計器だけ＝世界の合計の巡回の累計（Stopwatch の刻み・訪れた生産者）。軌道は読まない
+    [System.NonSerialized] private long _clockTicks, _clockVisits;   // 軌道は読まない〔履歴 MultiNationSim.cs#165〕
     internal long[] Cost => _cost ??= new long[CostLedger.Count];
 
     /// <summary>★この試合の計算量の台帳の合計（<see cref="CostLedger"/> の添字）＝共有層（この層・外交・国際市場）＋今の全ての国＋再併合で消えた国。
@@ -1954,10 +1622,9 @@ public sealed class MultiNationSim
         return t;
     }
 
-    /// <summary>★(302) 線(2)(3)：世界の1人あたり実質所得 <see cref="World.WorldRealIncomePerCapitaPerMonth"/> を全国へ配る（毎月・求め直す導ける量＝積まない）。
-    /// 置き場＝<see cref="StepDay"/> の月末の日・全国の StepDayDaily の後・StepDayClose の前（どの国の月次決算〔EconomyStep.Run が読む〕よりも先に、確定した前の月の所得で全国同じ時点の値を作る）。
-    /// 値＝Σ(全国の活きている州の全 POP の <c>LastEarnedPerMonth</c>÷その国の <c>PriceLevel</c>)÷Σ(同じ POP の <c>Size</c>)（人口加重・閾値なし）。実質＝名目÷物価の 1 本（FxRate は掛けない＝(299) は為替〔不換の国で目標がほぼ 1/P〕と物価で二重に割っていた）。
-    /// 買い手の側（EconomyStep）の分子〔POP の LastEarnedPerMonth÷PriceLevel÷Size〕と同じ換算・同じ集合（活きている州）。非有限な所得の国は分子にも分母にも入れない。人口の和が 0 のときは 0（買う側が否定形で中立へ倒す）。走査は Nations 順（決定論）・並列相の外（逐次）。</summary>
+    /// <summary>
+    /// 値＝Σ(全国の活きている州の全 POP の LastEarnedPerMonth÷その国の PriceLevel)÷Σ(同じ POP の Size)（人口加重・閾値なし）。〔履歴 MultiNationSim.cs#166〕
+    /// </summary>
     internal void DistributeWorldRealIncome()
     {
         double incomeSum = 0, populationSum = 0;
@@ -1980,17 +1647,9 @@ public sealed class MultiNationSim
     }
 }
 
-/// <summary>★計算量の台帳（2026-09-30 作者裁定「計算量の予算」＝推奨で採択）。処理ごとの「見た件数」を数える**診断**であって、シミュの状態ではない。
-/// ── 規律 ──────────────────────────────────────────────────────────────
-/// ・セーブに載らない＝置き場は <c>[NonSerialized]</c> の作業領域（World・Diplomacy・InternationalMarket・MultiNationSim の <c>_cost</c>）＝SaveGame はこの印のフィールドを辿らない。
-/// ・軌道を1ビットも変えない＝件数を読む処理はシミュの中に1つも無い（読むのは <see cref="MultiNationSim.CostTotals"/> を呼ぶ Runner とテストだけ）。
-/// ・並列の日次相（国内価格・建設・信用）は国ごとの World の台帳へ＝共有の変数を取り合わない。共有層（清算・外交・四半期末）はその層の台帳へ。
-/// ・熱いループの中で1件ずつ台帳へ足さない＝ループの前（件数が分かるとき）か、局所の数をループの後にまとめて足す。
-/// ── 推定の計算量 ──────────────────────────────────────────────────────
-/// 推定（秒）＝Σ 件数×単価。単価は census（2026-09-30・S3b の木 61b751e・1種全長・計器つき）の処理ごとの秒÷件数を、計器の重さ（計器なし 472.4 秒÷計器つき 515.55 秒）で割り戻した値。
-/// 覆う割合＝推定÷実測の CPU。★下がったら数えていない重い処理が増えた合図（新しい処理はこの台帳に行を足し、docs の「処理の刻みの表」に刻みの根拠を書く）。
-/// ⚠ 外交の覇権の判定の単価だけは census に内訳が無い＝この回の計器（S3c の木・全長1試合で覇権の判定 11.17 秒）から。
-/// ⚠ 判定は推定（決定的）を主にし、実測の CPU は記録（時刻と負荷で揺れる＝約7%）。</summary>
+/// <summary>
+/// 処理ごとの「見た件数」を数える**診断**であって、シミュの状態ではない。〔履歴 MultiNationSim.cs#167〕
+/// </summary>
 public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
@@ -2031,137 +1690,115 @@ public static class CostLedger
         "清算：距離の表の素の計算（PairKmCore 相当・成分を引いた対・(1097)）",
     ];
 
-    /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
-    /// ★2026-10-15 (340)：(335)〔結果を変えない高速化＝件数は同じ〕の前後（基線の木 d2aa453 と 6afa4be）を同じ注入（scripts/instruments/cb340/inj_cb340.py）で ABBA の順に各3回・1種全長（seed 1・668 四半期）・逐次で回し、
-    ///   区間の時間の比だけ4本の単価を取り直した（価格の財の歩 ×0.97162・日次の写像の回 ×1.02375・着値の充填 ×0.90760・見た買い手行は比 0.9973＝組の揺れの内で変えない）。
-    /// ★2026-09-30 (136)：GDP の和（World.Gdp の州×生産者の走査）を5本の計数（外交・四半期首・四半期末・共有層・月次）の中から1本へ分けた＝
-    /// 5本の単価はその区間の中の GDP の時間の割合（腕A＝(135) の木の census・種1全長）だけ下げ、分けた計数の単価は同じ census の GDP の時間を走査の件数で割った値
-    /// （5本から外した推定の和 16.09 秒÷その区間の走査 10.38億件）。⚠これまで数えていなかった GDP の走査（試合の計器・日次の信用の月の定数）も数える＝腕A の推定は約 +7 秒。
-    /// ★2026-10-01 (146)：恒等の手（立場の土台の分け合い・連鎖の目の読む個体・変名の判定の順・従属国の列挙の近道）で3本（四半期首・外交・覇権の判定）の単価を
-    /// 同じ負荷の組の census（腕A と (146) の木を続けて単独で・種1全長・計器つき）の区間の時間の比だけ下げた＋移民の組の走査（国内＝州×州・越境＝州×他国の州）を
-    /// 2本（月次・共有層）の単価の中から1本の計数へ分けた（(136) の GDP と同じ分け方＝分けた分の推定は種1 で差し引き0）。
-    /// ★2026-10-03 (186)：眠った生産者（発見の門が0・EconomyStep.SleepState）を「生産：生産者×月」に数えない＝件数は −19%・Run の残りの実時間は −4.1%（同じ負荷の組の census 5対・標準誤差 2.2%）
-    ///   ＝眠った生産者は平均より軽かった＝単価を時間の比×件数の比で取り直した（件数だけ減らすと推定が実時間の約5倍下がる＝覆う割合が下がる型）。
-    ///   数えていなかった Discovery.AdvancePrice に計数「発見：平滑化した値段の歩」を足した（推定 +0.8 秒）。
-    /// ★2026-10-18 (398)：結果を変えない2つの手の前後を、同じプロセスの中で月ごとに交互に回した（旧の式と新の式を Run の呼びごとに入れ替え・区間の Stopwatch をスレッドの区間ごとに積む＝負荷と時刻が両方に同じ）全長1種×3回の区間の時間の比だけ、2本の単価を動かした。
-    ///   ①消費の財のループの頭：必要の無い財（基礎の必要が0の財＝財のうちの多く）の買い手価格の楔・価格弾力の冪を求めない＝頭の区間 0.64〜0.69 倍・消費の段の全体で 0.90〜0.93 倍（平均 0.914）→ 消費の単価。
-    ///   ②廃棄量の12か月の和（<see cref="Market.SpoiledLastYear"/>）を読まれたときに求める＝廃棄の区間 0.70〜0.73 倍・Run の残りの全体で 0.966〜0.972 倍（平均 0.968）→ 生産の単価。件数は変わらない（推定は約 −2.3 秒）。
-    /// ★2026-10-21 (spg)：結果を変えない2つの手の前後を (398) と同じ作法（同じプロセスの中で旧の式と新の式を月ごとに交互・区間の Stopwatch を手ごとに積む・全長1種〔seed 1・668 四半期〕×3回）で比べ、2本の単価を控えめな端で動かした。
-    ///   ①清算の着値の充填の走査：距離と危険料の表の当たり（KmOf・PairRisk の最初の枝）を関数を呼ばずに読み、清算の間に変わらない参照と定数を局所へ写す＝買い手行の foreach 0.772〜0.848 倍 → 着値の充填の単価。
-    ///   ②財の解禁（Discovery.GoodGates／GoodGate）の既定のレシピの行を財ごとの表で引く（旧＝生産者の居ない財ごとに発見の表を毎月線形に走査）＝Run の全体 0.994〜0.997 倍 → 生産の単価。
-    ///   国内価格の全体の比は 0.992〜1.0005（1 をまたぐ）＝変えない。清算の残り（全体−買い手行）の比 0.973〜0.991 も変えない。件数は変わらない（全長の計器つき 10 種の推定 243.9→約 238.1 秒）。</summary>
+    /// <summary>
+    /// 単価（マイクロ秒/件）。〔履歴 MultiNationSim.cs#168〕
+    /// </summary>
     public static readonly double[] UnitMicros =
     [
-        0.22570,   // ★2026-10-26 (spt2)＝0.22807×0.9896（候補3 生きた財の一覧の作り直しを 1 周に・中身が同じなら使い回す〔恒等〕・同じプロセスで StepDay の呼び出しを州ごとの月の偶奇で旧と新に分けた全長1種×3回の StepDay の全体の比・★空いた機械〔稼働 14〜15%・他の Runner なし〕で取り直した 0.9838〜0.9896 の控えめな端〔負荷の下の 0.9874〜0.9892 より効きが小さい側〕・日次の写像の行は掛けない）← ★2026-10-26 (spq)＝0.23343×0.977（旬の頭の先読み〔市場と財を読むだけ＝恒等〕・同じプロセスで StepDay の呼び出しを州ごとの月の偶奇で旧と新に分けた全長1種×3回の StepDay の全体の比 0.951〜0.977 の控えめな端＝StepDay の全体の比を財の歩の行の比として使う〔日次の写像の行は掛けない＝控えめ〕）← 価格：財の歩＝（価格の秒 170.688−日次の経路 50.936−死んだ財 13.511）÷死んでいない財の歩 4.052億＝0.24025（死んだ財の歩は安い＝この単価は死んだ財を回す木では推定を過大にする）×0.97162（★(340)＝(335) の amp の1本化の前後の census〔価格の全体−日次の3つの while〕の時間の比）
-        0.14748,   // 価格：日次の写像の回＝日次の経路 50.936 秒÷3.240億回＝0.14406×1.02375（★(340)＝(335) が日次の GoodsY を GoodsYAmp／AmpOf の呼びの層にした分と見られる〔原因は未確認〕＝census の日次の3つの while の時間の比）
+        0.22570,   // 注〔履歴 MultiNationSim.cs#169〕
+        0.14748,   // 注〔履歴 MultiNationSim.cs#170〕
         0.01300,   // 建設：見た生産者＝48.618 秒÷（走査 25.45億＋工事のある州の生産者 530.9万州×166）
         2.58278,   // 信用：国×呼び出し＝11.040 秒÷391.7万
-        0.02801,   // 消費：POP×財＝消費の段 38.445 秒÷11.70億 → ★2026-10-18 (398)＝0.03012×0.93（★(spf) 3回の比 0.90〜0.93 の控えめな端＝台帳は上限・(398) の平均 0.914 は使わない。必要の無い財は楔・価格弾力の冪を求めない〔恒等〕＝消費の段の時間の比。下の注記）
-        0.48553,   // ★2026-10-26 (spt2)＝0.49803×0.9749（候補2 消費の順を州ごとの前の月の並びから挿入で〔NearSort・恒等〕・同じプロセスで Run の呼び出しを州ごとの月の偶奇で旧と新に分けた全長1種×3回の Run の全体の比 0.9680〜0.9749 の控えめな端）← ★2026-10-26 (spr)＝0.51883×0.9599（R1 先読み〔Run の頭で生産者・投入・市場を読むだけ＝恒等・キャッシュの効かせ方〕・同じプロセスで Run の呼び出しを州ごとの月の偶奇で旧と新に分けた全長1種×3回の Run の全体の比 0.9503〜0.9599 の控えめな端＝Run の全体の比を生産の行の比として使う〔消費の行は掛けない＝控えめ〕）← ★2026-10-23 (spi)＝0.52412×0.9899（休んだ生産者の投入の段と支払いの段を飛ばす〔恒等〕・同じプロセスの中で旧と新を月ごとに交互・全長1種×3回の Run の全体の比 0.9805〜0.9899 の控えめな端）／旧 生産：生産者×月＝EconomyStep.Run の残り（92.455−38.445 秒）÷1.084億＝0.45650×（(186) 眠った生産者を数えない＝回した生産者だけ・同じ負荷の組の census の Run の残りの比 0.9590×件数の比 1.23590）→ ★2026-10-18 (398)＝0.54106×0.972（★(spf) 3回の比 0.966〜0.972 の控えめな端・平均 0.9683 は使わない。作業配列3本を消さない (spf) の分は取り直していない＝推定は下げない。廃棄量の12か月の和を読まれたときに求める〔恒等〕＝Run の残りの時間の比。下の注記）→ ★2026-10-21 (spg)＝0.52591×0.9966（財の解禁の既定のレシピの行を表引きに〔恒等〕・同じプロセスの月ごとの交互 3 回の Run の全体の比 0.9938〜0.9966 の控えめな端＝Run の全体の比を残りの比として使う＝控えめ）
+        0.02801,   // 必要の無い財は楔・価格弾力の冪を求めない〔恒等〕＝消費の段の時間の比。〔履歴 MultiNationSim.cs#171〕
+        0.48553,   // 作業配列3本を消さない (spf) の分は取り直していない＝推定は下げない。〔履歴 MultiNationSim.cs#172〕
         0.03490,   // 請求：見た生産者＝4.129 秒÷1.084億
-        1.73157,   // 月次：POP×月＝月次決算の EconomyStep と請求の外 18.438 秒÷847.5万（州×月の POP）＝1.99345×(1−GDP の割合 0.09941)（(136)）＝1.79528×(1−国内の移民の割合 0.03549)（(146)＝移民の組を下の計数へ分けた）
-        0.19264,   // 清算：見た買い手行＝準備・リスト・財の終わり 16.086 秒÷7,651万行（★(340) (335) の前後の census 〔清算の全体−買い手行の foreach〕の比 0.9973＝組の揺れ ±1% の内＝変えない）
-        0.08490,   // 清算：着値の充填＝買い手行の段 62.746 秒÷5.211億＝0.11034×0.90760（★(340)＝(335) の成約の反復の持ち回り・距離の表の転置・海ノードの前引きの前後の census 〔買い手行の foreach〕の時間の比）→ ★2026-10-21 (spg)＝0.10014×0.8478（走査の中の距離と危険料の表の当たりを関数を呼ばずに読む〔恒等〕・同じプロセスの月ごとの交互 3 回の買い手行の foreach の時間の比 0.7717〜0.8478 の控えめな端）
-        75.28385,  // 外交：国×月＝（外交 32.057−覇権の判定 11.17 秒）÷16.9万＝113.26019×(1−GDP の割合 0.12321)（(136)）＝99.30487×（外交−覇権の区間の時間の比 10.410÷12.177＝0.85489）（(146)＝変名の判定の順・従属国の列挙の近道）→ ★2026-10-23 (spt)＝84.89478×0.9517（緊張の表を1回だけ引く〔恒等〕・同じプロセスの中で旧と新の式を外交の歩ごとに交互・全長1種×3回の Diplomacy.Step の全体の比 0.9289〜0.9517 の控えめな端＝変えていない覇権の判定と脅威の届き方の区間も分母に入る＝控えめ） → ★2026-10-24 (spdip)＝80.794×0.9318（外交の月の歩の恒等の高速化 D1〜D4〔保護の緊張の人口の表を国ごとに1回・民族/法/宗教/保護の4本を1回の組の走査に・交戦中の組の集合・宣戦の時計の表の引き〕・同じプロセスの中で旧と新の式を外交の歩ごとに交互・全長1種×3回の Diplomacy.Step の全体の比 0.9226〜0.9318 の控えめな端）
-        0.004705,  // 外交：覇権の判定の国×国＝11.17 秒÷（13.56万回×85.4²）＝この回の計器（inj_dp・S3c の木）＝0.01035×（覇権の判定の時間の比 1.277÷2.809＝0.45461）（(146)＝従属国の列挙の近道）
-        3.36578,   // 四半期首：POP×国＝20.073 秒÷282.5万＝6.51065×(1−GDP の割合 0.31550)（(136)）＝4.45657×(1−減った割合 0.24476)（(146)＝立場の土台〔Build〕の分け合い・連鎖の目の読む個体＝議会・政府・AI の判断の3つの部品の差 4.321 秒÷区間 17.654 秒）
-        1.05863,   // 四半期末：POP×国＝4.036 秒÷282.5万＝1.30907×(1−GDP の割合 0.19131)（(136)）
-        110.34900, // 共有層：国×四半期＝12.194 秒÷4.35万＝256.74759×(1−GDP の割合 0.50369)（(136)）＝127.42606×(1−越境移民の割合 0.13402)（(146)＝移民の組を下の計数へ分けた）
-        0.015503,  // GDP：州×生産者の和（取り直した分）＝上の5本から外した GDP の推定 16.09 秒÷その区間の走査 10.38億件（(136) の census）
-        0.016708,  // 移民：州×州の組（国内・越境）＝上の2本（月次・共有層）から外した移民の推定 1.3173 秒÷種1全長の組 7,884万（(146) の census）
-        DiscoveryUnitMicros,   // 発見：国×四半期＝Discovery.Evaluate の1回（州×財の集計・生産者の走査・行の3項）＝(147) の discprobe の実測（下の定数の注記）
-        ThreatReachUnitMicros,   // 外交：脅威の届き方＝Diplomacy.ThreatReach の1組（同盟と従属の照会・投射・有理飽和）＋国境の表（月3回と四半期1回＝1回 0.046ms・1試合 約0.1秒＝この単価の中に含めない小さい分）＝(151) の実測（下の定数の注記）
-        DiscoveryPriceUnitMicros,   // 発見：平滑化した値段の歩＝Discovery.AdvancePrice の1回（州×財の集計・瞬間の値段・平滑）＝(186) の census（下の定数の注記）
-        LuxuryRatioUnitMicros,   // ★(299) 奢侈品の所得比：国×活きている州の POP を1回なぞる（所得と人口の和）＝census は無い（ε＝0 では走らず件数 0）＝同じ形の走査（GDP の和の1要素あたり 0.0155 µs）から置いた推定。採ったら B の .cost の実測で取り直す
-        AiBureaucracyScanUnitMicros,   // ★(395) AI の官僚制度の走査：SelfPlay.BureaucracyFollowsWants の1回（国×四半期）＝(389) の burscan の壁時計の中央÷呼びの数（下の定数の注記）
-        ParticipationUnitMicros,   // ★(417)(431) 不満度を読む：FactionSnapshot.ComputeClusters が問うた POP 1つ（Politics.Discontent 1回＋運動体の辞書の出し入れ）か、Ideologies.UpdateShares が回した POP 1つ（Politics.Discontent 1回）＝census は無い・上限の見積り（下の定数の注記）
-        DiscoveryWorldScanUnitMicros,   // ★(461) 発見：世界の合計の巡回＝Discovery.WorldAdvLabor の 1 生産者あたり（暫定の見積り・予備計測で確かめる）
-        MinimumWageBasketScanUnitMicros,   // ★(469) 最低賃金の籠の走査＝MinimumWageFloor.PerUnit の 1 回の中の（財 1 件の層の判定と値段の積＋生産者 1 件の判定）あたり（**上限の見積り**・census は無い・法の旗が正のときだけ件数が立つ）
-        AgeBandExtraUnitMicros,   // ★(490) 年齢の層の歩：POP×月×（層の数−8）あたり（**上限の見積り**・census は無い・dz〔(478)〕の対のプローブの残りから置いた＝下の定数の注記）。8層では件数 0
-        RecipeEquipmentScanUnitMicros,   // ★(495) レシピごとの設備の配り：州の生産者 1 件あたり（**上限の見積り**・census は無い・下の定数の注記）
-        StapleLedgerUnitMicros,   // ★(504) 主食の台帳と配り直し：POP×月×段あたり（**上限の見積り**・census は無い・下の定数の注記）
-        NavalOrderScanUnitMicros,   // ★(669) 海軍の発注の配り：州×月×周あたり（**上限の見積り**・census は無い・下の定数の注記）
-        ClearingSkipUnitMicros,   // ★(1029) 清算：着値の下界で飛ばした売り手あたり（下の定数の注記）
-        LaborPowerScanUnitMicros,   // ★(1045) 労働の重み：m の生産者の走査 1 件あたり（下の定数の注記）
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,   // ★(1072) 件数だけの 10 行（飛ばした・独立・中身の無い物 ①〜③）＝単価 0＝推定の計算量に出ない
-        ClearingKmComposeUnitMicros,   // ★(1097) 清算：距離の表の成分からの組み直し 1 対（**上限の見積り**・census は無い・下の定数の注記）
-        ClearingKmComposeUnitMicros,   // ★(1097) 清算：距離の表の素の計算 1 対＝組み直しと同じ単価（**下限の側の見積り**＝素の計算は組み直しより重い・その秒の一部は〈着値の充填〉の単価の中＝表の外の重さを内側へ入れる行・旗 0 の推定は約 +0.1〜0.3 秒）
+        1.73157,   // 注〔履歴 MultiNationSim.cs#173〕
+        0.19264,   // 注〔履歴 MultiNationSim.cs#174〕
+        0.08490,   // 注〔履歴 MultiNationSim.cs#175〕
+        75.28385,  // 注〔履歴 MultiNationSim.cs#176〕
+        0.004705,  // 注〔履歴 MultiNationSim.cs#177〕
+        3.36578,   // 注〔履歴 MultiNationSim.cs#178〕
+        1.05863,   // 注〔履歴 MultiNationSim.cs#179〕
+        110.34900, // 注〔履歴 MultiNationSim.cs#180〕
+        0.015503,  // 注〔履歴 MultiNationSim.cs#181〕
+        0.016708,  // 注〔履歴 MultiNationSim.cs#182〕
+        DiscoveryUnitMicros,   // DiscoveryUnitMicros〔履歴 MultiNationSim.cs#183〕
+        ThreatReachUnitMicros,   // ThreatReachUnitMicros〔履歴 MultiNationSim.cs#184〕
+        DiscoveryPriceUnitMicros,   // DiscoveryPriceUnitMicros〔履歴 MultiNationSim.cs#185〕
+        LuxuryRatioUnitMicros,   // 採ったら B の .cost の実測で取り直す〔履歴 MultiNationSim.cs#186〕
+        AiBureaucracyScanUnitMicros,   // AiBureaucracyScanUnitMicros〔履歴 MultiNationSim.cs#187〕
+        ParticipationUnitMicros,   // ParticipationUnitMicros〔履歴 MultiNationSim.cs#188〕
+        DiscoveryWorldScanUnitMicros,   // DiscoveryWorldScanUnitMicros〔履歴 MultiNationSim.cs#189〕
+        MinimumWageBasketScanUnitMicros,   // MinimumWageBasketScanUnitMicros〔履歴 MultiNationSim.cs#190〕
+        AgeBandExtraUnitMicros,   // 8層では件数 0〔履歴 MultiNationSim.cs#191〕
+        RecipeEquipmentScanUnitMicros,   // RecipeEquipmentScanUnitMicros〔履歴 MultiNationSim.cs#192〕
+        StapleLedgerUnitMicros,   // StapleLedgerUnitMicros〔履歴 MultiNationSim.cs#193〕
+        NavalOrderScanUnitMicros,   // NavalOrderScanUnitMicros〔履歴 MultiNationSim.cs#194〕
+        ClearingSkipUnitMicros,   // ClearingSkipUnitMicros〔履歴 MultiNationSim.cs#195〕
+        LaborPowerScanUnitMicros,   // LaborPowerScanUnitMicros〔履歴 MultiNationSim.cs#196〕
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,   // 注〔履歴 MultiNationSim.cs#197〕
+        ClearingKmComposeUnitMicros,   // ClearingKmComposeUnitMicros〔履歴 MultiNationSim.cs#198〕
+        ClearingKmComposeUnitMicros,   // ClearingKmComposeUnitMicros〔履歴 MultiNationSim.cs#199〕
     ];
-    /// <summary>★(1045) 労働の重みの m（EconomyStep.PowerShare）の生産者の走査の単価（マイクロ秒/件）＝計り台の実測（measurements/m1045_20261111_bench_powershare.txt・
-    /// 12 四半期ほど進めた 4 国盤面の全州〔308 州・生産者 53,983〕で PowerShare を呼び、四半期直後〔冷え〕4 回 50.7〜54.2 ナノ秒/件〔外れ値 142.9〕・同じ呼びの繰り返し〔熱〕5 組 46.6〜64.8 ナノ秒/件）。
-    /// 1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。州の生産者の走査は生産者の物（ポインタ）をなぞる＝メモリの待ちが主。
-    /// 件数は 1 種 40 四半期で 9,723,312（生産者×月の 1.37 倍＝眠った生産者も走査する）＝全長で約 1.6 億→推定 約 8.9 秒。事前登録 measurements/m1045_20261111_prereg_cd.txt の [3]・追記。</summary>
+    /// <summary>
+    /// 1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。〔履歴 MultiNationSim.cs#200〕
+    /// </summary>
     public const double LaborPowerScanUnitMicros = 0.055;
-    /// <summary>★(1029) 着値の下界で飛ばした売り手の単価（マイクロ秒/件）＝**上限の見積り**：1 件＝下界の表の引き（国の表の添字）＋下界の式の評価＋比較＋連結リストを進める。単価の根拠は measurements/m1029_*（小さな計り台）。</summary>
-    /// <summary>★(1097) 清算の距離の表の成分からの組み直し 1 対の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。
-    /// 1 件＝表の読み 2・州の費用の読み 4・浮動小数 4〜5・比較 1・書き 3（PairKmParts の成分が表にある対を ComposeKm で組む）＝約 3〜5 ns の見積もりの 2〜3 倍（控えめ側）。
-    /// 旗 RailByRegion が 1 の木では、鉄道のある州の陸の費用が毎月動く＝その州の対の組み直しが清算ごとに起きる＝推定の計算量に出す行（旗 0 の木では発見の四半期の分だけ）。</summary>
+    /// <summary>
+    /// 単価の根拠は measurements/m1029_*（小さな計り台）。〔履歴 MultiNationSim.cs#201〕
+    /// </summary>
     public const double ClearingKmComposeUnitMicros = 0.0100;
     public const double ClearingSkipUnitMicros = 0.02;
-    /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
-    /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。
-    /// それまで .cost の外にあった重さ（(392) の申し送り）を内側へ入れる行＝推定の計算量が約 0.5 秒増える（予算の上限 248.5 秒の内）。</summary>
+    /// <summary>
+    /// ⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。〔履歴 MultiNationSim.cs#202〕
+    /// </summary>
     public const double AiBureaucracyScanUnitMicros = 12.76;
-    /// <summary>★(417) 参加の述語の単価（マイクロ秒/POP）＝**上限の見積り**（census は無い）。参加の述語は旗 ParticipationDiscontent が正のとき、思想の更新の入力は常に件数が立つ（2026-10-19 (431) 採用後の既定）。
-    /// 1.2＝四半期末 POP×国の単価 1.05863（Politics.Step の POP ごとの全費用＝不満度 1 回〔理想点の配列・発言権・生活の欲求〕はその一部）＋運動体の辞書の出し入れ 約 0.14。採ったら B の .cost の実測の CPU 秒の差で取り直す（事前登録 dc_20261019_prereg.txt [7]）。</summary>
+    /// <summary>
+    /// 1.2＝四半期末 POP×国の単価 1.05863（Politics.Step の POP ごとの全費用＝不満度 1 回〔理想点の配列・発言権・生活の欲求〕はその一部）＋運動体の辞書の出し入れ 約 0.14。〔履歴 MultiNationSim.cs#203〕
+    /// </summary>
     public const double ParticipationUnitMicros = 1.2;
-    /// <summary>★(461) 世界の合計の巡回の単価（マイクロ秒/訪れた生産者）＝**暫定の見積り**（枝 dw の (430) が同じプロセスの中で巡回と発見の判定〔台帳の単価 98.1 µs/国×四半期〕を交互に計った比で割り戻した値 0.030〜0.045 の上限寄りの丸め・静かな環境での独立した実測ではない＝未検証）。
-    /// 巡回は技師を雇わない生産者（一次産品の大半）で門の照会を飛ばす。全長 668 四半期の訪れた生産者は約 3,340 万（dw の腕 B の件数）＝推定 約 2.0 秒（事前登録 measurements/dk_20261020_prereg.txt [8]・上限 5 秒）。
-    /// ⚠予備計測の clock_s の C 行（Stopwatch の累計）は負荷で膨らむ値で単価に使わない（記録）。</summary>
+    /// <summary>
+    /// 巡回は技師を雇わない生産者（一次産品の大半）で門の照会を飛ばす。〔履歴 MultiNationSim.cs#204〕
+    /// </summary>
     public const double DiscoveryWorldScanUnitMicros = 0.06;
-    /// <summary>★(490) 年齢の層の歩の単価（マイクロ秒/件＝POP×月×〔層の数−8〕）＝**上限の見積り**（census は無い）。(478) 線 dz の対のプローブ（seed 1・668 四半期・素の走り・同じ時間帯に 8 層と 11 層を並べた・
-    /// `measurements/dz478_20261021_prereg.txt` の B9 の節）が、数えていなかった処理（実測の CPU−台帳の推定）を 56.9→69.9 秒と読み、件数の比 1.086 で伸ばすと 61.8 秒＝残り約 8 秒（CPU・+2.9%）を〈層の数の単価〉と置き、
-    /// 推定の単位では約 6 秒（覆う割合 約 0.7 で換算）。その 6 秒を 1 試合の POP×月（約 842 万＝台帳「月次：POP×月」の件数）×3 層（11−8）= 約 2,527 万で割った 0.24。
-    /// ⚠この残りは 1 組の対の差で、agebench（月次の POP 1 人あたりの年齢の算術だけ＝93〜139 ns/POP×月＝3 層分に直すと 0.031〜0.046 µs/件）の約 5〜8 倍＝清算・消費の中の AgeShare の呼び（活動に比例）を取りこぼしていた可能性（推測・未検証）。
-    /// 8 層（POB_AGE_BANDS=8）では件数が 0＝旧の推定と同じ。取り直すのは同じ負荷の対を複数組（次の回・agebench を清算・消費の中の呼びまで広げる）。</summary>
+    /// <summary>
+    /// その 6 秒を 1 試合の POP×月（約 842 万＝台帳「月次：POP×月」の件数）×3 層（11−8）= 約 2,527 万で割った 0.24。〔履歴 MultiNationSim.cs#205〕
+    /// </summary>
     public const double AgeBandExtraUnitMicros = 0.24;
-    /// <summary>★(495) レシピごとの設備の配りの単価（マイクロ秒/件＝配りが 1 回走るたびに州の生産者の数）＝**上限の見積り**（census は無い）。配りは州の生産者を 3 周（合計〔適格かどうかの判定＋発見の門〕・配り・薄め）、退場は 2 周するだけで、熱いループには足さない。★(495) 後半の実測：1 試合 約 3.2 億件×0.02＝6.47 秒（事前登録の割り当て 5.0 秒を超えた・census は無い）。
-    /// 同じ形の走査の単価 建設：見た生産者 0.013・GDP の和 0.0155 より少し重い 0.02 を置く。件数の上限＝（建設の束が買われた州×月）×州の生産者の数。腕 B の .cost の実測で取り直す。</summary>
-    /// ★2026-10-23 (spt500・合流の担当の依頼)：census＝m500 の木（＋緊張の表の恒等の手）で FactoryEquipment.Distribute・Retire の区間を Stopwatch で計った秒÷件数（台帳と同じ数え方）・全長 1 種（seed 1・668 四半期）×3 回
-    ///   ＝0.00507／0.00350／0.00604 µs（他の測りと重なった）の控えめな端 0.00604（件数 3.23 億・推定 約 6.5→約 1.9 秒）。件数のうち適格な生産者は 67%。記録 measurements/spt500_20261023_eqcensus.txt。
+    /// <summary>
+    /// 配りは州の生産者を 3 周（合計〔適格かどうかの判定＋発見の門〕・配り・薄め）、退場は 2 周するだけで、熱いループには足さない。〔履歴 MultiNationSim.cs#206〕
+    /// </summary>
     public const double RecipeEquipmentScanUnitMicros = 0.00604;
-    /// <summary>★(504) 主食の台帳と配り直しの単価（マイクロ秒/件＝POP×月×段）＝**上限の見積り**（census は無い）。前計算は POP ごとに主食 5 財の乗算と加算（約 20 演算）、締めは POP ごとに 2 回の比較。
-    /// 形が近い奢侈品と家事奉仕の所得弾力の走査（POP×月・0.0155）より少し重い 0.04 を置く（事前登録 measurements/fd504_20261023_prereg.txt の[7]）。旗①②が全て 0 では件数 0。腕 B の .cost の実測で取り直す。</summary>
+    /// <summary>
+    /// 前計算は POP ごとに主食 5 財の乗算と加算（約 20 演算）、締めは POP ごとに 2 回の比較。〔履歴 MultiNationSim.cs#207〕
+    /// </summary>
     public const double StapleLedgerUnitMicros = 0.04;
-    /// <summary>★(669) 海軍の発注の配りの単価（マイクロ秒/件＝州×月×周）＝**上限の見積り**（census は無い）。州の取扱高と階級を比べて足す・割るだけの走査で、形が近い建設の見た生産者（0.013）より少し重い 0.02 を置く（旗 NavalPortProcurement は (824) で焼き込み＝月初の配りのたびに数える）。
-    ///   件数の上限＝国×月×州×3 周（61 国で全長 約 8 千州×月 3 周でも 1 試合 0.1 秒未満）。</summary>
+    /// <summary>
+    /// 件数の上限＝国×月×州×3 周（61 国で全長 約 8 千州×月 3 周でも 1 試合 0.1 秒未満）。〔履歴 MultiNationSim.cs#208〕
+    /// </summary>
     public const double NavalOrderScanUnitMicros = 0.02;
-    /// <summary>★(469) 最低賃金の籠の走査の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。法の旗が 0 では件数 0。★(486) 旗 MinimumWageAiFromFloor が正のときは AI の判断の読み（本国の州の生産者と財の走査・国×四半期）の件数も同じ台帳に立つ（法が無くても）。</summary>
+    /// <summary>
+    /// 形が近い GDP の和（0.0155）と奢侈品の所得比の走査（0.0155）より少し重い 0.02（財ごとに層の分岐＋市場の需要・値段を読む）。〔履歴 MultiNationSim.cs#209〕
+    /// </summary>
     public const double MinimumWageBasketScanUnitMicros = 0.02;
-    /// <summary>★(186) 平滑化した値段の歩の単価（マイクロ秒/国×四半期）＝Discovery.AdvancePrice（判定の段の頭・国ごとに1回）を Stopwatch で計った和÷回数
-    /// （census の計器 inj_c186・種1・668四半期・r182 の木〔586b80e〕5回＝19.87／19.61／19.01／19.49／20.02 µs・眠りの木5回＝19.89／19.59／19.42／19.62／19.81 µs の平均 19.63）。
-    /// ⚠ (159)(165) から「共有層：国×四半期」の中の小さい分と書いていたが、その単価（(136)(146) の census）は AdvancePrice の前に取った＝数えていなかった（(182) の申し送り）。</summary>
+    /// <summary>
+    /// 〔履歴 MultiNationSim.cs#210〕
+    /// </summary>
     public const double DiscoveryPriceUnitMicros = 19.63;
-    /// <summary>★(299) 奢侈品の所得比の走査の単価（マイクロ秒/POP）。census は無い＝GDP の和の1要素あたり（0.0155）から置いた推定（走査の形が近い＝州→POP をなぞって2つの和を足す）。ε＝0 では走らない。★(331) 点火（既定 0.5）で件数が立った＝単価は推定のまま（census で取り直すのは申し送り・実装ログ (331)）。</summary>
+    /// <summary>
+    /// census は無い＝GDP の和の1要素あたり（0.0155）から置いた推定（走査の形が近い＝州→POP をなぞって2つの和を足す）。〔履歴 MultiNationSim.cs#211〕
+    /// </summary>
     public const double LuxuryRatioUnitMicros = 0.0155;
-    /// <summary>発見の判定の単価（マイクロ秒/国×四半期）＝(147) の Runner discprobe（種1・668四半期・全ての国の Discovery.Evaluate を Stopwatch で計った和÷回数＝76.0・41,373回〔割高さの参照を投入の費用へ直した後の木〕・直す前の木は 67.7）。
-    /// ★(165) 91.0＝同じ計り方（種1・668四半期・41,468回・単独）＝比べる相手を新しいレシピで作る費用へ（門の開いたレシピの一覧・値段の帳＝市場の死んだ財を作る費用で読む繰り返し）。
-    /// 世界の平滑化した値段（国×財の和・四半期に1回）は「共有層：国×四半期」の中（1回 約8千の積和＝小さい分）。
-    /// ★(169) 98.1＝(165) の 91.0×1.078（線M のバッチと重なって単独で計れない＝同じ時刻に r167 の木と (169) の木を discprobe 1 200 で交互に2回ずつ＝r167 51.3・50.1µs／(169) 55.6・53.7µs の比）
-    ///   ＝動力の行の自己費用・機関車の資本の費用（線路と機関車の費用）・市場の死んだ財の着値（売り手ごとの距離と運賃＝呼ばれた財だけ）の分。</summary>
+    /// <summary>
+    /// 世界の平滑化した値段（国×財の和・四半期に1回）は「共有層：国×四半期」の中（1回 約8千の積和＝小さい分）。〔履歴 MultiNationSim.cs#212〕
+    /// </summary>
     public const double DiscoveryUnitMicros = 98.1;
-    /// <summary>★脅威の届き方の単価（マイクロ秒/組）＝(151) の実測（61カ国の開幕の盤面〔助走の後に1四半期〕で Diplomacy.ThreatReach を全ての組×20回 Stopwatch で計った平均 0.535µs・Release・テストの過程の中）。
-    /// 脅威の緊張（Diplomacy.ThreatTension＝月次〔四半期末の外交3回〕）が脅威を持つ国×経済を持つ国の組ごとに1回呼ぶ＝件数は「脅威を持つ国×国×月」。</summary>
+    /// <summary>
+    /// 脅威の緊張（Diplomacy.ThreatTension＝月次〔四半期末の外交3回〕）が脅威を持つ国×経済を持つ国の組ごとに1回呼ぶ＝件数は「脅威を持つ国×国×月」。〔履歴 MultiNationSim.cs#213〕
+    /// </summary>
     public const double ThreatReachUnitMicros = 0.535;
 
-    /// <summary>★予算の目標（1試合の CPU 秒・バッチの条件）＝10種の全長を5分で＝300 秒×働くコア 約12.9÷10（2026-09-30 作者裁定・推奨で決めた）。</summary>
+    /// <summary>
+    /// 〔履歴 MultiNationSim.cs#214〕
+    /// </summary>
     public const double BudgetTargetCpuSeconds = 387.0;
-    /// <summary>★予算の上限（推定の計算量・1試合の秒）＝今の値（速くなるたびに下げるだけ＝目標に届くまで）。⚠超えるコミットは、どこで払ったかを実装ログとコミットに書く。
-    /// 0＝未設定。判定は <see cref="BudgetSlack"/> の許し（軌道の小さな揺れ）つき。
-    /// 2026-09-30 (116)＝計算量の予算 第1回（恒等の手の後）の全長10種の1試合の平均の推定＝297.2 秒（手の前 356.9 秒）。
-    /// 2026-09-30 第2回（近似の手＝清算の不足で起きたが成約しない行を眠らせる・張り付いた財を月の残り眠らせる）の後＝288.3 秒（−3.0%）。
-    /// 2026-09-30 (123) 財の削減（段1＝138→127財・合わせた main (122) の 293.6 秒から）の後＝276.3 秒（−5.9%＝価格の財の歩 −7.2%・清算の着値の充填 −13.2%・生産 −6.7%）。
-    /// 2026-09-30 (130) 清算の眠りの切り分け（月の清算は潜在量を書かない＋買い手の容量が尽きた行は回さない・合わせた main (128) の 281.1 秒から）の後＝269.3 秒（−4.2%＝清算の着値の充填 −21.1%・日次の写像の回 −2.7%）。
-    /// 2026-09-30 (132) 張り付いた財の閉じた式（帯の端の不動点の近くにいる旬を日次の写像を回さず1回の式で進める）の後＝255.1 秒（−5.3%＝日次の写像の回 −36.7%）。
-    /// 2026-09-30 (136) GDP の和の使い回し（恒等・台帳は GDP の走査を1本に分けた）の後＝推定 236.7 秒（(135) の木を同じ台帳で数えれば約 258.5 秒）＝**目標 248.5 秒に届いた**
-    /// ＝上限は目標へ（目標より下の余りは機能が使ってよい＝README §1-2）。⚠ここから先は超えるコミットが払う（どこで払ったかを書く）。
-    /// 2026-10-03 (186)：r182 の 248.7 秒（上限を 0.2 秒超え）を眠った生産者（EconomyStep.SleepState・近似）で払った＝「生産：生産者×月」の件数 −19%・単価は census の時間の比で取り直し
-    /// ＋数えていなかった Discovery.AdvancePrice を数えた（+0.8 秒）＝全長の10種の推定は実装ログ (186)。上限は変えない。</summary>
+    /// <summary>
+    /// ★予算の上限（推定の計算量・1試合の秒）＝今の値（速くなるたびに下げるだけ＝目標に届くまで）。〔履歴 MultiNationSim.cs#215〕
+    /// </summary>
     public const double BudgetLimitEstSeconds = 248.5;
-    /// <summary>上限を置いたときの覆う割合（推定÷実測の CPU・バッチの条件）＝目標を推定の単位へ写す（目標の推定＝目標の CPU×これ）。0＝未設定。
-    /// 2026-09-30 (116)＝単独の10種（(115)・計器なし・他の実行なし）の1試合 555.6 CPU 秒に対する同じ軌道の推定 356.9 秒＝0.642
-    /// （単価は単独の1試合の秒＝バッチでは SMT の取り合いで CPU 秒が膨らむ）⇒ 目標の推定＝387×0.642＝248.5 秒。
-    /// ⚠第2回は取り直していない（別のセッションのバッチ2本が並び続け、単独の10種を回せなかった＝負荷の下の覆う割合は 0.54〜0.61 で動く）。</summary>
+    /// <summary>
+    /// 上限を置いたときの覆う割合（推定÷実測の CPU・バッチの条件）＝目標を推定の単位へ写す（目標の推定＝目標の CPU×これ）。〔履歴 MultiNationSim.cs#216〕
+    /// </summary>
     public const double BudgetCoverageAtLimit = 0.642;
     /// <summary>予算の判定の許し（軌道の小さな揺れ＝番人と同じ +2%）。</summary>
     public const double BudgetSlack = 0.02;

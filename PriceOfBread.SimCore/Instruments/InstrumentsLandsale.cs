@@ -1,26 +1,7 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (983) 土地の持ち分の段 B-1 の段 0＝恒等の計器 landsale_s（読むだけ・恒等・事前登録 measurements/m983_20261109_prereg_ls.txt） -------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsLandshare.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（INS のときだけの World ごとの積み＝ConditionalWeakTable）。
-// 目的＝土地税が払えない分（POP の貯蓄が請求に足りない月の未払い）が、売り（B-1）の動機として十分な大きさか（no-go）と、土地税の写しがエンジンの取れた額と向きを違えないか（恒等）を、段 1 の器を入れる前に測る。
-// 受け口＝Fiscal.Step の徴税の走査の直前（徴税の前の貯蓄・前の月の所得・州の届き Rule／AdminFill を計器が自分で読む）＝LandsaleStep。月の閉じ＝Instruments.MonthClose（LandshareMonth の前＝輸出の地代の月の積みが 0 へ戻る前）＝LandsaleMonth。
-// 計器が自分で組む物（エンジンの合成を呼ばない）：届き（RuleDelivery の写し）・仲介者の取り分（TaxScan.Of の写し）・4 種の請求（AssessPop の合成の写し）・払える割合（PayRate の写し）・十分の一税の請求（TitheClaim の写し）・土地税の基数（LandTaxBase の写し）。
-//   読むだけの純関数／状態として呼ぶ物：Privileges.TaxExemptionDegree（免税の度合い）・InterestGroups.FranchiseVoice／SuffrageInclusion（同意の声）・Privileges.TitheDegree・Politics.IsMassPop・PowerAffinity.Shares（王権の取り分）。
-//   既存の写しの再利用：LsRecipient（枠の受け手の添字・寄せの回数）・LsClass（階級の 5 区分）・LsAbsenteeRgo（不在地主の RGO）・LsAccs（輸出の地代の月の積み MExp）。
-// 売りの期待（段 1 が実装したら起きるはずの量＝計器が自分で数える）：売り手＝rp＜1 の請求があり土地税の未払い（kLand×届き×(1−rp)）が正の POP。買い手＝売り手の持ち分 h ごとに、枠 k＜4 の受け手が実在し（寄せの枠を外す）売り手と別の POP である枠。
-//   値段の地代＝売り手の LandRent−土地税率×基数×（買い手の貯蓄で重み付けた免税の係数）の正の部。年に手放す割合の期待 saleExpectedSharePerYear＝Σ 未払い×国債金利÷Σ 純の地代（四半期の和の比）。
-// ⚠限界（計器が自己申告する）：
-//   ①rp は走査の開始時点の貯蓄で数える＝走査の途中で前の POP の仲介者の取り分が受け手（領主）の貯蓄に入る＝計器の rp は下界・未払いは上界（Fiscal.cs の (490) の注と同じ型）。
-//   ②値段の地代は国内の地代（LandRent）だけ＝輸出の地代は入れない（課税の基数と同じ集合・分子と分母が同じ集合。輸出の地代の月の和は exportRentPerQuarter に記録だけ）＝輸出作物の産地の持ち分は期待の上で安く見積もられない側（純の地代が小さい側＝割合は上界）。
-//   ③買い手の税の係数は買い手の貯蓄の加重平均を h をまたいで 1 つに畳む（h ごとの max(0,地代−税) の和でなく和の max）＝割合は下界側にずれうる。
-//   ④欄が null の RGO は [1,0,0,0] として売り手の持ち分に数える（段 1 の決め事は構築の除外を守るか段 1 で決める＝低⑨）。不在地主の RGO は持ち分から外す。
-//   ⑤純の地代が 0 以下（!(P>0)）か国債金利が正でない・買い手の貯蓄が 0 の売り手は期待に入れず saleBlocked* に別に積む（未払いが消える端＝低⑪）。
-//   ⑥法の門（農奴解放 ≥ 限定的）は期待に掛けず saleLawOpenFlag（四半期の最後の月の値）に分けて記録。
-//   ⑦助走の月（World.WarmupFrozen）・Fiscal が無効の月は数えない。
-//   ⑧★(995) 公売の払いの写し（LandsaleSaleBegin）は買い手ごとの額の和にエンジンの床を入れる（保有が 1e-9 以下・額が床〔TakeFloorPositive＞0 なら 0・でなければ 1e-12〕以下は 0）。エンジンの関数は呼ばない。
-//     写しの重み〔Closed && !IsSoldier ? 1−免税の度合い : 1〕は Privileges.TaxAssessment（同じ式）・写しの基数は Fiscal.LandTaxBase（同じ分岐）と今の盤面で同じ値（紙の確かめ＝事前登録 m995 [1]）。
-//     既知の限界：免税の度合いは月の走査の頭の取り（走査の途中で入力が変わる盤面では不一致）・特権の免税（PrivilegeTaxDiscount＞0）や φ*≠0/1 の盤面は同値の外に出うる・買い手の列挙は SellOne と別実装。
+// 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（INS のときだけの World ごとの積み＝ConditionalWeakTable）。〔履歴 InstrumentsLandsale.cs#1〕
 public static partial class Instruments
 {
     const int LdNC = 5;
@@ -33,7 +14,7 @@ public static partial class Instruments
         + "landClaimDeliveredPerQuarter\tpaidCopyPerQuarter\tengineLandTaxPerQuarter\tpaidCopyOverEngine\tpaidCopyRp1RelDiff\t"
         + "saleExpectedSharePerYear\tsaleIncludedUnpaidPerQuarter\tsaleNetRentPerQuarter\tsaleBlockedNoBuyerPerQuarter\tsaleBlockedNoPricePerQuarter\tsaleLawOpenFlag\tbuyerSavingsCoverShare\tbuyerCountSum\tbuyerFallbackSlotCount\t"
         + "sellerLandRentPerQuarter\texportRentPerQuarter\t"
-        + "saleActualPaidPerQuarter\tsaleCopyPaidPerQuarter\tsaleEventCount\tsalePaidCopyMaxRelDiff\tsaleSlotSumMaxAbsDev\tsaleHeldDropSum\tsalePhiSum\tsaleActualShareNetSum\tsaleActualNetSum\tsaleBuyerCount\tsaleBuyerNonInvestorCount";   // ★(991) 末尾の 11 列＝実際の公売（LandsaleSaleBegin／End）
+        + "saleActualPaidPerQuarter\tsaleCopyPaidPerQuarter\tsaleEventCount\tsalePaidCopyMaxRelDiff\tsaleSlotSumMaxAbsDev\tsaleHeldDropSum\tsalePhiSum\tsaleActualShareNetSum\tsaleActualNetSum\tsaleBuyerCount\tsaleBuyerNonInvestorCount";   // tsaleBuyerNonInvestorCount〔履歴 InstrumentsLandsale.cs#2〕
 
     /// <summary>[0,1] へ閉じる（計器の写し・NaN は 0）。</summary>
     internal static double LdClamp01(double x) => !(x > 0) ? 0 : x > 1 ? 1 : x;
@@ -107,7 +88,7 @@ public static partial class Instruments
         public readonly double[] QUnpaidByClass = new double[LdNC];
         public long QHolders, QPops, QBuyerCount, QFallback; public int Months, ScanMonths, Rp1Months, LowRpMonths; public bool Law;
         public double MaxOver, MaxRp1Rel;
-        // ★(991) 実際の公売（受け口 LandsaleSaleBegin／End）：月の未払いの写し（売り手→V）・免税の度合い・Begin の写し・四半期の和
+        // Owed〔履歴 InstrumentsLandsale.cs#3〕
         public readonly Dictionary<Pop, double> Owed = new(ReferenceEqualityComparer.Instance);
         public double ExemptDeg;
         public bool Pend; public double PPrice, PNet, PCopy; public double[] PHeld = []; public readonly List<double> PSlot = [];
@@ -126,12 +107,12 @@ public static partial class Instruments
         a.MUnpaid = a.MPaidCopy = a.MClaimDelivered = a.MSellerRent = a.MInclUnpaid = a.MInclNetRent = a.MInclRate = a.MBlockNoBuyer = a.MBlockNoPrice = a.MCoverSavings = 0;
         System.Array.Clear(a.MUnpaidByClass);
         a.MHolders = a.MPops = a.MLowRp = a.MLandLow = a.MBuyerCount = a.MFallback = 0;
-        a.Owed.Clear();   // ★(991)
+        a.Owed.Clear();   // Clear〔履歴 InstrumentsLandsale.cs#4〕
         var c = w.Coef;
         double discount = c.PrivilegeTaxDiscount.Value;
         double crownShare = c.PrivilegeFromCrownShare.Value > 0 && c.PrivilegeTaxDiscount.Value > 0 ? PowerAffinity.Shares(w)[0] : 0;
         double exemptDeg = Privileges.TaxExemptionDegree(w, c, crownShare);
-        a.ExemptDeg = exemptDeg;   // ★(991) 公売の写しの買い手の免税
+        a.ExemptDeg = exemptDeg;   // ExemptDeg〔履歴 InstrumentsLandsale.cs#5〕
         double PB(Pop p) => p.Closed && !p.IsSoldier ? 1.0 - exemptDeg : 1.0;
         double titheRate = c.TitheRate.Value * Privileges.TitheDegree(w, c);
         bool clergy = false;
@@ -179,7 +160,7 @@ public static partial class Instruments
                 if (!(unpaid > 0)) continue;
                 // 売り手：未払いが正の POP
                 a.MUnpaid += unpaid; a.MUnpaidByClass[LsClass(p.ClassId)] += unpaid; a.MHolders++;
-                a.Owed[p] = unpaid;   // ★(991) 公売の写しの V（徴税の前の貯蓄で数えた未払い）
+                a.Owed[p] = unpaid;   // unpaid〔履歴 InstrumentsLandsale.cs#6〕
                 a.MSellerRent += p.LandRentPerMonth.Value;
                 buyers.Clear();
                 foreach (var s in r.Producers)
@@ -256,11 +237,13 @@ public static partial class Instruments
             a.QUnpaid = a.QPaidCopy = a.QClaimDelivered = a.QEngine = a.QSellerRent = a.QInclUnpaid = a.QInclNetRent = a.QInclRate = a.QBlockNoBuyer = a.QBlockNoPrice = a.QCoverSavings = a.QExport = 0;
             System.Array.Clear(a.QUnpaidByClass);
             a.QHolders = a.QPops = a.QBuyerCount = a.QFallback = 0; a.Months = a.ScanMonths = a.Rp1Months = a.LowRpMonths = 0; a.MaxOver = a.MaxRp1Rel = 0;
-            a.QSaleActual = a.QSaleCopy = a.QSaleMaxRel = a.QSaleSlotDev = a.QSaleDrop = a.QSalePhi = a.QSaleShareNet = a.QSaleNet = 0; a.QSaleEvents = a.QSaleBuyers = a.QSaleBuyersNonInv = 0;   // ★(991)
+            a.QSaleActual = a.QSaleCopy = a.QSaleMaxRel = a.QSaleSlotDev = a.QSaleDrop = a.QSalePhi = a.QSaleShareNet = a.QSaleNet = 0; a.QSaleEvents = a.QSaleBuyers = a.QSaleBuyersNonInv = 0;   // QSaleActual〔履歴 InstrumentsLandsale.cs#7〕
         }
     }
 
-    /// <summary>★(991) 州 <paramref name="r"/> の RGO（不在地主を外す）の私の枠の和（null＝1）を <paramref name="slot"/> へ、POP ごとの持ち分（枠の割合の和・寄せは持ち主）を戻り値へ。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandsale.cs#8〕
+    /// </summary>
     static double[] LdHeldSnapshot(Region r, List<double> slot)
     {
         var h = new double[r.Pops.Count];
@@ -277,7 +260,9 @@ public static partial class Instruments
         return h;
     }
 
-    /// <summary>★(991) 受け口（LandSale.Resolve の売り手ごとの最初・On の確かめは中）：計器が自分で公売の値段と払いを組み（売り手の V は LandsaleStep の写し・買い手は寄せの枠を外す）、持ち分を写す。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandsale.cs#9〕
+    /// </summary>
     internal static void LandsaleSaleBegin(World w, Region r, int seller)
     {
         if (!On || w.WarmupFrozen || !LdAccs.TryGetValue(w, out var a)) return;
@@ -294,7 +279,7 @@ public static partial class Instruments
         double rate = w.GovBondRatePerYear.Value;
         double price = net > 0 && rate > 0 ? 12.0 * net / rate : 0.0;   // 計器の写し：月の純の地代×12÷年の金利
         double phi = price > 0 ? System.Math.Min(System.Math.Min(v / price, 1.0), sumS / price) : 0.0;
-        // ★(995) 払いの予言＝買い手ごとの額の和にエンジンの床を入れる（Pop.Take は保有が 1e-9 以下か額が床以下なら 0 を返す）。ΣS・φ・値段は塵込みのまま（SellOne と同じ）。床は払い手の国の係数（World.Transfer が from.W.Coef を渡す）。
+        // ΣS・φ・値段は塵込みのまま（SellOne と同じ）。〔履歴 InstrumentsLandsale.cs#10〕
         double floor = c.TakeFloorPositive > 0 ? 0 : 1e-12;
         double copy = 0;
         if (phi > 0)
@@ -309,7 +294,9 @@ public static partial class Instruments
         a.Pend = true;
     }
 
-    /// <summary>★(991) 受け口（売り手ごとの最後）：エンジンが実際に移した額 <paramref name="moved"/> を写しと比べ、持ち分の動き（枠の和・売り手の手放した割合・買い手）を数える。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandsale.cs#11〕
+    /// </summary>
     internal static void LandsaleSaleEnd(World w, Region r, int seller, double moved)
     {
         if (!On || w.WarmupFrozen || !LdAccs.TryGetValue(w, out var a)) return;
@@ -331,7 +318,9 @@ public static partial class Instruments
             if (j != seller && h1[j] > h0[j]) { a.QSaleBuyers++; if (j != r.InvestorPopIndex) a.QSaleBuyersNonInv++; }
     }
 
-    /// <summary>★(995) 試験の窓（LdAcc は private）：売り手 <paramref name="p"/> の未払い V と免税の度合いを置く（LandsaleStep の代わり）。On のときだけ。</summary>
+    /// <summary>
+    /// On のときだけ。〔履歴 InstrumentsLandsale.cs#12〕
+    /// </summary>
     internal static void LandsaleTestOwe(World w, Pop p, double v, double exemptDeg)
     {
         if (!On) return;
@@ -339,7 +328,9 @@ public static partial class Instruments
         a.Owed[p] = v; a.ExemptDeg = exemptDeg;
     }
 
-    /// <summary>★(995) 試験の窓：四半期の積みの実際の払い・写しの払い・最大の相対差。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLandsale.cs#13〕
+    /// </summary>
     internal static (double Actual, double Copy, double MaxRel) LandsaleTestRead(World w)
         => LdAccs.TryGetValue(w, out var a) ? (a.QSaleActual, a.QSaleCopy, a.QSaleMaxRel) : (double.NaN, double.NaN, double.NaN);
 

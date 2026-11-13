@@ -1,0 +1,4 @@
+M0 正しい台本	終了=0	files=1 bad=0 warn_sentence_not_substring=0
+M3 コードの数を 1 つ変える	終了=1	門1 赤：組み直しが元と違う PriceOfBread.SimCore/Sample.cs / 門2 赤：注を除いた字句が違う PriceOfBread.SimCore/Sample.cs / files=1 bad=2 warn_sentence_not_substring=0
+M2 履歴から 1 かたまり落とす	終了=1	AssertionError: ('Sample.cs', 2, '参照が履歴に無いか二重')
+M1 素朴な走査の台本	終了=1	履歴の節に使われない物 PriceOfBread.SimCore/Sample.cs [1] / 門1 赤：組み直しが元と違う PriceOfBread.SimCore/Sample.cs / 門2 赤：注を除いた字句が違う PriceOfBread.SimCore/Sample.cs / files=1 bad=3 warn_sentence_not_substring=0

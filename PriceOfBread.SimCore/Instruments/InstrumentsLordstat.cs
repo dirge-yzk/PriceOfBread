@@ -1,17 +1,7 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1012) 地主の政治 D-0 の恒等の計器 lordstat_s（読むだけ・恒等・事前登録 measurements/m1012_20261110_prereg_cl.txt） -------------------------------------------------------
-// 部分クラス＝InstrumentsCornint.cs の型（出力の口は ConditionalWeakTable・力学の値を書かない・乱数を引かない・新しいシミュの状態を作らない・表の関数の中で On を読まない）。
-// 目的＝旧支配層の〈地位と権力の軸〉（秘密投票・官僚制度・国教・徴兵・検閲）の選好が札（定数 ±1）で、導ける物（国教＝十分の一税・官僚制度＝仲介者の取り分）を〈次の一段で失う所得の割合〉で読み直す案 D-1 の材料。
-//   札のまま残るのは秘密投票・検閲・徴兵（権力の量から導くなら別の設計）。
-// エンジンの関数を呼ばない：十分の一税の度合い・仲介者の度合い・身分の度合い・実効発言権・大衆の判定・十分の一税の請求は全て計器が自分で書く（走査の番人 LordstatInstrumentTests の L10 が禁止の名を見張る）。使い回すのは CnBloc だけ。
-// 行＝国×四半期（cornint_s と同じ国の集合）。列＝28（鍵 8・分母 2・秘密投票 3・官僚制度 9・国教 5・徴兵 1）＋(1039) 22（D-1 の国教 11・D-2 の仲介の取り分 11）＋(1048) 2（土地改革の地代の損と得＝旧の値の期待・末尾）。
-// (1039)：末尾の 22 列は、期待の側を計器が自分の純関数で書き、実際の側（Pref・純支持・教義）だけ PolicyPreferences.Build/Pref/NetSupport と UtilityAgent.DoctrineFrom を読む（読むだけ・四半期の末＝窓の外）。額は国の通貨・どれも直近の月の値（…PerMonth）。
-// 〈次の一段〉＝その法を 1 段だけ寛容側へ進めた後（秘密投票は公開→秘密・官僚制度は猟官→資格任用→専門・国教は国教→内心の自由→信仰の自由・国家無神論は例外で動かさない）。
-// lsIncome0PerMonth＝閉鎖の層（CnBloc が 0）の max(0, 所得) の和（PolicyPreferences の Income[0] と同じ集合）。十分の一税の母体＝国に聖職者（人口が正）が居るときの大衆（平民で近代でなく犯罪者でない）の max(0, 前の月の所得) の和（徴収の走査は国全体の聖職者の有無で決まる）。
-// ⚠限界（計器が自己申告する）：①dbuRuleCutLossNextShare0 は州の取り分を人口で按分した近似（州ごとの取り分はどこにも貯まらない）・在地の目標の min(1−無統治, …) の上限を数えない②十分の一税は請求で、払える額の率を数えない
-//   ③dcsPeasantPopShare・dbuEstateNow・dbuEstateNext は突然変異で確かめていない④lsIncome0PerMonth には聖職者の枠の地代が入る国がある（国教の損失の分母が動く）。
+// 目的＝旧支配層の〈地位と権力の軸〉（秘密投票・官僚制度・国教・徴兵・検閲）の選好が札（定数 ±1）で、導ける物（国教＝十分の一税・官僚制度＝仲介者の取り分）を〈次の一段で失う所得の割合〉で読み直す案 D-1 の材料。〔履歴 InstrumentsLordstat.cs#1〕
 public static partial class Instruments
 {
     sealed class LordstatSink { public System.IO.StreamWriter? W; public bool Header; }
@@ -41,9 +31,13 @@ public static partial class Instruments
          : s == StateReligionLaw.InnerFreedom ? c.InnerFreedomTithe : s == StateReligionLaw.ReligiousFreedom ? c.ReligiousFreedomTithe : s == StateReligionLaw.StateAtheism ? 0.0 : 1.0;
     /// <summary>選挙の実在（純関数）＝議会政体（立憲君主制・共和制）なら 秘密投票 1・公開投票 OpenBallotReality／それ以外は PaperFranchiseReality。</summary>
     internal static double LdBallotReality(bool parliamentary, bool secret, Coefficients c) => parliamentary ? (secret ? 1.0 : c.OpenBallotReality) : c.PaperFranchiseReality;
-    /// <summary>(1048) 産地の地代の上限（純関数）＝全面 full・限定 full＋(1−full)×0.5・なし 1。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLordstat.cs#2〕
+    /// </summary>
     internal static double LdRentCapOf(ReformLevel lv, double full) => lv == ReformLevel.Full ? full : lv == ReformLevel.Limited ? full + (1.0 - full) * 0.5 : 1.0;
-    /// <summary>(1048) 産地の慣習の取り分＝先頭の州の産地（IsRgo）の RentShare の最小（産地が無ければ 0）。計器が自分で数える。</summary>
+    /// <summary>
+    /// 計器が自分で数える。〔履歴 InstrumentsLordstat.cs#3〕
+    /// </summary>
     internal static double LdCustomRent(World w)
     {
         if (w.Regions.Count == 0) return 0.0;
@@ -51,7 +45,9 @@ public static partial class Instruments
         foreach (var pr in w.Regions[0].Producers) if (pr.IsRgo && pr.RentShare.Value < m) m = pr.RentShare.Value;
         return double.IsPositiveInfinity(m) ? 0.0 : m;
     }
-    /// <summary>(1048) 実効の取り分（純関数）＝min(慣習, 土地改革の上限, 農奴解放の上限)。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsLordstat.cs#4〕
+    /// </summary>
     internal static double LdEffRent(double custom, ReformLevel lr, ReformLevel se, Coefficients c)
         => System.Math.Min(custom, System.Math.Min(LdRentCapOf(lr, c.LandReformRentCap.Value), LdRentCapOf(se, c.SerfEmancipationRentCap.Value)));
 
@@ -89,22 +85,22 @@ public static partial class Instruments
                 dropSum += pop * drop;
                 if (r.Rule[1] > r.RuleInit[1] * imNow) aboveW += pop;
                 cutNum += pop * drop; cutDen += pop * (r.Rule[1] + r.Rule[0] * (1.0 - r.AdminFill));
-                double fl = r.AdminFill > 0 ? (r.AdminFill < 1 ? r.AdminFill : 1.0) : 0.0;   // (1039) 在地の区分が国家の区分へ移ったときに仲介者の手を離れる分の f（否定形＝NaN は 0）
+                double fl = r.AdminFill > 0 ? (r.AdminFill < 1 ? r.AdminFill : 1.0) : 0.0;   // fl〔履歴 InstrumentsLordstat.cs#5〕
                 rhoNum += pop * r.Rule[1] * fl; rhoDen += pop * (r.Rule[1] + r.Rule[0] * (1.0 - fl));
             }
             adminLoss = cutDen > 0 && inc0 > 1e-9 ? w.LastRuleCut * (cutNum / cutDen) / inc0 : 0.0;
             var snow = w.StateReligion; var snext = LdReligionNext(snow);
             double tdNow = LdTitheMul(snow, c), tdNext = LdTitheMul(snext, c), tr = c.TitheRate.Value;
             double titheLoss = tr * (tdNow - tdNext) * tithBase;
-            // ---- (1039) D-1 の列（国教）：期待の側は計器が自分の純関数で書く・実際の側（Pref・純支持・教義）だけエンジンを読む。呼び口は四半期の末＝World.PopSums は null（窓の外）＝Build は窓の和でなく求め直し。
+            // 呼び口は四半期の末＝World.PopSums は null（窓の外）＝Build は窓の和でなく求め直し。〔履歴 InstrumentsLordstat.cs#6〕
             var sprev = LdReligionPrev(snow);
             double tdPrev = LdTitheMul(sprev, c), clergyShare = inc0 > 1e-9 ? incClergy / inc0 : 0.0;
             var prof = PolicyPreferences.Build(w);
-            // ---- (1039) D-2 の列（官僚制度・土地改革の仲介の取り分）：Cut÷Income0・ρ・S_mid（進める向きの失う割合）・S_gain（戻す向きの得る割合）
+            // bprev〔履歴 InstrumentsLordstat.cs#7〕
             var bprev = LdBureaucracyPrev(bnow); var lrNext = LdLandNext(lr); var lrPrev = LdLandPrev(lr);
             double cutShare = inc0 > 1e-9 ? w.LastRuleCut / inc0 : 0.0, rho = rhoDen > 0 ? rhoNum / rhoDen : 0.0, cr = cutShare * rho;
             double iBurUp = LdIntermediary(bnext, lr), iLandUp = LdIntermediary(bnow, lrNext), iBurDn = LdIntermediary(bprev, lr), iLandDn = LdIntermediary(bnow, lrPrev);
-            // ---- (1048) 土地改革の地代の損と得（旧の値 −2×(0.5＋損) の損）＝計器が自分で数える（エンジンの損の関数を呼ばない）
+            // custom〔履歴 InstrumentsLordstat.cs#8〕
             double custom = LdCustomRent(w), rentRatio = inc0 > 1e-9 ? rent0 / inc0 : 0.0, effNow = LdEffRent(custom, lr, w.SerfEmancipation, c);
             double landLoss = effNow > 1e-9 ? (effNow - LdEffRent(custom, lrNext, w.SerfEmancipation, c)) / effNow * rentRatio : 0.0;
             double landGain = effNow > 1e-9 ? (LdEffRent(custom, lrPrev, w.SerfEmancipation, c) - effNow) / effNow * rentRatio : 0.0;

@@ -1,0 +1,123 @@
+(1112) c107ha 事前登録（挙動の線 0・恒等・注を履歴の文書へ移す・組 A）  作成 2026-11-13  基点 1cd66aae5
+[1] 種類：恒等の線・予言 0（コードの字・係数・計算の順序は 1 つも変えない）。形＝尾でも入口でもない（注だけ）。
+    この線に旗は無い。挙動の線ではないので、狙いの数字・ヌル腕・止める線の読みは無い。
+[2] 規則（台本 scripts/instruments/c107ha/move_notes.py・csscan.py。python -X utf8 -I・BOM と改行を保つ）
+    単位＝連続する行頭の // と /// の行のかたまり・行末の注・/* */。文字列・文字・前処理の行の中の // は注と読まない。
+    経緯の印＝日付 20\d\d-\d\d(-\d\d)?・(\d{3,4})・★(\d+)・波\d+・m\d{3,4}・c\d{2,3}[a-z]+・旧＝・撤去・墓標・廃止・焼き込み・裁定・作者。
+    印の無いかたまりはそのまま。印のあるかたまりは全文を docs/history/<ファイル名>.md の節 §<番号> へ逐語で写し、
+    コードには印の無い最初の 1 文（120 字まで・文の途中で切らない・無ければメンバー名か最長の識別子）＋〔履歴 <ファイル名>#<番号>〕を 1 行だけ残す（/// <summary> は 3 行の形を保つ）。
+    残す物＝[PORT: の行（かたまりの切れ目にする）・#pragma・#region・前処理の行・〔履歴〕を既に含む注・（下の表の）試験が読む字を含むかたまり。
+    係数名と機構名は履歴の文書に逐語で残る＝係数名で全域を grep すればコードと履歴の両方に当たる。
+[3] 試験・台本・Runner が読む注の字の表
+    事前の grep：SimCore を ReadAllText／EnumerateFiles で読む試験は 20 本（ClearingFill・Corncf・CurrencyMemoryBroken・DevaluationCapRelief・DiscontentReader・DormantIdentity・ForceReadGuard・Fsx・GoodIdGuard・InstrumentsPlacement・LordstatInstrument・OnDoubleReadScan・PlayHarness・PriceLevelPressure・ReformPath・Scholarship・ScoreReader・SulfuricAcidSodaAsh・TreasuryLedger・UnitType）。注を除いてから読む物（OnDoubleReadScan・GoodIdGuard・ReformPath ほか）と除かない物がある。
+    除かない物が注の字を主張しているかは、移しの後に ㉘ の束とフルスイートで確かめる。赤になった注は戻して表に足す（試験は書き換えない）。表（確定したら追記で書く）：現時点は空。
+    scripts：route_anchors.tsv（scripts/instruments/flow262/）は〈// より前のコードの字〉が鍵＝動かない（InstrumentsTests.cs:1321 で確かめる）。計器の経路の名は ident_check が写す。
+[4] 組 A のファイル（91 本）
+    PriceOfBread.SimCore/Instruments/Instruments.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsAdmin.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsAiBuild.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsAnchor.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsArms.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsBasisx.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsBur.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCapacity.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCede.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCenter.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCess.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsChem.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCivwar.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsClock.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCorncf.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCornint.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCoup.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCpeace.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCpmed.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsCrown.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsDep.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsDiscontent.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsDivhost.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsDsc.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsEd.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsEpi.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsEquipment.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsFb.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsFd.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsFm.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsHabitlg.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsHouse.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsIdeology.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsIdn.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsImpose.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsInheritIntent.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsInp.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsIvf.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLandsale.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLandshare.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLawGate.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLawgate2.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLordstat.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLw.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsLwk.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsMerch.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsMineCap.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsModernize.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsMon.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsNationgood.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPay.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPop.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPopPref.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPortch.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPortlm.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPrdf.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPrds.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsProdcap.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsPxstep.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsRdh.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsRecipeout.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsReform.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsRegionProd.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsRule.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsRulePower.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSb.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsScalars.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsScope.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsScore.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSecession.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSellr.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSf.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSilverParity.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSilverWeight.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSilverst.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSubst.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsSvcBuy.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsTradeskip.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsTransport.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsU4.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsUrx.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsWar.cs
+    PriceOfBread.SimCore/Instruments/InstrumentsWp.cs
+    PriceOfBread.SimCore/Diplomacy.cs
+    PriceOfBread.SimCore/MultiNationSim.cs
+    PriceOfBread.SimCore/Simulation.cs
+    PriceOfBread.SimCore/World.cs
+    PriceOfBread.SimCore/EconomyStep.cs
+[5] 他の線との重なり：c107hb（組 B・別のファイル）・c107hc（Coefficients）・c107di（Display・Tests・csproj）。この線が触るのは上の 91 本・docs/history/<それぞれのファイル名>.md・scripts/instruments/c107ha/・measurements/m1112_* だけ。ha と hb の history のファイル名は別（ファイル名が違う）。
+[6] 移す字数の見込み（台本の乾燥走行・1cd66aae5）：約 62 万字（注のかたまり約 数千件）。テストの数の予言＝+0（試験は足さない・書き換えない。足す物は台本の門だけ）。
+    ㉑ ソースを走査する番人の書き換えの予言：0 件。赤が出た注は戻す（注の字を表に足す）。
+    ㉘ の束（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity）は移しの直後に回す。
+[7] 変わる表の宣言：cearn_s・cpop_s・flow_s の経路の名〈ファイル:行〉と dep_s の callerLine（World.cs:736・Diplomacy.cs:453 ほかの CallerLineNumber の宣言＝IL に行の定数が入る）。経路の 3 表は ident_check が行の写しで一致を見る。dep_s は git diff の行の写し（前の行→後の行）で callerLine を写して全行一致を確かめる（前例 m843・★(933)）。他の表は全行一致。
+[8] 門（腕の前に突然変異の紙の台本を表で書く）
+    門 1 履歴＋残り＝元の注：台本 check_notes.py（新ファイル＋履歴から元のバイト列を組み直して一致・BOM と改行・節の二重と未使用）。
+    門 2 注を除いた字句の列が前後で一致（ファイルごと・前処理の指令の行も）。
+    門 3 IL：同じ絶対パスの使い捨ての木 D:/PoB_work/wt_c107ha_il で前（1cd66aae5）と後の両方に同じ変換（[System.Runtime.CompilerServices.CallerLineNumber] の属性を宣言から消す）を当てて建て（Release・-p:Deterministic=true・-p:DebugType=none・-p:IncludeSourceRevisionInInformationalVersion=false）、SimCore.dll がバイト一致。変換なしの前後も建て、違うバイトの数を記録する。
+    門 4 ident（段 2）：素の 5 種・計器つき 10 種が m1103 と名乗り行を除いて全行一致（計器の表の差は [7] の宣言だけ）。
+    門 5 フルスイートの失敗 0（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる）・savetest・leakhunt・.cost の件数の差 0。
+[9] 突然変異（使い捨ての木・どの門で赤になるかの紙の台本）
+    M1 文字列の中の // の後を台本が削る変種 → 門 2 赤（字句の列が違う）・門 3 赤（文字列の定数が違う）。
+    M2 履歴から 1 かたまり落とす → 門 1 赤（組み直しが元と違う）。
+    M3 注の隣のコードの数を 1 つ変える → 門 2 赤・門 3 赤。
+    M4 変換を片方の木だけに当てる → 門 3 赤（行の定数が原因である確かめ）。
+[10] 〈判定: 恒等〉なら採る。一致しなければ、その変更（ファイルの塊）を外して報告に回す。件名に〈証明〉と書かない。

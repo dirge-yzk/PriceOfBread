@@ -1,8 +1,6 @@
 ﻿namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (361) 人口の作り替え 段A 計器＋段B 影の器（読むだけ・設計 docs/202610/20261015/20261015_人口の作り替え_出生と死亡_設計.md §2-4・§3-2） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず1本のファイルで持つ（衝突面を消す）。力学の値を1つも書かない・乱数を引かない・メモ化された量を新しい位置で読まない。
-// 新しいシミュの状態を足さない（Pop／World／Region に欄なし）＝蓄えは全部 WState の PopAcc。新しい数（φ・m_max・θ）は Coefficients でなくここの const（〈AI の推定・読み手なし〉＝段C で表へ昇格させる）。
+// 力学の値を1つも書かない・乱数を引かない・メモ化された量を新しい位置で読まない。〔履歴 InstrumentsPop.cs#1〕
 
 public static partial class Instruments
 {
@@ -18,7 +16,9 @@ public static partial class Instruments
     /// <summary>子の費用の年数（設計 doc §2-4(c)）：籠 15 年・教育 10 年（5〜14 歳）・稼ぎ 5 年（10〜14 歳）。</summary>
     internal const double PopChildBasketYears = 15.0, PopChildEduYears = 10.0, PopChildWorkYears = 5.0;
 
-    /// <summary>国×窓の蓄え（DemographicStep の POP のループの hook が積む・行を書いたら0へ戻す）。層は <c>Pop.Layout</c> の層（8層は10歳刻み8本・11層は作者の刻み・男女計）。</summary>
+    /// <summary>
+    /// 国×窓の蓄え（DemographicStep の POP のループの hook が積む・行を書いたら0へ戻す）。〔履歴 InstrumentsPop.cs#2〕
+    /// </summary>
     internal sealed class PopAcc
     {
         public int Months, RecoveringMonths, NoMotherMonths;
@@ -53,7 +53,7 @@ public static partial class Instruments
         Span<double> n0 = stackalloc double[AgeLayout.MaxSlots]; n0 = n0[..nb];
         for (int k = 0; k < n0.Length; k++) n0[k] = p.Ages[k] * size0;
         a.PopMonths += size0; a.Births += births; a.DeathsNormal += deaths; a.FertileWomenMonths += size0 * p.AgeShare(15, 50, 1);
-        RdhDemo(births, deaths, 0);   // (721) rdh：州ごとの出生と平常の死（RDH が空なら何もしない）
+        RdhDemo(births, deaths, 0);   // RdhDemo〔履歴 InstrumentsPop.cs#3〕
         for (int b = 0; b < nbands; b++) a.BandExposure[b] += n0[2 * b] + n0[2 * b + 1];
         if (deaths > 0)
         {
@@ -75,7 +75,7 @@ public static partial class Instruments
         for (int k = 0; k < n.Length; k++) n[k] = p.Ages[k] * p.Size;
         Pop.TakeWeighted(n, took, disasterW, d);
         a.DeathsFamine += d;
-        RdhDemo(0, 0, d);   // (721) rdh：州ごとの飢えの死
+        RdhDemo(0, 0, d);   // RdhDemo〔履歴 InstrumentsPop.cs#4〕
         for (int b = 0; b < Pop.Layout.Bands; b++) a.BandDeaths[b] += took[2 * b] + took[2 * b + 1];
     }
 
@@ -124,7 +124,9 @@ public static partial class Instruments
         return new PopShadowOut(e, cb, ce, c, o, u1, v, psi, g, ck, a, m, tfr);
     }
 
-    /// <summary>★(478) 10 歳まで生き残る確率の指数＝Σ(層の10歳までの年数×その層の死の率)。8層は層 0 が 10 年＝<c>10.0×μ0</c>（旧の式と同じ double）。人年 0 の層（率が NaN）は、その層が10歳の内にあるときだけ NaN を運ぶ。</summary>
+    /// <summary>
+    /// 8層は層 0 が 10 年＝10.0×μ0（旧の式と同じ double）。〔履歴 InstrumentsPop.cs#5〕
+    /// </summary>
     internal static double PopS10Exponent(AgeLayout lay, double[] mu)
     {
         double e = 0.0;
@@ -152,14 +154,16 @@ public static partial class Instruments
     sealed class PopCls
     {
         public double Size, Adult, Pool, FertWomen, Kids, Women2049, School, ClrW, ClrDen, EduFillW, LitW, PriceW, PubW, W0014, W60;
-        public double ClrWW;   // ★(1037) Σ(10〜14 歳×児童労働×計器の子の重み Instruments.LwkChildWeight)＝旗 LaborWeightsByPower が正の時の影の ChildWork の分子
+        public double ClrWW;   // ClrWW〔履歴 InstrumentsPop.cs#6〕
     }
 
-    /// <summary>★(490) 層ごとの列の名前は層の番号でなく**層の下端の年齢**を持つ（deathsFrom{下端}K・muFrom{下端}PerYear）。(478) の 11 層で層の番号の意味が変わり（8層の mu0＝0〜9歳・11層の mu0＝0歳）、
-    /// 名前を変えずに意味が変わった旧の読み手（層の番号を 8 層のものと読む）が黙って誤読する穴を、名前を変えて**探しても無い＝止まる**形にした。旧の名前（deathsBand{b}K・mu{b}PerYear）はこの木では出ない。
-    /// 8層の下端は 0・10・…・70（deathsFrom0K・…・deathsFrom70K）／11層は 0・1・6・11・16・21・31・41・51・61・71。読み手は <c>scripts/instruments/pop/age_guard.py</c> の require_bands8 で 8 層だけを前提にする。</summary>
+    /// <summary>
+    /// 旧の名前（deathsBand{b}K・mu{b}PerYear）はこの木では出ない。〔履歴 InstrumentsPop.cs#7〕
+    /// </summary>
     internal static string PopBandTag(AgeLayout l, int b) => ((int)l.Lower[b]).ToString(System.Globalization.CultureInfo.InvariantCulture);
-    /// <summary>★(478)(490) 層ごとの列（deathsFrom{下端}K・muFrom{下端}PerYear）は <c>Pop.Layout</c> の層の数だけ。層 b の上端は新しい表 age_s の下端・上端で読む。</summary>
+    /// <summary>
+    /// 層 b の上端は新しい表 age_s の下端・上端で読む。〔履歴 InstrumentsPop.cs#8〕
+    /// </summary>
     static readonly string PopHeader = "scope\tquarter\tyear\tnationUid\tnation\tclassId\tclassName\tmonthsCount\t"
         + "popK\tpopMeanK\tshare0to14\tfertileWomenShare\tshare60plus\t"
         + "birthsK\tdeathsNormalK\tdeathsFamineK\tdeathsOtherK\twarDeadK\tcbrPerMille\tcdrPerMille\tcdrNormalPerMille\t"
@@ -179,7 +183,7 @@ public static partial class Instruments
         // ---- 四半期の末の断面（兵士以外の POP・稼働していない州も含む＝DemographicStep が回す集合と同じ）
         var cls = new PopCls[NC]; var names = new string?[NC];
         double popK = 0, w0014 = 0, wFert = 0, w60 = 0, oldSz = 0;
-        var lay = Pop.Layout; var bandStock = new double[lay.Bands];   // ★(478) 層ごとの四半期末の人数（千人・兵士以外）
+        var lay = Pop.Layout; var bandStock = new double[lay.Bands];   // lay〔履歴 InstrumentsPop.cs#9〕
         double aWork = 0, aOld65 = 0;
         foreach (var (rg, p) in w.AllPopsWithRegion())
         {
@@ -195,7 +199,7 @@ public static partial class Instruments
             double price = Catalog.EducationId < rg.Markets.Length ? rg.Markets[Catalog.EducationId].Price : double.NaN;
             cl.PriceW += sc * price; cl.PubW += sc * rg.CompulsoryEduFunding;
             double cw = s * p.AgeShare(10, 15); cl.ClrDen += cw; cl.ClrW += cw * p.ChildLaborRate.Value;
-            if (c.LaborWeightsByPower > 0) cl.ClrWW += cw * p.ChildLaborRate.Value * LwkChildWeight(p, c);   // ★(1037) 子の実効の重み（旗 0 は読まない）
+            if (c.LaborWeightsByPower > 0) cl.ClrWW += cw * p.ChildLaborRate.Value * LwkChildWeight(p, c);   // LaborWeightsByPower〔履歴 InstrumentsPop.cs#10〕
             cl.LitW += s * p.Literacy;
         }
         if (!(popK > 0)) { a.Clear(w); return; }   // 死んだ国（人口 0）は行を出さない
@@ -236,7 +240,7 @@ public static partial class Instruments
             pub[k] = cl.School > 0 ? cl.PubW / cl.School : double.NaN;
             nsArr[k] = cl.Women2049 > 0 ? cl.Kids / cl.Women2049 : double.NaN;
             litArr[k] = cl.LitW / cl.Size;
-            double childWork = c.LaborWeightsByPower > 0 && cl.ClrW > 0 ? cl.ClrWW / cl.ClrW : c.ChildWorkFactor;   // ★(1037) 旗 0 は ChildWorkFactor をそのまま（pop_s は全行一致）・旗が正は階級の子の実効の重み
+            double childWork = c.LaborWeightsByPower > 0 && cl.ClrW > 0 ? cl.ClrWW / cl.ClrW : c.ChildWorkFactor;   // childWork〔履歴 InstrumentsPop.cs#11〕
             ins[k] = new PopShadowIn(yAdult, basket, childWork, clr, c.EduPerChild, price, nFill, pub[k], s10, l60, nsArr[k], pi, litArr[k]);
             outs[k] = PopShadow(ins[k]);
             aux[k * 5] = yAdult; aux[k * 5 + 1] = basket; aux[k * 5 + 2] = clr; aux[k * 5 + 3] = nFill; aux[k * 5 + 4] = litArr[k];
@@ -308,11 +312,7 @@ public static partial class Instruments
             sk.PopS.WriteLine(sb.ToString());
         }
 
-        // ---- ★(478) 新しい表 age_s（死の側の段1・事前登録 measurements/dz478_20261021_prereg.txt [2] F8）＝層ごとの行 B と国の行 N。旗（POB_AGE_BANDS）に依らず出す。
-        //   B 行：層 b の下端・上端の年齢・四半期末の人数（千人・兵士以外）・窓の人年（千人年＝窓の月初の人数の和÷12）・窓の死（平常＋飢え）・窓の出生（0 番の層だけ）・年あたりの死の率。
-        //   N 行：層の数・兵士以外の人口・Σ層−人口（0 のはず）・層に依らない集計（0〜14 歳・15〜64 歳〔働き手〕・60 歳以上・65 歳以上の割合＝8層と11層で同じ年齢の範囲を指す）・
-        //   乳児の死の出生に対する割合（0 歳だけの層をもつ器だけ＝8層は nan）・0 歳の層の人口割合（同）。
-        //   限界：四半期末の断面と窓の合計・兵士は含まない（DemographicStep の出生と死の対象と同じ集合）・8層では乳児の列は nan。
+        // 旗（POB_AGE_BANDS）に依らず出す。〔履歴 InstrumentsPop.cs#12〕
         sk.AgeS ??= Open("age", seed);
         if (!sk.AgeSHeader) { sk.AgeS.WriteLine(AgeHeader); sk.AgeSHeader = true; }
         string ahead(string scope) => string.Join('\t', scope, I(q), I(year), I(st.Uid), nation);

@@ -1,18 +1,7 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1012) 地主の政治 C-0′ の恒等の計器 corncf_s（読むだけ・恒等・事前登録 measurements/m1012_20261110_prereg_cl.txt） -------------------------------------------------------
-// 部分クラス＝InstrumentsCornint.cs の型（出力の口は ConditionalWeakTable・力学の値を書かない・乱数を引かない・新しいシミュの状態を作らない・表の関数の中で On を読まない）。
-// 目的＝穀物法の地主の項を〈次の一段で失う所得の割合〉（S↓）と〈戻したときの得〉（S↑）で読み直す案 C1′ の材料。今の式（持っている地代の割合）と C1′ を同じ盤面で両方出す。
-//   着値 L(d)＝A＋d×B（A・B＝買い手を外した売り手の産出で重みを付けた平均・楔 d に加法的）。S↓＝max(0, min(p, L(d))−L(d−))÷p（限定以上）・S↑＝m×(L(d＋)−L(d))÷p（全面でない）。
-//   利害＝Σ_財（ブロックが受ける穀物の地代×S）÷（全ての RGO の期待の地代の和）＝分子と分母は同じ規則（cfRentAll）。型 ①輸入と競う L(0)＜p ／②楔が効かない L(0)≧p・輸出 0 ／③輸出する L(0)≧p・輸出＞0。②③は利害 0。
-// エンジンの関数を呼ばない：楔・着値・地代の受け手・国営持分 f0・国有化の下限の印・距離は全て計器が自分で書く（走査の番人 CorncfInstrumentTests の T15・T15′ が禁止の名を見張る）。使い回すのは同じ計器の写し LsSlots・LsRecipient・CnBloc だけ。
-// 行＝国×四半期（cornint_s と同じ国の集合）。列＝94（鍵 4・楔 3・財ごと 8×穀物の財 7・ブロックごと 7×3・国 6・全ての地代 3＋国家の枠 1）。ブロックの添字 b＝0 旧支配層・1 近代エリート・2 大衆（CnBloc）。
-// 地代の期待の側＝max(0, Output×州の値段)×min(RentShare, FarmRentCap)×(1−f0)×枠の重み ls[k]（国家の枠 ls[4] は旗 LandShareCrownSlot が正で長さ 5 のとき周回を 4 で止めて外す＝エンジンの ls[k]÷(1−ls[4]) を国営持分の後の値に掛けるのと同じ額）。
-//   cfRentCrownShare＝国家の枠へ行った期待の地代÷（私の 4 枠＋国家の枠）。
-// 輸入の割合 m＝輸入額÷（輸入額＋州の産出の値）（輸入は世界価格建て・産出は州の値段建て）。cfPinRatio0＝ブロック 0 の穀物の地代のうち p＜L(d)（値段が楔で張り付く）財の割合。
-// ⚠限界（計器が自己申告する）：①四半期の末の断面（判定の段の重みと同じかは近似）②m の単位の混ざり③期待の側＝f0 は写すが赤字の枝・組合の移転・補助金は数えない（実際の側は landshare_s の landRentActual*）
-//   ④作る量を固定した一次の近似⑤距離は大圏（清算の海路と陸路ではない）⑥自国の値段の無い国は nan⑦cfPinRatio0・cfSellers・cfStakeUpPriceOnly は突然変異で確かめていない。
+// 目的＝穀物法の地主の項を〈次の一段で失う所得の割合〉（S↓）と〈戻したときの得〉（S↑）で読み直す案 C1′ の材料。〔履歴 InstrumentsCorncf.cs#1〕
 public static partial class Instruments
 {
     sealed class CorncfSink { public System.IO.StreamWriter? W; public bool Header; }
