@@ -1,0 +1,36 @@
+# (1110) 合流（波106）の予言（merge の前にコミットする）
+# 担当 Opus 5.5（合流）。基点 ffb383805。基準＝基線 m1103（ident.cfg：B5 b5_20261113_m1103・B10INS b10_20261113_m1103_ins・MON mon_20261113_m1103.txt・NG_BASE ng1103〔95 件〕・INSRAW keep_1103/base_ins）。
+# 指示文の雛形にある m797・ng797 は古い基準＝この回は ident.cfg の m1103 を使う。作ったフォルダ：D:/PoB_work/m1110_work・wt_m1110（枝 m1110）。この後に wt_m1110z（腕 Z の木・detached）・ident_m1110z を作る。keep は作らない（挙動の線 0 本・計器の表の増減 0）。
+
+[1] 入れる線と外す線（結果を見る前に決める）
+- 入れる（4 本とも〈判定: 恒等〉・反証役 v の高 0）：c106dc (1107) 1a2793571・c106ui (1104) edcc32dea・c106im (1105) b7ced43f1・c106cf (1106) 32daac61f。順は dc → ui → im → cf（git merge --no-ff・指示〈先に c106dc を入れる〉）。
+- 挙動の線は 0 本＝基線は m1103 のまま（M・N1・N2・S11・アブレーションは回さない）。
+- 読む線 mw (1108)・設計の材料 rn (1109) は写すだけ（コミットは合流が名指しで）。
+- c106ui の反証役 v の中（突然変異 M1・M2 が緑のまま試験を足さなかった＝★(790) に反する）は外す理由にしない＝選択肢②（実装ログに逸脱として記録・00一覧〈次の波〉に試験 2 本を 1 行）。理由：挙動の線 0 本の回で、試験を足すと ident の宣言と線の測り直しが要る・合流は試験を書かない。
+
+[2] 消す名前とファイルの重なり
+- ui が消す名前 17 個（BudgetVsLedger・BuildMegaRows・HasMegaRows・StartMega・_megaRows ほか）を、im・cf・dc の足した行で grep した＝im 0・cf 0・dc はファイルを移した文書の地の文（State・Project ほか一般の語）だけ＝コードの当たり 0。
+- im は名前を消さない（git mv だけ）。cf は名前を消さない（分割だけ）。dc は .cs に触れない。
+- ui・cf・dc の足した行に SimCore/Instruments のパスを書く行 0。ui・im・dc の足した行に Coefficients.cs の字 0。
+- 重なるファイル：CalendarTests.cs・IndustrializationReaderTests.cs（im＝走査の行・cf＝部品の名の寄せ・hunk は別）・docs/README.md（dc＝先頭 2 行・im と cf＝§2 に 1 行ずつ）＝README の §2 で im と cf の行が隣り合えば文字の衝突の見込み（解くのは合流＝両方の行を残す）。.cs の衝突は 0 の見込み。
+
+[3] 合わせた木の予言
+- テストの数：Category!=FullLength 2808＋ui 14＋im 1＋cf 0＋dc 0＝2823・FullLength 3（ビルドの後の --list-tests で先に確かめる）。
+- 腕 Z（合わせた木そのもの・旗の切り替えなし）を別の木 wt_m1110z で ident（段 2・既定の刈り込み・--saveleak・--ng・--tests-delta 15・宣言した表と列 0）。
+  - 予言：〈判定: 恒等〉（測った種で一致）。素の 5 種が b5_20261113_m1103 と全行バイト一致（名乗り行を除く・178 行）・計器つき 10 種が b10_20261113_m1103_ins と全行バイト一致（180 行）・注視の表 4681 行一致・.cost の件数の行は差 0・推定 230.5 秒／230.3 秒・計器の表は宣言の無い違い 0（既知の揺れ＝burscan_s・clock_s の 20 本）・NG 95 件（新しい 0・外れた 0）・savetest OK・leakhunt 保存則違反なし。
+  - WriterRatchetTests の宣言の表の取り直しは無い（4 本とも .cost の件数の行を足していない）。
+  - 4 本の線の ident はどれも m1103 と全行一致だった＝合わせた木の不一致は、線どうしの組み合わせ（im の走査×cf の部品・cf の部品の並び×反射の順）だけが原因になりうる。cf の部品の並び＝ファイル名の順は im の移動で変わらない（Instruments/ は別のフォルダ）。
+- 番人の束（㉘＋波106 の線の試験 InstrumentsPlacement・LawStakes・UiShotRule・Layout・ProductionMarketTables・Calendar・Scholarship・DevaluationCapRelief・Corncf・Lordstat・FactoryEquipment・FoodLedger・OnDoubleReadScan）：合わせた木で緑の見込み。im の TopAndInstruments の母集合に cf の部品 9 本が直下として入る＝cf の部品の名の寄せ（Coefficients.cs の鍵）が走査の側でも効く見込み。
+- 止める線の段：ident の〈判定: 不一致〉（宣言の無い違い）・savetest／leakhunt の不合格・フルスイートの赤・番人の束の赤。赤なら、その組み合わせの線を後から入れた側から外す（合流は試験とエンジンを直さない）。
+- 記録の段：.cost の実時間（CPU 秒）・D: の空き（計画 139.3GB・合流の着手の時点 約 104GB＝線の ident の生と worktree が残っている）・IL の比較は回さない（線の担当が im・cf で取った・合わせた木は ident で読む）。
+
+[4] ident.cfg
+- 基線の成績表（B5・B10INS・MON・NG_BASE）と INSRAW（keep_1103/base_ins）は m1103 のまま（表の増減 0 なので新しい keep を作らない）。
+- TESTS_NONFULL 2808→2823。BASE_COMMIT・STAGE_BASE は合わせた木。
+
+[5] 外さない物（入れる線の反証役の中・低）は記録と次の波へ（合流はエンジンの .cs と試験を直さない）
+- ui：突然変異 M1・M2 の穴（上）・取り込んだ画面の試験の書き換え 2 件（ProductionMarketTablesTests.cs:151・UiShotRuleTests の BudgetVsLedger→BudgetVsActual）を ⑧ に列挙。
+- im：突然変異の出力 mut.log と mut.sh を measurements/m1105_* へ写す・〈証明〉の字は実装ログで言い換える・補助の名の変更（SimCoreTopFiles→TopAndInstruments）を 1 行。
+- cf：事前登録と実装が同じ秒・名の列は IL の一致で代えた・試験の書き換えの区分（⑤ の拡張＝ファイルの分割に伴う持ち主の名の寄せ）・部品の名の順＝宣言の順の注を README §2 に。
+- dc：短い README の 97 行の切れ（★(743) ほか規則の行が途中で切れる）＝合流が make_short.py で規則の行を切らないように直すか、次の波の dc の直しへ（合流の判断）・(215) の行・CURRENT の〈前の更新 2 本〉の食い違い・readers の漏れ・突然変異を当てていない門・.ignore が Glob も外す＝README の先頭の行を直す（文書だけ）。
+- mw：反証役 v の中〈開幕の四半期の空白（アメリカ）〉を記録と素案に足す。rn：反証役 v の中 2 件（G-W・G8 が計器の自己参照・作者に聞く物を知らせる物へ）を写しの末尾に足す。
