@@ -27,7 +27,7 @@ os.makedirs(tmp, exist_ok=True)
 for f in cmove.PARTS:
     o = orig(f)
     nb = open(os.path.join(sim, f), 'rb').read()
-    ents = cmove.read_history(open(os.path.join(hist, f[:-3] + '.md'), 'rb').read())
+    ents = cmove.read_history(open(os.path.join(hist, f + '.md'), 'rb').read())
     try:
         rb = cmove.restore(nb.decode('utf-8'), ents).encode('utf-8')
     except Exception as e:

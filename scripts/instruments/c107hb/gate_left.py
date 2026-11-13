@@ -25,7 +25,7 @@ for f in files:
     allold = sum(len(old[s:e]) for (s, e, k) in find_comments(old))
     keptold = sum(len(old[s:e]) for (s, e, k) in find_comments(old) if '[PORT:' in old[s:e])
     moved_before += allold - keptold
-    p = os.path.join(hist, f[:-3] + '.md')
+    p = os.path.join(hist, f + '.md')
     if os.path.exists(p):
         md = open(p, 'rb').read().decode('utf-8')
         # 4 つのバッククォートの囲みの中の字数（改行を除く）

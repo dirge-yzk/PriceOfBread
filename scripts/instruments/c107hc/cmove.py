@@ -430,7 +430,7 @@ if __name__ == '__main__':
             t = rd(os.path.join(sim, f)); rep = []
             nt, ents = transform(t, rep)
             wr(os.path.join(sim, f), nt)
-            open(os.path.join(hist, f[:-3] + '.md'), 'wb').write(write_history(f[:-3], ents, 0))
+            open(os.path.join(hist, f + '.md'), 'wb').write(write_history(f[:-3], ents, 0))
             print(f, len(t), '->', len(nt), 'entries', len(ents), 'notes', len(rep))
             for r in rep: print('   ', r)
     elif cmd == 'restore':
@@ -438,7 +438,7 @@ if __name__ == '__main__':
         os.makedirs(outd, exist_ok=True)
         for f in PARTS:
             nt = rd(os.path.join(sim, f))
-            ents = read_history(open(os.path.join(hist, f[:-3] + '.md'), 'rb').read())
+            ents = read_history(open(os.path.join(hist, f + '.md'), 'rb').read())
             wr(os.path.join(outd, f), restore(nt, ents))
     elif cmd == 'tokens':
         print('\n'.join(tokens(rd(sys.argv[2]))))
