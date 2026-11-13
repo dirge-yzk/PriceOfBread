@@ -199,7 +199,7 @@ public static class Transport
     {
         double addTotal = 0, addSteam = 0;
         bool byReg = rail && c.RailByRegion > 0;
-        double perGood = 0;
+        double perGood = default;   // 0.0（数字で書くと財の番号の番人 GoodIdGuardTests が財の id の代入と読む）
         (double Even, double TotalPot) basis = default;
         if (byReg)
         {

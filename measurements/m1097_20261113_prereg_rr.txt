@@ -132,3 +132,11 @@ dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQuali
   使い捨ての木で線路 1e9 のまま回すと 3 本が赤（ImportPayerLiveTests.旗0は人の居ない商人が1POPとして払う_今の形・TradeClearingTests.貯蓄の無い商人も手形で輸入し売った代金で次の清算に返す・.輸入代金は捌き手の商人が払う：〈商人以外は払わない〉の Assert で投資家の貯蓄が +0.038）。線路 0 で 24 本とも緑。旧の規則の番人ではない（運賃の受け手を固定する Assert ではなく、準備で線路を置いたために投資家に運賃が入った）。
 - ConservationTests の割譲の番人：§0-2 ★(1096) ①（推奨）どおり :227・:243 を〈移った州の線路がそのまま移る〉へ書き換えた。準備は英の州の線路を k² の形で和 400（旧と新の規則が違う値になる盤面＝前提の Assert つき）・:225 の和は残した。
 - RailByRegionTests の旗 0 の 2 本は旗 0 を明示した（旗 0 の経路の番人）。DormantIdentityTests の RailByRegion の行は点火の注へ。
+
+== 追記 4（2026-11-13・旗 1 のフルスイートの後・腕 B の前）
+- 旗 1 の木（5810e9aa7）の結果：㊴ 計器の試験の束 306 本 緑・Category!=FullLength 2798 本のうち 4 本 赤（合格 2793・スキップ 1）・FullLength 3 本 緑・--list-tests 2798／3 と一致・savetest OK・leakhunt 保存則違反なし。
+- 赤 4 本の区分：
+  - GoodIdGuardTests.数値の財idは書かない：Transport.cs の `perGood = 0`（変数の名が Good で終わる＋数字の代入）を財の id の代入と読んだ＝ソースを走査する番人がこの線の書き方を拾った。コードを `= default`（同じ 0.0）へ直した（試験は変えない）。㉘ の束に入っていなかった。
+  - ZeroPopSkipTests.cs:21：`CostLedger.DeadMarketMonth + 1 == Count`＝★(749) の〈行を足す線は最後の行の名を直す〉型（SecessionLaborLawInstrumentTests.cs:280 と同じ・事前登録 §6 の予言から漏れた）。最後の行の名を ClearingKmRaw へ差し替えた（件数だけの行の単価 0 の検査の範囲は変えない）。
+  - DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま・.世界の合計の巡回は旗が正のときだけ走り_台帳に数える：単独でも、この線の試験と一緒でも緑（10／10・18／18）。MultiNationSim.cs:594 の `clockOn || Instruments.On` が全体の静的な Instruments.On を読む＝計器を立てる試験（Instruments の集まり）と並列に走ると世界の合計が入る＝並列の競り合い。この線の試験（計器を 4 四半期立てる G3 ほか）で重なる窓が長くなった。DiscoveryClockTests.cs は c105ix の持ち物（〈DiscoveryClockTests の集まり〉）＝この線では触らない・合流へ申し送る。
+- 直した後、フルスイートを回し直す（区分の名乗れない赤が残れば腕 B を回さない）。
