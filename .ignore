@@ -1,0 +1,15 @@
+# ripgrep（Grep の道具）が探す先から外す物。明示のパスを渡せば、ここに書いた物も探せる。
+# git の管理には関係しない（.gitignore ではない）。
+**/bin/
+**/obj/
+dist/
+uishot/
+# measurements の生の表（成績表の行は .cost と台本が読む）
+measurements/**/*.tsv
+measurements/**/*.manifest
+measurements/**/*.trx
+# 書庫（中身は元の並びのまま・生きた文書ではない）
+docs/CURRENT_書庫.md
+docs/202609/99_実装ログ_書庫_202609.md
+docs/202609/99_実装ログ_書庫_202610.md
+docs/202609/00_一覧_書庫.md
