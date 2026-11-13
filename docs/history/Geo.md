@@ -1,0 +1,143 @@
+# PriceOfBread.SimCore/Geo.cs の注（1cd66aae5 の時点・注を履歴へ移した記録）
+
+見出しの数字は 1cd66aae5 の行番号。W＝行ぜんたいの注・T＝コードの後ろの注。
+
+## L3-4 W 直後 `public static class Geo`
+````
+/// <summary>地理ユーティリティ：大圏距離（Haversine）と海路距離（SeaGraph への委譲）。
+/// 植民地は本国首都からの距離で維持費が嵩む（帝国の過伸展）。座標は征服で本国が変わっても付いて回る（Colonyオブジェクトに保持）。</summary>
+````
+
+## L7 T `private const double DegToRadDivisor = 180.0;`
+````
+// 度→ラジアン変換の分母（π/180・値は据え置き）
+````
+
+## L16 T `a = PoliticalQuantities.Clamp01(a);`
+````
+// 近対蹠点で a が浮動小数誤差で 1 を僅かに超えると sqrt(1−a)=sqrt(負)=NaN＝ハバーサインの標準堅牢化（従来は分離建国で対蹠に近い国対が生じ NaN 距離→運賃 NaN→Size NaN で破綻。他の呼出元は Min/比較で NaN を黙って濾過していた）
+````
+
+## L20-20 W 直後 `public static double SeaDistanceKm(double lat1, double lon1, double lat2, double lon2, boo`
+````
+// 旧・海路の経由地（喜望峰/スエズ/パナマ/ホーン）と IsWestern は03手順3（2026-07-28）で削除＝海路は SeaGraph（通路9本を含む最短路）が一元に解く。
+````
+
+## L22-25 W 直後 `public static double SeaDistanceKm(double lat1, double lon1, double lat2, double lon2, boo`
+````
+/// <summary>
+/// 海路距離（船の実補給線）。<c>SeaGraph</c>（手置きの海ノード＋通路の最短路）へ委譲する薄い口。
+/// 植民地維持費・交易マージン・軍事投射など「船で運ぶ全コスト」が参照する単一ソース。
+/// </summary>
+````
+
+## L27-28 W 直後 `=> SeaGraph.SeaDistanceKm(lat1, lon1, lat2, lon2, suezOpen, panamaOpen);`
+````
+// 03地理 手順3（2026-07-28）：旧「同一海域系＝大圏／またぐ＝経由地1つ」は欧州域内×0.23（仏を直線貫通）・アフリカ横断×0.38の系統誤差だった（03 §2-1）。
+// ★2026-08-01：旧・第7引数 hornEnabled（不読の死引数）と係数 HornCapeEnabled を撤去した。ホーン岬は海グラフの常設通路である。
+````
+
+## L31-32 W 直後 `public static (double Lat, double Lon) ColonyCoord(string name) => Places.Coord(name);`
+````
+// 大陸の識別（旧 ContinentOf・矩形5分岐）は03地理 手順0（2026-07-28）で削除＝陸続き判定は Landmass.Of（landmass.json の一次データ）へ。
+// 矩形方式は島の概念を持てず（23島陸塊がユーラシアへ接着）、マスカリン諸島がパリと地続きになる等の矩形調整の失敗が構造的だった。
+````
+
+## L34-37 W 直後 `public static (double Lat, double Lon) ColonyCoord(string name) => Places.Coord(name);`
+````
+/// <summary>植民地名→概略座標（緯度,経度）。未登録は (0,0)＝距離計算から除外。</summary>
+// ★一元化2026-08-26（作者指示(1)）：植民地の座標も places.json（Places.cs）へ集約。
+//   旧＝ここに43件の switch があり Climate.CityCoord と**同値で二重管理**する約束だったが、実測で蝦夷地だけずれていた
+//   （Climate 43.06,141.35 ／ ここ 43.1,141.3）。一元化により Climate 側の値（州の表の値）へ揃う＝約5kmの差。
+````
+
+## L41-51 W 直後 `internal static class RouteKm`
+````
+/// <summary>★(746) 州の組の経路の km の表（c3rt・計器だけが引く＝本体の力学は読まない・移民の式には繋がない）。(741) の使い捨ての動詞 <c>routedump</c> の規則をそのまま部品にした物（値は動詞の出力と一致させる）。
+/// 州の集合＝座標表 <c>places.json</c> の全ての名前（座標のある物）。並びは〈開幕の世界の州と初期の植民地（国・州の順）〉→〈残り（後から得る植民地・抽象の標的）〉。表は静的で、初めて引いたとき 1 度だけ作る
+/// （州の組の大圏 km と陸路 km を一度に・海路は運河の開閉 <c>cfg</c> ごとに初めて引いたとき）。セーブに載らない（導ける量は貯めない）・どの国の状態にも依らない純関数。
+/// <para>列の定義（km は実の km で、地形の係数と鉄道の低下は含めない）：
+/// <see cref="GreatCircle"/>＝座標の大圏。<see cref="Land"/>＝陸グラフの最短路（<see cref="PathGraph.LandMatrix"/>）＋両端の接ぎ木、別陸塊は +∞（貿易の陸直行の <c>raw + landGraft[a] + landGraft[b]</c> と同じ足す順）。
+/// <see cref="SeaViaPort"/>＝港まで陸路＋港の間の海路＋港から陸路（<see cref="Geo.SeaDistanceKm"/>・同じ港どうしは海路 0）。<see cref="Km"/>＝貿易の PairKm と同じ比較（陸路の km×陸÷海の比 と 海路の脚の km×比＋海路の km を比べ、安い方の実の km。同額は海）で選んだ経路の実の km。
+/// 運河の開閉 <c>cfg</c>＝(スエズが通れる ? 2 : 0) + (パナマが通れる ? 1 : 0)（<see cref="CfgOf"/>）。</para>
+/// <para>⚠限界（計器が自分で申告する）：①港の選び方は貿易と違う＝州ごとに全ての国の港から陸グラフの km が最短の港を 1 回だけ選ぶ静的な規則（動詞と同じ・陸グラフで繋がらなければ大圏が最短の港）。
+/// 貿易は同じ国の港を〈陸路が有限 ? 陸路 : 大圏〉の最短で選び（形 (d)＝州と同じ陸塊の札で陸路が有限の港が有れば陸路∞の港を外す・<c>Region.NearestPortName</c>・四半期ごとに張り直す）、港の無い国は外国の港を借りる（通過港）＝港の持ち主の移り変わりと戦時の通過港は表に無い。
+/// ②港かどうかは開幕の値（<c>ProvinceSpec.Coastal</c> と植民地の沿岸）で固定＝後から港になった州・昇格した州は反映されない。③同じ港を使う州どうしの海路は 0（貿易は両端の海ノードへの接ぎ木を足す）。
+/// ④地形の係数・鉄道・川の置換は含めない（実の km）。★(749) 陸と海の**選択**も地形 1・鉄道なしの比（LandSeaCostRatio）で決める＝鉄道の後の貿易の選択（陸の比が RailCostFraction で下がる）・地形の係数の掛かった貿易の選択とは経路そのものが別になりうる（移民の式へ繋ぐ線の事前登録で決める）。⑤足し算の順で、向きを替えた値は最後の桁で食い違うことがある（対称は相対 1e-9 で確かめる）。⑥開幕の世界に無い州の名前は引けない（<see cref="IndexOf"/> が −1）。</para></summary>
+````
+
+## L57 T `public int[] PortOf = []; public double[] Leg = [];`
+````
+// 使う港の添字（港の無い世界は −1）・そこまでの陸路の km（港の州は 0）
+````
+
+## L58 T `public double[] Gc = [], LandKm = [];`
+````
+// 州×州（行 i・列 j）
+````
+
+## L59 T `public double[]?[] SeaOnly = new double[]?[4];`
+````
+// 運河の開閉ごと：使う港の間の海路の km（同じ港は 0・州×州）。初めて引いたとき作る
+````
+
+## L83 T `foreach (var pl in Places.All) Add(pl.Name, Landmass.CoastalOf(pl.Name, fallback: false));`
+````
+// 開幕の世界に無い名前（後から得る植民地・標的）。港かどうかは植民地の州の昇格と同じ問い
+````
+
+## L106 T `if (bj < 0) for (int j = 0; j < m; j++) if (t.Port[j]) { double d = t.Gc[i * m + j]; if (d`
+````
+// 陸グラフで繋がる港が無い＝大圏の最短の港
+````
+
+## L120 T `var portPair = new double[m * m]; System.Array.Fill(portPair, -1.0);`
+````
+// 港どうし（港の州の添字）の海路の記憶
+````
+
+## L136-136 W 直後 `public static int Count => T.Names.Length;`
+````
+/// <summary>州の数（表の大きさ）。</summary>
+````
+
+## L138-138 W 直後 `public static int IndexOf(string name) => T.Index.TryGetValue(name, out int i) ? i : -1;`
+````
+/// <summary>州の名前 → 添字。表に無い名前は −1。</summary>
+````
+
+## L142-142 W 直後 `public static int PortOf(int i) => T.PortOf[i];`
+````
+/// <summary>使う港の州の添字（港の無い世界は −1）。</summary>
+````
+
+## L144-144 W 直後 `public static double Leg(int i) => T.Leg[i];`
+````
+/// <summary>その州から使う港までの陸路の km（港の州は 0）。</summary>
+````
+
+## L148-148 W 直後 `public static double SeaBetweenPorts(int i, int j, int cfg) => SeaTab(T, cfg)[i * T.Names.`
+````
+/// <summary>使う港の間の海路の km（同じ港は 0）。</summary>
+````
+
+## L150-150 W 直後 `public static double SeaViaPort(int i, int j, int cfg) => i == j ? 0.0 : T.Leg[i] + SeaBet`
+````
+/// <summary>港まで陸路＋海路＋港から陸路の実の km（自分への距離は 0）。</summary>
+````
+
+## L153-153 W 直後 `public static double Km(int i, int j, int cfg, Coefficients c) => Pick(i, j, cfg, c).Km;`
+````
+/// <summary>貿易の PairKm と同じ比較で選んだ経路の実の km。陸路は <c>LandRouteEnabled</c> が正のときだけ候補・陸路の km に <c>LandSeaCostRatio</c> を掛けた費用と、海路の脚に比を掛けた費用を比べる（同額は海）。どちらも +∞ なら +∞。</summary>
+````
+
+## L155-155 W 直後 `public static bool IsLand(int i, int j, int cfg, Coefficients c) => Pick(i, j, cfg, c).Lan`
+````
+/// <summary>選んだ経路が陸の直行か。</summary>
+````
+
+## L168-168 W 直後 `public static int CfgOf(World w)`
+````
+/// <summary>国がスエズとパナマを通れるか（<c>BilateralMarket</c> の <c>suezOkN</c>／<c>panOkN</c> と同じ問い＝開通していて、運河の持ち主と交戦中でない）を運河の開閉 <c>cfg</c> にした物。</summary>
+````
+
