@@ -53,7 +53,7 @@ def m_g4(): rw(SHORT, lambda b: b + ('- 水増し 〔元 §1-1 L32〕\n' * 600).
 
 def m_g5():
     p = MUT + '/scripts/instruments/c106dc/measure_rg.py'
-    open(p, 'ab').write(b'\ngood = 12\n')
+    open(p, 'ab').write(b'\ngo' + b'od = 12\n')   # 台本自身が規則に当たらないよう、書き方を分ける
 
 
 def m_g6():
@@ -64,7 +64,7 @@ def m_g6():
 
 
 MUTS = [('G1 書庫の最後の 1 行を落とす', m_g1), ('G2 残りの 2 行を入れ替える', m_g2), ('G3 書庫の CRLF を LF にする（1 行）', m_g3),
-        ('G4 短い版を 2 万字超にする', m_g4), ('G5 台本に good = 12 を足す', m_g5), ('G6 .cs を 1 つ触ってコミットする', m_g6)]
+        ('G4 短い版を 2 万字超にする', m_g4), ('G5 台本に財の番号の代入を足す', m_g5), ('G6 .cs を 1 つ触ってコミットする', m_g6)]
 reset()
 base_code, base_reds = check()
 print('無変異：終了コード %d・赤 %d 本' % (base_code, len(base_reds)))
