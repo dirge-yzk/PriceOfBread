@@ -1,0 +1,36 @@
+ident start：段=2（基準 4624c4acd32667dcfd99e0aac9b2ac84ffcd60ee との差 68 本・段 2 の条件に当たった 1 本・ident.cfg は基準の鍵と注だけの差＝数えない）
+ident start：ラベル=c108rcz1 木=/d/PoB_work/wt_c108rc_i1 作業=/d/PoB_work/ident_c108rcz1 腕=[a b t] 開始=2026-11-14 03:11:50
+ident start：腕は全て終わった（4 印）
+=== 恒等の判定（測った種で一致） c108rcz1（2026-11-14 03:44:47）===
+測った木：D:/PoB_work/wt_c108rc_i1（HEAD cdcaf7452・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c108rc_i1/scripts/instruments/ident/ident.cfg
+宣言：grown=['rulepower_s', 'rulepoweralloc_s'] rows_grown=['rulepoweralloc_s'] known_extra=['rulepower_s:rhoDirectNoRailIndex', 'rulepower_s:rhoDirectFullRailIndex']
+腕 a：rc=0 end=2026-11-14 03:22:43
+腕 b：rc=0 end=2026-11-14 03:44:43
+腕 t：rc=0 end=2026-11-14 03:15:35
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：a41e6269f6bc4cef
+SOURCE-HASH（素の 5 種）SOURCE-HASH: a41e6269f6bc4cef
+[素の 5 種] b5_ia_5.txt 対 b5_20261113_m1103
+  ○ 全行バイト一致（178 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261113_m1103.cost
+  ○ 件数の行 43 本・推定 230.5 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: a41e6269f6bc4cef
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261113_m1103_ins
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261113_m1103_ins.cost
+  ○ 件数の行 43 本・推定 230.3 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c108rcz1/out_ib_10/ins  対  基準 D:/PoB_work/keep_1116/base_ins
+  基準 1437 本・腕 1437 本・バイト一致 1367 本
+  列が増えた表（--grown-ok の宣言）20 本：rulepower_s1.tsv+22列・rulepower_s10.tsv+22列・rulepower_s2.tsv+22列・rulepower_s3.tsv+22列・rulepower_s4.tsv+22列・rulepower_s5.tsv+22列
+  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）10 本・増えた行 5606：rulepoweralloc_s+532・rulepoweralloc_s+512・rulepoweralloc_s+398・rulepoweralloc_s+379・rulepoweralloc_s+502・rulepoweralloc_s+416
+  既知の揺れの列だけが違う表 50 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 4804 欄）×1・cearn_s:経路の行番号だけ（写して一致 4840 欄）×1・cearn_s:経路の行番号だけ（写して一致 4887 欄）×1・cearn_s:経路の行番号だけ（写して一致 5040 欄）×1・cearn_s:経路の行番号だけ（写して一致 5143 欄）×1・cearn_s:経路の行番号だけ（写して一致 5690 欄）×1・cearn_s:経路の行番号だけ（写して一致 6310 欄）×1・cearn_s:経路の行番号だけ（写して一致 7589 欄）×1・cearn_s:経路の行番号だけ（写して一致 9217 欄）×1・cearn_s:経路の行番号だけ（写して一致 9618 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・cpop_s:経路の行番号だけ（写して一致 200438 欄）×1・cpop_s:経路の行番号だけ（写して一致 202635 欄）×1・cpop_s:経路の行番号だけ（写して一致 216004 欄）×1・cpop_s:経路の行番号だけ（写して一致 217221 欄）×1・cpop_s:経路の行番号だけ（写して一致 223395 欄）×1・cpop_s:経路の行番号だけ（写して一致 236109 欄）×1・cpop_s:経路の行番号だけ（写して一致 237752 欄）×1・cpop_s:経路の行番号だけ（写して一致 246111 欄）×1・cpop_s:経路の行番号だけ（写して一致 247237 欄）×1・cpop_s:経路の行番号だけ（写して一致 248716 欄）×1・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 1367・既知の揺れ 50・宣言された増減 20）
+  内訳：共通の表 1437 本＝バイト一致 1367＋既知の揺れ 50＋列が増えた 20＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1437）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261113_m1103.txt（タグの行を除く）
+  ○ タグの行以外が一致（4681 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2826（基準 2826）・FullLength 3（基準 3）
+判定: 恒等
+刈り込み：判定=判定: 恒等・表 1437 本・消した 1297 本（15.22GB）・残した 140 本
+刈り込みの結果：rc=0・刈り込み：判定=判定: 恒等・表 1437 本・消した 1297 本（15.22GB）・残した 140 本
