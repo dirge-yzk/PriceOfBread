@@ -223,7 +223,7 @@ public class PriceLevelPressureTests(ITestOutputHelper output)
         int writes = 0;
         foreach (var (f, rel) in GoodIdGuardTests.CsFiles())
         {
-            if (!rel.StartsWith("PriceOfBread.SimCore/")) continue;
+            if (!GoodIdGuardTests.IsEngineRel(rel)) continue;
             string code = GoodIdGuardTests.StripCode(File.ReadAllText(f));
             writes += System.Text.RegularExpressions.Regex.Matches(code, @"FiatInflationPressure\s*\+=").Count;
         }

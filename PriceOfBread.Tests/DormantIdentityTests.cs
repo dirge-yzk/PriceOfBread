@@ -370,7 +370,7 @@ public class DormantIdentityTests
         var word = new System.Text.RegularExpressions.Regex(@"[A-Za-z_][A-Za-z0-9_]*");
         foreach (var (f, rel) in GoodIdGuardTests.CsFiles())   // SimCore・Runner・App・Tests の .cs（obj・bin を除く）＝Tests は外す
         {
-            if (rel.StartsWith("PriceOfBread.Tests/")) continue;
+            if (GoodIdGuardTests.IsTestRel(rel)) continue;
             foreach (System.Text.RegularExpressions.Match m in word.Matches(GoodIdGuardTests.StripCode(File.ReadAllText(f))))
                 counts[m.Value] = counts.GetValueOrDefault(m.Value) + 1;
         }

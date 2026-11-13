@@ -427,6 +427,12 @@ public class GoodIdGuardTests
             }
     }
 
+    /// <summary>(1120) 試験のソース（Tests と、画面の試験へ移った Tests.Ui）。旧の母集合（1cd66aae5）では Tests.Ui の中身も Tests に在った。</summary>
+    internal static bool IsTestRel(string rel) => rel.StartsWith("PriceOfBread.Tests/", StringComparison.Ordinal) || rel.StartsWith("PriceOfBread.Tests.Ui/", StringComparison.Ordinal);
+
+    /// <summary>(1120) エンジンのソース（SimCore と、旧は SimCore/Display だった表示の層 Display）。旧の SimCore 再帰走査の母集合。</summary>
+    internal static bool IsEngineRel(string rel) => rel.StartsWith("PriceOfBread.SimCore/", StringComparison.Ordinal) || rel.StartsWith("PriceOfBread.Display/", StringComparison.Ordinal);
+
     /// <summary>単一州の最小シナリオ（財の番号がシナリオの中だけ＝Catalog の財の番号ではない）の印。SimCore では範囲の中の当たりを <see cref="ToyAllowed"/> で固定する。
     /// テストは <see cref="ToyTestFiles"/> の名前のファイル（シナリオの中だけを使う）を対象外にする。</summary>
     private const string ToyStart = "◆玩具の世界ここから", ToyEnd = "◆玩具の世界ここまで";
@@ -444,7 +450,7 @@ public class GoodIdGuardTests
         foreach (var (f, rel) in CsFiles())
         {
             string raw = File.ReadAllText(f);
-            bool isTest = rel.StartsWith("PriceOfBread.Tests/", StringComparison.Ordinal);
+            bool isTest = IsTestRel(rel);
             if (isTest && raw.Contains(ToyStart) && rel != "PriceOfBread.Tests/GoodIdGuardTests.cs") toyMarked.Add(rel);   // このファイルは印を定数で持つだけ
             if (isTest && ToyTestFiles.Contains(rel)) continue;
             // 玩具の範囲（行番号）：印は文字列の外のコメントにある
