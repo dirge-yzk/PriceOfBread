@@ -1,6 +1,6 @@
 # c106dc 分割：実装ログ・00一覧・CURRENT を〈残り〉と〈書庫〉へ。判定は決定的。
 import re, sys, json
-sys.path.insert(0, 'D:/PoB_work/wt_c106dc/scripts/instruments/c106dc')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # (1110)
 from common import *
 
 def split_log(b):

@@ -1,6 +1,6 @@
 # c106dc 作成：基準の木 ffb3838 の元ファイルから、残りと書庫を書く（バイトで）。決定的。
 import sys, re
-sys.path.insert(0, 'D:/PoB_work/wt_c106dc/scripts/instruments/c106dc')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # (1110)
 from common import *
 from split import *
 

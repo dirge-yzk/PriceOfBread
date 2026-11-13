@@ -1,6 +1,6 @@
 # c106dc 担当向けの短い README：基準の木の README.md の行を、節ごとに抜き出す（新しい決まりは足さない）。
 import sys, re
-sys.path.insert(0, 'D:/PoB_work/wt_c106dc/scripts/instruments/c106dc')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # (1110)
 from common import *
 
 MAXLEN = int(sys.argv[1]) if len(sys.argv) > 1 else 105

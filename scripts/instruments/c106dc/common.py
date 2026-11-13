@@ -1,7 +1,8 @@
 # c106dc 共通：基準の木 ffb3838 の元ファイルを git show で読み、バイトで扱う
 import subprocess, sys, re
 BASE = 'ffb3838055a49bc32ef0fa901b473ddeccd52253'
-REPO = 'D:/PoB_work/wt_c106dc'
+import os
+REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..')).replace(chr(92), '/')  # (1110) 合流：木の決め打ち（wt_c106dc）をこの台本の木へ
 F_CUR = 'docs/CURRENT.md'
 F_LOG = 'docs/202609/99_実装ログ_20260903.md'
 F_ONE = 'docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md'
