@@ -77,6 +77,7 @@ public class CalendarTests
         foreach (var f in InstrumentsPlacementTests.TopAndInstruments(SimCoreDir()))
         {
             string name = Path.GetFileName(f);
+            if (name.StartsWith("Coefficients.")) name = "Coefficients.cs";   // (1106) 係数は領域ごとの部品へ分けた＝持ち主の名は 1 つに数える
             if (name == "Calendar.cs") continue;
             foreach (var line in File.ReadLines(f))
             {

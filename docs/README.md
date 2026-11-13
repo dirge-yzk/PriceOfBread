@@ -388,7 +388,7 @@ PYTHONUTF8=1 python <script>
 | ★**設計書** | `docs/<日付>/` |
 | ★**実装ログ**（何を入れて何が起きたか） | `docs/<日付>/99_実装ログ_*.md` |
 | ★**測定の生出力** | `measurements/`（⚠ 結論はここに書かない） |
-| ★**係数の全表** | `PriceOfBread.SimCore/Coefficients.cs`（⚠ 各行のコメントが**なぜその値か**を持つ） |
+| ★**係数の全表** | `PriceOfBread.SimCore/Coefficients.cs` と領域ごとの部品 `Coefficients.p02_…cs`〜`p10_…cs`（(1106)・係数名は `Coefficients.*.cs` を探す）（⚠ 各行のコメントが**なぜその値か**を持つ） |
 | ★**文字化けの機序と再発防止** | `docs/202608/20260818_ファイル名の文字化け_原因と再発防止_部分完了.md`（⚠ 命名規則では防げない・★ `PYTHONUTF8=1` が唯一の防波堤） |
 | ⚠**古い引き継ぎ** | `docs/archive/HANDOFF.md`（★★ **参照しない**。⚠ 147見出しの時系列ログで、追記を繰り返して570KBまで膨らんだ。★記録としてのみ残す） |
 | ★**過去の監査・年代記** | `docs/archive/` |

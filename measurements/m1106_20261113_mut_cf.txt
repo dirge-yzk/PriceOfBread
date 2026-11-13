@@ -1,0 +1,12 @@
+# (1106) 突然変異の結果（使い捨て＝同じ絶対パスの木で適用して戻した）。M1=p02 と p03 の名前を入れ替え（順が逆）・M2=p05 から 1 行を落とす
+build rc=0
+M1 IL=DIFF
+NG 本体が違う（部品 10 本）
+M1 gate1 rc=1
+build rc=1
+M2 IL=DIFF
+NG 本体が違う（部品 10 本）
+M2 gate1 rc=1
+?? scripts/instruments/c106cf/check_bodies.py
+# 元の木: IL 前後バイト一致（IL_IDENTICAL・SimCore.dll 7857664 バイト・-p:IncludeSourceRevisionInInformationalVersion=false）・check_bodies OK 部品 10 本
+# 試験: ㉘ 170 件緑・Category!=FullLength 2808 件（失敗 0・skip 1）・FullLength 3 件緑
