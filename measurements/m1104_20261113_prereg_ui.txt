@@ -1,0 +1,26 @@
+# (1104) c106ui の予言（merge の前にコミットする）
+# 担当 Sonnet 5.5。基点 ffb383805。基準＝基線 m1103（ident.cfg：B5 b5_20261113_m1103・B10INS b10_20261113_m1103_ins・MON mon_20261113_m1103.txt・NG_BASE ng1103_20261113〔95 件〕）。指示文の雛形の m797・ng797 は古い基準＝ident.cfg に従う。
+
+[1] 恒等の線・予言 0（宣言した列の外）
+- 入れる物＝refs/heads/uifix2 の 18d6253e8 の後〜3900efcb4 の 7 コミット（95a38bdb0・271d66e00・858799df3・be39c8a21・7c23c7632・7d3b79319・3900efcb4）。git merge --no-ff 3900efcb4。作者のコミットは書き直さない。
+- merge の予言：衝突 0（計画の担当の merge-tree は木 c35dcae7b）。33 ファイル・+779／−180。
+- Display の外の SimCore は 3 ファイル：InterestGroups.cs（Blocs の足し込みの 1 項を Context と PopWeight へ切り出し・式と順は同じ＝LandedTotals→Suffrage→β→closedMul の順も同じ）・CrownParliament.cs:195 と MultiNationSim.cs:1294（文字列だけ PlayText.PolityRegimeJa を通す）。Runner は 0 行。
+- 浮動小数の順序が変わる箇所：InterestGroups の wealthShare と share の式は元のまま・順序の変更 0（旧と新の食い違いの数 0 を diff の読みで確かめる）。
+
+[2] 変わる表の宣言（LogAdd と Diplomacy.Log の文）
+- grep の結果：政体名を含む 2 文（〈の統治が変わった（…）〉＝w.LogAdd→PendingLog・〈の下で再統一〉＝Diplomacy.Log）を表へ書く計器は SimCore/Instruments*.cs・scripts/instruments にも無い。Runner の読み手は Program.cs:4217 の Contains(〈の下で再統一〉) だけ（政体名の部分に依らない）。PlayHarness の読みは play 専用で成績表に写らない。
+- 予言：成績表（b5・b10）と計器の表の全てが変わらない＝宣言する列は 0。変わる表があれば〈予言外〉として報告する。
+- 消す物：SimCore で消すメンバー 0（InterestGroups の局所関数 LandedWealth を消し PopWeight へ移す）。読み手の grep は App・Display・Tests・Runner・scripts で LandedWealth( の旧の局所の呼びは InterestGroups 内だけ。
+- 他の線との重なり：c106im（Instruments*.cs の移動と Tests の走査の番人）・c106cf（Coefficients.cs）と持ち主のファイルの重なり 0。
+
+[3] 足す試験
+- 足さない（他人のコミットの取り込み）。差分の [Fact] は +14／−0（LawStakesTests 10・UiShotRuleTests・LayoutTests）。数は --list-tests で数える：Category!=FullLength 2808＋14＝2822・FullLength 3。
+- ㉘ ソースを走査する番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・GoodIdGuardTests）を ident の前に回す。書き換える件数の予言 0。
+- 突然変異（使い捨ての木）：M1＝InterestGroups.PopWeight の β の項を 1 か所変える → LawStakesTests か表の一致が赤になるかを記録。M2＝CrownParliament.cs:195 の PolityRegimeJa を外す → 成績表は変わらない（宣言 0）ことを確かめ、文の試験があれば赤。赤にならなければ穴を名乗るだけ。
+
+[4] 恒等の予言
+- 段 2（Display に触れる）。--tests-delta 14。
+- 素の 5 種が b5_20261113_m1103 と・計器つき 10 種が b10_20261113_m1103_ins と、名乗り行の SOURCE-HASH を除いて全行バイト一致。.cost の件数の差 0。
+- 不一致なら画面のコードを直さず、表と行を報告して止める。合流は外す。
+
+[5] 〈判定: 恒等〉なら採る。赤なら画面のコードを直さず赤の一覧を報告して止める。
