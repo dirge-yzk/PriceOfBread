@@ -76,6 +76,7 @@ public partial class MainWindow
         if (g.WarPopupOpen) { Note("最後通牒"); g.WarPopupOpen = false; }
         if (g.WarEndPopupOpen) { Note("終戦・通知「" + (g.WarEndPopupBody ?? "").Replace('\n', ' ') + "」"); g.WarEndPopupOpen = false; }
         if (g.FactionCrisisOpen) { Note("国内勢力の危機"); g.FactionCrisisOpen = false; }
+        if (g.LawOpenPopupOpen) { Note("新たな法"); g.LawOpenPopupOpen = false; }
         if (g.ElectionPopupOpen) { Note("総選挙"); g.ElectionPopupOpen = false; }
         if (g.CallToArmsOpen) { Note("参戦の要請"); g.CallToArmsOpen = false; }
         if (g.SideChoiceOpen) { Note("陣営の選択"); g.SideChoiceOpen = false; }

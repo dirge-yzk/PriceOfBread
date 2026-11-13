@@ -66,7 +66,7 @@ public partial class MainWindow : Window
             for (int i = 0; i < 2400 && MonthsOf(gvm.DateText) - m0 < Program.PerfQuarters * 3; i++) {
                 await Task.Delay(100);
                 // ポップアップ（自動一時停止）を無人計測では閉じて再開する（計測の穴・2026-09-05）：閉じずに Playing だけ戻すと次tickで再停止する
-                gvm.TensionPopupOpen = false; gvm.WarPopupOpen = false; gvm.WarEndPopupOpen = false; gvm.FactionCrisisOpen = false;
+                gvm.TensionPopupOpen = false; gvm.WarPopupOpen = false; gvm.WarEndPopupOpen = false; gvm.FactionCrisisOpen = false; gvm.LawOpenPopupOpen = false;
                 gvm.ElectionPopupOpen = false; gvm.CallToArmsOpen = false; gvm.ConfirmOpen = false;
                 if (!gvm.Playing) gvm.TogglePauseCommand.Execute(null);
             }
@@ -280,11 +280,12 @@ public partial class MainWindow : Window
                 if (gvm.WarEndPopupOpen) gvm.WarEndAckCommand.Execute(null);
                 if (gvm.CallToArmsOpen) gvm.CallToArmsRefuseCommand.Execute(null);
                 if (gvm.FactionCrisisOpen) gvm.FactionCloseCommand.Execute(null);   // 要求は法の経路＝通知は閉じるだけ
+                if (gvm.LawOpenPopupOpen) gvm.LawOpenCloseCommand.Execute(null);    // 新たな法の窓＝閉じるだけ
                 if (gvm.SideChoiceOpen) gvm.SideChoiceStayCommand.Execute(null);
                 if (gvm.SimDayNumber >= targetDay) break;
                 if (gvm.AnyPopupOpen)
                 {
-                    if (++stuck % 20 == 1) BootLog.Write($"uishot: 進行が止まっている {gvm.DateText}（緊張{gvm.TensionPopupOpen} 開戦{gvm.WarPopupOpen} 終戦{gvm.WarEndPopupOpen} 危機{gvm.FactionCrisisOpen} 総選挙{gvm.ElectionPopupOpen} 参戦{gvm.CallToArmsOpen} 陣営{gvm.SideChoiceOpen} 確認{gvm.ConfirmOpen}「{gvm.ConfirmTitle}」 メニュー{gvm.MenuOpen} 終局{gvm.EndingOpen}）");
+                    if (++stuck % 20 == 1) BootLog.Write($"uishot: 進行が止まっている {gvm.DateText}（緊張{gvm.TensionPopupOpen} 開戦{gvm.WarPopupOpen} 終戦{gvm.WarEndPopupOpen} 危機{gvm.FactionCrisisOpen} 法{gvm.LawOpenPopupOpen} 総選挙{gvm.ElectionPopupOpen} 参戦{gvm.CallToArmsOpen} 陣営{gvm.SideChoiceOpen} 確認{gvm.ConfirmOpen}「{gvm.ConfirmTitle}」 メニュー{gvm.MenuOpen} 終局{gvm.EndingOpen}）");
                     if (stuck > 200) break;
                     if (gvm.EndingOpen) { PointRecord(rootDir, $"{gvm.DateText}　終局の窓が開いた＝閉じて続ける"); gvm.CloseEndingCommand.Execute(null); }
                     await Task.Delay(20);
@@ -457,6 +458,14 @@ public partial class MainWindow : Window
                     await Task.Delay(200);
                 }
                 gvm.TensionIgnoreCommand.Execute(null);
+                await Task.Delay(300);
+            }
+            // 新たな法の窓（検出経路と同じ組み立てで開く）＝欄が切れずに出ることを撮る
+            if (gvm.OpenLawOpenPopupForCapture())
+            {
+                await Task.Delay(700);
+                Capture(dir, $"{k++:D2}_新たな法の窓.png");
+                gvm.LawOpenCloseCommand.Execute(null);
                 await Task.Delay(300);
             }
             // 発見のページの行数（旧は発見パネル）
