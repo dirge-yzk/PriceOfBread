@@ -320,6 +320,66 @@ public class EconomyTests
     }
 
     [Fact]
+    public void 鉱山の天井の旗_旗1で建てた分の床が規模をScaleMaxへ寄せ_旗0は1点5_漁と工場はビット同じ()
+    {
+        // (1098) 線 c105mc。事前登録 measurements/m1098_20261113_prereg_mc.txt §単体。
+        //   盤面：イギリス（種 41）。発見の門が開いた鉱物の RGO 1 つを Scale 1.5・BuiltScale 4.0・休止 0 に置き、州の経済を 1 か月。
+        //   旗 1：床 min(4.0, 3.0)＝3.0＝目標＝3.0 → 規模＝1.5＋速さ×1.5＝1.51875（速さ＝0.05×0.25）。旗 0：床も天井も 1.5 → 1.5 ちょうど。
+        //   速さ・床・天井の値は手の値（係数から組まない）＝係数を読み替える誤りがここで赤になる。
+        static double Target(World w, Region r, Producer p)
+        {
+            double mc = p.MarginalCost * w.CostPriceLevel * r.LocalPriceMultiplier;
+            if (w.Coef.MineralCostFollowsGrade > 0 && r.MineralGradeFactor > 1e-9) mc /= r.MineralGradeFactor;
+            foreach (var inp in p.Inputs) mc += (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length ? r.Markets[inp.GoodId].Price : 0.0) * inp.QtyPerOutput;
+            double price = r.Markets[p.GoodId].Price;
+            return 1.0 + (mc > 1e-9 ? (price - mc) / mc : 0.0);
+        }
+        static (World W, Region R, int Pi, double T) Board(double lift)
+        {
+            var sc = NationConfig.Britain().ToScenario(41, sharedWorld: true);
+            var co = new Coefficients { MineralScaleCapLift = lift };
+            typeof(Scenario).GetProperty(nameof(Scenario.Coef))!.SetValue(sc, co);
+            var w = new Simulation(sc, new NullAgent()).World;
+            foreach (var r in w.Regions)
+            {
+                if (!r.Producers.Any(q => q.IsRgo && q.GoodId == Catalog.FishId) || !r.Producers.Any(q => !q.IsRgo)) continue;
+                for (int i = 0; i < r.Producers.Count; i++)
+                {
+                    var p = r.Producers[i];
+                    if (!p.IsRgo || !Catalog.IsMineral(p.GoodId) || p.Bankrupt || p.GoodId >= r.Markets.Length || !(Discovery.Gate(r, p) > 0)) continue;
+                    double t = Target(w, r, p);
+                    if (!(t < 3.0)) continue;
+                    p.Scale = 1.5; p.BuiltScale = 4.0; p.MothballFrac = new Share(0);
+                    return (w, r, i, t);
+                }
+            }
+            throw new Xunit.Sdk.XunitException("漁と工場のある州に、門の開いた鉱山（1＋margin<3）が無い");
+        }
+        var on = Board(1.0); var off = Board(0.0);
+        Assert.Equal(off.R.Name, on.R.Name); Assert.Equal(off.Pi, on.Pi);
+        Console.WriteLine($"(1098) unit: region#{on.R.Id} good#{on.R.Producers[on.Pi].GoodId} 1+margin(before the month)={on.T:R}");
+        Assert.True(on.T < 3.0, $"1＋margin＝{on.T} が 3 未満でない（μ4 を捕まえる前提が崩れる）");
+
+        EconomyStep.Run(on.R, on.W.Coef, 1.0, on.W.Bank, on.W);
+        EconomyStep.Run(off.R, off.W.Coef, 1.0, off.W.Bank, off.W);
+
+        double s1 = on.R.Producers[on.Pi].Scale, s0 = off.R.Producers[off.Pi].Scale;
+        Assert.True(Math.Abs(s1 - 1.51875) <= 1e-12, $"旗 1 の規模 {s1:R} が 1.51875 でない");
+        Assert.Equal(1.5, s0);
+
+        int fish = 0, fac = 0;
+        for (int i = 0; i < on.R.Producers.Count; i++)
+        {
+            var a = on.R.Producers[i]; var b = off.R.Producers[i];
+            bool isFish = a.IsRgo && a.GoodId == Catalog.FishId;
+            if (!isFish && a.IsRgo) continue;
+            Assert.True(BitConverter.DoubleToInt64Bits(a.Scale) == BitConverter.DoubleToInt64Bits(b.Scale), $"{(isFish ? "漁" : "工場")} 財 {a.GoodId} の規模が旗で変わった：{a.Scale:R} / {b.Scale:R}");
+            if (isFish) fish++; else fac++;
+        }
+        Assert.True(fish >= 1 && fac >= 1, $"比べた漁 {fish}・工場 {fac}");
+    }
+
+    [Fact]
     public void 器_賦存が同一費用あたりの産出能力になる_ゲート0は厳密恒等()
     {
         // ★器 EndowmentCostFollowsAbundance / EndowmentCostFollowsScarcity（2026-09-08・作者裁定「同一生産コスト辺りの産出能力」）。

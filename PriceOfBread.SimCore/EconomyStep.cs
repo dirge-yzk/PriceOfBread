@@ -2829,7 +2829,7 @@ public static class EconomyStep
             double catMax = coef.ScaleMax, catSpeed = coef.ScaleAdjustSpeed;
             if (s.IsRgo && s.GoodId != Catalog.FishId)
             {
-                catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.ScaleMax;
+                catMax = Catalog.IsMineral(s.GoodId) ? (coef.MineralScaleCapLift > 0 ? coef.ScaleMax : coef.MineralScaleCap) : coef.ScaleMax;   // (1098) 旗 1＝鉱山の天井も ScaleMax（旗 0・NaN は旧の 1.5）
                 catSpeed = coef.ScaleAdjustSpeed * coef.RgoScaleSpeedFactor;
             }
             // ★休止（mothball・AI審査2-6・2026-08-31・★live同日点火 Rate=0.05）：建てた工場（BuiltScale>0）は倒産免除＋床の全稼働強制で
