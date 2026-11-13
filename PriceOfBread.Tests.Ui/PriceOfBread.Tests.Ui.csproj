@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!-- ★2026-09-25：テストは不変の文化で走らせる（Windows でも Linux でも同じ判定にする）。
+         xUnit の Assert.Contains/StartsWith/EndsWith(string) は現在の文化で比べ、日本語の文化は全角と半角（（と(・＋と+ 等）や
+         ひらがなとカタカナを同じ字と見なす＝戦闘ログの番人が Windows だけで目隠しされていた（クラウドの Ubuntu で初めて落ちた）。
+         1件ずつ Ordinal を書く方式は、これから書くアサートが同じ罠を踏むので設定1行で塞ぐ。Runner（Program.cs）も InvariantCulture。
+         ⚠この設定では ja-JP の CultureInfo を作れない＝テストから App の JaNameComparer（GameViewModel.Production.cs）に触ると例外になる。 -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj" />
+    <ProjectReference Include="..\PriceOfBread.Display\PriceOfBread.Display.csproj" />
+    <ProjectReference Include="..\PriceOfBread.App\PriceOfBread.App.csproj" />
+    <!-- 両方の試験が使う補助（GoodIdGuardTests.RepoRoot・OpeningFixture ほか）は Tests の internal を IVT で読む（Link で共有すると試験が 2 重に走るため参照にした）。 -->
+    <ProjectReference Include="..\PriceOfBread.Tests\PriceOfBread.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Runner は Exe で参照できない＝PlayHarness.cs・PlayFacts.cs だけをソースごとリンクする（旧 Tests からの移し）。 -->
+    <Compile Include="..\PriceOfBread.Runner\PlayHarness.cs" Link="Linked\PlayHarness.cs" />
+    <Compile Include="..\PriceOfBread.Runner\PlayFacts.cs" Link="Linked\PlayFacts.cs" />
+  </ItemGroup>
+
+</Project>

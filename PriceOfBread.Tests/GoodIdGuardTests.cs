@@ -418,7 +418,7 @@ public class GoodIdGuardTests
     internal static IEnumerable<(string Full, string Rel)> CsFiles()
     {
         string root = RepoRoot();
-        foreach (var proj in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App", "PriceOfBread.Tests" })
+        foreach (var proj in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.Runner", "PriceOfBread.App", "PriceOfBread.Tests", "PriceOfBread.Tests.Ui" })
             foreach (var f in Directory.EnumerateFiles(Path.Combine(root, proj), "*.cs", SearchOption.AllDirectories))
             {
                 var rel = Path.GetRelativePath(root, f).Replace('\\', '/');

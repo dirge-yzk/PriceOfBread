@@ -214,7 +214,7 @@ public class WriterRatchetTests
         string root = Path.GetDirectoryName(SimCoreDir())!;
         char sep = Path.DirectorySeparatorChar;
         var sites = new System.Collections.Generic.List<string>();
-        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" })
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Display", "PriceOfBread.Runner", "PriceOfBread.App" })
             foreach (var f in Directory.EnumerateFiles(Path.Combine(root, dir), "*.cs", SearchOption.AllDirectories))
             {
                 if (f.Contains($"{sep}obj{sep}") || f.Contains($"{sep}bin{sep}")) continue;

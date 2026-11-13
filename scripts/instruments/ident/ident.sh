@@ -44,9 +44,14 @@ case "$CMD" in
       b) bash "$IS/batch.sh" prep ib "dir:$TREE" plain && { unset POB_INSTRUMENTS_TABLES; [ -s "$M/small.txt" ] && export POB_INSTRUMENTS_TABLES="$(cat "$M/small.txt")"; INS=1 bash "$IS/batch.sh" run ib 10; } ;;
       t) bash "$IS/batch.sh" prep it "dir:$TREE" plain && {
            T="$W/src_it"
-           dotnet build "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --artifacts-path "$W/art_it" --disable-build-servers > "$W/tests_build.txt" 2>&1 || exit 1
-           for f in "Category!=FullLength:nonfull" "Category=FullLength:full"; do   # 数えるのは ident_check.py（出力の tests_list_*.txt の 4 空白で始まる行）
-             dotnet test "$T/PriceOfBread.Tests/PriceOfBread.Tests.csproj" -c Release --no-build --artifacts-path "$W/art_it" --list-tests --filter "${f%%:*}" > "$W/tests_list_${f##*:}.txt" 2>&1
+           : > "$W/tests_build.txt"; rm -f "$W/tests_list_nonfull.txt" "$W/tests_list_full.txt"
+           for P in PriceOfBread.Tests PriceOfBread.Tests.Ui; do   # (1111) 試験はエンジン用と画面用の 2 プロジェクト＝合計を数える（tests_list_*.txt へ両方を足す）
+             dotnet build "$T/$P/$P.csproj" -c Release --artifacts-path "$W/art_it" --disable-build-servers >> "$W/tests_build.txt" 2>&1 || exit 1
+           done
+           for P in PriceOfBread.Tests PriceOfBread.Tests.Ui; do
+             for f in "Category!=FullLength:nonfull" "Category=FullLength:full"; do   # 数えるのは ident_check.py（出力の tests_list_*.txt の 4 空白で始まる行）
+               dotnet test "$T/$P/$P.csproj" -c Release --no-build --artifacts-path "$W/art_it" --list-tests --filter "${f%%:*}" >> "$W/tests_list_${f##*:}.txt" 2>&1
+             done
            done
          } ;;
       s) POB_WORK="$W" SAVELEAK_SRC="$TREE" bash "$IS/saveleak.sh" ;;

@@ -8,6 +8,7 @@ import os, re, subprocess, sys
 STAGE2_RX = [
     r'^PriceOfBread\.SimCore/(Instruments/|Instruments[^/]*\.cs$)',   # (1105) 計器は SimCore/Instruments/ の下（直下の Instruments*.cs も段 2 のまま）
     r'^PriceOfBread\.SimCore/Display/',
+    r'^PriceOfBread\.Display/',   # (1111) 表示の層は別アセンブリ PriceOfBread.Display（旧の SimCore/Display の行は残す）
     r'^measure\.sh$',
     r'^scripts/instruments/[^/]+$',
     r'^scripts/instruments/(ident|tools|mon|hol|brk693|brk|m808|c92gf|c78gz|m1017|r833|c11fl|c10cp)/',
