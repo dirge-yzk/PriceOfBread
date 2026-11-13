@@ -73,7 +73,7 @@ public static class LawStakes
             for (int party = 0; party < PolicyPreferences.BlocCount; party++)
                 rows.Add(new(StakeKind.Party, PartyNames[party], party,
                     w.Coef.ParliamentLawWeight * w.PartySeats[party] * PolicyPreferences.Pref(a, party, e, w, increasing) * sign));
-        rows.Add(new(StakeKind.Army, "軍", 0, PolicyPreferences.ArmyPower(w) * PolicyPreferences.ArmyStake(a) * sign));
+        rows.Add(new(StakeKind.Army, "軍部", 0, PolicyPreferences.ArmyPower(w) * PolicyPreferences.ArmyStake(a) * sign));
         if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
             rows.Add(new(StakeKind.Treasury, "国庫", 0, e.StateRevenue * sign));
         double abs = 0;

@@ -14,7 +14,7 @@ public partial class PoliticsLawPage : UserControl
     public static PageTable Table { get; } = new(
     [
         new SectionSpec("law", "法の表", 12, 3),
-        new SectionSpec("stakes", "選んだ法", 12),
+        new SectionSpec("stakes", "選んだ法", 16),
         new SectionSpec("power", "権力", 9),
         new SectionSpec("crown", "政体", 7),
         new SectionSpec("parliament", "議会", 10, 2),

@@ -10,7 +10,8 @@ public class LawStakesTests
     {
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia(), NationConfig.Russia()], seed: 1789);
         var cons = sim.Nations[1].World;
-        cons.Polity = Polity.ConstitutionalMonarchy;   // 議会の項（党の行）を通す盤面
+        cons.Polity = Polity.ConstitutionalMonarchy; cons.ParliamentEnabled = true;
+        cons.PartySeats[0] = 0.4; cons.PartySeats[1] = 0.35; cons.PartySeats[2] = 0.25;   // 議会の項（党の行）を通す盤面
         return [sim.Nations[0].World, cons, sim.Nations[2].World];
     }
 
@@ -27,6 +28,16 @@ public class LawStakesTests
                     double got = LawStakes.NetPush(w, d, inc);
                     Assert.True(Math.Abs(want - got) <= 1e-9 * Math.Max(1, Math.Abs(want)), $"{d.Key} inc={inc} 門={want} 行の和={got}");
                 }
+    }
+
+    [Fact]
+    public void 党と軍部の行は議会のある盤面と軍の軸にだけ出る()
+    {
+        var boards = Boards();
+        var all = boards.SelectMany(w => Laws().SelectMany(d => LawStakes.Lines(w, d).Select(l => (w, l)))).ToList();
+        Assert.Contains(all, t => t.l.Kind == StakeKind.Party);
+        Assert.Contains(all, t => t.l.Kind == StakeKind.Class);
+        Assert.DoesNotContain(Laws().SelectMany(d => LawStakes.Lines(boards[0], d)), l => l.Kind == StakeKind.Party && !boards[0].ParliamentEnabled);
     }
 
     [Fact]
