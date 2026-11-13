@@ -306,7 +306,7 @@ public class CorncfInstrumentTests
     [Fact]
     public void T15_エンジンの物を読まない()
     {
-        string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "InstrumentsCorncf.cs"));
+        string src = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "Instruments", "InstrumentsCorncf.cs"));
         foreach (var bad in new[] { "LastDiscoveryView", ".Landed(", "TariffRate(", "CornFactor(", "TreatyPortTariffScale(", "ForeignPortShare(", "LandShareRecipient(", "RentShareOf(", "DistanceKm(", "PolicyPreferences.",
                                     "StateProfitShare(", "IsNationalized(", "LandTaxBase(" })
             Assert.False(src.Contains(bad), $"InstrumentsCorncf.cs が禁止の名 {bad} を含む");

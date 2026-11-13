@@ -31,7 +31,7 @@ public class IndustrializationReaderTests
     {
         string dir = Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
         var counts = new SortedDictionary<string, int>();
-        foreach (var f in Directory.GetFiles(dir, "*.cs"))
+        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(dir))
         {
             int n = 0;
             foreach (var line in File.ReadAllLines(f))
@@ -78,7 +78,7 @@ public class IndustrializationReaderTests
     public void 旗を読む行は_プレイヤーかどうかを読まない()
     {
         string dir = Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
-        foreach (var f in Directory.GetFiles(dir, "*.cs"))
+        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(dir))
             foreach (var line in File.ReadAllLines(f))
             {
                 int c = line.IndexOf("//", StringComparison.Ordinal);

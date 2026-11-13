@@ -382,6 +382,7 @@ PYTHONUTF8=1 python <script>
 | 探しているもの | どこ |
 |---|---|
 | ★★★**今の基線**（⚠SOURCE-HASH・帯・走っている測定・次の一手） | `docs/CURRENT.md`（★セッション開始時に読む・⚠常に上書き） |
+| ★**計器の置き場**（標準の計器 Instruments*.cs の 86 本・(1105) で移した） | `PriceOfBread.SimCore/Instruments/`（SimCore の直下に置かない＝`InstrumentsPlacementTests` が赤にする。直下だけを走査する番人は `InstrumentsPlacementTests.TopAndInstruments` を通す） |
 | ★★**設計の状態**（完了/一部/保留/差し戻し） | `docs/202608/00_棚卸_2026-08-15_部分完了.md` |
 | ★★**何ができて何が起きるか**（機能712件） | `docs/ゲーム概要と実装機能.md` |
 | ★**設計書** | `docs/<日付>/` |

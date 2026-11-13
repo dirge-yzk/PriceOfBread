@@ -1,12 +1,12 @@
 # (1061) 恒等の判定の段の決定。段 1＝素の 5 種の全行＋.cost の件数の行＋計器つき 10 種の小さい表の集合だけ。段 2＝全表。
 #   python -X utf8 -I stage.py <木> <基準のコミット>     ＝ 1 行目に 段=1 か 段=2・以後に理由（ident.sh が marks/stage.txt に書く）
 # 段 2 に上がる条件（手で外せない＝ident.sh に段を決める引数は無い）：基準のコミットとの差（コミット済み・未コミット・未追跡）が
-# 計器（Instruments*.cs）・SimCore/Display・計器の台本（scripts/instruments の直下と読み手・道具の下）・measure.sh に触れるとき。
+# 計器（SimCore/Instruments/ の下・直下の Instruments*.cs）・SimCore/Display・計器の台本（scripts/instruments の直下と読み手・道具の下）・measure.sh に触れるとき。
 # 線ごとの使い捨ての台本（scripts/instruments/c101py/ など）は段 2 の条件にしない（常に段 2 になって二段にした意味が無くなる）。
 import os, re, subprocess, sys
 
 STAGE2_RX = [
-    r'^PriceOfBread\.SimCore/Instruments[^/]*\.cs$',
+    r'^PriceOfBread\.SimCore/(Instruments/|Instruments[^/]*\.cs$)',   # (1105) 計器は SimCore/Instruments/ の下（直下の Instruments*.cs も段 2 のまま）
     r'^PriceOfBread\.SimCore/Display/',
     r'^measure\.sh$',
     r'^scripts/instruments/[^/]+$',

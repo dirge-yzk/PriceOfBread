@@ -1,4 +1,4 @@
-"""標準の計器（SimCore/Instruments.cs・環境変数 POB_INSTRUMENTS=<ディレクトリ>）の表の読み口＝史実比較の桁（NG）の読み手 11 本が共有する。
+"""標準の計器（SimCore/Instruments/Instruments.cs・環境変数 POB_INSTRUMENTS=<ディレクトリ>）の表の読み口＝史実比較の桁（NG）の読み手 11 本が共有する。
 2026-10-10 (245)：旧の NG の読み手の入力（木へ注入した inj_*.py の A／C／Q／T／G／M／Y／WEV 行）を標準の計器へ畳んだ。
 表（1試合＝seed ごとに1本・タブ区切り・1行目が列名・数は G10・nan／inf はそのまま float で読める）：
   nation_s<seed>.tsv   国×四半期（全ての国・死んだ国も）＝quarter（0始まり）・year・nationIndex・nation・人口・兵士・名目GDP・交戦と内戦の月・徴兵法・台帳の累計 ほか

@@ -74,7 +74,7 @@ public class CalendarTests
         var rx = new Regex(@"[*/]\s*(\(double\))?\s*" + unit + "|" + unit + @"\s*[*/]");
         var sites = new System.Collections.Generic.List<string>();
         var perFile = new System.Collections.Generic.Dictionary<string, int>();
-        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
+        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(SimCoreDir()))
         {
             string name = Path.GetFileName(f);
             if (name == "Calendar.cs") continue;

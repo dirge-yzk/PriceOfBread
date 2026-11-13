@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # (245) 史実比較の桁（NG）の読み手 11 本を標準の計器の出力から回す（読むだけ）。注入は要らない。
 #   bash ng.sh <計器の出力ディレクトリ> <タグ> <読み手の出力フォルダ> [基準の指定（tab:<表>:<タグ> か rd:<フォルダ>:<タグ>）]
-# 計器の出力＝`POB_INSTRUMENTS=<ディレクトリ> bash measure.sh <出力> selfplay-batch 10`（SimCore/Instruments.cs・既定は出さない）が書く
+# 計器の出力＝`POB_INSTRUMENTS=<ディレクトリ> bash measure.sh <出力> selfplay-batch 10`（SimCore/Instruments/Instruments.cs・既定は出さない）が書く
 #   nation_s*.tsv・stock_s*.tsv・wars_s*.tsv・casualty_s*.tsv（表と列は scripts/instruments/instr.py の先頭）。`POB_INSTRUMENTS_NATIONS` は要らない（月ごとの財政の行を出さない）。
 # 基準を渡すと ngset192.py が NG の集合の差（新しい・外れた・前から）を印字する。
 export PYTHONUTF8=1

@@ -115,7 +115,7 @@ public class OnDoubleReadScanTests
     {
         var found = new Dictionary<string, int>();
         string dir = Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
-        foreach (var f in Directory.GetFiles(dir, "*.cs").OrderBy(x => x, StringComparer.Ordinal))
+        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(dir).OrderBy(x => x, StringComparer.Ordinal))
         {
             var seen = new Dictionary<string, int>();
             foreach (var (name, reads) in Scan(File.ReadAllText(f)))
