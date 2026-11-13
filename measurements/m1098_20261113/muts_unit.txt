@@ -1,0 +1,24 @@
+# (1098) c105mc 突然変異（使い捨ての木 D:/PoB_work/c105mc_work/mut・器 5086326bd・単体の試験だけ）
+mu	build	test	summary
+mu0	ok	緑	成功!   -失敗:     0、合格:     1、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mu1	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+mu2	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mu3	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mu4	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mu5	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mu6	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mu7	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mu8	ok	赤	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+
+# 赤の理由（試験の出力の 6〜7 行目）
+mu1	 旗 1 の規模 1.5 が 1.51875 でない スタック トレース: 
+mu2	 旗 1 の規模 1.575 が 1.51875 でない スタック トレース: 
+mu3	 旗 1 の規模 1.5 が 1.51875 でない スタック トレース: 
+mu4	 旗 1 の規模 1.5 が 1.51875 でない スタック トレース: 
+mu5	 旗 1 の規模 1.53125 が 1.51875 でない スタック トレース: 
+mu6	 工場 財 84 の規模が旗で変わった：1.0214285735714286 / 1.0214285714285714 スタック トレース: 
+mu7	 旗 1 の規模 1.50625 が 1.51875 でない スタック トレース: 
+mu8	 System.ArgumentException : '3' cannot be greater than 1.5. スタック トレース: 
+
+# 対照 mu0 の印字
+（対照 mu0 は合格の試験の印字を出さない詳しさで回した。器の試験の回 t28 の印字＝1＋margin（月の前の値段）＝1〔開幕の盤面で値段＝限界費用〕・mu4 が 1.5 に留まったことから、その月のエンジンの 1＋margin も 1.5 以下）
