@@ -384,6 +384,7 @@ PYTHONUTF8=1 python <script>
 |---|---|
 | ★★★**今の基線**（⚠SOURCE-HASH・帯・走っている測定・次の一手） | `docs/CURRENT.md`（★セッション開始時に読む・⚠常に上書き） |
 | ★**計器の置き場**（標準の計器 Instruments*.cs の 86 本・(1105) で移した） | `PriceOfBread.SimCore/Instruments/`（SimCore の直下に置かない＝`InstrumentsPlacementTests` が赤にする。直下だけを走査する番人は `InstrumentsPlacementTests.TopAndInstruments` を通す） |
+| ★**表示の層と試験の置き場**（(1111)・作者 2026-11-13） | 表示の目録は別アセンブリ `PriceOfBread.Display/`（名前空間は `PriceOfBread.SimCore.Display` のまま・SimCore だけを参照）。試験は **2 プロジェクト**：エンジン `PriceOfBread.Tests`（SimCore だけ・App を建てない）と画面 `PriceOfBread.Tests.Ui`（SimCore・Display・App・Tests・Runner の PlayHarness.cs/PlayFacts.cs を Link）。**フルスイートは 2 本を回して合計を --list-tests と突き合わせる**（`scripts/instruments/tests.sh` が順に回す）。ソースを走査する番人は `PriceOfBread.Display`・`PriceOfBread.Tests.Ui` も読む |
 | ★★**設計の状態**（完了/一部/保留/差し戻し） | `docs/202608/00_棚卸_2026-08-15_部分完了.md` |
 | ★★**何ができて何が起きるか**（機能712件） | `docs/ゲーム概要と実装機能.md` |
 | ★**設計書** | `docs/<日付>/` |
