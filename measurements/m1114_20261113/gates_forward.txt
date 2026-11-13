@@ -1,51 +1,51 @@
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.csE1081 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.csE125 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 126 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 0iCoefficients.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 27 ŒêiCoefficients.csjFBilateralMarket,ClearingsPerYear,EconomyStep,LastExport,MarketFlow,MonthSettle,MonthsPerClearing,Output,PhantomOutputSnapFloor,PriceLawSeesExports,RGO,S1,S3,Simulation,SupplyAdjustSpeed,TargetStockFloor,TradeMonthlyClearing,_,docs,e,flow,git,k,md,n,profitFactor,target
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p02_borrow_polity_epidemic.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p02_borrow_polity_epidemic.csE826 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p02_borrow_polity_epidemic.csE98 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 99 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 1iCoefficients.p02_borrow_polity_epidemic.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 0 ŒêiCoefficients.p02_borrow_polity_epidemic.csjF
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p03_debt_money.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p03_debt_money.csE1096 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p03_debt_money.csE128 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 129 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 2iCoefficients.p03_debt_money.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 0 ŒêiCoefficients.p03_debt_money.csjF
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p04_trade.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p04_trade.csE1278 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p04_trade.csE129 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 130 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 10iCoefficients.p04_trade.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 2 ŒêiCoefficients.p04_trade.csjFgabelle,resentment
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p05_port_insurance.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p05_port_insurance.csE487 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p05_port_insurance.csE58 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 59 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 1iCoefficients.p05_port_insurance.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 1 ŒêiCoefficients.p05_port_insurance.csjFSeaInvasionControlMin
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p06_rank_discovery.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p06_rank_discovery.csE1010 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p06_rank_discovery.csE122 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 124 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 5iCoefficients.p06_rank_discovery.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 3 ŒêiCoefficients.p06_rank_discovery.csjFBilateralMarket,Climate,PortFrozen
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p07_wiring_prewarm.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p07_wiring_prewarm.csE1186 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p07_wiring_prewarm.csE117 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 124 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 2iCoefficients.p07_wiring_prewarm.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 3 ŒêiCoefficients.p07_wiring_prewarm.csjFB6,HousingUrbanThreshold,pop1
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p08_audit_soldiers.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p08_audit_soldiers.csE1092 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p08_audit_soldiers.csE121 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 122 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 6iCoefficients.p08_audit_soldiers.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 23 ŒêiCoefficients.p08_audit_soldiers.csjFA,AUD,B,B3,CurrentInputFillGates,E,G1,G3,InvestBudgetIncludesAllInputs,L1,L2,L3,OverworkHealthSlope,Phase2,PolicyPolitics,Polity,ReignitionTrickleConserves,Round2,S5,batch10,dorm,h,whOut
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p09_kingship_tax.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p09_kingship_tax.csE760 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p09_kingship_tax.csE92 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 93 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 1iCoefficients.p09_kingship_tax.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 0 ŒêiCoefficients.p09_kingship_tax.csjF
-OK  –å1 —š—ğ{c‚èŒ³iCoefficients.p10_ai_silver_overrides.csEBOM —LECR 0j
-OK  –å2 ’‚ğœ‚¢‚½š‹å‚Ì—ñ‚ªˆê’viCoefficients.p10_ai_silver_overrides.csE1214 š‹åj
-OK  –¼‚Ì—ñiƒ\[ƒXEéŒ¾‚Ì‡j‚ªˆê’viCoefficients.p10_ai_silver_overrides.csE65 Œj
-OK  –å5 Œ³‚É’‚ª‚ ‚Á‚½ public ‚Ìs‚Í‘S‚Ä’Z‚¢’‚ğ‚ÂEpublic 68 –{E120 š’´ 0E’‚ÌŒ‡‚¯ 0EŒ³‚©‚ç’‚È‚µ 3iCoefficients.p10_ai_silver_overrides.csj
-   Ql s‚²‚Æ‚Ì“Ç‚İè‚ÌŒê‚Ì· 0 ŒêiCoefficients.p10_ai_silver_overrides.csjF
-‘S‚Ä OK
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.csãƒ»1081 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.csãƒ»125 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 126 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 0ï¼ˆCoefficients.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 27 èªï¼ˆCoefficients.csï¼‰ï¼šBilateralMarket,ClearingsPerYear,EconomyStep,LastExport,MarketFlow,MonthSettle,MonthsPerClearing,Output,PhantomOutputSnapFloor,PriceLawSeesExports,RGO,S1,S3,Simulation,SupplyAdjustSpeed,TargetStockFloor,TradeMonthlyClearing,_,docs,e,flow,git,k,md,n,profitFactor,target
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p02_borrow_polity_epidemic.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p02_borrow_polity_epidemic.csãƒ»826 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p02_borrow_polity_epidemic.csãƒ»98 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 99 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 1ï¼ˆCoefficients.p02_borrow_polity_epidemic.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 0 èªï¼ˆCoefficients.p02_borrow_polity_epidemic.csï¼‰ï¼š
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p03_debt_money.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p03_debt_money.csãƒ»1096 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p03_debt_money.csãƒ»128 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 129 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 2ï¼ˆCoefficients.p03_debt_money.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 0 èªï¼ˆCoefficients.p03_debt_money.csï¼‰ï¼š
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p04_trade.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p04_trade.csãƒ»1278 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p04_trade.csãƒ»129 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 130 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 10ï¼ˆCoefficients.p04_trade.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 2 èªï¼ˆCoefficients.p04_trade.csï¼‰ï¼šgabelle,resentment
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p05_port_insurance.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p05_port_insurance.csãƒ»487 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p05_port_insurance.csãƒ»58 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 59 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 1ï¼ˆCoefficients.p05_port_insurance.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 1 èªï¼ˆCoefficients.p05_port_insurance.csï¼‰ï¼šSeaInvasionControlMin
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p06_rank_discovery.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p06_rank_discovery.csãƒ»1010 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p06_rank_discovery.csãƒ»122 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 124 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 5ï¼ˆCoefficients.p06_rank_discovery.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 3 èªï¼ˆCoefficients.p06_rank_discovery.csï¼‰ï¼šBilateralMarket,Climate,PortFrozen
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p07_wiring_prewarm.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p07_wiring_prewarm.csãƒ»1186 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p07_wiring_prewarm.csãƒ»117 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 124 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 2ï¼ˆCoefficients.p07_wiring_prewarm.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 3 èªï¼ˆCoefficients.p07_wiring_prewarm.csï¼‰ï¼šB6,HousingUrbanThreshold,pop1
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p08_audit_soldiers.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p08_audit_soldiers.csãƒ»1092 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p08_audit_soldiers.csãƒ»121 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 122 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 6ï¼ˆCoefficients.p08_audit_soldiers.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 23 èªï¼ˆCoefficients.p08_audit_soldiers.csï¼‰ï¼šA,AUD,B,B3,CurrentInputFillGates,E,G1,G3,InvestBudgetIncludesAllInputs,L1,L2,L3,OverworkHealthSlope,Phase2,PolicyPolitics,Polity,ReignitionTrickleConserves,Round2,S5,batch10,dorm,h,whOut
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p09_kingship_tax.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p09_kingship_tax.csãƒ»760 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p09_kingship_tax.csãƒ»92 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 93 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 1ï¼ˆCoefficients.p09_kingship_tax.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 0 èªï¼ˆCoefficients.p09_kingship_tax.csï¼‰ï¼š
+OK  é–€1 å±¥æ­´ï¼‹æ®‹ã‚Šï¼å…ƒï¼ˆCoefficients.p10_ai_silver_overrides.csãƒ»BOM æœ‰ãƒ»CR 0ï¼‰
+OK  é–€2 æ³¨ã‚’é™¤ã„ãŸå­—å¥ã®åˆ—ãŒä¸€è‡´ï¼ˆCoefficients.p10_ai_silver_overrides.csãƒ»1214 å­—å¥ï¼‰
+OK  åã®åˆ—ï¼ˆã‚½ãƒ¼ã‚¹ãƒ»å®£è¨€ã®é †ï¼‰ãŒä¸€è‡´ï¼ˆCoefficients.p10_ai_silver_overrides.csãƒ»65 ä»¶ï¼‰
+OK  é–€5 å…ƒã«æ³¨ãŒã‚ã£ãŸ public ã®è¡Œã¯å…¨ã¦çŸ­ã„æ³¨ã‚’æŒã¤ãƒ»public 68 æœ¬ãƒ»120 å­—è¶… 0ãƒ»æ³¨ã®æ¬ ã‘ 0ãƒ»å…ƒã‹ã‚‰æ³¨ãªã— 3ï¼ˆCoefficients.p10_ai_silver_overrides.csï¼‰
+   å‚è€ƒ è¡Œã”ã¨ã®èª­ã¿æ‰‹ã®èªã®å·® 0 èªï¼ˆCoefficients.p10_ai_silver_overrides.csï¼‰ï¼š
+å…¨ã¦ OK

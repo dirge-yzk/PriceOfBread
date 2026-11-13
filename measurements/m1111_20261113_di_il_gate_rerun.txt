@@ -1,0 +1,10 @@
+# (1116) 合流：c107di の IL の門を、保存されたダンプ（D:/PoB_work/c107di_work/il の before.txt・after*.txt＝22:13 の正規化の後の取り直し）に ilcompare.py を当て直した出力（rc=0）。
+#   コミット済みの m1111_20261113_di_il_gate.txt は 22:09 の正規化の前の回（赤 G1b・rc=1）＝反証役 v の低。G1f は SimCore.dll の合成の型が前後とも 0＝判別の力が無い門（名乗る）。
+緑 G1a 型の集合が前＝後（SimCore ∪ Display） 前 769 後 769 差 []
+緑 G1b 型ごとの IL・署名・定数・属性の写しが一致 違う型 0 例 []
+緑 G1c 後の SimCore.dll に Display の型が 0 SimCore 側の Display 型 0・Display.dll 側 119
+緑 G2 Display の型の名の列が前後で同じ 前 119 後 119
+緑 G1d アセンブリの属性の差が足した InternalsVisibleTo だけ（SimCore.dll 単体） 足 2（2 が IVT）・消 0
+緑 G1e 埋め込みの資源が同じ（SimCore.dll 単体） 前 10 後 10
+緑 G1f SimCore.dll の合成の型の名簿が同じ 前 0 後 0
+# Display.dll の合成の型の名簿 []

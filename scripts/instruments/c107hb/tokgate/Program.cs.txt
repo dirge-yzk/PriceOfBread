@@ -1,0 +1,23 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+// 使い方: tokgate <前の木のSimCore> <後の木のSimCore> <ファイル名の一覧>
+// 注（トリビア）を除いた字句（種類と本文）の列が両方で同じかを比べる。違えば 1 を返す。
+var a = args[0]; var b = args[1];
+int bad = 0, n = 0;
+foreach (var f in File.ReadAllLines(args[2]).Where(x => x.Trim().Length > 0))
+{
+    var ta = Toks(Path.Combine(a, f)); var tb = Toks(Path.Combine(b, f));
+    n++;
+    if (ta.Count != tb.Count) { Console.WriteLine($"DIFF {f} 字句の数 {ta.Count} {tb.Count}"); bad++; continue; }
+    for (int i = 0; i < ta.Count; i++) if (ta[i] != tb[i]) { Console.WriteLine($"DIFF {f} #{i} {ta[i]} | {tb[i]}"); bad++; break; }
+}
+Console.WriteLine($"files={n} bad={bad}");
+return bad == 0 ? 0 : 1;
+static List<string> Toks(string p)
+{
+    var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(p), new CSharpParseOptions(documentationMode: DocumentationMode.None));
+    var l = new List<string>();
+    foreach (var t in tree.GetRoot().DescendantTokens()) l.Add(t.Kind() + ":" + t.Text);
+    if (tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error)) l.Add("PARSE-ERROR");
+    return l;
+}

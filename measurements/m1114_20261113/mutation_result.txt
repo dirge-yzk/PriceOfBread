@@ -1,23 +1,23 @@
 M1 係数の既定値を 1 つ変える（PriceAdjustSpeed 0.13→0.14）
-  RED ��1 �����{�c�聁���iCoefficients.cs�EBOM �L�ECR 0�j
-  RED ��2 ��������������̗񂪈�v�iCoefficients.cs�E1081 ����j
-  RED ���v 2
+  RED 門1 履歴＋残り＝元（Coefficients.cs・BOM 有・CR 0）
+  RED 門2 注を除いた字句の列が一致（Coefficients.cs・1081 字句）
+  RED 合計 2
   （赤の行 3）
   門3 IL 不一致（赤）
 M2 履歴から 1 係数の節を落とす（Coefficients.md の PriceElasticity）
-  RED ��1 �����{�c�聁���iCoefficients.cs�EBOM �L�ECR 0�j
-  RED ���v 1
+  RED 門1 履歴＋残り＝元（Coefficients.cs・BOM 有・CR 0）
+  RED 合計 1
   （赤の行 2）
 M3 部品の中の宣言を 2 つ入れ替える（PriceAmpCenter と PriceAmpEdge の行）
-  RED ��1 �����{�c�聁���iCoefficients.cs�EBOM �L�ECR 0�j
-  RED ��2 ��������������̗񂪈�v�iCoefficients.cs�E1081 ����j
-  RED ���̗�i�\�[�X�E�錾�̏��j����v�iCoefficients.cs�E125 ���j
-  RED ���v 3
+  RED 門1 履歴＋残り＝元（Coefficients.cs・BOM 有・CR 0）
+  RED 門2 注を除いた字句の列が一致（Coefficients.cs・1081 字句）
+  RED 名の列（ソース・宣言の順）が一致（Coefficients.cs・125 件）
+  RED 合計 3
   （赤の行 4）
   門3 IL 不一致（赤）
 M4 行末の注の短い版を消す（PriceAmpPower の注を消す）
-  RED ��1 �����{�c�聁���iCoefficients.cs�EBOM �L�ECR 0�j
-  RED ��5 ���ɒ��������� public �̍s�͑S�ĒZ���������Epublic 126 �{�E120 ���� 0�E���̌��� 1�E�����璍�Ȃ� 0�iCoefficient
-  RED ���v 2
+  RED 門1 履歴＋残り＝元（Coefficients.cs・BOM 有・CR 0）
+  RED 門5 元に注があった public の行は全て短い注を持つ・public 126 本・120 字超 0・注の欠け 1・元から注なし 0（Coefficient
+  RED 合計 2
   （赤の行 3）
 done
