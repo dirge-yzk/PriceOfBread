@@ -126,6 +126,8 @@ public static partial class Instruments
         p.FreightLandSeller += frLandS; p.FreightLandBuyer += frLandB; p.ValueEqLandSeller += value * rt.EqLandSeller; p.ValueEqLandBuyer += value * rt.EqLandBuyer;
         if (rt.Sea) p.ValueSea += value;
         p.ValueEqBook += value * rt.EqBook; p.ValueEqSea += value * rt.EqSea; p.ValueEqLand += value * rt.EqLand;
+        RailDealSide(m, seller, sellerR, rt.TerrSeller * rt.RatioSeller, rt.EqBook > 0 ? freight * rt.EqLandSeller / rt.EqBook : 0.0);   // (1097) 段 R の門 G1・G3（側ごと）
+        RailDealSide(m, buyer, buyerR, rt.TerrBuyer * rt.RatioBuyer, rt.EqBook > 0 ? freight * rt.EqLandBuyer / rt.EqBook : 0.0);
     }
 
     /// <summary>清算の終わりに世界の船腹の比で配った運賃（金建て・国ごと）。<c>BilateralMarket</c> の <c>World.Transfer</c> の直前・読むだけ。</summary>
@@ -149,7 +151,7 @@ public static partial class Instruments
         + "landSeaRatioSeller\tlandSeaRatioBuyer\tdealsCountPerYear\tvalueGoldPerYear\tweightUnitsPerYear\tfreightGoldPerYear\tfreightLandPartGoldPerYear\tvalueSeaRouteGoldPerYear\tvalueTimesEqBookKmGoldPerYear\tvalueTimesEqSeaKmGoldPerYear\tvalueTimesEqLandKmGoldPerYear\t"
         + "realLandSellerSideKm\trealLandBuyerSideKm\teqLandSellerSideKm\teqLandBuyerSideKm\tfreightLandSellerSidePartGoldPerYear\tfreightLandBuyerSidePartGoldPerYear\tvalueTimesEqLandSellerSideKmGoldPerYear\tvalueTimesEqLandBuyerSideKmGoldPerYear";
     const string TrNatHeader = "year\tnation\trailGateFlag\tfreightPaidGoldPerYear\tfreightPaidLandPartGoldPerYear\tfreightPaidDomesticGoldPerYear\tfreightPaidLandPartDomesticGoldPerYear\tfreightReceivedGoldPerYear\tweightKmRealPerYear\t"
-        + "freightLandSellerSideInNationGoldPerYear\tfreightLandBuyerSideInNationGoldPerYear\tfreightLandInNationToOwnCarriersGoldPerYear";
+        + "freightLandSellerSideInNationGoldPerYear\tfreightLandBuyerSideInNationGoldPerYear\tfreightLandInNationToOwnCarriersGoldPerYear\trailTargetIndex\trailFillShare\trailTargetNoThreatIndex";
     const string TrStatHeader = "scope\tyear\tnation\tregion\tterrainCode\tlat\tlon\tareaKm2\tareaWithin1000KmKm2\tmeanHaulKm\tmeanHaulWithin1000KmKm\tportFlag\tpopulationK\turbanPopulationK\t"
         + "factoryOutputValuePerMonth\tgatherOutputValuePerMonth\toutputWeightPerMonth\tname\tvalue\trefValue";
 
@@ -186,7 +188,7 @@ public static partial class Instruments
             var n = kv.Value; World? w = null;
             foreach (var sn in sim.Nations) if (NameOf(sn.World) == kv.Key) { w = sn.World; break; }
             sk.TrNat.WriteLine(string.Join('\t', TrI(year), kv.Key, w is null ? "nan" : Discovery.RailTransport(w.Discovered) ? "1" : "0", F(n.Paid), F(n.PaidLand), F(n.PaidDomestic), F(n.PaidLandDomestic), F(n.Received), F(n.WKmReal),
-                F(n.LandSellerSideIn), F(n.LandBuyerSideIn), F(n.LandInToOwnCarriers)));
+                F(n.LandSellerSideIn), F(n.LandBuyerSideIn), F(n.LandInToOwnCarriers), RailNatCols(w)));
         }
         if (year % TrSnapEveryYears == 0)
         {
@@ -208,6 +210,7 @@ public static partial class Instruments
             TrRegionRows(sk, sim, year);
         }
         TrPriceRows(sk, sim, year);
+        TrRailRows(sk, sim, year);   // (1097) 段 R の州の線路の表（毎年）
         a.Clear();
     }
 
@@ -375,4 +378,192 @@ public static partial class Instruments
             sk.TrStat!.WriteLine(string.Join('\t', "P", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", Catalog.Goods[g].Name, F(den > 0 ? num / den : double.NaN), F(Catalog.RefPrices[g])));
         }
     }
+    // ---------------------------------------------------------------- (1097) 段 R：州の線路の計器（trrail_s・trnation の末尾 3 列） ----------------------------------------------------------------
+    // 計器は need を自分で組む（Transport の関数を呼ばない）：人口×TransportTargetPerPop×(1＋ThreatRailTargetWeight×脅威比)×(1＋TransportCongestionWeight×混雑の平均)×州の取り分（潜在量の比・痩せたら均等）。
+    // 門（事前登録 measurements/m1097_20261113_prereg_rr.txt §3）：G1（清算の陸の倍率・側ごと）・G2（敷きの財の保存）・G3（運賃の線路の分の払い）・G4（割譲で州の線路が動かない）・G7（錠が無い）。
+
+    internal sealed class RailAcc
+    {
+        public double Bought, LaidTerr, DecayLoss, WarLoss, InsRail, PaidRail;
+        public long Months, G2Rows, G2Viol, G7Excess, G7Fell, G7Lock, G7Hold12, G1ZeroSides, G1ZeroViol, G1Jump, G1PosSides, G1FormulaViol, G3NoShare, G4Moves, G4Viol;
+        public double PrevPost = double.NaN, RunStartE, PreDecay, TPre, NeedPre;   // 年をまたいで持つ（Clear で消さない）
+        public int RunLen;
+        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; }
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RailAcc> RailAccs = new();
+    static RailAcc RailOf(Region r) => RailAccs.GetValue(r, _ => new RailAcc());
+
+    /// <summary>計器の目標（門なし）。脅威の項を含む／含まない。</summary>
+    static double RailInsTarget(World w, Coefficients c, bool threat)
+    {
+        double pop = w.TotalPopulation;
+        double tg = pop * c.TransportTargetPerPop;
+        if (threat && c.ThreatRailTargetWeight > 0 && w.SecurityThreatOwnMass > 1e-9)
+        {
+            double ratio = w.SecurityThreat / w.SecurityThreatOwnMass;
+            if (ratio > 0 && double.IsFinite(ratio)) tg *= 1.0 + c.ThreatRailTargetWeight * ratio;
+        }
+        if (c.TransportCongestionWeight > 0 && w.Regions.Count > 0)
+        {
+            double s = 0; foreach (var r in w.Regions) s += 1.0 - r.LastTradeThrottle;
+            tg *= 1.0 + c.TransportCongestionWeight * (s / w.Regions.Count);
+        }
+        return tg;
+    }
+    static double RailInsShare(World w, Region r)
+    {
+        double pot = 0; foreach (var x in w.Regions) pot += Math.Max(0, x.LastTradePotential);
+        if (pot > 1e-9) return Math.Max(0, r.LastTradePotential) / pot;
+        return w.Regions.Count > 0 ? 1.0 / w.Regions.Count : 1.0;
+    }
+    static double RailInsPhi(double t, double need) => !(need > 0) ? (t > 0 ? 1.0 : 0.0) : Math.Min(1.0, Math.Max(0.0, t / need));
+    static bool RailInsWater(Region r, Coefficients c) => (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) || (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0);
+    static (double Horse, double Rail) RailInsBases(Region r, Coefficients c)
+    {
+        int ti = (int)r.Terrain;
+        double h = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+        double rl = (ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0) * Math.Min(1.0, Math.Max(0.0, c.RailCostFraction));
+        return (h, rl);
+    }
+
+    /// <summary>月の輸送の段の頭（Transport.Step・減耗の前）。旗 0 の国は null（敷きの門は旗 1 の道だけ）。</summary>
+    internal static RailMonth? RailMonthBegin(World w, Coefficients c)
+    {
+        if (!(c.RailByRegion > 0)) return null;
+        var m = new RailMonth(w, c);
+        foreach (var r in w.Regions) RailOf(r).PreDecay = r.RailTrack;
+        return m;
+    }
+
+    internal sealed class RailMonth
+    {
+        readonly World W; readonly Coefficients C; readonly double Target;
+        internal RailMonth(World w, Coefficients c)
+        {
+            W = w; C = c;
+            bool gate = Discovery.LocomotiveRow < w.Discovered.Length && w.Discovered[Discovery.LocomotiveRow];
+            Target = gate ? RailInsTarget(w, c, true) : 0.0;
+        }
+        /// <summary>敷きの前（減耗の後・買う前）：州の線路と計器の need を読む。</summary>
+        internal void Pre(Region r)
+        {
+            var a = RailOf(r);
+            a.TPre = r.RailTrack; a.NeedPre = Target * RailInsShare(W, r);
+            a.DecayLoss += a.PreDecay - a.TPre; a.Months++;
+        }
+        /// <summary>敷きの後：G2（ΔT×地形＝買えた単位×CapPerUnit）・G7（need を超える州の月の積み）。</summary>
+        internal void Post(Region r, double boughtUnits)
+        {
+            var a = RailOf(r);
+            double tPost = r.RailTrack, dT = tPost - a.TPre;
+            double terr = 1.0;
+            if (C.RailLayTerrain > 0) { int ti = (int)r.Terrain; terr = ti < C.TerrainRailCost.Length ? C.TerrainRailCost[ti] : 1.0; if (!(terr > 0)) terr = 1.0; }
+            double capBought = boughtUnits * C.TransportCapPerUnit;
+            a.Bought += capBought; a.LaidTerr += dT * terr;
+            double ulpT = 1e-15 * Math.Max(Math.Abs(a.TPre), Math.Abs(tPost));   // ΔT を大きな在庫の差で読む丸め（倍精度の分解能）
+            if (capBought > 0) { a.G2Rows++; if (!(Math.Abs(dT * terr - capBought) <= 1e-9 * Math.Max(1.0, capBought) + 4 * ulpT * terr)) a.G2Viol++; }
+            double e = a.TPre - a.NeedPre;
+            if (e > 0 && !double.IsNaN(a.PrevPost))
+            {
+                a.G7Excess++;
+                if (tPost < a.PrevPost) a.G7Fell++;
+                if (dT > C.TransportDecay * a.NeedPre * (1.0 + 1e-9) + 1e-12 + 4 * ulpT) a.G7Lock++;
+                if (a.RunLen == 0) a.RunStartE = e;
+                a.RunLen++;
+                if (a.RunLen >= 12) { if (e > 0.886 * a.RunStartE) a.G7Hold12++; a.RunLen = 0; }
+            }
+            else a.RunLen = 0;
+            a.PrevPost = tPost;
+        }
+    }
+
+    /// <summary>戦災（Transport.WearRail・旗 1）：州ごとの失い。</summary>
+    internal static void RailWar(World w, double wear) { foreach (var r in w.Regions) RailOf(r).WarLoss += r.RailTrack * wear; }
+
+    /// <summary>割譲の頭（Transport.TakeRailForMove・旗 1）：州の線路を計器が自分で読む。End で同じ州の線路を読み直し、差があれば G4 の破れ。</summary>
+    internal static RailMove RailMoveBegin(World from, Region r) => new RailMove(r.RailTrack);
+    internal sealed class RailMove(double before)
+    {
+        internal void End(Region r)
+        {
+            var a = RailOf(r); a.G4Moves++;
+            if (BitConverter.DoubleToInt64Bits(r.RailTrack) != BitConverter.DoubleToInt64Bits(before)) a.G4Viol++;
+        }
+    }
+
+    /// <summary>清算の線路の運賃の払い（BilateralMarket.PayRailFreight・金建て）：受け手がその州の持ち主か、取り分を持つ外国かを計器が自分で確かめる（G3）。</summary>
+    internal static void RailFreightPaid(Region r, World recipient, double gold)
+    {
+        var a = RailOf(r); a.PaidRail += gold;
+        if (recipient.Regions.Contains(r)) return;
+        string key = recipient.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "";
+        for (int k = 0; k < r.ForeignRulers.Length && k < r.ForeignShares.Length; k++) if (r.ForeignRulers[k] == key && r.ForeignShares[k] > 0) return;
+        a.G3NoShare++;
+    }
+
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, RailNeedCache> RailNeeds = new();
+    sealed class RailNeedCache { public int Serial = int.MinValue; public InternationalMarket? M; public double Target; }
+
+    /// <summary>成約の側ごと（TradeDeal）：G1（T＝0 の州の倍率＝12×馬・3×鉄道へ跳んだ行・T＞0 の州の倍率＝計器の φ の混ぜの式）と、G3 の計器の線路の分（φ と地形から）。</summary>
+    static void RailDealSide(InternationalMarket m, World w, Region r, double mult, double landFreight)
+    {
+        var c = w.Coef;
+        if (RailInsWater(r, c)) return;   // 水運の州は母集合の外
+        var a = RailOf(r);
+        var (h, rl) = RailInsBases(r, c);
+        double ratio = c.LandSeaCostRatio;
+        double t = r.RailTrack;
+        if (!(t > 0))
+        {
+            a.G1ZeroSides++;
+            double want = ratio * h;
+            if (!(Math.Abs(mult - want) <= 1e-12 * Math.Abs(want))) a.G1ZeroViol++;
+            double jump = ratio * rl;
+            if (Math.Abs(mult - jump) <= 1e-12 * Math.Abs(jump) && Math.Abs(want - jump) > 1e-12 * Math.Abs(want)) a.G1Jump++;
+            return;
+        }
+        var nc = RailNeeds.GetValue(w, _ => new RailNeedCache());
+        if (nc.Serial != m.ClearingSerial || !ReferenceEquals(nc.M, m)) { nc.Serial = m.ClearingSerial; nc.M = m; nc.Target = RailInsTarget(w, c, true); }
+        double phi = RailInsPhi(t, nc.Target * RailInsShare(w, r));
+        double terr = (1.0 - phi) * h + phi * rl;
+        double exp = ratio * terr;
+        a.G1PosSides++;
+        if (!(Math.Abs(mult - exp) <= 1e-9 * Math.Abs(exp))) a.G1FormulaViol++;
+        if (terr > 0 && phi > 0) a.InsRail += landFreight * (phi * rl / terr);
+    }
+
+    /// <summary>trnation_s の末尾 3 列：railTargetIndex（計器の目標・門なし）・railFillShare（RailCapacity÷目標）・railTargetNoThreatIndex（脅威の項を除く）。</summary>
+    static string RailNatCols(World? w)
+    {
+        if (w is null) return "nan\tnan\tnan";
+        double tg = RailInsTarget(w, w.Coef, true), tn = RailInsTarget(w, w.Coef, false);
+        return F(tg) + "\t" + F(tg > 0 ? w.RailCapacity / tg : double.NaN) + "\t" + F(tn);
+    }
+
+    const string TrRailHeader = "year\tnation\tregion\tterrainCode\twaterFlag\trailTrackEnd\tneedEnd\tphiEnd\tmonthsCount\tboughtCapPerYear\tlaidCapTimesTerrainPerYear\tg2Rows\tg2Viol\tdecayLossPerYear\twarLossPerYear\t"
+        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol";
+
+    /// <summary>年の終わり：全ての国の全ての州の行（州の線路・計器の need と φ・門の数）。旗 0 の世界でも書く（線路は 0・G1 の T＝0 の側の数）。</summary>
+    static void TrRailRows(Sink sk, MultiNationSim sim, int year)
+    {
+        if (sk.TrRail is null) { sk.TrRail = Open("trrail", sk.Seed); sk.TrRail.WriteLine(TrRailHeader); }
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; var c = w.Coef; string nation = NameOf(w);
+            if (w.Regions.Count == 0) continue;
+            bool gate = Discovery.LocomotiveRow < w.Discovered.Length && w.Discovered[Discovery.LocomotiveRow];
+            double tg = RailInsTarget(w, c, true);
+            foreach (var r in w.Regions)
+            {
+                var a = RailOf(r);
+                double share = RailInsShare(w, r);
+                double needG = gate ? tg * share : 0.0;
+                sk.TrRail.WriteLine(string.Join('\t', TrI(year), nation, r.Name, TrI((int)r.Terrain), RailInsWater(r, c) ? "1" : "0", F(r.RailTrack), F(needG), F(RailInsPhi(r.RailTrack, tg * share)),
+                    L(a.Months), F(a.Bought), F(a.LaidTerr), L(a.G2Rows), L(a.G2Viol), F(a.DecayLoss), F(a.WarLoss),
+                    L(a.G7Excess), L(a.G7Fell), L(a.G7Lock), L(a.G7Hold12), L(a.G1ZeroSides), L(a.G1ZeroViol), L(a.G1Jump), L(a.G1PosSides), L(a.G1FormulaViol), F(a.InsRail), F(a.PaidRail), L(a.G3NoShare), L(a.G4Moves), L(a.G4Viol)));
+                a.Clear();
+            }
+        }
+    }
+    static string L(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }

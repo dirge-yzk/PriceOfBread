@@ -411,7 +411,7 @@ public class FuelOperatingCostTests
         var sim = new Simulation(new Scenario { Seed = 61, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
         sim.Run(8);
         var w = sim.World;
-        w.Discovered[Discovery.LocomotiveRow] = true; w.RailCapacity = 0; w.ShipCapacity = 1e18; w.ShipSteamShare = new Share(0);   // 鉄道は解禁（★(150)＝機関車の発見・旧＝技術水準10）・船は買わない・燃料も買わない
+        w.Discovered[Discovery.LocomotiveRow] = true; w.RailCapacity = 0; foreach (var rgT in w.Regions) rgT.RailTrack = 0; w.ShipCapacity = 1e18; w.ShipSteamShare = new Share(0);   // 鉄道は解禁（★(150)＝機関車の発見・旧＝技術水準10）・船は買わない・燃料も買わない   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         var regs = new List<Region>();
         foreach (var r in w.Regions)
         {

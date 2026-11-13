@@ -27,7 +27,7 @@ public class TradeClearingTests
         foreach (var n in sim.Nations)
         {
             n.World.Tariff = 0;
-            n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9;
+            n.World.RailCapacity = 1e9; foreach (var rgT in n.World.Regions) rgT.RailTrack = 0; n.World.ShipCapacity = 1e9;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）・この盤面は線路 0（買い手の州の他の POP の貯蓄が動かないことを確かめる＝線路の運賃を立てない＝旗 0 の未発見の盤面と同じ）
             foreach (var r in n.World.Regions) all.Add(r);
         }
         var ports = all.Where(r => r.IsPort).ToList();
@@ -353,7 +353,7 @@ public class TradeClearingTests
         {
             var (sim, _, _, _, _) = Make(WorldData.ByName("イギリス"));
             var w = sim.Nations[0].World;
-            sim.Coef.TransportTargetPerPop = perPop; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0; w.ShipCapacity = 1e12;
+            sim.Coef.TransportTargetPerPop = perPop; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0; foreach (var rgT in w.Regions) rgT.RailTrack = 0; w.ShipCapacity = 1e12;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
             Assert.Equal(w.TotalPopulation * perPop, Transport.PreRailCapacity(w, sim.Coef), 9);
             sim.Market.Step(sim.Nations, sim.Coef);
             return w.Regions.Where(r => !r.IsPort).Select(r => r.LastTransportCap).ToArray();
@@ -373,7 +373,7 @@ public class TradeClearingTests
         //   ★(166) 鉄道以前の陸の容量＝人口×TransportTargetPerPop（Transport.PreRailCapacity・旧＝TransportBaseline）＝その係数を0にする。
         var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));
         var w = sim.Nations[0].World;
-        sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
+        sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0; foreach (var rgT in w.Regions) rgT.RailTrack = 0;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         foreach (var r in w.Regions) foreach (var m in r.Markets)   // ほかの財は欲しがらない（潜在量を財 g だけにする）
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
@@ -440,7 +440,7 @@ public class TradeClearingTests
         var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));
         var w = sim.Nations[0].World;
         sim.Coef.ImportPayerLive = importPayerLive;   // (868)
-        sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
+        sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0; foreach (var rgT in w.Regions) rgT.RailTrack = 0;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         foreach (var r in w.Regions) foreach (var m in r.Markets)
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }

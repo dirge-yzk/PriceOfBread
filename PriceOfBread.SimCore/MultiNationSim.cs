@@ -1996,7 +1996,7 @@ public static class CostLedger
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
         QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, LaborPowerScans = 30,
-        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, Count = 41;
+        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, ClearingKmCompose = 41, ClearingKmRaw = 42, Count = 43;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -2027,6 +2027,8 @@ public static class CostLedger
         "中身の無い物：人数 0.0 の POP×月（月の頭・計器 (1072)）",
         "中身の無い物：そのうちお金も債務も所得も無い POP×月",
         "中身の無い物：州×財で需要・産出・在庫が全て 0（州×月・計器 (1072)）",
+        "清算：距離の表の成分からの組み直し（対・費用だけが動いた州の対・(1097)）",
+        "清算：距離の表の素の計算（PairKmCore 相当・成分を引いた対・(1097)）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -2082,6 +2084,8 @@ public static class CostLedger
         ClearingSkipUnitMicros,   // ★(1029) 清算：着値の下界で飛ばした売り手あたり（下の定数の注記）
         LaborPowerScanUnitMicros,   // ★(1045) 労働の重み：m の生産者の走査 1 件あたり（下の定数の注記）
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,   // ★(1072) 件数だけの 10 行（飛ばした・独立・中身の無い物 ①〜③）＝単価 0＝推定の計算量に出ない
+        ClearingKmComposeUnitMicros,   // ★(1097) 清算：距離の表の成分からの組み直し 1 対（**上限の見積り**・census は無い・下の定数の注記）
+        ClearingKmComposeUnitMicros,   // ★(1097) 清算：距離の表の素の計算 1 対＝組み直しと同じ単価（**下限の側の見積り**＝素の計算は組み直しより重い・その秒の一部は〈着値の充填〉の単価の中＝表の外の重さを内側へ入れる行・旗 0 の推定は約 +0.1〜0.3 秒）
     ];
     /// <summary>★(1045) 労働の重みの m（EconomyStep.PowerShare）の生産者の走査の単価（マイクロ秒/件）＝計り台の実測（measurements/m1045_20261111_bench_powershare.txt・
     /// 12 四半期ほど進めた 4 国盤面の全州〔308 州・生産者 53,983〕で PowerShare を呼び、四半期直後〔冷え〕4 回 50.7〜54.2 ナノ秒/件〔外れ値 142.9〕・同じ呼びの繰り返し〔熱〕5 組 46.6〜64.8 ナノ秒/件）。
@@ -2089,6 +2093,10 @@ public static class CostLedger
     /// 件数は 1 種 40 四半期で 9,723,312（生産者×月の 1.37 倍＝眠った生産者も走査する）＝全長で約 1.6 億→推定 約 8.9 秒。事前登録 measurements/m1045_20261111_prereg_cd.txt の [3]・追記。</summary>
     public const double LaborPowerScanUnitMicros = 0.055;
     /// <summary>★(1029) 着値の下界で飛ばした売り手の単価（マイクロ秒/件）＝**上限の見積り**：1 件＝下界の表の引き（国の表の添字）＋下界の式の評価＋比較＋連結リストを進める。単価の根拠は measurements/m1029_*（小さな計り台）。</summary>
+    /// <summary>★(1097) 清算の距離の表の成分からの組み直し 1 対の単価（マイクロ秒/件）＝**上限の見積り**（census は無い）。
+    /// 1 件＝表の読み 2・州の費用の読み 4・浮動小数 4〜5・比較 1・書き 3（PairKmParts の成分が表にある対を ComposeKm で組む）＝約 3〜5 ns の見積もりの 2〜3 倍（控えめ側）。
+    /// 旗 RailByRegion が 1 の木では、鉄道のある州の陸の費用が毎月動く＝その州の対の組み直しが清算ごとに起きる＝推定の計算量に出す行（旗 0 の木では発見の四半期の分だけ）。</summary>
+    public const double ClearingKmComposeUnitMicros = 0.0100;
     public const double ClearingSkipUnitMicros = 0.02;
     /// <summary>★(395) AI の官僚制度の走査の単価（マイクロ秒/国×四半期）＝m392 の計器つき10種の burscan（SelfPlay.GateAllLawTargets が Stopwatch で測った走査の壁時計の秒÷呼びの数）の種ごとの値
     /// 10.52〜14.28 の中央 12.76。⚠壁時計で、3本のバッチと突然変異のビルドが重なった負荷の下の値＝上限寄り（census で取り直すのは申し送り）。⚠(397) 反証役 ic2〔v〕中#1：測った区間に計器だけの BurObserve（行の文字列づくり）と、四半期首の単価 3.36578 が既に数えている立場の土台 PolicyPreferences.Build の前倒し（GateInfo の shared ??=）が入る＝重なりを含む上限・他の行の census×0.9163 の割り戻しとも作法が違う。呼びの数は国×四半期（種ごとに 41,968〜43,236）＝1試合約 0.54 秒。

@@ -27,7 +27,7 @@ public class BillBlockedColumnsTests
             .First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain && Array.IndexOf(sim.Coef.MilitaryExportGoods, g.Id) < 0);
         double wp = sim.Market.Price[gd.Id];
         var all = new List<Region>();
-        foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; Instruments.Begin(n.World); foreach (var r in n.World.Regions) all.Add(r); }
+        foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; foreach (var rgT in n.World.Regions) rgT.RailTrack = 1e9; n.World.ShipCapacity = 1e9; Instruments.Begin(n.World); foreach (var r in n.World.Regions) all.Add(r); }   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         var seller = all.Where(r => r.IsPort).First();
         buyer = all.First(r => !ReferenceEquals(r, seller) && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count
                               && r.Pops.Count(p => p.Size > 1e-6 && !ReferenceEquals(p, r.Pops[r.MerchantPopIndex])) >= 2);

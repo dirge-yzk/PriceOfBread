@@ -2622,7 +2622,7 @@ public sealed class Diplomacy
                             rz.GridCapacity *= 1.0 - wear;                    // 05-A：送電網も戦災（インフラ）
                             rz.LastWarIntensity = losing * contactNorm;       // 05-A：RGO産出の戦災乗数（EconomyStep）が読む（0..1・月次リセット済み）
                         }
-                    wz.RailCapacity *= 1.0 - wear; wz.ShipCapacity *= 1.0 - wear;   // 05-A：輸送容量も戦災（鉄道の破壊・商船の徴用/喪失）
+                    Transport.WearRail(wz, wear); wz.ShipCapacity *= 1.0 - wear;   // 05-A：輸送容量も戦災（鉄道の破壊・商船の徴用/喪失）。★(1097) 鉄道は Transport.WearRail（旗 1＝州の線路へ）
                 }
                 // 第7段第1波②（2026-07-28）対外戦争の民間人死：戦場になった側の非戦闘員が死ぬ（普仏戦争の包囲戦・焦土・封鎖の飢え＝北仏1914-18）。
                 // 劣勢度×接触強度×月次率＝WarZoneCapitalDamageと同じ物差し（遠隔戦・植民地戦争では本国民間は無傷）。厭戦→革命の駆動が実体（餓死）を持つ。

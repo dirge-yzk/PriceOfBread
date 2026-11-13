@@ -1,0 +1,10 @@
+# (1097) c105rr 突然変異の表（使い捨ての木・機構の試験 RailByRegionTests と KmComponentTests）
+変異	狙いの門	結果	赤の試験と合計
+M1	G1	赤	RailByRegionTests.G1_清算の陸の倍率は州の線路の充足で馬と鉄道を混ぜる / RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない 失敗!
+M2	G4	緑	 成功!
+M3	G7	赤	RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない / RailByRegionTests.G7_needを超える州は置換がd掛けるneedまで_線路は落ちる 失敗!
+M4	G2	赤	RailByRegionTests.G2_敷いた線路と地形の積は買えた単位と容量の単位の積 / RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない 失敗!
+M5	G3	赤	RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない 失敗!
+M6	G1	赤	RailByRegionTests.G1_清算の陸の倍率は州の線路の充足で馬と鉄道を混ぜる / RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない 失敗!
+M7	旗0	緑	 成功!
+C1	Km	赤	KmComponentTests.成分からの組み直しは口と全ての組でビット一致_費用だけを変えても一致 失敗!

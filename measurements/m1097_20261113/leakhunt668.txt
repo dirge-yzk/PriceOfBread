@@ -1,0 +1,875 @@
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イギリス海峡東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→日本南方沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ニューヨーク沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→フィンランド湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→バルト南西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マルマラ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アドリア海北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→北海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アルボラン海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→リグリア海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→東シナ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→黄海北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ボンベイ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ラッカディブ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ベンガル湾西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ベンガル湾東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ベンガル湾北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→シャム湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→南シナ海北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イギリス海峡東→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 日本南方沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニューヨーク沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 フィンランド湾口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バルト南西→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マルマラ海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アドリア海北→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北海南→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アルボラン海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リグリア海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 東シナ海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 黄海北→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ボンベイ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ラッカディブ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ベンガル湾西→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ベンガル湾東→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ベンガル湾北→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 シャム湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南シナ海北→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ペルシャ湾央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 紅海南→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ホルムズ外→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ホルムズ海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マダガスカル東沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ボスニア湾口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リスボン沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ティレニア海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 エルベ河口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリマタ海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アデン湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ギニア湾央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アンゴラ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バレアレス沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ハワイ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ペルシャ湾央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→紅海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ホルムズ外（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ホルムズ海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マダガスカル東沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ボスニア湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→リスボン沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ティレニア海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→エルベ河口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カリマタ海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アデン湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ギニア湾央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アンゴラ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→バレアレス沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ハワイ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ギアナ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ギアナ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ドーバー口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ドーバー口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→スンダ海峡口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→スンダ海峡口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→喜望峰沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→喜望峰沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→北海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マカッサル海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マカッサル海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ホルムズ外（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→イギリス海峡中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イギリス海峡中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アラビア海中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アラビア海中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→リヨン湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→リヨン湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アイリッシュ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アイリッシュ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→紅海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ギニア湾央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→南シナ海北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→シャム湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ビスケー湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ビスケー湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マルマラ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→スエズ湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→スエズ湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ティレニア海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→イギリス海峡東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニューヨーク沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ハッテラス沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 黒海東→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリフォルニア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アラスカ湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マルマラ海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 スエズ湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 エーゲ海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ペルシャ湾央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 紅海南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ホルムズ外→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ソコトラ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ザンジバル沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ソマリア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バルト南西→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 スカゲン沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ノールカップ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北大西洋中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニューファンドランド沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 日本南方沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 大阪湾口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 相模湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 日本東方沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 黄海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 対馬海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アデン湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ギニア湾央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イギリス海峡中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リヨン湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ビスケー湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リグリア海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バハマ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリブ中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 小アンティル外→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マスカリン沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ベンガル湾西→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ヴェルデ岬沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ヘルゴラント湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バレアレス沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カディス湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マデイラ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 フロリダ海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リマ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ラプラタ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ルソン海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリブ東→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 メキシコ湾央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 シドニー沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリフォルニア湾口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 パタゴニア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ホーン岬沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 セレベス海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 東太平洋赤道→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ティレニア海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アンゴラ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ハワイ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マダガスカル東沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カテガット→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アドリア海北→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→黒海東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→黒海東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ベンガル湾東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→バレアレス沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カディス湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カディス湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→エーゲ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→エーゲ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ペルシャ湾央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ニューヨーク沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→バルト南西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マダガスカル東沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→リグリア海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→リスボン沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ハッテラス沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 黒海東→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリフォルニア沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アラスカ湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 スエズ湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 エーゲ海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ソコトラ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ザンジバル沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ソマリア沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 スカゲン沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ノールカップ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北大西洋中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニューファンドランド沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 大阪湾口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 相模湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 日本東方沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 黄海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 対馬海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イギリス海峡中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リヨン湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ビスケー湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バハマ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリブ中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 小アンティル外→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マスカリン沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ヴェルデ岬沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ヘルゴラント湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カディス湾→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マデイラ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 フロリダ海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リマ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ラプラタ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ルソン海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリブ東→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 メキシコ湾央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 シドニー沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリフォルニア湾口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 パタゴニア沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ホーン岬沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 セレベス海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 東太平洋赤道→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アドリア海南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イオニア海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北海南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 東シナ海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 渤海口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南シナ海北→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 台湾海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アラスカ湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アラスカ湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→豪州南沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→豪州南沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→トリニダード沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→トリニダード沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→シドニー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→シドニー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カリブ西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カリブ西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ニューファンドランド沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ニューファンドランド沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アラフラ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アラフラ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→北米北西沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→北米北西沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→バハマ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→バハマ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→フォークランド沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→フォークランド沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アセンション沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アセンション沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ニュージーランド沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ニュージーランド沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ボンベイ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ベンガル湾西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ベンガル湾北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→小アンティル外（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→小アンティル外（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ヴェルデ岬沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ヴェルデ岬沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マスカリン沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マスカリン沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カリブ中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カリブ中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アマゾン河口沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アマゾン河口沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カリブ東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カリブ東（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→パタゴニア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→パタゴニア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→フロリダ海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→フロリダ海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→バイーア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→バイーア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→セレベス海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→セレベス海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ザンジバル沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ザンジバル沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→東太平洋赤道（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→東太平洋赤道（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ルソン海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ルソン海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→リオ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→リオ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ホーン岬沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ホーン岬沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→リマ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→リマ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ソマリア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ソマリア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ラプラタ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ラプラタ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→メキシコ湾央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→メキシコ湾央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カリフォルニア湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カリフォルニア湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ハッテラス沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ハッテラス沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→東シナ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→渤海口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→対馬海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→台湾海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→日本南方沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→大阪湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→黄海北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→日本東方沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→黄海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リスボン沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イベリア北西沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リオ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アマゾン河口沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バイーア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イギリス海峡東→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アイリッシュ海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリブ西→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 トリニダード沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ベンガル湾北→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ボンベイ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北米北西沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アセンション沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 フォークランド沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 豪州南沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニュージーランド沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アラフラ海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アドリア海北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→イベリア北西沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イベリア北西沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 リオ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アマゾン河口沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バイーア沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アイリッシュ海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリブ西→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 トリニダード沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北米北西沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アセンション沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 フォークランド沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 豪州南沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニュージーランド沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アラフラ海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アルボラン海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→相模湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イベリア北西沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→スカゲン沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カリマタ海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ヘルゴラント湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アドリア海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→イオニア海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ノールカップ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カリマタ海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 シャム湾→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アラビア海中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→渤海口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→対馬海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→大阪湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→日本東方沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→黄海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 フィンランド湾口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 白海口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 オホーツク海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 日本海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北太平洋中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ボスニア湾口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→フィンランド湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→相模湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→台湾海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ボスニア湾口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 白海口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 オホーツク海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 日本海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 北太平洋中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カテガット→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→北大西洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→北大西洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→スカゲン沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ヘルゴラント湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バルト中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アルボラン海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ドーバー口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 スンダ海峡口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 喜望峰沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 セイロン南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ギアナ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マカッサル海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バンダ海→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ノヴァスコシア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ノヴァスコシア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→白海口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ノヴァスコシア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ノヴァスコシア沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アンゴラ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カテガット（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バルト中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アドリア海南→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 イオニア海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 渤海口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 台湾海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→バルト中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イオニア海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→バンダ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→バンダ海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→セイロン南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ハワイ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→オホーツク海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→バルト中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ノールカップ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アドリア海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 黄海北→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→セイロン南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ベンガル湾東→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アラビア海中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カテガット（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ドーバー口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 スンダ海峡口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 喜望峰沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 セイロン南→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ギアナ沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マカッサル海峡→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バンダ海→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 エルベ河口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アデン湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→北太平洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マデイラ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→カリフォルニア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→白海口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ラッカディブ沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マデイラ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→カリフォルニア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→オホーツク海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ソコトラ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→日本海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→北太平洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ホルムズ海峡→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ソコトラ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→アリューシャン南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→南シナ海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マラッカ南口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→パナマ湾（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→紅海中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マルタ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→モザンビーク海峡南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ケープ東方（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ナミビア沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→マラッカ北口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→ニューギニア北沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→南太平洋西（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→日本海（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→南太平洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マラッカ南口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マラッカ南口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マラッカ南口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ラッカディブ沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ホルムズ海峡（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→エルベ河口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニューギニア北沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ニューギニア北沖→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ニューギニア北沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南シナ海南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南シナ海南→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→南シナ海南（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マラッカ北口→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 マラッカ北口→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マラッカ北口（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋西→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋中央→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋西→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 南太平洋中央→バクー沖（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→南太平洋中央（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→南太平洋西（同じ組は以後省略）
+[PROBE世界] 国際金融 1849年 ΔW=41.417（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1849年 ΔW=42.502（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1849年 ΔW=43.236（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1850年 ΔW=48.430（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アリューシャン南→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 アリューシャン南→バクー沖（同じ組は以後省略）
+[PROBE世界] 国際金融 1850年 ΔW=55.073（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→アリューシャン南（同じ組は以後省略）
+[PROBE世界] 国際金融 1850年 ΔW=58.002（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1850年 ΔW=58.835（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1851年 ΔW=60.094（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1851年 ΔW=62.062（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1851年 ΔW=63.439（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1851年 ΔW=65.327（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1852年 ΔW=66.741（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1852年 ΔW=67.482（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1852年 ΔW=68.670（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1852年 ΔW=70.252（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1853年 ΔW=76.369（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1853年 ΔW=72.709（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1853年 ΔW=73.779（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1853年 ΔW=75.942（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1854年 ΔW=77.714（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1854年 ΔW=87.302（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1854年 ΔW=78.914（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1854年 ΔW=85.317（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1855年 ΔW=81.076（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1855年 ΔW=85.030（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1855年 ΔW=86.164（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1855年 ΔW=87.084（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1856年 ΔW=98.502（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1856年 ΔW=90.103（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1856年 ΔW=95.975（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1856年 ΔW=99.186（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1857年 ΔW=100.842（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1857年 ΔW=121.820（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1857年 ΔW=103.954（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1857年 ΔW=104.357（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ナミビア沖→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ナミビア沖→バクー沖（同じ組は以後省略）
+[PROBE世界] 国際金融 1858年 ΔW=107.379（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ナミビア沖（同じ組は以後省略）
+[PROBE世界] 国際金融 1858年 ΔW=109.989（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1858年 ΔW=123.767（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1858年 ΔW=112.220（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1859年 ΔW=113.296（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1859年 ΔW=127.274（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1859年 ΔW=116.441（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1859年 ΔW=118.440（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1860年 ΔW=120.056（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1860年 ΔW=122.213（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1860年 ΔW=137.863（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1860年 ΔW=128.258（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1861年 ΔW=251.906（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1861年 ΔW=138.218（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1861年 ΔW=133.743（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1861年 ΔW=138.286（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1862年 ΔW=139.547（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1862年 ΔW=149.122（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1862年 ΔW=142.679（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1862年 ΔW=146.993（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1863年 ΔW=148.592（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1863年 ΔW=151.523（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1863年 ΔW=155.248（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1863年 ΔW=156.590（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1864年 ΔW=159.726（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1864年 ΔW=160.790（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1864年 ΔW=160.179（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1864年 ΔW=160.388（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1865年 ΔW=161.721（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1865年 ΔW=164.320（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1865年 ΔW=181.167（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1865年 ΔW=170.267（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1866年 ΔW=204.235（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1866年 ΔW=175.109（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1866年 ΔW=177.960（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1866年 ΔW=178.112（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1867年 ΔW=181.219（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1867年 ΔW=192.935（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1867年 ΔW=203.182（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1867年 ΔW=207.811（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1868年 ΔW=206.927（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1868年 ΔW=215.029（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1868年 ΔW=230.117（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ケープ東方→カスピ北（同じ組は以後省略）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 ケープ東方→バクー沖（同じ組は以後省略）
+[PROBE世界] 国際金融 1868年 ΔW=249.814（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→ケープ東方（同じ組は以後省略）
+[PROBE世界] 国際金融 1869年 ΔW=267.164（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1869年 ΔW=274.058（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1869年 ΔW=287.340（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1869年 ΔW=297.224（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1870年 ΔW=303.987（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1870年 ΔW=312.614（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1870年 ΔW=317.355（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1870年 ΔW=330.848（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1871年 ΔW=341.764（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1871年 ΔW=351.109（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1871年 ΔW=351.232（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1871年 ΔW=360.406（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1872年 ΔW=365.071（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1872年 ΔW=369.391（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1872年 ΔW=381.239（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1872年 ΔW=398.724（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1873年 ΔW=451.030（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1873年 ΔW=460.158（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1873年 ΔW=469.449（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1873年 ΔW=531.812（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1874年 ΔW=541.424（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1874年 ΔW=543.201（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1874年 ΔW=550.238（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1874年 ΔW=568.267（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1875年 ΔW=580.005（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1875年 ΔW=591.058（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1875年 ΔW=582.474（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1875年 ΔW=581.188（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1876年 ΔW=589.064（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1876年 ΔW=600.758（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1876年 ΔW=617.929（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1876年 ΔW=603.670（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1877年 ΔW=629.206（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1877年 ΔW=633.710（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1877年 ΔW=635.263（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1877年 ΔW=675.232（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1878年 ΔW=642.923（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1878年 ΔW=660.386（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1878年 ΔW=684.567（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1878年 ΔW=692.984（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1879年 ΔW=696.073（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1879年 ΔW=694.463（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1879年 ΔW=695.576（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1879年 ΔW=712.765（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1880年 ΔW=714.626（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1880年 ΔW=715.617（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1880年 ΔW=717.614（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1880年 ΔW=722.125（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1881年 ΔW=761.891（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1881年 ΔW=768.009（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1881年 ΔW=772.264（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1881年 ΔW=768.640（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1882年 ΔW=765.709（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1882年 ΔW=776.462（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1882年 ΔW=776.515（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1882年 ΔW=782.730（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1883年 ΔW=797.944（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1883年 ΔW=810.750（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1883年 ΔW=823.635（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1883年 ΔW=820.894（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1884年 ΔW=819.427（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1884年 ΔW=827.928（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1884年 ΔW=851.610（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1884年 ΔW=864.221（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1885年 ΔW=861.900（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1885年 ΔW=868.942（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1885年 ΔW=889.327（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1885年 ΔW=975.121（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1886年 ΔW=941.724（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1886年 ΔW=962.424（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1886年 ΔW=971.239（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1886年 ΔW=987.975（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1887年 ΔW=985.147（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1887年 ΔW=998.674（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1887年 ΔW=1000.600（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1887年 ΔW=1010.855（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1888年 ΔW=1027.228（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1888年 ΔW=1031.327（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1888年 ΔW=1026.313（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1888年 ΔW=1046.035（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1889年 ΔW=1072.862（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1889年 ΔW=1133.768（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1889年 ΔW=1140.709（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1889年 ΔW=1151.199（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1890年 ΔW=1136.730（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1890年 ΔW=1150.765（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1890年 ΔW=1710.774（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1890年 ΔW=1318.373（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1891年 ΔW=1308.473（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1891年 ΔW=1346.368（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1891年 ΔW=1369.488（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1891年 ΔW=1377.150（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1892年 ΔW=1401.656（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1892年 ΔW=1414.910（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1892年 ΔW=1439.303（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1892年 ΔW=1465.879（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1893年 ΔW=1507.361（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1893年 ΔW=1476.332（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1893年 ΔW=1476.296（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1893年 ΔW=1513.491（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1894年 ΔW=1547.867（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1894年 ΔW=1588.111（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1894年 ΔW=1615.046（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1894年 ΔW=1612.924（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1895年 ΔW=1619.136（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1895年 ΔW=1656.129（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1895年 ΔW=1682.315（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1895年 ΔW=1698.313（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1896年 ΔW=1807.774（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1896年 ΔW=1883.333（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1896年 ΔW=1934.933（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1896年 ΔW=1884.611（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1897年 ΔW=1822.884（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1897年 ΔW=1937.115（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1897年 ΔW=1923.640（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1897年 ΔW=1984.746（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1898年 ΔW=2001.792（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1898年 ΔW=1992.766（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1898年 ΔW=2129.704（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1898年 ΔW=2113.443（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1899年 ΔW=2373.891（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1899年 ΔW=2351.197（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1899年 ΔW=2293.945（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1899年 ΔW=2488.343（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1900年 ΔW=2421.809（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1900年 ΔW=2557.963（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1900年 ΔW=2623.224（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1900年 ΔW=2607.657（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1901年 ΔW=2759.531（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1901年 ΔW=2823.599（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1901年 ΔW=3395.103（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1901年 ΔW=3517.233（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1902年 ΔW=3722.226（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1902年 ΔW=3789.098（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1902年 ΔW=3686.144（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1902年 ΔW=3987.370（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1903年 ΔW=4147.178（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1903年 ΔW=4355.157（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1903年 ΔW=4735.100（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1903年 ΔW=4714.084（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1904年 ΔW=4887.720（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1904年 ΔW=5030.878（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1904年 ΔW=5327.763（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1904年 ΔW=5722.700（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1905年 ΔW=5895.509（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1905年 ΔW=5936.525（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1905年 ΔW=6541.340（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1905年 ΔW=6460.365（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1906年 ΔW=6972.801（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1906年 ΔW=6744.409（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1906年 ΔW=6884.816（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1906年 ΔW=7074.326（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1907年 ΔW=7017.427（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1907年 ΔW=7529.508（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1907年 ΔW=7309.795（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1907年 ΔW=7303.124（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1908年 ΔW=7418.133（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1908年 ΔW=7815.401（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1908年 ΔW=7925.289（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1908年 ΔW=7694.279（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1909年 ΔW=7708.489（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1909年 ΔW=7791.592（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1909年 ΔW=8252.602（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1909年 ΔW=8466.121（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1910年 ΔW=8265.160（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1910年 ΔW=8329.260（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1910年 ΔW=8328.651（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1910年 ΔW=8800.573（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1911年 ΔW=8788.396（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1911年 ΔW=9123.415（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1911年 ΔW=8879.141（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1911年 ΔW=8622.332（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1912年 ΔW=9215.332（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1912年 ΔW=9451.758（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1912年 ΔW=9289.230（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1912年 ΔW=11000.363（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1913年 ΔW=10440.202（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1913年 ΔW=10710.702（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1913年 ΔW=9610.088（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1913年 ΔW=9905.772（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1914年 ΔW=10281.592（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1914年 ΔW=9989.186（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1914年 ΔW=11061.640（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1914年 ΔW=10577.289（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1915年 ΔW=10025.235（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1915年 ΔW=10630.302（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1915年 ΔW=10427.323（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1915年 ΔW=11085.322（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1916年 ΔW=10874.682（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1916年 ΔW=11235.391（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1916年 ΔW=11016.882（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1916年 ΔW=10785.101（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1917年 ΔW=11650.327（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1917年 ΔW=11692.862（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1917年 ΔW=11474.394（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1917年 ΔW=11281.200（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1918年 ΔW=11632.920（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1918年 ΔW=12633.308（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1918年 ΔW=13621.473（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1918年 ΔW=12851.433（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1919年 ΔW=12369.110（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1919年 ΔW=12570.991（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1919年 ΔW=13618.018（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1919年 ΔW=14952.286（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1920年 ΔW=14190.097（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1920年 ΔW=13646.415（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1920年 ΔW=14095.084（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1920年 ΔW=14150.767（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1921年 ΔW=16210.152（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1921年 ΔW=15024.332（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1921年 ΔW=16611.402（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1921年 ΔW=15152.584（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1922年 ΔW=18151.192（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1922年 ΔW=19179.458（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1922年 ΔW=20173.850（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1922年 ΔW=21698.476（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1923年 ΔW=84021.906（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1923年 ΔW=23031.956（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1923年 ΔW=24788.375（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1923年 ΔW=24802.818（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1924年 ΔW=25069.827（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1924年 ΔW=25046.853（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1924年 ΔW=24708.720（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1924年 ΔW=26668.838（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1925年 ΔW=25907.462（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1925年 ΔW=26048.845（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1925年 ΔW=26597.825（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1925年 ΔW=26636.173（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1926年 ΔW=27976.480（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1926年 ΔW=28228.109（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1926年 ΔW=28638.680（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1926年 ΔW=28362.635（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1927年 ΔW=30624.012（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1927年 ΔW=30132.469（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1927年 ΔW=29699.926（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1927年 ΔW=30772.589（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1928年 ΔW=31829.553（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1928年 ΔW=32400.257（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1928年 ΔW=34166.049（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1928年 ΔW=32867.362（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1929年 ΔW=33639.470（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1929年 ΔW=34305.491（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1929年 ΔW=34893.325（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1929年 ΔW=37005.678（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1930年 ΔW=36455.553（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1930年 ΔW=36788.449（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1930年 ΔW=37859.362（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1930年 ΔW=38376.282（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1931年 ΔW=42483.167（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1931年 ΔW=38915.061（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1931年 ΔW=39556.157（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1931年 ΔW=40333.673（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1932年 ΔW=41059.891（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1932年 ΔW=46312.661（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1932年 ΔW=42602.121（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1932年 ΔW=42436.984（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1933年 ΔW=43179.491（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1933年 ΔW=43798.914（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1933年 ΔW=46859.305（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1933年 ΔW=45542.090（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1934年 ΔW=45873.830（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1934年 ΔW=46737.900（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1934年 ΔW=49569.184（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1934年 ΔW=53969.753（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1935年 ΔW=51148.262（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1935年 ΔW=49926.874（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1935年 ΔW=50755.035（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1935年 ΔW=51336.282（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1936年 ΔW=54530.675（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1936年 ΔW=55340.517（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1936年 ΔW=54941.455（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1936年 ΔW=55215.498（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1937年 ΔW=56455.783（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1937年 ΔW=61125.701（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1937年 ΔW=58894.898（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1937年 ΔW=59922.696（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1938年 ΔW=60832.677（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1938年 ΔW=61383.765（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1938年 ΔW=66397.680（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1938年 ΔW=62350.622（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1939年 ΔW=64700.144（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1939年 ΔW=65190.841（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1939年 ΔW=65417.459（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1939年 ΔW=70022.082（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1940年 ΔW=66461.795（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1940年 ΔW=70505.628（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1940年 ΔW=71090.593（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1940年 ΔW=71588.344（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1941年 ΔW=75198.024（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1941年 ΔW=72618.360（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1941年 ΔW=74416.708（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1941年 ΔW=75909.503（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1942年 ΔW=75236.691（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1942年 ΔW=88563.491（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1942年 ΔW=80556.644（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1942年 ΔW=77568.051（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1943年 ΔW=80055.000（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1943年 ΔW=80873.439（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1943年 ΔW=94227.593（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1943年 ΔW=81825.998（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1944年 ΔW=82922.166（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1944年 ΔW=85332.968（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1944年 ΔW=87496.634（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1944年 ΔW=99733.840（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1945年 ΔW=88408.869（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1945年 ΔW=90330.352（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1945年 ΔW=92912.140（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1945年 ΔW=90622.365（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1946年 ΔW=101205.088（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1946年 ΔW=89955.062（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1946年 ΔW=92843.590（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1946年 ΔW=96271.242（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1947年 ΔW=93932.969（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1947年 ΔW=106767.076（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1947年 ΔW=93681.133（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1947年 ΔW=94765.590（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1948年 ΔW=95295.158（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1948年 ΔW=97208.925（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1948年 ΔW=108339.541（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1948年 ΔW=97114.132（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1949年 ΔW=97856.455（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1949年 ΔW=99169.022（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1949年 ΔW=97651.506（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1949年 ΔW=103022.701（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1950年 ΔW=99274.195（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+leakhunt 完走（seed=1789・668四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 428・その月の額の和 4.942E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

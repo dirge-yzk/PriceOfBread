@@ -34,7 +34,7 @@ public class ClearingScopeTests
         foreach (var n in sim.Nations)
         {
             n.World.Tariff = 0;
-            n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9;
+            n.World.RailCapacity = 1e9; foreach (var rgT in n.World.Regions) rgT.RailTrack = 1e9; n.World.ShipCapacity = 1e9;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
             foreach (var r in n.World.Regions) r.LastTradePotential = 0;   // ★(407) 旗 TransportShareByPotential の焼き込み（(406) フォーク）の後の環境の固定＝潜在量の和を 0 にして州の取り分を均等へ倒す（旧の旗 0 の代わり・Transport.RegionShare）
             foreach (var r in n.World.Regions) all.Add(r);
         }
@@ -427,7 +427,7 @@ public class ClearingScopePriceTests
             var gd = sim.Nations[0].World.Region.Goods.First(x => !x.IsColonial && !x.NonTradeable && x.Tier != GoodTier.Staple && !x.GrainChain && Array.IndexOf(sim.Coef.MilitaryExportGoods, x.Id) < 0);
             int g = gd.Id; double wp = sim.Market.Price[g];
             var all = new List<Region>();
-            foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) { r.LastTradePotential = 0; all.Add(r); } }   // ★(407) 潜在量 0＝州の取り分は均等（旧の旗 TransportShareByPotential=0 の代わり）
+            foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; foreach (var rgT in n.World.Regions) rgT.RailTrack = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) { r.LastTradePotential = 0; all.Add(r); } }   // ★(407) 潜在量 0＝州の取り分は均等（旧の旗 TransportShareByPotential=0 の代わり）   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
             var sellers = all.Where(r => r.IsPort && r.Tier != RegionTier.Colonial).Take(3).ToList();   // ★(407) 冬に凍る植民地の港を使わない（旧の旗 WinterPortFreeze=0 の代わり）
             Region? buyer = null;
             foreach (var r in all)

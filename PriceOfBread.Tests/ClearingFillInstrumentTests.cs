@@ -97,7 +97,7 @@ public class ClearingFillInstrumentTests
                 int g = gd.Id; double wp = sim.Market.Price[g];
                 var all = new List<Region>();
                 sim.Coef.ClearingIdleSearchQuarters = 1; sim.Coef.ClearingPartnerScope = 1;
-                foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) { r.LastTradePotential = 0; all.Add(r); } }
+                foreach (var n in sim.Nations) { n.World.Tariff = 0; n.World.RailCapacity = 1e9; foreach (var rgT in n.World.Regions) rgT.RailTrack = 1e9; n.World.ShipCapacity = 1e9; foreach (var r in n.World.Regions) { r.LastTradePotential = 0; all.Add(r); } }   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
                 var seller = all.First(r => r.IsPort && r.Tier != RegionTier.Colonial);
                 Region? buyer = null;
                 foreach (var r in all)

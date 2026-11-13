@@ -1,0 +1,5 @@
+# (1097) c105rr 突然変異の表（使い捨ての木・機構の試験 RailByRegionTests と KmComponentTests）
+変異	狙いの門	結果	赤の試験と合計
+BASE	変異なし	緑	 成功!
+M2	G4	赤	RailByRegionTests.G4_割譲で州の線路はそのまま州について行く 失敗!
+M7	旗0	赤	RailByRegionTests.旗0の清算は州の線路を読まない 失敗!
