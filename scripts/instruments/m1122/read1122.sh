@@ -9,8 +9,9 @@ INS=${1:?ins}; CARD=${2:?成績表}; TAG=${3:?タグ}; OUT=${4:?出力}; SB=${5:
 SE=$((SB+9)); K=D:/PoB_work/keep_1103
 mkdir -p "$OUT"
 if [ "$GATE" = 1 ]; then
-  if [ "$SB" = 1 ]; then F0="D:/PoB_work/c108ps_work/flag0_ins"; else F0=""; fi
-  python -X utf8 -I "$S/c108ps/gate_ps.py" "$INS" $F0 --seeds $SB-$SE > "$OUT/gate_ps.txt" 2>&1; echo "gate_ps rc=$?"
+  # 種 11〜20 は旗 0 の parlseat_s が無い＝G4 を読まない。gate_ps.py は -- の無い引数を旗 0 の生と読む＝種の範囲を渡さない（生には種 11〜20 だけがある・(1122) で 1 回空振りした）。
+  if [ "$SB" = 1 ]; then python -X utf8 -I "$S/c108ps/gate_ps.py" "$INS" "D:/PoB_work/c108ps_work/flag0_ins" --seeds $SB-$SE > "$OUT/gate_ps.txt" 2>&1
+  else python -X utf8 -I "$S/c108ps/gate_ps.py" "$INS" > "$OUT/gate_ps.txt" 2>&1; fi; echo "gate_ps rc=$?"
   python -X utf8 -I "$S/c108mc/gates.py" "$INS" "$TAG" $SB > "$OUT/gate_mc.txt" 2>&1; echo "gate_mc rc=$?"
 fi
 python -X utf8 -I $S/m1017/popjump1017.py B=$INS base=$BASE N1=$K/n1 N2=$K/n2 > "$OUT/popjump.txt" 2>&1; echo "popjump rc=$?"
