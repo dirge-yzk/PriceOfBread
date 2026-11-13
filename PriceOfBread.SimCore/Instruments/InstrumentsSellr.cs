@@ -1,21 +1,14 @@
 using System.Collections.Generic;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1036) 貿易の計器 C4c sellr_s（労働の重みの売れる量 sellR の旧と両側・読むだけ・恒等・事前登録 measurements/m1036_20261111_prereg_lc.txt）
-// 部分クラス（InstrumentsProdcap.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。EconomyStep.cs:962 の sellR は変えない。
-// 行＝調べる年（NgEveryYears の倍数と 1913）の第 4 四半期の末 × 州 × 生産者（労働の重み LaborWeight が生産者の欄＝州×財に畳むと 1 財に複数の生産者が居る州で重みが混ざる）。
-// 列：lastDemand・prevExportAll・prevImport・lastProduced・stock・targetStock・laborWeight・rentR・sellROld・sellRBoth。
-//   sellROld＝max(LastDemand, TargetStockFloor)（EconomyStep.cs:962 の式の計器自身の写し・エンジンの関数は呼ばない）。
-//   sellRBoth＝max(LastDemand＋PrevExport−PrevImport, TargetStockFloor)（案 A の両側）。TargetStockFloor は州の World の係数から読む。
-// ⚠限界（計器が自己申告する）：
-//   ・PrevExport・PrevImport は国内の州どうしの売り買いも含む（Model.cs:835〜836）＝列の名は prevExportAll・prevImportAll。越境だけには分けられない（分けるには清算の中の台帳が要る）。
-//   ・rentR は EconomyStep.InputCostPerUnit を呼ぶ（InstrumentsFb.cs の先例・式の写しを作らない）＝眠りの月の最後の値ではなく四半期の末の値段と投入費。
-//   ・laborWeight は平滑 Toward の途中の値（目覚めた月を除き sellROld×rentR とは一致しない）＝一致の割合は記録で、門は合成の盤面。
+// 力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。〔履歴 InstrumentsSellr.cs#1〕
 public static partial class Instruments
 {
-    internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth\trentRMul";   // (1045) 末尾：エンジン（EconomyStep.cs:963 の周り）が重みに掛ける形＝rentR が正でなければ 0（NaN も 0）
+    internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth\trentRMul";   // SellrHeaderText〔履歴 InstrumentsSellr.cs#2〕
 
-    /// <summary>(1045) エンジンが sellR に掛ける rentR の形（否定形で丸める＝NaN・負は 0）。計器自身の写し。</summary>
+    /// <summary>
+    /// 計器自身の写し。〔履歴 InstrumentsSellr.cs#3〕
+    /// </summary>
     internal static double RentRMulOf(double rentR) => rentR > 0 ? rentR : 0.0;
 
     sealed class SrSink { public System.IO.StreamWriter? W; }
@@ -31,7 +24,7 @@ public static partial class Instruments
 
     static void SellrTable(MultiNationSim sim, ulong seed, int q)
     {
-        if (!Wants("sellr_s")) return;   // (1061) 選ばれない表は組み立ても飛ばす（読むだけ）
+        if (!Wants("sellr_s")) return;   // sellr_s〔履歴 InstrumentsSellr.cs#4〕
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || sim.Nations.Count == 0) return;
         int yearLabel = sim.Nations[0].World.Year;

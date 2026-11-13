@@ -2,17 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (1018) 戦争の計器 warentry_s・warpair_s・warband_s と wars_s の入口の札・q の列（読むだけ・恒等・事前登録 measurements/m1018_20261110_prereg_wn.txt） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ。力学の値を 1 つも書かない・乱数を引かない・エンジンの欄を足さない（置き場は ConditionalWeakTable だけ）。INS=1 のときだけ動く。
-// 目的＝戦争の入口の統合（要求×(1−τ²)・余剰戦力の導き・弱小国の門・屈服の 1 本化）の前に、今の盤面の 〈評価の件数・理由・影の評価・緊張の帯・入口の札〉 を評価の瞬間の値で数える。
-// 三つの表：warentry_s（国×四半期・AI の侵略の評価〔Diplomacy.TryAiSubjugate の CanInvade〕の件数と理由・影の評価・余剰の候補）／warpair_s（組×四半期・月の最大が 100 以上か出来事のあった組だけ）／warband_s（四半期×1）。
-// ⚠限界（計器が自己申告する）：
-//  ①月の列は Diplomacy.Step の頭で読む＝前の月の末の状態。四半期の最初の月の頭は前の四半期の末なので読まず、四半期の末（Quarter）の読みを 3 本目にする（四半期あたり 3 標本）。
-//  ②膨張意欲の流れは合算の変化（前の四半期末→今）と、計器が今の盤面から計算した流入（戦争熱・商業）で導く。上限で切れた分も消費の側に出る。
-//  ③WarScale の reach は 比×自陣営の陸の力 で復元する（浮動小数の復元）。自陣営の集合は計器が再構成する。
-//  ④屈服・講和の置き直し・分離の置き直しは Diplomacy の該当行の hook で数える。
-//  ⑥(1023) willDerivedUse は前の四半期末＋流入−今 の導出＝時点がずれる行がある（負の行 6.2%・c95wn の測り）。評価ごとの新しい要求の列（sumNewNeed・newOk・oldOk・newOnly）は呼び 1 回の最初の評価の陸の力・要求・前線の割合に、評価ごとの緊張だけを替えて比べる（呼びの途中で標的が変わっても陸の力は呼びの最初の値）。
-//  ⑤影の評価が呼ぶエンジンの関数（SeaControl・IsSeaCrossing・InvShipStock・InvCannedStock・InvadeWillCost・InvadeShipReq・InvadeCannedReq・Projection・DependentCount）は状態を書かず乱数を引かない（器のコミットで grep 済み）。
+// 力学の値を 1 つも書かない・乱数を引かない・エンジンの欄を足さない（置き場は ConditionalWeakTable だけ）。〔履歴 InstrumentsWar.cs#1〕
 public static partial class Instruments
 {
     /// <summary>入口の札の名前（添字＝札の番号）。参戦＝ally・suzerain・calltoarms（主の開戦ではない）。</summary>
@@ -41,10 +31,10 @@ public static partial class Instruments
         public double Land, Force, NeedLand, NeedInternal, NeedSea, PowerMil, LandPower, Own, Reach, Ratio, SA, SC, RA, RC;
         public int RCalls, SCLess;
         public int TauPos, TauPosWeak;   // 評価の組の緊張が正の件数（弱小国の門で落ちた評価だけの件数も）
-        public double CurLand, CurNeed, CurB;   // (1023) 呼び 1 回の最初の評価で読んだ陸の力・要求・前線の割合（評価ごとの新しい要求の比較に使う）
-        public double SumNewNeed;        // (1023) Σ 評価ごとの新しい要求 need×(1−τ²)
-        public int CrossWeakWill;        // (1028) 標的が弱小国（理由〈弱小国が標的〉）かつ 膨張意欲が要求に足りない（ExpansionWill＜InvadeWillCost）評価の件数。sh_will（影の評価で最初に落ちた門が〈余剰戦力〉）は前の門で落ちた評価を含まない＝cross ≧ sh_will
-        public int NewOk, OldOk, NewOnly;   // (1023) 評価のうち 新しい要求で余剰が足りる／S_C′（今の要求）で足りる／新しいだけで足りる件数
+        public double CurLand, CurNeed, CurB;   // CurB〔履歴 InstrumentsWar.cs#2〕
+        public double SumNewNeed;        // SumNewNeed〔履歴 InstrumentsWar.cs#3〕
+        public int CrossWeakWill;        // sh_will（影の評価で最初に落ちた門が〈余剰戦力〉）は前の門で落ちた評価を含まない＝cross ≧ sh_will〔履歴 InstrumentsWar.cs#4〕
+        public int NewOk, OldOk, NewOnly;   // NewOnly〔履歴 InstrumentsWar.cs#5〕
         public double SumTau2;           // Σ min(1, 緊張÷140)²（要求×(1−τ²) の τ² の和・F4 の材料）
         public double PrevWill;
         public bool HavePrev;
@@ -161,14 +151,18 @@ public static partial class Instruments
     /// ratio が NaN／負は 0（届かない）、+∞は 1（全て縛られる）。</summary>
     internal static double WarRatioClamp(double ratio) => !(ratio > 0) ? 0 : ratio >= 1 ? 1 : ratio;
 
-    /// <summary>(1023) 評価ごとの新しい要求 need×(1−τ²)・τ＝min(1, 緊張÷declare)（緊張が負・NaN は 0）。τ＝0 で今の要求、τ＝1（緊張＝declare 以上）で 0。</summary>
+    /// <summary>
+    /// τ＝0 で今の要求、τ＝1（緊張＝declare 以上）で 0。〔履歴 InstrumentsWar.cs#6〕
+    /// </summary>
     internal static double WarNewNeed(double need, double tension, double declare)
     {
         double tau = !(tension > 0) ? 0 : tension >= declare ? 1 : tension / declare;
         return need * (1 - tau * tau);
     }
 
-    /// <summary>(1023) 余剰 land×(1−b)−要求 ≧0 か：新しい要求で（nOk）・今の要求で（oOk＝S_C′≧0）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsWar.cs#7〕
+    /// </summary>
     internal static void WarOkPair(double land, double b, double oldNeed, double newNeed, out bool nOk, out bool oOk)
     {
         nOk = land * (1 - b) - newNeed >= 0; oOk = land * (1 - b) - oldNeed >= 0;
@@ -264,7 +258,7 @@ public static partial class Instruments
         if (d.RankOf(target) != PowerRank.Minor) acc.TgtNonMinor++;
         if (reason == "弱小国が標的")
         {
-            if (gw.ExpansionWill < gw.InvadeWillCost(target)) acc.CrossWeakWill++;   // (1028)
+            if (gw.ExpansionWill < gw.InvadeWillCost(target)) acc.CrossWeakWill++;   // InvadeWillCost〔履歴 InstrumentsWar.cs#8〕
             int gate = WarShadowGate(gw, d, c, great, target);
             acc.Shadow[gate]++;
             if (gate == 0)

@@ -1,20 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (707) 線 u4z：資本の U4（私的な建設の予算を流れへ）の段0 の表 consf_s（全期間・読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsRegionProd.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・シミュの状態を足さない・係数を足さない・CostLedger を触らない。
-// 出所：設計書 docs/202610/20261030/20261030_資本の在庫と投資_設計.md §3-5・§R2 高②・§R3 ④・(701) smu1 の推奨（cons_s は 1783〜1823 年の窓だけ＝U4 の門が読む量を全期間で INS の中に先に足す）。
-// ■consf_s<種>.tsv（POB_INSTRUMENTS_NATIONS に挙げた国だけ・助走の後の全ての四半期）：国×区分（home＝Core と Integrated の州／Colonial＝植民地格の州）×四半期。
-//   州×月の判定（EconomyStep の私的な建設の min の 1 回＝ConsRegion の呼び）ごとに数える＝月の単位で〈予算が希望を切ったか〉を見る（(701) u4base.py の〈四半期の月の平均で判定〉の限界を外す）。
-//   今の規則：予算＝IndInvestmentFrac×max(0, 投資家の貯蓄)×(1−接収の萎縮)（EconomyStep の budget）。切った＝計画＜希望×(1−1e-9)（希望が正の州×月だけ）。
-//   流れの影（U4 の形・§R2 高②の定義）：影の予算＝max(0, 投資家 POP の前月の所得〔LastEarnedPerMonth〕−前月の消費の支払い〔EntryCtx.Finish の cons＝消費の財のループの前後の PaidPerMonth の差〕)×max(0, 1−接収の萎縮)。
-//     前月の消費の支払いは、前の月の Finish で投資家 POP の添字とともに写しておく（計器の側の欄・シミュの状態ではない）。写しが無い月（助走の明けの最初の月・投資家 POP の添字が替わった月）は〈影が無い〉として数え、切ったとは数えない。
-//   周期 2 の振動の材料：州ごとの月の建設の支払い x_m（決済 ConsRegionPaid の cost の和・建てない月は 0）の差 d_m＝x_m−x_{m−1}。州×月で d_m と d_{m−1} が揃う月だけ
-//     |d|・|x_m−2x_{m−1}+x_{m−2}|・d_m×d_{m−1}・d_m²・d_{m−1}² を足す＝読み手が ρ＝Σd_m d_{m−1}÷√(Σd_m²×Σd_{m−1}²)（−1〜1・純な周期 2 で −1・白色雑音で −0.5・滑らかな動きで 0 の近く〜正）と振れ幅 Σ|d|÷Σx を作る。
-//   flowCurrentPlannedMoneySum＝影の判定がある州×月（希望が正）の今の計画の和＝影の計画と同じ州×月で比べる分母。
-// ⚠限界（計器が自己申告する）：①影は静的な反事実＝希望・所得・消費は今の規則の軌道のまま（U4 の腕では応答する）。
-//   ②今の規則の消費の支払いは投資の取り置き（EconomyStep の投資家の RemainingBudget×(1−IndInvestmentFrac)）の後の値＝U4 で取り置きを外すと消費は増えうる＝腕の流れは影より小さい向き。
-//   ③州×月の判定は cap（資本の区画）と投資家 POP がある州だけ＝それ以外の州は数えない。④区分は四半期の末の州の Tier（四半期の中で Tier が替わった州の月は替わった後の区分へ入る）。州が国を出た場合は U4Depart が出る時点の Tier の区分で、出た国の次の行へ回す（(948)）。
-//   ⑧工業化度の列は置かない（IndustrializationReaderTests の許可表＝新しい読み手を足さない）。⑤州の持ち主が四半期の中で替わると、出る前の積みは U4Depart の写しとして出た国の次の consf_s の行へ入り（州の数・人口・貯蓄は足さない）、出た後の積みは今の持ち主の行へ入る。⑥振動の差は判定が呼ばれた月の並び（判定の無い月を飛ばして隣どうしとする）。⑦値は G10 で書く。
+// 力学の値を 1 つも書かない・乱数を引かない・シミュの状態を足さない・係数を足さない・CostLedger を触らない。〔履歴 InstrumentsU4.cs#1〕
 public static partial class Instruments
 {
     internal const string ConsfHeaderText = "quarter\tyear\tnation\tscope\tregionsCount\tpopulationK\tinvestorSavingsStock\t"
@@ -107,11 +93,13 @@ public static partial class Instruments
     /// <summary>助走の明け（ClearCons）：全ての写しを戻す（助走の月の消費・振動の履歴を持ち越さない）。</summary>
     static void U4ClearWorld(World w)
     {
-        U4Departed.Remove(w);   // (948)
+        U4Departed.Remove(w);   // Remove〔履歴 InstrumentsU4.cs#2〕
         foreach (var r in w.Regions) if (U4Accs.TryGetValue(r, out var a)) a.ClearAll();
     }
 
-    /// <summary>(948) 州が国を出る（<see cref="ConsDepart"/> から・挙げた国だけ）：出る州の四半期の積みを写して出た国の次の consf_s の行へ回し、州の四半期の積みを戻す（月をまたぐ写しは州について行く）。cons_s と同じ穴（州が国を出入りした四半期に積みが戻った国の行として出る）の同じ直し。</summary>
+    /// <summary>
+    /// cons_s と同じ穴（州が国を出入りした四半期に積みが戻った国の行として出る）の同じ直し。〔履歴 InstrumentsU4.cs#3〕
+    /// </summary>
     static void U4Depart(World from, Region r)
     {
         if (!U4Accs.TryGetValue(r, out var a)) return;
@@ -131,7 +119,7 @@ public static partial class Instruments
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string nation = NameOf(w);
         List<(RegionTier Tier, U4Acc Acc)>? departed = null;
-        if (U4Departed.TryGetValue(w, out var dl)) { departed = new(dl); U4Departed.Remove(w); }   // (948)
+        if (U4Departed.TryGetValue(w, out var dl)) { departed = new(dl); U4Departed.Remove(w); }   // TryGetValue〔履歴 InstrumentsU4.cs#4〕
         for (int s = 0; s < ConsfScopes.Length; s++)
         {
             bool colonial = s == 1;
@@ -154,7 +142,7 @@ public static partial class Instruments
             if (departed is not null) foreach (var (tier, a) in departed)
             {
                 if ((tier == RegionTier.Colonial) != colonial) continue;
-                anyDeparted = true;   // (948) 出た州の積み（州の数・人口・貯蓄は今の持ち主の物＝足さない）
+                anyDeparted = true;   // anyDeparted〔履歴 InstrumentsU4.cs#5〕
                 judged += a.Judged; desiring += a.Desiring; bound += a.Bound; fAvail += a.FlowAvail; fDes += a.FlowDesiring; fBound += a.FlowBound; osc += a.Osc;
                 desired += a.Desired; budget += a.Budget; planned += a.Planned; cut += a.BoundCut; fDesired += a.FlowDesired; fBudget += a.FlowBudget; fPlanned += a.FlowPlanned; fCurPlanned += a.FlowCurPlanned; fEarn += a.FlowEarned; fCons += a.FlowCons;
                 paid += a.Paid; built += a.Built; oP += a.OscPaid; oD1 += a.OscAbsD1; oD2 += a.OscAbsD2; oLag += a.OscLag; oSq += a.OscSq; oSqLag += a.OscSqLag;

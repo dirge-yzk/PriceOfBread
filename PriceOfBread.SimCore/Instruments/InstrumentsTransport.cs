@@ -1,38 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (380) 輸送の段0 の計器（読むだけ・設計 docs/202610/20261016/20261016_輸送の手段と距離_設計.md §5-1 段0） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsFm.cs／InstrumentsPop.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない
-// （蓄えは InternationalMarket の外＝ConditionalWeakTable・セーブに載らない）。出力は INS=1（POB_INSTRUMENTS）のときだけ。偽の間は本体の hook が 1 命令も走らない。
-//
-// 列の名前：接尾辞 PerYear＝その年に記帳した成約の合計（金建て・重さ・件数）／Gold＝金建て／Km＝実の km（eq＝運賃の換算 km）／PerMonth＝州の断面の月の流れ（README §1-9）。
-// 出すもの（1 試合＝seed ごとに 4 本の TSV）：
-//   trbin_s<seed>.tsv     年×（陸直行／海経由）×（国内／越境）×（距離の帯 8）×（財の重さの帯 5）：成約の件数・積出し価格の額・重さ（数量×輸送重量）・
-//                         実の km を掛けた重さ（陸脚／海脚に分けて）・運賃の換算 km を掛けた重さ・払われた運賃（陸脚の分／海脚の分に分けて）。成約 1 件ごとに足す＝清算の行の全数。
-//   trroute_s<seed>.tsv   経路（売り手の州×買い手の州）ごと＝10 年ごとの年の終わり（年の数字が 10 の倍数）の四半期。額の大きい上位 3000 組＋残りの合計の 1 行。
-//                         距離（海脚・陸脚・運賃の換算）・両端の地形と地形の係数・陸÷海の比・その年の成約の額・重さ・運賃。
-//   trnation_s<seed>.tsv  年×国：その国の買い手が払った運賃（うち陸脚の分・うち自国の売り手との成約の分）と、その国が世界の船腹の比で受け取った運賃＝§2-7 の不具合の大きさ。
-//   trstat_s<seed>.tsv    scope 列で 4 種類：
-//                           A＝州の面積（陸路用の陸マスクを 0.2° ごとに数え、一番近い州の座標へ割り当てる・構築で 1 回）と州の中の平均の運び距離 (2/3)√(A/π)。
-//                           G＝州の断面（10 年ごとの年の終わり）：地形・人口・都市人口・工場と採取場の産出（参照価格×量）・産出の重さ。
-//                           P＝年の終わりの世界の平均の財の値段（金建て）＋労働の賃金（人口加重・金建て）＋参照価格。
-//                           Z＝運賃と地形に関わる係数の値（開幕に 1 回）。
-// ⚠限界（計器が自分で申告する）：
-//   ・運賃の陸脚と海脚の分け方は換算 km の比（運賃は換算 km に比例する＝BilateralMarket の frA）。陸脚の換算 km は PairKm の式を hook の側で書き直した物（地形×陸÷海の比を含む）＝
-//     式が変われば食い違う。番人で〈海脚＋陸脚の換算 km が成約の換算 km に合う〉を確かめる。
-//   ・重さ＝数量×Catalog.TransportWeight（相対の単位・トンではない）。財の単位がトンに換算できる保証は無い。
-//   ・州の面積は 0.2° 格子の標本（誤差は数 %）で、陸の格子点を州の座標へ最近傍で割り当てる＝州の座標が疎な地域（シベリア・サハラ）は大きく出る。列 areaWithin1000KmKm2 は州の座標から 1000 km 以内の格子点だけを数える。
-//   ・(385) 直した：面積（A 行）は開幕の 1 回に加えて、州の断面（G 行）と同じ年の終わり（10 年ごと）にその年の州（Active）で取り直す。旧（380）は開幕の 1 回だけで、
-//     後から現れた州（建国・昇格・植民）には面積の行が無く、その土地は開幕の時点の隣の州に吸われていた（反証役 tr〔v〕低#3）。開幕の A 行も Active の州だけで分ける（旧は全 Regions）。
-//   ・(385) 直した：陸脚を売り手側と買い手側に分けて記帳する（RealLandSellerKm／RealLandBuyerKm／EqLandSeller／EqLandBuyer）。和の列（EqLand・FreightLand）は残す（反証役 tr〔v〕中#1）。
-//     海経由は PairKm の式の二つの項そのまま（売り手の州から港まで・港から買い手の州まで）。陸直行は PairKm の式が両端の係数の平均なので、経路の実 km を半分ずつ両端へ割り、
-//     換算は各端の係数で掛ける近似（途中の州・第三国を通る分は国で追わない＝越境の陸直行の売り手側は売り手の国の中にあると置く）。
-//     ⚠(387) 反証役 tf〔v〕中：海経由でも、内陸州が外国の港（通過港 TransitPortName・BilateralMarket の通過港の分岐）を使う成約では、売り手側の陸脚は
-//     港の持ち主の国を通る。これも売り手の国（買い手側は買い手の国）へ、その国の船腹の比で積む近似（自国の港 NearestPortName の成約だけが正確）。
-//     直すなら r.LastTransitPortName の持ち主の国で割る＝段1 の払い先の直しで陸直行の第三国と一緒に決める（設計 doc §7-4）。
-//   ・(385) 〈陸脚の運賃のうち、その陸脚がある州の国の運び手へ戻る額〉（trnation の freightLandInNationToOwnCarriersGoldPerYear）は成約ごとに
-//     〔売り手側の運賃×売り手の国の船腹の比〕＋〔買い手側の運賃×買い手の国の船腹の比〕を足した額（船腹の比はその清算の BilateralMarket.shipShare＝運賃の配りと同じ値）＝時代×種の和の近似ではない。
-//   ・緯度が −60 度より南・80 度より北の格子点は数えない（人の住まない地域・計器の定数）。
-//   ・成約が無い経路は出ない。上位 3000 組の外は 1 行の合計にまとめる。
+// 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない （蓄えは InternationalMarket の外＝ConditionalWeakTable・セーブに載らない）。〔履歴 InstrumentsTransport.cs#1〕
 public static partial class Instruments
 {
     /// <summary>経路の分解（hook が BilateralMarket の側で PairKm の式から書き直す）。海経由＝海脚 <see cref="RealSeaKm"/>＋両端の陸脚 <see cref="RealLandKm"/>（売り手側と買い手側の和）・
@@ -42,7 +10,9 @@ public static partial class Instruments
     {
         public bool Sea;
         public double EqBook, RealSeaKm, RealLandKm, EqSea, EqLand, TerrSeller, TerrBuyer, RatioSeller, RatioBuyer;
-        /// <summary>(385) 陸脚の売り手側・買い手側（和は <see cref="RealLandKm"/>／<see cref="EqLand"/>）。陸直行は実 km を半分ずつ・換算は各端の係数で。</summary>
+        /// <summary>
+        /// 陸直行は実 km を半分ずつ・換算は各端の係数で。〔履歴 InstrumentsTransport.cs#2〕
+        /// </summary>
         public double RealLandSellerKm, RealLandBuyerKm, EqLandSeller, EqLandBuyer;
     }
 
@@ -56,36 +26,36 @@ public static partial class Instruments
     {
         public long Deals;
         public double Value, Weight, WKmReal, WKmLandReal, WKmSeaReal, WKmEq, WKmEqLand, WKmEqSea, Freight, FreightLand, FreightSea;
-        public double FreightLandSeller, FreightLandBuyer, WKmRealLandSeller, WKmRealLandBuyer, WKmEqLandSeller, WKmEqLandBuyer;   // (385) 陸脚の売り手側・買い手側
+        public double FreightLandSeller, FreightLandBuyer, WKmRealLandSeller, WKmRealLandBuyer, WKmEqLandSeller, WKmEqLandBuyer;   // WKmEqLandBuyer〔履歴 InstrumentsTransport.cs#3〕
     }
     sealed class TrPair
     {
         public string SellerNation = "", BuyerNation = "";
         public TrRoute Route;
         public long Deals; public double Value, Weight, Freight, FreightLand;
-        public double FreightLandSeller, FreightLandBuyer, ValueEqLandSeller, ValueEqLandBuyer;   // (385) 陸脚の売り手側・買い手側
+        public double FreightLandSeller, FreightLandBuyer, ValueEqLandSeller, ValueEqLandBuyer;   // ValueEqLandBuyer〔履歴 InstrumentsTransport.cs#4〕
         public double ValueSea, ValueEqBook, ValueEqSea, ValueEqLand;   // 成約の額で重みを付けた換算 km の和（凍る港で経路が季節ごとに変わる組があるので、運賃の突き合わせは最後の成約の km でなくこの和で行う）
     }
     sealed class TrNat
     {
         public double Paid, PaidLand, PaidDomestic, PaidLandDomestic, Received, WKmReal;
-        public double LandSellerSideIn, LandBuyerSideIn, LandInToOwnCarriers;   // (385) その国の中にある陸脚の運賃（売り手側は売り手の国・買い手側は買い手の国へ積む）と、うち同じ国の運び手へ戻る額
+        public double LandSellerSideIn, LandBuyerSideIn, LandInToOwnCarriers;   // LandInToOwnCarriers〔履歴 InstrumentsTransport.cs#5〕
     }
     /// <summary>距離の帯×重さの帯×（陸／海）×（国内／越境）の組の数＝帯の表の長さ（鍵は <see cref="TradeDeal"/> の key）。</summary>
     const int TrBinCount = 2 * 2 * 8 * 5;
     sealed class TrAcc
     {
-        public readonly TrBin?[] Bins = new TrBin?[TrBinCount];   // ★2026-10-17（開発の高速化）：旧 Dictionary<int, TrBin>＝成約ごとの表引き。書き出しは鍵の順（旧の OrderBy と同じ）
+        public readonly TrBin?[] Bins = new TrBin?[TrBinCount];   // 書き出しは鍵の順（旧の OrderBy と同じ）〔履歴 InstrumentsTransport.cs#6〕
         public int BinsUsed;
-        public readonly Dictionary<(Region S, Region B, string SN, string BN), TrPair> Pairs = new();   // ★(427) 鍵に成約時の売り手と買い手の国名を含める（年の途中で州の持ち主が替わると、同じ州の組が別の国の組として別の行になる＝越境の印は成約ごと・行の国名は初見で固定だったずれの根）
+        public readonly Dictionary<(Region S, Region B, string SN, string BN), TrPair> Pairs = new();   // Pairs〔履歴 InstrumentsTransport.cs#7〕
         public readonly Dictionary<string, TrNat> Nats = new();
         public int FoldedQuarters;
-        // ★2026-10-17：直前の成約の買い手・売り手の国の行（清算は買い手の行ごとに回る＝同じ国が続く）。名前の文字列が同じ物のときだけ使う＝外れれば表を引く（結果は同じ）
+        // 名前の文字列が同じ物のときだけ使う＝外れれば表を引く（結果は同じ）〔履歴 InstrumentsTransport.cs#8〕
         public string? LastBName, LastSName; public TrNat? LastB, LastS;
         public void Clear() { Array.Clear(Bins); BinsUsed = 0; Pairs.Clear(); Nats.Clear(); LastBName = LastSName = null; LastB = LastS = null; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, TrAcc> TrAccs = new();
-    [ThreadStatic] static InternationalMarket? trLastM;   // ★2026-10-17：直前の市場とその蓄え（バッチは試合ごとに別のスレッド・1試合の清算は1本のスレッド）
+    [ThreadStatic] static InternationalMarket? trLastM;   // trLastM〔履歴 InstrumentsTransport.cs#9〕
     [ThreadStatic] static TrAcc? trLastA;
     static TrAcc TrOf(InternationalMarket m)
     {
@@ -99,11 +69,11 @@ public static partial class Instruments
     /// <summary>成約 1 件（<c>BilateralMarket</c> の記帳の位置・読むだけ）。<paramref name="freight"/>＝その成約の運賃（金建て・<c>freightPool</c> へ足す額）・<paramref name="weight"/>＝財 1 単位の輸送重量。</summary>
     internal static void TradeDeal(InternationalMarket m, World buyer, World seller, Region sellerR, Region buyerR, double weight, double qty, double value, double freight, in TrRoute rt, bool cross, double shipShareSeller, double shipShareBuyer, int good, double dutyT = 0.0, double dutyC = 0.0)
     {
-        NgDeal(m, buyer, seller, good, qty, value, freight, cross, dutyT, dutyC);   // (1003) C1 nationgood_s：越境の額と量を財×国で積む
+        NgDeal(m, buyer, seller, good, qty, value, freight, cross, dutyT, dutyC);   // NgDeal〔履歴 InstrumentsTransport.cs#10〕
         var a = TrOf(m);
         double w = qty * weight, eq = rt.EqSea + rt.EqLand;
         double frLand = eq > 0 ? freight * rt.EqLand / eq : 0.0;
-        double frLandS = eq > 0 ? freight * rt.EqLandSeller / eq : 0.0, frLandB = eq > 0 ? freight * rt.EqLandBuyer / eq : 0.0;   // (385) 陸脚の運賃を売り手側・買い手側へ（換算 km の比）
+        double frLandS = eq > 0 ? freight * rt.EqLandSeller / eq : 0.0, frLandB = eq > 0 ? freight * rt.EqLandBuyer / eq : 0.0;   // frLandS〔履歴 InstrumentsTransport.cs#11〕
         double realKm = rt.RealSeaKm + rt.RealLandKm;
         int key = (((rt.Sea ? 1 : 0) * 2 + (cross ? 1 : 0)) * (TrDistEdges.Length + 1) + TrBand(TrDistEdges, realKm)) * (TrWeightEdges.Length + 1) + TrBand(TrWeightEdges, weight);
         var b = a.Bins[key];
@@ -118,7 +88,7 @@ public static partial class Instruments
         nb.Paid += freight; nb.PaidLand += frLand; nb.WKmReal += w * realKm;
         if (!cross) { nb.PaidDomestic += freight; nb.PaidLandDomestic += frLand; }
         string sName = NameOf(seller);
-        var ns = ReferenceEquals(sName, a.LastSName) && a.LastS is not null ? a.LastS : (a.LastS = TrNatOf(a, a.LastSName = sName));   // (385) 売り手側の陸脚は売り手の国の中・買い手側の陸脚は買い手の国の中。戻る額＝その国の船腹の比（清算の運賃の配りと同じ値）
+        var ns = ReferenceEquals(sName, a.LastSName) && a.LastS is not null ? a.LastS : (a.LastS = TrNatOf(a, a.LastSName = sName));   // 戻る額＝その国の船腹の比（清算の運賃の配りと同じ値）〔履歴 InstrumentsTransport.cs#12〕
         ns.LandSellerSideIn += frLandS; ns.LandInToOwnCarriers += frLandS * shipShareSeller;
         nb.LandBuyerSideIn += frLandB; nb.LandInToOwnCarriers += frLandB * shipShareBuyer;
         if (!a.Pairs.TryGetValue((sellerR, buyerR, sName, bName), out var p)) a.Pairs[(sellerR, buyerR, sName, bName)] = p = new TrPair { SellerNation = sName, BuyerNation = bName };
@@ -126,7 +96,7 @@ public static partial class Instruments
         p.FreightLandSeller += frLandS; p.FreightLandBuyer += frLandB; p.ValueEqLandSeller += value * rt.EqLandSeller; p.ValueEqLandBuyer += value * rt.EqLandBuyer;
         if (rt.Sea) p.ValueSea += value;
         p.ValueEqBook += value * rt.EqBook; p.ValueEqSea += value * rt.EqSea; p.ValueEqLand += value * rt.EqLand;
-        RailDealSide(m, seller, sellerR, rt.TerrSeller * rt.RatioSeller, rt.EqBook > 0 ? freight * rt.EqLandSeller / rt.EqBook : 0.0);   // (1097) 段 R の門 G1・G3（側ごと）
+        RailDealSide(m, seller, sellerR, rt.TerrSeller * rt.RatioSeller, rt.EqBook > 0 ? freight * rt.EqLandSeller / rt.EqBook : 0.0);   // RailDealSide〔履歴 InstrumentsTransport.cs#13〕
         RailDealSide(m, buyer, buyerR, rt.TerrBuyer * rt.RatioBuyer, rt.EqBook > 0 ? freight * rt.EqLandBuyer / rt.EqBook : 0.0);
     }
 
@@ -206,11 +176,11 @@ public static partial class Instruments
             }
             if (top.Count > 3000)
                 sk.TrRoute.WriteLine(string.Join('\t', TrI(year), "(上位3000組の外の合計)", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", F(restDeals), F(restValue), F(restWeight), F(restFreight), F(restFreightLand), F(restVs), F(restVb), F(restVsea), F(restVland), "", "", "", "", F(restFls), F(restFlb), F(restVls), F(restVlb)));
-            TrAreaRows(sk, sim, year);   // (385) 州の面積をその年の州で取り直す（G 行と同じ年）
+            TrAreaRows(sk, sim, year);   // TrAreaRows〔履歴 InstrumentsTransport.cs#14〕
             TrRegionRows(sk, sim, year);
         }
         TrPriceRows(sk, sim, year);
-        TrRailRows(sk, sim, year);   // (1097) 段 R の州の線路の表（毎年）
+        TrRailRows(sk, sim, year);   // TrRailRows〔履歴 InstrumentsTransport.cs#15〕
         a.Clear();
     }
 
@@ -232,14 +202,16 @@ public static partial class Instruments
         var c = sim.Nations[0].World.Coef;
         void Z(string name, double v) => sk.TrStat!.WriteLine(string.Join('\t', "Z", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", name, F(v), ""));
         Z("LandSeaCostRatio", c.LandSeaCostRatio); Z("RailCostFraction", c.RailCostFraction); Z("FreightRatePer10Mm", c.FreightRatePer10Mm);
-        Z("TransportMargin", c.TransportMargin); Z("DistanceMarginScale", 1.0);   /* (843) 係数 DistanceMarginScale は焼き込んだ（常に 1）＝trstat の行は旧の値のまま残す */ Z("TransportWeightMarginScale", c.TransportWeightMarginScale);
+        Z("TransportMargin", c.TransportMargin); Z("DistanceMarginScale", 1.0);   /* Z〔履歴 InstrumentsTransport.cs#16〕 */ Z("TransportWeightMarginScale", c.TransportWeightMarginScale);
         Z("MerchantMargin", c.MerchantMargin); Z("TerrainWaterMajorCost", c.TerrainWaterMajorCost); Z("TerrainWaterMinorCost", c.TerrainWaterMinorCost);
         Z("DistanceNormKm", Diplomacy.DistanceNormKm);
         for (int t = 0; t < c.TerrainHorseCost.Length; t++) Z("TerrainHorseCost[" + ((Terrain)t) + "]", c.TerrainHorseCost[t]);
         for (int t = 0; t < c.TerrainRailCost.Length; t++) Z("TerrainRailCost[" + ((Terrain)t) + "]", c.TerrainRailCost[t]);
     }
 
-    /// <summary>(385) 州の面積の行（scope A）：その年の Active の州だけで陸マスクの格子を分ける（G 行と同じ州の集合）。開幕の 1 回と、10 年ごとの年の終わりに書く。座標の並びが同じ年は <see cref="AreaCache"/> に当たる。</summary>
+    /// <summary>
+    /// 開幕の 1 回と、10 年ごとの年の終わりに書く。〔履歴 InstrumentsTransport.cs#17〕
+    /// </summary>
     static void TrAreaRows(Sink sk, MultiNationSim sim, int year)
     {
         var regs = new List<(string Nation, Region R)>();
@@ -277,8 +249,7 @@ public static partial class Instruments
         var ua = new double[uniq.Count]; var un = new double[uniq.Count];
         int nx = (int)Math.Round(360.0 / TrAreaStepDeg), ny = (int)Math.Round(180.0 / TrAreaStepDeg);
         double cellDeg = TrAreaStepDeg;
-        // ★2026-10-17（開発の高速化・結果は旧の総当たりと同じ）：州を緯度の順に並べ、格子点の緯度から外へ広げて探す。d2 は旧と同じ式・同じ距離なら番号の小さい州
-        //   （旧＝番号の順に狭義の < で最初の最小）。d2 ≥ dy² なので、dy² が今の最小を超えた側はそこで打ち切る（並びの外へ行くほど |dy| は単調に増える）。
+        // d2 ≥ dy² なので、dy² が今の最小を超えた側はそこで打ち切る（並びの外へ行くほど |dy| は単調に増える）。〔履歴 InstrumentsTransport.cs#18〕
         int nu = uniq.Count;
         var ord = new int[nu]; for (int u = 0; u < nu; u++) ord[u] = u;
         Array.Sort(ord, (p, q) => uniq[p].Lat != uniq[q].Lat ? uniq[p].Lat.CompareTo(uniq[q].Lat) : p.CompareTo(q));
@@ -378,9 +349,7 @@ public static partial class Instruments
             sk.TrStat!.WriteLine(string.Join('\t', "P", TrI(year), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", Catalog.Goods[g].Name, F(den > 0 ? num / den : double.NaN), F(Catalog.RefPrices[g])));
         }
     }
-    // ---------------------------------------------------------------- (1097) 段 R：州の線路の計器（trrail_s・trnation の末尾 3 列） ----------------------------------------------------------------
-    // 計器は need を自分で組む（Transport の関数を呼ばない）：人口×TransportTargetPerPop×(1＋ThreatRailTargetWeight×脅威比)×(1＋TransportCongestionWeight×混雑の平均)×州の取り分（潜在量の比・痩せたら均等）。
-    // 門（事前登録 measurements/m1097_20261113_prereg_rr.txt §3）：G1（清算の陸の倍率・側ごと）・G2（敷きの財の保存）・G3（運賃の線路の分の払い）・G4（割譲で州の線路が動かない）・G7（錠が無い）。
+    // RailAcc〔履歴 InstrumentsTransport.cs#19〕
 
     internal sealed class RailAcc
     {
