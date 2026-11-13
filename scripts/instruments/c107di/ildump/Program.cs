@@ -280,9 +280,9 @@ static class P
         foreach (var (name, lines) in types)
         {
             sb.AppendLine("T " + name);
-            if (name == "<Module>" || name == "<PrivateImplementationDetails>")
+            if (name.StartsWith("<") || name.Contains("+<"))
             {
-                // 併合した型：塊（field/method/attr の先頭行から次の先頭行まで）で並べ、型の行は捨てる
+                // 合成の型（<Module>・<PrivateImplementationDetails>・<>z__ReadOnlyArray など＝アセンブリごとに同じ物を持つ）：塊（field/method/attr の先頭行から次の先頭行まで）で並べ、型の行は捨てる
                 var blocks = new List<string>(); var cur = new StringBuilder();
                 foreach (var l in lines)
                 {
@@ -290,7 +290,7 @@ static class P
                     cur.AppendLine(l);
                 }
                 if (cur.Length > 0) blocks.Add(cur.ToString());
-                foreach (var b in blocks.Where(x => !x.StartsWith("  type")).OrderBy(x => x, StringComparer.Ordinal)) sb.Append(b);
+                foreach (var b in blocks.Where(x => !x.StartsWith("  type")).Distinct().OrderBy(x => x, StringComparer.Ordinal)) sb.Append(b);
             }
             else foreach (var l in lines) sb.AppendLine(l);
         }
