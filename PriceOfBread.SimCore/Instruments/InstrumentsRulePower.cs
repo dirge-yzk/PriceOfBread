@@ -526,9 +526,12 @@ public static partial class Instruments
         : string.Join('\t', RpR(d.Q), RpR(d.Rho), RpR(d.Tau), RpR(d.I), RpR(d.H), RpR(d.O), RpR(d.FSum), RpR(d.T0), RpR(d.T1), RpR(d.T3), d.Best);
 
     /// <summary>〈Eng〉の列（エンジンの表の [NonSerialized] の写し・旗 0 は nan）。</summary>
-    static string RpEngCols(Diplomacy dip, Region r) => "nan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnone";
+    static string RpEngCols(Diplomacy dip, Region r) => r.RpEng is { } e && e.Stamp == dip.RpEngStamp && dip.RpEngStamp != 0
+        ? string.Join('\t', RpR(e.Q), RpR(e.Rho), RpR(e.Tau), RpR(e.I), RpR(e.H), RpR(e.O), RpR(e.FSum), RpR(e.T0), RpR(e.T1), RpR(e.T3), e.Best >= 0 ? RpClassNames[e.Best] : "none")
+        : "nan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnone";
 
-    static (double W, double Alloc, double F) RpEngAllocOf(Diplomacy dip, string key, Region r) => (double.NaN, double.NaN, double.NaN);
+    static (double W, double Alloc, double F) RpEngAllocOf(Diplomacy dip, string key, Region r)
+        => dip.RpEngAlloc is { } a && a.TryGetValue((key, r), out var v) ? v : (double.NaN, double.NaN, double.NaN);
 
     /// <summary>今の分離の圧力（Politics.CheckSecession の式を計器の側で書き直した物・首都〔Id 0〕は 0）。</summary>
     static double RpSecessionPressure(World w, Coefficients c, Region r, Region cap)

@@ -745,6 +745,8 @@ public sealed class Region
     }
     public string[] ForeignRulers = [];
     public double[] ForeignShares = [];
+    public double RuleTau = double.NaN, RuleTauInter = double.NaN;   // (1117) 段 C′ の τ_r（州を最初に見た表で 1 回だけ解く）と、その時の持ち主の仲介者の度合い＝思想⑩の例外（開幕の歴史の量）
+    [System.NonSerialized] internal RulePowerRow? RpEng;   // (1117) その四半期の表（同じ StepDay の中で作って使い切る）
     public double[]? FleetUnits;
     public double[]? NavalOrder;
     public double MilitaryTier3Fill = 0.0;
