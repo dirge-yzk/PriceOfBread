@@ -1,0 +1,44 @@
+# (1116) 合流（波107）の予言（merge の前にコミットする）
+# 担当 Opus 5.5（合流）。基点 1cd66aae5（origin/main と同じ・fetch で確かめた）。基準＝基線 m1103（ident.cfg：B5 b5_20261113_m1103・B10INS b10_20261113_m1103_ins・MON mon_20261113_m1103.txt・NG_BASE ng1103〔95 件〕・INSRAW keep_1103/base_ins・BASE_COMMIT 62693feb6）。
+# 作ったフォルダ：D:/PoB_work/m1116_work・wt_m1116（枝 m1116）。この後に wt_m1116z（腕 Z の木・detached）・ident_m1116z・keep_1116（base_ins＝腕 Z の生・keep_1103/base_ins と同じ表はハードリンク）を作る。
+
+[1] 入れる線と外す線（結果を見る前に決める）
+- 入れる（4 本とも〈判定: 恒等〉・反証役 v の高 0）：c107di (1111) 08001057a・c107ha (1112) 8fa56404b・c107hb (1113) d69f506be・c107hc (1114) 28eec30e4。順は di → ha → hb → hc（git merge --no-ff・-m に署名の行）。
+- 挙動の線は 0 本＝基線は m1103 のまま（M・N1・N2・S11・アブレーションは回さない）。
+- 設計の材料 c107op (1115)（D:/PoB_work/r1115_work）は写すだけ。番号は合流の指示の (1115) に揃える（線の材料は置き場に r1116・d1116 の名を使った＝写し先は scripts/instruments/r1115/・measurements/m1115_20261114/）。
+- 文書だけの線 c107ds は届いていない（origin にも worktree にも枝が無い・報告も無い）＝項目（短い README の規則の行の切れ・readers の全件・書庫の規則の残り・門の突然変異）は次の波へ残す。
+
+[2] 消す名前とファイルの重なり
+- 4 本の変えたファイルの集合の重なりは 0（git diff --name-only の積・m1116_work/tmp_c107*.txt）。docs/README.md は di だけ。
+- di が消す名前 0（試験 S1 は PolicyPoliticsUiTests へ同じ名で移す・CapitalBoard は private→internal・残りは csproj と走査のパスの行）。ha・hb・hc は注だけ（字句の列が一致＝名前を消さない）。
+- 予言：衝突 0。
+
+[3] 道具の直し（腕 Z の前・merge の前に別のコミット）＝ident_check.py の経路の行の写しの鍵
+- 今の道具（行全体の一致の difflib）で、基準の生 keep_1103/base_ins の経路の名 66 個を 62693feb6 → 合わせた木（各ファイルはそれを変えた枝の版）へ写すと、hb の 13 ファイル行・16 名（cearn 13・cpop 3）が写せない＝cearn 約 196 万欄・cpop 約 24 万欄（m1116_work/routepre.txt）。hb が経路の行の行末の注を消したため（hb は段 1 だけで経路の表を比べていない・ha (1112) の申し送り〈行の写しを行末の注を除いたコードの字で作る〉が出どころ）。
+  ＝直さなければ腕 Z は〈宣言の無い違い〉（cearn_s・cpop_s）で不一致になる予言。
+- 直し：_cearn_map の行の一致の鍵を _code_key（文字列・文字リテラルの外の行末の // 注を除き、末尾の空白を落とした字）へ。/*・@"・"""・$" を含む行は正規化しない（保守側）。コードの字が 1 字でも違えば鍵も違う＝写せず ? のまま。
+- 道具の門：scripts/instruments/m1116/codekey_test.py（①行末の注だけ消えた行は写る ②数字を変えた行は ? ③文字列の中の // は削らない ④/* の行は正規化しない・突然変異 N〈素朴な剥がし〉で ③ が赤）＝GATEOK。既存の試験 c67id cearn_rule_test（合成の 11 ケースは ○・実データの keep_826 は消えている＝REAL_MISSING）・c82it cearn_known_test GATEOK・m852 test_cearn_grown852（基準 62693feb6・腕 origin/c107hb・T1〜T8 予言どおり）・c70gt test_ident_display853 ○。
+- 直した鍵で写すと写せない名 0（m1116_work/routepre_key.txt）。merge の後、合わせた木で直した実物の関数で回し直し、0 を確かめてから腕 Z を起こす。
+
+[4] 合わせた木の予言
+- テストの数：Category!=FullLength 2823＋di 3（DisplayUnitTypeTests 2・SourceScanCoverageTests 1）＝2826（Tests 2594＋Tests.Ui 232）・FullLength 3（Tests 3・Tests.Ui 0）。
+- 腕 Z（合わせた木そのもの・旗の切り替えなし）を別の木 wt_m1116z で ident（段 2・PRUNE=0 全表〔INSRAW を keep_1116/base_ins へ移すため〕・--saveleak・--ng・--tests-delta 3・宣言した表と列 0）。
+  - 予言：〈判定: 恒等〉（測った種で一致）。素の 5 種が b5_20261113_m1103 と全行バイト一致（名乗り行を除く・178 行）・計器つき 10 種が b10_20261113_m1103_ins と全行バイト一致（180 行）・注視の表 4681 行一致・.cost の件数の行 43 本は差 0・推定 230.5／230.3 秒・計器の表 1437 本＝宣言の無い違い 0・既知の揺れは ha (1112) と同じ種類（burscan_s の秒・clock_s・cearn_s と cpop_s の経路の行番号だけ〔写して一致〕・dep_s の callerLine）＝60 本前後・NG 95 件（新しい 0・外れた 0）・savetest OK・leakhunt 保存則違反なし。
+  - hb の経路の表の全表の比べは、この腕 Z が初めて（hb は段 1）。
+  - dep_s の callerLine は KNOWN＝ident は中身を見ない＝腕 Z の後に ha の dep_remap.py を合わせた木で回し、写して不一致 0 を確かめる（ha の門の写し）。
+- 止める線の段：ident の〈判定: 不一致〉（宣言の無い違い）・savetest／leakhunt の不合格・フルスイート（Tests と Tests.Ui の両方）の赤・走査の番人の束の赤・dep_remap の不一致。赤なら、その組み合わせの線を後から入れた側から外す（合流は試験とエンジンを直さない）。
+- 記録の段：.cost の実時間・D: の空き（着手 約 66GB）・C: の空き（約 5GB＝試験は TEMP・TMP を D:/PoB_work/m1116_work/tmp へ向ける）。
+
+[5] ident.cfg（腕 Z が〈判定: 恒等〉のときだけ）
+- 成績表 B5・B10INS・MON・NG_BASE は m1103 のまま。
+- INSRAW を D:/PoB_work/keep_1116/base_ins（腕 Z の計器つき 10 種の生・keep_1103/base_ins とバイトで同じ表はハードリンク・ln は使わない）へ。BASE_COMMIT・STAGE_BASE は合わせた木（経路の行は合わせた木の座標）。
+- TESTS_NONFULL 2823→2826（Tests 2594＋Tests.Ui 232）・TESTS_FULL 3。
+- keep_1103 は消さない（n1・n2・a11 はヌル腕と種 11〜20〔KEEPNULL〕・base_ins は空洞化の基準 stopbase の生）。
+
+[6] 外さない物（入れる線の反証役の中・低）は記録と次の波へ（合流はエンジンの .cs と試験を直さない）
+- di：kit の台本の git archive に PriceOfBread.Display（合流の kit1116.sh で直す）・Tests.Ui を〈本体〉と数える走査の番人 3 か所（DormantIdentityTests.cs:373 ほか）と Display を外した SimCore 絞りの 3 本＝波108 の恒等の小物・IL の門の記録が正規化の前の赤の回＝合流が保存されたダンプに ilcompare.py を当て直した緑の出力を足す・G1f は判別の力が無い門と名乗る。
+- ha：履歴の名の形（ha＝<名>.cs.md と指し先〔履歴 X.cs#N〕・hb＝<名>.md・hc＝Coefficients*.md）＝揃えない（ha の指し先はコードの注・hb と hc の台本は <名>.md を引く）＝README §2 に 2 通りを書き、統一は波108 の小物へ・メンバー名だけ残った注 1135 件と切れ端 84 件＝記録。
+- hb：履歴は 81 本（報告の 77 は書き間違い）・門 2 の道具 tokgate はコミット外（c107hb_work に残る＝記録）・記録の rc の列は門の終了コードでない（記録）。
+- hc：ConsSteel の誤った注・注の無い宣言 21 本・意味の文を後回しにした短い注・括弧の釣り合いの崩れ 13 本＝次の注だけの恒等の線へ（合流は注を直さない）・cp932 の記録 2 本（gates_forward.txt・mutation_result.txt）＝合流が UTF-8 へ書き直す。
+
+[7] 予言の外れの扱い：外れは記録の段の先頭に書く。結果を見た後に物差しを替えない（[3] の道具の直しは腕 Z の前にコミットする）。
