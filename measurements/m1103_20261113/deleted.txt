@@ -7,3 +7,4 @@
 2026-11-13 17:27:00 消した D:/PoB_work/c105rr_work/out_c105rrB_10（2.84GB・lineRr・成績表は measurements にある・表ごとの sha1 は measurements/m1103_20261113/hash/rm_lineRr*.tsv）
 2026-11-13 17:27:11 消した D:/PoB_work/c105gp_work/b/out_c105gpB_10（2.76GB・lineGp・成績表は measurements にある・表ごとの sha1 は measurements/m1103_20261113/hash/rm_lineGp*.tsv）
 2026-11-13 17:27:18 消した D:/PoB_work/c105gp_work/mw（1.46GB・gpMw・成績表は measurements にある・表ごとの sha1 は measurements/m1103_20261113/hash/rm_gpMw*.tsv）
+2026-11-13 18:16:08 keep_1087・keep_1096 の削除を試みた（新しい ident.cfg を push した後・INSRAW でも KEEPNULL でもない）＝自動の判定〈取り消せない手元の破壊〉で拒まれた＝消していない・言い換えて迂回していない＝作者のセッションで消す
