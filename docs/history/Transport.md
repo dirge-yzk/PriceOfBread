@@ -1,0 +1,310 @@
+# PriceOfBread.SimCore/Transport.cs の注（1cd66aae5 の時点・注を履歴へ移した記録）
+
+見出しの数字は 1cd66aae5 の行番号。W＝行ぜんたいの注・T＝コードの後ろの注。
+
+## L3-8 W 直後 `public static class Transport`
+````
+/// <summary>
+/// 輸送容量（§5.1拡張）：鉄道（内陸→港）と海運（港→世界市場）の容量を、鉄道財/船財の投資で積む。
+/// 投資家が国内市場から鉄道(線路+機関車)を、商人が船（帆船か汽船の、容量あたりの総費用が安い方）を買い→容量に変換（在庫消費＝非貨幣）。
+/// 容量は毎期減耗し、維持に再投資が要る＝鉄道/船の持続需要を生む（史実：輸送財の需要増）。
+/// 金は 買い手pop→生産者の④の持分（出力の割合で按分＝輸出代金と同じ売上の経路・InternationalMarket.PaySales）で移転＝保存（BaseMoney不変）。積んだ容量が交易量を律速する（<see cref="InternationalMarket"/>＝清算の本体は BilateralMarket.cs）。
+/// </summary>
+````
+
+## L13 T `var rm = Instruments.On ? Instruments.RailMonthBegin(w, c) : null;`
+````
+// (1097) 計器（読むだけ・段 R の門 G2・G7＝敷きの前後の州の線路を計器が自分で読む）
+````
+
+## L15 T `{`
+````
+// ★(1097) 段 R：減耗は州の線路へ（国の欄は読まない・書かない）
+````
+
+## L18 T `else w.RailCapacity = System.Math.Max(0, w.RailCapacity * (1 - c.TransportDecay));`
+````
+// 減耗（鉄道は0スタート）
+````
+
+## L21-22 W 直後 `double railGate = Discovery.RailTransport(w.Discovered) ? 1.0 : 0.0;`
+````
+// 鉄道は発見で解禁（史実1820s〜）：機関車を見つけるまでは内陸輸送が道路/河川（基準値）のみ＝序盤の内陸交易は強く絞られる。船（帆船＝海運）は古来あり据え置き。
+// ★鉄道輸送の門＝発見の表の「機関車」の行（2026-10-01 (150)・旧＝技術水準の時計の傾斜 RailGate(TechLevel)）。2値＝敷設の速さは容量を買う予算と財（市場）が持つ。
+````
+
+## L25-30 W 直後 `double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);`
+````
+// ★2026-09-27（回4-3 の再挑戦・作者裁定 2026-09-26 (3)「汽船の性能を上げるべき」）：汽船の性能を、植民地補給線と同じ機関の時代係数から導く。
+//   era＝EraFactor(前線技術, EraColonyCoal)＝運賃革命のランプ（前線 1.7〜2.9）に沿って 1.0→0.5（複式機関1860年代→三段膨張1880年代・史実の石炭/馬力時は約4ポンド→1.5ポンド）。
+//   ①汽船1単位の容量＝TransportCapPerUnit×ShipTier2CapMult×その州の汽船の解禁度（BuyToward の注記）÷era（解禁度1で 2.5→5.0）＝同時代の換算「汽船1トンは帆船3〜5トン分を運ぶ」
+//     （速さ 8〜10ノット対 帆走の実効 4〜5ノット・天候に左右されない定期性・港の回転・スエズ1869を通れる・1880年代の鋼の船体の大型化。
+//      英〜印の往復＝帆船のケープ回り年1回に対し、スエズ経由の汽船は年約3回）。②容量あたりの燃料＝ShipFuelRate×era（同じ石炭で2倍運ぶ）。
+//   ⇒ 解禁度1の汽船1隻が月に焚く石炭（容量×燃料率）は era に依らない＝性能の上がった分だけ容量単価が下がる。新しい係数・状態は無い（era は補給線と同じ1本・解禁度は軍の装備と同じ1本を読むだけ）。
+````
+
+## L32 T `double shipBefore = w.ShipCapacity;`
+````
+// 減耗の後・購入の前の容量
+````
+
+## L34-37 W 直後 `if (shipAdd > 0)`
+````
+// 運用コスト監査2026-08-16 #3（汽船の運行燃料）：ShipCapacity は帆船と汽船の合算＝購入後に区別が消える。燃料需要＝ShipFuelRate×era×ShipCapacity×汽船の割合。
+// ★2026-09-26（回4-3・項目8）：汽船の割合を平滑値（旧 ShipSteamShareSmoothing）でなく、容量の在庫に占める汽船の容量そのものにする
+//   ＝（汽船の割合×購入前の容量＋今月の汽船の容量）÷購入後の容量。減耗（上）と戦災（Diplomacy の輸送容量の戦災）は帆船と汽船に同じ率で掛かる＝割合を変えない。
+//   燃料の係数の門の外で常に更新する。Min(1) は丸めの守り（定義上1を超えない）。
+````
+
+## L41 T `w.ShipSteamShare = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);`
+````
+// NaN は帆走の側へ
+````
+
+## L46-47 W 直後 `internal static double Target(World w, Coefficients c)`
+````
+/// <summary>★(1097) 輸送の目標容量（鉄道と船の買いの目標・旧＝Step の局所の式をそのまま純関数へ＝同じ式・同じ順）。人口×TransportTargetPerPop×(1＋脅威の項)×(1＋混雑の項)。
+/// 読み手＝Step（鉄道の門を掛けて鉄道の目標・そのまま船の目標）と清算（段 R の φ の分母 need＝これ×州の取り分・門なし）。</summary>
+````
+
+## L50 T `double target = w.TotalPopulation * c.TransportTargetPerPop;`
+````
+// 経済規模に応じた目標容量
+````
+
+## L51-53 W 直後 `if (c.ThreatRailTargetWeight > 0 && w.SecurityThreatOwnMass > 1e-9)`
+````
+// ★安保doc手順3（2026-08-30点火＝既定1.0）：国防の目的関数＝受けている脅威が大きいほど目標容量を積む（戦略鉄道の一般化＝路線を1本も定義しない）。
+//   脅威比＝前期の SecurityThreat/SecurityThreatOwnMass（無次元・★(155) 安全保障の不安＝届く敵意の養える軍÷自国の養える軍）。target×(1+k×脅威比)＝民間項（上）に**乗せるだけ**＝どの路線かは書かない。
+//   ⚠正のフィードバック（鉄道→脅威→鉄道）は国庫の有限性だけが歯止め。0＝この分岐を通らない＝厳密恒等。
+````
+
+## L59-60 W 直後 `if (c.TransportCongestionWeight > 0)`
+````
+// 接3（監査2026-07-11・2026-07-25休眠配線・2026-07-27点火＝既定1.0）：混雑シグナル（輸送律速率）を目標へ接続＝交易集約の小国は容量を積み増し、
+// 交易の乏しい人口大国は使わない容量へ資金を誤配分しない。混雑＝活動州の(1−律速率)平均（港湾の混雑ゲートと同じ状態量）。0＝不読＝厳密恒等。
+````
+
+## L70-70 W 直後 `internal static double RailTrackSum(World w)`
+````
+/// <summary>★(1097) 州の線路の和＝旗 RailByRegion＝1 の <see cref="World.RailCapacity"/> の読み口。</summary>
+````
+
+## L78-78 W 直後 `internal static double RailPhi(double track, double need)`
+````
+/// <summary>★(1097) 段 R の充足 φ＝min(1, T÷need)（陸の脚の荷のうち線路で運ぶ割合）。否定形の守り：need が正でない（0・NaN）なら T＞0 で 1・それ以外 0。NaN の比は 0。</summary>
+````
+
+## L86-86 W 直後 `internal static void WearRail(World w, double wear)`
+````
+/// <summary>★(1097) 戦災の鉄道の分（Diplomacy の輸送容量の戦災の 1 行）：旗 0＝国の容量に (1−率)・旗 1＝全ての州の線路に同じ率（交戦した州だけにはしない＝州ごとの前線の量が無い）。</summary>
+````
+
+## L91 T `if (Instruments.On) Instruments.RailWar(w, wear);`
+````
+// (1097) 計器（読むだけ・失いの記録）
+````
+
+## L97-98 W 直後 `internal static double TakeRailForMove(World from, Region r, double sh)`
+````
+/// <summary>★(1097) 割譲・建国で州が出ていくときの鉄道の移し（Territory.TransferRegion）：旗 0＝送り手の国の容量×取り分を引いて返す（受け手は Receive で足す・(118)）。
+/// 旗 1＝線路は州の欄（Region.RailTrack）で州について行く＝国の容量は動かさず 0 を返す。計器は移しの頭と終わりで州の線路を自分で読む（門 G4）。</summary>
+````
+
+## L112-120 W 直後 `internal static double PreRailCapacity(World w, Coefficients c) => w.TotalPopulation * c.T`
+````
+/// <summary>★鉄道以前の陸の容量（道路・河川・運河＝国の値・2026-10-02 (166)）＝人口×<see cref="Coefficients.TransportTargetPerPop"/>（経済規模に応じた基礎の目標容量と同じ物差し）。
+/// 清算（BilateralMarket の内陸の容量＝鉄道の容量＋これ）と画面（貿易タブの「基本輸送力」）が同じ1本を読む。
+/// ⚠旧＝国ごとの定数 TransportBaseline 50（デンマークも清も同じ 50）＝分子と分母の非対称（潜在の交易は国の規模で増えるのに容量は国の数で決まる）
+///   ＝鉄道の前の大国の内陸の州の通した割合が 0.26〜10%（1784 の5種の中央＝英 1.0%・仏 0.42%・清 0.26%・露 2.8%・墺 2.0%・普 6.6%・米 10%＝(166) の計器・(165) の木の5種）＝陸の運賃が天井（100）に張り付いた。
+/// ★人口×基礎の目標（推奨で進めた）＝鉄道の前の通した割合 英 0.68・仏 0.36・普 0.71・墺 0.76・露 0.94・米 0.45・日 1.00・清 0.96・オスマン 0.69（同じ読み・10種の中央・1784）
+///   ＝史実の向き（仏の内陸の輸送は悪い・英は運河と有料道路が混む・日は沿岸の海運）。鉄道の時代の基礎の目標（人口×TransportTargetPerPop）と同じ物差し＝新しい係数を置かない（TransportBaseline は削除）。
+/// ⚠(167) 反証役の指摘＝同じ係数で2つの物理量（鉄道の容量の目標・鉄道以前の陸の容量）を読む隠れた結合＝鉄道÷鉄道以前の比は脅威の項と混雑の項だけで決まる。
+///   (166) の量の錨（英の鉄道以前 2,376÷1913 の鉄道 約108,000＝2.2%・史実の内陸の貨物 5〜8%【推】）は英1国で、英の鉄道は脅威の項で×11〜31 に膨らんだ値に乗っている【推】
+///   ＝脅威の項を直すと錨も動く。面積・距離の項は無い（露 0.94・清 0.96 はほぼ絞られない）。</summary>
+````
+
+## L123-126 W 直後 `internal static (double Even, double TotalPot) ShareBasis(World w, Coefficients c)`
+````
+/// <summary>★州の取り分の規則の1本（2026-09-30 (118)）＝国の輸送の容量のうち州が使う割合の基底（国ごと）。
+/// 清算（BilateralMarket の港と鉄道の容量）と州の移し替え（<see cref="Territory.TransferRegion"/>＝容量が州と一緒に移る）が同じ規則を読む。
+/// 均等割り＝活動州の数の逆数・潜在量比例（旧の旗 TransportShareByPotential=1 は 2026-10-18 に焼き込み）・潜在量の和＝活動州の LastTradePotential（負は0・四半期の最初の清算が書いた値＝2026-09-30 (130)）。
+/// 潜在量の和が痩せたら（開幕・実績なし）均等へ倒す＝<see cref="RegionShare"/> が読む。</summary>
+````
+
+## L136-137 W 直後 `internal static double RegionShare((double Even, double TotalPot) b, Region r)`
+````
+/// <summary>州の取り分＝州の潜在量÷潜在量の和（潜在量の和≦1e-9 なら均等）。基底は <see cref="ShareBasis"/>。
+/// （旧の式 (1−k)×均等＋k×州の潜在量÷潜在量の和 は k=1 で (1−1)×均等＝0 を足していた〔均等が有限なら厳密恒等〕。）</summary>
+````
+
+## L141-142 W 直後 `internal static void Receive(World to, double rail, double ship, double steamShare)`
+````
+/// <summary>★移ってきた容量を受け取る（2026-09-30 (118)）＝割譲・再併合・建国で州と一緒に来た鉄道と船。汽船の割合は容量で加重して混ぜる
+/// （汽船の割合は容量の在庫に占める汽船＝Step の注記と同じ定義）。</summary>
+````
+
+## L146 T `if (!(ship > 0)) return;`
+````
+// 否定形＝NaN も受け取らない
+````
+
+## L149 T `to.ShipSteamShare = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);`
+````
+// NaN は帆走の側へ（Step と同じ守り）
+````
+
+## L153-156 W 直後 `private static void BuyShipFuel(World w, Coefficients c, double era)`
+````
+// #3 汽船の運行燃料（運用コスト監査2026-08-16）：商人pop（船の買い手＝BuyToward と同じ選択）が地元市場から石炭（または重油＝
+// Colonial B6 の二択・供給実在ガード込み）を買って焚く。決済は BuyToward の船購入と同一パターン（需要計上→在庫/財布律速→
+// 生産者の持ち主へ出力の割合で支払い＝pop→pop 移転で保存・LastSold 計上で財収支を保つ）。呼び手が ShipFuelRate>0 でゲート済み。
+// era＝機関の時代係数（Step の注記）＝容量あたりの燃料は era 倍（三段膨張の時代は半分）。
+````
+
+## L159-160 W 直後 `double totalWant = c.ShipFuelRate * era * (w.ShipCapacity - Colonial.OccupiedShipCapacity(`
+````
+// ★R4（2026-10-02 (173)）：植民地の補給線が占有している船腹（Colonial.OccupiedShipCapacity）の燃料は国庫が補給線として買う（Colonial.Step）＝商人は交易に使える容量の分だけ焚く
+//   （旧＝商人が全ての船腹を焚き、国庫も補給線の石炭を別の物差し〔400×距離×質量〕で買った＝同じ船腹を2度焚いた・思想⑨）。
+````
+
+## L161 T `double totalWant = c.ShipFuelRate * era * (w.ShipCapacity - Colonial.OccupiedShipCapacity(`
+````
+// 帆走のみ（割合0）なら需要ゼロ
+````
+
+## L162 T `if (!(totalWant > 1e-9)) return;`
+````
+// 否定形＝NaNも不走行側へ
+````
+
+## L166 T `double per = totalWant / regCount;`
+````
+// BuyToward と同じ州按分（1州あたりの希望量）
+````
+
+## L169 T `int buyerIdx = r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex;`
+````
+// 船＝商人が負担（BuyToward と同一の選択）
+````
+
+## L172 T `var (fuelG, want) = Colonial.ChooseFuelGood(r, c, per);`
+````
+// 石炭→重油の二択（海軍・植民地補給線と同式）
+````
+
+## L173-175 W 直後 `InternationalMarket.Procure(w, r, fuelG, want, buyer);`
+````
+// 汽船が焚く＝市場の外の買い付けの1本（InternationalMarket.Procure・段4e K）＝需要の計上（在庫が無くても＝鶏卵回避）・買い手の貯蓄まで・販売（LastSold）・
+//   代金は④の持分（★2026-09-26 回4-3・econ-12＝旧は最初の生産者の持ち主へ全額／★段3-1 C4＝地代・国営持分・賃金＝Earned を通す）。
+//   生産者が居ない（在庫は輸入の在庫）なら在庫の持ち主＝捌き手の商人へ（段2-2 の A2 と同じ規則）。買い手が商人なら自分の在庫を使うだけ（払って受け取る＝純0）。
+````
+
+## L180-197 W 直後 `private static (double Total, double Steam) BuyToward(World w, Coefficients c, int[] goods`
+````
+// 目標容量へ向けて鉄道/船を国内市場から購入→容量を積む。**鉄道＝投資家（資本家）・船＝商人**が負担：
+// 商人は貿易と流通で稼ぎ、商船を買って海運を支える（交易↑→商人が富む→商船↑→さらに交易↑の自己強化）。
+// 在庫が無くても希望量を需要に計上＝生産を立ち上げる（鶏卵回避）。買えた分だけ容量に変換（在庫消費＝非貨幣）。金は買い手pop→生産者の持ち主で保存。
+// ★2026-09-26（回4-3・項目8・econ-12）：船は州ごとに「容量1あたりの総費用」が安い1財だけを欲しがる（旧＝帆船と汽船を同じ単位数ずつ・値段を見ない）。
+//   帆船＝値段÷TransportCapPerUnit。汽船＝値段÷(TransportCapPerUnit×汽船の容量倍)＋寿命（1÷TransportDecay か月）の間に焚く燃料の代金
+//   （ShipFuelRate×era×燃料の値段÷TransportDecay・燃料は石炭か重油の安い方＝Colonial.ChooseFuelGood と同じ二択）。
+//   汽船の容量倍＝ShipTier2CapMult×その州の汽船の解禁度（Discovery.GoodGate＝製法の発見ゲート・発見の唯一の読み口）÷era（Step の注記）。
+//   ★2026-09-27（回4-3 の再挑戦）：解禁度は「その州で汽船を外洋で使いこなせる度合い」＝（当時は技術水準 0.5→1.5 で 0→1・今は発見の門 Discovery.GoodGate が持つ）（英は1810年代の沿岸の外輪船→1838年のシリウス・グレート・ウェスタン号の大西洋横断→1840年のキュナード）。
+//   ⇒ 燃料が高い州・時代は帆船に戻る（転換は費用で起きる）。
+//   汽船は、その州で汽船が発見済み（解禁度＞0）で、かつ供給が実在するとき（在庫があるか、今月の生産か輸入が正）だけ候補に入る（ChooseFuelGood の供給の確かめと同じ作法）
+//   ＝作れない時代に汽船の幻の需要は立たない（⚠在庫だけでは足りない＝全州が開幕に汽船200単位を持つ・Simulation.CatalogEconomy の一律の初期在庫）。
+//   同値は帆船（先に並ぶ方）。鉄道（線路と機関車）は補完財なので両方を同じ単位数ずつ（今のまま・era は読まない）。
+//   量＝州の不足の容量を、選んだ財の1単位の容量で割った単位数。
+// 戻り値＝今月積んだ容量の（合計, うち汽船tier2分）。Step が汽船の割合（World.ShipSteamShare）を更新する。
+// ★(1097) 段 R（旗 RailByRegion＝1・鉄道だけ）：州 r の投資家が、その州の不足へ買って州の線路 T_r に積む（送電網の州の在庫と同じ形）。
+//   欲しい容量＝TransportBuildRate×max(0, need_r−T_r)＋TransportDecay×min(T_r, need_r)（置換は need の分まで＝need が下がれば余りは減耗で落ちる・片方向の錠を作らない）・
+//   need_r＝target（鉄道の門を掛けた物）×州の取り分（RegionShare）。欲しい単位（財ごと）＝欲しい容量÷TransportCapPerUnit×地形_r÷財の数・積む＝買えた単位×TransportCapPerUnit÷地形_r
+//   （地形_r＝TerrainRailCost＝山の州は同じ買いで短い・RailLayTerrain＝0 なら 1）。買い付けは今の Procure の 1 行（同じ買い手・同じ市場）。
+````
+
+## L202 T `double perGood = default;`
+````
+// 0.0（数字で書くと財の番号の番人 GoodIdGuardTests が財の id の代入と読む）
+````
+
+## L206 T `if (!(target > 0)) return (0, 0);`
+````
+// 否定形＝門が閉じている（未発見）・NaN は買わない
+````
+
+## L212 T `double gapUnits = (target - cap) * c.TransportBuildRate / c.TransportCapPerUnit;`
+````
+// 今月詰めたい総単位数（1単位＝TransportCapPerUnit の容量で数える）
+````
+
+## L217 T `perGood = rail ? gapUnits / regCount / goods.Length : gapUnits / regCount;`
+````
+// 1州1財あたりの希望単位（船は選んだ1財だけ）
+````
+
+## L226 T `double tPre = r.RailTrack;`
+````
+// 減耗の後・買う前
+````
+
+## L232 T `if (!(terrLay > 0)) terrLay = 1.0;`
+````
+// 否定形＝0・NaN の表は地形なしへ（0 で割らない）
+````
+
+## L236 T `if (!(perGood > 1e-9)) { rm?.Post(r, 0.0); continue; }`
+````
+// 否定形＝NaN も買わない
+````
+
+## L240 T `double steamGate = rail ? 0.0 : Discovery.GoodGate(r, c.ShipTier2GoodId);`
+````
+// 汽船の解禁度（0..1・NaN は0）
+````
+
+## L241 T `double steamMult = c.ShipTier2CapMult * steamGate / era;`
+````
+// 汽船1単位の容量倍（era≥0.05＝EraFactor の床で有限）
+````
+
+## L242 T `int pick = -1;`
+````
+// 船：この州で容量あたりの総費用が最も安い財
+````
+
+## L251 T `if (steam && !(steamGate > 0 && (mg.Stock > 1e-9 || mg.LastProduced + mg.LastImport > 0)))`
+````
+// 未発見か、汽船の供給が実在しない州では候補にしない
+````
+
+## L255 T `var (fuelG, fuelQty) = Colonial.ChooseFuelGood(r, c, 1.0);`
+````
+// 石炭1の熱量あたりの燃料（重油なら1/比）
+````
+
+## L266 T `double mult = (!rail && gi == c.ShipTier2GoodId) ? steamMult : 1.0;`
+````
+// 汽船=tier2＝1単位あたり容量が大（蒸気船の革命・時代とともに伸びる）
+````
+
+## L267 T `double want = perGood / mult;`
+````
+// 同じ容量に要る単位数（汽船は1/steamMult）
+````
+
+## L268-269 W 直後 `double buy = InternationalMarket.Procure(w, r, gi, want, investor);`
+````
+// 買い付けは燃料と同じ1本（InternationalMarket.Procure・段4e K）＝需要の計上（在庫が無くても＝生産を駆動＝鉄道/船の需要が上がる＝史実・ブートストラップ）・
+//   買い手の貯蓄まで・販売（LastSold＝在庫減を販売として記録し§11.6財収支を保つ）・代金は④の持分（econ-12・段3-1 の C4）。
+````
+
+## L273 T `if (byReg) { r.RailTrack += add / terrLay; boughtUnits += buy; }`
+````
+// ★(1097) 段 R：州の線路へ（地形の分だけ短い）
+````
+
+## L276 T `if (!rail && gi == c.ShipTier2GoodId) addSteam += add;`
+````
+// 汽船の割合（容量加重）の分子
+````
+
