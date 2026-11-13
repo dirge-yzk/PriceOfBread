@@ -140,3 +140,10 @@ dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQuali
   - ZeroPopSkipTests.cs:21：`CostLedger.DeadMarketMonth + 1 == Count`＝★(749) の〈行を足す線は最後の行の名を直す〉型（SecessionLaborLawInstrumentTests.cs:280 と同じ・事前登録 §6 の予言から漏れた）。最後の行の名を ClearingKmRaw へ差し替えた（件数だけの行の単価 0 の検査の範囲は変えない）。
   - DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま・.世界の合計の巡回は旗が正のときだけ走り_台帳に数える：単独でも、この線の試験と一緒でも緑（10／10・18／18）。MultiNationSim.cs:594 の `clockOn || Instruments.On` が全体の静的な Instruments.On を読む＝計器を立てる試験（Instruments の集まり）と並列に走ると世界の合計が入る＝並列の競り合い。この線の試験（計器を 4 四半期立てる G3 ほか）で重なる窓が長くなった。DiscoveryClockTests.cs は c105ix の持ち物（〈DiscoveryClockTests の集まり〉）＝この線では触らない・合流へ申し送る。
 - 直した後、フルスイートを回し直す（区分の名乗れない赤が残れば腕 B を回さない）。
+
+== 追記 5（2026-11-13・腕 B の前）
+- G7 の下側に〈g7ExcessRows＞0〉を足す（旗 0 では 0 件で通っていた＝空の母集合で緑にしない）。
+- ㉗：G1′（発見後の側で倍率が旧の式と違う割合≧0.01）は、予言〈発見から 1〜2 年で φ＝1 に追いつく〉と同じ桁の閾＝trroute は 10 年ごとの断面で、立ち上がりの年を拾う断面は少ない＝機構が働いていても落ちうる。
+  それでも回す理由：φ＜1 の側は立ち上がりのほか、投資家の乏しい州・need の跳ね（脅威と取り分の移り）でも出る＝定常でも 0 ではない見込み。落ちたら採らない（3 回の規則の 1 回目）＝門は替えない。
+- 記録として並べる（門にしない）：trrail の g1ZeroSides を needEnd＞0 の州×年に限った数（発見の後の T＝0 の側）・旗 0（ident の腕 b の trrail）の同じ数。
+- leakhunt は旗 1 の木で種 1789 の全長（668 四半期＝発見と線路の運賃を含む）でも回す（200 四半期は種 1789 で発見の前に終わりうる）。
