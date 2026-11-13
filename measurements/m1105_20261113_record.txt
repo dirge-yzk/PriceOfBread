@@ -1,0 +1,30 @@
+(1105) c106im 計器 86 本の移動  記録 2026-11-13（HEAD a5eb6f88c の木で測った・この記録のコミットはテストと台本に触れない）
+
+[IL のバイト比較（主の証明）]
+  同じ絶対パスの木 D:/PoB_work/wt_c106im で、前（de633051e＝ffb383805 に事前登録のファイル 1 本だけ足した物＝コードは同じ）と後（2e29cbd91 の git mv）を順に建てた。
+  命令：dotnet build PriceOfBread.SimCore -c Release -p:Deterministic=true -p:DebugType=none -p:IncludeSourceRevisionInInformationalVersion=false
+  結果：SimCore.dll の sha1 は前後とも 66abb652d4c6c40677b410c3b37a39d9740918b1・cmp の差 0 バイト（7,858,688 バイト）＝一致。第 2 の証明は要らない。
+  canary の読み：初回は -p:IncludeSourceRevisionInInformationalVersion を付けず、InformationalVersion の中のコミットの名（40 字の十六進）と MVID と PE の時刻の 98 バイトだけが違った（コードの差ではない）。付けて再び建てて 0 バイト。
+  再現の台本：D:/PoB_work/c106im_work/il.sh（<名> <ref> を同じ木で checkout して建て、c106im へ戻す）。
+
+[走査の番人のファイル数（前→後）]
+  直下の走査 7 件：SimCore の直下 *.cs 174 本 → 直下 88 本＋Instruments/ 86 本＝174 本（同じ）。
+  TechLevelRemovalTests:68（Instruments*.cs）：86 本 → 86 本。AllDirectories の番人は母集合が変わらない。許可表・件数は 0 件の書き換え。
+
+[テスト]
+  ㉘ の束（15 クラス）：合格 263・失敗 0（隔離ビルド D:/PoB_work/c106im_art）。
+  フルスイート Category!=FullLength：合計 2809・合格 2808・スキップ 1（TechInstitutionTests の既存のスキップ）・失敗 0（trx）。予言 2808+1 のとおり。
+  FullLength：3・失敗 0。
+  足したテスト：PriceOfBread.Tests/InstrumentsPlacementTests.cs 1 本（計器はInstrumentsフォルダの下にあり_SimCoreの直下に無い）＋補助 TopAndInstruments（走査の 7 か所が共有）。
+  書き換えたテストの行：CalendarTests.cs:77・FactoryEquipmentTests.cs:506・FoodLedgerTests.cs:276・IndustrializationReaderTests.cs:34・:81・OnDoubleReadScanTests.cs:118・WriterRatchetTests.cs:34（走査の入口を〈直下＋Instruments/〉へ）・TechLevelRemovalTests.cs:68（Instruments/ の下を読む）・CorncfInstrumentTests.cs:309・LordstatInstrumentTests.cs:163・ScalarDeletionTests.cs:185（パス）。区分は〈番人を写しただけ〉（機構の向き・大きさ・判定・母集合の Assert は変えていない）。
+
+[突然変異（使い捨ての木 D:/PoB_work/c106im_work/mut・消した）]
+  MU1 Instruments/InstrumentsClock.cs に FoodMet への書き手を足す → FoodLedgerTests.T0_ラチェット_FoodMetの書き手は増えない が赤。
+  MU2 Instruments/InstrumentsDsc.cs に techLevel の字を足す → TechLevelRemovalTests.計器の列に技術水準が無い が赤。
+  MU3 SimCore の直下に InstrumentsX.cs を置く → InstrumentsPlacementTests.計器はInstrumentsフォルダの下にあり_SimCoreの直下に無い が赤。
+  3 本を同じ木に入れて回した（84 件中 失敗 3＝上の 3 本だけ）。WriterRatchetTests は FoodMet の表を持たないので緑のまま（MU1 は FoodLedgerTests が受ける）。
+  MU4 stage.py：scripts/instruments/ident/stage_selftest.py に Instruments/InstrumentsX.cs → 段 2 のケースと、条件を外す突然変異（MU4＝赤を確認 5 件）を足した。selftest は全部期待どおり。
+
+[ident]  measurements/m1105_20261113_ident_c106im.txt（check の出力）。判定: 恒等（段 2・素の 5 種と計器つき 10 種が m1103 と全行一致・.cost 推定 230.5／230.3 秒＝m1103 と同じ・計器の表 1437 本はバイト一致 1417＋既知の揺れ 20・savetest OK・leakhunt 違反なし）。
+  腕の枠：c106ui と c106cf の ident が走っていて空きが 2 だったので、c106ui の a が終わって 3 になるまで待った（約 4 分×4 回）。
+  生：D:/PoB_work/ident_c106im（刈った後の残り）。
