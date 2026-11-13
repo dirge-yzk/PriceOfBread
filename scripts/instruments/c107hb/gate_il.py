@@ -39,10 +39,13 @@ def build(il, out):
     art = 'D:/PoB_work/c107hb_art_il'
     run(['dotnet', 'build', 'PriceOfBread.SimCore/PriceOfBread.SimCore.csproj', '-c', 'Release', '-nologo', '-v', 'q',
          '-p:DebugType=none', '-p:DebugSymbols=false', '-p:Deterministic=true', '--artifacts-path', art], il)
+    # 実体の dll（bin 側）を取る。obj の ref／refint は参照用で本体が無い（初版はこれを拾って 718336 バイトで一致と誤った）
     dll = None
     for dp, dn, fn in os.walk(art):
-        if 'PriceOfBread.SimCore.dll' in fn and os.sep + 'release' in dp.lower().replace('\\', os.sep):
+        d = dp.replace('\\', '/') + '/'
+        if 'PriceOfBread.SimCore.dll' in fn and '/bin/' in d and '/ref' not in d:
             dll = os.path.join(dp, 'PriceOfBread.SimCore.dll')
+    assert dll and os.path.getsize(dll) > 2000000, dll
     shutil.copyfile(dll, out)
 
 
