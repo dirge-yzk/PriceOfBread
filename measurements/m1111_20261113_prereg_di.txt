@@ -57,3 +57,9 @@
   4 試験：エンジン＋画面の合計＝上の予言・失敗 0。エンジンの試験のビルドが App を建てない（obj/project.assets.json に PriceOfBread.App が無い）。
   5 savetest・leakhunt 合格。
   〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
+
+[追記 1]（実装の途中・ident の前・結果を見る前）
+  足す試験が 3 本になった：DisplayUnitTypeTests 2 本（Tests.Ui）＋SourceScanCoverageTests 1 本（Tests・走査の番人の一覧に PriceOfBread.Display が書いてあること・M3 で赤）。
+  試験の数の予言（改）：非 FullLength 2823＋3＝2826・FullLength 3 は変わらず。差 +3 は足した 3 本だけ。
+  突然変異の台本：scripts/instruments/c107di/mut_il.sh（M1・M4）・mut_tests.sh（M2・M3・M3b・M5・M6）。結果は measurements/m1111_20261113_di_mut_*.txt。
+  IL の写しの正規化：合成の型（名前が < で始まる型＝<Module>・<PrivateImplementationDetails>・<>z__ReadOnlyArray など＝アセンブリごとに同じ物を持つ）は塊で並べ重複を畳む。
