@@ -1,0 +1,7 @@
+(1100) c105ix 突然変異の記録（使い捨ての木 D:/PoB_work/c105ix_work/mut・どれも元へ戻した）
+M1 InstrumentsArms.cs の Σfill から小銃を落とす（小銃の FillContribShare を 0・fillTot へ足さない）→ InstrumentsArmsTests.A1 が赤（A2 は緑）。
+M2 FiscalTables.cs の tradeBalance の行を消す（if (false)）→ DisplayTradeReadersTests.貿易収支の行… が赤（世界価格比の試験は緑）。
+M3 TradeTables.cs の ×ExchangeRate を外す → DisplayTradeReadersTests.為替が1でない盤面… が赤（貿易収支の試験は緑）。
+M4 InstrumentsRecipeout.cs の dividedNow を 0 に固定 → RecipeoutInstrumentTests.T6（新）だけが赤。T4 は旗 0 の計器の列だけを見るため緑のまま＝穴を T6 で埋めた。
+M5 DiscoveryClockTests の [Collection("Instruments")] を外し、Instruments の束（Recipeout・InstrumentsArms・InstrumentsTests）と並べた → 60 本全て緑＝★(1096) の赤は戻らなかった（時間の重なり次第の競合で、1 回では再現しない）。
+   属性を付けた状態の同じ束は緑（㉘ の束 143 本合格）。

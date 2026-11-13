@@ -1,0 +1,36 @@
+(1100) c105ix 恒等の小物の束 事前登録（最初のコミット・腕の前）
+署名: Claude Sonnet 5.5
+
+[1] 恒等の線・予言 0
+  エンジンの挙動 0・新しい係数 0・新しい状態 0・旗 0。足すのは計器の表 armsfill_s と試験だけ。
+  合否＝〈判定: 恒等〉（足した表 armsfill_s を除く）で m1087 の成績表（素の 5 種・計器つき 10 種）と全行一致。
+  行が動くファイルの経路の名は〈ident_check.py の行の写しで違い 0〉と宣言する。
+  .cost の件数の差 0。
+
+[2] 足す物と持ち主・読み手の grep
+  足す物: InstrumentsArms.cs（新・表 armsfill_s＝四半期の末・計器の国・首都の州）／Instruments.cs の CenterFold の隣に呼び口 1 行。
+  列: 財ごと（小銃・弾薬・火砲・馬）14 列ずつ・国ごと 12 列（仕様 measurements/m1092_20261113/report.txt:91〜）。
+  エンジンの [NonSerialized] の受け口: 要る時だけ。第一案は足さない（四半期の末の断面だけで組む）。orderQty と gotQty は
+    末の断面から作り直した値（月初の武器庫の在庫は戻せない）＝報告に〈再構成〉と名乗る。
+  消す物: なし。読み手の grep: 新しい表なので既存の読み手 0（SaveGame の名前の表・POB_COEF の名前・Runner・App・Display は触れない）。
+  他の線との重なり: Instruments.cs の呼び口 1 行・Simulation.cs は触れない見込み・DiscoveryClockTests.cs の属性 1 行・
+    RecipeoutInstrumentTests.cs は末尾に試験 1 本・画面の試験は新しいファイル。Model.cs・World.cs・EconomyStep.cs・Coefficients.cs は触れない。
+
+[3] 足す試験と、それぞれを赤にする突然変異
+  T-A1 自己整合: Σ fillContrib ÷ Σ want ＝ capitalEquipFillShare（stock_s と同じ四半期・1e-9）。突然変異 M1＝Σfill から 1 財を落とす → 赤。
+  T-A2 自己整合: 兵÷69.125×暮らし×装備×質×結束×軍国×技術×(1−NS)×熟練 ＝ landPowerIndex。
+  T-D1 画面 1: tradeBalance の行が TradeTables の輸出入の配列から紙の式 (Σ輸出−Σ輸入)÷MonthsPerClearing と一致。
+        突然変異 M2＝FiscalTables.cs の tradeBalance の行を消す → 赤。
+  T-D2 画面 2: ExchangeRate≠1 の盤面で、世界価格比＝首都の相場×為替÷世界価格。突然変異 M3＝TradeTables.cs:72 の ×ExchangeRate を外す → 赤。
+  T-B1 B′ 旗 1: 旗 1 の盤面で unitCostIfBprime ≈ エンジンの mc（対照の件数の下限つき）。突然変異 M4＝dividedNow を 0 に固定 → 赤。
+  DiscoveryClockTests に [Collection("Instruments")]。M5＝属性を外して Instruments の束と並べる → ★(1096) の赤が戻ることを記録。
+  期待は紙の式で作る（★(1035)）。何もしない計器は 0 で緑になる＝各試験に〈正の行の数〉の下限を置く。
+  ソースを走査する番人の点検（㉘）: IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器の直後に回す。
+    書き換える件数の予言（㉑）: 0 件（許可表・宣言の表・new MoneyStock( の件数は変えない）。route_anchors.tsv の鍵の行は書き足さない。
+  テストの数の予言: Category!=FullLength は 2790 → 2795（+5）・FullLength 3 のまま。
+
+[4] 帯の予言
+  素の 5 種・計器つき 10 種は m1087 と名乗り行を除いて全行一致。計器の表の差は armsfill_s の追加だけ（--added-tables armsfill_s）。
+  浮動小数の順序が変わる箇所: なし（エンジンを触らない）。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ呼び口を外して報告に回す。

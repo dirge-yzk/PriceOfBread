@@ -291,4 +291,34 @@ public class RecipeoutInstrumentTests
         try { Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, $"recipeout_s{Seed}.tsv"))); }
         finally { restore(); }
     }
+
+    /// <summary>
+    /// (1100) B′ の列の旗 1 の試験（(1079) の反証役 v）：旗 EndowmentCostFollowsAbundance=1 の盤面で、計器の案 B′ の列 unitCostIfBprime が**そのままエンジンの mc**（MineralSelfCost＋InputCostPerUnit）と合う
+    /// ＝旗 1 の盤面で既に割ってある分を計器が二重に割らない（dividedNow の項）。T4 は旗 0 の計器の列を旗 1 のエンジンと比べるだけで、旗 1 の計器の列そのものは見ていなかった。
+    /// 対照の件数＝旗 0 の盤面で割る数が 1 を超える（案 B′ の列が mc より小さい）生産者の数に下限を置く（何もしない計器・割る行の無い盤面で緑にならない）。
+    /// </summary>
+    [Fact]
+    public void T6_旗1の盤面の案Bプライムの列はエンジンの費用そのままで二重に割らない()
+    {
+        int dividedRows = 0, rows = 0;
+        foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
+        {
+            var w0 = Solo(cfg, new Coefficients()).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;
+            for (int ri = 0; ri < w1.Regions.Count; ri++)
+            {
+                var r0 = w0.Regions[ri]; var r1 = w1.Regions[ri];
+                for (int pi = 0; pi < r1.Producers.Count; pi++)
+                {
+                    var p0 = r0.Producers[pi]; var p1 = r1.Producers[pi];
+                    var x0 = Instruments.RoRead(w0, r0, p0); var x1 = Instruments.RoRead(w1, r1, p1);
+                    double engine1 = EconomyStep.MineralSelfCost(p1, r1, w1.Coef, w1) + EconomyStep.InputCostPerUnit(p1, r1, r1, w1.Coef);
+                    Assert.True(Close(x1.IfBprime, engine1, 1e-9), $"{cfg.Name}/{r1.Name}/財{p1.GoodId}：旗1の計器（案 B′ の列）{x1.IfBprime}・旗1のエンジン {engine1}");
+                    rows++;
+                    if (x0.IfBprime < x0.Mc * (1.0 - 1e-6)) dividedRows++;
+                }
+            }
+        }
+        Assert.True(rows >= 100, $"調べた行が少ない {rows}");
+        Assert.True(dividedRows >= 20, $"割る数が 1 を超える対照の行が少ない {dividedRows}");
+    }
 }

@@ -7,6 +7,7 @@ namespace PriceOfBread.Tests;
 /// （事前登録 measurements/dk_20261020_prereg.txt）。W0＝0（既定）＝(415) の式。W0 が正（技師の形の上）＝d＞0 の行の技術力＝70×S×C・S＝clamp((W÷(W0×d)−1)÷w＋1/2, 0, 1)
 /// （W＝世界の高度労働力の雇用の合計〔全ての財の和〕・全ての行と国で共通）・C＝A÷(A＋Am)（A＝自国の親の産業の技師）・押しは掛けない。d≦0 の行は今の式。
 /// 機構だけを検査する（W0・Am の値・解禁の年の並びは創発＝成績表が見る）。期待値は番人の側で手計算の数字か、生産者を直接たどって組む（本体の関数を使わない）。</summary>
+[Collection("Instruments")]
 public class DiscoveryClockTests
 {
     private static int Row(string name) => System.Array.FindIndex(Catalog.Discoveries, d => d.Name == name);
