@@ -1,6 +1,6 @@
 # (1116) 合流：00一覧・CURRENT・CURRENT_書庫・README・実装ログを書き換える（m1110/docs1110.py の型・バイトで読み書き・CR の数と BOM を保つ）。
 #   python -X utf8 docs1116.py <木> <合わせた木の短いコミット> <本文の置き場（m1116_work）>
-#   本文は置き場の row_s00.txt・row_s02.txt・row_next_head.txt・row_next0.txt・row_cur.txt・row_readme.txt・log_lines.md（合流の記録）から読む。
+#   本文は置き場の row_s00.txt・row_s02.txt・row_next_head.txt・row_next0.txt・row_cur.txt・row_readme.txt・log_all.md（線の記録と合流の記録）から読む。
 import sys, os
 T, H, W = sys.argv[1:4]
 def rd(p): return open(p, 'rb').read()
@@ -78,7 +78,7 @@ wr(p, (b'\xef\xbb\xbf' if bom else b'') + '\n'.join(L).encode('utf-8'))
 
 # 実装ログ（末尾に (1111)〜(1116)）
 p = os.path.join(T, 'docs/202609/99_実装ログ_20260903.md'); b = rd(p)
-add = rd(os.path.join(W, 'log_lines.md')).decode('utf-8')
+add = rd(os.path.join(W, 'log_all.md')).decode('utf-8')
 if not b.endswith(b'\n'): b += b'\n'
 wr(p, b + add.lstrip('\n').encode('utf-8') if b.endswith(b'\n\n') else b + add.encode('utf-8'))
 print('ok')
