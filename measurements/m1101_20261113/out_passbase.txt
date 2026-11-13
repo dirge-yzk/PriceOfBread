@@ -1,0 +1,12 @@
+M	mountainEnd	valueShare=2.42%	eqOverRealWeightedMedian=15	n=6929
+M	plainBoth	valueShare=21.66%	eqOverRealWeightedMedian=3	n=33126
+M	other	valueShare=75.92%	eqOverRealWeightedMedian=1.725	n=94917
+N1	mountainEnd	valueShare=2.92%	eqOverRealWeightedMedian=13.5	n=7498
+N1	plainBoth	valueShare=22.52%	eqOverRealWeightedMedian=3	n=33901
+N1	other	valueShare=74.56%	eqOverRealWeightedMedian=1.725	n=95587
+N2	mountainEnd	valueShare=2.69%	eqOverRealWeightedMedian=15	n=7389
+N2	plainBoth	valueShare=20.90%	eqOverRealWeightedMedian=3	n=32945
+N2	other	valueShare=76.42%	eqOverRealWeightedMedian=1.725	n=97253
+S11	mountainEnd	valueShare=2.68%	eqOverRealWeightedMedian=9.9	n=7482
+S11	plainBoth	valueShare=20.91%	eqOverRealWeightedMedian=3	n=33714
+S11	other	valueShare=76.41%	eqOverRealWeightedMedian=1.725	n=97761

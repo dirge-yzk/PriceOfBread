@@ -1,0 +1,69 @@
+(1101) c105s08 事前登録（読むだけ・腕 0・コミット 0・書いたモデル Claude Opus 5.5・2026-11-13）
+
+名乗り：この登録を書く前に見た生＝M の種 1 の flow_s の (kind, sourceFile, sourceLine) の件数の一覧だけ（輸送の書き手の行の有無を知るため）。他の表の数は見ていない。
+
+■ 判定の定義（S18・S14 と同じ型・結果を見る前に固定）
+- 働く：門か式が、当てはまる行（国×年・州×四半期・成約など、行ごとに名乗る）の 5% 以上に届き、4 腕とも値が 0 でない（または定数でない）。
+- 一部だけ働く：届くが 5% 未満／文書の述べる働きの一部の項が定数か 0（ソースで確かめる）／量が届く行の中央が 1e-6 未満。
+- 働かない：4 腕とも当てはまる行の 0%、またはソースで常に定数（恒等の項）。
+- 休眠：係数 0 か旗 0 で分岐に入らない。
+- 文書が古い：文書の述べる形がソースに無い（働く・働かないとは別に併記）。
+- 未確かめ：要る列が無く、ソースだけでは決まらない（計器の仕様を書く）。
+- 頻度：当てはまる行の中で門を越えた／値が 0 でない行の割合。4 腕（M・N1・N2・S11）の最小〜最大で書く。
+
+■ 判定の型（行ごとに 1 つ）：届かない門／読まれない欄／天井の錠／片側だけの門／両側の門／効き／頻度／不変条件／番人。
+
+■ 段0 の予言（ソースから・数を見る前）
+P1 運賃革命（H016）：InternationalMarket.cs:178 FreightRevolution＝1.0 固定＝scalars_s の freightRevolution は 4 腕の全ての行で 1＝働かない（文書が古い）。TransportRevolutionMax/Onset/Span は読み手が :590 の門だけ＝消す候補（倍率の一掃の分類 I と重なる）。
+P2 汽船の性能の時代の項（H032 の一部）：Coefficients.cs:3483 EraFactor＝1.0 固定＝÷era は恒等＝その項は働かない。容量・減耗・積む速さは働く。
+P3 海上保険の給付（H019 の一部）：World.cs:1329 LastBlockadeRisk に書き手が無い＝MultiNationSim.cs:1525 の給付は 0 件（flow_s に MultiNationSim.cs:1525 の行が 4 腕とも 0）。保険料（BilateralMarket.cs:1215）は働く。同じ欄を読む Diplomacy.cs:799（拿捕の損）・:2553（封鎖の厭戦）も 0（関連の機能＝S24 へ申し送り）。
+P4 陸路の直行（H002）：越境と国内の成約の額のうち陸直行（trbin の routeCode 0）が 5% 以上＝働く。
+P5 鉄道の門（H004・H035）：trnation の railGateFlag が 1 の国×年は 4 腕とも 0 でない・発見の年は国ごとにばらつく＝働く（2 値の門＝片側だけの門ではなく 0/1 の段）。
+P6 地形（H003）：trroute の両端の地形の係数は 1 以外の値を持つ行が 5% 以上＝働く。陸直行の途中の地形は読まれない（BilateralMarket.cs:108＝両端の平均だけ）＝一部（記録）。
+P7 運河（H022〜H024）：canal_s の開通は種ごとにばらつく。開通した種では配当（MultiNationSim.cs:1447 の give）が flow_s に出る。
+P8 港の建設（H026）：port_s の builtCapacity＞0 の州×四半期は蒸気機関の発見の後だけ・5% 以上かは不明（予言なし）。
+P9 凍結港（H028）：計器の列が無い（r.LastPortFrozen は計器に出ていない見込み）＝未確かめ（ソースは働く形）。
+P10 峠（H012）：峠を通る経路の頻度の列は無い＝未確かめ。読み手は 5 か所（PathGraph の辺の割増と相互条件と壁の免除・ArmyShape の国境の組・Diplomacy の割譲の隣・LandMatrix を読む Geo と通過港の配線）。
+P11 輸送容量の同時制約（H037）：律速率（port_s の tradeThrottleIndex）が 1 未満の州×四半期が 5% 以上＝働く。
+P12 植民地の補給が海運を食う（H038）：列が無ければ未確かめ。倍率の一掃の分類 A（ColonyShipOccupyPerDist）と重なる。
+P13 通過港の通行料（H031）：国庫→国庫の移転で flow_s に出ない＝列が無ければ未確かめ。
+P14 航路依存の緊張（H025）：緊張の理由ごとの列が無ければ未確かめ。
+
+■ 採否ではない（読む線）。予言が外れたら外れたと書く。結果を見た後に判定の定義を変えない（変えるなら〈結果の後の変更〉と名乗る）。
+
+■ 段 R が変える行（〈段 R の合流の後に確かめ直す〉の印）：H001（陸の脚の比）・H003（地形の混ぜ方）・H004（鉄道時代の陸運低下）・H032（鉄道の容量）・H033（基礎輸送）・H034（目標容量）・H035（鉄道の門）・H036（容量を州へ配る）・H037（同時制約の容量）。割譲の移し（Territory の Receive＝H036 の移し替え）・戦災（輸送容量の戦災）も。
+
+■ 消す候補の書き方：読み手の数（SimCore・Tests・App・Runner・scripts を grep）・失う物・計算量（毎期か開幕 1 回か）。
+
+■ 台本：python -X utf8 -I・出力は newline='\n'・財の番号に見える短い名（g・id・gi・g2）の比較は書かない。
+
+■ 追記（数を見る前・advisor の点検を受けて）
+1. 行ごとの母集合（表・列・分母・型）。〔9国〕＝挙げた 9 国だけの表。
+- H001 実距離：trroute（10 年ごとの上位 3000 組）の routeCode=1（海経由）の額のうち realLandKm＞0 の割合。型 効き。
+- H002 陸路の直行：trbin の valueGoldPerYear のうち routeCode=0（陸直行）の割合（国内・越境の別）。型 頻度。〔routeCode は InstrumentsTransport.cs:200 の rt.Sea ? "1" : "0"＝1 が海・0 が陸直行。台本で routeCode=0 の行の weightKmSeaRealPerYear が 0 かを確かめる〕
+- H003 地形：trroute の額のうち terrainCostSeller か terrainCostBuyer が 1 でない行の割合。型 効き。
+- H004 鉄道時代の陸運低下：trroute の landSeaRatioSeller の値の分布（12 と 3 の 2 値か）・trnation の railGateFlag。型 片側だけの門ではなく 2 値の段（文書の〈連続に下がる〉と照らす）。
+- H005〜H011・H013・H020：開幕に 1 回作る静的な物＝頻度を付けない。型 不変条件／番人。根拠＝ソースと今ある試験の名（grep）と json の件数。
+- H012 峠：静的＋読み手。頻度の列なし＝未確かめ（計器の仕様を書く）。
+- H014・H015 楔：清算の式で毎回読む＝型 効き・根拠はソース（列で大きさを分けられなければ〈ソースだけ〉と名乗る）。
+- H016 運賃革命：scalars_s の freightRevolution（全ての国×四半期）が 1 でない行の割合。型 効き。
+- H017 運賃は海運国が受け取る：trnation（全ての国×年）の freightReceivedGoldPerYear＞0 の割合と、受け取りの上位 5 国の取り分。型 頻度。
+- H018 仲介料：flow_s〔9国〕の BilateralMarket.cs:1172 の行がある国×四半期の割合（分母＝その国の flow_s に行がある国×四半期）。型 頻度。
+- H019 保険：保険料＝flow_s〔9国〕の BilateralMarket.cs:1215 の行の割合。給付＝monlaw_s の blockadeRiskShare＞0 の行の割合（予言 0）＋ソースの書き手 0。型 読まれない欄。
+- H021 咽喉と扼者・H024 運河の封鎖・H025 航路依存の緊張・H031 通過港・H034 目標容量の内訳・H038 植民地補給：列なし＝未確かめ（計器の仕様）。
+- H022 運河：canal_s の openedYear（種ごと・運河ごと）。型 頻度（開いた種の数）。
+- H023 通行料と配当：flow_s〔9国〕の MultiNationSim.cs:1447 の行がある四半期の数（開通の後）。型 頻度。
+- H026 港湾の建設：port_s〔9国・港の州×四半期〕の builtCapacity＞0 の割合・congestedGate=1 の割合。型 頻度。
+- H027 取扱高：port_s の portThroughput＞0 の割合。〔四半期の終わりの断面＝第 1 清算で 0 に戻る前の値＝Instruments.cs:1480 の注〕型 頻度。
+- H028 凍結港：rulepower_s の rhoNoFreezeIndex と rhoNewIndex が違う行の割合（凍結が支配の届きの距離を変えた行＝近似・列 LastPortFrozen は無い）。型 頻度（近似）。
+- H029 港の配線：portch_s の portUsed≠portGc の行の割合（参考）・ソースの毎四半期の張り直し。型 不変条件。
+- H030 内陸州：portch_s の railDecayUsedIndex＜1 の行の割合。型 効き。
+- H032 輸送容量：stock_s の railCapacityStock＞0 の行の割合・steamFillShare。÷era は Coefficients.cs:3483 で恒等。型 効き。
+- H033 基礎輸送：ソースだけ（Transport.cs:66）。型 効き。
+- H035 鉄道の解禁：trnation の railGateFlag=1 の国×年の割合と最初の年の分布。型 頻度。
+- H036 容量を州へ配る：port_s の tradePotentialWeight＞0 の割合。型 頻度。
+- H037 同時制約：port_s の tradeThrottleIndex＜1 の割合（港の州だけ・内陸州は列なし）。型 頻度。
+2. 段 R の印：c105rr の持ち主（Transport.cs・BilateralMarket.cs・Territory.cs:313〜:321・:367・MultiNationSim.cs:458・Diplomacy.cs:2625・World.cs:1145・Model.cs）を読む行に印＝H001・H003・H004・H017（運賃の受け手）・H030（内陸の鉄道の減衰＝BilateralMarket.cs:35）・H032・H033・H034・H035・H036・H037・H038（BilateralMarket.cs の船腹の割り）・割譲の移し（Transport.Receive）・戦災（Diplomacy.cs:2625）。台本で持ち主のファイルの名から機械的に引く。
+3. 峠とバリアの読み手（P10 の追記）：PathGraph.cs:240・:275・:342・:489・:605（LandMatrix）・ArmyShape.cs:181〜:182・:225・Diplomacy.cs:3548・SeaGraph.cs:79（バリア点が海の辺の棄却に入る）・BilateralMarket.cs:105・:503・Geo.cs:86・MultiNationSim.cs:224。文書は〈峠 12 点〉・現物 barriers.json は pass 16・barrier 67（文書が古い）。
+4. P3 の確かめは monlaw_s の blockadeRiskShare（InstrumentsMon.cs:198 が F(w.LastBlockadeRisk) を書く）で読む。flow_s の不在は補助だけ。
+5. 消す候補の読み手は SimCore・Tests・App・Runner・scripts・docs を grep し readers_*.txt に残す。分類の doc に名の無い係数は〈分類に無い〉と書く。

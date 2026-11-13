@@ -1,0 +1,15 @@
+static	sea_nodes	177
+static	basins	Atlantic 65 Pacific 54 IndianOcean 28 Mediterranean 17 Baltic 4 RedSea 4 BlackSea 3 Caspian 2
+static	passages	12
+static	barrier	67
+static	pass	16
+static	landmass	400
+tests	SeaGraphTests	5
+tests	SeaStitchBudgetTests	6
+tests	PathGraphTests	5
+tests	LandGraphFixTests	5
+tests	LandmassTests	3
+tests	PortRewireTests	2
+tests	PortByLandTests	14
+tests	TransitTests	5
+tests	RouteTensionTests	2

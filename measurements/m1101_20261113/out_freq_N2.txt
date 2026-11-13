@@ -1,0 +1,57 @@
+arm	N2	seeds	1,2,3,4,5,6,7,8,9,10
+H002	landDirectValueShare_cross0	58.48%
+H002	landDirectValueShare_cross0_pre1850	50.79%
+H002	landDirectValueShare_cross0_post1850	60.43%
+H002	landDirectValueShare_cross1	33.58%
+H002	landDirectValueShare_cross1_pre1850	18.91%
+H002	landDirectValueShare_cross1_post1850	36.67%
+H002	check_routeCode0_seaKmSum	0.0
+H001	seaRouteValueShareWithLandLeg	46.51%
+H003	valueShareTerrainCostNot1	55.80%
+H003	sellerTerrainCodeValueShare	0:61.70% 1:23.04% 2:7.21% 3:2.02% 4:2.63% 5:1.04% 6:2.36%
+H004	landSeaRatioSellerValueShare	3.0:79.49% 12.0:20.51%
+H035	railGateNationYearShare	22.05%	rows	102825
+H035	firstRailYear_min_med_max	1812	1863	1949	nationSeedCount	263
+H035	firstRailYear_イギリス	1816 1816 1831 1831 1834 1855 1863 1865 1884 1900
+H035	firstRailYear_フランス	1814 1814 1819 1819 1834 1855 1857 1860 1865 1870
+H035	firstRailYear_プロイセン	1821 1822 1830 1834 1860 1861 1870 1898 1901
+H035	firstRailYear_アメリカ	1812 1814 1814 1819 1834 1855 1857 1858 1865 1869
+H035	firstRailYear_ロシア	1815 1820 1823 1829 1837 1855 1857 1857 1866 1867
+H035	firstRailYear_清	1812 1814 1815 1817 1833 1854 1855 1857 1865 1865
+H035	firstRailYear_日本	1812 1817 1818 1819 1834 1855 1856 1857 1865 1866
+H035	firstRailYear_オーストリア	1814 1819 1825 1826 1837 1861 1866 1869 1869 1870
+H017	freightReceivedPosNationYearShare	100.00%
+H017	top5Receivers	朝鮮:9.55% 清:4.45% ロシア:4.35% 西山朝:3.93% ハイデラバード:3.66%
+H016	freightRevolutionNot1Rows	0	of	147846
+H019	blockadeRiskSharePosRows	0	of	411002
+H022	canal_s1	suez:1806 panama:1861
+H022	canal_s2	suez:1810 panama:1834
+H022	canal_s3	suez:1812 panama:1862
+H022	canal_s4	suez:1810 panama:1877
+H022	canal_s5	suez:1805 panama:1886
+H022	canal_s6	suez:1804 panama:1852
+H022	canal_s7	suez:1822 panama:1905
+H022	canal_s8	suez:1807 panama:1866
+H022	canal_s9	suez:1805 panama:1844
+H022	canal_s10	suez:1809 panama:-1
+flow	H017_freightToShipOwners	100.00%	nationQuarters	60120	of	60120	sumGivePerMonth	4.70483e+06
+flow	H018_merchantCommission	99.78%	nationQuarters	59989	of	60120	sumGivePerMonth	7.94119e+06
+flow	H019_insurancePayout	0.00%	nationQuarters	0	of	60120	sumGivePerMonth	0
+flow	H019_premium	100.00%	nationQuarters	60120	of	60120	sumGivePerMonth	360581
+flow	H022_canalInvest	0.08%	nationQuarters	50	of	60120	sumGivePerMonth	5.00779e+06
+flow	H023_canalDividend	3.37%	nationQuarters	2029	of	60120	sumGivePerMonth	165952
+flow	H026_portFee	99.62%	nationQuarters	59889	of	60120	sumGivePerMonth	1.75176e+06
+flow	H026_portInvestCap	34.47%	nationQuarters	20721	of	60120	sumGivePerMonth	5.44277e+07
+flow	H026_portInvestState	34.33%	nationQuarters	20640	of	60120	sumGivePerMonth	1.51603e+06
+flow	H023_canalDividend_afterSuez	4.00%	nationQuarters	2029	of	50670
+flow	H023_canalDividend_firstQuarter	84
+H026	builtCapacityPosShare	21.66%	congestedGateShare	21.85%	rows	561584
+H027	portThroughputPosShare	95.59%
+H036	tradePotentialPosShare	95.30%
+H037	throttleLt1Share	30.31%	medianThrottleWhenLt1	0.6788
+H029	portUsedNeGcShare	9.21%	rows	216923
+H030	railDecayUsedLt1Share	100.00%	rows	216923
+H032	railCapacityPosShare	35.06%	steamFillPosShare	54.35%	rows	149066
+H028	rhoNoFreezeIndex	no-column	seed1
+H028	rhoNoFreezeNeRhoNewShare	n/a	rowsBothFinite	0	rows	0
+done

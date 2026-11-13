@@ -1,0 +1,73 @@
+ok Coefficients.cs:2645:LandSeaCostRatio | public double LandSeaCostRatio = 12.0;       // 03手順4A：陸の実効距離倍率（§4-2の実測例＝陸単価12。鉄道後の低減は#17で
+ok BilateralMarket.cs:91:PairKmCore | internal static double PairKmCore(TrEntry[] tr, int[] seaNodeOf, double[] seaHalf, bool[] 
+ok Coefficients.cs:2614:LandRouteEnabled | public double LandRouteEnabled = 1.0;
+ok BilateralMarket.cs:105:LandMatrix | double raw = PathGraph.LandMatrix()[na * PathGraph.Nodes.Length + nb];
+ok Coefficients.cs:2626:TerrainHorseCost | public double[] TerrainHorseCost = [1.0, 0.8, 0.9, 1.5, 3.0, 2.5, 8.0];
+ok Coefficients.cs:2627:TerrainRailCost | public double[] TerrainRailCost  = [1.0, 1.0, 1.0, 1.5, 1.2, 5.0, 3.0];
+ok Coefficients.cs:2638:TerrainWaterMajorCost | public double TerrainWaterMajorCost = 0.15;   // ⚠読み手は TerrainCostEnabled>0 のときだけ（水運は陸運の1/
+ok Coefficients.cs:2639:TerrainWaterMinorCost | public double TerrainWaterMinorCost = 0.4;
+ok Coefficients.cs:2644:RailCostFraction | public double RailCostFraction = 0.25;
+ok BilateralMarket.cs:345:RailTransport | double rg0 = Discovery.RailTransport(W0.Discovered) ? 1.0 : 0.0;   // 鉄道の門の1本＝機関車の発見
+ok SeaGraph.cs:478:SeaDistanceKmFromNodes | return SeaDistanceKmFromNodes(s, t, stitch, lat1, lon1, lat2, lon2, suezOpen, panamaOpen);
+ok Coefficients.cs:3585:SeaStitchLeadBudgetMult | public double SeaStitchLeadBudgetMult = 0.5;   // 【点火0.5・2026-08-16 点火梯子＝単独 exact43.3＝全16腕
+ok SeaGraph.cs:361:LeadBudgetMult | private static readonly double LeadBudgetMult = new Coefficients().SeaStitchLeadBudgetMult
+ok PathGraph.cs:18:K | public const int K = 6;                       // k近傍（03 §3-2：k=5前後。k=5は実測でパリのk枚がベネルクス密集に食わ
+ok PathGraph.cs:118:BuildEdges | public static readonly Edge[] Edges = BuildEdges();
+ok Landmass.cs:11:Landmass | public static class Landmass
+ok Landmask.cs:36:Landmask | public static class Landmask
+ok PathGraph.cs:260:CrossesWater | if (CrossesWall(i, j) || CrossesWater(i, j, out double pkm)) continue;   // ★2026-09-05：壁の
+ok PathGraph.cs:41:BarrierClearanceKm | public const double BarrierClearanceKm = 110.0;
+ok Coefficients.cs:2734:WallLinkKm | public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む
+ok PathGraph.cs:260:CrossesWall | if (CrossesWall(i, j) || CrossesWater(i, j, out double pkm)) continue;   // ★2026-09-05：壁の
+ok PathGraph.cs:19:PassCostMult | public const double PassCostMult = 1.5;       // 峠割増（03 §3-4：通行可能だが高い。ブレンナー/カイバル/キャフタ/モンスニ
+ok Model.cs:102:Basins | public static class Basins { public const int Count = 8; }   // Caspian追加（セーブ互換は不問＝作者裁定202
+ok Coefficients.cs:1070:TransportMargin | public double TransportMargin = 0.18;   // 世界価格との輸送マージン（この帯の中は裁定しない＝広いほど地域価格が割れる）。前鉄道の道路/河
+ok Coefficients.cs:2649:TransportWeightMarginScale | public double TransportWeightMarginScale = 0.3;   // 財9（輸送費の従量化）：交易マージンの従量成分の強度。0で従価一律の現行と
+ok Coefficients.cs:1825:TransportRevolutionMax | public double TransportRevolutionMax = 0.5;   // **2026-07-23点火・同日0.7→0.5へ縮小**（楔の縮小を半分に＝交易
+ok Coefficients.cs:1826:TransportRevolutionOnset | public double TransportRevolutionOnset = 1.7;
+ok Coefficients.cs:1827:TransportRevolutionSpan | public double TransportRevolutionSpan = 1.2;
+ok InternationalMarket.cs:178:FreightRevolution | internal static double FreightRevolution(double frontierTech, Coefficients c)
+ok Coefficients.cs:2593:FreightRatePer10Mm | public double FreightRatePer10Mm = 0.10;     // 04材化(b)（2026-07-29）：運賃率＝荷価の10%/10,000km（ロン
+ok Coefficients.cs:711:MerchantTradeMargin | public Share MerchantTradeMargin = new(0.05);    // 国際交易の仲介料率＝取扱高（輸入額＋輸出額）に掛かる手数料。商人の貿易収入は
+ok Coefficients.cs:1503:MarinePremiumRate | public double MarinePremiumRate = 0.003;   // 保険料率＝海路の成約の額×これ（1件の航海あたり・荷主→輸入国の引受の商人）
+ok Coefficients.cs:1504:InsurancePayoutFrac | public Share InsurancePayoutFrac = new(0.5);   // 保険金＝封鎖損失(取扱高×(1−raid))×これを 商人基金→損をした荷主（各
+ok World.cs:1329:LastBlockadeRisk | public double LastBlockadeRisk { get; internal set; }   // 03手順7：今期のリスク料（州の取扱高加重平均・0..1）。厭
+ok SeaGraph.cs:71:PassageRow | private sealed class PassageRow { public string Name { get; set; } = ""; public string A {
+ok MultiNationSim.cs:1352:ResolveOwner | cp.Owner = ResolveOwner(cp.Host);   // 扼者＝host保有国（封鎖を握る。host未征服＝中立で封鎖者なし）。★扼者の解決は助走中も通す＝封鎖
+ok Coefficients.cs:1489:CanalInvestFrac | public RatePerQuarter CanalInvestFrac = new(0.03);      // 運河へ毎四半期投じる投資家貯蓄の割合（全経済国が拠出＝集合投資
+ok Megaprojects.cs:26:RequirementMet | internal static bool RequirementMet(World w, string id) { int r = RequiresRowOf(id); retur
+ok Coefficients.cs:2694:CanalTollTrafficRate | public double CanalTollTrafficRate = 0.02;   // 外6：取扱高あたり通行料率（通航トン数課金の実効レート。旧CanalTollRate
+ok Coefficients.cs:2695:CanalInvestReturns | public Share CanalInvestReturns = new(0.5);   // 外7：運河建設拠出国へ通行料を持分比で配当する割合(0..1)＋交戦中の拠出停止。
+ok MultiNationSim.cs:1426:DistributeCanalDividend | double dividend = _coef.CanalInvestReturns.Value > 0 ? DistributeCanalDividend(cp, toll * 
+ok BilateralMarket.cs:234:Blocked | bool Blocked(World w, Chokepoint? cp) => cp is { Owner.Nation: not null } && cp.Owner != w
+ok Coefficients.cs:1555:RouteDependenceTensionPerMonth | public double RouteDependenceTensionPerMonth = 0.10;   // ★点火2026-09-03（B-02・単独A/B batch10
+ok Diplomacy.cs:1053:void RouteTension | private void RouteTension(Coefficients c)
+ok Coefficients.cs:1499:PortCongestionTarget | public double PortCongestionTarget = 0.9;  // この律速率(LastTradeThrottle)未満＝港/船腹が交易を絞っている＝拡張の
+ok Coefficients.cs:1495:PortDecay | public double PortDecay = 0.008;           // 港湾の四半期減耗（維持に再投資が要る＝持続需要）
+ok Coefficients.cs:1494:PortBuildCostPerUnit | public double PortBuildCostPerUnit = 40.0; // 港容量1単位の建設費（資本/国庫→自州popへ還流＝保存）
+ok Coefficients.cs:1498:PortFeeRate | public double PortFeeRate = 0.01;          // 港湾料率＝海路の成約の額×これを港の1端ごとに港所有者(地元投資家)へ（商人仲介料とは別
+ok BilateralMarket.cs:271:LastPortThroughput | if (firstClearingOfQuarter) { r.LastPortThroughput = 0; r.LastLandPartnerName = ""; r.Last
+ok BilateralMarket.cs:306:PortFrozen | if (linked && Climate.PortFrozen(lat, lon, W.Quarter - 1)) { linked = false; r.LastPortFro
+ok Simulation.cs:627:NearestPortName | if (!r.IsPort) { r.NearestPortName = ""; r.NearestPortDistanceKm = 0; r.PortLandKm = 0; }
+ok BilateralMarket.cs:35:InlandRailAfterDecay | internal static double InlandRailAfterDecay(double railToPort, double nearestPortKm)
+ok Coefficients.cs:2647:TransitTollShare | public Share TransitTollShare = new(0.05);       // Stage C：通行料率＝トランジット利用州の取扱高（LastPortThr
+ok Coefficients.cs:1214:TransportDecay | public double TransportDecay = 0.02;            // 鉄道/船容量の月次減耗（維持に投資が要る＝持続需要）
+ok Coefficients.cs:1219:TransportCapPerUnit | public double TransportCapPerUnit = 30.0;       // 鉄道/船 1単位の購入が積む容量
+ok Coefficients.cs:1220:TransportBuildRate | public double TransportBuildRate = 0.15;        // 容量ギャップを毎月詰める速さ（投資の上限割合）
+ok Coefficients.cs:1234:ShipTier2CapMult | public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革
+ok Coefficients.cs:3483:EraFactor | public double EraFactor(double worldTech, double k) => 1.0;
+ok Transport.cs:66:PreRailCapacity | internal static double PreRailCapacity(World w, Coefficients c) => w.TotalPopulation * c.T
+ok Coefficients.cs:1215:TransportTargetPerPop | public double TransportTargetPerPop = 0.08;     // 目標容量＝人口×これ（必要数を増やし鉄道供給網の構築を要求）
+ok Coefficients.cs:2433:ThreatRailTargetWeight | public double ThreatRailTargetWeight = 16.6;    // ★点火2026-08-30（安保W1腕batch10＝exact+2.0/法+
+ok Coefficients.cs:2006:TransportCongestionWeight | public double TransportCongestionWeight = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**   // 接3：
+ok Discovery.cs:182:RailTransport | public static bool RailTransport(bool[]? known) => Known(known, LocomotiveRow);
+ok Transport.cs:83:RegionShare | internal static double RegionShare((double Even, double TotalPot) b, Region r)
+ok BilateralMarket.cs:665:capLeft | var capLeft = ClearScratch.Fit(ref sc.CapLeft, tc); for (int t2 = 0; t2 < tc; t2++) capLef
+ok Coefficients.cs:2496:ColonyShipOccupyPerDist | public double ColonyShipOccupyPerDist = 0.12;    // 植民地の質量1個数単位・距離1万kmあたり海運に課す混雑（ShipCapac
+ok Colonial.cs:113:double OccupiedShipCapacity | internal static double OccupiedShipCapacity(World w)
+ok World.cs:1329:LastBlockadeRisk | public double LastBlockadeRisk { get; internal set; }   // 03手順7：今期のリスク料（州の取扱高加重平均・0..1）。厭
+ok BilateralMarket.cs:562:shipShare | var shipShare = ClearScratch.FitZero(ref sc.ShipShare, nn);
+ok Transport.cs:35:BuyToward | BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true, 1.0);
+ok MultiNationSim.cs:1373:BuildProgress | cp.BuildProgress += inv;
+ok Coefficients.cs:1489:CanalInvestFrac | public RatePerQuarter CanalInvestFrac = new(0.03);      // 運河へ毎四半期投じる投資家貯蓄の割合（全経済国が拠出＝集合投資
+rows 41 dupIds 0 anchors 72 bad 0
