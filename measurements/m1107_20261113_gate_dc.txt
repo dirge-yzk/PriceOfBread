@@ -1,0 +1,42 @@
+緑 実装ログ：書庫 2 本＋残り＝元（バイト一致）
+緑 実装ログ：残りの日付つき見出しは全て 2026-11（359 回）
+緑 実装ログ：書庫 09 は 2026-09 のみ（150）・書庫 10 は 2026-10 のみ（642）
+緑 実装ログ：頭の注（先頭 6 行）が元のまま
+緑 00一覧：書庫＋残り＝元（バイト一致）
+緑 00一覧：書庫の行は全て打消しで始まり最後の日付が 10-13 より前（73 行）
+緑 00一覧：残りの打消し行は日付が 10-13 以後か日付なし（22 行）
+緑 CURRENT：書庫＋残り＝元（バイト一致）
+緑 CURRENT：短い版は 2 万字以内 3454 字
+緑 改行：CR の数が元と同じ（実装ログ・00一覧・CURRENT）
+緑 BOM：残りのファイルの先頭が元と同じ
+緑 改行：短い版の README・.ignore は CR なし
+i/lf    w/lf    attr/-text            	.ignore
+i/lf    w/lf    attr/-text            	docs/202609/00_一覧_書庫.md
+i/lf    w/lf    attr/-text            	docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md
+i/lf    w/lf    attr/-text            	docs/202609/99_実装ログ_20260903.md
+i/mixed w/mixed attr/-text            	docs/202609/99_実装ログ_書庫_202609.md
+i/mixed w/mixed attr/-text            	docs/202609/99_実装ログ_書庫_202610.md
+i/lf    w/lf    attr/-text            	docs/CURRENT.md
+i/mixed w/mixed attr/-text            	docs/CURRENT_書庫.md
+i/lf    w/lf    attr/-text            	docs/README.md
+i/lf    w/lf    attr/-text            	docs/README_線の担当.md
+緑 git ls-files --eol：w/crlf（全行 CRLF）のファイルが無い
+緑 担当向けの README：1〜2 万字 19638 字
+緑 担当向けの README：全ての行が元の README の行の頭の抜粋（新しい文が無い） 行 179・不一致 0
+緑 README.md：元の行がそのまま残り、増えた行は先頭 12 行以内の挿入だけ 増 2 行
+緑 台本：GoodIdGuardTests の Python の規則に当たる書き方が無い 当たり 0
+緑 差分の範囲：docs・.ignore・scripts/instruments/c106dc・measurements/m1107_* だけ 18 ファイル
+総合：全て緑
+
+rg の探す先（書庫の移しの後・.ignore あり）
+after 24581 655932301
+before 28118 970863422
+（before は .ignore を無視＋新しい書庫・短い版を含む）
+
+字数 CURRENT.md / 実装ログ / 00一覧 / 担当向け README:
+3454 docs/CURRENT.md
+938113 docs/202609/99_実装ログ_20260903.md
+1478689 docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md
+19638 docs/README_線の担当.md
+
+旧パスを書く読み手（コメント・過去の合流台本）: readers.txt 30 件（.cs は注のみ・実行時に docs を読む物は無い）
