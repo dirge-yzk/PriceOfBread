@@ -1,0 +1,4 @@
+成功!   -失敗:     0、合格:   306、スキップ:     0、合計:   306、期間: 13 m 26 s - PriceOfBread.Tests.dll (net10.0)
+失敗!   -失敗:     4、合格:  2793、スキップ:     1、合計:  2798、期間: 24 m 3 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 20 s - PriceOfBread.Tests.dll (net10.0)
+list nonfull=2798 full=3

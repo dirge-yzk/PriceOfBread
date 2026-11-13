@@ -21,7 +21,18 @@ for s in SEEDS:
             if c[ix['railGateFlag']] == '1':
                 y = int(c[ix['year']]); y0 = y if y0 is None else min(y0, y)
     first[s] = y0
-say('発見の年（種ごと・trnation の railGateFlag＝1 の最初の年）：' + ' '.join(f's{s}={first[s]}' for s in SEEDS))
+say('発見の年（種ごと・trnation の railGateFlag＝1 の最初の年＝年の終わりの印・記録）：' + ' '.join(f's{s}={first[s]}' for s in SEEDS))
+# G0 の切り口＝基準の disc_s の E 行（発見の出来事）で row＝機関車 の最初の四半期の年（trnation の印は年の終わりの書き出しで、発見の年を 1 年遅く読む種がある＝読み手の誤りを直した）
+for s in SEEDS:
+    p = os.path.join(base, f'disc_s{s}.tsv'); y0 = None
+    with open(p, encoding='utf-8') as f:
+        h = f.readline().rstrip('\n').split('\t'); ix = {x: i for i, x in enumerate(h)}
+        for ln in f:
+            c = ln.rstrip('\n').split('\t')
+            if c[ix['kind']] == 'E' and c[ix['row']] == '機関車':
+                y = int(c[ix['year']]); y0 = y if y0 is None else min(y0, y)
+    first[s] = y0
+say('G0 の切り口（基準の disc_s の機関車の最初の発見の年・この年より前の行を比べる）：' + ' '.join(f's{s}={first[s]}' for s in SEEDS))
 
 # ---------- G0 ----------
 def year_ix(h):
