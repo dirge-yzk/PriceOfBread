@@ -1997,17 +1997,17 @@ public sealed class Simulation
                     if (haircut > 1e-12)
                     {
                         var allPops = new List<Pop>(); foreach (var (_, dp) in World.AllPopsWithRegion()) allPops.Add(dp);
-                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // haircut〔履歴 Simulation.cs#244〕
+                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
                     }
                     else haircut = 0;
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
                     devalue = haircut + issue;
                     World.CumulativeDevaluation += devalue; devalued = devalue;
                     double broadAfter = World.BroadMoney.Value;   // 切り下げの後の広義の貨幣（haircut で貯蓄が減った後）
-                    if (Instruments.On) Instruments.PfixMonth(World, devalue, broadAfter);   // Instruments〔履歴 Simulation.cs#245〕
-                    double fiatPressure = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);   // fiatPressure〔履歴 Simulation.cs#246〕
-                    if (Instruments.On) Instruments.FsxPressure(World, devalue, totalSav, issue, broadAfter, fiatPressure);   // fiatPressure〔履歴 Simulation.cs#247〕
-                    World.FiatInflationPressure += fiatPressure;   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。〔履歴 Simulation.cs#248〕
+                    if (Instruments.On) Instruments.PfixMonth(World, devalue, broadAfter);   // Instruments〔履歴 Simulation.cs#244〕
+                    double fiatPressure = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);   // fiatPressure〔履歴 Simulation.cs#245〕
+                    if (Instruments.On) Instruments.FsxPressure(World, devalue, totalSav, issue, broadAfter, fiatPressure);   // fiatPressure〔履歴 Simulation.cs#246〕
+                    World.FiatInflationPressure += fiatPressure;   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。〔履歴 Simulation.cs#247〕
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
             }
@@ -2020,18 +2020,18 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             {
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
-                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // payRate〔履歴 Simulation.cs#249〕
+                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // payRate〔履歴 Simulation.cs#248〕
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
-                // 兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。〔履歴 Simulation.cs#250〕
+                // 兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。〔履歴 Simulation.cs#249〕
                 if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)
                     r.Pops[r.SoldierPopIndex].UnemploymentRate = new Share(1.0 - payRate * soldierPayFill);   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
                 r.HigherEduFunding *= payRate;
-                double techProd = World.TechProductivity(r);   // techProd〔履歴 Simulation.cs#251〕
+                double techProd = World.TechProductivity(r);   // techProd〔履歴 Simulation.cs#250〕
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
-                if (Instruments.On) Instruments.PreEconomy(World, r);   // Instruments〔履歴 Simulation.cs#252〕
+                if (Instruments.On) Instruments.PreEconomy(World, r);   // Instruments〔履歴 Simulation.cs#251〕
                 EconomyStep.Run(r, World.Coef, techProd, World.Bank, World);   // §9-A/B/C（active 地域ごと）
-                // 閾値未満の通常循環では工場を壊さない。〔履歴 Simulation.cs#253〕
+                // 閾値未満の通常循環では工場を壊さない。〔履歴 Simulation.cs#252〕
                 if (World.Coef.WarLivestockRequisition > 0 && r.LastWarIntensity > 0 && !World.WarmupFrozen)
                     foreach (var lpr in r.Producers)
                         if (lpr.IsRgo && lpr.GoodId == Catalog.LivestockId)
@@ -2040,34 +2040,34 @@ public sealed class Simulation
                 {
                     double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown.Value - World.Coef.DepressionScrapThreshold.Value);
                     r.Industrialization *= scrapKeep;
-                    r.OldVintageCapital *= scrapKeep;   // StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）〔履歴 Simulation.cs#254〕
+                    r.OldVintageCapital *= scrapKeep;   // StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）〔履歴 Simulation.cs#253〕
                     r.StrandedVintage *= scrapKeep;
                     if (scrapKeep < 1)
                         foreach (var fp in r.Producers)
                             if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9)
                             {
                                 double builtBefore = fp.BuiltScale;
-                                fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 休止率0＝不変〔履歴 Simulation.cs#255〕
-                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);   // 休止率0＝不変〔履歴 Simulation.cs#256〕
+                                fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 休止率0＝不変〔履歴 Simulation.cs#254〕
+                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);   // 休止率0＝不変〔履歴 Simulation.cs#255〕
                             }
                 }
-                // SettleStateSpent〔履歴 Simulation.cs#257〕
-                World.SettleStateSpent(r);   // SettleStateSpent〔履歴 Simulation.cs#258〕
-                // 注〔履歴 Simulation.cs#259〕
+                // SettleStateSpent〔履歴 Simulation.cs#256〕
+                World.SettleStateSpent(r);   // SettleStateSpent〔履歴 Simulation.cs#257〕
+                // 注〔履歴 Simulation.cs#258〕
             }
         ProbeCheck("月次経済");
         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
         ProbeCheck("月次輸送");
-        // ⚠先に検査内容を実経路へ移してから消した（`ConservationTests` が保存量Dと輸出利潤経路の生存を見る）。〔履歴 Simulation.cs#260〕
+        // ⚠先に検査内容を実経路へ移してから消した（`ConservationTests` が保存量Dと輸出利潤経路の生存を見る）。〔履歴 Simulation.cs#259〕
         ProbeCheck("月次交易");
         Colonial.Step(World, World.Coef);                                // §6.1 植民地（インフラ整備→資源産出＋捕囚市場。交易流入で保存）
         ProbeCheck("月次植民地");
-        StepMineralDeposits();   // ゲート0＝即return＝恒等〔履歴 Simulation.cs#261〕
-        MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。〔履歴 Simulation.cs#262〕
+        StepMineralDeposits();   // ゲート0＝即return＝恒等〔履歴 Simulation.cs#260〕
+        MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。〔履歴 Simulation.cs#261〕
         ProbeCheck("月次鋳造");
         Fiscal.Step(World, World.Coef, spare, devalued);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
         ProbeCheck("月次財政");
-        // ★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない （売却は資本家→国庫の移転＝Fiscal の課税ベースを後から動かさない）。〔履歴 Simulation.cs#263〕
+        // ★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない （売却は資本家→国庫の移転＝Fiscal の課税ベースを後から動かさない）。〔履歴 Simulation.cs#262〕
         World.StepStateTargets();
         ProbeCheck("月次国営工場");
         Crime.Step(World, World.Coef);                                   // 犯罪と抑止：秩序（治安維持力の人口カバレッジ）が崩れると窃盗＝闇の再分配（純移転）
@@ -2075,17 +2075,17 @@ public sealed class Simulation
         // 兵士POP軍制（Part 2）：軍事費で徴募し給与を払う（国庫→兵士で保存）。戦時は徴兵。財政の後・外交ゲージ集計の前。
         if (Instruments.On) Instruments.WarMonth(World, atWarNation);   // 計器（読むだけ）：交戦と内戦の月を数える（軍の更新の直前）
         Military.Step(World, World.Coef, atWarNation);   // 交戦判定はループ前に算出済み（atWarNation）を共用
-        if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // IsQuarterEndMonth〔履歴 Simulation.cs#264〕
+        if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // IsQuarterEndMonth〔履歴 Simulation.cs#263〕
         ProbeCheck("月次軍事");
         if (World.StepsDiplomacy)
             World.Diplomacy?.Step(World.Coef, Rng, (int)(World.Tick / Calendar.DaysPerMonth));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
-            if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // StopPopDecision〔履歴 Simulation.cs#265〕
+            if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // StopPopDecision〔履歴 Simulation.cs#264〕
             {
-                if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // WarmupFrozen〔履歴 Simulation.cs#266〕
-                if (Instruments.On) Instruments.RdhPd(World, r, serfFree);   // Instruments〔履歴 Simulation.cs#267〕
+                if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // WarmupFrozen〔履歴 Simulation.cs#265〕
+                if (Instruments.On) Instruments.RdhPd(World, r, serfFree);   // Instruments〔履歴 Simulation.cs#266〕
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
             }
         ProbeCheck("月次政治");
@@ -2093,7 +2093,7 @@ public sealed class Simulation
         ProbeCheck("月次領土移民");
         TechEducation.GrowLiteracy(World, World.Coef);                   // §A-1（助走中は識字の伸びだけ止まり Elite の導出は通る＝分岐は GrowLiteracy 内）
 
-        // 暦を止めたまま回すと「10年ぶんの人口成長が時間経過なしに起きる」＝1783年の開始盤面でなくなる。〔履歴 Simulation.cs#268〕
+        // 暦を止めたまま回すと「10年ぶんの人口成長が時間経過なしに起きる」＝1783年の開始盤面でなくなる。〔履歴 Simulation.cs#267〕
         if (!World.WarmupFrozen)
             DemographicStep();           // 人口動態：出生（医療/都市化）−死亡（労働時間）＝動的人口・戦死からの回復も兼ねる（人口転換）。飢えの超過死亡（平常の死亡率の上乗せ）と州の食料充足の平滑も内包
         ProbeCheck("月次人口");
@@ -2108,23 +2108,23 @@ public sealed class Simulation
     /// 扶養力＝規定値×(1＋医療−都市化)×労働時間。医療＝min(社会保障, 識字/gate)で教育律速（医者が要る）。
     /// 戦死で減った人口もこのステップで扶養力へ回復。規模按分で全 pop に適用、符号付き台帳で保存則追跡。頑健（暴走/崩壊しない）。
     /// </summary>
-    // ①Phase3：出産可能女性プール（成人のうち非老年×女性比率）。〔履歴 Simulation.cs#269〕
+    // ①Phase3：出産可能女性プール（成人のうち非老年×女性比率）。〔履歴 Simulation.cs#268〕
     internal static double FertilePool(Pop p, Coefficients c) => FertilePoolOf(p.Ages, c);
     private static double FertilePoolOf(double[] ages, Coefficients c)
     {
         double f = Pop.AgeShareOf(ages, 15, 50, 1), m = Pop.AgeShareOf(ages, 15, 50, 0);
         return f + (2.0 * Math.Min(f, m) - f);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）。⚠式の形は旧のまま（f+(2min−f) は 2min と最終ビットが違いうる）
     }
-    // false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。〔履歴 Simulation.cs#270〕
+    // false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。〔履歴 Simulation.cs#269〕
     private static double BirthWeight(Pop p, Coefficients c)
     {
         double fertile = FertilePool(p, c);
         double init = p.InitialFertileShare.Value > 0 ? p.InitialFertileShare.Value : Math.Max(c.FertileShareFloor.Value, fertile);   // フロアを現実的下限へ引き上げ可能に（1e-6 だと捕捉時 fertile≈0 の pop の重みが桁違いに膨張＝出生集中バグ）
-        // popごとの t=0 凍結分母 init は、初期構成が偏った pop でも捕捉時に重み=Size を保証するが、構成が育つと分子だけが伸びる穴が残る＝古い設計の一覧 H25（9-2 と一緒に直す）。〔履歴 Simulation.cs#271〕
+        // popごとの t=0 凍結分母 init は、初期構成が偏った pop でも捕捉時に重み=Size を保証するが、構成が育つと分子だけが伸びる穴が残る＝古い設計の一覧 H25（9-2 と一緒に直す）。〔履歴 Simulation.cs#270〕
         return p.Size * fertile / init;
     }
     /// <summary>
-    /// 平常の死はこれ×規模の比で POP へ配る＝年寄りの多い POP ほど多く死に、若い POP ほど少なく死ぬ（年齢別の死）。〔履歴 Simulation.cs#272〕
+    /// 平常の死はこれ×規模の比で POP へ配る＝年寄りの多い POP ほど多く死に、若い POP ほど少なく死ぬ（年齢別の死）。〔履歴 Simulation.cs#271〕
     /// </summary>
     private static double AgeMortalityIndex(Pop p, double[] mortW)
     {
@@ -2138,14 +2138,14 @@ public sealed class Simulation
         double pop = World.TotalPopulation;
         if (pop < 1e-9) return;
         var c = World.Coef;
-        double baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation;   // 錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity〔履歴 Simulation.cs#273〕
+        double baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation;   // 錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity〔履歴 Simulation.cs#272〕
         double litSum = 0, healthSum = 0, foodMet = 0, foodNeed = 0;
         foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; }
         double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
         double doctorCare = healthSum / pop;   // 医者の役務（医療財）の消費＝乳児死亡の低下。医者が居ない/買えない社会は人口が伸びにくい
-        // これ>0で実医療財の消費(HealthFill)を 第3のmin項としてゲート化（1.0＝医者なし→抽象医療も0・中間＝部分ゲート＝実体側への段階移行）。〔履歴 Simulation.cs#274〕
+        // これ>0で実医療財の消費(HealthFill)を 第3のmin項としてゲート化（1.0＝医者なし→抽象医療も0・中間＝部分ゲート＝実体側への段階移行）。〔履歴 Simulation.cs#273〕
         if (c.HealthcareRealGate > 0) healthcare = Math.Min(healthcare, doctorCare / c.HealthcareRealGate);
-        // 実測（popprobe s1）＝英は識字0.64・医者役務0.53でも社会保障0のため healthcare が131年間0だった （最大の扶養力項 +1.2×healthcare が英でだけ死ぬ＝史実と逆。〔履歴 Simulation.cs#275〕
+        // 実測（popprobe s1）＝英は識字0.64・医者役務0.53でも社会保障0のため healthcare が131年間0だった （最大の扶養力項 +1.2×healthcare が英でだけ死ぬ＝史実と逆。〔履歴 Simulation.cs#274〕
         if (c.DoctorHealthcareSubstitute > 0) healthcare = Math.Max(healthcare, c.DoctorHealthcareSubstitute * doctorCare);
         // 実食料の連結（マルサスの積極的抑制）：主食充足 FoodFill（消費ベース∈[0,1]）が1未満＝凶作/過密/高騰で主食が買えない＝飢饉。
         // 食料は年単位の備蓄でならす（月次の振れを直に死へ変換しない＝餓死は数ヶ月の欠乏で起きる）＝緩やかな移動平均で扶養力に効かせる。
@@ -2164,12 +2164,12 @@ public sealed class Simulation
         double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）＝非加重 avgInd を置換
         double sanitSum = 0, sanitPop = 0;   // 衛生（上下水道+石鹸+電化）の人口加重。施設の無い世界は各 Fill 既定で sanitation=1.0=中立（較正温存）
         double arableSum = 0, ruralSum = 0;   // 人2b 空き土地の扶養力（下のlandRoom）：耕地と農村人口の全国集計。ArableLand≥1e8（未設定＝較正/最小世界）は除外＝厳密恒等
-        // 下の消費ベース補正コメントが「輸入の分子算入は将来課題＝Trade記録から」と自認していた欠落を埋める（FoodAnchorNetImport適用は下）。〔履歴 Simulation.cs#276〕
+        // 下の消費ベース補正コメントが「輸入の分子算入は将来課題＝Trade記録から」と自認していた欠落を埋める（FoodAnchorNetImport適用は下）。〔履歴 Simulation.cs#275〕
         double stapleNetImport = 0;
         double stapleOutput = 0;   // 人2：全active州の主食(Staple)実産出量の合計（Σ Market[主食].LastProduced）。耕地×農業技術×豊凶を既に内包した「実食料産出量」＝扶養力の食料アンカーの分子。FoodOutputAnchorProduction=0では未使用（読むだけ・挙動非依存）
         foreach (var r in World.Regions)
         {
-            avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。〔履歴 Simulation.cs#277〕
+            avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。〔履歴 Simulation.cs#276〕
             double rpop = r.SumPopulation();
             indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
             double rsanit = r.Sanitation(c);
@@ -2179,7 +2179,7 @@ public sealed class Simulation
             {
                 var mk = r.Markets[g.Id];
                 stapleOutput += mk.LastProduced;
-                // PrevExport〔履歴 Simulation.cs#278〕
+                // PrevExport〔履歴 Simulation.cs#277〕
                 stapleNetImport += mk.PrevImport - mk.PrevExport;   // B-高1：主食の純輸入（輸出国は負＝食料を送り出す分だけ自国の扶養力は下がる）
             }
             if (r.ArableLand < 1e8)   // 人2b：空き土地の集計（センチネル除外）
@@ -2187,16 +2187,16 @@ public sealed class Simulation
                 arableSum += r.ArableLand;
                 ruralSum += r.SumRuralPopulation();   // 州の農村人口の1本（兵士を含む＝土地の逓減・機会・受け入れの上限と同じ入力・段4e H＝旧はここだけ兵士を除いた）
             }
-            stapleOutput += r.LastSubsistenceOutput;   // LastSubsistenceOutput〔履歴 Simulation.cs#279〕
+            stapleOutput += r.LastSubsistenceOutput;   // LastSubsistenceOutput〔履歴 Simulation.cs#278〕
         }
         if (actN > 0) avgInd /= actN;
-        // 人16（工業化度の人口加重）：非加重avgInd（空の辺境州の追加で出生率/扶養力が変わる）を人口加重平均へブレンド。〔履歴 Simulation.cs#280〕
+        // 人16（工業化度の人口加重）：非加重avgInd（空の辺境州の追加で出生率/扶養力が変わる）を人口加重平均へブレンド。〔履歴 Simulation.cs#279〕
         double indPopWeighted = indPopWeight > 1e-9 ? indPopSum / indPopWeight : avgInd;
         avgInd += (indPopWeighted - avgInd);
         double sanitation = sanitPop > 1e-9 ? sanitSum / sanitPop : 1.0;
-        // 人2（扶養力の食料産出アンカー・大改修スカフォールド→本実装）：現行は capacity＝初期人口(baseline)×有界乗数束のため天井が約2.5倍で 19世紀の人口爆発（英4倍/米23倍）が構造的に不能。〔履歴 Simulation.cs#281〕
+        // 人2（扶養力の食料産出アンカー・大改修スカフォールド→本実装）：現行は capacity＝初期人口(baseline)×有界乗数束のため天井が約2.5倍で 19世紀の人口爆発（英4倍/米23倍）が構造的に不能。〔履歴 Simulation.cs#280〕
         double foodRatioConsumption = foodNeed > 1e-9 ? foodMet / foodNeed : 1.0;   // 消費ベース（需要クランプ・現行経路）
-        // B-高1：分子に主食の純輸入を算入（FoodAnchorNetImport=0 で加算項ゼロ＝厳密恒等）。〔履歴 Simulation.cs#282〕
+        // B-高1：分子に主食の純輸入を算入（FoodAnchorNetImport=0 で加算項ゼロ＝厳密恒等）。〔履歴 Simulation.cs#281〕
         double foodRatioProduction = foodNeed > 1e-9 ? (stapleOutput + c.FoodAnchorNetImport * Math.Max(0, stapleNetImport)) / foodNeed : 1.0;   // 生産ベース（未クランプ＝実食料産出÷必要量。余剰で1超＝天井押し上げ）
         // 人2補完(1b)：生産比は月次の豊凶（HarvestFactor×帯天候×病害）を生で浴びて跳ねる→FoodFillと同じ時定数のEMAで平滑（初回=-1未捕捉は直接初期化＝跳躍なし）。
         if (World.FoodRatioProductionSmoothed < 0) World.FoodRatioProductionSmoothed = foodRatioProduction;
@@ -2207,7 +2207,7 @@ public sealed class Simulation
             foodRatioConsumption + c.FoodOutputAnchorProduction * (World.FoodRatioProductionSmoothed - foodRatioConsumption));   // FoodOutputAnchorProduction=0で消費ベースに厳密一致
         double foodAnchor = baseline * Math.Max(0.3, foodRatioRaw);          // 実食料産出アンカー（下限0.3＝崩壊防止・baseline側と同水準）。生産ベースでは baseline×(実産出/必要)＝扶養人口
         double capacityBaseline = baseline + c.CapacityFromFoodOutput * (foodAnchor - baseline);
-        // landAnchor = Σ耕地/(1−都市化率)＝耕地は農村人口容量の単位（ArableLand=初期農民×余裕の定義）・都市民は農村の食料基盤の上に乗る。〔履歴 Simulation.cs#283〕
+        // landAnchor = Σ耕地/(1−都市化率)＝耕地は農村人口容量の単位（ArableLand=初期農民×余裕の定義）・都市民は農村の食料基盤の上に乗る。〔履歴 Simulation.cs#282〕
         if (c.LandAnchorCapacityWeight > 0 && arableSum > 1e-9)
         {
             // landAnchor＝Σ耕地そのもの（農村人口容量）。都市民の上乗せは既存の乗数束が担う＝都市化率で割らない
@@ -2215,45 +2215,45 @@ public sealed class Simulation
             double landAnchor = arableSum;
             capacityBaseline += c.LandAnchorCapacityWeight * Math.Max(0, landAnchor - capacityBaseline);
         }
-        // 空き土地＝辺境の高出生（米西部のTFR>7＝早婚多産）として下の fertility へ。〔履歴 Simulation.cs#284〕
+        // 空き土地＝辺境の高出生（米西部のTFR>7＝早婚多産）として下の fertility へ。〔履歴 Simulation.cs#283〕
         double landRoom = c.LandRoomFertilityWeight > 0 && ruralSum > 1e-9
             ? c.LandRoomFertilityWeight * Math.Max(0, arableSum / ruralSum - 1.0) : 0;
-        // 無上限だと米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・生物学的上限約4%）。〔履歴 Simulation.cs#285〕
+        // 無上限だと米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・生物学的上限約4%）。〔履歴 Simulation.cs#284〕
         landRoom = Math.Min(landRoom, c.LandRoomFertilityCap);
-        // 出生の項は avgInd のまま（出生の設計 9-2 の持ち物）。〔履歴 Simulation.cs#286〕
+        // 出生の項は avgInd のまま（出生の設計 9-2 の持ち物）。〔履歴 Simulation.cs#285〕
         double capacity = capacityBaseline * (1 + c.HealthcareCapacityBonus * healthcare + c.HealthFillCapacityBonus * doctorCare
                                         - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
-                                        + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);   // WorkHoursCapacity〔履歴 Simulation.cs#287〕
+                                        + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);   // WorkHoursCapacity〔履歴 Simulation.cs#286〕
         capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
-        // popprobe が読む。〔履歴 Simulation.cs#288〕
-        World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // DiagCapacity〔履歴 Simulation.cs#289〕
+        // popprobe が読む。〔履歴 Simulation.cs#287〕
+        World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // DiagCapacity〔履歴 Simulation.cs#288〕
         World.DiagHealthcare = healthcare; World.DiagDoctorCare = doctorCare;
         World.DiagFoodRatio = foodRatioRaw; World.DiagLandAnchor = arableSum;   // 下限（崩壊防止＝飢饉でも全滅しない＝翌年の収穫で再生可能）
-        World.DiagStapleNetImport = stapleNetImport;   // DiagStapleNetImport〔履歴 Simulation.cs#290〕
+        World.DiagStapleNetImport = stapleNetImport;   // DiagStapleNetImport〔履歴 Simulation.cs#289〕
         // 出生率＝女性の識字で下がる（人口転換の因果＝女子教育→少子化）。賃金保持の無い社会は女子に教育が届きにくい（係数 FemaleLitFloor＝0.6）。
         // 初等識字（開始点まで）は出生率に効かない（実証準拠）＝無学な社会は従来の較正値のまま。
         // 倍率排除④：旧 WomenPropertyLaw?1:0.6 の2値を、賃金保持（連続）で 0.6→1.0 を補間（retention=0で0.6＝旧無法・retention=1で1.0＝旧有法）。
         double femaleLit = (litSum / pop) * TechEducation.MotherLiteracyRatio(c, World.WomenWageRetention);
-        // WomenEducationLaw〔履歴 Simulation.cs#291〕
+        // WomenEducationLaw〔履歴 Simulation.cs#290〕
         if (World.WomenEducationLaw)
             femaleLit = Math.Min(litSum / pop, femaleLit * (1.0 + c.WomenEduLitBonus));
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。
         double landFertBoost = c.FertilityBase * landRoom;
-        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);   // fertility〔履歴 Simulation.cs#292〕
-        // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。〔履歴 Simulation.cs#293〕
+        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);   // fertility〔履歴 Simulation.cs#291〕
+        // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。〔履歴 Simulation.cs#292〕
         double net = c.PopGrowthRatePerMonth.Value * pop * (1.0 - pop / capacity);   // ロジスティック：均衡＝扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は無い（出生側だけが fertility を持つ）
-        World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // DiagFertility〔履歴 Simulation.cs#294〕
+        World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // DiagFertility〔履歴 Simulation.cs#293〕
         var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
         double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
         var regions = World.Regions;
-        var regKey = new double[regions.Count];   // regKey〔履歴 Simulation.cs#295〕
+        var regKey = new double[regions.Count];   // regKey〔履歴 Simulation.cs#294〕
         var regBW = new double[regions.Count];    //   州ごとの旧の鍵の和＝州の中の階級への配り方（凍結の分母のまま＝9-2）
         for (int ri = 0; ri < regions.Count; ri++)
         foreach (var p in regions[ri].Pops) if (!p.IsSoldier)   // 出生死亡は兵士以外の全階級（貴族・聖職も人口とともに増減。兵士は軍事力学が別途管理）
         {
             massPop += p.Size;
-            massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // AgeMortalityIndex〔履歴 Simulation.cs#296〕
+            massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // AgeMortalityIndex〔履歴 Simulation.cs#295〕
             if (p.InitialFertileShare.Value < 0)
                 p.InitialFertileShare = new Share(Math.Max(c.FertileShareFloor.Value, FertilePool(p, c)));   // t=0 の出産可能女性プールを各popの相対基準として捕捉（BirthWeight と同一式＝人5 のカップル律速も t=0 正規化に反映）
 
@@ -2265,18 +2265,18 @@ public sealed class Simulation
         }
         if (massPop < 1e-9) return;
         bool ageDeath = massDeathWeight > 1e-12;   // 年齢の重みが全て0（係数で死亡率が負に振り切れた場合）なら規模で配る＝台帳の Σ死＝総死は保つ
-        // 出生は配分鍵（粗出生）、平常の死は国の平常の死亡率×規模。〔履歴 Simulation.cs#297〕
+        // 出生は配分鍵（粗出生）、平常の死は国の平常の死亡率×規模。〔履歴 Simulation.cs#296〕
         double totalBirths = (Calendar.PerYearToPerMonth(c.CrudeBirthRatePerYear) * fertility * massBirthWeight).Value;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
         bool noMothers = !(massBirthKey > 1e-12);   // 産む人が居ない（全 POP の出産可能のプール≈0）＝出生0（否定形＝NaN も0）
         if (noMothers) totalBirths = 0;
-        bool recovering = net >= totalBirths; if (Instruments.On) Instruments.DemoMonth(World, recovering, noMothers);   // recovering〔履歴 Simulation.cs#298〕
+        bool recovering = net >= totalBirths; if (Instruments.On) Instruments.DemoMonth(World, recovering, noMothers);   // recovering〔履歴 Simulation.cs#297〕
         double totalDeaths = recovering ? 0 : totalBirths - net;
         double deathRate = recovering ? 0 : totalDeaths / (ageDeath ? massDeathWeight : massPop);   // 平常の死の率（年齢の指数×規模の1単位あたり・月）
-        double diagBirths = 0, diagDeaths = 0;   // diagBirths〔履歴 Simulation.cs#299〕
+        double diagBirths = 0, diagDeaths = 0;   // diagBirths〔履歴 Simulation.cs#298〕
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
-        // 旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。〔履歴 Simulation.cs#300〕
-        EmptyPopEstate.Step(World); double estateRate = Government.InheritanceRate(World.Inheritance);   // Step〔履歴 Simulation.cs#301〕
+        // 旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。〔履歴 Simulation.cs#299〕
+        EmptyPopEstate.Step(World); double estateRate = Government.InheritanceRate(World.Inheritance);   // Step〔履歴 Simulation.cs#300〕
         World.LastEstateDutyPerMonth = 0;
         List<Pop>? estPayers = estateRate > 0 ? new List<Pop>() : null; List<double>? estClaims = estateRate > 0 ? new List<double>() : null; double estSum = 0;
         bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）
@@ -2285,19 +2285,19 @@ public sealed class Simulation
         for (int ri = 0; ri < regions.Count; ri++)
         {
             var r = regions[ri];
-            if (Instruments.On) Instruments.RdhRegion(r);   // Instruments〔履歴 Simulation.cs#302〕
-            // regShare〔履歴 Simulation.cs#303〕
+            if (Instruments.On) Instruments.RdhRegion(r);   // Instruments〔履歴 Simulation.cs#301〕
+            // regShare〔履歴 Simulation.cs#302〕
             double regShare = noMothers ? 0 : regKey[ri] / massBirthKey;
             double regBWr = regBW[ri];
-            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // estDeliv〔履歴 Simulation.cs#304〕
+            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // estDeliv〔履歴 Simulation.cs#303〕
             foreach (var p in r.Pops)
-                if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // IsSoldier〔履歴 Simulation.cs#305〕
+                if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // IsSoldier〔履歴 Simulation.cs#304〕
                 else
                 {
                     double bk = regBWr > 1e-300 ? regShare * BirthWeight(p, c) / regBWr : 0;   // 出生の取り分＝州の取り分×州の中の旧の鍵の比（加齢の「前」に捕捉＝事前パスと同一構成＝Σ取り分＝1＝Σbirths=net の保存を厳密化）
                     double size0 = p.Size;           // 月初の規模＝出生・平常の死・飢えの上乗せが掛かる同じ規模
                     double dw = ageDeath ? size0 * AgeMortalityIndex(p, mortW) : size0;   // 平常の死の配分鍵（事前パスと同じ月初の構成）
-                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。〔履歴 Simulation.cs#306〕
+                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。〔履歴 Simulation.cs#305〕
                     double births, deaths;
                     if (recovering)
                     {
@@ -2306,8 +2306,8 @@ public sealed class Simulation
                     }
                     else
                     {
-                        births = totalBirths * bk;   // births〔履歴 Simulation.cs#307〕
-                        double deathsRaw = deathRate * dw;                  // deathsRaw〔履歴 Simulation.cs#308〕
+                        births = totalBirths * bk;   // births〔履歴 Simulation.cs#306〕
+                        double deathsRaw = deathRate * dw;                  // deathsRaw〔履歴 Simulation.cs#307〕
                         deaths = Math.Min(deathsRaw, p.Size + births);   // 下限保護（負人口の防止）
                         ghostDeaths += deathsRaw - deaths;   // クランプで削られた「人が足りず起き得なかった死」を集計（下でnetから差し戻す）。無クランプ時は0＝ビット恒等（West巨大人口の崩壊時のみ発火＝人口保存バグ修正）
                     }
@@ -2315,21 +2315,21 @@ public sealed class Simulation
                     double newSize = p.Size + add;
                     if (newSize < 0) { ghostDeaths += -newSize; newSize = 0; }   // 死亡クランプ発火時の浮動小数丸めでSizeが極小負(≈-3.5e-18)になるのを0にクランプし、削った分をghostDeathsで台帳へ差し戻す（非負境界の保護・正常時newSize≥0で不発＝ビット恒等）
                     diagBirths += births; diagDeaths += births - (newSize - p.Size);   // ★計器：死亡＝実際に減った人数（クランプ込み）＝出生−実際の増分
-                    // Instruments〔履歴 Simulation.cs#309〕
-                    if (Instruments.On) Instruments.DemoPop(World, p, size0, births, births - (newSize - size0), mortW); p.StepAges(size0, births, births - (newSize - size0), mortW);   // Instruments〔履歴 Simulation.cs#310〕
+                    // Instruments〔履歴 Simulation.cs#308〕
+                    if (Instruments.On) Instruments.DemoPop(World, p, size0, births, births - (newSize - size0), mortW); p.StepAges(size0, births, births - (newSize - size0), mortW);   // Instruments〔履歴 Simulation.cs#309〕
                     p.Size = newSize;
-                    // 凸（指数4）＝慢性の浅い不足（充足0.6〜0.7）はほとんど殺さず、深い飢饉は速く殺す（史実の飢饉の死は栄養の不足に強く凸・係数の注記）。〔履歴 Simulation.cs#311〕
-                    double famineD = 0;   // famineD〔履歴 Simulation.cs#312〕
+                    // 凸（指数4）＝慢性の浅い不足（充足0.6〜0.7）はほとんど殺さず、深い飢饉は速く殺す（史実の飢饉の死は栄養の不足に強く凸・係数の注記）。〔履歴 Simulation.cs#310〕
+                    double famineD = 0;   // famineD〔履歴 Simulation.cs#311〕
                     double fill = p.FoodFill;   // 主食の充足の1本
                     double floorF = c.FamineDeathFillFloor;
                     double excess = fill < floorF ? Calendar.PerYearToPerMonth(c.FamineExcessMortality) * Math.Pow((floorF - fill) / floorF, c.FamineExcessMortalityExponent) * size0 : 0.0;
                     if (excess > 0 && p.Size > 0)
                     {
                         double d = Math.Min(excess, p.Size);
-                        if (Instruments.On) Instruments.DemoFamine(World, p, d, disasterW); p.KillAges(p.Size, d, disasterW);   // Instruments〔履歴 Simulation.cs#313〕
+                        if (Instruments.On) Instruments.DemoFamine(World, p, d, disasterW); p.KillAges(p.Size, d, disasterW);   // Instruments〔履歴 Simulation.cs#312〕
                         p.Size -= d; famineDead += d; famineD = d;
                     }
-                    if (estateRate > 0 && size0 > 1e-12)   // estateRate〔履歴 Simulation.cs#314〕
+                    if (estateRate > 0 && size0 > 1e-12)   // estateRate〔履歴 Simulation.cs#313〕
                     {
                         double sv = p.Savings.Value, deadP = deaths + famineD;   // 平常の死（回復期は 0）＋飢えの上乗せ
                         if (sv > 0 && deadP > 0)
@@ -2340,15 +2340,15 @@ public sealed class Simulation
                     }
                 }
         }
-        if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCat.OtherIn, fromWeights: estClaims);   // LastEstateDutyPerMonth〔履歴 Simulation.cs#315〕
-        if (Instruments.On) Instruments.RdhRegion(null);   // Instruments〔履歴 Simulation.cs#316〕
-        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // diagBirths〔履歴 Simulation.cs#317〕
+        if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCat.OtherIn, fromWeights: estClaims);   // ★(650) 相続の移転（走査の後に 1 回・払い手ごとに自分の請求・自分の貯蓄まで）
+        if (Instruments.On) Instruments.RdhRegion(null);   // Instruments〔履歴 Simulation.cs#314〕
+        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // diagBirths〔履歴 Simulation.cs#315〕
         World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0) - famineDead;   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く③飢えの上乗せで実際に減った人数を引く。実Size減と一致
         SmoothRegionalFoodFill(c);   // 州の食料充足の平滑（移民の飢饉の押し出し・州反乱・派閥の危機が読む）
     }
 
     /// <summary>
-    /// 州の食料充足（Region.FoodFill）の平滑＝穀倉の備蓄（餓死は数ヶ月の持続的欠乏で起きる）。〔履歴 Simulation.cs#318〕
+    /// 州の食料充足（Region.FoodFill）の平滑＝穀倉の備蓄（餓死は数ヶ月の持続的欠乏で起きる）。〔履歴 Simulation.cs#316〕
     /// </summary>
     private void SmoothRegionalFoodFill(Coefficients c)
     {
@@ -2378,13 +2378,13 @@ public sealed class Simulation
         - c.OverworkMortalityWeight * Math.Max(0.0, hours - WorkHours.Twelve.Hours());
 
     /// <summary>
-    /// 鉱脈＝有限の在庫：毎月、州の鉱物産出の合計だけ減る（**決定論＝サイコロなし**）。〔履歴 Simulation.cs#319〕
+    /// 鉱脈＝有限の在庫：毎月、州の鉱物産出の合計だけ減る（**決定論＝サイコロなし**）。〔履歴 Simulation.cs#317〕
     /// </summary>
     private void StepMineralDeposits()
     {
         var c = World.Coef;
-        // 排水と発見は**対の機構**＝同じゲートに置く（較正世界は従来の確率イベントのまま＝24-24-24の前提を壊さない）。〔履歴 Simulation.cs#320〕
-        if (World.WarmupFrozen || World.Diplomacy is null) return;   // WarmupFrozen〔履歴 Simulation.cs#321〕
+        // 排水と発見は**対の機構**＝同じゲートに置く（較正世界は従来の確率イベントのまま＝24-24-24の前提を壊さない）。〔履歴 Simulation.cs#318〕
+        if (World.WarmupFrozen || World.Diplomacy is null) return;   // WarmupFrozen〔履歴 Simulation.cs#319〕
         foreach (var r in World.Regions)
         {
             double outSum = 0;
@@ -2406,20 +2406,20 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// 鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣の増加（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→物価/好況）。〔履歴 Simulation.cs#322〕
+    /// 鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣の増加（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→物価/好況）。〔履歴 Simulation.cs#320〕
     /// </summary>
     private void MintGold()
     {
-        // 旧来（産出比例の上限・国内鉱山限定・金鉱だけ）の枝と GoldMintFraction は消した。〔履歴 Simulation.cs#323〕
+        // 旧来（産出比例の上限・国内鉱山限定・金鉱だけ）の枝と GoldMintFraction は消した。〔履歴 Simulation.cs#321〕
         int metal = Catalog.GoldOreId;
         bool isFiat = World.MonetaryLaw == MonetaryStandardLaw.Fiat;
         if (!isFiat) metal = World.MonetaryLaw == MonetaryStandardLaw.Silver ? Catalog.SilverId : Catalog.GoldOreId;
-        // 買うより先に売る＝   金へ移った国は同じ月から銀を吐き出す（独1871年型＝買い手の消滅と投げ売りが同時）。〔履歴 Simulation.cs#324〕
+        // 買うより先に売る＝   金へ移った国は同じ月から銀を吐き出す（独1871年型＝買い手の消滅と投げ売りが同時）。〔履歴 Simulation.cs#322〕
         SellDemonetizedReserves(metal, isFiat);
         if (isFiat) return;   // 不換＝準備需要そのものが無い（造幣しない）
-        // ★準備需要（G3）：買う量は「基礎貨幣×目標カバー率 − 現在の準備」＝準備が足りているほど買わない。〔履歴 Simulation.cs#325〕
-        double coverShort = 0;   // coverShort〔履歴 Simulation.cs#326〕
-        double gapLeft = 0;      // gapLeft〔履歴 Simulation.cs#327〕
+        // ★準備需要（G3）：買う量は「基礎貨幣×目標カバー率 − 現在の準備」＝準備が足りているほど買わない。〔履歴 Simulation.cs#323〕
+        double coverShort = 0;   // coverShort〔履歴 Simulation.cs#324〕
+        double gapLeft = 0;      // gapLeft〔履歴 Simulation.cs#325〕
         if (World.Coef.MintReserveTargetWeight > 0)
         {
             double coverage = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
@@ -2430,9 +2430,9 @@ public sealed class Simulation
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
                 gapLeft = Math.Max(0, (coverTarget * World.BroadMoney - World.BaseMoney).Value) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
-        // parity〔履歴 Simulation.cs#328〕
+        // parity〔履歴 Simulation.cs#326〕
         double parity = Catalog.RefPrices[metal];   // 造幣平価（固定・RefPrice建て）＝史実の固定平価。市場価格がこれを超えれば誰も持ち込まない
-        // 準備不足（coverShort>0＝市場買い gapLeft の根）の月は**売らない**   （州ごとの !atMarket では gapLeft が尽きた後続州が同じ月に平価で売る＝買い高・売り安の閉ループ）。〔履歴 Simulation.cs#329〕
+        // 準備不足（coverShort>0＝市場買い gapLeft の根）の月は**売らない**   （州ごとの !atMarket では gapLeft が尽きた後続州が同じ月に平価で売る＝買い高・売り安の閉ループ）。〔履歴 Simulation.cs#327〕
         double sellLeft = 0;
         if (World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
         {
@@ -2443,8 +2443,8 @@ public sealed class Simulation
         {
             if (r.GoodOf(metal) is null) continue;
             var m = r.Markets[metal];
-            bool atMarket = m.Price > parity && gapLeft > 1e-9;   // atMarket〔履歴 Simulation.cs#330〕
-            // 数量＝今月の国1本の予算 sellLeft（準備×MintFloorBuyRatePerMonth＝買い側と同じ月次率・ループ前で確定）と買い手の貯蓄÷平価の小さい方。〔履歴 Simulation.cs#331〕
+            bool atMarket = m.Price > parity && gapLeft > 1e-9;   // atMarket〔履歴 Simulation.cs#328〕
+            // 数量＝今月の国1本の予算 sellLeft（準備×MintFloorBuyRatePerMonth＝買い側と同じ月次率・ループ前で確定）と買い手の貯蓄÷平価の小さい方。〔履歴 Simulation.cs#329〕
             if (sellLeft > 1e-12 && m.Price > parity)
             {
                 double sold = SellReserve(r, metal, sellLeft, parity);   // 準備の売却の1本（平価で・下の投げ売りと同じ）
@@ -2459,7 +2459,7 @@ public sealed class Simulation
             double totOut = 0;
             foreach (var p in r.Producers) if (p.GoodId == metal) totOut += p.Output;
             double price = atMarket ? m.Price : parity;   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（MintBuysAtMarket）だけ市場価格＝準備の購入代金
-            // 払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。〔履歴 Simulation.cs#332〕
+            // 払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。〔履歴 Simulation.cs#330〕
             double imp = Math.Max(0, m.PrevImport + m.LastImport), prodQ = Math.Max(0, m.LastProduced);
             double impShare = totOut > 1e-12 ? (imp + prodQ > 0 ? imp / (imp + prodQ) : 0.0) : 1.0;
             double want = qty * price;
@@ -2472,9 +2472,9 @@ public sealed class Simulation
             double value = paid;
             if (atMarket) gapLeft -= value;   // 予算を消費（国の準備ギャップは州をまたいで1本）
             m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
-            if (Instruments.On) Instruments.SilverMintCapture(r, metal, qty);   // SilverMintCapture〔履歴 Simulation.cs#333〕
-            // 実測＝造幣は世界の銀産出の12.8〜17.7%を毎月吸っているのに、銀/金の相対価格は151年で2〜3%しか動かない。〔履歴 Simulation.cs#334〕
-            m.LastDemand += qty;   // qty〔履歴 Simulation.cs#335〕
+            if (Instruments.On) Instruments.SilverMintCapture(r, metal, qty);   // SilverMintCapture〔履歴 Simulation.cs#331〕
+            // 実測＝造幣は世界の銀産出の12.8〜17.7%を毎月吸っているのに、銀/金の相対価格は151年で2〜3%しか動かない。〔履歴 Simulation.cs#332〕
+            m.LastDemand += qty;   // qty〔履歴 Simulation.cs#333〕
             //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
             // ★床モード＝吸った現物を国の準備として保持（旧来は「コインになって消える」＝追跡しない＝恒等）。
             //   法が本位を捨てたとき、この準備が市場へ売られる＝暴落を深める投げ売りが台本なしで出る。
@@ -2483,7 +2483,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// ⚠鋳造時に発行された貨幣は流通し続ける（demonetized coins＝不換のオーバーハング）。〔履歴 Simulation.cs#336〕
+    /// ⚠鋳造時に発行された貨幣は流通し続ける（demonetized coins＝不換のオーバーハング）。〔履歴 Simulation.cs#334〕
     /// </summary>
     private void SellDemonetizedReserves(int lawMetal, bool isFiat)
     {
@@ -2496,7 +2496,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// 払えるのは貯蓄まで＝払えない分は売らない（量を減らす）。〔履歴 Simulation.cs#337〕
+    /// 払えるのは貯蓄まで＝払えない分は売らない（量を減らす）。〔履歴 Simulation.cs#335〕
     /// </summary>
     private double SellReserve(Region r, int gid, double qty, double price = double.NaN)
     {
@@ -2514,7 +2514,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// 黒字が出たらまず返す。〔履歴 Simulation.cs#338〕
+    /// 黒字が出たらまず返す。〔履歴 Simulation.cs#336〕
     /// </summary>
     private void RepayHouseholdDebt(Region r)
     {
@@ -2529,7 +2529,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    ///  損失吸収の脆さの会計（§9-C 拡張）：月次の全フロー後、損失で貯蓄が負になった pop の不足を信用（借入）で埋める。〔履歴 Simulation.cs#339〕
+    ///  損失吸収の脆さの会計（§9-C 拡張）：月次の全フロー後、損失で貯蓄が負になった pop の不足を信用（借入）で埋める。〔履歴 Simulation.cs#337〕
     /// </summary>
     internal void BackstopNegativeSavings()
     {
@@ -2540,11 +2540,11 @@ public sealed class Simulation
                 if (p.Savings.Value < 0)
                 {
                     double need = -p.Savings.Value;
-                    // 受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。〔履歴 Simulation.cs#340〕
+                    // 受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。〔履歴 Simulation.cs#338〕
                     (one ??= new List<Pop>(1)).Clear(); one.Add(p);
                     World.Transfer((null, null), (World, one, unit ??= [1.0]), need, outside: World.Outside.Credit);
                     World.LossFinanced += need; // 可視化：損失の負債化を累積記録
-                    // PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。〔履歴 Simulation.cs#341〕
+                    // PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。〔履歴 Simulation.cs#339〕
                     if (World.Coef.PopDebtDriven > 0) p.Debt += new MoneyStock(need * World.Coef.PopDebtLossShare);
                 }
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
@@ -2554,7 +2554,7 @@ public sealed class Simulation
     }
 
 
-    // 到達不能になったため。〔履歴 Simulation.cs#342〕
+    // 到達不能になったため。〔履歴 Simulation.cs#340〕
 
     // 植民地素材の入手率＝植民地保有 × 制海（禁輸/交戦で交易アクセス↓）。外交なしなら満額。
     private double ColonialAccess()
@@ -2573,7 +2573,7 @@ public sealed class Simulation
 
     private void Snapshot()
     {
-        if (!TelemetryEnabled) return;   // TelemetryEnabled〔履歴 Simulation.cs#343〕
+        if (!TelemetryEnabled) return;   // TelemetryEnabled〔履歴 Simulation.cs#341〕
         var home = World.Region;
         var foodMkt = home.Markets[0];
         var foodProd = home.Producers[0];
@@ -2633,7 +2633,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// MarginalCost ÷= (そのレシピの Productivity ÷ 人力の Productivity)^gate。〔履歴 Simulation.cs#344〕
+    /// MarginalCost ÷= (そのレシピの Productivity ÷ 人力の Productivity)^gate。〔履歴 Simulation.cs#342〕
     /// </summary>
     internal static void ApplyRecipeCostFollowsProductivity(List<Producer> producers, Coefficients c)
     {
@@ -2653,7 +2653,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// CriminalClassEnabled=0（既定）では pops に 1 件も足さず -1 を返す＝Pops.Count も既存の添字も不変＝**厳密恒等**（研究者と同じ作法）。〔履歴 Simulation.cs#345〕
+    /// CriminalClassEnabled=0（既定）では pops に 1 件も足さず -1 を返す＝Pops.Count も既存の添字も不変＝**厳密恒等**（研究者と同じ作法）。〔履歴 Simulation.cs#343〕
     /// </summary>
     private static int AddCriminalPop(List<Pop> pops, Coefficients coef, double literacy)
     {
@@ -2663,18 +2663,18 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// 〔履歴 Simulation.cs#346〕
+    /// 〔履歴 Simulation.cs#344〕
     /// </summary>
     internal const double HandcraftProductivityRatio = 0.6;
     /// <summary>
-    /// 〔履歴 Simulation.cs#347〕
+    /// 〔履歴 Simulation.cs#345〕
     /// </summary>
     internal const double HandcraftSelfCost = 0.35;
     /// <summary>農家の手仕事の行の RecipeName（職人の `"職人"` と衝突しない＝職人の没落の計器は数えない・FacilityBuildScore が候補から外す述語）。</summary>
     internal const string HouseholdRecipeName = "家内工業";
 
     /// <summary>
-    /// 外した財＝硫酸・ソーダ灰など工業の投入を要する物（紙・陶磁器・石鹸・缶詰・防水布・医薬品・キニーネ・書籍・新聞・ガス・自転車・ラジオ）と、輸入・商品作物の地理に偏る物（茶・コーヒー・灯油・煙草）。〔履歴 Simulation.cs#348〕
+    /// 外した財＝硫酸・ソーダ灰など工業の投入を要する物（紙・陶磁器・石鹸・缶詰・防水布・医薬品・キニーネ・書籍・新聞・ガス・自転車・ラジオ）と、輸入・商品作物の地理に偏る物（茶・コーヒー・灯油・煙草）。〔履歴 Simulation.cs#346〕
     /// </summary>
     internal static readonly int[] HouseholdGoods =
     [
@@ -2683,7 +2683,7 @@ public sealed class Simulation
     ];
 
     /// <summary>
-    /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。〔履歴 Simulation.cs#349〕
+    /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。〔履歴 Simulation.cs#347〕
     /// </summary>
     private static void AddHouseholdProducers(List<Producer> producers, Coefficients coef)
     {
