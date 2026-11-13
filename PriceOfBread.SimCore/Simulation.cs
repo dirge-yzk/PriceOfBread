@@ -24,8 +24,7 @@ public readonly record struct TurnSnapshot(
 public sealed class Simulation
 {
     private INationAgent _agent;
-    // ★復活2026-09-06（内戦の陣営選択 P8＝作者裁定「プレイヤー側UIはやる」）：プレイヤーが反乱側の新国家へ乗り換えるとき、
-    //   旧国は効用AIへ・新国は NullAgent へ差し替える。呼び手＝App の MainWindowViewModel.SwitchPlayer だけ。
+    // 呼び手＝App の MainWindowViewModel.SwitchPlayer だけ。〔履歴 Simulation.cs#1〕
     public void SetAgent(INationAgent agent) => _agent = agent;
     // 実際の助走は MultiNationSim.WarmupEconomy が**政治・外交を凍結**して行う（エージェントを差し替えない）＝この動詞は不要になっていた。
     private readonly List<IInvariant> _invariants;
@@ -57,7 +56,7 @@ public sealed class Simulation
     public List<TurnSnapshot> Telemetry { get; } = [];
     public bool TelemetryEnabled = true;   // false＝Snapshot()を止める（selfplay/バッチの割当削減。インスタンス単位＝並列テストと不干渉）
 
-    // （一時デバッグ用の静的フック Simulation.Probe と Runner の drift は 2026-09-26 に削除＝同じ役を ProbeCheck（leakhunt）が持つ・fis-19）
+    // Simulation〔履歴 Simulation.cs#2〕
 
     public Simulation(Scenario scenario, INationAgent agent)
     {
@@ -95,12 +94,9 @@ public sealed class Simulation
             TaxRate = new Share(scenario.TaxRate),
             PollTax = scenario.InitialPollTax,   // 人頭税＝近世国家の主財源（行政不要）。序盤の国庫を支える（所得税は19世紀までロック）
             LandTax = scenario.InitialLandTax,   // 土地税の開始値（確立国家は開始から徴収）
-            // 国庫は Pay 経由でしか動かせない（World の台帳・2026-08-13）＝生成時の初期化は下の SetTreasuryRaw で行う。
+            // GovDebt〔履歴 Simulation.cs#3〕
             GovDebt = new MoneyStock(scenario.InitialGovDebt),   // P5：初期国債（仏＝米独立戦争債務）。純負債＝貨幣非移動・保存中立。GovAvgCouponPerYearはrollover=1で初回Fiscalが市場金利へ上書き
-            // ★★予算法・統帥法の初期値（2026-08-20）。⚠**開始時の制度の写し取り**であって実行時の分岐ではない
-            //   （作者裁定「政体は表示専用」＝政体が**上限を決める**のをやめたのであり、**初期条件の略記**としては人口や識字と同じ）。
-            //   ★以後は法が一次量として独立に動く＝政体を読み直すことは無い。
-            //   ⚠将来 world.json に列を足すならそちらが優先（初期条件のデータは本来そこに置く）。
+            // ★以後は法が一次量として独立に動く＝政体を読み直すことは無い。〔履歴 Simulation.cs#4〕
             BudgetLaw = scenario.InitialPolity switch
             {
                 Polity.Republic => BudgetLaw.Parliamentary,                       // 英米型＝歳入も歳出も議会の同意による
@@ -113,39 +109,25 @@ public sealed class Simulation
                 Polity.ConstitutionalMonarchy => CommandLaw.Split,                // 軍政は内閣・軍令は君主（明治憲法第11条・普の軍事内閣）
                 _ => CommandLaw.Crown,
             },
-            Bureaucracy = scenario.InitialBureaucracy,   // ★官僚制度の初期値（2026-08-04）
+            Bureaucracy = scenario.InitialBureaucracy,   // Bureaucracy〔履歴 Simulation.cs#5〕
             InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
-            Longitude = scenario.NationConfig?.Longitude ?? 0, OpeningTreasuryMonths = scenario.NationConfig?.TreasuryMonths ?? 0, OpeningGovDebtToGdpYear = scenario.NationConfig?.GovDebtToGdpYear ?? 0, OpeningStateMonopolyTier = scenario.NationConfig?.OpeningStateMonopolyTier ?? 0, LandTaxBasisFixed = scenario.NationConfig?.LandTaxBasis == "Fixed",   // ★(937) 土地税の定額の国（データ）。★(332) 開幕の国庫（歳入×月数）と国債（比×年の名目GDP）の規則（world.json の treasuryMonths／govDebtToGdpYear・0＝規則なし＝旧の戻し・行を増やさず鍵の行番号を動かさない）
+            Longitude = scenario.NationConfig?.Longitude ?? 0, OpeningTreasuryMonths = scenario.NationConfig?.TreasuryMonths ?? 0, OpeningGovDebtToGdpYear = scenario.NationConfig?.GovDebtToGdpYear ?? 0, OpeningStateMonopolyTier = scenario.NationConfig?.OpeningStateMonopolyTier ?? 0, LandTaxBasisFixed = scenario.NationConfig?.LandTaxBasis == "Fixed",   // Longitude〔履歴 Simulation.cs#6〕
             EthnicEnabled = scenario.NationConfig is not null,   // 民族統一度（倍率排除⑧）は各popの CoreEthnicShare 加重平均から創発。NationConfig 由来の国だけ有効化＝合成較正/最小世界は無効で較正不変
             MonetaryEnabled = scenario.NationConfig is not null,       // 物価水準（インフレ/デフレ）も実在国だけ＝合成較正/最小世界は P≡1 で従来同値
             ParliamentEnabled = scenario.NationConfig is not null,     // 議会・選挙も実在国だけ＝合成較正は従来の政治モデルのまま（33/33/33不変）
 
         };
-        // ★J-003（作者裁定2026-09-03「首都（史実に基づく・表示のみ）と、経済中心地は別でよい」）。
-        //   ⚠現物＝`World.Latitude/Longitude` は world.json の**史実の首都**から入り、
-        //   **エンジンの距離計算が全部これを読んでいる**（植民地維持費・脅威・戦力投射・移民・招聘・運河・分離の投射・行政費）。
-        //   ⇒ 距離の基準を**経済中心地＝1番目の州**（エンジンが首都として扱い、分離もさせない州）へ移す。
-        //   ★実装は**1箇所**＝ここで座標そのものを差し替える（20箇所以上の読み手を書き換えない＝改修面積が最小）。
-        //   ⚠史実の首都の写し（表示専用の DisplayCapitalLat/Lon）は画面も年代記も読んでいなかった＝2026-09-26 に削除（x-03）。
-        //   ⚠差が出るのは実測3カ国だけ（露634km・コーカンド167km・モロッコ166km）＝他は200km以内で一致。
-        //   ⚠旗 CenterIsFirstProvince は (1089) で焼いた（2026-09-05 B群で点火）＝常に1番目の州を中心にする。
-        //   ★座標の規則は遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B）＝未登録の州名は据え置き（幻の座標を作らない）。
+        // ⇒ 距離の基準を**経済中心地＝1番目の州**（エンジンが首都として扱い、分離もさせない州）へ移す。〔履歴 Simulation.cs#7〕
         if (World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
-        if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用系列（同型・係数 0 では引かない）
-        World.FoundingActiveProvinces += regions.Count;   // 建国時の州数（2026-08-04・残余国判定の分母・(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）
-        if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // ★(383) 最初の決算の前の AdminFill は満額でなく 0（行政財のある世界だけ＝fail-closed）。★(369) 州の開幕の人口＝扶養力の錨の定数（構築の 1 回だけ写す。建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
-        // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
-        //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
-        //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍の鉛室法を回し、硫酸〔当時は化学薬品〕の平均価格が16倍・中央値は2倍）。
-        //   ★汽船(85)・機関車(88)の onset（リ5・SteamTransportOnset）も 2026-09-27 に AddAlternateRecipes へ移した（同じ穴＝植民地格の州は1783年から無ゲートだった）。
-        // 倍率排除⑧：各popの中核民族割合を国の初期統一度で初期化（以後 移民[core=0で希釈]/同化/征服で per-pop に変動＝EthnicUnity が加重平均から創発）。
-        // ⑭-B（史実検証2026-07-22・(1089) で旗 CoreInitByRegionCulture を焼いた）：州の Culture ラベルで分化＝主流文化州は高・少数文化州は低（墺のボヘミア/ハンガリー・
-        // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。
+        if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // xA1C0_FFEE_5EED_0337UL〔履歴 Simulation.cs#8〕
+        World.FoundingActiveProvinces += regions.Count;   // Count〔履歴 Simulation.cs#9〕
+        if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // 建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。〔履歴 Simulation.cs#10〕
+        // 倍率排除⑧：各popの中核民族割合を国の初期統一度で初期化（以後 移民[core=0で希釈]/同化/征服で per-pop に変動＝EthnicUnity が加重平均から創発）。〔履歴 Simulation.cs#11〕
         if (World.EthnicEnabled && scenario.PrebuiltRegions is null)
         {
-            const double u0 = 1.0;   // ★(232) 民族統一度の国の初期値 ethnicUnity（61）を廃止＝文化ラベルのある州は州のラベルだけで決まり（下）、ラベルが空の州は自国の文化（POP の既定 1.0）として始める（旧＝国の値 u0：日 0.97・米 0.45・露 0.55・清 0.75 ほか・空ラベルの州は人口の0.2〜5%だけ）
+            const double u0 = 1.0;   // u0〔履歴 Simulation.cs#12〕
             string majority = "";
             {
                 var byCulture = new Dictionary<string, double>();
@@ -181,55 +163,53 @@ public sealed class Simulation
             CornLaws = scenario.InitialCornLaws,            // 初期穀物法（農業国＝保護／自由貿易国＝なし）
             SerfEmancipation = scenario.InitialSerfEmancipation,   // 初期農奴解放（東欧＝未解放／西欧＝全面）
             ImmigrationRestriction = scenario.InitialImmigration,  // 初期移民制限法（日朝＝閉鎖／清＝選別／他＝開放）
-            ConscriptionLaw = scenario.InitialConscription,        // ★初期徴兵法（(178)・英米日清蘭ほか＝志願／他＝選抜）
+            ConscriptionLaw = scenario.InitialConscription,        // ConscriptionLaw〔履歴 Simulation.cs#13〕
             // 金本位の志向は AI/プレイヤーが決める（UtilityAgent は信用があれば志向＝史実の規範。NullAgent のテストは志向せず＝従来挙動）。実加入は信用ゲートが決める
         };
         World.Suffrage = World.Policy.Suffrage;       // 法整備の現在値＝初期は政策の初期値（利益集団のゲートで漸進）
         World.Censorship = World.Policy.Censorship;   // 報道法の現在値＝初期値（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
-        World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ★徴兵法の現在値＝初期値（(178)）
+        World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ConscriptionLaw〔履歴 Simulation.cs#14〕
         // P2：登録簿（Crown/Seizure）を初期政体から構築（英CM→Crown=Absolutist・米Rep→None等）。flag=0ではdead write＝挙動恒等。
-        CrownParliament.ApplyRegime(World, World.Coef, World.Polity); if (Instruments.On) Instruments.CrownSource(World, 0);   // (928) 計器（読むだけ）：王冠の登録簿の書き手 0＝開幕（行番号を動かさないよう同じ行に置く＝cpop_s の経路の名が行番号を含む）
-        // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。毎期の政体→スカラー写像を廃止）。
+        CrownParliament.ApplyRegime(World, World.Coef, World.Polity); if (Instruments.On) Instruments.CrownSource(World, 0);   // ApplyRegime〔履歴 Simulation.cs#15〕
+        // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。〔履歴 Simulation.cs#16〕
         if (scenario.PoliticsEnabled) Politics.RaiseFoundingInstitutions(World);
         World.Freedom = scenario.PoliticsEnabled ? Politics.FreedomFromLaws(World.Suffrage, World.Censorship) : scenario.Freedom;   // 倍率排除②：探究の自由＝参政権＋報道法から創発（floor-raise 後に算出）
         World.LaborUnion = World.Policy.LaborUnion;   // 労働組合の現在値＝初期値（1789＝非合法）
         World.WorkHours = World.Policy.WorkHours;     // 労働時間の法定上限＝初期値（1789＝無制限）。以後 Government が政治ロック越しに漸進（A-1#2）
         World.WorkHoursValue = World.WorkHours.Hours();   // 実労働時間の初期値＝法定上限のアンカー（無制限＝14時間）。以後 MonthSettle で連続追従（倍率排除②）
         World.WomenWageRetention = World.WomenPropertyLaw ? 1.0 : 0.0;       // 賃金保持の初期値＝財産権法のアンカー。以後 MonthSettle で連続追従（倍率排除④）
-        World.ChildLaborAllowed = World.Policy.ChildLaborAllowed;            // 児童労働法の現在値＝初期値（02断線走査2026-07-28：以後 Government が政治ロック越しに漸進）
+        World.ChildLaborAllowed = World.Policy.ChildLaborAllowed;            // ChildLaborAllowed〔履歴 Simulation.cs#17〕
         World.ChildLaborLegal = World.ChildLaborAllowed ? 1.0 : 0.0;  // 児童労働の合法度の初期値＝児童労働法のアンカー。以後 MonthSettle で連続追従（倍率排除④）
         World.CornLaws = World.Policy.CornLaws;             // 穀物法の現在値＝初期値（農業国＝保護／自由貿易国＝なし）
         World.SerfEmancipation = World.Policy.SerfEmancipation;   // 農奴解放の現在値＝初期値（東欧＝未解放／西欧＝全面）
         World.ImmigrationRestriction = World.Policy.ImmigrationRestriction;   // 移民制限法の現在値＝初期値
-        World.MonetaryLaw = scenario.InitialMonetaryLaw;          // 通貨制度の現在値＝初期値（英＝金／他＝銀＝NationConfig の既定・2026-09-30 (119)＝助走は法を動かさない）
+        World.MonetaryLaw = scenario.InitialMonetaryLaw;          // MonetaryLaw〔履歴 Simulation.cs#18〕
         World.Policy.MonetaryTarget = (int)World.MonetaryLaw;    // 目標も現在値に揃える（官僚制度と同じ＝翌期に巻き戻さない）
-        // ★(169) 開幕の既知の発見＝データ（NationConfig.KnownDiscoveries）＝1783年より前に史実でその国が使っていた発見。助走の前から持つ（助走の盤面も知った国の動力で均衡する）。
-        //   名前が発見の表に無いのはデータの誤り＝構築で止める（黙って捨てない）。
+        // 助走の前から持つ（助走の盤面も知った国の動力で均衡する）。〔履歴 Simulation.cs#19〕
         foreach (var name in scenario.InitialDiscoveries)
         {
             int row = Catalog.DiscoveryRowNamed(name);
             if (row < 0) throw new System.InvalidOperationException($"開幕の既知の発見「{name}」は発見の表に無い（world.json の knownDiscoveries）");
             World.Discovered[row] = true;
         }
-        // ★(415) 合成染料の行の互換：技師の量から技術力を求める旗（DiscoveryEngineerHalfPerMonth）が0以下のあいだは全ての国が開幕で解禁済み（行が無かった旧と同じ＝1783年から作れる）。正なら発見で開く。
+        // 正なら発見で開く。〔履歴 Simulation.cs#20〕
         Discovery.SeedCompatRows(World);
-        // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
-        World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
+        // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。〔履歴 Simulation.cs#21〕
+        World.Policy.Bureaucracy = World.Bureaucracy;   // Bureaucracy〔履歴 Simulation.cs#22〕
         World.SetMilitarySpending(new Share(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget)),
                                   new Share(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget > 1e-9
                                       ? World.Policy.NavyUpkeepTarget / (World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget) : 0.5));
         World.Tariff = scenario.InitialTariff;                          // 関税の現在値＝初期値（日本＝鎖国。開国まで世界市場から孤立）
         World.InterestRate = scenario.InitialInterestRate;
-        // P6 乾隆帝の遺産（2026-07-17）：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱）。既定0=不走行＝恒等
+        // 既定0=不走行＝恒等〔履歴 Simulation.cs#23〕
         if (scenario.InitialMassMilitancy > 0)
             foreach (var (_, p) in World.AllPopsWithRegion())
                 if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
-        // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）。家計の与信は POP の債務の和から始まる
-        //   （建国＝親から運んだ州の POP の輸入の為替手形・Territory.TransferRegion が親の銀行から外した分＝2026-09-29 S3b。開幕は0）。
+        // 開幕は0）。〔履歴 Simulation.cs#24〕
         MoneyStock popDebt = default; foreach (var (_, p) in World.AllPopsWithRegion()) popDebt += p.Debt;
         World.Bank = new Bank { Gold = World.TotalMoney, Loans = default, Confidence = 1.0, HouseholdLoans = popDebt };
 
-        Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
+        Fiscal.SeedBondHoldings(World);   // SeedBondHoldings〔履歴 Simulation.cs#25〕
         _invariants = [];
         RebaselineInvariants();
     }
@@ -243,10 +223,10 @@ public sealed class Simulation
         _invariants.Add(new PopulationConservation(World));
         _invariants.Add(new NonNegativeBounds());
         _invariants.Add(new GoodsBalance());
-        _invariants.Add(new BondLedger());   // ★国債の保有台帳（2026-09-21）：Σ保有＝国内元本（状態なし）
+        _invariants.Add(new BondLedger());   // Add〔履歴 Simulation.cs#26〕
     }
 
-    // ◆玩具の世界ここから（2026-09-30 段0-1）：下の単一州の最小シナリオは Catalog を使わず、財 id は各シナリオの中だけの番号（Catalog の財 id ではない）＝番人「数値の財 id を書かない」の対象外。
+    // BuildSelfSufficientFarm〔履歴 Simulation.cs#27〕
     private static List<Region> BuildSelfSufficientFarm()
     {
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
@@ -278,7 +258,9 @@ public sealed class Simulation
         }];
     }
 
-    /// <summary>段4c：本拠地（満杯）＋辺境（豊かな土地・人はまばら）の 2 州。移民が辺境へ流入する（§A-8/§A-9）。（旧＝辺境は Locked で、開発で解錠する道があった＝(551) 恒等の線 gc1 で削除）</summary>
+    /// <summary>
+    /// 段4c：本拠地（満杯）＋辺境（豊かな土地・人はまばら）の 2 州。〔履歴 Simulation.cs#28〕
+    /// </summary>
     private static List<Region> BuildFrontierDevelopment()
     {
         Region MakeRegion(int id, string name, double bonus, double capacity, double farmerSize, double savings)
@@ -413,7 +395,7 @@ public sealed class Simulation
             goodsById[d.Id] = new Good { Id = d.Id, Name = d.Name, Tier = d.Tier, BaseNeed = d.BaseNeed, RefPrice = refP, Elasticity = d.Elasticity, IsColonial = d.IsColonial, WearRatePerMonth = d.WearRatePerMonth, NonTradeable = d.NonTradeable, GrainChain = d.GrainChain, Nutrition = d.Nutrition > 0 ? d.Nutrition : 0 };
             if (d.IsColonial) continue;   // 植民地素材は国内生産者なし（輸入のみ）
             if (d.Tier == GoodTier.Service) continue;   // 役務（労働力・高度労働力・農業労働力）の生産者は下で紐づけて追加
-            if (d.Id == Catalog.BuildingId && !(new Coefficients().BuildingGoodBundle > 0)) continue;   // ★(550)(555) 線 fb／fb2：旗 BuildingGoodBundle が 0 の世界は建造物の作り手を置かない（既定は 1＝置く。本番の州の構築は CatalogEconomy が旗を読む）
+            if (d.Id == Catalog.BuildingId && !(new Coefficients().BuildingGoodBundle > 0)) continue;   // 本番の州の構築は CatalogEconomy が旗を読む）〔履歴 Simulation.cs#29〕
             bool isFactory = d.Inputs.Length > 0;
             // 雇用の一本化：工場＝労働力＋高度労働力、自家農家（RGO）＝農業労働力を市場で買う（自作農＝一次労働者が所有）。
             producers.Add(new Producer
@@ -435,11 +417,7 @@ public sealed class Simulation
 
         var goodsList = new List<Good>();
         foreach (var g in goodsById) if (g is not null) goodsList.Add(g);
-        // ★★全順序（2026-08-17）：Tier が同値のときは id で決める。List.Sort は introsort＝**不安定**なので、
-        //   同 Tier 内の相対順序が配列長に依存する＝**財を1つ足すだけで既存財の並びが総入れ替えになる**（実測：
-        //   高等教育1財の追加で勝者が英→米・最大DD 35.4%→94.7%）。この並びは MarketFlow の価格更新順と
-        //   EconomyStep の消費順（同 Tier・同価格のタイブレーク）に直結するため、力学が動く。
-        //   id を第2キーに置くと全順序になり、以後は新財を足しても既存財の順序が不変になる。
+        // この並びは MarketFlow の価格更新順と   EconomyStep の消費順（同 Tier・同価格のタイブレーク）に直結するため、力学が動く。〔履歴 Simulation.cs#30〕
         goodsList.Sort((a, b) => { int t = ((int)a.Tier).CompareTo((int)b.Tier); return t != 0 ? t : a.Id.CompareTo(b.Id); });   // 消費優先順
 
         var laborer = new Pop { ClassId = 0, ClassName = "一次労働者", IsUrban = false, Size = 500, Savings = new MoneyStock(500_000), Satisfaction = 1.0 };
@@ -451,18 +429,17 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.AdvLaborId, Productivity = 0.5, Output = worker.Size * 0.2, MarginalCost = 0.5, LaborPopIndex = 1, OwnerPopIndex = 1, RentShare = default });
         // 農業労働力：一次労働者が算出し自家農家（RGO）が買う。
         producers.Add(new Producer { GoodId = Catalog.FarmLaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = laborer.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 0, OwnerPopIndex = 0, RentShare = default });
-        // A-中1（2026-07-23）：石油火力も燃料主導の比率へ（発電機0.5→0.15＝石炭火力と同一の資本費。原油0.6＝石炭0.9のエネルギー等価1/1.5）。
+        // 原油0.6＝石炭0.9のエネルギー等価1/1.5）。〔履歴 Simulation.cs#31〕
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "石油火力", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MachineryId, 0.498), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
-        // A-中1（2026-07-23）：水力発電＝燃料ゼロ・資本費重（発電機0.40＝火力の2.7倍＝ダム/導水路/大型水車の資本）。石炭が高い州でのみ火力に勝つ
-        //（燃料の地理が電源を分ける＝スイス/伊/ノルウェー型の水力国が価格から創発）。解禁＝発見の表の水力発電（1880年代・2026-10-01 段2A）。
+        // 石炭が高い州でのみ火力に勝つ （燃料の地理が電源を分ける＝スイス/伊/ノルウェー型の水力国が価格から創発）。〔履歴 Simulation.cs#32〕
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MachineryId, 0.647), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：漁獲を缶詰める＝漁獲に第2の消費先（従来は干物のみ）。市場が安い方を選ぶ。
         producers.Add(new Producer { GoodId = Catalog.CannedFoodId, RecipeName = "魚の缶詰", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.FishId, 0.55), new Input(Catalog.IronId, 0.3), new Input(Catalog.TinOreId, 0.05), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
 
-        AddAlternateRecipes(producers, new Coefficients());   // ★代替レシピ（2026-09-06）：フルチェーンも同じ1回（旧＝コンストラクタの走査が拾っていた＝生産者126の内訳）
+        AddAlternateRecipes(producers, new Coefficients());   // AddAlternateRecipes〔履歴 Simulation.cs#33〕
         return [new Region
         {
             Id = 0, Name = "本土",
@@ -493,7 +470,7 @@ public sealed class Simulation
             markets[d.Id] = new Market { Price = refP, Stock = 200, TargetStock = 200 };
             if (d.IsColonial) continue;   // 植民地素材は国内生産者なし（輸入のみ・植民地と制海で供給）
             if (d.Tier == GoodTier.Service) continue;   // 役務は AddServiceProducers が担い手popに紐づけて追加
-            if (d.Id == Catalog.BuildingId && !(new Coefficients().BuildingGoodBundle > 0)) continue;   // ★(550)(555) 線 fb／fb2：同上（旗が 0 の世界は建造物の作り手を置かない）
+            if (d.Id == Catalog.BuildingId && !(new Coefficients().BuildingGoodBundle > 0)) continue;   // BuildingGoodBundle〔履歴 Simulation.cs#34〕
             bool isFactory = d.Inputs.Length > 0;
             // 雇用の一本化：工場＝労働力＋高度労働力、自家農家（RGO）＝農業労働力を市場で買う。残余＝地代（旧体制＝小作0.5を貴族へ）。
             producers.Add(new Producer
@@ -514,11 +491,7 @@ public sealed class Simulation
         }
 
         var goodsList = new List<Good>(goodsById);
-        // ★★全順序（2026-08-17）：Tier が同値のときは id で決める。List.Sort は introsort＝**不安定**なので、
-        //   同 Tier 内の相対順序が配列長に依存する＝**財を1つ足すだけで既存財の並びが総入れ替えになる**（実測：
-        //   高等教育1財の追加で勝者が英→米・最大DD 35.4%→94.7%）。この並びは MarketFlow の価格更新順と
-        //   EconomyStep の消費順（同 Tier・同価格のタイブレーク）に直結するため、力学が動く。
-        //   id を第2キーに置くと全順序になり、以後は新財を足しても既存財の順序が不変になる。
+        // この並びは MarketFlow の価格更新順と   EconomyStep の消費順（同 Tier・同価格のタイブレーク）に直結するため、力学が動く。〔履歴 Simulation.cs#35〕
         goodsList.Sort((a, b) => { int t = ((int)a.Tier).CompareTo((int)b.Tier); return t != 0 ? t : a.Id.CompareTo(b.Id); });   // 消費優先順
 
         // 身分・階級（代表スケール 1単位＝1000人・計≈28,000＝人口2800万）。識字は階級で大差。
@@ -538,7 +511,7 @@ public sealed class Simulation
         int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8);
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, new Coefficients());   // 高度労働力（技師）＋石油火力
         AddArtisanProducers(producers, artisanIdx: pops.Count - 1);   // 職人の工房（工場との並存レシピ）
-        AddAlternateRecipes(producers, new Coefficients());   // ★代替レシピ（2026-09-06）：最小ビルダーも同じ1回（旧＝コンストラクタの走査が拾っていた）
+        AddAlternateRecipes(producers, new Coefficients());   // AddAlternateRecipes〔履歴 Simulation.cs#36〕
         return [new Region
         {
             Id = 0, Name = "フランス本土",
@@ -569,27 +542,12 @@ public sealed class Simulation
         var provinces = cfg.Provinces.Length > 0 ? cfg.Provinces : [new ProvinceSpec(cfg.Name, 1.0, [])];
         foreach (var p in provinces)
             regions.Add(BuildProvince(rid++, p, cfg, coef, sharedWorld));
-        // ★辺境の廃止（2026-08-26・作者裁定「Locked 州は外科的すぎるので廃止したい」）：
-        //   旧＝world.json の frontiers[] を BuildFrontier が **State=Locked の第3スキーマ**として作っていた（POPのindex割り当ても州と別）。
-        //   5件（蝦夷地・西部・ウラル・シベリア・ウラジオストク）は普通の州へ畳んだ＝州は1つのスキーマだけになった。
+        // 5件（蝦夷地・西部・ウラル・シベリア・ウラジオストク）は普通の州へ畳んだ＝州は1つのスキーマだけになった。〔履歴 Simulation.cs#37〕
         WirePortDistances(regions);
-        // ★初期軍需の工廠備蓄（初期値調整2026-08-22・<see cref="InitialArmsIndustryGoods"/> の注記の続き）：
-        //   初期軍隊の平時消費（StepMonth の MilitaryUpkeepScale×兵士 と同じ式）に対し、市場在庫が一律200では大軍の国は数日分
-        //   （清＝小銃200は6日分）＝助走中に価格が参照の3〜7倍へ発散し、国家調達の価格ゲート（半減点2.5×・旧の旗は (738) で焼き込み）が
-        //   閉じて需要ごと消える→播種した軍需産業も労働を取れず（prodW=LastDemand×Scale）「火器0%」に固着する（milstart実測）。
-        //   軍需調達は首都市場のみ（StepMonth の capShare）＝首都に平時消費 InitialArsenalMonths ヶ月分の備蓄を置く＝
-        //   助走（StartWarmupQuarters）の間、価格を参照帯に保ち、軍需産業が需要に立ち上がる時間を買う。
-        //   対象は軍需の最終財のみ（火砲81/小銃82/弾薬83/軍艦86＝InitialArmsIndustryGoods との交差）。
-        //   鋼など汎用中間財の在庫は触らない（「AI国庫×初期市場在庫」の開幕工業化バースト＝indprobe2026-07-27の既知リスク）。
-        //   汽船85（技術ゲート＝1783年に作れない）・馬127（畜産＝食料源と競合する既知の感度）・自動車132は置かない。
-        //   ⚠在庫だけを引き上げる操作が財収支恒等式（Invariants.GoodsBalance）を破らないのは、検査が StepMonth の**末尾**で走り、
-        //   その前に EconomyStep が期首で PrevStock=Stock を取り直すため（旧来の一律200も同じ構造で成立している）。
+        // 対象は軍需の最終財のみ（火砲81/小銃82/弾薬83/軍艦86＝InitialArmsIndustryGoods との交差）。〔履歴 Simulation.cs#38〕
         if (coef.InitialArsenalMonths > 0)
         {
-            // ★(239) 底＝構築時に読める**人口の側の定員**（<see cref="Military.EstablishmentOf"/> の manLimit と同じ式＝MaxSoldierFraction×Σ <see cref="Military.RegionManpower"/>）。
-            //   ⚠(241) 構築時の兵は MilitarySpendingTarget(0.30)×MaxSoldierFraction×兵役の母数で播く（BuildNation の播種）＝この底は構築時の兵÷0.30 の定数倍（植民地の無い国で 3.333 倍）。
-            //   旧＝構築時の兵士POPの和（助走で約2.1倍になる＝旧の12か月は実質6か月分）。経済の側の定員は歳入を読み助走の前はほぼ0（構築時の EstablishmentOf は人口の側の約7分の1）なので使えない。
-            //   月数は史実の兵器庫の桁（Coefficients.InitialArsenalMonths の注記）。国名を読まない＝人口（母数）に比例する。
+            // 経済の側の定員は歳入を読み助走の前はほぼ0（構築時の EstablishmentOf は人口の側の約7分の1）なので使えない。〔履歴 Simulation.cs#39〕
             double manpower = 0;
             foreach (var r in regions) manpower += Military.RegionManpower(r, coef);
             double natSoldiers = coef.MaxSoldierFraction.Value * manpower;
@@ -607,19 +565,9 @@ public sealed class Simulation
         return regions;
     }
 
-    /// <summary>内陸州の最寄り港距離を設定（監査2026-07-05・trade-capacity-even-share-not-network のデータ側配線）。
-    /// 従来 NearestPortDistanceKm はどこからも代入されず、内陸の鉄道の減衰（旧の係数 InlandPortDistanceDecay〔dormant〕）を有効化しても減衰式が不発だった（#17較正の阻害）。
-    /// 州都市座標（Climate）から同国の港を選び距離を設定（(770)(779)＝港ごとの eff〈陸路が有限なら陸路 km・無限なら大圏 km〉の最小の港とその eff＝Simulation.PortChoice）。座標未登録・港なし世界は 0＝減衰なし（従来挙動）。係数0の既定では挙動不変（較正中立）。
-    ///
-    /// ★rewire＝再配線モード（W2・是正1/是正2案B・2026-08-16・doc 20260812_港の配線を領土に追随させる）。
-    /// 領土が動いた国（割譲・分離独立・植民地州昇格）の配線を張り直す。構築時（rewire=false・既定）との差は1点だけ
-    /// （もう1点＝候補港を稼働中の州に限る判定は、州の稼働の状態が本番に無くなった〔(568) gc3〕ので消えた。「同一World」は引数 regions が
-    /// 1国のリスト（World.Regions）であることで構造的に満たす）：
-    ///   先に旧配線を消す＝港州0になった国は NearestPortName="" が残り、BilateralMarket が通過港（TransitPort*）分岐へ落ちる
-    ///    （doc §1-4「S1是正と通過港配布は同時でないと交易から完全脱落」の受け皿。張り直しは MultiNationSim.RewirePorts が毎四半期強制する）。
-    ///   SeaBasin は消さない＝港州0の国の内陸州は旧海盆を保持（未決9a=保守側：封鎖・冬季閉鎖の帯の連続性を優先。港が戻れば次の再配線で追随）。
-    ///   呼び出しは毎四半期の張り直し（MultiNationSim.RewirePorts）のみ（旧の旗 PortRewireEnabled は点火2026-08-16・2026-10-18 焼き込み）。
-    ///   決定論＝盤面（州集合と座標）だけから決まる・RNG不使用・同率は従来どおり先着（州リスト順＝決定論）。</summary>
+    /// <summary>
+    /// 従来 NearestPortDistanceKm はどこからも代入されず、内陸の鉄道の減衰（旧の係数 InlandPortDistanceDecay〔dormant〕）を有効化しても減衰式が不発だった（#17較正の阻害）。〔履歴 Simulation.cs#40〕
+    /// </summary>
     internal static void WirePortDistances(List<Region> regions, bool rewire = false)
     {
         if (rewire)
@@ -634,8 +582,8 @@ public sealed class Simulation
             if (r.IsPort) continue;
             var cc = Climate.CityCoord(r.Name);
             if (cc.Lat == 0 && cc.Lon == 0) continue;
-            var pick = PortChoice(cc.Lat, cc.Lon, ports);   // (770)(779) 港を選ぶ式は 1 本（形 (d) の前の (a) の反実仮想の港は計器 portlm_s の portA・実際の港は portlm_s の portUsed／portD）
-            r.NearestPortDistanceKm = pick.LandKm;   // (770) BilateralMarket の内陸の鉄道の減衰が陸路の km を読む
+            var pick = PortChoice(cc.Lat, cc.Lon, ports);   // pick〔履歴 Simulation.cs#41〕
+            r.NearestPortDistanceKm = pick.LandKm;   // NearestPortDistanceKm〔履歴 Simulation.cs#42〕
             r.NearestPortName = pick.Name;   // 03 §12-3：どの港かを記憶（キエフ/ハリコフ→ロストフ＝穀物動線がデータを足さずに出る）
             // 03手順4A：陸脚＝陸グラフの最短路（山脈迂回込み）。孤立成分（別陸塊等）は大圏で退避＝0を残さない（0=港州の意味）
             r.PortLandKm = pick.LandKm;
@@ -644,10 +592,9 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>(770) 内陸の1州（座標 lat,lon）が使う港を選ぶ純関数（乱数なし・盤面だけから決まる）。ports＝同じ国の港（座標つき）の並び。
-    /// 港ごとの eff＝〈陸グラフの距離（PathGraph.LandDistanceKm）が有限 ? その陸路 km : 大圏 km〉（欄 PortLandKm と同じ物差し・別陸塊や島の港は大圏で比べる＝除外も優遇もしない）。
-    /// 形 (d)（(779)）：州の陸塊の札（<see cref="Landmass.Of"/>）と同じ札で陸路が有限の港が 1 つでもあれば、陸路∞の港を外して有限の港の eff の最小（同率は先着＝並びの先）・無ければ全ての港の eff の最小（同率は先着）。
-    /// 返り値＝港の名前・その港までの大圏 km・その港の eff（＝PortLandKm・陸路 ∞ は大圏で退避＝0 を残さない）。</summary>
+    /// <summary>
+    /// ports＝同じ国の港（座標つき）の並び。〔履歴 Simulation.cs#43〕
+    /// </summary>
     internal static (string Name, double GcKm, double LandKm) PortChoice(double lat, double lon, List<(double Lat, double Lon, string Name)> ports)
     {
         // 1 パスで両方の最小を持つ＝全ての港の eff の最小（bestEff）と、陸路が有限の港だけの陸路の最小（finEff）。
@@ -671,34 +618,15 @@ public sealed class Simulation
     }
 
     /// <summary>1つの州（代表都市）を生成。国全体の各階級を Share で按分し、独立したカタログ全財の経済を持たせる（州ごとに世界市場と交易）。</summary>
-    // 港州（§5.1拡張）：世界市場と直接交易できる代表的な港町。内陸州は鉄道で港経由（容量ゲート）。
-    // 02断線走査（2026-07-28）：旧12港のPortCities backstopを削除＝全12件がworld.jsonでcoastal:true と全数確認済み（恒真的に冗長・coastal編集を殺す罠だった）。
+    // 港州（§5.1拡張）：世界市場と直接交易できる代表的な港町。〔履歴 Simulation.cs#44〕
 
 
-    // 州ごとの資源（NationConfig の Provinces で指定）：列挙財を増産（地理的な得意＝輸出）、非列挙RGOは減産（要輸入＝交易を生む）。
-    // 倍率排除⑧：列挙財の賦存量を good の地理的性質から導く（uniform な手置き×3.5 を廃止＝賦存の大小が一次データから出る）。
-    // 鉱物・石油（IsMineral）は点在鉱床＝産地では集中的に豊富＝高い賦存（4.0・ルール炭/ペンシルベニア炭/アナトリアのクロム/ガリツィアの石油…）。
-    // 農産・繊維・加工の得意は面的＝中庸（3.5）。鉱物が偏在し産地が圧倒的に強い、という史実の地理がここから創発する。
+    // 州ごとの資源（NationConfig の Provinces で指定）：列挙財を増産（地理的な得意＝輸出）、非列挙RGOは減産（要輸入＝交易を生む）。〔履歴 Simulation.cs#45〕
     private const double ResourceScarcity = 0.4;   // 非列挙RGOの産出（賦存に乏しい＝最低限の自給はあるが輸入依存。ゼロにしない＝封鎖即飢饉を回避）
     internal static double ResourceEndowment(int good) => Catalog.IsMineral(good) ? 4.0 : 3.5;
 
-    // ★財の地理ゲート（2026-08-13・doc 20260812_財の3分類と地理ゲート §4-1／作者裁定⑥）。
-    //
-    // 旧＝非産地でも 0.4 で産出する＝**どの国も硫黄を自給できる**。史実の希少鉱物（硫黄・硝石・クロム・錫・金・銀）は
-    // 産地を押さえた国が世界を人質に取れる財で、それが本作では起きない。
-    // 新＝希少鉱物は**産地でしか出ない**（非産地は厳密に0）。ただし総量が減ると火薬と肥料が細って
-    // パンの値段（本作の背骨）に直撃するので、**世界総産出が不変になるよう産地の賦存を引き上げる**。
-    //
-    //   E = ( k×4.0 + (N−k)×0.4 ) / k        k＝産地の数・N＝産出しうる地点の総数
-    //
-    // ★k は world.json から数える＝**産地を足せば E は自動で下がる**（手で書かない＝doc §4-1 の要求）。
-    // ★N は**州のみ**（植民地は生産者を1つも持たないことを2026-08-13に確認済み）。
-    //   ⚠2026-10-04 (196) の注記＝この確認は ColoniesAreRegions の前の話。今は開幕の植民地 77 が全て州へ昇格して生産者を持ち、同じ E を受ける
-    //   （PromoteColonyToRegion）＝州だけを数えるのは分子と分母の非対称（硫黄＝門のある世界の採掘の能力の合計が門の無い世界の約0.75倍〔93.6÷124.4〕）。
-    //   直しの旗 ScarceCountsIncludeColonies＝★2026-10-04 (197) で点火・(1089) で焼いた（常に植民地も数える・(196) の5種の腕 K と (197) の合わせた木の10種の腕 K＝実装ログ (197)・英の人口は記録）。
-    // 硫黄は k=1（パレルモのみ。北九州は後期産地＝k に数えない・蝦夷地の抽象標的は 2026-09-28 に削除）→ 州だけの N＝225 で E = 4.0 + 224×0.4 = **93.6**（旧の注記の 183 州＝77.2 は州の追加の前の数）。
-    // 旗 ScarceMineralGate は (1089) で焼いた＝共有世界では常に産地ゲートを効かせる（密閉世界では効かせない）。
-    private static int[]? _scarceCountsWithColonies;   // 財ID→産地の数（world.json から1回だけ数える・決定論）。植民地の固有資源も数える（(1089) で旗 ScarceCountsIncludeColonies を焼いた）
+    // 史実の希少鉱物（硫黄・硝石・クロム・錫・金・銀）は 産地を押さえた国が世界を人質に取れる財で、それが本作では起きない。〔履歴 Simulation.cs#46〕
+    private static int[]? _scarceCountsWithColonies;   // 財ID→産地の数（world.json から1回だけ数える・決定論）。〔履歴 Simulation.cs#47〕
     private static int _scarceTotalWithColonies;
 
     private static void EnsureScarceCounts()
@@ -727,8 +655,7 @@ public sealed class Simulation
     /// <summary>希少鉱物の産地での賦存量（総量保存で逆算）。対象外・未点火なら通常の賦存を返す。</summary>
     internal static double ScarceEndowment(int good, Coefficients c, bool sharedWorld)
     {
-        // ★密閉世界（単国シム＝較正・テスト・sharedWorld=false）では産地ゲートを効かせない（2026-09-06）：運ぶ相手がいない世界で産地を絞るのは
-        //   「地理」でなく「欠乏の注入」＝実測で硫黄0→化学→紙→教育→行政力の鎖が絶えた（TaxTests/MobilityTests）。史実の英は硫黄をシチリアから運んだ。
+        // 史実の英は硫黄をシチリアから運んだ。〔履歴 Simulation.cs#48〕
         if (!sharedWorld || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
         EnsureScarceCounts();
         int k = _scarceCountsWithColonies![good];
@@ -737,28 +664,18 @@ public sealed class Simulation
         return (k * ResourceEndowment(good) + (total - k) * ResourceScarcity) / k;
     }
 
-    /// <summary>賦存倍率を生産者へ当てる唯一の入口（播種の6箇所が全部ここを通る）。
-    /// ★器 <see cref="Coefficients.EndowmentCostFollowsAbundance"/>／<see cref="Coefficients.EndowmentCostFollowsScarcity"/>
-    /// （2026-09-08・作者裁定「同一生産コスト辺りの産出能力にするのが正しい」・既定0＝**休眠**）：
-    /// 旧＝倍率は Productivity＝Capacity にしか乗らず、自己費用（Producer.MarginalCost）は全州で同じ
-    /// ＝硫黄はパレルモも非産地も単位費用 0.540＝比較優位がデータ上ゼロ。
-    /// 新＝賦存の高い州は同じ費用でより多く採れる＝<c>費用 ＝ 自己費用÷賦存倍率 ＋ 投入費用</c>。
-    /// 割り算の形は <see cref="EconomyStep.MineralSelfCost"/>（鉱脈の品位）と同じ物理＝あちらは月ごとに動く鉱脈の質を毎月割り、
-    /// こちらは動かない地理なので播種で1回だけ MarginalCost に畳む（毎月割るのと厳密同値）。⚠旗 1 では産地の発見の行（開始時の賦存に載らない行）の割り算だけは播種でなく開いた時
-    /// （<see cref="Discovery.OpenSite"/>）＝播種後に MarginalCost を書き換える口はそこ 1 つ（(1073) R1 (b)・旗 0 では割らない＝書き換えない）。
-    /// 両方点火すれば mc の自己費用は 賦存倍率×鉱脈倍率 で割られる＝積として重なる。
-    /// ⚠豊富側（倍率>1）と希少側（倍率<1＝非産地の 0.4）は別ゲート＝非対称を選べる：希少側は費用を上げる方向で、
-    ///   効きが強すぎると石炭・鉄の非産地が死ぬ（2026-09-07 の MineralCostFollowsGrade 点火で人口21.8→7.1 の前例）。
-    /// ゲート0では Math.Pow を1度も通らない＝×1.0 すら掛けない＝厳密恒等。倍率が NaN・非正なら費用を触らない（否定形の番人）。</summary>
+    /// <summary>
+    /// 賦存倍率を生産者へ当てる唯一の入口（播種の6箇所が全部ここを通る）。〔履歴 Simulation.cs#49〕
+    /// </summary>
     internal static void ApplyEndowment(Producer pr, double capMul, double costDiv, Coefficients c)
     {
         pr.Productivity *= capMul;
         DivideCostByEndowment(pr, costDiv, c);
     }
 
-    /// <summary>(1073) R1 (a)：費用を割る数 <paramref name="costDiv"/> は能力の倍率 capMul と別の引数。割る数＝<see cref="ResourceEndowment"/>×ResourceEndowmentScale
-    /// （希少鉱物の逆算した高い賦存〔126.8〕と <see cref="Coefficients.GoldRushEndowment"/>〔5.0〕は能力にだけ掛ける＝総量保存のための倍率で、同じ費用で採れる量の物理ではない）。
-    /// 1.0 を渡せば割らない（産地の発見の行の播種）。旗 0 では Math.Pow を通らない。</summary>
+    /// <summary>
+    /// 1.0 を渡せば割らない（産地の発見の行の播種）。〔履歴 Simulation.cs#50〕
+    /// </summary>
     internal static void DivideCostByEndowment(Producer pr, double costDiv, Coefficients c)
     {
         double gate = costDiv > 1.0 ? c.EndowmentCostFollowsAbundance : costDiv < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
@@ -766,9 +683,9 @@ public sealed class Simulation
         pr.MarginalCost /= System.Math.Pow(costDiv, gate);
     }
 
-    /// <summary>★産地の発見の行（2026-10-01 (148)・<see cref="Catalog.Sites"/>）をこの場所・この財について引く（州の構築と植民地の昇格の2か所が呼ぶ＝同じ規則）。
-    /// ⚠共有世界だけ（密閉世界＝単国の較正とテストでは産地を絞らない＝旧 LateResources の枝と同じ・ScarceEndowment と同じ理由）。
-    /// 銀の行は <see cref="Coefficients.SilverRushEnabled"/>＝0 の間は置かない（銀の平価の自己参照を断つ回の後に点火＝検討 Q13 (d)）。</summary>
+    /// <summary>
+    /// ⚠共有世界だけ（密閉世界＝単国の較正とテストでは産地を絞らない＝旧 LateResources の枝と同じ・ScarceEndowment と同じ理由）。〔履歴 Simulation.cs#51〕
+    /// </summary>
     internal static int SiteRowFor(string place, int good, Coefficients c, bool sharedWorld)
     {
         if (!sharedWorld) return -1;
@@ -776,36 +693,21 @@ public sealed class Simulation
         return row >= 0 && good == Catalog.SilverId && !(c.SilverRushEnabled > 0) ? -1 : row;
     }
     private const double LandHeadroom = 1.8;         // 本土州の耕地賦存量＝初期農民×これ。初期は余裕（landFactor=1＝既存収支を保持）、流入で農村人口がこれを超えると収穫逓減が効く
-    // 主食の自給免除は気候帯で切替（Climate.StapleSelfSufficient）：麦・野菜＝普遍／米＝モンスーン・熱帯／ジャガイモ＝冷涼帯／トウモロコシ＝新大陸（2026-07-05・旧StapleRaw=[15,102,108]の全州一律を地理化）
+    // PolicyDefaults〔履歴 Simulation.cs#52〕
 
     /// <summary>播種時に読む政策の既定値。⚠数字をここに書き写さない＝<see cref="NationPolicy"/> の初期化子が唯一の出所。
     /// 初期兵は「平時の均衡」で播くので軍事費の既定が要る（BuildProvince は World より前に走るので World.MilitarySpending は無い）。</summary>
     private static readonly NationPolicy PolicyDefaults = new();
 
-    // 州の関税利害（分離独立の駆動）：工業州（鉄・石炭・鉄鋼・機械等を産む）は保護(+1)・農業/一次産品輸出州は自由貿易(−1)。＝史実の南北対立軸。
-    // 初期地代シードの実勢補正（2026-08-04）：素の rentShare×Output×RefPrice は生産性乗数・実価格の分だけ実勢を下回る
-    // （frdbg実測＝シードで旧支配層25%・実流の翌四半期63%）。初月のみの近似＝実流が翌月に上書きするので精度はこの桁で足りる。
+    // 州の関税利害（分離独立の駆動）：工業州（鉄・石炭・鉄鋼・機械等を産む）は保護(+1)・農業/一次産品輸出州は自由貿易(−1)。〔履歴 Simulation.cs#53〕
     private const double InitialRentSeedScale = 3.0;
 
-    // ★初期軍需産業（2026-08-22・作者指示「初期軍隊と実際の生産が噛み合っていない（火器0%・軍艦1083%）＝初期値を調整」）。
-    // 初期軍隊は平時の均衡で播く（BuildProvince の soldier 徴募）のに、軍需財の工場は Scale=0.05（前工業＝「工場はほぼ無い」）で
-    // 始まる＝結果（軍隊）だけ置いて支え（工廠・火薬廠・造船所）を置かない不整合（識字と教育供給の不整合と同じ型）。
-    // 実測（Runner の milstart・seed1）＝小銃/火砲の価格が助走で参照の5〜25倍へ発散→国家調達の価格ゲート
-    // （旧の旗は (738) で焼き込み）が閉じて充足0%・軍艦は初期在庫200が配給1.0に見せて陸海再配分倍率
-    // （ShapeNavalShare/flatShare≈10.8）がそのまま「充足1083%」に露出していた。
-    // ★1783年の現実＝マスケットは職人の産物（バーミンガム銃器街・リエージュ）・工廠（ウーリッジ/テュラ/springfield）・
-    // 王立造船所（ポーツマス/ブレスト/トゥーロン）は操業中＝職人工房（AddArtisanProducers の Scale=1.0）と同じ扱いで
-    // 軍需連鎖を「既に操業している」初期値にする。規模は国ごとに書かない（国名分岐なし）＝労働配分が需要比例
-    // （EconomyStep:300 prodW=LastDemand×Scale）なので、大軍の国ほど大きな軍需産業が需要から自然に立つ。
-    // 対象＝軍需の最終財（火砲81/小銃82/弾薬83/帆船84/軍艦86）と軍需専用の中間財（火薬38/帆布42）。
-    // 馬127は除外（畜産＝食料源と競合する既知の感度・MilitaryRates 0.1で症状の主因でない）。
-    // 技術ゲート財（汽船85/装甲艦105等）は対象外＝発見の表に行を持つ並存レシピも触らない（技術ゲート0の操業規模0と整合）。
-    // ★備蓄の深さは <see cref="Coefficients.InitialArsenalMonths"/>（0で旧初期値と厳密恒等＝アブレーションの腕を POB_COEF で測れる）。
-    //   操業規模の器 InitialArmsIndustryScale は 2026-08-22 の実測で棄却＝2026-09-26 に削除（棚卸し mil-21・dorm-36）。
+    // 規模は国ごとに書かない（国名分岐なし）＝労働配分が需要比例 （EconomyStep:300 prodW=LastDemand×Scale）なので、大軍の国ほど大きな軍需産業が需要から自然に立つ。〔履歴 Simulation.cs#54〕
     internal static readonly int[] InitialArmsIndustryGoods = [Catalog.GunpowderId, Catalog.CanvasId, Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.SailingShipId, Catalog.WarshipId];
 
-    /// <summary>★(1025) c96rd 段0″a 資源のデータ：world.json の州の resources に足した史実の産地の行（確度〈中〉かつ州の対応を確かめた 10 行・事前登録 measurements/m1025_20261110_prereg_rd.txt §1）。
-    /// 足した行は各州の配列の末尾＝旗 0 で外すと足す前の並びに戻る。</summary>
+    /// <summary>
+    /// 足した行は各州の配列の末尾＝旗 0 で外すと足す前の並びに戻る。〔履歴 Simulation.cs#55〕
+    /// </summary>
     internal static readonly (string City, int Good)[] ResourceRowsAdded =
     [
         ("バーミンガム", Catalog.CopperOreId), ("マンチェスター", Catalog.SaltId), ("グラスゴー", Catalog.FishId), ("ブレスラウ", Catalog.IronOreId),
@@ -813,8 +715,9 @@ public sealed class Simulation
         ("セビーリャ", Catalog.CopperOreId), ("セビーリャ", Catalog.LeadOreId),
     ];
 
-    /// <summary>★(1025) 州の賦存の配列を決める 1 か所（BuildProvince だけが呼ぶ）。旗 <see cref="Coefficients.ResourceRowsFix"/> が正なら world.json の配列のまま、
-    /// 0（NaN も）なら <see cref="ResourceRowsAdded"/> の行を外した配列（並びは元のまま・外す行の無い州は元の配列）。州の Region.Resources はこの配列＝全ての読み手が同じ配列を見る。</summary>
+    /// <summary>
+    /// 州の Region.Resources はこの配列＝全ての読み手が同じ配列を見る。〔履歴 Simulation.cs#56〕
+    /// </summary>
     internal static int[] ProvinceResources(string city, int[] resources, Coefficients coef)
     {
         if (coef.ResourceRowsFix > 0) return resources;
@@ -826,65 +729,48 @@ public sealed class Simulation
 
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
-        var (city, share, resources, culture, religion, _, _, _, _, _) = p;   // Coastal/Malarial/ArableLand/IndShare/Rule は p.* で直接参照（★2026-10-01 (148)：LateResources を削除＝産地の発見の表 Catalog.Sites へ）
-        resources = ProvinceResources(city, resources, coef);   // ★(1025) 足した史実の産地の行を旗で入れる・外す 1 か所
+        var (city, share, resources, culture, religion, _, _, _, _, _) = p;   // resources〔履歴 Simulation.cs#57〕
+        resources = ProvinceResources(city, resources, coef);   // resources〔履歴 Simulation.cs#58〕
         var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
         // 列挙する州（中国の茶州等）は下の賦存ブースト×3.5で産み、加工して世界へ売る＝供給の偏在が地理から創発する（287州世界）。
         producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(resources, pr.GoodId) < 0 && SiteRowFor(city, pr.GoodId, coef, sharedWorld) < 0);
-        // 州の気候帯（主食の地理化・2026-07-05）：代表都市の座標で判定。未登録都市・単一州世界は首都座標へフォールバック（テスト世界の(0,0)＝従来挙動を保存）。
+        // 未登録都市・単一州世界は首都座標へフォールバック（テスト世界の(0,0)＝従来挙動を保存）。〔履歴 Simulation.cs#59〕
         var (plat, plon) = Climate.CityCoord(city);
         if (plat == 0 && plon == 0) { plat = cfg.Latitude; plon = cfg.Longitude; }
         // 米の気候ゲート：モンスーン・熱帯の適地外の州は、賦存列挙がない限り生産者ごと除去（欧州の全州が米を自給する非現実の排除。茶葉等と同型）。
         producers.RemoveAll(pr => pr.GoodId == Catalog.RiceId && !Climate.RiceSuitable(plat, plon) && System.Array.IndexOf(resources, pr.GoodId) < 0);
-        // A-中5（史実検証2026-07-22）：綿花の気候ゲート（米ゲートと同型）。適地外（|緯度|>37）は賦存列挙がない限り生産者ごと除去＝
-        // 英仏独露の本国綿花自給を排除（綿布は輸入原綿で織る＝ランカシャーの現実。賦存21州＝米南部・インド・エジプト等のみ産する）。
+        // 適地外（|緯度|>37）は賦存列挙がない限り生産者ごと除去＝ 英仏独露の本国綿花自給を排除（綿布は輸入原綿で織る＝ランカシャーの現実。〔履歴 Simulation.cs#60〕
         producers.RemoveAll(pr => pr.GoodId == Catalog.CottonId && !Climate.CottonSuitable(plat) && System.Array.IndexOf(resources, pr.GoodId) < 0);
         // 州の資源プロファイル：列挙財は増産（×3.5）、非列挙のRGOは減産（×0.4・要輸入）。工場財は地理に縛られないので減産しない。
         // 主食は気候帯の自給セット（Climate.StapleSelfSufficient）に該当すれば非列挙でも減産しない（自給ぶんを作る＝封鎖で即飢饉にしない）。
         foreach (var pr in producers)
         {
-            // ★産地の発見（2026-10-01 (148)・Catalog.Sites＝大鉱床と植林）：その場所の生産者は通常の賦存で作り、見つかるまで門0（Discovery.Gate＝Producer.SiteFound）。
-            //   開始時の賦存（resources）に載る財（カリフォルニアの金・アジアのキナ）は下の賦存の枝をそのまま通す（地代の取り分も同じ）＝門が付くだけ。
-            //   載らない財（西部の硫黄・北九州の硫黄・豪州と北ユーコンの金）は通常の賦存（総量保存の k に数えない＝新しい供給＝旧 LateResources の枝と同じ）。
+            // 開始時の賦存（resources）に載る財（カリフォルニアの金・アジアのキナ）は下の賦存の枝をそのまま通す（地代の取り分も同じ）＝門が付くだけ。〔履歴 Simulation.cs#61〕
             int site = pr.IsRgo ? SiteRowFor(city, pr.GoodId, coef, sharedWorld) : -1;
             if (site >= 0 && System.Array.IndexOf(resources, pr.GoodId) < 0)
             {
-                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // (1073) R1 (b)：産地の発見の行は播種で割らない（割るのは Discovery.OpenSite）
+                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // ApplyEndowment〔履歴 Simulation.cs#62〕
                 pr.SiteRow = site;
             }
             else if (System.Array.IndexOf(resources, pr.GoodId) >= 0)
             {
                 pr.SiteRow = site;
                 ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 賦存量＝good の地理的性質（鉱物=集中4.0／他=中庸3.5）。希少鉱物は総量保存で逆算した高い賦存。★Scale=1.0（既定）でビット恒等＝診断用レバー
-                // D6（プランテーションdoc・2026-07-30）：**地代取り分を州別・財別へ**。旧＝`RentShare = max(0.3, farmLordShare)` の国家スカラー1個で、
-                // 同じ関数の中で Productivity だけが州の resources で財別に分化していた（器はあるのに使っていなかった）。
-                // 賦存財の RGO＝その州の輸出向け一次産品＝**大農園/鉱山の経営**なので、残余は経営者（地主階級）へ厚く落ちる。
-                // ★実測の矛盾がこれで解ける：チャールストン（綿花・葉煙草の賦存州）は米の farmLordShare=0 ゆえ
-                //   「奴隷プランテーションが自作農の家族農場として計上される」状態だった。
-                // ★思想②に抵触しない＝world.json の resources は一次データ（国ごとの倍率ではない）。PlantationRentShare=0 で旧値＝厳密恒等。
+                // 賦存財の RGO＝その州の輸出向け一次産品＝**大農園/鉱山の経営**なので、残余は経営者（地主階級）へ厚く落ちる。〔履歴 Simulation.cs#63〕
                 if (pr.IsRgo && coef.PlantationRentShare.Value > 0)
                 {
                     double plantation = coef.PlantationRentShare.Value;
                     if (plantation > pr.RentShare.Value) { pr.RentShare = new Share(plantation); pr.OwnerPopIndex = 0; }   // 所有は地主階級（貴族）＝経営者のいる大農園
                 }
             }
-            // ★希少鉱物は**非産地では厳密に0**（2026-08-13・裁定⑥）。総量は産地の賦存を引き上げて保つ（ScarceEndowment）。
-            else if (sharedWorld && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
+            // 総量は産地の賦存を引き上げて保つ（ScarceEndowment）。〔履歴 Simulation.cs#64〕
+            else if (sharedWorld && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // IsScarceMineral〔履歴 Simulation.cs#65〕
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
 
-        // ★貴族・聖職の初期資産＝土地（2026-08-04・作者指示「現在の問題を全て解決して」の統一根）。
-        //   ── 実測（blocprobe・1783年）────────────────────────────────────────────
-        //   旧＝貴族3000/人 vs 資本家3200/人（ほぼ同額）。貴族は頭数が少ない（英108K vs 資本家2,100K）ので
-        //   旧支配層の政治力＝富シェア×参政権は **英3%・仏21%・普26%** になっていた。
-        //   1783年の現実は逆＝土地が国富の過半で、それを握るのが貴族（英の改革法1832は地主支配への闘争そのもの・
-        //   ユンカーは1918年まで支配・仏は革命前夜）。
-        //   ── 帰結の連鎖（これが「制度の階段が立たない」の統一根）───────────────
-        //   旧支配層に富が無い → DoctrineFrom が近代化派に倒れる → 法の門番（旧 ModernizationLawsGated＝伝統教義のみ発動・2026-09-26 に削除＝回5-1 項目19）が
-        //   全員素通り → 教育/官僚/検閲が全国1783年に通る（lawtiming実測）→ 識字・技術・吸収能力が収束 → 工業化が全球収束。
-        //   ⚠ClosedWealthMultiple=1.0 で旧と厳密恒等（×1.0はIEEE754で恒等）。
-        var lit = ClassLiteracy(cfg, coef);   // ★(232) 階級の識字＝国の基準 cfg.Literacy×全国共通のオッズの比（旧＝cfg.NobLit ほか7項目＋直書きの商人 0.70・職人 0.45・使用人 0.30）
+        // 貴族は頭数が少ない（英108K vs 資本家2,100K）ので   旧支配層の政治力＝富シェア×参政権は **英3%・仏21%・普26%** になっていた。〔履歴 Simulation.cs#66〕
+        var lit = ClassLiteracy(cfg, coef);   // lit〔履歴 Simulation.cs#67〕
         var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, lit[0],  3000 * coef.ClosedWealthMultiple, closed: true);
         var clergy       = MkPop(6, "聖職者",     false, cfg.Nobility * cfg.ClergyFrac * share,       lit[1], 3000 * coef.ClosedWealthMultiple, closed: true);   // 宗教学校の教育を算出（世俗化＝公教育で収入を失い没落）。教会領も土地＝貴族と同じ倍率
         var peasant      = MkPop(1, "農民",       false, cfg.Peasant * share,      lit[2], 200,  subs: cfg.PeasantSubsistence);
@@ -893,9 +779,7 @@ public sealed class Simulation
         var engineer     = MkPop(4, "技師",       true,  cfg.Professional * (1 - cfg.IntelligentsiaFrac) * share, lit[5], 800, modern: true);
         // 旧インテリPOPを専門職に分解（利益団体「インテリ」＝教師・官僚・医者・技師の政治的まとまり。実体は職業別POP）。
         double intel = cfg.Professional * cfg.IntelligentsiaFrac * share;
-        // ★研究者（2026-08-17・作者裁定「上流階級と別カテゴリでインテリ（医者/技師/研究者）を置く」）＝インテリの4人目。
-        //   ⚠**総量保存**：教師/官僚/医者の取り分から按分で切り出す（新しい人は湧かない＝思想⑥）。
-        //   ResearcherFrac=0（既定）で keep=1.0＝旧の 0.40/0.35/0.25 と厳密一致・研究者Size=0＝**ビット恒等**。
+        // ⚠**総量保存**：教師/官僚/医者の取り分から按分で切り出す（新しい人は湧かない＝思想⑥）。〔履歴 Simulation.cs#68〕
         double resFrac = System.Math.Clamp(coef.ResearcherFrac.Value, 0, 0.9);
         double keep = 1.0 - resFrac;
         var teacher    = MkPop(7, "教師", true, intel * 0.40 * keep, lit[6], 800, modern: true);   // 公教育・義務教育の教育を算出
@@ -905,69 +789,51 @@ public sealed class Simulation
         var merchant   = MkPop(10, "商人", true, cfg.Merchant * share, lit[7], 1500, modern: true); // 流通マージン＋貿易の仲立ち。商船を買い海運を支える
         var artisan    = MkPop(11, "職人", true, cfg.Artisan * share, lit[8], 400);   // 手工業の自営（大衆ブロック＝ラッダイトの母体）
         // #12 家事使用人：富裕層(貴族＋資本家)の世帯規模に比例して雇われる（家事奉仕を算出）。女性がなりやすい（高FemaleShare＝紡績/家事奉公）。低識字・低富。
-        var servant    = MkPop(12, "使用人", true, (nobility.Size + bourgeois.Size) * 1.0, lit[9], 150);   // 表示名は「使用人」（2026-07-04ユーザー指示）
+        var servant    = MkPop(12, "使用人", true, (nobility.Size + bourgeois.Size) * 1.0, lit[9], 150);   // servant〔履歴 Simulation.cs#69〕
         servant.SetAdultFemaleShare(0.75);   // 女性が多数（19世紀の家事使用人＝女性就労の主要な受け皿）
-        // 職業POPの成人女性比（1789・ユーザー指示2026-07-04）：聖職/専門職は男性が支配的（貴族・農民・労働者は世帯階級＝0.5のまま）。
-        //   ★年齢の層（2026-09-30 段4e 後半）＝20歳以上の層の男女を職業の女性比で分ける（0〜19 は半々）。
+        // SetAdultFemaleShare〔履歴 Simulation.cs#70〕
         clergy.SetAdultFemaleShare(0.10); bourgeois.SetAdultFemaleShare(0.20); engineer.SetAdultFemaleShare(0.02);
         teacher.SetAdultFemaleShare(0.25); bureaucrat.SetAdultFemaleShare(0.03); doctor.SetAdultFemaleShare(0.05); researcher.SetAdultFemaleShare(0.02);   // 研究者＝技師と同じ（19世紀の大学は男性のみ）
         merchant.SetAdultFemaleShare(0.25); artisan.SetAdultFemaleShare(0.30);
 
-        // 兵士POP（Part 2）：平時の均衡の近くで播く＝既定の軍事費の段 × MaxSoldierFraction × 兵役の母数（働き盛りの男・(145)）。
-        // ── ★2026-08-02：国別のハードコード初期兵（cfg.Military×250）を撤去 ──────────────────
-        // ⚠旧は国ごとに手で置いた数で、**経済が養える量と桁で食い違っていた**（作者指摘）。実測（armydump）＝
-        //   イギリス 初期兵1125／人頭均衡150＝**7.5倍**・プロイセン 900／61＝**14.7倍**・オーストリア 650／270＝2.4倍。
-        //   その結果、開始10年で英の兵は 1125→364・充足率 1.00→0.21 へ落ち、軍ゲージは **450→20 と20倍以上潰れた**。
-        //   逆に清は初期225に対し10年後 9,575人まで膨れ、充足率0.00＝**払えない大軍**になった。
-        //   ＝初期値が台本で、1793年に一斉に経済の現実へ引き戻されていた（設計原則①台本禁止に反する）。
-        // ★播種＝扶養限界の人口の側（上限割合×兵役の母数＝働き盛りの男・Military.RecruitMen）×既定の軍事費の段。
-        //   ★(145)→(155)：平時の兵は定員（Military.EstablishmentOf＝払える予算÷1人あたりの費用と徴兵法の割当ての小さい方）＝払える予算は播種の時点に歳入が無いので読めない
-        //   ＝最初の1〜2年で定員へ寄る（徴兵制＝強制の徴募が月 SoldierMigrationRatePerMonth で・志願制＝転職の仕組みの志願・定員の超過は転職の仕組みが民間の職へ戻す）。
-        //   旧＝「Military.cs の desired と完全一致」（軍事費の段×上限割合×頭数＝旧の平時の目標）。
-        //   富の乗数（SoldierWealthExponent）は世界平均を要るので播種時には掛けない＝最初の数四半期で自然に効く。
-        // ⚠ 国の初期ゲージ（Power.Military）は兵士 POP から導く（MultiNationSim）。world.json の国の military 欄は (231) で外した（抽象標的 TargetDto の military だけが残る＝POP を持たない勢力）。
+        // 実測（armydump）＝   イギリス 初期兵1125／人頭均衡150＝**7.5倍**・プロイセン 900／61＝**14.7倍**・オーストリア 650／270＝2.4倍。〔履歴 Simulation.cs#71〕
         double pw = peasant.Size + worker.Size;
         var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(),
             Literacy = pw > 1e-9 ? (peasant.Literacy * peasant.Size + worker.Literacy * worker.Size) / pw : 0.3 };
-        double pwMen = Military.RecruitMen(peasant) + Military.RecruitMen(worker);   // ★(145) 兵役の母数の単位（働き盛りの男）
+        double pwMen = Military.RecruitMen(peasant) + Military.RecruitMen(worker);   // pwMen〔履歴 Simulation.cs#72〕
         double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction.Value * pwMen;
         if (pw > 1e-9)
         {
-            Military.MoveCohort(peasant, soldier, draft * peasant.Size / pw, coef);   // ★2026-09-26：手元の coef を渡す（旧＝3引数版が既定の係数を新しく作っていた・sweep-23）
+            Military.MoveCohort(peasant, soldier, draft * peasant.Size / pw, coef);   // MoveCohort〔履歴 Simulation.cs#73〕
             Military.MoveCohort(worker,  soldier, draft * worker.Size  / pw, coef);
         }
 
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, soldier, clergy, teacher, bureaucrat, doctor, merchant, artisan, servant };
-        // ⚠⚠休眠時は**POPそのものを並べない**（実測2026-08-17・作者裁定A）：Size=0 でも pops に居ると
-        //   `region.Pops.Count` が 13→14 になり、EconomyStep のスクラッチ配列長・労働配分・地代分配の
-        //   ループ長が変わって軌道が動く（実測＝勝者 英→米・DD 83.1→87.6）。★大学の生産者を止めても
-        //   差分ゼロだった＝**原因は生産者でなくPOPの存在そのもの**と切り分け済み。
-        //   ResearcherFrac=0 で pops に1件も足さない＝**厳密恒等**。>0 のとき researcher は index 13（大学の LaborPopIndex と一致）。
+        // ★大学の生産者を止めても   差分ゼロだった＝**原因は生産者でなくPOPの存在そのもの**と切り分け済み。〔履歴 Simulation.cs#74〕
         if (resFrac > 0) pops.Add(researcher);
         int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 7, bureaucratIdx: 8, doctorIdx: 9, coef: coef, researcherIdx: resFrac > 0 ? 13 : -1, clergyIdx: 6);   // clergyIdx＝段1 器 EduProducersCoexist の教区学校の担い手（0 では読まれない）
         // #12 家事奉仕の生産者：家事使用人(index12)が算出し富裕層が雇う（兵力と同型＝pop自身が役務を売り収入を得る）。
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = servant.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = default });
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // 高度労働力（技師）＋石油火力
         AddArtisanProducers(producers, artisanIdx: 11);   // 職人の工房（工場との並存レシピ）。家事使用人を末尾(12)に足したので pops.Count-1 でなく職人の明示index
-        // （兵力の生産者は (145) で削除＝兵士の給与は EconomyStep が兵士POPの所得へ直接払う＝兵力の市場は (140) から読み手が無かった）
-        AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
+        // AddAlternateRecipes〔履歴 Simulation.cs#75〕
+        AddAlternateRecipes(producers, coef);   // AddAlternateRecipes〔履歴 Simulation.cs#76〕
         var region = new Region
         {
-            Id = id, Name = city, IsPort = p.Coastal, Resources = resources, Culture = culture, Religion = religion,   // 改修2026-06-28：港判定を一次データ(p.Coastal)へ＝改名耐性・網羅性。TariffInterest は CheckSecession で実利から毎期算出
-            // ★州の格・支配度の初期値（2026-11-08 (956)）：開幕の全州は Core・支配度1.0（HeldSinceFromData と heldSince のデータを消した＝旧の旗 0 の経路そのまま）。
+            Id = id, Name = city, IsPort = p.Coastal, Resources = resources, Culture = culture, Religion = religion,   // TariffInterest は CheckSecession で実利から毎期算出〔履歴 Simulation.cs#77〕
+            // Dominance〔履歴 Simulation.cs#78〕
             Dominance = 1.0,   // ★E-06 支配度の初期値（中核＝1）
             Tier = RegionTier.Core,
             Malarial = p.Malarial,
-            Rule = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],   // ★支配度の一般化 段1（2026-09-06）：4区分の初期値（州→国既定→国家1.0）
+            Rule = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],   // Rule〔履歴 Simulation.cs#79〕
             RuleInit = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],
 
-            // ★2026-08-26：一次データ（world.json の arableLand）があればそれを使う。0＝従来＝初期農民×余裕。
-            //   ⚠これは辺境の廃止で失われるはずだった「人口と独立な土地の量」の受け皿＝(3)で全州へ一般化する入口。
+            // 0＝従来＝初期農民×余裕。〔履歴 Simulation.cs#80〕
             ArableLand = p.ArableLand > 0 ? p.ArableLand : peasant.Size * LandHeadroom,   // 耕地賦存量＝初期農民×余裕。流入で農村人口が超えると収穫逓減
-            Terrain = Places.TerrainOf(city),   // ★(3) 地形タグ（places.json の1列・既定 Plain）。係数全1.0の間は恒等
+            Terrain = Places.TerrainOf(city),   // 係数全1.0の間は恒等〔履歴 Simulation.cs#81〕
             CapitalEnabled = true,
             Industrialization = cfg.Industrialization * (p.IndShare >= 0 ? p.IndShare : share),   // ★IndShare（一次データ）があれば産業地理で按分・無ければ従来の人口比
-            CulturalGoodId = cfg.CulturalGoodId,   // 象徴的主食（表示アンカーのみ・固執機構は廃止）
+            CulturalGoodId = cfg.CulturalGoodId,   // CulturalGoodId〔履歴 Simulation.cs#82〕
             InvestorPopIndex = 3, MeritFromIndex = 2, MeritToIndex = 4,
             ClergyPopIndex = 6, TeacherPopIndex = 7, BureaucratPopIndex = 8, DoctorPopIndex = 9, SoldierPopIndex = 5, MerchantPopIndex = 10, ArtisanPopIndex = 11, ServantPopIndex = 12,
             CriminalPopIndex = AddCriminalPop(pops, coef, worker.Literacy), ResearcherPopIndex = resFrac > 0 ? 13 : -1,   // ★段②：研究者は休眠時 -1＝Meritocracy の昇格先に数えない（POP自体も並んでいない）
@@ -978,13 +844,7 @@ public sealed class Simulation
             Producers = producers,
             Markets = markets,
         };
-        // ★初期地代のシード（2026-08-04・コールドスタートの穴）：LandRent は月次アキュムレータで、開幕1ヶ月目の
-        //   政治（Blocs＝土地の政治力）が走る時点ではまだ0＝**開幕だけ旧支配層が無力**になり、AIがその隙に
-        //   近代化法を通していた（lawtiming実測＝仏の公教育・資格任用が1783年に逆戻り）。
-        //   月次の実勢（rentShare×産出×参照価格）を1回だけ推定して置く＝初回の EconomyStep が実流で上書きする。
-        //   ⚠貨幣ではない（LandRent は診断/課税ベースの記録値）＝保存則に触れない。決定論（データのみから導出）。
-        // ★(895) 土地の持ち分（NationConfig.LandOwnership＝world.json）：非賦存（州の resources に載らない）・持ち主が貴族の RGO にだけ、和で割った写しを生産者ごとに別の配列で置く。
-        //   賦存の RGO（大農園・鉱山の経営）・工場・率 0 の国（持ち主が農民）・植民地格（PromoteColonyToRegion は cfg を読まない）・合成の世界は null＝今の持ち主に 1.0。無効なデータは null。
+        // 月次の実勢（rentShare×産出×参照価格）を1回だけ推定して置く＝初回の EconomyStep が実流で上書きする。〔履歴 Simulation.cs#83〕
         if (LandOwnershipShares(cfg.LandOwnership) is { } lo)
             foreach (var pr in region.Producers)
                 if (pr.IsRgo && System.Array.IndexOf(resources, pr.GoodId) < 0 && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < region.Pops.Count
@@ -993,13 +853,15 @@ public sealed class Simulation
         foreach (var pr in region.Producers)
             if (pr.IsRgo && pr.RentShare.Value > 0 && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < region.Pops.Count
                 && pr.GoodId >= 0 && pr.GoodId < Catalog.RefPrices.Length)
-                for (int k = 0, nk = pr.LandShares is { } ls0 ? (coef.LandShareCrownSlot > 0 && ls0.Length == 5 ? 4 : ls0.Length) : 1; k < nk; k++)   // ★(895) 枠ごとに 種×割合（null＝今の持ち主に種のまま）・★(978) 旗 1 かつ長さ 5 は国家の枠（5 個目）を種に置かない＝私の枠は種×ls[k]（国営持分の前の種×(1−c)×ls[k]÷(1−c)）
+                for (int k = 0, nk = pr.LandShares is { } ls0 ? (coef.LandShareCrownSlot > 0 && ls0.Length == 5 ? 4 : ls0.Length) : 1; k < nk; k++)   // LandShareCrownSlot〔履歴 Simulation.cs#84〕
                     if (pr.LandShares is not { } ls || ls[k] > 0)
                         region.Pops[pr.LandShares is null ? pr.OwnerPopIndex : EconomyStep.LandShareRecipient(region, pr, k)].LandRentPerMonth += new MoneyPerMonth(pr.LandShares is { } lsk ? pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale * lsk[k] : pr.RentShare.Value * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale);
         return region;
     }
 
-    /// <summary>★(895) 土地の持ち分のデータ（4 個・★(978) 5 個目＝国家の枠も可）を和で割った同じ長さの写し。長さが 4 か 5 でない・負・非有限・和が正でない・5 個目が 1 以上（1−c で割れない）なら null（＝今の持ち主に 1.0）。旗は読まない。</summary>
+    /// <summary>
+    /// 長さが 4 か 5 でない・負・非有限・和が正でない・5 個目が 1 以上（1−c で割れない）なら null（＝今の持ち主に 1.0）。〔履歴 Simulation.cs#85〕
+    /// </summary>
     internal static double[]? LandOwnershipShares(double[]? lo)
     {
         if (lo is null || (lo.Length != 4 && lo.Length != 5)) return null;
@@ -1021,7 +883,7 @@ public sealed class Simulation
     /// <summary>カタログ経済（市場・生産者）を1地域ぶん生成。地域ごとに独立した市場・状態を持つ（複数地域は別インスタンス）。
     /// 役務（労働力・教育・医療・行政）の生産者は担い手popの添字が地域構成で違うため、呼び出し側が <see cref="AddServiceProducers"/> で足す。
     /// farmLordShare＝農制：自家農家（RGO）の残余のうち地主（貴族）の取り分。1.0＝農奴制・0.5＝小作・0＝自作農（農民が所有）。</summary>
-    private static (List<Good> goods, Market[] markets, List<Producer> producers) CatalogEconomy(double farmLordShare, Coefficients coef)   // ★coef（2026-09-05）：原油の機械入力・蒸気タービンの器を読む
+    private static (List<Good> goods, Market[] markets, List<Producer> producers) CatalogEconomy(double farmLordShare, Coefficients coef)   // CatalogEconomy〔履歴 Simulation.cs#86〕
     {
         int n = Catalog.Goods.Length;
         var goodsById = new Good[n];
@@ -1035,17 +897,16 @@ public sealed class Simulation
             // 旧「colonial財は国内生産者なし（輸入のみ）」のスキップを撤廃＝colonial財も RGO 生産者を持つ。
             // 賦存州（州が Resources に列挙）のみ産み、非賦存州の生産者は BuildProvince が除去する＝茶＝中国/ゴム＝東南ア…の偏在が地理から創発（287州世界）。
             if (d.Tier == GoodTier.Service) continue;   // 役務の生産者は AddServiceProducers が担い手popに紐づけて追加
-            if (d.Id == Catalog.BuildingId && !(coef.BuildingGoodBundle > 0)) continue;   // ★(550)(555) 線 fb／fb2：旗 BuildingGoodBundle が 0 のときは建造物の作り手を置かない（買い手も売り手も居ない財＝成績表は旗の追加前と同じ世界）。旗が正（既定 1）のときだけ木造〔既定〕の生産者を置く
+            if (d.Id == Catalog.BuildingId && !(coef.BuildingGoodBundle > 0)) continue;   // 旗が正（既定 1）のときだけ木造〔既定〕の生産者を置く〔履歴 Simulation.cs#87〕
             bool isFactory = d.Inputs.Length > 0;
             // 雇用の一本化：工場は労働力＋高度労働力、自家農家（RGO）は農業労働力を市場で買う＝全生産者が同一ロジック。
             // 自家農家の残余（売上−労働費）＝地代：農奴制では全て地主（貴族）へ、小作は折半、自作農は農民自身へ。
             producers.Add(new Producer
             {
                 GoodId = d.Id,
-                // RGOの施設名（プランテーションdoc D2・2026-07-30／採取形態の是正 2026-08-10）＝鉱山／採掘場／牧場／漁場／猟場／伐採場／養蚕場／農場。工場は空（＝単一レシピの既定表示）。
-                // 表示のみ＝エンジンの読み手ゼロ（RecipeName を読むのは Runner の診断と BreakDetectionTests の名前照合だけ）＝挙動不変。
+                // 工場は空（＝単一レシピの既定表示）。〔履歴 Simulation.cs#88〕
                 RecipeName = isFactory ? "" : Catalog.RgoFacilityName(d.Id),
-                Productivity = d.Productivity * FullChainProductivityScale,   // 倍率排除⑤：国一律倍率を撤去。生産性差は工業化度(indMult)・技術・資源(辺境/鉄道)から創発
+                Productivity = d.Productivity * FullChainProductivityScale,   // 生産性差は工業化度(indMult)・技術・資源(辺境/鉄道)から創発〔履歴 Simulation.cs#89〕
                 Output = isFactory ? 0.5 : 50,         // 工場は表示閾値(Output>1)未満で開始＝初期はリストに出ず、育って初めて現れる（1789は前工業＝農村中心・工場はブルジョワ/プレイヤーが育てる）
                 Scale = isFactory ? 0.05 : 1.0,        // 工場は操業規模を低く開始（全財がScale1.0で立たない＝初期は工場がほぼ無い）
                 MarginalCost = isFactory ? Catalog.FactoryVa : Catalog.RgoVa,   // 自家農家＝0.34＋農業労働0.16≈旧0.5（供給曲線の損益分岐を維持＝過剰生産を防ぐ） // 賃金分は投入費（労働購入）へ移った＝残りは管理・資本/土地の付加価値
@@ -1057,23 +918,19 @@ public sealed class Simulation
                 EffGoods = isFactory ? [] : Catalog.RgoBoosterGoods(d.Id),   // RGOの効率化材の候補（肥料/帆船/飼料/工具・火薬）。工場は空（電化を使う）
                 Inputs = isFactory ? [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(d.Id))]
                                    : d.Id == Catalog.CrudeOilId
-                                       ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(Catalog.MachineryId, coef.OilMachineryInput)]   // ★原油＝掘削機（機械）を要する（2026-09-05・器）
+                                       ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(Catalog.MachineryId, coef.OilMachineryInput)]   // Input〔履歴 Simulation.cs#90〕
                                        : [new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],
             });
         }
         var goodsList = new List<Good>(goodsById);
-        // ★★全順序（2026-08-17）：Tier が同値のときは id で決める。List.Sort は introsort＝**不安定**なので、
-        //   同 Tier 内の相対順序が配列長に依存する＝**財を1つ足すだけで既存財の並びが総入れ替えになる**（実測：
-        //   高等教育1財の追加で勝者が英→米・最大DD 35.4%→94.7%）。この並びは MarketFlow の価格更新順と
-        //   EconomyStep の消費順（同 Tier・同価格のタイブレーク）に直結するため、力学が動く。
-        //   id を第2キーに置くと全順序になり、以後は新財を足しても既存財の順序が不変になる。
+        // この並びは MarketFlow の価格更新順と   EconomyStep の消費順（同 Tier・同価格のタイブレーク）に直結するため、力学が動く。〔履歴 Simulation.cs#91〕
         goodsList.Sort((a, b) => { int t = ((int)a.Tier).CompareTo((int)b.Tier); return t != 0 ? t : a.Id.CompareTo(b.Id); });   // 消費優先順
         return (goodsList, markets, producers);
     }
 
-    /// <summary>★(537) 新世代の武器のレシピ（既定の鋼の小銃・鋼の砲）の強さ：財の単位を〈戦う強さ〉と読み、同じ投入の束が <paramref name="k"/> 単位になる＝生産性 ×k・投入の量（労働と高度労働を含む全て）÷k
-    /// （自己費用 <see cref="Producer.MarginalCost"/> は割らない）。門＝転炉鋼の発見（<see cref="Producer.OpenedByRow"/>）まで 0＝時代錯誤の投入を作らない。
-    /// k が正でなければ（NaN を含む）強さは掛けず門だけ置く（否定形）。構築時（<c>AddAlternateRecipes</c>）の 2 か所だけが呼ぶ。</summary>
+    /// <summary>
+    /// 門＝転炉鋼の発見（Producer.OpenedByRow）まで 0＝時代錯誤の投入を作らない。〔履歴 Simulation.cs#92〕
+    /// </summary>
     private static void ToWeaponStrength(Producer p, double k)
     {
         if (k > 0)
@@ -1086,19 +943,12 @@ public sealed class Simulation
         p.OpenedByRow = Catalog.OpenedByRowOf(p.GoodId);
     }
 
-    /// <summary>職人の工房（工場との並存レシピ）：衣料・家具・革製品・陶磁器を手仕事で作る自営（全付加価値が職人の収入）。
-    /// 1789年は職人が主役（操業規模1.0 vs 工場0.05）。工場が機械・電化で安くなるほど職人レシピは採算で負け、
-    /// 没落して労働者へ転落する（ラッダイトの母体＝転落の闘争度が政治に流れ込む）。</summary>
-    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油ケロシン（★(149)：(148) の F4＝石油灯油への畳み込みは差し戻した）・冷蔵の加工肉・黄鉄鉱法。汽船・機関車の onset（2026-09-27）。
-    /// 旧＝Simulation のコンストラクタで構築時の州だけに注入していた（昇格植民地・建国州が代替を持たない穴）。各器=0 で1件も足さない＝恒等。</summary>
+    /// <summary>
+    /// 職人の工房（工場との並存レシピ）：衣料・家具・革製品・陶磁器を手仕事で作る自営（全付加価値が職人の収入）。〔履歴 Simulation.cs#93〕
+    /// </summary>
     private static void AddAlternateRecipes(List<Producer> producers, Coefficients coef)
     {
-        // ★汽船・機関車・鋼の既定のレシピ（転炉鋼）の門＝発見の表の行（2026-10-01 段2A＝汽船・機関車 1820年代・転炉鋼 1850年代）が財とレシピ名から置く
-        //   ＝ここでは onset を焼かない（旧＝リ5 SteamTransportOnset・A-高1 CrucibleSteelEnabled の2本の旗が既定の Producer へ onset を焼いた・旗は焼き込みで削除）。
-        // A-高1（史実検証2026-07-22）：鋼のベッセマー不連続。既定レシピ（鉄1.0+コークス0.4＝ベッセマー転炉）は発見（転炉鋼）まで作れず、
-        // 「坩堝鋼」（鉄2.2+コークス1.2・Productivity0.9＝るつぼ1基数十kgのバッチ＝5倍以上高い）と「錬鉄レール」（鉄1.3＝
-        // 鉄道が転炉鋼より手前にあるため、これが無いと最初の鉄道が坩堝鋼で敷設され逆向きに行き過ぎる）を地理差（常にある）として並存させる。
-        // 転炉鋼の発見の後はベッセマーがコストで自動的に坩堝鋼・錬鉄レールを駆逐（1870年代英のレール転換が創発）。
+        // 転炉鋼の発見の後はベッセマーがコストで自動的に坩堝鋼・錬鉄レールを駆逐（1870年代英のレール転換が創発）。〔履歴 Simulation.cs#94〕
         {
             Producer? steelDefault = null, railDefault = null;
             foreach (var pr in producers)
@@ -1117,24 +967,14 @@ public sealed class Simulation
                         Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RailId))] });
             }
         }
-        // ★前期の軍需レシピ（2026-09-07・英の軍が立たない根＝armsdebug 実測：1783年の小銃在庫363/目標3696・発注は毎期立つのに60年間充足0.02〜0.09）：
-        //   小銃(82)＝鋼0.6＋製材0.4／火砲(81)＝鋼1.0＋機械部品0.5 は鋼を要するが、鋼の既定レシピ（ベッセマー）は onset0.55（≈1858）まで無く〔★2026-10-01 段2A＝発見の表の転炉鋼（1850年代）を発見するまで無く〕坩堝鋼（5倍高い・規模0.05）だけ
-        //   ＝軍需は鋼に縛られて作れない。史実のマスケット（錬鉄の銃身）と鋳鉄砲/青銅砲は鋼を要しない＝**時代錯誤の投入**。
-        //   坩堝鋼/錬鉄レールと同じ型で「マスケット」（鉄1.0＋製材0.4）「鋳鉄砲」（鉄1.3＋製材0.3）を1783年から満額で並存させる（退場は下）。生産性＝既定×MusketProductivity（前装式・手工程）。
-        //   新しい財は足さない。★旗 MusketRecipeEnabled は 2026-09-27 回2-1 で点火して削除＝常に足す（古いセーブは組み立て直さない＝前期レシピの無いまま続く・作者裁定 B13）。全国対称（国名を書かない）。
-        // ★退場（2026-09-27 回2-1 の続き・(62) の申し送り③）：前期レシピは後継の発見で退く＝発見の表の退場の行（Catalog・2026-10-01 段2A＝2値＝転炉鋼を発見した四半期に能力0）。
-        //   後継＝既定のレシピ（鋼の後装施条砲・鋼の小銃）を実用にした発見＝ベッセマー転炉（上の鋼の既定レシピ＝発見の表の転炉鋼）。
-        //   根＝火砲は費用で転換しない（鋳鉄砲＝鉄1.3＋製材0.3 はベッセマーの限界費用の鋼でも既定＝鋼1.0＋機械部品0.5 より安い・1783年の参照価格で 2.50 対 4.10）
-        //   ＝1950年まで鋳鉄の前装砲が残っていた。史実の転換（アームストロング1859・クルップ1860年代）は費用でなく性能（射程・発射速度）で起き、1880年以後に鋳鉄の滑腔砲を買う軍は無い。
-        //   小銃も同じ規則の1本（史実の後装銃・施条銃は前装の滑腔銃より高かった＝費用の転換は後押しに過ぎない）。onset は鋼のデータから読む＝新しい係数を作らない。
+        // 史実のマスケット（錬鉄の銃身）と鋳鉄砲/青銅砲は鋼を要しない＝**時代錯誤の投入**。〔履歴 Simulation.cs#95〕
         Producer? rifleDefault = null, cannonDefault = null;
         foreach (var pr in producers)
         {
             if (pr.GoodId == Catalog.RifleId && rifleDefault is null) rifleDefault = pr;
             else if (pr.GoodId == Catalog.ArtilleryId && cannonDefault is null) cannonDefault = pr;
         }
-        // ★(537) 旧の武器のレシピ（マスケット・鋳鉄砲）は退場しない（退場の表から外した・鋳鉄の機関は残る）・新しいレシピ（既定の鋼の小銃・鋼の砲）は財の単位を強さと読んで同じ投入の束が k 単位（ToWeaponStrength）。
-        //   ⚠旧の生産性は新しいレシピに強さを掛ける前の既定の値から作る（下の2本は Add が先・ToWeaponStrength が後＝旧の生産性は強さを掛ける前の値から作る）。
+        // ⚠旧の生産性は新しいレシピに強さを掛ける前の既定の値から作る（下の2本は Add が先・ToWeaponStrength が後＝旧の生産性は強さを掛ける前の値から作る）。〔履歴 Simulation.cs#96〕
         if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
         {
             producers.Add(new Producer { GoodId = Catalog.RifleId, RecipeName = "マスケット",
@@ -1151,11 +991,7 @@ public sealed class Simulation
                 Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))] });
             ToWeaponStrength(cannonDefault, coef.WeaponStrengthArtillery);
         }
-        // ★(169) 1780年代の蒸気機関＝「鋳鉄の機関」（時代のレシピ・前期の軍需と同じ型・推奨で進めた）。既定のレシピ（機械0.726＋石炭0.4）の機械は鋼（転炉鋼の前は坩堝鋼＝5倍高い）
-        //   ＝開幕の蒸気機関の財を作る費用が参照の3〜10倍（(165)(167) の腕A・B）＝時代錯誤の投入。史実＝ワットの機関（1776〜1800）は鋳鉄のシリンダー（ウィルキンソンの中ぐり盤1774）・
-        //   鋳鉄の梁と弾み車・錬鉄と銅のボイラーで、鋼は使わなかった（Dickinson & Jenkins 1927・Hills 1989）。投入＝既定の機械の中身（鋼1.10＋銅0.41）の鋼を鉄に置き換え、
-        //   重さはマスケット（鉄1.0 対 鋼0.6）と同じ比（鋳鉄・錬鉄は同じ強さに鋼の約1.7倍）＝鉄1.832＋銅0.414＋石炭0.4＝参照価格の世界で既定と同じ費用（3.81 対 3.80）。
-        //   退場の表に残る（鋳鉄の機関だけ）。国名の分岐を作らない（全ての州に同じ1本）。
+        // 史実＝ワットの機関（1776〜1800）は鋳鉄のシリンダー（ウィルキンソンの中ぐり盤1774）・   鋳鉄の梁と弾み車・錬鉄と銅のボイラーで、鋼は使わなかった（Dickinson & Jenkins 1927・Hills 1989）。〔履歴 Simulation.cs#97〕
         Producer? engineDefault = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.SteamEngineId) { engineDefault = pr; break; }
         if (engineDefault is not null)   // 蒸気機関の無い世界（最小シナリオ）は不発
@@ -1163,10 +999,7 @@ public sealed class Simulation
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
-        // ★(536) 線 ivf（旗 MachineCastIronRecipe・★2026-10-25 点火・(811) で焼き込み）：機械（財）の地理差のレシピ〈鋳鉄の機械〉。鋳鉄の機関（上）と同じ型。
-        //   既定の機械は鋼 1.514＋銅 0.57（goods.json）で、鋼を使わないレシピが無い＝1783 年の機械の費用は坩堝鋼の値段（転炉鋼の発見は 1850 年代）で決まる（iv ②・坩堝鋼の機械は参照の約 8.1）。
-        //   史実＝1780 年代の機械は鋳鉄・錬鉄と木材（Dickinson & Jenkins 1927・Hills 1989 は蒸気機関についての文献で、機械一般への換算の根拠ではない）。換算は鋳鉄の機関の比（鉄 1.832÷鋼 1.0992＝1.665）の流用＝鋼 1.514 を鉄 2.52 に置き換える（確証なし・AI の推奨・事前登録 追記 2）。
-        //   参照の費用 4.8046（既定の機械 4.3943 の 1.093 倍）。★(542) 合流（反証役 ivf〔bv〕中#1）：〈転炉鋼の後は費用で鋼のレシピが勝つ〉は数字と合わない＝機械の産出のうち鋳鉄の機械の割合は 1850 年 1.000・1880 年 0.997・1913 年 0.412（腕 C・10 種の中央値）＝1913 年でも約 4 割が鋳鉄（鋼の慢性的な不足で鋼のレシピが費用で勝てない・F2 を落とした G5b と同じ根）。退場の行は置いていない（置くかは作者に聞く物＝00一覧 §0-2）。新しい財なし。生産性は既定の機械と同じ。全ての州に同じ 1 本（国名の分岐なし）。
+        // 鋳鉄の機関（上）と同じ型。〔履歴 Simulation.cs#98〕
         Producer? machineDefault = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.MachineryId) { machineDefault = pr; break; }
         if (machineDefault is not null)   // 機械を作らない世界（最小シナリオ）は不発
@@ -1174,11 +1007,7 @@ public sealed class Simulation
                 Productivity = machineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = machineDefault.LaborPopIndex, OwnerPopIndex = machineDefault.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 2.52), new Input(Catalog.CopperId, 0.57), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.MachineryId))] });
-        // ★(550) 線 fb（旗 BuildingGoodBundle・既定 1〔(555) で 0 から倒した〕・0 にすると 1 件も足さない）：工場の建屋＝建造物の段のレシピ 4 本（既定の木造は CatalogEconomy が置く）。鋳鉄の機械（上）と同じ型・新しい倍率なし。
-        //   生産性は既定（木造）と同じ＝段の差は材の量だけ（隠れた倍率を作らない）。参照価格（単位費用）：木造 1.273 ＞ 煉瓦造 1.277（地理差・常にある）＞ 鋳鉄の骨組み 1.180 ＞ 鋼の骨組み 1.112 ＞ 鉄筋コンクリート造 1.056（確証なし・AI の推奨）。
-        //   史実の注：耐火工場は木造より高く、利点は火災・荷重・高さだった。ここは〈材あたりの床と梁の大きさ〉の読み（既知のずれ・事前登録 [6]）。
-        //   ★(555) 線 fb2 段の出典（史実の年・事例は全て推＝確証なし・段の量は AI の推奨で出典なし）：煉瓦造＝在来の工場建築（表に無い＝1783 年から）／鋳鉄の骨組み＝ストラットの紡績工場〔ダービー・1793〕・ディザリントンの亜麻工場〔シュルーズベリ・1797〕／鋼の骨組み＝ホーム保険ビル〔シカゴ・1885〕〈転炉鋼は 1856〉／鉄筋コンクリート造＝モニエの特許〔1867〕・アンヌビックの工法〔1892〕。段の量は (550) のまま据え置く（(554) 読む線 st：量を動かしても鋼の産業は立ち上がらない）。
-        //   門：鋳鉄の骨組み＝発見の行（Catalog.Discoveries の末尾）・鋼の骨組み＝転炉鋼の行・鉄筋コンクリート造＝住居の同名の行（Producer.OpenedByRow＝(537) の作法）・木造と煉瓦造は表に無い＝1783 年から。
+        // 鋳鉄の機械（上）と同じ型・新しい倍率なし。〔履歴 Simulation.cs#99〕
         if (coef.BuildingGoodBundle > 0)
         {
             Producer? woodDefault = null;
@@ -1200,16 +1029,7 @@ public sealed class Simulation
                 AddBuilding("鉄筋コンクリート造", [new Input(Catalog.CementId, 0.4), new Input(Catalog.SteelId, 0.07), new Input(Catalog.LimestoneId, 0.25)], "鉄筋コンクリート");
             }
         }
-        // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
-        // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
-        //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
-        //   同じ原油→灯油の近代レシピ（RecipeName="石油灯油"・同じ1850年代の発見の行〔旧 TechOnset=0.6〕）が**既にある**＝空白ではない。
-        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled は点火済み・(811) で焼き込み。当時
-        //   列強+6.2/人口−5.7 の実測がある）ので、ここでは**事実の記録だけ**に留め、統合は測定とセットで行う（キューAUD-09）。
-        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる（★2026-10-01 段2A・旧＝onset後）。
-        //   史実の較正＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い。
-        //   投入は原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）で表す＝倍率を書かない。
-        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。（旗 KeroseneFromOilEnabled は (811) で焼き込み。）
+        // 既定は鯨油/魚油（漁獲0.8）。〔履歴 Simulation.cs#100〕
         Producer? keroDefault = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
         if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
@@ -1220,12 +1040,7 @@ public sealed class Simulation
                 Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
         }
 
-        // ★冷蔵の加工肉（2026-09-04・作者提案「冷蔵庫という形にして、肉輸送+消費財でよいのでは」）＝**加工肉(63)の第2レシピ**。
-        //   既定は 肉+小麦粉（塩漬け・ソーセージ）。⚠冷凍船（1877/1882）以後は**冷蔵**が主役になる。
-        //   ★新しい財を作らない＝加工肉の需要は既に較正済みのまま使える（作者指摘で「冷蔵肉」の新設を撤回した）。
-        //   ⚠解禁は暦年でなく**冷蔵庫(137)が作れるか**＝精密工作機械の連鎖に律速される（時計を書かない）。
-        //   ★副産物＝塩漬けの設備が座礁する＝「乗り換えるか／捨てられる側が抵抗するか」の実例になる。
-        //   （旗 ChilledMeatEnabled は (811) で焼き込み。）
+        // 既定は 肉+小麦粉（塩漬け・ソーセージ）。〔履歴 Simulation.cs#101〕
         Producer? saltCured = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.PreservedMeatId) { saltCured = pr; break; }
         if (saltCured is not null)   // 加工肉を作らない世界（最小シナリオ）は不発
@@ -1236,10 +1051,7 @@ public sealed class Simulation
                 Inputs = [new Input(Catalog.MeatId, 0.6), new Input(Catalog.RefrigeratorId, coef.ChilledMeatColdInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PreservedMeatId))] });
         }
 
-        // ★E-15 手順1（2026-09-05）：硫酸(33)の第2レシピ「黄鉄鉱法」＝硫黄の代替（(493) 以後は銅鉱＋石炭＝含銅黄鉄鉱を焙焼して硫酸・旧は鉄鉱石＋石炭＋塩）。
-        //   史実＝1838年の硫黄危機（シチリア独占）の後、世界は原料の代替（リオ・ティントの黄鉄鉱）で解いた。新しい財は足さない。
-        //   解禁＝発見の表の黄鉄鉱法（1830年代・2026-10-01 段2A）・生産性は硫黄法×SulfurFromPyriteProductivity（高くついた）。
-        //   火薬(38)は代替しない（黒色火薬は元素硫黄が要る）。(1089) で旗 SulfurFromPyriteEnabled を焼いた＝常に足す。
+        // 史実＝1838年の硫黄危機（シチリア独占）の後、世界は原料の代替（リオ・ティントの黄鉄鉱）で解いた。〔履歴 Simulation.cs#102〕
             {
                 Producer? leadChamber = null;
                 foreach (var pr in producers) if (pr.GoodId == Catalog.SulfuricAcidId) { leadChamber = pr; break; }
@@ -1247,12 +1059,10 @@ public sealed class Simulation
                 {
                 producers.Add(new Producer { GoodId = Catalog.SulfuricAcidId, RecipeName = "黄鉄鉱法", Productivity = leadChamber.Productivity * coef.SulfurFromPyriteProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = leadChamber.LaborPopIndex, OwnerPopIndex = leadChamber.OwnerPopIndex, RentShare = new Share(1.0), BuysLabor = true,
-                    Inputs = [new Input(Catalog.CopperOreId, 1.4), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SulfuricAcidId))] });   // ★(493) G2：黄鉄鉱は鉄の硫化物で鉄鉱石に硫黄は無い＝含銅黄鉄鉱（スペインのリオ・ティント）の読みで銅鉱 1.4・酸の行から塩を外す。燃料は少量（黄鉄鉱は自分で燃える）。質量 1.8＝旧と同じ（単位費用 1.322 を保つ）
+                    Inputs = [new Input(Catalog.CopperOreId, 1.4), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SulfuricAcidId))] });   // 燃料は少量（黄鉄鉱は自分で燃える）。〔履歴 Simulation.cs#103〕
                 }
             }
-        // ★(493) ソーダ灰(128)の並存レシピ 3 本＝発見の表のルブラン法〔1790〕・ソルベー法〔1860〕・電解〔1890〕。既定は草木灰（goods.json の行）。作者 2026-10-21〜23「「硫酸」と「ソーダ灰」は2つに分けましょう。」
-        //   静的（旗なし＝黄鉄鉱法・合成染料と同じ型・解禁は発見の行の門）。生産性・担い手・所有者は既定のレシピの生産者から写す（黄鉄鉱法と同じ作法）。
-        //   量の根拠と順序（草木灰 1.430 ＞ ルブラン法 1.207 ＞ 電解 1.091 ＞ ソルベー法 0.971）は measurements/gd_20261023_prereg.txt [2]（AI の推奨）。ルブラン法の硫酸は塩を分ける薬（ナトリウムは塩から＝線を割らない）。
+        // 既定は草木灰（goods.json の行）。〔履歴 Simulation.cs#104〕
         Producer? sodaAsh = null;
         foreach (var pr in producers) if (pr.GoodId == Catalog.SodaAshId) { sodaAsh = pr; break; }
         if (sodaAsh is not null)   // ソーダ灰を作らない世界（最小シナリオ）は不発
@@ -1270,8 +1080,8 @@ public sealed class Simulation
             AddSodaAsh("ソルベー法", (Catalog.SaltId, 0.5), (Catalog.LimestoneId, 0.4), (Catalog.CoalId, 0.25));
             AddSodaAsh("電解", (Catalog.SaltId, 0.5), (Catalog.ElectricityId, 0.3));
         }
-        AddHouseholdProducers(producers, coef);   // ★(418) 日用品の自給：農家の手仕事の行（旗 HouseholdProductionEnabled は (811) で焼き込み）
-        ApplyRecipeCostFollowsProductivity(producers, coef);   // ★(328) 流れG ①：別レシピの自己費用を生産性の比で割る（★(331) 既定1＝点火・0＝走査もしない＝旧の挙動）。4本の構築経路の最後の add の後の1回
+        AddHouseholdProducers(producers, coef);   // AddHouseholdProducers〔履歴 Simulation.cs#105〕
+        ApplyRecipeCostFollowsProductivity(producers, coef);   // 4本の構築経路の最後の add の後の1回〔履歴 Simulation.cs#106〕
     }
 
     private static void AddArtisanProducers(List<Producer> producers, int artisanIdx)
@@ -1282,7 +1092,7 @@ public sealed class Simulation
             producers.Add(new Producer
             {
                 GoodId = gid, RecipeName = "職人",
-                Productivity = d.Productivity * FullChainProductivityScale * HandcraftProductivityRatio,   // 手仕事＝工場より遅い（★(418) 比 0.6 は農家の手仕事の行と共有する定数へ括り出した＝値と式の順序は同じ）
+                Productivity = d.Productivity * FullChainProductivityScale * HandcraftProductivityRatio,   // Productivity〔履歴 Simulation.cs#107〕
                 Output = 30, Scale = 1.0, MarginalCost = HandcraftSelfCost,   // 1789＝職人が現役の主役（工場は0.5/0.05から育つ）
                 LaborPopIndex = artisanIdx, OwnerPopIndex = artisanIdx, RentShare = default,
                 Inputs = [.. d.Inputs],   // 素材だけ（雇用も機械も使わない自営）
@@ -1290,39 +1100,29 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>役務の生産者（労働力・教育・医療・行政）を追加し、教育の生産者の添字を返す。
-    /// 「生産が先にあり、売って収入を得る」：各役務popは自分の役務を算出し、売上が全て自分の収入になる（自営＝RentShare 0）。
-    /// 教育の担い手（聖職者⇄教師）と生産性は毎月 StepMonth が教育法で切り替える。
-    /// ★段1 器 <see cref="Coefficients.EduProducersCoexist"/>（2026-09-12）：>0 かつ clergyIdx≥0 なら教育の生産者を**常設2件**（[返値]=教区学校・[返値+1]=公立学校）として並置し、
-    /// StepMonth は差し替えず非活性側の Scale=0 だけを置く。0（既定）では従来の1件だけを add＝Producers の長さ・順序が不変＝厳密恒等。</summary>
+    /// <summary>
+    /// 役務の生産者（労働力・教育・医療・行政）を追加し、教育の生産者の添字を返す。〔履歴 Simulation.cs#108〕
+    /// </summary>
     private static int AddServiceProducers(List<Producer> producers, List<Pop> pops, int workerIdx, int peasantIdx, int teacherIdx, int bureaucratIdx, int doctorIdx, Coefficients? coef = null, int researcherIdx = -1, int clergyIdx = -1)
     {
         // 労働力：工場労働者が算出。生産性は工場と同じスケール（×FullChainProductivityScale）＝労働供給が工場群の需要と釣り合う。
         // 工業化・技術の倍率にも乗る（機械が労働の産出を増やす＝実質賃金の上昇余地）。
         producers.Add(new Producer { GoodId = Catalog.LaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = pops[workerIdx].Size * 0.3, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = default });
-        // 04材化(c)（2026-07-29）：動力＝労働力の並存レシピ（Catalog.cs:14の設計を実体化）。同じ労働者popを担い手に持つ＝労働配分の
-        // 零和分割の内側＝採算が合う時だけ人力からシェアを奪う（機械化＝同じpopからより多くの労働力サービス）。馬・蒸気機関・石炭・電力に
-        // 「動力源」という新しい出口ができる（新財ゼロ＝§1の致命3障害を全回避）。水車はE1立地上限が未解決＝裁定待ちで見送り。
+        // 同じ労働者popを担い手に持つ＝労働配分の 零和分割の内側＝採算が合う時だけ人力からシェアを奪う（機械化＝同じpopからより多くの労働力サービス）。〔履歴 Simulation.cs#109〕
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力", Productivity = LaborProductivity * FullChainProductivityScale * 1.3, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = default,
             Inputs = [new Input(Catalog.HorseId, 0.05)] });   // 馬力＝荷駄・巻上機（馬が本当の生産投入になる）
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = default,
             Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = default,
             Inputs = [new Input(Catalog.ElectricityId, 0.25)] });   // 電動機＝電力が安い国だけ採算が合う（発電機1.3以後）
-        // 水車（07_再設計 §2＋A2裁定・2026-07-31）：★裁定＝**水車は弱い動力（自家農場級）／山岳の強力な水力は巨大建造物**の2層に分ける。
-        // したがって立地上限（案a/b/c）は全て破棄＝上限なしの微優位レシピ1本にする。投入ゼロ（落差は買えない）・維持費は人力より高い（堰・水路の普請）。
-        // 1789年から使えて蒸気(0.5)に駆逐される＝前産業の動力がカタログに存在する状態を作るのが目的。
+        // したがって立地上限（案a/b/c）は全て破棄＝上限なしの微優位レシピ1本にする。〔履歴 Simulation.cs#110〕
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "水車", Productivity = LaborProductivity * FullChainProductivityScale * 1.1, Output = 0.5, Scale = 0.05, MarginalCost = 0.40, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = default });
         // 農業労働力：農民が算出し自家農家（RGO）が買う＝農業も「労働を売る」同一ロジック。農村の留保賃金は都市より安い（都市化の誘因）。
         producers.Add(new Producer { GoodId = Catalog.FarmLaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = pops[peasantIdx].Size * 0.3, MarginalCost = 0.3, LaborPopIndex = peasantIdx, OwnerPopIndex = peasantIdx, RentShare = default });
         int eduIndex = producers.Count;
         if (coef is { EduProducersCoexist: > 0 } && clergyIdx >= 0)
         {
-            // ★段1 器 EduProducersCoexist（教育の三層化 doc §2-1／LIST §0-9-C 段3・2026-09-12）：同じ財（教育94）に生産者を2本**常設**で並べる
-            //   （E-13 の黄鉄鉱法・蒸気タービンと同じ「同じ財に複数レシピ」型）。[eduIndex]=教区学校＝聖職者・ClergyEduProductivity・紙61×0.05（写本・教義書）／
-            //   [eduIndex+1]=公立学校＝教師・TeacherEduProductivity・書籍112×0.05（近代の教科書）。2件目の添字は「連続 add」から導く＝Region に新フィールドを持たない（盤面則）。
-            //   担い手・生産性・投入は**構築時に確定し以後差し替えない**。教育法は StepMonth が非活性側の Scale=0 を置くゲートに降格（技術ゲート0の操業規模0の役務版）。
-            //   自営（LaborPopIndex=OwnerPopIndex・RentShare 0）は現行と同じ＝売上が丸ごと担い手 pop の Earned（doc §1-1）。
+            // 2件目の添字は「連続 add」から導く＝Region に新フィールドを持たない（盤面則）。〔履歴 Simulation.cs#111〕
             producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "教区学校", Productivity = coef.ClergyEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = clergyIdx, OwnerPopIndex = clergyIdx, RentShare = default, Inputs = [new Input(Catalog.PaperId, 0.05)] });
             producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "公立学校", Productivity = coef.TeacherEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = teacherIdx, OwnerPopIndex = teacherIdx, RentShare = default, Inputs = [new Input(Catalog.BookId, 0.05)] });
         }
@@ -1335,10 +1135,7 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.HealthcareId, Productivity = 4.0, Output = 1, MarginalCost = 0.3, LaborPopIndex = doctorIdx, OwnerPopIndex = doctorIdx, RentShare = default, Inputs = [.. Catalog.Goods[Catalog.HealthcareId].Inputs] });
         // 行政：官僚が算出（紙を消費＝文書行政）。国家が買う。不足＝汚職（税収が漏れる）。初期は不足気味＝近世国家。
         producers.Add(new Producer { GoodId = Catalog.AdminId, Productivity = 3.0, Output = 1, MarginalCost = 0.3, LaborPopIndex = bureaucratIdx, OwnerPopIndex = bureaucratIdx, RentShare = default, Inputs = [.. Catalog.Goods[Catalog.AdminId].Inputs] });
-        // ★大学（2026-08-17・作者裁定「大学は首都州の欄にあるべきではない。★病院や学校と同じで、全州に建設される可能性がある」）：
-        //   研究者が高等教育を算出し、**教育を既に買ったpopがさらに自費で買う**ことでのみ技師・研究者へ昇格（無償化されない＝作者裁定2026-08-14）。
-        //   投入＝書籍のみ（⚠ガラスは史実検討で却下2026-08-17）。生産性は教育5.0/医療4.0/行政3.0 より低い＝**希少で高価**。
-        //   ⚠researcherIdx<0（研究者POPを持たない世界＝較正・辺境・最小）または ResearcherFrac=0 なら1件も足さない＝**厳密恒等**。
+        // 生産性は教育5.0/医療4.0/行政3.0 より低い＝**希少で高価**。〔履歴 Simulation.cs#112〕
         if (researcherIdx >= 0 && coef is { ResearcherFrac.Value: > 0 })
             producers.Add(new Producer { GoodId = Catalog.HigherEducationId, Productivity = coef.UniversityProductivity, Output = pops[researcherIdx].Size * 0.5, MarginalCost = 0.4, LaborPopIndex = researcherIdx, OwnerPopIndex = researcherIdx, RentShare = default, Inputs = [.. Catalog.Goods[Catalog.HigherEducationId].Inputs] });
         return eduIndex;
@@ -1352,16 +1149,13 @@ public sealed class Simulation
     {
         // 高度労働力：技師の自営役務（人力と同じく頭数なり＝技師階級の成長が供給を増やす唯一の道）。
         producers.Add(new Producer { GoodId = Catalog.AdvLaborId, Productivity = 4.0, Output = pops[engineerIdx].Size * 0.5, MarginalCost = 0.5, LaborPopIndex = engineerIdx, OwnerPopIndex = engineerIdx, RentShare = default });
-        // 石油火力（電力の第2レシピ）：他の工場と同じく労働力＋高度労働力を買う。
-        // A-中1（2026-07-23）：燃料主導の比率へ（発電機0.5→0.15。原油0.6＝石炭0.9のエネルギー等価1/1.5）。
+        // 石油火力（電力の第2レシピ）：他の工場と同じく労働力＋高度労働力を買う。〔履歴 Simulation.cs#113〕
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "石油火力", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MachineryId, 0.498), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
-        // A-中1（2026-07-23）：水力発電（電力の第3レシピ）＝燃料ゼロ・資本費重（発電機0.40＝火力の2.7倍＝ダム/導水路の資本）。
-        // 石炭が高い州でのみ火力に勝つ＝スイス/伊/ノルウェー型の水力国が価格から創発（1914年に伊約2/3・スイス/ノルウェーほぼ100%水力）。
+        // 石炭が高い州でのみ火力に勝つ＝スイス/伊/ノルウェー型の水力国が価格から創発（1914年に伊約2/3・スイス/ノルウェーほぼ100%水力）。〔履歴 Simulation.cs#114〕
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MachineryId, 0.647), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
-        // ★蒸気タービン（2026-09-05・(1089) で器を焼いた）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
-        //   パーソンズ1884→1890s＝発見の表の蒸気タービン（1880年代・2026-10-01 段2A）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。
+        // 市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。〔履歴 Simulation.cs#115〕
             producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "蒸気タービン", Productivity = 1.4 * coef.SteamTurbineProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 2, OwnerPopIndex = 3, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.MachineryId, 0.199), new Input(Catalog.CoalId, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：肉(畜産)の代わりに漁獲を缶詰める＝缶詰の軍需増を漁業からも賄える。漁獲に第2の消費先を与える（従来は干物のみ）。
@@ -1377,57 +1171,44 @@ public sealed class Simulation
         // ガス灯式（並存・早期）：ガス＋鋼。電化前から都市照明を供給＝電灯が安くなるまでの中道。電灯に駆逐される。
         producers.Add(new Producer { GoodId = Catalog.ElecInfraId, RecipeName = "ガス灯", Productivity = 1.5 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.GasId, 0.6), new Input(Catalog.SteelId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
-        // === 植民地素材の国内代替（並存レシピ）＝封鎖/戦争で植民地材が高騰すると自動で勝つ＝輸入代替が創発（特別分岐なし）===
-        // 平時は植民地材が安く既定レシピ（サトウキビ/パーム油）が勝つよう、国内材は係数をやや厚く＝普段は休眠・危機に起動。
-        // 甜菜糖：砂糖の第2レシピ。サトウキビ(25・植民地輸入)の代わりに国内の野菜(根菜の甜菜)を糖源に＋石灰石(製糖の石灰乳)〔(493) 以後・旧は果実＋化学薬品〕。ナポレオン大陸封鎖のビート糖。
-        // **明確に劣位なフォールバック**（果実を厚く＝平時は植民地糖が安く勝ち休眠、植民地糖が断たれた時だけ起動）。
+        // === 植民地素材の国内代替（並存レシピ）＝封鎖/戦争で植民地材が高騰すると自動で勝つ＝輸入代替が創発（特別分岐なし）=== 平時は植民地材が安く既定レシピ（サトウキビ/パーム油）が勝つよう、国内材は係数をやや厚く＝普段は休眠・危機に起動。〔履歴 Simulation.cs#116〕
         producers.Add(new Producer { GoodId = Catalog.SugarId, RecipeName = "甜菜糖", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.VegetableId, 2.2), new Input(Catalog.LimestoneId, 0.3222), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SugarId))] });
         // 獣脂石鹸：石鹸の第2レシピ。パーム油(23・植民地輸入)の代わりに国内の畜産(19・獣脂)＋ソーダ灰(鹸化のアルカリ)。伝統的な獣脂石鹸（植民地油脂が断たれても作れる）。
         producers.Add(new Producer { GoodId = Catalog.SoapId, RecipeName = "獣脂石鹸", Productivity = 1.3 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.LivestockId, 1.1), new Input(Catalog.SodaAshId, 0.2434), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SoapId))] });
-        // === 旧生産方式を駆逐する「電化/化学」の新レシピ（並存＝安くなった新法が旧法を置換＝創造的破壊）===
-        // ハーバーボッシュ（肥料109の第2レシピ）：硫黄を使わず硫酸＋**電力**で窒素固定＝超安価。電力(87)依存で**電化期に自動ゲート**（電化製品80と同型）。TechOnset=既定ゲート(0.6)の床付き（02断線走査2026-07-28：名目解禁の1789迂回を閉鎖―実勝利は電力価格が決める）。
-        // 高tech＝電力が安い国だけ起動し従来肥料（硫酸+畜産の骨）を駆逐＝終盤の農業革命（食料連結で人口増＝技術投資の報酬）。
+        // === 旧生産方式を駆逐する「電化/化学」の新レシピ（並存＝安くなった新法が旧法を置換＝創造的破壊）=== ハーバーボッシュ（肥料109の第2レシピ）：硫黄を使わず硫酸＋**電力**で窒素固定＝超安価。〔履歴 Simulation.cs#117〕
         producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "ハーバーボッシュ", Productivity = 2.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
-            Inputs = [new Input(Catalog.SulfuricAcidId, 0.15), new Input(Catalog.ElectricityId, 0.25), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // 02断線走査（2026-07-28）：0.3/0.4→0.15/0.25＝「少量で同機能」の勝ち筋（旧・3レシピ中最も高い型F＝終盤の農業革命が一度も起きない）を是正。電力の燃料主導化とセット
+            Inputs = [new Input(Catalog.SulfuricAcidId, 0.15), new Input(Catalog.ElectricityId, 0.25), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // 電力の燃料主導化とセット〔履歴 Simulation.cs#118〕
         // 合成染料（染料17の第2レシピ）：天然染料(RGO)の代わりに硫酸・ソーダ灰・石炭〔コールタール〕から合成（アニリン1856）。化学工業が成熟＝硫酸とソーダ灰が安い国で天然染料を駆逐。
         producers.Add(new Producer { GoodId = Catalog.DyeId, RecipeName = "合成染料", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.SulfuricAcidId, 0.35), new Input(Catalog.SodaAshId, 0.2084), new Input(Catalog.CoalId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.DyeId))] });
         // 毛織衣料（衣料57の第2レシピ）：綿布(綿花)の代わりに毛織物(畜産)で仕立てる＝綿花が断たれた時の代替（米南北戦争の綿花飢饉でランカシャーが羊毛へ）。
         producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "毛織衣料", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.WoolenClothId, 0.7), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
-        // === #30 Stage2 産業作物の並存レシピ＝新主食を主食baseNeedでなく産業原料として接続（食料系を撹乱しない）===
-        // ジャガイモ蒸留酒（蒸留酒103の第2レシピ）：麦(15)の代わりにジャガイモ(115)澱粉を蒸留＝東欧/露の安価な穀物代替（ウォッカ/シュナップス）。ジャガイモが安い産地で起動。
+        // ジャガイモが安い産地で起動。〔履歴 Simulation.cs#119〕
         producers.Add(new Producer { GoodId = Catalog.SpiritsId, RecipeName = "ジャガイモ蒸留酒", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.PotatoId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SpiritsId))] });
-        // トウモロコシ飼料（飼料110の第2レシピ）：麦(15)の代わりにトウモロコシ(116)＝米州/南欧/バルカンの高単収飼料。トウモロコシが安い産地で起動し畜産(19)の濃厚飼料を賄う。
+        // トウモロコシが安い産地で起動し畜産(19)の濃厚飼料を賄う。〔履歴 Simulation.cs#120〕
         producers.Add(new Producer { GoodId = Catalog.FodderId, RecipeName = "トウモロコシ飼料", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MaizeId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FodderId))] });
-        // 米酒（蒸留酒103の第3レシピ）：麦(15)/ジャガイモ(115)の代わりに米(102)を醸造蒸留＝日本/東アジア/南欧の米産地の清酒・焼酎。米が安い産地で起動（麦蒸留酒との燃料/原料択一）。
+        // 米が安い産地で起動（麦蒸留酒との燃料/原料択一）。〔履歴 Simulation.cs#121〕
         producers.Add(new Producer { GoodId = Catalog.SpiritsId, RecipeName = "米酒", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.RiceId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SpiritsId))] });
         // グアノ肥料（肥料109の第3レシピ）：合成(硫酸+畜産の骨)・ハーバーボッシュ(電力)に並ぶ天然窒素源＝グアノ(121・ペルー賦存の植民地材)。ペルー保有国(グアノ輸入可)でのみ起動し、合成肥料より安価＝1840s-70sのグアノ時代を再現。非保有国は合成肥料のまま。
         producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "グアノ肥料", Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.GuanoId, 0.6), new Input(Catalog.SulfuricAcidId, 0.1), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });
-        // ★堆肥（2026-09-06・(1089) で器を焼いた）：肥料(109)の第4レシピ＝畜産(19)＋労働・解禁0。化学法より高い＝硫黄が届かない所の代替。
+        // 化学法より高い＝硫黄が届かない所の代替。〔履歴 Simulation.cs#122〕
             producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "堆肥", Productivity = 2.0 * coef.CompostProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
-                Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // ★雇用の一本化＝全工場が労働+高度労働を買う（ServiceEconomyTests の番人・2026-09-06）
-        // ★硝石丘（2026-09-06・器 NiterBedEnabled）：硝石(118)の代替レシピ＝畜産(19)＋労働・解禁0（仏1793の硝石丘＝厩肥と灰から）。産地の硝石より高い＝
-        //   財の3分類（作者裁定「無くても低効率で生産できる」）の硝石版。0＝足さない＝恒等。
+                Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // Inputs〔履歴 Simulation.cs#123〕
+        // 0＝足さない＝恒等。〔履歴 Simulation.cs#124〕
         if (coef.NiterBedEnabled > 0)
             producers.Add(new Producer { GoodId = Catalog.SaltpeterId, RecipeName = "硝石丘", Productivity = 2.0 * coef.NiterBedProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SaltpeterId))] });   // ★雇用の一本化（同上）
-        // === 製法の時代差・地理差を表す代替レシピ（市場が安い方を採る・近代法は発見の表の行で門＝2026-10-01 段2A）===
-        // ぼろ布製紙（紙61の早期レシピ）：麻+綿布のボロ布を漉く＝19世紀前半の製紙原料（木材パルプは1840s砕木/1860s化学パルプ）。
-        // デフォルトの木材パルプ製紙(goods.json)は発見の表の木材パルプ製紙（1840年代）で門＝早期はこのぼろ布製紙が供給し、パルプが安くなると駆逐される。
+        // デフォルトの木材パルプ製紙(goods.json)は発見の表の木材パルプ製紙（1840年代）で門＝早期はこのぼろ布製紙が供給し、パルプが安くなると駆逐される。〔履歴 Simulation.cs#125〕
         producers.Add(new Producer { GoodId = Catalog.PaperId, RecipeName = "ぼろ布製紙", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.HempId, 0.6), new Input(Catalog.CottonClothId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PaperId))] });
-        // ★2026-09-30 (129) 樹皮の粉末（キニーネの早期レシピ＝ぼろ布製紙と同じ「早期の橋」）：単離（1820・既定のレシピ＝樹皮0.5＋硫酸0.3〔仮・(493)〕・解禁の表の既定の行 0.5）の前は、
-        //   欧州の薬局が樹皮を挽いてワインで飲ませた（「イエズス会の粉」＝17世紀から）。同じ病に効くが、苦く嵩が張り吐き戻す・品位の低い樹皮と混ぜ物が多い＝効き目が低い。
-        //   ⚠樹皮1.5（単離の3倍）＝史実に1本の換算率は無い（推奨で決めた）。下限は史実の帰結＝単離の後20年ほどで硫酸キニーネが薬局から粉末を駆逐した＝参照価格で
-        //   粉末の単位費用（0.326＋0.54×樹皮）が単離（0.944）を上回る樹皮 1.14 より上。1.5 は樹皮が参照価格の 0.35 まで安くなるまで単離が勝つ幅（樹皮の値崩れの後は粉末が戻る＝
-        //   1880年代のジャワの植林で樹皮が暴落した後、インドの「キナの解熱剤」〔精製しない混合アルカロイド〕が貧者の薬になったのと同じ向き）。
+        // 同じ病に効くが、苦く嵩が張り吐き戻す・品位の低い樹皮と混ぜ物が多い＝効き目が低い。〔履歴 Simulation.cs#126〕
         producers.Add(new Producer { GoodId = Catalog.QuinineId, RecipeName = "樹皮の粉末", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.CinchonaBarkId, 1.5), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.QuinineId))] });
         // 木炭製鉄/銅/鉛（鉄31・銅33・鉛34の代替）：コークス(石炭)の代わりに木炭(木)で還元＝石炭が乏しく森林が豊かな地域の製錬（スウェーデン/露ウラル/米の木炭高炉が19世紀半ばまで存続）。
@@ -1450,30 +1231,19 @@ public sealed class Simulation
         // 石油灯油＝ケロシン（灯油68の近代レシピ・発見の表の1850年代＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
         producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
-        // === B6（2026-07-19ユーザー裁定）===
-        // 人絹＝ビスコース（絹織物45の並存レシピ・発見の表の1890年代）：木材パルプ(木)＋硫酸・ソーダ灰(ビスコース)から人造絹糸＝
-        // 化学工業が生糸(14)経済を創造的破壊（"artificial silk"そのもの・ぼろ布製紙/クロムなめしと同型・RefPrice不変）。
-        // C-高8（2026-07-23）：旧0.95は統一尺度で1800年代半ば＝実用レーヨン1905より約60年早い。圧縮帯（自動車1.50・WWI財1.55・ラジオ1.60）へ整合。
+        // 圧縮帯（自動車1.50・WWI財1.55・ラジオ1.60）へ整合。〔履歴 Simulation.cs#127〕
         producers.Add(new Producer { GoodId = Catalog.SilkClothId, RecipeName = "人絹", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.TimberId, 0.6415), new Input(Catalog.SulfuricAcidId, 0.25), new Input(Catalog.SodaAshId, 0.2028), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SilkClothId))] });
-        // 鉄筋コンクリート（住居126の並存レシピ・発見の表の1860年代）：セメント＋鋼の多層建築＝戸あたり資材(0.5)が
-        // 木造漆喰(0.7)より小さい＝発見の後（旧＝onset後）にコストで勝ち都市の収容力を解放（無煙火薬と同じ「少量で同機能」の勝ち筋）。
-        // C-高8（2026-07-23）：旧0.85は統一尺度で1800年前後＝エヌビック式1892・普及1900sより約100年早い。圧縮帯へ整合。
+        // 圧縮帯へ整合。〔履歴 Simulation.cs#128〕
         producers.Add(new Producer { GoodId = Catalog.HousingId, RecipeName = "鉄筋コンクリート", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.CementId, 0.3), new Input(Catalog.SteelId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.HousingId))] });
-        // === 1934拡張E2（2026-07-19ユーザー裁定）===
-        // 合成ゴム＝ブナ/ネオプレン（ゴム50の並存レシピ・発見の表の1910年代）：石炭＋石灰石＋電力〔カーバイド経由・(493) Q-gd3〕から合成＝
-        // 天然ゴム（賦存州＋加硫0.9ゲート）の地理独占を晩期に技術が破る（人絹・甜菜糖と同型の創造的破壊・RefPrice不変）。
-        // C-高8（2026-07-23）：旧1.10は統一尺度で1815年前後＝実用合成ゴム（ブナ1930s）より約120年早い。ラジオ(1.60)の後へ。
+        // ラジオ(1.60)の後へ。〔履歴 Simulation.cs#129〕
         producers.Add(new Producer { GoodId = Catalog.RubberId, RecipeName = "合成ゴム", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.CoalId, 0.3), new Input(Catalog.LimestoneId, 0.3), new Input(Catalog.ElectricityId, 0.2661), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RubberId))] });
     }
 
     /// <summary>
-    /// ★(232) 階級の識字（貴族・聖職者・農民・工場労働者・資本家・技師・インテリ・商人・職人・使用人の順）＝国の基準 <see cref="NationConfig.Literacy"/> ×階級のオッズの比 <see cref="Coefficients.LiteracyOddsByClass"/>。
-    /// 階級 c の識字は ρ_c z / (1 + ρ_c z)。尺度 z は国ごとに1つで、「Σ 人数×識字 ÷ Σ 人数 ＝ その国の基準」を満たす値（単調なので二分法 60 回・四則だけ＝決定的）。
-    /// 上限の切り落としは無い（思想⑧）＝高識字の国は農民も上がり、貴族は 1 に漸近する。階級の間の順序と隔たりは全国共通（国名の分岐なし）。重みは BuildProvince の階級の人数と同じ
-    /// （使用人は貴族＋資本家）。基準が (0,1) の外なら全階級 0／1（否定形で書く＝NaN も 0）。
+    /// 階級 c の識字は ρ_c z / (1 + ρ_c z)。〔履歴 Simulation.cs#130〕
     /// </summary>
     internal static double[] ClassLiteracy(NationConfig cfg, Coefficients coef)
     {
@@ -1504,20 +1274,9 @@ public sealed class Simulation
         => new() { ClassId = id, ClassName = name, IsUrban = urban, Size = size, Savings = new MoneyStock(size * wealthPer), Satisfaction = 1.0, Literacy = lit, Closed = closed, IsModernElite = modern, SubsistenceBasis = subs };
 
 
-    /// <summary>植民地の州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」・設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）。
-    /// 入植者が過半数に達した植民地（<see cref="Colonial"/>.Step §5 が判定）を、宗主の**完全な州**（pop/生産者/市場・RegionTier.Integrated）として実体化する。
-    /// ── 保存則（思想⑥）＝湧かさない ────────────────────────────────────────
-    ///   人口＝現地住民(col.PopSize)だけ。骨格階級は全て Size0（辺境の兵士Size0と同じ作法）＝社会移動・国内移住が埋める。台帳＝PopulationDelta へ全額。
-    ///   貨幣＝持ち込まない（植民地の蓄え col.Savings・入植者の持参金 col.SettlerSavings は 2026-09-30 段4g に経路ごと削除＝作者裁定 Q12＝どちらも常に0だった）。
-    ///   ★入植者（col.SettlerSize）も同じ回に削除＝Colony オブジェクトの入植は国の植民地の一覧〔ゲームの間ずっと空〕の上でしか走らなかった。
-    /// ── 同名の州が既に在る（J-006＝同じ領土を既に州として保有）とき（回1-2・2026-09-27）──────────────
-    ///   新しい州は作らず、住民をその州の同じ階級へ運んでその州を返す（作者裁定 2026-09-26「住民が消えるのは好ましくない」。旧＝呼び手が Colony を捨て、住民も消えた）。
-    /// ── 設計判断（記録・docs/202608/植民地州昇格_2026-08-09_完了.md【完了】.md）───────────────
-    ///   ・農制＝自作農（farmLordShare=0）＝北西部条例/ホームステッドの物理。プランテーション上書き（PlantationRentShare）も適用しない（昇格の定義＝入植者多数の州）
-    ///   ・市場在庫＝0 で開始（CatalogEconomy の初期200を持たせない）＝「AI国庫×初期市場在庫200の開幕工業化バースト」（indprobe実測2026-07-27）を新州で再現しない
-    ///   ・Tier既定=Integrated（議席あり・植民地維持費なし。tier 引数で Colonial も渡せる＝開始時の一括昇格）・Core にはしない（「ゲーム中のコア化はしない」の規則どおり＝HomeProvinces1914 計器の分子定義を守る）
-    ///   ・港州（IsPort）＝⚠是正2026-08-28：landmass.json の coastal（沿岸か否かの一次データ）から引く（未登録は旧挙動どおり true へ倒す）。座標は Climate.CityCoord（史実の積出港・landmass 機械検証済み）。既存内陸州の最寄り港は再配線しない（既存州の挙動を動かさない。⚠毎四半期 MultiNationSim.RewirePorts が四半期末に WirePortDistances を張り直す＝新港が最寄りなら切り替わる・doc 20260812_港の配線を領土に追随させる）
-    ///   ・州の Culture/Religion＝首都州と同じ（入植者多数＝本国文化が主流になった州。現地住民の民族の実体は CoreEthnicShare=0 が担う＝分離圧力・同化・国民意識が既存機構で働く）</summary>
+    /// <summary>
+    /// 入植者が過半数に達した植民地（Colonial.Step §5 が判定）を、宗主の**完全な州**（pop/生産者/市場・RegionTier.Integrated）として実体化する。〔履歴 Simulation.cs#131〕
+    /// </summary>
     internal static Region PromoteColonyToRegion(World w, Coefficients coef, Colony col, RegionTier tier = RegionTier.Integrated)
     {
         var (clat, clon) = Climate.CityCoord(col.Name);
@@ -1529,41 +1288,35 @@ public sealed class Simulation
         producers.RemoveAll(pr => pr.GoodId == Catalog.CottonId && !Climate.CottonSuitable(clat) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
         foreach (var pr in producers)
         {
-            // ★産地の発見（2026-10-01 (148)）＝BuildProvince と同じ規則（場所＝植民地の名前）。
+            // site〔履歴 Simulation.cs#132〕
             int site = pr.IsRgo ? SiteRowFor(col.Name, pr.GoodId, coef, !w.StepsDiplomacy) : -1;
             if (site >= 0 && System.Array.IndexOf(col.Resources, pr.GoodId) < 0)
             {
-                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // (1073) R1 (b)：産地の発見の行は播種で割らない（割るのは Discovery.OpenSite）
+                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);   // ApplyEndowment〔履歴 Simulation.cs#133〕
                 pr.SiteRow = site;
             }
             else if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
             {
                 pr.SiteRow = site;
-                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝密閉世界なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
-                // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
-                //   （ベンガル/ジャワ/カリブは大農園）。Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。
-                // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
-                //   上書きは**輸出作物**（主食でない賦存＝Colonial.ExportCrop・Colonial.AbsenteeRgo と同じ判別）だけ＝主食は現地の地主のまま（作者 2026-09-29「主食の生産は現地の地主のまま」・
-                //   メモリの要約）＝自作農の床 0.3・持ち主は農民（「現地の地主＝今の持ち主〔農民〕のまま」は AI の読み・(177) 反証役 vc1#7＝地代の記録〔LandRent〕を首都へ移すのも AI の設計＝植民地の州の地税の課税ベースから外れる）。輸出作物の地代は植民地格の間は不在地主（本国の首都の投資家）へ送る（EconomyStep の④・InternationalMarket.PaySales）。
+                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。〔履歴 Simulation.cs#134〕
+                // Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。〔履歴 Simulation.cs#135〕
                 if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare.Value > pr.RentShare.Value)
                 {
                     pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;
                 }
             }
-            else if (!w.StepsDiplomacy && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
+            else if (!w.StepsDiplomacy && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // IsScarceMineral〔履歴 Simulation.cs#136〕
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
-        // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。（入植者の着地〔農民/労働者〕は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）
+        // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。〔履歴 Simulation.cs#137〕
         double natives = Math.Max(0, col.PopSize);
         double peasantSize = natives;
-        // 現地住民の自給率：植民地POPは元々市場の外で食っていた（台帳の外）＝自給農。首都の農民自給率を下回らない床0.5
-        //   ★(849) 首都の農民が自給の生産性 ρ を焼いた後（印 Productivity＝旗 SubsistenceStage2 が正の世界の助走の後）：ρ と印をそのまま写す（床 0.5 は割合の床＝ρ に掛けると本国の約 4.5 倍になる＝掛けない）。
-        //   焼く前（旗 0 は常に）は今の床のまま（印は OpeningShare＝助走の月なら次の月にエンジンが WarmupShare へ付けて助走の後に焼く）。
+        // 現地住民の自給率：植民地POPは元々市場の外で食っていた（台帳の外）＝自給農。〔履歴 Simulation.cs#138〕
         double subs = 0.5; var subsKind = SubsistenceBasisKind.OpeningShare;
         foreach (var cp in w.Region.Pops) if (cp.ClassId == PopClass.Peasant) { if (cp.SubsistenceBasisKind == SubsistenceBasisKind.Productivity) { subs = cp.SubsistenceBasis; subsKind = cp.SubsistenceBasisKind; } else subs = Math.Max(subs, cp.SubsistenceBasis); break; }
         var nobility  = MkPop(0, "貴族",       false, 0, 0.5, 0, closed: true);
         var peasant   = MkPop(1, "農民",       false, peasantSize, 0.3, 0, subs: subs);
-        peasant.SubsistenceBasisKind = subsKind;   // ★(849) 旗 0 は OpeningShare（既定）のまま
+        peasant.SubsistenceBasisKind = subsKind;   // SubsistenceBasisKind〔履歴 Simulation.cs#139〕
         var worker    = MkPop(2, "工場労働者", true,  0, 0.3, 0);   // 器（Size0）＝識字は旧の入植者の既定値 0.3 のまま
         var bourgeois = MkPop(3, "資本家",     true,  0, 0.5, 0, modern: true);
         var engineer  = MkPop(4, "技師",       true,  0, 0.5, 0, modern: true);
@@ -1586,42 +1339,34 @@ public sealed class Simulation
             peasant.CoreEthnicShare = new Share(0.0);   // 現地住民＝宗主の中核民族ではない
         }
         worker.CoreEthnicShare = new Share(1.0);   // 労働者枠（器）は宗主の中核民族
-        // ★J-006 の吸収（回1-2・2026-09-27・作者裁定 2026-09-26「住民が消えるのは好ましくない」）：同名の州を既に持つ＝同じ領土を既に州として保有している
-        //   （一度州になった領土は Colony に戻さない＝J-006「止める」2026-09-05）。旧＝呼び手が Colony オブジェクトを捨て、住民も州へ入らずに消えた。
-        //   新＝新しい州は作らず、上で組んだ住民（現地の農民＋入植の農民・労働者＝蓄え・識字・不満・中核民族の割合）をその州の同じ階級へ運ぶ
-        //   （運搬は州間の移住・入植と同じ1本＝Territory.MoveBetweenRegions）。記帳は新しい州のときと同じ（台帳の外から入った分だけ）。
+        // 新＝新しい州は作らず、上で組んだ住民（現地の農民＋入植の農民・労働者＝蓄え・識字・不満・中核民族の割合）をその州の同じ階級へ運ぶ   （運搬は州間の移住・入植と同じ1本＝Territory.MoveBetweenRegions）。〔履歴 Simulation.cs#140〕
         if (w.Regions.Find(x => x.Name == col.Name) is { } same)
         {
             double pop0 = same.SumPopulation();
-            // （支払いの一元化 段2-2 の A12「受け手の階級が無いと蓄えが運ばれず消える」【推】は確かめて外した＝2026-09-29：実国の州を作る経路〔BuildProvince・辺境・
-            //   植民地の州昇格〕は全て農民と労働者の階級を持つ＝同名の州の吸収で受け手が欠けることは無い）
+            // peasant〔履歴 Simulation.cs#141〕
             foreach (var mp in new[] { peasant, worker })
                 if (mp.Size > 1e-9 && same.PopOf(mp.ClassId) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
             double inP = same.SumPopulation() - pop0;
-            w.PopulationDelta += inP;   // 貨幣は持ち込まない（上の注記＝蓄えは 2026-09-30 段4g に削除＝旧の貨幣の台帳の行は常に +0）
+            w.PopulationDelta += inP;   // inP〔履歴 Simulation.cs#142〕
             same.AnnexBaggage += inP;   // 案Y（観測専用）：併合の持ち込み人口＝本土の自然増ではない（新しい州のときと同じ記帳）
             return same;
         }
         var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(), Literacy = peasant.Literacy };   // Size0の器（辺境と同じ作法）＝軍事費が平時均衡で徴募
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, clergy, teacher, bureaucrat, doctor, merchant, artisan, servant, soldier };
-        // ★段1 器 EduProducersCoexist（2026-09-12）：昇格植民地州も本国州と同じ2件並置を受ける（coef を渡す・researcherIdx は既定 -1 のままなので大学の枝は不変＝0 で厳密恒等）。
-        //   渡さないと >0 の世界で StepMonth が [eduIdx+1] を公立学校と誤認する（実体は医療）＝型の統合が起こす静かな破損の型。
+        // 渡さないと >0 の世界で StepMonth が [eduIdx+1] を公立学校と誤認する（実体は医療）＝型の統合が起こす静かな破損の型。〔履歴 Simulation.cs#143〕
         int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8, coef: coef, clergyIdx: 5);
-        AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // ★2026-09-26：渡された coef を使う（旧＝ここだけ既定の係数を新しく作っていた＝国ごとの係数・テストの w.Coef.X= が植民地州の高度な生産者に届かなかった・col-26）
+        AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // AddAdvancedProducers〔履歴 Simulation.cs#144〕
         AddArtisanProducers(producers, artisanIdx: 10);
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 11, OwnerPopIndex = 11, RentShare = default });
-        AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
+        AddAlternateRecipes(producers, coef);   // AddAlternateRecipes〔履歴 Simulation.cs#145〕
         var region = new Region
         {
-            // ⚠是正2026-08-28：旧＝無条件 IsPort=true＝**内陸の植民地（内陸ベンガル・ボゴタ等）も海港になっていた**。
-            //   沿岸かどうかは landmass.json の coastal（一次データ）から引く。
-            // ⚠是正2026-09-02（G03監査#2）：未登録名を旧挙動どおり true（港）へ倒すのは fail-open で同じ穴が再発する
-            //   （内陸植民地が landmass.json 未登録なら再び海港になる）＝fail-closed（false）へ倒し、ログで沈黙を避ける。
+            // 沿岸かどうかは landmass.json の coastal（一次データ）から引く。〔履歴 Simulation.cs#146〕
             Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
             Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える
             Rule = Places.RuleOf(col.Name) is { } colRule0 ? colRule0 : [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝places.json の rule（開始時のデータ・土地の側）から始める（無い名前は間接統治〔在地1.0〕・段2で支配度と同じ物理で国家区分が育つ）
             RuleInit = Places.RuleOf(col.Name) is { } colRule1 ? colRule1 : [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
-            Terrain = Places.TerrainOf(col.Name),   // ★(3) 地形タグ（昇格植民地も同じ1枚の表から）
+            Terrain = Places.TerrainOf(col.Name),   // Terrain〔履歴 Simulation.cs#147〕
             Resources = [.. col.Resources], Culture = w.Region.Culture, Religion = w.Region.Religion,
             ArableLand = Math.Max(1.0, peasantSize) * LandHeadroom,   // 本土州と同じ規則（耕地賦存＝初期農民×余裕）
             CapitalEnabled = true, Industrialization = 0.0,
@@ -1635,13 +1380,11 @@ public sealed class Simulation
         region.SeaBasin = SeaGraph.BasinAt(clat, clon);   // 港州＝海盆を積出港座標から（WirePortDistances の港側と同じ規則）
         if (!Landmass.IsRegistered(col.Name)) w.LogAdd($"{w.Year} {col.Name}州はlandmass.json未登録＝IsPort=falseへ倒した（沈黙回避）");   // fail-closed の可視化
         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
-        if (Catalog.AdminId < region.Markets.Length) region.AdminFill = 0.0; Territory.Adopt(w, region);   // ★(383) 昇格直後の AdminFill は 0 から（fail-closed）。Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
+        if (Catalog.AdminId < region.Markets.Length) region.AdminFill = 0.0; Territory.Adopt(w, region);   // AdminFill〔履歴 Simulation.cs#148〕
         // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）
         double P = region.SumPopulation();
-        w.PopulationDelta += P;       // 現地住民＝台帳の外から（ゲーム外流入の作法）。貨幣は持ち込まない（蓄えと持参金は 2026-09-30 段4g に削除＝旧の貨幣の台帳の行は常に +0）
-        // 案Y（人口物差しの脱汚染・2026-08-21）：植民地の州昇格＝**本土の自然増ではない**外部人口の流入（帯の定義＝本土人口。
-        // 葡帯の注記「ブラジル喪失は植民地＝本土人口に非算入」と同じ物差し）。持ち込み分Pを記帳し PopGrowth 分子から除く（昇格後の自然増は自国分）。
-        // 以後この州はこの国の故地扱い（OriginPowerId）＝将来の喪失→再征服の往復で二重記帳しない。観測専用＝力学は読まない。
+        w.PopulationDelta += P;       // 現地住民＝台帳の外から（ゲーム外流入の作法）。〔履歴 Simulation.cs#149〕
+        // 葡帯の注記「ブラジル喪失は植民地＝本土人口に非算入」と同じ物差し）。〔履歴 Simulation.cs#150〕
         region.OriginPowerId = w.SelfPower?.Id ?? -1;
         region.AnnexBaggage = P;
         return region;
@@ -1652,15 +1395,14 @@ public sealed class Simulation
         for (int q = 0; q < quarters; q++) StepQuarter();
     }
 
-    /// <summary>四半期＝90回の日次刻み。三層時計の合成（戦略前段→3×月次決算→戦略後段）はそのまま StepDay 内の境界で発火する
-    /// ＝テスト・self-play は従来どおりこのメソッドを呼べばよい（合成順・RNG順は不変、変わるのは価格形成が日次になった点のみ）。
-    /// ★2026-09-26 A3：価格形成は旬次（<see cref="Coefficients.PriceFlowStepDays"/> 日ごとに h 日ぶんを1歩）。公開の <see cref="StepDay"/> は1日のまま。</summary>
+    /// <summary>
+    /// 四半期＝90回の日次刻み。〔履歴 Simulation.cs#151〕
+    /// </summary>
     public void StepQuarter() { for (int d = 0; d < Calendar.DaysPerQuarter; d++) StepDay(); }
 
-    /// <summary>1日進める（三層時計の最小単位）。日次＝価格形成の鼓動（価格が動くのは旬の最終日＝A3）。30日ごとに月次決算、90日目に戦略。四半期が締まった日に true。</summary>
-    /// <summary>1日を進める（単独呼び用）。多国（MultiNationSim）は3相を別々に呼ぶ＝
-    /// StepDayOpen（境界・逐次）→ StepDayDaily（純粋日次・並列可）→ StepDayClose（境界・逐次）。
-    /// この一体呼びは3相を順に呼ぶだけ＝単国経路（テスト・leakhunt）は分割前とビット恒等（2026-08-29 高速化裁定）。</summary>
+    /// <summary>
+    /// 1日進める（三層時計の最小単位）。〔履歴 Simulation.cs#152〕
+    /// </summary>
     public bool StepDay()
     {
         StepDayOpen();
@@ -1677,32 +1419,17 @@ public sealed class Simulation
         if (_dayInQuarter == 0) { QuarterStart(); ProbeCheck("四半期首"); }
     }
 
-    /// <summary>★信用の「月の中の定数」（2026-09-26 A2-1・結果を変えない高速化）＝名目GDP・大衆の平均満足・平均工業化。
-    /// 旧＝<see cref="Credit.Step"/> が毎日・各国で3つとも全件集計していた（作業スレッドの標本の約3割＝`World.get_Gdp`）。
-    /// 3つの入力（産出・州の状態・州とPOPの出入り・POPの規模と満足と身分・工業化・参照価格・物価水準）を書く行は、どれも
-    /// 月次決算・四半期の首と末・共有層（外交・国際市場・移民）の中にあり、日次相（価格形成・建設・信用）はどれも書かない
-    /// ＝月の初日の日次で求めた値は、月の残りの日に毎日求める値とビット単位で同じ。
-    /// ⚠ 境界相の外から入力を書く動詞はプレイヤーの侵略（<see cref="World.Invade"/>＝兵の疫病死と植民地の州化）だけで、そこで表から外す。
-    /// ⚠ 置き場＝静的な弱参照の表（World が消えれば消える）＝セーブに載らない（SaveGame はインスタンスのフィールドだけを辿る）。
-    ///   表に無いとき（ロード直後・新しい国）は、その日に求める。並列の日次から書くが、鍵は自国の World だけ（他国の値を読まない）・表はスレッド安全。</summary>
+    /// <summary>
+    /// ⚠ 境界相の外から入力を書く動詞はプレイヤーの侵略（World.Invade＝兵の疫病死と植民地の州化）だけで、そこで表から外す。〔履歴 Simulation.cs#153〕
+    /// </summary>
     internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double AvgSat)>> CreditMonth = new();
 
-    /// <summary>純粋な日次（価格形成・建設・信用）＝**国ローカル**＝並列可。実測74%の時間がここ（timeprobe 2026-08-29）。
-    /// ⚠不変条件＝自国 World/Region 以外に触れない・乱数を引かない・共有状態（Diplomacy/他国World/静的可変）へ書かない。
-    ///   これが並列化の根拠なので、共有へ触る処理を足すなら StepDayClose 側へ。番人＝armstrace の並列/逐次ビット一致。
-    ///   （例外は <see cref="CreditMonth"/> だけ＝静的な表だが、書くのも読むのも自国の World の鍵だけ・表はスレッド安全。）</summary>
+    /// <summary>
+    /// 純粋な日次（価格形成・建設・信用）＝**国ローカル**＝並列可。〔履歴 Simulation.cs#154〕
+    /// </summary>
     public void StepDayDaily()
     {
-        // 日次（鼓動）：価格形成・建設の進捗・信用。毎日わずかに動く層。
-        // ★価格形成は旬次（2026-09-26 A3）：旬の最終日（(日＋1)%h==0＝h=PriceFlowStepDays）にだけ MarketFlow を呼び、h 日ぶんを1歩で進める。
-        //   h は30の約数だけ＝旬は月をまたがない＝月次決算（日29/59/89 の締め）と四半期首の AI が読む価格は、今と同じ「その月の30日ぶん寄せた価格」。
-        //   助走も同じ判定（助走は StepQuarter＝この日次を通る）。州への写しは毎日のまま。新しい状態は持たない（_dayInQuarter は既にセーブに載る）。
-        //   ⚠ 旬の0〜(h−2)日目に価格を読むもの（建設の建材4財・画面）は、前の旬の価格を読む（遅れは最大 h−1 日）。
-        // ★建設と信用も旬次（2026-09-30 高速化の段 S3c・近似）：旬の初日（日%h==0）に h 日ぶんをまとめて進める。
-        //   根拠＝どちらの入力も境界相（月次決算の支払い率・月の定数）か旬の中で動かない価格（建材4財）で、旬は月をまたがない
-        //   ＝旬の中で変わるのは自分の状態（工事の残り日数・信頼・与信の残高）だけ。建設＝働く日数 n＝min(h, 完成までの日数)ぶんの工賃と進捗を1回で
-        //   （旬の最終日だけ価格が1旬古い＝建材の採算率の遅れは旧の h−1 日から h 日へ）。信用＝信頼と与信の緩和を h 日ぶん閉じた形で（1日の縮み 1/150〜1/1500＝h≪時定数）。
-        //   月次決算が読む月末の値は旧と同じ日数ぶん（完成・工賃・与信）。h=1 なら旧来の日次と1ビットも変わらない。
+        // 日次（鼓動）：価格形成・建設の進捗・信用。〔履歴 Simulation.cs#155〕
         int hFlow = World.Coef.PriceFlowStepDays;
         if (hFlow < 1 || Calendar.DaysPerMonth % hFlow != 0)
             throw new System.InvalidOperationException($"PriceFlowStepDays={hFlow} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
@@ -1712,15 +1439,15 @@ public sealed class Simulation
         bool priceDay = (_dayInQuarter + 1) % hPrice == 0;
         bool spanStart = _dayInQuarter % hFlow == 0;   // 旬の初日（建設と信用＝S3c）
         long[]? cost = priceDay || spanStart ? World.Cost : null;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
-        bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hPrice;   // ★月の最初の旬（2026-09-30 計算量の予算 第2回）＝張り付いた財の眠りの印を作り直す旬（MarketFlow.StepDay の remarks）
+        bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hPrice;   // monthStartSpan〔履歴 Simulation.cs#156〕
         foreach (var r in World.Regions)
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
                 r.FarmRentCap = new Share(System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap.Value), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap.Value)));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
                 r.CrowdingPremium = System.Math.Max(0, (World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear).Value);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
-                r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
-                //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
-                r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（War で戦う内戦もここへ届く＝旗 CivilWarPredicateUnified は消えた・Coefficients.cs の墓標）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
+                r.FinancialHeat = World.FinancialHeat;   // FinancialHeat〔履歴 Simulation.cs#157〕
+                // CivilWarActive〔履歴 Simulation.cs#158〕
+                r.CivilWarActive = World.InCivilWar;   // CivilWarEconomyDisruption=0で不読＝恒等）〔履歴 Simulation.cs#159〕
                 if (priceDay) MarketFlow.StepDay(r, World.Coef, hPrice, cost, monthStartSpan, World.MinimumWage);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす（月の2旬目以降は不動点に着いた張り付いた財を眠らせる）
             }
         ProbeCheck("日次価格");
@@ -1729,7 +1456,7 @@ public sealed class Simulation
         if (spanStart)
         {
             (double NominalGdp, double AvgSat)? creditMonth = null;
-            if (World.Bank is not null)   // （2026-09-29 段2-2 から全ての世界に銀行がある＝常に真・盤面の直書きで外したときだけ偽）
+            if (World.Bank is not null)   // World〔履歴 Simulation.cs#160〕
             {
                 bool fresh = !CreditMonth.TryGetValue(World, out var box);
                 if (box is null) { box = new(); CreditMonth.Add(World, box); }
@@ -1741,8 +1468,7 @@ public sealed class Simulation
             cost![CostLedger.CreditSpans]++;                                         // 計算量の台帳（診断）：信用は国×旬
         }
         ProbeCheck("日次信用");
-        // 助走中は暦を進めない（World.WarmupFrozen・2026-08-10）。Tick は「開始からの経過日数」＝年境界の唯一の読み手が
-        // 豊凶ロール（MonthSettle の harvestYear）なので、止めれば助走が何年ぶんでも天候を引かない＝時間が経たない（(223) 旧＝1783年の1回きり引いていた・MonthSettle の年次ブロックの注記）。
+        // WarmupFrozen〔履歴 Simulation.cs#161〕
         if (!World.WarmupFrozen) World.Tick++;
     }
 
@@ -1757,14 +1483,14 @@ public sealed class Simulation
         return quarterDone;
     }
 
-    /// <summary>保存量プローブ（leakhunt・恒久計測器）：保存量 D＝基礎貨幣−累積台帳（貿易/鋳造/不換発行）は内部処理のどこでも不変のはず。
-    /// 動いたサブステップ＝台帳記帳漏れの現場を stderr へ出す。既定OFF＝実行ゼロ（Runner の leakhunt コマンドが有効化）。
-    /// 使い方＝`dotnet PriceOfBread.Runner.dll leakhunt <seed> [四半期]`。過去の実績：汚職Distribute蒸発（2026-07-07）を成分分解まで3手で特定。</summary>
+    /// <summary>
+    /// 保存量プローブ（leakhunt・恒久計測器）：保存量 D＝基礎貨幣−累積台帳（貿易/鋳造/不換発行）は内部処理のどこでも不変のはず。〔履歴 Simulation.cs#162〕
+    /// </summary>
     public static bool ConservationProbe;
     private double _probeDLast = double.NaN;
     internal void ProbeCheck(string label)
     {
-        if (Instruments.On) Instruments.UrxMark(World, label);   // (649) 計器（読むだけ）：都市と農村の規模の差の区間別の表の印
+        if (Instruments.On) Instruments.UrxMark(World, label);   // Instruments〔履歴 Simulation.cs#163〕
         if (!ConservationProbe) return;
         double now = (World.BaseMoney - World.CumulativeTradeFlow - World.CumulativeGoldMinted - World.CumulativeFiatIssued).Value;
         if (!double.IsNaN(_probeDLast) && Math.Abs(now - _probeDLast) > 1e-4)
@@ -1772,54 +1498,26 @@ public sealed class Simulation
         _probeDLast = now;
     }
 
-    // 四半期の戦略前段：金融ショック・AIの政策決定・政府の政策反映・建設の進行。
-    // ★(351) 州×POP の走査の表④＝四半期首（この関数）の段の並び・読む欄／書く欄。読む時点は全て共有層の後（＝四半期末の戦死・移民・国際市場・資本市場の書き込みを含む。直前の月の決算の値ではない）。
-    //   ・DecideQuarter（AI）　読む：闘争度・満足・利益集団の力・Build の各欄　書く：国の欄・**資本家の貯蓄**（着工 SetStateTarget の払い下げ）　★窓の外
-    //   ・UpdateRegionalPriceLevels　読む：貯蓄・所得・規模（稼働中の州）　書く：州の物価乗数・賃金プレミアム　（国の和と州の和を 1 周で求める）　★窓の外
-    //   ・Parliament.Step　読む：思想・規模　書く：国の欄・**有権者の貯蓄**（総選挙の公示への AI の答え＝World.ResolveElection が国庫→有権者）　★窓の外
-    //   ----（ここから窓：総人口・兵士の数・Blocs の分母・Build の POP 由来の和を 1 回だけ求めて配る＝PopWindow）----
-    //   ・ApplyModernizationInvestment　読む：識字・高等教育の充足・規模　書く：国の欄（招聘の予算）・州の高等教育の補助（★(584) 州の建設予約は (583) で削除）
-    //   ・Government.Step（法の軸ごとに Build）　読む：貯蓄・地代・所得・規模・年齢の層　書く：法の欄（参政権ほか＝Blocs の重みの第 2 走査はこれで動く＝使い回さない）
-    //   ----（窓の終わり）----
-    //   窓の中で POP の規模・貯蓄・地代・所得・年齢の層を書く段は無い（番人＝POB_POPSCAN_VERIFY=1）。法（参政権ほか）が動くと Blocs の重みは変わる＝使い回すのは POP 由来の和だけ。
+    // 四半期の戦略前段：金融ショック・AIの政策決定・政府の政策反映・建設の進行。〔履歴 Simulation.cs#164〕
     private void QuarterStart()
     {
         World.Cost[CostLedger.QuarterStartPops] += ActivePopCount();   // 計算量の台帳（診断）：四半期首（AI・議会・政府の反映）は POP×国に比例
-        // 仕込みの金融ショックは「暦のn四半期目に起きる事件」＝助走では起こさない（2026-08-10）。
-        // ⚠助走は _quarterIndex を進めないので、ガードが無いと ShockQuarterIndex=0 のシナリオで**助走の全四半期**に発火する。
-        // 実ゲーム/自己対戦は ShockQuarterIndex=-1（なし）＝この行は現状どちらの経路でも不発だが、罠を残さない。
+        // ⚠助走は _quarterIndex を進めないので、ガードが無いと ShockQuarterIndex=0 のシナリオで**助走の全四半期**に発火する。〔履歴 Simulation.cs#165〕
         if (!World.WarmupFrozen && _quarterIndex == _shockQuarter && World.Bank is not null)
             World.Bank.Confidence = Math.Max(0, World.Bank.Confidence - _shockMagnitude);
-        // ★2026-08-02：近代化投資を**自動化**する（作者指示「AIと同じ挙動に」）。
-        //   （汚職根絶の自動化は C2-C5撤去2026-08-16 で機構ごと物理削除＝V2恒久ONで根絶費の動詞は死骸だった）
-        // ⚠★置き場所は DecideQuarter の**前**。後ろに置くと**AIの判断を上書きしてしまう**（AIはスタンス別の率を使うのに、
-        //   ここは一律の近代化率）＝AI挙動を変えない原則に反する。前に置けば、AIが動かす国はAIの値で上書きされる。
-        // ⚠★多国世界（SelfPower あり＝実ゲーム/自己対戦）に限る。単一国の較正・テストは AI 経路そのものが無く、
-        //   ここで政策を書くと「既定0では何も起きない」という恒等が壊れる（実測でテスト2件が赤になった）。
+        // 後ろに置くと**AIの判断を上書きしてしまう**（AIはスタンス別の率を使うのに、   ここは一律の近代化率）＝AI挙動を変えない原則に反する。〔履歴 Simulation.cs#166〕
         if (World.SelfPower is { } self)
         {
             double fs = UtilityAgent.FiscalStressOf(World);
-            // ★近代化投資はプレイヤー国を除外する（2026-08-10・財政タブのスライダー復活）。
-            //   ⚠旧＝**全国**に毎四半期この一律値を代入していた。AI国は直後の DecideQuarter が自分の値で上書きするので無害だったが、
-            //     NullAgent のプレイヤー国には上書きが来ない＝**UIで動かしても次の四半期に必ず 0.08 へ戻る**（スライダーが効かない）。
-            //   ⚠判定は Power.IsPlayer＝UI（GameViewModel が Powers[playerIndex].IsPlayer=true を立てる）と Runner の warmtest、
-            //     および一部のプレイヤー経路テスト（ElectionEventTests・ElectionAiTests・MultiNationTests）が立てるフラグ。
-            //     自己対戦（SelfPlay）・較正・その他のテストは IsPlayer を立てない＝この分岐は偽＝AI挙動はビット単位で不変。
-            //   プレイヤー国の初期値は MultiNationSim が UtilityAgent.OpeningModernizationFrac で播く（AIと同じ出発点）＝以後はUIの値を尊重。
+            // AI国は直後の DecideQuarter が自分の値で上書きするので無害だったが、     NullAgent のプレイヤー国には上書きが来ない＝**UIで動かしても次の四半期に必ず 0.08 へ戻る**（スライダーが効かない）。〔履歴 Simulation.cs#167〕
             if (!self.IsPlayer) World.ModernizationFrac = UtilityAgent.AutoModernizationFrac(World, fs);
-            // ★陸海の比もプレイヤーを地理に乗せる（作者裁定2026-09-23＝財政タブの「海軍の比率」レバーを撤去）。
-            //   2026-08-04 作者仕様(5)「陸海の割り振りは**廃止**」・2026-08-10「陸軍と海軍の注力レバーは廃止」＝**誰も比を振らない**が本来の姿で、
-            //   2026-09-20 に「比」1本だけが復活していた。AI は DecideQuarter の中で同じ関数を通る＝ここは**同じ関数を同じ引数で**呼ぶだけ
-            //   （割り振りの式はどこにも書き写さない）。合計（軍事費の段）は保たれ、比だけが地理で決まる＝AI・プレイヤー等価。
-            //   ⚠AI国はこの枝に入らない（!IsPlayer 側は従来どおり DecideQuarter が呼ぶ）＝自己対戦・較正はビット恒等（プレイヤーが居ない）。
+            // AI は DecideQuarter の中で同じ関数を通る＝ここは**同じ関数を同じ引数で**呼ぶだけ   （割り振りの式はどこにも書き写さない）。〔履歴 Simulation.cs#168〕
             else UtilityAgent.SetNavalUpkeepShare(World);
         }
-        if (Instruments.On) Instruments.MonAiBefore(World); _agent.DecideQuarter(World); if (Instruments.On) Instruments.MonAiAfter(World);   // (660) 計器（読むだけ・窓はこの 1 呼びだけ・行を足さない＝flow_s の sourceLine を動かさない）
+        if (Instruments.On) Instruments.MonAiBefore(World); _agent.DecideQuarter(World); if (Instruments.On) Instruments.MonAiAfter(World);   // DecideQuarter〔履歴 Simulation.cs#169〕
         UpdateRegionalPriceLevels();           // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）を四半期ごとに更新。日次の StepDay が r.PriceLevel に適用
-        Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。目標は書かない（法軸の綱領は 2026-09-26 に撤去＝回5-1 項目17・AI の意図へ移設／経済軸は 2026-09-19）。ParliamentEnabled の国のみ＝較正不変
-        // ★(351) 窓（POP 由来の和の使い回し・結果を変えない・<see cref="PopWindow"/>）＝近代化投資〜政府の反映の終わり。AI の決定（着工・払い下げの動詞が資本家の貯蓄を動かす）と議会（総選挙の公示への AI の答え
-        //   World.ResolveElection が国庫→有権者の貯蓄を動かす）は窓の**外**（(351) の canary で番人が止めた＝議会を窓に入れると利益集団の富の分母が割れた）。窓の中の 2 段が書くのは国の欄・州の欄・法の欄・闘争度ほか。
-        //   環境変数 POB_POPSCAN_VERIFY=1 で番人（使い回すたびに求め直して照合）。
+        Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。〔履歴 Simulation.cs#170〕
+        // 窓の中の 2 段が書くのは国の欄・州の欄・法の欄・闘争度ほか。〔履歴 Simulation.cs#171〕
         World.PopSums = new PopWindow();
         try
         {
@@ -1837,10 +1535,9 @@ public sealed class Simulation
     {
         var c = World.Coef;
         bool priceOn = c.RegionalPriceLevelWeight > 0;   // 無効＝全州一律（従来挙動・較正中立）。労働価格プレミアムの簿記は常に更新（使用は OpportunityWageWeight でゲート）
-        // ★(351) 1 周で足す：稼働中の州の POP を州の並びで 1 周し、州ごとの和（rSav・rEarn・rPop）と国の和（nat＝州をまたいで足し続ける）を同時に数える。
-        //   旧＝国の和の周と州ごとの和の周の 2 周（同じ集合・同じ順）。各和の足し込みの順は旧と同じ＝1 ビットも変わらない（国の和は州ごとの和の合計ではない＝足し方が違う）。
+        // 各和の足し込みの順は旧と同じ＝1 ビットも変わらない（国の和は州ごとの和の合計ではない＝足し方が違う）。〔履歴 Simulation.cs#172〕
         double natSav = 0, natEarn = 0, natPop = 0;
-        // ★(536) 線 ivf（旗 RegionalPriceBaseExcludesColonies・★2026-10-25 点火・(811) で焼き込み）：〈国平均〉は植民地の格の州を除いた州で取る。本土の州が無い（人口 0）ときは全ての州。
+        // 本土の州が無い（人口 0）ときは全ての州。〔履歴 Simulation.cs#173〕
         double mainSav = 0, mainEarn = 0, mainPop = 0;
         var regSums = new double[World.Regions.Count * 3];
         for (int ri = 0; ri < World.Regions.Count; ri++)
@@ -1867,12 +1564,7 @@ public sealed class Simulation
             if (priceOn && natPerCap > 1e-9 && rPop > 1e-9)
             {
                 double rPerCap = rSav / rPop;   // 州の1人あたり貯蓄（手元現金の厚み）
-                // ⚠否定形のガード（2026-09-21・NaN破綻の修正）：現金が尽きた州では州合計の貯蓄が丸め残差で**極小の負値**になり得る
-                //   （実測＝本国を全て失い植民地3州に縮んだスペインのエルパソ州・1831年・rSav=−8.3e-16＝資本家popの−8.9e-16が残っただけ）。
-                //   Math.Pow(負, 0.3) は NaN・Math.Clamp は NaN を除去しない（既知の罠）ので、NaN が
-                //   州物価乗数→州物価→MarketFlow の価格→専売益→国庫→popの貯蓄 と伝播し「貯蓄[貴族] が NaN」で落ちていた。
-                //   退避値は分母の意味から決まる＝現金ゼロの州は「国平均に対して最も薄い」＝辺境デフレの底（RegionalPriceLevelMin）。
-                //   rPerCap==0 の既存経路も Pow(0,w)=0→Clamp で同じ床に落ちていた＝正値では1ビットも動かない。
+                // 退避値は分母の意味から決まる＝現金ゼロの州は「国平均に対して最も薄い」＝辺境デフレの底（RegionalPriceLevelMin）。〔履歴 Simulation.cs#174〕
                 mult = !(rPerCap > 0)
                     ? c.RegionalPriceLevelMin
                     : Math.Clamp(Math.Pow(rPerCap / natPerCap, c.RegionalPriceLevelWeight), c.RegionalPriceLevelMin, c.RegionalPriceLevelMax);
@@ -1903,36 +1595,28 @@ public sealed class Simulation
         return n;
     }
 
-    // 四半期の戦略後段：技術・制度・政治・社会移動・景気循環トラッカー（90日目）。
-    // ★(351) 州×POP の走査の表②＝四半期末（この関数・同じ国の月 3 の決算の直後・共有層の前）の段の並び・読む欄／書く欄。順序は変えない。
-    //   ・GrowTech／Discovery（単国だけ）　読む：国の欄　書く：国の欄
-    //   ・Politics.Step　読む：満足（犯罪で削った後）・食料の充足（人口動態の後）・識字・報道・中核民族の割合・思想・規模　書く：闘争度・政治意識・国民意識・思想・生活の基準・規模（鎮圧と粛清の KillPops）・貯蓄（恐怖政治の没収 Transfer）
-    //   ・Meritocracy.Step　読む：失業・貯蓄・所得・教育の移動平均・識字・債務　書く：Blend の全欄（闘争度は政治が書いた直後の値を混ぜる）・お金も運ぶ　時点：政治の後
-    //   ・TickExpansionWill（利益集団の力）・UpdateGdpCycle・UpdatePriceLevel・Snapshot　読む：貯蓄・地代・規模・闘争度・識字・満足　書く：国の欄・記録だけ　時点：社会移動の後（ここから POP は動かない）
-    //   順番に依存する所：犯罪が削った満足を政治と記録（Snapshot）が読む／政治が書いた闘争度を社会移動の Blend が混ぜる。
+    // 四半期の戦略後段：技術・制度・政治・社会移動・景気循環トラッカー（90日目）。〔履歴 Simulation.cs#175〕
     private void QuarterEnd()
     {
         World.Cost[CostLedger.QuarterEndPops] += ActivePopCount();   // 計算量の台帳（診断）：四半期末（技術・制度・政治・社会移動ほか）は POP×国に比例
-        // 開始前の助走（World.WarmupFrozen・2026-08-10）＝**時間が経たない**四半期。
-        // 止める＝技術の前進・膨張意欲の累積・四半期スナップショット・暦（Quarter/Year/_quarterIndex）。
-        // 回す＝制度の施行・社会移動・景気循環・物価水準＝価格と生産が実勢へ落ち着くための経済側。
+        // 止める＝技術の前進・膨張意欲の累積・四半期スナップショット・暦（Quarter/Year/_quarterIndex）。〔履歴 Simulation.cs#176〕
         bool warm = World.WarmupFrozen;
-        if (!warm) TechEducation.GrowTech(World, World.Coef);          // §2.8 技術＝社会の連続創発（カード廃止）。助走中は WarmupTech が別途担う＝ここで二重に進めない
-        // ★発見（段2A・2026-10-01）：単独の世界だけここで判定する（伝わり＝0）。多国は MultiNationSim の四半期末の共有層が接触を求めてから判定する（同じ関数）。助走は判定しない（開幕の既知は助走の終わりに1度）。
-        if (!warm && World.StepsDiplomacy) { Discovery.AdvancePrice(World, World.Coef); Discovery.Step(World, null, World.Coef); }   // ★(159) 平滑化した値段は判定の段の頭で1歩（判定は読むだけ）
-        else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // ★(153) 損耗の記帳は判定で捨てる（助走は判定しない＝捨てるだけ・多国は MultiNationSim の共有層が捨てる）
-        // （研究C＝制度の施行 Institutions.Step は 2026-10-01 (152) に削除＝特許・株式会社・鉄道は発見の表の行の2値〔World.PatentLaw ほか〕を読むだけ）
+        if (!warm) TechEducation.GrowTech(World, World.Coef);          // 助走中は WarmupTech が別途担う＝ここで二重に進めない〔履歴 Simulation.cs#177〕
+        // 多国は MultiNationSim の四半期末の共有層が接触を求めてから判定する（同じ関数）。〔履歴 Simulation.cs#178〕
+        if (!warm && World.StepsDiplomacy) { Discovery.AdvancePrice(World, World.Coef); Discovery.Step(World, null, World.Coef); }   // StepsDiplomacy〔履歴 Simulation.cs#179〕
+        else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // StepsDiplomacy〔履歴 Simulation.cs#180〕
+        // Step〔履歴 Simulation.cs#181〕
         Politics.Step(World, World.Coef);                   // §9-E
         if (!(warm && World.BakeRun?.StopSocialMobility == true))
         {
-            if (Instruments.On && !warm) { Instruments.UrxEnter(World); Instruments.MerchEnter(World); }   // (649) 計器（読むだけ）：社会移動の区間の前
-            Meritocracy.Step(World, World.Coef);                // ★(490) 焼く試走の腕だけ止める（BakeRun は焼く側以外は null＝旧と同じ）／社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）
-            if (Instruments.On && !warm) Instruments.UrxExit(World, "社会移動");   // (649) 計器（読むだけ）：社会移動の区間の後
+            if (Instruments.On && !warm) { Instruments.UrxEnter(World); Instruments.MerchEnter(World); }   // Instruments〔履歴 Simulation.cs#182〕
+            Meritocracy.Step(World, World.Coef);                // Step〔履歴 Simulation.cs#183〕
+            if (Instruments.On && !warm) Instruments.UrxExit(World, "社会移動");   // Instruments〔履歴 Simulation.cs#184〕
         }
         if (!warm) World.TickExpansionWill();                // 膨張意欲の累積（案Y・段B）。助走で10年ぶん貯めて開幕に侵略が噴くのを防ぐ＝時間の経過そのもの
         World.UpdateGdpCycle();   // 景気循環トラッカー更新（次四半期のAIの反景気循環的金融政策の入力）
         World.UpdatePriceLevel(World.Coef);   // 物価水準（数量説）＝広義マネー/実質産出の伸び差でインフレ/デフレ
-        if (!warm) Snapshot();   // 締めた四半期の盤面をその四半期のラベルで記録（監査2026-07-12 他21：旧＝インクリメント後に呼び翌四半期のラベルが付いていた。現読者は添字参照のみ＝挙動不変）
+        if (!warm) Snapshot();   // 現読者は添字参照のみ＝挙動不変）〔履歴 Simulation.cs#185〕
         if (warm) return;   // ★暦を進めない：助走を何年回しても開始は1783/Q1（1914断面・全長 GameQuarters・TechOnset の年ゲートが動かない）
         World.Quarter++;
         if (World.Quarter > Calendar.QuartersPerYear) { World.Quarter = 1; World.Year++; }
@@ -1940,10 +1624,9 @@ public sealed class Simulation
     }
 
     // 月次決算（旧 StepMonth の本体）：金の動く決済はここ。日次ループは StepDay が外から駆動する。
-    /// <summary>★通知（作者指示2026-09-04「通知：職人没落・座礁」）：四半期末に州ごとの製法の逆転を1回だけ報せる（観測のみ）。
-    /// 「座礁」＝同じ財で発見の表に行を持つ新製法の産出（Output×Scale）が旧製法を初めて上回った四半期（塩漬け→冷蔵・石炭ガス→石油…）。
-    /// 「職人の没落」＝職人（RecipeName="職人"）の産出シェアが50%以上あった財で、25%を割った四半期（工場化）。
-    /// ⚠ログは World.PendingLog→共有ログ（日次 FlushLog）＝News が拾う。力学は1ビットも読まない。</summary>
+    /// <summary>
+    /// 「座礁」＝同じ財で発見の表に行を持つ新製法の産出（Output×Scale）が旧製法を初めて上回った四半期（塩漬け→冷蔵・石炭ガス→石油…）。〔履歴 Simulation.cs#186〕
+    /// </summary>
     private void LogRecipeTransitions()
     {
         int nGoods = Catalog.Goods.Length;
@@ -1963,7 +1646,7 @@ public sealed class Simulation
                 double q = pr.Output * pr.Scale;
                 if (!(q > 0)) continue;
                 if (pr.RecipeName == "職人") { artOut[pr.GoodId] += q; oldOut[pr.GoodId] += q; oldName[pr.GoodId] ??= "職人"; }
-                else if (pr.DiscoveryRow >= 0 && !(pr.DiscoveryRow == Discovery.SyntheticDyeRow && !(World.Coef.DiscoveryEngineerHalfPerMonth > 0))) { newOut[pr.GoodId] += q; newName[pr.GoodId] ??= pr.RecipeName; }   // ★(415) 旗0の合成染料は行が無かった旧と同じ分類（従来の製法）
+                else if (pr.DiscoveryRow >= 0 && !(pr.DiscoveryRow == Discovery.SyntheticDyeRow && !(World.Coef.DiscoveryEngineerHalfPerMonth > 0))) { newOut[pr.GoodId] += q; newName[pr.GoodId] ??= pr.RecipeName; }   // DiscoveryEngineerHalfPerMonth〔履歴 Simulation.cs#187〕
                 else { oldOut[pr.GoodId] += q; oldName[pr.GoodId] ??= (pr.RecipeName.Length > 0 ? pr.RecipeName : "従来の製法"); }
             }
             for (int g = 0; g < nGoods; g++)
@@ -1986,39 +1669,15 @@ public sealed class Simulation
         }
     }
 
-    // ★(351) 州×POP の走査の表①＝月末の決算（この関数）の段の並び・各段が読む欄／書く欄・読む時点（案 A・順序は変えない・実装ログ (348) §8 の座標を (351) の木で取り直した）。
-    //   POP の貯蓄を書く口は移し方の 1 本（World.Transfer）と Pop の Take／Distribute／Carry／SettleMonth／Blend／KillPops だけ＝下の「書く」は呼び手の段に数える。
-    //   集合＝国家会計の集合（World.AllPopsWithRegion＝絞らない）。州のループは全ての州（(568) gc3：稼働の判定は外した。本番の盤面は全州が稼働中だった＝同じ列）。
-    //   ・前段（兵の給与の請求・予算の州ループ・教師）　読む：兵 POP の規模・徴募の賃金・識字・高等教育の充足　書く：州の予算の欄だけ　時点：前月の盤面（経済の前）
-    //   ・切り下げ（払える額の側へ入れて取る）　読む：全 POP の Σmax(0,貯蓄)　書く：貯蓄（Transfer）　時点：前月の盤面（Σ は Take へ渡す＝同じ順の同じ和）
-    //   ・支払い率の州ループ→EconomyStep.Run　読む：闘争度・貯蓄・債務・規模ほか　書く：貯蓄・債務・所得・支出・満足・失業・食料・健康・教育ほか　時点：前月の値を読み今月を書く
-    //   ・Colonial.Step　読む：貯蓄・規模　書く：識字・闘争度・貯蓄　時点：今月の経済の後
-    //   ・StepMineralDeposits／MintGold　読む：産出　書く：基礎貨幣（鋳造）　時点：今月の経済の後
-    //   ・Fiscal.Step（税・十分の一税・領主の取り分・国債）　読む：前の月の所得・貯蓄・識字・報道・階級・閉鎖　書く：貯蓄・国債の保有・地代・闘争度　時点：今月の経済の後
-    //   ・StepStateTargets（国営工場の払い下げ・接収）　読む：—　書く：資本家の貯蓄（払い下げ）・闘争度（接収）　時点：財政の後
-    //   ・Crime.Step　読む：規模・闘争度・満足・前の月の所得・貯蓄　書く：貯蓄（窃盗）→満足（Transfer の後に削る）・州の犯罪率　時点：税の後
-    //   ・Military.Step　読む：兵の規模・国民意識・前の月の所得　書く：規模・年齢の層・貯蓄（Blend）　時点：犯罪の後
-    //   ・PopDecision.Run　読む：今月の所得・食料の充足（前月の人口動態の値）・閉鎖　書く：規模（州の中の階級の遷移）　時点：軍の後
-    //   ・Territory.Step　読む：規模・失業・州の犯罪率（CrimePushWeight）・州の賃金プレミアム（四半期首の値）　書く：Blend の全欄・闘争度　時点：今月
-    //   ・GrowLiteracy　読む：教育の充足・児童労働・高等教育の充足　書く：識字・教育の移動平均・国の専門人材　時点：今月
-    //   ・DemographicStep　読む：食料・健康・年齢の層　書く：規模・年齢の層・食料の充足・識字　時点：今月の経済の後
-    //   ・Backstop／CheckInvariants　読む：貯蓄　書く：債務（Backstop）　時点：月の最後
-    //   順番に依存する所（まとめない＝案 B は採らない）：経済→税（所得と貯蓄を税が読む）→犯罪（税の後の貯蓄と闘争度を読む・移して読み直す 2 周〔Crime.Step の :65→:76〕は窃盗の保存の順）→人口動態（今月の食料と健康を読む）の鎖。
-    //   食料の充足（FoodFill）だけは人口動態が書いた値を PopDecision が次の月に読む（前月の値）。
+    // POP の貯蓄を書く口は移し方の 1 本（World.Transfer）と Pop の Take／Distribute／Carry／SettleMonth／Blend／KillPops だけ＝下の「書く」は呼び手の段に数える。〔履歴 Simulation.cs#188〕
     private void MonthSettle()
     {
-        // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。
-        // MonthSettle は月境界（_dayInQuarter∈{29,59,89}）でのみ呼ばれる＝89 が四半期の締め月。読み手＝製法の通知・軍の熟練度（財政の器 FiscalQuarterlyGating は 2026-09-26 に削除）。
+        // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。〔履歴 Simulation.cs#189〕
         World.IsQuarterEndMonth = _dayInQuarter == Calendar.QuarterEndDayIndex;
-        if (World.IsQuarterEndMonth) LogRecipeTransitions();   // ★通知（2026-09-05）：新製法の逆転・職人の没落を報せる（観測のみ・力学非接触）
-        // 豊作/不作：年1回ロール（決定論RNG）。主食RGO産出と自給に乗算＝不作は食糧高騰＋自給減で貧農を飢えさせる。
-        // 他14（監査2026-07-11・2026-07-25修正）：旧 Tick/360 は各年12月の月次決算で「翌年分」を発火＝年表ログの年表記と適用年が
-        // 1ヶ月ずれる系統誤差（忠実度の史実年突合を汚す）。1ヶ月ぶん引いて年境界を1月の月次決算に合わせる＝ロールは当年ラベルで当年に適用。
-        // 初回ロール（Tick=30）は不変・各ロールのRNG消費数も不変（消費「時点」だけが月次1つ後ろへ＝決定論は保たれ軌道は再抽選）。
+        if (World.IsQuarterEndMonth) LogRecipeTransitions();   // LogRecipeTransitions〔履歴 Simulation.cs#190〕
+        // 豊作/不作：年1回ロール（決定論RNG）。〔履歴 Simulation.cs#191〕
         int harvestYear = (int)((World.Tick - Calendar.DaysPerMonth) / Calendar.DaysPerYear);
-        //（(223)）助走（World.WarmupFrozen）は時間が経たない＝年次の乱数を引かない。旧＝助走中は Tick が 0 のまま進まないのに harvestYear＝(0−30)/360 の整数除算＝0 が _lastHarvestYear(−1) と違い、
-        //   助走の最初の月決算で豊凶・作物の病害・疫病の発生を1度引いた（開幕の豊凶が全61カ国で 1.0 でない・疫病の死者が助走で出る国が1種あたり1〜4国・人口 −0.2〜−5%）。
-        //   初回のロールは最初の実月（Tick=30）＝上の「初回ロール（Tick=30）は不変」の設計どおり。乱数の消費の位置が助走から実月へ移る（軌道は再抽選）。
+        // 初回のロールは最初の実月（Tick=30）＝上の「初回ロール（Tick=30）は不変」の設計どおり。〔履歴 Simulation.cs#192〕
         if (!World.WarmupFrozen && harvestYear != _lastHarvestYear)
         {
             _lastHarvestYear = harvestYear;
@@ -2026,9 +1685,7 @@ public sealed class Simulation
             double u = Rng.NextDouble();   // RNG消費はSkew/ρに関わらず1回（決定論系列不変）
             double harvestEps = 1.0 + SkewHarvest(u, World.Coef);   // Skew=0 で (u-0.5)*2*HarvestVariation＝対称一様（現行恒等）
             double rho = World.Coef.HarvestPersistence;
-            // 分散保存AR(1)（2026-07-09式修正）：旧・凸結合(1−ρ)は定常分散を(1−ρ)/(1+ρ)倍へ圧縮し（ρ=0.35で標準偏差0.69倍）、
-            // 「12%超の凶作」の年頻度が26%→11%へ半減＝恐慌原因の不作先行46%→15%逆転の主犯だった（batch30実測）。
-            // 革新係数を√(1−ρ²)にすると定常分散＝εの分散を厳密保存＝連続凶作の累積（多年飢饉）を得つつ凶作頻度を維持。ρ=0で厳密に旧恒等・RNG消費不変。
+            // 革新係数を√(1−ρ²)にすると定常分散＝εの分散を厳密保存＝連続凶作の累積（多年飢饉）を得つつ凶作頻度を維持。〔履歴 Simulation.cs#193〕
             World.HarvestFactor = rho > 0
                 ? 1.0 + rho * (_prevHarvestFactor - 1.0) + Math.Sqrt(1.0 - rho * rho) * (harvestEps - 1.0)
                 : harvestEps;   // ρ=0（対照腕）：前年項なし＝純IID。既定 HarvestPersistence=0.35 でlive
@@ -2049,21 +1706,14 @@ public sealed class Simulation
                     World.LogAdd($"{World.Year} {World.SelfPower?.Name}で{Catalog.Goods[g].Name}が病虫害に見舞われた（収穫{cropHealth[g]:P0}）");
                 }
             }
-            // 【削除 2026-10-01 (148)】鉱物の枯渇と発見の年次の抽選（国ごとに年3%の枯渇・年2.5%の鉱脈の発見〔全ての発見が frontierRush＝州の全ての鉱物を5倍〕・富鉱の年15%の戻り・
-            //   シルバーラッシュ）と Region.MineralDepletion を削除＝①枯渇は採掘による品位（StepMineralDeposits・旗 DepletionFromExtraction を焼き込み）②大鉱床は産地の発見の表
-            //   （Catalog.Sites＝場所ごとの年代と入植者×財の値〔(171)：必要性＝財の値段÷掘る費用・入植者は見つける力〕・Discovery.Step が四半期に判定・富鉱は開いた財の生産者だけ）＝検討 §10-3 項目10・Q13（計画の 2-2）。
-            //   年に4つ引いていた主系列の乱数（枯渇2・発見2）も消えた＝以後の乱数の列がずれる（挙動の変更＝10種で測った）。
-            // 疫病（B-4・コレラ等）：発生は過密（都市化）が駆動し、衛生整備（工業化）は死亡率を下げる。専用RNG系列＝主系列を乱さない。発生＝感染窓を立て他国へ伝播しうる（MultiNationSim）。
+            // 年に4つ引いていた主系列の乱数（枯渇2・発見2）も消えた＝以後の乱数の列がずれる（挙動の変更＝10種で測った）。〔履歴 Simulation.cs#194〕
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰
-            double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // 常に2つ引く（専用系列・★(638) 発生したら標的の抽選が同じ系列からさらに引く）
+            double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // epiRoll〔履歴 Simulation.cs#195〕
             if (epiRoll < World.EpidemicOnsetProbability(World.Coef))   // 発生率の式は World.EpidemicOnsetProbability の 1 本
                 World.TriggerEpidemic(World.Coef, 0.5 + epiPick, pickRng: EpidemicRng);   // 内部発生（過密スラム）→死亡スパイク＋感染窓
         }
 
-        // 労働時間の連続追従（倍率排除②）：実労働時間 WorkHoursValue は法定上限（WorkHours enum のアンカー）へ毎月収束する。
-        // 法は離散（8/10/12時間法を議会が可決）だが現場の労働時間は連続で追従＝移行期は中間値を取り、産出・厚生・健康が滑らかに動く。
-        // 法の浸透の速さ enforce＝浸透の遅れは 行政の購入量の不足でなく 〈その土地を国家が統治している割合〉＝州の人口で重みづけた RuleReach の平均（法は国家の区分の範囲にだけ届く）。
-        //   ★(399) で旧の門（第6段6-8a の執行の飢餓＝行政効率÷LawEnforcementAdminGate）を物理削除した（先進方向〔短縮・禁止・保持確立〕の浸透だけが掛かる・緩和方向は即時＝規制撤廃に監督官は不要）。
+        // 労働時間の連続追従（倍率排除②）：実労働時間 WorkHoursValue は法定上限（WorkHours enum のアンカー）へ毎月収束する。〔履歴 Simulation.cs#196〕
         double enforce = Politics.StateReach(World, World.Coef);
         double hoursTarget = World.WorkHours.Hours();
         World.WorkHoursValue = PoliticalQuantities.Toward(World.WorkHoursValue, hoursTarget, World.Coef.WomenRightsFollowSpeed * (hoursTarget < World.WorkHoursValue ? enforce : 1.0));
@@ -2071,7 +1721,7 @@ public sealed class Simulation
         // 賃金保持・児童労働合法度の連続追従（倍率排除④）：法は離散だが社会への浸透は連続（女性の賃金保持の確立／児童労働禁止の取締り）。
         World.WomenWageRetention = PoliticalQuantities.Toward(World.WomenWageRetention, World.WomenPropertyLaw ? 1.0 : 0.0, World.Coef.WomenRightsFollowSpeed * enforce);
         // 第6段6-7：児童労働の再合法化（禁止→合法）は政治軸を持たない連続追従のため、ここで不可逆を判定＝戦時・断裂の窓のみ可（英1915軍需品法型）。
-        double childTarget = World.ChildLaborAllowed ? 1.0 : 0.0;   // 02断線走査2026-07-28：現在値（政治ゲート通過後）を追従＝目標の直読みをやめる
+        double childTarget = World.ChildLaborAllowed ? 1.0 : 0.0;   // childTarget〔履歴 Simulation.cs#197〕
         bool childRegress = childTarget > World.ChildLaborLegal + 1e-9;
         // 交戦判定は国スコープ（州非依存）。毎州の再評価とラムダ・クロージャの確保を避け、ループ前に一度だけ算出して児童労働の不可逆判定・軍需調達・Military.Step で共用する。
         bool atWarNation = World.Diplomacy is { } dipN && World.SelfPower is { } spN && dipN.Wars.Any(war => war.A == spN || war.B == spN);
@@ -2079,31 +1729,21 @@ public sealed class Simulation
             World.ChildLaborLegal = PoliticalQuantities.Toward(World.ChildLaborLegal, childTarget, World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce));
         double colonialAccess = ColonialAccess();                        // 植民地素材の入手率（植民地×制海・封鎖で↓）
         double nationPop = World.TotalPopulation;                        // 行政予算の地域按分に使う
-        bool navalYard = false;   // ★2026-08-01：国内に稼働中の港州が1つでもあるか（州ループの外で1回だけ数える）
+        bool navalYard = false;   // navalYard〔履歴 Simulation.cs#198〕
         foreach (var pr in World.Regions) if (pr.IsPort) { navalYard = true; break; }
         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
-        double natSoldiers = World.SoldierSizeK(); double warEngageNat = World.Coef.MilitaryWarMultFromContact > 0 && atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // (959) c85mw 旗 1 だけ：接触の割合（国×月に 1 回・その場の盤面から求め直す・保存する欄 0）
-        // ★海の金の割合（2026-10-03 (189)）＝施行された陸海の維持費の比（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI は ArmyShape.NavalSpendShareOf を目標に置く・プレイヤーは同じ法の値）。
-        //   装備の器（軍事費の器から給与を払った残り）を陸の装備と艦に分ける（下の州ループ・旧＝理想の海の割合〔ShapeNavalShare〕で軍需の内訳を再配分＝艦を兵の頭数×割合で買った）。
+        double natSoldiers = World.SoldierSizeK(); double warEngageNat = World.Coef.MilitaryWarMultFromContact > 0 && atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // natSoldiers〔履歴 Simulation.cs#199〕
+        // navalSpendNat〔履歴 Simulation.cs#200〕
         double navalSpendNat = World.NavalSpendShare.Value;
         double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
         double monopolyRentFactorNat = World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 };
         int nationalizedMaskNat = World.NationalizedMask();
         World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
-        // ★軍事費の吸い込み（2026-10-02 (155)・作者 2026-10-01「高い軍事費はより多くの兵士の他、より十分な武器（≒軍需産業を育てる需要）や、高品質な軍隊を作ります。
-        //   ただし、扶養限界の考え方は必要だと思います（つまり、十分な軍隊がそろっている状態だと、兵士の給与は高止まりし、軍事費が高い設定でも出費は伸び続けない）」＝推奨で進めた）：
-        //   軍事費の器（Military.EnvelopeOf＝軍事費の段×器の割合×使える歳入〔＋戦時段の割合×借入の1件の額＝(175) 戦時国債〕）を **給与・糧食 → 装備（目標の在庫まで＋更新＋新型＝軍需の必要額）→ 質（幹部の給与＝訓練・効きは逓減）
-        //   → 使い切れない分は使わない（請求しない＝出費の頭打ち）** の順に吸わせる。旧＝給与は兵数×賃金を器の外で全額・装備は 軍事費×0.25×歳入（必要額で切る）の2本で、
-        //   質（熟練）は払った金でなく維持費の段（ArmyUpkeep＞0.5）で育った＝支出から直接の効き（2026-08-17 の「支出から直接バフを排除する」の型）。
-        //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の〈失業〉）。
-        //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器・旧の装備の上限の戦時の追随 WartimeBudgetFollowsNeed は削除＝Coefficients の注記・(162) で装備の部分だけ戻し (163) の合流で差し戻した）。
-        //     → ★(175)：戦時段（交戦中かつ総動員中・施行が段3 を超えた分）の器に借入の1件の額を足す＝戦時国債（Military.EnvelopeAt・借入の門と1件の額は Fiscal.Borrow と同じ1本＝推奨で進めた・作者の承認は未確認）。
-        //   ・★(161) 徴兵は兵1人を安くする（AI が作者に返した設計・作者の承認は未確認＝推奨で進めた）＝徴兵制（選抜・皆兵）の兵卒の給与は徴兵の兵の手当（Military.RecruitWage の keep＝徴募の母数の
-        //     頭数あたりの所得＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制は規定の給与（働き盛り1人あたり）。幹部の給与（質）の物差しはどちらも規定の給与（soldierRegularPay）。
+        // ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。〔履歴 Simulation.cs#201〕
         double milEnvelope = Military.EnvelopeOf(World, World.Coef);
         bool keepPay = World.ConscriptionLaw >= ConscriptionLaw.Selective;
         var soldierBasePay = new double[World.Regions.Count];   // 州の給与の満額（請求の単価×兵数×SoldierPayMult・r と充足を掛ける前）＝徴兵制は手当・志願制は規定の給与
-        var soldierRegularPay = new double[World.Regions.Count];   // ★(161) 州の規定の給与の満額（働き盛り1人あたり）＝幹部の給与（質）の物差し（志願制では soldierBasePay と同じ）
+        var soldierRegularPay = new double[World.Regions.Count];   // soldierRegularPay〔履歴 Simulation.cs#202〕
         double payFull = 0, regularFull = 0;
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
@@ -2120,11 +1760,10 @@ public sealed class Simulation
         double equipRoom = Math.Max(0, milEnvelope - payFull * soldierPayFill);   // 給与の後に残る器＝装備の上限（必要額で切る前＝恒常性の信号の分子）
         if (!(equipRoom >= 0)) equipRoom = 0;
         double equipClaimNat = 0;   // 州ループで立った装備の請求（首都・r を掛ける前）＝下の質の残り
-        // ★(606) 線 navf（旗 NavalPortProcurement は (824) で焼き込み）：国の艦の発注（FleetOrder＝首都の州で引く旧と同じ式）を月初に1回だけ引き、国の**本国格の港の州**へ取扱高の比で配る（EconomyStep.NavalPortSplit・★(669) 植民地格の港は配りに入れない）。
-        //   州の並びに依らない（EconomyStep の Run は州ごとに順に走り、前の州の決済で国の艦の在庫が増える＝Run の中で FleetOrder を引くと後の州の発注が減る）。FleetOrder が読む港の門 NationHasPort は州ループの中で毎月書く値なので先に写す。
+        // 州の並びに依らない（EconomyStep の Run は州ごとに順に走り、前の州の決済で国の艦の在庫が増える＝Run の中で FleetOrder を引くと後の州の発注が減る）。〔履歴 Simulation.cs#203〕
         foreach (var pr in World.Regions) pr.NationHasPort = navalYard;
         var navShare = new double[World.Regions.Count]; var navBudShare = new double[World.Regions.Count];
-        // 国の艦の発注の必要額 navNeedNat（★(669) 追記 1：各州が自分の値段で買う額の和・首都だけに配る国は首都の州の FleetOrder の必要額と同じ）＝予算の上限を国の1本で引く
+        // navQ〔履歴 Simulation.cs#204〕
         double[]? navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out double navNeedNat);
         World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
         int navIdx = -1;
@@ -2136,11 +1775,9 @@ public sealed class Simulation
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
                 double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
-                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // (982) 旗 MilitaryWarMultFromContact 1（既定）では warMult に入らない（次の行の旗 0 の枝だけが読む）。旗 0 では WarMobilizationDepth=0 なら mobilize=1、>0 で長期戦ほど軍需倍率↑（総動員）
-                double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0) : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // (973) 旗 MilitaryWarMultFromContact 1＝接触の割合から（内戦も対外戦も同じ式・9.0・0.5 を読まない）・0＝今の MilitaryWarMult×(1+WarMobilizationDepth×厭戦)（内戦も同じ式・旧の内戦の 2.0 の枝と旗 CivilWarArmsDemandUnified は ⑰ で消した）
-                // 軍需＝**兵士の装備のみ**（治安維持力=軍の一本化2026-06-23：治安維持力は装備された軍の効果＝BaseCoercion を MilitaryScale に含めない＝二重計上を解消し装備コストを下げる）。軍隊規模(兵数)×戦時倍率に比例。
-                // 課題6（駐屯州調達・2026-08-08）：装備需要の州配分＝首都一極と駐屯州比例のブレンド（総量保存）。
-                // g=0＝旧（首都のみ）と厳密同値。兵士は自分の駐屯州の市場で装備を買う＝単一市場の物理律速を解く。
+                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // 旗 0 では WarMobilizationDepth=0 なら mobilize=1、>0 で長期戦ほど軍需倍率↑（総動員）〔履歴 Simulation.cs#205〕
+                double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0) : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // warMult〔履歴 Simulation.cs#206〕
+                // 軍隊規模(兵数)×戦時倍率に比例。〔履歴 Simulation.cs#207〕
                 {
                     double gGar = World.Coef.GarrisonProcurement;
                     double capShare = r.Id == 0 ? 1.0 : 0.0;
@@ -2152,36 +1789,25 @@ public sealed class Simulation
                         share = (1.0 - gGar) * capShare + gGar * (localSoldiers / natSoldiers);
                     }
                     r.MilitaryScale = share > 1e-12 ? World.Coef.MilitaryUpkeepScale * natSoldiers * warMult * share : 0;
-                    // ★耐久装備のストック（段2a・2026-08-13）：戦時倍率を**摩耗の側**へ渡すために別置きする。
-                    //   耐久品の目標在庫は平時基準（warMult を掛けない）＝機関銃は戦争が始まっても9倍要らない。
+                    // 耐久品の目標在庫は平時基準（warMult を掛けない）＝機関銃は戦争が始まっても9倍要らない。〔履歴 Simulation.cs#208〕
                     r.MilitaryScalePeace = share > 1e-12 ? World.Coef.MilitaryUpkeepScale * natSoldiers * share : 0;
                     r.MilitaryWarMultLast = warMult;
                     r.GarrisonShare = new Share(share);   // 予算配分（下）と共有
                 }
-                r.NationHasPort = navalYard;   // ★2026-08-01：軍艦の発注ゲート（EconomyStep）が読む。国に港が1つでもあれば艦を発注できる   // 軍需調達は首都州のみ（多州で全国軍を二重調達しない）
-                // Region.AtWar（戦時の建設抑制）は倍率排除バッチ2で機構ごと撤去済み（軍需の価格競合による自然縮小に代替）＝書き込みも削除（監査2026-07-12 死37）
-                // 軍需装備の財源：**軍事費の器の給与の後の残り**（★(155)＝吸い込みの2段目・旧＝軍事費×MilitaryRevenueShare（0.25）×粗歳入＝給与と別の2本目の器）。
-                //   粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
-                // ⚠旧＝借入スタックの出費上限（SpendingCapFactor）を軍需にだけ掛けなかった（軍を最後まで維持する）。2026-09-28 に出費上限ごと撤去し、全ての行が同じ国家の支払い率 r（優先順位なし＝作者裁定 F3・Q9）。
-                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費＝★(155) 戦時経済の段（器の最上段）が担う。国庫が尽きれば国家の支払い率 r が自然に絞る。
-                // ★陸海の分割（2026-10-03 (189)・作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」・2026-08-01「海軍は戦艦ありきです」）：
-                //   装備の器を海の金の割合（navalSpendNat）で陸の装備と艦に分ける＝艦は海軍の予算（Region.NavalBudget）で買い、陸の装備の段は艦を買わない（EconomyStep.LandMul）。
-                //   旧＝装備の器の全体を陸の装備の段の予算にし、艦も同じ段の中で兵の頭数×海の割合で買った（陸海の再配分 ShapeNavalShare）。
+                r.NationHasPort = navalYard;   // 国に港が1つでもあれば艦を発注できる   // 軍需調達は首都州のみ（多州で全国軍を二重調達しない）〔履歴 Simulation.cs#209〕
+                // 粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。〔履歴 Simulation.cs#210〕
                 double seaShare = navalSpendNat;
                 if (!(seaShare >= 0)) seaShare = 0; else if (seaShare > 1) seaShare = 1;   // 否定形＝NaN は陸へ
                 double milCap = equipRoom * (1.0 - seaShare);   // 陸の装備の請求（r を掛ける前）。支出反射（OpulenceSpendRatePerYear>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
-                r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側（下の予算は必要額で切った後＝(811) で S3a は常に有効）
-                // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。（旗 MilitaryBudgetNeedCapped は (811) で焼き込み＝常にこの経路。）
-                // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。
-                // ★(189) 艦も同じ規則（海軍の調達の必要額＝目標の艦隊と在庫の差）＝十分な艦隊が揃えば出費は伸びない（(155) の扶養限界と同じ形）。陸は下で首都の州の請求を必要額で切る。艦は下の navalNat を国の必要額 navNeedNat で切る。
+                r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // MilitaryBudgetCeiling〔履歴 Simulation.cs#211〕
+                // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。〔履歴 Simulation.cs#212〕
                 if (r.Id == 0)
                 {
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
                 }
                 r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
                 {
-                    // ★(606) 線 navf（旗 NavalPortProcurement は (824) で焼き込み）：国の海軍の予算（装備の器×海の金の割合を必要額で切った額）と発注を国の本国格の港の州へ**同じ割合**で配る。
-                    //   Σ予算 ＝ 国の予算 navalNat（★(669) 追記 1：上限の必要額は各州の値段で買う額の和・首都だけに配る国は旧と同じ）。割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。
+                    // 割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。〔履歴 Simulation.cs#213〕
                     double navalNat = equipRoom * seaShare;
                     navalNat = Math.Min(navalNat, navNeedNat);
                     double sh = navShare[navIdx];
@@ -2194,22 +1820,19 @@ public sealed class Simulation
                     }
                     r.NavalOrder = nq;
                 }
-                equipClaimNat += r.MilitaryBudget + r.NavalBudget;   // ★(155) 吸い込みの2段目の請求（国の和）＝3段目（質）はこの残り
+                equipClaimNat += r.MilitaryBudget + r.NavalBudget;   // NavalBudget〔履歴 Simulation.cs#214〕
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
-                r.InsuranceCoverage = World.Coef.InsuranceCoverageMax.Value * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）
-                r.StateMonopolyMargins = World.StateMonopolyMargins;       // 材ごとの専売の上乗せ率への参照（★2026-09-20＝これが専売の唯一の実体）
-                // 戦時備蓄（07_再設計 §5(a)・2026-07-31）：国の最大緊張を州へ複製＝日次の在庫目標（MarketFlow）が読む。
-                // 外交層のない世界（単一国テスト・較正）は0＝在庫目標は従来どおり＝厳密恒等。
+                r.InsuranceCoverage = World.Coef.InsuranceCoverageMax.Value * World.SocialSecurity;   // InsuranceCoverage〔履歴 Simulation.cs#215〕
+                r.StateMonopolyMargins = World.StateMonopolyMargins;       // StateMonopolyMargins〔履歴 Simulation.cs#216〕
+                // 外交層のない世界（単一国テスト・較正）は0＝在庫目標は従来どおり＝厳密恒等。〔履歴 Simulation.cs#217〕
                 r.WarScareTension = warScareTensionNat;
-                // 独占禁止法（E6）：独占レント(塩/茶)の実効倍率を法段から複製（門の係数 AntitrustGate は (843) で焼き込み。EconomyStep が monRent に乗算）
+                // EconomyStep が monRent に乗算）〔履歴 Simulation.cs#218〕
                 r.MonopolyRentFactor = monopolyRentFactorNat;
-                // 阿片の全面禁止（禁制品doc C3・2026-07-30）：国内生産も違法＝取り締まれた分だけ産出が消え、残るのは闇栽培。
-                // 漏れ率は州の行政充足率が決める＝★清が禁止後に国産阿片を激増させた史実（1860年代に国産が輸入を上回る）が
-                // 「弱い行政 × 高い価格」から出る。輸入禁止（Limited）は国内生産に触れない＝1.0。
+                // 漏れ率は州の行政充足率が決める＝★清が禁止後に国産阿片を激増させた史実（1860年代に国産が輸入を上回る）が 「弱い行政 × 高い価格」から出る。〔履歴 Simulation.cs#219〕
                 r.ContrabandProductionFactor = World.Coef.OpiumAddictionGrowth > 0 && World.OpiumPossession == ReformLevel.Full
                     ? Contraband.LeakFraction(r.AdminFill, World.Coef)
                     : 1.0;
-                // 国有化法（E6）：5部門＋『全て』（§11-6d統合）のビットマスクを複製（門の係数 NationalizationGate は (843) で焼き込み。EconomyStep が該当財の利潤を国庫へ）
+                // EconomyStep が該当財の利潤を国庫へ）〔履歴 Simulation.cs#220〕
                 r.NationalizedMask = nationalizedMaskNat;
                 // 倍率排除④：女性参加・児童労働を連続状態（賃金保持・合法度）から複製。実効値は LaborSupply が家計困窮・就学を加味して創発。
                 r.WomenWageRetention = World.WomenWageRetention;          // 賃金保持（連続）。女性参加・女性識字の駆動
@@ -2219,25 +1842,18 @@ public sealed class Simulation
                 r.CropHealth = World.CropHealth;                         // 作物別の健全度（病虫害）。栽培州の産出に乗る＝作物固有の不作（天候と積算）
                 r.WeatherBandFactor = World.WeatherBandFactor;           // 緯度帯（気候帯）の天候。HarvestFactorと積算＝同じ気候帯の国が一緒に不作（欧州一帯の凶作）
                 r.Discovered = World.Discovered;                         // ★発見の表の解禁（段2A）＝国の配列への参照（写しではない＝判定の四半期から同じ値を読む）
-                // 役務（サービス財）の月次設定：教育の担い手と生産性を教育法で切替＋義務教育の財源率＋行政・兵力の予算。
-                // C-高9（史実検証2026-07-22）：公教育（Public）にも国庫財源を配線（旧＝Compulsory 以外は厳密0＝「国が無料で供給を得る」因果の逆向き）。
-                // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
+                // 役務（サービス財）の月次設定：教育の担い手と生産性を教育法で切替＋義務教育の財源率＋行政・兵力の予算。〔履歴 Simulation.cs#221〕
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
-                    : World.EducationLaw == EducationLaw.Public || World.EducationLaw == EducationLaw.Religious ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // ★(404) 旗 ParishEduFunded は (811) で焼き込み：Religious も Public と同じ割合を国庫が買う（担い手は教区学校のまま・rf_20261018_prereg.txt D2）
-                    * Politics.RuleReach(r);   // ★支配度 段4（2026-09-07・(399) で点火）：公共財の到達＝国家区分に比例
-                r.EducationSpending = World.EducationSpending;   // ★(597) 国の教育費の実効の率の複製（奨学金の法が最上段かを州の側で導く入力・上の写像は変えない・支払い率は CompulsoryEduFunding の行に畳まれる＝この欄には掛けない）
+                    : World.EducationLaw == EducationLaw.Public || World.EducationLaw == EducationLaw.Religious ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)   // PublicEduFundingShare〔履歴 Simulation.cs#222〕
+                    * Politics.RuleReach(r);   // RuleReach〔履歴 Simulation.cs#223〕
+                r.EducationSpending = World.EducationSpending;   // EducationSpending〔履歴 Simulation.cs#224〕
                 if (r.EducationProducerIndex >= 0)
                 {
                     var ep = r.Producers[r.EducationProducerIndex];
                     int pubIdx = r.EducationProducerIndex + 1;
                     if (World.Coef.EduProducersCoexist > 0 && pubIdx < r.Producers.Count && r.Producers[pubIdx].GoodId == Catalog.EducationId)
                     {
-                        // ★段1 器 EduProducersCoexist（doc §2-1・LIST §0-9-C 段3・2026-09-12）：[eduIdx]=教区学校（聖職者・紙）／[eduIdx+1]=公立学校（教師・書籍）は**常設**＝
-                        //   担い手・生産性・投入を差し替えない（doc §1-2 の崖＝法の1段が「ある職の収入 0↔全額」を切り替える構造の撤去）。
-                        //   教育法は「非活性側の Scale=0」のゲートだけ（技術ゲート0の操業規模0の役務版＝EconomyStep が教育財に限り Scale=0 を fraction=0 と読む）。
-                        //   再活性は操業規模の更新（床 ScaleFloor へ寄る）が翌月から戻す＝ここで Scale を1へ戻す外科処置は置かない（採算の伸縮は現行のまま）。
-                        //   ⚠2件目の存在は盤面（連続 add・GoodId）から判定＝コエフだけでなく実体を見る（BuildFrance 等 clergyIdx を渡さない構築経路は1件のまま＝旧枝へ）。
-                        //   ⚠0 ではこの枝に1度も入らない（第1項で短絡）＝旧枝がそのまま走る＝厳密恒等。
+                        // 教育法は「非活性側の Scale=0」のゲートだけ（技術ゲート0の操業規模0の役務版＝EconomyStep が教育財に限り Scale=0 を fraction=0 と読む）。〔履歴 Simulation.cs#225〕
                         var pub = r.Producers[pubIdx];
                         bool parishOn = World.EducationLaw == EducationLaw.Religious && r.ClergyPopIndex >= 0;
                         bool publicOn = World.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory && r.TeacherPopIndex >= 0;
@@ -2263,7 +1879,7 @@ public sealed class Simulation
                         // 公教育・義務教育：教師が教える。大量に教えられる＝大衆識字が可能（聖職者は収入源を失い没落）。**書籍**を消費（近代の教科書＝紙の一段上）。
                         ep.LaborPopIndex = r.TeacherPopIndex; ep.OwnerPopIndex = r.TeacherPopIndex;
                         ep.Productivity = World.Coef.TeacherEduProductivity;
-                        // ★教師の質（作者採用2026-09-06 知識doc 段5）：法の2値の上に教師pop自身の識字×高等教育充足を掛ける＝師範学校の効果。0 で不読（×1.0）
+                        // 0 で不読（×1.0）〔履歴 Simulation.cs#226〕
                         if (World.Coef.TeacherQualityWeight > 0 && r.TeacherPopIndex < r.Pops.Count)
                         {
                             var tp = r.Pops[r.TeacherPopIndex];
@@ -2274,11 +1890,7 @@ public sealed class Simulation
                     }
                     else ep.Productivity = 0;   // 学校なし＝教育の供給なし（識字は停滞）
                 }
-                // funding修正：上下水道・電化インフラは**税収フロー(FiscalCapacityPerMonth)から支弁**（国庫ストックは基礎義務に食われ常時0で餓死していた）。スライダー×シェア×歳入×人口比。
-                // 行政だけは別格：行政＝徴税の費用＝「税収を生むサービス」。余剰から支弁すると貧国は余剰0→行政0→税収0の永久デッドロックに陥る（funding修正の盲点）。
-                // → 行政は**粗歳入(LastRevenue)を第一請求権として支弁**（税吏を雇わねば税は集まらない）＝余剰0でもブートストラップできる（2026-06-22）。
-                // ★距離の割増（2026-09-30 (135)＝旧の維持費の人頭割りの距離の割増を行政の購買へ・作者裁定 2026-09-03 E-05段4）：遠い州の予算は割増ぶん厚い
-                //   ＝EconomyStep の単価も同じ割増＝充足は割増の無い州と同じ・金額だけ増える（Fiscal.AdminDistanceMul の1本）。
+                // funding修正：上下水道・電化インフラは**税収フロー(FiscalCapacityPerMonth)から支弁**（国庫ストックは基礎義務に食われ常時0で餓死していた）。〔履歴 Simulation.cs#227〕
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.AdminBudgetFrac.Value * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
@@ -2286,16 +1898,9 @@ public sealed class Simulation
                 r.ElecInfraBudget = nationPop > 1e-9
                     ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
                 if (Instruments.On) Instruments.AdminBase(World, r, nationPop);   // 計器（読むだけ）：行政の予算の基数（SpendableRevenue・官僚の居る州の人口の比と距離の割増）
-                // 兵力（兵士の給与）の予算＝★(155) 州ループの後（吸い込みの1段目と3段目＝装備の請求が立ってから）。
+                // 注〔履歴 Simulation.cs#228〕
             }
-        // ★(155) 軍事費の吸い込みの1段目（給与・糧食）と3段目（質＝幹部の給与＝訓練）を州へ：
-        //   給与の規定の単価＝民間賃金（前月の徴募の母数＝農民＋都市労働者の**働き盛り1人あたり**の所得・(140)）×SoldierPayMult＝Military.RecruitWage の1本（州ループの前の soldierRegularPay）。
-        //   ★(161) 兵卒の単価（soldierBasePay）＝志願制は規定の単価・徴兵制（選抜・皆兵）は徴兵の兵の手当（RecruitWage の keep＝同じ所得の頭数あたり）。幹部の給与（質）の物差しは規定の単価。
-        //   給与は器から先に払う（給与の充足 soldierPayFill＝器÷満額・1で頭打ち）。3段目＝器から給与と装備（首都の請求）を引いた残りを、幹部の給与の必要額（満額×MilitaryCadrePayRatio）まで
-        //   （＝訓練の充足 World.MilitaryTrainingFill＝熟練の育ち方〔Military.StepSkill〕）。それでも残る器は請求しない＝使い切れない分は使わない（出費の頭打ち＝兵士の給与は高止まり）。
-        //   幹部の給与は兵士 POP の所得へ（将校と下士官は兵士 POP の中＝兵士の1人あたりの所得が上がる＝志願の魅力）。
-        //   ★(161) 幹部の給与の必要額は規定の給与（働き盛り1人あたり）の満額×MilitaryCadrePayRatio＝徴兵制でも幹部（将校と下士官＝長期の職業軍人）は規定の給与で払う
-        //   （徴兵が安くするのは兵卒だけ＝質の値段は法に依らない）。志願制では regularFull＝payFull＝(155) と同じ額。
+        // 幹部の給与（質）の物差しは規定の単価。〔履歴 Simulation.cs#229〕
         double trainNeed = regularFull * World.Coef.MilitaryCadrePayRatio;
         double trainClaim = Math.Min(Math.Max(0, equipRoom - equipClaimNat), trainNeed);
         double trainShare = regularFull > 1e-9 ? trainClaim / regularFull : 0;   // 規定の給与の満額1あたりの幹部の給与
@@ -2305,36 +1910,25 @@ public sealed class Simulation
         {
             var r = World.Regions[ri];
             if (r.SoldierPopIndex < 0) continue;
-            r.SoldierPayBudget = soldierBasePay[ri] * soldierPayFill + soldierRegularPay[ri] * trainShare;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）・★(161) 兵卒の給与（手当か規定）＋幹部の給与（規定の物差し）
+            r.SoldierPayBudget = soldierBasePay[ri] * soldierPayFill + soldierRegularPay[ri] * trainShare;   // 請求（r を掛ける前）。〔履歴 Simulation.cs#230〕
             World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が後 段0）
         }
-        World.LastMilitaryClaimPerMonth = new MoneyPerMonth(equipClaimNat);   // ★(155) 器の請求のうち装備（2段目）＝Fiscal の余剰と財政バッファが読む（旧＝Fiscal が 軍事費×0.25×歳入 を必要額で切って書いた）。給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPayPerMonth）の側＝旧と同じく余剰からは引かない
-        // ★国家の支払い率 r（作者裁定 F3・Q1〜Q3・2026-09-28 支払いの一元化 段2-1＝計画 §10-12-3-3）。
-        //   その月の**全ての国家の支払いの請求**を月初（ここ＝予算が立った直後・買う前）に集め、払える額と比べて1本の率を決め、
-        //   全ての行（予算・工賃・材料・国営持分の赤字・補助・保険・福祉・年金・維持費・利子・戦費・貢納・選挙・通行料…）に同じ r を掛ける＝優先順位を作らない。
-        //   払える額（Q1）＝max(0, 国庫)＋当月の歳入の見込み（LastRevenue）。請求（Q2）＝今月の予算（上の州ループで立った額）＋予約＋
-        //   月中に決まるものは既存の量で見込む（先月の請求 Last*・先月の区分つき StateSpent・生産者の先月の損益・工事中の棟の工賃）。
-        //   元本の返済（減債）だけは請求の外＝ r＝1 の月の余剰（spare＞0）から（Fiscal）・借入は払えない額（spare＜0）の分だけ・r を決める前（下の Fiscal.Borrow）。
-        //   置き場所＝既存の FiscalFundingRatio（旧＝維持費の充足率）。逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
-        //   撤去したもの＝国庫の現金クランプ StateBudgetCashScale（係数 StateSpendTreasuryClamp）・兵士の給与の州ごとの min(国庫)・日次の工賃の丸休みの門・
-        //   材料の門・Fiscal の滝（利払い→維持費→福祉/年金→減債）・WelfarePensionClampToTreasury・SpendingCapFactor（Q9）・手書きの Min(Max(0,国庫)) の門。
-        //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
-        //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
-        //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
+        World.LastMilitaryClaimPerMonth = new MoneyPerMonth(equipClaimNat);   // 給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPayPerMonth）の側＝旧と同じく余剰からは引かない〔履歴 Simulation.cs#231〕
+        // 払える額（Q1）＝max(0, 国庫)＋当月の歳入の見込み（LastRevenue）。〔履歴 Simulation.cs#232〕
         if (Instruments.On) Instruments.Begin(World);   // 計器（読むだけ）：今月の請求の写しを始める
-        double claims = (World.LastInterestPerMonth + World.LastWelfareCostPerMonth + World.LastPensionCostPerMonth + World.LastColonialUpkeepPerMonth).Value;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
+        double claims = (World.LastInterestPerMonth + World.LastWelfareCostPerMonth + World.LastPensionCostPerMonth + World.LastColonialUpkeepPerMonth).Value;   // claims〔履歴 Simulation.cs#233〕
         if (Instruments.On) Instruments.ClaimsBase(World);
         bool payQuarter = World.IsQuarterEndMonth;
         if (payQuarter) claims += World.LastTributeOutPerQuarter + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
         if (Instruments.On && payQuarter) Instruments.ClaimsQuarter(World);
-        double portThr = payQuarter ? World.PortThroughputTotal() : 0;   // ★(223) 国家の港建設も四半期の請求（混雑した港の州だけ・World.PortStateRequest）
+        double portThr = payQuarter ? World.PortThroughputTotal() : 0;   // portThr〔履歴 Simulation.cs#234〕
         // 売買方針の代金とダンピング補助（清算ごと・清算の末尾の World.Transfer＝旧 InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
         //   ★段3-1（A7）：清算は金建て＝自国通貨へ為替で換算して見込む（清算と同じ守り＝為替≦1e-9 は1）。
         double erClaim = World.FxRate;
         double tradeClaim = World.Tariff < 0 ? World.LastExportValue / erClaim * -World.Tariff : 0;
         if (World.ImportsByGood is { } payImp)
             for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g] / erClaim;
-        if (World.Coef.TradeCheapSellSubsidy > 0 && World.ExportsByGood is { } payExp)   // ★(471) 〈安く売る〉の輸出奨励金の見込み（売り手の国庫が出す s×輸出額）＝+1 の輸入側と対の輸出側（r の分母が片側にならない）
+        if (World.Coef.TradeCheapSellSubsidy > 0 && World.ExportsByGood is { } payExp)   // TradeCheapSellSubsidy〔履歴 Simulation.cs#235〕
             for (int g = 0; g < payExp.Length; g++) if (World.TradeBiasOf(g) < 0) tradeClaim += World.Coef.TradeBiasStrength * payExp[g] / erClaim;
         claims += tradeClaim / World.Coef.MonthsPerClearing;
         if (Instruments.On) Instruments.Claim(World, Instruments.Item.TradePolicy, tradeClaim / World.Coef.MonthsPerClearing);
@@ -2345,15 +1939,12 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             {
                 if (payQuarter) claims += World.PortStateRequest(r, portThr);
-                claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本
+                claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // SoldierPayBudget〔履歴 Simulation.cs#236〕
                         + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
                 if (Instruments.On) Instruments.ClaimRegion(World, r, regrow, payQuarter, portThr);
-                // ★国営持分の請求の一覧（2026-09-30 作者裁定「計算量の予算」・恒等）：旧＝州の全ての生産者を毎月走査した（census＝請求に効いた生産者は10.2%）。
-                //   一覧 Region.StateSites＝工事中か BuiltScale>1e-9 の生産者を州の生産者の順に。一覧の外の生産者は StateProfitShare＝0.0（BuiltScale≦1e-9・国有化の枝が死んでいる）
-                //   ＝赤字（有限）に 0.0 を掛けた +0.0 を足すだけ＝請求は1ビットも変わらない（請求は正の予算の和から始まる＝−0.0 にならない）。和の順（州→生産者）も同じ。
-                //   ⚠国有化の枝（NationalizationSeizureRate≦0 かつ州に国有化の印）が生きる州は BuiltScale の無い生産者にも持分がつく＝旧の全件の走査へ戻す。
+                // 一覧 Region.StateSites＝工事中か BuiltScale>1e-9 の生産者を州の生産者の順に。〔履歴 Simulation.cs#237〕
                 if (World.Coef.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
                 {
                     World.Cost[CostLedger.ClaimProducers] += r.Producers.Count;   // 計算量の台帳（診断）：請求で見る生産者
@@ -2371,18 +1962,8 @@ public sealed class Simulation
         // ＞0＝ r＝1 の月の余剰（減債の原資＝Fiscal）・＜0＝払えない請求（＋借越）。負の国庫（記録されない当座借越）は余剰から先に埋める
         //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
         double spare = payable - claims + Math.Min(0, World.Treasury.Value);
-        // ★切り下げ（インフレ税）は**払える額の側**（2026-09-28・(87) の申し送り iii・作者裁定 F4「不足は量を減らすか未払いの記録＝他人から取らない」・思想⑨）。
-        //   旧（段2-1）＝ここで r を決めて請求を r で切って払い、月末の Fiscal が「払えなかった請求の全額」（spare＜0）を全POPから国庫へ移した
-        //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
-        //   ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。余地は既存の不換の国の発行の規則のまま
-        //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFracPerMonth まで〔★(587) 既定では外れている〕・うち FiatIssueFrac は新規発行）＝規則は1本。
-        // ★払える額の中身の順＝税・歳入 → 借入 → それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)「切り下げは借りられないとき（上限・冷却中）だけ」）。
-        //   旧（(89)〜(93)）＝切り下げを先に払える額へ入れ、借入は月末の Fiscal が r＜1 の月に切り下げの残りだけ借りた（借りた金は翌月の払える額）
-        //   ＝切り下げの97〜99% は借りられた四半期に起き（借入の11〜32倍・税収の30〜45%）、紙幣の増発が信用より先に立っていた。
-        //   史実の紙幣の増発は信用が尽きた後（アッシニャ1790〜・墺1811・米のグリーンバック1862）。⇒ 払えない額（−spare）を、借入の上限の下・冷却中でなければ
-        //   先に借りてその月の払える額へ入れ（Fiscal.Borrow＝1件の額と貸し手のプールまで）、残った払えない額だけを下の切り下げの余地が読む。
-        //   ⚠優先順位の滝ではない＝支払いの行は全て同じ1本の率 r（下）。順があるのは払える額の中身だけ。
-        double devalued = 0;   // この月の切り下げの額＝通貨改革の発動の門（切下げゼロの連続月数）と、月末の Fiscal.Step の国債の金利の信認の喪失（直近の切り下げの速さ・2026-09-29）が読む
+        // ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。〔履歴 Simulation.cs#238〕
+        double devalued = 0;   // devalued〔履歴 Simulation.cs#239〕
         if (World.FiscalEnabled)
         {
             if (Instruments.On) Instruments.PreBorrow(World, payable, spare);
@@ -2392,10 +1973,7 @@ public sealed class Simulation
             double deficit = spare < 0 ? -spare : 0;   // 否定形＝NaN は0（借りた後に残った払えない額＝借りられない月は全額）
             // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
             double devalueRoom = deficit * (1.0 - World.Convertibility);
-            // ★銀の段の軽い規律（旧の旗 SilverLightDiscipline・2026-08-21 点火・2026-10-18 焼き込み）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
-            //   （清の咸豊大銭・ムガル以来の含有量操作）。封印されるのは**銀行券の発行**の側＝正貨比率（BaseMoney/BroadMoney）ぶんは
-            //   兌換中でも改鋳の窓が開く：room = deficit×(1 − Conv×(1−正貨比率))。純正貨経済（比率≈1）はほぼ全開・銀行券経済ほど封印が効く。
-            //   ⚠新しい定数ゼロ（19-10差し戻しの根③＝切下げ封印の全世界閉鎖、の是正）。金の段は従来どおり封印。
+            // 封印されるのは**銀行券の発行**の側＝正貨比率（BaseMoney/BroadMoney）ぶんは   兌換中でも改鋳の窓が開く：room = deficit×(1 − Conv×(1−正貨比率))。〔履歴 Simulation.cs#240〕
             if (World.MonetaryLaw == MonetaryStandardLaw.Silver)
             {
                 double specie = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
@@ -2405,9 +1983,9 @@ public sealed class Simulation
             if (devalueRoom > 1e-9)
             {
                 double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
-                // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。★(587) 既定（DevaluationCapReliefExp＝1）では効かない。指数 0 のときの超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
+                // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。〔履歴 Simulation.cs#241〕
                 double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
-                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);   // ★(587) 既定は 1（点火・切り無し）。指数 0 は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式
+                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);   // 指数 0 は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式〔履歴 Simulation.cs#242〕
                 if (Instruments.On) Instruments.DevCap(World, devalueRoom, devalueCap, devalue);   // 計器（読むだけ）：旧の切りに当たった月
                 if (devalue > 1e-9)
                 {
@@ -2415,22 +1993,21 @@ public sealed class Simulation
                     // 発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は FiatInflationPressure が表現＝二重取りなし。
                     double issue = devalue * World.Coef.FiatIssueFrac.Value;
                     double haircut = devalue - issue;
-                    // ★2026-09-30 段4g：インフレ税＝全POP（貨幣の保有＝貯蓄の比・d5）→国庫と、不換の新規発行（世界の外の側＝不換の発行者 Outside.Fiat→国庫）の2本の移し方
-                    //   （旧＝貯蓄の手書きの引き落とし・国庫の片側の記帳・不換の台帳の手書き）。台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。
+                    // 台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。〔履歴 Simulation.cs#243〕
                     if (haircut > 1e-12)
                     {
                         var allPops = new List<Pop>(); foreach (var (_, dp) in World.AllPopsWithRegion()) allPops.Add(dp);
-                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
+                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // haircut〔履歴 Simulation.cs#244〕
                     }
                     else haircut = 0;
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
                     devalue = haircut + issue;
                     World.CumulativeDevaluation += devalue; devalued = devalue;
                     double broadAfter = World.BroadMoney.Value;   // 切り下げの後の広義の貨幣（haircut で貯蓄が減った後）
-                    if (Instruments.On) Instruments.PfixMonth(World, devalue, broadAfter);   // 計器（読むだけ・(603)）：分母の式が旧と新で違う月
-                    double fiatPressure = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);   // ★(616) 分母＝切り下げ前の貯蓄の和＋新規発行（分子と同じ台帳・2026-10-28 に採って焼き込み）
-                    if (Instruments.On) Instruments.FsxPressure(World, devalue, totalSav, issue, broadAfter, fiatPressure);   // 計器（読むだけ・(616)）：旧の M 案との比べと、積んだ圧
-                    World.FiatInflationPressure += fiatPressure;   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。★(616) 分母は切り下げ前の貯蓄＋新規発行（分子と同じ台帳＝月の圧 ≤ 1）。旧＝(603) の M 案、さらに前の絶対値の床 1.0 は貯蓄が尽きた月に圧を通貨の額にした
+                    if (Instruments.On) Instruments.PfixMonth(World, devalue, broadAfter);   // Instruments〔履歴 Simulation.cs#245〕
+                    double fiatPressure = Fiscal.FiatPressureOfLedger(devalue, totalSav, issue);   // fiatPressure〔履歴 Simulation.cs#246〕
+                    if (Instruments.On) Instruments.FsxPressure(World, devalue, totalSav, issue, broadAfter, fiatPressure);   // fiatPressure〔履歴 Simulation.cs#247〕
+                    World.FiatInflationPressure += fiatPressure;   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）。〔履歴 Simulation.cs#248〕
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
             }
@@ -2443,24 +2020,18 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             {
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
-                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // ★(189) 艦の予算にも同じ r
+                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // payRate〔履歴 Simulation.cs#249〕
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
-                // ★(155) 兵士の〈失業〉＝給与の未払いの割合（規定の給与のうち払われない分）＝失業プール（Meritocracy の ①''）の駆動（多年EMA＝未払いが長引くほど脱走が増える）
-                //   と志願の空き（払われない軍には志願しない）が読む。兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。
+                // 兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。〔履歴 Simulation.cs#250〕
                 if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)
                     r.Pops[r.SoldierPopIndex].UnemploymentRate = new Share(1.0 - payRate * soldierPayFill);   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
                 r.HigherEduFunding *= payRate;
-                double techProd = World.TechProductivity(r);   // ★(416) 式は World.TechProductivity へ抜き出した（技術の逓減・労働時間・労働組合・罷業の乗数）
+                double techProd = World.TechProductivity(r);   // techProd〔履歴 Simulation.cs#251〕
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
-                if (Instruments.On) Instruments.PreEconomy(World, r);   // 計器（読むだけ・(265)）：段5 の上限の入力＝大衆の月初の貯蓄
+                if (Instruments.On) Instruments.PreEconomy(World, r);   // Instruments〔履歴 Simulation.cs#252〕
                 EconomyStep.Run(r, World.Coef, techProd, World.Bank, World);   // §9-A/B/C（active 地域ごと）
-                // 恐慌の資本破壊（最終調整2026-06-29・ユーザー指示「恐慌が資本を破壊」）：深い景気後退（GdpDrawdown 閾値超）では工場閉鎖・資本廃棄で工業化度が退行する＝
-                // 恐慌が『ストック』を削る＝覇権の構造的先行（工業化）を大恐慌が巻き戻す経路。閾値未満の通常循環では工場を壊さない。0（対照腕）で恒等・既定0.06でlive。
-                // ★助走中は資本廃棄も止める（2026-08-22）＝「凍結は両側」（2026-08-10裁定＝助走は資本を一切育てない・減らさない）。準レント配分で助走中に
-                //   一過性のドローダウンが出て scrapKeep が走り、StartWarmupTests（資本の恒等）が割れた＝旧配分では偶然踏まなかった穴。
-                // ★戦争被害のストック化（AI審査3-11・2026-08-31★live同日点火 0.03）：戦場州では家畜の群れそのものが徴発で減る（flow減産＝WarFarmOutputDamageとは別のstock喪失）。
-                //   回復は書かない＝家畜RGOの操業規模は既存の供給弾力（RGOの年単位の速度）でしか戻らない＝「終戦で即回復」しない時間構造が既存機構から出る。
+                // 閾値未満の通常循環では工場を壊さない。〔履歴 Simulation.cs#253〕
                 if (World.Coef.WarLivestockRequisition > 0 && r.LastWarIntensity > 0 && !World.WarmupFrozen)
                     foreach (var lpr in r.Producers)
                         if (lpr.IsRgo && lpr.GoodId == Catalog.LivestockId)
@@ -2469,40 +2040,34 @@ public sealed class Simulation
                 {
                     double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown.Value - World.Coef.DepressionScrapThreshold.Value);
                     r.Industrialization *= scrapKeep;
-                    r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
+                    r.OldVintageCapital *= scrapKeep;   // StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）〔履歴 Simulation.cs#254〕
                     r.StrandedVintage *= scrapKeep;
                     if (scrapKeep < 1)
                         foreach (var fp in r.Producers)
                             if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9)
                             {
                                 double builtBefore = fp.BuiltScale;
-                                fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
-                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);   // ★(495) 設備を持つ個体は国営の持分が減った分だけ Scale も減る   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
+                                fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);   // 休止率0＝不変〔履歴 Simulation.cs#255〕
+                                if (World.Coef.RecipeEquipment > 0 && FactoryEquipment.Eligible(fp)) FactoryEquipment.Dismantle(fp, builtBefore, World);   // 休止率0＝不変〔履歴 Simulation.cs#256〕
                             }
                 }
-                // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、
-                //   専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた＝財政タブで軍需・行政・教育・建設・補助・国営の損益の区分が出なかった。
-                World.SettleStateSpent(r);   // 国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）で保存（World の中の1本・2026-09-30 段4g）
-                // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
+                // SettleStateSpent〔履歴 Simulation.cs#257〕
+                World.SettleStateSpent(r);   // SettleStateSpent〔履歴 Simulation.cs#258〕
+                // 注〔履歴 Simulation.cs#259〕
             }
         ProbeCheck("月次経済");
         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
         ProbeCheck("月次輸送");
-        // ⚠撤去2026-09-03（J-011＝作者裁定「推奨どおり」）：旧・世界市場（`Trade.cs`）を削除。
-        //   ★実測＝`Trade.Step` は `w.TradeEnabled` が真のときだけ走り、その真値は**テスト2本にしか現れなかった**
-        //   ＝61カ国の実ゲームでは**1命令も走っていなかった**（二国間交易 `BilateralMarket` が置き換え済み）。
-        //   ⚠先に検査内容を実経路へ移してから消した（`ConservationTests` が保存量Dと輸出利潤経路の生存を見る）。
+        // ⚠先に検査内容を実経路へ移してから消した（`ConservationTests` が保存量Dと輸出利潤経路の生存を見る）。〔履歴 Simulation.cs#260〕
         ProbeCheck("月次交易");
         Colonial.Step(World, World.Coef);                                // §6.1 植民地（インフラ整備→資源産出＋捕囚市場。交易流入で保存）
         ProbeCheck("月次植民地");
-        StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
-        MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。造幣の旗は (843) で焼き込み（本位金属を床モードで買う）
+        StepMineralDeposits();   // ゲート0＝即return＝恒等〔履歴 Simulation.cs#261〕
+        MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。〔履歴 Simulation.cs#262〕
         ProbeCheck("月次鋳造");
         Fiscal.Step(World, World.Coef, spare, devalued);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
         ProbeCheck("月次財政");
-        // 国営工場カウンター（作者裁定2026-08-10）：目標と現在の差を1歩ずつ埋める（着工の再挑戦・1棟ずつの払い下げ）＋
-        // 国有化法の接収。★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない
-        // （売却は資本家→国庫の移転＝Fiscal の課税ベースを後から動かさない）。プレイヤーもAIも同じここを通る。
+        // ★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない （売却は資本家→国庫の移転＝Fiscal の課税ベースを後から動かさない）。〔履歴 Simulation.cs#263〕
         World.StepStateTargets();
         ProbeCheck("月次国営工場");
         Crime.Step(World, World.Coef);                                   // 犯罪と抑止：秩序（治安維持力の人口カバレッジ）が崩れると窃盗＝闇の再分配（純移転）
@@ -2510,17 +2075,17 @@ public sealed class Simulation
         // 兵士POP軍制（Part 2）：軍事費で徴募し給与を払う（国庫→兵士で保存）。戦時は徴兵。財政の後・外交ゲージ集計の前。
         if (Instruments.On) Instruments.WarMonth(World, atWarNation);   // 計器（読むだけ）：交戦と内戦の月を数える（軍の更新の直前）
         Military.Step(World, World.Coef, atWarNation);   // 交戦判定はループ前に算出済み（atWarNation）を共用
-        if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // ★熟練度は四半期に1回（係数の時定数は四半期で書いてある・2026-08-04）
+        if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // IsQuarterEndMonth〔履歴 Simulation.cs#264〕
         ProbeCheck("月次軍事");
         if (World.StepsDiplomacy)
             World.Diplomacy?.Step(World.Coef, Rng, (int)(World.Tick / Calendar.DaysPerMonth));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
-            if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // ★(490) 焼く試走の腕だけ止める
+            if (!(World.WarmupFrozen && World.BakeRun?.StopPopDecision == true))   // StopPopDecision〔履歴 Simulation.cs#265〕
             {
-                if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // (649) 計器（読むだけ）：PopDecision の駆動
-                if (Instruments.On) Instruments.RdhPd(World, r, serfFree);   // (721) 計器（読むだけ・助走の月も）：州ごとの PopDecision の駆動（rdh_s・RDH が空なら何もしない）
+                if (Instruments.On && !World.WarmupFrozen) Instruments.UrxPd(World, r, serfFree);   // WarmupFrozen〔履歴 Simulation.cs#266〕
+                if (Instruments.On) Instruments.RdhPd(World, r, serfFree);   // Instruments〔履歴 Simulation.cs#267〕
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
             }
         ProbeCheck("月次政治");
@@ -2528,8 +2093,7 @@ public sealed class Simulation
         ProbeCheck("月次領土移民");
         TechEducation.GrowLiteracy(World, World.Coef);                   // §A-1（助走中は識字の伸びだけ止まり Elite の導出は通る＝分岐は GrowLiteracy 内）
 
-        // 助走中（World.WarmupFrozen・2026-08-10）は人口動態を止める＝出生死亡は「時間が経つと積み上がる」量そのもの。
-        // 暦を止めたまま回すと「10年ぶんの人口成長が時間経過なしに起きる」＝1783年の開始盤面でなくなる。
+        // 暦を止めたまま回すと「10年ぶんの人口成長が時間経過なしに起きる」＝1783年の開始盤面でなくなる。〔履歴 Simulation.cs#268〕
         if (!World.WarmupFrozen)
             DemographicStep();           // 人口動態：出生（医療/都市化）−死亡（労働時間）＝動的人口・戦死からの回復も兼ねる（人口転換）。飢えの超過死亡（平常の死亡率の上乗せ）と州の食料充足の平滑も内包
         ProbeCheck("月次人口");
@@ -2544,30 +2108,24 @@ public sealed class Simulation
     /// 扶養力＝規定値×(1＋医療−都市化)×労働時間。医療＝min(社会保障, 識字/gate)で教育律速（医者が要る）。
     /// 戦死で減った人口もこのステップで扶養力へ回復。規模按分で全 pop に適用、符号付き台帳で保存則追跡。頑健（暴走/崩壊しない）。
     /// </summary>
-    // ①Phase3：出産可能女性プール（成人のうち非老年×女性比率）。BirthWeight と InitialFertileShare 捕捉で共有＝t=0 正規化と実行時重みが同一式（Σbirths=net の保存を厳密化）。
-    // 人5（徴兵で出生が増える符号逆転の解消）：素の女性プール（∝女性）は、成人男性だけ抜く徴兵で残留popの女性比率が上がると出生配分が「増える」＝史実（夫不在で出生急減）と逆。
-    // カップル律速＝少数側の性 min(女,男)×2 に律速（旧の旗 CoupleLimitedBirths〔0＝女性の数に比例〕は 2026-10-18 に焼き込み）。
-    // 徴兵で男が抜けると min(女,男) の男側が縮み出生が減る＝カップル（夫婦）が律速資源＝WWI 仏の出生半減を再現。Wave1 の FertileShareFloor（重み膨張の防止）と整合。
-    // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：15〜49歳の女×カップル律速（同じ15〜49歳の男との少数側）。旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比。
-    //   起点合わせは要らない＝InitialFertileShare（t=0 の各 POP の値）で正規化する。（旧の標準の分母の旗 FertileAbsoluteBlend は (551) で削除）。
+    // ①Phase3：出産可能女性プール（成人のうち非老年×女性比率）。〔履歴 Simulation.cs#269〕
     internal static double FertilePool(Pop p, Coefficients c) => FertilePoolOf(p.Ages, c);
     private static double FertilePoolOf(double[] ages, Coefficients c)
     {
         double f = Pop.AgeShareOf(ages, 15, 50, 1), m = Pop.AgeShareOf(ages, 15, 50, 0);
         return f + (2.0 * Math.Min(f, m) - f);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）。⚠式の形は旧のまま（f+(2min−f) は 2min と最終ビットが違いうる）
     }
-    // ①Phase3：国の出生の**総数**と州の中の階級への配り方の鍵（★2026-10-01 (143) から州への配り方は今の出産可能のプール×規模＝DemographicStep）。false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。既定 true で女性プール律速。
-    // true で「出産可能女性プール」に律速し、各popの t=0 値で正規化＝標準構成（子供0.3・老年0・女性0.5）では Size と恒等＝較正中立。
+    // false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。〔履歴 Simulation.cs#270〕
     private static double BirthWeight(Pop p, Coefficients c)
     {
         double fertile = FertilePool(p, c);
         double init = p.InitialFertileShare.Value > 0 ? p.InitialFertileShare.Value : Math.Max(c.FertileShareFloor.Value, fertile);   // フロアを現実的下限へ引き上げ可能に（1e-6 だと捕捉時 fertile≈0 の pop の重みが桁違いに膨張＝出生集中バグ）
-        // 凍結分母の是正（旧の旗 FertileAbsoluteBlend＝標準のピラミッドの共通の 1 本へ置き換える混合）は (551) で削除。
-        // popごとの t=0 凍結分母 init は、初期構成が偏った pop でも捕捉時に重み=Size を保証するが、構成が育つと分子だけが伸びる穴が残る＝古い設計の一覧 H25（9-2 と一緒に直す）。
+        // popごとの t=0 凍結分母 init は、初期構成が偏った pop でも捕捉時に重み=Size を保証するが、構成が育つと分子だけが伸びる穴が残る＝古い設計の一覧 H25（9-2 と一緒に直す）。〔履歴 Simulation.cs#271〕
         return p.Size * fertile / init;
     }
-    /// <summary>★平常の死の年齢の指数（2026-10-01 (143)）＝その POP の年齢の構成で平常の死の年齢の重み（<see cref="Pop.MortalityWeights"/>）を平均した値（1人あたりの相対の死亡率）。
-    /// 平常の死はこれ×規模の比で POP へ配る＝年寄りの多い POP ほど多く死に、若い POP ほど少なく死ぬ（年齢別の死）。標準のピラミッドでは粗死亡率（出生−表の増加率）。</summary>
+    /// <summary>
+    /// 平常の死はこれ×規模の比で POP へ配る＝年寄りの多い POP ほど多く死に、若い POP ほど少なく死ぬ（年齢別の死）。〔履歴 Simulation.cs#272〕
+    /// </summary>
     private static double AgeMortalityIndex(Pop p, double[] mortW)
     {
         double s = 0;
@@ -2580,19 +2138,14 @@ public sealed class Simulation
         double pop = World.TotalPopulation;
         if (pop < 1e-9) return;
         var c = World.Coef;
-        double baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation;   // ★(369) 扶養力の錨＝今持つ州の AnchorPopulation の和（旧の錨 pop − PopulationDelta は TransferRegion が pop と台帳の両方から P を引くので領土が動いても不変〔本国を失った残りの国が 1783 年の錨を持ち続ける〕・建国の子と親の二重計上だった）。錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity
+        double baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation;   // 錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity〔履歴 Simulation.cs#273〕
         double litSum = 0, healthSum = 0, foodMet = 0, foodNeed = 0;
         foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; }
         double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
         double doctorCare = healthSum / pop;   // 医者の役務（医療財）の消費＝乳児死亡の低下。医者が居ない/買えない社会は人口が伸びにくい
-        // 接13（監査2026-07-11・2026-07-25休眠配線）：主医療チャネル（重み1.2）が社会保障×識字の抽象値のみ＝医者が1人も居ない国でも
-        // 満額が出て、実装済みの医療サービス経済（医者pop・医薬品・重み0.05）が人口にほぼ報いない。これ>0で実医療財の消費(HealthFill)を
-        // 第3のmin項としてゲート化（1.0＝医者なし→抽象医療も0・中間＝部分ゲート＝実体側への段階移行）。0（対照腕）で第3項なし・既定0.5でlive。
+        // これ>0で実医療財の消費(HealthFill)を 第3のmin項としてゲート化（1.0＝医者なし→抽象医療も0・中間＝部分ゲート＝実体側への段階移行）。〔履歴 Simulation.cs#274〕
         if (c.HealthcareRealGate > 0) healthcare = Math.Min(healthcare, doctorCare / c.HealthcareRealGate);
-        // 市場医療の代替（人口忠実度ラウンド2026-08-21・DoctorHealthcareSubstitute＝**0.5でlive**）：福祉法のない国でも実医療財の消費（doctorCare＝医者の役務）が
-        // 乳児死亡を下げる＝国家チャネルを下から支える。実測（popprobe s1）＝英は識字0.64・医者役務0.53でも社会保障0のため healthcare が131年間0だった
-        // （最大の扶養力項 +1.2×healthcare が英でだけ死ぬ＝史実と逆。英の死亡率低下は福祉国家より1世紀早い）。
-        // 単独A/B＝人口次元18.6→28.6%（英×1.73→1.95・日30→80%・破綻0/10・他次元ノイズ内）で点火。0でゲート不読＝厳密恒等。
+        // 実測（popprobe s1）＝英は識字0.64・医者役務0.53でも社会保障0のため healthcare が131年間0だった （最大の扶養力項 +1.2×healthcare が英でだけ死ぬ＝史実と逆。〔履歴 Simulation.cs#275〕
         if (c.DoctorHealthcareSubstitute > 0) healthcare = Math.Max(healthcare, c.DoctorHealthcareSubstitute * doctorCare);
         // 実食料の連結（マルサスの積極的抑制）：主食充足 FoodFill（消費ベース∈[0,1]）が1未満＝凶作/過密/高騰で主食が買えない＝飢饉。
         // 食料は年単位の備蓄でならす（月次の振れを直に死へ変換しない＝餓死は数ヶ月の欠乏で起きる）＝緩やかな移動平均で扶養力に効かせる。
@@ -2611,14 +2164,12 @@ public sealed class Simulation
         double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）＝非加重 avgInd を置換
         double sanitSum = 0, sanitPop = 0;   // 衛生（上下水道+石鹸+電化）の人口加重。施設の無い世界は各 Fill 既定で sanitation=1.0=中立（較正温存）
         double arableSum = 0, ruralSum = 0;   // 人2b 空き土地の扶養力（下のlandRoom）：耕地と農村人口の全国集計。ArableLand≥1e8（未設定＝較正/最小世界）は除外＝厳密恒等
-        // B-高1（史実検証2026-07-22）：主食の純輸入。下の消費ベース補正コメントが「輸入の分子算入は将来課題＝Trade記録から」と自認していた欠落を埋める（FoodAnchorNetImport適用は下）。
-        // 消費ベースは met=sub+min(qty, need−sub) により foodMet≤foodNeed が構造的に保証され、生産ベースは自国産出だけなので、
-        // **輸入で人口を養う国（英は1900年頃に小麦消費の約8割を輸入）が構造的に人口爆発できない**。実測でも英×1.22（史実×3.4）・清×1.01（史実×1.45）。
+        // 下の消費ベース補正コメントが「輸入の分子算入は将来課題＝Trade記録から」と自認していた欠落を埋める（FoodAnchorNetImport適用は下）。〔履歴 Simulation.cs#276〕
         double stapleNetImport = 0;
         double stapleOutput = 0;   // 人2：全active州の主食(Staple)実産出量の合計（Σ Market[主食].LastProduced）。耕地×農業技術×豊凶を既に内包した「実食料産出量」＝扶養力の食料アンカーの分子。FoodOutputAnchorProduction=0では未使用（読むだけ・挙動非依存）
         foreach (var r in World.Regions)
         {
-            avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。2026-07-10）
+            avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。〔履歴 Simulation.cs#277〕
             double rpop = r.SumPopulation();
             indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
             double rsanit = r.Sanitation(c);
@@ -2628,9 +2179,7 @@ public sealed class Simulation
             {
                 var mk = r.Markets[g.Id];
                 stapleOutput += mk.LastProduced;
-                // ★S2台帳衛生（旧の旗 TradeLedgerFix・2026-08-30）：LastImport/Export は月初(:EconomyStep)でゼロ化→清算で積むため、
-                //   この読み手（人口ステップ）の位置では**常に0か当月断片**＝FoodAnchorNetImport が発火不能だった（全経路マップ:282）。
-                //   前清算の完全な値（PrevImport/Export）を読む（旧の旗 TradeLedgerFix は 2026-10-18 に焼き込み）。
+                // PrevExport〔履歴 Simulation.cs#278〕
                 stapleNetImport += mk.PrevImport - mk.PrevExport;   // B-高1：主食の純輸入（輸出国は負＝食料を送り出す分だけ自国の扶養力は下がる）
             }
             if (r.ArableLand < 1e8)   // 人2b：空き土地の集計（センチネル除外）
@@ -2638,28 +2187,16 @@ public sealed class Simulation
                 arableSum += r.ArableLand;
                 ruralSum += r.SumRuralPopulation();   // 州の農村人口の1本（兵士を含む＝土地の逓減・機会・受け入れの上限と同じ入力・段4e H＝旧はここだけ兵士を除いた）
             }
-            stapleOutput += r.LastSubsistenceOutput;   // 人2補完：自給産出（市場外）を分子へ＝自給7割の農業国で分子過小→capacity崩落を防ぐ（2026-07-11）
+            stapleOutput += r.LastSubsistenceOutput;   // LastSubsistenceOutput〔履歴 Simulation.cs#279〕
         }
         if (actN > 0) avgInd /= actN;
-        // 人16（工業化度の人口加重）：非加重avgInd（空の辺境州の追加で出生率/扶養力が変わる）を人口加重平均へブレンド。
-        // 旧の旗 IndustrializationPopWeighted（1.0）は (739) で焼き込み。⚠avgInd＝indPopWeighted へは畳まない（avgInd+(x−avgInd) は x と同じビットとは限らない）。
+        // 人16（工業化度の人口加重）：非加重avgInd（空の辺境州の追加で出生率/扶養力が変わる）を人口加重平均へブレンド。〔履歴 Simulation.cs#280〕
         double indPopWeighted = indPopWeight > 1e-9 ? indPopSum / indPopWeight : avgInd;
         avgInd += (indPopWeighted - avgInd);
         double sanitation = sanitPop > 1e-9 ? sanitSum / sanitPop : 1.0;
-        // 人2（扶養力の食料産出アンカー・大改修スカフォールド→本実装）：現行は capacity＝初期人口(baseline)×有界乗数束のため天井が約2.5倍で
-        // 19世紀の人口爆発（英4倍/米23倍）が構造的に不能。さらに消費ベースの foodMet/foodNeed は[0,1]クランプ（消費は需要で頭打ち）で農業拡大が capacity を押し上げる経路がない。
-        // capacityBaseline を「初期人口(baseline)」と「実食料産出量から換算した扶養人口（foodAnchor）」の間でブレンド。
-        // foodAnchor の食料比 foodRatio は2経路を係数 FoodOutputAnchorProduction でブレンド：
-        //   =0（既定）：消費ベース foodMet/foodNeed（需要クランプ∈[0,1]・現行と厳密一致）。
-        //   =1：**生産ベース** stapleOutput/foodNeed＝(全active州の主食実産出Σ)÷(主食必要量Σ)。耕地×農業技術×豊凶を内包した LastProduced が分子なので
-        //        農業増産・開墾・技術で1を超えられる＝天井の押し上げ経路。1人あたり必要量で割る＝実食料産出を扶養人口へ換算（「耕地×技術ベースの再構成」）。
-        // CapacityFromFoodOutput=0 で capacityBaseline==baseline＝現行の初期人口アンカーを厳密再現（foodAnchor は乗数0で不使用＝恒等）。
-        // 乗数束（医療・工業・労働時間）は下で capacityBaseline に掛かる＝「食料が足りる範囲での上乗せ」に再配置（アンカーが実産出になれば pop>capacity の補償死倒錯＝在来民の負のロジスティック項が緩む）。
-        // 生産ベースの foodRatio は1を超えうる＝乗数束の実効上限が撤去される段階的経路（係数で連続に効かせられる）。完全な上限撤去・33/33/33再較正は #17 の較正再走に委ねる（notes 参照）。
+        // 人2（扶養力の食料産出アンカー・大改修スカフォールド→本実装）：現行は capacity＝初期人口(baseline)×有界乗数束のため天井が約2.5倍で 19世紀の人口爆発（英4倍/米23倍）が構造的に不能。〔履歴 Simulation.cs#281〕
         double foodRatioConsumption = foodNeed > 1e-9 ? foodMet / foodNeed : 1.0;   // 消費ベース（需要クランプ・現行経路）
-        // B-高1：分子に主食の純輸入を算入（FoodAnchorNetImport=0 で加算項ゼロ＝厳密恒等）。**輸入のみ**（Max0＝輸出国の天井は削らない）＝
-        // landAnchor と同じ「下方向なし」原則。⚠初版は負値（輸出）も通していたため、序盤穀物輸出国の英の人口が×0.94へ**縮む**逆効果を実測（batch2026-07-23）＝輸出は既に
-        // 消費ベース（国内に残った分＝foodMet）が拾っており、生産ベース分子から重ねて引くと二重ペナルティになる。
+        // B-高1：分子に主食の純輸入を算入（FoodAnchorNetImport=0 で加算項ゼロ＝厳密恒等）。〔履歴 Simulation.cs#282〕
         double foodRatioProduction = foodNeed > 1e-9 ? (stapleOutput + c.FoodAnchorNetImport * Math.Max(0, stapleNetImport)) / foodNeed : 1.0;   // 生産ベース（未クランプ＝実食料産出÷必要量。余剰で1超＝天井押し上げ）
         // 人2補完(1b)：生産比は月次の豊凶（HarvestFactor×帯天候×病害）を生で浴びて跳ねる→FoodFillと同じ時定数のEMAで平滑（初回=-1未捕捉は直接初期化＝跳躍なし）。
         if (World.FoodRatioProductionSmoothed < 0) World.FoodRatioProductionSmoothed = foodRatioProduction;
@@ -2670,10 +2207,7 @@ public sealed class Simulation
             foodRatioConsumption + c.FoodOutputAnchorProduction * (World.FoodRatioProductionSmoothed - foodRatioConsumption));   // FoodOutputAnchorProduction=0で消費ベースに厳密一致
         double foodAnchor = baseline * Math.Max(0.3, foodRatioRaw);          // 実食料産出アンカー（下限0.3＝崩壊防止・baseline側と同水準）。生産ベースでは baseline×(実産出/必要)＝扶養人口
         double capacityBaseline = baseline + c.CapacityFromFoodOutput * (foodAnchor - baseline);
-        // 人2c 土地アンカー（2026-07-11・#17級の天井撤廃）：capacityBaseline を「初期人口」から**土地が養える人口**へ。
-        // landAnchor = Σ耕地/(1−都市化率)＝耕地は農村人口容量の単位（ArableLand=初期農民×余裕の定義）・都市民は農村の食料基盤の上に乗る。
-        // baseline を上回る分だけ引き上げ（max0＝下方向なし＝輸入国・都市国家を削らない）。欧州（耕地≈初期農民×1.8≈baseline級）はほぼ中立・
-        // 新大陸（西部開拓後は耕地≫初期人口）だけ天井が大陸規模へ＝19世紀の人口爆発（米25×）の構造解。センチネル除外＝較正厳密恒等。0で休眠可。
+        // landAnchor = Σ耕地/(1−都市化率)＝耕地は農村人口容量の単位（ArableLand=初期農民×余裕の定義）・都市民は農村の食料基盤の上に乗る。〔履歴 Simulation.cs#283〕
         if (c.LandAnchorCapacityWeight > 0 && arableSum > 1e-9)
         {
             // landAnchor＝Σ耕地そのもの（農村人口容量）。都市民の上乗せは既存の乗数束が担う＝都市化率で割らない
@@ -2681,50 +2215,45 @@ public sealed class Simulation
             double landAnchor = arableSum;
             capacityBaseline += c.LandAnchorCapacityWeight * Math.Max(0, landAnchor - capacityBaseline);
         }
-        // U3（変数統合監査2026-07-13・裁定a）：空き土地（Σ耕地/Σ農村−1）を**扶養力天井から分離し出生率へ役割移管**（旧 landRoom×capacity乗数＝LandAnchorと同じΣ耕地で天井を二重リフトしていた＝解消）。
-        // 空き土地＝辺境の高出生（米西部のTFR>7＝早婚多産）として下の fertility へ。ArableLand≥1e8（較正/最小世界）は集計除外＝厳密恒等。既定0で休眠可。
+        // 空き土地＝辺境の高出生（米西部のTFR>7＝早婚多産）として下の fertility へ。〔履歴 Simulation.cs#284〕
         double landRoom = c.LandRoomFertilityWeight > 0 && ruralSum > 1e-9
             ? c.LandRoomFertilityWeight * Math.Max(0, arableSum / ruralSum - 1.0) : 0;
-        // B-高2（史実検証2026-07-22）：辺境出生ブーストの上限。無上限だと米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・生物学的上限約4%）。
-        // 既定 LandRoomFertilityCap=1e9 は landRoom(実測最大≈3.7)を素通し＝演算なしで厳密恒等。点火0.6＝倍率1.6。
+        // 無上限だと米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・生物学的上限約4%）。〔履歴 Simulation.cs#285〕
         landRoom = Math.Min(landRoom, c.LandRoomFertilityCap);
-        // ★(667) 扶養力は工業化度の 2 項（雇用・食料生産性の加点と公害圧）を持たない。出生の項は avgInd のまま（出生の設計 9-2 の持ち物）。
+        // 出生の項は avgInd のまま（出生の設計 9-2 の持ち物）。〔履歴 Simulation.cs#286〕
         double capacity = capacityBaseline * (1 + c.HealthcareCapacityBonus * healthcare + c.HealthFillCapacityBonus * doctorCare
                                         - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
-                                        + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);   // 衛生は都市で按分＝疫病は過密の問題（(667) 工業化の公害圧の項は消した）
+                                        + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);   // WorkHoursCapacity〔履歴 Simulation.cs#287〕
         capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
-        // ★診断（2026-08-01・純記帳）：扶養力の内訳を外へ出す。popprobe が読む。
-        World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // (369) 人口の段が実際に使った錨（純記帳・計器 anchor_s の anchorUsed）
+        // popprobe が読む。〔履歴 Simulation.cs#288〕
+        World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // DiagCapacity〔履歴 Simulation.cs#289〕
         World.DiagHealthcare = healthcare; World.DiagDoctorCare = doctorCare;
         World.DiagFoodRatio = foodRatioRaw; World.DiagLandAnchor = arableSum;   // 下限（崩壊防止＝飢饉でも全滅しない＝翌年の収穫で再生可能）
-        World.DiagStapleNetImport = stapleNetImport;   // ★人口診断拡張（2026-08-21・純記帳）：主食の純輸入＝輸入で人口を養う経路（B-高1）が実際に流れているか
+        World.DiagStapleNetImport = stapleNetImport;   // DiagStapleNetImport〔履歴 Simulation.cs#290〕
         // 出生率＝女性の識字で下がる（人口転換の因果＝女子教育→少子化）。賃金保持の無い社会は女子に教育が届きにくい（係数 FemaleLitFloor＝0.6）。
         // 初等識字（開始点まで）は出生率に効かない（実証準拠）＝無学な社会は従来の較正値のまま。
         // 倍率排除④：旧 WomenPropertyLaw?1:0.6 の2値を、賃金保持（連続）で 0.6→1.0 を補間（retention=0で0.6＝旧無法・retention=1で1.0＝旧有法）。
         double femaleLit = (litSum / pop) * TechEducation.MotherLiteracyRatio(c, World.WomenWageRetention);
-        // 1934拡張E6 女性教育権（★2026-08-10 以降は女性の権利の梯子の**教育権の段**）：女子教育が女性識字を底上げ（財産権の賃金保持とは別経路＝学校）。（旧の旗 WomenEducationGate＝1.0 は (739) で焼き込み）。
+        // WomenEducationLaw〔履歴 Simulation.cs#291〕
         if (World.WomenEducationLaw)
             femaleLit = Math.Min(litSum / pop, femaleLit * (1.0 + c.WomenEduLitBonus));
         // 出生率＝基礎−女性識字−所得/発展(工業化度)。識字は教育経路、工業化は所得/都市化経路で、医療(死亡率低下＝capacity)の後に遅れて効く＝二段階の人口転換（B-4）。
         // U3：空き土地(landRoom)＝辺境出生ブースト。FertilityBase以上へ引き上げ（クランプ上限も同じだけ上げる）＝米西部の高出生を扶養力天井でなく出生側で表現。landRoom=0で厳密恒等。
         double landFertBoost = c.FertilityBase * landRoom;
-        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);   // (739) 群3：NaN は床
-        // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
-        // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
-        // net の収束速度から fertility を外す（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立（旧の旗 FertilityAffectsBirthsOnly は 2026-10-18 に焼き込み。
-        //  旧の netFertility＝fertility+1.0×(1−fertility) は fertility≥0.5 で厳密に 1.0〔0.5≤x≤2 は Sterbenz で 1−x が厳密・x>2 でも 1−x は ulp(x) の倍数で |1−x|≤x ゆえ厳密〕＝FertilityFloor＝0.5 以上である限り恒等。点火時の上限は FertilityBase×(1+LandRoomFertilityCap)＝1.6）。
+        double fertility = PoliticalQuantities.ClampOr(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd, c.FertilityFloor, c.FertilityBase + landFertBoost, c.FertilityFloor);   // fertility〔履歴 Simulation.cs#292〕
+        // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。〔履歴 Simulation.cs#293〕
         double net = c.PopGrowthRatePerMonth.Value * pop * (1.0 - pop / capacity);   // ロジスティック：均衡＝扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は無い（出生側だけが fertility を持つ）
-        World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // ★人口診断拡張（2026-08-21・純記帳）：出生率倍率と空き土地ブースト＝仏過大/英過小の因子分解用
+        World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // DiagFertility〔履歴 Simulation.cs#294〕
         var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
         double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
         var regions = World.Regions;
-        var regKey = new double[regions.Count];   // ★(143) 州ごとの出産年齢の女性の実数（今の出産可能のプール×規模の和）＝国の出生を州へ配る鍵（プール＝(142) から15〜49歳の女×カップル律速・(143) の測りの時点は16〜59歳×成人の女性比＝(144) 注記）
+        var regKey = new double[regions.Count];   // regKey〔履歴 Simulation.cs#295〕
         var regBW = new double[regions.Count];    //   州ごとの旧の鍵の和＝州の中の階級への配り方（凍結の分母のまま＝9-2）
         for (int ri = 0; ri < regions.Count; ri++)
         foreach (var p in regions[ri].Pops) if (!p.IsSoldier)   // 出生死亡は兵士以外の全階級（貴族・聖職も人口とともに増減。兵士は軍事力学が別途管理）
         {
             massPop += p.Size;
-            massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // ★(143) 平常の死の配分鍵＝年齢の構成で重みを付けた規模
+            massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // AgeMortalityIndex〔履歴 Simulation.cs#296〕
             if (p.InitialFertileShare.Value < 0)
                 p.InitialFertileShare = new Share(Math.Max(c.FertileShareFloor.Value, FertilePool(p, c)));   // t=0 の出産可能女性プールを各popの相対基準として捕捉（BirthWeight と同一式＝人5 のカップル律速も t=0 正規化に反映）
 
@@ -2736,30 +2265,18 @@ public sealed class Simulation
         }
         if (massPop < 1e-9) return;
         bool ageDeath = massDeathWeight > 1e-12;   // 年齢の重みが全て0（係数で死亡率が負に振り切れた場合）なら規模で配る＝台帳の Σ死＝総死は保つ
-        // ★出生と死は同じ単位（2026-09-30 (131)）＝POP ごとに「1人あたりの率×規模」。出生は配分鍵（粗出生）、平常の死は国の平常の死亡率×規模。
-        //   ★2026-10-01 (143)：**平常の死は年齢の構成で重みを付けた規模**（年齢の指数×規模＝年寄りの多い POP ほど多く死ぬ・標準のピラミッドの POP は国の平均の率）。
-        //   国の中の年齢別の死亡率は年齢の重み（MortalityWeights）に比例する＝POP の中の年齢の配り方（StepAges）と同じ重み。旧＝POP の間は1人あたり同じ率・POP の中だけ年齢の重み
-        //   ＝若い POP の年寄りほど多く死に、老いた POP の年寄りほど少なく死んだ（POP の間と中で規則が違った）。
-        //   総出生 − 平常の死 = net（ロジスティック）。回復期（純増＞粗出生）は平常の死0で超過を出生（旧 Math.Max と同じ）。
-        //   ★飢えの超過死亡は**飢えの深さの絶対の率**（下の POP のループの終わり＝FamineExcessMortality×深さ^FamineExcessMortalityExponent×規模・(143)）＝国の死の予算から取らない。
-        //   ⚠(131) の形＝平常の死亡率×濃さ×深さ＝平常の死が多い国ほど同じ飢えで多く死んだ＝年齢の層（(137)）で出生と死が史実へ近づいて増えた分だけ飢えの死も増え、
-        //     r138 で飢えによる州の空洞化（ピークの1/10 未満）が2→16件・(140) で25件。
-        //   ⚠旧＝国の死（総出生−net）を脆弱性の重みで飢えた POP に寄せていた（重み＝規模×(1＋これ×不足)÷Σ重み）＝飢えた POP が国全体の死の受け皿になり、
-        //     豊かな POP の死がその分だけ減った＝飢えた州の減りが国の中の他の州の伸びに付け替わった（分子と分母の非対称）。
-        //     加えて局地飢饉（旧 RegionalFamineStep＝国平均からの相対の不足×0.025／月）が同じ飢えを2本目の死として数えていた（思想⑨）＝植民地の州が開幕から
-        //     飢えの死で年3%ずつ痩せ、ピークの1/10 未満へ落ちた（(125) の10種で532件・(131) の計器＝局地飢饉 32.5‰・寄せた分 5.5‰／年）。
+        // 出生は配分鍵（粗出生）、平常の死は国の平常の死亡率×規模。〔履歴 Simulation.cs#297〕
         double totalBirths = (Calendar.PerYearToPerMonth(c.CrudeBirthRatePerYear) * fertility * massBirthWeight).Value;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
         bool noMothers = !(massBirthKey > 1e-12);   // 産む人が居ない（全 POP の出産可能のプール≈0）＝出生0（否定形＝NaN も0）
         if (noMothers) totalBirths = 0;
-        bool recovering = net >= totalBirths; if (Instruments.On) Instruments.DemoMonth(World, recovering, noMothers);   // (361) 計器（読むだけ）：人口の月の数・回復期の月・産む人が居ない月（行を増やさない＝経路名の鍵の行番号を動かさない）
+        bool recovering = net >= totalBirths; if (Instruments.On) Instruments.DemoMonth(World, recovering, noMothers);   // recovering〔履歴 Simulation.cs#298〕
         double totalDeaths = recovering ? 0 : totalBirths - net;
         double deathRate = recovering ? 0 : totalDeaths / (ageDeath ? massDeathWeight : massPop);   // 平常の死の率（年齢の指数×規模の1単位あたり・月）
-        double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
+        double diagBirths = 0, diagDeaths = 0;   // diagBirths〔履歴 Simulation.cs#299〕
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
-        // ★(650) 線 inh：相続法。旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。請求＝死者×1 人あたりの貯蓄×段の率×行政の届き（POP の走査の中・貯蓄はこの走査で書かない）
-        //   ＝走査の後に 1 回の移転（POP→国庫・OtherIn）。戦死・疫病・鎮圧・粛清は対象外（KillPops に触らない）。
-        EmptyPopEstate.Step(World); double estateRate = Government.InheritanceRate(World.Inheritance);   // ★(848) c69eh：呼びを同じ行に置く（行番号を動かさない＝cearn_s の経路の名が変わらない）＝人の居ない POP の在庫を同じ州の人の居る POP へ（旗 EmptyPopEstate・0＝何もしない・相続の請求より前）
+        // 旗 0・段 None は estateRate＝0（以下の分岐は全て飛ぶ＝式を計算しない・乱数を引かない・リストを確保しない）。〔履歴 Simulation.cs#300〕
+        EmptyPopEstate.Step(World); double estateRate = Government.InheritanceRate(World.Inheritance);   // Step〔履歴 Simulation.cs#301〕
         World.LastEstateDutyPerMonth = 0;
         List<Pop>? estPayers = estateRate > 0 ? new List<Pop>() : null; List<double>? estClaims = estateRate > 0 ? new List<double>() : null; double estSum = 0;
         bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）
@@ -2768,21 +2285,19 @@ public sealed class Simulation
         for (int ri = 0; ri < regions.Count; ri++)
         {
             var r = regions[ri];
-            if (Instruments.On) Instruments.RdhRegion(r);   // (721) 計器（読むだけ）：出生と死の hook を足す州
-            // ★(143) 出生の州の取り分＝州の出産年齢の女性の実数÷国の和（旧＝旧の鍵＝POP ごとの t=0 の凍結の分母で州へも配った＝ペルシャのタブリーズは国の平均より年 7‰ 少なく産んだ）。
-            //   州の中の階級へは旧の鍵の比（凍結の分母のまま）＝階級の配り方を今のプールにすると、凍結の分母が膨らませていた識字の高い階級（聖職者 2.3→5.4%・資本家 4.1→6.1%
-            //   〔日本・公教育の番人の盤面・30年〕）が膨らまなくなり、公教育の下で識字が 0.35→0.19 へ落ちて幕府の番人が赤＝教育の経路が凍結の分母に支えられていた＝9-2 で一緒に。
+            if (Instruments.On) Instruments.RdhRegion(r);   // Instruments〔履歴 Simulation.cs#302〕
+            // regShare〔履歴 Simulation.cs#303〕
             double regShare = noMothers ? 0 : regKey[ri] / massBirthKey;
             double regBWr = regBW[ri];
-            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // ★(650) 国庫へ届く割合（税と同じ物差し・州ごと）
+            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // estDeliv〔履歴 Simulation.cs#304〕
             foreach (var p in r.Pops)
-                if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // 兵士も年を取る（作者裁定 Q10・自然の出生と死は外のまま＝9-2 で）
+                if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // IsSoldier〔履歴 Simulation.cs#305〕
                 else
                 {
                     double bk = regBWr > 1e-300 ? regShare * BirthWeight(p, c) / regBWr : 0;   // 出生の取り分＝州の取り分×州の中の旧の鍵の比（加齢の「前」に捕捉＝事前パスと同一構成＝Σ取り分＝1＝Σbirths=net の保存を厳密化）
                     double size0 = p.Size;           // 月初の規模＝出生・平常の死・飢えの上乗せが掛かる同じ規模
                     double dw = ageDeath ? size0 * AgeMortalityIndex(p, mortW) : size0;   // 平常の死の配分鍵（事前パスと同じ月初の構成）
-                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。平常の死は年齢の構成で重みを付けた規模（(143)）。
+                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。〔履歴 Simulation.cs#306〕
                     double births, deaths;
                     if (recovering)
                     {
@@ -2791,8 +2306,8 @@ public sealed class Simulation
                     }
                     else
                     {
-                        births = totalBirths * bk;   // 出生＝国の総出生×取り分（(143)・州へは出産年齢の女性の実数・州の中は旧の鍵）
-                        double deathsRaw = deathRate * dw;                  // 平常の死＝国の平常の死の率×年齢の指数×規模（飢えで寄せない・(143) 年齢別の死）
+                        births = totalBirths * bk;   // births〔履歴 Simulation.cs#307〕
+                        double deathsRaw = deathRate * dw;                  // deathsRaw〔履歴 Simulation.cs#308〕
                         deaths = Math.Min(deathsRaw, p.Size + births);   // 下限保護（負人口の防止）
                         ghostDeaths += deathsRaw - deaths;   // クランプで削られた「人が足りず起き得なかった死」を集計（下でnetから差し戻す）。無クランプ時は0＝ビット恒等（West巨大人口の崩壊時のみ発火＝人口保存バグ修正）
                     }
@@ -2800,28 +2315,21 @@ public sealed class Simulation
                     double newSize = p.Size + add;
                     if (newSize < 0) { ghostDeaths += -newSize; newSize = 0; }   // 死亡クランプ発火時の浮動小数丸めでSizeが極小負(≈-3.5e-18)になるのを0にクランプし、削った分をghostDeathsで台帳へ差し戻す（非負境界の保護・正常時newSize≥0で不発＝ビット恒等）
                     diagBirths += births; diagDeaths += births - (newSize - p.Size);   // ★計器：死亡＝実際に減った人数（クランプ込み）＝出生−実際の増分
-                    // ★年齢の層（2026-09-30 段4e 後半）：加齢（毎月・層の上の端の密度で上の層へ・70以上は死でだけ出る）→ 出生（0〜9 の男女へ半々）→ 平常の死（年齢の重み＝
-                    //   標準のピラミッドが1783年の出生で動かない重み）＝実際に減った人数。旧＝子供比（約16年で成人・AgingYears）と老年比（約45年で老年・WorkingYears・老衰の重み3・上限0.15）の2本。
-                    if (Instruments.On) Instruments.DemoPop(World, p, size0, births, births - (newSize - size0), mortW); p.StepAges(size0, births, births - (newSize - size0), mortW);   // (361) 計器（読むだけ・StepAges の前＝年齢の構成は月初のまま）
+                    // Instruments〔履歴 Simulation.cs#309〕
+                    if (Instruments.On) Instruments.DemoPop(World, p, size0, births, births - (newSize - size0), mortW); p.StepAges(size0, births, births - (newSize - size0), mortW);   // Instruments〔履歴 Simulation.cs#310〕
                     p.Size = newSize;
-                    // ★飢えの超過死亡（2026-10-01 (143)）＝**飢えの深さの絶対の率**＝FamineExcessMortality（年率）÷12×深さ^FamineExcessMortalityExponent×月初の規模。
-                    //   飢えの深さ＝(門−充足)÷門（門＝飢饉死の門 FamineDeathFillFloor・絶対水準・平常 FoodRef は読まない＝回B）＝門の上は0・門で連続（(131) 腕C）・充足0で1。
-                    //   凸（指数4）＝慢性の浅い不足（充足0.6〜0.7）はほとんど殺さず、深い飢饉は速く殺す（史実の飢饉の死は栄養の不足に強く凸・係数の注記）。
-                    //   ⚠旧（(131)）＝平常の死亡率×FamineMortalityConcentration×深さ＝平常の死が多い国ほど同じ飢えで多く死に、回復期（平常の死0）は飢えても死ななかった。
-                    //   ⚠深い飢えが何十年も続く POP（植民地の工場労働者＝充足0.22）は凸の率で速く死ぬ＝農村から飢えた都市へ移る流しの管が州を痩せさせた（(143) 腕B）
-                    //     ＝飢饉の線の下で農村より食べられない都市へは移らない（PopDecision）と対。
-                    //   国の死の予算の外＝豊かな POP の死は減らない。子供と老年に厚く（災害死と同じ運搬＝リ10）。否定形＝NaN の上乗せは殺さない側。
-                    double famineD = 0;   // ★(650) この POP の飢えの上乗せで実際に減った人数（相続の死者に足す）
+                    // 凸（指数4）＝慢性の浅い不足（充足0.6〜0.7）はほとんど殺さず、深い飢饉は速く殺す（史実の飢饉の死は栄養の不足に強く凸・係数の注記）。〔履歴 Simulation.cs#311〕
+                    double famineD = 0;   // famineD〔履歴 Simulation.cs#312〕
                     double fill = p.FoodFill;   // 主食の充足の1本
                     double floorF = c.FamineDeathFillFloor;
                     double excess = fill < floorF ? Calendar.PerYearToPerMonth(c.FamineExcessMortality) * Math.Pow((floorF - fill) / floorF, c.FamineExcessMortalityExponent) * size0 : 0.0;
                     if (excess > 0 && p.Size > 0)
                     {
                         double d = Math.Min(excess, p.Size);
-                        if (Instruments.On) Instruments.DemoFamine(World, p, d, disasterW); p.KillAges(p.Size, d, disasterW);   // (361) 計器（読むだけ・KillAges の前）／年齢の層：災害死の年齢の重み（0〜9 と 60以上に厚く）
+                        if (Instruments.On) Instruments.DemoFamine(World, p, d, disasterW); p.KillAges(p.Size, d, disasterW);   // Instruments〔履歴 Simulation.cs#313〕
                         p.Size -= d; famineDead += d; famineD = d;
                     }
-                    if (estateRate > 0 && size0 > 1e-12)   // ★(650) 相続の請求（否定形のガード）：死者×(死の前の貯蓄÷月初の規模)×率×届き
+                    if (estateRate > 0 && size0 > 1e-12)   // estateRate〔履歴 Simulation.cs#314〕
                     {
                         double sv = p.Savings.Value, deadP = deaths + famineD;   // 平常の死（回復期は 0）＋飢えの上乗せ
                         if (sv > 0 && deadP > 0)
@@ -2832,18 +2340,16 @@ public sealed class Simulation
                     }
                 }
         }
-        if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCat.OtherIn, fromWeights: estClaims);   // ★(650) 相続の移転（走査の後に 1 回・払い手ごとに自分の請求・自分の貯蓄まで）
-        if (Instruments.On) Instruments.RdhRegion(null);   // (721) 計器（読むだけ）：州のループの外
-        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // ★計器（2026-09-26・純記帳）
+        if (estateRate > 0 && estSum > 0) World.LastEstateDutyPerMonth = World.Transfer((World, estPayers!), (World, null, null), estSum, TreasuryCat.OtherIn, fromWeights: estClaims);   // LastEstateDutyPerMonth〔履歴 Simulation.cs#315〕
+        if (Instruments.On) Instruments.RdhRegion(null);   // Instruments〔履歴 Simulation.cs#316〕
+        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // diagBirths〔履歴 Simulation.cs#317〕
         World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0) - famineDead;   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く③飢えの上乗せで実際に減った人数を引く。実Size減と一致
         SmoothRegionalFoodFill(c);   // 州の食料充足の平滑（移民の飢饉の押し出し・州反乱・派閥の危機が読む）
     }
 
-    /// <summary>州の食料充足（<see cref="Region.FoodFill"/>）の平滑＝穀倉の備蓄（餓死は数ヶ月の持続的欠乏で起きる）。
-    /// 読み手＝移民の飢饉の押し出し（MultiNationSim）・州反乱（Politics）・派閥の危機（Factions）。
-    /// ★2026-09-30 (131)：旧 RegionalFamineStep の局地飢饉の死（国平均からの相対の不足×RegionalFamineMortality／月・閾値 FamineAbsoluteThreshold）を削除
-    ///   ＝同じ飢えを POP の飢えの上乗せ（DemographicStep）と2本目の死で数えていた（思想⑨）。人は国平均より貧しいから死ぬのではなく食べられないから死ぬ
-    ///   ＝POP の絶対の充足だけが死に効く（州の中の不作・孤立・途絶で飢えた州は、その州の POP の充足が落ちて上乗せが立つ）。</summary>
+    /// <summary>
+    /// 州の食料充足（Region.FoodFill）の平滑＝穀倉の備蓄（餓死は数ヶ月の持続的欠乏で起きる）。〔履歴 Simulation.cs#318〕
+    /// </summary>
     private void SmoothRegionalFoodFill(Coefficients c)
     {
         foreach (var region in World.Regions)
@@ -2871,18 +2377,14 @@ public sealed class Simulation
         + c.OverworkHealthSlope * Math.Max(0.0, WorkHours.Twelve.Hours() - hours)
         - c.OverworkMortalityWeight * Math.Max(0.0, hours - WorkHours.Twelve.Hours());
 
-    /// <summary>★鉱脈在庫（2026-08-14・作者裁定「枯渇率は採掘量により増加すべき」）。
-    /// 鉱脈＝有限の在庫：毎月、州の鉱物産出の合計だけ減る（**決定論＝サイコロなし**）。
-    /// 残量が膝（DepositGradeKnee）を切ると品位が線形に低下→産出減衰→採掘も減る＝自己減速（ハードストップでなく品位曲線）。
-    /// 初期在庫＝助走明けの最初の産出月の率×DepositYearsAtBirth（InitialWork と同じ初回捕捉の作法）。
-    /// 発見が在庫を補充する＝産出の大きな伸びは**新しい鉱脈**の仕事（加州1848・ランド1886）＝史実の形（★(148)：産地の発見 Discovery.OpenSite が補充する）。</summary>
+    /// <summary>
+    /// 鉱脈＝有限の在庫：毎月、州の鉱物産出の合計だけ減る（**決定論＝サイコロなし**）。〔履歴 Simulation.cs#319〕
+    /// </summary>
     private void StepMineralDeposits()
     {
         var c = World.Coef;
-        // ⚠多国シム限定（2026-08-14の是正）：発見イベント（在庫の補充）は Diplomacy 非null 限定なのに、排水だけ全世界で効かせると
-        //   単一国の較正世界は**純減のみ**＝石炭が60年で痩せて9テストが赤になった（自作農の飢え・PI収束・信用保存）。
-        //   排水と発見は**対の機構**＝同じゲートに置く（較正世界は従来の確率イベントのまま＝24-24-24の前提を壊さない）。
-        if (World.WarmupFrozen || World.Diplomacy is null) return;   // ★(148)：旗 DepletionFromExtraction（点火 2026-08-14）を焼き込み＝枯渇は採掘量の関数だけ
+        // 排水と発見は**対の機構**＝同じゲートに置く（較正世界は従来の確率イベントのまま＝24-24-24の前提を壊さない）。〔履歴 Simulation.cs#320〕
+        if (World.WarmupFrozen || World.Diplomacy is null) return;   // WarmupFrozen〔履歴 Simulation.cs#321〕
         foreach (var r in World.Regions)
         {
             double outSum = 0;
@@ -2903,27 +2405,21 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣の増加（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→物価/好況）。
-    /// 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。（旧の係数 GoldMintFraction は (843) で消した。）
-    /// 保存：鉱山所有者へ新鋳貨を支払い（Savings↑＝TotalMoney↑＝BaseMoney↑）、同額を CumulativeGoldMinted に積み貨幣保存の基準に算入。
-    /// GoodsBalance：引き取り量を Stock−／LastSold＋で対称に動かし在庫恒等式を保つ。</summary>
+    /// <summary>
+    /// 鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣の増加（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→物価/好況）。〔履歴 Simulation.cs#322〕
+    /// </summary>
     private void MintGold()
     {
-        // ★(843) 旗 MintPriceFloorGate（自由鋳造＝床モード・2026-08-14設計・2026-08-29点火）と StandardMetalMintGate（本位金属・同日点火）は焼き込んだ。旧来（産出比例の上限・国内鉱山限定・金鉱だけ）の枝と GoldMintFraction は消した。
-        // ★本位金属の一般化（銀本位doc G3・2026-08-13）：造幣局が買うのは「金鉱」ではなく**その国の本位金属**である。
-        //   金本位→金鉱／銀本位→銀／不換→どちらも買わない。⚠これで需要が法に従って現れ・消える＝
-        //   独が1871年に金へ移れば独の銀需要は【消える】＝需要曲線そのものが下へ落ちる（価格弾力性では戻せない＝大デフレ）。
+        // 旧来（産出比例の上限・国内鉱山限定・金鉱だけ）の枝と GoldMintFraction は消した。〔履歴 Simulation.cs#323〕
         int metal = Catalog.GoldOreId;
         bool isFiat = World.MonetaryLaw == MonetaryStandardLaw.Fiat;
         if (!isFiat) metal = World.MonetaryLaw == MonetaryStandardLaw.Silver ? Catalog.SilverId : Catalog.GoldOreId;
-        // ★床モード：法が捨てた金属の準備を市場へ売る（demonetization・2026-08-14）。買うより先に売る＝
-        //   金へ移った国は同じ月から銀を吐き出す（独1871年型＝買い手の消滅と投げ売りが同時）。床OFFでは準備が常に0＝恒等。
+        // 買うより先に売る＝   金へ移った国は同じ月から銀を吐き出す（独1871年型＝買い手の消滅と投げ売りが同時）。〔履歴 Simulation.cs#324〕
         SellDemonetizedReserves(metal, isFiat);
         if (isFiat) return;   // 不換＝準備需要そのものが無い（造幣しない）
-        // ★準備需要（G3）：買う量は「基礎貨幣×目標カバー率 − 現在の準備」＝準備が足りているほど買わない。
-        //   MintReserveTargetWeight=0 なら shortfall 係数=1＝旧来の産出比例と厳密一致（⚠既定は点火済みの1.0＝2026-08-29・x-02 で注記を是正）。
-        double coverShort = 0;   // ★MintBuysAtMarket（2026-09-06）：カバー率の不足（0..1）＝平価の上でも市場で買う根拠
-        double gapLeft = 0;      // ★第2版（2026-09-06）：今月の市場買いの予算＝準備ギャップ（目標カバー率×広義貨幣−基礎貨幣）×売却側と同じ月次率（MintReserveSellRatePerMonth）
+        // ★準備需要（G3）：買う量は「基礎貨幣×目標カバー率 − 現在の準備」＝準備が足りているほど買わない。〔履歴 Simulation.cs#325〕
+        double coverShort = 0;   // coverShort〔履歴 Simulation.cs#326〕
+        double gapLeft = 0;      // gapLeft〔履歴 Simulation.cs#327〕
         if (World.Coef.MintReserveTargetWeight > 0)
         {
             double coverage = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
@@ -2934,14 +2430,9 @@ public sealed class Simulation
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
                 gapLeft = Math.Max(0, (coverTarget * World.BroadMoney - World.BaseMoney).Value) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
-        // 【削除 2026-10-09 (210)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
-        //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
-        //   置き換えの候補＝床の持ち込みを貨幣の不足（M/Y の趨勢×実質産出−今の貨幣）までに切る形は (210) で測って**入れていない**
-        //   （r207＋その形だけの10種＝移民による州の空洞化1件〔判定の線〕・工場の蒸気動力の NG +8・英の金本位の月 1822-49 1.00→0.85＝パッチ measurements/s208_20261009_floor.diff）。
+        // parity〔履歴 Simulation.cs#328〕
         double parity = Catalog.RefPrices[metal];   // 造幣平価（固定・RefPrice建て）＝史実の固定平価。市場価格がこれを超えれば誰も持ち込まない
-        // ★器 MintParitySells の売り予算（2026-09-07・休眠既定0・レビュー是正）：国の状態で1本に決める。準備不足（coverShort>0＝市場買い gapLeft の根）の月は**売らない**
-        //   （州ごとの !atMarket では gapLeft が尽きた後続州が同じ月に平価で売る＝買い高・売り安の閉ループ）。今月の売り上限＝準備×MintFloorBuyRatePerMonth（買い側と同じ月次率）を
-        //   **州をまたいで1本**消費する（gapLeft と同じ作法。州ごとに準備×率を掛け直すと 1−(1−率)^N に複利化し先頭の州ほど多く受ける）。0＝sellLeft=0＝厳密恒等。
+        // 準備不足（coverShort>0＝市場買い gapLeft の根）の月は**売らない**   （州ごとの !atMarket では gapLeft が尽きた後続州が同じ月に平価で売る＝買い高・売り安の閉ループ）。〔履歴 Simulation.cs#329〕
         double sellLeft = 0;
         if (World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
         {
@@ -2952,11 +2443,8 @@ public sealed class Simulation
         {
             if (r.GoodOf(metal) is null) continue;
             var m = r.Markets[metal];
-            bool atMarket = m.Price > parity && gapLeft > 1e-9;   // ★準備不足なら平価の上でも市場で買う（2026-09-06・第2版＝予算 gapLeft が尽きるまで・在庫のある州ならどこでも）
-            // ★器 MintParitySells（2026-09-07・休眠既定0）：平価の**上**では造幣局が準備を平価で**売る**＝下の平価買いの厳密な逆操作（固定平価の両側）。
-            //   数量＝今月の国1本の予算 sellLeft（準備×MintFloorBuyRatePerMonth＝買い側と同じ月次率・ループ前で確定）と買い手の貯蓄÷平価の小さい方。買い手＝商人（不在なら投資家＝床の持ち込み手と同じ探索）。
-            //   会計＝Savings−value／CumulativeGoldMinted−value（鋳造の逆＝保存量D＝BaseMoney−累積貿易−鋳造−不換 は不変）／準備−qty／Stock＋qty・LastImport＋qty（準備の売却の1本 SellReserve＝投げ売りと同じ在庫恒等式・2026-09-30）。
-            //   準備不足の月（sellLeft=0）は売らない。売りは在庫ゲートの**前**（在庫0の州こそ売り先）。売ったあとは従来どおり下の continue（平価の上では買わない）へ落ちる＝買い側は非接触。
+            bool atMarket = m.Price > parity && gapLeft > 1e-9;   // atMarket〔履歴 Simulation.cs#330〕
+            // 数量＝今月の国1本の予算 sellLeft（準備×MintFloorBuyRatePerMonth＝買い側と同じ月次率・ループ前で確定）と買い手の貯蓄÷平価の小さい方。〔履歴 Simulation.cs#331〕
             if (sellLeft > 1e-12 && m.Price > parity)
             {
                 double sold = SellReserve(r, metal, sellLeft, parity);   // 準備の売却の1本（平価で・下の投げ売りと同じ）
@@ -2971,14 +2459,7 @@ public sealed class Simulation
             double totOut = 0;
             foreach (var p in r.Producers) if (p.GoodId == metal) totOut += p.Output;
             double price = atMarket ? m.Price : parity;   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（MintBuysAtMarket）だけ市場価格＝準備の購入代金
-            // ★支払いの一元化 段3-5（2026-09-30・C8＝処理の一元化 段4d）：鋳造の代金は**④の持分**（InternationalMarket.PaySales＝その財の生産者の産出の比・地代→持ち主
-            //   〔国営持分は国庫〕・賃金→労働・Earned を通す＝国内の売上と輸出代金と同じ分け方）。旧＝産出の比で持ち主へ・労働へは係数 MintWageShare（0.5）で別に分けた
-            //   （④と別の規則・国営分の区分も別）＝係数を削除。**在庫のうち輸入の分**（輸入の量＝前の月の輸入＋この月の輸入〔EconomyStep の商人の取り分の上限と同じ量〕と
-            //   この月の産出の比で按分＝在庫の出どころの比）は
-            //   輸入の捌き手（州の商人・不在は州の頭数＝PaySales の生産者のいない在庫の枝と同じ）へ＝旧は輸入の在庫も今月の産出の比で国内の鉱山へ払った。
-            //   国内に鉱山の無い州（床モード）は全てが捌き手へ（旧＝商人・不在は投資家）。払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。
-            //   受け手のいない分は買わない（量を減らす）＝旧＝商人も投資家も居なければ買わなかった。
-            //   ★(486) 商人 POP が居ても人数が 0（階級が絶えた）なら受け手不在＝買わない（PaySales の保存則の穴の直しは払い手が清算所で**鋳造でない**ときだけ全 POP へ回す。鋳造は従来どおり＝貨幣は消えない）。
+            // 払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。〔履歴 Simulation.cs#332〕
             double imp = Math.Max(0, m.PrevImport + m.LastImport), prodQ = Math.Max(0, m.LastProduced);
             double impShare = totOut > 1e-12 ? (imp + prodQ > 0 ? imp / (imp + prodQ) : 0.0) : 1.0;
             double want = qty * price;
@@ -2991,16 +2472,9 @@ public sealed class Simulation
             double value = paid;
             if (atMarket) gapLeft -= value;   // 予算を消費（国の準備ギャップは州をまたいで1本）
             m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
-            if (Instruments.On) Instruments.SilverMintCapture(r, metal, qty);   // (823) 計器（読むだけ）：州・金属・量
-            // ★★準備需要を**需要として計上する**（2026-08-13・実測で発見した会計の欠落）。
-            // ⚠旧＝Stock と LastSold しか書かず `LastDemand` を書いていなかった。`MarketFlow.StepDay` は
-            //   totalDemand＝`m.LastDemand`（重み FlowAdjustSpeed）と TargetStock＝TargetStockBuffer×LastDemand を読むので、
-            //   **造幣の買いは需要曲線にも在庫目標にも存在しなかった**＝在庫を削る片肺の経路しか通らない。
-            //   実測＝造幣は世界の銀産出の12.8〜17.7%を毎月吸っているのに、銀/金の相対価格は151年で2〜3%しか動かない。
-            //   これが「本位金属の準備需要が消えれば需要曲線そのものが下へ落ちる」（銀本位doc §3-1の心臓）が効かない理由である。
-            // ★市場外の買い手はこのコードベースの作法として全て LastDemand を計上している
-            //   （Colonial.cs:234/325 の捕囚市場・EconomyStep.cs:1271 の国家購入・Transport.cs:72 の鉄道船）。造幣だけが外れていた。
-            m.LastDemand += qty;   // ★常に計上（(1089)・旧の旗 MintDemandCounted の焼き込み）
+            if (Instruments.On) Instruments.SilverMintCapture(r, metal, qty);   // SilverMintCapture〔履歴 Simulation.cs#333〕
+            // 実測＝造幣は世界の銀産出の12.8〜17.7%を毎月吸っているのに、銀/金の相対価格は151年で2〜3%しか動かない。〔履歴 Simulation.cs#334〕
+            m.LastDemand += qty;   // qty〔履歴 Simulation.cs#335〕
             //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
             // ★床モード＝吸った現物を国の準備として保持（旧来は「コインになって消える」＝追跡しない＝恒等）。
             //   法が本位を捨てたとき、この準備が市場へ売られる＝暴落を深める投げ売りが台本なしで出る。
@@ -3008,9 +2482,9 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>★demonetization（2026-08-14・床モードのみ）：法が捨てた本位金属の準備を毎月 MintReserveSellRatePerMonth で首都州の市場へ売る（<see cref="SellReserve"/>＝市場価格で）。
-    /// ⚠鋳造時に発行された貨幣は流通し続ける（demonetized coins＝不換のオーバーハング）。★2026-09-30（段3-5・C8）：売った代金は買い手（捌き手）から造幣局へ＝貨幣の回収
-    ///   （旧＝金は動かさず、在庫へ入った金属の国内の売上は輸入の捌き手の商人へ＝払っていない積荷の代金が商人の所得になった）。独は売却額を回収し、銀安で損を出して1879年に売却を停止した。</summary>
+    /// <summary>
+    /// ⚠鋳造時に発行された貨幣は流通し続ける（demonetized coins＝不換のオーバーハング）。〔履歴 Simulation.cs#336〕
+    /// </summary>
     private void SellDemonetizedReserves(int lawMetal, bool isFiat)
     {
         double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);
@@ -3021,10 +2495,9 @@ public sealed class Simulation
             World.GoldReserveQty -= SellReserve(World.Region, Catalog.GoldOreId, World.GoldReserveQty * rate);
     }
 
-    /// <summary>★準備の売却の1本（支払いの一元化 段3-5・C8・2026-09-30＝旧 DumpReserve と平価の売り〔休眠 MintParitySells〕の2か所を畳んだ）：
-    /// 造幣局が金属の準備を州の捌き手（商人・不在は投資家・どちらも居なければ売らない）へ <paramref name="price"/>（省略時＝その州の市場価格）で売る。
-    /// 代金は買い手から造幣局へ（移し方の1本・minted＝鋳造の逆＝貨幣の回収＝保存量 D は不変）・金属は市場の在庫へ（輸入＝在庫の恒等式 Stock＝前在庫＋生産＋輸入−販売−輸出）
-    /// ＝買い手はその在庫を国内で売る輸入の捌き手（EconomyStep の商人の取り分）。払えるのは貯蓄まで＝払えない分は売らない（量を減らす）。戻り値＝売った量（呼び手が準備から引く）。</summary>
+    /// <summary>
+    /// 払えるのは貯蓄まで＝払えない分は売らない（量を減らす）。〔履歴 Simulation.cs#337〕
+    /// </summary>
     private double SellReserve(Region r, int gid, double qty, double price = double.NaN)
     {
         if (!(qty > 1e-12) || r.GoodOf(gid) is null) return 0;
@@ -3040,17 +2513,9 @@ public sealed class Simulation
         return sold;
     }
 
-    /// <summary>出口＝返済規律（POPの個人債務・設計 docs/20260802・2026-08-02）。黒字が出たらまず返す。
-    /// ★★**RemainingBudget ではなく <c>Savings</c> 自体を削る**のが唯一整合的な形である。
-    ///   理由＝投資家だけが二重の予算を持つ（消費予算＝<c>RemainingBudget×(1−IndInvestmentFrac)</c>／
-    ///   投資予算＝<c>IndInvestmentFrac×Savings</c>）。RemainingBudget 側だけ削ると投資予算が削れず、
-    ///   投資側だけ削ると消費予算が削れない。**Savings を先に削れば両者が同じ縮んだ値を読む**＝自動的に整合する。
-    /// ★これは backstop（入口A）の厳密な逆操作で、<c>BaseMoney = TotalMoney + Treasury − OutstandingLoans</c> を1ビットも動かさない。
-    /// ⚠置き場所＝<c>EconomyStep.Run</c> の**直前**（設計は EconomyStep 内を指すが、あの署名は World も Bank も見えない）。
-    ///   月次順序としては設計どおり「消費の前」で同じ。
-    /// ⚠刻みは月次（利息の日次に揃えない＝Credit 側が強いられている「月次利潤を/30」の歪みを再導入しないため）。
-    /// ⚠税との順序＝月初に置いたので**国家は債務に劣後する**（借金を返してから税を払う）＝設計§11-1の裁定。
-    /// ⚠走査は Active のみ（EconomyStep と同じ範囲）。backstop は無フィルタで**走査範囲が元から非対称**＝設計§11-2の裁定。</summary>
+    /// <summary>
+    /// 黒字が出たらまず返す。〔履歴 Simulation.cs#338〕
+    /// </summary>
     private void RepayHouseholdDebt(Region r)
     {
         if (!(World.Coef.PopDebtDriven > 0) || !(World.Coef.DebtRepayFrac > 0) || World.Bank is null) return;
@@ -3064,19 +2529,7 @@ public sealed class Simulation
     }
 
     /// <summary>
-    /// 損失吸収の脆さの会計（§9-C 拡張）：月次の全フロー後、損失で貯蓄が負になった pop の不足を信用（借入）で埋める。
-    /// 貯蓄→0・Bank.Loans＋不足 ＝ BaseMoney(=TotalMoney+Treasury−Loans) を不変に保つ（保存則厳守）。資本家は損失を負債として抱え、
-    /// 貯蓄は0で下げ止まる＝有限責任。慢性赤字は負債(OutstandingLoans)の増加として可視化される（隠蔽しない）。
-    /// ★支払いの一元化 段2-2（B7＋A8・作者裁定 Q11・2026-09-29）：**全ての世界に銀行がある**（Scenario の CreditEnabled を削除＝構築で必ず Bank を作る）＝受け皿は与信の1本。
-    /// 旧＝銀行の無い世界（試験世界）では ①州の最富裕POP ②ほかの正の貯蓄の全員 から取って埋め（他人から取る＝規則(2)の唯一の違反）、
-    /// ③それでも残る不足を非常発行として CumulativeFiatIssued に積んだ（消えた不足を不換の発行の名目で隠す＝保存の検査 ProbeCheck が漏れを正当と見なした）。
-    /// <para>★返せない与信の償却（作者裁定 E6 の2歩目・2026-09-28）：埋めた後も基礎貨幣が負の国は、負の分だけ銀行の与信（<see cref="Bank.Loans"/>）を
-    /// 償却し、同じ額を非常発行として台帳（<see cref="World.CumulativeFiatIssued"/>）に積む（貨幣を作る）。
-    /// 基礎貨幣が負＝与信が国内の貨幣の全部（貯蓄＋国庫）を越えた＝越えた分は国の中のどのお金でも返せない。回収は基礎貨幣を動かさない
-    /// （預金と与信が同じ額だけ減る）ので、負の国は回収では戻らない（(82) の §2）。償却は与信の残高まで（国庫の負の分は与信でない＝残る）。
-    /// ⚠この月に上で積んだ損失の負債化も同じ残高に入る＝負の国では、上限（A16）の外で積む与信も同じ規則で閉じる。
-    /// ⚠家計の与信（<see cref="Bank.HouseholdLoans"/> と <see cref="Pop.Debt"/>・休眠の器 PopDebtDriven）は償却しない：借りる枠が借り手の所得で決まり
-    /// （A16 と同じ「返せる額」）、返済の出口を自分で持つ。点火するときは同じ規則をここへ（お金の書き手を増やさない＝WriterRatchetTests）。</para>
+    ///  損失吸収の脆さの会計（§9-C 拡張）：月次の全フロー後、損失で貯蓄が負になった pop の不足を信用（借入）で埋める。〔履歴 Simulation.cs#339〕
     /// </summary>
     internal void BackstopNegativeSavings()
     {
@@ -3087,14 +2540,11 @@ public sealed class Simulation
                 if (p.Savings.Value < 0)
                 {
                     double need = -p.Savings.Value;
-                    // ★2026-09-30 段4g：不足を借入（負債↑）＝移し方の1本（世界の外の側＝銀行の与信 Outside.Credit）＝貯蓄は 0 ちょうどへ（x+(−x)＝0）・与信が同じ額だけ増える
-                    //   （旧＝与信と貯蓄を手で書いた2行＝下げ止まり＝TotalMoney＋不足, Loans＋不足 で相殺＝保存）。受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。
+                    // 受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。〔履歴 Simulation.cs#340〕
                     (one ??= new List<Pop>(1)).Clear(); one.Add(p);
                     World.Transfer((null, null), (World, one, unit ??= [1.0]), need, outside: World.Outside.Credit);
                     World.LossFinanced += need; // 可視化：損失の負債化を累積記録
-                    // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
-                    //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
-                    //   ⚠これが無いと、赤字は毎月0へ均されて**誰の記憶にも残らず**、デレバレッジが起きない。
+                    // PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。〔履歴 Simulation.cs#341〕
                     if (World.Coef.PopDebtDriven > 0) p.Debt += new MoneyStock(need * World.Coef.PopDebtLossShare);
                 }
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
@@ -3104,7 +2554,7 @@ public sealed class Simulation
     }
 
 
-    // ⚠撤去2026-09-04（J-005）：TriggerGoldRush（暦年1848×州名「西部」の台本）を関数ごと削除。到達不能になったため。
+    // 到達不能になったため。〔履歴 Simulation.cs#342〕
 
     // 植民地素材の入手率＝植民地保有 × 制海（禁輸/交戦で交易アクセス↓）。外交なしなら満額。
     private double ColonialAccess()
@@ -3123,7 +2573,7 @@ public sealed class Simulation
 
     private void Snapshot()
     {
-        if (!TelemetryEnabled) return;   // 測定短縮①（2026-07-09）：selfplay/バッチは読者なし＝四半期スナップショットの割当と保持を止める（テストは既定trueのまま）
+        if (!TelemetryEnabled) return;   // TelemetryEnabled〔履歴 Simulation.cs#343〕
         var home = World.Region;
         var foodMkt = home.Markets[0];
         var foodProd = home.Producers[0];
@@ -3182,16 +2632,9 @@ public sealed class Simulation
             World.Bank?.Gold.Value ?? 0.0, World.CumulativeTradeFlow.Value));
     }
 
-    /// <summary>★(328) 流れG ①（<see cref="Coefficients.RecipeCostFollowsProductivity"/>・★(331) 既定1＝<b>点火</b>・0＝旧）：労働力の財（人力・畜力・蒸気機関・電動・水車）に並ぶ動力の別レシピの自己費用を、生産性の比で割る（播種で1回）。
-    /// 作者 2026-09-08「同一生産コスト辺りの産出能力にするのが正しい」（賦存の倍率＝<see cref="ApplyEndowment"/>）と同じ構造を機械の生産性へ広げる形＝AI の読み・推奨（作者の承認は未確認）。
-    /// 旧＝生産性は Capacity にしか乗らず、蒸気機関の動力（生産性×2.0）は自己費用が人力（×1.0）と同じ 0.35 のまま＋投入＝必ず人力より高い＝必要性 ln(v÷cost) が構造的に 0。
-    /// <c>MarginalCost ÷= (そのレシピの Productivity ÷ 人力の Productivity)^gate</c>。基準レシピ＝労働力の財で RecipeName が空・IsRgo でない生産者（人力）。
-    /// ⚠対象を労働力の財の別レシピ（動力 4 本）に**絞った**のは反証役の点検（高・中）による：(1) 工場の別レシピや職人は、自己費用が管理・資本の付加価値（0.06）や自営の維持費（0.35）で、
-    /// 労働は別の投入や別の担い手に分かれている＝〈人時あたりの費用÷人時あたりの産出〉の会計の恒等が成り立たない。動力は同じ労働者 pop を担い手に持ち、自己費用が担い手の維持費＝恒等が成り立つ。
-    /// (2) 基準レシピの Productivity は賦存（<see cref="ApplyEndowment"/> が資源の財の基準レシピに ×3.5 を掛ける）の後の値＝工場の財を対象に含めると、資源の州で比が 1/3.5 になる。労働力は資源の財でないので賦存を受けない。
-    /// 割るのは自己費用だけ（Inputs の QtyPerOutput は産出1単位あたりで既に正規化済み＝二重に割らない）。市場・発見の費用（PriceBook.Cost）・診断が同じ MarginalCost を読む＝Discovery だけで割る形の非対称が出ない。
-    /// ゲート0は走査も Math.Pow も通らない＝厳密恒等。比が NaN・非正・無限なら触らない（否定形）。AddAlternateRecipes の末尾（4本の構築経路の最後の add）から1回だけ呼ぶ。
-    /// ⚠この関数の本体を末尾に置いたのは flow262/route_names.py の鍵（Simulation.cs の行）のずれを最小にするため＝呼びの 1 行の分は route_names.py で直した（(331) 反証役 gp〔bv〕低）。⚠フルチェーン（BuildFullChain）と最小ビルダーは <c>new Coefficients()</c> を渡す＝Scenario.Coef は届かず POB_COEF だけが届く（前からの型・(331) 反証役 gp〔bv〕低）。</summary>
+    /// <summary>
+    /// MarginalCost ÷= (そのレシピの Productivity ÷ 人力の Productivity)^gate。〔履歴 Simulation.cs#344〕
+    /// </summary>
     internal static void ApplyRecipeCostFollowsProductivity(List<Producer> producers, Coefficients c)
     {
         double gate = c.RecipeCostFollowsProductivity;
@@ -3209,9 +2652,9 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>★(366) 犯罪者 POP の器（治安と所有の安全 段0）。CriminalClassEnabled=0（既定）では pops に 1 件も足さず -1 を返す＝Pops.Count も既存の添字も不変＝**厳密恒等**（研究者と同じ作法）。
-    /// &gt;0 のとき末尾に規模 0 の器を 1 つ置き、その添字（pops.Count−1＝研究者の有無で 13 か 14）を返す。入口・出口・奪う金は段2（この段では誰も犯罪者にならない）。
-    /// 本土の州（BuildProvince）と昇格した植民地の州（PromoteColonyToRegion）が Region の初期化子の中で呼ぶ＝行を増やさない（flow_s の経路名の鍵が行番号のため）。</summary>
+    /// <summary>
+    /// CriminalClassEnabled=0（既定）では pops に 1 件も足さず -1 を返す＝Pops.Count も既存の添字も不変＝**厳密恒等**（研究者と同じ作法）。〔履歴 Simulation.cs#345〕
+    /// </summary>
     private static int AddCriminalPop(List<Pop> pops, Coefficients coef, double literacy)
     {
         if (!(coef.CriminalClassEnabled > 0)) return -1;
@@ -3219,28 +2662,29 @@ public sealed class Simulation
         return pops.Count - 1;
     }
 
-    /// <summary>手仕事の生産性の比（職人の工房と農家の手仕事の行が共有する＝工場の生産性に対する比・値は (418) の前の職人のリテラル 0.6 そのもの）。</summary>
+    /// <summary>
+    /// 〔履歴 Simulation.cs#346〕
+    /// </summary>
     internal const double HandcraftProductivityRatio = 0.6;
-    /// <summary>手仕事の自己費用（職人の工房と農家の手仕事の行が共有する＝自営の維持費・値は (418) の前の職人のリテラル 0.35 そのもの）。</summary>
+    /// <summary>
+    /// 〔履歴 Simulation.cs#347〕
+    /// </summary>
     internal const double HandcraftSelfCost = 0.35;
     /// <summary>農家の手仕事の行の RecipeName（職人の `"職人"` と衝突しない＝職人の没落の計器は数えない・FacilityBuildScore が候補から外す述語）。</summary>
     internal const string HouseholdRecipeName = "家内工業";
 
-    /// <summary>★(418) 農家の手仕事の 8 財（衣料・家具・加工肉・干物・ビール・蒸留酒・チーズ・革製品）。投入は財の表（工場の連鎖の最後の一段）そのまま＝職人の工房と同じ <c>d.Inputs</c>＝手書きの展開の表を持たない
-    /// （最初の形は連鎖を原料まで展開した手書きの表だったが、中間の段の付加価値を払わないので工場の行より構造的に安く、canary で 8 財のうち 4 財をほぼ 100% 取った＝連鎖の圧縮が根）。
-    /// 外した財＝硫酸・ソーダ灰など工業の投入を要する物（紙・陶磁器・石鹸・缶詰・防水布・医薬品・キニーネ・書籍・新聞・ガス・自転車・ラジオ）と、輸入・商品作物の地理に偏る物（茶・コーヒー・灯油・煙草）。AI の読み＝〈確証なし〉。</summary>
+    /// <summary>
+    /// 外した財＝硫酸・ソーダ灰など工業の投入を要する物（紙・陶磁器・石鹸・缶詰・防水布・医薬品・キニーネ・書籍・新聞・ガス・自転車・ラジオ）と、輸入・商品作物の地理に偏る物（茶・コーヒー・灯油・煙草）。〔履歴 Simulation.cs#348〕
+    /// </summary>
     internal static readonly int[] HouseholdGoods =
     [
         Catalog.ClothingId, Catalog.FurnitureId, Catalog.PreservedMeatId, Catalog.DriedFishId,
         Catalog.BeerId, Catalog.SpiritsId, Catalog.CheeseId, Catalog.LeatherGoodsId,
     ];
 
-    /// <summary>★(418) 日用品の自給（00-CE2 案 B）＝農家の手仕事を実の生産者の行にする。旗 HouseholdProductionEnabled は (418) 後半で点火・(811) で焼き込み（常にこの経路）。
-    /// &gt;0 のとき、財を作る州（その財の行が既にある）に、職人の工房（<see cref="AddArtisanProducers"/>）と同じ型の行を <see cref="HouseholdGoods"/> の 1 財 1 本ずつ足す：担い手＝所有者＝農民（既存の RGO の行の担い手から読む）・
-    /// 投入＝財の表の投入（職人と同じ＝工場の連鎖の最後の一段）に**農業労働力を自家農家（RGO）の行と同じ量だけ**足す・生産性＝財の生産性×全連鎖の倍率×<see cref="HandcraftProductivityRatio"/>・自己費用＝<see cref="HandcraftSelfCost"/>・規模 1.0・産出 30（職人と同じ）。
-    /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。
-    /// ②次は農業労働力を投入に置いたが投入は連鎖を原料まで展開した手書きの表＝中間の段の付加価値を払わず、工場の行より構造的に安い（canary で 4 財がほぼ 100%）。③今の形＝財の表の投入そのまま＋農業労働力。
-    /// 農民の時間の値段は、農業労働力の賃金が RGO の行と手仕事の行の両方の付加価値（EconomyStep の零和分割の重み）に同じ向きで効く形で担う＝新しい状態も倍率も置かない。表に無い RecipeName＝発見の門 1＝眠らない。</summary>
+    /// <summary>
+    /// ★形は 2 度直した（事前登録 追記2・追記3）：①最初は職人と同じ自営（労働を投入に置かない）＝賃金が上がると手仕事の行の取り分が増える逆向きで、農民の時間が二重に使われた（点検の指摘・ソースで確定）。〔履歴 Simulation.cs#349〕
+    /// </summary>
     private static void AddHouseholdProducers(List<Producer> producers, Coefficients coef)
     {
         int peasantIdx = -1;
