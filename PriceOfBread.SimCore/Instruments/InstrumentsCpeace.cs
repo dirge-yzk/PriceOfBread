@@ -1,20 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (791) 崩壊の講和の表 cpeace_s（読むだけ・恒等） ----------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsCess.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（月ごとの行の一覧は計器の中だけ）。
-// 目的＝旗 CollapsePeaceOneShare（崩壊の講和の取り分を 1 回分にする）の旧新を同じ盤面で読む。旗 0 でも旗 1 でも同じ列を書く（旗 0 は反実仮想の〈1 回分〉を式で並べる）。
-// 取り方＝講和 1 本ごとに Diplomacy.ConcludeWar が講和の前後で 1 行ずつ呼ぶ（CpBefore＝講和の前の入力・CpAfter＝ResolvePeace が書いた実際の値）。
-//   ⚠期待の側（rep_旧・rep_新・予算の旧新・取り分）は ResolvePeace を呼ばず、前の入力から式で書く＝エンジンの実装の写しにならない。実際の側（rep_実・予算の実・割譲の実）だけ ResolvePeace が書いた値。
-//   崩壊の判定は月の歩の入口（CpIter）が戦争ごとに控えた値（その戦争の歩で aCollapse||bCollapse だったか）＝保留の判断（cpLoser）とは別の経路で読むので、集合に崩壊でない講和が混ざれば U2 に出る。
-// 行＝崩壊の事象（月×敗者）ごとに 1 行。事象＝その月にその敗者が負けた外交の講和で、白紙でなく賠償の枝（hit）まで進んだ物の全て。nCollapse＝うち崩壊と書き直せた物の数。
-// 列：month／year／loser／nCollapse／nOther（崩壊でない講和＝押しで決まった物の数）／nGrouped（旗 1 の集合に入った講和の数）／u2Count（集合の中の崩壊でない講和の数）／u3Count（押しが正なのに取り分 0 の勝者の数）／
-//   saMaxIndex（崩壊の講和の |クランプ後の戦勝点| の最大）／repOldIndex（Σ 賠償の元の単位×sa〔戦争ごと〕）／repNewIndex（Σ 賠償の元の単位×saMax×式の取り分〔1 回分〕）／repRealIndex（実際の Σ 賠償の元×支払い率〔会議の削りと条約港の倍率の前〕）／
-//   budOldIndex／budNewIndex／budRealIndex（植民地の奪取の予算＝Σ sa×ColonyCaptureBudget／Σ saMax×ColonyCaptureBudget×式の取り分／実際の Σ 予算）／capturedCount（実際に奪った植民地の数）／repMovedIndex（実際に移った賠償の Σ＝会議の削り・条約港の倍率・支払い率の後の rep〔(800)・末尾の列〕。repRealIndex は ResolvePeace の中で組み直した講和の前の値）／
-//   cedeEligCount（本国の割譲の門〔|戦勝点|≧TerritoryCessionScore〕を通る崩壊の講和の数＝旧の割譲の最大回数）／cedeRealCount（実際に州が移った講和の数）／shares（勝者ごとの取り分〔押しの累計の比・式〕と実際に使った取り分）。
-// ⚠限界（計器が自分で申告する）：①repUnit は講和の時点の敗者の GdpPerMonth×支払い率 r を戦争ごとに読む（割譲で GDP が動けば戦争ごとにずれる＝repNew は最初の講和の値）②会議の削りと条約港の倍率は repReal から除いてある
-//   （期待の側にも入れていない＝比に出ない）。repNew は戦争ごとの講和の時点の単位を使う（割譲で敗者の支払い率が動いても期待が実際とずれない）③旗 0 では nGrouped と実際の取り分は 0／nan。
-// (805) 末尾の 3 列＝期待の側を完全にした読み：repExpectIndex（Σ 崩壊の講和 RepUnit0×saMax×式の取り分×(1−repCut)×条約港の倍率×r・RepUnit0 は r を含まない単位・因子 3 つは ResolvePeace が実際の rep に掛けた値を戦争ごとに読む）／
-//   repMovedOverExpect（repMovedIndex÷repExpectIndex を double で割ってから書く＝基線は 1）／repFactors（戦争ごとの repCut:条約港の倍率:r を / で並べる）。②の限界は repExpectIndex では外れている（repNewIndex と repRealIndex は従来のまま）。
+// 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（月ごとの行の一覧は計器の中だけ）。〔履歴 InstrumentsCpeace.cs#1〕
 public static partial class Instruments
 {
     internal const string CpeaceHeaderText = "month\tyear\tloser\tnCollapse\tnOther\tnGrouped\tu2Count\tu3Count\tsaMaxIndex\trepOldIndex\trepNewIndex\trepRealIndex\tbudOldIndex\tbudNewIndex\tbudRealIndex\tcapturedCount\tcedeEligCount\tcedeRealCount\tshares\trepMovedIndex\trepExpectIndex\trepMovedOverExpect\trepFactors";
@@ -25,7 +11,7 @@ public static partial class Instruments
         public bool Collapsed, Hit, Ceded, Valid;
         public double SaJ, AbsJ, WinPush, LosePush, RepUnit, CapBudget, TerritoryScore, ShareReal;
         public double RepRealR, RepMoved, Budget0, Fr; public int Captured;
-        public double RepUnit0, RepCutW = double.NaN, TpMultW = double.NaN, PayRW = double.NaN;   // (805) RepUnit0＝r を含まない賠償の元の単位。RepCutW・TpMultW・PayRW＝ResolvePeace が実際の rep に掛けた会議の削り・条約港の倍率・支払い率（戦争ごと）
+        public double RepUnit0, RepCutW = double.NaN, TpMultW = double.NaN, PayRW = double.NaN;   // RepCutW・TpMultW・PayRW＝ResolvePeace が実際の rep に掛けた会議の削り・条約港の倍率・支払い率（戦争ごと）〔履歴 InstrumentsCpeace.cs#2〕
     }
     sealed class CpState
     {
@@ -73,7 +59,7 @@ public static partial class Instruments
         r.Hit = d.CpHit;
         if (!r.Hit) return;   // 白紙・内戦・賠償の枝の前で終わった講和は事象に入れない（国を持たない側がいる講和は入れる＝取り分の分母に押しが残る）
         r.Budget0 = d.CpBudget0; r.Captured = d.CpCaptured; r.Ceded = d.CpCeded;
-        r.RepCutW = d.CpRepCut; r.TpMultW = d.CpTpMult; r.PayRW = d.CpPayR;   // (805) 実際の rep に掛けた因子（戦争ごと）
+        r.RepCutW = d.CpRepCut; r.TpMultW = d.CpTpMult; r.PayRW = d.CpPayR;   // RepCutW〔履歴 InstrumentsCpeace.cs#3〕
         r.RepMoved = d.CpRep;   // 実際に移った賠償（ResolvePeace の rep＝会議の削り・条約港の倍率・支払い率 r の後）
         r.RepRealR = r.Valid ? d.CpRepRaw * r.Fr : 0;   // 賠償の元（戦勝点は集合の 1 回分×取り分）×講和の前の支払い率（会議の削りと条約港の倍率の前）
         CpOf(d).Recs.Add(r);
@@ -87,7 +73,9 @@ public static partial class Instruments
         foreach (var line in CpRowsPending(d)) wr.WriteLine(line);
     }
 
-    /// <summary>(805) 行の文字列の一覧（表に書く行そのもの・試験が読む）。CpTable はこれを書くだけ。</summary>
+    /// <summary>
+    /// CpTable はこれを書くだけ。〔履歴 InstrumentsCpeace.cs#4〕
+    /// </summary>
     internal static System.Collections.Generic.List<string> CpRowsPending(Diplomacy d)
     {
         var rows = new System.Collections.Generic.List<string>();
@@ -115,9 +103,9 @@ public static partial class Instruments
                 if (r.Gid > 0) { nGrp++; if (!r.Collapsed) u2++; }
                 if (!r.Collapsed) continue;
                 double fsh = wsum > 0 ? (r.WinPush > 0 ? r.WinPush : 0) / wsum : 1.0 / System.Math.Max(1, nCol);   // 式で書いた取り分（勝者の押しの累計の比・エンジンの取り分を読まない）
-                repOld += r.RepUnit * r.SaJ; budOld += r.SaJ * r.CapBudget;               // 旧＝戦争ごとに自分の戦勝点で満額
+                repOld += r.RepUnit * r.SaJ; budOld += r.SaJ * r.CapBudget;               // SaJ〔履歴 InstrumentsCpeace.cs#5〕
                 repNew += r.RepUnit * saMax * fsh; budNew += r.CapBudget * saMax * fsh;   // 新＝1 回分の戦勝点（最大）×式の取り分
-                if (r.Valid) repExpect += r.RepUnit0 * saMax * fsh * (1.0 - r.RepCutW) * r.TpMultW * r.PayRW;   // (805) 期待の側（実際の rep の式を呼ばない・因子 3 つだけ ResolvePeace が掛けた値）
+                if (r.Valid) repExpect += r.RepUnit0 * saMax * fsh * (1.0 - r.RepCutW) * r.TpMultW * r.PayRW;   // repExpect〔履歴 InstrumentsCpeace.cs#6〕
                 if (fac.Length > 0) fac.Append('/');
                 fac.Append(F(r.RepCutW)).Append(':').Append(F(r.TpMultW)).Append(':').Append(F(r.PayRW));
                 repReal += r.RepRealR; repMoved += r.RepMoved; budReal += r.Budget0; capt += r.Captured;

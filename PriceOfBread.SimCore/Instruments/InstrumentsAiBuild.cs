@@ -1,20 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-// ---------------------------------------------------------------- (579) AI の国営工場の着工の門の表 aib_s（読むだけ・恒等） ---------------------------------------------------------------
-// 部分クラス＝Instruments.cs の本体に足さず 1 本のファイルで持つ（InstrumentsEquipment.cs の先例）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない（蓄えは ConditionalWeakTable の側）。
-// 目的＝事前登録 measurements/ukf579_20261027_prereg.txt の狙い（AI の着工の数と拒まれた理由・軍需と先端の工場の着工・門の閉じた向き・鎖の中間）。
-// 行＝国×四半期（挙げた国は毎四半期・他の全ての国は年末＝その年の 4 四半期の合計。蓄えは行を出したときに戻す）。人口が 0 の国は出さない。
-// 列（単位は接尾辞）：
-//   calls（TryBuildFacility に入った回）／returnFundingCount（国家の支払い率 r＜1 で戻った回）／returnRoomCount（月の出費の余地が無くて戻った回）／
-//   roomEntryPerMonthMean（余地を測った回の〈FacilityBuildOutlayShare×バッファ−今ある工事と未着工の意志の月の出費〉の平均）／bufferEntryMean（FiscalBufferOf の平均）／
-//   treasuryEntryStock（最後に入った回の国庫）／
-//   overCostCapCandidateCount（他の全ての門を通った候補のうち、削除した旧の身の丈の門の線〔総費用 ＞ バッファ〕を越える候補〔州×財〕の数。呼びごとの数え上げ）／
-//   startedCount・startedOverCapCount・refusedCount（州の最良を SetStateTarget で押して、着工した件〔うち総費用が旧の線を超える件〕／拒まれて意志が残った件）／skipRoomCount（その州の工事の月の出費の見込みが余地を超えて飛ばした件）／
-//   startedOutlayPerMonth（着工した件の見込みの月の出費の和）／startedByCategory（FactorySpec の組ごとの着工の件数）／startedGoods・overCapGoods・skippedGoods（財の名前:件数＝着工した／旧の線を超える候補／余地が足りずに飛ばした州の最良）／
-//   鎖の中間（四半期の末の断面・全ての州の生産者の和）：warshipScaleSum・sailingShipScaleSum・artilleryScaleSum・rifleScaleSum・steelScaleSum（その財の Scale の和）／
-//   warshipBuiltSum・sailingShipBuiltSum・artilleryBuiltSum・rifleBuiltSum（BuiltScale の和＝完成した棟の累計）／warshipBuildingCount・sailingShipBuildingCount・artilleryBuildingCount・rifleBuildingCount（工事中の棟の数）。
-//   ＝〈工場が建った→軍艦の生産の能力が増えた〉の中間（財ごとの Scale の計器は eqr_s にこの財たちが無かった〔発見の行を持たない財は載らない〕ので足した）。
-// ⚠限界（計器が自己申告する）：着工の判断の断面（実際の工事の進み方は読まない）／overCostCapCandidateCount は主の候補の経路だけを数える（連鎖の目の上流の候補は数えない）／年末の行は 4 四半期の合計（鎖の中間は年末の断面）。
+// 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない（蓄えは ConditionalWeakTable の側）。〔履歴 InstrumentsAiBuild.cs#1〕
 public static partial class Instruments
 {
     internal const string AibHeaderText = "quarter\tyear\tnation\tcalls\treturnFundingCount\treturnRoomCount\troomEntryPerMonthMean\tbufferEntryMean\ttreasuryEntryStock\t"
@@ -23,10 +9,10 @@ public static partial class Instruments
 
     sealed class AibAcc
     {
-        public int Calls, ReturnFunding, ReturnRoom, OverCap, Started, StartedOverCap, Refused, SkipRoom, BestN, BestDead, RootDropped;   // ★(595) 末尾の 3 本
+        public int Calls, ReturnFunding, ReturnRoom, OverCap, Started, StartedOverCap, Refused, SkipRoom, BestN, BestDead, RootDropped;   // RootDropped〔履歴 InstrumentsAiBuild.cs#2〕
         public double RoomSum, BufferSum, TreasuryEntry, StartedOutlay;
         public readonly SortedDictionary<string, int> ByCategory = new(StringComparer.Ordinal), StartedGoods = new(StringComparer.Ordinal), OverCapGoods = new(StringComparer.Ordinal), SkippedGoods = new(StringComparer.Ordinal),
-            BestDeadGoods = new(StringComparer.Ordinal), DroppedGoods = new(StringComparer.Ordinal), DroppedBlockers = new(StringComparer.Ordinal);   // ★(595)
+            BestDeadGoods = new(StringComparer.Ordinal), DroppedGoods = new(StringComparer.Ordinal), DroppedBlockers = new(StringComparer.Ordinal);   // BestDeadGoods〔履歴 InstrumentsAiBuild.cs#3〕
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, AibAcc> AibAccs = new();
 
@@ -52,7 +38,9 @@ public static partial class Instruments
         var a = AibAccs.GetOrCreateValue(w);
         a.SkipRoom++; string n = Catalog.Goods[goodId].Name; a.SkippedGoods.TryGetValue(n, out var c); a.SkippedGoods[n] = c + 1;
     }
-    /// <summary>★(595) 州の最良（着工の前）：<paramref name="rootDead"/>＝その個体は投入の連鎖の根まで作れない（<see cref="RootSupply"/>・旗 0 では旧の選び方の結果を測る）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsAiBuild.cs#4〕
+    /// </summary>
     internal static void AiBuildBest(World w, int goodId, bool rootDead)
     {
         var a = AibAccs.GetOrCreateValue(w);
@@ -60,7 +48,9 @@ public static partial class Instruments
         if (!rootDead) return;
         a.BestDead++; string n = Catalog.Goods[goodId].Name; a.BestDeadGoods.TryGetValue(n, out var c); a.BestDeadGoods[n] = c + 1;
     }
-    /// <summary>★(595) 旗が正のとき、需要の信号（超過 ＞ 閾値）があるのに根が無くて落ちた候補（州×財）。</summary>
+    /// <summary>
+    /// 〔履歴 InstrumentsAiBuild.cs#5〕
+    /// </summary>
     internal static void AiBuildRootDropped(World w, int goodId, int blockerGood)
     {
         var a = AibAccs.GetOrCreateValue(w);
@@ -97,7 +87,7 @@ public static partial class Instruments
         string Join<T>(SortedDictionary<string, T> d) => string.Join(';', d.Select(kv => kv.Key + ":" + kv.Value));
         int enters = a.Calls - a.ReturnFunding;   // 余地を測った回（支払い率 r の門を通った回）
         double wsS = 0, shS = 0, arS = 0, rfS = 0, stS = 0, wsB = 0, shB = 0, arB = 0, rfB = 0; int wsN = 0, shN = 0, arN = 0, rfN = 0;   // 鎖の中間の断面（Scale と BuiltScale は読むだけ）
-        int builtU = 0, builtIdleU = 0; var builtIdleGoods = new SortedDictionary<string, int>(StringComparer.Ordinal);   // ★(595) 追記 3：国営の完成した棟の数と、そのうち実産出が 0 の棟（完成しても産出 0 の工場の見張り・判定の線にしない）
+        int builtU = 0, builtIdleU = 0; var builtIdleGoods = new SortedDictionary<string, int>(StringComparer.Ordinal);   // builtU〔履歴 InstrumentsAiBuild.cs#6〕
         foreach (var r in w.Regions)
             foreach (var p in r.Producers)
             {
