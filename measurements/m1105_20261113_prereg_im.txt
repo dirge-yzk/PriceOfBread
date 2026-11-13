@@ -1,0 +1,42 @@
+(1105) c106im 計器 Instruments*.cs の 86 本を SimCore/Instruments/ へ移す  事前登録 2026-11-13
+基準 ffb383805・木 D:/PoB_work/wt_c106im・枝 c106im・種類＝恒等（git mv ＋ 走査の番人と台本のパス）。作者 2026-11-13〈計器の移動〉。
+
+[1] 恒等の線・予言 0
+  挙動の予言 0。名前空間・型・ファイル名・中身は 1 字も変えない（git mv だけ）。SimCore.csproj は既定の glob（Display/ が先例）。
+  .cost の差 0。素の 5 種・計器つき 10 種は m1103 と名乗り行（SOURCE-HASH）を除いて全行一致。
+
+[2] 消す物と残す物・読み手の grep（ffb383805 で grep した結果）
+  移す物：PriceOfBread.SimCore/Instruments*.cs 86 本（Instruments.cs・InstrumentsArms.cs ほか）→ PriceOfBread.SimCore/Instruments/。
+  消す物：なし。
+  [CallerFilePath]：宣言は CapitalMarket.cs・InternationalMarket.cs・Model.cs・World.cs ほか。Instruments*.cs の中の呼び手は Instruments.cs:1227 の注だけ（呼びは 0）。経路の名はファイル名だけで作る（ident_check.py _cearn_path は ls-tree -r の basename）＝計器の移動で変わらない。
+  [PORT:Pn]：Instruments*.cs に 0 件。Runner/Program.cs:2925 の portledger は直下だけを走査するが計器に印は無い＝⑲ へ書く必要なし（Runner には触れない）。
+  measure.sh の src_manifest は find で再帰＝下のフォルダを拾う（変更なし）。csproj・props に Instruments の名前なし。
+  直すパス（番人）：
+    直下だけ走査（〈直下＋Instruments/〉へ）：CalendarTests.cs:77・FactoryEquipmentTests.cs:506・FoodLedgerTests.cs:276・IndustrializationReaderTests.cs:34・:81・OnDoubleReadScanTests.cs:118・WriterRatchetTests.cs:34・TechLevelRemovalTests.cs:68（"Instruments*.cs" は Instruments/ の下へ）。
+    固定のパス：CorncfInstrumentTests.cs:309・LordstatInstrumentTests.cs:163・ScalarDeletionTests.cs:185（"PriceOfBread.SimCore/Instruments/InstrumentsClock.cs"）・TechLevelRemovalTests.cs:22（鍵は Path.GetFileName＝許可表の行は変えない）。
+    ファイル名の鍵（CalendarTests.cs:62・IndustrializationReaderTests.cs:24・DiscontentReaderTests.cs:306）：名前だけで数える＝変えない。
+    AllDirectories の番人（GoodIdGuardTests:422・DiscontentReaderTests:292・ScoreReaderTests:38・SulfuricAcidSodaAshTests:262・TreasuryLedgerTests:381・UnitTypeTests:395・:868・:895・WriterRatchetTests:218・TechLevelRemovalTests:35）：読んだ結果、相対パスを鍵にする物は ScalarDeletionTests:185 の 1 行だけ。他は名前か件数＝変えない。
+  直す台本：scripts/instruments/ident/stage.py:9 の正規表現（Instruments/ の下も段 2）・stage_selftest.py（ケースと突然変異の追加）・注のパス（batch.sh・ng.sh・instr.py の SimCore/Instruments.cs＝SimCore/Instruments/Instruments.cs）。ident_check.py は変えない（読んだ結果、計器のパスを使わない）。
+  過去の回の台本（scripts/instruments の c*・r*・m*・ab・ce ほか読み手の docstring）は記録なので直さない。
+  他の線との重なり：CalendarTests.cs と IndustrializationReaderTests.cs は cf も触る（Coefficients の鍵の行）。触るのは計器の走査の行（:77・:34・:81）だけ＝別の hunk。docs/README.md §2 に 1 行（dc は §2 を触らない）。
+
+[3] 足す試験と突然変異・ソースを走査する番人の点検（㉘）
+  足す試験 1 本（PriceOfBread.Tests/InstrumentsPlacementTests.cs）：Instruments*.cs が SimCore の直下に 0 本・SimCore/Instruments/ の下に 86 本以上。同じファイルに〈直下＋Instruments/〉を数える補助 SimCoreTopFiles（走査の 7 か所が共有・既存に同種なし＝grep で確認・理由 1 行）。
+  テストの数の予言：非 FullLength 2808 → 2809（+1）。FullLength 3 のまま。
+  走査のファイル数の予言（前→後）：直下の走査 7 件（Calendar・FactoryEquipment・FoodLedger・IndustrializationReader 2 件・OnDoubleReadScan・WriterRatchet）＝いずれも 174 → 174（直下 88＋Instruments/ 86）。TechLevelRemoval:68 の Instruments*.cs は 86 → 86。AllDirectories の番人は母集合が変わらない。各番人の許可表・件数の予言＝変わらない（0 件の書き換え）。
+  突然変異（使い捨ての木）：
+    MU1 Instruments/ の下の 1 本に WriterRatchet の書き手（FoodMet への代入）を足す → 書き手の番人が赤（移した後も計器を見ている）。
+    MU2 Instruments/ の下の 1 本に techLevel の列を足す → 計器の列に技術水準が無い が赤。
+    MU3 SimCore の直下に InstrumentsX.cs を置く → 置き場の番人が赤。
+    MU4 stage.py に Instruments/InstrumentsX.cs だけの差を渡す → 段 2（旧の正規表現のままでは段 1＝赤）。
+  ㉘：器のコミットの直後に走査の番人の束（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests と CalendarTests・FactoryEquipmentTests・FoodLedgerTests・OnDoubleReadScanTests・TechLevelRemovalTests・CorncfInstrumentTests・LordstatInstrumentTests・ScalarDeletionTests）を隔離ビルド D:/PoB_work/c106im_art で回す。
+  事前登録の点検：工業化度の読み手の許可表（IndustrializationReaderTests:22）の Instruments 系 6 行は件数を変えない・new MoneyStock( の件数は変えない・route_anchors.tsv の鍵の行は計器のファイル名を持たない（grep 済み・0 件）・WriterRatchetTests の宣言の表は変えない。
+  浮動小数の順序が変わる箇所：なし（コードは 1 字も変えない）。
+
+[4] 恒等の比べ方
+  主の証明＝IL のバイト比較：同じ絶対パスの木（D:/PoB_work/wt_c106im）で前（ffb383805）と後を順に建てる（Release・-p:Deterministic=true・-p:DebugType=none）。[CallerFilePath] の文字列を揃えるため木のパスは変えない。SimCore.dll をバイトで比べる。先に canary（コンパイラへ渡る順が変わり型の並びが変わるかを見る）。
+  不一致の時の第 2 の証明：System.Reflection.Metadata で型・メンバーごとに IL を名前で解いて並べた写しが前後で一致すること。加えて ident の段 2（素の 5 種・計器つき 10 種が m1103 と名乗り行を除いて全行一致）。
+  ident：stage.py の判定どおり（Instruments/ の下の差分は段 2 になる＝2 コミット目の stage.py の直しの後）。
+
+[5] 採る条件
+  IL の一致（か第 2 の証明）・〈判定: 恒等〉・フルスイート失敗 0（数は --list-tests と一致）・各番人の走査のファイル数が前後で同じ・savetest・leakhunt。一致しなければ外して報告に回す。
