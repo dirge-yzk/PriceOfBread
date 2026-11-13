@@ -19,41 +19,53 @@ public static class InterestGroups
         //   土地の価値＝**地代（既存の物理フロー LandRent）の資本化**＝新しい状態を置かない。Closed階級のみ＝
         //   資本家の工場は流動資産側が既に表す。⚠地代は月次でゼロ化→再集計される生きたフロー＝土地改革・農奴解放で
         //   地代が削られれば政治力も一緒に痩せる（貴族の没落が法から創発する）。LandedPowerCapitalization=0 で厳密恒等。
-        double LandedWealth(Pop p) => LandedWealthOf(w, p);
         // 参政権の範囲2法（作者裁定2026-08-16）：政治的国民への算入率でpopを加重（植民地格の州＝植民地参政権・本国州の非中核分＝移民原住民参政権）。
         // ループは AllPops と同じ走査順（w.Regions→r.Pops・Seceded スキップ）の入れ子＝州の格が読める形。
         // ★J-001の範囲（2026-09-04・運転規則§9で作者裁定を差し戻し）：参政権の範囲が縛るのは**本国議会の代表と課税への同意**（Fiscal/Government）まで。
         //   発言権（この関数＝利益集団の重み）は票の前提にしない＝票の無い層にも声はあった（チャーティスト1839/反穀物法同盟1838/1848年）
         //   ＝算入率はここでは掛けない（測定専用の腕 SuffrageScopeVoice は 2026-09-26 に削除＝dorm-49）。
         //   ★第 1 走査（富と人口の分母）は POP だけに依る＝窓の中（<see cref="PopWindow"/>）は使い回す。第 2 走査（重み）は法（参政権）・軍の優位に依る＝毎回求める。
-        var (totalWealth, totalPop) = w.PopSums is { } win ? win.LandedTotals(w) : ComputeLandedTotals(w);
-
         // 実効参政権＝法律（World.Suffrage）。政体が含意する参政権は遷移/初期化の一回 floor-raise で法へ畳み込み済（倍率排除②）＝毎期の max(法,政体) 写像を廃止。
-        var eff = w.Suffrage;
         // 政11：力の按分基準。InterestGroupHeadcountWeight=0 なら純富シェア（従来恒等）。>0で人口シェアを β 加重合成（★ 2026-07-07 有効化＝既定0.25）
         // base=(1−β)×富シェア+β×人口シェア＝普通選挙下で貧しい多数派に頭数由来の力を与える（プロ独裁で労働者＞資本家）。
         // 参政権のない大衆は PoliticalWeight（FranchiseVoice）が0で pw=0＝頭数を増やしても議会外では効かない＝FranchiseVoice を持つ層にのみ実効。
-        double beta = w.Coef.InterestGroupHeadcountWeight;
         // 閉鎖階級の政治力の乗数＝宮廷の権力＋軍の政治的優位（固定1.3を排除）（★(373) P7①制度疲労の乗数は物理削除）。
         // ②軍の政治的優位（2026-08-18・親軍法の撤去）：旧＝親軍法ONのときだけ MilitarismClout×軍事費 を足す門つきだった。
         // ⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝将校団の政治力は
         // 「軍の圧力（組織の大きさ＋解隊の脅威＋粛清/人事介入の記憶＋対外屈辱）×（1−文民制度の弁）」から出る（Finer/Huntington）。
         // ループ不変（World の純関数）＝1回だけ計算して pop ごとに掛ける。
-        double closedMul = (1.0 + w.Coef.MilitarismClout * PoliticalQuantities.MilitaryPoliticalRatio(w));
+        var k = Context(w);
         double trad = 0, modern = 0, mass = 0;
         foreach (var (_, p) in w.AllPopsWithRegion())
         {
-            double lw = LandedWealth(p), sz = p.Size;
-            double wealthShare = totalWealth > 1e-9 ? lw / totalWealth : 0;
-            double share = beta > 0 && totalPop > 1e-9
-                ? (1.0 - beta) * wealthShare + beta * (sz / totalPop)
-                : wealthShare;
-            double pw = share * PoliticalWeight(p, eff, closedMul, w.Coef);
+            double pw = PopWeight(w, p, k);
             if (p.Closed) trad += pw;
             else if (p.IsModernElite) modern += pw;
             else mass += pw;
         }
         return (trad, modern, mass);
+    }
+
+    /// <summary><see cref="Blocs"/> の 1 回の計算で POP ごとの重みが共通に読む量（富と人口の分母・按分の β・実効参政権・閉鎖階級の乗数）。画面の階級ごとの影響力（Display/LawStakes）も同じ 1 本を読む。</summary>
+    internal readonly record struct WeightContext(double TotalWealth, double TotalPop, double Beta, Suffrage Eff, double ClosedMul);
+
+    /// <summary><see cref="WeightContext"/> を求める（<see cref="Blocs"/> の前半と同じ式・同じ順）。</summary>
+    internal static WeightContext Context(World w)
+    {
+        var (totalWealth, totalPop) = w.PopSums is { } win ? win.LandedTotals(w) : ComputeLandedTotals(w);
+        return new WeightContext(totalWealth, totalPop, w.Coef.InterestGroupHeadcountWeight, w.Suffrage,
+            1.0 + w.Coef.MilitarismClout * PoliticalQuantities.MilitaryPoliticalRatio(w));
+    }
+
+    /// <summary>1 つの POP の政治力の重み w_p＝按分（富のシェアと人口のシェアの合成）×発言権。<see cref="Blocs"/> の足し込みの 1 項そのもの。</summary>
+    internal static double PopWeight(World w, Pop p, in WeightContext k)
+    {
+        double lw = LandedWealthOf(w, p), sz = p.Size;
+        double wealthShare = k.TotalWealth > 1e-9 ? lw / k.TotalWealth : 0;
+        double share = k.Beta > 0 && k.TotalPop > 1e-9
+            ? (1.0 - k.Beta) * wealthShare + k.Beta * (sz / k.TotalPop)
+            : wealthShare;
+        return share * PoliticalWeight(p, k.Eff, k.ClosedMul, w.Coef);
     }
 
     /// <summary>1 つの POP の政治力の素の富＝貯蓄＋（閉鎖階級なら）地代の資本化。<see cref="Blocs"/> の第 1・第 2 走査が読む唯一の定義。</summary>

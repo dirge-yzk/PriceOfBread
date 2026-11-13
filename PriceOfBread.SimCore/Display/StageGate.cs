@@ -64,6 +64,14 @@ public static class StageGate
         return Government.LawPrereq(w, a, level, w.Coef).Ok;
     }
 
+    /// <summary>次の段（現在＋1）が前提の門を越えるか（政治の門は見ない）。段の押し釦の灰色と同じ 1 本（<see cref="CanReach"/>）。最上段は偽。</summary>
+    public static bool NextOpen(World w, LawDef def)
+    {
+        int cur = def.Current(w);
+        if (cur >= def.LevelBase + def.Stages.Length - 1) return false;
+        return CanReach(w, def.Axis, cur + 1, cur);
+    }
+
     /// <summary>その段へ動く「次の一歩」（cur→cur±1）の情報。副作用なし。</summary>
     private static (bool Ok, double Cost, string Reason) NextStep(World w, PolicyAxis? axis, int level, int cur)
     {
