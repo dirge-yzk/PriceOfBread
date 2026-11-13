@@ -128,6 +128,7 @@ public class DormantIdentityTests
         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
         // ★NonElectiveSeatsEmpty（(1099) c105gp 非選挙の政体で議席を空にする）は 2026-11-13 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NonElectiveSeatsTests（旗を明示）。
+        "ParliamentSeatsWithoutGap",    // (1118) c108ps 開院の条件を思想の有無へ・開幕の選挙政体は議会の前に思想を 1 回（器・旗 0）
         // ★B-03（WarFeverUsesBudgetShare）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
         // ★B-06（TransportBaselineIsLand）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
         // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。(591) で旗ごと削除（RetiredFields）。

@@ -18,6 +18,7 @@ public static class Parliament
 
     public static void Step(World w, Coefficients c)
     {
+        if (Instruments.On) Instruments.ParlHead(w);
         if (!w.ParliamentEnabled || !w.PoliticsEnabled || w.InCivilWar) return;
 
         if (w.Parties.Count == 0)
@@ -29,9 +30,15 @@ public static class Parliament
         SyncDynamicParties(w, c);
         StepManifesto(w, c);
 
+        // (1118) 旗が正：席が空の選挙政体で思想がまだ無い（開幕の四半期 0）なら、議会の前に思想を 1 回出す（得票が保守 100% へ退避しない）
+        bool gapless = c.ParliamentSeatsWithoutGap > 0;
+        if (gapless && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+            && w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9 && !HasIdeology(w))
+            Ideologies.UpdateShares(w);
+        if (Instruments.On) Instruments.ParlPreVotes(w);
         ComputeVotes(w, c);
         bool seatsEmpty = w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9;
-        if (seatsEmpty && w.QuartersSinceElection >= 1
+        if (seatsEmpty && (gapless ? HasIdeology(w) : w.QuartersSinceElection >= 1)
             && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic)
         {
             SnapshotSeats(w);
@@ -79,6 +86,18 @@ public static class Parliament
     {
         if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && w.ParliamentEnabled)
             w.QuartersSinceElection = w.Coef.ElectionIntervalQuarters;
+    }
+
+    /// <summary>(1118) 思想が有る＝IdeologyShares の和が 0 でない POP が 1 つでも居る（ComputeVotes が保守へ退避する量と同じ・Politics.Step の UpdateShares を 1 回でも通った国は真）。</summary>
+    private static bool HasIdeology(World w)
+    {
+        foreach (var p in w.AllPops())
+        {
+            double s = 0;
+            foreach (var x in p.IdeologyShares) s += x;
+            if (!(s < 1e-9)) return true;
+        }
+        return false;
     }
 
     private static void SnapshotSeats(World w)
