@@ -16,14 +16,14 @@ internal static class UiShotParts
     private static IBrush B(string key, IBrush fallback)
         => Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var v) && v is IBrush b ? b : fallback;
 
-    /// <summary>ページの欄の並べ（PageGrid）の見本＝同じ表を 3 つの大きさで並べる（広い＝3 列・中＝2 列・狭くて低い＝順位の低い欄が見出しの 1 行へ畳まれる）。
+    /// <summary>ページの欄の並べ（PageGrid）の見本＝同じ表を 3 つの大きさで並べる（広い＝3 列・中＝2 列・狭くて低い＝欄を同じ比で狭める）。
     /// 欄の中身は固定の行（本体の盤面は読まない）。</summary>
     public static Control BuildPages()
     {
         var table = new PageTable(
         [
-            new SectionSpec("supply", "供給の網", 1, 8), new SectionSpec("goods", "財の表", 2, 8), new SectionSpec("detail", "選んだ財の詳細", 3, 6),
-            new SectionSpec("factory", "州別の工場", 4, 6), new SectionSpec("equip", "設備", 6, 5), new SectionSpec("mega", "巨大建造物", 7, 4),
+            new SectionSpec("supply", "供給の網", 8), new SectionSpec("goods", "財の表", 8), new SectionSpec("detail", "選んだ財の詳細", 6),
+            new SectionSpec("factory", "州別の工場", 6), new SectionSpec("equip", "設備", 5), new SectionSpec("mega", "巨大建造物", 4),
         ], [["supply", "detail"], ["goods", "factory"], ["equip", "mega"]]);
         Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　{Fmt.Of(Unit.MoneyPerMonth, (i + 1) * 137000.0)}", Margin = new Thickness(0, 1) }); });
         PageGrid Make(double w, double h)
@@ -38,7 +38,7 @@ internal static class UiShotParts
             Child = new StackPanel { Children = { new TextBlock { Text = caption, FontWeight = FontWeight.Bold, Margin = new Thickness(6, 2), Foreground = B("InkBrush", Brushes.Black) }, g } },
         };
         var wide = Make(1280, 330); var mid = Make(900, 330); var narrowLow = Make(560, 250);
-        var panel = new StackPanel { Margin = new Thickness(12), Width = 1300, Children = { Frame("幅 1280・高さ 330：3 列", wide), Frame("幅 900・高さ 330：2 列", mid), Frame("幅 560・高さ 250：1 列（低い欄から畳む）", narrowLow) } };
+        var panel = new StackPanel { Margin = new Thickness(12), Width = 1300, Children = { Frame("幅 1280・高さ 330：3 列", wide), Frame("幅 900・高さ 330：2 列", mid), Frame("幅 560・高さ 250：1 列（欄を狭める）", narrowLow) } };
         return new Border { Background = B("PaperBrush", Brushes.Beige), Child = panel, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
     }
 

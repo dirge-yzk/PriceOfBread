@@ -272,6 +272,12 @@ public static class FiscalTables
             new("price", "物価（開始時比）", PlayText.PriceLevelText(w), StageCell.None, null),
             new("fx", "為替", PlayText.ExchangeRateText(w), StageCell.None, null),
         };
+        if (w.ExportsByGood is not null && w.ImportsByGood is not null)   // 貿易収支＝市場の輸出と輸入の総額（市場の表の総額と同じ源・月割）の差。決済の前は出さない
+        {
+            var (ex, im) = TradeTables.Totals(w);
+            double bal = (ex - im) / w.Coef.MonthsPerClearing;
+            rows.Add(new("tradeBalance", "貿易収支", $"{(bal >= 0 ? "＋" : "−")}{DisplayFormat.Money(Math.Abs(bal))}/月", StageCell.None, null));
+        }
         if (LoanRateVisible(w)) rows.Add(new("loan", "貸出金利", $"{w.LoanRatePerYear:P1}", StageCell.None, null));
         rows.Add(new("lossFinanced", "損失の負債化の累計", DisplayFormat.Money(w.LossFinanced), StageCell.None, null));
         if (HouseholdLoanVisible(w)) rows.Add(new("householdLoan", "家計債務", w.Bank is { } bank ? DisplayFormat.Money(bank.HouseholdLoans.Value) : "—", StageCell.None, null));

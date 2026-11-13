@@ -4,14 +4,14 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Views.Pages;
 
-/// <summary>財政と貨幣のページ（設計 §3-3）。欄の並べの表（幅 3 列のときの置き場と、低い欄から畳む順位）はここに 1 つだけ手で書く。</summary>
+/// <summary>財政と貨幣のページ（設計 §3-3）。欄の並べの表（幅 3 列のときの置き場）はここに 1 つだけ手で書く。</summary>
 public partial class FiscalMoneyPage : UserControl
 {
-    /// <summary>欄の宣言（順位は畳む順＝1 が最後まで残る）と、3 列のときの欄の置き場（列ごとに上から下）。</summary>
+    /// <summary>欄の宣言と、3 列のときの欄の置き場（列ごとに上から下）。</summary>
     public static PageTable Plan { get; } = new(
     [
-        new SectionSpec("spend", "支出", 1, 10), new SectionSpec("income", "収入", 1, 8), new SectionSpec("finance", "金融", 2, 8),
-        new SectionSpec("debt", "国債と外資信用", 2, 8),
+        new SectionSpec("spend", "支出", 10), new SectionSpec("income", "収入", 8), new SectionSpec("finance", "金融", 8),
+        new SectionSpec("debt", "国債と外資信用", 8),
     ],
     // 2 列（2026-11-11 作者指示）：支出＝左・収入＝右／その下に金融（左）と国債と外資信用（右）を隣に並べる（国庫の台帳は支出と収入の表へ吸収・2026-11-12）
     [["spend", "finance"], ["income", "debt"]],

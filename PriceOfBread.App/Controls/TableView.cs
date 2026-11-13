@@ -76,7 +76,7 @@ public sealed class TableView : UserControl
     {
         var snap = Snapshot ?? TableSnapshot.Empty;
         bool tall = snap.Columns.Any(c => c.Kind is ColumnKind.Stage or ColumnKind.Verb or ColumnKind.Share);
-        double row = tall ? 34 : 24;
+        double row = tall ? 34 : 20;
         int groups = snap.Rows.Select(r => r.Group ?? "").Distinct().Count(g => g.Length > 0);
         return ChromeHeight() + snap.Rows.Count * row + groups * 34;
     }
@@ -178,6 +178,19 @@ public sealed class TableView : UserControl
         _filterBox.TextChanged += (_, _) => { _filter = _filterBox.Text ?? ""; Rebuild(); };
         Content = _root;
         AttachBody();
+        AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(ClearJump, Avalonia.Threading.DispatcherPriority.Loaded);   // 付いた直後も（流れの部品が前回の位置を持ち越すことがある）
+        DetachedFromVisualTree += (_, _) => ClearJump();   // 画面へ付いた直後と外れたとき、行へ飛んだ状態（目印と流れの位置）を捨てる＝使い回すページを開き直したとき前回の飛び先が残らない
+    }
+
+    /// <summary>行へ飛んだ状態を捨てる：目印の背景を消し、行の流れを先頭へ戻す。</summary>
+    private void ClearJump()
+    {
+        if (FocusedKey is not null)
+        {
+            FocusedKey = null;
+            foreach (var kv in _rows) kv.Value.SetFocused(false);
+        }
+        if (_bodyHost.Child is ScrollViewer sv && sv.Offset.Y != 0) sv.Offset = new Vector(sv.Offset.X, 0);
     }
 
     /// <summary>列が多くて欄の幅に収まらないことがある表は、横に流す（列を黙って切らない）。広い欄では最後の列の右まで広がる。既定は偽（段の押し釦のように折り返せる列を持つ表は、横に流さず折り返す）。

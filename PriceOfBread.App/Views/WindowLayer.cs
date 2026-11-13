@@ -96,16 +96,30 @@ public sealed class WindowLayer : Canvas
         Place();
     }
 
-    /// <summary>覚えている位置と大きさ（無ければ初めの値）を領域の中に収めて窓へ置く。ドラッグ中の窓は触らない。</summary>
+    /// <summary>利用者が動かした位置と大きさ（無ければ開いたときに置いた物）を領域の中に収めて窓へ置く。開いたときの置き場は 1 度だけ決める（以後は動かさない）。ドラッグ中の窓は触らない。</summary>
     private void Place()
     {
         if (_layout is null || !(Bounds.Width > 0) || !(Bounds.Height > 0)) return;
-        foreach (var (slot, w) in _windows)
+        foreach (var slot in _layout.OpenWindows)
         {
-            if (w.Interacting) continue;
-            var r = _layout.RectOf(slot) ?? LayoutModel.DefaultRect(slot, Bounds.Width, Bounds.Height);
+            if (!_windows.TryGetValue(slot, out var w) || w.Interacting) continue;
+            var r = _layout.RectOf(slot) ?? _layout.AutoRectOf(slot) ?? Open(slot, w);
             w.SetRect(LayoutModel.Fit(r, Bounds.Width, Bounds.Height));
+            if (slot == Slot.Province) { w.Height = double.NaN; w.MaxHeight = Bounds.Height; }   // 州の窓の高さは中身に合わせる
         }
+    }
+
+    /// <summary>開いた窓の置き場を決める：中身の自然な幅と高さ（盤の高さまで）で、既に開いている窓と重ならない次の空き場所へ。州の窓は左上の決まった所（他の窓の邪魔にしない）。</summary>
+    private WindowRect Open(Slot slot, FloatingWindow w)
+    {
+        if (slot == Slot.Province) return LayoutModel.ProvinceRect(Bounds.Width, Bounds.Height);
+        double width = LayoutModel.DefaultWidth(slot);
+        w.Page?.Measure(new Size(width - 2, double.PositiveInfinity));   // 自然な高さ（ページの欄は上限なしで測ると自然な高さになる）
+        double height = Math.Clamp(FloatingWindow.TitleHeight + 2 + (w.Page?.DesiredSize.Height ?? 0), LayoutModel.MinWindowHeight, Bounds.Height);
+        var occupied = _layout!.OpenWindows.Where(s => s != slot && s != Slot.Province).Select(s => _layout.RectOf(s) ?? _layout.AutoRectOf(s)).OfType<WindowRect>().ToList();
+        var r = LayoutModel.AutoPlace(slot, width, height, occupied, Bounds.Width, Bounds.Height);
+        _layout.SetAuto(slot, r);
+        return r;
     }
 }
 
@@ -114,11 +128,13 @@ public sealed class WindowLayer : Canvas
 /// （配置の保存を毎フレーム書かない）。</summary>
 public sealed class FloatingWindow : Border
 {
-    private const double Grip = 6, CornerGrip = 14, TitleHeight = 30;
+    private const double Grip = 6, CornerGrip = 14;
+    public const double TitleHeight = 26;   // 題の帯の高さ
 
     private readonly Slot _slot;
     private readonly LayoutModel _layout;
     private readonly Border _body = new();
+    private readonly ScrollViewer _scroll = new() { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };   // 窓全体を 1 本で流す（欄ごとの短い流しにしない）
     private readonly Border _titleBar;
     private enum Mode { None, Move, Resize }
     private Mode _mode;
@@ -133,7 +149,7 @@ public sealed class FloatingWindow : Border
     public FloatingWindow(Slot slot, string title, LayoutModel layout)
     {
         _slot = slot; _layout = layout;
-        MinWidth = LayoutModel.MinWindowWidth; MinHeight = LayoutModel.MinWindowHeight;
+        MinWidth = LayoutModel.MinWindowWidth; MinHeight = slot == Slot.Province ? 0 : LayoutModel.MinWindowHeight;
         Background = Brush("PaperBrush", Brushes.Beige);
         BorderThickness = new Thickness(1);   // 様式（2026-11-12）：線 1・角 3・影なし
         CornerRadius = new CornerRadius(3);
@@ -190,9 +206,11 @@ public sealed class FloatingWindow : Border
 
     public void SetPage(Control? page)
     {
-        if (Page is { } old) { old.DataContext = null; _body.Child = null; }
+        if (Page is { } old) { old.DataContext = null; _scroll.Content = null; _body.Child = null; }
         Page = page;
-        if (page is not null) _body.Child = page;
+        if (page is null) return;
+        if (_slot == Slot.Province) _body.Child = page;   // 州の窓は中身の高さに合わせる（流さない）
+        else { _scroll.Content = page; _body.Child = _scroll; }
     }
 
     public void SetFront(bool front)

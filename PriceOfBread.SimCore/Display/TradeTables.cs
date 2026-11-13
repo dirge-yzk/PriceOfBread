@@ -69,7 +69,7 @@ public static class TradeTables
             if (!(g < src.Length && src[g] > 1e-9)) continue;
             if (!(src[g] / mpc >= MinMonthlyRow)) { otherRaw += src[g]; continue; }   // 月割で £0 に丸まる行は「その他」へ（下半分を「£0/月」が埋めない・B22）
             double p = g < wp.Count ? Math.Max(wp[g], 1e-9) : 1.0;
-            double dom = g < w.Region.Markets.Length ? w.Region.Markets[g].Price : p;   // 自国（首都州）の相場＝世界価格比の分子
+            double dom = g < w.Region.Markets.Length ? w.Region.Markets[g].Price * w.ExchangeRate : p;   // 自国（首都州）の相場を為替で世界価格と同じ建て値にした額＝世界価格比の分子（財の値段・財の表と同じ式。為替を掛けない旧は左右の表で 1〜2 ポイント食い違った）
             double ratio = p > 1e-9 ? dom / p : double.NaN;
             double fraction;
             if (exports)
