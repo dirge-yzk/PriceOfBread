@@ -90,7 +90,6 @@ public class DormantIdentityTests
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
-        "RuleFromPower",                // (1117) c108rc 支配の力の段 C′ の旗（旗 0 の器・点火のコミットでこの表から外す）
         "ProjectionUsesLand",           // 支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
         // ★BuildingGoodBundle（(550)(555) 工場の建屋の財・建設の束の 2 枠）は 2026-10-25 (555) 線 fb2 で既定 1 へ**点火**＝この表から外した。
         // ★MusketRecipeEnabled（前期の軍需レシピ）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
