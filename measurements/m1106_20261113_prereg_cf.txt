@@ -1,0 +1,46 @@
+(1106) c106cf 事前登録（腕・ビルドの前に固定）  基準 ffb383805（m1103）
+形：入口でも尾でもない。Coefficients.cs を領域ごとの partial の部品へ分ける恒等の線。挙動 0・予言 0。
+
+[1] 恒等の線
+ - 本体（class の {} の中の行 18..3650）は 1 行も変えず元の順に連続した 10 切片へ。変わるのは class 宣言に partial を足す行と、
+   各部品の頭（using 2 行・namespace・空行・class 行・{）と尾（}）だけ。BOM つき・LF のまま。
+ - 部品の名は Coefficients.cs（頭＋切片 1）・Coefficients.p02_… 〜 p10_…。小文字の p は c より後＝ファイル名の順（序数も NTFS も）が元の順。
+ - 浮動小数の順序が変わる箇所：無し（式に触れない）。紙の台本の食い違い数＝0。
+
+[2] 切り方（行は元の ffb383805 の Coefficients.cs・字数は部品の字数）
+ file                                      元の行        見出し
+ Coefficients.cs                           18-455        市場・テーマH（産業組織・固定資本・住宅）            47109
+ Coefficients.p02_borrow_polity_epidemic   456-735       借入・テーマG/F・人口忠実度・テーマC・テーマJ        32166
+ Coefficients.p03_debt_money               736-1072      POPの個人債務・テーマD 貨幣金融・通貨改革            36828
+ Coefficients.p04_trade                    1073-1497     テーマI（国際貿易・植民地）                          42650
+ Coefficients.p05_port_insurance           1498-1640     港湾容量・海上保険                                   17415
+ Coefficients.p06_rank_discovery           1641-1972     改修2026-06-28・第3群・研究・発見の作り替え          41696
+ Coefficients.p07_wiring_prewarm           1973-2367     2026-07-24設計群・全域監査の配線系・開始前の助走      44604
+ Coefficients.p08_audit_soldiers           2368-2874     テーマB・兵士POP軍制・リアリティ監査 Wave1〜4         61698
+ Coefficients.p09_kingship_tax             2875-3230     スカフォールド・政治資本・税支出・王権議会P0・参政権   36804
+ Coefficients.p10_ai_silver_overrides      3231-3650     AI第1波・鋼・内戦・トリレンマ・銀本位・…・環境変数の上書き  43341
+ 最大 61698 字（≦10 万字）。台本 scripts/instruments/c106cf/split.py（自己検査＝本体を繋ぐと元の本体と一致）。
+ 消す物：無し。直す読み手（名前で Coefficients.cs を読む物のうち今の手順が呼ぶ物・試験）：
+   PriceOfBread.Tests/DevaluationCapReliefTests.cs:213（EndsWith → 部品名の頭で除外）
+   PriceOfBread.Tests/CalendarTests.cs:58 の表（鍵はそのまま・走査側で部品を Coefficients.cs へ寄せる）
+   PriceOfBread.Tests/IndustrializationReaderTests.cs:23 の表（同上）
+   PriceOfBread.Tests/ScholarshipTests.cs:182（読み手の名を寄せる）
+   scripts/recalib_search.py（部品を総当りで探して書く・部品ごとの退避）
+   scripts/instruments/r900/changed_rows.py（差分の範囲を Coefficients*.cs に・持ち主の名を寄せる）
+ 直さない（注の中だけ・記録）：AiFirstWaveTests.cs:24・ColonyPettyEntryTests.cs:12・DormantIdentityTests.cs・古い回の台本（scripts/instruments/c*/ ほか）・
+   App/ViewModels/GameViewModel.MapFill.cs:21（⑲へ）・Credit.cs:180・Politics.cs・Simulation.cs の注。
+ 反射：SaveGame.cs:65（DeclaredOnly でフィールドを順に）・Runner portledger（全 double）・POB_COEF の上書き＝名前で引く／宣言順を保つので IL の比較と名の列で確かめる。
+ 他の線との重なり：CalendarTests.cs・IndustrializationReaderTests.cs は im も触る（im＝計器の鍵の行・cf＝Coefficients の行だけ）。docs/README.md §2 に 1 行（cf のみ）。
+
+[3] 試験と突然変異（使い捨ての木）
+ 足す試験：無し（機構は変えない）。門は台本と IL：
+   門1 split.py の自己検査＋ git ls-files --eol が全部品 i/lf
+   門2 SimCore.dll の IL のバイト一致（同じ絶対パスの木・Release Deterministic DebugType none）＋ typeof(Coefficients).GetFields の名の列が前後で同じ
+   門3 フルスイートの失敗 0・数 2808＋FullLength 3・savetest・leakhunt
+ 突然変異：M1 部品 2 つの名前を入れ替える（順が逆）→ 門2 の名の列か IL が赤。M2 切片から 1 行を落とす → 門1 が赤。
+ ㉘ ソースを走査する番人：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests ＋ CalendarTests|ScholarshipTests|DevaluationCapReliefTests。
+   書き換える件数の予言（㉑）：許可表・件数の数字は 0 件書き換え（上の 4 試験は走査側の名前の寄せだけ・表の数字は同じ）。new MoneyStock( の件数 変化なし。
+ テストの数の予言：2808＋FullLength 3（差 0）。.cost の差 0。
+
+[4] 素の 5 種・計器つき 10 種は m1103 と名乗り行（SOURCE-HASH）を除いて全行一致。段 2 の判定は stage.py。
+[5] 〈判定: 恒等〉なら採る。一致しなければ該当の変更を外して報告に回す。
