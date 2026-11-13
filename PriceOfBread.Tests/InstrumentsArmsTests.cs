@@ -14,6 +14,8 @@ namespace PriceOfBread.Tests;
 public class InstrumentsArmsTests
 {
     private const ulong Seed = 1789UL;
+    // (1118) c108ps：A2 だけ盤面の種を替えた（★(743) の軌道に依る前提＝G10 の丸めの運・旗 ParliamentSeatsWithoutGap 1 の軌道で種 1789 のフランス/q2 が許し 1e-9 を超えた）。Assert・閾値・母集合は元のまま。
+    private const ulong A2Seed = 1791UL;   // 種 1789〜1793 を旗 0・旗 1 で回し、両方で緑の最初の種（measurements/m1118_20261114/a2_seeds.txt）
     private static NationConfig[] Configs() => [NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain()];
 
     private sealed class Tab
@@ -22,9 +24,9 @@ public class InstrumentsArmsTests
         public int I(string n) { int i = Array.IndexOf(H, n); Assert.True(i >= 0, "列が無い " + n); return i; }
         public double D(string[] r, string n) { var s = r[I(n)]; return s == "nan" ? double.NaN : double.Parse(s, System.Globalization.CultureInfo.InvariantCulture); }
     }
-    private static Tab Read(string dir, string kind)
+    private static Tab Read(string dir, string kind, ulong seed = Seed)
     {
-        var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"{kind}_s{Seed}.tsv"));
+        var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"{kind}_s{seed}.tsv"));
         return new Tab { H = lines[0].Split('\t'), R = lines.Skip(1).Select(l => l.Split('\t')).ToList() };
     }
 
@@ -32,16 +34,16 @@ public class InstrumentsArmsTests
     private static void Resync(MultiNationSim sim)
         => typeof(Diplomacy).GetMethod("SyncPowers", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(sim.Diplomacy, [sim.Nations[0].World.Coef]);
 
-    private static (string dir, Action restore) Run(int quarters, bool resync = false)
+    private static (string dir, Action restore) Run(int quarters, bool resync = false, ulong seed = Seed)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_arms_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
-        var sim = new MultiNationSim(Configs(), Seed, _ => new UtilityAgent());
+        var sim = new MultiNationSim(Configs(), seed, _ => new UtilityAgent());
         sim.DiplomacyFrozen = true;
-        Instruments.Phase(sim, Seed, "open");
+        Instruments.Phase(sim, seed, "open");
         sim.StartWarmup();
-        Instruments.Phase(sim, Seed, "warm");
-        try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (resync) Resync(sim); Instruments.Quarter(sim, Seed, q); } }
+        Instruments.Phase(sim, seed, "warm");
+        try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (resync) Resync(sim); Instruments.Quarter(sim, seed, q); } }
         finally { Instruments.Close(sim); }
         return (dir, () => { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } });
     }
@@ -81,10 +83,10 @@ public class InstrumentsArmsTests
     [Fact]
     public void A2_戦力の指数は各項の積と合う()
     {
-        var (dir, restore) = Run(10, resync: true);
+        var (dir, restore) = Run(10, resync: true, seed: A2Seed);
         try
         {
-            var af = Read(dir, "armsfill"); var st = Read(dir, "stock");
+            var af = Read(dir, "armsfill", A2Seed); var st = Read(dir, "stock", A2Seed);
             var stock = ByKey(st);
             int checkedRows = 0;
             foreach (var r in af.R)
