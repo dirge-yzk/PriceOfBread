@@ -28,6 +28,9 @@ def year_ix(h):
     for k in ('year', 'Year', 'yr'):
         if k in h: return h.index(k)
     return -1
+# 既知の揺れの列（ident.cfg の KNOWN と ident_check.py の経路の列＝ソースの行番号・計時）＝比べる前に外す（ident の判定と同じ扱い）
+KNOWN = {'flow': ('sourceFile', 'sourceLine'), 'burscan': ('seconds',), 'clock': ('worldTotalPerMonth',), 'dep': ('callerLine',), 'cearn': ('outTop1Route', 'outTop2Route', 'inTop1Route'), 'cpop': ('outOtherTop1Route',)}
+say('G0 の比べる前に外す列（既知の揺れ）：' + '・'.join(f'{k}:{",".join(v)}' for k, v in KNOWN.items()))
 names = sorted(set(fn for fn in os.listdir(base) if fn.endswith('.tsv')))
 g0_rows = collections.Counter(); g0_bad = collections.Counter(); g0_noyear = set(); g0_missing = set()
 for fn in names:
@@ -43,23 +46,27 @@ for fn in names:
         with open(p, encoding='utf-8', errors='replace') as f:
             h = f.readline().rstrip('\n').split('\t'); yi = year_ix(h)
             if yi < 0: return None
+            drop = set(h.index(x) for x in KNOWN.get(stem, ()) if x in h)
             r = []
             for ln in f:
                 c = ln.rstrip('\n').split('\t')
                 try: y = int(float(c[yi]))
                 except (ValueError, IndexError): continue
                 if y > Y + 2: break
-                if y < Y: r.append('\t'.join(c[:ncut]) if ncut else ln)
+                if y < Y:
+                    if drop: c = [v for i2, v in enumerate(c) if i2 not in drop]; ln = '\t'.join(c)
+                    r.append('\t'.join(c[:ncut]) if ncut else ln)
             return r
     ncut = 12 if stem == 'trnation' else 0   # trnation：末尾 3 列（宣言）を除く元の 12 列
     ra, rb = rows(pa, ncut), rows(pb, ncut)
     if ra is None or rb is None: g0_noyear.add(stem); continue
+    if stem == 'flow': ra, rb = sorted(ra), sorted(rb)   # flow_s は呼び出し位置を除いた行の多重集合で比べる（ident_check.py と同じ）
     g0_rows[s] += len(rb)
     if ra != rb:
         nb = sum(1 for x, y in zip(ra, rb) if x != y) + abs(len(ra) - len(rb))
         g0_bad[(s, stem)] = nb
 say(f'G0：比べた行（種ごと）' + ' '.join(f's{s}={g0_rows[s]}' for s in SEEDS) + f'・違う行のある（種,表）{len(g0_bad)}・年の列の無い表 {len(g0_noyear)}・腕に無い表 {len(g0_missing)}')
-for k, v in list(g0_bad.items())[:20]: say(f'  G0 違う：種 {k[0]} {k[1]} {v} 行')
+for k, v in list(g0_bad.items())[:40]: say(f'  G0 違う：種 {k[0]} {k[1]} {v} 行')
 G0 = 'pass' if not g0_bad and all(g0_rows[s] > 0 for s in SEEDS if first[s]) else 'FAIL'
 
 # ---------- trrail の和 ----------
@@ -83,7 +90,7 @@ G1 = 'pass' if tot['g1ZeroViol'] == 0 and tot['g1JumpRows'] == 0 and tot['g1Form
 G2 = 'pass' if tot['g2Viol'] == 0 and tot['g2Rows'] > 0 else 'FAIL'
 G3 = 'pass' if tot['g3NoShareRows'] == 0 and g3_bad == 0 and tot['paid'] > 0 else 'FAIL'
 G4 = ('pass' if tot['g4Viol'] == 0 else 'FAIL') + ('' if tot['g4Moves'] > 0 else '（移しが 0 件＝機構の試験だけで読む）')
-G7 = 'pass' if tot['g7LockRows'] == 0 and tot['g7FellRows'] == tot['g7ExcessRows'] else 'FAIL'
+G7 = 'pass' if tot['g7LockRows'] == 0 and tot['g7FellRows'] == tot['g7ExcessRows'] and tot['g7ExcessRows'] > 0 else 'FAIL'   # 追記 5：余りの行＞0（空の母集合で緑にしない）
 say(f'G3：州×年（水運の州を除く）{g3_rows} 行・払いと計器の相対の差の最大 {g3_max:.3g}・1e-6 を超えた行 {g3_bad}・水運の州へ払った線路の分 {paid_w:.6g}（記録）')
 
 # ---------- G6 ----------
@@ -119,6 +126,7 @@ G6 = 'pass' if not g6bad else f'FAIL（外の年 {g6bad}）'
 # ---------- G5 と働いた大きさ（G1′）：trroute の側（水運の州を除く）で、その年にその国が機関車を見つけている側のうち、陸の倍率が旧の式（3×鉄道の地形）と違う側の割合 ----------
 def g5(d):
     Z = {}
+    if not os.path.exists(os.path.join(d, 'trstat_s1.tsv')): return 0, 0, (float('nan'),) * 3
     with open(os.path.join(d, 'trstat_s1.tsv'), encoding='utf-8') as f:
         h = f.readline().rstrip('\n').split('\t'); ix = {x: i for i, x in enumerate(h)}
         for ln in f:
