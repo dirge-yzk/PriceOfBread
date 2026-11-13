@@ -1,0 +1,4 @@
+arm	trans	flag1_E	flag1_bound2T	M1_E	M5_reentry	M5_reentry_nonCons	M5_rows	L_eq1	L_eq2	L_3to4	L_5to15	L_16plus
+m1096	202	377	404	1430	134	134	1070	2	0	131	23	46
+n1	213	387	426	1526	143	143	1251	1	0	140	18	54
+n2	216	400	432	1562	146	146	1242	0	1	141	19	55
