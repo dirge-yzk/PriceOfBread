@@ -16,6 +16,7 @@ public class RuleOrderP1Tests
     {
         var w = new Simulation(OpeningFixture.Named("フランス").ToScenario(1789), new NullAgent()).World;
         w.Coef.RuleOrderByRegion = flag;
+        w.Coef.RuleFromPower = 0;   // (1117) 旗 0 の経路の番人（★(832) ① の (a)・段 C′ の旗 1 では P1 の塊を通らない）
         foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; }
         return w;
     }
@@ -170,6 +171,7 @@ public class RuleOrderP1InstrumentTests
             var w = new Simulation(OpeningFixture.Named("フランス").ToScenario(1789), new NullAgent()).World;
             var c = w.Coef;
             c.RuleOrderByRegion = flag;
+            c.RuleFromPower = 0;   // (1117) 旗 0 の経路の番人（★(832) ① の (a)）
             w.PublicOrder = 0.7;
             w.Coercion = 0.6 * Math.Max(1.0, c.PoliticalReferencePop) * c.CrimeOrderPerPop;   // R＝0.6
             int i = 0;
