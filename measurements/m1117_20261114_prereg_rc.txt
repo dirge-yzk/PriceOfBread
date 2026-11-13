@@ -139,3 +139,7 @@
 ## 追記 1（2026-11-14・恒等の段のコミットの前・腕の前）
 - S5 の〈rulepoweralloc_s の四半期 mod 40＝2 の標本〉は入れない：RulePowerAllocTests.A1（:72 `Assert.Equal(["0"], quarters)`）が配りの表の四半期を 0 と 40 おきに固定している＝書き換えは ★(743) の外。門 C1〜C10 はこの標本を読まない（C4 は Vb の重みと ρ_f の等式で、季節に依らない）。指示の S5 の 1 項から外した所として報告の先頭に書く。
 - 〈D〉の計器の呼び口は MultiNationSim の四半期の最終日・Close の前（RulePowerEngine.cs の RulePowerQuarterEnd）。旗 0 でも計器つきの走りでは〈D〉を数える（〈Eng〉は nan）。
+
+## 追記 2（2026-11-14・旗 1 の ㊴ の後・腕 B の前）
+- ㊴（`FullyQualifiedName~Instrument`）の赤 1 本：SecessionLaborLawInstrumentTests.cs:280 `Assert.Equal(CostLedger.ClearingKmRaw + 1, CostLedger.Count)`（台帳の最後の行の名）。区分＝★(749) の〈台帳に行を足した〉型（器のコミットで行〈支配の届きの対〉を足したので旗 0 でも赤＝旧の規則を固定する番人ではない・軌道に依らない）。直し＝最後の行の名を RulePowerPairs へ（Assert の式の形と他の行は変えない）。試験だけの別のコミット。直した後は ㊴ からやり直す。
+- 下書き §6-5 がこの行を〈R の線も同じ行を触る＝合流で解く〉と予言していた。事前登録 §4 に書き落とした（記録）。
