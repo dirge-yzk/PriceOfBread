@@ -1,0 +1,594 @@
+# PriceOfBread.SimCore/Parliament.cs の注（1cd66aae5 の時点・注を履歴へ移した記録）
+
+見出しの数字は 1cd66aae5 の行番号。W＝行ぜんたいの注・T＝コードの後ろの注。
+
+## L3-8 W 直後 `public sealed class PoliticalParty`
+````
+/// <summary>
+/// 政党1つ（F4政党統一・2026-07-12）。常設3党（保守/自由/社会＝族の受け皿・index0-2固定）＋クラスタ由来の動的政党。
+/// **互換射影**＝World.PartySeats[3]/GoverningParty は常に「族」の集計値のまま（既存読者は全て無改修・Runnerの3長配列も安全）。
+/// 動的政党は族内で得票を分け合う（Σ族=不変）。
+/// FactionState参照は持たない（セーブの参照グラフを単純に保つ＝FactionStateと同じ「Region参照＋値」の形）。
+/// </summary>
+````
+
+## L12 T `public int Family;`
+````
+// 0=保守 1=自由 2=社会（互換射影の族）
+````
+
+## L13-13 W 直後 `public int Ideo = -1;              // イデオロギー（動的政党＝国民政党のキー。常設=-1）`
+````
+// 【墓標2026-09-26・回5-1 項目17】Bloc（給源ブロック＝動的与党の選挙時の要求の導出元）＝唯一の読み手（要求の押し込み）の撤去で書くだけの欄になった＝削除（思想⑩）
+````
+
+## L14 T `public int Ideo = -1;`
+````
+// イデオロギー（動的政党＝国民政党のキー。常設=-1）
+````
+
+## L15 T `public double VoteShare;`
+````
+// 全国得票率
+````
+
+## L16 T `public bool Permanent;`
+````
+// 常設3党
+````
+
+## L17 T `public int AbsentQuarters;`
+````
+// 適格クラスタの連続不在（10年で解党）
+````
+
+## L20-29 W 直後 `public static class Parliament`
+````
+/// <summary>
+/// 議会・選挙・政党（段5）。政体（権威/自由の層）の**上に乗る層**：自由な政体では数年ごとの選挙で与党が決まり、
+/// 議席が**党選好×議席**として法の通りやすさ（PolicyPreferences.ParliamentNet→NetSupport）に入る＝**選挙で政権交代→通る向きが変わる**。
+/// 議会は目標（w.Policy）を1つも書かない（2026-09-26・回5-1 項目17＝綱領〔法軸〕と動的与党の選挙時の要求を撤去。経済軸の綱領は 2026-09-19 に撤去済み）。
+/// 党が効くのは法の通りやすさ（議席×党選好＝ParliamentNet）だけ。法軸の旧綱領の段は AI の意図（UtilityAgent.Apply の「議会の構成」の段落）へ移した＝プレイヤーの目標は上書きされない。
+/// 政党＝11イデオロギー（<see cref="Ideologies"/>）の3族クラスタ（PoliticalQuantities.FamilyOf）：保守(伝統/反動/ナショ/帝国/ファシズム/王党派)・自由(自由/共和)・社会(社会/共産/無政府)。
+/// 得票＝Σ 有権者(規模×参政権ゲート) × そのpopのイデオロギー比。＝参政権の拡大が大衆政党(社会/自由)を押し上げる中心ドラマ。
+/// 経済運営（行政費・財政ストレス対応・工業化）は doctrine（<see cref="UtilityAgent"/>）のまま＝党は「色」を、AIは「経営」を担う。
+/// <b>較正保護</b>：ParliamentEnabled が false（合成較正・最小テスト）では即 return＝政体遷移モデルに無干渉。
+/// </summary>
+````
+
+## L34 T `private const int PartyAbsenceDissolveQuarters = 40;`
+````
+// 適格クラスタの連続不在で解党（10年）
+````
+
+## L38 T `if (!w.ParliamentEnabled || !w.PoliticsEnabled || w.InCivilWar) return;`
+````
+// ★B3：述語1本   // 内戦中は平時の選挙を止める（戦乱中の政権交代は非現実的。A-4#12）
+````
+
+## L40 T `if (w.Parties.Count == 0)`
+````
+// 遅延初期化（較正/最小世界＝ParliamentEnabled=falseなら空のまま）
+````
+
+## L46 T `SyncDynamicParties(w, c);`
+````
+// F4：クラスタ→政党の出入り
+````
+
+## L47 T `StepManifesto(w, c);`
+````
+// ★公約の達成判定と支持の減衰（作者指示2026-08-24）
+````
+
+## L49-51 W 直後 `ComputeVotes(w, c);`
+````
+// 政7：得票率（世論）の毎期計算。得票率を VoteShares に置き、PartySeats（政治力学＝ConstMonarchyErosion・
+// 一党支配判定・法案の議席加重が読む）は選挙時のスナップショットで固定（レームダック・任期中の民意乖離）。（旧の旗 SeatsFrozenBetweenElections は 2026-10-18 に焼き込み。）
+// ⚠是正（第2段2-5・2026-07-27）：旧注記「VoteShares＝表示専用」は嘘＝**選挙の新与党判定（Winner）が現在の民意として VoteShares を読む**（凍結時に確定議席でなく民意で交代を決める＝実質の力学読み手）。
+````
+
+## L53-65 W 直後 `bool seatsEmpty = w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9;`
+````
+// ★開院時の議席（2026-08-04・作者指摘「議会の存在感が薄い」）＝**開幕の議会が空席だった**バグの是正。
+//   旧＝選挙政体の PartySeats は QuartersSinceElection が ElectionIntervalQuarters(=16) に達する**最初の総選挙まで全て0**。
+//   その間 ParliamentNet も OpposingPower の議会項も 0＝**1783〜1787の4年間、英も米も議会が法に一切効かない**。
+//   1783年の英には1780年総選挙で選ばれた議会が現に座っている＝「開幕は空席」は史実でも設計でもない単なる初期化漏れ。
+//   直し方＝**新しい判断を持ち込まず**、非選挙政体が毎期使っているのと同じ SnapshotSeats を開院時に1回だけ呼ぶ
+//   ＝「初回は直近の総選挙の結果が既に出ている」。以後は従来どおり16四半期ごと。
+//   （旧の旗 ParliamentSeatOnOpen・SeatsFrozenBetweenElections は 2026-10-18 に焼き込み。）
+//   ⚠**初回Stepでは席を取らない**：Simulation.Step では Parliament.Step が Politics.Step（＝Ideology.UpdateShares）より
+//     先に走るので、1四半期目の IdeologyShares は全て0＝ComputeVotes の縮退フォールバック（族が全く無い時は保守1）で
+//     得票が保守100%になる。そこで席を固定すると**開幕の議会が丸ごと保守党**という嘘の議会が4年間座り続ける（実測で確認）。
+//     QuartersSinceElection>=1＝少なくとも1回 Politics.Step を通った後＝思想分布が出そろっている。
+//   ⚠議席が空のときだけ＝一度きり（選挙後の再入なし・専制から立憲へ移った国は既に席があるので発火しない）。
+//   ★(1099) 旗 NonElectiveSeatsEmpty＝1 では非選挙政体の議席が空＝専制から立憲へ移った国もここで議席と与党が決まる。
+````
+
+## L71 T `w.GoverningParty = (int)Winner(w);`
+````
+// 開院時の与党＝第一党（選挙と同じ判定）
+````
+
+## L78 T `w.QuartersWithElections++;`
+````
+// E0計器：選挙政体の在籍四半期（平均間隔の分子）。カウンタのみ＝挙動不変
+````
+
+## L79-80 W 直後 `bool noConfidence = w.QuartersSinceElection >= (int)c.EarlyElectionMinQuarters`
+````
+// 機能2-5（2026-07-28）：不信任＝与党の民意（VoteShares）が閾値を割ると任期途中でも繰り上げ選挙（第三共和政の短命内閣・
+// 支持基盤の崩れた内閣は保たない）。最短間隔EarlyElectionMinQuartersで選挙の乱発を防ぐ。（旧の旗 EarlyElectionEnabled は 2026-10-18 に焼き込み。）
+````
+
+## L83-91 W 直後 `if (w.PendingElection is null`
+````
+// ★E3公示（選挙doc §3-0/3-2・旧の旗 ElectionEventEnabled=1 で2026-08-17点火・2026-10-18焼き込み）：次の四半期が定期総選挙なら公示が立つ。
+//   繰り上げ（不信任）には公示なし＝準備の時間が無いのが史実の解散総選挙。
+// ★E4・AI等価物（作者裁定2026-08-17「AI・プレイヤー完全等価。プレイヤーにのみ使える手段があってはならない」）：
+//   旧＝`w.SelfPower?.IsPlayer == true` で**プレイヤー国にだけ公示が立ち、AIは常に即決＝素の得票**だった
+//   ＝選挙への介入がプレイヤー専用の手段になっていた（総動員・移民法・国教法・幽霊戦線と同じ形の非対称）。
+//   直し方＝**機構としての公示は全国に立てる**／モーダルを出すかどうかはUIの都合（App が PendingElection を見て
+//   プレイヤー国のときだけポップアップする）＝UIの都合を SimCore に持ち込まない。
+//   AI国は**この場で**同じ動詞（World.ResolveElection）に答える＝未回答の公示を次の開票（下の開票時クリア）まで持ち越さない。
+//   ⚠プレイヤー国の公示は本人が答えるまで残る（既存挙動）＝AIが人の選挙を代行しない（Politics の危機イベントと同じ規律）。
+````
+
+## L96 T `w.ElectionCalls++;`
+````
+// 診断カウンタ（書くだけ・力学は読まない）
+````
+
+## L103 T `w.GoverningParty = (int)Winner(w);`
+````
+// 選挙＝最大党が組閣（過半数なくても第一党）。カウンタを0に戻す前に勝者を確定（順序不問＝恒等）
+````
+
+## L105 T `w.ElectionsHeld++;`
+````
+// E0計器：総選挙の実施（定期・繰り上げの別を問わない）
+````
+
+## L106 T `SnapshotSeats(w);`
+````
+// 政7：選挙で議席を確定（以後の世論変動は VoteShares のみ動く）
+````
+
+## L107-107 W 直後 `w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null;`
+````
+// ★E3：加担の押し込みは開票1回で消費（未回答の公示も流す＝択の先送りは「何もしない」と同じ）
+````
+
+## L113-113 W 直後 `w.GoverningParty = (int)RulingParty(w.Polity);`
+````
+// 権威主義・独裁＝選挙なし。与党＝統治ブロックの党。
+````
+
+## L116-119 W 直後 `w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null;`
+````
+// ★E4（2026-08-17）：議会が消えた（政変で非選挙政体へ転げた）＝**公示も加担も失効**する。
+//   ⚠これが無いと、公示から開票までの間に政体が転げた国で押し込み（ElectionPushIdeology）が開票時のクリアに永久に到達せず、
+//     ComputeVotes は毎四半期走る（非選挙政体は毎期 SnapshotSeats）ので**一度きりの動詞が恒久の議席補正になる**。
+//   プレイヤー国・AI国の区別なし＝同じ機構。
+````
+
+## L121-122 W 直後 `if (c.NonElectiveSeatsEmpty > 0) { w.PartySeats[0] = 0; w.PartySeats[1] = 0; w.PartySeats[`
+````
+// ★(1099) c105gp：旗 NonElectiveSeatsEmpty＝1 では非選挙政体の議席は空（和 0）＝与党は政体の札（上の RulingParty）だけ・議席は持たない。
+//   選挙の政体へ移ったら、上の開院の分岐（議席が空）が議席と与党を同じ得票で決める（与党と議席が別の規則で食い違う型を閉じる）。
+````
+
+## L124 T `else SnapshotSeats(w);`
+````
+// 政7：非選挙政体は毎期スナップショット＝VoteShares と PartySeats は恒等（凍結でも従来同値）
+````
+
+## L127 T `w.GoverningPartyName = GoverningPartyOf(w)?.Name ?? "";`
+````
+// F4：与党の実体名（族内最大得票・未初期化=空でUIが族名へフォールバック）
+````
+
+## L128-133 W 直後 `}`
+````
+// 【墓標2026-09-26・回5-1 項目17】ここにあった3つを撤去＝議会は目標を1つも書かない。
+//   ①綱領 ApplyPlatform（選挙政体で自由党・社会党が与党だと、毎四半期、教育法・参政権・労働時間・労組の目標をプレイヤー国の分まで上書き）
+//   ②動的与党の選挙時の要求（FactionSnapshot.ComputeDemands→TargetDemand を門なしで。関税・累進・社会保障を含む軸を上げ下げ1段ずつ）
+//   ③非選挙政体の return（係数 NonElectedSkipsPlatform＝①②の後ろに何も残らず意味を失った）。
+//   法が通るか・どれだけ速く動くかは従来どおり議席×党選好（PolicyPreferences.ParliamentNet→NetSupport・OpposingPower）。
+//   ①の段は AI の意図（UtilityAgent.Apply の「議会の構成」の段落・与党の札で読む）へ移した＝値も適用範囲も同じで、門（GateAllLawTargets）の前に置く。
+````
+
+## L136-136 W 直後 `public static void Dissolve(World w)`
+````
+/// <summary>機能2-4（2026-07-28）：議会の解散＝任期満了扱いにして次のStepで総選挙（プレイヤーの動詞。AI側の等価物＝不信任の繰り上げ選挙2-5）。</summary>
+````
+
+## L143-143 W 直後 `private static void SnapshotSeats(World w)`
+````
+// 政7：現在の得票率（VoteShares）を確定議席（PartySeats）へ書き写す。選挙時（選挙政体）・毎期（非選挙政体）に呼ぶ。
+````
+
+## L151-154 W 直後 `public static List<(string Class, double Voters, double Cons, double Lib, double Soc)> Sup`
+````
+// 議席シェア（得票率）。有権者（参政権ゲートを通る規模）× そのpopのイデオロギー比 を党へ集計。
+/// <summary>党別の支持基盤（2026-08-04・作者指摘「POPの誘導が困難で、議会に影響を与えるのが難しい」）。
+/// 階級ごとに「有権者としての重み」と「その票が3族へどう割れるか」を返す＝**誰を動かせば議席が動くか**の地図。
+/// ★ComputeVotes と**同じ式**（FranchiseVoice × IdeologyShares の族集計）＝表示と実体が一致する。副作用なし。</summary>
+````
+
+## L159 T `foreach (var (rg, p) in w.AllPopsWithRegion())`
+````
+// ★(471) 議席の票は SeatVoice の 1 本（州を持つ列挙・順は AllPops と同じ）
+````
+
+## L175-175 W 直後 `list.Sort((a, b) => b.Item2 != a.Item2 ? b.Item2.CompareTo(a.Item2) : string.CompareOrdina`
+````
+// 票の多い順。同数は階級名で決める＝Dictionary の列挙順（挿入順に依存）が表示に漏れない。
+````
+
+## L182 T `var eff = w.Suffrage;`
+````
+// 実効参政権＝法律値（政体含意は floor-raise で法へ畳み込み済・倍率排除②）
+````
+
+## L183-186 W 直後 `int push = w.ElectionPushIdeology;`
+````
+// ★E3（選挙doc §3-2・未加担＝push=-1＝分岐に一度も入らない）：
+//   加担した思想のシェアだけ (1+効き×Scale) 倍で票を集計＝その pop の中で票が移る（voters総量は保存）。開票1回で消費（Step側でリセット）。
+//   ★E3''（2026-08-17）：ElectionPushStrength は**効き**＝投入額の逓減 A/(A+半減点)∈[0,1)（World.ElectionPushEffectOf）
+//   ＝ここは「いくら注いだか」を知らない（金と効きの翻訳は唯一の口 World.ResolveElection が済ませている）。
+````
+
+## L190-191 W 直後 `bool dynamic = w.Parties.Count > 3;`
+````
+// F4：政党別の得票の素材（族の中の分割）＝動的政党がある時だけ、同じ走査で思想別の票も積む（走査を2度しない）。
+// 動的政党（国民政党＝イデオロギー単位）の票田＝その思想への全国票。
+````
+
+## L194 T `foreach (var (rg, p) in w.AllPopsWithRegion())`
+````
+// ★(471) 議席の票は SeatVoice の 1 本（州を持つ列挙・順は AllPops と同じ）
+````
+
+## L199-199 W 直後 `double pc = 0, pl = 0, ps = 0;`
+````
+// 第5段5-1（2026-07-27）：思想→3族の写像を PoliticalQuantities.FamilyOf に一元化（保守=伝統0+反動1+ナショ4+帝国8+ファシズム9+王党派10・自由=2+3・社会=5+6+7＝従来と同値）。
+````
+
+## L208 T `if (sum < 1e-9) { pc = 1; sum = 1; }`
+````
+// 退避＝保守（伝統100%等）
+````
+
+## L212 T `double sumI = s[0] + s[1] + s[4] + s[8] + s[2] + s[3] + s[5] + s[6] + s[7] + s[9] + s[10];`
+````
+// ファシズム(9)・王党派(10)も算入（E7/2026-08-29点火・両ゲート0で+0＝恒等。wave2b：Ideologies.Count=11への型拡張後の旧読み手＝王党派だけ分母から漏れて族計÷(1−s[10])に膨張していた）
+````
+
+## L213 T `if (push >= 0) sumI += s[push] * (pushMul - 1.0);`
+````
+// ★E3：族集計と同じ押し込みを党内訳にも（push=-1＝実行されない＝恒等）
+````
+
+## L214 T `if (!(sumI < 1e-9))`
+````
+// 思想なし＝族集計では保守族へ退避済み（常設保守が引き算で受ける）
+````
+
+## L219 T `if (Instruments.On) w.DiagSfVoteWeightUsed = cons + lib + soc;`
+````
+// ★(471) 計器（読むだけ）：この期の票の重みの合計（sf_s の voteWeightUsed）
+````
+
+## L220 T `double v0 = cons / t, v1 = lib / t, v2 = soc / t;`
+````
+// 全国得票率（純比例）
+````
+
+## L221-222 W 直後 `if (c.ElectoralDistortion > 0)`
+````
+// 政9：得票→議席の制度歪み（第一党ボーナス＝小選挙区の死票の近似）。ElectoralDistortion（既定0.3）：0で純比例（恒等）。
+// >0で得票率を凸変換（v^(1+γ) を再正規化）＝第一党の議席プレミアム・小党の過小代表。プロイセン三級選挙制・単純小選挙区の歪みを一係数で。
+````
+
+## L230-231 W 直後 `w.VoteShares[0] = v0; w.VoteShares[1] = v1; w.VoteShares[2] = v2;`
+````
+// 政7：得票率は VoteShares に置き、PartySeats（政治力学が読む確定議席）は SnapshotSeats（選挙時/非選挙政体の毎期）でのみ更新＝レームダック。
+// 第3段3-6（2026-07-27）：SeatsFrozenBetweenElections=1.0（政7点火）を焼き込み＝旧・毎期上書き枝（到達不能）を削除（旗そのものは 2026-10-18 に削除）。
+````
+
+## L234-235 W 直後 `if (dynamic)`
+````
+// F4：政党別の得票（族の中の分割＝**族計は上のv0-2と厳密一致**＝互換射影の恒等）。常設党＝族計−Σ動的（族の残り全部）。
+// 政9の歪みは族単位で掛かった後を比例配分（族内の相対比は素の得票比）。
+````
+
+## L252-255 W 直後 `private static void SyncDynamicParties(World w, Coefficients c)`
+````
+// F4：クラスタ→政党の出入り（裁定2026-07-11「統制力>0かつ参政権がブロックに票を与えるクラスタが政党化・他は在野運動」）。
+// 政党は**国民政党＝イデオロギー単位**（SPDは一つの党＝州ごとの支部ではない・共産党は社会党から割れる）＝動的政党の上限＝思想数（Ideologies.Count）/国でチャーンなし
+// （州×ブロック×主軸の粒度は結党649-909回/125年の明滅チャーンになった実測2026-07-12）。族＝ComputeVotesと同じ3分類。
+// 政党は運動より粘る組織（機関紙・党舎・名簿）＝適格クラスタの10年不在で解党（票は族の常設党へ戻る）。
+````
+
+## L265 T `if (w.ParliamentControl <= 0) return;`
+````
+// 議会に力がない＝新規の政党化は起きない
+````
+
+## L283-283 W 直後 `private static bool Qualifies(World w, Coefficients c, FactionState f)`
+````
+// 政党化の適格＝結束した運動体×活きた本拠州×そのブロックに票がある（F3b発言権と同じ法の階級ゲート）。
+````
+
+## L289 T `: (w.Suffrage >= Suffrage.AdultMale ? 1.0 : 0.0);`
+````
+// 大衆と第4束「小営業」(bloc3)＝男子普選から（Politics.FactionStrength と同じ物差し。プチブル利益束2026-08-15）
+````
+
+## L299-299 W 直後 `public static PoliticalParty? GoverningPartyOf(World w)`
+````
+/// <summary>与党の実体＝与党「族」の中で最大得票の政党（常設含む・同点は先着＝常設優先＝決定論）。政党リスト未初期化ならnull。</summary>
+````
+
+## L308-313 W 直後 `internal static void TargetDemand(World w, PolicyAxis a, bool inc)`
+````
+// 要求を**政策目標**へ1段置く（現行法から要求方向へ1段＝Governmentの利益集団ゲートが可決を律速＝強制施行のApplyDemandとは別物）。
+// 呼び手＝危機の要求（TargetCrisisDemands）と州一揆への譲歩（Politics.ConcedeToRevolt）。
+// internal（2026-08-10）：番人テストが軸ごとの「目標を置く経路」を直接叩けるように（理由は Politics.ApplyDemand と同じ）。
+// ★要求は法の経路（2026-09-11）：置く前に**法律タブと同じ** Government.GateInfo を見て、通らない段は置かない（＝拒否）。
+//   LawRowVM.CanReachAndAfford（前提DAG＋純支持ゲート）と同じ関数＝AIとプレイヤーの「置ける段」が1本の物差しで決まる（幽霊戦線も作らない）。
+//   ★2026-09-26（回5-1 項目17）：門を見ない呼び手（議会の動的与党の要求）の撤去で引数 gated を削除＝常に門を見る。
+````
+
+## L323 T `bool FlipTo(bool cur) => cur != inc && !Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok ? c`
+````
+// bool法＝同じ門
+````
+
+## L324-327 W 直後 `double Slide(double cur, bool staged = false)`
+````
+// ★税・支出の段（作者裁定2026-09-12 R1）：段になった軸は**段で置く**（staged:true）。
+//   ⚠0.15刻み（FactionConcessionSlider）のままだと段の第1境界0.175を越えられず「要求は成立するが施行されない no-op 要求」が生える
+//     （社会保障が 2026-09-11 に同じ罠で Slide→段へ直された前例）。StepTo が法律タブと同じ門（GateInfo）を見る。
+//   段を持たない連続の軸（社会保障の水準・関税・海軍維持費・専売）は旧式（0.15刻み）。
+````
+
+## L330 T `? Government.TaxValue(a, StepTo(Government.TaxStage(a, cur), Government.TaxLawStages))`
+````
+// ★錨2026-09-18＝段↔率の写像は Government の2本だけ（軸ごとの錨）
+````
+
+## L342 T `case PolicyAxis.WomenRights: p.WomenRights = (WomenRightsLaw)StepTo((int)w.WomenRights, 3)`
+````
+// ★統合法（2026-08-10）：現行段から1段ずつ（旧・bool2本の直接反転を置換）
+````
+
+## L343 T `case PolicyAxis.IncomeTax: p.IncomeTaxTarget = Slide(w.TaxRate.Value, staged: true); break`
+````
+// ★R1：段
+````
+
+## L344-345 W 直後 `case PolicyAxis.SocialSecurity: p.SocialSecurityTarget = StepTo((int)w.SocialSecurityLaw, `
+````
+// ★要求は法の経路：社会保障は法（Government.Step が SocialSecurityLaw を StepEnum）＝目標は法の段（v/3＝法律タブ GameViewModel.Law.cs と同じ単位）で置く。
+//   旧 Slide(+0.15) は Government の Round(Q5(target)×3) で段に届かない（0.15→0.45→0段）no-op 要求になりうる（ApplyDemand の直書きが隠していた）。
+````
+
+## L348 T `case PolicyAxis.PollTax: p.PollTaxTarget = Slide(w.PollTax, staged: true); break;`
+````
+// ★R1：段
+````
+
+## L349 T `case PolicyAxis.ProgressiveTax: p.ProgressiveTaxTarget = Slide(w.ProgressiveTax, staged: t`
+````
+// ★R1：段
+````
+
+## L350-351 W 直後 `case PolicyAxis.EducationSpending: p.EducationSpendingTarget = Slide(w.EducationSpending, `
+````
+// ★段になった3軸（R1/R2・2026-09-12）＝下の「doctrine の領域だから党綱領は触れない」の線引きは**法になった軸について解除される**
+//   （法である以上、与党の綱領が目標を置ける＝法律タブと同じ p.X・可否は同じ GateInfo）。行政費は段にしないので従来どおり触れない。
+````
+
+## L354 T `case PolicyAxis.Coercion:`
+````
+// 武力スライダー＝軍事費の合計（1..4段）。書き込み口は陸海比を保つ既存の1本＝Policy.MilitarySpendingTarget
+````
+
+## L356 T `/ (double)Government.MilitaryLawStages;`
+````
+// Max(1,…)＝「なし」を作らない（StepTo のクランプ下限0の受け）
+````
+
+## L358-358 W 直後 `case PolicyAxis.ConscriptionLaw: p.ConscriptionLaw = (ConscriptionLaw)StepTo((int)w.Conscr`
+````
+// 02断線走査（2026-07-28）：E5/E6の8軸＝動的与党の要求綱領が目標を置けるように（施行はGovernmentの政治ゲート越し＝従来どおり）。
+````
+
+## L359 T `case PolicyAxis.ConscriptionLaw: p.ConscriptionLaw = (ConscriptionLaw)StepTo((int)w.Conscr`
+````
+// ★3値化2026-08-01：上限1では国民皆兵に届かない
+````
+
+## L360 T `case PolicyAxis.ImmigrationRestriction: p.ImmigrationRestriction = (ImmigrationLaw)StepTo(`
+````
+// ★是正2026-08-01：目標を置く経路が1つも無かった
+````
+
+## L361 T `case PolicyAxis.SpecialistExitBan: p.SpecialistExitLaw = (SpecialistExitLaw)StepTo((int)w.`
+````
+// ★段⑤（2026-08-17）
+````
+
+## L362-362 W 直後 `case PolicyAxis.MonetaryStandard: p.MonetaryTarget = StepTo((int)w.MonetaryLaw, 2); break;`
+````
+// ★是正2026-08-01：同上（兌換の維持＝増加向き）／★3値化2026-08-13（点火1.0=2026-08-21・旧の旗 SilverStandardGate は 2026-10-18 に焼き込み）：銀を経由する梯子では1段ずつ
+````
+
+## L364 T `case PolicyAxis.CapitalMobility: p.CapitalControlTarget = FlipTo(w.CapitalControlLaw); bre`
+````
+// ★資本移動の法（トリレンマdoc・2026-08-13）＝増加向き＝規制
+````
+
+## L365-366 W 直後 `case PolicyAxis.ColonialSuffrage: p.ColonialSuffrage = (ColonialSuffrageLaw)StepTo((int)w.`
+````
+// 参政権の範囲2法（2026-08-16）：ここは要求top-k経由のみ
+// ＝休眠中は Pref=0 で要求に載らず不到達・点火時に目標を置く経路が無いと no-op 要求になるので先に配線（2026-08-01の是正と同型）。
+````
+
+## L369 T `case PolicyAxis.NavyUpkeep: p.NavyUpkeepTarget = Slide(w.NavyUpkeep.Value); break;`
+````
+// ★海軍維持費（2026-08-10 作者裁定）＝綱領は目標だけを置く（施行は Government の政治ゲート越し）。旧・海軍偏重の振り替え先
+````
+
+## L372 T `case PolicyAxis.ChildLabor: p.ChildLaborAllowed = FlipTo(w.ChildLaborAllowed); break;`
+````
+// 児童労働法（02断線走査2026-07-28）
+````
+
+## L373 T `case PolicyAxis.StateReligion: p.StateReligion = (StateReligionLaw)System.Math.Min(StepTo(`
+````
+// 上限=信仰の自由（国家無神論は政体の属性）
+````
+
+## L375 T `case PolicyAxis.Guild: if (w.Coef.GuildLawGate > 0) p.Guild = (GuildLaw)StepTo((int)w.Guil`
+````
+// ★特権 段4（ゲート0では綱領に載せない）
+````
+
+## L376 T `case PolicyAxis.Inheritance: p.Inheritance = (InheritanceLaw)StepTo((int)w.Inheritance, 4)`
+````
+// ★相続法（線 inh (650)・門の係数 InheritanceLawGate は (843) で焼き込み）
+````
+
+## L377 T `case PolicyAxis.MinimumWage: p.MinimumWage = (MinimumWageLaw)StepTo((int)w.MinimumWage, 3)`
+````
+// ★最低賃金法（線 lw (459)・門の係数 MinimumWageLawGate は (843) で焼き込み）
+````
+
+## L379 T `case PolicyAxis.MilitaryExport: p.MilitaryExportBan = FlipTo(w.MilitaryExportBan); break;`
+````
+// 軍需輸出の法（禁制品doc C5・2026-07-30）
+````
+
+## L380 T `case PolicyAxis.CivilianArms: if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = F`
+````
+// ★民間の武器購入の法（2026-09-11・ゲート0では綱領に載せない）
+````
+
+## L381 T `case PolicyAxis.OpiumPossession: p.OpiumPossession = (ReformLevel)StepTo((int)w.OpiumPosse`
+````
+// 阿片の保有法（C3・2026-07-30）
+````
+
+## L382 T `case PolicyAxis.OpiumExport: p.OpiumExportBan = FlipTo(w.OpiumExportBan); break;`
+````
+// 阿片の輸出法（C3・2026-07-30）
+````
+
+## L383 T `case PolicyAxis.Nationalization:`
+````
+// 未点灯の最初の1部門を目標に（enum順＝決定論。減少向きは点灯中の最後を解除）
+````
+
+## L384-384 W 直後 `if (!Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok) break;   // ★要求は法の経路：部門を灯す/消す目標も同じ門`
+````
+// 最終段『全て』（§11-6d）は前提DAG（プロレタリア独裁のみ＋官僚制度）を綱領でも踏む＝通らない目標を置いて幽霊戦線を開かない。
+````
+
+## L385 T `if (!Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok) break;`
+````
+// ★要求は法の経路：部門を灯す/消す目標も同じ門
+````
+
+## L389-390 W 直後 `}`
+````
+// 行政費＝doctrine（AIの経営）の領域＝要求は置かない。
+// ⚠治安維持力（軍事費）・教育費・土地税は 2026-09-12 の段（R1/R2）で**法になったので上の3 case が置く**。
+````
+
+## L394-399 W 直後 `internal static void TargetCrisisDemands(World w)`
+````
+/// <summary>★要求は法の経路（作者裁定2026-09-11）：F1 州一揆に譲歩した段（World.PendingRevoltDemand＝Politics.ConcedeToRevolt が記録）と、
+/// 危機が立った運動（PendingFactionCrisis）の要求を、通る段だけ法の目標に置く。
+/// 呼び手＝AI（SelfPlay.Apply の末尾＝下からの改革圧力と同じ位置）／初心者経路（Runner）／番人テスト。プレイヤーは法律タブで同じ p.X を書く
+/// （LawRowVM.CanReachAndAfford＝同じ GateInfo で可否）。IsPlayer は読まない。置かない判断＝GateInfo が否（政治資本が届かない・前提・不可逆・憲法級）
+/// ＝法律タブでその段が押せないのと同じ物差し。要求は ComputeDemands（lawsOnly＝法だけ）＝スライダー軸はここに来ない。
+/// F1 の梯子の段は全て法（穀物法／労働時間／社会保障／農奴解放／参政権）＝同じ1本で置く（先に置く＝同じ軸で食い違えば危機の要求が最後の言葉）。</summary>
+````
+
+## L411-412 W 直後 `int best = 0; double bv = w.VoteShares[0];`
+````
+// 純多数決（現職効果 IncumbencyBias は 2026-10-11 (271) に削除＝既定 0 で通らない枝だった）。
+// 得票は VoteShares（今期の世論）で判定＝凍結時は確定 PartySeats（前回スナップショット）でなく現在の民意で新与党を決める。非凍結（既定）は VoteShares==PartySeats で恒等。
+````
+
+## L419-419 W 直後 `private static Party RulingParty(Polity p) => p switch`
+````
+// 選挙のない政体の与党＝統治ブロックの党。
+````
+
+## L424 T `_ => Party.Conservative,`
+````
+// 絶対/専制/幕府/軍政/無政府＝旧支配層・軍＝保守
+````
+
+## L427-430 W 直後 `private static void StepManifesto(World w, Coefficients c)`
+````
+/// <summary>★マニフェスト（作者指示2026-08-24）＝総選挙で加担した議題の達成判定。
+/// 公約した軸が約束の向きへ <see cref="Coefficients.ManifestoFulfillMove"/> 以上動いたら達成＝加担した思想へ支持が乗る
+/// （Ideology.UpdateShares が読む減衰ストック）。軸の位置は要求の可動域と同じ FactionSnapshot.AxisPosition＝物差しは1本。
+/// プレイヤーもAIも World.ResolveElection で公約を持つので、この判定も両者同一。</summary>
+````
+
+## L437 T `if (!(moved >= c.ManifestoFulfillMove.Value)) return;`
+````
+// 否定形＝NaN も未達成側へ落とす
+````
+
+## L443-446 W 直後 `internal static ElectionEvent BuildElectionEvent(World w, Coefficients c)`
+````
+/// <summary>★E3（選挙doc §3-0-0）：公示イベントの生成＝**その時点で支持上位3つの思想**が議題を掲げる。
+/// 議題＝その思想の族の要求top1（FactionSnapshot.ComputeDemands＝strength×Headroom の既存順位づけ・手書きの思想→議題表なし）。
+/// 族単位の看板は思想単位より粗いが台本ゼロ（docの例＝伝統→穀物法維持も保守族の要求として出る）。精緻化はE4点火後の実測を見て。
+/// 時代ゲートは自動（§3-0-0b）＝ファシズム(9)はその国がファシズムを見つける（発見の表の思想の行・Ideologies.EraGates）前はシェア0＝上位3に入らない。</summary>
+````
+
+## L451 T `foreach (var (rg, p) in w.AllPopsWithRegion())`
+````
+// ★(471) 議席の票は SeatVoice の 1 本（州を持つ列挙・順は AllPops と同じ）
+````
+
+## L460-460 W 直後 `Span<int> top = [-1, -1, -1];`
+````
+// 支持上位3（LINQ不使用＝SimCoreの作法）
+````
+
+## L488-490 W 直後 `public sealed class ElectionEvent`
+````
+/// <summary>★E3（選挙doc §3-0〜3-2・全国に公示）：総選挙の公示＝プレイヤーの択待ち（AI国は同じ四半期に UtilityAgent.DecideElection が答える）。
+/// 択は「どの思想に加担するか」1つだけ（§3-2a＝議題を個別に倒す択は置かない＝法の束の原則）。
+/// 議題は「今回は何が焦点か」を知るための情報であって、個別に操作する対象ではない。</summary>
+````
+
+## L493 T `public int[] AgendaIdeologies = [];`
+````
+// 支持上位3思想（Ideologies 添字・支持降順）
+````
+
+## L494 T `public PolicyAxis[] AgendaAxes = [];`
+````
+// 各思想の看板議題の法軸（代価＝この軸への世論の純支持で決まる・World.ResolveElection）
+````
+
+## L495 T `public bool[] AgendaIncrease = [];`
+````
+// 看板の向き（強化か緩和か）
+````
+
+## L496 T `public string[] AgendaLabels = [];`
+````
+// 表示用「思想：議題」（UIのポップアップが読む）
+````
+
