@@ -18,7 +18,8 @@ public static class Parliament
 
     public static void Step(World w, Coefficients c)
     {
-        if (Instruments.On) Instruments.ParlHead(w);
+        bool ins = Instruments.On;   // (1118) 計器の門は 1 回だけ読む（OnDoubleReadScanTests）
+        if (ins) Instruments.ParlHead(w);
         if (!w.ParliamentEnabled || !w.PoliticsEnabled || w.InCivilWar) return;
 
         if (w.Parties.Count == 0)
@@ -35,7 +36,7 @@ public static class Parliament
         if (gapless && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
             && w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9 && !HasIdeology(w))
             Ideologies.UpdateShares(w);
-        if (Instruments.On) Instruments.ParlPreVotes(w);
+        if (ins) Instruments.ParlPreVotes(w);
         ComputeVotes(w, c);
         bool seatsEmpty = w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9;
         if (seatsEmpty && (gapless ? HasIdeology(w) : w.QuartersSinceElection >= 1)
