@@ -1,0 +1,72 @@
+(1103) 合流（波105）の予言（merge より前に書く・結果を見た後に直すなら追記で名乗る）
+書いた担当：Claude Opus 5.5（合流）。基点 fff0f1658（m1087 の盤面・(1096) の木）。
+線：挙動 c105rr (1097) e3be5ed13・挙動 c105mc (1098) e98da28cf・挙動 c105gp (1099) a6951d0f3・恒等 c105ix (1100) 1993c61fd・読む c105s08 (1101)・設計の材料 c105cq (1102)（コミットなし・D:/PoB_work/r1101_work・r1102_work）。
+作者「しばらくの間、全て推奨で」で推奨を採った物は文中に書く。
+
+[0] 入れる線と外す線（結果を見る前に決める）
+- c105ix：入れる（段 2〈判定: 恒等〉・反証役 v に高なし）。v の中 2〈耐久品も 120 行で 1e-3 を超えてずれる〉〈A2 は暮らし×装備でなく readinessShare を掛けた＝事前登録の形と違う〉は記録の先頭へ（計器の注の直しは線の担当へ戻す＝合流はエンジンの .cs を直さない）。
+- c105mc：腕 B が無い＝自分の門を通っていない＝挙動の線としては入れない。旗 0 の器だけ入れる＝4837ee729 まで（旗 MineralScaleCapLift の既定 0・腕 Z〈判定: 恒等（段 1）〉を測った 5086326bd＋成績表のコミット）と、e98da28cf の記録 2 ファイル（measurements/m1098_20261113/suite_flag1.txt・scripts/instruments/c105mc/suite1098.sh）の写し。347b1642d（旗 1）は入れない。
+  理由：器は恒等（測った種で一致）・次の波のやり直しで器と単体の試験と門の台本を使い回せる。v2 の中〈単体の試験は床の道だけ〉〈G1・G1b は構築で決まる〉は次の波の事前登録の材料（記録）。
+  赤 3 本の生は D:/PoB_work/c104cp_work/suite/（自分の物でない・触らない・報告に名乗る）。3 回の規則＝★(899) により数えない。
+- c105gp：入れる候補（門 G1〜G4 が両側で通る・止める線 0・反証役 v・v2 に高なし）。最終の採否は S11 で 1 回だけ（[4]）。
+  記録の先頭：v2 の中〈最低賃金法の施行の行 +48%（ヌル腕 3 本の幅の外）・.cost の籠の走査 +0.83 秒〉・v2 の低〈内戦中に選挙の政体へ移った国は内戦が終わるまで議会が 0（最長 14 四半期）〉・v の〈教訓 ① の恒等の計器なし〉・WriterRatchet の予言の外れ（★(899)）・㉘ を器のコミットの前に回した。
+- c105rr：入れる候補。最終の採否は S11 で 1 回だけ。
+  採否の判断（結果の前）：v2 の〈高〉は帰属（attrib ②）と申し送り 1 への指摘。事前登録 §3 の〈働いた〉の門は G1′（発見後の側で旧の式と違う割合 ≧0.01）で、腕 B は 0.50（ヌル腕 0.0014〜0.0044）＝門は通った。〈発見から 1〜2 年で φ＝1〉は §2 の段 0 の予言（記録）で、採否の狙いの数字ではない。§2 の〈投資家の乏しい州が買えない〉は機構の説明で門ではない（v2 の実測 7%）。
+  ＝採る候補に残す。条件：attrib ② と申し送り 1〈φ の分母から脅威の項を外す〉を取り下げ、〈φ＜1 の主な原因は州の取り分の揺れ（未確定）〉と書き直す・00一覧〈次の波〉に申し送り 1 を写さない・G1′ は〈働いたのは need の揺れの分が大半〉と書き添える。
+  〈外れた所〉の先頭に書く物（結果の前）：G4 は腕では読まない（TakeRailForMove の計器の頭と終わりが続けて呼ばれる＝構造上 0）＝機構の試験（ConservationTests・RailByRegionTests の G4）だけで読む。G3 は払いの 72% だけを照合した（水運の州 28% は計器の母集合の外・事前登録に外す文が無い）。形の変え直し（⑭）＝4f2e1da99 の perGood = default（旗 1 のフルスイートの後のエンジンの変更・値は同じ 0.0）を 1／1 と数える。旗 1 では rulepower_s の RhoNoRail・RhoFullRail は無効な列（InstrumentsRulePower の影が φ の混ぜた terrCost に比を掛ける）＝c105cq の材料の末尾に足す。G0 の切り口は結果の後に直した（自己申告どおり）。持ち物の外の行（MultiNationSim.cs の CostLedger 4 か所・Instruments.cs 2 か所・ZeroPopSkipTests.cs:21）。前面 600 秒の塞ぎ 1・覗き 3 回超。反証役は線の中で立てていない（合流の反証役 v・v2 が読んだ）。
+- 読む線 c105s08：写す。v の中 2 を写す前に直す（mk_ledger.py:146 の年の切り出し＝H035 を out_freq の 4 腕の値へ・H012 を〈未確かめ（列なし）〉へ戻す＝働く 26・未確かめ 8）・v の低を直す（H038 に段 R の印・H025 と K4 に倍率の一掃 B の印・K1→S08-K1 の改名・K の表の scripts の列は写した後の記録へ）。直した所を名乗る。
+- 設計の材料 c105cq：本文は変えず、題の行に状態を書き、反証役 v の訂正 13 件と rr の v2 の〈旗 1 の影の ρ のずれ〉を末尾に足す。
+
+[1] 順と衝突
+- 順＝c105ix → c105mc（4837ee729）→ c105gp → c105rr（`--no-ff`・全ての merge コミットに署名の行）。git merge-tree を順に重ねて衝突 0（確かめた・最後の木 ca2dfcf3）。その後に mc の記録 2 ファイルを写すコミット。
+- 消す名前：rr が PairKm（メソッド）・BuyToward の旧の署名・World.RailCapacity の set（読み口へ）・TrNat の列の書き方を変える・mc が catMax の 1 行を置き換える。他の枝（ix・gp・mc）の追加の行で RailCapacity・PairKm・BuyToward・CostLedger・LastPairWasLand・TrNat・freightPool・DeadMarketMonth を grep＝当たり 0（確かめた）。
+- 同じファイルの重なり：Coefficients.cs（rr＝TransportBuildRate の隣 6 行・gp＝:233・mc＝:3406）・DormantIdentityTests.cs（rr :31・:167・gp :127・mc :97）・Instruments.cs（ix＝CenterFold・CenterClose の隣 2 行・rr＝:240・:1983）＝塊が離れて衝突 0。
+
+[2] 試験の数と取り直し（合わせた木で 1 回だけ）
+- --list-tests：Category!=FullLength＝2790＋ix 5＋mc 1＋gp 4＋rr 8＝2808・FullLength 3。
+- フルスイートは腕より先に回す（合わせた木・旗 1・10 種の腕と並べない）。予言：赤は WriterRatchetTests〈計算量の見た件数は宣言した表を超えない〉の軌道の件数の行だけ（gp・mc が item 11・34 を見た・rr は旗 1 で見ていない）＝★(749)〈軌道の件数の行は動きうる・合わせた木で 1 回だけ取り直す〉と種類で予言する（★(899)・どの item かは予言しない）。取り直しは試験だけの別コミット・前後の値を書く。
+  それ以外の赤（WarInstrumentTests の対照・DiscoveryClockTests の並列の競り合い・機構の試験）が出たら：試験のバグ（★(743)・㊴ の区分で名乗れる物）でも合流は直さない＝赤の線を外すか止めて報告に回す（直しは線の担当）。DiscoveryClockTests は ix の [Collection("Instruments")] で守られる見込み（推測・v の読み）。
+- savetest OK・leakhunt 保存則違反なし。
+- 取り直しの後に腕を回す＝腕の木と最後の木の SimCore・Runner・App の差 0 と予言。
+
+[3] 腕と成績表のバイト一致（全て合わせた木＝取り直しの後の頭 H）
+- 腕 Z（使い捨ての枝 m1103z＝H＋旗の既定を 0 へ戻す 1 コミット〔RailByRegion 1→0・NonElectiveSeatsEmpty 1→0・RailLayTerrain は 1 のまま・MineralScaleCapLift は 0 のまま〕・main へは入れない）：ident（段 2・PRUNE=0）で m1087（b5_20261113_m1087・b10_20261113_m1087_ins・keep_1096/base_ins）と全行一致＝〈判定: 恒等〉。宣言：--added-tables armsfill_s,trrail --grown-ok trnation --cost-allow "清算：距離" --tests-delta 18（Z の木の --list-tests は H と同じ 2808）。
+  （Z の旗は係数の上書き POB_COEF でなくコミットで渡す＝上書きは成績表に〈★係数の上書き〉の行を足し、全行一致が取れないため。エンジンの .cs を変える使い捨ての枝と名乗る。）
+- A_rr（H・POB_COEF＝NonElectiveSeatsEmpty=0・計器つき 10 種・種 1〜10・表は SMALL＋trrail_s・trnation_s・trroute_s・trbin_s・trstat_s）：成績表は rr の腕 B measurements/b10_20261113_c105rrB_ins と全行一致（名乗り行と〈★係数の上書き〉の行を除く）。生の共通の表は rr の腕 B の刈った生（同じ表）とバイト一致（flow_s は持たない・既知の揺れの列を除く）。
+- A_gp（H・POB_COEF＝RailByRegion=0・表は同じ）：成績表は gp の腕 B measurements/m1099_20261113/armB/b10_c105gpB_10.txt と全行一致（同じ除外）。.cost は rr の 2 行（〈清算：距離〉）だけ違う。生の共通の表は gp の腕 B の刈った生とバイト一致。
+  上の一致は〈係数の上書きが黙って無視されていない〉ことも示す（A≠M も確かめる）。
+- M（H・全表・計器つき 10 種・種 1〜10）：どの線の腕とも全行一致しない（2 本の挙動の合成）＝予言しない。推定の計算量＝基準 227.8＋rr の +1.4 前後＋gp の +1.3 前後＝229〜231 秒（≦248.5）。
+- S11（H・種 11〜20・(イ)＝表は SMALL＋trrail_s・trnation_s・trroute_s・trbin_s・trstat_s・門と標準の読み手の表だけ）。
+- 素の 5 種と 10 種（p5・p10・H）：新しい基線の成績表。
+- N1・N2（H・SupplySlope=0.50000001・0.49999999・全表）＝S11 の採否とアブレーションの読みの後に起こす（D: の空き ≧60GB を測ってから）。
+
+[4] 門（M と S11 で読む・台本は線の物か種の範囲だけを渡す写し・最終の採否は S11 で 1 回）
+- rr：scripts/instruments/m1103/gates_rr1103.py（gates_rr.py の写し・変えたのは種の範囲の引数とヌル腕の種 1〜10 の読みと無い表の飛ばしだけ）。
+  M・S11 で読む門＝G1（g1ZeroViol 0・g1JumpRows 0・g1FormulaViol 0・g1PosSides＞0）・G1′（≧0.01）・G2（g2Viol 0・g2Rows＞0）・G3（g3NoShareRows 0・1e-6 を超えた行 0・払い＞0＝水運の州を除く 72% の照合と名乗る）・G7（g7LockRows 0・g7FellRows＝g7ExcessRows＞0）。
+  G0（発見の前の行が基準とバイト一致）は M・S11 では落ちる（gp が開幕から議席を変える）＝A_rr で読む（A_rr の成績表と表が rr の腕 B と一致すれば、rr の腕 B の G0 の結果を受け継ぐ）。予言：M・S11 の G0 は FAIL（記録・採否に使わない）。
+  G4 は機構の試験だけで読む（[0]）。G6 は記録（弱い門・rr の腕 B で 8/11 年が外）。
+  旗 0 の側：種 1〜10＝ident の木の記録 measurements/m1097_20261113/gates_flag0_ident.txt（G1・G1′・G2・G3 が落ちる）。種 11〜20＝keep_1087/a11 には trrail が無い＝旗 0 の側は無い（G1′ だけ trroute で読める）。
+  G1・G1′・G2・G3・G7 のどれかが M か S11 で落ちたら rr を採らない（読み替えない）。
+- gp：scripts/instruments/c105gp/gate1099.py（変えない）。M＝B=<M>:1-10 base=keep_1096/base_ins:1-10・S11＝B=<S11>:11-20 base=keep_1087/a11:11-20（n1・n2 は種 1〜10）。
+  門＝G1（与党≠議席の第一党の行 0・旗 0 の側は 0 でない）・G2（E ≦ 2T）・G3 0・G4 0。どれかが M か S11 で落ちたら gp を採らない。
+- 足し算（㉞）：A_rr・A_gp の成績表が各の線の腕 B と全行一致すれば、各の線の門は A で線の腕 B と同じ値＝A で落ちない。M で両方の門が通れば合成で互いの門を壊さない。M で片方の門が落ちたら、後から入れた側（rr）を外す（A_gp の木で取り直す）。
+
+[5] 止める線（M・S11 と新しい N1・N2 を同じ台本で数える＝stoplines1002・an_h2 -v4・gdp_zero10・popjump1017・plvl_seeds・home_break）
+- M・S11：100 倍の〈それ以外〉0・1e10 倍 0・非有限 0・名目 GDP 0 の続き 0・空洞化 1/10 未満（名簿の外）0・推定 ≦248.5 秒と予言。建国の直後と政府の人口の跳ね（㊳）はヌル腕の件数と並べて記録。
+- 空洞化 1/10 未満は件ごとに基線の同じ種で同じ州が 1/4 未満だったかを表に書く（種 1〜10＝keep_1096/base_ins・種 11〜20＝keep_1087/a11）。〈線が原因〉が 1 件でもあれば、帰属の腕（A_rr・A_gp の region_s）で線を決めて外す。
+- 機構の試験の赤（フルスイート・番人の束）。
+
+[6] 記録の段（採否に使わない）
+- 英の国債の不履行の種（M・S11・N1・N2・m1087 と並べる）・NG（ng1087 と比べる）・nullgate・home_break ①・開幕の 1000 倍以上・exact・near・ハーネス不合格・gp の最低賃金法の施行の行と籠の走査の秒（v2）・rr の G6・G5・.cost の項目（合わせた木の累計で読む）。
+- 予言の外れは記録の段の先頭に書く。成績表の差がヌル腕の幅の内なら改善と書かない。
+
+[7] D: と順（今の空き 37GB＝計画の 106.4GB より少ない＝線の生 約 60GB が残っていた）
+- 線の生：rr・gp の腕 B の生は表ごとの sha1（measurements/m1103_20261113/hash/line_*.tsv）を取ってから、SMALL と門の表（約 2.8GB ずつ）だけ残して刈る。ix の ident の生は sha1 の後に消す（判定と成績表は枝にコミット済み）。gp の突然変異の生（mw 1.4GB）は採否まで残す。＝空き 約 90GB。
+- 順：merge → ビルド → 番人の束 ㉘＋計器の束 ㊴ → フルスイート・FullLength・savetest・leakhunt（10 種の腕と並べない）→ 取り直し → Z・M・S11・A_rr・A_gp・p5・p10（山 約 61GB）→ Z を判定の後に sha1 を取って消す・A の突き合わせの後に A と線の刈った生を消す → N1・N2（約 52GB）。毎回〈空き ≧ 山＋10〉を数える。足りなければ床を割らずに止めて報告する。
+- 古い keep（keep_1087・keep_1096）は新しい ident.cfg を push した後、INSRAW でも KEEPNULL でもないものだけ消してよい（deleted.txt に名乗る・自動の判定で拒まれたら言い換えない）。
+
+[8] 採ったときの新しい基線 m1103
+- 成績表 b5_20261113_m1103・b10_20261113_m1103・b10_20261113_m1103_ins・mon_20261113_m1103.txt・ヌル腕 b10_20261113_m1103_n1_ins・_n2_ins・b10s11_20261113_m1103_ins・NG の基準 measurements/ng1103_20261113・止める線の基準 measurements/m1103_20261113/stopbase/・生 D:/PoB_work/keep_1103/{base_ins,n1,n2,a11}（a11 は (イ) の表だけ）。
+- ident.cfg：B5・B10INS・MON・INSRAW・BASE_COMMIT・STAGE_BASE（測った木）・TESTS_NONFULL 2808・NG_BASE ng1103。新しい基準の .cost は rr の〈清算：距離〉の 2 行を含む＝以後の恒等の線に --cost-allow は要らない。
+- 片方だけ採るときは、採らない線を抜いた木（旗を 0 にした A の木ではなく、その線の merge を外した木）で M・S11・N1・N2 を取り直す。両方とも採らないときは基線 m1087 のまま・INSRAW を Z の生へ。
+- 採らなかった腕の生は D:/PoB_work/keep_1103_rej/ へ。
