@@ -1,0 +1,6 @@
+=== 変異なし
+成功!   -失敗:     0、合格:     1、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+applied M5
+=== M5
+  失敗 PriceOfBread.Tests.EconomyTests.希少鉱物は共有世界の非産地で厳密に0_密閉世界では0でない [1 s]
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

@@ -85,6 +85,6 @@ public sealed class Scenario
 
     public Coefficients Coef { get; init; } = new();
     /// <summary>★共有世界（2026-09-06）：貿易相手のいる多国世界＝true（MultiNationSim が建てる）。単国シム（較正・テスト）は false＝密閉世界。
-    /// 産地ゲート（ScarceMineralGate）は共有世界だけに効く＝密閉世界では「地理」でなく「欠乏の注入」になるため。</summary>
+    /// 産地ゲート（希少鉱物の産地の賦存 Simulation.ScarceEndowment・(1089) で旗を焼いた）は共有世界だけに効く＝密閉世界では「地理」でなく「欠乏の注入」になるため。</summary>
     public bool SharedWorld { get; init; }
 }

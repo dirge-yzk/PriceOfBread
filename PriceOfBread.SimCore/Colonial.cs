@@ -164,7 +164,7 @@ public static class Colonial
     }
 
     // 補給線燃料の石炭→重油二択（B6・2026-07-19）：石炭 vs 原油の実効単価が安い方（原油はエネルギー密度で同熱量の必要量が1/比）。
-    // 原油は掘削の機械が要る（OilNeedsMachinery）＝転換時期は価格から創発（明示の技術ゲート不要）。ColonyFuelOilEnergyRatio=0で石炭固定。
+    // 原油は掘削の機械が要る（原油のレシピの機械の投入 OilMachineryInput）＝転換時期は価格から創発（明示の技術ゲート不要）。ColonyFuelOilEnergyRatio=0で石炭固定。
     // 読み手＝Colonial.Step（植民地補給線）・海軍の運用燃料・民間汽船（運用コスト監査2026-08-16）＝式は1本。
     internal static (int GoodId, double Want) ChooseFuelGood(Region r, Coefficients c, double coalWant)
     {

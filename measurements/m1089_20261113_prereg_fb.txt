@@ -1,0 +1,88 @@
+(1089) c104fb 群1 Simulation.cs の構築の旗 9 本の焼き込み＋FactoryBuildRefIsReal＋MC0 FarmScaleCap（恒等の線・段 2）事前登録 2026-11-13
+基線＝main 23aa9d11a（m1087）。枝 c104fb。出発＝flags_triage_2026-11-12 §5 の群1（紙・読むだけ）＋paper_MC_2026-11-12 §3-1 段 0。
+作者 2026-11-12「推奨で進めて」で推奨を採った（承認の言葉ではない）。FactoryBuildRefIsReal は精査 10-18 の〈必要（経3）〉を、11-12 の削減の推奨で覆す
+（作者「全て推奨で」で推奨を採った）。MC0 は紙 §3-1 段 0（作者「全て推奨で」で決定）。
+このコミットは事前登録だけ。数と門は腕の前に固定する。
+
+[0] 形の種類＝尾（旗の旧い枝の削除）。新しい係数 0・新しい状態 0・新しい上限と下限 0・新しい補助関数 0。AI とプレイヤーで同じ経路。
+    浮動小数の式の書き換えを列挙する（全部で 3 か所）：
+      (a) MintDemandCounted：`m.LastDemand += qty * 1.0` → `+= qty`。x*1.0==x は全ての double で成り立つ（NaN・−0 も保つ）。
+      (b) CoreInitByRegionCulture：core = u0 + g*((culture==majority?1:0) − u0)、u0=1・g=1。入力は 2 通りだけ。
+          一致 (1−1)=0 → 1+1*0 = 1.0（＝一致なら 1.0）／不一致 (0−1)=−1 → 1+1*(−1) = 0.0。新＝`core = (r.Culture == majority) ? 1.0 : 0.0`。両側とも厳密に同じ double。
+      (c) FarmScaleCap(3.0)→ScaleMax(3.0)：どちらも double の 3.0 のリテラル（Coefficients.cs:108 と :3420）。値と型が同じ。
+    その他の変更は枝の削除と条件の項の削除（真だった項を消す）のみ。計算の順序は変えない。
+
+[1] 恒等の線・予言 0
+    段2（InstrumentsRecipeout.cs と Display 以外ではなく計器に触れる＝stage.py が決める）。素の 5 種・計器つき 10 種が m1087 と名乗り行を除いて全行一致。
+    cearn_s・cpop_s・flow_s の経路の名（ファイル:行）：Simulation.cs・EconomyStep.cs・Coefficients.cs の行が動く
+      ＝宣言〈経路の名の行番号の違いは ident_check.py の行の写し（BASE_COMMIT と difflib）で写すと違い 0〉（前例 m843 [1]）。他の表は全行一致。
+    .cost の件数の行の差 0（構築の行だけ＝月の走査の数は変わらない）。
+    ヌル腕は回さない。D:/PoB_work の空き 34GB 以上・arms.sh free が 3 以上のときだけ ident を起こす。
+
+[2] 消す物と残す物（読み手の grep は書く前に取り直した。SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前）
+    App・Display の読み手 0。scripts の台本で POB_COEF として渡す物 0（r1010・r918・m1017・r1084 は注か引用＝閉じた線の記録のまま触らない）。
+    Runner/Program.cs:1116 の文字列〈CenterIsFirstProvince〉は触らない（Runner は誰も触れない回）＝⑲ へ名乗って渡す。
+    1) SulfurFromPyriteEnabled   Coefficients.cs:1366。読み手 Simulation.cs:1250（if の包み）。試験 0。残る枝が読む係数（Productivity）は残る。
+    2) SteamTurbineEnabled       Coefficients.cs:1395。読み手 Simulation.cs:1373（if）。試験 0。
+    3) OilNeedsMachinery         Coefficients.cs:1399。読み手 Simulation.cs:1066（三項の左の項）。試験 0。Colonial.cs:167 の注だけ今の文へ。
+    4) CompostFertilizerEnabled  Coefficients.cs:2813。読み手 Simulation.cs:1423（if）。直後の NiterBedEnabled の if は触らない。試験 0。
+    5) ScarceMineralGate         Coefficients.cs:1353。読み手 Simulation.cs:738・:880・:1563・InstrumentsRecipeout.cs:51（`c.ScarceMineralGate > 0` の項だけ。
+                                 密閉世界の条件 sharedWorld・!w.StepsDiplomacy・shared は残す）。Scenario.cs:88 の注。試験 EconomyTests.cs:634〜667（[3]）。
+    6) ScarceCountsIncludeColonies  Coefficients.cs:2824。読み手 Simulation.cs:739。州だけの配列 _scarceCounts・_scarceProvinceTotal と
+                                 EnsureScarceCounts の引数 withColonies・if・else を消し、植民地を数える版だけ残す。名前は変えない。
+                                 ResourceRowsTests.cs:169 は注の言及だけ（EnsureScarceCounts を呼ばない＝grep 済み）。試験 0。
+    7) CoreInitByRegionCulture   Coefficients.cs:1972。読み手 Simulation.cs:149〜166。多数派の文化を常に数える。条件 majority.Length>0 && !IsNullOrEmpty(r.Culture) は残す。試験 0。
+    8) CenterIsFirstProvince     Coefficients.cs:2725。読み手 Simulation.cs:134。World.cs:1384・GeographyCoverageTests.cs:49 の注だけ今の文へ。試験 0。
+    9) MintDemandCounted         Coefficients.cs:3382。読み手 Simulation.cs:3014。試験 0。
+   10) FactoryBuildRefIsReal     Coefficients.cs:1157（既定 0＝休眠）。読み手 Coefficients.cs:1161 の if 1 行だけ。旗 0 の道だけを残す（if を消す）。
+                                 休眠表 DormantIdentityTests.cs:101 の行を消す。旗 1 の道を固定する試験：FactoryBuildRefIsReal を grep した全数は Tests で DormantIdentityTests.cs:101 の
+                                 1 行だけ（名前を書いた行。値を 1 にして走らせる試験 0）。measurements の台本で POB_COEF=FactoryBuildRefIsReal を渡す物は 0（grep 済み）。
+   11) FarmScaleCap (MC0)        Coefficients.cs:3420。読み手 EconomyStep.cs:2832 のみ（三項の右を coef.ScaleMax へ）。MineralScaleCap・RgoScaleSpeedFactor は触らない（MC1）。
+                                 書き手：Tests・Runner・scripts・measurements/*.sh に 0（lc_*.txt の言及は閉じた記録）。
+    欄 11 本を消し、DormantIdentityTests.RetiredFields へ 1 行で足す（★(743)）。Coefficients.cs の墓標の注は今の意味 1〜2 行。
+    孤児になる係数＝0（SulfurFromPyriteProductivity・SteamTurbineProductivity・SteamTurbineCoalInput・OilMachineryInput・CompostProductivity・CompostLivestockInput は残る枝が読む）。
+    ScarceMineralOnlySulfur・ResourceEndowmentScale ほかは触らない。
+    他の線との重なり：c104ui は App・Display・LayoutTests など＝重ならない。c104cp は Instruments.cs の :1847・:1950 の隣、c104si は :1908 と閉じる行の隣、
+    こちらは Instruments.cs に触れない（InstrumentsRecipeout.cs:51 の 1 項だけ）。Coefficients.cs・DormantIdentityTests.cs はこの線が自分の行（11 本の欄・RetiredFields の 1 行・休眠表の 1 行）だけ。
+
+[3] 試験（★(743) の札で名乗る）
+    EconomyTests.希少鉱物の産地の賦存は門の無い世界の採掘の能力の合計を保つ_植民地も数える（:634〜667）
+      ~ 前半（純関数 k×E）は残す。:642 の `Assert.True(c.ScarceMineralGate > 0, "前提：…")` は④（消す欄を名指す前提）で消す。
+      ~ 後半は :658 の `if (!gate) sc.Coef.ScarceMineralGate = 0;` を、門 0 の盤面を密閉世界（`ToScenario(1789, sharedWorld: false)` の同じ州）に置き換える（②・比べる double が同じ）。
+        腕の前の確かめ（基線の木で使い捨ての試験を走らせた・出力 D:/PoB_work/c104fb_work/probe.txt）：パレルモの硫黄の生産者の生産性
+        門 0 の共有世界＝84 / 密閉世界＝84（R 形式の文字列まで一致・Equals==True）／既定の共有世界＝2662.8。＝比の分母は同じ double。第一案を採る（第二案は使わない）。
+      ~ Assert の文と許容 1e-9 は変えない。
+    DormantIdentityTests ~ RetiredFields に 11 名を 1 行で（④）・休眠表 :101 の FactoryBuildRefIsReal の行を消す（④）。ZeroDefaultLedger に他の 10 本は無い（grep 済み）。
+    WriterRatchetTests・UnitTypeTests・IndustrializationReaderTests に 11 名の行は無い（grep 済み・WriterRatchetTests.cs:474 は注）。
+    テストの数の予言（--tests-delta）＝0（[Fact] を数えて 前と後で同じ。Fact の書き直しだけ。Coefficients の欄を数える Theory は無い＝反射は foreach の中の Assert）。
+    ソースを走査する番人の点検（㉘）：器のコミットの直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を回す。
+      書き換える件数の予言（㉑）＝0。route_anchors.tsv の鍵（Simulation.cs の 6 行：PaySales・Devalue 2 本・OtherIn・Mint・Credit）は呼び出しの行の字で引く。
+      書き換える行にその字は無い（grep 済み）。`new MoneyStock(` の件数（SimCore）＝64 のまま。
+
+[4] 突然変異（使い捨ての木・焼いた後のソースに当てる。全文を measurements/m1089_mutation.txt へ）
+    M1 黄鉄鉱法の生産者を足さない／M2 蒸気タービンの生産者を足さない／M3 原油の投入から機械を外す／M4 堆肥の生産者を足さない
+       → 赤か緑かを記録。緑なら同じ線で機構の試験を足して赤を確かめる（★(790)）。
+    M5 非産地の希少鉱物の生産性 0 を外す（Simulation.cs:880）→ EconomyTests 後半（密閉世界との比）が赤のはず。
+    M6 ScarceEndowment の数えから植民地を外す → EconomyTests 前半が赤のはず。
+    M7 中核の度合いを u0 のまま／M8 SetCapital(Regions[0]) を呼ばない／M9 造幣の LastDemand への計上を外す → 赤か緑かを記録。
+    M10 FactoryBuildRefIsReal の ×PriceLevel を戻す → ident が赤（旗 0 の道が変わるため既定が変わる）。
+    M11 EconomyStep.cs:2832 の右を 2.0 にする → ident が赤。
+    門ごとの赤：M5・M6＝EconomyTests／M10・M11＝ident（小さい表で足りる）／他は記録。突然変異は軽い道（短い走り・試験の絞り込み）で確かめる。
+
+[5] 腕：`bash scripts/instruments/ident/ident.sh run c104fb --tree D:/PoB_work/wt_c104fb --tests-delta 0 --saveleak`（run_in_background）。
+    〈判定: 恒等〉なら採る（測った種で一致と名乗る）。一致しない旗はその変更だけ外して報告に回す。2 本以上の線が同じ表・同じ行で不一致なら自分の差分を掘らず〈基線の疑い〉として止める。
+    フルスイートは Category!=FullLength と FullLength を分け、合計を --list-tests と突き合わせる。savetest・leakhunt。
+
+[6] 周辺の点検（読むだけ）：ScarceEndowment の読み手・CoreEthnicShare の読み手（Politics.cs の AvgRegionCoreShare）・FactoryBuildProgress の兄弟の門。結果は報告に書く。
+
+[追記 2026-11-13 腕の前・結果の後の変更ではない（ident より前）]
+    突然変異 M5（共有世界の非産地の希少鉱物の生産性 0 を外す）を既存の試験（EconomyTests 前半・後半）で確かめたところ緑のまま残った
+    （後半は産地のパレルモしか見ない）。★(790) のとおり同じ線で機構の試験を 1 本足す：
+    EconomyTests.希少鉱物は共有世界の非産地で厳密に0_密閉世界では0でない（フランスの州：共有世界の非産地の硫黄の生産性は全て 0・密閉世界は 0 でない州がある・調べた州の数の下限つき）。
+    よって [3] のテストの数の予言を 0 から +1 に改める（--tests-delta 1）。M5 を当てて赤になることはこの追記のコミットの後に確かめて m1089_mutation.txt に書く。
+
+[追記 2 2026-11-13 ident の後・結果の後の変更の名乗り]
+    ident は 2917f5aaf（テスト +1）の木で〈判定: 恒等〉。その後、突然変異 M2・M3・M4・M7 が絞った試験でも緑のまま残ったと分かった（M1 はクラス単位で赤）。
+    ★(790) のとおり同じ線で機構の試験を 3 本足す（EconomyTests.cs の末尾）。SimCore は ident の木と同じ（差は試験 1 ファイルだけ）。
+    よってテストの数の最終は 2768 + 4 = 2772。ident の宣言は +1 で一致。新しい 3 本は変異なしで緑・M1〜M4・M7 で赤（m1089_mutation.txt [C]）。
+    規則（Assert の文・閾値）は既存の物を書き換えていない。

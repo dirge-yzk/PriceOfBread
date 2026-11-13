@@ -1,0 +1,44 @@
+(1089) c104fb 突然変異の記録（2026-11-13）
+木＝使い捨ての木 D:/PoB_work/c104fb_work/mut（焼いた後の HEAD 8d7389c5f〔M5 の試験の追記より前〕に当てた。M5 の試験の確かめだけ 2917f5aaf）。
+当てた後は git checkout で戻す。出力は D:/PoB_work/c104fb_work/{mutT.txt,mutT2.txt,mut56.txt,mut5b.txt,mw/}。
+
+[A] 素の 1 種の成績表（batch.sh run <変異> 1・変異なしの対照 m0。同じ木をもう一度回した対照 m0b は m0 と SOURCE-HASH を除く全行一致＝決定論）
+    M1 黄鉄鉱法の生産者を足さない        成績表が m0 と違う（182 行）
+    M2 蒸気タービンの生産者を足さない     違う（178 行）
+    M3 原油の投入から機械を外す           違う（188 行）
+    M4 堆肥の生産者を足さない             違う（182 行）
+    M7 中核の度合いを u0 のまま           違う（185 行）
+    M8 SetCapital を呼ばない              違う（160 行）
+    M9 造幣の LastDemand 計上を外す       違う（180 行）
+    M10 FactoryBuildRefIsReal の ×PriceLevel を戻す   違う（182 行）
+    M11 EconomyStep の右を 2.0            違う（177 行）
+    ＝ ident（素の 5 種・計器つき 10 種）は M10・M11 を含む 9 本全てで赤になる（1 種の対照で既に違う）。M5・M6 は成績表でなく試験で見る（下）。
+
+[B] 試験（絞った試験 94 本〔名前の語で絞る〕と、クラス単位 165 本〔Sulfuric/SecondRecipe/FuelOperating/FullChain/BreakDetection/DiscoveryScore/ColonyPromotion/MintAtMarket/Conservation/RegionLabelInvariant/SmallFixes471/ModernizeReturn〕）
+    変異なし    94 緑・165 緑
+    M1          絞った 94＝緑／クラス 165＝赤（SulfuricAcidSodaAshTests.順序_…・FullChainTests.全50財がロードされ…）
+    M2          絞った＝緑／クラス＝緑 → 穴。機構の試験を足す
+    M3          絞った＝緑／クラス＝緑 → 穴。機構の試験を足す
+    M4          絞った＝緑／クラス＝緑 → 穴。機構の試験を足す
+    M5          EconomyTests（既存 2 本）＝緑 → 穴。機構の試験を 1 本足した（2917f5aaf）：変異なし緑・M5 赤
+    M6          EconomyTests.希少鉱物の産地の賦存は…_植民地も数える＝赤
+    M7          絞った＝緑／クラス＝緑 → 穴。機構の試験を足す
+    M8          絞った＝赤（RuleSharesFormTests.D2_座標が未登録の州と首都の近傍は…・D2_無統治の目標は…）
+    M9          絞った＝赤（SilverParityDemandWeightedTests+OnTheBoard の 2 本）／クラス＝緑
+    M10         絞った＝緑（旗 0 の既定を試験が見ない）→ ident の成績表で赤（[A]）。試験は足さない（旗ごと消えた物の戻しを試験で縛らない）
+    M11         （試験は回していない）→ ident の成績表で赤（[A]）
+
+[C] 穴に足した機構の試験（EconomyTests.cs の末尾・ident より後の試験だけの commit）。木 t4（2917f5aaf ＋ この 3 本）で確かめた（出力 D:/PoB_work/c104fb_work/mutN.txt）
+    代替レシピの生産者は構築で常に入る_黄鉄鉱法_蒸気タービン_堆肥   変異なし緑／M1 赤／M2 赤／M4 赤
+    原油の採掘は機械の投入を常に持つ                              変異なし緑／M3 赤
+    開幕の中核の度合いは州の文化で1_0か0_0に分かれる               変異なし緑／M7 赤
+    希少鉱物は共有世界の非産地で厳密に0_密閉世界では0でない（ident に入った 1 本）  変異なし緑／M5 赤
+    M9 は SilverParityDemandWeightedTests の 2 本が赤にする（[B]）。M10・M11 は ident の成績表（[A]）。M8 は RuleSharesFormTests の 2 本。M6 は EconomyTests の既存 1 本。
+    テストの数：基準 2768 → ident の木 2769（+1・宣言どおり）→ 最終の HEAD 2772（+4）。FullLength 3 のまま。
+
+[D] 補足（記録の置き場と近似の名乗り）
+    スクリプトと生の出力は measurements/m1089_20261113/mutation_scripts/（mut.py＝変異の表・mutdrive.sh・mutT*.sh・mutN.sh・mut56.sh・mut5b.sh と各出力）と mutation_raw/（[A] の 1 種の素の成績表 b1_*.txt〔.cost は残していない〕）。
+    [A] は ident ではなく 1 種の素の腕の成績表を、同じ木の変異なしの対照（m0・m0b は一致＝決定論）と比べた近似。M10・M11 は ident を回していない。
+    変異の腕・絞った試験は、フルスイートと ident に重ねて回した時間がある（結果の判定には影響しない）。
+    最終 HEAD c8ef31ccc の確かめ＝head_check/：隔離ビルド・--list-tests（Category!=FullLength 2772・FullLength 3）・新旧の 5 本緑・㉘ の 5 クラス 143 本緑。SimCore の差は ident の木 2917f5aaf と 0。
+    フルスイートの trx（nonfull 2768 合格 2767 スキップ 1・FullLength 3）は 8d7389c5f のビルドで回した物（その後の差は試験 4 本と注）。

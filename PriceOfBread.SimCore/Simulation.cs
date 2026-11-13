@@ -129,9 +129,9 @@ public sealed class Simulation
         //   ★実装は**1箇所**＝ここで座標そのものを差し替える（20箇所以上の読み手を書き換えない＝改修面積が最小）。
         //   ⚠史実の首都の写し（表示専用の DisplayCapitalLat/Lon）は画面も年代記も読んでいなかった＝2026-09-26 に削除（x-03）。
         //   ⚠差が出るのは実測3カ国だけ（露634km・コーカンド167km・モロッコ166km）＝他は200km以内で一致。
-        //   ⚠CenterIsFirstProvince=0 で1命令も走らない＝厳密恒等（休眠だった＝2026-09-05 B群で点火・0は従来の腕）。
+        //   ⚠旗 CenterIsFirstProvince は (1089) で焼いた（2026-09-05 B群で点火）＝常に1番目の州を中心にする。
         //   ★座標の規則は遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B）＝未登録の州名は据え置き（幻の座標を作らない）。
-        if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
+        if (World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発） ／★(337) AiRng＝AI の専売の段の確率の押し上げの専用系列（同型・係数 0 では引かない）
         World.FoundingActiveProvinces += regions.Count;   // 建国時の州数（2026-08-04・残余国判定の分母・(559) gc2 で稼働の判定を外した＝本番は全ての州が稼働中）
@@ -141,14 +141,12 @@ public sealed class Simulation
         //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍の鉛室法を回し、硫酸〔当時は化学薬品〕の平均価格が16倍・中央値は2倍）。
         //   ★汽船(85)・機関車(88)の onset（リ5・SteamTransportOnset）も 2026-09-27 に AddAlternateRecipes へ移した（同じ穴＝植民地格の州は1783年から無ゲートだった）。
         // 倍率排除⑧：各popの中核民族割合を国の初期統一度で初期化（以後 移民[core=0で希釈]/同化/征服で per-pop に変動＝EthnicUnity が加重平均から創発）。
-        // ⑭-B（史実検証2026-07-22）：CoreInitByRegionCulture>0 では州の Culture ラベルで分化＝主流文化州は高・少数文化州は低（墺のボヘミア/ハンガリー・
-        // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。加重平均はデータ u0 と州構成のブレンド＝0で国一律u0＝厳密恒等。
+        // ⑭-B（史実検証2026-07-22・(1089) で旗 CoreInitByRegionCulture を焼いた）：州の Culture ラベルで分化＝主流文化州は高・少数文化州は低（墺のボヘミア/ハンガリー・
+        // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。
         if (World.EthnicEnabled && scenario.PrebuiltRegions is null)
         {
             const double u0 = 1.0;   // ★(232) 民族統一度の国の初期値 ethnicUnity（61）を廃止＝文化ラベルのある州は州のラベルだけで決まり（下）、ラベルが空の州は自国の文化（POP の既定 1.0）として始める（旧＝国の値 u0：日 0.97・米 0.45・露 0.55・清 0.75 ほか・空ラベルの州は人口の0.2〜5%だけ）
-            double g = scenario.Coef.CoreInitByRegionCulture;
             string majority = "";
-            if (g > 0)
             {
                 var byCulture = new Dictionary<string, double>();
                 foreach (var r in World.Regions)
@@ -162,8 +160,8 @@ public sealed class Simulation
             foreach (var r in World.Regions)
             {
                 double core = u0;
-                if (g > 0 && majority.Length > 0 && !string.IsNullOrEmpty(r.Culture))
-                    core = u0 + g * ((r.Culture == majority ? 1.0 : 0.0) - u0);
+                if (majority.Length > 0 && !string.IsNullOrEmpty(r.Culture))
+                    core = r.Culture == majority ? 1.0 : 0.0;   // 一致州 1.0／不一致州 0.0（旧の混ぜ u0+g×(x−u0) は u0=g=1 で x そのもの）
                 foreach (var p in r.Pops) p.CoreEthnicShare = new Share(core);
             }
         }   // 持ち込み州（建国）は民族構成を上書きしない（スポーン側で新中核へ再アンカー済み）
@@ -697,17 +695,15 @@ public sealed class Simulation
     // ★N は**州のみ**（植民地は生産者を1つも持たないことを2026-08-13に確認済み）。
     //   ⚠2026-10-04 (196) の注記＝この確認は ColoniesAreRegions の前の話。今は開幕の植民地 77 が全て州へ昇格して生産者を持ち、同じ E を受ける
     //   （PromoteColonyToRegion）＝州だけを数えるのは分子と分母の非対称（硫黄＝門のある世界の採掘の能力の合計が門の無い世界の約0.75倍〔93.6÷124.4〕）。
-    //   直しの器 ScarceCountsIncludeColonies＝★2026-10-04 (197) で点火（(196) の5種の腕 K と (197) の合わせた木の10種の腕 K＝実装ログ (197)・英の人口は記録）。
+    //   直しの旗 ScarceCountsIncludeColonies＝★2026-10-04 (197) で点火・(1089) で焼いた（常に植民地も数える・(196) の5種の腕 K と (197) の合わせた木の10種の腕 K＝実装ログ (197)・英の人口は記録）。
     // 硫黄は k=1（パレルモのみ。北九州は後期産地＝k に数えない・蝦夷地の抽象標的は 2026-09-28 に削除）→ 州だけの N＝225 で E = 4.0 + 224×0.4 = **93.6**（旧の注記の 183 州＝77.2 は州の追加の前の数）。
-    // ScarceMineralGate=0 で E を返さない＝厳密恒等。
-    private static int[]? _scarceCounts;   // 財ID→産地の州数（world.json から1回だけ数える・決定論）
-    private static int _scarceProvinceTotal;
-    private static int[]? _scarceCountsWithColonies;   // ★ScarceCountsIncludeColonies（2026-09-06）：植民地の固有資源も数えた版
+    // 旗 ScarceMineralGate は (1089) で焼いた＝共有世界では常に産地ゲートを効かせる（密閉世界では効かせない）。
+    private static int[]? _scarceCountsWithColonies;   // 財ID→産地の数（world.json から1回だけ数える・決定論）。植民地の固有資源も数える（(1089) で旗 ScarceCountsIncludeColonies を焼いた）
     private static int _scarceTotalWithColonies;
 
-    private static void EnsureScarceCounts(bool withColonies)
+    private static void EnsureScarceCounts()
     {
-        if ((withColonies ? _scarceCountsWithColonies : _scarceCounts) is not null) return;
+        if (_scarceCountsWithColonies is not null) return;
         var counts = new int[Catalog.Goods.Length];
         int total = 0;
         foreach (var n in WorldData.Nations())
@@ -718,16 +714,14 @@ public sealed class Simulation
                 foreach (var g in p.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
             }
             // ★植民地（ColoniesAreRegions で実体の生産者を持ち、Simulation:1242 で同じ ScarceEndowment を受ける）を数えないと
-            //   世界総産出が保存しない（分子と分母の非対称）。器 ScarceCountsIncludeColonies>0 でだけ数える（0＝従来）。
-            if (withColonies)
-                foreach (var col in n.InitialColonies)
-                {
-                    total++;
-                    foreach (var g in col.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
-                }
+            //   世界総産出が保存しない（分子と分母の非対称）。
+            foreach (var col in n.InitialColonies)
+            {
+                total++;
+                foreach (var g in col.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
+            }
         }
-        if (withColonies) { _scarceTotalWithColonies = total; _scarceCountsWithColonies = counts; }
-        else { _scarceProvinceTotal = total; _scarceCounts = counts; }   // ★最後に代入＝他スレッドが半端な配列を見ない（バッチは並列実行される）
+        _scarceTotalWithColonies = total; _scarceCountsWithColonies = counts;   // ★最後に代入＝他スレッドが半端な配列を見ない（バッチは並列実行される）
     }
 
     /// <summary>希少鉱物の産地での賦存量（総量保存で逆算）。対象外・未点火なら通常の賦存を返す。</summary>
@@ -735,11 +729,10 @@ public sealed class Simulation
     {
         // ★密閉世界（単国シム＝較正・テスト・sharedWorld=false）では産地ゲートを効かせない（2026-09-06）：運ぶ相手がいない世界で産地を絞るのは
         //   「地理」でなく「欠乏の注入」＝実測で硫黄0→化学→紙→教育→行政力の鎖が絶えた（TaxTests/MobilityTests）。史実の英は硫黄をシチリアから運んだ。
-        if (!sharedWorld || !(c.ScarceMineralGate > 0) || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
-        bool withCol = c.ScarceCountsIncludeColonies > 0;
-        EnsureScarceCounts(withCol);
-        int k = (withCol ? _scarceCountsWithColonies : _scarceCounts)![good];
-        int total = withCol ? _scarceTotalWithColonies : _scarceProvinceTotal;
+        if (!sharedWorld || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
+        EnsureScarceCounts();
+        int k = _scarceCountsWithColonies![good];
+        int total = _scarceTotalWithColonies;
         if (k <= 0) return ResourceEndowment(good);   // 産地が1つも無い財は触らない（fail-open）
         return (k * ResourceEndowment(good) + (total - k) * ResourceScarcity) / k;
     }
@@ -877,7 +870,7 @@ public sealed class Simulation
                 }
             }
             // ★希少鉱物は**非産地では厳密に0**（2026-08-13・裁定⑥）。総量は産地の賦存を引き上げて保つ（ScarceEndowment）。
-            else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
+            else if (sharedWorld && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
 
@@ -1063,7 +1056,7 @@ public sealed class Simulation
                 IsRgo = !isFactory,
                 EffGoods = isFactory ? [] : Catalog.RgoBoosterGoods(d.Id),   // RGOの効率化材の候補（肥料/帆船/飼料/工具・火薬）。工場は空（電化を使う）
                 Inputs = isFactory ? [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(d.Id))]
-                                   : coef.OilNeedsMachinery > 0 && d.Id == Catalog.CrudeOilId
+                                   : d.Id == Catalog.CrudeOilId
                                        ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(Catalog.MachineryId, coef.OilMachineryInput)]   // ★原油＝掘削機（機械）を要する（2026-09-05・器）
                                        : [new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],
             });
@@ -1246,8 +1239,7 @@ public sealed class Simulation
         // ★E-15 手順1（2026-09-05）：硫酸(33)の第2レシピ「黄鉄鉱法」＝硫黄の代替（(493) 以後は銅鉱＋石炭＝含銅黄鉄鉱を焙焼して硫酸・旧は鉄鉱石＋石炭＋塩）。
         //   史実＝1838年の硫黄危機（シチリア独占）の後、世界は原料の代替（リオ・ティントの黄鉄鉱）で解いた。新しい財は足さない。
         //   解禁＝発見の表の黄鉄鉱法（1830年代・2026-10-01 段2A）・生産性は硫黄法×SulfurFromPyriteProductivity（高くついた）。
-        //   火薬(38)は代替しない（黒色火薬は元素硫黄が要る）。⚠SulfurFromPyriteEnabled=0 で Producer を1件も足さない＝厳密恒等。
-        if (coef.SulfurFromPyriteEnabled > 0)
+        //   火薬(38)は代替しない（黒色火薬は元素硫黄が要る）。(1089) で旗 SulfurFromPyriteEnabled を焼いた＝常に足す。
             {
                 Producer? leadChamber = null;
                 foreach (var pr in producers) if (pr.GoodId == Catalog.SulfuricAcidId) { leadChamber = pr; break; }
@@ -1368,9 +1360,8 @@ public sealed class Simulation
         // 石炭が高い州でのみ火力に勝つ＝スイス/伊/ノルウェー型の水力国が価格から創発（1914年に伊約2/3・スイス/ノルウェーほぼ100%水力）。
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.MachineryId, 0.647), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
-        // ★蒸気タービン（2026-09-05・器 SteamTurbineEnabled）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
-        //   パーソンズ1884→1890s＝発見の表の蒸気タービン（1880年代・2026-10-01 段2A）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。0＝足さない＝恒等。
-        if (coef.SteamTurbineEnabled > 0)
+        // ★蒸気タービン（2026-09-05・(1089) で器を焼いた）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
+        //   パーソンズ1884→1890s＝発見の表の蒸気タービン（1880年代・2026-10-01 段2A）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。
             producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "蒸気タービン", Productivity = 1.4 * coef.SteamTurbineProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 2, OwnerPopIndex = 3, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.MachineryId, 0.199), new Input(Catalog.CoalId, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：肉(畜産)の代わりに漁獲を缶詰める＝缶詰の軍需増を漁業からも賄える。漁獲に第2の消費先を与える（従来は干物のみ）。
@@ -1419,8 +1410,7 @@ public sealed class Simulation
         // グアノ肥料（肥料109の第3レシピ）：合成(硫酸+畜産の骨)・ハーバーボッシュ(電力)に並ぶ天然窒素源＝グアノ(121・ペルー賦存の植民地材)。ペルー保有国(グアノ輸入可)でのみ起動し、合成肥料より安価＝1840s-70sのグアノ時代を再現。非保有国は合成肥料のまま。
         producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "グアノ肥料", Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.GuanoId, 0.6), new Input(Catalog.SulfuricAcidId, 0.1), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });
-        // ★堆肥（2026-09-06・器 CompostFertilizerEnabled）：肥料(109)の第4レシピ＝畜産(19)＋労働・解禁0。化学法より高い＝硫黄が届かない所の代替。0＝足さない＝恒等。
-        if (coef.CompostFertilizerEnabled > 0)
+        // ★堆肥（2026-09-06・(1089) で器を焼いた）：肥料(109)の第4レシピ＝畜産(19)＋労働・解禁0。化学法より高い＝硫黄が届かない所の代替。
             producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "堆肥", Productivity = 2.0 * coef.CompostProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // ★雇用の一本化＝全工場が労働+高度労働を買う（ServiceEconomyTests の番人・2026-09-06）
         // ★硝石丘（2026-09-06・器 NiterBedEnabled）：硝石(118)の代替レシピ＝畜産(19)＋労働・解禁0（仏1793の硝石丘＝厩肥と灰から）。産地の硝石より高い＝
@@ -1549,7 +1539,7 @@ public sealed class Simulation
             else if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
             {
                 pr.SiteRow = site;
-                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
+                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝密閉世界なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
                 // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
                 //   （ベンガル/ジャワ/カリブは大農園）。Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。
                 // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
@@ -1560,7 +1550,7 @@ public sealed class Simulation
                     pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;
                 }
             }
-            else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
+            else if (!w.StepsDiplomacy && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
         // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。（入植者の着地〔農民/労働者〕は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）
@@ -3010,8 +3000,7 @@ public sealed class Simulation
             //   これが「本位金属の準備需要が消えれば需要曲線そのものが下へ落ちる」（銀本位doc §3-1の心臓）が効かない理由である。
             // ★市場外の買い手はこのコードベースの作法として全て LastDemand を計上している
             //   （Colonial.cs:234/325 の捕囚市場・EconomyStep.cs:1271 の国家購入・Transport.cs:72 の鉄道船）。造幣だけが外れていた。
-            // ⚠0（対照腕）で書かない＝厳密恒等。既定1.0でlive（★点火2026-08-14。金の造幣は既定 live なので、点火は必ず単独バッチで測る）。
-            if (World.Coef.MintDemandCounted > 0) m.LastDemand += qty * World.Coef.MintDemandCounted;
+            m.LastDemand += qty;   // ★常に計上（(1089)・旧の旗 MintDemandCounted の焼き込み）
             //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
             // ★床モード＝吸った現物を国の準備として保持（旧来は「コインになって消える」＝追跡しない＝恒等）。
             //   法が本位を捨てたとき、この準備が市場へ売られる＝暴落を深める投げ売りが台本なしで出る。
