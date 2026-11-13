@@ -176,7 +176,7 @@ public class ScholarshipTests
         {
             if (!rel.StartsWith("PriceOfBread.SimCore/")) continue;
             foreach (var line in File.ReadLines(full))
-                if (line.Split("//")[0].Contains("ScholarshipTopStage")) readers.Add(Path.GetFileName(rel));
+                if (line.Split("//")[0].Contains("ScholarshipTopStage")) readers.Add(Path.GetFileName(rel).StartsWith("Coefficients.") ? "Coefficients.cs" : Path.GetFileName(rel));   // (1106) 係数の部品は 1 つの持ち主
         }
         // 宣言（Coefficients）・唯一の関数（EconomyStep）・置き換え（World の eduPart）・表示の門（PlayText）の 4 つだけ。AI と別の経路（SelfPlay ほか）が旗を読んだら赤
         Assert.Equal(new[] { "Coefficients.cs", "EconomyStep.cs", "PlayText.cs", "World.cs" }, readers.OrderBy(x => x, StringComparer.Ordinal).ToArray());

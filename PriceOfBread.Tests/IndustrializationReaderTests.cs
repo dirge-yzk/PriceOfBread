@@ -40,7 +40,9 @@ public class IndustrializationReaderTests
                 string code = c >= 0 ? line[..c] : line;
                 if (Words.IsMatch(code)) n++;
             }
-            if (n > 0) counts[Path.GetFileName(f)] = n;
+            string key = Path.GetFileName(f);
+            if (key.StartsWith("Coefficients.")) key = "Coefficients.cs";   // (1106) 係数の部品は 1 つの持ち主として数える
+            if (n > 0) counts[key] = counts.GetValueOrDefault(key) + n;
         }
         var allowed = Allowed.ToDictionary(x => x.File, x => x.Lines);
         var bad = new List<string>();

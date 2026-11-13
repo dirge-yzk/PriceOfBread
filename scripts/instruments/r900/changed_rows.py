@@ -39,7 +39,8 @@ COEF = re.compile(r'\b(?:c|Coef|coef)\.([A-Z]\w*)')
 out = []
 for commit, rs in by_commit.items():
     names = {p.split('/')[-1] for p in git('diff', '--name-only', commit).split('\n') if p}
-    coef_diff = [l[1:] for l in git('diff', '-U0', commit, '--', 'PriceOfBread.SimCore/Coefficients.cs').split('\n') if l[:1] in '+-' and not l.startswith(('+++', '---'))]
+    if any(n.startswith('Coefficients.') and n.endswith('.cs') for n in names): names.add('Coefficients.cs')   # (1106) 部品の変更は Coefficients.cs の持ち主へ
+    coef_diff = [l[1:] for l in git('diff', '-U0', commit, '--', 'PriceOfBread.SimCore/Coefficients*.cs').split('\n') if l[:1] in '+-' and not l.startswith(('+++', '---'))]
     for r in rs:
         owners = set(r['owner'].split()) if r['owner'] not in ('—', '') else set()
         hit = sorted(owners & names)
@@ -48,7 +49,7 @@ for commit, rs in by_commit.items():
             a = a.strip(); m = re.match(r'^([^:]+):(\d+):(.+)$', a)
             if not m: continue
             fn, ln, tok = m.group(1), int(m.group(2)), m.group(3)
-            if fn == 'Coefficients.cs': coefnames.append(tok.strip())
+            if fn.startswith('Coefficients') and fn.endswith('.cs'): coefnames.append(tok.strip())
             else: coefnames += COEF.findall(line_at(commit, fn, ln))
         coefnames = sorted(set(coefnames))
         chit = [n for n in coefnames if any(re.search(r'\b' + re.escape(n) + r'\b\s*(=|\{|;)', l) for l in coef_diff)]

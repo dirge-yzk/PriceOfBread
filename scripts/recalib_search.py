@@ -24,12 +24,13 @@ except Exception:
 import io, os, re, subprocess, shutil, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-COEF = os.path.join(ROOT, "PriceOfBread.SimCore", "Coefficients.cs")
+import glob
+COEFS = sorted(glob.glob(os.path.join(ROOT, "PriceOfBread.SimCore", "Coefficients*.cs")))   # (1106) 係数は領域ごとの部品へ分かれた
 DOCS = os.path.join(ROOT, "docs", "0808")
 os.makedirs(DOCS, exist_ok=True)
 LOG = os.path.join(DOCS, "再較正探索_2026-08-08.md")
 TSV = os.path.join(DOCS, "再較正探索_2026-08-08.tsv")
-BACKUP = COEF + ".search_backup"
+BACKUP = ".search_backup"   # 部品ごとに <部品>.search_backup
 
 # 基線（unify_fallback・2026-08-08採用状態）
 BASE = {"政体": 27.8, "法": 48.1, "人口": 15.7, "列強": 16.3, "特異度": 88.7, "経済": 27.5, "領土本": 76.7, "領土植": 46.7}
@@ -63,12 +64,15 @@ CELLS = [
 ]
 
 def set_coef(name, value):
-    s = io.open(COEF, encoding="utf-8").read()
     pat = re.compile(r"(public double %s = )[-0-9.]+(\s*;)" % re.escape(name))
-    if not pat.search(s):
-        raise RuntimeError("係数が見つからない: " + name)
-    s = pat.sub(lambda m: m.group(1) + value + m.group(2), s, count=1)
-    io.open(COEF, "w", encoding="utf-8").write(s)
+    for COEF in COEFS:
+        s = io.open(COEF, encoding="utf-8", newline="").read()
+        if not pat.search(s):
+            continue
+        s = pat.sub(lambda m: m.group(1) + value + m.group(2), s, count=1)
+        io.open(COEF, "w", encoding="utf-8", newline="").write(s)
+        return
+    raise RuntimeError("係数が見つからない: " + name)
 
 def apply_cell(overrides):
     merged = dict(DEFAULTS)
@@ -120,7 +124,7 @@ def log(line):
     print(line, flush=True)
 
 def main():
-    shutil.copyfile(COEF, BACKUP)
+    for COEF in COEFS: shutil.copyfile(COEF, COEF + BACKUP)
     log(f"# 再較正探索 {time.strftime('%Y-%m-%d %H:%M')} 開始（基線＝unify_fallback）")
     with io.open(TSV, "w", encoding="utf-8") as f:
         f.write("cell\t" + "\t".join(AXES) + "\tΔ経済\tΔ総合\t判定\n")
@@ -160,10 +164,10 @@ def main():
             apply_cell(incumbent[1])
             log(f"\n# 終了：incumbent={incumbent[0]} を Coefficients.cs へ適用済み。最終帯={incumbent[2]}")
         else:
-            shutil.copyfile(BACKUP, COEF)
+            [shutil.copyfile(C + BACKUP, C) for C in COEFS]
             log("\n# 終了：採用セルなし＝Coefficients.cs を原状復元（読者点火は資本コスト側の追加次元が必要という結論を強化）")
     except Exception as e:
-        shutil.copyfile(BACKUP, COEF)
+        [shutil.copyfile(C + BACKUP, C) for C in COEFS]
         log(f"\n# 例外で中断・原状復元: {e!r}")
         raise
     finally:
