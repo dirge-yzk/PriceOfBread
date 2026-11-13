@@ -62,6 +62,7 @@ public static class Parliament
         //     得票が保守100%になる。そこで席を固定すると**開幕の議会が丸ごと保守党**という嘘の議会が4年間座り続ける（実測で確認）。
         //     QuartersSinceElection>=1＝少なくとも1回 Politics.Step を通った後＝思想分布が出そろっている。
         //   ⚠議席が空のときだけ＝一度きり（選挙後の再入なし・専制から立憲へ移った国は既に席があるので発火しない）。
+        //   ★(1099) 旗 NonElectiveSeatsEmpty＝1 では非選挙政体の議席が空＝専制から立憲へ移った国もここで議席と与党が決まる。
         bool seatsEmpty = w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9;
         if (seatsEmpty && w.QuartersSinceElection >= 1
             && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic)
@@ -117,7 +118,10 @@ public static class Parliament
             //     ComputeVotes は毎四半期走る（非選挙政体は毎期 SnapshotSeats）ので**一度きりの動詞が恒久の議席補正になる**。
             //   プレイヤー国・AI国の区別なし＝同じ機構。
             w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null;
-            SnapshotSeats(w);   // 政7：非選挙政体は毎期スナップショット＝VoteShares と PartySeats は恒等（凍結でも従来同値）
+            // ★(1099) c105gp：旗 NonElectiveSeatsEmpty＝1 では非選挙政体の議席は空（和 0）＝与党は政体の札（上の RulingParty）だけ・議席は持たない。
+            //   選挙の政体へ移ったら、上の開院の分岐（議席が空）が議席と与党を同じ得票で決める（与党と議席が別の規則で食い違う型を閉じる）。
+            if (c.NonElectiveSeatsEmpty > 0) { w.PartySeats[0] = 0; w.PartySeats[1] = 0; w.PartySeats[2] = 0; }
+            else SnapshotSeats(w);   // 政7：非選挙政体は毎期スナップショット＝VoteShares と PartySeats は恒等（凍結でも従来同値）
         }
 
         w.GoverningPartyName = GoverningPartyOf(w)?.Name ?? "";   // F4：与党の実体名（族内最大得票・未初期化=空でUIが族名へフォールバック）

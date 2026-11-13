@@ -125,6 +125,7 @@ public class DormantIdentityTests
         // ★SilverParityFromRatio（世界銀価格を同一市場内の 銀/金鉱 比から作る・E→平均→E の自己参照を断つ）は 2026-11-02 (775) に 1 で**点火**（腕 B）＝この表から外した。
         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
+        "NonElectiveSeatsEmpty",        // (1099) c105gp：非選挙の政体で議席を空にし、開院の分岐で議席と与党を決める（0＝今のまま・番人 NonElectiveSeatsTests）
         // ★B-03（WarFeverUsesBudgetShare）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
         // ★B-06（TransportBaselineIsLand）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
         // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。(591) で旗ごと削除（RetiredFields）。
