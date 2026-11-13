@@ -317,8 +317,9 @@ public static class Territory
         //   残る州の容量は変わらない（潜在量比例＝旧の旗 TransportShareByPotential=1 の既定の形では、送り手の容量×(1−s) を残る州の潜在量で分け直す＝前と同じ）。活動していない州は取り分0。
         double sh = Transport.RegionShare(Transport.ShareBasis(from, from.Coef), r);
         if (!(sh > 0)) sh = 0;   // 否定形＝NaN は移さない側へ（取り分は定義上 0..1）
-        double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
-        from.RailCapacity -= rail; from.ShipCapacity -= ship;
+        double rail = Transport.TakeRailForMove(from, r, sh);   // ★(1097) 旗 0＝送り手の容量×取り分を引く（今の式）・旗 1＝線路は州の欄で州について行く（0 を返す）
+        double ship = from.ShipCapacity * sh;
+        from.ShipCapacity -= ship;
         from.Regions.Remove(r);
         // ★(688) 線 navf5（割譲だけ・旗は (817) で焼き込み）：艦は国のもの＝出ていく州の艦の在庫を、送り手に州が残るなら送り手の首都の州へ戻す（首都の州が出るなら遷都の後の新しい首都＝下の SetCapital が選ぶ州と同じ NextCapital）。
         //   計器の RegionMoved より前に動かす＝戻した艦は〈出ていった艦〉に数えない（戻した隻数は FleetReturned の別の列）。送り手の州が 0（国が消える＝戻し先が無い）ならそのまま艦ごと渡る。

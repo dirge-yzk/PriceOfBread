@@ -1142,7 +1142,8 @@ public sealed class World
     //   ＝**買い手の消滅と投げ売りが同時に起きる**（独1871年型）。旧来モード（床OFF）では常に0＝厳密恒等。
     public double SilverReserveQty { get; internal set; }
     public double GoldReserveQty { get; internal set; }
-    public double RailCapacity { get; internal set; }          // 鉄道輸送容量（内陸→港）。0スタート、鉄道財の投資で積む（§5.1拡張）
+    private double _railCapacity;
+    public double RailCapacity { get => Coef.RailByRegion > 0 ? Transport.RailTrackSum(this) : _railCapacity; internal set => _railCapacity = value; }   // 鉄道輸送容量（内陸→港）。0スタート、鉄道財の投資で積む（§5.1拡張）。★(1097) 旗 RailByRegion＝1 では州の線路の和の読み口（欄は旗 0 の物＝旗 1 で書いても読まれない）
     public double ShipCapacity { get; internal set; }          // 海運輸送容量（港→世界市場）。船財の投資で積む
     // 運用コスト監査2026-08-16（#3 汽船の運行燃料）：ShipCapacity に占める汽船（tier2）の容量の割合（0=帆走のみ）。ShipCapacity は帆船と汽船の合算で購入後に区別が消えるため、燃料需要の按分にこの1本だけ状態を持つ（在庫の中身は記憶が無いと導けない）。
     // 書き手＝Transport.Step（2026-09-26 回4-3 から常に・購入のたびに容量加重で厳密に＝旧の平滑 ShipSteamShareSmoothing は削除）。★(303) 名前の Ema（旧の名残・移動平均の項は無い）を外して ShipSteamShare へ改名（セーブの欄名が動く）。

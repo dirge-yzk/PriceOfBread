@@ -10,29 +10,18 @@ public static class Transport
 {
     public static void Step(World w, Coefficients c)
     {
-        w.RailCapacity = System.Math.Max(0, w.RailCapacity * (1 - c.TransportDecay));   // 減耗（鉄道は0スタート）
+        var rm = Instruments.On ? Instruments.RailMonthBegin(w, c) : null;   // (1097) 計器（読むだけ・段 R の門 G2・G7＝敷きの前後の州の線路を計器が自分で読む）
+        if (c.RailByRegion > 0)
+        {   // ★(1097) 段 R：減耗は州の線路へ（国の欄は読まない・書かない）
+            foreach (var r in w.Regions) r.RailTrack = System.Math.Max(0, r.RailTrack * (1 - c.TransportDecay));
+        }
+        else w.RailCapacity = System.Math.Max(0, w.RailCapacity * (1 - c.TransportDecay));   // 減耗（鉄道は0スタート）
         w.ShipCapacity = System.Math.Max(0, w.ShipCapacity * (1 - c.TransportDecay));
-        double target = w.TotalPopulation * c.TransportTargetPerPop;   // 経済規模に応じた目標容量
-        // ★安保doc手順3（2026-08-30点火＝既定1.0）：国防の目的関数＝受けている脅威が大きいほど目標容量を積む（戦略鉄道の一般化＝路線を1本も定義しない）。
-        //   脅威比＝前期の SecurityThreat/SecurityThreatOwnMass（無次元・★(155) 安全保障の不安＝届く敵意の養える軍÷自国の養える軍）。target×(1+k×脅威比)＝民間項（上）に**乗せるだけ**＝どの路線かは書かない。
-        //   ⚠正のフィードバック（鉄道→脅威→鉄道）は国庫の有限性だけが歯止め。0＝この分岐を通らない＝厳密恒等。
-        if (c.ThreatRailTargetWeight > 0 && w.SecurityThreatOwnMass > 1e-9)
-        {
-            double threatRatio = w.SecurityThreat / w.SecurityThreatOwnMass;
-            if (threatRatio > 0 && double.IsFinite(threatRatio)) target *= 1.0 + c.ThreatRailTargetWeight * threatRatio;
-        }
-        // 接3（監査2026-07-11・2026-07-25休眠配線・2026-07-27点火＝既定1.0）：混雑シグナル（輸送律速率）を目標へ接続＝交易集約の小国は容量を積み増し、
-        // 交易の乏しい人口大国は使わない容量へ資金を誤配分しない。混雑＝活動州の(1−律速率)平均（港湾の混雑ゲートと同じ状態量）。0＝不読＝厳密恒等。
-        if (c.TransportCongestionWeight > 0)
-        {
-            double congSum = 0; int congN = 0;
-            foreach (var r in w.Regions) { congSum += 1.0 - r.LastTradeThrottle; congN++; }
-            if (congN > 0) target *= 1.0 + c.TransportCongestionWeight * (congSum / congN);
-        }
+        double target = Target(w, c);
         // 鉄道は発見で解禁（史実1820s〜）：機関車を見つけるまでは内陸輸送が道路/河川（基準値）のみ＝序盤の内陸交易は強く絞られる。船（帆船＝海運）は古来あり据え置き。
         // ★鉄道輸送の門＝発見の表の「機関車」の行（2026-10-01 (150)・旧＝技術水準の時計の傾斜 RailGate(TechLevel)）。2値＝敷設の速さは容量を買う予算と財（市場）が持つ。
         double railGate = Discovery.RailTransport(w.Discovered) ? 1.0 : 0.0;
-        BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true, 1.0);
+        BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true, 1.0, rm);
         // ★2026-09-27（回4-3 の再挑戦・作者裁定 2026-09-26 (3)「汽船の性能を上げるべき」）：汽船の性能を、植民地補給線と同じ機関の時代係数から導く。
         //   era＝EraFactor(前線技術, EraColonyCoal)＝運賃革命のランプ（前線 1.7〜2.9）に沿って 1.0→0.5（複式機関1860年代→三段膨張1880年代・史実の石炭/馬力時は約4ポンド→1.5ポンド）。
         //   ①汽船1単位の容量＝TransportCapPerUnit×ShipTier2CapMult×その州の汽船の解禁度（BuyToward の注記）÷era（解禁度1で 2.5→5.0）＝同時代の換算「汽船1トンは帆船3〜5トン分を運ぶ」
@@ -52,6 +41,72 @@ public static class Transport
             w.ShipSteamShare = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);   // NaN は帆走の側へ
         }
         if (c.ShipFuelRate > 0) BuyShipFuel(w, c, era);
+    }
+
+    /// <summary>★(1097) 輸送の目標容量（鉄道と船の買いの目標・旧＝Step の局所の式をそのまま純関数へ＝同じ式・同じ順）。人口×TransportTargetPerPop×(1＋脅威の項)×(1＋混雑の項)。
+    /// 読み手＝Step（鉄道の門を掛けて鉄道の目標・そのまま船の目標）と清算（段 R の φ の分母 need＝これ×州の取り分・門なし）。</summary>
+    internal static double Target(World w, Coefficients c)
+    {
+        double target = w.TotalPopulation * c.TransportTargetPerPop;   // 経済規模に応じた目標容量
+        // ★安保doc手順3（2026-08-30点火＝既定1.0）：国防の目的関数＝受けている脅威が大きいほど目標容量を積む（戦略鉄道の一般化＝路線を1本も定義しない）。
+        //   脅威比＝前期の SecurityThreat/SecurityThreatOwnMass（無次元・★(155) 安全保障の不安＝届く敵意の養える軍÷自国の養える軍）。target×(1+k×脅威比)＝民間項（上）に**乗せるだけ**＝どの路線かは書かない。
+        //   ⚠正のフィードバック（鉄道→脅威→鉄道）は国庫の有限性だけが歯止め。0＝この分岐を通らない＝厳密恒等。
+        if (c.ThreatRailTargetWeight > 0 && w.SecurityThreatOwnMass > 1e-9)
+        {
+            double threatRatio = w.SecurityThreat / w.SecurityThreatOwnMass;
+            if (threatRatio > 0 && double.IsFinite(threatRatio)) target *= 1.0 + c.ThreatRailTargetWeight * threatRatio;
+        }
+        // 接3（監査2026-07-11・2026-07-25休眠配線・2026-07-27点火＝既定1.0）：混雑シグナル（輸送律速率）を目標へ接続＝交易集約の小国は容量を積み増し、
+        // 交易の乏しい人口大国は使わない容量へ資金を誤配分しない。混雑＝活動州の(1−律速率)平均（港湾の混雑ゲートと同じ状態量）。0＝不読＝厳密恒等。
+        if (c.TransportCongestionWeight > 0)
+        {
+            double congSum = 0; int congN = 0;
+            foreach (var r in w.Regions) { congSum += 1.0 - r.LastTradeThrottle; congN++; }
+            if (congN > 0) target *= 1.0 + c.TransportCongestionWeight * (congSum / congN);
+        }
+        return target;
+    }
+
+    /// <summary>★(1097) 州の線路の和＝旗 RailByRegion＝1 の <see cref="World.RailCapacity"/> の読み口。</summary>
+    internal static double RailTrackSum(World w)
+    {
+        double s = 0;
+        foreach (var r in w.Regions) s += r.RailTrack;
+        return s;
+    }
+
+    /// <summary>★(1097) 段 R の充足 φ＝min(1, T÷need)（陸の脚の荷のうち線路で運ぶ割合）。否定形の守り：need が正でない（0・NaN）なら T＞0 で 1・それ以外 0。NaN の比は 0。</summary>
+    internal static double RailPhi(double track, double need)
+    {
+        if (!(need > 0)) return track > 0 ? 1.0 : 0.0;
+        double f = track / need;
+        return f >= 1.0 ? 1.0 : (f > 0 ? f : 0.0);
+    }
+
+    /// <summary>★(1097) 戦災の鉄道の分（Diplomacy の輸送容量の戦災の 1 行）：旗 0＝国の容量に (1−率)・旗 1＝全ての州の線路に同じ率（交戦した州だけにはしない＝州ごとの前線の量が無い）。</summary>
+    internal static void WearRail(World w, double wear)
+    {
+        if (w.Coef.RailByRegion > 0)
+        {
+            if (Instruments.On) Instruments.RailWar(w, wear);   // (1097) 計器（読むだけ・失いの記録）
+            foreach (var r in w.Regions) r.RailTrack *= 1.0 - wear;
+        }
+        else w.RailCapacity *= 1.0 - wear;
+    }
+
+    /// <summary>★(1097) 割譲・建国で州が出ていくときの鉄道の移し（Territory.TransferRegion）：旗 0＝送り手の国の容量×取り分を引いて返す（受け手は Receive で足す・(118)）。
+    /// 旗 1＝線路は州の欄（Region.RailTrack）で州について行く＝国の容量は動かさず 0 を返す。計器は移しの頭と終わりで州の線路を自分で読む（門 G4）。</summary>
+    internal static double TakeRailForMove(World from, Region r, double sh)
+    {
+        if (from.Coef.RailByRegion > 0)
+        {
+            var mv = Instruments.On ? Instruments.RailMoveBegin(from, r) : null;
+            mv?.End(r);
+            return 0.0;
+        }
+        double rail = from.RailCapacity * sh;
+        from.RailCapacity -= rail;
+        return rail;
     }
 
     /// <summary>★鉄道以前の陸の容量（道路・河川・運河＝国の値・2026-10-02 (166)）＝人口×<see cref="Coefficients.TransportTargetPerPop"/>（経済規模に応じた基礎の目標容量と同じ物差し）。
@@ -136,19 +191,50 @@ public static class Transport
     //   同値は帆船（先に並ぶ方）。鉄道（線路と機関車）は補完財なので両方を同じ単位数ずつ（今のまま・era は読まない）。
     //   量＝州の不足の容量を、選んだ財の1単位の容量で割った単位数。
     // 戻り値＝今月積んだ容量の（合計, うち汽船tier2分）。Step が汽船の割合（World.ShipSteamShare）を更新する。
-    private static (double Total, double Steam) BuyToward(World w, Coefficients c, int[] goods, double target, bool rail, double era)
+    // ★(1097) 段 R（旗 RailByRegion＝1・鉄道だけ）：州 r の投資家が、その州の不足へ買って州の線路 T_r に積む（送電網の州の在庫と同じ形）。
+    //   欲しい容量＝TransportBuildRate×max(0, need_r−T_r)＋TransportDecay×min(T_r, need_r)（置換は need の分まで＝need が下がれば余りは減耗で落ちる・片方向の錠を作らない）・
+    //   need_r＝target（鉄道の門を掛けた物）×州の取り分（RegionShare）。欲しい単位（財ごと）＝欲しい容量÷TransportCapPerUnit×地形_r÷財の数・積む＝買えた単位×TransportCapPerUnit÷地形_r
+    //   （地形_r＝TerrainRailCost＝山の州は同じ買いで短い・RailLayTerrain＝0 なら 1）。買い付けは今の Procure の 1 行（同じ買い手・同じ市場）。
+    private static (double Total, double Steam) BuyToward(World w, Coefficients c, int[] goods, double target, bool rail, double era, Instruments.RailMonth? rm = null)
     {
         double addTotal = 0, addSteam = 0;
-        double cap = rail ? w.RailCapacity : w.ShipCapacity;
-        double gapUnits = (target - cap) * c.TransportBuildRate / c.TransportCapPerUnit;   // 今月詰めたい総単位数（1単位＝TransportCapPerUnit の容量で数える）
-        if (gapUnits <= 1e-9) return (0, 0);
-        int regCount = 0;
-        foreach (var r in w.Regions) if (r.InvestorPopIndex >= 0) regCount++;
-        if (regCount == 0) return (0, 0);
-        double perGood = rail ? gapUnits / regCount / goods.Length : gapUnits / regCount;   // 1州1財あたりの希望単位（船は選んだ1財だけ）
+        bool byReg = rail && c.RailByRegion > 0;
+        double perGood = 0;
+        (double Even, double TotalPot) basis = default;
+        if (byReg)
+        {
+            if (!(target > 0)) return (0, 0);   // 否定形＝門が閉じている（未発見）・NaN は買わない
+            basis = ShareBasis(w, c);
+        }
+        else
+        {
+            double cap = rail ? w.RailCapacity : w.ShipCapacity;
+            double gapUnits = (target - cap) * c.TransportBuildRate / c.TransportCapPerUnit;   // 今月詰めたい総単位数（1単位＝TransportCapPerUnit の容量で数える）
+            if (gapUnits <= 1e-9) return (0, 0);
+            int regCount = 0;
+            foreach (var r in w.Regions) if (r.InvestorPopIndex >= 0) regCount++;
+            if (regCount == 0) return (0, 0);
+            perGood = rail ? gapUnits / regCount / goods.Length : gapUnits / regCount;   // 1州1財あたりの希望単位（船は選んだ1財だけ）
+        }
         foreach (var r in w.Regions)
         {
             if (r.InvestorPopIndex < 0) continue;
+            double terrLay = 1.0, boughtUnits = 0;
+            if (byReg)
+            {
+                double need = target * RegionShare(basis, r);
+                double tPre = r.RailTrack;   // 減耗の後・買う前
+                double wantCap = c.TransportBuildRate * System.Math.Max(0, need - tPre) + c.TransportDecay * System.Math.Min(tPre, need);
+                if (c.RailLayTerrain > 0)
+                {
+                    int ti = (int)r.Terrain;
+                    terrLay = ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0;
+                    if (!(terrLay > 0)) terrLay = 1.0;   // 否定形＝0・NaN の表は地形なしへ（0 で割らない）
+                }
+                perGood = wantCap / c.TransportCapPerUnit * terrLay / goods.Length;
+                rm?.Pre(r);
+                if (!(perGood > 1e-9)) { rm?.Post(r, 0.0); continue; }   // 否定形＝NaN も買わない
+            }
             int buyerIdx = rail ? r.InvestorPopIndex : (r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex);
             var investor = r.Pops[buyerIdx];
             double steamGate = rail ? 0.0 : Discovery.GoodGate(r, c.ShipTier2GoodId);   // 汽船の解禁度（0..1・NaN は0）
@@ -184,10 +270,12 @@ public static class Transport
                 double buy = InternationalMarket.Procure(w, r, gi, want, investor);
                 if (buy <= 1e-9) continue;
                 double add = buy * c.TransportCapPerUnit * mult;
-                if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
+                if (byReg) { r.RailTrack += add / terrLay; boughtUnits += buy; }   // ★(1097) 段 R：州の線路へ（地形の分だけ短い）
+                else if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
                 addTotal += add;
                 if (!rail && gi == c.ShipTier2GoodId) addSteam += add;   // 汽船の割合（容量加重）の分子
             }
+            if (byReg) rm?.Post(r, boughtUnits);
         }
         return (addTotal, addSteam);
     }

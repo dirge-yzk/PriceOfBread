@@ -144,6 +144,70 @@ public sealed partial class InternationalMarket
         return Math.Min(viaSea, viaLand);
     }
 
+    /// <summary>(1097) 清算の通し番号（計器が清算ごとの値をまとめて引くため・結果に効かない・セーブに載らない）。</summary>
+    [System.NonSerialized] internal int ClearingSerial;
+
+    /// <summary>★(1097) 段 R の運賃の線路の分の払い（作者「しばらくの間、全て推奨で」で推奨を採った＝§0-2 ★(1096) ④）：州 r の受け皿（金建て）を、
+    /// 外国 f の取り分 x_f（Region.ForeignShares・和が 1 を超えれば和で割る）の分は f の全ての州の投資家 POP へ（頭数）、残りは州 r の投資家 POP（線路を買った者）へ。
+    /// 受け手の居ない外国（国が無い・投資家が居ない）の分は州 r の投資家へ戻す。州 r に投資家 POP が無ければ州の全ての POP へ。
+    /// 払いは船の持ち主の運賃と同じ型（世界の外→受け手・÷受け手の国の為替・OtherIn・income: true・為替の換算の台帳 fxIntended に足す）。0 の払いは飛ばす。</summary>
+    private static double PayRailFreight(IReadOnlyList<Simulation> nations, TrEntry[] tr, int tc, double[] railRecv, double[] exRate, ref double fxIntended)
+    {
+        bool ins = Instruments.On;
+        double back = 0;   // 受け手が 1 人も居なかった分（金建て）＝呼び手が船の持ち主の運賃の池へ戻す
+        Dictionary<string, int>? keyOf = null;
+        List<Pop>?[]? invOf = null;
+        for (int t = 0; t < tc; t++)
+        {
+            double g = railRecv[t];
+            if (!(g > 0)) continue;
+            var r = tr[t].r; int n = tr[t].nation; var W = nations[n].World;
+            double sumF = 0;
+            for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) sumF += r.ForeignShares[k];
+            double scale = sumF > 1.0 ? 1.0 / sumF : 1.0;
+            double dom = g;
+            if (sumF > 0)
+                for (int k = 0; k < r.ForeignShares.Length && k < r.ForeignRulers.Length; k++)
+                {
+                    double x = r.ForeignShares[k];
+                    if (!(x > 0)) continue;
+                    if (keyOf is null)
+                    {
+                        keyOf = new Dictionary<string, int>(StringComparer.Ordinal);
+                        for (int i2 = 0; i2 < nations.Count; i2++)
+                            if (nations[i2].World.SelfPower is { } sp) keyOf.TryAdd(sp.BaseName.Length > 0 ? sp.BaseName : sp.Name, i2);
+                        invOf = new List<Pop>?[nations.Count];
+                    }
+                    if (!keyOf.TryGetValue(r.ForeignRulers[k], out int f) || f == n) continue;
+                    var inv = invOf![f];
+                    if (inv is null)
+                    {
+                        inv = new List<Pop>();
+                        foreach (var r2 in nations[f].World.Regions) if (r2.InvestorPopIndex >= 0 && r2.InvestorPopIndex < r2.Pops.Count) inv.Add(r2.Pops[r2.InvestorPopIndex]);
+                        invOf[f] = inv;
+                    }
+                    double sz = 0; foreach (var p2 in inv) sz += p2.Size;
+                    if (!(sz > 1e-9)) continue;   // 受け手の居ない外国の分は州 r の投資家へ
+                    double gf = g * x * scale;
+                    dom -= gf;
+                    double amtF = gf / exRate[f];
+                    fxIntended += amtF;
+                    World.Transfer((null, null), (nations[f].World, inv, null), amtF, TreasuryCat.OtherIn, income: true);
+                    if (ins) Instruments.RailFreightPaid(r, nations[f].World, gf);
+                }
+            if (!(dom > 0)) continue;
+            List<Pop>? rec = null;
+            if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count && r.Pops[r.InvestorPopIndex].Size > 1e-9) rec = [r.Pops[r.InvestorPopIndex]];
+            else { double szR = 0; foreach (var p2 in r.Pops) szR += p2.Size; if (szR > 1e-9) rec = r.Pops; }
+            if (rec is null) { back += dom; continue; }   // 州に人が居ない＝船の持ち主へ戻す（片側の記帳を作らない）
+            double amt = dom / exRate[n];
+            fxIntended += amt;
+            World.Transfer((null, null), (W, rec, null), amt, TreasuryCat.OtherIn, income: true);
+            if (ins) Instruments.RailFreightPaid(r, W, dom);
+        }
+        return back;
+    }
+
     private bool LastPairWasLand;   //★陸路可視化：直近 PairKm の勝者が陸直行か（Step 内でのみ読み書き・純テレメトリ）
 
     private readonly struct Seller(int node, double price, double stock)
@@ -207,6 +271,8 @@ public sealed partial class InternationalMarket
         public bool[] Bill = [];
         public Pop?[] PortOwner = [];
         public Market[] MktOf = [];
+        public double[] RailFrac = [], RailRecv = [], RailTgtN = [], RailEvenN = [], RailPotN = [];   // (1097) 段 R：州の線路の分の割合 ρ・州の線路の運賃の受け皿（金建て）・国ごとの目標と取り分の基底
+        public bool[] RailByRegN = [];   // (1097) 段 R：その国の旗 RailByRegion（国ごとの Coef）
         public Region[] DealtTmp = [];   // ★(403) 係数 ClearingPartnerScope：1 行の覚えの下書き
         public int[] Member = [];   // ★(403) 係数 ClearingPartnerScope：行の相手の目印（売り手の位置→行の通し番号）。月の清算が無い設定では触らない
         public uint[] IdleKey = [];   // ★(403) 係数 ClearingIdleSearchQuarters：州ごとの決定論の鍵（名前の FNV-1a）。N が 1 以下では触らない
@@ -284,6 +350,9 @@ public sealed partial class InternationalMarket
         var natHostility = ClearScratch.Fit(ref sc.NatHostility, nn);   // 下の国のループが全要素を書く
         var natAnyHostile = ClearScratch.Fit(ref sc.NatAnyHostile, nn);
         var suezOkN = ClearScratch.Fit(ref sc.SuezOkN, nn); var panOkN = ClearScratch.Fit(ref sc.PanOkN, nn);
+        var railByRegN = ClearScratch.Fit(ref sc.RailByRegN, nn); var railTgtN = ClearScratch.Fit(ref sc.RailTgtN, nn);   // (1097) 下の国のループが全要素を書く
+        var railEvenN = ClearScratch.Fit(ref sc.RailEvenN, nn); var railPotN = ClearScratch.Fit(ref sc.RailPotN, nn);
+        ClearingSerial++;   // (1097) 計器が清算ごとの値をまとめて引くための通し番号（結果に効かない・セーブに載らない）
         for (int i = 0; i < nn; i++)
         {
             var W = nations[i].World;
@@ -298,12 +367,16 @@ public sealed partial class InternationalMarket
             var shareBasis = Transport.ShareBasis(W, c);
             // ★B-06（2026-09-03 点火・旗 TransportBaselineIsLand は 2026-09-26 に焼き込み）：鉄道以前の基礎容量は**陸**（道路・河川）。
             //   ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（Transport.PreRailCapacity・旧＝国ごとの定数 TransportBaseline 50＝大国の内陸が通した割合 0.26〜10% に絞られた〔(165) の木の5種・1784〕→ 0.36〜1.0〔(166) の10種〕）。
-            double railCapNat = W.RailCapacity + Transport.PreRailCapacity(W, c);
+            // ★(1097) 段 R（旗 RailByRegion＝1）：州の容量＝州の線路＋鉄道以前の陸の容量×取り分（旗 0＝(国の鉄道の容量＋鉄道以前)×取り分）。φ の分母 need＝目標（門なし）×取り分。
+            bool byReg = railByRegN[i] = W.Coef.RailByRegion > 0;
+            railTgtN[i] = byReg ? Transport.Target(W, W.Coef) : 0.0; railEvenN[i] = shareBasis.Even; railPotN[i] = shareBasis.TotalPot;
+            double railCapNat = byReg ? 0.0 : W.RailCapacity + Transport.PreRailCapacity(W, c);
+            double preRail = byReg ? Transport.PreRailCapacity(W, c) : 0.0;
             double shipCapNat = W.ShipCapacity / (1.0 + W.ColonialShipBurden);
             foreach (var r in W.Regions)
             {
                 double share = Transport.RegionShare(shareBasis, r);
-                double railToPort = railCapNat * share;
+                double railToPort = byReg ? r.RailTrack + preRail * share : railCapNat * share;
                 double shipEff = shipCapNat * share;
                 if (firstClearingOfQuarter) { r.LastPortThroughput = 0; r.LastLandPartnerName = ""; r.LastLandPartnerFlow = 0; }   // 四半期の第1清算でリセット（従来＝毎回＝既定 true で厳密同値）
                 portStart[r] = r.LastPortThroughput;                     // 当清算の差分の起点
@@ -376,9 +449,28 @@ public sealed partial class InternationalMarket
         //   表が全1.0・水運0なら terrCost は恒等的に1.0（旗 TerrainCostEnabled は 2026-09-26 に焼き込み＝表は常に効く）。
         var terrCost = ClearScratch.Fit(ref sc.TerrCost, tc);   // 下のループが全要素を書く
         var landRatio = ClearScratch.Fit(ref sc.LandRatio, tc);   // ★州ごとの実効 陸/海コスト比（鉄道時代の低下・RailCostFraction=1.0で12のまま＝恒等）
+        var railFrac = ClearScratch.Fit(ref sc.RailFrac, tc);   // (1097) 下のループが全要素を書く（旗 0 の州は 0）
+        double rcf01 = PoliticalQuantities.Clamp01(c.RailCostFraction);
         for (int t0 = 0; t0 < tc; t0++)
         {
-            var W0 = nations[tr[t0].nation].World;
+            int nt0 = tr[t0].nation;
+            if (railByRegN[nt0])
+            {   // ★(1097) 段 R：陸の倍率＝12×[(1−φ)×基礎_馬＋φ×基礎_鉄道]（landRatio は 12 のまま・配列は 2 本のまま＝φ＝0 で旗 0 の発見の前と同じビット）。
+                //   基礎_馬＝TerrainHorseCost・基礎_鉄道＝TerrainRailCost×Clamp01(RailCostFraction)・水運の州は両方とも水運の値（基礎_鉄道＝水運の値×Clamp01(RailCostFraction)＝旗 0 の両端の値）。
+                var rr = tr[t0].r; int tiR = (int)rr.Terrain;
+                double bh = tiR < c.TerrainHorseCost.Length ? c.TerrainHorseCost[tiR] : 1.0;
+                double br = (tiR < c.TerrainRailCost.Length ? c.TerrainRailCost[tiR] : 1.0) * rcf01;
+                if (rr.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) { bh = c.TerrainWaterMajorCost; br = bh * rcf01; }
+                else if (rr.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) { bh = c.TerrainWaterMinorCost; br = bh * rcf01; }
+                double phi = Transport.RailPhi(rr.RailTrack, railTgtN[nt0] * Transport.RegionShare((railEvenN[nt0], railPotN[nt0]), rr));
+                double m1 = (1.0 - phi) * bh + phi * br;
+                terrCost[t0] = m1;
+                landRatio[t0] = c.LandSeaCostRatio;
+                railFrac[t0] = phi > 0 && m1 > 0 ? phi * br / m1 : 0.0;   // 陸の脚の換算 km のうち線路の分の割合（運賃の線路の分）
+                continue;
+            }
+            railFrac[t0] = 0.0;
+            var W0 = nations[nt0].World;
             double rg0 = Discovery.RailTransport(W0.Discovered) ? 1.0 : 0.0;   // 鉄道の門の1本＝機関車の発見
             landRatio[t0] = c.LandSeaCostRatio * (1.0 - rg0 * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
             double rg = rg0;
@@ -624,6 +716,7 @@ public sealed partial class InternationalMarket
         var partnerStd = ClearScratch.Fit(ref sc.PartnerStd, nn); var partnerBal = ClearScratch.FitZero(ref sc.PartnerBal, nn); var partnerTot = ClearScratch.FitZero(ref sc.PartnerTot, nn);   // 本位は下の国のループが全要素を書く
         for (int i = 0; i < nn; i++) partnerStd[i] = nations[i].World.MonetaryLaw switch { MonetaryStandardLaw.Gold => 1.0, MonetaryStandardLaw.Silver => -1.0, _ => 0.0 };
         double freightPool = 0;   // 運賃（金建て）＝船腹の比で各国の船の持ち主へ
+        var railRecv = ClearScratch.FitZero(ref sc.RailRecv, tc);   // (1097) 段 R：州の線路の運賃の受け皿（金建て）＝清算の終わりに州の投資家と外国の取り分へ（PayRailFreight）
         var shipShare = ClearScratch.FitZero(ref sc.ShipShare, nn);
         // ★段3-1（C3）：運賃の受け手＝船の持ち主＝その国の商人POP（船を買うのは州の商人＝Transport.BuyToward）。旧＝運賃は各国の純流入に混ぜて国の全POP の貯蓄比（Apply）。
         //   商人の居ない国（合成の試験世界）は活動州の全POP。受け手の居ない国は船腹の比から外す（運賃が誰にも渡らない片側記帳を作らない）。
@@ -1189,7 +1282,16 @@ public sealed partial class InternationalMarket
                     if (portT > 0) portRecv[t] += vA * portT / exRate[ni];
                     if (portS > 0) { double rS = vA * portS / exRate[siA]; portRecv[snA] += rS; fxIntended += rS - vA * portS / exRate[ni]; }   // 積出し港の持ち主は自国の通貨で（換算の差は台帳へ）
                     if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
-                    freightPool += frG;
+                    if (railFrac[snA] > 0 || railFrac[t] > 0)
+                    {   // ★(1097) 段 R：運賃のうち線路の分＝端ごとの陸の脚の換算 km×線路の割合 ρ÷換算 km（海経由＝E÷km・陸直行＝K÷(K_a＋K_b)）＝州の受け皿へ・残りは船の持ち主へ
+                        double rS = 0, rB = 0;
+                        if (seaA) { if (bestKmA > 0 && double.IsFinite(bestKmA)) { rS = frG * kE[snA] * railFrac[snA] / bestKmA; rB = frG * kE[t] * railFrac[t] / bestKmA; } }
+                        else { double kSum = kK[snA] + kK[t]; if (kSum > 0) { rS = frG * kK[snA] * railFrac[snA] / kSum; rB = frG * kK[t] * railFrac[t] / kSum; } }
+                        if (!(rS >= 0)) rS = 0; if (!(rB >= 0)) rB = 0;   // 否定形＝NaN は線路の分にしない
+                        railRecv[snA] += rS; railRecv[t] += rB;
+                        freightPool += frG - rS - rB;
+                    }
+                    else freightPool += frG;
                     if (Instruments.On) Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr);   // ★(403) 計器（読むだけ）
                     if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni], g, crossA ? vA * protect / exRate[ni] : 0.0, crossA ? vA * cornPen / exRate[ni] : 0.0);   // ★(380) 輸送の段0 の計器（読むだけ）・★(385) 運賃の配りの比を売り手側・買い手側の国で添える
                     if (ts is not null) ts.Deal(crossA);   // (1003) 計器 C2：この行の成約が越境か国内か
@@ -1265,6 +1367,7 @@ public sealed partial class InternationalMarket
         // ---- 清算の終わり（段3-1）：運賃→船の持ち主／補助→払い手／関税→国庫（通関）／輸入代金と運賃→清算所 ----
         //   受け取りを先に・払いを後に（払い手の支払能力は清算の始めの貯蓄で数えた＝この清算の受け取りは使っていない）。
         //   運賃＝船腹の比で各国の船の持ち主（船を買う商人＝Transport.BuyToward）へ頭数で。
+        freightPool += PayRailFreight(nations, tr, tc, railRecv, exRate, ref fxIntended);   // (1097) 段 R：州の線路の運賃（受け皿が 0 の州は何もしない＝旗 0 は 1 件も払わず 0 を返す）・受け手の居ない分は船の持ち主へ戻す
         for (int i = 0; i < nn; i++)
         {
             if (!(freightPool > 0) || !(shipShare[i] > 0)) continue;

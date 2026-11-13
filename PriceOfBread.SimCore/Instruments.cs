@@ -237,7 +237,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Fm; public bool FmHeader;                           // (371) 流れM の計器（国×四半期の行）
         public System.IO.StreamWriter? Sca; public bool ScaHeader;                         // (373) 政治のスカラーの表（国×四半期）
         public System.IO.StreamWriter? Ivf; public bool IvfHeader;                         // (536) 初期値の直し（資本の土台）の表（国×四半期・InstrumentsIvf.cs）
-        public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader;   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
+        public System.IO.StreamWriter? TrBin, TrRoute, TrNat, TrStat; public bool TrHeader; public System.IO.StreamWriter? TrRail;   /* (1097) 段 R の州の線路の表 */   // (380) 輸送の段0 の計器（年×距離の帯の行・経路の行・国の行・州と値段の行）
         public System.IO.StreamWriter? Bur; public bool BurHeader;                         // (389) AI の官僚制度の判断の表（国×四半期）
         public System.IO.StreamWriter? Coup; public bool CoupHeader;                       // (393) 軍の力の入口の表（国×四半期・第 1 の門を通った行だけ）
         public System.IO.StreamWriter? Anc; public bool AncHeader;                         // (369) 扶養力の錨の表（国×四半期）
@@ -1980,7 +1980,7 @@ public static partial class Instruments
         sk.Fm?.Dispose(); sk.Fm = null;       // (371)
         sk.Sca?.Dispose(); sk.Sca = null;     // (373)
         sk.Ivf?.Dispose(); sk.Ivf = null;     // (536)
-        sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null;   // (380)
+        sk.TrBin?.Dispose(); sk.TrBin = null; sk.TrRoute?.Dispose(); sk.TrRoute = null; sk.TrNat?.Dispose(); sk.TrNat = null; sk.TrStat?.Dispose(); sk.TrStat = null; sk.TrRail?.Dispose(); sk.TrRail = null;   /* (1097) */   // (380)
         sk.Xmig?.Dispose(); sk.Xmig = null;   // (746)
         sk.Bur?.Dispose(); sk.Bur = null;   // (389)
         sk.Coup?.Dispose(); sk.Coup = null;   // (393)
