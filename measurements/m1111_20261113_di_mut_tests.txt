@@ -1,0 +1,32 @@
+== M0 元（緑のはず）
+    0 エラー
+ビルドに成功しました。
+成功!   -失敗:     0、合格:    10、スキップ:     0、合計:    10、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+    0 エラー
+ビルドに成功しました。
+成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 193 ms - PriceOfBread.Tests.Ui.dll (net10.0)
+== M3 GoodIdGuard から Display を外す
+    0 エラー
+ビルドに成功しました。
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 39 ms - PriceOfBread.Tests.dll (net10.0)
+== M3b DiscontentReader から Display を外す
+    0 エラー
+ビルドに成功しました。
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+== M5 Display に換算の口
+    0 エラー
+ビルドに成功しました。
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 173 ms - PriceOfBread.Tests.Ui.dll (net10.0)
+== M6 Display に年GDP比を作る口
+    0 エラー
+ビルドに成功しました。
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 215 ms - PriceOfBread.Tests.Ui.dll (net10.0)
+== M2 FmtTests.cs をエンジンの側へ戻す
+    2 エラー
+D:\PoB_work\c107di_work\mut_tree\PriceOfBread.Tests\FmtTests.cs(1,20): error CS0234: 型または名前空間の名前 'App' が名前空間 'PriceOfBread' に存在しません (アセンブリ参照
+D:\PoB_work\c107di_work\mut_tree\PriceOfBread.Tests\FmtTests.cs(3,28): error CS0234: 型または名前空間の名前 'Display' が名前空間 'PriceOfBread.SimCore' に存在しません (アセン
+END
