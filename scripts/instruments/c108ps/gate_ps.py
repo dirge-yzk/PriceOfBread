@@ -76,12 +76,13 @@ def count_law(d):
                     C["G3_all"] += 1; C["G3"] += not d1
     return C, opp, up
 def prds_q0(d):
-    n = 0
+    n = 0; dup = 0
     for s in seeds(d):
         p = os.path.join(d, f"prds_s{s}.tsv")
         if not os.path.exists(p): return None
-        n += sum(1 for r in rows(p) if r["quarter"] == "0")
-    return n
+        c = collections.Counter(r["nation"] for r in rows(p) if r["quarter"] == "1")   # prds_s の印は Politics.Step の時の四半期＋1＝開幕の四半期は 1
+        n += sum(c.values()); dup += sum(v - 1 for v in c.values() if v > 1)
+    return f"{n}（同じ国名が 2 行以上の重なり {dup}）"
 C, A, B, q0P = count_parl(ARM)
 L, opp, up = count_law(ARM)
 print(f"腕 {ARM}・種 {seeds(ARM)}")
@@ -94,7 +95,8 @@ lim = 10 * bm * opp["NE"]
 print(f"G2 非選挙→選挙の距離 1：四半期 {opp['NE']}・最低賃金の上げ {up[('NE','mw')]}・他の率 {bm:.6f}（{up[('other','mw')]}/{opp['other']}）・比 {r2:.1f}（門 ≦10＝上げ ≦{lim:.1f} 回）：{'緑' if bm and up[('NE','mw')] <= lim else ('判定不能' if not bm else '赤')}")
 blu = up[("other", "lu")] / opp["other"] if opp["other"] else 0
 print(f"   記録：選挙→選挙の距離 1 四半期 {opp['EE']}・最低賃金の上げ {up[('EE','mw')]}・労組の上げ {up[('EE','lu')]}／非選挙→選挙の距離 1 の労組の上げ {up[('NE','lu')]}（比 {((up[('NE','lu')] / opp['NE']) / blu) if blu and opp['NE'] else float('nan'):.1f}）・距離 2〜4 四半期 {opp['d24']} 最低賃金の上げ {up[('d24','mw')]}")
-print(f"G3 最低賃金の 0→1 以上（距離 1 の移行を除く）{L['G3']}（全て {L['G3_all']}）（門 ≧176）：{'緑' if L['G3'] >= 176 else '赤'}")
+g3 = 17.6 * len(seeds(ARM))   # 門は 10 種で ≧176＝1 種あたり 17.6（突然変異の 1 種の腕はこの比で読む）
+print(f"G3 最低賃金の 0→1 以上（距離 1 の移行を除く）{L['G3']}（全て {L['G3_all']}）（門 ≧{g3:.1f}＝10 種で 176）：{'緑' if L['G3'] >= g3 else '赤'}")
 if BASE:
     Cb, Ab, Bb, q0b = count_parl(BASE)
     print(f"G4 P で席が空の行 {C['P_empty']}（旗 0 の生 {Cb['P_empty']}・門 ≦{0.02 * Cb['P_empty']:.1f}）：{'緑' if C['P_empty'] <= 0.02 * Cb['P_empty'] else '赤'}")
@@ -106,4 +108,4 @@ print(f"U 思想の 1 回が走った行 {len(A)}・頭で席が空で思想が�
 if A - B: print(f"   走ったが B に無い（先頭 5）：{sorted(A - B)[:5]}")
 if B - A: print(f"   B だが走らない（先頭 5）：{sorted(B - A)[:5]}")
 print(f"記録：P の行 {C['P']}・旧≠新（頭で席が空・QuartersSinceElection＝0）O {C['diff_O']}・T {C['diff_T']}・C 内戦明け {C['diff_C']}・X その他 {C['diff_X']}・符号が無い行 {C['code_missing']}")
-print(f"記録：アメリカの q＝0 の最低賃金 ≧1 の種 {L['us_q0_mw1']}・最低賃金の施行の行 {L['mw_enacted_rows']}・prds_s の q＝0 の行 {prds_q0(ARM)}")
+print(f"記録：アメリカの q＝0 の最低賃金 ≧1 の種 {L['us_q0_mw1']}・最低賃金の施行の行 {L['mw_enacted_rows']}・prds_s の印 1（開幕の四半期）の行 {prds_q0(ARM)}")
