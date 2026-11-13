@@ -188,7 +188,7 @@ OVR = {
  'S08-H033': {10: R_RAIL + '・' + OV('A（TransportTargetPerPop＝輸送の線で）')},
  'S08-H034': {10: R_RAIL + '・' + OV('A（ThreatRailTargetWeight・TransportCongestionWeight＝輸送の線で）') + '・計器 shipcap_s'},
  'S08-H035': {10: R_RAIL}, 'S08-H036': {10: R_RAIL + '・' + R_CEDE + '（Territory.cs:367 の Transport.Receive）'}, 'S08-H037': {10: R_RAIL},
- 'S08-H038': {10: RMARK + '（鉄道の容量＝BilateralMarket.cs:264〜270 の内側の :265 を読む）・' + OV('A（ColonyShipOccupyPerDist）') + '・計器 shipcap_s'},
+ 'S08-H038': {10: '〈段 R の合流の後に確かめ直す：鉄道の容量〉（BilateralMarket.cs:264〜270 の内側の :265 を読む）・' + OV('A（ColonyShipOccupyPerDist）') + '・計器 shipcap_s'},
 }
 for r in rows:
     for col, val in OVR.get(r[0], {}).items(): r[col] = val
