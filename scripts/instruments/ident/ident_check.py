@@ -281,6 +281,31 @@ def _cearn_path(name):   # 経路の名のファイル名 → 基準のコミッ
     return ps[0] if len(ps) == 1 else None
 
 
+_KEY_SKIP = (b'/*', b'@"', b'"""', b'$"')
+
+
+def _code_key(s):   # (1116) 合流：行の一致の鍵＝文字列・文字リテラルの外の行末の // 注を除き、末尾の空白を落とした字。
+    # 注だけを移す恒等の線（(1113) c107hb）が経路の行の行末の注を消すと、行全体の一致では写せない（ha (1112) の申し送り）。
+    # /*・逐語・生・補間の文字列を含む行は字句を 1 行で読み切れない＝正規化しない（保守側＝写せなければ ? のまま）。コードの字が 1 字でも違えば鍵も違う。
+    if any(t in s for t in _KEY_SKIP):
+        return s
+    i, n, q = 0, len(s), None
+    while i < n:
+        c = s[i:i + 1]
+        if q:
+            if c == b'\\':
+                i += 2
+                continue
+            if c == q:
+                q = None
+        elif c in (b'"', b"'"):
+            q = c
+        elif s[i:i + 2] == b'//':
+            return s[:i].rstrip()
+        i += 1
+    return s.rstrip()
+
+
 def _cearn_map(name):   # ファイル名 → {基準の行: 測る木の行}（変わらない行だけ）。None＝同じファイル（恒等）。{}＝写せない
     c = CEARN
     if name in c['maps']:
@@ -302,8 +327,8 @@ def _cearn_map(name):   # ファイル名 → {基準の行: 測る木の行}（
     if a == bb:
         c['maps'][name] = None
         return None
-    la = [x.rstrip(b'\r') for x in a.split(b'\n')]
-    lb = [x.rstrip(b'\r') for x in bb.split(b'\n')]
+    la = [_code_key(x.rstrip(b'\r')) for x in a.split(b'\n')]   # (1116) 行の一致は行末の注を除いたコードの字（_code_key）
+    lb = [_code_key(x.rstrip(b'\r')) for x in bb.split(b'\n')]
     for blk in difflib.SequenceMatcher(None, la, lb, autojunk=False).get_matching_blocks():
         for k in range(blk.size):
             m[blk.a + k + 1] = blk.b + k + 1
