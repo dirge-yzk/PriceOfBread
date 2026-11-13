@@ -1,0 +1,11 @@
+mu	build	test	unit1_floor	unit2_built0	summary
+mu0	ok	緑	緑	緑	成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 821 ms - PriceOfBread.Tests.dll (net10.0)
+mu1	ok	赤	赤	赤	失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 943 ms - PriceOfBread.Tests.dll (net10.0)
+mu2	ok	赤	赤	赤	失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+mu3	ok	赤	赤	赤	失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 897 ms - PriceOfBread.Tests.dll (net10.0)
+mu4	ok	赤	赤	緑	失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 958 ms - PriceOfBread.Tests.dll (net10.0)
+mu5	ok	赤	赤	緑	失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 873 ms - PriceOfBread.Tests.dll (net10.0)
+mu6	ok	赤	赤	緑	失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 876 ms - PriceOfBread.Tests.dll (net10.0)
+mu7	ok	赤	赤	赤	失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 937 ms - PriceOfBread.Tests.dll (net10.0)
+mu8	ok	赤	赤	赤	失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 910 ms - PriceOfBread.Tests.dll (net10.0)
+mu9	ok	赤	緑	赤	失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 978 ms - PriceOfBread.Tests.dll (net10.0)

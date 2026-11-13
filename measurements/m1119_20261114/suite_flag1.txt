@@ -1,0 +1,47 @@
+# (1119) c108mc 旗 1 の木 d2a58e0f9 のフルスイート（scripts/instruments/c108mc/suite1119.sh）・savetest・leakhunt
+木 d2a58e0f9
+list PriceOfBread.Tests nonfull 2595
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 232
+list PriceOfBread.Tests.Ui full 0
+nonfull PriceOfBread.Tests rc=0 3588s
+full PriceOfBread.Tests rc=0 305s
+nonfull PriceOfBread.Tests.Ui rc=0 130s
+full PriceOfBread.Tests.Ui rc=0 2s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 2 m 5 s - PriceOfBread.Tests.Ui.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2594、スキップ:     1、合計:  2595、期間: 59 m 44 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\c108mc_work\suite\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 3 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 327s
+保存 46.6MB（991ms）／読込 919ms（300四半期時点）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 115・その月の額の和 5.984E+04
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/c108mc_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/c108mc_work/suite/leakhunt.txt.manifest（SOURCE-HASH=9b9a76d62d344330）
+SL-END 04:47:03
+SAVELEAKDONE
+
+# ㊴ 計器の束（旗 1 の木 dcc9ca14a・取り直しの前）
+木 dcc9ca14ad3f21dd004bd9894044770f485ad0f1
+rc=1
+[xUnit.net 00:00:44.78]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2292884) [FAIL]
+[xUnit.net 00:00:44.84]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 2897) [FAIL]
+失敗!   -失敗:     2、合格:   370、スキップ:     0、合計:   372、期間: 29 m 39 s - PriceOfBread.Tests.dll (net10.0)
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 1902892 件（宣言 2292884）＝10 % を超えて**下がった**＝表を 1902892 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+--
+  エラー メッセージ:
+   計算量「中身の無い物：能力0・産出0の生産者×月（倒産）」が 2520 件（宣言 2897）＝10 % を超えて**下がった**＝表を 2520 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+
+# ㉘ 走査の番人の束（旗 0 の木 a20f522d8）
+木 a20f522d807c2a55adade654d91712238da16d29
+rc=0
+成功!   -失敗:     0、合格:   201、スキップ:     0、合計:   201、期間: 18 m 57 s - PriceOfBread.Tests.dll (net10.0)

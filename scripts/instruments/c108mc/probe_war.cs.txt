@@ -1,0 +1,37 @@
+// (1119) c108mc の探り（使い捨ての木 D:/PoB_work/c108mc_work/probe の PriceOfBread.Tests/ZzProbeWar.cs に置いて回した・main には入れない）。
+//   PROBE_OUT=<出力> dotnet test … --filter "FullyQualifiedName~ZzProbeWar"   旗 1 は POB_COEF="MineralScaleCapLift=1"。
+//   出力：measurements/m1119_20261114/war_probe_f{0,1}.txt（frSide/ukSide はプロイセンを含む宣戦の前の比＝参戦の判定の比ではない・判定の比は frMil÷ukMil）。
+using System.Reflection;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+[Collection("Instruments")]
+public class ZzProbeWar
+{
+    [Fact]
+    public void Probe()
+    {
+        var lines = new List<string>();
+        foreach (ulong seed in new ulong[] { 1789, 1790, 1791, 1792, 1793, 1794, 1795, 1796, 1797, 1798, 1799, 1800, 1801, 1802, 1803, 1804 })
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("プロイセン")], seed);
+            sim.StartWarmup();
+            var d = sim.Diplomacy; var c = sim.Coef;
+            Power P(string n) => d.Powers.First(p => p.Nation is not null && (p.BaseName.Length > 0 ? p.BaseName : p.Name) == n);
+            var uk = P("イギリス"); var fr = P("フランス"); var pr = P("プロイセン");
+            var key = typeof(Diplomacy).GetMethod("Key", BindingFlags.NonPublic | BindingFlags.Static)!;
+            var al = (HashSet<long>)typeof(Diplomacy).GetField("_alliance", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(d)!;
+            al.Add((long)key.Invoke(null, [uk, pr])!);
+            d.SeedTension(uk, fr, 100);
+            double frSide = d.SideMilitary(fr, uk, c), ukSide = d.SideMilitary(uk, fr, c);
+            var aw = uk.Nation!;
+            int logN = d.Log.Count;
+            bool ok = d.DeclareWar(fr, pr, c);
+            string tail = string.Join(" | ", d.Log.Skip(logN).Where(s => s.Contains("参戦")));
+            lines.Add($"PROBE flag={Environment.GetEnvironmentVariable("POB_COEF") ?? "-"} seed={seed} ukMil={uk.Military:R} frMil={fr.Military:R} prMil={pr.Military:R} frSide/ukSide={frSide / ukSide:F4} (thr {c.AppeaseMilitaryRatio}) weary={uk.WarExhaustion} civ={aw.InCivilWar} food={aw.FoodFill} fund={aw.FiscalFundingRatio} legit={aw.Legitimacy} declared={ok} log=[{tail}]");
+        }
+        File.WriteAllLines(Environment.GetEnvironmentVariable("PROBE_OUT")!, lines);
+    }
+}
