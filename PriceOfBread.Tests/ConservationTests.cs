@@ -211,20 +211,27 @@ public class ConservationTests
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
-        uk.ShipCapacity = 1000; uk.RailCapacity = 400; uk.ShipSteamShare = new Share(0.5);
-        fr.ShipCapacity = 200; fr.RailCapacity = 0; fr.ShipSteamShare = new Share(0.0);
+        uk.ShipCapacity = 1000; uk.ShipSteamShare = new Share(0.5);
+        fr.ShipCapacity = 200; fr.ShipSteamShare = new Share(0.0);
         int k = 0; foreach (var q in uk.Regions) q.LastTradePotential = ++k;   // 州ごとに違う潜在量（清算の配分の入力）
+        // ★(1097) 旗 RailByRegion＝1：鉄道は州の線路（準備の書き方）。英の州の線路は潜在量の比と違う形（k²）で和 400＝旧の規則（送り手の容量×取り分）とは違う値が移る盤面
+        double kk = 0; int k2 = 0; foreach (var q in uk.Regions) { ++k2; kk += k2 * k2; }
+        k2 = 0; foreach (var q in uk.Regions) { ++k2; q.RailTrack = 400.0 * k2 * k2 / kk; }
+        foreach (var q in fr.Regions) q.RailTrack = 0;
         var r = uk.Regions.Find(x => x.Id != 0)!;
         var b = Transport.ShareBasis(uk, uk.Coef);
         double sh = Transport.RegionShare(b, r);
         Assert.True(sh > 0 && sh < 1, $"前提が崩れた：取り分が 0..1 の内側でない（{sh}）");
         var rest = new System.Collections.Generic.Dictionary<Region, double>();
         foreach (var q in uk.Regions) if (q != r) rest[q] = uk.ShipCapacity * Transport.RegionShare(b, q);
+        double tr0 = r.RailTrack;   // ★(1097) 移る州の線路（移しの前）
+        Assert.True(Math.Abs(tr0 - 400.0 * sh) > 1e-6, $"前提が崩れた：州の線路が送り手の容量×取り分と同じ（{tr0}）＝旧と新の規則を見分けられない");
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
         Assert.Equal(1200.0, uk.ShipCapacity + fr.ShipCapacity, 9);
         Assert.Equal(400.0, uk.RailCapacity + fr.RailCapacity, 9);
         Assert.Equal(1000.0 * (1 - sh), uk.ShipCapacity, 9);
-        Assert.Equal(400.0 * sh, fr.RailCapacity, 9);
+        Assert.Equal(tr0, fr.RailCapacity, 9);   // ★(1097) 移った州の線路がそのまま移る（§0-2 ★(1096) ①で書き換えた・旧＝送り手の容量×取り分 400×sh〔(118) の推奨の規則〕）
+        Assert.Equal(tr0, r.RailTrack);
         Assert.Equal(0.5 * 1000.0 * sh / (200.0 + 1000.0 * sh), fr.ShipSteamShare.Value, 12);
         var b2 = Transport.ShareBasis(uk, uk.Coef);
         foreach (var (q, before) in rest) Assert.Equal(before, uk.ShipCapacity * Transport.RegionShare(b2, q), 9);   // 残る州の容量は前と同じ
@@ -232,6 +239,7 @@ public class ConservationTests
         // 建国：新しい国は出ていく州の取り分の容量を持って生まれる
         double ship0 = uk.ShipCapacity, rail0 = uk.RailCapacity;
         var sec = uk.Regions.Find(x => x.Id != 0 && x != r)!;
+        double secT0 = sec.RailTrack;   // ★(1097) 建国で出ていく州の線路
         double sh2 = Transport.RegionShare(Transport.ShareBasis(uk, uk.Coef), sec);
         int n0 = sim.Nations.Count;
         uk.PendingSecessionWars = [sec];
@@ -240,7 +248,8 @@ public class ConservationTests
         var nw = sim.Nations[^1].World;
         Assert.Contains(sec, nw.Regions);
         Assert.Equal(ship0 * sh2, nw.ShipCapacity, 9);
-        Assert.Equal(rail0 * sh2, nw.RailCapacity, 9);
+        Assert.Equal(secT0, nw.RailCapacity, 9);   // ★(1097) 出ていった州の線路がそのまま新しい国の線路（§0-2 ★(1096) ①で書き換えた・旧＝送り手の容量×取り分 rail0×sh2）
+        Assert.Equal(rail0, uk.RailCapacity + nw.RailCapacity, 9);
         Assert.Equal(ship0, uk.ShipCapacity + nw.ShipCapacity, 9);
         Assert.Equal(0.5, nw.ShipSteamShare.Value, 12);
     }

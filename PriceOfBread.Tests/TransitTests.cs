@@ -114,7 +114,7 @@ public class TransitTests
         var bern = swiss.Regions[0]; var genoaPort = genoa.Regions[0];
         // 交易を確実に立てる（関税・売買方針の国庫経路を全て黙らせ、国庫の増減＝通行料だけにする）
         swiss.Tariff = 0; genoa.Tariff = 0; tuscany.Tariff = 0;
-        swiss.RailCapacity = 1e6; swiss.ShipCapacity = 1e6;   // 内陸州は鉄道0だと世界市場に非接続＝テストでは容量を与える
+        swiss.RailCapacity = 1e6; foreach (var rgT in swiss.Regions) rgT.RailTrack = 1e6; swiss.ShipCapacity = 1e6;   // 内陸州は鉄道0だと世界市場に非接続＝テストでは容量を与える   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         var goods = swiss.Region.Goods;
         var gd = goods.First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain
                                   && Array.IndexOf(sim.Coef.MilitaryExportGoods, g.Id) < 0);
@@ -125,7 +125,7 @@ public class TransitTests
         //   （旧経路＝定数速度×規模の前提で仕込んでいた）。ベルンに産出、ジェノヴァに需要を置き、両国に容量を与える。
         bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
         gm.LastDemand = 20000; gm.LastProduced = 0; gm.LastImport = 0; gm.Stock = 0;
-        genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
+        genoa.RailCapacity = 1e6; foreach (var rgT in genoa.Regions) rgT.RailTrack = 1e6; genoa.ShipCapacity = 1e6;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         double tA0 = swiss.Treasury.Value, tB0 = genoa.Treasury.Value, tC0 = tuscany.Treasury.Value;
         double D(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value;
         double dA0 = D(swiss), dB0 = D(genoa), dC0 = D(tuscany);
@@ -166,7 +166,7 @@ public class TransitTests
         double wp = sim.Market.Price[gd.Id];
         var bm = bern.Markets[gd.Id]; bm.Price = 0.001 * wp; bm.Stock = 20000; bm.TargetStock = 10000; bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
         var gm = genoa.Regions[0].Markets[gd.Id]; gm.Price = 10.0 * wp; gm.TargetStock = 10000; gm.LastDemand = 20000; gm.LastProduced = 0; gm.LastImport = 0; gm.Stock = 0;
-        swiss.RailCapacity = 1e6; swiss.ShipCapacity = 1e6; genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
+        swiss.RailCapacity = 1e6; foreach (var rgT in swiss.Regions) rgT.RailTrack = 1e6; swiss.ShipCapacity = 1e6; genoa.RailCapacity = 1e6; foreach (var rgT in genoa.Regions) rgT.RailTrack = 1e6; genoa.ShipCapacity = 1e6;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("", bern.LastTransitPortName);
         //   ★(583) 恒等の線 gc4：ここにあった Assert.True(bern.LastTradeDistanceKm > 0)〔陸路の直行は生きている＝交易は死なない〕は、診断の欄の削除で観測口ごと消えた（欄は連結した州なら取引が無くても陸脚を残す値だった＝連結の印）。

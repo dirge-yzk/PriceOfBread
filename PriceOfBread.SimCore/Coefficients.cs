@@ -1221,7 +1221,7 @@ public sealed class Coefficients
     // ★(1097) 支配の力の段 R（作者「鉄道はひいた量ではなく、州に引いた量×支配度の方が良いのではないか。」・案 R3＝作者「しばらくの間、全て推奨で」で推奨を採った）：
     //   1＝鉄道の容量を州の線路の在庫 Region.RailTrack で持つ（州の投資家がその州の不足へ買って積む・置換は TransportDecay×min(T, need)・World.RailCapacity は Σ の読み口・
     //   清算の陸の脚は φ＝min(1, T÷need) で馬と鉄道を混ぜる・運賃の線路の分は州の投資家と外国の取り分へ・割譲で線路は州について行く）。0＝国の容量（今の形・T を積まない・清算も読まない）。
-    public double RailByRegion = 0.0;
+    public double RailByRegion = 1.0;   // ★(1097) 2026-11-13 に 1 で点火（腕 B の木・旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）
     // ★(1097) 段 R のアブレーションの旗：1＝州に敷く線路の量に地形の敷く費用（TerrainRailCost）を掛ける（同じ単位の買いで山の州は短い）・0＝地形を掛けない。RailByRegion＝0 では読まない。
     public double RailLayTerrain = 1.0;
     // ★2026-09-03（キューB-06／出典 トリアージ 2-B 7-7）：TransportBaseline（＝鉄道以前の道路・河川の容量）が

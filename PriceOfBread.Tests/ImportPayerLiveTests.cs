@@ -25,7 +25,7 @@ public class ImportPayerLiveTests
         foreach (var n in sim.Nations)
         {
             n.World.Tariff = 0;
-            n.World.RailCapacity = 1e9; n.World.ShipCapacity = 1e9;
+            n.World.RailCapacity = 1e9; foreach (var rgT in n.World.Regions) rgT.RailTrack = 0; n.World.ShipCapacity = 1e9;   // (1097) 旗 RailByRegion＝1：鉄道は州の線路＝準備に州の線路の行を足した（旗 0 の欄の書きは残す・★(743) ①）・この盤面は線路 0（買い手の州の他の POP の貯蓄が動かないことを確かめる＝線路の運賃を立てない＝旗 0 の未発見の盤面と同じ）
             foreach (var r in n.World.Regions) all.Add(r);
         }
         var ports = all.Where(r => r.IsPort).ToList();
