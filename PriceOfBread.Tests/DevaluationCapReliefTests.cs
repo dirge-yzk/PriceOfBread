@@ -209,7 +209,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
         int reads = 0; string where = "";
         foreach (var (f, rel) in GoodIdGuardTests.CsFiles())
         {
-            if (!rel.StartsWith("PriceOfBread.SimCore/")) continue;
+            if (!GoodIdGuardTests.IsEngineRel(rel)) continue;
             if (Path.GetFileName(rel).StartsWith("Coefficients.")) continue;   // 宣言
             string code = GoodIdGuardTests.StripCode(File.ReadAllText(f));
             int n = System.Text.RegularExpressions.Regex.Matches(code, "DevaluationCapFracPerMonth").Count;

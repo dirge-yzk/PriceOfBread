@@ -114,7 +114,7 @@ def main():
             continue
         open(p, 'wb').write(new.encode('utf-8'))
         md = render('PriceOfBread.SimCore/' + f, recs)
-        open(os.path.join(hist, f[:-3] + '.md'), 'wb').write(md.encode('utf-8'))
+        open(os.path.join(hist, f + '.md'), 'wb').write(md.encode('utf-8'))
         c = sum(len(r[2]) for r in recs)
         tot_c += c
         tot_n += len(recs)

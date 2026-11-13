@@ -174,7 +174,7 @@ public class ScholarshipTests
         var readers = new List<string>();
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
         {
-            if (!rel.StartsWith("PriceOfBread.SimCore/")) continue;
+            if (!GoodIdGuardTests.IsEngineRel(rel)) continue;
             foreach (var line in File.ReadLines(full))
                 if (line.Split("//")[0].Contains("ScholarshipTopStage")) readers.Add(Path.GetFileName(rel).StartsWith("Coefficients.") ? "Coefficients.cs" : Path.GetFileName(rel));   // (1106) 係数の部品は 1 つの持ち主
         }
@@ -183,7 +183,7 @@ public class ScholarshipTests
         // 旧の旗の名前がコードの行に戻っていない（コメントは墓標として許す）。割合の導出が国（プレイヤーか否か）を読まない
         foreach (var (full, rel) in GoodIdGuardTests.CsFiles())
         {
-            if (rel.StartsWith("PriceOfBread.Tests/")) continue;
+            if (GoodIdGuardTests.IsTestRel(rel)) continue;
             foreach (var line in File.ReadLines(full)) Assert.DoesNotContain("ScholarshipLaw", line.Split("//")[0]);
         }
         string eco = File.ReadAllText(FindSimCore("EconomyStep.cs"));

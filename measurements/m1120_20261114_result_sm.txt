@@ -1,0 +1,16 @@
+# (1120) c108sm の結果（担当 Sonnet 5.5・基点 cfd8de3e0・事前登録 a5bc101ec）
+判定: 恒等（段 1・測った種で一致）＝ measurements/ident_20261114_c108sm.txt。素の 5 種 178 行・計器つき 10 種 180 行が m1103 と全行一致・計器の表 285 本バイト一致・注視 4681 行一致・推定 230.5／230.3 秒（m1103 と同じ）。
+IL の門：SimCore・Display・App・Runner の差分 0（git diff cfd8de3e0 HEAD の対象外の .cs は Tests と Tests.Ui だけ）＝SimCore.dll・Display.dll は同じソースから建つ。別の木での二重ビルドのバイト比較は回していない（ソースの差分 0 で代える）。
+
+走査のファイル数（番人ごと・前→後）：
+ DormantIdentityTests.cs:373・ScholarshipTests.cs:186 ＝308→287（Tests.Ui の 21 本を本体から外す）
+ ScholarshipTests.cs:177・DevaluationCapReliefTests.cs:212・PriceLevelPressureTests.cs:226 ＝183→202（Display の 19 本を足す）
+ GoodIdGuardTests.cs:447 ＝走査 601 本のまま・isTest の真 293→314
+ 件数の Assert・許可表の行の書き換え 0（㉘ の束と全体で緑）。
+テスト：Tests 2595（2594＋SourceScanCoverageTests に [Fact] 1 本＝事前登録の 2594 は誤り・名乗る）・Tests.Ui 234（＋2）・非 FullLength 計 2829（基準 2826＋3）・FullLength 3。--list-tests＝2598（Tests）・234（Tests.Ui）と trx の合格 2594＋スキップ 1／234／FullLength 3 が一致。
+足した試験：PriceOfBread.Tests.Ui/PopWeightRegimeTextTests.cs（人口の重み…・年表の統治が変わった行…）・PriceOfBread.Tests/SourceScanCoverageTests.cs に 走査の絞りはエンジンと試験の判定を通す_直書きは目的を名乗る。
+突然変異：measurements/m1120_20261114_mut.txt（M1 赤・M2 赤・M3 赤・M4 赤・M4b 旧の絞りでは緑）・m1120_20261114_mut_archive.txt（M5a・M5b・M5c 赤）。
+git mv：docs/history 91 本→全 182 本が <ソース>.cs.md。台本のパス 5 行（c107hb 2・c107hc 3）を f + '.md' へ。他の読み手（測定の台本 measurements/m1114_20261113/mutation.sh・README §2 の名の形の行 docs/README.md:389・台帳）は旧名を書いたまま＝触らない（合流が README の行を直す）。
+書庫：移した行 14（一覧→書庫）・戻した行 1（(215) の行・最も遅い日付 10-14）。打消し行は 31 本でなく 14 本（行頭が打消しで始まる行を最も遅い日付が 10-13 より前で数えた・31 は再現できず）。書庫＋残り＝元（行の多重集合）・書庫は元の並び＝archive_gate.py が OK。
+短い README：19,576 字・180 行（全文の行と → README L行 の参照）。止める線 L98〜L115・L116・L125・L89・腕の節約・計算量の予算は全文。
+CRLF：Tests.Ui.csproj・Tests/AssemblyInfo.cs を LF へ（BOM 保つ）。PriceOfBread.Tests.csproj と Runner.csproj も CRLF のまま（指示の外）。
