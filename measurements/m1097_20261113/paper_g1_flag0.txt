@@ -1,0 +1,15 @@
+# 紙 G1（旗 0 の盤面）：側（売り手・買い手）ごとの陸の倍率の分類・水運の州は外す
+# horse＝12×馬の地形（φ＝0 の正しい値）・rail＝3×鉄道の地形（国の発見の 0/1 の値）・other＝どちらでもない
+s1	horse=28490	rail=54329	other=0
+s2	horse=50020	rail=32965	other=0
+s3	horse=44951	rail=37626	other=0
+s4	horse=33338	rail=49011	other=0
+s5	horse=35963	rail=46185	other=0
+s6	horse=28048	rail=54708	other=0
+s7	horse=42335	rail=40119	other=0
+s8	horse=24021	rail=58775	other=0
+s9	horse=33801	rail=48952	other=0
+s10	horse=37402	rail=44858	other=0
+計	horse=358369	rail=467528	other=0	水運で外した側=194103
+# 旗 0 では計器の T_r＝0＝全ての側が φ＝0 の州。G1 の下側の破れ＝rail の数（＞0 なら旗 0 で落ちる）。
+G1_lower_violations_flag0=467528

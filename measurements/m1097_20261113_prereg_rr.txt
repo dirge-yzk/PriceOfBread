@@ -1,0 +1,112 @@
+(1097) c105rr 支配の力の段 R：州の線路×支配度（案 R3・置換の項は Decay×min(T_r, need_r)・旗 RailByRegion）— 事前登録
+書いた担当：Claude Opus 5.5（2026-11-13）。木＝fff0f1658（main の頭）から枝 c105rr。基準＝m1087（照合済み）・生 INSRAW＝D:/PoB_work/keep_1096/base_ins・ヌル腕 keep_1087/n1・n2。
+作者「しばらくの間、全て推奨で」で推奨を採った（§0-2 ★(1096) ①・④・案 R3・φ の min・C9 を門のまま）。作者の言葉（原文）「鉄道はひいた量ではなく、州に引いた量×支配度の方が良いのではないか。」
+3 回の規則：段 R は 1 回目／3。形の変え直しの枠は 1（⑭）。
+
+== 0. 先頭（名乗り）
+- 形は〈入口〉（敷き方と清算の陸の比の両方を州の線路へ）。
+- R3 は設計の第 3 の形（設計 §3-4 :175〈国の買いを配る〉でも、§13〈建設の 1 種〉そのものでもない。送電網〔Region.GridCapacity〕の州の在庫の形を写した物）。§13 との対応は AI の読み・確証なし。
+- 反証役 v の高〈置換の項 Decay×T_r は片方向の錠〉を直した：置換の項＝TransportDecay×min(T_r′, need_r)（T_r′＝減耗の後・買う前）。need が T′ より下なら、置換は need の分だけ＝余りは減耗で落ちる（README §1-8）。
+- 旗 0 では T_r を積まない（下書き §6 の手順 3〈旗 0 でも積む〉は採らない）。旗 0 では清算も T_r を読まない。
+- 外国の取り分の州への敷き（東清鉄道の型・設計 :175・:544 の Q3）は入れない。買うのは持ち主の国のその州の投資家 POP だけ。運賃の外国の分は、取り分（Region.ForeignShares）を持つ外国の投資家 POP へ渡る（線路に払っていない外国へ流れる＝記録・§14 の外国の資本の線路の線で閉じる）。
+- 水運の州の式は 1 本：水運の州の陸の倍率＝12×[(1−φ)×水運の値＋φ×水運の値×RailCostFraction]（旗 0 の φ＝0 と φ＝1 の両端の値を保つ形）。G1 の母集合から水運の州（地形 WaterMajor・WaterMinor）を外す。
+- 戦災は今と同じく劣勢の国の全ての州の T_r に同じ率（設計 §3-4 :176〈交戦した州だけ〉は入れない）。
+- 峠・外国の資本の線路（§14）・段 C′・T0a・T0b は入れない。EconomyStep.cs・App・Display・Runner に触れない。
+
+== 1. 形（新しい係数 0・新しい状態は Region.RailTrack の 1 本）
+1. 最初の恒等のコミット（旗に依らない）：
+   - 清算の距離の表（BilateralMarket.cs の KmScratch）を〈対ごとの成分〉で持ち越す。対の成分＝海の km（両端とも海に出られる時）と陸直行の ((raw+接ぎ木a)+接ぎ木b)×0.5（陸の道がある時）。州の成分＝E_a＝landKm_a×terrCost_a×landRatio_a と K_a＝terrCost_a×landRatio_a（清算ごとに作る）。
+   - 署名を幾何（海に出られるか・座標・スエズ・パナマ・陸グラフのノード・接ぎ木）と費用（landKm・terrCost・landRatio）に分ける。費用だけが違う州は、距離の表を −1 に戻し、成分から組み直す（結合の順は PairKmCore と同じ：viaSea＝(sea＋E_a)＋E_b・viaLand＝LH×(K_a＋K_b)・land＝viaLand＜viaSea・値＝Math.Min(viaSea, viaLand)）。PairKmCore の引数と式は変えない（清算の外の呼び手 InstrumentsRulePower・RulePowerTests）。
+   - .cost に 2 行を足す（CostLedger・MultiNationSim.cs:1994〜 の表の末尾）：〈清算：距離の表の成分からの組み直し（対）〉単価 0.0100 µs／件・〈清算：距離の表の素の計算（PairKmCore 相当・対）〉単価 0.0（件数だけ＝その秒は〈着値の充填〉の単価の中）。
+     単価 0.0100 µs の根拠：組み直しは表の読み 2・州の値の読み 4・浮動小数 4〜5・比較 1・書き 3＝約 3〜5 ns の見積もりの 2〜3 倍（控えめ側・census ではない＝計器が一番バグるの限界として名乗る）。
+   - 番人の試験：成分からの組み直しと PairKmCore がビットで一致（清算の盤面の全ての対）・結合の順を崩す突然変異で赤。
+2. 器（旗 0）：
+   - Region.RailTrack（double・セーブに載る・savetest で往復）。
+   - 旗 RailByRegion（既定 0）とアブレーションの旗 RailLayTerrain（既定 1＝敷く量に地形を掛ける）。Coefficients.cs の TransportBuildRate の隣。
+   - World.RailCapacity は読み口：旗 1 なら Σ_{自国の州} T_r・旗 0 なら今の欄（欄の名は _railCapacity へ＝セーブの欄の名が動く・同じ版の往復だけ）。
+   - Transport.Target(w, c)＝今の Step の目標の式をそのまま純関数へ（恒等）。
+3. 旗 1：
+   - 減耗：州ごとに T_r ← max(0, T_r×(1−TransportDecay))。
+   - 敷き：州 r の投資家 POP が、その州の市場から今の Procure の 1 行で線路と機関車を買う（2 本目の Procure を書かない＝route_anchors.tsv の鍵 :13 の行のまま）。
+     欲しい容量＝TransportBuildRate×max(0, need_r−T_r′)＋TransportDecay×min(T_r′, need_r)・need_r＝Target×鉄道の門（機関車の発見 0/1）×share_r（Transport.RegionShare）。
+     欲しい単位（財ごと）＝欲しい容量÷TransportCapPerUnit×地形_r÷財の数（2）・地形_r＝TerrainRailCost[地形]（RailLayTerrain＝0 なら 1）。積む＝T_r ＋＝ 買えた単位×TransportCapPerUnit÷地形_r。
+   - 戦災：Diplomacy.cs:2625 の鉄道の分を Transport.WearRail(w, wear) へ（旗 0＝今の式・旗 1＝全ての州の T_r に同じ率）。
+   - 割譲：Territory.cs の鉄道の移し（国の容量×取り分）を旗 1 では 0 に（船は残す）。T_r は州について行く（Region の欄）。
+   - 清算：φ_r＝min(1, T_r÷need_c)・need_c＝Target（門なし）×share_r（清算の頭の値）。否定形の守り：!(need_c>0) なら φ＝(T_r>0 ? 1 : 0)。φ が NaN なら 0。
+     陸の倍率：terrCost＝(1−φ)×基礎_馬＋φ×基礎_鉄道・landRatio＝LandSeaCostRatio（12）。基礎_馬＝TerrainHorseCost（水運の州は水運の値）・基礎_鉄道＝TerrainRailCost×Clamp01(RailCostFraction)（水運の州は水運の値×Clamp01(RailCostFraction)）。配列は 2 本のまま（G0 のビットの条件）。
+     清算の容量：railToPort＝T_r＋PreRailCapacity×share_r（旗 0＝(RailCapacity＋PreRail)×share）。
+   - 運賃：成約ごとに、端 a の線路の分＝（海経由）運賃×E_a×ρ_a÷換算 km・（陸直行）運賃×K_a×ρ_a÷(K_a＋K_b)・ρ_a＝φ_a×基礎_鉄道_a÷terrCost_a。線路の分を州の受け皿へ積み、運賃の池（船の持ち主へ）から引く。
+     清算の終わりに、州 r の受け皿を、外国 f の取り分 x_f（Region.ForeignShares・Σ が 1 を超えれば Σ で割る）の分は f の全ての州の投資家 POP へ（頭数）、残りは州 r の投資家 POP へ、World.Transfer（世界の外→受け手・OtherIn・income: true・÷その国の為替・fxIntended に足す）。0 の払いは飛ばす。受け手の居ない外国の分は州 r の投資家へ戻す。
+     道路の分（(1−φ) の項）は今のまま船の持ち主へ（記録：陸の道路の運賃が船の持ち主へ行く非対称は今の木のまま）。
+4. 計器（旗 0 でも書く・宣言して足す）：
+   - trnation_s の末尾に 3 列：railTargetIndex（計器が自分で組んだ Target・門なし・年の終わり）・railFillShare（RailCapacity÷railTargetIndex）・railTargetNoThreatIndex（脅威の項を除いた Target）。
+   - 新しい表 trrail_s（年×州・全ての国）：railTrackEnd・needEnd（計器の need・門つき）・phiEnd・各門の数（下の §3 の列）。need は計器が自分で組む（Transport の関数を呼ばない・人口×TransportTargetPerPop×(1＋ThreatRailTargetWeight×脅威比)×(1＋TransportCongestionWeight×混雑の平均)×share）。
+   - 足す表と列は ident で宣言する（--added-tables trrail・--grown-ok trnation）。
+
+== 2. 段 0 の予言（腕の前・ソースと keep_1096/base_ins から）
+- 投資家 POP の無い州：0（州の組み立て Simulation.cs:971・:1629 が全て InvestorPopIndex＝3）。ただし投資家の貯蓄の乏しい州は買えず T_r が育たない＝陸の倍率が 12×馬に残る（旗 0 は国の容量を全ての州に配るので、貧しい州も発見の年から 3×鉄道）。この差が段 R の働きそのもの。
+- 陸の倍率：発見の年に旗 0 は全州一斉に 12×馬→3×鉄道（紙 G1：10 種の上位の組の側で 467,528 側が 3×鉄道・358,369 側が 12×馬）。旗 1 は T_r の積み上がりに沿う。
+  積み上がり：need 一定・買いが足りる州の不動点（減耗の後・買う前）＝T′*＝b÷(1/(1−d)−(1−b+d))×need＝0.9973×need（b＝0.15・d＝0.02）・買った後＝T′*÷(1−d)＝1.0176×need。半減期 約 4〜5 か月。
+  ＝清算の φ（買った後の T で読む時）は十分に買える州で 1。発見から 1〜2 年で旗 0 の倍率に追いつく見込み。符号：発見後の数年は旗 1 の陸が高い（貿易が少ない）。
+- 線路の容量：旗 0 の国の定常 C＝0.88×target（材料 §4-1）。旗 1 は州ごとに 1.018×need＝買えた州の和で約 +16%（線路の財の需要も約 +16%＝値段を通して工業へ波及・記録）。貧しい州の分だけ下がる。
+- ㉗：G6（壊さない）は、清と日の貿易を下げる向きに破れうる（基礎の目標に対する容量が 2〜3 倍・材料 §4-1＝国の容量は小さく、州の投資家も乏しい見込み）。それでも回す理由＝発見の年の全州一斉の 12→3 は史実と合わず（材料 §2）、州ごとの積み上がりが段 R の目的そのもの。
+
+== 3. 門（両側・腕 B＝計器つき 10 種・種 1〜10・読み手は scripts/instruments/c105rr/gates_rr.py）
+狙いの数字は機構の観測量だけ。史実の大きさと年は記録。
+G0 発見の前の恒等：
+  - 種ごとに、どの国も機関車を見つける前の年（trnation の railGateFlag が全ての国で 0 の年＝最初に 1 の国が出る年より前の年）の、全ての表の行が keep_1096/base_ins とバイト一致。宣言した表と列（trrail・trnation の末尾 3 列）は除く。年の列の無い表は記録（数に出す）。
+  - 下側（働いた）＝比べた行の数＞0（種ごと）。上側＝違う行が 0。旗 0 の生は腕 B と並べて持たない（旗 0＝ident の〈恒等〉＝keep_1096 と同じ）。
+G1 働いた（清算の陸の倍率・計器 trrail の列・TradeDeal の側ごと・水運の州は外す）：
+  - 下側：T_r＝0 の側の倍率＝12×馬の地形（相対 1e-12）。破れ（g1ZeroViol）＝0。かつ、T_r＞0 の側が 10 種の和で 1 件以上（g1PosSides）。
+  - 上側：T_r＝0 の側で倍率＝3×鉄道の地形（国の門が残った誤り）の行（g1Jump）＝0。T_r＞0 の側で倍率が計器の φ の混ぜの式と相対 1e-9 で違う側（g1FormulaViol）＝0。
+  - 旗 0 の盤面の紙（measurements/m1097_20261113/paper_g1_flag0.txt）：T_r＝0 の側の破れ 467,528＝旗 0 で落ちる。
+G2 財の保存（敷き・州ごと・計器 trrail）：買った州×月で |ΔT_r×地形_r − 買えた単位×TransportCapPerUnit| ≦ 1e-9×max(1, 買えた単位×TransportCapPerUnit)。破れ（g2Viol）＝0。下側＝買った州×月が 10 種の和で 1 件以上（g2Rows）。減耗と戦災の失いは記録の列（decayLoss・warLoss）。
+G3 お金の保存：leakhunt 合格。運賃の線路の分＝計器が成約ごとに自分で求めた線路の分（φ と地形から）と、払った額（エンジン）の差が、州×年で相対 1e-9 以内（g3Viol＝0）・取り分を持たない国への払い（g3NoShare）＝0。下側＝払った額の 10 種の和＞0。
+G4 割譲：移った州の T_r が、移しの前後で差 0（g4Viol＝0・計器が移しの頭と終わりで州の T_r を自分で読む）。下側＝T_r＞0 の州の移しが 10 種の和で 1 件以上（無ければ G4 は機構の試験だけで読むと名乗る）。機構の試験（ConservationTests の書き換え）でも確かめる。
+G7 錠が無い（計器 trrail・敷きの州×月）：減耗の後・買う前に T_r′＞need_r の州×月（g7ExcessRows）で、
+  - 下側：T_r が月に落ちた（買った後の T＜前の月の買った後の T）＝g7ExcessRows と同じ数（g7FellRows＝g7ExcessRows）。
+  - 上側：その月に積んだ ΔT_r＞TransportDecay×need_r×(1＋1e-9)＋1e-12 の州×月（g7LockRows）＝0。（不動点の算術：余り e＝T′−need は月に e′＝(1−d)e−d²×need で縮む＝正しい実装は need を超える分を (1−d) 倍で落とす。置換の項に min が無いと e′＝(1−d²)e＋…＝ほぼ保たれる。）
+  - 記録：need＜T のまま 12 か月続いた州で、余りが 12 か月で 0.886（＝(1−d)^6）倍より縮まなかった件数（g7Hold12）。
+G6 壊さない：世界の貿易÷GDP（scalars_s の tradeToGdpRatio を人口で加重・q_tradegdp.py と同じ読み）の 10 種の中央が、各年（1790・1820・1840・1850・1860・1870・1880・1900・1913・1930・1949）で N1・N2 の 10 種の中央の最小〜最大の内。×0.75〜×1.33 の幅は根拠が無いので使わない。弱い門と名乗る（ヌル腕の中央が 1.3〜2 倍動く・材料 §4-2）。
+G5 同じ盤面の新÷旧（記録）：trroute の側ごとの陸の倍率と、旧の式（国の発見の 0/1）の倍率の比を、国×10 年で並べる。
+計算量（記録と止める線）：.cost の推定 ＞248.5 秒は止める線。〈素の計算（PairKmCore 相当）〉の件数の、腕 B÷同じ木の旗 0（ident の腕）＝記録（1.5 倍を超えたら、成分の持ち越しが効いていないと名乗る）。
+
+== 4. 突然変異（使い捨ての木・機構の試験の束で回す・どの門で赤になるか）
+| 突然変異 | 赤になる門（機構の試験の名） |
+| M1 清算の φ を国の発見の 0/1 に戻す | G1（T_r＝0 の州の倍率＝12×馬・RailByRegionTests の G1） |
+| M2 割譲で移る州の T_r を送り手の Σ×取り分に置き換える（旧の規則） | G4（ConservationTests の割譲・RailByRegionTests の G4） |
+| M3 置換の項を min なし（Decay×T_r′）へ | G7（need＜T′ の州の積んだ量＞d×need・RailByRegionTests の G7） |
+| M4 地形を敷く量に掛けない | G2（ΔT×地形＝買えた単位×CapPerUnit・RailByRegionTests の G2） |
+| M5 運賃の線路の分を船の持ち主へ戻す（州の受け皿に積まない） | G3（線路の分の払い＝0・RailByRegionTests の G3） |
+| M6 φ に min を掛けない | G1 上側（倍率が混ぜの式の φ≦1 の値と違う・RailByRegionTests の G1） |
+| M7 旗 0 でも清算が T_r を読む | 旗 0 の恒等の試験（RailByRegionTests の旗 0：T_r を書いても清算が同じ） |
+| C1 成分の組み直しの結合の順を崩す（(sea＋E_b)＋E_a） | 恒等の試験（KmComponentTests：組み直し＝PairKmCore のビット） |
+- 緑のまま残った物は、同じ線で機構の試験を足し、その突然変異で赤を確かめる（★(790)）。出力は measurements/m1097_20261113/mut/。
+
+== 5. 止める線（この回の形をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+- 1 四半期に 100 倍以上・1e10 倍以上（基準とヌル腕を同じ台本で数え直して並べる・建国の直後の型は系列の最初の 4 四半期をヌル腕の件数と並べる）。政府の人口が 1 四半期で 1/10 未満か 10 倍以上になった四半期はヌル腕の件数と並べる（㊳）。
+- 人口 1/10 未満か 10 倍以上（popjump1017.py・ヌル腕と並べる）。
+- 空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）。
+- 推定の計算量 ＞248.5 秒。
+- 機構と不変条件の試験の赤（ソースを走査する番人を含む）。
+- 記録の段：NG（ng.sh・基準 measurements/ng1087_20261113）・exact・near・史実度・開幕の 1000 倍以上・名目 GDP 0 の続き（gdp_zero10.py）・英の国債の不履行の種の数・nullgate（門 A′・記録）。
+
+== 6. 変わる試験の予言（㉜・旗の既定を 1 にするコミットで）
+- ConservationTests.cs:227・:243（割譲で移る鉄道＝送り手の容量×取り分）：旗 1 で赤になる〈旧の規則の番人〉。作者「しばらくの間、全て推奨で」で推奨を採った＝〈移った州の T_r がそのまま移る〉の Assert へ書き換える（§0-2 ★(1096) ①・旧の規則 (118) は推奨で進めた物＝Territory.cs:313 の注）。:225（両国の和）は残し、準備の書き方（州の T_r を書く）だけ変える。
+- RailCapacity を書く準備の 10 ファイル（BillBlockedColumnsTests・CearnTradeColumnsTests・ClearingFillInstrumentTests・ClearingScopeTests・ConservationTests・FuelOperatingCostTests・ImportPayerLiveTests・TakeDustFloorTests・TradeClearingTests・TransitTests）：旗 1 では読み口が Σ T_r＝欄に書いても効かない。準備を〈州の T_r を書く〉へ直す（★(743) の区分①＝準備の書き方・Assert は変えない）。読む 1（DiscoveryScoreTests:999〜1001＝減耗の後の容量の差）は旗 1 では州の和で同じ意味＝変えない見込み。
+- TransportInstrumentTests（陸脚の換算 km の分解）・TradeClearingTests:346（鉄道以前の容量の番人）は残る見込み。
+- 走査の番人：OnDoubleReadScanTests.cs:18 StepBilateral#0＝12 のまま（線路の運賃の払いの計器は呼ばれる側 PayRailFreight の 1 読みへ・Transport の各関数は 1 読みまで・TransferRegion には足さない）。SecessionLaborLawInstrumentTests.cs:280 の最後の行の名を新しい最後の行へ差し替える（★(749)）。DormantIdentityTests に 2 行（RailByRegion 0・RailLayTerrain 1）。WriterRatchetTests の宣言の表：最初の 40 四半期は機関車の発見の前（最初の門 1810）＝件数は変わらない見込み（新しい 2 行は表に無い）。
+- route_anchors.tsv：:13 の鍵の行（Procure）はそのまま・新しい World.Transfer（線路の運賃）は別の行に置き、鍵の行に書き足さない。new MoneyStock( の件数：Transport.cs 0・BilateralMarket.cs 0・Territory.cs 0（増やさない）。工業化度の読み手の許可表：触れない。
+
+== 7. 計算量の割り当て（名目の余り 約 5.6 秒の内）
+- 成分の組み直し（旗 1 で鉄道のある州は毎月 φ が動く）：組み直しの件数の見込み 0.4〜2.0 億×0.0100 µs＝+0.4〜2.0 秒。
+- T_r の減耗・敷き・戦災（州×月）・need（国×清算）・運賃の線路の分（成約ごとに数回の掛け算）・配り（州×清算）：＜0.3 秒（単価の行は持たない＝今の行の中）。
+- 合計 +0.4〜2.3 秒（推定 227.8→230.1 以下の見込み）。〈素の計算〉の件数は旗 0 と同じ見込み（幾何の署名は φ で動かない）。
+
+== 8. ㉘ の点検（器のコミットの直後に回す）
+dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests"（隔離ビルド --artifacts-path D:/PoB_work/c105rr_art）。
+
+== 9. 重なり（他の線の持ち物）
+- c105mc＝EconomyStep.cs（:2829〜:2852）・Coefficients.cs（:3405 の隣）・EconomyTests.cs・DormantIdentityTests.cs（自分の行）。c105gp＝Parliament.cs・Coefficients.cs（:232 の隣）・DormantIdentityTests.cs。c105ix＝InstrumentsArms.cs・Instruments.cs（:1848 の隣）・Simulation.cs・DiscoveryClockTests.cs・RecipeoutInstrumentTests.cs。
+- この線が触る共有のファイル：Coefficients.cs（:1220 の隣に旗 2 行）・DormantIdentityTests.cs（自分の 2 行）・Instruments.cs（Sink の TrRail の欄 1 行と閉じる 1 行＝:240・:1983 の行）・MultiNationSim.cs（:458 は変えない見込み・CostLedger の表 :1999〜 の 2 行と名前と単価の各 1 行＝owns の外＝合流で名乗る）。
