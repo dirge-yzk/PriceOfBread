@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -53,6 +54,57 @@ public partial class GameViewModel
     private void RefreshLawTables()
     {
         LawTable = TableSnapshot.From(AfterSelect(PoliticsTables.Laws.Read(_sim, _player), RefreshLawTables));
+        RefreshStakes();
+    }
+
+    // === 選んだ法の欄（賛成と反対の層）。法の表の行を押して選ぶ。値は本体（SimCore/Display/LawStakes）の読み口だけ＝盤面は読むだけ。
+    [ObservableProperty] private string? _lawSelectedKey;
+    [ObservableProperty] private TableSnapshot _stakeTable = TableSnapshot.Empty;
+    [ObservableProperty] private string _stakeLawName = "";
+    [ObservableProperty] private bool _hasStakeNext;
+    [ObservableProperty] private bool _hasStakePrev;
+    [ObservableProperty] private string _stakeNextCaption = "";
+    [ObservableProperty] private string _stakeNextText = "";
+    [ObservableProperty] private string _stakePrevCaption = "";
+    [ObservableProperty] private string _stakePrevText = "";
+    [ObservableProperty] private IReadOnlyList<HalfPieSlice> _stakeNextSlices = [];
+    [ObservableProperty] private IReadOnlyList<HalfPieSlice> _stakePrevSlices = [];
+    private static readonly IBrush StakeForBrush = new SolidColorBrush(Color.Parse("#2E7D32")), StakeAgainstBrush = new SolidColorBrush(Color.Parse("#A0432D"));
+
+    /// <summary>法の表の行を押した：その法を選ぶ（鍵は <see cref="LawDef.Key"/>）。世界には書かない。</summary>
+    public void SelectLaw(string key)
+    {
+        if (LawCatalog.ByField(key) is null) return;
+        LawSelectedKey = key;
+        RefreshStakes();
+    }
+
+    /// <summary>選んだ法の欄を読み直す。選んだ法が無い（または見えなくなった）時は法の表の先頭の行＝欄を空にしない。</summary>
+    private void RefreshStakes()
+    {
+        var w = _player;
+        var def = LawSelectedKey is { } k && LawCatalog.ByField(k) is { } d && d.Slot != LawSlot.NoRow && d.IsVisible(w) ? d : null;
+        if (def is null)
+        {
+            def = LawCatalog.In(LawSlot.Law).FirstOrDefault(x => x.IsVisible(w));
+            if (def is null) return;
+            LawSelectedKey = def.Key;
+        }
+        StakeLawName = def.Name;
+        StakeTable = TableSnapshot.From(PoliticsTables.Stakes(def).Read(_sim, w));
+        var next = LawStakes.Split(w, def, true);
+        var prev = LawStakes.Split(w, def, false);
+        HasStakeNext = next is not null; HasStakePrev = prev is not null;
+        (StakeNextCaption, StakeNextText, StakeNextSlices) = StakeView(next);
+        (StakePrevCaption, StakePrevText, StakePrevSlices) = StakeView(prev);
+    }
+
+    /// <summary>賛成と反対の半円の文と切片（和は 100%）。</summary>
+    internal static (string Caption, string Text, IReadOnlyList<HalfPieSlice> Slices) StakeView(StakeSplit? s)
+    {
+        if (s is null) return ("", "", []);
+        int pro = (int)Math.Round(s.For * 100.0, MidpointRounding.AwayFromZero);
+        return (s.Caption, $"賛成 {pro}%　反対 {100 - pro}%", [new(s.For, StakeForBrush), new(s.Against, StakeAgainstBrush)]);
     }
 
     /// <summary>表の段の押し釦を押した直後に <paramref name="after"/> を呼ぶ形に包む（目標を置いた後の表を読み直す）。置く先は本体の口のまま（AI・議会と同じ門）。</summary>

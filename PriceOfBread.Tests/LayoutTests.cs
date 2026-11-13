@@ -166,6 +166,18 @@ public class LayoutTests
     }
 
     [Fact]
+    public void 初めの位置_高さの空きが足りなければ縮めて置き_既に開いている窓を覆わない()
+    {
+        // 幅 540 の 3 枚が横に並び、3 枚目だけ高さ 600（下に 430 残る）＝4 枚目（高さ 900 を望む）は 3 枚目の下へ、空きの高さまで縮めて入る
+        var placed = new List<WindowRect> { new(0, 0, 540, 1030), new(544, 0, 540, 1030), new(1088, 0, 540, 600) };
+        var fourth = LayoutModel.AutoPlace(Slot.PoliticsLaw, 540, 900, placed, 1660, 1030);
+        Assert.Equal(1088, fourth.X);
+        Assert.Equal(604, fourth.Y);
+        Assert.Equal(426, fourth.H);
+        Assert.All(placed, o => Assert.False(fourth.X < o.X + o.W && o.X < fourth.X + fourth.W && fourth.Y < o.Y + o.H && o.Y < fourth.Y + fourth.H));
+    }
+
+    [Fact]
     public void 初めの位置と収め直し_空き場所へ並ぶ_空きが無ければ重ねる_領域の外へ出ない_覚えている値は書き換えない()
     {
         // 空き場所：左から右・上から下。幅 540 の窓は 1660 の領域に 3 枚が横に並ぶ

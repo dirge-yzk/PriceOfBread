@@ -148,7 +148,7 @@ public class ProductionMarketTablesTests
                 if (full) Assert.Equal(["supply"], plans[0].Sections.Select(s => s.Key).ToArray());
                 Assert.Equal(wide ? 2 : 1, plans.Length);
                 var keys = plans.SelectMany(p => p.Sections).Select(s => s.Key).OrderBy(k => k).ToList();
-                var expected = new List<string> { "supply", "goods", "detail", "regions", "labor", "mega" };
+                var expected = new List<string> { "supply", "goods", "detail", "regions", "labor" };
                 if (equip) expected.Add("equipment");
                 Assert.Equal(expected.OrderBy(k => k).ToList(), keys);
                 foreach (var t in plans)

@@ -1278,7 +1278,7 @@ public sealed class MultiNationSim
             Diplomacy.Log.Add(!rebelWon
                 ? $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}"
                 : rebelPolity != polityBefore
-                ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{rebelPolity}の下で再統一"
+                ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{PlayText.PolityRegimeJa(rebelPolity)}の下で再統一"
                 : $"{pw.Year} {rebelP.Name}の要求が通り{parentP.Name}へ再統一");
         }
         Diplomacy.PendingReintegrations.Clear();

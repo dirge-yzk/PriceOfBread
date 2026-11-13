@@ -93,15 +93,40 @@ public class UiShotRuleTests
     }
 
     [Fact]
-    public void BudgetVsLedger_Hit_And_Miss()
+    public void BudgetVsActual_Hit_And_Miss_And_ZeroRows()
     {
-        var cols = new[] { C("項目"), C("実効", Unit.MoneyPerMonth) };
-        TableSnapshot Spend(double v) => Tab("fiscal.spend", "支出", cols, ("陸軍", null, [T("陸軍"), T($"{v}", v)]));
+        const string rule = "予算の予測と実績（払った額・入った額）の比が 0.5〜2 の外";
+        var cols = new[] { C("項目"), C("予測", Unit.MoneyPerMonth, "forecast"), C("払った額", Unit.MoneyPerMonth, "actual") };
+        TableSnapshot Spend(double f, double a) => Tab("fiscal.spend", "支出", cols, ("陸軍", null, [T("陸軍"), T($"{f}", f), T($"{a}", a)]));
         var income = Tab("fiscal.income", "収入", cols);
-        TableSnapshot Ledger(double v) => Tab("fiscal.ledger", "国庫の台帳", [C("項目"), C("金額", Unit.MoneyPerMonth)], ("陸軍", "国庫の支出", [T("陸軍"), T($"{v}", v)]));
-        Assert.Contains(Run("予算の支出・収入と国庫の台帳の同名項目の額の比が 0.5〜2 の外", Spend(1000), income, Ledger(5000)), f => f.Contains("比 0.20"));
-        Assert.Empty(Run("予算の支出・収入と国庫の台帳の同名項目の額の比が 0.5〜2 の外", Spend(1000), income, Ledger(1200)));
-        Assert.Empty(Run("予算の支出・収入と国庫の台帳の同名項目の額の比が 0.5〜2 の外", Spend(10), income, Ledger(50)));   // 月 £100 未満は丸め
+        Assert.Contains(Run(rule, Spend(1000, 5000), income), f => f.Contains("比 0.20"));
+        Assert.Empty(Run(rule, Spend(1000, 1200), income));
+        Assert.Empty(Run(rule, Spend(10, 50), income));   // 月 £100 未満は丸め
+        // 比べられる行が 1 つも無い（予測の列が空）＝黙って 0 件にせず、規則が対象 0 行と申告する
+        var rep = UiShotDump.Evaluate([Tab("fiscal.spend", "支出", cols, ("陸軍", null, [T("陸軍"), T(""), T("5")])), income], null);
+        Assert.DoesNotContain(rule, string.Join("|", rep.Ran));
+        Assert.Contains(rep.Skipped, k => k.Contains(rule) && k.Contains("対象 0 行"));
+    }
+
+    [Fact]
+    public void LockedButProduced_ProcessRowIsNotTheGood()
+    {
+        // 発見の「蒸気機関」は工場の原動機の製法（既にある労働力の作り方）＝同じ名前の財「蒸気機関」（機械）の解禁ではない
+        CellView Lock() => new("", 0, new BarCell([(40.0, "#2F6EA5")], 100));
+        var disc = Tab("discovery.rows", "技術", [C("名前"), C("解禁")], ("蒸気機関", null, [T("蒸気機関"), Lock()]), ("ガス灯", null, [T("ガス灯"), Lock()]));
+        var social = Tab("discovery.social", "政府と思想", [C("名前"), C("解禁")]);
+        var goods = Tab("production.goods", "財の表", [C("財名"), C("生産量", Unit.Quantity), C("輸出量", Unit.Quantity), C("輸入量", Unit.Quantity)],
+            ("蒸気機関", null, [T("蒸気機関"), T("5k", 5), T("0", 0), T("0", 0)]), ("ガス灯", null, [T("ガス灯"), T("0", 0), T("0", 0), T("0", 0)]));
+        Assert.Empty(Run("未解禁の発見と同じ名前の財に量がある", disc, social, goods));
+    }
+
+    [Fact]
+    public void CivilianToSoldier_ReadsCountsWithoutPersonSuffix()
+    {
+        // 人数の書式から「人」の字が無くなった後の画面の文字
+        var wars = Tab("diplomacy.wars", "戦争", [C("相手"), C("損失"), C("戦費")], ("イギリス", null, [T("イギリス"), T("戦死 自国 1.3k　相手 1.9k 民間人の死 自国 20k　相手 3k"), T("戦費 £1.2k")]));
+        var past = Tab("diplomacy.pastWars", "終わった戦争", [C("題"), C("詳細")], ("なし", null, [T("なし"), T("")]));
+        Assert.Contains(Run("戦争の民間人の死が兵の戦死の 5 倍超", wars, past), f => f.Contains("自国の民間人の死が兵の戦死の15倍"));
     }
 
     [Fact]

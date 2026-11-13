@@ -9,6 +9,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PriceOfBread.SimCore;
+using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.ViewModels;
 
@@ -81,6 +82,21 @@ public partial class GameViewModel
         _pfDefault = _player.HadSovereignDefault; _pfPatent = _player.PatentLaw; _pfJoint = _player.JointStock; _pfEpidemic = _player.EpidemicActiveYears > 0;
         _pfOrderLow = _player.PublicOrder < 0.5;   // 治安崩壊のエッジ（接15）
         _pfParty = _player.GoverningParty; _pfRank = _sim.Diplomacy.RankOf(_sim.Diplomacy.Powers[_playerIndex]);
+        // 新たに設定できる法の基準（開始・ロードの時点で開いている段は「既に見た」へ入れる＝直後に誤発火しない）
+        _lawGatePrev = LawOpenings.Snapshot(_player);
+        LawOpenings.Opened([], _lawGatePrev, _lawSeen);
+    }
+
+    /// <summary>前の四半期から前提の門が閉から開になった法の段を、待ちの束へ積み・報せの欄に 1 行残す（観戦では束へ積まない＝窓を出さない）。
+    /// 差分の規則（同じ段・初めて開いた段だけ）は <see cref="LawOpenings.Opened"/>。世界には書かない。</summary>
+    private void DetectLawOpenings(Action<string, string, IBrush> notice)
+    {
+        var now = LawOpenings.Snapshot(_player);
+        var opened = LawOpenings.Opened(_lawGatePrev, now, _lawSeen);
+        _lawGatePrev = now;
+        if (opened.Count == 0) return;
+        notice("🗳", "新たに設定できる法：" + string.Join("・", opened.Select(d => d.Name)), NewsBlue);
+        if (!Spectating) _lawOpenPending.AddRange(opened);
     }
 
     private void DetectEvents()
@@ -244,6 +260,7 @@ public partial class GameViewModel
         if (orderLow != _pfOrderLow) Notice("🚨", orderLow ? $"治安が崩れている（治安{Fmt.Share(_player.PublicOrder)}）" : "治安が回復した", orderLow ? NewsRed : NewsGreen);
         var rankNow = _sim.Diplomacy.RankOf(_sim.Diplomacy.Powers[_playerIndex]);
         if (rankNow != _pfRank) Notice("⭐", $"国家ランクが{RankJa(rankNow)}になった", NewsGold);
+        DetectLawOpenings(Notice);   // 基準を取り直す前に差分を取る
         SnapshotTurningPoints();
         // 終局年代記（#129）：全国の開戦/終戦のエッジ（Id対キー＝国数変動に強い）。ニュース網とは独立の事実記録
         var warNow = new System.Collections.Generic.Dictionary<(long, long), string>();

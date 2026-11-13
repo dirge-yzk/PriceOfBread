@@ -14,19 +14,22 @@ public partial class PoliticsLawPage : UserControl
     public static PageTable Table { get; } = new(
     [
         new SectionSpec("law", "法の表", 12, 3),
+        new SectionSpec("stakes", "選んだ法", 16),
         new SectionSpec("power", "権力", 9),
         new SectionSpec("crown", "政体", 7),
         new SectionSpec("parliament", "議会", 10, 2),
     ],
     [
         ["law"],
-        ["power", "crown", "parliament"],
+        ["stakes", "power", "crown", "parliament"],
     ]);
 
     public PoliticsLawPage()
     {
         InitializeComponent();
         Sections.Table = Table;
+        // 法の表の行（名前の余白）を押す＝その法を選ぶ（生産のページの財の表と同じ動詞）
+        LawTableView.RowActivated += key => (DataContext as GameViewModel)?.SelectLaw(key);
     }
 
     /// <summary>枠に載って見えた瞬間（DataContext が付いた時）に、法の表を読み直す。見えている間は毎回の更新が追従する。</summary>

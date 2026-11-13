@@ -23,8 +23,8 @@ internal static class UiShotParts
         var table = new PageTable(
         [
             new SectionSpec("supply", "供給の網", 8), new SectionSpec("goods", "財の表", 8), new SectionSpec("detail", "選んだ財の詳細", 6),
-            new SectionSpec("factory", "州別の工場", 6), new SectionSpec("equip", "設備", 5), new SectionSpec("mega", "巨大建造物", 4),
-        ], [["supply", "detail"], ["goods", "factory"], ["equip", "mega"]]);
+            new SectionSpec("factory", "州別の工場", 6), new SectionSpec("equip", "設備", 5),
+        ], [["supply", "detail"], ["goods", "factory"], ["equip"]]);
         Control Rows(int n) => new StackPanel { Children = { } }.With(p => { for (int i = 0; i < n; i++) p.Children.Add(new TextBlock { Text = $"行 {i + 1}　{Fmt.Of(Unit.MoneyPerMonth, (i + 1) * 137000.0)}", Margin = new Thickness(0, 1) }); });
         PageGrid Make(double w, double h)
         {
