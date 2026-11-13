@@ -110,3 +110,7 @@ dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQuali
 == 9. 重なり（他の線の持ち物）
 - c105mc＝EconomyStep.cs（:2829〜:2852）・Coefficients.cs（:3405 の隣）・EconomyTests.cs・DormantIdentityTests.cs（自分の行）。c105gp＝Parliament.cs・Coefficients.cs（:232 の隣）・DormantIdentityTests.cs。c105ix＝InstrumentsArms.cs・Instruments.cs（:1848 の隣）・Simulation.cs・DiscoveryClockTests.cs・RecipeoutInstrumentTests.cs。
 - この線が触る共有のファイル：Coefficients.cs（:1220 の隣に旗 2 行）・DormantIdentityTests.cs（自分の 2 行）・Instruments.cs（Sink の TrRail の欄 1 行と閉じる 1 行＝:240・:1983 の行）・MultiNationSim.cs（:458 は変えない見込み・CostLedger の表 :1999〜 の 2 行と名前と単価の各 1 行＝owns の外＝合流で名乗る）。
+
+== 追記（2026-11-13・腕の前・恒等のコミットを書いた時）
+- §1-1 の〈素の計算〉の行の単価を 0.0 から 0.0100 µs（組み直しと同じ・下限の側の見積り）へ改めた。理由：SecessionLaborLawInstrumentTests の〈件数だけの行は 10 本・それ以外は単価＞0〉の Assert（:283〜:288）が、11 本目の件数だけの行を許さない。試験の集合を書き換えず、行の単価を正にした。旗 0 の推定は約 +0.1〜0.3 秒（表の外の重さを内側へ入れる行＝(395) の先例と同じ型）。ident では --cost-allow 清算：距離 を宣言する。
+- 恒等の番人 KmComponentTests：4 国・3 四半期の清算の州の表で、清算の値・費用だけを変えた値・海に出られない州を混ぜた写しの 3 通り×全ての組（9,000 組超）で、組み直し＝PairKmCore のビット一致（値と陸の印）を確かめた。

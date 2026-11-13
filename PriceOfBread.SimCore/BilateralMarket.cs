@@ -110,6 +110,40 @@ public sealed partial class InternationalMarket
         return Math.Min(viaSea, viaLand);
     }
 
+    /// <summary>(1097) 距離の表の成分の状態の印（KmScratch.St）：0＝まだ引いていない・Done＝引いた・Sea＝両端とも海に出られる（海の km を持つ）・Land＝陸直行の道がある（陸の半分の km を持つ）。</summary>
+    internal const byte KmStDone = 1, KmStSea = 2, KmStLand = 4;
+
+    /// <summary>(1097) 対ごとの距離の成分＝<see cref="PairKmCore"/> の式のうち、費用（州の landKm・terrCost・landRatio）に依らない部分（海の km と陸直行の ((raw＋接ぎ木a)＋接ぎ木b)×0.5）。
+    /// 費用の入力が動いても成分は変わらない＝清算の距離の表は、費用だけが動いた州の対を <see cref="ComposeKm"/> で組み直す（素の計算をしない）。戻り値＝状態の印。</summary>
+    internal static byte PairKmParts(TrEntry[] tr, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, int[] landNode, double[] landGraft, double landRouteEnabled, int a, int b, out double sea, out double landHalf)
+    {
+        byte st = KmStDone; sea = 0; landHalf = 0;
+        if (tr[a].seaOk && tr[b].seaOk)
+        {
+            sea = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] && panOkN[tr[b].nation]);   // PairKmCore と同じ式
+            st |= KmStSea;
+        }
+        if (!(landRouteEnabled > 0)) return st;   // 否定形＝NaN も陸なし（PairKmCore と同じ）
+        int na = landNode[a], nb = landNode[b];
+        if (na < 0 || nb < 0) return st;
+        double raw = PathGraph.LandMatrix()[na * PathGraph.Nodes.Length + nb];
+        if (double.IsPositiveInfinity(raw)) return st;
+        landHalf = (raw + landGraft[a] + landGraft[b]) * 0.5;   // PairKmCore の ((raw＋ga)＋gb)×0.5（結合の順は同じ）
+        return (byte)(st | KmStLand);
+    }
+
+    /// <summary>(1097) 成分と州の費用（E＝landKm×terrCost×landRatio・K＝terrCost×landRatio）から換算 km を組む＝<see cref="PairKmCore"/> と同じ値・同じ結合の順
+    /// （viaSea＝(海＋E_a)＋E_b・viaLand＝陸の半分×(K_a＋K_b)・陸の印＝viaLand＜viaSea・値＝Math.Min）。番人＝KmComponentTests（全ての組でビット一致）。</summary>
+    internal static double ComposeKm(byte st, double sea, double landHalf, double ea, double eb, double ka, double kb, out bool land)
+    {
+        double viaSea = (st & KmStSea) != 0 ? sea + ea + eb : double.PositiveInfinity;
+        land = false;
+        if ((st & KmStLand) == 0) return viaSea;
+        double viaLand = landHalf * (ka + kb);
+        land = viaLand < viaSea;
+        return Math.Min(viaSea, viaLand);
+    }
+
     private bool LastPairWasLand;   //★陸路可視化：直近 PairKm の勝者が陸直行か（Step 内でのみ読み書き・純テレメトリ）
 
     private readonly struct Seller(int node, double price, double stock)
@@ -133,6 +167,9 @@ public sealed partial class InternationalMarket
         public int Tc = -1, G;
         public double LandRoute = double.NaN, RiskLambda = double.NaN;
         public double[] Km = [], Risk = [];
+        public double[] Sea = [], LandHalf = [];   // (1097) 対ごとの距離の成分（PairKmParts）＝Km と同じ添字。St の印が 0 の対は読まない
+        public byte[] St = [];                     // (1097) 成分の状態の印（0＝まだ・KmStDone|KmStSea|KmStLand）。幾何の署名が違う州の行と列だけ 0 へ戻す
+        public double[] E = [], K = [];            // (1097) 州ごとの費用（E＝landKm×terrCost×landRatio・K＝terrCost×landRatio）＝清算ごとに作る
         public bool[] Land = [];
         public int[] Gen = [];
         public long[] Sig = [], SigNext = [], RSig = [], RSigNext = [];
@@ -417,16 +454,35 @@ public sealed partial class InternationalMarket
                     for (int j = 0; j < n; j++) tab[j * n + a] = -1.0;
                 }
             }
+            // (1097) 距離の表は署名を幾何（0〜4・8・9＝海に出られるか・座標・スエズ・パナマ・陸グラフのノード・接ぎ木）と費用（5〜7＝landKm・terrCost・landRatio）に分ける。
+            //   費用だけが違う州は換算 km の表（Km）だけを捨て、対の成分（St・Sea・LandHalf）は残す＝引くときに ComposeKm で組み直す（値は同じ式・同じ結合の順）。
+            //   幾何が違う州は成分も捨てる（St を 0 へ）。
+            static void DropKm(double[] tab, byte[] st, long[] sOld, long[] sNew, int k, int n)
+            {
+                for (int a = 0; a < n; a++)
+                {
+                    int o = a * k;
+                    bool geo = sOld[o] == sNew[o] && sOld[o + 1] == sNew[o + 1] && sOld[o + 2] == sNew[o + 2] && sOld[o + 3] == sNew[o + 3] && sOld[o + 4] == sNew[o + 4] && sOld[o + 8] == sNew[o + 8] && sOld[o + 9] == sNew[o + 9];
+                    bool cost = sOld[o + 5] == sNew[o + 5] && sOld[o + 6] == sNew[o + 6] && sOld[o + 7] == sNew[o + 7];
+                    if (geo && cost) continue;
+                    System.Array.Fill(tab, -1.0, a * n, n);
+                    for (int j = 0; j < n; j++) tab[j * n + a] = -1.0;
+                    if (geo) continue;
+                    System.Array.Clear(st, a * n, n);
+                    for (int j = 0; j < n; j++) st[j * n + a] = 0;
+                }
+            }
             if (ks.Tc != tc)
             {
                 ks.Tc = tc; ks.LandRoute = c.LandRouteEnabled; ks.RiskLambda = c.RiskLambda;
                 ks.Km = new double[tc * tc]; System.Array.Fill(ks.Km, -1.0); ks.Land = new bool[tc * tc]; ks.Gen = new int[tc * tc];
+                ks.Sea = new double[tc * tc]; ks.LandHalf = new double[tc * tc]; ks.St = new byte[tc * tc];
                 ks.Risk = new double[tc * tc]; System.Array.Fill(ks.Risk, -1.0);
             }
             else
             {
-                if (BitConverter.DoubleToInt64Bits(ks.LandRoute) != BitConverter.DoubleToInt64Bits(c.LandRouteEnabled)) { ks.LandRoute = c.LandRouteEnabled; System.Array.Fill(ks.Km, -1.0); }
-                else Drop(ks.Km, ks.Sig, sg, KS, tc);
+                if (BitConverter.DoubleToInt64Bits(ks.LandRoute) != BitConverter.DoubleToInt64Bits(c.LandRouteEnabled)) { ks.LandRoute = c.LandRouteEnabled; System.Array.Fill(ks.Km, -1.0); System.Array.Clear(ks.St); }
+                else DropKm(ks.Km, ks.St, ks.Sig, sg, KS, tc);
                 if (BitConverter.DoubleToInt64Bits(ks.RiskLambda) != BitConverter.DoubleToInt64Bits(c.RiskLambda)) { ks.RiskLambda = c.RiskLambda; System.Array.Fill(ks.Risk, -1.0); }
                 else Drop(ks.Risk, ks.RSig, rg, KR, tc);
             }
@@ -434,6 +490,11 @@ public sealed partial class InternationalMarket
             (ks.RSig, ks.RSigNext) = (rg, ks.RSig);
         }
         var kmTab = ks.Km;
+        var kSt = ks.St; var kSea = ks.Sea; var kLh = ks.LandHalf;   // (1097) 対の成分
+        if (ks.E.Length < tc) { ks.E = new double[tc]; ks.K = new double[tc]; }
+        var kE = ks.E; var kK = ks.K;
+        for (int t0 = 0; t0 < tc; t0++) { kE[t0] = tr[t0].landKm * terrCost[t0] * landRatio[t0]; kK[t0] = terrCost[t0] * landRatio[t0]; }   // PairKmCore の陸脚の式と同じ積の順
+        long nKmRaw = 0, nKmComp = 0;   // (1097) 計算量の台帳：素の計算（成分を引いた対）と成分からの組み直し（清算の終わりに足す）
         var kmLand = ks.Land;   // ★陸路可視化（2026-08-31・純テレメトリ）：この対の最短が陸直行だったか（PairKm と同じ比較＝算術に触れない）
         var kmGen = ks.Gen; int kmG = ++ks.G;
         double KmOf(int a, int b)
@@ -441,7 +502,7 @@ public sealed partial class InternationalMarket
             int ix = b * tc + a;   // ★(335) 買い手の行・売り手の列＝買い手 b を固定して売り手 a を走る（着値の充填）が同じ行の中を歩く＝キャッシュに乗る（旧は a*tc+b＝売り手ごとに tc 要素飛ぶ）。表の中身は添字の入れ替えだけ
             double v = kmTab[ix];
             if (v >= 0) { kmGen[ix] = kmG; return v; }
-            v = PairKm(a, b);
+            v = PairKm(a, b, ix);
             kmTab[ix] = v;   // ⚠この向きのみ（鏡像は書かない＝ビット恒等の維持）
             kmLand[ix] = LastPairWasLand;
             kmGen[ix] = kmG;
@@ -471,7 +532,7 @@ public sealed partial class InternationalMarket
             for (int q = natOff[nat]; q < natOff[nat + 1]; q++)
             {
                 int s = natSt[q]; int ix = t * tc + s; double k = kmTab[ix];
-                if (!(k >= 0)) { k = PairKm(s, t); kmTab[ix] = k; kmLand[ix] = LastPairWasLand; }   // KmOf と同じ書き方（向き・値）＝世代の印だけ刻まない
+                if (!(k >= 0)) { k = PairKm(s, t, ix); kmTab[ix] = k; kmLand[ix] = LastPairWasLand; }   // KmOf と同じ書き方（向き・値）＝世代の印だけ刻まない
                 mn = Math.Min(mn, k);
             }
             lbTab[li] = mn;
@@ -480,10 +541,14 @@ public sealed partial class InternationalMarket
         bool LandNow(int ix) => kmGen[ix] == kmG && kmLand[ix];   // この清算で引いた対の印だけ（旧＝清算ごとに false の表から）
         // 対ごとの実距離（km）。SeaGraph が内部でキャッシュしているので引き直しても実質ゼロコスト
         // （実測 routecost＝港81件・3240対で2回目 0ms）。陸路は LandSeaCostRatio 倍して足す＝港湾都市の優位が距離から出る。
-        double PairKm(int a, int b)
+        // (1097) 対の成分（海の km・陸の半分）が表にあれば組み直すだけ・無ければ成分を引いて表に残す（PairKmCore と同じ値＝KmComponentTests）。ix＝距離の表の添字（買い手の行・売り手の列）。
+        double PairKm(int a, int b, int ix)
         {
-            double km = PairKmCore(tr, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled, a, b, out bool land);
-            LastPairWasLand = land;   // ★純テレメトリ（戻り値・算術は不変）。口は状態を持たない＝陸の印は呼び手の側で書く
+            byte st = kSt[ix]; double sea, lh;
+            if (st == 0) { st = PairKmParts(tr, seaNodeOf, seaHalf, suezOkN, panOkN, landNode, landGraft, c.LandRouteEnabled, a, b, out sea, out lh); kSt[ix] = st; kSea[ix] = sea; kLh[ix] = lh; nKmRaw++; }
+            else { sea = kSea[ix]; lh = kLh[ix]; nKmComp++; }
+            double km = ComposeKm(st, sea, lh, kE[a], kE[b], kK[a], kK[b], out bool land);
+            LastPairWasLand = land;   // ★純テレメトリ（戻り値・算術は不変）。陸の印は呼び手の側で書く
             return km;
         }
         // ★(380) 輸送の段0 の計器（Instruments.On のときだけ呼ぶ・読むだけ）：PairKm の式を海脚・陸脚・換算 km に分けて書き直した物（sea＝その成約の経路が海経由か）。
@@ -1226,6 +1291,7 @@ public sealed partial class InternationalMarket
             if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenuePerClearing += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
             if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の州どうしは台帳で打ち消す）
         }
+        Cost[CostLedger.ClearingKmCompose] += nKmComp; Cost[CostLedger.ClearingKmRaw] += nKmRaw;   // (1097) 計算量の台帳：距離の表の組み直しと素の計算（件数を読む処理はシミュの中に無い）
         if (Instruments.On) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;   // 為替の換算の台帳（共有層＝移し方の1本が書く国境をまたぐ払いと同じ1本・段3-3）
         for (int i = 0; i < nn; i++)
         {
