@@ -1,0 +1,46 @@
+# (1120) c108sm の予言（最初のコミット）
+# 担当 Sonnet 5.5。基点 cfd8de3e0。基準＝基線 m1103（B5 b5_20261113_m1103・B10INS b10_20261113_m1103_ins・NG_BASE ng1103_20261113）。
+# 区分：README ★(743) ⑤（持ち主の移動に伴う写し）の拡張＝走査の絞りを旧（1cd66aae5）の母集合へ戻す。SimCore の .cs・係数・Assert・閾値には触れない。
+
+[1] 恒等の線・予言 0
+- 触れるのは PriceOfBread.Tests・PriceOfBread.Tests.Ui・docs・scripts・measurements だけ。SimCore.dll と Display.dll のバイトが基点と一致する（IL の門）。
+- 項ごとに 1 コミット：(1) 走査の番人の見分け (2) 画面の試験 2 本 (3) docs/history の名の形 (4) 文書 (5) CRLF 2 本。
+- 浮動小数の順序が変わる箇所：0（コードの式に触れない）。
+
+[2] 直す所と読み手の grep（走査の母集合）
+- 旧の母集合（1cd66aae5）＝SimCore（SimCore/Display を含む）・Runner・App・Tests（今は Tests.Ui に移った試験を含む）。今の CsFiles は 6 つのフォルダ（SimCore 183・Display 19・Runner 5・App 80・Tests 293・Tests.Ui 21＝601 本）。
+- 直す 6 行（ファイル:行・前→後の走査のファイル数）：
+  DormantIdentityTests.cs:373  Tests だけを外していた＝Tests.Ui の 21 本が本体として数えられた：308→287（Tests と Tests.Ui を外す）
+  ScholarshipTests.cs:186      同上：308→287
+  ScholarshipTests.cs:177      SimCore だけ＝Display が外れた：183→202（SimCore と Display）
+  DevaluationCapReliefTests.cs:212  183→202
+  PriceLevelPressureTests.cs:226    183→202
+  GoodIdGuardTests.cs:447      isTest が Tests.Ui を含まない＝0 と 1 の添字の免除が旧と違う：走査 601 本のまま・isTest の真の本数 293→314
+- 直し方：GoodIdGuardTests に IsTestRel（Tests・Tests.Ui）と IsEngineRel（SimCore・Display）の 2 本を足し、6 行はそれを呼ぶ。新しい補助関数の理由＝同じ判定が 6 か所に散っていて旧の母集合から外れた（既存に同じ物は無い・grep 済み）。
+- 読み手の grep：ScholarshipTopStage・DevaluationCapFracPerMonth・FiatInflationPressure の += は Display と Tests.Ui に 0 件（直しで件数の Assert は変わらない予言）。
+- SourceScanCoverageTests に足す Assert：Tests の全 .cs の中で `StartsWith("PriceOfBread.SimCore/")` と `StartsWith("PriceOfBread.Tests/")` を直に書く行が 0（IsEngineRel・IsTestRel を通す）。〈エンジンだけ〉と名乗る行は同じ行に `エンジンだけ` の注を持つ物だけ許す（現在 0 行）。
+- 他の線との重なり：rc が DormantIdentityTests の名の列を書き換える（sm は :373 の行だけ）。WriterRatchetTests・Coefficients には触れない。
+
+[3] 足す試験と突然変異（使い捨ての木・Release）
+- 画面の試験 2 本（PriceOfBread.Tests.Ui/PopWeightRegimeTextTests.cs）：Tests.Ui 232→234。Tests は 2594 のまま（SourceScanCoverageTests は既存の [Fact] の中身を広げるだけ＝本数 0）。合計 2826→2828。FullLength 3。
+- 突然変異：
+  M1 InterestGroups.PopWeight の β の項を ×0.5 → 画面の試験 1 が赤
+  M2 CrownParliament.cs の PolityRegimeJa(derived) を derived.ToString() へ → 画面の試験 2 が赤
+  M3 6 行のうち 1 行を旧の直書きへ戻す → SourceScanCoverageTests が赤
+  M4 Tests.Ui だけが読む係数の欄を作る（Tests.Ui のソースに欄名を 1 回書く）→ DormantIdentityTests の 係数は全て本体のどこかで読まれる が赤
+  M5 書庫から 1 行落とす（書庫＋残り≠元のバイト）→ 書庫の門（scripts/instruments/c108sm/archive_gate.py）が赤
+- ㉘：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests に GoodIdGuardTests|SourceScanCoverageTests|ScholarshipTests|DevaluationCapReliefTests|PriceLevelPressureTests を足して項 (1) の直後に回す。書き換える件数の予言＝許可表の行 0・件数の Assert の数 0（母集合が旧に戻るだけ）。赤なら止めて報告。
+- 工業化度の読み手の許可表・new MoneyStock( の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表：触れない（予言 0）。
+
+[4] 文書（項 4）
+- 短い README（docs/README_線の担当.md・今 41,783 バイト）：規則の行が約 105 字で切れている。make_short.py を scripts/instruments/c108sm/ へ写して直す。各行は元の全文か〈→ README L行〉の参照。止める線の改め（:98）・★(743)（:125）・★(711)（:116）・腕の節約（:193）・計算量の予算（:215）・L89 は全文。2 万字以下。
+- readers の全件：measurements/m1120_20261114_readers.txt。
+- 書庫（docs/202609/00_一覧_書庫.md）の規則の残り：(215) の行は行の中の最も遅い日付で判定する・打消し行は行の全体が打消しかで判定・境の行は残す側。書庫＋残り＝元のバイトを門にする。docs/history は .ignore に入れない。
+- docs/history：.cs.md 91 本・他 91 本（計 182）を、他 91 本を <名>.cs.md へ git mv して 182 本全て .cs.md にする。パスの作り（c107hb/gate_left.py:28・strip.py:117・c107hc/cmove.py:433・:441・gates.py:30）を直す。
+
+[5] CRLF 2 本
+- PriceOfBread.Tests.Ui/PriceOfBread.Tests.Ui.csproj と PriceOfBread.Tests/AssemblyInfo.cs を LF へ（BOM と中身の字は保つ）。PriceOfBread.Tests.csproj も CRLF だが指示の外＝触れず報告。
+
+[6] 恒等の予言
+- 素の 5 種・計器つき 10 種が m1103 と名乗り行を除いて全行一致（SimCore.dll・Display.dll がバイト一致のため）。.cost の差 0。〈判定: 恒等〉なら採る。
+- 試験の数：Tests 2594・Tests.Ui 234・合計 2828・FullLength 3（--list-tests の和と突き合わせる）。
