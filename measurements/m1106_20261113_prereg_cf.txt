@@ -44,3 +44,10 @@
 
 [4] 素の 5 種・計器つき 10 種は m1103 と名乗り行（SOURCE-HASH）を除いて全行一致。段 2 の判定は stage.py。
 [5] 〈判定: 恒等〉なら採る。一致しなければ該当の変更を外して報告に回す。
+
+[6] 結果（2026-11-13・実測）
+ 判定: 恒等（段 1）＝測った種で一致。素の 5 種 178 行・計器つき 10 種 180 行・計器の表 285 本・注視 4681 行が m1103 と一致。.cost 推定 230.5（5 種）・230.3（10 種）＝差 0。
+ テスト：Category!=FullLength 2808（失敗 0・skip 1）・FullLength 3 緑・㉘ 170 緑。savetest OK・leakhunt 保存則違反なし。
+ IL：SimCore.dll 前後バイト一致（-p:IncludeSourceRevisionInInformationalVersion=false が要る＝無いとコミットの hash の欄が違う）。
+ 突然変異：measurements/m1106_20261113_mut_cf.txt（M1 順を逆→IL 赤・門1 赤／M2 1 行を落とす→ビルド赤・門1 赤）。
+ 試験の書き換え（★(743) の区分＝走査側の持ち主の名を寄せるだけ・表の数字と Assert は同じ）：DevaluationCapReliefTests.cs:213・CalendarTests.cs:80（追加 1 行）・IndustrializationReaderTests.cs:43-45・ScholarshipTests.cs:179。
