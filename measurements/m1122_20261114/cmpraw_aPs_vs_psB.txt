@@ -1,0 +1,2 @@
+共通の表 334・バイト一致 334・違う 0・A だけ 30・B だけ 0
+A だけ（頭） ['habitlg_s1.tsv', 'habitlg_s10.tsv', 'habitlg_s2.tsv', 'habitlg_s3.tsv', 'habitlg_s4.tsv', 'habitlg_s5.tsv', 'habitlg_s6.tsv', 'habitlg_s7.tsv', 'habitlg_s8.tsv', 'habitlg_s9.tsv', 'inheritintent_s1.tsv', 'inheritintent_s10.tsv']

@@ -1,0 +1,41 @@
+合わせた木 31ff9bf45（suite1122.sh・scan→guards→full・2 プロジェクト）
+list PriceOfBread.Tests nonfull 2599
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+scan rc=1 450s
+scan_ui rc=0 23s
+成功!   -失敗:     0、合格:    45、スキップ:     0、合計:    45、期間: 21 s - PriceOfBread.Tests.Ui.dll (net10.0)
+失敗!   -失敗:     2、合格:   187、スキップ:     0、合計:   189、期間: 7 m 28 s - PriceOfBread.Tests.dll (net10.0)
+list PriceOfBread.Tests nonfull 2599
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+guards rc=1 948s
+guards_ui rc=0 96s
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 34 s - PriceOfBread.Tests.Ui.dll (net10.0)
+失敗!   -失敗:     2、合格:  1360、スキップ:     0、合計:  1362、期間: 15 m 46 s - PriceOfBread.Tests.dll (net10.0)
+list PriceOfBread.Tests nonfull 2599
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+nonfull PriceOfBread.Tests rc=1 1006s
+full PriceOfBread.Tests rc=0 197s
+nonfull PriceOfBread.Tests.Ui rc=0 95s
+full PriceOfBread.Tests.Ui rc=0 2s
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 34 s - PriceOfBread.Tests.Ui.dll (net10.0)
+失敗!   -失敗:     2、合格:  2596、スキップ:     1、合計:  2599、期間: 16 m 44 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 14 s - PriceOfBread.Tests.dll (net10.0)
+saveleak rc=0 223s
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1929788) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1929788) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1995) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1929788) [< 1 ms]
+保存 46.9MB（767ms）／読込 530ms（300四半期時点）
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 カスピ北→マラッカ北口（同じ組は以後省略）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 49・その月の額の和 5991
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

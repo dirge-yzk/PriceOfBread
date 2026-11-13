@@ -1,0 +1,6 @@
+刈った D:/PoB_work/c108ps_work/armB/out_c108psB_10/ins（psB・1110 本・22.70GB・門の表と SMALL は残す・表ごとの sha1 は measurements/m1122_20261114/hash/line_psB.tsv）
+刈った D:/PoB_work/c108mc_work/armB/out_c108mcB_10/ins（mcB・1113 本・22.56GB・門の表と SMALL は残す・表ごとの sha1 は measurements/m1122_20261114/hash/line_mcB.tsv）
+2026-11-14 05:56:44 消した D:/PoB_work/ident_c108sm（4.41GB・線 c108sm の ident の生・判定と成績表は origin/c108sm にコミット済み・表ごとの sha1 は measurements/m1122_20261114/hash/ident_sm_*.tsv）
+2026-11-14 07:53:35 消した D:/PoB_work/ident_m1122z（9.98GB・合流の腕 Z の ident の生・判定〈恒等〉と成績表は measurements/ident_20261114_m1122z.txt ほか・表ごとの sha1 は measurements/m1122_20261114/hash/ident_z_*.tsv）
+2026-11-14 08:02:44 消した D:/PoB_work/m1122_work/out_aPs_10（3391MB・アブレーションの腕の生・成績表は線の腕 B と全行一致・共通の表は線の腕 B の生とバイト一致＝cmpraw_aPs_vs_*.txt・表ごとの sha1 は measurements/m1122_20261114/hash/arm_aPs.tsv）
+2026-11-14 08:02:56 消した D:/PoB_work/m1122_work/out_aMc_10（3396MB・アブレーションの腕の生・成績表は線の腕 B と全行一致・共通の表は線の腕 B の生とバイト一致＝cmpraw_aMc_vs_*.txt・表ごとの sha1 は measurements/m1122_20261114/hash/arm_aMc.tsv）
