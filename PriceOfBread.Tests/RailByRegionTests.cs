@@ -39,8 +39,8 @@ public class RailByRegionTests
     public void 旗0では州の線路を書いても敷きは国の容量へ_州の線路は動かない()
     {
         var coef = new Coefficients();
-        Assert.Equal(0.0, coef.RailByRegion);
         var w = France(coef); coef = w.Coef;
+        coef.RailByRegion = 0;   // 旗 0 の経路の番人（既定は 2026-11-13 に 1）
         Assert.True(w.Regions.Count > 5, "州の数 " + w.Regions.Count);
         w.Discovered[Discovery.LocomotiveRow] = true; w.RailCapacity = 0;
         foreach (var r in w.Regions) r.RailTrack = 123.0;
@@ -57,10 +57,10 @@ public class RailByRegionTests
         static double[] RunOne(bool track)
         {
             var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
-            foreach (var n in sim.Nations) { n.World.Discovered[Discovery.LocomotiveRow] = true; if (track) foreach (var r in n.World.Regions) r.RailTrack = 1e12; }
+            foreach (var n in sim.Nations) { n.World.Coef.RailByRegion = 0; n.World.Discovered[Discovery.LocomotiveRow] = true; n.World.ShipCapacity = 1e9; if (track) foreach (var r in n.World.Regions) r.RailTrack = 1e12; }   // 船腹を大きく＝内陸の州の容量が線路で決まる盤面
             sim.StepQuarter();
             var o = new List<double>();
-            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { o.Add(r.LastTradeThrottle); o.Add(r.LastTradePotential); o.Add(r.LastTransportCap); }
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { o.Add(r.LastTradeThrottle); o.Add(r.LastTradePotential); o.Add(r.LastTransportCap); foreach (var m in r.Markets) { o.Add(m.Stock); o.Add(m.Price); } }
             return o.ToArray();
         }
         var a = RunOne(false); var b = RunOne(true);
@@ -165,11 +165,13 @@ public class RailByRegionTests
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
         uk.Coef.RailByRegion = 1; fr.Coef.RailByRegion = 1;
-        int k = 0; foreach (var q in uk.Regions) { q.LastTradePotential = ++k; q.RailTrack = 10.0 * k; }
+        int k = 0; foreach (var q in uk.Regions) { q.LastTradePotential = ++k; q.RailTrack = 10.0 * k * k; }   // 線路は潜在量の比と違う形（k²）＝旧の規則（送り手の容量×取り分）と見分ける
         foreach (var q in fr.Regions) q.RailTrack = 7.0;
         var r = uk.Regions.Find(x => x.Id != 0)!;
         double tr0 = r.RailTrack, uk0 = uk.RailCapacity, fr0 = fr.RailCapacity;
         Assert.True(tr0 > 0 && tr0 < uk0, "前提");
+        double sh = Transport.RegionShare(Transport.ShareBasis(uk, uk.Coef), r);
+        Assert.True(Math.Abs(tr0 - uk0 * sh) > 1e-6, $"前提が崩れた：州の線路 {tr0} が送り手の容量×取り分 {uk0 * sh} と同じ");
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
         Assert.Equal(tr0, r.RailTrack);
         Assert.Equal(uk0 - tr0, uk.RailCapacity, 9);
