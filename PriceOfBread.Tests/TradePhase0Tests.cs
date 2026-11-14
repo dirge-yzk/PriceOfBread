@@ -6,6 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>(1073) 線 c102tr＝貿易の段 0：R1 (a)(b)（費用を割る数を能力の倍率から分ける・産地の発見の行は開いた時に割る）と、
 /// 計器 tskpair_s（国の組の門の内訳）・tskshadow_s（置き換えの影）・recipeout_s の unitCostIfBprime。事前登録 measurements/m1073_20261112_prereg_tr.txt。
 /// R1 の試験は旗 1（EndowmentCostFollowsAbundance＝1）で書く＝旗 0 では割り算を通らないので何も言えない（恒等は ident が見る）。</summary>
+[Collection("Instruments")]
 public class TradePhase0Tests
 {
     private const ulong Seed = 1789UL;

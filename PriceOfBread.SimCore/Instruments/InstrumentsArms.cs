@@ -1,6 +1,7 @@
 namespace PriceOfBread.SimCore;
 
 // 首都の装備の充足が何で律速されるか（値段の門・配給・投入・需要の側）を、同じ盤面の断面で分ける。〔履歴 InstrumentsArms.cs#1〕
+// 限界：四半期の末の断面＝発見の四半期（汽船・自動車の解禁）と軍の規模が月の中で変わる四半期は stock_s の値とずれる（行を厳密値として使わない）。
 public static partial class Instruments
 {
     sealed class ArmsSink { public System.IO.StreamWriter? W; public bool Header; }

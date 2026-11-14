@@ -10,6 +10,7 @@ namespace PriceOfBread.Tests;
 /// 盤面＝ジェノヴァとトスカーナ（TradeClearingTests と同じ）で、買い手の州を 1 つだけ立てる（ほかの州は需要 0・在庫が目標どおり）＝払いの出所をその州に閉じる。
 /// 旗 0：人の居ない商人（人数 0）がその 1 POP として払う（今の形）。旗 1：人数 ＞1e-12 の POP だけが払い、手形を振り出さず、人の居ない POP は払わない。
 /// ⚠突然変異（事前登録 [3]）：E1 条件を逆さ→「旗1は人の居る…」が赤／E2 落とした枝で手形→「旗1で人の居るPOPが1つ…」が赤／E3 別の州の POP→「旗1は人の居る…」が赤。</summary>
+[Collection("Instruments")]
 public class ImportPayerLiveTests
 {
     private static (MultiNationSim sim, int good, Region buyer, Pop merchant) Make(double flag)
