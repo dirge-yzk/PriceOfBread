@@ -1,0 +1,16 @@
+== Ma
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.旗1の関税の倍率は本国格と統合の港だけの人口加重 [3 s]
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.本国格と統合の港の持分なら旗1でも条約港が立つ [1 s]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== Mb
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.旗1の関税の倍率は本国格と統合の港だけの人口加重 [4 s]
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.植民地格の港だけの持分では旗1で条約港が立たず関税も目減りしない [1 s]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+== Mc
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.旗1の関税の倍率は本国格と統合の港だけの人口加重 [4 s]
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.植民地格の港だけの持分では旗1で条約港が立たず関税も目減りしない [733 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+== Md
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.旗1の関税の倍率は本国格と統合の港だけの人口加重 [5 s]
+  失敗 PriceOfBread.Tests.TreatyPortHomeOnlyTests.本国格と統合の港の持分なら旗1でも条約港が立つ [1 s]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 7 s - PriceOfBread.Tests.dll (net10.0)

@@ -124,6 +124,7 @@ public class RuleSharesFormTests
     {
         var sim = Concert();
         var w = sim.Diplomacy.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス")).Nation!;
+        w.Coef.TreatyPortHomeOnly = 0;   // (1138) 旗 0 の経路の番人（全ての港の人口加重）・旗 1 の同じ主張は TreatyPortHomeOnlyTests
         var ports = w.Regions.Where(r => r.IsPort).ToList();
         Assert.True(ports.Count >= 2, "前提：英は港州を 2 つ以上持つ");
         Assert.Equal(1.0, InternationalMarket.TreatyPortTariffScale(w), 12);   // 持分なし＝関税はそのまま効く
@@ -139,6 +140,7 @@ public class RuleSharesFormTests
     {
         var sim = Concert();
         var w = sim.Diplomacy.Powers.First(p => p.Nation is { } && p.Name.Contains("イギリス")).Nation!;
+        w.Coef.TreatyPortHomeOnly = 0;   // (1138) 旗 0 の経路の番人・旗 1 の同じ主張は TreatyPortHomeOnlyTests
         var port = w.Regions.First(r => r.IsPort);
         Assert.Equal(0.5, w.Coef.ForeignRuleFromTreaty, 12);   // 前提（付与の大きさ）
         Assert.False(w.UnequalTreatyInForce);                 // 持分なし

@@ -111,6 +111,7 @@ public sealed partial class Coefficients
     public double DominanceMatureYears = 30.0;       // 初期値＝保有年数÷これ（世代長＝同化の物差し）
     public double OpeningColonyDominanceFull = 1.0;  // 接収（Diplomacy.AcquireColony）は常に 0
     public double ForeignRuleFromTreaty = 0.5;   // DominanceSpeed で目標へ寄せる
+    public double TreatyPortHomeOnly = 1;        // (1138) c111tp 2026-11-14 点火：1＝条約港の読み手（ForeignPortShare・TreatyPortInForce）が植民地格の港を数えない・0＝旧（全ての港）
     public double ProjectionRuleMin = 1.1;   // 1.1（到達不能）＝{首都}＝旧＝厳密恒等
     public double ProjectionUsesLand = 0.0;   // §14b：非港州も陸路距離（PathGraph）で起点にする（露の中央アジア・シベリア＝鉄道の延伸が投射になる）
     public double PeacetimeConscriptGrievance = 0.0;   // 0＝旧＝厳密恒等
