@@ -77,9 +77,7 @@ public static partial class Instruments
             if (rp > eps)
             {
                 double a = c.FactoryBuildAfford(System.Math.Max(mk.Price, eps), rp);
-                double g1 = 1.0;
-                if (c.MilitaryProcurePriceGateScale < 1.0) g1 *= System.Math.Max(0, c.MilitaryProcurePriceGateScale);
-                gate = a > 0 && a <= 1 ? 1.0 - g1 * (1.0 - a) : 1.0;
+                gate = a > 0 && a <= 1 ? 1.0 - 1.0 * (1.0 - a) : 1.0;
             }
             double order = want * afford * gate, ration = mk.LastRation.Value, got = order * ration;
             double contrib = durable ? want * (target > eps ? System.Math.Min(1.0, System.Math.Max(0.0, held / target)) : 1.0) : got;

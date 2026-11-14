@@ -2431,7 +2431,6 @@ public static class EconomyStep
             double catMax = coef.ScaleMax, catSpeed = coef.ScaleAdjustSpeed;
             if (s.IsRgo && s.GoodId != Catalog.FishId)
             {
-                catMax = Catalog.IsMineral(s.GoodId) ? (coef.MineralScaleCapLift > 0 ? coef.ScaleMax : coef.MineralScaleCap) : coef.ScaleMax;   // catMax〔履歴 EconomyStep.cs#342〕
                 catSpeed = coef.ScaleAdjustSpeed * coef.RgoScaleSpeedFactor;
             }
             // margin は補助金で緩和済み（subEff）＝補助されている工場は休止しない（会計と同じ率を読む）。〔履歴 EconomyStep.cs#343〕
@@ -2635,9 +2634,7 @@ public static class EconomyStep
         double rp = Catalog.RefPrices[gid] * Math.Max(region.PriceLevel, Eps);   // rp〔履歴 EconomyStep.cs#370〕
         if (!(rp > Eps)) return 1.0;   // ⚠否定形＝参照価格が無い財は絞らない（fail-open）
         double a = coef.FactoryBuildAfford(Math.Max(region.Markets[gid].Price, Eps), rp);
-        double gate = 1.0;
-        if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
-        return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（満額適用＝1.0・軍需財だけ MilitaryProcurePriceGateScale で下げる）
+        return a > 0 && a <= 1 ? 1.0 - 1.0 * (1.0 - a) : 1.0;   // ゲート比で連続に混合（満額適用＝1.0・軍需財だけ MilitaryProcurePriceGateScale で下げる）
     }
 
     // x×1.0 は浮動小数でも x と同じ。〔履歴 EconomyStep.cs#371〕

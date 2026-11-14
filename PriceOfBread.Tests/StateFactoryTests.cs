@@ -95,25 +95,6 @@ public class StateFactoryTests
     }
 
     [Fact]
-    public void 接収は係数0では1命令も走らず旧経路が生きている()
-    {
-        var sim = Warm(2026);
-        var w = sim.World;
-        Assert.Equal(0.05, w.Coef.NationalizationSeizureRate);  // ★2026-08-29点火＝既定0.05（R22 batch30＝帯中立・破綻0）
-        w.Coef.NationalizationSeizureRate = 0;                  // 0経路（旧・stateFrac下限）の番人として明示OFF
-        w.NationalizeMines = true;                              // 鉱山（石炭ほか）を国有化
-        var r = w.Regions[0];
-        r.NationalizedMask = w.NationalizedMask();
-        var p = r.Producers.Find(x => x.GoodId == Catalog.CoalId);
-        Assert.NotNull(p);
-        double built0 = p!.BuiltScale;
-        double chill0 = r.SeizureChill;
-        sim.Run(8);
-        Assert.Equal(built0, p.BuiltScale);                     // 接収は起きない（BuiltScale は動かない）
-        Assert.Equal(chill0, r.SeizureChill);                   // 資本逃避も書かれない
-    }
-
-    [Fact]
     // ⚠2026-09-21：旧名「接収は強権が抵抗を上回る時だけ進む」を N1 の一括置換が「政治資本」にしていたが、
     //   この番人が見ているのは World.Seize の suppress（＝抑圧力）であって MandateSpent ではない＝名前を真に戻した。
     public void 接収は抑圧力が抵抗を上回る時だけ進む()

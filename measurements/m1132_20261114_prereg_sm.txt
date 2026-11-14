@@ -1,0 +1,21 @@
+(1132) c110sm 事前登録（恒等の線・予言 0）。基線 m1122。木 50e0b5c93。
+K2 の削除は作者「しばらくの間、全て推奨で」で推奨を採った（★(1129) ③・作者の確認待ち）。
+
+[1] 恒等の線・計器つき 10 種と素の 5 種は m1122 と名乗り行を除き全行一致。浮動小数の順序が変わる箇所：無し
+    (K1 は 1.0 - gate*(1.0-a) の gate が 1.0 の道＝1.0*x は厳密に x なので 1.0 - 1.0*(1.0-a) と書き残す)。
+[2] 消す物と残す物
+ K1 MilitaryProcurePriceGateScale（p04_trade.cs:28・既定 1）＝係数ごと消す。読み手 EconomyStep.cs:2639・InstrumentsArms.cs:81・DormantIdentityTests.cs:167
+     （App・Display・Runner・scripts・POB_COEF の名前に読み手なし＝grep 済み）。FactoryBuildPriceGateScale は残す＝FactoryTierTests が 0 を置く本物の読み手がある。
+ K2 GarrisonProcurement（p08:17・既定 0）＝旗 0 の道だけ残して消す。Military.cs:168-177・Simulation.cs:1782/1802/1808・DormantIdentityTests.cs:235。Runner/Program.cs:2657 の注は触れない。
+ K3 NationalizationSeizureRate≦0 の枝（World.cs:1971・Simulation.cs:1948・InstrumentsCorncf.cs:104）＝消す。係数そのもの（0.05）は残す。
+     旧の道の番人 StateFactoryTests「接収は係数0では1命令も走らず旧経路が生きている」は旧の道そのものを固定＝今の盤面へ移せる形が無い（0 は接収を切るだけ）ので消して名乗る（★(845)）。CfSectorBit は読み手 0 になり消す。
+ K4 MineralScaleCapLift の焼き込み（p10:51・EconomyStep.cs:2434）＝天井は ScaleMax。MineralScaleCap（p10:50）は読み手 0 で消す。
+     試験 EconomyTests.cs:340・:400 の旗 0 の行（off の盤面と比較）を消す（旗 1 の Assert は残す・試験の名は変えない）。
+ RetiredFields に 4 本を足す（MilitaryProcurePriceGateScale・GarrisonProcurement・MineralScaleCapLift・MineralScaleCap）。
+ c108mc は作者 2026-11-12〈鉱山と畑の上限を外す〉を〈天井を 3.0 へ揃える〉に狭めた＝〈上限を外し切る段〉は未了（済みと書かない）。
+ 他の線との重なり：c110lo は EconomyStep.cs:1090-1121 のみ・c110tb は BilateralMarket.cs。この線は EconomyStep.cs:2434・2639 だけ。重ならない。
+[3] 書き換える試験の区分：DormantIdentityTests の表の行（名簿の移動）＝★(743)④ 相当・EconomyTests 旗 0 の行の削除・StateFactoryTests 1 本の削除。
+    走査の番人（㉘）：IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity を器の直後に回す。件数の予言：WriterRatchet の表の変化なし。
+    cearn_s・cpop_s の経路の名はファイル:行＝ident_check.py の行の写しで違い 0 と宣言する。
+[4] 試験の数の予言：Tests 2606 → 2605（StateFactoryTests 1 本削除）。Ui 234。
+[5] 〈判定: 恒等〉なら採る。

@@ -1,0 +1,6 @@
+id	旧の扱い	新の扱い（案・合流が写す）
+S05-H017/S05-H021	MilitaryProcurePriceGateScale 残す・焼く推奨 K1	(1132) で係数ごと消した（既定 1 の経路だけ残した）
+S23-H032	軍需財だけ価格関門を緩める器	(1132) で消した（S05-K1 と同じ）
+S23-X01/S24-H072	GarrisonProcurement 駐屯州調達の器（消す候補）	(1132) で消した（K2・作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち）
+S05-H023	NationalizationSeizureRate≦0 の旧の枝	(1132) で枝を消した（係数 0.05 は残す・K3）
+S05-H026/S28-H027/S28-28	MineralScaleCap／MineralScaleCapLift	(1132) で旗を焼いた（天井は ScaleMax 3.0）・MineralScaleCap は消した（K4）。上限を外し切る段は未了

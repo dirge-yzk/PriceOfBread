@@ -45,9 +45,10 @@ public class SourceScanCoverageTests
                 string rel = Path.GetRelativePath(root, f).Replace((char)92, '/');
                 if (rel.Contains("/obj/") || rel.Contains("/bin/")) continue;
                 files++;
-                if (Path.GetFileName(f) is "GoodIdGuardTests.cs" or "SourceScanCoverageTests.cs") continue;   // 判定の定義と、この番人の模様
+                if (Path.GetFileName(f) is "SourceScanCoverageTests.cs") continue;   // この番人の模様
+                bool defFile = Path.GetFileName(f) is "GoodIdGuardTests.cs";   // (1132) 外すのは判定の定義の 2 行（IsTestRel・IsEngineRel）だけ＝ファイルごとは外さない
                 int ln = 0;
-                foreach (var line in File.ReadLines(f)) { ln++; if (raw.IsMatch(line) && !line.Contains("エンジンだけ")) bad.Add(rel + ":" + ln); }
+                foreach (var line in File.ReadLines(f)) { ln++; if (raw.IsMatch(line) && !line.Contains("エンジンだけ") && !(defFile && (line.Contains("internal static bool IsTestRel(") || line.Contains("internal static bool IsEngineRel(")))) bad.Add(rel + ":" + ln); }
             }
         Assert.True(files >= 300, $"調べた試験のソースが少ない {files}");   // 対照：空の母集合で緑にしない（今は Tests 293＋Tests.Ui 21）
         Assert.True(bad.Count == 0, "走査の絞りを直書きしている行: " + string.Join("、", bad));

@@ -164,7 +164,6 @@ public class DormantIdentityTests
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>
     private static readonly string[] DormantOneFields =
     [
-        "MilitaryProcurePriceGateScale",   // 軍需財の国家調達の価格ゲート倍率（1＝満額＝旧恒等・0＝価格を見ない）
         "FactoryBuildPriceGateScale",      // 裁定②＝工事の進捗/素材需要の価格ゲート混合（1＝旧恒等・0＝価格を見ずに進む）
         "RailLayTerrain",                 // (1097) c105rr 段 R のアブレーション：敷く量に地形を掛ける（1＝掛ける・RailByRegion＝0 では読まない）
         "UnificationV1Only",               // ★2026-09-26（fis-27・dorm-52）：統一戦争の名指し（北ドイツ連邦・ドイツ・イタリアの3件）＝1が旧挙動。点火（0＝名指しの撤去）は回8-3（col-19）
@@ -232,7 +231,7 @@ public class DormantIdentityTests
         // CoercionUpkeepToSoldiers は 2026-09-30 に係数ごと削除（連合維持費は兵士と官僚の役務の④へ全額＝支払いの段3-2）
         "ElectionBribePovertyWeight", "EraNavalFuel",
         // FertileAbsoluteBlend は 2026-10-25 (551) に係数ごと削除（RetiredFields）。FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除
-        "FoodIncludesAnimalProtein", "GarrisonProcurement",
+        "FoodIncludesAnimalProtein",
         "HigherEduNeedPerEducated",
         "InterestCapitalization", "LoanSpreadPerYear",
         "ModernizationToHigherEdu",
@@ -254,6 +253,9 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "MilitaryProcurePriceGateScale",   // (1132) c110sm K1：軍需財の価格ゲート倍率（既定 1 の経路だけ残した・FactoryBuildPriceGateScale は FactoryTierTests が 0 を置く本物の読み手があるので残す）
+        "GarrisonProcurement",             // (1132) c110sm K2：駐屯州調達の器（既定 0・旗 0 の道だけ残した・★(1129) ③ 作者「しばらくの間、全て推奨で」で推奨を採った）
+        "MineralScaleCapLift", "MineralScaleCap",   // (1132) c110sm K4：鉱山の天井の旗の焼き込み（天井は ScaleMax へ・MineralScaleCap は読み手 0）
         "MintDemandCounted", "SteamTurbineEnabled", "CompostFertilizerEnabled", "SulfurFromPyriteEnabled", "OilNeedsMachinery", "CenterIsFirstProvince", "CoreInitByRegionCulture", "ScarceCountsIncludeColonies", "ScarceMineralGate", "FactoryBuildRefIsReal", "FarmScaleCap",   // (1089) 線 c104fb：旗の焼き込み（既定 1 の旧い枝を消した。各欄の意味は Coefficients.cs の墓標）
         "HeldSinceFromData",          // (956) 線 c85hs：B14＝world.json の heldSince を読む旗〔既定0〕。heldSince のデータと CoreHeldYears〔150〕とあわせて削除（全州 Core・支配度1.0 の経路だけ残した）
         "WageClampIndScale",          // (605) 線 ind4：賃金の天井の工業化度の項〔R2 点火 1.0・(495) で IndustrializationOff が 0 を掛けていた〕。項ごと削除（天井そのものの WageClampMax は残る）
