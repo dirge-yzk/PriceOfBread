@@ -1,0 +1,7 @@
+2026-11-14 18:21:23 作った D:/PoB_work/m1136_work（合流の作業）
+2026-11-14 18:21:35 作った D:/PoB_work/wt_m1136（worktree・枝 m1136）
+2026-11-14 18:25:05 作った D:/PoB_work/wt_m1136z（腕 Z の worktree・枝 m1136z）
+2026-11-14 18:51:15 枝 m1136z（lo を戻す使い捨て）は lo を外したので消した・wt_m1136z は H を detached で使う
+2026-11-14 19:24:33 作った D:/PoB_work/keep_1136_rej（採らなかった線の生）・移した D:/PoB_work/c110lo_work → keep_1136_rej/c110lo_work（lo の腕 B の生・全ての表・載せ直しまで残す）
+2026-11-14 19:55:53 作った D:/PoB_work/keep_1136/base_ins（腕 Z の計器つき 10 種の生・keep_1129/base_ins と同じ 1418 本はハードリンク・違う 60 本 6.12GB は Z の物）
+2026-11-14 19:55:53 作った D:/PoB_work/ident_m1136z（ident の作業）
