@@ -1,0 +1,4 @@
+list_PriceOfBread.Tests_nonfull 2608
+list_PriceOfBread.Tests_full 3
+list_PriceOfBread.Tests.Ui_nonfull 234
+list_PriceOfBread.Tests.Ui_full 0
