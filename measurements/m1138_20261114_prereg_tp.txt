@@ -1,0 +1,88 @@
+(1138) c111tp 事前登録：条約港の読み手から植民地格の港を外す（H）・旗 TreatyPortHomeOnly（仮名・器で既定 0・腕で 1）
+書いたモデル：Claude Opus 5.5。木 03d192514 から枝 c111tp（worktree D:/PoB_work/wt_c111tp）。この事前登録が最初のコミット。
+「」は作者の原文だけ。〈〉は AI の案・推奨。〈証明〉とは書かない（恒等は〈恒等の判定（測った種で一致）〉）。
+
+## 0. 形（尾か入口か）と出発
+- 形＝**入口**（読み手の述語の母集合を狭める・新しい係数と状態は 0＝旗 1 本だけ）。
+- 出発：§0-2 ★(1129) ①〈欄は分けない（思想⑩）・読み手の側を〈植民地の港を本国の港の数に入れない〉形に直す〉＝作者「しばらくの間、全て推奨で」で推奨を採った（作者の確認待ち）。(1133) c110fs の推奨〈H を別の挙動の線として先に入れる〉。
+- 3 回の規則：H の 1 回目。段 C′ の数えには入れない。
+- 確証：〈植民地格の港の外国の取り分を本国の関税自主権と不平等条約の旗に数えない〉は AI の推奨の形（確証なし＝作者の裁定の形ではない）。史実の向き（英・仏の本国に不平等条約は無い）は記録。
+
+## 1. 直す行（main 03d192514・grep で確かめた）
+- PriceOfBread.SimCore/Politics.cs:1066〜1077 ForeignPortShare：`if (!r.IsPort) continue;` の次に〈旗＞0 かつ r.Tier==Colonial なら飛ばす〉。
+- PriceOfBread.SimCore/Politics.cs:1079〜1086 TreatyPortInForce：港の判定に同じ条件。
+- 旗：Coefficients.p08_audit_soldiers.cs:113 ForeignRuleFromTreaty の隣に `public double TreatyPortHomeOnly = 0;`（器）。腕 B の前のコミットで 1。
+- 旗 0：条件の左（旗＞0）が偽で短絡＝同じ行を通る＝演算の順は変わらない（恒等の見込み・ident で測る）。
+- 触らない：講和の付与の港の選び（Diplomacy.cs:2745〜2749）・欄を条約と力に分けること・露の極東（C′ の項目 2・5）・App の通知の文・InstrumentsCorncf.cs の写し（§6）。
+
+## 2. 読み手の表と同じ盤面の新÷旧の予言（★(1129)）
+| 読み手 | 経路 | 旗 0 の盤面での新÷旧の予言（紙・近似） | 確証 |
+|---|---|---|---|
+| 関税の倍率 1−ForeignPortShare | InternationalMarket.cs:107〜112 → TariffRate | 英：植民地の港（中核ベンガル等）の取り分が抜ける＝倍率は上がる（紙の近似 0.9810→0.9827＝新÷旧 ≈1.002）・米：本国の港の取り分が分母の植民地で薄められていた＝倍率は下がる（≈0.998）・清・露・普：植民地の港を持たない＝1.000 | 中（近似＝rule_s の Rule[2] で組んだ・v の 1） |
+| 不平等条約の旗 UnequalTreatyInForce | World.cs:39 → SelfPlay.cs:531（移民の法を開く）・PoliticalQuantities.cs:97（戦争熱の屈辱の項） | 新の旗 ⊆ 旧の旗（母集合を狭めるだけ）＝新÷旧 ≦1。英：旗 0 の盤面の旗 487 国×四半期のうち紙の近似で 181（37%）が植民地の港だけで立つ＝新÷旧 ≈0.63・仏 ≈0.84（26/163）・清・露・オスマン・普 1.00 | 中（近似） |
+| 計器 rule_s の treatyPortInForceFlag・portForeignShare | InstrumentsRule.cs:70 | 上の 2 行と同じ値が出る（旗 1 で値が変わる列＝宣言） | 高（同じ関数を呼ぶ） |
+| 計器 tradeskip の Treaty | InstrumentsTradeskip.cs:267 | 関税の倍率の行と同じ | 高 |
+| App の条約港の失効の知らせ | GameViewModel.News.cs:77・:236（読むだけ） | 真→偽の移りが植民地の港の取り分では起きなくなる＝英の知らせの回数は減る（記録） | 中 |
+| 試験 | RuleSharesFormTests.cs:129〜150（D3 の 2 本） | 旗 1 で D3_関税（全ての港の人口加重を固定）が赤になる見込み＝§7 | 高 |
+- ★(1136) の鎖（関税→輸入の額→発見の伝わり）：英は関税の倍率が上がる＝実効の関税が上がる＝英の輸入の額は下がる（1% 未満の見込み）＝BilateralMarket.cs:1007 の AccumulateDiscovery の英が買い手の分は下がる。米は逆向き（上がる）。大きさは雑音の内の見込み（記録・門にしない）。
+- 露：旗 0 の盤面で 84 国×四半期の旗は全て本国の港（オホーツク等＝Core）＝**直らない**（紙：植民地の港が先頭 0）。C′ の盤面（(1133) の腕 B）でも 87%→86%＝記録の予言（直すのは C′ の項目 2・5）。
+- 紙の台本：scripts/instruments/c111tp/paper_tp.py・出力 measurements/m1138_20261114/paper_base.tsv（keep_1136/base_ins）・paper_n1.tsv・paper_n2.tsv（keep_1122/n1・n2）。
+  - 旗 0 の盤面の旗（エンジン・正確）：基準 1,778・N1 1,953・N2 1,413 国×四半期（10 種の和・rule_s の行＝9 国は毎四半期・他の国は年の末）。
+  - そのうち植民地の港が Rule[2] の先頭の物（近似）：基準 262・N1 97・N2 184。英：基準 487 のうち 181・N1 62 のうち 0・N2 84 のうち 27。
+  - ⚠ Rule[2] は ForeignShares と合わない（オスマンは Rule[2] ≧0.25 の本国の港が 370 行あるがエンジンの旗は 0）＝**正確な数は ident の生の tport_s から取る**（§4 の追記）。
+
+## 3. 恒等の計器（tport_s・国×四半期・全ての国）
+- 新しいファイル PriceOfBread.SimCore/Instruments/InstrumentsTreatyPort.cs・表の名 tport_s（名の空きを grep で確かめた＝0 件）。登録は Instruments.cs の 2 行（表と閉じ）だけ。Instruments.On の時だけ（Instruments.Quarter の中）・Wants("tport_s")。
+- 列：quarter・year・nation・portForeignAllShare・portForeignHomeShare・treatyAllFlag・treatyHomeFlag・treatyEngineFlag・treatyTriggerRegion・colonialOnlyFlag・tariffScaleEngineShare・homePortsAboveLineCount・colonialPortsAboveLineCount。
+- 独立：州の ForeignShares・IsPort・Tier・SumPopulation から計器が自分で組む（Politics の関数を呼ばない）。線＝0.5×ForeignRuleFromTreaty（係数を読む）。
+- エンジンの列（本物の経路＝★(757)）：treatyEngineFlag＝w.UnequalTreatyInForce・tariffScaleEngineShare＝InternationalMarket.TreatyPortTariffScale(w)。
+- colonialOnlyFlag＝treatyAllFlag==1 かつ treatyHomeFlag==0。treatyTriggerRegion＝線を越えた最初の本国格の港（無ければ最初の植民地格の港・無ければ -）。
+- 計器の自己確かめ（旗 0 の盤面＝ident の生）：treatyEngineFlag==treatyAllFlag と tariffScaleEngineShare==1−portForeignAllShare が全ての行で成り立つ（食い違い 0）＝成り立たなければ計器を直してから先へ。
+
+## 4. 門（同じ盤面の等式・両側・ヌル腕の幅に依らない）＝腕 B（旗 1・計器つき 10 種）の tport_s で読む
+- G1（働いた＝大きさ）：colonialOnlyFlag＝1 の国×四半期の数 N_co ≥1（10 種の和）かつ、その行の treatyEngineFlag＝1 の数＝0。旗 0 の盤面（ident の生）では N_co0 の行が全て engine＝1 ＝**G1 は落ちる**（N_co0＝0 なら G1 は旗 0 で空と名乗る）。
+- G2（この形に固有の誤り・上側）：#(treatyHomeFlag=1 かつ engine=0)＝0 かつ #(treatyHomeFlag=0 かつ engine=1)＝0。対照：#(treatyHomeFlag=1)≥1（0 なら M-a を盤面で拾えないと名乗る）。
+- G3（片方だけ直す誤り）：全ての行で |tariffScaleEngineShare−(1−portForeignHomeShare)| ≦1e-12。対照：|portForeignAllShare−portForeignHomeShare|＞1e-9 の行 ≥1（0 なら M-b を盤面で拾えないと名乗る）。旗 0 の盤面では対照の行で食い違う＝G3 は落ちる。
+- 効き目（記録）：英・仏・日・清・オスマン・露の engine の旗の四半期の割合を旗 0（ident の生）・旗 1（腕 B）で。
+- xUnit（新しい試験 PriceOfBread.Tests/TreatyPortHomeOnlyTests.cs・3 本・RuleSharesFormTests とは別）：合成の盤面（Concert の英）で ①植民地格の港だけ持分 0.5＝旗 1 で UnequalTreatyInForce 偽・ForeignPortShare 0／旗 0 で真（同じ盤面の対照）②Core の港と Integrated に置いた港＝旗 1 で真・ForeignPortShare は本国格の港だけの人口加重（期待は試験の中で港の人口から組む）③関税の倍率＝1−本国格の人口加重。
+- 〈追記の予約〉ident（段 2）の生の tport_s から N_co0（旗 0 の盤面の colonialOnlyFlag の数）と G2・G3 の対照の数を台本 count_tport.py で取り、旗 1 の前に別のコミットで追記する（数を変えるのではなく空かどうかの名乗り）。
+
+## 5. 突然変異（使い捨ての木・腕の前・どの門で赤か＝㉚）
+| 変異 | G1 | G2 | G3 | xUnit |
+|---|---|---|---|---|
+| M-a Core も外す | 緑 | **赤**（本国の港で立った旗が消える） | **赤**（Core の港の取り分が抜ける） | ②赤 |
+| M-b TreatyPortInForce だけ直す（ForeignPortShare は旧） | 緑 | 緑 | **赤**（関税） | ③赤 |
+| M-c 旗を読まない（両方とも旧） | **赤** | 緑〜赤 | **赤** | ①赤 |
+| M-d Integrated も外す | 緑 | 盤面に Integrated の港の行が無ければ緑（v の 2） | 同左 | ②赤 |
+| 旗 0（何もしない実装） | **赤**（N_co0＞0 のとき） | 緑 | **赤** | ①②③赤（旗 1 を立てる試験） |
+- 盤面の変異の腕：使い捨ての木（器＋旗 1＋変異）で `INS=1 POB_INSTRUMENTS_TABLES=tport_s` の 3 種（種 1〜3・全長）・xUnit は TreatyPortHomeOnlyTests だけ。出力と集計の台本は measurements/m1138_20261114/ へ。生は合流の判断まで残す。
+
+## 6. 周辺の点検（記録）
+- TreatyPortLapse（p03:143・Diplomacy.cs:487）：取り分の風化は州の欄に掛かる＝読み手の述語と独立。旗 1 では App の失効の知らせ（News.cs:236）が〈本国の港の取り分が線を割った時〉だけ出る＝読み手の意味どおり。腕 B の tport_s の treatyEngineFlag の真→偽の移りを国ごとに数えて記録。
+- SelfPlay.cs:531（移民の法を開く）：旗の国×四半期の数がそのまま開く頻度＝腕 B で旗 0 と並べて記録。
+- InstrumentsCorncf.cs:24 CfForeignPort は旧の規則の写し（全ての港）＝旗 1 では穀物法の楔 d の写しがエンジンの関税と食い違う（計器の限界・この線の owns の外＝合流へ申し送り）。
+
+## 7. 走査の番人（㉘）・件数の予言（㉑）・旗 1 の木の grep（㉜）
+- ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）：変わる件数の予言 0。
+  - 工業化度の読み手の許可表：触らない（Politics.cs の 2 関数は工業化度を読まない）。
+  - `new MoneyStock(` の件数：SimCore で 64 行（grep -c の和）＝変わらない。
+  - route_anchors.tsv（scripts/instruments/flow262/）の鍵の行：Politics.cs の鍵は 59 行目の没収の 1 行だけ＝触らない。
+  - WriterRatchetTests の宣言の表：計算量の件数は変わらない（読み手の条件 1 つ・計器は On の時だけ）。
+- DormantIdentityTests：器のコミットで DormantZeroFields に "TreatyPortHomeOnly" を 1 行足す。旗 1 のコミットでその行を外し注の行へ。
+- ㉜ grep（旗 1 の木で旧の規則を固定している番人）：
+  - RuleSharesFormTests.cs:123〜135 D3_関税の目減りは港州の外国持分の人口加重＝全ての港の人口加重を期待にする＝旗 1 で赤の見込み（英は植民地格の港を持つ）。
+  - RuleSharesFormTests.cs:137〜151 D3_条約港が効いているか＝英の最初の港（本国格の見込み）＝旗 1 でも緑の見込み。
+  - 指示〈RuleSharesFormTests.cs:129〜:150（旗 0 のまま残す）〉に従い、**器のコミット（旗 0 の時点＝結果の前）で D3 の 2 本に `w.Coef.TreatyPortHomeOnly = 0;` を足して旗 0 の経路の番人にする**（前例：同じファイルの D2 の 2 本 `c.RuleOrderByRegion = 0`＝★(856)）。Assert・閾値・母集合は変えない。旗 1 の同じ主張は新しい試験 TreatyPortHomeOnlyTests が持つ。
+  - AiFirstWaveTests.cs:276（仏の最初の港に付与）：仏の最初の港は本国格の見込み＝旗 1 でも緑の見込み。
+- フルスイートの数：Tests 2610＋3＝2613・Tests.Ui 234＝2847（FullLength 3）。ident の --tests-delta 3。
+
+## 8. 止める線（README のとおり・この回の形をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は、基準とヌル腕の件数と同じ台本で数え直して並べる）・1e10 倍以上・空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・**その線が原因と読めた件だけ**＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤（走査の番人を含む）。
+- 記録：NG（ng.sh・基準 ng1122_20261114）・exact・near・国力・史実度・nullgate.py（門 A′）・開幕の 1000 倍以上・名目 GDP 0 の続き（gdp_zero10.py）・英の国債の不履行の種の数。
+- 外した物差しを門に写していない（〈補給崩壊…倍〉〈10pt〉〈NG の正味〉は無い）。符号だけの門は無い（G1 は数 ≥1 と等式・G2・G3 は等式）。
+
+## 9. 計算量
+- 割り当て 約 0 秒（読み手の条件 1 つ・計器は Instruments.On の時だけ）。.cost の推定は m1122 の 230.0 秒と同じ見込み（推定は件数×単価＝件数は変わらない）。保守側の余り 3.1 秒の内。
+
+## 10. 順
+事前登録（このコミット）→計器 tport_s→器（旗 0）と試験と D3 の旗 0 の明示→㉘→ident（段 2・--added-tables tport --tests-delta 3）→追記（N_co0・対照の数）→突然変異→旗 1 の短い走り→旗 1→㊴→フルスイート→savetest・leakhunt→腕 B（INS=1 batch.sh run c111tpB 10）→門・止める線・記録→印 D:/PoB_work/c111tp_work/tp.mark→push origin/c111tp。形の変え直しは 1 回だけ（旗 1 の出力を見た後のエンジンの変更は全て数える）。
