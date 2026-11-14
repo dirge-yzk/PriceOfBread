@@ -588,9 +588,9 @@ public sealed class Market
     private double _lastDemand;
     internal const double DeadEps = 1e-9;
     [System.NonSerialized] internal Region? _liveRegion;
-    [System.NonSerialized] internal bool FlowAsleep;
-    [System.NonSerialized] internal double ClearFailLp;
-    [System.NonSerialized] internal Region[]? ClearPartners;
+    internal bool FlowAsleep;
+    internal double ClearFailLp;
+    internal Region[]? ClearPartners;
     public double ReservationWage;
     public Share LastRation = new Share(1.0);
     public double[]? PopBought;

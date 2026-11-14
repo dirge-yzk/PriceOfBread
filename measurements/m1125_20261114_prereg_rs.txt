@@ -1,0 +1,39 @@
+# (1125) c109rs の予言（最初のコミット）
+# 担当 Sonnet 5.5。基点 758f554ed。基準＝基線 m1122（B5 b5_20261114_m1122・B10INS b10_20261114_m1122_ins・NG_BASE ng1122_20261114）。
+# 作者 2026-11-13「マルコフ性を満たしていないものがあるか洗い出し」。直しは作者「全て推奨で」で推奨を採った（承認とは書かない）。
+# 作者「全て推奨で」で推奨を採った物：A2 の許しを 1e-9 から 1e-8 の相対へ（閾値の変更＝★(743) の外・§0-2 ★(1122) ②）。
+#   年齢の層はセーブに書き、食い違えば止める最小の形（AI の案・確証なし。環境変数を読む static は残す）。
+# 区分：試験 46〜58 の反転は★(743) の外の〈守る向きの反転〉＝作者の推奨の実行と名乗る。
+
+[1] 恒等の線・予言 0
+- 素の走り・計器つきの走りはセーブを通らない＝成績表 5 種・計器つき 10 種は m1122 と名乗り行を除いて全行一致。
+- 段 R の計器の列の違いだけを宣言する（項 5 に入った時だけ。入らなければ宣言も 0）。
+- 浮動小数の順序が変わる箇所：0（エンジンの式に触れない。属性の削除・セーブの書き込み・計器の比べの位置だけ）。
+- 項ごとに 1 コミット：(1) 印 3 つ (2) 層の数 (3) A2 の許し (4) ix の直し (5) 段 R の計器。
+
+[2] 消す物と残す物
+- 消す＝Model.cs:591〜593 の [System.NonSerialized] 3 つ（Market の眠りの印・ClearFailLp・ClearPartners）。Region[] の参照はグラフの書き手が参照番号で写す（Region は同じグラフの中）＝新しい型の分岐は要らない見込み。
+- 足す＝SaveGame.Save に層の数（int）を magic の直後へ・Load で今の Pop.Layout.Bands と違えば InvalidDataException。Pop.Layout（static）と環境変数の読みは残す。
+- 読み手の grep（758f554ed）：3 欄の読み書きは SimCore の BilateralMarket.cs・MarketFlow.cs と Model.cs だけ。Runner・App・Display・scripts に読み手 0・Tests は SaveRoundTripTests.cs のみ。POB_COEF の名前解決に無い（internal の欄）。POB_AGE_BANDS は Runner/Program.cs:5399・AgeLayout.cs・Instruments/InstrumentsPop.cs の注・Tests の AgeLayout 系。
+- 他の線との重なり：c109rc は Model.cs の Region の欄だけ・c109t0 は EconomyStep.cs・Instruments.cs の登録の行だけ＝Model.cs は触る行が違う（私は class Market の 3 行だけ）。BilateralMarket.cs には触れない。
+- 見込み：セーブが大きくなる（ClearPartners の配列が全市場分）。バイト数の増えは記録。計算量は走りに影響しない（セーブを通らない）。
+
+[3] 足す試験と突然変異（使い捨ての木・Release）
+- 足す 2 本（Tests 2599→2601・合計 2833→2835・FullLength 3 のまま・Tests.Ui 234）：
+  T1 SaveRoundTripTests：四半期の途中（45 日目）で保存→読み→両方を同じ日数続け、基礎貨幣・総人口と、2 本の SaveGame.Save のバイト列の一致。印の外の理由でバイトが一致しない時は差を報告に書き、バイトの比べを外して量の比べだけ残しそう名乗る。
+  T2 SaveRoundTripTests：層の数が違うセーブ（バイト列の層の数の欄を書き換える）を読むと例外。
+- 反転する既存の試験：SaveRoundTripTests.cs:44〜58〈眠りの印はセーブに載らない〉→〈載る〉（本数 0）。
+- 突然変異（紙の予言＝赤になる試験）：
+  M1 [NonSerialized] を 1 つ戻す（ClearPartners）→ T1 と反転した試験が赤
+  M2 層の数の比べを外す → T2 が赤
+  M3 A2 の許しを 1e-9 に戻す → 種×旗で赤が戻るか（記録・赤でなくても止めない）
+  M4 ImportPayerLiveTests の [Collection("Instruments")] を外す → (1100) の M5 の型（並行で静的な計器の設定が割り込む）・記録
+- ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）：器のコミットの直後に回す。`new MoneyStock(` の件数・route_anchors.tsv の鍵の行・工業化度の読み手の許可表・WriterRatchetTests の宣言の表には触れない予言（書き換える件数 0）。
+- ㉚ 門と突然変異の対応：M1→T1・反転の試験／M2→T2。A2 の許し 1e-8 は種 1791・旗 0・旗 1 の両方で緑。
+
+[4] 成績表
+- 素の 5 種・計器つき 10 種：m1122 と名乗り行（SOURCE-HASH）を除いて全行一致。.cost の推定は m1122 と一致（230.0 秒）。NG は ng1122 と同じ集合。
+- savetest OK・leakhunt 保存則違反なし。
+
+[5] 採る条件
+- 〈判定: 恒等〉・savetest OK・新しい試験が緑・試験の数が予言どおりなら採る。項 5 は計器の中だけ（Transport.cs・Territory.cs には触れない）＝入れられない形なら記録して残す。

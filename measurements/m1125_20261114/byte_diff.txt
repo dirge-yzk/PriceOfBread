@@ -1,0 +1,9 @@
+# 四半期の途中（45 日目）保存→読み→45 日続けた 2 本の世界の差（リフレクションの並行の走査・NonSerialized を除く・基点 758f554ed + 印 3 つの属性削除）
+# バイト列は 40672524 バイト中 11 バイトが違う（最初の差 40060444）。差の一覧は次の 2 件だけ（印の外の理由＝この線では直さない）。
+# 1 件目：Diplomacy._tensionRamp の辞書の列挙順（キーの集合と値は同じ・読み込み後の挿入順が違う＝書き出しの順が変わるだけで挙動は変えない）。
+# 2 件目：InternationalMarket.LastPairWasLand（BilateralMarket.cs:171・直後に読む走り書きの返り値＝距離の表 kmTab の再計算の有無で残りが違う）。
+sim.<Nations>k__BackingField[0].<World>k__BackingField.<Diplomacy>k__BackingField._tensionRamp.key 47244640258 vs 8589934605
+sim.<Nations>k__BackingField[0].<World>k__BackingField.<Diplomacy>k__BackingField._tensionRamp{47244640258} 16.666666666666664 vs -4.166666666666662
+sim.<Nations>k__BackingField[0].<World>k__BackingField.<Diplomacy>k__BackingField._tensionRamp.key 8589934605 vs 47244640258
+sim.<Nations>k__BackingField[0].<World>k__BackingField.<Diplomacy>k__BackingField._tensionRamp{8589934605} -4.166666666666662 vs 16.666666666666664
+sim.<Market>k__BackingField.LastPairWasLand True vs False
