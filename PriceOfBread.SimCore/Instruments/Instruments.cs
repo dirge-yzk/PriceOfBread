@@ -1950,6 +1950,7 @@ public static partial class Instruments
         NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // NationgoodTable〔履歴 Instruments.cs#321〕
         SellrTable(sim, seed, q);          // SellrTable〔履歴 Instruments.cs#322〕
         BuyShadowTable(sim, seed, q);      // BuyShadowTable（T0a・s4cost_s・s7staple_s）
+        TbTable(sim, seed, q);             // TbTable（T0b・tb_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -1987,6 +1988,7 @@ public static partial class Instruments
         LandbaseClose(sim);   // LandbaseClose〔履歴 Instruments.cs#348〕
         BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
         BuyShadowClose(sim);   // BuyShadowClose（T0a）
+        TbClose(sim);          // TbClose（T0b）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕

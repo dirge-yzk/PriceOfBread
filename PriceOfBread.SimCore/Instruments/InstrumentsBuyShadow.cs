@@ -70,11 +70,11 @@ public static partial class Instruments
 
     /// <summary>P̂＝供給①の産出を、価格・費用・能力・充足・在庫の生の欄から書き直した値。<paramref name="outputBefore"/>＝その月の Toward の前の産出。
     /// 値段・在庫は供給①の時点の値（清算の後の値を渡すと合わない）。ProfitFactor・InventoryAdjust・SupplyTargetAt は呼ばない。</summary>
-    internal static double BsPHat(Producer s, Region r, Coefficients c, World? w, bool baumol, double gate, double outputBefore)
+    internal static double BsPHat(Producer s, Region r, Coefficients c, World? w, bool baumol, double gate, double outputBefore, double priceOv = double.NaN)
     {
         var (self, grade, inputs) = BsCostParts(s, r, c, w);
         double mc = self + grade + inputs;
-        double price = r.Markets[s.GoodId].Price, pf;
+        double price = double.IsNaN(priceOv) ? r.Markets[s.GoodId].Price : priceOv, pf;   // priceOv＝T0b が値段を差し替えて読む（既定 NaN＝今までの呼びと同じ値）
         bool humanLabor = (s.GoodId == Catalog.LaborId || s.GoodId == Catalog.FarmLaborId) && s.RecipeName.Length == 0 && s.Inputs.Count == 0;
         if (c.LaborFloorOffGate > 0 && humanLabor)
         {
@@ -165,4 +165,183 @@ public static partial class Instruments
     }
 
     static void BuyShadowClose(MultiNationSim sim) { if (BsSinks.TryGetValue(sim, out var sk)) { sk.W4?.Dispose(); sk.W4 = null; sk.W7?.Dispose(); sk.W7 = null; } }
+}
+
+// ---- T0b（(1131)）：U1〈成約ごとの上界の越え〉と S2′〈行の門の 6 区分〉。事前登録 measurements/m1131_20261114_prereg_tb.txt。
+// 読むだけ・力学の値を書かない・乱数を引かない・エンジンに欄を足さない。P̂ は BsPHat（事前登録の式の書き直し）で、エンジンの純関数を呼ばない。
+public static partial class Instruments
+{
+    internal const string TbHeaderText = "year\tq\tnation\trows\tunclassified\tsk0\tsk1\tsk2\tps0\tps1\tps2\tdsk0\tdsk1\tdsk2\tdps0\tdps1\tdps2\ta1Close\ta1CloseD\tsmallD\tsmallDSkip\tevalSkip\tevalAll\tevalDone\t"
+        + "u1Deals\tu1Rel\tu1Abs\tu1SmallD\tu1SmallDRel\tu1MaxRel\tu1Gt1pct\tu1Gt10pct\tu1ExcessQty\tu1Qty\timpQ\trexQ\tr4q\tr4qImpGoods";
+    internal const double TbTolRel = 1e-9, TbTolAbs = 1e-6;
+
+    sealed class TbN
+    {
+        public long Rows, Uncl, A1Close, SmallD, SmallDSkip, EvalSkip, EvalAll, EvalDone, U1Deals, U1Rel, U1Abs, U1SmallD, U1SmallDRel, U1G1, U1G10;
+        public readonly long[] Cls = new long[6]; public readonly double[] ClsD = new double[6];
+        public double A1CloseD, U1MaxRel = double.NegativeInfinity, U1Excess, U1Qty;
+    }
+    sealed class TbReg { public World W = null!; public double Imp, Exp; }
+    sealed class TbState
+    {
+        public readonly Dictionary<World, TbN> N = new(); public readonly Dictionary<(Region, int), TbReg> Reg = new();
+        public System.IO.StreamWriter? W; public World? LastW; public TbN? LastN;
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, TbState> TbStates = new();
+    sealed class TbPc { public int Epoch = -1, Count = -1; public Producer[][] By = System.Array.Empty<Producer[]>(); }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, TbPc> TbPcs = new();
+    static int _tbEpoch;
+
+    /// <summary>州の生産者を財ごとに並べた一覧（四半期ごとに作り直す・件数が変わっても作り直す）。</summary>
+    static Producer[] TbProducers(Region r, int g)
+    {
+        var pc = TbPcs.GetValue(r, _ => new TbPc());
+        if (pc.Epoch != _tbEpoch || pc.Count != r.Producers.Count)
+        {
+            int ng = Catalog.Goods.Length; var cnt = new int[ng];
+            foreach (var p in r.Producers) if ((uint)p.GoodId < (uint)ng) cnt[p.GoodId]++;
+            var by = new Producer[ng][];
+            for (int i = 0; i < ng; i++) by[i] = cnt[i] == 0 ? System.Array.Empty<Producer>() : new Producer[cnt[i]];
+            System.Array.Clear(cnt);
+            foreach (var p in r.Producers) if ((uint)p.GoodId < (uint)ng) by[p.GoodId][cnt[p.GoodId]++] = p;
+            pc.By = by; pc.Epoch = _tbEpoch; pc.Count = r.Producers.Count;
+        }
+        return (uint)g < (uint)pc.By.Length ? pc.By[g] : System.Array.Empty<Producer>();
+    }
+
+    /// <summary>P̂(u)＝州×財の生産者の P̂ の和（財の値段だけ u に差し替える）。眠った生産者・倒産した生産者はエンジンが飛ばす＝今の産出のまま足す。</summary>
+    internal static double TbPHatSum(Region r, int g, Coefficients c, World w, double u)
+    {
+        double sum = 0;
+        foreach (var p in TbProducers(r, g))
+        {
+            if (p.Bankrupt || EconomyStep.SleepState(r, p, c) == 1) { sum += p.Output; continue; }
+            bool isLabor = p.GoodId is Catalog.LaborId or Catalog.FarmLaborId;
+            bool baumol = Catalog.Goods[p.GoodId].Tier == GoodTier.Service && !isLabor;
+            sum += BsPHat(p, r, c, w, baumol, Discovery.Gate(r, p), p.Output, u);
+        }
+        return sum;
+    }
+
+    /// <summary>行の門の 6 区分の判定（互いに素な 3 つの述語）。u_min＝min(lp, 最安の売り手の値段×lbMulMin)。</summary>
+    internal static (bool Ok, bool B0, bool B1, bool B2, bool Eval, double XOld, double UbBb, double UbA1) TbClassify(Region r, int g, Market m, Coefficients c, World w, double lp, double rpT, double headPrice, double lbMulMin)
+    {
+        double ts = m.TargetStock, d = m.LastDemand, p = m.LastProduced, s = m.Stock;
+        double xOld = ts + d - p - s;
+        double um = lp, hm = headPrice * lbMulMin;
+        if (!double.IsNaN(hm) && hm < um) um = hm;
+        if (!(rpT > 1e-9) || !(um > 1e-9) || double.IsInfinity(um)) return (false, false, false, false, false, xOld, double.NaN, double.NaN);
+        double root = System.Math.Pow(rpT / um, c.PriceElasticity);
+        double ubBb = ts + d * root - p - s, ubA1 = ubBb; bool ev = false;
+        if (ubBb <= 0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um)); ubA1 = ts + d * root - q - s; ev = true; }
+        return (true, ubBb > 0, ubBb <= 0 && ubA1 > 0, ubA1 <= 0, ev, xOld, ubBb, ubA1);
+    }
+
+    /// <summary>成約の上界の越え。S は成約の後の台帳（m.Stock）。E_abs＝S−UB・E_rel＝E_abs÷max(D, TS)。</summary>
+    internal static (bool Ok, double Ub, double EAbs, double ERel) TbU1(Region r, int g, Market m, Coefficients c, World w, double lp, double unitA, double rpT, double qA)
+    {
+        double u = System.Math.Min(unitA, lp);
+        if (!(rpT > 1e-9) || !(u > 1e-9) || double.IsInfinity(u)) return (false, double.NaN, double.NaN, double.NaN);
+        double root = System.Math.Pow(rpT / u, c.PriceElasticity);
+        double q = System.Math.Min(m.LastProduced, TbPHatSum(r, g, c, w, u));
+        double ub = m.TargetStock + m.LastDemand * root - q;
+        double eAbs = m.Stock - ub, den = System.Math.Max(m.LastDemand, m.TargetStock);
+        return (true, ub, eAbs, den > 0 ? eAbs / den : double.NaN);
+    }
+
+    static TbN TbNOf(TbState st, World w)
+    {
+        if (ReferenceEquals(st.LastW, w) && st.LastN is { } ln) return ln;
+        if (!st.N.TryGetValue(w, out var a)) st.N[w] = a = new TbN();
+        st.LastW = w; st.LastN = a; return a;
+    }
+
+    /// <summary>行の門（旧の門）の直前の呼び。</summary>
+    internal static void TbRow(InternationalMarket mk, World w, Region r, int g, Market m, Coefficients c, double lp, double rpT, double headPrice, double lbMulMin)
+    {
+        if (w.WarmupFrozen || !Wants("tb_s")) return;
+        var a = TbNOf(TbStates.GetValue(mk, _ => new TbState()), w);
+        var x = TbClassify(r, g, m, c, w, lp, rpT, headPrice, lbMulMin);
+        bool skipped = !(x.XOld > 0); int b = skipped ? 0 : 3; double d = m.LastDemand;
+        a.Rows++; a.EvalAll++; if (skipped) a.EvalSkip++;
+        if (d < c.TargetStockFloor) { a.SmallD++; if (skipped) a.SmallDSkip++; }
+        if (!x.Ok) { a.Uncl++; return; }
+        if (x.Eval) a.EvalDone++;
+        if (x.B0) { a.Cls[b]++; a.ClsD[b] += d; }
+        if (x.B1) { a.Cls[b + 1]++; a.ClsD[b + 1] += d; }
+        if (x.B2) { a.Cls[b + 2]++; a.ClsD[b + 2] += d; if (x.XOld > 0) { a.A1Close++; a.A1CloseD += d; } }
+    }
+
+    /// <summary>成約の直後の呼び（m.Stock は成約の後）。</summary>
+    internal static void TbDeal(InternationalMarket mk, World w, World sellerW, Region r, Region sellerR, int g, Market m, Coefficients c, double lp, double unitA, double rpT, double qA, bool cross)
+    {
+        if (w.WarmupFrozen || !Wants("tb_s")) return;
+        var st = TbStates.GetValue(mk, _ => new TbState());
+        var a = TbNOf(st, w);
+        var u = TbU1(r, g, m, c, w, lp, unitA, rpT, qA);
+        a.U1Qty += qA;
+        if (u.Ok)
+        {
+            a.U1Deals++;
+            bool rel = u.ERel > TbTolRel, small = m.LastDemand < c.TargetStockFloor;
+            if (rel) a.U1Rel++;
+            if (u.EAbs > TbTolAbs) a.U1Abs++;
+            if (small) { a.U1SmallD++; if (rel) a.U1SmallDRel++; }
+            if (u.ERel > a.U1MaxRel) a.U1MaxRel = u.ERel;
+            if (u.ERel > 0.01) a.U1G1++;
+            if (u.ERel > 0.1) a.U1G10++;
+            if (u.EAbs > 0) a.U1Excess += u.EAbs;
+        }
+        if (cross)
+        {
+            if (!st.Reg.TryGetValue((r, g), out var bi)) st.Reg[(r, g)] = bi = new TbReg { W = w };
+            bi.Imp += qA;
+            if (!st.Reg.TryGetValue((sellerR, g), out var se)) st.Reg[(sellerR, g)] = se = new TbReg { W = sellerW };
+            se.Exp += qA;
+        }
+    }
+
+    static void TbTable(MultiNationSim sim, ulong seed, int q)
+    {
+        if (!Wants("tb_s") || sim.Nations.Count == 0) return;
+        _tbEpoch++;
+        if (!TbStates.TryGetValue(sim.Market, out var st)) return;
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string L(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (st.W is null) { st.W = Open("tb", seed); st.W.WriteLine(TbHeaderText); }
+        var agg = new Dictionary<(World, int), (double Imp, double Rex)>();
+        foreach (var kv in st.Reg)
+        {
+            var key = (kv.Value.W, kv.Key.Item2);
+            agg.TryGetValue(key, out var v);
+            agg[key] = (v.Imp + kv.Value.Imp, v.Rex + System.Math.Min(kv.Value.Imp, kv.Value.Exp));
+        }
+        int yearLabel = sim.Nations[0].World.Year;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; st.N.TryGetValue(w, out var a); a ??= new TbN();
+            double impQ = 0, rexQ = 0; int r4 = 0, r4g = 0;
+            foreach (var kv in agg)
+            {
+                if (!ReferenceEquals(kv.Key.Item1, w)) continue;
+                int g = kv.Key.Item2; impQ += kv.Value.Imp; rexQ += kv.Value.Rex;
+                if (!(kv.Value.Imp > 0)) continue;
+                r4g++;
+                double d3 = 0; foreach (var rg in w.Regions) if (g < rg.Markets.Length) d3 += rg.Markets[g].LastDemand;
+                d3 *= Calendar.MonthsPerQuarter;
+                if (kv.Value.Imp > 2.0 * (d3 + kv.Value.Rex)) r4++;
+            }
+            var f = new List<string> { I(yearLabel), I(q), NameOf(w), L(a.Rows), L(a.Uncl) };
+            for (int i = 0; i < 6; i++) f.Add(L(a.Cls[i]));
+            for (int i = 0; i < 6; i++) f.Add(FR(a.ClsD[i]));
+            f.Add(L(a.A1Close)); f.Add(FR(a.A1CloseD)); f.Add(L(a.SmallD)); f.Add(L(a.SmallDSkip)); f.Add(L(a.EvalSkip)); f.Add(L(a.EvalAll)); f.Add(L(a.EvalDone));
+            f.Add(L(a.U1Deals)); f.Add(L(a.U1Rel)); f.Add(L(a.U1Abs)); f.Add(L(a.U1SmallD)); f.Add(L(a.U1SmallDRel));
+            f.Add(a.U1Deals > 0 ? FR(a.U1MaxRel) : "nan"); f.Add(L(a.U1G1)); f.Add(L(a.U1G10)); f.Add(FR(a.U1Excess)); f.Add(FR(a.U1Qty));
+            f.Add(FR(impQ)); f.Add(FR(rexQ)); f.Add(I(r4)); f.Add(I(r4g));
+            st.W.WriteLine(string.Join('\t', f));
+        }
+        st.N.Clear(); st.Reg.Clear(); st.LastW = null; st.LastN = null;
+    }
+
+    static void TbClose(MultiNationSim sim) { if (TbStates.TryGetValue(sim.Market, out var st)) { st.W?.Dispose(); st.W = null; } }
 }

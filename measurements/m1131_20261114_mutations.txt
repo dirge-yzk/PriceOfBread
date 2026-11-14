@@ -1,0 +1,21 @@
+(1131) c110tb T0b 突然変異（使い捨ての木 D:/PoB_work/c110tb_work/mt・scripts/instruments/c110tb/mutate.sh）
+署名: Claude Sonnet 5.5
+
+== M12_P_hatをエンジンの純関数に
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T4_P_hatの値段の差し替えはエンジンの値段を書き換えた値と合う [3 s]
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T2_U1のEは成約の後の台帳のSで式と一致 [3 s]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 22 s - PriceOfBread.Tests.dll (net10.0)
+== M2_境の等号を落とす
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1_6区分の和と境の盤面 [2 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+== M4_成約の前のSで読む
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T3_Dの小さい行の分母はmax_D_TS [3 s]
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T2_U1のEは成約の後の台帳のSで式と一致 [4 s]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+== M5_分母をDだけにする
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T3_Dの小さい行の分母はmax_D_TS [4 s]
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T2_U1のEは成約の後の台帳のSで式と一致 [4 s]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+done
+
+読み: M12（計器の P̂ をエンジンの純関数）は T4・T2 が赤・M2（境の ≦ を ＜）は T1 が赤・M4（成約の前の S）は T2・T3 が赤・M5（分母を D だけ）は T3・T2 が赤。全て緑のまま通った突然変異は無し。
