@@ -1,1 +1,2 @@
 D:/PoB_work/wt_m1143 D:/PoB_work/m1143_work 2026-11-15 01:00:20
+D:/PoB_work/keep_1143（新しい基線の生 base_ins・n1・n2・a11＝m1143_work の腕の出力を名前の付け替えで移した）
