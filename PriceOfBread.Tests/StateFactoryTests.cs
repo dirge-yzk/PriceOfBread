@@ -128,6 +128,32 @@ public class StateFactoryTests
     }
 
     [Fact]
+    // ★(1140) 項2：接収の速さ 0 の盤面では Seize が走らない（旧名の番人〈係数0では接収が走らない〉を今の盤面で戻す）。
+    //   国有化法の対象は売れない＝Seize が走らなければ意志（StateTarget 0）は持分（2棟）に触れず 0 のまま。
+    //   Seize が走ると（take は 0 でも）StateTarget が持分へ引き上げられる＝0 のままであることが〈走っていない〉の観測量。
+    public void 係数0では接収が走らない()
+    {
+        var sim = Warm(2029);
+        var w = sim.World;
+        w.Coef.NationalizationSeizureRate = 0.0;
+        w.Coef.SeizureResistanceWeight = 0.0;                    // 抵抗なし＝走れば押し切れる盤面
+        w.NationalizeMines = true;
+        var r = w.Regions[0];
+        r.NationalizedMask = w.NationalizedMask();
+        var p = r.Producers.Find(x => x.GoodId == Catalog.CoalId)!;
+        p.BuiltScale = 2 * w.Coef.FactoryBuildScale;             // 2棟の国営持分を直に置く
+        p.StateTarget = 0;
+        double built0 = p.BuiltScale;
+        Assert.True(w.Coef.NationalizationStateShare.Value * p.Scale > built0, "盤面の前提：奪える持分の隙間が無い（番人が空振りする）");
+        Assert.True(Nationalization.IsNationalized(p.GoodId, r.NationalizedMask), "盤面の前提：石炭が国有化法の対象でない");
+
+        w.StepStateTargets();
+        Assert.Equal(0, p.StateTarget);                          // Seize が走ると持分の数へ引き上げられる
+        Assert.Equal(built0, p.BuiltScale);
+        Assert.Equal(0.0, r.SeizureChill);                       // 接収の代償も積まれない
+    }
+
+    [Fact]
     public void 不満な資本家は工場を買わない()
     {
         var sim = Warm(2028);
