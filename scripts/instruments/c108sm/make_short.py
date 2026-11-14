@@ -5,19 +5,23 @@
 import sys, os, re, subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'c106dc'))
 from common import base, REPO, F_RD
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import rowkey as RK
 def label(t, src):
-    """(1140) 札＝★(NNN) か表の第 1 欄の名だけ（行の番号は README が伸びるたびに腐る＝置かない）。どちらも無い行は節の名。"""
-    col = ''
-    if t.lstrip().startswith('|'):
-        col = re.sub(r'[*★⚠`~]', '', [x.strip() for x in t.strip().strip('|').split('|')][0]).strip()
-        col = re.split('[（`]', col)[0].strip()
-    if len(col) > 3 and not col.isdigit(): return '表「%s」' % col[:24]
+    """(1140) 札＝★(NNN) か表の鍵だけ（行の番号は README が伸びるたびに腐る＝置かない）。(1146) 表の鍵は README にちょうど 1 行に当たるものだけ（rowkey.py）。どれも無い行は節の名。"""
+    tab = t.lstrip().startswith('|')
+    ks = RK.simple_key(t, CUR) if tab else None
+    n1 = RK.name1(t) if tab else ''
+    if ks and len(n1) > 3 and not n1.isdigit(): return '表「%s」' % ks
     m = re.search(r'★\((\d+)\)', t)
     if m: return '★(%s)' % m.group(1)
-    if col: return '表「%s」' % col[:24]
+    if ks: return '表「%s」' % ks
+    kp = RK.pair_key(t, CUR) if tab else None
+    if kp: return '表「%s」' % kp
     return src
 
 
+CUR = []
 FULLMAX = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 250
 LIMIT = 20000
 
@@ -38,6 +42,7 @@ SEC = [
 def main():
     old = base(F_RD).decode('utf-8').replace('\r', '').split('\n')
     cur = open(REPO + '/' + F_RD, 'rb').read().decode('utf-8').replace('\r', '').split('\n')
+    CUR[:] = cur
     idx = {}
     for i, t in enumerate(cur): idx.setdefault(t, []).append(i + 1)
     def remap(n):

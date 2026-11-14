@@ -2,6 +2,7 @@
 import re, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import archive_move as am
+import rowkey as RK
 tree = sys.argv[3] if len(sys.argv) > 3 else am.REPO
 F1, F2 = tree + '/' + am.F_ONE, tree + '/' + am.A_ONE
 R0 = open(sys.argv[1], 'rb').read().split(b'\n'); A0 = open(sys.argv[2], 'rb').read().split(b'\n')
@@ -32,7 +33,7 @@ def label_exists(lab):
     m = re.match(r'^★\((\d+)\)$', lab)
     if m: return any('★(' + m.group(1) + ')' in x for x in cur)
     m = re.match(r'^表「(.*)」$', lab)
-    if m: return any(col1(x).startswith(m.group(1)) for x in cur)
+    if m: return RK.count(cur, m.group(1)) == 1   # (1146) ちょうど 1 行（旧は startswith の any＝空の札でも、別の表の行にも通った）
     return bool(re.match(r'^§', lab))
 n = 0; sec = ''; refs_in = {}; fulls = []
 for line in sh.split(chr(10)):
