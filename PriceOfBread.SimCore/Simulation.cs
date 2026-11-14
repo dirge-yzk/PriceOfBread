@@ -1796,7 +1796,7 @@ public sealed class Simulation
                 {
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
                 }
-                r.MilitaryBudget = (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
+                r.MilitaryBudget = (r.Id == 0 ? milCap : 0);   // 予算も首都州だけに配分（r は下で全ての予算に同じく掛ける）
                 {
                     // 割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。〔履歴 Simulation.cs#212〕
                     double navalNat = equipRoom * seaShare;

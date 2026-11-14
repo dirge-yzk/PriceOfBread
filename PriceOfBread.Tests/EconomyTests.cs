@@ -368,7 +368,7 @@ public class EconomyTests
     public void 鉱山の天井の旗_建てた分0の道_旗1は目標の側で1点5を越え_旗0は越えない()
     {
         // (1119) 線 c108mc。事前登録 measurements/m1119_20261114_prereg_mc.txt §単体 2。
-        //   上の試験は建てた分の床（BuiltScale 4.0）の道だけを通る＝〈Clamp の上側だけ max(floor, MineralScaleCap)〉の変種で緑のまま（(1098) 反証役 v2）。
+        //   上の試験は建てた分の床（BuiltScale 4.0）の道だけを通る＝〈Clamp の上側だけ max(floor, 旧 MineralScaleCap)〉〔(1132) で消した＝今の天井は ScaleMax〕の変種で緑のまま（(1098) 反証役 v2）。
         //   この試験は BuiltScale 0（床＝ScaleFloor 0.1）＝目標 1＋margin が天井まで届く道。盤面：イギリス（種 41）・発見の門が開いた最初の鉱物の RGO を
         //   Scale 1.5・BuiltScale 0・休止 0 に置き、その州のその財の値段を限界費用（試験が自分で出す）の 2.5 倍に置いて（開幕は値段＝費用で 1＋margin＝1）1 か月。
         //   旗 1：1.5 ＜ 規模 ≦ 1.5＋速さ×(3.0−1.5)＝1.51875（速さ 0.05×0.25・天井 3.0 は手の値）。旗 0：規模 ≦ 1.5（天井 1.5）。
