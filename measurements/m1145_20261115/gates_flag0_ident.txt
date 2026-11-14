@@ -1,0 +1,8 @@
+# 腕 D:/PoB_work/c112hy_ident/out_ib_10/ins（種 10・短い行 0）
+# 和：freshRows=8339 obsHyenaFreshRows=6158 grudgeRows=64604 obsHyenaRows=173493 oldHyenaRows=173493 highRows=1.31881e+06 frozenRows=17454 obsOtherRows=0 sumObsCoolGrudge=33499.7 sumOldCoolGrudge=33499.7 sumNewCoolGrudge=14283.2 sumObsCoolFrozen=3490.8 sumFrozenRuleCool=3490.8
+# 最大：maxAbsDiffNewGrudge=2 maxAbsDiffNewHigh=2 maxAbsDiffOldHigh=0 maxAbsDiffFrozen=0 maxAbsDiffLow=0
+G1 狙い ハイエナの枝を取った講和の直後の行の割合=0.738458（6158/8339・床 1000）→ 赤
+G2 上側 エンジンと新の式の差の最大=2（行 64604・床 10000）→ 赤
+記録 同じ盤面の旧÷新（腕の盤面・計器の 2 つの規則）=2.345390
+G3 大きさ 実の冷めの平均 旗 0 0.518539（種 10・行 64604）÷ 腕 0.518539 = 1.000000（線 >1.1072）→ 赤
+記録 旗 0 の G1 の値=0.738458（6158/8339）・旗 0 の G2 の値=2

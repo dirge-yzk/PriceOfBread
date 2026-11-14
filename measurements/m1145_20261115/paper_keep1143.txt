@@ -1,0 +1,3 @@
+base_ins	P1_freshHyenaShare=0.6559	(1645/2508)	P2_oldMeanCool=0.494588	newMeanCool=0.217622	rows=20746	P3_starts=5121	peace=5208	ratio=0.983295	P4_rewar8q=0.0359	(182/5072)	P5_koreaQingSubmits=495	per_seed=47,60,33,40,55,50,60,53,40,57	P6_freshWearyShare=0.7069
+n1	P1_freshHyenaShare=0.6400	(1639/2561)	P2_oldMeanCool=0.468501	newMeanCool=0.202461	rows=17841	P3_starts=4994	peace=5100	ratio=0.979216	P4_rewar8q=0.0319	(158/4957)	P5_koreaQingSubmits=485	per_seed=47,40,53,26,73,46,47,43,69,41	P6_freshWearyShare=0.6841
+n2	P1_freshHyenaShare=0.6517	(1551/2380)	P2_oldMeanCool=0.446711	newMeanCool=0.215315	rows=19631	P3_starts=4894	peace=4968	ratio=0.985105	P4_rewar8q=0.0352	(171/4853)	P5_koreaQingSubmits=494	per_seed=62,62,46,49,66,36,16,62,48,47	P6_freshWearyShare=0.6769

@@ -76,3 +76,14 @@ n2 P1_freshHyenaShare=0.6517 (1551/2380) P2_oldMeanCool=0.446711 newMeanCool=0.2
 
 ■ D: と腕
 - ident（段 2）約 30GB・腕 B 約 26GB・突然変異 1 種×3 本は表を絞る（dipcool_s・warband_s・warpair_s・scalars_s・pxmonth_s・nation_s）。起こす直前に shutil で〈35GB＋その量〉を確かめる。
+
+■ 追記 2026-11-15（旗 1 の前・腕 B の前・門の形と線は変えない）
+- ident c112hyz（木 51c853119・段 2・--added-tables dipcool_s・--tests-delta 3・--saveleak）〈判定: 恒等〉（測った種で一致）：素の 5 種 180 行・計器つき 10 種 180 行が m1143 と全行バイト一致・.cost の件数 43 本と推定 230.1／229.6 秒が一致・計器の表 1499 本＝バイト一致 1479＋既知の揺れ 20（burscan_s・clock_s）・腕にだけある 10 本＝dipcool_s（宣言）・注視の表 4457 行一致・試験 2861（2858+3）・FullLength 3・savetest OK・leakhunt 保存則違反なし。写し measurements/m1145_20261115/ident_c112hyz_check.txt。
+- 旗 0 の盤面の門の値を ident の生（D:/PoB_work/c112hy_ident/out_ib_10/ins・月ごとの計器）で取り直して固定する（measurements/m1145_20261115/gates_flag0_ident.txt）：
+  G1 の旗 0 の値＝0.738458（6158/8339）。紙の台本（四半期の末の近似）の 64.0〜65.6% より高い＝月ごとに数えたため。門は〈＝0〉のまま＝旗 0 で落ちる。
+  G2 の旗 0 の値＝2（行 64604）＝落ちる。G3 の旗 0 どうし＝1.000000 ≦1.1072＝落ちる。
+  計器の自己一致の記録：旧の規則と全ての高い帯の行が一致（maxAbsDiffOldHigh＝0・obsOtherRows＝0・oldHyenaRows＝obsHyenaRows＝173493）・凍結の行 17454 は凍結の式と一致（maxAbsDiffFrozen＝0）。同じ盤面の旧÷新 2.3454。
+- 突然変異（1 種・表を絞った・measurements/m1145_20261115/mut_gates_1seed.txt・生 D:/PoB_work/c112hy_work/mut/out_hy_*_1/ins）：1 種は床（10 種の和の床）に届かない＝床を除いて読む。
+  coef0（係数 0 の短い走り）：G1 0（0/1018）・G2 0（行 5671）＝狙いと上側が通る。
+  M1 枝を残す：G1 0.7115（471/662）・G2 2＝赤・赤。M2 遺恨の枝まで消す：G1 0・G2 0.42＝緑・赤。M3 凍結の枝も消す：G1 0・G2 0＝緑・緑・maxAbsDiffFrozen 0→0.22（記録の列が動く）＝門は赤にならない＝限界と名乗る（表の予言どおり）。
+- 試験の突然変異（measurements/m1145_20261115/mut_tests.txt）：M1 で H2・H3 が赤・M2 で H1〜H3 が赤・M3 は H1〜H3 が緑＝穴。試験だけの別のコミットで手で置いた盤面に従属の組 F（緊張 120→119.8＝凍結の式）を足し、M3 で赤になることを確かめる（試験の数は 3 のまま＝ident の数と同じ・SimCore には触れない）。
