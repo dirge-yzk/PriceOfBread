@@ -1,0 +1,39 @@
+=== 恒等の判定（測った種で一致） m1129z（2026-11-14 13:13:43）===
+測った木：D:/PoB_work/wt_m1129（HEAD 4c6a75df3・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_m1129/scripts/instruments/ident/ident.cfg
+宣言：added=['s4cost_s', 's7staple_s'] grown=['prodcap_s'] known_extra=['trrail_s:railFreightInsGoldPerYear', 'trrail_s:g4Moves', 'trrail_s:g4Viol'] tests_delta=7
+腕 a：rc=0 end=2026-11-14 13:05:19
+腕 b：rc=0 end=2026-11-14 13:13:42
+腕 t：rc=0 end=2026-11-14 12:55:48
+腕 s：rc=0 end=2026-11-14 13:04:13
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：adfea7515f10e0b8
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: adfea7515f10e0b8
+[素の 5 種] b5_ia_5.txt 対 b5_20261114_m1122
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261114_m1122.cost
+  ○ 件数の行 43 本・推定 229.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: adfea7515f10e0b8
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261114_m1122_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261114_m1122_ins.cost
+  ○ 件数の行 43 本・推定 230.0 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_m1129z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1122/base_ins
+  基準 1448 本・腕 1468 本・バイト一致 1408 本
+  腕にだけある 20 本（うち宣言 20）
+  列が増えた表（--grown-ok の宣言）10 本：prodcap_s1.tsv+4列・prodcap_s10.tsv+4列・prodcap_s2.tsv+4列・prodcap_s3.tsv+4列・prodcap_s4.tsv+4列・prodcap_s5.tsv+4列
+  既知の揺れの列だけが違う表 30 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10・trrail_s:g4Moves,railFreightInsGoldPerYear×10
+  ○ 計器の表は恒等（バイト一致 1408・既知の揺れ 30・宣言された増減 30）
+  内訳：共通の表 1448 本＝バイト一致 1408＋既知の揺れ 30＋列が増えた 10＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1448）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261114_m1122.txt（タグの行を除く）
+  ○ タグの行以外が一致（4602 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 104 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_m1129/measurements/ng1122_20261114:m1122）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2840（基準 2833+7 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
