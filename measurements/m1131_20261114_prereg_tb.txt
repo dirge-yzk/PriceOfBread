@@ -1,0 +1,65 @@
+(1131) c110tb 貿易の置き換え T0b 事前登録（最初のコミット・腕の前）
+署名: Claude Sonnet 5.5
+種類: 計器だけ（入口・尾のどちらでもない）。形は恒等の線。材料 docs/202611/20261114/20261114_貿易のT1_事前登録_下書き.md §1 U-a・§2 S2′・§3 と末尾の反証役 v の訂正（U1 は絶対の形・許しの分母 max(D,TS)・D の小さい行の件数）。
+
+[1] 恒等の線・予言 0
+  エンジンの挙動 0・新しい係数 0・新しい状態 0（計器の局所だけ）・旗なし。BilateralMarket.cs には Instruments.On の内の呼び口を 2 行足すだけ（行の門の前・成約の直後）。
+  合否＝〈判定: 恒等〉（足した表 tb_s だけが違う）で m1122 の成績表（素の 5 種・計器つき 10 種）と全行一致。
+  .cost の件数の行は変わらない（計器は CostLedger に数えない・Instruments.On の外で 0）。
+  推奨で上書き・狭める作者の裁定: なし（作者 2026-11-09〈貿易を先に〉・2026-11-12〈置き換えの設計から〉「それでよい」に沿う）。
+
+[2] 消す物と残す物・読み手の grep
+  消す物: なし。
+  足す物:
+    Instruments/InstrumentsBuyShadow.cs: 表 tb_s（国×四半期）と、行の分類 TbRow・成約の上界の越え TbDeal・P̂ の和 TbPHatSum・四半期の書き出し TbTable・閉じ TbClose。
+      BsPHat に既定つきの引数 priceOv（値段を差し替える）を 1 つ足す（既定 NaN＝今までの呼びは同じ値）。
+    BilateralMarket.cs: 行の門（旧の門 xNeed）の直前に TbRow の呼び 1 行（if (Instruments.On)）・成約の直後（m.Stock += qA; m.LastImport += qA; の次）に TbDeal の呼び 1 行。
+    Instruments/Instruments.cs: 登録の行だけ（Quarter に TbTable・Close に TbClose の 2 行）。
+    PriceOfBread.Tests: 新しい試験 1 ファイル（TradeBilateralInstrumentTests.cs）。
+  読み手の grep（足す物は新しい名＝既存の読み手 0）: tb_s・TbRow・TbDeal・TbPHatSum・TbTable・TbClose・priceOv は SimCore・Runner・App・Display・Tests・scripts・measurements に無い
+    （POB_COEF の名前にも SaveGame の名前の表にも出ない＝セーブの型は足さない）。ident の既存の読み手は表の名の頭で引く（足した表は --added-tables で宣言）。
+  他の線との重なり: BilateralMarket.cs に触れるのはこの波でこの線だけ。Instruments.cs の登録は他の線も 1 行ずつ足す見込み＝合流で解く。InstrumentsProdcap.cs は触らない。
+
+[2′] 列（tb_s・国＝買い手の国・四半期ごとに書いて 0 へ戻す）と定義（計器が事前登録の文から独立に書く）
+  記号: TS＝m.TargetStock・D＝m.LastDemand・P＝m.LastProduced・S＝m.Stock・lp＝買い手の州の値段・rpT＝参照価格×州の物価水準×為替・ε＝PriceElasticity。
+  行の門で見た行＝旧の門（xNeed＝TS＋D−P−S≦0 で飛ばす）を評価した行（眠りの行・薄い走査で先に飛ばす行は含まない）。
+  u_min＝min(lp, 最安の売り手の値段×min(1, lbMul, lbMulCheap))（売り手が無ければ lp）。u′（成約）＝min(unitA, lp)。√r(u)＝(rpT÷u)^ε。
+  UB_Bb＝TS＋D×√r(u_min)−P−S。UB_A1＝TS＋D×√r(u_min)−min(P, P̂(u_min))−S。P̂(u)＝Σ（その州×財の生産者）の BsPHat（値段を u に差し替え）。
+    眠った生産者と倒産した生産者は今の産出のまま足す（エンジンが飛ばす行と同じ）。
+  6 区分（互いに素な 3 つの述語で数える）: 旧の門の結果（飛ばす sk／通す ps）×〈UB_Bb＞0〉(0)〈UB_Bb≦0 かつ UB_A1＞0〉(1)〈UB_A1≦0〉(2)。列 sk0 sk1 sk2 ps0 ps1 ps2（行の数）と dsk0…dps2（D の和）。
+  unclassified＝rpT≦1e-9 か u_min が有限でない／≦1e-9 の行（区分に入らない）。rows＝行の門で見た行の数。検査＝sk0+…+ps2+unclassified＝rows。
+  a1Close・a1CloseD＝UB_A1≦0＜旧の xNeed の行の数と D の和（A-1 が閉じる行＝計算量の自払いの入力）。
+  smallD・smallDSkip＝D＜TargetStockFloor の行（旧の門で飛ばす行のうち）の数。
+  evalSkip・evalAll＝P̂ を評価する件数の 2 本（旧の門で飛ばした行だけ＝sk の合計／全て＝rows）・evalDone＝計器が実際に評価した件数（UB_Bb≦0 の行だけ）。
+  成約の上界の越え U1（成約ごと・成約の後の台帳の S で読む＝教訓⑮）: UB＝TS＋D×√r(u′)−min(P, P̂(u′))。E_abs＝S（成約の後）−UB。E_rel＝E_abs÷max(D, TS)。
+    許し＝相対 1e-9 と絶対 1e-6（数量）の 2 本。u1Deals（成約の数）・u1Rel（E_rel＞1e-9）・u1Abs（E_abs＞1e-6）・u1SmallD（D＜TargetStockFloor の成約）・u1SmallDRel（その中で E_rel＞1e-9）・
+    u1MaxRel・u1Gt1pct（E_rel＞0.01）・u1Gt10pct（E_rel＞0.1）・u1ExcessQty（E_abs の正の和）・u1Qty（成約の数量の和）。旗 0 の数は記録（門にしない）。
+  R4・S5: impQ＝越境の輸入の数量（四半期の和）・rexQ＝S5＝同じ州×財×四半期の min(越境の輸入, 越境の輸出) の和・r4q＝輸入＞2×(3×四半期末の需要の州の和＋再輸出) の国×財の数・r4qImpGoods＝輸入のある国×財の数。
+限界（自己申告）:
+  ①P̂ は〈供給①の Toward の前の産出〉を T0b では読めない＝今の産出（Toward の後）を起点にした 1 歩先の値で近似する（T1 で 3 値を写したら取り直す）。在庫の調整は成約の時点の在庫で読む。
+  ②P̂ の生産者の一覧は州ごとに四半期の頭から使い回す（同じ件数の入れ替えは次の四半期まで見えない）。③rpT・lp・最安の売り手の値段・lbMul は呼び口がエンジンの局所変数から渡す入力（式は計器が書く）。
+  ④U1 は A-1 の式（設計）をエンジンの外で書いた物＝設計 §2-1 の〈翌月の実際の在庫で読む〉から外れる（成約の後の台帳の S を使うのでそこは満たす）。⑤R4 の需要は 3×四半期末の D（月ごとの需要の和ではない）。
+  表の大きさの見積もり: 国 61×668 四半期≒4 万行×約 50 列≒15〜20MB／種・計器つき 10 種で 200MB 前後（腕 1 本で 1GB 以下〈推〉）。
+
+[3] 足す試験と、それぞれを赤にする突然変異（期待値は式から独立に書く・同語反復にしない）
+  TradeBilateralInstrumentTests.cs（新）
+  T-1 6 区分の和: 12 四半期の実走で tb_s の全行が sk0+…+ps2+unclassified＝rows・rows の総和に下限・6 区分のそれぞれに下限（旗 0 でも 6 区分が全て動く）。手で作った盤面で境（UB_A1＝0 ちょうど・UB_Bb＝0 ちょうど）の行が区分 2 に入る。
+        M2＝区分の境の ≦ を ＜ に替える → 赤（境の盤面）。
+  T-2 U1 の E: 手で作った 1 行の盤面（S・qA・TS・D・P・生産者 1 本・u′）で TbU1 が式（試験の中で別に書く）と 1e-12 で一致・成約の後の S を読む。
+        M4＝成約の前の S（S−qA）で読む → 赤。 M5＝max(D,TS) の分母を D だけにする → T-3 が赤。
+  T-3 D の小さい行の判定: D＜TargetStockFloor の盤面で E_rel の分母が TS になる（max(D,TS)）・D だけにすると値が一桁以上ずれる。
+  T-4 P̂ の独立性: 値段を差し替えた P̂ の和が、盤面の市場の値段を同じ値に書き換えてエンジンの SupplyTargetAt を回した和と一致（1e-9・眠った生産者は今の産出）。
+        M1＝計器の P̂ をエンジンの純関数に差し替える（値段の差し替えが効かなくなる）→ 赤。
+  T-5 表の形: 全行の列の数が見出しと同じ・nan の無い列・u1Deals の総和に下限（実走で成約がある）・evalDone≦evalAll。
+  ソースを走査する番人の点検（㉘・器のコミットの直後に回す）: IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests。
+    工業化度の読み手の許可表: 触らない。`new MoneyStock(` の件数: 足さない（SimCore で現在 64）。route_anchors.tsv の鍵の行: 書き足さない（BilateralMarket.cs の行番号は動く＝経路の写しの鍵 _code_key で読む）。
+    WriterRatchetTests の宣言の表: 変わらない予言（素の走りの件数は同じ）。書き換える件数の予言（㉑）: 0 件。
+  テストの数の予言: Category!=FullLength は 2840 → 2845（+5）・FullLength 3 のまま。
+
+[4] 成績表の予言
+  素の 5 種・計器つき 10 種は m1122 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言だけ：--added-tables tb_s。
+  浮動小数の順序が変わる箇所: なし（エンジンの式を 1 つも触らない）。同じ盤面で旧と新の食い違いの数: 0 行。
+  門: ① 〈判定: 恒等〉 ② .cost の件数の行が同じ ③ 自己検査 T-1〜T-5 緑 ④ ㉘ の番人が緑。旗 0 の盤面の U1 の数・6 区分の数・D の小さい行の数は報告に表で書く（T1 の床と許しの材料・T1 は段 R の後の基線で読み直す）。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更（呼び口・列）を外して報告に回す。
+  突然変異は使い捨ての木で 1 本ずつ回し、どの門で赤になるかを measurements/m1131_20261114_mutations.txt に書く。
