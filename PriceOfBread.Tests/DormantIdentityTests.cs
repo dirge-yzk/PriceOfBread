@@ -101,6 +101,7 @@ public class DormantIdentityTests
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
         // ★PriceLawSupplyIncludesStock と TradeBuyerSolvesAtUnitPrice は 2026-09-08 に 1.0 で**対で点火**（腕 price2b）＝この表から外した。
         "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
+        "TreatyPortHomeOnly",           // (1138) c111tp 条約港の読み手から植民地格の港を外す旗（0＝全ての港・番人 TreatyPortHomeOnlyTests）。点火時にこの表から外す
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
         // ★ColonyPlantationRent（実バグ B5＝植民地格の昇格州に大農園の地代）は 2026-10-02 (173) で**点火**（R1＋c6・旗ごと削除）＝この表から外した。
         // ★CivilWarPredicateUnified は 2026-09-08 に 1.0 で**点火**（F3b蜂起doc §5 段3・作者裁定②）＝この表から外した。

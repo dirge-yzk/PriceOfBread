@@ -1069,6 +1069,7 @@ public static class Politics
         foreach (var r in w.Regions)
         {
             if (!r.IsPort) continue;
+            if (w.Coef.TreatyPortHomeOnly > 0 && r.Tier == RegionTier.Colonial) continue;   // (1138) 旗 1＝植民地格の港を本国の関税の母集合に入れない（旗 0 は短絡＝旧の行）
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             num += pop * ForeignShareSum(r); den += pop;
@@ -1081,7 +1082,7 @@ public static class Politics
         double line = 0.5 * c.ForeignRuleFromTreaty;
         if (!(line > 0)) return false;
         foreach (var r in w.Regions)
-            if (r.IsPort && ForeignShareSum(r) >= line) return true;
+            if (r.IsPort && !(c.TreatyPortHomeOnly > 0 && r.Tier == RegionTier.Colonial) && ForeignShareSum(r) >= line) return true;   // (1138) 旗 1＝植民地格の港では立たない
         return false;
     }
 
