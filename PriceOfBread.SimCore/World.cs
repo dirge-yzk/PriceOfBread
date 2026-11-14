@@ -1214,19 +1214,23 @@ public sealed class World
             var m2 = new GdpMemo(regs.Count);
             double g = 0;
             long seen = 0;
+            bool byOut = Coef.RailNeedByOutput > 0;   // (1137) 鉄道の need の産出の比：旗 1 だけ州ごとの和を Region.GdpOutputMemo に控える（式は Region.OutputRefValue と同じ・同じ順）
             for (int i = 0; i < regs.Count; i++)
             {
                 var r = regs[i];
                 m2.Regions[i] = r;
                 m2.Versions[i] = r.GdpVersion; m2.Lists[i] = r.Producers; m2.Counts[i] = r.Producers.Count;
                 seen += r.Producers.Count;
+                double gr = 0;
                 foreach (var s in r.Producers)
                 {
                     s._siteRegion = r;   // 産出の書き込みの宛先（生産者は州をまたがない）
                     var good = r.GoodOf(s.GoodId);   // O(1) 直引き（旧 Goods.Find＝O(財数)の二重ループを解消）
                     if (good is null || good.Tier == GoodTier.Service) continue;
                     g += s.Output * good.RefPrice;
+                    if (byOut) gr += s.Output * good.RefPrice;
                 }
+                if (byOut) r.GdpOutputMemo = gr;
             }
             m2.Value = g;
             _gdpMemo = m2;

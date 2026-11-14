@@ -761,6 +761,15 @@ public sealed class Region
     [System.NonSerialized] internal Producer[]? StateSites;
     [System.NonSerialized] internal bool SitesDirty;
     [System.NonSerialized] internal long GdpVersion;
+    /// <summary>(1137) 旗 RailNeedByOutput＝1 のとき World.GdpPerMonth の取り直しの輪だけが書く州の産出の値（作業領域・セーブに載らない）。読むのは Transport.RailNeedShare だけ。</summary>
+    [System.NonSerialized] internal double GdpOutputMemo;
+    /// <summary>州の生産の名目の価値（役務を除く・Output×RefPrice の和）＝割譲の選びの GDP（(1137) で Diplomacy から移した・式は同じ）。</summary>
+    internal double OutputRefValue()
+    {
+        double g = 0;
+        foreach (var s in Producers) { var good = GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+        return g;
+    }
     internal void EnsureSites()
     {
         if (BuildSites is not null && !SitesDirty) return;

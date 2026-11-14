@@ -298,7 +298,7 @@ public sealed partial class InternationalMarket
             double natAccess = W.ExternalTradeAccess();
             var shareBasis = Transport.ShareBasis(W, c);
             bool byReg = railByRegN[i] = W.Coef.RailByRegion > 0;
-            railTgtN[i] = byReg ? Transport.Target(W, W.Coef) : 0.0; railEvenN[i] = shareBasis.Even; railPotN[i] = shareBasis.TotalPot;
+            railTgtN[i] = byReg ? Transport.Target(W, W.Coef) : 0.0; railEvenN[i] = shareBasis.Even; railPotN[i] = W.Coef.RailNeedByOutput > 0 ? double.NaN : shareBasis.TotalPot;   // (1137) 旗 1：産出の和は下の φ で線路のある州が初めて読むときに取る
             double railCapNat = byReg ? 0.0 : W.RailCapacity + Transport.PreRailCapacity(W, c);
             double preRail = byReg ? Transport.PreRailCapacity(W, c) : 0.0;
             double shipCapNat = W.ShipCapacity / (1.0 + W.ColonialShipBurden);
@@ -369,7 +369,9 @@ public sealed partial class InternationalMarket
                 double br = (tiR < c.TerrainRailCost.Length ? c.TerrainRailCost[tiR] : 1.0) * rcf01;
                 if (rr.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) { bh = c.TerrainWaterMajorCost; br = bh * rcf01; }
                 else if (rr.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) { bh = c.TerrainWaterMinorCost; br = bh * rcf01; }
-                double phi = Transport.RailPhi(rr.RailTrack, railTgtN[nt0] * Transport.RegionShare((railEvenN[nt0], railPotN[nt0]), rr));
+                var wR = nations[nt0].World;
+                if (double.IsNaN(railPotN[nt0]) && rr.RailTrack > 0) railPotN[nt0] = wR.GdpPerMonth.Value;   // (1137) T＝0 の州は φ＝0 で取り分を読まない＝線路の無い国は和を取らない
+                double phi = Transport.RailPhi(rr.RailTrack, railTgtN[nt0] * Transport.RailNeedShare(wR, (railEvenN[nt0], railPotN[nt0]), rr));
                 double m1 = (1.0 - phi) * bh + phi * br;
                 terrCost[t0] = m1;
                 landRatio[t0] = c.LandSeaCostRatio;
