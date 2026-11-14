@@ -118,6 +118,7 @@ public class ColonialPopTests
     {
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
         var w = sim.Nations[0].World;
+        sim.StartWarmup();   // (1144) 盤面の取り直し（期間）：B-1（賦存の州の自己費用÷倍率）で開幕の 1 か月の大農園は産出が売り先を越えて地代が赤字（-42.3）＝助走の後の 1 か月で測る（★(743) の最後の文）
         var col = ColonyWith(w, Catalog.CoffeeId);
         // ★(227)：ジャマイカの住民を史実の約25万人へ直したら（旧 100万人）、コーヒーの国内の売り先が4分の1になり大農園の地代が赤字（-3.3）になった＝この番人が見るのは地代の送り先で住民数ではない。
         //   盤面を旧の規模（100万人）へ戻して測る（住民の人数を一括で掛ける・貯蓄は旧と同じ1POPあたり 1e5）。

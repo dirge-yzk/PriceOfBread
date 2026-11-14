@@ -381,7 +381,7 @@ public class TradeClearingTests
         foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);   // 捌き手の支払能力で量が切られない（切るのは容量だけ）
         foreach (var r in w.Regions)   // 買い手は内陸の州だけ（港の州は欲しがらない＝最安の売り手の在庫を先に取らない）・量は物理の不足（550）で決まる（価格の量＝需要×参照÷単価 が十分に大きい）
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
-            { var m = r.Markets[g]; if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; } else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; } }
+            { var m = r.Markets[g]; if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; } else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 0; /* (1144) 在庫 4500 は旧の xNeed の不足 550 に頼った＝A-1 の需要の倍率 r^ε＜1 で不足が消える＝盤面の取り直し（旧 4500） */ } }
         double wg = Catalog.TransportWeight(g);
         var need = new Dictionary<Region, double>();
         foreach (var r in w.Regions)
@@ -452,7 +452,7 @@ public class TradeClearingTests
             {
                 var m = r.Markets[g];
                 if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; }
-                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; inland.Add(r); }
+                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 0; /* (1144) 同上（旧 4500） */ inland.Add(r); }
             }
         Assert.True(inland.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
         long Fills() => sim.CostTotals()[CostLedger.ClearingFills];

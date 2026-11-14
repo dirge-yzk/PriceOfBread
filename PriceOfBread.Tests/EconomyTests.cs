@@ -421,7 +421,7 @@ public class EconomyTests
             s.World.Regions.Find(r => r.Name == city)?.Producers.Find(pr => pr.GoodId == good && pr.IsRgo);
 
         var cfg = WorldData.ByName("イギリス");
-        var off = Seed(new Coefficients());
+        var off = Seed(new Coefficients { EndowmentCostFollowsAbundance = 0.0 });   // (1144) 旗 0 の世界は明示の 0（B-1 の既定 1）
 
         // 賦存州（world.json の resources に列挙）と非賦存州が両方ある一次産品を1つ選ぶ（データ順＝決定論）
         int good = -1; string endowedCity = "", plainCity = "";

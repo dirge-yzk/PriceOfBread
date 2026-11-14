@@ -171,7 +171,7 @@ public class RecipeoutInstrumentTests
         int abund = 0, big = 0, bigE = 0, deposit = 0;
         foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
         {
-            var w0 = Solo(cfg, new Coefficients()).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;
+            var w0 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;   // (1144) 旗 0 の世界は明示の 0
             Assert.True(w1.Coef.EndowmentCostFollowsAbundance > 0 && !(w0.Coef.EndowmentCostFollowsAbundance > 0));
             Assert.Equal(w0.Regions.Count, w1.Regions.Count);
             for (int ri = 0; ri < w0.Regions.Count; ri++)
@@ -210,7 +210,7 @@ public class RecipeoutInstrumentTests
         foreach (var scale in new[] { 1.0, 1.5 })   // Scale≠1 の盤面でも割る数は RE×Scale（Scale を落とす誤りはここで赤になる）
         foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
         {
-            var w = Solo(cfg, new Coefficients { ResourceEndowmentScale = scale }).World;
+            var w = Solo(cfg, new Coefficients { ResourceEndowmentScale = scale, EndowmentCostFollowsAbundance = 0.0 }).World;   // (1144) 旗 0 の盤面は明示の 0
             var c = w.Coef;
             Assert.True(!(c.EndowmentCostFollowsAbundance > 0) && !(c.MineralCostFollowsGrade > 0));
             foreach (var r in w.Regions)
@@ -303,7 +303,7 @@ public class RecipeoutInstrumentTests
         int dividedRows = 0, rows = 0;
         foreach (var cfg in new[] { NationConfig.Britain(), NationConfig.Japan(), NationConfig.America(), NationConfig.France(), Sicily() })
         {
-            var w0 = Solo(cfg, new Coefficients()).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;
+            var w0 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World; var w1 = Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World;   // (1144) 旗 0 の世界は明示の 0
             for (int ri = 0; ri < w1.Regions.Count; ri++)
             {
                 var r0 = w0.Regions[ri]; var r1 = w1.Regions[ri];

@@ -28,7 +28,7 @@ public class TradePhase0Tests
     private static IEnumerable<(World off, World on)> OffOnWorlds(IEnumerable<NationConfig>? cfgs = null)
     {
         foreach (var cfg in cfgs ?? Configs())
-            yield return (Solo(cfg, new Coefficients()).World, Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World);
+            yield return (Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World, Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World);   // (1144) 旗 0 の世界は明示の 0（B-1 の既定 1）
     }
 
     /// <summary>R1 (a)：能力の倍率と費用を割る数は別の引数。126.8 のような逆算の倍率で費用を割らない（割る数を倍率に戻す変異で赤）。</summary>
@@ -45,7 +45,7 @@ public class TradePhase0Tests
         Assert.Equal(2.0 * 126.8, pr2.Productivity);
         Assert.Equal(8.0, pr2.MarginalCost);
         var off = new Producer { Productivity = 2.0, MarginalCost = 8.0 };
-        Simulation.ApplyEndowment(off, 126.8, 4.0, new Coefficients());   // 旗 0＝割らない
+        Simulation.ApplyEndowment(off, 126.8, 4.0, new Coefficients { EndowmentCostFollowsAbundance = 0.0 });   // 旗 0＝割らない（(1144) 明示の 0）
         Assert.Equal(8.0, off.MarginalCost);
     }
 
@@ -83,7 +83,7 @@ public class TradePhase0Tests
             var site = Catalog.Sites[si];
             foreach (bool inRes in new[] { false, true })
             {
-                var wOn = Solo(NationConfig.Britain(), new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World; var wOff = Solo(NationConfig.Britain(), new Coefficients()).World;
+                var wOn = Solo(NationConfig.Britain(), new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World; var wOff = Solo(NationConfig.Britain(), new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World;   // (1144) 明示の 0
                 Region Promote(World w) => Simulation.PromoteColonyToRegion(w, w.Coef, new Colony { Name = site.Place, Resources = inRes ? [site.Good] : [], PopSize = 50, Latitude = 10, Longitude = 10, Population = 1.0 }, RegionTier.Colonial);
                 var rOn = Promote(wOn); var rOff = Promote(wOff);
                 var pOn = rOn.Producers.Find(p => p.GoodId == site.Good && p.SiteRow >= 0); var pOff = rOff.Producers.Find(p => p.GoodId == site.Good && p.SiteRow >= 0);
@@ -102,24 +102,7 @@ public class TradePhase0Tests
         Assert.True(unlisted >= 2 && listed >= 2 && plant >= 2 && deposit >= 2, $"対照：載らない行 {unlisted}・載る行 {listed}・植林 {plant}・鉱床 {deposit}");
     }
 
-    /// <summary>recipeout_s の unitCostIfBprime：級 E の希少鉱物の産地は 自己費用÷(賦存×Scale)＋投入費（unitCostIfAbundance は逆算の倍率で割る＝より小さい）。</summary>
-    [Fact]
-    public void RecipeoutBprime_割る数は通常の賦存()
-    {
-        var sim = MakeBig(); int hits = 0;
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
-        {
-            var x = Instruments.RoRead(n.World, r, p);
-            if (x.Class != "E" || !(x.Rule > 10.0)) continue;
-            hits++;
-            double div = Simulation.ResourceEndowment(p.GoodId) * n.World.Coef.ResourceEndowmentScale;
-            double expect = x.Self / div + (x.Mc - x.Self);
-            Assert.True(System.Math.Abs(expect - x.IfBprime) <= 1e-9 * System.Math.Max(1.0, expect), $"B′ の費用 期待 {expect}・実際 {x.IfBprime}");
-            Assert.True(x.IfBprime > x.IfAbundance, "逆算の倍率で割る旧の列より B′ は高い");
-        }
-        Assert.True(hits >= 1);
-        Assert.Contains("unitCostIfBprime", Instruments.RecipeoutHeaderText);
-    }
+    // ★(1144) RecipeoutBprime_割る数は通常の賦存 を消した（★(743) ①）：B-1 の既定 1 で共有世界（MultiNationSim）の国の係数は既定から作られ、旗 0 の盤面を作る口が無い。同じ式は RecipeoutInstrumentTests.B1（単国・明示の旗 0）、旗 1 の盤面は T6 が確かめる。
 
     // ---- 計器 tskpair_s・tskshadow_s
     private sealed class Tab
