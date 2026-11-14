@@ -1,0 +1,14 @@
+(1136) 合わせた木 f82bd18ac（tb＋sm＋lo・旗 RailLocoNeedsDiscovery 1）の ㉘＋㊴ の番人の束（suite1136.sh guards）
+list PriceOfBread.Tests nonfull 2613
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+失敗!   -失敗:     1、合格:  1417、スキップ:     0、合計:  1418、期間: 19 m 9 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 46 s - PriceOfBread.Tests.Ui.dll (net10.0)
+[xUnit.net 00:08:00.08]     PriceOfBread.Tests.TradeBilateralInstrumentTests.T1_6区分の和と境の盤面 [FAIL]
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1_6区分の和と境の盤面 [2 s]
+  エラー メッセージ:
+   区分 ps1 が 0 件（623,224,10045,30617,0,0）
+  スタック トレース:
+フルスイートはこの赤を見て止めた（合流が lo を外した＝★(961) の型）。
