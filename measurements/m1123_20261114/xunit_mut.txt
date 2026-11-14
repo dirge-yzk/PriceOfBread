@@ -1,0 +1,12 @@
+CTL0 MUTFAIL
+M1 rc=1 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerEngineTests.E6_配りの重みにρが無い_力は配り掛けるρ [< 1 ms]
+M9 rc=1 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerEngineTests.E6_配りの重みにρが無い_力は配り掛けるρ [1 ms]
+M11 rc=1 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerEngineTests.E8_州が1つの国も旗1で寄せる [10 ms]
+M12 rc=1 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerEngineTests.E9_取り分の残りだけの州は持ち主より届かなければ候補にならない [1 s]
+M13 rc=1 失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RulePowerEngineTests.E7_戦時でも国内の治安の分が残る_平時は前線0で国内を満たし残りが外 [4 ms]
+XEND

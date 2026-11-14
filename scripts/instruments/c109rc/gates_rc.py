@@ -228,7 +228,7 @@ for s in seeds:
             if ae > 0 and neq(fe, ae * rf): c4up += 1
 gate('C4 ρ の回数', c4pop >= 1000 and c4bad == 0 and c4up == 0, f"配り＞0 かつ ρ_f≠1 {c4pop}（≧1000）・wEng≠wD {c4bad}（＝0）・F≠配り×ρ_f {c4up}（＝0）・行 {c4rows}")
 c8c = st.median(c8c_vals) if c8c_vals else float('nan'); c8d = st.median(c8d_vals) if c8d_vals else float('nan')
-gate('C8c 力の落ち', finite(c8c) and -0.3 <= c8c <= -0.001, f"O＝0 の国の実際の nowRule0 の差の種の中央 {c8c:.4g}（−0.3〜−0.001）・種 {len(c8c_vals)}")
+gate('C8c 力の落ち', finite(c8c) and -0.3 <= c8c <= -0.002, f"O＝0 の国の実際の nowRule0 の差の種の中央 {c8c:.4g}（−0.3〜−0.002・追記 1）・種 {len(c8c_vals)}")
 fr_e = c8e_in / c8e_tot if c8e_tot else float('nan')
 gate('C8e 州が1つの国の寄せ', c8e_tot >= 1000 and fr_e >= 0.9, f"行 {c8e_tot}（≧1000）・±50% の内 {fr_e:.4g}（≧0.9）")
 mw = st.median(g2_war) if g2_war else float('nan'); mp = st.median(g2_peace) if g2_peace else float('nan')
