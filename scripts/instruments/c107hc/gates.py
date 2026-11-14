@@ -51,7 +51,7 @@ for f in cmove.PARTS:
             ohas.append(has)
     nlines, _o2, ninfo, _s2 = cmove.analyze(nb.decode('utf-8'))
     nl = [l.rstrip() for i, l in enumerate(nlines) if ninfo[i][0] and re.match(r'\s*public', l)]
-    miss = 0; long_ = 0; nonote = 0
+    miss = 0; long_ = 0; nonote = 0; unbal = 0
     for l, has in zip(nl, ohas):
         sp = cmove.lex(l)
         if not sp:
@@ -60,7 +60,9 @@ for f in cmove.PARTS:
             continue
         txt = cmove.body(l[sp[0][0]:sp[0][1]])
         if len(txt) > 120 and not re.search(r"\[PORT:P\d+\]", txt): long_ += 1
-    say(miss == 0 and long_ == 0 and len(ohas) == len(nl), f'門5 元に注があった public の行は全て短い注を持つ・public {len(nl)} 本・120 字超 {long_}・注の欠け {miss}・元から注なし {nonote}（{f}）')
+        # (1140) 括弧の釣り合いと、前の注から続く断片（閉じ括弧で始まる）を見る
+        if any(txt.count(o_) != txt.count(c_) for o_, c_ in ('（）', '()', '〔〕', '【】', '「」', '[]')) or re.match(r'^[）)〕】」\]]', txt.strip()): unbal += 1
+    say(miss == 0 and long_ == 0 and unbal == 0 and len(ohas) == len(nl), f'門5 括弧の崩れ {unbal}・元に注があった public の行は全て短い注を持つ・public {len(nl)} 本・120 字超 {long_}・注の欠け {miss}・元から注なし {nonote}（{f}）')
     # 行ごとの読み手：// より前の英数字の語の数の差
     def idc(t):
         c = Counter()

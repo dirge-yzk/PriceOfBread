@@ -43,7 +43,7 @@ public sealed partial class Coefficients
     public double DepositYearsAtBirth = 100.0;    // 初期鉱脈の大きさ＝開始時の産出率で掘り続けて何年分か（3倍掘れば33年で膝に届く）
     public Share DepositGradeKnee = new(0.5);         // 残量がこの割合を切ると品位が線形に低下し始める（浅い高品位層が尽きる点）
     public double DepositGradeFloor = 0.15;       // 掘り尽くしたあとの品位（深部の残滓＝ゼロにしない。閉山は採算側が決める）
-    public double BonanzaDepositYears = 60.0;     // 産地の発見 Discovery.OpenSite）
+    public double BonanzaDepositYears = 60.0;     // 大鉱床の発見が州の鉱脈に足す量（初期率換算の年数・産地の発見 Discovery.OpenSite）
     public double OversightPressCensored = 0.4;   // 検閲付き報道の監視力（自由報道=1.0・国家報道のみ=0.0）
     public double OversightMeritExam = 0.6;       // 科挙型（資格任用）の監視力（専門官僚=1.0・猟官=0.0）
     public double OversightFactorScale = 1.0;   // 1.0＝旧とビット恒等（press自由1.0→noisy-or飽和→汚職0）
@@ -89,7 +89,7 @@ public sealed partial class Coefficients
 
     // ==== 海ノード吸着の是正 2026-08-16（docs/202608/20260816_海ノード吸着の是正_完了.md・実装時は休眠＝既定0で厳密ビット恒等／★点火梯子で0.5へ点火済み・live）====
     public double ImportPayerLive = 0;   // 0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）
-    public double SeaStitchLeadBudgetMult = 0.5;   // 【点火0.5・2026-08-16 点火梯子＝単独 exact43.3＝全16腕で最良／合成comp4で near77.4・人口28.6。1.0は地図の線は最少だが帯は0.5が上。合成comp4（12本＋海0.5）で exact41.6/…
+    public double SeaStitchLeadBudgetMult = 0.5;   // 港から海までの実測の出港距離×これ、を超えた先の陸は横断とみなす（0＝無制限に免除・旧規則）
 
 
     // ==== 環境変数による係数の上書き（測定用・2026-08-12）====

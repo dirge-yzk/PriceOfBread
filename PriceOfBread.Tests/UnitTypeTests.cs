@@ -172,7 +172,6 @@ public class UnitTypeTests
         (typeof(Producer), "MothballFrac", typeof(Share)),
         (typeof(Producer), "SubsidyRate", typeof(Share)),
         (typeof(Market), "LastRation", typeof(Share)),
-        (typeof(Region), "GarrisonShare", typeof(Share)),
         (typeof(World), "ShipSteamShare", typeof(Share)),
         (typeof(World), "LoanRatePerYear", typeof(RatePerYear)),
         // ★(303) 割合の型の残り その2＝軍事費の家族（陸海の維持費・その和と海の比）・海軍シェア・失業率の移動平均・地代の上限。World の ShipSteamShareEma は容量加重の割合なので ShipSteamShare へ改名（上の行）
@@ -465,7 +464,7 @@ public class UnitTypeTests
         pop.MilitiaShare = new Share(1.0 / 13.0); pop.UnemploymentRate = new Share(2.0 / 13.0); pop.InitialFertileShare = new Share(3.0 / 13.0);
         pop.ChildLaborRate = new Share(4.0 / 13.0); pop.CoreEthnicShare = new Share(5.0 / 13.0);
         prod.RentShare = new Share(6.0 / 13.0); prod.MothballFrac = new Share(7.0 / 13.0); prod.SubsidyRate = new Share(8.0 / 13.0);
-        mkt.LastRation = new Share(9.0 / 13.0); w1.Regions[0].GarrisonShare = new Share(10.0 / 13.0); w1.ShipSteamShare = new Share(11.0 / 13.0);
+        mkt.LastRation = new Share(9.0 / 13.0); w1.ShipSteamShare = new Share(11.0 / 13.0);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
@@ -481,7 +480,6 @@ public class UnitTypeTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(7.0 / 13.0), Bits(prod2.MothballFrac));
         Assert.Equal(BitConverter.DoubleToInt64Bits(8.0 / 13.0), Bits(prod2.SubsidyRate));
         Assert.Equal(BitConverter.DoubleToInt64Bits(9.0 / 13.0), Bits(mkt2.LastRation));
-        Assert.Equal(BitConverter.DoubleToInt64Bits(10.0 / 13.0), Bits(w2.Regions[0].GarrisonShare));
         Assert.Equal(BitConverter.DoubleToInt64Bits(11.0 / 13.0), Bits(w2.ShipSteamShare));
     }
 

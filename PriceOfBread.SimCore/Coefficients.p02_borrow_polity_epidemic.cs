@@ -77,7 +77,7 @@ public sealed partial class Coefficients
     public double EpidemicChance = 0.18;         // 疫病の年次発生確率の基礎（×脆弱度）
     public Share EpidemicSeverity = new(0.06);       // 流行時に地域人口が失う割合の基礎（揺らぎで0.5〜1.5倍）
     // === テーマC（疫病の完成）===
-    public double EpidemicVulnConcentration = 0.5; // POP の重み＝Size×(1+これ×
+    public double EpidemicVulnConcentration = 0.5; // 疫病死を飢えた層へ集中する強さ（POP の重み＝Size×(1＋これ×(1−主食の充足))×年齢の重み）
     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
     public double EpidemicTransmitChance = 0.35; // 完全接触（隣接の感染国）から1年で伝染する基礎確率
     public double EpidemicTransmitRange = 6000;  // 近接伝播が効く首都間距離（kmこれ以内で陸路接触・遠いほど弱い）

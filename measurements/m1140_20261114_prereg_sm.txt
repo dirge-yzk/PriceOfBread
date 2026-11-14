@@ -1,0 +1,27 @@
+(1140) c111sm 事前登録（sm の残り）。⚠この書類は項 1〜5 のコミットの後に書いた（担当の手順の取り違え・記録する）。項 6 と ident の前に固定する。
+
+[1] 恒等の線・予言 0。挙動を変えない。注・試験・文書・読み手 0 の欄の削除だけ。〈ほとんど影響のない削除〉ではなく〈書くだけの欄〉＝結果に 1 ビットも触れない。
+    作者 2026-11-12〈重要でない機能は削減〉の K2 の残り。作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち。
+
+[2] 消す物と残す物
+  消す：Region.GarrisonShare（Model.cs:692）・書き手 Simulation.cs:1787（局所の share は残す＝MilitaryScale と MilitaryScalePeace が読む）。
+  読み手の grep（全域）：SimCore＝書き手 1 のみ・App／Display／Runner＝0・scripts／measurements の台本＝0（measurements の過去の出力と docs の文は歴史）・
+       Tests＝UnitTypeTests の 3 か所（型の表の行・往復の置き 1・Assert 1）＝消す。SaveGame はリフレクション＝欄が無くなれば書かない（旧版との互換は要らない）。
+  残す物：係数の読み手の無い欄は触らない。p04 :78〜:84・p08 :110〜:116・p10 :80〜:86 の注は触らない（rb・tp・lo の持ち分）。
+  他の線との重なり：Model.cs は rb が Region に関数 1 本と控えの欄を足す（:692 付近を除く）＝行は離れる。Simulation.cs は :1782〜:1801 だけ。
+
+[3] 足す試験と突然変異
+  項2 StateFactoryTests.係数0では接収が走らない：NationalizationSeizureRate=0・Seize 無条件（bool seize を true）で StateTarget が持分へ上がって赤。
+  項6 TransportInstrumentTests.移した州の線路は受け手の月の頭で読み直され_動けば赤になる：受け手の頭の G4 の読みを消す／ビット比較を消すで赤。
+  項6 BuyShadowInstrumentTests.T1：未発明（門 0）の行 ≧100・手で置いた Capacity 0 の行 ≧100。未発明の分岐／Capacity 0 の分岐を消す突然変異は T4 側と合わせて記録。
+  項6 SaveRoundTripTests.眠りの印はセーブに載る：Market の三つの欄に NonSerialized を戻すで赤（試験は無変更・突然変異だけ回す）。
+  項4 門 5（scripts/instruments/c107hc/gates.py）：括弧の釣り合いと断片の検査を足す＝括弧を 1 つ崩して 0→1。
+  項5 archive_gate.py：何もしない検査を Assert へ＝★(711) の全文行を消す・参照の札を壊す・行の番号の札を置くで NG。
+  ★(743) の区分（書き換える試験）：UnitTypeTests の GarrisonShare の 3 か所＝削除した欄の行を消すだけ（②の前提を変えない・Assert の向きは変えない）。
+  ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を回す。
+  ㉑ 件数の予言：WriterRatchet の宣言の表は触らない（0 件）。`new MoneyStock(` の件数は変わらない（64）。route_anchors.tsv の鍵の行は 0 行変わる。
+  試験の数の予言：+1（StateFactoryTests）＋1（TransportInstrumentTests）＝2844＋2＝2846（FullLength 3 のまま）。
+
+[4] 素の 5 種・計器つき 10 種は m1122 と名乗り行を除いて全行一致（計器の表の差は宣言だけ＝無し）。cearn_s・cpop_s の経路の行は ident_check.py の行の写しで違い 0。
+
+[5]〈判定: 恒等〉なら採る。.cost の件数の行が変わらない。

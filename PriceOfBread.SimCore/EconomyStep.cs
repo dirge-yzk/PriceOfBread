@@ -2634,7 +2634,7 @@ public static class EconomyStep
         double rp = Catalog.RefPrices[gid] * Math.Max(region.PriceLevel, Eps);   // rp〔履歴 EconomyStep.cs#370〕
         if (!(rp > Eps)) return 1.0;   // ⚠否定形＝参照価格が無い財は絞らない（fail-open）
         double a = coef.FactoryBuildAfford(Math.Max(region.Markets[gid].Price, Eps), rp);
-        return a > 0 && a <= 1 ? 1.0 - 1.0 * (1.0 - a) : 1.0;   // ゲート比で連続に混合（満額適用＝1.0・軍需財だけ MilitaryProcurePriceGateScale で下げる）
+        return a > 0 && a <= 1 ? 1.0 - 1.0 * (1.0 - a) : 1.0;   // ゲート比で連続に混合（満額適用＝1.0）
     }
 
     // x×1.0 は浮動小数でも x と同じ。〔履歴 EconomyStep.cs#371〕

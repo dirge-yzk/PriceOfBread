@@ -1,16 +1,29 @@
 # (1120) c108sm：短い README を作り直す。c106dc/make_short.py の写し＋次の直し。
-#  - 行の頭 105 字で切るのをやめる＝各行は〈元の全文〉か〈→ README L行〉の参照のどちらか（途中で切った文を置かない）。
+#  - 行の頭 105 字で切るのをやめる＝各行は〈元の全文〉か〈→ README の札〉の参照（札＝★(NNN) か表の第 1 欄の名だけ・行の番号は置かない）のどちらか（途中で切った文を置かない）。
 #  - 項目は c106dc の基準の版（ffb3838）の行番号で選び、今の docs/README.md の同じ行（全文一致→先頭 30 字一致）へ引き直す。
 #  - 全文で入れる物：止める線の改め（:98〜:115）・★(711)・★(743)・腕の節約・計算量の予算・L89。それ以外は FULLMAX 字以下なら全文・超えれば参照。
 import sys, os, re, subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'c106dc'))
 from common import base, REPO, F_RD
+def label(t, src):
+    """(1140) 札＝★(NNN) か表の第 1 欄の名だけ（行の番号は README が伸びるたびに腐る＝置かない）。どちらも無い行は節の名。"""
+    col = ''
+    if t.lstrip().startswith('|'):
+        col = re.sub(r'[*★⚠`~]', '', [x.strip() for x in t.strip().strip('|').split('|')][0]).strip()
+        col = re.split('[（`]', col)[0].strip()
+    if len(col) > 3 and not col.isdigit(): return '表「%s」' % col[:24]
+    m = re.search(r'★\((\d+)\)', t)
+    if m: return '★(%s)' % m.group(1)
+    if col: return '表「%s」' % col[:24]
+    return src
+
+
 FULLMAX = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 250
 LIMIT = 20000
 
 SEC = [
  ('設計思想 10 則', '§1-1', [(32, 41), 43]),
- ('測定の作法（用語・回す前の確認・回し方）', '§1-2', [47, 56, (60, 63), (71, 81), 85, 'c89', (90, 94)]),
+ ('測定の作法（用語・回す前の確認・回し方）', '§1-2', [47, 56, (60, 63), (71, 81), 85, 'c89', (90, 94), 'r91']),
  ('止める線の改め', '§1-2 止める線の改め', [98, (99, 179), 181, (185, 187)]),
  ('腕の節約', '§1-2 腕の節約', [(193, 196)]),
  ('計算量の予算', '§1-2 計算量の予算', [213, (217, 222)]),
@@ -34,7 +47,7 @@ def main():
         if len(c) == 1: return c[0]
         return None
     out = ['# 線の担当が毎回読む決まり（README.md の抜粋・短い版）\n',
-           '⚠ 新しい決まりは足していない。各行は `docs/README.md` の行の全文か、`→ README L行` の参照（長い行）のどちらか。途中で切った文は置かない。\n',
+           '⚠ 新しい決まりは足していない。各行は `docs/README.md` の行の全文か、`→ README ★(NNN)` か `→ README 表「第 1 欄の名」` の参照（長い行）のどちらか。途中で切った文は置かない。\n',
            '★ 抜き出していない物：§0・§2〜§5・§1-6（フォークの決まり）・§1-2 の判定の線の表と所要の目安・表の長い列。\n']
     miss = []
     full_lines = set()
@@ -43,8 +56,10 @@ def main():
         for it in items:
             rng = range(it[0], it[1] + 1) if isinstance(it, tuple) else [it]
             for n in rng:
+                if isinstance(n, str) and n[0] == 'r':   # 参照だけ（L91＝5 万字の行）
+                    m = int(n[1:]); out.append('- → README %s' % label(cur[m - 1], src) + chr(10)); continue
                 if isinstance(n, str):   # 今の README の行番号で直に指す（L89＝規律の表の見出し・全文）
-                    m = int(n[1:]); out.append(('- %s 〔README L%d〕'+chr(10)) % (cur[m - 1].strip(), m)); continue
+                    m = int(n[1:]); out.append(('- %s 〔%s〕'+chr(10)) % (cur[m - 1].strip(), label(cur[m - 1], src))); continue
                 raw = old[n - 1]
                 if not raw.strip() or raw.startswith('|---') or raw.startswith('```'): continue
                 m = remap(n)
@@ -53,10 +68,9 @@ def main():
                 forced = (98 <= m <= 116 or m == 125 or src.startswith('§1-2 腕の節約') or src.startswith('§1-2 計算量の予算'))
                 s = re.sub(r'^[-*]\s+', '', t.strip())
                 if forced or len(s) <= FULLMAX:
-                    out.append('- %s 〔README L%d〕\n' % (s, m))
+                    out.append('- %s 〔%s〕\n' % (s, label(t, src)))
                 else:
-                    tag = re.split(r'[：:]', s, 1)[0][:40]
-                    out.append('- → README L%d（%s）\n' % (m, tag))
+                    out.append('- → README %s\n' % label(t, src))
     data = ''.join(out)
     return data, miss
 

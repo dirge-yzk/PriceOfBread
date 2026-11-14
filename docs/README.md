@@ -387,7 +387,7 @@ PYTHONUTF8=1 python <script>
 | 探しているもの | どこ |
 |---|---|
 | ★★★**今の基線**（⚠SOURCE-HASH・帯・走っている測定・次の一手） | `docs/CURRENT.md`（★セッション開始時に読む・⚠常に上書き） |
-| ★**計器の置き場**（標準の計器 Instruments*.cs の 86 本・(1105) で移した） | `PriceOfBread.SimCore/Instruments/`（SimCore の直下に置かない＝`InstrumentsPlacementTests` が赤にする。直下だけを走査する番人は `InstrumentsPlacementTests.TopAndInstruments` を通す） |
+| ★**計器の置き場**（標準の計器 Instruments*.cs の 87 本〔(1140) の数え直し・(1105) で移した時は 86〕） | `PriceOfBread.SimCore/Instruments/`（SimCore の直下に置かない＝`InstrumentsPlacementTests` が赤にする。直下だけを走査する番人は `InstrumentsPlacementTests.TopAndInstruments` を通す） |
 | ★**表示の層と試験の置き場**（(1111)・作者 2026-11-13） | 表示の目録は別アセンブリ `PriceOfBread.Display/`（名前空間は `PriceOfBread.SimCore.Display` のまま・SimCore だけを参照）。試験は **2 プロジェクト**：エンジン `PriceOfBread.Tests`（SimCore だけ・App を建てない）と画面 `PriceOfBread.Tests.Ui`（SimCore・Display・App・Tests・Runner の PlayHarness.cs/PlayFacts.cs を Link）。**フルスイートは 2 本を回して合計を --list-tests と突き合わせる**（`scripts/instruments/tests.sh` が順に回す）。ソースを走査する番人は `PriceOfBread.Display`・`PriceOfBread.Tests.Ui` も読む |
 | ★**注の履歴**（(1112)〜(1114)・作者 2026-11-13「注を履歴の文書へ移す」） | `docs/history/`＝ソース 1 本に 1 本（逐語の注・元の行）。名の形は 2 通り：組 A（Instruments/ の 86 本と Diplomacy・MultiNationSim・Simulation・World・EconomyStep）は `<ファイル名>.cs.md`（コードの注に指し先〔履歴 X.cs#N〕）・組 B（SimCore の残り）は `<名>.md`・係数の部品は `Coefficients*.md`（見出し＝係数の名）＝揃えるのは波108 の小物 |
 | ★★**設計の状態**（完了/一部/保留/差し戻し） | `docs/202608/00_棚卸_2026-08-15_部分完了.md` |

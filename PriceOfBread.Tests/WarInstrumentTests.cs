@@ -91,7 +91,7 @@ public class WarInstrumentTests
             var uk = P(sim, "イギリス"); var fr = P(sim, "フランス"); var pr = P(sim, "プロイセン");
             // 仏とプロイセンを同盟させ、プロイセンに対する英の宣戦で仏を参戦させる（私有の同盟表と緊張を反射で置く＝通る経路は本物の JoinAllies）
             // (1119) 盤面の役の入れ替え：旧の盤面〈英が仏に対して参戦〉は JoinAllies の〈勝ち目がない〉（仏÷英の軍＞AppeaseMilitaryRatio 2.5）の際にあった
-            //   ＝試走の後の仏÷英は種 1789〜1804 で 2.28〜2.53（旗 MineralScaleCapLift 0 の種 1795・旗 1 の種 1789 で 2.5 を越えて参戦 0）。
+            //   ＝試走の後の仏÷英は種 1789〜1804 で 2.28〜2.53（旧の旗 MineralScaleCapLift〔(1132) で焼き込み済み〕の 0 の種 1795・1 の種 1789 で 2.5 を越えて参戦 0）。
             //   役を入れ替えると参戦する仏から見た相手の比は英÷仏 ≈0.4＝前提が軌道に依らない。通る経路（DeclareWar→JoinAllies の参戦の枝）と Assert は同じ。
             var key = typeof(Diplomacy).GetMethod("Key", BindingFlags.NonPublic | BindingFlags.Static)!;
             var al = (HashSet<long>)typeof(Diplomacy).GetField("_alliance", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(d)!;

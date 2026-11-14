@@ -1,0 +1,4 @@
+M-seize rc=1 失敗!   -失敗:     1、合格:    22、スキップ:     0、合計:    23、期間: 5 s - PriceOfBread.Tests.dll (net10.0) RED:失敗 PriceOfBread.Tests.StateFactoryTests.係数0では接収が走らない [123 ms]
+M-g4read rc=1 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 28 s - PriceOfBread.Tests.dll (net10.0) RED:失敗 PriceOfBread.Tests.TransportInstrumentTests.移した州の線路は受け手の月の頭で読み直され_動けば赤になる [6 ms]
+M-g4bits rc=1 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 31 s - PriceOfBread.Tests.dll (net10.0) RED:失敗 PriceOfBread.Tests.TransportInstrumentTests.移した州の線路は受け手の月の頭で読み直され_動けば赤になる [19 ms]
+M-nonser rc=1 失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 1 m 50 s - PriceOfBread.Tests.dll (net10.0) RED:失敗 PriceOfBread.Tests.SaveRoundTripTests.四半期の途中のセーブで続きが一致する [38 s];失敗 PriceOfBread.Tests.SaveRoundTripTests.眠りの印はセーブに載る [776 ms]
