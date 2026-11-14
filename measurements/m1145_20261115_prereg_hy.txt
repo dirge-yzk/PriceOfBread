@@ -87,3 +87,8 @@ n2 P1_freshHyenaShare=0.6517 (1551/2380) P2_oldMeanCool=0.446711 newMeanCool=0.2
   coef0（係数 0 の短い走り）：G1 0（0/1018）・G2 0（行 5671）＝狙いと上側が通る。
   M1 枝を残す：G1 0.7115（471/662）・G2 2＝赤・赤。M2 遺恨の枝まで消す：G1 0・G2 0.42＝緑・赤。M3 凍結の枝も消す：G1 0・G2 0＝緑・緑・maxAbsDiffFrozen 0→0.22（記録の列が動く）＝門は赤にならない＝限界と名乗る（表の予言どおり）。
 - 試験の突然変異（measurements/m1145_20261115/mut_tests.txt）：M1 で H2・H3 が赤・M2 で H1〜H3 が赤・M3 は H1〜H3 が緑＝穴。試験だけの別のコミットで手で置いた盤面に従属の組 F（緊張 120→119.8＝凍結の式）を足し、M3 で赤になることを確かめる（試験の数は 3 のまま＝ident の数と同じ・SimCore には触れない）。
+
+■ 追記 2 2026-11-15（旗 1 の木 a41503e6f の ㊴ の束が赤＝分類・腕 B の前）
+- 束（~Instrument・HyenaBranchTests・DormantIdentityTests・WriterRatchetTests・IndustrializationReaderTests・UnitTypeTests）425 本のうち 58 本が赤。
+- 55 本（Corncf・Cearn・CedeRule・Basisx・Cornint・BuyShadow・ClearingFill・Invade・FactoryIdeology・CrownPc・FlowM・DiscoveryClock・Cession）＝表が書かれない（FileNotFound・〈前提：他の計器の表は出る〉）。区分＝試験のバグ（四半期の持ち越しと同じ型の〈試験どうしの状態の持ち越し〉）：この線の H3 が Instruments.SelectTables("dipcool_s") と Configure を finally で戻していない＝同じ集まり〔Instruments〕の後の試験が表を選ばれずに走る。旧の盤面に番人を固定する形ではない（どの試験の Assert も閾値も変えない・SimCore に触れない・H3 の finally に SelectTables(null)・Configure(null, null) を足すだけ＝RailLocoDiscoveryTests.T3 と同じ形）。旗 0 の束（147 本）が緑だったのは並びの偶然。直しを外す突然変異＝この束の 55 本の赤そのもの。直した後はフルスイートからやり直す。
+- 3 本（WriterRatchetTests の item 2 建設の見た生産者 2134→2195・item 11 覇権の判定 2817356→3362000・item 34 倒産 2169→2334・いずれも増えて許し +2% の外）＝★(749)〈軌道の件数を写しただけの番人の更新〉の区分（事前登録〈±2% の内の予言・外れたら取り直し〉の外れ＝予言は外れた）。旗 1 の木の実測で取り直す（新しい計数の処理は無い）。全長の計算量は腕 B の .cost の推定で読む。⚠ 覇権の判定の国×国 +19% は 1 種 40 四半期で国の数が約 9% 多い軌道に当たる＝腕 B の .cost と国の数を記録の先頭に置く。
