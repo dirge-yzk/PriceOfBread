@@ -63,7 +63,10 @@ public class BuyShadowInstrumentTests
                 m.Price *= 0.4 + (k % 7) * 0.25;
                 m.Stock *= (k % 3) == 0 ? 0.0 : (k % 3) == 1 ? 1.0 : 25.0;
             }
-            int rows = 0, partial = 0, moved = 0, positive = 0;
+            // (1140) 手で置く：能力 0 の行を 13 本に 1 本つくる（実走の件数に頼らない）。未発明（技術の門が 0）の行は実走の 12 四半期に居る。
+            int hand = 0, handCap0 = 0;
+            foreach (var (w0, r0, p0) in AllProducers(sim)) if ((hand++ % 13) == 0 && p0.Capacity != 0.0) { p0.Capacity = 0.0; handCap0++; }
+            int rows = 0, partial = 0, moved = 0, positive = 0, gateZero = 0, capZero = 0;
             foreach (var (w, r, p) in AllProducers(sim))
             {
                 var c = w.Coef;
@@ -73,9 +76,13 @@ public class BuyShadowInstrumentTests
                 double got = EconomyStep.SupplyTargetAt(p, r, c, w, baumol, gate, out double pf);
                 double hat = Instruments.BsPHat(p, r, c, w, baumol, gate, p.Output);
                 Assert.True(Near(got, hat, 1e-12), $"P̂ {hat} ≠ 供給 {got}（{Catalog.Goods[p.GoodId].Name}）");
+                if (!(gate > 0)) gateZero++;
+                if (p.Capacity == 0.0) capZero++;
                 rows++; if (pf > 0 && pf < 1) partial++; if (!Near(got, p.Output, 1e-9)) moved++; if (got > 0) positive++;
             }
             Assert.True(rows > 1000, "調べた行が少ない " + rows);
+            Assert.True(gateZero >= 100, "未発明（門 0）の行が少ない＝未発明の枝が通っていない " + gateZero);
+            Assert.True(handCap0 >= 100 && capZero >= handCap0, $"能力 0 の行が少ない {capZero}/{handCap0}");
             Assert.True(partial >= 20, "採算が境の行が少ない " + partial);
             Assert.True(moved >= 100 && positive >= 100, $"動く行・正の行が少ない {moved}/{positive}");
         }

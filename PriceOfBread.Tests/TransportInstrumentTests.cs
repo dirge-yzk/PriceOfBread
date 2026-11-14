@@ -426,6 +426,67 @@ public class TransportInstrumentTests
         finally { restore(); }
     }
 
+    private static (long Moves, long Viol) G4Of(Region r)
+    {
+        var m = typeof(Instruments).GetMethod("RailOf", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        var a = (Instruments.RailAcc)m.Invoke(null, new object[] { r })!;
+        return (a.G4Moves, a.G4Viol);
+    }
+
+    /// <summary>
+    /// (1140) 項6 G4（移した州の線路は受け手の次の月の頭までビットで変わらない）を赤にする機構の試験。手で置いた盤面＝実走の移しの件数に頼らない（★(1136)）。
+    /// 盤面：移す側の世界の州 r の線路を手で置き、割譲の頭（RailMoveBegin）の後、受け手の次の月の輸送の頭（RailMonthBegin）を呼ぶ。
+    /// ①移したまま変えない＝G4Moves が 1 件（下限＞0）・G4Viol 0。②受け手の頭の前に線路を 1 ulp 動かす＝G4Viol 1（ビット比較が働く）。
+    /// ③戦災（RailWar）は控えを同じ式で追う＝戦災の後も G4Viol 0。④旗 0（RailByRegion 0）では受け手の頭は何も読まない＝G4Moves 0。
+    /// </summary>
+    [Fact]
+    public void 移した州の線路は受け手の月の頭で読み直され_動けば赤になる()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_g4_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = Make();
+            var from = sim.Nations[0].World; var to = sim.Nations[1].World;
+            to.Coef.RailByRegion = 1;
+            var r = to.Regions[0];
+            r.RailTrack = 12.5;
+            Instruments.RailMoveBegin(from, r);
+            Assert.NotNull(Instruments.RailMonthBegin(to, to.Coef));
+            var (mv, vi) = G4Of(r);
+            Assert.True(mv > 0, "手で置いた移しが読まれない＝受け手の頭が G4 を数えていない");
+            Assert.Equal(0L, vi);
+
+            // ② 動かす＝赤
+            var r2 = to.Regions[1];
+            r2.RailTrack = 7.25;
+            Instruments.RailMoveBegin(from, r2);
+            r2.RailTrack = Math.BitIncrement(r2.RailTrack);
+            Instruments.RailMonthBegin(to, to.Coef);
+            Assert.Equal(1L, G4Of(r2).Viol);
+
+            // ③ 戦災はエンジンと同じ式で追う
+            var r3 = to.Regions[2];
+            r3.RailTrack = 9.0;
+            Instruments.RailMoveBegin(from, r3);
+            double wear = 0.1;
+            Instruments.RailWar(to, wear);
+            r3.RailTrack *= 1.0 - wear;
+            Instruments.RailMonthBegin(to, to.Coef);
+            Assert.Equal(0L, G4Of(r3).Viol);
+            Assert.True(G4Of(r3).Moves > 0);
+
+            // ④ 旗 0 では読まない
+            var r4 = to.Regions[3];
+            r4.RailTrack = 3.0;
+            Instruments.RailMoveBegin(from, r4);
+            to.Coef.RailByRegion = 0;
+            Assert.Null(Instruments.RailMonthBegin(to, to.Coef));
+            Assert.Equal(0L, G4Of(r4).Moves);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
     [Fact]
     public void 計器を切っている間は蓄えが作られない()
     {
