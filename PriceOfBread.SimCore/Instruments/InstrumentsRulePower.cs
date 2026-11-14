@@ -63,6 +63,7 @@ public static partial class Instruments
         public TrEntry[] Tr = []; public int Tc; public int[] SeaNodeOf = [], LandNode = []; public double[] SeaHalf = [], TerrCost = [], LandRatio = [], LandGraft = [];
         public bool[] SuezOkN = [], PanOkN = []; public double LandRoute; public Dictionary<Region, int> Idx = new(ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
         public double[]? Km;   // tc×tc の遅延の表（NaN＝未計算）
+        public RpHead? Head;   // (1147) 四半期の頭の取り分の写し（rponset_s が選ばれた時だけ）
         public double Get(int a, int b, double[]? landRatioOverride = null)
         {
             if (landRatioOverride is not null) return PairKmCoreOf(a, b, landRatioOverride);
@@ -91,7 +92,7 @@ public static partial class Instruments
     internal static void RpSnapshot(bool firstClearingOfQuarter, IReadOnlyList<Simulation> nations, TrEntry[] tr, int tc, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, double[] terrCost, double[] landRatio, int[] landNode, double[] landGraft, double landRoute)
     {
         if (!On || !firstClearingOfQuarter) return;   // 計器の門はここで読む（清算の側の On の読みを増やさない・OnDoubleReadScanTests）
-        if (!(Wants("rulepower_s") || Wants("rulepeace_s") || Wants("rulepoweralloc_s"))) return;
+        if (!(Wants("rulepower_s") || Wants("rulepeace_s") || Wants("rulepoweralloc_s") || Wants("rponset_s"))) return;
         if (nations.Count == 0 || nations[0].World.Diplomacy is not { } dip) return;
         RpSnapCount++;
         var s = new RpSnap { Tc = tc, LandRoute = landRoute, Tr = new TrEntry[tc], SeaNodeOf = new int[tc], SeaHalf = new double[tc], TerrCost = new double[tc], LandRatio = new double[tc], LandNode = new int[tc], LandGraft = new double[tc], SuezOkN = (bool[])suezOkN.Clone(), PanOkN = (bool[])panOkN.Clone() };
@@ -100,6 +101,7 @@ public static partial class Instruments
         for (int i = 0; i < tc; i++) s.Idx[tr[i].r] = i;
         s.TrNf = new TrEntry[tc];
         for (int i = 0; i < tc; i++) { var e = tr[i]; if (!e.seaOk && e.r.LastPortFrozen) e.seaOk = true; s.TrNf[i] = e; }   // LastPortFrozen〔履歴 InstrumentsRulePower.cs#5〕
+        if (Wants("rponset_s")) s.Head = RpHeadCopy(nations);   // (1147) 頭の s は寄せ・付与の前（この口は四半期の最初の清算）
         RpSnaps.Remove(dip); RpSnaps.Add(dip, s);
     }
 
@@ -108,7 +110,8 @@ public static partial class Instruments
         public bool Init; public double Q;
         public readonly Dictionary<Region, double> Tau = new(); public readonly HashSet<Region> Seen = new(); public readonly Dictionary<Simulation, double> Inter0 = new();
         public readonly HashSet<EndedWarRecord> PeaceSeen = new(); public bool PeaceInit;
-        public bool HeaderPower, HeaderPeace, HeaderAlloc;
+        public bool HeaderPower, HeaderPeace, HeaderAlloc, HeaderOnset;
+        public readonly HashSet<Region> DataRegions = new(ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);   // (1147) 最初の表で名の無い取り分を持っていた州
         public readonly Dictionary<Region, double> TauNf = new();   // TauNf〔履歴 InstrumentsRulePower.cs#6〕
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, RpState> RpStates = new();
@@ -141,12 +144,13 @@ public static partial class Instruments
     /// <summary>四半期の末：影の表を全ての国の全ての州へ書く。呼び口は Quarter の 1 行。</summary>
     static void RulePowerTable(MultiNationSim sim, ulong seed, int q)
     {
-        bool wantP = Wants("rulepower_s"), wantW = Wants("rulepeace_s"), wantA = Wants("rulepoweralloc_s") && q % 40 == 0;
-        if (!(wantP || wantW || wantA) || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
+        bool wantP = Wants("rulepower_s"), wantW = Wants("rulepeace_s"), wantA = Wants("rulepoweralloc_s") && q % 40 == 0, wantO = Wants("rponset_s");
+        if (!(wantP || wantW || wantA || wantO) || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         RpTableCount++;
         var dip = sim.Diplomacy;
         var st = RpStates.GetValue(dip, _ => new RpState());
         RpSnaps.TryGetValue(dip, out var snap);
+        bool firstTable = !st.Init;   // (1147) 最初の表の印は既にある RpState.Init（新しい印を足さない）
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
         // ---- 国の段：L・W・H・O ----
@@ -165,6 +169,7 @@ public static partial class Instruments
             if (!(totL > 0 && totPopK > 0)) return;
             st.Q = totL / totPopK; st.Init = true;   // q＝開幕の世界の陸軍力の和÷人口の和（最初の観測の四半期に 1 回・設計 §3-1）
         }
+        if (wantO) RponsetRows(sim, seed, q, firstTable);
         foreach (var nn in nats)
         {
             nn.SumN = nn.SumPop * st.Q;
