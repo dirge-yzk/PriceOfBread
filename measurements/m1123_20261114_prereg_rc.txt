@@ -167,3 +167,10 @@
 ### 腕 B の予言（記録・採否は §2 の門と §7 の止める線）
 - C3＝181。C8a・C8e・G2 は CTL と同じ向き（緑）。G1 は 18 より上がりうる。.cost の推定は m1122 の 230.0 秒＋0.5〜1.5 秒。
 - WriterRatchetTests の計算量の宣言の表は旗 1 の木で赤になりうる（★(749) の種類・線の木では取り直さない＝合流）。
+
+## 追記 2（2026-11-14・旗 1 のフルスイートの後・直す前・腕 B の前）
+- ㊴（`FullyQualifiedName~Instrument`・2 プロジェクト）は緑（Tests 305・Tests.Ui 5）。--list-tests の和＝Tests 2608＋Tests.Ui 234＝2842・FullLength 3。
+- フルスイート（旗 1・532d51d6b）の Tests の Category!=FullLength で赤 2 本（2605 合格・1 スキップ）：
+  1. **ZeroPopSkipTests.cs:21** `Assert.Equal(CostLedger.ClearingKmRaw + 1, CostLedger.Count)`（Expected 43・Actual 44）。区分＝★(749) の〈台帳に行を足した〉型（25c5d75c5 の器が行 RulePowerPairs〔43〕を足した＝旗 0 でも赤・軌道に依らない・SecessionLaborLawInstrumentTests.cs:280〔1400bf658〕と同じ行）。旧の盤面に番人を固定する形ではない（台帳の行の数を写すだけ）。直し＝最後の行の名を RulePowerPairs へ（Assert の式の形は同じ・他の行は変えない）。(1117) の事前登録と追記 2 はこの行を書き落とした（記録）。
+  2. **ScoreReaderTests.cs:156**〈条約港の風化は列強の中央値を基準にする〉（Expected 0.78657・Actual 0.8）。旧の規則（条約港の風化 TreatyPortLapse）の基準を確かめる番人＝旗 1 では TreatyPortLapse を通らない（事前登録の旧 §1-3・この線の §1-1 で外す物）。区分＝**README ★(866) が許す ★(832) ① (a) の型**（初期化子に旗 0・Assert の式とリテラルは 1 字も変えない）＝(1117) の 18736ecd5 が TreatyPortLapseTests の 2 本と RuleSharesFormTests の D3〈風化〉に当てた物と同じ型。**旧の盤面に番人を固定する形そのもの**（㉜ の〈機構の番人が旧の規則そのものを固定している〉型）で、事前登録の予言の表（旧 §4 の 15 本）の外＝**この線の書き落とし**（§4 の ㉜ の grep は ScoreReaderTests.cs を出していたのに Assert を読まずに進めた）。直し＝`sim.Coef.RuleFromPower = 0;` を盤面の初期化の直後に 1 行（旗 0 の道は焼き込みの線まで残る＝旗 0 の番人を残す）。報告の先頭に〈予言の外の赤を (a) の型で直した〉と名乗り、合流の判断に渡す（採らない判断なら腕 B の結果ごと記録へ）。
+- 直しは試験だけの別のコミット。直した後はフルスイート（2 プロジェクト）からやり直す。savetest・leakhunt はこの回のフルスイートの走り（同じ SimCore）で読む。
