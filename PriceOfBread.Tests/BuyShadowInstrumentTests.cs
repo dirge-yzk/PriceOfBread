@@ -159,6 +159,24 @@ public class BuyShadowInstrumentTests
                 }
             }
             Assert.True(empty >= 10 && valued >= 100 && sleeping >= 1, $"空 {empty}・値 {valued}・眠り {sleeping}");
+            // 眠り・倒産は Capacity が 0 の行と重なって見えにくい＝能力が正の盤面を作って、眠りだけ・倒産だけで空になることを通す（M5＝眠りに 0 を書く誤りの穴）
+            int forcedSleep = 0, forcedBankrupt = 0;
+            foreach (var (w, r, p) in AllProducers(sim))
+            {
+                if (EconomyStep.SleepState(r, p, w.Coef) == 1 && forcedSleep < 20)
+                {
+                    p.Capacity = 5.0; p.DesiredOutput = 3.0;
+                    Assert.Equal(1, EconomyStep.SleepState(r, p, w.Coef));
+                    Assert.Equal("", Instruments.BsProfitFactorCell(p, r, w.Coef)); forcedSleep++;
+                }
+                else if (EconomyStep.SleepState(r, p, w.Coef) == 0 && !p.Bankrupt && p.Capacity > 0 && forcedBankrupt < 20)
+                {
+                    Assert.NotEqual("", Instruments.BsProfitFactorCell(p, r, w.Coef));
+                    p.Bankrupt = true;
+                    Assert.Equal("", Instruments.BsProfitFactorCell(p, r, w.Coef)); forcedBankrupt++;
+                }
+            }
+            Assert.True(forcedSleep >= 1 && forcedBankrupt >= 1, $"作った眠り {forcedSleep}・倒産 {forcedBankrupt}");
             // 書かれた表でも、Capacity が 0 の行の profitFactor は空（0 でない）
             var pc = Read(dir, "prodcap"); int capZero = 0;
             foreach (var r in pc.R)
