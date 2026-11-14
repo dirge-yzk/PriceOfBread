@@ -2909,7 +2909,7 @@ public sealed class Diplomacy
             bool colonialReach = r.Tier == RegionTier.Colonial
                 && winner.NavalPower > 1e-9 && seaCtl >= c.SeaInvasionControlMin;
             if (constrained && dist > cessionRange && !colonialReach) continue;   // 投射圏外＝割譲候補にしない（圏は技術で伸びる）
-            double g = RegionOutputValue(r);
+            double g = r.OutputRefValue();
             bool better = takePrize ? (g > best || (g == best && (cede is null || r.Id < cede.Id)))                                        // 価値ある州（最大GDP・首都含む・圏内）
                                     : (dist < bestDist || (dist == bestDist && (g < best || (g == best && (cede is null || r.Id < cede.Id)))));   // 境界州＝勝者に最も近い州（同距離はGDP小→Id）
             if (better) { best = g; cede = r; bestDist = dist; }
@@ -2918,14 +2918,6 @@ public sealed class Diplomacy
         if (Instruments.On && loser.SelfPower is { } cessLoserP) Instruments.CessObserveRegion(this, c, _year, takePrize ? 4 : 3, winner, cessLoserP, cede, double.NaN, double.NaN, double.NaN, bestDist);   // CessObserveRegion〔履歴 Diplomacy.cs#337〕
         CedeRegion(c, loser, winner, ww, cede, loserName);
         return true;   // _pendingRevanchの予約可否に使う（下）〔履歴 Diplomacy.cs#338〕
-    }
-
-    /// <summary>州の生産の名目の価値（役務を除く・Output×RefPrice の和）＝割譲の選びの GDP（境界改定は小さい順・戦利品は大きい順）。</summary>
-    private static double RegionOutputValue(Region r)
-    {
-        double g = 0;
-        foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
-        return g;
     }
 
     /// <summary>
@@ -2943,7 +2935,7 @@ public sealed class Diplomacy
             double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, ColonyUnitPop);   // Colony.Population と同じ物差し
             if (!CessionTarget(c, reach, cc.Lat, cc.Lon, r.IsPort, r.Resources.Length, units, out double cost) || cost > budget) continue;
             double dist = capKnown && !(cc.Lat == 0 && cc.Lon == 0) ? Geo.DistanceKm(cc.Lat, cc.Lon, cap.Lat, cap.Lon) : 0;
-            double g = RegionOutputValue(r);
+            double g = r.OutputRefValue();
             bool better = takePrize ? (g > best || (g == best && (cede is null || r.Id < cede.Id)))
                                     : (dist < bestDist || (dist == bestDist && (g < best || (g == best && (cede is null || r.Id < cede.Id)))));
             if (better) { best = g; cede = r; bestDist = dist; bestCost = cost; }

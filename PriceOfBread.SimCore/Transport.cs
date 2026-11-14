@@ -93,6 +93,15 @@ public static class Transport
     internal static double RegionShare((double Even, double TotalPot) b, Region r)
         => b.TotalPot > 1e-9 ? System.Math.Max(0, r.LastTradePotential) / b.TotalPot : b.Even;
 
+    /// <summary>(1137) 鉄道の need の取り分の基底（敷きと清算の φ だけが読む）。旗 RailNeedByOutput＝1 は州の産出の比（分母＝GdpPerMonth・分子はその取り直しの控え）、0 は潜在量の比（ShareBasis）。
+    /// 取り分の規則は 2 本：清算の陸の容量・船・割譲の移しは潜在量の比（ShareBasis・RegionShare）のまま、鉄道の need だけがこの基底（別の量を 1 回ずつ数える）。</summary>
+    internal static (double Even, double TotalPot) RailNeedBasis(World w, Coefficients c)
+        => w.Coef.RailNeedByOutput > 0 ? (w.Regions.Count > 0 ? 1.0 / w.Regions.Count : 1.0, w.GdpPerMonth.Value) : ShareBasis(w, c);
+
+    /// <summary>(1137) 鉄道の need の州の取り分。旗 1 は Region.GdpOutputMemo÷産出の和（和≦1e-9 なら均等）＝控えは RailNeedBasis か GdpPerMonth に触れた直後だけ正しい。</summary>
+    internal static double RailNeedShare(World w, (double Even, double TotalPot) b, Region r)
+        => w.Coef.RailNeedByOutput > 0 ? (b.TotalPot > 1e-9 ? r.GdpOutputMemo / b.TotalPot : b.Even) : RegionShare(b, r);
+
     internal static void Receive(World to, double rail, double ship, double steamShare)
     {
         if (rail > 0) to.RailCapacity += rail;
@@ -130,7 +139,7 @@ public static class Transport
         if (byReg)
         {
             if (!(target > 0)) return (0, 0);
-            basis = ShareBasis(w, c);
+            basis = RailNeedBasis(w, c);
         }
         else
         {
@@ -148,7 +157,7 @@ public static class Transport
             double terrLay = 1.0, boughtUnits = 0;
             if (byReg)
             {
-                double need = target * RegionShare(basis, r);
+                double need = target * RailNeedShare(w, basis, r);
                 double tPre = r.RailTrack;
                 double wantCap = c.TransportBuildRate * System.Math.Max(0, need - tPre) + c.TransportDecay * System.Math.Min(tPre, need);
                 if (c.RailLayTerrain > 0)
