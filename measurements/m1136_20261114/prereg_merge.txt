@@ -1,0 +1,59 @@
+(1136) 合流（波110）の予言（merge より前に書く・結果を見た後に直すなら追記で名乗る）
+書いた担当：Claude Opus 5.5（合流）。基点 50e0b5c93（m1122 の盤面・(1129) の木）。
+線：挙動 c110lo (1130) e5ae8af44・恒等 c110tb (1131) 846bd34c1・恒等 c110sm (1132) b2dc0b5ee・読む c110fs (1133)（D:/PoB_work/r1133_work）・読む c110s24 (1134)（D:/PoB_work/r1134_work）・設計の材料 c110rn (1135)（D:/PoB_work/r1135_work・d1135_work）。
+作者「しばらくの間、全て推奨で」で推奨を採った物は文中に書く。
+
+[0] 入れる線と外す線（結果を見る前に決める）
+- c110tb：入れる（段 2〈判定: 恒等〉・反証役 v に高なし）。v の低〜中〈u_min が売り切れた売り手の値段になりうる＝6 区分の数は headS の時点の近似〉〈呼び口の位置の突然変異が無い〉〈眠った生産者の枝の突然変異が無い〉〈NaN の行がどの区分にも入らない〉〈OnDoubleReadScanTests が ㉘ の束に無い〉は記録の先頭へ＝T1 の線へ送る。合流は直さない。
+- c110sm：入れる（段 2〈判定: 恒等〉・v に高なし）。項 1（K1〜K4）と項 3・4 の一部だけ。v の中〈GarrisonShare は書くだけの欄として残る〉〈台帳の鍵 115 本が行ずれ〉、低〈StateFactoryTests の削除の理由の誤り＝係数 0 で接収が止まる番人が 0 本〉〈消した名を指す古い注〉〈試験の書き換えの区分の列挙が無い〉〈突然変異 0〉〈mutation.sh を後から直した〉〈㉘ の grep 3 つが事前登録に無い〉は記録へ。K2 の削除は作者「しばらくの間、全て推奨で」で推奨を採った（作者の確認待ち）。台帳の鍵は合流が付け直す（reanchor）。
+- c110lo：入れる候補（門 G1・G2・G1b・G3 が線の腕 B で緑・止める線 0・反証役 v・v2 に高なし）。最終の採否は S11 で 1 回だけ（[4]）。
+  記録の先頭（線の担当と v・v2 の言い方のまま）：
+  ・v〈予言の読み手の列挙漏れ（貿易→発見の伝わり BilateralMarket.cs:37 AccumulateDiscovery）〉＝機関車を知る国 1883 年の中央 14.5／旗 0 23.0・1950 年 19.5／27.0・E 行の和 197（ヌル腕 259〜265 の外）。v〈遅れでなく、学ぶ道が閉じたまま残る形・片方向の錠に近い（README §1-8 に触れる恐れ）〉。
+  ・v2〈発見の前の機関車の世界の生産 −64%（ヌル腕の幅の外）・蒸気機関の生産は幅の下・セメントは幅の上・未発見の国への輸出が消えた〉。
+  ・v〈G3 は下限だけ・G1b と G3 は別の走りの比で発見の遅れと混ざる・G1 と G2 は決済の門の写しでほぼ自明に緑〉＝G3 の 1.153 と予言 ②③ の確かめは採る理由に数えない（記録）。v2〈需要の側が 0 になったことは nationgood_s の demandQty と crossImportQty で 0〉は記録に並べる。
+  ・v〈post の機関車の量は −12〜−18%・額は値段で保たれた〉・v〈M6 は書ける見込み〉・v〈名目 GDP の 100 倍は 2 四半期＝同じ 1 件〉。
+  ・形は合流の推奨 B（(1127) の担当の推奨 A を上書き）＝作者「しばらくの間、全て推奨で」で推奨を採った・確証なし。〈伝わりの道が閉じる〉は作者に聞く物の先頭へ（推奨つき）。
+  採否の規則は線の事前登録のまま（門 4 本＋止める線）。上の記録は採否の規則に無い＝結果の後に規則を足さない（★(655)）。
+- 読む線 c110fs・c110s24：台本と表を scripts/instruments/r1133/・r1134/ と measurements/m1133_20261114/・m1134_20261114/ へ写す（中身は変えない）。台帳の S24 の 86 行は担当の TSV で入れ替える（v の〈消す 26 のうち段 E・F の印は 9〉〈厭戦の物差しの違い〉〈WarThemeTests:269 は旧の規則の番人ではない〉は記録へ・TSV は直さない）。
+- 設計の材料 c110rn：material.md と draft.md を docs/202611/20261114/20261114_段Rのneedの基底_事前登録_材料.md・_下書き.md へ（題の行に状態〈設計の材料と下書き・AI の案・作者の確認待ち〉・中身は書き換えない・v の訂正 6 件を末尾に足す）。台本は scripts/instruments/r1135/・prereg.txt と表は measurements/m1135_20261114/。
+
+[1] 順と衝突
+- 順＝c110tb → c110sm → c110lo（`--no-ff`・全ての merge コミットに署名の行）。merge-tree で確かめた衝突は Instruments.cs の 1 ファイルだけ（tb と lo が同じ 2 か所に登録の行を 1 行ずつ足した）＝両方の行を残す（表は別のファイルに書く＝順は結果に効かない見込み）。他は自動で合わさる（EconomyStep.cs は sm :2434・:2639 と lo :1034〜:2130 で行が離れている・p10 は sm の 2 行の削除と lo :84 の 1 行・DormantIdentityTests.cs）。
+- 消す名前：sm が消す MilitaryProcurePriceGateScale・GarrisonProcurement・MineralScaleCap・MineralScaleCapLift・CfSectorBit・NationalizationSeizureRate≦0 の枝を lo・tb の枝の足した行で grep＝lo 1 件（WriterRatchetTests の旧い注の文に MineralScaleCapLift の名・コードではない）・tb 0 件。lo・tb はエンジンの名前を消さない。
+- 合流はエンジンの .cs を直さない（衝突の解消だけ）。
+
+[2] 試験の数（合わせた木で 1 回）
+- --list-tests：PriceOfBread.Tests の Category!=FullLength＝2606 −1（sm：StateFactoryTests）＋5（tb：TradeBilateralInstrumentTests）＋3（lo：RailLocoDiscoveryTests）＝2613・Tests.Ui 234・FullLength 3＝TESTS_NONFULL 2847。
+- 合わせた木（旗 1）で ㉘ の番人の束 → ㊴ の計器の束 → フルスイート（2 プロジェクト・trx・FullLength を分ける）→ savetest・leakhunt（10 種の腕と並べない）。
+  予言：赤 0。WriterRatchetTests の lo の 4 行は lo の木の 1 種 40 四半期の写し＝tb・sm は軌道に触れない（恒等）＝合わせた木で同じ件数＝取り直し 0。赤なら ★(749) の区分で合わせた木の実測を 1 回だけ写す。
+
+[3] 腕と成績表のバイト一致（全て合わせた木の頭 H）
+- 腕 Z（使い捨ての枝 m1136z＝H＋旗 RailLocoNeedsDiscovery 1→0 の 1 コミット・main へは入れない）：ident（段 2）で m1122（b5_20261114_m1122・b10_20261114_m1122_ins・mon_20261114_m1122.txt・INSRAW keep_1129/base_ins）と全行一致〈判定: 恒等〉と予言。宣言＝足した表 tb_s・railspend_s・テストの差 +7・.cost の件数の行は増えない（推定 229.0／230.0 秒）。これで恒等の線 tb・sm の恒等と、旗 0 の道が m1122 と同じことを合わせた木で確かめる（★(778)）。
+- M（H・全表・計器つき 10 種・種 1〜10）：成績表は lo の腕 B measurements/m1130_20261114/armB/b10_c110loB_10.txt と全行一致（名乗り行と SOURCE-HASH を除く）・.cost の件数の行も一致（推定 230.7 秒）・共通の表は lo の腕 B の生とバイト一致（burscan_s・clock_s の既知の揺れを除く）と予言。M にだけある表は tb_s 10 本。挙動の線は 1 本＝アブレーションの腕は要らない（M≡lo の腕 B が tb・sm と lo の足し算の確かめになる）。
+- S11（H・種 11〜20・表は ident.cfg の SMALL＋BYPASS＋railspend_s）と S11z（H・POB_COEF RailLocoNeedsDiscovery=0・種 11〜20・表は railspend_s・nation_s だけ＝G1b と G3 の旗 0 の分母）。
+- 素の 5 種と 10 種（p5・p10・H）：新しい基線の成績表。
+- N1・N2（H・SupplySlope=0.50000001・0.49999999・全表・POB_CEARN=0）。
+
+[4] 門（M と S11 で読む・台本は線の物を変えない＝scripts/instruments/c110lo/gates_lo.py・最終の採否は S11 で 1 回）
+- M＝`gates_lo.py <M> D:/PoB_work/c110lo_work/base0 1,…,10`（旗 0 の側は lo の ident c110loz の railspend_s＝m1122 と恒等の軌道＝腕 Z の railspend_s とバイト一致と予言）・S11＝`gates_lo.py <S11> <S11z> 11,…,20`。
+- 門＝G1 pre の機関車の払い＝0（≦1e-12）・G2 pre の保守の機関車＝0・G1b post の機関車の比 0.5〜2.0・G3 pre の線路の比 ≧0.5。どれかが M か S11 で落ちたら lo を採らない。
+- 予言：M は線の腕 B と同じ値（G1 0・G2 0・G1b 1.034・G3 1.153）。S11 は G1・G2 が 0（構成で決まる）・G1b と G3 は予言しない。
+
+[5] 止める線（M・S11 と新しい N1・N2 を同じ台本で数える＝c92gf/stoplines1002.sh・an_h2 -v4・gdp_zero10・popjump1017・plvl_seeds・home_break）
+- M・S11：価格水準の 100 倍 0・1e10 倍 0・非有限 0・名目 GDP 0 の続き 0・空洞化 1/10 未満（名簿の外）0・推定 ≦248.5 秒と予言（M は線の腕 B と同じ＝名目 GDP の 1 四半期 100 倍 1 件〔種 1 ライン諸邦 q540・政府の人口の比 72.3＝㊳ の型〕）。建国の直後と政府の人口の跳ね（㊳）はヌル腕の件数と並べて記録（基準 measurements/m1122_20261114/stopbase/）。
+- 空洞化 1/10 未満は件ごとに基線の同じ種で同じ州が 1/4 未満だったかを表に書く（種 1〜10＝keep_1129/base_ins・種 11〜20＝keep_1122/a11）。〈線が原因〉が 1 件でもあれば lo を採らない。
+- 機構の試験の赤（フルスイート・番人の束）。
+
+[6] 記録の段（採否に使わない）
+- 英の国債の不履行の種（M・S11・N1・N2・m1122 と並べる）・NG（ng1122 と比べる）・nullgate・home_break ①・開幕の 1000 倍以上・exact・near・ハーネス不合格・.cost の項・機関車を知る国の数（disc_count.py・M・S11・新しい N1・N2）。
+- 予言の外れは記録の段の先頭に書く。成績表の差がヌル腕の幅の内なら改善と書かない。
+
+[7] D: と順（今の空き 約 95GB・床 35GB＋その量）
+- 順：merge → ㉘ の番人の束＋㊴ の計器の束 → フルスイート・FullLength・savetest・leakhunt → Z・M・S11・S11z（約 30＋25＋3.5＋0.1GB）→ M の読みと lo の腕 B との突き合わせ → M の表のうち lo の腕 B とバイトで同じ物は lo の腕 B のファイルへのハードリンクに置き換える（keep_1129 の型・lo の生は消さない）→ Z を判定の後に sha1 を取って消す → N1・N2・p5・p10。
+- 線の生（c110lo_work・ident_c110tb）は線の担当の物＝合流は消さない・移さない（指示〈消してよいのはこの回に自分で作ったフォルダだけ〉）。
+- keep_1122・keep_1129・keep_1129_rej は消さない・中身も移さない。
+
+[8] 採ったときの新しい基線 m1136
+- 成績表 b5_20261114_m1136・b10_20261114_m1136・b10_20261114_m1136_ins・mon_20261114_m1136.txt・ヌル腕 b10_20261114_m1136_n1_ins・_n2_ins・b10s11_20261114_m1136_ins・NG の基準 measurements/ng1136_20261114・止める線の基準 measurements/m1136_20261114/stopbase/・生 D:/PoB_work/keep_1136（base_ins・n1・n2・a11）。
+- ident.cfg：B5・B10INS・MON・INSRAW・BASE_COMMIT・STAGE_BASE（測った木）・TESTS_NONFULL 2847・NG_BASE ng1136。
+- S11 で落ちたら基線は m1122 のまま（合わせた木の恒等は腕 Z で読む）・lo は外し、腕の生は keep_1136_rej へ。
