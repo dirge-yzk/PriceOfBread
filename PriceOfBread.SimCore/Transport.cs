@@ -158,7 +158,7 @@ public static class Transport
                     if (!(terrLay > 0)) terrLay = 1.0;
                 }
                 perGood = wantCap / c.TransportCapPerUnit * terrLay / goods.Length;
-                rm?.Pre(r);
+                rm?.Pre(r, need);
                 if (!(perGood > 1e-9)) { rm?.Post(r, 0.0); continue; }
             }
             int buyerIdx = rail ? r.InvestorPopIndex : (r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex);
