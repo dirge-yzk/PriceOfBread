@@ -356,6 +356,7 @@ public static partial class Instruments
         public double Bought, LaidTerr, DecayLoss, WarLoss, InsRail, PaidRail;
         public long Months, G2Rows, G2Viol, G7Excess, G7Fell, G7Lock, G7Hold12, G1ZeroSides, G1ZeroViol, G1Jump, G1PosSides, G1FormulaViol, G3NoShare, G4Moves, G4Viol;
         public double PrevPost = double.NaN, RunStartE, PreDecay, TPre, NeedPre;   // 年をまたいで持つ（Clear で消さない）
+        public double MoveBefore = double.NaN;   // (1125) 割譲・分離・返還の時点の州の線路＝受け手の次の月の輸送の頭で読み直す（G4）。年をまたいで持つ
         public int RunLen;
         public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; }
     }
@@ -400,7 +401,16 @@ public static partial class Instruments
     {
         if (!(c.RailByRegion > 0)) return null;
         var m = new RailMonth(w, c);
-        foreach (var r in w.Regions) RailOf(r).PreDecay = r.RailTrack;
+        foreach (var r in w.Regions)
+        {
+            var a = RailOf(r); a.PreDecay = r.RailTrack;
+            if (!double.IsNaN(a.MoveBefore))
+            {
+                a.G4Moves++;   // G4：移した州の線路は受け手の次の月の頭までビットで変わらない（受け手の世界の州の並びに居る）
+                if (BitConverter.DoubleToInt64Bits(r.RailTrack) != BitConverter.DoubleToInt64Bits(a.MoveBefore)) a.G4Viol++;
+                a.MoveBefore = double.NaN;
+            }
+        }
         return m;
     }
 
@@ -447,17 +457,21 @@ public static partial class Instruments
     }
 
     /// <summary>戦災（Transport.WearRail・旗 1）：州ごとの失い。</summary>
-    internal static void RailWar(World w, double wear) { foreach (var r in w.Regions) RailOf(r).WarLoss += r.RailTrack * wear; }
-
-    /// <summary>割譲の頭（Transport.TakeRailForMove・旗 1）：州の線路を計器が自分で読む。End で同じ州の線路を読み直し、差があれば G4 の破れ。</summary>
-    internal static RailMove RailMoveBegin(World from, Region r) => new RailMove(r.RailTrack);
-    internal sealed class RailMove(double before)
+    internal static void RailWar(World w, double wear)
     {
-        internal void End(Region r)
+        foreach (var r in w.Regions)
         {
-            var a = RailOf(r); a.G4Moves++;
-            if (BitConverter.DoubleToInt64Bits(r.RailTrack) != BitConverter.DoubleToInt64Bits(before)) a.G4Viol++;
+            var a = RailOf(r); a.WarLoss += r.RailTrack * wear;
+            if (!double.IsNaN(a.MoveBefore)) a.MoveBefore *= 1.0 - wear;   // 移した後の戦災はエンジンと同じ式で追う（r.RailTrack *= 1.0 - wear）
         }
+    }
+
+    /// <summary>割譲・分離・返還の頭（Transport.TakeRailForMove・旗 1）：移す時点の州の線路を控える。読み直しは受け手の次の月の輸送の頭（RailMonthBegin・減耗の前）＝TransferRegion の後の受け手の側（(1125)）。
+    /// 旧は頭の直後に End を呼んでいた＝間に何も無く必ず通る門だった。</summary>
+    internal static RailMove RailMoveBegin(World from, Region r) { RailOf(r).MoveBefore = r.RailTrack; return new RailMove(); }
+    internal sealed class RailMove
+    {
+        internal void End(Region r) { }   // Transport.cs の呼び口は残す（そこには触れない）。判定は RailMonthBegin
     }
 
     /// <summary>清算の線路の運賃の払い（BilateralMarket.PayRailFreight・金建て）：受け手がその州の持ち主か、取り分を持つ外国かを計器が自分で確かめる（G3）。</summary>
@@ -477,13 +491,16 @@ public static partial class Instruments
     static void RailDealSide(InternationalMarket m, World w, Region r, double mult, double landFreight)
     {
         var c = w.Coef;
-        if (RailInsWater(r, c)) return;   // 水運の州は母集合の外
+        bool water = RailInsWater(r, c);   // 水運の州は G1 の母集合の外。G3 の計器の線路の分は水運の州も足す（(1125)・エンジンは水の費用を馬の費用・その RailCostFraction 倍を鉄道の費用として同じ φ の混ぜで払う）
         var a = RailOf(r);
-        var (h, rl) = RailInsBases(r, c);
+        double h, rl;
+        if (water) { h = r.Terrain == Terrain.WaterMajor ? c.TerrainWaterMajorCost : c.TerrainWaterMinorCost; rl = h * Math.Min(1.0, Math.Max(0.0, c.RailCostFraction)); }
+        else (h, rl) = RailInsBases(r, c);
         double ratio = c.LandSeaCostRatio;
         double t = r.RailTrack;
         if (!(t > 0))
         {
+            if (water) return;
             a.G1ZeroSides++;
             double want = ratio * h;
             if (!(Math.Abs(mult - want) <= 1e-12 * Math.Abs(want))) a.G1ZeroViol++;
@@ -496,8 +513,11 @@ public static partial class Instruments
         double phi = RailInsPhi(t, nc.Target * RailInsShare(w, r));
         double terr = (1.0 - phi) * h + phi * rl;
         double exp = ratio * terr;
-        a.G1PosSides++;
-        if (!(Math.Abs(mult - exp) <= 1e-9 * Math.Abs(exp))) a.G1FormulaViol++;
+        if (!water)
+        {
+            a.G1PosSides++;
+            if (!(Math.Abs(mult - exp) <= 1e-9 * Math.Abs(exp))) a.G1FormulaViol++;
+        }
         if (terr > 0 && phi > 0) a.InsRail += landFreight * (phi * rl / terr);
     }
 
