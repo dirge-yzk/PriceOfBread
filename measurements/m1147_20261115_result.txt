@@ -11,7 +11,7 @@
 足した列の一覧
  - rponset_s：quarter・year・nation・region・tier・rowKind・foreignKey・classHead・sHead・sEnd・riseS・fallS・adjacentFlag・atWarFlag・ownerAtWarFlag・firstTableFlag・dataStateFlag・hasPairHeadFlag・tailFlag・tailMass。
  - 触る行：InstrumentsRulePower.cs（RpSnap.Head・RpState の 2 欄・RpSnapshot の門と写し・RulePowerTable の 1 行の呼び口）・InstrumentsRule.cs（RuleFold の列と純関数）・InstrumentsTransport.cs（RailAcc.PaidRailForeign・RailOf を internal・trrail_s の 1 列）・InstrumentsCorncf.cs（CfForeignPort の 1 行）・新しい InstrumentsRponset.cs。Instruments.cs・DormantIdentityTests.cs・エンジンの .cs には触れていない。
-足した試験（PriceOfBread.Tests/RuleOnsetInstrumentTests.cs）8 本：B1 :52・B2 :80・B3 :103・B4 :122・C1 :146・C2 :175・D1 :193・F1 :208（行は目安）。
+足した試験（PriceOfBread.Tests/RuleOnsetInstrumentTests.cs）8 本：B1 :67・B2 :97・B3 :127・B4 :145・C1 :170・C2 :199・D1 :219・F1 :236。
 突然変異（measurements/m1147_20261115_mut.txt・台本 scripts/instruments/c112cm/mutate.py）：CTL 緑（8/8）・M-b 赤（B1・B2）・M-c 赤（C1・C2）・M-d 赤（D1）・M-f 赤（F1）。予言どおり。
 走査の番人（㉘）：初回 190 本緑・最後の頭 191 本緑（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・RuleInstrumentTests・RuleOnsetInstrumentTests・CorncfInstrumentTests）。書き換えた件数の番人 0（予言どおり）。
 フルスイート：直す前の木で Tests 合格 2630・失敗 1・スキップ 1（合計 2632＝予言）／Tests.Ui 234 合格。失敗 1＝RuleInstrumentTests T4（rule_s の末尾 9 列を固定する配置の試験）＝新しい列を P1 の 9 列の手前へ移して直した（試験は書き換えていない）。直した後は関連の束 83 本緑・最後の頭の束 191 本緑。フルスイート全体は直した後に回し直していない（再実行は 1 時間）＝合流が合わせた木で回す。
