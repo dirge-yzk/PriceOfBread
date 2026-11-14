@@ -353,11 +353,12 @@ public class ClearingScopeTests
     }
 
     [Fact]
-    public void 覚えは作業領域でありセーブに載らない()
+    public void 覚えはセーブに載り作業の添字は載らない()
     {
+        // (1125)：守る向きの反転（作者 2026-11-13 のマルコフ性の洗い出し・作者「全て推奨で」で推奨を採った）。旧は覚え（Market.ClearPartners）が [NonSerialized] であることを固定していた。
         var f = typeof(Market).GetField("ClearPartners", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         Assert.NotNull(f);
-        Assert.True(f!.IsNotSerialized, "覚え（Market.ClearPartners）は [NonSerialized]＝状態ではなく作業領域");
+        Assert.False(f!.IsNotSerialized, "覚え（Market.ClearPartners）はセーブに載る＝四半期の途中の往復で残る状態");
         foreach (var name in new[] { "ClearSellerPos", "ClearSellerStamp" })
         {
             var rf = typeof(Region).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
