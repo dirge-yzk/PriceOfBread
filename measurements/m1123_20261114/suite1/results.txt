@@ -1,0 +1,8 @@
+suite_nonfull_PriceOfBread.Tests: 失敗!   -失敗:     2、合格:  2605、スキップ:     1、合計:  2608、期間: 28 m 25 s - PriceOfBread.Tests.dll (net10.0)
+suite_full_PriceOfBread.Tests: 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 48 s - PriceOfBread.Tests.dll (net10.0)
+suite_nonfull_PriceOfBread.Tests.Ui: 成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 46 s - PriceOfBread.Tests.Ui.dll (net10.0)
+suite_full_PriceOfBread.Tests.Ui: 
+i39_PriceOfBread.Tests: 成功!   -失敗:     0、合格:   305、スキップ:     0、合計:   305、期間: 17 m 31 s - PriceOfBread.Tests.dll (net10.0)
+i39_PriceOfBread.Tests.Ui: 成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 18 s - PriceOfBread.Tests.Ui.dll (net10.0)
+  失敗 PriceOfBread.Tests.ScoreReaderTests.条約港の風化は列強の中央値を基準にする [58 s]
+  失敗 PriceOfBread.Tests.ZeroPopSkipTests.新しい件数の行は台帳の三つの表がそろい単価が0で推定を動かさない [1 ms]
