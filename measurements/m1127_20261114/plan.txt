@@ -1,0 +1,24 @@
+(1127) c109s05 読む：台帳の系統の確かめ S05 投資と建設（2026-11-14・読むだけ・コミット 0・腕 0）
+書いたモデル：Claude Opus 5.5
+
+作業の場所
+- 作業フォルダ D:/PoB_work/r1127_work/（この回に作った・合流が写すまで消さない）
+- 台本 D:/PoB_work/r1127_work/*.py（scripts/instruments/r1127/ はリポジトリの木に作らない＝読むだけの線・コミットしない。合流が要れば写す）
+- 読む木：main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 758f554ed を確かめた・書かない）。worktree・枝は作らない。
+
+読む生（列は head -1 で確かめる）
+- M  ＝ D:/PoB_work/keep_1122/base_ins（e6037c980・種 1〜10）
+- N1 ＝ D:/PoB_work/keep_1122/n1、N2 ＝ D:/PoB_work/keep_1122/n2（ヌル腕・種 1〜10）
+- S11＝ D:/PoB_work/keep_1122/a11（種 11〜20・表が少ない）
+- 候補の表：factory・fb・flow・fiscal・eq・eqr・spend・stock・prodcap・minecap・nation・scalars・sbr・ivf・cons・landsale・landshare・site
+
+読む文書
+- docs/機能の台帳.md §0 の S05 の行（33 行）と §S05 の 28 行（865〜892）
+- docs/ゲーム概要と実装機能.md 986〜1129（見出しは grep で確かめる）
+- 前例 measurements/m1101_20261113/ledger_S08_2026-11-13.md・.tsv（形を写す）
+- scratchpad ledger_mapping_2026-11-12.md・lines_round2_2026-11-12.md・memory pob-ui-sim-findings-2026-11-12.md（読むだけ）
+
+出す物
+- freq.py → out_freq_{M,N1,N2,S11}.txt（行ごとの頻度）
+- readers.txt（消す候補の読み手の grep の行数）
+- ledger_S05_2026-11-14.tsv（28 行＋分けた行・12 列）・ledger_S05_2026-11-14.md（下書き）

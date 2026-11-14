@@ -1,0 +1,51 @@
+# Рґ D:/PoB_work/keep_1122/n2БiN2Бj
+H001_built_rowshare	Он10	0.7494Б`0.863	median 0.8036
+H001_crowding_rowshare	Он10	0.1516Б`0.2377	median 0.1747
+H001_desiring_month_share	Он10	0.9998Б`1	median 1
+H001_heat_rowshare	Он10	1Б`1	median 1
+H001_hurdle_median	Он10	0.6976Б`0.6997	median 0.6994
+H002_absorb_lt1_share	Он10	0.9822Б`0.9884	median 0.9831
+H002_absorb_median	Он10	0.6097Б`0.6261	median 0.6215
+H005_binding_input	Он10	s1=Machine:19429,Steel:9795,Labor:2902 s2=Machine:19413,Steel:9559,Labor:3154 s3=Machine:19441,Steel:11096,Labor:2553 s4=Machine:18518,Steel:10336,Labor:3359 s5=Machine:18048,Steel:10800,Labor:3244 s6=Machine:20854,Steel:10092,Labor:2778 s7=Machine:19268,Steel:10085,Labor:2779 s8=Machine:19298,Steel:10215,Labor:2873 s9=Machine:18193,Steel:9802,Labor:3375 s10=Machine:20513,Steel:10092,Labor:2634
+H005_min_ration_lt099_share	Он10	0.8279Б`0.8692	median 0.8474
+H005_nq	Он10	3.786e+04Б`3.906e+04	median 3.805e+04
+H006_labor_ration_lt099_share	Он10	0.4471Б`0.4726	median 0.4561
+H008_budget_bound_month_share	Он10	0.4709Б`0.5751	median 0.5173
+H008_cut_money_share	Он10	0.4379Б`0.6383	median 0.5527
+H009_rail_pay_before_raildisc_share	Он10	0.4597Б`0.9384	median 0.5992
+H009_rail_rows_before_raildisc_pay>0	Он10	479Б`545	median 503
+H016_completedScale_sum	Он10	225.5Б`501.5	median 380.5
+H016_completed_nq_share	Он10	0.02346Б`0.03956	median 0.03036
+H018_rent>0_rowshare	Он10	1Б`1	median 1
+H018_rent_of_va	Он10	0.4252Б`0.4592	median 0.442
+H019_capitalEquipFill_lt099_share	Он10	0.8574Б`0.928	median 0.9082
+H019_capitalEquipFill_median	Он10	0.7126Б`0.8317	median 0.7891
+H021_priceGate<0.999_share	Он10	0.7653Б`0.8738	median 0.8061
+H022_max_rel_resid_va-rent-wages	Он10	6.166e-15Б`7.955e-15	median 7.323e-15
+H023_nationalizedMask!=0_share	Он10	0Б`0.01931	median 0.003502
+H024_bankrupt_nq_share	Он10	0.8136Б`0.8601	median 0.8397
+H024_bankrupt_of_factories	Он10	0.01319Б`0.02011	median 0.01593
+H026_output_share_over15	Он10	0Б`3.913e-05	median 0
+H026_rows_builtOver15>0	Он10	0.003163Б`0.007616	median 0.005258
+fiscal_claimAdminPerMonth!=0	Он10	1Б`1	median 1
+fiscal_claimElecInfraPerMonth!=0	Он10	0.9859Б`1	median 0.9923
+fiscal_claimInfraPerMonth!=0	Он10	0.9859Б`1	median 0.9923
+fiscal_claimLastMonthFactoryBuildPerMonth!=0	Он10	0.3532Б`0.5181	median 0.4592
+fiscal_claimLastMonthSubsidyPerMonth!=0	Он10	0.2003Б`0.3144	median 0.2425
+fiscal_claimStateConstructionPerMonth!=0	Он10	0.3606Б`0.5301	median 0.4598
+fiscal_claimStateLossPerMonth!=0	Он10	0.4069Б`0.5315	median 0.4857
+fiscal_ledgerFactoryBuildPerMonth!=0	Он10	0.3716Б`0.5427	median 0.4758
+fiscal_ledgerMegaprojectPerMonth!=0	Он10	0Б`0	median 0
+fiscal_ledgerModernizationPerMonth!=0	Он10	0.3297Б`0.3323	median 0.3309
+fiscal_ledgerStateFactoryPerMonth!=0	Он10	0.8016Б`0.9093	median 0.8599
+fiscal_ledgerSubsidyPerMonth!=0	Он10	0.9997Б`1	median 1
+flow_Colonial.cs:124|giveIncome_rows	Он10	5413Б`9304	median 7209
+flow_Colonial.cs:94|giveIncome_rows	Он10	3076Б`4194	median 3525
+flow_Colonial.cs:94|take_rows	Он10	3076Б`4194	median 3525
+flow_Megaprojects.cs_rows	Он10	0Б`0	median 0
+flow_World.cs:1583|give_rows	Он10	2677Б`4316	median 3636
+spend_ГCГУГtГЙХџОз_pay>0	Он10	s1=553/553 s2=553/553 s3=556/556 s4=557/557 s5=558/558 s6=561/561 s7=557/557 s8=556/556 s9=559/559 s10=555/555
+spend_МЪРЁВ…ХtВ≠РьШHВ∆Л@К÷О‘_pay>0	Он10	s1=554/554 s2=553/553 s3=556/556 s4=557/557 s5=558/558 s6=563/563 s7=557/557 s8=556/556 s9=559/559 s10=555/555
+spend_МЪРЁВћНёЧњВ∆НHТј_pay>0	Он10	s1=555/555 s2=553/553 s3=556/556 s4=557/557 s5=558/558 s6=563/563 s7=557/557 s8=556/556 s9=559/559 s10=555/555
+spend_О~В№ВЅВљНHПкВћНƒКJВћФ≠ТН_pay>0	Он10	s1=1038/1038 s2=1058/1058 s3=1007/1007 s4=1045/1045 s5=1077/1077 s6=1045/1045 s7=1038/1038 s8=1042/1042 s9=1060/1060 s10=1083/1083
+spend_СЧУdЦ‘_pay>0	Он9	s1=10/10 s2=17/17 s4=16/16 s5=14/14 s6=6/6 s7=14/14 s8=24/24 s9=20/20 s10=17/17

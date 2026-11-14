@@ -1,0 +1,38 @@
+EconomyStep.cs:989:            if (coef.SubsidySoftBudgetDecay > 0)
+EconomyStep.cs:990:                boost *= 1.0 - coef.SubsidySoftBudgetDecay * s.SubsidyDependence;
+EconomyStep.cs:1089:            region.ConstructionCarryover ??= new double[ng];
+EconomyStep.cs:1091:            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G0, bundle.Q0 * construction);
+EconomyStep.cs:1092:            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G1, bundle.Q1 * construction);
+EconomyStep.cs:1093:            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G2, bundle.Q2 * construction);
+EconomyStep.cs:1094:            AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, bundle.G3, bundle.Q3 * construction);
+EconomyStep.cs:1189:            if (coef.MotorFuelRate > 0 && Catalog.CrudeOilId < ng)
+EconomyStep.cs:1191:                double mfNeed = region.MilitaryScale * coef.MotorFuelRate;
+EconomyStep.cs:1325:            adminNeed = coef.AdminNeedPerPop * totalPop;
+EconomyStep.cs:1339:            infraNeed = coef.InfraNeedPerUrban * urbanPop;
+EconomyStep.cs:1349:            elecInfraNeed = coef.ElecInfraNeedPerUrban * urbanPop;
+EconomyStep.cs:2083:            if (region.ConstructionCarryover is { } carry)
+EconomyStep.cs:2426:            // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。〔履歴 EconomyStep.cs#335〕
+EconomyStep.cs:2653:        if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
+EconomyStep.cs:2654:        return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（満額適用＝1.0・軍需財だけ MilitaryProcurePriceGateScale で下げる）
+Instruments/Instruments.cs:354:        return w.Coef.AdminNeedPerPop * totalPop * Math.Max(r.Markets[Catalog.AdminId].Price, 1e-9) * Fiscal.AdminDistanceMul(w, r);
+Instruments/InstrumentsArms.cs:80:                if (c.MilitaryProcurePriceGateScale < 1.0) g1 *= System.Math.Max(0, c.MilitaryProcurePriceGateScale);
+Instruments/InstrumentsCorncf.cs:104:        if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
+Instruments/InstrumentsCorncf.cs:107:            if (bit >= 0 && (r.NationalizedMask & (1 << bit)) != 0) f = System.Math.Max(f, c.NationalizationStateShare.Value);
+Military.cs:168:        if (c.GarrisonProcurement > 0 && sSize > 1e-9)
+Military.cs:177:            equipFillEff = (1.0 - c.GarrisonProcurement) * equipFillEff + c.GarrisonProcurement * garFill;
+Model.cs:708:    public double[]? ConstructionCarryover;
+NationBrief.cs:54:        double cost = coef.AdminNeedPerPop * Catalog.RefPrices[Catalog.AdminId] * Population(c);
+Simulation.cs:761:                if (pr.IsRgo && coef.PlantationRentShare.Value > 0)
+Simulation.cs:763:                    double plantation = coef.PlantationRentShare.Value;
+Simulation.cs:1303:                if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare.Value > pr.RentShare.Value)
+Simulation.cs:1305:                    pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;
+Simulation.cs:1782:                    double gGar = World.Coef.GarrisonProcurement;
+Simulation.cs:1802:                r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // MilitaryBudgetCeiling〔履歴 Simulation.cs#210
+Simulation.cs:1808:                r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全て�
+Simulation.cs:1948:                if (World.Coef.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
+World.cs:1971:        if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0 && Nationalization.IsNationalized(p.GoodId, r.NationalizedMask))
+World.cs:1972:            f = Math.Max(f, c.NationalizationStateShare.Value);
+World.cs:2018:        if (Coef.SoeSaleMilitancyCeil > 0 && r.Pops[r.InvestorPopIndex].Militancy > Coef.SoeSaleMilitancyCeil)
+World.cs:2154:        bool seize = Coef.NationalizationSeizureRate > 0;
+World.cs:2217:        double want = Coef.NationalizationStateShare.Value * p.Scale;
+World.cs:2222:        double take = Math.Min(gap, Coef.NationalizationSeizureRate * p.Scale);

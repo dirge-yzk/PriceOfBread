@@ -1,0 +1,22 @@
+# Рґ D:/PoB_work/keep_1122/a11БiS11Бj
+H005_binding_input	Он10	s11=Machine:19286,Steel:9984,Labor:2992 s12=Machine:18977,Steel:11977,Labor:2785 s13=Machine:19999,Steel:10289,Labor:2819 s14=Machine:19851,Steel:10024,Labor:2698 s15=Machine:21045,Steel:9773,Labor:2666 s16=Machine:19304,Steel:9732,Labor:2980 s17=Machine:20616,Steel:10029,Labor:2775 s18=Machine:19558,Steel:9321,Labor:3183 s19=Machine:18213,Steel:11312,Labor:2890 s20=Machine:17932,Steel:10028,Labor:3310
+H005_min_ration_lt099_share	Он10	0.8197Б`0.8688	median 0.8529
+H005_nq	Он10	3.794e+04Б`3.89e+04	median 3.839e+04
+H006_labor_ration_lt099_share	Он10	0.4449Б`0.4788	median 0.4561
+H019_capitalEquipFill_lt099_share	Он10	0.8628Б`0.943	median 0.902
+H019_capitalEquipFill_median	Он10	0.7709Б`0.8487	median 0.8067
+H023_nationalizedMask!=0_share	Он10	0Б`0.01612	median 0.00204
+H026_output_share_over15	Он10	0Б`0.0002661	median 0
+H026_rows_builtOver15>0	Он10	0.002425Б`0.00614	median 0.004859
+fiscal_claimAdminPerMonth!=0	Он10	1Б`1	median 1
+fiscal_claimElecInfraPerMonth!=0	Он10	0.9642Б`1	median 0.9915
+fiscal_claimInfraPerMonth!=0	Он10	0.9642Б`1	median 0.9915
+fiscal_claimLastMonthFactoryBuildPerMonth!=0	Он10	0.4248Б`0.5195	median 0.4816
+fiscal_claimLastMonthSubsidyPerMonth!=0	Он10	0.1879Б`0.3004	median 0.2528
+fiscal_claimStateConstructionPerMonth!=0	Он10	0.4251Б`0.5223	median 0.4822
+fiscal_claimStateLossPerMonth!=0	Он10	0.3678Б`0.4959	median 0.4539
+fiscal_ledgerFactoryBuildPerMonth!=0	Он10	0.436Б`0.5364	median 0.4969
+fiscal_ledgerMegaprojectPerMonth!=0	Он10	0Б`0	median 0
+fiscal_ledgerModernizationPerMonth!=0	Он10	0.33Б`0.3318	median 0.3309
+fiscal_ledgerStateFactoryPerMonth!=0	Он10	0.8052Б`0.9056	median 0.8618
+fiscal_ledgerSubsidyPerMonth!=0	Он10	0.9998Б`1	median 1

@@ -1,0 +1,23 @@
+### S05 投資と建設
+
+| 行 | 系統 | 機能 | 期待する動き（出典） | 錨 | 持ち主のファイル | 判定の型 | 最後に確かめた | 判定 | 根拠 | 残りタスク | 直す／消す／残す |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| S05-H018 | S05 | プランテーションの地代 | 文書 L1076（粒＝見出し・未分割） | Coefficients.cs:2199:PlantationRentShare | EconomyStep.cs Simulation.cs | — | — | この波の線が埋める (891) c75ds | 文書の記号 ●（9-26・写さない） | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H019 | S05 | 軍需の4段階 | 文書 L1081（粒＝見出し・未分割） | Coefficients.cs:2480:GarrisonProcurement;Coefficients.cs:3560:MotorFuelRate | EconomyStep.cs Military.cs Simulation.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない）；消えた係数 ArmsStockEnabled・ArmsWearRate・BaseArmsStockEnabled・EquipNeedsDiscovery・MilitaryProcureProRata・NavalProcurementFromShape・NavalProcurementNeedsPort | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H020 | S05 | 行政・上下水道・電化インフラの国家調達（兵士の給与は下の注記） | 文書 L1086（粒＝見出し・未分割） | Coefficients.cs:714:AdminNeedPerPop;Coefficients.cs:2082:ElecInfraNeedPerUrban;Coefficients.cs:2079:InfraNeedPerUrban | EconomyStep.cs NationBrief.cs Simulation.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない）；消えた係数 AdminProcurePriceGate | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H021 | S05 | 国家の買い付けも相場を見る | 文書 L1091（粒＝見出し・未分割） | Coefficients.cs:1116:MilitaryProcurePriceGateScale | EconomyStep.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない）；消えた係数 StateProcurePriceGate | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H022 | S05 | 儲けの分配 | 文書 L1096（粒＝見出し・未分割） | — | EconomyStep.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない） | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H023 | S05 | 国有化・補助金・軟予算制約 | 文書 L1100（粒＝見出し・未分割） | Coefficients.cs:3205:NationalizationSeizureRate;Coefficients.cs:3198:NationalizationStateShare;Coefficients.cs:3216:SoeSaleMilitancyCeil;Coefficients.cs:1988:SubsidySoftBudgetDecay | EconomyStep.cs Simulation.cs World.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない）；消えた係数 SeizureMilitancyCost・SubsidyDependenceRate・SubsidyRespectsSpendingCap | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H024 | S05 | 会社の参入と退出 | 文書 L1105（粒＝見出し・未分割） | Coefficients.cs:38:FactoryBankruptcyMargin;Coefficients.cs:37:FactoryMarginSmoothing;Coefficients.cs:39:FactoryReentryMargin;Coefficients.cs:40:FactoryReentryScale | Discovery.cs EconomyStep.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない）；消えた係数 FactoryBankruptcyAllTiers | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H025 | S05 | 工場の休止（もう1つの動詞） | 文書 L1110（粒＝見出し・未分割） | Coefficients.cs:1122:FactoryMothballCap;Coefficients.cs:1121:FactoryMothballMarginIn;Coefficients.cs:1120:FactoryMothballRate | EconomyStep.cs Model.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない） | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H026 | S05 | 供給弾力のカテゴリ制約（鉱山と畑は工場のようには伸びない） | 文書 L1115（粒＝見出し・未分割） | Coefficients.cs:3426:FarmScaleCap;Coefficients.cs:3425:MineralScaleCap;Coefficients.cs:3427:RgoScaleSpeedFactor | EconomyStep.cs | — | e6037c980 | 働く（S28-28 を写した＝鉱物の上限は旗 MineralScaleCapLift 1 で ScaleMax 3.0・(1122)） | (1089) c104fb で旗 FarmScaleCap を焼いた（旗 1 の道だけ残す・FactoryBuildRefIsReal は旗 0 の道・欄は DormantIdentityTests の RetiredFields）＝(1096) 合流で main へ・錨の旗の名は消えた（挙動は確かめ直していない）。文書の記号 ●（9-26・写さない）；消えた係数 RgoElasticityGate | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H027 | S05 | 勢いで投資する（バブルの種） | 文書 L1120（粒＝見出し・未分割） | Coefficients.cs:2610:InvestExtrapolationWeight | EconomyStep.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない） | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+| S05-H028 | S05 | 商人への売上振替／植民地素材の輸入 | 文書 L1125（粒＝見出し・未分割） | Simulation.cs:61:Simulation | Colonial.cs EconomyStep.cs Simulation.cs | — | — | 未確かめ | 文書の記号 ●（9-26・写さない）；消えた係数 ColonialExtractionFraction・ColonialImportLagMonths・ColonialProfitInvestorShare・ColonialProfitMerchantShare・TradeColonialGoods | 巨大建造物・u12 B′（612 行）・建屋の段の耐久・StateBuildQueue gc7（616 行） | — |
+
+
+### S06 お金の記帳・物価・GDP・損害
+
+| 行 | 系統 | 機能 | 期待する動き（出典） | 錨 | 持ち主のファイル | 判定の型 | 最後に確かめた | 判定 | 根拠 | 残りタスク | 直す／消す／残す |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| S06-H001 | S06 | 失業率と生活水準 | 文書 L1130（粒＝見出し・未分割） | Coefficients.cs:831:JobSearchUsesEma;Coefficients.cs:829:ServiceUnemployment | Crime.cs EconomyStep.cs Meritocracy.cs | — | — | 未確かめ | 2026-11-12 紙の段で門ごとに割った＝S06-01・S06-02・S06-03・S06-04（§4-6）；文書の記号 ●（9-26・写さない）；消えた係数 CrimeSatPenalty・CrimeWealthFearWeight | r1（612 行）・価格水準 aic（616 行 ⓪） | — |
+| S06-H002 | S06 | お金の厳密な記帳 | 文書 L1135（粒＝見出し・未分割） | Bank.cs:19:Carry;UnionBargaining.cs:58:Transfer;Simulation.cs:52:World | Bank.cs EconomyStep.cs Invariants.cs Model.cs Simulation.cs UnionBargaining.cs World.cs | — | — | 未確かめ | 2026-11-12 紙の段で門ごとに割った＝S06-05・S06-06・S06-07（§4-6）；文書の記号 ●（9-26・写さない） | r1（612 行）・価格水準 aic（616 行 ⓪） | — |

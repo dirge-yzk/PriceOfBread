@@ -1,0 +1,50 @@
+PriceOfBread.SimCore/CapitalMarket.cs:63:            double abs = c.CapitalCreditFloor + (1.0 - c.CapitalCreditFloor) * TechEducation.AbsorptionOf(w[i], c);
+PriceOfBread.SimCore/CapitalMarket.cs:65:            ret[i] = headroom * (c.CapitalCreditFloor + (1.0 - c.CapitalCreditFloor) * cr) + c.PolicyRateCapitalDraw * w[i].InterestRate * cr;
+PriceOfBread.SimCore/CapitalMarket.cs:69:                exCap.Add("CapitalReturn", "工業化の伸びしろ（信用でゲート）", headroom * (c.CapitalCreditFloor + (1.0 - c.CapitalCreditFloor) 
+PriceOfBread.SimCore/EconomyStep.cs:788:        // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄�
+PriceOfBread.SimCore/EconomyStep.cs:790:            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+PriceOfBread.SimCore/EconomyStep.cs:1041:        double privateIndPerConstruction = coef.IndPerConstruction;   // privateIndPerConstruction〔履歴 EconomyStep.cs#137〕
+PriceOfBread.SimCore/EconomyStep.cs:1062:                buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
+PriceOfBread.SimCore/EconomyStep.cs:1063:                              + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
+PriceOfBread.SimCore/EconomyStep.cs:1065:            double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+PriceOfBread.SimCore/EconomyStep.cs:1074:            double desiredGrowth = coef.IndInvestmentSpeed * jointStock * Math.Max(0, netReturn);
+PriceOfBread.SimCore/EconomyStep.cs:1077:            if (coef.PrivateAbsorptionBlend > 0 && world is not null)
+PriceOfBread.SimCore/EconomyStep.cs:1079:                double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
+PriceOfBread.SimCore/EconomyStep.cs:1080:                privateAbsorb = 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+PriceOfBread.SimCore/EconomyStep.cs:1083:            privateIndPerConstruction = PrivateIndPerConstruction(region, coef);   // privateIndPerConstruction〔履歴 EconomyStep.cs#151〕
+PriceOfBread.SimCore/EconomyStep.cs:1084:            construction = Math.Min(desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFra
+PriceOfBread.SimCore/EconomyStep.cs:1085:            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildC
+PriceOfBread.SimCore/EconomyStep.cs:1086:            if (Instruments.On && world is not null) Instruments.ConsRegion(world, region, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (
+PriceOfBread.SimCore/EconomyStep.cs:1087:            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, grossReturn, sat, techLev, hurdle, netReturn, jointStock, privateAbso
+PriceOfBread.SimCore/EconomyStep.cs:1099:                conLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * construction / lWagePrice;
+PriceOfBread.SimCore/EconomyStep.cs:1108:                investDemand[coef.RailGoodId] += coef.ConsRail * construction;
+PriceOfBread.SimCore/EconomyStep.cs:1109:                investDemand[coef.LocoGoodId] += coef.ConsLoco * construction;
+PriceOfBread.SimCore/EconomyStep.cs:1115:            double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoP;   // 経18：機関車の更新頻度（耐久財＝低頻度。既定0.5＝旧�
+PriceOfBread.SimCore/EconomyStep.cs:1121:            if (coef.RailCoalRate > 0 && railLoco && Catalog.CoalId < ng)
+PriceOfBread.SimCore/EconomyStep.cs:1124:                maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
+PriceOfBread.SimCore/EconomyStep.cs:1127:            maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費
+PriceOfBread.SimCore/EconomyStep.cs:1133:                investDemand[coef.LocoGoodId] += maintenance * coef.MaintLocoRate;   // 車両の更新（耐久財＝低頻度。経18：既定0.5＝旧直書
+PriceOfBread.SimCore/EconomyStep.cs:1134:                if (railCoalGate > 0) investDemand[Catalog.CoalId] += maintenance * coef.RailCoalRate * railCoalGate;   // railCoalGate〔履歴 EconomyStep.cs
+PriceOfBread.SimCore/EconomyStep.cs:2075:            double privateIndGain = built * privateIndPerConstruction;   // privateIndGain〔履歴 EconomyStep.cs#292〕
+PriceOfBread.SimCore/EconomyStep.cs:2098:                double railGot = coef.ConsRail * construction * ration[coef.RailGoodId];
+PriceOfBread.SimCore/EconomyStep.cs:2099:                double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
+PriceOfBread.SimCore/EconomyStep.cs:2137:                double locoQ = maintenance * coef.MaintLocoRate * ration[coef.LocoGoodId];   // 経18：既定0.5＝旧直書きと同値・中立
+PriceOfBread.SimCore/EconomyStep.cs:2152:                double coalQ = maintenance * coef.RailCoalRate * railCoalGate * ration[Catalog.CoalId];   // 投資家が支払い石炭生産者の売上へ�
+PriceOfBread.SimCore/EconomyStep.cs:2459:            double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax); 
+PriceOfBread.SimCore/EconomyStep.cs:2589:        double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
+PriceOfBread.SimCore/EconomyStep.cs:2590:        return (techLev, sat, marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle);
+PriceOfBread.SimCore/EconomyStep.cs:2608:    /// 旧の束（鋼・機械・セメント・製材）は Steel＝4 枠・量は ConsSteel ほか・財の id は SteelGoodId ほか。〔履歴 EconomySt
+PriceOfBread.SimCore/EconomyStep.cs:2620:        public static ConsBundle Steel(Coefficients c) => new(c.SteelGoodId, c.ConsSteel, c.MachineGoodId, c.ConsMachine, c.CementGoodId, c.ConsCement, c.Lumbe
+PriceOfBread.SimCore/EconomyStep.cs:2621:        public static ConsBundle Building(Coefficients c) => new(Catalog.BuildingId, c.ConsBuilding, c.MachineGoodId, c.ConsMachine);
+PriceOfBread.SimCore/EconomyStep.cs:2689:    /// IndCapitalOutputYears（κ）＝0 なら IndPerConstruction（1 束＝0.01・州の大きさに依らない＝今まで）。〔履歴 EconomyStep.cs#3
+PriceOfBread.SimCore/EconomyStep.cs:2691:    internal static double PrivateIndPerConstruction(Region region, Coefficients coef)
+PriceOfBread.SimCore/EconomyStep.cs:2693:        if (!(coef.IndCapitalOutputYears > 0)) return coef.IndPerConstruction;
+PriceOfBread.SimCore/EconomyStep.cs:2697:            / (BundleRef(coef) * (1.0 + coef.ConstructionLaborWageFrac) * Math.Max(region.PriceLevel, Eps));
+PriceOfBread.SimCore/EconomyStep.cs:2698:        return bundlesPerIndexPoint > 0 && !double.IsInfinity(bundlesPerIndexPoint) ? 1.0 / bundlesPerIndexPoint : coef.IndPerConstruction;
+PriceOfBread.SimCore/EconomyStep.cs:2704:            ? c.ConsBuilding * Catalog.RefPrices[Catalog.BuildingId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]   // MachineGoodId〔履歴 EconomySt
+PriceOfBread.SimCore/EconomyStep.cs:2705:            : c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
+PriceOfBread.SimCore/EconomyStep.cs:2706:            + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
+PriceOfBread.SimCore/World.cs:1680:    internal bool StateInvestEligible(Region r) => r.CapitalEnabled && r.InvestorPopIndex >= 0 && r.TotalIndustrialization < Coef.IndustryInvestRegionCap;
+PriceOfBread.SimCore/World.cs:1687:        double cap = Coef.IndustryInvestRegionCap;
+PriceOfBread.SimCore/World.cs:2165:            if (r.SeizureChill > 0) r.SeizureChill = Math.Max(0, r.SeizureChill * (1.0 - Coef.SeizureChillDecay));
+PriceOfBread.SimCore/World.cs:2226:        r.SeizureChill = PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share);

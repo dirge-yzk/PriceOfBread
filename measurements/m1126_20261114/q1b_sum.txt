@@ -1,0 +1,9 @@
+arm	rowsP	aliveP	mwP	shareRows	shareAlive	mw_q0	mw_birth	mw_gap1	mw_elect	mw_nonel	ups_gap1	ups_elect	ups_nonel	ups_d0
+oN1	74777	73844	23130	0.3093	0.3132	55	56	7847	9096	6076	95	197	68	0
+oN2	74402	73810	20087	0.2700	0.2721	366	138	6086	8066	5431	77	179	60	0
+oM	74168	73810	20940	0.2823	0.2837	112	43	7266	8756	4763	92	191	52	0
+psB	74012	73819	11492	0.1553	0.1557	0	1	0	7933	3558	1	186	40	0
+oN1 dist(elect/gap1): elect1:12 elect15:1 elect17:184 gap11:95 nonel-1:68
+oN2 dist(elect/gap1): elect1:15 elect17:164 gap11:77 nonel-1:60
+oM dist(elect/gap1): elect1:12 elect2:1 elect3:1 elect16:1 elect17:176 gap11:92 nonel-1:52
+psB dist(elect/gap1): elect1:20 elect11:1 elect13:1 elect17:164 gap11:1 nonel-1:40

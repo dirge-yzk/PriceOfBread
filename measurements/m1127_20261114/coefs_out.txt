@@ -1,0 +1,62 @@
+IndInvestmentFrac | SimCore=3/1f Tests=4/1f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.p04_trade.cs:20 public RatePerMonth IndInvestmentFrac = new(0.05);       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
+IndInvestmentSpeed | SimCore=1/1f Tests=0/0f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.p04_trade.cs:21 public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
+IndCapitalCost | SimCore=1/1f Tests=9/3f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.p04_trade.cs:59 public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
+IndTechLeverage | SimCore=1/1f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:60 public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
+CrowdingOutWeight | SimCore=1/1f Tests=2/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p02_borrow_polity_epidemic.cs:13 public double CrowdingOutWeight = 1.5;       // クラウディングアウト（金利チャネル）：政府の国債金利プレミアム(GovBondRatePerYear－基礎)×これ を民間投
+EquityHeatEuphoria | SimCore=1/1f Tests=2/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.cs:66 public double EquityHeatEuphoria = 0.05;      // 株式バブル（金融改革②）：与信過熱(FinancialHeat 0..1.5)×これ を投資ハードルから減じる＝過熱→株高
+SeizureInvestmentChill | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p09_kingship_tax.cs:108 public double SeizureInvestmentChill = 1.0;        // 資本逃避＝Region.SeizureChill＋＝これ×奪った持分（私的投資予算に ×(1－chill)）
+SeizureChillDecay | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p09_kingship_tax.cs:109 public double SeizureChillDecay = 0.1;             // 資本逃避の月次減衰（chill ×= 1－これ）
+PrivateAbsorptionBlend | SimCore=2/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:17 public double PrivateAbsorptionBlend = 1.0;   // 速度を絞る＝天井なし＝デッドロックなし（敵対審査の推奨形）
+CapitalCreditFloor | SimCore=4/2f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p03_debt_money.cs:141 public double CapitalCreditFloor = 0.5;          // 信用の床：収益率＝伸びしろ×(これ+(1－これ)×信用)
+ConsSteel | SimCore=3/1f Tests=3/3f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:61 public double ConsSteel = 1.0;   // 止めるのは所得差（目標の都市の割合）・飢えの線 FamineMigrationFillGate・農奴の門 SerfMobilityGate
+ConsMachine | SimCore=4/1f Tests=5/3f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:62 public double ConsMachine = 0.15;
+ConsCement | SimCore=2/1f Tests=3/3f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:63 public double ConsCement = 0.4;
+ConsLumber | SimCore=2/1f Tests=3/3f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:64 public double ConsLumber = 0.5;
+IndPerConstruction | SimCore=4/1f Tests=6/2f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.p04_trade.cs:22 public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）
+IndustryInvestRegionCap | SimCore=2/1f Tests=3/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p08_audit_soldiers.cs:136 public double IndustryInvestRegionCap = 5.0;        // 州の上限＝この工業化度に達した州は AI の近代化の信号（World.StateInvestEligible）
+ConstructionLaborWageFrac | SimCore=6/1f Tests=2/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:26 public double ConstructionLaborWageFrac = 0.67; // 投資家/国家の建設：材料費×これを工賃として工員へ（材料6:工賃4の比＝投資にも工賃が乗る）
+ConsRail | SimCore=3/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:73 public double ConsRail = 0.25;
+ConsLoco | SimCore=3/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:74 public double ConsLoco = 0.12;
+InfraMaintRate | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:75 public double InfraMaintRate = 0.4;   // 敷設済みインフラの保守需要＝工業化度×これ
+MaintLocoRate | SimCore=3/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p08_audit_soldiers.cs:51 public double MaintLocoRate = 0.5;   // 経18（係数化・中立）：インフラ保守1単位あたりの機関車(車両更新)消費率
+MaintAdvLaborRate | SimCore=3/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p08_audit_soldiers.cs:52 public double MaintAdvLaborRate = 0.4;   // 経18（係数化・中立）：インフラ保守1単位あたりの高度労働力(機関士・保線技師)消費率
+MaintLaborRate | SimCore=3/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p08_audit_soldiers.cs:53 public double MaintLaborRate = 0.3;   // 経18（係数化・中立）：インフラ保守1単位あたりの労働力(火夫・荷役)消費率
+RailCoalRate | SimCore=4/1f Tests=3/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p10_ai_silver_overrides.cs:83 public double RailCoalRate = 0.22;          // 導出＝0.25×(0.4×高度労働0.8+0.3×労働0.5)/石炭0.54
+StateBuildQueue | SimCore=0/0f Tests=8/5f App=0/0f Runner=0/0f Disp=0/0f | 
+ModernizationDecayRelief | SimCore=0/0f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | 
+FactoryMaterialFrac | SimCore=3/2f Tests=5/4f App=4/1f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:25 public Share FactoryMaterialFrac = new(0.6);      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合
+FactoryBuildPriceCeil | SimCore=0/0f Tests=1/1f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.p04_trade.cs:27 public double FactoryBuildPriceCeil = 2.5;   // 建設率の半減点：素材束価格/参照 がこの倍率で建設可能率=0.5（崖でなく中心）
+FactoryBuildAffordSteep | SimCore=0/0f Tests=6/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:29 public double FactoryBuildAffordSteep = 4;   // 点火2026-08-31＝16→4（清レポ＝16は「逓減の衣を着た崖」。4で束比3倍でも進捗が細く残る＝壁でなく逓減。ラウン
+FactoryStartAffordFloor | SimCore=2/1f Tests=5/2f App=2/1f Runner=1/1f Disp=0/0f | Coefficients.p04_trade.cs:30 public double FactoryStartAffordFloor = 0.15; // 点火2026-08-31＝0.5→0.15（清レポ4-1「建設の壁」＝後発国の束比3～5倍で着工が離散的に不可能だった崖の
+FactoryBuildScale | SimCore=11/2f Tests=17/5f App=3/2f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:24 public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
+FactoryBuildPriceGateScale | SimCore=0/0f Tests=3/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:46 public double FactoryBuildPriceGateScale = 1.0;   // 工事の進捗と素材需要の採算ゲートを軍需の PriceAfford と同じ式で混合（1＝旧恒等・0＝価格を見ずに工事
+MilitaryProcurePriceGateScale | SimCore=3/2f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:28 public double MilitaryProcurePriceGateScale = 1.0;   // 1.0＝現行（厳密恒等）／0＝軍需は価格を見ずに発注
+PlantationRentShare | SimCore=4/1f Tests=8/4f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p07_wiring_prewarm.cs:88 public Share PlantationRentShare = new(0.6);                  // 賦存財のRGO（＝その州の輸出向け一次産品＝大農園/鉱山）の地代取り分の下限
+GarrisonProcurement | SimCore=5/2f Tests=1/1f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.p08_audit_soldiers.cs:17 public double GarrisonProcurement = 0.0;       // 課題6（駐屯州調達・審査88/70）
+MotorFuelRate | SimCore=2/1f Tests=3/1f App=2/1f Runner=0/0f Disp=0/0f | Coefficients.p10_ai_silver_overrides.cs:86 public double MotorFuelRate = 0.05;         // 車両は耐久財・燃料は毎月→機体比の論法で0.02×2～3
+ArmsWearRate | SimCore=0/0f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | 
+AdminNeedPerPop | SimCore=3/3f Tests=2/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p02_borrow_polity_epidemic.cs:115 public double AdminNeedPerPop = 0.04;        // 人口1単位あたりの行政の必要量
+InfraNeedPerUrban | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p07_wiring_prewarm.cs:49 public double InfraNeedPerUrban = 0.04;       // 都市人口1あたりの上下水道の必要量（衛生インフラ）
+ElecInfraNeedPerUrban | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p07_wiring_prewarm.cs:51 public double ElecInfraNeedPerUrban = 0.03;   // 都市人口1あたりの電化インフラの必要量（上下水道より少なめ＝上位財）
+NationalizationSeizureRate | SimCore=5/3f Tests=3/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p09_kingship_tax.cs:106 public double NationalizationSeizureRate = 0.05;   // 0＝旧経路（stateFrac の下限）
+NationalizationStateShare | SimCore=3/2f Tests=2/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p09_kingship_tax.cs:105 public Share NationalizationStateShare = new(1.0);     // 国有化部門の国営持分
+SoeSaleMilitancyCeil | SimCore=1/1f Tests=3/2f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p09_kingship_tax.cs:110 public double SoeSaleMilitancyCeil = 0.0;   // 量は既存の Pop.Militancy（闘争度0..1）＝他の「政府への不満」の読み手と同じ物差し（新しい不満の定義を作らない
+SubsidySoftBudgetDecay | SimCore=3/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p07_wiring_prewarm.cs:8 public double SubsidySoftBudgetDecay = 0.4;        // 2026-07-24点火試験（レバー1＝恒久依存で最大4割の非効率）
+FactoryBankruptcyMargin | SimCore=1/1f Tests=0/0f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.cs:38 public double FactoryBankruptcyMargin = -0.85; // 平滑採算がこれ未満で倒産（原価の15%以下で売り続け＝極度の慢性赤字のみ。死のスパイラル防止）
+FactoryMarginSmoothing | SimCore=2/2f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.cs:37 public double FactoryMarginSmoothing = 0.025;  // 採算EMAの平滑係数（小＝長い移動平均＝一過性の赤字では潰れない。0.025≒3年＝持続的危機のみ倒産）
+FactoryReentryMargin | SimCore=1/1f Tests=0/0f App=0/0f Runner=1/1f Disp=0/0f | Coefficients.cs:39 public double FactoryReentryMargin = -0.05;    // 倒産中、現採算がこれ超で新規参入（やや赤字でも再開＝恐慌からの早い回復）
+FactoryReentryScale | SimCore=1/1f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.cs:40 public double FactoryReentryScale = 0.3;       // 新規参入時の操業規模（小さく入って採算が良ければ拡張）
+ScaleAdjustSpeed | SimCore=2/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.cs:33 public double ScaleAdjustSpeed = 0.05;   // 操業規模が採算の目標へ寄る速さ（緩やか＝供給の振動を防ぐ）
+ScaleFloor | SimCore=1/1f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.cs:34 public double ScaleFloor = 0.1;          // 採算が悪い工場の最小規模（≒閉鎖。0でなく＝需要回復で再開できる）
+FactoryMothballRate | SimCore=2/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:31 public double FactoryMothballRate = 0.05;    // 建てた工場（倒産免除）の慢性赤字の垂れ流しを止める第4の動詞（施設は残る/倒産/休止/国有化）
+FactoryMothballMarginIn | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:32 public double FactoryMothballMarginIn = 0.15; // 休止に入る慢性赤字の深さ（SmoothedMargin<－これ）
+FactoryMothballCap | SimCore=1/1f Tests=2/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p04_trade.cs:33 public Share FactoryMothballCap = new(0.9);      // 休止できる床の上限割合（×民営持分。国営持分は休止しない＝国庫が支える既存設計の維持）
+MineralScaleCap | SimCore=1/1f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p10_ai_silver_overrides.cs:50 public double MineralScaleCap = 1.5;        // 鉱物RGOの操業規模上限（ScaleMax=3.0の半分＝既存鉱脈の増産余地は+50%まで。大増産は発見と新州の仕事）
+FarmScaleCap | SimCore=0/0f Tests=1/1f App=0/0f Runner=0/0f Disp=0/0f | 
+RgoScaleSpeedFactor | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p10_ai_silver_overrides.cs:52 public double RgoScaleSpeedFactor = 0.25;   // 鉱山・畑の規模調整速度の倍率（坑道・開墾＝年単位。時定数は均衡を動かさない＝掃討基準の免除カテゴリ）
+MineralScaleCapLift | SimCore=1/1f Tests=4/3f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p10_ai_silver_overrides.cs:51 public double MineralScaleCapLift = 1.0;    // 1＝鉱山の天井を ScaleMax へ（(1119) c108mc）・0＝旧の 1.5
+InvestExtrapolationWeight | SimCore=1/1f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | Coefficients.p08_audit_soldiers.cs:63 public double InvestExtrapolationWeight = 0.3; // 05-B2：投資の外挿期待の重み（採算の勢い項）
+ColonialImportLagMonths | SimCore=0/0f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | 
+Megaproject | SimCore=7/3f Tests=1/1f App=0/0f Runner=1/1f Disp=1/1f | 
+Megaprojects | SimCore=3/3f Tests=6/2f App=2/1f Runner=8/1f Disp=0/0f | 
+MegaprojectPerMonth | SimCore=0/0f Tests=0/0f App=0/0f Runner=0/0f Disp=0/0f | 

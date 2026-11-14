@@ -1,0 +1,9 @@
+(1126) c109mw 読む線：最低賃金の施行が後の時期でも半分になった根
+作業の場所：D:/PoB_work/r1126_work/（表と出力）・台本 C:/Users/dirge/Documents/PriceOfBread/scripts/instruments/r1126/（コミットしない）
+worktree・枝は作らない（main の作業ツリーのソースを読むだけ＝758f554ed）。腕 0 本。
+読む生：
+ 新（ps 入り＝m1122）：D:/PoB_work/keep_1122/base_ins・n1・n2 の monlaw_s・lawgate_s・lawgate2_s・reform_s・parlseat_s・prds_s・sf_s
+ 旧（ps 前）：D:/PoB_work/keep_1116/base_ins（同じ表・parlseat_s は無い）
+ 旧の旗 0 の parlseat_s：D:/PoB_work/c108ps_work/flag0_ins（あれば）
+材料：measurements/m1122_20261114/rec_add.txt・rec_null.txt・measurements/m1118_20261114/result.txt・readB/・measurements/m1108_20261113/result.txt・docs/202611/20261114/20261114_開院の空白_材料.md・scripts/instruments/c108ps/
+ソース：Parliament.cs（Step・ComputeVotes・HasIdeology）・Government.cs（MandateGate）・InstrumentsMon.cs（monlaw）・SelfPlay.cs（法の選び）
