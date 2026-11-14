@@ -1,0 +1,22 @@
+(1147) c112cm 結果の記録（恒等の線・計器だけ・段 2）
+判定: 恒等（測った種で一致）＝measurements/ident_20261115_c112cm.txt。測った木 HEAD 8dde0ee40・SOURCE-HASH 03d7adaed2c4ef1b（基準 m1143 は 213a364df9ce9bcc）。
+ - 素の 5 種 b5_20261115_c112cm・計器つき 10 種 b10_20261115_c112cm_ins が m1143 と名乗り行を除いて全行バイト一致（180 行ずつ）。.cost の件数の行 43 本・推定 230.1 秒（素の 5 種）・229.6 秒（計器つき）＝m1143 と同じ。注視の表 mon_20261115_c112cm.txt はタグの行以外が一致（4457 行）。
+ - 計器の表：共通 1499 本＝バイト一致 1450・既知の揺れ 29（burscan_s・clock_s の既存の 20＋corncf_s 9）・列が増えた 20（rule_s 10 種・trrail_s 10 種 各 +10 列・+1 列）・宣言の無い違い 0。腕にだけある表 10 本＝rponset_s（種ごと）。
+ - テストの数：Category!=FullLength 2866（基準 2858＋8）・FullLength 3。savetest OK・leakhunt 完走・保存則違反なし（ident の腕 s）。
+ - 素の 10 種の成績表は ident の対象外（ident は素の 5 種と計器つき 10 種）＝計器つき 10 種の成績表の本体は素の 10 種と同じ軌道。
+宣言した差
+ - 新しい表：rponset_s（20 列）。
+ - 列の増え：rule_s に 10 列（tgtStateShare・tgtLocalShare・tgtForeignShare・tgtUngovShare・nowRuleDelivery・tgtRuleDelivery・nowRule1GtRule0・tgtRule1GtRule0・stepResidual・tgtStateReachIndex・P1 の 9 列の手前）・trrail_s に 1 列（railFreightForeignPaidGoldPerYear・末尾）。
+ - 値が変わる：corncf_s の cfDutyNow・cfDutyDown・cfDutyUp（9 種）と、その派生 cfPinRatio0（種 1・8）・cfCornPrefDown2・cfStakeDown2・cfStakeDownTimesM2（種 7）＝CfForeignPort が植民地格の港を数えなくなった（既定の旗 TreatyPortHomeOnly＝1）。
+足した列の一覧
+ - rponset_s：quarter・year・nation・region・tier・rowKind・foreignKey・classHead・sHead・sEnd・riseS・fallS・adjacentFlag・atWarFlag・ownerAtWarFlag・firstTableFlag・dataStateFlag・hasPairHeadFlag・tailFlag・tailMass。
+ - 触る行：InstrumentsRulePower.cs（RpSnap.Head・RpState の 2 欄・RpSnapshot の門と写し・RulePowerTable の 1 行の呼び口）・InstrumentsRule.cs（RuleFold の列と純関数）・InstrumentsTransport.cs（RailAcc.PaidRailForeign・RailOf を internal・trrail_s の 1 列）・InstrumentsCorncf.cs（CfForeignPort の 1 行）・新しい InstrumentsRponset.cs。Instruments.cs・DormantIdentityTests.cs・エンジンの .cs には触れていない。
+足した試験（PriceOfBread.Tests/RuleOnsetInstrumentTests.cs）8 本：B1 :52・B2 :80・B3 :103・B4 :122・C1 :146・C2 :175・D1 :193・F1 :208（行は目安）。
+突然変異（measurements/m1147_20261115_mut.txt・台本 scripts/instruments/c112cm/mutate.py）：CTL 緑（8/8）・M-b 赤（B1・B2）・M-c 赤（C1・C2）・M-d 赤（D1）・M-f 赤（F1）。予言どおり。
+走査の番人（㉘）：初回 190 本緑・最後の頭 191 本緑（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・RuleInstrumentTests・RuleOnsetInstrumentTests・CorncfInstrumentTests）。書き換えた件数の番人 0（予言どおり）。
+フルスイート：直す前の木で Tests 合格 2630・失敗 1・スキップ 1（合計 2632＝予言）／Tests.Ui 234 合格。失敗 1＝RuleInstrumentTests T4（rule_s の末尾 9 列を固定する配置の試験）＝新しい列を P1 の 9 列の手前へ移して直した（試験は書き換えていない）。直した後は関連の束 83 本緑・最後の頭の束 191 本緑。フルスイート全体は直した後に回し直していない（再実行は 1 時間）＝合流が合わせた木で回す。
+読み（計器の値・記録・門ではない）：
+ - rponset_s（計器つき 10 種）：種ごとの行 7,156〜12,140・pair 行の区分＝①だけ 1,270〜3,764・③ 0〜612・講和の付与 3〜9。旗 0 の C15（頭で①だけの pair の 0＜x＜0.01 の質量の四半期平均）種の中央 0.00276（0.00060〜0.00536）。region 行の尾（名の付いた取り分が無い・データの州でない）0.00150・データの州（開幕に名の無い取り分）0.00237（種で 0.00237〜0.00297）。G1′（Core・交戦なし・x≧0.25 の州の数・種×四半期の最大）は 1（種 7 だけ 2）。
+ - rule_s の stepResidual：種 1〜3 で 54〜58% が 1e-9 以内・p99 0.006〜0.0075・最大 0.82〜0.94（領土の移りなどでエンジンの目標の時点と計器の時点が離れた行）＝1 歩の式の厳密な自己検査は試験 C1（差≦1e-9）。
+ - trrail_s の railFreightForeignPaidGoldPerYear：10 種の払いの和 10,627,215 に対し外国の分 14,111（0.13%）・正の州×年 2,921。
+運用の記録：作ったフォルダ D:/PoB_work/wt_c112cm（worktree）・D:/PoB_work/c112cm_work（keep_raw＝rponset_s・rule_s・trrail_s・corncf_s の生 805MB を残す・他の ident の生は刈った）・D:/PoB_work/c112cm_art（隔離ビルド）。腕の枠で待った時間 0（arms.sh free が 6 のとき起こした）。hook に止められた回数 0。助言役は呼んでいない。
