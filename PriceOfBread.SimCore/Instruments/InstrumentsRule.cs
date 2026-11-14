@@ -31,15 +31,14 @@ public static partial class Instruments
 
     internal const string RuleHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\truleStateShare\truleLocalShare\truleForeignShare\truleUngovShare\truleInitLocalShare\tforeignRulerCount\tdominanceShare\tcapitalDistanceKm\treachShare\t"
         + "serfLawCode\tbureaucracyLawCode\tlandReformLawCode\tintermediaryDegreeIndex\tpublicOrderIndex\tstateReachIndex\tadminEfficiencyIndex\ttreatyPortInForceFlag\tportForeignShare\trevenuePerMonth\tgdpPerMonth\truleCutPerMonth\tstateReachHomeIndex"
-        + RuleP1HeaderText;
+        + RuleOldTargetHeaderText + RuleP1HeaderText;
 
     /// <summary>
     /// 〔履歴 InstrumentsRule.cs#4〕
     /// </summary>
-    internal const string RuleP1HeaderText = "\torderRawIndex\tmilitancyRegionIndex\tmilitancyNationIndex\torderRegionIndex\tungovTargetOldShare\tungovTargetNewShare\torderRawLagIndex\torderRegionLagIndex\tungovTargetNewLagShare"
-        + RuleOldTargetHeaderText;
+    internal const string RuleP1HeaderText = "\torderRawIndex\tmilitancyRegionIndex\tmilitancyNationIndex\torderRegionIndex\tungovTargetOldShare\tungovTargetNewShare\torderRawLagIndex\torderRegionLagIndex\tungovTargetNewLagShare";
 
-    /// <summary>(1147) 段 C′ の計器 (c)：旧の規則の目標（Politics.cs の寄せの目標の式を計器が独立に書いた物）を目標に当てた読み手の値。〔履歴 InstrumentsRule.cs#8〕</summary>
+    /// <summary>(1147) 段 C′ の計器 (c)：旧の規則の目標（Politics.cs の寄せの目標の式を計器が独立に書いた物）を目標に当てた読み手の値。P1 の 9 列（RuleInstrumentTests T4 が末尾を固定）の手前に置く。〔履歴 InstrumentsRule.cs#8〕</summary>
     internal const string RuleOldTargetHeaderText = "\ttgtStateShare\ttgtLocalShare\ttgtForeignShare\ttgtUngovShare\tnowRuleDelivery\ttgtRuleDelivery\tnowRule1GtRule0\ttgtRule1GtRule0\tstepResidual\ttgtStateReachIndex";
 
     /// <summary>
@@ -100,12 +99,12 @@ public static partial class Instruments
             double orderLag = double.IsNaN(rLag) ? double.NaN : !(mReg > 0) ? 1.0 : RuleClamp01(rLag * mBar / mReg);
             string p1 = string.Join('\t', F(rNow), F(mReg), F(mBar), F(orderNew),
                 F(ok ? (1.0 - orderOld) * (1.0 - reach) : double.NaN), F(ok ? (1.0 - orderNew) * (1.0 - reach) : double.NaN),
-                F(rLag), F(orderLag), F(ok ? (1.0 - orderLag) * (1.0 - reach) : double.NaN),
-                RuleOldTargetCells(w, c, r, ok, byRegion, orderOld, rNow, mBar0, interm, tgtStateReach));
+                F(rLag), F(orderLag), F(ok ? (1.0 - orderLag) * (1.0 - reach) : double.NaN));
+            string oldT = RuleOldTargetCells(w, c, r, ok, byRegion, orderOld, rNow, mBar0, interm, tgtStateReach);
             sk.Rule.WriteLine(head + string.Join('\t', r.Name, r.Tier.ToString(), F(r.SumPopulation()),
                 F(ok ? r.Rule[0] : double.NaN), F(ok ? r.Rule[1] : double.NaN), F(ok ? r.Rule[2] : double.NaN), F(ok ? r.Rule[3] : double.NaN),
                 F(r.RuleInit.Length == 4 ? r.RuleInit[1] : double.NaN), I(r.ForeignRulers.Length), F(r.Dominance), F(km), F(reach))
-                + "\t" + nat + "\t" + p1);
+                + "\t" + nat + "\t" + oldT + "\t" + p1);
         }
         RulePrevStore(w);
     }

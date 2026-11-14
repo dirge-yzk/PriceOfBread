@@ -52,3 +52,6 @@
 
 [5] 〈判定: 恒等〉なら採る（件名に〈証明〉と書かない）。一致しなければ、その変更を外して報告に回す。
  記録：作ったフォルダ D:/PoB_work/wt_c112cm・D:/PoB_work/c112cm_work・D:/PoB_work/c112cm_art（隔離ビルド）。生は合流の判断まで残す（⑲）。
+
+追記 1（腕の前・ident の前）：rule_s の新しい列は P1 の 9 列の手前に置く（事前登録 §2 項 2 の〈末尾〉を直す）。理由：フルスイートで RuleInstrumentTests.P1の9列が末尾に順序どおりあり…（T4・見出しの末尾 9 列を固定する計器の配置の試験）が赤になった＝試験は書き換えず、計器の列の位置を変えた（機構の Assert は触れない）。列数は 10（事前登録の〈12 列・仮〉は 10 列）。rule_s の読み手は列の名で読む＝位置の影響なし。
+追記 2：フルスイートの結果（直す前の木）＝Tests Category!=FullLength 合格 2630・失敗 1（上記 T4 だけ）・スキップ 1・合計 2632（予言 2632 と一致）／Tests.Ui 234 合格。直した後は関連の束 83 本（RuleInstrumentTests・RuleOnsetInstrumentTests・InstrumentsTests・RuleShares・Secession）が緑。
