@@ -1,0 +1,5 @@
+(1124) c109t0 紙の台本：旧（758f554ed の EconomyStep.cs:1004〜:1019 の逐語）と新（SupplyTargetAt）の比べ・使い捨ての木 e76e80bdf で回した（台本 scripts/instruments/c109t0/BitIdentTmp.cs.txt）
+署名: Claude Sonnet 5.5
+盤面: 3 国（フランス・プロイセン・イギリス）・種 1789・16 四半期・奇数の四半期は値段と在庫を散らした盤面（読むだけ＝比べた後に戻す）
+rows=143040 outputDiff=0 desiredDiff=0
+旧≠新の行（Output のビット・DesiredOutput のビット）＝0 → 浮動小数の順序が変わる箇所なし（事前登録 [4] の紙の台本の条件を満たす）
