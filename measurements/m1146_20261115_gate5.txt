@@ -1,0 +1,12 @@
+RED 門5 括弧の崩れ 0・public 127 本（基準 127 本）・120 字超 1・注の欠け 0・元から注なし 0（Coefficients.cs）
+OK  門5 括弧の崩れ 0・public 99 本（基準 99 本）・120 字超 0・注の欠け 0・元から注なし 1（Coefficients.p02_borrow_polity_epidemic.cs）
+OK  門5 括弧の崩れ 0・public 129 本（基準 129 本）・120 字超 0・注の欠け 0・元から注なし 2（Coefficients.p03_debt_money.cs）
+RED 門5 括弧の崩れ 0・public 130 本（基準 130 本）・120 字超 1・注の欠け 0・元から注なし 10（Coefficients.p04_trade.cs）
+OK  門5 括弧の崩れ 0・public 59 本（基準 59 本）・120 字超 0・注の欠け 0・元から注なし 1（Coefficients.p05_port_insurance.cs）
+OK  門5 括弧の崩れ 0・public 124 本（基準 124 本）・120 字超 0・注の欠け 0・元から注なし 5（Coefficients.p06_rank_discovery.cs）
+OK  門5 括弧の崩れ 0・public 124 本（基準 124 本）・120 字超 0・注の欠け 0・元から注なし 2（Coefficients.p07_wiring_prewarm.cs）
+OK  門5 括弧の崩れ 0・public 122 本（基準 122 本）・120 字超 0・注の欠け 0・元から注なし 6（Coefficients.p08_audit_soldiers.cs）
+OK  門5 括弧の崩れ 0・public 93 本（基準 93 本）・120 字超 0・注の欠け 0・元から注なし 1（Coefficients.p09_kingship_tax.cs）
+OK  門5 括弧の崩れ 0・public 67 本（基準 67 本）・120 字超 0・注の欠け 0・元から注なし 3（Coefficients.p10_ai_silver_overrides.cs）
+RED 合計 2
+読み：基準＝aa8ee7e51（今の頭）。旧は (1114) の元の rev と比べて 4 ファイルが RED だった（注の欠け・public の本数の食い違い）。今の基準では注の欠け 0・本数の差 0。残る RED 2 件は 120 字超の実の注（Coefficients.cs:89 ParliamentSeatsWithoutGap 128 字・Coefficients.p04_trade.cs:83 RailNeedByOutput 209 字）＝この線の持ち主ではない（p04 は t1 の持ち主・Coefficients.cs の本体は合流）＝直さず 00一覧へ。
