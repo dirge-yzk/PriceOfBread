@@ -1,0 +1,9 @@
+prodcap_s	profitFactor	blank 2686242	nonfinite 0	values 4000000	min 0	p50 0.235234	p99 1	max 1	outside[0,1] 0
+prodcap_s	lastInputFill	blank 0	nonfinite 0	values 4000000	min 0	p50 0.744843	p99 1	max 1	outside[0,1] 0
+prodcap_s	scale	blank 0	nonfinite 0	values 4000000	min 0	p50 0.931612	p99 4.0452	max 49.1636	outside[0,1] 5130810
+prodcap_s	laborPopIndex	blank 0	nonfinite 0	values 4000000	min 1	p50 2	p99 11	max 12	outside[0,1] 8496603
+s7staple_s	importOverDemand	blank 0	nonfinite 99	values 410152	min 0	p50 0.00046216	p99 0.395489	max 1.60486	outside[0,1] 305
+s7staple_s	shortageOverDemand	blank 0	nonfinite 99	values 410152	min 0	p50 0.0324177	p99 0.285962	max 0.90385	outside[0,1] 0
+s4cost_s	fxBiasPinnedShare	blank 0	nonfinite 45	values 102490	min 0	p50 0.25	p99 1	max 1	outside[0,1] 0
+s4cost_s	fxBiasObs	blank 0	nonfinite 0	values 102535	min 0	p50 4	p99 4	max 4	outside[0,1] 102473
+s4cost_s	laborPriceGrowth10y	blank 0	nonfinite 6248	values 96287	min -0.867828	p50 -0.0149384	p99 0.663688	max 9.96805	outside[0,1] 52828
