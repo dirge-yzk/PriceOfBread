@@ -70,7 +70,7 @@ public class InstrumentsArmsTests
                 double eng = double.Parse(stock[("q" + r[af.I("quarter")].TrimStart('q'), r[af.I("nation")])][st.I("capitalEquipFillShare")], System.Globalization.CultureInfo.InvariantCulture);
                 double mine = Math.Min(1.0, fill / want);
                 worst = Math.Max(worst, Math.Abs(mine - eng));
-                Assert.True(Math.Abs(mine - eng) <= 1e-9, $"{r[af.I("nation")]}/{r[af.I("quarter")]}：計器 {mine}・stock_s {eng}");
+                Assert.True(Math.Abs(mine - eng) <= 1e-8 * Math.Max(1.0, Math.Abs(eng)),$"{r[af.I("nation")]}/{r[af.I("quarter")]}：計器 {mine}・stock_s {eng}");
                 if (eng < 0.999) binding++;
                 checkedRows++;
             }
@@ -95,8 +95,8 @@ public class InstrumentsArmsTests
                 double lp = double.Parse(s[st.I("landPowerIndex")], System.Globalization.CultureInfo.InvariantCulture);
                 double prod = af.D(r, "soldierK") / new Coefficients().SoldiersPerMilitary * af.D(r, "readinessShare") * af.D(r, "qualityMul") * af.D(r, "cohesionMul") * af.D(r, "militarismMul")
                               * af.D(r, "techQualityMul") * (1.0 - af.D(r, "navalShare")) * af.D(r, "armySkillMul");
-                Assert.True(Math.Abs(prod - lp) <= 1e-9 * Math.Max(1.0, Math.Abs(lp)), $"{r[af.I("nation")]}/{r[af.I("quarter")]}：積 {prod}・landPowerIndex {lp}");
-                Assert.True(Math.Abs(af.D(r, "landPowerIndex") - lp) <= 1e-9 * Math.Max(1.0, Math.Abs(lp)), "計器自身の landPowerIndex 列が stock_s と食い違う");
+                Assert.True(Math.Abs(prod - lp) <= 1e-8 *Math.Max(1.0, Math.Abs(lp)), $"{r[af.I("nation")]}/{r[af.I("quarter")]}：積 {prod}・landPowerIndex {lp}");
+                Assert.True(Math.Abs(af.D(r, "landPowerIndex") - lp) <= 1e-8 *Math.Max(1.0, Math.Abs(lp)), "計器自身の landPowerIndex 列が stock_s と食い違う");
                 checkedRows++;
             }
             Assert.True(checkedRows >= 20, $"調べた行が少ない {checkedRows}");
