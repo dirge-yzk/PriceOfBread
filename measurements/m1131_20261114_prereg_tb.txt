@@ -63,3 +63,9 @@
 
 [5] 〈判定: 恒等〉なら採る。一致しなければ、その変更（呼び口・列）を外して報告に回す。
   突然変異は使い捨ての木で 1 本ずつ回し、どの門で赤になるかを measurements/m1131_20261114_mutations.txt に書く。
+
+[追記 2026-11-14・腕の前・ident の前]（器のコミットの後・フルスイートの 1 回目で OnDoubleReadScanTests が赤になった＝許可表 BilateralMarket.cs::StepBilateral#0＝12 を超える Instruments.On の読みを足していた）
+  分類: 器の直し（呼び口の置き場所）。試験は書き換えない（許可表の件数は 12 のまま＝書き換える件数の予言 0 件は守る）。
+  直し: 行の呼びは既存の Instruments.On の読み（scopeCls を決める行）の中で tbOn を立てて if (tbOn) で呼ぶ・成約の呼びは既存の ScopeDeal と同じ if (Instruments.On) の波括弧の中へ移す＝On の読みを増やさない。
+  成約の呼びの置き場所は m.Stock += qA の直後から ScopeDeal の行へ動く（間に m.Stock を書く行は無い＝成約の後の台帳の値は同じ）。
+  フルスイートの 1 回目（直す前の頭）: Category!=FullLength 2611（赤 1＝この件）・Tests.Ui 234・FullLength 3・--list-tests の和 2611＋234＝2845（予言 2840＋5 と一致）。直した頭で再び回す。
