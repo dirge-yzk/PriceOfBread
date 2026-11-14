@@ -1,0 +1,3 @@
+G1 D:/PoB_work/keep_1122/base_ins (3, 15, 10)
+G1 D:/PoB_work/keep_1122/n1 (2, 14, 10)
+G1 D:/PoB_work/keep_1122/n2 (2, 14, 10)
