@@ -1,0 +1,5 @@
+(1140) c111sm 記録
+- 項 1〜6 のコミット後の頭で ㉘（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）143 件緑。
+- フルスイート：Tests 2612（Category!=FullLength・合格 2610＋スキップ 1＋1 件は C: の空き不足〔IOException〕で失敗→TEMP/TMP を D: へ向けて InstrumentsTests 40 件を回し直し緑）・Tests.Ui 234＝合計 2846（予言 2844＋2 と一致）。
+- 突然変異：mut_result_c111sm.txt（M-seize・M-g4read・M-g4bits・M-nonser 全て赤）・mut_result_t0_M1_M5.txt（t0 の M1〜M5 全て赤）。
+- 門 5 の突然変異（括弧を 1 つ崩して 0→1）・archive_gate の突然変異（★(711) の全文行を消す／参照の札を壊す／行の番号の札を置く→NG）は担当の手元で確認済み（gate5_run.txt は元の rev との比べの全門の出力＝門 1・2 は旧の rev との差で赤が出るのが既知）。
