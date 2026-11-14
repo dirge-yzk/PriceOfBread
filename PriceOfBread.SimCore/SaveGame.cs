@@ -11,6 +11,7 @@ public static class SaveGame
     {
         var bw = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
         bw.Write(Magic);
+        bw.Write(Pop.Layout.Bands);   // (1125) 年齢の層の数（環境変数 POB_AGE_BANDS で決まる static）＝読む時に食い違えば止める
         new GraphWriter(bw).WriteValue(sim);
         bw.Flush();
     }
@@ -20,6 +21,8 @@ public static class SaveGame
         var br = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
         string magic = br.ReadString();
         if (magic != Magic) throw new InvalidDataException($"セーブデータの形式が違う（magic={magic}）");
+        int bands = br.ReadInt32();
+        if (bands != Pop.Layout.Bands) throw new InvalidDataException($"セーブデータの年齢の層の数（{bands}）が今の設定（{Pop.Layout.Bands}・POB_AGE_BANDS）と違う");
         object? root = new GraphReader(br).ReadValue();
         var sim = root as MultiNationSim ?? throw new InvalidDataException("セーブデータの復元に失敗（ルートが MultiNationSim でない）");
         foreach (var n in sim.Nations) Fiscal.SeedBondHoldings(n.World);

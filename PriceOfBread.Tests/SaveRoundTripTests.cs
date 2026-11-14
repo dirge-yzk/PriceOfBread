@@ -90,6 +90,20 @@ public class SaveRoundTripTests
         }
         // バイト列の一致は比べない：印の外の差が 2 件ある（辞書 Diplomacy._tensionRamp の列挙順と InternationalMarket.LastPairWasLand の走り書き・measurements/m1125_20261114/byte_diff.txt）＝量だけ比べる。
     }
+    /// <summary>★年齢の層の数はセーブに書く（(1125)）：読む時に今の層の数と食い違えば例外（POB_AGE_BANDS が保存時と違うプロセスで読むと配列の長さが合わず静かに壊れる）。</summary>
+    [Fact]
+    public void 層の数が食い違うセーブは読めない()
+    {
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        var bytes = ms.ToArray();
+        int at = 1 + System.Text.Encoding.UTF8.GetByteCount("POBSIM2");   // BinaryWriter.Write(string)＝長さ 1 バイト＋UTF-8。直後の int32 が層の数
+        Assert.Equal(Pop.Layout.Bands, System.BitConverter.ToInt32(bytes, at));
+        System.BitConverter.GetBytes(Pop.Layout.Bands == 8 ? 11 : 8).CopyTo(bytes, at);
+        Assert.Throws<System.IO.InvalidDataException>(() => SaveGame.Load(new System.IO.MemoryStream(bytes)));
+    }
+
     /// <summary>★要求は法の経路（2026-09-11）：FactionState に足した2配列（CrisisDemands=int[]／CrisisDemandPos=double[]）と
     /// 通知の札（World.PendingFactionCrisis＝運動への参照）が往復で残る＝「新フィールド型を足したら往復で確かめる」の番人（sbyte 事故の型）。</summary>
     [Fact]
