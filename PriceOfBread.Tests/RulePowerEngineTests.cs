@@ -120,4 +120,74 @@ public class RulePowerEngineTests
             else Assert.True(changed > 0, "対照：旗 0 では風化で減る州がある");
         }
     }
+
+    // (1123) c109rc の形の直し 4 つの番人（事前登録 measurements/m1123_20261114_prereg_rc.txt §4）。期待値は手で置いた数から。
+
+    [Fact]
+    public void E6_配りの重みにρが無い_力は配り掛けるρ()
+    {
+        // 手で：重み 2×1×0.5＝1・2×1×0.5＝1・4×0.5×1＝2（和 4）→ 配り 2.5・2.5・5 → 力 2.5×0.2＝0.5・2.5×0.9＝2.25・5×0.5＝2.5
+        var cand = new List<(double Y, double S, double B, double Rho)> { (2, 0, 0.5, 0.2), (2, 0, 0.5, 0.9), (4, 0.5, 0, 0.5) };
+        var alloc = new double[3]; var force = new double[3];
+        MultiNationSim.RulePowerAllocate(10, cand, alloc, force);
+        Assert.Equal(2.5, alloc[0], 12); Assert.Equal(2.5, alloc[1], 12); Assert.Equal(5.0, alloc[2], 12);
+        Assert.Equal(0.5, force[0], 12); Assert.Equal(2.25, force[1], 12); Assert.Equal(2.5, force[2], 12);
+    }
+
+    [Fact]
+    public void E7_戦時でも国内の治安の分が残る_平時は前線0で国内を満たし残りが外()
+    {
+        Assert.Equal((4.0, 6.0), MultiNationSim.RulePowerSplitArmy(10, 0, 4));   // 平時：国内 4・外 6
+        Assert.Equal((3.0, 0.0), MultiNationSim.RulePowerSplitArmy(3, 0, 4));    // 平時で足りない：全てを国内
+        Assert.Equal((4.0, 2.0), MultiNationSim.RulePowerSplitArmy(10, 4, 4));   // 戦時で足りる：前線 4・国内 4・外 2
+        Assert.Equal((5.0, 0.0), MultiNationSim.RulePowerSplitArmy(10, 10, 10)); // 戦時で全てが前線に縛られる：10×10÷20＝5 が国内に残る
+        Assert.Equal((3.0, 0.0), MultiNationSim.RulePowerSplitArmy(6, 4, 4));    // 6×4÷8＝3
+    }
+
+    [Fact]
+    public void E8_州が1つの国も旗1で寄せる()
+    {
+        var sim = NewSim(1.0);
+        var w = sim.Nations[0].World; var c = w.Coef; c.DominanceSpeed = 0.5;
+        var r = w.Regions[0];
+        w.Regions.RemoveRange(1, w.Regions.Count - 1);
+        Assert.Single(w.Regions);
+        r.Rule = [0.6, 0.2, 0.1, 0.1]; r.ForeignRulers = ["甲"]; r.ForeignShares = [0.1];
+        long stamp = w.Diplomacy is { } d ? d.RpEngStamp : long.MinValue;
+        r.RpEng = new RulePowerRow { Stamp = stamp, T0 = 0.5, T1 = 0.1, T3 = 0.2 };
+        r.RpEng.FKeys.Add("甲"); r.RpEng.FT.Add(0.2);
+        Politics.CheckSecession(w, c, 0.0);
+        // 手で：0.55・0.15・0.15・甲 0.1＋(0.2−0.1)×0.5＝0.15（和 1.0）
+        Assert.Equal(0.55, r.Rule[0], 12); Assert.Equal(0.15, r.Rule[1], 12); Assert.Equal(0.15, r.Rule[3], 12); Assert.Equal(0.15, r.Rule[2], 12);
+        // 対照：旗 0 では州が 1 つの国の 4 区分は動かない
+        c.RuleFromPower = 0; r.Rule = [0.6, 0.2, 0.1, 0.1];
+        Politics.CheckSecession(w, c, 0.0);
+        Assert.Equal([0.6, 0.2, 0.1, 0.1], r.Rule);
+    }
+
+    [Fact]
+    public void E9_取り分の残りだけの州は持ち主より届かなければ候補にならない()
+    {
+        var sim = NewSim(1.0);
+        sim.StartWarmup();
+        sim.StepQuarter();
+        string KeyOf(Power p) => p.BaseName.Length > 0 ? p.BaseName : p.Name;
+        // 外への力 O が最大の国 n（行の O は持ち主の国の O）
+        var byO = sim.Nations.Select(s => (W: s.World, O: s.World.Regions.Select(x => x.RpEng?.O ?? 0).DefaultIfEmpty(0).Max())).OrderByDescending(t => t.O).ToList();
+        Assert.True(byO[0].O > 0, "外への力が正の国がある");
+        var nW = byO[0].W; string nKey = KeyOf(nW.SelfPower!);
+        // 標的＝別の国の首都（持ち主の届き ρ＝1・n の届きは 1 未満）・n と交戦していない・残りの取り分だけを置く
+        string targetName = KeyOf(nW.SelfPower!) == "イギリス" ? "フランス" : "イギリス";
+        var m = sim.Nations.Select(s => s.World).First(x => KeyOf(x.SelfPower!) == targetName);
+        var target = m.Regions[0];
+        Assert.DoesNotContain(sim.Diplomacy.Wars, wr => (ReferenceEquals(wr.A, nW.SelfPower) && ReferenceEquals(wr.B, m.SelfPower)) || (ReferenceEquals(wr.B, nW.SelfPower) && ReferenceEquals(wr.A, m.SelfPower)));
+        target.Rule = [0.5, 0.3, 0.0, 0.2];
+        target.ForeignRulers = [nKey]; target.ForeignShares = [1e-6];
+        sim.StepQuarter();
+        Assert.NotNull(target.RpEng);
+        Assert.DoesNotContain(nKey, target.RpEng!.FKeys);
+        // 対照：n はどこかへ配っている（候補が空で通る形ではない）
+        int given = sim.Nations.SelectMany(s => s.World.Regions).Count(x => x.RpEng is { } e && e.FKeys.Contains(nKey));
+        Assert.True(given > 0, $"n（{nKey}）が力を配った州 {given}");
+    }
 }
