@@ -1003,7 +1003,7 @@ public static class EconomyStep
             s.HeadsLastMonth = region.Pops[lp].Size * fraction;   // ★(519→524) 能力の式の頭数（Size×fraction）の控え＝書くだけ（線 sm の欄と書き手だけを持ち込んだ・能力の式は触らない）。読み手は旗 UnionBargaining が正のときの UnionBargaining の前走査と上乗せだけ
             double t1Prev = s.Output;
             s.Output = SupplyTargetAt(s, region, coef, world, baumol, gate, out double profitFactor, out double t1Mc, out double t1Base);   // ① 供給の目標と追従（掛ける順は旧のまま＝括り出し）
-            if (coef.TradeBuyBySupplyCurve > 0 || Instruments.On) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
+            if (coef.TradeBuyBySupplyCurve > 0 || insOn) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
             produced[s.GoodId] += s.Output;
         }

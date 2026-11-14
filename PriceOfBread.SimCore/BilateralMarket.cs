@@ -1223,8 +1223,9 @@ public sealed partial class InternationalMarket
         }
         Cost[CostLedger.ClearingKmCompose] += nKmComp; Cost[CostLedger.ClearingKmRaw] += nKmRaw;
         Cost[CostLedger.ClearingA1Eval] += nA1;
-        if (a1On || Instruments.On) A1Invalidate(nations);   // (1144) 写しはその月の清算だけが読む＝清算の後に 0 へ戻す（眠り・倒産で供給①を通らない生産者の古い写しを読まない・ロードの後と同じ盤面）
-        if (Instruments.On) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;
+        bool insEnd = Instruments.On;
+        if (a1On || insEnd) A1Invalidate(nations);   // (1144) 写しはその月の清算だけが読む＝清算の後に 0 へ戻す（眠り・倒産で供給①を通らない生産者の古い写しを読まない・ロードの後と同じ盤面）
+        if (insEnd) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
