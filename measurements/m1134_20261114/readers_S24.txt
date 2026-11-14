@@ -1,0 +1,42 @@
+名	SimCore	計器	試験	App	Runner	scripts
+GarrisonProcurement	5	0	1	0	1	7
+NavalFuelPerGauge	4	0	4	3	1	4
+NavalFuelSortieFloor	1	0	0	0	0	0
+NavalFuelFillSmoothing	1	0	0	0	0	0
+EraNavalFuel	1	0	1	1	0	0
+SubmitProbabilistic	3	0	1	0	0	1
+RationingBlockadeRelief	1	0	0	0	0	0
+WartimeRationing	12	0	0	0	0	3
+LastBlockadeRisk	5	1	1	0	0	11
+PrizeCargoShare	2	0	4	0	0	2
+PrizeMoneyRatePerMonth	1	0	3	0	0	4
+WarCoercionDrain	1	0	0	0	1	0
+WarRallyCoercion	1	0	0	0	0	1
+WarRallyDecayPoint	1	0	0	0	0	0
+ExpansionWillCap	4	0	2	3	1	1
+BattleLogEnabled	1	0	0	0	0	0
+ConcertReparationRestraint	2	0	4	0	0	1
+ConcertRestraintMax	1	0	0	0	0	2
+CivilWarEconomyDisruption	3	0	0	0	0	3
+HomeDefenseBonus	1	0	3	0	0	1
+ConquestColonyMilitancy	1	0	0	0	0	0
+CededColonyMilitancy	1	0	0	0	0	2
+UnificationV1Only	1	0	1	0	0	1
+UnificationAiPursueChance	1	0	0	0	0	1
+UnificationAiCooldownYears	1	0	0	0	0	1
+UnificationAiWarGapYears	1	0	0	0	0	1
+TryUnificationWars	2	0	0	0	0	1
+MilitiaCombatValue	3	0	3	0	0	1
+VictoryLegitBoost	3	0	0	0	0	0
+CommerceRaidPrize	3	0	0	0	0	0
+ReparationGdpFraction	3	2	6	0	0
+GovCostVassalThreshold	1	0	0	0	0
+VassalizeWinScore	2	0	1	0	0
+ImposeRegimeIdeologyGap	1	0	0	0	0
+ImposedRegimeLegitimacy	1	0	0	0	0
+TreatyRatificationControlThreshold	2	0	0	0	0
+ColonyCaptureBudget	2	1	8	0	0
+CessionMaxDistanceKm	5	2	0	0	0
+TreatyPortWinnerDistanceKm	4	0	5	0	0
+TreatyPortReparationMult	3	0	1	0	0
+ConcertRestraintMax	1	0	0	0	0

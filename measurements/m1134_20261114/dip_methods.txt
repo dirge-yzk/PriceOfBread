@@ -1,0 +1,132 @@
+51: public double ColonyMassUnits
+207: public void Add
+373: private static double ColonyMass
+388: public void RemovePower
+408: public void SetDependency
+423: public void RemoveDependency
+424: public bool IsDependentOf
+440: private bool InDependency
+441: public double Tension
+443: public double MaxTension
+449: public bool HasAlliance
+450: public bool HasEmbargo
+451: public void SeedTension
+456: internal void RegisterIndependence
+472: public bool RenameNation
+487: internal void TreatyPortLapse
+510: internal void ComputeRanks
+550: public bool IsGreatPower
+554: public void AddTension
+557: private double AddTensionKeyed
+570: private void CoolTensionTo
+578: private void CoolWhy
+587: private void ResetTensionTo
+647: private bool AtWar
+657: public bool IsAtWar
+661: public bool AtWarAny
+666: public double TradeAccess
+686: public double MilitaryExportAccess
+695: private void ApplyHegemonContainment
+709: private void CommerceRaidPrize
+713: private void CollectPrize
+754: internal void BeginQuarterSyncWindow
+755: internal void EndQuarterSyncWindow
+756: private double SyncGdp
+774: private void SyncPowers
+831: internal void OpenGame
+838: public void Step
+892: private void OpeningNavalShares
+918: private static void SyncFleet
+943: private void RouteTension
+959: private bool ThreatAverages
+968: private void ThreatTension
+1001: internal double ThreatReach
+1011: private double ThreatExcess
+1015: private double ThreatScore
+1022: private double EffGdp
+1028: private double EffColonies
+1034: private double EffMilitary
+1052: private static double Ideology
+1062: private void IdeologyTension
+1120: private static double FamilyCoord
+1128: private void AffinityTensions
+1157: double Grievance
+1201: public static double ProtectorGrievance
+1219: private static double EthnicDistance
+1226: private static double ReligionDistance
+1234: private static double GovCost
+1237: internal void StepDependency
+1291: private void BreakStrainedAlliances
+1306: private bool WorthFighting
+1316: private void OpiumTension
+1348: private double OpiumReasonLevel
+1353: internal bool WarGateOpen
+1359: private void TriggerWars
+1420: public double SideMilitary
+1437: public double WarScale
+1507: private void StartWar
+1523: private void AddBelligerent
+1534: private void DefendDependent
+1547: public void DeclareCivilWar
+1564: public bool DeclareWar
+1583: public double AllyJoinThreshold
+1589: private void JoinAllies
+1635: public void ResolveCallToArms
+1654: private void TradePolicyReaction
+1678: private void TryUnificationWars
+1699: private void DiplomacyAI
+1779: private void TryAiSubjugate
+1801: public double TensionRampRemaining
+1804: internal void StepTensionRamp
+1858: internal void TensionPolitics
+1877: private void SpreadProvocationTension
+1917: public bool RaiseTension
+1927: public bool EaseTension
+1935: public void ResolvePendingWar
+1969: public double Engagement
+1984: public double FrontPush
+1991: internal bool Subjugate
+2023: internal void AcquireColony
+2036: public double SubmitLine
+2040: public double ColonizeForce
+2046: private void PeaceInterventionAI
+2072: private void ExecuteMediation
+2078: bool AcceptsPeace
+2125: public bool CanOfferPeace
+2141: public double InterventionWillCost
+2146: public double InterventionMotive
+2159: public double ColonizeWillCost
+2167: private void RaiseColonizeTension
+2190: private static void TrenchAdjust
+2206: private void StepWars
+2323: double RevCut
+2430: private void ConcludeWar
+2451: private void FlushCollapseGroup
+2484: internal double WarCasualties
+2526: internal void ResolvePeace
+2827: private bool CedeTerritoryOnce
+2838: private static void OutcomeShocks
+2860: private void ConfirmIndependence
+2872: private bool CedeTerritory
+2888: double DistToWinner
+2924: private static double RegionOutputValue
+2934: private bool CedeTerritoryUnified
+2961: private void CedeRegion
+2972: private void EndWar
+2992: private static double AirCtl
+2996: public double SeaControl
+3001: public double LandingGate
+3007: internal bool CanCrossSea
+3031: internal bool CessionTarget
+3056: internal static bool CessionAdjacent
+3086: internal static double CessionCost
+3097: public bool LandBattleHappens
+3113: private static void SyncBasinPresence
+3173: public bool ChokeOpenFor
+3183: public bool IsSeaCrossing
+3193: public double Projection
+3229: private void CoolSlot
+3235: private void DriftTension
+3263: double Repl
+3280: private double DefeatedShock
+3288: private bool CannotDeclareWar

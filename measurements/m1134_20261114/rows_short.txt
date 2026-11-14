@@ -1,0 +1,86 @@
+S24-H001 | 緊張から戦争が始まる（宣戦布告のボタンは無い） | 文書 L4864（粒＝見出し・未分割） | Coefficients.cs:1417:WarDeclareTension;Coefficients.cs:1267:WarTriggerMonths;Coefficients.cs:1435:WarWearyThreshold | 文書の記号 ●（9-26・写さない）
+S24-H002 | 届かない相手には宣戦しない | 文書 L4870（粒＝見出し・未分割） | Coefficients.p06_rank_discovery.cs:76:DefendProjectionMin | 文書の記号 ●（9-26・写さない）；消えた係数 WarNeedsReach
+S24-H003 | 開戦寸前の屈服 | 文書 L4875（粒＝見出し・未分割） | Coefficients.cs:1967:AISubmitLegitCost;Coefficients.cs:1879:AISubmitMilRatio;Coefficients.cs:1420:ConcedeTensionTarget | 文書の記号 ●（9-26・写さない）；消えた係数 SubmitCountsAllies
+S24-H004 | 最後通牒（プレイヤー版） | 文書 L4881（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）
+S24-H005 | 戦争見通し | 文書 L4885（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）
+S24-H006 | 同盟の参戦（義務は無い） | 文書 L4890（粒＝見出し・未分割） | Coefficients.cs:1268:AllyJoinTension;Coefficients.cs:1274:AntiHegemonJoinFactor | 文書の記号 ●（9-26・写さない）
+S24-H007 | 同盟国も勝ち目と国難を見る | 文書 L4895（粒＝見出し・未分割） | Coefficients.cs:1756:AllyJoinFoodMin;Coefficients.cs:1757:AllyJoinFundingMin;Coefficients.cs:1758:AllyJoinLegitimacyMin;Coefficients.cs:1791:AppeaseMi | 文書の記号 ●（9-26・写さない）
+S24-H008 | 参戦の連鎖 | 文書 L4900（粒＝見出し・未分割）；同じ題 L551 | Coefficients.cs:1761:WarChainDepthPenalty;Coefficients.cs:1760:WarChainMaxDepth | S25-22 で確かめた（二度確かめない＝判定と根拠は S25-22・(907)）；文書の記号 ●（9-26・写さない）
+S24-H009 | 参戦要請と見送りの信義 | 文書 L4906（粒＝見出し・未分割） | Coefficients.cs:1759:AllyRefusalTension | 文書の記号 ●（9-26・写さない）
+S24-H010 | 宗主の防衛義務 | 文書 L4911（粒＝見出し・未分割）；同じ題 L563 | Coefficients.p06_rank_discovery.cs:76:DefendProjectionMin;Diplomacy.cs:1729:DefendDependent | S25-41 で確かめた（二度確かめない＝判定と根拠は S25-41・(907)）；文書の記号 ●（9-26・写さない）
+S24-H011 | 戦争熱（世論） | 文書 L4915（粒＝見出し・未分割） | Coefficients.cs:1446:WarFeverMilSpend;Coefficients.cs:1433:WarFeverMilitancy;Coefficients.cs:1434:WarFeverMilitancyGate;Coefficients.cs:1444:WarFeverM | 文書の記号 ●（9-26・写さない）
+S24-H012 | 余剰戦力（膨張意欲）の蓄積 | 文書 L4920（粒＝見出し・未分割） | Coefficients.cs:1536:ExpansionWillBourgeois;Coefficients.cs:1452:ExpansionWillCap;Coefficients.cs:1451:ExpansionWillGrowth;Coefficients.cs:1450:WarFev | 文書の記号 ●（9-26・写さない）
+S24-H013 | 主戦論は軍事費の「水準」でなく「シェア」で測る | 文書 L4925（粒＝見出し・未分割） | Simulation.cs:52:World | 文書の記号 ●（9-26・写さない）；消えた係数 WarFeverUsesBudgetShare
+S24-H014 | 侵略（唯一の攻撃の動詞） | 文書 L4930（粒＝見出し・未分割） | Coefficients.cs:1796:ColonizeAnnexMilitancy;Coefficients.cs:1701:ColonizeRivalTension;Coefficients.cs:1700:ColonizeSubmitFloorMilitary;Coefficients.cs | 文書の記号 ●（9-26・写さない）
+S24-H015 | 遠征の技術ゲート | 文書 L4937（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 ExpeditionTechFloor・ExpeditionTechL
+S24-H016 | 遠征の物資（船・糧食・キニーネ） | 文書 L4942（粒＝見出し・未分割） | Coefficients.cs:604:EpidemicSeverity;Coefficients.cs:1467:InvadeCannedBase;Coefficients.cs:1468:InvadeCannedPerMilitary;Coefficients.cs:2316:InvadeSea | 文書の記号 ●（9-26・写さない）；消えた係数 InvadeShipDistanceScale・InvadeShipS
+S24-H017 | 統一戦争のAI | 文書 L4948（粒＝見出し・未分割）；同じ題 L575 | Coefficients.cs:3118:UnificationAiCooldownYears;Coefficients.cs:3117:UnificationAiPursueChance;Coefficients.cs:3119:UnificationAiWarGapYears;Coefficie | S25-59 で確かめた（二度確かめない＝判定と根拠は S25-59・(907)）；文書の記号 ●（9-26・写さない）
+S24-H018 | 戦線の押し合い（戦勝点） | 文書 L4954（粒＝見出し・未分割） | Coefficients.cs:1403:WarPushSpeed | 文書の記号 ●（9-26・写さない）
+S24-H019 | 塹壕と戦車 | 文書 L4960（粒＝見出し・未分割） | Coefficients.cs:1399:TrenchDefenseWeight | 文書の記号 ●（9-26・写さない）
+S24-H020 | 決定的会戦の揺らぎ | 文書 L4965（粒＝見出し・未分割） | Coefficients.cs:1404:WarLuck | 文書の記号 ●（9-26・写さない）
+S24-H021 | 届かない戦線には運も立たない | 文書 L4971（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 WarLuckNeedsContact
+S24-H022 | 戦費（払えない軍は弱い）（2026-09-30 (117) に機構ごと削除）（廃止の見出し） | 文書 L4976（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ~（9-26・写さない）；消えた係数 WarCostPerMilitary・WarFundFloor・War
+S24-H023 | 戦力の投射（距離と制海権） | 文書 L4983（粒＝見出し・未分割） | Coefficients.cs:2313:DistanceWarDecay;Coefficients.cs:2315:HomeDefenseBonus | 文書の記号 ●（9-26・写さない）
+S24-H024 | 陸続きかどうか | 文書 L4989（粒＝見出し・未分割） | Landmass.cs:31:Landmass;MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 ContinentalLandReach・LandReachKm
+S24-H025 | 制海権 | 文書 L4995（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）
+S24-H026 | 上陸ゲート | 文書 L4999（粒＝見出し・未分割） | Coefficients.cs:1416:SeaInvasionControlMin | 文書の記号 ●（9-26・写さない）
+S24-H027 | 運河と海峡の戦時封鎖 | 文書 L5004（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）
+S24-H028 | 厭戦（7つの源泉） | 文書 L5008（粒＝見出し・未分割） | Coefficients.cs:2888:FiscalExhaustionWarWeariness;Coefficients.cs:1431:WarExhaustionBlockade;Coefficients.cs:1432:WarExhaustionCasualty;Coefficients.c | 文書の記号 ●（9-26・写さない）；消えた係数 WarExhaustionRate
+S24-H029 | 戦時配給法 | 文書 L5015（粒＝見出し・未分割） | Coefficients.cs:3196:RationingBlockadeRelief | 文書の記号 ○（9-26・写さない）；消えた係数 RationingGate
+S24-H030 | 接触強度（前線が実際にぶつかった量） | 文書 L5021（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 CasualtiesFromContact
+S24-H031 | 戦死 | 文書 L5027（粒＝見出し・未分割） | Coefficients.cs:1648:OfficerCasualtyShare | 文書の記号 ●（9-26・写さない）；消えた係数 WarCasualtyMonthlyCap・WarCasualtyRa
+S24-H032 | 対外戦争の民間人死 | 文書 L5037（粒＝見出し・未分割） | Coefficients.cs:2015:WarCivilianToll | 文書の記号 ●（9-26・写さない）
+S24-H033 | 戦場の資本破壊 | 文書 L5043（粒＝見出し・未分割） | Coefficients.cs:2016:WarZoneCapitalDamage | 文書の記号 ●（9-26・写さない）
+S24-H034 | 戦災による農業と畜産の減産 | 文書 L5048（粒＝見出し・未分割）；同じ題 L668 | Coefficients.cs:2607:WarFarmOutputDamage;Coefficients.cs:2609:WarLivestockOutputDamage;Coefficients.cs:2608:WarLivestockRequisition | 文書の記号 ●（9-26・写さない）
+S24-H035 | 海上封鎖 | 文書 L5054（粒＝見出し・未分割） | Coefficients.cs:2370:BlockadeStapleBias;Coefficients.cs:2618:RiskLambda | 文書の記号 ●（9-26・写さない）
+S24-H036 | 厭戦が国内の不満になる | 文書 L5072（粒＝見出し・未分割） | Coefficients.cs:673:WarWearinessMilitancy | 文書の記号 ●（9-26・写さない）；消えた係数 WarExhaustionMilitancy・WarMilitancy
+S24-H037 | 戦争が治安維持力を奪う | 文書 L5078（粒＝見出し・未分割） | Coefficients.cs:910:WarCoercionDrain;Coefficients.cs:1748:WarRallyCoercion;Coefficients.cs:1749:WarRallyDecayPoint | 文書の記号 ●（9-26・写さない）
+S24-H038 | 戦争が疫病を運ぶ | 文書 L5084（粒＝見出し・未分割） | Coefficients.cs:612:EpidemicWarTransmit | 文書の記号 ●（9-26・写さない）
+S24-H039 | 厭戦の戦後減衰 | 文書 L5089（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 CivilWarByScore・WarWearinessDecayRa
+S24-H040 | 革命の圧力が講和を前倒す | 文書 L5094（粒＝見出し・未分割） | Coefficients.cs:1750:RevolutionSurrenderWeight | 文書の記号 ●（9-26・写さない）
+S24-H041 | 終戦の4条件 | 文書 L5099（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 WarMaxMonths
+S24-H042 | 崩壊講和の取り分は戦線が決める | 文書 L5105（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 CollapseImposeFromFront
+S24-H043 | 列強の調停 | 文書 L5110（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 PeaceInterventionEnabled
+S24-H044 | 白紙講和 | 文書 L5115（粒＝見出し・未分割） | Coefficients.cs:1524:WhitePeaceScore | 文書の記号 ●（9-26・写さない）
+S24-H045 | 賠償金 | 文書 L5120（粒＝見出し・未分割） | Coefficients.cs:1440:ReparationGdpFraction | 文書の記号 ●（9-26・写さない）；消えた係数 AbstractTargetReparations
+S24-H046 | 会議外交による賠償の抑制 | 文書 L5125（粒＝見出し・未分割） | Coefficients.cs:1569:ConcertReparationRestraint;Coefficients.cs:1570:ConcertRestraintMax | 文書の記号 ●（9-26・写さない）
+S24-H047 | 植民地の奪取 | 文書 L5131（粒＝見出し・未分割） | Coefficients.cs:1528:ColonyCaptureBudget;Coefficients.cs:1529:ColonyCaptureCostBase;Coefficients.cs:1535:ColonyCaptureDistanceWeight;Coefficients.cs:1 | 文書の記号 ●（9-26・写さない）；消えた係数 ColonyDevCostWeight
+S24-H048 | 遠すぎる植民地は受け取れない | 文書 L5137（粒＝見出し・未分割） | Coefficients.cs:1559:CessionMaxDistanceKm | 文書の記号 ●（9-26・写さない）；消えた係数 ColonyCaptureReachGate
+S24-H049 | 奪った植民地はその場で州になる | 文書 L5143（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy;Simulation.cs:1501:PromoteColonyToRegion | 文書の記号 ●（9-26・写さない）；消えた係数 CapturedColoniesAreRegions
+S24-H050 | 植民地格の州の割譲 | 文書 L5149（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）；消えた係数 ColonialRegionCession・ColonyDevCost
+S24-H051 | 征服した土地の不満 | 文書 L5155（粒＝見出し・未分割） | Coefficients.cs:1564:CededColonyMilitancy;Coefficients.cs:2889:ConquestColonyMilitancy | 文書の記号 ●（9-26・写さない）；消えた係数 ConquestForeignWeight
+S24-H052 | 州の割譲 | 文書 L5161（粒＝見出し・未分割）；同じ題 L623 | Coefficients.cs:1545:TerritoryCessionScore | 文書の記号 ●（9-26・写さない）
+S24-H053 | 割譲には届く距離が要る | 文書 L5166（粒＝見出し・未分割） | Coefficients.cs:1559:CessionMaxDistanceKm | 文書の記号 ●（9-26・写さない）
+S24-H054 | 属国化か直接併合か | 文書 L5172（粒＝見出し・未分割）；同じ題 L630 | Coefficients.cs:1604:GovCostVassalThreshold;Coefficients.cs:1601:VassalizeWinScore | 文書の記号 ●（9-26・写さない）
+S24-H055 | 条約港（遠すぎて属国にできない相手） | 文書 L5177（粒＝見出し・未分割） | Coefficients.cs:1025:TreatyPortReparationMult;Coefficients.cs:1020:TreatyPortWinnerDistanceKm | 文書の記号 ●（9-26・写さない）
+S24-H056 | 条約の批准 | 文書 L5182（粒＝見出し・未分割） | Coefficients.cs:1790:TreatyRatificationControlThreshold | 文書の記号 ●（9-26・写さない）
+S24-H057 | 宗主権の引き継ぎ | 文書 L5187（粒＝見出し・未分割）；同じ題 L569 | Diplomacy.cs:3246:CountDependents(winner);Coefficients.cs:1603:MaxDependents | S25-51 で確かめた（二度確かめない＝判定と根拠は S25-51・(907)）；文書の記号 ●（9-26・写さない）
+S24-H058 | 政体の押し付け | 文書 L5192（粒＝見出し・未分割）；同じ題 L581 | Coefficients.cs:2021:ImposeRegimeIdeologyGap;Coefficients.cs:2022:ImposedRegimeLegitimacy | S25-70 で確かめた（二度確かめない＝判定と根拠は S25-70・(907)）；文書の記号 ●（9-26・写さない）
+S24-H059 | 敗戦ショックと戦勝の免責 | 文書 L5197（粒＝見出し・未分割） | Coefficients.cs:1745:DefeatNationalism;Coefficients.cs:1562:DefeatShockLegitWeight;Coefficients.cs:2971:VictoryLegitBoost | 文書の記号 ●（9-26・写さない）；消えた係数 DefeatShockDecay・WarDefeatMilitancy
+S24-H060 | 戦勝ショック（主戦論の噴出） | 文書 L5203（粒＝見出し・未分割） | Coefficients.cs:1763:VictoryImperialism;Coefficients.cs:1762:VictoryNationalism | 文書の記号 ●（9-26・写さない）；消えた係数 VictoryShockDecay
+S24-H061 | 失地の長期ストック | 文書 L5208（粒＝見出し・未分割） | Coefficients.cs:1746:LostLandNationalism | 文書の記号 ●（9-26・写さない）；消えた係数 LostLandHalflifeQuarters
+S24-H062 | 復讐心 | 文書 L5213（粒＝見出し・未分割） | Coefficients.cs:1565:RevanchismTension | 文書の記号 ●（9-26・写さない）；消えた係数 HighTensionDecayRate
+S24-H063 | 講和後の休戦（廃止の見出し） | 文書 L5218（粒＝見出し・未分割） | — | 文書の記号 ~（9-26・写さない）；消えた係数 MinTruceYears・TruceYearsPerFullVict
+S24-H064 | 多正面戦争 | 文書 L5223（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ●（9-26・写さない）
+S24-H065 | 内戦は戦争として戦われる | 文書 L5227（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy;MultiNationSim.cs:60:MultiNationSim | 文書の記号 ●（9-26・写さない）；消えた係数 CivilWarAsWar
+S24-H066 | 内戦の経済ダメージ | 文書 L5233（粒＝見出し・未分割） | Coefficients.cs:2014:CivilWarEconomyDisruption | 文書の記号 ●（9-26・写さない）；消えた係数 CivilWarCivilianToll
+S24-H067 | 分離した州の再征服 | 文書 L5239（粒＝見出し・未分割） | — | 文書の記号 ○（9-26・写さない）；消えた係数 ForceUnlockMilitancy・ForceUnlockRat
+S24-H068 | 理想の軍隊の形 | 文書 L5245（粒＝見出し・未分割） | Coefficients.cs:2258:AllyAttentionDiscount;Coefficients.cs:2256:AttentionHostilityFloor;Coefficients.cs:2257:AttentionTensionHalf;Coefficients.cs:2263 | 文書の記号 ●（9-26・写さない）；消えた係数 ArmyShapeEnabled・NavalProcurementFr
+S24-H069 | 毎月の戦闘が年表に出る | 文書 L5258（粒＝見出し・未分割） | Coefficients.cs:1689:BattleClearMargin;Coefficients.cs:1688:BattleDecisiveMargin;Coefficients.cs:1687:BattleLogEnabled | 文書の記号 ●（9-26・写さない）
+S24-H070 | 通商保護の必要量（守る海の交易）（廃止の見出し） | 文書 L5263（粒＝見出し・未分割） | — | 文書の記号 ~（9-26・写さない）
+S24-H071 | 艦隊を軍事ゲージへ合算 | 文書 L5270（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ○（9-26・写さない）；消えた係数 ArmyShapeGauge
+S24-H072 | 駐屯州での軍需調達 | 文書 L5277（粒＝見出し・未分割） | Coefficients.cs:2480:GarrisonProcurement | 文書の記号 ○（9-26・写さない）
+S24-H073 | 海軍の運用燃料 | 文書 L5283（粒＝見出し・未分割） | Coefficients.cs:3542:EraNavalFuel;Coefficients.cs:3541:NavalFuelFillSmoothing;Coefficients.cs:3536:NavalFuelPerGauge;Coefficients.cs:3540:NavalFuelSor | 文書の記号 ○（9-26・写さない）
+S24-H074 | 屈服の確率化 | 文書 L5289（粒＝見出し・未分割）；同じ題 L582 | Coefficients.cs:1880:SubmitProbabilistic | S25-72 で確かめた（二度確かめない＝判定と根拠は S25-72・(907)）；文書の記号 ○（9-26・写さない）
+S24-H075 | 軍需調達の一律按分（廃止の見出し） | 文書 L5295（粒＝見出し・未分割） | — | 文書の記号 ~（9-26・写さない）；消えた係数 MilitaryProcureProRata
+S24-H076 | 割譲の距離が技術で伸びる（廃止の見出し） | 文書 L5302（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ~（9-26・写さない）；消えた係数 CessionRangeTechKm
+S24-H077 | 開戦そのものの政治的帰結 | 文書 L5309（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ○（9-26・写さない）；消えた係数 WarStartPoliticsScale
+S24-H078 | 戦勝点の分解（診断）（廃止の見出し） | 文書 L5315（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ~（9-26・写さない）；消えた係数 WarScoreDecomposition
+S24-H079 | 民兵の戦力 | 文書 L5322（粒＝見出し・未分割） | Coefficients.cs:3062:MilitiaCombatValue | 文書の記号 ○（9-26・写さない）
+S24-H080 | 戦争台帳と終戦記録 | 文書 L5327（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ◇（9-26・写さない）
+S24-H081 | 戦争タブの戦費と犠牲者 | 文書 L5331（粒＝見出し・未分割） | — | 文書の記号 ◇（9-26・写さない）
+S24-H082 | 同一ペアの再戦カウンタ | 文書 L5335（粒＝見出し・未分割） | MultiNationSim.cs:12:Diplomacy | 文書の記号 ◇（9-26・写さない）
+S24-H083 | 艦隊と乗員のどちらが効いているか | 文書 L5339（粒＝見出し・未分割） | — | 文書の記号 ◇（9-26・写さない）
+S24-H084 | 戦死の計器 | 文書 L5343（粒＝見出し・未分割）；同じ題 L711 | MultiNationSim.cs:12:Diplomacy | 文書の記号 ◇（9-26・写さない）
+S24-V01 | 死者の記帳は戦争ごと | 国の月の兵の戦死・民間人の死の和＝その月に開いている戦争 | Diplomacy.cs:2308:KillPops(civ;Diplomacy.cs:2281:WarCivilianToll | 観戦 N2・M9・Y6（3 本とも＝種に依らない疑い）・民間人の死は戦線数で等分（Diplomacy.cs:125 の注
+S24-V02 | 届かない相手との戦争は終わる | どちらの投射も DefendProjectionMin  | Diplomacy.cs:2972:EndWar;Diplomacy.cs:1309:DefendProjectionMin | 観戦 Y7（49 か月続く）・M14

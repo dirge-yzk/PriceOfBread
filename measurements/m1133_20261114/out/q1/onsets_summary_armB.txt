@@ -1,0 +1,10 @@
+1	エンジン平時/first=187	エンジン戦時/first=91	講和の付与/first=1	開幕の表/first=44
+2	エンジン平時/first=188	エンジン戦時/first=98	エンジン戦時/re=1	講和の付与/first=1	開幕の表/first=44
+3	エンジン平時/first=193	エンジン戦時/first=98	エンジン戦時/re=1	開幕の表/first=44
+4	エンジン平時/first=184	エンジン戦時/first=108	エンジン戦時/re=2	講和の付与/first=1	開幕の表/first=41
+5	エンジン平時/first=189	エンジン平時/re=1	エンジン戦時/first=99	講和の付与/first=1	開幕の表/first=41
+6	エンジン平時/first=189	エンジン戦時/first=81	講和の付与/first=1	開幕の表/first=42
+7	エンジン平時/first=191	エンジン戦時/first=101	エンジン戦時/re=1	講和の付与/first=1	開幕の表/first=41
+8	エンジン平時/first=180	エンジン戦時/first=107	講和の付与/first=1	開幕の表/first=42
+9	エンジン平時/first=184	エンジン戦時/first=103	エンジン戦時/re=2	講和の付与/first=2	開幕の表/first=41
+10	エンジン平時/first=177	エンジン戦時/first=113	講和の付与/first=1	開幕の表/first=42

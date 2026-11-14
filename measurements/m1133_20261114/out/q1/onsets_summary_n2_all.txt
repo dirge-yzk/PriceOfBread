@@ -1,0 +1,10 @@
+1	講和の付与/first=7	開幕データ/first=7
+2	講和の付与/first=4	開幕データ/first=7
+3	講和の付与/first=5	開幕データ/first=7
+4	講和の付与/first=5	開幕データ/first=7
+5	講和の付与/first=9	開幕データ/first=7
+6	講和の付与/first=4	開幕データ/first=7
+7	講和の付与/first=5	開幕データ/first=7
+8	講和の付与/first=4	開幕データ/first=7
+9	講和の付与/first=7	開幕データ/first=7
+10	講和の付与/first=2	開幕データ/first=7

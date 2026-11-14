@@ -1,0 +1,87 @@
+S24-H001	Coefficients.cs:1417:WarDeclareTension=NG→Coefficients.p04_trade.cs:123:WarDeclareTension ; Coefficients.cs:1267:WarTriggerMonths=NG→Coefficients.p04_trade.cs:96:WarTriggerMonths ; Coefficients.cs:1435:WarWearyThreshold=NG→Coefficients.p04_trade.cs:133:WarWearyThreshold
+S24-H002	Coefficients.p06_rank_discovery.cs:76:DefendProjectionMin=OK
+S24-H003	Coefficients.cs:1967:AISubmitLegitCost=NG→Coefficients.p06_rank_discovery.cs:134:AISubmitLegitCost ; Coefficients.cs:1879:AISubmitMilRatio=NG→Coefficients.p04_trade.cs:123:AISubmitMilRatio ; Coefficients.cs:1420:ConcedeTensionTarget=NG→Coefficients.p04_trade.cs:125:ConcedeTensionTarget
+S24-H004	MultiNationSim.cs:12:Diplomacy=OK
+S24-H005	MultiNationSim.cs:12:Diplomacy=OK
+S24-H006	Coefficients.cs:1268:AllyJoinTension=NG→Coefficients.p04_trade.cs:97:AllyJoinTension ; Coefficients.cs:1274:AntiHegemonJoinFactor=NG→Coefficients.p04_trade.cs:102:AntiHegemonJoinFactor
+S24-H007	Coefficients.cs:1756:AllyJoinFoodMin=NG→Coefficients.p06_rank_discovery.cs:48:AllyJoinFoodMin ; Coefficients.cs:1757:AllyJoinFundingMin=NG→Coefficients.p06_rank_discovery.cs:49:AllyJoinFundingMin ; Coefficients.cs:1758:AllyJoinLegitimacyMin=NG→Coefficients.p06_rank_discovery.cs:50:AllyJoinLegitimacyMin ; Coefficients.cs:1791:AppeaseMilitaryRatio=NG→Coefficients.p06_rank_discovery.cs:71:AppeaseMilitaryRatio
+S24-H008	Coefficients.cs:1761:WarChainDepthPenalty=NG→Coefficients.p06_rank_discovery.cs:53:WarChainDepthPenalty ; Coefficients.cs:1760:WarChainMaxDepth=NG→Coefficients.p06_rank_discovery.cs:52:WarChainMaxDepth
+S24-H009	Coefficients.cs:1759:AllyRefusalTension=NG→Coefficients.p06_rank_discovery.cs:51:AllyRefusalTension
+S24-H010	Coefficients.p06_rank_discovery.cs:76:DefendProjectionMin=OK ; Diplomacy.cs:1729:DefendDependent=NG→Diplomacy.cs:1534:DefendDependent
+S24-H011	Coefficients.cs:1446:WarFeverMilSpend=NG→Coefficients.p04_trade.cs:140:WarFeverMilSpend ; Coefficients.cs:1433:WarFeverMilitancy=NG→Coefficients.p04_trade.cs:131:WarFeverMilitancy ; Coefficients.cs:1434:WarFeverMilitancyGate=NG→Coefficients.p04_trade.cs:132:WarFeverMilitancyGate ; Coefficients.cs:1444:WarFeverMilitarism=NG→Coefficients.p04_trade.cs:139:WarFeverMilitarism
+S24-H012	Coefficients.cs:1536:ExpansionWillBourgeois=NG→Coefficients.p05_port_insurance.cs:28:ExpansionWillBourgeois ; Coefficients.cs:1452:ExpansionWillCap=NG→Coefficients.p04_trade.cs:146:ExpansionWillCap ; Coefficients.cs:1451:ExpansionWillGrowth=NG→Coefficients.p04_trade.cs:145:ExpansionWillGrowth ; Coefficients.cs:1450:WarFeverThreshold=NG→Coefficients.p04_trade.cs:144:WarFeverThreshold
+S24-H013	Simulation.cs:52:World=OK
+S24-H014	Coefficients.cs:1796:ColonizeAnnexMilitancy=NG→Coefficients.p06_rank_discovery.cs:75:ColonizeAnnexMilitancy ; Coefficients.cs:1701:ColonizeRivalTension=NG→Coefficients.p06_rank_discovery.cs:25:ColonizeRivalTension ; Coefficients.cs:1700:ColonizeSubmitFloorMilitary=NG→Coefficients.p06_rank_discovery.cs:24:ColonizeSubmitFloorMilitary ; Coefficients.cs:1699:ColonizeSubmitRatio=NG→Coefficients.p06_rank_discovery.cs:23:ColonizeSubmitRatio
+S24-H015	MultiNationSim.cs:12:Diplomacy=OK
+S24-H016	Coefficients.cs:604:EpidemicSeverity=NG→Coefficients.p02_borrow_polity_epidemic.cs:78:EpidemicSeverity ; Coefficients.cs:1467:InvadeCannedBase=NG→Coefficients.p04_trade.cs:152:InvadeCannedBase ; Coefficients.cs:1468:InvadeCannedPerMilitary=NG→Coefficients.p04_trade.cs:153:InvadeCannedPerMilitary ; Coefficients.cs:2316:InvadeSeaControlMin=NG→Coefficients.p07_wiring_prewarm.cs:121:InvadeSeaControlMin
+S24-H017	Coefficients.cs:3118:UnificationAiCooldownYears=NG→Coefficients.p09_kingship_tax.cs:72:UnificationAiCooldownYears ; Coefficients.cs:3117:UnificationAiPursueChance=NG→Coefficients.p09_kingship_tax.cs:71:UnificationAiPursueChance ; Coefficients.cs:3119:UnificationAiWarGapYears=NG→Coefficients.p09_kingship_tax.cs:73:UnificationAiWarGapYears ; Coefficients.cs:3114:UnificationV1Only=NG→Coefficients.p09_kingship_tax.cs:69:UnificationV1Only
+S24-H018	Coefficients.cs:1403:WarPushSpeed=NG→Coefficients.p04_trade.cs:120:WarPushSpeed
+S24-H019	Coefficients.cs:1399:TrenchDefenseWeight=NG→Coefficients.p04_trade.cs:119:TrenchDefenseWeight
+S24-H020	Coefficients.cs:1404:WarLuck=NG→Coefficients.p04_trade.cs:121:WarLuck
+S24-H021	MultiNationSim.cs:12:Diplomacy=OK
+S24-H022	MultiNationSim.cs:12:Diplomacy=OK
+S24-H023	Coefficients.cs:2313:DistanceWarDecay=NG→Coefficients.p07_wiring_prewarm.cs:119:DistanceWarDecay ; Coefficients.cs:2315:HomeDefenseBonus=NG→Coefficients.p07_wiring_prewarm.cs:120:HomeDefenseBonus
+S24-H024	Landmass.cs:31:Landmass=OK ; MultiNationSim.cs:12:Diplomacy=OK
+S24-H025	MultiNationSim.cs:12:Diplomacy=OK
+S24-H026	Coefficients.cs:1416:SeaInvasionControlMin=NG→Coefficients.p04_trade.cs:122:SeaInvasionControlMin
+S24-H027	MultiNationSim.cs:12:Diplomacy=OK
+S24-H028	Coefficients.cs:2888:FiscalExhaustionWarWeariness=NG→Coefficients.p08_audit_soldiers.cs:141:FiscalExhaustionWarWeariness ; Coefficients.cs:1431:WarExhaustionBlockade=NG→Coefficients.p04_trade.cs:129:WarExhaustionBlockade ; Coefficients.cs:1432:WarExhaustionCasualty=NG→Coefficients.p04_trade.cs:130:WarExhaustionCasualty ; Coefficients.cs:1430:WarExhaustionEcon=NG→Coefficients.p04_trade.cs:128:WarExhaustionEcon
+S24-H029	Coefficients.cs:3196:RationingBlockadeRelief=NG→Coefficients.p09_kingship_tax.cs:104:RationingBlockadeRelief
+S24-H030	MultiNationSim.cs:12:Diplomacy=OK
+S24-H031	Coefficients.cs:1648:OfficerCasualtyShare=NG→Coefficients.p05_port_insurance.cs:67:OfficerCasualtyShare
+S24-H032	Coefficients.cs:2015:WarCivilianToll=NG→Coefficients.p07_wiring_prewarm.cs:15:WarCivilianToll
+S24-H033	Coefficients.cs:2016:WarZoneCapitalDamage=NG→Coefficients.p07_wiring_prewarm.cs:16:WarZoneCapitalDamage
+S24-H034	Coefficients.cs:2607:WarFarmOutputDamage=NG→Coefficients.p08_audit_soldiers.cs:60:WarFarmOutputDamage ; Coefficients.cs:2609:WarLivestockOutputDamage=NG→Coefficients.p08_audit_soldiers.cs:62:WarLivestockOutputDamage ; Coefficients.cs:2608:WarLivestockRequisition=NG→Coefficients.p08_audit_soldiers.cs:61:WarLivestockRequisition
+S24-H035	Coefficients.cs:2370:BlockadeStapleBias=NG→Coefficients.p07_wiring_prewarm.cs:148:BlockadeStapleBias ; Coefficients.cs:2618:RiskLambda=NG→Coefficients.p08_audit_soldiers.cs:65:RiskLambda
+S24-H036	Coefficients.cs:673:WarWearinessMilitancy=NG→Coefficients.p02_borrow_polity_epidemic.cs:95:WarWearinessMilitancy
+S24-H037	Coefficients.cs:910:WarCoercionDrain=NG→Coefficients.p03_debt_money.cs:89:WarCoercionDrain ; Coefficients.cs:1748:WarRallyCoercion=NG→Coefficients.p06_rank_discovery.cs:45:WarRallyCoercion ; Coefficients.cs:1749:WarRallyDecayPoint=NG→Coefficients.p06_rank_discovery.cs:46:WarRallyDecayPoint
+S24-H038	Coefficients.cs:612:EpidemicWarTransmit=NG→Coefficients.p02_borrow_polity_epidemic.cs:85:EpidemicWarTransmit
+S24-H039	MultiNationSim.cs:12:Diplomacy=OK
+S24-H040	Coefficients.cs:1750:RevolutionSurrenderWeight=NG→Coefficients.p06_rank_discovery.cs:47:RevolutionSurrenderWeight
+S24-H041	MultiNationSim.cs:12:Diplomacy=OK
+S24-H042	MultiNationSim.cs:12:Diplomacy=OK
+S24-H043	MultiNationSim.cs:12:Diplomacy=OK
+S24-H044	Coefficients.cs:1524:WhitePeaceScore=NG→Coefficients.p05_port_insurance.cs:20:WhitePeaceScore
+S24-H045	Coefficients.cs:1440:ReparationGdpFraction=NG→Coefficients.p04_trade.cs:136:ReparationGdpFraction
+S24-H046	Coefficients.cs:1569:ConcertReparationRestraint=NG→Coefficients.p05_port_insurance.cs:41:ConcertReparationRestraint ; Coefficients.cs:1570:ConcertRestraintMax=NG→Coefficients.p05_port_insurance.cs:42:ConcertRestraintMax
+S24-H047	Coefficients.cs:1528:ColonyCaptureBudget=NG→Coefficients.p05_port_insurance.cs:22:ColonyCaptureBudget ; Coefficients.cs:1529:ColonyCaptureCostBase=NG→Coefficients.p05_port_insurance.cs:23:ColonyCaptureCostBase ; Coefficients.cs:1535:ColonyCaptureDistanceWeight=NG→Coefficients.p05_port_insurance.cs:27:ColonyCaptureDistanceWeight ; Coefficients.cs:1533:ColonyCaptureMax=NG→Coefficients.p05_port_insurance.cs:26:ColonyCaptureMax
+S24-H048	Coefficients.cs:1559:CessionMaxDistanceKm=NG→Coefficients.p05_port_insurance.cs:34:CessionMaxDistanceKm
+S24-H049	MultiNationSim.cs:12:Diplomacy=OK ; Simulation.cs:1501:PromoteColonyToRegion=NG→Simulation.cs:1280:PromoteColonyToRegion
+S24-H050	MultiNationSim.cs:12:Diplomacy=OK
+S24-H051	Coefficients.cs:1564:CededColonyMilitancy=NG→Coefficients.p05_port_insurance.cs:39:CededColonyMilitancy ; Coefficients.cs:2889:ConquestColonyMilitancy=NG→Coefficients.p08_audit_soldiers.cs:142:ConquestColonyMilitancy
+S24-H052	Coefficients.cs:1545:TerritoryCessionScore=NG→Coefficients.p05_port_insurance.cs:32:TerritoryCessionScore
+S24-H053	Coefficients.cs:1559:CessionMaxDistanceKm=NG→Coefficients.p05_port_insurance.cs:34:CessionMaxDistanceKm
+S24-H054	Coefficients.cs:1604:GovCostVassalThreshold=NG→Coefficients.p05_port_insurance.cs:63:GovCostVassalThreshold ; Coefficients.cs:1601:VassalizeWinScore=NG→Coefficients.p05_port_insurance.cs:59:VassalizeWinScore
+S24-H055	Coefficients.cs:1025:TreatyPortReparationMult=NG→Coefficients.p03_debt_money.cs:144:TreatyPortReparationMult ; Coefficients.cs:1020:TreatyPortWinnerDistanceKm=NG→Coefficients.p03_debt_money.cs:142:TreatyPortWinnerDistanceKm
+S24-H056	Coefficients.cs:1790:TreatyRatificationControlThreshold=NG→Coefficients.p06_rank_discovery.cs:70:TreatyRatificationControlThreshold
+S24-H057	Diplomacy.cs:3246:CountDependents(winner)=NG→Diplomacy.cs:1286:CountDependents ; Coefficients.cs:1603:MaxDependents=NG→Coefficients.p05_port_insurance.cs:62:MaxDependents
+S24-H058	Coefficients.cs:2021:ImposeRegimeIdeologyGap=NG→Coefficients.p07_wiring_prewarm.cs:18:ImposeRegimeIdeologyGap ; Coefficients.cs:2022:ImposedRegimeLegitimacy=NG→Coefficients.p07_wiring_prewarm.cs:19:ImposedRegimeLegitimacy
+S24-H059	Coefficients.cs:1745:DefeatNationalism=NG→Coefficients.p06_rank_discovery.cs:43:DefeatNationalism ; Coefficients.cs:1562:DefeatShockLegitWeight=NG→Coefficients.p05_port_insurance.cs:37:DefeatShockLegitWeight ; Coefficients.cs:2971:VictoryLegitBoost=NG→Coefficients.p09_kingship_tax.cs:28:VictoryLegitBoost
+S24-H060	Coefficients.cs:1763:VictoryImperialism=NG→Coefficients.p06_rank_discovery.cs:55:VictoryImperialism ; Coefficients.cs:1762:VictoryNationalism=NG→Coefficients.p06_rank_discovery.cs:54:VictoryNationalism
+S24-H061	Coefficients.cs:1746:LostLandNationalism=NG→Coefficients.p06_rank_discovery.cs:44:LostLandNationalism
+S24-H062	Coefficients.cs:1565:RevanchismTension=NG→Coefficients.p05_port_insurance.cs:40:RevanchismTension
+S24-H063	—=＝錨なし
+S24-H064	MultiNationSim.cs:12:Diplomacy=OK
+S24-H065	MultiNationSim.cs:12:Diplomacy=OK ; MultiNationSim.cs:60:MultiNationSim=OK
+S24-H066	Coefficients.cs:2014:CivilWarEconomyDisruption=NG→Coefficients.p07_wiring_prewarm.cs:14:CivilWarEconomyDisruption
+S24-H067	—=＝錨なし
+S24-H068	Coefficients.cs:2258:AllyAttentionDiscount=NG→Coefficients.p07_wiring_prewarm.cs:112:AllyAttentionDiscount ; Coefficients.cs:2256:AttentionHostilityFloor=NG→Coefficients.p07_wiring_prewarm.cs:110:AttentionHostilityFloor ; Coefficients.cs:2257:AttentionTensionHalf=NG→Coefficients.p07_wiring_prewarm.cs:111:AttentionTensionHalf ; Coefficients.cs:2263:InternalGarrisonPerPop=NG→Coefficients.p07_wiring_prewarm.cs:114:InternalGarrisonPerPop
+S24-H069	Coefficients.cs:1689:BattleClearMargin=NG→Coefficients.p06_rank_discovery.cs:17:BattleClearMargin ; Coefficients.cs:1688:BattleDecisiveMargin=NG→Coefficients.p06_rank_discovery.cs:16:BattleDecisiveMargin ; Coefficients.cs:1687:BattleLogEnabled=NG→Coefficients.p06_rank_discovery.cs:15:BattleLogEnabled
+S24-H070	—=＝錨なし
+S24-H071	MultiNationSim.cs:12:Diplomacy=OK
+S24-H072	Coefficients.cs:2480:GarrisonProcurement=NG→Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement
+S24-H073	Coefficients.cs:3542:EraNavalFuel=NG→Coefficients.p10_ai_silver_overrides.cs:82:EraNavalFuel ; Coefficients.cs:3541:NavalFuelFillSmoothing=NG→Coefficients.p10_ai_silver_overrides.cs:81:NavalFuelFillSmoothing ; Coefficients.cs:3536:NavalFuelPerGauge=NG→Coefficients.p10_ai_silver_overrides.cs:79:NavalFuelPerGauge ; Coefficients.cs:3540:NavalFuelSortieFloor=NG→Coefficients.p10_ai_silver_overrides.cs:80:NavalFuelSortieFloor
+S24-H074	Coefficients.cs:1880:SubmitProbabilistic=NG→Coefficients.p06_rank_discovery.cs:102:SubmitProbabilistic
+S24-H075	—=＝錨なし
+S24-H076	MultiNationSim.cs:12:Diplomacy=OK
+S24-H077	MultiNationSim.cs:12:Diplomacy=OK
+S24-H078	MultiNationSim.cs:12:Diplomacy=OK
+S24-H079	Coefficients.cs:3062:MilitiaCombatValue=NG→Coefficients.p09_kingship_tax.cs:47:MilitiaCombatValue
+S24-H080	MultiNationSim.cs:12:Diplomacy=OK
+S24-H081	—=＝錨なし
+S24-H082	MultiNationSim.cs:12:Diplomacy=OK
+S24-H083	—=＝錨なし
+S24-H084	MultiNationSim.cs:12:Diplomacy=OK
+S24-V01	Diplomacy.cs:2308:KillPops(civ=OK ; Diplomacy.cs:2281:WarCivilianToll=OK
+S24-V02	Diplomacy.cs:2972:EndWar=OK ; Diplomacy.cs:1309:DefendProjectionMin=OK
+# OK 33  NG 106

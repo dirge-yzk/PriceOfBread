@@ -1,0 +1,13 @@
+# 生 D:/PoB_work/keep_1122/n2（N2）
+entry.fever>0.5.pct	99.29	99.39	99.45	10
+entry.fever>0.pct	100	100	100	10
+entry.will>0.pct	99.97	99.98	99.99	10
+pair.grudge>0.pct	2.524	4.046	7.905	10
+pair.hostility>0.pct	99.79	99.87	99.95	10
+sc.defeatShock>0.05.pct	11.47	13.38	19.28	10
+# dep の呼び手（種 1〜10 の和）
+dep	ResolvePeace	2760	112
+dep	ResolvePeace	2769	1
+dep	ResolvePeace	2813	370
+dep	SeedDependencies	237	30
+dep	Subjugate	2009	435

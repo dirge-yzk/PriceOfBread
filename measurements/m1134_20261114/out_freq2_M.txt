@@ -1,0 +1,13 @@
+# 生 D:/PoB_work/keep_1129/base_ins（M）
+entry.fever>0.5.pct	99.3	99.38	99.4	10
+entry.fever>0.pct	100	100	100	10
+entry.will>0.pct	99.96	99.98	99.98	10
+pair.grudge>0.pct	3.632	6.117	9.104	10
+pair.hostility>0.pct	99.79	99.86	99.91	10
+sc.defeatShock>0.05.pct	11.04	16.6	20.75	10
+# dep の呼び手（種 1〜10 の和）
+dep	ResolvePeace	2760	134
+dep	ResolvePeace	2769	1
+dep	ResolvePeace	2813	473
+dep	SeedDependencies	237	30
+dep	Subjugate	2009	436

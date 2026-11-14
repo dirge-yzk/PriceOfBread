@@ -1,0 +1,10 @@
+1 cap% 85.09 fever q10/q50/q90 0.802 1.031 1.381 Mil=0.1% MilSpend=27.5% Noble=30.9% Soldier=0.4% Threat=39.2% Diversion=1.9%
+2 cap% 83.56 fever q10/q50/q90 0.772 1.004 1.314 Mil=0.2% MilSpend=28.0% Noble=32.7% Soldier=0.4% Threat=36.9% Diversion=1.8%
+3 cap% 84.35 fever q10/q50/q90 0.826 1.05 1.383 Mil=0.1% MilSpend=27.2% Noble=31.2% Soldier=0.4% Threat=39.6% Diversion=1.6%
+4 cap% 84.44 fever q10/q50/q90 0.777 1.01 1.338 Mil=0.3% MilSpend=27.5% Noble=31.5% Soldier=0.4% Threat=38.3% Diversion=1.9%
+5 cap% 84.28 fever q10/q50/q90 0.806 1.035 1.376 Mil=0.2% MilSpend=28.1% Noble=31.8% Soldier=0.4% Threat=37.9% Diversion=1.7%
+6 cap% 84.86 fever q10/q50/q90 0.792 1.025 1.324 Mil=0.4% MilSpend=28.0% Noble=31.8% Soldier=0.3% Threat=38.0% Diversion=1.5%
+7 cap% 83.82 fever q10/q50/q90 0.757 1.002 1.333 Mil=0.1% MilSpend=28.7% Noble=32.6% Soldier=0.4% Threat=36.5% Diversion=1.7%
+8 cap% 83.75 fever q10/q50/q90 0.789 1.01 1.325 Mil=0.2% MilSpend=27.2% Noble=31.8% Soldier=0.4% Threat=38.6% Diversion=1.8%
+9 cap% 83.0 fever q10/q50/q90 0.774 1.028 1.405 Mil=0.1% MilSpend=26.8% Noble=31.7% Soldier=0.4% Threat=39.2% Diversion=1.9%
+10 cap% 85.0 fever q10/q50/q90 0.795 1.027 1.335 Mil=0.2% MilSpend=26.5% Noble=31.0% Soldier=0.4% Threat=40.0% Diversion=1.8%

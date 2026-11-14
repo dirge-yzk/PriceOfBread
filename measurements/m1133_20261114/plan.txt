@@ -1,0 +1,22 @@
+(1133) c110fs 読む線の計画（コミットしない・合流が measurements/m1133_20261114/ へ写す）
+作業の場所: D:/PoB_work/r1133_work/ （台本 scripts/ ・出力 out/）
+worktree は作らない（main の木 50e0b5c93 を読むだけ・ファイルを書かない）
+
+読む生
+- 旗1（段C′ 1回目 腕B を縮めた生）: D:/PoB_work/keep_1129_rej/c109rc_work/armB/out_c109rcB_10/ins/
+  rule・rulepower・rulepoweralloc・cessp・nation・region・secession・fiscal・pxmonth・stock・subst・migration（各 s1..s10）
+  ＝rulepeace・cederule は無い（縮めた生に無い）
+- 旗0: D:/PoB_work/keep_1129/base_ins/（rule・rulepower・rulepoweralloc・rulepeace・cederule・cessp・port ほか）
+- ヌル腕: D:/PoB_work/keep_1122/n1・n2（rule・rulepower・rulepeace・cederule）
+読む文書
+- measurements/m1123_20261114/ ・ measurements/m1123_20261114_prereg_rc.txt
+- docs/実装ログ (1123) の v・v2 ・ docs/README.md ★(1129) ・ 00一覧 §0-2 ★(1129)
+- 枝 origin/c109rc（51e559d42）RulePowerEngine.cs・Politics.cs（git show で読むだけ）
+- scripts/instruments/c109rc/（origin/c109rc の木）
+- 設計 scratchpad design_rule_power_2026-11-12.md §3〜§8・:478・:508
+- docs/202611/20261113/ の段C′ の事前登録の下書き 2 本
+読むソース（50e0b5c93）
+- Diplomacy.cs:2750 付近・TreatyPortLapse・Politics.cs:1079・:1100・World.cs:39・SelfPlay.cs:531・PoliticalQuantities.cs:97
+- InternationalMarket.cs:107〜112・BilateralMarket.cs:114・:1093
+- 持ち主の取り分の読み手（税・徴兵・StateReach）の grep
+腕: 0 本

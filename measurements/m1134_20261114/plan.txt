@@ -1,0 +1,36 @@
+(1134) c110s24 読む：台帳の系統の確かめ S24 開戦と戦争と講和（2026-11-14・読むだけ・コミット 0・腕 0）
+書いたモデル：Claude Opus 5.5
+
+作業の場所
+- 作業フォルダ D:/PoB_work/r1134_work/（この回に作った・合流が写すまで消さない）
+- 台本 D:/PoB_work/r1134_work/scripts/instruments/r1134/*.py（リポジトリの木に作らない＝読むだけの線・コミットしない。合流が写すなら scripts/instruments/r1134/ へ）
+- 読む木：main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD 50e0b5c93・書かない）。worktree・枝は作らない。
+
+読む生（列は head -1 で確かめた）
+- M  ＝ D:/PoB_work/keep_1129/base_ins（4c6a75df3 の座標・種 1〜10）
+- N1 ＝ D:/PoB_work/keep_1122/n1、N2 ＝ D:/PoB_work/keep_1122/n2（ヌル腕・種 1〜10・T0a と rs の前の木）
+- S11＝ D:/PoB_work/keep_1122/a11（種 11〜20・表が少ない＝wars・invade・casualty・nation・scalars だけ）
+- 表：wars・warentry・warpair・warband・invade・casualty・cpeace・rulepeace・imp・cess・cessp・cederule・cwmult・nation・scalars・epi
+
+読む文書
+- docs/機能の台帳.md §0 の S24 の行（:52）と `| S24-` の 86 行（1456〜）
+- docs/ゲーム概要と実装機能.md 4864〜5347（見出しは grep で確かめる）
+- 前例 measurements/m1127_20261114/ledger_S05_2026-11-14.md・.tsv・v_notes.txt（spend の窓の教訓）
+- memory pob-ui-sim-findings-2026-11-12.md（観戦の S24 の指摘・読むだけ）・scratchpad の ledger_mapping_2026-11-12.md・lines_round2_2026-11-12.md（見つかれば読むだけ）
+
+現物（grep し直す）
+- Diplomacy.cs：開戦・講和・ResolvePeace・RemovePower・最後の 1 州のガード・戦争の死者と戦費の記帳・矯正講和（imp_s の書き手）
+- Landmass.cs
+
+出す物
+- freq.py → out_freq_{M,N1,N2,S11}.txt（行ごとの頻度）
+- readers_S24.txt（消す候補の読み手の grep の行数）
+- src_s24.txt（根のソースの行）
+- ledger_S24_2026-11-14.tsv（86 行・12 列）・ledger_S24_2026-11-14.md（下書き）
+
+順（行が多い＝価値の順）
+1. 観戦の指摘のある行（V01・V02 ほか）
+2. 段 E・F が畳まない行（開戦・戦力・厭戦・死・損害・植民地・賠償）
+3. 段 E・F が畳む行（屈服・講和の形・最後の 1 州のガード）＝印だけ・深く読まない
+4. S25 で確かめた行＝二度確かめない（S25 の判定を写す）
+5. 残りは〈未確かめ〉

@@ -1,0 +1,36 @@
+# (1135) c110rn 事前登録（集計の前に書いた・2026-11-14・Claude Opus 5.5）
+# 段 R の need の基底（鉄道の need の取り分を州の産出の比へ）の事前登録を m1122 で閉じるための紙の読み。腕 0・ビルド 0・コミット 0。
+# 生：基準 D:/PoB_work/keep_1129/base_ins（m1122＝m1129z と全行一致の木 4c6a75df3 の座標）・ヌル腕 D:/PoB_work/keep_1122/n1・n2（rs の前の木＝trrail の g3NoShareRows・g4Moves・g4Viol の意味が古い。この線はその 3 列を読まない）。
+# 台本：D:/PoB_work/r1135_work/scripts/r1135/（写し先 scripts/instruments/r1135/）。
+
+[1] 母集合 P（全ての集計で同じ）
+- trrail_s の行で needEnd＞0（発見の後）・waterFlag＝0・その (国, 年) の trnation_s の railTargetIndex＞0。
+- 前年比は同じ州・同じ国の前年の行が P にある行だけ（割譲で国が替わった行は外す）。
+- 今の取り分 S_pot＝needEnd÷railTargetIndex。
+- 産出の取り分 S_out＝region_s の (国, 年) の最後の行の factoryOutputRefValuePerMonth＋extractionOutputRefValuePerMonth（activeFlag＝1）÷その国の和。
+  限界（名乗る）：RegionOutputValue の近い写し。役務の財（教育・医療・行政・兵力）を含む・労働の財と倒産を外す・四半期の最後の行（年の終わりの断面より 1 か月早い）。
+- 人口の取り分 S_pop＝region_s の populationK÷国の和（突然変異 M5〈案 2 の取り違え〉の紙）。
+
+[2] 揺れの物差し W（門 G-W の量）
+- W＝P の前年比のある行の |ln(S_t÷S_{t−1})| の中央（両方が正の行）。90 点も並べる。
+- 予言（m1103 の (1109) の数から・紙）：W_pot 約 0.44・W_out 約 0.05・W_pop 約 0.001。
+
+[3] G-W の閾値の決め方（結果を見る前に固定）
+- 形に固有の誤りの量で置く：下の線＝√(W_out×W_pop)（M5 を落とす）・上の線＝√(W_out×W_pot)（M1〈潜在量の比へ戻す〉と揺れの残る形を落とす）。2 倍の余裕では置かない（★(947)）。
+- ヌル腕の幅 w＝max÷min（M・N1・N2 の W_out）から 1＋2×(w−1) の帯を並べ、帯が上の 2 本の線の内に収まるかを確かめる（収まらなければ、閾値は帯の側＝広い方へ寄せると書く）。
+
+[4] G-φ の量
+- φ＜0.99 の割合：P の phiEnd＜0.99 の行の割合（M・N1・N2）。
+- 静的な紙：同じ T（railTrackEnd）で need だけ railTargetIndex×S_out に替えた φ の割合（腕の予言ではない＝線路の配りが動く前の下限の目安）。
+- 上側（形に固有の誤り）：need が潰れて φ が恒に 1 になる形（M4 の一部・need の和の破れ）は G8 と G-F で拾う。G-φ の上側の床は M・N1・N2 の φ＜0.99 の割合と静的な紙を並べてから〈静的な紙の 1/2〉で置く案を書く（閾値を後で動かさない）。
+
+[5] 中継の港の型（記録の先頭の候補）
+- S_out＜S_pot÷4 の行の割合・S_out＝0 で S_pot＞0 の行の割合・S_out＞4×S_pot の行の割合（M・N1・N2）。
+
+[6] 突然変異ごとの赤の表は紙（ソースの読み）で書く。ここでは集計しない。
+
+[7] .cost は台帳の件数（b10_20261114_m1122.cost の GDP：州×生産者の和の単価 0.0155µs）と prodcap_s の生産者の数から〈推〉で書く。
+
+[8] 点検（㉘・grep の結果を material に書く）：工業化度の読み手の許可表・new MoneyStock( の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表・RailByRegionTests の G3 の Assert（g1fv＝0）。
+
+[9] 規則：結果を見た後で母集合を広げない・閾値の式を替えない（⑫）。集計の後に足す読みは〈追加〉と名乗る。

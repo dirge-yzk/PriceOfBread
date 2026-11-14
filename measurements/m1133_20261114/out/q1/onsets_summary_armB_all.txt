@@ -1,0 +1,10 @@
+1	エンジン平時/first=119	エンジン戦時/first=95	開幕の表/first=104	開幕データ/first=5
+2	エンジン平時/first=127	エンジン戦時/first=95	エンジン戦時/re=1	開幕の表/first=104	開幕データ/first=5
+3	エンジン平時/first=125	エンジン戦時/first=101	エンジン戦時/re=1	開幕の表/first=104	開幕データ/first=5
+4	エンジン平時/first=127	エンジン戦時/first=105	エンジン戦時/re=2	開幕の表/first=99	開幕データ/first=3
+5	エンジン平時/first=124	エンジン平時/re=1	エンジン戦時/first=101	開幕の表/first=102	開幕データ/first=3
+6	エンジン平時/first=126	エンジン戦時/first=79	開幕の表/first=103	開幕データ/first=5
+7	エンジン平時/first=128	エンジン戦時/first=101	エンジン戦時/re=1	開幕の表/first=102	開幕データ/first=3
+8	エンジン平時/first=113	エンジン戦時/first=109	開幕の表/first=103	開幕データ/first=5
+9	エンジン平時/first=131	エンジン戦時/first=97	エンジン戦時/re=2	講和の付与/first=1	開幕の表/first=98	開幕データ/first=3
+10	エンジン平時/first=112	エンジン戦時/first=113	開幕の表/first=103	開幕データ/first=5
