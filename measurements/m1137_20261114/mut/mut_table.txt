@@ -1,0 +1,12 @@
+変異	予言の門	試験の束	赤になった試験・合計
+BASE	変異なし	緑	 成功!
+F1	旗の既定 1（変異ではない・旗 1 の木の試験の束の先読み）	赤	RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない 失敗!
+M1	G-W・G-F	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: / RailNeedByOutputTests.旗1の需要の取り分は州の産出の比_割譲の選びの式と同じ 失敗!
+M2	G-F（清算）	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: 失敗!
+M3	G-F（敷き）・G-W	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: 失敗!
+M4	G-F・G-φ	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: / RailNeedByOutputTests.旗1の需要の取り分は州の産出の比_割譲の選びの式と同じ 失敗!
+M5	G-W 下限・G-F	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: / RailNeedByOutputTests.旗1の需要の取り分は州の産出の比_割譲の選びの式と同じ 失敗!
+M6	G7	赤	RailByRegionTests.G3_運賃の線路の分は払われ計器の分と合い_取り分の無い国へ行かない / RailByRegionTests.G7_needを超える州は置換がd掛けるneedまで_線路は落ちる 失敗!
+M8	G-F・G-φ	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: / RailNeedByOutputTests.旗1の需要の取り分は州の産出の比_割譲の選びの式と同じ 失敗!
+M9	G-F・G-φ 下限（世界の和の代わりに 4 国の盤面で ×4）	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: / RailNeedByOutputTests.旗1の需要の取り分は州の産出の比_割譲の選びの式と同じ 失敗!
+M10	G-F	赤	RailNeedByOutputTests.G_F_敷きのneedと清算の倍率は旗の式に合い_他方の式から離れる(flag: / RailNeedByOutputTests.旗1の需要の取り分は州の産出の比_割譲の選びの式と同じ 失敗!
