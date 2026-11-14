@@ -689,7 +689,6 @@ public sealed class Region
     public double ElecInfraBudget;
     internal double Sanitation(Coefficients c) => PoliticalQuantities.Clamp01(InfraFill + c.SoapSanitationWeight * SoapFill + c.ElecInfraSanitationWeight * ElecInfraFill);
     public double MilitaryAffordRaw = 1.0;
-    public Share GarrisonShare;
     public double SoldierPayBudget;
     public double CompulsoryEduFunding;
     public double EducationSpending;

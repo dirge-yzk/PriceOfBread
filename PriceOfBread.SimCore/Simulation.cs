@@ -1784,7 +1784,6 @@ public sealed class Simulation
                     // 耐久品の目標在庫は平時基準（warMult を掛けない）＝機関銃は戦争が始まっても9倍要らない。〔履歴 Simulation.cs#207〕
                     r.MilitaryScalePeace = share > 1e-12 ? World.Coef.MilitaryUpkeepScale * natSoldiers * share : 0;
                     r.MilitaryWarMultLast = warMult;
-                    r.GarrisonShare = new Share(share);   // 予算配分（下）と共有
                 }
                 r.NationHasPort = navalYard;   // 国に港が1つでもあれば艦を発注できる   // 軍需調達は首都州のみ（多州で全国軍を二重調達しない）〔履歴 Simulation.cs#208〕
                 // 粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。〔履歴 Simulation.cs#209〕
