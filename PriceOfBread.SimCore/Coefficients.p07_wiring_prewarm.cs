@@ -23,7 +23,7 @@ public sealed partial class Coefficients
     public double TariffStateRevenueWeight = 0.08;   // 国家の歳入要求を関税軸へ（旧・専売の腕と同型＝19世紀最大の歳入源）
     public double EpidemicOnsetSanitationWeight = 0.4;   // 疫病の発生率×(1−これ×最過密州の衛生整備度)＝衛生インフラが流行の発生自体を止める（従来は死亡率側のみ）
     public double HealthcareRealGate = 0.5;   // 0=第3項なし（現行）
-    public double CrimePushWeight = 6.0;   // crimeRate の上限は CrimeBase 0.01×(1+CrimeUrbanWeight 0.6)=0.016 しかなく、
+    public double CrimePushWeight = 6.0;   // 犯罪率への押しの重み（犯罪率の上限は CrimeBase 0.01×(1＋CrimeUrbanWeight 0.6)＝0.016 しかない）
     public double DisasterAgeMortalityExcess = 0.4;   // 災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights＝POP の間と POP の中の1本）
     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）
     public double ChilledMeatProductivity = 1.4;  // 冷蔵レシピの生産性倍率（塩漬け比）
@@ -66,7 +66,7 @@ public sealed partial class Coefficients
     public double MilitaryWarMult = 9.0;                      // 元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
     public double WarMobilizationDepth = 0.5;                 // 長期戦ほど総動員(WWI型)
     public double MilitaryWarMultFromContact = 1.0;           // 0＝今の式（事前登録 measurements/m959_20261108_prereg_mw.txt）
-    public double WarArmsDemandPerContact = 42.0;             // 42＝今の戦時の軍需の総量 Σ兵×
+    public double WarArmsDemandPerContact = 42.0;             // 接触の割合 1 あたりの軍需の上乗せの倍率（旗 MilitaryWarMultFromContact が読む・戦時の倍率＝1＋これ×接触の割合）
     public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
     public double[] MilitaryQualityRates = [0.5, 0.1];       // 各上位軍需の消費比率（基本より少量＝高価な少数精鋭）
     public double MilitaryQualityBonus = 0.6;                // 上位軍需を満たした時の Power.Military 乗数の最大上乗せ（+60%）

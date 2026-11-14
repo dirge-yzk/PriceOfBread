@@ -8,7 +8,7 @@ public sealed partial class Coefficients
     public Share GreatPowerScoreFraction = new(0.35);  // 首位比率式のランク判定
     public Share MinorPowerScoreFraction = new(0.22);  // 実国12以下の世界（テスト・較正）では現役（GreatPowerScoreFractionと同じ if (real.Count > 12) の else 側）
     public double RankUpdateIntervalQuarters = 4;  // 4=年次ソート＝閾値チャタリング（列強動詞の点滅）抑制・威信の残光
-    public int GreatPowerCount = 7;                // 同ランクの外交相手が常時5〜8カ国）
+    public int GreatPowerCount = 7;                // 列強の定員（スコア上位の国数）
     public int SecondPowerCount = 5;               // 準列強の定員（列強の次のN）
     public int MiddlePowerCount = 7;               // 中堅の定員（準列強の次のN。残りの実国家と抽象勢力は弱小）
     public const int GreatPowerCountForFidelity = 7;   // 物差しは較正で動かさないため GreatPowerCount とは別の定数に固定する（人口軸が Q524 断面固定なのと同じ思想）
@@ -41,7 +41,7 @@ public sealed partial class Coefficients
     public double ArmyPoliticalWeight = 5.0 / Military.WorkingMenStdShare;       // 力＝これ×兵士人口シェア×(1−議会統制)＝文民統制の確立が軍を政治から退場させる
     public double ArmyPcPressure = 0.02;           // 王権寄りの軍（lean>0）が文民統制の確立を毎期押し戻す（プロイセン統帥権・憲法紛争1862）
     public double DefeatNationalism = 1.0;         // 思想の門（発見の2値）・ファシズム式の前に加算＝r[9]の燃料として自動で効く
-    public double LostLandNationalism = 0.1;       // 失地ストック×これ→r[4]の長期項 [PORT:P1]台帳へ記録）。0で恒等
+    public double LostLandNationalism = 0.1;       // 失地ストック×これ→ r[4] の長期項（国内の思想分布へ持続して効く）。0で恒等
     public double WarRallyCoercion = 0.3;          // 厭戦で減衰させないと二月革命型が構造的に消える＝恒常抑制にしない
     public double WarRallyDecayPoint = 0.4;        // 結束が消える厭戦水準（開戦時+30%→WE0.4でゼロ→以後はドレインが上回る）
     public double RevolutionSurrenderWeight = 0.4; // 厭戦崩壊(WE≥1)の決着は不変
@@ -104,11 +104,11 @@ public sealed partial class Coefficients
     // ==== ★発見の作り替え（段2A・2026-10-01・設計 20260928_財の削減_連鎖の深さの撤去 §1A-2＝発見は2値・点数＝技術力＋必要性＋伝わり（各0〜70）が100に届いたら解禁）====
     public double DiscoveryTechPerDecade = 0.35;    // Y（作者裁定 Q11＝「各行の発見の年か実用の年に、最も必要に迫られた平均的な先進国が届く値」）＝難易度＝これ×（行の年代−1780）÷10（技術水準の単位）
     public double DiscoveryNeedHalfProcess = 0.2;   // 製法の必要性の半分点＝強度
-    public double DiscoveryNeedHalfWeapon = 0.75;   // 新兵器の必要性の半分点＝強度（その分野の脅威の割合∈[0,1)〔必要量÷(必要量＋自国の陸軍力・海軍力)〕＋交戦中のその分野の損耗の強さ∈[0,1]〔(153)〕）がこの値で35
+    public double DiscoveryNeedHalfWeapon = 0.75;   // 新兵器の必要性の半分点＝強度（その分野の脅威の割合〔必要量÷(必要量＋自国の陸軍力・海軍力)〕＋交戦中のその分野の損耗の強さ）がこの値で半分
     public double DiscoveryNeedHalfProduct = 0.4;   // 新製品の必要性の半分点＝強度（(165)＝ln(代替する既存の財〔表の Replaces〕の平滑化した値段×換算の比÷新しい財を作る費用)・機関車は陸の輸送の値段÷鉄道の輸送の費用）がこの値で35
     public double DiscoveryContactHalf = 0.05;      // 伝わりの半分点＝接触（その行を解禁済みの国から買った運び手の財の額÷世界のその財の取引額＋呼んだ技師÷自国の専門職）がこの値で35
     public double DiscoveryPriceInitFromCost = 1;   // 0＝前提を読まない旧は git の履歴から戻せる
-    public double DiscoveryCarrierDownstream = 1;   // 0より大きい（既定）と、発見の行の伝わりの運び手の財（）に、その運び手を投入に持つ取引できる資本財（Producer 段・1代だけ）を足す
+    public double DiscoveryCarrierDownstream = 1;   // 0より大きいと、発見の行の伝わりの運び手の財に、その運び手を投入に持つ取引できる資本財（1代だけ）を足す
     public double DiscoveryNeedHalfSite = 0.04;     // 産地の発見（大鉱床・植林＝Catalog.Sites）の必要性の半分点＝強度がこの値で35
     public double DiscoverySiteFindHalfPop = 10;     // 産地の見つける力の人の半分点（1単位=1000人）＝技術力＝70×min(1, 技術水準÷難易度)×N÷(N＋これ)（N＝鉱床は入植者〔中核民族の人数〕・植林は住民）
     public double DiscoveryEngineerHalfPerMonth = 3.42; // 発見の技術力の置き換え（段3・既定で点火）＝技術力＝70×A÷(A＋これ×d)×押し（A＝その発見の親の産業の生産者が雇った高度労働力の月あたりの量・d＝(行の年代−1780)÷10・d≦0 の行は 1）

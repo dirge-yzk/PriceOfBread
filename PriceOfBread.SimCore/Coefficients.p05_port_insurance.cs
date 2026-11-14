@@ -24,7 +24,7 @@ public sealed partial class Coefficients
     public double ColonyCaptureResourceCost = 10;  // 固有資源1つあたりの追加奪取コスト（資源を生む植民地ほど奪いにくい）
     public double ColonyCapturePopCost = 2;        // 人口規模1あたりの追加奪取コスト（人口の多い植民地＝印度ほど奪いにくい＝大勝が必要）
     public int ColonyCaptureMax = 3;               // 1戦争で奪える植民地の上限（完全勝利でも3つほど）
-    public double ColonyCaptureDistanceWeight = 1.0;   // 奪取コスト×(1＋これ×海路距離万km×
+    public double ColonyCaptureDistanceWeight = 1.0;   // 戦勝奪取の距離の重み＝奪取コスト×(1＋これ×海路距離万km×(1−制海権))
     public double ExpansionWillBourgeois = 0.4;        // 従来は戦争熱>0.5超過分のみ＝自由主義的な英仏が構造的に植民地化不能だった
     public double ColonizeWillSuperiorityDiscount = 1.0;   // 1.0＝ちょうど屈服させられる相手で上限の50%（弱小へは半分で行ける）
     public double ColonizeValueGdpPer100k = 1.0;   // AI標的の魅力に経済規模項＝GDP10万あたり+1（植民地化の目的＝市場・税基盤。旧＝植民地数のみで実国のインド諸邦より近場の抽象小勢力が常に勝った）
@@ -37,7 +37,7 @@ public sealed partial class Coefficients
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）
     public double CedeRuleToLocal = 1;   // 0＝割譲は支配の区分と外国持分を触らない（今のまま）
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）
-    public double RevanchismTension = 70.0;        // 15 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値40超＝講和の後に失地回復戦を駆動。仏アルザス・ロレーヌ1871→1914型）
+    public double RevanchismTension = 70.0;        // 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値40超で失地回復戦を駆動）
     public double ConcertReparationRestraint = 0.04;  // 会議外交＝ウィーン体制（傍観する非交戦列強が勝者の賠償を削る＝サンステファノ→ベルリン1878）
     public double ConcertRestraintMax = 0.5;         // 抑制の上限（会議度が高くても賠償の半分まで）
     public double ThreatTensionPerMonth = 0.10;       // 経済/植民地の大国であること自体が周囲の緊張を高める（覇権防止）

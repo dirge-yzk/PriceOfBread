@@ -73,7 +73,7 @@ public sealed partial class Coefficients
     public double TransportWeightMarginScale = 0.3;   // 財9（輸送費の従量化）：交易マージンの従量成分の強度
 
     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
-    public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」…
+    public double CapacityFromFoodOutput = 0.5;   // 扶養力の食料産出アンカーの重み（実食料産出アンカーと初期人口の基準の混ぜ）
     public double OverworkMortalityWeight = 0.015;   // 短時間側 OverworkHealthSlope=0.015 と対称の初期値＝無制限14hで扶養力−0.03（=+19%産出 whOut の対価）
     public double EpidemicIntraCountrySpread = 0.5;   // 人14（疫病の州間伝播）：TriggerEpidemicの感染窓中に最過密州から次過密州へ与える二次スパイクの減衰致死率倍率
     public double PromotionLiteracySelection = 0.5;   // 人1：昇格の識字選抜強度（Meritocracy）

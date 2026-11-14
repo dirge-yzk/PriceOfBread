@@ -8,8 +8,8 @@ public sealed partial class Coefficients
     public double PopDebtDriven;                 // 主フラグ（0＝休眠＝誰も読み書きしない厳密恒等）
     public double PopDebtLossShare;              // 入口A：backstop で消えた赤字のうち個人が背負う割合（有限責任の度合い）
     public double DebtRepayFrac;                 // 出口：黒字のうち毎月返済に回す割合
-    public double DebtRuinRatio;                 // 返済不能：債務が年所得のこの倍数を超えると階級転落の判定へ算入（目安 2.0〜3.0＝
-    public double HouseholdCreditMonths;         // 入口B：借入枠＝月次所得のこの倍数（目安 1.0〜2.0＝19世紀ロンドンの労働者家計の
+    public double DebtRuinRatio;                 // 返済不能：債務が年所得のこの倍数を超えると階級転落の判定へ算入（目安 2.0〜3.0）
+    public double HouseholdCreditMonths;         // 入口B：借入枠＝月次所得のこの倍数（目安 1.0〜2.0）。0＝転落に算入しない
 
     public double ClergyAttractThreshold = 2.5;  // 聖職者の魅力閾値（平均比の豊かさ）
     public RatePerQuarter ClergyJoinRatePerQuarter = new(0.004);        // 下層→聖職者の四半期移動率（宗教学校の社会のみ）

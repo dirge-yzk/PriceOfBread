@@ -119,7 +119,7 @@ def make_note(bodies, port=None):
         cut = max(pick.rfind(x, 40, 118) for x in "、；：＝，")
         pick = pick[:cut] if cut > 0 else pick[:119] + "…"
         pick = pick.rstrip('、；：＝，')
-        for o_, c_ in ('（）', '(）', '〔〕', '【】', '「」'):
+        for o_, c_ in ('（）', '()', '〔〕', '【】', '「」'):
             if pick.count(o_[0]) > pick.count(c_[-1]):
                 cut2 = pick[:pick.rfind(o_[0])].rstrip('、；：＝，… ')
                 if len(cut2) >= 8: pick = cut2

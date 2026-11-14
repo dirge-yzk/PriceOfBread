@@ -5,7 +5,7 @@ namespace PriceOfBread.SimCore;
 public sealed partial class Coefficients
 {
     // === スカフォールド完成 2026-07-03（点火済み）===
-    public double FoodOutputAnchorProduction = 1.0;   // 人2（扶養力の食料産出アンカーの生産ベース化）：DemographicStepのfoodAnchorの食料比を消費ベースfoodMet/foodNeed（クランプ∈[0,1]・0=現行と厳密一致）から生産ベースstapleOutput/f…
+    public double FoodOutputAnchorProduction = 1.0;   // 扶養力の食料産出アンカーを消費ベースから生産ベースへ寄せる割合（0＝現行と厳密一致）
 
     // === 政治資本 2026-07-09（会社PC）→ 2026-09-21 裁定S1で「在庫の門1本」へ（㉖で焼き込み）===
     // ==== 税・支出・軍事費の段（作者裁定2026-09-12 R1/R2・2026-09-20 点火＝主フラグ FiscalLawStages を削除）====
@@ -15,7 +15,7 @@ public sealed partial class Coefficients
     public double MandateOverStockLegitPower = 2;   // Government.Spend は S へ足す量を残りの在庫 max(0, b−S) で止める＝在庫を使い切る（S は b で止まる）
 
     // === 王権議会P0＝内部状態化 2026-07-10（出典＝設計doc「王権議会_史実精査」§3新規1-6/§4結論/§4-b協力度2次元/§5判断③・「設計メモ」§2段階(i)）===
-    public double CoopPublicSatPivot = 0.14;   // CoopParliamentCrown=王権と議会の協力度などに読み手あり）
+    public double CoopPublicSatPivot = 0.14;   // 協力度③世論↔体制（CoopPublicRegime）の満足項の中立点
     public double CoopClassAffinityWeight = 0.5;      // 協力度（議会↔王権）の階級親和項の重み：王権の基盤=旧支配層（史実精査§5判断②）と議席の構成の距離＝Σ議席×(保守+1/自由0/社会−1)（2026-09-26 回5-1 Q16＝旧は第一党の札1つ）・王冠の無い国は0
     public double CoopPolicyGapWeight = 1.0;          // Policy の目標
     public double CoopConflictMemoryWeight = 1.0;     // 協力度（議会↔王権）の紛争記憶項の重み：既存 MandateSpent ストック（反対を押し切った累積＝敵対の蓄積器・史実精査§4-b「新規状態を作らず参照」）をそのまま減算
@@ -42,7 +42,7 @@ public sealed partial class Coefficients
     public double FactionCohesionFightThreshold = 0.8;   // 内乱化に要る結束（≈持続3年超の組織運動のみ＝一揆や瞬間革命と役割分担）
     public double RevoltIgnitionIntensity = 0.0;   // 戦争の形の再併合も旧経路の鎮圧の行（Politics.SettleRevolt の1本＝返還州の闘争度の緩和・断裂の窓・運動の燃え尽き）を常に通る
     public double RevoltGrievanceWeight = 0.0;   // 門2の怨嗟の重み：min(1, FactionRejectionMutation×Rejections)（変異ロールと同じ飽和の書き方）を州の絶望に加える強さ
-    public double RevoltVoiceFloor = 0.0;   // 闘争度0.99・結束1.00でも intensity 0.0000）
+    public double RevoltVoiceFloor = 0.0;   // 蜂起の強度の発言権の床：(1−発言権) の下限をこの値にする。0＝恒等
     public double RevoltMilitiaRaise = 0.0;   // ＝民兵率 min(1, これ×そのPOPの闘争度)
     public double MilitiaCombatValue = 0.0;   // 民兵1人あたりの戦力 a（<1＝弱兵）
     public int FactionConcessionSteps = 2;       // 内戦の講和の経済決着（Politics.ConcedeToFaction）：要求最上位の法を2段・以下1段のむ

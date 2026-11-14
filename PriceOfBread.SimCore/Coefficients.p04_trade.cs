@@ -8,7 +8,7 @@ public sealed partial class Coefficients
     public double MonopolyRentPremium = 0.15;   // 伝統的独占(塩の王室のgabelle・茶の東インド会社)の買い手価格上乗せ率
 
     // --- 資本・建設（§2.4 拡張：地域集約の「工業化度」。投資＝機械・セメントを消費して積む）---
-    public double IndDepreciation = 0.003;        // 工業資本の減価（D1腕＝IndDepreciation0.0045/IndCapitalCost0.45は2026-08-09に一度採用→州23件還流後のアブレーションで符号反転
+    public double IndDepreciation = 0.003;        // 工業資本の減価率
     public double DevelopmentMemory = 0.4;   // 点火2026-09-06＝0.0→0.4・〔4-5〕開発度の記憶
     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）
     public Share DepressionScrapThreshold = new(0.20);  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
@@ -35,7 +35,7 @@ public sealed partial class Coefficients
     public double StapleDemandRebalance = 0;         // 0＝今の挟み（主食の相対価格の倍率を PriceFactorMin／Max で挟む）＝厳密恒等
     public double HarvestShortfallToMarket = 1;      // 凶作で自給が減った分を市場の需要へ③
 
-    public double FactoryBuildAfford(double cpuNow, double cpuRef)   // 工場建設の採算連続判断：素材束の現在費用/参照費用 の比に対し建設可能率∈(0,1] を滑らかに返す（崖でなく漸減）
+    public double FactoryBuildAfford(double cpuNow, double cpuRef)   // 工場建設の採算：素材束の現在費用÷参照費用の比に対し建設可能率（0 より大きく 1 以下）を滑らかに返す（崖でなく漸減）
     {
         if (!(cpuRef > 1e-9) || !(FactoryBuildPriceCeil > 1e-9)) return 1.0;
         double ratio = cpuNow / cpuRef;
@@ -57,7 +57,7 @@ public sealed partial class Coefficients
     public double RefrigerationEffect = 0.7;      // 完全な冷蔵で生鮮の腐敗が下がる最大割合（0で無効）
     public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
     public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
-    public double ConsSteel = 1.0;   // 止めるのは所得差（目標の都市の割合）・飢えの線 FamineMigrationFillGate・農奴の門 SerfMobilityGate
+    public double ConsSteel = 1.0;   // 工場建設が食う束の鋼の量（鋼＋機械＋セメント＋製材）
     public double ConsMachine = 0.15;
     public double ConsCement = 0.4;
     public double ConsLumber = 0.5;
@@ -115,7 +115,7 @@ public sealed partial class Coefficients
     public double OilMachineryInput = 0.05;         // 原油1単位あたりの機械投入（RefPrice 4.39×0.05≈+0.22＝原油0.54→0.76）
     public RatePerMonth ArmsWearRatePerMonth = new(0.02);            // 平時の月次摩耗率（定常で 目標×これ ＝ 現行の平時フローに一致するよう逆算）
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
-    public double TrenchDefenseWeight = 0.5;   // 直下 TrenchDefenseWeight の注記：
+    public double TrenchDefenseWeight = 0.5;   // 塹壕の防御の重み（装備が戦場に残る ArmsStock と対で意味を持つ）
     public double WarPushSpeed = 0.10;            // 戦争スコアの押し合い速度（月・押しの割合1あたり）
     public double WarLuck = 0.12;                 // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
     public double SeaInvasionControlMin = 0.65;   // ＋精密化「厳密には、海戦で閾値に勝たない限り上陸はできない＝陸戦は起きるが、その被害は民間には出ない」
@@ -138,7 +138,7 @@ public sealed partial class Coefficients
     public double WarFeverMilitarism = 0.4;   // ×好戦世論の公共圏（報道自由度×識字×都市化×対外屈辱∈[0,1]）
     public double WarFeverMilSpend   = 0.5;   // ×軍事費(0..1)
     public double WarFeverNoble      = 0.3;   // ×伝統支配層の力（将校貴族＝旧支配層ブロック）
-    public double WarFeverSoldier    = 4.0 / Military.WorkingMenStdShare;   // ×兵士人口比（(145) 兵の単位の読み替え＝旧値 4.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる
+    public double WarFeverSoldier    = 4.0 / Military.WorkingMenStdShare;   // ×兵士人口比（兵役の母数を働き盛りの男 Military.WorkingMenStdShare で読む）
     public double WarFeverThreat     = 0.3;   // ×外的脅威(MaxTension/100)＝脅威下では軍が発言力を得る
     public double WarFeverThreshold  = 0.5;   // これを超えた分だけ膨張意欲が貯まる（中立＝0.5前後）
     public double ExpansionWillGrowth   = 0.5;   // 四半期あたりの累積率 ×(戦争熱-閾値)
