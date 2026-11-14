@@ -1,0 +1,42 @@
+== F1（腕 /d/PoB_work/c110lo_work/muts/F1/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16370	16369	0	0	1.50787e+06	0.2982	0.3334	1.1747
+2	16368	16537	0	0	743905	0.3827	3.1727	0.8688
+和	armLocoPre=0	armMaintLocoPre=0	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=1.0509	preRailRatio=1.0063	baseLocoPreShare=0.3216	欠け=0
+門	G1=緑	G2=緑	G1b=緑	G3=緑
+== M1（腕 /d/PoB_work/c110lo_work/muts/M1/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16369	16369	1.48864e+06	21754.4	1.50787e+06	0.2982	0.0000	0.9839
+2	16537	16537	681184	11304.9	743905	0.3827	0.0000	0.9899
+和	armLocoPre=2.16983e+06	armMaintLocoPre=33059.3	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=0.0000	preRailRatio=0.9872	baseLocoPreShare=0.3216	欠け=0
+門	G1=赤	G2=赤	G1b=赤	G3=緑
+== M2（腕 /d/PoB_work/c110lo_work/muts/M2/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16374	16369	29041.5	29041.5	1.50787e+06	0.2982	0.1528	1.3453
+2	16373	16537	53948.1	53948.1	743905	0.3827	3.4336	0.8575
+和	armLocoPre=82989.6	armMaintLocoPre=82989.6	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=0.9819	preRailRatio=1.0768	baseLocoPreShare=0.3216	欠け=0
+門	G1=赤	G2=赤	G1b=緑	G3=緑
+== M3（腕 /d/PoB_work/c110lo_work/mutsb/M3/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16369	16369	1.50787e+06	21907.8	1.50787e+06	0.2982	1.0000	1.0000
+2	16537	16537	743905	11768.3	743905	0.3827	1.0000	1.0000
+和	armLocoPre=2.25177e+06	armMaintLocoPre=33676.1	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=1.0000	preRailRatio=1.0000	baseLocoPreShare=0.3216	欠け=0
+門	G1=赤	G2=赤	G1b=緑	G3=緑
+== M4（腕 /d/PoB_work/c110lo_work/mutsb/M4/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16557	16369	2.31131e+06	32116.6	1.50787e+06	0.2982	1.2101	1.0615
+2	16348	16537	231348	4457.12	743905	0.3827	0.2812	1.0407
+和	armLocoPre=2.54266e+06	armMaintLocoPre=36573.7	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=0.9753	preRailRatio=1.0501	baseLocoPreShare=0.3216	欠け=0
+門	G1=赤	G2=赤	G1b=緑	G3=緑
+== M5（腕 /d/PoB_work/c110lo_work/mutsb/M5/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16379	16369	0	0	1.50787e+06	0.2982	1.4417	0.0000
+2	16624	16537	0	0	743905	0.3827	2.0162	0.0000
+和	armLocoPre=0	armMaintLocoPre=0	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=1.5868	preRailRatio=0.0000	baseLocoPreShare=0.3216	欠け=0
+門	G1=緑	G2=緑	G1b=緑	G3=赤
+== M6（腕 /d/PoB_work/c110lo_work/mutsb/M6/ins 対 旗 0 /d/PoB_work/c110lo_work/muts/F0/ins・種 1,2・四半期 268）
+seed	rowsArm	rowsBase	armLocoPre	armMaintLocoPre	baseLocoPre	baseLocoPreShare	postRatio	preRailRatio
+1	16370	16369	0	0	1.50787e+06	0.2982	0.3334	1.1747
+2	16368	16537	0	0	743905	0.3827	3.1727	0.8688
+和	armLocoPre=0	armMaintLocoPre=0	baseLocoPre=2.25177e+06	baseMaintLocoPre=33676.1	postRatio=1.0509	preRailRatio=1.0063	baseLocoPreShare=0.3216	欠け=0
+門	G1=緑	G2=緑	G1b=緑	G3=緑

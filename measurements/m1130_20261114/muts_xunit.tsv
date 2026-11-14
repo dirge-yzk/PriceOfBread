@@ -1,0 +1,8 @@
+mu	build	T1	T2	T3	summary
+M0	ok	緑	緑	緑	成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 31 s - PriceOfBread.Tests.dll (
+M1	ok	赤	赤	赤	失敗!   -失敗:     3、合格:     0、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (
+M2	ok	赤	緑	赤	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 13 s - PriceOfBread.Tests.dll (
+M3	ok	赤	緑	赤	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (
+M4	ok	赤	緑	赤	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 15 s - PriceOfBread.Tests.dll (
+M5	ok	赤	緑	赤	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 13 s - PriceOfBread.Tests.dll (
+M6	ok	緑	緑	緑	成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 16 s - PriceOfBread.Tests.dll (
