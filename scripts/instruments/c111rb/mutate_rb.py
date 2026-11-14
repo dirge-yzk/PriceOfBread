@@ -17,6 +17,7 @@ MUT = [
     ('M9', S + 'Transport.cs', 'w.GdpPerMonth.Value) : ShareBasis(w, c);', '4.0 * w.GdpPerMonth.Value) : ShareBasis(w, c);', 'G-F・G-φ 下限（世界の和の代わりに 4 国の盤面で ×4）'),
     ('M10', S + 'World.cs', '                    if (good is null || good.Tier == GoodTier.Service) continue;\n                    g += s.Output * good.RefPrice;\n                    if (byOut) gr += s.Output * good.RefPrice;',
      '                    if (byOut && good is not null) gr += s.Output * good.RefPrice;\n                    if (good is null || good.Tier == GoodTier.Service) continue;\n                    g += s.Output * good.RefPrice;', 'G-F'),
+    ('M13', S + 'Instruments/InstrumentsTransport.cs', '        if (!potOk && outOk) { phi = phiOut; terr = terrOut; }\n', '', '追記 1 の計器の直しを外す（試験の旗 1 の側の差の最大）'),
 ]
 only = set(sys.argv[4].split(',')) if len(sys.argv) > 4 else None
 rows = []

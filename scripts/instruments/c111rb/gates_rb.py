@@ -8,6 +8,7 @@ import sys, os, glob, math
 from collections import defaultdict
 
 ins, label, outp = sys.argv[1], sys.argv[2], sys.argv[3]
+tnd = sys.argv[4] if len(sys.argv) > 4 else ins   # trnation_s を別のフォルダから読む（ident の刈り込みで基準と同じ表が消えた生）
 
 def q(xs, p):
     if not xs: return float('nan')
@@ -29,7 +30,7 @@ cant = 0; cant_den = 0
 per_seed_p = {}
 for path in sorted(glob.glob(os.path.join(ins, 'trrail_s*.tsv'))):
     sd = path.rsplit('_s', 1)[1].split('.')[0]
-    tp = os.path.join(ins, f'trnation_s{sd}.tsv')
+    tp = os.path.join(tnd, f'trnation_s{sd}.tsv')
     if not os.path.exists(tp): continue
     seeds += 1
     tg = {}
