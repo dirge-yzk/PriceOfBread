@@ -536,14 +536,17 @@ public static partial class Instruments
         double phi = RailInsPhi(t, nc.Target * RailInsShare(w, r));
         double terr = (1.0 - phi) * h + phi * rl;
         double exp = ratio * terr;
+        double phiOut = RailInsPhi(t, nc.Target * (nc.Out!.TryGetValue(r, out double so) ? so : double.NaN));   // (1137) 計器の産出の比で組んだ同じ混ぜの式
+        double terrOut = (1.0 - phiOut) * h + phiOut * rl, expOut = ratio * terrOut;
+        bool potOk = Math.Abs(mult - exp) <= 1e-9 * Math.Abs(exp), outOk = Math.Abs(mult - expOut) <= 1e-9 * Math.Abs(expOut);
         if (!water)
         {
             a.G1PosSides++;
-            if (!(Math.Abs(mult - exp) <= 1e-9 * Math.Abs(exp))) a.G1FormulaViol++;
-            double phiOut = RailInsPhi(t, nc.Target * (nc.Out!.TryGetValue(r, out double so) ? so : double.NaN));   // (1137) 計器の産出の比で組んだ同じ混ぜの式
-            double expOut = ratio * ((1.0 - phiOut) * h + phiOut * rl);
-            if (!(Math.Abs(mult - expOut) <= 1e-9 * Math.Abs(expOut))) a.G1FormulaOutViol++;
+            if (!potOk) a.G1FormulaViol++;
+            if (!outOk) a.G1FormulaOutViol++;
         }
+        // G3 の計器の線路の分：エンジンの倍率に合った方の式の φ で組む（潜在量の比が先・合わず産出の比が合えばそちら＝旗を読まない・(1137)）。旗 0 は旧と同じ式・同じ値
+        if (!potOk && outOk) { phi = phiOut; terr = terrOut; }
         if (terr > 0 && phi > 0) a.InsRail += landFreight * (phi * rl / terr);
     }
 

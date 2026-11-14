@@ -188,7 +188,7 @@ public class RailByRegionTests
         sim.DiplomacyFrozen = true;
         foreach (var n in sim.Nations)
         {
-            var c = n.World.Coef; c.RailByRegion = 1; c.CivilWarLandslideRatio = 0;
+            var c = n.World.Coef; c.RailByRegion = 1; c.RailNeedByOutput = 0; c.CivilWarLandslideRatio = 0;   // (1137) 旗 0 の経路の番人（g1FormulaViol は潜在量の比の式）。旗 1 の同じ Assert の束は RailNeedByOutputTests の G_F の Theory
             n.World.Discovered[Discovery.LocomotiveRow] = true;
             int i = 0; foreach (var r in n.World.Regions) r.RailTrack = (i++ % 2 == 0) ? 1e15 : 0.0;
         }

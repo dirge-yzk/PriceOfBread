@@ -65,15 +65,28 @@ public class RailNeedByOutputTests
         {
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "trrail_s1789.tsv"));
             var h = lines[0].Split('\t'); int Ix(string x) => Array.IndexOf(h, x);
-            long months = 0, gn = 0, g1p = 0, g1fv = 0, g1fo = 0, rows = 0;
+            long months = 0, gn = 0, g1p = 0, g1fv = 0, g1fo = 0, rows = 0, noShare = 0, g1z = 0, g1zv = 0, g2 = 0, g2v = 0, g7l = 0;
+            double paid = 0, maxRel = 0;
             foreach (var ln in lines.Skip(1))
             {
                 var f = ln.Split('\t'); rows++;
                 months += long.Parse(f[Ix("monthsCount")]); gn += long.Parse(f[Ix("gnOutViol")]);
                 g1p += long.Parse(f[Ix("g1PosSides")]); g1fv += long.Parse(f[Ix("g1FormulaViol")]); g1fo += long.Parse(f[Ix("g1FormulaOutViol")]);
+                double p = double.Parse(f[Ix("railFreightPaidGoldPerYear")], System.Globalization.CultureInfo.InvariantCulture);
+                double s = double.Parse(f[Ix("railFreightInsGoldPerYear")], System.Globalization.CultureInfo.InvariantCulture);
+                paid += p;
+                if (f[Ix("waterFlag")] == "0") maxRel = Math.Max(maxRel, Math.Abs(p - s) / Math.Max(1e-6, Math.Max(p, s)));
+                noShare += long.Parse(f[Ix("g3NoShareRows")]); g1z += long.Parse(f[Ix("g1ZeroSides")]); g1zv += long.Parse(f[Ix("g1ZeroViol")]);
+                g2 += long.Parse(f[Ix("g2Rows")]); g2v += long.Parse(f[Ix("g2Viol")]); g7l += long.Parse(f[Ix("g7LockRows")]);
             }
-            string all = $"旗 {flag}・行 {rows}・敷きの月 {months}・産出の式の破れ（敷き）{gn}・T＞0 の側 {g1p}・潜在量の式の破れ {g1fv}・産出の式の破れ（清算）{g1fo}";
+            string all = $"旗 {flag}・行 {rows}・敷きの月 {months}・産出の式の破れ（敷き）{gn}・T＞0 の側 {g1p}・潜在量の式の破れ {g1fv}・産出の式の破れ（清算）{g1fo}"
+                + $"・G3 取り分の無い国 {noShare}・払った線路の分 {paid}・差の最大 {maxRel}・G1 T＝0 {g1z} 破れ {g1zv}・G2 {g2} 破れ {g2v}・G7 錠 {g7l}";
             Assert.True(rows > 50 && months > 50 && g1p > 50, all);
+            // RailByRegionTests の G3 の Assert の束（線路の分の払い・取り分の無い国・T＝0 の側・敷きの保存・錠）を旗ごとに同じく（(1137)：G3 は旗 0 を明示）
+            Assert.True(paid > 0, all);
+            Assert.True(maxRel <= 1e-6, all);
+            Assert.True(noShare == 0 && g1zv == 0 && g2v == 0 && g7l == 0, all);
+            Assert.True(g1z > 0 && g2 > 0, all);
             if (flag == 1)
             {
                 Assert.True(gn == 0 && g1fo == 0, all);
