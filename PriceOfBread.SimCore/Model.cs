@@ -485,6 +485,9 @@ public sealed class Producer
     }
     private double _output;
     public double DesiredOutput;
+    // (1144) T1 A-1 の写し（流れの値・セーブに書かない・思想⑩の点検＝盤面から導けない〈その月の供給①の入力〉を清算まで運ぶだけ・毎月の清算の後に 0 へ戻す）：
+    //   T1OutPrev＝供給①の Toward の前の産出・T1Base＝能力×投入充足×在庫の調整（未発明は −1）・T1Mc＝供給①の mc。3 つとも 0＝写しが無い。読み手は清算の A-1 と計器 t1buy_s だけ。
+    [System.NonSerialized] internal double T1OutPrev, T1Base, T1Mc;
     public double MarginalCost;
     public int OwnerPopIndex;
     public int LaborPopIndex;
