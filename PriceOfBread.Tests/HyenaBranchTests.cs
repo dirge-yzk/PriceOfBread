@@ -125,6 +125,7 @@ public class HyenaBranchTests
         }
         finally
         {
+            Instruments.SelectTables(null); Instruments.Configure(null, null);   // 選びと出力の先を戻す（同じ集まりの他の試験へ漏らさない）
             foreach (var d in new[] { d0, d1 }) if (d.Length > 0 && System.IO.Directory.Exists(d)) System.IO.Directory.Delete(d, true);
         }
     }
