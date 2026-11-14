@@ -1031,6 +1031,7 @@ public static class EconomyStep
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。〔履歴 EconomyStep.cs#139〕
         double railCoalGate = 0;         // railCoalGate〔履歴 EconomyStep.cs#140〕
+        double locoGate = 1.0;           // (1130) 機関車の発見の門（旗 RailLocoNeedsDiscovery＞0 かつ未発見なら 0・線路には掛けない）
         double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）〔履歴 EconomyStep.cs#141〕
         // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。〔履歴 EconomyStep.cs#142〕
         double[]? conCarryApplied = null;
@@ -1043,10 +1044,11 @@ public static class EconomyStep
             double costPerUnit = bundle.Cost(region);   // 建設の資材の束の費用（K の1本）
             double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。〔履歴 EconomyStep.cs#144〕
+            if (coef.RailLocoNeedsDiscovery > 0 && !Discovery.RailTransport(region.Discovered)) locoGate = 0.0;   // (1130) 需要・予算の単価・決済の機関車の 6 か所が読む
             double buildCostPerUnit = costPerUnit;
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
                 buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
-                              + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
+                              + coef.ConsLoco * locoGate * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
             // ── 実測（powertrace・1800年）───────────────────────────────────────   投資家の**所得**はGDPの約20%＝妥当（英17,198 / GDP86,742）。〔履歴 EconomyStep.cs#145〕
             double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
             // 無補償で工場を取られた資本家は次の投資を控える。〔履歴 EconomyStep.cs#146〕
@@ -1092,13 +1094,13 @@ public static class EconomyStep
             if (railLoco)
             {
                 investDemand[coef.RailGoodId] += coef.ConsRail * construction;
-                investDemand[coef.LocoGoodId] += coef.ConsLoco * construction;
+                investDemand[coef.LocoGoodId] += coef.ConsLoco * locoGate * construction;
             }
             // インフラ保守：敷設済みインフラは工業化水準に比例して毎期保守材を食う（成長が止まっても消費先が持続＝死蔵解消）。
             // 建設で使った残りの投資予算で賄える分だけに制限＝投資家の資金繰りを超えない（貯蓄が負にならない）。
             double railP = railLoco ? Math.Max(region.Markets[coef.RailGoodId].Price, Eps) : 0;
             double locoP = railLoco ? Math.Max(region.Markets[coef.LocoGoodId].Price, Eps) : 0;
-            double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoP;   // 経18：機関車の更新頻度（耐久財＝低頻度。既定0.5＝旧直書きと同値・中立）
+            double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoGate * locoP;   // 経18：機関車の更新頻度（耐久財＝低頻度。既定0.5＝旧直書きと同値・中立）
             // AdvLaborId〔履歴 EconomyStep.cs#158〕
             if (Catalog.AdvLaborId < ng)
                 maintCostPerUnit += coef.MaintAdvLaborRate * Math.Max(region.Markets[Catalog.AdvLaborId].Price, Eps)
@@ -1116,7 +1118,7 @@ public static class EconomyStep
             if (railLoco)
             {
                 investDemand[coef.RailGoodId] += maintenance;                        // 軌道の保守（摩耗が大きい）
-                investDemand[coef.LocoGoodId] += maintenance * coef.MaintLocoRate;   // 車両の更新（耐久財＝低頻度。経18：既定0.5＝旧直書きと同値・中立）
+                investDemand[coef.LocoGoodId] += maintenance * coef.MaintLocoRate * locoGate;   // 車両の更新（耐久財＝低頻度。経18：既定0.5＝旧直書きと同値・中立）
                 if (railCoalGate > 0) investDemand[Catalog.CoalId] += maintenance * coef.RailCoalRate * railCoalGate;   // railCoalGate〔履歴 EconomyStep.cs#161〕
             }
             // 鉄道・船舶の運行要員：機関士・保線技師（高度労働力）＋火夫・荷役（労働力）。
@@ -2082,11 +2084,12 @@ public static class EconomyStep
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
             {
                 double railGot = coef.ConsRail * construction * ration[coef.RailGoodId];
-                double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
+                double locoGot = coef.ConsLoco * locoGate * construction * ration[coef.LocoGoodId];
                 region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);
                 if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.ConstructionRail), railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId], 0, railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);   // InvestorPopIndex〔履歴 EconomyStep.cs#297〕
                 revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
+                if (insOn) Instruments.RailSpendAdd(world!, region, false, railGot, clearPrice[coef.RailGoodId], locoGot, clearPrice[coef.LocoGoodId]);   // (1130) railspend_s
             }
         }
 
@@ -2120,10 +2123,11 @@ public static class EconomyStep
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
             {
                 double railQ = maintenance                    * ration[coef.RailGoodId];
-                double locoQ = maintenance * coef.MaintLocoRate * ration[coef.LocoGoodId];   // 経18：既定0.5＝旧直書きと同値・中立
+                double locoQ = maintenance * coef.MaintLocoRate * locoGate * ration[coef.LocoGoodId];   // 経18：既定0.5＝旧直書きと同値・中立
                 cost += railQ * clearPrice[coef.RailGoodId] + locoQ * clearPrice[coef.LocoGoodId];
                 revenue[coef.RailGoodId] += railQ * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoQ * clearPrice[coef.LocoGoodId];
+                if (insOn) Instruments.RailSpendAdd(world!, region, true, railQ, clearPrice[coef.RailGoodId], locoQ, clearPrice[coef.LocoGoodId]);   // (1130) railspend_s
             }
             if (Catalog.AdvLaborId < ng)
             {

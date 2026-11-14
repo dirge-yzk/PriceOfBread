@@ -79,6 +79,7 @@ public sealed partial class Coefficients
     public double NavalFuelFillSmoothing = 0.25; // NavalFuelPerGauge>0のときのみ読み書き
     public double EraNavalFuel = 0.0;           // 既定0でEraFactor=1.0＝恒等
     public double RailCoalRate = 0.22;          // 導出＝0.25×(0.4×高度労働0.8+0.3×労働0.5)/石炭0.54
+    public double RailLocoNeedsDiscovery = 1.0; // (1130) c110lo 旗（2026-11-14 点火）：1＝機関車の需要・予算の単価・決済に機関車の発見の門（線路は掛けない）・0＝旧
     public double ShipFuelRate = 0.0016;        // 点火2026-09-27（回4-3 の再挑戦）
     public double AirFuelRate = 0.045;          // 充足は MilitaryAirFill に乗算合成（新フィールドなし）
     public double MotorFuelRate = 0.05;         // 車両は耐久財・燃料は毎月→機体比の論法で0.02×2〜3
