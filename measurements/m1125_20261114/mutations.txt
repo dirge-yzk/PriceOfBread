@@ -1,0 +1,7 @@
+# (1125) c109rs 突然変異（使い捨ての木 D:/PoB_work/c109rs_work/mut・Release・基点＝項 5 のコミット 835acd49d＋項 1 の追い）。木と出力はこの記録を書いた後に消した（ログの要点だけ残す）。
+M1  Market.ClearPartners に [NonSerialized] を戻す → 赤 3 本：ClearingScopeTests.覚えはセーブに載り作業の添字は載らない／SaveRoundTripTests.四半期の途中のセーブで続きが一致する／SaveRoundTripTests.眠りの印はセーブに載る（21 本中 3 赤）
+M1b Market.ClearFailLp に [NonSerialized] を戻す → 赤 2 本：四半期の途中のセーブで続きが一致する／眠りの印はセーブに載る（5 本中 2 赤）
+M2  層の数の比べを外す（if (false) throw） → 赤 1 本：層の数が食い違うセーブは読めない（5 本中 1 赤）
+M3  A2 の許しを 1e-9 に戻す（3 行）→ 種 1791・旗の既定（ParliamentSeatsWithoutGap 1）では緑のまま（2 本緑）。種×旗の 10 通りで赤が戻るかは、種を替えた腕を回していない＝記録（(1118) の反証役 v は種 1789 付近の旗 1 で赤を出した）。許しを 1e-8 の相対へ緩めたこと自体は、種 1791 の緑を変えない。
+M4  ImportPayerLiveTests・TradePhase0Tests の [Collection("Instruments")] を外し、InstrumentsArmsTests・InstrumentsTests と同時に走らせる → 赤 1 本：TradePhase0Tests.Pair_内訳の和はtradeskipの行と一致し_影の組の数が合う（53 本中 1 赤・12 分 25 秒）＝(1100) の M5 の型（静的な計器の設定への割り込み）が再現した。
+M5  段 R の G4（受け手の次の月の頭で読み直す形）：試験を足していない＝突然変異は当てていない（計器だけの変更・Transport.cs・Territory.cs に触れない制約）。移しの件数 g4Moves は ident の計器の表（trrail_s）で読む。

@@ -1,0 +1,26 @@
+# (1125) c109rs 結果の要約（担当 Sonnet 5.5・基点 758f554ed・頭は項 1 の追いの後）
+作ったフォルダ：D:/PoB_work/wt_c109rs・D:/PoB_work/c109rs_art・D:/PoB_work/c109rs_work/（mut〔使い捨ての木〕は消した・id・sl・tmp を含む）
+
+コミット（古い順）：事前登録 37b9d5eaf／項 1 b43b81edd／項 2 9d8e24ae8／項 3 b5dd69c90／項 4 0952a1caf／項 5 835acd49d／項 1 の追い（ClearingScopeTests）
+
+入れた物
+- 項 1：Model.cs の Market の 3 欄から [NonSerialized] を外した（ClearPartners の Region[] はグラフの参照番号で写る＝SaveGame の分岐は足していない）。
+  試験の反転 2 本（本数 0）：SaveRoundTripTests.眠りの印はセーブに載らない→載る（:44〜）・ClearingScopeTests.覚えは作業領域でありセーブに載らない→載り作業の添字は載らない（:356〜・予言に無かった 2 本目＝フルスイートで赤＝区分は同じ〈守る向きの反転〉）。
+  足した試験 1 本：SaveRoundTripTests.四半期の途中のセーブで続きが一致する（45 日目で保存→読み→135 日続ける・基礎貨幣・総人口・全市場の値段と在庫の和がビット一致）。
+  バイト列の一致は外した（予言どおりの分岐）：印の外の差が 2 件＝measurements/m1125_20261114/byte_diff.txt（Diplomacy._tensionRamp の辞書の列挙順・InternationalMarket.LastPairWasLand の走り書き）。この線では直さない。00一覧へ。
+- 項 2：SaveGame.Save が magic の直後に層の数（int32）を書き、Load は今の Pop.Layout.Bands と違えば InvalidDataException。試験 SaveRoundTripTests.層の数が食い違うセーブは読めない。
+- 項 3：InstrumentsArmsTests :73 を 1e-8×max(1,|eng|)・:98・:99 を 1e-8 の相対へ（種 1791 のまま）。
+- 項 4：InstrumentsArms.cs の頭に限界の 1 行・docs/history/InstrumentsArms.cs.md の〈限界〉に直しを追記。ImportPayerLiveTests・TradePhase0Tests に [Collection("Instruments")]。
+- 項 5：InstrumentsTransport.cs だけ（Transport.cs・Territory.cs に触れない）。G4＝移す時の線路を RailAcc.MoveBefore に控え、受け手の次の月の輸送の頭（RailMonthBegin）で読み直す（移した後の戦災は RailWar が同じ式で追う）＝旧は控えた直後に読み直す必ず通る門だった。G3＝水運の州も計器の線路の分（InsRail）に足す（G1 の母集合は水運を除いたまま）。読み手 scripts/instruments/c109rs/gates_rr1125.py（G3 に水運を含める 3 行だけの差）。
+- 計器の列の違い（宣言）：trrail_s の railFreightInsGoldPerYear（水運の州の分が増える・旗 1 の世界だけ）・g4Moves・g4Viol（数え方が変わる）。表の追加・列の追加は 0。
+
+測れた物
+- 試験：Tests 2601（非 FullLength 2601・FullLength 3）＋Tests.Ui 234。--list-tests＝Tests 2604（2601＋3）・Ui 234。予言どおり +2（2599→2601）。赤 1（ClearingScopeTests・直して緑）・スキップ 1（既存の TechInstitutionTests）。FullLength 3 緑。
+- ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ほか 166 本）緑（項 5 の頭）。最後の頭でもう一度（結果は報告）。
+- savetest OK（12 四半期後も全 62 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（seed 1789・200 四半期・保存則違反なし）。
+- 素の 5 種：ident.sh start --no-ins --no-tests（D:/PoB_work/c109rs_work/id）の b5 が b5_20261114_m1122 と、名乗り行（SOURCE-HASH）を除いて 179 行全行一致。.cost の推定 229.0 秒で同じ。写し＝measurements/b5_20261114_c109rs（.manifest・.cost）。
+
+測れなかった物（理由）
+- 計器つき 10 種の ident（段 2・約 30GB）と gates_flag0_ident.txt の出し直し：D: の空きが 47〜49GB で〈35GB＋30GB〉に届かず回さなかった（指示の規則＝合流が事前登録のまま回す）。合流の手順：ident.sh run c109rs --tree <木> --saveleak --tests-delta 2 --known-extra なし・宣言は --grown-ok なし（表の追加 0）。trrail_s の railFreightIns・g4 の列の違いは宣言が要る可能性が高い。出し直し：python scripts/instruments/c109rs/gates_rr1125.py <腕> <基線> <n1> <n2>。
+- 突然変異 M3（許しを 1e-9 に戻す）の種×旗の 10 通り：種 1791・旗の既定では緑のまま・他の種は回していない（記録）。
+- G4 の突然変異：計器だけの変更で試験を足していない。
