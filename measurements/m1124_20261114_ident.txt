@@ -1,0 +1,45 @@
+(1124) c109t0 恒等の判定の記録（署名: Claude Sonnet 5.5）木 96c607802（以後はこの記録と成績表の写しのコミットだけ）
+
+[1] ident.sh run（腕 a・t・s＝素の 5 種・テストの数・savetest/leakhunt）— 計器つき 10 種の腕 b は D: の空きが足りず回していない（下の [3]）
+=== 恒等の判定（測った種で一致） c109t0a（2026-11-14 10:43:22）===
+測った木：D:/PoB_work/wt_c109t0（HEAD 96c607802・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c109t0/scripts/instruments/ident/ident.cfg
+宣言：added=['s4cost_s', 's7staple_s'] grown=['prodcap_s'] tests_delta=5
+腕 a：rc=0 end=2026-11-14 10:43:21
+腕 t：rc=0 end=2026-11-14 10:37:44
+腕 s：rc=0 end=2026-11-14 10:42:15
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：3c15877f52095ed2
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 3c15877f52095ed2
+[素の 5 種] b5_ia_5.txt 対 b5_20261114_m1122
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261114_m1122.cost
+  ○ 件数の行 43 本・推定 229.0 秒・種ごとの忠実度 5 行が一致
+[テストの数] --list-tests
+  ○ Category!=FullLength 2838（基準 2833+5 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等
+
+[2] 計器つき 10 種（段 1 の形＝手で回した）：POB_INSTRUMENTS_TABLES＝ident.cfg の SMALL＋s4cost_s,s7staple_s,prodcap_s・INS=1 batch.sh run ib 10
+  成績表 b10_20261114_c109t0_ins と b10_20261114_m1122_ins：SOURCE-HASH の行を除いて全行バイト一致（diff 0 行）。.cost は件数の行・推定 230.0 秒が一致（測った CPU 秒の行だけが違う）。mon も一致（タグの名だけが違う）。
+  表の比べ（keep_1122/base_ins と全て同じ名前の表をバイトで）：
+    files 348 same 318 diff 10
+     DIFF ('prodcap_s1.tsv', 159349343, 121412387)
+     DIFF ('prodcap_s10.tsv', 158190532, 120943867)
+     DIFF ('prodcap_s2.tsv', 159741076, 121837000)
+     DIFF ('prodcap_s3.tsv', 157134058, 120276734)
+     DIFF ('prodcap_s4.tsv', 158865098, 121709094)
+     DIFF ('prodcap_s5.tsv', 159185255, 121533906)
+     DIFF ('prodcap_s6.tsv', 159503295, 121831442)
+     DIFF ('prodcap_s7.tsv', 159225290, 121878386)
+     DIFF ('prodcap_s8.tsv', 158652194, 121337331)
+     DIFF ('prodcap_s9.tsv', 159050218, 121348300)
+    onlyNew tables: Counter({'s4cost': 10, 's7staple': 10})
+    rows 10872213 prefixMismatch 0 pfEmpty 2686242 pfValued 8185971 valuedWithCap0 0
+  → SMALL を含む 318 表はバイト一致・prodcap_s は先頭の 15 列が基準と 10,872,213 行で一致し末尾 4 列が増えただけ・s4cost_s と s7staple_s が足された表（種ごと 1 本）。profitFactor の列：空 2,686,242・値 8,185,971・Capacity 0 の行で値が入った行 0。
+
+[3] 腕 b の全表（段 2）を回していない理由と残り：D: の空き 51〜52GB＜〈35GB＋段 2 の ident 約 30GB〉＝65GB（★(852)）。SMALL に入らない約 330 表の一致は未確認＝合流が事前登録のまま段 2 の ident を回す（--tree <合流の木> --added-tables s4cost_s,s7staple_s --grown-ok prodcap_s --tests-delta 5）。成績表（挙動）が全行一致なのでエンジンの値は動いていない。
