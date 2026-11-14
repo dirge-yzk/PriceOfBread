@@ -80,7 +80,7 @@ public sealed partial class Coefficients
     public double TransportBuildRate = 0.15;        // 容量ギャップを毎月詰める速さ（投資の上限割合）
     public double RailByRegion = 1.0;   // 2026-11-13 に 1 で点火（腕 B の木・旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）
     public double RailLayTerrain = 1.0;   // RailByRegion＝0 では読まない
-    public double RailNeedByOutput;   // (1137) c111rb 段 R の need の基底：鉄道の need の取り分（敷きと清算の φ）を州の産出の比（産出×参照価格・役務を除く＝GdpPerMonth と同じ式）へ。0＝潜在量の比。RailByRegion＝0 では読まない
+    public double RailNeedByOutput = 1.0;   // 2026-11-14 に 1 で点火（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。(1137) c111rb 段 R の need の基底：鉄道の need の取り分（敷きと清算の φ）を州の産出の比（産出×参照価格・役務を除く＝GdpPerMonth と同じ式）へ。0＝潜在量の比。RailByRegion＝0 では読まない
     public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)
     public int ShipTier2GoodId = Catalog.SteamshipId;                // 汽船＝tier2輸送船（蒸気船）
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）
