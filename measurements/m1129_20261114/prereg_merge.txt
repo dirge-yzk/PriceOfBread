@@ -1,0 +1,50 @@
+(1129) 合流（波109）の予言（merge より前に書く・結果を見た後に直すなら追記で名乗る）
+書いた担当：Claude Opus 5.5（合流）。基点 758f554ed（m1122 の盤面）。
+線：挙動 c109rc (1123) 51e559d42・恒等 c109t0 (1124) a6c055d67・恒等 c109rs (1125) 9f36cdc70・読む c109mw (1126)・読む c109s05 (1127)・設計の材料 c109t1 (1128)（読む 3 本はコミットなし＝D:/PoB_work/r1126_work・r1127_work・r1128_work・d1129_work）。
+作者「しばらくの間、全て推奨で」で推奨を採った物は文中に書く。この合流は助言役を呼ばない（指示文どおり）。
+
+[0] 入れる線と外す線（結果を見る前に決める）
+- c109t0：入れる候補。段 1 の形で素の 5 種・計器つき 10 種（SMALL＋3 表）が m1122 と全行一致・反証役 v に高なし。段 2（全表）の ident は D: の空き不足で担当が回していない＝合流の腕 Z で判定する。〈判定: 恒等〉でなければ外す。
+  記録の先頭：v の中〈s4cost_s・s7staple_s・prodcap_s の新しい列と突然変異の生を消した〉＝腕 Z の生で新しい列の幅を記録する（[3]）・突然変異の回し直しは線の担当の物＝波110 へ申し送り。v の低〈眠り・倒産の空の判定が四半期の末の状態〉〈M1 の文言〉〈T-1 の盤面の下限〉〈hook の 2 回〉は記録。
+  区分外の試験の書き換え 1 件（ProdcapInstrumentTests.cs:137 の注・:145 の見出しの文字列＝計器自身の見出しの宣言の写しに末尾 4 列）＝推奨で採る（向き・大きさ・判定の Assert は変わらない）・記録 ⑧ に名乗る。
+- c109rs：入れる候補。素の 5 種が m1122 と全行一致・反証役 v に高なし。段 2 の ident は D: の空き不足で回していない＝合流の腕 Z で判定する。〈判定: 恒等〉でなければ外す。宣言＝trrail_s の railFreightInsGoldPerYear・g4Moves・g4Viol の値だけ（表と列の追加 0）。
+  記録の先頭：v の中〈G4 の門が片側〔g4Moves の下限なし〕・突然変異も試験も無い〉〈2 本目の反転 ClearingScopeTests は予言の外・直した後のフルスイートが無い〉＝合流のフルスイートで反転後の緑を確かめる。v の低〈docs/history の Model.cs.md・BilateralMarket.cs.md の古い注〉〈FlowAsleep の突然変異が未実施〉〈Magic を上げていない〉〈A2 の許しは種 1791 で効かない緩め・セーブのバイト数を書いていない〉＝記録と波110 の恒等の小物へ。
+  推奨で作者の裁定を上書き・狭めた物（担当が名乗った）：A2 の許し 1e-9→1e-8（★(743) の外・§0-2 ★(1122) ②）・層の数をセーブに書き食い違えば止める最小の形・守る向きの反転 2 本（SaveRoundTripTests・ClearingScopeTests）＝どれも〈作者「全て推奨で」で推奨を採った〉。
+- c109rc：入れない。自分の門 4 本が腕 B で赤（C5〈壊さない〉9＞1・G1 42＞36・C8d 0.00232≧0.00216・C8b 腕 0.158＜ヌル腕の最大 0.219）。反証役 v2 に〈高〉1 件（外国の取り分を条約港の意味で読む 3 つの機構〔関税・不平等条約の旗・鉄道の運賃〕が腕 B で大きく動く＝英の不平等条約の旗 79%・露 87%）は晴れない。★(940)・★(954)：旗 0 の器も main に入れない（ScoreReaderTests の旧の規則の番人を書き換えた 496fd24af を含む＝v の中）。写すのは記録だけ＝measurements/m1123_20261114/・m1123_20261114_prereg_rc.txt・ident_20261114_c109rcz.txt・b5/b10_20261114_c109rcz*・b10_20261114_c109rcB_ins.*・mon_20261114_c109rcB.txt と台本 scripts/instruments/c109rc/（git checkout origin/c109rc -- で写す・中身は変えない）。
+  3 回の規則：段 C′ の 1 回目に数える（腕 B を回して門が落ちた＝形の評価がなされた・v の推奨）。
+- 読む c109mw：台本 scripts/instruments/r1126/（main の作業ツリーに未追跡で置かれている）と D:/PoB_work/r1126_work を measurements/m1126_20261114/ へ。反証役 v の中 1・低 2 は末尾に足す（中身は書き換えない）。
+- 読む c109s05：D:/PoB_work/r1127_work を measurements/m1127_20261114/ へ。台帳の S05 の行の置き換えは、反証役 v の高〈H009・S05-29 の 53.0〜82.2% は物差しの誤り〉が晴れない＝高の対象の行（H009・S05-29）の数は担当の数のまま写さず、v の数え直し（窓の終わりが発見より前 10.0〜23.7%・またぐ 7.5〜32.8%・E 行なし 13.1〜19.5%）と〈未確定〉を並べて書く。§4-1 の門 G1 の素案は使わない（記録）。他の行は担当の TSV のまま。
+- 設計の材料 c109t1：material.md と draft.md を docs/202611/20261114/20261114_貿易のT1_事前登録_材料.md・_下書き.md へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（中身は書き換えない・反証役 v の訂正 7 件を末尾に足す）。台本 r1128/ は scripts/instruments/r1128/・出力 out_*.txt と d1129_work/prereg.txt は measurements/m1128_20261114/ へ。
+
+[1] 順と衝突
+- 順＝c109t0 → c109rs（`--no-ff`・全ての merge コミットに署名の行）。git merge-tree で t0＋rs は衝突なし。
+- 消す名前：t0 は消さない（EconomyStep.cs の供給の目標の括り出し SupplyTargetAt を足す）・rs は Model.cs の Market の 3 欄の [NonSerialized] を外すだけ（名前は消さない）。rc は入れない。
+- 同じファイルの重なり：無し（t0＝EconomyStep・Instruments・InstrumentsBuyShadow・InstrumentsProdcap・試験 2／rs＝Model・SaveGame・InstrumentsArms・InstrumentsTransport・試験 5・docs/history 1）。
+- 合流はエンジンの .cs を直さない。
+
+[2] 試験の数（合わせた木 H で 1 回）
+- --list-tests：PriceOfBread.Tests の Category!=FullLength＝2599＋t0 5（BuyShadowInstrumentTests）＋rs 2（SaveRoundTripTests の 2 本）＝2606・Tests.Ui＝234・合わせて TESTS_NONFULL 2840・FullLength 3。
+- フルスイート（2 プロジェクト・trx・FullLength を分ける）→ savetest・leakhunt：全て緑と予言（rs の反転後の ClearingScopeTests・t0 の P4 を含む）。10 種の腕と並べない（腕 Z の後に回す）。
+- WriterRatchetTests の宣言の表は取り直さない（軌道は m1122 と同じ＝件数は変わらない）と予言。
+
+[3] 腕 Z（合わせた木 H そのもの＝挙動の旗は無い）とバイト一致
+- ident m1129z（段 2・PRUNE=0・--saveleak・--ng）を m1122（b5_20261114_m1122・b10_20261114_m1122_ins・mon_20261114_m1122.txt）と比べて〈判定: 恒等〉と予言。
+  宣言＝--added-tables s4cost_s,s7staple_s（t0）・--grown-ok prodcap_s（t0 の末尾 4 列）・--known-extra trrail_s:railFreightInsGoldPerYear,trrail_s:g4Moves,trrail_s:g4Viol（rs の G3・G4 の計器）・--tests-delta 7。.cost の行は変わらない（--cost-allow なし）・推定 230.0 秒（素の 5 種 229.0 秒）。
+  NG の集合は ng1122 と同じ 104（新しい 0・外れた 0）。
+- trrail_s の宣言の 3 列以外の列と、他の全ての表はバイト一致と予言。prodcap_s は先頭 15 列が一致。
+- 記録：s4cost_s・s7staple_s・prodcap_s の新しい列の幅（profitFactor の 0〜1・s7 の importOverDemand の桁）と、v の低〈SleepState≠1 かつ !Bankrupt かつ Capacity>0 で HeadsLastMonth 相当の空の行〉は数えられる列が無ければ〈数えられない〉と名乗る。rs の gates_rr1125.py を Z の生で回す（G3・G4 の値の記録・門ではない）。
+
+[4] 新しい INSRAW（挙動の線が無い＝基線の名と成績表は m1122 のまま）
+- keep_1129/base_ins＝腕 Z の計器の生。keep_1122/base_ins とバイトで同じ表はハードリンク（m892/keep892.py の型）・違う表（prodcap_s・s4cost_s・s7staple_s・trrail_s の予言）だけ Z の生を移す。
+- ident.cfg：INSRAW＝keep_1129/base_ins・BASE_COMMIT と STAGE_BASE＝H・TESTS_NONFULL 2840。B5・B10INS・MON・NG_BASE は m1122 のまま。ヌル腕と種 11〜20 は keep_1122/n1・n2・a11 のまま（新しい 2 表と prodcap_s の末尾 4 列・trrail_s の 3 列の値が無い＝旧の木）。
+
+[5] 止める線
+- 挙動の線を入れない＝軌道は m1122 と同じ。止める線は腕 Z の〈判定: 恒等〉と、フルスイート・savetest・leakhunt の緑で読む。100 倍・1e10 倍・空洞化・名目 GDP 0 の続きは m1122 と同じ（数え直さない＝回す前に必要性を確かめる）。
+
+[6] D: と順（今の空き 34.1GB）
+- 採らない c109rc の腕 B の生（25GB）は、表ごとの sha1 を measurements/m1129_20261114/hash/ に取ってから、門と止める線の表（rulepower_s・rulepoweralloc_s・rule_s・secession_s・nation_s・pxmonth_s・region_s・migration_s・cessp_s・subst_s・fiscal_s・stock_s）だけ残して D:/PoB_work/keep_1129_rej/c109rc_work へ移す（★(852) の型・残せないほど大きい＝門が読む表だけ残す）。突然変異の生（1.1GB）は残す。
+- 腕 Z は空きが〈35GB＋約 30GB〉に届くか測ってから起こす。届かなければ、届かない分を名乗って起こす（他の重い仕事は無い＝同時 1 本）。
+- 新しい ident.cfg をコミットして push した後、INSRAW でも KEEPNULL でもない keep_1103・keep_1116・keep_1122_rej を消してよい（作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った）。消した物は deleted.txt に名乗る。自動の判定に拒まれたら残して報告する。keep_1122 は KEEPNULL と旧の INSRAW＝消さない。
+
+[7] 記録の段（採否に使わない）
+- 英の国債の不履行（m1122 と同じ軌道＝M 7/10・N1・N2・S11 は m1122 の値を写す）・NG・exact 48・near 86・.cost。予言の外れは記録の段の先頭に書く。
