@@ -24,7 +24,7 @@ gates; il; reset
 echo "M2 履歴から 1 係数の節を落とす（Coefficients.md の PriceElasticity）" >> $OUT
 python -I -c "
 import re
-p='$T/docs/history/Coefficients.md'
+p='$T/docs/history/Coefficients.cs.md'
 s=open(p,'rb').read().decode('utf-8')
 a=s.index('## PriceElasticity'); b=s.index('## ',a+3)
 open(p,'wb').write((s[:a]+s[b:]).encode('utf-8'))"
