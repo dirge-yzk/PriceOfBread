@@ -2087,6 +2087,7 @@ public static class EconomyStep
                 if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.ConstructionRail), railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId], 0, railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);   // InvestorPopIndex〔履歴 EconomyStep.cs#297〕
                 revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
+                if (insOn) Instruments.RailSpendAdd(world!, region, false, railGot, clearPrice[coef.RailGoodId], locoGot, clearPrice[coef.LocoGoodId]);   // (1130) railspend_s
             }
         }
 
@@ -2124,6 +2125,7 @@ public static class EconomyStep
                 cost += railQ * clearPrice[coef.RailGoodId] + locoQ * clearPrice[coef.LocoGoodId];
                 revenue[coef.RailGoodId] += railQ * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoQ * clearPrice[coef.LocoGoodId];
+                if (insOn) Instruments.RailSpendAdd(world!, region, true, railQ, clearPrice[coef.RailGoodId], locoQ, clearPrice[coef.LocoGoodId]);   // (1130) railspend_s
             }
             if (Catalog.AdvLaborId < ng)
             {
