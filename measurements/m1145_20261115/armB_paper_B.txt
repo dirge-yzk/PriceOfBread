@@ -1,0 +1,1 @@
+armB	P1_freshHyenaShare=0.6783	(2497/3681)	P2_oldMeanCool=0.484441	newMeanCool=0.208446	rows=27192	P3_starts=5537	peace=5643	ratio=0.981216	P4_rewar8q=0.0323	(177/5480)	P5_koreaQingSubmits=462	per_seed=39,64,66,37,50,61,46,45,31,23	P6_freshWearyShare=0.7237
