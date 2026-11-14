@@ -1,0 +1,12 @@
+# (1141) vassal_end.py arm=N2 dir=D:/PoB_work/keep_1122/n2 seeds 1..10
+種	終局の国	属国（近似）	割合	列強のうち属国	列強の宗主を持つ属国の宗主のランク	最終行の張り
+1	61	54	0.89	4	{'Great': 3, 'Minor': 1}	54
+2	61	48	0.79	2	{'Middle': 2}	47
+3	61	48	0.79	3	{'Great': 1, 'Middle': 1, 'Secondary': 1}	48
+4	61	52	0.85	2	{'Great': 1, 'Middle': 1}	52
+5	62	53	0.85	2	{'Minor': 1, 'Secondary': 1}	52
+6	62	54	0.87	4	{'Middle': 1, 'Great': 2, 'Minor': 1}	54
+7	61	54	0.89	4	{'Middle': 1, 'Great': 3}	53
+8	61	51	0.84	3	{'Great': 1, 'Minor': 1, 'Middle': 1}	50
+9	61	52	0.85	3	{'Secondary': 1, 'Great': 1, 'Middle': 1}	52
+10	61	57	0.93	6	{'Great': 3, 'Secondary': 2, 'Middle': 1}	57

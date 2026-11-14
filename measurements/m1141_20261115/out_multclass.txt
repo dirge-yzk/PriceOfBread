@@ -1,0 +1,79 @@
+S25-01	WarDeclareTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-02	—
+S25-03	ThreatTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; DependentThreatWeight=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-04	SkillTensionWeight=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-05	IdeologyTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; IdeologyAffinityRelief=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-06	EthnicTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; LawTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; ReligionTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; ReligionHeresyBonus=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; EthnicAffinityRelief=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-07	ProtectorTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-08	RouteDependenceTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-09	OpiumBanTensionPerMonth=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-10	—
+S25-11	TensionDecay=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A ; HighTensionBand=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A
+S25-12	—
+S25-13	DefeatShockTensionRelief=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; DefeatShockProtectMin=問い3　離散の出来事の門と講和の条項（58）/B
+S25-14	—
+S25-15	RevanchismTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A
+S25-16	GreatPowerCount=問い3　離散の出来事の門と講和の条項（58）/B ; SecondPowerCount=問い3　離散の出来事の門と講和の条項（58）/B ; MiddlePowerCount=問い3　離散の出来事の門と講和の条項（58）/B ; GreatPowerScoreFraction=問い3　離散の出来事の門と講和の条項（58）/B ; MinorPowerScoreFraction=問い3　離散の出来事の門と講和の条項（58）/B
+S25-17	HegemonThreatMin=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; HegemonContainmentTrade=中（33）/L408,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L440 ; HegemonContainmentMax=中（33）/L408,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L440 ; AntiHegemonAllianceChance=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A ; AntiHegemonExtraAlliances=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A
+S25-18	MaxAlliances=問い2　数値の天井と床（37）/A,問い2　数値の天井と床（37）/L189 ; FriendlyTensionMax=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; RivalTensionThreshold=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B,問い4　緊張・戦争熱・膨張意欲（11-09 の線/L236 ; MaxAlliances=問い2　数値の天井と床（37）/A,問い2　数値の天井と床（37）/L189
+S25-19	—
+S25-20	AllianceBreakTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-21	—
+S25-22	WarChainMaxDepth=1-2. 付け直さない（37）/L64,問い2　数値の天井と床（37）/A,問い2　数値の天井と床（37）/L191 ; WarChainDepthPenalty=問い7　政策の効きと国家・AI の規則（28）/B
+S25-23	AllyRefusalTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-24	—
+S25-25	DefendProjectionMin=1-2. 付け直さない（37）/L79
+S25-26	ConcedeTensionTarget=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A ; AISubmitLegitCost=問い1　政治の在庫の内側（85）/B
+S25-27	—
+S25-28	ActionTensionStep=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-29	—
+S25-30	ProvokeProximitySpread=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; ProximityTensionRange=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-31	TensionPoliticsScale=問い1　政治の在庫の内側（85）/B
+S25-32	—
+S25-33	MilitaryExportTensionThreshold=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A ; MilitaryExportAccessFloor=問い2　数値の天井と床（37）/A
+S25-34	—
+S25-35	—
+S25-36	—
+S25-37	—
+S25-38	DependencyAlignmentRelief=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-39	VassalTributeMonthGdpPerQuarter=問い3　離散の出来事の門と講和の条項（58）/B,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L426
+S25-40	VassalHoldScale=問い3　離散の出来事の門と講和の条項（58）/B ; VassalDefectionMilitancy=問い3　離散の出来事の門と講和の条項（58）/B
+S25-41	DefendProjectionMin=1-2. 付け直さない（37）/L79
+S25-42	MaxDependents=増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,小（23）/L411
+S25-43	InterventionSubmitBar=1-2. 付け直さない（37）/L58,問い5　厭戦の在庫（12）/L263 ; InterventionRivalTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-44	—
+S25-45	—
+S25-46	ReparationGdpFraction=問い3　離散の出来事の門と講和の条項（58）/B,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L426 ; VassalizeWinScore=問い3　離散の出来事の門と講和の条項（58）/B ; GovCostVassalThreshold=問い3　離散の出来事の門と講和の条項（58）/B,問い3　離散の出来事の門と講和の条項（58）/L211 ; ColonyCaptureMax=増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,小（23）/L411 ; ColonyCaptureBudget=問い3　離散の出来事の門と講和の条項（58）/B
+S25-47	CessionMaxDistanceKm=問い3　離散の出来事の門と講和の条項（58）/B
+S25-48	ColonyCaptureMax=増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,小（23）/L411
+S25-49	TreatyPortWinnerDistanceKm=問い3　離散の出来事の門と講和の条項（58）/B ; TreatyPortReparationMult=問い3　離散の出来事の門と講和の条項（58）/B ; ForeignRuleFromTreaty=問い3　離散の出来事の門と講和の条項（58）/B
+S25-50	TreatyPortLapseRatio=問い3　離散の出来事の門と講和の条項（58）/B
+S25-51	MaxDependents=増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,小（23）/L411
+S25-52	RevolutionSurrenderWeight=1-2. 付け直さない（37）/L58,問い5　厭戦の在庫（12）/L263,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L431
+S25-53	—
+S25-54	ColonizeSubmitFloorMilitary=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B,問い4　緊張・戦争熱・膨張意欲（11-09 の線/L237 ; ColonizeAnnexMilitancy=問い1　政治の在庫の内側（85）/B
+S25-55	InvadeMilitaryFactor=中（33）/L408,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425 ; InvadeSeaControlMin=中（33）/L408,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425 ; ExpansionWillCap=中（33）/L408,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L440 ; ColonizeWillSuperiorityDiscount=2-2. 前回が乙・丙・今回が A（20）/L115,中（33）/L408
+S25-56	—
+S25-57	HegemonRestraintFloor=中（33）/L408,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425
+S25-58	ColonizeRivalTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B ; ProximityTensionRange=問い4　緊張・戦争熱・膨張意欲（11-09 の線/B
+S25-59	UnificationAiPursueChance=問い7　政策の効きと国家・AI の規則（28）/A,問い7　政策の効きと国家・AI の規則（28）/L304
+S25-60	HomeDefenseBonus=個別（35）/L383
+S25-61	ProjectionRuleMin=個別（35）/L384
+S25-62	—
+S25-63	TariffReactionMax=問い7　政策の効きと国家・AI の規則（28）/B
+S25-64	—
+S25-65	—
+S25-66	WarWearyThreshold=1-2. 付け直さない（37）/L58,問い5　厭戦の在庫（12）/L252,問い5　厭戦の在庫（12）/L263
+S25-67	—
+S25-68	PostWarTension=問い4　緊張・戦争熱・膨張意欲（11-09 の線/A
+S25-69	ConcertReparationRestraint=2-2. 前回が乙・丙・今回が A（20）/L116,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L440 ; ConcertRestraintMax=増幅の輪が残る組・流れが切れる組（歯止めだけを先/L425,増幅の輪が残る組・流れが切れる組（歯止めだけを先/L440,小（23）/L411
+S25-70	ImposeRegimeIdeologyGap=問い3　離散の出来事の門と講和の条項（58）/B ; ImposedRegimeLegitimacy=問い1　政治の在庫の内側（85）/B
+S25-71	—
+S25-72	—
+S25-73	—
+S25-74	—
+S25-75	—
+S25-76	—
+S25-77	—
+S25-V01	—
+S25-V02	—

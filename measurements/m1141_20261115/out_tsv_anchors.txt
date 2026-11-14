@@ -1,0 +1,4 @@
+NG S25-64 PriceOfBread.Tests/DormantIdentityTests.cs:321:TradeTreatyEnabled
+NG S25-74 PriceOfBread.Tests/DormantIdentityTests.cs:284:WarStartPoliticsScale
+NG S25-75 PriceOfBread.Tests/ScalarDeletionTests.cs:70:DiploCore
+anchors 210 NG 3

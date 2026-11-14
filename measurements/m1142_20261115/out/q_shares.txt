@@ -1,0 +1,4 @@
+base	mean0 0.5379	cap0 0.5356	mean1 0.3950	cap1 0.4175	mean2 0.0023	cap2 0.0085	mean3 0.0639	cap3 0.0383	localGtOwner 115.4723	regions 326.8121
+n1	mean0 0.5458	cap0 0.5393	mean1 0.3896	cap1 0.4142	mean2 0.0025	cap2 0.0096	mean3 0.0645	cap3 0.0376	localGtOwner 110.7021	regions 326.0412
+n2	mean0 0.5368	cap0 0.5318	mean1 0.3940	cap1 0.4207	mean2 0.0023	cap2 0.0088	mean3 0.0603	cap3 0.0385	localGtOwner 113.6100	regions 326.4499
+armB	mean0 0.3595	cap0 0.4019	mean1 0.4280	cap1 0.4577	mean2 0.0779	cap2 0.0575	mean3 0.1336	cap3 0.0897	localGtOwner 183.1557	regions 324.7305

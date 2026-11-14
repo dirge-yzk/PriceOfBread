@@ -1,0 +1,29 @@
+# (1141) freq.py  arm=S11  dir=D:/PoB_work/keep_1122/a11  seeds 11..20
+# 閾値：WarDeclareTension 140・HighTensionBand 100・DefeatShockProtectMin 0.3・WarWearyThreshold 0.5・MaxDependents 8（03d192514）
+指標	種の数	最小	中央	最大	和
+ai.MilitaryExportBan.changed	10	59	60	64	610
+ai.MilitaryExportBan.lastOn	10	24	38	54	384
+ai.MilitaryExportBan.nations	10	67	71	76	709
+ai.OpiumExportBan.changed	10	2	12	55	174
+ai.OpiumExportBan.lastOn	10	0	1.5	3	13
+ai.OpiumExportBan.nations	10	67	71	76	709
+ai.TariffTarget.changed	10	67	71	76	709
+ai.TariffTarget.lastOn	10	0	0	0	0
+ai.TariffTarget.nations	10	67	71	76	709
+fs.rows	10	18027	1.803e+04	18027	180270
+fs.tributeIn_pos_rows	10	2442	3510	4283	34427
+inv.rows	10	121	125.5	146	1304
+inv.submitted	10	57	60.5	65	606
+inv.toNation	10	72	82.5	91	820
+inv.toNation_submitted	10	38	43	47	425
+sc.shock_ge03_share	10	0.04847	0.06735	0.09693	0.6795
+sc.weary_gt05_share	10	0.04549	0.07377	0.09789	0.743
+wars.all	10	328	492	692	4877
+wars.ally	10	97	168.5	245	1684
+wars.civil	10	6	10	13	96
+wars.declare	2	1	1	1	2
+wars.main	10	77	126	188	1221
+wars.mediation	10	25	38.5	61	396
+wars.secession	2	1	1.5	2	3
+wars.subjugate	10	58	66	84	698
+wars.suzerain	10	43	70.5	130	777

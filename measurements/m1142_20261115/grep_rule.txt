@@ -1,0 +1,19 @@
+Diplomacy.cs:3206:                    if (r.Rule.Length != 4 || !(r.Rule[0] >= c.ProjectionRuleMin)) continue;
+Fiscal.cs:281:                    double reach = Politics.RuleReach(rg);
+Fiscal.cs:419:                double mul = Politics.RuleDelivery(r, c);
+Fiscal.cs:421:                    ? (PoliticalQuantities.Clamp01(r.Rule[1]) + PoliticalQuantities.Clamp01(r.Rule[0]) * (1.0 - PoliticalQuant
+Military.cs:84:        return sld ? m * Politics.RuleDelivery(r, c) : 0;
+Military.cs:160:            bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && !wartimeConscript && (r.Tier == RegionTier.Colonia
+PolicyPreferences.cs:99:            num += pop * r.Rule[1] * f; den += pop * (r.Rule[1] + r.Rule[0] * (1.0 - f));
+Politics.cs:963:                if (sum > 1e-9) for (int k = 0; k < 4; k++) r4.Rule[k] /= sum; else r4.Rule[0] = 1.0;
+Politics.cs:966:                    r4.RuleStateYears[r4.RuleStateHead % r4.RuleStateYears.Length] = r4.Rule[0];
+Politics.cs:1054:    internal static double StateReach(World w, Coefficients c)
+Politics.cs:1061:            num += pop * (RuleReach(r) * PoliticalQuantities.Clamp01(r.AdminFill)); den += pop;
+Politics.cs:1088:    internal static double RuleReach(Region r)
+Politics.cs:1091:        double v = PoliticalQuantities.Clamp01(r.Rule[0]);
+Politics.cs:1113:    internal static double RuleDelivery(Region r, Coefficients c)
+Politics.cs:1117:        double v = PoliticalQuantities.Clamp01(r.Rule[0]) * (deliver + (1.0 - deliver) * PoliticalQuantities.Clamp01(r.Admi
+Simulation.cs:1717:        double enforce = Politics.StateReach(World, World.Coef);
+Simulation.cs:1840:                    * Politics.RuleReach(r);   // RuleReach〔履歴 Simulation.cs#222〕
+Simulation.cs:2278:            double estDeliv = estateRate > 0 ? Politics.RuleDelivery(r, c) : 0.0;   // estDeliv〔履歴 Simulation.cs#30
+Territory.cs:239:            if (r.Rule.Length == 4) { r.Rule[1] += r.Rule[0]; r.Rule[0] = 0; }

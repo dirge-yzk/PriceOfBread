@@ -1,0 +1,29 @@
+PriceOfBread.SimCore/BilateralMarket.cs:126:            for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) sumF += r.ForeignShares[k];
+PriceOfBread.SimCore/BilateralMarket.cs:130:                for (int k = 0; k < r.ForeignShares.Length && k < r.ForeignRulers.Length; k++)
+PriceOfBread.SimCore/BilateralMarket.cs:132:                    double x = r.ForeignShares[k];
+PriceOfBread.SimCore/Diplomacy.cs:506:                    for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Ma
+PriceOfBread.SimCore/Diplomacy.cs:2750:                        Politics.AddForeignShare(port, winner.BaseName.Length > 0 ? winner.BaseName : winner.Name, c.ForeignRuleFro
+PriceOfBread.SimCore/InternationalMarket.cs:108:        => 1.0 - Politics.ForeignPortShare(w);
+PriceOfBread.SimCore/Model.cs:747:    public double[] ForeignShares = [];
+PriceOfBread.SimCore/PoliticalQuantities.cs:97:                                   + (w.UnequalTreatyInForce ? 1.0 : 0.0));
+PriceOfBread.SimCore/Politics.cs:958:                double tForeign = ForeignShareSum(r4);
+PriceOfBread.SimCore/Politics.cs:1066:    internal static double ForeignPortShare(World w)
+PriceOfBread.SimCore/Politics.cs:1074:            num += pop * ForeignShareSum(r); den += pop;
+PriceOfBread.SimCore/Politics.cs:1079:    internal static bool TreatyPortInForce(World w, Coefficients c)
+PriceOfBread.SimCore/Politics.cs:1084:            if (r.IsPort && ForeignShareSum(r) >= line) return true;
+PriceOfBread.SimCore/Politics.cs:1095:    internal static double ForeignShareSum(Region r)
+PriceOfBread.SimCore/Politics.cs:1097:        double v = 0; foreach (var x in r.ForeignShares) if (x > 0) v += x;
+PriceOfBread.SimCore/Politics.cs:1100:    internal static void AddForeignShare(Region r, string baseName, double amount)
+PriceOfBread.SimCore/Politics.cs:1106:            var names = new string[r.ForeignRulers.Length + 1]; var shares = new double[r.ForeignShares.Length + 1];
+PriceOfBread.SimCore/Politics.cs:1107:            System.Array.Copy(r.ForeignRulers, names, r.ForeignRulers.Length); System.Array.Copy(r.ForeignShares, shares, r.ForeignS
+PriceOfBread.SimCore/Politics.cs:1108:            names[^1] = baseName; shares[^1] = 0; r.ForeignRulers = names; r.ForeignShares = shares; k = names.Length - 1;
+PriceOfBread.SimCore/Politics.cs:1110:        r.ForeignShares[k] = System.Math.Min(1.0, r.ForeignShares[k] + amount);
+PriceOfBread.SimCore/SelfPlay.cs:531:            if (w.UnequalTreatyInForce) immWant = (int)ImmigrationLaw.Open;
+PriceOfBread.SimCore/Territory.cs:243:                for (int k = 0; k < r.ForeignShares.Length && k < r.ForeignRulers.Length; k++)
+PriceOfBread.SimCore/Territory.cs:244:                    if (r.ForeignRulers[k] == key) r.ForeignShares[k] = 0;
+PriceOfBread.SimCore/World.cs:39:    internal bool UnequalTreatyInForce => Politics.TreatyPortInForce(this, Coef);
+PriceOfBread.App/ViewModels/GameViewModel.cs:56:    private Suffrage _pfSuf; private EducationLaw _pfEdu; private CensorshipLaw _pfCen; private LaborUnionLaw _pfUni; priv
+PriceOfBread.App/ViewModels/GameViewModel.Map.cs:694:            for (int k = 0; k < rg.ForeignRulers.Length && k < rg.ForeignShares.Length; k++)
+PriceOfBread.App/ViewModels/GameViewModel.Map.cs:695:                if (rg.ForeignShares[k] > 0.0005 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) parts.Add((rg.Foreign
+PriceOfBread.App/ViewModels/GameViewModel.News.cs:77:        _pfTreatyPortInForce = _player.UnequalTreatyInForce;   // 条約港の失効通知（案A）＝真から偽�
+PriceOfBread.App/ViewModels/GameViewModel.News.cs:236:        if (_pfTreatyPortInForce && !_player.UnequalTreatyInForce) Notice("🕊", "条約港が失効し関税自主
