@@ -824,6 +824,7 @@ public sealed partial class InternationalMarket
                 double wedge = duty - buyDear;
                 double wedgeHome = -buyDear;
 
+                if (Instruments.On) { double tbBm = 1 + c.TransportMargin * adValoremRev, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb))); }   // T0b：行の門の 6 区分（読むだけ）
                 if (!(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0)) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }
                 if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
@@ -1002,6 +1003,7 @@ public sealed partial class InternationalMarket
                     left[bestA] -= qA;
                     msA.Stock -= qA; msA.LastExport += qA;
                     m.Stock += qA; m.LastImport += qA;
+                    if (Instruments.On) Instruments.TbDeal(this, nations[ni].World, nations[siA].World, tr[t].r, tr[snA].r, g, m, c, lp, unitA, rpT, qA, crossA);   // T0b：成約の上界の越え（成約の後の台帳）
                     if (c.DiffusionWeight > 0 && crossA) AccumulatePairFlow(siA, ni, vA, nn);
                     if (crossA) AccumulateDiscovery(nations, c, siA, ni, g, vA);
                     double subV = sellSubA > 0 ? vA * sellSubA : 0.0;
