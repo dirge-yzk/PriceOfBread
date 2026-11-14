@@ -527,7 +527,7 @@ public static partial class Instruments
 
     /// <summary>〈Eng〉の列（エンジンの表の [NonSerialized] の写し・旗 0 は nan）。</summary>
     static string RpEngCols(Diplomacy dip, Region r) => r.RpEng is { } e && e.Stamp == dip.RpEngStamp && dip.RpEngStamp != 0
-        ? string.Join('\t', RpR(e.Q), RpR(e.Rho), RpR(e.Tau), RpR(e.I), RpR(e.H), RpR(e.O), RpR(e.FSum), RpR(e.T0), RpR(e.T1), RpR(e.T3), e.Best >= 0 ? RpClassNames[e.Best] : "none")
+        ? string.Join('\t', RpR(e.Rho), RpR(e.Tau), RpR(e.I), RpR(e.Q), RpR(e.H), RpR(e.O), RpR(e.FSum), RpR(e.T0), RpR(e.T1), RpR(e.T3), e.Best >= 0 ? RpClassNames[e.Best] : "none")
         : "nan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnan\tnone";
 
     static (double W, double Alloc, double F) RpEngAllocOf(Diplomacy dip, string key, Region r)
@@ -598,9 +598,9 @@ public static partial class Instruments
                 double ratio = ps > 0 ? Math.Min(1.0, po / ps) : (po > 0 ? 1.0 : 0.0);
                 d.Wf += d.L / fronts * ratio;
             }
-            double wUse = Math.Min(d.Wf, d.L);
-            d.H = Math.Min(Math.Max(0, d.L - wUse), d.SumPop * q);
-            d.O = Math.Max(0, d.L - wUse - d.H);
+            double wUse = Math.Min(d.Wf, d.L), need = d.SumPop * q;   // (1123) 設計の形：足りなければ外が先に 0・前線と国内は要る量の比で分ける
+            if (d.L >= wUse + need) { d.H = need; d.O = d.L - wUse - need; }
+            else { d.O = 0; d.H = wUse > 0 ? d.L * need / (wUse + need) : d.L; }
         }
         // 州の段（持ち主）
         foreach (var d in nats)
@@ -689,10 +689,10 @@ public static partial class Instruments
                 var (od, ok) = kv.Value; if (ReferenceEquals(od, d)) continue;
                 var rg = kv.Key; double s = 0;
                 for (int j = 0; j < rg.ForeignRulers.Length && j < rg.ForeignShares.Length; j++) if (rg.ForeignRulers[j] == d.Key && rg.ForeignShares[j] > 0) s += rg.ForeignShares[j];
-                bool isCand = s > 0;
-                if (!isCand) foreach (var wr in dip.Wars) if ((ReferenceEquals(wr.A, d.P) && ReferenceEquals(wr.B, od.P)) || (ReferenceEquals(wr.B, d.P) && ReferenceEquals(wr.A, od.P))) { isCand = true; break; }
-                if (!isCand) { var rc = Places.Coord(rg.Name); int nd = Diplomacy.CessionNode(rc.Lat, rc.Lon); isCand = nd >= 0 && Diplomacy.CessionAdjacent(nd, winNodes, out _); }
-                if (!isCand) continue;
+                bool warOrAdj = false;   // (1123) ②③ が先・① は持ち主より届く時だけ（下）
+                foreach (var wr in dip.Wars) if ((ReferenceEquals(wr.A, d.P) && ReferenceEquals(wr.B, od.P)) || (ReferenceEquals(wr.B, d.P) && ReferenceEquals(wr.A, od.P))) { warOrAdj = true; break; }
+                if (!warOrAdj) { var rc = Places.Coord(rg.Name); int nd = Diplomacy.CessionNode(rc.Lat, rc.Lon); warOrAdj = nd >= 0 && Diplomacy.CessionAdjacent(nd, winNodes, out _); }
+                if (!warOrAdj && !(s > 0)) continue;
                 double rho = 0;
                 if (snap is not null && capIx >= 0 && snap.Idx.TryGetValue(rg, out var ri))
                 {
@@ -700,6 +700,7 @@ public static partial class Instruments
                     foreach (var (si, w) in stakes) { if (si == ri || si == capIx) continue; double via = RulePowerReach(snap.GetNf(capIx, si)) * w * RulePowerReach(snap.GetNf(si, ri)); if (via > rho) rho = via; }
                 }
                 else { var rc = Places.Coord(rg.Name); rho = (rc.Lat == 0 && rc.Lon == 0) ? 0 : RulePowerReach(Geo.DistanceKm(d.W.Latitude, d.W.Longitude, rc.Lat, rc.Lon)); }
+                if (!warOrAdj && !(rho >= od.Rho[ok])) continue;
                 double b = Math.Min(1.0, Math.Max(0.0, od.Ow[ok]));
                 double wgt = od.Y[ok] * (1 - Math.Min(1.0, s)) * (1 - b);   // Vb：重みに ρ を入れない
                 if (!(wgt > 0)) wgt = 0;

@@ -121,9 +121,7 @@ public sealed partial class MultiNationSim
                 double bind = self > 0 ? Math.Min(1.0, other / self) : (other > 0 ? 1.0 : 0.0);
                 n.Front += n.L / fronts * bind;
             }
-            double front = Math.Min(n.Front, n.L);
-            n.H = Math.Min(Math.Max(0, n.L - front), n.Pop * q);
-            n.O = Math.Max(0, n.L - front - n.H);
+            (n.H, n.O) = RulePowerSplitArmy(n.L, Math.Min(n.Front, n.L), n.Pop * q);
         }
 
         // 州（持ち主）：i・持ち主の重み・ρ・τ
@@ -212,16 +210,17 @@ public sealed partial class MultiNationSim
                 for (int k = 0; k < n.R.Length; k++) if (snap.Idx.TryGetValue(n.R[k], out var si)) origins.Add((si, n.Ow[k]));
                 foreach (var kv in where) { var rg = kv.Key; for (int j = 0; j < rg.ForeignRulers.Length && j < rg.ForeignShares.Length; j++) if (rg.ForeignRulers[j] == n.Key && rg.ForeignShares[j] > 0 && snap.Idx.TryGetValue(rg, out var si)) origins.Add((si, rg.ForeignShares[j])); }
             }
-            var cands = new List<(Region r, double w, double rho)>(); double sumW = 0;
+            var cands = new List<Region>(); var cv = new List<(double Y, double S, double B, double Rho)>();
             foreach (var kv in where)
             {
                 var (on, ok) = kv.Value; if (ReferenceEquals(on, n)) continue;
                 var rg = kv.Key; double held = 0;
                 for (int j = 0; j < rg.ForeignRulers.Length && j < rg.ForeignShares.Length; j++) if (rg.ForeignRulers[j] == n.Key && rg.ForeignShares[j] > 0) held += rg.ForeignShares[j];
-                bool cand = held > 0;
-                if (!cand) foreach (var war in dip.Wars) if ((ReferenceEquals(war.A, n.P) && ReferenceEquals(war.B, on.P)) || (ReferenceEquals(war.B, n.P) && ReferenceEquals(war.A, on.P))) { cand = true; break; }
+                // (1123) 候補：②交戦の相手 ③陸の隣、①取り分の州は〈n の届き ρ が持ち主の届き以上〉の時だけ（取り分の残りだけでは候補に残らない）
+                bool cand = false;
+                foreach (var war in dip.Wars) if ((ReferenceEquals(war.A, n.P) && ReferenceEquals(war.B, on.P)) || (ReferenceEquals(war.B, n.P) && ReferenceEquals(war.A, on.P))) { cand = true; break; }
                 if (!cand) { var rc = Places.Coord(rg.Name); int nd = Diplomacy.CessionNode(rc.Lat, rc.Lon); cand = nd >= 0 && Diplomacy.CessionAdjacent(nd, winNodes, out _); }
-                if (!cand) continue;
+                if (!cand && !(held > 0)) continue;
                 double rho;
                 if (snap is not null && capIx >= 0 && snap.Idx.TryGetValue(rg, out var ri))
                 {
@@ -229,18 +228,18 @@ public sealed partial class MultiNationSim
                     foreach (var (si, ow) in origins) { if (si == ri || si == capIx) continue; double via = RpEngReach(snap.KmOf(capIx, si)) * ow * RpEngReach(snap.KmOf(si, ri)); if (via > rho) rho = via; }
                 }
                 else rho = RpEngGreatCircle(n.W, rg);
-                double b = Math.Min(1.0, Math.Max(0.0, on.Ow[ok]));
-                double wgt = on.Y[ok] * (1 - Math.Min(1.0, held)) * (1 - b);   // Vb：重みに ρ を入れない（ρ は力で 1 回だけ）
-                if (!(wgt > 0)) wgt = 0;
-                cands.Add((rg, wgt, rho)); sumW += wgt;
+                if (!cand && !(rho >= on.Rho[ok])) continue;
+                cands.Add(rg); cv.Add((on.Y[ok], held, on.Ow[ok], rho));   // Vb：重みに ρ を入れない（ρ は力で 1 回だけ＝RulePowerAllocate）
             }
-            foreach (var (rg, wgt, rho) in cands)
+            var allocs = new double[cands.Count]; var forces = new double[cands.Count];
+            RulePowerAllocate(n.O, cv, allocs, forces);
+            for (int i = 0; i < cands.Count; i++)
             {
-                double alloc = sumW > 0 ? n.O * wgt / sumW : 0;
-                if (dip.RpEngAlloc is { } da) da[(n.Key, rg)] = (wgt, alloc, alloc > 0 ? alloc * rho : 0);
+                var rg = cands[i]; double alloc = allocs[i];
+                if (dip.RpEngAlloc is { } da) da[(n.Key, rg)] = (RulePowerWeight(cv[i].Y, cv[i].S, cv[i].B), alloc, forces[i]);
                 if (!(alloc > 0)) continue;
                 if (!foreign.TryGetValue(rg, out var lst)) foreign[rg] = lst = [];
-                lst.Add((n.Key, alloc * rho));
+                lst.Add((n.Key, forces[i]));
             }
         }
 
@@ -271,6 +270,35 @@ public sealed partial class MultiNationSim
             }
         }
         if (snap is not null) Cost[CostLedger.RulePowerPairs] += snap.Evals - evals0;
+    }
+
+    /// <summary>
+    /// (1123) 陸軍力 L を前線 W・国内 H・外 O に割る（同じ兵は 1 回だけ）。足りる時は前線と国内を満たし残りが外。
+    /// 足りない時は外を 0 にし、前線と国内で要る量（front・need）に比例して分ける＝戦時でも国内の治安の分が残る（前線に全て食わせない）。
+    /// </summary>
+    internal static (double H, double O) RulePowerSplitArmy(double l, double front, double need)
+    {
+        if (l >= front + need) return (need, l - front - need);
+        if (front > 0) return (l * need / (front + need), 0.0);
+        return (l, 0.0);
+    }
+
+    /// <summary>(1123) 外への配り：O を重み w＝Y×(1−min(1,s))×(1−b)（Vb＝ρ を入れない）に比例して配り、力は配り×ρ（ρ は力で 1 回だけ）。</summary>
+    internal static void RulePowerAllocate(double o, IReadOnlyList<(double Y, double S, double B, double Rho)> cand, double[] alloc, double[] force)
+    {
+        double sumW = 0;
+        for (int i = 0; i < cand.Count; i++) sumW += RulePowerWeight(cand[i].Y, cand[i].S, cand[i].B);
+        for (int i = 0; i < cand.Count; i++)
+        {
+            double a = sumW > 0 ? o * RulePowerWeight(cand[i].Y, cand[i].S, cand[i].B) / sumW : 0;
+            alloc[i] = a; force[i] = a > 0 ? a * cand[i].Rho : 0;
+        }
+    }
+
+    static double RulePowerWeight(double y, double s, double b)
+    {
+        double w = y * (1 - Math.Min(1.0, s)) * (1 - Math.Min(1.0, Math.Max(0.0, b)));
+        return w > 0 ? w : 0;
     }
 
     /// <summary>最大の区分（0 持ち主の側・1 自立・2 外国・3 無統治）。同点の許容差は相対 1e-9（1+1e-9 倍を超えたときだけ大きいと読む・同点は若い番号）。</summary>

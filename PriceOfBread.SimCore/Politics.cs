@@ -864,7 +864,7 @@ public static class Politics
 
     internal static void CheckSecession(World w, Coefficients c, double coerce)
     {
-        if (w.Regions.Count < 2) return;
+        if (w.Regions.Count < 2) { if (c.RuleFromPower > 0) RulePowerApply(w, c); return; }   // (1123) 旗 1：州が 1 つの国も寄せる（早期 return の前）
         double stance = w.Tariff * 2 - 1;
         double hold = w.Legitimacy / (1 + w.TotalPopulation * c.SecessionHoldPerPop);
         hold += c.SecessionHoldCoercion * c.SecessionThreshold * (coerce / (coerce + c.PoliticalReferencePop));
