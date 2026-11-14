@@ -1682,6 +1682,7 @@ public static partial class Instruments
     internal static void PriceStep(World w, double broad, double baseM, double money, double gdp, double ratio, double trend0, double cyclical, double pBefore, double pEma, double pFiat, double convTarget, double fiatP, bool early)
     {
         var st = S(w);
+        if (!early) BsBiasRead(w, gdp);   // T0a：為替の偏りの再計算（読むだけ）
         {   // 読むだけ（早い呼び〔趨勢の基準を取るだけ〕は数えない）。〔履歴 Instruments.cs#231〕
             bool wm = w.WarmupFrozen; int pc = wm ? st.PcWarmN++ : st.PcGameN++;
             if (early || !(w.MoTrendForInstruments > 1e-9))   // 読むだけ〔履歴 Instruments.cs#232〕
@@ -1948,6 +1949,7 @@ public static partial class Instruments
         if (DscOn) DscTable(sim, seed, q); // DscTable〔履歴 Instruments.cs#320〕
         NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // NationgoodTable〔履歴 Instruments.cs#321〕
         SellrTable(sim, seed, q);          // SellrTable〔履歴 Instruments.cs#322〕
+        BuyShadowTable(sim, seed, q);      // BuyShadowTable（T0a・s4cost_s・s7staple_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -1984,6 +1986,7 @@ public static partial class Instruments
         SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // SubstClose〔履歴 Instruments.cs#347〕
         LandbaseClose(sim);   // LandbaseClose〔履歴 Instruments.cs#348〕
         BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
+        BuyShadowClose(sim);   // BuyShadowClose（T0a）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕

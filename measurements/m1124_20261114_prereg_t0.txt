@@ -1,0 +1,54 @@
+(1124) c109t0 貿易の置き換え T0a 事前登録（最初のコミット・腕の前）
+署名: Claude Sonnet 5.5
+種類: 入口（供給の目標の括り出し）と計器。形は恒等の線。材料 docs/202611/20261114/20261114_貿易のT0とT1_下書き.md §1・§6 と末尾の反証役 v の訂正 3・6。
+
+[1] 恒等の線・予言 0
+  エンジンの挙動 0・新しい係数 0・新しい状態 0・旗 0。BilateralMarket.cs・Coefficients・Model.cs・World.cs・Simulation.cs には触れない。
+  合否＝〈判定: 恒等〉（足した表 s4cost_s・s7staple_s と、prodcap_s の末尾に足した 4 列だけが違う）で m1122 の成績表（素の 5 種・計器つき 10 種）と全行一致。
+  .cost の件数の行は変わらない（括り出しは mc・ProfitFactor・InventoryAdjust を呼ぶ回数が同じ＝素の 10 種の推定の増えは 0〈推〉）。
+  推奨で上書き・狭める作者の裁定: なし（作者 2026-11-09〈貿易を先に〉・2026-11-12〈置き換えの設計から〉「それでよい」に沿う）。
+
+[2] 消す物と残す物・読み手の grep
+  消す物: なし。EconomyStep.cs の :1004〜:1019（mc・price・profitFactor・target・Toward・負の切り捨て・未発明と床）を、同じファイルの純関数 SupplyTargetAt へ移す
+    （呼び側は s.Output = SupplyTargetAt(...)・s.DesiredOutput = s.Capacity × profitFactor の 2 行）。掛ける順は旧のまま：
+    能力×投入充足×採算 → ×在庫の調整 → Toward → 負の切り捨て → 未発明と床。呼ぶ関数は同じ（MineralSelfCost・InputCostPerUnit・ProfitFactor・InventoryAdjust）。
+    DesiredOutput の書きは Toward より前から後ろへ動くが、間に DesiredOutput を読む行は無い（SupplyTargetAt の中・InventoryAdjust・Toward は読まない）。
+  足す物:
+    Instruments/InstrumentsBuyShadow.cs（新）: 表 s4cost_s（国×年・年の末の四半期）・s7staple_s（国×四半期）・為替の偏りの観測の受け口（国ごとの 4 本の数）。
+    Instruments/InstrumentsProdcap.cs: prodcap_s の末尾に laborPopIndex・scale・lastInputFill・profitFactor（4 列・エンジンの欄を足さない）。
+    Instruments/Instruments.cs: 呼び口の行だけ（Quarter の表の並びに 2 行・Close に 2 語・PriceStep の先頭に為替の偏りの読み 1 行＝読むだけ）。
+    PriceOfBread.Tests: 新しい試験 1 ファイル（BuyShadowInstrumentTests.cs）。
+  読み手の grep（足す物は新しい名＝既存の読み手 0）: s4cost・s7staple・BuyShadow・SupplyTargetAt は SimCore・Runner・App・Display・Tests・scripts・measurements に無い
+    （POB_COEF の名前にも SaveGame の名前の表にも出ない＝セーブの型は足さない）。prodcap_s の既存の読み手は ProdcapInstrumentTests・InstrumentsTablesSelectTests（列名で引く＝末尾の列の追加は壊さない）。
+  他の線との重なり（持ち主の表より）: EconomyStep.cs は c109rs・c109rc とも触れない。Instruments.cs の呼び口は他の線も 1 行ずつ足す見込み＝合流で解く。
+    InstrumentsProdcap.cs・InstrumentsBuyShadow.cs・新しい試験はこの線だけ。
+
+[3] 足す試験と、それぞれを赤にする突然変異（期待値は計器の式から独立に書く・同語反復にしない）
+  T-1 P̂＝供給①の産出（1e-12）: 計器側の BsPHat は SupplyTargetAt・ProfitFactor・InventoryAdjust を呼ばず、価格・費用・能力・充足・在庫の生の欄から式を書き直す。
+        試験は小さな盤面の生産者を多数（採算の上・下・境・在庫の不足と過剰・未発明・Capacity 0）作り、SupplyTargetAt の返り値と 1e-12 で比べる。調べた行の数の下限つき（旗 0 でも何もしない実装で緑にならない）。
+        M1＝P̂ に清算の時点の lp（別の POP の労働の指標）を渡す → 赤。
+        M2＝SupplyTargetAt の中で在庫の調整を Toward の後ろへ回す → T-1 が赤（大きさが違う）と ident の不一致。
+        M2′＝掛ける順（能力×充足×採算 → 能力×採算×充足）の入れ替えは 1 ulp の違い＝T-1（1e-12）では見えない。ident（全行のバイト一致）だけが拾うと名乗る（足りない所は ident に任せる）。
+  T-2 S4 の 3 項の和＝単位費用（相対 1e-9）: 自己×為替・品位の分・投入の 3 項を足すと、エンジンの MineralSelfCost＋InputCostPerUnit に為替（FxRate）を掛けた値と合う。
+        M3＝S4 で為替を掛けない → 赤。
+  T-3 S7 の合計＝nationgood_s の年の和（同じ実行の同じ四半期）: 主食 7 財（Tier＝Staple と GrainChain）の輸入量・不足・需要の和が nationgood_s の同じ財の行の和と合う（相対 1e-9）。
+        M4＝S7 の財の和から 1 財を落とす → 赤。
+  T-4 prodcap_s の profitFactor の空の検査: 眠った行・倒産した行・Capacity 0 の行は空（0 でない）・それ以外は DesiredOutput÷Capacity と 1e-12。
+        M5＝眠りの行に 0 を書く → 赤。空の行と値の行の件数に下限。
+  T-5 表の形: s4cost_s・s7staple_s の列の数が全行で見出しと同じ・prodcap_s の見出しの末尾 4 列の名前。
+  ソースを走査する番人の点検（㉘・器のコミットの直後に回す）: IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests。
+    工業化度の読み手の許可表: 触らない。`new MoneyStock(` の件数: 足さない（SimCore で現在 64）。route_anchors.tsv の鍵の行（scripts/instruments/flow262/）: 書き足さない
+    （EconomyStep.cs の行番号は動く＝経路の写しの鍵 _code_key で読む）。WriterRatchetTests の宣言の表: 変わらない予言（素の走りの件数は同じ）。
+    書き換える件数の予言（㉑）: 0 件。
+  テストの数の予言: Category!=FullLength は 2833 → 2838（+5）・FullLength 3 のまま。
+
+[4] 成績表の予言
+  素の 5 種・計器つき 10 種は m1122 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言だけ：
+    --added-tables s4cost_s,s7staple_s ・--grown-ok prodcap_s（末尾 4 列）。
+  浮動小数の順序が変わる箇所: なし（掛ける順は旧のまま・同じ式を別の関数へ移すだけ）。同じ盤面で旧と新の食い違いの数を紙の台本で数える: 0 行（式が同一のため）。0 でなければその括り出しを外す。
+  為替の偏り（World.cs:1380）の観測は World に欄を足さず、PriceStep の呼びで四半期ごとに再計算する（貿易収支＝累積の差・政策金利・物価水準・実質 GDP の公式を計器が自分で書く）。
+    再構成であると名乗る（偏りの値はエンジンの局所変数で読めない）。釘づけ＝再計算した生の偏りの絶対値が 0.2 以上の四半期の割合。
+  門: ① 〈判定: 恒等〉 ② .cost の件数の行が同じ ③ 自己検査 T-1〜T-5 緑 ④ ㉘ の番人が緑。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更（括り出し・列・呼び口）を外して報告に回す。
+  突然変異は使い捨ての木で 1 本ずつ回し、どの門で赤になるかを measurements/m1124_20261114_mutations.txt に書く。

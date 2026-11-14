@@ -1001,22 +1001,8 @@ public static class EconomyStep
             }
             s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
             s.HeadsLastMonth = region.Pops[lp].Size * fraction;   // ★(519→524) 能力の式の頭数（Size×fraction）の控え＝書くだけ（線 sm の欄と書き手だけを持ち込んだ・能力の式は触らない）。読み手は旗 UnionBargaining が正のときの UnionBargaining の前走査と上乗せだけ
-            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // mc〔履歴 EconomyStep.cs#132〕
-            double price = region.Markets[s.GoodId].Price;
-            double profitFactor = ProfitFactor(s, price, mc, coef);   // profitFactor〔履歴 EconomyStep.cs#133〕
+            s.Output = SupplyTargetAt(s, region, coef, world, baumol, gate, out double profitFactor);   // ① 供給の目標と追従（掛ける順は旧のまま＝括り出し）
             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
-            // target〔履歴 EconomyStep.cs#134〕
-            double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
-            // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
-            target *= InventoryAdjust(region, s.GoodId, coef);
-            s.Output = PoliticalQuantities.Toward(s.Output, target, coef.SupplyAdjustSpeed);
-            if (s.Output < 0) s.Output = 0;
-            // 上の追従式は**目標が0でも幾何級数で減るだけ**でゼロに到達しない＝1783年に内燃機関・自動車が 「生産量0.0kなのに世界シェア3%/5%」を持ち、廃棄率の分母が 1e-8 級になって 12,543,372% と出ていた。〔履歴 EconomyStep.cs#135〕
-            {
-                bool unInvented = !baumol && !(gate > 0);   // 否定形＝NaN も未発明側へ倒す
-                if (unInvented) s.Output = 0;
-                else if (!(target > 0) && s.Output < coef.TargetStockFloor) s.Output = 0;
-            }
             produced[s.GoodId] += s.Output;
         }
         if (costL is not null)   // 熱いループの中で台帳に足さず局所の和を周の後に足す〔履歴 EconomyStep.cs#136〕
@@ -2713,6 +2699,30 @@ public static class EconomyStep
         applied[gid] += use;                               // 今月充当した繰越量（決済で built に加算）
         carry[gid] -= use;                                 // 手持ちから消費（残余は決済の KeepMaterial で今月の端数を累積し腐敗率で減衰）
         investDemand[gid] += want - use;                   // 不足分だけ新規購入（先月支払い済みの充当分は買い直さない）
+    }
+
+    /// <summary>
+    /// ① 供給の目標と追従を 1 本にした純関数（T0a・旗なし・恒等の括り出し）：能力×投入充足×採算 →×在庫の調整 → Toward → 負の切り捨て → 未発明と床。
+    /// 状態は書かない（Output・DesiredOutput は呼び側が書く）。<paramref name="profitFactor"/>＝採算の乗数（DesiredOutput＝Capacity×これ）。返り値＝新しい Output。
+    /// </summary>
+    internal static double SupplyTargetAt(Producer s, Region region, Coefficients coef, World? world, bool baumol, double gate, out double profitFactor)
+    {
+        double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // mc〔履歴 EconomyStep.cs#132〕
+        double price = region.Markets[s.GoodId].Price;
+        profitFactor = ProfitFactor(s, price, mc, coef);   // profitFactor〔履歴 EconomyStep.cs#133〕
+        // target〔履歴 EconomyStep.cs#134〕
+        double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
+        // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
+        target *= InventoryAdjust(region, s.GoodId, coef);
+        double output = PoliticalQuantities.Toward(s.Output, target, coef.SupplyAdjustSpeed);
+        if (output < 0) output = 0;
+        // 上の追従式は**目標が0でも幾何級数で減るだけ**でゼロに到達しない＝1783年に内燃機関・自動車が 「生産量0.0kなのに世界シェア3%/5%」を持ち、廃棄率の分母が 1e-8 級になって 12,543,372% と出ていた。〔履歴 EconomyStep.cs#135〕
+        {
+            bool unInvented = !baumol && !(gate > 0);   // 否定形＝NaN も未発明側へ倒す
+            if (unInvented) output = 0;
+            else if (!(target > 0) && output < coef.TargetStockFloor) output = 0;
+        }
+        return output;
     }
 
     /// <summary>

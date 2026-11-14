@@ -134,7 +134,7 @@ public class ProdcapInstrumentTests
         }
     }
 
-    /// <summary>P4：見出しの宣言（15 列）と年の規則。NgYear の年が無い走りでも開幕の最初の q%4==3 の年を 1 回だけ書く。</summary>
+    /// <summary>P4：見出しの宣言（15 列＋(1124) c109t0 が末尾に足した 4 列）と年の規則。NgYear の年が無い走りでも開幕の最初の q%4==3 の年を 1 回だけ書く。</summary>
     [Fact]
     public void P4_見出しと開幕の年()
     {
@@ -142,7 +142,7 @@ public class ProdcapInstrumentTests
         try
         {
             var pc = Read(dir, "prodcap");
-            Assert.Equal("year\tq\tregion\townerNation\tgood\trecipe\tisRgo\tclass\tproductivity\tendowFromProductivity\tcapacity\toutput\tmarginalCost\tsiteRow\tsiteFound", string.Join('\t', pc.H));
+            Assert.Equal("year\tq\tregion\townerNation\tgood\trecipe\tisRgo\tclass\tproductivity\tendowFromProductivity\tcapacity\toutput\tmarginalCost\tsiteRow\tsiteFound" + "\tlaborPopIndex\tscale\tlastInputFill\tprofitFactor", string.Join('\t', pc.H));
             Assert.True(pc.R.Count >= 10000, $"行が少ない {pc.R.Count}");
             var years = pc.R.Select(r => r[pc.I("year")]).Distinct().ToList();
             Assert.Single(years);

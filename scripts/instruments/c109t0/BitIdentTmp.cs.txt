@@ -1,0 +1,47 @@
+using PriceOfBread.SimCore;
+using Xunit;
+namespace PriceOfBread.Tests;
+[Collection("Instruments")]
+public class BitIdentTmp
+{
+    [Fact]
+    public void Old_vs_New_bitwise()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain()], 1789UL, _ => new UtilityAgent());
+        sim.DiplomacyFrozen = true; sim.StartWarmup();
+        long rows = 0, diff = 0, df = 0;
+        for (int q = 0; q < 16; q++)
+        {
+            sim.StepQuarter();
+            int k = 0;
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
+            {
+                var w = n.World; var c = w.Coef;
+                var sv = r.Markets.Select(m => (m.Price, m.Stock)).ToArray(); foreach (var m in r.Markets) { k++; if (q % 2 == 1) { m.Price *= 0.4 + (k % 7) * 0.25; m.Stock *= (k % 3) == 0 ? 0.0 : (k % 3) == 1 ? 1.0 : 25.0; } }
+                foreach (var s in r.Producers)
+                {
+                    if (s.GoodId < 0 || s.GoodId >= r.Markets.Length) continue;
+                    bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;
+                    bool baumol = Catalog.Goods[s.GoodId].Tier == GoodTier.Service && !isLabor;
+                    double gate = Discovery.Gate(r, s);
+                    // 旧（758f554ed の :1004〜:1019 の逐語）
+                    double mc = EconomyStep.MineralSelfCost(s, r, c, w) + EconomyStep.InputCostPerUnit(s, r, r, c);
+                    double price = r.Markets[s.GoodId].Price;
+                    double profitFactor = EconomyStep.ProfitFactor(s, price, mc, c);
+                    double target = s.Capacity * s.LastInputFill * profitFactor;
+                    target *= EconomyStep.InventoryAdjust(r, s.GoodId, c);
+                    double o = PoliticalQuantities.Toward(s.Output, target, c.SupplyAdjustSpeed);
+                    if (o < 0) o = 0;
+                    { bool un = !baumol && !(gate > 0); if (un) o = 0; else if (!(target > 0) && o < c.TargetStockFloor) o = 0; }
+                    double nw = EconomyStep.SupplyTargetAt(s, r, c, w, baumol, gate, out double pf);
+                    rows++;
+                    if (System.BitConverter.DoubleToInt64Bits(o) != System.BitConverter.DoubleToInt64Bits(nw)) diff++;
+                    if (System.BitConverter.DoubleToInt64Bits(s.Capacity * profitFactor) != System.BitConverter.DoubleToInt64Bits(s.Capacity * pf)) df++;
+                }
+                for (int i = 0; i < sv.Length; i++) { r.Markets[i].Price = sv[i].Price; r.Markets[i].Stock = sv[i].Stock; }
+            }
+        }
+        System.IO.File.WriteAllText("D:/PoB_work/c109t0_work/bitident.txt", $"rows={rows} outputDiff={diff} desiredDiff={df}\n");
+        Assert.Equal(0, diff + df); Assert.True(rows > 5000);
+    }
+}
