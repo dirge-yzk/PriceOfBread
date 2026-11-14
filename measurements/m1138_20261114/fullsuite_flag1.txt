@@ -1,0 +1,9 @@
+(1138) 旗 1 の木（4a4175367）のフルスイート・savetest・leakhunt
+成功!   -失敗:     0、合格:  2612、スキップ:     1、合計:  2613、期間: 1 h 5 m - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 33 s - PriceOfBread.Tests.Ui.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 46 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests：Tests 2613・Tests.Ui 234（和 2847）・FullLength 3
+計器の試験の束（㊴）：340 合格・失敗 0
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

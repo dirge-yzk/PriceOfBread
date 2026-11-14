@@ -9,6 +9,7 @@ SB = int(sys.argv[4]) if len(sys.argv) > 4 else 1
 WATCH = ['イギリス', 'フランス', '日本', '清', 'オスマン', 'ロシア']
 c = defaultdict(int); g3max = 0.0; selfmax = 0.0; seeds = 0
 nat_rows = defaultdict(int); nat_eng = defaultdict(int); nat_co = defaultdict(int); nat_off = defaultdict(int)
+nat_all = defaultdict(int); nat_home = defaultdict(int); nat_tr = defaultdict(float)   # 同じ盤面の新÷旧（記録）
 for s in range(SB, SB + NS):
     p = os.path.join(ins, f'tport_s{s}.tsv')
     if not os.path.exists(p): print('無い', p); continue
@@ -34,6 +35,7 @@ for s in range(SB, SB + NS):
             if ds > 1e-12: c['tariffNeAll'] += 1
             if abs(fa - fh) > 1e-9: c['G3control'] += 1
             nat_rows[nat] += 1; nat_eng[nat] += en; nat_co[nat] += co
+            nat_all[nat] += al; nat_home[nat] += ho; nat_tr[nat] += (1.0 - fh) / (1.0 - fa) if fa < 1 else 1.0
             if prev.get(nat) and not en: nat_off[nat] += 1
             prev[nat] = en
 print(f'旗 {flag}・種 {seeds}・行 {c["rows"]}（列の足りない行 {c["shortRows"]}・colonialOnly の定義の食い違い {c["colonialOnlyDef"]}）')
@@ -55,3 +57,9 @@ for nat in WATCH:
     n = nat_rows.get(nat, 0)
     print(f'{nat}\t{n}\t{nat_eng.get(nat, 0)}\t{(nat_eng.get(nat, 0) / n if n else float("nan")):.4f}\t{nat_co.get(nat, 0)}\t{nat_off.get(nat, 0)}')
 print(f'全ての国\t{c["rows"]}\t{sum(nat_eng.values())}\t{(sum(nat_eng.values()) / c["rows"] if c["rows"] else float("nan")):.4f}\t{c["Nco"]}\t{sum(nat_off.values())}')
+print('同じ盤面の新÷旧（記録）：国\t旧の旗（全ての港）\t新の旗（本国格の港）\t新÷旧\t関税の倍率の新÷旧の平均')
+for nat in WATCH + ['アメリカ', 'オランダ']:
+    n = nat_rows.get(nat, 0)
+    if not n: continue
+    a, h = nat_all.get(nat, 0), nat_home.get(nat, 0)
+    print(f'{nat}\t{a}\t{h}\t{(h / a if a else float("nan")):.3f}\t{nat_tr[nat] / n:.5f}')
