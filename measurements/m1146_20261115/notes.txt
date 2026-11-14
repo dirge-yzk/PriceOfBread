@@ -13,3 +13,4 @@ savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大�
 門 5 の残り RED 2：Coefficients.cs:89 ParliamentSeatsWithoutGap（128 字）・Coefficients.p04_trade.cs:83 RailNeedByOutput（209 字）＝120 字超の実の注・持ち主の外（p04 は t1）。
 腕の枠で待った時間：0（arms.sh free は 4〜6）。前面の待ち（waitmark）は約 25 回・覗き（ls・tail）は数回・hook に止められた回数 0。
 D: に作ったフォルダ：D:/PoB_work/c112tt_work（作業・suite・mt の worktree・tmp）・D:/PoB_work/c112tt_art・D:/PoB_work/c112tt_mtart・D:/PoB_work/ident_c112tt・D:/PoB_work/wt_c112tt（worktree）。
+最後の頭 f82121eff の走査の番人（scan）：Tests 189 件緑・Tests.Ui 45 件緑（scan_final.txt）。
