@@ -1,0 +1,8 @@
+# (1145) c112hy フルスイート（旗 1 の木 6897e2ee0・scripts/instruments/c112hy/suite.sh・2026-11-15）
+PriceOfBread.Tests nonfull rc=0 list=2627 成功!   -失敗:     0、合格:  2626、スキップ:     1、合計:  2627、期間: 37 m 45 s - PriceOfBread.Tests.dll (net10.0)
+PriceOfBread.Tests full rc=0 list=3 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 37 s - PriceOfBread.Tests.dll (net10.0)
+PriceOfBread.Tests.Ui nonfull rc=0 list=234 成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 12 s - PriceOfBread.Tests.Ui.dll (net10.0)
+PriceOfBread.Tests.Ui full rc=0 list=0 
+合計 Category!=FullLength 2627+234=2861（--list-tests の和 2861＝基準 2858+3）・FullLength 3（list 3）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
