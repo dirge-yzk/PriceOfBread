@@ -1,0 +1,36 @@
+(1139) 線 c111tf 事前登録 — tb の計器の試験 T1 を〈試験の中で盤面を置く〉形へ（試験だけ）
+署名: Claude Sonnet 5.5
+
+[1] 恒等の線・予言 0
+  変えるのは PriceOfBread.Tests/TradeBilateralInstrumentTests.cs だけ。SimCore・計器・係数・Runner・App は触れない。
+  素の 5 種・計器つき 10 種は m1122 と名乗り行を除いて全行一致の見込み（SimCore のバイトが同じ）。判定は ident.sh（段 1）。
+
+[2] 消す物と残す物
+  消す：T1 の 〈区分ごとに 1 件以上（tot[i] > 0）〉と 〈a1Close > 0〉（Run(12) の軌道に依る下限。lo の旗 1 で ps1 が 0 件＝measurements/m1136_20261114/guards_f82bd18ac.txt）。
+  残す：和＝行の数・rows > 1000（調べた行の下限）・境の盤面（sk2）・T2〜T5。
+  読み手の grep：TradeBilateralInstrumentTests のメンバーは試験の外から参照されない（Tests 内・scripts・measurements の台本とも 0 件を確かめる）。POB_COEF・SaveGame に関係なし。
+  他の線との重なり：Tests の同じファイルを触る線は無い（c111rb は RailByRegionTests・c111sm は別の試験）。
+
+[3] 足す試験と突然変異
+  区分は ★(743) ①（軌道に依る下限の置き場を移す＝番人を強める側・上限は不変）。旧盤面に番人を固定する形ではない：Assert の文と閾値は消さず、盤面の取り方だけを手で置いた盤面へ。
+  T1：Run(12) では 軌道に依らない不変条件だけ＝6 区分＋未分類の和＝行の数・rows>1000・行ごとに a1Close == ps2（A-1 は区分の和）・a1CloseD>=0。
+  T1b（新）：TbClassify に手で置いた 6 つの盤面（sk0 sk1 sk2 ps0 ps1 ps2）。各盤面は 1 つの区分だけが真・XOld の符号も固定。盤面の式は試験の中で TbClassify を呼ばずに作る。
+  T6（新）：NaN の入力の区分を固定（rpT・lp・headPrice×lbMulMin が NaN → Ok=false。在庫が NaN → Ok=true で 3 区分が全て偽＝表では 6 区分にも未分類にも入らない隙間。現状の挙動を固定し、計器の直しは 00一覧へ申し送り＝この線では変えない）。
+  T7（新）：倒産した生産者の枝（TbPHatSum が p.Output をそのまま足す）。期待値＝エンジンの式で他の生産者を足した和＋その Output。眠りの枝の半分（SleepState==1）は盤面に置けない＝限界と名乗る。
+  T2 の注に〈u_min は headS の時点の近似〉を足す（TbU1 の u′＝min(unitA, lp) と TbClassify の um の違い）。
+  T2〜T5 の下限の点検：T2 boards≥10・T4 n≥100/moved≥20・T5 deals>100/imp>0 は〈等式の検査が空振りしない〉ための下限で、区分の稀な件数ではない＝移さず列挙して残す（imp>0 と deals は越境の成約の軌道に依る＝限界と名乗る）。
+  突然変異（使い捨ての木 D:/PoB_work/c111tf_work/mt）：
+   M1 B0 の述語を ubBb>=0 に → T1b 赤（sk2 の境が 0 件で落ちる T1 も）。
+   M2 B1 の述語から ubA1>0 を落とす → T1b 赤。
+   M3 B2 の述語を ubA1<0 に → T1 の境の盤面と T1b 赤。
+   M4 TbRow の呼びを BilateralMarket.cs:827 から消す → T1 の rows>1000 赤（確認）。
+   M5 呼びを tbOn の if の外へ（Instruments.On の外）→ 緑の見込み＝限界（Wants が止める）。
+   M6 TbPHatSum の倒産の枝を消す → T7 赤。
+  木 A＝main＋origin/c110lo の merge：TradeBilateralInstrumentTests と ㉘＋㊴ の束が緑。
+
+[4] 試験の数の予言
+  Tests 2610→2613（T1b・T6・T7）・Tests.Ui 234・合計 2847・FullLength 3。
+  走査の番人（㉘）：許可表・件数は書き換えない（予言 0 件）。
+  OnDoubleReadScanTests は ㉘ の束に無い＝合流の台本へ申し送る。
+
+[5] 〈判定: 恒等〉なら採る。

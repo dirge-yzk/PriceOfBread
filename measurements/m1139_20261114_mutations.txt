@@ -1,0 +1,36 @@
+(1139) c111tf 突然変異（使い捨ての木 D:/PoB_work/c111tf_work/mt・scripts/instruments/c111tf/mutate.sh）
+署名: Claude Sonnet 5.5
+== M1_B0を以上に
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1b_手で置いた6盤面が各区分に入る [5 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 14 s - PriceOfBread.Tests.dll (net10.0)
+== M2_B1からUbA1を落とす
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1b_手で置いた6盤面が各区分に入る [6 s]
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1_6区分の和と行の数 [9 s]
+失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8、期間: 1 m 13 s - PriceOfBread.Tests.dll (net10.0)
+== M3_B2を未満に
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1b_手で置いた6盤面が各区分に入る [6 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 25 s - PriceOfBread.Tests.dll (net10.0)
+== M4_呼びを消す
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1_6区分の和と行の数 [7 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 34 s - PriceOfBread.Tests.dll (net10.0)
+== M5_呼びをOnの外へ
+成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 1 m 9 s - PriceOfBread.Tests.dll (net10.0)
+== M6_倒産と眠りの枝を消す
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T7_倒産した生産者はOutputのまま足す [7 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 10 s - PriceOfBread.Tests.dll (net10.0)
+== M6b_眠りの半分だけ落とす
+成功!   -失敗:     0、合格:     8、スキップ:     0、合計:     8、期間: 1 m 25 s - PriceOfBread.Tests.dll (net10.0)
+== M6c_倒産の半分だけ落とす
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T7_倒産した生産者はOutputのまま足す [4 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 1 s - PriceOfBread.Tests.dll (net10.0)
+== M7_NaNを通す
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T6_NaNの入力の区分 [10 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 46 s - PriceOfBread.Tests.dll (net10.0)
+done
+
+読み：
+  M1〜M3（区分の述語）は T1b が赤（M2 は T1 の和も赤）・M4（呼びを消す）は T1 が赤・M6／M6c（倒産の枝）は T7 が赤・M7（NaN を通す）は T6 が赤。
+  限界（緑のまま）：M5＝呼びを tbOn の外へ動かしても試験は緑（Wants が止める＝出力は変わらない・計器が Instruments.On の外で走らない保証は試験に無い）。
+  M6b＝眠りの半分（SleepState==1）を落としても緑（Boards は眠った生産者を除く・眠りは盤面に置けない）。
+  申し送り：在庫の欄が NaN のとき TbClassify は Ok=true で 3 区分が全て偽＝TbRow は Rows を数えるのに区分にも unclassified にも入れない（T6 で現状を固定）。計器の直しは別の線へ。
+  申し送り：OnDoubleReadScanTests は ㉘ の束に無い＝合流の番人の束に足す。

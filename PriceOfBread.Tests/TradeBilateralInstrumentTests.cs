@@ -65,8 +65,10 @@ public class TradeBilateralInstrumentTests
         return s;
     }
 
+    // (1139) T1 は軌道に依らない不変条件だけ。〈区分ごとに 1 件以上〉は Run(12) の軌道に依る下限だった（lo の旗 1 で ps1 が 0 件＝measurements/m1136_20261114/guards_f82bd18ac.txt）
+    // ので T1b の手で置いた 6 盤面へ移した（★(743) ①・下限の置き場の移し＝番人を強める側）。
     [Fact]
-    public void T1_6区分の和と境の盤面()
+    public void T1_6区分の和と行の数()
     {
         var (dir, sim, restore) = Run(12);
         try
@@ -78,18 +80,140 @@ public class TradeBilateralInstrumentTests
             {
                 long sum = (long)t.D(r, "unclassified"); for (int i = 0; i < 6; i++) { long v = (long)t.D(r, cn[i]); sum += v; tot[i] += v; }
                 Assert.True(sum == (long)t.D(r, "rows"), $"6 区分の和 {sum} ≠ 行の数 {t.D(r, "rows")}（{r[t.I("nation")]} {r[t.I("year")]}）");
+                // A-1 が閉じる行（B2 かつ X_old＞0）は 3 区分の下半分＝ps2 そのもの（区分の和の関係・軌道に依らない）
+                Assert.True((long)t.D(r, "a1Close") == (long)t.D(r, "ps2"), $"a1Close {t.D(r, "a1Close")} ≠ ps2 {t.D(r, "ps2")}（{r[t.I("nation")]} {r[t.I("year")]}）");
+                Assert.True(t.D(r, "a1CloseD") >= 0, "a1CloseD が負");
                 rows += (long)t.D(r, "rows"); a1 += (long)t.D(r, "a1Close");
             }
             Assert.True(rows > 1000, "見た行が少ない " + rows);
-            for (int i = 0; i < 6; i++) Assert.True(tot[i] > 0, $"区分 {cn[i]} が 0 件（{string.Join(',', tot)}）");
-            Assert.True(a1 > 0, "A-1 が閉じる行が 0");
-            // 境の盤面：D＝0・P＝0・S＝TS＝UB_Bb＝UB_A1＝0 ちょうど → 区分 2（互いに素な 3 述語のどれにも漏れない）。
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>
+    /// (1139) 6 区分ごとに 1 つ、盤面を試験の中で置いて TbClassify の区分を確かめる（軌道に依らない）。
+    /// 添字＝(X_old＞0 なら 3) ＋ (B0:0・B1:1・B2:2)。盤面は式から作り、TbClassify の戻りは期待と照らすだけ。lp＝1・headPrice＝NaN → u_min＝1。
+    /// </summary>
+    [Fact]
+    public void T1b_手で置いた6盤面が各区分に入る()
+    {
+        var (dir, sim, restore) = Run(4);
+        try
+        {
+            double e = sim.Nations[0].World.Coef.PriceElasticity; Assert.True(e > 0, "弾力が正の前提");
+            double rBig = System.Math.Pow(1e6, e), rSm = System.Math.Pow(0.25, e);
+            Assert.True(rBig > 10 && rSm < 1, $"盤面の前提 {rBig}/{rSm}");
+            // 盤面は 1 つの州×財の上に置く。P̂ は在庫の欄に依るので、欄を置いてから P̂ を測り、前提（式）を試験の中で確かめる。
+            // sk1・ps1 だけは P̂ に合わせて D を探す（S＝TS にして在庫の調整を中立にする）。
+            Region? RG = null; World? W = null; int G = -1; Market? M = null; Coefficients? C = null;
+            double Ph(double ts, double d, double p, double s) { M!.TargetStock = ts; M.LastDemand = d; M.LastProduced = p; M.Stock = s; return Instruments.TbPHatSum(RG!, G, C!, W!, 1.0); }
+            int Cls(double ts, double d, double p, double s, double rpT)
+            {
+                M!.TargetStock = ts; M.LastDemand = d; M.LastProduced = p; M.Stock = s;
+                var x = Instruments.TbClassify(RG!, G, M, C!, W!, 1.0, rpT, double.NaN, 1.0);
+                Assert.True(x.Ok, "区分に入らない盤面");
+                int n = (x.B0 ? 1 : 0) + (x.B1 ? 1 : 0) + (x.B2 ? 1 : 0); Assert.Equal(1, n);   // 互いに素
+                return (x.XOld > 0 ? 3 : 0) + (x.B0 ? 0 : x.B1 ? 1 : 2);
+            }
+            bool sk1 = false, ps1 = false;
+            foreach (var (w, rg, g) in Boards(sim).Take(400))
+            {
+                RG = rg; W = w; G = g; M = rg.Markets[g]; C = w.Coef;
+                const double T = 1000;
+                foreach (double d in new[] { 1.0, 10, 100, 1e3, 1e4, 1e5, 1e6 })
+                {
+                    if (!sk1)
+                    {   // UB_Bb＝−（P̂＋1）≦0・p を P̂ に置き換えると UB_A1＝D−P̂＞0
+                        double p = Ph(T, d, 0, T) + d + 1; double ph = Ph(T, d, p, T);
+                        if (p > ph && d > ph) { Assert.Equal(1, Cls(T, d, p, T, 1.0)); sk1 = true; }
+                    }
+                    if (!ps1)
+                    {   // X_old＝δ＞0・UB_Bb＝−δ≦0（rpT＜u_min）・P̂＜D√r で UB_A1＞0
+                        double p = d * (1 + rSm) / 2; double ph = Ph(T, d, p, T);
+                        if (ph < p && ph < d * rSm) { Assert.Equal(4, Cls(T, d, p, T, 0.25)); ps1 = true; }
+                    }
+                }
+                if (sk1 && ps1) break;
+            }
+            Assert.True(sk1, "sk1 の盤面が置けない"); Assert.True(ps1, "ps1 の盤面が置けない");
+            {
+                var (w, rg, g) = Boards(sim).First(); RG = rg; W = w; G = g; M = rg.Markets[g]; C = w.Coef;
+                double dl = 2.0, delta = 0.5 * dl * (1 - rSm);
+                // sk0：X_old＝−0.5＜0 だが rpT が大きく UB_Bb＞0
+                Assert.Equal(0, Cls(1, 1, 2.5, 0, 1e6));
+                // sk2：境（D＝0・p＝0・S＝TS ちょうど）
+                Assert.Equal(2, Cls(5, 0, 0, 5, 1.0));
+                // ps0：X_old＝2＞0 で UB_Bb＞X_old
+                Assert.Equal(3, Cls(1, 1, 0, 0, 1e6));
+                // ps2：X_old＝δ＞0・p＝0 で UB_A1＝UB_Bb＝−δ≦0
+                Assert.Equal(5, Cls(5, dl, 0, 5 + dl - delta, 0.25));
+            }
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>
+    /// (1139) NaN・無限の入力の区分を現状のまま固定する。rpT・lp が NaN／無限なら Ok＝false（表の unclassified）。
+    /// 在庫の欄が NaN だと Ok＝true のまま 3 区分が全て偽になる＝TbRow は行を数えるのにどの区分にも入れない隙間
+    /// （表の和が行の数と合わなくなる）。計器の変更が要るので、この線では直さず 00一覧へ申し送る。
+    /// </summary>
+    [Fact]
+    public void T6_NaNの入力の区分()
+    {
+        var (dir, sim, restore) = Run(4);
+        try
+        {
             var (w, rg, g) = Boards(sim).First();
             var m = rg.Markets[g]; var c = w.Coef;
-            m.TargetStock = 5; m.Stock = 5; m.LastDemand = 0; m.LastProduced = 0;
-            var x = Instruments.TbClassify(rg, g, m, c, w, 1.0, 1.0, double.NaN, 1.0);
-            Assert.True(x.Ok && !x.B0 && !x.B1 && x.B2, $"境の盤面が区分 2 でない {x.B0}/{x.B1}/{x.B2}");
-            Assert.Equal(0.0, x.UbBb); Assert.Equal(0.0, x.UbA1);
+            m.TargetStock = 5; m.LastDemand = 1; m.LastProduced = 0; m.Stock = 5;
+            double nan = double.NaN;
+            Assert.False(Instruments.TbClassify(rg, g, m, c, w, 1.0, nan, nan, 1.0).Ok);
+            Assert.False(Instruments.TbClassify(rg, g, m, c, w, nan, 1.0, nan, 1.0).Ok);
+            Assert.False(Instruments.TbClassify(rg, g, m, c, w, double.PositiveInfinity, 1.0, nan, 1.0).Ok);
+            Assert.True(Instruments.TbClassify(rg, g, m, c, w, 1.0, 1.0, nan, nan).Ok, "headPrice が NaN なら最安の売り手は無いものとして読む");
+            foreach (var field in new[] { "Stock", "LastDemand", "TargetStock", "LastProduced" })
+            {
+                m.TargetStock = 5; m.LastDemand = 1; m.LastProduced = 0; m.Stock = 5;
+                switch (field) { case "Stock": m.Stock = nan; break; case "LastDemand": m.LastDemand = nan; break; case "TargetStock": m.TargetStock = nan; break; default: m.LastProduced = nan; break; }
+                var x = Instruments.TbClassify(rg, g, m, c, w, 1.0, 1.0, nan, 1.0);
+                Assert.True(x.Ok && !x.B0 && !x.B1 && !x.B2 && !x.Eval, $"{field}＝NaN の区分 {x.Ok}/{x.B0}/{x.B1}/{x.B2}/{x.Eval}");
+            }
+        }
+        finally { restore(); }
+    }
+
+    /// <summary>
+    /// (1139) TbPHatSum の倒産の枝（エンジンは倒産・眠りの生産者を飛ばす＝今の産出 p.Output のまま足す）。
+    /// 期待値は SupplyTargetAt から作る。眠りの枝（SleepState＝1）は盤面に置けない＝この試験の限界（倒産と同じ行にある）。
+    /// </summary>
+    [Fact]
+    public void T7_倒産した生産者はOutputのまま足す()
+    {
+        var (dir, sim, restore) = Run(4);
+        try
+        {
+            int tested = 0;
+            foreach (var (w, rg, g) in Boards(sim).Take(400))
+            {
+                var m = rg.Markets[g]; var c = w.Coef;
+                var ps = rg.Producers.Where(p => p.GoodId == g).ToList();
+                double One(Producer p)
+                {
+                    bool isLabor = p.GoodId is Catalog.LaborId or Catalog.FarmLaborId;
+                    bool baumol = Catalog.Goods[p.GoodId].Tier == GoodTier.Service && !isLabor;
+                    return EconomyStep.SupplyTargetAt(p, rg, c, w, baumol, Discovery.Gate(rg, p), out _);
+                }
+                var victim = ps[0];
+                double full = One(victim);
+                if (System.Math.Abs(full - victim.Output) <= 1e-9 * System.Math.Max(1.0, full)) continue;   // 倒産の枝と通常の枝が同じ値になる盤面は区別できない
+                double expect = ps.Where(p => p != victim).Sum(One) + victim.Output;
+                victim.Bankrupt = true;
+                double got;
+                try { got = Instruments.TbPHatSum(rg, g, c, w, m.Price); } finally { victim.Bankrupt = false; }
+                Assert.True(Near(got, expect, 1e-9), $"倒産の枝 {got} ≠ {expect}");
+                tested++;
+            }
+            Assert.True(tested >= 5, "区別できる盤面が少ない " + tested);
         }
         finally { restore(); }
     }
@@ -104,6 +228,8 @@ public class TradeBilateralInstrumentTests
             foreach (var (w, rg, g) in Boards(sim).Take(60))
             {
                 var m = rg.Markets[g]; var c = w.Coef;
+                // 注：TbU1 の u′＝min(unitA, lp) は成約の価格。行の門の TbClassify の u_min＝min(lp, 最安の売り手×lbMulMin) は headS の時点の近似で、
+                // 同じ値ではない（成約が headS 以外の売り手へ回る行では u′≠u_min）。この試験は TbU1 の式だけを固定する。
                 double lp = 2.0, unitA = 3.0, rpT = 2.5, qA = 2.0;     // u′＝min(unitA, lp)＝2
                 double u = System.Math.Min(unitA, lp), root = System.Math.Sqrt(rpT / u);
                 m.TargetStock = 10; m.LastDemand = 4; m.Stock = 7;   // 在庫の調整が読む欄を先に決める（S は成約の後の台帳の値）
