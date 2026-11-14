@@ -1964,12 +1964,10 @@ public sealed class World
 
     /// <summary>国営持分（利潤も赤字も国庫が受け取る割合）＝<see cref="EconomyStep"/> が所得分配で読む式**そのもの**。
     /// 唯一の定義をここに置き、エンジンも動詞もUIも同じこの関数を読む（第二の式を置かない）。
-    /// BuiltScale（国家が建てた容量）÷ Scale（今月の操業規模）。国有化法（接収が休眠のとき）はその下限を課す。</summary>
+    /// BuiltScale（国家が建てた容量）÷ Scale（今月の操業規模）。</summary>
     public static double StateProfitShare(Producer p, Region r, Coefficients c)
     {
         double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale / Math.Max(p.Scale, 1e-9)) : 0.0;
-        if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0 && Nationalization.IsNationalized(p.GoodId, r.NationalizedMask))
-            f = Math.Max(f, c.NationalizationStateShare.Value);
         if (c.LandShareCrownSlot > 0 && p.LandShares is { Length: 5 } ls) f += (1.0 - f) * ls[4];   // LandShareCrownSlot〔履歴 World.cs#284〕
         return f;
     }

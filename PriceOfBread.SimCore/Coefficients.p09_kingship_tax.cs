@@ -103,7 +103,7 @@ public sealed partial class Coefficients
     public double TrustbustRent = 0.15;                // 独占の解体での独占レント倍率（トラスト解体＝ほぼ競争的）
     public double RationingBlockadeRelief = 0.5;       // 配給ありでの封鎖厭戦倍率（公平配給で飢餓の痛みが半減＝英国型）
     public Share NationalizationStateShare = new(1.0);     // 国有化部門の国営持分
-    public double NationalizationSeizureRate = 0.05;   // 0＝旧経路（stateFrac の下限）
+    public double NationalizationSeizureRate = 0.05;   // 月の接収の速さ（Seize の take＝これ×操業規模）。旧経路〈0＝stateFrac の下限〉は (1132) で消した
     public double SeizureResistanceWeight = 1.0;       // 抵抗＝これ×資本家ブロックの政治力（InterestGroups.Blocs.Modern）×奪われる持分
     public double SeizureInvestmentChill = 1.0;        // 資本逃避＝Region.SeizureChill＋＝これ×奪った持分（私的投資予算に ×(1−chill)）
     public double SeizureChillDecay = 0.1;             // 資本逃避の月次減衰（chill ×= 1−これ）

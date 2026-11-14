@@ -14,7 +14,6 @@ public sealed partial class Coefficients
     public RatePerYear OpulenceSpendRatePerYear = new(0.6);         // 梯子0.3→0.6→1.2/年
     public double PanicBuyWeight = 0.5;   // 点火2026-09-06＝0.0→0.5・〔6-2〕主食の買占め（B3 自己成就期待の残り半分）
     public double SovietTaxProfile = 1.0;          // ソ連風税制（2026-08-08作者裁定＝完全な計画経済の代替）：プロレタリア独裁は
-    public double GarrisonProcurement = 0.0;       // 課題6（駐屯州調達・審査88/70）
     public Share SerfCashShareFloor = new(0.15);       // 0=恒等
     public Share MaxSoldierFraction = new(0.04);               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合
     public double MilitarismStrengthBonus = 1.3;            // 同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る

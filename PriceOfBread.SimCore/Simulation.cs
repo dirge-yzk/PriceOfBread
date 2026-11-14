@@ -1779,15 +1779,7 @@ public sealed class Simulation
                 double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0) : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // warMult〔履歴 Simulation.cs#205〕
                 // 軍隊規模(兵数)×戦時倍率に比例。〔履歴 Simulation.cs#206〕
                 {
-                    double gGar = World.Coef.GarrisonProcurement;
-                    double capShare = r.Id == 0 ? 1.0 : 0.0;
-                    double share = capShare;
-                    if (gGar > 0 && natSoldiers > 1e-9)
-                    {
-                        double localSoldiers = 0;
-                        foreach (var gp in r.Pops) if (gp.IsSoldier) localSoldiers += gp.Size;
-                        share = (1.0 - gGar) * capShare + gGar * (localSoldiers / natSoldiers);
-                    }
+                    double share = r.Id == 0 ? 1.0 : 0.0;   // 軍需調達は首都州のみ（駐屯州調達の器 GarrisonProcurement は (1132) で消した）
                     r.MilitaryScale = share > 1e-12 ? World.Coef.MilitaryUpkeepScale * natSoldiers * warMult * share : 0;
                     // 耐久品の目標在庫は平時基準（warMult を掛けない）＝機関銃は戦争が始まっても9倍要らない。〔履歴 Simulation.cs#207〕
                     r.MilitaryScalePeace = share > 1e-12 ? World.Coef.MilitaryUpkeepScale * natSoldiers * share : 0;
@@ -1799,13 +1791,13 @@ public sealed class Simulation
                 double seaShare = navalSpendNat;
                 if (!(seaShare >= 0)) seaShare = 0; else if (seaShare > 1) seaShare = 1;   // 否定形＝NaN は陸へ
                 double milCap = equipRoom * (1.0 - seaShare);   // 陸の装備の請求（r を掛ける前）。支出反射（OpulenceSpendRatePerYear>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
-                r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // MilitaryBudgetCeiling〔履歴 Simulation.cs#210〕
+                r.MilitaryBudgetCeiling = (r.Id == 0 ? milCap : 0);   // MilitaryBudgetCeiling〔履歴 Simulation.cs#210〕
                 // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。〔履歴 Simulation.cs#211〕
                 if (r.Id == 0)
                 {
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
                 }
-                r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
+                r.MilitaryBudget = (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
                 {
                     // 割合 0 の州は予算も発注も無し（null）＝EconomyStep は艦を買わない。〔履歴 Simulation.cs#212〕
                     double navalNat = equipRoom * seaShare;
@@ -1945,12 +1937,6 @@ public sealed class Simulation
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
                 if (Instruments.On) Instruments.ClaimRegion(World, r, regrow, payQuarter, portThr);
                 // 一覧 Region.StateSites＝工事中か BuiltScale>1e-9 の生産者を州の生産者の順に。〔履歴 Simulation.cs#236〕
-                if (World.Coef.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
-                {
-                    World.Cost[CostLedger.ClaimProducers] += r.Producers.Count;   // 計算量の台帳（診断）：請求で見る生産者
-                    foreach (var pr in r.Producers) AddStateClaim(pr, r, World, ref claims);
-                }
-                else
                 {
                     r.EnsureSites();
                     var sites = r.StateSites!;

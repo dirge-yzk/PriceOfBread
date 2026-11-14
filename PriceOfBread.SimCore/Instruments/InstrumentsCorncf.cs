@@ -82,30 +82,10 @@ public static partial class Instruments
     /// <summary>国家の枠の割合（純関数）＝国家の枠へ行った額÷（私の 4 枠＋国家の枠）。どちらも 0 なら nan。</summary>
     internal static double CfCrownShare(double crown, double priv) => crown + priv > 0 ? crown / (crown + priv) : double.NaN;
 
-    /// <summary>国有化の部門の印の添字（計器の写し・純関数）：0 鉄道・1 鉱山・2 軍事・4 石油・5 電力・6 全て（主食・日用・奢侈・中間・生産財）・−1 該当なし。</summary>
-    internal static int CfSectorBit(int goodId)
-    {
-        if (goodId == Catalog.LocomotiveId) return 0;
-        if (goodId == Catalog.IronOreId || goodId == Catalog.CoalId || goodId == Catalog.CopperOreId || goodId == Catalog.LeadOreId || goodId == Catalog.GoldOreId || goodId == Catalog.SulfurId
-            || goodId == Catalog.LimestoneId || goodId == Catalog.SilicaSandId || goodId == Catalog.ClayId || goodId == Catalog.SilverId) return 1;
-        if (goodId == Catalog.ArtilleryId || goodId == Catalog.RifleId || goodId == Catalog.AmmunitionId || goodId == Catalog.WarshipId || goodId == Catalog.TankId || goodId == Catalog.DreadnoughtId
-            || goodId == Catalog.MilitaryAircraftId || goodId == Catalog.ChemicalWeaponId) return 2;
-        if (goodId == Catalog.NewspaperId || goodId == Catalog.RadioId) return 6;
-        if (goodId == Catalog.CrudeOilId) return 4;
-        if (goodId == Catalog.ElectricityId) return 5;
-        return goodId >= 0 && goodId < Catalog.Goods.Length && Catalog.Goods[goodId].Tier is GoodTier.Staple or GoodTier.Daily or GoodTier.Luxury or GoodTier.Intermediate or GoodTier.Producer ? 6 : -1;
-    }
-
-    /// <summary>国営持分 f0（計器の写し・国家の枠を除く）＝建てた容量÷操業規模（上限 1）・国有化の下限（接収の速度が 0 以下のときだけ）。</summary>
+    /// <summary>国営持分 f0（計器の写し・国家の枠を除く）＝建てた容量÷操業規模（上限 1）。</summary>
     internal static double CfStateFrac(World w, Region r, Producer s)
     {
         double f = s.BuiltScale > 1e-9 ? System.Math.Min(1.0, s.BuiltScale / System.Math.Max(s.Scale, 1e-9)) : 0.0;
-        var c = w.Coef;
-        if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
-        {
-            int bit = CfSectorBit(s.GoodId);
-            if (bit >= 0 && (r.NationalizedMask & (1 << bit)) != 0) f = System.Math.Max(f, c.NationalizationStateShare.Value);
-        }
         return f;
     }
 

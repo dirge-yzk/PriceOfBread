@@ -47,8 +47,6 @@ public sealed partial class Coefficients
     public double OversightPressCensored = 0.4;   // 検閲付き報道の監視力（自由報道=1.0・国家報道のみ=0.0）
     public double OversightMeritExam = 0.6;       // 科挙型（資格任用）の監視力（専門官僚=1.0・猟官=0.0）
     public double OversightFactorScale = 1.0;   // 1.0＝旧とビット恒等（press自由1.0→noisy-or飽和→汚職0）
-    public double MineralScaleCap = 1.5;        // 鉱物RGOの操業規模上限（ScaleMax=3.0の半分＝既存鉱脈の増産余地は+50%まで。大増産は発見と新州の仕事）
-    public double MineralScaleCapLift = 1.0;    // 1＝鉱山の天井を ScaleMax へ（(1119) c108mc）・0＝旧の 1.5
     public double RgoScaleSpeedFactor = 0.25;   // 鉱山・畑の規模調整速度の倍率（坑道・開墾＝年単位。時定数は均衡を動かさない＝掃討基準の免除カテゴリ）
     public RatePerMonth MintFloorBuyRatePerMonth = new(0.25);    // 床モードの月次購入率（在庫のこの割合まで/月）
     public RatePerMonth MintReserveSellRatePerMonth = new(0.08); // 法が本位金属を捨てたあと準備を市場へ売る月次率（独1873-79のターラー銀売却＝暴落を深めた投げ売り。売り切りに約1年）

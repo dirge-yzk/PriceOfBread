@@ -334,11 +334,9 @@ public class EconomyTests
             double price = r.Markets[p.GoodId].Price;
             return 1.0 + (mc > 1e-9 ? (price - mc) / mc : 0.0);
         }
-        static (World W, Region R, int Pi, double T) Board(double lift)
+        static (World W, Region R, int Pi, double T) Board()
         {
             var sc = NationConfig.Britain().ToScenario(41, sharedWorld: true);
-            var co = new Coefficients { MineralScaleCapLift = lift };
-            typeof(Scenario).GetProperty(nameof(Scenario.Coef))!.SetValue(sc, co);
             var w = new Simulation(sc, new NullAgent()).World;
             foreach (var r in w.Regions)
             {
@@ -355,28 +353,15 @@ public class EconomyTests
             }
             throw new Xunit.Sdk.XunitException("漁と工場のある州に、門の開いた鉱山（1＋margin<3）が無い");
         }
-        var on = Board(1.0); var off = Board(0.0);
-        Assert.Equal(off.R.Name, on.R.Name); Assert.Equal(off.Pi, on.Pi);
+        var on = Board();
         Console.WriteLine($"(1098) unit: region#{on.R.Id} good#{on.R.Producers[on.Pi].GoodId} 1+margin(before the month)={on.T:R}");
         Assert.True(on.T < 3.0, $"1＋margin＝{on.T} が 3 未満でない（μ4 を捕まえる前提が崩れる）");
 
         EconomyStep.Run(on.R, on.W.Coef, 1.0, on.W.Bank, on.W);
-        EconomyStep.Run(off.R, off.W.Coef, 1.0, off.W.Bank, off.W);
 
-        double s1 = on.R.Producers[on.Pi].Scale, s0 = off.R.Producers[off.Pi].Scale;
+        double s1 = on.R.Producers[on.Pi].Scale;
         Assert.True(Math.Abs(s1 - 1.51875) <= 1e-12, $"旗 1 の規模 {s1:R} が 1.51875 でない");
-        Assert.Equal(1.5, s0);
 
-        int fish = 0, fac = 0;
-        for (int i = 0; i < on.R.Producers.Count; i++)
-        {
-            var a = on.R.Producers[i]; var b = off.R.Producers[i];
-            bool isFish = a.IsRgo && a.GoodId == Catalog.FishId;
-            if (!isFish && a.IsRgo) continue;
-            Assert.True(BitConverter.DoubleToInt64Bits(a.Scale) == BitConverter.DoubleToInt64Bits(b.Scale), $"{(isFish ? "漁" : "工場")} 財 {a.GoodId} の規模が旗で変わった：{a.Scale:R} / {b.Scale:R}");
-            if (isFish) fish++; else fac++;
-        }
-        Assert.True(fish >= 1 && fac >= 1, $"比べた漁 {fish}・工場 {fac}");
     }
 
     [Fact]
@@ -394,11 +379,9 @@ public class EconomyTests
             foreach (var inp in p.Inputs) mc += (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length ? r.Markets[inp.GoodId].Price : 0.0) * inp.QtyPerOutput;
             return mc;
         }
-        static (World W, Region R, int Pi, double T) Board(double lift)
+        static (World W, Region R, int Pi, double T) Board()
         {
             var sc = NationConfig.Britain().ToScenario(41, sharedWorld: true);
-            var co = new Coefficients { MineralScaleCapLift = lift };
-            typeof(Scenario).GetProperty(nameof(Scenario.Coef))!.SetValue(sc, co);
             var w = new Simulation(sc, new NullAgent()).World;
             foreach (var r in w.Regions)
                 for (int i = 0; i < r.Producers.Count; i++)
@@ -413,20 +396,17 @@ public class EconomyTests
                 }
             throw new Xunit.Sdk.XunitException("門の開いた鉱山が無い");
         }
-        var on = Board(1.0); var off = Board(0.0);
-        Assert.Equal(off.R.Name, on.R.Name); Assert.Equal(off.Pi, on.Pi);
+        var on = Board();
         Console.WriteLine($"(1119) unit2: region#{on.R.Id} good#{on.R.Producers[on.Pi].GoodId} 1+margin(before the month)={on.T:R}");
 
         EconomyStep.Run(on.R, on.W.Coef, 1.0, on.W.Bank, on.W);
-        EconomyStep.Run(off.R, off.W.Coef, 1.0, off.W.Bank, off.W);
 
-        double s1 = on.R.Producers[on.Pi].Scale, s0 = off.R.Producers[off.Pi].Scale;
-        Console.WriteLine($"(1119) unit2: scale flag1={s1:R} flag0={s0:R}");
+        double s1 = on.R.Producers[on.Pi].Scale;
+        Console.WriteLine($"(1119) unit2: scale={s1:R}");
         Assert.True(s1 > 1.5 + 1e-9, $"旗 1 の規模 {s1:R} が 1.5 を越えない（目標の側の天井が 1.5 のまま）");
         Assert.True(s1 <= 1.51875 + 1e-12, $"旗 1 の規模 {s1:R} が 1.51875（天井 3.0・速さ 0.0125 の 1 か月の最大）を越えた");
         // 目標＝1＋margin＝2.5（値段＝費用×2.5）＜天井 3.0 ⇒ 規模＝1.5＋0.0125×(2.5−1.5)＝1.5125（天井 2.0 なら 1.50625・速さ 0.05 なら 1.55）
         Assert.True(Math.Abs(s1 - 1.5125) <= 1e-9, $"旗 1 の規模 {s1:R} が 1.5125 でない");
-        Assert.Equal(1.5, s0);
     }
 
     [Fact]

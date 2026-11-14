@@ -165,17 +165,6 @@ public static class Military
         if (lawConscripts) DiluteSkill(w, soldiersBefore, sSize);
         double moraleFill = PowerShares.SoldierWelfare(w);
         double equipFillEff = w.Region.MilitaryEquipFill;
-        if (c.GarrisonProcurement > 0 && sSize > 1e-9)
-        {
-            double fw = 0;
-            foreach (var r in w.Regions)
-            {
-                double ls = 0; foreach (var p in r.Pops) if (p.IsSoldier) ls += p.Size;
-                fw += ls * r.MilitaryEquipFill;
-            }
-            double garFill = fw / sSize;
-            equipFillEff = (1.0 - c.GarrisonProcurement) * equipFillEff + c.GarrisonProcurement * garFill;
-        }
         w.MilitaryReadiness = PoliticalQuantities.Clamp01(moraleFill * equipFillEff);
 
         NavalFuelStep(w, c);

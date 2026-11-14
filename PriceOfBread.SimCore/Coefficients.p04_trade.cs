@@ -25,7 +25,6 @@ public sealed partial class Coefficients
     public Share FactoryMaterialFrac = new(0.6);      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合
     public double ConstructionLaborWageFrac = 0.67; // 投資家/国家の建設：材料費×これを工賃として工員へ（材料6:工賃4の比＝投資にも工賃が乗る）
     public double FactoryBuildPriceCeil = 2.5;   // 建設率の半減点：素材束価格/参照 がこの倍率で建設可能率=0.5（崖でなく中心）
-    public double MilitaryProcurePriceGateScale = 1.0;   // 1.0＝現行（厳密恒等）／0＝軍需は価格を見ずに発注
     public double FactoryBuildAffordSteep = 4;   // 点火2026-08-31＝16→4（清レポ＝16は「逓減の衣を着た崖」。4で束比3倍でも進捗が細く残る＝壁でなく逓減。ラウンドA実測でハーネス末端財の死蔵も解消）
     public double FactoryStartAffordFloor = 0.15; // 点火2026-08-31＝0.5→0.15（清レポ4-1「建設の壁」＝後発国の束比3〜5倍で着工が離散的に不可能だった崖の是正。進捗側が同じ採算率で連続に絞るので床は低くて良い。旧World定数の係数化と同時）
     public double FactoryMothballRate = 0.05;    // 建てた工場（倒産免除）の慢性赤字の垂れ流しを止める第4の動詞（施設は残る/倒産/休止/国有化）
