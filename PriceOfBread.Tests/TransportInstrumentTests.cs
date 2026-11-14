@@ -487,6 +487,34 @@ public class TransportInstrumentTests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
+    /// <summary>
+    /// (1146) G4 の呼び口（Transport.TakeRailForMove の RailMoveBegin・Transport.Step の頭の RailMonthBegin）をエンジンの道で通す。
+    /// 上の試験は計器を直接呼ぶので、呼び口を消す突然変異では緑のまま（measurements/m1146_20261115_mutations.txt の M7・M8）。
+    /// 手で置いた盤面：受け手の州に線路を置き、移す側の控え（TakeRailForMove）→ 受け手の月の輸送（Step）の順。移していない州は対照＝G4Moves 0。
+    /// </summary>
+    [Fact]
+    public void 移した州の線路はエンジンの呼び口を通って控えられ_受け手の月の頭で読まれる()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_g4e_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = Make();
+            var from = sim.Nations[0].World; var to = sim.Nations[1].World;
+            from.Coef.RailByRegion = 1; to.Coef.RailByRegion = 1;
+            var moved = to.Regions[0]; var control = to.Regions[1];
+            moved.RailTrack = 12.5; control.RailTrack = 7.25;
+            Assert.Equal(0.0, Transport.TakeRailForMove(from, moved, 0.5));   // 旗 1 は州の線路を割合で割らない（返りは 0）
+            Transport.Step(to, to.Coef);
+            var (mv, vi) = G4Of(moved);
+            Assert.True(mv > 0, "移した州が受け手の月の頭で読まれていない＝呼び口が働いていない");
+            Assert.Equal(0L, vi);
+            var (mc, vc) = G4Of(control);
+            Assert.Equal(0L, mc); Assert.Equal(0L, vc);   // 移していない州は G4 に数えない
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
     [Fact]
     public void 計器を切っている間は蓄えが作られない()
     {
