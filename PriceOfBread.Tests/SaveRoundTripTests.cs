@@ -41,21 +41,54 @@ public class SaveRoundTripTests
         }
     }
 
-    /// <summary>★眠りの印は作業領域（2026-09-30 計算量の予算 第2回）：国内価格の月の残りの眠り（Market.FlowAsleep）と清算の成約しなかった行の印
-    /// （Market.ClearFailLp）はセーブに載らない＝ロードした盤面は印なしから作り直す（四半期の境のセーブでは次の歩が月の最初の旬と四半期の最初の清算＝往復は一致）。
-    /// ⚠突然変異「[NonSerialized] を外す」で赤。</summary>
+    /// <summary>★眠りの印はセーブに載る（(1125)・作者 2026-11-13 のマルコフ性の洗い出し・作者「全て推奨で」で推奨を採った）：国内価格の月の残りの眠り（Market.FlowAsleep）・清算の成約しなかった行の印
+    /// （Market.ClearFailLp）・成約の相手の州（Market.ClearPartners）は作業領域でなく状態＝四半期の途中のセーブでも往復で残る（旧は〈載らない〉を固定していた＝守る向きの反転）。
+    /// ⚠突然変異「[NonSerialized] を戻す」で赤。</summary>
     [Fact]
-    public void 眠りの印はセーブに載らない()
+    public void 眠りの印はセーブに載る()
     {
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var m1 = sim1.Nations[0].World.Regions[0].Markets[0];
         m1.FlowAsleep = true; m1.ClearFailLp = 5.0;
+        m1.ClearPartners = [sim1.Nations[1].World.Regions[0], sim1.Nations[0].World.Regions[0]];
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
-        var m2 = SaveGame.Load(ms).Nations[0].World.Regions[0].Markets[0];
-        Assert.False(m2.FlowAsleep);
-        Assert.Equal(0.0, m2.ClearFailLp);
+        var sim2 = SaveGame.Load(ms);
+        var m2 = sim2.Nations[0].World.Regions[0].Markets[0];
+        Assert.True(m2.FlowAsleep);
+        Assert.Equal(5.0, m2.ClearFailLp);
+        Assert.NotNull(m2.ClearPartners);
+        Assert.Equal(2, m2.ClearPartners!.Length);
+        Assert.Same(sim2.Nations[1].World.Regions[0], m2.ClearPartners[0]);
+        Assert.Same(sim2.Nations[0].World.Regions[0], m2.ClearPartners[1]);
+    }
+
+    /// <summary>★四半期の途中（45 日目）のセーブ（(1125)）：保存→読み→両方を同じ日数続けて、基礎貨幣・総人口・全市場の値段と在庫の和が一致する（バイト列は印の外の 2 件の差があり比べない）
+    /// （印が載らないと、読んだ側は月の途中の眠り・清算の記憶を失って軌道が分かれる）。</summary>
+    [Fact]
+    public void 四半期の途中のセーブで続きが一致する()
+    {
+        var sim1 = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        sim1.StartWarmup();
+        for (int q = 0; q < 6; q++) sim1.StepQuarter();
+        for (int d = 0; d < 45; d++) sim1.StepDay();
+
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var sim2 = SaveGame.Load(ms);
+
+        for (int d = 0; d < 135; d++) { sim1.StepDay(); sim2.StepDay(); }
+
+        static double MarketSum(World w) { double s = 0; foreach (var r in w.Regions) foreach (var m in r.Markets) s += m.Price + m.Stock; return s; }
+        for (int i = 0; i < sim1.Nations.Count; i++)
+        {
+            var a = sim1.Nations[i].World; var b = sim2.Nations[i].World;
+            Assert.True(a.BaseMoney.Value == b.BaseMoney.Value && a.TotalPopulation == b.TotalPopulation && MarketSum(a) == MarketSum(b),
+                $"{a.SelfPower?.Name}：継続系列と復元系列が食い違う（基礎貨幣 {a.BaseMoney:F4}⇔{b.BaseMoney:F4}／人口 {a.TotalPopulation:F2}⇔{b.TotalPopulation:F2}／値段と在庫の和 {MarketSum(a):R}⇔{MarketSum(b):R}）");
+        }
+        // バイト列の一致は比べない：印の外の差が 2 件ある（辞書 Diplomacy._tensionRamp の列挙順と InternationalMarket.LastPairWasLand の走り書き・measurements/m1125_20261114/byte_diff.txt）＝量だけ比べる。
     }
     /// <summary>★要求は法の経路（2026-09-11）：FactionState に足した2配列（CrisisDemands=int[]／CrisisDemandPos=double[]）と
     /// 通知の札（World.PendingFactionCrisis＝運動への参照）が往復で残る＝「新フィールド型を足したら往復で確かめる」の番人（sbyte 事故の型）。</summary>
