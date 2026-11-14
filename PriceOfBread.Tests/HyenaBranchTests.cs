@@ -22,8 +22,8 @@ public class HyenaBranchTests
         return sim;
     }
 
-    /// <summary>手で置く盤面：組 H（衝撃 1.0 の国を含む・緊張 120・遺恨 1.0）・組 G（衝撃 0・緊張 120・遺恨 0.5）・組 L（緊張 50）。他の組は消す。</summary>
-    static (long H, long G, long L, System.Collections.Generic.Dictionary<long, double> T) Board(MultiNationSim sim)
+    /// <summary>手で置く盤面（組 F：従属＝凍結・緊張 120）：組 H（衝撃 1.0 の国を含む・緊張 120・遺恨 1.0）・組 G（衝撃 0・緊張 120・遺恨 0.5）・組 L（緊張 50）。他の組は消す。</summary>
+    static (long H, long G, long L, long F, System.Collections.Generic.Dictionary<long, double> T) Board(MultiNationSim sim)
     {
         var d = sim.Diplomacy;
         var ps = d.Powers.FindAll(p => p.Nation is not null);
@@ -35,9 +35,11 @@ public class HyenaBranchTests
         tension.Clear(); d._grudge.Clear();
         long h = Key(ps[0], ps[1]), g = Key(ps[2], ps[3]), l = Key(ps[1], ps[2]);
         Assert.False(d.IsDependentOf(ps[0], ps[1]) || d.IsDependentOf(ps[1], ps[0]) || d.IsDependentOf(ps[2], ps[3]) || d.IsDependentOf(ps[3], ps[2]), "前提：手で置いた組に従属がある");
-        tension[h] = 120.0; tension[g] = 120.0; tension[l] = 50.0;
+        long fz = Key(ps[1], ps[3]);
+        d.SetDependency(ps[3], ps[1]);   // 組 F：従属＝凍結の枝（(1145) M3 の突然変異を赤にする）
+        tension[h] = 120.0; tension[g] = 120.0; tension[l] = 50.0; tension[fz] = 120.0;
         d._grudge[h] = 1.0; d._grudge[g] = 0.5;
-        return (h, g, l, tension);
+        return (h, g, l, fz, tension);
     }
 
     static void Drift(MultiNationSim sim) =>
@@ -53,6 +55,7 @@ public class HyenaBranchTests
         Assert.Equal(118.0, b.T[b.H], 12);    // 120 − 2.0×1.0
         Assert.Equal(119.79, b.T[b.G], 12);   // 120 − 0.42×(1−0.5)
         Assert.Equal(49.58, b.T[b.L], 12);    // 50 − 0.42
+        Assert.Equal(119.8, b.T[b.F], 12);    // 120 − 0.2（凍結）
     }
 
     [Fact]
@@ -64,6 +67,7 @@ public class HyenaBranchTests
         Assert.Equal(120.0, b.T[b.H], 12);    // 遺恨 1.0＝率 0
         Assert.Equal(119.79, b.T[b.G], 12);
         Assert.Equal(49.58, b.T[b.L], 12);
+        Assert.Equal(119.8, b.T[b.F], 12);
     }
 
     static string[] InsRow(double relief, out string[] head, out string dir)
@@ -104,7 +108,9 @@ public class HyenaBranchTests
             var r2 = InsRow(2.0, out var h, out d0);
             var r0 = InsRow(0.0, out _, out d1);
             Assert.Equal(1.0, Col(h, r2, "months")); Assert.Equal(1.0, Col(h, r0, "months"));
-            Assert.Equal(2.0, Col(h, r2, "highRows")); Assert.Equal(1.0, Col(h, r2, "lowRows"));
+            Assert.Equal(3.0, Col(h, r2, "highRows")); Assert.Equal(1.0, Col(h, r2, "lowRows"));
+            Assert.Equal(1.0, Col(h, r2, "frozenRows")); Assert.Equal(0.2, Col(h, r0, "sumObsCoolFrozen"), 9);
+            Assert.True(Col(h, r0, "maxAbsDiffFrozen") <= 1e-9, $"凍結の差 {Col(h, r0, "maxAbsDiffFrozen")}");
             Assert.Equal(1.0, Col(h, r2, "oldHyenaRows")); Assert.Equal(1.0, Col(h, r0, "oldHyenaRows"));
             Assert.Equal(1.0, Col(h, r2, "oldHyenaFreshRows")); Assert.Equal(1.0, Col(h, r2, "freshRows"));
             Assert.Equal(1.0, Col(h, r2, "obsHyenaRows")); Assert.Equal(1.0, Col(h, r2, "obsHyenaFreshRows"));
