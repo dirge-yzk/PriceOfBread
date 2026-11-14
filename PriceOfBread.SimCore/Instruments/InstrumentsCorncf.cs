@@ -20,13 +20,14 @@ public static partial class Instruments
         return 6371.0 * 2 * System.Math.Atan2(System.Math.Sqrt(a), System.Math.Sqrt(1 - a));
     }
 
-    /// <summary>港州の外国持分の人口加重平均（計器の写し）＝自国の関税が効かない割合。</summary>
+    /// <summary>港州の外国持分の人口加重平均（計器の写し）＝自国の関税が効かない割合。旗 TreatyPortHomeOnly＞0 の時は本国格の港だけ。</summary>
     internal static double CfForeignPort(World w)
     {
         double num = 0, den = 0;
         foreach (var r in w.Regions)
         {
             if (!r.IsPort) continue;
+            if (w.Coef.TreatyPortHomeOnly > 0 && r.Tier == RegionTier.Colonial) continue;   // (1147) 旗 TreatyPortHomeOnly＞0＝植民地格の港を数えない（Tier と旗から計器が独立に組む）
             double pop = r.SumPopulation();
             if (!(pop > 0)) continue;
             double v = 0; foreach (var x in r.ForeignShares) if (x > 0) v += x;
