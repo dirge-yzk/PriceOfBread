@@ -4,7 +4,7 @@ namespace PriceOfBread.SimCore;
 // 力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。〔履歴 InstrumentsProdcap.cs#1〕
 public static partial class Instruments
 {
-    internal const string ProdcapHeaderText = "year\tq\tregion\townerNation\tgood\trecipe\tisRgo\tclass\tproductivity\tendowFromProductivity\tcapacity\toutput\tmarginalCost\tsiteRow\tsiteFound";
+    internal const string ProdcapHeaderText = "year\tq\tregion\townerNation\tgood\trecipe\tisRgo\tclass\tproductivity\tendowFromProductivity\tcapacity\toutput\tmarginalCost\tsiteRow\tsiteFound\tlaborPopIndex\tscale\tlastInputFill\tprofitFactor";
 
     sealed class PcSink { public System.IO.StreamWriter? W; public int FirstYear = int.MinValue; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, PcSink> PcSinks = new();
@@ -34,7 +34,7 @@ public static partial class Instruments
                     if (g < 0 || g >= r.Markets.Length || g >= goodLimit) continue;
                     var x = RoRead(w, r, p);
                     sk.W.WriteLine(string.Join('\t', I(yearLabel), I(q), r.Name, nm, Catalog.Goods[g].Name, p.RecipeName.Length == 0 ? "(既定)" : p.RecipeName,
-                        p.IsRgo ? "1" : "0", x.Class, FR(p.Productivity), FR(x.Endow), FR(p.Capacity), FR(p.Output), FR(p.MarginalCost), I(p.SiteRow), p.SiteFound ? "1" : "0"));
+                        p.IsRgo ? "1" : "0", x.Class, FR(p.Productivity), FR(x.Endow), FR(p.Capacity), FR(p.Output), FR(p.MarginalCost), I(p.SiteRow), p.SiteFound ? "1" : "0", I(p.LaborPopIndex), FR(p.Scale), FR(p.LastInputFill), BsProfitFactorCell(p, r, w.Coef)));
                 }
         }
     }
