@@ -138,6 +138,7 @@ public class ScoreReaderTests
     {
         // 事前登録 sp_20261020 [1] D4：比の基準＝列強の強さの中央値（上側の中央・添字 n÷2）。最大のままなら首位の 1 国が飛び抜けて他の比が沈む。
         var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new NullAgent());
+        sim.Coef.RuleFromPower = 0;   // (1123) ★(832) ① (a) の型：旧の規則（条約港の風化 TreatyPortLapse）の番人を旗 0 に止める（旗 1 では風化を通らない）
         sim.StartWarmup();   // 助走の直後（流れの項が出そろった盤面・開幕のランクの取り直しもここ）
         var d = sim.Diplomacy;
         var sc = NationalScore.ScoresByPower(d);   // 世界の総量に対する割合の国力
