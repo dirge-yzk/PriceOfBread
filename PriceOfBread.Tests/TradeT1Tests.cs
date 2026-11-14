@@ -128,7 +128,7 @@ public class TradeT1Tests
         public double Max(string n) { int i = I(n); double s = double.NegativeInfinity; foreach (var r in R) if (r[i] != "nan") s = System.Math.Max(s, double.Parse(r[i], System.Globalization.CultureInfo.InvariantCulture)); return s; }
     }
 
-    private static Tab RunIns(double a1, int quarters)
+    private static Tab RunIns(double a1, int quarters, Action<MultiNationSim>? setup = null)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_t1_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
@@ -138,7 +138,7 @@ public class TradeT1Tests
             Instruments.Phase(sim, Seed, "open");
             sim.StartWarmup();
             Instruments.Phase(sim, Seed, "warm");
-            try { for (int q = 0; q < quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, Seed, q); } }
+            try { for (int q = 0; q < quarters; q++) { setup?.Invoke(sim); sim.StepQuarter(); Instruments.Quarter(sim, Seed, q); } }
             finally { Instruments.Close(sim); }
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"t1buy_s{Seed}.tsv"));
             Assert.Equal(Instruments.T1buyHeaderText, lines[0]);
@@ -162,6 +162,18 @@ public class TradeT1Tests
         // W2(a) の母集合（旧の門で飛ばし UB_Bb≦0＜UB_A1）はエンジンの門が開く（門の食い違い 0 と合わせて）＝成約まで行くかは値段の側と売り手で決まる（12 四半期の盤面では 0 件がありうる＝腕で数える）。
         Assert.True(t.Sum("oldSkip") > t.Sum("instSkip"), $"A-1 の門が旧の門より多くの行を開いていない oldSkip {t.Sum("oldSkip")} instSkip {t.Sum("instSkip")}");
         Assert.True(t.Sum("retreatDeals") >= 100, "退き（Q＜P）の効いた成約が少ない " + t.Sum("retreatDeals"));
+    }
+
+    /// <summary>M6＝売買方針〈高くても買う〉で楔が負の行（着値＜州の値段＜売り手の値段＝unitA＞lp）を作り、u′＝min(unitA, lp) をエンジンと計器が同じに読むこと（突然変異 M11〈u′ の代わりに unitA〉で照合が赤）。</summary>
+    [Fact]
+    public void M6_楔が負の行でもuPrimeは州の値段で切る()
+    {
+        var t = RunIns(1.0, 12, sim => { sim.Coef.TradeBiasStrength = 0.5; foreach (var n in sim.Nations) { n.World.Coef.TradeBiasStrength = 0.5; for (int g = 0; g < Catalog.Goods.Length; g++) n.World.SetTradeBias(g, 1); } });
+        Assert.True(t.Sum("u1Deals") >= 10000, "成約が少ない " + t.Sum("u1Deals"));
+        Assert.True(t.Sum("selfN") >= 10000, "照合した件数が少ない " + t.Sum("selfN"));
+        Assert.Equal(0.0, t.Sum("selfDiff"));
+        Assert.Equal(0.0, t.Sum("u1Viol"));
+        Assert.Equal(0.0, t.Sum("gateMismatch"));
     }
 
     [Fact]
