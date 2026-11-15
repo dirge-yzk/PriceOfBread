@@ -1,0 +1,4 @@
+M4 ���Ă�
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F4_大きさが正の兵の席は自分の給与で読み新しい読みに落ちない [500 ms]
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 11 s - PriceOfBread.Tests.dll (net10.0)

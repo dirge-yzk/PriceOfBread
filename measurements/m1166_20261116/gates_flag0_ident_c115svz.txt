@@ -1,0 +1,6 @@
+# (1166) 門 生=D:/PoB_work/ident_c115svz/out_ib_10/ins 紙=measurements/m1166_20261116/paper_m1164.txt 種=1〜10（soldiervac_s の種 10・行 408491）
+G1 働いた	30658	≦3065	赤
+G3 形	0.0162	分母 493	≧0.9（床 100）	赤
+G2 上	overfillZeroK 0	fillZeroK 0	判定不能（埋まり 0）
+記録	zeroStart 34453	zeroVac 34453	zeroFilled 0	fillPosK 77895.5	overfillPosK 0
+記録 eq（新しい読み÷今の読み・大きさ＞0 の兵）	N 2141449	幾何平均 last 0.491967	now 0.472310	|log| の最大 last 1.3801

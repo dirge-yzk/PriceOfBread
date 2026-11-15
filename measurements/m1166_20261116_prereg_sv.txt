@@ -91,3 +91,16 @@
 - 重い仕事は起こす直前に shutil で〈35GB＋その量〉（ident 約 30GB・腕 B 約 26GB）を確かめ、届かなければ 240 秒以内の刻みで測り直して待つ。
 - 腕 B は `INS=1 bash scripts/instruments/batch.sh run c115svB 10`（POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。60 分待っても起こせなければ、〈門の台本の表＋止める線の表＋標準の読み手の表〉＝cpop_s・nation_s・admrule_s・rule_s・soldiervac_s・monlaw_s・pxmonth_s・region_s・fiscal_s・goods_s・scalars_s・secession_s・cessp_s・migration_s と ident.cfg の SMALL に絞って起こし、絞ったと名乗る（POB_INSTRUMENTS_TABLES）。
 - 腕 B の生は合流の判断まで消さない。
+
+■ 追記 1（2026-11-16・ident c115svz の後・旗 1 の出力を読む前・腕 B の前に固定）
+- ident c115svz（段 2・木 29e0d94a3・SOURCE-HASH 06689ca1041adc06）〈判定: 恒等〉（測った種で一致）：素の 5 種・計器つき 10 種とも m1164 と全行バイト一致（179 行）・.cost 一致（推定 228.8／229.3 秒）・計器の表 1500 一致＋既知の揺れ 40＋宣言 10（soldiervac_s）・注視 4596 行一致・テスト 2895（2889＋6）・FullLength 3。写し measurements/m1166_20261116/ident_c115svz.txt。
+- 旗 0 の生（ident の out_ib_10/ins の soldiervac_s・measurements/m1166_20261116/gates_flag0_ident_c115svz.txt）：G1 30,658（赤）・G3 0.0162（赤）・G2 判定不能（埋まり 0）＝旗 0 で狙いの門が落ちる。大きさ 0 で社会移動に入る州×四半期 34,453（全て志願の国・全て空き＞1e-9＝新しい規則で候補になる）。大きさ＞0 の州で空きを超えた量 overfillPosK＝0（今の道の空きの上限は働いている）。
+- **紙の等しさの確かめが外れた（指示の形の欠陥）**：指示の形（単価×SoldierPayMult×(1−U)・(1−U)＝payRate×soldierPayFill）で大きさ＞0 の兵の今の読み（EarnedPerMonth÷Size）を同じ盤面で読むと、比の幾何平均は 0.492（last）・0.472（now）。志願×平時 0.573・選抜×平時 0.419・皆兵×平時 0.391・戦時 0.66〜0.81。
+  原因（ソースの行・確）：兵の給与（Simulation.cs:1904）＝満額×soldierPayFill＋**規定の満額×trainShare（幹部の給与）**・×payRate（:2009）。平時は器の残りが幹部の給与へ回り、満額の 0.7〜1.5 倍を足す＝(1−U) はその分を読まない（:2012 の注〈幹部の給与は規定の給与の外＝数えない〉）。
+  ⇒ 指示の形では大きさ 0 の席が大きさ＞0 の席の約半分の所得に見える＝分子と分母の非対称（記憶〈最も再発するバグ型〉）。指示の〈大きさ＞0 の兵の inc と同じ単位・非対称を作らない・同じ量になることを紙で示す〉を守るため、形を直す（旗 1 の出力を読む前・形の変え直しの枠に数えない）。
+- **直した形**：受け取る率を〈国の大きさ＞0 の兵が実際に受け取った比〉k＝Σ兵の EarnedPerMonth÷Σ（兵の大きさ×州の単価×SoldierPayMult）にする（Meritocracy.SeatPayRate・社会移動の頭に 1 回組む＝州の移動の前・Step の中だけの使い捨ての値＝[ThreadStatic] で Step の終わりに外す＝持ち越さない・新しい状態 0）。大きさ＞0 の兵がいなければ 0。志願の国では州ごとの比が payRate×(fill＋trainShare) で同じ＝k の読みは大きさ＞0 の兵の今の読みと一致する見込み。
+  計器 soldiervac_s に 3 列を足す（seatPayRate・eqSumLogK・eqMaxAbsLogK＝計器が自分で組む k と、その形の比）。指示の形の列（eqSumLogLast・Now）は記録として残す。
+  紙の等しさの床（新しい ident の生で読む・腕 B の前に追記 2 で数を書く）：eqSumLogK の幾何平均が 0.9〜1.1（志願×平時）。外れたら腕 B を回さず止める。
+- 突然変異の表の M3 を〈k を掛けない〉へ替える（腕の門では落ちない見込み・試験 F2 が落とす）。試験 F2（k を試験が州の POP を自分で回して組む）・F4（他の州の兵の所得を 0・首都の兵 1000＝国の比で薄まった読みが競う職の 900 を下回る盤面）を新しい形へ書き直した（試験の数は 6 のまま）。
+- 試験の突然変異（古い形の木 29e0d94a3・measurements/m1166_20261116/tmut_M*.txt）：M1 緑 6/6（予言どおり＝限界）・M2 赤 3（F1・F2・F3）・M3 赤 1（F2）・M4 赤 1（F4）・M5 赤 2（F3・F5）。新しい形で取り直す。
+- 古い形の旗 1 の短い走り（D:/PoB_work/c115sv_work/arm1/out_sv_short_1）は読まずに捨てる（形を直したため）。新しい形で回し直す。

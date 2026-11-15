@@ -17,8 +17,8 @@ def main():
             if t[0] == "G1 の内訳：届き＞0×定員＞0（空きが立ちうる）":
                 g1 = int(t[1])
             if t[0] == "G3":
-                g3d = int(t[3]); g3 = float(t[7])
-    fill = 0.0; over = 0.0; fillPos = 0.0; overPos = 0.0; zs = 0; zv = 0; zf = 0; rows = 0; eqn = 0; eqs = 0.0; eqm = 0.0; eqsN = 0.0; seeds = 0
+                g3d = int(t[4]); g3 = float(t[8])
+    fill = 0.0; over = 0.0; fillPos = 0.0; overPos = 0.0; zs = 0; zv = 0; zf = 0; rows = 0; eqn = 0; eqs = 0.0; eqm = 0.0; eqsN = 0.0; eqsK = 0.0; eqmK = 0.0; seeds = 0
     for seed in range(s0, s1 + 1):
         p = os.path.join(raw, f"soldiervac_s{seed}.tsv")
         if not os.path.exists(p):
@@ -33,6 +33,8 @@ def main():
                 zs += int(x[ix["zeroStart"]]); zv += int(x[ix["zeroVac"]]); zf += int(x[ix["zeroFilled"]])
                 n = int(x[ix["eqN"]]); eqn += n; eqs += float(x[ix["eqSumLogLast"]]); eqsN += float(x[ix["eqSumLogNow"]])
                 eqm = max(eqm, float(x[ix["eqMaxAbsLogLast"]]))
+                if "eqSumLogK" in ix:
+                    eqsK += float(x[ix["eqSumLogK"]]); eqmK = max(eqmK, float(x[ix["eqMaxAbsLogK"]]))
     print(f"# (1166) 門 生={raw} 紙={paper} 種={s0}〜{s1}（soldiervac_s の種 {seeds}・行 {rows}）")
     if g1 is not None:
         print(f"G1 働いた\t{g1}\t≦{G1_MAX}\t{'緑' if g1 <= G1_MAX else '赤'}")
@@ -48,7 +50,7 @@ def main():
         print(f"記録\tzeroStart {zs}\tzeroVac {zv}\tzeroFilled {zf}\tfillPosK {fillPos:.6g}\toverfillPosK {overPos:.6g}")
         if eqn:
             import math
-            print(f"記録 eq（新しい読み÷今の読み・大きさ＞0 の兵）\tN {eqn}\t幾何平均 last {math.exp(eqs / eqn):.6f}\tnow {math.exp(eqsN / eqn):.6f}\t|log| の最大 last {eqm:.4f}")
+            print(f"記録 eq（新しい読み÷今の読み・大きさ＞0 の兵）\tN {eqn}\t幾何平均 last {math.exp(eqs / eqn):.6f}\tnow {math.exp(eqsN / eqn):.6f}\t|log| の最大 last {eqm:.4f}	採る形 K {math.exp(eqsK / eqn):.6f}	|log| の最大 K {eqmK:.4f}")
 
 
 if __name__ == "__main__":

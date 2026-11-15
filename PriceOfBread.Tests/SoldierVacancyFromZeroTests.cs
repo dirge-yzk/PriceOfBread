@@ -81,25 +81,45 @@ public class SoldierVacancyFromZeroTests
         Assert.True(Math.Abs(x.PopDiff) <= 1e-9 * flow, "州の人口が保存されない");
     }
 
+    /// <summary>試験の手の和：国の大きさ＞0 の兵が実際に受け取った比＝Σ兵の今の所得÷Σ（兵の大きさ×州の母数の前の月の単価×SoldierPayMult）。単価は試験が州の POP を自分で回して組む。</summary>
+    static double HandRate(World w, Coefficients c, bool keep)
+    {
+        double num = 0, den = 0;
+        foreach (var r in w.Regions)
+        {
+            Pop? s = null; double pe = 0, pa = 0;
+            foreach (var p in r.Pops)
+            {
+                if (p.IsSoldier) { s ??= p; continue; }
+                if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)
+                { pe += Math.Max(0, p.LastEarnedPerMonth.Value); pa += keep ? p.Size : p.Size * p.AgeShare(16, 60); }
+            }
+            if (s is null || !(s.Size > 1e-9)) continue;
+            num += Math.Max(0, s.EarnedPerMonth.Value);
+            den += s.Size * (pa > 1e-9 ? pe / pa : 0) * c.SoldierPayMult;
+        }
+        return den > 1e-9 ? num / den : 0;
+    }
+
     [Fact]
-    public void F2_大きさ0の兵の席の所得は母数の前の月の単価に給与の倍率と受け取る率と送り手の働き盛りの割合を掛ける()
+    public void F2_大きさ0の兵の席の所得は母数の前の月の単価に給与の倍率と国の兵の受け取りの比と送り手の働き盛りの割合を掛ける()
     {
         var sim = NewSim(); sim.StepQuarter();
         var b = Make(sim, 1, zeroSoldier: true);
-        b.Soldier.UnemploymentRate = new Share(0.25);
         double perHead = b.Farm.Size * b.Farm.AgeShare(16, 60) / b.Farm.Size;
         b.W.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        double k = HandRate(b.W, b.C, keep: false);
+        Assert.True(k > 0 && Math.Abs(k - 1) > 1e-3, $"前提：受け取りの比が 0 か 1（{k:R}）＝比を外す突然変異が見えない盤面");
         double got = (double)EmptySeatIncomeM.Invoke(null, [b.W, b.R, b.Soldier, b.Farm, b.C])!;
-        Assert.True(got > 0, "前提：所得 0");
-        Assert.Equal(Unit * b.C.SoldierPayMult * 0.75 * perHead, got, 12);
-        // 徴兵の国は頭数あたり（keep＝Simulation.cs:1754 と同じ）＝母数の前の月の所得の和÷頭数の和（試験の手の和）
+        Assert.Equal(Unit * b.C.SoldierPayMult * k * perHead, got, 12);
+        // 徴兵の国は頭数あたり（keep＝Simulation.cs:1754 と同じ）＝母数の前の月の所得の和÷頭数の和（試験の手の和）・比も頭数あたりの単価で割る
         double pe = 0, pa = 0;
         foreach (var p in b.R.Pops)
             if (!p.IsSoldier && (p.ClassId == b.C.SoldierRecruitClassA || p.ClassId == b.C.SoldierRecruitClassB)) { pe += p.LastEarnedPerMonth.Value; pa += p.Size; }
         b.W.ConscriptionLaw = ConscriptionLaw.Selective;
+        double kK = HandRate(b.W, b.C, keep: true);
         double gotK = (double)EmptySeatIncomeM.Invoke(null, [b.W, b.R, b.Soldier, b.Farm, b.C])!;
-        Assert.Equal(pe / pa * b.C.SoldierPayMult * 0.75 * perHead, gotK, 12);
-        Assert.True(gotK < got, "前提：頭数あたりの単価が働き盛りあたりより小さい盤面");
+        Assert.Equal(pe / pa * b.C.SoldierPayMult * kK * perHead, gotK, 12);
     }
 
     [Fact]
@@ -120,8 +140,14 @@ public class SoldierVacancyFromZeroTests
         var sim = NewSim(); sim.StepQuarter();
         var b = Make(sim, 1, zeroSoldier: false);
         Assert.True(b.Soldier.Size > 1 && b.Other is not null, "前提：兵の大きさが正・級 0 の競う職");
-        b.Soldier.EarnedPerMonth = new MoneyPerMonth(1000.0 * b.Soldier.Size);   // 兵 1 人の給与 1000（新しい読みの単価 3.0 の 300 倍超）
-        b.Other!.EarnedPerMonth = new MoneyPerMonth(50.0 * b.Other.Size);        // 競う職の 1 人あたり 50（兵の新しい読み ＜50＜ 兵の今の読み）
+        b.W.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        foreach (var r in b.W.Regions)
+            foreach (var p in r.Pops) if (p.IsSoldier && !ReferenceEquals(p, b.Soldier)) p.EarnedPerMonth = new MoneyPerMonth(0);   // 他の州の兵の今の所得 0
+        b.Soldier.EarnedPerMonth = new MoneyPerMonth(1000.0 * b.Soldier.Size);   // 首都の兵 1 人の給与 1000
+        double perHead = b.Farm.AgeShare(16, 60);
+        double seatRead = Unit * b.C.SoldierPayMult * HandRate(b.W, b.C, keep: false);   // 大きさ 0 の読みで読んだときの首都の兵 1 人の給与（国の比で薄まる）
+        Assert.True(seatRead < 900.0, $"前提：国の比で読むと首都の兵の給与が 900 を下回る盤面（{seatRead:R}）");
+        b.Other!.EarnedPerMonth = new MoneyPerMonth(900.0 * perHead * b.Other.Size);   // 競う職＝兵の今の読みの 0.9 倍（新しい読みより上）
         double flow = 0.01 * b.Farm.Size;
         var x = Route(b, flow, 1e9);
         Assert.True(x.Gain > 0.5 * (x.Gain + x.OtherGain) && x.Gain > 1e-6 * flow,
