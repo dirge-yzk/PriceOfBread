@@ -1953,7 +1953,7 @@ public sealed class World
                 foreach (var (qlat, qlon) in qSpherePoints)
                     km = Math.Min(km, Geo.DistanceKm(qlat, qlon, tlat, tlon));
             // tensionRange〔履歴 World.cs#283〕
-            double tensionRange = Coef.ProximityTensionRange * Coef.EraFactor(WorldTechLevel, Coef.EraTensionRange);
+            double tensionRange = Coef.ProximityTensionRange;   // (1160) c114sr D-r2：EraFactor は常に 1.0 だった＝×1.0 を消した（ビット同一）
             if (km < tensionRange)
             {
                 double increment = Coef.ProximityTensionMax * (1 - km / tensionRange);

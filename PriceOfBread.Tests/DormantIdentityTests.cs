@@ -257,6 +257,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "EraTensionRange",   // (1160) c114sr D-r2：近接の緊張の距離の時代係数（EraFactor は常に 1.0＝×1.0 を消した・読み手は World.cs の 1 行だけだった）
         "DefeatShockTensionRelief", "DefeatShockProtectMin",   // (1154) c113sw D-b：ハイエナ抑制の枝と係数 2 本の削除（(1145) c112hy が既定 0 で閉じた後・旧の道は HyenaBranchTests の H2 が戻ると赤）
         "MilitaryProcurePriceGateScale",   // (1132) c110sm K1：軍需財の価格ゲート倍率（既定 1 の経路だけ残した・FactoryBuildPriceGateScale は FactoryTierTests が 0 を置く本物の読み手があるので残す）
         "GarrisonProcurement",             // (1132) c110sm K2：駐屯州調達の器（既定 0・旗 0 の道だけ残した・★(1129) ③ 作者「しばらくの間、全て推奨で」で推奨を採った）

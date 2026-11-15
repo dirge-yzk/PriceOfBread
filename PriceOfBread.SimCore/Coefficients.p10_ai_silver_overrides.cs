@@ -58,7 +58,6 @@ public sealed partial class Coefficients
     public double MonetaryPeerPullScale = 5.0;   // 【点火5.0・2026-08-21 銀本位ラウンド（上の墓標参照）】
     // ==== 距離定数の時代関数化（掃討doc 第2波・2026-08-13）====
     public double EraEpidemicRange = 1.0;        // 疫病の伝播距離（1817年コレラは陸路で数年・1892年は数週間）
-    public double EraTensionRange = 1.0;         // 近接の緊張が届く距離（電信1870s＝遠方の危機が即座に本国へ届く）
     public double EraMigrationScale = 1.0;       // 移民の距離減衰（大西洋横断が6週間→6日）
 
     public double EraFactor(double worldTech, double k) => 1.0;   // 前線技術のランプに沿って距離定数を伸縮させる
