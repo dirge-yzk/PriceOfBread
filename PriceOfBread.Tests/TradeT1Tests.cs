@@ -234,6 +234,44 @@ public class TradeT1Tests
         Assert.True(t.Sum("retreatDealsRaw") >= t.Sum("retreatDealsTol"), "許しなしの件数が許しつきより少ない");
     }
 
+    /// <summary>(1159) M9＝tb_s の区分（TbClassify）は値段の単位に対して同次：金建ての値段（lp・rpT・先頭の売り手）を為替 fx 倍にして fx を渡すと、fx＝1 の区分と同じ
+    /// （P̂ は州の名目の値段で読む＝段 T1-0 ⑤ の直し）。突然変異〈÷fx を外す〉で赤（為替を掛けた値段で P̂ を読む＝旧の食い違い）。件数の下限＝区分が変わる行が盤面にある。</summary>
+    [Fact]
+    public void M9_tbの区分は為替に対して同次()
+    {
+        var sim = Make(0.0);
+        sim.StartWarmup();
+        for (int q = 0; q < 4; q++) sim.StepQuarter();
+        const double fx = 2.5;
+        int rows = 0, sensitive = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            foreach (var r in w.Regions)
+            {
+                var seen = new HashSet<int>();
+                foreach (var p in r.Producers)
+                {
+                    int g = p.GoodId;
+                    if (g < 0 || g >= r.Markets.Length || !seen.Add(g)) continue;
+                    var m = r.Markets[g];
+                    if (!(m.LastProduced > 0) || !(m.Price > 0)) continue;
+                    double lp = m.Price, rpT = lp * 0.9, head = lp * 0.8;
+                    var a = Instruments.TbClassify(r, g, m, w.Coef, w, lp, rpT, head, 1.0);
+                    var b = Instruments.TbClassify(r, g, m, w.Coef, w, lp * fx, rpT * fx, head * fx, 1.0, fx);
+                    var old = Instruments.TbClassify(r, g, m, w.Coef, w, lp * fx, rpT * fx, head * fx, 1.0);   // 旧の読み（為替を掛けた値段で P̂）
+                    if (!a.Eval) continue;
+                    rows++;
+                    Assert.True(a.Ok == b.Ok && a.B0 == b.B0 && a.B1 == b.B1 && a.B2 == b.B2 && a.Eval == b.Eval, $"区分が為替で変わった（{r.Name}・{Catalog.Goods[g].Name}）");
+                    Assert.True(Near(a.UbA1, b.UbA1, 1e-12), $"UB_A1 が為替で変わった {a.UbA1}⇔{b.UbA1}");
+                    if (!Near(old.UbA1, a.UbA1, 1e-9)) sensitive++;
+                }
+            }
+        }
+        Assert.True(rows >= 100, "P̂ を読んだ行が少ない " + rows);
+        Assert.True(sensitive >= 10, "旧の読みと値が違う行が少ない（盤面が値段に鈍い）" + sensitive);
+    }
+
     /// <summary>(1159) M8＝W2(a)′ の母集合の述語〈h_min＝先頭の売り手の値段×lbMulMin＜lp〉（突然変異 M4〈述語を逆に〉で赤）。期待値は手で置いた数（式を写さない）。</summary>
     [Fact]
     public void M8_母集合Cの述語は着値の下界が州の値段を下回る行()

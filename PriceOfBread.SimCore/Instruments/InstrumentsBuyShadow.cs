@@ -209,7 +209,7 @@ public static partial class Instruments
         return (uint)g < (uint)pc.By.Length ? pc.By[g] : System.Array.Empty<Producer>();
     }
 
-    /// <summary>P̂(u)＝州×財の生産者の P̂ の和（財の値段だけ u に差し替える）。眠った生産者・倒産した生産者はエンジンが飛ばす＝今の産出のまま足す。</summary>
+    /// <summary>P̂(u)＝州×財の生産者の P̂ の和（財の値段だけ u に差し替える・u は州の名目の値段＝金建ての値段÷為替〔(1159) TbClassify・TbU1 が為替で割って渡す〕）。眠った生産者・倒産した生産者はエンジンが飛ばす＝今の産出のまま足す。</summary>
     internal static double TbPHatSum(Region r, int g, Coefficients c, World w, double u)
     {
         double sum = 0;
@@ -224,7 +224,7 @@ public static partial class Instruments
     }
 
     /// <summary>行の門の 6 区分の判定（互いに素な 3 つの述語）。u_min＝min(lp, 最安の売り手の値段×lbMulMin)。</summary>
-    internal static (bool Ok, bool B0, bool B1, bool B2, bool Eval, double XOld, double UbBb, double UbA1) TbClassify(Region r, int g, Market m, Coefficients c, World w, double lp, double rpT, double headPrice, double lbMulMin)
+    internal static (bool Ok, bool B0, bool B1, bool B2, bool Eval, double XOld, double UbBb, double UbA1) TbClassify(Region r, int g, Market m, Coefficients c, World w, double lp, double rpT, double headPrice, double lbMulMin, double fx = 1.0)
     {
         double ts = m.TargetStock, d = m.LastDemand, p = m.LastProduced, s = m.Stock;
         double xOld = ts + d - p - s;
@@ -234,17 +234,17 @@ public static partial class Instruments
         double root = System.Math.Pow(rpT / um, c.PriceElasticity);
         double ubBb = ts + d * root - p - s, ubA1 = ubBb; bool ev = false;
         bool b0 = ubBb > 0;
-        if (!b0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um)); ubA1 = ts + d * root - q - s; ev = true; }
+        if (!b0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um / fx)); ubA1 = ts + d * root - q - s; ev = true; }
         return (true, b0, !b0 && ubA1 > 0, !b0 && !(ubA1 > 0), ev, xOld, ubBb, ubA1);   // (1159) 否定形＝NaN の上界は閉じた側（B2）へ＝Ok の行は B0・B1・B2 のちょうど 1 つ（旧は在庫の欄が NaN で 3 つとも偽の隙間）
     }
 
     /// <summary>成約の上界の越え。S は成約の後の台帳（m.Stock）。E_abs＝S−UB・E_rel＝E_abs÷max(D, TS)。</summary>
-    internal static (bool Ok, double Ub, double EAbs, double ERel) TbU1(Region r, int g, Market m, Coefficients c, World w, double lp, double unitA, double rpT, double qA)
+    internal static (bool Ok, double Ub, double EAbs, double ERel) TbU1(Region r, int g, Market m, Coefficients c, World w, double lp, double unitA, double rpT, double qA, double fx = 1.0)
     {
         double u = System.Math.Min(unitA, lp);
         if (!(rpT > 1e-9) || !(u > 1e-9) || double.IsInfinity(u)) return (false, double.NaN, double.NaN, double.NaN);
         double root = System.Math.Pow(rpT / u, c.PriceElasticity);
-        double q = System.Math.Min(m.LastProduced, TbPHatSum(r, g, c, w, u));
+        double q = System.Math.Min(m.LastProduced, TbPHatSum(r, g, c, w, u / fx));
         double ub = m.TargetStock + m.LastDemand * root - q;
         double eAbs = m.Stock - ub, den = System.Math.Max(m.LastDemand, m.TargetStock);
         return (true, ub, eAbs, den > 0 ? eAbs / den : double.NaN);
@@ -258,11 +258,11 @@ public static partial class Instruments
     }
 
     /// <summary>行の門（旧の門）の直前の呼び。</summary>
-    internal static void TbRow(InternationalMarket mk, World w, Region r, int g, Market m, Coefficients c, double lp, double rpT, double headPrice, double lbMulMin)
+    internal static void TbRow(InternationalMarket mk, World w, Region r, int g, Market m, Coefficients c, double lp, double rpT, double headPrice, double lbMulMin, double fx)
     {
         if (w.WarmupFrozen || !Wants("tb_s")) return;
         var a = TbNOf(TbStates.GetValue(mk, _ => new TbState()), w);
-        var x = TbClassify(r, g, m, c, w, lp, rpT, headPrice, lbMulMin);
+        var x = TbClassify(r, g, m, c, w, lp, rpT, headPrice, lbMulMin, fx);
         bool skipped = !(x.XOld > 0); int b = skipped ? 0 : 3; double d = m.LastDemand;
         a.Rows++; a.EvalAll++; if (skipped) a.EvalSkip++;
         if (d < c.TargetStockFloor) { a.SmallD++; if (skipped) a.SmallDSkip++; }
@@ -274,12 +274,12 @@ public static partial class Instruments
     }
 
     /// <summary>成約の直後の呼び（m.Stock は成約の後）。</summary>
-    internal static void TbDeal(InternationalMarket mk, World w, World sellerW, Region r, Region sellerR, int g, Market m, Coefficients c, double lp, double unitA, double rpT, double qA, bool cross)
+    internal static void TbDeal(InternationalMarket mk, World w, World sellerW, Region r, Region sellerR, int g, Market m, Coefficients c, double lp, double unitA, double rpT, double qA, bool cross, double fx)
     {
         if (w.WarmupFrozen || !Wants("tb_s")) return;
         var st = TbStates.GetValue(mk, _ => new TbState());
         var a = TbNOf(st, w);
-        var u = TbU1(r, g, m, c, w, lp, unitA, rpT, qA);
+        var u = TbU1(r, g, m, c, w, lp, unitA, rpT, qA, fx);
         a.U1Qty += qA;
         if (u.Ok)
         {

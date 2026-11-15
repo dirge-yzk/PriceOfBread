@@ -885,7 +885,7 @@ public sealed partial class InternationalMarket
                 double wedge = duty - buyDear;
                 double wedgeHome = -buyDear;
 
-                if (tbOn) { double tbBm = 1 + c.TransportMargin * adValoremRev, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb))); }   // T0b：行の門の 6 区分（読むだけ）
+                if (tbOn) { double tbBm = 1 + c.TransportMargin * adValoremRev, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb)), exRate[ni]); }   // T0b：行の門の 6 区分（読むだけ）
                 bool rowSkip; double a1Ph0 = double.NaN;
                 if (a1On)
                 {   // (1144) A-1 の行の門＝真の上界 TS＋D×(rpT÷u_min)^ε−min(P, P̂(u_min))−S が 0 以下なら飛ばす（u_min≦どの成約の u′＝飛ばした行は成約できない）。P̂ は B-b の上界が 0 以下の行だけ評価する（Q≦P＝B-b が正なら A-1 も正）。
@@ -1141,7 +1141,7 @@ public sealed partial class InternationalMarket
                         freightPool += frG - rS - rB;
                     }
                     else freightPool += frG;
-                    if (Instruments.On) { Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr); Instruments.TbDeal(this, nations[ni].World, nations[siA].World, tr[t].r, tr[snA].r, g, m, c, lp, unitA, rpT, qA, crossA); Instruments.T1Deal(this, nations[ni].World, tr[t].r, g, m, lp, unitA, rpT, qA, crossA, vA, exRate[ni], a1On ? a1Q : double.NaN); }   // T0b：成約の上界の越え（成約の後の台帳・m.Stock はここまで動かない）・(1144) t1buy_s：U1 と W2(a) の成約
+                    if (Instruments.On) { Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr); Instruments.TbDeal(this, nations[ni].World, nations[siA].World, tr[t].r, tr[snA].r, g, m, c, lp, unitA, rpT, qA, crossA, exRate[ni]); Instruments.T1Deal(this, nations[ni].World, tr[t].r, g, m, lp, unitA, rpT, qA, crossA, vA, exRate[ni], a1On ? a1Q : double.NaN); }   // T0b：成約の上界の越え（成約の後の台帳・m.Stock はここまで動かない）・(1144) t1buy_s：U1 と W2(a) の成約
                     if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni], g, crossA ? vA * protect / exRate[ni] : 0.0, crossA ? vA * cornPen / exRate[ni] : 0.0);
                     if (ts is not null) ts.Deal(crossA);
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];
