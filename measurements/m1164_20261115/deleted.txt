@@ -4,3 +4,5 @@ D:/PoB_work/m1164_work/suite（自分で作った・フルスイートの写し�
 D:/PoB_work/c114qn_work/out_c114qnB_10（縮めた残り・M と表ごとに sha1 で比べた〔一致 1450・違う 80＝既知の揺れと経路の行と t1・sr の宣言の表〕・成績表は全行一致＝帰属を読み終えた・★(1157) の型） 2026-11-16 00:17:31
 D:/PoB_work/c114qn_work/mut・flag0_ins（qn の突然変異の生と旗 0 の colqn_s＝合流が採ると決めた後・flag0_ins は m1164_work/qn_flag0_ins へ写して門を読んだ） 2026-11-16 00:50:40
 D:/PoB_work/ident_m1164z（自分で作った・腕 Z の ident の生・〈判定: 恒等〉を読んだ後・成績表と判定は measurements へ写した） 2026-11-16 01:00:51
+D:/PoB_work/wt_c114qn・wt_c114sr・wt_c114t1（線の worktree・未コミット 0〔t1 は未追跡の ident の刈り込みの manifest 1 本＝measurements/m1159_20261115/ へ写した〕・origin と同じ頭）とローカルの枝 c114qn・c114sr・c114t1 2026-11-16 01:30:56
+D:/PoB_work/wt_m1164z（自分で作った・腕 Z の使い捨ての worktree・成績表と判定は写した・コミット 01f659872 は push しない） 2026-11-16 01:30:56
