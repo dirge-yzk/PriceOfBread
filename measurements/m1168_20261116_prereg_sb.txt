@@ -77,3 +77,11 @@
 [5] 〈判定: 恒等〉なら採る。不一致の項は [1] のとおり外して報告に回す。
   読む側の自己点検：消した名（HoardRatioMax・GoldCoverCreditFloor・MintBuysAtMarket・SilverParityFromRatio・ExchangeRateCeil）を置き換えた後に全域 grep する（★(1164) ①）・呼び出し位置の列を持つ表（flow_s など）は触らない（この線は flow に書き手を足さない）・母集合を作り直す門は置かない・〈ヌル腕に定義が無い〉と書く門は置かない（この線は門が全行一致と突然変異だけ）。
   生は合流の判断まで残す（ident・probe）。作業フォルダは D:/PoB_work/c115sb_work・隔離ビルドは D:/PoB_work/c115sb_art（回の終わりに自分の分だけ片付ける・keep_* は触らない）。
+
+[追記 2026-11-16（ident の前・結果の腕を見る前）]
+  1. 項6（D-s3 ExchangeRateCeil）を戻した（コミット ae4f453e0）。理由＝項 1〜5 の木（b9c386f22）は WriterRatchetTests が緑（60 件）・項 6 の木（9ab0809a9）で `計算量の見た件数は宣言した表を超えない` が 2 件赤（item 34 倒産の生産者×月 2694 対 宣言 2334・item 11 覇権の判定 対 3362000）＝最初の 40 四半期の 1 種の軌道が動く＝天井は届くことがある（紙の予言〈届かない〉は外れた）。[1] の規則どおり戻し、区分 II（ほとんど影響のない削除）として 00一覧へ回す。ident の宣言・成績表の判定は項 1〜5 の木で行う。項 6 の係数 ExchangeRateCeil と計器の ExchangeRateCeilOld はコミットの履歴にだけ残る（戻し後の木には無い）。
+  2. 試験の追加：突然変異 M8（退蔵率の負を 0 にする枝を外す）が既存の試験で緑のままになる見込みのため、同じ線で CreditHoardGuardTests（新しい 1 ファイル・3 件）を足す（★(790)）。M9＝非有限の枝を外す。突然変異の表に M8・M9 を足した。
+     テストの数の予言（上書き）：Category!=FullLength は 2889＋3（T1〜T3）＋3（CreditHoardGuardTests）−1（MintAtMarketTests）−2（MultiNationTests の Theory 2 行）＝2892（--tests-delta 3）。FullLength は 3。
+  3. mintreg_s の見出しは 37 列（[2] 項 1 の 36 は数え違い）。
+  4. World.cs:915 の注 1 行（〈器A SilverParityFromRatio〉の名の置き換え・コードは動かない）を足した＝持ち主の行の範囲（:1385〜:1393）の外の 1 行・合流で衝突したら注の行を捨ててよい。
+  5. 項 4 の MoneyThemeTests.cs:80・StateFactoryTests.cs:531 は CRLF のファイル（CR を保って書き換えた）。
