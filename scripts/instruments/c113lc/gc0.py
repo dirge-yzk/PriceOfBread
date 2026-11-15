@@ -20,16 +20,23 @@ def first_q(ins, s):
 
 JIT = {'burscan_s': ('seconds',), 'clock_s': ('worldTotalPerMonth',), 'dep_s': ('callerLine',)}   # ident.cfg の KNOWN（既知の揺れ）＝両側で空にして比べる
 
-def head_rows(p, tcol, lim, ncut, blank=()):
+def head_rows(p, tcol, lim, ncut, blank=(), dcol=None):
+    # 追記 2（結果の後の変更・読み手の 2 つの誤りの直し）：① 時の列の値が 'q144' の形（armsfill_s）は頭の q を外して読む（初版は整数でないとして〈前〉に数え、境の後の行まで比べた）。
+    #   ② wars_s の q は戦争の始まりの四半期で、行は months（続いた月数）と deadK を持つ＝行の中身は終わりまでの量。終わり（q＋月数÷3）が境の後の行は飛ばす（初版は始まりで読んだ）。
     out = []
     with open(p, encoding='utf-8', newline='') as f:
         f.readline()
         for ln in f:
             c = ln.rstrip('\r\n').split('\t')
             if tcol < len(c):
-                try: t = int(c[tcol])
+                v = c[tcol][1:] if c[tcol][:1] == 'q' else c[tcol]
+                try: t = int(v)
                 except ValueError: t = None
                 if t is not None and t >= lim: break
+                if t is not None and dcol is not None and dcol < len(c):
+                    try: m = int(c[dcol])
+                    except ValueError: m = None
+                    if m is None or t + (m + 2) // 3 >= lim: continue
             for i in blank:
                 if i < len(c): c[i] = ''
             out.append('\t'.join(c[:ncut] if ncut else c))
@@ -58,8 +65,9 @@ for s in range(s0, s1 + 1):
         elif 'year' in hb: tcol, lim = hb.index('year'), yf
         else: skipped['時の列が無い'] += 1; continue
         blank = tuple(hb.index(k) for k in JIT.get(stem, ()) if k in hb)
-        rb = head_rows(pb, tcol, lim, 0, blank)
-        ra = head_rows(pa, tcol, lim, ncut, blank)
+        dcol = hb.index('months') if stem == 'wars_s' and 'months' in hb else None
+        rb = head_rows(pb, tcol, lim, 0, blank, dcol)
+        ra = head_rows(pa, tcol, lim, ncut, blank, dcol)
         T['表'] += 1; T['行'] += len(rb)
         if rb != ra:
             T['違う表'] += 1
