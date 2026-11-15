@@ -1,0 +1,36 @@
+(1156) c113b1 設計の材料の線：事前登録の下書き（データを読む前に書く・コミットしない・合流が写す）
+書いたモデル：Claude Opus 5.5。2026-11-15。木は main 122cdce11（読むだけ）。この文の案は全て〈AI の案・確証なし〉。
+腕・ビルド・シミュは回さない予定（短い走り 1 本の許しは、下の [R] の問いが既存の生とソースで答えられない時だけ使う＝使ったら名乗る）。
+
+[0] 読む生（ls と head -1 で確かめた）
+- 腕：D:/PoB_work/keep_1150_rej/c112t1_arms/out_c112t1{B,Aa,Ab}_10/ins（aa8ee7e51 の木＋旗）。Aa＝B-1 だけ 1（A-1＝0）・Ab＝A-1 だけ 1・B＝両方。
+  Aa・Ab に在る表は 12 種：region・nation・nationgood・migration・tb・t1buy・pxmonth・fiscal・habitlg・inheritintent・inheritpar・wars。B は 38 種（labor・goods・s4cost を含む）。recipeout_s は 3 本とも無い。
+- 旗 0：D:/PoB_work/keep_1150/base_ins・n1・n2（d05c6bea9＝hy の差だけ・軌道は一致しない＝分布として読む）。
+- 州の名（region_s の開幕）：スペインの植民地格 ペルー（開幕 1,309 千人・種 8）・ヌエバ・エスパーニャ銀地帯（1,607 千人）。
+
+[1] 問い 1（根の鎖のどこが最初に効くか）の読み方（結果を見る前に固定）
+- 州×種×腕ごとに四半期の列：employmentShare・populationK・migrationOutKPerQuarter・crossBorderOutKPerQuarter・extractionOutputRefValuePerMonth・landFactor・wageFactor（region_s）。
+  所有国×年の列：銀の producedQty・priceMeanGold・stockQty（nationgood_s）。世界の銀の産出＝nationgood_s の銀の producedQty の全ての国の和（年ごと）。
+- 〈旗 0 の帯〉＝同じ種の base・n1・n2 の同じ四半期（年）の最小〜最大。〈外れ〉＝帯の外に 4 四半期（年の列は 1 年）続けて出た最初の時点。
+- 鎖の順＝各列の〈外れ〉の最初の時点の並び。銀の産出（年）→ 銀の値段（年）→ 雇用（四半期）の順なら鎖 2〈銀の産出→値段→雇用〉。
+  雇用・州の産出の値の外れが銀の産出の外れより先（同じ年を含む）なら鎖 1〈割り→自己費用→地代→雇用〉が先。
+  地代は腕の州の列に無い＝鎖 1 の〈地代〉の段はソースの式（EconomyStep の valueAdded と rent）と開幕の試験の数（-42.3）で読む＝確証は〈ソースの論〉と名乗る。
+- 比べる腕：Aa（B-1 だけ）が主。Ab は〈A-1 だけでは外れない〉の対照、B は〈重ねた時〉。
+- 〈銀の産出 13.1 倍〉は (1144) v2 の値＝この線で同じ台本の形（腕÷旗 0 の 10 種の和・年ごと）で取り直し、v2 の数と並べる（一致しなければ両方書く）。
+
+[2] 問い 2（分子と分母の非対称・二重計上）の読み方
+- ソースの式だけで読む（回さない）：賦存の州の生産者の播種 Simulation.cs:747〜770・:1289〜1310 で、能力の側（Productivity×capMul）と費用の側（MarginalCost÷costDiv^gate）の両方に同じ賦存が入るか。
+  入るなら、産出 1 単位あたりの費用が 1/capMul（能力）と 1/costDiv^gate（割り）で 2 回下がるか＝MarginalCost の単位（産出 1 単位あたりか、労働 1 単位あたりか）を EconomyStep の mc の使い方から決める。
+- 地代と賃金：EconomyStep の valueAdded＝収入−投入費・rent＝取り分×valueAdded・wages＝残り（MarginalCost は払われない）＝割りは〈供給の決め〉だけに効き〈払い〉に効かない＝決めと払いの非対称の型かを書く。
+
+[3] 問い 4（W2(a) の母集合）の読み方
+- keep_1150/base_ins の tb_s の sk0・sk1・sk2（旧の門が飛ばした行の 3 区分）・ps0〜ps2・rows を 10 種・全期間で足す。
+- 〈着値が州の値段を下回る売り手がある行〉＝u_min＝先頭の売り手の値段×lbMulMin＜lp の行。tb_s にこの述語の列があるかを計器のソースで確かめる。無ければ〈数えられない〉と書き、近い列（sk0＋sk1・tradeskip の xPass 系）で上下の見積もりと、新しい恒等の計器の列の仕様を書く。
+- 床の式を書き、旗 0 で門の数（成約のあった行）が構成上 0 かをソース（旧の門の continue）で確かめる。
+
+[4] 問い 5・6 はソースと (1144) の .cost と台帳の行で読む（回さない）。問い 3・7 は 1〜6 の読みの後に書く。
+
+[R] 短い走り（種 4・8・B-1＝1）を回す条件：問い 1 の〈雇用の外れ〉が開幕の 4 四半期以内で、地代（recipeout_s の selfCostOutW・unitCostIfAbundance）が無いと鎖 1 と鎖 2 の順が決まらない時だけ。
+- それ以外は回さない（ソースと既存の生で答える）。
+
+[5] 書かない物：〈決まった〉・〈承認〉。点の予言は門にしない。結果の後に母集合を広げて閾値に届かせない（⑫）。

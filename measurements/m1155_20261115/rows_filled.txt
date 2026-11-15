@@ -1,0 +1,20 @@
+| S27-H009 | S27 | 支配度＝ストック | 文書 L6051（粒＝見出し・未分割） | Coefficients.cs:2760:DominanceMatureYears;Coefficients.cs:2758:DominanceSpeed | Diplomacy.cs Model.cs Politics.cs Privileges.cs Simulation.cs | 効き | 8a8344ad | 働く | 文書の記号 ●（9-26・写さない）；消えた係数 DominanceIsStock；(925) c80dm（m919 の base_ins・n1・n2 の cederule_s・rule_s）：州×四半期の約 97% が上限。独立の確定の 0→1 は 12・21・19 件。割譲・建国・返還は 1,723・1,756・1,641 件の全てで前の値を引き継ぐ（不一致 0・反証役の数え直し）。エンジンの読み手は Politics.cs:1604 の 1 か所（分離の時計）・税・公共財・法・徴兵は Rule を読む＝残す | 割譲の支配度の段 C-0・C-1（612 行 ②⑧）・cesd（612 行） | — |
+
+| S27-H010 | S27 | ~~昇格した植民地は支配度0から始まる~~（2026-11-08 (961)）開幕の一括昇格（MultiNationSim.cs の PromoteAllColonies の呼び口の直後）は 1.0 から・途中の接収（Diplomacy.cs の AcquireColony→PromoteColonyToRegion）は 0 から | 文書 L6057（粒＝見出し・未分割） | Simulation.cs:61:Simulation | Simulation.cs | 効き | 05983574 | 働く | 文書の記号 ●（9-26・写さない）。(925) c80dm（m919）：開幕の植民地 370 州は四半期 0 の中央 0.028・上限まで中央 10.5 年。途中の接収 120〜142 件も 0 から（Simulation.cs:1604）。既知の非対称＝植民は 0・割譲は前の値・本土は 1.0＝~~残す~~（2026-11-08 (946) c83hs：開幕の一括昇格の呼び口〔MultiNationSim.cs:174〕だけ 1.0 から始める案 K＝直す側の材料・AI の案・確証なし・作者の確認待ち・反証役の訂正 4）（2026-11-08 (952) c84kp：案 K を旗 OpeningColonyDominanceFull で 1 回目・器は ident〈判定: 恒等〉・旗 1 のフルスイートで SecessionLaborLawInstrumentTests.cs:87 の対照の件数 7 で止めた・腕 B なし・3 回の規則に数えない・器と点火は枝 origin/c84kp に残す＝★(940)）（2026-11-08 (957) c85kp：K の 1 回目を腕 B まで回した＝旗 OpeningColonyDominanceFull 既定 1・G1 1.0000〔旗 0 は 0.0595〕・G2 0〔上限 17・旗 0 は 45〕・G3 0.0257〔上限 0.05〕・止める線 0。(961) 
+
+| S27-H011 | S27 | 併合年のデータで格と支配度を決める（B14） | 文書 L6061（粒＝見出し・未分割） | Coefficients.cs:2781:HeldSinceFromData | Simulation.cs world.json | 効き | d313515b | 働かない | 文書の記号 ○（9-26・写さない）。(946) c83hs（盤面 m933・紙の積分し直し・腕 0 本）：29 州の四半期 0 の margin は +0.70〜+1.86・1 未満で始まる 6 州は 9 年以内に 1.0 へ重なり 0 に届く州×種は 0＝旗 1 にしても成績表は全行一致の予言（ペルシャ〔バクー〕は年の分解能の近似）＝点火しても力学が動かない（2026-11-08 (956) c85hs：HeldSinceFromData・CoreHeldYears・ProvinceSpec の HeldSince・world.json の heldSince 29 行を消した〔コミット 82ff1811・ident c85hs〈判定: 恒等〉・(961) で main へ〕・消す前の 29 州の値は measurements/m946_20261107/table29.md・ダンツィヒ 1793 ほかのデータの食い違いはこの表で読む） | 割譲の支配度の段 C-0・C-1（612 行 ②⑧）・cesd（612 行） | 消した（2026-11-08 (956) c85hs・82ff1811・(961) で main へ・錨は Coefficients.cs の墓標の |
+
+| S27-H057 | S27 | 変名の正統性ボーナス | 文書 L6349（粒＝見出し・未分割） | — | Formations.cs | 読まれない欄 | 64e20d396 | 働かない（消した＝(1081)） | (1081) c103dm の DM-D′ で係数 FormationLegitimacyBoost を消した（Formations.cs の変名の後の正統性への一回加算）＝(1087) 合流で main へ（S11 で採った）。DormantIdentityTests の RetiredFields が名の戻りを赤にする。文書 L6349 は古い | 割譲の支配度の段 C-0・C-1（612 行 ②⑧）・cesd（612 行） | 消す（文書の見出しを直す・残る口は無い）・読み手 SimCore 0（係数ごと消えた） |
+
+| S27-P01 | S27 | 割譲の前と後の支配度の写し | 割譲で州の支配の割合・支配度・外国持分が変わらない（形 Q′） | Instruments.cs:1225:CedeBefore | Territory.cs Diplomacy.cs | 両側の門 | 731d3de1 | 働く | (888) cederule_s（ident の計器つき 10 種）：行 1,668（Ceded 1,330・Seceded 177・Returned 161）・恒等の門の破れ 0／1,662・movedAgain 6・Ceded は cess_s の route 2〜4 と組で一致（反証役） | 割譲 C1 の段 C-1 | — |
+
+| S27-P02 | S27 | 受け手の鍵の持分のある割譲 | 受け手が既に持分を持つ州の割譲（穴 H-a） | Diplomacy.cs:3183:AddForeignShare | Diplomacy.cs Politics.cs | 届かない門 | 11db605f | 働かない | (888) g4pop888.txt：受け手の鍵の持分＞0 の割譲は 10 種で 0 件＝段 C-1 の G4 は機構の試験へ移し門は記録へ下げる・第三国の持分がある割譲は 24 件 | 割譲 C1 の段 C-1 | — |
+
+| S27-P03 | S27 | 独立の確定の州の移り | 独立の確定も割譲の表に載る | Diplomacy.cs:504:Sovereign | Diplomacy.cs Territory.cs | 読まれない欄 | 11db605f | 一部だけ働く | (888)：Territory.Rehome(Sovereign) の直の呼びは RegionMoved を通らない＝cederule_s に無い（計器の限界）・同じ四半期に当たった行は 10 種で 0 件 | 記録 | — |
+
+| S27-P04 | S27 | 建国の国庫の分与 | 親の国庫を人口の比で建国の国へ分ける | MultiNationSim.cs:329:parentPop | MultiNationSim.cs | 効き | 84688034 | 未確かめ | 分与は届いている（使える額 27〜918/月・(938)） | — | 残す |
+
+| S27-P05 | S27 | 建国の市場の台帳のリセット | 建国の四半期に市場の前の在庫と前の産出・売り・輸入を置き直す | Territory.cs:159:PrevStock | Territory.cs | 効き | 84688034 | 未確かめ | 型 C〈建国そのものの 2 行の落ち〉の候補（記録・(938)） | — | 残す |
+
+| S27-V01 | S27 | 中核の州の喪失と戻り | 分離独立が確定した本国の中核の州が何年で戻るか戻らないか（残骸国家の再併合 S27-H031 の効きを国の側から）（観戦 M1・U2・Q2・N25） | Diplomacy.cs:465:Sovereign | Diplomacy.cs MultiNationSim.cs | 効き | decb50fa5 | 未確かめ | 観戦 M1・U2・Q2・N25・S27-P03（独立の確定の州の移りは cederule_s に無い） | — | 残す（段 E の後に読む） |
+

@@ -1,0 +1,180 @@
+1:#### ● 支配度＝ストック
+4:　**稼働中** ／ `Politics.cs:1796-1808,604-611` ／ `Model.cs:577`
+5:　変数: 支配度はストック(DominanceIsStock)＝焼き込み（2026-09-26 (52)）、積分の速さ(DominanceSpeed)=0.025、成熟の年数(DominanceMatureYears)=30
+7:#### ● 昇格した植民地は支配度0から始まる
+8:⚠⚠ **開始時に州化した植民地の支配度は0**（保有開始年＝1783年）。★ 中核州（保有開始年が未設定）は1.0から始まる。⚠ 併合年から「保有年数÷30」で初期値を決める器は休眠（下の「併�
+9:　**稼働中** ／ `Simulation.cs:904,1401`
+11:#### ○ 併合年のデータで格と支配度を決める（B14）
+12:★ 世界データに入れた**併合年**（ポーランド分割地・シレジア・ガリツィア・リガ・バグダード・台湾など28州）を読み、⚠ 新しい領土は支配度が低く（保有年数÷30）、150年未満なら**編入
+13:　**休眠** ／ `Simulation.cs:899-905` ／ `world.json`（heldSince 28州）
+14:　変数: 併合年のデータ(HeldSinceFromData)=0（休眠）
+16:#### ○ 支配の4区分（国家・在地・外国・無統治）
+19:⚠⚠ 休眠：点火すると在地の目標が**農奴法1本**に紐づくため、農奴解放が済んだ国（英・米・蘭は初手から）で在地が0に潰れ、併合年のデータが休眠のままでは本土の無統治も0、外国も0�
+20:　**休眠** ／ `Politics.cs:1809-1838` ／ `Simulation.cs:907-908,1402-1403` ／ `Model.cs:580-586`
+21:　変数: 4区分(RuleSharesEnabled)=0（休眠）
+23:#### ○ 4区分で公共財の到達と課税・徴兵の基盤を割る
+24:★ 4区分が動いたとき、①公共財（教育の財源・年金の給付）は**国家区分にだけ届く**＝(1−g)＋g×国家区分、②課税と徴兵の基盤＝(1−g)＋g×(国家区分＋在地区分×(1−免税率0.3))で、在地の�
+25:　**休眠** ／ `Politics.cs:1967-2006` ／ `Fiscal.cs:50-62,615-624` ／ `Military.cs:166` ／ `Simulation.cs:1924`
+26:　変数: 公共財の到達(RuleSharesReach)=0（休眠）、課税の基盤(RuleSharesTaxBase)=0（休眠）
+28:#### ○ 条約港に外国の持分を積む
+29:★ 遠すぎて属国にできない相手に条約港を開かせたとき、敗者の最大の港州に**勝者の持分（外国区分）**を積む器（2026-09-07・段5）。★ 点火すれば、条約港の関税喪失と自然失効を「個数の
+30:　**休眠** ／ `Diplomacy.cs:2725-2734` ／ `Politics.cs:1824,1980-1997`
+31:　変数: 条約の外国持分(ForeignRuleFromTreaty)=0（休眠）
+33:#### ○ 戦力投射の起点を実効支配の港へ広げる
+34:★ 戦力投射の起点を「首都1点」から、**自国と属国の州のうち国家区分が一定以上の港州**の集合へ広げる器（ジブラルタル・マルタ・アデン・シンガポール・香港の鎖＝2026-09-06 追記裁定）
+35:　**休眠** ／ `Diplomacy.cs:3131-3147,3150-3155`
+36:　変数: 起点の国家区分(ProjectionRuleMin)=1.1（到達しない値＝休眠）、陸路の起点(ProjectionUsesLand)=0（休眠）
+38:#### ○ 平時の徴募の遺恨
+39:★ 平時の常備軍の徴募でも、**植民地格の州、または在地区分が国家区分を上回る州**から引いた分にも、戦時の強制徴兵と同じ遺恨（遺恨率×この倍率）を積む器（英印軍・セネガル狙撃兵�
+40:　**休眠** ／ `Military.cs:193-196`
+41:　変数: 平時徴募の遺恨(PeacetimeConscriptGrievance)=0（休眠）、徴兵の遺恨率(ConscriptGrievanceRate)=0.05
+43:#### ◇ 州パネルの支配の半円
+48:#### ● 分離圧力
+51:　**稼働中** ／ `Politics.cs:1680-1712`
+52:　変数: 圧力の倍率(SecessionPressureScale)=1.0、文化の重み(CultureSecessionWeight)=1.0、閾値(SecessionThreshold)=1.43、保持力の人口項(SecessionHoldPerPop)=0.000005、軍による保持(SecessionHoldCoercion)=1.0
+54:#### ● 文化距離は民族の実体から出る
+56:⚠ 現物：上書きしているのは分離の式だけで、宗主国と同じラベルは**民族・宗教の緊張、統治コスト（属国化か直接併合か）、変名の資格**に残る（棚卸し col-14）。コメントの「寄せ切る�
+57:　**稼働中** ／ `Politics.cs:1698-1710`
+58:　変数: 文化距離を民族から(CultureDistanceFromEthnic)=1.0
+60:#### ● 民族主因の分離
+62:　**稼働中** ／ `Politics.cs:1713-1717`
+63:　変数: 文化の加算圧力(SecessionCultureAdditive)=3.0、少数派の不満(MinorityMilitancy)=0.2
+65:#### ● 国民意識の分離割引
+67:　**稼働中** ／ `Politics.cs:1718-1726`
+68:　変数: 国民意識の割引(SecessionConsciousnessWeight)=1.0
+70:#### ● 保持力に投射が掛かる（遠い領土は保ちにくい）
+72:　**稼働中** ／ `Politics.cs:1746-1767`
+73:　変数: 保持力の投射(SecessionHoldProjection)=1.0、距離の減衰(DistanceWarDecay)=1.0
+75:#### ● 同時多発は保持力を割る
+77:　**稼働中** ／ `Politics.cs:1775-1795,1800`
+78:　変数: 保持力の按分(SecessionHoldSharedArmy)=1.0
+80:#### ● 同時独立（分離は戦争になる）
+82:　**稼働中** ／ `Politics.cs:1840-1855` ／ `MultiNationSim.cs:307-322`
+83:　変数: 分離は戦争(SecessionAsWar)＝焼き込み（2026-09-26 (52)）
+85:#### ● 分離戦の決着
+87:　**稼働中** ／ `Diplomacy.cs:2466-2523` ／ `MultiNationSim.cs:974-1089`
+88:　変数: 内戦は戦争(CivilWarAsWar)=1.0、白紙の戦勝点(WhitePeaceScore)=0.25
+90:#### ● 分離する州は開戦の時点で新しい国になる
+91:★ 独立の戦争に入った州は、**開戦の時点で新しい国家として実体化**する（旧＝勝ってから建国。同じ建国路が蜂起と首都の分離独立にも使われる＝2026-09-28 に旧経路の内戦の分裂の建国は�
+93:　**稼働中** ／ `MultiNationSim.cs:267-323,325-` ／ `Territory.cs:240（TransferRegion）`
+94:　変数: ~~分離は建国(SecessionSpawnsNation)=1.0~~（2026-09-28 削除）、~~守備兵の寝返り(SoldierDefectionByMilitancy)=0（休眠＝首都の分離独立でも首都州の守備兵は全員が反乱国へ）~~（2026-09-29 (97) 点火・係
+96:#### ● 独立＝旧少数派がこの国の中核になる
+99:　**稼働中** ／ `Territory.cs:182-236` ／ `MultiNationSim.cs:398,1038` ／ `Diplomacy.cs:2894`
+101:#### ● 建国した国は文明を引き継ぐ
+103:　**稼働中** ／ `MultiNationSim.cs:432-479`
+105:#### ● 建国名の解決
+107:　**稼働中** ／ `SecessionNames.cs:10-47` ／ `MultiNationSim.cs:401`
+109:#### ● 独立直後の講和相当
+112:　**稼働中** ／ `Diplomacy.cs:457-475,2514`
+113:　変数: 講和後の緊張(PostWarTension)=38、疲弊あたりの休戦年数(TruceYearsPerExhaustion)＝削除（2026-09-26 (52)）
+115:#### ● 残骸国家の自然再併合
+117:　**稼働中** ／ `MultiNationSim.cs:974-1089`（1%は定数 `MultiNationSim.cs:36`）
+118:　変数: 再併合の年数(RumpReabsorbYears)=5
+120:#### ○ 分離で失った州は武力でしか戻らない
+123:　**休眠（実ゲームで対象が生まれない）** ／ `Politics.cs:955-973` ／ `Territory.cs:14-46` ／ `SelfPlay.cs:782-784`
+124:　変数: ~~武力解錠の進捗(ForceUnlockRate)=0.10、月の国庫出血(ForceUnlockTreasuryCost)=1000、制圧の不満(ForceUnlockMilitancy)=0.03~~　★2026-10-25 (551) 恒等の線 gc1 で削除（枝 `gc1`・未合流）
+126:#### ● 侵略＝弱小への唯一の動詞
+129:　**稼働中** ／ `World.cs:1863-1932`
+130:　変数: 兵力比の下限(InvadeMilitaryFactor)=1.2、従属の上限(MaxDependents)=8
+132:#### ● 侵略の代価＝国力比
+139:　**稼働中** ／ `Diplomacy.cs:2124-2135,1978-1985` ／ `World.cs:1853-1860`
+140:　変数: 国力比の重み(ColonizeWillSuperiorityDiscount)=1.0、屈服の倍率(ColonizeSubmitRatio)=3.0、屈服線の床(ColonizeSubmitFloorMilitary)=0.05、余剰戦力の上限(ExpansionWillCap)=10
+142:#### ● 遠征技術のゲート
+144:　**稼働中** ／ `Diplomacy.cs:1968-1976`
+145:　変数: 遠征技術の水準(ExpeditionTechLevel)=0.8、床(ExpeditionTechFloor)=0.15
+147:#### ● 渡海のゲート（船・制海権・糧食）
+149:　**稼働中** ／ `World.cs:1817-1861,1882-1889,1903-1914`
+150:　変数: 基礎の船(InvadeShipsBase)=60、距離の係数(InvadeShipDistanceScale)=1.0、海路距離で測る(InvadeShipSeaDistance)=1.0、最低制海権(InvadeSeaControlMin)=0.45、基礎の糧食(InvadeCannedBase)=20、軍事力比例(InvadeCannedP
+152:#### ● キニーネ不足は遠征軍が溶ける
+154:　**稼働中** ／ `World.cs:1915-1928`
+155:　変数: 疫病の致死率(EpidemicSeverity)=0.06
+157:#### ● 屈服か戦争か
+159:　**稼働中** ／ `Diplomacy.cs:1921-1966`
+160:　変数: 併合の不満(ColonizeAnnexMilitancy)=0.3
+162:#### ● 接収した植民地はその場で州になる
+165:　**稼働中** ／ `Diplomacy.cs:1928-1941,2588-2596 / Simulation.cs:1378-1387`
+166:　変数: 奪取も州化(CapturedColoniesAreRegions)=1.0
+168:#### ● 侵略は他の列強との緊張を上げる
+170:　**稼働中** ／ `Diplomacy.cs:1928,2030,2137-2146`
+171:　変数: 列強の緊張(ColonizeRivalTension)=22.0
+173:#### ● 近接緊張
+176:　**稼働中** ／ `World.cs:1961-1995`
+177:　変数: 近接の範囲(ProximityTensionRange)=3000km、最大(ProximityTensionMax)=35
+179:#### ● AIの侵略
+183:　**稼働中** ／ `Diplomacy.cs:1712-1760`
+184:　変数: 経済規模の重み(ColonizeValueGdpPer100k)=1.0、AIの試行率(AiColonizeChance)=0.12、自制の床(HegemonRestraintFloor)=0.25
+186:#### ● 州の割譲
+189:　**稼働中** ／ `Diplomacy.cs:2805-2923`
+190:　変数: 割譲の戦勝点(TerritoryCessionScore)=1.2、移転州の不満(CededColonyMilitancy)=0.3
+192:#### ● 割譲の投射圏
+193:⚠⚠ **勝者の首都から4000km を超える州は割譲できない**（★ 賠償のみ）。★★ 拠点を増やすたびに圏が伸びる連鎖征服を避けるため、**本国の首都だけ**を母点にする。★ ただし**植民地格�
+194:　**稼働中** ／ `Diplomacy.cs:2815-2827,2858-2865`
+195:　変数: 割譲の投射圏(CessionMaxDistanceKm)=4000
+197:#### ● 割譲の渡海の割り増し
+199:　**稼働中** ／ `Diplomacy.cs:2828-2848`
+200:　変数: 渡海の重み(CessionSeaCrossingWeight)=1.0、上陸の制海権(SeaInvasionControlMin)=0.65
+202:#### ● 植民地格の州は講和で複数まとめて割譲される
+204:⚠ 現物：①距離の代価が無い＝地球の裏側の植民地も近くと同じ値段（距離の式と射程ゲートは旧経路にだけある＝棚卸し col-15）②開発度の項は書き手の無い国の数値（常に0）を読む（州�
+205:　**稼働中** ／ `Diplomacy.cs:2627-2660`
+206:　変数: 植民地州の割譲(ColonialRegionCession)=1.0、奪取の上限(ColonyCaptureMax)=3、奪取の予算(ColonyCaptureBudget)=100、基本コスト(ColonyCaptureCostBase)=30、資源あたり(ColonyCaptureResourceCost)=10、開発度あたり(Co
+208:#### ○ 奪取費の開発度を州から読む（B2）
+209:★ 植民地格の州を講和で奪う値段の「開発度」の項を、書き手の無い国の数値（常に0）から**その州の工業化度**へ替える器（2026-09-07・実バグ21件の是正）。⚠ 休眠の今は開発度の項が常に
+210:　**休眠** ／ `Diplomacy.cs:2644-2649`
+211:　変数: 州から読む(ColonyDevCostFromRegion)=0（休眠）　**→ 2026-10-18 削除（恒等の削除・精査 doc §4）：ColonyDevCostFromRegion**
+213:#### ◐ 奪取の射程ゲート
+216:　**一部のみ稼働** ／ `Diplomacy.cs:2567-2597`
+217:　変数: 射程ゲート(ColonyCaptureReachGate)=1.0、距離の重み(ColonyCaptureDistanceWeight)=1.0　**→ 2026-10-18 旗の焼き込み（精査 doc §4 ①-c）：ColonyCaptureReachGate を削除（常に既定の側だけ残した）**
+219:#### ◐ 武力で奪った土地ほど従わない
+222:　**一部のみ稼働** ／ `Diplomacy.cs:2604-2605`
+223:　変数: 征服の不満(ConquestColonyMilitancy)=1.5
+225:#### ~~◐ 征服は中核民族を薄める~~
+229:　**一部のみ稼働** ／ `Diplomacy.cs:2614-2622`
+230:　変数: 征服の異民族重み(ConquestForeignWeight)＝削除（2026-09-26 (55)）
+232:#### ◐ 講和で狙う土地への関心
+235:　**一部のみ稼働** ／ `Diplomacy.cs:2558-2566` ／ `World.cs:1898-1901` ／ `PriceOfBread.App/ViewModels/GameViewModel.Map.cs:68-75` ／ `PriceOfBread.App/ViewModels/GameViewModel.Popups.cs:329-334`
+237:#### ● 属国（従属関係）
+239:　**稼働中** ／ `Diplomacy.cs:425-,1211-1263`
+240:　変数: 従属の上限(MaxDependents)=8、整列(DependencyAlignmentRelief)=1.2
+242:#### ● 貢納
+244:　**稼働中** ／ `Diplomacy.cs:1231-1241`
+245:　変数: 貢納率(VassalTributeRate)=0.015
+247:#### ● 属国の離反
+249:　**稼働中** ／ `Diplomacy.cs:1243-1260`
+250:　変数: 属国の抑え(VassalHoldScale)=0.5、離反の闘争度(VassalDefectionMilitancy)=0.6、離反を屈服の物差しで(VassalDefectionUsesSubmitMeasure)=1.0、屈服の比(AISubmitMilRatio)=3.0　**→ 2026-10-18 旗の焼き込み（精査 do
+252:#### ● 属国化か直接併合か
+255:　**稼働中** ／ `Diplomacy.cs:2737-2762,1190-1208`
+256:　変数: 属国化の戦勝点(VassalizeWinScore)=1.4、統治コストの閾値(GovCostVassalThreshold)=0.4
+258:#### ● 遠すぎる国は属国にできない
+259:★★ **遠隔地への圧勝の帰結は、領土でも従属でもなく賠償金と通商特権だった**（★ 南京1842・安政1858・下関1895）。⚠ 首都間が6000kmを超える相手には**条約港を1つ開かせ（関税自主権を1�
+260:　**稼働中** ／ `Diplomacy.cs:2714-2736,2665-2668`
+261:　変数: 属国化の距離上限(TreatyPortWinnerDistanceKm)=6000、条約港の賠償倍率(TreatyPortReparationMult)=2.5
+263:#### ● 議会が従属条項を拒む
+265:　**稼働中** ／ `Diplomacy.cs:2710-2713` ／ `CrownParliament.cs`
+266:　変数: 批准の重み(TreatyRatificationControlThreshold)=0.5
+268:#### ● 宗主権の引き継ぎ
+270:　**稼働中** ／ `Diplomacy.cs:2778-2796`
+271:　変数: 宗主権の引き継ぎ(VassalTransferOnCrush)=1.0　**→ 2026-10-18 旗の焼き込み（精査 doc §4 ①-c）：VassalTransferOnCrush を削除（常に既定の側だけ残した）**
+273:#### ● 初期の史実従属関係
+275:　**稼働中** ／ `MultiNationSim.cs:109,257-261` ／ `world.json`
+277:#### ● 変名（条件を満たす州を集めると国名が変わる）
+279:　**稼働中** ／ `Formations.cs:32-367,373-410` ／ `CultureRealms.cs:28-39,96-104`
+280:　変数: 文化からの変名(CultureFormationGate)=1.0、開幕より増やす要件(CultureFormationNeedsGain)=1.0、変名の有効化(EnableFormations)=1.0　**→ 2026-10-18 旗の焼き込み（精査 doc §4 ①-c）：CultureFormationGate・Cult
+282:#### ● 変体の成立判定
+284:　**稼働中** ／ `Formations.cs:412-438,503-516`
+286:#### ● 段位の一方向性
+288:　**稼働中** ／ `Formations.cs:381-388`
+290:#### ● 世界に同名は一つ
+292:　**稼働中** ／ `Diplomacy.cs:477-487`
+294:#### ● 成立時の遷都
+296:　**稼働中** ／ `Formations.cs:395-409`
+297:　変数: 成立の遷都(FormationCapitalMove)=1.0　**→ 2026-10-18 旗の焼き込み（精査 doc §4 ①-c）：FormationCapitalMove を削除（常に既定の側だけ残した）**
+299:#### ● 変名の正統性ボーナス
+301:　**稼働中** ／ `Formations.cs:389-394`
+302:　変数: 成立の威信(FormationLegitimacyBoost)=0.1
+304:#### ● 統一戦争（プレイヤーの動詞）
+306:　**稼働中** ／ `World.cs:1940-1959` ／ `Formations.cs:458-501`
+307:　変数: 統一戦争(UnificationWarEnabled)=1.0、ナショの閾値(UnificationNatioShare)=0.25　**→ 2026-10-18 旗の焼き込み（精査 doc §4 ①-c）：UnificationWarEnabled を削除（常に既定の側だけ残した）**
+309:#### ◐ 統一戦争のAI
+311:⚠ **ただし対象の変体は名指しの3件（北ドイツ連邦・ドイツ・イタリア）に限られている**——★★ 2026-09-03 の作者裁定は「変名の全規則へ一般化（名指しの撤去）」だが、名指しに限る旗�
+312:　**一部のみ稼働** ／ `Diplomacy.cs:1610-1631` ／ `Formations.cs:452-472`
+313:　変数: 名指しに限る(UnificationV1Only)=1.0、追求確率(UnificationAiPursueChance)=0.7、見送りの再判定(UnificationAiCooldownYears)=20年、宣戦の間隔(UnificationAiWarGapYears)=3年

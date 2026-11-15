@@ -1,0 +1,12 @@
+# S11 = D:/PoB_work/keep_1150/a11 種 11〜20
+A secession: 表なし
+B wars entryCode ally:1754 civil:127 declare:1 main:1333 mediation:384 secession:4 subjugate:649 suzerain:807
+B  種18 secession 1920 朝鮮×キサンガニ共和国 9か月
+B  種18 secession 1921 朝鮮×キサンガニ共和国 9か月
+B  種18 secession 1930 朝鮮×南アフリカ共和国 10か月
+B  種18 secession 1931 朝鮮×南アフリカ共和国 22か月
+B  種19 declare 1790 サルデーニャ＝ピエモンテ×ジェノヴァ 14か月
+C cederule: 表なし
+D invade 行:1249 屈服:600 標的が国:805（種 10）
+E 変名：nation の名の列は BaseName（Instruments.cs:285・286 の NameOf）＝変名は表に出ない＝0 と数えない（計器が書かない）
+F rule: 表なし
