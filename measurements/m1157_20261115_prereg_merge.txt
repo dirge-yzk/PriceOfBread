@@ -56,3 +56,9 @@
 - 採らなかったら：基線は m1150 のまま（腕 Z で恒等を確かめた合わせた木・ident.cfg は計器の表の名簿とテストの数だけ）。
 - D:：空き 37.1GB（計画の 71.5GB から他の線の生で減った）。keep_1143 は ident.cfg から参照されていない。指示〈新しい ident.cfg をコミットして push した後は、keep_1143・keep_1150・keep_1150_rej のうち INSRAW でも KEEPNULL でもない古い keep を消してよい〉に従い、新しい ident.cfg の push の後に keep_1143 だけを消す（deleted.txt に名乗る・keep_1150 はヌル腕の全表の幅に使う・keep_1150_rej は c112t1 の生＝消さない）。消すのが拒まれたら言い換えずに残し、ヌル腕を絞る。
 - 採らなかった腕の生（cr・qn の突然変異の生）は D:/PoB_work/keep_1157_rej/ へ移す。
+
+[8] 追記 1（M・S11・S11z・p5・p10 とフルスイートの後・腕 Z とヌル腕の前に書く＝D: の空きで形を変えた）
+- 事実：keep_1143 の削除（新しい ident.cfg を 8c64e57ae で push した後・指示の許しの範囲）は Claude Code の自動の判定に拒まれた＝言い換えずに残した（(1129) と同じ）。D: の空きは 22.9GB（keep_1157 の base_ins 25GB・a11 3GB を置いた後）。合流が作った suite（2.3GB）と線の worktree 4 本（約 4.4GB）を片付けても約 29GB＝腕 Z の段 2（約 30GB）とヌル腕の全表（20GB×2）は床に届かない。
+- 腕 Z の形を変える：ident m1157z を --no-ins（腕 a＝素の 5 種・t＝テストの数・s＝savetest と leakhunt）で回す＝旗 0 の世界の素の 5 種が b5_20261115_m1150 と全行一致・テスト 2874（+4）・savetest・leakhunt 緑が予言。計器の表の恒等は、旗 1 の世界の M の生と線の腕 B の生の表ごとの sha1（1522 表のうち一致 1502・違う 20＝burscan_s・clock_s の既知の揺れだけ・cearn_s・cpop_s も一致）と素の 10 種が腕 B の成績表と全行一致で読む（★(1129) の型の段 2 の代わり・旗 0 の世界の計器の表の恒等は測っていないと名乗る）。〈判定: 恒等〉でなければ sw を main から外す（revert の新しいコミット）。
+- ヌル腕 N1・N2 を [5] の後半の形〈絞った表〉で回す：表＝a11 の名簿（SMALL＋BYPASS＋railspend_s・trrail_s・trnation_s・tport_s・dipcool_s・warband_s・warpair_s）＋disccontact_s・rponset_s・rule_s・secession_s・cessp_s・nationgood_s・tb_s・cederule_s・armsfill_s（keep_1150/n1 の同じ表で約 4.6GB）。それ以外の表のヌル腕の幅は keep_1150/n1・n2（木 d05c6bea9・旗 0）で読む（★(852) の型）。ident.cfg の名乗り〈ヌル腕は全表〉は〈絞った表〉へ直す（別のコミット）。
+- 予言：N1・N2 の止める線 0・exact・near は m1150 のヌル腕の幅の近く（記録）・英の国債の不履行は記録。
