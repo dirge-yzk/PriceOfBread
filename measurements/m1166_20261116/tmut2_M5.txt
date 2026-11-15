@@ -1,0 +1,5 @@
+M5 ���Ă�
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F3_旗1の兵の増えは空きを超えない [2 s]
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F5_計器soldiervac_sは大きさ0の州の数と埋まりを手の数えと一致させる [810 ms]
+失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

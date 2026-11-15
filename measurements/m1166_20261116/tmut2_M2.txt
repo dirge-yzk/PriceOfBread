@@ -1,0 +1,6 @@
+M2 ���Ă�
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F3_旗1の兵の増えは空きを超えない [1 s]
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F2_大きさ0の兵の席の所得は母数の前の月の単価に給与の倍率と国の兵の受け取りの比と送り手の働き盛りの割合を掛ける [112 ms]
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F1_旗1では大きさ0の兵の席が埋まり空きの減りが兵の増えと等しく人口は保存 [102 ms]
+失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

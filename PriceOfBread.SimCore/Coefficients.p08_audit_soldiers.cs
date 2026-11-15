@@ -19,6 +19,7 @@ public sealed partial class Coefficients
     public double MilitarismStrengthBonus = 1.3;            // 同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×軍の政治的優位（軍の圧力×(1−文民制度の弁)∈[0,1]）
     public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）
+    public double SoldierVacancyFromZero = 1;               // (1166) 旗：大きさ 0 の兵士の POP を、空きがあれば社会移動の職の行き先にする（所得は Meritocracy.EmptySeatIncome）。0＝旧の形（大きさ 0 の兵の席は候補にならない）
     public RatePerMonth SoldierMigrationRatePerMonth = new(0.08);             // 平時の徴募/離職速度（月次）
     public Share ConscriptionFraction = new(0.12);            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポレオン戦争の頂点 4〜6% の桁・行き過ぎは経済に打撃）
     public RatePerMonth ConscriptionRatePerMonth = new(0.15);               // 戦時の動員速度（平時より速い）

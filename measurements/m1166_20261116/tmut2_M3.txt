@@ -1,0 +1,4 @@
+M3 ���Ă�
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.SoldierVacancyFromZeroTests.F2_大きさ0の兵の席の所得は母数の前の月の単価に給与の倍率と国の兵の受け取りの比と送り手の働き盛りの割合を掛ける [106 ms]
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

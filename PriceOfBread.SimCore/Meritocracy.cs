@@ -13,6 +13,8 @@ public static class Meritocracy
         double dischargeQ = Calendar.OverSteps(c.SoldierMigrationRatePerMonth.Value, Calendar.MonthsPerQuarter);
         double volunteers = 0;
         bool ins = Instruments.On;
+        if (c.SoldierVacancyFromZero > 0) { _seatWorld = w; _seatPayRate = SeatPayRate(w, c); }   // (1166) 社会移動の頭の国の兵の受け取りの比（州の移動の前）
+        if (ins) Instruments.SoldierVacBegin(w);   // (1166) soldiervac_s
         foreach (var r in w.Regions)
         {
 
@@ -67,6 +69,7 @@ public static class Meritocracy
                 soldierVac = Math.Max(0, seatsR - soldierPop.Size);
             }
             double soldierVac0 = soldierVac;
+            if (ins && soldierPop is not null) Instruments.SoldierVacEnter(w, r, soldierPop, soldierVac0);   // (1166) soldiervac_s
 
             for (int i = 0; i < tn; i++)
             {
@@ -275,8 +278,10 @@ public static class Meritocracy
             }
 
             volunteers += Math.Max(0, soldierVac0 - soldierVac);
+            if (ins && soldierPop is not null) Instruments.SoldierVacExit(w, r, soldierPop);   // (1166) soldiervac_s
         }
         if (volunteers > Eps) { double sEnd = w.SoldierSizeK(); Military.DiluteSkill(w, sEnd - volunteers, sEnd); }
+        _seatWorld = null;
     }
 
 
@@ -336,6 +341,7 @@ public static class Meritocracy
                                    double secular, double higherEdu, ref double urbanHeadroom, ref double soldierVac, Coefficients c)
     {
         bool srcRural = !src.IsUrban;
+        bool emptySeat = c.SoldierVacancyFromZero > 0;   // (1166) 旗：大きさ 0 の兵の席も空きがあれば候補（Simulation.cs:1354 の器）
         if (c.JobPoolTemperature > 0)
         {
             int n = r.Pops.Count;
@@ -345,11 +351,11 @@ public static class Meritocracy
             for (int i = 0; i < n; i++)
             {
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || t.Size <= Eps) continue;
+                if (ReferenceEquals(t, src) || t.Closed || (t.Size <= Eps && !(emptySeat && t.IsSoldier))) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
-                double inc = JobIncome(t, src);
+                double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
                 if (inc <= minIncome) continue;
                 share[i] = 1.0; if (inc > incMax) incMax = inc;
             }
@@ -359,7 +365,7 @@ public static class Meritocracy
                 if (share[i] > 0)
                 {
                     var t = r.Pops[i];
-                    double inc = JobIncome(t, src);
+                    double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
                     share[i] = Math.Exp(Math.Max((inc - incMax) / c.JobPoolTemperature, -40));
                     sumW += share[i];
                 }
@@ -389,11 +395,11 @@ public static class Meritocracy
             {
                 if (tried[i]) continue;
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || t.Size <= Eps) continue;
+                if (ReferenceEquals(t, src) || t.Closed || (t.Size <= Eps && !(emptySeat && t.IsSoldier))) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
-                double inc = JobIncome(t, src);
+                double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
                 if (inc > bestInc) { bestInc = inc; bestIdx = i; }
             }
             if (bestIdx < 0) break;
@@ -426,6 +432,39 @@ public static class Meritocracy
         double perWorker = wa > Eps ? Math.Max(0, t.EarnedPerMonth.Value) / wa : 0;
         double perHead = src.Size > Eps ? Military.WorkingAdults(src) / src.Size : 0;
         return perWorker * perHead;
+    }
+
+    /// <summary>(1166) 大きさ 0 の兵の席の所得（旗 SoldierVacancyFromZero の時だけ・大きさ＞0 は <see cref="JobIncome"/>）。
+    /// 兵 1 人の月の給与＝州の徴募の母数の前の月の所得の単価（Simulation.MonthSettle の給与の請求と同じ入力＝四半期の最後の月の給与は、
+    /// その月の EconomyStep が所得を戻す前の値＝社会移動の時点の LastEarnedPerMonth）×SoldierPayMult×国の兵が実際に受け取る比（<see cref="SeatPayRate"/>）。
+    /// 徴兵の国は頭数あたり（keep）。送り手の世帯の 1 人あたりへ直す規則は JobIncome の兵の席と同じ（×働き盛り÷頭数）。</summary>
+    private static double EmptySeatIncome(World w, Region r, Pop t, Pop src, Coefficients c)
+    {
+        double unit = Military.RecruitWage(r, c, last: true, keep: w.ConscriptionLaw >= ConscriptionLaw.Selective) * c.SoldierPayMult;
+        double perWorker = unit * (ReferenceEquals(_seatWorld, w) ? _seatPayRate : SeatPayRate(w, c));
+        double perHead = src.Size > Eps ? Military.WorkingAdults(src) / src.Size : 0;
+        return perWorker * perHead;
+    }
+
+    [ThreadStatic] private static World? _seatWorld;   // (1166) Step の中だけ：SeatPayRate を州ごとに組み直さない（Step の頭で組み、終わりで外す＝持ち越さない）
+    [ThreadStatic] private static double _seatPayRate;
+
+    /// <summary>(1166) 国の大きさ＞0 の兵が実際に受け取った比＝Σ兵の EarnedPerMonth ÷ Σ（兵の大きさ×州の単価×SoldierPayMult）。
+    /// 兵の給与（Simulation.cs の SoldierPayBudget＝満額×充足＋幹部の給与・×payRate）を、大きさ 0 の席の読みと同じ単価で割った物＝分子と分母を同じ規則で。
+    /// 大きさ＞0 の兵がいなければ 0（誰も受け取っていない）。</summary>
+    private static double SeatPayRate(World w, Coefficients c)
+    {
+        bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
+        double num = 0, den = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.SoldierPopIndex < 0 || r.SoldierPopIndex >= r.Pops.Count) continue;
+            var s = r.Pops[r.SoldierPopIndex];
+            if (!s.IsSoldier || !(s.Size > Eps)) continue;
+            num += Math.Max(0, s.EarnedPerMonth.Value);
+            den += s.Size * Military.RecruitWage(r, c, last: true, keep: keep) * c.SoldierPayMult;
+        }
+        return den > 1e-9 ? num / den : 0;
     }
 
     private static double MoveToJob(World w, Region r, int idx, Pop src, Pop dst, double f, Coefficients c, ref double soldierVac)
