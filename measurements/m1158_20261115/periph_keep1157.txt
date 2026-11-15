@@ -1,0 +1,1 @@
+M	seeds=10	quinineMarket9nations_median	0-1829:px=27.65/stk=0/dem=9.195(n=73) 1830-1869:px=3.559/stk=0.06385/dem=0.3077(n=141) 1870-1909:px=1.764/stk=0.1985/dem=4.375(n=103) 1910-1999:px=2.066/stk=0.546/dem=0.9297(n=1071)	colonialUpkeepClaimSum=567413	shareOfClaimTotal=0.0001129	invade=1339	invadeQuinineTargets=133

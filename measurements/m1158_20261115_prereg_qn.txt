@@ -73,3 +73,10 @@
 - ident：`bash scripts/instruments/ident/ident.sh run c114qnz --tree D:/PoB_work/wt_c114qn --added-tables colqn_s --tests-delta 5`（段 2＝計器に触れる・走っている間はこの worktree にコミットしない）。
 - 重い仕事は起こす直前に shutil で〈35GB＋その量〉（ident 約 30GB・腕 B 約 26GB）を確かめ、届かなければ 240 秒以内の刻みで測り直して待つ。
 - 腕 B が 60 分待っても届かなければ、〈門の台本の表＋止める線の表＋標準の読み手の表〉＝colqn_s・invade_s・nation_s・pxmonth_s・region_s・fiscal_s・goods_s・scalars_s・secession_s・cessp_s・rule_s・migration_s と ident.cfg の SMALL に絞って起こし、絞ったと名乗る（POB_INSTRUMENTS_TABLES）。
+
+■ 追記 2（2026-11-15・ident c114qnz〈判定: 恒等〉の後・係数 0 のコミットの前・腕 B の前に固定）
+- ident c114qnz（段 2・木 f8068e8d3・SOURCE-HASH c3d2bfff8d31f8ce）：素の 5 種・計器つき 10 種とも m1157 と全行バイト一致・.cost 一致（推定 228.3／229.1 秒）・計器の表 1502 一致＋既知の揺れ 20＋宣言 10（colqn_s）・注視 4655 行一致・テスト 2879（2874＋5）・FullLength 3。写し measurements/m1158_20261115/ident_c114qnz.txt・b5_20261115_c114qnz・b10_20261115_c114qnz_ins。
+- 旗 0 の生（colqn_s 10 本を D:/PoB_work/c114qn_work/flag0_ins に写した）：行 410065・旧の規則が立つ行 malRows 21189（0.0517）・oldBuyable＞0 の行 12944・fuelRows 76753・計器の自己一致 maxAbsDiffGot 0・maxRelDiffReq 1.84e-16（≦1e-12＝計器の誤りなし）・G1 赤（調達の和 357820）・G2 赤（R 0）＝旗 0 で狙いの門が落ちる。
+- 固定：**G4 の床＝fuelClaim＞0 の行 ≧38377**（旗 0 の 76753 の 0.5 倍の切り上げ）。G1 の床 ≧10000 行・G2 の床 ≧1000 行は変えない（旗 0 の 21189・12944 の内）。
+- 遠征の列の旗 0（記録・scripts/instruments/c114qn/expread.py）：expN 133（invade_s の熱帯の標的への侵略 133 と一致）・在庫が尽きた遠征 115（0.8647）・充足の上界の平均 0.3897・1 回あたりの残りの在庫 16.32・need の平均 30・求めの平均 11.69。予言（記録）：腕 B で在庫が尽きた割合は下がり、残りの在庫は上がる。尽きた割合は旗 0 で既に 86%＝首都の在庫そのものが薄い（植民地の月の買いだけが理由ではない）。
+- 係数 0 の短い走り（1 種・表を絞った・f8068e8d3＋mut.py coef0）：G1 緑（行 2017・調達・需要・請求 0）・G2 R 1.000000（行 828）＝床を除いて読む。門の突然変異 M2（1 種）：G1 赤・G2 R 0。M3・M4 は走行中（結果は measurements/m1158_20261115/mut_gates_1seed.txt）。
