@@ -6,3 +6,6 @@ D:/PoB_work/wt_c113cr（線の worktree・未コミット 0・origin/c113cr と�
 D:/PoB_work/wt_c113qn（線の worktree・未コミット 0・origin/c113qn と同じ頭）とローカルの枝 c113qn 2026-11-15 18:24:48
 D:/PoB_work/ident_m1157z（自分で作った・腕 Z の ident の生・判定を読んだ後） 2026-11-15 18:46:20
 D:/PoB_work/wt_m1157z（自分で作った・腕 Z の使い捨ての worktree・成績表は写した） 2026-11-15 18:46:38
+D:/PoB_work/m1157_work（自分で作った・作業フォルダ・記録を写した後・push の後に消す） 2026-11-15 19:22:27
+D:/PoB_work/wt_m1157 とローカルの枝 m1157（自分で作った・push の後に消す） 2026-11-15 19:22:27
+MSBuild の節 PID 13296（自分の道具箱のビルドが残した・Stop-Process） 2026-11-15 19:22:27

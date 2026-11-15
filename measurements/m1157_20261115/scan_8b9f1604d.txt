@@ -1,0 +1,11 @@
+list PriceOfBread.Tests nonfull 2640
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+scan rc=0 476s
+scan_ui rc=0 23s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:    45、スキップ:     0、合計:    45、期間: 21 s - PriceOfBread.Tests.Ui.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   189、スキップ:     0、合計:   189、期間: 7 m 54 s - PriceOfBread.Tests.dll (net10.0)
+SCANDONE
