@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// (1145) 線 c112hy：D-b ハイエナ抑制の枝（DriftTension の DefeatShockTensionRelief×衝撃）を係数 0 で閉じる線の機構の番人と、計器 dipcool_s の自己検査。
-/// 事前登録 measurements/m1145_20261115_prereg_hy.txt の xUnit H1〜H3。期待の値は手で置いた盤面の数（緊張 120・遺恨 1.0／0.5・衝撃 1.0）から手で書いた値（同じ出所の式を写さない）。
+/// 事前登録 measurements/m1145_20261115_prereg_hy.txt の xUnit H2・H3（H1＝旧の道の番人は (1154) で消した）。期待の値は手で置いた盤面の数（緊張 120・遺恨 1.0／0.5・衝撃 1.0）から手で書いた値（同じ出所の式を写さない）。
 /// </summary>
 [Collection("Instruments")]
 public class HyenaBranchTests
@@ -22,7 +22,7 @@ public class HyenaBranchTests
         return sim;
     }
 
-    /// <summary>手で置く盤面（組 F：従属＝凍結・緊張 120）：組 H（衝撃 1.0 の国を含む・緊張 120・遺恨 1.0）・組 G（衝撃 0・緊張 120・遺恨 0.5）・組 L（緊張 50）。他の組は消す。</summary>
+    /// <summary>手で置く盤面（組 F：従属＝凍結・緊張 120）：組 H（衝撃 1.0 の国を含む・緊張 120・遺恨 1.0）・組 G（衝撃 0.4・緊張 120・遺恨 0.5）・組 L（緊張 50）。他の組は消す。</summary>
     static (long H, long G, long L, long F, System.Collections.Generic.Dictionary<long, double> T) Board(MultiNationSim sim)
     {
         var d = sim.Diplomacy;
@@ -30,6 +30,7 @@ public class HyenaBranchTests
         Assert.True(ps.Count >= 4, $"前提：国のある力 {ps.Count}");
         foreach (var p in ps) p.Nation!.DefeatShock = 0;
         ps[0].Nation!.DefeatShock = 1.0;
+        ps[2].Nation!.DefeatShock = 0.4;   // 組 G：衝撃 0.3 以上 1 未満（計器の保護の下限 0.3 の内側・0.5 に壊すと H3 が赤）
         var tension = (System.Collections.Generic.Dictionary<long, double>)typeof(Diplomacy)
             .GetField("_tension", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(d)!;
         tension.Clear(); d._grudge.Clear();
@@ -98,13 +99,13 @@ public class HyenaBranchTests
             Assert.Equal(3.0, Col(h, r0, "highRows")); Assert.Equal(1.0, Col(h, r0, "lowRows"));
             Assert.Equal(1.0, Col(h, r0, "frozenRows")); Assert.Equal(0.2, Col(h, r0, "sumObsCoolFrozen"), 9);
             Assert.True(Col(h, r0, "maxAbsDiffFrozen") <= 1e-9, $"凍結の差 {Col(h, r0, "maxAbsDiffFrozen")}");
-            Assert.Equal(1.0, Col(h, r0, "oldHyenaRows"));
+            Assert.Equal(2.0, Col(h, r0, "oldHyenaRows"));
             Assert.Equal(1.0, Col(h, r0, "oldHyenaFreshRows")); Assert.Equal(1.0, Col(h, r0, "freshRows"));
             Assert.Equal(0.0, Col(h, r0, "obsHyenaRows")); Assert.Equal(0.0, Col(h, r0, "obsHyenaFreshRows"));
             Assert.Equal(2.0, Col(h, r0, "grudgeRows"));
             Assert.True(Col(h, r0, "maxAbsDiffNewGrudge") <= 1e-9, $"新の規則との差 {Col(h, r0, "maxAbsDiffNewGrudge")}");
             Assert.Equal(0.21, Col(h, r0, "sumObsCoolGrudge"), 9);
-            Assert.Equal(2.21, Col(h, r0, "sumOldCoolGrudge"), 9);     // 同じ盤面の旧の規則（計器が自分の定数 2.0 で組む）
+            Assert.Equal(2.8, Col(h, r0, "sumOldCoolGrudge"), 9);     // 同じ盤面の旧の規則（計器が自分の定数 2.0 で組む）
             Assert.Equal(0.0, Col(h, r0, "obsOtherRows"));
         }
         finally
