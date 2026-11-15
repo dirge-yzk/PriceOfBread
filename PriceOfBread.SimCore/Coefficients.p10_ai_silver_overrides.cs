@@ -51,9 +51,7 @@ public sealed partial class Coefficients
     public RatePerMonth MintFloorBuyRatePerMonth = new(0.25);    // 床モードの月次購入率（在庫のこの割合まで/月）
     public RatePerMonth MintReserveSellRatePerMonth = new(0.08); // 法が本位金属を捨てたあと準備を市場へ売る月次率（独1873-79のターラー銀売却＝暴落を深めた投げ売り。売り切りに約1年）
     // ==== 銀本位の史実度（2026-08-21・作者裁定「原因究明し原則に従って修正」→同日点火）====
-    public double SilverParityFromRatio = 1.0;   // 1.0 に点火（既定 0.0 → 1.0・波57 c7ag）
     public double SilverParityDemandWeighted = 0.0;   // 全ての州の票の和が正でないときは比が不正の扱い（旧の統計へ倒れる）
-    public double MintBuysAtMarket = 1.0;   // 点火2026-09-06＝0.0→1.0・銀本位の再開＝準備ギャップの月割りを市場価格で買う（第2版）
     public double MintParitySells = 0.0;   // ＝閉じる条件が誤り（信用の薄い1783 年から常に真＝造幣が一度も買わない）
     public double MonetaryPeerPullScale = 5.0;   // 【点火5.0・2026-08-21 銀本位ラウンド（上の墓標参照）】
     // ==== 距離定数の時代関数化（掃討doc 第2波・2026-08-13）====

@@ -3,18 +3,17 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(854) 線 c70id：造幣局の市場買い（<c>Simulation.MintGold</c> の <c>atMarket</c> の枝・係数 <see cref="Coefficients.MintBuysAtMarket"/>）を踏む番人。
+/// <summary>(854) 線 c70id：造幣局の市場買い（<c>Simulation.MintGold</c> の <c>atMarket</c> の枝・旗は (1168) で焼き込んだ）を踏む番人。
 /// (846) の反証役が名乗った穴：FullChainTests の鋳造の番人の盤面（金本位・400 ティック）の鋳造は自由鋳造の床の枝で起きていて、市場買いの枝を外しても緑（measurements/m846_20261105/mut_summary.txt の MF3）。
 /// 盤面＝密閉 1 国の仏・銀本位。銀の値段を平価の上に置き、基礎貨幣のカバー率を目標の下に置く（係数 GoldCoverMin を大きく置く＝貸出や国庫を触らずに準備不足が立つ）。MintGold を反射で 1 回だけ走らせる（MoneyThemeTests の造幣局の平価売りと同じ型）。
 /// 期待は試験が自分で数える：予算 gapLeft＝max(0, 目標カバー率×広義貨幣−基礎貨幣)×月次率・数量＝min(在庫×床と同じ月次率, gapLeft÷市場価格)・鋳造価値＝数量×**市場価格**（平価でない）。
 /// 突然変異の表は measurements/m854_20261105/mutation_854.txt。</summary>
 public class MintAtMarketTests
 {
-    private static (Simulation Sim, World W, Region R, Market M, double Parity) Board(double mintBuysAtMarket)
+    private static (Simulation Sim, World W, Region R, Market M, double Parity) Board()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // 国家世界の 1 国＝密閉（交易相手なし）・商人 POP が立つ
         var w = sim.World;
-        w.Coef.MintBuysAtMarket = mintBuysAtMarket;
         w.Coef.MintReserveTargetWeight = 1.0;          // 前提を既定に頼らず明示（準備不足に応じて買う）
         w.Coef.MintParitySells = 0.0;                  // 隔離＝平価の売りを切る（準備不足の月は売らない設計だが、買いの試験に混ぜない）
         w.Coef.GoldCoverMin = new Share(0.99);         // 目標カバー率＝0.99×余白＞1＞実際のカバー率＝準備不足（貸出や国庫を触らない）
@@ -51,7 +50,7 @@ public class MintAtMarketTests
     [InlineData(8.0)]    // 予算で縛る（在庫×月次率が予算÷値段の 8 倍）
     public void 準備が足りない月は平価の上でも市場で買う_鋳造の価値は市場価格_保存量Dは動かない(double stockOverBudgetQty)
     {
-        var (sim, w, r, m, parity) = Board(1.0);
+        var (sim, w, r, m, parity) = Board();
         double rate = w.Coef.MintFloorBuyRatePerMonth.Value;
         double budget = Budget(w);
         Assert.True(budget > 1e-6, $"前提が崩れた：準備不足の予算が立たない（{budget}）");
@@ -80,7 +79,7 @@ public class MintAtMarketTests
     [Fact]
     public void 市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う()
     {
-        var (sim, w, r, m, parity) = Board(1.0);
+        var (sim, w, r, m, parity) = Board();
         Region? r2 = null;
         foreach (var x in w.Regions)
             if (!ReferenceEquals(x, r) && x.GoodOf(Catalog.SilverId) is not null && x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count) { r2 = x; break; }
@@ -107,21 +106,9 @@ public class MintAtMarketTests
     }
 
     [Fact]
-    public void 市場買いの係数が0なら平価の上では買わない_準備不足でも()
-    {
-        var (sim, w, r, m, parity) = Board(0.0);
-        m.Stock = 100.0;
-        double reserve0 = w.SilverReserveQty, stock0 = m.Stock, minted0 = w.CumulativeGoldMinted.Value;
-        Mint(sim);
-        Assert.Equal(reserve0, w.SilverReserveQty);
-        Assert.Equal(stock0, m.Stock);
-        Assert.Equal(minted0, w.CumulativeGoldMinted.Value);
-    }
-
-    [Fact]
     public void 準備が足りていれば市場買いは立たない_予算が0()
     {
-        var (sim, w, r, m, parity) = Board(1.0);
+        var (sim, w, r, m, parity) = Board();
         w.Coef.GoldCoverMin = new Share(0.0001);           // 目標カバー率が実際のカバー率を下回る＝準備は足りている
         Assert.Equal(0.0, Budget(w));
         m.Stock = 100.0;

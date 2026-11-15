@@ -2413,7 +2413,7 @@ public sealed class Simulation
             double shortfall = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             shortfall = PoliticalQuantities.Clamp01(shortfall);   // NaN は Clamp01 が0＝造幣停止側へ倒す
             coverShort = shortfall;
-            if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
+            if (shortfall > 1e-9)
                 gapLeft = Math.Max(0, (coverTarget * World.BroadMoney - World.BaseMoney).Value) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
         // parity〔履歴 Simulation.cs#325〕
@@ -2438,13 +2438,13 @@ public sealed class Simulation
                 sellLeft -= sold;                                          // 国1本の月次予算を消費
             }
             if (m.Stock <= 1e-12) continue;
-            if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
+            if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。（市場買いの枝は (1168) で旗ごと焼き込んだ）
             double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
                                : m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value);   // 床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
             if (qty <= 1e-12) continue;
             double totOut = 0;
             foreach (var p in r.Producers) if (p.GoodId == metal) totOut += p.Output;
-            double price = atMarket ? m.Price : parity;   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（MintBuysAtMarket）だけ市場価格＝準備の購入代金
+            double price = atMarket ? m.Price : parity;   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（atMarket）だけ市場価格＝準備の購入代金
             // 払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。〔履歴 Simulation.cs#329〕
             double imp = Math.Max(0, m.PrevImport + m.LastImport), prodQ = Math.Max(0, m.LastProduced);
             double impShare = totOut > 1e-12 ? (imp + prodQ > 0 ? imp / (imp + prodQ) : 0.0) : 1.0;

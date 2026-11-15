@@ -740,7 +740,7 @@ public sealed class MultiNationSim
                 double rel = ratioOk ? meanRatio / refRatio : 1.0;
                 // World は国際市場を見られないので、   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。〔履歴 MultiNationSim.cs#94〕
                 double silverWorld = Market.Price[Catalog.SilverId];
-                if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
+                if (ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
                 foreach (var n in Nations) { n.World.WorldSilverPrice = silverWorld; n.World.SilverGoldRatio = rel; }
                 if (Instruments.On && !_calendarFrozen) Instruments.SilverParityCapture(this, silverWorld, rel, ratioOk);   // SilverParityCapture〔履歴 MultiNationSim.cs#95〕
                 if (Instruments.On) Instruments.SilverWeightEnd(this, _calendarFrozen, ratioOk);   // SilverWeightEnd〔履歴 MultiNationSim.cs#96〕

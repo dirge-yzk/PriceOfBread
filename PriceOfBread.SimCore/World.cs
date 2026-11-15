@@ -912,7 +912,7 @@ public sealed class World
     /// </summary>
     public double TradePartnerStandardBalance { get; internal set; }
     /// <summary>
-    /// MultiNationSim が四半期同期で注入（器A SilverParityFromRatio と同じ量＝同じ走査の1本・表示用の統計〔Market.Price〕に乗せない）。〔履歴 World.cs#168〕
+    /// MultiNationSim が四半期同期で注入（銀の平価の器（(1168) で旗ごと焼き込んだ）と同じ量＝同じ走査の1本・表示用の統計〔Market.Price〕に乗せない）。〔履歴 World.cs#168〕
     /// </summary>
     public double SilverGoldRatio { get; internal set; } = 1.0;
     // MultiNationSim が四半期同期で注入（WorldTechLevel/IndustrialFrontier/WorldSilverPrice と同型＝World は国際市場を直接見られない層の分離）。〔履歴 World.cs#169〕

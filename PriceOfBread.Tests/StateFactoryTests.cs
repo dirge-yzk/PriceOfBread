@@ -528,7 +528,7 @@ public class StateFactoryTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // MoneyThemeTests の造幣局の盤面と同じ（密閉1国）
         var w = sim.World;
-        w.Coef.MintBuysAtMarket = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（器 MintFloorRespectsReserve は 2026-10-09 (210) に削除）
+        w.Coef.GoldCoverMin = new Share(0.0001); w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（準備の被覆が足りる盤面＝市場買いの予算 0・(1168) で旗 MintBuysAtMarket を焼き込み旗 0 の隔離をこの盤面へ移した）（器 MintFloorRespectsReserve は 2026-10-09 (210) に削除）
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
         int ag = Catalog.SilverId;
         Region? r = null; Producer? p = null;

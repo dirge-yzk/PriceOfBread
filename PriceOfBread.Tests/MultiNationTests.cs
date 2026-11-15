@@ -49,16 +49,14 @@ internal static class MultiNationShared
 public class MultiNationTests
 {
 
-    // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
+    // ★器 SilverParityFromRatio（(1168) で焼き込んだ）の経路（2026-09-07）：注入される WorldSilverPrice が
     //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
     //   0＝旧統計 Market.Price[銀] と同一であること（(775) で既定は 1）。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
     //   （World.Coef は国ごと別インスタンスで、ここでは読まれない）。
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る(double gate)
+    [Fact]
+    public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る()
     {
-        var coef = new Coefficients { SilverParityFromRatio = gate, SilverParityDemandWeighted = 0.0 };   // ★(834) 旗 0 の経路の番人（旗を明示）＝期待は等重みの票。旗が正（A′）の経路は SilverParityDemandWeightedTests が持つ
+        var coef = new Coefficients { SilverParityDemandWeighted = 0.0 };   // ★(834) 旗 0 の経路の番人（旗を明示）＝期待は等重みの票。(1168) で SilverParityFromRatio を焼き込んだ（旧の gate=0 の行は削除）。旗が正（A′）の経路は SilverParityDemandWeightedTests が持つ
         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: coef);
         sim.Run(3);
         double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];
@@ -75,14 +73,14 @@ public class MultiNationTests
             }
         Assert.True(cnt > 0, "銀と金鉱の両方に価格のある Active 州が無い（世界データが変わった）");
         double refRatio = refAg / refAu;
-        double expected = gate > 0 ? System.Math.Exp(sum / cnt) / refRatio * refAg : sim.Market.Price[Catalog.SilverId];
+        double expected = System.Math.Exp(sum / cnt) / refRatio * refAg;
         foreach (var n in sim.Nations)
         {
             Assert.True(System.Math.Abs(n.World.WorldSilverPrice - expected) <= 1e-9,
-                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}（gate={gate}）");
+                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}");
             // ★(210) 銀と金の比（通貨制度の選好の入力）は器の有無によらず同じ走査の R（表示用の統計に乗せない）
             Assert.True(System.Math.Abs(n.World.SilverGoldRatio - System.Math.Exp(sum / cnt) / refRatio) <= 1e-9,
-                $"{n.World.SelfPower?.Name}：SilverGoldRatio={n.World.SilverGoldRatio} 期待={System.Math.Exp(sum / cnt) / refRatio}（gate={gate}）");
+                $"{n.World.SelfPower?.Name}：SilverGoldRatio={n.World.SilverGoldRatio} 期待={System.Math.Exp(sum / cnt) / refRatio}");
         }
     }
 
@@ -206,16 +204,14 @@ public class SilverParityInstrumentTests
     }
     private static double D(Dictionary<string, string> r, string k) => r[k] switch { "nan" => double.NaN, var s => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture) };
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void 平価の計器は注入と独立な式で同じ平価を取り直す(double gate)
+    [Fact]
+    public void 平価の計器は注入と独立な式で同じ平価を取り直す()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_sp_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         try
         {
-            var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityFromRatio = gate, SilverParityDemandWeighted = 0.0 });   // ★(834) 旗 0 の経路の番人（旗を明示）＝relRecomputedIndex は等重みの取り直し
+            var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityDemandWeighted = 0.0 });   // ★(834) 旗 0 の経路の番人（旗を明示）＝relRecomputedIndex は等重みの取り直し
             try { for (int q = 0; q < 3; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
             finally { Instruments.Close(sim); }
             var rows = Rows(System.IO.Path.Combine(dir, "silverpar_s1789.tsv"));
@@ -225,13 +221,8 @@ public class SilverParityInstrumentTests
             foreach (var r in rows)
             {
                 Assert.Equal(1.0, D(r, "ratioOkFlag"));
-                if (gate > 0)
-                {
-                    Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "relRecomputedIndex")) <= 1e-9, $"注入 {r["usedParityIndex"]} と計器の取り直し {r["relRecomputedIndex"]} が合わない");
-                    Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "newParityIndex")) <= 1e-12);
-                }
-                else
-                    Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "oldRawIndex")) <= 1e-12, "旗 0 の注入が旧の統計と違う");
+                Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "relRecomputedIndex")) <= 1e-9, $"注入 {r["usedParityIndex"]} と計器の取り直し {r["relRecomputedIndex"]} が合わない");
+                Assert.True(Math.Abs(D(r, "usedParityIndex") - D(r, "newParityIndex")) <= 1e-12);
                 Assert.True(D(r, "relRecomputedIndex") > 0 && D(r, "wAgShare") is >= 0 and <= 1);
                 if (r["law"] == "S" && D(r, "nationCount") > 0) withSilver++;
             }
@@ -249,7 +240,7 @@ public class SilverParityInstrumentTests
             if (ins) Instruments.Configure(dir, "*");
             try
             {
-                var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients { SilverParityFromRatio = 1.0 });
+                var sim = new MultiNationSim(MultiNationShared.FourNations(), seed: 1789, coef: new Coefficients());
                 try { for (int q = 0; q < 3; q++) { sim.StepQuarter(); if (ins) Instruments.Quarter(sim, 1789UL, q); } }
                 finally { if (ins) Instruments.Close(sim); }
                 return sim.Nations.SelectMany(n => new[] { n.World.ExchangeRate, n.World.WorldSilverPrice, n.World.SilverGoldRatio }).ToArray();
