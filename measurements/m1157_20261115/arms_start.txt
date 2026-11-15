@@ -1,0 +1,10 @@
+mM start 2026-11-15 16:55:55 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=b39fe1ce Dfree=59.18GB armsfree=6
+mS11 start 2026-11-15 16:55:55 ins=1 N=10 SB=11 cearn=1 coef=- HEAD=b39fe1ce Dfree=59.18GB armsfree=6
+mS11z start 2026-11-15 16:56:03 ins=1 N=10 SB=11 cearn=1 coef=RailLocoGateWorld=0 HEAD=b39fe1ce Dfree=58.18GB armsfree=6
+mp5 start 2026-11-15 16:56:03 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=b39fe1ce Dfree=58.15GB armsfree=6
+mp10 start 2026-11-15 16:56:03 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=b39fe1ce Dfree=58.11GB armsfree=6
+mp5 end 2026-11-15 17:30:05 rc=0
+mp10 end 2026-11-15 17:31:31 rc=0
+mS11z end 2026-11-15 17:41:08 rc=0
+mS11 end 2026-11-15 17:42:16 rc=0
+mM end 2026-11-15 17:44:28 rc=0

@@ -1,0 +1,2 @@
+moved c113cr_work/mut c113qn_work/mut -> keep_1157_rej 16:56:13
+out_mM_10/ins→keep_1157/base_ins・out_mS11_10_s11/ins→keep_1157/a11・out_mS11z_10_s11/ins→keep_1157/a11z 18:05:06

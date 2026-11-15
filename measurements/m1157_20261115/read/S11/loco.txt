@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1157\scripts\instruments\r1149\loco_import.py", line 65, in <module>
+    for ix, c in rd(os.path.join(ins, f'discflow_s{s}.tsv')):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PoB_work\wt_m1157\scripts\instruments\r1149\loco_import.py", line 14, in rd
+    with open(p, encoding='utf-8') as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:/PoB_work/m1157_work/out_mS11_10_s11/ins\\discflow_s11.tsv'
