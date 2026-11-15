@@ -353,17 +353,17 @@ public static partial class Instruments
 
     internal sealed class RailAcc
     {
-        public double Bought, LaidTerr, DecayLoss, WarLoss, InsRail, PaidRail;
+        public double Bought, LaidTerr, DecayLoss, WarLoss, InsRail, PaidRail, PaidRailForeign;
         public long Months, G2Rows, G2Viol, G7Excess, G7Fell, G7Lock, G7Hold12, G1ZeroSides, G1ZeroViol, G1Jump, G1PosSides, G1FormulaViol, G3NoShare, G4Moves, G4Viol;
         public double PrevPost = double.NaN, RunStartE, PreDecay, TPre, NeedPre;   // 年をまたいで持つ（Clear で消さない）
         public double MoveBefore = double.NaN;   // (1125) 割譲・分離・返還の時点の州の線路＝受け手の次の月の輸送の頭で読み直す（G4）。年をまたいで持つ
         public int RunLen;
         public double NeedUsedShare = double.NaN;   // (1137) その年の最後の敷きの月にエンジンが使った need÷計器の目標（Clear で nan）
         public long GnOutViol, G1FormulaOutViol;    // (1137) 計器が自分で組んだ〈産出の比〉の need・φ の混ぜの式と、エンジンの need・倍率が合わない月・側の数
-        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; NeedUsedShare = double.NaN; GnOutViol = G1FormulaOutViol = 0; }
+        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = PaidRailForeign = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; NeedUsedShare = double.NaN; GnOutViol = G1FormulaOutViol = 0; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RailAcc> RailAccs = new();
-    static RailAcc RailOf(Region r) => RailAccs.GetValue(r, _ => new RailAcc());
+    internal static RailAcc RailOf(Region r) => RailAccs.GetValue(r, _ => new RailAcc());
 
     /// <summary>計器の目標（門なし）。脅威の項を含む／含まない。</summary>
     static double RailInsTarget(World w, Coefficients c, bool threat)
@@ -502,6 +502,7 @@ public static partial class Instruments
     {
         var a = RailOf(r); a.PaidRail += gold;
         if (recipient.Regions.Contains(r)) return;
+        a.PaidRailForeign += gold;   // (1147) 受け手が持ち主でない時の額（外国の取り分への払い）
         string key = recipient.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "";
         for (int k = 0; k < r.ForeignRulers.Length && k < r.ForeignShares.Length; k++) if (r.ForeignRulers[k] == key && r.ForeignShares[k] > 0) return;
         a.G3NoShare++;
@@ -559,7 +560,7 @@ public static partial class Instruments
     }
 
     const string TrRailHeader = "year\tnation\tregion\tterrainCode\twaterFlag\trailTrackEnd\tneedEnd\tphiEnd\tmonthsCount\tboughtCapPerYear\tlaidCapTimesTerrainPerYear\tg2Rows\tg2Viol\tdecayLossPerYear\twarLossPerYear\t"
-        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol";
+        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol	railFreightForeignPaidGoldPerYear";
 
     /// <summary>年の終わり：全ての国の全ての州の行（州の線路・計器の need と φ・門の数）。旗 0 の世界でも書く（線路は 0・G1 の T＝0 の側の数）。</summary>
     static void TrRailRows(Sink sk, MultiNationSim sim, int year)
@@ -580,7 +581,7 @@ public static partial class Instruments
                 sk.TrRail.WriteLine(string.Join('\t', TrI(year), nation, r.Name, TrI((int)r.Terrain), RailInsWater(r, c) ? "1" : "0", F(r.RailTrack), F(needG), F(RailInsPhi(r.RailTrack, tg * share)),
                     L(a.Months), F(a.Bought), F(a.LaidTerr), L(a.G2Rows), L(a.G2Viol), F(a.DecayLoss), F(a.WarLoss),
                     L(a.G7Excess), L(a.G7Fell), L(a.G7Lock), L(a.G7Hold12), L(a.G1ZeroSides), L(a.G1ZeroViol), L(a.G1Jump), L(a.G1PosSides), L(a.G1FormulaViol), F(a.InsRail), F(a.PaidRail), L(a.G3NoShare), L(a.G4Moves), L(a.G4Viol),
-                    F(outSh[r]), F(a.NeedUsedShare), L(a.GnOutViol), L(a.G1FormulaOutViol)));
+                    F(outSh[r]), F(a.NeedUsedShare), L(a.GnOutViol), L(a.G1FormulaOutViol), F(a.PaidRailForeign)));
                 a.Clear();
             }
         }

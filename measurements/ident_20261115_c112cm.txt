@@ -1,0 +1,37 @@
+=== 恒等の判定（測った種で一致） c112cm（2026-11-15 08:08:32）===
+測った木：D:/PoB_work/wt_c112cm（HEAD 8dde0ee40・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c112cm/scripts/instruments/ident/ident.cfg
+宣言：added=['rponset_s'] grown=['rule_s', 'trrail_s'] known_extra=['corncf_s:cfDutyNow', 'corncf_s:cfDutyDown', 'corncf_s:cfDutyUp', 'corncf_s:cfPinRatio0', 'corncf_s:cfCornPrefDown2', 'corncf_s:cfStakeDown2', 'corncf_s:cfStakeDownTimesM2'] tests_delta=8
+腕 a：rc=0 end=2026-11-15 07:50:33
+腕 b：rc=0 end=2026-11-15 08:05:08
+腕 t：rc=0 end=2026-11-15 07:36:20
+腕 s：rc=0 end=2026-11-15 07:51:11
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：03d7adaed2c4ef1b
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 03d7adaed2c4ef1b
+[素の 5 種] b5_ia_5.txt 対 b5_20261115_m1143
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261115_m1143.cost
+  ○ 件数の行 43 本・推定 230.1 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 03d7adaed2c4ef1b
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261115_m1143_ins
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261115_m1143_ins.cost
+  ○ 件数の行 43 本・推定 229.6 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c112cm_work/ident/out_ib_10/ins  対  基準 D:/PoB_work/keep_1143/base_ins
+  基準 1499 本・腕 1509 本・バイト一致 1450 本
+  腕にだけある 10 本（うち宣言 10）
+  列が増えた表（--grown-ok の宣言）20 本：rule_s1.tsv+10列・rule_s10.tsv+10列・rule_s2.tsv+10列・rule_s3.tsv+10列・rule_s4.tsv+10列・rule_s5.tsv+10列
+  既知の揺れの列だけが違う表 29 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10・corncf_s:cfCornPrefDown2,cfDutyDown,cfDutyNow,cfDutyUp,cfStakeDown2,cfStakeDownTimesM2×1・corncf_s:cfDutyDown,cfDutyNow,cfDutyUp×6・corncf_s:cfDutyDown,cfDutyNow,cfDutyUp,cfPinRatio0×2
+  ○ 計器の表は恒等（バイト一致 1450・既知の揺れ 29・宣言された増減 30）
+  内訳：共通の表 1499 本＝バイト一致 1450＋既知の揺れ 29＋列が増えた 20＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1499）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261115_m1143.txt（タグの行を除く）
+  ○ タグの行以外が一致（4457 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2866（基準 2858+8 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+判定: 恒等

@@ -1,0 +1,57 @@
+(1147) c112cm 事前登録（最初のコミット・段 C′ の計器 (b)(c)(d) と CfForeignPort・計器だけ・段 2）
+形：恒等の線（挙動を変えない）。木：main aa8ee7e51（基線 m1143・SOURCE-HASH 213a364df9ce9bcc）。ブランチ c112cm。署名＝Claude Sonnet 5.5。
+材料：measurements/m1142_20261115/prereg.txt（§2 C11〜C13・§4・§5）・measurements/m1133_20261114/result.txt §9 (b)〜(d)・docs/202611/20261115/20261115_支配の力の段C′の2回目_材料.md・_事前登録_下書き.md（末尾の v の訂正 1〈マサワ型〉・6〈最初の表の見分け〉）。
+
+[1] 恒等の線・予言 0
+- エンジンの .cs（Politics.cs・BilateralMarket.cs・Diplomacy.cs・Model.cs）に触れない。触る物は Instruments/ の計器のファイルと試験だけ。
+- 成績表（素の 5 種・10 種・計器つき 10 種）は m1143 と名乗り行（SOURCE-HASH）を除いて全行バイト一致。計器の表の差は下の宣言だけ。
+- .cost の推定は m1143 と同じ（計器の分岐の中だけ・計器が切れている時は計器の仕事の件数が増えない）。
+- 計器は事前登録の文から独立に書く（エンジンの目標・エンジンの港の関数を呼ばない）。エンジンの関数を呼んでよいのは試験の突き合わせの側だけ。
+- 浮動小数の順序が変わる箇所：エンジン側は 0（触れない）。計器側の新しい式は旧の式の逐語（掛け算・足し算の順を Politics.cs:946〜962・:1114 と同じに書く）。
+
+[2] 足す物・消す物・残す物
+消す物：無し（読み手 0 の削除はこの線に入れない）。
+足す物（項ごとに 1 コミット）
+ 項 1 (b) 初出と頭の区分：新しい計器のファイル Instruments/InstrumentsRponset.cs（新しい表 rponset_s・名の空きは grep で確かめた＝scripts・試験・SimCore に rponset の名は 0）。
+   - 四半期の頭の写し：RpSnapshot の口（InstrumentsRulePower.cs:91 の中・BilateralMarket.cs には触れない）で RpSnap の [NonSerialized でない計器の欄 Head〕へ、(州, 外国の名) の取り分 s と州の Rule[2] を写す。エンジンの欄は足さない（写しは ConditionalWeakTable の計器の側）。
+   - 区分（頭の s で判定）：1＝①だけ（頭で s＞0 で、持ち主でない外国の隣でも無い）／3＝③（外国の国の勝者の節点に陸の隣＝Diplomacy.CessionAdjacent・頭の s は問わない）／4＝講和の付与（頭で s＝0・末で s＞0・③でない）。②（交戦の相手）は区分に入れず、列 atWarFlag で持つ（段 C′2 の F6 が外す物）。
+   - 行の種類 pair＝(州, 外国) ごと（頭か末で s＞0）／region＝州ごとに Rule[2]（頭か末で＞0）＝名の無い取り分（開幕のデータの州）。
+   - 列：quarter・year・nation・region・tier・rowKind・foreignKey・classHead・sHead・sEnd・riseS・fallS・adjacentFlag・atWarFlag・ownerAtWarFlag・firstTableFlag・dataStateFlag・hasPairHeadFlag・tailFlag・tailMass。
+   - 最初の表は既にある印で見分ける＝RulePowerTable の RpState.Init（計器の側の既存の状態・新しい印を足さない・思想⑩）。最初の表で Rule[2]＞0 かつ名の付いた取り分の和＝0 の州を dataStateFlag（ウィダー・マサワ・オラン・アノマブ・ラクナウ型）。州の名はコードに書かない。
+   - 四半期の途中のセーブ：頭の写しは計器の側で、読み込むと無い。頭が無い四半期は行を書かない（推測しない）＝savetest の往復の後も表が出ること（往復の後の最初の頭が来るまで 1 四半期は行が出ない）を確かめる。
+   - C15（旧 T1 尾の質量）と G1′ の旗 0 の値：tailFlag＝pair 行で classHead＝1 かつ 0＜sHead＜0.01・tailMass＝その sHead。region 行は tailFlag を dataStateFlag と hasPairHeadFlag で分けて読む。G1′＝region 行で tier＝Core・ownerAtWarFlag＝0・sEnd≧0.25 の数（読み手の側・種×四半期の最大）。
+ 項 2 (c) 旧の規則の目標：InstrumentsRule.cs の rule_s の末尾に列を足す（RuleP1HeaderText の後ろ）。
+   - tgtStateShare・tgtLocalShare・tgtForeignShare・tgtUngovShare：Politics.cs:946〜962 の式を計器が独立に書いた旧の目標（RuleOrderByRegion の旗・州ごとの治安・RegionReach・RuleInit[1]×仲介の度合い・取り分の和）を正規化した値。
+   - nowRuleDelivery・tgtRuleDelivery：RuleDelivery の式（Politics.cs:1114）を計器が独立に書いて、今の Rule と目標へ当てた値。tgtStateReach は国の列（人口加重・Rule[0]×AdminFill）。
+   - nowRule1GtRule0・tgtRule1GtRule0：Rule[1]＞Rule[0] の旗（徴兵の平時の植民地の読み手）。
+   - stepResidual：前の四半期末の Rule と今の目標から計器が 1 歩を組んだ値と今の Rule の最大の差（1 歩の式の自己検査）。旗 0 でも 0 になるとは限らない＝エンジンが目標を読むのは四半期の末の途中で、計器が読むのは後（治安などが動く）。厳密な自己検査（差≦1e-9）は試験の手で置いた盤面で行う。
+ 項 3 (d) 鉄道の運賃の外国の受け取り：InstrumentsTransport.cs の RailFreightPaid の受け手が持ち主でない時の額を RailAcc に足し、trrail_s の末尾に 1 列 railFreightForeignPaidGoldPerYear を足す（州×年・国×年は州の和）。RailOf を internal に（試験の口）。呼び手の BilateralMarket.cs:156・:166 には触れない。
+ 項 4 CfForeignPort：InstrumentsCorncf.cs の CfForeignPort が、w.Coef.TreatyPortHomeOnly＞0 の時に Tier＝Colonial の港を数えない。Tier と旗から独立に組む（エンジンの Politics.ForeignPortShare を呼ばない）。corncf_s の値が変わる（既定は旗 1＝(1138) の点火）＝宣言する。
+読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名・SaveGame の名）
+ - rponset：全域で 0（新しい名）。rule_s・trrail_s・corncf_s の読み手＝scripts/instruments の約 20 本（列の名で読む）・試験（InstrumentsTests ほか＝列を名で引く）。
+ - ★(749)：〈列の数で行を捨てる〉読み手を grep した結果＝rule_s・trrail_s・corncf_s を読む scripts の .py に len(...)≠N・len<N の形は 0（r1065 の 2 本は 12 四半期の系列の長さで列の数ではない）。
+ - SaveGame・POB_COEF：エンジンの欄を足さない＝0。
+他の線との重なり：t1（BilateralMarket.cs・EconomyStep.cs・Model.cs・InstrumentsBuyShadow.cs）・hy（Diplomacy.cs）・tt（試験 3 ファイルと c108sm）とファイルは重ならない。Instruments.cs は触らない（RulePowerTable の中に呼ぶので登録の行は無い）。DormantIdentityTests は触らない。
+
+[3] 足す試験と突然変異（新しい試験 1 ファイル PriceOfBread.Tests/RuleOnsetInstrumentTests.cs・8 本）
+ 試験：B1 頭の写しの区分（手で置いた盤面＝①だけ・③・講和の付与を 1 件ずつ・頭の後に付与を足す）／B2 sHead＋riseS−fallS＝sEnd（1e-12）とデータの州の印／B3 計器が切れている時は仕事の件数が増えない（対照＝入れた時は増える）／B4 走らせた表の見出し・列数・区分の列の値の範囲／C1 旧の目標の 1 歩（手で置いた盤面で Politics.CheckSecession を 1 回通した後の Rule と計器の 1 歩が差≦1e-9）／C2 手で置いた目標の RuleDelivery・Rule[1]＞Rule[0]（期待は手の数）／D1 RailFreightPaid：外国の受け手の額だけが列に入り持ち主の分は入らない／F1 CfForeignPort：旗 1＝植民地格の港を数えない・旗 0＝数える（手で置いた人口と取り分）。
+ 突然変異（使い捨ての木）と赤の予言：
+  M-b 頭の写しを寄せの後（表の時点）で取る → B1 赤（区分が③でも①でもなくなる）
+  M-c DominanceSpeed を落とす（1 歩を速度 1 で組む）→ C1 赤
+  M-d 持ち主の分も足す → D1 赤
+  M-f CfForeignPort が旗を読まない → F1 赤
+  CTL（突然変異なし）→ 全て緑
+ 試験の数の予言：Tests 2624＋8＝2632・Tests.Ui 234＝合計 2866（FullLength 3 は同じ）。件数の番人（ソースを走査）：WriterRatchetTests の宣言の表は触れない（エンジンの書き手を足さない）＝書き換える件数 0。㉘ で回す束：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests（赤なら腕を回さない）。
+ ㉘ の点検（grep の結果）：IndustrializationReaderTests の許可表に計器のファイル名の行 0（計器は SimCore/Instruments の中）・`new MoneyStock(` の件数 64（足さない＝64 のまま）・route_anchors.tsv は金を動かさないので触れない・WriterRatchetTests の宣言の表に RulePower・RailFreight・trrail の行 0。
+
+[4] 恒等の判定（段 2・足した表と列を宣言）
+ - 素の 5 種・計器つき 10 種（INS=1）が m1143（b5_20261115_m1143・b10_20261115_m1143_ins・素の 10 種 b10_20261115_m1143）と名乗り行を除いて全行バイト一致。
+ - 宣言（計器の表の差）：新しい表 rponset_s（1 表）・rule_s に列の増え（末尾 12 列・仮）・trrail_s に列の増え（末尾 1 列）・corncf_s は値が変わる（CfForeignPort の旗 1＝植民地格の港を数えない）・rulepower_s・他の表は同一。
+ - .cost の推定は m1143 の 229.6 秒と同じ（計器が切れている成績表では件数の行が増えない）。
+ - 止める線：破綻・100 倍・1e10・空洞化・計算量 ＞248.5・機構の試験の赤（計器だけの線なので成績表は変わらない＝発火しない見込み）。
+
+[5] 〈判定: 恒等〉なら採る（件名に〈証明〉と書かない）。一致しなければ、その変更を外して報告に回す。
+ 記録：作ったフォルダ D:/PoB_work/wt_c112cm・D:/PoB_work/c112cm_work・D:/PoB_work/c112cm_art（隔離ビルド）。生は合流の判断まで残す（⑲）。
+
+追記 1（腕の前・ident の前）：rule_s の新しい列は P1 の 9 列の手前に置く（事前登録 §2 項 2 の〈末尾〉を直す）。理由：フルスイートで RuleInstrumentTests.P1の9列が末尾に順序どおりあり…（T4・見出しの末尾 9 列を固定する計器の配置の試験）が赤になった＝試験は書き換えず、計器の列の位置を変えた（機構の Assert は触れない）。列数は 10（事前登録の〈12 列・仮〉は 10 列）。rule_s の読み手は列の名で読む＝位置の影響なし。
+追記 2：フルスイートの結果（直す前の木）＝Tests Category!=FullLength 合格 2630・失敗 1（上記 T4 だけ）・スキップ 1・合計 2632（予言 2632 と一致）／Tests.Ui 234 合格。直した後は関連の束 83 本（RuleInstrumentTests・RuleOnsetInstrumentTests・InstrumentsTests・RuleShares・Secession）が緑。
