@@ -233,7 +233,7 @@ public class FuelOperatingCostTests
         var coef = new Coefficients();
         var sim = ShipWorld(53, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true);   // 汽船が安い
         var w = sim.World;
-        double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);
+        double era = coef.EraFactor(w.WorldTechLevel, 0.0);
         double stock0 = 0, money0 = 0, buyers0 = 0;
         foreach (var r in w.Regions)
         {
@@ -284,7 +284,7 @@ public class FuelOperatingCostTests
         var coef = new Coefficients();
         var sim = ShipWorld(54, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: 2.3);   // 運賃革命のランプの途中（era が1でも0.5でもない）
         var w = sim.World;
-        double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);
+        double era = coef.EraFactor(w.WorldTechLevel, 0.0);
         w.ShipCapacity = 5000; w.ShipSteamShare = new Share(0);   // 始まりは帆船だけ
         double steamCap = 0;
         for (int k = 0; k < 12; k++)

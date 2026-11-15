@@ -2094,11 +2094,6 @@ public static partial class Instruments
         var to = f.MigrationTo ??= new();
         to[dst] = to.GetValueOrDefault(dst) + sizeK;
     }
-    /// <summary>入植（本国の pop → 植民地格の州・<c>Colonial</c> の運搬の直後・読むだけ）。</summary>
-    internal static void Settled(Pop from, Region dst, double sizeK)
-    {
-        SettlerOut.GetValue(from, _ => new double[1])[0] += sizeK; FlowOf(dst).SettlerInK += sizeK;
-    }
     /// <summary>
     /// 越境の移民（MultiNationSim.MoveMigrants の運搬の前・読むだけ）。〔履歴 Instruments.cs#418〕
     /// </summary>

@@ -30,7 +30,7 @@ public static class Colonial
             double pw = cr.SumPopulation() / colUnitPop;
             AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
         }
-        double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
+        const double era = 1.0;   // 時代係数は恒等 1（Coefficients.EraFactor は 1.0 を返す＝係数 EraColonyCoal は (1154) で削除）
         double steam = w.ShipSteamShare.Value;
         double steamMult = c.ShipTier2CapMult * Discovery.GoodGate(r, c.ShipTier2GoodId) / era;
         if (steamMult > 1.0) shipBurden *= (1.0 - steam) + steam / steamMult;
