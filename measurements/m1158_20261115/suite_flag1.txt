@@ -1,0 +1,8 @@
+# (1158) c114qn 旗 1 の木（887adae26＝係数 0＋注）のフルスイート（Release・2 プロジェクト・trx・scripts/instruments/c113qn/suite.sh）と savetest・leakhunt（scripts/instruments/saveleak.sh）。㊴ の束 447 本緑（先に回した）。
+PriceOfBread.Tests nonfull rc=0 list=2645 成功!   -失敗:     0、合格:  2644、スキップ:     1、合計:  2645、期間: 46 m 51 s - PriceOfBread.Tests.dll (net10.0)
+PriceOfBread.Tests full rc=0 list=3 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 58 s - PriceOfBread.Tests.dll (net10.0)
+PriceOfBread.Tests.Ui nonfull rc=0 list=234 成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 38 s - PriceOfBread.Tests.Ui.dll (net10.0)
+PriceOfBread.Tests.Ui full rc=0 list=0 
+合計 Category!=FullLength＝2645＋234＝2879（--list-tests の和 2645＋234 と一致・予言 2874＋5）・FullLength 3。四半期の途中のセーブは SaveRoundTripTests.四半期の途中のセーブで続きが一致する（上の 2645 の中で緑）。
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
