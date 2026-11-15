@@ -1,0 +1,16 @@
+(1144) 旗 1 の木 ff75eeeb6 のフルスイート（2 プロジェクト・trx は D:/PoB_work/c112t1_work/trx）
+成功!   -失敗:     0、合格:  2630、スキップ:     1、合計:  2631、期間: 37 m 12 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 47 s - PriceOfBread.Tests.Ui.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m - PriceOfBread.Tests.dll (net10.0)
+--list-tests
+2631
+3
+234
+
+savetest・leakhunt（SOURCE-HASH fcbf4d2bd37472da）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+
+旗 1 の短い走り（POB_COEF で 2 本とも 1・2 種・268 四半期・木 dccf05e29）
+短い旗1 種 2 rows=2.29045e+07 oldSkip=3.73002e+06 instSkip=2.69432e+06 unclassified=0 popA=184722 popAPx=173865 popASmallD=45083 popADealX=410 popAQtyX=748.324 popAValX=628.495 smallD=6.82469e+06 gateEval=2.8797e+06 gateMismatch=0 u1Deals=9.78919e+07 u1Unok=0 u1Viol=0 u1ViolAbs=0 u1SmallD=1.618e+07 u1SmallDViol=0 u1Excess=7.29017e-12 u1Qty=2.75693e+08 selfN=1.00772e+08 selfDiff=0 retreatDeals=3.14218e+07 retreatQty=8.93023e+07 dealsX=7.38279e+07 qtyX=2.05254e+08 u1MaxRel=4.44e-16 selfMaxRel=0
+# 合計：比≥100 の行 0・非有限 0・比の最大 1.206・P の最大 2.697
