@@ -3,7 +3,6 @@
 public static class Credit
 {
     private const double HeatClampMax = 1.5;
-    private const double GoldCoverCreditFloor = 0.25;
 
     public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat)? month = null, int days = 1)
     {
@@ -43,7 +42,7 @@ public static class Credit
         {
             double gcCoverage = w.BaseMoney / w.BroadMoney;
             double gcFloor = c.GoldCoverMin.Value * (1.0 + c.GoldCoverCreditRestraint);
-            if (gcFloor > 1e-9 && gcCoverage < gcFloor) maxLoans *= System.Math.Max(GoldCoverCreditFloor, gcCoverage / gcFloor);
+            if (gcFloor > 1e-9 && gcCoverage < gcFloor) maxLoans *= gcCoverage / gcFloor;
         }
         var home = w.Region;
         double repayable = double.PositiveInfinity;
