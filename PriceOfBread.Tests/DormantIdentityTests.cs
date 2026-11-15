@@ -126,7 +126,7 @@ public class DormantIdentityTests
         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）
         // ★DiscoveryPriceInitFromCost・DiscoveryCarrierDownstream（流れG）・DomesticServiceProductivity（既定 0.30）は 2026-10-17 (388) で**点火**＝この表から外した。
-        // ★SilverParityFromRatio（世界銀価格を同一市場内の 銀/金鉱 比から作る・E→平均→E の自己参照を断つ）は 2026-11-02 (775) に 1 で**点火**（腕 B）＝この表から外した。
+        // ★SilverParityFromRatio（世界銀価格を同一市場内の 銀/金鉱 比から作る・E→平均→E の自己参照を断つ）は 2026-11-02 (775) に 1 で**点火**（腕 B）＝この表から外した。(1168) で旗ごと焼き込んだ（RetiredFields）。
         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
         // ★NonElectiveSeatsEmpty（(1099) c105gp 非選挙の政体で議席を空にする）は 2026-11-13 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は NonElectiveSeatsTests（旗を明示）。
@@ -259,6 +259,7 @@ public class DormantIdentityTests
     private static readonly string[] RetiredFields =
     [
         "MalariaQuininePerColony",   // (1167) c115qc：植民地の毎月のキニーネ（(1158) で既定 0・(1164) で係数 0 を採った）。枝と係数を削除
+        "MintBuysAtMarket", "SilverParityFromRatio",   // (1168) c115sb D-s4：既定 1.0 の旗 2 本を焼き込んだ（市場買いの枝と銀の平価の器・旗 0 の経路の番人は隔離の盤面へ移し旧の行は削除）
         "EraTensionRange",   // (1160) c114sr D-r2：近接の緊張の距離の時代係数（EraFactor は常に 1.0＝×1.0 を消した・読み手は World.cs の 1 行だけだった）
         "DefeatShockTensionRelief", "DefeatShockProtectMin",   // (1154) c113sw D-b：ハイエナ抑制の枝と係数 2 本の削除（(1145) c112hy が既定 0 で閉じた後・旧の道は HyenaBranchTests の H2 が戻ると赤）
         "MilitaryProcurePriceGateScale",   // (1132) c110sm K1：軍需財の価格ゲート倍率（既定 1 の経路だけ残した・FactoryBuildPriceGateScale は FactoryTierTests が 0 を置く本物の読み手があるので残す）

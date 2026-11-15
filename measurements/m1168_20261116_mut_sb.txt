@@ -1,0 +1,10 @@
+(1168) c115sb 突然変異の表（使い捨ての木 D:/PoB_work/c115sb_bis＝c115sb の頭 647ab8a78・台本 scripts/instruments/c115sb/mut_sb.py・各行＝突然変異・結果・対象の試験・件数）
+M1	赤	FullyQualifiedName~MintregInstrumentTests	失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 895 ms - PriceOfBread.Tests.dll (net10.0)
+M2	赤	FullyQualifiedName~MintregInstrumentTests	失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 930 ms - PriceOfBread.Tests.dll (net10.0)
+M3	赤	FullyQualifiedName~MintregInstrumentTests	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 890 ms - PriceOfBread.Tests.dll (net10.0)
+M4	赤	FullyQualifiedName~MintregInstrumentTests	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M5	赤	FullyQualifiedName~MintregInstrumentTests	失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M6	赤	FullyQualifiedName~MintAtMarketTests	失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M7	赤	FullyQualifiedName~MultiNationTests.銀平価	失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M8	赤	FullyQualifiedName~CreditHoardGuardTests	失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M9	赤	FullyQualifiedName~CreditHoardGuardTests	失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

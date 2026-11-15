@@ -1956,6 +1956,7 @@ public static partial class Instruments
         RailSpendTable(sim, seed, q);      // RailSpendTable（(1130) railspend_s）
         TportTable(sim, seed, q);          // TportTable（(1138) 条約港の読み手・tport_s）
         DipcoolTable(sim, seed, q);        // DipcoolTable（(1145) 高い帯の冷めの枝・dipcool_s）
+        MintregTable(sim, seed, q);        // MintregTable（(1168) 造幣の床の効き・mintreg_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -1998,6 +1999,7 @@ public static partial class Instruments
         RailSpendClose(sim);   // RailSpendClose（(1130)）
         TportClose(sim);       // TportClose（(1138)）
         DipcoolClose(sim);     // DipcoolClose（(1145)）
+        MintregClose(sim);     // MintregClose（(1168)）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕

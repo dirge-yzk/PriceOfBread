@@ -77,7 +77,7 @@ public class MoneyThemeTests
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // 国家世界の1国＝密閉（交易相手なし）・商人/投資家POPが立つ（FullChain の最小ビルダーは商人索引を持たない）
         var w = sim.World;
         w.Coef.MintParitySells = gate;
-        w.Coef.MintBuysAtMarket = 0;   // 隔離＝準備不足の市場買い（atMarket）を切る。ON の売りは atMarket の月に走らない設計なので、買い側が同じ州で発火すると器が測れない
+        w.Coef.GoldCoverMin = new Share(0.0001);   // 隔離＝準備の被覆が足りる盤面（coverShort＝0・市場買いの予算 0）。(1168) で旗 MintBuysAtMarket を焼き込み、旗 0 の隔離をこの盤面へ移した。ON の売りは準備不足の月に走らない設計なので、買い側が発火すると器が測れない
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
         var r = w.Region;
         foreach (var other in w.Regions)   // 隔離＝首都州以外の銀在庫を0にして州ループから外す（Stock<=1e-12 で買いも売りも通らない）＝数量が首都州1回ぶんに閉じる
