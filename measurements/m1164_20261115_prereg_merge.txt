@@ -55,3 +55,9 @@
 - 採ったら：B5＝b5_<日>_m1164・B10INS＝b10_<日>_m1164_ins・MON＝mon_<日>_m1164.txt・INSRAW＝keep_1164/base_ins（M の生・全表）・ヌル腕 keep_1164/n1・n2・種 11〜20 keep_1164/a11・BASE_COMMIT と STAGE_BASE＝M を測った木・TESTS_NONFULL 2889・NG_BASE ng1164。
 - 採らなかったら：基線は m1157 のまま（腕 Z で恒等を確かめた合わせた木・ident.cfg は計器の表の名簿とテストの数だけ）・腕の生は keep_1164_rej へ。
 - D:：計画の時点 112.0GB・合流の起動の時点 68.3GB。線の ident の生 ident_c114sr（11GB）は判定を読んだ＝合流が消す。線 qn の腕 B の生（25GB）は M の生と表ごとの sha1 で比べた後に消す（qn を採った場合・採らなければ keep_1164_rej へ）。keep_1150・keep_1157・keep_1157_rej は消さない（新しい ident.cfg の push の後に INSRAW でも KEEPNULL でもない keep を消してよい＝指示の許し・拒まれたら言い換えずに残す）。
+
+[8] 追記 1（M・S11・S11z・p5・p10 とフルスイートの後・腕 Z と N1・N2 の結果を見る前に書く）
+- 事実（予言の外れ）：M の生と線の腕 B の生の表ごとの sha1 で、違う表に flow_s（10 本）があった＝[3] の〈違ってよい表〉の列挙から flow_s を落としていた（flow_s は呼び出し位置 sourceFile・sourceLine の列を持つ＝sr の行の削除と t1 の行の追加で行番号が動く見込み〈推〉）。腕 B の生は sha1 を取った後に縮めた＝列を除いた行の多重集合での比べは旗 1 の世界ではできない。旗 0 の世界の flow_s は腕 Z の ident（呼び出し位置を除いた多重集合で比べる）で読む。
+- 事実：M の成績表は線の腕 B の成績表と全行一致（名乗り行を除く）・素の 10 種 p10 も同じ・.cost 推定 M 229.3・p5 228.8・p10 229.3・S11 227.2・S11z 227.7 秒。フルスイート（5384e7aab）緑 2655＋3＋234・savetest OK・leakhunt 保存則違反なし。
+- D:：M・S11 の後の空きは 69.2GB＝腕 Z の段 2（約 30GB）と N1（絞った表 約 5GB）を同時に起こし、N2 は腕 Z の刈り込みの後に起こす（床 35GB を守る）。ヌル腕は [5] の後半の形〈絞った表〉（a11 の名簿＋disccontact_s・rponset_s・rule_s・secession_s・cessp_s・nationgood_s・tb_s・cederule_s・armsfill_s・colqn_s）で回す＝それ以外の表のヌル腕の幅は keep_1150/n1・n2（木 d05c6bea9）で読む。
+- 予言：腕 Z は〈判定: 恒等〉（flow_s も呼び出し位置を除けば一致）。N1・N2 の止める線 0・exact・near は m1157 のヌル腕の幅の近く（記録）。
