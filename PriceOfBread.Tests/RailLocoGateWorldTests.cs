@@ -77,6 +77,26 @@ public class RailLocoGateWorldTests
     }
 
     [Fact]
+    public void T5_機関車の在庫を手で置いた州でも門を掛けない走りと決済_貯蓄_払いがビットで同じ()
+    {
+        // T1 の盤面は 1783 年＝機関車の供給が無く配給が 0＝決済の門の誤り（需要は世界・決済は自国）を拾えない（突然変異 M3 で緑）＝在庫を手で置いて配給を正にする。
+        static World Stocked(double needs, double gateWorld)
+        {
+            var w = Board(needs, gateWorld, false, true);
+            foreach (var r in w.Regions) r.Markets[Catalog.LocomotiveId].Stock = 1000.0;
+            return w;
+        }
+        var reference = Stocked(0.0, 0.0); var gw = Stocked(1.0, 1.0); var own = Stocked(1.0, 0.0);
+        RunAll(reference); RunAll(gw); RunAll(own);
+        double sold = 0; foreach (var r in reference.Regions) sold += r.Markets[Catalog.LocomotiveId].LastSold;
+        Assert.True(sold > 0, $"前提：門を掛けない盤面で機関車が売れた量 {sold:R}");
+        int dOwn = Diffs(reference, own, out int c0);
+        Assert.True(dOwn > 0 && c0 > 100, $"前提：自国の発見の規則は門を掛けない走りと違う（差 {dOwn}・比べた {c0}）");
+        Assert.Equal(0, Diffs(reference, gw, out int c1));
+        Assert.Equal(c0, c1);
+    }
+
+    [Fact]
     public void T2_世界の誰も知らない州では今の規則とビットで同じ_機関車の需要は0()
     {
         var gw = Board(1.0, 1.0, false, false);
