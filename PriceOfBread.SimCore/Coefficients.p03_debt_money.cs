@@ -127,6 +127,7 @@ public sealed partial class Coefficients
     public int CurrencyReformCalmMonths = 24;         // 発動に要る「切下げゼロ」の連続月数＝財政の同時再建（1923年11月だけ成功した差）
     public int CurrencyReformCooldownMonths = 120;    // 濫用防止
     public double ExchangeRateFloor = 0.3;           // レート下限（極端な減価の底＝暴走防止）
+    public double ExchangeRateCeil = 3.0;            // レート上限
     public double CapitalIndTarget = 4.0;            // 投資収益率の素地＝(これ−工業化度)
     public double OffGoldCapitalPenalty = 0.5;       // 不換国の対外信用の倍率（金本位＝1.0。不換は外資が付きにくく逃げやすい）
     public double CapitalDemandScale = 0.02;         // 流入需要＝(収益率−世界平均)×名目GDP×これ（吸収力＝経済規模）

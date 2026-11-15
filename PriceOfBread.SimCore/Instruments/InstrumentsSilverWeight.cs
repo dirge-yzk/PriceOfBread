@@ -66,7 +66,7 @@ public static partial class Instruments
             if (w.MonetaryLaw != MonetaryStandardLaw.Silver || !(w.WorldSilverPrice > 1e-9)) continue;
             silverNations++;
             double sr = refAg > 1e-9 ? w.WorldSilverPrice / refAg : 1.0;
-            if (!(sr >= c0.ExchangeRateFloor && sr <= ExchangeRateCeilOld)) clampHits++;
+            if (!(sr >= c0.ExchangeRateFloor && sr <= c0.ExchangeRateCeil)) clampHits++;
         }
         string R(double v) => SilverWeightR(v);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
