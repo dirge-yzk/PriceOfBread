@@ -1,0 +1,3 @@
+D:/PoB_work/c114t1_work/{short0,short1,flag0_t1buy} → D:/PoB_work/keep_1164_rej/c114t1_short/（t1 の旗 1 の短い走りと旗 0 の t1buy_s＝挙動を入れなかった線の生） 2026-11-16 00:49:28
+M・S11・S11z・N1 の生 out_*/ins → D:/PoB_work/keep_1164/base_ins・a11・a11z・n1（同じドライブの名前の付け替え） 2026-11-16 01:06:14
+N2 の生 out_mN2_10/ins → D:/PoB_work/keep_1164/n2 2026-11-16 01:13:54

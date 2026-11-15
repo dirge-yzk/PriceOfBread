@@ -1,0 +1,7 @@
+# 腕 D:/PoB_work/m1164_work/out_mS11_10_s11/ins（種 10・短い行 0）
+arm	seeds=11,12,13,14,15,16,17,18,19,20	rows=408003	short=0	nanRows=0	malRows=21449	g1_sumObsGot=0	g1_sumObsDemand=0	g1_sumObsClaim=0	buyRows=11843	sumOldBuyable=232329	sumObsGot=0	R=1.000000	fuelRows=80116	sumOldWant=679104	sumOldReq=444669	sumOldClaim=660261	sumObsCost=0	sumObsClaim=0	maxAbsDiffGot=35.1993	maxRelDiffReq=10.7	invade=1239	invadeQuinineTargets=129
+flag0	seeds=11,12,13,14,15,16,17,18,19,20	rows=409676	short=0	nanRows=0	malRows=22314	g1_sumObsGot=306079	g1_sumObsDemand=442894	g1_sumObsClaim=686593	buyRows=13666	sumOldBuyable=306079	sumObsGot=306079	R=0.000000	fuelRows=73448	sumOldWant=705798	sumOldReq=442894	sumOldClaim=686593	sumObsCost=415426	sumObsClaim=686593	maxAbsDiffGot=0	maxRelDiffReq=1.71e-16	invade=0	invadeQuinineTargets=0
+G1 狙い（旧の規則＞0 の行で実の調達・需要・請求の和＝0・床 ≧10000）：緑（行 21449・調達 0・需要 0・請求 0）
+G2 大きさ（R＝Σ(旧で買えた量−実の調達)÷Σ旧で買えた量 が 0.9〜1.1・床 ≧1000）：緑（R 1.000000・行 11843）
+G4 壊さない・燃料（fuelClaim＞0 の行 ≧ 旗 0 の 0.5 倍）：緑（腕 80116・旗 0 73448）
+記録：計器の自己一致 maxAbsDiffGot 35.1993・maxRelDiffReq 10.7・NaN の行 0・キニーネの標的への侵略 129/1239

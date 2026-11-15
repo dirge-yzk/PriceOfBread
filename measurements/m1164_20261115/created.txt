@@ -1,0 +1,5 @@
+D:/PoB_work/m1164_work（作業）
+D:/PoB_work/wt_m1164（worktree・枝 m1164）
+D:/PoB_work/wt_m1164z（腕 Z の使い捨ての worktree・detached・コミットは push しない）
+D:/PoB_work/keep_1164_rej（新しく作った・採らなかった腕の生）
+D:/PoB_work/keep_1164（新しい基線の生 base_ins・n1・n2・a11・a11z）

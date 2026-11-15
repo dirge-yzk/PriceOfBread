@@ -1,0 +1,6 @@
+D:/PoB_work/ident_c114sr（線 c114sr の ident の生・判定〈恒等〉を合流が読んだ・担当〈判定を読んだ後に消してよい〉） 2026-11-15 23:04:33
+D:/PoB_work/c114qn_work/out_c114qnB_10/ins（線 c114qn の腕 B の生・表ごとの sha1 を measurements/m1164_20261115/hash/qnB_trim.tsv に取って colqn_s・nation_s・pxmonth_s・region_s・migration_s・nationgood_s へ縮めた・★(1157) の型） 2026-11-15 23:06:03
+D:/PoB_work/m1164_work/suite（自分で作った・フルスイートの写しとビルド・記録と trx は measurements へ写した） 2026-11-16 00:17:31
+D:/PoB_work/c114qn_work/out_c114qnB_10（縮めた残り・M と表ごとに sha1 で比べた〔一致 1450・違う 80＝既知の揺れと経路の行と t1・sr の宣言の表〕・成績表は全行一致＝帰属を読み終えた・★(1157) の型） 2026-11-16 00:17:31
+D:/PoB_work/c114qn_work/mut・flag0_ins（qn の突然変異の生と旗 0 の colqn_s＝合流が採ると決めた後・flag0_ins は m1164_work/qn_flag0_ins へ写して門を読んだ） 2026-11-16 00:50:40
+D:/PoB_work/ident_m1164z（自分で作った・腕 Z の ident の生・〈判定: 恒等〉を読んだ後・成績表と判定は measurements へ写した） 2026-11-16 01:00:51

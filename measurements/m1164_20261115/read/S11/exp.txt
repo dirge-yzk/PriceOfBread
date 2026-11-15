@@ -1,0 +1,2 @@
+arm	seeds=10	expN=129	expDepletedN=103	depletedShare=0.7984	fillUpperPerExp=0.4816	stockAfterPerExp=10.33	needPerExp=30	reqPerExp=14.45	per_seed(depleted/n)=11:16/22 12:9/11 13:9/9 14:6/11 15:0/0 16:17/19 17:13/16 18:12/16 19:13/14 20:8/11
+flag0	seeds=10	expN=123	expDepletedN=94	depletedShare=0.7642	fillUpperPerExp=0.463	stockAfterPerExp=15.32	needPerExp=30	reqPerExp=13.89	per_seed(depleted/n)=11:12/17 12:9/10 13:8/11 14:13/18 15:0/0 16:14/15 17:8/10 18:10/15 19:13/15 20:7/12

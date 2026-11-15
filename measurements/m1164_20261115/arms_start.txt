@@ -1,0 +1,16 @@
+mM start 2026-11-15 23:30:13 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=bc05b31c Dfree=101.17GB armsfree=6
+mS11 start 2026-11-15 23:30:13 ins=1 N=10 SB=11 cearn=1 coef=- HEAD=bc05b31c Dfree=101.17GB armsfree=6
+mS11z start 2026-11-15 23:30:14 ins=1 N=10 SB=11 cearn=1 coef=MalariaQuininePerColony=6.0 HEAD=bc05b31c Dfree=101.17GB armsfree=6
+mp5 start 2026-11-15 23:30:14 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=bc05b31c Dfree=101.16GB armsfree=6
+mp10 start 2026-11-15 23:30:14 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=bc05b31c Dfree=101.15GB armsfree=6
+mp10 end 2026-11-16 00:10:54 rc=0
+mp5 end 2026-11-16 00:10:54 rc=0
+mS11z end 2026-11-16 00:14:27 rc=0
+mS11 end 2026-11-16 00:14:38 rc=0
+mM end 2026-11-16 00:15:36 rc=0
+identZ start 2026-11-16 00:17:42 tree=01f65987 Dfree=69.24GB armsfree=6
+mN1 start 2026-11-16 00:17:43 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.50000001 HEAD=bc05b31c Dfree=69.24GB armsfree=6
+mN1 end 2026-11-16 00:49:01 rc=0
+identZ end 2026-11-16 01:00:26 rc=0
+mN2 start 2026-11-16 01:00:32 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.49999999 HEAD=bc05b31c Dfree=51.97GB armsfree=6
+mN2 end 2026-11-16 01:13:46 rc=0

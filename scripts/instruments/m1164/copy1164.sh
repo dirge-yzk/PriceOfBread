@@ -12,7 +12,7 @@ cp $W/b10_mM_10.txt $M/b10_${D}_m1164_ins; cp $W/b10_mM_10.txt.cost $M/b10_${D}_
 cp $W/b10_mS11_10_s11.txt $M/b10s11_${D}_m1164_ins; cp $W/b10_mS11_10_s11.txt.cost $M/b10s11_${D}_m1164_ins.cost; cp $W/b10_mS11_10_s11.txt.manifest $M/b10s11_${D}_m1164_ins.manifest
 cp $W/b10_mS11z_10_s11.txt $M/b10s11_${D}_m1164z_qn6_ins; cp $W/b10_mS11z_10_s11.txt.cost $M/b10s11_${D}_m1164z_qn6_ins.cost; cp $W/b10_mS11z_10_s11.txt.manifest $M/b10s11_${D}_m1164z_qn6_ins.manifest
 cp $W/mon_mM_10.txt $M/mon_${D}_m1164.txt
-mkdir -p $M/ng1157_${D}; for f in $W/read/M/ng/*_mM.txt; do b=$(basename $f _mM.txt); cp $f $M/ng1157_${D}/${b}_m1164.txt; done
+mkdir -p $M/ng1164_${D}; for f in $W/read/M/ng/*_mM.txt; do b=$(basename $f _mM.txt); cp $f $M/ng1164_${D}/${b}_m1164.txt; done
 for a in M S11; do cp $W/read/$a/stop1002.txt $M/m1164_${D}/stopbase/stop1002_$a.txt; mkdir -p $M/m1164_${D}/read/$a; cp $W/read/$a/*.txt $M/m1164_${D}/read/$a/ 2>/dev/null; done
 fi
 if [ "$P" = null ]; then
