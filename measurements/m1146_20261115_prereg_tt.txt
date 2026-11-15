@@ -1,0 +1,45 @@
+(1146) c112tt 事前登録：tf と sm の残り（試験と台本だけ）。署名: Claude Sonnet 5.5。形＝恒等の線（予言 0）。最初のコミット。
+経緯：(1139) tf・(1140) sm が ★(743) の外の書き換えを 2 つ入れた（00一覧〈次の波〉0 節 ①・§0-2 ★(1143) 知らせる物 ①）。戻す・強める側だけ。
+入れない物：SimCore・Runner・App・Display の .cs。TbClassify の NaN の隙間（波113）。Assert を弱めること。期間・種・係数の取り直し。
+
+[1] 恒等の線・予言 0
+  SimCore を 1 バイトも変えない（git diff --stat aa8ee7e51 の SimCore 配下 0 行）。素の 5 種・計器つき 10 種は m1143 と名乗り行（SOURCE-HASH）を除き全行一致。
+  段＝試験と台本だけ＝stage.py の段 1 の見込み。
+
+[2] 触る物と読み手（grep は項ごとに下で記す）
+  項 1 PriceOfBread.Tests/TradeBilateralInstrumentTests.cs
+      T1b の sk2（境の盤面）に UB_Bb＝0.0・UB_A1＝0.0 の Assert を戻す（旧 T1 の 2 行＝(1139) で落ちた）。T6 の注を〈rpT＝+∞ は Ok のまま B0〉へ直し、同じ事を 1 件の Assert で固定する。M6b は〈同値の突然変異の見込み〉と名乗る（下の表）。
+  項 2 PriceOfBread.Tests/BuyShadowInstrumentTests.cs の T1
+      moved・positive・partial は手で置いた行を除く実走の行だけで数える（元の門 moved≧100・positive≧100・partial≧20 は旧のまま）。
+      必ず真になる capZero≧handCap0 と、軌道に依る gateZero≧100 を消し、手で置いた 3 組へ（A 未発明＝門 0 を渡す・B 能力 0 で産出が床の下＝0 に落ちる・C 能力 0 で産出が床の上＝落ちない対照）。下限は各 50 行。
+  項 3 PriceOfBread.Tests/TransportInstrumentTests.cs の G4（移した州の線路）
+      呼び口 2 つ（Transport.cs:7 の RailMonthBegin・:73 の RailMoveBegin）を消す突然変異を回す。赤にならなければ、エンジンの道（TakeRailForMove → Step）を通す試験を 1 本足す。
+  項 4 scripts/instruments/c108sm/（archive_gate.py・make_short.py・新しい rowkey.py）と docs/README_線の担当.md（札だけ）
+      数字だけの札 11 本（表「1」〜「11」）を、第 1 欄＋第 2 欄の鍵（表「★★★1・必ず measure.sh を使う（SOURCE-」ほか）へ。数字の第 1 欄は別の表と重なる（★★★1 は 3 表）ため。
+      label_exists を〈ちょうど 1 行〉へ（旧は startswith の any）。
+      門 5 の比べ：scripts/instruments/c112tt/gate5.py（基準の rev を渡す・既定 aa8ee7e51）。c107hc/gates.py には触れない（持ち主が違う）。
+  項 5 時間があれば（組の注の宣言 21 本）。入れなかった場合は 00一覧へ。
+  読み手の grep（腕の前に書く）：変更する試験の名前を他が読むか＝scripts・measurements の台本が試験の名前を名指す所は c111tf/mutate.sh（TradeBilateralInstrumentTests を filter）・c111sm 系（TransportInstrumentTests）＝名前は変えない。POB_COEF・SaveGame の名前＝触れない（試験と台本だけ）。
+  他の線との重なり：t1 は新しい試験 1 ファイルと InstrumentsBuyShadow.cs を持つ・hy は Diplomacy.cs・cm は Instruments*.cs。tt の 3 試験ファイルは他の線が触らない（持ち主の表のとおり）。DormantIdentityTests.cs・Instruments.cs は触らない。
+
+[3] ★(743) の区分（行と区分）
+  TradeBilateralInstrumentTests.cs T1b sk2・T6：足す Assert のみ＝区分外・番人を強める側（旧 T1 の 2 行を戻す）。既存の Assert は変えない。
+  BuyShadowInstrumentTests.cs T1：①〜④ のどれでもない＝区分外。(1140) の 2 つの Assert（capZero≧handCap0＝常に真・gateZero≧100＝実走の軌道に依る下限）を、手で置いた盤面の Assert に置き換える（★(1136)＝軌道に依る下限を手で置いた盤面へ）。moved・positive・partial の閾値の数字は変えず、数える母集合を〈手で置いた行を除く〉へ狭める（番人を強める側）。
+  TransportInstrumentTests.cs：足す試験のみ。既存は変えない。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests。書き換える件数の予言（㉑）＝0（WriterRatchetTests の宣言の表・new MoneyStock( の件数・route_anchors.tsv は触らない）。
+  試験の数の予言：Tests＋Tests.Ui＝2858＋(0 または 1)。項 3 の呼び口の突然変異が緑なら +1（エンジンの道の試験）・赤なら 0。項 1・2 は既存の試験の中の Assert の増減＝本数 0。FullLength は 3 のまま。
+
+[3b] 足す Assert と突然変異（使い捨ての木・scripts/instruments/c112tt/mutate.sh）。門ごとにどれで赤になるかを腕の前に書く。
+  M1 BsPHat の未発明の枝を消す（`if (!baumol && !(gate > 0)) o = 0;` の条件を false）＝BuyShadow T1 が赤（A の手で置いた行で hatShut＞0）。
+  M2 BsPHat の床の枝を消す（`else if (!(target > 0) && o < c.TargetStockFloor) o = 0;`）＝T1 が赤（B の行）。
+  M3 床の枝を無条件にする（`o < c.TargetStockFloor` を外す）＝T1 が赤（C の行が 0 になる）。
+  M4 TbClassify の ubBb から 0.5 を引く＝T1b の UbBb＝0.0 の Assert だけが赤になる見込み（区分は変わらない）。
+  M5 TbClassify の Ok を rpT＝+∞ でも false にする＝T6 が赤。
+  M6b 眠りの半分を落とす（(1139) と同じ）＝緑のまま＝同値の突然変異の見込み（Boards は眠った生産者を除く・眠りは盤面に置けない）。限界と名乗る。
+  M7 Transport.cs の TakeRailForMove から RailMoveBegin の呼びを消す＝既存の G4 の試験は緑の見込み（計器を直接呼ぶ）→ 足す試験が赤になる。
+  M8 Transport.Step の頭の RailMonthBegin の呼びを消す＝既存は緑の見込み → 足す試験が赤になる。
+  M9 台本：c108sm の label_exists を旧（any・startswith）へ戻す＝数字の札 表「1」を置いた版が通る＝旧の欠陥の再現。新の版は NG。表「」・存在しない名・重複する名（規律）も NG。
+
+[4] 恒等の判定：素の 5 種（b5_20261115_m1143）・計器つき 10 種（b10_20261115_m1143_ins）・素の 10 種（b10_20261115_m1143）と全行一致。腕は SimCore を変えない＝ident.sh run c112tt の判定が〈恒等〉。計器の表の差の宣言＝0。
+[5] 採る条件：〈判定: 恒等〉・試験の数が予言どおり・フルスイートの 2 プロジェクトとも緑・savetest・leakhunt 緑・突然変異が表のとおり（赤にならない物は限界と名乗る）。
+計算量：変えない（.cost の推定が m1143 と一致）。D: 使用量：隔離ビルドと ident の腕（約 30GB 以内）。起こす前に shutil で空きを測る。

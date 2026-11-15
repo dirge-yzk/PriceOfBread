@@ -1,0 +1,40 @@
+(1146) c112tt 突然変異（使い捨ての木 D:/PoB_work/c112tt_work/mt・scripts/instruments/c112tt/mutate.sh・試験は TradeBilateralInstrument・BuyShadowInstrument・TransportInstrument の 3 組）
+署名: Claude Sonnet 5.5。M1〜M6b は頭 afe77cfbe（項 1・2 の後）・M7・M8 は頭 9b078980e（項 3 の後）。事前登録 [3b] の見込みとの対照を末尾に置く。
+== M1_未発明の枝を消す
+  失敗 PriceOfBread.Tests.BuyShadowInstrumentTests.T1_P_hat_は供給の産出と合う [2 s]
+失敗!   -失敗:     1、合格:    18、スキップ:     0、合計:    19、期間: 55 s - PriceOfBread.Tests.dll (net10.0)
+== M2_床の枝を消す
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T4_P_hatの値段の差し替えはエンジンの値段を書き換えた値と合う [2 s]
+  失敗 PriceOfBread.Tests.BuyShadowInstrumentTests.T1_P_hat_は供給の産出と合う [2 s]
+失敗!   -失敗:     2、合格:    17、スキップ:     0、合計:    19、期間: 49 s - PriceOfBread.Tests.dll (net10.0)
+== M3_床の枝を無条件に
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T4_P_hatの値段の差し替えはエンジンの値段を書き換えた値と合う [2 s]
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T2_U1のEは成約の後の台帳のSで式と一致 [3 s]
+  失敗 PriceOfBread.Tests.BuyShadowInstrumentTests.T1_P_hat_は供給の産出と合う [2 s]
+失敗!   -失敗:     3、合格:    16、スキップ:     0、合計:    19、期間: 1 m 10 s - PriceOfBread.Tests.dll (net10.0)
+== M4_UbBbから0.5を引く
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T1b_手で置いた6盤面が各区分に入る [2 s]
+失敗!   -失敗:     1、合格:    18、スキップ:     0、合計:    19、期間: 1 m 18 s - PriceOfBread.Tests.dll (net10.0)
+== M5_rpTの無限をNGに
+  失敗 PriceOfBread.Tests.TradeBilateralInstrumentTests.T6_NaNの入力の区分 [2 s]
+失敗!   -失敗:     1、合格:    18、スキップ:     0、合計:    19、期間: 1 m 26 s - PriceOfBread.Tests.dll (net10.0)
+== M6b_眠りの半分だけ落とす
+成功!   -失敗:     0、合格:    19、スキップ:     0、合計:    19、期間: 1 m 38 s - PriceOfBread.Tests.dll (net10.0)
+== M7_RailMoveBeginの呼びを消す
+  失敗 PriceOfBread.Tests.TransportInstrumentTests.移した州の線路はエンジンの呼び口を通って控えられ_受け手の月の頭で読まれる [2 s]
+失敗!   -失敗:     1、合格:    19、スキップ:     0、合計:    20、期間: 1 m 27 s - PriceOfBread.Tests.dll (net10.0)
+== M8_RailMonthBeginの呼びを消す
+  失敗 PriceOfBread.Tests.TransportInstrumentTests.移した州の線路はエンジンの呼び口を通って控えられ_受け手の月の頭で読まれる [2 s]
+失敗!   -失敗:     1、合格:    19、スキップ:     0、合計:    20、期間: 1 m 22 s - PriceOfBread.Tests.dll (net10.0)
+
+== M9 台本（c108sm の札の門）：旧の archive_gate.py（aa8ee7e51）と新の比べ
+  旧の版・旧の README（表「1」など数字だけの札）＝OK（通る）。旧の版・表「」（空の札）＝OK（通る＝startswith の any）。旧の版・存在しない表＝NG 1。
+  新の版・元＝OK。新の版・表「1」＝NG 1（札が README に無い）。新の版・表「」＝NG 1。新の版・存在しない名＝NG 1。新の版・重なる名（表「規律」＝3 表）＝NG 1。
+  旧の版の欠陥（空の札・数字だけの札が通る）は新の版で NG になる。
+
+読み（見込みとの対照）：
+  M1（未発明の枝を消す）・M2（床の枝を消す）・M3（床を無条件に）＝BuyShadow T1 が赤（手で置いた A・B・C の行）。M2・M3 は T4・T2 も赤（既存）。見込みどおり。
+  M4（UbBb から 0.5 を引く）＝T1b だけが赤（区分は変わらず、足した UbBb＝0.0 の Assert で落ちる）。見込みどおり。
+  M5（rpT＝+∞ を Ok＝false に）＝T6 だけが赤（足した rpT＝+∞ の Assert）。見込みどおり。
+  M6b（眠りの半分）＝緑のまま＝同値の突然変異の見込みどおり（Boards は眠った生産者を除く・眠りは盤面に置けない）。限界。
+  M7（RailMoveBegin の呼びを消す）・M8（RailMonthBegin の呼びを消す）＝既存の G4 の試験は緑のまま（見込みどおり）・足した試験だけが赤。

@@ -63,28 +63,48 @@ public class BuyShadowInstrumentTests
                 m.Price *= 0.4 + (k % 7) * 0.25;
                 m.Stock *= (k % 3) == 0 ? 0.0 : (k % 3) == 1 ? 1.0 : 25.0;
             }
-            // (1140) 手で置く：能力 0 の行を 13 本に 1 本つくる（実走の件数に頼らない）。未発明（技術の門が 0）の行は実走の 12 四半期に居る。
-            int hand = 0, handCap0 = 0;
-            foreach (var (w0, r0, p0) in AllProducers(sim)) if ((hand++ % 13) == 0 && p0.Capacity != 0.0) { p0.Capacity = 0.0; handCap0++; }
-            int rows = 0, partial = 0, moved = 0, positive = 0, gateZero = 0, capZero = 0;
+            // (1146) 手で置く盤面は 3 組。実走の件数（未発明の行・能力 0 の行）に頼らない。moved・positive・partial は手で置いた行を除いた実走の行だけで数える（元の門＝moved≧100）。
+            //  A 未発明：能力＞0・門を渡さない（gate＝0）・値段を高くして採算＞0 の行＝門を開ければ産出が正になる行を、門を 0 にして比べる（未発明の枝が通る）。
+            //  B 能力 0・産出が床より下：目標 0・産出が床の下＝産出は 0 に落ちる（床の枝が通る）。
+            //  C 能力 0・産出が床より上：目標 0 でも産出は直ちには 0 にならない（床の枝が通らない側の対照）。
+            double floor = sim.Nations[0].World.Coef.TargetStockFloor; Assert.True(floor > 0, "床が正の前提 " + floor);
+            var hand = new Dictionary<Producer, char>(); int hi = 0;
+            foreach (var (w0, r0, p0) in AllProducers(sim))
+            {
+                bool bau = Catalog.Goods[p0.GoodId].Tier == GoodTier.Service && p0.GoodId is not (Catalog.LaborId or Catalog.FarmLaborId);
+                int k5 = hi++ % 15;
+                if (k5 == 0 && !bau && p0.Capacity > 0 && Discovery.Gate(r0, p0) > 0) { p0.LastInputFill = 1.0; r0.Markets[p0.GoodId].Price = 1e6; p0.Output = System.Math.Max(p0.Output, 10 * floor); hand[p0] = 'A'; }
+                else if (k5 == 5 && (bau || Discovery.Gate(r0, p0) > 0)) { p0.Capacity = 0.0; p0.Output = 0.5 * floor; hand[p0] = 'B'; }
+                else if (k5 == 10 && (bau || Discovery.Gate(r0, p0) > 0)) { p0.Capacity = 0.0; p0.Output = 100 * floor; hand[p0] = 'C'; }
+            }
+            int rows = 0, partial = 0, moved = 0, positive = 0, handA = 0, handB = 0, handC = 0;
             foreach (var (w, r, p) in AllProducers(sim))
             {
                 var c = w.Coef;
                 bool isLabor = p.GoodId is Catalog.LaborId or Catalog.FarmLaborId;
                 bool baumol = Catalog.Goods[p.GoodId].Tier == GoodTier.Service && !isLabor;
                 double gate = Discovery.Gate(r, p);
+                hand.TryGetValue(p, out char hk);
+                if (hk == 'A')
+                {   // 門を開けた対照が正＝門を 0 にすると産出 0（計器も同じ）
+                    double open = EconomyStep.SupplyTargetAt(p, r, c, w, baumol, 1.0, out _);
+                    double shut = EconomyStep.SupplyTargetAt(p, r, c, w, baumol, 0.0, out _);
+                    double hatShut = Instruments.BsPHat(p, r, c, w, baumol, 0.0, p.Output);
+                    Assert.True(Near(open, Instruments.BsPHat(p, r, c, w, baumol, 1.0, p.Output), 1e-12), "A 門を開けた行が合わない");
+                    if (open > 0) { Assert.True(shut == 0.0 && hatShut == 0.0, $"未発明（門 0）の行の産出が 0 でない {shut}/{hatShut}"); handA++; }
+                    continue;
+                }
                 double got = EconomyStep.SupplyTargetAt(p, r, c, w, baumol, gate, out double pf);
                 double hat = Instruments.BsPHat(p, r, c, w, baumol, gate, p.Output);
                 Assert.True(Near(got, hat, 1e-12), $"P̂ {hat} ≠ 供給 {got}（{Catalog.Goods[p.GoodId].Name}）");
-                if (!(gate > 0)) gateZero++;
-                if (p.Capacity == 0.0) capZero++;
+                if (hk == 'B') { Assert.True(got == 0.0 && hat == 0.0, $"能力 0・産出が床の下の行が 0 に落ちない {got}/{hat}"); handB++; continue; }
+                if (hk == 'C') { Assert.True(got > 0 && hat > 0, $"能力 0・産出が床の上の行が 0 になった {got}/{hat}"); handC++; continue; }
                 rows++; if (pf > 0 && pf < 1) partial++; if (!Near(got, p.Output, 1e-9)) moved++; if (got > 0) positive++;
             }
             Assert.True(rows > 1000, "調べた行が少ない " + rows);
-            Assert.True(gateZero >= 100, "未発明（門 0）の行が少ない＝未発明の枝が通っていない " + gateZero);
-            Assert.True(handCap0 >= 100 && capZero >= handCap0, $"能力 0 の行が少ない {capZero}/{handCap0}");
+            Assert.True(handA >= 50 && handB >= 50 && handC >= 50, $"手で置いた盤面が少ない 未発明 {handA}・床の下 {handB}・床の上 {handC}");
             Assert.True(partial >= 20, "採算が境の行が少ない " + partial);
-            Assert.True(moved >= 100 && positive >= 100, $"動く行・正の行が少ない {moved}/{positive}");
+            Assert.True(moved >= 100 && positive >= 100, $"動く行・正の行が少ない（手で置いた行を除く）{moved}/{positive}");
         }
         finally { restore(); }
     }

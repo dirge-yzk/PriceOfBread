@@ -143,6 +143,13 @@ public class TradeBilateralInstrumentTests
                 Assert.Equal(0, Cls(1, 1, 2.5, 0, 1e6));
                 // sk2：境（D＝0・p＝0・S＝TS ちょうど）
                 Assert.Equal(2, Cls(5, 0, 0, 5, 1.0));
+                // (1146) 旧 T1 の境の盤面が持っていた〈UB_Bb＝UB_A1＝0 ちょうど〉を戻す（(1139) で落ちていた＝区分 2 の入口の値の固定）
+                {
+                    M!.TargetStock = 5; M.LastDemand = 0; M.LastProduced = 0; M.Stock = 5;
+                    var xb = Instruments.TbClassify(RG!, G, M, C!, W!, 1.0, 1.0, double.NaN, 1.0);
+                    Assert.True(xb.Ok && !xb.B0 && !xb.B1 && xb.B2, $"境の盤面が区分 2 でない {xb.B0}/{xb.B1}/{xb.B2}");
+                    Assert.Equal(0.0, xb.UbBb); Assert.Equal(0.0, xb.UbA1);
+                }
                 // ps0：X_old＝2＞0 で UB_Bb＞X_old
                 Assert.Equal(3, Cls(1, 1, 0, 0, 1e6));
                 // ps2：X_old＝δ＞0・p＝0 で UB_A1＝UB_Bb＝−δ≦0
@@ -153,7 +160,8 @@ public class TradeBilateralInstrumentTests
     }
 
     /// <summary>
-    /// (1139) NaN・無限の入力の区分を現状のまま固定する。rpT・lp が NaN／無限なら Ok＝false（表の unclassified）。
+    /// (1139) NaN・無限の入力の区分を現状のまま固定する。rpT が NaN、lp が NaN／+∞なら Ok＝false（表の unclassified）。
+    /// (1146) rpT＝+∞ は Ok＝false にならない＝D＞0 なら UB_Bb＝+∞＞0 で区分 B0（最後の Assert で固定）。
     /// 在庫の欄が NaN だと Ok＝true のまま 3 区分が全て偽になる＝TbRow は行を数えるのにどの区分にも入れない隙間
     /// （表の和が行の数と合わなくなる）。計器の変更が要るので、この線では直さず 00一覧へ申し送る。
     /// </summary>
@@ -171,6 +179,10 @@ public class TradeBilateralInstrumentTests
             Assert.False(Instruments.TbClassify(rg, g, m, c, w, nan, 1.0, nan, 1.0).Ok);
             Assert.False(Instruments.TbClassify(rg, g, m, c, w, double.PositiveInfinity, 1.0, nan, 1.0).Ok);
             Assert.True(Instruments.TbClassify(rg, g, m, c, w, 1.0, 1.0, nan, nan).Ok, "headPrice が NaN なら最安の売り手は無いものとして読む");
+            {   // (1146) rpT＝+∞（D＝1）：Ok のまま B0（Ok＝false にはならない）
+                var xi = Instruments.TbClassify(rg, g, m, c, w, 1.0, double.PositiveInfinity, nan, 1.0);
+                Assert.True(xi.Ok && xi.B0 && !xi.B1 && !xi.B2, $"rpT＝+∞ の区分 {xi.Ok}/{xi.B0}/{xi.B1}/{xi.B2}");
+            }
             foreach (var field in new[] { "Stock", "LastDemand", "TargetStock", "LastProduced" })
             {
                 m.TargetStock = 5; m.LastDemand = 1; m.LastProduced = 0; m.Stock = 5;
