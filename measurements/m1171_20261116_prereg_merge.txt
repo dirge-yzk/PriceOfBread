@@ -1,0 +1,59 @@
+(1171) 合流（波115）の予言（merge より前に書く・結果を見た後に直すなら追記で名乗る）
+書いた担当：Claude Opus 5.5（合流）。基点 c3c4de36a（m1164 の盤面・測った木 bc05b31c4・SOURCE-HASH 58e29e0f358d2d9a）。
+線：挙動 c115cr (1165) e0ca88d16・挙動 c115sv (1166) b67f32d67・恒等 c115qc (1167) 68f61fd86・恒等 c115sb (1168) ae3032aed・読む c115lg (1169)（D:/PoB_work/r1169_work）・設計の材料 c115td (1170)（D:/PoB_work/r1170_work・d1170_work）。
+作者「しばらくの間、全て推奨で」で推奨を採った物は文中に書く。
+
+[0] 入れる線と外す線（結果を見る前に決める）
+- c115qc：入れる（恒等・ident c115qc〈判定: 恒等〉段 2・測った木 47d1cffdb・v に高なし）。
+  - v の中〈NationConfig.cs:87 が c115cr と同じ行で衝突〉：c115cr を入れないので当たらない（記録）。
+  - v の低〈突然変異 M1 の出力 tm1.txt と走査の番人の記録 t28.txt が measurements に無い〉：合流が measurements/m1167_20261116_mut_M1.txt・m1167_20261116_scan28.txt へ写す。
+  - v の低〈MultiNationSim.cs:106 と World.cs:1874 の古い注〉：合流はエンジンの .cs を直さない＝次の恒等の線へ申し送る。
+- c115sb：入れる（恒等・ident c115sb〈判定: 恒等〉段 2・測った木 828212d8b・項 6 は線が戻した・v に高なし）。
+  - v の低（退蔵率が 1 を超える側の守り・M5′ の未確かめ・最後の頭のフルスイート・D: の床を割った・docs の S22 の状態の行が古い・mintreg の要約の母集合の語）は記録と次の波へ。最後の頭のフルスイートは合わせた木で回す。
+  - ★(773) の grep：sb の試験 MintregInstrumentTests.cs:151 が qc の消す表の名 `colqn_s` を〈別の表〉の文字列として渡す。Instruments.Wants は名の集合の照合だけ（Instruments.cs:22）＝表が無くても mintreg_s は切れたまま＝試験の意味は変わらない（記録・試験は書き換えない）。
+- c115cr：入れない（紙の go／no-go が no-go＝段 C′ の 3 回目〔最後〕・3 回の規則で段 C′ を外す・旗 1 は回していない）。枝は読むだけ。opening_bake の焼き直し 02a67df23 は main へ入れない（v の中）。紙の生 c115cr_work/paper は keep_1171_rej へ移す。
+  - v・v2 の中〈E の予言の和はトロムソ 1 州が 23〜33%・除くと 2 倍の線を 1.3% 超えるだけ〉〈ヌル腕から取った E の上限は平時の浸透 0＝物差しが設計の意図と食い違った〉は記録と 00一覧の行へ（〈落ちた〉だけにしない）。
+- c115sv：入れる候補（挙動・旗 SoldierVacancyFromZero 既定 1＝線の旗 1・担当〈採る〉・合流も既定 1＝食い違いなし）。線の腕 B（計器つき 10 種・表を絞った形）：G1 193 ≦ 3,065・G2 overfillZeroK 0・G3 218/221＝0.986 ≧ 0.9・止める線 0・推定 229.7 秒・フルスイートは腕 B の前に緑。
+  - v の中〈G2 は M5 でも緑＝判別の力が無い〉：G2 は記録として扱い、採否の根拠は G1・G3（下側）と試験 F3・F5 と書く（結果を見た後に門を替えない）。
+  - v の中〈空きの分だけ埋まる は事実と違う（最初の四半期は空きの 0.09%）〉：記録の文を読み替える。
+  - v2 の低〈所得の分岐が肯定形＝NaN の盤面で旗 0 が旧と字の上で違う〉：合流はエンジンの .cs を直さない＝次の恒等の線へ。
+  - v2 の低〈D1 の植民地の支配度の崩れは直らない（0 に届く州 46→49）〉：この線を D1 の直しに数えない（記録）。
+- 読む線 c115lg：台本と表を scripts/instruments/r1169/・measurements/m1169_20261116/ へ写す。台帳（docs/機能の台帳.md）へ mk_testmd.py の手順で差し込み、ledger_check で門を読む。v の訂正（S01-H005d・H019・S22-H035・S02-H010・S01-H010・S01-H007c）は差し込む行の根拠の列の末尾に〈(1169) v の訂正〉として足す。
+- 設計の材料 c115td：material.md・draft.md を docs/202611/20261116/ へ〈設計の材料と下書き・AI の案・作者の確認待ち〉の題で写す（中身は書き換えない）。v の高〈access＜1 で上界 E_row≦R_row＋spread_row が破れる＝事前登録 [1] の access を掛けない形に揃える〉と中 1・低 4 は末尾の訂正として足す。台本と出力は scripts/instruments/r1170/・measurements/m1170_20261116/ へ。
+
+[1] 順と試験の数（2 段で push する）
+- 段 1（恒等の 2 本）：c115qc → c115sb。衝突は Instruments.cs（colqn の 3 行の削除と mintreg の登録の行）・DormantIdentityTests.cs（RetiredFields の行）＝両方の行を残して解く。試験：Tests 2655−4＋3＝2654・Tests.Ui 234・和 2888。FullLength 3。
+  - 段 1 の木で ident m1171a（段 2・--saveleak・--ng・--removed-tables colqn_s・--added-tables mintreg_s・--tests-delta −1）：素の 5 種と計器つき 10 種が m1164 と全行バイト一致・.cost 45 行・推定 228.8／229.3 秒・NG は ng1164 と同じ集合の見込み。D: が〈35GB＋30GB〉に届かなければ --no-ins に下げて名乗る（★(1157) 追記 1 の型＝線 qc・sb はそれぞれ全表の ident で恒等）。
+  - フルスイート（2 プロジェクト・trx・和）・savetest・leakhunt が緑なら、段 1 を main へ push する（ident.cfg は計器の表の宣言とテストの数 2888 だけ）。その後、INSRAW でも KEEPNULL でもない keep_1157・keep_1157_rej を消す（指示の許し・deleted.txt に名乗る・自動の判定に拒まれたら言い換えずに残す）＝M・N1・N2・S11 の D: を作るため。
+- 段 2（挙動 1 本）：c115sv。衝突は Instruments.cs の登録の行（soldiervac の 2 行）＝残して解く。WriterRatchetTests の 3 行（:426・:437・:552）は sv だけが触る。試験：Tests 2654＋6＝2660・Tests.Ui 234・和 2894。FullLength 3。
+- 消す名前（★(773)）：qc が消す MalariaQuininePerColony・quinineWant・Malarial・colqn・InstrumentsColqn、sb が消す HoardRatioMax・GoldCoverCreditFloor・MintBuysAtMarket・SilverParityFromRatio を、他の線の枝の差分の足した行（.cs・.py・.sh・.json・.cfg）で grep した＝コードの読み手 0（試験の文字列 `colqn_s` 1 件は [0] のとおり）。sv は名前を消さない。
+
+[2] 腕 Z（段 2 の合わせた木＋SoldierVacancyFromZero を 0 へ戻す使い捨ての 1 コミット・push しない・ident m1171z・段 2・--saveleak・--ng）
+- 素の 5 種：b5_20261115_m1164 と全行バイト一致・推定 228.8 秒。計器つき 10 種：b10_20261115_m1164_ins と全行バイト一致・推定 229.3 秒・.cost 45 行。
+- 宣言：--removed-tables colqn_s・--added-tables mintreg_s,soldiervac_s・--tests-delta 5。〈宣言の無い違い 0〉の見込み（線 sv の形を直した後の木の計器つき 10 種の恒等はここで初めて測る＝v の限界）。
+- 判定〈恒等〉でなければ、段 1 の ident と比べて帰属を読む。
+
+[3] 合わせた木の M（sv 旗 1・計器つき 10 種・種 1〜10・全表・POB_CEARN は既定）
+- 成績表 b10_<日>_m1171_ins は線の腕 B の成績表 b10_20261116_c115svB_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）・.cost 推定 229.7 秒。
+- 生：線の腕 B の生（表を絞った形・sha1 は D:/PoB_work/m1171_work/sha_svB.tsv）と共通の表ごとに sha1 で比べる。違ってよいのは呼び出し位置の列を持つ表（cearn_s・cpop_s・dep_s・flow_s）と既知の揺れ（burscan_s・clock_s）だけ（★(1164) ②）。違えば列を除いた行の多重集合で読む。
+- sv の門を合わせた木の M でもう一度読む（scripts/instruments/c115sv/paper_sv.py・gates_sv.py を変えずに）：G1 193・G2 0・G3 0.986＝腕 B と同じ値の見込み。
+- 素の 5 種・素の 10 種（新しい基線の b5・b10）。
+
+[4] 種 11〜20（S11・sv 旗 1）と S11z（旗 0・種 11〜20）
+- 最終の採否は S11 で 1 回だけ（同じ門）。G1 の閾値は同じ定義〈旗 0 の 10 種の和の 1/10 の切り捨て〉を S11z から取る（★(1157) の型）。G3 の閾値 0.9・床 分母≧100 は事前登録のまま。G2 は記録。
+- S11 の表：a11 の名簿（SMALL＋BYPASS＋railspend_s・trrail_s・trnation_s・tport_s・dipcool_s・warband_s・warpair_s・disccontact_s）＋門の表 cpop_s・admrule_s・rule_s・soldiervac_s（colqn_s は消えた）。S11z の表：cpop_s・nation_s・admrule_s・rule_s・soldiervac_s。
+- 予言：G1 は S11z の 1/10 以下・G3 ≧0.9（腕 B 0.986）。
+
+[5] ヌル腕 N1・N2（合わせた木・sv 旗 1・SupplySlope 0.50000001・0.49999999・計器つき 10 種・POB_CEARN=0）
+- D: に届けば全表、届かなければ m1164 と同じ絞った表（a11 の名簿＋disccontact_s・rponset_s・rule_s・secession_s・cessp_s・nationgood_s・tb_s・cederule_s・armsfill_s）＋soldiervac_s・mintreg_s で回し、絞ったと名乗る。
+
+[6] 止める線（段）と記録（段）
+- 止める線：破綻・1 四半期 100 倍（建国の直後と政府の人口の 1/10・10 倍の四半期はヌル腕と並べる）・1e10 倍・非有限・空洞化 1/10 未満の名簿の外（件ごとに基線の同じ種で同じ州が 1/4 未満か＝種 1〜10 は keep_1164/base_ins・種 11〜20 は keep_1164/a11）・推定の計算量 ＞248.5 秒・機構のテストの赤。
+- 予言：M は腕 B と同じ軌道＝止める線 0。S11 は未知。
+- 記録（採否に使わない）：exact・near（腕 B 記録）・NG（腕 B で 102・基準 112）・nullgate・英の国債の不履行の種の数（腕 B 7/10〔M1164 6・N1 6・N2 6〕）・開幕の 1000 倍以上・名目 GDP 0 の続き・D1 の兵 0 の崖・英の兵の中央値。
+- 計算量：腕 B の推定 229.7 秒（m1164 の M 229.3）＝名目の余り 約 18.8 秒。
+
+[7] 新しい基線 m1171 と ident.cfg
+- 採ったら：B5＝b5_<日>_m1171・B10INS＝b10_<日>_m1171_ins・MON＝mon_<日>_m1171.txt・INSRAW＝keep_1171/base_ins（M の生・全表）・ヌル腕 keep_1171/n1・n2・種 11〜20 keep_1171/a11・BASE_COMMIT と STAGE_BASE＝M を測った木・TESTS_NONFULL 2894・NG_BASE ng1171。
+- 採らなかったら：基線は m1164 のまま（段 1 の ident・腕 Z で恒等を確かめた木）・ident.cfg は計器の表の名簿とテストの数だけ・腕の生は keep_1171_rej へ。
+- D:：合流の起動の時点 30.0GB（線の ident の生 ident_c115qc・ident_c115sb 計 23GB を判定を読んだ後に消して 53.8GB）。線 sv の腕 B の生は sha1 を取った後に縮める（門の表 soldiervac_s だけ残す）。keep_1150・keep_1164・keep_1164_rej は消さない（keep_1150 は全表のヌル腕の幅＝KEEPNULL・keep_1164 は種 11〜20 の元からの弱さの基準）。
