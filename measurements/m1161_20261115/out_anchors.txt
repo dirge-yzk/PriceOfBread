@@ -1,0 +1,54 @@
+S22-H001	Coefficients.cs:3487:MonetaryPeerPullScale=NG→Coefficients.p10_ai_silver_overrides.cs:58:MonetaryPeerPullScale
+S22-H002	Coefficients.cs:967:GoldCoverMin=NG→Coefficients.p03_debt_money.cs:111:GoldCoverMin ; Coefficients.cs:971:GoldStandardMinFunding=NG→Coefficients.p03_debt_money.cs:112:GoldStandardMinFunding
+S22-H003	Coefficients.cs:2009:GoldRejoinCoverMargin=NG→Coefficients.p07_wiring_prewarm.cs:12:GoldRejoinCoverMargin
+S22-H004	Coefficients.cs:976:ConvertibilityCoverageBand=NG→Coefficients.p03_debt_money.cs:117:ConvertibilityCoverageBand ; Coefficients.cs:975:ConvertibilityDropSpeed=NG→Coefficients.p03_debt_money.cs:116:ConvertibilityDropSpeed ; Coefficients.cs:974:ConvertibilityRiseSpeed=NG→Coefficients.p03_debt_money.cs:115:ConvertibilityRiseSpeed
+S22-H005	—=錨なし
+S22-H006	Coefficients.cs:3517:MintReserveTargetWeight=NG→Coefficients.p10_ai_silver_overrides.cs:68:MintReserveTargetWeight
+S22-H007	Coefficients.cs:3459:MintBuysAtMarket=NG→Coefficients.p10_ai_silver_overrides.cs:56:MintBuysAtMarket
+S22-H008	Coefficients.cs:3388:MintDemandCounted=NG→None
+S22-H009	Simulation.cs:2478:SellReserve=OK ; Simulation.cs:61:Simulation=OK
+S22-H010	Simulation.cs:61:Simulation=OK
+S22-H011	Coefficients.cs:3518:TrilemmaRateResponse=NG→Coefficients.p10_ai_silver_overrides.cs:69:TrilemmaRateResponse
+S22-H012	Coefficients.cs:3379:CapitalControlOpenness=NG→Coefficients.p10_ai_silver_overrides.cs:40:CapitalControlOpenness
+S22-H013	Coefficients.cs:951:MonetaryPriceSensitivity=NG→Coefficients.p03_debt_money.cs:104:MonetaryPriceSensitivity ; Coefficients.cs:952:MonetaryTrendSpeed=NG→Coefficients.p03_debt_money.cs:105:MonetaryTrendSpeed ; Coefficients.cs:956:PriceLevelFloor=NG→Coefficients.p03_debt_money.cs:106:PriceLevelFloor
+S22-H014	Coefficients.cs:1003:ExchangeRateCeil=NG→Coefficients.p03_debt_money.cs:130:ExchangeRateCeil ; Coefficients.cs:1002:ExchangeRateFloor=NG→Coefficients.p03_debt_money.cs:129:ExchangeRateFloor ; Coefficients.cs:981:ExchangeRateSpeed=NG→Coefficients.p03_debt_money.cs:120:ExchangeRateSpeed ; Coefficients.cs:982:ExchangeTradeAdjust=NG→Coefficients.p03_debt_money.cs:121:ExchangeTradeAdjust
+S22-H015	Coefficients.cs:147:BondYieldFlightWeight=OK ; Coefficients.cs:144:DebtDistressRatio=OK ; Coefficients.cs:1007:OffGoldCapitalPenalty=NG→Coefficients.p03_debt_money.cs:132:OffGoldCapitalPenalty
+S22-H016	—=錨なし
+S22-H017	Coefficients.cs:2590:CurrencyHoldingRatio=NG→Coefficients.p08_audit_soldiers.cs:55:CurrencyHoldingRatio ; Coefficients.cs:2591:HoardPanicWeight=NG→Coefficients.p08_audit_soldiers.cs:56:HoardPanicWeight
+S22-H018	Coefficients.cs:837:CreditMultiplier=NG→Coefficients.p03_debt_money.cs:58:CreditMultiplier
+S22-H019	Coefficients.cs:868:ConfidencePivot=NG→Coefficients.p03_debt_money.cs:70:ConfidencePivot ; Coefficients.cs:845:ConfidenceSpeed=NG→Coefficients.p03_debt_money.cs:64:ConfidenceSpeed ; Coefficients.cs:853:PanicSensitivity=NG→Coefficients.p03_debt_money.cs:66:PanicSensitivity ; Coefficients.cs:846:PanicSpeed=NG→Coefficients.p03_debt_money.cs:65:PanicSpeed
+S22-H020	Coefficients.cs:905:DebtDeflationWeight=NG→Coefficients.p03_debt_money.cs:86:DebtDeflationWeight ; Coefficients.cs:854:DrawdownPanic=NG→Coefficients.p03_debt_money.cs:67:DrawdownPanic ; Coefficients.cs:130:FiscalDefaultPanic=OK
+S22-H021	Coefficients.cs:858:OverheatFragility=NG→Coefficients.p03_debt_money.cs:68:OverheatFragility ; Coefficients.cs:859:OverheatFragilityThreshold=NG→Coefficients.p03_debt_money.cs:69:OverheatFragilityThreshold
+S22-H022	Coefficients.cs:877:BankRunMax=NG→Coefficients.p03_debt_money.cs:73:BankRunMax ; Coefficients.cs:876:BankRunSensitivity=NG→Coefficients.p03_debt_money.cs:72:BankRunSensitivity ; Coefficients.cs:879:LolrDrawdownTrigger=NG→Coefficients.p03_debt_money.cs:75:LolrDrawdownTrigger ; Coefficients.cs:878:LolrHeatTrigger=NG→Coefficients.p03_debt_money.cs:74:LolrHeatTrigger
+S22-H023	Coefficients.cs:2010:GoldCoverCreditRestraint=NG→Coefficients.p07_wiring_prewarm.cs:13:GoldCoverCreditRestraint
+S22-H024	Coefficients.cs:838:CreditAdjustSpeed=NG→Coefficients.p03_debt_money.cs:59:CreditAdjustSpeed ; Coefficients.cs:839:InterestRateEffect=NG→Coefficients.p03_debt_money.cs:60:InterestRateEffect
+S22-H025	—=錨なし
+S22-H026	Coefficients.cs:1016:CapitalCreditFloor=NG→Coefficients.p03_debt_money.cs:141:CapitalCreditFloor ; Coefficients.cs:1009:CapitalExportFrac=NG→Coefficients.p03_debt_money.cs:134:CapitalExportFrac ; Coefficients.cs:1006:CapitalIndTarget=NG→Coefficients.p03_debt_money.cs:131:CapitalIndTarget ; Coefficients.cs:1007:OffGoldCapitalPenalty=NG→Coefficients.p03_debt_money.cs:132:OffGoldCapitalPenalty
+S22-H027	—=錨なし
+S22-H028	Coefficients.cs:2549:CapitalFlightDistrustThreshold=NG→Coefficients.p08_audit_soldiers.cs:39:CapitalFlightDistrustThreshold
+S22-H029	—=錨なし
+S22-H030	Coefficients.cs:1015:CapitalContagion=NG→Coefficients.p03_debt_money.cs:140:CapitalContagion
+S22-H031	—=錨なし
+S22-H032	Coefficients.cs:886:PreTightenHeatFrac=NG→Coefficients.p03_debt_money.cs:79:PreTightenHeatFrac
+S22-H033	Coefficients.cs:902:PolicyRateLoanWeight=NG→Coefficients.p03_debt_money.cs:84:PolicyRateLoanWeight
+S22-H034	World.cs:804:Explain=NG→World.cs:653:Explain
+S22-H035	World.cs:804:Explain=NG→World.cs:653:Explain
+S22-H036	Simulation.cs:52:World=OK
+S22-H037	—=錨なし
+S22-H038	—=錨なし
+S22-H039	—=錨なし
+S22-H040	InstrumentsCornint.cs:7:Header=OK
+S22-H041	—=錨なし
+S22-H042	—=錨なし
+S22-H043	InternationalMarket.cs:14:InternationalMarket=OK
+S22-H044	—=錨なし
+S22-H045	Coefficients.cs:902:PolicyRateLoanWeight=NG→Coefficients.p03_debt_money.cs:84:PolicyRateLoanWeight
+S22-H046	Coefficients.cs:1505:InterestCapitalization=NG→Coefficients.p04_trade.cs:158:InterestCapitalization
+S22-H047	—=錨なし
+S22-H048	Coefficients.cs:738:DebtRuinRatio=NG→Coefficients.p03_debt_money.cs:11:DebtRuinRatio ; Coefficients.cs:740:HouseholdCreditMonths=NG→Coefficients.p03_debt_money.cs:12:HouseholdCreditMonths ; Coefficients.cs:733:PopDebtDriven=NG→Coefficients.p03_debt_money.cs:8:PopDebtDriven
+S22-H049	—=錨なし
+S22-H050	Simulation.cs:61:Simulation=OK
+S22-H051	Coefficients.cs:3467:MintParitySells=NG→Coefficients.p10_ai_silver_overrides.cs:57:MintParitySells
+S22-H052	Coefficients.cs:3447:SilverParityFromRatio=NG→Coefficients.p10_ai_silver_overrides.cs:54:SilverParityFromRatio
+S22-H053	Coefficients.cs:1362:SilverRushEnabled=NG→Coefficients.p04_trade.cs:109:SilverRushEnabled
+# OK 10  NG 56

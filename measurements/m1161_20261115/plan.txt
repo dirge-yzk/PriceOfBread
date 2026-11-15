@@ -1,0 +1,40 @@
+(1161) c114s22 読む：台帳の系統の確かめ S22 貨幣と本位と信用＋B1-r 造幣の床の置き場（2026-11-15・読むだけ・コミット 0・腕 0 の予定）
+書いたモデル：Claude Opus 5.5
+
+作業の場所
+- 作業フォルダ D:/PoB_work/r1161_work/（この回に作った・合流が写すまで消さない）
+- 台本 D:/PoB_work/r1161_work/scripts/instruments/r1161/*.py（リポジトリの木に作らない・コミットしない。合流が写すなら scripts/instruments/r1161/ へ）
+- 読む木：main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD e621e5ea3・書かない）。worktree・枝は作らない。
+
+読む生（列は head -1 で確かめる）
+- M  ＝ D:/PoB_work/keep_1157/base_ins（全表・種 1〜10）
+- N1 ＝ D:/PoB_work/keep_1157/n1、N2 ＝ keep_1157/n2（絞った表＝fiscal・nation・nationgood・pxmonth ほか。money・metal・metalnat・silverst・silverpar・silverwt・fsx は無い）
+- 全表のヌル腕の幅 ＝ D:/PoB_work/keep_1150/n1・n2（money・metalnat・silverst など）
+- 表：money（物価水準・兌換・広義の貨幣・造幣の累計）・metal・metalnat（国×四半期の金銀の産出と需要と在庫）・silverst（国×州の造幣の量 mintQtyAg/Au・在庫）・silverpar・silverwt・pxmonth・fsx・fiscal・nationgood（金・銀の行）・nation
+
+読む文書
+- docs/機能の台帳.md §0 の S22 の行（:50）と `| S22-` の 53 行（:1347〜）
+- docs/ゲーム概要と実装機能.md L4159-4370・L4396-4500
+- 前例 measurements/m1155_20261115/（形を写す）・scripts/instruments/r1155/
+- B1-r：docs/202611/20261115/20261115_貿易のT1の2回目とB-1の根_材料.md・_下書き.md §4・v の訂正・measurements/m1156_20261115/・m1144_20261115/
+- 倍率の一掃：docs/202611/20261111/20261111_倍率の一掃_分類の取りまとめ.md・20261111_数値の天井と床の一覧.md
+- マルコフ性の洗い出し（通貨改革 120 か月・切下げゼロ 24 か月の門）
+
+現物（grep し直す）
+- Simulation.cs の造幣の床（SilverReserveQty・MintFloorBuyRatePerMonth・床の数量・引き取り）
+- Coefficients.p10_ai_silver_overrides.cs（MintFloorBuyRatePerMonth・MintReserveTargetWeight）
+- Bank.cs・CapitalMarket.cs・Credit.cs・Explain.cs・NationConfig.cs
+
+出す物
+- anchors.py → out_anchors.txt（錨の座標の取り直し）
+- freq.py → out_freq_{M,N1,N2}.txt（行ごとの頻度・エンジンの閾値の式で）
+- mint.py → out_mint_*.txt（B1-r：造幣の床の買い・在庫・本位の持ち主替わり）
+- readers.py → readers_S22.txt
+- ledger_S22_2026-11-15.tsv（53 行）・ledger_S22_2026-11-15.md（下書き）
+
+順（価値の順）
+1. 造幣と本位の行（H001〜H011・H050〜H053）＋B1-r
+2. 観戦の指摘のある行
+3. 倍率の一掃 F 群・天井と床・セーブの往復の穴＝印だけ
+4. 削除済み・表示の行＝木に残っているかの grep だけ
+5. 残りは〈未確かめ〉

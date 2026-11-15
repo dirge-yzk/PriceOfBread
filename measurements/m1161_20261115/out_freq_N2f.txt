@@ -1,0 +1,23 @@
+# arm	N2f	dir	D:/PoB_work/keep_1150/n2
+monlaw_seeds	10	nationQuarters	411431
+lawShare	F=0.0008 G=0.1704 S=0.8288
+lawTransitions	F>S=46 G>F=2 G>S=14 S>F=37 S>G=206
+becameGoldNations	199	firstGoldYearMedian	1868	p10	1846
+targetNeLawShare	0.0195
+capMobility	transitions	105	codeShare	0=0.9941 1=0.0059
+fiscal_seeds	10	nationMonths	180270
+onGold	share=0.9869	exits(1>0)	44	joins(0>1)	41
+convertibilityMid(0.05,0.95)	0.0927	monthlyDrop>0.3	38
+devalued>0	months=6118 share=0.0339	whileOnGold	5033
+silverpar_seeds	10
+nationsByLaw	1800	S=59.8 G=1.4 F=0.3
+nationsByLaw	1830	S=59.8 G=1.7 F=0.0
+nationsByLaw	1850	S=56.9 G=4.6 F=0.0
+nationsByLaw	1870	S=49.4 G=12.2 F=0.0
+nationsByLaw	1900	S=43.0 G=18.7 F=0.0
+nationsByLaw	1930	S=41.3 G=20.3 F=0.1
+nationsByLaw	1950	S=nan G=nan F=nan
+fxAtCeil(nationQuarters)	F=0 G=0 S=0	fxAtFloor	F=0 G=0 S=0
+pclamp_seeds	10	ceil=9 floor=499
+money_seeds	10	nationQuarters	61830	mintIncreased	57582 (0.9313)	fiatIssued	2494 (0.0403)
+cons_seeds	10	nationQuarters	14476	heat>	0.75=209 (0.0144) 0.9=102 (0.0070) 1.0=69 (0.0048) 1.49=12 (0.0008)

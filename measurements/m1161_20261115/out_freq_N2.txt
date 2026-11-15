@@ -1,0 +1,15 @@
+# arm	N2	dir	D:/PoB_work/keep_1157/n2
+monlaw_seeds	10	nationQuarters	412309
+lawShare	F=0.0007 G=0.1758 S=0.8234
+lawTransitions	F>S=52 G>S=11 S>F=45 S>G=212
+becameGoldNations	208	firstGoldYearMedian	1872.0	p10	1848
+targetNeLawShare	0.0198
+capMobility	transitions	127	codeShare	0=0.9929 1=0.0071
+fiscal_seeds	10	nationMonths	180270
+onGold	share=0.9936	exits(1>0)	43	joins(0>1)	42
+convertibilityMid(0.05,0.95)	0.0940	monthlyDrop>0.3	37
+devalued>0	months=4126 share=0.0229	whileOnGold	3980
+silverpar	表なし
+pclamp_seeds	6	ceil=32 floor=470
+money	表なし
+cons	表なし

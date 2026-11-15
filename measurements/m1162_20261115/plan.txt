@@ -1,0 +1,14 @@
+r1162 (c114k1) 読むだけの線 計画 2026-11-15
+作業の場所: D:/PoB_work/r1162_work/ （台本は scripts/instruments/r1162/ にコミットせず置く・出力はここ）
+worktree・枝は作らない（読むだけ・main の木 e621e5ea3 を grep するだけ）
+読む生:
+ - D:/PoB_work/keep_1157/base_ins/secession_s{1..10}.tsv  rule_s*.tsv  rponset_s*.tsv  cessp_s*.tsv  nation_s*.tsv  region_s*.tsv
+ - D:/PoB_work/keep_1157/n1・n2 の secession_s・rule_s・cessp_s（絞った表）
+ - D:/PoB_work/keep_1157/a11（種11〜20）の secession_s・rule_s
+読む材料:
+ - measurements/m1155_20261115/ledger_S27_2026-11-15.md・out_k1_paper.txt
+ - docs/実装ログ (986)(1059)(1155)
+ - docs/202611/20261112/20261112_植民地の独立の計器とD1の最小の段_盤面m1053_材料.md・_下書き.md
+ - scratchpad design_rule_power_2026-11-12.md §8
+ - ソース: Politics.cs・InterestGroups.cs・Instruments*.cs・Fiscal.cs・Military.cs・Simulation.cs
+腕: 0 本
