@@ -103,21 +103,44 @@ public class TradeT1Tests
         Assert.True(rose >= 200, "値段で P̂ が上がった段が少ない（値段を読んでいない）" + rose);
     }
 
+    /// <summary>(1159) M3＝供給①は全ての生産者の写しを書くか 0 へ戻す（眠り・倒産は 0）＝清算が古い写しを読まない前提（清算は並べた生産者だけ 0 へ戻す＝段 T1-0 の漏れの直し）。
+    /// 旗 0（計器なし）は写しに触れない（旗 0 の費用 0）。印の値を置いて EconomyStep.Run の後に残らないことを見る（突然変異 M5〈眠り・倒産の 0 へ戻しを外す〉で赤）。
+    /// 旧（(1144)）の M3〈写しは清算の後に全て 0〉は規則が変わった＝この試験へ置き換えた（main に無い器の試験）。</summary>
     [Theory]
     [InlineData(0.0)]
     [InlineData(1.0)]
-    public void M3_写しは清算の後に0へ戻る(double a1)
+    public void M3_供給は全ての生産者の写しを書くか0へ戻す(double a1)
     {
+        const double Mark = 12345.678;
         var sim = Make(a1);
         sim.StartWarmup();
-        sim.StepQuarter();
-        int all = 0;
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+        for (int q = 0; q < 4; q++) sim.StepQuarter();
+        int all = 0, written = 0, zeroed = 0, untouched = 0;
+        foreach (var n in sim.Nations)
         {
-            all++;
-            Assert.True(p.T1Base == 0 && p.T1OutPrev == 0 && p.T1Mc == 0, $"清算の後に写しが残った（{r.Name}）");
+            var w = n.World;
+            foreach (var r in w.Regions)
+            {
+                foreach (var p in r.Producers) { p.T1OutPrev = Mark; p.T1Base = Mark; p.T1Mc = Mark; }
+                EconomyStep.Run(r, w.Coef, w.TechProductivity(r), w.Bank, w);
+                foreach (var p in r.Producers)
+                {
+                    all++;
+                    bool mark = p.T1OutPrev == Mark && p.T1Base == Mark && p.T1Mc == Mark;
+                    if (mark) { untouched++; continue; }
+                    if (p.T1OutPrev == 0 && p.T1Base == 0 && p.T1Mc == 0) zeroed++; else written++;
+                    Assert.False(p.T1OutPrev == Mark || p.T1Base == Mark || p.T1Mc == Mark, $"写しの一部だけ書いた（{r.Name}）");
+                }
+            }
         }
         Assert.True(all > 1000, "調べた生産者が少ない " + all);
+        if (a1 > 0)
+        {
+            Assert.Equal(0, untouched);
+            Assert.True(written > 1000, "書いた生産者が少ない " + written);
+            Assert.True(zeroed >= 1, "眠り・倒産で 0 へ戻した生産者が無い（盤面が前提を作らない）" + zeroed);
+        }
+        else Assert.Equal(all, untouched);
     }
 
     private sealed class Tab

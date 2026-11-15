@@ -911,11 +911,12 @@ public static class EconomyStep
         if (insOn) Instruments.LwkRegion(region, coef);   // Instruments〔履歴 EconomyStep.cs#115〕
 
         // === ① 供給：能力＝労働（工業化度で生産性が上がる）。供給曲線。投入充足で律速（§9-A 注2）===
+        bool t1Copy = coef.TradeBuyBySupplyCurve > 0 || insOn;   // (1144→1159) A-1 の写しを書く（読み手は清算と計器だけ）＝この環は全ての生産者の写しを書くか 0 へ戻す（清算は並べた生産者だけ 0 へ戻す）
         for (int pi = 0; pi < np; pi++)
         {
-            if (sleep[pi] == 1) continue;   // continue〔履歴 EconomyStep.cs#116〕
+            if (sleep[pi] == 1) { if (t1Copy) { var sz = region.Producers[pi]; sz.T1OutPrev = 0; sz.T1Base = 0; sz.T1Mc = 0; } continue; }   // continue〔履歴 EconomyStep.cs#116〕・(1159) 眠りの写しは 0
             var s = region.Producers[pi];
-            if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; continue; }   // 倒産工場は操業停止（産出0。Scale0で労働も配分されない）。★(519→524) 頭数の控えも 0
+            if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; if (t1Copy) { s.T1OutPrev = 0; s.T1Base = 0; s.T1Mc = 0; } continue; }   // 倒産工場は操業停止（産出0。Scale0で労働も配分されない）。★(519→524) 頭数の控えも 0・(1159) 倒産の写しは 0
             int lp = s.LaborPopIndex;
             // 労働力・高度労働力の生産者＝階級全体が算出（fraction=1）。工場の能力は従来通り需要シェアで按分し（規模調整）、
             // 実際の雇用（賃金支払い）は役務の購入＝投入充足が律速する。
@@ -1003,7 +1004,7 @@ public static class EconomyStep
             s.HeadsLastMonth = region.Pops[lp].Size * fraction;   // ★(519→524) 能力の式の頭数（Size×fraction）の控え＝書くだけ（線 sm の欄と書き手だけを持ち込んだ・能力の式は触らない）。読み手は旗 UnionBargaining が正のときの UnionBargaining の前走査と上乗せだけ
             double t1Prev = s.Output;
             s.Output = SupplyTargetAt(s, region, coef, world, baumol, gate, out double profitFactor, out double t1Mc, out double t1Base);   // ① 供給の目標と追従（掛ける順は旧のまま＝括り出し）
-            if (coef.TradeBuyBySupplyCurve > 0 || insOn) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
+            if (t1Copy) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
             produced[s.GoodId] += s.Output;
         }

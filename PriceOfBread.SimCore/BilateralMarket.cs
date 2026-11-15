@@ -295,10 +295,12 @@ public sealed partial class InternationalMarket
         return sum;
     }
 
-    /// <summary>(1144) A-1 の写しを 0 へ戻す（全ての国の全ての州の生産者）。</summary>
-    private static void A1Invalidate(IReadOnlyList<Simulation> nations)
+    /// <summary>(1144→1159) A-1 の写しを 0 へ戻す＝この清算で並べた生産者（A1Index の一覧の先頭 n 本）だけ。並べていない生産者の写しは清算が読まない・
+    /// 次の月の供給①が全ての生産者の写しを書き直す（眠り・倒産で飛ばす生産者は供給①が 0 へ戻す＝EconomyStep の ① の 2 つの continue）。返り値＝戻した数（台帳）。</summary>
+    private static long A1Invalidate(Producer[] pr, long n)
     {
-        foreach (var sim in nations) foreach (var r in sim.World.Regions) foreach (var p in r.Producers) { p.T1OutPrev = 0; p.T1Base = 0; p.T1Mc = 0; }
+        for (long k = 0; k < n; k++) { var p = pr[k]; p.T1OutPrev = 0; p.T1Base = 0; p.T1Mc = 0; }
+        return n;
     }
 
     private void StepBilateral(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter)
@@ -759,8 +761,8 @@ public sealed partial class InternationalMarket
         double[]? sellCheap = cheapOn ? new double[nn] : null;
         double[]? subPay = cheapOn ? new double[tc] : null;
         bool a1On = c.TradeBuyBySupplyCurve > 0;   // (1144) T1 A-1
-        long nA1 = 0;
-        if (a1On) nA1 += A1Index(tr, tc, gc, sc);
+        long nA1 = 0, a1Tot = 0;
+        if (a1On) { a1Tot = A1Index(tr, tc, gc, sc); nA1 += a1Tot; }
         var a1St = sc.A1St; var a1Pr = sc.A1Pr;
         var swSec = MultiNationSim.TimeOn ? System.Diagnostics.Stopwatch.StartNew() : null;
         for (int gIdx = 0; gIdx < gc; gIdx++)
@@ -1223,9 +1225,8 @@ public sealed partial class InternationalMarket
         }
         Cost[CostLedger.ClearingKmCompose] += nKmComp; Cost[CostLedger.ClearingKmRaw] += nKmRaw;
         Cost[CostLedger.ClearingA1Eval] += nA1;
-        bool insEnd = Instruments.On;
-        if (a1On || insEnd) A1Invalidate(nations);   // (1144) 写しはその月の清算だけが読む＝清算の後に 0 へ戻す（眠り・倒産で供給①を通らない生産者の古い写しを読まない・ロードの後と同じ盤面）
-        if (insEnd) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;
+        if (a1On) Cost[CostLedger.ClearingA1Invalidate] += A1Invalidate(a1Pr, a1Tot);   // (1144→1159) 写しはその月の清算だけが読む＝並べた生産者だけ 0 へ戻す（旧＝全ての国の全ての州の生産者を清算ごとに・計器が On の旗 0 でも回った＝台帳の外の漏れ）
+        if (Instruments.On) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;

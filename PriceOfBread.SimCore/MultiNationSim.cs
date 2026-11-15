@@ -1655,7 +1655,7 @@ public static class CostLedger
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
         QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, LaborPowerScans = 30,
-        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, ClearingKmCompose = 41, ClearingKmRaw = 42, ClearingA1Eval = 43, Count = 44;
+        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, ClearingKmCompose = 41, ClearingKmRaw = 42, ClearingA1Eval = 43, ClearingA1Invalidate = 44, Count = 45;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -1689,6 +1689,7 @@ public static class CostLedger
         "清算：距離の表の成分からの組み直し（対・費用だけが動いた州の対・(1097)）",
         "清算：距離の表の素の計算（PairKmCore 相当・成分を引いた対・(1097)）",
         "清算：A-1 の生産者の一覧と P̂ を評価した生産者（旗 TradeBuyBySupplyCurve が正のとき・州×財の生産者を清算ごとに並べた数＋行の門と決まり直しで見た生産者・(1144)）",
+        "清算：A-1 の写しを 0 へ戻した生産者（旗 TradeBuyBySupplyCurve が正のとき・その清算で並べた生産者だけ・(1159)）",
     ];
 
     /// <summary>
@@ -1731,6 +1732,7 @@ public static class CostLedger
         ClearingKmComposeUnitMicros,   // ClearingKmComposeUnitMicros〔履歴 MultiNationSim.cs#198〕
         ClearingKmComposeUnitMicros,   // ClearingKmComposeUnitMicros〔履歴 MultiNationSim.cs#199〕
         ClearingA1EvalUnitMicros,      // (1144) A-1 の生産者の一覧と P̂ の評価（紙の見積もり・合流の木の .cost で読む）
+        ClearingA1EvalUnitMicros,      // (1159) A-1 の写しを 0 へ戻す（3 つの書き込み＝並べ替えと同じ桁の紙の値）
     ];
     /// <summary>
     /// 1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。〔履歴 MultiNationSim.cs#200〕
