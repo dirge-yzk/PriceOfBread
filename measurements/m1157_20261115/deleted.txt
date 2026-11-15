@@ -1,1 +1,8 @@
 D:/PoB_work/c113lc_work/armB/out_c113lcB_10/ins（縮めた残り・M と表ごとに sha1 で一致 1502・違う 20＝既知の揺れ＝帰属を読み終えた・★(1150) の型） 2026-11-15 17:51:24
+D:/PoB_work/m1157_work/suite（自分で作った・フルスイートの写しとビルド・記録は measurements へ写した） 2026-11-15 18:24:15
+D:/PoB_work/wt_c113lc（線の worktree・未コミット 0・origin/c113lc と同じ頭）とローカルの枝 c113lc 2026-11-15 18:24:28
+D:/PoB_work/wt_c113sw（線の worktree・未コミット 0・origin/c113sw と同じ頭）とローカルの枝 c113sw 2026-11-15 18:24:37
+D:/PoB_work/wt_c113cr（線の worktree・未コミット 0・origin/c113cr と同じ頭）とローカルの枝 c113cr 2026-11-15 18:24:43
+D:/PoB_work/wt_c113qn（線の worktree・未コミット 0・origin/c113qn と同じ頭）とローカルの枝 c113qn 2026-11-15 18:24:48
+D:/PoB_work/ident_m1157z（自分で作った・腕 Z の ident の生・判定を読んだ後） 2026-11-15 18:46:20
+D:/PoB_work/wt_m1157z（自分で作った・腕 Z の使い捨ての worktree・成績表は写した） 2026-11-15 18:46:38

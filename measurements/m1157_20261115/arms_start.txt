@@ -8,3 +8,9 @@ mp10 end 2026-11-15 17:31:31 rc=0
 mS11z end 2026-11-15 17:41:08 rc=0
 mS11 end 2026-11-15 17:42:16 rc=0
 mM end 2026-11-15 17:44:28 rc=0
+mN1 start 2026-11-15 18:25:06 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.50000001 HEAD=b39fe1ce Dfree=29.8GB armsfree=6
+identZ start 2026-11-15 18:25:06 tree=8f7d415b Dfree=29.8GB armsfree=6
+mN2 start 2026-11-15 18:25:06 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.49999999 HEAD=b39fe1ce Dfree=29.8GB armsfree=6
+identZ end 2026-11-15 18:44:37 rc=0
+mN1 end 2026-11-15 18:53:36 rc=0
+mN2 end 2026-11-15 18:53:38 rc=0
