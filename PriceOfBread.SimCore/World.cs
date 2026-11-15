@@ -1382,15 +1382,15 @@ public sealed class World
         double ppp = 1.0 / Math.Max(0.1, PriceLevel);   // 購買力平価：インフレ分だけ対外減価
         // 為替バイアス＝貿易収支（赤字→減価/黒字→増価）＋政策金利（高金利→資本流入→自国通貨高＝バンクレートでペッグ防衛）。
         double bias = Math.Clamp(tradeBal / Math.Max(1.0, gdp * PriceLevel) * c.ExchangeTradeAdjust + c.PolicyRateFxWeight * InterestRate, -0.2, 0.2);   // gdp×PriceLevel＝NominalGdpPerMonth（MonetaryEnabled は冒頭で保証）
-        double floatTarget = Math.Clamp(ppp * (1.0 + bias), c.ExchangeRateFloor, c.ExchangeRateCeil);
+        double floatTarget = Math.Max(c.ExchangeRateFloor, ppp * (1.0 + bias));   // 下限だけ（上限は (1168) で外した・設計思想⑧）
         // 銀本位国の平価は銀の世界価格に比例する＝★銀が暴落すれば通貨も落ちる（1870-90年代のルピー・両）。〔履歴 World.cs#222〕
         double parity = GoldParity;
         if (MonetaryLaw == MonetaryStandardLaw.Silver && WorldSilverPrice > 1e-9)
         {
             double refSilver = Catalog.RefPrices[Catalog.SilverId];
             double silverRel = refSilver > 1e-9 ? WorldSilverPrice / refSilver : 1.0;
-            silverRel = Math.Clamp(silverRel, c.ExchangeRateFloor, c.ExchangeRateCeil);
-            if (!(silverRel >= c.ExchangeRateFloor && silverRel <= c.ExchangeRateCeil)) silverRel = 1.0;   // NaNは平価どおりへ倒す（否定形＝Clampは NaN を消さない）
+            silverRel = Math.Max(c.ExchangeRateFloor, silverRel);
+            if (!(silverRel >= c.ExchangeRateFloor && silverRel < double.PositiveInfinity)) silverRel = 1.0;   // NaN・非有限は平価どおりへ倒す（否定形＝Max は NaN を消さない）
             parity = GoldParity * silverRel;
         }
         double rateTarget = floatTarget + (parity - floatTarget) * Convertibility;   // Conv=1→平価・Conv=0→floatTarget(変動)

@@ -3,6 +3,8 @@ namespace PriceOfBread.SimCore;
 // 力学の値を 1 つも書かない・乱数を引かない・世界を書かない。〔履歴 InstrumentsSilverParity.cs#1〕
 public static partial class Instruments
 {
+    /// <summary>(1168) c115sb：旧の規則の取り直し用の上限（係数 ExchangeRateCeil は消した・値は同じ 3.0＝silverpar_s・silverwt_s の出力は変わらない）。エンジンはこの値を読まない。</summary>
+    internal const double ExchangeRateCeilOld = 3.0;
     internal const string SilverparHeaderText = "quarter\tyear\tlaw\tratioOkFlag\toldRawIndex\toldParityIndex\tusedParityIndex\tnewParityIndex\trelRecomputedIndex\twAgShare\tnationCount\teMean\teMedian\teAtCeilCount\teAtFloorCount\tprovCount\tmAgIndex\tmAgEIndex\tmAuIndex\tagCount\tmAgAllIndex\tmAgEAllIndex";
 
     sealed class SilverparSink
@@ -27,7 +29,7 @@ public static partial class Instruments
         var c0 = sim.Nations[0].World.Coef;
         sk.RatioOkFlag = ratioOk ? 1 : 0;
         sk.OldRaw = refAg > 1e-9 ? sim.Market.Price[Catalog.SilverId] / refAg : double.NaN;
-        sk.OldParity = Math.Clamp(sk.OldRaw, c0.ExchangeRateFloor, c0.ExchangeRateCeil);
+        sk.OldParity = Math.Clamp(sk.OldRaw, c0.ExchangeRateFloor, ExchangeRateCeilOld);
         sk.Used = refAg > 1e-9 ? silverWorld / refAg : double.NaN;
         sk.NewParity = ratioOk ? rel : double.NaN;
         Array.Clear(sk.Prov); Array.Clear(sk.AgCnt); Array.Clear(sk.SAg); Array.Clear(sk.SAgE); Array.Clear(sk.SAu); Array.Clear(sk.SAgAll); Array.Clear(sk.SAgEAll);
@@ -69,7 +71,7 @@ public static partial class Instruments
             var w = n.World; if (!(w.TotalPopulation > 0)) continue;
             int law = (int)w.MonetaryLaw; double e = w.ExchangeRate;
             es[law].Add(e);
-            if (e >= c0.ExchangeRateCeil - 1e-9) atCeil[law]++;
+            if (e >= ExchangeRateCeilOld - 1e-9) atCeil[law]++;
             if (e <= c0.ExchangeRateFloor + 1e-9) atFloor[law]++;
         }
         sk.W ??= Open("silverpar", seed);
