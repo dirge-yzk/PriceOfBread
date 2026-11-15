@@ -25,7 +25,7 @@ for ix,x in rows(f'{d}/region_s{s}.tsv'):
     k='H' if home else 'C'
     if q%4==3: Y[y][k+'P']+=fl(x[ix['populationK']]); Y[y][k+'R']+=1
     for c in ('migrationOutKPerQuarter','migrationInKPerQuarter','settlerOutKPerQuarter','settlerInKPerQuarter','crossBorderOutKPerQuarter','crossBorderInKPerQuarter'):
-        Y[y][k+c[:5]+('O' if 'Out' in c else 'I')]+=fl(x[ix[c]])
+        Y[y][k+c[:5]+('O' if 'Out' in c else 'I')]+=fl(x[ix[c]]) if c in ix else 0.0
 for ix,x in rows(f'{d}/pop_s{s}.tsv'):
     if x[ix['scope']]!='N' or x[ix['nationUid']]!=U: continue
     y=1783+int(x[ix['quarter']])//4

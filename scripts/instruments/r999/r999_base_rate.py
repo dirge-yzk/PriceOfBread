@@ -11,7 +11,7 @@ for arg in sys.argv[2:]:
             r = csv.reader(f, delimiter='\t'); h = next(r); ix = {c: i for i, c in enumerate(h)}
             for x in r:
                 if x[ix['tier']] != 'Colonial' or float(x[ix['populationK']]) <= 0: continue
-                R[(int(x[0]), x[ix['region']])] = float(x[ix['migrationInKPerQuarter']]) + float(x[ix['crossBorderInKPerQuarter']]) + float(x[ix['settlerInKPerQuarter']])
+                R[(int(x[0]), x[ix['region']])] = float(x[ix['migrationInKPerQuarter']]) + float(x[ix['crossBorderInKPerQuarter']]) + (float(x[ix['settlerInKPerQuarter']]) if 'settlerInKPerQuarter' in ix else 0.0)
         for (q, reg), v in R.items():
             n += 1
             if v > 0 or R.get((q - 1, reg), 0) > 0: hit += 1

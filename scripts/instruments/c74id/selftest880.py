@@ -6,7 +6,7 @@ import sys, os, subprocess, shutil
 HERE = os.path.dirname(os.path.abspath(__file__)); INS = os.path.normpath(os.path.join(HERE, '..'))
 W, OUT = sys.argv[1], sys.argv[2]
 HEAD = ('quarter year nationIndex nation region tier activeFlag populationK ruralPopulationK opportunityIndex holdingFactor wageFactor landFactor employmentShare pushFactor '
-        'housingFactor wagePremium arableLand migrationOutKPerQuarter migrationInKPerQuarter settlerOutKPerQuarter settlerInKPerQuarter crossBorderOutKPerQuarter crossBorderInKPerQuarter '
+        'housingFactor wagePremium arableLand migrationOutKPerQuarter migrationInKPerQuarter crossBorderOutKPerQuarter crossBorderInKPerQuarter '
         'warIntensity foodFillShare').split()
 NQ = 80
 

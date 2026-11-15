@@ -30,7 +30,7 @@ for (d, sd), lst in byfile.items():
                     fo=fl(a[ix['factoryOutputRefValuePerMonth']]), fa=fl(a[ix['factoryActiveCount']]), fb=fl(a[ix['factoryBankruptCount']]), eo=fl(a[ix['extractionOutputRefValuePerMonth']]),
                     opp=fl(a[ix['opportunityIndex']]), keep=fl(a[ix['holdingFactor']]), wage=fl(a[ix['wageFactor']]), wp=fl(a[ix['wagePremium']]), hous=fl(a[ix['housingFactor']]),
                     emp=fl(a[ix['employmentShare']]), food=fl(a[ix['foodFillShare']]),
-                    nm=fl(a[ix['migrationOutKPerQuarter']]) - fl(a[ix['migrationInKPerQuarter']]) + fl(a[ix['settlerOutKPerQuarter']]) - fl(a[ix['settlerInKPerQuarter']])
+                    nm=fl(a[ix['migrationOutKPerQuarter']]) - fl(a[ix['migrationInKPerQuarter']]) + (fl(a[ix['settlerOutKPerQuarter']]) - fl(a[ix['settlerInKPerQuarter']]) if 'settlerOutKPerQuarter' in ix else 0.0)
                        + fl(a[ix['crossBorderOutKPerQuarter']]) - fl(a[ix['crossBorderInKPerQuarter']])))
     for lab, reg in lst:
         rr = rows[reg]

@@ -456,7 +456,7 @@ public class InstrumentsTests
 
             var (mh, mr) = Table(System.IO.Path.Combine(dir, "migration_s1789.tsv"));
             var pairSum = mr.GroupBy(r => r[Array.IndexOf(mh, "quarter")]).ToDictionary(g => g.Key, g => g.Sum(r => Col(mh, r, "movedKPerQuarter")));
-            double totalMoved = 0, totalSettled = 0, totalCross = 0;
+            double totalMoved = 0, totalCross = 0;
             foreach (var g in rr.GroupBy(r => r[iq]))
             {
                 double Sum(string c) => g.Sum(r => Col(rh, r, c));
@@ -465,15 +465,12 @@ public class InstrumentsTests
                 Assert.InRange(mo - mi, -tol(mo), tol(mo));
                 double pm = pairSum.GetValueOrDefault(g.Key);
                 Assert.InRange(mo - pm, -tol(mo), tol(mo));
-                double so = Sum("settlerOutKPerQuarter"), si = Sum("settlerInKPerQuarter");
-                Assert.InRange(so - si, -tol(so), tol(so));
                 double xo = Sum("crossBorderOutKPerQuarter"), xi = Sum("crossBorderInKPerQuarter");
                 Assert.InRange(xo - xi, -tol(xo), tol(xo));
-                totalMoved += mo; totalSettled += so; totalCross += xo;
-                Assert.All(g, r => { foreach (var c in new[] { "populationK", "ruralPopulationK", "migrationOutKPerQuarter", "migrationInKPerQuarter", "settlerOutKPerQuarter", "settlerInKPerQuarter", "crossBorderOutKPerQuarter", "crossBorderInKPerQuarter" }) Assert.True(Col(rh, r, c) >= 0, c); });
+                totalMoved += mo; totalCross += xo;
+                Assert.All(g, r => { foreach (var c in new[] { "populationK", "ruralPopulationK", "migrationOutKPerQuarter", "migrationInKPerQuarter", "crossBorderOutKPerQuarter", "crossBorderInKPerQuarter" }) Assert.True(Col(rh, r, c) >= 0, c); });
             }
             Assert.True(totalMoved > 0, "州の間の移民が1件も写っていない（写しの漏れか、盤面で移民が起きていない）");
-            _ = totalSettled;
             Assert.True(totalCross > 0, "越境の移民が1件も写っていない（MultiNationSim.MoveMigrants の口の写しの漏れか、盤面で越境が起きていない）");
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));

@@ -7,7 +7,7 @@ r = csv.reader(open(f'{d}/region_s{s}.tsv', encoding='utf-8'), delimiter='\t'); 
 R = {}
 for row in r:
     if row[h['region']] == reg: R[int(row[h['quarter']])] = row
-g = lambda q, c: float(R[q][h[c]]); qs = sorted(R)
+g = lambda q, c: float(R[q][h[c]]) if (c in h or not c.startswith('settler')) else 0.0   # (1160) settler の 2 列は消えた（旧の生では常に 0）; qs = sorted(R)
 for y0, y1 in zip(cuts, cuts[1:]):
     w = [q for q in qs if y0 <= int(R[q][h['year']]) < y1]
     if not w: continue

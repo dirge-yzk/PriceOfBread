@@ -51,7 +51,7 @@ for d in dirs:
         caps = set()
         seenQ = set()
         for row in table(os.path.join(d, gf)):
-            r = {new: row[col] for col, new in COLS.items()}
+            r = {new: (row.get(col, '0') if col.startswith('settler') else row[col]) for col, new in COLS.items()}   # (1160) settler の 2 列は消えた（旧の生では常に 0）＝無ければ 0
             for k in ('pop', 'opp', 'mOut', 'mIn', 'cOut', 'cIn', 'xOut', 'xIn', 'war', 'food', 'wprem', 'land', 'hous', 'emp', 'push', 'wage', 'prod', 'rural', 'arable', 'keep'): r[k] = fl(r.get(k, 'nan'))
             r['q'] = int(r['q']); r['yr'] = int(r['yr'])
             r['tier'] = TIER.get(r['tier'], 'int'); r['state'] = 'a' if r['state'] == '1' else 'l'

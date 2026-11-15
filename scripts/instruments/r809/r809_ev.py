@@ -44,7 +44,7 @@ for lab, d in sets:
             r = dict(q=int(row['quarter']), yr=int(row['year']), nat=row['nation'], reg=row['region'], tier=row['tier'], act=row['activeFlag'],
                      pop=fl(row['populationK']), rural=fl(row['ruralPopulationK']), opp=fl(row['opportunityIndex']), keep=fl(row['holdingFactor']),
                      wage=fl(row['wageFactor']), hous=fl(row['housingFactor']), emp=fl(row['employmentShare']),
-                     mOut=fl(row['migrationOutKPerQuarter']), mIn=fl(row['migrationInKPerQuarter']), cOut=fl(row['settlerOutKPerQuarter']), cIn=fl(row['settlerInKPerQuarter']),
+                     mOut=fl(row['migrationOutKPerQuarter']), mIn=fl(row['migrationInKPerQuarter']), cOut=fl(row.get('settlerOutKPerQuarter', '0')), cIn=fl(row.get('settlerInKPerQuarter', '0')),
                      xOut=fl(row['crossBorderOutKPerQuarter']), xIn=fl(row['crossBorderInKPerQuarter']), war=fl(row['warIntensity']), food=fl(row['foodFillShare']),
                      earn=fl(row.get('earnedPerMonth', 'nan')))
             R[r['reg']].append(r)

@@ -18,7 +18,7 @@ for a, d in ARMS.items():
             for line in f:
                 x = line.decode('utf-8').rstrip('\r\n').split('\t'); n = x[ix['nation']]
                 v = reg[a][n]
-                v[0] += float(x[ix['crossBorderInKPerQuarter']]); v[1] += float(x[ix['settlerInKPerQuarter']]); v[2] += float(x[ix['crossBorderOutKPerQuarter']])
+                v[0] += float(x[ix['crossBorderInKPerQuarter']]); v[1] += float(x[ix['settlerInKPerQuarter']]) if 'settlerInKPerQuarter' in ix else 0.0; v[2] += float(x[ix['crossBorderOutKPerQuarter']])
 print('# 行き先の国の割合（上位 12・B の順）')
 for n, v in to['B'].most_common(12):
     ss = [seeds_to[('B', s)][n] / sum(seeds_to[('B', s)].values()) for s in range(1, 11)]
