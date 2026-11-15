@@ -10,9 +10,9 @@ def reg(d,sd):
             c=ln.rstrip('\n').split('\t'); q=int(c[0]); n=c[3]; r=c[4]; t=c[5]
             own[(q,r)]=(n,t)
             if n in NAT and t=='Core':
-                agg[(n,'settler')]+=float(c[ix['settlerOutKPerQuarter']])
+                agg[(n,'settler')]+=float(c[ix['settlerOutKPerQuarter']]) if 'settlerOutKPerQuarter' in ix else 0.0
                 agg[(n,'xb')]+=float(c[ix['crossBorderOutKPerQuarter']])
-            if n in NAT: agg[(n,'settlerIn_'+t)]+=float(c[ix['settlerInKPerQuarter']])
+            if n in NAT: agg[(n,'settlerIn_'+t)]+=float(c[ix['settlerInKPerQuarter']]) if 'settlerInKPerQuarter' in ix else 0.0
     return own,agg
 def mig(d,sd,own,agg):
     with open(f'{d}/migration_s{sd}.tsv',encoding='utf-8') as fh:

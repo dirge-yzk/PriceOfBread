@@ -30,10 +30,10 @@ for arg in sys.argv[1:]:
                     ces.add((c[ix['region']], int(c[ix['year']]), c[ix['winner']]))
         S = collections.defaultdict(list)
         with open(os.path.join(d, f'region_s{sd}.tsv'), encoding='utf-8') as fh:
-            h = fh.readline().rstrip('\n').split('\t'); ix = [h.index(k) for k in COLS]
+            h = fh.readline().rstrip('\n').split('\t'); ix = [h.index(k) if k in h else -1 for k in COLS]
             for l in fh:
                 c = l.rstrip('\n').split('\t')
-                v = [c[i] for i in ix]
+                v = [c[i] if i >= 0 else '0' for i in ix]   # (1160) settler の 2 列は消えた＝無ければ 0
                 S[v[3]].append((int(v[0]), int(v[1]), v[2], v[4], fl(v[5]), fl(v[6]), fl(v[7]) - fl(v[8]), fl(v[9]) - fl(v[10]), fl(v[11]) - fl(v[12])))
         for reg, rows in S.items():
             rows.sort()

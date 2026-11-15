@@ -27,7 +27,6 @@ public sealed class MultiNationSim
 
     // マジックナンバー命名（挙動不変・値は据え置き）。中央 Coefficients には入れない当ファイル固有のハードコード値。
     private const double DefaultTradeWeightBase = 0.15;              // 交易比重の基準値（初期国の基数・分離独立国の既定）
-    private const double RumpGdpFractionOfParent = 0.01;             // 残骸国家判定＝親GDP比のこの割合未満が続いたら再併合対象
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
 
     // splitmix64（Diplomacy.Hash01と同系の混合）：国別乱数種の生成（他16）。
@@ -949,7 +948,7 @@ public sealed class MultiNationSim
                 if (rw2.RumpParentName.Length == 0 || rw2.SelfPower is not { } rp2) continue;
                 var par2 = Diplomacy.Powers.Find(q => (q.BaseName.Length > 0 ? q.BaseName : q.Name) == rw2.RumpParentName);
                 if (par2?.Nation is not { } pw2) { rw2.RumpParentName = ""; continue; }   // 親が消滅＝独立が確定
-                bool low = rw2.NominalGdpPerMonth.Value < RumpGdpFractionOfParent * System.Math.Max(1.0, pw2.NominalGdpPerMonth.Value);
+                bool low = rw2.NominalGdpPerMonth.Value < _coef.RumpGdpFractionOfParent * System.Math.Max(1.0, pw2.NominalGdpPerMonth.Value);
                 rw2.RumpLowQuarters = low ? rw2.RumpLowQuarters + 1 : 0;
                 if (rw2.RumpLowQuarters >= (int)(_coef.RumpReabsorbYears * Calendar.QuartersPerYear)
                     && !Diplomacy.IsAtWar(par2, rp2))

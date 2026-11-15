@@ -37,7 +37,7 @@ for name, d in boards:
             r = csv.reader(f, delimiter='\t'); h = next(r); ix = {c: i for i, c in enumerate(h)}
             for x in r:
                 R[(int(x[0]), x[ix['region']])] = (x[ix['nation']], x[ix['tier']], float(x[ix['populationK']]),
-                    float(x[ix['migrationInKPerQuarter']]), float(x[ix['crossBorderInKPerQuarter']]), float(x[ix['settlerInKPerQuarter']]))
+                    float(x[ix['migrationInKPerQuarter']]), float(x[ix['crossBorderInKPerQuarter']]), (float(x[ix['settlerInKPerQuarter']]) if 'settlerInKPerQuarter' in ix else 0.0))
         M = defaultdict(dict)  # region -> q -> (popK, savings)
         with open(cp_seeds[s], encoding='utf-8', newline='') as f:
             r = csv.reader(f, delimiter='\t'); h = next(r); ix = {c: i for i, c in enumerate(h)}

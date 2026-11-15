@@ -10,7 +10,7 @@ R = {}
 for row in r:
     if row[h['region']] == reg: R[int(row[h['quarter']])] = row
 qs = sorted(R)
-g = lambda q, c: float(R[q][h[c]])
+g = lambda q, c: float(R[q][h[c]]) if (c in h or not c.startswith('settler')) else 0.0   # (1160) settler の 2 列は消えた（旧の生では常に 0）
 peak = -1; pq = None; hit = None
 for q in qs:
     p = g(q, 'populationK')

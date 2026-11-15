@@ -1054,3 +1054,9 @@
 ````text
     // 倍率排除：旧 SuezDetourPenalty（交易の一律迂回加算）は撤去。迂回距離は Geo.SeaDistanceKm（喜望峰/スエズ/パナマ経由）が距離そのものとして表現する。
 ````
+
+## RailNeedByOutput（(1160) 追記＝(1154) 3b68c43b2 で短くした注の落ちた中身）
+- 行末の注（元・(1154) の前）：
+````text
+2026-11-14 に 1 で点火（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。(1137) c111rb 段 R の need の基底：鉄道の need の取り分（敷きと清算の φ）を州の産出の比（産出×参照価格・役務を除く＝GdpPerMonth と同じ式）へ。0＝潜在量の比。RailByRegion＝0 では読まない
+````

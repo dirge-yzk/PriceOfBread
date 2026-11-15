@@ -1,0 +1,13 @@
+# (1160) c114sr 突然変異の出力  base=428600bb41a9fe57ba0d47b5a5c5862e0f000da4
+## M1 新の盤面（衝撃 0.4 の組あり）・DipcoolProtectMin 0.3→0.5：H3 は赤が期待
+[xUnit.net 00:00:07.38]     PriceOfBread.Tests.HyenaBranchTests.H3_計器dipcool_sは枝の削除後もハイエナの旧の規則を同じ盤面で数え_実際の値は新の規則に合う [FAIL]
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H3_計器dipcool_sは枝の削除後もハイエナの旧の規則を同じ盤面で数え_実際の値は新の規則に合う [6 s]
+     at PriceOfBread.Tests.HyenaBranchTests.H3_計器dipcool_sは枝の削除後もハイエナの旧の規則を同じ盤面で数え_実際の値は新の規則に合う() in D:\PoB_work\wt_c114sr\PriceOfBread.Tests\HyenaBranchTests.cs:line 102
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+## M1 旧の盤面（項1 の前の HyenaBranchTests）・同じ変異：緑のまま（足した分が効く証拠）
+成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+## M3 EraTensionRange を p10 へ戻す：DormantIdentityTests が赤が期待
+  失敗 PriceOfBread.Tests.DormantIdentityTests.係数は全て本体のどこかで読まれる [750 ms]
+  失敗 PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない [< 1 ms]
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 781 ms - PriceOfBread.Tests.dll (net10.0)
+## 戻した後の状態：2 件の変更

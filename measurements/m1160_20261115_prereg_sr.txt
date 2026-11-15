@@ -1,0 +1,57 @@
+(1160) c114sr 事前登録（最初のコミット）：恒等の束＝sw の残りの注と記録・D-r2・D-r1・D4。基準＝m1157（main e621e5ea3・木 c114sr は同じ頭から）。
+形：恒等の線（尾）・予言 0＝挙動を変えない。作者の言葉の引用は付けない（根拠は 00一覧〈次の波〉0 節 ①②③・実装ログ (1154)(1155) の AI の推奨）。〈作者の承認〉とは書かない。
+
+[1] 恒等の線・予言 0
+  成績表（10種・5種・計器つき10種）は m1157 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言する物だけ＝region_s の 2 列（settlerOutKPerQuarter・settlerInKPerQuarter）の削除。
+  宣言：region_s の列が 2 減る（旧の生では全行 0＝書き手 0・(1154) で Settled を消した後に確定）。他の表は 1 バイトも違わない。
+  .cost の件数の行は増えない。推定の計算量は m1157 と同じ（読み手の台本と注の変更が主）。
+
+[2] 項と消す物・残す物（この順・1 項 1 コミット）
+  項1 sw の残りの注と記録（コードは動かない）
+    - DormantIdentityTests.cs:259（RetiredFields の注の〈H1 が戻ると赤〉）→〈H2 が戻ると赤〉。HyenaBranchTests.cs:7〜8 の注〈H1〜H3〉→〈H2・H3（H1 は (1154) で消した）〉。
+    - docs/history/Coefficients.cs.md・Coefficients.p04_trade.cs.md の末尾へ、(1154) 3b68c43b2 で短くした注 2 件（ParliamentSeatsWithoutGap・RailNeedByOutput）の落ちた中身を足す（置き場は係数名の grep＝この 2 つは履歴の文書に見出しが無い）。
+    - measurements/m1154_gate5_mut.txt を UTF-8 と rev つきで取り直す（元は文字化け）。scripts/instruments/c113sw/gate5_mut.py は触らない。
+    - HyenaBranchTests の H3：盤面の組 G の力の衝撃を 0 → 0.4 へ（0.3 以上 1 未満の組を足す）。旧の規則の行（oldHyenaRows）は 1 → 2、sumOldCoolGrudge は 2.21 → 2.8（手計算：組 H 2.0＋組 G 2×0.4＝0.8）。計器の保護の下限 DipcoolProtectMin を 0.5 に壊すと G が旧の規則の枝 3 に落ちて oldHyenaRows 1 になり H3 が赤。H2 は影響なし（DriftTension は衝撃を読まない）。
+      これは機構の番人を強める書き換え（期待は盤面の手計算から・Assert の数を増やさず厳しくする）＝★(743) ①〜④ ではない〈新しい突然変異を赤にするための番人の強化〉と名乗る（弱めない）。H3 の他の Assert は不変。
+    - 突然変異の出力を measurements/m1160_20261115_mut_sr.txt へ残す（H3 の 0.5・H2 の枝を戻す）。
+  項2 D-r2（EraTensionRange の ×1.0 を消す）
+    - World.cs:1956：`Coef.ProximityTensionRange * Coef.EraFactor(WorldTechLevel, Coef.EraTensionRange)` → `Coef.ProximityTensionRange`（EraFactor は 1.0 を返す＝ x*1.0 は IEEE でビット同一）。
+    - Coefficients.p10_ai_silver_overrides.cs:61 の EraTensionRange を消す。EraFactor 本体は残す（読み手＝Military.cs:179・MultiNationSim.cs:1066・Territory.cs:70・:73・App GameViewModel.News.cs の注）。
+    - 消した名を DormantIdentityTests の RetiredFields へ（その 1 行だけ）。
+    - 読み手の grep（SimCore・Tests・App・Display・Runner・scripts・measurements の台本・POB_COEF の名前）：EraTensionRange の出現は p10:61・World.cs:1956・scripts/instruments/r1155/mk_ledger.py:32・:88（記録の中の錨＝直さない）だけ。Tests・App・Display・Runner・SaveGame（名前でフィールドを書く＝係数は保存しない）は 0 件。
+  項3 D-r1（RumpGdpFractionOfParent を係数表へ）
+    - MultiNationSim.cs:30 の `private const double RumpGdpFractionOfParent = 0.01` を消し、Coefficients.p10_ai_silver_overrides.cs:73 の RumpReabsorbYears の隣へ `public double RumpGdpFractionOfParent = 0.01;` を足す（値・型は同じ）。:952 を `_coef.RumpGdpFractionOfParent` へ。注に〈段 E の後に読み直す（S27-H031）〉。
+    - 読み手の grep：:30・:952・mk_ledger.py:27・:79（記録）だけ。式の順序は変えない（`<` の右辺の積の順は同じ・const→欄でも double の値は同じ）。
+  項4 D4（region_s の書き手の無い 2 列）
+    - Instruments.cs:2118 の見出しから 2 列・:2146〜:2153 の書き手（settlerOut の集計・SettlerOut の表・FlowOf の SettlerInK）を消す。:2069 の SettlerInK の欄・:2077 の SettlerOut の表も読み手 0 になれば消す（書き手 0・(1154) で確定）。
+    - 読み手の台本 18 本（名前で引く物は列が無ければ 0 にする＝旧の生と新の生で同じ答え）：
+      列の数で行を捨てる（★(749)）＝m749/flows748.py〔`<4`〕：列の数は使わず名で引く（直す必要は settler の 2 箇所だけ）。
+      名で引く（列が無いと KeyError）＝c74id/selftest880.py（見出しから 2 列を外す）・hol/an_h2.py（COLS の写しで row[col]→無ければ 0）・hol/edge_689.py・r1042/rm_dest.py・r806/r806_hol.py・r806_split.py・r809/r809_detail.py・r809_ev.py・r999/r999_base_rate.py・r999_q.py・rd47/home_accounting.py・rdh/rdh_read.py・r806/r806_series.py（qtab が無い列を空にする＝直さない）。
+      番号で引く＝r783/cess_scan2.py（COLS を h.index で引く→無ければ −1）・r840/mkfix840.py・r847/mkfix847.py（見出しと行の長さ 26→24。行の長さは見出しと同じ）。
+      記録の文字列＝r1148/mk_ledger.py（行 57 は文の中の名前だけ＝直さない）。
+    - InstrumentsTests.cs:468・:473：settler の 2 列の和の保存の Assert（常に 0＝0）と列名の列挙から 2 つを消す（★(743) ④：消す列を名指す前提の Assert で常に真）。他の Assert は不変。
+    - 〈作者の確認待ち〉の扱いのまま運ぶ（D4 の削除は AI の推奨）。
+
+[3] 足す試験と突然変異・走査の番人（㉘）・件数の予言（㉑）
+  足す試験：なし（H3 の盤面と期待値の更新だけ）。試験の数の予言：Tests 2640（スキップ 1）＋Tests.Ui 234＝2874・FullLength 3（増減 0）。
+  突然変異：
+    M1 DipcoolProtectMin 0.3→0.5（InstrumentsDipcool.cs:18）→ H3 が赤（oldHyenaRows 2→1）。H3 の盤面を変える前の旧の盤面では緑のまま（＝この線の足した分が効く証拠。旧の盤面での緑も出力に残す）。
+    M2 DriftTension に衝撃の枝を戻す → H2 が赤（既存）。この線では出力だけ残す。
+    M3 RetiredFields に入れた EraTensionRange を p10 へ戻す → DormantIdentityTests が赤。
+  ㉘ ソースを走査する番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器（項）ごとのコミットの後・ident の前に回す。赤なら ident を回さず直すか外す。
+  ㉑ 書き換える件数の予言：走査する件数の番人（WriterRatchetTests の宣言の表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行・工業化度の読み手の許可表）を書き換える件数＝0。許可表の行を消す必要が出たら、消す行の予言＝0（この線は読み手を足さず減らすだけ）。
+
+[4] ident
+  段 2（計器の列が変わる）。素の 5 種・10 種は m1157 と全行一致。計器つき 10 種は region_s の 2 列の減少を宣言＝それ以外の差 0。
+  門：〈判定: 恒等〉・.cost の件数の行が増えない・an_h2.py の答えが旧の生（D:/PoB_work/keep_1157/base_ins）と新の生で同じ・H3 の突然変異（0.5）で赤。
+  浮動小数の順序が変わる箇所：なし（D-r2 の ×1.0 の消去はビット同一・D-r1 は const→欄で値が同じ）。紙の台本で旧と新の食い違いの数を数える必要のある式は 0。
+  腕の枠：arms.sh free が 3 以上のとき ident を始める。D:（空き 104GB）は起こす直前に shutil で測る。生は合流の判断まで残す。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す（項ごとに外せる＝項 4 が原因なら項 4 だけ外す）。
+
+[6] 他の線との重なり
+  MultiNationSim.cs＝:30・:952 だけ（t1 の台帳の行は別）。World.cs＝:1956 だけ。p10＝:61 と :73 の隣だけ。DormantIdentityTests.cs＝:259 と RetiredFields の 1 行。Instruments.cs＝:2069〜:2153 の region 行だけ（登録の行は触らない）。HyenaBranchTests.cs・InstrumentsTests.cs（region の列の行）。App・Display・Runner は触らない。
+
+[追記 1（フルスイートの後・ident の前）] ㉑ の予言の訂正
+  フルスイート（Category!=FullLength）で TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり が赤（World.cs が 4→3＝項2 D-r2 が WorldTechLevel を読む行を 1 行消したため）。[3] の〈書き換える件数＝0〉の予言は外れ（㉘ の絞り込みにこの試験が入っていなかった）。
+  区分：走査する件数の番人（読み手の許可表のラチェット＝〈減ったら表を直す〉が設計）を、読み手の削除に追随させる 1 行（World.cs 4→3）。機構の向き・大きさの Assert ではない。予言の外れ＝1 行（World.cs の 4→3）と名乗る。他の行は不変。

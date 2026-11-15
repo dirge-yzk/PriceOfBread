@@ -30,7 +30,7 @@ for label, d in pairs:
                 R[reg].append((q, int(v[H['year']]), nat, v[H['tier']], fl(v[H['populationK']]),
                                fl(v[H['migrationOutKPerQuarter']]) - fl(v[H['migrationInKPerQuarter']]),
                                fl(v[H['crossBorderOutKPerQuarter']]) - fl(v[H['crossBorderInKPerQuarter']]),
-                               fl(v[H['settlerOutKPerQuarter']]) - fl(v[H['settlerInKPerQuarter']])))
+                               (fl(v[H['settlerOutKPerQuarter']]) - fl(v[H['settlerInKPerQuarter']]) if 'settlerOutKPerQuarter' in H else 0.0)))
         for reg, rows in R.items():
             exReg = hol_common.is_exempt(EXMODE, reg)   # (722) 規則の版の開幕の人口は world.json の popK
             pk = 0.0; pki = 0; best = (1.0, None, None)

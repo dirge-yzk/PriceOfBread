@@ -22,7 +22,7 @@ public class TechLevelRemovalTests
         ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 1), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
         ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 8),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
-        ("PriceOfBread.SimCore", "World.cs", 4),
+        ("PriceOfBread.SimCore", "World.cs", 3),   // (1160) c114sr D-r2：4→3（World.cs:1956 の EraFactor(WorldTechLevel, EraTensionRange) の行を消した）
         ("PriceOfBread.Runner", "Program.cs", 2),
     ];
 

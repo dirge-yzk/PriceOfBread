@@ -2066,7 +2066,7 @@ public static partial class Instruments
     /// <summary>州ごとの四半期の人口の流れ（千人）。四半期の末に <c>region</c> と <c>migration</c> の行へ書いて0へ戻す。</summary>
     sealed class RegionFlow
     {
-        public double MigrationOutK, MigrationInK, SettlerInK, CrossBorderOutK, CrossBorderInK;
+        public double MigrationOutK, MigrationInK, CrossBorderOutK, CrossBorderInK;
         public double[]? SvcBuyAcc;   // SvcBuyAcc〔履歴 Instruments.cs#413〕
         public double HabitSoldSum;   // HabitSoldSum〔履歴 Instruments.cs#414〕
         public double TheftPoolSum, TheftRecipientsEarnedSum;   // TheftRecipientsEarnedSum〔履歴 Instruments.cs#415〕
@@ -2074,7 +2074,6 @@ public static partial class Instruments
         public Dictionary<Region, double>? CrossBorderTo; // CrossBorderTo〔履歴 Instruments.cs#416〕
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RegionFlow> Flows = new();
-    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, double[]> SettlerOut = new();   // 入植で本国の pop から出た量（四半期の合計）＝出た pop が居る州の行に書く
     static RegionFlow FlowOf(Region r) => Flows.GetValue(r, _ => new RegionFlow());
 
     /// <summary>
@@ -2115,7 +2114,7 @@ public static partial class Instruments
         if (!sk.RegionHeader)
         {
             sk.Region.WriteLine("quarter\tyear\tnationIndex\tnation\tregion\ttier\tactiveFlag\tpopulationK\truralPopulationK\topportunityIndex\tholdingFactor\twageFactor\tlandFactor\temploymentShare\tpushFactor\thousingFactor\twagePremium\tarableLand\t"
-                + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tsettlerOutKPerQuarter\tsettlerInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare\t"
+                + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare\t"
                 + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth\t" + RegionProdHeaderText);   // ttheftRecipientsEarnedPerMonth〔履歴 Instruments.cs#421〕
             sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter\trouteKm");   // WriteLine〔履歴 Instruments.cs#422〕
             sk.RegionHeader = true;
@@ -2135,12 +2134,11 @@ public static partial class Instruments
             var w = sim.Nations[i].World; var c = w.Coef; string nation = NameOf(w);
             foreach (var r in w.Regions)
             {
-                double pop = 0, rural = 0, unemp = 0, unrest = 0, foodMet = 0, foodNeed = 0, settlerOut = 0, earned = 0;
+                double pop = 0, rural = 0, unemp = 0, unrest = 0, foodMet = 0, foodNeed = 0, earned = 0;
                 foreach (var p in r.Pops)
                 {
                     pop += p.Size; if (!p.IsUrban) rural += p.Size;
                     unemp += p.Size * p.UnemploymentRate.Value; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;   earned += Calendar.OneMonthOf(p.LastEarnedPerMonth).Value;   // Value〔履歴 Instruments.cs#425〕
-                    if (SettlerOut.TryGetValue(p, out var po)) { settlerOut += po[0]; po[0] = 0; }
                 }
                 double floor = Territory.OpportunityFactorFloor;
                 double wage = Math.Max(floor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
@@ -2150,7 +2148,7 @@ public static partial class Instruments
                 var f = FlowOf(r);
                 sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(rural),
                     F(Territory.Opportunity(r, c)), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
-                    F(f.MigrationOutK), F(f.MigrationInK), F(settlerOut), F(f.SettlerInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1),
+                    F(f.MigrationOutK), F(f.MigrationInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1),
                     F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)) + "\t" + string.Join('\t', RegionProdRow(r).Select(F)));   // F〔履歴 Instruments.cs#426〕
                 if (f.MigrationTo is { } to)
                 {
@@ -2177,7 +2175,7 @@ public static partial class Instruments
                     }
                     xto.Clear();
                 }
-                f.MigrationOutK = f.MigrationInK = f.SettlerInK = f.CrossBorderOutK = f.CrossBorderInK = 0;   f.TheftPoolSum = f.TheftRecipientsEarnedSum = 0;
+                f.MigrationOutK = f.MigrationInK = f.CrossBorderOutK = f.CrossBorderInK = 0;   f.TheftPoolSum = f.TheftRecipientsEarnedSum = 0;
             }
         }
     }

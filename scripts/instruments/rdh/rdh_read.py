@@ -89,7 +89,7 @@ def cmd_region(d, sd, reg, step):
         for q in qq:
             r = R[q]; h = Q.get(q)
             s['mig'] += fl(r['migrationOutKPerQuarter']) - fl(r['migrationInKPerQuarter'])
-            s['col'] += fl(r['settlerOutKPerQuarter']) - fl(r['settlerInKPerQuarter'])
+            s['col'] += fl(r.get('settlerOutKPerQuarter', '0')) - fl(r.get('settlerInKPerQuarter', '0'))
             s['xb'] += fl(r['crossBorderOutKPerQuarter']) - fl(r['crossBorderInKPerQuarter'])
             s['epi'] += E.get(q, 0.0)
             if h:
