@@ -1,0 +1,6 @@
+PriceOfBread.Tests nonfull rc=1 list=2639 失敗!   -失敗:     1、合格:  2637、スキップ:     1、合計:  2639、期間: 22 m 8 s - PriceOfBread.Tests.dll (net10.0)
+PriceOfBread.Tests full rc=0 list=3 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 28 s - PriceOfBread.Tests.dll (net10.0)
+PriceOfBread.Tests.Ui nonfull rc=0 list=234 成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 21 s - PriceOfBread.Tests.Ui.dll (net10.0)
+PriceOfBread.Tests.Ui full rc=0 list=0 
+t39 rc=1 失敗!   -失敗:     1、合格:   433、スキップ:     0、合計:   434、期間: 16 m 22 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.OnDoubleReadScanTests.InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない

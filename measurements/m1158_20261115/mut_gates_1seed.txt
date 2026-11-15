@@ -1,0 +1,25 @@
+# (1158) c114qn 門の突然変異（1 種・表を絞った・木 f8068e8d3＋scripts/instruments/c113qn/mut.py・scripts/instruments/c114qn/mutarms.sh）。G4 の基準は旗 0（ident c114qnz の生）の種 1 の fuelRows 8639（1 種どうし）。床は除いて読む。生 D:/PoB_work/c114qn_work/mut/out_qn_<形>_1
+# 腕 D:/PoB_work/c114qn_work/mut/out_qn_coef0_1/ins（種 1・短い行 0）・床を除いて読む（1 種）
+arm	seeds=1	rows=41375	short=0	nanRows=0	malRows=2017	g1_sumObsGot=0	g1_sumObsDemand=0	g1_sumObsClaim=0	buyRows=828	sumOldBuyable=27069.1	sumObsGot=0	R=1.000000	fuelRows=7965	sumOldWant=82962	sumOldReq=52830.2	sumOldClaim=77936.2	sumObsCost=0	sumObsClaim=0	maxAbsDiffGot=35.6636	maxRelDiffReq=11.2	invade=127	invadeQuinineTargets=7
+G1 狙い（旧の規則＞0 の行で実の調達・需要・請求の和＝0・床 ≧10000）：緑（行 2017・調達 0・需要 0・請求 0）
+G2 大きさ（R＝Σ(旧で買えた量−実の調達)÷Σ旧で買えた量 が 0.9〜1.1・床 ≧1000）：緑（R 1.000000・行 828）
+G4 壊さない・燃料（fuelClaim＞0 の行 ≧ 旗 0 の 0.5 倍）：緑（腕 7965・旗 0 8639）
+記録：計器の自己一致 maxAbsDiffGot 35.6636・maxRelDiffReq 11.2・NaN の行 0・キニーネの標的への侵略 7/127
+# 腕 D:/PoB_work/c114qn_work/mut/out_qn_m2_1/ins（種 1・短い行 0）・床を除いて読む（1 種）
+arm	seeds=1	rows=41396	short=0	nanRows=0	malRows=2273	g1_sumObsGot=45252.2	g1_sumObsDemand=60211.6	g1_sumObsClaim=79684.5	buyRows=1522	sumOldBuyable=45252.2	sumObsGot=45252.2	R=0.000000	fuelRows=8639	sumOldWant=87606	sumOldReq=60211.6	sumOldClaim=79684.5	sumObsCost=51661.6	sumObsClaim=79684.5	maxAbsDiffGot=0	maxRelDiffReq=1.17e-16	invade=136	invadeQuinineTargets=7
+G1 狙い（旧の規則＞0 の行で実の調達・需要・請求の和＝0・床 ≧10000）：赤（行 2273・調達 45252.2・需要 60211.6・請求 79684.5）
+G2 大きさ（R＝Σ(旧で買えた量−実の調達)÷Σ旧で買えた量 が 0.9〜1.1・床 ≧1000）：赤（R 0.000000・行 1522）
+G4 壊さない・燃料（fuelClaim＞0 の行 ≧ 旗 0 の 0.5 倍）：緑（腕 8639・旗 0 8639）
+記録：計器の自己一致 maxAbsDiffGot 0・maxRelDiffReq 1.17e-16・NaN の行 0・キニーネの標的への侵略 7/136
+# 腕 D:/PoB_work/c114qn_work/mut/out_qn_m3_1/ins（種 1・短い行 0）・床を除いて読む（1 種）
+arm	seeds=1	rows=41398	short=0	nanRows=0	malRows=2101	g1_sumObsGot=10281.5	g1_sumObsDemand=19274.2	g1_sumObsClaim=35263	buyRows=984	sumOldBuyable=19761.1	sumObsGot=10281.5	R=0.479712	fuelRows=9154	sumOldWant=74736	sumOldReq=38548.3	sumOldClaim=70525.9	sumObsCost=15403	sumObsClaim=35263	maxAbsDiffGot=11.2133	maxRelDiffReq=0.911	invade=151	invadeQuinineTargets=14
+G1 狙い（旧の規則＞0 の行で実の調達・需要・請求の和＝0・床 ≧10000）：赤（行 2101・調達 10281.5・需要 19274.2・請求 35263）
+G2 大きさ（R＝Σ(旧で買えた量−実の調達)÷Σ旧で買えた量 が 0.9〜1.1・床 ≧1000）：赤（R 0.479712・行 984）
+G4 壊さない・燃料（fuelClaim＞0 の行 ≧ 旗 0 の 0.5 倍）：緑（腕 9154・旗 0 8639）
+記録：計器の自己一致 maxAbsDiffGot 11.2133・maxRelDiffReq 0.911・NaN の行 0・キニーネの標的への侵略 14/151
+# 腕 D:/PoB_work/c114qn_work/mut/out_qn_m4_1/ins（種 1・短い行 0）・床を除いて読む（1 種）
+arm	seeds=1	rows=41612	short=0	nanRows=0	malRows=2873	g1_sumObsGot=0	g1_sumObsDemand=0	g1_sumObsClaim=0	buyRows=1786	sumOldBuyable=35064.3	sumObsGot=0	R=1.000000	fuelRows=0	sumOldWant=85068	sumOldReq=60244	sumOldClaim=82277.3	sumObsCost=0	sumObsClaim=0	maxAbsDiffGot=26.0597	maxRelDiffReq=5.08	invade=129	invadeQuinineTargets=9
+G1 狙い（旧の規則＞0 の行で実の調達・需要・請求の和＝0・床 ≧10000）：緑（行 2873・調達 0・需要 0・請求 0）
+G2 大きさ（R＝Σ(旧で買えた量−実の調達)÷Σ旧で買えた量 が 0.9〜1.1・床 ≧1000）：緑（R 1.000000・行 1786）
+G4 壊さない・燃料（fuelClaim＞0 の行 ≧ 旗 0 の 0.5 倍）：赤（腕 0・旗 0 8639）
+記録：計器の自己一致 maxAbsDiffGot 26.0597・maxRelDiffReq 5.08・NaN の行 0・キニーネの標的への侵略 9/129

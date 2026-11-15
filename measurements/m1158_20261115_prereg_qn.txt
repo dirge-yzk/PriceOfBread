@@ -1,0 +1,82 @@
+(1158) c114qn 事前登録（追記 1）：植民地の毎月のキニーネを消す D2 の続き（origin/c113qn の 5 コミットを e621e5ea3 へ載せ直した・腕＝既存の係数 MalariaQuininePerColony を 0 へ・新しい係数・旗・状態は 0）
+2026-11-15・枝 c114qn（e621e5ea3 から）・波114 の席 1・3 回の規則では D2 の 1 回目（(1153) は腕 B に至らず＝数えない）。書いたのは Claude Opus 5.5。
+元の事前登録 measurements/m1153_20261115_prereg_qn.txt（形・門・突然変異の表）を引き継ぐ。この追記は腕の前・ident の前に固定し、ループの中で変えない。違う所だけ書く。
+
+■ 先頭の名乗り（根拠の直し・README ★(1157)）
+- 消す推奨は (1148) c112s26 の D2（AI の案・確証なし）。作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち。作者「キニーネは材から消してよいのではないか。これは医薬品の発見だと思う」は財の段3 の文脈＝この線の根拠にしない。
+- **消すと遠征の充足が上がる側の効きがある。** 植民地の月のキニーネ（Colonial.cs:43）は首都の市場の在庫を遠征（World.cs:1871〜:1874）と取り合う。(1153) の反証役 v2：M2 の生で旧の規則が立つ 2609 行のうち 1920 行が〈買える量＜求め〉。〈効き 0〉と言えるのは植民地の側（戻り値を捨てる＝買えなくても誰も死なない）だけ。遠征の側は買えた割合だけ防護し、残りの兵が疫病の致死率で死ぬ（World.cs:1874〜:1882）。
+- この線では両側を記録の列で読む（植民地の側＝門 G1・G2・遠征の側＝colqn_s の遠征の列と試験 Q3b・Q4）。遠征の側の向きは予言する（下）が門にしない。
+- 形は〈入口〉（国家の調達の入口の量）。消した後の挙動は既にある機構から旧の 1 項を抜くだけ＝新しい弾性は置かない。〈確証なし〉は消す推奨そのもの。
+
+■ 基準を m1157 へ移す
+- 比べる生＝keep_1157/base_ins（全表）。ヌル腕＝keep_1157/n1・n2（絞った表＝colqn_s は無い）。全表のヌル腕の幅＝keep_1150/n1・n2。
+- nullgate＝`python scripts/instruments/tools/nullgate.py <腕 B の成績表> measurements/b10_20261115_m1157_ins measurements/b10_20261115_m1157_n1_ins measurements/b10_20261115_m1157_n2_ins`（記録）。
+- NG の基準＝rd:measurements/ng1157_20261115:m1157（記録）。止める線の基準＝measurements/m1157_20261115/stopbase/（M・N1・N2・台本 stoplines1002）。
+- G4 の基準＝ident c114qnz（旗 0 の器の木・段 2）の計器つき 10 種の生 colqn_s の fuelRows（fuelClaim＞0 の行の数）。値は追記 2 で固定する（腕 B の前）。(1153) の〈旗 0 6738〉は coef0 の腕の自分の値だった（反証役 v 低）＝使わない。
+- 旧の規則が立つ国×四半期の割合と G1 の床も追記 2 で ident の生から固定する。G1 の床（oldWant＞0 の行 ≧10000）・G2 の床（oldBuyable＞0 の行 ≧1000）・G2 の両側 0.9〜1.1 は (1153) のまま。
+
+■ 紙の台本の出力（今の盤面 keep_1157・近似）
+- scripts/instruments/c113qn/paper.py → measurements/m1158_20261115/paper_keep1157.txt：旧の規則が立つ国×四半期 M 21237／410065＝0.0518・N1 0.0498・N2 0.0449。旧の規則の量の和 M 76.9 万・N1 78.0 万・N2 72.3 万（月×州）。最初の四半期 56〜67。
+- scripts/instruments/c114qn/exppaper.py → measurements/m1158_20261115/exppaper_keep1157.txt：熱帯の標的への侵略 M 133・N1 140・N2 151（10 種の和・種ごと 7〜23）。侵略の四半期の首都のキニーネの在庫は生に無い（goods_s は計器の 9 国だけ・nationgood_s は年の間引き）＝腕 B の colqn_s の遠征の列で読む。
+- 旗 0 で門が落ちる確かめ（紙）：旧の規則の量＞0 の月に旗 0 のエンジンは請求と需要を足す＝G1 赤・G2（R＝0）赤。G4 は旗 0 そのもの＝緑（壊さない門・狙いの門 G1・G2 が落とす）。
+
+■ 恒等の計器の追記（器・旗 0・行の数を変えない）
+- colqn_s の末尾に 6 列：expN・expDepletedN・expNeed・expReq・expFillUpper・expStockAfter（国×四半期の和）。
+  口＝既にある Instruments.Invaded（World.cs:1888＝遠征の調達の後・Instruments.On の時だけ呼ばれる）の 1 行に ColqnInvaded(invader, target) を足す（Instruments.cs:1121・行の数は変えない）。World.cs と BuyUpkeepGood には口を置かない（持ち主の外・:124 は route_anchors の鍵の行）。
+  expN＝熱帯の標的（RequiresQuinine）への遠征の数・expNeed＝need の和（計器が自分で組む＝缶詰の基礎＋標的の軍事力×1 あたり）・expReq＝Procure への求め（need×afford×資金の比・BuyUpkeepGood と同じ順）・expDepletedN＝調達の後の首都の在庫 ≦1e-9 の遠征の数（⇔ 調達の前の在庫 ≦ 求め＝求めに届かなかった）・expFillUpper＝充足の上界 min(1, 求め÷need) の和（在庫が残った遠征ではちょうどの充足）・expStockAfter＝調達の後の在庫の和。
+- **読めない物（限界の名乗り）**：調達の前の在庫が読めない＝在庫が尽きた遠征のちょうどの充足と、遠征の疫病の死（World.cs:1876〜:1882 の局所の値）は列にできない（World.cs が持ち主の外）。遠征の死は人口の台帳 DiagDeaths に他の疫病と合わさる。
+- 試験の追記：Q3b（在庫が有限の対照）＝在庫 45・マラリアの州 2・遠征の求め 40 の盤面で、植民地の月の調達の後に遠征を 1 回。係数 6 で（植民地 12・遠征 33）・係数 0 で（植民地 0・遠征 40）。Q4（計器の自己検査）＝同じ盤面で colqn_s の q=1 の英の行が expN 1・expNeed 40・expReq 40・expFillUpper 1（両方）・係数 6 で expDepletedN 1・expStockAfter 0・係数 0 で expDepletedN 0・expStockAfter 5。期待の値は手で書いた数。
+- 試験の数：Tests 2640→2645（+5＝Q1・Q2・Q3・Q3b・Q4）・Tests.Ui 234＝合計 2874→2879・FullLength 3 のまま。
+
+■ 遠征の側の予言（記録・門にしない）
+- 同じ腕の中の比べは無い（遠征の調達は係数に依らない）＝腕 B と旗 0（ident c114qnz の生）の和を並べる。軌道が動くので向きだけを予言：expDepletedN÷expN は下がる（植民地の月の買いが首都の在庫を減らさない）・expStockAfter÷expN は上がる・expFillUpper÷expN はほぼ同じ（afford と資金の比だけで決まる）。外れても採否に使わない（記録）。件数は 10 種で約 130〜150＝薄い。
+
+■ 門（腕 B の計器つき 10 種・種 1〜10 の和・(1153) のまま）
+- G1 狙い：oldWant＞0 の行で obsGot・obsDemand・obsClaim の和がどれも 0（ちょうど）。床 ≧10000 行。旗 0 では正＝落ちる。
+- G2 大きさ（両側）：R＝Σ(oldBuyable−obsGot)÷Σ oldBuyable が 0.9〜1.1。床 ≧1000 行。**G1 から独立していない**（G1 が緑なら R＝1 が構築で決まる・反証役 v）＝実質は G1 の片側。M3（半分だけ消す）を落とす下側の量として残す。
+- G3 壊さない（遠征）：試験 Q3・Q3b・Q4（腕の前に緑・旗 1 の木のフルスイートでも緑）。
+- G4 壊さない（燃料）：fuelClaim＞0 の行の数 ≧ 旗 0（ident c114qnz の生）の 0.5 倍。
+- 計器の自己一致（旗 0 の ident の生・記録）：maxAbsDiffGot＝0・maxRelDiffReq ≦1e-12。外れたら計器の誤り＝腕を回さず直す（追記で名乗る）。
+- 採否：G1・G2・G4 が緑・試験 Q1〜Q4 が緑・止める線に当たらない・機構のテストが緑 → 採る（合流が既定を 0 にする）。外れたら採らない（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ。
+- 狙いどおり働いたかの段：植民地の口からのキニーネの調達が、旧の規則が立つ全ての国×四半期で 0 になり、減りが旧の規則の量に等しい（G1・G2）。
+
+■ 突然変異ごとの門（㉚・腕の前の予言・M4 の Q2 は (1153) の外れを直した）
+| 突然変異 | G1 | G2 | G4 | Q1 | Q2 | Q3 | Q3b | Q4 |
+| M0 何もしない（係数 6.0＝旗 0＝ident の生） | 赤 | 赤（0） | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+| M1 遠征まで消す（係数 0＋World.cs:1871 の門に係数＞0） | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 | 赤 | 赤 |
+| M2 調達を残して戻り値だけ使う（係数 0＋:24 の率を定数 6.0） | 赤 | 赤（0） | 緑 | 赤 | 赤 | 緑 | 赤 | 赤 |
+| M3 半分だけ消す（既定 3.0） | 赤 | 赤（約 0.5） | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+| M4 燃料まで消す（係数 0＋:41 の燃料の調達を外す） | 緑 | 緑 | 赤 | 赤 | 赤（直した＝Q2 は燃料の請求＞0 を前提に置く） | 緑 | 緑 | 緑 |
+| M5 遠征の計器の口を外す（Instruments.cs:1121 の ColqnInvaded） | ―（腕を回さない） | ― | ― | 緑 | 緑 | 緑 | 緑 | 赤 |
+- 試験の突然変異は使い捨ての木で ColonialQuinineTests だけ（M1・M2・M4・M5）。門の突然変異は 1 種の計器つきの腕を表を絞って（colqn_s・invade_s・nation_s・pxmonth_s・scalars_s・床を除いて読む）：coef0（係数 0 の短い走り＝G1 0・G2 1 の確かめ）・M2・M3・M4。M1 は腕の門では緑の予言＝試験で落とす。
+- 限界：M3 は試験では落ちない（試験は係数を手で置く）＝腕の G2 だけが落とす。
+
+■ ソースを走査する番人（㉘）と変わる件数の予言（㉑）（grep 2026-11-15・e621e5ea3＋載せ直し）
+- IndustrializationReaderTests の許可表：触らない・変わらない。`new MoneyStock(` の件数：SimCore で 66・足す 0。route_anchors.tsv の鍵の行：Colonial.cs は 2 本（Procure・Transfer）・Instruments の鍵は無い＝この線は触らない。
+- WriterRatchetTests の宣言の表：器（計器だけ）では変わらない。旗 1 は 40 四半期の軌道が動けば ±2% の内の予言。外れたら〈軌道の件数を写しただけの番人〉（★(749)）の取り直しとして verdict に列挙する。
+- OnDoubleReadScanTests：ColqnInvaded は Instruments.On を読まない（呼び手が On の中）＝変わらない。
+- DormantIdentityTests：旗 1 のコミットで ZeroDefaultLedger に MalariaQuininePerColony を 1 行。錨は (1154) が DefeatShockTensionRelief を RetiredFields へ移したため `"SubmitProbabilistic",` の行へ取り直した（scripts/instruments/c113qn/flag1.py）。DormantZeroFields には足さない。
+- OpeningBakeTests：world.json と埋め込みの資源に触れない＝焼き直しは要らない（★(1157)）。
+- ㉘ の束に OnDoubleReadScanTests・ColonialQuinineTests・OpeningBakeTests を足して回す（(1153) は OnDoubleRead を入れ忘れた）。
+
+■ 旗 1 の木の番人の grep（㉜）
+- Tests・Tests.Ui で MalariaQuininePerColony・quinineWant・ColqnInvaded・expDepleted：ColonialQuinineTests だけ（係数を手で置く）。QuinineId とキニーネは遠征と財の表の試験（旧の規則を固定しない＝(1153) のとおり）。ColonialUpkeep：ColonialPopTests:34・MilitaryTests:299〜:301・TreasuryLedgerTests:172＝旧の規則を固定しない。
+
+■ 止める線（README の止める線の改めのとおり・この行をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）／1 四半期に 100 倍以上（全ての国の価格水準・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる・基準とヌル腕を同じ台本で数え直す）／開幕の 1e10 倍以上・非有限／空洞化：ピークの 1/10 未満で規則 A2（an_h2.py の既定 -ex rule）の外・その線が原因と読めた件だけ（基線 keep_1157/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭）・主要国と本国格の州は例外にしない／推定の計算量 ＞248.5 秒／機構のテストの赤（ソースを走査する番人を含む）。
+- 記録：NG（ng.sh・基準 ng1157_20261115）・exact・near・nullgate・開幕の 1000 倍以上・名目 GDP 0 の続き（gdp_zero10.py）・英の国債の不履行の種の数・史実の線・遠征の列。
+
+■ 計算量
+- 割り当て 0 秒。器は計器だけ。旗 1 は旧の規則が立つ国×月（約 5%）で BuyUpkeepGood を 1 回呼ばなくなる＝実の CPU は減る向き。推定の件数は軌道で動く（見込み −1〜+1 秒）。2 秒以下は 1 本の腕で門にしない＝合流の木の累計で読む。
+
+■ ident と腕と D:
+- ident：`bash scripts/instruments/ident/ident.sh run c114qnz --tree D:/PoB_work/wt_c114qn --added-tables colqn_s --tests-delta 5`（段 2＝計器に触れる・走っている間はこの worktree にコミットしない）。
+- 重い仕事は起こす直前に shutil で〈35GB＋その量〉（ident 約 30GB・腕 B 約 26GB）を確かめ、届かなければ 240 秒以内の刻みで測り直して待つ。
+- 腕 B が 60 分待っても届かなければ、〈門の台本の表＋止める線の表＋標準の読み手の表〉＝colqn_s・invade_s・nation_s・pxmonth_s・region_s・fiscal_s・goods_s・scalars_s・secession_s・cessp_s・rule_s・migration_s と ident.cfg の SMALL に絞って起こし、絞ったと名乗る（POB_INSTRUMENTS_TABLES）。
+
+■ 追記 2（2026-11-15・ident c114qnz〈判定: 恒等〉の後・係数 0 のコミットの前・腕 B の前に固定）
+- ident c114qnz（段 2・木 f8068e8d3・SOURCE-HASH c3d2bfff8d31f8ce）：素の 5 種・計器つき 10 種とも m1157 と全行バイト一致・.cost 一致（推定 228.3／229.1 秒）・計器の表 1502 一致＋既知の揺れ 20＋宣言 10（colqn_s）・注視 4655 行一致・テスト 2879（2874＋5）・FullLength 3。写し measurements/m1158_20261115/ident_c114qnz.txt・b5_20261115_c114qnz・b10_20261115_c114qnz_ins。
+- 旗 0 の生（colqn_s 10 本を D:/PoB_work/c114qn_work/flag0_ins に写した）：行 410065・旧の規則が立つ行 malRows 21189（0.0517）・oldBuyable＞0 の行 12944・fuelRows 76753・計器の自己一致 maxAbsDiffGot 0・maxRelDiffReq 1.84e-16（≦1e-12＝計器の誤りなし）・G1 赤（調達の和 357820）・G2 赤（R 0）＝旗 0 で狙いの門が落ちる。
+- 固定：**G4 の床＝fuelClaim＞0 の行 ≧38377**（旗 0 の 76753 の 0.5 倍の切り上げ）。G1 の床 ≧10000 行・G2 の床 ≧1000 行は変えない（旗 0 の 21189・12944 の内）。
+- 遠征の列の旗 0（記録・scripts/instruments/c114qn/expread.py）：expN 133（invade_s の熱帯の標的への侵略 133 と一致）・在庫が尽きた遠征 115（0.8647）・充足の上界の平均 0.3897・1 回あたりの残りの在庫 16.32・need の平均 30・求めの平均 11.69。予言（記録）：腕 B で在庫が尽きた割合は下がり、残りの在庫は上がる。尽きた割合は旗 0 で既に 86%＝首都の在庫そのものが薄い（植民地の月の買いだけが理由ではない）。
+- 係数 0 の短い走り（1 種・表を絞った・f8068e8d3＋mut.py coef0）：G1 緑（行 2017・調達・需要・請求 0）・G2 R 1.000000（行 828）＝床を除いて読む。門の突然変異 M2（1 種）：G1 赤・G2 R 0。M3・M4 は走行中（結果は measurements/m1158_20261115/mut_gates_1seed.txt）。

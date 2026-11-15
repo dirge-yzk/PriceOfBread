@@ -1,0 +1,6 @@
+base_ins	seeds=10	P1_malNQ=21237	activeNQ=410065	share=0.0518	P2_oldRuleWantSum=769428.0	P3_firstQ_min=67	P4_fiscalMonths=180270	claimPos=107288	P5_oldWant/nationQnDemand_n=0_median=nan	P6_topNations=清:4602,日本:2435,マラータ同盟:2259,イギリス:1970,フランス:1631,オーストリア:1343
+base_ins	per_seed	1:2278/41396 2:1641/40790 3:1940/40995 4:1270/41257 5:2110/40817 6:2092/41295 7:2098/40772 8:2906/41099 9:2481/40800 10:2421/40844
+n1	seeds=10	P1_malNQ=20380	activeNQ=408963	share=0.0498	P2_oldRuleWantSum=780048.0	P3_firstQ_min=60	P4_fiscalMonths=180270	claimPos=98572	P5_oldWant/nationQnDemand_n=2_median=1.495e+05	P6_topNations=イギリス:3447,清:3419,日本:2415,マラータ同盟:1518,オスマン:1317,フランス:1075
+n1	per_seed	1:2016/40829 2:2454/40810 3:1993/40785 4:2312/41269 5:1958/41249 6:2057/40795 7:2168/40786 8:1588/40796 9:1825/40846 10:2009/40798
+n2	seeds=10	P1_malNQ=18512	activeNQ=412309	share=0.0449	P2_oldRuleWantSum=723492.0	P3_firstQ_min=56	P4_fiscalMonths=180270	claimPos=98702	P5_oldWant/nationQnDemand_n=14_median=2.909e+04	P6_topNations=清:3209,日本:3015,マラータ同盟:2529,イギリス:1647,モロッコ:1165,オスマン:1095
+n2	per_seed	1:2773/40796 2:1466/41510 3:1893/41349 4:2579/41329 5:1779/40817 6:1388/40780 7:1713/41375 8:1367/41422 9:2069/41298 10:1485/41633
