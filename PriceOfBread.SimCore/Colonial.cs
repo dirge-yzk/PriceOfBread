@@ -14,21 +14,20 @@ public static class Colonial
 
         bool suezOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.SuezId, w.SelfPower) ?? false;
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;
-        double shipBurden = 0, quinineWant = 0;
+        double shipBurden = 0;
         double colUnitPop = w.Diplomacy is { } dipM && dipM.ColonyUnitPop > 1e-9 ? dipM.ColonyUnitPop : 1.0;
-        void AccumUpkeep(double clat, double clon, double popWeight, bool malarial)
+        void AccumUpkeep(double clat, double clon, double popWeight)
         {
             double km = (Math.Abs(clat) < 1e-9 && Math.Abs(clon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, clat, clon, suezOpen, panamaOpen);
             double massDist = km / Diplomacy.DistanceNormKm * Math.Max(0, popWeight);
             shipBurden += c.ColonyShipOccupyPerDist * massDist;
-            if (malarial) quinineWant += c.MalariaQuininePerColony;
         }
         foreach (var cr in w.Regions)
         {
             if (cr.Tier != RegionTier.Colonial) continue;
             var ccr = Places.Coord(cr.Name);
             double pw = cr.SumPopulation() / colUnitPop;
-            AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
+            AccumUpkeep(ccr.Lat, ccr.Lon, pw);
         }
         const double era = 1.0;   // 時代係数は恒等 1（Coefficients.EraFactor は 1.0 を返す＝係数 EraColonyCoal は (1154) で削除）
         double steam = w.ShipSteamShare.Value;
@@ -39,9 +38,6 @@ public static class Colonial
         double coalWant = c.ShipFuelRate * era * steam * OccupiedShipCapacity(w);
         var (fuelG, fuelWant) = ChooseFuelGood(r, c, coalWant);
         BuyUpkeepGood(w, r, fuelG, fuelWant);
-        const int quinineG = Catalog.QuinineId;
-        var qnPre = Instruments.On ? Instruments.ColqnBefore(w, r) : default; double qnGot = quinineWant > 1e-9 ? BuyUpkeepGood(w, r, quinineG, quinineWant) : 0;
-        if (qnPre.Ok) Instruments.ColqnAfter(w, r, qnPre, qnGot);   // (1153) 計器 colqn_s（読むだけ・行の数を変えない・Instruments.On は 1 回だけ読む）
         if (c.ColonialUnrestHomeWeight > 1e-9)
         {
             double colMilSum = 0, colPopSum = 0;

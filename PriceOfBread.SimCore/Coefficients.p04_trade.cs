@@ -149,7 +149,6 @@ public sealed partial class Coefficients
     // --- 能動侵略の要件（段C・案Y。値は暫定でsweep対象） ---
     public double InvadeShipsBase         = 60.0;  // 遠征に要る船（帆船+汽船）の基礎在庫
     public double InvadeMilitaryFactor    = 1.2;   // 自軍の実効戦力が標的軍事力×これ以上で挑める
-    public double MalariaQuininePerColony = 0.0;   // マラリアの植民地格の州 1 つあたり月のキニーネ（国家の調達）。(1158) 既定 0＝閉じた（旧 6.0・戻り値を捨てる＝植民地の側の効きは 0・首都の在庫を遠征と取り合っていた）。削除は次の恒等の線
     public double InvadeCannedBase        = 20.0;  // 遠征軍の携行糧食（缶詰）の基礎在庫＝全侵略で必須（兵站。缶詰は元来軍隊向けの発明）
     public double InvadeCannedPerMilitary = 20.0;  // ＋標的の軍事力に比例（大遠征ほど多く食う＝糧食産業を太らせる動機）
     public double ProximityTensionRange   = 3000.0; // この距離(km)内の列強が反応（隣接で最大、距離に比例して減衰）
