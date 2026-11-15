@@ -1,0 +1,90 @@
+S26-H001	MultiNationSim.cs:60:MultiNationSim=OK
+S26-H002	Simulation.cs:61:Simulation=OK
+S26-H003	Coefficients.cs:2199:PlantationRentShare=NG→Coefficients.p07_wiring_prewarm.cs:88:PlantationRentShare
+S26-H004	Simulation.cs:61:Simulation=OK ; Landmass.cs:31:Landmass=OK
+S26-H005	Simulation.cs:936:RegionTier.Core=NG→Simulation.cs:826:RegionTier.Core
+S26-H006	Simulation.cs:61:Simulation=OK
+S26-H007	Coefficients.cs:2313:DistanceWarDecay=NG→Coefficients.p07_wiring_prewarm.cs:119:DistanceWarDecay
+S26-H008	—=錨なし
+S26-H009	Diplomacy.cs:51:ColonyMassUnits=OK
+S26-H010	Coefficients.cs:3498:EraColonyCoal=NG→Coefficients.p10_ai_silver_overrides.cs:63:EraColonyCoal
+S26-H011	Coefficients.cs:2511:ColonyFuelOilEnergyRatio=NG→Coefficients.p08_audit_soldiers.cs:28:ColonyFuelOilEnergyRatio
+S26-H012	Coefficients.cs:2514:ColonyShipOccupyPerDist=NG→Coefficients.p08_audit_soldiers.cs:29:ColonyShipOccupyPerDist
+S26-H013	—=錨なし
+S26-H014	Coefficients.cs:1466:MalariaQuininePerColony=NG→Coefficients.p04_trade.cs:151:MalariaQuininePerColony
+S26-H015	—=錨なし
+S26-H016	Coefficients.cs:1821:ColonialUnrestHomeWeight=NG→Coefficients.p06_rank_discovery.cs:81:ColonialUnrestHomeWeight ; Coefficients.cs:1523:ColoniesForFullColonial=NG→Coefficients.p05_port_insurance.cs:19:ColoniesForFullColonial
+S26-H017	Coefficients.cs:1602:DependentThreatWeight=NG→Coefficients.p05_port_insurance.cs:60:DependentThreatWeight
+S26-H018	Coefficients.cs:2312:AbstractNavalShare=NG→Coefficients.p07_wiring_prewarm.cs:118:AbstractNavalShare
+S26-H019	—=錨なし
+S26-H020	Coefficients.cs:2689:MigrationDistanceScale=NG→Coefficients.p08_audit_soldiers.cs:81:MigrationDistanceScale ; Coefficients.cs:916:RegionMobility=NG→Coefficients.p03_debt_money.cs:94:RegionMobility ; Coefficients.cs:918:TransportFriction=NG→Coefficients.p03_debt_money.cs:95:TransportFriction
+S26-H021	Coefficients.cs:2686:CrossBorderOppGapThreshold=NG→Coefficients.p08_audit_soldiers.cs:80:CrossBorderOppGapThreshold ; Coefficients.cs:3497:EraMigrationScale=NG→Coefficients.p10_ai_silver_overrides.cs:62:EraMigrationScale ; Coefficients.cs:2689:MigrationDistanceScale=NG→Coefficients.p08_audit_soldiers.cs:81:MigrationDistanceScale
+S26-H022	MultiNationSim.cs:60:MultiNationSim=OK
+S26-H023	MultiNationSim.cs:12:Diplomacy=OK
+S26-H024	MultiNationSim.cs:12:Diplomacy=OK
+S26-H025	MultiNationSim.cs:60:MultiNationSim=OK ; MultiNationSim.cs:12:Diplomacy=OK
+S26-H026	—=錨なし
+S26-H027	Model.cs:91:Savings=OK ; Simulation.cs:61:Simulation=OK
+S26-H028	Coefficients.cs:699:ColonyPromotionMinPop=NG→Coefficients.p02_borrow_polity_epidemic.cs:101:ColonyPromotionMinPop
+S26-H029	—=錨なし
+S26-H030	—=錨なし
+S26-H031	Simulation.cs:61:Simulation=OK
+S26-H032	MultiNationSim.cs:12:Diplomacy=OK ; MultiNationSim.cs:60:MultiNationSim=OK ; Simulation.cs:61:Simulation=OK
+S26-H033	—=錨なし
+S26-H034	—=錨なし
+S26-H035	Simulation.cs:61:Simulation=OK
+S26-H036	World.cs:238:Policy=NG→World.cs:269:Policy
+S26-H037	MultiNationSim.cs:12:Diplomacy=OK
+S26-H038	Coefficients.cs:2835:ScarceCountsIncludeColonies=NG→None
+S26-H039	MultiNationSim.cs:12:Diplomacy=OK
+S26-01	MultiNationSim.cs:140:PromoteAllColonies=OK ; MultiNationSim.cs:154:PromoteColonyToRegion=OK
+S26-02	MultiNationSim.cs:149:Exists=OK
+S26-03	MultiNationSim.cs:156:OpeningColonyDominanceFull=OK ; Coefficients.p08_audit_soldiers.cs:112:OpeningColonyDominanceFull=OK
+S26-04	Simulation.cs:1312:natives=OK ; Simulation.cs:1317:MkPop=OK ; Simulation.cs:1371:ArableLand=OK ; Simulation.cs:1382:Stock=OK
+S26-05	Simulation.cs:1286:IsColonial=OK ; Simulation.cs:1301:ScarceEndowment=OK ; Simulation.cs:1358:AddAdvancedProducers=OK
+S26-06	Simulation.cs:1370:Culture=OK
+S26-07	Simulation.cs:1303:PlantationRentShare=OK ; Coefficients.p07_wiring_prewarm.cs:88:PlantationRentShare=OK ; Colonial.cs:75:ExportCrop=OK
+S26-08	Colonial.cs:85:RemitAbsenteeRent=OK ; Colonial.cs:78:AbsenteeOwner=OK
+S26-09	InstrumentsLandshare.cs:207:LsAbsenteeRgo=OK ; Colonial.cs:72:AbsenteeRgo=OK
+S26-10	Simulation.cs:1365:CoastalOf=OK ; Landmass.cs:41:CoastalOf=OK
+S26-11	Simulation.cs:826:RegionTier.Core=OK ; Simulation.cs:1366:Tier=OK ; Territory.cs:155:Rehome=OK
+S26-12	Simulation.cs:820:AddAlternateRecipes=OK ; Simulation.cs:1361:AddAlternateRecipes=OK
+S26-13	Fiscal.cs:312:AdminDistanceMul=OK ; Coefficients.p07_wiring_prewarm.cs:119:DistanceWarDecay=OK
+S26-14	—=錨なし
+S26-15	—=錨なし
+S26-16	Colonial.cs:39:coalWant=OK ; Colonial.cs:66:OccupiedShipCapacity=OK ; Coefficients.p10_ai_silver_overrides.cs:63:EraColonyCoal=OK
+S26-17	Colonial.cs:104:ChooseFuelGood=OK ; Coefficients.p08_audit_soldiers.cs:28:ColonyFuelOilEnergyRatio=OK
+S26-18	Colonial.cs:23:ColonyShipOccupyPerDist=OK ; Colonial.cs:36:steamMult=OK ; BilateralMarket.cs:241:shipCapNat=NG→BilateralMarket.cs:304:shipCapNat ; BilateralMarket.cs:571:shipShare=NG→BilateralMarket.cs:591:shipShare
+S26-19	Colonial.cs:15:ChokeOpenFor=OK ; Colonial.cs:21:SeaDistanceKm=OK ; MultiNationSim.cs:1119:RequirementMet=OK ; MultiNationSim.cs:1138:IsOpen=OK
+S26-20	Colonial.cs:24:MalariaQuininePerColony=OK ; Colonial.cs:43:BuyUpkeepGood=OK ; Coefficients.p04_trade.cs:151:MalariaQuininePerColony=OK
+S26-21	Colonial.cs:43:BuyUpkeepGood=OK
+S26-22	Colonial.cs:119:StatePriceAfford=OK ; Colonial.cs:121:LastColonialUpkeepPerMonth=OK ; Colonial.cs:122:FiscalFundingRatio=OK
+S26-23	Colonial.cs:57:homePressure=OK ; Colonial.cs:60:Militancy=OK ; Coefficients.p06_rank_discovery.cs:81:ColonialUnrestHomeWeight=OK ; Coefficients.p05_port_insurance.cs:19:ColoniesForFullColonial=OK
+S26-24	Diplomacy.cs:373:ColonyMass=OK ; Diplomacy.cs:1126:ThreatExcess=NG→Diplomacy.cs:1047:ThreatExcess ; Diplomacy.cs:1028:EffColonies=OK
+S26-25	Diplomacy.cs:1028:EffColonies=OK ; Coefficients.p05_port_insurance.cs:60:DependentThreatWeight=OK
+S26-26	ArmyShape.cs:152:NavalSpendShareOf=OK ; SelfPlay.cs:753:SetNavalUpkeepShare=OK
+S26-27	Diplomacy.cs:778:AbstractNavalShare=OK ; Coefficients.p07_wiring_prewarm.cs:118:AbstractNavalShare=OK
+S26-28	Simulation.cs:1286:IsColonial=OK ; EconomyStep.cs:908=NG→None
+S26-29	Territory.cs:8:Step=OK ; Territory.cs:72:EntryFrictionTerm=OK ; Coefficients.p03_debt_money.cs:94:RegionMobility=OK ; Coefficients.p03_debt_money.cs:95:TransportFriction=OK
+S26-30	MultiNationSim.cs:1383:MigrateBetweenNations=OK ; MultiNationSim.cs:1433:CrossBorderOppGapThreshold=OK ; Territory.cs:69:MigrationDecay=OK
+S26-31	Territory.cs:32:IsFinite=OK ; MultiNationSim.cs:1407:IsFinite=OK ; MultiNationSim.cs:1425:IsFinite=OK ; MultiNationSim.cs:1481:flow=OK
+S26-32	Diplomacy.cs:820:MajorityCultureReligion=OK ; Diplomacy.cs:1078:MajorityCultureReligion=OK
+S26-33	Diplomacy.cs:1219:EthnicDistance=OK ; Diplomacy.cs:1226:ReligionDistance=OK ; Diplomacy.cs:1234:GovCost=OK
+S26-34	MultiNationSim.cs:1110:ResolveOwner=OK ; MultiNationSim.cs:1263:ResolveOwner=OK
+S26-35	Validation.cs:169:植民地の保存=OK ; MultiNationSim.cs:134:InitialColonyCount=OK
+S26-36	—=錨なし
+S26-37	Coefficients.p02_borrow_polity_epidemic.cs:101:ColonyPromotionMinPop=OK ; Politics.cs:895:ColonyPromotionMinPop=OK
+S26-38	Instruments.cs:2059:Settled=NG→Instruments.cs:2096:Settled
+S26-39	—=錨なし
+S26-40	EconomyStep.cs:908=NG→None
+S26-41	EconomyStep.cs:911:ColonialResources=NG→EconomyStep.cs:823:ColonialResources ; Simulation.cs:2545:ColonialAccess=OK ; Simulation.cs:1730:colonialAccess=OK
+S26-42	—=錨なし
+S26-43	—=錨なし
+S26-44	Politics.cs:1475=NG→None ; Territory.cs:155:Rehome=OK
+S26-45	InterestGroups.cs:52:SuffrageInclusion=OK
+S26-46	Politics.cs:1041:RegionAvgSuffrageInclusion=OK ; Politics.cs:293=NG→None ; Politics.cs:1475=NG→None
+S26-47	—=錨なし
+S26-48	Simulation.cs:701:ScarceCountsIncludeColonies=NG→None ; Coefficients.p08_audit_soldiers.cs:458:ScarceCountsIncludeColonies=NG→None
+S26-49	—=錨なし
+S26-V01	Simulation.cs:1370:Culture = w.Region.Culture=OK
+# OK 108  NG 32

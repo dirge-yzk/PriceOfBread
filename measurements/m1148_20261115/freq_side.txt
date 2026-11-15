@@ -1,0 +1,28 @@
+cr0	M: n=10 min 81 median 81 max 81	N1: n=10 min 81 median 81 max 81	N2: n=10 min 81 median 81 max 81	S11: n=10 min 81 median 81 max 81
+crlast	M: n=10 min 109 median 110 max 110	N1: n=10 min 110 median 110 max 110	N2: n=10 min 106 median 110 max 110	S11: n=10 min 109 median 110 max 110
+crmax	M: n=10 min 109 median 110 max 110	N1: n=10 min 110 median 110 max 110	N2: n=10 min 106 median 110 max 110	S11: n=10 min 109 median 110 max 110
+colnq	M: n=10 min 0.1675 median 0.2084 max 0.2411	N1: n=10 min 0.1721 median 0.2082 max 0.2483	N2: n=10 min 0.1924 median 0.2269 max 0.2394	S11: n=10 min 0.2064 median 0.2324 max 0.2671
+amC	M: n=1386 min 1.006 median 1.113 max 1.879	N1: n=1471 min 1.006 median 1.105 max 1.914	N2: n=1504 min 1.002 median 1.109 max 1.909	S11: n=1599 min 1.002 median 1.103 max 1.879
+amN	M: n=5954 min 1 median 1.004 max 1.223	N1: n=5857 min 1 median 1.004 max 1.148	N2: n=5867 min 1 median 1.004 max 1.2	S11: n=5772 min 1 median 1.004 max 1.191
+dom1	M: n=10 min 1 median 1 max 1	N1: n=10 min 1 median 1 max 1	N2: n=10 min 1 median 1 max 1	S11: 表なし
+maln	M: n=10 min 0.03063 median 0.04112 max 0.06298	N1: n=10 min 0.03218 median 0.05538 max 0.07298	N2: n=10 min 0.03151 median 0.05295 max 0.06389	S11: n=10 min 0.02859 median 0.04878 max 0.06158
+malany	M: n=10 min 1 median 1 max 1	N1: n=10 min 1 median 1 max 1	N2: n=10 min 1 median 1 max 1	S11: n=10 min 1 median 1 max 1
+peas	M: n=10 min 0.9928 median 0.9934 max 0.9936	N1: 表なし	N2: 表なし	S11: 表なし
+ls_fc	M: n=10 min 2237 median 3286 max 4311	N1: n=10 min 2636 median 3218 max 4397	N2: n=10 min 1933 median 3214 max 3783	S11: 表なし
+ls_rc	M: n=10 min 6831 median 8548 max 9935	N1: n=10 min 7017 median 8500 max 1.028e+04	N2: n=10 min 7946 median 9276 max 9788	S11: 表なし
+ls_rm	M: n=10 min 4713 median 6356 max 7317	N1: n=10 min 4635 median 6088 max 7597	N2: n=10 min 5477 median 6346 max 7788	S11: 表なし
+ls_ratio	M: n=83488 min 0 median 0.02452 max 0.6198	N1: n=86977 min 0 median 0.02076 max 0.9713	N2: n=91209 min 0 median 0.01717 max 0.936	S11: 表なし
+fis_pos	M: n=10 min 0.4953 median 0.5412 max 0.6663	N1: n=10 min 0.4453 median 0.5643 max 0.6018	N2: n=10 min 0.4583 median 0.5874 max 0.6538	S11: n=10 min 0.3771 median 0.515 max 0.7372
+fis_first	M: n=10 min 1801 median 1806 max 1809	N1: n=10 min 1799 median 1806 max 1814	N2: n=10 min 1798 median 1805 max 1809	S11: n=10 min 1803 median 1806 max 1815
+fis_share	M: n=98504 min 3.919e-14 median 3.464e-05 max 0.004812	N1: n=98648 min 4.472e-13 median 2.772e-05 max 0.004634	N2: n=103370 min 5.095e-12 median 3.039e-05 max 0.007447	S11: n=96183 min 2.184e-14 median 2.551e-05 max 0.004731
+suez	M: n=10 min 1803 median 1806 max 1811	N1: n=10 min 1804 median 1808 max 1814	N2: n=10 min 1804 median 1807 max 1809	S11: n=10 min 1804 median 1807 max 1815
+panama	M: n=10 min 1861 median 1870 max 1891	N1: n=10 min 1836 median 1867 max 1884	N2: n=10 min 1844 median 1858 max 1879	S11: n=10 min 1833 median 1865 max 1877
+hp	M: n=51402 min 3.854e-05 median 0.001019 max 0.005797	N1: n=52338 min 3.166e-05 median 0.0009818 max 0.005916	N2: n=54243 min 5.892e-05 median 0.001022 max 0.005791	S11: 表なし
+suf	M: n=10 min 0.999 median 0.9992 max 0.9993	N1: n=10 min 0.9989 median 0.9992 max 0.9993	N2: n=10 min 0.9991 median 0.9991 max 0.9992	S11: 表なし
+mig	M: n=10 min 4.807e+04 median 5.784e+04 max 7.238e+04	N1: n=10 min 5.335e+04 median 5.702e+04 max 9.842e+04	N2: n=10 min 4.124e+04 median 5.666e+04 max 7.128e+04	S11: n=10 min 5.05e+04 median 5.791e+04 max 6.678e+04
+migc	M: n=10 min 7301 median 1.112e+04 max 2.452e+04	N1: n=10 min 6207 median 8470 max 2.122e+04	N2: n=10 min 2488 median 9189 max 2.274e+04	S11: n=10 min 4823 median 1.148e+04 max 1.772e+04
+xmig	M: n=10 min 3791 median 5334 max 7590	N1: n=10 min 3530 median 5150 max 8246	N2: n=10 min 4077 median 5382 max 6898	S11: 表なし
+cg1790	M: n=10 min 0.4627 median 0.5225 max 0.5681	N1: n=10 min 0.4708 median 0.5305 max 0.5773	N2: n=10 min 0.4279 median 0.5197 max 0.6028	S11: 表なし
+cg1850	M: n=10 min 0.1584 median 0.2009 max 0.2423	N1: n=10 min 0.139 median 0.1984 max 0.2325	N2: n=10 min 0.1528 median 0.1865 max 0.2437	S11: 表なし
+cg1900	M: n=10 min 0.0727 median 0.1234 max 0.1736	N1: n=10 min 0.03562 median 0.1244 max 0.2088	N2: n=10 min 0.04661 median 0.114 max 0.275	S11: 表なし
+cg1940	M: n=10 min 0.0495 median 0.1522 max 0.1961	N1: n=10 min 0.03481 median 0.1317 max 0.2442	N2: n=10 min 0.05341 median 0.1397 max 0.2198	S11: 表なし

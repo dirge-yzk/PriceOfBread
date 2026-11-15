@@ -1,0 +1,37 @@
+(1148) c112s26 読む：台帳の系統の確かめ S26 植民地の経営（2026-11-15・読むだけ・コミット 0・腕 0）
+書いたモデル：Claude Opus 5.5
+
+作業の場所
+- 作業フォルダ D:/PoB_work/r1148_work/（この回に作った・合流が写すまで消さない）
+- 台本 D:/PoB_work/r1148_work/scripts/instruments/r1148/*.py（リポジトリの木に作らない・コミットしない。合流が写すなら scripts/instruments/r1148/ へ）
+- 読む木：main の作業ツリー C:/Users/dirge/Documents/PriceOfBread（HEAD aa8ee7e51・書かない）。worktree・枝は作らない。
+
+読む生（列は head -1 で確かめる）
+- M  ＝ D:/PoB_work/keep_1143/base_ins（0a8fff47b の座標・種 1〜10）
+- N1 ＝ D:/PoB_work/keep_1143/n1、N2 ＝ D:/PoB_work/keep_1143/n2（ヌル腕・同じ木・種 1〜10）
+- S11＝ D:/PoB_work/keep_1143/a11（種 11〜20・表が少ない＝nation・fiscal・migration・class・region ほか）
+- 表の候補：nation・secession・landshare・fiscal・canal・cpop・migration・xmig・rule・nationgood・region・class
+
+読む文書
+- docs/機能の台帳.md §0 の S26 の行（:54）と `| S26-` の 89 行（H 39 行 :1552〜:1590・門の行 49 行 :2123〜:2171・V 1 行 :2322）
+- docs/ゲーム概要と実装機能.md〈3-9. 植民地と国家形成（98件）〉のうち台帳の範囲（L5943-6050・6365-6472）
+- 前例 measurements/m1141_20261115/（ledger_S25・plan・台本 scripts/instruments/r1141/）
+- docs/202611/20261111/20261111_倍率の一掃_分類の取りまとめ.md と docs/**/20260926_外部レビューの検討.md の項目20（F 群の出どころ）
+- 支配の力の設計（段 E・F・G）・宗教と移民の段（R1・R6・R8）
+- memory pob-ui-sim-findings-2026-11-12.md（観戦 N19・U11・X1・U5・Q7）・scratchpad の ledger_mapping_2026-11-12.md（見つかれば読むだけ）
+
+現物（grep し直す）
+- Colonial.cs・Landmass.cs・MultiNationSim.cs（PromoteAllColonies）・Simulation.cs（PromoteColonyToRegion）・Territory.cs（Rehome）・Politics.cs（参政権の算入）・Diplomacy.cs（ColonyMass・EffColonies）
+
+出す物
+- freq.py → out_freq_{M,N1,N2,S11}.txt（行ごとの頻度・エンジンの閾値の式で）
+- readers_S26.txt（消す候補の読み手の数）
+- anchors.py → out_anchors.txt（錨の座標の取り直し）
+- ledger_S26_2026-11-15.tsv（50 行・12 列）・ledger_S26_2026-11-15.md（下書き）
+
+順（価値の順）
+1. 観戦の指摘のある行（V01・S26-06・32〔N19・U11・X1〕・U5・Q7 の当たる行）
+2. 支配の力・独立・宗教と移民が畳まない行（大農園・送金・維持費・燃料・占有・運河・キニーネ・反帝世論・行政の割増・脅威）
+3. 畳む行（S26-03・25・33・37・44・29・30・32）＝印だけ・深く読まない
+4. 削除済み・文書が古い行＝木に残っていないかの grep だけ
+5. 残りは〈未確かめ〉

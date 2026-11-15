@@ -1,0 +1,169 @@
+# arm	N1	seeds	1,2,3,4,5,6,7,8,9,10	quinineColonies	10	colonialGoods	11
+1	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	8344	of	40886
+1	S26-11 regionQuarters core/integrated/colonial	144355	7352	66405
+1	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=140 1.028/1.1/1.734	noCol	n=592 1/1.004/1.056
+1	S26-03 q0 colonial dominance==1	37	of	37
+1	S26-20 nationQuarters holding a quinine-target colonial region	2090	of active nationQuarters	40886	firstQ	106
+1	S26-35 colonialTierPopK q0	50423	last	96501	homePopK q0	853383
+1	S26-07/08 landshare rows	40886	rgoFieldColonial>0	3151	rentColonial>0	8330	remit!=0	5451	remit/rentColonial	n=8330 0/0.01695/0.2675
+1	S26-16 fiscal months	18027	colonialUpkeep>0	10432	firstYear	1809	1783-1829:985/5067 1830-1869:2995/4320 1870-1909:3571/4320 1910-:2881/4320	share of claimTotal	n=10432 1.805e-07/3.456e-05/0.001067
+1	S26-19 canal open year	suez	1810	panama	1884
+1	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=5216 0.0002929/0.001026/0.002864/0.003883	quarter12xMonths	0.003077
+1	S26-45/46 colonial-tier rows suffrageInclusion>0	43411	of	43448
+1	S26-29 domestic migration rows	42453	movedK	55980	toColonialTier rows	17694	movedK	7023
+1	S26-30 crossBorder movedK	5067	weightedMedianKm	7008
+1	S26-28 colonialGoods crossExport share	1790:0.525 1850:0.172 1900:0.111 1940:0.035
+2	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	7578	of	40770
+2	S26-11 regionQuarters core/integrated/colonial	143917	7719	66085
+2	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=129 1.02/1.096/1.73	noCol	n=603 1/1.005/1.045
+2	S26-03 q0 colonial dominance==1	37	of	37
+2	S26-20 nationQuarters holding a quinine-target colonial region	1312	of active nationQuarters	40770	firstQ	64
+2	S26-35 colonialTierPopK q0	50420	last	86799	homePopK q0	853127
+2	S26-07/08 landshare rows	40770	rgoFieldColonial>0	2640	rentColonial>0	7572	remit!=0	4985	remit/rentColonial	n=7572 0/0.02487/0.2886
+2	S26-16 fiscal months	18027	colonialUpkeep>0	9491	firstYear	1799	1783-1829:1503/5067 1830-1869:2942/4320 1870-1909:2756/4320 1910-:2290/4320	share of claimTotal	n=9491 7.844e-08/2.24e-05/0.0009253
+2	S26-19 canal open year	suez	1807	panama	1863
+2	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=4775 0.0002432/0.001137/0.002834/0.003735	quarter12xMonths	0.003412
+2	S26-45/46 colonial-tier rows suffrageInclusion>0	45687	of	45724
+2	S26-29 domestic migration rows	57767	movedK	78463	toColonialTier rows	23200	movedK	7863
+2	S26-30 crossBorder movedK	3680	weightedMedianKm	6694
+2	S26-28 colonialGoods crossExport share	1790:0.548 1850:0.139 1900:0.036 1940:0.097
+3	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	9771	of	40838
+3	S26-11 regionQuarters core/integrated/colonial	143780	7856	65738
+3	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=167 1.031/1.112/1.674	noCol	n=565 1/1.003/1.044
+3	S26-03 q0 colonial dominance==1	37	of	37
+3	S26-20 nationQuarters holding a quinine-target colonial region	1859	of active nationQuarters	40838	firstQ	223
+3	S26-35 colonialTierPopK q0	50425	last	86807	homePopK q0	852853
+3	S26-07/08 landshare rows	40838	rgoFieldColonial>0	3907	rentColonial>0	9629	remit!=0	6885	remit/rentColonial	n=9628 0/0.02142/0.2697
+3	S26-16 fiscal months	18027	colonialUpkeep>0	10419	firstYear	1814	1783-1829:567/5067 1830-1869:2566/4320 1870-1909:3699/4320 1910-:3587/4320	share of claimTotal	n=10419 9.896e-08/3.08e-05/0.0009295
+3	S26-19 canal open year	suez	1814	panama	1868
+3	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=6094 0.0002003/0.0007194/0.002972/0.004138	quarter12xMonths	0.002158
+3	S26-45/46 colonial-tier rows suffrageInclusion>0	43514	of	43551
+3	S26-29 domestic migration rows	54155	movedK	53882	toColonialTier rows	20526	movedK	10406
+3	S26-30 crossBorder movedK	5233	weightedMedianKm	7166
+3	S26-28 colonialGoods crossExport share	1790:0.532 1850:0.206 1900:0.077 1940:0.113
+4	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	9507	of	40796
+4	S26-11 regionQuarters core/integrated/colonial	142795	8841	65902
+4	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=152 1.023/1.129/1.739	noCol	n=580 1/1.005/1.045
+4	S26-03 q0 colonial dominance==1	37	of	37
+4	S26-20 nationQuarters holding a quinine-target colonial region	2516	of active nationQuarters	40796	firstQ	96
+4	S26-35 colonialTierPopK q0	50426	last	91147	homePopK q0	852926
+4	S26-07/08 landshare rows	40796	rgoFieldColonial>0	3634	rentColonial>0	9485	remit!=0	6166	remit/rentColonial	n=9483 0/0.01923/0.2456
+4	S26-16 fiscal months	18027	colonialUpkeep>0	9642	firstYear	1804	1783-1829:1582/5067 1830-1869:2905/4320 1870-1909:2574/4320 1910-:2581/4320	share of claimTotal	n=9642 1.242e-07/3.302e-05/0.0008025
+4	S26-19 canal open year	suez	1804	panama	1867
+4	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=5670 0.0001284/0.0009665/0.002804/0.004072	quarter12xMonths	0.002899
+4	S26-45/46 colonial-tier rows suffrageInclusion>0	40837	of	40874
+4	S26-29 domestic migration rows	38816	movedK	54480	toColonialTier rows	10433	movedK	7301
+4	S26-30 crossBorder movedK	4323	weightedMedianKm	7333
+4	S26-28 colonialGoods crossExport share	1790:0.471 1850:0.191 1900:0.133 1940:0.117
+5	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	8148	of	40794
+5	S26-11 regionQuarters core/integrated/colonial	143821	7815	68182
+5	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=136 1.027/1.164/1.762	noCol	n=596 1/1.005/1.073
+5	S26-03 q0 colonial dominance==1	37	of	37
+5	S26-20 nationQuarters holding a quinine-target colonial region	2977	of active nationQuarters	40794	firstQ	67
+5	S26-35 colonialTierPopK q0	50425	last	95695	homePopK q0	853469
+5	S26-07/08 landshare rows	40794	rgoFieldColonial>0	4397	rentColonial>0	8123	remit!=0	6011	remit/rentColonial	n=8122 0/0.02684/0.2701
+5	S26-16 fiscal months	18027	colonialUpkeep>0	8027	firstYear	1800	1783-1829:1077/5067 1830-1869:2150/4320 1870-1909:2400/4320 1910-:2400/4320	share of claimTotal	n=8027 7.582e-07/1.714e-05/0.0003073
+5	S26-19 canal open year	suez	1808	panama	1854
+5	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=4469 0.0003081/0.0009051/0.002584/0.003218	quarter12xMonths	0.002715
+5	S26-45/46 colonial-tier rows suffrageInclusion>0	44768	of	44805
+5	S26-29 domestic migration rows	59662	movedK	98422	toColonialTier rows	25709	movedK	21224
+5	S26-30 crossBorder movedK	6896	weightedMedianKm	7152
+5	S26-28 colonialGoods crossExport share	1790:0.498 1850:0.215 1900:0.116 1940:0.146
+6	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	10291	of	41448
+6	S26-11 regionQuarters core/integrated/colonial	140808	10828	66211
+6	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=172 1.028/1.092/1.658	noCol	n=568 1/1.003/1.046
+6	S26-03 q0 colonial dominance==1	37	of	37
+6	S26-20 nationQuarters holding a quinine-target colonial region	2691	of active nationQuarters	41448	firstQ	125
+6	S26-35 colonialTierPopK q0	50425	last	107328	homePopK q0	853421
+6	S26-07/08 landshare rows	41448	rgoFieldColonial>0	3441	rentColonial>0	10278	remit!=0	7597	remit/rentColonial	n=10278 0/0.02031/0.1836
+6	S26-16 fiscal months	18027	colonialUpkeep>0	10848	firstYear	1810	1783-1829:1228/5067 1830-1869:3010/4320 1870-1909:3069/4320 1910-:3541/4320	share of claimTotal	n=10848 7.587e-09/3.597e-05/0.001129
+6	S26-19 canal open year	suez	1810	panama	1872
+6	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=5614 0.0002438/0.0009502/0.00266/0.003452	quarter12xMonths	0.002848
+6	S26-45/46 colonial-tier rows suffrageInclusion>0	33873	of	33910
+6	S26-29 domestic migration rows	51181	movedK	54652	toColonialTier rows	21806	movedK	13618
+6	S26-30 crossBorder movedK	7779	weightedMedianKm	7926
+6	S26-28 colonialGoods crossExport share	1790:0.526 1850:0.232 1900:0.096 1940:0.150
+7	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	9835	of	40796
+7	S26-11 regionQuarters core/integrated/colonial	141218	10418	68138
+7	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=152 1.016/1.106/1.73	noCol	n=580 1/1.004/1.059
+7	S26-03 q0 colonial dominance==1	37	of	37
+7	S26-20 nationQuarters holding a quinine-target colonial region	2332	of active nationQuarters	40796	firstQ	90
+7	S26-35 colonialTierPopK q0	50428	last	114675	homePopK q0	854159
+7	S26-07/08 landshare rows	40796	rgoFieldColonial>0	2636	rentColonial>0	9826	remit!=0	6904	remit/rentColonial	n=9826 0/0.01858/0.1717
+7	S26-16 fiscal months	18027	colonialUpkeep>0	10415	firstYear	1805	1783-1829:1268/5067 1830-1869:2478/4320 1870-1909:3360/4320 1910-:3309/4320	share of claimTotal	n=10415 4.186e-08/4.127e-05/0.001
+7	S26-19 canal open year	suez	1808	panama	1880
+7	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=5487 0.0002071/0.0009694/0.002678/0.004264	quarter12xMonths	0.002908
+7	S26-45/46 colonial-tier rows suffrageInclusion>0	46405	of	46442
+7	S26-29 domestic migration rows	65670	movedK	60392	toColonialTier rows	31074	movedK	13603
+7	S26-30 crossBorder movedK	3584	weightedMedianKm	7163
+7	S26-28 colonialGoods crossExport share	1790:0.540 1850:0.220 1900:0.149 1940:0.163
+8	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	7020	of	40800
+8	S26-11 regionQuarters core/integrated/colonial	141568	10068	67384
+8	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=132 1.044/1.109/1.835	noCol	n=600 1/1.004/1.039
+8	S26-03 q0 colonial dominance==1	37	of	37
+8	S26-20 nationQuarters holding a quinine-target colonial region	2187	of active nationQuarters	40800	firstQ	112
+8	S26-35 colonialTierPopK q0	50420	last	114123	homePopK q0	852930
+8	S26-07/08 landshare rows	40800	rgoFieldColonial>0	3059	rentColonial>0	7017	remit!=0	4635	remit/rentColonial	n=7017 0/0.007662/0.2054
+8	S26-16 fiscal months	18027	colonialUpkeep>0	8907	firstYear	1809	1783-1829:922/5067 1830-1869:2908/4320 1870-1909:3042/4320 1910-:2035/4320	share of claimTotal	n=8907 9.522e-08/6.334e-05/0.0005448
+8	S26-19 canal open year	suez	1809	panama	1836
+8	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=4454 0.00026/0.001127/0.002828/0.003763	quarter12xMonths	0.00338
+8	S26-45/46 colonial-tier rows suffrageInclusion>0	52324	of	52361
+8	S26-29 domestic migration rows	72042	movedK	53350	toColonialTier rows	43385	movedK	8290
+8	S26-30 crossBorder movedK	7087	weightedMedianKm	7797
+8	S26-28 colonialGoods crossExport share	1790:0.577 1850:0.190 1900:0.192 1940:0.219
+9	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	8056	of	40802
+9	S26-11 regionQuarters core/integrated/colonial	146345	5291	64904
+9	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=139 1.024/1.104/1.687	noCol	n=593 1/1.005/1.045
+9	S26-03 q0 colonial dominance==1	37	of	37
+9	S26-20 nationQuarters holding a quinine-target colonial region	2508	of active nationQuarters	40802	firstQ	69
+9	S26-35 colonialTierPopK q0	50420	last	86644	homePopK q0	853607
+9	S26-07/08 landshare rows	40802	rgoFieldColonial>0	2662	rentColonial>0	8050	remit!=0	6004	remit/rentColonial	n=8050 0/0.02803/0.302
+9	S26-16 fiscal months	18027	colonialUpkeep>0	9930	firstYear	1800	1783-1829:1279/5067 1830-1869:2871/4320 1870-1909:2971/4320 1910-:2809/4320	share of claimTotal	n=9930 2.251e-08/2.609e-05/0.0006166
+9	S26-19 canal open year	suez	1809	panama	1867
+9	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=5129 0.0002212/0.00104/0.002855/0.003717	quarter12xMonths	0.003119
+9	S26-45/46 colonial-tier rows suffrageInclusion>0	45366	of	45403
+9	S26-29 domestic migration rows	55099	movedK	58067	toColonialTier rows	25143	movedK	6207
+9	S26-30 crossBorder movedK	3530	weightedMedianKm	6918
+9	S26-28 colonialGoods crossExport share	1790:0.565 1850:0.226 1900:0.209 1940:0.244
+10	S26-01/35 colonialRegions q0	81.0	last	110.0	max	110.0	nationQuarterWithColonies	8670	of	40818
+10	S26-11 regionQuarters core/integrated/colonial	144460	7195	66823
+10	S26-13 adminFiscalMeanMul(1790/1850/1900) withCol	n=152 1.025/1.1/1.725	noCol	n=580 1/1.004/1.045
+10	S26-03 q0 colonial dominance==1	37	of	37
+10	S26-20 nationQuarters holding a quinine-target colonial region	1997	of active nationQuarters	40818	firstQ	174
+10	S26-35 colonialTierPopK q0	50425	last	97694	homePopK q0	853739
+10	S26-07/08 landshare rows	40818	rgoFieldColonial>0	3284	rentColonial>0	8671	remit!=0	6469	remit/rentColonial	n=8671 0/0.02563/0.2656
+10	S26-16 fiscal months	18027	colonialUpkeep>0	10537	firstYear	1807	1783-1829:928/5067 1830-1869:3316/4320 1870-1909:3840/4320 1910-:2453/4320	share of claimTotal	n=10537 1.397e-07/1.872e-05/0.0006554
+10	S26-19 canal open year	suez	1807	panama	1861
+10	S26-23 antiImperial monthly add (approx: popK weight, colonies=colonial-tier rows of the instrumented nation)	n=5430 0.0002733/0.001041/0.002895/0.003853	quarter12xMonths	0.003122
+10	S26-45/46 colonial-tier rows suffrageInclusion>0	45730	of	45767
+10	S26-29 domestic migration rows	59874	movedK	69534	toColonialTier rows	26598	movedK	8650
+10	S26-30 crossBorder movedK	8246	weightedMedianKm	6884
+10	S26-28 colonialGoods crossExport share	1790:0.529 1850:0.146 1900:0.170 1940:0.049
+# --- aggregate over seeds
+agg	cr0	n=10	min 81	median 81	max 81
+agg	crlast	n=10	min 110	median 110	max 110
+agg	crmax	n=10	min 110	median 110	max 110
+agg	colnq	n=10	min 0.1721	median 0.2082	max 0.2483
+agg	amC	n=1471	min 1.006	median 1.105	max 1.914
+agg	amN	n=5857	min 1	median 1.004	max 1.148
+agg	dom1	n=10	min 1	median 1	max 1
+agg	maln	n=10	min 0.03218	median 0.05538	max 0.07298
+agg	malany	n=10	min 1	median 1	max 1
+agg	ls_fc	n=10	min 2636	median 3218	max 4397
+agg	ls_rc	n=10	min 7017	median 8500	max 1.028e+04
+agg	ls_rm	n=10	min 4635	median 6088	max 7597
+agg	ls_ratio	n=86977	min 0	median 0.02076	max 0.9713
+agg	fis_pos	n=10	min 0.4453	median 0.5643	max 0.6018
+agg	fis_first	n=10	min 1799	median 1806	max 1814
+agg	fis_share	n=98648	min 4.472e-13	median 2.772e-05	max 0.004634
+agg	suez	n=10	min 1804	median 1808	max 1814
+agg	panama	n=10	min 1836	median 1867	max 1884
+agg	hp	n=52338	min 3.166e-05	median 0.0009818	max 0.005916
+agg	suf	n=10	min 0.9989	median 0.9992	max 0.9993
+agg	mig	n=10	min 5.335e+04	median 5.702e+04	max 9.842e+04
+agg	migc	n=10	min 6207	median 8470	max 2.122e+04
+agg	xmig	n=10	min 3530	median 5150	max 8246
+agg	cg1790	n=10	min 0.4708	median 0.5305	max 0.5773
+agg	cg1850	n=10	min 0.139	median 0.1984	max 0.2325
+agg	cg1900	n=10	min 0.03562	median 0.1244	max 0.2088
+agg	cg1940	n=10	min 0.03481	median 0.1317	max 0.2442

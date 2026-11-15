@@ -1,0 +1,20 @@
+settlerOutKPerQuarter SimCore 0 Tests 2 scripts 14 measurements 168
+settlerInKPerQuarter SimCore 0 Tests 2 scripts 17 measurements 168
+PriceOfBread.SimCore/Colonial.cs:31:            AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
+PriceOfBread.SimCore/Diplomacy.cs:98:    public bool Malarial;                              // マラリア地（熱帯�
+PriceOfBread.SimCore/Model.cs:732:    public bool Malarial;
+PriceOfBread.SimCore/MultiNationSim.cs:107:            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name);
+PriceOfBread.SimCore/NationConfig.cs:87:    bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]
+PriceOfBread.SimCore/Simulation.cs:827:            Malarial = p.Malarial,
+PriceOfBread.SimCore/Simulation.cs:1366:            Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配�
+scripts/instruments/c84kp/mutate952.py
+scripts/instruments/c85kp/mutate957.py
+scripts/instruments/r1127/mk_ledger.py
+PriceOfBread.Tests/ColonyPromotionTests.cs:86:                Assert.NotNull(reg.ColonialResources);            // null＝単一国の旧経
+PriceOfBread.Tests/ColonyPromotionTests.cs:112:            Assert.NotNull(canada.ColonialResources);          // null＝単一国の旧経�
+PriceOfBread.Tests/ColonyPromotionTests.cs:131:                Assert.NotNull(canada.ColonialResources);
+PriceOfBread.Tests/ColonyPromotionTests.cs:251:    //   維持費・ColonialResources の更新・独立を消してよかったのは「国
+PriceOfBread.Tests/TerritoryTests.cs:227:        cap.ColonialResources = [1];
+PriceOfBread.Tests/TerritoryTests.cs:232:        Assert.Empty(cap.ColonialResources!);
+
+[exited with code 0]
