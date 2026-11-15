@@ -2395,6 +2395,7 @@ public sealed class Simulation
     /// </summary>
     private void MintGold()
     {
+        if (Instruments.On) Instruments.MintregMonth(World);   // MintregMonth（(1168) 造幣の床の効き・mintreg_s）
         // 旧来（産出比例の上限・国内鉱山限定・金鉱だけ）の枝と GoldMintFraction は消した。〔履歴 Simulation.cs#320〕
         int metal = Catalog.GoldOreId;
         bool isFiat = World.MonetaryLaw == MonetaryStandardLaw.Fiat;
@@ -2457,7 +2458,7 @@ public sealed class Simulation
             double value = paid;
             if (atMarket) gapLeft -= value;   // 予算を消費（国の準備ギャップは州をまたいで1本）
             m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
-            if (Instruments.On) Instruments.SilverMintCapture(r, metal, qty);   // SilverMintCapture〔履歴 Simulation.cs#330〕
+            if (Instruments.On) { Instruments.SilverMintCapture(r, metal, qty); Instruments.MintregBought(r, metal, qty); }   // SilverMintCapture〔履歴 Simulation.cs#330〕
             // 実測＝造幣は世界の銀産出の12.8〜17.7%を毎月吸っているのに、銀/金の相対価格は151年で2〜3%しか動かない。〔履歴 Simulation.cs#331〕
             m.LastDemand += qty;   // qty〔履歴 Simulation.cs#332〕
             //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
