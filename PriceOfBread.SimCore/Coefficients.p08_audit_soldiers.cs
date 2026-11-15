@@ -107,6 +107,7 @@ public sealed partial class Coefficients
     public double WallLinkKm = 700.0;          // 壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
 
     public double DominanceSpeed = 0.025;            // 四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
+    public double RuleFromPower = 0.0;   // (1117) 支配の力の段 C′：4 区分の目標を力の足し算へ（RulePowerEngine.cs）・0 で旧の塊（P1・RegionReach・TreatyPortLapse・SecessionHoldProjection）
     public double RuleOrderByRegion = 1.0;           // c69po 州ごとの治安 P1-1 の旗
     public double DominanceMatureYears = 30.0;       // 初期値＝保有年数÷これ（世代長＝同化の物差し）
     public double OpeningColonyDominanceFull = 1.0;  // 接収（Diplomacy.AcquireColony）は常に 0
