@@ -1,6 +1,8 @@
 # (1166) c115sv 門の台本：G1・G3 は paper_sv.py の出力を、G2 は soldiervac_s（国×四半期）を読む。閾値は事前登録 measurements/m1166_20261116_prereg_sv.txt のまま。
 # 引数：生のフォルダ（soldiervac_s のある所） paper_sv.py の出力 種の始め 種の終わり
 import sys, os, csv
+sys.stdout.reconfigure(newline="
+")
 
 G1_MAX = 3065
 G3_MIN = 0.9
