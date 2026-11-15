@@ -209,5 +209,40 @@ public class TradeT1Tests
         Assert.Equal(0.0, t.Sum("selfN"));
         Assert.Equal(0.0, t.Sum("retreatDeals"));
         Assert.True(t.Sum("u1Deals") >= 10000, "成約が少ない " + t.Sum("u1Deals"));
+        // (1159) W2(a)′ の母集合と退きの量：旗 0 は構成上 0（旧の門が閉じた行は成約の前に飛ばす・エンジンの Q は NaN）。母集合そのものは 0 ではない。
+        Assert.True(t.Sum("popC") >= 10, "W2(a)′ の母集合 popC が少ない " + t.Sum("popC"));
+        Assert.Equal(0.0, t.Sum("popCDealX"));
+        Assert.Equal(0.0, t.Sum("retreatQtySum"));
+        Assert.Equal(0.0, t.Sum("retreatDealsTol"));
+        Assert.Equal(0.0, t.Sum("retreatDealsRaw"));
+        Assert.Equal(0.0, t.Sum("uBelowMin"));
+    }
+
+    /// <summary>(1159) M7＝t1buy_s の段 T1-0 の列（旗 1・12 四半期）：母集合の入れ子 popC≧popCUb≧popCPart0・popCUb≧popCDealX≧popCPart0DealX・popC≦oldSkip／
+    /// 下界の番人 uBelowMin＝0（突然変異 M3〈計器の u_min を lp に〉で赤）／越境の退きの量が正（突然変異 M2〈Q＝P〉で赤）・許しなしの件数≧許しつきの件数。</summary>
+    [Fact]
+    public void M7_旗1の母集合Cと退きの量と下界()
+    {
+        var t = RunIns(1.0, 12);
+        Assert.True(t.Sum("u1Deals") >= 10000, "成約が少ない " + t.Sum("u1Deals"));
+        Assert.Equal(0.0, t.Sum("uBelowMin"));
+        double pc = t.Sum("popC"), pub = t.Sum("popCUb"), p0 = t.Sum("popCPart0"), dx = t.Sum("popCDealX"), d0 = t.Sum("popCPart0DealX");
+        Assert.True(pc >= 10, "popC が少ない " + pc);
+        Assert.True(pc <= t.Sum("oldSkip") && pub <= pc && p0 <= pub && dx <= pub && d0 <= dx && d0 <= p0, $"母集合の入れ子が崩れた popC {pc} popCUb {pub} popCPart0 {p0} popCDealX {dx} popCPart0DealX {d0}");
+        Assert.True(t.Sum("retreatDealsTol") >= 100, "越境の退きの効いた成約が少ない " + t.Sum("retreatDealsTol"));
+        Assert.True(t.Sum("retreatQtySum") > 0, "越境の退きの量が 0");
+        Assert.True(t.Sum("retreatDealsRaw") >= t.Sum("retreatDealsTol"), "許しなしの件数が許しつきより少ない");
+    }
+
+    /// <summary>(1159) M8＝W2(a)′ の母集合の述語〈h_min＝先頭の売り手の値段×lbMulMin＜lp〉（突然変異 M4〈述語を逆に〉で赤）。期待値は手で置いた数（式を写さない）。</summary>
+    [Fact]
+    public void M8_母集合Cの述語は着値の下界が州の値段を下回る行()
+    {
+        Assert.True(Instruments.T1HBelow(0.5, 1.0, 1.0));
+        Assert.True(Instruments.T1HBelow(0.8, 1.2, 1.0));    // 0.96＜1
+        Assert.False(Instruments.T1HBelow(0.9, 1.2, 1.0));   // 1.08≧1
+        Assert.False(Instruments.T1HBelow(1.0, 1.0, 1.0));   // 等しいは入らない
+        Assert.False(Instruments.T1HBelow(double.NaN, 1.0, 1.0));   // 売り手が無い行
+        Assert.False(Instruments.T1HBelow(0.5, 1.0, double.NaN));
     }
 }
