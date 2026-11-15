@@ -1,0 +1,93 @@
+(1153) c113qn 事前登録：植民地の毎月のキニーネを消す D2（腕＝既存の係数 MalariaQuininePerColony を 0 へ・新しい係数・旗・状態は 0）
+2026-11-15・枝 c113qn（122cdce11 から）・席 3 の 2 本目・3 回の規則では D2 の 1 回目。書いたのは Claude Opus 5.5。
+
+■ 先頭の名乗り
+- 消す推奨＝(1148) c112s26 の消す推奨 D2（S26-20・21・AI の案・確証なし）。〈作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち〉。
+- 根拠は〈Colonial.cs:43 で BuyUpkeepGood の戻り値を捨てている＝買えなくても誰も死なない＝効き 0〉だけ。作者「キニーネは材から消してよいのではないか。これは医薬品の発見だと思う」は財の段3 の文脈＝この線の根拠にしない。
+- 出発の作者の言葉：2026-11-06「動作していないロジックのうち…削除することも検討してください。」・2026-11-12〈重要でない機能は削減〉（指示文の要約）。
+- 形は〈入口〉（国家の調達の入口の量＝国庫の支出と首都のキニーネの需要を動かす。尾の事象を数える形ではない）。
+- 確証：消した後の挙動は既にある機構（国家の調達・植民地の維持費の請求）から旧の 1 項を抜くだけ＝新しい弾性は置かない。〈確証なし〉は消す推奨そのもの（AI の案）。
+- 持ち主の外の名乗り：遠征のキニーネ（World.cs:1871〜:1874）の調達は World.cs が持ち主の外＝計器の口を置けない。〈壊さない（遠征）〉の門は機構の試験 Q3（手で置いた盤面・腕の前）で持ち、腕では invade_s のキニーネの標的への侵略の数を記録だけにする。BuyUpkeepGood（Colonial.cs:116〜:125）にも口を置かない（:124 は route_anchors.tsv の鍵の行・持ち主の外）。
+
+■ 消す物の一覧（この線）
+- Coefficients.p04_trade.cs:151 MalariaQuininePerColony の既定 6.0 → 0.0（旗 1 のコミット）。枝の門 `quinineWant > 1e-9`（Colonial.cs:43）が既にある＝エンジンのコードは変えない。
+- 次の恒等の線へ（00一覧に番号つきで書く・合流）：Colonial.cs の quinineWant（:17 の宣言の片方・:24・:42〜:43）・AccumUpkeep の malarial の引数（:19・:31）・係数 MalariaQuininePerColony（p04:151）・DormantIdentityTests の ZeroDefaultLedger の行・計器 colqn_s。Region.Malarial と Colony.Malarial は遠征（Power.RequiresQuinine）と征服の付与に読み手が残るかを、その線で grep し直して決める。
+- 触らない（入れない）：遠征のキニーネ（Power.RequiresQuinine・World.cs:1871〜:1874）・キニーネの財の削除・医薬品の段3・colship_s の占有の列（L8）・燃料の調達（:39〜:41）。
+
+■ 読み手の表（grep 2026-11-15・122cdce11）
+- MalariaQuininePerColony：SimCore の Coefficients.p04_trade.cs:151（定義）・Colonial.cs:24（唯一の読み手）。Tests・Tests.Ui・App・Display・Runner：0。scripts：r1148/mk_ledger.py:39（台帳の文字列）だけ＝旗 1 で壊れない。
+- quinineWant：Colonial.cs:17・:24・:43 だけ。
+- Region.Malarial：Model.cs:732（定義）・Simulation.cs:827（ProvinceSpec の Malarial＝データで真になる州は 0）・:1366（植民地の昇格で Colony.Malarial を写す）・Colonial.cs:31（唯一の読み手）。
+- Colony.Malarial：Diplomacy.cs:98（定義）・MultiNationSim.cs:107（abstractTargets の quinine の標的の植民地＝真・7 標的 10 州）・Simulation.cs:1366。NationConfig.cs:87（ProvinceSpec の既定 false）。
+- Power.RequiresQuinine：Diplomacy.cs:76・MultiNationSim.cs:106・World.cs:1871（遠征）＝この線では動かない。
+- Catalog.QuinineId の調達：Colonial.cs:42〜:43（植民地の月）・World.cs:1783・:1874（遠征）。家計の需要（Daily の財）と工場の投入は別の道。
+
+■ 新÷旧の予言（同じ盤面・段0・ソースと keep_1150 の紙の台本から）
+- 首都のキニーネの需要（Procure の LastDemand）：旧の規則の量は 6×マラリアの植民地格の州の数×afford×資金の比。旗 1 では植民地の口からの需要が 0＝同じ盤面の減り÷旧の規則の量＝1.0（門 G2）。首都の市場の全体の需要の新÷旧は、マラリアの州を持つ国×四半期で 1 より小さい向き（大きさは記録・家計の需要と遠征が残る）。紙の台本は goods_s が 9 国だけで重なりが少ない（n=0・26・60）＝大きさの点の予言は置かない。
+- 値段：需要が減る＝首都のキニーネの値段は下がる向き（記録）。値段が下がると家計の需要と遠征の afford が上がる向き（記録）。
+- 国庫の支出：植民地の維持費の請求（LastColonialUpkeepPerMonth）からキニーネの分が抜ける＝同じ盤面の新÷旧は燃料÷(燃料＋キニーネ)（記録）。国庫の台帳 ColonialUpkeep の支出も同じ向き。
+- 遠征の調達：コードが変わらない＝同じ盤面で旗 0 と同じ（試験 Q3）。腕どうしでは軌道が動くので記録だけ。
+- 軌道：国庫と首都の 1 財の需要が動く＝カオス的に全てが動く（開戦・勝者ほか）。止める線の外の量は記録。
+
+■ 紙の台本の出力（今の盤面 keep_1150・scripts/instruments/c113qn/paper.py・近似・measurements/m1153_20261115/paper_keep1150.txt）
+base_ins seeds=10 P1_malNQ=21235 activeNQ=409357 share=0.0519 P2_oldRuleWantSum=764046.0 P3_firstQ_min=67 fiscalMonths=180270 claimPos=99620 topNations=清:4284,日本:2379,イギリス:2242,マラータ同盟:2215,スペイン:1378,アメリカ:1098
+n1 seeds=10 P1_malNQ=21399 activeNQ=408930 share=0.0523 P2_oldRuleWantSum=798660.0 claimPos=98470
+n2 seeds=10 P1_malNQ=19884 activeNQ=411431 share=0.0483 P2_oldRuleWantSum=686970.0 claimPos=96279
+- 旧の規則が立つ国×四半期＝4.8〜5.2%（3〜7% の内）。最初の四半期は 56〜67（1797〜1800 年）。
+- 旗 0 で門が落ちる確かめ（紙）：旧の規則の量 76.4 万（月×州の和）＞0 で、旗 0 のエンジンはその全ての月に請求と需要を足す（:43 の門は quinineWant＝6×州の数＞1e-9）＝G1（実の調達と需要と請求の和＝0）は赤・G2（減り÷旧＝0）は赤。G4（燃料の請求）は旗 0 そのもの＝緑（壊さない門は何もしない実装でも通る＝狙いの門 G1・G2 が落とす）。
+
+■ 計器（恒等・Instruments.On の時だけ・国×四半期・新しい表 colqn_s〔名は生の表の一覧で空きを確かめた・colship_s の一部としての仮の名〕）
+- ファイル PriceOfBread.SimCore/Instruments/InstrumentsColqn.cs。力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない・助走の月は数えない。
+- 口：Colonial.cs の :43〜:44（行の数を変えない＝:44 の空行を使う）。:43 の調達の前に ColqnBefore（首都の市場のキニーネの LastDemand・Stock・Price と、w.LastColonialUpkeepPerMonth〔＝:41 の燃料の請求〕を計器が自分で読む・旧の規則の量を計器が自分で組む）・後に ColqnAfter（戻り値と、同じ欄の後の値）。
+- 旧の規則：計器が自分で持つ定数 ColqnOldPerColony＝6.0（p04 の旧の既定）×計器が自分で数えたマラリアの植民地格の州（w.Regions を回して Tier＝Colonial かつ Malarial）。調達の手前の掛け算（afford＝EconomyStep.StatePriceAfford〔純関数・変える物ではない〕・資金の比 w.FiscalFundingRatio）と Procure の買える量（min(在庫, 求め)・値段か在庫が 1e-9 以下なら 0）を BuyUpkeepGood と同じ順で組む。
+- 列：year・q・nation・months・malMonths・malRegionMonths・oldWant・oldReq・oldClaim・oldBuyable・obsDemand・obsGot・obsStockDrop・obsCost・obsClaim・fuelClaim・maxAbsDiffGot・maxRelDiffReq。
+  months＝口に届いた月・malMonths＝州が 1 つ以上の月・malRegionMonths＝州の数の和・oldWant＝6×州の数の和・oldReq＝旧の規則の Procure への求め・oldClaim＝旧の規則の請求の額・oldBuyable＝旧の規則で買えた量・obs*＝実際（需要の増え・戻り値・在庫の減り・戻り値×値段・請求の増え）・fuelClaim＝口の前の請求（燃料）・maxAbsDiffGot＝月ごとの |obsGot−oldBuyable| の最大・maxRelDiffReq＝月ごとの |obsDemand−oldReq|÷max(1,LastDemand) の最大。
+- 試験 PriceOfBread.Tests/ColonialQuinineTests.cs（Q1〜Q3・手で置いた盤面＝英仏の英・植民地格の州 2 つにマラリアの印・資金の比 1・キニーネの在庫 1e6・値段 1e-3）。期待の値は手で書いた数（6×2＝12 を許し 1e-6 で）。
+  Q1 機構：係数 6 で Colonial.Step を 1 回＝キニーネの在庫の減り 12・係数 0 で 0（ちょうど）・石炭の在庫の減りは係数 6 と 0 で同じで正（燃料を壊さない）。
+  Q2 計器の自己検査：colqn_s の行＝係数 6 で oldWant 12・obsGot 12・maxAbsDiffGot 0／係数 0 で oldWant 12・obsGot 0・obsClaim 0。
+  Q3 壊さない（遠征）：係数 6 と 0 の同じ盤面で、キニーネの標的（RequiresQuinine）への World.Invade 1 回のキニーネの在庫の減りが同じ（差 ≦1e-9）で正。
+
+■ 門（両側・腕 B の計器つき 10 種・種 1〜10 の和で読む・この行を腕の前に固定）
+- 読み手：python -X utf8 -I scripts/instruments/c113qn/gates.py <腕 B の ins> [<旗 0 の ins〔ident c113qnz の b の生〕>]
+- G1 狙い：旧の規則の量＞0 の国×四半期（oldWant＞0）で、obsGot・obsDemand・obsClaim の和がどれも 0（ちょうど）。母数の床：oldWant＞0 の行 ≧10000（紙の台本 19884〜21399 の約半分）。旗 0 では正＝落ちる。
+- G2 大きさ（両側）：R＝Σ(oldBuyable−obsGot)÷Σ oldBuyable が 0.9〜1.1。母数の床：oldBuyable＞0 の行 ≧1000。旗 0 では R＝0（計器の自己一致）＝落ちる。上側 1.1 は〈実の調達が負・旧より多く買う〉の型の誤りの量（半分だけ消す形は 0.5 で下側が落とす）。
+- G3 壊さない（遠征）：試験 Q3（腕の前に緑・旗 1 の木のフルスイートでも緑）。腕では invade_s のキニーネの標的への侵略の行の数を旗 0 と並べて記録。
+- G4 壊さない（燃料）：fuelClaim＞0 の行の数が、旗 0（ident c113qnz の生）の同じ数の 0.5 倍以上。燃料の調達まで消す形は 0＝落ちる。値は追記で固定（判別の力は弱い＝狙いの門ではない）。
+- 計器の自己一致（記録・旗 0 の ident の生）：maxAbsDiffGot＝0・maxRelDiffReq ≦1e-12。外れたら計器の誤り＝腕を回さず直す（追記で名乗る）。
+- 採否：G1・G2・G4 が緑・試験 Q1〜Q3 が緑・止める線に当たらない・機構のテストが緑 → 採る（合流が既定を 0 にする）。外れたら採らない（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ。
+- 狙いどおり働いたかの段：植民地の口からのキニーネの調達が、旧の規則が立つ全ての国×四半期で 0 になり、減りが旧の規則の量に等しい（G1・G2）。
+
+■ 突然変異ごとの門（㉚・使い捨ての木・腕の前・1 種の計器つき・表を絞る〔colqn_s・invade_s・nation_s・pxmonth_s・scalars_s〕・床は 10 種の和なので 1 種では床を除いて読む）
+| 突然変異 | G1 | G2 | G4 | Q1 | Q2 | Q3 |
+| M0 何もしない（係数 6.0 のまま＝旗 0＝ident の生） | 赤 | 赤（0） | 緑 | 緑（係数を手で置く） | 緑 | 緑 |
+| M1 遠征まで消す（係数 0 の木で、World.cs:1871 の門に `c.MalariaQuininePerColony > 0 &&` を足す） | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 |
+| M2 調達を残して戻り値だけ使う（係数 0 の木で、:43 を定数 6.0×州の数で呼び戻り値を捨てない形＝調達が残る） | 赤 | 赤（0） | 緑 | 赤 | 赤 | 緑 |
+| M3 半分だけ消す（係数の既定 3.0） | 赤 | 赤（約 0.5） | 緑 | 緑（係数を手で置く） | 緑 | 緑 |
+| M4 燃料まで消す（係数 0 の木で、:41 の燃料の調達を外す） | 緑 | 緑 | 赤 | 赤（石炭の減りが 0） | 緑 | 緑 |
+- 係数 0 の短い走り（1 種）：G1＝0・G2＝1 を先に確かめる（M0 とは別の印）。
+- 試験の突然変異は使い捨ての木で Q1〜Q3 だけ回す（M1・M2・M4）。突然変異でテストが緑のままなら、同じ線で試験を足して赤を確かめる。
+
+■ ソースを走査する番人（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表（IndustrializationReaderTests）：触らない・変わらない。
+- `new MoneyStock(` の件数：SimCore で 64・足す 0。route_anchors.tsv の鍵の行：Colonial.cs は 2 本（:124 の Procure・:94 の Transfer）＝この線は触らない・書き足さない。口は :43〜:44 で行の数を変えない＝行の番号もずれない。
+- WriterRatchetTests の宣言の表：計器は Instruments.On の時だけ＝器のコミットでは件数は変わらない。旗 1 のコミットは 40 四半期の軌道が動けば件数が動きうる＝±2% の内の予言。外れたら〈軌道の件数を写しただけの番人〉（★(749)）の取り直しとして verdict に列挙する。
+- DormantIdentityTests：旗 1 のコミットで、既定 0 になる MalariaQuininePerColony を ZeroDefaultLedger に 1 行足す（係数の行だけ）。DormantZeroFields には足さない。
+- InstrumentsTests：計器の表の名の一覧を固定する番人があれば、colqn_s の行を足す（器のコミット・㉘ で確かめる）。
+- 試験の数：Tests 2636→2639（+3・Q1〜Q3）・Tests.Ui 234 のまま＝合計 2870→2873。FullLength 3 のまま。
+
+■ 旗 1 の木の番人の grep（㉜）
+- MalariaQuininePerColony・quinineWant・Malarial・QuinineId・キニーネ・ColonialUpkeep を Tests・Tests.Ui で grep：MalariaQuininePerColony と quinineWant は 0。Malarial は 0。QuinineId とキニーネは遠征（DiplomacyPendingTests・MilitaryTests の侵攻の物資）・財の表（FullChainTests・GoodDurabilityTests・GoodIdGuardTests・BreakDetectionTests）＝植民地の月の規則を固定しない。ColonialUpkeep：ColonialPopTests:34（開幕の英の前哨と大植民地の請求の比＝開幕にマラリアの州は 0＝燃料だけ）・MilitaryTests:299〜:301（不満と請求の対照・同じ盤面の差）・TreasuryLedgerTests:172（区分の一覧）＝旧の規則を固定する番人は無い。
+
+■ 止める線（README の止める線の改めのとおり・この行をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）／1 四半期に 100 倍以上（全ての国の価格水準・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる・基準とヌル腕を同じ台本で数え直す）／開幕の 1e10 倍以上・非有限／空洞化：ピークの 1/10 未満で規則 A2（an_h2.py の既定 -ex rule）の外・その線が原因と読めた件だけ（基線 keep_1150/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭）・主要国と本国格の州は例外にしない／推定の計算量 ＞248.5 秒／機構のテストの赤（ソースを走査する番人を含む）。
+- 記録：NG（ng.sh・基準 measurements/ng1150_20261115）・exact・near・nullgate・開幕の 1000 倍以上・名目 GDP 0 の続き・英の国債の不履行の種の数・史実の線。
+
+■ 計算量
+- 割り当て 0 秒（0 以下の見込み）。器は計器だけ（Instruments.On の時だけ）。旗 1 は旧の規則が立つ国×月（約 5%）で BuyUpkeepGood（StatePriceAfford・Procure・PaySales）を 1 回呼ばなくなる＝実の CPU は減る向き。推定の計算量の件数は軌道の変化だけで動く（見込み −1〜+1 秒・ヌル腕の揺れ 228.7〜229.2 秒の内）。2 秒以下は 1 本の腕で門にしない＝合流の木の累計で読む。
+
+■ 周辺の点検（既にある生とソースだけ・記録）
+- キニーネの市場：Daily の財（家計が買う）・工場のレシピ〈樹皮の粉末〉（Simulation.cs:1212）と単離（1820 の発見の行）・減耗 0.03/月。goods_s（9 国）の値段と在庫を旗 0 と腕 B で並べる。
+- 熱帯の死亡に効く他の経路：遠征のマラリア（World.cs:1871〜＝未防護の兵が疫病の致死率で死ぬ）・名前つきの流行病と医薬品（Catalog の MedicineId・疫病の計器 epi_s）。植民地の月のキニーネは死亡にも人口にも効かない（戻り値を捨てる＝ソースで確か）＝消しても死の側は変わらない（軌道の変化を除く）。
+
+■ D: と腕
+- ident（段 2）約 30GB・腕 B 約 26GB・突然変異 1 種×4 本（coef0・M2・M3・M4）は表を絞る。起こす直前に shutil で〈35GB＋その量〉を確かめる。腕 B が 60 分待っても床に届かなければ、腕 B を〈門の台本が読む表＋止める線の表＋標準の読み手の表〉（colqn_s・invade_s・goods_s・fiscal_s と ident.cfg の SMALL）に絞って起こし、絞ったと名乗る。
