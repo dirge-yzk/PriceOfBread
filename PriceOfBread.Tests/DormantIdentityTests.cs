@@ -97,6 +97,7 @@ public class DormantIdentityTests
         "SilverRushEnabled",            // 銀の後期産地＝シルバーラッシュ（0＝解禁も富鉱化もしない）
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝鉱脈で割らない＝厳密恒等
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
+        "SoldierVacancyFromZero",       // ★器（2026-11-16 (1166) c115sv）＝大きさ 0 の兵士の POP を空きがあれば社会移動の職の行き先に（Meritocracy.EmptySeatIncome）。0＝今の形
         "TradeBuyBySupplyCurve",        // ★器（2026-11-15 (1144) c112t1）＝T1 A-1：清算の買いの来月の国内の見込みを着値で読む。0＝旧の xNeed＝厳密恒等
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。

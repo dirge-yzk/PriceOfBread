@@ -67,6 +67,7 @@ public static class Meritocracy
                 soldierVac = Math.Max(0, seatsR - soldierPop.Size);
             }
             double soldierVac0 = soldierVac;
+            if (ins && soldierPop is not null) Instruments.SoldierVacEnter(w, r, soldierPop, soldierVac0);   // (1166) soldiervac_s
 
             for (int i = 0; i < tn; i++)
             {
@@ -275,6 +276,7 @@ public static class Meritocracy
             }
 
             volunteers += Math.Max(0, soldierVac0 - soldierVac);
+            if (ins && soldierPop is not null) Instruments.SoldierVacExit(w, r, soldierPop);   // (1166) soldiervac_s
         }
         if (volunteers > Eps) { double sEnd = w.SoldierSizeK(); Military.DiluteSkill(w, sEnd - volunteers, sEnd); }
     }
@@ -336,6 +338,7 @@ public static class Meritocracy
                                    double secular, double higherEdu, ref double urbanHeadroom, ref double soldierVac, Coefficients c)
     {
         bool srcRural = !src.IsUrban;
+        bool emptySeat = c.SoldierVacancyFromZero > 0;   // (1166) 旗：大きさ 0 の兵の席も空きがあれば候補（Simulation.cs:1354 の器）
         if (c.JobPoolTemperature > 0)
         {
             int n = r.Pops.Count;
@@ -345,11 +348,11 @@ public static class Meritocracy
             for (int i = 0; i < n; i++)
             {
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || t.Size <= Eps) continue;
+                if (ReferenceEquals(t, src) || t.Closed || (t.Size <= Eps && !(emptySeat && t.IsSoldier))) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
-                double inc = JobIncome(t, src);
+                double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
                 if (inc <= minIncome) continue;
                 share[i] = 1.0; if (inc > incMax) incMax = inc;
             }
@@ -359,7 +362,7 @@ public static class Meritocracy
                 if (share[i] > 0)
                 {
                     var t = r.Pops[i];
-                    double inc = JobIncome(t, src);
+                    double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
                     share[i] = Math.Exp(Math.Max((inc - incMax) / c.JobPoolTemperature, -40));
                     sumW += share[i];
                 }
@@ -389,11 +392,11 @@ public static class Meritocracy
             {
                 if (tried[i]) continue;
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || t.Size <= Eps) continue;
+                if (ReferenceEquals(t, src) || t.Closed || (t.Size <= Eps && !(emptySeat && t.IsSoldier))) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
-                double inc = JobIncome(t, src);
+                double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
                 if (inc > bestInc) { bestInc = inc; bestIdx = i; }
             }
             if (bestIdx < 0) break;
@@ -424,6 +427,19 @@ public static class Meritocracy
         if (t.IsSoldier == src.IsSoldier) return inc;
         double wa = t.IsSoldier ? t.Size : Military.WorkingAdults(t);
         double perWorker = wa > Eps ? Math.Max(0, t.EarnedPerMonth.Value) / wa : 0;
+        double perHead = src.Size > Eps ? Military.WorkingAdults(src) / src.Size : 0;
+        return perWorker * perHead;
+    }
+
+    /// <summary>(1166) 大きさ 0 の兵の席の所得（旗 SoldierVacancyFromZero の時だけ・大きさ＞0 は <see cref="JobIncome"/>）。
+    /// 兵 1 人の月の給与＝州の徴募の母数の前の月の所得の単価（Simulation.MonthSettle の給与の請求と同じ入力＝四半期の最後の月の給与は、
+    /// その月の EconomyStep が所得を戻す前の値＝社会移動の時点の LastEarnedPerMonth）×SoldierPayMult×兵が実際に受け取る率
+    /// （1−兵の POP の UnemploymentRate＝Simulation.cs の payRate×soldierPayFill・大きさ 0 の兵にも書かれる）。徴兵の国は頭数あたり（keep）。
+    /// 送り手の世帯の 1 人あたりへ直す規則は JobIncome の兵の席と同じ（×働き盛り÷頭数）。幹部の給与（trainShare）は含まない。</summary>
+    private static double EmptySeatIncome(World w, Region r, Pop t, Pop src, Coefficients c)
+    {
+        double unit = Military.RecruitWage(r, c, last: true, keep: w.ConscriptionLaw >= ConscriptionLaw.Selective) * c.SoldierPayMult;
+        double perWorker = unit * Math.Max(0, 1.0 - t.UnemploymentRate.Value);
         double perHead = src.Size > Eps ? Military.WorkingAdults(src) / src.Size : 0;
         return perWorker * perHead;
     }

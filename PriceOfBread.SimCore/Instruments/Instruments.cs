@@ -1957,6 +1957,7 @@ public static partial class Instruments
         TportTable(sim, seed, q);          // TportTable（(1138) 条約港の読み手・tport_s）
         DipcoolTable(sim, seed, q);        // DipcoolTable（(1145) 高い帯の冷めの枝・dipcool_s）
         ColqnTable(sim, seed, q);          // ColqnTable（(1153) 植民地のキニーネ・colqn_s）
+        SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -2000,6 +2001,7 @@ public static partial class Instruments
         TportClose(sim);       // TportClose（(1138)）
         DipcoolClose(sim);     // DipcoolClose（(1145)）
         ColqnClose(sim);       // ColqnClose（(1153)）
+        SoldierVacClose(sim);  // SoldierVacClose（(1166)）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕
