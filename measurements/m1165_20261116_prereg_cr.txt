@@ -131,3 +131,24 @@
 - 採否：止める線 0 かつ §2 の門が全て緑で採る。落ちたら採らない（同じ腕で物差しを替えない）。旗 1 の出力を見た後のエンジンの変更は形の変え直し（枠 1）。
 - 腕 B が D: の床（35GB＋26GB）に 60 分届かなければ、〈門の台本の表（rulepower_s・rulepoweralloc_s・rponset_s・rule_s・nation_s）＋止める線の表（region_s・migration_s・pxmonth・nation_s）＋標準の読み手の表〉に絞って起こし、絞ったと名乗る。
 - 落ちた時（3 回目＝最後）：段 C′ を外す。00一覧＝段 C′ の行に打消し線と日付・〈3 回の規則で外した・実装ログ (1123)・(1151)・(1165)〉（合流が書く）。段 E・F・G は〈上流の依存を読む線か設計書を経て計画〉へ（★(685)）。旗 RuleFromPower の器は main へ入れない（枝 c115cr は読むだけで残す）。設計の文書の題の行の〈差し戻し〉は作者のセッションへの提案。
+
+## 追記 0（2026-11-16・器と焼き直しのコミットの後・紙の走りの前に書いた分と、紙の走りの結果を読む前の数）
+- 器 745770b1a・焼き直し 02a67df23。載せ直しは origin/c113cr 071455826＋aa68fa3fd の試験の直し。衝突は CostLedger の 1 行（main の ClearingA1Invalidate＝44 の後に RulePowerPairs＝45・Count 46）と番人 2 本の最後の行の名（SecessionLaborLawInstrumentTests.cs:280・ZeroPopSkipTests.cs:21＝★(749) 行を足した型）だけ。
+- 閾値（measurements/m1165_20261116/paper/thr_c115.txt・台本 thr_c115.py）：E_hi_full＝0.204577（M 0.0669・N1 0.0986・N2 0.1011・一つ抜きの空振り 0/3）・E_hi_short＝0（3 本とも種 1〜2 の窓 0〜79 が 0＝upper の式で 0・一つ抜き 0/3）・C8c_hi＝−0.00110496。
+  - ⚠ E_hi_short＝0 は〈短い走りで強い州に外国の取り分が 1 つでも出れば赤〉に縮退する（式どおり・腕の前に名乗る）。go／no-go は全長の予言（E_hi_full）でも読む＝縮退した門だけで決まる形にしない。
+- 母集合（★(1164) ③）：E の母集合は基準 keep_1164/base_ins の四半期 0 で種ごとに 89 州。旗 0 の器の紙の四半期 0 で選んだ母集合との違い＝0 州（種 1・2）＝予言どおり。
+- 旗 0 で落ちること（★(1164) ④・★(790)）：旗 0 の器の紙（2 種×668 四半期・measurements/m1165_20261116/paper/gates_flag0_ctl0.txt）で、等式の門（C1・C2・C4・C5 q・C6・C7・C10・C11・C12・C13・C14・C16・開幕）と C8a・C8e・G2・C8c″ は赤（エンジンの列が nan＝食い違いか行 0）。G2 は交戦中・平時とも行 0。C16 は〈D〉の外国の力＞0 の行 199,048 で全て食い違い（エンジンの列 nan）＝〈ヌル腕に定義が無い〉ではなく〈旗 0 で全て赤〉。E は旗 0 で 0.08513（種 1・2 の値は M と同じ 0.06822・0.10204）＝緑。G-F2 は旗 0 で 0.9995・1.0＝v の訂正【高】どおり〈働いた〉の門にならない（記録）。
+- ㉘ の grep：`new MoneyStock(` 64（main 64・変わらない）・IndustrializationReaderTests の許可表に RulePower の行 0・route_anchors.tsv に RulePower の行 0・WriterRatchetTests に RulePower の行 0（旗 0 は RulePowerPairs の件数 0）。㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・TechLevelRemovalTests）＋OpeningBakeTests・RulePowerEngineTests・E16＝178 本緑（旗 0・焼き直しの後）。
+- ㉜ の grep（旗 1 の木の番人の候補）：TreatyPortLapse・RegionReach・SecessionHoldProjection を読む試験＝DormantIdentityTests・ModernizeReturnAndScoreTests・RevoltIgnitionTests・RulePowerEngineTests・RuleSharesFormTests・ScoreReaderTests・TreatyPortLapseTests・UnitTypeTests・WriterRatchetTests。`.Rule[` を読む試験＝AdminServesRuleTests・CedeRuleInstrumentTests・CedeRuleToLocalTests・LordStakeD1bD2Tests・LordstatD1aTests・LordstatInstrumentTests・PopScanTests・RuleOnsetInstrumentTests・RuleOrderP1Tests・RulePowerEngineTests・RuleSharesFormTests・SaveRoundTripTests。
+- 試験の数（§3-2 の確定）：RulePowerEngineTests 13（E1〜E8・E10〜E14）＋SaveRoundTripTests の E16 1＝+14＝Tests 2669・Tests.Ui 234・和 2903・FullLength 3。E15 は足さない（E7 が SplitArmy の 3 枝を手の数で持ち、M-F4〈H＝min(need, max(0, L−front))〉で (10,10,10) の期待 5 が 0 になる＝赤の予言）。E17 は形を選んだ後に足す予定だった。
+- 焼き直しの予言〈焼いた値は同じ〉は外れた：nationTable も変わった（前の焼きは (1087)＝2026-11-12・その後の main のコードの変化を焼いた）。旗 0 は表を開かない（OpeningBakeEnabled＝0）。
+- E16 の数の下限：最初に書いた〈比べた州 ≧1000〉は世界の州（約 300）×2＝616 で落ちた＝下限の書き違い（試験の Assert の比べる量は変えず、下限を ≧600 へ・器のコミットの前・ビットの比べは全て一致していた）。E8 は M1 の形へ書き直した（CheckSecession は旗 1 で寄せない・RulePowerApply の手の数）。
+
+## 追記 1（2026-11-16・紙の後・旗 1 の前）：形は案 B・go／no-go は no-go＝旗 1 の短い走りと腕 B を回さず、3 回目を落とす
+- 紙（旗 0 の器・計器つき・種 1〜2・668 四半期・D:/PoB_work/c115cr_work/paper/CTL0/ins・measurements/m1165_20261116/paper/paper_flag0.txt・台本 paper_c115.py）。
+- 形の選び（§1-2 の規則のまま）：E 目標の種の中央＝案 B 0.5483・案 S 1.2772（全長）／案 B 0.7853・案 S 2.2050（窓 0〜79）。案 S÷案 B＝2.33（全長）・2.81（窓）＞2 ＝〈効きが同じ〉でない → 案 B。
+- go／no-go（§1-2・★(719)）：案 B の寄せの積み上がりの予言 E＝0.5675（全長・上限 0.2046 の 2.77 倍）・0.4603（窓 0〜79・上限 0）。どちらも上限の 2 倍を超える → **no-go**。全長の予言だけでも no-go（縮退した窓の上限に依らない）。
+- 根（紙・記録）：E の母集合（四半期 0 で Core・外国 0・持ち主≧0.5）でも、力の式の持ち主の側 T_os が小さい州がある（バルセロナ・ミラノ・トロムソ・ソフィア・奉天・バルナウル）＝案 B の外国の目標 0.03〜0.18（形 2 の 0.10〜0.56 の約 1/3）。旗 0 の盤面で〈D〉の形 2 の t0 がバルセロナで 0.18（今の Rule[0]≧0.5）＝力の式の持ち主の側は、外国が居なくても今の取り分より大きく低い州がある（F14 の型・measurements/m1165_20261116/paper/top_states.txt）。案 B は 2 回目の形の外国の目標を約 1/3 に縮めるが、〈強い州で外国 0〉にした E の上限（ヌル腕＝平時の浸透が無い）には届かない。
+- 清の朝貢の型（v の訂正【低】の確かめ・qing_tributary.txt）：窓 0〜79 の案 B の外国の目標＝アマラプラ 0.022〜0.026・カトマンズ 0.049〜0.053・ラングーン 0.069〜0.075・ヴィエンチャン 0.070〜0.088・ハノイ 0.079〜0.103・フエ 0.094〜0.126（形 2 は 0.13〜0.28）＝案 B では朝貢の型は約 1/2〜1/7 に小さくなる（〈残る〉は外れ）。
+- §9 の落ちた時：3 回の規則の 3 回目で落ちた＝段 C′ を外す。器（旗 0）は main へ入れない（枝 c115cr は読むだけで残す）。旗 1 の短い走り・突然変異の腕・ident（器の恒等）・フルスイート・savetest・leakhunt・腕 B は回していない（★(719)＝回す前に no-go が予測できた線は回さない）。
+- この判定は事前登録の規則（§1-2 の 2 倍・§2 の E の上限）どおりで、結果の後に物差しを替えていない。E の物差し（〈強い州に外国 0〉をヌル腕から取る）が設計 §3-3 の〈強い隣では取り分は小さいまま〉（小さい≠0）を〈形の誤り〉として数える点は、合流と作者のセッションへ申し送る（この線では採否に使わない）。
