@@ -234,7 +234,7 @@ public static partial class Instruments
         double root = System.Math.Pow(rpT / um, c.PriceElasticity);
         double ubBb = ts + d * root - p - s, ubA1 = ubBb; bool ev = false;
         if (ubBb <= 0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um)); ubA1 = ts + d * root - q - s; ev = true; }
-        return (true, ubBb > 0, ubBb <= 0 && ubA1 > 0, ubA1 <= 0, ev, xOld, ubBb, ubA1);
+        return (true, !(ubBb <= 0), ubBb <= 0 && !(ubA1 <= 0), ubA1 <= 0, ev, xOld, ubBb, ubA1);   // (1154) NaN の隙間を塞ぐ＝否定形（NaN は B0 か B1 に入る）
     }
 
     /// <summary>成約の上界の越え。S は成約の後の台帳（m.Stock）。E_abs＝S−UB・E_rel＝E_abs÷max(D, TS)。</summary>
