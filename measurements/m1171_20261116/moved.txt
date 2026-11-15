@@ -1,0 +1,6 @@
+c115cr_work/paper → keep_1171_rej/c115cr_paper
+out_mM_10/ins → keep_1171/base_ins
+out_mN1_10/ins → keep_1171/n1
+out_mN2_10/ins → keep_1171/n2
+out_mS11_10_s11/ins → keep_1171/a11
+out_mS11z_10_s11/ins → keep_1171/a11z（旗 0＝SoldierVacancyFromZero 0・cpop_s・nation_s・admrule_s・rule_s・soldiervac_s）

@@ -1,0 +1,6 @@
+# (1166) 門 生=D:/PoB_work/m1171_work/out_mM_10/ins 紙=D:/PoB_work/m1171_work/read/M/paper.txt 種=1〜10（soldiervac_s の種 10・行 410120）
+G1 働いた	193	≦3065	緑
+G3 形	0.9864	分母 221	≧0.9（床 100）	緑
+G2 上	overfillZeroK 0	fillZeroK 0.371664	≦1e-06×埋まり	緑
+記録	zeroStart 238	zeroVac 238	zeroFilled 220	fillPosK 74652.7	overfillPosK 0
+記録 eq（新しい読み÷今の読み・大きさ＞0 の兵）	N 2173306	幾何平均 last 0.482593	now 0.463905	|log| の最大 last 1.3684	採る形 K 0.977253	|log| の最大 K 0.4126

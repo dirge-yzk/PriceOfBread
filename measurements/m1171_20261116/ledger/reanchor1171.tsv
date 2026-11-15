@@ -1,0 +1,1167 @@
+行	前	後	写し方
+S16-04	World.cs:894:public bool InCivilWar	World.cs:894:public bool InCivilWar	もとから引けない
+S16-08	World.cs:1393:internal void SetCapital(Region capital)	World.cs:1393:internal void SetCapital(Region capital)	もとから引けない
+S16-08	World.cs:1409:Latitude = cc.Lat	World.cs:1409:Latitude = cc.Lat	もとから引けない
+S16-15	MultiNationSim.cs:1252:反乱国の国債を統一後の国が引き継ぐ	MultiNationSim.cs:1252:反乱国の国債を統一後の国が引き継ぐ	もとから引けない
+S16-16	EconomyStep.cs:1101:coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive	EconomyStep.cs:1101:coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive	もとから引けない
+S16-16	Simulation.cs:1703:r.CivilWarActive = World.InCivilWar	Simulation.cs:1703:r.CivilWarActive = World.InCivilWar	もとから引けない
+S16-16	Coefficients.cs:2014:CivilWarEconomyDisruption	Coefficients.cs:2014:CivilWarEconomyDisruption	もとから引けない
+S16-17	Simulation.cs:2120:MilitaryWarMultFromContact	Simulation.cs:2120:MilitaryWarMultFromContact	もとから引けない
+S16-21	Coefficients.cs:3000:FactionForgetQuarters	Coefficients.cs:3000:FactionForgetQuarters	もとから引けない
+S16-30	Government.cs:784:EnactingStage(World w, PolicyAxis a, bool increasing)	Government.cs:784:EnactingStage(World w, PolicyAxis a, bool increasing)	もとから引けない
+S16-38	Diplomacy.cs:859:c.MilitiaCombatValue > 0	Diplomacy.cs:859:c.MilitiaCombatValue > 0	もとから引けない
+S16-40	Coefficients.cs:3020:RevoltAftermathOnWarPath	Coefficients.cs:3020:RevoltAftermathOnWarPath	もとから引けない
+S16-48	Coefficients.cs:3065:RevoltCooldownRetire	Coefficients.cs:3065:RevoltCooldownRetire	もとから引けない
+S15-01	Coefficients.cs:2723:LegitimacyRegenRate	Coefficients.cs:2723:LegitimacyRegenRate	もとから引けない
+S15-03	Diplomacy.cs:3298:dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0)	Diplomacy.cs:3298:dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0)	もとから引けない
+S15-08	Government.cs:549:private static bool MandateGate(	Government.cs:549:private static bool MandateGate(	もとから引けない
+S15-08	Government.cs:578:internal static bool PoliticalCapitalAffords(	Government.cs:578:internal static bool PoliticalCapitalAffords(	もとから引けない
+S15-08	Government.cs:580:if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true	Government.cs:580:if (w.MandateSpent + cost <= w.PoliticalCapitalMax) return true	もとから引けない
+S15-09	Government.cs:590:return w.MandateSpent <= 0 && avail > 0	Government.cs:590:return w.MandateSpent <= 0 && avail > 0	もとから引けない
+S15-09	Coefficients.cs:2948:MandateOverStockLegitPower	Coefficients.cs:2948:MandateOverStockLegitPower	もとから引けない
+S15-10	Government.cs:478:private static double MandateMargin(	Government.cs:478:private static double MandateMargin(	もとから引けない
+S15-10	Government.cs:492:private static bool IsConstitutional(	Government.cs:492:private static bool IsConstitutional(	もとから引けない
+S15-11	Government.cs:875:w.MandateSpentNew +=	Government.cs:875:w.MandateSpentNew +=	もとから引けない
+S15-12	Government.cs:512:private static int CountOpenFronts(	Government.cs:512:private static int CountOpenFronts(	もとから引けない
+S15-12	Coefficients.cs:1740:PoliticalBudgetGate	Coefficients.cs:1740:PoliticalBudgetGate	もとから引けない
+S15-14	Coefficients.cs:3143:DynMandateAmplify	Coefficients.cs:3143:DynMandateAmplify	もとから引けない
+S15-15	Coefficients.cs:3141:ClergyMediationPerCapita	Coefficients.cs:3141:ClergyMediationPerCapita	もとから引けない
+S15-17	Coefficients.cs:3106:RedefinedMandateFloor	Coefficients.cs:3106:RedefinedMandateFloor	もとから引けない
+S15-17	Coefficients.cs:3107:RedefinedMandateNcMin	Coefficients.cs:3107:RedefinedMandateNcMin	もとから引けない
+S15-21	Government.cs:297:p.CoercionTarget = CoercionTargetFromForce	Government.cs:297:p.CoercionTarget = CoercionTargetFromForce	もとから引けない
+S15-21	Coefficients.cs:911:CoercionPerSoldier	Coefficients.cs:911:CoercionPerSoldier	もとから引けない
+S15-22	Coefficients.cs:910:WarCoercionDrain	Coefficients.cs:910:WarCoercionDrain	もとから引けない
+S15-22	Coefficients.cs:1748:WarRallyCoercion	Coefficients.cs:1748:WarRallyCoercion	もとから引けない
+S15-22	Coefficients.cs:1749:WarRallyDecayPoint	Coefficients.cs:1749:WarRallyDecayPoint	もとから引けない
+S15-24	Coefficients.cs:3096:RegimeTrackRecordWeight	Coefficients.cs:3096:RegimeTrackRecordWeight	もとから引けない
+S15-27	Coefficients.cs:2854:BourgeoisCoupWeight	Coefficients.cs:2854:BourgeoisCoupWeight	もとから引けない
+S15-30	Coefficients.cs:2725:ReformFromAboveLegitThreshold	Coefficients.cs:2725:ReformFromAboveLegitThreshold	もとから引けない
+S15-30	Coefficients.cs:1870:ReformAnticipationWeight	Coefficients.cs:1870:ReformAnticipationWeight	もとから引けない
+S15-31	Coefficients.cs:1874:ReformGrantPcWidth	Coefficients.cs:1874:ReformGrantPcWidth	もとから引けない
+S15-38	Fiscal.cs:895:internal static void RepudiateDebt(	Fiscal.cs:895:internal static void RepudiateDebt(	もとから引けない
+S15-38	Fiscal.cs:900:w.BorrowCooldownMonths = c.DefaultCooldownMonths	Fiscal.cs:900:w.BorrowCooldownMonths = c.DefaultCooldownMonths	もとから引けない
+S15-40	Coefficients.cs:1729:RevolutionConsciousness	Coefficients.cs:1729:RevolutionConsciousness	もとから引けない
+S15-42	Coefficients.cs:3160:NationConsciousnessDerived	Coefficients.cs:3160:NationConsciousnessDerived	もとから引けない
+S15-45	Government.cs:946:if (w.RuptureWindowQuarters > 0) return false	Government.cs:946:if (w.RuptureWindowQuarters > 0) return false	もとから引けない
+S19-01	Government.cs:979:private static int StepLevel(	Government.cs:979:private static int StepLevel(	もとから引けない
+S19-02	Government.cs:634:if (StagedAxis(a) && targetLevel > CurrentStage(w, a) + 1)	Government.cs:634:if (StagedAxis(a) && targetLevel > CurrentStage(w, a) + 1)	もとから引けない
+S19-02	Government.cs:760:private static bool StagedAxis(	Government.cs:760:private static bool StagedAxis(	もとから引けない
+S19-03	Government.cs:626:public static (bool Ok, string Reason) LawPrereq(	Government.cs:626:public static (bool Ok, string Reason) LawPrereq(	もとから引けない
+S19-03	Government.cs:989:if (increasing && !LawPrereq(	Government.cs:989:if (increasing && !LawPrereq(	もとから引けない
+S19-03	Government.cs:820:var (pok, preq) = LawPrereq(	Government.cs:820:var (pok, preq) = LawPrereq(	もとから引けない
+S19-04	Government.cs:391:internal static int TaxStage(	Government.cs:391:internal static int TaxStage(	もとから引けない
+S19-04	Government.cs:399:internal static double TaxValue(	Government.cs:399:internal static double TaxValue(	もとから引けない
+S19-04	Government.cs:409:internal static int MilitaryStage(	Government.cs:409:internal static int MilitaryStage(	もとから引けない
+S19-05	Government.cs:549:private static bool MandateGate(	Government.cs:549:private static bool MandateGate(	もとから引けない
+S19-05	Government.cs:578:internal static bool PoliticalCapitalAffords(	Government.cs:578:internal static bool PoliticalCapitalAffords(	もとから引けない
+S19-06	Government.cs:478:private static double MandateMargin(	Government.cs:478:private static double MandateMargin(	もとから引けない
+S19-06	Government.cs:492:private static bool IsConstitutional(	Government.cs:492:private static bool IsConstitutional(	もとから引けない
+S19-06	Government.cs:485:return IsConstitutional(a, targetLevel) ? 0 : double.PositiveInfinity	Government.cs:485:return IsConstitutional(a, targetLevel) ? 0 : double.PositiveInfinity	もとから引けない
+S19-07	Government.cs:868:private static void Spend(	Government.cs:868:private static void Spend(	もとから引けない
+S19-07	Government.cs:875:w.MandateSpentNew +=	Government.cs:875:w.MandateSpentNew +=	もとから引けない
+S19-08	Coefficients.cs:1740:PoliticalBudgetGate	Coefficients.cs:1740:PoliticalBudgetGate	もとから引けない
+S19-08	Government.cs:512:private static int CountOpenFronts(	Government.cs:512:private static int CountOpenFronts(	もとから引けない
+S19-09	Government.cs:893:private static double Move(	Government.cs:893:private static double Move(	もとから引けない
+S19-10	Government.cs:893:private static double Move(	Government.cs:893:private static double Move(	もとから引けない
+S19-11	Government.cs:908:if (w.Coef.ParliamentBudgetVeto > 0 && (a == PolicyAxis.IncomeTax	Government.cs:908:if (w.Coef.ParliamentBudgetVeto > 0 && (a == PolicyAxis.IncomeTax	もとから引けない
+S19-11	Coefficients.cs:2970:ParliamentBudgetVeto	Coefficients.cs:2970:ParliamentBudgetVeto	もとから引けない
+S19-12	Government.cs:939:internal static bool BlockedByIrreversibility(	Government.cs:939:internal static bool BlockedByIrreversibility(	もとから引けない
+S19-12	Government.cs:954:internal static bool ProtectedLaw(	Government.cs:954:internal static bool ProtectedLaw(	もとから引けない
+S19-12	Coefficients.cs:1730:IrreversibleLaws	Coefficients.cs:1730:IrreversibleLaws	もとから引けない
+S19-13	Coefficients.cs:3319:PrivilegeStripMilitancy	Coefficients.cs:3319:PrivilegeStripMilitancy	もとから引けない
+S19-13	Privileges.cs:124:if (c.PrivilegeStripMilitancy > 0	Privileges.cs:124:if (c.PrivilegeStripMilitancy > 0	もとから引けない
+S19-14	Government.cs:946:if (w.RuptureWindowQuarters > 0) return false	Government.cs:946:if (w.RuptureWindowQuarters > 0) return false	もとから引けない
+S19-16	Government.cs:805:public static (bool Ok, double Cost, string Reason) GateInfo(	Government.cs:805:public static (bool Ok, double Cost, string Reason) GateInfo(	もとから引けない
+S19-16	Government.cs:835:bool ok = net > -MandateMargin(w, a, targetLevel) / costMul	Government.cs:835:bool ok = net > -MandateMargin(w, a, targetLevel) / costMul	もとから引けない
+S19-16	Government.cs:607:public static bool CanStep(	Government.cs:607:public static bool CanStep(	もとから引けない
+S19-18	Diplomacy.cs:2544:blockade *= c.RationingBlockadeRelief	Diplomacy.cs:2544:blockade *= c.RationingBlockadeRelief	もとから引けない
+S19-20	PolicyPreferences.cs:341:MilitaryExportPrefScale	PolicyPreferences.cs:341:MilitaryExportPrefScale	もとから引けない
+S19-21	Coefficients.cs:3015:RebelArmsMarketEnabled	Coefficients.cs:3015:RebelArmsMarketEnabled	もとから引けない
+S19-21	PolicyPreferences.cs:329:RebelArmsMarketEnabled	PolicyPreferences.cs:329:RebelArmsMarketEnabled	もとから引けない
+S19-22	PolicyPreferences.cs:344:OpiumBanPrefScale	PolicyPreferences.cs:344:OpiumBanPrefScale	もとから引けない
+S19-22	PolicyPreferences.cs:345:OpiumTradePrefScale	PolicyPreferences.cs:345:OpiumTradePrefScale	もとから引けない
+S19-23	Government.cs:957:PolicyAxis.ShorterHours or PolicyAxis.ChildLabor => !AtWar(w)	Government.cs:957:PolicyAxis.ShorterHours or PolicyAxis.ChildLabor => !AtWar(w)	もとから引けない
+S19-24	Government.cs:741:StateReligionLaw.StateAtheism && w.Polity != Polity.ProletarianDictatorship	Government.cs:741:StateReligionLaw.StateAtheism && w.Polity != Polity.ProletarianDictatorship	もとから引けない
+S19-25	Government.cs:727:if (a == PolicyAxis.NationalizationAll && w.Polity != Polity.ProletarianDictatorship)	Government.cs:727:if (a == PolicyAxis.NationalizationAll && w.Polity != Polity.ProletarianDictatorship)	もとから引けない
+S19-26	PolicyPreferences.cs:418:MonetaryPrefScale	PolicyPreferences.cs:418:MonetaryPrefScale	もとから引けない
+S19-26	Coefficients.cs:3487:MonetaryPeerPullScale	Coefficients.cs:3487:MonetaryPeerPullScale	もとから引けない
+S19-29	Coefficients.cs:2706:SpecialistExitBanPrefScale	Coefficients.cs:2706:SpecialistExitBanPrefScale	もとから引けない
+S19-29	PolicyPreferences.cs:370:double banPressure = w.Coef.SpecialistExitBanPrefScale * exitRate	PolicyPreferences.cs:370:double banPressure = w.Coef.SpecialistExitBanPrefScale * exitRate	もとから引けない
+S19-30	Coefficients.cs:3346:GuildLawGate	Coefficients.cs:3346:GuildLawGate	もとから引けない
+S19-30	PolicyPreferences.cs:326:return w.Coef.GuildLawGate > 0	PolicyPreferences.cs:326:return w.Coef.GuildLawGate > 0	もとから引けない
+S19-31	Diplomacy.cs:3163:bool ratifyRefused =	Diplomacy.cs:3163:bool ratifyRefused =	もとから引けない
+S19-32	Coefficients.cs:1851:TaxConsentWeight	Coefficients.cs:1851:TaxConsentWeight	もとから引けない
+S19-32	Fiscal.cs:788:consent = 1.0 - c.TaxConsentWeight * (1.0 - voice)	Fiscal.cs:788:consent = 1.0 - c.TaxConsentWeight * (1.0 - voice)	もとから引けない
+S19-33	Government.cs:443:private static int AusterityStage(	Government.cs:443:private static int AusterityStage(	もとから引けない
+S19-33	Government.cs:377:w.AusterityIntensity = austerity	Government.cs:377:w.AusterityIntensity = austerity	もとから引けない
+S19-39	Government.cs:704:if (targetLevel >= (int)SecretBallotLaw.Secret && w.Suffrage < Suffrage.Census)	Government.cs:704:if (targetLevel >= (int)SecretBallotLaw.Secret && w.Suffrage < Suffrage.Census)	もとから引けない
+S19-40	Government.cs:714:(bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam	Government.cs:714:(bur ?? w.Bureaucracy) < BureaucracyLaw.MeritExam	もとから引けない
+S19-41	Government.cs:700:!UniversalConscriptionOpen(w)	Government.cs:700:!UniversalConscriptionOpen(w)	もとから引けない
+S19-42	World.cs:883:public bool PoliticalLockEnabled	World.cs:883:public bool PoliticalLockEnabled	もとから引けない
+S19-42	Government.cs:555:double net = w.PoliticalLockEnabled	Government.cs:555:double net = w.PoliticalLockEnabled	もとから引けない
+S19-43	DormantIdentityTests.cs:273:"IncumbencyBias"	DormantIdentityTests.cs:273:"IncumbencyBias"	もとから引けない
+S25-01	Diplomacy.cs:1353:WarGateOpen	Diplomacy.cs:1352:WarGateOpen	写した
+S25-01	Diplomacy.cs:1359:TriggerWars	Diplomacy.cs:1358:TriggerWars	写した
+S25-02	Diplomacy.cs:554:AddTensionKeyed	Diplomacy.cs:553:AddTensionKeyed	写した
+S25-02	Diplomacy.cs:621:TensionReasonJa	Diplomacy.cs:620:TensionReasonJa	写した
+S25-03	Diplomacy.cs:958:ThreatTension	Diplomacy.cs:957:ThreatTension	写した
+S25-03	Diplomacy.cs:992:ThreatReach	Diplomacy.cs:991:ThreatReach	写した
+S25-04	Diplomacy.cs:1015:ThreatScore	Diplomacy.cs:1014:ThreatScore	写した
+S25-05	Diplomacy.cs:1062:IdeologyTension	Diplomacy.cs:1061:IdeologyTension	写した
+S25-06	Diplomacy.cs:1128:AffinityTensions	Diplomacy.cs:1127:AffinityTensions	写した
+S25-07	Diplomacy.cs:1201:ProtectorGrievance	Diplomacy.cs:1200:ProtectorGrievance	写した
+S25-08	Diplomacy.cs:943:RouteTension	Diplomacy.cs:942:RouteTension	写した
+S25-09	Diplomacy.cs:1316:OpiumTension	Diplomacy.cs:1315:OpiumTension	写した
+S25-10	Coefficients.p04_trade.cs:158:OpiumExportPressureThreshold	Coefficients.p04_trade.cs:157:OpiumExportPressureThreshold	写した
+S25-10	Coefficients.p04_trade.cs:157:OpiumExportPressureTension	Coefficients.p04_trade.cs:156:OpiumExportPressureTension	写した
+S25-11	Coefficients.p08_audit_soldiers.cs:140:FrozenTensionDecayRate	Coefficients.p08_audit_soldiers.cs:141:FrozenTensionDecayRate	写した
+S25-11	Diplomacy.cs:3227:DriftTension	Diplomacy.cs:3226:DriftTension	写した
+S25-12	Diplomacy.cs:290:_grudge	Diplomacy.cs:289:_grudge	写した
+S25-12	Diplomacy.cs:3227:DriftTension	Diplomacy.cs:3226:DriftTension	写した
+S25-13	—（DefeatShockTensionRelief は消した＝(1154) c113sw）	—（DefeatShockTensionRelief は消した＝(1154) c113sw）	形が違う
+S25-13	—（DefeatShockProtectMin は消した＝(1154) c113sw）	—（DefeatShockProtectMin は消した＝(1154) c113sw）	形が違う
+S25-13	Diplomacy.cs:3227:DriftTension	Diplomacy.cs:3226:DriftTension	写した
+S25-14	Coefficients.p08_audit_soldiers.cs:140:FrozenTensionDecayRate	Coefficients.p08_audit_soldiers.cs:141:FrozenTensionDecayRate	写した
+S25-14	Diplomacy.cs:3271:CannotDeclareWar	Diplomacy.cs:3270:CannotDeclareWar	写した
+S25-15	Diplomacy.cs:2526:ResolvePeace	Diplomacy.cs:2525:ResolvePeace	写した
+S25-16	Diplomacy.cs:510:ComputeRanks	Diplomacy.cs:509:ComputeRanks	写した
+S25-17	Diplomacy.cs:695:ApplyHegemonContainment	Diplomacy.cs:694:ApplyHegemonContainment	写した
+S25-18	Diplomacy.cs:1756:MaxAlliances	Diplomacy.cs:1755:MaxAlliances	写した
+S25-19	Diplomacy.cs:1750:Landmass.Same	Diplomacy.cs:1749:Landmass.Same	写した
+S25-20	Diplomacy.cs:1291:BreakStrainedAlliances	Diplomacy.cs:1290:BreakStrainedAlliances	写した
+S25-21	Diplomacy.cs:1589:JoinAllies	Diplomacy.cs:1588:JoinAllies	写した
+S25-21	Diplomacy.cs:1583:AllyJoinThreshold	Diplomacy.cs:1582:AllyJoinThreshold	写した
+S25-22	Diplomacy.cs:1523:AddBelligerent	Diplomacy.cs:1522:AddBelligerent	写した
+S25-23	Diplomacy.cs:1635:ResolveCallToArms	Diplomacy.cs:1634:ResolveCallToArms	写した
+S25-24	Diplomacy.cs:1507:StartWar	Diplomacy.cs:1506:StartWar	写した
+S25-24	Diplomacy.cs:450:HasEmbargo	Diplomacy.cs:449:HasEmbargo	写した
+S25-25	Diplomacy.cs:1306:WorthFighting	Diplomacy.cs:1305:WorthFighting	写した
+S25-26	Diplomacy.cs:1420:SideMilitary	Diplomacy.cs:1419:SideMilitary	写した
+S25-27	Diplomacy.cs:1935:ResolvePendingWar	Diplomacy.cs:1934:ResolvePendingWar	写した
+S25-28	Diplomacy.cs:1917:RaiseTension	Diplomacy.cs:1916:RaiseTension	写した
+S25-28	Diplomacy.cs:1927:EaseTension	Diplomacy.cs:1926:EaseTension	写した
+S25-28	Diplomacy.cs:1804:StepTensionRamp	Diplomacy.cs:1803:StepTensionRamp	写した
+S25-29	Diplomacy.cs:1699:DiplomacyAI	Diplomacy.cs:1698:DiplomacyAI	写した
+S25-30	Coefficients.p04_trade.cs:155:ProximityTensionRange	Coefficients.p04_trade.cs:154:ProximityTensionRange	写した
+S25-30	Diplomacy.cs:1877:SpreadProvocationTension	Diplomacy.cs:1876:SpreadProvocationTension	写した
+S25-31	Diplomacy.cs:1858:TensionPolitics	Diplomacy.cs:1857:TensionPolitics	写した
+S25-32	Diplomacy.cs:450:HasEmbargo	Diplomacy.cs:449:HasEmbargo	写した
+S25-32	Diplomacy.cs:666:TradeAccess	Diplomacy.cs:665:TradeAccess	写した
+S25-33	Diplomacy.cs:686:MilitaryExportAccess	Diplomacy.cs:685:MilitaryExportAccess	写した
+S25-34	Coefficients.p08_audit_soldiers.cs:64:RiskLambda	Coefficients.p08_audit_soldiers.cs:65:RiskLambda	写した
+S25-35	Diplomacy.cs:713:CollectPrize	Diplomacy.cs:712:CollectPrize	写した
+S25-36	Diplomacy.cs:713:CollectPrize	Diplomacy.cs:712:CollectPrize	写した
+S25-36	Diplomacy.cs:729:raiderNaval	Diplomacy.cs:728:raiderNaval	写した
+S25-37	Diplomacy.cs:918:SyncFleet	Diplomacy.cs:917:SyncFleet	写した
+S25-38	Diplomacy.cs:408:SetDependency	Diplomacy.cs:407:SetDependency	写した
+S25-38	Diplomacy.cs:1237:StepDependency	Diplomacy.cs:1236:StepDependency	写した
+S25-39	Diplomacy.cs:1237:StepDependency	Diplomacy.cs:1236:StepDependency	写した
+S25-40	Diplomacy.cs:1237:StepDependency	Diplomacy.cs:1236:StepDependency	写した
+S25-41	Diplomacy.cs:1534:DefendDependent	Diplomacy.cs:1533:DefendDependent	写した
+S25-42	Diplomacy.cs:1286:CountDependents	Diplomacy.cs:1285:CountDependents	写した
+S25-43	Diplomacy.cs:2046:PeaceInterventionAI	Diplomacy.cs:2045:PeaceInterventionAI	写した
+S25-43	Diplomacy.cs:2113:CanOfferPeace	Diplomacy.cs:2112:CanOfferPeace	写した
+S25-44	Diplomacy.cs:2072:ExecuteMediation	Diplomacy.cs:2071:ExecuteMediation	写した
+S25-44	Diplomacy.cs:2113:CanOfferPeace	Diplomacy.cs:2112:CanOfferPeace	写した
+S25-45	Diplomacy.cs:2072:ExecuteMediation	Diplomacy.cs:2071:ExecuteMediation	写した
+S25-45	Diplomacy.cs:1564:DeclareWar	Diplomacy.cs:1563:DeclareWar	写した
+S25-46	Diplomacy.cs:2526:ResolvePeace	Diplomacy.cs:2525:ResolvePeace	写した
+S25-47	Diplomacy.cs:3023:CessionTarget	Diplomacy.cs:3022:CessionTarget	写した
+S25-48	Diplomacy.cs:2926:CedeTerritoryUnified	Diplomacy.cs:2925:CedeTerritoryUnified	写した
+S25-49	Coefficients.p08_audit_soldiers.cs:113:ForeignRuleFromTreaty	Coefficients.p08_audit_soldiers.cs:114:ForeignRuleFromTreaty	写した
+S25-50	Diplomacy.cs:487:TreatyPortLapse	Diplomacy.cs:486:TreatyPortLapse	写した
+S25-51	Diplomacy.cs:1286:CountDependents	Diplomacy.cs:1285:CountDependents	写した
+S25-52	Diplomacy.cs:2206:StepWars	Diplomacy.cs:2205:StepWars	写した
+S25-53	Diplomacy.cs:2838:OutcomeShocks	Diplomacy.cs:2837:OutcomeShocks	写した
+S25-53	—（DefeatedShock は消した＝(1154) c113sw）	—（DefeatedShock は消した＝(1154) c113sw）	形が違う
+S25-54	Diplomacy.cs:2036:SubmitLine	Diplomacy.cs:2035:SubmitLine	写した
+S25-54	Diplomacy.cs:1991:Subjugate	Diplomacy.cs:1990:Subjugate	写した
+S25-56	Diplomacy.cs:2040:ColonizeForce	Diplomacy.cs:2039:ColonizeForce	写した
+S25-57	Diplomacy.cs:1779:TryAiSubjugate	Diplomacy.cs:1778:TryAiSubjugate	写した
+S25-58	Coefficients.p04_trade.cs:155:ProximityTensionRange	Coefficients.p04_trade.cs:154:ProximityTensionRange	写した
+S25-58	Diplomacy.cs:2167:RaiseColonizeTension	Diplomacy.cs:2166:RaiseColonizeTension	写した
+S25-59	Diplomacy.cs:1678:TryUnificationWars	Diplomacy.cs:1677:TryUnificationWars	写した
+S25-60	Diplomacy.cs:3185:Projection	Diplomacy.cs:3184:Projection	写した
+S25-61	Coefficients.p08_audit_soldiers.cs:115:ProjectionRuleMin	Coefficients.p08_audit_soldiers.cs:116:ProjectionRuleMin	写した
+S25-61	Coefficients.p08_audit_soldiers.cs:116:ProjectionUsesLand	Coefficients.p08_audit_soldiers.cs:117:ProjectionUsesLand	写した
+S25-61	Diplomacy.cs:3185:Projection	Diplomacy.cs:3184:Projection	写した
+S25-62	Diplomacy.cs:3175:IsSeaCrossing	Diplomacy.cs:3174:IsSeaCrossing	写した
+S25-63	Diplomacy.cs:1654:TradePolicyReaction	Diplomacy.cs:1653:TradePolicyReaction	写した
+S25-64	PriceOfBread.Tests/DormantIdentityTests.cs:330:TradeTreatyEnabled	PriceOfBread.Tests/DormantIdentityTests.cs:331:TradeTreatyEnabled	写した
+S25-65	Diplomacy.cs:1306:WorthFighting	Diplomacy.cs:1305:WorthFighting	写した
+S25-66	Diplomacy.cs:1353:WarGateOpen	Diplomacy.cs:1352:WarGateOpen	写した
+S25-68	Diplomacy.cs:456:RegisterIndependence	Diplomacy.cs:455:RegisterIndependence	写した
+S25-69	Diplomacy.cs:2526:ResolvePeace	Diplomacy.cs:2525:ResolvePeace	写した
+S25-71	Diplomacy.cs:3078:CessionCost	Diplomacy.cs:3077:CessionCost	写した
+S25-73	Diplomacy.cs:1237:StepDependency	Diplomacy.cs:1236:StepDependency	写した
+S25-74	PriceOfBread.Tests/DormantIdentityTests.cs:293:WarStartPoliticsScale	PriceOfBread.Tests/DormantIdentityTests.cs:294:WarStartPoliticsScale	写した
+S25-76	Diplomacy.cs:292:PeaceOffersMade	Diplomacy.cs:291:PeaceOffersMade	写した
+S25-77	Diplomacy.cs:289:_warCount	Diplomacy.cs:288:_warCount	写した
+S23-H009	Coefficients.p08_audit_soldiers.cs:23:ConscriptionFraction	Coefficients.p08_audit_soldiers.cs:24:ConscriptionFraction	写した
+S23-H010	Coefficients.p08_audit_soldiers.cs:96:ConscriptionEnemyRatioWeight	Coefficients.p08_audit_soldiers.cs:97:ConscriptionEnemyRatioWeight	写した
+S23-H010	Coefficients.p08_audit_soldiers.cs:94:ConscriptionExhaustionWeight	Coefficients.p08_audit_soldiers.cs:95:ConscriptionExhaustionWeight	写した
+S23-H010	Coefficients.p08_audit_soldiers.cs:93:ConscriptionFloorFraction	Coefficients.p08_audit_soldiers.cs:94:ConscriptionFloorFraction	写した
+S23-H010	Coefficients.p08_audit_soldiers.cs:95:ConscriptionFrontStep	Coefficients.p08_audit_soldiers.cs:96:ConscriptionFrontStep	写した
+S23-H015	Coefficients.p08_audit_soldiers.cs:83:UniversalConscriptionFactor	Coefficients.p08_audit_soldiers.cs:84:UniversalConscriptionFactor	写した
+S23-H020	Coefficients.p08_audit_soldiers.cs:117:PeacetimeConscriptGrievance	Coefficients.p08_audit_soldiers.cs:118:PeacetimeConscriptGrievance	写した
+S23-H032	Coefficients.p04_trade.cs:28:MilitaryProcurePriceGateScale	Coefficients.p04_trade.cs:28:MilitaryProcurePriceGateScale	もとから引けない
+S23-H034	Coefficients.p10_ai_silver_overrides.cs:84:AirFuelRate	Coefficients.p10_ai_silver_overrides.cs:82:AirFuelRate	写した
+S23-H034	Coefficients.p10_ai_silver_overrides.cs:85:MotorFuelRate	Coefficients.p10_ai_silver_overrides.cs:83:MotorFuelRate	写した
+S23-X01	Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement	Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement	もとから引けない
+S23-X01	Military.cs:168:GarrisonProcurement	Military.cs:168:GarrisonProcurement	もとから引けない
+S23-X02	Coefficients.p10_ai_silver_overrides.cs:76:NavalFuelPerGauge	Coefficients.p10_ai_silver_overrides.cs:74:NavalFuelPerGauge	写した
+S18-13	Parliament.cs:128:墓標	Parliament.cs:128:墓標	もとから引けない
+S18-14	Parliament.cs:128:墓標	Parliament.cs:128:墓標	もとから引けない
+S18-15	Parliament.cs:128:墓標	Parliament.cs:128:墓標	もとから引けない
+S18-16	Parliament.cs:131:NonElectedSkipsPlatform	Parliament.cs:131:NonElectedSkipsPlatform	もとから引けない
+S18-18	Parliament.cs:13:Bloc	Parliament.cs:13:Bloc	もとから引けない
+S18-30	InterestGroups.cs:12:PettyInterestGate	InterestGroups.cs:12:PettyInterestGate	もとから引けない
+S14-H010	Politics.cs:544:DesperationMilitancyOverride	Politics.cs:544:DesperationMilitancyOverride	もとから引けない
+S14-H011	Politics.cs:544:DesperationLayerBlend	Politics.cs:544:DesperationLayerBlend	もとから引けない
+S14-H013	Coefficients.p02_borrow_polity_epidemic.cs:225:UnemploymentMilitancy	Coefficients.p02_borrow_polity_epidemic.cs:225:UnemploymentMilitancy	もとから引けない
+S14-H016	Coefficients.cs:258:FamineAbsoluteMilitancy	Coefficients.cs:258:FamineAbsoluteMilitancy	もとから引けない
+S14-H022	Coefficients.p08_audit_soldiers.cs:107:NationalismFromConsciousness	Coefficients.p08_audit_soldiers.cs:107:NationalismFromConsciousness	もとから引けない
+S14-H023	Ideology.cs:34:DepressionSocialism	Ideology.cs:34:DepressionSocialism	もとから引けない
+S14-H033	InterestGroups.cs:12:PettyInterestGate	InterestGroups.cs:12:PettyInterestGate	もとから引けない
+S08-H001	Coefficients.p08_audit_soldiers.cs:71:LandSeaCostRatio	Coefficients.p08_audit_soldiers.cs:72:LandSeaCostRatio	写した
+S08-H002	Coefficients.p08_audit_soldiers.cs:65:LandRouteEnabled	Coefficients.p08_audit_soldiers.cs:66:LandRouteEnabled	写した
+S08-H003	Coefficients.p08_audit_soldiers.cs:66:TerrainHorseCost	Coefficients.p08_audit_soldiers.cs:67:TerrainHorseCost	写した
+S08-H003	Coefficients.p08_audit_soldiers.cs:67:TerrainRailCost	Coefficients.p08_audit_soldiers.cs:68:TerrainRailCost	写した
+S08-H003	Coefficients.p08_audit_soldiers.cs:68:TerrainWaterMajorCost	Coefficients.p08_audit_soldiers.cs:69:TerrainWaterMajorCost	写した
+S08-H003	Coefficients.p08_audit_soldiers.cs:69:TerrainWaterMinorCost	Coefficients.p08_audit_soldiers.cs:70:TerrainWaterMinorCost	写した
+S08-H004	Coefficients.p08_audit_soldiers.cs:70:RailCostFraction	Coefficients.p08_audit_soldiers.cs:71:RailCostFraction	写した
+S08-H006	Coefficients.p10_ai_silver_overrides.cs:93:SeaStitchLeadBudgetMult	Coefficients.p10_ai_silver_overrides.cs:91:SeaStitchLeadBudgetMult	写した
+S08-H011	Coefficients.p08_audit_soldiers.cs:107:WallLinkKm	Coefficients.p08_audit_soldiers.cs:108:WallLinkKm	写した
+S08-H015	Coefficients.p08_audit_soldiers.cs:73:TransportWeightMarginScale	Coefficients.p08_audit_soldiers.cs:74:TransportWeightMarginScale	写した
+S08-H017	Coefficients.p08_audit_soldiers.cs:63:FreightRatePer10Mm	Coefficients.p08_audit_soldiers.cs:64:FreightRatePer10Mm	写した
+S08-H022	Coefficients.p04_trade.cs:160:CanalInvestFrac	Coefficients.p04_trade.cs:159:CanalInvestFrac	写した
+S08-H023	Coefficients.p08_audit_soldiers.cs:91:CanalTollTrafficRate	Coefficients.p08_audit_soldiers.cs:92:CanalTollTrafficRate	写した
+S08-H023	Coefficients.p08_audit_soldiers.cs:92:CanalInvestReturns	Coefficients.p08_audit_soldiers.cs:93:CanalInvestReturns	写した
+S08-H025	Diplomacy.cs:943:void RouteTension	Diplomacy.cs:942:void RouteTension	写した
+S08-H031	Coefficients.p08_audit_soldiers.cs:72:TransitTollShare	Coefficients.p08_audit_soldiers.cs:73:TransitTollShare	写した
+S08-H032	Coefficients.p10_ai_silver_overrides.cs:63:EraFactor	Coefficients.p10_ai_silver_overrides.cs:61:EraFactor	写した
+S08-H038	Coefficients.p08_audit_soldiers.cs:29:ColonyShipOccupyPerDist	Coefficients.p08_audit_soldiers.cs:30:ColonyShipOccupyPerDist	写した
+S08-H038	Colonial.cs:66:double OccupiedShipCapacity	Colonial.cs:62:double OccupiedShipCapacity	写した
+S08-41	Coefficients.p04_trade.cs:160:CanalInvestFrac	Coefficients.p04_trade.cs:159:CanalInvestFrac	写した
+S02-H001a	Simulation.cs:1436:PriceOnlyStepDays	Simulation.cs:1435:PriceOnlyStepDays	写した
+S02-H001a	Simulation.cs:1451:MarketFlow.StepDay(r, World.Coef, hPrice	Simulation.cs:1450:MarketFlow.StepDay(r, World.Coef, hPrice	写した
+S02-H001b	Simulation.cs:1440:bool spanStart = _dayInQuarter % hFlow == 0	Simulation.cs:1439:bool spanStart = _dayInQuarter % hFlow == 0	写した
+S02-H001b	Simulation.cs:1454:World.StepConstruction(hFlow)	Simulation.cs:1453:World.StepConstruction(hFlow)	写した
+S02-H004a	Simulation.cs:1738:warScareTensionNat	Simulation.cs:1737:warScareTensionNat	写した
+S02-H004a	Simulation.cs:1819:r.WarScareTension = warScareTensionNat	Simulation.cs:1818:r.WarScareTension = warScareTensionNat	写した
+S02-H007b	Colonial.cs:124:InternationalMarket.Procure(w, r, goodId, want, null, cat)	Colonial.cs:120:InternationalMarket.Procure(w, r, goodId, want, null, cat)	写した
+S02-H011a	Coefficients.p08_audit_soldiers.cs:58:WageClampMax	Coefficients.p08_audit_soldiers.cs:59:WageClampMax	写した
+S02-H011b	Coefficients.p08_audit_soldiers.cs:57:WageClampMin	Coefficients.p08_audit_soldiers.cs:58:WageClampMin	写した
+S01-H004k	Diplomacy.cs:816:DiscoveryLossQ	Diplomacy.cs:815:DiscoveryLossQ	写した
+S01-H009	Simulation.cs:1079:AddSodaAsh("ルブラン法"	Simulation.cs:1078:AddSodaAsh("ルブラン法"	写した
+S01-H009	Simulation.cs:1080:AddSodaAsh("ソルベー法"	Simulation.cs:1079:AddSodaAsh("ソルベー法"	写した
+S01-H010	Simulation.cs:1114:RecipeName = "蒸気機関"	Simulation.cs:1113:RecipeName = "蒸気機関"	写した
+S01-H010	Simulation.cs:1116:RecipeName = "電動"	Simulation.cs:1115:RecipeName = "電動"	写した
+S01-H010	Simulation.cs:1112:RecipeName = "畜力"	Simulation.cs:1111:RecipeName = "畜力"	写した
+S01-H010	Simulation.cs:1119:RecipeName = "水車"	Simulation.cs:1118:RecipeName = "水車"	写した
+S01-H011	Simulation.cs:1094:GoodId = gid, RecipeName = "職人"	Simulation.cs:1093:GoodId = gid, RecipeName = "職人"	写した
+S01-H012a	Simulation.cs:961:RecipeName = "坩堝鋼"	Simulation.cs:960:RecipeName = "坩堝鋼"	写した
+S01-H012b	Simulation.cs:965:RecipeName = "錬鉄レール"	Simulation.cs:964:RecipeName = "錬鉄レール"	写した
+S01-H013	Simulation.cs:1060:RecipeName = "黄鉄鉱法"	Simulation.cs:1059:RecipeName = "黄鉄鉱法"	写した
+S01-H014	Simulation.cs:1202:RecipeName = "堆肥"	Simulation.cs:1201:RecipeName = "堆肥"	写した
+S01-H014	Coefficients.p08_audit_soldiers.cs:121:CompostProductivity	Coefficients.p08_audit_soldiers.cs:122:CompostProductivity	写した
+S01-H015	Coefficients.p08_audit_soldiers.cs:123:NiterBedEnabled	Coefficients.p08_audit_soldiers.cs:124:NiterBedEnabled	写した
+S01-H015	Simulation.cs:1205:if (coef.NiterBedEnabled > 0)	Simulation.cs:1204:if (coef.NiterBedEnabled > 0)	写した
+S01-H016	Simulation.cs:1048:RecipeName = "冷蔵の加工肉"	Simulation.cs:1047:RecipeName = "冷蔵の加工肉"	写した
+S01-H017	Simulation.cs:1159:RecipeName = "蒸気タービン"	Simulation.cs:1158:RecipeName = "蒸気タービン"	写した
+S01-H018	Simulation.cs:920:d.Id == Catalog.CrudeOilId	Simulation.cs:919:d.Id == Catalog.CrudeOilId	写した
+S01-H018	Simulation.cs:921:coef.OilMachineryInput	Simulation.cs:920:coef.OilMachineryInput	写した
+S01-H019	Simulation.cs:1037:RecipeName = "石油ケロシン"	Simulation.cs:1036:RecipeName = "石油ケロシン"	写した
+S01-H019	Simulation.cs:1232:RecipeName = "石油灯油"	Simulation.cs:1231:RecipeName = "石油灯油"	写した
+S01-H020	Simulation.cs:980:RecipeName = "マスケット"	Simulation.cs:979:RecipeName = "マスケット"	写した
+S01-H020	Simulation.cs:988:RecipeName = "鋳鉄砲"	Simulation.cs:987:RecipeName = "鋳鉄砲"	写した
+S03-H001	Coefficients.cs:1161:IndProductivityGain	Coefficients.cs:1161:IndProductivityGain	もとから引けない
+S03-H001	Coefficients.cs:1162:IndProductivityScale	Coefficients.cs:1162:IndProductivityScale	もとから引けない
+S03-H010	Coefficients.cs:2087:ElecInfraGridBoost	Coefficients.cs:2087:ElecInfraGridBoost	もとから引けない
+S03-H010	Coefficients.cs:2584:GridReplaceRate	Coefficients.cs:2584:GridReplaceRate	もとから引けない
+S03-H013	Coefficients.cs:1071:IndDepreciation	Coefficients.cs:1071:IndDepreciation	もとから引けない
+S03-H013	Coefficients.cs:1161:IndProductivityGain	Coefficients.cs:1161:IndProductivityGain	もとから引けない
+S03-H013	Coefficients.cs:1162:IndProductivityScale	Coefficients.cs:1162:IndProductivityScale	もとから引けない
+S03-H016	Coefficients.cs:1165:ScaleEconomyGain	Coefficients.cs:1165:ScaleEconomyGain	もとから引けない
+S03-H016	Coefficients.cs:1166:ScaleEconomyHalf	Coefficients.cs:1166:ScaleEconomyHalf	もとから引けない
+S03-H017	Coefficients.cs:1035:LandDiminishExponent	Coefficients.cs:1035:LandDiminishExponent	もとから引けない
+S03-H020	Coefficients.cs:3410:BonanzaDepositYears	Coefficients.cs:3410:BonanzaDepositYears	もとから引けない
+S03-H020	Coefficients.cs:3409:DepositGradeFloor	Coefficients.cs:3409:DepositGradeFloor	もとから引けない
+S03-H020	Coefficients.cs:3408:DepositGradeKnee	Coefficients.cs:3408:DepositGradeKnee	もとから引けない
+S03-H020	Coefficients.cs:3407:DepositYearsAtBirth	Coefficients.cs:3407:DepositYearsAtBirth	もとから引けない
+S03-H021	Coefficients.cs:2835:ScarceCountsIncludeColonies	Coefficients.cs:2835:ScarceCountsIncludeColonies	もとから引けない
+S03-H021	Coefficients.cs:1344:ScarceMineralGate	Coefficients.cs:1344:ScarceMineralGate	もとから引けない
+S03-H021	Coefficients.cs:1345:ScarceMineralOnlySulfur	Coefficients.cs:1345:ScarceMineralOnlySulfur	もとから引けない
+S03-H022	Coefficients.cs:1375:EndowmentCostFollowsAbundance	Coefficients.cs:1375:EndowmentCostFollowsAbundance	もとから引けない
+S03-H022	Coefficients.cs:1376:EndowmentCostFollowsScarcity	Coefficients.cs:1376:EndowmentCostFollowsScarcity	もとから引けない
+S03-H022	Coefficients.cs:1367:MineralCostFollowsGrade	Coefficients.cs:1367:MineralCostFollowsGrade	もとから引けない
+S03-H023	Coefficients.cs:2607:WarFarmOutputDamage	Coefficients.cs:2607:WarFarmOutputDamage	もとから引けない
+S03-H023	Coefficients.cs:2609:WarLivestockOutputDamage	Coefficients.cs:2609:WarLivestockOutputDamage	もとから引けない
+S03-H023	Coefficients.cs:2608:WarLivestockRequisition	Coefficients.cs:2608:WarLivestockRequisition	もとから引けない
+S03-H024	Coefficients.cs:1168:RefrigerationEffect	Coefficients.cs:1168:RefrigerationEffect	もとから引けない
+S04-H001	Coefficients.cs:559:OldLaborFactor	Coefficients.cs:559:OldLaborFactor	もとから引けない
+S04-H002	Coefficients.cs:2558:DemandElasticityMaxDaily	Coefficients.cs:2558:DemandElasticityMaxDaily	もとから引けない
+S04-H002	Coefficients.cs:2561:DemandElasticityMaxLuxury	Coefficients.cs:2561:DemandElasticityMaxLuxury	もとから引けない
+S04-H002	Coefficients.cs:1125:FoodIncludesAnimalProtein	Coefficients.cs:1125:FoodIncludesAnimalProtein	もとから引けない
+S04-H003	Coefficients.cs:615:DailyNeedWeight	Coefficients.cs:615:DailyNeedWeight	もとから引けない
+S04-H003	Coefficients.cs:619:LuxuryNeedWeight	Coefficients.cs:619:LuxuryNeedWeight	もとから引けない
+S04-H004	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S04-H007	Coefficients.cs:2474:PanicBuyWeight	Coefficients.cs:2474:PanicBuyWeight	もとから引けない
+S04-H008	Coefficients.cs:740:HouseholdCreditMonths	Coefficients.cs:740:HouseholdCreditMonths	もとから引けない
+S04-H008	Coefficients.cs:733:PopDebtDriven	Coefficients.cs:733:PopDebtDriven	もとから引けない
+S04-H011	Coefficients.cs:565:EduPerChild	Coefficients.cs:565:EduPerChild	もとから引けない
+S04-H013	Coefficients.cs:3192:CartelBanRent	Coefficients.cs:3192:CartelBanRent	もとから引けない
+S04-H013	Coefficients.cs:3348:GuildRentPremium	Coefficients.cs:3348:GuildRentPremium	もとから引けない
+S04-H013	Coefficients.cs:704:MerchantMargin	Coefficients.cs:704:MerchantMargin	もとから引けない
+S04-H014	Coefficients.cs:2084:ElecInfraSanitationWeight	Coefficients.cs:2084:ElecInfraSanitationWeight	もとから引けない
+S04-H014	Coefficients.cs:2072:HealthCrowdingBoost	Coefficients.cs:2072:HealthCrowdingBoost	もとから引けない
+S04-H014	Coefficients.cs:2069:MedicalWelfareBoost	Coefficients.cs:2069:MedicalWelfareBoost	もとから引けない
+S04-H014	Coefficients.cs:2077:SoapSanitationWeight	Coefficients.cs:2077:SoapSanitationWeight	もとから引けない
+S04-H015	Coefficients.cs:2076:HousingMigrationFriction	Coefficients.cs:2076:HousingMigrationFriction	もとから引けない
+S04-H015	Coefficients.cs:2074:HousingNeedPerUrban	Coefficients.cs:2074:HousingNeedPerUrban	もとから引けない
+S04-H015	Coefficients.cs:2075:HousingUrbanThreshold	Coefficients.cs:2075:HousingUrbanThreshold	もとから引けない
+S04-H017	Coefficients.cs:2519:OpiumAddictionCap	Coefficients.cs:2519:OpiumAddictionCap	もとから引けない
+S04-H017	Coefficients.cs:2524:OpiumAddictionDecay	Coefficients.cs:2524:OpiumAddictionDecay	もとから引けない
+S04-H017	Coefficients.cs:2518:OpiumAddictionGrowth	Coefficients.cs:2518:OpiumAddictionGrowth	もとから引けない
+S04-H017	Coefficients.cs:3121:OpiumLaborPenalty	Coefficients.cs:3121:OpiumLaborPenalty	もとから引けない
+S05-H017	EconomyStep.cs:2637:MilitaryProcurePriceGateScale	EconomyStep.cs:2637:MilitaryProcurePriceGateScale	もとから引けない
+S05-H018	Simulation.cs:1303:PlantationRentShare	Simulation.cs:1302:PlantationRentShare	写した
+S05-H019	Military.cs:168:GarrisonProcurement	Military.cs:168:GarrisonProcurement	もとから引けない
+S05-H020	Simulation.cs:1933:claims	Simulation.cs:1932:claims	写した
+S05-H025	Simulation.cs:2032:MothballFrac	Simulation.cs:2031:MothballFrac	写した
+S06-H001	Coefficients.cs:831:JobSearchUsesEma	Coefficients.cs:831:JobSearchUsesEma	もとから引けない
+S06-H001	Coefficients.cs:829:ServiceUnemployment	Coefficients.cs:829:ServiceUnemployment	もとから引けない
+S06-H003	Coefficients.cs:952:MonetaryTrendSpeed	Coefficients.cs:952:MonetaryTrendSpeed	もとから引けない
+S06-H003	Coefficients.cs:956:PriceLevelFloor	Coefficients.cs:956:PriceLevelFloor	もとから引けない
+S06-H003	Coefficients.cs:964:RegionalPriceLevelMax	Coefficients.cs:964:RegionalPriceLevelMax	もとから引けない
+S06-H003	Coefficients.cs:963:RegionalPriceLevelMin	Coefficients.cs:963:RegionalPriceLevelMin	もとから引けない
+S06-H005	Coefficients.cs:2014:CivilWarEconomyDisruption	Coefficients.cs:2014:CivilWarEconomyDisruption	もとから引けない
+S06-H005	Coefficients.cs:1084:DepressionScrapRate	Coefficients.cs:1084:DepressionScrapRate	もとから引けない
+S06-H005	Coefficients.cs:1085:DepressionScrapThreshold	Coefficients.cs:1085:DepressionScrapThreshold	もとから引けない
+S06-H012	Coefficients.cs:1081:DevelopmentMemory	Coefficients.cs:1081:DevelopmentMemory	もとから引けない
+S07-H009	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S07-H017	Diplomacy.cs:276:CumulativeFxResidual	Diplomacy.cs:275:CumulativeFxResidual	写した
+S07-H018	EconomyStep.cs:706:RentShareOf	EconomyStep.cs:706:RentShareOf	もとから引けない
+S09-H001	Coefficients.cs:1033:TariffFloor	Coefficients.cs:1033:TariffFloor	もとから引けない
+S09-H004	Coefficients.cs:1959:IsolationExportWeight	Coefficients.cs:1959:IsolationExportWeight	もとから引けない
+S09-H005	Coefficients.cs:708:TariffReactionMax	Coefficients.cs:708:TariffReactionMax	もとから引けない
+S09-H005	Coefficients.cs:707:TariffRetaliation	Coefficients.cs:707:TariffRetaliation	もとから引けない
+S09-H006	DormantIdentityTests.cs:305:TradeTreatyEnabled	DormantIdentityTests.cs:305:TradeTreatyEnabled	もとから引けない
+S09-H007	Coefficients.cs:1025:TreatyPortReparationMult	Coefficients.cs:1025:TreatyPortReparationMult	もとから引けない
+S09-H007	Coefficients.cs:1020:TreatyPortWinnerDistanceKm	Coefficients.cs:1020:TreatyPortWinnerDistanceKm	もとから引けない
+S09-H008	Coefficients.cs:2769:ForeignRuleFromTreaty	Coefficients.cs:2769:ForeignRuleFromTreaty	もとから引けない
+S09-H008	Coefficients.cs:1024:TreatyPortLapseRatio	Coefficients.cs:1024:TreatyPortLapseRatio	もとから引けない
+S09-H011	Coefficients.cs:2518:OpiumAddictionGrowth	Coefficients.cs:2518:OpiumAddictionGrowth	もとから引けない
+S09-H012	Coefficients.cs:2194:SmugglingMax	Coefficients.cs:2194:SmugglingMax	もとから引けない
+S09-H013	Coefficients.cs:2185:MilitaryExportAccessFloor	Coefficients.cs:2185:MilitaryExportAccessFloor	もとから引けない
+S09-H013	Coefficients.cs:2182:MilitaryExportGoods	Coefficients.cs:2182:MilitaryExportGoods	もとから引けない
+S09-H013	Coefficients.cs:2183:MilitaryExportTensionThreshold	Coefficients.cs:2183:MilitaryExportTensionThreshold	もとから引けない
+S09-H016	Coefficients.cs:2370:BlockadeStapleBias	Coefficients.cs:2370:BlockadeStapleBias	もとから引けない
+S09-H017	Coefficients.cs:2618:RiskLambda	Coefficients.cs:2618:RiskLambda	もとから引けない
+S09-H019	Coefficients.cs:1279:HegemonContainmentMax	Coefficients.cs:1279:HegemonContainmentMax	もとから引けない
+S09-H019	Coefficients.cs:1278:HegemonContainmentTrade	Coefficients.cs:1278:HegemonContainmentTrade	もとから引けない
+S09-H020	Coefficients.cs:2710:TradeWeightBase	Coefficients.cs:2710:TradeWeightBase	もとから引けない
+S09-H020	Coefficients.cs:2711:TradeWeightGdpSlope	Coefficients.cs:2711:TradeWeightGdpSlope	もとから引けない
+S09-H021	Coefficients.cs:1957:DiffusionWeight	Coefficients.cs:1957:DiffusionWeight	もとから引けない
+S09-H024	Coefficients.cs:1026:TradeBiasStrength	Coefficients.cs:1026:TradeBiasStrength	もとから引けない
+S09-H032	Coefficients.cs:1795:PrizeCargoShare	Coefficients.cs:1795:PrizeCargoShare	もとから引けない
+S09-H034	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S09-H035	Coefficients.cs:3546:ShipFuelRate	Coefficients.cs:3546:ShipFuelRate	もとから引けない
+S09-H037	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S10-H003	Coefficients.cs:1828:FoodCapacityWeight	Coefficients.cs:1828:FoodCapacityWeight	もとから引けない
+S10-H003	Coefficients.cs:791:HealthFillCapacityBonus	Coefficients.cs:791:HealthFillCapacityBonus	もとから引けない
+S10-H003	Coefficients.cs:1825:HealthcareCapacityBonus	Coefficients.cs:1825:HealthcareCapacityBonus	もとから引けない
+S10-H003	Coefficients.cs:802:OverworkHealthSlope	Coefficients.cs:802:OverworkHealthSlope	もとから引けない
+S10-H004	Coefficients.cs:575:DoctorHealthcareSubstitute	Coefficients.cs:575:DoctorHealthcareSubstitute	もとから引けない
+S10-H004	Coefficients.cs:1826:HealthcareEducationGate	Coefficients.cs:1826:HealthcareEducationGate	もとから引けない
+S10-H004	Coefficients.cs:2031:HealthcareRealGate	Coefficients.cs:2031:HealthcareRealGate	もとから引けない
+S10-H006	Coefficients.cs:2675:CapacityFromFoodOutput	Coefficients.cs:2675:CapacityFromFoodOutput	もとから引けない
+S10-H006	Coefficients.cs:2892:FoodOutputAnchorProduction	Coefficients.cs:2892:FoodOutputAnchorProduction	もとから引けない
+S10-H007	Coefficients.cs:1835:FoodAnchorNetImport	Coefficients.cs:1835:FoodAnchorNetImport	もとから引けない
+S10-H008	Coefficients.cs:2063:LandAnchorCapacityWeight	Coefficients.cs:2063:LandAnchorCapacityWeight	もとから引けない
+S10-H009	Coefficients.cs:2062:LandRoomFertilityCap	Coefficients.cs:2062:LandRoomFertilityCap	もとから引けない
+S10-H009	Coefficients.cs:1829:LandRoomFertilityWeight	Coefficients.cs:1829:LandRoomFertilityWeight	もとから引けない
+S10-H010	Coefficients.cs:552:FemaleLitFloor	Coefficients.cs:552:FemaleLitFloor	もとから引けない
+S10-H010	Coefficients.cs:567:FertilityBase	Coefficients.cs:567:FertilityBase	もとから引けない
+S10-H010	Coefficients.cs:569:FertilityFloor	Coefficients.cs:569:FertilityFloor	もとから引けない
+S10-H010	Coefficients.cs:571:FertilityIncomeSlope	Coefficients.cs:571:FertilityIncomeSlope	もとから引けない
+S10-H014	Coefficients.cs:2552:FertileShareFloor	Coefficients.cs:2552:FertileShareFloor	もとから引けない
+S10-H015	Simulation.cs:2543:FertilePool	Simulation.cs:2543:FertilePool	もとから引けない
+S10-H016	Coefficients.cs:579:FamineExcessMortality	Coefficients.cs:579:FamineExcessMortality	もとから引けない
+S10-H018	Coefficients.cs:588:FamineDeathFillFloor	Coefficients.cs:588:FamineDeathFillFloor	もとから引けない
+S10-H019	Coefficients.cs:2065:FoodFillSmoothing	Coefficients.cs:2065:FoodFillSmoothing	もとから引けない
+S10-H020	Simulation.cs:2837:SmoothRegionalFoodFill	Simulation.cs:2837:SmoothRegionalFoodFill	もとから引けない
+S10-H023	Coefficients.cs:559:OldLaborFactor	Coefficients.cs:559:OldLaborFactor	もとから引けない
+S10-H025	Coefficients.cs:603:EpidemicChance	Coefficients.cs:603:EpidemicChance	もとから引けない
+S10-H025	Coefficients.cs:608:EpidemicContagiousYears	Coefficients.cs:608:EpidemicContagiousYears	もとから引けない
+S10-H025	Coefficients.cs:604:EpidemicSeverity	Coefficients.cs:604:EpidemicSeverity	もとから引けない
+S10-H026	Coefficients.cs:2030:EpidemicOnsetSanitationWeight	Coefficients.cs:2030:EpidemicOnsetSanitationWeight	もとから引けない
+S10-H027	Coefficients.cs:606:EpidemicVulnConcentration	Coefficients.cs:606:EpidemicVulnConcentration	もとから引けない
+S10-H028	Coefficients.cs:2680:EpidemicIntraCountrySpread	Coefficients.cs:2680:EpidemicIntraCountrySpread	もとから引けない
+S10-H028	Coefficients.cs:611:EpidemicTradeTransmit	Coefficients.cs:611:EpidemicTradeTransmit	もとから引けない
+S10-H028	Coefficients.cs:609:EpidemicTransmitChance	Coefficients.cs:609:EpidemicTransmitChance	もとから引けない
+S10-H028	Coefficients.cs:610:EpidemicTransmitRange	Coefficients.cs:610:EpidemicTransmitRange	もとから引けない
+S10-H029	Coefficients.cs:2036:DisasterAgeMortalityExcess	Coefficients.cs:2036:DisasterAgeMortalityExcess	もとから引けない
+S10-H030	Coefficients.cs:551:FemaleNeedWeight	Coefficients.cs:551:FemaleNeedWeight	もとから引けない
+S10-H031	Coefficients.cs:2101:ConscriptGrievanceRate	Coefficients.cs:2101:ConscriptGrievanceRate	もとから引けない
+S10-H033	Coefficients.cs:2076:HousingMigrationFriction	Coefficients.cs:2076:HousingMigrationFriction	もとから引けない
+S10-H033	Coefficients.cs:2074:HousingNeedPerUrban	Coefficients.cs:2074:HousingNeedPerUrban	もとから引けない
+S10-H033	Coefficients.cs:2075:HousingUrbanThreshold	Coefficients.cs:2075:HousingUrbanThreshold	もとから引けない
+S10-H034	Coefficients.cs:2084:ElecInfraSanitationWeight	Coefficients.cs:2084:ElecInfraSanitationWeight	もとから引けない
+S10-H034	Coefficients.cs:2064:SanitationCapacityWeight	Coefficients.cs:2064:SanitationCapacityWeight	もとから引けない
+S10-H034	Coefficients.cs:2077:SoapSanitationWeight	Coefficients.cs:2077:SoapSanitationWeight	もとから引けない
+S10-H035	Coefficients.cs:2072:HealthCrowdingBoost	Coefficients.cs:2072:HealthCrowdingBoost	もとから引けない
+S10-H035	Coefficients.cs:2067:InsuranceCoverageMax	Coefficients.cs:2067:InsuranceCoverageMax	もとから引けない
+S10-H035	Coefficients.cs:2069:MedicalWelfareBoost	Coefficients.cs:2069:MedicalWelfareBoost	もとから引けない
+S10-H041	Coefficients.cs:2031:HealthcareRealGate	Coefficients.cs:2031:HealthcareRealGate	もとから引けない
+S10-H042	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S11-H001	Coefficients.cs:565:EduPerChild	Coefficients.cs:565:EduPerChild	もとから引けない
+S11-H003	Coefficients.cs:1861:PublicEduFundingShare	Coefficients.cs:1861:PublicEduFundingShare	もとから引けない
+S11-H006	Coefficients.cs:2088:ChildLaborLiteracyPenalty	Coefficients.cs:2088:ChildLaborLiteracyPenalty	もとから引けない
+S11-H008	Coefficients.cs:1730:IrreversibleLaws	Coefficients.cs:1730:IrreversibleLaws	もとから引けない
+S11-H009	Coefficients.cs:552:FemaleLitFloor	Coefficients.cs:552:FemaleLitFloor	もとから引けない
+S13-H001	Coefficients.cs:2708:ImmigrationClosedFrac	Coefficients.cs:2708:ImmigrationClosedFrac	もとから引けない
+S13-H001	Coefficients.cs:2703:ImmigrationRestrictionPrefScale	Coefficients.cs:2703:ImmigrationRestrictionPrefScale	もとから引けない
+S13-H001	Coefficients.cs:2707:ImmigrationSelectiveFrac	Coefficients.cs:2707:ImmigrationSelectiveFrac	もとから引けない
+S13-H002	Coefficients.cs:1310:ImmigrationAbsorbExponent	Coefficients.cs:1310:ImmigrationAbsorbExponent	もとから引けない
+S13-H005	Coefficients.cs:2032:CrimePushWeight	Coefficients.cs:2032:CrimePushWeight	もとから引けない
+S13-H005	Coefficients.cs:2076:HousingMigrationFriction	Coefficients.cs:2076:HousingMigrationFriction	もとから引けない
+S13-H005	Coefficients.cs:1236:OpportunityWageWeight	Coefficients.cs:1236:OpportunityWageWeight	もとから引けない
+S13-H005	Coefficients.cs:2320:PushUnrestWeight	Coefficients.cs:2320:PushUnrestWeight	もとから引けない
+S13-H007	Coefficients.cs:2032:CrimePushWeight	Coefficients.cs:2032:CrimePushWeight	もとから引けない
+S13-H008	Coefficients.cs:3497:EraMigrationScale	Coefficients.cs:3497:EraMigrationScale	もとから引けない
+S13-H008	Coefficients.cs:1310:ImmigrationAbsorbExponent	Coefficients.cs:1310:ImmigrationAbsorbExponent	もとから引けない
+S13-H008	Coefficients.cs:1035:LandDiminishExponent	Coefficients.cs:1035:LandDiminishExponent	もとから引けない
+S13-H008	Coefficients.cs:2689:MigrationDistanceScale	Coefficients.cs:2689:MigrationDistanceScale	もとから引けない
+S13-H011	Coefficients.cs:943:DiscriminationLiteracy	Coefficients.cs:943:DiscriminationLiteracy	もとから引けない
+S13-H011	Coefficients.cs:926:EthnicDraw	Coefficients.cs:926:EthnicDraw	もとから引けない
+S13-H012	Coefficients.cs:2686:CrossBorderOppGapThreshold	Coefficients.cs:2686:CrossBorderOppGapThreshold	もとから引けない
+S13-H012	Coefficients.cs:943:DiscriminationLiteracy	Coefficients.cs:943:DiscriminationLiteracy	もとから引けない
+S13-H012	Coefficients.cs:750:EmigrationRate	Coefficients.cs:750:EmigrationRate	もとから引けない
+S13-H012	Coefficients.cs:926:EthnicDraw	Coefficients.cs:926:EthnicDraw	もとから引けない
+S13-H013	Coefficients.cs:3497:EraMigrationScale	Coefficients.cs:3497:EraMigrationScale	もとから引けない
+S13-H014	Coefficients.cs:1035:LandDiminishExponent	Coefficients.cs:1035:LandDiminishExponent	もとから引けない
+S13-H019	Coefficients.cs:2706:SpecialistExitBanPrefScale	Coefficients.cs:2706:SpecialistExitBanPrefScale	もとから引けない
+S13-H020	Coefficients.cs:942:AssimilationEducationBonus	Coefficients.cs:942:AssimilationEducationBonus	もとから引けない
+S13-H020	Coefficients.cs:1972:AssimilationLiteracyResist	Coefficients.cs:1972:AssimilationLiteracyResist	もとから引けない
+S13-H020	Coefficients.cs:941:EthnicAssimilation	Coefficients.cs:941:EthnicAssimilation	もとから引けない
+S13-H021	Coefficients.cs:1980:AssimilationRevival	Coefficients.cs:1980:AssimilationRevival	もとから引けない
+S12-H001	Coefficients.cs:812:MeritGroupWeight	Coefficients.cs:812:MeritGroupWeight	もとから引けない
+S12-H003	Coefficients.cs:947:MinorityPromotionPenalty	Coefficients.cs:947:MinorityPromotionPenalty	もとから引けない
+S12-H003	Coefficients.cs:1302:PromotionGateOwnSchooling	Coefficients.cs:1302:PromotionGateOwnSchooling	もとから引けない
+S12-H003	Coefficients.cs:815:PromotionPremium	Coefficients.cs:815:PromotionPremium	もとから引けない
+S12-H003	Coefficients.cs:814:ReligiousProfessionShare	Coefficients.cs:814:ReligiousProfessionShare	もとから引けない
+S12-H005	Coefficients.cs:3350:GuildMobilityDrag	Coefficients.cs:3350:GuildMobilityDrag	もとから引けない
+S12-H006	Coefficients.cs:818:JobPoolTemperature	Coefficients.cs:818:JobPoolTemperature	もとから引けない
+S12-H007	Coefficients.cs:830:JobSearchLiteracyWeight	Coefficients.cs:830:JobSearchLiteracyWeight	もとから引けない
+S12-H008	Coefficients.cs:831:JobSearchUsesEma	Coefficients.cs:831:JobSearchUsesEma	もとから引けない
+S12-H009	Coefficients.cs:829:ServiceUnemployment	Coefficients.cs:829:ServiceUnemployment	もとから引けない
+S12-H010	Coefficients.cs:828:SerfMobilityGate	Coefficients.cs:828:SerfMobilityGate	もとから引けない
+S12-H011	Coefficients.cs:827:SerfGateCoversPool	Coefficients.cs:827:SerfGateCoversPool	もとから引けない
+S12-H012	Coefficients.cs:746:ClergyAttractThreshold	Coefficients.cs:746:ClergyAttractThreshold	もとから引けない
+S12-H014	Coefficients.cs:716:CapitalRiseThreshold	Coefficients.cs:716:CapitalRiseThreshold	もとから引けない
+S12-H014	Coefficients.cs:677:ClergyFloorShare	Coefficients.cs:677:ClergyFloorShare	もとから引けない
+S12-H014	Coefficients.cs:724:InsolventThreshold	Coefficients.cs:724:InsolventThreshold	もとから引けない
+S12-H014	Coefficients.cs:720:MiddleFallThreshold	Coefficients.cs:720:MiddleFallThreshold	もとから引けない
+S12-H015	Coefficients.cs:834:FallAnchorReform	Coefficients.cs:834:FallAnchorReform	もとから引けない
+S12-H016	Coefficients.cs:820:MerchantArtisanCapitalRise	Coefficients.cs:820:MerchantArtisanCapitalRise	もとから引けない
+S12-H017	Coefficients.cs:832:MinorityPenaltyModernBlend	Coefficients.cs:832:MinorityPenaltyModernBlend	もとから引けない
+S12-H019	Coefficients.cs:2682:PromotionLiteracySelection	Coefficients.cs:2682:PromotionLiteracySelection	もとから引けない
+S27-H001	Coefficients.p08_audit_soldiers.cs:109:DominanceSpeed	Coefficients.p08_audit_soldiers.cs:110:DominanceSpeed	写した
+S27-H002	Coefficients.p08_audit_soldiers.cs:102:SecessionCultureAdditive	Coefficients.p08_audit_soldiers.cs:103:SecessionCultureAdditive	写した
+S27-H002	Coefficients.p08_audit_soldiers.cs:101:SecessionHoldCoercion	Coefficients.p08_audit_soldiers.cs:102:SecessionHoldCoercion	写した
+S27-H003	Coefficients.p08_audit_soldiers.cs:106:SecessionHoldProjection	Coefficients.p08_audit_soldiers.cs:107:SecessionHoldProjection	写した
+S27-H004	Coefficients.p08_audit_soldiers.cs:105:SecessionHoldSharedArmy	Coefficients.p08_audit_soldiers.cs:106:SecessionHoldSharedArmy	写した
+S27-H005	Coefficients.p08_audit_soldiers.cs:104:CultureDistanceFromEthnic	Coefficients.p08_audit_soldiers.cs:105:CultureDistanceFromEthnic	写した
+S27-H006	Coefficients.p10_ai_silver_overrides.cs:66:SecessionConsciousnessWeight	Coefficients.p10_ai_silver_overrides.cs:64:SecessionConsciousnessWeight	写した
+S27-H009	Coefficients.p08_audit_soldiers.cs:111:DominanceMatureYears	Coefficients.p08_audit_soldiers.cs:112:DominanceMatureYears	写した
+S27-H009	Coefficients.p08_audit_soldiers.cs:109:DominanceSpeed	Coefficients.p08_audit_soldiers.cs:110:DominanceSpeed	写した
+S27-H010	Coefficients.p08_audit_soldiers.cs:112:OpeningColonyDominanceFull	Coefficients.p08_audit_soldiers.cs:113:OpeningColonyDominanceFull	写した
+S27-H011	—（消した＝(956) c85hs・SimCore の grep 0）	—（消した＝(956) c85hs・SimCore の grep 0）	形が違う
+S27-H014	Coefficients.p08_audit_soldiers.cs:113:ForeignRuleFromTreaty	Coefficients.p08_audit_soldiers.cs:114:ForeignRuleFromTreaty	写した
+S27-H015	Coefficients.p08_audit_soldiers.cs:115:ProjectionRuleMin	Coefficients.p08_audit_soldiers.cs:116:ProjectionRuleMin	写した
+S27-H015	Coefficients.p08_audit_soldiers.cs:116:ProjectionUsesLand	Coefficients.p08_audit_soldiers.cs:117:ProjectionUsesLand	写した
+S27-H016	Coefficients.p08_audit_soldiers.cs:117:PeacetimeConscriptGrievance	Coefficients.p08_audit_soldiers.cs:118:PeacetimeConscriptGrievance	写した
+S27-H018	Coefficients.p08_audit_soldiers.cs:101:SecessionHoldCoercion	Coefficients.p08_audit_soldiers.cs:102:SecessionHoldCoercion	写した
+S27-H019	Coefficients.p08_audit_soldiers.cs:104:CultureDistanceFromEthnic	Coefficients.p08_audit_soldiers.cs:105:CultureDistanceFromEthnic	写した
+S27-H020	Coefficients.p08_audit_soldiers.cs:102:SecessionCultureAdditive	Coefficients.p08_audit_soldiers.cs:103:SecessionCultureAdditive	写した
+S27-H021	Coefficients.p10_ai_silver_overrides.cs:66:SecessionConsciousnessWeight	Coefficients.p10_ai_silver_overrides.cs:64:SecessionConsciousnessWeight	写した
+S27-H022	Coefficients.p08_audit_soldiers.cs:106:SecessionHoldProjection	Coefficients.p08_audit_soldiers.cs:107:SecessionHoldProjection	写した
+S27-H023	Coefficients.p08_audit_soldiers.cs:105:SecessionHoldSharedArmy	Coefficients.p08_audit_soldiers.cs:106:SecessionHoldSharedArmy	写した
+S27-H031	Coefficients.p10_ai_silver_overrides.cs:72:RumpGdpFractionOfParent	Coefficients.p10_ai_silver_overrides.cs:70:RumpGdpFractionOfParent	写した
+S27-H031	Diplomacy.cs:2551:RumpParentName	Diplomacy.cs:2550:RumpParentName	写した
+S27-H032	—（武力の解錠の器は消した＝(551) gc1・ForceUnlock の grep 0）	—（武力の解錠の器は消した＝(551) gc1・ForceUnlock の grep 0）	形が違う
+S27-H035	Coefficients.p04_trade.cs:153:InvadeCannedBase	Coefficients.p04_trade.cs:152:InvadeCannedBase	写した
+S27-H035	Coefficients.p04_trade.cs:154:InvadeCannedPerMilitary	Coefficients.p04_trade.cs:153:InvadeCannedPerMilitary	写した
+S27-H038	Diplomacy.cs:2023:AcquireColony	Diplomacy.cs:2022:AcquireColony	写した
+S27-H039	Diplomacy.cs:2173:ColonizeRivalTension	Diplomacy.cs:2172:ColonizeRivalTension	写した
+S27-H040	Coefficients.p04_trade.cs:156:ProximityTensionMax	Coefficients.p04_trade.cs:155:ProximityTensionMax	写した
+S27-H046	Coefficients.p08_audit_soldiers.cs:142:ConquestColonyMilitancy	Coefficients.p08_audit_soldiers.cs:143:ConquestColonyMilitancy	写した
+S27-H055	Diplomacy.cs:472:RenameNation	Diplomacy.cs:471:RenameNation	写した
+S27-H057	—（消した＝(1081) c103dm）	—（消した＝(1081) c103dm）	形が違う
+S27-H058	Diplomacy.cs:1685:UnificationCandidate	Diplomacy.cs:1684:UnificationCandidate	写した
+S17-H001	Coefficients.cs:3368:ConstitutionalControlExit	Coefficients.cs:3368:ConstitutionalControlExit	もとから引けない
+S17-H001	Coefficients.cs:3367:ConstitutionalControlFloor	Coefficients.cs:3367:ConstitutionalControlFloor	もとから引けない
+S17-H003	Coefficients.cs:3082:ParliamentPressureRate	Coefficients.cs:3082:ParliamentPressureRate	もとから引けない
+S17-H004	Coefficients.cs:3089:ShogunateEndMilitancy	Coefficients.cs:3089:ShogunateEndMilitancy	もとから引けない
+S17-H004	Coefficients.cs:3088:ShogunateEndTension	Coefficients.cs:3088:ShogunateEndTension	もとから引けない
+S17-H005	Coefficients.cs:1742:ArmyPcPressure	Coefficients.cs:1742:ArmyPcPressure	もとから引けない
+S17-H006	Coefficients.cs:2964:ArmyMilitarismAffinity	Coefficients.cs:2964:ArmyMilitarismAffinity	もとから引けない
+S17-H007	Coefficients.cs:2966:SummonParliamentRate	Coefficients.cs:2966:SummonParliamentRate	もとから引けない
+S17-H009	Coefficients.cs:2960:CoopClassAffinityWeight	Coefficients.cs:2960:CoopClassAffinityWeight	もとから引けない
+S17-H009	Coefficients.cs:2962:CoopConflictMemoryWeight	Coefficients.cs:2962:CoopConflictMemoryWeight	もとから引けない
+S17-H009	Coefficients.cs:2961:CoopPolicyGapWeight	Coefficients.cs:2961:CoopPolicyGapWeight	もとから引けない
+S17-H010	Coefficients.cs:2959:CoopPublicSatPivot	Coefficients.cs:2959:CoopPublicSatPivot	もとから引けない
+S17-H011	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S17-H012	Coefficients.cs:2022:ImposedRegimeLegitimacy	Coefficients.cs:2022:ImposedRegimeLegitimacy	もとから引けない
+S17-H013	Coefficients.cs:1790:TreatyRatificationControlThreshold	Coefficients.cs:1790:TreatyRatificationControlThreshold	もとから引けない
+S17-H014	Coefficients.cs:2732:ConsciousnessFromSchoolingStock	Coefficients.cs:2732:ConsciousnessFromSchoolingStock	もとから引けない
+S17-H019	World.cs:804:Explain	World.cs:804:Explain	もとから引けない
+S17-H025	Coefficients.cs:3367:ConstitutionalControlFloor	Coefficients.cs:3367:ConstitutionalControlFloor	もとから引けない
+S17-H028	Coefficients.cs:2838:CoalitionClosenessFloor	Coefficients.cs:2838:CoalitionClosenessFloor	もとから引けない
+S17-H031	Coefficients.cs:3368:ConstitutionalControlExit	Coefficients.cs:3368:ConstitutionalControlExit	もとから引けない
+S17-H033	Coefficients.cs:3082:ParliamentPressureRate	Coefficients.cs:3082:ParliamentPressureRate	もとから引けない
+S17-H034	Coefficients.cs:1742:ArmyPcPressure	Coefficients.cs:1742:ArmyPcPressure	もとから引けない
+S17-H037	Coefficients.cs:2969:GrantedControlOnReform	Coefficients.cs:2969:GrantedControlOnReform	もとから引けない
+S17-H037	Coefficients.cs:1874:ReformGrantPcWidth	Coefficients.cs:1874:ReformGrantPcWidth	もとから引けない
+S17-H038	Coefficients.cs:2964:ArmyMilitarismAffinity	Coefficients.cs:2964:ArmyMilitarismAffinity	もとから引けない
+S17-H038	Coefficients.cs:2960:CoopClassAffinityWeight	Coefficients.cs:2960:CoopClassAffinityWeight	もとから引けない
+S17-H038	Coefficients.cs:2962:CoopConflictMemoryWeight	Coefficients.cs:2962:CoopConflictMemoryWeight	もとから引けない
+S17-H038	Coefficients.cs:2961:CoopPolicyGapWeight	Coefficients.cs:2961:CoopPolicyGapWeight	もとから引けない
+S18-H004	Coefficients.cs:1788:EarlyElectionMinQuarters	Coefficients.cs:1788:EarlyElectionMinQuarters	もとから引けない
+S18-H004	Coefficients.cs:1787:NoConfidenceThreshold	Coefficients.cs:1787:NoConfidenceThreshold	もとから引けない
+S18-H006	Coefficients.cs:1778:ElectionPushHalfPerVoter	Coefficients.cs:1778:ElectionPushHalfPerVoter	もとから引けない
+S18-H006	Coefficients.cs:1785:ElectionPushScale	Coefficients.cs:1785:ElectionPushScale	もとから引けない
+S18-H007	Coefficients.cs:1780:ElectionBribePovertyWeight	Coefficients.cs:1780:ElectionBribePovertyWeight	もとから引けない
+S18-H008	Coefficients.cs:1784:ManifestoCreditDecay	Coefficients.cs:1784:ManifestoCreditDecay	もとから引けない
+S18-H008	Coefficients.cs:1783:ManifestoFulfillCredit	Coefficients.cs:1783:ManifestoFulfillCredit	もとから引けない
+S18-H008	Coefficients.cs:1782:ManifestoFulfillMove	Coefficients.cs:1782:ManifestoFulfillMove	もとから引けない
+S18-H011	Coefficients.cs:2839:ElectoralDistortion	Coefficients.cs:2839:ElectoralDistortion	もとから引けない
+S18-H016	Coefficients.cs:3080:PartyFormCohesion	Coefficients.cs:3080:PartyFormCohesion	もとから引けない
+S18-H018	Coefficients.cs:1092:LandedPowerCapitalization	Coefficients.cs:1092:LandedPowerCapitalization	もとから引けない
+S18-H019	PolicyPreferences.cs:238:Pref	PolicyPreferences.cs:238:Pref	もとから引けない
+S18-H021	Coefficients.cs:3527:ParliamentStreetSupersede	Coefficients.cs:3527:ParliamentStreetSupersede	もとから引けない
+S18-H023	Coefficients.cs:2852:LaborMilitancyConcession	Coefficients.cs:2852:LaborMilitancyConcession	もとから引けない
+S18-H024	Coefficients.cs:2028:TariffStateRevenueWeight	Coefficients.cs:2028:TariffStateRevenueWeight	もとから引けない
+S18-H025	Coefficients.cs:2851:PensionOldWeight	Coefficients.cs:2851:PensionOldWeight	もとから引けない
+S18-H026	Coefficients.cs:1966:RentProtectionWeightCoef	Coefficients.cs:1966:RentProtectionWeightCoef	もとから引けない
+S18-H026	Coefficients.cs:1960:TariffExportOppositionWeight	Coefficients.cs:1960:TariffExportOppositionWeight	もとから引けない
+S18-H026	Coefficients.cs:2027:TariffInterestPrefWeight	Coefficients.cs:2027:TariffInterestPrefWeight	もとから引けない
+S18-H027	Coefficients.cs:1741:ArmyPoliticalWeight	Coefficients.cs:1741:ArmyPoliticalWeight	もとから引けない
+S20-H005	Coefficients.cs:712:PollTaxRate	Coefficients.cs:712:PollTaxRate	もとから引けない
+S20-H007	Coefficients.cs:1857:PrivilegeTaxDiscount	Coefficients.cs:1857:PrivilegeTaxDiscount	もとから引けない
+S20-H008	Coefficients.cs:788:StateMonopolyLeakMax	Coefficients.cs:788:StateMonopolyLeakMax	もとから引けない
+S20-H008	Coefficients.cs:781:StateMonopolyMargin	Coefficients.cs:781:StateMonopolyMargin	もとから引けない
+S20-H009	Coefficients.cs:790:TitheRate	Coefficients.cs:790:TitheRate	もとから引けない
+S20-H013	Coefficients.cs:3423:OversightFactorScale	Coefficients.cs:3423:OversightFactorScale	もとから引けない
+S20-H013	Coefficients.cs:3422:OversightMeritExam	Coefficients.cs:3422:OversightMeritExam	もとから引けない
+S20-H013	Coefficients.cs:3421:OversightPressCensored	Coefficients.cs:3421:OversightPressCensored	もとから引けない
+S20-H015	Coefficients.cs:765:AdminBudgetFrac	Coefficients.cs:765:AdminBudgetFrac	もとから引けない
+S20-H015	Coefficients.cs:762:FiscalCapacitySmoothing	Coefficients.cs:762:FiscalCapacitySmoothing	もとから引けない
+S20-H017	Coefficients.cs:2313:DistanceWarDecay	Coefficients.cs:2313:DistanceWarDecay	もとから引けない
+S20-H019	Coefficients.cs:773:WelfareRevenueShare	Coefficients.cs:773:WelfareRevenueShare	もとから引けない
+S20-H020	World.cs:1840:StepConstruction	World.cs:1840:StepConstruction	もとから引けない
+S20-H022	Coefficients.cs:887:CrisisAusterityRelief	Coefficients.cs:887:CrisisAusterityRelief	もとから引けない
+S20-H024	Coefficients.cs:1091:OpulenceTaxRelief	Coefficients.cs:1091:OpulenceTaxRelief	もとから引けない
+S20-H026	Coefficients.cs:3313:PrivilegeLedgerEnabled	Coefficients.cs:3313:PrivilegeLedgerEnabled	もとから引けない
+S20-H027	Coefficients.cs:1856:PrivilegeFromCrownShare	Coefficients.cs:1856:PrivilegeFromCrownShare	もとから引けない
+S20-H034	Coefficients.cs:1994:AiDevelopmentalSubsidy	Coefficients.cs:1994:AiDevelopmentalSubsidy	もとから引けない
+S21-H012	Coefficients.cs:2551:FisherDeflationFloor	Coefficients.cs:2551:FisherDeflationFloor	もとから引けない
+S21-H012	Coefficients.cs:978:FisherInflationWeight	Coefficients.cs:978:FisherInflationWeight	もとから引けない
+S21-H013	Coefficients.cs:1999:BondRateRepresentationDiscount	Coefficients.cs:1999:BondRateRepresentationDiscount	もとから引けない
+S21-H014	Coefficients.cs:904:BondLossConfWeight	Coefficients.cs:904:BondLossConfWeight	もとから引けない
+S21-H016	Coefficients.cs:979:FiatInflationWeight	Coefficients.cs:979:FiatInflationWeight	もとから引けない
+S21-H017	Coefficients.cs:998:CurrencyReformBurnCap	Coefficients.cs:998:CurrencyReformBurnCap	もとから引けない
+S21-H017	Coefficients.cs:997:CurrencyReformBurnShare	Coefficients.cs:997:CurrencyReformBurnShare	もとから引けない
+S21-H017	Coefficients.cs:1000:CurrencyReformCalmMonths	Coefficients.cs:1000:CurrencyReformCalmMonths	もとから引けない
+S21-H017	Coefficients.cs:1001:CurrencyReformCooldownMonths	Coefficients.cs:1001:CurrencyReformCooldownMonths	もとから引けない
+S21-H019	Coefficients.cs:2966:SummonParliamentRate	Coefficients.cs:2966:SummonParliamentRate	もとから引けない
+S22-H006	Simulation.cs:2396:MintGold	Simulation.cs:2395:MintGold	写した
+S22-H006	Simulation.cs:2442:MintFloorBuyRatePerMonth	Simulation.cs:2443:MintFloorBuyRatePerMonth	写した
+S22-H006	Coefficients.p10_ai_silver_overrides.cs:67:MintReserveTargetWeight	Coefficients.p10_ai_silver_overrides.cs:65:MintReserveTargetWeight	写した
+S22-H007	Simulation.cs:2415:MintBuysAtMarket	Simulation.cs:2415:MintBuysAtMarket	写せない
+S22-H007	Coefficients.p10_ai_silver_overrides.cs:56:MintBuysAtMarket	Coefficients.p10_ai_silver_overrides.cs:56:MintBuysAtMarket	写せない
+S22-H008	Simulation.cs:2462:LastDemand	Simulation.cs:2463:LastDemand	写した
+S22-H009	Simulation.cs:2473:SellDemonetizedReserves	Simulation.cs:2474:SellDemonetizedReserves	写した
+S22-H009	Simulation.cs:2486:SellReserve	Simulation.cs:2487:SellReserve	写した
+S22-H010	Simulation.cs:2449:impShare	Simulation.cs:2450:impShare	写した
+S22-H010	Simulation.cs:2452:PaySales	Simulation.cs:2453:PaySales	写した
+S22-H011	Coefficients.p10_ai_silver_overrides.cs:68:TrilemmaRateResponse	Coefficients.p10_ai_silver_overrides.cs:66:TrilemmaRateResponse	写した
+S22-H016	Credit.cs:15:bank.Gold	Credit.cs:14:bank.Gold	写した
+S22-H017	Credit.cs:14:hoardRatio	Credit.cs:13:hoardRatio	近くへ写した
+S22-H017	Credit.cs:6:HoardRatioMax	Credit.cs:6:HoardRatioMax	写せない
+S22-H017	Coefficients.p08_audit_soldiers.cs:55:CurrencyHoldingRatio	Coefficients.p08_audit_soldiers.cs:56:CurrencyHoldingRatio	写した
+S22-H017	Coefficients.p08_audit_soldiers.cs:56:HoardPanicWeight	Coefficients.p08_audit_soldiers.cs:57:HoardPanicWeight	写した
+S22-H018	Credit.cs:41:CreditMultiplier	Credit.cs:40:CreditMultiplier	写した
+S22-H023	Credit.cs:42:GoldCoverCreditRestraint	Credit.cs:41:GoldCoverCreditRestraint	写した
+S22-H023	Credit.cs:7:GoldCoverCreditFloor	Credit.cs:7:GoldCoverCreditFloor	写せない
+S22-H028	Coefficients.p08_audit_soldiers.cs:39:CapitalFlightDistrustThreshold	Coefficients.p08_audit_soldiers.cs:40:CapitalFlightDistrustThreshold	写した
+S22-H035	Credit.cs:64:exCredit.Reset("CreditTarget")	Credit.cs:63:exCredit.Reset("CreditTarget")	写した
+S22-H043	—（CoercionUpkeepRate の grep 0＝(135) で消した）	—（CoercionUpkeepRate の grep 0＝(135) で消した）	形が違う
+S22-H044	—（BondRateDebtQuad の grep 0＝(96) で消した）	—（BondRateDebtQuad の grep 0＝(96) で消した）	形が違う
+S22-H046	Coefficients.p04_trade.cs:159:InterestCapitalization	Coefficients.p04_trade.cs:158:InterestCapitalization	写した
+S22-H047	—（CreditDemandDriven の grep 0＝(82) で消した）	—（CreditDemandDriven の grep 0＝(82) で消した）	形が違う
+S22-H049	—（FiscalQuarterlyGating の grep 0）	—（FiscalQuarterlyGating の grep 0）	形が違う
+S22-H050	—（MintFloorRespectsReserve の SimCore の grep 0＝(210) で器ごと消した）	—（MintFloorRespectsReserve の SimCore の grep 0＝(210) で器ごと消した）	形が違う
+S22-H051	Coefficients.p10_ai_silver_overrides.cs:57:MintParitySells	Coefficients.p10_ai_silver_overrides.cs:55:MintParitySells	写した
+S22-H052	MultiNationSim.cs:743:SilverParityFromRatio	MultiNationSim.cs:743:SilverParityFromRatio	写せない
+S22-H052	Coefficients.p10_ai_silver_overrides.cs:54:SilverParityFromRatio	Coefficients.p10_ai_silver_overrides.cs:54:SilverParityFromRatio	写せない
+S23-H001	Coefficients.cs:2495:MaxSoldierFraction	Coefficients.cs:2495:MaxSoldierFraction	もとから引けない
+S23-H001	Coefficients.cs:2381:SoldierRecruitClassA	Coefficients.cs:2381:SoldierRecruitClassA	もとから引けない
+S23-H001	Coefficients.cs:2382:SoldierRecruitClassB	Coefficients.cs:2382:SoldierRecruitClassB	もとから引けない
+S23-H002	Coefficients.cs:2464:MilitaryEnvelopeShare	Coefficients.cs:2464:MilitaryEnvelopeShare	もとから引けない
+S23-H002	Coefficients.cs:2147:MilitaryUpkeepScale	Coefficients.cs:2147:MilitaryUpkeepScale	もとから引けない
+S23-H002	Coefficients.cs:2498:SoldierPayMult	Coefficients.cs:2498:SoldierPayMult	もとから引けない
+S23-H005	Coefficients.cs:772:MilitaryCadrePayRatio	Coefficients.cs:772:MilitaryCadrePayRatio	もとから引けない
+S23-H005	Coefficients.cs:2464:MilitaryEnvelopeShare	Coefficients.cs:2464:MilitaryEnvelopeShare	もとから引けない
+S23-H006	World.cs:1364:SecurityThreat	World.cs:1364:SecurityThreat	もとから引けない
+S23-H008	Coefficients.cs:2230:WartimeUpkeepFloor	Coefficients.cs:2230:WartimeUpkeepFloor	もとから引けない
+S23-H009	Coefficients.cs:2500:ConscriptionFraction	Coefficients.cs:2500:ConscriptionFraction	もとから引けない
+S23-H010	Coefficients.cs:2718:ConscriptionEnemyRatioWeight	Coefficients.cs:2718:ConscriptionEnemyRatioWeight	もとから引けない
+S23-H010	Coefficients.cs:2716:ConscriptionExhaustionWeight	Coefficients.cs:2716:ConscriptionExhaustionWeight	もとから引けない
+S23-H010	Coefficients.cs:2715:ConscriptionFloorFraction	Coefficients.cs:2715:ConscriptionFloorFraction	もとから引けない
+S23-H010	Coefficients.cs:2717:ConscriptionFrontStep	Coefficients.cs:2717:ConscriptionFrontStep	もとから引けない
+S23-H011	Coefficients.cs:1419:MobilizationConscriptFrac	Coefficients.cs:1419:MobilizationConscriptFrac	もとから引けない
+S23-H013	Coefficients.cs:3281:NationBuildMobilizationWeight	Coefficients.cs:3281:NationBuildMobilizationWeight	もとから引けない
+S23-H013	Coefficients.cs:2229:SkillMobilizationRelief	Coefficients.cs:2229:SkillMobilizationRelief	もとから引けない
+S23-H015	Coefficients.cs:2701:UniversalConscriptionFactor	Coefficients.cs:2701:UniversalConscriptionFactor	もとから引けない
+S23-H016	Government.cs:621:UniversalConscriptionOpen	Government.cs:621:UniversalConscriptionOpen	もとから引けない
+S23-H016	Privileges.cs:24:SeigneurialDegree	Privileges.cs:24:SeigneurialDegree	もとから引けない
+S23-H018	World.cs:127:ConscriptionPreWar	World.cs:127:ConscriptionPreWar	もとから引けない
+S23-H019	Coefficients.cs:2101:ConscriptGrievanceRate	Coefficients.cs:2101:ConscriptGrievanceRate	もとから引けない
+S23-H020	Coefficients.cs:2776:PeacetimeConscriptGrievance	Coefficients.cs:2776:PeacetimeConscriptGrievance	もとから引けない
+S23-H022	Coefficients.cs:2219:SkillCombatMax	Coefficients.cs:2219:SkillCombatMax	もとから引けない
+S23-H022	Coefficients.cs:2218:SkillDecayPerQuarter	Coefficients.cs:2218:SkillDecayPerQuarter	もとから引けない
+S23-H022	Coefficients.cs:2216:SkillGainRate	Coefficients.cs:2216:SkillGainRate	もとから引けない
+S23-H022	Coefficients.cs:2215:SkillUpkeepThreshold	Coefficients.cs:2215:SkillUpkeepThreshold	もとから引けない
+S23-H024	Coefficients.cs:2104:MilitaryGoods	Coefficients.cs:2104:MilitaryGoods	もとから引けない
+S23-H024	Coefficients.cs:2105:MilitaryRates	Coefficients.cs:2105:MilitaryRates	もとから引けない
+S23-H024	Coefficients.cs:2172:MilitaryWarMult	Coefficients.cs:2172:MilitaryWarMult	もとから引けない
+S23-H024	Coefficients.cs:2173:WarMobilizationDepth	Coefficients.cs:2173:WarMobilizationDepth	もとから引けない
+S23-H025	Coefficients.cs:2205:MilitaryAirGoods	Coefficients.cs:2205:MilitaryAirGoods	もとから引けない
+S23-H025	Coefficients.cs:2206:MilitaryAirRates	Coefficients.cs:2206:MilitaryAirRates	もとから引けない
+S23-H025	Coefficients.cs:2180:MilitaryQualityBonus	Coefficients.cs:2180:MilitaryQualityBonus	もとから引けない
+S23-H025	Coefficients.cs:2178:MilitaryQualityGoods	Coefficients.cs:2178:MilitaryQualityGoods	もとから引けない
+S23-H026	Coefficients.cs:1394:ArmsWarWearScale	Coefficients.cs:1394:ArmsWarWearScale	もとから引けない
+S23-H028	Coefficients.cs:2171:InitialArsenalMonths	Coefficients.cs:2171:InitialArsenalMonths	もとから引けない
+S23-H030	Coefficients.cs:2056:MusketProductivity	Coefficients.cs:2056:MusketProductivity	もとから引けない
+S23-H032	Coefficients.cs:1116:MilitaryProcurePriceGateScale	Coefficients.cs:1116:MilitaryProcurePriceGateScale	もとから引けない
+S23-H034	Coefficients.cs:3558:AirFuelRate	Coefficients.cs:3558:AirFuelRate	もとから引けない
+S23-H034	Coefficients.cs:3560:MotorFuelRate	Coefficients.cs:3560:MotorFuelRate	もとから引けない
+S23-H035	Coefficients.cs:2383:SoldiersPerMilitary	Coefficients.cs:2383:SoldiersPerMilitary	もとから引けない
+S23-H035	Coefficients.cs:944:UnityMilitaryQuality	Coefficients.cs:944:UnityMilitaryQuality	もとから引けない
+S23-H038	Coefficients.cs:2496:MilitarismStrengthBonus	Coefficients.cs:2496:MilitarismStrengthBonus	もとから引けない
+S23-H041	Coefficients.cs:2312:AbstractNavalShare	Coefficients.cs:2312:AbstractNavalShare	もとから引けない
+S23-H041	Coefficients.cs:2275:FleetGoodIds	Coefficients.cs:2275:FleetGoodIds	もとから引けない
+S23-H041	Coefficients.cs:2180:MilitaryQualityBonus	Coefficients.cs:2180:MilitaryQualityBonus	もとから引けない
+S23-H041	Coefficients.cs:2203:MilitaryTier3Bonus	Coefficients.cs:2203:MilitaryTier3Bonus	もとから引けない
+S23-H044	Coefficients.cs:2208:AirCasualtyWeight	Coefficients.cs:2208:AirCasualtyWeight	もとから引けない
+S23-H044	Coefficients.cs:2207:AirControlPushWeight	Coefficients.cs:2207:AirControlPushWeight	もとから引けない
+S23-H044	Coefficients.cs:2210:ChemExhaustionWeight	Coefficients.cs:2210:ChemExhaustionWeight	もとから引けない
+S23-H044	Coefficients.cs:2209:WarExhaustionAirRaid	Coefficients.cs:2209:WarExhaustionAirRaid	もとから引けない
+S24-H001	Diplomacy.cs:1353:WarGateOpen	Diplomacy.cs:1352:WarGateOpen	写した
+S24-H001	Diplomacy.cs:1359:TriggerWars	Diplomacy.cs:1358:TriggerWars	写した
+S24-H002	Diplomacy.cs:1306:WorthFighting	Diplomacy.cs:1305:WorthFighting	写した
+S24-H003	Diplomacy.cs:1420:SideMilitary	Diplomacy.cs:1419:SideMilitary	写した
+S24-H004	Diplomacy.cs:1935:ResolvePendingWar	Diplomacy.cs:1934:ResolvePendingWar	写した
+S24-H005	Diplomacy.cs:1437:WarScale	Diplomacy.cs:1436:WarScale	写した
+S24-H006	Diplomacy.cs:1589:JoinAllies	Diplomacy.cs:1588:JoinAllies	写した
+S24-H006	Diplomacy.cs:1583:AllyJoinThreshold	Diplomacy.cs:1582:AllyJoinThreshold	写した
+S24-H007	Diplomacy.cs:1602:hopeless	Diplomacy.cs:1601:hopeless	写した
+S24-H008	Diplomacy.cs:1594:joinThreshold	Diplomacy.cs:1593:joinThreshold	写した
+S24-H009	Diplomacy.cs:1635:ResolveCallToArms	Diplomacy.cs:1634:ResolveCallToArms	写した
+S24-H010	Diplomacy.cs:1534:DefendDependent	Diplomacy.cs:1533:DefendDependent	写した
+S24-H014	Diplomacy.cs:1991:Subjugate	Diplomacy.cs:1990:Subjugate	写した
+S24-H016	Coefficients.p04_trade.cs:153:InvadeCannedBase	Coefficients.p04_trade.cs:152:InvadeCannedBase	写した
+S24-H016	Coefficients.p04_trade.cs:154:InvadeCannedPerMilitary	Coefficients.p04_trade.cs:153:InvadeCannedPerMilitary	写した
+S24-H017	Diplomacy.cs:1678:TryUnificationWars	Diplomacy.cs:1677:TryUnificationWars	写した
+S24-H018	Diplomacy.cs:1984:FrontPush	Diplomacy.cs:1983:FrontPush	写した
+S24-H018	Diplomacy.cs:2223:fronts	Diplomacy.cs:2222:fronts	写した
+S24-H019	Diplomacy.cs:2190:TrenchAdjust	Diplomacy.cs:2189:TrenchAdjust	写した
+S24-H020	Diplomacy.cs:2361:luck	Diplomacy.cs:2360:luck	写した
+S24-H021	Diplomacy.cs:2366:luck	Diplomacy.cs:2365:luck	写した
+S24-H023	Diplomacy.cs:3185:Projection	Diplomacy.cs:3184:Projection	写した
+S24-H024	Diplomacy.cs:2999:CanCrossSea	Diplomacy.cs:2998:CanCrossSea	写した
+S24-H025	Diplomacy.cs:2988:SeaControl	Diplomacy.cs:2987:SeaControl	写した
+S24-H026	Diplomacy.cs:2993:LandingGate	Diplomacy.cs:2992:LandingGate	写した
+S24-H026	Diplomacy.cs:3089:LandBattleHappens	Diplomacy.cs:3088:LandBattleHappens	写した
+S24-H027	Diplomacy.cs:3165:ChokeOpenFor	Diplomacy.cs:3164:ChokeOpenFor	写した
+S24-H028	Coefficients.p08_audit_soldiers.cs:141:FiscalExhaustionWarWeariness	Coefficients.p08_audit_soldiers.cs:142:FiscalExhaustionWarWeariness	写した
+S24-H028	Diplomacy.cs:2243:blockade	Diplomacy.cs:2242:blockade	写した
+S24-H028	Diplomacy.cs:2264:WarExhaustion	Diplomacy.cs:2263:WarExhaustion	写した
+S24-H029	Diplomacy.cs:2245:WartimeRationing	Diplomacy.cs:2244:WartimeRationing	写した
+S24-H030	Diplomacy.cs:2226:contactStrength	Diplomacy.cs:2225:contactStrength	写した
+S24-H031	Diplomacy.cs:2484:WarCasualties	Diplomacy.cs:2483:WarCasualties	写した
+S24-H032	Diplomacy.cs:2300:tollRate	Diplomacy.cs:2299:tollRate	写した
+S24-H033	Diplomacy.cs:2288:wear	Diplomacy.cs:2287:wear	写した
+S24-H034	Coefficients.p08_audit_soldiers.cs:59:WarFarmOutputDamage	Coefficients.p08_audit_soldiers.cs:60:WarFarmOutputDamage	写した
+S24-H034	Coefficients.p08_audit_soldiers.cs:61:WarLivestockOutputDamage	Coefficients.p08_audit_soldiers.cs:62:WarLivestockOutputDamage	写した
+S24-H034	Coefficients.p08_audit_soldiers.cs:60:WarLivestockRequisition	Coefficients.p08_audit_soldiers.cs:61:WarLivestockRequisition	写した
+S24-H035	Coefficients.p08_audit_soldiers.cs:64:RiskLambda	Coefficients.p08_audit_soldiers.cs:65:RiskLambda	写した
+S24-H039	Diplomacy.cs:838:Step	Diplomacy.cs:837:Step	写した
+S24-H040	Diplomacy.cs:2323:RevCut	Diplomacy.cs:2322:RevCut	写した
+S24-H041	Diplomacy.cs:2407:decisive	Diplomacy.cs:2406:decisive	写した
+S24-H041	Diplomacy.cs:2409:weary	Diplomacy.cs:2408:weary	写した
+S24-H042	Diplomacy.cs:2403:reach	Diplomacy.cs:2402:reach	写した
+S24-H043	Diplomacy.cs:2046:PeaceInterventionAI	Diplomacy.cs:2045:PeaceInterventionAI	写した
+S24-H044	Diplomacy.cs:2541:WhitePeaceScore	Diplomacy.cs:2540:WhitePeaceScore	写した
+S24-H045	Diplomacy.cs:2706:ReparationGdpFraction	Diplomacy.cs:2705:ReparationGdpFraction	写した
+S24-H046	Diplomacy.cs:2590:ConcertReparationRestraint	Diplomacy.cs:2589:ConcertReparationRestraint	写した
+S24-H047	Diplomacy.cs:2602:ColonyCaptureBudget	Diplomacy.cs:2601:ColonyCaptureBudget	写した
+S24-H048	Diplomacy.cs:2628:CessionMaxDistanceKm	Diplomacy.cs:2627:CessionMaxDistanceKm	写した
+S24-H049	Simulation.cs:1280:PromoteColonyToRegion	Simulation.cs:1279:PromoteColonyToRegion	写した
+S24-H049	Diplomacy.cs:2654:PromoteColonyToRegion	Diplomacy.cs:2653:PromoteColonyToRegion	写した
+S24-H050	Diplomacy.cs:2659:ColonyCaptureBudget	Diplomacy.cs:2658:ColonyCaptureBudget	写した
+S24-H051	Coefficients.p08_audit_soldiers.cs:142:ConquestColonyMilitancy	Coefficients.p08_audit_soldiers.cs:143:ConquestColonyMilitancy	写した
+S24-H051	Diplomacy.cs:2651:ConquestColonyMilitancy	Diplomacy.cs:2650:ConquestColonyMilitancy	写した
+S24-H051	Diplomacy.cs:2957:CededColonyMilitancy	Diplomacy.cs:2956:CededColonyMilitancy	写した
+S24-H052	Diplomacy.cs:2872:CedeTerritory	Diplomacy.cs:2871:CedeTerritory	写した
+S24-H052	Diplomacy.cs:2875:Regions.Count	Diplomacy.cs:2874:Regions.Count	写した
+S24-H053	Diplomacy.cs:2641:CessionMaxDistanceKm	Diplomacy.cs:2640:CessionMaxDistanceKm	写した
+S24-H053	Diplomacy.cs:2897:SeaInvasionControlMin	Diplomacy.cs:2896:SeaInvasionControlMin	写した
+S24-H054	Diplomacy.cs:2757:GovCostVassalThreshold	Diplomacy.cs:2756:GovCostVassalThreshold	写した
+S24-H055	Diplomacy.cs:2707:TreatyPortWinnerDistanceKm	Diplomacy.cs:2706:TreatyPortWinnerDistanceKm	写した
+S24-H056	Diplomacy.cs:2736:TreatyRatificationControlThreshold	Diplomacy.cs:2735:TreatyRatificationControlThreshold	写した
+S24-H057	Diplomacy.cs:1286:CountDependents	Diplomacy.cs:1285:CountDependents	写した
+S24-H057	Diplomacy.cs:2813:SetDependency	Diplomacy.cs:2812:SetDependency	写した
+S24-H058	Diplomacy.cs:2779:ImposeRegimeIdeologyGap	Diplomacy.cs:2778:ImposeRegimeIdeologyGap	写した
+S24-H059	Diplomacy.cs:2838:OutcomeShocks	Diplomacy.cs:2837:OutcomeShocks	写した
+S24-H062	Diplomacy.cs:2441:RevanchismTension	Diplomacy.cs:2440:RevanchismTension	写した
+S24-H064	Diplomacy.cs:2223:fronts	Diplomacy.cs:2222:fronts	写した
+S24-H065	Diplomacy.cs:1547:DeclareCivilWar	Diplomacy.cs:1546:DeclareCivilWar	写した
+S24-H069	Diplomacy.cs:2375:BattleLogEnabled	Diplomacy.cs:2374:BattleLogEnabled	写した
+S24-H072	Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement	Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement	もとから引けない
+S24-H072	Simulation.cs:1782:GarrisonProcurement	Simulation.cs:1781:GarrisonProcurement	写した
+S24-H073	Coefficients.p10_ai_silver_overrides.cs:79:EraNavalFuel	Coefficients.p10_ai_silver_overrides.cs:77:EraNavalFuel	写した
+S24-H073	Coefficients.p10_ai_silver_overrides.cs:78:NavalFuelFillSmoothing	Coefficients.p10_ai_silver_overrides.cs:76:NavalFuelFillSmoothing	写した
+S24-H073	Coefficients.p10_ai_silver_overrides.cs:76:NavalFuelPerGauge	Coefficients.p10_ai_silver_overrides.cs:74:NavalFuelPerGauge	写した
+S24-H073	Coefficients.p10_ai_silver_overrides.cs:77:NavalFuelSortieFloor	Coefficients.p10_ai_silver_overrides.cs:75:NavalFuelSortieFloor	写した
+S24-H073	Diplomacy.cs:795:NavalFuelPerGauge	Diplomacy.cs:794:NavalFuelPerGauge	写した
+S24-H074	Diplomacy.cs:1388:SubmitProbabilistic	Diplomacy.cs:1387:SubmitProbabilistic	写した
+S24-H079	Diplomacy.cs:787:MilitiaCombatValue	Diplomacy.cs:786:MilitiaCombatValue	写した
+S24-H080	Diplomacy.cs:2967:EndedWars	Diplomacy.cs:2966:EndedWars	写した
+S24-H082	Diplomacy.cs:289:_warCount	Diplomacy.cs:288:_warCount	写した
+S24-H084	Diplomacy.cs:2496:CasualtyProbe	Diplomacy.cs:2495:CasualtyProbe	写した
+S24-V01	Diplomacy.cs:2308:KillPops(civ	Diplomacy.cs:2307:KillPops(civ	写した
+S24-V01	Diplomacy.cs:2281:WarCivilianToll	Diplomacy.cs:2280:WarCivilianToll	写した
+S24-V01	Diplomacy.cs:2314:share	Diplomacy.cs:2313:share	写した
+S24-V01	Diplomacy.cs:2226:contactStrength	Diplomacy.cs:2225:contactStrength	写した
+S24-V02	Diplomacy.cs:2964:EndWar	Diplomacy.cs:2963:EndWar	写した
+S24-V02	Diplomacy.cs:1309:DefendProjectionMin	Diplomacy.cs:1308:DefendProjectionMin	写した
+S24-V02	Diplomacy.cs:1600:depth	Diplomacy.cs:1599:depth	写した
+S24-V02	Diplomacy.cs:2403:reach	Diplomacy.cs:2402:reach	写した
+S24-V02	Diplomacy.cs:2409:weary	Diplomacy.cs:2408:weary	写した
+S26-H003	Coefficients.cs:2199:PlantationRentShare	Coefficients.cs:2199:PlantationRentShare	もとから引けない
+S26-H005	Simulation.cs:936:RegionTier.Core	Simulation.cs:936:RegionTier.Core	もとから引けない
+S26-H007	Coefficients.cs:2313:DistanceWarDecay	Coefficients.cs:2313:DistanceWarDecay	もとから引けない
+S26-H010	Coefficients.cs:3498:EraColonyCoal	Coefficients.cs:3498:EraColonyCoal	もとから引けない
+S26-H011	Coefficients.cs:2511:ColonyFuelOilEnergyRatio	Coefficients.cs:2511:ColonyFuelOilEnergyRatio	もとから引けない
+S26-H012	Coefficients.cs:2514:ColonyShipOccupyPerDist	Coefficients.cs:2514:ColonyShipOccupyPerDist	もとから引けない
+S26-H014	Coefficients.cs:1466:MalariaQuininePerColony	Coefficients.cs:1466:MalariaQuininePerColony	もとから引けない
+S26-H016	Coefficients.cs:1821:ColonialUnrestHomeWeight	Coefficients.cs:1821:ColonialUnrestHomeWeight	もとから引けない
+S26-H016	Coefficients.cs:1523:ColoniesForFullColonial	Coefficients.cs:1523:ColoniesForFullColonial	もとから引けない
+S26-H017	Coefficients.cs:1602:DependentThreatWeight	Coefficients.cs:1602:DependentThreatWeight	もとから引けない
+S26-H018	Coefficients.cs:2312:AbstractNavalShare	Coefficients.cs:2312:AbstractNavalShare	もとから引けない
+S26-H020	Coefficients.cs:2689:MigrationDistanceScale	Coefficients.cs:2689:MigrationDistanceScale	もとから引けない
+S26-H020	Coefficients.cs:916:RegionMobility	Coefficients.cs:916:RegionMobility	もとから引けない
+S26-H020	Coefficients.cs:918:TransportFriction	Coefficients.cs:918:TransportFriction	もとから引けない
+S26-H021	Coefficients.cs:2686:CrossBorderOppGapThreshold	Coefficients.cs:2686:CrossBorderOppGapThreshold	もとから引けない
+S26-H021	Coefficients.cs:3497:EraMigrationScale	Coefficients.cs:3497:EraMigrationScale	もとから引けない
+S26-H021	Coefficients.cs:2689:MigrationDistanceScale	Coefficients.cs:2689:MigrationDistanceScale	もとから引けない
+S26-H028	Coefficients.cs:699:ColonyPromotionMinPop	Coefficients.cs:699:ColonyPromotionMinPop	もとから引けない
+S26-H036	World.cs:238:Policy	World.cs:238:Policy	もとから引けない
+S26-H038	Coefficients.cs:2835:ScarceCountsIncludeColonies	Coefficients.cs:2835:ScarceCountsIncludeColonies	もとから引けない
+S28-H001	Coefficients.cs:2365:HarvestVariation	Coefficients.cs:2365:HarvestVariation	もとから引けない
+S28-H002	Coefficients.cs:2367:HarvestSkew	Coefficients.cs:2367:HarvestSkew	もとから引けない
+S28-H003	Coefficients.cs:2368:HarvestPersistence	Coefficients.cs:2368:HarvestPersistence	もとから引けない
+S28-H004	Coefficients.cs:2736:CenterIsFirstProvince	Coefficients.cs:2736:CenterIsFirstProvince	もとから引けない
+S28-H004	Coefficients.cs:2369:WeatherBandPersistence	Coefficients.cs:2369:WeatherBandPersistence	もとから引けない
+S28-H004	Coefficients.cs:601:WeatherBandSize	Coefficients.cs:601:WeatherBandSize	もとから引けない
+S28-H004	Coefficients.cs:600:WeatherBandVariation	Coefficients.cs:600:WeatherBandVariation	もとから引けない
+S28-H006	Coefficients.cs:595:CropDiseaseChance	Coefficients.cs:595:CropDiseaseChance	もとから引けない
+S28-H006	Coefficients.cs:597:CropDiseaseRecovery	Coefficients.cs:597:CropDiseaseRecovery	もとから引けない
+S28-H006	Coefficients.cs:596:CropDiseaseSeverity	Coefficients.cs:596:CropDiseaseSeverity	もとから引けない
+S28-H008	Coefficients.cs:2065:FoodFillSmoothing	Coefficients.cs:2065:FoodFillSmoothing	もとから引けない
+S28-H009	Coefficients.cs:2371:FaminePushMaxFracBoost	Coefficients.cs:2371:FaminePushMaxFracBoost	もとから引けない
+S28-H010	Coefficients.cs:603:EpidemicChance	Coefficients.cs:603:EpidemicChance	もとから引けない
+S28-H010	Coefficients.cs:2030:EpidemicOnsetSanitationWeight	Coefficients.cs:2030:EpidemicOnsetSanitationWeight	もとから引けない
+S28-H011	Coefficients.cs:2084:ElecInfraSanitationWeight	Coefficients.cs:2084:ElecInfraSanitationWeight	もとから引けない
+S28-H011	Coefficients.cs:604:EpidemicSeverity	Coefficients.cs:604:EpidemicSeverity	もとから引けない
+S28-H011	Coefficients.cs:2077:SoapSanitationWeight	Coefficients.cs:2077:SoapSanitationWeight	もとから引けない
+S28-H012	Coefficients.cs:606:EpidemicVulnConcentration	Coefficients.cs:606:EpidemicVulnConcentration	もとから引けない
+S28-H013	Coefficients.cs:2680:EpidemicIntraCountrySpread	Coefficients.cs:2680:EpidemicIntraCountrySpread	もとから引けない
+S28-H014	Coefficients.cs:608:EpidemicContagiousYears	Coefficients.cs:608:EpidemicContagiousYears	もとから引けない
+S28-H014	Coefficients.cs:611:EpidemicTradeTransmit	Coefficients.cs:611:EpidemicTradeTransmit	もとから引けない
+S28-H014	Coefficients.cs:609:EpidemicTransmitChance	Coefficients.cs:609:EpidemicTransmitChance	もとから引けない
+S28-H014	Coefficients.cs:610:EpidemicTransmitRange	Coefficients.cs:610:EpidemicTransmitRange	もとから引けない
+S28-H020	Coefficients.cs:1035:LandDiminishExponent	Coefficients.cs:1035:LandDiminishExponent	もとから引けない
+S28-H023	Coefficients.cs:3409:DepositGradeFloor	Coefficients.cs:3409:DepositGradeFloor	もとから引けない
+S28-H023	Coefficients.cs:3408:DepositGradeKnee	Coefficients.cs:3408:DepositGradeKnee	もとから引けない
+S28-H023	Coefficients.cs:3407:DepositYearsAtBirth	Coefficients.cs:3407:DepositYearsAtBirth	もとから引けない
+S28-H024	Coefficients.cs:3410:BonanzaDepositYears	Coefficients.cs:3410:BonanzaDepositYears	もとから引けない
+S28-H024	Coefficients.cs:1920:DiscoveryNeedHalfSite	Coefficients.cs:1920:DiscoveryNeedHalfSite	もとから引けない
+S28-H024	Coefficients.cs:2378:GoldRushEndowment	Coefficients.cs:2378:GoldRushEndowment	もとから引けない
+S28-H025	Coefficients.cs:1362:SilverRushEnabled	Coefficients.cs:1362:SilverRushEnabled	もとから引けない
+S28-H026	Coefficients.cs:1367:MineralCostFollowsGrade	Coefficients.cs:1367:MineralCostFollowsGrade	もとから引けない
+S28-H027	Coefficients.cs:3426:FarmScaleCap	Coefficients.cs:3426:FarmScaleCap	もとから引けない
+S28-H027	Coefficients.cs:3425:MineralScaleCap	Coefficients.cs:3425:MineralScaleCap	もとから引けない
+S28-H027	Coefficients.cs:3427:RgoScaleSpeedFactor	Coefficients.cs:3427:RgoScaleSpeedFactor	もとから引けない
+S29-H019	Coefficients.cs:2359:FidelityQuarters	Coefficients.cs:2359:FidelityQuarters	もとから引けない
+S29-H020	Coefficients.cs:2360:FidelityQuarters1820	Coefficients.cs:2360:FidelityQuarters1820	もとから引けない
+S29-H020	Coefficients.cs:2361:FidelityQuarters1870	Coefficients.cs:2361:FidelityQuarters1870	もとから引けない
+S29-H020	Coefficients.cs:2362:FidelityQuarters1920	Coefficients.cs:2362:FidelityQuarters1920	もとから引けない
+S29-H020	Coefficients.cs:2363:FidelityQuarters1950	Coefficients.cs:2363:FidelityQuarters1950	もとから引けない
+S29-H045	Coefficients.cs:1678:GreatPowerCountForFidelity	Coefficients.cs:1678:GreatPowerCountForFidelity	もとから引けない
+S29-H056	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S29-H074	World.cs:804:Explain	World.cs:804:Explain	もとから引けない
+S29-H075	Coefficients.cs:3647:Coefficients	Coefficients.cs:3647:Coefficients	もとから引けない
+S17-P07	Coefficients.cs:1790:TreatyRatificationControlThreshold	Coefficients.cs:1790:TreatyRatificationControlThreshold	もとから引けない
+S27-P02	Diplomacy.cs:2750:AddForeignShare	Diplomacy.cs:2749:AddForeignShare	写した
+S27-P03	Diplomacy.cs:466:Sovereign	Diplomacy.cs:465:Sovereign	写した
+S07-P01	BilateralMarket.cs:580:ImportPayerLive	BilateralMarket.cs:580:ImportPayerLive	もとから引けない
+S07-P02	BilateralMarket.cs:579:Debt	BilateralMarket.cs:579:Debt	もとから引けない
+S04-P02	EconomyStep.cs:128:private static double FarmUnemploymentStage2(	EconomyStep.cs:128:private static double FarmUnemploymentStage2(	もとから引けない
+S04-P03	Coefficients.cs:1950:UrbanFlowReal	Coefficients.cs:1950:UrbanFlowReal	もとから引けない
+S20-P01	Fiscal.cs:804:landRate	Fiscal.cs:804:landRate	もとから引けない
+S05-P01	Simulation.cs:980:LandOwnershipShares	Simulation.cs:980:LandOwnershipShares	もとから引けない
+S05-P02	EconomyStep.cs:714:LandShareRecipient	EconomyStep.cs:714:LandShareRecipient	もとから引けない
+S20-P02	Simulation.cs:2262:AdminBudget	Simulation.cs:2262:AdminBudget	もとから引けない
+S17-P09	Coefficients.cs:2020:ImposeCrownFromLoser	Coefficients.cs:2020:ImposeCrownFromLoser	もとから引けない
+S03-01	EconomyStep.cs:1137:s.Capacity	EconomyStep.cs:1137:s.Capacity	もとから引けない
+S03-01	EconomyStep.cs:1071:productivityMultiplier	EconomyStep.cs:1071:productivityMultiplier	もとから引けない
+S03-02	EconomyStep.cs:1065:bool baumol	EconomyStep.cs:1065:bool baumol	もとから引けない
+S03-02	EconomyStep.cs:1069:double boost = baumol	EconomyStep.cs:1069:double boost = baumol	もとから引けない
+S03-03	EconomyStep.cs:1070:isLabor ? indMult * gate	EconomyStep.cs:1070:isLabor ? indMult * gate	もとから引けない
+S03-03	EconomyStep.cs:996:double indMult	EconomyStep.cs:996:double indMult	もとから引けない
+S03-04	EconomyStep.cs:1124:coef.SubsidySoftBudgetDecay	EconomyStep.cs:1124:coef.SubsidySoftBudgetDecay	もとから引けない
+S03-04	EconomyStep.cs:2824:s.SubsidyDependence	EconomyStep.cs:2824:s.SubsidyDependence	もとから引けない
+S03-05	EconomyStep.cs:1071:region.ProductivityBonus	EconomyStep.cs:1071:region.ProductivityBonus	もとから引けない
+S03-06	EconomyStep.cs:956:double rentR	EconomyStep.cs:956:double rentR	もとから引けない
+S03-06	EconomyStep.cs:965:s.LaborWeight = PoliticalQuantities.Toward	EconomyStep.cs:965:s.LaborWeight = PoliticalQuantities.Toward	もとから引けない
+S03-06	EconomyStep.cs:967:prodW[pi] = s.LaborWeight * s.Scale	EconomyStep.cs:967:prodW[pi] = s.LaborWeight * s.Scale	もとから引けない
+S03-07	EconomyStep.cs:963:double sellR	EconomyStep.cs:963:double sellR	もとから引けない
+S03-08	EconomyStep.cs:1141:ProfitFactor(s, price, mc, coef)	EconomyStep.cs:1141:ProfitFactor(s, price, mc, coef)	もとから引けない
+S03-08	EconomyStep.cs:1147:coef.SupplyAdjustSpeed	EconomyStep.cs:1147:coef.SupplyAdjustSpeed	もとから引けない
+S03-08	EconomyStep.cs:3187:price <= mc ? 0.0	EconomyStep.cs:3187:price <= mc ? 0.0	もとから引けない
+S03-09	EconomyStep.cs:1146:InventoryAdjust(region, s.GoodId, coef)	EconomyStep.cs:1146:InventoryAdjust(region, s.GoodId, coef)	もとから引けない
+S03-09	EconomyStep.cs:3200:coef.DesiredInventoryCover	EconomyStep.cs:3200:coef.DesiredInventoryCover	もとから引けない
+S03-10	EconomyStep.cs:2727:s.LastInputFill = fill	EconomyStep.cs:2727:s.LastInputFill = fill	もとから引けない
+S03-10	EconomyStep.cs:1144:s.LastInputFill	EconomyStep.cs:1144:s.LastInputFill	もとから引けない
+S03-11	EconomyStep.cs:1162:produced[s.GoodId] += s.Output	EconomyStep.cs:1162:produced[s.GoodId] += s.Output	もとから引けない
+S03-11	EconomyStep.cs:2288:double pay = clearPrice[inp.GoodId] * s.Output	EconomyStep.cs:2288:double pay = clearPrice[inp.GoodId] * s.Output	もとから引けない
+S03-12	EconomyStep.cs:2728:s.LastMaterialFill = mfill	EconomyStep.cs:2728:s.LastMaterialFill = mfill	もとから引けない
+S03-13	EconomyStep.cs:1619:coef.ReignitionDemandFrac.Value * s.DesiredOutput	EconomyStep.cs:1619:coef.ReignitionDemandFrac.Value * s.DesiredOutput	もとから引けない
+S03-13	EconomyStep.cs:1675:o.RemainingBudget -= trickleOwner[k] * fill	EconomyStep.cs:1675:o.RemainingBudget -= trickleOwner[k] * fill	もとから引けない
+S03-14	EconomyStep.cs:1158:bool unInvented	EconomyStep.cs:1158:bool unInvented	もとから引けない
+S03-14	EconomyStep.cs:1160:coef.TargetStockFloor	EconomyStep.cs:1160:coef.TargetStockFloor	もとから引けない
+S03-15	EconomyStep.cs:932:sleep[pi] == 1	EconomyStep.cs:932:sleep[pi] == 1	もとから引けない
+S03-16	EconomyStep.cs:1631:coef.ElecBoost * region.Markets	EconomyStep.cs:1631:coef.ElecBoost * region.Markets	もとから引けない
+S03-16	EconomyStep.cs:1071:coef.ElecBoost * s.ElecFill	EconomyStep.cs:1071:coef.ElecBoost * s.ElecFill	もとから引けない
+S03-17	EconomyStep.cs:2318:coef.ElecFillIrreversibility	EconomyStep.cs:2318:coef.ElecFillIrreversibility	もとから引けない
+S03-17	EconomyStep.cs:2276:coef.ElecFillIrreversibility	EconomyStep.cs:2276:coef.ElecFillIrreversibility	もとから引けない
+S03-18	EconomyStep.cs:3276:c.ElecLaborSave * s.ElecFill	EconomyStep.cs:3276:c.ElecLaborSave * s.ElecFill	もとから引けない
+S03-19	EconomyStep.cs:1698:double effGrid	EconomyStep.cs:1698:double effGrid	もとから引けない
+S03-19	EconomyStep.cs:1332:coef.GridReplaceRate	EconomyStep.cs:1332:coef.GridReplaceRate	もとから引けない
+S03-19	EconomyStep.cs:2521:coef.GridKeepPerMonth	EconomyStep.cs:2521:coef.GridKeepPerMonth	もとから引けない
+S03-20	EconomyStep.cs:1698:coef.ElecInfraGridBoost	EconomyStep.cs:1698:coef.ElecInfraGridBoost	もとから引けない
+S03-21	EconomyStep.cs:1595:bool steamOn	EconomyStep.cs:1595:bool steamOn	もとから引けない
+S03-21	EconomyStep.cs:1637:coef.SteamBoost * region.Markets	EconomyStep.cs:1637:coef.SteamBoost * region.Markets	もとから引けない
+S03-21	EconomyStep.cs:2321:s.SteamFill = PoliticalQuantities.Toward	EconomyStep.cs:2321:s.SteamFill = PoliticalQuantities.Toward	もとから引けない
+S03-22	EconomyStep.cs:1655:effNeed[pi] = s.Output * coef.EffPerOutput	EconomyStep.cs:1655:effNeed[pi] = s.Output * coef.EffPerOutput	もとから引けない
+S03-22	EconomyStep.cs:2331:s.EffFill = PoliticalQuantities.Toward	EconomyStep.cs:2331:s.EffFill = PoliticalQuantities.Toward	もとから引けない
+S03-23	EconomyStep.cs:996:double indMult = cap && !indOff	EconomyStep.cs:996:double indMult = cap && !indOff	もとから引けない
+S03-24	EconomyStep.cs:3026:coef.IndProductivityGain	EconomyStep.cs:3026:coef.IndProductivityGain	もとから引けない
+S03-24	EconomyStep.cs:3016:IndSaturation	EconomyStep.cs:3016:IndSaturation	もとから引けない
+S03-25	EconomyStep.cs:989:region.Industrialization *= 1.0 - dep	EconomyStep.cs:989:region.Industrialization *= 1.0 - dep	もとから引けない
+S03-25	EconomyStep.cs:2384:region.Industrialization += privateIndGain	EconomyStep.cs:2384:region.Industrialization += privateIndGain	もとから引けない
+S03-26	EconomyStep.cs:982:coef.DevelopmentMemory > 0 && !indOff	EconomyStep.cs:982:coef.DevelopmentMemory > 0 && !indOff	もとから引けない
+S03-28	EconomyStep.cs:994:region.Mechanization	EconomyStep.cs:994:region.Mechanization	もとから引けない
+S03-28	EconomyStep.cs:3276:c.LaborSaveRate * home.Mechanization	EconomyStep.cs:3276:c.LaborSaveRate * home.Mechanization	もとから引けない
+S03-29	EconomyStep.cs:1135:coef.ScaleEconomyGain	EconomyStep.cs:1135:coef.ScaleEconomyGain	もとから引けない
+S03-30	EconomyStep.cs:1120:boost *= regionLandFactor	EconomyStep.cs:1120:boost *= regionLandFactor	もとから引けない
+S03-31	Coefficients.p10_ai_silver_overrides.cs:290:RentScarcityElasticity	Coefficients.p10_ai_silver_overrides.cs:290:RentScarcityElasticity	もとから引けない
+S03-32	EconomyStep.cs:1053:double harvestMul	EconomyStep.cs:1053:double harvestMul	もとから引けない
+S03-32	EconomyStep.cs:1055:harvestMul *= ch[s.GoodId]	EconomyStep.cs:1055:harvestMul *= ch[s.GoodId]	もとから引けない
+S03-33	Simulation.cs:2384:r.MineralDeposit = System.Math.Max	Simulation.cs:2383:r.MineralDeposit = System.Math.Max	写した
+S03-33	Simulation.cs:2387:double grade	Simulation.cs:2386:double grade	写した
+S03-33	EconomyStep.cs:1056:region.MineralGradeFactor	EconomyStep.cs:1056:region.MineralGradeFactor	もとから引けない
+S03-34	Simulation.cs:738:c.ScarceMineralGate	Simulation.cs:738:c.ScarceMineralGate	もとから引けない
+S03-34	Simulation.cs:739:c.ScarceCountsIncludeColonies	Simulation.cs:739:c.ScarceCountsIncludeColonies	もとから引けない
+S03-35	EconomyStep.cs:3220:coef.MineralCostFollowsGrade	EconomyStep.cs:3220:coef.MineralCostFollowsGrade	もとから引けない
+S03-36	EconomyStep.cs:1079:coef.WarFarmOutputDamage	EconomyStep.cs:1079:coef.WarFarmOutputDamage	もとから引けない
+S03-37	EconomyStep.cs:1079:coef.WarLivestockOutputDamage	EconomyStep.cs:1079:coef.WarLivestockOutputDamage	もとから引けない
+S03-37	Simulation.cs:2023:World.Coef.WarLivestockRequisition	Simulation.cs:2022:World.Coef.WarLivestockRequisition	写した
+S03-38	EconomyStep.cs:885:Discovery.Refrigeration(region.Discovered)	EconomyStep.cs:885:Discovery.Refrigeration(region.Discovered)	もとから引けない
+S03-38	EconomyStep.cs:891:coef.RefrigerationEffect	EconomyStep.cs:891:coef.RefrigerationEffect	もとから引けない
+S03-39	EconomyStep.cs:1128:coef.CivilWarEconomyDisruption	EconomyStep.cs:1128:coef.CivilWarEconomyDisruption	もとから引けない
+S03-39	Simulation.cs:1450:r.CivilWarActive	Simulation.cs:1449:r.CivilWarActive	写した
+S04-01	EconomyStep.cs:3267:OldLaborFactor	EconomyStep.cs:3267:OldLaborFactor	もとから引けない
+S04-01	EconomyStep.cs:1106:ChildWorkFactor	EconomyStep.cs:1106:ChildWorkFactor	もとから引けない
+S04-04	EconomyStep.cs:1109:InitialWork	EconomyStep.cs:1109:InitialWork	もとから引けない
+S04-04	EconomyStep.cs:1116:InitialWork	EconomyStep.cs:1116:InitialWork	もとから引けない
+S04-05	EconomyStep.cs:1101:Habit.LaborFactor	EconomyStep.cs:1101:Habit.LaborFactor	もとから引けない
+S04-06	EconomyStep.cs:1115:MilitiaShare	EconomyStep.cs:1115:MilitiaShare	もとから引けない
+S04-07	EconomyStep.cs:1864:elasEff	EconomyStep.cs:1864:elasEff	もとから引けない
+S04-07	EconomyStep.cs:1865:selfFactor	EconomyStep.cs:1865:selfFactor	もとから引けない
+S04-08	EconomyStep.cs:1862:DemandElasticityMaxDaily	EconomyStep.cs:1862:DemandElasticityMaxDaily	もとから引けない
+S04-08	EconomyStep.cs:1873:PriceFactorMin	EconomyStep.cs:1873:PriceFactorMin	もとから引けない
+S04-09	EconomyStep.cs:1868:CrossSubstitution	EconomyStep.cs:1868:CrossSubstitution	もとから引けない
+S04-10	EconomyStep.cs:1792:StapleDemandRebalance	EconomyStep.cs:1792:StapleDemandRebalance	もとから引けない
+S04-10	EconomyStep.cs:1905:fdNorm	EconomyStep.cs:1905:fdNorm	もとから引けない
+S04-11	EconomyStep.cs:1827:FoodIncludesAnimalProtein	EconomyStep.cs:1827:FoodIncludesAnimalProtein	もとから引けない
+S04-12	EconomyStep.cs:1942:demand = Math.Min	EconomyStep.cs:1942:demand = Math.Min	もとから引けない
+S04-12	EconomyStep.cs:1940:affordable	EconomyStep.cs:1940:affordable	もとから引けない
+S04-13	EconomyStep.cs:1745:pcmp	EconomyStep.cs:1745:pcmp	もとから引けない
+S04-14	EconomyStep.cs:2181:unfilled	EconomyStep.cs:2181:unfilled	もとから引けない
+S04-15	EconomyStep.cs:2151:DailyNeedWeight	EconomyStep.cs:2151:DailyNeedWeight	もとから引けない
+S04-15	EconomyStep.cs:2930:Satisfaction	EconomyStep.cs:2930:Satisfaction	もとから引けない
+S04-16	EconomyStep.cs:2220:NeedTotal	EconomyStep.cs:2220:NeedTotal	もとから引けない
+S04-18	EconomyStep.cs:1773:LuxuryIncomeElasticity	EconomyStep.cs:1773:LuxuryIncomeElasticity	もとから引けない
+S04-18	EconomyStep.cs:1907:incomeElasticGood	EconomyStep.cs:1907:incomeElasticGood	もとから引けない
+S04-19	EconomyStep.cs:1917:PanicBuyWeight	EconomyStep.cs:1917:PanicBuyWeight	もとから引けない
+S04-20	EconomyStep.cs:1926:PopDebtDriven	EconomyStep.cs:1926:PopDebtDriven	もとから引けない
+S04-20	EconomyStep.cs:1932:HouseholdCreditMonths	EconomyStep.cs:1932:HouseholdCreditMonths	もとから引けない
+S04-21	EconomyStep.cs:1900:SubsistenceShare	EconomyStep.cs:1900:SubsistenceShare	もとから引けない
+S04-21	EconomyStep.cs:1793:HarvestShortfallToMarket	EconomyStep.cs:1793:HarvestShortfallToMarket	もとから引けない
+S04-22	EconomyStep.cs:2215:SubsistenceShare	EconomyStep.cs:2215:SubsistenceShare	もとから引けない
+S04-26	EconomyStep.cs:2226:SubsistenceValuePerMonth	EconomyStep.cs:2226:SubsistenceValuePerMonth	もとから引けない
+S04-28	EconomyStep.cs:1791:StapleLedgerSum	EconomyStep.cs:1791:StapleLedgerSum	もとから引けない
+S04-28	EconomyStep.cs:2251:FoodMet	EconomyStep.cs:2251:FoodMet	もとから引けない
+S04-29	EconomyStep.cs:1959:ration	EconomyStep.cs:1959:ration	もとから引けない
+S04-29	EconomyStep.cs:1957:available	EconomyStep.cs:1957:available	もとから引けない
+S04-30	EconomyStep.cs:1972:effSold	EconomyStep.cs:1972:effSold	もとから引けない
+S04-30	EconomyStep.cs:1657:effDemand	EconomyStep.cs:1657:effDemand	もとから引けない
+S04-31	EconomyStep.cs:2019:ServiceRank	EconomyStep.cs:2019:ServiceRank	もとから引けない
+S04-31	EconomyStep.cs:3281:IsMassPop	EconomyStep.cs:3281:IsMassPop	もとから引けない
+S04-32	EconomyStep.cs:2075:CompulsoryEduFunding	EconomyStep.cs:2075:CompulsoryEduFunding	もとから引けない
+S04-33	EconomyStep.cs:2076:EduReachFromAdmin	EconomyStep.cs:2076:EduReachFromAdmin	もとから引けない
+S04-34	EconomyStep.cs:1885:EduPerChild	EconomyStep.cs:1885:EduPerChild	もとから引けない
+S04-35	EconomyStep.cs:1891:HigherEduNeedPerEducated	EconomyStep.cs:1891:HigherEduNeedPerEducated	もとから引けない
+S04-35	EconomyStep.cs:2103:HigherEduFunding	EconomyStep.cs:2103:HigherEduFunding	もとから引けない
+S04-37	EconomyStep.cs:2188:distM	EconomyStep.cs:2188:distM	もとから引けない
+S04-38	Simulation.cs:1739:CartelBanRent	Simulation.cs:1738:CartelBanRent	写した
+S04-40	Simulation.cs:1816:InsuranceCoverageMax	Simulation.cs:1815:InsuranceCoverageMax	写した
+S04-41	EconomyStep.cs:1824:HealthCrowdingBoost	EconomyStep.cs:1824:HealthCrowdingBoost	もとから引けない
+S04-42	EconomyStep.cs:1816:MedicalWelfareBoost	EconomyStep.cs:1816:MedicalWelfareBoost	もとから引けない
+S04-44	EconomyStep.cs:1837:HousingGateOpen	EconomyStep.cs:1837:HousingGateOpen	もとから引けない
+S04-45	EconomyStep.cs:1967:HousingFill	EconomyStep.cs:1967:HousingFill	もとから引けない
+S04-46	EconomyStep.cs:1892:NewspaperId	EconomyStep.cs:1892:NewspaperId	もとから引けない
+S04-46	EconomyStep.cs:1964:NewsFill	EconomyStep.cs:1964:NewsFill	もとから引けない
+S04-47	EconomyStep.cs:1966:RadioFill	EconomyStep.cs:1966:RadioFill	もとから引けない
+S04-48	EconomyStep.cs:1899:MiseryScale	EconomyStep.cs:1899:MiseryScale	もとから引けない
+S04-49	EconomyStep.cs:1985:OpiumAddiction	EconomyStep.cs:1985:OpiumAddiction	もとから引けない
+S04-50	EconomyStep.cs:1083:ContrabandProductionFactor	EconomyStep.cs:1083:ContrabandProductionFactor	もとから引けない
+S06-01	EconomyStep.cs:2944:double unsold	EconomyStep.cs:2944:double unsold	もとから引けない
+S06-01	EconomyStep.cs:2949:FarmUnemploymentStage2	EconomyStep.cs:2949:FarmUnemploymentStage2	もとから引けない
+S06-01	EconomyStep.cs:2952:lpop.UnemploymentRate	EconomyStep.cs:2952:lpop.UnemploymentRate	もとから引けない
+S06-02	EconomyStep.cs:2958:ServiceUnemployment	EconomyStep.cs:2958:ServiceUnemployment	もとから引けない
+S06-02	EconomyStep.cs:2967:sp.UnemploymentRate	EconomyStep.cs:2967:sp.UnemploymentRate	もとから引けない
+S06-03	EconomyStep.cs:2972:JobSearchUsesEma	EconomyStep.cs:2972:JobSearchUsesEma	もとから引けない
+S06-03	EconomyStep.cs:2976:UnemploymentEma	EconomyStep.cs:2976:UnemploymentEma	もとから引けない
+S06-03	Meritocracy.cs:131:UnemploymentEma	Meritocracy.cs:134:UnemploymentEma	写した
+S06-04	EconomyStep.cs:2930:p.Satisfaction = p.NeedTotal	EconomyStep.cs:2930:p.Satisfaction = p.NeedTotal	もとから引けない
+S06-04	Crime.cs:68:CrimeSatPenalty	Crime.cs:68:CrimeSatPenalty	もとから引けない
+S06-05	Simulation.cs:2087:CheckInvariants	Simulation.cs:2086:CheckInvariants	写した
+S06-08	MarketFlow.cs:136:region.PriceLevel	MarketFlow.cs:136:region.PriceLevel	もとから引けない
+S06-10	EconomyStep.cs:3219:CostPriceLevel	EconomyStep.cs:3219:CostPriceLevel	もとから引けない
+S06-11	Simulation.cs:1570:RegionalPriceLevelWeight	Simulation.cs:1569:RegionalPriceLevelWeight	写した
+S06-11	Simulation.cs:1445:r.LocalPriceMultiplier	Simulation.cs:1444:r.LocalPriceMultiplier	写した
+S06-14	Diplomacy.cs:2710:loser.GdpPerMonth	Diplomacy.cs:2709:loser.GdpPerMonth	写した
+S06-14	Diplomacy.cs:1261:d.GdpPerMonth	Diplomacy.cs:1260:d.GdpPerMonth	写した
+S06-14	Diplomacy.cs:739:vw.GdpPerMonth	Diplomacy.cs:738:vw.GdpPerMonth	写した
+S06-17	EconomyStep.cs:1127:CivilWarEconomyDisruption	EconomyStep.cs:1127:CivilWarEconomyDisruption	もとから引けない
+S06-17	Simulation.cs:1450:r.CivilWarActive	Simulation.cs:1449:r.CivilWarActive	写した
+S06-19	Simulation.cs:2026:DepressionScrapRate	Simulation.cs:2025:DepressionScrapRate	写した
+S06-19	Simulation.cs:2027:r.Industrialization *= scrapKeep	Simulation.cs:2026:r.Industrialization *= scrapKeep	写した
+S06-19	Simulation.cs:2028:r.OldVintageCapital *= scrapKeep	Simulation.cs:2027:r.OldVintageCapital *= scrapKeep	写した
+S06-19	EconomyStep.cs:996:double indMult = cap && !indOff	EconomyStep.cs:996:double indMult = cap && !indOff	もとから引けない
+S06-20	Simulation.cs:2035:fp.BuiltScale *= scrapKeep	Simulation.cs:2034:fp.BuiltScale *= scrapKeep	写した
+S06-20	Simulation.cs:2036:FactoryEquipment.Dismantle	Simulation.cs:2035:FactoryEquipment.Dismantle	写した
+S06-21	EconomyStep.cs:982:DevelopmentMemory > 0 && !indOff	EconomyStep.cs:982:DevelopmentMemory > 0 && !indOff	もとから引けない
+S06-21	EconomyStep.cs:985:DevelopmentPeak	EconomyStep.cs:985:DevelopmentPeak	もとから引けない
+S06-22	Simulation.cs:2024:WarmupFrozen	Simulation.cs:2023:WarmupFrozen	写した
+S06-24	Simulation.cs:1445:r.PriceLevel	Simulation.cs:1444:r.PriceLevel	写した
+S06-24	Simulation.cs:1446:r.FarmRentCap	Simulation.cs:1445:r.FarmRentCap	写した
+S06-24	Simulation.cs:1447:r.CrowdingPremium	Simulation.cs:1446:r.CrowdingPremium	写した
+S06-24	Simulation.cs:1448:r.FinancialHeat	Simulation.cs:1447:r.FinancialHeat	写した
+S06-24	Simulation.cs:1450:r.CivilWarActive	Simulation.cs:1449:r.CivilWarActive	写した
+S06-25	Simulation.cs:1815:r.SocialSecurity	Simulation.cs:1814:r.SocialSecurity	写した
+S06-25	Simulation.cs:1832:r.HarvestFactor	Simulation.cs:1831:r.HarvestFactor	写した
+S06-25	Simulation.cs:1840:r.EducationSpending	Simulation.cs:1839:r.EducationSpending	写した
+S06-26	DormantIdentityTests.cs:312:DomesticMarkupMax	DormantIdentityTests.cs:313:DomesticMarkupMax	写した
+S06-27	Coefficients.p08_audit_soldiers.cs:221:HoardDishoardRate	Coefficients.p08_audit_soldiers.cs:221:HoardDishoardRate	もとから引けない
+S06-28	Coefficients.p08_audit_soldiers.cs:100:HoardCrystallizeRate	Coefficients.p08_audit_soldiers.cs:100:HoardCrystallizeRate	もとから引けない
+S06-29	Coefficients.p08_audit_soldiers.cs:165:CurrentInputFillGates	Coefficients.p08_audit_soldiers.cs:165:CurrentInputFillGates	もとから引けない
+S09-01	BilateralMarket.cs:855:protect	BilateralMarket.cs:855:protect	もとから引けない
+S09-01	BilateralMarket.cs:862:wedgeHome	BilateralMarket.cs:862:wedgeHome	もとから引けない
+S09-03	BilateralMarket.cs:1099:dutyPay	BilateralMarket.cs:1099:dutyPay	もとから引けない
+S09-03	BilateralMarket.cs:1216:TreasuryCat.Tariff	BilateralMarket.cs:1216:TreasuryCat.Tariff	もとから引けない
+S09-04	BilateralMarket.cs:1228:tar[i] < 0	BilateralMarket.cs:1228:tar[i] < 0	もとから引けない
+S09-04	Simulation.cs:1919:World.Tariff < 0	Simulation.cs:1918:World.Tariff < 0	写した
+S09-05	BilateralMarket.cs:776:IsolationExportFactor	BilateralMarket.cs:776:IsolationExportFactor	もとから引けない
+S09-06	Diplomacy.cs:1654:TradePolicyReaction	Diplomacy.cs:1653:TradePolicyReaction	写した
+S09-06	Diplomacy.cs:1673:TariffRetaliationBias	Diplomacy.cs:1672:TariffRetaliationBias	写した
+S09-07	DormantIdentityTests.cs:330:TradeTreatyEnabled	DormantIdentityTests.cs:331:TradeTreatyEnabled	写した
+S09-08	Politics.cs:1743:TreatyPortTariffScale	Politics.cs:1743:TreatyPortTariffScale	もとから引けない
+S09-09	Diplomacy.cs:2707:TreatyPortWinnerDistanceKm	Diplomacy.cs:2706:TreatyPortWinnerDistanceKm	写した
+S09-09	Diplomacy.cs:2739:TreatyPortWinnerDistanceKm	Diplomacy.cs:2738:TreatyPortWinnerDistanceKm	写した
+S09-10	Coefficients.p08_audit_soldiers.cs:113:ForeignRuleFromTreaty	Coefficients.p08_audit_soldiers.cs:114:ForeignRuleFromTreaty	写した
+S09-11	BilateralMarket.cs:856:cornPen	BilateralMarket.cs:856:cornPen	もとから引けない
+S09-16	BilateralMarket.cs:202:oban	BilateralMarket.cs:202:oban	もとから引けない
+S09-16	BilateralMarket.cs:1048:LeakFraction	BilateralMarket.cs:1048:LeakFraction	もとから引けない
+S09-17	BilateralMarket.cs:203:oexban	BilateralMarket.cs:203:oexban	もとから引けない
+S09-17	BilateralMarket.cs:777:LeakFraction	BilateralMarket.cs:777:LeakFraction	もとから引けない
+S09-19	Diplomacy.cs:686:MilitaryExportAccess	Diplomacy.cs:685:MilitaryExportAccess	写した
+S09-19	BilateralMarket.cs:775:milExportAcc	BilateralMarket.cs:775:milExportAcc	もとから引けない
+S09-20	BilateralMarket.cs:733:NonTradeable	BilateralMarket.cs:733:NonTradeable	もとから引けない
+S09-21	BilateralMarket.cs:732:TradeColonialGoods	BilateralMarket.cs:732:TradeColonialGoods	もとから引けない
+S09-22	BilateralMarket.cs:986:blockStaple	BilateralMarket.cs:986:blockStaple	もとから引けない
+S09-22	BilateralMarket.cs:894:BlockadeStapleBias	BilateralMarket.cs:894:BlockadeStapleBias	もとから引けない
+S09-23	BilateralMarket.cs:506:PairRisk	BilateralMarket.cs:506:PairRisk	もとから引けない
+S09-23	BilateralMarket.cs:515:RiskLambda	BilateralMarket.cs:515:RiskLambda	もとから引けない
+S09-23	Coefficients.p08_audit_soldiers.cs:64:RiskLambda	Coefficients.p08_audit_soldiers.cs:65:RiskLambda	写した
+S09-25	Diplomacy.cs:2243:WarExhaustionBlockade	Diplomacy.cs:2242:WarExhaustionBlockade	写した
+S09-25	Diplomacy.cs:2245:RationingBlockadeRelief	Diplomacy.cs:2244:RationingBlockadeRelief	写した
+S09-25	Diplomacy.cs:2272:海上封鎖	Diplomacy.cs:2271:海上封鎖	写した
+S09-28	Diplomacy.cs:666:TradeAccess	Diplomacy.cs:665:TradeAccess	写した
+S09-28	Diplomacy.cs:675:HasEmbargo	Diplomacy.cs:674:HasEmbargo	写した
+S09-28	BilateralMarket.cs:234:natAccess	BilateralMarket.cs:234:natAccess	もとから引けない
+S09-28	Diplomacy.cs:1527:_embargo.Add	Diplomacy.cs:1526:_embargo.Add	写した
+S09-28	Simulation.cs:2551:TradeAccess	Simulation.cs:2552:TradeAccess	写した
+S09-29	Diplomacy.cs:695:ApplyHegemonContainment	Diplomacy.cs:694:ApplyHegemonContainment	写した
+S09-29	Diplomacy.cs:679:_hegemonContainLost	Diplomacy.cs:678:_hegemonContainLost	写した
+S09-30	Coefficients.p08_audit_soldiers.cs:89:TradeWeightBase	Coefficients.p08_audit_soldiers.cs:90:TradeWeightBase	写した
+S09-30	Coefficients.p08_audit_soldiers.cs:90:TradeWeightGdpSlope	Coefficients.p08_audit_soldiers.cs:91:TradeWeightGdpSlope	写した
+S09-31	BilateralMarket.cs:1095:AccumulatePairFlow	BilateralMarket.cs:1095:AccumulatePairFlow	もとから引けない
+S09-33	EconomyStep.cs:963:sellR	EconomyStep.cs:963:sellR	もとから引けない
+S09-34	BilateralMarket.cs:854:buyDear	BilateralMarket.cs:854:buyDear	もとから引けない
+S09-34	BilateralMarket.cs:1121:paySub	BilateralMarket.cs:1121:paySub	もとから引けない
+S09-34	Simulation.cs:1921:TradeBiasStrength	Simulation.cs:1920:TradeBiasStrength	写した
+S09-34	BilateralMarket.cs:862:buyDear	BilateralMarket.cs:862:buyDear	もとから引けない
+S09-35	BilateralMarket.cs:721:TradeCheapSellSubsidy	BilateralMarket.cs:721:TradeCheapSellSubsidy	もとから引けない
+S09-36	GameViewModel.Trade.cs:99:LastBlockadeRisk	GameViewModel.Trade.cs:99:LastBlockadeRisk	もとから引けない
+S09-37	GameViewModel.Map.cs:350:LastLandPartnerName	GameViewModel.Map.cs:350:LastLandPartnerName	もとから引けない
+S09-43	Coefficients.p03_debt_money.cs:312:TariffExportDrag	Coefficients.p03_debt_money.cs:312:TariffExportDrag	もとから引けない
+S09-44	Coefficients.p03_debt_money.cs:319:TradeSpeed	Coefficients.p03_debt_money.cs:319:TradeSpeed	もとから引けない
+S09-45	Coefficients.p10_ai_silver_overrides.cs:83:ShipFuelRate	Coefficients.p10_ai_silver_overrides.cs:81:ShipFuelRate	写した
+S09-46	DormantIdentityTests.cs:309:TransportPotentialWeight	DormantIdentityTests.cs:310:TransportPotentialWeight	写した
+S09-47	Coefficients.p02_borrow_polity_epidemic.cs:267:TariffRetaliationViaPolitics	Coefficients.p02_borrow_polity_epidemic.cs:267:TariffRetaliationViaPolitics	もとから引けない
+S09-48	PathGraph.cs:349:RedundantEdgePruning	PathGraph.cs:349:RedundantEdgePruning	もとから引けない
+S13-01	Coefficients.p08_audit_soldiers.cs:87:ImmigrationSelectiveFrac	Coefficients.p08_audit_soldiers.cs:88:ImmigrationSelectiveFrac	写した
+S13-01	Coefficients.p08_audit_soldiers.cs:88:ImmigrationClosedFrac	Coefficients.p08_audit_soldiers.cs:89:ImmigrationClosedFrac	写した
+S13-10	Coefficients.p04_trade.cs:112:BaseUrbanCap	Coefficients.p04_trade.cs:112:BaseUrbanCap	もとから引けない
+S13-10	PopDecision.cs:90:(812)	PopDecision.cs:90:(812)	もとから引けない
+S13-11	Coefficients.p04_trade.cs:112:UrbanCapFollowSpeed	Coefficients.p04_trade.cs:112:UrbanCapFollowSpeed	もとから引けない
+S13-25	Crime.cs:68:(384)	Crime.cs:68:(384)	もとから引けない
+S13-32	Territory.cs:5:(551)	Territory.cs:5:(551)	もとから引けない
+S13-34	Coefficients.p08_audit_soldiers.cs:80:CrossBorderOppGapThreshold	Coefficients.p08_audit_soldiers.cs:81:CrossBorderOppGapThreshold	写した
+S13-41	Coefficients.p10_ai_silver_overrides.cs:63:public double EraFactor(double worldTech, double k) => 1.0	Coefficients.p10_ai_silver_overrides.cs:61:public double EraFactor(double worldTech, double k) => 1.0	写した
+S13-41	Coefficients.p10_ai_silver_overrides.cs:61:EraMigrationScale	Coefficients.p10_ai_silver_overrides.cs:59:EraMigrationScale	写した
+S13-44	MultiNationSim.cs:1794:MigrationFarePerkKm	MultiNationSim.cs:1794:MigrationFarePerkKm	もとから引けない
+S13-51	Coefficients.p08_audit_soldiers.cs:86:SpecialistExitBanPrefScale	Coefficients.p08_audit_soldiers.cs:87:SpecialistExitBanPrefScale	写した
+S21-01	Simulation.cs:1955:Fiscal.Borrow	Simulation.cs:1954:Fiscal.Borrow	写した
+S21-03	Simulation.cs:1955:Fiscal.Borrow	Simulation.cs:1954:Fiscal.Borrow	写した
+S21-03	Simulation.cs:1958:double deficit	Simulation.cs:1957:double deficit	写した
+S21-03	Simulation.cs:1960:devalueRoom	Simulation.cs:1959:devalueRoom	写した
+S21-15	Credit.cs:30:ToGdpYear	Credit.cs:29:ToGdpYear	写した
+S21-18	Credit.cs:30:BondPrice	Credit.cs:29:BondPrice	写した
+S21-19	Simulation.cs:1960:devalueRoom	Simulation.cs:1959:devalueRoom	写した
+S21-19	Simulation.cs:1966:devalueRoom	Simulation.cs:1965:devalueRoom	写した
+S21-19	Simulation.cs:1996:payable += devalue	Simulation.cs:1995:payable += devalue	写した
+S21-20	Simulation.cs:1973:DevaluationCapReliefExp	Simulation.cs:1972:DevaluationCapReliefExp	写した
+S21-20	Simulation.cs:1972:DevaluationCapFracPerMonth	Simulation.cs:1971:DevaluationCapFracPerMonth	写した
+S21-21	Simulation.cs:1979:FiatIssueFrac	Simulation.cs:1978:FiatIssueFrac	写した
+S21-21	Simulation.cs:1988:Outside.Fiat	Simulation.cs:1987:Outside.Fiat	写した
+S26-03	Coefficients.p08_audit_soldiers.cs:112:OpeningColonyDominanceFull	Coefficients.p08_audit_soldiers.cs:113:OpeningColonyDominanceFull	写した
+S26-04	Simulation.cs:1312:natives	Simulation.cs:1311:natives	写した
+S26-04	Simulation.cs:1317:MkPop	Simulation.cs:1316:MkPop	写した
+S26-04	Simulation.cs:1371:ArableLand	Simulation.cs:1370:ArableLand	写した
+S26-04	Simulation.cs:1382:Stock	Simulation.cs:1381:Stock	写した
+S26-05	Simulation.cs:1286:IsColonial	Simulation.cs:1285:IsColonial	写した
+S26-05	Simulation.cs:1301:ScarceEndowment	Simulation.cs:1300:ScarceEndowment	写した
+S26-05	Simulation.cs:1358:AddAdvancedProducers	Simulation.cs:1357:AddAdvancedProducers	写した
+S26-06	Simulation.cs:1370:Culture	Simulation.cs:1369:Culture	写した
+S26-07	Simulation.cs:1303:PlantationRentShare	Simulation.cs:1302:PlantationRentShare	写した
+S26-07	Colonial.cs:75:ExportCrop	Colonial.cs:71:ExportCrop	写した
+S26-08	Colonial.cs:85:RemitAbsenteeRent	Colonial.cs:81:RemitAbsenteeRent	写した
+S26-08	Colonial.cs:78:AbsenteeOwner	Colonial.cs:74:AbsenteeOwner	写した
+S26-09	Colonial.cs:72:AbsenteeRgo	Colonial.cs:68:AbsenteeRgo	写した
+S26-10	Simulation.cs:1365:CoastalOf	Simulation.cs:1364:CoastalOf	写した
+S26-11	Simulation.cs:1366:Tier	Simulation.cs:1365:Tier	近くへ写した
+S26-12	Simulation.cs:1361:AddAlternateRecipes	Simulation.cs:1360:AddAlternateRecipes	写した
+S26-16	Colonial.cs:39:coalWant	Colonial.cs:38:coalWant	写した
+S26-16	Colonial.cs:66:OccupiedShipCapacity	Colonial.cs:62:OccupiedShipCapacity	写した
+S26-16	—（EraColonyCoal は消した＝(1154) c113sw）	—（EraColonyCoal は消した＝(1154) c113sw）	形が違う
+S26-17	Colonial.cs:104:ChooseFuelGood	Colonial.cs:100:ChooseFuelGood	写した
+S26-17	Coefficients.p08_audit_soldiers.cs:28:ColonyFuelOilEnergyRatio	Coefficients.p08_audit_soldiers.cs:29:ColonyFuelOilEnergyRatio	写した
+S26-18	Colonial.cs:36:steamMult	Colonial.cs:35:steamMult	写した
+S26-20	Colonial.cs:24:MalariaQuininePerColony	Colonial.cs:24:MalariaQuininePerColony	写せない
+S26-20	Colonial.cs:43:BuyUpkeepGood	Colonial.cs:40:BuyUpkeepGood	近くへ写した
+S26-20	Coefficients.p04_trade.cs:152:MalariaQuininePerColony	Coefficients.p04_trade.cs:152:MalariaQuininePerColony	写せない
+S26-21	Colonial.cs:43:BuyUpkeepGood	Colonial.cs:40:BuyUpkeepGood	近くへ写した
+S26-22	Colonial.cs:119:StatePriceAfford	Colonial.cs:115:StatePriceAfford	写した
+S26-22	Colonial.cs:121:LastColonialUpkeepPerMonth	Colonial.cs:117:LastColonialUpkeepPerMonth	写した
+S26-22	Colonial.cs:122:FiscalFundingRatio	Colonial.cs:118:FiscalFundingRatio	写した
+S26-23	Colonial.cs:57:homePressure	Colonial.cs:53:homePressure	写した
+S26-23	Colonial.cs:60:Militancy	Colonial.cs:56:Militancy	写した
+S26-24	Diplomacy.cs:373:ColonyMass	Diplomacy.cs:372:ColonyMass	写した
+S26-24	Diplomacy.cs:1047:ThreatExcess	Diplomacy.cs:1046:ThreatExcess	写した
+S26-24	Diplomacy.cs:1028:EffColonies	Diplomacy.cs:1027:EffColonies	写した
+S26-25	Diplomacy.cs:1028:EffColonies	Diplomacy.cs:1027:EffColonies	写した
+S26-27	Diplomacy.cs:778:AbstractNavalShare	Diplomacy.cs:777:AbstractNavalShare	写した
+S26-28	Simulation.cs:1286:IsColonial	Simulation.cs:1285:IsColonial	写した
+S26-32	Diplomacy.cs:820:MajorityCultureReligion	Diplomacy.cs:819:MajorityCultureReligion	写した
+S26-32	Diplomacy.cs:1078:MajorityCultureReligion	Diplomacy.cs:1077:MajorityCultureReligion	写した
+S26-33	Diplomacy.cs:1219:EthnicDistance	Diplomacy.cs:1218:EthnicDistance	写した
+S26-33	Diplomacy.cs:1226:ReligionDistance	Diplomacy.cs:1225:ReligionDistance	写した
+S26-33	Diplomacy.cs:1234:GovCost	Diplomacy.cs:1233:GovCost	写した
+S26-38	—（Settled は消した＝(1154) c113sw）	—（Settled は消した＝(1154) c113sw）	形が違う
+S26-41	Simulation.cs:2545:ColonialAccess	Simulation.cs:2546:ColonialAccess	写した
+S26-41	Simulation.cs:1730:colonialAccess	Simulation.cs:1729:colonialAccess	写した
+S28-01	Simulation.cs:1685:Rng.NextDouble	Simulation.cs:1684:Rng.NextDouble	写した
+S28-01	Simulation.cs:1832:HarvestFactor	Simulation.cs:1831:HarvestFactor	写した
+S28-03	Simulation.cs:1690:rho * (_prevHarvestFactor	Simulation.cs:1689:rho * (_prevHarvestFactor	写した
+S28-05	Coefficients.p08_audit_soldiers.cs:364:CenterIsFirstProvince	Coefficients.p08_audit_soldiers.cs:364:CenterIsFirstProvince	もとから引けない
+S28-05	Simulation.cs:132:CenterIsFirstProvince	Simulation.cs:132:CenterIsFirstProvince	もとから引けない
+S28-06	EconomyStep.cs:1051:WeatherExposure	EconomyStep.cs:1051:WeatherExposure	もとから引けない
+S28-07	Simulation.cs:1703:CropDiseaseChance	Simulation.cs:1702:CropDiseaseChance	写した
+S28-08	EconomyStep.cs:2214:StapleHarvestFactor	EconomyStep.cs:2214:StapleHarvestFactor	もとから引けない
+S28-09	Simulation.cs:2146:FoodFillSmoothing	Simulation.cs:2145:FoodFillSmoothing	写した
+S28-09	Simulation.cs:2345:FoodFillSmoothing	Simulation.cs:2344:FoodFillSmoothing	写した
+S28-15	Coefficients.p10_ai_silver_overrides.cs:63:EraFactor	Coefficients.p10_ai_silver_overrides.cs:61:EraFactor	写した
+S28-21	EconomyStep.cs:1120:regionLandFactor	EconomyStep.cs:1120:regionLandFactor	もとから引けない
+S28-22	Coefficients.p10_ai_silver_overrides.cs:290:RentScarcityElasticity	Coefficients.p10_ai_silver_overrides.cs:290:RentScarcityElasticity	もとから引けない
+S28-24	Simulation.cs:2381:DepositYearsAtBirth	Simulation.cs:2380:DepositYearsAtBirth	写した
+S28-24	EconomyStep.cs:1056:MineralGradeFactor	EconomyStep.cs:1056:MineralGradeFactor	もとから引けない
+S28-24	Simulation.cs:2376:IsMineral	Simulation.cs:2375:IsMineral	写した
+S28-27	EconomyStep.cs:3220:MineralCostFollowsGrade	EconomyStep.cs:3220:MineralCostFollowsGrade	もとから引けない
+S28-28	Coefficients.p10_ai_silver_overrides.cs:50:MineralScaleCap	Coefficients.p10_ai_silver_overrides.cs:50:MineralScaleCap	もとから引けない
+S28-28	Coefficients.p10_ai_silver_overrides.cs:190:FarmScaleCap	Coefficients.p10_ai_silver_overrides.cs:190:FarmScaleCap	もとから引けない
+S28-28	EconomyStep.cs:2849:MineralScaleCap	EconomyStep.cs:2849:MineralScaleCap	もとから引けない
+S28-28	EconomyStep.cs:2850:RgoScaleSpeedFactor	EconomyStep.cs:2850:RgoScaleSpeedFactor	もとから引けない
+S28-31	Simulation.cs:2691:(667)	Simulation.cs:2691:(667)	もとから引けない
+S28-33	GameViewModel.Map.cs:735:EpidemicActiveYears	GameViewModel.Map.cs:735:EpidemicActiveYears	もとから引けない
+S29-03	Simulation.cs:2087:CheckInvariants()	Simulation.cs:2086:CheckInvariants()	写した
+S29-20	Diplomacy.cs:510:internal void ComputeRanks	Diplomacy.cs:509:internal void ComputeRanks	写した
+S29-20	Diplomacy.cs:515:var shareScore = NationalScore.ScoresByPower(this)	Diplomacy.cs:514:var shareScore = NationalScore.ScoresByPower(this)	写した
+S29-74	Coefficients.p10_ai_silver_overrides.cs:101:GetEnvironmentVariable("POB_COEF")	Coefficients.p10_ai_silver_overrides.cs:99:GetEnvironmentVariable("POB_COEF")	写した
+S29-74	Coefficients.p10_ai_silver_overrides.cs:140:public static string OverrideSummary	Coefficients.p10_ai_silver_overrides.cs:138:public static string OverrideSummary	写した
+S29-76	MultiNationSim.cs:2153:public const double BudgetLimitEstSeconds	MultiNationSim.cs:2153:public const double BudgetLimitEstSeconds	もとから引けない
+S29-76	MultiNationSim.cs:2158:public const double BudgetCoverageAtLimit	MultiNationSim.cs:2158:public const double BudgetCoverageAtLimit	もとから引けない
+S29-76	WriterRatchetTests.cs:570:計算量の見た件数は宣言した表を超えない	WriterRatchetTests.cs:570:計算量の見た件数は宣言した表を超えない	もとから引けない
+S29-77	DormantIdentityTests.cs:196:public void 休眠フラグは既定でゼロである	DormantIdentityTests.cs:197:public void 休眠フラグは既定でゼロである	写した
+S29-77	DormantIdentityTests.cs:209:削除2026-09-26（棚卸し fis-22）	DormantIdentityTests.cs:210:削除2026-09-26（棚卸し fis-22）	写した
+S29-78	DormantIdentityTests.cs:227:private static readonly string[] ZeroDefaultLedger	DormantIdentityTests.cs:228:private static readonly string[] ZeroDefaultLedger	写した
+S29-78	DormantIdentityTests.cs:407:public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている	DormantIdentityTests.cs:408:public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている	写した
+S29-81	Simulation.cs:1489:public static bool ConservationProbe	Simulation.cs:1488:public static bool ConservationProbe	写した
+S29-82	Simulation.cs:60:Simulation.Probe と Runner の drift	Simulation.cs:60:Simulation.Probe と Runner の drift	もとから引けない
+S29-83	MechanismProbe.cs:19:Eval＝「その機構を試した回数」	MechanismProbe.cs:19:Eval＝「その機構を試した回数」	もとから引けない
+S29-90	Coefficients.p10_ai_silver_overrides.cs:371:PopBudgetRelax（POP	Coefficients.p10_ai_silver_overrides.cs:371:PopBudgetRelax（POP	もとから引けない
+S29-94	SaveGame.cs:85:再帰深度	SaveGame.cs:85:再帰深度	もとから引けない
+S25-V01	Diplomacy.cs:408:SetDependency	Diplomacy.cs:407:SetDependency	写した
+S25-V02	Diplomacy.cs:426:Suzerain	Diplomacy.cs:425:Suzerain	写した
+S25-V02	Diplomacy.cs:431:DependentsOf	Diplomacy.cs:430:DependentsOf	写した
+S26-V01	Simulation.cs:1370:Culture = w.Region.Culture	Simulation.cs:1369:Culture = w.Region.Culture	写した
+S27-V01	Diplomacy.cs:466:Sovereign	Diplomacy.cs:465:Sovereign	写した
+S27-V01	Diplomacy.cs:2956:Ceded	Diplomacy.cs:2955:Ceded	写した
+S11-V01	Meritocracy.cs:85:selectLiteracy	Meritocracy.cs:88:selectLiteracy	写した

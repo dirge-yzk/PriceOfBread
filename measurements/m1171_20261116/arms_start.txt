@@ -1,0 +1,24 @@
+identA start 2026-11-16 05:55:43 tree=7ef54326 Dfree=65.06GB armsfree=6
+identA end 2026-11-16 06:25:25 rc=0
+suite1（段 1 の木 41eba3dd5）start 2026-11-16 06:26:27
+mM start 2026-11-16 06:54:58 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=26fe1c6d Dfree=102.31GB armsfree=6
+mS11 start 2026-11-16 06:54:58 ins=1 N=10 SB=11 cearn=1 coef=- HEAD=26fe1c6d Dfree=102.31GB armsfree=6
+mS11z start 2026-11-16 06:54:58 ins=1 N=10 SB=11 cearn=1 coef=SoldierVacancyFromZero=0 HEAD=26fe1c6d Dfree=102.31GB armsfree=6
+mp5 start 2026-11-16 06:54:59 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=26fe1c6d Dfree=102.31GB armsfree=6
+mp10 start 2026-11-16 06:54:59 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=26fe1c6d Dfree=102.29GB armsfree=6
+mp5 end 2026-11-16 07:37:08 rc=0
+mp10 end 2026-11-16 07:37:10 rc=0
+identZ start 2026-11-16 07:37:33 tree=fce391d1 Dfree=56.74GB armsfree=3
+mS11z end 2026-11-16 07:41:10 rc=0
+mN1 start 2026-11-16 07:42:09 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.50000001 HEAD=26fe1c6d Dfree=53.65GB armsfree=3
+mN2 start 2026-11-16 07:42:15 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.49999999 HEAD=26fe1c6d Dfree=53.46GB armsfree=3
+mS11 end 2026-11-16 07:43:05 rc=0
+mM end 2026-11-16 07:43:18 rc=0
+identZ end 2026-11-16 07:44:57 rc=0
+mchk start 2026-11-16 07:48:56 ins=1 N=1 SB=1 cearn=1 coef=- HEAD=26fe1c6d Dfree=49.43GB armsfree=4
+mN2 end 2026-11-16 08:10:00 rc=0
+mN1 end 2026-11-16 08:11:02 rc=0
+mchk end 2026-11-16 08:12:21 rc=0
+mchksv start 2026-11-16 08:12:37 ins=1 N=1 SB=1 cearn=1 coef=- HEAD=b67f32d6 Dfree=38.83GB armsfree=6
+suite2（合わせた木 dcdd69b51）start 2026-11-16 08:17:23
+mchksv end 2026-11-16 08:20:17 rc=0

@@ -1,0 +1,8 @@
+ident_c115qc ident_c115sb（線 qc・sb の ident の生・判定〈恒等〉を読んだ後）2026-11-16 05:53:15
+c115sv_work/armB/out_c115svB_10/ins の soldiervac_s 以外 380 本（sha1 は m1171_work/sha_svB.tsv）2026-11-16 05:54:23
+wt_c115qc（線の worktree・ローカルの枝 c115qc＝origin に同じ頭あり）2026-11-16 05:55:07
+wt_c115sb（線の worktree・ローカルの枝 c115sb＝origin に同じ頭あり）2026-11-16 05:55:12
+wt_c115cr（線 cr の worktree・入れない線・origin/c115cr に同じ頭）2026-11-16 05:55:23
+ident_m1171a（段 1 の ident の生・判定〈恒等〉を読んだ後）2026-11-16 06:26:42
+keep_1157・keep_1157_rej（INSRAW でも KEEPNULL でもない古い keep・段 1 の ident.cfg〔TESTS_NONFULL 2888〕を main 41eba3dd5 へ push した後・指示の許し〈作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った〉）2026-11-16 06:54:42
+m1171_work の out_mchk_1・out_mchksv_1（nation_s1 の帰属を読んだ後）・out_mp5_5・out_mp10_10（素の腕）・c115sv_work の mutarm・arm1・armB/out_c115svB_10（線 sv を採った後・門の出力は measurements/m1166_20261116 にある）2026-11-16 08:33:19
