@@ -14,7 +14,7 @@ public static class Transport
         double target = Target(w, c);
         double railGate = Discovery.RailTransport(w.Discovered) ? 1.0 : 0.0;
         BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true, 1.0, rm);
-        double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
+        const double era = 1.0;   // 時代係数は恒等 1（Coefficients.EraFactor は 1.0 を返す＝係数 EraColonyCoal は (1154) で削除）
         double shipBefore = w.ShipCapacity;
         var (shipAdd, steamAdd) = BuyToward(w, c, c.ShipGoodIds, target, rail: false, era);
         if (shipAdd > 0)

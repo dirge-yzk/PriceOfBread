@@ -1,0 +1,47 @@
+(1154) 線 c113sw 事前登録（恒等の線・予言 0・段 2）  2026-11-15  書いたモデル＝Claude Sonnet 5.5
+出発＝122cdce11（main・m1150）。worktree D:/PoB_work/wt_c113sw・枝 c113sw。
+
+[1] 恒等の線・予言 0
+  挙動を変えない。合否＝素の 5 種・計器つき 10 種が m1150（b5_20261115_m1150・b10_20261115_m1150_ins）と名乗り行を除いて全行一致。
+  宣言する計器の差＝無し（dipcool_s の列は旧の規則を計器の定数で名乗る形＝列の値は変えない／tb_s は NaN の入力でだけ値が変わりうる＝通常の盤面では 0）。
+  〈判定: 恒等〉と出たら〈測った種で一致〉と名乗る（証明とは書かない）。
+
+[2] 消す物と残す物（読み手の grep＝SimCore・Runner・App・Display・Tests・scripts・measurements・POB_COEF の名前・SaveGame）
+  項 1 D-b の物理の削除
+    消す：Diplomacy.cs DriftTension の else if（c.DefeatShockTensionRelief > 0 の枝・旧 :3241〜:3243）と DefeatedShock（旧 :3274〜）・注の語 1 つ（:3233）。
+      p06_rank_discovery.cs の DefeatShockTensionRelief（既定 0）・DefeatShockProtectMin（0.3）。
+      読み手の grep（コード）：DefeatShockTensionRelief＝Diplomacy.cs 1 箇所＋InstrumentsDipcool の注＋試験 HyenaBranchTests・DormantIdentityTests（DormantZeroFields の 1 行）。
+        DefeatShockProtectMin＝Diplomacy.cs 1 箇所＋InstrumentsDipcool.cs 2 箇所。DefeatedShock＝呼び手は消す枝だけ。scripts は c112hy/mut.py・m1150 の cfg と identz（旧い木の写し・記録）・r1141/freq.py（定数を自分で持つ）。App・Display・Runner・world.json・SaveGame の名前の表に無い。
+      残す：Politics.cs の DefeatShock の減衰（Nation.DefeatShock の書き手）。
+    計器：InstrumentsDipcool.cs は旧の規則（ハイエナの枝あり）を同じ盤面で数える記録として残す。旧の規則の下限は計器の定数 DipcoolProtectMin（0.3・列の値は変えない）で名乗る。
+    試験：HyenaBranchTests.cs（旧の道 H1＝係数 2.0 は消す・H2＝枝が無い番人へ・H3＝計器を 1 本の腕へ）・DormantIdentityTests.cs（DormantZeroFields から外し RetiredFields へ）。WriterRatchetTests の注は触らない（履歴）。
+  項 2 計器と注の小物
+    InstrumentsBuyShadow.cs TbClassify の 3 つの述語を否定形（NaN は B0 か B1 に入る）。TrRailHeader の区切りのタブ 1 字を `\t` へ（出力の文字は同じ）。
+    120 字超の注 2 件：Coefficients.cs:89 ParliamentSeatsWithoutGap・p04_trade.cs:83 RailNeedByOutput（注を短くする・値は同じ）。
+    scripts/instruments/c113sw/gate5_mut.py：gate5.py の突然変異の確かめ（変更なし OK・注を消す RED・注を伸ばす RED）。
+    TbPHatSum の金建てと州の名目の食い違い：単位の読み（lp・headPrice の通貨）が要り tb_s の値が変わる＝この回は入れない（00一覧へ戻す）。
+  項 3 S26 の D4・D5
+    D4：Instruments.cs の Settled（呼び手 0）だけ消す。region の 2 列（settlerOutKPerQuarter・settlerInKPerQuarter）は an_h2.py・edge_689.py ほか 16 本の読み手が名前で読む＝消さない（保留・記録）。
+    D5：EraColonyCoal を消す。Colonial.cs:33・Transport.cs:17 は `const double era = 1.0`（EraFactor は 1.0 を返す＝x*1.0・x/1.0 は恒等）。EraFactor 本体は残す。
+  項 4 D3（条件つき）：単一国の盤面が変わるので ★(743) の ①〜④ に入らない見込み＝入れない（00一覧へ戻す）。
+
+  他の線との重なり：Diplomacy.cs は :3227〜:3280 だけ・Colonial.cs は :33 だけ（qn の :40〜:46 と離れる）・p04 は :83 だけ・p10 は :63 だけ・Instruments.cs は Settled の行だけ。
+
+[3] 足す試験と突然変異
+  H2（枝が無い）：衝撃 1.0・遺恨 1.0 の組が 120 のまま。突然変異＝枝を戻す（-2.0×衝撃）→ 118 で赤。
+  H3（計器 dipcool_s）：枝の削除後も旧の規則の行（oldHyenaRows 1）が 1 と数えられ obsHyenaRows 0。突然変異＝計器の旧の規則の下限を壊す → 赤。
+  DormantIdentityTests 削除済み名簿：DefeatShockTensionRelief・DefeatShockProtectMin が戻れば赤。
+  gate5_mut.py：注を消す・伸ばすで RED。
+  ★(743) の区分：ColonialPopTests.cs:164・FuelOperatingCostTests.cs:236・:287 の era は `EraFactor(w.WorldTechLevel, c.EraColonyCoal)` → `EraFactor(w.WorldTechLevel, 0.0)`（②＝比べる double は同じ 1.0・係数の削除に伴う引数だけ）。
+    HyenaBranchTests・DormantIdentityTests の書き換えは係数の削除に伴う名簿の移し（④の範囲）。Assert の閾値・母集合は弱めない。
+  試験の数の予言：Tests 2636 → 2635（H1 を消す）・Tests.Ui 234・合計 2869・FullLength 3。
+  ㉑ 走査の番人の件数の予言：Coefficients の public の数が 3 本減る（DefeatShockTensionRelief・DefeatShockProtectMin・EraColonyCoal）。WriterRatchetTests の宣言の表・route_anchors・MoneyStock の件数は変わらない。
+
+[4] 恒等の判定＝素の 5 種・計器つき 10 種（m1150 と名乗り行を除いて全行一致・計器の表の差は宣言だけ）。
+[5]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
+
+[追記 2026-11-15・フルスイートの途中で赤 2 件が出た後・腕の前]
+  1. TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり（走査の番人）：Colonial.cs・Transport.cs の `w.WorldTechLevel` の読みが const era=1.0 で 0 行になり赤。
+     ㉑ の予言に入っていなかった（㉘ の絞り込みに TechLevelRemovalTests を入れ忘れた＝予言の漏れ）。直し＝許可表の 2 行を消す（番人を写しただけの例外・Assert の文と閾値は変えない・母集合は 2 行減る）。
+  2. TradeBilateralInstrumentTests.T6_NaNの入力の区分：TbClassify の否定形が、NaN の入力で B0/B1/B2 がいずれも立たない現状を固定した試験を赤にした（機構の番人が現状の区分を固定している型）。
+     試験を書き換えない＝TbClassify の変更を外す（項 2 から外れる）。推奨＝試験を〈Ok かつ B0・B1・B2 のうちちょうど 1 つ〉へ直す案を作者へ（pending 先頭）。

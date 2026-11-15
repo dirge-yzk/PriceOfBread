@@ -560,7 +560,7 @@ public static partial class Instruments
     }
 
     const string TrRailHeader = "year\tnation\tregion\tterrainCode\twaterFlag\trailTrackEnd\tneedEnd\tphiEnd\tmonthsCount\tboughtCapPerYear\tlaidCapTimesTerrainPerYear\tg2Rows\tg2Viol\tdecayLossPerYear\twarLossPerYear\t"
-        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol	railFreightForeignPaidGoldPerYear";
+        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol\trailFreightForeignPaidGoldPerYear";
 
     /// <summary>年の終わり：全ての国の全ての州の行（州の線路・計器の need と φ・門の数）。旗 0 の世界でも書く（線路は 0・G1 の T＝0 の側の数）。</summary>
     static void TrRailRows(Sink sk, MultiNationSim sim, int year)

@@ -161,7 +161,7 @@ public class ColonialPopTests
         foreach (var row in Enumerable.Range(0, Catalog.Discoveries.Length).Where(i => Catalog.Discoveries[i].Good == Catalog.SteamshipId)) w.Discovered[row] = true;
         Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.SteamshipId));
         w.ShipCapacity = 10_000; w.FiscalFundingRatio = new Share(1.0);
-        double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
+        double era = c.EraFactor(w.WorldTechLevel, 0.0);
         double mult = c.ShipTier2CapMult / era;
         w.ShipSteamShare = new Share(0.0); Colonial.Step(w, c); double b0 = w.ColonialShipBurden;
         w.ShipSteamShare = new Share(1.0);

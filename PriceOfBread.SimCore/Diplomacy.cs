@@ -3230,7 +3230,7 @@ public sealed class Diplomacy
         var keys = new List<long>(_tension.Keys);
         foreach (var k in keys)
         {
-            // 今＝入れ物を ref で持ち、冷ますときはそこへ書く（下の分岐の判定 CannotDeclareWar・DefeatedShock・遺恨は緊張の表に入れない＝入れ物は動かない）。〔履歴 Diplomacy.cs#359〕
+            // 今＝入れ物を ref で持ち、冷ますときはそこへ書く（下の分岐の判定 CannotDeclareWar・遺恨は緊張の表に入れない＝入れ物は動かない）。〔履歴 Diplomacy.cs#359〕
             ref double slot = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrNullRef(_tension, k);
             double t = slot;   // 各分岐は高々1回書く＝この読みで足りる
             if (t < c.HighTensionBand)   // 高緊張帯（既定100）未満のみ薄れる。〔履歴 Diplomacy.cs#360〕
@@ -3238,9 +3238,6 @@ public sealed class Diplomacy
             // 外11：開戦経路が塞がれた（従属＝TriggerWars で永久に開戦できない）ペアは、緊張≥100 が上限付近でデッドロックし同盟不可/宥和対象判定を恒久的に歪める。〔履歴 Diplomacy.cs#361〕
             else if (t >= c.HighTensionBand && CannotDeclareWar(k))
                 CoolSlot(k, ref slot, t, Math.Max(0, t - c.FrozenTensionDecayRate));
-            // 窓＝DefeatShockKeepPerQuarter（数年で切れる）。〔履歴 Diplomacy.cs#362〕
-            else if (c.DefeatShockTensionRelief > 0 && t >= c.HighTensionBand && DefeatedShock(k) is var shock && shock >= c.DefeatShockProtectMin)
-                CoolSlot(k, ref slot, t, Math.Max(0, t - c.DefeatShockTensionRelief * shock));
             // 速さ＝**平時の減衰 × (1 − 遺恨)**。〔履歴 Diplomacy.cs#363〕
             else if (t >= c.HighTensionBand)
             {
@@ -3268,14 +3265,6 @@ public sealed class Diplomacy
                 if (v < 1e-4) _grudge.Remove(gk); else _grudge[gk] = v;   // 十分薄れたら消す（辞書の有界化）
             }
         }
-    }
-
-    // 機能9-1：緊張キーの2国のうち高い方の敗戦ショック（保護判定＝どちらかが直近に倒れたペアの緊張を冷ます）。
-    private double DefeatedShock(long key)
-    {
-        int hi = (int)(key >> 32), lo = (int)(uint)key;
-        Power? a = Powers.Find(p => p.Id == hi), b = Powers.Find(p => p.Id == lo);
-        return Math.Max(a?.Nation?.DefeatShock ?? 0, b?.Nation?.DefeatShock ?? 0);
     }
 
     // 外11：緊張キーの2国が「開戦経路を永久に塞がれている」か＝従属関係（TriggerWars の恒久ガード）。

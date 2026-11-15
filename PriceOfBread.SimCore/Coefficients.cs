@@ -86,7 +86,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double MilitancySpeed = 0.30;              // 闘争度（ストック）の追従速度σ＝半減期5.8か月
     public int ElectionIntervalQuarters = 16;         // 議会選挙の間隔（四半期）
     public double NonElectiveSeatsEmpty = 1;          // 0＝非選挙の政体は毎期 議席＝得票の写し（今のまま）
-    public double ParliamentSeatsWithoutGap = 1;      // (1118) 2026-11-14 点火・0＝旧（QuartersSinceElection≥1 で開院）・1＝開院の条件を思想の有無へ（移行の次の四半期と開幕の四半期 0 の空席を閉じる）・思想が無い選挙政体は議会の前に思想を 1 回出す（(1118)）
+    public double ParliamentSeatsWithoutGap = 1;      // 1＝開院の条件を思想の有無へ（空席の四半期を閉じる）・0＝旧（選挙の後 1 四半期から開院）。(1118) 2026-11-14 点火
     public Share PartyDominanceThreshold = new(0.6);      // 一党支配と見なす議席シェアの閾値（これ超で多元性が崩れ始める）
     public double DominanceLegitimacyErosion = 0.05;  // 一党支配が正統性を削る強さ（支配＝多元的正統性の喪失→権威主義へ漂流）
     public double DominanceInstabilitySatisfaction = 0.43;   // これ超の満足した国では

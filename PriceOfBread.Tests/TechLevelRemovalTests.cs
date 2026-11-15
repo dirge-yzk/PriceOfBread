@@ -18,11 +18,11 @@ public class TechLevelRemovalTests
     private static readonly (string Dir, string File, int Lines)[] Allowed =
     [
         ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),   // (843) c68ui：ArmyShape.cs・Diplomacy.cs・DiscoveryTables.cs・FiscalTables.cs・Megaprojects.cs（3→0）・PlayHarness.cs の行は段6 の旗の焼き込みで技術水準を読む行が無くなった（許可表の行を消す・MultiNationSim.cs 9→8・World.cs 5→4）
-        ("PriceOfBread.SimCore", "Colonial.cs", 1), ("PriceOfBread.SimCore", "Discovery.cs", 2),
+        ("PriceOfBread.SimCore", "Discovery.cs", 2),
         ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 1), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
         ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 8),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
-        ("PriceOfBread.SimCore", "Transport.cs", 1), ("PriceOfBread.SimCore", "World.cs", 4),
+        ("PriceOfBread.SimCore", "World.cs", 4),
         ("PriceOfBread.Runner", "Program.cs", 2),
     ];
 
