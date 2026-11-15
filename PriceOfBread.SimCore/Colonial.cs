@@ -41,7 +41,7 @@ public static class Colonial
         BuyUpkeepGood(w, r, fuelG, fuelWant);
         const int quinineG = Catalog.QuinineId;
         var qnPre = Instruments.On ? Instruments.ColqnBefore(w, r) : default; double qnGot = quinineWant > 1e-9 ? BuyUpkeepGood(w, r, quinineG, quinineWant) : 0;
-        if (Instruments.On) Instruments.ColqnAfter(w, r, qnPre, qnGot);   // (1153) 計器 colqn_s（読むだけ・行の数を変えない）
+        if (qnPre.Ok) Instruments.ColqnAfter(w, r, qnPre, qnGot);   // (1153) 計器 colqn_s（読むだけ・行の数を変えない・Instruments.On は 1 回だけ読む）
         if (c.ColonialUnrestHomeWeight > 1e-9)
         {
             double colMilSum = 0, colPopSum = 0;
