@@ -57,8 +57,6 @@ public sealed partial class Coefficients
     public double FamineSocialism = 0.3;           // 飢えの記憶→r[5]社会
     public double FamineMemoryKeepPerQuarter = 0.95;        // 飢えの記憶の四半期残存率（半減期≈3.4年＝飢饉は忘れられるが世代内は残る）
     public double ExternalPressureNationalism = 0.3;   // 外圧→r[4]（攘夷→富国強兵・清の反帝国主義）
-    public double DefeatShockTensionRelief = 0.0;  // 月次×max(両者shock)・(1145) 既定 0＝ハイエナ抑制の枝を閉じる（旧の既定 2.0）
-    public double DefeatShockProtectMin = 0.3;     // 保護が効く敗戦ショックの下限（数年で切れる＝DefeatShockKeepPerQuarterが窓）
     public double ElectionPushHalfPerVoter = 0.04; // half ＝ これ × 有権者数 × (名目GDP÷人口)＝「有権者1人につき月あたり平均所得の4%を配れば効きが半分」
     public double ElectionBribePovertyWeight = 0.0; // 半減点の単価を「全国一律の一人あたり名目所得」から「その有権者pop自身の豊かさ」へブレンドする率∈[0,1]：half
     public Share ManifestoFulfillMove = new(0.1);      // 達成と認める最小の移動量（軸の可動域に対する割合＝0.1で「1割進んだ」。段のある法は1段でおおむね超える）

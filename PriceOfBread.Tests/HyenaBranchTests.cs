@@ -14,10 +14,10 @@ public class HyenaBranchTests
 
     static long Key(Power a, Power b) => a.Id < b.Id ? ((long)a.Id << 32) | (uint)b.Id : ((long)b.Id << 32) | (uint)a.Id;
 
-    static MultiNationSim NewSim(double relief)
+    static MultiNationSim NewSim()
     {
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], Seed, _ => new UtilityAgent(), null);
-        foreach (var n in sim.Nations) { n.World.Coef.CivilWarLandslideRatio = 0; n.World.Coef.DefeatShockTensionRelief = relief; }
+        foreach (var n in sim.Nations) { n.World.Coef.CivilWarLandslideRatio = 0; }
         sim.DiplomacyFrozen = true;
         return sim;
     }
@@ -47,35 +47,23 @@ public class HyenaBranchTests
             .Invoke(sim.Diplomacy, [sim.Nations[0].World.Coef]);
 
     [Fact]
-    public void H1_係数2では衝撃の組がハイエナの枝で冷める_遺恨の組と低い帯は平時の式()
+    public void H2_ハイエナの枝は無い_衝撃の組も遺恨の式で冷める_遺恨1なら動かない()
     {
-        var sim = NewSim(2.0);
+        var sim = NewSim();
         var b = Board(sim);
         Drift(sim);
-        Assert.Equal(118.0, b.T[b.H], 12);    // 120 − 2.0×1.0
-        Assert.Equal(119.79, b.T[b.G], 12);   // 120 − 0.42×(1−0.5)
-        Assert.Equal(49.58, b.T[b.L], 12);    // 50 − 0.42
-        Assert.Equal(119.8, b.T[b.F], 12);    // 120 − 0.2（凍結）
-    }
-
-    [Fact]
-    public void H2_係数0では衝撃の組も遺恨の式で冷める_遺恨1なら動かない()
-    {
-        var sim = NewSim(0.0);
-        var b = Board(sim);
-        Drift(sim);
-        Assert.Equal(120.0, b.T[b.H], 12);    // 遺恨 1.0＝率 0
+        Assert.Equal(120.0, b.T[b.H], 12);    // 遺恨 1.0＝率 0（(1154) 枝の削除後＝枝が戻れば 118 になって赤）
         Assert.Equal(119.79, b.T[b.G], 12);
         Assert.Equal(49.58, b.T[b.L], 12);
         Assert.Equal(119.8, b.T[b.F], 12);
     }
 
-    static string[] InsRow(double relief, out string[] head, out string dir)
+    static string[] InsRow(out string[] head, out string dir)
     {
         dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_hy_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         Instruments.SelectTables("dipcool_s");
-        var sim = NewSim(relief);
+        var sim = NewSim();
         try
         {
             Instruments.Phase(sim, Seed, "open");
@@ -100,33 +88,29 @@ public class HyenaBranchTests
         double.Parse(row[System.Array.IndexOf(head, name)], System.Globalization.CultureInfo.InvariantCulture);
 
     [Fact]
-    public void H3_計器dipcool_sは係数2でハイエナを1行数え_係数0で0行_旧の規則の行は両方で1()
+    public void H3_計器dipcool_sは枝の削除後もハイエナの旧の規則を同じ盤面で数え_実際の値は新の規則に合う()
     {
-        string d0 = "", d1 = "";
+        string d0 = "";
         try
         {
-            var r2 = InsRow(2.0, out var h, out d0);
-            var r0 = InsRow(0.0, out _, out d1);
-            Assert.Equal(1.0, Col(h, r2, "months")); Assert.Equal(1.0, Col(h, r0, "months"));
-            Assert.Equal(3.0, Col(h, r2, "highRows")); Assert.Equal(1.0, Col(h, r2, "lowRows"));
-            Assert.Equal(1.0, Col(h, r2, "frozenRows")); Assert.Equal(0.2, Col(h, r0, "sumObsCoolFrozen"), 9);
+            var r0 = InsRow(out var h, out d0);
+            Assert.Equal(1.0, Col(h, r0, "months"));
+            Assert.Equal(3.0, Col(h, r0, "highRows")); Assert.Equal(1.0, Col(h, r0, "lowRows"));
+            Assert.Equal(1.0, Col(h, r0, "frozenRows")); Assert.Equal(0.2, Col(h, r0, "sumObsCoolFrozen"), 9);
             Assert.True(Col(h, r0, "maxAbsDiffFrozen") <= 1e-9, $"凍結の差 {Col(h, r0, "maxAbsDiffFrozen")}");
-            Assert.Equal(1.0, Col(h, r2, "oldHyenaRows")); Assert.Equal(1.0, Col(h, r0, "oldHyenaRows"));
-            Assert.Equal(1.0, Col(h, r2, "oldHyenaFreshRows")); Assert.Equal(1.0, Col(h, r2, "freshRows"));
-            Assert.Equal(1.0, Col(h, r2, "obsHyenaRows")); Assert.Equal(1.0, Col(h, r2, "obsHyenaFreshRows"));
+            Assert.Equal(1.0, Col(h, r0, "oldHyenaRows"));
+            Assert.Equal(1.0, Col(h, r0, "oldHyenaFreshRows")); Assert.Equal(1.0, Col(h, r0, "freshRows"));
             Assert.Equal(0.0, Col(h, r0, "obsHyenaRows")); Assert.Equal(0.0, Col(h, r0, "obsHyenaFreshRows"));
-            Assert.Equal(2.0, Col(h, r2, "grudgeRows"));
-            Assert.Equal(2.0, Col(h, r2, "maxAbsDiffNewGrudge"), 9);    // 118 と 120 の差
-            Assert.True(Col(h, r0, "maxAbsDiffNewGrudge") <= 1e-9, $"係数 0 の差 {Col(h, r0, "maxAbsDiffNewGrudge")}");
-            Assert.Equal(2.21, Col(h, r2, "sumObsCoolGrudge"), 9);     // 2.0＋0.21
+            Assert.Equal(2.0, Col(h, r0, "grudgeRows"));
+            Assert.True(Col(h, r0, "maxAbsDiffNewGrudge") <= 1e-9, $"新の規則との差 {Col(h, r0, "maxAbsDiffNewGrudge")}");
             Assert.Equal(0.21, Col(h, r0, "sumObsCoolGrudge"), 9);
-            Assert.Equal(2.21, Col(h, r0, "sumOldCoolGrudge"), 9);     // 同じ盤面の旧の規則
-            Assert.Equal(0.0, Col(h, r2, "obsOtherRows")); Assert.Equal(0.0, Col(h, r0, "obsOtherRows"));
+            Assert.Equal(2.21, Col(h, r0, "sumOldCoolGrudge"), 9);     // 同じ盤面の旧の規則（計器が自分の定数 2.0 で組む）
+            Assert.Equal(0.0, Col(h, r0, "obsOtherRows"));
         }
         finally
         {
             Instruments.SelectTables(null); Instruments.Configure(null, null);   // 選びと出力の先を戻す（同じ集まりの他の試験へ漏らさない）
-            foreach (var d in new[] { d0, d1 }) if (d.Length > 0 && System.IO.Directory.Exists(d)) System.IO.Directory.Delete(d, true);
+            if (d0.Length > 0 && System.IO.Directory.Exists(d0)) System.IO.Directory.Delete(d0, true);
         }
     }
 }

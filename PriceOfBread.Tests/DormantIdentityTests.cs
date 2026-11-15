@@ -246,8 +246,6 @@ public class DormantIdentityTests
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
-        // (1145) D-b ハイエナ抑制の枝を閉じた（既定 0＝枝の門 DefeatShockTensionRelief > 0 が閉じる）。枝と係数の削除は次の恒等の線＝そこでこの行も消す
-        "DefeatShockTensionRelief",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -258,6 +256,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "DefeatShockTensionRelief", "DefeatShockProtectMin",   // (1154) c113sw D-b：ハイエナ抑制の枝と係数 2 本の削除（(1145) c112hy が既定 0 で閉じた後・旧の道は HyenaBranchTests の H1 が戻ると赤）
         "MilitaryProcurePriceGateScale",   // (1132) c110sm K1：軍需財の価格ゲート倍率（既定 1 の経路だけ残した・FactoryBuildPriceGateScale は FactoryTierTests が 0 を置く本物の読み手があるので残す）
         "GarrisonProcurement",             // (1132) c110sm K2：駐屯州調達の器（既定 0・旗 0 の道だけ残した・★(1129) ③ 作者「しばらくの間、全て推奨で」で推奨を採った）
         "MineralScaleCapLift", "MineralScaleCap",   // (1132) c110sm K4：鉱山の天井の旗の焼き込み（天井は ScaleMax へ・MineralScaleCap は読み手 0）

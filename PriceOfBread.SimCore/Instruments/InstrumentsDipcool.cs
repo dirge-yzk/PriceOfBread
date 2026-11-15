@@ -14,6 +14,8 @@ public static partial class Instruments
 
     /// <summary>旧の規則の率（p06 の DefeatShockTensionRelief の旧の既定・月×衝撃）。係数が 0 の木でも旧の規則を同じ盤面で数えるため、計器が自分で持つ。</summary>
     internal const double DipcoolOldRelief = 2.0;
+    /// <summary>旧の規則の保護が効く衝撃の下限（係数 DefeatShockProtectMin の削除前の既定 0.3・(1154) で係数ごと消した＝計器が自分の定数で持つ・列の値は変えない）。</summary>
+    internal const double DipcoolProtectMin = 0.3;
     /// <summary>規則に合ったと数える差の許し（緊張の単位）。</summary>
     internal const double DipcoolMatchTol = 1e-9;
 
@@ -57,8 +59,8 @@ public static partial class Instruments
                 && (dependency.Contains(((long)hi << 32) | (uint)lo) || dependency.Contains(((long)lo << 32) | (uint)hi));
             double sh = System.Math.Max(shock.GetValueOrDefault(hi), shock.GetValueOrDefault(lo));
             double g = d._grudge.GetValueOrDefault(k);
-            var o = DipcoolRule(t, g, sh, frozen, true, c.HighTensionBand, c.TensionDecay, c.FrozenTensionDecayRate, c.DefeatShockProtectMin);
-            var n = DipcoolRule(t, g, sh, frozen, false, c.HighTensionBand, c.TensionDecay, c.FrozenTensionDecayRate, c.DefeatShockProtectMin);
+            var o = DipcoolRule(t, g, sh, frozen, true, c.HighTensionBand, c.TensionDecay, c.FrozenTensionDecayRate, DipcoolProtectMin);
+            var n = DipcoolRule(t, g, sh, frozen, false, c.HighTensionBand, c.TensionDecay, c.FrozenTensionDecayRate, DipcoolProtectMin);
             pre.Rows.Add(new DipcoolRow(k, t, g, sh, frozen, o.Branch, o.After, n.After));
         }
         return pre;
