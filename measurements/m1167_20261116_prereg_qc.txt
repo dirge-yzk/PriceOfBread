@@ -1,0 +1,31 @@
+(1167) 線 c115qc 事前登録（恒等の線・予言 0）  2026-11-16  枝 c115qc（c3c4de36a から）
+形：尾の後片付け。作者「しばらくの間、全て推奨で」で推奨を採った（作者の確認待ち）。作者の言葉（原文）2026-11-06「動作していないロジックのうち…削除することも検討してください。」
+
+[1] 恒等の線・予言 0
+  既定（係数 MalariaQuininePerColony＝0.0）の道だけを残して他を消す。門 quinineWant > 1e-9 は常に偽＝BuyUpkeepGood は呼ばれない。
+  ★(743) の区分：①〜④ のテストの書き換えは無し。消すのは ColonialQuinineTests.cs 全体（消したメンバーの試験を消す）。
+  浮動小数の順序が変わる箇所：無し（式は触らない・shipBurden の足し込みは不変）。紙の台本の旧≠新の行数＝0（同じ盤面で quinineWant は常に 0.0）。
+
+[2] 消す物と残す物
+  消す：
+   (a) Colonial.cs:17 quinineWant・:19/:31 AccumUpkeep の malarial 引数・:24・:42 const quinineG・:43〜:44（調達と計器の口）
+   (b) Coefficients.p04_trade.cs:152 MalariaQuininePerColony → DormantIdentityTests.cs:251〜:252 の行を DormantZeroFields から RetiredFields へ移す
+   (c) Instruments/InstrumentsColqn.cs 全体・Instruments.cs の 3 行（:1121 ColqnInvaded の呼び・:1959 ColqnTable・:2002 ColqnClose）
+   (d) Region.Malarial（Model.cs:735）・書き手 Simulation.cs:827（州の構築）・:1366（植民地の昇格）
+   (e) 読み手が 0 になる物：ProvinceSpec.Malarial（NationConfig.cs:87・world.json と opening_bake.json に malarial の札は 0 件）・Colony.Malarial（Diplomacy.cs:98）と書き手 MultiNationSim.cs:106 の `Malarial = t.Quinine`（1 語だけ）
+   (f) ColonialQuinineTests.cs（Q1・Q2・Q3・Q3b・Q4 の 5 本）
+  残す：遠征のキニーネ（World.cs:1783 InvQuinineId・:1871〜:1874 RequiresQuinine の買い）・Catalog のキニーネ財と発見・Diplomacy.cs:76 RequiresQuinine・WorldData.TargetDto.Quinine（RequiresQuinine の源）・Colonial.BuyUpkeepGood（遠征と燃料が読む）
+  読み手の grep（SimCore・Tests・App・Display・Runner・scripts・POB_COEF の名前・SaveGame）：
+   Region.Malarial の読み手＝Colonial.cs:31 のみ。Colony.Malarial の読み手＝Simulation.cs:1366（Region.Malarial への写しのみ）。ProvinceSpec.Malarial の読み手＝Simulation.cs:827 のみ。
+   App・Display・Runner には Malarial・MalariaQuinine・colqn の読み手 0。scripts の読み手＝旧の線（c113qn・c114qn・m1164 の台本・c84kp/c85kp の突然変異）＝記録の台本は直さない。SaveGame は全欄をリフレクション＝欄の削除は同じ版の往復に影響しない（savetest で確かめる）。
+  他の線との重なり：Colonial.cs :13〜:45・Model.cs :735・Simulation.cs :827/:1366・p04 :152・Instruments.cs の colqn 3 行・Diplomacy.cs :98・NationConfig.cs :87・MultiNationSim.cs :106 の 1 語（持ち主の一覧に無い行＝cr の清算の所・sb の :743 と別の行・合流で解ける）・DormantIdentityTests の行だけ。
+
+[3] 足す試験と突然変異
+  足す：ExpeditionQuinineTests.cs（新）E1 1 本＝熱帯の標的への遠征がキニーネを求めの全量（手で書いた数 40＝缶詰の基礎 20＋標的の軍事力 1×20）買う。計器を使わない・在庫は 1e6 と 45 の 2 盤面は使わず在庫 45 の 1 盤面。
+  突然変異 M1：World.cs:1874 の BuyUpkeepGood を 0 に置き換える（遠征の調達を消す）→ E1 赤。
+  数の予言：消す 5 本・足す 1 本＝Tests 2655→2651（Tests.Ui 234 は不変）・非 FullLength 合計 2889→2885・FullLength 3。DormantIdentityTests の本数は不変（名簿の行の移動だけ）。
+  ㉘ 走査の番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests と TechLevelRemovalTests。書き換える件数の予言＝0（Colonial・Colqn・Malarial を数える番人は無い予定＝grep で確かめ、あれば事前登録の追記で名乗る）。
+
+[4] 成績表：素の 5 種・計器つき 10 種が m1164 と名乗り行を除いて全行一致。計器の表の差は宣言だけ＝colqn_s の削除（表ごと無くなる）。.cost の件数の行は増えない。
+[5] 判定：〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
+合流への申し送り：scripts/instruments/m1164/cfg1164.py ほかのヌル腕の絞った表の名簿と合流の台本から colqn_s を外す。記録の台本（c113qn・c114qn）は直さない。

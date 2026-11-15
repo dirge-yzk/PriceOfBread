@@ -1118,7 +1118,7 @@ public static partial class Instruments
     /// 読むだけ。〔履歴 Instruments.cs#173〕
     /// </summary>
     internal static void Invaded(Diplomacy dip, int year, Power invader, Power target, bool submitted, double added, double addedToTarget)
-        { Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget)); WarNoteInvade(dip); ColqnInvaded(invader, target); }   // ColqnInvaded（(1158) 遠征のキニーネ・colqn_s）
+        { Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget)); WarNoteInvade(dip); }
     /// <summary>月の戦死（<c>Diplomacy.WarCasualties</c>）：(年, 国)ごとの月数・兵士の月和・戦死の和（戦死は兵士の上限をかけた後の量）。</summary>
     internal static void Casualty(Diplomacy dip, int year, Power p, double soldierPop, double dead)
     {
@@ -1956,7 +1956,6 @@ public static partial class Instruments
         RailSpendTable(sim, seed, q);      // RailSpendTable（(1130) railspend_s）
         TportTable(sim, seed, q);          // TportTable（(1138) 条約港の読み手・tport_s）
         DipcoolTable(sim, seed, q);        // DipcoolTable（(1145) 高い帯の冷めの枝・dipcool_s）
-        ColqnTable(sim, seed, q);          // ColqnTable（(1153) 植民地のキニーネ・colqn_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -1999,7 +1998,6 @@ public static partial class Instruments
         RailSpendClose(sim);   // RailSpendClose（(1130)）
         TportClose(sim);       // TportClose（(1138)）
         DipcoolClose(sim);     // DipcoolClose（(1145)）
-        ColqnClose(sim);       // ColqnClose（(1153)）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕

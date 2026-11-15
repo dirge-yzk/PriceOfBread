@@ -248,8 +248,6 @@ public class DormantIdentityTests
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
-        // (1158) 植民地の毎月のキニーネを閉じた（既定 0＝門 quinineWant > 1e-9 が閉じる）。quinineWant と係数の削除は次の恒等の線＝そこでこの行も消す
-        "MalariaQuininePerColony",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -260,6 +258,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "MalariaQuininePerColony",   // (1167) c115qc：植民地の毎月のキニーネ（(1158) で既定 0・(1164) で係数 0 を採った）。枝と係数を削除
         "EraTensionRange",   // (1160) c114sr D-r2：近接の緊張の距離の時代係数（EraFactor は常に 1.0＝×1.0 を消した・読み手は World.cs の 1 行だけだった）
         "DefeatShockTensionRelief", "DefeatShockProtectMin",   // (1154) c113sw D-b：ハイエナ抑制の枝と係数 2 本の削除（(1145) c112hy が既定 0 で閉じた後・旧の道は HyenaBranchTests の H2 が戻ると赤）
         "MilitaryProcurePriceGateScale",   // (1132) c110sm K1：軍需財の価格ゲート倍率（既定 1 の経路だけ残した・FactoryBuildPriceGateScale は FactoryTierTests が 0 を置く本物の読み手があるので残す）

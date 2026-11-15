@@ -732,7 +732,6 @@ public sealed class Region
     public RegionTier Tier;
     public RegionTier? TierInParent;
     public Terrain Terrain;
-    public bool Malarial;
     public double Dominance = 1.0;
     public double[] Rule = [1.0, 0.0, 0.0, 0.0];
     public double[] RuleInit = [1.0, 0.0, 0.0, 0.0];
