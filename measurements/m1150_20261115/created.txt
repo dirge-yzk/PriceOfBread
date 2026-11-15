@@ -1,0 +1,3 @@
+D:/PoB_work/wt_m1150 D:/PoB_work/m1150_work 2026-11-15 10:29:12
+D:/PoB_work/keep_1150_rej（採らなかった c112t1 の腕 B・Ab・Aa の生を c112t1_arms から名前の付け替えで移した 2026-11-15 10:30:42）
+D:/PoB_work/keep_1150（新しい基線の生 base_ins・n1・n2・a11＝m1150_work の腕の出力を名前の付け替えで移した 2026-11-15 12:55:40）

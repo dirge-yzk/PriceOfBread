@@ -1,0 +1,4 @@
+M all=5659 noshock_grudge=295 noshock_nogrudge=4521 pairQuarters=524762 shock_grudge=83 shock_highprev=400 shock_nogrudge=760
+base1143 all=5223 noshock_grudge=283 noshock_nogrudge=4263 pairQuarters=442401 shock_grudge=70 shock_highprev=250 shock_nogrudge=607
+N1_1143 all=5108 noshock_grudge=254 noshock_nogrudge=4274 pairQuarters=427445 shock_grudge=59 shock_highprev=225 shock_nogrudge=521
+N2_1143 all=4987 noshock_grudge=245 noshock_nogrudge=4190 pairQuarters=449154 shock_grudge=37 shock_highprev=175 shock_nogrudge=515

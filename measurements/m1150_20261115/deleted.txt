@@ -1,0 +1,3 @@
+2026-11-15 11:45:39 c112hy_work/armB/out_c112hyB_10 25G 消した（この波の挙動の線の腕 B の生・合わせた木の M の生と表ごとにバイトで比べた＝cm の 4 表と既知の揺れ 2 表を除き 1463 本が一致〔measurements/m1150_20261115/rawcmp_M_hyB.tsv〕＝帰属は読み終えた・M の生が keep_1150/base_ins になる）
+2026-11-15 11:50:38 ident_m1150z 消した（自分で作った腕 Z の生・判定〈恒等〉と表は measurements に写した〔ident_20261115_m1150z.txt・_manifest.tsv に sha1〕）
+2026-11-15 11:51:32 wt_m1150z 消した（自分で作った腕 Z の使い捨ての worktree・コミット 58c7255d4 は push しない）

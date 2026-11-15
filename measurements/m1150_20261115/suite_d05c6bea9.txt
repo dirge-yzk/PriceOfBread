@@ -1,0 +1,18 @@
+(1150) 合わせた木 d05c6bea9（DefeatShockTensionRelief 0）のフルスイート（suite1150.sh full）・savetest・leakhunt
+list PriceOfBread.Tests nonfull 2636
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+nonfull PriceOfBread.Tests rc=0 1500s
+full PriceOfBread.Tests rc=0 254s
+nonfull PriceOfBread.Tests.Ui rc=0 126s
+full PriceOfBread.Tests.Ui rc=0 2s
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 3 s - PriceOfBread.Tests.Ui.dll (net10.0)
+成功!   -失敗:     0、合格:  2635、スキップ:     1、合計:  2636、期間: 24 m 57 s - PriceOfBread.Tests.dll (net10.0)
+No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\m1150_work\suite\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 11 s - PriceOfBread.Tests.dll (net10.0)
+saveleak rc=0 284s
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m1150_work/suite/leakhunt.txt　マニフェスト=D:/PoB_work/m1150_work/suite/leakhunt.txt.manifest（SOURCE-HASH=ea4d26140636c992）
