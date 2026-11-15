@@ -100,3 +100,22 @@
 - InstrumentsRailSpend.cs は lc だけ。Instruments.cs は触らない（railspend_s の登録は既存）。DormantIdentityTests.cs は RailLocoNeedsDiscovery の注の行の次に 1 行。
 
 ■ 入れない物：案 A（運び手に線路を足す）・案 B（接触の大きさで比例に開く）・Transport.cs:16・線路の国の取り分の直し・lo を外すこと・App・Display・Runner。
+
+■ 追記 1（2026-11-15・旗 1 の既定の前・門と閾値は変えていない）
+- ident c113lcz（木 3548f794f・段 2〔stage.py〕・--grown-ok railspend_s・--tests-delta 4）〈判定: 恒等〉：素の 5 種 b5_20261115_m1150 と全行一致（179 行）・計器つき 10 種 b10_20261115_m1150_ins と全行一致（179 行）・.cost の件数 43 行と推定 227.4／228.4 秒が一致・計器の表 1523 本＝バイト一致 1493＋既知の揺れ 20＋列が増えた railspend_s 10・注視の表一致・テスト 2874（2870+4）・FullLength 3（measurements/m1152_20261115/ident_c113lcz/）。ident の生は判定の後に刈った（ident.sh の刈り込みは作業フォルダの外で拒んだ＝手で消した）。
+- 旗 0 の盤面の値（ident の生・gates_lc.py＝measurements/m1152_20261115/gates_flag0_ident.txt）：G-C1a 475.56（床 4772 の下＝落ちる・m1150 の M の 475.6 と同じ）・G-C2 0（正の行 0）・monthsWorldOnly の和 661,671（紙の四半期の束の近似 661,023 と合う）・その行の pre の機関車の払い 0。
+- G-C0 の読み手の直し（腕 B の前・結果を見る前）：gc0.py は ident の旗 0 の生（恒等）で〈赤〉を返した＝clock_s の worldTotalPerMonth（ident.cfg の KNOWN＝既知の揺れ）を比べていた。KNOWN の 3 列（burscan_s:seconds・clock_s:worldTotalPerMonth・dep_s:callerLine）を両側で空にして比べる形へ直し、同じ生で〈緑〉（比べた表 1463・〈前〉の行 30,634,693・違う表 0・時の列が無い表 60）＝measurements/m1152_20261115/gc0_flag0_ident.txt。門の定義（境より前の全ての表の行）は変えていない。
+- 突然変異（短い走り＝2 種・四半期 268・表 railspend_s と disccontact_s・木 3548f794f・measurements/m1152_20261115/muts_gates_r1.txt・生 D:/PoB_work/c113lc_work/muts）：
+  | 変異 | G-C0′ | G-C1a′（床 0.4034） | G-C2′ | 予言と |
+  | F0（旗 0＝M1） | 基準 | 赤（0） | 緑（0） | 一致 |
+  | F1（旗 1） | 緑（違う表 0） | 緑（626,047） | 緑（0） | 一致 |
+  | M2（RailLocoNeedsDiscovery＝0） | 赤（種 2 の 3 表） | 緑（871,425） | 緑 | 一致 |
+  | M3（決済は自国） | 緑 | 緑（716,597） | 緑 | 一致（G-C1a′ の〈不定〉は緑） |
+  | M4（保守は自国） | 緑 | 緑（644,293） | 緑 | 一致 |
+  | M5（Transport.cs:16 も世界） | 緑 | 緑（1.26e6） | 赤（9.18e6・正の行 7,061） | 一致 |
+  - 記録：monthsWorldOnly の行の pre の機関車の払い（建設・保守）＝F1 2.10e6・3.34e4／M3 0・0／M4 2.10e6・0＝成績表の側でも M3・M4 の誤りが見える。
+- xUnit の突然変異（1 回目＝木 3548f794f・muts_xunit_r1_*.txt）：M1 T1 赤・M5 T4 赤は予言どおり。M3・M4 は緑＝予言（T1 赤）と外れた。原因は変異の書き方：自国の門の式を旗 RailLocoNeedsDiscovery を見ずに置いたため、試験の対照（門を掛けない盤面）まで変わった（変異の誤り・エンジンと試験の誤りではない）。式を〈RailLocoNeedsDiscovery＞0 かつ自国が知らないなら 0〉へ直した（成績表の短い走りは旗 1 なので 2 つの式は同じ値＝回し直さない）。
+- 穴を塞ぐ試験 T5 を足した（試験だけのコミット b2633d62c・★(790)〈突然変異で緑なら機構の試験を足す〉）：機関車の在庫を手で置いて配給を正にした盤面で、門を掛けない走りと決済・貯蓄・払いまでビットで比べる（前提：機関車が売れた量＞0・今の規則は違う）。--tests-delta は 4→5。
+- xUnit の突然変異（2 回目＝木 b2633d62c・muts_xunit_r2_*.txt）：X0（変異なし）5 本とも緑・M1 T1 と T5 赤・M3 T1 と T5 赤・M4 T1 と T5 赤・M5 T4 赤＝全て予言の門で赤。M3 の 1 回目の緑は盤面の穴ではなく変異の誤りだった（直した M3 は T1 でも赤）。
+- 旗 1 の短い走り（F1）：止まる事象なし（rc＝1 は短い走りの硬性ゲートの赤で F0 と同じ・NaN と例外の行なし）。G-C0′・G-C1a′・G-C2′ 緑。
+- 予言の読み替えはしない（門は事前登録のまま）。

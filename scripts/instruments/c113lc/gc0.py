@@ -18,7 +18,9 @@ def first_q(ins, s):
             if c[idd] == '1': return int(c[iq])
     return None
 
-def head_rows(p, tcol, lim, ncut):
+JIT = {'burscan_s': ('seconds',), 'clock_s': ('worldTotalPerMonth',), 'dep_s': ('callerLine',)}   # ident.cfg の KNOWN（既知の揺れ）＝両側で空にして比べる
+
+def head_rows(p, tcol, lim, ncut, blank=()):
     out = []
     with open(p, encoding='utf-8', newline='') as f:
         f.readline()
@@ -28,7 +30,9 @@ def head_rows(p, tcol, lim, ncut):
                 try: t = int(c[tcol])
                 except ValueError: t = None
                 if t is not None and t >= lim: break
-            out.append('\t'.join(c[:ncut]) if ncut else ln.rstrip('\r\n'))
+            for i in blank:
+                if i < len(c): c[i] = ''
+            out.append('\t'.join(c[:ncut] if ncut else c))
     return out
 
 T = defaultdict(int); bad = []; skipped = defaultdict(int)
@@ -53,8 +57,9 @@ for s in range(s0, s1 + 1):
         elif 'quarter' in hb: tcol, lim = hb.index('quarter'), qf
         elif 'year' in hb: tcol, lim = hb.index('year'), yf
         else: skipped['時の列が無い'] += 1; continue
-        rb = head_rows(pb, tcol, lim, 0)
-        ra = head_rows(pa, tcol, lim, ncut)
+        blank = tuple(hb.index(k) for k in JIT.get(stem, ()) if k in hb)
+        rb = head_rows(pb, tcol, lim, 0, blank)
+        ra = head_rows(pa, tcol, lim, ncut, blank)
         T['表'] += 1; T['行'] += len(rb)
         if rb != ra:
             T['違う表'] += 1
