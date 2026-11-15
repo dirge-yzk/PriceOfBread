@@ -51,3 +51,7 @@
 
 [6] 他の線との重なり
   MultiNationSim.cs＝:30・:952 だけ（t1 の台帳の行は別）。World.cs＝:1956 だけ。p10＝:61 と :73 の隣だけ。DormantIdentityTests.cs＝:259 と RetiredFields の 1 行。Instruments.cs＝:2069〜:2153 の region 行だけ（登録の行は触らない）。HyenaBranchTests.cs・InstrumentsTests.cs（region の列の行）。App・Display・Runner は触らない。
+
+[追記 1（フルスイートの後・ident の前）] ㉑ の予言の訂正
+  フルスイート（Category!=FullLength）で TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり が赤（World.cs が 4→3＝項2 D-r2 が WorldTechLevel を読む行を 1 行消したため）。[3] の〈書き換える件数＝0〉の予言は外れ（㉘ の絞り込みにこの試験が入っていなかった）。
+  区分：走査する件数の番人（読み手の許可表のラチェット＝〈減ったら表を直す〉が設計）を、読み手の削除に追随させる 1 行（World.cs 4→3）。機構の向き・大きさの Assert ではない。予言の外れ＝1 行（World.cs の 4→3）と名乗る。他の行は不変。
