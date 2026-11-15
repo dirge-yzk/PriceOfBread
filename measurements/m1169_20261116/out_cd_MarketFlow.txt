@@ -1,0 +1,7 @@
++ 48: if (monthStart && cost is not null)
++ 49: {
++ 50: long deadM = 0;
++ 51: foreach (var mk in region.Markets) if (mk.LastDemand == 0.0 && mk.LastProduced == 0.0 && mk.Stock == 0.0) deadM++;
++ 52: cost[CostLedger.DeadMarketMonth] += deadM;
++ 53: }
+--

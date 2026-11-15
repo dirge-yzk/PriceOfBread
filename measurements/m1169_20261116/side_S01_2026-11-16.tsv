@@ -1,0 +1,43 @@
+行	11-12 の行	区分	持ち主のファイルの差（ファイル単位）	コードの差（注と空白を除く・錨を囲む関数）	11-12 の判定	今の判定	確証
+S01-H004a	S01-01	写し	Discovery.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004b	S01-02	写し	Discovery.cs MultiNationSim.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004c	S01-03	写し	Discovery.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004d	S01-04	写し	Discovery.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004e	S01-05	写し	Discovery.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004f	S01-06	写し	ArmyShape.cs Discovery.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004g	S01-07	読み直し	Discovery.cs Transport.cs	なし	一部だけ働く	一部だけ働く（費用が立たない 79.4%）	生とソース（今の木・keep_1164）
+S01-H004h	S01-08	写し	BilateralMarket.cs Discovery.cs MultiNationSim.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H005a	S01-09	写し	Catalog.cs Discovery.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H005b	S01-10	写し	NationConfig.cs world.json	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H005c	S01-11	写し	Catalog.cs Discovery.cs	なし	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004i	S01-12	写し	Discovery.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004j	S01-13	写し	Discovery.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004k	S01-14	写し	Diplomacy.cs Discovery.cs World.cs	なし	未確かめ	未確かめ	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H005d	S01-15	写し	Catalog.cs Discovery.cs	なし	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H005e	S01-16	写し	Catalog.cs	なし	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H006a	S01-17	写し	Discovery.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H006b	S01-18	写し	Discovery.cs Ideology.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H006c	S01-19	写し	Discovery.cs MultiNationSim.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H006d	S01-20	写し	EconomyStep.cs TechEducation.cs	関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H007a	S01-21	写し	Discovery.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H007b	S01-22	写し	Discovery.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H007c	S01-23	読み直し	Discovery.cs Simulation.cs	関数 OpenSite の字が違う；関数 OpenSite の字が違う；錨 Discovery.cs:1231 を取り直せない	働く	働く	生とソース（今の木・keep_1164）
+S01-H007d	S01-24	写し	Catalog.cs Simulation.cs	なし	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H008	S01-25	写し	EconomyStep.cs MultiNationSim.cs	関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H009	S01-26	写し	Simulation.cs	関数 AddAlternateRecipes の字が違う；関数 AddAlternateRecipes の字が違う；係数の値 SulfurFromPyriteEnabled:1.0→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H010	S01-27	写し	EconomyStep.cs Simulation.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H011	S01-28	写し	Simulation.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H012a	S01-29	写し	Simulation.cs	関数 AddAlternateRecipes の字が違う；係数の値 SulfurFromPyriteEnabled:1.0→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H012b	S01-30	写し	Simulation.cs	関数 AddAlternateRecipes の字が違う；係数の値 SulfurFromPyriteEnabled:1.0→無	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H013	S01-31	写し	Simulation.cs	関数 AddAlternateRecipes の字が違う；錨 Simulation.cs:1241 を取り直せない；係数が消えた SulfurFromPyriteEnabled；係数の値 SulfurFromPyriteEnabled:1.0→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H014	S01-32	写し	Simulation.cs	関数 AddAdvancedProducers の字が違う；錨 Simulation.cs:1414 を取り直せない；係数が消えた CompostFertilizerEnabled；係数の値 CompostFertilizerEnabled:1.0→無 SteamTurbineEnabled:1.0→無	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H015	S01-33	写し	Simulation.cs	関数 AddAdvancedProducers の字が違う；係数の値 CompostFertilizerEnabled:1.0→無 SteamTurbineEnabled:1.0→無	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H016	S01-34	写し	Simulation.cs	関数 AddAlternateRecipes の字が違う；係数の値 SulfurFromPyriteEnabled:1.0→無	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H017	S01-35	写し	Simulation.cs	関数 AddAdvancedProducers の字が違う；錨 Simulation.cs:1364 を取り直せない；係数が消えた SteamTurbineEnabled；係数の値 CompostFertilizerEnabled:1.0→無 SteamTurbineEnabled:1.0→無	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H018	S01-36	写し	Catalog.cs Simulation.cs	関数 CatalogEconomy の字が違う；錨 Simulation.cs:1057 を取り直せない；係数が消えた OilNeedsMachinery；係数の値 OilNeedsMachinery:1.0→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H019	S01-37	写し	Catalog.cs Simulation.cs	関数 AddAlternateRecipes の字が違う；関数 AddAdvancedProducers の字が違う；係数の値 CompostFertilizerEnabled:1.0→無 SteamTurbineEnabled:1.0→無 SulfurFromPyriteEnabled:1.0→無	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H020	S01-38	写し	Catalog.cs Simulation.cs	関数 AddAlternateRecipes の字が違う；関数 AddAlternateRecipes の字が違う；係数の値 SulfurFromPyriteEnabled:1.0→無	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H001	S01-39	写し	Catalog.cs	なし	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H002	S01-40	写し	EconomyStep.cs Model.cs	関数 Run の字が違う；関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H003	S01-41	写し	Catalog.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S01-H004l	S01-42	写し	Catalog.cs Discovery.cs	なし	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない

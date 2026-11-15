@@ -1,0 +1,143 @@
++ 776: }
++ 777: if (costL is not null)
++ 778: {
++ 779: long zeroPops = 0, zeroEmpty = 0;
++ 780: foreach (var pz in region.Pops)
++ 781: {
++ 782: if (pz.Size != 0.0) continue;
++ 783: zeroPops++;
++ 784: if (pz.Savings.Value == 0.0 && pz.Debt.Value == 0.0 && pz.LastEarnedPerMonth.Value == 0.0) zeroEmpty++;
++ 785: }
++ 786: costL[CostLedger.ZeroPopMonth] += zeroPops; costL[CostLedger.ZeroPopEmptyMonth] += zeroEmpty;
+--
++ 914: bool t1Copy = coef.TradeBuyBySupplyCurve > 0 || insOn;
+--
+- 1032: if (sleep[pi] == 1) continue;
++ 917: if (sleep[pi] == 1) { if (t1Copy) { var sz = region.Producers[pi]; sz.T1OutPrev = 0; sz.T1Base = 0; sz.T1Mc = 0; } continue; }
+--
+- 1034: if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; continue; }
++ 919: if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; if (t1Copy) { s.T1OutPrev = 0; s.T1Base = 0; s.T1Mc = 0; } continue; }
+--
+- 1139: double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);
+- 1140: double price = region.Markets[s.GoodId].Price;
+- 1141: double profitFactor = ProfitFactor(s, price, mc, coef);
++ 1005: double t1Prev = s.Output;
++ 1006: s.Output = SupplyTargetAt(s, region, coef, world, baumol, gate, out double profitFactor, out double t1Mc, out double t1Base);
++ 1007: if (t1Copy) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }
+--
+- 1144: double target = s.Capacity * s.LastInputFill * profitFactor;
+- 1146: target *= InventoryAdjust(region, s.GoodId, coef);
+- 1147: s.Output = PoliticalQuantities.Toward(s.Output, target, coef.SupplyAdjustSpeed);
+- 1148: if (s.Output < 0) s.Output = 0;
++ 1009: produced[s.GoodId] += s.Output;
++ 1010: }
++ 1011: if (costL is not null)
+--
+- 1158: bool unInvented = !baumol && !(gate > 0);
+- 1159: if (unInvented) s.Output = 0;
+- 1160: else if (!(target > 0) && s.Output < coef.TargetStockFloor) s.Output = 0;
++ 1013: long deadZ = 0, deadB = 0, deadS = 0, deadR = 0, deadO = 0;
++ 1014: for (int pd = 0; pd < np; pd++)
++ 1015: {
++ 1016: if (sleep[pd] == 1) continue;
++ 1017: var sd = region.Producers[pd];
++ 1018: if (sd.Capacity != 0.0 || sd.Output != 0.0 || !(sd.ConstructionLeft <= 0.0)) continue;
++ 1019: if (sd.LaborPopIndex >= 0 && sd.LaborPopIndex < region.Pops.Count && region.Pops[sd.LaborPopIndex].Size == 0.0) deadZ++;
++ 1020: else if (sd.Bankrupt) deadB++;
++ 1021: else if (isService[sd.GoodId]) deadS++;
++ 1022: else if (sd.IsRgo) deadR++;
++ 1023: else deadO++;
+--
+- 1162: produced[s.GoodId] += s.Output;
++ 1025: costL[CostLedger.DeadProdZeroPop] += deadZ; costL[CostLedger.DeadProdBankrupt] += deadB; costL[CostLedger.DeadProdService] += deadS; costL[CostLedger.DeadProdRgo] += deadR; costL[CostLedger.DeadProdOt
+--
+- 1170: double monumentConstruction = 0, monumentLaborUnits = 0;
+--
++ 1037: double locoGate = 1.0;
+--
++ 1050: if (coef.RailLocoNeedsDiscovery > 0 && !Discovery.RailTransport(coef.RailLocoGateWorld > 0 ? world?.WorldDiscovered ?? region.Discovered : region.Discovered)) locoGate = 0.0;
+--
+- 1192: + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
++ 1054: + coef.ConsLoco * locoGate * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
+--
+- 1262: double bundleRef = BundleRef(coef) * Math.Max(region.PriceLevel, Eps);
+- 1263: double bundleAfford = bundleRef > Eps
+- 1264: ? 1.0 - (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
+- 1268: monumentConstruction = costPerUnit > Eps ? region.MonumentBuildQueue / costPerUnit * bundleAfford : 0;
+- 1269: if (monumentConstruction > 0)
+- 1270: {
+- 1271: investDemand[bundle.G0] += bundle.Q0 * monumentConstruction;
+- 1272: investDemand[bundle.G1] += bundle.Q1 * monumentConstruction;
+- 1273: investDemand[bundle.G2] += bundle.Q2 * monumentConstruction;
+- 1274: investDemand[bundle.G3] += bundle.Q3 * monumentConstruction;
+- 1275: if (Catalog.LaborId < ng && conWorker >= 0)
+- 1276: {
+- 1277: monumentLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * monumentConstruction / lWagePrice;
+- 1278: investDemand[Catalog.LaborId] += monumentLaborUnits;
+- 1279: }
+- 1280: }
+--
+- 1289: investDemand[coef.LocoGoodId] += coef.ConsLoco * construction;
++ 1100: investDemand[coef.LocoGoodId] += coef.ConsLoco * locoGate * construction;
+--
+- 1295: double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoP;
++ 1106: double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoGate * locoP;
+--
+- 1316: investDemand[coef.LocoGoodId] += maintenance * coef.MaintLocoRate;
++ 1124: investDemand[coef.LocoGoodId] += maintenance * coef.MaintLocoRate * locoGate;
+--
++ 1540: bool skipZeroPop = !insOn && insSpend is null && insEnt is null && fdd is null && !BudgetBindDiag.On;
++ 1541: long skippedZero = 0;
+--
++ 1612: if (skipZeroPop && p.Size == 0.0) { p.GoodNeed = 0; p.GoodDemand = 0; skippedZero++; continue; }
+--
++ 1856: if (skipZeroPop && p.Size == 0.0) continue;
+--
++ 1942: }
++ 1943: if (costL is not null)
++ 1944: {
++ 1945: long zeroNow = 0;
++ 1946: foreach (var pq in region.Pops) if (pq.Size == 0.0) zeroNow++;
++ 1947: costL[CostLedger.ConsumeSkipZeroPop] += skippedZero; costL[CostLedger.ConsumeZeroPopIndep] += zeroNow * consumedGoods;
+--
+- 2414: double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
++ 2090: double locoGot = coef.ConsLoco * locoGate * construction * ration[coef.LocoGoodId];
+--
++ 2095: if (insOn) Instruments.RailSpendAdd(world!, region, false, railGot, clearPrice[coef.RailGoodId], locoGot, clearPrice[coef.LocoGoodId]);
+--
+- 2427: if (cap && monumentConstruction > 0)
+- 2428: {
+- 2429: int sg = bundle.G0, mg = bundle.G1, cg = bundle.G2, lg = bundle.G3;
+- 2430: double sGot = bundle.Q0 * monumentConstruction * ration[sg];
+- 2431: double mGot = bundle.Q1 * monumentConstruction * ration[mg];
+- 2432: double cGot = bundle.Q2 * monumentConstruction * ration[cg];
+- 2433: double lGot = bundle.Q3 * monumentConstruction * ration[lg];
+- 2434: double built = bundle.Units(sGot, mGot, cGot, lGot, Eps);
+- 2435: if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
+- 2436: built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
+- 2437: double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
+- 2438: region.StateSpent[(int)TreasuryCat.Megaproject] += cost;
+- 2439: if (insOn) Instruments.MonumentPaid(world!, cost);
+- 2440: if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
+- 2441: {
+- 2442: double labQ = monumentLaborUnits * ration[Catalog.LaborId];
+- 2443: double labPay = labQ * clearPrice[Catalog.LaborId];
+- 2444: region.StateSpent[(int)TreasuryCat.Megaproject] += labPay;
+- 2445: if (insOn) Instruments.MonumentPaid(world!, labPay);
+- 2446: revenue[Catalog.LaborId] += labPay;
+- 2447: }
+- 2448: revenue[sg] += sGot * clearPrice[sg];
+- 2449: revenue[mg] += mGot * clearPrice[mg];
+- 2450: revenue[cg] += cGot * clearPrice[cg];
+- 2451: revenue[lg] += lGot * clearPrice[lg];
+- 2452: region.MonumentBuiltUnits += built;
+- 2453: }
+- 2457: region.MonumentBuildQueue = 0;
+--
+- 2487: double locoQ = maintenance * coef.MaintLocoRate * ration[coef.LocoGoodId];
++ 2129: double locoQ = maintenance * coef.MaintLocoRate * locoGate * ration[coef.LocoGoodId];
+--
++ 2133: if (insOn) Instruments.RailSpendAdd(world!, region, true, railQ, clearPrice[coef.RailGoodId], locoQ, clearPrice[coef.LocoGoodId]);
+--
+- 2849: catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
+--

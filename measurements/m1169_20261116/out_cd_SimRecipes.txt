@@ -1,0 +1,9 @@
+- 1241: if (coef.SulfurFromPyriteEnabled > 0)
+--
+- 1364: if (coef.SteamTurbineEnabled > 0)
+--
+- 1414: if (coef.CompostFertilizerEnabled > 0)
+--
+- 1057: : coef.OilNeedsMachinery > 0 && d.Id == Catalog.CrudeOilId
++ 920: : d.Id == Catalog.CrudeOilId
+--

@@ -1,0 +1,71 @@
+[1] base_ins/t1buy_s 旗 0・10 種の和（行 408491）
+  dealsX	1051451602
+  dealsX@1830	5531914
+  dealsX@1870	8155721
+  dealsX@1913	7281321
+  gateEval	29411629
+  gateMismatch	0
+  instSkip	27006241
+  oldSkip	38960480
+  popA	2399168
+  popADealX	0
+  popAPx	2257612
+  popAQtyX	0
+  popASmallD	514862
+  popAValX	0
+  popC	37604267
+  popCDealX	0
+  popCPart0	9540355
+  popCPart0DealX	0
+  popCUb	11939523
+  qtyX	1149791805
+  qtyX@1830	5714126.291
+  qtyX@1870	10529413.2
+  qtyX@1913	9355187.081
+  retreatDeals	0
+  retreatDealsRaw	0
+  retreatDealsTol	0
+  retreatQty	0
+  retreatQtySum	0
+  rows	240122892
+  selfDiff	0
+  selfMaxRel	0
+  selfN	0
+  smallD	69633785
+  u1Deals	1341647458
+  u1Excess	835889.5017
+  u1MaxRel	0.4893518382
+  u1Qty	1508206065
+  u1SmallD	221130847
+  u1SmallDViol	50113
+  u1Unok	0
+  u1Viol	343651
+  u1ViolAbs	343651
+  uBelowMin	0
+  unclassified	0
+[2] t1buy_s.qtyX 対 tb_s.impQ（種・年・四半期・国）：一致 407004・違う 1487（最大の相対差 3.13）・t1buy だけ 0・tb だけ 0
+[3] 年ごとの 10 種の和と n1・n2 の base に対する比
+  tb_s.impQ
+    1830: base 5.71413e+06・n1 1.0874・n2 0.9744
+    1870: base 1.05294e+07・n1 0.9498・n2 0.9524
+    1913: base 9.35519e+06・n1 1.1644・n2 1.0769
+    all: base 1.14979e+09・n1 1.1195・n2 1.0615
+    行 base 408491・n1 409300・n2 411225
+  nationgood_s.crossImportQty
+    1830: base 445454・n1 1.1316・n2 1.0054
+    1870: base 817887・n1 0.9597・n2 1.0010
+    1913: base 733110・n1 1.2095・n2 1.1084
+    all: base 1.01816e+07・n1 1.1394・n2 1.0635
+    行 base 1431950・n1 1434290・n2 1441180
+  nationgood_s.crossImportValue
+    1830: base 248285・n1 1.0749・n2 1.0436
+    1870: base 537179・n1 0.9815・n2 0.9563
+    1913: base 500509・n1 1.3461・n2 1.1183
+    all: base 6.7552e+06・n1 1.1755・n2 1.0506
+    行 base 1431950・n1 1434290・n2 1441180
+  t1buy_s.qtyX
+    1830: base 5.71413e+06・n1 無し・n2 無し
+    1870: base 1.05294e+07・n1 無し・n2 無し
+    1913: base 9.35519e+06・n1 無し・n2 無し
+    all: base 1.14979e+09・n1 無し・n2 無し
+    行 base 408491・n1 0・n2 0

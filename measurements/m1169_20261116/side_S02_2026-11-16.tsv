@@ -1,0 +1,24 @@
+行	11-12 の行	区分	持ち主のファイルの差（ファイル単位）	コードの差（注と空白を除く・錨を囲む関数）	11-12 の判定	今の判定	確証
+S02-H001a	S02-01	写し	Calendar.cs MarketFlow.cs Simulation.cs	なし	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H001b	S02-02	写し	Credit.cs Simulation.cs World.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H001c	S02-03	写し	MarketFlow.cs	関数 StepDay の字が違う；関数 StepDay の字が違う；関数 StepDay の字が違う	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H001d	S02-04	写し	MarketFlow.cs Model.cs	関数 StepDay の字が違う；関数 StepDay の字が違う；関数 StepDay の字が違う	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H001e	S02-05	写し	MarketFlow.cs Model.cs	関数 StepDay の字が違う；関数 StepDay の字が違う；形が違う 	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H002a	S02-06	写し	MarketFlow.cs Model.cs	関数 StepDay の字が違う	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H002b	S02-07	写し	MarketFlow.cs	関数 StepDay の字が違う	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H002c	S02-08	写し	MarketFlow.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H003	S02-09	読み直し	MarketFlow.cs	関数 StepDay の字が違う；係数が消えた PriceLawSupplyIncludesStock	働く	働く	生とソース（今の木・keep_1164）
+S02-H004a	S02-10	読み直し	MarketFlow.cs Model.cs Simulation.cs	関数 MonthSettle の字が違う；関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	一部だけ働く（国×月の 73.0% 以上で満点に張り付く）	一部だけ働く（国×月の 76.4% 以上で満点に張り付く）	生とソース（今の木・keep_1164）
+S02-H004b	S02-11	読み直し	EconomyStep.cs MarketFlow.cs	関数 StepDay の字が違う	一部だけ働く（買いだめが満点でない 27.0% 以下の国×月だけ一致）	一部だけ働く（一致するのは満点でない国×月の 23.6% 以下）	生とソース（今の木・keep_1164）
+S02-H005	S02-12	写し	MarketFlow.cs	なし	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H006a	S02-13	読み直し	Discovery.cs MarketFlow.cs	関数 StepDay の字が違う	働く	働く	生とソース（今の木・keep_1164）
+S02-H006b	S02-14	読み直し	MarketFlow.cs	関数 StepDay の字が違う；形が違う 	働く	働く（供給の無い財の値段は帯の不動点に座る）	生とソース（今の木・keep_1164）
+S02-H007a	S02-15	読み直し	MarketFlow.cs	関数 StepDay の字が違う	働く	働く	生とソース（今の木・keep_1164）
+S02-H007b	S02-16	読み直し	Colonial.cs InternationalMarket.cs MarketFlow.cs	関数 StepDay の字が違う	働かない	働かない（国家の調達が価格則に 2 回入る）	生とソース（今の木・keep_1164）
+S02-H008a	S02-17	読み直し	MarketFlow.cs Model.cs	関数 StepDay の字が違う；関数 StepDay の字が違う	働く	働く	生とソース（今の木・keep_1164）
+S02-H008b	S02-18	写し	MarketFlow.cs	関数 StepDay の字が違う；関数 StepDay の字が違う；関数 StepDay の字が違う；形が違う 	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H009a	S02-19	写し	MarketFlow.cs	係数が消えた UnionWageRiseBoost	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H009b	S02-20	写し	EconomyStep.cs InternationalMarket.cs UnionBargaining.cs	関数 Run の字が違う；関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	一部だけ働く（国×四半期の 10.2%）	一部だけ働く（国×四半期の 10.2%）	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H010	S02-21	写し	World.cs	なし	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H011a	S02-22	写し	MarketFlow.cs	なし	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない
+S02-H011b	S02-23	写し	MarketFlow.cs	関数 StepDay の字が違う；関数 StepDay の字が違う	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない

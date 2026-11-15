@@ -1,0 +1,8 @@
++ 932: double siteCostDiv = System.Array.IndexOf(r.Resources, p.GoodId) < 0 ? Simulation.ResourceEndowment(p.GoodId) * c.ResourceEndowmentScale : 1.0;
+--
+- 1231: Simulation.ApplyEndowment(p, c.GoldRushEndowment, c);
++ 935: Simulation.ApplyEndowment(p, c.GoldRushEndowment, siteCostDiv, c);
+--
+- 1237: else w.LogAdd($"{w.Year} {r.Name}で{gname}の植林が始まった（{who}）");
++ 941: else { Simulation.DivideCostByEndowment(p, siteCostDiv, c); w.LogAdd($"{w.Year} {r.Name}で{gname}の植林が始まった（{who}）"); }
+--

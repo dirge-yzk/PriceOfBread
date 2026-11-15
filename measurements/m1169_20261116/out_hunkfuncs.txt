@@ -1,0 +1,20 @@
+Discovery.cs +OpenSite:3 -OpenSite:2
+Catalog.cs 
+MarketFlow.cs +StepDay:1
+Calendar.cs 
+Credit.cs 
+InternationalMarket.cs 
+Colonial.cs +Step:2 -Step:2
+UnionBargaining.cs 
+TechEducation.cs 
+NationConfig.cs 
+Transport.cs +BuyToward:6 +RailNeedBasis:1 +RailNeedShare:1 +RailPhi:1 +RailTrackSum:2 +Step:2 +TakeRailForMove:1 +Target:2 +WearRail:1 -BuyToward:3 -Step:4
+ArmyShape.cs 
+Ideology.cs 
+Model.cs +OutputRefValue:1 +RuleStateTenYearsAgo:1 +StdReplacementRate:2 +StockpileFactor:1 -RuleStateTenYearsAgo:1 -StdReplacementRate:1 -StockpileFactor:1
+World.cs +AddProximityTension:1 +MilitaryExportAccess:4 +SpendableRevenue:1 -AddProximityTension:1 -SpendableRevenue:1 -StateProfitShare:1
+MultiNationSim.cs +DistributeWorldRealIncome:5 +ReabsorbNations:2 -(外):1 -DistributeWorldRealIncome:1 -MultiNationSim:1 -ReabsorbNations:2 -StepDay:1
+Simulation.cs +ApplyEndowment:2 +BuildProvince:3 +CatalogEconomy:1 +DivideCostByEndowment:1 +EnsureScarceCounts:3 +MintGold:1 +MonthSettle:5 +PromoteColonyToRegion:3 +ScarceEndowment:1 +Simulation:2 -AddAdvancedProducers:2 -AddAlternateRecipes:1 -ApplyEndowment:2 -BuildProvince:3 -CatalogEconomy:1 -EnsureScarceCounts:4 -MintGold:1 -MonthSettle:9 -PortChoice:1 -PromoteColonyToRegion:3 -ScarceEndowment:1 -Simulation:4
+EconomyStep.cs +AddConsWithCarry:1 +Run:22 +StatePriceAfford:1 +SupplyTargetAt:1 -Run:16 -StatePriceAfford:1
+BilateralMarket.cs +A1Index:1 +A1Invalidate:1 +A1PHat:1 +ComposeKm:1 +DropKm:19 +PairKmCore:1 +PairKmParts:1 +PayRailFreight:1 +RecordPartner:3 +StepBilateral:5 -Drop:9 -StepBilateral:3
+Diplomacy.cs +CedeTerritory:1 +CedeTerritoryUnified:1 +DriftTension:2 +SetDependency:3 +StepWars:1 -CedeTerritory:2 -CedeTerritoryUnified:1 -DefeatedShock:1 -DriftTension:1 -RegionOutputValue:1 -SetDependency:1 -StepWars:1

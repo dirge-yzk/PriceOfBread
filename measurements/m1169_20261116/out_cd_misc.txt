@@ -1,0 +1,58 @@
+== StockpileFactor
+== StatePriceAfford
+- 3095: double gate = 1.0;
+- 3096: if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
+- 3097: return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;
++ 2644: return a > 0 && a <= 1 ? 1.0 - 1.0 * (1.0 - a) : 1.0;
+--
+== Colonial.Step
+- 70: double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
++ 33: const double era = 1.0;
+--
+- 82: if (quinineWant > 1e-9) BuyUpkeepGood(w, r, quinineG, quinineWant);
++ 43: var qnPre = Instruments.On ? Instruments.ColqnBefore(w, r) : default; double qnGot = quinineWant > 1e-9 ? BuyUpkeepGood(w, r, quinineG, quinineWant) : 0;
++ 44: if (qnPre.Ok) Instruments.ColqnAfter(w, r, qnPre, qnGot);
+--
+== MNS StepDay
+- 831: if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }
+--
+== Dip
+== OpenSite/ApplyEndowment
+- 759: internal static void ApplyEndowment(Producer pr, double endowment, Coefficients c)
++ 670: internal static void ApplyEndowment(Producer pr, double capMul, double costDiv, Coefficients c)
+--
+- 761: pr.Productivity *= endowment;
+- 762: double gate = endowment > 1.0 ? c.EndowmentCostFollowsAbundance : endowment < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
+- 763: if (!(gate > 0) || !(endowment > 0)) return;
+- 764: pr.MarginalCost /= System.Math.Pow(endowment, gate);
++ 672: pr.Productivity *= capMul;
++ 673: DivideCostByEndowment(pr, costDiv, c);
++ 674: }
++ 679: internal static void DivideCostByEndowment(Producer pr, double costDiv, Coefficients c)
++ 680: {
++ 681: double gate = costDiv > 1.0 ? c.EndowmentCostFollowsAbundance : costDiv < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
++ 682: if (!(gate > 0) || !(costDiv > 0)) return;
++ 683: pr.MarginalCost /= System.Math.Pow(costDiv, gate);
+--
+- 738: if (!sharedWorld || !(c.ScarceMineralGate > 0) || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
+- 739: bool withCol = c.ScarceCountsIncludeColonies > 0;
+- 740: EnsureScarceCounts(withCol);
+- 741: int k = (withCol ? _scarceCountsWithColonies : _scarceCounts)![good];
+- 742: int total = withCol ? _scarceTotalWithColonies : _scarceProvinceTotal;
++ 659: if (!sharedWorld || !Catalog.IsScarceMineral(good, c)) return ResourceEndowment(good);
++ 660: EnsureScarceCounts();
++ 661: int k = _scarceCountsWithColonies![good];
++ 662: int total = _scarceTotalWithColonies;
+--
+- 708: private static void EnsureScarceCounts(bool withColonies)
++ 632: private static void EnsureScarceCounts()
+--
+- 710: if ((withColonies ? _scarceCountsWithColonies : _scarceCounts) is not null) return;
++ 634: if (_scarceCountsWithColonies is not null) return;
+--
+- 722: if (withColonies)
+--
+- 729: if (withColonies) { _scarceTotalWithColonies = total; _scarceCountsWithColonies = counts; }
+- 730: else { _scarceProvinceTotal = total; _scarceCounts = counts; }
++ 652: _scarceTotalWithColonies = total; _scarceCountsWithColonies = counts;
+--

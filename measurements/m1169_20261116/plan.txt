@@ -1,0 +1,20 @@
+(1169) c115lg 読む線の計画（2026-11-16・Claude Opus 5.5）
+作業の場所：D:/PoB_work/r1169_work/（この回に作ったフォルダはこれ 1 つ）。worktree・枝は作らない（読むだけ・コミットしない）。
+今の木：main c3c4de36a13181e1cd4e8b5a6c5f7e425ef4f042（C:/Users/dirge/Documents/PriceOfBread の HEAD を git show で読む・作業ツリーは書かない）。
+材料（読むだけ）：
+  scratchpad/ledger_S01_2026-11-12.md・.tsv（読んだ木 9b18137a2・生 keep_1053/base_ins）
+  scratchpad/ledger_S02_2026-11-12.md・.tsv・_反証.md（同上）
+  scratchpad/ledger_S22_2026-11-12.*・measurements/m1161_20261115/（S22 の前例・未確かめ 9 行）
+  docs/機能の台帳.md §0・| S01- | S02- | S22- の行
+  scripts/instruments/r900/changed_rows.py・ledger_check.py（写しを scripts/instruments/r1169/ ではなく作業フォルダに置く）
+生（読むだけ）：
+  M ＝D:/PoB_work/keep_1164/base_ins（全表・計器つき 10 種）
+  N1/N2＝D:/PoB_work/keep_1164/n1・n2（絞った表）・全表の幅は keep_1150/n1・n2
+  （keep_1053 は 11-12 の読みの生・今は無い可能性＝ls で確かめる）
+順：S02 → S22 の 9 行 → S01（時間が足りなければ読めない行は〈未確かめ〉）。
+手順：
+  1. 11-12 の各行の錨と持ち主のファイルについて、9b18137a2..c3c4de36a の差を数える（changed_rows の方式＋限界の分は錨の名の grep と git log）。
+  2. 変わらない行＝判定を写す（最後に確かめた＝9b18137a2）。変わった行と反証の指摘の行だけ読み直す（最後に確かめた＝c3c4de36a）。
+  3. 錨を今の木の行で取り直し、12 列の .tsv を書く。ledger_check の門 7〜9 を通す（台帳に差し込んだ写しで）。
+  4. S22 の 9 行：表示 7 は App・Display を読むだけ・cpwdft_s・cpworld_s は keep_1164/base_ins。
+腕 0 本・ビルド・試験・シミュは回さない。
