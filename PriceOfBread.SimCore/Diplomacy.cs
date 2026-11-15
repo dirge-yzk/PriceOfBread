@@ -3226,6 +3226,7 @@ public sealed class Diplomacy
 
     private void DriftTension(Coefficients c)
     {
+        var dcPre = Instruments.On ? Instruments.DipcoolBefore(this, c, _tension, _dependency) : null;   // (1145) 計器 dipcool_s（読むだけ）
         var keys = new List<long>(_tension.Keys);
         foreach (var k in keys)
         {
@@ -3247,6 +3248,7 @@ public sealed class Diplomacy
                 if (rate > 0) CoolSlot(k, ref slot, t, Math.Max(0, t - rate));
             }
         }
+        if (dcPre is not null) Instruments.DipcoolAfter(this, c, _tension, dcPre);   // (1145) 走査の直後・遺恨の風化の前
         // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。
         if (_grudge.Count > 0)
         {

@@ -1,0 +1,19 @@
+== m1
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H2_係数0では衝撃の組も遺恨の式で冷める_遺恨1なら動かない [17 ms]
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H3_計器dipcool_sは係数2でハイエナを1行数え_係数0で0行_旧の規則の行は両方で1 [14 s]
+失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+== m2
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H1_係数2では衝撃の組がハイエナの枝で冷める_遺恨の組と低い帯は平時の式 [7 s]
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H2_係数0では衝撃の組も遺恨の式で冷める_遺恨1なら動かない [164 ms]
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H3_計器dipcool_sは係数2でハイエナを1行数え_係数0で0行_旧の規則の行は両方で1 [26 s]
+失敗!   -失敗:     3、合格:     0、スキップ:     0、合計:     3、期間: 34 s - PriceOfBread.Tests.dll (net10.0)
+== m3
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+== 試験に凍結の組 F を足した後（2026-11-15）
+== D:/PoB_work/wt_c112hy
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 38 s - PriceOfBread.Tests.dll (net10.0)
+== D:/PoB_work/c112hy_work/mut/src_hy_m3
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H1_係数2では衝撃の組がハイエナの枝で冷める_遺恨の組と低い帯は平時の式 [7 s]
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H2_係数0では衝撃の組も遺恨の式で冷める_遺恨1なら動かない [143 ms]
+  失敗 PriceOfBread.Tests.HyenaBranchTests.H3_計器dipcool_sは係数2でハイエナを1行数え_係数0で0行_旧の規則の行は両方で1 [29 s]
+失敗!   -失敗:     3、合格:     0、スキップ:     0、合計:     3、期間: 37 s - PriceOfBread.Tests.dll (net10.0)

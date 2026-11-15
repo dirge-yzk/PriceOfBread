@@ -1,0 +1,94 @@
+(1145) c112hy 事前登録：D-b ハイエナ抑制の枝を閉じる（腕＝既存の係数 DefeatShockTensionRelief を 0 へ・新しい係数・旗・状態は 0）
+2026-11-15・枝 c112hy（aa8ee7e51 から）・席 3・3 回の規則では D-b の 1 回目。書いたのは Claude Opus 5.5。
+
+■ 先頭の名乗り
+- 消す推奨＝(1141) c111s25 の消す推奨 2〈D-b ハイエナ抑制〉（S25-13）。〈作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち〉。
+- 出発の作者の言葉：2026-11-06「動作していないロジックのうち、ほとんどゲームに影響を与えないもの、わざわざロジックを実装するまでもない（既存の機能から自然に出るべき）ものは、削除することも検討してください。」・2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」・2026-11-12〈重要でない機能は削減〉（指示文の要約）。
+- 形は〈入口〉（緊張の冷め方の枝＝開戦・同盟・宥和の判定の入口の量を動かす。尾の事象を数える形ではない）。
+- 確証：枝を消すこと自体は作者の言葉（バフ・デバフの削除）の当てはめ＝AI の推奨。消した後の挙動（講和の直後の高い帯が遺恨の式だけで冷める）は既にある機構（遺恨・厭戦の門・敗戦の衝撃）＝新しい弾性は置かない。〈確証なし〉に当たる AI の細部は無い。
+
+■ 消す物の一覧（この線）
+- Coefficients.p06_rank_discovery.cs:60 DefeatShockTensionRelief の既定 2.0 → 0.0（旗 1 のコミット）。枝の門 `c.DefeatShockTensionRelief > 0`（Diplomacy.cs:3241）が既にある＝エンジンのコードは変えない。
+- 次の恒等の線へ（00一覧に番号つきで書く・合流）：枝 Diplomacy.cs:3240〜:3242 の削除・係数 2 本（DefeatShockTensionRelief・DefeatShockProtectMin）の削除・DefeatedShock（:3272〜:3277）の削除・DormantIdentityTests の ZeroDefaultLedger の行の削除。
+- 触らない：凍結の枝（D-c）・遺恨の枝と風化・Politics.cs:281〜:282（DefeatShock の減衰＝他の読み手 Factions.cs:48・Ideology.cs:17・:82・PoliticalQuantities.cs:79・:96・Politics.cs:230・:237・:274）・遺恨と緊張の倍率の 1 本化（段4）。
+
+■ 読み手の表（DefeatShockTensionRelief・DefeatShockProtectMin・DefeatedShock・grep 2026-11-15・aa8ee7e51）
+- SimCore：Coefficients.p06_rank_discovery.cs:60・:61／Diplomacy.cs:3241（2 本と DefeatedShock）・:3242（Relief）・:3272（DefeatedShock の定義）。
+- Tests・Tests.Ui・App・Display・Runner：0（コメントの TensionTableOrderTests.cs:6・:8 は DriftTension の名だけ＝枝を読まない）。
+- scripts：r1141/freq.py:11・:197（定数の写し）・r1141/mk_ledger.py:35・r907/s25_rows.py:27（台帳の文字列）＝読むだけの台本・旗 1 で壊れない。
+
+■ 緊張の読み手ごとの新÷旧の予言（同じ盤面・段0・ソースと keep_1143 の紙の台本から）
+- 枝が効く所：高い帯（≧100）で、従属でなく、どちらかの国の敗戦の衝撃が 0.3 以上の組。月に 2.0×衝撃 冷める（衝撃 1.0 は四半期 0.85 で減り、約 8 四半期で 0.3 を切る＝講和の後 2 年で合計 約 25〜30）。新の規則では 0.42×(1−遺恨)（講和の直後は遺恨≈1＝ほぼ 0）。
+- 紙の台本（四半期の末の断面の近似）：遺恨のある高い帯の行の月の冷めの量の平均 旧 0.4946・新 0.2176（同じ盤面の旧÷新 2.27）。
+- 開戦の判定（WarCanStart Diplomacy.cs:1356＝緊張≧140 かつ厭戦が門の下・従属でない）：講和の直後の高い組は厭戦の門が 68〜71% で閉じている（P6）。旧÷新の予言＝講和の後 8 四半期の再戦の割合が 1.0〜2.0 倍（上がる向き・大きさは記録）。開戦の総数は 1.00〜1.05 倍（記録）。
+- 同盟の崩れ（緊張 ＞50・:1297）：高い帯の組は旧でも 50 を超えている＝変わらない（1.00）。
+- 宥和（EaseTension の 緊張＞20 の門・:1740）・最後通牒の受諾（ConcedeTensionTarget 110・:1396）：高い組が長く高い＝宥和と屈服の機会が増える向き（1.0〜1.3・記録）。朝鮮×清の屈服の回数（P5）は記録。
+- 講和の数：戦争の数と同じ向き（開戦÷講和の比はほぼ構造で決まる＝壊さない門）。
+
+■ 門（両側・腕 B の計器つき 10 種・種 1〜10 の和で読む・この行を腕の前に固定）
+- 読み手：python -I scripts/instruments/c112hy/gates.py <腕 B の ins> <旗 0 の ins（ident c112hyz の b の生）> <基線 M の生 keep_1143/base_ins>
+- G1 狙い：講和の直後（遺恨≧0.9）の高い帯（従属でない）の行のうち、エンジンがハイエナの枝を取った行（計器 dipcool_s の obsHyenaFreshRows÷freshRows）＝0（ちょうど）。母数の床 freshRows ≧1000。旗 0 では 63.8〜67.8%（(1141) の近似・m1143 の紙の台本 64.0〜65.6%）＝落ちる。旗 0 の計器の値は ident の生で取り直して追記で固定する。
+- G2 上側（形に固有の誤り）：遺恨＞0 の高い帯（従属でない）の行で、エンジンが書いた冷めた後の値と、計器の新の式 max(0, t−0.42×(1−遺恨)) の差の最大（maxAbsDiffNewGrudge の最大）≦1e-9。母数の床 grudgeRows ≧10000。旗 0 ではハイエナの行で 2.0×衝撃−0.42×(1−遺恨)＝0.18 以上＝落ちる。
+- G3 大きさ：遺恨＞0 の高い帯の行の、エンジンの実の月の冷めの量の平均（sumObsCoolGrudge÷grudgeRows）の 旧の木（旗 0）÷腕 B ＞ 1.1072。1.1072＝紙の台本の同じ量（四半期の末の近似）のヌル腕の幅（M 0.4946・N1 0.4685・N2 0.4467 の 2 つずつの比の最大）。旗 0 どうしでは 1.0＝落ちる。⚠ ヌル腕の生には dipcool_s が無い＝幅は近似の量で取った（限界として名乗る）。
+- G4 壊さない：開戦の数（warband_s の start_* の和・内戦を除く）÷講和の置き直しの数 が、基線 M の 0.983295 の ±0.72%（0.976215〜0.990375）の内。0.72%＝(1141) の読みの雑音の上端（main の 0.15〜0.72%）。ヌル腕の一つ抜き：N1 0.979216（−0.41%）・N2 0.985105（+0.18%）・N2 を基準に N1（−0.60%）＝空振り 0/3。
+- 採否：G1〜G4 が全て緑・止める線に当たらない・機構のテストが緑 → 採る（合流が既定を 0 にする）。外れたら採らない（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ。
+
+■ 突然変異ごとの門（㉚・使い捨ての木・腕の前・1 種の計器つきで回す〔G3・G4 は 1 種では読まない＝記録〕）
+| 突然変異 | G1 | G2 | G3 | G4 | 記録 |
+| M0 何もしない（係数 2.0 のまま＝旗 0 の木＝ident の生） | 赤 | 赤 | 赤（1.0） | 緑 | ― |
+| M1 枝を残す（係数 0 の木で、枝の門を係数でなく 2.0 の定数で開ける） | 赤 | 赤 | 赤 | 緑 | M0 と同じ軌道の予言 |
+| M2 遺恨の枝まで消す（率＝0.42 のまま・(1−遺恨) を外す） | 緑 | 赤（0.42×遺恨） | 記録 | 記録 | ― |
+| M3 凍結の枝も消す（従属の組も遺恨の式へ） | 緑 | 緑（凍結の行は G2 の母数の外） | 記録 | 記録 | maxAbsDiffFrozen が 0 から動く・門は赤にならない＝限界と名乗る |
+- 係数 0 の短い走り（1 種）：G1＝0・G2 ≦1e-9 を先に確かめる（M 0 とは別の印）。
+
+■ 紙の台本の出力（今の盤面 keep_1143・scripts/instruments/c112hy/paper.py・近似）
+base_ins P1_freshHyenaShare=0.6559 (1645/2508) P2_oldMeanCool=0.494588 newMeanCool=0.217622 rows=20746 P3_starts=5121 peace=5208 ratio=0.983295 P4_rewar8q=0.0359 (182/5072) P5_koreaQingSubmits=495 per_seed=47,60,33,40,55,50,60,53,40,57 P6_freshWearyShare=0.7069
+n1 P1_freshHyenaShare=0.6400 (1639/2561) P2_oldMeanCool=0.468501 newMeanCool=0.202461 rows=17841 P3_starts=4994 peace=5100 ratio=0.979216 P4_rewar8q=0.0319 (158/4957) P5_koreaQingSubmits=485 per_seed=47,40,53,26,73,46,47,43,69,41 P6_freshWearyShare=0.6841
+n2 P1_freshHyenaShare=0.6517 (1551/2380) P2_oldMeanCool=0.446711 newMeanCool=0.215315 rows=19631 P3_starts=4894 peace=4968 ratio=0.985105 P4_rewar8q=0.0352 (171/4853) P5_koreaQingSubmits=494 per_seed=62,62,46,49,66,36,16,62,48,47 P6_freshWearyShare=0.6769
+- 旗 0 で門が落ちる確かめ（紙）：G1 0.64〜0.66 ≠0＝赤・G3 旗 0 どうし 1.0 ≦1.1072＝赤・G4 は M そのもの＝緑（壊さない門は何もしない実装でも通る＝狙いの門 G1〜G3 が落とす）。
+
+■ 計器（恒等・Instruments.On の時だけ・四半期の末に 1 行）
+- 表 dipcool_s（新しい表・名は空きを grep で確かめた＝仮の名・dipten_s の全体は後の回）：PriceOfBread.SimCore/Instruments/InstrumentsDipcool.cs。
+- 口：Diplomacy.cs の DriftTension の頭（DipcoolBefore＝緊張・従属・遺恨の表と国の DefeatShock を計器が自分で読み、旧の規則〔率 2.0〕と新の規則の冷めた後の値を組む）と、緊張の走査の直後・遺恨の風化の前（DipcoolAfter＝エンジンが書いた値を同じ鍵で読む）。DefeatedShock・CannotDeclareWar・CoolSlot は呼ばない。助走の月は数えない。
+- 列：quarter・year・months・lowRows・highRows・frozenRows・oldHyenaRows・freshRows・oldHyenaFreshRows・obsHyenaRows・obsHyenaFreshRows・obsBothRows・obsOtherRows・grudgeRows・peaceRows・maxAbsDiffNewGrudge・maxAbsDiffNewHigh・maxAbsDiffOldHigh・maxAbsDiffFrozen・maxAbsDiffLow・sumObsCoolGrudge・sumOldCoolGrudge・sumNewCoolGrudge・sumObsCoolFresh・sumOldCoolFresh・sumNewCoolFresh・sumObsCoolFrozen・sumFrozenRuleCool。
+- 試験 PriceOfBread.Tests/HyenaBranchTests.cs（H1〜H3・手で置いた盤面・期待の値は手で書いた数）。
+
+■ ソースを走査する番人（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表（IndustrializationReaderTests）：触らない・変わらない。
+- `new MoneyStock(` の件数：足す 0。route_anchors.tsv の鍵の行：Diplomacy.cs の行は 1 本（通商破壊の拿捕品）＝DriftTension は鍵ではない・書き足さない。
+- WriterRatchetTests の宣言の表：計器は Instruments.On の時だけ＝件数は変わらない（器のコミット）。旗 1 のコミットは 40 四半期の軌道が動けば件数が動きうる＝±2% の内の予言。外れたら〈軌道の件数を写しただけの番人〉（★(749)）の取り直しとして verdict に列挙する。
+- DormantIdentityTests：旗 1 のコミットで、既定 0 になる DefeatShockTensionRelief を ZeroDefaultLedger に 1 行足す（〈既定ゼロの係数は休眠表か台帳のどちらかに載っている〉の番人が求める・係数の行だけ）。DormantZeroFields には足さない（器の旗ではない）。
+- 試験の数：Tests 2624→2627（+3・H1〜H3）・Tests.Ui 234 のまま＝合計 2858→2861。FullLength 3 のまま。
+
+■ 旗 1 の木の番人の grep（㉜）
+- DefeatShockTensionRelief・DefeatShockProtectMin・DriftTension・ハイエナを Tests・Tests.Ui で grep：HyenaBranchTests 以外は TensionTableOrderTests.cs のコメント 2 行だけ（表の挿入の順の番人＝枝の値を固定しない）＝旧の規則を固定する番人は無い。
+
+■ 止める線（README の止める線の改めのとおり・この行をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）／1 四半期に 100 倍以上（全ての国の価格水準・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる・基準とヌル腕を同じ台本で数え直す）／開幕の 1e10 倍以上・非有限／空洞化：ピークの 1/10 未満で規則 A2（an_h2.py の既定 -ex rule）の外・その線が原因と読めた件だけ（基線 keep_1143/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭）・主要国と本国格の州は例外にしない／推定の計算量 ＞248.5 秒／機構のテストの赤（ソースを走査する番人を含む）。
+- 記録：NG（ng.sh・基準 measurements/ng1143_20261115）・exact・near・nullgate・開幕の 1000 倍以上・名目 GDP 0 の続き・英の国債の不履行の種の数・史実の線。
+
+■ 計算量
+- 割り当て 0 秒。器は計器だけ（Instruments.On の時だけ）。旗 1 は枝の DefeatedShock（Powers.Find 2 回）を呼ばなくなる＝実の CPU は減る向き・推定の計算量の件数は軌道の変化だけで動く（見込み −1〜+1 秒・ヌル腕の揺れ 228.6〜230.1 秒の内）。2 秒以下は 1 本の腕で門にしない＝合流の木の累計で読む。
+
+■ 周辺の点検（既にある生とソースだけ・記録）
+- 厭戦の門（WarWearyThreshold 0.5・Diplomacy.cs:1355〜:1356）：講和の直後の高い帯の行のうち、どちらかの国の厭戦が門を超える割合 P6＝0.68〜0.71（M・N1・N2）＝再戦の大部分は厭戦の門が既に止めている。敗戦の衝撃は正統性（Politics.cs:230）と思想（Ideology.cs:17）にも効く＝この線では動かない。
+- 講和の後 8 四半期の再戦 P4＝3.2〜3.6%。朝鮮×清の屈服 P5＝485〜495（10 種の和）。腕 B で同じ台本を回して並べる。
+
+■ D: と腕
+- ident（段 2）約 30GB・腕 B 約 26GB・突然変異 1 種×3 本は表を絞る（dipcool_s・warband_s・warpair_s・scalars_s・pxmonth_s・nation_s）。起こす直前に shutil で〈35GB＋その量〉を確かめる。
+
+■ 追記 2026-11-15（旗 1 の前・腕 B の前・門の形と線は変えない）
+- ident c112hyz（木 51c853119・段 2・--added-tables dipcool_s・--tests-delta 3・--saveleak）〈判定: 恒等〉（測った種で一致）：素の 5 種 180 行・計器つき 10 種 180 行が m1143 と全行バイト一致・.cost の件数 43 本と推定 230.1／229.6 秒が一致・計器の表 1499 本＝バイト一致 1479＋既知の揺れ 20（burscan_s・clock_s）・腕にだけある 10 本＝dipcool_s（宣言）・注視の表 4457 行一致・試験 2861（2858+3）・FullLength 3・savetest OK・leakhunt 保存則違反なし。写し measurements/m1145_20261115/ident_c112hyz_check.txt。
+- 旗 0 の盤面の門の値を ident の生（D:/PoB_work/c112hy_ident/out_ib_10/ins・月ごとの計器）で取り直して固定する（measurements/m1145_20261115/gates_flag0_ident.txt）：
+  G1 の旗 0 の値＝0.738458（6158/8339）。紙の台本（四半期の末の近似）の 64.0〜65.6% より高い＝月ごとに数えたため。門は〈＝0〉のまま＝旗 0 で落ちる。
+  G2 の旗 0 の値＝2（行 64604）＝落ちる。G3 の旗 0 どうし＝1.000000 ≦1.1072＝落ちる。
+  計器の自己一致の記録：旧の規則と全ての高い帯の行が一致（maxAbsDiffOldHigh＝0・obsOtherRows＝0・oldHyenaRows＝obsHyenaRows＝173493）・凍結の行 17454 は凍結の式と一致（maxAbsDiffFrozen＝0）。同じ盤面の旧÷新 2.3454。
+- 突然変異（1 種・表を絞った・measurements/m1145_20261115/mut_gates_1seed.txt・生 D:/PoB_work/c112hy_work/mut/out_hy_*_1/ins）：1 種は床（10 種の和の床）に届かない＝床を除いて読む。
+  coef0（係数 0 の短い走り）：G1 0（0/1018）・G2 0（行 5671）＝狙いと上側が通る。
+  M1 枝を残す：G1 0.7115（471/662）・G2 2＝赤・赤。M2 遺恨の枝まで消す：G1 0・G2 0.42＝緑・赤。M3 凍結の枝も消す：G1 0・G2 0＝緑・緑・maxAbsDiffFrozen 0→0.22（記録の列が動く）＝門は赤にならない＝限界と名乗る（表の予言どおり）。
+- 試験の突然変異（measurements/m1145_20261115/mut_tests.txt）：M1 で H2・H3 が赤・M2 で H1〜H3 が赤・M3 は H1〜H3 が緑＝穴。試験だけの別のコミットで手で置いた盤面に従属の組 F（緊張 120→119.8＝凍結の式）を足し、M3 で赤になることを確かめる（試験の数は 3 のまま＝ident の数と同じ・SimCore には触れない）。
+
+■ 追記 2 2026-11-15（旗 1 の木 a41503e6f の ㊴ の束が赤＝分類・腕 B の前）
+- 束（~Instrument・HyenaBranchTests・DormantIdentityTests・WriterRatchetTests・IndustrializationReaderTests・UnitTypeTests）425 本のうち 58 本が赤。
+- 55 本（Corncf・Cearn・CedeRule・Basisx・Cornint・BuyShadow・ClearingFill・Invade・FactoryIdeology・CrownPc・FlowM・DiscoveryClock・Cession）＝表が書かれない（FileNotFound・〈前提：他の計器の表は出る〉）。区分＝試験のバグ（四半期の持ち越しと同じ型の〈試験どうしの状態の持ち越し〉）：この線の H3 が Instruments.SelectTables("dipcool_s") と Configure を finally で戻していない＝同じ集まり〔Instruments〕の後の試験が表を選ばれずに走る。旧の盤面に番人を固定する形ではない（どの試験の Assert も閾値も変えない・SimCore に触れない・H3 の finally に SelectTables(null)・Configure(null, null) を足すだけ＝RailLocoDiscoveryTests.T3 と同じ形）。旗 0 の束（147 本）が緑だったのは並びの偶然。直しを外す突然変異＝この束の 55 本の赤そのもの。直した後はフルスイートからやり直す。
+- 3 本（WriterRatchetTests の item 2 建設の見た生産者 2134→2195・item 11 覇権の判定 2817356→3362000・item 34 倒産 2169→2334・いずれも増えて許し +2% の外）＝★(749)〈軌道の件数を写しただけの番人の更新〉の区分（事前登録〈±2% の内の予言・外れたら取り直し〉の外れ＝予言は外れた）。旗 1 の木の実測で取り直す（新しい計数の処理は無い）。全長の計算量は腕 B の .cost の推定で読む。⚠ 覇権の判定の国×国 +19% は 1 種 40 四半期で国の数が約 9% 多い軌道に当たる＝腕 B の .cost と国の数を記録の先頭に置く。

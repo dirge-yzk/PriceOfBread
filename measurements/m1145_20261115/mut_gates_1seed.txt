@@ -1,0 +1,36 @@
+=== coef0 measure rc=1
+# 腕 D:/PoB_work/c112hy_work/mut/out_hy_coef0_1/ins（種 1・短い行 0）
+G1 狙い ハイエナの枝を取った講和の直後の行の割合=0.000000（0/1018・床 1000）→ 緑
+G2 上側 エンジンと新の式の差の最大=0（行 5671・床 10000）→ 赤
+記録 同じ盤面の旧÷新（腕の盤面・計器の 2 つの規則）=3.100479
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/d/PoB_work/c112hy_work/mut/out_hy_coef0_1/ins/dipcool_s1.tsv'
+=== m1 measure rc=1
+# 腕 D:/PoB_work/c112hy_work/mut/out_hy_m1_1/ins（種 1・短い行 0）
+G1 狙い ハイエナの枝を取った講和の直後の行の割合=0.711480（471/662・床 1000）→ 赤
+G2 上側 エンジンと新の式の差の最大=2（行 6193・床 10000）→ 赤
+記録 同じ盤面の旧÷新（腕の盤面・計器の 2 つの規則）=2.064865
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/d/PoB_work/c112hy_work/mut/out_hy_m1_1/ins/dipcool_s1.tsv'
+=== m2 measure rc=1
+# 腕 D:/PoB_work/c112hy_work/mut/out_hy_m2_1/ins（種 1・短い行 0）
+G1 狙い ハイエナの枝を取った講和の直後の行の割合=0.000000（0/1512・床 1000）→ 緑
+G2 上側 エンジンと新の式の差の最大=0.42（行 8851・床 10000）→ 赤
+記録 同じ盤面の旧÷新（腕の盤面・計器の 2 つの規則）=2.825034
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/d/PoB_work/c112hy_work/mut/out_hy_m2_1/ins/dipcool_s1.tsv'
+=== m3 measure rc=1
+# 腕 D:/PoB_work/c112hy_work/mut/out_hy_m3_1/ins（種 1・短い行 0）
+G1 狙い ハイエナの枝を取った講和の直後の行の割合=0.000000（0/1446・床 1000）→ 緑
+G2 上側 エンジンと新の式の差の最大=0（行 10316・床 10000）→ 緑
+記録 同じ盤面の旧÷新（腕の盤面・計器の 2 つの規則）=2.323037
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/d/PoB_work/c112hy_work/mut/out_hy_m3_1/ins/dipcool_s1.tsv'
+coef0 記録 凍結 行 1774・maxAbsDiffFrozen 0・実の冷め 354.8・凍結の式 354.8・どちらの規則にも合わない行 0
+m1 記録 凍結 行 1344・maxAbsDiffFrozen 0・実の冷め 268.8・凍結の式 268.8・どちらの規則にも合わない行 0
+m2 記録 凍結 行 1355・maxAbsDiffFrozen 0・実の冷め 271・凍結の式 271・どちらの規則にも合わない行 8851
+m3 記録 凍結 行 1070・maxAbsDiffFrozen 0.22・実の冷め 351.771・凍結の式 214・どちらの規則にも合わない行 0
