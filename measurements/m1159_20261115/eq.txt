@@ -1,0 +1,8 @@
+段 T1-0 ① の確かめ：旗 1（POB_COEF=TradeBuyBySupplyCurve=1）の selfplay 1 40・旧＝木 7291b875a（全ての生産者を 0 へ）・新＝f97d23549 と同じ源
+EQ_SAME
+   88 D:/PoB_work/c114t1_work/eq_old.txt
+   88 D:/PoB_work/c114t1_work/eq_new.txt
+  176 total
+旗 0 の同じ走り（新の木）との比べ：
+D:/PoB_work/c114t1_work/eq_f0.cmp D:/PoB_work/c114t1_work/eq_new.cmp differ: char 106, line 2
+FLAG_APPLIED

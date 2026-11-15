@@ -1,0 +1,12 @@
+旗0 種 1 rows=2.61052e+06 oldSkip=397103 instSkip=294640 unclassified=0 popA=11861 popADealX=0 gateEval=306552 gateMismatch=0 u1Deals=8.76325e+06 u1Unok=0 u1Viol=1134 u1ViolAbs=1134 selfN=0 selfDiff=0 retreatDeals=0 retreatQty=0 dealsX=6.84302e+06 qtyX=3.88307e+06 popC=385883 popCUb=102494 popCPart0=90633 popCDealX=0 popCPart0DealX=0 retreatQtySum=0 retreatDealsTol=0 retreatDealsRaw=0 uBelowMin=0
+旗0 N_C=102494 N_C,sk0=90633 N_C,sk1=11861 床⌊N_C,sk1÷4⌋=2965
+旗0 の門の値：W2(a)′ sk1=0 働き=0 U1 u1Viol=1134 uBelowMin=0
+腕 種 1 rows=2.68155e+06 oldSkip=414318 instSkip=317552 unclassified=0 popA=14325 popADealX=49 gateEval=331937 gateMismatch=0 u1Deals=8.70885e+06 u1Unok=0 u1Viol=0 u1ViolAbs=0 selfN=9.04079e+06 selfDiff=0 retreatDeals=1.96704e+06 retreatQty=910707 dealsX=6.65879e+06 qtyX=4.03511e+06 popC=402874 popCUb=96800 popCPart0=82475 popCDealX=483 popCPart0DealX=434 retreatQtySum=1.0536e+07 retreatDealsTol=1.53212e+06 retreatDealsRaw=1.54249e+06 uBelowMin=0
+○ U1 u1Viol＝0：0／成約 8708850
+○ 照合 gateMismatch＝0：0
+○ 照合 selfDiff＝0：0／9040787
+○ 下界 uBelowMin＝0：0
+✗ W2(a)′ sk1 の側 ≧ 床：49（床 2965・sk0 の側 434・N_C 腕 96800）
+○ 働き retreatQtySum÷qtyX ≧ 0.25：2.61109（1.0536e+07÷4.03511e+06）
+門の判定：外れあり
+  t1buy_s1.tsv sk1=49 働き=2.611 u1Viol=0 uBelowMin=0

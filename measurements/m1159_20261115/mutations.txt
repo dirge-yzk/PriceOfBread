@@ -1,0 +1,12 @@
+木 f97d23549
+M2 rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TradeT1Tests.M7_旗1の母集合Cと退きの量と下界 [12 s]
+M3 rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TradeT1Tests.M7_旗1の母集合Cと退きの量と下界 [26 s]
+M4 rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 265 ms - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TradeT1Tests.M8_母集合Cの述語は着値の下界が州の値段を下回る行 [265 ms]
+M5 rc=1 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TradeT1Tests.M3_供給は全ての生産者の写しを書くか0へ戻す(a1: 1) [2 s]
+MF rc=1 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TradeT1Tests.M9_tbの区分は為替に対して同次 [14 s]
+MUTDONE

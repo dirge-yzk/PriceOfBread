@@ -209,7 +209,7 @@ public static partial class Instruments
         return (uint)g < (uint)pc.By.Length ? pc.By[g] : System.Array.Empty<Producer>();
     }
 
-    /// <summary>P̂(u)＝州×財の生産者の P̂ の和（財の値段だけ u に差し替える）。眠った生産者・倒産した生産者はエンジンが飛ばす＝今の産出のまま足す。</summary>
+    /// <summary>P̂(u)＝州×財の生産者の P̂ の和（財の値段だけ u に差し替える・u は州の名目の値段＝金建ての値段÷為替〔(1159) TbClassify・TbU1 が為替で割って渡す〕）。眠った生産者・倒産した生産者はエンジンが飛ばす＝今の産出のまま足す。</summary>
     internal static double TbPHatSum(Region r, int g, Coefficients c, World w, double u)
     {
         double sum = 0;
@@ -224,7 +224,7 @@ public static partial class Instruments
     }
 
     /// <summary>行の門の 6 区分の判定（互いに素な 3 つの述語）。u_min＝min(lp, 最安の売り手の値段×lbMulMin)。</summary>
-    internal static (bool Ok, bool B0, bool B1, bool B2, bool Eval, double XOld, double UbBb, double UbA1) TbClassify(Region r, int g, Market m, Coefficients c, World w, double lp, double rpT, double headPrice, double lbMulMin)
+    internal static (bool Ok, bool B0, bool B1, bool B2, bool Eval, double XOld, double UbBb, double UbA1) TbClassify(Region r, int g, Market m, Coefficients c, World w, double lp, double rpT, double headPrice, double lbMulMin, double fx = 1.0)
     {
         double ts = m.TargetStock, d = m.LastDemand, p = m.LastProduced, s = m.Stock;
         double xOld = ts + d - p - s;
@@ -233,17 +233,18 @@ public static partial class Instruments
         if (!(rpT > 1e-9) || !(um > 1e-9) || double.IsInfinity(um)) return (false, false, false, false, false, xOld, double.NaN, double.NaN);
         double root = System.Math.Pow(rpT / um, c.PriceElasticity);
         double ubBb = ts + d * root - p - s, ubA1 = ubBb; bool ev = false;
-        if (ubBb <= 0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um)); ubA1 = ts + d * root - q - s; ev = true; }
-        return (true, ubBb > 0, ubBb <= 0 && ubA1 > 0, ubA1 <= 0, ev, xOld, ubBb, ubA1);
+        bool b0 = ubBb > 0;
+        if (!b0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um / fx)); ubA1 = ts + d * root - q - s; ev = true; }
+        return (true, b0, !b0 && ubA1 > 0, !b0 && !(ubA1 > 0), ev, xOld, ubBb, ubA1);   // (1159) 否定形＝NaN の上界は閉じた側（B2）へ＝Ok の行は B0・B1・B2 のちょうど 1 つ（旧は在庫の欄が NaN で 3 つとも偽の隙間）
     }
 
     /// <summary>成約の上界の越え。S は成約の後の台帳（m.Stock）。E_abs＝S−UB・E_rel＝E_abs÷max(D, TS)。</summary>
-    internal static (bool Ok, double Ub, double EAbs, double ERel) TbU1(Region r, int g, Market m, Coefficients c, World w, double lp, double unitA, double rpT, double qA)
+    internal static (bool Ok, double Ub, double EAbs, double ERel) TbU1(Region r, int g, Market m, Coefficients c, World w, double lp, double unitA, double rpT, double qA, double fx = 1.0)
     {
         double u = System.Math.Min(unitA, lp);
         if (!(rpT > 1e-9) || !(u > 1e-9) || double.IsInfinity(u)) return (false, double.NaN, double.NaN, double.NaN);
         double root = System.Math.Pow(rpT / u, c.PriceElasticity);
-        double q = System.Math.Min(m.LastProduced, TbPHatSum(r, g, c, w, u));
+        double q = System.Math.Min(m.LastProduced, TbPHatSum(r, g, c, w, u / fx));
         double ub = m.TargetStock + m.LastDemand * root - q;
         double eAbs = m.Stock - ub, den = System.Math.Max(m.LastDemand, m.TargetStock);
         return (true, ub, eAbs, den > 0 ? eAbs / den : double.NaN);
@@ -257,11 +258,11 @@ public static partial class Instruments
     }
 
     /// <summary>行の門（旧の門）の直前の呼び。</summary>
-    internal static void TbRow(InternationalMarket mk, World w, Region r, int g, Market m, Coefficients c, double lp, double rpT, double headPrice, double lbMulMin)
+    internal static void TbRow(InternationalMarket mk, World w, Region r, int g, Market m, Coefficients c, double lp, double rpT, double headPrice, double lbMulMin, double fx)
     {
         if (w.WarmupFrozen || !Wants("tb_s")) return;
         var a = TbNOf(TbStates.GetValue(mk, _ => new TbState()), w);
-        var x = TbClassify(r, g, m, c, w, lp, rpT, headPrice, lbMulMin);
+        var x = TbClassify(r, g, m, c, w, lp, rpT, headPrice, lbMulMin, fx);
         bool skipped = !(x.XOld > 0); int b = skipped ? 0 : 3; double d = m.LastDemand;
         a.Rows++; a.EvalAll++; if (skipped) a.EvalSkip++;
         if (d < c.TargetStockFloor) { a.SmallD++; if (skipped) a.SmallDSkip++; }
@@ -273,12 +274,12 @@ public static partial class Instruments
     }
 
     /// <summary>成約の直後の呼び（m.Stock は成約の後）。</summary>
-    internal static void TbDeal(InternationalMarket mk, World w, World sellerW, Region r, Region sellerR, int g, Market m, Coefficients c, double lp, double unitA, double rpT, double qA, bool cross)
+    internal static void TbDeal(InternationalMarket mk, World w, World sellerW, Region r, Region sellerR, int g, Market m, Coefficients c, double lp, double unitA, double rpT, double qA, bool cross, double fx)
     {
         if (w.WarmupFrozen || !Wants("tb_s")) return;
         var st = TbStates.GetValue(mk, _ => new TbState());
         var a = TbNOf(st, w);
-        var u = TbU1(r, g, m, c, w, lp, unitA, rpT, qA);
+        var u = TbU1(r, g, m, c, w, lp, unitA, rpT, qA, fx);
         a.U1Qty += qA;
         if (u.Ok)
         {
@@ -344,4 +345,174 @@ public static partial class Instruments
     }
 
     static void TbClose(MultiNationSim sim) { if (TbStates.TryGetValue(sim.Market, out var st)) { st.W?.Dispose(); st.W = null; } }
+}
+
+// ---- T1（(1144) c112t1）：t1buy_s＝A-1 の腕の上側の門 U1〈成約ごとの上界の越え〉と W2(a)〈旧の門で飛ばし、かつ UB_Bb≦0＜UB_A1 の行の越境の成約〉。事前登録 measurements/m1144_20261115_prereg_t1.txt。
+// 読むだけ・力学の値を書かない・乱数を引かない。P̂ は計器が事前登録の式から自分で書き直す（エンジンの A1PHat・ProfitFactor を呼ばない）。入力は供給①の写し（Producer の T1OutPrev・T1Base・T1Mc）。
+// 生産者の一覧は計器の TbProducers（州×財・計器が自分で選ぶ）。値段は買い手の国の為替で州の名目へ直す（u′÷為替）。エンジンの値（門の P̂・成約の Q）は照合（自己検査）にだけ使う。
+public static partial class Instruments
+{
+    internal const string T1buyHeaderText = "year\tq\tnation\trows\toldSkip\tinstSkip\tunclassified\tpopA\tpopAPx\tpopASmallD\tpopADealX\tpopAQtyX\tpopAValX\tsmallD\tgateEval\tgateMismatch\t"
+        + "u1Deals\tu1Unok\tu1Viol\tu1ViolAbs\tu1MaxRel\tu1SmallD\tu1SmallDViol\tu1Excess\tu1Qty\tselfN\tselfDiff\tselfMaxRel\tretreatDeals\tretreatQty\tdealsX\tqtyX"
+        + "\tpopC\tpopCUb\tpopCPart0\tpopCDealX\tpopCPart0DealX\tretreatQtySum\tretreatDealsTol\tretreatDealsRaw\tuBelowMin";   // (1159) 段 T1-0 の列（事前登録 measurements/m1159_20261115_prereg_t1.txt [1] ③2）
+    internal const double T1TolRel = 1e-9, T1TolAbs = 1e-6;
+
+    sealed class T1N
+    {
+        public long Rows, OldSkip, InstSkip, Uncl, PopA, PopAPx, PopASmallD, PopADealX, SmallD, GateEval, GateMis, U1Deals, U1Unok, U1Viol, U1ViolAbs, U1SmallD, U1SmallDViol, SelfN, SelfDiff, RetreatDeals, DealsX;
+        public double PopAQtyX, PopAValX, U1MaxRel = double.NegativeInfinity, U1Excess, U1Qty, SelfMaxRel, RetreatQty, QtyX;
+        public long PopC, PopCUb, PopCPart0, PopCDealX, PopCPart0DealX, RetreatDealsTol, RetreatDealsRaw, UBelowMin;   // (1159)
+        public double RetreatQtySum;   // (1159)
+    }
+    sealed class T1State
+    {
+        public readonly Dictionary<World, T1N> N = new();
+        public System.IO.StreamWriter? W; public World? LastW; public T1N? LastN;
+        public bool CurPop, CurDealt;   // 今の行が W2(a) の母集合か・越境で成約したか（次の行の門の呼びで置き直す）
+        public bool CurC, CurCPart0, CurDealtC; public double CurUMin = double.NaN;   // (1159) 今の行が W2(a)′ の母集合（popCUb）か・その sk0 の側か・越境で成約したか・行の門の時点の u_min（NaN＝区分できない行）
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, T1State> T1States = new();
+
+    /// <summary>計器の P̂(pLoc)＝州×財の生産者の〈供給①を値段 pLoc で読み直した来月の産出〉の和（事前登録の式の書き直し）。
+    /// 写しが 3 つとも 0 の生産者は今の産出のまま・T1Base＜0（未発明）は 0・目標＝T1Base×採算・x＋k×(目標−x)・負は 0・目標が正でなく床未満は 0。</summary>
+    internal static double T1PHat(Region r, int g, Coefficients c, double pLoc)
+    {
+        double sum = 0;
+        foreach (var p in TbProducers(r, g))
+        {
+            double b = p.T1Base, o0 = p.T1OutPrev, mc = p.T1Mc;
+            if (b == 0 && o0 == 0 && mc == 0) { sum += p.Output; continue; }
+            if (b < 0) continue;
+            double pf;
+            bool humanLabor = (p.GoodId == Catalog.LaborId || p.GoodId == Catalog.FarmLaborId) && p.RecipeName.Length == 0 && p.Inputs.Count == 0;
+            if (c.LaborFloorOffGate > 0 && humanLabor)
+            {
+                double full = mc * (1.0 + c.SupplySlope);
+                pf = !(pLoc > 0) ? 0.0 : full > 0 ? System.Math.Min(1.0, pLoc / full) : (full == 0 ? 1.0 : 0.0);
+            }
+            else pf = pLoc <= mc ? 0.0 : System.Math.Min(1.0, (pLoc - mc) / (mc * c.SupplySlope));
+            double target = b * pf;
+            double o = o0 + c.SupplyAdjustSpeed * (target - o0);
+            if (o < 0) o = 0;
+            else if (!(target > 0) && o < c.TargetStockFloor) o = 0;
+            sum += o;
+        }
+        return sum;
+    }
+
+    static T1N T1NOf(T1State st, World w)
+    {
+        if (ReferenceEquals(st.LastW, w) && st.LastN is { } ln) return ln;
+        if (!st.N.TryGetValue(w, out var a)) st.N[w] = a = new T1N();
+        st.LastW = w; st.LastN = a; return a;
+    }
+
+    /// <summary>行の門の直前の呼び：旧の門・計器の A-1 の門・W2(a) の母集合。engSkip＝エンジンの門の結果・engPh0＝エンジンが門で評価した P̂（評価しなければ NaN）。</summary>
+    internal static void T1Row(InternationalMarket mk, World w, Region r, int g, Market m, double lp, double rpT, double headPrice, double lbMulMin, double fx, bool a1On, bool engSkip, double engPh0)
+    {
+        if (w.WarmupFrozen || !Wants("t1buy_s")) return;
+        var st = T1States.GetValue(mk, _ => new T1State());
+        var a = T1NOf(st, w); var c = w.Coef;
+        double ts = m.TargetStock, d = m.LastDemand, p = m.LastProduced, s = m.Stock, q = p;
+        bool oldSkip = !(ts + d - p - s > 0);
+        a.Rows++; if (oldSkip) a.OldSkip++;
+        bool small = d < c.TargetStockFloor; if (small) a.SmallD++;
+        st.CurPop = false; st.CurDealt = false;
+        st.CurC = false; st.CurCPart0 = false; st.CurDealtC = false; st.CurUMin = double.NaN;
+        double um = lp, hm = headPrice * lbMulMin;
+        if (!double.IsNaN(hm) && hm < um) um = hm;
+        bool instSkip;
+        if (!(rpT > 1e-9) || !(um > 1e-9) || double.IsInfinity(um)) { a.Uncl++; instSkip = oldSkip; }
+        else
+        {
+            double root = System.Math.Pow(rpT / um, c.PriceElasticity);
+            double ubBb = ts + d * root - p - s, ubA1 = ubBb;
+            if (!(ubBb > 0))
+            {
+                a.GateEval++;
+                double ph = T1PHat(r, g, c, um / fx);
+                q = System.Math.Min(p, ph); if (!(q >= 0)) q = p;
+                ubA1 = ts + d * root - q - s;
+                if (a1On && !double.IsNaN(engPh0)) { a.SelfN++; if (ph != engPh0) { a.SelfDiff++; double rel = System.Math.Abs(ph - engPh0) / System.Math.Max(1e-300, System.Math.Abs(engPh0)); if (rel > a.SelfMaxRel) a.SelfMaxRel = rel; } }
+            }
+            instSkip = !(ubA1 > 0);
+            if (oldSkip && !(ubBb > 0) && ubA1 > 0)
+            {
+                st.CurPop = true; a.PopA++; if (small) a.PopASmallD++;
+                if (d * System.Math.Pow(rpT / um, 2.0 * c.PriceElasticity) - (q + m.LastImport) > 0) a.PopAPx++;   // 値段の側の上界も正（成約の必要条件＝xPrice≦D×(rpT÷u_min)^{2ε}−(Q(u_min)＋I)）
+            }
+            st.CurUMin = um;   // (1159) 下界の番人 uBelowMin が成約ごとに読む
+            if (oldSkip && T1HBelow(headPrice, lbMulMin, lp))
+            {   // (1159) W2(a)′ の母集合 N_C＝旧の門が閉じ h_min＜lp。その中で UB_A1(u_min)＞0＝popCUb・UB_Bb(u_min)＞0＝popCPart0（sk0 の側）
+                a.PopC++;
+                if (ubA1 > 0) { a.PopCUb++; st.CurC = true; if (ubBb > 0) { a.PopCPart0++; st.CurCPart0 = true; } }
+            }
+        }
+        if (instSkip) a.InstSkip++;
+        if (a1On && instSkip != engSkip) a.GateMis++;
+    }
+
+    /// <summary>成約の直後の呼び（m.Stock は成約の後）。engQ＝エンジンがこの成約に使った Q（旗 0 は NaN）。</summary>
+    internal static void T1Deal(InternationalMarket mk, World w, Region r, int g, Market m, double lp, double unitA, double rpT, double qA, bool cross, double vA, double fx, double engQ)
+    {
+        if (w.WarmupFrozen || !Wants("t1buy_s")) return;
+        var st = T1States.GetValue(mk, _ => new T1State());
+        var a = T1NOf(st, w); var c = w.Coef;
+        a.U1Qty += qA;
+        if (cross) { a.DealsX++; a.QtyX += qA; }
+        if (cross && st.CurPop) { if (!st.CurDealt) { a.PopADealX++; st.CurDealt = true; } a.PopAQtyX += qA; a.PopAValX += vA; }
+        if (!double.IsNaN(engQ) && engQ < m.LastProduced) { a.RetreatDeals++; a.RetreatQty += qA; }
+        double u = System.Math.Min(unitA, lp);
+        if (cross)
+        {   // (1159) W2(a)′ の成約（行ごとに 1 回）と退きの量（越境の成約・エンジンの Q・旗 0 は NaN＝数えない）
+            if (st.CurC && !st.CurDealtC) { a.PopCDealX++; if (st.CurCPart0) a.PopCPart0DealX++; st.CurDealtC = true; }
+            if (!double.IsNaN(engQ))
+            {
+                double pm = m.LastProduced - engQ;
+                if (pm > 0) a.RetreatDealsRaw++;
+                if (pm > T1TolRel * System.Math.Max(m.LastProduced, m.LastDemand)) { a.RetreatDealsTol++; a.RetreatQtySum += pm; }
+            }
+        }
+        if (!double.IsNaN(st.CurUMin) && u < st.CurUMin * (1.0 - T1TolRel)) a.UBelowMin++;   // (1159) 行の門の主張〈u_min≦どの成約の u′〉の番人
+        if (!(rpT > 1e-9) || !(u > 1e-9) || double.IsInfinity(u)) { a.U1Unok++; return; }
+        double root = System.Math.Pow(rpT / u, c.PriceElasticity);
+        double ph = T1PHat(r, g, c, u / fx);
+        double q = System.Math.Min(m.LastProduced, ph); if (!(q >= 0)) q = m.LastProduced;
+        if (!double.IsNaN(engQ)) { a.SelfN++; if (q != engQ) { a.SelfDiff++; double rel = System.Math.Abs(q - engQ) / System.Math.Max(1e-300, System.Math.Abs(engQ)); if (rel > a.SelfMaxRel) a.SelfMaxRel = rel; } }
+        double ub = m.TargetStock + m.LastDemand * root - q;
+        double eAbs = m.Stock - ub, den = System.Math.Max(m.LastDemand, m.TargetStock);
+        double eRel = den > 0 ? eAbs / den : double.NaN;
+        a.U1Deals++;
+        bool small = m.LastDemand < c.TargetStockFloor, viol = eRel > T1TolRel;
+        if (viol) a.U1Viol++;
+        if (eAbs > T1TolAbs) a.U1ViolAbs++;
+        if (small) { a.U1SmallD++; if (viol) a.U1SmallDViol++; }
+        if (eRel > a.U1MaxRel) a.U1MaxRel = eRel;
+        if (eAbs > 0) a.U1Excess += eAbs;
+    }
+
+    static void T1Table(MultiNationSim sim, ulong seed, int q)
+    {
+        if (!Wants("t1buy_s") || sim.Nations.Count == 0) return;
+        if (!Wants("tb_s")) _tbEpoch++;   // 生産者の一覧を四半期ごとに作り直す（tb_s が回るときは TbTable が進める＝同じ刻み）
+        if (!T1States.TryGetValue(sim.Market, out var st)) return;
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string L(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (st.W is null) { st.W = Open("t1buy", seed); st.W.WriteLine(T1buyHeaderText); }
+        int yearLabel = sim.Nations[0].World.Year;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; st.N.TryGetValue(w, out var a); a ??= new T1N();
+            st.W.WriteLine(string.Join('\t', I(yearLabel), I(q), NameOf(w), L(a.Rows), L(a.OldSkip), L(a.InstSkip), L(a.Uncl), L(a.PopA), L(a.PopAPx), L(a.PopASmallD), L(a.PopADealX), FR(a.PopAQtyX), FR(a.PopAValX), L(a.SmallD), L(a.GateEval), L(a.GateMis),
+                L(a.U1Deals), L(a.U1Unok), L(a.U1Viol), L(a.U1ViolAbs), a.U1Deals > 0 ? FR(a.U1MaxRel) : "nan", L(a.U1SmallD), L(a.U1SmallDViol), FR(a.U1Excess), FR(a.U1Qty),
+                L(a.SelfN), L(a.SelfDiff), FR(a.SelfMaxRel), L(a.RetreatDeals), FR(a.RetreatQty), L(a.DealsX), FR(a.QtyX),
+                L(a.PopC), L(a.PopCUb), L(a.PopCPart0), L(a.PopCDealX), L(a.PopCPart0DealX), FR(a.RetreatQtySum), L(a.RetreatDealsTol), L(a.RetreatDealsRaw), L(a.UBelowMin)));
+        }
+        st.N.Clear(); st.LastW = null; st.LastN = null;
+    }
+
+    static void T1Close(MultiNationSim sim) { if (T1States.TryGetValue(sim.Market, out var st)) { st.W?.Dispose(); st.W = null; } }
+
+    /// <summary>(1159) W2(a)′ の母集合の述語〈着値の下界 h_min＝先頭の売り手の値段×lbMulMin が州の値段 lp を下回る〉（NaN は偽＝売り手が無い行は入らない）。</summary>
+    internal static bool T1HBelow(double headPrice, double lbMulMin, double lp) => headPrice * lbMulMin < lp;
 }

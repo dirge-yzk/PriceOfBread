@@ -164,6 +164,9 @@ public class TradeBilateralInstrumentTests
     /// (1146) rpT＝+∞ は Ok＝false にならない＝D＞0 なら UB_Bb＝+∞＞0 で区分 B0（最後の Assert で固定）。
     /// 在庫の欄が NaN だと Ok＝true のまま 3 区分が全て偽になる＝TbRow は行を数えるのにどの区分にも入れない隙間
     /// （表の和が行の数と合わなくなる）。計器の変更が要るので、この線では直さず 00一覧へ申し送る。
+    /// (1159) 隙間を直した（TbClassify を否定形で書き、NaN の上界は閉じた側へ）＝在庫の欄が NaN の行は〈Ok かつ B0・B1・B2 のちょうど 1 つ〉。
+    /// 書き換えは ★(743) ①〜④ の外の例外（§0-2 ★(1157) ② を推奨で決めた物・事前登録 measurements/m1159_20261115_prereg_t1.txt [1] ③4 で名乗った）。
+    /// 旧の Assert〈Ok かつ 3 つとも偽かつ Eval 偽〉。
     /// </summary>
     [Fact]
     public void T6_NaNの入力の区分()
@@ -188,7 +191,8 @@ public class TradeBilateralInstrumentTests
                 m.TargetStock = 5; m.LastDemand = 1; m.LastProduced = 0; m.Stock = 5;
                 switch (field) { case "Stock": m.Stock = nan; break; case "LastDemand": m.LastDemand = nan; break; case "TargetStock": m.TargetStock = nan; break; default: m.LastProduced = nan; break; }
                 var x = Instruments.TbClassify(rg, g, m, c, w, 1.0, 1.0, nan, 1.0);
-                Assert.True(x.Ok && !x.B0 && !x.B1 && !x.B2 && !x.Eval, $"{field}＝NaN の区分 {x.Ok}/{x.B0}/{x.B1}/{x.B2}/{x.Eval}");
+                int one = (x.B0 ? 1 : 0) + (x.B1 ? 1 : 0) + (x.B2 ? 1 : 0);
+                Assert.True(x.Ok && one == 1, $"{field}＝NaN の区分 {x.Ok}/{x.B0}/{x.B1}/{x.B2}/{x.Eval}");
             }
         }
         finally { restore(); }

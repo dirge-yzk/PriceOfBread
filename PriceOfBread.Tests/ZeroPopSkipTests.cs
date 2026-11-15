@@ -18,7 +18,7 @@ public class ZeroPopSkipTests
         Assert.Equal(CostLedger.Count, CostLedger.UnitMicros.Length);
         for (int i = CostLedger.ConsumeSkipZeroPop; i <= CostLedger.DeadMarketMonth; i++)
             Assert.Equal(0.0, CostLedger.UnitMicros[i]);
-        Assert.Equal(CostLedger.ClearingKmRaw + 1, CostLedger.Count);   // ★(1097) 最後の行は ClearingKmRaw（距離の表の 2 行〔41・42〕を足した・★(749) の〈行を足す線はここを直す〉）。旧＝DeadMarketMonth + 1
+        Assert.Equal(CostLedger.ClearingA1Invalidate + 1, CostLedger.Count);   // ★(1159) 最後の行は ClearingA1Invalidate（c114t1 が 44 を足した・★(749)）。旧：★(1144) 最後の行は ClearingA1Eval（c112t1 が 43 を足した・★(749)）。旧：   // ★(1097) 最後の行は ClearingKmRaw（距離の表の 2 行〔41・42〕を足した・★(749) の〈行を足す線はここを直す〉）。旧＝DeadMarketMonth + 1
     }
 
     [Fact]
