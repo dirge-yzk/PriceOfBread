@@ -1,0 +1,79 @@
+(1168) c115sb 事前登録（最初のコミット）：恒等の束＝s22 の消す候補（D-s1・D-s2・D-s4 の 2 本・D-s3）＋文書の見出し 4 行＋計器 mintreg_s。基準＝m1164（main c3c4de36a・木 c115sb は同じ頭から）。
+形：恒等の線（尾）・予言 0＝挙動を変えない。根拠は measurements/m1161_20261115/ledger_S22_2026-11-15.md の 3 節・4-4 と末尾の v の訂正・実装ログ (1161)(1164)・作者「しばらくの間、全て推奨で」で推奨を採った（作者の確認待ち・〈承認〉とは書かない）。作者「根拠のない倍率は一掃したい。」（2026-11-11）。
+
+[1] 恒等の線・予言 0
+  成績表（10種・5種・計器つき10種）は m1164 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言する物だけ＝mintreg_s（新しい表）の追加（--added-tables mintreg_s）。他の表は 1 バイトも違わない。
+  .cost の件数の行は計器が切れている時に増えない（件数の欄は足さない）。推定の計算量は m1164 と同じ。
+  判定は〈判定: 恒等（測った種で一致）〉。〈証明〉とは書かない。
+  項 3（D-s2）と項 6（D-s3）が不一致なら、その項のコミットだけを戻し（git revert・外した項は別のコミットで記録）、区分 II（ほとんど影響のない削除）として 00一覧へ番号つきで戻す。項 2・4 が不一致なら同じく外して報告に回す。残りで ident をやり直す（やり直しは 1 回だけ）。
+
+[2] 項と消す物・残す物（この順・1 項 1 コミット）
+  項1 計器 mintreg_s（新しい 1 ファイル Instruments/InstrumentsMintreg.cs・Instruments.cs の登録の行・Simulation.cs MintGold の頭に 1 行の口 `if (Instruments.On) Instruments.MintregMonth(this);`）
+    - 州×四半期。計器が World.Regions を自分で走査する（エンジンの関数を呼ばない）。州の列：銀と金鉱の在庫・値段・平価（Catalog.RefPrices）・産出・LastDemand・持ち主の本位（World.MonetaryLaw）・OnGoldStandard。
+    - 造幣の買いの量と月数は既存の SilverMintCapture（Simulation.cs:2460・InstrumentsSilverst.cs:50）の呼び出しの隣へ、全ての州の溜めを足す（SilverMintCapture 本体は変えない＝silverst_s の行は 1 バイトも変わらない）。
+    - 買わなかった月を理由ごとに数える（計器が値段と在庫から自分で数え直す・数えるのは月ごと・全ての州）：不換（Fiat）・その州に金属の市場が無い・在庫なし（Stock≦1e-12）・平価超え（Price＞平価で、市場買いの予算が無い）・gapLeft が先の州で尽きた（Price＞平価・月の頭の予算＞0・この州の番で予算が 1e-9 以下）。買う月（wouldBuy）は買えた月（SilverMintCapture が見た月）と買えなかった月（代金の受け手が無い等）に分ける。atMarket の月（Price＞平価・予算が残っている）・coverShort＞0 の月。
+    - 計器の模型の限界（近似と名乗る）：gapLeft の消費は在庫×月次率×値段と予算の小さい方で数える（実際は代金を払えた分だけ消費する＝受け手が無い月は差が出る）。差は modelMiss（モデルは買わないと言い実際は買った月）と notPaid（モデルは買うと言い実際は買えなかった月）に出す。
+    - ③ 銀の生産者の LaborWeight×Scale の和（wLaborAg）・同じ lp（LaborPopIndex）の全ての生産者の和（wLpAg）・fraction＝wLaborAg÷wLpAg・同じ lp の生産者の数・州の雇用（1−銀の担い手の POP の失業率の平均）・MineralGradeFactor・MineralDeposit÷MineralDepositInitial。
+    - 旧と新の sellR は既にある sellr_s（InstrumentsSellr.cs:7）を使い、重ねて作らない。
+    - [NonSerialized] の欄は足さない（溜めは ConditionalWeakTable＝エンジンに欄を足さない）・旗なし・Instruments.On かつ Wants("mintreg_s") の時だけ・助走（WarmupFrozen）の月は数えない。
+    - 足す列（見出し 36 列）：year q nation region law onGold months fiatM noGoodM noStockM aboveM gapM wouldBuyM boughtM notPaidM atMarketM coverShortM modelMissM qtyAg qtyAu stockAg stockAu priceAg priceAu parityAg parityAu prodAg prodAu demandAg demandAu wLaborAg wLpAg fracAg nProdLp employed grade depositFrac。
+  項2 D-s1 HoardRatioMax（Credit.cs:6・:14）
+    - :14 の ClampOr(x, 0, HoardRatioMax, 既定) を、非有限は既定の退蔵率・負は 0・それ以外は x の否定形の書き方へ（上限の引数を外す）。:6 の const を消す。
+    - 旧と新が違う入力＝x＞0.9（退蔵率＝0.1×(1＋1×(1−信頼)) で信頼は Clamp01 ＝上限 0.2・POB_COEF で HoardPanicWeight を 7 以上へ上げない限り届かない）と x＝±∞（届かない）。既定の腕では 0 行。
+    - 浮動小数の順序は変えない（式 c.CurrencyHoldingRatio.Value*(1.0+c.HoardPanicWeight*(1.0-bank.Confidence)) はそのまま）。
+  項3 D-s2 GoldCoverCreditFloor（Credit.cs:7・:46）
+    - :46 の `maxLoans *= Math.Max(GoldCoverCreditFloor, gcCoverage / gcFloor)` → `maxLoans *= gcCoverage / gcFloor`。:7 の const を消す。
+    - 紙：gcFloor＝GoldCoverMin 0.25×(1＋0.5)＝0.375・床が効くのは gcCoverage＜0.09375。金本位の月は被覆 0.25 未満で強制離脱（Fiscal.cs:214）＝月の中の順は未確かめ＝ident で測る。同じ盤面で旧≠新の行の数は ident の全行一致で数える（0 でなければこの項を外す）。
+  項4 D-s4 の焼き込み（Runner に読み手が無い 2 本だけ）
+    - MintBuysAtMarket（p10:56・Simulation.cs:2415）：`World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9` → `shortfall > 1e-9`・係数を消す（既定 1.0 の経路だけ残る）。
+    - SilverParityFromRatio（p10:54・MultiNationSim.cs:743）：`_coef.SilverParityFromRatio > 0 && ratioOk` → `ratioOk`・係数を消す（既定 1.0）。
+    - 消した 2 名を DormantIdentityTests の RetiredFields へ（その 1 行だけ）。DormantIdentityTests:129 の注は旗の行ではなく〈点火した〉の注＝(1168) で焼き込んだと足す。
+    - 残す物：MintReserveTargetWeight（Runner/Program.cs:1428 が読む＝束 ⑲ へ）・MintParitySells（本位の両側・DormantIdentityTests:93）。
+    - 旗 0 を固定していた番人を今の盤面へ移す（★(743) の区分と行番号は [3]）。
+  項5 文書の見出し 4 行：docs/ゲーム概要と実装機能.md の S22-H001・H018・H049・H052（〈文書が古い〉の行）。コードは動かない。行の中身は台帳（ledger_S22_2026-11-15.tsv）の〈文書が古い〉の行に合わせ、今の木で grep して確かめた事実だけ書く。
+  項6 D-s3 ExchangeRateCeil（〈PriceLevelFloor に依る恒等の候補〉・v の低）
+    - 場所：p03:130・World.cs:1385・:1392〜:1393・InstrumentsSilverParity.cs:30・:72・InstrumentsSilverWeight.cs:69。
+    - 天井だけを外し、床 ExchangeRateFloor は残す。World.cs:1385 `Math.Clamp(x, Floor, Ceil)` → `Math.Max(Floor, x)`（NaN は旧と同じ扱いにならない＝Clamp は NaN を返し Max も NaN を返す＝同じ）。:1392 同様。:1393 の守りは `!(silverRel >= Floor)` へ。
+    - 計器 3 箇所：InstrumentsSilverParity.cs:30 の OldParity は旧の規則の取り直し＝天井を計器が自分で持つ（定数 3.0 を計器の欄へ・値は同じ＝silverpar_s の出力は 1 バイトも変わらない）・:72 の atCeil も同じ定数・InstrumentsSilverWeight.cs:69 の clampHits も同じ定数。
+    - 紙：天井はソースで届かない（ppp×(1＋bias)≦3.0＝PriceLevel≧0.4 の床と bias ±0.2・:1392 の silverRel も usedParityIndex 0.78〜1.41）。届く入力があれば ident が拾う＝ident で不一致なら項ごと戻す（区分 II）。
+    - 旧の規則の取り直しは式の順序を変えない。
+  外した物（Runner に読み手がある＝App・Display・Runner の束 ⑲ へ）：D-s4 の MintReserveTargetWeight（Runner/Program.cs:1428）・D-s5 GoldLiteracyLine（SelfPlay.cs:195・Runner/Program.cs:1460）。
+  入れない物：B-1′（案 4・案 2b″）・MintParitySells・SilverRushEnabled・貸出の利息の器・PopDebtDriven・Runner に触れる物。
+  読み手の grep（SimCore・Tests・Tests.Ui・App・Display・Runner・scripts・measurements の台本・POB_COEF の名前・SaveGame）：
+    - HoardRatioMax：Credit.cs:6・:14 の 2 件だけ。Tests・Runner・App・Display 0。台帳の写しは scripts/instruments/r1161/mk_ledger_s22.py:24・:56（記録＝直さない）。
+    - GoldCoverCreditFloor：Credit.cs:7・:46 の 2 件だけ。他 0（mk_ledger_s22.py:26・:62 は記録）。
+    - MintBuysAtMarket：Coefficients.p10:56・Simulation.cs:2415・:2446（注）・Tests（MintAtMarketTests.cs:6〔注〕・:17・MoneyThemeTests.cs:80・StateFactoryTests.cs:531・FullChainTests.cs:49〔注〕）・scripts/instruments/c70id/mut854.py:61（突然変異の台本＝記録）。Runner・App・Display・Tests.Ui 0。POB_COEF で渡す台本は 0。
+    - SilverParityFromRatio：p10:54・MultiNationSim.cs:743・Runner/Program.cs:1437（注だけ）・Tests（MultiNationTests.cs:52〜:61・:218・:252・DormantIdentityTests.cs:129〔注〕）・scripts/c67sv/mutate834.py:14・r795/probe_r795.py:73（記録・台本）。World.cs:915 は注。
+    - ExchangeRateCeil：p03:130・World.cs:1385・:1392・:1393・InstrumentsSilverParity.cs:30・:72・InstrumentsSilverWeight.cs:69・scripts/instruments/c8sv/probe_warmup_edit.py・r795/probe_r795.py（記録）。Tests 0・Runner 0・App 0。
+  他の線との重なり（持ち主の一覧を grep して確かめた）：Credit.cs は c115sb だけ。Simulation.cs は :2396〜:2462（c115sb）と :827・:1366（c115qc）＝行が離れている。MultiNationSim.cs は :743（c115sb）と四半期末の清算（c115cr）＝離れている。World.cs は :1385〜:1393 だけ。Coefficients.p10 は :54・:56 だけ（c115cr は p08）。p03 は :130 だけ。Instruments.cs は登録の行（c115sb は mintreg の 2 行）だけ・DormantIdentityTests は RetiredFields の 1 行だけ。
+
+[3] 足す試験と突然変異・ソースを走査する番人（㉘）・書き換える件数（㉑）
+  足す試験（新しい 1 ファイル PriceOfBread.Tests/MintregInstrumentTests.cs・3 件）：
+    T1 理由ごとの月の和＝全ての月：台本の盤面（仏の 1 国・銀本位・準備不足）で MintGold を反射で 8 か月呼ぶ。月ごとに首都の銀の市場を（在庫 0・平価超えで予算なし・平価超えで予算あり〔市場買い〕・予算の尽きた 2 州目・平価の下で在庫あり）に置き、期待の件数は台本から手で数える（エンジンの出力から作らない）。Assert＝fiat＋noGood＋noStock＋above＋gap＋wouldBuy＝months、各理由の件数が台本の月数と一致、wouldBuy＝bought＋notPaid、modelMiss＝0。
+    T2 atMarket の月は coverShort＞0 の月の部分集合：被覆が足りている月（予算 0）に平価超えの市場を置いても atMarket は 0・準備不足の月だけ atMarket が立つ。atMarketM≦coverShortM を全ての州で Assert。
+    T3 計器が切れている時は何も書かず軌道を変えない：Instruments.On を偽にして同じ台本を回し mintreg の表が出ない・表が切れている時（SelectTables で別の表）も出ない・計器あり／なしで BaseMoney・SilverReserveQty・在庫のビット列が同じ。
+  消す試験（★(743) の区分・行は書き換え前の行）：
+    ① MintAtMarketTests.cs:93〜 `市場買いの係数が0なら平価の上では買わない_準備不足でも`（旗 0 の旧い経路だけを確かめる）＝削除（Fact 1 件減）。
+    ① MultiNationTests.cs:55〜56 `[InlineData(0.0)]`（銀平価の器の gate=0 行）・:211〜212 `[InlineData(0.0)]`（平価の計器の gate=0 行）＝削除（Theory 2 行減）。
+    ② MultiNationTests.cs:81 `expected = gate > 0 ? Math.Exp(sum / cnt) / refRatio * refAg : sim.Market.Price[...]` → `Math.Exp(sum / cnt) / refRatio * refAg`（焼き込んだ式・値は同じ double）。
+    ③ MintAtMarketTests.cs:17（`w.Coef.MintBuysAtMarket = mintBuysAtMarket;`・既定と同じ値 1.0 の行）→ 行を消し、Board の引数を外す（呼び出し 5 箇所の `Board(1.0)` → `Board()`）。MultiNationTests.cs:61・:218 の `SilverParityFromRatio = gate` と :252 の `SilverParityFromRatio = 1.0`（既定と同じ値）→ 初期化子から外す。
+    ★(743) の外の書き換え（旗 0 を固定していた隔離を今の盤面へ移す＝この線の指示）：MoneyThemeTests.cs:80・StateFactoryTests.cs:531 の `w.Coef.MintBuysAtMarket = 0;`（準備不足の市場買いを切る隔離）→ 行を消し、準備の被覆が足りる盤面にする（GoldCoverMin を小さく置く＝coverShort＝0・gapLeft＝0）。Assert は 1 つも変えない・この盤面で旗 0 と旗 1 の差が無かったことを MoneyThemeTests は既に coverShort＝0 の盤面で（ON の売りは coverShort＞0 の月は走らない設計）通っていることで確かめ、StateFactoryTests は旧の木と新の木の両方で緑を確かめる。
+    FullChainTests.cs:49 は注（MintBuysAtMarket の枝を外しても緑〔旗の語を〈市場買いの枝〉へ〕）＝語の直し。
+  突然変異の表（この線の試験を赤にする変更・使い捨ての木で確かめて measurements/m1168_20261116_mut_sb.txt にコミット）：
+    M1 計器の理由〈在庫なし〉の述語（Stock≦1e-12）を壊す（≦−1）→ T1 が赤（noStock の件数が台本とずれる）。
+    M2 計器の理由〈平価超え〉の述語（Price＞平価）を壊す（Price≧0）→ T1 が赤。
+    M3 計器の理由〈予算が尽きた〉の述語（予算≦1e-9）を壊す（≦−1）→ T1 が赤（gap が 0 になり wouldBuy へ回る＝modelMiss が立つ）。
+    M4 atMarket の数えから coverShort＞0 の条件を外す → T2 が赤。
+    M5 計器が On を見ずに溜める（`Instruments.On` の分岐を外す）→ T3 が赤。
+    M6 MintGold の `shortfall > 1e-9` を `true` へ → MintAtMarketTests の〈準備が足りていれば市場買いは立たない〉が赤。
+    M7 MultiNationSim の `ratioOk` の枝を外す（false）→ 銀平価の器の試験が赤。
+    M8 Credit の退蔵率の下限 0 の枝を外す（負を許す）→ 既存の試験で赤になるかを確かめ、緑のままなら穴と名乗り、同じ線で CreditTests へ機構の試験を足して赤にする（★(790)）。
+  走査の番人の点検（㉘・器のコミットの直後に回す）：`dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests"`（隔離ビルド --artifacts-path D:/PoB_work/c115sb_art）。事前登録の点検の grep：工業化度の読み手の許可表（IndustrializationReaderTests）・`new MoneyStock(` の件数（UnitTypeTests）・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表＝この線は表の件数を増やす欄を足さない（CostLedger の項目を足さない・MoneyStock を new しない）ので書き換えは 0 の予言。
+  書き換える件数の予言（㉑）：WriterRatchetTests の表 0 行・IndustrializationReaderTests の許可表 0 行・UnitTypeTests 0 行・route_anchors.tsv 0 行（Credit.cs・Simulation.cs・MultiNationSim.cs の鍵が行番号つきなら番号だけ動く＝動いたら grep して直す）・DormantIdentityTests は RetiredFields の 2 名の追加だけ。
+  テストの数の予言：Category!=FullLength は 2889（Tests 2655＋Tests.Ui 234）＋3（T1〜T3）−1（MintAtMarketTests）−2（MultiNationTests の Theory 2 行）＝2889（--tests-delta 0）。FullLength は 3 のまま。
+
+[4] 素の 5 種・計器つき 10 種が m1164 と名乗り行を除いて全行一致（計器の表の差は mintreg_s の追加だけ＝--added-tables mintreg_s）。silverst_s・silverpar_s・silverwt_s・sellr_s は 1 バイトも違わない。段は stage.py（計器か段 2 の条件に触れる線は段 2＝この線は段 2）。D: は起こす直前に shutil で測る（床 35GB＋ident 約 30GB に届かなければ 240 秒以内の刻みで測り直して待つ・待った時間を報告に書く）。
+
+[5] 〈判定: 恒等〉なら採る。不一致の項は [1] のとおり外して報告に回す。
+  読む側の自己点検：消した名（HoardRatioMax・GoldCoverCreditFloor・MintBuysAtMarket・SilverParityFromRatio・ExchangeRateCeil）を置き換えた後に全域 grep する（★(1164) ①）・呼び出し位置の列を持つ表（flow_s など）は触らない（この線は flow に書き手を足さない）・母集合を作り直す門は置かない・〈ヌル腕に定義が無い〉と書く門は置かない（この線は門が全行一致と突然変異だけ）。
+  生は合流の判断まで残す（ident・probe）。作業フォルダは D:/PoB_work/c115sb_work・隔離ビルドは D:/PoB_work/c115sb_art（回の終わりに自分の分だけ片付ける・keep_* は触らない）。
