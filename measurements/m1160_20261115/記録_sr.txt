@@ -1,0 +1,9 @@
+(1160) c114sr 記録
+判定: 恒等（測った種で一致）・段 2・測った木 HEAD e76eb8f45（SOURCE-HASH 6fe17a3b87fb45ce）・基準 m1157。宣言＝region_s:settlerOutKPerQuarter,settlerInKPerQuarter の削除だけ。
+成績表 3 枚（b5・b10・b10_ins）：基準と名乗り行を除いて全行バイト一致。.cost：件数の行 43 本・推定 228.3 秒（5 種）・229.1 秒（計器つき 10 種）＝基準と同じ。
+計器の表：基準 1522 本・腕 1522 本・バイト一致 1452・既知の揺れ 60・列が消えた 10（region_s の 2 列）・宣言の無い違い 0。注視の表は一致（4655 行）。テストの数 2874／3（基準と同じ）。savetest OK・leakhunt 保存則違反なし。
+フルスイート（HEAD の 1 つ前の e76eb8f45 の前の木）：Tests 2640＝合格 2638・スキップ 1・失敗 1（TechLevelRemovalTests の許可表 World.cs 4→3・予言の外れ・追記 1）→ 直した後に TechLevelRemovalTests・DormantIdentityTests 17 本が緑。Tests.Ui 234 緑・FullLength 3 緑。
+an_h2.py（止める線の空洞化の読み手）：旧の生（keep_1157/base_ins）と新の生（ident_c114sr/out_ib_10/ins）で -v4 の出力 38 行がバイト一致（an_h2_base_keep1157.txt・an_h2_arm_c114sr.txt）。
+読み手の台本（settler の 2 列）：列の数で行を捨てる＝m749/flows748.py（名で引く形へ直した）／名で引く＝c74id/selftest880.py・hol/an_h2.py・hol/edge_689.py・r1042/rm_dest.py・r806/r806_hol.py・r806_split.py・r809/r809_detail.py・r809_ev.py・r999/r999_base_rate.py・r999_q.py・rd47/home_accounting.py・rdh/rdh_read.py（無ければ 0）・r806/r806_series.py（qtab が空にする＝直さない）／番号で引く＝r783/cess_scan2.py（無ければ −1）・r840/mkfix840.py・r847/mkfix847.py（見出しと行の長さ 26→24）／記録の文字列＝r1148/mk_ledger.py（直さない）。
+突然変異：measurements/m1160_20261115_mut_sr.txt（M1 新の盤面で H3 が赤・旧の盤面は緑のまま・M3 で RetiredFields の 2 本が赤）。gate5：measurements/m1154_gate5_mut.txt を UTF-8・rev つきで取り直し（合格）。
+作ったフォルダ：D:/PoB_work/c114sr_work・D:/PoB_work/ident_c114sr・D:/PoB_work/wt_c114sr。腕の枠の待ち 0 分。
