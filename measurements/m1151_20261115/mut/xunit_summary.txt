@@ -1,0 +1,16 @@
+CTL0 rc=0 成功! -失敗: 0、合格: 13、スキップ: 0、合計: 13、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+Ma rc=0 成功! -失敗: 0、合格: 13、スキップ: 0、合計: 13、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+Mb rc=1 失敗! -失敗: 2、合格: 11、スキップ: 0、合計: 13、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+  FAIL E11_取り分だけの州の重みはsに比例_陸の隣の州はsを掛けない [FAIL]
+  FAIL E12_取り分だけの州はkが1未満なら減り_1を超えれば不動点に留まる [FAIL]
+Md rc=0 成功! -失敗: 0、合格: 13、スキップ: 0、合計: 13、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+Me rc=1 失敗! -失敗: 1、合格: 12、スキップ: 0、合計: 13、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+  FAIL E14_旗1の最初の表で開幕のデータの州に持ち主の名が付く_名の無い州は在地へ [FAIL]
+XEND 14:50:52
+--- E10 を強めた後（Ma）と Md の定義の直しの後
+CTL0 rc=0 成功! -失敗: 0、合格: 13、スキップ: 0、合計: 13、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+Ma rc=1 失敗! -失敗: 1、合格: 12、スキップ: 0、合計: 13、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+  FAIL E10_交戦の相手でも陸の隣でも取り分も無い州は候補でない [FAIL]
+Md rc=1 失敗! -失敗: 1、合格: 12、スキップ: 0、合計: 13、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+  FAIL E13_τの代わりの値は国の並びに依らない_先に処理した国でも他の国の解けた州の中央 [FAIL]
+XEND 14:55:17

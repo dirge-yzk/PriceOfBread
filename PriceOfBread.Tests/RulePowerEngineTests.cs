@@ -183,10 +183,12 @@ public class RulePowerEngineTests
             sim.StepQuarter();
             var nW = sim.Nations.Select(s => s.World).First(x => KeyOf(x.SelfPower!) == a);
             var m = sim.Nations.Select(s => s.World).First(x => KeyOf(x.SelfPower!) == bName);
-            var target = m.Regions[0];
-            var rc = Places.Coord(target.Name);
-            if (Diplomacy.CessionAdjacent(Diplomacy.CessionNode(rc.Lat, rc.Lon), Diplomacy.CessionWinnerNodes(nW.SelfPower!), out _)) continue;
+            // 標的＝相手の州のうち陸の隣でなく産出のある州（首都でない最初の州）。持ち主の側の重み b を小さく置く（候補なら重み Y×1×0.6＞0 で配りを受ける形にする）
+            var winNodes = Diplomacy.CessionWinnerNodes(nW.SelfPower!);
+            var target = m.Regions.Skip(1).FirstOrDefault(r => { var c = Places.Coord(r.Name); return r.OutputRefValue() > 0 && !Diplomacy.CessionAdjacent(Diplomacy.CessionNode(c.Lat, c.Lon), winNodes, out _); });
+            if (target is null) continue;
             foreach (var r in m.Regions) { r.ForeignRulers = []; r.ForeignShares = []; }
+            target.Rule = [0.3, 0.1, 0.0, 0.6];
             sim.Diplomacy.Wars.Add(new War { A = nW.SelfPower!, B = m.SelfPower!, Score = 0.0 });
             sim.StepQuarter();
             string nKey = KeyOf(nW.SelfPower!);
