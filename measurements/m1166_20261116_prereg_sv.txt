@@ -1,0 +1,93 @@
+(1166) c115sv 事前登録：兵 0 の崖＝大きさ 0 の兵士の POP を、空きがあれば職の行き先にする（旗 SoldierVacancyFromZero・既定 0）
+2026-11-16・枝 c115sv（c3c4de36a から）・波115 の席 2・3 回の規則では兵 0 の崖の 1 回目。書いたのは Claude Opus 5.5。
+この事前登録は腕の前・ident の前に固定し、ループの中で変えない。数を変えるなら腕の前に理由つきで追記する。
+
+■ 先頭の名乗り
+- 出発は (1162) c114k1 の下書き §3（AI の案・確証なし）。作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち。直す根拠は作者 2026-11-06 の〈関連機能も点検する〉（欠損として直す）。
+- 欠損の読み（ソースの行・確）：昇格した植民地の兵士の POP は大きさ 0 の器で生まれる（Simulation.cs:1354 の注〈軍事費が平時均衡で徴募〉）。志願の国は Military.Step が州の募集を飛ばす（Military.cs:150 `if (!lawConscripts) continue;`）。兵は社会移動の職の選び（Meritocracy.RouteViaPool）だけで入るが、職の選びは大きさ ≦1e-9 の POP を行き先にしない（Meritocracy.cs:348・:392）＝志願の国では 0 のまま（吸い込む状態）。徴兵の国は Military.cs:151〜:161 が 0 から埋める（MoveCohort は大きさ 0 の兵を受けられる＝既に通っている道）。
+- 形は〈入口〉（社会移動の職の行き先の候補の条件）。新しい係数・状態は 0。旗は 1 本。動詞は AI とプレイヤーで共通のまま（等価の原則）。〈確証なし〉は AI が置いた細部（下の所得の読みの時点）。
+
+■ 指示から外した所（3 つ・理由つき）
+1. 所得の読みの時点：指示の〈RecruitWage(r,c,last:false)〉ではなく **last:true** を使う。理由＝兵の給与は月の決済（Simulation.MonthSettle :1753）で、その月の EconomyStep.Run が EarnedPerMonth を 0 に戻す前（:772 で LastEarnedPerMonth へ写す前）の値＝前の月の所得から組まれる。社会移動（QuarterEnd :1613）は四半期の最後の月の Run の後に走る＝その時点の LastEarnedPerMonth が、最後の月に大きさ＞0 の兵が受け取った給与の入力そのもの。last:false はその月の所得＝1 か月ずれる。徴兵の国は :1754 と同じく keep（頭数あたり）を使う（w.ConscriptionLaw ≧ Selective）。
+2. 上の門：指示の〈志願の国の兵の総数÷定員（admrule_s soldierK÷seatsK）の種ごとの最大 ≦ ヌル腕の最大×(1＋2×(幅−1))〉は判別の力が無い（紙・下）：M 13.69・N1 13.18・N2 67.25（keep_1150 のヌル腕）＝幅 5.10＝上限 約 619。清の志願の兵が既に定員の 8〜13 倍（定員の下がりを平時の復員がゆっくり追う）＝植民地の州の 0 からの埋まりはこの比を動かさない＝何もしない実装も間違った実装も通る。→ 記録へ下げ、上の門は〈形に固有の誤り＝州の空きを超えて募る量〉を新しい計器 soldiervac_s で読む（G2）。
+3. 働いた門の母集合：空きが立ちえない行（州の届き nowRuleDelivery＝0 か表に無い・国の定員 seatsK＝0）は旗 1 でも 0 が正しい＝旗 0 と旗 1 の両方から同じ定義で除く（旗 0 の 34,673 のうち 4,015 行）。除かないと床 4,015 が 1/10＝3,467 を超え、正しい実装でも落ちる門になる。除く前の数は記録。
+
+■ 形（旗 1 の時だけ・Meritocracy.cs）
+- 候補の条件（:348 と :392）：`t.Size <= Eps` で落とす所を、兵士の POP で旗＞0 なら大きさ 0 でも落とさない（次の行の空きの条件 `t.IsSoldier && !(soldierVac > Eps)` はそのまま＝空きが無ければ候補にならない）。
+- 所得の読み：大きさ＞0 は今の JobIncome のまま（EarnedPerMonth÷Size×送り手の働き盛り÷頭数）。大きさ ≦1e-9 の兵の席だけ新しい関数 EmptySeatIncome（JobIncome は試験が名前で反射して呼ぶ＝同名の多重定義を作らない）：
+  1 人の月の給与＝州の徴募の母数（SoldierRecruitClassA・B の兵でない POP）の LastEarnedPerMonth の和÷働き盛り（keep なら頭数）の和×SoldierPayMult×（1−兵の POP の UnemploymentRate）。
+  （1−UnemploymentRate）＝Simulation.cs:2012 が全ての兵の POP（大きさ 0 も含む）に書く payRate×soldierPayFill＝大きさ＞0 の兵が実際に受け取る率。
+  これに送り手の働き盛り÷頭数を掛ける（JobIncome の兵の席の分岐と同じ規則＝分子と分母を同じ規則で）。
+- 大きさ＞0 の兵との差（紙・限界の名乗り）：大きさ＞0 の兵の EarnedPerMonth は〈満額×充足〉に幹部の給与（trainShare×規定の満額）を足し、payRate を掛けた物（Simulation.cs:1904・:2009）。新しい読みは幹部の給与を含まない＝大きさ＞0 の読み以下（比 ≦1 の見込み）。比は計器 soldiervac_s の eq 列で旗 0 の盤面のまま数える（下・追記 2 で固定）。
+- 移す量：今のまま（FillJobs の f＝取り分×門×空き〔1−U〕を soldierVac で切る・MoveToJob＝Military.MoveCohort）。新しい上限・下限は置かない。
+
+■ 紙の台本の出力（今の盤面 keep_1164/base_ins・旗 0）
+- 台本 scripts/instruments/c115sv/paper_sv.py → measurements/m1166_20261116/paper_m1164.txt・paper_n1_1150.txt・paper_n2_1150.txt。
+- 志願の国の植民地格の兵 0 の州×四半期＝34,673（種の和・(1162) の m1157 では 35,852）。内訳：届き＞0×定員＞0（空きが立ちうる）30,658・届き 0 か表に無い 4,015。選抜 28・皆兵 42。
+- 兵 0 の行の多い国（志願）：清 12,720・英 12,301・マラータ 5,330・日本 3,132・米 895・オスマン 263。
+- 兵士の行が最初に兵 0 の志願の州 493（全てが窓の中で届き＞0×定員＞0）・4 四半期のうちに正 8（0.0162）。
+- 指示の上の門の量（記録）：M 13.689544・N1（keep_1150）13.180636・N2（keep_1150）67.249809（種 8 の共和制イギリス・定員 7.5 千）。
+- 旗 0 で門が落ちる確かめ（紙）：G1 30,658 ＞ 3,065＝赤・G3 0.0162 ＜ 0.9＝赤・G2 は旗 0 で 0 からの埋まりが 0＝緑（上の門）。
+
+■ 門（腕 B＝計器つき 10 種・種 1〜10 の和・腕の前に固定）
+- G1 働いた（下）：志願の国の植民地格の兵 0 の州×四半期のうち、届き＞0×定員＞0 の行（paper_sv.py の〈G1 の内訳：届き＞0×定員＞0〉）≦ **3,065**（旗 0 の 30,658 の 1/10 の切り捨て）。
+- G2 上（形に固有の誤り）：soldiervac_s の overfillZeroK の和 ≦ 1e-6 × fillZeroK の和（K）。fillZeroK＝四半期の頭に兵 0 の州で、社会移動の後の兵−前の兵の和。overfillZeroK＝同じ州で max(0, 後−前−その州の空き soldierVac0) の和。床：fillZeroK の和 ＞0（埋まりが無ければ G2 は判定不能＝G1 が先に落ちる）。
+- G3 形：志願の国で兵士の行が最初に現れた四半期に兵 0 の州（分母＝窓の 5 四半期のどこかで届き＞0×定員＞0）のうち、4 四半期のうちに兵が正になる割合 ≧ **0.9**。床：分母 ≧100（旗 0 は 493）。
+- 壊さない：新しい試験 SoldierVacancyFromZeroTests（下）と既存の MilitaryTests の兵の席の試験が旗 1 の木で緑。
+- 狙いどおり働いたかの段：G1・G3（大きさ）が通ること。G1 と G3 は旗 0 の盤面で紙の上で落ちる。ヌル腕の幅（N1・N2 に cpop_s は無い）は読めない＝1/10 と 0.0162→0.9 は桁の違い（55 倍）で、種の揺れの外（種ごとの G3 の旗 0 は全て 0.1 未満の見込み）。
+- 採否：G1・G2・G3 が緑・試験が緑・止める線に当たらない → 採る（合流が旗の既定を 1 にする）。外れたら採らない（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ（旗 1 の出力を見た後のエンジンの変更は全て数える）。
+
+■ 段0 の予言（ソースと keep_1164 から・腕の前）
+- 向き：G1 は下がる・G3 は上がる。大きさは読めない：0 の席へ入る流れは同じ州の職の選び（失業の POP の同じ級＝所得が送り手×PromotionPremium を超える時だけ・中と上の級の没落＝級 0 へ minIncome −1）だけ。JobPoolTemperature 0.15 の softmax で、兵の席の所得が最良の級 0 の職より大きく低いと取り分が exp(−40) 付近まで落ち、f ≦1e-9 で動かない州が残りうる。
+- 旗 1 の短い走り（1 種）で G1・G3 の向きと桁を見る。〈ほとんど埋まらない〉なら腕 B を回さず止めて報告（形の変え直しの枠を使うかは報告で決める）。
+- 兵の総数：志願の国で植民地の州の席の分だけ増える＝国の定員の内（空きの和 ≦ 定員）。清・英の軍事費は兵の給与の請求の分だけ上がる向き（記録）。
+
+■ 突然変異ごとの門（㉚・腕の前の予言）
+| 突然変異 | G1 | G2 | G3 | 試験 |
+| M0 何もしない（旗 0） | 赤 | 緑（判定不能＝埋まり 0） | 赤 | F1 赤（旗 1 の盤面で 0 のまま）|
+| M1 空きの条件を外す（:349・:393 の兵の空きの行を大きさ 0 の兵でだけ外す） | 緑 | 緑 | 緑 | 緑〈見込み〉 |
+| M2 単価を 0（EmptySeatIncome が 0 を返す） | 赤〈見込み〉 | 緑 | 赤〈見込み〉 | F2 赤 |
+| M3 率を掛けない（1−U を外す） | 緑 | 緑 | 緑 | F2 赤 |
+| M4 大きさ 0 の枝を全ての兵に当てる（大きさ＞0 の兵も EmptySeatIncome） | 緑〈見込み〉 | 緑 | 緑〈見込み〉 | F4 赤 |
+| M5 空きの上限を外す（FillJobs の `f = Math.Min(f, soldierVac)` を兵で外す） | 緑 | 赤 | 緑 | F3 赤 |
+- 限界（赤にならない物）：M1 は移す量を soldierVac で切る行（:375・:406）が残るため、候補にしても動かない＝どの門でも緑（指示の〈上の門が赤〉の予言は外れる見込み・softmax の取り分の分母だけが変わる）。M3 は 1−U が普段 1 に近く、腕の門では落ちない＝試験 F2 だけが落とす。M4 は大きさ＞0 の兵の読みが幹部の給与の分だけ下がるだけ＝腕の門では落ちない＝試験 F4 だけが落とす。
+- 門の突然変異の腕（使い捨ての木・1 種・表を絞る＝cpop_s・nation_s・admrule_s・rule_s・soldiervac_s）：M2・M5。M1・M3・M4 は試験の突然変異（SoldierVacancyFromZeroTests だけ）。出力は measurements/m1166_20261116/mut_*.txt・生は D:/PoB_work/c115sv_work/mut_*（合流の判断まで残す）。
+
+■ 試験（新しい PriceOfBread.Tests/SoldierVacancyFromZeroTests.cs・期待の値は試験が自分の和で組む＝エンジンの関数を呼ばない）
+- F0 旗 0：大きさ 0 の兵の席は空きがあっても行き先にならない（RouteViaPool の後も 0・空きも減らない）。
+- F1 旗 1：同じ盤面で兵が正になり、空きの減りが兵の増えと等しく、州の人口が保存される。
+- F2 所得：EmptySeatIncome＝（母数の LastEarnedPerMonth の和÷働き盛りの和）×SoldierPayMult×（1−U）×送り手の働き盛り÷頭数（試験の中の手の和）。U を 0.25 に置き、率を外す突然変異で赤。徴兵の国は頭数あたり（keep）。
+- F3 上限：流れが空きより大きい盤面で、旗 1 の兵の増え ≦ 空き（M5 で赤）。
+- F4 大きさ＞0 の兵は自分の EarnedPerMonth で読む：兵の EarnedPerMonth÷Size を新しい読みの 100 倍に置いた盤面で、送り手の没落の流れの過半が兵へ行く（M4 で新しい読みに落ちて赤）。
+- F5 計器の自己検査：soldiervac_s の頭の行（列の名）と、F1 の盤面を計器つきで回した国×四半期の 1 行の zeroStart・zeroFilled・fillZeroK が手で数えた値に一致。
+- 試験の数：Tests 2655→2661（+6）・Tests.Ui 234＝合計 2889→2895・FullLength 3 のまま。
+
+■ 恒等の計器（器のコミット・旗 0 で全行バイト一致）
+- 新しい表 soldiervac_s（国×四半期・Instruments/InstrumentsSoldierVac.cs・口は Meritocracy.Step の州の空きを組んだ直後と州の終わり・Instruments.On の時だけ・助走の月は数えない）。
+  列：year・q・nation・lawCode・atWarFlag・regions・zeroStart（社会移動の頭に兵 0 の州）・zeroVac（そのうち空き＞1e-9＝新しい規則で候補になる州）・zeroVacColonial・zeroFilled（後に兵＞1e-9）・fillZeroK・vacZeroK・overfillZeroK・fillPosK・overfillPosK・eqN・eqSumLogLast・eqMaxAbsLogLast・eqSumLogNow・eqMaxAbsLogNow。
+  eq＝大きさ＞0 の兵で EarnedPerMonth＞0 の州の、計器が自分で組む新しい読み（LastEarnedPerMonth 版と EarnedPerMonth 版）÷今の読み（EarnedPerMonth÷Size）の対数。単価は計器が母数の POP を自分で回して組む（Military.RecruitWage を呼ばない）。空き soldierVac0 だけはエンジンの局所の値を受け取る（限界の名乗り＝空きの定義の誤りは G2 では拾えない・G2 が見るのは空きで切る行）。
+- 計器の追記の予言：既存の表は全行一致・soldiervac_s だけ増える（--added-tables soldiervac_s）。
+
+■ ソースを走査する番人（㉘）と変わる件数の予言（㉑）（grep 2026-11-16・c3c4de36a）
+- IndustrializationReaderTests の許可表：Meritocracy.cs は工業化度を読まない＝変わらない。`new MoneyStock(` の件数：足す 0。route_anchors.tsv の鍵の行：Meritocracy.cs は 1 本（Pop.Blend の行・:69 の鍵）＝この線は触らない（新しいコードは鍵の行に書き足さない）。
+- WriterRatchetTests の宣言の表：器（計器と旗 0）は件数を変えない。旗 1 は 40 四半期の軌道が動けば ±2% の内の予言。外れたら〈軌道の件数を写しただけの番人〉（★(749)）の取り直しとして verdict に列挙する。
+- InstrumentsPlacementTests：計器は SimCore/Instruments/ の下に置く（86 本以上の数は増える向き）。
+- DormantIdentityTests：器のコミットで DormantZeroFields に SoldierVacancyFromZero を 1 行。旗 1 のコミットで表から外す（点火の注を 1 行）。
+- ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）に InstrumentsPlacementTests・MilitaryTests・SoldierVacancyFromZeroTests を足して回す。
+
+■ 旗 1 の木の番人の grep（㉜）
+- Tests で Meritocracy を呼ぶ・兵の席を見る試験：MilitaryTests.cs:459〜（志願の国は Military.Step が集めない＝Meritocracy を回さない・変わらない）・:1100〜:1190（平時に定員を超えた兵の復員＝大きさ＞0）・:1811（JobIncome の兵の席＝大きさ＞0）・:1839（兵が送り手）・MobilityTests・FiscalTests:387（Meritocracy.Step 1 回の保存）。どれも大きさ 0 の兵の席が行き先にならないことを固定していない（grep の結果・旗 1 の木のフルスイートで確かめる）。
+
+■ 止める線（README の止める線の改めのとおり・この行をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）／1 四半期に 100 倍以上（全ての国の価格水準・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる・基準とヌル腕を同じ台本で数え直す）／開幕の 1e10 倍以上・非有限／空洞化：ピークの 1/10 未満で規則 A2（an_h2.py の既定 -ex rule）の外・その線が原因と読めた件だけ（基線 keep_1164/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭）・主要国と本国格の州は例外にしない／推定の計算量 ＞248.5 秒／機構のテストの赤（ソースを走査する番人を含む）。
+- 止める線の基準＝measurements/m1164_20261115/stopbase/（M・N1・N2・台本 stoplines1002）。
+- 記録：NG（ng.sh・基準 rd:measurements/ng1164_20261115:m1164）・exact・near・nullgate（m1164・_n1_ins・_n2_ins）・開幕の 1000 倍以上・名目 GDP 0 の続き（gdp_zero10.py）・英の国債の不履行の種の数・指示の上の門の量（admrule の兵÷定員）・清・英・マラータ・日本・米の兵の数と軍事費・D1 の紙の 45 件のうち兵 0 の崖 30 件の行方（r1059_d1_copy.py を腕 B の生で）。
+
+■ 計算量
+- 割り当て 0.5 秒。器は計器だけ（計器の外は 0）。旗 1 は大きさ 0 の兵の席が候補に入る州で FillJobs の候補が 1 つ増え、兵の POP が増える（兵の POP の数は変わらない＝POP の数に比例する処理は増えない）。2 秒以下は 1 本の腕で門にしない＝合流の木の累計で読む。名目の余り 約 19.2 秒（cr の +2.9 秒と足して余りの内）。
+
+■ ident と腕と D:
+- ident：`bash scripts/instruments/ident/ident.sh run c115svz --tree D:/PoB_work/wt_c115sv --added-tables soldiervac_s --tests-delta 6`（段は stage.py・計器に触れる＝段 2 の見込み・走っている間はこの worktree にコミットしない）。
+- 重い仕事は起こす直前に shutil で〈35GB＋その量〉（ident 約 30GB・腕 B 約 26GB）を確かめ、届かなければ 240 秒以内の刻みで測り直して待つ。
+- 腕 B は `INS=1 bash scripts/instruments/batch.sh run c115svB 10`（POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。60 分待っても起こせなければ、〈門の台本の表＋止める線の表＋標準の読み手の表〉＝cpop_s・nation_s・admrule_s・rule_s・soldiervac_s・monlaw_s・pxmonth_s・region_s・fiscal_s・goods_s・scalars_s・secession_s・cessp_s・migration_s と ident.cfg の SMALL に絞って起こし、絞ったと名乗る（POB_INSTRUMENTS_TABLES）。
+- 腕 B の生は合流の判断まで消さない。
