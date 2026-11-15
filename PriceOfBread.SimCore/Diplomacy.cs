@@ -267,6 +267,10 @@ public readonly record struct TensionPoliticsPreview(
 /// </summary>
 public sealed class Diplomacy
 {
+    [System.NonSerialized] internal RulePowerSnap? RpEngSnap;   // (1165) M1：四半期の末の清算の写しを、同じ StepDay の RulePowerQuarterEnd へ渡す間だけ置く（読んだら null）
+    [System.NonSerialized] internal long RpEngStamp;
+    [System.NonSerialized] internal int RpEngOn;   // (1151) F16：0＝まだ写していない・1＝旗 0・2＝旗 1（MultiNationSim の係数を四半期の最終日に写す）
+    [System.NonSerialized] internal Dictionary<(string Key, Region R), (double W, double Alloc, double F, double Y, double S, double B)>? RpEngAlloc;   // (1117) 計器つきの走りだけ
     public List<Power> Powers = [];
     public List<Chokepoint> Chokepoints = [];   // 海峡・運河（§B）
     public List<Megaproject> Megaprojects = [];   // MegaprojectEnabled=0 では生成されず空＝厳密恒等〔履歴 Diplomacy.cs#41〕
@@ -486,7 +490,7 @@ public sealed class Diplomacy
     /// </summary>
     internal void TreatyPortLapse(Coefficients c, int month)
     {
-        if (c.TreatyPortLapseRatio.Value <= 0) return;
+        if (c.TreatyPortLapseRatio.Value <= 0 || c.RuleFromPower > 0) return;   // (1117) 旗 1：外国の取り分は自分の力で保てなければ寄せで減る
         if (month % Calendar.MonthsPerQuarter != 0) return;
         // 向きは同じ（自国÷列強の基準・近いほど風化が速い）。〔履歴 Diplomacy.cs#83〕
         var shareScore = NationalScore.ScoresByPower(this);

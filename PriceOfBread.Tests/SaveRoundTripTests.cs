@@ -90,6 +90,60 @@ public class SaveRoundTripTests
         }
         // バイト列の一致は比べない：印の外の差が 2 件ある（辞書 Diplomacy._tensionRamp の列挙順と InternationalMarket.LastPairWasLand の走り書き・measurements/m1125_20261114/byte_diff.txt）＝量だけ比べる。
     }
+    /// <summary>(1165) E16 旗 RuleFromPower＝1 の四半期の途中（45 日目・75 日目）のセーブ：保存→読み→同じ日まで続けて、全ての国の全ての州の 4 区分・外国の名・外国の取り分がビットで一致する
+    /// （支配の力の表〈距離の表を含む〉はセーブに載らない＝M1 で四半期の末の清算から作ってすぐ使う。表を第 1 月末に作って最終日まで持ち越すと、途中で読んだ側は大圏へ落ちて分かれる）。</summary>
+    [Fact]
+    public void E16_旗1の四半期の途中のセーブで支配の取り分が一致する()
+    {
+        static MultiNationSim New()
+        {
+            var coef = new Coefficients { RuleFromPower = 1.0 };
+            var s = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent(), coef);
+            foreach (var n in s.Nations) n.World.Coef.RuleFromPower = 1.0;
+            return s;
+        }
+        static MultiNationSim Copy(MultiNationSim s)
+        {
+            using var ms = new System.IO.MemoryStream();
+            SaveGame.Save(s, ms); ms.Position = 0;
+            return SaveGame.Load(ms);
+        }
+        var sim1 = New();
+        sim1.StartWarmup();
+        for (int q = 0; q < 6; q++) sim1.StepQuarter();
+        for (int d = 0; d < 45; d++) sim1.StepDay();
+        var sim2 = Copy(sim1);
+        for (int d = 0; d < 30; d++) { sim1.StepDay(); sim2.StepDay(); }
+        var sim3 = Copy(sim1);
+        for (int d = 0; d < 105; d++) { sim1.StepDay(); sim2.StepDay(); sim3.StepDay(); }
+        int regions = 0, foreignRows = 0;
+        foreach (var other in new[] { sim2, sim3 })
+        {
+            Assert.Equal(sim1.Nations.Count, other.Nations.Count);
+            for (int i = 0; i < sim1.Nations.Count; i++)
+            {
+                var a = sim1.Nations[i].World; var b = other.Nations[i].World;
+                Assert.Equal(a.Regions.Count, b.Regions.Count);
+                for (int k = 0; k < a.Regions.Count; k++)
+                {
+                    var ra = a.Regions[k]; var rb = b.Regions[k];
+                    regions++;
+                    Assert.True(ra.Name == rb.Name && ra.Rule.Length == rb.Rule.Length, $"{ra.Name}：州の並びか 4 区分の長さが食い違う");
+                    for (int j = 0; j < ra.Rule.Length; j++)
+                        Assert.True(System.BitConverter.DoubleToInt64Bits(ra.Rule[j]) == System.BitConverter.DoubleToInt64Bits(rb.Rule[j]), $"{ra.Name}：Rule[{j}] {ra.Rule[j]:R}⇔{rb.Rule[j]:R}");
+                    Assert.Equal(ra.ForeignRulers, rb.ForeignRulers);
+                    Assert.Equal(ra.ForeignShares.Length, rb.ForeignShares.Length);
+                    for (int j = 0; j < ra.ForeignShares.Length; j++)
+                    {
+                        if (ra.ForeignShares[j] > 0) foreignRows++;
+                        Assert.True(System.BitConverter.DoubleToInt64Bits(ra.ForeignShares[j]) == System.BitConverter.DoubleToInt64Bits(rb.ForeignShares[j]), $"{ra.Name}：ForeignShares[{j}] {ra.ForeignShares[j]:R}⇔{rb.ForeignShares[j]:R}");
+                    }
+                }
+            }
+        }
+        Assert.True(regions >= 600, $"比べた州 {regions}（≧600＝全ての国の州〈約 300〉を 2 回）");   // 対照の件数の下限
+        Assert.True(foreignRows >= 10, $"外国の取り分＞0 の行 {foreignRows}（≧10＝外国の取り分を持つ州を比べた）");
+    }
     /// <summary>★年齢の層の数はセーブに書く（(1125)）：読む時に今の層の数と食い違えば例外（POB_AGE_BANDS が保存時と違うプロセスで読むと配列の長さが合わず静かに壊れる）。</summary>
     [Fact]
     public void 層の数が食い違うセーブは読めない()

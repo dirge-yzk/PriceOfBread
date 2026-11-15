@@ -2705,6 +2705,7 @@
    "provinces": [
     {
      "city": "プノンペン",
+     "foreignRuler": "シャム",
      "share": 1.0,
      "resources": [
       93,
@@ -4157,6 +4158,7 @@
    "provinces": [
     {
      "city": "デリー",
+     "foreignRuler": "マラータ同盟",
      "share": 1.0,
      "resources": [
       15,
@@ -4192,6 +4194,7 @@
    "provinces": [
     {
      "city": "ラクナウ",
+     "foreignRuler": "イギリス",
      "share": 1.0,
      "resources": [
       93,
@@ -4235,6 +4238,7 @@
     },
     {
      "city": "ウィダー",
+     "foreignRuler": "ポルトガル",
      "rule": [0.5, 0.3, 0.15, 0.05],
      "share": 0.35,
      "resources": [
@@ -4279,6 +4283,7 @@
     },
     {
      "city": "アノマブ",
+     "foreignRuler": "イギリス",
      "rule": [0.0, 0.7, 0.2, 0.1],
      "share": 0.3,
      "resources": [
@@ -4443,6 +4448,7 @@
     },
     {
      "city": "オラン",
+     "foreignRuler": "スペイン",
      "rule": [0.25, 0.45, 0.2, 0.1],
      "share": 0.25,
      "resources": [

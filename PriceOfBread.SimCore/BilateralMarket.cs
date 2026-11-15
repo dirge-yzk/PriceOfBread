@@ -636,7 +636,7 @@ public sealed partial class InternationalMarket
         }
         Instruments.NgHead(this, nations, gc, tar, exRate);
         var ts = Instruments.TsBegin(this, nations, gc, firstClearingOfQuarter, Cost[CostLedger.ClearingRows], tar, exRate);
-        Instruments.RpSnapshot(firstClearingOfQuarter, nations, tr, tc, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled);
+        MultiNationSim.RulePowerCapture(firstClearingOfQuarter, nations, c, tr, tc, seaNodeOf, seaHalf, suezOkN, panOkN, terrCost, landRatio, landNode, landGraft, c.LandRouteEnabled);   // (1117) 計器の複写＋旗 RuleFromPower のときだけエンジンの距離の表
 
         var importVal = ClearScratch.FitZero(ref sc.ImportVal, nn); var exportVal = ClearScratch.FitZero(ref sc.ExportVal, nn);
         var partnerStd = ClearScratch.Fit(ref sc.PartnerStd, nn); var partnerBal = ClearScratch.FitZero(ref sc.PartnerBal, nn); var partnerTot = ClearScratch.FitZero(ref sc.PartnerTot, nn);

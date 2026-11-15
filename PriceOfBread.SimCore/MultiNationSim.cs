@@ -6,7 +6,7 @@
 /// 植民地の争奪（勝者が植民地素材の入手率を得る）、覇権防止（大国ほど周囲の緊張を集め孤立）。
 /// 各国の保存則（§11.6）は自国 CumulativeTradeFlow で閉じる（賠償は両国の貿易収支に相殺計上）。
 /// </summary>
-public sealed class MultiNationSim
+public sealed partial class MultiNationSim
 {
     public List<Simulation> Nations { get; } = [];
     public Diplomacy Diplomacy { get; } = new();
@@ -670,6 +670,7 @@ public sealed class MultiNationSim
             }
             StepCanals(); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
             { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: false); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
+            RulePowerQuarterEnd();   // (1165) M1：支配の力の表を四半期の末の清算の写しから作り、同じ呼び出しで全ての国を寄せる（旗 0 は計器〈D〉と旗の写しだけ）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。〔履歴 MultiNationSim.cs#81〕
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。〔履歴 MultiNationSim.cs#82〕
             // 移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。〔履歴 MultiNationSim.cs#83〕
@@ -1654,7 +1655,7 @@ public static class CostLedger
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
         QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, DiscoveryPriceNations = 19, LuxuryRatioPops = 20, AiBureaucracyScans = 21, ParticipationPops = 22, DiscoveryWorldScans = 23, MinimumWageBasketScans = 24, AgeBandExtraPops = 25, RecipeEquipmentScans = 26, StapleLedgerPops = 27, NavalOrderScans = 28, ClearingSkipsLB = 29, LaborPowerScans = 30,
-        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, ClearingKmCompose = 41, ClearingKmRaw = 42, ClearingA1Eval = 43, ClearingA1Invalidate = 44, Count = 45;
+        ConsumeSkipZeroPop = 31, ConsumeZeroPopIndep = 32, DeadProdZeroPop = 33, DeadProdBankrupt = 34, DeadProdService = 35, DeadProdRgo = 36, DeadProdOther = 37, ZeroPopMonth = 38, ZeroPopEmptyMonth = 39, DeadMarketMonth = 40, ClearingKmCompose = 41, ClearingKmRaw = 42, ClearingA1Eval = 43, ClearingA1Invalidate = 44, RulePowerPairs = 45, Count = 46;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -1689,6 +1690,7 @@ public static class CostLedger
         "清算：距離の表の素の計算（PairKmCore 相当・成分を引いた対・(1097)）",
         "清算：A-1 の生産者の一覧と P̂ を評価した生産者（旗 TradeBuyBySupplyCurve が正のとき・州×財の生産者を清算ごとに並べた数＋行の門と決まり直しで見た生産者・(1144)）",
         "清算：A-1 の写しを 0 へ戻した生産者（旗 TradeBuyBySupplyCurve が正のとき・その清算で並べた生産者だけ・(1159)）",
+        "支配の届きの対（距離の表の引き・乗り継ぎの評価・(1117)）",
     ];
 
     /// <summary>
@@ -1732,6 +1734,7 @@ public static class CostLedger
         ClearingKmComposeUnitMicros,   // ClearingKmComposeUnitMicros〔履歴 MultiNationSim.cs#199〕
         ClearingA1EvalUnitMicros,      // (1144) A-1 の生産者の一覧と P̂ の評価（紙の見積もり・合流の木の .cost で読む）
         ClearingA1EvalUnitMicros,      // (1159) A-1 の写しを 0 へ戻す（3 つの書き込み＝並べ替えと同じ桁の紙の値）
+        RulePowerPairUnitMicros,   // (1117) 見積もり（腕 B の .cost で取り直す）
     ];
     /// <summary>
     /// 1 件＝生産者 1 つの動力の割合の判定（電化率・蒸気率・産出の読み）＋労働力の投入の有無の確かめ。〔履歴 MultiNationSim.cs#200〕
@@ -1741,6 +1744,7 @@ public static class CostLedger
     /// 単価の根拠は measurements/m1029_*（小さな計り台）。〔履歴 MultiNationSim.cs#201〕
     /// </summary>
     public const double ClearingKmComposeUnitMicros = 0.0100;
+    public const double RulePowerPairUnitMicros = 0.05;   // (1117) 支配の届きの対：表の引き 1 回あたり（AI の見積もり）
     public const double ClearingSkipUnitMicros = 0.02;
     /// <summary>(1144) A-1：生産者 1 本の並べ替えか P̂ の評価（採算と Toward の十数回の算術）＝着値の下界の評価と同じ桁の紙の値。</summary>
     public const double ClearingA1EvalUnitMicros = 0.02;

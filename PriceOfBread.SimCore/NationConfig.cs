@@ -84,4 +84,8 @@ public sealed class NationConfig
 }
 
 public sealed record ProvinceSpec(string City, double Share, int[] Resources, string Culture = "", string Religion = "", bool Coastal = false,
-    bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null);
+    bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null)
+{
+    /// <summary>(1151) 開幕の外国の取り分（rule[2]）の持ち主の名（データ・読むのは旗 RuleFromPower のときだけ）。</summary>
+    public string ForeignRuler { get; init; } = "";
+}

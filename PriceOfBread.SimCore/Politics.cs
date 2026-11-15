@@ -893,7 +893,7 @@ public static class Politics
             pressure *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));
             double crowdSec = RegionCrowd(r);
             pressure *= crowdSec > 0 ? crowdSec / (crowdSec + c.ColonyPromotionMinPop) : 0.0;
-            if (c.SecessionHoldProjection > 0)
+            if (c.SecessionHoldProjection > 0 && !RulePowerOn(w, c))   // (1117) 旗 1：大圏の投射の引き留めを外す
             {
                 double proj = 1.0;
                 var rc = Places.Coord(r.Name);
@@ -932,6 +932,7 @@ public static class Politics
             r2.Dominance = d;
         }
         if (Instruments.On) Instruments.SecObserve(w, c, coerce, stance, hold, sharedDivDom, restive, margins);
+        if (!RulePowerOn(w, c))   // (1165) M1：旗 1 の 4 区分は共有層が四半期の末の清算の後に寄せる（MultiNationSim.RulePowerQuarterEnd）＝P1・RegionReach の塊を通らない
         {
             double order = PoliticalQuantities.Clamp01(w.PublicOrder);
             bool byRegion = c.RuleOrderByRegion > 0;
@@ -969,7 +970,7 @@ public static class Politics
                 }
             }
         }
-        w.SecessionHold = c.SecessionHoldProjection > 0 ? worstEffHold : hold;
+        w.SecessionHold = c.SecessionHoldProjection > 0 && !RulePowerOn(w, c) ? worstEffHold : hold;
         if (w.StepsDiplomacy || w.SelfPower is null) return;
         List<Region>? go = null;
         foreach (var (r3, _, _) in margins) if (!(r3.Dominance > 0)) (go ??= []).Add(r3);
@@ -978,6 +979,56 @@ public static class Politics
             (w.PendingSecessionWars ??= []).AddRange(go);
             w.HadSecession = true;
             foreach (var r3 in go) w.LogAdd($"{w.Year} {r3.Name}が{w.SelfPower?.Name}からの独立を求めて立った（分離独立戦争）");
+        }
+    }
+
+    /// <summary>(1151) F16：旗は共有層（MultiNationSim の係数）が四半期の最終日に写した値を読む（まだ写していない時＝単独の盤面と読み込みの直後は国の係数）。</summary>
+    internal static bool RulePowerOn(World w, Coefficients c) => w.Diplomacy is { RpEngOn: > 0 } d ? d.RpEngOn == 2 : c.RuleFromPower > 0;
+
+    /// <summary>
+    /// (1117) 旗 RuleFromPower：州の 4 区分と外国の取り分を、四半期の最終日に共有層が作った表の目標へ DominanceSpeed で寄せる（表が無い州は動かさない）。
+    /// 4 区分と外国の取り分をまとめて和で割り、Rule[2]＝Σx_f。RuleStateYears の記録は旧の塊と同じ。
+    /// </summary>
+    internal static void RulePowerApply(World w, Coefficients c)
+    {
+        long stamp = w.Diplomacy is { } dip ? dip.RpEngStamp : long.MinValue;
+        double k = c.DominanceSpeed;
+        foreach (var r in w.Regions)
+        {
+            if (r.Rule.Length != 4) continue;
+            if (r.RpEng is { } e && e.Stamp == stamp && !double.IsNaN(e.T0))
+            {
+                double v0 = r.Rule[0] + (e.T0 - r.Rule[0]) * k; if (!(v0 > 0)) v0 = 0;
+                double v1 = r.Rule[1] + (e.T1 - r.Rule[1]) * k; if (!(v1 > 0)) v1 = 0;
+                double v3 = r.Rule[3] + (e.T3 - r.Rule[3]) * k; if (!(v3 > 0)) v3 = 0;
+                int n0 = Math.Min(r.ForeignRulers.Length, r.ForeignShares.Length), extra = 0;
+                foreach (var key in e.FKeys) if (System.Array.IndexOf(r.ForeignRulers, key, 0, n0) < 0) extra++;
+                var names = r.ForeignRulers; var xs = r.ForeignShares;
+                if (extra > 0 || r.ForeignRulers.Length != n0 || r.ForeignShares.Length != n0)
+                {
+                    names = new string[n0 + extra]; xs = new double[n0 + extra];
+                    System.Array.Copy(r.ForeignRulers, names, n0); System.Array.Copy(r.ForeignShares, xs, n0);
+                    int a = n0; foreach (var key in e.FKeys) if (System.Array.IndexOf(names, key, 0, n0) < 0) names[a++] = key;
+                }
+                double sx = 0;
+                for (int j = 0; j < names.Length; j++)
+                {
+                    int t = e.FKeys.IndexOf(names[j]); double tf = t >= 0 ? e.FT[t] : 0;
+                    double x = xs[j] + (tf - xs[j]) * k; if (!(x > 0)) x = 0;
+                    xs[j] = x; sx += x;
+                }
+                double sum = v0 + v1 + v3 + sx;
+                if (sum > 1e-9) { v0 /= sum; v1 /= sum; v3 /= sum; sx = 0; for (int j = 0; j < xs.Length; j++) { xs[j] /= sum; sx += xs[j]; } }
+                else { v0 = 1.0; v1 = v3 = 0; sx = 0; for (int j = 0; j < xs.Length; j++) xs[j] = 0; }
+                r.Rule[0] = v0; r.Rule[1] = v1; r.Rule[2] = sx; r.Rule[3] = v3;
+                r.ForeignRulers = names; r.ForeignShares = xs;
+            }
+            if (r.RuleStateLastYear != w.Year && r.RuleStateYears.Length > 0)
+            {
+                r.RuleStateYears[r.RuleStateHead % r.RuleStateYears.Length] = r.Rule[0];
+                r.RuleStateHead = (r.RuleStateHead + 1) % r.RuleStateYears.Length;
+                r.RuleStateLastYear = w.Year;
+            }
         }
     }
 
