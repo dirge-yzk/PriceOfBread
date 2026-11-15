@@ -233,8 +233,9 @@ public static partial class Instruments
         if (!(rpT > 1e-9) || !(um > 1e-9) || double.IsInfinity(um)) return (false, false, false, false, false, xOld, double.NaN, double.NaN);
         double root = System.Math.Pow(rpT / um, c.PriceElasticity);
         double ubBb = ts + d * root - p - s, ubA1 = ubBb; bool ev = false;
-        if (ubBb <= 0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um)); ubA1 = ts + d * root - q - s; ev = true; }
-        return (true, ubBb > 0, ubBb <= 0 && ubA1 > 0, ubA1 <= 0, ev, xOld, ubBb, ubA1);
+        bool b0 = ubBb > 0;
+        if (!b0) { double q = System.Math.Min(p, TbPHatSum(r, g, c, w, um)); ubA1 = ts + d * root - q - s; ev = true; }
+        return (true, b0, !b0 && ubA1 > 0, !b0 && !(ubA1 > 0), ev, xOld, ubBb, ubA1);   // (1159) 否定形＝NaN の上界は閉じた側（B2）へ＝Ok の行は B0・B1・B2 のちょうど 1 つ（旧は在庫の欄が NaN で 3 つとも偽の隙間）
     }
 
     /// <summary>成約の上界の越え。S は成約の後の台帳（m.Stock）。E_abs＝S−UB・E_rel＝E_abs÷max(D, TS)。</summary>
