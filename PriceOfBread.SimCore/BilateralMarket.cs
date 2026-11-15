@@ -205,6 +205,7 @@ public sealed partial class InternationalMarket
 
     private sealed class ClearScratch
     {
+        public int[] A1St = []; public Producer[] A1Pr = [];   // (1144) A-1：買い手の州×財の生産者の一覧（CSR・清算ごとに作り直す作業領域）
         public Dictionary<Region, double> PortStart = new();
         public Dictionary<string, int> TransitPortOwner = new();
         public List<(int user, int owner, Region r)> TransitUses = [];
@@ -247,6 +248,58 @@ public sealed partial class InternationalMarket
         }
     }
     [System.ThreadStatic] private static ClearScratch? _clearScratch;
+
+    /// <summary>(1144) A-1：繋がった買い手の州×財の生産者の一覧（CSR・鍵＝t×gc＋財・並びは r.Producers の順）。返り値＝並べた生産者の数（台帳の件数）。</summary>
+    private static long A1Index(TrEntry[] tr, int tc, int gc, ClearScratch sc)
+    {
+        int n = tc * gc;
+        if (sc.A1St.Length < n + 1) sc.A1St = new int[n + 1];
+        var st = sc.A1St; Array.Clear(st, 0, n + 1);
+        int tot = 0;
+        for (int t = 0; t < tc; t++)
+        {
+            if (!tr[t].linked) continue;
+            foreach (var p in tr[t].r.Producers) if ((uint)p.GoodId < (uint)gc) { st[t * gc + p.GoodId + 1]++; tot++; }
+        }
+        for (int i = 0; i < n; i++) st[i + 1] += st[i];
+        if (sc.A1Pr.Length < tot) sc.A1Pr = new Producer[Math.Max(64, tot * 2)];
+        var pr = sc.A1Pr; var cur = new int[gc];
+        for (int t = 0; t < tc; t++)
+        {
+            if (!tr[t].linked) continue;
+            Array.Copy(st, t * gc, cur, 0, gc);
+            foreach (var p in tr[t].r.Producers) if ((uint)p.GoodId < (uint)gc) pr[cur[p.GoodId]++] = p;
+        }
+        return tot;
+    }
+
+    /// <summary>(1144) A-1 の P̂(p)＝州×財の生産者の〈供給①を値段 p で読み直した来月の産出〉の和（写し T1OutPrev・T1Base・T1Mc から・目標＝T1Base×採算・Toward・負の切り捨て・床）。
+    /// 写しが無い生産者（3 つとも 0＝眠り・倒産・その月に供給①を通らない）は今の産出のまま（退かない）・未発明（T1Base＜0）は 0。<paramref name="cnt"/>＝見た生産者の数（台帳）。</summary>
+    internal static double A1PHat(Producer[] pr, int[] st, int key, double pLoc, Coefficients cn, ref long cnt)
+    {
+        int lo = st[key], hi = st[key + 1];
+        cnt += hi - lo;
+        double sum = 0;
+        for (int k = lo; k < hi; k++)
+        {
+            var p = pr[k];
+            double b = p.T1Base, o0 = p.T1OutPrev, mc = p.T1Mc;
+            if (b == 0 && o0 == 0 && mc == 0) { sum += p.Output; continue; }
+            if (b < 0) continue;
+            double target = b * EconomyStep.ProfitFactor(p, pLoc, mc, cn);
+            double o = PoliticalQuantities.Toward(o0, target, cn.SupplyAdjustSpeed);
+            if (o < 0) o = 0;
+            else if (!(target > 0) && o < cn.TargetStockFloor) o = 0;
+            sum += o;
+        }
+        return sum;
+    }
+
+    /// <summary>(1144) A-1 の写しを 0 へ戻す（全ての国の全ての州の生産者）。</summary>
+    private static void A1Invalidate(IReadOnlyList<Simulation> nations)
+    {
+        foreach (var sim in nations) foreach (var r in sim.World.Regions) foreach (var p in r.Producers) { p.T1OutPrev = 0; p.T1Base = 0; p.T1Mc = 0; }
+    }
 
     private void StepBilateral(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter)
     {
@@ -705,6 +758,10 @@ public sealed partial class InternationalMarket
         bool cheapOn = c.TradeCheapSellSubsidy > 0 && c.TradeBiasStrength > 0 && c.TradeBiasStrength < 1;
         double[]? sellCheap = cheapOn ? new double[nn] : null;
         double[]? subPay = cheapOn ? new double[tc] : null;
+        bool a1On = c.TradeBuyBySupplyCurve > 0;   // (1144) T1 A-1
+        long nA1 = 0;
+        if (a1On) nA1 += A1Index(tr, tc, gc, sc);
+        var a1St = sc.A1St; var a1Pr = sc.A1Pr;
         var swSec = MultiNationSim.TimeOn ? System.Diagnostics.Stopwatch.StartNew() : null;
         for (int gIdx = 0; gIdx < gc; gIdx++)
         {
@@ -827,7 +884,31 @@ public sealed partial class InternationalMarket
                 double wedgeHome = -buyDear;
 
                 if (tbOn) { double tbBm = 1 + c.TransportMargin * adValoremRev, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb))); }   // T0b：行の門の 6 区分（読むだけ）
-                if (!(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0)) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }
+                bool rowSkip; double a1Ph0 = double.NaN;
+                if (a1On)
+                {   // (1144) A-1 の行の門＝真の上界 TS＋D×(rpT÷u_min)^ε−min(P, P̂(u_min))−S が 0 以下なら飛ばす（u_min≦どの成約の u′＝飛ばした行は成約できない）。P̂ は B-b の上界が 0 以下の行だけ評価する（Q≦P＝B-b が正なら A-1 も正）。
+                    double a1Bm = 1 + c.TransportMargin * adValoremRev, a1Lb = a1Bm + Math.Min(wedge, wedgeHome);
+                    double a1LbMin = Math.Min(1.0, Math.Min(a1Lb, cheapG ? a1Lb - c.TradeBiasStrength : a1Lb));
+                    double rpT0 = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], uMin = lp;
+                    if (headS < sellers.Count) { double hm = sellers[headS].Price * a1LbMin; if (hm < uMin) uMin = hm; }
+                    double ub;
+                    if (!(rpT0 > 1e-9) || !(uMin > 1e-9) || double.IsInfinity(uMin)) ub = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;   // 上界を作れない行は旧の門
+                    else
+                    {
+                        double root0 = Math.Pow(rpT0 / uMin, c.PriceElasticity);
+                        ub = m.TargetStock + m.LastDemand * root0 - m.LastProduced - m.Stock;
+                        if (!(ub > 0))
+                        {
+                            a1Ph0 = A1PHat(a1Pr, a1St, t * gc + g, uMin / exRate[ni], nations[ni].World.Coef, ref nA1);
+                            double q0 = Math.Min(m.LastProduced, a1Ph0); if (!(q0 >= 0)) q0 = m.LastProduced;
+                            ub = m.TargetStock + m.LastDemand * root0 - q0 - m.Stock;
+                        }
+                    }
+                    rowSkip = !(ub > 0);
+                }
+                else rowSkip = !(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0);
+                if (tbOn) { double t1Bm = 1 + c.TransportMargin * adValoremRev, t1Lb = t1Bm + Math.Min(wedge, wedgeHome); Instruments.T1Row(this, nations[ni].World, tr[t].r, g, m, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(t1Lb, cheapG ? t1Lb - c.TradeBiasStrength : t1Lb)), exRate[ni], a1On, rowSkip, a1Ph0); }   // (1144) t1buy_s：W2(a) の母集合と門の照合（読むだけ）
+                if (rowSkip) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }
                 if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
                 if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; if (ts is not null) ts.Outcome(Instruments.TsOutBudget0); continue; }
@@ -846,6 +927,7 @@ public sealed partial class InternationalMarket
                 double unitA = 0, rpT = 0, powVal = 0, sellAccB = 0, rpS = 0, frA = 0, sA = 0, dutyA = 0, portT = 0, portS = 0, premA = 0, costA = 0, sellSubA = 0;
                 int snA = 0, siA = 0; Market msA = null!; bool xPriceOn = false, crossA = false, seaA = false;
                 bool dealtRow = false;
+                double a1Q = m.LastProduced, a1Root = 1.0;   // (1144) A-1 の〈来月の国内の見込み〉と需要の倍率（決まり直しごとに u′ で読み直す）
                 int guard = 0; var tsWhy = Instruments.TsExit.None; bool yRemoved = false;
                 if (ts is not null) ts.Scan(tr, t, lp, left, capLeft, baseMul, wedge, duty, sellCheap, cornPen);
                 while (true)
@@ -960,9 +1042,29 @@ public sealed partial class InternationalMarket
                         costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];
                         if (sellSubA > 0) costA = sA * (1 + dutyA + frA + portT + portS + premA - sellSubA) / exRate[ni];
                         if (ts is not null) ts.Repick(m, tr[t].access, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], unitA, c.PriceElasticity);
+                        if (a1On)
+                        {   // (1144) A-1：u′＝min(unitA, lp)・Q＝min(P, P̂(u′))・需要の倍率 (rpT÷u′)^ε
+                            double uP = Math.Min(unitA, lp);
+                            if (xPriceOn && uP > 1e-9)
+                            {
+                                a1Root = Math.Pow(rpT / uP, c.PriceElasticity);
+                                double ph = A1PHat(a1Pr, a1St, t * gc + g, uP / exRate[ni], nations[ni].World.Coef, ref nA1);
+                                a1Q = Math.Min(m.LastProduced, ph); if (!(a1Q >= 0)) a1Q = m.LastProduced;
+                            }
+                            else { a1Root = 1.0; a1Q = m.LastProduced; }
+                        }
                     }
-                    double xPrice = xPriceOn ? m.LastDemand * powVal - (m.LastProduced + m.LastImport) : 0.0;
-                    double xNeed = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+                    double xPrice, xNeed;
+                    if (a1On)
+                    {
+                        xPrice = xPriceOn ? m.LastDemand * powVal - (a1Q + m.LastImport) : 0.0;
+                        xNeed = m.TargetStock + m.LastDemand * a1Root - a1Q - m.Stock;
+                    }
+                    else
+                    {
+                        xPrice = xPriceOn ? m.LastDemand * powVal - (m.LastProduced + m.LastImport) : 0.0;
+                        xNeed = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+                    }
                     double X = tr[t].access * Math.Max(0, Math.Min(xPrice, xNeed));
                     if (g == c.OpiumGoodId && oban[ni]) X *= Contraband.LeakFraction(tr[t].r.AdminFill, c);
                     double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
@@ -1037,7 +1139,7 @@ public sealed partial class InternationalMarket
                         freightPool += frG - rS - rB;
                     }
                     else freightPool += frG;
-                    if (Instruments.On) { Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr); Instruments.TbDeal(this, nations[ni].World, nations[siA].World, tr[t].r, tr[snA].r, g, m, c, lp, unitA, rpT, qA, crossA); }   // T0b：成約の上界の越え（成約の後の台帳・m.Stock はここまで動かない）
+                    if (Instruments.On) { Instruments.ScopeDeal(this, nations[ni].World, nations[siA].World, scopeCls, scopeFell, qA, unitA, bestDelA, lp, sA, scopeThr); Instruments.TbDeal(this, nations[ni].World, nations[siA].World, tr[t].r, tr[snA].r, g, m, c, lp, unitA, rpT, qA, crossA); Instruments.T1Deal(this, nations[ni].World, tr[t].r, g, m, lp, unitA, rpT, qA, crossA, vA, exRate[ni], a1On ? a1Q : double.NaN); }   // T0b：成約の上界の越え（成約の後の台帳・m.Stock はここまで動かない）・(1144) t1buy_s：U1 と W2(a) の成約
                     if (Instruments.On) Instruments.TradeDeal(this, nations[ni].World, nations[siA].World, tr[snA].r, tr[t].r, Wg, qA, vA, frG, RouteParts(snA, t, seaA, bestKmA), crossA, shipShare[siA], shipShare[ni], g, crossA ? vA * protect / exRate[ni] : 0.0, crossA ? vA * cornPen / exRate[ni] : 0.0);
                     if (ts is not null) ts.Deal(crossA);
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];
@@ -1120,7 +1222,10 @@ public sealed partial class InternationalMarket
             if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);
         }
         Cost[CostLedger.ClearingKmCompose] += nKmComp; Cost[CostLedger.ClearingKmRaw] += nKmRaw;
-        if (Instruments.On) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;
+        Cost[CostLedger.ClearingA1Eval] += nA1;
+        bool insEnd = Instruments.On;
+        if (a1On || insEnd) A1Invalidate(nations);   // (1144) 写しはその月の清算だけが読む＝清算の後に 0 へ戻す（眠り・倒産で供給①を通らない生産者の古い写しを読まない・ロードの後と同じ盤面）
+        if (insEnd) Instruments.CearnImportPayRegion(null); ts?.End(Cost[CostLedger.ClearingRows]); if (dip is not null) dip.CumulativeFxResidual += fxIntended;
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;

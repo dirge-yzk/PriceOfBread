@@ -1952,6 +1952,7 @@ public static partial class Instruments
         SellrTable(sim, seed, q);          // SellrTable〔履歴 Instruments.cs#322〕
         BuyShadowTable(sim, seed, q);      // BuyShadowTable（T0a・s4cost_s・s7staple_s）
         TbTable(sim, seed, q);             // TbTable（T0b・tb_s）
+        T1Table(sim, seed, q);             // T1Table（(1144) T1・t1buy_s）
         RailSpendTable(sim, seed, q);      // RailSpendTable（(1130) railspend_s）
         TportTable(sim, seed, q);          // TportTable（(1138) 条約港の読み手・tport_s）
         DipcoolTable(sim, seed, q);        // DipcoolTable（(1145) 高い帯の冷めの枝・dipcool_s）
@@ -1993,6 +1994,7 @@ public static partial class Instruments
         BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
         BuyShadowClose(sim);   // BuyShadowClose（T0a）
         TbClose(sim);          // TbClose（T0b）
+        T1Close(sim);          // T1Close（(1144) T1）
         RailSpendClose(sim);   // RailSpendClose（(1130)）
         TportClose(sim);       // TportClose（(1138)）
         DipcoolClose(sim);     // DipcoolClose（(1145)）
