@@ -1,0 +1,12 @@
+HEAD f05e16c97
+成功!   -失敗:     0、合格:  2649、スキップ:     1、合計:  2650、期間: 39 m 32 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 48 s - PriceOfBread.Tests.Ui.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 7 m 1 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests（Tests 非 FullLength・FullLength・Ui）
+2650
+3
+234
+savetest：savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+四半期の途中のセーブ：xUnit SaveRoundTripTests.四半期の途中のセーブで続きが一致する（旗 0 の木・フルスイートの内で緑）＝旗 1 の四半期の途中は旗 1 を入れていないので回していない
