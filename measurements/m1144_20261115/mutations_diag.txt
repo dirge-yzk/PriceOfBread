@@ -1,0 +1,41 @@
+== M0_元の形
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [36 s]
+  エラー メッセージ:
+   診断 u1Deals=18656 u1Viol=0 u1ViolAbs=0 u1MaxRel=0 selfN=28895 selfDiff=0 selfMaxRel=0 gateMismatch=0 gateEval=10239 popA=213 popAPx=204 popADealX=0 retreatDeals=6967 dealsX=7946 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 36 s - PriceOfBread.Tests.dll (net10.0)
+== M2_Q等しいP
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [33 s]
+  エラー メッセージ:
+   診断 u1Deals=19317 u1Viol=0 u1ViolAbs=0 u1MaxRel=0 selfN=30083 selfDiff=7880 selfMaxRel=1 gateMismatch=213 gateEval=10766 popA=213 popAPx=204 popADealX=0 retreatDeals=0 dealsX=7681 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 33 s - PriceOfBread.Tests.dll (net10.0)
+== M3_在庫の項を外す
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [40 s]
+  エラー メッセージ:
+   診断 u1Deals=18445 u1Viol=2613 u1ViolAbs=2613 u1MaxRel=2.8690519357817927 selfN=29410 selfDiff=0 selfMaxRel=0 gateMismatch=0 gateEval=10965 popA=221 popAPx=215 popADealX=1 retreatDeals=5949 dealsX=6293 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 40 s - PriceOfBread.Tests.dll (net10.0)
+== M4_全量を最安へ
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [28 s]
+  エラー メッセージ:
+   診断 u1Deals=9604 u1Viol=2320 u1ViolAbs=2320 u1MaxRel=1.7871541363022643 selfN=17241 selfDiff=0 selfMaxRel=0 gateMismatch=0 gateEval=7637 popA=134 popAPx=134 popADealX=1 retreatDeals=2731 dealsX=3809 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 28 s - PriceOfBread.Tests.dll (net10.0)
+== M5_門の上界にlp
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [30 s]
+  エラー メッセージ:
+   診断 u1Deals=18012 u1Viol=0 u1ViolAbs=0 u1MaxRel=0 selfN=28867 selfDiff=2463 selfMaxRel=1 gateMismatch=891 gateEval=10855 popA=220 popAPx=216 popADealX=0 retreatDeals=8297 dealsX=6588 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 30 s - PriceOfBread.Tests.dll (net10.0)
+== M10_minを外す
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [27 s]
+  エラー メッセージ:
+   診断 u1Deals=18656 u1Viol=0 u1ViolAbs=0 u1MaxRel=0 selfN=28895 selfDiff=523 selfMaxRel=1.3454474891277364E-12 gateMismatch=0 gateEval=10239 popA=213 popAPx=204 popADealX=0 retreatDeals=6858 dealsX=7946 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 27 s - PriceOfBread.Tests.dll (net10.0)
+== M11_unitA
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [34 s]
+  エラー メッセージ:
+   診断 u1Deals=18656 u1Viol=0 u1ViolAbs=0 u1MaxRel=0 selfN=28895 selfDiff=0 selfMaxRel=0 gateMismatch=0 gateEval=10239 popA=213 popAPx=204 popADealX=0 retreatDeals=6967 dealsX=7946 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 34 s - PriceOfBread.Tests.dll (net10.0)
+== M12a_エンジンだけ書き換え
+  失敗 PriceOfBread.Tests.TradeT1Tests.MD_診断 [28 s]
+  エラー メッセージ:
+   診断 u1Deals=18656 u1Viol=0 u1ViolAbs=0 u1MaxRel=1.800323405215257E-16 selfN=28895 selfDiff=2694 selfMaxRel=3.0717840607555163E-16 gateMismatch=0 gateEval=10239 popA=213 popAPx=204 popADealX=0 retreatDeals=7440 dealsX=7946 
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 28 s - PriceOfBread.Tests.dll (net10.0)
+done
