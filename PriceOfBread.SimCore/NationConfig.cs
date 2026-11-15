@@ -84,4 +84,4 @@ public sealed class NationConfig
 }
 
 public sealed record ProvinceSpec(string City, double Share, int[] Resources, string Culture = "", string Religion = "", bool Coastal = false,
-    bool Malarial = false, double ArableLand = 0, double IndShare = -1, double[]? Rule = null);
+    double ArableLand = 0, double IndShare = -1, double[]? Rule = null);

@@ -103,7 +103,7 @@ public sealed class MultiNationSim
         foreach (var t in setup.Targets)
         {
             var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = new RealGdpPerMonth(0), TradeWeight = 0.0, RequiresQuinine = t.Quinine };
-            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // 熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。〔履歴 MultiNationSim.cs#16〕
+            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。〔履歴 MultiNationSim.cs#16〕
             Diplomacy.Powers.Add(p);
         }
         _nextPowerId = Diplomacy.Powers.Count;   // ★建国スポーンはここから単調採番（起動時のId=Powers.Countの連番と同じ値で始まり、以後は欠番があっても戻らない）

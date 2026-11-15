@@ -95,7 +95,6 @@ public sealed class Colony
     public double Literacy = 0.05;                      // 識字（開発との接触でゆっくり上がる＝教育された植民地ほど独立を求める）
     // 入植と昇格の主体は植民地格の州＝Colonial の B1）〔履歴 Diplomacy.cs#18〕
     public bool PlayerInterest;                         // プレイヤーが「関心」を付けた＝講和でプレイヤーが勝つ時この州を優先割譲（侵略で狙う州にも自動付与）
-    public bool Malarial;                              // マラリア地（熱帯）。キニーネ未供給で征服軍が溶け、保有中も人口成長が鈍る（RequiresQuinine 標的の州を征服すると付与・征服で本国が変わっても付いて回る）
     public double Value => Resources.Length + 0.5 + Population * 0.5;   // 争奪の優先順＝資源数＋人口（豊かで人口の多い植民地が先に奪われる）
 }
 

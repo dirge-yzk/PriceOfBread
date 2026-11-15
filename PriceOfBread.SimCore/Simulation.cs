@@ -729,7 +729,7 @@ public sealed class Simulation
 
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
-        var (city, share, resources, culture, religion, _, _, _, _, _) = p;   // resources〔履歴 Simulation.cs#56〕
+        var (city, share, resources, culture, religion, _, _, _, _) = p;   // resources〔履歴 Simulation.cs#56〕
         resources = ProvinceResources(city, resources, coef);   // resources〔履歴 Simulation.cs#57〕
         var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
@@ -824,7 +824,6 @@ public sealed class Simulation
             // Dominance〔履歴 Simulation.cs#77〕
             Dominance = 1.0,   // ★E-06 支配度の初期値（中核＝1）
             Tier = RegionTier.Core,
-            Malarial = p.Malarial,
             Rule = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],   // Rule〔履歴 Simulation.cs#78〕
             RuleInit = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],
 
@@ -1363,7 +1362,7 @@ public sealed class Simulation
         {
             // 沿岸かどうかは landmass.json の coastal（一次データ）から引く。〔履歴 Simulation.cs#145〕
             Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
-            Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える
+            Tier = tier, Dominance = 0.0,   // 支配度0＝取った年から数える
             Rule = Places.RuleOf(col.Name) is { } colRule0 ? colRule0 : [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝places.json の rule（開始時のデータ・土地の側）から始める（無い名前は間接統治〔在地1.0〕・段2で支配度と同じ物理で国家区分が育つ）
             RuleInit = Places.RuleOf(col.Name) is { } colRule1 ? colRule1 : [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
             Terrain = Places.TerrainOf(col.Name),   // Terrain〔履歴 Simulation.cs#146〕
