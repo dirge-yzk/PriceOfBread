@@ -1,0 +1,6 @@
+# (1166) 門 生=D:/PoB_work/c115sv_work/arm1/out_sv_short_1/ins 紙=D:/PoB_work/c115sv_work/arm1/paper_short.txt 種=1〜1（soldiervac_s の種 1・行 41894）
+G1 働いた	13	≦3065	緑
+G3 形	1.0000	分母 22	≧0.9（床 100）	赤
+G2 上	overfillZeroK 0	fillZeroK 0.0346854	≦1e-06×埋まり	緑
+記録	zeroStart 22	zeroVac 22	zeroFilled 22	fillPosK 6647.48	overfillPosK 0
+記録 eq（新しい読み÷今の読み・大きさ＞0 の兵）	N 218428	幾何平均 last 0.492174	now 0.472202	|log| の最大 last 1.3408	採る形 K 0.978094	|log| の最大 K 0.3942
