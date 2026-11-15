@@ -1,0 +1,14 @@
+== D:/PoB_work/c113lc_work/ident/out_ib_10/ins 種 1〜10（読めた種 10）
+  種 1：G-C1a 17.66・G-C2 0（正の行 0）・monthsWorldOnly 73506・その行の pre の機関車の払い 建設 0・保守 0
+  種 2：G-C1a 0.9575・G-C2 0（正の行 0）・monthsWorldOnly 62886・その行の pre の機関車の払い 建設 0・保守 0
+  種 3：G-C1a 2.946・G-C2 0（正の行 0）・monthsWorldOnly 69615・その行の pre の機関車の払い 建設 0・保守 0
+  種 4：G-C1a 0.745・G-C2 0（正の行 0）・monthsWorldOnly 77169・その行の pre の機関車の払い 建設 0・保守 0
+  種 5：G-C1a 139.1・G-C2 0（正の行 0）・monthsWorldOnly 46281・その行の pre の機関車の払い 建設 0・保守 0
+  種 6：G-C1a 0・G-C2 0（正の行 0）・monthsWorldOnly 62094・その行の pre の機関車の払い 建設 0・保守 0
+  種 7：G-C1a 0・G-C2 0（正の行 0）・monthsWorldOnly 74421・その行の pre の機関車の払い 建設 0・保守 0
+  種 8：G-C1a 266.4・G-C2 0（正の行 0）・monthsWorldOnly 74859・その行の pre の機関車の払い 建設 0・保守 0
+  種 9：G-C1a 46.56・G-C2 0（正の行 0）・monthsWorldOnly 76242・その行の pre の機関車の払い 建設 0・保守 0
+  種 10：G-C1a 1.232・G-C2 0（正の行 0）・monthsWorldOnly 44598・その行の pre の機関車の払い 建設 0・保守 0
+G-C1a 知る国から買った機関車の額 10 種の和 475.56・床 4772 → 赤
+G-C2 自国が知らない州×月の輸送の段の線路の敷き 和 0・正の行 0 → 緑
+記録 monthsWorldOnly の和 661671・その国×四半期 220557 の pre の機関車の払い 建設 0・保守 0（金建て）
