@@ -57,3 +57,7 @@
 - 採ったら：B5＝b5_<日>_m1171・B10INS＝b10_<日>_m1171_ins・MON＝mon_<日>_m1171.txt・INSRAW＝keep_1171/base_ins（M の生・全表）・ヌル腕 keep_1171/n1・n2・種 11〜20 keep_1171/a11・BASE_COMMIT と STAGE_BASE＝M を測った木・TESTS_NONFULL 2894・NG_BASE ng1171。
 - 採らなかったら：基線は m1164 のまま（段 1 の ident・腕 Z で恒等を確かめた木）・ident.cfg は計器の表の名簿とテストの数だけ・腕の生は keep_1171_rej へ。
 - D:：合流の起動の時点 30.0GB（線の ident の生 ident_c115qc・ident_c115sb 計 23GB を判定を読んだ後に消して 53.8GB）。線 sv の腕 B の生は sha1 を取った後に縮める（門の表 soldiervac_s だけ残す）。keep_1150・keep_1164・keep_1164_rej は消さない（keep_1150 は全表のヌル腕の幅＝KEEPNULL・keep_1164 は種 11〜20 の元からの弱さの基準）。
+
+[8] 追記 1（腕 Z を起こす前・M・S11・S11z・p10 の結果を見る前に書く）
+- 段 1：ident m1171a〈判定: 恒等〉（段 2・全表・素の 5 種と計器つき 10 種が m1164 と全行一致・計器の表 1530 本＝一致 1470＋既知の揺れ 60・宣言の無い違い 0・NG 112 件で新しい 0・外れた 0・テスト 2888・savetest・leakhunt）。フルスイート（41eba3dd5）は Tests 2653＋スキップ 1＝2654・Tests.Ui 234・和 2888＝--list-tests と一致・FullLength 3 緑・savetest・leakhunt 緑。段 1 を main 41eba3dd5 へ push し、keep_1157・keep_1157_rej を消した（D: 102.3GB）。
+- 腕 Z：M・S11・S11z が走る間に D: が 56.9GB（M の全表と S11 の門の表で約 45GB）＝〈35GB＋30GB〉に届かず、M の生は新しい INSRAW として残る＝届く見込みが無い。腕 Z は --no-ins に下げる（★(1157) 追記 1 の型・名乗る）。計器の表の恒等は、段 1 の ident（全表・qc＋sb）と、[3] の M の生と線の腕 B の生の表ごとの sha1（旗 1 の世界で qc・sb が計器の表を変えないこと）で読む。線 sv の形を直した後の木の旗 0 の計器つき 10 種の恒等は測らないまま（v の限界のまま）と名乗る。
