@@ -3,7 +3,6 @@
 public static class Credit
 {
     private const double HeatClampMax = 1.5;
-    private const double HoardRatioMax = 0.9;
     private const double GoldCoverCreditFloor = 0.25;
 
     public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat)? month = null, int days = 1)
@@ -11,7 +10,8 @@ public static class Credit
         var bank = w.Bank;
         if (bank is null) return;
 
-        double hoardRatio = PoliticalQuantities.ClampOr(c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax, c.CurrencyHoldingRatio.Value);
+        double hoardRaw = c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence));
+        double hoardRatio = !double.IsFinite(hoardRaw) ? c.CurrencyHoldingRatio.Value : hoardRaw < 0 ? 0 : hoardRaw;   // 上限は置かない（設計思想⑧）・非有限は既定の退蔵率へ（否定形）
         bank.Gold = new MoneyStock(Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio));
 
         double avgSat = month?.AvgSat ?? NationalScore.MeanSatisfaction(w);
