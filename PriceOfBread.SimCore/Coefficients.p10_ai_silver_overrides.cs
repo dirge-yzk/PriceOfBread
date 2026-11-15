@@ -69,6 +69,7 @@ public sealed partial class Coefficients
 
     // ==== 社会移動リアリティ監査 2026-08-15・作者裁定 2026-08-16（点火状況は各行参照）====
     public double ParliamentStreetSupersede = 0.5;   // 未代表（小営業・軍・国庫）は街頭のまま
+    public double RumpGdpFractionOfParent = 0.01;    // 残骸国家判定＝親の名目 GDP 比のこの割合未満が続いたら再併合の対象（比）。(1160) D-r1：MultiNationSim の隠れた定数から移した・段 E の後に読み直す（S27-H031）
     public double RumpReabsorbYears = 5.0;           // 親が交戦中/消滅なら持ち越し
 
     // ==== 運用コスト監査 2026-08-16（燃料系＝「金は払うが物資を消費しない運用」の物資化。#1海軍燃料のみ休眠・#2#4は点火済み・#3汽船燃料は2026-09-27 に点火）====
