@@ -1,0 +1,36 @@
+=== 恒等の判定（測った種で一致） c114t1z（2026-11-15 21:02:47）===
+測った木：D:/PoB_work/wt_c114t1（HEAD f97d23549・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c114t1/scripts/instruments/ident/ident.cfg
+宣言：added=['t1buy_s'] known_extra=['tb_s:sk1', 'tb_s:sk2', 'tb_s:ps1', 'tb_s:ps2', 'tb_s:dsk1', 'tb_s:dsk2', 'tb_s:dps1', 'tb_s:dps2', 'tb_s:a1Close', 'tb_s:a1CloseD', 'tb_s:evalDone', 'tb_s:u1Rel', 'tb_s:u1Abs', 'tb_s:u1SmallDRel', 'tb_s:u1MaxRel', 'tb_s:u1Gt1pct', 'tb_s:u1Gt10pct', 'tb_s:u1ExcessQty'] cost_allow=['清算：A-1'] tests_delta=10
+腕 a：rc=0 end=2026-11-15 20:46:23
+腕 b：rc=0 end=2026-11-15 21:02:46
+腕 t：rc=0 end=2026-11-15 20:34:36
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：60b4a410fe8697ce
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 60b4a410fe8697ce
+[素の 5 種] b5_ia_5.txt 対 b5_20261115_m1157
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261115_m1157.cost
+  △ 宣言された例外（--cost-allow）2 本：清算：A-1 の写しを 0 へ戻した生産者（旗 TradeB・清算：A-1 の生産者の一覧と P̂ を評価した生産者（旗 
+  ○ 件数の行 45 本・推定 228.3 秒・種ごとの忠実度 5 行が一致（例外 2 本を宣言）
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 60b4a410fe8697ce
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261115_m1157_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261115_m1157_ins.cost
+  △ 宣言された例外（--cost-allow）2 本：清算：A-1 の写しを 0 へ戻した生産者（旗 TradeB・清算：A-1 の生産者の一覧と P̂ を評価した生産者（旗 
+  ○ 件数の行 45 本・推定 229.1 秒・種ごとの忠実度 10 行が一致（例外 2 本を宣言）
+[計器の表] 腕 D:/PoB_work/ident_c114t1z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1157/base_ins
+  基準 1522 本・腕 1532 本・バイト一致 1462 本
+  腕にだけある 10 本（うち宣言 10）
+  既知の揺れの列だけが違う表 60 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 103615 欄）×1・cearn_s:経路の行番号だけ（写して一致 46995 欄）×1・cearn_s:経路の行番号だけ（写して一致 50984 欄）×1・cearn_s:経路の行番号だけ（写して一致 54913 欄）×1・cearn_s:経路の行番号だけ（写して一致 68618 欄）×1・cearn_s:経路の行番号だけ（写して一致 69795 欄）×1・cearn_s:経路の行番号だけ（写して一致 71042 欄）×1・cearn_s:経路の行番号だけ（写して一致 79119 欄）×1・cearn_s:経路の行番号だけ（写して一致 81282 欄）×1・cearn_s:経路の行番号だけ（写して一致 83838 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・cpop_s:経路の行番号だけ（写して一致 17585 欄）×1・cpop_s:経路の行番号だけ（写して一致 19662 欄）×1・cpop_s:経路の行番号だけ（写して一致 19889 欄）×1・cpop_s:経路の行番号だけ（写して一致 21673 欄）×1・cpop_s:経路の行番号だけ（写して一致 21964 欄）×1・cpop_s:経路の行番号だけ（写して一致 22557 欄）×1・cpop_s:経路の行番号だけ（写して一致 23340 欄）×1・cpop_s:経路の行番号だけ（写して一致 23342 欄）×1・cpop_s:経路の行番号だけ（写して一致 24679 欄）×1・cpop_s:経路の行番号だけ（写して一致 26361 欄）×1・flow_s:呼び出し位置だけ×10・tb_s:a1Close,a1CloseD,dps1,dps2,dsk1,dsk2,ps1,ps2,sk1,sk2,u1Abs,u1ExcessQty,u1Gt10pct,u1Gt1pct,u1MaxRel,u1Rel×1・tb_s:a1Close,a1CloseD,dps1,dps2,dsk1,dsk2,ps1,ps2,sk1,sk2,u1Abs,u1ExcessQty,u1Gt10pct,u1Gt1pct,u1MaxRel,u1Rel,u1SmallDRel×9
+  ○ 計器の表は恒等（バイト一致 1462・既知の揺れ 60・宣言された増減 10）
+  内訳：共通の表 1522 本＝バイト一致 1462＋既知の揺れ 60＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1522）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261115_m1157.txt（タグの行を除く）
+  ○ タグの行以外が一致（4655 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2884（基準 2874+10 を宣言）・FullLength 3（基準 3）
+
+判定: 恒等
+刈り込み：判定=判定: 恒等・表 1532 本・消した 1392 本（16.94GB）・残した 140 本
+刈り込みの結果：rc=0・刈り込み：判定=判定: 恒等・表 1532 本・消した 1392 本（16.94GB）・残した 140 本
