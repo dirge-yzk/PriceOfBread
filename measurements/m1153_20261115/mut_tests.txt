@@ -1,0 +1,5 @@
+# (1153) c113qn 試験の突然変異（使い捨ての木＝d74f72a37 の git archive＋scripts/instruments/c113qn/mut.py・ColonialQuinineTests だけ・D:/PoB_work/c113qn_work/tmut.sh）
+m1 赤＝Q3 ・失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s
+m2 赤＝Q1 Q2 ・失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 10 s
+m4 赤＝Q1 Q2 ・失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 8 s
+旗 0 の木（d74f72a37）の Q1〜Q3 は緑（器のコミットの束 146 本）。
