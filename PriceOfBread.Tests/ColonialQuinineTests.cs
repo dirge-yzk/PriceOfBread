@@ -58,7 +58,10 @@ public class ColonialQuinineTests
         Assert.Equal(on.Coal, off.Coal);   // 燃料の調達は係数に依らない
     }
 
-    static (string[] Head, string[] Row) InsRow(double perColony, out string dir)
+    static (string[] Head, string[] Row) InsRow(double perColony, out string dir) => InsRow(perColony, out dir, (_, w) => Colonial.Step(w, w.Coef));
+
+    /// <summary>q=0 に開幕から 1 四半期を流し、手で置いた盤面で <paramref name="act"/> を走らせて q=1 の英の行を返す。</summary>
+    static (string[] Head, string[] Row) InsRow(double perColony, out string dir, Action<MultiNationSim, World> act)
     {
         dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_qn_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
@@ -71,7 +74,7 @@ public class ColonialQuinineTests
             sim.StepQuarter(); Instruments.Quarter(sim, Seed, 0);   // ここまでの月を q=0 の行へ流す
             var w = Board(sim);
             uk = Instruments.NameOf(w);
-            Colonial.Step(w, w.Coef);                                // q=1 の行＝手で置いた盤面の 1 か月だけ
+            act(sim, w);                                             // q=1 の行＝手で置いた盤面の 1 か月だけ
             Instruments.Quarter(sim, Seed, 1);
         }
         finally { Instruments.Close(sim); }
@@ -147,5 +150,71 @@ public class ColonialQuinineTests
         double on = InvadeQuinine(6.0), off = InvadeQuinine(0.0);
         Assert.True(off > 0, $"係数 0 で遠征のキニーネを買わない（{off:R}）");
         Assert.True(Math.Abs(on - off) <= 1e-9, $"遠征のキニーネが係数で変わる（{on:R}・{off:R}）");
+    }
+
+    /// <summary>(1158) 在庫が有限の盤面：首都のキニーネの在庫 45・マラリアの州 2 つ（植民地の月 12）・遠征の求め 40（缶詰の基礎 20＋標的の軍事力 1×20）。
+    /// 植民地の月の調達の後に遠征を 1 回。戻り値＝(植民地が買った量, 遠征が買った量)。</summary>
+    static (double Colonial, double Expedition) FiniteStockRun(double perColony)
+    {
+        var sim = NewSim(perColony);
+        sim.StepQuarter();
+        return ColonyThenInvade(sim, Board(sim));
+    }
+
+    /// <summary>在庫 45 にして植民地の月の調達を 1 回、続けて熱帯の標的（軍事力 1）へ遠征を 1 回。</summary>
+    static (double Colonial, double Expedition) ColonyThenInvade(MultiNationSim sim, World w)
+    {
+        var me = w.SelfPower!;
+        var target = sim.Diplomacy.Powers.Find(p => p.Nation is null && p.RequiresQuinine && p.ColonyList.Count > 0 && sim.Diplomacy.Suzerain(p) is null);
+        Assert.NotNull(target);   // 前提：キニーネの標的（熱帯の抽象標的）がある
+        var m = w.Region.Markets;
+        m[Catalog.QuinineId].Stock = 45.0;
+        double q0 = m[Catalog.QuinineId].Stock;
+        Colonial.Step(w, w.Coef);
+        double q1 = m[Catalog.QuinineId].Stock;
+        w.ExpansionWill = 1e12; me.Military = 1e9; target!.Military = 1.0;
+        w.FiscalFundingRatio = new Share(1.0);
+        foreach (int g in new[] { Catalog.SailingShipId, Catalog.SteamshipId, Catalog.CannedFoodId }) m[g].Stock = 1e6;
+        Assert.True(w.CanInvade(target, out string why), $"前提が崩れた：侵攻できない（{why}）");
+        Assert.True(w.Invade(target), "前提が崩れた：侵攻しない");
+        return (q0 - q1, q1 - m[Catalog.QuinineId].Stock);
+    }
+
+    [Fact]
+    public void Q3b_在庫が有限なら植民地の月の買いが遠征の買いを減らし_係数0で遠征は求めの全量を買う()
+    {
+        var on = FiniteStockRun(6.0);
+        var off = FiniteStockRun(0.0);
+        Assert.Equal(12.0, on.Colonial, 6);      // 植民地の月＝6×2
+        Assert.Equal(33.0, on.Expedition, 6);    // 遠征は残りの 45−12 だけ（求め 40 に届かない）
+        Assert.Equal(0.0, off.Colonial);
+        Assert.Equal(40.0, off.Expedition, 6);   // 遠征は求めの全量（在庫 45 の内）
+    }
+
+    [Fact]
+    public void Q4_計器colqn_sの遠征の列は在庫が尽きた遠征と充足の上界を数える()
+    {
+        string d0 = "", d1 = "";
+        try
+        {
+            var on = InsRow(6.0, out d0, (s, w) => ColonyThenInvade(s, w));
+            var off = InsRow(0.0, out d1, (s, w) => ColonyThenInvade(s, w));
+            foreach (var (h, r) in new[] { on, off })
+            {
+                Assert.Equal(1.0, Col(h, r, "expN"));
+                Assert.Equal(40.0, Col(h, r, "expNeed"), 6);
+                Assert.Equal(40.0, Col(h, r, "expReq"), 6);
+                Assert.Equal(1.0, Col(h, r, "expFillUpper"), 9);
+            }
+            Assert.Equal(1.0, Col(on.Head, on.Row, "expDepletedN"));     // 45−12＝33＜40＝在庫が尽きた
+            Assert.Equal(0.0, Col(on.Head, on.Row, "expStockAfter"));
+            Assert.Equal(0.0, Col(off.Head, off.Row, "expDepletedN"));   // 45−40＝5 が残る
+            Assert.Equal(5.0, Col(off.Head, off.Row, "expStockAfter"), 6);
+        }
+        finally
+        {
+            Instruments.SelectTables(null); Instruments.Configure(null, null);
+            foreach (var d in new[] { d0, d1 }) if (d.Length > 0) try { System.IO.Directory.Delete(d, true); } catch (System.IO.IOException) { }
+        }
     }
 }

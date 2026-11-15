@@ -1118,7 +1118,7 @@ public static partial class Instruments
     /// 読むだけ。〔履歴 Instruments.cs#173〕
     /// </summary>
     internal static void Invaded(Diplomacy dip, int year, Power invader, Power target, bool submitted, double added, double addedToTarget)
-        { Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget)); WarNoteInvade(dip); }
+        { Dips.GetValue(dip, _ => new DipState()).Invades.Add((year, NameOf(invader), NameOf(target), target.Nation is not null, submitted, added, addedToTarget)); WarNoteInvade(dip); ColqnInvaded(invader, target); }   // ColqnInvaded（(1158) 遠征のキニーネ・colqn_s）
     /// <summary>月の戦死（<c>Diplomacy.WarCasualties</c>）：(年, 国)ごとの月数・兵士の月和・戦死の和（戦死は兵士の上限をかけた後の量）。</summary>
     internal static void Casualty(Diplomacy dip, int year, Power p, double soldierPop, double dead)
     {

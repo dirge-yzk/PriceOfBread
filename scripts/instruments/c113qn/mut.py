@@ -28,6 +28,8 @@ elif form in ('coef0', 'm1', 'm2', 'm4'):
         rep(COL, b'if (malarial) quinineWant += c.MalariaQuininePerColony;', b'if (malarial) quinineWant += 6.0;')
     elif form == 'm4':
         rep(COL, b'        BuyUpkeepGood(w, r, fuelG, fuelWant);\n', b'        _ = fuelG + fuelWant;\n')
+elif form == 'm5':
+    rep('PriceOfBread.SimCore/Instruments/Instruments.cs', b' ColqnInvaded(invader, target); }', b' }')
 else:
     raise SystemExit('形の名が無い：' + form)
 print('mut', form, 'ok')

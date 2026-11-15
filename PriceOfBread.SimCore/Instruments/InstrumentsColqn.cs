@@ -7,7 +7,8 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string ColqnHeaderText = "year\tq\tnation\tmonths\tmalMonths\tmalRegionMonths\t"
-        + "oldWant\toldReq\toldClaim\toldBuyable\tobsDemand\tobsGot\tobsStockDrop\tobsCost\tobsClaim\tfuelClaim\tmaxAbsDiffGot\tmaxRelDiffReq";
+        + "oldWant\toldReq\toldClaim\toldBuyable\tobsDemand\tobsGot\tobsStockDrop\tobsCost\tobsClaim\tfuelClaim\tmaxAbsDiffGot\tmaxRelDiffReq"
+        + "\texpN\texpDepletedN\texpNeed\texpReq\texpFillUpper\texpStockAfter";
 
     /// <summary>旧の規則の率（p04 の MalariaQuininePerColony の旧の既定・月×州）。係数が 0 の木でも旧の規則を同じ盤面で数えるため、計器が自分で持つ。</summary>
     internal const double ColqnOldPerColony = 6.0;
@@ -19,6 +20,8 @@ public static partial class Instruments
     {
         public int Months, MalMonths, MalRegions;
         public double OldWant, OldReq, OldClaim, OldBuyable, ObsDemand, ObsGot, ObsStockDrop, ObsCost, ObsClaim, FuelClaim, MaxGot, MaxReq;
+        public int ExpN, ExpDepletedN;
+        public double ExpNeed, ExpReq, ExpFillUpper, ExpStockAfter;
     }
     sealed class ColqnSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, ColqnAcc> ColqnAccs = new();
@@ -73,6 +76,27 @@ public static partial class Instruments
         double dr = System.Math.Abs(obsDemand - p.OldReq) / System.Math.Max(1.0, System.Math.Abs(demand1)); if (dr > a.MaxReq) a.MaxReq = dr;
     }
 
+    /// <summary>(1158) 遠征の側（World.Invade の熱帯の標的のキニーネ・World.cs:1871〜:1874）。既にある口 Instruments.Invaded（World.cs:1888＝調達の後）から呼ぶ。
+    /// 調達の前の在庫は読めない（World.cs は持ち主の外）＝在庫が尽きたか（後の在庫 ≦1e-9 ⇔ 前の在庫 ≦ 求め）と、充足の上界（求め÷need＝在庫が残った遠征ではちょうどの充足）を数える。
+    /// need は計器が自分で組む（缶詰の基礎＋標的の軍事力×1 あたり＝遠征のキニーネは缶詰の要求量と同じ量）。求めは BuyUpkeepGood と同じ順（afford→資金の比）。</summary>
+    internal static void ColqnInvaded(Power invader, Power target)
+    {
+        if (!target.RequiresQuinine || invader.Nation is not { } w || w.WarmupFrozen || !Wants("colqn_s")) return;
+        const int g = Catalog.QuinineId;
+        var r = w.Region;
+        double need = w.Coef.InvadeCannedBase + w.Coef.InvadeCannedPerMilitary * target.Military;
+        double req = 0, stock = 0;
+        if (g < r.Markets.Length)
+        {
+            stock = r.Markets[g].Stock;
+            if (need > 1e-9) { req = need * EconomyStep.StatePriceAfford(r, w.Coef, g); req = req > 1e-9 ? req * w.FiscalFundingRatio.Value : 0; }
+        }
+        var a = ColqnAccs.GetValue(w, _ => new ColqnAcc());
+        a.ExpN++; if (stock <= 1e-9) a.ExpDepletedN++;
+        a.ExpNeed += need; a.ExpReq += req; a.ExpStockAfter += stock;
+        a.ExpFillUpper += need > 1e-9 ? System.Math.Min(1.0, System.Math.Max(0.0, req / need)) : 0;
+    }
+
     static void ColqnTable(MultiNationSim sim, ulong seed, int q)
     {
         if (!Wants("colqn_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
@@ -89,6 +113,9 @@ public static partial class Instruments
             sb.Append(I(yearLabel)).Append('\t').Append(I(q)).Append('\t').Append(NameOf(w))
               .Append('\t').Append(I(a.Months)).Append('\t').Append(I(a.MalMonths)).Append('\t').Append(I(a.MalRegions));
             foreach (double v in new[] { a.OldWant, a.OldReq, a.OldClaim, a.OldBuyable, a.ObsDemand, a.ObsGot, a.ObsStockDrop, a.ObsCost, a.ObsClaim, a.FuelClaim, a.MaxGot, a.MaxReq })
+                sb.Append('\t').Append(FR(v));
+            sb.Append('\t').Append(I(a.ExpN)).Append('\t').Append(I(a.ExpDepletedN));
+            foreach (double v in new[] { a.ExpNeed, a.ExpReq, a.ExpFillUpper, a.ExpStockAfter })
                 sb.Append('\t').Append(FR(v));
             sk.W.WriteLine(sb.ToString());
             ColqnAccs.AddOrUpdate(w, new ColqnAcc());
