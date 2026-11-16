@@ -105,7 +105,7 @@ public sealed partial class Coefficients
     public double CultureDistanceFromEthnic = 1.0;   // 0で厳密恒等
     public double SecessionHoldSharedArmy = 1.0;   // 0で分母1＝厳密恒等
     public double SecessionHoldProjection = 1.0;   // 0で厳密恒等
-    public double SecessionInclusionOnce = 0;      // (1173) 旗：包摂（参政権の算入）を少数派の闘争度の目標の 1 回だけに掛け、分離の圧の割引を外す・州の包摂は人の版の平均（植民地格は植民地参政権）。0＝旧の形（州の版を闘争度と圧の 2 か所）
+    public double SecessionInclusionOnce = 1;      // (1173) 旗：包摂（参政権の算入）を少数派の闘争度の目標の 1 回だけに掛け、分離の圧の割引を外す・州の包摂は人の版の平均（植民地格は植民地参政権）。0＝旧の形（州の版を闘争度と圧の 2 か所）
     public double WallLinkKm = 700.0;          // 壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
 
     public double DominanceSpeed = 0.025;            // 四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
