@@ -7,12 +7,10 @@ S16-16	EconomyStep.cs:1101:coef.CivilWarEconomyDisruption > 0 && region.CivilWar
 S16-16	Simulation.cs:1703:r.CivilWarActive = World.InCivilWar	Simulation.cs:1703:r.CivilWarActive = World.InCivilWar	もとから引けない
 S16-16	Coefficients.cs:2014:CivilWarEconomyDisruption	Coefficients.cs:2014:CivilWarEconomyDisruption	もとから引けない
 S16-17	Simulation.cs:2120:MilitaryWarMultFromContact	Simulation.cs:2120:MilitaryWarMultFromContact	もとから引けない
-S16-19	Politics.cs:1041:RegionAvgSuffrageInclusion(World w, Region r)	Politics.cs:1041:RegionAvgSuffrageInclusion(World w, Region r)	写せない
 S16-21	Coefficients.cs:3000:FactionForgetQuarters	Coefficients.cs:3000:FactionForgetQuarters	もとから引けない
 S16-30	Government.cs:784:EnactingStage(World w, PolicyAxis a, bool increasing)	Government.cs:784:EnactingStage(World w, PolicyAxis a, bool increasing)	もとから引けない
 S16-38	Diplomacy.cs:859:c.MilitiaCombatValue > 0	Diplomacy.cs:859:c.MilitiaCombatValue > 0	もとから引けない
 S16-40	Coefficients.cs:3020:RevoltAftermathOnWarPath	Coefficients.cs:3020:RevoltAftermathOnWarPath	もとから引けない
-S16-47	Politics.cs:1032:internal static double RegionRevoltHeat(Region r, Coefficients c) => AvgRegionMilitancy(r)	Politics.cs:1033:internal static double RegionRevoltHeat(Region r, Coefficients c) => AvgRegionMilitancy(r)	写した
 S16-48	Coefficients.cs:3065:RevoltCooldownRetire	Coefficients.cs:3065:RevoltCooldownRetire	もとから引けない
 S15-01	Coefficients.cs:112:LegitimacyErosionRate	Coefficients.cs:111:LegitimacyErosionRate	写した
 S15-01	Coefficients.cs:2723:LegitimacyRegenRate	Coefficients.cs:2723:LegitimacyRegenRate	もとから引けない
@@ -41,17 +39,13 @@ S15-22	Coefficients.cs:1748:WarRallyCoercion	Coefficients.cs:1748:WarRallyCoerci
 S15-22	Coefficients.cs:1749:WarRallyDecayPoint	Coefficients.cs:1749:WarRallyDecayPoint	もとから引けない
 S15-23	Coefficients.cs:126:PolityInertia	Coefficients.cs:125:PolityInertia	写した
 S15-24	Coefficients.cs:3096:RegimeTrackRecordWeight	Coefficients.cs:3096:RegimeTrackRecordWeight	もとから引けない
-S15-26	Politics.cs:1129:internal static double SoldierHoldShare(	Politics.cs:1138:internal static double SoldierHoldShare(	写した
 S15-27	Coefficients.cs:2854:BourgeoisCoupWeight	Coefficients.cs:2854:BourgeoisCoupWeight	もとから引けない
 S15-30	Coefficients.cs:2725:ReformFromAboveLegitThreshold	Coefficients.cs:2725:ReformFromAboveLegitThreshold	もとから引けない
 S15-30	Coefficients.cs:1870:ReformAnticipationWeight	Coefficients.cs:1870:ReformAnticipationWeight	もとから引けない
 S15-31	Coefficients.cs:1874:ReformGrantPcWidth	Coefficients.cs:1874:ReformGrantPcWidth	もとから引けない
 S15-38	Fiscal.cs:895:internal static void RepudiateDebt(	Fiscal.cs:895:internal static void RepudiateDebt(	もとから引けない
 S15-38	Fiscal.cs:900:w.BorrowCooldownMonths = c.DefaultCooldownMonths	Fiscal.cs:900:w.BorrowCooldownMonths = c.DefaultCooldownMonths	もとから引けない
-S15-39	Politics.cs:1206:bool terror = c.RevolutionTerror	Politics.cs:1215:bool terror = c.RevolutionTerror	写した
-S15-39	Politics.cs:1213:bool deposed = (depTrad && p.Closed)	Politics.cs:1222:bool deposed = (depTrad && p.Closed)	写した
 S15-39	Coefficients.cs:118:RevolutionTerror	Coefficients.cs:117:RevolutionTerror	写した
-S15-40	Politics.cs:1147:Clamp01(v + c.RevolutionConsciousness	Politics.cs:1156:Clamp01(v + c.RevolutionConsciousness	写した
 S15-40	Coefficients.cs:1729:RevolutionConsciousness	Coefficients.cs:1729:RevolutionConsciousness	もとから引けない
 S15-42	Coefficients.cs:3160:NationConsciousnessDerived	Coefficients.cs:3160:NationConsciousnessDerived	もとから引けない
 S15-45	Government.cs:946:if (w.RuptureWindowQuarters > 0) return false	Government.cs:946:if (w.RuptureWindowQuarters > 0) return false	もとから引けない
@@ -116,17 +110,13 @@ S19-41	Government.cs:700:!UniversalConscriptionOpen(w)	Government.cs:700:!Univer
 S19-42	World.cs:883:public bool PoliticalLockEnabled	World.cs:883:public bool PoliticalLockEnabled	もとから引けない
 S19-42	Government.cs:555:double net = w.PoliticalLockEnabled	Government.cs:555:double net = w.PoliticalLockEnabled	もとから引けない
 S19-43	DormantIdentityTests.cs:273:"IncumbencyBias"	DormantIdentityTests.cs:273:"IncumbencyBias"	もとから引けない
-S25-11	Coefficients.p08_audit_soldiers.cs:141:FrozenTensionDecayRate	Coefficients.p08_audit_soldiers.cs:140:FrozenTensionDecayRate	写した
+S25-11	Coefficients.p08_audit_soldiers.cs:141:FrozenTensionDecayRate	Coefficients.p08_audit_soldiers.cs:139:FrozenTensionDecayRate	写した
 S25-13	—（DefeatShockTensionRelief は消した＝(1154) c113sw）	—（DefeatShockTensionRelief は消した＝(1154) c113sw）	形が違う
 S25-13	—（DefeatShockProtectMin は消した＝(1154) c113sw）	—（DefeatShockProtectMin は消した＝(1154) c113sw）	形が違う
-S25-14	Coefficients.p08_audit_soldiers.cs:141:FrozenTensionDecayRate	Coefficients.p08_audit_soldiers.cs:140:FrozenTensionDecayRate	写した
-S25-49	Coefficients.p08_audit_soldiers.cs:114:ForeignRuleFromTreaty	Coefficients.p08_audit_soldiers.cs:115:ForeignRuleFromTreaty	写した
+S25-14	Coefficients.p08_audit_soldiers.cs:141:FrozenTensionDecayRate	Coefficients.p08_audit_soldiers.cs:139:FrozenTensionDecayRate	写した
 S25-53	—（DefeatedShock は消した＝(1154) c113sw）	—（DefeatedShock は消した＝(1154) c113sw）	形が違う
-S25-61	Coefficients.p08_audit_soldiers.cs:116:ProjectionRuleMin	Coefficients.p08_audit_soldiers.cs:117:ProjectionRuleMin	写した
-S25-61	Coefficients.p08_audit_soldiers.cs:117:ProjectionUsesLand	Coefficients.p08_audit_soldiers.cs:118:ProjectionUsesLand	写した
-S25-64	PriceOfBread.Tests/DormantIdentityTests.cs:331:TradeTreatyEnabled	PriceOfBread.Tests/DormantIdentityTests.cs:333:TradeTreatyEnabled	写した
-S25-74	PriceOfBread.Tests/DormantIdentityTests.cs:294:WarStartPoliticsScale	PriceOfBread.Tests/DormantIdentityTests.cs:296:WarStartPoliticsScale	写した
-S23-H020	Coefficients.p08_audit_soldiers.cs:118:PeacetimeConscriptGrievance	Coefficients.p08_audit_soldiers.cs:119:PeacetimeConscriptGrievance	写した
+S25-64	PriceOfBread.Tests/DormantIdentityTests.cs:331:TradeTreatyEnabled	PriceOfBread.Tests/DormantIdentityTests.cs:332:TradeTreatyEnabled	写した
+S25-74	PriceOfBread.Tests/DormantIdentityTests.cs:294:WarStartPoliticsScale	PriceOfBread.Tests/DormantIdentityTests.cs:295:WarStartPoliticsScale	写した
 S23-H032	Coefficients.p04_trade.cs:28:MilitaryProcurePriceGateScale	Coefficients.p04_trade.cs:28:MilitaryProcurePriceGateScale	もとから引けない
 S23-H034	Coefficients.p10_ai_silver_overrides.cs:82:AirFuelRate	Coefficients.p10_ai_silver_overrides.cs:81:AirFuelRate	写した
 S23-H034	Coefficients.p10_ai_silver_overrides.cs:83:MotorFuelRate	Coefficients.p10_ai_silver_overrides.cs:82:MotorFuelRate	写した
@@ -142,13 +132,11 @@ S18-30	InterestGroups.cs:12:PettyInterestGate	InterestGroups.cs:12:PettyInterest
 S14-H010	Politics.cs:544:DesperationMilitancyOverride	Politics.cs:544:DesperationMilitancyOverride	もとから引けない
 S14-H011	Politics.cs:544:DesperationLayerBlend	Politics.cs:544:DesperationLayerBlend	もとから引けない
 S14-H013	Coefficients.p02_borrow_polity_epidemic.cs:225:UnemploymentMilitancy	Coefficients.p02_borrow_polity_epidemic.cs:225:UnemploymentMilitancy	もとから引けない
-S14-H014	Politics.cs:1159:GiniIndex	Politics.cs:1168:GiniIndex	写した
 S14-H016	Coefficients.cs:258:FamineAbsoluteMilitancy	Coefficients.cs:258:FamineAbsoluteMilitancy	もとから引けない
 S14-H022	Coefficients.p08_audit_soldiers.cs:107:NationalismFromConsciousness	Coefficients.p08_audit_soldiers.cs:107:NationalismFromConsciousness	もとから引けない
 S14-H023	Ideology.cs:34:DepressionSocialism	Ideology.cs:34:DepressionSocialism	もとから引けない
 S14-H033	InterestGroups.cs:12:PettyInterestGate	InterestGroups.cs:12:PettyInterestGate	もとから引けない
 S08-H006	Coefficients.p10_ai_silver_overrides.cs:91:SeaStitchLeadBudgetMult	Coefficients.p10_ai_silver_overrides.cs:90:SeaStitchLeadBudgetMult	写した
-S08-H011	Coefficients.p08_audit_soldiers.cs:108:WallLinkKm	Coefficients.p08_audit_soldiers.cs:109:WallLinkKm	写した
 S08-H032	Coefficients.p10_ai_silver_overrides.cs:61:EraFactor	Coefficients.p10_ai_silver_overrides.cs:60:EraFactor	写した
 S02-H001a	Simulation.cs:1435:PriceOnlyStepDays	Simulation.cs:1432:PriceOnlyStepDays	写した
 S02-H001a	Simulation.cs:1450:MarketFlow.StepDay(r, World.Coef, hPrice	Simulation.cs:1447:MarketFlow.StepDay(r, World.Coef, hPrice	写した
@@ -179,7 +167,6 @@ S02-H008b	MarketFlow.cs:86:bool laborClosed = h > 1	MarketFlow.cs:86:bool laborC
 S02-H008b	MarketFlow.cs:103:if (mwFloor > 0 && p1 < mwFloor) p1 = mwFloor	MarketFlow.cs:102:if (mwFloor > 0 && p1 < mwFloor) p1 = mwFloor	写した
 S02-H011a	MarketFlow.cs:265:=> coef.WageClampMax	MarketFlow.cs:264:=> coef.WageClampMax	写した
 S02-H011b	MarketFlow.cs:154:double p1 = SoftBandLn(P * (1 + adj), wrp, lnFloorWage, lnCeilWage, k)	MarketFlow.cs:153:double p1 = SoftBandLn(P * (1 + adj), wrp, lnFloorWage, lnCeilWage, k)	写した
-S01-H014	Coefficients.p08_audit_soldiers.cs:122:CompostProductivity	Coefficients.p08_audit_soldiers.cs:123:CompostProductivity	写した
 S01-H015	—（硝石丘の枝と NiterBedEnabled・NiterBedProductivity は消した＝(1175) c116cl）	—（硝石丘の枝と NiterBedEnabled・NiterBedProductivity は消した＝(1175) c116cl）	形が違う
 S01-H019	Simulation.cs:1231:RecipeName = "石油灯油"	Simulation.cs:1228:RecipeName = "石油灯油"	写した
 S10-H001b	Simulation.cs:2278:StepAges(p.Size, 0, 0, mortW)	Simulation.cs:2275:StepAges(p.Size, 0, 0, mortW)	写した
@@ -212,14 +199,14 @@ S10-H010a	Simulation.cs:2227:FertilityLitSlope	Simulation.cs:2224:FertilityLitSl
 S10-H010a	Simulation.cs:2227:FertilityIncomeSlope	Simulation.cs:2224:FertilityIncomeSlope	写した
 S10-H010a	Simulation.cs:2220:MotherLiteracyRatio	Simulation.cs:2217:MotherLiteracyRatio	写した
 S10-H010b	Simulation.cs:2223:WomenEduLitBonus	Simulation.cs:2220:WomenEduLitBonus	写した
-S10-H011	PriceOfBread.Tests/DormantIdentityTests.cs:311:FertilityEquilibriumWeight	PriceOfBread.Tests/DormantIdentityTests.cs:313:FertilityEquilibriumWeight	写した
-S10-H012	PriceOfBread.Tests/DormantIdentityTests.cs:311:FertilityLandDivisionSlope	PriceOfBread.Tests/DormantIdentityTests.cs:313:FertilityLandDivisionSlope	写した
-S10-H013	PriceOfBread.Tests/DormantIdentityTests.cs:311:FertilityIncomeSurvivalGate	PriceOfBread.Tests/DormantIdentityTests.cs:313:FertilityIncomeSurvivalGate	写した
+S10-H011	PriceOfBread.Tests/DormantIdentityTests.cs:311:FertilityEquilibriumWeight	PriceOfBread.Tests/DormantIdentityTests.cs:312:FertilityEquilibriumWeight	写した
+S10-H012	PriceOfBread.Tests/DormantIdentityTests.cs:311:FertilityLandDivisionSlope	PriceOfBread.Tests/DormantIdentityTests.cs:312:FertilityLandDivisionSlope	写した
+S10-H013	PriceOfBread.Tests/DormantIdentityTests.cs:311:FertilityIncomeSurvivalGate	PriceOfBread.Tests/DormantIdentityTests.cs:312:FertilityIncomeSurvivalGate	写した
 S10-H014a	Simulation.cs:2100:Math.Min(f, m)	Simulation.cs:2097:Math.Min(f, m)	写した
 S10-H014a	Simulation.cs:2096:FertilePool	Simulation.cs:2093:FertilePool	写した
 S10-H014b	Simulation.cs:2108:p.Size * fertile / init	Simulation.cs:2105:p.Size * fertile / init	写した
 S10-H014c	Simulation.cs:2274:regKey[ri] / massBirthKey	Simulation.cs:2271:regKey[ri] / massBirthKey	写した
-S10-H015	PriceOfBread.Tests/DormantIdentityTests.cs:361:FertileAbsoluteBlend	PriceOfBread.Tests/DormantIdentityTests.cs:363:FertileAbsoluteBlend	写した
+S10-H015	PriceOfBread.Tests/DormantIdentityTests.cs:361:FertileAbsoluteBlend	PriceOfBread.Tests/DormantIdentityTests.cs:362:FertileAbsoluteBlend	写した
 S10-H016	Simulation.cs:2309:FamineExcessMortality	Simulation.cs:2306:FamineExcessMortality	写した
 S10-H017	Simulation.cs:2294:deathRate * dw	Simulation.cs:2291:deathRate * dw	写した
 S10-H017	Simulation.cs:2240:AgeMortalityIndex	Simulation.cs:2237:AgeMortalityIndex	写した
@@ -228,6 +215,7 @@ S10-H019	Simulation.cs:2145:FoodFillSmoothing	Simulation.cs:2142:FoodFillSmoothi
 S10-H019	Simulation.cs:2344:FoodFillSmoothing	Simulation.cs:2341:FoodFillSmoothing	写した
 S10-H019	Simulation.cs:2187:FoodRatioProductionSmoothed	Simulation.cs:2184:FoodRatioProductionSmoothed	写した
 S10-H020	Simulation.cs:2337:SmoothRegionalFoodFill	Simulation.cs:2334:SmoothRegionalFoodFill	写した
+S10-H021	PriceOfBread.Tests/DormantIdentityTests.cs:239:FamineAbsoluteThreshold	PriceOfBread.Tests/DormantIdentityTests.cs:238:FamineAbsoluteThreshold	写した
 S10-H024a	Simulation.cs:2330:PopulationDelta	Simulation.cs:2327:PopulationDelta	写した
 S10-H029	Simulation.cs:2268:DisasterAgeMortalityExcess	Simulation.cs:2265:DisasterAgeMortalityExcess	写した
 S10-H030a	Simulation.cs:1721:WomenWageRetention	Simulation.cs:1718:WomenWageRetention	写した
@@ -235,11 +223,11 @@ S10-H030b	Simulation.cs:1728:ChildLaborLegal	Simulation.cs:1725:ChildLaborLegal	
 S10-H030e	Simulation.cs:1721:WomenRightsFollowSpeed	Simulation.cs:1718:WomenRightsFollowSpeed	写した
 S10-H030e	Simulation.cs:1728:WomenRightsFollowSpeed	Simulation.cs:1725:WomenRightsFollowSpeed	写した
 S10-H035c	Simulation.cs:1815:InsuranceCoverageMax	Simulation.cs:1812:InsuranceCoverageMax	写した
-S10-H038	PriceOfBread.Tests/DormantIdentityTests.cs:286:EnclosureRate	PriceOfBread.Tests/DormantIdentityTests.cs:288:EnclosureRate	写した
+S10-H038	PriceOfBread.Tests/DormantIdentityTests.cs:286:EnclosureRate	PriceOfBread.Tests/DormantIdentityTests.cs:287:EnclosureRate	写した
 S10-H040	Simulation.cs:2229:PopGrowthRatePerMonth	Simulation.cs:2226:PopGrowthRatePerMonth	写した
 S10-H040	Simulation.cs:2253:fertility	Simulation.cs:2250:fertility	写した
-S10-H046	PriceOfBread.Tests/DormantIdentityTests.cs:312:EducationGateUsesEma	PriceOfBread.Tests/DormantIdentityTests.cs:314:EducationGateUsesEma	写した
-S10-H047	PriceOfBread.Tests/DormantIdentityTests.cs:312:NewbornLiteracyDilution	PriceOfBread.Tests/DormantIdentityTests.cs:314:NewbornLiteracyDilution	写した
+S10-H046	PriceOfBread.Tests/DormantIdentityTests.cs:312:EducationGateUsesEma	PriceOfBread.Tests/DormantIdentityTests.cs:313:EducationGateUsesEma	写した
+S10-H047	PriceOfBread.Tests/DormantIdentityTests.cs:312:NewbornLiteracyDilution	PriceOfBread.Tests/DormantIdentityTests.cs:313:NewbornLiteracyDilution	写した
 S03-H001	Coefficients.cs:1161:IndProductivityGain	Coefficients.cs:1161:IndProductivityGain	もとから引けない
 S03-H001	Coefficients.cs:1162:IndProductivityScale	Coefficients.cs:1162:IndProductivityScale	もとから引けない
 S03-H010	Coefficients.cs:2087:ElecInfraGridBoost	Coefficients.cs:2087:ElecInfraGridBoost	もとから引けない
@@ -401,28 +389,16 @@ S12-H015	Coefficients.cs:834:FallAnchorReform	Coefficients.cs:834:FallAnchorRefo
 S12-H016	Coefficients.cs:820:MerchantArtisanCapitalRise	Coefficients.cs:820:MerchantArtisanCapitalRise	もとから引けない
 S12-H017	Coefficients.cs:832:MinorityPenaltyModernBlend	Coefficients.cs:832:MinorityPenaltyModernBlend	もとから引けない
 S12-H019	Coefficients.cs:2682:PromotionLiteracySelection	Coefficients.cs:2682:PromotionLiteracySelection	もとから引けない
-S27-H001	Coefficients.p08_audit_soldiers.cs:110:DominanceSpeed	Coefficients.p08_audit_soldiers.cs:111:DominanceSpeed	写した
 S27-H002	Coefficients.cs:121:CultureSecessionWeight	Coefficients.cs:120:CultureSecessionWeight	写した
 S27-H006	Coefficients.p10_ai_silver_overrides.cs:64:SecessionConsciousnessWeight	Coefficients.p10_ai_silver_overrides.cs:63:SecessionConsciousnessWeight	写した
-S27-H007	Politics.cs:975:Dominance	Politics.cs:976:Dominance	写した
-S27-H009	Coefficients.p08_audit_soldiers.cs:112:DominanceMatureYears	Coefficients.p08_audit_soldiers.cs:113:DominanceMatureYears	写した
-S27-H009	Coefficients.p08_audit_soldiers.cs:110:DominanceSpeed	Coefficients.p08_audit_soldiers.cs:111:DominanceSpeed	写した
-S27-H010	Coefficients.p08_audit_soldiers.cs:113:OpeningColonyDominanceFull	Coefficients.p08_audit_soldiers.cs:114:OpeningColonyDominanceFull	写した
 S27-H011	—（消した＝(956) c85hs・SimCore の grep 0）	—（消した＝(956) c85hs・SimCore の grep 0）	形が違う
-S27-H012	Politics.cs:956:tUngov	Politics.cs:957:tUngov	写した
-S27-H012	Politics.cs:962:DominanceSpeed	Politics.cs:963:DominanceSpeed	写した
-S27-H013	Politics.cs:1118:Rule	Politics.cs:1127:Rule	写した
-S27-H014	Coefficients.p08_audit_soldiers.cs:114:ForeignRuleFromTreaty	Coefficients.p08_audit_soldiers.cs:115:ForeignRuleFromTreaty	写した
-S27-H015	Coefficients.p08_audit_soldiers.cs:116:ProjectionRuleMin	Coefficients.p08_audit_soldiers.cs:117:ProjectionRuleMin	写した
-S27-H015	Coefficients.p08_audit_soldiers.cs:117:ProjectionUsesLand	Coefficients.p08_audit_soldiers.cs:118:ProjectionUsesLand	写した
-S27-H016	Coefficients.p08_audit_soldiers.cs:118:PeacetimeConscriptGrievance	Coefficients.p08_audit_soldiers.cs:119:PeacetimeConscriptGrievance	写した
 S27-H018	Coefficients.cs:121:CultureSecessionWeight	Coefficients.cs:120:CultureSecessionWeight	写した
 S27-H018	Coefficients.cs:123:SecessionHoldPerPop	Coefficients.cs:122:SecessionHoldPerPop	写した
 S27-H018	Coefficients.cs:120:SecessionPressureScale	Coefficients.cs:119:SecessionPressureScale	写した
 S27-H021	Coefficients.p10_ai_silver_overrides.cs:64:SecessionConsciousnessWeight	Coefficients.p10_ai_silver_overrides.cs:63:SecessionConsciousnessWeight	写した
 S27-H031	Coefficients.p10_ai_silver_overrides.cs:70:RumpGdpFractionOfParent	Coefficients.p10_ai_silver_overrides.cs:69:RumpGdpFractionOfParent	写した
 S27-H032	—（武力の解錠の器は消した＝(551) gc1・ForceUnlock の grep 0）	—（武力の解錠の器は消した＝(551) gc1・ForceUnlock の grep 0）	形が違う
-S27-H046	Coefficients.p08_audit_soldiers.cs:143:ConquestColonyMilitancy	Coefficients.p08_audit_soldiers.cs:142:ConquestColonyMilitancy	写した
+S27-H046	Coefficients.p08_audit_soldiers.cs:143:ConquestColonyMilitancy	Coefficients.p08_audit_soldiers.cs:141:ConquestColonyMilitancy	写した
 S27-H057	—（消した＝(1081) c103dm）	—（消した＝(1081) c103dm）	形が違う
 S17-H001	Coefficients.cs:3368:ConstitutionalControlExit	Coefficients.cs:3368:ConstitutionalControlExit	もとから引けない
 S17-H001	Coefficients.cs:3367:ConstitutionalControlFloor	Coefficients.cs:3367:ConstitutionalControlFloor	もとから引けない
@@ -589,9 +565,9 @@ S23-H044	Coefficients.cs:2208:AirCasualtyWeight	Coefficients.cs:2208:AirCasualty
 S23-H044	Coefficients.cs:2207:AirControlPushWeight	Coefficients.cs:2207:AirControlPushWeight	もとから引けない
 S23-H044	Coefficients.cs:2210:ChemExhaustionWeight	Coefficients.cs:2210:ChemExhaustionWeight	もとから引けない
 S23-H044	Coefficients.cs:2209:WarExhaustionAirRaid	Coefficients.cs:2209:WarExhaustionAirRaid	もとから引けない
-S24-H028	Coefficients.p08_audit_soldiers.cs:142:FiscalExhaustionWarWeariness	Coefficients.p08_audit_soldiers.cs:141:FiscalExhaustionWarWeariness	写した
+S24-H028	Coefficients.p08_audit_soldiers.cs:142:FiscalExhaustionWarWeariness	Coefficients.p08_audit_soldiers.cs:140:FiscalExhaustionWarWeariness	写した
 S24-H049	Simulation.cs:1279:PromoteColonyToRegion	Simulation.cs:1276:PromoteColonyToRegion	写した
-S24-H051	Coefficients.p08_audit_soldiers.cs:143:ConquestColonyMilitancy	Coefficients.p08_audit_soldiers.cs:142:ConquestColonyMilitancy	写した
+S24-H051	Coefficients.p08_audit_soldiers.cs:143:ConquestColonyMilitancy	Coefficients.p08_audit_soldiers.cs:141:ConquestColonyMilitancy	写した
 S24-H072	Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement	Coefficients.p08_audit_soldiers.cs:17:GarrisonProcurement	もとから引けない
 S24-H072	Simulation.cs:1781:GarrisonProcurement	Simulation.cs:1778:GarrisonProcurement	写した
 S24-H073	Coefficients.p10_ai_silver_overrides.cs:77:EraNavalFuel	Coefficients.p10_ai_silver_overrides.cs:76:EraNavalFuel	写した
@@ -830,7 +806,7 @@ S06-24	Simulation.cs:1449:r.CivilWarActive	Simulation.cs:1446:r.CivilWarActive	�
 S06-25	Simulation.cs:1814:r.SocialSecurity	Simulation.cs:1811:r.SocialSecurity	写した
 S06-25	Simulation.cs:1831:r.HarvestFactor	Simulation.cs:1828:r.HarvestFactor	写した
 S06-25	Simulation.cs:1839:r.EducationSpending	Simulation.cs:1836:r.EducationSpending	写した
-S06-26	DormantIdentityTests.cs:313:DomesticMarkupMax	DormantIdentityTests.cs:315:DomesticMarkupMax	写した
+S06-26	DormantIdentityTests.cs:313:DomesticMarkupMax	DormantIdentityTests.cs:314:DomesticMarkupMax	写した
 S06-27	Coefficients.p08_audit_soldiers.cs:221:HoardDishoardRate	Coefficients.p08_audit_soldiers.cs:221:HoardDishoardRate	もとから引けない
 S06-28	Coefficients.p08_audit_soldiers.cs:100:HoardCrystallizeRate	Coefficients.p08_audit_soldiers.cs:100:HoardCrystallizeRate	もとから引けない
 S06-29	Coefficients.p08_audit_soldiers.cs:165:CurrentInputFillGates	Coefficients.p08_audit_soldiers.cs:165:CurrentInputFillGates	もとから引けない
@@ -841,12 +817,10 @@ S09-03	BilateralMarket.cs:1216:TreasuryCat.Tariff	BilateralMarket.cs:1216:Treasu
 S09-04	BilateralMarket.cs:1228:tar[i] < 0	BilateralMarket.cs:1228:tar[i] < 0	もとから引けない
 S09-04	Simulation.cs:1918:World.Tariff < 0	Simulation.cs:1915:World.Tariff < 0	写した
 S09-05	BilateralMarket.cs:776:IsolationExportFactor	BilateralMarket.cs:776:IsolationExportFactor	もとから引けない
-S09-07	DormantIdentityTests.cs:331:TradeTreatyEnabled	DormantIdentityTests.cs:333:TradeTreatyEnabled	写した
+S09-07	DormantIdentityTests.cs:331:TradeTreatyEnabled	DormantIdentityTests.cs:332:TradeTreatyEnabled	写した
 S09-08	Politics.cs:1743:TreatyPortTariffScale	Politics.cs:1743:TreatyPortTariffScale	もとから引けない
-S09-10	Coefficients.p08_audit_soldiers.cs:114:ForeignRuleFromTreaty	Coefficients.p08_audit_soldiers.cs:115:ForeignRuleFromTreaty	写した
 S09-11	BilateralMarket.cs:856:cornPen	BilateralMarket.cs:856:cornPen	もとから引けない
 S09-11	Coefficients.cs:97:CornLawImportPenalty	Coefficients.cs:96:CornLawImportPenalty	写した
-S09-13	Politics.cs:984:RegionTariffInterest	Politics.cs:985:RegionTariffInterest	写した
 S09-16	BilateralMarket.cs:202:oban	BilateralMarket.cs:202:oban	もとから引けない
 S09-16	BilateralMarket.cs:1048:LeakFraction	BilateralMarket.cs:1048:LeakFraction	もとから引けない
 S09-17	BilateralMarket.cs:203:oexban	BilateralMarket.cs:203:oexban	もとから引けない
@@ -872,7 +846,7 @@ S09-37	GameViewModel.Map.cs:350:LastLandPartnerName	GameViewModel.Map.cs:350:Las
 S09-43	Coefficients.p03_debt_money.cs:312:TariffExportDrag	Coefficients.p03_debt_money.cs:312:TariffExportDrag	もとから引けない
 S09-44	Coefficients.p03_debt_money.cs:319:TradeSpeed	Coefficients.p03_debt_money.cs:319:TradeSpeed	もとから引けない
 S09-45	Coefficients.p10_ai_silver_overrides.cs:81:ShipFuelRate	Coefficients.p10_ai_silver_overrides.cs:80:ShipFuelRate	写した
-S09-46	DormantIdentityTests.cs:310:TransportPotentialWeight	DormantIdentityTests.cs:312:TransportPotentialWeight	写した
+S09-46	DormantIdentityTests.cs:310:TransportPotentialWeight	DormantIdentityTests.cs:311:TransportPotentialWeight	写した
 S09-47	Coefficients.p02_borrow_polity_epidemic.cs:267:TariffRetaliationViaPolitics	Coefficients.p02_borrow_polity_epidemic.cs:267:TariffRetaliationViaPolitics	もとから引けない
 S09-48	PathGraph.cs:349:RedundantEdgePruning	PathGraph.cs:349:RedundantEdgePruning	もとから引けない
 S13-09	Coefficients.cs:43:Mobility	Coefficients.cs:42:Mobility	写した
@@ -885,7 +859,6 @@ S13-32	Territory.cs:5:(551)	Territory.cs:5:(551)	もとから引けない
 S13-41	Coefficients.p10_ai_silver_overrides.cs:61:public double EraFactor(double worldTech, double k) => 1.0	Coefficients.p10_ai_silver_overrides.cs:60:public double EraFactor(double worldTech, double k) => 1.0	写した
 S13-41	Coefficients.p10_ai_silver_overrides.cs:59:EraMigrationScale	Coefficients.p10_ai_silver_overrides.cs:58:EraMigrationScale	写した
 S13-44	MultiNationSim.cs:1794:MigrationFarePerkKm	MultiNationSim.cs:1794:MigrationFarePerkKm	もとから引けない
-S13-57	Politics.cs:936:PublicOrder	Politics.cs:937:PublicOrder	写した
 S21-01	Simulation.cs:1954:Fiscal.Borrow	Simulation.cs:1951:Fiscal.Borrow	写した
 S21-03	Simulation.cs:1954:Fiscal.Borrow	Simulation.cs:1951:Fiscal.Borrow	写した
 S21-03	Simulation.cs:1957:double deficit	Simulation.cs:1954:double deficit	写した
@@ -898,7 +871,6 @@ S21-20	Simulation.cs:1972:DevaluationCapReliefExp	Simulation.cs:1969:Devaluation
 S21-20	Simulation.cs:1971:DevaluationCapFracPerMonth	Simulation.cs:1968:DevaluationCapFracPerMonth	写した
 S21-21	Simulation.cs:1978:FiatIssueFrac	Simulation.cs:1975:FiatIssueFrac	写した
 S21-21	Simulation.cs:1987:Outside.Fiat	Simulation.cs:1984:Outside.Fiat	写した
-S26-03	Coefficients.p08_audit_soldiers.cs:113:OpeningColonyDominanceFull	Coefficients.p08_audit_soldiers.cs:114:OpeningColonyDominanceFull	写した
 S26-04	Simulation.cs:1311:natives	Simulation.cs:1308:natives	写した
 S26-04	Simulation.cs:1316:MkPop	Simulation.cs:1313:MkPop	写した
 S26-04	Simulation.cs:1370:ArableLand	Simulation.cs:1367:ArableLand	写した
@@ -914,12 +886,9 @@ S26-12	Simulation.cs:1360:AddAlternateRecipes	Simulation.cs:1357:AddAlternateRec
 S26-16	—（EraColonyCoal は消した＝(1154) c113sw）	—（EraColonyCoal は消した＝(1154) c113sw）	形が違う
 S26-20	—（植民地の毎月のキニーネの枝と MalariaQuininePerColony は消した＝(1167) c115qc）	—（植民地の毎月のキニーネの枝と MalariaQuininePerColony は消した＝(1167) c115qc）	形が違う
 S26-28	Simulation.cs:1285:IsColonial	Simulation.cs:1282:IsColonial	写した
-S26-37	Politics.cs:895:ColonyPromotionMinPop	Politics.cs:896:ColonyPromotionMinPop	写した
 S26-38	—（Settled は消した＝(1154) c113sw）	—（Settled は消した＝(1154) c113sw）	形が違う
 S26-41	Simulation.cs:2546:ColonialAccess	Simulation.cs:2543:ColonialAccess	写した
 S26-41	Simulation.cs:1729:colonialAccess	Simulation.cs:1726:colonialAccess	写した
-S26-46	Politics.cs:1041:RegionAvgSuffrageInclusion	Politics.cs:1044:RegionAvgSuffrageInclusion	近くへ写した
-S26-46	Politics.cs:165:RegionAvgSuffrageInclusion	Politics.cs:165:RegionAvgSuffrageInclusion	近くへ写した
 S28-01	Simulation.cs:1684:Rng.NextDouble	Simulation.cs:1681:Rng.NextDouble	写した
 S28-01	Simulation.cs:1831:HarvestFactor	Simulation.cs:1828:HarvestFactor	写した
 S28-03	Simulation.cs:1689:rho * (_prevHarvestFactor	Simulation.cs:1686:rho * (_prevHarvestFactor	写した
@@ -956,7 +925,10 @@ S29-74	Coefficients.p10_ai_silver_overrides.cs:138:public static string Override
 S29-76	MultiNationSim.cs:2153:public const double BudgetLimitEstSeconds	MultiNationSim.cs:2153:public const double BudgetLimitEstSeconds	もとから引けない
 S29-76	MultiNationSim.cs:2158:public const double BudgetCoverageAtLimit	MultiNationSim.cs:2158:public const double BudgetCoverageAtLimit	もとから引けない
 S29-76	WriterRatchetTests.cs:570:計算量の見た件数は宣言した表を超えない	WriterRatchetTests.cs:570:計算量の見た件数は宣言した表を超えない	もとから引けない
-S29-78	DormantIdentityTests.cs:408:public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている	DormantIdentityTests.cs:410:public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている	写した
+S29-77	DormantIdentityTests.cs:197:public void 休眠フラグは既定でゼロである	DormantIdentityTests.cs:196:public void 休眠フラグは既定でゼロである	写した
+S29-77	DormantIdentityTests.cs:210:削除2026-09-26（棚卸し fis-22）	DormantIdentityTests.cs:209:削除2026-09-26（棚卸し fis-22）	写した
+S29-78	DormantIdentityTests.cs:228:private static readonly string[] ZeroDefaultLedger	DormantIdentityTests.cs:227:private static readonly string[] ZeroDefaultLedger	写した
+S29-78	DormantIdentityTests.cs:408:public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている	DormantIdentityTests.cs:409:public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている	写した
 S29-81	Simulation.cs:1488:public static bool ConservationProbe	Simulation.cs:1485:public static bool ConservationProbe	写した
 S29-82	Simulation.cs:60:Simulation.Probe と Runner の drift	Simulation.cs:60:Simulation.Probe と Runner の drift	もとから引けない
 S29-83	MechanismProbe.cs:19:Eval＝「その機構を試した回数」	MechanismProbe.cs:19:Eval＝「その機構を試した回数」	もとから引けない
