@@ -1,0 +1,39 @@
+種 11..20（そろった 10）・行 410268
+  rowsDealt	79204929
+  rowsDealtX	70624833
+  retreatRowN	16185877
+  retreatRowSum	253254245.9
+  retreatRowInsSum	253254245.9
+  retreatRowInsN	16185877
+  excessQtyX	73264216.93
+  excessQtyAll	98311419.23
+  errNegQ	0
+  errOverIns	0
+  errOverBound	0
+  excessQtyInsX	368930984.4
+  excessQtyInsPopA	102951425.4
+  rows	243062377
+  dealsX	1066374476
+  qtyX	1272277316
+  u1Deals	1337385277
+  u1Viol	0
+  gateMismatch	0
+  selfN	1367027624
+  selfDiff	0
+  uBelowMin	0
+  popA	2469415
+  popADealX	8522
+  popAQtyX	43832.76743
+  retreatQtySum	6299657591
+  retreatDealsTol	331330475
+rho_X（全期間）	1.061104
+rho_X@1830	1.056398	（記録）
+rho_X@1870	1.074527	（記録）
+rho_X@1913	1.061152	（記録）
+rho_ins（旗 0 の盤面の上側・門にしない）	1.370896	（成約のある行だけ 1.289977）
+dealsX − rowsDealtX	995749643
+床の材料：floor(retreatRowInsSum÷4)	63313561	floor(retreatRowInsN÷4)	4046469
+G1 働き：retreatRowSum 2.53254e+08 ≧ 49784125 かつ retreatRowN 16185877 ≧ 3556540 → 緑
+G2 誤り：{'errNegQ': 0.0, 'errOverIns': 0.0, 'errOverBound': 0.0, 'uBelowMin': 0.0, 'u1Viol': 0.0, 'gateMismatch': 0.0, 'selfDiff': 0.0} → 緑
+G3 移った量：rho_X 1.061104 ≧ 1.01 → 緑
+判定: 門は全て緑

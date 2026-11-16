@@ -1,0 +1,4 @@
+ident_c116cl（線 cl の ident の生・cl を入れると決めた後・判定文は measurements/m1175_20261116/ident_c116cl_verdict.txt）
+ident_m1178z（腕 Z の ident の生・判定を読んだ後＝measurements/m1178_20261116/identz_t1k1/）
+c116t1_work/B/out_c116t1B_10（線 t1 の腕 B の生〔門の表へ縮めた物〕・M′ の生と表ごとの sha1 を比べた後＝一致 1501・違う 50 は既知の揺れと経路の行番号だけ・measurements/m1178_20261116/rawcmp_M_t1B.tsv）
+wt_m1178z と枝 m1178z（腕 Z の使い捨て）

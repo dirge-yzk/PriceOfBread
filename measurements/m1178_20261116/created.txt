@@ -1,0 +1,8 @@
+D:/PoB_work/m1178_work
+D:/PoB_work/wt_m1178（枝 m1178）
+D:/PoB_work/m1178_work/mutdc（使い捨ての木）
+D:/PoB_work/wt_m1178z（枝 m1178z・腕 Z の使い捨て・push しない）
+D:/PoB_work/keep_1178_rej（採らなかった腕の生・新しく作った）
+D:/PoB_work/wt_m1178y（枝 m1178y・腕 Z′ の使い捨て・push しない）
+D:/PoB_work/ident_m1178z（腕 Z の ident の生）
+D:/PoB_work/keep_1178（新しい基線の生）

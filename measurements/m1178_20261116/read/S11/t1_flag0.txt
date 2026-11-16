@@ -1,0 +1,35 @@
+種 11..20（そろった 10）・行 410487
+  rowsDealt	77188344
+  rowsDealtX	68825175
+  retreatRowN	0
+  retreatRowSum	0
+  retreatRowInsSum	199136500.3
+  retreatRowInsN	14226163
+  excessQtyX	0
+  excessQtyAll	0
+  errNegQ	0
+  errOverIns	0
+  errOverBound	0
+  excessQtyInsX	520702340.4
+  excessQtyInsPopA	98889008.92
+  rows	244469724
+  dealsX	1070084300
+  qtyX	1313894768
+  u1Deals	1332151622
+  u1Viol	377992
+  gateMismatch	0
+  selfN	0
+  selfDiff	0
+  uBelowMin	0
+  popA	2446556
+  popADealX	0
+  popAQtyX	0
+  retreatQtySum	0
+  retreatDealsTol	0
+rho_X（全期間）	1.000000
+rho_X@1830	1.000000	（記録）
+rho_X@1870	1.000000	（記録）
+rho_X@1913	1.000000	（記録）
+rho_ins（旗 0 の盤面の上側・門にしない）	1.471568	（成約のある行だけ 1.396304）
+dealsX − rowsDealtX	1001259125
+床の材料：floor(retreatRowInsSum÷4)	49784125	floor(retreatRowInsN÷4)	3556540

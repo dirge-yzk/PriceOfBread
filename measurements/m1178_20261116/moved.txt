@@ -1,0 +1,8 @@
+c116hd の腕 B の生（門と止める線の表へ縮めた・sha1 は measurements/m1178_20261116/trim_lines_sha1.tsv）	D:/PoB_work/c116hd_work/out_c116hdB_10 → D:/PoB_work/keep_1178_rej/c116hd_B
+c116hd の突然変異 M2 の生（同上）	D:/PoB_work/c116hd_work/out_hd_M2_1 → D:/PoB_work/keep_1178_rej/c116hd_M2
+合流の M（cl＋t1＋k1・門の表へ縮めた・sha1 は trim_rej_t1k1_sha1.tsv）	m1178_work/out_mM_10 → keep_1178_rej/m1178_M_t1k1
+合流の S11（cl＋t1＋k1・同上・読んでいない）	m1178_work/out_mS11_10_s11 → keep_1178_rej/m1178_S11_t1k1
+c116k1 の腕 B の生（合流で外した・門の表へ縮めた・sha1 は trim_k1_sha1.tsv）	c116k1_work/armB/out_c116k1B_10 → keep_1178_rej/c116k1_B
+M′（cl＋t1・全表）	m1178_work/out_mM_10/ins → keep_1178/base_ins
+S11′	m1178_work/out_mS11_10_s11/ins → keep_1178/a11
+S11z′（旗 TradeBuyBySupplyCurve 0・門の表）	m1178_work/out_mS11z_10_s11/ins → keep_1178/a11z

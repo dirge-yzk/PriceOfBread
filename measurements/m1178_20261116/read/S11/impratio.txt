@@ -1,0 +1,15 @@
+tb_s.impQ
+  1830: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  1870: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  1913: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  all: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+nationgood_s.crossImportQty
+  1830: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  1870: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  1913: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  all: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+nationgood_s.crossImportValue
+  1830: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  1870: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  1913: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
+  all: base 0・腕÷base 無し・n1÷base 無し・n2÷base 無し
