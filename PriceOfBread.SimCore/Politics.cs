@@ -162,7 +162,7 @@ public static class Politics
             double voice = PoliticalTerm(w, c, p, AxisDistance(p, regimeCoord));
             double minorityMil = w.EthnicEnabled ? c.MinorityMilitancy * (1.0 - p.CoreEthnicShare.Value) : 0;
             if (w.EthnicEnabled)
-                minorityMil *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, milReg));
+                minorityMil *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, c, milReg));
             // [PORT:P1] ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
             double famineMil = FamineDrive(p, c);
             // [PORT:P1] 闘争度targetへの寄与（加算項）＝法（政治）の隔たり／民族／厭戦／飢餓の**4本**（生活の失望は不満度だけが持つ＝闘争度の目標に入らない・★(431)(551)）。新規機構はこのポートに独立加算で接続する。
@@ -890,7 +890,8 @@ public static class Politics
                 double nc = AvgRegionConsciousness(r);
                 pressure *= Math.Max(0, 1.0 - c.SecessionConsciousnessWeight * nc);
             }
-            pressure *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));
+            // (1173) 旗 SecessionInclusionOnce＞0：包摂は闘争度の目標（上の少数派の項）の 1 回だけ＝圧には闘争度を通して入る（設計思想⑨）。0＝旧の 2 回目の割引
+            if (!(c.SecessionInclusionOnce > 0)) pressure *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, c, r));
             double crowdSec = RegionCrowd(r);
             pressure *= crowdSec > 0 ? crowdSec / (crowdSec + c.ColonyPromotionMinPop) : 0.0;
             if (c.SecessionHoldProjection > 0)
@@ -1038,8 +1039,16 @@ public static class Politics
         return size > 1e-9 ? PoliticalQuantities.Clamp01(nc / size) : none;
     }
 
-    internal static double RegionAvgSuffrageInclusion(World w, Region r)
-        => w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : AvgRegionCoreShare(r);
+    /// <summary>州の包摂（政治的国民に算入される割合）。旗 SecessionInclusionOnce＞0 は人の版 <see cref="InterestGroups.SuffrageInclusion"/> の
+    /// 非兵士の大きさの重みの平均（植民地格は植民地参政権を読む・大きさ 0 なら 1）。0＝旧の州の版（移民原住民参政権が付与なら 1・他は中核の割合）。</summary>
+    internal static double RegionAvgSuffrageInclusion(World w, Coefficients c, Region r)
+    {
+        if (!(c.SecessionInclusionOnce > 0))
+            return w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : AvgRegionCoreShare(r);
+        double incl = 0, size = 0;
+        foreach (var p in r.Pops) if (!p.IsSoldier) { incl += InterestGroups.SuffrageInclusion(w, r, p) * p.Size; size += p.Size; }
+        return size > 1e-9 ? incl / size : 1.0;
+    }
 
     internal static double RegionReach(World w, Coefficients c, Region r)
     {

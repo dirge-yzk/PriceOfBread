@@ -204,7 +204,7 @@ public static partial class Instruments
                 double popK = Math.Max(0, r.SumPopulation());
                 double crowd = Politics.RegionCrowd(r);
                 double press = Politics.AvgRegionMilitancy(r) * Math.Max(0, 1.0 - (c.SecessionConsciousnessWeight > 0 ? c.SecessionConsciousnessWeight * Politics.AvgRegionConsciousness(r) : 0.0))
-                    * (1.0 - PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(nn.W, r))) * (crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0);
+                    * (c.SecessionInclusionOnce > 0 ? 1.0 : 1.0 - PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(nn.W, c, r))) * (crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0);
                 double x = 0;
                 for (int j = 0; j < r.ForeignShares.Length && j < r.ForeignRulers.Length; j++)
                 {

@@ -98,6 +98,7 @@ public class DormantIdentityTests
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
         // ★SoldierVacancyFromZero（(1166) c115sv 大きさ 0 の兵の席）は 2026-11-16 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は SoldierVacancyFromZeroTests の F0）。
         // ★TradeBuyBySupplyCurve（(1144) T1 A-1）は 2026-11-16 (1172) c116t1 で 1 に**点火**＝この表から外した（旗 0 の経路の番人は TradeT1Tests の M3〔旗 0〕・M5）。
+        "SecessionInclusionOnce",       // ★器（2026-11-16 (1173) c116k1）＝K1-F2：包摂を闘争度の目標の 1 回だけ・分離の圧の割引を外す。0＝旧の州の版を 2 か所＝厳密恒等
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
