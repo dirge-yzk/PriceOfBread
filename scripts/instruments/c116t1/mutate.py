@@ -16,6 +16,10 @@ M = {
                  'double qs = double.IsNaN(qEng) ? r.P : qEng; double ysh = System.Math.Min(r.D * pow2e - qs - r.I0, r.TS + r.D * System.Math.Max(1.0, rootE) - qs - r.S0);')],
     # 計器：影の上界に access を掛ける（a＝0.5）
     'M11': [(INS, 'double e = qA - System.Math.Max(0.0, ysh - y);', 'double e = qA - 0.5 * System.Math.Max(0.0, ysh - y);')],
+    # エンジン：行の門の u_min を lp に（先頭の売り手の着値の下界を見ない）
+    'M3': [(BM, 'if (headS < sellers.Count) { double hm = sellers[headS].Price * a1LbMin; if (hm < uMin) uMin = hm; }', '')],
+    # エンジン：行の門の述語を逆に＝A-1 の路でも旧の門で飛ばす
+    'M4': [(BM, 'rowSkip = !(ub > 0);', 'rowSkip = !(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0);')],
     # エンジン：Q＝P（A-1 の Q を P に）
     'M2': [(BM, 'a1Q = Math.Min(m.LastProduced, ph); if (!(a1Q >= 0)) a1Q = m.LastProduced;', 'a1Q = m.LastProduced;')],
     # エンジン：成約ごとに退きを重ねる（Q_d＝P − Σ(P − P̂(u′)) の近い形＝前の成約の Q から更に P−P̂ を引く）

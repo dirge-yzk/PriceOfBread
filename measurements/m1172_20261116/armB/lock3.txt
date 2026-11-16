@@ -1,0 +1,5 @@
+arm 147605 educatio=0.0000 suffrage=0.1050 censorsh=0.3848 bureaucr=0.6622 socialSe=0.0329 antitrus=0.0141 womenRig=0.0169 childLab=0.0000 workHour=0.0000
+base 147616 educatio=0.0000 suffrage=0.0983 censorsh=0.3830 bureaucr=0.5798 socialSe=0.0451 antitrus=0.0189 womenRig=0.0155 childLab=0.0000 workHour=0.0000
+n1 147388 educatio=0.0000 suffrage=0.1009 censorsh=0.3789 bureaucr=0.5892 socialSe=0.0330 antitrus=0.0198 womenRig=0.0162 childLab=0.0000 workHour=0.0000
+n2 147675 educatio=0.0000 suffrage=0.1028 censorsh=0.3864 bureaucr=0.7284 socialSe=0.0506 antitrus=0.0152 womenRig=0.0180 childLab=0.0000 workHour=0.0000
+arm 対 base,n1,n2 最大の段に張り付く割合 腕÷基準の最大（列ごとの最悪）=1.02（suffrage）（2 以上で該当）

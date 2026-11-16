@@ -1,0 +1,2 @@
+arm popA=2530827 popADealX=8290 popAQtyX=52698.95952 popC=39019094 popCUb=12422572 popCPart0=9891745 popCDealX=205711 popCPart0DealX=197421 W2(a)′=popCDealX−popCPart0DealX= 8290.0
+flag0 popA=2407788 popADealX=0 popAQtyX=0 popC=37611915 popCUb=11953173 popCPart0=9545385 popCDealX=0 popCPart0DealX=0 W2(a)′=popCDealX−popCPart0DealX= 0.0

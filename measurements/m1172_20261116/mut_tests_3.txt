@@ -1,0 +1,6 @@
+突然変異（コミット acd42bf6d の写しの木）
+OK M3
+M3 rc=1 絞り込み=FullyQualifiedName~TradeT1Tests | 失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 29 s - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1Tests.M4_旗1の成約は上界を越えず計器とエンジンが合う [6 s];失敗 PriceOfBread.Tests.TradeT1Tests.M6_楔が負の行でもuPrimeは州の値段で切る [3 s];
+OK M4
+M4 rc=1 絞り込み=FullyQualifiedName~TradeT1Tests | 失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 45 s - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1Tests.M4_旗1の成約は上界を越えず計器とエンジンが合う [9 s];失敗 PriceOfBread.Tests.TradeT1Tests.M6_楔が負の行でもuPrimeは州の値段で切る [5 s];
+おわり
