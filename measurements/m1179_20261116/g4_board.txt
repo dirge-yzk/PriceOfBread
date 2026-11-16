@@ -1,0 +1,32 @@
+# (1179) G4 の盤面の選び直し 木=D:/PoB_work/wt_c117k1_g4 HEAD=02d451fa7 差分  1 file changed, 2 insertions(+), 2 deletions(-) 2026-11-16 19:17:16
+q=24 SecessionInclusionOnce=0 rc=0 n=150 med=2.7848322129853527 in10=132 
+q=24 SecessionInclusionOnce=0;SupplySlope=0.50000001 rc=0 n=162 med=2.36079260497454 in10=139 
+q=24 SecessionInclusionOnce=0;SupplySlope=0.49999999 rc=0 n=140 med=2.5123860120467083 in10=126 
+q=24 SecessionInclusionOnce=1 rc=1 n=152 med=3.1005036403505 in10=136 
+q=24 SecessionInclusionOnce=1;SupplySlope=0.50000001 rc=0 n=150 med=2.6650688623059584 in10=129 
+q=24 SecessionInclusionOnce=1;SupplySlope=0.49999999 rc=0 n=163 med=2.367773000129388 in10=147 
+q=28 SecessionInclusionOnce=0 rc=0 n=175 med=2.94244005605311 in10=151 
+q=28 SecessionInclusionOnce=0;SupplySlope=0.50000001 rc=0 n=197 med=2.4706014581980256 in10=171 
+q=28 SecessionInclusionOnce=0;SupplySlope=0.49999999 rc=0 n=169 med=2.5123860120467083 in10=149 
+q=28 SecessionInclusionOnce=1 rc=1 n=181 med=3.1511785191093478 in10=163 
+q=28 SecessionInclusionOnce=1;SupplySlope=0.50000001 rc=0 n=183 med=2.6406998086661893 in10=158 
+q=28 SecessionInclusionOnce=1;SupplySlope=0.49999999 rc=0 n=201 med=2.46599163973944 in10=179 
+q=32 SecessionInclusionOnce=0 rc=0 n=205 med=2.9260293868264258 in10=177 
+q=32 SecessionInclusionOnce=0;SupplySlope=0.50000001 rc=0 n=222 med=2.3859715089452402 in10=194 
+q=32 SecessionInclusionOnce=0;SupplySlope=0.49999999 rc=0 n=195 med=2.3930074566997814 in10=172 
+q=32 SecessionInclusionOnce=1 rc=1 n=208 med=3.0536078142769196 in10=186 
+q=32 SecessionInclusionOnce=1;SupplySlope=0.50000001 rc=0 n=210 med=2.4257947065334653 in10=182 
+q=32 SecessionInclusionOnce=1;SupplySlope=0.49999999 rc=0 n=236 med=2.3901269930955436 in10=211 
+q=36 SecessionInclusionOnce=0 rc=0 n=240 med=2.8908730956213686 in10=208 
+q=36 SecessionInclusionOnce=0;SupplySlope=0.50000001 rc=0 n=258 med=2.378793148292565 in10=227 
+q=36 SecessionInclusionOnce=0;SupplySlope=0.49999999 rc=0 n=229 med=2.2347823203307695 in10=203 
+q=36 SecessionInclusionOnce=1 rc=0 n=247 med=2.896699487724801 in10=222 
+q=36 SecessionInclusionOnce=1;SupplySlope=0.50000001 rc=0 n=249 med=2.366373456848744 in10=217 
+q=36 SecessionInclusionOnce=1;SupplySlope=0.49999999 rc=0 n=280 med=2.2805526834346517 in10=253 
+q=40 SecessionInclusionOnce=0 rc=0 n=321 med=2.8236540671571153 in10=282 
+q=40 SecessionInclusionOnce=0;SupplySlope=0.50000001 rc=0 n=348 med=2.2617313654901916 in10=311 
+q=40 SecessionInclusionOnce=0;SupplySlope=0.49999999 rc=0 n=302 med=2.1803353994053047 in10=269 
+q=40 SecessionInclusionOnce=1 rc=0 n=319 med=2.7741833926332364 in10=286 
+q=40 SecessionInclusionOnce=1;SupplySlope=0.50000001 rc=0 n=317 med=2.3322278377045786 in10=279 
+q=40 SecessionInclusionOnce=1;SupplySlope=0.49999999 rc=0 n=364 med=2.2917640904231242 in10=329 
+G4DONE
