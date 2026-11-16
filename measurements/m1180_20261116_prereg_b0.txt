@@ -1,0 +1,52 @@
+(1180) c117b0 事前登録（最初のコミット）：B-1′ の段 B′-0＝造幣の買いの置き場の旗の器（MintBuysAtCapital〈仮〉既定 0）と計器 mintcap_s。基準＝m1178（main c590d21ba・木 c117b0 は同じ頭から）。
+形：恒等の線（尾）・予言 0＝挙動を変えない。材料は docs/202611/20261116/20261116_貿易のB-1′と造幣の床_下書き.md の §5・§6 と末尾の v の訂正。下書き §8 の問い〈B-1′ の量は門にせず記録〉は作者「しばらくの間、全て推奨で」で推奨を採った（作者の確認待ち・AI の案・確証なし）。
+旗 1 の腕・B′-1・B-1（EndowmentCostFollowsAbundance）・D-s3・被覆の式の直しは入れない。〈決まった〉とは書かない。
+
+[1] 恒等の線・予言 0
+  成績表（10種・5種・計器つき10種）は m1178 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言する物だけ＝mintcap_s（新しい表）の追加（--added-tables mintcap_s）。他の表は 1 バイトも違わない（mintreg_s も同じ）。
+  .cost の件数の行は計器が切れている時に増えない（件数の欄は足さない）。推定の計算量は m1178 と同じ。
+  判定は〈判定: 恒等（測った種で一致）〉。〈証明〉とは書かない。stage.py の段＝計器（SimCore/Instruments/ の下）に触れる＝段 2。
+  不一致なら、器のコミットを外して報告に回す。
+
+[2] 足す物と消す物・読み手の grep・他の線との重なり
+  消す物：0。足す物：
+    項1 旗の器（Simulation.cs MintGold の州の繰り返しの頭・Coefficients.p10_ai_silver_overrides.cs の 1 行・DormantIdentityTests の表の 1 行）
+      - 旗 MintBuysAtCapital（double・既定 0.0）。`bool capOnly = World.Coef.MintBuysAtCapital > 0;`（NaN・非正は旧の道＝否定形の側へ倒す）。
+      - :2425 の `foreach (var r in World.Regions)` の頭に `if (capOnly && !ReferenceEquals(r, World.Region)) continue;`（World.Region＝Regions[0]＝首都の州・World.cs:28 の既存の入口）。旗 0 では条件が偽＝字の上で旧と同じ道を通る。
+      - 金と銀に共通の今の繰り返しのまま（銀だけに限るかは B′-1 の事前登録で決める）。MintParitySells の売り（繰り返しの中）も旗 1 では首都だけになる＝記録（B′-1 で読む）。
+      - 浮動小数の順序が変わる箇所：なし（式に触れない）。旗 0 の旧と新の比較の食い違い：紙の台本＝繰り返しの頭の条件は旗 0 で常に偽＝0 件。
+    項2 計器 mintcap_s（新しい 1 ファイル Instruments/InstrumentsMintcap.cs・Instruments.cs の登録の行 2 本・Simulation.cs MintGold の計器の呼び出し 2 行）
+      - 国×四半期（助走の月は数えない・Instruments.On かつ Wants("mintcap_s") の時だけ・エンジンに欄を足さない＝溜めは ConditionalWeakTable）。計器が国の全ての州を自分で走査する（エンジンの関数を呼ばない・旗を見ない）。
+      - 月ごと（MintGold の頭）：首都の州＝World.Regions[0]（計器が自分で選ぶ）の本位の金属の市場について 在庫なし・床に届いた月（値段≦平価で在庫あり）・平価超えの月（予算なし）・市場買いの月・市場なし。
+      - 旧の規則の影＝全ての州を計器が走査して〈値段≦平価なら在庫×率・平価超えで準備不足なら min(在庫×率, 予算÷値段)〉を足した量（金属別に Ag・Au）。新の規則の影＝同じ式を首都だけで。
+      - 実際に買えた量（MintGold の SilverMintCapture の隣）：首都と首都の外に分ける（金属別）。平価超えの月（計器の模型で平価超えで市場買いでない）に首都で買えた回数＝E2。
+      - 首都の本位の金属の越境の輸入（市場の LastImport の月の和）・被覆（BaseMoney÷BroadMoney）を全ての国で（四半期末）・OutstandingLoans のうち家計の与信（Bank.HouseholdLoans）の分・産地の州（銀の生産者がある州）の値段÷平価の中央・最小・最大と州の数（四半期末）。
+      - 足す列は実装のコミットで確定して報告に列挙する（見出しは InstrumentsMintcap.cs の MintcapHeaderText）。
+      - 計器は Instruments.On の時だけ計算する（普段の計算量 0・件数の行を増やさない）。
+  読み手の grep（SimCore・Tests・Tests.Ui・App・Display・Runner・scripts・measurements の台本・POB_COEF の名前・SaveGame）：
+    - MintBuysAtCapital：0 件（新しい名前）。mintcap_s：0 件。MintcapHeaderText 等：0 件。
+    - 既存を呼ぶだけ：Instruments.On（読みは MintGold の頭の 1 回 insOn を使う・OnDoubleReadScanTests）・Wants。重ねて作らない物：mintreg_s（州×四半期・既存＝国×四半期の影と首都の列が無いので別の表）・sellr_s（使わない）。
+    - SaveGame：旗は double の係数＝既存の係数の経路（Coef の反射）で往復する＝新しい型は無い。POB_COEF の名前の解決は UnitValues を通る（double）。
+  他の線との重なり（持ち主の一覧を grep して確かめた）：Simulation.cs は :2392〜:2466 の MintGold だけ（他の線は触れない）。InstrumentsMintreg.cs は触らない（新しいファイルを足す＝この線だけ）。Instruments.cs は登録の行だけ。p10 は旗の 1 行だけ。DormantIdentityTests は旗の行だけ（k1 の行と別）。
+
+[3] 足す試験と、それぞれを赤にする突然変異・ソースを走査する番人の点検（㉘）・書き換える件数の予言（㉑）
+  足す試験（新しい 1 ファイル PriceOfBread.Tests/MintcapInstrumentTests.cs・2 件＝盤面は試験の中で置く・★(1136)）：
+    ① 自己検査：旗 0・準備不足と準備足りの月を台本で置き、旧の規則の影＝実際に買えた量（金属別・相対 1e-9）。払えなかった分を除くために、盤面は買い手のいる州（商人を持つ）だけに在庫を置く。件数は台本から手で数える（エンジン・計器の出力から作らない）。
+    ② 器の機構：旗 1 の盤面で、首都の外の州の造幣の買いが 0（実際に買えた量の首都の外＝0・州の在庫が変わらない）・首都は旧と同じ規則で買う（旗 0 の同じ盤面の首都の買いとビットで同じ）。
+  突然変異の表（使い捨ての木で確かめて measurements/m1180_20261116_mut_b0.txt にコミット・赤にならない物は限界と名乗る）：
+    M1 新の規則の影を首都だけでなく全ての州で数える → ② は緑のまま・①（影）は緑のまま＝①の対象は旧の影。新の影の首都だけの試験を ② に足し、M1 で赤にする。
+    M1′ 旧の規則の影を首都だけで数える → ① が赤。
+    M2 旗の枝の向きを逆にする（旗 0 で首都だけ） → ① が赤・ident が赤。
+    M3 金属の列を銀だけにする（金を数えない） → 金本位の盤面の行で ① が赤〈見込み〉。
+    M4 計器が On を見ずに溜める → 計器が切れている時の試験（②の中の対照）で赤。
+    M5 旗 1 の枝を外す（首都の外も買う） → ② が赤。
+  ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・TechLevelRemovalTests を器のコミットの直後に回す（隔離ビルド --artifacts-path D:/PoB_work/c117b0_art）。工業化度の読み手の許可表：触れない。`new MoneyStock(` の件数：SimCore 64 件（この線は足さない＝予言 64）。route_anchors.tsv：無い（0 行）。WriterRatchetTests の宣言の表：触れない。
+  書き換える件数（㉑）の予言：0（既存の番人の件数・値は書き換えない）。試験の数の予言：Tests 2661→2663（Category!=FullLength）＋Tests.Ui 234＝2897・FullLength 3。DormantIdentityTests の表に 1 行足す（Theory の行でなければ件数は増えない）。
+  ★(743) の区分で書き換える既存の試験：0 本。
+
+[4] 比べる成績表
+  素の 5 種：b5_20261116_m1178 と全行一致。計器つき 10 種：b10_20261116_m1178_ins と、宣言した表（mintcap_s）を除いて全行バイト一致。素の 10 種：b10_20261116_m1178。
+  門：〈判定: 恒等〉・.cost の件数の行が不変・自己検査①が緑。止める線（破綻・保存則・savetest・leakhunt・フルスイート）は恒等なので読むだけ。
+
+[5] 採否：〈判定: 恒等〉なら採る。一致しなければ器を外して報告に回す。
+  腕の枠：arms.sh free が 3 以上のときだけ ident を起こす。D: は起こす直前に測る（目安 ident 約 30GB・起こす前に〈35GB＋その量〉）。

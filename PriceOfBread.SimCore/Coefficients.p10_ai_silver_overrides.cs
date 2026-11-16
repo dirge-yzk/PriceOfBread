@@ -52,7 +52,8 @@ public sealed partial class Coefficients
     // ==== 銀本位の史実度（2026-08-21・作者裁定「原因究明し原則に従って修正」→同日点火）====
     public double SilverParityDemandWeighted = 0.0;   // 全ての州の票の和が正でないときは比が不正の扱い（旧の統計へ倒れる）
     public double MintParitySells = 0.0;   // ＝閉じる条件が誤り（信用の薄い1783 年から常に真＝造幣が一度も買わない）
-    public double MonetaryPeerPullScale = 5.0;   // 【点火5.0・2026-08-21 銀本位ラウンド（上の墓標参照）】
+    public double MintBuysAtCapital = 0.0;   // (1180) 器（B-1′ の段 B′-0）＝造幣の買いを首都の州の市場だけに立てる（Simulation.MintGold の州の繰り返し）。0＝全ての州＝厳密恒等
+    public double MonetaryPeerPullScale = 5.0;   //【点火5.0・2026-08-21 銀本位ラウンド（上の墓標参照）】
     // ==== 距離定数の時代関数化（掃討doc 第2波・2026-08-13）====
     public double EraEpidemicRange = 1.0;        // 疫病の伝播距離（1817年コレラは陸路で数年・1892年は数週間）
     public double EraMigrationScale = 1.0;       // 移民の距離減衰（大西洋横断が6週間→6日）

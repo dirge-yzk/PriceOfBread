@@ -1,0 +1,9 @@
+(1180) c117b0 突然変異の結果（使い捨ての変更を worktree に当て、MintcapInstrumentTests 2 本を Release で回し、git checkout で戻した）。台本 scripts/instruments/c117b0/run_mut.sh・rep.py。
+事前登録 [3] の表と実際：
+  M1′ 旧の影を首都だけで数える           → T1 赤・T2 赤（旧の影の Assert）
+  M1  新の影を全ての州で数える           → T2 赤（NewAg＝100×率の Assert）・T1 緑（T1 は旧の影だけ読む）。事前登録は〈T2 に新の影の Assert を足す〉と書いた形のとおり T2 に入れてある
+  M2  旗の枝の向きを逆にする（旗 0 で首都だけ）→ T1 赤・T2 赤（ident でも赤になる見込み＝旗 0 の軌道が変わる）
+  M3  金属の列を銀だけにする（金を数えない）→ T1 赤（金本位の盤面）
+  M4  計器が On を見ずに溜める（MintcapMonth を insOn の外へ）→ T2 赤（計器が切れている時に溜まる）
+  M5  旗 1 の枝を外す（首都の外も買う）  → T2 赤
+赤にならなかった物：なし。限界：T1 は払えない月（notPaid）・MintParitySells の売りの月を置いていない（模型の限界・既定 0）。
