@@ -407,24 +407,36 @@ public class TradeClearingTests
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
         seller.Markets[g].Stock = 110;   // 最安の売り手は薄い（出せる量100＜不足）＝次善の売り手へ回る＝旧は次善でも同じ不足を丸ごと数え直した
         foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);   // 捌き手の支払能力で量が切られない（切るのは容量だけ）
-        foreach (var r in w.Regions)   // 買い手は内陸の州だけ（港の州は欲しがらない＝最安の売り手の在庫を先に取らない）・量は物理の不足（550）で決まる（価格の量＝需要×参照÷単価 が十分に大きい）
+        foreach (var r in w.Regions)   // 買い手は内陸の州だけ（港の州は欲しがらない＝最安の売り手の在庫を先に取らない）・量は価格の量 D×(rpT÷lp)^(2ε)（買い手の自分の値段 lp で読む）と不足の小さい方で決まる（(1181) 旧の注〈物理の不足 550〉は誤り＝この盤面の X は価格の量で決まり、不足は旗 1 で TS＋D×(rpT÷lp)^ε−S＝3585・旗 0 で 5050）
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
             { var m = r.Markets[g]; if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; } else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 0; } }   // (1172) 在庫 4500→0（盤面の前提＝旧の need も A-1 の need〔需要×(rpT÷u′)^ε〕も正で行が開く・事前登録 m1172 [A2] (i)）
         double wg = Catalog.TransportWeight(g);
+        // (1181) 買い手の量 X の上界（作者裁定 2026-09-29 の 2）＝入手率×min(価格の量, 不足)を、買い手の自分の値段 lp（＝最後に残る売り手を数える単価 u′）で読む。
+        //   旧の上界 acc×不足(5050)×wg は X（価格の量 2500）より緩く、同じ不足を売り手ごとに重ねる誤り（M1＝BilateralMarket の `- unmetQ` を外す＝合計 2600）を通した（旗 1 の盤面・★(1178)）。
+        //   価格の量＝D×(rpT÷lp)^(2ε)−(Q＋輸入)・不足＝旗 1（A-1）は TS＋D×(rpT÷lp)^ε−Q−S／旗 0 は TS＋D−P−S。Q＝min(P, P̂)＝P＝0（買い手は産出 0）。式はエンジンの関数を呼ばずここで組む。
+        //   緩めた量＝旧の上界 5050−X(2500)＝2550（A-1 の不足 3585 でも 1085 緩い＝価格の量の項が効く盤面）。
         var need = new Dictionary<Region, double>();
+        double eps = sim.Coef.PriceElasticity; bool a1 = sim.Coef.TradeBuyBySupplyCurve > 0;
         foreach (var r in w.Regions)
             if (!r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
-            { var m = r.Markets[g]; need[r] = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock; }
+            {
+                var m = r.Markets[g]; double q = m.LastProduced;   // 買い手の産出 P＝0＝Q＝min(P, P̂)
+                double rpT = w.Region.GoodOf(g)!.RefPrice * r.PriceLevel * w.FxRate, lp = m.Price;
+                double xPrice = m.LastDemand * Math.Pow(rpT / lp, 2 * eps) - (q + m.LastImport);
+                double xNeed = a1 ? m.TargetStock + m.LastDemand * Math.Pow(rpT / lp, eps) - q - m.Stock : m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+                need[r] = Math.Max(0, Math.Min(xPrice, xNeed));
+            }
         Assert.True(need.Count >= 2, "調べた内陸の買い手の州が少ない " + need.Count);   // (1172) 対照の件数
         Assert.True(need.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
         double acc = w.ExternalTradeAccess();   // 買い手の量 X＝入手率×min(価格の量, 不足)＝行の潜在量の上限
         sim.Market.Step(sim.Nations, sim.Coef);
-        double pot = 0, got = 0;
+        double pot = 0, got = 0, maxRatio = 0;
         foreach (var (r, x) in need)
         {
-            Assert.True(r.LastTradePotential <= acc * x * wg * (1 + 1e-9), $"{r.Name}：潜在量 {r.LastTradePotential} が入手率×不足×重量 {acc * x * wg} を超えた＝同じ不足を売り手ごとに数え直した");
-            pot += r.LastTradePotential; got += r.Markets[g].LastImport;
+            Assert.True(r.LastTradePotential <= acc * x * wg * (1 + 1e-9), $"{r.Name}：潜在量 {r.LastTradePotential} が入手率×min(価格の量, 不足)×重量 {acc * x * wg} を超えた＝同じ不足を売り手ごとに数え直した");
+            pot += r.LastTradePotential; got += r.Markets[g].LastImport; maxRatio = Math.Max(maxRatio, r.LastTradePotential / (acc * x * wg));
         }
+        Assert.True(maxRatio >= 0.99, $"(1181) 対照：どの行の潜在量も上界の 99% に届かない（最大 {maxRatio:F3}）＝上界が緩く、数え直しの誤りを拾えない");
         Assert.True(pot > 1e-9, "運べない買い手の潜在量が0（行を飛ばしている＝翌月の容量の配分に不足が届かない）");
         Assert.Equal(0.0, got);
     }
