@@ -11,5 +11,7 @@ O=$POB_WORK/out_c116k1B_10/ins
 bash $S/c116k1/read_k1.sh "$(cd $POB_WORK && pwd -W)/out_c116k1B_10/ins" "$(cd $POB_WORK && pwd -W)/b10_c116k1B_10.txt" c116k1B "$(cd $POB_WORK && pwd -W)/read" 1 1 > $POB_WORK/read_B.log 2>&1
 python -X utf8 -I $S/r1162/r1059_d1_copy.py "$O" 1 10 $POB_WORK/read/d1_B.txt B > /dev/null 2>&1
 python -X utf8 -I $S/c116k1/paper_k1.py "$O" 1 10 $POB_WORK/read/paper_B.txt B > /dev/null 2>&1
+python -X utf8 -I $S/c116k1/ratio_k1.py "$O" 1 10 > $POB_WORK/read/ratio_B.txt 2>&1
+python -X utf8 -I $S/c116k1/g1_split.py "$O" 1 10 > $POB_WORK/read/g1_split_B.txt 2>&1
 echo "ARMBDONE $(date '+%F %T')"
 exit $RC
