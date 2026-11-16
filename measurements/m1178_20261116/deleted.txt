@@ -10,3 +10,4 @@ wt_c116hd と枝 c116hd（線の worktree・origin に同じ頭）
 wt_c116cl と枝 c116cl（線の worktree・origin に同じ頭）
 ローカルの参照の枝 m1178_withhd・m1178_withk1（push していない）
 c116t1_work/flag0_t1buy（t1 の旗 0 の t1buy_s・[A1] の床は事前登録に書かれている）
+keep_1171・keep_1171_rej（新しい ident.cfg〔INSRAW keep_1178/base_ins〕を main 05bb80668 へ push した後・INSRAW でも KEEPNULL でもない・指示の許し〈作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った〉）
