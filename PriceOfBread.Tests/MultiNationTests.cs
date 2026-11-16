@@ -49,10 +49,10 @@ internal static class MultiNationShared
 public class MultiNationTests
 {
 
-    // ★器 SilverParityFromRatio（(1168) で焼き込んだ）の経路（2026-09-07）：注入される WorldSilverPrice が
-    //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
-    //   0＝旧統計 Market.Price[銀] と同一であること（(775) で既定は 1）。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
-    //   （World.Coef は国ごと別インスタンスで、ここでは読まれない）。
+    // ★銀平価の器（旗 SilverParityFromRatio は (1168) で焼き込んだ＝常に 1 の経路・旗 0 の旧統計の枝は消えた）の経路（2026-09-07）：注入される WorldSilverPrice が
+    //   「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）すること。
+    //   旧統計 Market.Price[銀] と一致しないこと（旧の道の復活を禁じる）。（旗を持っていたころの注：係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡す・
+    //   World.Coef は国ごと別インスタンス）
     [Fact]
     public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る()
     {

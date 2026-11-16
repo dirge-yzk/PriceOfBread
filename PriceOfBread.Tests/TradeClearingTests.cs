@@ -54,12 +54,40 @@ public class TradeClearingTests
         return (sim, gd.Id, seller, seller2, buyers);
     }
 
+    /// <summary>(1175) 旗 PriceLawSeesExports を焼いた後の番人：同じ需給の財で、前の月の輸出が大きい世界は値段が同じか高い（輸出は需給差の需要の側に映る）。
+    /// 期待は式でなく向き（需要が多い側の値段が低くならない）と、輸出が 0 の世界と食い違うこと。</summary>
     [Fact]
-    public void 既定はフルスタック点火済み()
+    public void 輸出は値段の法の需要の側に映る_輸出が多い世界の値段は低くならず食い違う()
     {
-        // ★2026-08-30 点火宣言（batch10段階測定＝貿易/GDP 0.5%→42〜66%・開放度次元が初の非ゼロ・本国96.7/経済41.2）
-        var c = new Coefficients();
-        Assert.Equal(1.0, c.PriceLawSeesExports);
+        Simulation Make(double export)
+        {
+            var s = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            s.Run(2);
+            var r = s.World.Region;
+            foreach (var good in r.EnsureLiveGoods())
+            {
+                if (good.Tier == GoodTier.Service || Catalog.IsLaborGood(good.Id)) continue;
+                var m = r.Markets[good.Id];
+                m.FlowAsleep = false;
+                m.Price = good.RefPrice * r.PriceLevel; m.LastDemand = 10.0; m.LastProduced = 10.0; m.LastImport = 0; m.LastSold = 10.0; m.Stock = 0;
+                m.LastExport = export;
+            }
+            return s;
+        }
+        var a = Make(0.0); var b = Make(1000.0);
+        MarketFlow.StepDay(a.World.Region, a.World.Coef, 10, null, true);
+        MarketFlow.StepDay(b.World.Region, b.World.Coef, 10, null, true);
+        int differ = 0, checkedN = 0;
+        foreach (var good in a.World.Region.EnsureLiveGoods())
+        {
+            if (good.Tier == GoodTier.Service || Catalog.IsLaborGood(good.Id)) continue;
+            double pa = a.World.Region.Markets[good.Id].Price, pb = b.World.Region.Markets[good.Id].Price;
+            checkedN++;
+            Assert.True(pb >= pa, $"輸出が多い世界の値段が低い gi={good.Id} {pb} < {pa}");
+            if (pb > pa) differ++;
+        }
+        Assert.True(checkedN >= 20, $"調べた財が少ない {checkedN}");
+        Assert.True(differ >= 1, "輸出の項が値段に届いていない");
     }
 
     [Fact]

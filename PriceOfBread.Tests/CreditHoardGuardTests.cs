@@ -42,7 +42,7 @@ public class CreditHoardGuardTests
     }
 
     [Fact]
-    public void 退蔵率は信頼の低下で増えるが上限の細工は無い_既定の範囲の手計算と一致()
+    public void 退蔵率は信頼の低下で増える_既定の範囲の手計算と一致()
     {
         var w = Board(1.0, 0.25);   // 0.1×(1＋1×0.75)＝0.175
         double baseMoney = w.BaseMoney.Value;

@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(469) 線 mw：労働の下限の撤去（崖 <see cref="Coefficients.LaborFloorOffGate"/>・帯の床 <see cref="Coefficients.LaborBandFloorOffGate"/>）と最低賃金法（<see cref="PolicyAxis.MinimumWage"/>）の番人。
+/// <summary>★(469) 線 mw：労働の下限の撤去（崖 <see cref="Coefficients.LaborFloorOffGate"/>・帯の床〔旗 LaborBandFloorOffGate は (1175) で焼いた＝常に撤去〕）と最低賃金法（<see cref="PolicyAxis.MinimumWage"/>）の番人。
 /// ★(459) 線 lw の法の軸の番人を土台にし、留保賃金の広がり σ の番人を撤去の番人へ置き換えた。
 /// ★(475) 合流で既定を倒した（2・1・1）。旗 0 は (475) より前の挙動と厳密恒等（成績表の全行一致は線の腕 A が見た）＝ここは機構の形と、軸の配線の漏れを見る。
 /// 期待値は実装と同じ出所から作らない：旧の式はテストの中に書き直した参照実装、軸の件数は表ごとに別の出所（列挙・表・文言・方針の欄の反射）から数える。</summary>
@@ -19,7 +19,7 @@ public class LaborMarketFormTests
     [Fact]
     public void 崖の撤去のゲートが0なら採算の率は旧の式とビットで一致する()
     {
-        var c = new Coefficients { LaborFloorOffGate = 0, LaborBandFloorOffGate = 0 };   // ★(475) 既定は倒した（2・1・1）＝旧の崖は旗 0 で選ぶ
+        var c = new Coefficients { LaborFloorOffGate = 0 };   // ★(475) 既定は倒した（2・1・1）＝旧の崖は旗 0 で選ぶ
         foreach (int g in new[] { Catalog.LaborId, Catalog.FarmLaborId, Catalog.AdvLaborId, Catalog.SteelId })
             foreach (double mc in new[] { 0.1, 0.35, 1.7 })
                 foreach (double k in new[] { 0.0, 0.5, 0.97, 1.0, 1.03, 1.2, 1.5, 1.51, 3.0, 40.0 })
@@ -91,15 +91,14 @@ public class LaborMarketFormTests
     }
 
     [Fact]
-    public void 既定の3つの旗は2と1と1で明示と同じ軌道()
+    public void 既定の旗は2で明示と同じ軌道()
     {
         // ★(475) 合流で既定を倒した（作者 2026-10-20「理由のない底よりは、底なしの方が健全です。」）＝既定が黙って戻ると赤
         var c = new Coefficients();
         Assert.Equal(2.0, c.LaborFloorOffGate);
-        Assert.Equal(1.0, c.LaborBandFloorOffGate);
         var a = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var b = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        b.World.Coef.LaborFloorOffGate = 2.0; b.World.Coef.LaborBandFloorOffGate = 1.0;
+        b.World.Coef.LaborFloorOffGate = 2.0;
         a.Run(4); b.Run(4);
         Assert.Equal(LaborPrice(a), LaborPrice(b));
         Assert.Equal(a.World.Region.Markets[Catalog.FarmLaborId].Price, b.World.Region.Markets[Catalog.FarmLaborId].Price);
@@ -112,11 +111,10 @@ public class LaborMarketFormTests
     private static double Wrp(Simulation s, int gi) => s.World.Region.GoodOf(gi)!.RefPrice * s.World.Region.PriceLevel;
 
     /// <summary>労働 3 財の市場を〈供給が需要より桁違いに多い〉状態に置き、価格を参照価格（物価水準込み）の何倍かに置いた世界（MarketFlow の単体の確かめ用）。</summary>
-    private static Simulation OversuppliedLabor(double bandOff, double priceOverRef)
+    private static Simulation OversuppliedLabor(double priceOverRef)
     {
         var s = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         s.Run(2);                                       // 旗は助走の後に立てる（助走の軌道が両方で同じ＝違いは旗の分岐だけ）
-        s.World.Coef.LaborBandFloorOffGate = bandOff;
         var r = s.World.Region;
         foreach (int gi in Labor3)
         {
@@ -128,62 +126,46 @@ public class LaborMarketFormTests
     }
 
     [Fact]
-    public void 帯の床の撤去は労働3財の下側だけを外す_ゲート0は旧の漸近形で床へ引き上げ_参照より上は同じ()
+    public void 帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない()
     {
-        var off = OversuppliedLabor(1, 0.12); var on = OversuppliedLabor(0, 0.12);   // 参照の 0.12 倍＝帯の床（WageClampMin 0.3）の下から出発
-        Assert.Equal(0.3, on.World.Coef.WageClampMin);
+        var off = OversuppliedLabor(0.12);   // 参照の 0.12 倍＝帯の床（WageClampMin 0.3）の下から出発
+        Assert.Equal(0.3, off.World.Coef.WageClampMin);
         MarketFlow.StepDay(off.World.Region, off.World.Coef, 10, null, true);
-        MarketFlow.StepDay(on.World.Region, on.World.Coef, 10, null, true);
         foreach (int gi in Labor3)
         {
-            double pOff = off.World.Region.Markets[gi].Price, pOn = on.World.Region.Markets[gi].Price;
-            Assert.True(pOn > 0.25 * Wrp(on, gi), $"旧の世界で帯の床が効いていない gi={gi}（{pOn:F5}）");   // 床の下から出発しても旧は床の近くへ引き上げられる
+            double pOff = off.World.Region.Markets[gi].Price;
             Assert.True(pOff < 0.12 * Wrp(off, gi), $"撤去した世界で値段が床の下に居ない gi={gi}（{pOff:F5}）");   // 過剰供給で下がり続ける（床で止まらない）
             Assert.True(pOff > 0, "値段は正のまま");
         }
-        // 参照より上は同じ式（参照で連続）：参照の 1.2 倍から 1 日進める
-        var up0 = OversuppliedLabor(0, 1.2); var up1 = OversuppliedLabor(1, 1.2);
-        MarketFlow.StepDay(up0.World.Region, up0.World.Coef, 1, null, true);
-        MarketFlow.StepDay(up1.World.Region, up1.World.Coef, 1, null, true);
-        foreach (int gi in Labor3)
-            Assert.Equal(up0.World.Region.Markets[gi].Price, up1.World.Region.Markets[gi].Price);
     }
 
     [Fact]
-    public void 帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない_ゲート0は漸近形が値段を動かす()
+    public void 帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない()
     {
-        // 需給差 0（産出＝需要）なら目標＝今の値段。撤去した世界は値段が 1 ビットも動かない・旧の世界は漸近形が参照より下の値段を床の側へ寄せて動かす
-        var off = OversuppliedLabor(1, 0.5); var on = OversuppliedLabor(0, 0.5);
-        foreach (var s in new[] { off, on })
-            foreach (int gi in Labor3) { var m = s.World.Region.Markets[gi]; m.LastProduced = 1.0; m.LastDemand = 1.0; m.LastSold = 1.0; m.LastImport = 0; }
+        // 需給差 0（産出＝需要）なら目標＝今の値段。撤去した世界は値段が 1 ビットも動かない
+        var off = OversuppliedLabor(0.5);
+        foreach (int gi in Labor3) { var m = off.World.Region.Markets[gi]; m.LastProduced = 1.0; m.LastDemand = 1.0; m.LastSold = 1.0; m.LastImport = 0; }
         var before = Labor3.ToDictionary(gi => gi, gi => off.World.Region.Markets[gi].Price);
         MarketFlow.StepDay(off.World.Region, off.World.Coef, 10, null, true);
-        MarketFlow.StepDay(on.World.Region, on.World.Coef, 10, null, true);
         foreach (int gi in Labor3)
-        {
             Assert.Equal(before[gi], off.World.Region.Markets[gi].Price);
-            double moved = System.Math.Abs(on.World.Region.Markets[gi].Price / before[gi] - 1.0);
-            Assert.True(moved > 1e-4, $"旧の世界の漸近形が値段を動かしていない（前提が崩れた）gi={gi} moved={moved:E2}");
-        }
     }
 
     [Fact]
     public void 帯の床の撤去は教育と医療の役務の枝に触らない()
     {
-        var off = OversuppliedLabor(1, 0.12); var on = OversuppliedLabor(0, 0.12);
-        foreach (var s in new[] { off, on })
+        var off = OversuppliedLabor(0.12);
         {
-            var r = s.World.Region;
+            var r = off.World.Region;
             foreach (int gi in new[] { Catalog.EducationId, Catalog.HealthcareId })
             {
                 var m = r.Markets[gi];
-                m.Price = 0.12 * Wrp(s, gi); m.LastDemand = 1.0; m.LastProduced = 100.0;
+                m.Price = 0.12 * Wrp(off, gi); m.LastDemand = 1.0; m.LastProduced = 100.0;
             }
         }
         MarketFlow.StepDay(off.World.Region, off.World.Coef, 10, null, true);
-        MarketFlow.StepDay(on.World.Region, on.World.Coef, 10, null, true);
         foreach (int gi in new[] { Catalog.EducationId, Catalog.HealthcareId })
-            Assert.Equal(on.World.Region.Markets[gi].Price, off.World.Region.Markets[gi].Price);
+            Assert.True(off.World.Region.Markets[gi].Price > 0.25 * Wrp(off, gi), $"役務の帯の床が効いていない gi={gi}");   // 役務は旧のまま＝床の下から出発しても床の近くへ引き上げられる
     }
 
     // ---------------------------------------------------------------- 最低賃金法：床
@@ -303,7 +285,7 @@ public class LaborMarketFormTests
         // 能力ベースの床は今の値段の約 0.06 倍で縛らない（事前登録 §1 [E]）。縛る場面は〈帯の床を外して値段が床より下まで落ちた世界〉を直接作って確かめる
         Simulation Build()
         {
-            var s = OversuppliedLabor(1, 1.0);
+            var s = OversuppliedLabor(1.0);
             return s;
         }
         var none = Build(); var trades = Build(); var national = Build();   // trades＝生存・national＝充足

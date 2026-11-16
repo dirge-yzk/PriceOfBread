@@ -1,0 +1,13 @@
+(1175) c116cl 結果（恒等の束・2026-11-16・書いたのは Claude Sonnet 5.5）
+事前登録 measurements/m1175_20261116_prereg_cl.txt。測った木 5720953e8（枝 c116cl）。判定: 恒等（段 1）＝ ident_c116cl_verdict.txt。
+成績表（名乗り行を除いて m1171 と全行一致）：b5_20261116_m1175（179 行）・b10_20261116_m1175_ins（181 行）・.cost の件数 45 本・推定 230.2／229.7 秒（増えない）・計器の表 290 本バイト一致・注視の表 4643 行一致・NG 102 件で新しい 0・外れた 0。
+試験：Tests 2660（スキップ 1）＋Tests.Ui 234＝2894（--list-tests の和 2660＋234 と一致）・FullLength 3 緑・savetest OK・leakhunt 保存則違反なし。ident の数 2894（基準と同じ＝差 0）。
+  予言との差：事前登録は Tests 2660→2659 と書いたが、旗を焼いた PriceLawSeesExports の番人として TradeClearingTests に 1 本足したので 2660＝合計 2894 のまま（消した 1 本＋足した 1 本）。
+走査の番人（㉘）175 本緑（scan28.txt）。突然変異：M2（輸出の項を外す）→ 新しい番人が赤・M3a（帯の床を戻す）→ LaborMarketFormTests 2 本が赤・M5′（insOn の分岐を外す）→ MintregInstrumentTests T3 が赤（mut_*.txt）。M4（硝石丘の欄を戻す）は RetiredFields の番人が欄の有無を見る型で、枝を戻しても欄が無ければコンパイルが通らない＝実行しない（記録）。
+読み手 0：PriceLawSeesExports・LaborBandFloorOffGate・NiterBedEnabled・NiterBedProductivity は SimCore・Tests・Tests.Ui・App・Display・Runner・scripts・measure.sh で 0（残る名は RetiredFields と (1175) の注・過去の表の台本 r1084/flags50.py の文字列だけ）。
+書き換えた試験（★(743)）：TradeClearingTests.cs 旧 :58〜:63（④・削除）→ 新しい番人 :57 付近（足した）・LaborMarketFormTests.cs :22（④）・:99（④）・:102（③）・帯の床の 3 本（①＝旗 0 の腕の比べを消す・役務の枝の 1 本は旧の腕との一致から今の盤面の観測 > 0.25×参照へ＝②の形）・DormantIdentityTests.cs :82 を RetiredFields へ（③）。
+項 3〜5 は MarketFlow.cs・DormantIdentityTests.cs が同じファイルのため 1 コミット。
+計器 cearn_s・cpop_s の経路の名（ファイル:行）：Coefficients.cs・Simulation.cs の行が動いたが、計器つき 10 種の表 290 本はバイト一致（宣言の外の違い 0）。
+合流への申し送り：消した名（PriceLawSeesExports・LaborBandFloorOffGate・NiterBedEnabled・NiterBedProductivity）の台帳の錨を〈—（名は消した＝(1175)）〉へ。外した物（SilverRushEnabled・組合法の出力倍率・DiscoveryTechPerDecade・魚の缶詰・石油灯油）は 00一覧へ番号つきで。
+生：D:/PoB_work/ident_c116cl（合流の判断まで残す）。作ったフォルダ：D:/PoB_work/wt_c116cl・c116cl_work・c116cl_art・c116cl_art2・ident_c116cl（art は片付けた）。
+腕の枠で待った時間 0（arms.sh free 5〜6）。フルスイートは ident と並べたため 1 時間 7 分かかった。hook に止められた回数 2（&・sleep の文字並び）。

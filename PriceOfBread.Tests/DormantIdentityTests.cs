@@ -79,7 +79,6 @@ public class DormantIdentityTests
                                         //   0＝旧＝ストック＝厳密恒等。点火値 1.0（記憶が消え、国内経路の運搬漏れが定義ごと消える）
         "SerfGateCoversPool",           // C-03：農奴の移動制限を失業プール経路へも広げる
         // ★DomesticFlightHasHost は 2026-09-22 に**点火**（旗ごと削除＝逃避の受け皿が常に外資の負債を記帳）＝この表から外した。
-        "NiterBedEnabled",              // 硝石丘＝硝石の低効率レシピ（財の3分類の再開）＝0で足さない
         // ★ScarceCountsIncludeColonies（希少鉱物の総量保存の k/N に植民地を数える）は 2026-10-04 (197) で**点火**（反証役 vq2#1）＝この表から外した。
         "ConsumeBudgetSavingsRatePerMonth",   // ★(273) 線P 段5＝消費の予算を min(予算, 前月の所得＋貯蓄×d) で切る（EconomyStep.Run ③の入口）。0＝分岐に入らず評価しない＝厳密恒等（d＝0 を式に入れると min(予算, 前月の所得) になり恒等でないのでコードは d＞0 のときだけ評価する）。腕は POB_COEF で置く。
         // ★LuxuryIncomeElasticity・DomesticServiceIncomeFactorExponent（(302)(329) 奢侈品と家事奉仕の所得弾力）は 2026-10-14 (331) の合流で**点火**（0.5・1）＝この表から外した。
@@ -87,7 +86,7 @@ public class DormantIdentityTests
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
         "PrivilegeMonopolyInLedger",    // 特権システム 段5前半＝特許会社の取り分を台帳へ（記帳のみ）
         "GuildLawGate",                 // 特権システム 段4＝同業組合法の主ゲート（法が動かない）
-        // ★LaborFloorOffGate・LaborBandFloorOffGate・MinimumWageLawGate（(469) 労働の下限の撤去と最低賃金法）は 2026-10-20 (475) の合流で 2・1・1 へ**点火**＝この表から外した。
+        // ★LaborFloorOffGate・LaborBandFloorOffGate・MinimumWageLawGate（(469) 労働の下限の撤去と最低賃金法）は 2026-10-20 (475) の合流で 2・1・1 へ**点火**＝この表から外した。LaborBandFloorOffGate は (1175) で旗ごと焼いた（RetiredFields）。
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
@@ -259,6 +258,8 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "NiterBedEnabled", "NiterBedProductivity",   // (1175) c116cl：硝石丘の枝と係数 2 本を削除（旗は既定 0 のまま届かなかった＝休眠 0・硝石を産地にする回で戻す）
+        "PriceLawSeesExports", "LaborBandFloorOffGate",   // (1175) c116cl：既定 1 の旗 2 本を焼き込んだ（輸出を需要に足す式・労働 3 財の帯の床の撤去＝常に 1 の経路・旗 0 の番人は LaborMarketFormTests で今の盤面へ移した）
         "MalariaQuininePerColony",   // (1167) c115qc：植民地の毎月のキニーネ（(1158) で既定 0・(1164) で係数 0 を採った）。枝と係数を削除
         "MintBuysAtMarket", "SilverParityFromRatio",   // (1168) c115sb D-s4：既定 1.0 の旗 2 本を焼き込んだ（市場買いの枝と銀の平価の器・旗 0 の経路の番人は隔離の盤面へ移し旧の行は削除）
         "EraTensionRange",   // (1160) c114sr D-r2：近接の緊張の距離の時代係数（EraFactor は常に 1.0＝×1.0 を消した・読み手は World.cs の 1 行だけだった）

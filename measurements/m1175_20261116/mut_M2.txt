@@ -1,0 +1,24 @@
+mutated M2 PriceOfBread.SimCore/MarketFlow.cs
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\EconomyStep.cs(1504,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\Instruments.cs(2624,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(184,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(200,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c116cl_art2\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:03.09]     PriceOfBread.Tests.TradeClearingTests.輸出は値段の法の需要の側に映る_輸出が多い世界の値段は低くならず食い違う [FAIL]
+  失敗 PriceOfBread.Tests.TradeClearingTests.輸出は値段の法の需要の側に映る_輸出が多い世界の値段は低くならず食い違う [336 ms]
+  エラー メッセージ:
+   輸出の項が値段に届いていない
+  スタック トレース:
+     at PriceOfBread.Tests.TradeClearingTests.輸出は値段の法の需要の側に映る_輸出が多い世界の値段は低くならず食い違う() in D:\PoB_work\wt_c116cl\PriceOfBread.Tests\TradeClearingTests.cs:line 90
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:    17、スキップ:     0、合計:    18、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
