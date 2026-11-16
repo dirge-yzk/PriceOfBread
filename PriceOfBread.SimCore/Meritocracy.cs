@@ -351,7 +351,7 @@ public static class Meritocracy
             for (int i = 0; i < n; i++)
             {
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || (t.Size <= Eps && !(emptySeat && t.IsSoldier))) continue;
+                if (ReferenceEquals(t, src) || t.Closed || (!(t.Size > Eps) && !(emptySeat && t.IsSoldier))) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
@@ -395,7 +395,7 @@ public static class Meritocracy
             {
                 if (tried[i]) continue;
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || (t.Size <= Eps && !(emptySeat && t.IsSoldier))) continue;
+                if (ReferenceEquals(t, src) || t.Closed || (!(t.Size > Eps) && !(emptySeat && t.IsSoldier))) continue;
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;

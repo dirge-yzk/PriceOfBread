@@ -137,6 +137,34 @@ public class LaborMarketFormTests
             Assert.True(pOff < 0.12 * Wrp(off, gi), $"撤去した世界で値段が床の下に居ない gi={gi}（{pOff:F5}）");   // 過剰供給で下がり続ける（床で止まらない）
             Assert.True(pOff > 0, "値段は正のまま");
         }
+
+        // (1181) 参照より上の側（柔らかい帯）は閉形の対象でない：参照の 1.6 倍から出発した世界は、10 日を 1 度に回しても 1 日ずつ 10 回回しても値段がビットで同じ（閉形は参照より下の側だけ＝上側が閉形に入ると 1 ulp 以上ずれる）。
+        //   下側（0.12 倍）は閉形が取られる＝値は許し内で同じで、1 度に回した方が走った日数が少ない（労働 3 財で 9 日ずつ＝下側と上側の減った日数の差 ≧27・laborClosed を外すと差が 0 で赤＝日数は cost の PriceDailyRuns＝計器でなく台帳）。
+        var savedBy = new Dictionary<(double, bool), long>();   // 1 度に回して減った走行日数（労働以外の財の閉形の分を含む＝上側と下側の差が労働 3 財の分）
+        foreach (double over in new[] { 1.6, 1.02, 0.12 })
+        foreach (bool oversupplied in new[] { true, false })
+        {
+            Simulation Start()
+            {
+                var w = OversuppliedLabor(over);
+                if (!oversupplied) foreach (int gi in Labor3) { var m = w.World.Region.Markets[gi]; m.LastDemand = 100.0; m.LastProduced = 1.0; m.LastSold = 1.0; }
+                return w;
+            }
+            var batch = Start(); var daily = Start();
+            var costB = new long[CostLedger.Count]; var costD = new long[CostLedger.Count];
+            MarketFlow.StepDay(batch.World.Region, batch.World.Coef, 10, costB, true);
+            for (int d = 0; d < 10; d++) MarketFlow.StepDay(daily.World.Region, daily.World.Coef, 1, costD, d == 0);
+            foreach (int gi in Labor3)
+            {
+                double pb = batch.World.Region.Markets[gi].Price, pd = daily.World.Region.Markets[gi].Price;
+                if (over > 1) Assert.Equal(pd, pb);   // 上側＝ビットで同じ
+                else Assert.InRange(pb, pd * (1 - 1e-9), pd * (1 + 1e-9));
+            }
+            long saved = costD[CostLedger.PriceDailyRuns] - costB[CostLedger.PriceDailyRuns];
+            savedBy[(over, oversupplied)] = saved;
+        }
+        foreach (bool oversupplied in new[] { true, false })
+            Assert.True(savedBy[(0.12, oversupplied)] - savedBy[(1.6, oversupplied)] >= 3 * 9, $"(1181) 対照：下側で閉形が取られていない（過剰={oversupplied}・減った日数 下側 {savedBy[(0.12, oversupplied)]}・上側 {savedBy[(1.6, oversupplied)]}・差が 27 未満）");
     }
 
     [Fact]
