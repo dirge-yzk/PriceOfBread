@@ -6,6 +6,7 @@ import sys, os, csv
 from collections import defaultdict
 
 RAW, S0, S1, OUT, TAG = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5]
+LAWRAW = sys.argv[6] if len(sys.argv) > 6 else RAW   # sf_s・monlaw_s の置き場（ident の刈り込みで消えた時は基線の生＝全行一致の表）
 THR = 1.43
 G1_MIN, G3B_MAX, G3C_REC = 3796, 2, 551
 G5_MIN = {"Colonial(k>0)": 19, "Core": 7}
@@ -37,14 +38,14 @@ for seed in range(S0, S1 + 1):
     if not os.path.exists(sec): continue
     seedsRead += 1
     law = {}; prev = {}; changed = set()
-    for ix, x in rd(os.path.join(RAW, f"sf_s{seed}.tsv")):
+    for ix, x in rd(os.path.join(LAWRAW, f"sf_s{seed}.tsv")):
         q = int(x[ix["quarter"]]); n = x[ix["nation"]]
         pair = (int(float(x[ix["colonialSuffrageLaw"]])), int(float(x[ix["migrantNativeSuffrageLaw"]])))
         law[(q, n)] = pair
         if n in prev and prev[n] != pair: changed.add((q, n))
         prev[n] = pair
     suf = {}
-    for ix, x in rd(os.path.join(RAW, f"monlaw_s{seed}.tsv")):
+    for ix, x in rd(os.path.join(LAWRAW, f"monlaw_s{seed}.tsv")):
         suf[(int(x[ix["quarter"]]), x[ix["nation"]])] = int(float(x[ix["Suffrage"]]))
     cnt["法の変わった国×四半期"] += len(changed)
     for ix, x in rd(sec):

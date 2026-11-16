@@ -101,3 +101,13 @@
 - 重い仕事は起こす直前に shutil で〈35GB＋その量〉（ident 約 30GB・腕 B 約 26GB）を確かめ、届かなければ 240 秒以内の刻みで測り直して待つ。
 - 腕 B は `INS=1 bash scripts/instruments/batch.sh run c116k1B 10`（POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。腕 B の生は合流の判断まで消さない。
 - 印 D:/PoB_work/c116k1_work/k1.mark。
+
+■ 追記 1（2026-11-16・ident c116k1z の後・旗 1 の出力を読む前・腕 B の前に固定）
+- ㉘ の束（走査の番人 6 本＋SecessionInclusionOnceTests＋分離を読む試験 6 本＋TechLevelRemovalTests・器の木 a631d21f6・旗 0）：259 本緑（32 分 50 秒）。
+- ident c116k1z（段 2・木 a631d21f6・SOURCE-HASH 86e7e264083a219c）〈判定: 恒等〉（測った種で一致）：素の 5 種が m1171 と全行バイト一致（179 行）・計器つき 10 種も全行一致（181 行）・推定 230.2 秒／229.7 秒が一致・計器の表 1551 本＝バイト一致 1503＋既知の揺れ 38＋宣言どおり列が増えた 10（secession_s）・宣言の無い違い 0・テスト Category!=FullLength 2898（2894＋4）・FullLength 3。写し measurements/m1173_20261116/ident_c116k1z.txt・ident_b5_ia_5.txt・ident_b10_ib_10.txt（.cost・.manifest つき）。
+- 旗 0 の生（ident の out_ib_10/ins の secession_s・法の表は全行一致の keep_1171/base_ins）に門の台本を当てた（measurements/m1173_20261116/gates_flag0_ident_c116k1z.txt）：G1 2,767（赤）・G2 外れ 1,189,978 行（赤）・G3a 0・G3b 0・G5 157／23＝旗 0 で狙いの門 G1 と G2 が落ちる（M1 の予言どおり）。
+- 計器の自己検査（旗 0 の 10 種の全 1,190,708 行）：本体の圧 pressureIndex と計器の旧の規則 pressureRuleOldIndex の相対の差の最大 0（measurements/m1173_20261116/selfcheck_flag0_ident_c116k1z.txt）。
+- 試験の突然変異（使い捨ての木 D:/PoB_work/wt_c116k1_mut・measurements/m1173_20261116/tmut_M*.txt）：M1 ①②③④ 赤・M2 ①③④ 赤（② 緑）・M3 ②④ 赤・M4 ①③④ 赤・M5 ①③④ 赤＝表の予言と全て一致。
+- 門の台本 gates_k1.py に法の表の置き場の引数（6 番目・省略は同じフォルダ）を足した＝門の定義と閾値は変えていない（ident の刈り込みで sf_s・monlaw_s が消えたため）。
+- 旗 1 の短い走り（1 種・木 a631d21f6＋POB_COEF SecessionInclusionOnce=1・表を絞った・D:/PoB_work/c116k1_work/arm1/out_k1_short_1）はこの追記の前に起こして走り終えたが、出力はまだ読んでいない。この追記のコミットの後に読む。
+- 門・閾値・突然変異の表は変えない。

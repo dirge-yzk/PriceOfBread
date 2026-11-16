@@ -1,0 +1,6 @@
+# (1173) 試験の突然変異 M3・ビルド rc=0・試験 rc=1
+失敗 PriceOfBread.Tests.SecessionInclusionOnceTests.植民地格の民族の闘争度は旗1なら植民地参政権なしが自国民のみより大きく_旗0は同じ [71 ms]
+失敗 PriceOfBread.Tests.SecessionInclusionOnceTests.計器の末尾5列は旗0の本体の圧が旧の規則に_旗1の本体が1回の規則に合う [37 s]
+失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 40 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:05.60]     PriceOfBread.Tests.SecessionInclusionOnceTests.植民地格の民族の闘争度は旗1なら植民地参政権なしが自国民のみより大きく_旗0は同じ [FAIL]
+[xUnit.net 00:00:42.81]     PriceOfBread.Tests.SecessionInclusionOnceTests.計器の末尾5列は旗0の本体の圧が旧の規則に_旗1の本体が1回の規則に合う [FAIL]
