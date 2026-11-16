@@ -355,7 +355,7 @@ public static class Meritocracy
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
-                double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
+                double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
                 if (inc <= minIncome) continue;
                 share[i] = 1.0; if (inc > incMax) incMax = inc;
             }
@@ -365,7 +365,7 @@ public static class Meritocracy
                 if (share[i] > 0)
                 {
                     var t = r.Pops[i];
-                    double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
+                    double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
                     share[i] = Math.Exp(Math.Max((inc - incMax) / c.JobPoolTemperature, -40));
                     sumW += share[i];
                 }
@@ -399,7 +399,7 @@ public static class Meritocracy
                 if (t.IsSoldier && !(soldierVac > Eps)) continue;
                 if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
                 if (ClassOf(r, i) != jobClass) continue;
-                double inc = t.Size > Eps ? JobIncome(t, src) : EmptySeatIncome(w, r, t, src, c);
+                double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
                 if (inc > bestInc) { bestInc = inc; bestIdx = i; }
             }
             if (bestIdx < 0) break;
