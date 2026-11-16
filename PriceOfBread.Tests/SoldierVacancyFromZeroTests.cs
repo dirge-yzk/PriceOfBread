@@ -74,7 +74,7 @@ public class SoldierVacancyFromZeroTests
         var sim = NewSim(); sim.StepQuarter();
         var b = Make(sim, 1, zeroSoldier: true);
         double flow = 0.01 * b.Farm.Size;
-        var x = Route(b, flow, 1e9);
+        var x = Route(b, flow, 2.0 * flow);   // ★(1174) 空きは上限と門だけ（Meritocracy.FillJobs）＝flow 以上なら経路は同じ。1e9 は空きの減りを 1e9−(1e9−x) で読み、刻み 1.19e-7 の丸めが下の許しを超えうる（軌道に依る前提）
         Assert.True(x.Gain > 1e-6 * flow, $"大きさ 0 の兵の席が埋まらない（増え {x.Gain:R}・流れ {flow:R}）");
         Assert.True(x.Gain <= flow * (1 + 1e-12), $"送った流れより多く兵になった（{x.Gain:R}＞{flow:R}）");
         Assert.True(Math.Abs(x.VacUsed - x.Gain) <= 1e-9 * flow, $"空きの減り {x.VacUsed:R} が兵の増え {x.Gain:R} と違う");
