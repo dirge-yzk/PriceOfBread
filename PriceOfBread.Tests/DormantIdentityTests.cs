@@ -98,6 +98,7 @@ public class DormantIdentityTests
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝鉱脈で割らない＝厳密恒等
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
         // ★SoldierVacancyFromZero（(1166) c115sv 大きさ 0 の兵の席）は 2026-11-16 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は SoldierVacancyFromZeroTests の F0）。
+        "SecessionInclusionOnce",       // ★器（2026-11-16 (1173) c116k1）＝K1-F2：包摂を闘争度の目標の 1 回だけ・分離の圧の割引を外す。0＝旧の州の版を 2 か所＝厳密恒等
         "TradeBuyBySupplyCurve",        // ★器（2026-11-15 (1144) c112t1）＝T1 A-1：清算の買いの来月の国内の見込みを着値で読む。0＝旧の xNeed＝厳密恒等
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
