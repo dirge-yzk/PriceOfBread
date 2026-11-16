@@ -1,0 +1,9 @@
+# (1173) suite 木=/d/PoB_work/wt_c117k1 HEAD=88b1ecef7 2026-11-16 18:49:56
+list-tests Tests(Category!=FullLength)=2665 Tests.Ui=234 和=2899 FullLength=3
+㊴ 計器の束 rc=1 失敗!   -失敗:     1、合格:   329、スキップ:     0、合計:   330、期間: 20 m - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G4_越境の量と平均の値段の積は額と10倍以内 [3 s]
+STOP 計器の束が赤
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.G4_越境の量と平均の値段の積は額と10倍以内 [3 s]
+  エラー メッセージ:
+   中央値 3.1005036403505
+  スタック トレース:
