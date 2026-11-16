@@ -5,6 +5,8 @@ root, name = sys.argv[1], sys.argv[2]
 INS = 'PriceOfBread.SimCore/Instruments/InstrumentsBuyShadow.cs'
 BM = 'PriceOfBread.SimCore/BilateralMarket.cs'
 M = {
+    # 旗 0 の木（試験の盤面の直しが旗 0 でも緑かを確かめる）
+    'F0': [('PriceOfBread.SimCore/Coefficients.p04_trade.cs', 'public double TradeBuyBySupplyCurve = 1.0;', 'public double TradeBuyBySupplyCurve = 0.0;')],
     # 計器：退きを成約ごとに足す（行ごとに 1 回でなく）
     'M7': [(INS, 'if (!double.IsNaN(qEng)) { r.AnyEng = true; if (qEng < r.MinQEng) r.MinQEng = qEng;',
                  'if (!double.IsNaN(qEng)) { r.AnyEng = true; if (r.P - qEng > r.Tol) r.N.RetreatRowSum += r.P - qEng; if (qEng < r.MinQEng) r.MinQEng = qEng;'),
