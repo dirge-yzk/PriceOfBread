@@ -1,0 +1,103 @@
+(1173) c116k1 事前登録：K1-F2＝包摂を分離の圧に 2 回掛けない（州の版を人の版の平均へ揃え、Politics.cs:893 の割引を旗 1 で外す・旗 SecessionInclusionOnce・既定 0）
+2026-11-16・枝 c116k1（b9570c8a7 から）・波116 の席 2・3 回の規則では K1 の 1 回目。書いたのは Claude Opus 5.5。
+この事前登録は腕の前・ident の前に固定し、ループの中で変えない。数を変えるなら腕の前に理由つきで追記する。
+
+■ 先頭の名乗り
+- 出発は 00一覧 §0-2 ★(1164) ④（作者「しばらくの間、全て推奨で」で推奨を採った・作者の確認待ち）：K1 は F2 で入れる。材料＝docs/202611/20261115/20261115_K1と植民地の独立_下書き.md §2（AI の案・確証なし）と末尾の反証役 v の訂正 5 件。
+- 直す根拠は設計思想⑨（二重計上の禁止）：包摂が少数派の闘争度の目標（Politics.cs:165）と分離の圧（:893）に 2 回掛かる。:893 は関税の項にも掛かる＝中核 1 の州は関税の乖離がいくら大きくても圧 0。
+- 形は〈入口〉（分離の圧と少数派の闘争度の目標の 2 か所の読み）。新しい係数・状態は 0。旗は 1 本。D1 は入れない（段 E に畳む推奨）。動詞は AI とプレイヤーで共通のまま（等価の原則）。
+- 〈確証なし〉は AI が置いた細部＝人の版の大きさの重みの平均（大きさ 0 なら 1）・:893 を外して闘争度を通してだけ入れる形。
+- この線で読む問い：普通選挙（成人男子以上）の国で、分離の圧が 0 へ寄らないか（門 G5）。
+
+■ 指示から外した所（4 つ・理由つき）
+1. G3：指示の推奨〈行ごとに pressureRuleOnce÷pressureRuleOld ≦ 1÷(1−包摂)＋許し〉は、計器の 2 列どうしでは作りから恒等（Once＝Old÷(1−旧の包摂)）＝何もしない誤りでも通る。そこで〈本体の圧〉で書く：G3a＝行ごとに pressureIndex ≦ pressureRuleOldIndex÷(1−旧の包摂)×(1＋1e-8)（旧の包摂＝1 の行は pressureRuleOnceIndex×(1＋1e-8)）。G3a は G2 の上の半分と同じ不等式になる＝独立の力は無いと名乗る。形に固有の誤り（中核の州の関税の項が外れて分離する）の量の門は G3b（本国の中核と編入で支配度が 0 に届いた州 ≦ ヌル腕の最大＋2＝2）。替えの候補〈holdShare≧0.01 の本国の中核の余り＜0〉は G3c として記録（上の線 551 を書くが採否に使わない）。
+2. G5：格で分けると、編入の群は base 5・n1 44・n2 2 行＝下の線（最小の半分＝1）が雑音で割れる＝記録へ下げる。植民地格（中核＞0）と本国の中核は門。本国の中核は base 23・n1 37・n2 14 行（v の〈8 行〉より多い・m1171 の盤面）。
+3. G4 の試験に ④（計器の末尾 5 列の自己検査＝旗 0 の本体の圧が旧の規則、旗 1 の本体の圧と民族の闘争度が 1 回の規則に合う）を足す＝新しい試験は 4 本。
+4. G2：:165（Politics.Step の闘争度の輪）と :893（CheckSecession）の間に Transition の譲歩（Politics.cs:489 ConcedeToFaction→ApplyDemand）が植民地参政権・移民原住民参政権を動かしうる＝その国×四半期（sf_s の法が前の行と違う）の外れは許す。m1171・N1・N2 の 30 種で法の変わった国×四半期は 0。
+
+■ 形（旗 1 の時だけ・Politics.cs）
+- RegionAvgSuffrageInclusion(w, c, r)：旗 0 は今の式のまま（移民原住民参政権が付与なら 1・他は AvgRegionCoreShare）。旗 1 は非兵士の POP の大きさの重みの InterestGroups.SuffrageInclusion(w, r, p) の平均（大きさ ≦1e-9 なら 1.0）＝植民地格の分かれ（ColonialSuffrage を読む）も旗の内（v の訂正 1）。引数に Coefficients を足した（読み手 4 つは全て持ち主の行）。
+- :165：minorityMil *= 1−Clamp01(上の関数)（旗 1 は人の版の平均）。
+- :893：旗 0 は今のまま `pressure *= 1 − Clamp01(包摂)`。旗 1 は通さない＝包摂は :165 の 1 回だけ（圧には闘争度 mil を通して入る）。
+- 計器を旗に合わせる：InstrumentsSecession.SecRebuild の suffrageFactorShare は旗 1 で 1（suffrageInclusionShare は :165 が使う包摂）・InstrumentsRulePower.cs:207 の影の圧の割引も旗 1 で 1。
+- 人の版の関数と、その読み手（Fiscal.cs:426・InterestGroups.cs:83・InstrumentsSf.cs:22〜:23・InstrumentsLandsale.cs:137）は触らない（grep 2026-11-16 で 4 か所を確かめた）。
+
+■ 恒等の計器（器のコミット・旗 0 で全行バイト一致）
+- secession_s の末尾に 5 列（旗に依らず旧と 1 回の規則を同じ盤面で・エンジンの関数を呼ばない＝POP・法・係数を計器が自分で読む・InstrumentsSecession.SecK1Columns）：
+  inclusionPersonMeanShare（人の版の包摂の非兵士の大きさの重みの平均）・pressureRuleOldIndex（関税の項＋民族の項 × 意識の割引 ×(1−旧の包摂)× 大衆の飽和）・pressureRuleOnceIndex（同じ・包摂の割引なし）・milNationMeanIndex（本体の p.MilNation の非兵士の大きさの重みの平均）・milNationRebuiltOnceIndex（MinorityMilitancy×(1−中核_p)×(1−人の版の包摂) の同じ重みの平均・民族の無い世界は 0）。
+- 列を末尾に足すので、位置で引く読み手は崩れない。`len(c) != N` の型の読み手（★(749)）の grep：secession_s を読む scripts の中に列の数で行を捨てる物は無い（c71gt・c72gt の `len({a, b, c}) != 3` は集合の大きさで列の数ではない）。
+- 計器の追記の予言：既存の表は secession_s 以外全行一致・secession_s は列だけ増える（--grown-ok secession_s）。
+
+■ 読み手ごとの同じ盤面の新÷旧の予言（★(1129)・紙・m1171 の生 keep_1171/base_ins・n1・n2・台本 scripts/instruments/c116k1/paper_k1.py＝(1162) の k1_forms.py の写し＋群の追加）
+- Politics.cs:165：非植民地 ×1（同じ値）・植民地格 None は 包摂 中核→0＝民族の項 ×1÷(1−中核)。
+- Politics.cs:893（消える）：本国の中核の圧の中央 ×17.35・15.08・15.39（base／n1／n2）・編入 ×1.24・1.22・1.27・植民地格（中核＞0・:165 込み）×1.60・1.52・1.60・非植民地×中核≦0.9 ×1.62・1.63・1.65。
+- InstrumentsRulePower.cs:207：:893 と同じ向き（計器・旗 1 で割引 1）。InstrumentsSecession.cs:66：旗に合わせる（suffrageFactorShare は旗 1 で 1）。
+- 人の版の読み手 4 つ：×1（触らない）。
+- 検算（紙）：項から組んだ :893 の前の圧×割引と本体の圧の相対の差 ＞1e-9 は 98／67／83 行（G10 の列の丸め〈推〉）。法の変わった国×四半期 0。
+
+■ 紙の台本の出力（今の盤面 keep_1171・旗 0）
+- measurements/m1173_20261116/paper_k1_base.txt・paper_k1_n1.txt・paper_k1_n2.txt（形 F0・F1・F2 と突然変異 M3〜M5 の 1 次の近似）。
+- 門の台本 scripts/instruments/c116k1/gates_k1.py を旗 0 の生に当てた物：measurements/m1173_20261116/gates_flag0_keep1171_base_ins.txt・_n1.txt・_n2.txt（G1 は赤＝旗 0 で落ちる）。
+- 州×四半期（種 1〜10 の和・余り＝holdShare−圧＜0）
+  | 群 | base F0→F2 | n1 F0→F2 | n2 F0→F2 |
+  | 植民地格（中核＞0） | 2,767→4,107 | 3,163→4,762 | 2,647→4,205 |
+  | 本国の中核 | 3,377→3,569 | 3,176→3,304 | 3,204→3,271 |
+  | 本国の中核×holdShare≧0.01 | 219→385 | 97→196 | 149→216 |
+  | 編入 | 212→231 | 111→135 | 125→128 |
+  | 成人男子以上×中核≦0.5×植民地格 | 157→189 | 235→366 | 38→46 |
+  | 成人男子以上×中核≦0.5×本国の中核 | 23→25 | 37→40 | 14→15 |
+  | 成人男子以上×中核≦0.5×編入 | 5→5 | 44→55 | 2→2 |
+- 支配度が 0 に届いた州（goFlag・種の和）：植民地格 5・3・4、本国の中核 0・0・0、編入 0・0・0。紙の積み直しで F0 5・3・5 → F2 7・6・7（本国の中核と編入は全ての形で 0）＝桁で動かない。
+
+■ 門（腕 B＝計器つき 10 種・種 1〜10・secession_s の行・腕の前に固定・台本 gates_k1.py）
+| 門 | 側 | 物差し | 線 | 紙 F2（base） | 旗 0（m1171／N1／N2） |
+| G1 働いた | 下 | 植民地格（中核＞0）の余り＜0 の州×四半期 | ≧3,796（ヌル腕の最大 3,163×1.2 の切り上げ） | 4,107 | 2,767／3,163／2,647＝落ちる |
+| G2 形の一致 | 両 | 全ての行で |本体 pressureIndex−計器 pressureRuleOnceIndex|÷max(|後者|,1e-12) ≦1e-8 かつ milNationMeanIndex と milNationRebuiltOnceIndex の同じ相対の差 ≦1e-8（法の変わった国×四半期だけは許す） | 外れ 0 | 0 | 旗 0 は包摂＞0 の行で外れる＝落ちる（試験 ④ で確かめた） |
+| G3a 上（行ごと・G2 の上の半分と同じ） | 上 | pressureIndex ≦ pressureRuleOldIndex÷(1−旧の包摂)×(1＋1e-8)（旧の包摂 1 の行は pressureRuleOnceIndex×(1＋1e-8)） | 外れ 0 | 0 | 通る |
+| G3b 上（形に固有の誤り） | 上 | 本国の中核と編入で支配度が 0 に届いた州（goFlag＝1 の州の数） | ≦2（ヌル腕の最大 0＋2） | 0 | 0／0／0 |
+| G5 0 へ寄らない | 下 | 成人男子以上（monlaw_s の Suffrage≧2）の国×中核≦0.5 の州の余り＜0（格で分ける） | 植民地格（中核＞0）≧19（ヌル腕の最小 38 の半分）・本国の中核 ≧7（最小 14 の半分） | 189・25 | 157・23／235・37／38・14 |
+| G4 機構の番人（xUnit・新しい 1 本 PriceOfBread.Tests/SecessionInclusionOnceTests.cs） | 両 | 双子：①非植民地の少数派の州（中核 0.3・Granted・Suffrage AdultMale）で旗 1 の圧＞0（旗 0 は 0）②植民地格（中核 0.5）で None の MilNation ＞ OwnNationals の MilNation×1.5（旗 0 は等しい）③中核 1 の州で関税の乖離があれば旗 1 の圧＞0 かつ有限（旗 0 は 0）④計器の末尾 5 列の自己検査（4 国・24 四半期・旗 0 と旗 1） | 4 本とも緑 | — | 試験が旗を明示に置く＝旗 0 の盤面の向きも同じ試験の中で読む |
+- 記録（門にしない）：G1b 植民地格の圧＞閾値（紙 F0 199・100・176 → F2 361・275・414）・分離の件数（goFlag の州）・少数派の州の新÷旧・本国の中核の圧＞閾値（紙 F0 11・8・13 → F2 33・39・27）・G3c 本国の中核×holdShare≧0.01 の余り＜0（線 551＝m1171 の 219＋2×紙の効き 166・採否に使わない）・G5 の編入の群・旧と 1 回の規則が違う行の数。
+- 狙いどおり働いたかの段：G1（大きさ・ヌル腕の最大の 1.2 倍の外）と G2（形の一致）。G1 と G2 は旗 0 の盤面で落ちる（G1 は紙・G2 は試験 ④ の旗 0 の行）。符号だけの門は置かない。
+- 採否：G1・G2・G3a・G3b・G5・G4 が緑・止める線に当たらない → 採る（合流が旗の既定を 1 にする）。外れたら採らない（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ（旗 1 の出力を見た後のエンジンの変更は全て数える）。
+
+■ 段0 の予言（ソースと keep_1171 から・腕の前）
+- 向き：植民地格の余り＜0 は増える（紙 +48%・ヌル腕の幅 2,647〜3,163 の外）。本国の中核と編入の圧は 15〜17 倍・1.2 倍だが元が小さい（中央 0.001）＝支配度が 0 に届く州は 0 のまま。分離の件数は桁で動かない（律速は保持＝段 E が置き換える物）。
+- 闘争度の目標の少数派の項：植民地格 None で ×1÷(1−中核)＝植民地の州の闘争度が上がる → 不満度・蜂起の読み手（闘争度を読む物）にも同じ向き（記録）。
+- 見込みが〈悪くする〉ではない＝腕を回す。
+
+■ 突然変異ごとの門（㉚・腕の前の予言・紙と試験）
+| 突然変異 | G1 | G2 | G3a | G3b | G5 | 試験 ①②③④ |
+| M1 旗 0 に固定（エンジンが旗を読まない） | 赤（2,767） | 赤 | 緑 | 緑 | 緑 | ①②③④ 赤 |
+| M2 F1（:893 を人の版のまま残す） | 緑（紙 4,107） | 赤 | 緑 | 緑 | 緑 | ①③④ 赤・② 緑 |
+| M3 包摂をどこにも掛けない（:165 も外す） | 緑（紙 4,107＝F2 と同じ） | 赤（民族の闘争度） | 緑 | 緑 | 緑 | ②④ 赤 |
+| M4 Suffrage≧成人男子で包摂 1（:165 と :893 の両方・台帳の SecessionSuffrageFromLaw） | 赤（紙 2,610） | 赤 | 緑 | 緑 | 赤（紙 0・0） | ①③④ 赤 |
+| M5 :893 を逆向き 1÷(1−包摂) | 緑（紙 5,701） | 赤 | 赤 | 赤（紙 本国の中核 1,064・編入 6） | 緑 | ①③④ 赤 |
+- 限界：M3 は G1 で拾えない（:165 の非植民地の包摂は分離の件数では雑音の内＝〈分離では働いていない〉・採る理由にしない）。G3a は G2 の上の半分と同じ＝M5 は G2 でも落ちる。
+- 門の突然変異は紙（上の表）と、M1 は ident の旗 0 の生（計器つき 10 種）に門の台本を当てて確かめる。M2〜M5 の腕は回さない（紙＝限界の名乗り）。試験の突然変異は使い捨ての木（D:/PoB_work/wt_c116k1_mut）で SecessionInclusionOnceTests だけを回し、出力を measurements/m1173_20261116/tmut_M*.txt へ。
+
+■ ソースを走査する番人（㉘）と変わる件数の予言（㉑）（grep 2026-11-16・b9570c8a7）
+- IndustrializationReaderTests の許可表：Politics.cs・InstrumentsSecession.cs・InstrumentsRulePower.cs の行は無い＝変わらない。`new MoneyStock(` の件数：SimCore で 64・足す 0。route_anchors.tsv（75 行）：Politics.cs は 1 行（:1243 の革命の没収の Transfer・行の文で引く）＝この線は触らない・CheckSecession と RegionAvgSuffrageInclusion の鍵の行 0。
+- WriterRatchetTests の宣言の表：Secession・Suffrage の行 0。器（計器と旗 0）は件数を変えない。旗 1 は 40 四半期の軌道が動けば ±2% の内の予言。外れたら〈軌道の件数を写しただけの番人〉（★(749)）の取り直しとして verdict に列挙する。
+- InstrumentsPlacementTests：計器の新しいファイルは足さない（InstrumentsSecession.cs の中）＝数は変わらない。
+- DormantIdentityTests：器のコミットで DormantZeroFields に SecessionInclusionOnce を 1 行。旗 1 のコミットで表から外す（点火の注を 1 行）。
+- ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）に SecessionInclusionOnceTests と分離を読む試験 6 本（NationIdentityTests・RevoltIgnitionTests・RuleOnsetInstrumentTests・RuleOrderP1Tests・RuleSharesFormTests・SecessionLaborLawInstrumentTests）を足して回す。
+
+■ 旗 1 の木の番人の grep（㉜）
+- Tests で CheckSecession を直に踏む：RevoltIgnitionTests.cs:1267・RuleOnsetInstrumentTests.cs:188・RuleOrderP1Tests.cs:33・:178・RuleSharesFormTests.cs:23（300 回の Settle）・SecessionLaborLawInstrumentTests.cs:136。pressureIndex を読む：SecessionLaborLawInstrumentTests.cs:75・:144・:153。Politics.Step の闘争度を読む物は ㊴ で読む。
+- 旗 1 では中核 1 の州で関税の項の圧が立つ＝支配度を寄せる・区分の目標を読む試験（RuleSharesFormTests・RuleOrderP1Tests）が動きうる。〈旧の規則を固定〉の型（中核 1 の州の圧が 0 であることを前提に置く）なら止めて作者に聞く。★(826) ② の Theory 化の型（旗 0 と旗 1 の両方で同じ Assert）に当たるかを名乗る。
+- 試験の数：Tests 2660→2664（+4）・Tests.Ui 234＝合計 2894→2898・FullLength 3 のまま。
+
+■ 止める線（README の止める線の改めのとおり・この行をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）／1 四半期に 100 倍以上（全ての国の価格水準・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる）／1e10 倍以上／空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）／推定の計算量 ＞248.5 秒／機構の試験の赤（走査の番人を含む）。名目 GDP が 0 のまま 4 四半期以上続く国（人口 1 万以上・gdp_zero10.py）は記録の段の先頭。
+- 止める線の基準＝measurements/m1171_20261116/stopbase/（M・N1・N2・S11・台本 stoplines1002）。
+- 記録：NG（ng.sh・基準 rd:measurements/ng1171_20261116:m1171）・exact・near・nullgate（m1171・_n1_ins・_n2_ins）・開幕の 1000 倍以上・名目 GDP 0 の続き・英の国債の不履行の種の数・G1b・G3c・分離の件数。
+
+■ 計算量
+- 割り当て 0.2 秒。エンジン：:893 の掛け算 1 つを外し、:165 の州の関数は今と同じ POP の和の回数（人の版の switch が 1 つ増える）。計器つきだけ末尾 5 列の POP の和 1 回。分離が 10 種で 0〜2 件増える分の国の費用。2 秒以下＝1 本の腕で門にしない（合流の .cost で読む）。m1171 の推定 229.7 秒・名目の余り 18.8 秒。
+
+■ ident と腕と D:
+- ident：`bash scripts/instruments/ident/ident.sh run c116k1z --tree D:/PoB_work/wt_c116k1 --grown-ok secession_s --tests-delta 4`（段は stage.py・計器に触れる＝段 2 の見込み・走っている間はこの worktree にコミットしない）。
+- 重い仕事は起こす直前に shutil で〈35GB＋その量〉（ident 約 30GB・腕 B 約 26GB）を確かめ、届かなければ 240 秒以内の刻みで測り直して待つ。
+- 腕 B は `INS=1 bash scripts/instruments/batch.sh run c116k1B 10`（POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。腕 B の生は合流の判断まで消さない。
+- 印 D:/PoB_work/c116k1_work/k1.mark。
