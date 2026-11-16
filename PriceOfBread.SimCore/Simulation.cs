@@ -2422,8 +2422,10 @@ public sealed class Simulation
             sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value);
             if (!(sellLeft > 1e-12)) sellLeft = 0;   // 否定形＝NaN/非正の準備は売らない側へ
         }
+        bool capOnly = World.Coef.MintBuysAtCapital > 0;   // (1180) 旗 0（NaN・非正を含む）＝全ての州の旧の道
         foreach (var r in World.Regions)
         {
+            if (capOnly && !ReferenceEquals(r, World.Region)) continue;   // (1180) 旗 1＝首都の州（Regions[0]）の市場だけ
             if (r.GoodOf(metal) is null) continue;
             var m = r.Markets[metal];
             bool atMarket = m.Price > parity && gapLeft > 1e-9;   // atMarket〔履歴 Simulation.cs#327〕
