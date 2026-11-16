@@ -106,3 +106,12 @@
   - M2 → TradeT1Tests の M4（selfDiff）・M6（selfDiff）・M7（retreatDealsTol）が赤。M6 → M4（u1Viol 1,613）・M6（selfDiff）・M7（errOverIns 626）が赤。M10 → M6（selfDiff）が赤。
   - **予言の外れ**：M9 は errOverIns で赤と予言したが、12 四半期の盤面では errOverIns 0（TradeT1Tests.M7 は緑）・赤は selfDiff（M4・M6）。P̂(lp)＞P の行がこの盤面に無い〈推〉＝errOverIns の M9 への感度は限界と名乗る。
 - 試験の並べ替え（試験だけの別のコミット）：TradeT1RowAccTests の盤面 A で errOverBound の Assert を excessQtyAll の前へ（M11 が errOverBound で赤になることを示すため・Assert の文と期待値は変えない）。並べ替えた木で M11 を取り直す。
+
+[A2] 追記 2（2026-11-16・旗 1 のコミット 7e017c333 の後・㊴ の束の赤の区分・直す前に書いた・本文の門と規則は変えていない）
+- 旗 1 の短い走り（2 種×80 四半期・scripts/instruments/c116t1/short.sh・measurements/m1172_20261116/short80_flag1_gates.txt）：破綻 0/2・G2 の誤り 7 列は全て 0・ρ_X 1.038・G1 の数は 10 種全期間の床と比べられない（記録）。成績表の〈ハーネス不合格 2/2〉は基線 m1171 でも 7/10＝止める線ではない。
+- ㊴ の束（Instrument・TradeT1・TradeClearingTests・TradeSkipC4・DormantIdentityTests・WriterRatchetTests＝440 本）で赤 9 本：
+  (i) TradeClearingTests の 3 本（潜在量は同じ不足を売り手の数だけ重ねない・月の清算は潜在量を書かず容量の尽きた行を回さない ×2）＝赤の Assert は全て〈運べない買い手の潜在量が0（テスト前提の破れ）〉（:399・:463）＝上界の Assert（:393 の acc×need×wg）ではない。
+    区分：★(743) の〈軌道に依る前提（盤面の前提）〉＝盤面の買い手の在庫 4500・需要 5000 は旧の need（TS＋D−P−S＝550）で行が開く前提だった。A-1 は需要に (rpT÷u′)^ε を掛ける＝この盤面の値段（買い手 2.0×世界の値段・売り手 0.5〜0.6×）では倍率が 1 より小さく、行の門が閉じて前提が崩れた（機構の主張〈組ごとに 1 回〉〈月の清算は潜在量を書かない〉の赤ではない）。
+    旧の盤面に番人を固定する形に当たらない理由：直しは買い手の在庫を 4500→0 にするだけ（旧の need も A-1 の need も正＝旗 0 と旗 1 の両方で前提が立つ）＝旗を固定しない・Assert の文と閾値と旧の式の上界は変えない。対照の件数の Assert（調べた内陸の買い手の州の数≧2）を足す。旗 0 の木でも緑を確かめる（使い捨ての木）。直しを外す形（在庫 4500）は旗 1 で赤＝この束の出力そのもの（D:/PoB_work/c116t1_work/g39.mark.log）。
+    限界：:393 の上界は旧の need の式のまま＝この盤面では A-1 の need が旧の need 以下（倍率＜1）なので上界はゆるい側＝重ね数えの誤りの感度は旗 1 で下がる（(1144) の反証役の指摘のまま・直しは別の線）。
+  (ii) WriterRatchetTests の 6 行（1 種 40 四半期の軌道の件数＝★(749)〈軌道の件数を写しただけの番人〉・機構の向きと大きさを主張しない）：ConstructionSeen 2195→2411・DeadProdBankrupt 4476→6222・ConsumeSkipZeroPop 5200190→4609144・ConsumeZeroPopIndep 5200190→4609144・ZeroPopMonth 136828→121286・ZeroPopEmptyMonth 118177→104601。旗 1 の木の実測で取り直す（新しい計数の処理は無い・A-1 の 2 行は宣言の表に無い）。
