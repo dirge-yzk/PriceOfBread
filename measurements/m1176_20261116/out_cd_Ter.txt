@@ -1,0 +1,6 @@
+- 320: double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
+- 321: from.RailCapacity -= rail; from.ShipCapacity -= ship;
++ 196: double rail = Transport.TakeRailForMove(from, r, sh);
++ 197: double ship = from.ShipCapacity * sh;
++ 198: from.ShipCapacity -= ship;
+--

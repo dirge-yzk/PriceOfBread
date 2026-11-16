@@ -1,0 +1,60 @@
+- 2146: double gGar = World.Coef.GarrisonProcurement;
+- 2147: double capShare = r.Id == 0 ? 1.0 : 0.0;
+- 2148: double share = capShare;
+- 2149: if (gGar > 0 && natSoldiers > 1e-9)
+- 2150: {
+- 2151: double localSoldiers = 0;
+- 2152: foreach (var gp in r.Pops) if (gp.IsSoldier) localSoldiers += gp.Size;
+- 2153: share = (1.0 - gGar) * capShare + gGar * (localSoldiers / natSoldiers);
+- 2154: }
++ 1781: double share = r.Id == 0 ? 1.0 : 0.0;
+--
+- 2160: r.GarrisonShare = new Share(share);
+--
+- 2174: r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);
++ 1792: r.MilitaryBudgetCeiling = (r.Id == 0 ? milCap : 0);
+--
+- 2182: r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare.Value : (r.Id == 0 ? milCap : 0);
++ 1798: r.MilitaryBudget = (r.Id == 0 ? milCap : 0);
+--
+- 2332: double megaMark = claims;
+- 2333: if (payQuarter && World.SelfPower is not null && World.Diplomacy is { } payDip)
+- 2334: {
+- 2335: if (World.Coef.MegaprojectForeignYield > 0)
+- 2336: foreach (var mp in payDip.Megaprojects)
+- 2337: if (mp.IsComplete && mp.ForeignPartnerId >= 0 && mp.ForeignPrincipal > 1e-9
+- 2338: && World.Regions.Exists(hr => hr.Name == mp.Host))
+- 2339: claims += World.Coef.MegaprojectForeignYield * mp.ForeignPrincipal / World.FxRate;
+- 2340: }
+--
+- 2349: if (Instruments.On) Instruments.Claim(World, Instruments.Item.MegaForeignYieldQ, claims - megaMark);
+--
+- 2360: + r.MonumentBuildQueue + r.HigherEduFunding
++ 1933: + r.HigherEduFunding
+--
+- 2368: if (World.Coef.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
+- 2369: {
+- 2370: World.Cost[CostLedger.ClaimProducers] += r.Producers.Count;
+- 2371: foreach (var pr in r.Producers) AddStateClaim(pr, r, World, ref claims);
+- 2372: }
+- 2373: else
+--
+- 2464: r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
++ 2013: r.HigherEduFunding *= payRate;
+--
+- 827: var (city, share, resources, culture, religion, _, _, _, _, _) = p;
++ 732: var (city, share, resources, culture, religion, _, _, _, _) = p;
+--
+- 851: ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
++ 753: ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, 1.0, coef);
+--
+- 857: ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, coef);
++ 759: ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
+--
+- 871: else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;
+- 872: else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);
++ 768: else if (sharedWorld && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;
++ 769: else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon) && !Catalog.IsUbiquitousMineral(pr.GoodId, coef)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, ResourceSc
+--
+- 958: Malarial = p.Malarial,
+--

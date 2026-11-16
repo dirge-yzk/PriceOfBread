@@ -1,0 +1,27 @@
++ 490: [System.NonSerialized] internal double T1OutPrev, T1Base, T1Mc;
+--
+- 856: [System.NonSerialized] internal bool FlowAsleep;
+- 860: [System.NonSerialized] internal double ClearFailLp;
+- 863: [System.NonSerialized] internal Region[]? ClearPartners;
++ 594: internal bool FlowAsleep;
++ 595: internal double ClearFailLp;
++ 596: internal Region[]? ClearPartners;
+--
+- 1027: public Share GarrisonShare;
+--
++ 699: public double RailTrack;
+--
+- 1092: public bool Malarial;
+--
+- 1137: public double MonumentBuildQueue;
+- 1138: public double MonumentBuiltUnits;
+- 1139: public List<string> MonumentApplied = [];
+--
++ 767: [System.NonSerialized] internal double GdpOutputMemo;
++ 769: internal double OutputRefValue()
++ 770: {
++ 771: double g = 0;
++ 772: foreach (var s in Producers) { var good = GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
++ 773: return g;
++ 774: }
+--

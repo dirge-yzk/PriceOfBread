@@ -1,0 +1,9 @@
+CrownParliament.cs +Step:1 -Step:1
+MultiNationSim.cs +DistributeWorldRealIncome:5 +MultiNationSim:1 +ReabsorbNations:2 +StepDay:1 -(外):1 -DistributeWorldRealIncome:1 -MultiNationSim:2 -ReabsorbNations:2 -StepDay:2
+Meritocracy.cs +EmptySeatIncome:1 +FillJobs:6 +JobIncome:1 +SeatPayRate:1 +Step:4 -FillJobs:5
+TechEducation.cs 
+Military.cs -Step:1
+Fiscal.cs 
+PopClass.cs 
+Habit.cs 
+Catalog.cs 

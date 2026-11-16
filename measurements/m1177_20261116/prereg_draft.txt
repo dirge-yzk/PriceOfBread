@@ -1,0 +1,39 @@
+# (1177) c116bm B-1′ の前提（造幣の床）＝事前登録の下書き（生の数を読む前に書いた版・2026-11-16・Claude Opus 5.5）
+# 木：main b9570c8a7（読むだけ）。腕・ビルド・シミュは回さない。生は keep_1171/base_ins・n1・n2（読むだけ）。
+
+[0] 名乗る物（生を読む前に既に見た物）
+- mintreg_s1.tsv の頭の 2 行（1783 q0 フランス パリ・ルアーヴル：law 1・買い 3/3・stockAg 17.0／3.8・priceAg 0.439／0.421・平価 0.54）。表の頭（列の名）は mintreg・money・silverpar・metal・metalnat・silverst・monlaw・nation を見た。
+- 実装ログ (1168)〈10 種で coverShort 0・atMarket 0・造幣の買いは床の枝だけ・買えなかった月 33,945〉は数として知っている（予言の材料にした＝予言の判別力はその分だけ低い）。
+
+[1] 問い 1 の予言（ソースから）〈ソース〉
+- 被覆 coverage＝BaseMoney÷BroadMoney＝(TotalMoney＋Treasury−Loans)÷TotalMoney＝1＋(Treasury−Loans)÷TotalMoney（World.cs:761・:2258）。
+- 与信の上限 maxLoans＝bank.Gold×(CreditMultiplier−1)＝BaseMoney×(1−退蔵率)×2（Credit.cs:14・:40）・退蔵率≧0.1（:12〜:13・HoardPanicWeight 1＝信頼が落ちると上がる側だけ）＝maxLoans≦1.8×BaseMoney。
+- ⇒ Treasury≧0・平時（LoL R なし）・与信が目標に追いついた形では Loans≦1.8B ⇒ TotalMoney≦2.8B ⇒ coverage≧1÷2.8＝0.357＞目標 0.325（GoldCoverMin 0.25×GoldRejoinCoverMargin 1.3）。
+- 下回れる道は 3 つだけ：(a) 危機の最後の貸し手 lolrBoost 0.5（effMax≦2.7B ⇒ coverage≧0.270）(b) Treasury＜0 (c) 与信の遅れ（CreditAdjustSpeed 0.05／月）で TotalMoney が急に縮んだ月。
+- 予言 P1：money_s の全ての国×行で coverage＜0.325 は 0 行か、全行の 0.1% 未満で、どの行も (a)(b)(c) のどれかに当たる。coverage の最小は 0.357 の近く（金本位の国は Credit.cs:41〜:46 の抑え 0.375 の下で抑えが掛かる）。
+- 予言 P2：mintreg_s の coverShortM・atMarketM・gapM の 10 種の和＝0（(1168) のとおり）。modelMissM＝0。
+- 読みの言い方：被覆の目標の枝（G3＝市場の値段で買う枝）は〈休眠〉＝造幣は床の枝だけで動く。根は〈目標 0.325 が信用の代数の下限 0.357 より下〉。
+
+[2] 問い 1 の残り（mintreg_s で国×四半期）
+- 列：理由ごとの月（fiatM・noGoodM・noStockM・aboveM・gapM）・boughtM・notPaidM・州の stockAg÷demandAg・持ち主の law。
+- 予言 P3〈推〉：本位の国（law 1・2）の、本位の金属の市場がある州×月で、買わなかった月の最多の理由は noStock（6 割以上）。aboveM は 1〜4 割。
+- 予言 P4〈推〉：銀の在庫（stockAg）の世界の和のうち、持ち主が銀本位でない州（law 0・2）にある割合 S_out は、1870 年より前は 3 割未満・1890 年より後は 5 割以上。その州の在庫÷需要は銀本位の持ち主の州の 2 倍以上。
+- 予言 P5〈推〉：造幣が買った銀の量（qtyAg）の 7 割以上は銀を産む州（prodAg＞0）で買われる。首都の州（各国の Regions[0]）で買った量は 3 割未満。
+- 予言 P6〈推〉：notPaidM は〈売り手の代金の受け手が居ない〉州（PaySales が 0）＝産地でない小さな州に寄る。
+
+[3] 床が根か置き場が根かの分け方（読みの規則・門ではない・結果を見た後で変えない）
+- 母集合 U＝law が 1 か 2 の国の州×月のうち本位の金属の市場がある物（months−fiatM−noGoodM）。
+- F_noStock＝noStockM÷U・F_above＝aboveM÷(U−noStockM)・F_bought＝boughtM÷U。
+- 〈置き場が根〉＝F_noStock≧0.5 かつ（S_out≧0.25 の時代がある か 非銀本位の持ち主の州の在庫÷需要が銀本位の持ち主の州の 2 倍以上）。
+- 〈床の値段の条件が根〉＝F_above≧0.5（在庫がある月の半分以上が平価超えで買わない）。
+- 〈被覆の目標が根〉＝P1・P2 が当たる（目標の枝が一度も開かない）。
+- 両方・どれでもない時はそのまま書く。B-1＝1 の盤面の生は無い（keep_1150_rej の c112t1 は消えた〈推・確かめる〉）＝基線の旗 0 の盤面だけで読み、B-1＝1 の崩れへのつなぎは〈推〉と書く。
+
+[4] ヌル腕の幅
+- n1・n2 にも mintreg_s がある。P3〜P5 の割合を基線・N1・N2 で並べ、幅（最大÷最小）を書く。money_s は n1・n2 に無い＝P1 は基線だけ。
+
+[5] 門の素案の決め（問い 3）
+- 閾値は 1＋2×(幅−1)（幅＝基線・N1・N2 の同じ量の最大÷最小）。幅の量は〈越境の銀の量〉と〈輸入の額〉を tb_s・nationgood_s から数える（読み手を書く前に列の名を grep する）。
+- 旗 0 で落ちることは旗 0 の盤面（基線）で数えて書く。
+
+[6] 案は生を読む前に次の 4 つを並べる（中身は生を読んだ後に詰める）：2b″（首都の州の市場で平価で買う）・3（割る数を相対）・床を外す（思想⑧）・何もしない。案 4（A-L）は採らない。

@@ -1,0 +1,7 @@
+Simulation.cs +ApplyEndowment:2 +BuildProvince:4 +CatalogEconomy:1 +DivideCostByEndowment:1 +EnsureScarceCounts:3 +MintGold:3 +MonthSettle:5 +PromoteColonyToRegion:4 +ScarceEndowment:1 +Simulation:2 -AddAdvancedProducers:2 -AddAlternateRecipes:1 -ApplyEndowment:2 -BuildProvince:5 -CatalogEconomy:1 -EnsureScarceCounts:4 -MintGold:2 -MonthSettle:9 -PortChoice:1 -PromoteColonyToRegion:4 -ScarceEndowment:1 -Simulation:4
+EconomyStep.cs +AddConsWithCarry:1 +Run:22 +StatePriceAfford:1 +SupplyTargetAt:1 -Run:16 -StatePriceAfford:1
+Territory.cs +TransferRegion:1 -TransferRegion:1
+Model.cs +OutputRefValue:1 +RuleStateTenYearsAgo:1 +StdReplacementRate:2 +StockpileFactor:1 -RuleStateTenYearsAgo:1 -StdReplacementRate:1 -StockpileFactor:2
+World.cs +AddProximityTension:1 +MilitaryExportAccess:4 +SpendableRevenue:1 -AddProximityTension:1 -SpendableRevenue:1 -StateProfitShare:1
+LaborSupply.cs 
+PopDecision.cs 
