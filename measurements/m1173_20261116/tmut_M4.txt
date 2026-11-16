@@ -1,0 +1,8 @@
+# (1173) 試験の突然変異 M4・ビルド rc=0・試験 rc=1
+失敗 PriceOfBread.Tests.SecessionInclusionOnceTests.中核1の州は関税の乖離があれば旗1で圧が正かつ有限_旗0は0 [2 s]
+失敗 PriceOfBread.Tests.SecessionInclusionOnceTests.非植民地の少数派の州は移民原住民参政権が付与でも旗1で圧が立ち_旗0は0 [77 ms]
+失敗 PriceOfBread.Tests.SecessionInclusionOnceTests.計器の末尾5列は旗0の本体の圧が旧の規則に_旗1の本体が1回の規則に合う [35 s]
+失敗!   -失敗:     3、合格:     1、スキップ:     0、合計:     4、期間: 38 s - PriceOfBread.Tests.dll (net10.0)
+[xUnit.net 00:00:04.39]     PriceOfBread.Tests.SecessionInclusionOnceTests.中核1の州は関税の乖離があれば旗1で圧が正かつ有限_旗0は0 [FAIL]
+[xUnit.net 00:00:04.52]     PriceOfBread.Tests.SecessionInclusionOnceTests.非植民地の少数派の州は移民原住民参政権が付与でも旗1で圧が立ち_旗0は0 [FAIL]
+[xUnit.net 00:00:39.99]     PriceOfBread.Tests.SecessionInclusionOnceTests.計器の末尾5列は旗0の本体の圧が旧の規則に_旗1の本体が1回の規則に合う [FAIL]
