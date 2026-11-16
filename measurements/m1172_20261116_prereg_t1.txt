@@ -1,0 +1,94 @@
+(1172) c116t1 事前登録：貿易 T1 の 3 回目（最後）＝段 T1-0′ の計器（恒等・段 2）→ 旗 0 で床と ρ_ins を数えて追記 → A-1 の旗 TradeBuyBySupplyCurve を 1
+書いたモデル：Claude Opus 5.5。2026-11-16。枝 c116t1（b9570c8a7 から）。基線 m1171（BASE_COMMIT 26fe1c6d7・成績表 b10_20261116_m1171_ins・b5_20261116_m1171・INSRAW keep_1171/base_ins）。
+この文の門と形は全て〈AI の案・確証なし〉（下書き docs/202611/20261116/20261116_貿易のT1の3回目_下書き.md と measurements/m1170_20261116/prereg_draft.txt を写し、(1171) の反証役の訂正 6 件を入れた）。〈決まった〉物ではない。
+作者の言葉：2026-11-09「よし、では貿易を先にやる前提で、残りタスクを最適化して出力して。」・自給率と貿易の少なさ「これは修正対象です」・2026-11-12〈置き換えの設計から〉「それでよい」。§0-2 ★(1164) ①②は作者「しばらくの間、全て推奨で」で推奨を採った（作者の確認待ち）。
+開いていない物：measurements/m1159_20261115/short80_flag1.txt・(1159) の v・v2 の数・keep_1164_rej の旗 1 の生。門の床に使わない。
+
+[0] 名乗る物
+1. 3 回の規則の 3 回目（最後）。落ちたら T1（A-1）を外し、4 回目の腕は回さない（[9]）。
+2. 形は〈入口〉（清算の買いの行の門と量の天井）。エンジンの式は (1144)→(1159) の枝のまま（変えない）。新しい係数・状態・閾値・床・天井は 0。旗は既存の TradeBuyBySupplyCurve だけ。
+3. 足すのは計器の列だけ（段 T1-0′・旗 0 で恒等・段 2）。エンジンの .cs は触らない。計器の状態は T1State（ConditionalWeakTable の中）に置く（エンジンの欄は足さない）。
+4. 門は (1170) の下書きの規則のまま（G1・G2・G3）。床の〈値〉は段 T1-0′ の ident（旗 0・計器つき 10 種）で数え、追記 [A1] で旗 1 の前に写す。数えた後に規則を変えない。
+
+[1] 言葉の定義（計器が自分で数える・エンジンの関数を呼ばない）
+- 行＝買い手の州 t×財 g×清算の月（StepBilateral の buyers の環で T1Row が 1 回呼ばれる単位）。行の値は T1Row の呼びの時点で読む：P＝m.LastProduced・D＝m.LastDemand・TS＝m.TargetStock・S0＝m.Stock・I0＝m.LastImport（成約の前）。
+  許し tol_row＝T1TolRel×max(P, D)＋T1TolAbs（1e-9・1e-6＝既存の定数）。
+- 成約 d（T1Deal の呼び・国内の州どうしを含む全て）：u′_d＝min(unitA_d, lp)・root_d＝(rpT÷u′_d)^ε・pow_d＝(rpT÷unitA_d)^{2ε}（ε＝PriceElasticity）。y_d＝その成約の前のその行の累積の買い（qA の和）。
+- Q_eng(d)＝エンジンがその成約に使った Q（旗 0 は NaN）。Q_ins(d)＝min(P, T1PHat(u′_d÷為替))（既存の計器の式・負や NaN は P）。u′ が作れない成約（u1Unok）は Q_ins を NaN とする。
+- 行の退き R_row＝P − min_d Q_eng(d)（Q_eng が有る成約だけ・tol_row 以下は 0・負も 0）。旗 0 は Q_eng が全て NaN＝0。
+  計器の影の退き R_ins_row＝P − min_d Q_ins(d)（同じ許し）＝旗 0 でも値が出る＝門にしない（床の材料だけ・★(790)）。
+- 退きを除いた影の天井 Y_sh(d)＝min(D·pow_d − P − I0, TS + D·max(1, root_d) − P − S0)（Q を P に戻した形）。
+  影を越えて移った量 e_d＝qA_d − max(0, Y_sh(d) − y_d)、tol_row 以下は 0。**access を掛けない**（prereg_draft [1] の形・(1171) の訂正【高】）。u′ が作れない成約は e_d＝0。
+  E_row＝Σ_d e_d（excessQtyAll の 1 行分）・E_row^X＝越境の成約の e_d の和（excessQtyX）。spread_row＝max_d Y_sh(d) − min_d Y_sh(d)（有限の値だけ・成約が 1 つなら 0）。
+- 紙の上界：access≦1（Diplomacy.cs:680 の ClampOr(·, 0.1, 1.0)・阿片の LeakFraction∈[0,1]）で qA_d≦max(0, Y_A1(d) − y_d)、Y_A1(d) − Y_sh(d)≦P − Q(d)。区間 [max(y_d, Y_sh(d)), y_d+qA_d] は互いに素で [min Y_sh, max Y_A1] に入る＝E_row≦R_row＋spread_row。
+  旗 0：qA_d≦access×max(0, Y_old(d) − y_d)≦max(0, Y_sh(d) − y_d)（Y_old＝旧の xPrice・xNeed の天井≦Y_sh）＝e_d＝0（構成上・許しの内）。
+- ρ_ins（旗 0 の盤面の反実仮想＝**門にしない**・[A1] の go／no-go の予言の材料だけ）：
+  分子＝qtyX＋excessQtyInsX＋excessQtyInsPopA・分母＝qtyX（どれも t1buy_s の 10 種・全期間の和）。
+  excessQtyInsX＝成約のある行ごとに h_row＝max(0, max_d Y_A1ins(d) − y_end) を、その行の越境の割合 Σ_X qA÷Σ qA で振り分けた和（Y_A1ins(d)＝min(D·pow_d − Q_ins(d) − I0, TS + D·root_d − Q_ins(d) − S0)・y_end＝行の買いの和）。
+  excessQtyInsPopA＝popA の行（旧の門で飛ばし UB_Bb≦0＜UB_A1 の行・旗 0 では成約しない）ごとに max(0, min(UB_A1(u_min), D·(rpT÷u_min)^{2ε} − (Q(u_min)＋I0)))＝越境と国内に分けずに全て越境に数える（上側）。
+  ＝access・予算・容量・売り手の側の天井を掛けない同じ盤面の上側の見込み。旗 1 の盤面は退いた後で違う＝ρ_X の上界の証明ではない（限界）。
+- 新しい計器の列（t1buy_s の末尾・この順・列名で読む）：rowsDealt・rowsDealtX・retreatRowN・retreatRowSum・retreatRowInsSum・retreatRowInsN・excessQtyX・excessQtyAll・errNegQ・errOverIns・errOverBound・excessQtyInsX・excessQtyInsPopA（13 列＝下書き §1 の 11 列＋ρ_ins の 2 列）。
+  rowsDealt＝成約が 1 回以上の行・rowsDealtX＝越境の成約が 1 回以上の行・retreatRowN＝R_row＞0 の行・retreatRowInsN＝R_ins_row＞0 の行。
+  errNegQ＝Q_eng(d)＞P＋tol_row の成約・errOverIns＝R_row＞R_ins_row＋tol_row の行（Q_eng の有る行だけ）・errOverBound＝E_row＞R_row＋spread_row＋tol_row の行（旗 0 の行は R_row＝0 で数える）。
+- 行の終わり＝次の T1Row の呼びか T1Table の呼び（四半期の表を書く前）。
+
+[2] 門（両側・規則はここで固定・腕 B の種 1〜10 で確かめ・採否は合流の種 11〜20 で 1 回）
+- G1 働き（下側・行ごとに 1 回）：retreatRowSum（10 種・全期間）≧ ⌊retreatRowInsSum(旗 0)÷4⌋ かつ retreatRowN ≧ ⌊retreatRowInsN(旗 0)÷4⌋。1/4 は (1144) [3] の型。旗 0 と M2 は構成上 0＝落ちる。
+  **床が 0 になったとき**（どちらかの ⌊÷4⌋ が 0）：G1 は門にならない＝★(719)＝旗 1 を回さず合流へ（3 回目に数える）。数える前にここで固定した。
+- G2 その形に固有の誤りの上限（どれも 0 件）：errNegQ・errOverIns・errOverBound（access を掛けない上界）・uBelowMin・u1Viol・gateMismatch・selfDiff。
+  旗 0 の u1Viol は 350,380（keep_1171/base_ins・10 種）＝旗 0 で落ちる。上側の門は〈壊さない〉の門で、働きの証拠にしない。
+- G3 移った量（下側・同じ走りの影・案 A）：ρ_X＝ΣqA^X÷(ΣqA^X − ΣE^X)＝qtyX÷(qtyX − excessQtyX)（10 種・全期間）≧ 1.01。旗 0 と M2 は構成上 1.0。1830／1870／1913 の年の ρ_X は記録。
+- 母集合（★(1164) の 3 つ目の規則）：G1〜G3 は〈成約のある行〉と〈越境の成約〉＝旧の dealsX・qtyX と同じ成約を行に束ねただけ（区分を作り直さない）。rowsDealtX と dealsX の差は旗 0 で数えて [A1] に書く。
+- 記録（採否に使わない）：腕どうしの越境の輸入の額と量（案 B・ヌル腕の幅 1830 ±8.7%・1870 ±5.0%・1913 ±16.4%＝見分けられない〔(1170) A1・m1164〕・m1171 の幅は paper_flag0_keep1171.txt [3]＝1830 +14.7%・1870 −3.6%・1913 −14.4%）・W2(a)・W2(a)′・R1（最大の輸出国の取り分）・R2（主食を輸入に頼る国）・R5（翌月の (S−TS)÷D の 99 分位）・disccontact_s・retreatQtySum。
+- 符号だけの門・〈最大以下〉の門は置かない。外した物差し（補給崩壊の倍化・exact・near・NG の集合）は門にしない（★(675) の点検：この文に〈補給崩壊…倍〉〈10pt〉〈NG の正味〉は無い）。
+- 採否：G1・G2・G3 と止める線の全て。1 つでも外れたら採らない（読み替えない・物差しを替えない）。形の変え直しは 1 回だけ（⑭）。
+
+[3] 突然変異（㉚・1 本ずつ・腕の前に使い捨ての木で計器の自己検査と門の台本で確かめる）
+| # | 変更 | 赤になる門・試験（予言） | 限界（赤にならない物） |
+| M1 | 旗 0 | G1（0）・G3（1.0）・u1Viol＞0 | G2 の他の列は緑（上側） |
+| M2 | Q＝P（A-1 の Q を P に） | G1（R＝0）・G3（e＝0） | G2 は緑 |
+| M3 | 行の門の u_min を lp に | gateMismatch（InstrumentsBuyShadow.cs の T1Row の計器の門と食い違う）（(1171) 訂正【低】） | uBelowMin は殺す突然変異の無い〈壊さない〉の番人＝限界 |
+| M4 | 行の門の述語を逆に（旧の門で飛ばす） | gateMismatch・G3 は旧の門が閉じた行の分が消える | G3 は 1.01 を越えたままの恐れ＝限界 |
+| M5 | 漏れを戻す（全ての生産者の写しを 0 へ） | TradeT1Tests.M3・.cost の ClearingA1Invalidate の件数 | 門は緑 |
+| M6 | 成約ごとに退きを重ねる（Q_d＝P − Σ_{d'≦d}(P − P̂(u′_{d'}))） | G2 errOverBound・errOverIns | — |
+| M7 | 計器：退きを成約ごとに足す | 自己検査〈1 つの行に 3 つの成約で retreatRowSum を 1 回〉 | G1 は大きく出るだけ＝門では赤にならない |
+| M8 | 計器：影の天井に Q を使う（P に戻さない） | G3（ρ＝1.0）・自己検査〈旗 1 の形の盤面で e＞0〉 | — |
+| M9 | 初版の Q＝P −(P̂(lp) − P̂(u′))（min を外す） | errOverIns（P̂(lp)＞P の行） | P̂(lp)≦P の行は緑 |
+| M10 | u′ の代わりに unitA | selfDiff | errNegQ・errOverIns は緑 |
+| M11 | 計器：影の上界に access を掛ける（e＝qA − a×max(0, Y_sh − y)・a＝0.5） | 自己検査〈access 0.5・同じ行に 3 つの成約・Q＜P〉で errOverBound＝1 | — |
+- エンジンの突然変異（M2〜M6・M9・M10）は使い捨ての木で旗 1 の短い試験（TradeT1Tests と自己検査）で赤を確かめる。腕（成績表）で回すのは費用が大きい＝試験で確かめ、門の台本で列の向きを読む。赤にならない物は限界と名乗る。
+
+[4] 計器の自己検査（新しい試験 1 本・盤面は試験の中で置く・★(1136)・期待値は手で置いた数）
+- 盤面 A（access 0.5 の形・同じ行に 3 つの成約・Q＜P）：P 50・D 100・TS 20・S0 30・I0 0・D·pow 1000・root 1・Q＝45, 42, 40。qA＝0.5×(Y_A1 − y)＝22.5・12.75・7.375。
+  期待：retreatRowSum＝10（1 回だけ）・retreatRowN 1・excessQtyAll＝2.625・errOverBound 0・errNegQ 0。M11（a＝0.5）なら E＝11.5＞10＝errOverBound 1。M7 なら retreatRowSum＝5＋8＋10＝23。M8 なら E＝0。
+- 盤面 B（spread 0・access 1・Q 40 で 30＋20）：E＝10＝R＝上界にちょうど一致・errOverBound 0。
+- 盤面 C（旗 0 の形：Q_eng NaN・qA≦Y_old − y）：excessQtyX 0・retreatRowSum 0・errOverBound 0。
+
+[5] 計算量
+- 止める線：腕 B の .cost の推定の計算量＞248.5 秒（名目）。m1171 は 229.7 秒＝名目の余り 約 18.8 秒・保守側（★(1035)）は約 0 秒。
+- 上側の見込み 21.6 秒〈推〉は名目の余り 18.8 秒を超えうる（名乗る）。(1144) の木の実測は A-1 の台帳の行 3.89 秒（B-1 と重ねた腕・記録）。
+- 並べる行：ClearingA1Eval・ClearingA1Invalidate の件数と推定・清算の〈見た買い手行〉〈着値の充填〉の件数と推定・推定の合計（旗 0 の m1171 と同じ表に）。計器は .cost の件数に入らない（計器の列だけ＝恒等の段で .cost が一致）。
+
+[6] 止める線（README のとおり・結果を見る前に写した）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（pxmonth の priceLevelIndex の 3 か月の比・nation_s の名目 GDP の 1 四半期の比・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期〔㊳〕は基準とヌル腕を同じ台本で数え直して並べる）・1e10 倍以上・推定の計算量＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+- 空洞化：python scripts/instruments/hol/an_h2.py <出力>/ins -v4・ピークの 1/10 未満・規則 A2（-ex rule）の外・**その線が原因と読めた件だけ**＝基線（keep_1171/base_ins）の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（記録の先頭）。
+- 記録の段：名目 GDP が 0 のまま 4 四半期以上（scripts/instruments/m808/gdp_zero10.py）・開幕の 1000 倍以上（同じ国で半分以上の種なら NG）・NG（ng.sh・基準 rd:measurements/ng1171_20261116:m1171・出力は D:/… で渡す）・nullgate.py（記録）・exact・near・英の国債の不履行の種の数。
+
+[7] ソースを走査する番人（㉘）と件数の予言（㉑）・旗 1 の木の grep（㉜）
+- 段 T1-0′ は Instruments/InstrumentsBuyShadow.cs と試験 1 本だけ＝工業化度の読み手の許可表・`new MoneyStock(`（SimCore 64 件）・route_anchors.tsv の鍵の行（BilateralMarket.cs の行は触らない）・WriterRatchetTests の宣言の表に触れない＝変わる件数の予言 0。試験の数は Tests +1（TESTS_NONFULL 2894→2895・--tests-delta 1）。
+- ident の宣言：--grown-ok t1buy_s（末尾 13 列）。.cost は一致（計器は件数に入らない）。
+- 旗 1 のコミット：Coefficients.p04_trade.cs:112 の 0.0→1.0・DormantIdentityTests.cs:101 の行を〈点火＝この表から外した〉の注へ移す。番人の件数の予言：DormantIdentityTests の名簿 −1（件数の Assert は無い＝grep で確かめた）・他の走査の番人は 0。
+- ㉜ grep（旗 1 の木で旧の規則を固定する番人の候補）：
+  - TradeClearingTests.cs:389〜:397〈潜在量は同じ不足を売り手の数だけ重ねない〉の上界 need＝TS＋D−P−S（旧の xNeed の式）。旗 1 で赤なら〈機構の番人が旧の規則そのものを固定している〉型＝書き換えずに止め、報告の pending の先頭に〈作者に聞く物〉として推奨つきで書く（推奨＝上界を A-1 の式で試験の中から独立に組み直す別の線）。
+  - TradeSkipC4dTests.cs:44〜:57（xNeed の手計算）・TradeSkipC4Tests.cs:95〜（理由の振り分け）＝旗の明示の有無を旗 1 の木で確かめる。
+  - WriterRatchetTests〈計算量の見た件数は宣言した表を超えない〉は 1 種 40 四半期の軌道の件数＝旗 1 で許しを超えた行は ★(749) の〈軌道の件数を写しただけの番人〉として取り直し、報告に列挙する（機構の向きと大きさを主張しない物だけ）。
+  - TradeT1Tests.cs:24〜:25 は旗を明示する（既定に依らない）。
+- ㊴：旗 1 にしたら、フルスイートの前に計器の試験の束（FullyQualifiedName~Instrument と TradeT1Tests）を先に回す。赤が ★(743) の区分で名乗れる〈試験のバグ〉なら同じ線で試験だけの別のコミットで直す（直す前に追記で区分を書く）。名乗れない赤は止める。
+
+[8] 周辺の点検（既にある生とソースだけ・記録）
+- TargetStock を読む行（BilateralMarket.cs:815・:897〜:911・:1063〜:1068）。物価の安い国（清は投入の側・英は自己費用の側）の費用の分解（s4cost_s）。hd（c116hd）が TargetStock を変える＝合成は合流が ★(1143) で読む（この線は読まない）。
+
+[9] 3 回目も落ちた時（下書き §7）
+- T1（A-1）を外す。4 回目の腕は回さない（★(685)）。器の扱いの推奨は案 X（恒等の線で A-1 の枝・旗・写し〔Model.cs:490・EconomyStep.cs:914〜〕・台帳の 2 行・t1buy_s を消す・tb_s は B-1′・T2 の読み手に残す）＝00一覧〈次の波〉へ（合流が書く）。量の門は B-1′・T2 で取る（★(1164) ② のまま）。
+
+[10] 作者に聞く物：無し（推奨で進める）。旗 1 の木で [7] の TradeClearingTests が赤になったときだけ、止めて聞く。
