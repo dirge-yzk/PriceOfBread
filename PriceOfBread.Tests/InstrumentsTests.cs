@@ -31,7 +31,17 @@ public class InstrumentsTests
         return sim;
     }
 
-    private static void RunMatch(MultiNationSim sim, int quarters, bool instr, Action<MultiNationSim>? afterWarmup = null)
+    /// <summary>(1181) 戦争を試験の中で置く：四半期の頭に、仏とプロイセンが交戦中でなければ仏から宣戦する（DeclareWar は交戦中なら false を返すだけ）。
+    /// 旧の盤面は 100 四半期のうちに自然に戦争が起きることに依り、旗を重ねた木（t1＋k1＋hd）では 1 度も起きず 3 本が赤になった（★(1178)）＝軌道に依る前提を置き直す。</summary>
+    private static void PlaceWar(MultiNationSim sim, int quarter)
+    {
+        var d = sim.Diplomacy;
+        var fr = d.Powers.Find(p => p.BaseName == "フランス"); var pr = d.Powers.Find(p => p.BaseName == "プロイセン");
+        Assert.True(fr is not null && pr is not null, "前提が崩れた：仏かプロイセンの力が無い");
+        d.DeclareWar(fr!, pr!, sim.Coef);
+    }
+
+    private static void RunMatch(MultiNationSim sim, int quarters, bool instr, Action<MultiNationSim>? afterWarmup = null, Action<MultiNationSim, int>? beforeQuarter = null)
     {
         if (instr) Instruments.Phase(sim, 1789UL, "open");
         sim.StartWarmup();
@@ -42,6 +52,7 @@ public class InstrumentsTests
             int liveNationQuarters = 0;   // (982) B12 生きている国×四半期（国が死んで行が止まる型を四半期ごとに数える）
             for (int q = 0; q < quarters; q++)
             {
+                beforeQuarter?.Invoke(sim, q);   // (1181)
                 sim.StepQuarter();
                 if (instr) Instruments.Quarter(sim, 1789UL, q);
                 Assert.True(sim.Nations.Count >= 4, $"前提が崩れた：四半期 {q} の国が {sim.Nations.Count}（4 未満）＝〈4 * 四半期〉の床は国が減らないことに依る");
@@ -274,11 +285,12 @@ public class InstrumentsTests
         try
         {
             Instruments.Configure(dir, null);
-            try { RunMatch(Make(), WarQ, instr: true); }
+            try { RunMatch(Make(), WarQ, instr: true, beforeQuarter: PlaceWar); }   // (1181) 戦争は試験の中で置く
             finally { Instruments.Configure(null, null); }
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            Assert.True(nr.Count(r => Col(nh, r, "atWarMonths") > 0) >= 1, "(1181) 対照：交戦の月が立つ行が 1 つも無い＝置いた戦争が国×四半期の表に写っていない");
             Assert.True(nr.Count >= 4 * WarQ, "国×四半期の行が足りない");   // 建国（分離独立）で国が増えるので4国より多くてよい
             Assert.Equal(4 * WarQ, nr.Count(r => int.Parse(r[Array.IndexOf(nh, "nationIndex")]) < 4));   // 最初の4国は全ての四半期に1行ずつ（死んだ国も）
             Assert.Equal(nr.Count, nr.Select(r => (r[Array.IndexOf(nh, "quarter")], r[Array.IndexOf(nh, "nationIndex")])).Distinct().Count());
@@ -364,10 +376,11 @@ public class InstrumentsTests
         {
             var sim = Make();
             Instruments.Configure(dir, "*");
-            try { RunMatch(sim, WarQ, instr: true); }
+            try { RunMatch(sim, WarQ, instr: true, beforeQuarter: PlaceWar); }   // (1181) 戦争は試験の中で置く
             finally { Instruments.Configure(null, null); }
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            Assert.True(nr.Count(r => Col(nh, r, "atWarMonths") > 0) >= 1, "(1181) 対照：交戦の月が立つ行が 1 つも無い＝置いた戦争が国×四半期の表に写っていない");
             var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
             Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
             int iqN = Array.IndexOf(nh, "quarter"), inN = Array.IndexOf(nh, "nation");
@@ -1227,10 +1240,11 @@ public class InstrumentsTests
         {
             var sim = Make();
             Instruments.Configure(dir, "*");
-            try { RunMatch(sim, WarQ, instr: true); }
+            try { RunMatch(sim, WarQ, instr: true, beforeQuarter: PlaceWar); }   // (1181) 戦争は試験の中で置く
             finally { Instruments.Configure(null, null); }
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            Assert.True(nr.Count(r => Col(nh, r, "atWarMonths") > 0) >= 1, "(1181) 対照：交戦の月が立つ行が 1 つも無い＝置いた戦争が国×四半期の表に写っていない");
             foreach (var c in new[] { "militaryMoveOutcomeCode", "militaryMoveIncreasingFlag", "militaryMoveCurrentShare", "militaryMoveTargetShare", "militaryMoveNetSupportIndex", "militaryMoveResistIndex", "militaryMoveResistTradIndex", "militaryMoveResistModernIndex", "militaryMoveResistMassIndex", "militaryMovePushBudgetFactor", "militaryMoveOpenFrontsCount", "militaryMoveStepFraction", "politicalCapitalSpentIndex", "politicalCapitalMaxIndex" })
                 Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
             var c0 = sim.Nations[0].World.Coef;
