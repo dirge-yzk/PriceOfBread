@@ -83,8 +83,7 @@ public static class MarketFlow
                         mwFloor = MinimumWageFloor.AbsFloor(region, gi, wrp * effWageMax, minWage);
                         if (cost is not null) cost[CostLedger.MinimumWageBasketScans] += region.Goods.Count + region.Producers.Count;
                     }
-                    bool bandFloorOff = coef.LaborBandFloorOffGate > 0;
-                    bool laborClosed = h > 1 && bandFloorOff;
+                    bool laborClosed = h > 1;   // (1175) 帯の床の撤去（旗 LaborBandFloorOffGate 既定 1 を焼いた）
                     double P = m.Price, RW = m.ReservationWage;
                     int run = 0;
                     while (run < h)
@@ -96,7 +95,7 @@ public static class MarketFlow
                         double rwSpeed = target >= rw ? coef.ReservationWageRisePerDay : coef.ReservationWageFallPerDay;
                         rw = PoliticalQuantities.Toward(rw, target, rwSpeed);
                         double want = System.Math.Max(target, rw);
-                        double p1 = bandFloorOff && want < wrp
+                        double p1 = want < wrp
                             ? System.Math.Max(want, Eps)
                             : SoftBandLn(want, wrp, lnFloorWage, lnCeilWage, k);
                         bool free1 = laborClosed && run == 1 && want < wrp && !(mwFloor > 0 && p1 < mwFloor);
@@ -163,7 +162,7 @@ public static class MarketFlow
             else
             {
                 double rp = System.Math.Max(good.RefPrice * pl, Eps);
-                double demandRaw = coef.PriceLawSeesExports > 0 ? totalDemand + m.LastExport : totalDemand;
+                double demandRaw = totalDemand + m.LastExport;   // (1175) 輸出も値段に映る（旗 PriceLawSeesExports 既定 1 を焼いた・需給差の需要の側に前の月の輸出を足す・在庫の目標には入れない）
                 double P0 = m.Price;
                 bool pinned = !(supply > Eps * demandRaw) && P0 > rp;
                 if (closedGoods)

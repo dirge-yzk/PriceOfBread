@@ -55,14 +55,6 @@ public class TradeClearingTests
     }
 
     [Fact]
-    public void 既定はフルスタック点火済み()
-    {
-        // ★2026-08-30 点火宣言（batch10段階測定＝貿易/GDP 0.5%→42〜66%・開放度次元が初の非ゼロ・本国96.7/経済41.2）
-        var c = new Coefficients();
-        Assert.Equal(1.0, c.PriceLawSeesExports);
-    }
-
-    [Fact]
     public void 裁定清算は財を保存する_売り手減は買い手増と一致()
     {
         var (sim, g, seller, seller2, _) = Make();

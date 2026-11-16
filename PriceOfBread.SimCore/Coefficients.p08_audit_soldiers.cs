@@ -121,8 +121,6 @@ public sealed partial class Coefficients
 
     public double CompostProductivity = 0.5;        // 化学法（グアノ法と同じ2.0）比
     public double CompostLivestockInput = 1.0;      // 肥料1単位あたりの畜産（厩肥）
-    public double NiterBedEnabled = 0.0;   // 0＝足さない（厳密恒等）
-    public double NiterBedProductivity = 0.5;
     public double CoalitionClosenessFloor = 0.5;   // 床＝CapitalCreditFloor と同じ「ゲートでなくプレミアム」の書き方
     public double ElectoralDistortion = 0.3;   // 政9：得票→議席の制度歪み
     public double InterestGroupHeadcountWeight = 0.25;   // 政11：利益集団の力の頭数按分

@@ -15,7 +15,6 @@ public sealed partial class Coefficients
     public double PrivilegeStripMilitancy = 0.0;   // 0＝加算なし（恒等）
     public double PrivilegeMonopolyInLedger = 0.0;   // 0＝記帳なし＝恒等
     public double LaborFloorOffGate = 2.0;   // 事前登録 measurements/mw469_20261020_prereg.txt
-    public double LaborBandFloorOffGate = 1.0;
     public double EmptyPopDebtFirst = 0.0;   // 0＝何もしない（旗 EmptyPopEstate ＞0 のときだけ読む）
     public double TakeFloorPositive = 1.0;   // ⑬ 塵の債務（AI の案・確証なし・事前登録 measurements/m984_20261109_prereg_dd.txt）
     public double LandShareCrownSlot = 1.0;   // 土地の持ち分 B-2b 案 S1（AI の案・確証なし・事前登録 measurements/m978_20261109_prereg_cs.txt）：> 0 かつ Producer.LandShares の長さ 5 のとき

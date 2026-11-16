@@ -26,7 +26,6 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double InventoryAdjustGain = 0.1;     // メッツラー在庫循環＝在庫についての期待
     public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）
     public double TargetStockFloor = 1.0;    // 在庫目標の下限（需要≈0でのゼロ除算回避）＝「量として意味を持たない」の既存の物差し（下の幻の生産のスナップもこの実用スケールを流用する）
-    public double PriceLawSeesExports = 1.0;   // 点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
     public int ClearingsPerYear => Calendar.MonthsPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
     public int MonthsPerClearing => 1;                    // 1清算が覆う月数（月割の単位ヘルパー）
     // --- 企業の操業規模（参入退出。採算で伸縮し供給を需要へ寄せる＝価格二極化の是正・§9-A 仕組み4）---

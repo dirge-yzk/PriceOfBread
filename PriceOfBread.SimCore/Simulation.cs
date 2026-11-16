@@ -1200,10 +1200,7 @@ public sealed class Simulation
         // 化学法より高い＝硫黄が届かない所の代替。〔履歴 Simulation.cs#121〕
             producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "堆肥", Productivity = 2.0 * coef.CompostProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
                 Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // Inputs〔履歴 Simulation.cs#122〕
-        // 0＝足さない＝恒等。〔履歴 Simulation.cs#123〕
-        if (coef.NiterBedEnabled > 0)
-            producers.Add(new Producer { GoodId = Catalog.SaltpeterId, RecipeName = "硝石丘", Productivity = 2.0 * coef.NiterBedProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
-                Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SaltpeterId))] });   // ★雇用の一本化（同上）
+        // (1175) 硝石丘（旗 NiterBedEnabled 既定 0＝足さない）の枝を削除。硝石を産地にする回で戻す。
         // デフォルトの木材パルプ製紙(goods.json)は発見の表の木材パルプ製紙（1840年代）で門＝早期はこのぼろ布製紙が供給し、パルプが安くなると駆逐される。〔履歴 Simulation.cs#124〕
         producers.Add(new Producer { GoodId = Catalog.PaperId, RecipeName = "ぼろ布製紙", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.HempId, 0.6), new Input(Catalog.CottonClothId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PaperId))] });
