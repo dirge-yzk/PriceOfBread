@@ -409,12 +409,13 @@ public class TradeClearingTests
         foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);   // 捌き手の支払能力で量が切られない（切るのは容量だけ）
         foreach (var r in w.Regions)   // 買い手は内陸の州だけ（港の州は欲しがらない＝最安の売り手の在庫を先に取らない）・量は物理の不足（550）で決まる（価格の量＝需要×参照÷単価 が十分に大きい）
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
-            { var m = r.Markets[g]; if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; } else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; } }
+            { var m = r.Markets[g]; if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; } else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 0; } }   // (1172) 在庫 4500→0（盤面の前提＝旧の need も A-1 の need〔需要×(rpT÷u′)^ε〕も正で行が開く・事前登録 m1172 [A2] (i)）
         double wg = Catalog.TransportWeight(g);
         var need = new Dictionary<Region, double>();
         foreach (var r in w.Regions)
             if (!r.IsPort && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
             { var m = r.Markets[g]; need[r] = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock; }
+        Assert.True(need.Count >= 2, "調べた内陸の買い手の州が少ない " + need.Count);   // (1172) 対照の件数
         Assert.True(need.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
         double acc = w.ExternalTradeAccess();   // 買い手の量 X＝入手率×min(価格の量, 不足)＝行の潜在量の上限
         sim.Market.Step(sim.Nations, sim.Coef);
@@ -480,8 +481,9 @@ public class TradeClearingTests
             {
                 var m = r.Markets[g];
                 if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; }
-                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; inland.Add(r); }
+                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 0; inland.Add(r); }   // (1172) 在庫 4500→0（盤面の前提・事前登録 m1172 [A2] (i)）
             }
+        Assert.True(inland.Count >= 2, "調べた内陸の買い手の州が少ない " + inland.Count);   // (1172) 対照の件数
         Assert.True(inland.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
         long Fills() => sim.CostTotals()[CostLedger.ClearingFills];
         long f0 = Fills();

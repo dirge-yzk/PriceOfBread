@@ -354,22 +354,88 @@ public static partial class Instruments
 {
     internal const string T1buyHeaderText = "year\tq\tnation\trows\toldSkip\tinstSkip\tunclassified\tpopA\tpopAPx\tpopASmallD\tpopADealX\tpopAQtyX\tpopAValX\tsmallD\tgateEval\tgateMismatch\t"
         + "u1Deals\tu1Unok\tu1Viol\tu1ViolAbs\tu1MaxRel\tu1SmallD\tu1SmallDViol\tu1Excess\tu1Qty\tselfN\tselfDiff\tselfMaxRel\tretreatDeals\tretreatQty\tdealsX\tqtyX"
-        + "\tpopC\tpopCUb\tpopCPart0\tpopCDealX\tpopCPart0DealX\tretreatQtySum\tretreatDealsTol\tretreatDealsRaw\tuBelowMin";   // (1159) 段 T1-0 の列（事前登録 measurements/m1159_20261115_prereg_t1.txt [1] ③2）
+        + "\tpopC\tpopCUb\tpopCPart0\tpopCDealX\tpopCPart0DealX\tretreatQtySum\tretreatDealsTol\tretreatDealsRaw\tuBelowMin"   // (1159) 段 T1-0 の列（事前登録 measurements/m1159_20261115_prereg_t1.txt [1] ③2）
+        + "\trowsDealt\trowsDealtX\tretreatRowN\tretreatRowSum\tretreatRowInsSum\tretreatRowInsN\texcessQtyX\texcessQtyAll\terrNegQ\terrOverIns\terrOverBound\texcessQtyInsX\texcessQtyInsPopA";   // (1172) 段 T1-0′ の列（事前登録 measurements/m1172_20261116_prereg_t1.txt [1]）
     internal const double T1TolRel = 1e-9, T1TolAbs = 1e-6;
 
-    sealed class T1N
+    internal sealed class T1N
     {
         public long Rows, OldSkip, InstSkip, Uncl, PopA, PopAPx, PopASmallD, PopADealX, SmallD, GateEval, GateMis, U1Deals, U1Unok, U1Viol, U1ViolAbs, U1SmallD, U1SmallDViol, SelfN, SelfDiff, RetreatDeals, DealsX;
         public double PopAQtyX, PopAValX, U1MaxRel = double.NegativeInfinity, U1Excess, U1Qty, SelfMaxRel, RetreatQty, QtyX;
         public long PopC, PopCUb, PopCPart0, PopCDealX, PopCPart0DealX, RetreatDealsTol, RetreatDealsRaw, UBelowMin;   // (1159)
         public double RetreatQtySum;   // (1159)
+        public long RowsDealt, RowsDealtX, RetreatRowN, RetreatRowInsN, ErrNegQ, ErrOverIns, ErrOverBound;   // (1172)
+        public double RetreatRowSum, RetreatRowInsSum, ExcessQtyX, ExcessQtyAll, ExcessQtyInsX, ExcessQtyInsPopA;   // (1172)
     }
+
+    /// <summary>(1172) 段 T1-0′：行（買い手の州×財×清算の月）の中の成約を束ねる計器の状態（T1State の中＝ConditionalWeakTable・エンジンの欄は足さない）。
+    /// 行の値は T1Row の時点（成約の前）で置き、成約ごとに T1AccDeal、行の終わり（次の T1Row か T1Table）で T1AccFlush が T1N へ足す。</summary>
+    internal sealed class T1RowAcc
+    {
+        public bool Open; public T1N? N;
+        public double P, D, TS, S0, I0, Tol;
+        public int Deals, DealsX; public double Y, YX, E, EX;
+        public bool AnyEng, AnyIns; public double MinQEng, MinQIns, YshMax, YshMin, YA1InsMax;
+    }
+
+    internal static void T1AccBegin(T1RowAcc r, T1N n, double p, double d, double ts, double s0, double i0)
+    {
+        r.Open = true; r.N = n; r.P = p; r.D = d; r.TS = ts; r.S0 = s0; r.I0 = i0;
+        r.Tol = T1TolRel * System.Math.Max(p, d) + T1TolAbs;
+        r.Deals = 0; r.DealsX = 0; r.Y = 0; r.YX = 0; r.E = 0; r.EX = 0; r.AnyEng = false; r.AnyIns = false;
+        r.MinQEng = double.PositiveInfinity; r.MinQIns = double.PositiveInfinity;
+        r.YshMax = double.NegativeInfinity; r.YshMin = double.PositiveInfinity; r.YA1InsMax = double.NegativeInfinity;
+    }
+
+    /// <summary>成約 1 本。qEng＝エンジンの Q（旗 0 は NaN）・qIns＝計器の Q（作れない成約は NaN）・pow2e＝(rpT÷unitA)^{2ε}・rootE＝(rpT÷u′)^ε（作れない成約は NaN）。
+    /// 影の天井 Y_sh＝min(D·pow2e − P − I0, TS + D·max(1, rootE) − P − S0)・影を越えた量 e＝qA − max(0, Y_sh − y)（access を掛けない・許し以下は 0）。</summary>
+    internal static void T1AccDeal(T1RowAcc r, double qA, bool cross, double qEng, double qIns, double pow2e, double rootE)
+    {
+        if (!r.Open || r.N is null) return;
+        double y = r.Y;
+        if (!double.IsNaN(pow2e) && !double.IsNaN(rootE))
+        {
+            double ysh = System.Math.Min(r.D * pow2e - r.P - r.I0, r.TS + r.D * System.Math.Max(1.0, rootE) - r.P - r.S0);
+            if (double.IsFinite(ysh)) { if (ysh > r.YshMax) r.YshMax = ysh; if (ysh < r.YshMin) r.YshMin = ysh; }
+            double e = qA - System.Math.Max(0.0, ysh - y);
+            if (e > r.Tol) { r.E += e; if (cross) r.EX += e; }
+            if (!double.IsNaN(qIns))
+            {
+                double ya1 = System.Math.Min(r.D * pow2e - qIns - r.I0, r.TS + r.D * rootE - qIns - r.S0);
+                if (ya1 > r.YA1InsMax) r.YA1InsMax = ya1;
+            }
+        }
+        if (!double.IsNaN(qEng)) { r.AnyEng = true; if (qEng < r.MinQEng) r.MinQEng = qEng; if (qEng > r.P + r.Tol) r.N.ErrNegQ++; }
+        if (!double.IsNaN(qIns)) { r.AnyIns = true; if (qIns < r.MinQIns) r.MinQIns = qIns; }
+        r.Y += qA; r.Deals++;
+        if (cross) { r.YX += qA; r.DealsX++; }
+    }
+
+    internal static void T1AccFlush(T1RowAcc r)
+    {
+        if (!r.Open) return;
+        r.Open = false;
+        var n = r.N; r.N = null;
+        if (n is null || r.Deals == 0) return;
+        n.RowsDealt++; if (r.DealsX > 0) n.RowsDealtX++;
+        double rr = r.AnyEng ? r.P - r.MinQEng : 0.0; if (!(rr > r.Tol)) rr = 0.0;
+        double ri = r.AnyIns ? r.P - r.MinQIns : 0.0; if (!(ri > r.Tol)) ri = 0.0;
+        if (rr > 0) { n.RetreatRowN++; n.RetreatRowSum += rr; }
+        if (ri > 0) { n.RetreatRowInsN++; n.RetreatRowInsSum += ri; }
+        if (r.AnyEng && rr > ri + r.Tol) n.ErrOverIns++;
+        double spread = r.YshMax >= r.YshMin ? r.YshMax - r.YshMin : 0.0;
+        if (r.E > rr + spread + r.Tol) n.ErrOverBound++;
+        n.ExcessQtyAll += r.E; n.ExcessQtyX += r.EX;
+        if (r.AnyIns && r.Y > 0 && r.YX > 0) { double h = r.YA1InsMax - r.Y; if (h > 0) n.ExcessQtyInsX += h * (r.YX / r.Y); }
+    }
+
     sealed class T1State
     {
         public readonly Dictionary<World, T1N> N = new();
         public System.IO.StreamWriter? W; public World? LastW; public T1N? LastN;
         public bool CurPop, CurDealt;   // 今の行が W2(a) の母集合か・越境で成約したか（次の行の門の呼びで置き直す）
         public bool CurC, CurCPart0, CurDealtC; public double CurUMin = double.NaN;   // (1159) 今の行が W2(a)′ の母集合（popCUb）か・その sk0 の側か・越境で成約したか・行の門の時点の u_min（NaN＝区分できない行）
+        public readonly T1RowAcc Acc = new();   // (1172) 今の行の束
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, T1State> T1States = new();
 
@@ -414,6 +480,7 @@ public static partial class Instruments
         var st = T1States.GetValue(mk, _ => new T1State());
         var a = T1NOf(st, w); var c = w.Coef;
         double ts = m.TargetStock, d = m.LastDemand, p = m.LastProduced, s = m.Stock, q = p;
+        T1AccFlush(st.Acc); T1AccBegin(st.Acc, a, p, d, ts, s, m.LastImport);   // (1172) 前の行を閉じて今の行を開く（成約の前の値）
         bool oldSkip = !(ts + d - p - s > 0);
         a.Rows++; if (oldSkip) a.OldSkip++;
         bool small = d < c.TargetStockFloor; if (small) a.SmallD++;
@@ -439,7 +506,9 @@ public static partial class Instruments
             if (oldSkip && !(ubBb > 0) && ubA1 > 0)
             {
                 st.CurPop = true; a.PopA++; if (small) a.PopASmallD++;
-                if (d * System.Math.Pow(rpT / um, 2.0 * c.PriceElasticity) - (q + m.LastImport) > 0) a.PopAPx++;   // 値段の側の上界も正（成約の必要条件＝xPrice≦D×(rpT÷u_min)^{2ε}−(Q(u_min)＋I)）
+                double pxUb = d * System.Math.Pow(rpT / um, 2.0 * c.PriceElasticity) - (q + m.LastImport);
+                if (pxUb > 0) a.PopAPx++;   // 値段の側の上界も正（成約の必要条件＝xPrice≦D×(rpT÷u_min)^{2ε}−(Q(u_min)＋I)）
+                double hA = System.Math.Min(ubA1, pxUb); if (hA > 0) a.ExcessQtyInsPopA += hA;   // (1172) ρ_ins の popA の行の上側（越境と国内に分けない）
             }
             st.CurUMin = um;   // (1159) 下界の番人 uBelowMin が成約ごとに読む
             if (oldSkip && T1HBelow(headPrice, lbMulMin, lp))
@@ -474,10 +543,12 @@ public static partial class Instruments
             }
         }
         if (!double.IsNaN(st.CurUMin) && u < st.CurUMin * (1.0 - T1TolRel)) a.UBelowMin++;   // (1159) 行の門の主張〈u_min≦どの成約の u′〉の番人
-        if (!(rpT > 1e-9) || !(u > 1e-9) || double.IsInfinity(u)) { a.U1Unok++; return; }
+        bool accOk = ReferenceEquals(st.Acc.N, a);   // (1172) 今の行の束がこの国の行か（行の門の呼びを経ない成約は束ねない）
+        if (!(rpT > 1e-9) || !(u > 1e-9) || double.IsInfinity(u)) { a.U1Unok++; if (accOk) T1AccDeal(st.Acc, qA, cross, engQ, double.NaN, double.NaN, double.NaN); return; }
         double root = System.Math.Pow(rpT / u, c.PriceElasticity);
         double ph = T1PHat(r, g, c, u / fx);
         double q = System.Math.Min(m.LastProduced, ph); if (!(q >= 0)) q = m.LastProduced;
+        if (accOk) T1AccDeal(st.Acc, qA, cross, engQ, q, unitA > 1e-9 ? System.Math.Pow(rpT / unitA, 2.0 * c.PriceElasticity) : double.NaN, root);   // (1172)
         if (!double.IsNaN(engQ)) { a.SelfN++; if (q != engQ) { a.SelfDiff++; double rel = System.Math.Abs(q - engQ) / System.Math.Max(1e-300, System.Math.Abs(engQ)); if (rel > a.SelfMaxRel) a.SelfMaxRel = rel; } }
         double ub = m.TargetStock + m.LastDemand * root - q;
         double eAbs = m.Stock - ub, den = System.Math.Max(m.LastDemand, m.TargetStock);
@@ -496,6 +567,7 @@ public static partial class Instruments
         if (!Wants("t1buy_s") || sim.Nations.Count == 0) return;
         if (!Wants("tb_s")) _tbEpoch++;   // 生産者の一覧を四半期ごとに作り直す（tb_s が回るときは TbTable が進める＝同じ刻み）
         if (!T1States.TryGetValue(sim.Market, out var st)) return;
+        T1AccFlush(st.Acc);   // (1172) 四半期の最後の行を閉じる
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string L(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (st.W is null) { st.W = Open("t1buy", seed); st.W.WriteLine(T1buyHeaderText); }
@@ -506,7 +578,9 @@ public static partial class Instruments
             st.W.WriteLine(string.Join('\t', I(yearLabel), I(q), NameOf(w), L(a.Rows), L(a.OldSkip), L(a.InstSkip), L(a.Uncl), L(a.PopA), L(a.PopAPx), L(a.PopASmallD), L(a.PopADealX), FR(a.PopAQtyX), FR(a.PopAValX), L(a.SmallD), L(a.GateEval), L(a.GateMis),
                 L(a.U1Deals), L(a.U1Unok), L(a.U1Viol), L(a.U1ViolAbs), a.U1Deals > 0 ? FR(a.U1MaxRel) : "nan", L(a.U1SmallD), L(a.U1SmallDViol), FR(a.U1Excess), FR(a.U1Qty),
                 L(a.SelfN), L(a.SelfDiff), FR(a.SelfMaxRel), L(a.RetreatDeals), FR(a.RetreatQty), L(a.DealsX), FR(a.QtyX),
-                L(a.PopC), L(a.PopCUb), L(a.PopCPart0), L(a.PopCDealX), L(a.PopCPart0DealX), FR(a.RetreatQtySum), L(a.RetreatDealsTol), L(a.RetreatDealsRaw), L(a.UBelowMin)));
+                L(a.PopC), L(a.PopCUb), L(a.PopCPart0), L(a.PopCDealX), L(a.PopCPart0DealX), FR(a.RetreatQtySum), L(a.RetreatDealsTol), L(a.RetreatDealsRaw), L(a.UBelowMin),
+                L(a.RowsDealt), L(a.RowsDealtX), L(a.RetreatRowN), FR(a.RetreatRowSum), FR(a.RetreatRowInsSum), L(a.RetreatRowInsN), FR(a.ExcessQtyX), FR(a.ExcessQtyAll),
+                L(a.ErrNegQ), L(a.ErrOverIns), L(a.ErrOverBound), FR(a.ExcessQtyInsX), FR(a.ExcessQtyInsPopA)));   // (1172)
         }
         st.N.Clear(); st.LastW = null; st.LastN = null;
     }

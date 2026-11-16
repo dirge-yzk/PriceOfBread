@@ -216,6 +216,16 @@ public class TradeT1Tests
         Assert.Equal(0.0, t.Sum("retreatDealsTol"));
         Assert.Equal(0.0, t.Sum("retreatDealsRaw"));
         Assert.Equal(0.0, t.Sum("uBelowMin"));
+        // (1172) 段 T1-0′ の列：旗 0 は構成上 退き 0・影を越えた量 0（旧の天井≦影の天井）・誤り 0。行の数の下限＝束ねた行が盤面にある。
+        Assert.True(t.Sum("rowsDealt") >= 1000, "成約のある行が少ない " + t.Sum("rowsDealt"));
+        Assert.True(t.Sum("rowsDealtX") >= 100 && t.Sum("rowsDealtX") <= t.Sum("dealsX"), $"越境の成約のある行 {t.Sum("rowsDealtX")}・越境の成約 {t.Sum("dealsX")}");
+        Assert.Equal(0.0, t.Sum("retreatRowN"));
+        Assert.Equal(0.0, t.Sum("retreatRowSum"));
+        Assert.Equal(0.0, t.Sum("excessQtyX"));
+        Assert.Equal(0.0, t.Sum("excessQtyAll"));
+        Assert.Equal(0.0, t.Sum("errNegQ"));
+        Assert.Equal(0.0, t.Sum("errOverIns"));
+        Assert.Equal(0.0, t.Sum("errOverBound"));
     }
 
     /// <summary>(1159) M7＝t1buy_s の段 T1-0 の列（旗 1・12 四半期）：母集合の入れ子 popC≧popCUb≧popCPart0・popCUb≧popCDealX≧popCPart0DealX・popC≦oldSkip／
@@ -232,6 +242,11 @@ public class TradeT1Tests
         Assert.True(t.Sum("retreatDealsTol") >= 100, "越境の退きの効いた成約が少ない " + t.Sum("retreatDealsTol"));
         Assert.True(t.Sum("retreatQtySum") > 0, "越境の退きの量が 0");
         Assert.True(t.Sum("retreatDealsRaw") >= t.Sum("retreatDealsTol"), "許しなしの件数が許しつきより少ない");
+        // (1172) 段 T1-0′ の誤りの列（上側の門 G2）：旗 1 でも 0（突然変異 M6〈成約ごとに退きを重ねる〉で errOverBound・errOverIns が赤）。
+        Assert.True(t.Sum("rowsDealt") >= 1000, "成約のある行が少ない " + t.Sum("rowsDealt"));
+        Assert.Equal(0.0, t.Sum("errNegQ"));
+        Assert.Equal(0.0, t.Sum("errOverIns"));
+        Assert.Equal(0.0, t.Sum("errOverBound"));
     }
 
     /// <summary>(1159) M9＝tb_s の区分（TbClassify）は値段の単位に対して同次：金建ての値段（lp・rpT・先頭の売り手）を為替 fx 倍にして fx を渡すと、fx＝1 の区分と同じ

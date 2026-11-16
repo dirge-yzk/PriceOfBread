@@ -1,0 +1,4 @@
+突然変異（コミット 422648ff6 の写しの木）
+OK M11
+M11 rc=1 絞り込み=FullyQualifiedName~TradeT1RowAccTests | 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 33 ms - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1RowAccTests.行の束は退きを1回数え上界を守る [14 ms];
+おわり
