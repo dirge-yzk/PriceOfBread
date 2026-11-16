@@ -4,6 +4,10 @@
 C=${1:?コミット}; export POB_WORK=${2:?作業フォルダ}
 cd "$(dirname "$0")/../../.."; R=$(pwd); S=$R/scripts/instruments
 export TEMP=$POB_WORK/tmp TMP=$POB_WORK/tmp; mkdir -p $POB_WORK/tmp
+if [ "${3:-full}" = narrow ]; then   # D: の空きが〈35GB＋26GB〉に届かない時の絞った形（c115sv/armb.sh の narrow の型・sf_s を足し soldiervac_s は既定の中に残る）
+  SMALL=$(grep "^SMALL=" $S/ident/ident.cfg | cut -d= -f2)
+  export POB_INSTRUMENTS_TABLES="cpop_s,nation_s,admrule_s,rule_s,soldiervac_s,monlaw_s,sf_s,pxmonth_s,region_s,fiscal_s,goods_s,scalars_s,secession_s,cessp_s,migration_s,landsale_s,stock_s,$SMALL"
+fi
 bash $S/batch.sh prep c116k1B commit:$C plain > $POB_WORK/prep_B.txt 2>&1 || { echo "PREPFAIL"; exit 1; }
 INS=1 bash $S/batch.sh run c116k1B 10 > $POB_WORK/run_B.txt 2>&1; RC=$?
 echo "armB rc=$RC $(tail -1 $POB_WORK/run_B.txt)"
