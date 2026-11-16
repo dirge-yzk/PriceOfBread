@@ -29,9 +29,9 @@ public class TradeT1RowAccTests
         Assert.Equal(1, nA.RetreatRowN);
         Assert.Equal(10.0, nA.RetreatRowSum, 9);       // P−min Q＝50−40（成約ごとに足すと 5＋8＋10＝23）
         Assert.Equal(10.0, nA.RetreatRowInsSum, 9);
+        Assert.Equal(0, nA.ErrOverBound);              // 2.625≦10＋0（影の上界に access を掛けると 11.5＞10＝1）
         Assert.Equal(2.625, nA.ExcessQtyAll, 9);       // 3 本目だけ：7.375−(40−35.25)
         Assert.Equal(0.0, nA.ExcessQtyX, 9);           // 3 本目は国内
-        Assert.Equal(0, nA.ErrOverBound);              // 2.625≦10＋0
         Assert.Equal(0, nA.ErrNegQ);
         Assert.Equal(0, nA.ErrOverIns);
         // 越境の割合で振り分けた上側：max Y_A1＝50・買いの和 42.625・越境 35.25 → (50−42.625)×35.25÷42.625
