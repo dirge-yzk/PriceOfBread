@@ -1,0 +1,34 @@
+(1181) c117tg 事前登録（2026-11-16・コード変更の前に書く）
+基点 c590d21ba（基線 m1178）・枝 c117tg・worktree D:/PoB_work/wt_c117tg・使い捨ての木 D:/PoB_work/wt_c117tgx（push しない）・作業 D:/PoB_work/c117tg_work
+
+[1] 恒等の線・予言 0（SimCore に入れる変更は Meritocracy.cs の 2 行の否定形だけ）
+ 区分＝試験だけ＋否定形。機構の向き・大きさ・判定を弱める書き換えは無い。結果を変える変更は無い（旗 0・有限の大きさで字の上で同じ）。
+ 浮動小数の順序が変わる箇所＝無し（否定形の比較だけ・算術は触らない）。紙の台本の食い違い 0 を ident で確かめる。
+
+[2] 消す物と残す物
+ 消す物＝無し。書き換える行（ファイル:行・★(743) の区分）
+  項 1（②）InstrumentsTests.cs :271 :360 :1223 の 3 本＝試験の中で戦争を置く（RunMatch の afterWarmup に渡す置き方＋四半期ごとの再宣戦の関数を足す＝InstrumentsTests.cs の中の補助だけ）・
+       交戦の月が 1 以上の対照の Assert を足す。区分＝★(743) の ①〜④ ではなく〈軌道に依る前提（戦争が 1 度も写らない）を、閾値を下げず試験の盤面を置き直す〉＝★(743) 末尾の別の線の形・
+       ㊴ の〈試験のバグ〉＝軌道に依る前提・旗 0 と旗 1 の両方で緑・既存の Assert の文と閾値は変えない。
+  項 2（①）TradeClearingTests.cs :395〜:435 の 1 本の上界 acc×x×wg を A-1 の need へ組み直す（上界を緩めた量は A-1 の式で名乗る）・注〈物理の不足（550）〉を直す。
+       区分＝期待の式を A-1 の式へ置き換える（★(743) ② に当たらない＝比べる double が変わる）＝作者の裁定 2026-09-29 の 2（潜在量は組ごとに 1 回）の番人を旗 1 の盤面で生かし直す別の線の形。Assert の主張（同じ不足を売り手の数だけ重ねない）は変えない。
+  項 3（③）LaborMarketFormTests.cs＝既存の 1 本（帯の床の撤去…）に参照より上の側を見る Assert を足す（足すだけ）。Meritocracy.cs :354・:398 の `t.Size <= Eps &&` を `!(t.Size > Eps) &&`（NaN を通さない）。
+ 読み手の grep（腕の前）＝上の 4 ファイルの名前は SimCore・Runner・App・Display・scripts・measurements の台本から読まれない（試験のファイル）。Meritocracy.cs の 2 行は条件の否定形で名前・欄・SaveGame・POB_COEF に触れない。
+ 他の線との重なり＝c117k1 は Politics.cs・Instruments*.cs・Coefficients の旗 1 行・DormantIdentityTests・WriterRatchetTests の自分の行・分離を読む試験 6 本。c117b0 は Simulation.cs MintGold・InstrumentsMintreg・新しい試験 2 本。
+  本線は InstrumentsTests.cs の 3 本・TradeClearingTests.cs の 1 本・LaborMarketFormTests.cs・Meritocracy.cs の 2 行だけで重ならない（InstrumentsTests.cs の RunMatch の近くに補助を足す＝k1 の分離の試験は別のファイル）。
+
+[3] 足す試験と突然変異・走査の番人
+ 足す試験の数＝0（既存の 4 本の中へ Assert と補助を足す）。予言：Tests 2661＋Ui 234＝2895 のまま・スキップ 1・FullLength 3（㉑ の件数の番人を書き換える予言＝0 件）。
+ 突然変異（使い捨ての木・どの門で赤か）
+  M1 項 2：BilateralMarket.cs :1082 の `- unmetQ` を外す → TradeClearingTests の 1 本が旗 1 で赤・旗 0（POB_COEF TradeBuyBySupplyCurve=0）でも赤。外さなければ両方緑。
+  M2 項 3：MarketFlow.cs :86 の laborClosed を false にする → LaborMarketFormTests の 1 本が赤（足した Assert＝閉形の経路が下側で取られた件数 CntClosedLabor の差 ＞0 と、上側で取られない）。
+  M3 項 1：戦争を置かない盤面（置く関数を空にする）→ 交戦の月が 1 以上の対照の Assert で赤。さらに旗を t1＋k1＋hd（StockpilePanicWeight 0）に重ねた木 wt_c117tgx でも 3 本とも緑。
+  M4 項 3：Meritocracy.cs の否定形を元の肯定形へ戻し、NaN の大きさの席を作る盤面は無い（既存の試験が拾うかは見ない＝字の上で同じと報告）。
+ ㉘ 走査の番人＝IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests に TechLevelRemovalTests を足して回す（隔離ビルド D:/PoB_work/c117tg_art）。
+  事前登録の点検（grep の結果は実施時に追記）：工業化度の読み手の許可表・new MoneyStock( の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表＝触らない（件数 0 の変更）。
+ stage.py の段＝Meritocracy.cs が動く＝段 1 の見込み（計器の条件に触れない）。
+
+[4] 成績表＝素の 5 種・計器つき 10 種が m1178 と名乗り行を除いて全行一致（計器の表の差は 0）。
+[5] 〈判定: 恒等〉なら採る。一致しなければ Meritocracy.cs の変更を外して報告に回す（試験の変更は成績表に影響しない）。
+ 門＝〈判定: 恒等〉・M1〜M3 が赤・直した 3 本が t1＋k1＋hd の重ねた盤面で緑・Assert を弱めていない。
+ 計算量＝変わらない（推定 236.2 秒）。D: の空きは起こす前に測る（ident 約 30GB）。
