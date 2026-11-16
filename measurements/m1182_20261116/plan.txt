@@ -1,0 +1,17 @@
+(1182) 読む線 c117rs　計画（腕 0・コミットなし・worktree なし）
+作業の場所: D:/PoB_work/r1182_work/（台本は scripts/instruments/r1182/ の形で ここの r1182/ に置く・合流が写す）
+読む木: main c590d21ba（C:/Users/dirge/Documents/PriceOfBread＝読むだけ）・旧の木 9b18137a2（git show で読む）
+
+読む生（全て読むだけ）:
+- D:/PoB_work/keep_1178/base_ins（m1178 基線・計器つき 10 種・全表）
+- D:/PoB_work/keep_1178/n1・n2（ヌル腕・絞った表）
+- D:/PoB_work/keep_1150/n1・n2（全表のヌル腕の幅）
+- D:/PoB_work/keep_1178_rej/c116k1_B/ins（k1 の腕 B・secession_s ほか）
+- D:/PoB_work/keep_1178_rej/m1178_M_t1k1（k1 を含む合わせた木 M）
+材料:
+- scratchpad の ledger_S11_2026-11-12.md・.tsv・_反証.md（11-12 の読み・木 9b18137a2・生 keep_1053＝今は無い）
+- docs/機能の台帳.md §0・| S11- の行
+- measurements/m1176_20261116/・scripts/instruments/r1176/・r1169/（cmp_rows.py・s02_freq.py）・r900/ledger_check.py
+- 枝 origin/c116k1 の measurements/m1173_20261116/armB/
+
+問い: 1 S11 の写しと読み直し／2 s02_freq の母集合を年末の全ての国へ・S02-H004a の率を基線と N1・N2 で／3 k1 の英以外の余り<0 の減りの帰属／4 処置／5 欠損の直す線の素案／6 未確かめ

@@ -1,0 +1,38 @@
+行	11-12 の行	区分	コードの差（注と空白を除く・錨を囲む関数）	11-12 の判定	今の判定	確証
+S11-H001a	S11-01	読み直し	変わった：関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	働く	働く	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H001b	S11-02	写し	変わらない	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H001c	S11-03	写し	変わらない	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H001d	S11-04	写し	変わらない	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H002a	S11-05	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	働かない	一部だけ働く（本番 0・開幕の前の助走の 20 四半期だけ）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H002b	S11-06	読み直し	変わった：関数 MonthSettle の字が違う；関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	一部だけ働く	一部だけ働く（公教育の枝だけ・学校なしの枝 0）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H003a	S11-07	読み直し	変わった：関数 Run の字が違う；関数 Run の字が違う；関数 MonthSettle の字が違う；係数の値 FarmScaleCap:3.0→無 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無 MineralScaleCap:1.5→無	一部だけ働く	一部だけ働く（義務教育の満額の枝 0・公教育の 2 割の枝だけ）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H003b	S11-08	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	働く	働く（国庫の割合は必要の 0.2〜5%）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H004	S11-09	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	文書が古い	文書が古い	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H003c	S11-10	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	文書が古い	文書が古い	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H003d	S11-11	読み直し	変わった：関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	働かない	働かない	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H005a	S11-12	読み直し	変わった：関数 Run の字が違う；関数 MonthSettle の字が違う；係数の値 FarmScaleCap:3.0→無 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無 MineralScaleCap:1.5→無	働かない	働かない	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H005b	S11-13	読み直し	変わった：関数 MonthSettle の字が違う；関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	働かない	働かない	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H006	S11-14	写し	変わらない	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H007a	S11-15	読み直し	変わった：関数 MonthSettle の字が違う；関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	働く	働く	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H007b	S11-16	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	働く	働く	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H008a	S11-17	読み直し	変わらない	働く	一部だけ働く（社会保障だけ）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H008b	S11-18	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	一部だけ働く	働かない（M で錠に届く場面 0）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H008c	S11-19	写し	変わらない	働かない	働かない	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H009a	S11-20	写し	変わらない	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H009b	S11-21	写し	変わらない	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H010a	S11-22	読み直し	変わらない	一部だけ働く	一部だけ働く（1783 年の後は水路 1・助走の間は宗教学校で始まる国が 0.1）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H010b	S11-23	読み直し	変わらない	働く	働く	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H011	S11-24	読み直し	変わった：関数 Run の字が違う；係数の値 FarmScaleCap:3.0→無 MineralScaleCap:1.5→無	文書が古い	文書が古い	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H014a	S11-25	写し	変わらない	未確かめ	未確かめ	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H014b	S11-26	写し	変わらない	未確かめ	未確かめ	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H014c	S11-27	写し	変わらない	働く	働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H014d	S11-28	読み直し	変わらない	一部だけ働く	一部だけ働く（1783 年の後は公教育の脚が常に真・WarmupTech の時は宗教学校で始まる国で偽）	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H014e	S11-29	写し	変わらない	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H014f	S11-30	写し	変わらない	未確かめ	未確かめ	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H015	S11-31	写し	変わらない	一部だけ働く	一部だけ働く	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H014g	S11-32	写し	変わらない	未確かめ	未確かめ	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H014h	S11-33	読み直し	変わった：関数 MonthSettle の字が違う；係数の値 GarrisonProcurement:0.0→無 MegaprojectForeignYield:0.004→無	働く	働く	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H014i	S11-34	読み直し	変わった：係数が消えた public	働かない	働かない	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H014j	S11-35	読み直し	変わらない	働く	働く	生とソース（今の木 c590d21ba・keep_1178・keep_1150）
+S11-H012	S11-36	写し	変わらない	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
+S11-H013	S11-37	写し	変わらない	文書が古い	文書が古い	11-12 の読み（keep_1053）＝今の生では数え直していない・錨を囲む関数は今の木まで字が同じ（cmp_rows.py）
