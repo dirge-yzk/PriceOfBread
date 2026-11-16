@@ -1,3 +1,6 @@
 D:/PoB_work/c117k1_work/armB/out_c117k1B_10（線 k1 の腕 B の生 26GB・(1178) の M_t1k1 の生と表ごとの sha1 で一致 1530・違う 20＝burscan_s・clock_s の既知の揺れ〔k1/rawcmp_k1B_vs_Mt1k1.tsv〕・門の表 378 本は keep_1184_rej/c117k1B へ keep_1178_rej からハードリンク）
 D:/PoB_work/c117b0_work/ident/out_ib_10（線 b0 の ident の生 26GB・判定: 恒等を線と反証役が読み終えた・mintcap_s の 10 本は m1184_work/b0_mintcap へ移した）
 D:/PoB_work/ident_m1184z/out_ib_10（腕 Z の生の残り 130 本 約 11GB・判定: 恒等を読んだ後・mintcap_s の 10 本は m1184_work/zmint へ写した〔b0 の生と sha1 で一致〕）
+D:/PoB_work/wt_c117tg・wt_c117b0・wt_c117k1（線の worktree・ローカルの枝は origin と同じ頭＝消した）
+D:/PoB_work/wt_m1184z と枝 m1184z（腕 Z の使い捨て＝push していない）
+D:/PoB_work/ident_m1184z（腕 Z の ident の残り・成績表と判定の文は measurements へ写した）
