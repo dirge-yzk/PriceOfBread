@@ -1,0 +1,41 @@
+(1175) c116cl 事前登録（恒等の線・予言 0・書いたのは Claude Sonnet 5.5・最初のコミット・2026-11-16）
+木 b9570c8a7（基線 m1171）から枝 c116cl・worktree D:/PoB_work/wt_c116cl。形＝恒等の束（入口でも尾でもない・結果を 1 ビットも変えない）。
+
+[1] 恒等の線・予言 0
+  素の 5 種・計器つき 10 種が m1171（b5_20261116_m1171・b10_20261116_m1171・b10_20261116_m1171_ins）と名乗り行を除いて全行一致。
+  計器の表の差は下の宣言だけ。測った種で一致を名乗る（〈証明〉と書かない）。stage.py＝段 1（計器・scripts/instruments の直下に触れない・scripts/instruments/c116cl/ は段 2 の条件ではない）。
+  ★(1171)：床・上限を外す項目は無い（項 3・4 は既定 1 の旗を焼いて旧の枝を消すだけ・項 4 の帯の床は既に撤去された側が既定＝今の盤面で届かない枝を消す）。届いた月を数える対象なし。
+  浮動小数の順序が変わる箇所＝0（項 1 は三項の条件の否定形への書き換えで式は同じ・項 3 は totalDemand + m.LastExport の足し算の順そのまま・項 4 は同じ式から定数条件を外すだけ）。同じ盤面で旧と新の食い違いの数＝0（式の写しで数える＝紙の台本）。
+  項 1 の宣言する差＝大きさが NaN の非兵の POP が候補に入った場合だけ（旧は EmptySeatIncome へ落ちていた・新は JobIncome）。測る 10 種に NaN の盤面は無い（NaN は破綻）。
+
+[2] 消す物と残す物（読み手は SimCore・Tests・Tests.Ui・Runner・App・Display・scripts・measure.sh の grep・2026-11-16 に実測）
+  項 1 sv の後片付け：Meritocracy.cs:358・:368・:402 の `t.Size > Eps ? JobIncome : EmptySeatIncome` を `emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome : JobIncome` へ（:344 の emptySeat を使う）。記録の文〈空きの分だけ埋まる〉は measurements/m1166_20261116/result_sv.txt:10 に 1 件（実装ログ 5279 は v の指摘を引く文＝直さない・00一覧:825 は合流の文＝触らない）。
+  項 2 qc・sb の注と記録：MultiNationSim.cs:106 の行末の注・World.cs:1874 の注（行数は変えない）・CreditHoardGuardTests.cs:45 の名から〈上限の細工は無い〉・MultiNationTests.cs:52〜:54 の注・docs/ゲーム概要と実装機能.md の S22-H049（状態の行）・H052（既定の文と状態の行）・H001（金の工業化閾の変数の行）・measurements/m1168_20261116_mintreg_summary.txt の母集合の語。突然変異 M5′（Simulation.cs:2398 `if (insOn)` を外す）で MintregInstrumentTests の T3 が赤になることを使い捨ての変更で確かめ measurements/m1175_*/ に出力を置く。
+  項 3 PriceLawSeesExports：読み手＝MarketFlow.cs:166 と Coefficients.cs:29（宣言）と TradeClearingTests.cs:62（確かめの Assert）。POB_COEF・scripts・Runner・App に名は無い。
+  項 4 LaborBandFloorOffGate：読み手＝MarketFlow.cs:86（定義）・:87・:99 と Coefficients.p10_ai_silver_overrides.cs:18（宣言・既定 1.0）・LaborMarketFormTests.cs（:5 の cref・:22・:99・:102・:119 と旗 0 の腕を使う 4 本）・DormantIdentityTests.cs:90 の注。scripts・Runner・App に名は無い。
+  項 5 NiterBedEnabled：読み手＝Simulation.cs:1204 の枝と Coefficients.p08_audit_soldiers.cs:124（宣言）・DormantIdentityTests.cs:82。NiterBedProductivity は :125 の宣言と Simulation.cs:1205 の枝の中だけが読み手＝枝と一緒に消す（同じ線）。scripts/instruments/r1084/flags50.py の文字列は過去の表の台本（読み手でない・触らない）。硝石のレシピの他の読み手は無い（硝石丘の名は枝の 1 箇所だけ）。
+  残す物＝SaltpeterId（他の読み手あり）・RequiresQuinine・外した物（00一覧へ番号つきで残す）：SilverRushEnabled・組合法の出力倍率・DiscoveryTechPerDecade（Runner が読む）・魚の缶詰・石油灯油。
+  他の線との重なり：Meritocracy.cs はこの線だけ・MarketFlow.cs は :86・:166 だけ・Simulation.cs は :1204 の枝だけ・MultiNationSim.cs は :106 の注だけ・World.cs は :1874 の注だけ・DormantIdentityTests は :82・:90 と RetiredFields の行だけ・Coefficients.cs・Coefficients.p08・p10 は各 1〜2 行の削除。t1 は BilateralMarket.cs・InstrumentsBuyShadow.cs・Coefficients.p04_trade.cs（:112）で重ならない。hd は Coefficients.p07 の値だけで重ならない。
+  Coefficients.cs の 1 行削除で以後の行が 1 つ上がる＝計器 cearn_s・cpop_s の経路の名（ファイル:行）が動く。ident_check.py の行の写しで違い 0 と宣言する（前例 m843）。
+
+[3] 足す試験・書き換える試験（★(743) の区分）と突然変異
+  足す試験：無し（旗を焼く項の番人は旧の腕を今の盤面へ移した LaborMarketFormTests の 3 本）。突然変異で赤にならなければ同じ線で足す。
+  書き換える試験（行は着手前の番号）：
+    TradeClearingTests.cs:58〜:63 既定はフルスタック点火済み＝消す旗の欄を名指す確かめの Assert だけの試験（★(743) ④）。−1 本。
+    LaborMarketFormTests.cs:22 `LaborBandFloorOffGate = 0` を初期化から外す（④＝崖の式の試験は帯の床に依らない）・:99 の旗の Assert を消す（④）・:102 の旗の代入を消す（③＝同じ値）。
+    LaborMarketFormTests.cs の 帯の床の撤去 3 本（:130・:152・:170 付近）：旗 0 の腕（旧の漸近形）の比べを消し、旗 1（今の盤面）側の Assert だけ残す（★(743) ①＝旗 0 の旧い経路だけを確かめる部分の削除）。役務の枝の試験は旗 0 の腕との一致をやめ、今の盤面で役務の値段が床の近くへ引き上げられること（> 0.25×参照）を Assert する（②の形＝旧の腕の値の代わりに同じ式の値・条件は旧の腕の観測と同じ 0.25）。名前の語尾を直す。件数は変わらない。
+    DormantIdentityTests.cs:82 を RetiredFields へ移す（③）・NiterBedProductivity・PriceLawSeesExports・LaborBandFloorOffGate を RetiredFields に足す・:90 の注に焼いた旨。
+    CreditHoardGuardTests の名・MultiNationTests の注＝名前と注だけ。
+  走査の番人（㉘）：TechLevelRemovalTests を足した絞り込み＝IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・TechLevelRemovalTests。書き換える件数の予言（㉑）＝WriterRatchetTests の表 0 行・IndustrializationReaderTests の許可表 0 行・route_anchors の鍵の行 0（Coefficients.cs の行のずれは写しで宣言）。`new MoneyStock(` の件数 変わらず。
+  試験の数の予言：Tests（Category!=FullLength）2660→2659・Tests.Ui 234・FullLength 3＝合計 2893＋3。--list-tests の和と突き合わせる。
+  突然変異（使い捨て・赤を確かめる）：
+    M1 項 1 を旧の字（`t.Size > Eps ? JobIncome : EmptySeatIncome`）へ戻す→ 緑でよい（恒等・NaN だけの差）。字の確かめは diff。
+    M2 MarketFlow.cs:166 の `+ m.LastExport` を外す→ 旗 PriceLawSeesExports を 0 へ戻す突然変異＝成績表が動くことを短い走りで確かめる（番人の試験が無ければ試験を 1 本足す）。
+    M3 MarketFlow.cs の `bool laborClosed = h > 1;` と `double p1 = want < wrp` の条件を false へ戻す（帯の床の復活）→ LaborMarketFormTests の 帯の床の撤去 の試験が赤。
+    M4 Simulation.cs へ硝石丘の枝を戻す→ RetiredFields の番人（名が Coefficients に無いこと）は枝ではなく欄を見る＝欄を戻すと赤。
+    M5′ Simulation.cs:2398 の `if (insOn)` を外す→ MintregInstrumentTests T3 が赤。
+  門ごとの落ち：恒等の門＝成績表の全行一致・.cost の件数の行が増えない・移した番人が今の盤面で緑・焼いた旗を戻す突然変異で赤。旗 0 の盤面は無い（旗ごと消すため）＝M2・M3 が代わり。
+
+[4] 成績表：素の 5 種・計器つき 10 種が m1171 と名乗り行を除いて全行一致。計器の表の差は宣言だけ（cearn_s・cpop_s の経路の名の行）。NG は ng1171 と同じ集合（新しい 0・外れた 0）。.cost の推定が m1171 と一致（229.7 秒）。
+[5] 〈判定: 恒等〉なら採る。一致しなければその項を外して報告に回す。
+計算量：増えない（枝を消すだけ・Meritocracy.cs の条件の評価の順も同じ）。D:：ident の起こす前に shutil で測る・〈35GB＋約 30GB〉に届かなければ待つ。
