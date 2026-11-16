@@ -14,3 +14,7 @@ mS11z end 2026-11-16 23:57:13 rc=0
 mN2 end 2026-11-16 23:57:43 rc=0
 mN1 end 2026-11-16 23:58:11 rc=0
 mS11 end 2026-11-16 23:58:53 rc=0
+mAt1 start 2026-11-17 01:07:26 ins=1 N=10 SB=1 cearn=1 coef=TradeBuyBySupplyCurve=0 HEAD=ba65aacf1 Dfree=46.3GB armsfree=6
+mA0 start 2026-11-17 01:07:26 ins=1 N=10 SB=1 cearn=1 coef=TradeBuyBySupplyCurve=0;StockpilePanicWeight=0.5 HEAD=ba65aacf1 Dfree=46.3GB armsfree=6
+mA0 end 2026-11-17 01:31:17 rc=0
+mAt1 end 2026-11-17 01:31:34 rc=0

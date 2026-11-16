@@ -4,3 +4,4 @@ D:/PoB_work/ident_m1184z/out_ib_10（腕 Z の生の残り 130 本 約 11GB・�
 D:/PoB_work/wt_c117tg・wt_c117b0・wt_c117k1（線の worktree・ローカルの枝は origin と同じ頭＝消した）
 D:/PoB_work/wt_m1184z と枝 m1184z（腕 Z の使い捨て＝push していない）
 D:/PoB_work/ident_m1184z（腕 Z の ident の残り・成績表と判定の文は measurements へ写した）
+D:/PoB_work/m1184_work の src_m*（腕の写しの木 7 本）・suite の art_suite と suitesrc・suite_scan（自分のビルドの出力）

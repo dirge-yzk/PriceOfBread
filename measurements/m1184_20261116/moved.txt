@@ -3,3 +3,5 @@ m1184_work/out_mN1_10/ins → keep_1184/n1（絞った表）
 m1184_work/out_mN2_10/ins → keep_1184/n2（絞った表）
 m1184_work/out_mS11_10_s11/ins → keep_1184/a11（種 11〜20）
 m1184_work/out_mS11z_10_s11/ins → keep_1184/a11z（旗 0＝StockpilePanicWeight 0.5・種 11〜20・門の表＝keep_1178/a11 の同じ表と sha1 で 390 本一致・mintcap_s 10 本は a11 に無い）
+m1184_work/out_mAt1_10/ins → keep_1184_rej/m1184_At1（アブレーション t1 0・hd 0.0・11 表）
+m1184_work/out_mA0_10/ins → keep_1184_rej/m1184_A0（アブレーション t1 0・hd 0.5・11 表）
