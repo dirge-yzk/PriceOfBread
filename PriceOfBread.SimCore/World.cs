@@ -1871,7 +1871,7 @@ public sealed class World
         if (target.RequiresQuinine)   // 熱帯（マラリア）標的：防護に要るキニーネは「養う遠征軍と同規模」＝缶詰要求量を流用（曝露＝物理）。未防護の兵が既存の疫病致死率で死ぬ＝マラリア専用倍率を置かない
         {
             double need = InvadeCannedReq(target);
-            double fill = PoliticalQuantities.Clamp01(Colonial.BuyUpkeepGood(this, Region, InvQuinineId, need, TreasuryCat.WarCost) / Math.Max(1e-9, need));   // 買えた分だけ防護に充てる（植民地の駐留のマラリアの鎮静と同じ形）
+            double fill = PoliticalQuantities.Clamp01(Colonial.BuyUpkeepGood(this, Region, InvQuinineId, need, TreasuryCat.WarCost) / Math.Max(1e-9, need));   // 買えた分だけ防護に充てる（(1167) で植民地の毎月のキニーネは消した＝遠征だけが買う）
             double exposed = 1.0 - fill;
             if (exposed > 1e-9)   // （未防護割合×兵士数）が EpidemicSeverity（既存の疫病致死率）で死ぬ＝疫病と同じ死の記帳の1本（KillPops・段4e J＝人口の台帳・粗死亡の計器）
             {
