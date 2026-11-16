@@ -1,0 +1,14 @@
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2434088) [17 s]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 38, declared: 121286) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 2411) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 6222) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 24761337) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 29, declared: 32392768) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 39, declared: 104601) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 31, declared: 4609144) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 32, declared: 4609144) [< 1 ms]
+bundle.txt:  失敗 PriceOfBread.Tests.InstrumentsTests.軍事費の施行の一歩の内訳が別の列と合い歩幅の式に閉じる [14 s]
+bundle.txt:  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [12 s]
+bundle.txt:  失敗 PriceOfBread.Tests.InstrumentsTests.行政の請求の2つの式と戦時段の列が揃い別の経路と合う [14 s]
+bundle.txt:失敗!   -失敗:    12、合格:  1458、スキップ:     0、合計:  1470、期間: 19 m 29 s - PriceOfBread.Tests.dll (net10.0)
+bundle_ui.txt:成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 44 s - PriceOfBread.Tests.Ui.dll (net10.0)

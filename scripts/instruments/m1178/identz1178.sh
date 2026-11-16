@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (1178) 合流の腕 Z（m1171/identz1171.sh の型・木を wt_m1178z〔合わせた木 920a655a1＋挙動の線 3 本の旗を 0 へ戻す 1 コミット f77c295a8・push しない〕へ）
+# (1178) 合流の腕 Z（m1171/identz1171.sh の型・木を wt_m1178z〔合わせた木（cl＋t1＋k1・追記 1 で hd を外した）＋挙動の線 2 本の旗を 0 へ戻す 1 コミット・push しない〕へ）
 #   宣言：列が増えた表 t1buy_s（t1 +13）・secession_s（k1 +5）・テストの差 +5（t1 +1・k1 +4）・段 2・PRUNE は既定。NOINSZ=1 で --no-ins。
 #   bash scripts/instruments/tools/bg.sh D:/PoB_work/m1178_work/identz.mark bash scripts/instruments/m1178/identz1178.sh   （run_in_background で起こす）
 unset POB_INSTRUMENTS_TABLES
