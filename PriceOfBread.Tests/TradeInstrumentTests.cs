@@ -123,7 +123,9 @@ public class TradeInstrumentTests
     [Fact]
     public void G4_越境の量と平均の値段の積は額と10倍以内()
     {
-        var (dir, sim, restore) = Run(24);
+        // (1179) 盤面を 24→36 四半期に選び直した（中央値の窓は〈国内の平均の値段が輸入の単価の 3 倍未満〉という軌道の性質に頼る＝24 四半期では
+        //   旗 SecessionInclusionOnce 1 の軌道で中央値 3.10・事前登録 measurements/m1179_20261116_prereg_k1.txt の追記 2 の手順で旗 0・1×SupplySlope の揺らし 3 通りの全てで通る最初の数）。
+        var (dir, sim, restore) = Run(36);
         try
         {
             var t = Read(dir, "nationgood"); var ratios = new List<double>();
@@ -135,6 +137,7 @@ public class TradeInstrumentTests
             }
             ratios.Sort(); int n = ratios.Count;
             Assert.True(n >= 8, "対照：正の行が 8 以上ある（" + n + "）");
+            Assert.True(t.R.Select(r => t.S(r, "year")).Distinct().Count() >= 4, "対照：盤面の年が 4 以上ある");   // (1179) 選び直した盤面の対照
             // 行ごとの比は州の平均の値段と売り手の積出し価格の差で外れる行がある（試験の盤面で 25.6 倍の行が 1 本・結果を見た後の形＝事前登録の追記）＝単位の取り違えは全行を同じ向きにずらす
             // （量の代わりに額を積むと比は値段そのもの＝中央値 10 超）。中央値が 0.3〜3 と、7 割以上の行が 10 倍以内で見る。
             Assert.True(ratios[n / 2] > 0.3 && ratios[n / 2] < 3, "中央値 " + ratios[n / 2]);
