@@ -7,6 +7,8 @@
 S=D:/PoB_work/wt_m1184/scripts/instruments; CF=$S/ident/ident.cfg
 SMALL=$(grep '^SMALL=' $CF | cut -d= -f2 | tr -d '\r'); BYPASS=$(grep '^BYPASS=' $CF | cut -d= -f2 | tr -d '\r')
 GT="$SMALL,nationgood_s,armsfill_s,pop_s,warpair_s,tb_s,t1buy_s,cessp_s,sf_s,mintcap_s"
+# (1184) アブレーションの腕（At1・A0）は止める線を読まない＝hd.py・t1gates3.py・impratio.py が読む表だけに絞る（D: の空き・腕の前に決めた）。
+GA="nation_s,labor_s,nationgood_s,armsfill_s,pop_s,warpair_s,t1buy_s,tb_s,sf_s,epi_s,wars_s"
 A11="$SMALL,$BYPASS,railspend_s,trrail_s,trnation_s,tport_s,dipcool_s,warband_s,warpair_s,disccontact_s"
 NUL="$A11,rponset_s,rule_s,secession_s,cessp_s,nationgood_s,tb_s,cederule_s,armsfill_s,soldiervac_s,mintreg_s,mintcap_s,admrule_s,t1buy_s,pop_s,sf_s"
 G=${1:?組}; H=${2:?コミット}
@@ -14,8 +16,8 @@ case $G in
   M)    bash $S/m1184/arm1184.sh mM 1 10 1 1 - $H ;;
   S11)  TABLES1184="$A11,cpop_s,admrule_s,rule_s,soldiervac_s,mintreg_s,mintcap_s,nationgood_s,armsfill_s,pop_s,tb_s,t1buy_s,secession_s,cessp_s,rulepower_s,sf_s" bash $S/m1184/arm1184.sh mS11 1 10 11 1 - $H ;;
   S11z) TABLES1184="$GT" bash $S/m1184/arm1184.sh mS11z 1 10 11 1 "StockpilePanicWeight=0.5" $H ;;
-  At1)  TABLES1184="$GT" bash $S/m1184/arm1184.sh mAt1 1 10 1 1 "TradeBuyBySupplyCurve=0" $H ;;
-  A0)   TABLES1184="$GT" bash $S/m1184/arm1184.sh mA0 1 10 1 1 "TradeBuyBySupplyCurve=0;StockpilePanicWeight=0.5" $H ;;
+  At1)  TABLES1184="$GA" bash $S/m1184/arm1184.sh mAt1 1 10 1 1 "TradeBuyBySupplyCurve=0" $H ;;
+  A0)   TABLES1184="$GA" bash $S/m1184/arm1184.sh mA0 1 10 1 1 "TradeBuyBySupplyCurve=0;StockpilePanicWeight=0.5" $H ;;
   p5)   bash $S/m1184/arm1184.sh mp5 0 5 1 1 - $H ;;
   p10)  bash $S/m1184/arm1184.sh mp10 0 10 1 1 - $H ;;
   N1)   TABLES1184="$NUL" bash $S/m1184/arm1184.sh mN1 1 10 1 0 SupplySlope=0.50000001 $H ;;
