@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="c0c3a0fa-9791-4dba-868e-25c2ff414141" name="dirge@DIRGE 2026-11-16 17:26:36" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-16T17:26:36.7661179+09:00" queuing="2026-11-16T17:26:36.7661179+09:00" start="2026-11-16T17:23:03.4457981+09:00" finish="2026-11-16T17:26:36.8186632+09:00" />
+  <TestSettings name="default" id="d74baf93-f37b-4c7e-9513-cda58c420151">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-16_17_26_36" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b4fd0fc2-03f9-46ff-b042-955753ad05ad" testId="1886b158-3849-4a8c-fc85-6d2cfc2fe713" testName="PriceOfBread.Tests.ConservationTests.世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない" computerName="DIRGE" duration="00:03:32.5401034" startTime="2026-11-16T17:23:04.1913997+09:00" endTime="2026-11-16T17:26:36.7386960+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b4fd0fc2-03f9-46ff-b042-955753ad05ad" />
+    <UnitTestResult executionId="0f15c483-befa-43a1-ac15-d9f0dfdfe24f" testId="766c8581-5f23-db08-97af-97dc3fcd1be3" testName="PriceOfBread.Tests.ConservationTests.家計の与信は全長でも国ごとにPOPの債務の和に等しい" computerName="DIRGE" duration="00:00:00.0001262" startTime="2026-11-16T17:26:36.7542291+09:00" endTime="2026-11-16T17:26:36.7542688+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0f15c483-befa-43a1-ac15-d9f0dfdfe24f" />
+    <UnitTestResult executionId="7b5bdb2a-7603-4399-9e7c-f2281d230e8a" testId="2a7f646c-6b26-e575-e527-dbdad7cd77ab" testName="PriceOfBread.Tests.ConservationTests.世界の総人口は全長でも出生と死亡と戦死でしか動かない" computerName="DIRGE" duration="00:00:00.0001947" startTime="2026-11-16T17:26:36.7535947+09:00" endTime="2026-11-16T17:26:36.7537013+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7b5bdb2a-7603-4399-9e7c-f2281d230e8a" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PriceOfBread.Tests.ConservationTests.世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない" storage="d:\pob_work\m1178_work\suite\art_suite\bin\priceofbread.tests\release\priceofbread.tests.dll" id="1886b158-3849-4a8c-fc85-6d2cfc2fe713">
+      <Execution id="b4fd0fc2-03f9-46ff-b042-955753ad05ad" />
+      <TestMethod codeBase="D:\PoB_work\m1178_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ConservationTests" name="世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ConservationTests.家計の与信は全長でも国ごとにPOPの債務の和に等しい" storage="d:\pob_work\m1178_work\suite\art_suite\bin\priceofbread.tests\release\priceofbread.tests.dll" id="766c8581-5f23-db08-97af-97dc3fcd1be3">
+      <Execution id="0f15c483-befa-43a1-ac15-d9f0dfdfe24f" />
+      <TestMethod codeBase="D:\PoB_work\m1178_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ConservationTests" name="家計の与信は全長でも国ごとにPOPの債務の和に等しい" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ConservationTests.世界の総人口は全長でも出生と死亡と戦死でしか動かない" storage="d:\pob_work\m1178_work\suite\art_suite\bin\priceofbread.tests\release\priceofbread.tests.dll" id="2a7f646c-6b26-e575-e527-dbdad7cd77ab">
+      <Execution id="7b5bdb2a-7603-4399-9e7c-f2281d230e8a" />
+      <TestMethod codeBase="D:\PoB_work\m1178_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ConservationTests" name="世界の総人口は全長でも出生と死亡と戦死でしか動かない" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="1886b158-3849-4a8c-fc85-6d2cfc2fe713" executionId="b4fd0fc2-03f9-46ff-b042-955753ad05ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="766c8581-5f23-db08-97af-97dc3fcd1be3" executionId="0f15c483-befa-43a1-ac15-d9f0dfdfe24f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2a7f646c-6b26-e575-e527-dbdad7cd77ab" executionId="7b5bdb2a-7603-4399-9e7c-f2281d230e8a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:00.10]   Discovering: PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:00.33]   Discovered:  PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:00.35]   Starting:    PriceOfBread.Tests&#xD;
+[xUnit.net 00:03:32.94]   Finished:    PriceOfBread.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
