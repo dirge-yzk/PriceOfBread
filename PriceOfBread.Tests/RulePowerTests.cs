@@ -18,7 +18,7 @@ public class RulePowerTests
 {
     private const ulong Seed = 1789UL;
 
-    private static (MultiNationSim Sim, string Dir) Run(string? sel, int quarters, bool on)
+    private static (MultiNationSim Sim, string Dir) Run(string? sel, int quarters, bool on, Action<MultiNationSim, int>? beforeInstruments = null)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_rp_" + Guid.NewGuid().ToString("N"));
         if (on) Instruments.Configure(dir, "*"); else Instruments.Configure(null, null);
@@ -31,7 +31,7 @@ public class RulePowerTests
             if (on) Instruments.Phase(sim, Seed, "open");
             sim.StartWarmup();
             if (on) Instruments.Phase(sim, Seed, "warm");
-            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); if (on) Instruments.Quarter(sim, Seed, q); }
+            for (int q = 0; q < quarters; q++) { sim.StepQuarter(); beforeInstruments?.Invoke(sim, q); if (on) Instruments.Quarter(sim, Seed, q); }
         }
         finally { if (on) Instruments.Close(sim); }
         return (sim, dir);
@@ -137,7 +137,20 @@ public class RulePowerTests
     {
         try
         {
-            var (_, dir) = Run("rulepower_s,rulepeace_s", 6, true);
+            // (1173) 盤面を置く：最初の四半期の計器の前に、中核が 1 の州の非兵士の闘争度を 0 に＝影の圧 0＝開幕の抵抗 F_R＝0 の州が
+            //   旧の規則（:893 の包摂の割引）にも新の規則（旗 SecessionInclusionOnce 1＝割引なし）にも依らず立つ（自己検査の母集合の条件は変えない）。
+            int placed = 0;
+            var (_, dir) = Run("rulepower_s,rulepeace_s", 6, true, (s, q) =>
+            {
+                if (q != 0) return;
+                foreach (var n in s.Nations) foreach (var r in n.World.Regions)
+                {
+                    if (!(Politics.AvgRegionCoreShare(r) >= 1.0)) continue;
+                    foreach (var p in r.Pops) if (!p.IsSoldier) p.Militancy = 0;
+                    placed++;
+                }
+            });
+            Assert.True(placed >= 4, $"盤面を置いた州 {placed}");   // 対照の下限
             var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"rulepower_s{Seed}.tsv"));
             var h = lines[0].Split('\t');
             Assert.Equal(Instruments.RulePowerHeaderText.Split('\t'), h);
