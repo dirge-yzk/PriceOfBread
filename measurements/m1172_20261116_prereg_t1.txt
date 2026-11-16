@@ -92,3 +92,17 @@
 - T1（A-1）を外す。4 回目の腕は回さない（★(685)）。器の扱いの推奨は案 X（恒等の線で A-1 の枝・旗・写し〔Model.cs:490・EconomyStep.cs:914〜〕・台帳の 2 行・t1buy_s を消す・tb_s は B-1′・T2 の読み手に残す）＝00一覧〈次の波〉へ（合流が書く）。量の門は B-1′・T2 で取る（★(1164) ② のまま）。
 
 [10] 作者に聞く物：無し（推奨で進める）。旗 1 の木で [7] の TradeClearingTests が赤になったときだけ、止めて聞く。
+
+[A1] 追記 1（2026-11-16・旗 1 の前・上の本文の規則は変えていない）
+- 段 T1-0′ の器 3d1584831 の ident c116t1z（段 2・--grown-ok t1buy_s・--tests-delta 1）〈判定: 恒等〉：素の 5 種 179 行・計器つき 10 種 181 行が全行バイト一致・.cost の件数の行 45 本と推定（230.2 秒・229.7 秒）が一致・表 1551 本＝バイト一致 1521＋既知の揺れ 20＋列が増えた 10（t1buy_s の +13 列）・試験 2895（+1）・FullLength 3・SOURCE-HASH 0b40b126e0f3d677。出力 measurements/m1172_20261116/ident_c116t1z_check.txt。
+- 旗 0 の数え（ident の計器つき 10 種の t1buy_s・scripts/instruments/c116t1/t1gates3.py・measurements/m1172_20261116/flag0_t1gates.txt）：
+  - 働きと誤りの列は全て 0：retreatRowN 0・retreatRowSum 0・excessQtyX 0・excessQtyAll 0・errNegQ 0・errOverIns 0・errOverBound 0（旗 0 で構成上 0＝★(1164) の 4 つ目の規則）。uBelowMin 0・gateMismatch 0・selfDiff 0・u1Viol 350,380（旗 0 で落ちる）。
+  - rowsDealt 75,387,287・rowsDealtX 67,212,447・dealsX 1,045,474,196＝dealsX − rowsDealtX＝978,261,749（越境の成約は 1 行あたり平均 15.6 本）。
+  - G1 の床：retreatRowInsSum 186,156,887.3・retreatRowInsN 13,906,957 → 床1＝⌊÷4⌋＝46,539,221・床 N＝3,476,739（どちらも 0 でない＝G1 は門になる）。
+  - ρ_ins＝(qtyX 1,147,081,938＋excessQtyInsX 451,341,907.6＋excessQtyInsPopA 97,590,680.9)÷qtyX＝1.4785（成約のある行だけ 1.3935）≧1.01＝紙の台本は G3 の破れを予言しない＝旗 1 へ進む（㉗・★(719) は当たらない）。ρ_ins は access・予算・容量・売り手の側を掛けない上側の見込み＝旗 1 の ρ_X の予言ではない（限界）。
+  - 旗 0 の ρ_X＝1.000000（全期間・1830／1870／1913 も 1.000000）＝G3 は旗 0 で落ちる。
+- 突然変異（使い捨ての木・コミット 3d1584831 の写し・scripts/instruments/c116t1/mut.sh と mutate.py・measurements/m1172_20261116/mut_tests_1.txt）：
+  - M7 → 自己検査が赤（retreatRowSum 23≠10）。M8 → 自己検査が赤（excessQtyAll 0≠2.625）。M11 → 自己検査が赤（excessQtyAll 11.5≠2.625＝先の Assert で落ちた・errOverBound の Assert まで届かない＝下の試験の並べ替えで取り直す）。
+  - M2 → TradeT1Tests の M4（selfDiff）・M6（selfDiff）・M7（retreatDealsTol）が赤。M6 → M4（u1Viol 1,613）・M6（selfDiff）・M7（errOverIns 626）が赤。M10 → M6（selfDiff）が赤。
+  - **予言の外れ**：M9 は errOverIns で赤と予言したが、12 四半期の盤面では errOverIns 0（TradeT1Tests.M7 は緑）・赤は selfDiff（M4・M6）。P̂(lp)＞P の行がこの盤面に無い〈推〉＝errOverIns の M9 への感度は限界と名乗る。
+- 試験の並べ替え（試験だけの別のコミット）：TradeT1RowAccTests の盤面 A で errOverBound の Assert を excessQtyAll の前へ（M11 が errOverBound で赤になることを示すため・Assert の文と期待値は変えない）。並べ替えた木で M11 を取り直す。

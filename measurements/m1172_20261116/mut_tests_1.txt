@@ -1,0 +1,16 @@
+突然変異（コミット 3d1584831 の写しの木）
+OK M7
+M7 rc=1 絞り込み=FullyQualifiedName~TradeT1RowAccTests | 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 288 ms - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1RowAccTests.行の束は退きを1回数え上界を守る [288 ms];
+OK M8
+M8 rc=1 絞り込み=FullyQualifiedName~TradeT1RowAccTests | 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 52 ms - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1RowAccTests.行の束は退きを1回数え上界を守る [11 ms];
+OK M11
+M11 rc=1 絞り込み=FullyQualifiedName~TradeT1RowAccTests | 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 88 ms - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1RowAccTests.行の束は退きを1回数え上界を守る [88 ms];
+OK M2
+M2 rc=1 絞り込み=FullyQualifiedName~TradeT1Tests | 失敗!   -失敗:     3、合格:     7、スキップ:     0、合計:    10、期間: 1 m 19 s - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1Tests.M4_旗1の成約は上界を越えず計器とエンジンが合う [14 s];失敗 PriceOfBread.Tests.TradeT1Tests.M7_旗1の母集合Cと退きの量と下界 [10 s];失敗 PriceOfBread.Tests.TradeT1Tests.M6_楔が負の行でもuPrimeは州の値段で切る [9 s];
+OK M6
+M6 rc=1 絞り込み=FullyQualifiedName~TradeT1Tests | 失敗!   -失敗:     3、合格:     7、スキップ:     0、合計:    10、期間: 1 m 5 s - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1Tests.M4_旗1の成約は上界を越えず計器とエンジンが合う [13 s];失敗 PriceOfBread.Tests.TradeT1Tests.M7_旗1の母集合Cと退きの量と下界 [5 s];失敗 PriceOfBread.Tests.TradeT1Tests.M6_楔が負の行でもuPrimeは州の値段で切る [9 s];
+OK M9
+M9 rc=1 絞り込み=FullyQualifiedName~TradeT1Tests | 失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 1 m 3 s - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1Tests.M4_旗1の成約は上界を越えず計器とエンジンが合う [12 s];失敗 PriceOfBread.Tests.TradeT1Tests.M6_楔が負の行でもuPrimeは州の値段で切る [5 s];
+OK M10
+M10 rc=1 絞り込み=FullyQualifiedName~TradeT1Tests | 失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 1 m 10 s - PriceOfBread.Tests.dll (net10.0) | 赤の試験: 失敗 PriceOfBread.Tests.TradeT1Tests.M6_楔が負の行でもuPrimeは州の値段で切る [8 s];
+おわり
