@@ -83,3 +83,12 @@
 - 腕 B は `bash scripts/instruments/c117k1/armb.sh <旗 1 のコミット> D:/PoB_work/c117k1_work/armB`（`INS=1 bash scripts/instruments/batch.sh run c117k1B 10`・読み手 c117k1/read_k1.sh）。腕 B の生は合流の判断まで消さない。
 - 印 D:/PoB_work/c117k1_work/k1.mark。
 - 紙の台本の出力：measurements/m1179_20261116/paper/（k1_*.txt＝paper_k1.py・gates_flag0_*.txt＝旗 0 の門・count_rej_*.txt＝外した腕の数え直し）。
+
+■ 追記 1（2026-11-16・ident c117k1z の後・旗 1 のコミットと旗 1 の出力の前に固定）
+- ㉘ の束（走査の番人 5 本＋TechLevelRemovalTests＋SecessionInclusionOnceTests＋分離を読む試験 6 本＋RulePowerTests・器の木 8b531d7b0・旗 0）：262 本緑（12 分 27 秒・D:/PoB_work/c117k1_work/scan/scan28.txt）。
+- ident c117k1z（段 2・木 17e37cc68・SOURCE-HASH e7f6cd4f8ab798a3）〈判定: 恒等〉（測った種で一致）：素の 5 種が b5_20261116_m1178 と全行バイト一致（178 行）・計器つき 10 種が b10_20261116_m1178_ins と全行一致（182 行）・推定 236.0 秒／236.2 秒が一致・計器の表 1551 本＝バイト一致 1505＋既知の揺れ 36＋宣言どおり列が増えた 10（secession_s）・宣言の無い違い 0・注視の表 4740 行一致・テスト Category!=FullLength 2899（2895＋4）・FullLength 3。写し measurements/m1179_20261116/ident_c117k1z.txt・ident_b5_ia_5.txt・ident_b10_ib_10.txt（.cost・.manifest つき）。
+- 旗 0 の生（ident の out_ib_10/ins の secession_s・法の表は全行一致の keep_1178/base_ins）に門の台本を当てた（measurements/m1179_20261116/gates_flag0_ident_c117k1z.txt）：G1 2,489（赤・≧2,830）・G2 外れ 1,193,968 行（赤）・G3b 0・G5 100／29＝旗 0 で狙いの門 G1 と G2 が落ちる（M1 の予言どおり）。
+- 計器の自己検査（旗 0 の 10 種の全 1,194,698 行）：本体の圧と計器の旧の規則 pressureRuleOldIndex の相対の差の最大 0（selfcheck_flag0_ident_c117k1z.txt）。
+- 記録の台本 scripts/instruments/c117k1/rec_k1.py（内戦の件数と月の和・本国の中核で関税の項の圧が立つ行・1861 年のアメリカ）を旗 0 に当てた（rec_flag0.txt）：内戦 94／94／119 件・月の和 1,350／1,144／1,822・1861 年のアメリカの本国の中核の圧の中央 0.00047／0.00074／0.00066。
+- 門の台本の写し gates_k1_1173.py は使わないので消した（数え方の元は scripts/instruments/c116k1/gates_k1.py）。
+- 門・閾値・突然変異の表は変えない。
