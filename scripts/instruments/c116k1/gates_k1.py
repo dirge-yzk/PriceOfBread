@@ -81,7 +81,10 @@ for seed in range(S0, S1 + 1):
             inclOld = 1.0 if mg == 1 else min(max(k, 0.0), 1.0)
             if 1.0 - inclOld > 1e-12: lim = old / (1.0 - inclOld)
             else: lim = once
-            if p > lim * (1 + REL) + 1e-15:
+            if p > lim * (1 + REL) + 1e-15: cnt["記録 G3a（元の物差し・許し 1e-8）外れの行"] += 1
+            # 追記 2（結果の後の変更・緩める側）：列 coreShareMeanShare は有効 10 桁＝1÷(1−k) で丸めが拡がる＝許しを 1e-8＋1e-9÷(1−k) に
+            bnd = REL + 1e-9 / max(1.0 - inclOld, 1e-12) if 1.0 - inclOld > 1e-12 else REL
+            if p > lim * (1 + bnd) + 1e-15:
                 cnt["G3a 外れの行"] += 1
                 if len(g3abad) < 8: g3abad.append(f"s{seed} q{q} {nat}/{reg} {tier} 圧 {p:.10g} 上限 {lim:.10g}")
             if once > old * (1 + 1e-6) + 1e-12: cnt["記録 旧と1回の規則が違う行"] += 1
