@@ -1,0 +1,9 @@
+(1181) c117tg 突然変異の表（使い捨ての木 D:/PoB_work/wt_c117tgx＝main c590d21ba＋origin/c116k1＋origin/c116hd・push しない・WriterRatchetTests の衝突は ours・DormantIdentityTests は両方の注を残し TradeBuyBySupplyCurve の行を外した）
+M0 元の 3 本（修正前の InstrumentsTests）を t1＋k1＋hd の木で回す：赤 3（軍事費の施行の一歩〔解禁の四半期の政治予算の対照 0,0〕・史実比較の桁〔wars_s1789.tsv が無い〕・行政の請求〔戦争中の判断が 1 度も写らない〕）＝(1178) の帰属と同じ
+M0' 修正後の 3 本を同じ木で回す：緑 3
+M3 PlaceWar の宣戦の行を消す（戦争を置かない）：赤 3（全て〈(1181) 対照：交戦の月が立つ行が 1 つも無い〉）
+M1 BilateralMarket.cs の `Math.Max(0, X - doneQ - unmetQ)` の `- unmetQ` を外す（TradeClearingTests 潜在量は同じ不足を売り手の数だけ重ねない）：
+   旧の上界（acc×不足×wg＝5050）の試験は緑のまま（穴）。新しい上界（価格の量と A-1 の不足の小さい方＝2500）は旗 1（t1＋k1＋hd）で赤〔バーミンガム：潜在量 2600〕・旗 0（POB_COEF TradeBuyBySupplyCurve=0）でも赤〔2600〕。外さなければ両方緑。
+M2a MarketFlow.cs :86 `bool laborClosed = h > 1;` → `= false;`：LaborMarketFormTests の足した対照で赤〔下側と上側の減った日数の差が 0＜27〕。外さなければ緑。
+M2b MarketFlow.cs の free1 から `want < wrp` を外す：緑のまま（閉形の入口 LaborClosed の中の条件〔pe＜wrp・rw2＜wrp〕が参照より上の盤面では先に偽になる＝同値に近い突然変異・上側の盤面 1.6 倍・1.02 倍とも）。穴として名乗る。
+M4 Meritocracy.cs の否定形：字の上で同じ（旗 0・有限の大きさ）＝NaN の大きさの席を作る盤面は無い＝試験では拾わない（ident の一致だけ）。
