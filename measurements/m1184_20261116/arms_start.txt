@@ -1,0 +1,16 @@
+identZ start 2026-11-16 21:21:19 tree=d776fd5a9 Dfree=98.35GB armsfree=6
+identZ end 2026-11-16 22:04:05 rc=0
+mM start 2026-11-16 22:09:25 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=ba65aacf1 Dfree=84.33GB armsfree=6
+mM end 2026-11-16 22:32:48 rc=0
+mN1 start 2026-11-16 22:39:42 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.50000001 HEAD=ba65aacf1 Dfree=65.12GB armsfree=6
+mN2 start 2026-11-16 22:39:42 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.49999999 HEAD=ba65aacf1 Dfree=65.12GB armsfree=6
+mS11 start 2026-11-16 22:39:43 ins=1 N=10 SB=11 cearn=1 coef=- HEAD=ba65aacf1 Dfree=65.12GB armsfree=6
+mS11z start 2026-11-16 22:39:43 ins=1 N=10 SB=11 cearn=1 coef=StockpilePanicWeight=0.5 HEAD=ba65aacf1 Dfree=65.12GB armsfree=6
+mp5 start 2026-11-16 22:49:26 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=ba65aacf1 Dfree=57.1GB armsfree=2
+mp10 start 2026-11-16 22:49:26 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=ba65aacf1 Dfree=57.09GB armsfree=2
+mp5 end 2026-11-16 23:55:40 rc=0
+mp10 end 2026-11-16 23:55:54 rc=0
+mS11z end 2026-11-16 23:57:13 rc=0
+mN2 end 2026-11-16 23:57:43 rc=0
+mN1 end 2026-11-16 23:58:11 rc=0
+mS11 end 2026-11-16 23:58:53 rc=0

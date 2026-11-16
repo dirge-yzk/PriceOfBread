@@ -1,0 +1,15 @@
+tb_s.impQ
+  1830: base 6.47315e+06・腕÷base 0.9841・n1÷base 0.8687・n2÷base 0.9108
+  1870: base 1.07653e+07・腕÷base 1.0100・n1÷base 1.0091・n2÷base 0.9530
+  1913: base 9.60405e+06・腕÷base 0.9795・n1÷base 0.9746・n2÷base 1.0632
+  all: base 1.27228e+09・腕÷base 0.9966・n1÷base 0.9790・n2÷base 0.9899
+nationgood_s.crossImportQty
+  1830: base 512669・腕÷base 0.9957・n1÷base 0.8398・n2÷base 0.8907
+  1870: base 855504・腕÷base 1.0188・n1÷base 1.0047・n2÷base 0.9531
+  1913: base 778606・腕÷base 0.9966・n1÷base 0.9536・n2÷base 1.0464
+  all: base 1.10968e+07・腕÷base 1.0083・n1÷base 0.9861・n2÷base 0.9961
+nationgood_s.crossImportValue
+  1830: base 281179・腕÷base 1.0155・n1÷base 0.8882・n2÷base 0.9138
+  1870: base 560051・腕÷base 1.0055・n1÷base 0.9498・n2÷base 0.9532
+  1913: base 530854・腕÷base 0.9863・n1÷base 0.9174・n2÷base 1.0460
+  all: base 7.14252e+06・腕÷base 1.0293・n1÷base 0.9787・n2÷base 1.0584

@@ -1,0 +1,6 @@
+D:/PoB_work/m1184_work（作業）
+D:/PoB_work/wt_m1184（worktree・枝 m1184）
+D:/PoB_work/keep_1184_rej（採らなかった腕の生・c117k1B は keep_1178_rej/m1178_M_t1k1/ins とのハードリンク）
+D:/PoB_work/wt_m1184z（腕 Z の使い捨ての worktree・枝 m1184z＝push しない）
+D:/PoB_work/ident_m1184z（腕 Z の ident の生）
+D:/PoB_work/keep_1184（新しい基線 m1184 の生）
