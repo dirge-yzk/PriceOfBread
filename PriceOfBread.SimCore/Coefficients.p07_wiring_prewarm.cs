@@ -77,7 +77,7 @@ public sealed partial class Coefficients
     public double MilitaryExportAccessFloor = 0.1;            // 禁止しても残る輸出口（Diplomacy.TradeAccess と同じ床＝全遮断はしない＝密輸・第三国再輸出の抽象）
     // --- 密輸の一般機構（禁制品doc C2・2026-07-30）：障壁（禁令）× 取り締まる力（行政充足率）。価格差は呼び出し側の式に既にある（Contraband.cs 参照）---
     // --- 戦時備蓄（07_再設計 §5(a)＝B3自己成就期待の第1形・A5裁定・2026-07-31）---
-    public double StockpilePanicWeight = 0.5;                 // 満点の恐慌時に在庫目標を何割増しにするか（主食・軍需＝満額）
+    public double StockpilePanicWeight = 0.0;                 // 満点の恐慌時に在庫目標を何割増しにするか（主食・軍需＝満額）・(1174) c116hd で 0.5→0.0（戦時の買いだめを消す・枝と欄は次の恒等の線）
     public double StockpileTensionSpan = 60.0;                // 満点に達するまでの幅（40→100＝開戦ポップアップ水準で満点）
     public double StockpileOtherFrac = 0.33;                  // A5裁定＝主食/軍需以外も「控えめに」＝優先財の1/3
     public Share SmugglingMax = new(0.5);                         // 行政が完全に無力(AdminFill=0)なとき禁令をすり抜ける割合
