@@ -1,0 +1,41 @@
+mutated M3a PriceOfBread.SimCore/MarketFlow.cs
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\wt_c116cl\PriceOfBread.Display\PriceOfBread.Display.csproj を復元しました (107 ミリ秒)。
+  D:\PoB_work\wt_c116cl\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (333 ミリ秒)。
+  D:\PoB_work\wt_c116cl\PriceOfBread.Tests.Ui\PriceOfBread.Tests.Ui.csproj を復元しました (329 ミリ秒)。
+  5 個中 2 個の復元対象のプロジェクトは最新です。
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\EconomyStep.cs(1504,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\Instruments.cs(2624,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(184,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(200,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c116cl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+  PriceOfBread.Display -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.Display\release\PriceOfBread.Display.dll
+D:\PoB_work\wt_c116cl\PriceOfBread.App\Controls\TableView.cs(131,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\wt_c116cl\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests.Ui -> D:\PoB_work\c116cl_art2\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+D:\PoB_work\c116cl_art2\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:03.15]     PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない [FAIL]
+  失敗 PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない [36 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0.25001381586947974
+Actual:   0.25027362957979815
+  スタック トレース:
+     at PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない() in D:\PoB_work\wt_c116cl\PriceOfBread.Tests.Ui\LaborMarketFormTests.cs:line 151
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:03.47]     PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない [FAIL]
+  失敗 PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない [31 ms]
+  エラー メッセージ:
+   撤去した世界で値段が床の下に居ない gi=84（0.19122）
+  スタック トレース:
+     at PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない() in D:\PoB_work\wt_c116cl\PriceOfBread.Tests.Ui\LaborMarketFormTests.cs:line 137
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:    15、スキップ:     0、合計:    17、期間: 5 s - PriceOfBread.Tests.Ui.dll (net10.0)
