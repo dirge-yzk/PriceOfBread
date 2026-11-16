@@ -2,3 +2,11 @@ ident_c116cl（線 cl の ident の生・cl を入れると決めた後・判定
 ident_m1178z（腕 Z の ident の生・判定を読んだ後＝measurements/m1178_20261116/identz_t1k1/）
 c116t1_work/B/out_c116t1B_10（線 t1 の腕 B の生〔門の表へ縮めた物〕・M′ の生と表ごとの sha1 を比べた後＝一致 1501・違う 50 は既知の揺れと経路の行番号だけ・measurements/m1178_20261116/rawcmp_M_t1B.tsv）
 wt_m1178z と枝 m1178z（腕 Z の使い捨て）
+ident_m1178y（腕 Z′ の ident の生・判定を読んだ後＝measurements/m1178_20261116/identy/）
+wt_m1178y と枝 m1178y（腕 Z′ の使い捨て）
+wt_c116t1 と枝 c116t1（線の worktree・origin に同じ頭）
+wt_c116k1 と枝 c116k1（線の worktree・origin に同じ頭）
+wt_c116hd と枝 c116hd（線の worktree・origin に同じ頭）
+wt_c116cl と枝 c116cl（線の worktree・origin に同じ頭）
+ローカルの参照の枝 m1178_withhd・m1178_withk1（push していない）
+c116t1_work/flag0_t1buy（t1 の旗 0 の t1buy_s・[A1] の床は事前登録に書かれている）

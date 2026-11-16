@@ -6,3 +6,6 @@ c116k1 の腕 B の生（合流で外した・門の表へ縮めた・sha1 は t
 M′（cl＋t1・全表）	m1178_work/out_mM_10/ins → keep_1178/base_ins
 S11′	m1178_work/out_mS11_10_s11/ins → keep_1178/a11
 S11z′（旗 TradeBuyBySupplyCurve 0・門の表）	m1178_work/out_mS11z_10_s11/ins → keep_1178/a11z
+N1	m1178_work/out_mN1_10/ins → keep_1178/n1
+N2	m1178_work/out_mN2_10/ins → keep_1178/n2
+c116k1 の旗 1 の短い走りの生	c116k1_work/arm1/out_k1_short_1 → keep_1178_rej/c116k1_short
