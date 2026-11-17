@@ -1,0 +1,16 @@
+navy_c118urB.txt 11 0
+rail_c118urB.txt 6 0
+steam_c118urB.txt 13 0
+fin_c118urB.txt 152 0
+hist171_c118urB.txt 17 0
+hist_c118urB.txt 32 0
+sold_c118urB.txt 9 0
+wardead_c118urB.txt 17 0
+mil180_c118urB.txt 103 0
+trade_c118urB.txt 13 0
+warlaw_c118urB.txt 12 0
+lawmatch_c118urB.txt 13 0
+# 基準 rd:D:/PoB_work/wt_c118ur/measurements/ng1184_20261116:m1184＝NG 97／比べる rd:D:/PoB_work/c118ur_work/armB/read/ng:c118urB＝NG 97
+## 新しい NG（基準では NG でない）: 0
+## 外れた NG（比べる側で NG でない）: 0
+## 前からの NG: 97

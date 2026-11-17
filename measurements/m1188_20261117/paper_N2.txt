@@ -1,0 +1,11 @@
+{"seeds": 10, "wars": 5043, "declare": 2, "declareSeeds": 1, "multiFront": 0, "busyAtDeclare": 0, "declareMaxPerSeed": 2}
+s1 wars=592 declare=2 multi=0 busy=0 1793 サルデーニャ＝ピエモンテ->ジェノヴァ 11か月; 1889 両シチリア->ジェノヴァ 11か月
+s2 wars=542 declare=0 multi=0 busy=0 
+s3 wars=638 declare=0 multi=0 busy=0 
+s4 wars=596 declare=0 multi=0 busy=0 
+s5 wars=490 declare=0 multi=0 busy=0 
+s6 wars=387 declare=0 multi=0 busy=0 
+s7 wars=393 declare=0 multi=0 busy=0 
+s8 wars=562 declare=0 multi=0 busy=0 
+s9 wars=337 declare=0 multi=0 busy=0 
+s10 wars=506 declare=0 multi=0 busy=0 

@@ -1,0 +1,10 @@
+# (1188) 門の台本の自己検査（腕の前）
+## G1：種 1 の戦争を基線の 10 倍にした写し
+s1 wars 腕 6110 基線 611 比 10.000 STOP
+GATES STOP
+rc=0
+## G2：declare の種ごとの最大を 51 にした写し
+declare 種ごとの最大 51 STOP
+GATES STOP
+## 旗 0（基線そのもの）
+GATES PASS
