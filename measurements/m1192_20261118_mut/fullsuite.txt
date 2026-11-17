@@ -1,0 +1,6 @@
+== PriceOfBread.Tests
+成功!   -失敗:     0、合格:  2670、スキップ:     1、合計:  2671、期間: 25 m 54 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 PriceOfBread.Tests
+== PriceOfBread.Tests.Ui
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 10 s - PriceOfBread.Tests.Ui.dll (net10.0)
+rc=0 PriceOfBread.Tests.Ui
