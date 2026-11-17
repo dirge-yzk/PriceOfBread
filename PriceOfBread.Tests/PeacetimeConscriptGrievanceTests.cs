@@ -14,6 +14,7 @@ public class PeacetimeConscriptGrievanceTests
     private static Probe Board()
     {
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+        sim.StepQuarter();   // 開幕の盤面は国庫の歳入が 0＝平時の席が 0（EnvelopeOf）＝1 四半期進めて席を作る（SoldierVacancyFromZeroTests と同じ）
         var w = sim.Nations[0].World;
         var c = w.Coef;
         w.ConscriptionLaw = ConscriptionLaw.Selective;
