@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない [1 s]
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.Ui.dll (net10.0)
