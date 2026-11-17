@@ -333,9 +333,7 @@ public sealed class Diplomacy
     private readonly HashSet<long> _dependency = [];   // DirKey(宗主,従属) の有無＝属国関係（種別なし）
     // 国家ランク（列強/中堅/弱小）：四半期ごとに NationalScore の相対閾値で算出しキャッシュ（Power.Id→ランク）。ラベルのみ＝同盟/戦争は不変。
     internal readonly Dictionary<int, PowerRank> _rank = [];
-    public DeterministicRng? UnificationRng;   // P4 統一戦争の専用RNG系列（MultiNationSimが注入・既存系列のdraw数を乱さない。null=単一国/較正＝不発）
     public DeterministicRng? SubmitRng;        // SubmitProbabilistic=0では未消費）〔履歴 Diplomacy.cs#60〕
-    private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
     private int _rankClock;   // RankUpdateIntervalQuarters=1で毎月（現行恒等）・4で年次〔履歴 Diplomacy.cs#61〕
     private int _year;
     [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // CpCeded〔履歴 Diplomacy.cs#62〕
@@ -870,7 +868,7 @@ public sealed class Diplomacy
         BreakStrainedAlliances(c);     // 緊張が高まった同盟は崩れる→強国は孤立へ
         ApplyHegemonContainment(c);    // 反覇権の経済封じ込め（B2）：明白な覇権国の交易アクセスを覇権度に比例して締める（包囲網の経済的な歯）
         if (month % Calendar.MonthsPerQuarter == 0) DiplomacyAI(c, rng);
-        if (month % Calendar.MonthsPerQuarter == 0) TryUnificationWars(c);   // P4 統一戦争のAI（主フラグOFF/RNG未注入で不発）
+        if (month % Calendar.MonthsPerQuarter == 0) TryUnificationWars(c);   // P4 統一戦争のAI（候補が立たなければ不発）
         TradePolicyReaction(c);   // 通商反応層：相手の対自国関税を観測し報復/相互低減の偏倚を各国TariffRetaliationBiasへ（TariffRetaliation=0で偏倚0＝較正中立。抽象標的Nation==nullは対象外で単一国較正は非発火）
         TriggerWars(c);                // 緊張100以上が続けば宣戦（月次）
         // 順序を入れ替えるだけで保証が回復する。〔履歴 Diplomacy.cs#123〕
@@ -1674,24 +1672,19 @@ public sealed class Diplomacy
     }
 
     // プレイヤーはUIボタン（同条件・RNGなし）。〔履歴 Diplomacy.cs#180〕
-    internal void TryUnificationWars(Coefficients c)   // internal＝(1188) 単体の機構の試験が呼ぶ（挙動は変えない）
+    // (1195) 乱数・待ちの辞書・係数 3 本を消した＝候補と標的が立った四半期に必ず使う（(1188) の 1.0・0 と同じ道）。
+    internal void TryUnificationWars(Coefficients c)   // internal＝(1188) 単体の機構の試験が呼ぶ
     {
-        if (UnificationRng is null) return;
         foreach (var p in Powers)
         {
             if (p.Nation is not { } pw || p.IsPlayer) continue;
-            if (_unifRetryYear.TryGetValue(p.Id, out var ry) && _year < ry) continue;
             var rule = Formations.UnificationCandidate(this, p, pw, c);
             if (rule is null) continue;
             var targets = Formations.UnificationTargets(this, p, rule);
             if (targets.Count == 0) continue;
-            if (UnificationRng.NextDouble() < c.UnificationAiPursueChance)
-            {
-                targets.Sort((x, y) => x.Military != y.Military ? x.Military.CompareTo(y.Military) : x.Id.CompareTo(y.Id));   // 最弱から・同値はId＝決定論の全順序
-                foreach (var t in targets)
-                    if (DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); _unifRetryYear[p.Id] = _year + c.UnificationAiWarGapYears; break; }
-            }
-            else _unifRetryYear[p.Id] = _year + c.UnificationAiCooldownYears;
+            targets.Sort((x, y) => x.Military != y.Military ? x.Military.CompareTo(y.Military) : x.Id.CompareTo(y.Id));   // 最弱から・同値はId＝決定論の全順序
+            foreach (var t in targets)
+                if (DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); break; }
         }
     }
 

@@ -372,6 +372,7 @@ public class DormantIdentityTests
         "MilitaryBudgetNeedCapped", "RegionalPriceBaseExcludesColonies", "MachineCastIronRecipe", "ParishEduFunded", "ChilledMeatEnabled", "KeroseneFromOilEnabled", "HouseholdProductionEnabled",   // (811) c13ia：Simulation.cs の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は MilitaryTests・IvfInitialValuesTests・ReformPathTests・HouseholdProductionTests ほか）
         "MegaprojectEnabled", "MegaprojectStateFrac", "MegaprojectStateCap", "MegaprojectPrestige", "MegaprojectCounterCyclical", "MegaprojectCrisisDrawdown", "MegaprojectForeignShare", "MegaprojectForeignMinRank", "MegaprojectForeignDrawFrac", "MegaprojectForeignYield", "FormationLegitimacyBoost", "MonumentBuildQueue", "MonumentBuiltUnits", "MonumentApplied",   // (1081) c103dm：威信と巨大建造物を消した（係数 11 本・州の欄 3 本）
         "StockpilePanicWeight",   // (1174) c116hd：戦時の買いだめ（在庫の目標の倍率）を 0.5→0.0 で閉じた（S02-H004a・枝 Model.StockpileFactor と欄 WarScareTension は次の恒等の線で消す）
+        "UnificationAiPursueChance", "UnificationAiCooldownYears", "UnificationAiWarGapYears",   // (1195) c119us：統一戦争の AI の乱数と待ちの係数 3 本を削除（(1188) で 1.0・0 にした道を焼いた＝候補と標的が立った四半期に必ず使う）
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：
