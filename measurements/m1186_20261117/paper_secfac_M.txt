@@ -1,0 +1,10 @@
+s1 rows=124885 go=0 uplift_med=1.1288 uplift_p90=1.4306 uplift_popw=1.1327
+s2 rows=118687 go=0 uplift_med=1.1250 uplift_p90=1.3738 uplift_popw=1.1140
+s3 rows=127199 go=9 uplift_med=1.1296 uplift_p90=1.4717 uplift_popw=1.1505
+s4 rows=111112 go=1 uplift_med=1.1318 uplift_p90=1.4568 uplift_popw=1.1361
+s5 rows=118284 go=0 uplift_med=1.1124 uplift_p90=1.3871 uplift_popw=1.1284
+s6 rows=122585 go=1 uplift_med=1.1352 uplift_p90=1.3738 uplift_popw=1.1263
+s7 rows=116562 go=0 uplift_med=1.1417 uplift_p90=1.4116 uplift_popw=1.1357
+s8 rows=127661 go=0 uplift_med=1.1023 uplift_p90=1.4327 uplift_popw=1.1273
+s9 rows=117338 go=1 uplift_med=1.0830 uplift_p90=1.3605 uplift_popw=1.1219
+s10 rows=133815 go=0 uplift_med=1.0733 uplift_p90=1.2324 uplift_popw=1.0906

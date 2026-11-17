@@ -246,6 +246,7 @@ public class DormantIdentityTests
         "PolicyRateLoanWeight",
         "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearcherFrac",
+        "NationBuildMobilizationWeight", "SecessionConsciousnessWeight", "RevolutionConsciousness",   // (1186) c118nc：国民意識の廃止の 1 段目（読み手の重みを 0・旧 0.5・1.0・0.25）。係数と読み手の物理の削除は波119 の恒等の線
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",

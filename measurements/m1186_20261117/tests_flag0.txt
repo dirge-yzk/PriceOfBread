@@ -1,0 +1,8 @@
+# (1186) 旗 0 の木（試験のコミット・係数は旧の値 1.0・0.5・0.25）で T1〜T3（既定の行で赤＝期待どおり）
+  失敗 PriceOfBread.Tests.NationalConsciousnessReadersOffTests.T2_戦時の徴兵は既定で国民意識を読まない [1 s]
+   Assert.Equal() Failure: Values differ
+  失敗 PriceOfBread.Tests.NationalConsciousnessReadersOffTests.T3_革命は既定で国民意識を上げない [9 ms]
+   Assert.All() Failure: 104 out of 104 items in the collection did not pass.
+  失敗 PriceOfBread.Tests.NationalConsciousnessReadersOffTests.T1_分離の圧は既定で州の国民意識を読まない [19 ms]
+   Assert.Equal() Failure: Collections differ
+失敗!   -失敗:     3、合格:     0、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
