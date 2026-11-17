@@ -2,3 +2,6 @@ D:/PoB_work/c118ur_work/armB/out_c118urB_10/ins（線 ur の腕 B の生 26GB・
 D:/PoB_work/c118mb_work/armB/out_c118mbB_10/ins の残り（線 mb の腕 B の生・入れない線＝門の表 349 本〔SMALL・mintcap_s・mintreg_s・nationgood_s・tb_s・sf_s・rule_s・secession_s〕は keep_1191_rej/c118mbB へ移した・残り 22GB を消した）
 D:/PoB_work/ident_m1191z（腕 Z の ident の生・〈判定: 恒等（段 1）〉を読んだ後・成績表と判定の文と savetest・leakhunt は measurements へ写した）
 D:/PoB_work/c118nc_work/armB/out_c118ncB_10/ins（線 nc の腕 B の生 26GB・合わせた木の M と表ごとの sha1 で一致 1511・違う 50〔既知の揺れ 20＋呼び出し位置の行番号だけ 30〕＝M の生 keep_1191/base_ins が同じ軌道を持つ・m1191_work/sha_ncB.tsv・rawcmp_M_vs_ncB.tsv）
+D:/PoB_work/wt_c118hc・wt_c118nc・wt_c118ur・wt_c118mb（線の worktree・ローカルの枝は origin と同じ頭＝消した）
+D:/PoB_work/wt_c118mbx（線 mb の使い捨ての worktree・detached＝消した）
+D:/PoB_work/wt_m1191z と枝 m1191z（腕 Z の使い捨て＝push していない）
