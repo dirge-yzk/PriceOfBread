@@ -1,0 +1,6 @@
+D:/PoB_work/m1191_work（作業）
+D:/PoB_work/wt_m1191（worktree・枝 m1191）
+D:/PoB_work/keep_1191_rej（採らなかった腕の生）
+D:/PoB_work/wt_m1191z（腕 Z の使い捨ての worktree・枝 m1191z＝push しない）
+D:/PoB_work/ident_m1191z（腕 Z の ident の生）
+D:/PoB_work/keep_1191（新しい基線 m1191 の生）

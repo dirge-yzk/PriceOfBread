@@ -1,0 +1,2 @@
+# (1191) M の生と線 nc の腕 B の生の表ごとの sha1（rawcmp_sha.py）＝合計 一致 1511・違う 50
+# 違う 50＝burscan_s 10・clock_s 10（既知の揺れ）・cearn_s 10・cpop_s 10・flow_s 10（列 sourceLine・inTop1Route・outTop1Route・outTop2Route・outOtherTop1Route の呼び出し位置の行番号だけ＝hc が Simulation.cs の 3 行を消して行がずれた・種 1 で確かめた〔flow_s 33,163 行・cearn_s 21,636 行・cpop_s 38,252 行が行番号だけ違う〕）＝軌道は同じ

@@ -31,3 +31,4 @@ add = ['### 2m-1. 反証役 v の訂正（合流 (1191) が足した・表の行
 L = L[:j] + add + L[j:]
 open(dst, 'wb').write(nl.join(L).encode('utf-8'))
 print('ok', n)
+

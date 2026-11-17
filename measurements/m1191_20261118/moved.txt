@@ -1,0 +1,5 @@
+c118mb_work/armB/out_c118mbB_10/ins の門の表 349 本 → keep_1191_rej/c118mbB
+m1191_work/out_mM_10/ins → keep_1191/base_ins（M・全表）
+m1191_work/out_mN1_10/ins → keep_1191/n1（ヌル腕 N1・絞った表）
+m1191_work/out_mS11_10_s11/ins → keep_1191/a11（種 11〜20）
+m1191_work/out_mAsec_10/ins・out_mAmob_10/ins・out_mArev_10/ins → keep_1191_rej/m1191_Asec・m1191_Amob・m1191_Arev（nc の係数ごとのアブレーション・絞った表）

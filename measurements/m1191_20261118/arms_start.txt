@@ -1,0 +1,18 @@
+identZ start 2026-11-18 02:33:00 tree=f787c1cf7 Dfree=69.54GB armsfree=6
+mM start 2026-11-18 02:44:38 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=7f38045d0 Dfree=64.76GB armsfree=4
+mp5 start 2026-11-18 02:44:39 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=7f38045d0 Dfree=64.75GB armsfree=4
+mp5 end 2026-11-18 03:02:15 rc=0
+mp10 start 2026-11-18 03:02:16 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=7f38045d0 Dfree=47.16GB armsfree=5
+identZ end 2026-11-18 03:06:55 rc=0
+mM end 2026-11-18 03:18:38 rc=0
+mp10 end 2026-11-18 03:18:39 rc=0
+mS11 start 2026-11-18 03:22:52 ins=1 N=10 SB=11 cearn=1 coef=- HEAD=7f38045d0 Dfree=64.53GB armsfree=6
+mN1 start 2026-11-18 03:22:52 ins=1 N=10 SB=1 cearn=0 coef=SupplySlope=0.50000001 HEAD=7f38045d0 Dfree=64.53GB armsfree=6
+mAsec start 2026-11-18 03:22:52 ins=1 N=10 SB=1 cearn=1 coef=SecessionConsciousnessWeight=1 HEAD=7f38045d0 Dfree=64.53GB armsfree=6
+mAmob start 2026-11-18 03:22:53 ins=1 N=10 SB=1 cearn=1 coef=NationBuildMobilizationWeight=0.5 HEAD=7f38045d0 Dfree=64.54GB armsfree=6
+mArev start 2026-11-18 03:22:53 ins=1 N=10 SB=1 cearn=1 coef=RevolutionConsciousness=0.25 HEAD=7f38045d0 Dfree=64.54GB armsfree=6
+mAmob end 2026-11-18 04:26:40 rc=0
+mArev end 2026-11-18 04:26:52 rc=0
+mAsec end 2026-11-18 04:27:05 rc=0
+mN1 end 2026-11-18 04:27:30 rc=0
+mS11 end 2026-11-18 04:28:05 rc=0

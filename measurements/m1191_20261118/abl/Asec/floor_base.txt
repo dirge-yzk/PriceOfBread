@@ -1,0 +1,11 @@
+s1 {'rows': 14713, 'constMon': 7685, 'constMonCrown': 7685, 'condA': 5120, 'condA_ncKnown': 3434, 'floor': 28}
+s2 {'rows': 14860, 'constMon': 7195, 'constMonCrown': 7195, 'condA': 4738, 'condA_ncKnown': 3099, 'floor': 13}
+s3 {'rows': 14766, 'constMon': 6318, 'constMonCrown': 6318, 'condA': 4948, 'condA_ncKnown': 3023, 'floor': 135}
+s4 {'rows': 14714, 'constMon': 6809, 'constMonCrown': 6809, 'condA': 4521, 'condA_ncKnown': 3054, 'floor': 21}
+s5 {'rows': 14724, 'constMon': 6827, 'constMonCrown': 6827, 'condA': 4954, 'condA_ncKnown': 3187, 'floor': 38}
+s6 {'rows': 14779, 'constMon': 6874, 'constMonCrown': 6874, 'condA': 5324, 'condA_ncKnown': 3508, 'floor': 115}
+s7 {'rows': 14715, 'constMon': 7785, 'constMonCrown': 7785, 'condA': 5773, 'condA_ncKnown': 3847, 'floor': 30}
+s8 {'rows': 14712, 'constMon': 6350, 'constMonCrown': 6350, 'condA': 4165, 'condA_ncKnown': 2768, 'floor': 38}
+s9 {'rows': 14704, 'constMon': 7161, 'constMonCrown': 7161, 'condA': 4933, 'condA_ncKnown': 3246, 'floor': 27}
+s10 {'rows': 14708, 'constMon': 6137, 'constMonCrown': 6137, 'condA': 3863, 'condA_ncKnown': 2376, 'floor': 40}
+total {'rows': 147395, 'constMon': 69141, 'constMonCrown': 69141, 'condA': 48339, 'condA_ncKnown': 31542, 'floor': 485}

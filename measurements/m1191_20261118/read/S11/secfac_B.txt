@@ -1,0 +1,10 @@
+s11 rows=112987 go=2 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s12 rows=119183 go=2 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s13 rows=125346 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s14 rows=119322 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s15 rows=127595 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s16 rows=110692 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s17 rows=122898 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s18 rows=119245 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s19 rows=121035 go=11 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000
+s20 rows=122920 go=0 uplift_med=1.0000 uplift_p90=1.0000 uplift_popw=1.0000

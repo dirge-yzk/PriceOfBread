@@ -1,0 +1,21 @@
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s1.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s2.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s3.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s4.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s5.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s6.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s7.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s8.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s9.tsv
+missing D:/PoB_work/m1191_work/out_mS11_10_s11/ins\scalars_s10.tsv
+s11 {'rows': 15097, 'constMon': 7376, 'constMonCrown': 7376, 'condA': 4951, 'condA_ncKnown': 3372, 'floor': 13}
+s12 {'rows': 14840, 'constMon': 6465, 'constMonCrown': 6465, 'condA': 4808, 'condA_ncKnown': 3010, 'floor': 49}
+s13 {'rows': 14706, 'constMon': 7924, 'constMonCrown': 7924, 'condA': 5300, 'condA_ncKnown': 3368, 'floor': 71}
+s14 {'rows': 14715, 'constMon': 7234, 'constMonCrown': 7234, 'condA': 5251, 'condA_ncKnown': 3703}
+s15 {'rows': 14714, 'constMon': 7647, 'constMonCrown': 7647, 'condA': 5941, 'condA_ncKnown': 4010, 'floor': 40}
+s16 {'rows': 14765, 'constMon': 7181, 'constMonCrown': 7181, 'condA': 4599, 'condA_ncKnown': 2736}
+s17 {'rows': 14706, 'constMon': 5998, 'constMonCrown': 5998, 'condA': 4316, 'condA_ncKnown': 2425}
+s18 {'rows': 14708, 'constMon': 7654, 'constMonCrown': 7654, 'condA': 5328, 'condA_ncKnown': 3452, 'floor': 12}
+s19 {'rows': 14902, 'constMon': 7281, 'constMonCrown': 7281, 'condA': 5271, 'condA_ncKnown': 3103, 'floor': 4}
+s20 {'rows': 14768, 'constMon': 6764, 'constMonCrown': 6764, 'condA': 4808, 'condA_ncKnown': 3092, 'floor': 32}
+total {'rows': 147921, 'constMon': 71524, 'constMonCrown': 71524, 'condA': 50573, 'condA_ncKnown': 32271, 'floor': 221}
