@@ -1673,6 +1673,7 @@ public sealed class Diplomacy
 
     // プレイヤーはUIボタン（同条件・RNGなし）。〔履歴 Diplomacy.cs#180〕
     // (1195) 乱数・待ちの辞書・係数 3 本を消した＝候補と標的が立った四半期に必ず使う（(1188) の 1.0・0 と同じ道）。
+    // (1195) 標的ごとの可否はプレイヤー（World.CanUnificationWar）と同じ Formations.UnificationWarBlock＝同盟国へは宣戦しない。
     internal void TryUnificationWars(Coefficients c)   // internal＝(1188) 単体の機構の試験が呼ぶ
     {
         foreach (var p in Powers)
@@ -1684,7 +1685,7 @@ public sealed class Diplomacy
             if (targets.Count == 0) continue;
             targets.Sort((x, y) => x.Military != y.Military ? x.Military.CompareTo(y.Military) : x.Id.CompareTo(y.Id));   // 最弱から・同値はId＝決定論の全順序
             foreach (var t in targets)
-                if (DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); break; }
+                if (Formations.UnificationWarBlock(this, p, targets, t) == Formations.UnificationBlock.None && DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); break; }
         }
     }
 

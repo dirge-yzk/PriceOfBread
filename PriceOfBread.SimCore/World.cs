@@ -1900,17 +1900,22 @@ public sealed class World
     /// <summary>P4：現在狙える統一の変体（適格×ナショシェア×必要州が欠け）。null=機運なし（UIボタンの表示ゲート）。</summary>
     public FormationRule? UnificationRule => Diplomacy is { } dU && SelfPower is { } spU ? Formations.UnificationCandidate(dU, spU, this, Coef) : null;
 
-    /// <summary>P4：統一戦争の宣戦可否（対象＝必要州の保有国のみ。同盟・交戦中は不可）。理由を out で返す（UI非活性表示用）。</summary>
+    /// <summary>P4：統一戦争の宣戦可否（対象＝必要州の保有国のみ。同盟・交戦中は不可）。理由を out で返す（UI非活性表示用）。
+    /// (1195) 標的ごとの判定は AI と同じ Formations.UnificationWarBlock（理由の文字列はここだけ）。</summary>
     public bool CanUnificationWar(Power target, out string reason)
     {
         reason = "";
         if (Diplomacy is not { } d || SelfPower is not { } sp) { reason = "外交なし"; return false; }
         var rule = Formations.UnificationCandidate(d, sp, this, Coef);
         if (rule is null) { reason = "統一の機運なし"; return false; }
-        if (!Formations.UnificationTargets(d, sp, rule).Contains(target)) { reason = "必要州の保有国ではない"; return false; }
-        if (d.IsAtWar(sp, target)) { reason = "交戦中"; return false; }
-        if (d.HasAlliance(sp, target)) { reason = "同盟中"; return false; }
-        return true;
+        reason = Formations.UnificationWarBlock(d, sp, Formations.UnificationTargets(d, sp, rule), target) switch
+        {
+            Formations.UnificationBlock.NotTarget => "必要州の保有国ではない",
+            Formations.UnificationBlock.AtWar => "交戦中",
+            Formations.UnificationBlock.Allied => "同盟中",
+            _ => "",
+        };
+        return reason.Length == 0;
     }
 
     /// <summary>P4：統一戦争の実行（同盟・宗主の参戦連鎖は既存の StartWar に乗る）。</summary>
