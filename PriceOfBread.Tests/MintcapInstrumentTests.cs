@@ -224,6 +224,12 @@ public class MintcapInstrumentTests
         Mint(sim);
         Assert.Equal(100.0, mc.Stock);                                  // 首都は平価超えで買わない
         Assert.Equal(60.0, mo.Stock);                                   // 外は平価の下でも買わない（旗 0 では買う）
+
+        // ③ 床の月で首都の在庫が外の州より少ない（首都 10・外 60）：買うのは在庫の多い州ではなく首都（突然変異 M5〈在庫の最大の州で買う〉の穴を塞ぐ・(1187) の突然変異の後に足した）
+        mc.Price = parity * 0.5; mc.Stock = 10; mo.Stock = 60;
+        Mint(sim);
+        Assert.Equal(10 * (1 - rate), mc.Stock, 9);
+        Assert.Equal(60.0, mo.Stock);
     }
 
     /// <summary>(1187) E4 の材料の列（銀を産む州の値段÷平価の州の数・中央・最小・最大）と首都の列（在庫・値段÷平価・越境の輸入の和）に値が立つ盤面。
