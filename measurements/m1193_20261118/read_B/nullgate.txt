@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_c119nd\scripts\instruments\tools\nullgate.py", line 81, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "D:\PoB_work\wt_c119nd\scripts\instruments\tools\nullgate.py", line 53, in main
+    arm, base, n1, n2 = sys.argv[1:5]
+    ^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 4, got 3)
