@@ -669,15 +669,6 @@ public sealed class Region
     public double SoapFill;
     public double InsuranceCoverage;
     public double MonopolyRentFactor = 1.0;
-    public double WarScareTension;
-    public double StockpileFactor(int goodId, Coefficients c)
-    {
-        if (!(c.StockpilePanicWeight > 0) || !(WarScareTension > c.RivalTensionThreshold)) return 1.0;
-        double scare = PoliticalQuantities.Clamp01((WarScareTension - c.RivalTensionThreshold) / System.Math.Max(1e-9, c.StockpileTensionSpan));
-        bool priority = goodId >= 0 && goodId < Catalog.Goods.Length
-                        && (Catalog.Goods[goodId].Tier == GoodTier.Staple || System.Array.IndexOf(c.MilitaryGoods, goodId) >= 0);
-        return 1.0 + c.StockpilePanicWeight * scare * (priority ? 1.0 : c.StockpileOtherFrac);
-    }
     public double ContrabandProductionFactor = 1.0;
     public int NationalizedMask;
     public double SeizureChill;

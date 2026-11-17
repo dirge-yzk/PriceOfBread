@@ -2169,3 +2169,6 @@
 /// 経路ごとに別の POP を選んだ（州を作る経路は階級ごとに1つ＝今は同じ POP）。</summary>
 ````
 
+
+## Region.WarScareTension・Region.StockpileFactor（(1185) c118hc で削除）
+- 戦時備蓄の欄と式。(1184) で係数が 0 になり常に 1.0 を返していたため削除（恒等）。旧の式は docs/history/Coefficients.p07_wiring_prewarm.cs.md の StockpilePanicWeight の節に写した。

@@ -1731,7 +1731,6 @@ public sealed class Simulation
         double natSoldiers = World.SoldierSizeK(); double warEngageNat = World.Coef.MilitaryWarMultFromContact > 0 && atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // natSoldiers〔履歴 Simulation.cs#198〕
         // navalSpendNat〔履歴 Simulation.cs#199〕
         double navalSpendNat = World.NavalSpendShare.Value;
-        double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
         double monopolyRentFactorNat = World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 };
         int nationalizedMaskNat = World.NationalizedMask();
         World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
@@ -1811,8 +1810,6 @@ public sealed class Simulation
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
                 r.InsuranceCoverage = World.Coef.InsuranceCoverageMax.Value * World.SocialSecurity;   // InsuranceCoverage〔履歴 Simulation.cs#214〕
                 r.StateMonopolyMargins = World.StateMonopolyMargins;       // StateMonopolyMargins〔履歴 Simulation.cs#215〕
-                // 外交層のない世界（単一国テスト・較正）は0＝在庫目標は従来どおり＝厳密恒等。〔履歴 Simulation.cs#216〕
-                r.WarScareTension = warScareTensionNat;
                 // EconomyStep が monRent に乗算）〔履歴 Simulation.cs#217〕
                 r.MonopolyRentFactor = monopolyRentFactorNat;
                 // 漏れ率は州の行政充足率が決める＝★清が禁止後に国産阿片を激増させた史実（1860年代に国産が輸入を上回る）が 「弱い行政 × 高い価格」から出る。〔履歴 Simulation.cs#218〕
