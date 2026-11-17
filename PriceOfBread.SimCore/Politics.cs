@@ -396,7 +396,6 @@ public static class Politics
     {
         if (violent)
         {
-            RevolutionAwakensNation(w, c);
             if (IsSeizure(target)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
         }
         CrownParliament.ApplyRegime(w, c, target);
@@ -885,11 +884,6 @@ public static class Politics
             double pressure = Math.Abs(stance - r.TariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);
             if (c.SecessionCultureAdditive > 0 && w.EthnicEnabled)
                 pressure += c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - AvgRegionCoreShare(r)) * mil;
-            if (c.SecessionConsciousnessWeight > 0)
-            {
-                double nc = AvgRegionConsciousness(r);
-                pressure *= Math.Max(0, 1.0 - c.SecessionConsciousnessWeight * nc);
-            }
             pressure *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));
             double crowdSec = RegionCrowd(r);
             pressure *= crowdSec > 0 ? crowdSec / (crowdSec + c.ColonyPromotionMinPop) : 0.0;
@@ -1133,24 +1127,6 @@ public static class Politics
         sCur = Ideologies.SupportAt(aggS, curCoord, c.IdeologyAffinitySlope);
         sAtt = Ideologies.SupportAt(aggS, attCoord, c.IdeologyAffinitySlope);
         return 1.0 - Ideologies.DefectionShare(aggS, curCoord, attCoord, c.IdeologyAffinitySlope);
-    }
-
-    private static void RevolutionAwakensNation(World w, Coefficients c)
-    {
-        if (c.RevolutionConsciousness <= 0) return;
-        if (c.NationConsciousnessPerPop > 0)
-        {
-            double seed = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
-            foreach (var p in w.AllPops())
-            {
-                double v = p.NationalConsciousness >= 0 ? p.NationalConsciousness : seed;
-                p.NationalConsciousness = PoliticalQuantities.Clamp01(v + c.RevolutionConsciousness * (1.0 - v));
-            }
-            return;
-        }
-        if (w.NationalConsciousness < 0)
-            w.NationalConsciousness = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
-        w.NationalConsciousness = PoliticalQuantities.Clamp01(w.NationalConsciousness + c.RevolutionConsciousness * (1.0 - w.NationalConsciousness));
     }
 
     public static double RevolutionPressure(World w)

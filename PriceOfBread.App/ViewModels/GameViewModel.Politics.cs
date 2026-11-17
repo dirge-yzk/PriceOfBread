@@ -247,18 +247,6 @@ public partial class GameViewModel
             //   整形（＋/−・|Δ|<5e-4 の間引き・降順）は既存の ExplainTerms 1本を呼ぶだけ＝第二の式を置かない。
             string legitTip = LegitimacySplitText;
             foreach (var t in ExplainTerms("Legitimacy", v => v.ToString("F3"))) legitTip += "\n" + t.Text;   // 台帳が空（計測前・非プレイヤー）なら1行も足さない＝旧表示のまま
-            // ★2026-09-24：国民意識の説明API内訳も**同じ作法で**この半円のホバーへ（GameViewModel.Header.cs:155 の申し送り
-            //   ＝ヘッダーから畳まれた内訳の移送先。前の回はここが未結線で ExplainLedger の "NationalConsciousness" が死蔵だった）。
-            //   置き場の理由＝政治タブで台帳を持つセルはこの1つだけ（新しい行も新しいプロパティも作らない・2026-07-16の
-            //   「国民意識の重複行は撤去」を戻さない）。⚠題の1行は**台帳に項がある時だけ**＝空ならヘッダーの数字を写さない。
-            //   ⚠書式 P1＝ここに並ぶのは四半期ごとの増分で、ヘッダーと同じ P0 では育成・減衰が全て 0% に潰れて計器が嘘をつく
-            //   （題の1行だけはヘッダーと同じ P0＝水準の数は2つの桁で出さない）。
-            var ncTerms = ExplainTerms("NationalConsciousness", v => v.ToString("P1"));
-            if (ncTerms.Count > 0)
-            {
-                legitTip += $"\n国民意識　{Fmt.Share(_player.NationalConsciousnessDisplay)}";
-                foreach (var t in ncTerms) legitTip += "\n" + t.Text;
-            }
             LegitTip = legitTip;
             BudgetTip = $"{BudgetLawName}　{BudgetPowerText}";
             CommandTip = $"{CommandLawName}　{CommandPowerText}";
@@ -742,12 +730,6 @@ public partial class GameViewModel
             conscriptFrac = c.ConscriptionFloorFraction.Value + (c.ConscriptionFraction.Value - c.ConscriptionFloorFraction.Value) * depth;
         }
         if (atWar && _player.Mobilized) conscriptFrac = Math.Max(conscriptFrac, c.MobilizationConscriptFrac.Value);
-        if (c.NationBuildMobilizationWeight > 0)
-        {
-            double ncGate = c.NationBuildMobilizationWeight * (1.0 - Math.Max(0, _player.NationalConsciousness));
-            ncGate *= Math.Max(0, 1.0 - c.SkillMobilizationRelief * Math.Clamp(_player.ArmySkill, 0, 1));
-            conscriptFrac *= Math.Max(Military.MobilizationGateFloor, 1.0 - ncGate);
-        }
         bool wartimeConscript = atWar && _player.ConscriptionLaw >= ConscriptionLaw.Selective;   // Military.cs:187 と同式（M1 2026-09-19＝総動員は志願兵制を迂回しない）
         double lawFrac = _player.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0;
         double sustainTargetNat = Military.EstablishmentOf(_player, c, out double natMan);   // (155) 平時の目標＝定員（制度が開く席の数）

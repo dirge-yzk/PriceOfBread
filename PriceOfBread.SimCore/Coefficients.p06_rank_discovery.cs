@@ -30,7 +30,6 @@ public sealed partial class Coefficients
     public double StanceRevoltWelfare = 2.0;       // 旧AIはLegitimacy/Militancy不読＝革命が見えなかった
     public double StanceRevoltCoercion = 1.0;      // 譲歩との綱引きは教義バイアスと不足の大小が決める（政体ラベル分岐なし）
     public double StanceDrawdownFiscal = 1.5;      // 体制AIの目③恐慌＝GDPドローダウンが緊縮効用を押す（19世紀正統財政の反射・国庫逼迫より早い先行指標）
-    public double RevolutionConsciousness = 0.0;   // (1186) 国民意識の廃止の 1 段目＝0（旧 0.25）。受け皿＝Military徴兵深度の国民意識ゲート（既配線）
     public double IrreversibleLaws = 1.0;          // 水準スライダーは常に自由（制度と水準で割れる史実）
     public double RuptureWindowQuartersOnCrush = 8;   // 断裂の窓の長さ＝革命鎮圧・内戦制圧・弾圧の直後この四半期数だけ6-7を解除（反動の後退はこの窓のみ＝仏1850・ストルイピン1907）
     public double FactionStrikeLegitimacy = 0.5;   // 第6段6-5：体制の弱み判定＝正統性がこれ未満なら好機

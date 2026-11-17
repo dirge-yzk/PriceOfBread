@@ -141,62 +141,20 @@ public static class CrownParliament
             double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
             double gain = ncDrive * headroom;
             double lose = prevNc2 * c.NationBuildDecayRate;
-            bool ncDerived = c.NationConsciousnessDerived > 0;
-            double rawNc2 = ncDerived
-                ? (!(c.NationBuildDecayRate + ncDrive > 0) ? 0.0 : ceilScalar * ncDrive / (c.NationBuildDecayRate + ncDrive))
-                : prevNc2 - lose + gain;
-            if (w.Explain != null && !(c.NationConsciousnessPerPop > 0))
-            {
-                w.Explain.Reset("NationalConsciousness");
-                if (ncDerived)
-                {
-                    w.Explain.Add("NationalConsciousness", "国民化の天井（教育法×識字×民族の距離）", ceilScalar);
-                    w.Explain.Add("NationalConsciousness", "天井に届かない分（新聞・ラジオ・徴兵の弱さ）", rawNc2 - ceilScalar);
-                }
-                else
-                {
-                    w.Explain.Add("NationalConsciousness", "前期からの国民意識（履歴の累積）", prevNc2);
-                    w.Explain.Add("NationalConsciousness", "新聞を読む国民", c.NationBuildAccumRate * spendTerm * crisisMult * headroom);
-                    w.Explain.Add("NationalConsciousness", "ラジオ放送", c.NationBuildAccumRate * radioTerm * crisisMult * headroom);
-                    w.Explain.Add("NationalConsciousness", "徴兵による育成", c.NationBuildAccumRate * conscriptTerm * crisisMult * headroom);
-                    w.Explain.Add("NationalConsciousness", "減衰", -lose);
-                }
-            }
+            double rawNc2 = prevNc2 - lose + gain;
             w.NationalConsciousness = PoliticalQuantities.Clamp01(rawNc2);
-            if (c.NationConsciousnessPerPop > 0)
-            {
-                double drive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
-                double prevReported = w.NationalConsciousness;
-                double popAvg = AccumulatePopConsciousness(w, c, drive, ceilingNb, c.NationBuildDecayRate, openness, out double wGain, out double wLose);
-                double lever = PoliticalQuantities.Clamp01(c.NationConsciousnessPerPop);
-                w.NationalConsciousness = PoliticalQuantities.Clamp01((1 - lever) * w.NationalConsciousness + lever * popAvg);
-                if (w.Explain != null)
-                {
-                    double reported = w.NationalConsciousness;
-                    w.Explain.Reset("NationalConsciousness");
-                    w.Explain.Add("NationalConsciousness", "前期の国民意識（POP加重平均）", prevReported);
-                    w.Explain.Add("NationalConsciousness", "育成（新聞・ラジオ・徴兵）", wGain);
-                    w.Explain.Add("NationalConsciousness", "減衰", -wLose);
-                    w.Explain.Add("NationalConsciousness", "人口構成の変化（移民・出生・階級移動）", reported - prevReported - wGain + wLose);
-                }
-            }
+            double popAvg = AccumulatePopConsciousness(w, c, ncDrive, ceilingNb, c.NationBuildDecayRate, openness);
+            w.NationalConsciousness = PoliticalQuantities.Clamp01(popAvg);
         }
     }
 
     internal static double AccumulatePopConsciousness(World w, Coefficients c, double drive, double ceiling, double decay, double openness)
-        => AccumulatePopConsciousness(w, c, drive, ceiling, decay, openness, out _, out _);
-
-    internal static double AccumulatePopConsciousness(World w, Coefficients c, double drive, double ceiling, double decay, double openness,
-                                                     out double wGain, out double wLose)
     {
-        bool derived = c.NationConsciousnessDerived > 0;
-        wGain = 0; wLose = 0;
         if (w.Regions.Count == 0) return 0;
         double seed = w.NationalConsciousness;
         if (!(seed >= 0)) seed = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
         var cap = Climate.CityCoord(w.Regions[0].Name);
         double sum = 0, size = 0;
-        double gainAcc = 0, loseAcc = 0;
         foreach (var r in w.Regions)
         {
             var cc = Climate.CityCoord(r.Name);
@@ -211,25 +169,10 @@ public static class CrownParliament
                 double coreShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare.Value);
                 double ceil = ceiling * PoliticalQuantities.ProbOr(coreShare, openness);
                 double head = System.Math.Max(0, ceil - p.NationalConsciousness);
-                double before = p.NationalConsciousness;
-                if (derived)
-                {
-                    double d = drive * reach;
-                    p.NationalConsciousness = !(decay + d > 0) ? 0.0 : PoliticalQuantities.Clamp01(ceil * d / (decay + d));
-                    double moved = p.NationalConsciousness - before;
-                    if (moved > 0) gainAcc += moved * p.Size; else loseAcc += -moved * p.Size;
-                }
-                else
-                {
-                    p.NationalConsciousness = PoliticalQuantities.Clamp01(p.NationalConsciousness * (1 - decay) + drive * reach * head);
-                    gainAcc += drive * reach * head * p.Size;
-                    loseAcc += before * decay * p.Size;
-                }
+                p.NationalConsciousness = PoliticalQuantities.Clamp01(p.NationalConsciousness * (1 - decay) + drive * reach * head);
                 sum += p.NationalConsciousness * p.Size; size += p.Size;
             }
         }
-        wGain = size > 1e-9 ? gainAcc / size : 0;
-        wLose = size > 1e-9 ? loseAcc / size : 0;
         return size > 1e-9 ? sum / size : 0;
     }
 

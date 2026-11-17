@@ -682,13 +682,12 @@ public sealed class World
     public int RegimeTenureQuarters { get; internal set; }        // 現政体の在任四半期数（政体交代でリセット）。実績ストックの正の信認ゲート＝長期成功のみ信認へ寄る（始まったばかりの形態は実績を持てない）
     // 読み手＝Politics.Step の1か所＝期待 H＝1/max(1,これ)（政変のたびに「次の政権こそ」が割られる＝最初の政変は期待で起きる）→ 動員（改革派＋急進派）×H・正統性の床 1−H。〔履歴 World.cs#113〕
     public double RecentRegimeChanges { get; internal set; }
-    // NationConsciousnessPerPop=0 では旧値をそのまま返す＝**1ビットも動かない**。〔履歴 World.cs#114〕
+    // 国の国民意識＝捕捉された POP の加重平均（捕捉された POP が無いときだけスカラー）。(1193) で旗 NationConsciousnessPerPop（既定 1）を焼き込んだ。〔履歴 World.cs#114〕
     private double _ncScalar = -1;
     public double NationalConsciousness
     {
         get
         {
-            if (Coef.NationConsciousnessPerPop <= 0) return _ncScalar;
             double s = 0, v = 0;
             // 書き手が触らないPOPは読み手も見ない＝対称にする。〔履歴 World.cs#115〕
             foreach (var p in AllPops())
@@ -861,18 +860,6 @@ public sealed class World
 
     // P9 国民意識v2（購入モデル）の状態（主フラグ NationBuildPurchaseMode=0 では全て不読＝休眠）
     public double NationBuildingSpending { get; internal set; }   // 国民形成費の実効値（Government が目標へ平滑）
-    /// <summary>
-    /// ⚠NationalConsciousness は蓄積が始まるまで −1（未捕捉）を返す設計で、エンジンの分岐がその −1 を見ている。〔履歴 World.cs#159〕
-    /// </summary>
-    public double NationalConsciousnessDisplay
-    {
-        get
-        {
-            double v = NationalConsciousness;
-            if (v >= 0) return v;
-            return InitialNationalConsciousness >= 0 ? InitialNationalConsciousness : Coef.NationBuildInitialDefault;
-        }
-    }
     public double InitialNationalConsciousness { get; internal set; } = -1;   // v2初期値（world.json 由来・−1=係数既定 NationBuildInitialDefault）
     public bool BornOfSecession { get; internal set; }            // 分離独立で生まれた国（独立戦争の危機乗数の判定用）
     // P8 天命（0..1・0.5=中立・−1=未捕捉センチネル）：民の統治パフォーマンス評価EMA。主フラグ DynasticMandateEnabled=0 では永遠に−1のまま＝不読・恒等

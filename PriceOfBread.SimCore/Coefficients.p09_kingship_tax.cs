@@ -91,8 +91,6 @@ public sealed partial class Coefficients
     public double NationBuildCrisisIndependence = 2.0; // 危機乗数：独立戦争（分離で生まれた国の初期戦争＝レヴェ・アン・マス）
     public double NationBuildInitialDefault = 0.075;   // v2初期値の既定（前国民的世界0.05〜0.1帯。「買ってないのに持ってる」一律0.3を廃止）
     public double RadioNationWeight = 0.5;             // E3：ラジオ項の重み＝size加重RadioFill×これ
-    public double NationConsciousnessDerived = 0.0;   // >0 で、上の蓄積漸化式 NC ← NC(1−decay)+drive×(天井−NC) をその不動点 NC* = 天井×drive/(decay+drive) に置き換える
-    public double NationConsciousnessPerPop = 1.0;      // 国の国民意識＝POPのsize加重平均（0＝旧スカラー・厳密恒等）
     public double NationConsciousnessReachDecay = 800.0; // 到達が半分になる首都からの距離km
     public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在するが買収/脅迫で歪む（英1872以前）
     public double PaperFranchiseReality = 0.7;         // 非議会政体（専制等）＝紙の参政権＝選挙の実在なし

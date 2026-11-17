@@ -676,19 +676,7 @@ public sealed class MultiNationSim
             if (!_calendarFrozen)
             {
                 StepAssimilation(); ProbeDiff("同化");                       // 民族の同化（移民の希釈への歯止め）
-                // ⇒ 説明台帳へ1行足す。〔履歴 MultiNationSim.cs#84〕
-                double[]? ncBeforeMig = null;
-                for (int ei = 0; ei < Nations.Count; ei++)
-                    if (Nations[ei].World.Explain is not null)
-                    { ncBeforeMig ??= new double[Nations.Count]; ncBeforeMig[ei] = Nations[ei].World.NationalConsciousness; }
-                MigrateBetweenNations(); ProbeDiff("国家間移民");
-                if (ncBeforeMig is not null)
-                    for (int ei = 0; ei < Nations.Count && ei < ncBeforeMig.Length; ei++)
-                        if (Nations[ei].World.Explain is { } exm)
-                        {
-                            double d = Nations[ei].World.NationalConsciousness - ncBeforeMig[ei];
-                            if (d != 0) exm.Add("NationalConsciousness", "国家間移民による構成の変化", d);
-                        }            // 国家間移民：貧しい国の大衆が豊かな国へ抜ける（欧州→新大陸）
+                MigrateBetweenNations(); ProbeDiff("国家間移民");   // 国家間移民：貧しい国の大衆が豊かな国へ抜ける（欧州→新大陸）
                 RecruitSpecialists(); ProbeDiff("技師の招聘");                // ★段④：後進国が国庫で先進国から技師・研究者を買う（大衆とは逆向き・ゼロサム）
             }
             StepDiscoveries(evaluate: !_calendarFrozen);   // ★段2A：発見（伝わりの接触＝この四半期の取引と技師の移動→国ごとに点数を求めて100に届いた行を解禁）。助走は記帳を捨てるだけ

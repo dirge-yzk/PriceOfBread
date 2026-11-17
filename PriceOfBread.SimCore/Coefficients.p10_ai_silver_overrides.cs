@@ -8,7 +8,6 @@ public sealed partial class Coefficients
 
 
     public double FascismGate = 0.5;                   // 主フラグ：0でファシズムのイデオロギーシェアが常に0＝恒等／>0で創発の強さ（eraFasc×mil×(反動+ナショ)に乗る＝(640) で dev を消した）
-    public double NationBuildMobilizationWeight = 0.0;  // (1186) 国民意識の廃止の 1 段目＝0（旧 0.5）。主フラグ：戦時徴兵の深さ（conscriptFrac）を国民意識でゲート＝大規模動員（nation-in-arms）には高い国民意識が要る
     // --- 国家アイデンティティ（変名・formable・2026-07-12・点火済み2026-07-27）---
 
     public double PrivilegeLedgerEnabled = 0.0;   // 0＝決着は従来の二値（挑戦力 > 治安維持力+民兵 で反乱勝利）＝厳密恒等／1＝州が陣営を選び、両陣営が州を保持したまま拮抗すれば国が2つに割れる

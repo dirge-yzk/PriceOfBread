@@ -715,15 +715,6 @@ public partial class GameViewModel
         // （＝括弧の開発度）が消える／重なり回避で小さい州のラベルは出ないため、ホバーでも同じ値を出す。
         // ★定義も丸めもラベルと完全一致（TotalIndustrialization×70・指標名はUIと通知で完全一致の規約）。2026-08-31にラベルが小数1桁(F1)へ変わったのに合わせる。
         info.Lines.Add(new MapHoverLine { Text = $"開発度：{rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
-        // ★2026-09-03（キューA-12／出典 トリアージ 2-A 11-2）：国民意識は距離減衰で州ごとに違う（首都から遠い州ほど遅い）のに
-        //   どこにも出ていなかった。動員上限（Military の国民意識ゲート）が州で違う理由がこれで読める。
-        //   ⚠値は POP 属性（Pop.NationalConsciousness）の人口加重平均＝エンジンと同じ量。未捕捉(-1)の pop は分母から外す。
-        {
-            double ncW = 0, ncSum = 0;
-            foreach (var pp in rg.Pops) if (pp.NationalConsciousness >= 0) { ncW += pp.Size; ncSum += pp.Size * pp.NationalConsciousness; }
-            if (ncW > 1e-9)
-                info.Lines.Add(new MapHoverLine { Text = $"国民意識：{Fmt.Share(ncSum / ncW)}", Brush = HoverText });
-        }
         if (!string.IsNullOrEmpty(rg.Culture) || !string.IsNullOrEmpty(rg.Religion))
             info.Lines.Add(new MapHoverLine { Text = $"文化：{rg.Culture}　宗教：{rg.Religion}", Brush = HoverDim });
         // 状態：過密（収穫逓減）・疫病・主食不足（該当時のみ）

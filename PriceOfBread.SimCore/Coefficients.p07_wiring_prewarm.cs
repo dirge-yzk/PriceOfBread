@@ -99,7 +99,6 @@ public sealed partial class Coefficients
     public double SkillWarGain = 0.05;             // 戦争中（内戦含む）の四半期あたり獲得率＝実戦は訓練に勝る
     public double SkillDecayPerQuarter = 0.0115;   // 平時に閾値を下回るときの減衰率／四半期
     public double SkillCombatMax = 0.5;            // 熟練度1.0での戦力倍率の上乗せ＝最大1.5倍（2026-08-04・作者の問い「最大2倍は史実的に適切か」への判断）
-    public double SkillMobilizationRelief = 0.5;   // 熟練度1.0で総動員のペナルティがこの割合だけ軽くなる
     public Share WartimeUpkeepFloor = new(0.8);        // 戦時の維持費の下限＝現在値のこの割合を下回れない（戦争中に軍を解散できない）
     public double SkillTensionWeight = 0.5;        // 熟練度が生む緊張＝軍隊規模に乗算する形（作者指示）
     public RatePerMonth NavalAttritionRatePerMonth = new(0.05);      // 月次の摩耗率＝これ×(自分の展開海盆での敵支配度)＝その月に沈む艦の割合（(189) 艦の在庫を財ごとに同じ割合で沈める・旧＝海軍シェアを削り床 NavalShareMin）
