@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.CapacityAnchorTests.錨も耕地も無い世界は人口の段を飛ばし_NaNにならない [2 ms]
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 8 s - PriceOfBread.Tests.dll (net10.0)

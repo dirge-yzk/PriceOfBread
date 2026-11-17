@@ -97,6 +97,22 @@ public class MintcapInstrumentTests
         Assert.Equal(0, a.AboveBought);          // 平価超えの月に床の枝で買えた回数は 0（市場買いの月は数えない）
     }
 
+    /// <summary>(1192) c119kf：列 capImportAgSum は首都の銀の輸入を読む。月の頭の EconomyStep.Run が LastImport を 0 にしてから MintGold が走るので、
+    /// 直前の清算の輸入は PrevImport にある（旧の LastImport の読みは世界の中で常に 0）。期待値は台本で置いた 7 と 3 の和（本体の式から作らない）。</summary>
+    [Fact]
+    public void T3_首都の銀の輸入が列に入る()
+    {
+        using var _ = Instrumented();
+        var (sim, w, cap, oth) = Board(Catalog.SilverId, 0.0);
+        var mc = cap.Markets[Catalog.SilverId];
+        Ok(w); mc.Price = Catalog.RefPrices[Catalog.SilverId] * 0.5; mc.Stock = 100;
+        mc.LastImport = 0.0; mc.PrevImport = 7.0; oth.Markets[Catalog.SilverId].PrevImport = 50.0;   // 首都の外の輸入は数えない
+        Mint(sim);
+        Assert.Equal(7.0, Instruments.MintcapPeek(w)!.CapImportAg, 9);
+        mc.PrevImport = 3.0; Mint(sim);
+        Assert.Equal(10.0, Instruments.MintcapPeek(w)!.CapImportAg, 9);
+    }
+
     [Fact]
     public void T2_旗1で首都の外の買いは0で首都は旧と同じ規則で買う()
     {

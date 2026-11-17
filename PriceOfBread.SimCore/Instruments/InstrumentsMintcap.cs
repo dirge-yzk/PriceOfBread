@@ -73,7 +73,7 @@ public static partial class Instruments
             else a.CapFloor++;
         }
         var sg = cap.GoodOf(Catalog.SilverId);
-        if (sg is not null) a.CapImportAg += cap.Markets[Catalog.SilverId].LastImport;
+        if (sg is not null) a.CapImportAg += cap.Markets[Catalog.SilverId].PrevImport;   // (1192) 月の頭の Run が LastImport を 0 にした後に読む＝直前の清算の輸入は PrevImport（旧の LastImport は世界の中で常に 0）
         // 旧の影＝全ての州（予算は州をまたいで 1 本）
         double gapOld = gap0, oldQ = 0;
         foreach (var r in w.Regions) oldQ += MintcapModelQty(r, metal, parity, rate, ref gapOld, out _);

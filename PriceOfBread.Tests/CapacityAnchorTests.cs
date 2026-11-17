@@ -120,6 +120,31 @@ public class CapacityAnchorTests
         Assert.True(double.IsFinite(wn.TotalPopulation));
     }
 
+    /// <summary>(1192) c119kf：扶養力の床（0.3×錨）を消した番人。扶養力は UrbanCapacityPenalty の一次式（扶養力＝基準×(…−penalty×都市の割合)×労働時間）なので、
+    /// 同じ種の仏を penalty 0 と 0.1 で 1 回ずつ測って傾きを出し、扶養力が 0.1×錨 になる penalty を逆算して 3 本目に置く。
+    /// 期待値は州の錨の和×0.1（本体の式から作らない）。床が戻ると 0.3×錨 に持ち上がって赤になる。</summary>
+    [Fact]
+    public void 扶養力が錨の床を割る盤面では床で持ち上げず生の値に従う()
+    {
+        static (double Cap, double Anchor) Probe(double penalty)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
+            sim.World.Coef.UrbanCapacityPenalty = penalty;
+            sim.DemographicStep();
+            return (sim.World.DiagCapacity, sim.World.DiagAnchorBaseline);
+        }
+        var a = Probe(0.0); var b = Probe(0.1);
+        Assert.True(a.Anchor > 1e3, "前提：仏は錨を持つ");
+        Assert.True(b.Cap > 0.3 * a.Anchor && a.Cap > b.Cap, $"前提：2 点とも床より上で penalty に単調（{a.Cap} {b.Cap} 床 {0.3 * a.Anchor}）");
+        double slope = (b.Cap - a.Cap) / 0.1;
+        double target = 0.1 * a.Anchor;
+        double pen = (target - a.Cap) / slope;
+        Assert.True(pen > 0.1 && pen < 100, $"前提：逆算した penalty {pen}");
+        var c = Probe(pen);
+        Assert.True(c.Cap < 0.3 * a.Anchor, $"前提：床の下の盤面（{c.Cap}）");
+        Assert.Equal(target, c.Cap, target * 1e-6);   // 生の値（床の 0.3×錨 ではない）
+    }
+
     [Fact]
     public void 錨も耕地も無い世界は人口の段を飛ばし_NaNにならない()
     {

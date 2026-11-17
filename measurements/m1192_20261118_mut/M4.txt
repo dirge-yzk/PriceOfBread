@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.MintcapInstrumentTests.T3_首都の銀の輸入が列に入る [2 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

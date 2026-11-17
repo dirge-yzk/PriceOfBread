@@ -2202,7 +2202,7 @@ public sealed class Simulation
         double capacity = capacityBaseline * (1 + c.HealthcareCapacityBonus * healthcare + c.HealthFillCapacityBonus * doctorCare
                                         - c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
                                         + c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);   // WorkHoursCapacity〔履歴 Simulation.cs#285〕
-        capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;   // 門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
+        if (!(capacity > 1e-9)) return;   // 〔履歴 Simulation.cs#347〕門＝錨 0 かつ耕地の無い世界（較正の小世界・扶養力 0）は人口の段を飛ばす（否定形＝NaN も飛ばす側）
         // popprobe が読む。〔履歴 Simulation.cs#286〕
         World.DiagCapacity = capacity; World.DiagCapacityBaseline = capacityBaseline; World.DiagAnchorBaseline = baseline;   // DiagCapacity〔履歴 Simulation.cs#287〕
         World.DiagHealthcare = healthcare; World.DiagDoctorCare = doctorCare;

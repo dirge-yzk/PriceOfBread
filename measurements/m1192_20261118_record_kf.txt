@@ -1,0 +1,8 @@
+# (1192) c119kf 記録（2026-11-18・Sonnet 5.5）
+- 作ったフォルダ：D:/PoB_work/wt_c119kf・wt_c119kfx（使い捨て・外した）・c119kf_work・c119kf_art・c119kfx_art。
+- コミット：事前登録 bbc1a0535・項1 3da984507・項2 c1b84efd0・項3 a35b65f47・台本と出力。
+- 試験：㉘ の束 156 緑。フルスイート Tests 2670 緑＋1 スキップ（2671）・Tests.Ui 234＝2905（予言どおり）。FullLength は回していない。savetest OK（12 四半期・62 国・最大相対差 0）・leakhunt 保存則違反なし。
+- 突然変異（measurements/m1192_20261118_mut/）：M0 緑 13・M1 赤（錨も耕地も無い世界の NaN）・M2（床 0.9）赤（新 Fact）・M3（床を戻す）赤（新 Fact）・M4（LastImport へ戻す）赤（T3）・Mab 赤（LaborMarketFormTests）。
+  M2 は ident でも見る予定だったが、単体の新 Fact で既に赤。
+- **ident は起こせなかった**：D: の空きが 49→27GB へ減り続け、〈35GB＋量〉に届かない（他の線が使用中）。〈判定: 恒等〉は未測＝採否は保留。
+- 項 3 の列 capImportAgSum は値が変わる（旧は常に 0）＝宣言する表：mintcap_s（--grown-ok ではなく値の宣言）。
