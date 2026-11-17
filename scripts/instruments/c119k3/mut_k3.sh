@@ -6,8 +6,9 @@ export TEMP=$WK/tmp TMP=$WK/tmp
 cd "$(dirname "$0")/../../.."; R=$(pwd); RP=scripts/instruments/tools/replace1.py; MF=PriceOfBread.SimCore/Military.cs
 for M in M1 M2 M3 M4; do
   T=$WK/tree_$M; rm -rf $T; mkdir -p $T
-  if [ $M = M1 ]; then git archive $C0 | tar -x -C $T; echo "M1＝係数 0 の木（$C0）" > $WK/mut_$M.txt; else git archive $C1 | tar -x -C $T; : > $WK/mut_$M.txt; fi
+  git archive $C1 | tar -x -C $T; : > $WK/mut_$M.txt   # C0 は記録だけ（試験の直しの前の木は全て赤だった＝M1 も C1 の木で係数を 0 に戻す）
   case $M in
+    M1) python -I $RP $T/PriceOfBread.SimCore/Coefficients.p08_audit_soldiers.cs "PeacetimeConscriptGrievance = 1.0;" "PeacetimeConscriptGrievance = 0.0;" >> $WK/mut_$M.txt ;;
     M2) python -I $RP $T/$MF "(r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]))" "true" >> $WK/mut_$M.txt ;;
     M3) python -I $RP $T/$MF "(r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]))" "(r.Tier == RegionTier.Colonial)" >> $WK/mut_$M.txt ;;
     M4) python -I $RP $T/$MF "peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0" "peacetimeColonial ? c.PeacetimeConscriptGrievance : c.PeacetimeConscriptGrievance" >> $WK/mut_$M.txt ;;
