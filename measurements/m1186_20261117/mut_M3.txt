@@ -1,0 +1,3 @@
+replace rc=0
+  失敗 PriceOfBread.Tests.NationalConsciousnessReadersOffTests.T3_革命は既定で国民意識を上げない [15 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
