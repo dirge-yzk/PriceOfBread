@@ -1,0 +1,5 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.UnificationWarGateTests.T2_プレイヤーの動詞の可否と理由は手で書いた表と同じ [1 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

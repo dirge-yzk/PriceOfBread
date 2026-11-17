@@ -62,7 +62,6 @@ public sealed class MultiNationSim
         _seed = seed;
         Rng = new DeterministicRng(seed ^ 0x9E37_79B9);   // 外交用の独立系列（各国の Rng とは別）
         _weatherRng = new DeterministicRng(seed ^ 0xC11A7E_5EEDUL);   // 緯度帯天候の独立系列
-        Diplomacy.UnificationRng = new DeterministicRng(seed ^ 0xF0E1_D2C3_B4A5UL);   // P4 統一戦争の専用系列（既存系列のdraw数を乱さない・主フラグOFFでは未消費）
         Diplomacy.SubmitRng = new DeterministicRng(seed ^ 0xA5B4_C3D2_E1F0UL);        // ★屈服の確率化（AI審査3-1）の専用系列（SubmitProbabilistic=0では未消費＝恒等）
         // Colony.Population（質量）＝住民数÷これ。〔履歴 MultiNationSim.cs#6〕
         {

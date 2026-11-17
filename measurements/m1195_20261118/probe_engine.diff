@@ -1,0 +1,23 @@
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index 0868fc5d0..c3cf4c759 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -333,6 +333,7 @@ public sealed class Diplomacy
+     private readonly HashSet<long> _dependency = [];   // DirKey(宗主,従属) の有無＝属国関係（種別なし）
+     // 国家ランク（列強/中堅/弱小）：四半期ごとに NationalScore の相対閾値で算出しキャッシュ（Power.Id→ランク）。ラベルのみ＝同盟/戦争は不変。
+     internal readonly Dictionary<int, PowerRank> _rank = [];
++    public static readonly System.Collections.Concurrent.ConcurrentQueue<string> UnifProbe = new(); [System.ThreadStatic] public static string? ProbeTag; public static readonly System.Collections.Concurrent.ConcurrentQueue<string> UnifDecl = new();
+     public DeterministicRng? UnificationRng;   // P4 統一戦争の専用RNG系列（MultiNationSimが注入・既存系列のdraw数を乱さない。null=単一国/較正＝不発）
+     public DeterministicRng? SubmitRng;        // SubmitProbabilistic=0では未消費）〔履歴 Diplomacy.cs#60〕
+     private readonly Dictionary<int, int> _unifRetryYear = [];   // P4：AI見送り/宣戦後の再判定年（Power.Id→年）
+@@ -1688,8 +1689,9 @@ public sealed class Diplomacy
+             if (UnificationRng.NextDouble() < c.UnificationAiPursueChance)
+             {
+                 targets.Sort((x, y) => x.Military != y.Military ? x.Military.CompareTo(y.Military) : x.Id.CompareTo(y.Id));   // 最弱から・同値はId＝決定論の全順序
++                { var sb = new System.Text.StringBuilder(); sb.Append($"{ProbeTag}	{_year}	{p.Name}	"); foreach (var t0 in targets) sb.Append($"{t0.Name}:{(HasAlliance(p, t0) ? 1 : 0)}{(AtWar(p, t0) ? 1 : 0)}{(InDependency(p, t0) ? 1 : 0)},"); UnifProbe.Enqueue(sb.ToString()); }
+                 foreach (var t in targets)
+-                    if (DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); _unifRetryYear[p.Id] = _year + c.UnificationAiWarGapYears; break; }
++                    if (DeclareWar(p, t, c)) { UnifDecl.Enqueue($"{ProbeTag}	{_year}	{p.Name}	{t.Name}	{(HasAlliance(p, t) ? 1 : 0)}"); Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); _unifRetryYear[p.Id] = _year + c.UnificationAiWarGapYears; break; }
+             }
+             else _unifRetryYear[p.Id] = _year + c.UnificationAiCooldownYears;
+         }

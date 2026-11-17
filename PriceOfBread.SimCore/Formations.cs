@@ -373,6 +373,16 @@ public static class Formations
         return holders;
     }
 
+    /// <summary>(1195) 統一の宣戦を妨げる物。AI（Diplomacy.TryUnificationWars）とプレイヤー（World.CanUnificationWar）が同じ判定を呼ぶ。</summary>
+    public enum UnificationBlock { None, NotTarget, AtWar, Allied }
+
+    /// <summary>(1195) この標的へ統一の宣戦ができるか（targets＝UnificationTargets の結果）。理由の文字列はプレイヤーの側だけが持つ。</summary>
+    public static UnificationBlock UnificationWarBlock(Diplomacy d, Power p, System.Collections.Generic.List<Power> targets, Power t)
+        => !targets.Contains(t) ? UnificationBlock.NotTarget
+         : d.IsAtWar(p, t) ? UnificationBlock.AtWar
+         : d.HasAlliance(p, t) ? UnificationBlock.Allied
+         : UnificationBlock.None;
+
     private static bool Owns(Diplomacy d, Power power, string regionName)
     {
         if (HasRegion(power, regionName)) return true;

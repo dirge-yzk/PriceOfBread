@@ -1,0 +1,7 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.UnificationWarGateTests.T3_AIが宣戦する相手はプレイヤーの動詞が許す最も弱い標的 [67 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Collections differ
+  失敗 PriceOfBread.Tests.UnificationWarGateTests.T1_AIは同盟国へ統一の宣戦をせず同盟でない次の標的へ宣戦する [7 ms]
+  エラー メッセージ:
+失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

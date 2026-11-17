@@ -1,0 +1,11 @@
+{"seeds": 10, "wars": 5712, "declare": 2, "declareSeeds": 2, "multiFront": 0, "busyAtDeclare": 1, "declareMaxPerSeed": 1}
+s1 wars=586 declare=1 multi=0 busy=0 1792 ライン諸邦->ヴュルテンベルク 28か月
+s2 wars=578 declare=0 multi=0 busy=0 
+s3 wars=653 declare=0 multi=0 busy=0 
+s4 wars=497 declare=0 multi=0 busy=0 
+s5 wars=553 declare=0 multi=0 busy=0 
+s6 wars=536 declare=0 multi=0 busy=0 
+s7 wars=577 declare=1 multi=0 busy=1 1793 ライン諸邦->バイエルン 12か月
+s8 wars=566 declare=0 multi=0 busy=0 
+s9 wars=568 declare=0 multi=0 busy=0 
+s10 wars=598 declare=0 multi=0 busy=0 
