@@ -187,6 +187,45 @@ public class MintcapInstrumentTests
         Assert.Equal(2, a.Months);
     }
 
+    /// <summary>(1187) B′-1 の単体の機構の試験：旗は係数の既定のまま（試験が置かない）。首都と首都の外の州に在庫を置き、MintGold を回す（金と銀・計器は切ったまま）。
+    /// ① 床の月（どちらも平価×0.5・被覆は足りている）：首都の外の在庫と需要は 1 バイトも動かない・首都は在庫×率を買い、同じ量を首都の需要（LastDemand）と準備に足し、鋳造の価値は量×平価。
+    /// ② 平価超えの月（首都 平価×1.5・外 平価×0.5・被覆は足りている）：首都も外も在庫が動かない。旗 0 の既定では外の州が買う＝赤。期待は台本の在庫と月次率から手で書く。</summary>
+    [Fact]
+    public void T4_既定で首都の外は買わず首都は平価で買って需要に足す()
+    {
+        T4Body(1);   // 銀本位
+        T4Body(2);   // 金本位
+    }
+
+    private static void T4Body(int law)
+    {
+        int metal = law == 1 ? Catalog.SilverId : Catalog.GoldOreId;
+        var (sim, w, cap, oth) = Board(metal, 0.0);
+        w.Coef.MintBuysAtCapital = new Coefficients().MintBuysAtCapital;   // 旗は係数の既定に戻す（試験は値を置かない）
+        double parity = Catalog.RefPrices[metal];
+        double rate = w.Coef.MintFloorBuyRatePerMonth.Value;
+        var mc = cap.Markets[metal]; var mo = oth.Markets[metal];
+        double Reserve() => law == 1 ? w.SilverReserveQty : w.GoldReserveQty;
+
+        // ① 床の月
+        Ok(w); mc.Price = parity * 0.5; mo.Price = parity * 0.5; mc.Stock = 100; mo.Stock = 60;
+        double capD0 = mc.LastDemand, othD0 = mo.LastDemand, res0 = Reserve(), minted0 = w.CumulativeGoldMinted.Value;
+        Mint(sim);
+        Assert.Equal(60.0, mo.Stock);                                   // 首都の外は買わない（旗 0 では 60×(1−率)）
+        Assert.Equal(System.BitConverter.DoubleToInt64Bits(othD0), System.BitConverter.DoubleToInt64Bits(mo.LastDemand));
+        Assert.Equal(100 * (1 - rate), mc.Stock, 9);                    // 首都は旧と同じ規則（在庫×率）
+        Assert.Equal(100 * rate, mc.LastDemand - capD0, 9);              // 造幣の買いは首都の需要に入る（首都へ引く）
+        Assert.Equal(100 * rate, Reserve() - res0, 9);                   // 準備に入る
+        double mintedWant = 100 * rate * parity, mintedGot = w.CumulativeGoldMinted.Value - minted0;
+        Assert.True(System.Math.Abs(mintedGot - mintedWant) <= 1e-9 * System.Math.Max(1.0, mintedWant), $"鋳造の価値＝量×平価：期待 {mintedWant} 実際 {mintedGot}");
+
+        // ② 平価超えの月（被覆は足りている＝市場買いの予算 0）
+        mc.Price = parity * 1.5; mc.Stock = 100; mo.Stock = 60;
+        Mint(sim);
+        Assert.Equal(100.0, mc.Stock);                                  // 首都は平価超えで買わない
+        Assert.Equal(60.0, mo.Stock);                                   // 外は平価の下でも買わない（旗 0 では買う）
+    }
+
     /// <summary>(1187) E4 の材料の列（銀を産む州の値段÷平価の州の数・中央・最小・最大）と首都の列（在庫・値段÷平価・越境の輸入の和）に値が立つ盤面。
     /// 英仏の 2 国（外交は凍結）で、仏の首都の外の銀の産地の州 3 つに平価×0.8・1.3・1.0 を置き、ほかの産地の生産者は倒産に（値段は平価×9）・生産者の無い銀の州が在れば平価×7。
     /// 首都の在庫 123・値段 平価×0.9・月の輸入 4 を置き、計器の月の口を 2 回・四半期の表を 1 回。期待は台本の値から手で書く。</summary>

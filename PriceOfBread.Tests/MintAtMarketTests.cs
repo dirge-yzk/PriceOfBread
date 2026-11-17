@@ -80,6 +80,7 @@ public class MintAtMarketTests
     public void 市場買いの予算は州をまたいで1本で消費される_2州目は残りだけ買う()
     {
         var (sim, w, r, m, parity) = Board();
+        w.Coef.MintBuysAtCapital = 0.0;               // 旗 0 の経路の番人（(1187) 点火＝旗 1 の経路は MintcapInstrumentTests の T2・T4）
         Region? r2 = null;
         foreach (var x in w.Regions)
             if (!ReferenceEquals(x, r) && x.GoodOf(Catalog.SilverId) is not null && x.MerchantPopIndex >= 0 && x.MerchantPopIndex < x.Pops.Count) { r2 = x; break; }

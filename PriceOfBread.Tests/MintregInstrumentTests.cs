@@ -17,6 +17,7 @@ public class MintregInstrumentTests
         var w = sim.World;
         w.Coef.MintReserveTargetWeight = 1.0;
         w.Coef.MintParitySells = 0.0;
+        w.Coef.MintBuysAtCapital = 0.0;   // 旗 0 の経路の番人（(1187) 点火・mintreg_s の模型は全ての州の旧の規則）
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
         Region? a = null, b = null;
         foreach (var x in w.Regions)
