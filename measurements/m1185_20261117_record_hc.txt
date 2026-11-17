@@ -1,0 +1,24 @@
+# (1185) c118hc 記録（事前登録 m1185_20261117_prereg_hc.txt の結果）
+- 担当 Sonnet 5.5・枝 c118hc・コミット：4301221ed（事前登録）・f7fa654ac（項 1）・e9e793319（項 3）・ec7b4991b（項 2b）。項 2a は試験の変更なし（下）。
+- 作ったフォルダ：D:/PoB_work/wt_c118hc・wt_c118hcx（使い捨て・枝 c118hcx_tmp・push しない）・c118hc_work・c118hc_art・c118hcx_art。刈った物：ident の生（out_ia_5・out_ib_10・art_it）・使い捨ての木と成果物・TEMP の残り。残した物：成績表と .manifest と .cost（measurements/*c118hc*）・ident の check の出力・savetest・leakhunt。
+
+## 判定
+- 〈判定: 恒等（段 1）〉（測った種で一致）：素の 5 種 182 行・計器つき 10 種 183 行が m1184 と名乗り行を除いて全行バイト一致・計器の表 289 本バイト一致・注視の表 4686 行一致・テストの数 Category!=FullLength 2897・FullLength 3（基準と同じ）・savetest OK・leakhunt 保存則違反なし。ident_20261117_c118hc.txt。
+- 予言との違い（結果の前の予言を名乗る）：①段は 2 の見込み→**段 1**（stage.py の決め・SimCore の欄と式の削除でも段 2 の条件に当たらなかった）。②〈.cost の推定が下がる〉は**満たせない**（予言どおり）：推定 239.5 秒（5 種）・239.9 秒（10 種）で基準と同じ・件数の行 45 本一致。MaxTension は台帳を書かない＝DiploHegemonScans は変わらない。余り 約 8.6 秒は戻らない（実 CPU の節約は 0.1 秒未満の見込み・測っていない）。③WriterRatchetTests の宣言の行の書き換え 0 件（予言どおり・㉘ の束 143 本緑）。
+- テスト：Tests 2663（Category!=FullLength・合格 2662・スキップ 1）＋Tests.Ui 234＝2897（予言どおり増減 0）。trx は D:/PoB_work/c118hc_work/trx（eng.trx・ui.trx）。FullLength は回していない（挙動の線ではなく、ident の数の突き合わせ 3 のみ）。
+- 書き換えたテスト：DormantIdentityTests.cs の StockpilePanicWeight の行を ZeroDefaultLedger から RetiredFields へ移動（区分＝名簿の移動・期待値は手書きの名簿）。TradeInstrumentTests.G4 の対照の閾値 8→80（Assert を強くした＝弱めていない・項 2b）。
+
+## 項 2a LaborMarketFormTests（帯の床の撤去・参照より上の側）
+- 突然変異（使い捨ての木 wt_c118hcx・scripts/instruments/c118hc/mut_laborclosed.sh・出力は D: の ma.log・mb.log・mab.mark.log）：
+  - M0（変更なし）緑。
+  - Ma（free1 の `want < wrp` だけ外す）**緑**。
+  - Mb（LaborClosed の `!(pe < wrp)` だけ外す）**緑**。
+  - Mab（両方外す）**赤**（LaborMarketFormTests.cs:160 `Assert.Equal(pd, pb)`・期待 0.93139912911920408・実 0.93466975108958683）。
+- 読み：(1181) の試験は依頼の求める形（両方を外すと赤）に既になっていた＝試験の変更なし。Ma・Mb が緑なのは二重の塞ぎ（片方があれば同じ値を返す）＝等価な突然変異。新しい試験は足していない（Tests.Ui 234 のまま）。
+## 項 2b TradeInstrumentTests.G4
+- 盤面 24 四半期の n（正の行）＝159（旧の下限 8 は痩せた盤面でも通る）。下限を 80 へ（Assert の文と他の閾値は変えない）。
+- 突然変異（scripts/instruments/c118hc/mut_g4.sh）：M0 緑／M5（盤面 24→8 四半期・n＝49）**赤**（80 の下限・旧の 8 では通る）／M4（量の代わりに額を積む）**赤**（中央値 4.9487）。
+
+## 計器・足した列：0。生：D:/PoB_work/c118hc_work（刈った後は成績表とログだけ）。
+- 腕の枠で待った時間 0（arms.sh free＝6）。覗いた回数：腕ごとに 1 回（ident で stage.txt の確認 1 回）。hook に止められた回数 1（変数名に時間待ちの綴りを含めた誤り・言い換えずに別の方法へ）。
+- TEMP・TMP を作業フォルダの tmp へ向けたが、最初の 3 本の dotnet は作業フォルダの直下へ向けたため pob_* の一時フォルダが散らばった（刈った）。
