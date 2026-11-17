@@ -1,0 +1,41 @@
+M0none rc=0
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T1_信任帝政の床は消えた_秩序の床は効く [3 s]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_分離の圧は旧の重み0の値と同じ [8 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_暴力の政体の変化の後は旧の重み0の値と同じ [10 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_戦時の徴兵は旧の重み0の値と同じ [55 ms]
+  テストの合計数: 4
+  合計時間: 7.2087 秒
+M1 rc=1
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+    失敗 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T1_信任帝政の床は消えた_秩序の床は効く [1 s]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_分離の圧は旧の重み0の値と同じ [6 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_暴力の政体の変化の後は旧の重み0の値と同じ [7 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_戦時の徴兵は旧の重み0の値と同じ [32 ms]
+  テストの合計数: 4
+  合計時間: 3.1511 秒
+M2 rc=1
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T1_信任帝政の床は消えた_秩序の床は効く [2 s]
+    失敗 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_分離の圧は旧の重み0の値と同じ [5 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_暴力の政体の変化の後は旧の重み0の値と同じ [5 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_戦時の徴兵は旧の重み0の値と同じ [33 ms]
+  テストの合計数: 4
+  合計時間: 4.1454 秒
+M3 rc=1
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T1_信任帝政の床は消えた_秩序の床は効く [2 s]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_分離の圧は旧の重み0の値と同じ [5 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_暴力の政体の変化の後は旧の重み0の値と同じ [6 ms]
+    失敗 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_戦時の徴兵は旧の重み0の値と同じ [126 ms]
+  テストの合計数: 4
+  合計時間: 4.2830 秒
+M4 rc=1
+  合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T1_信任帝政の床は消えた_秩序の床は効く [2 s]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_分離の圧は旧の重み0の値と同じ [5 ms]
+    失敗 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_暴力の政体の変化の後は旧の重み0の値と同じ [7 ms]
+    成功 PriceOfBread.Tests.NationalConsciousnessRemovedTests.T2_戦時の徴兵は旧の重み0の値と同じ [36 ms]
+  テストの合計数: 4
+  合計時間: 4.2296 秒
+MUTDONE
