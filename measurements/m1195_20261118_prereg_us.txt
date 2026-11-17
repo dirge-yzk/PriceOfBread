@@ -1,0 +1,68 @@
+# (1195) c119us 事前登録：統一の宣戦の判定を AI とプレイヤーで 1 つの関数へ（同盟の門の対称）＋ ur の後片付け（乱数・待ちの辞書・係数 3 本）・挙動の席 3・3 回の規則の 1 回目
+- 書いた日 2026-11-18・枝 c119us（93fc4a967 から）・腕の前にコミットする（最初のコミット）。書いた担当 Claude Opus 5.5。
+- 出発：00一覧〈次の波（波119〜）〉の 1 節 ③（統一の宣戦の同盟の門の対称）と 0 節 ③（ur の後片付け）を 1 本へ畳んだ（同じ TryUnificationWars を書き換える・計画の担当の推奨）。実装ログ (1188) の v・v2：AI は World.CanUnificationWar を通らず DeclareWar を直接呼ぶ＝同盟国へも統一の宣戦ができる。
+- 作者の原則：AI とプレイヤーの完全な等価・根拠の無いクールダウンを作らない（2026-09-06）。作者の言葉「統一戦争は名指ししないという原則に反しているので、廃止寄りです。すぐに実装はしませんが、汎用的なものに置き替えたい所存」＝名簿 UnificationV1 と汎用の置き換えは入れない（ver2.0 の後）。〈作者「しばらくの間、全て推奨で」で推奨を採った〉。
+- 形は〈入口〉（統一の候補と標的が立った四半期の AI の決定）。新しい係数・状態・旗は 0（新しい型は列挙 Formations.UnificationBlock だけ＝状態ではない）。
+- 確証：等価の原則（作者）に沿う形＝バランスでは止めない。
+
+## 1. 形（ソースから・main 93fc4a967 を grep）
+- 恒等の部分（先にコミット）：Diplomacy.cs:336 UnificationRng・:338 _unifRetryYear・:1679 の null の門・:1683 の待ち・:1688 の乱数の枝・:1692 の待ちの書き込み・:1694 の見送りの枝・MultiNationSim.cs:65 の注入・Coefficients.p09_kingship_tax.cs:71〜:73 の係数 3 本を消す。
+  - 恒等の根拠：DeterministicRng.NextDouble は [0,1)＝PursueChance 1.0 で常に真（(1188) §1）・系列は専用（seed^0xF0E1D2C3B4A5）＝他の系列の引きは変わらない・WarGapYears 0 で `_year < _year+0` は偽＝待ちは効かない・見送りの枝は届かない。
+  - :1679 の null の門は置き換えない（読んだ結果）：Diplomacy.Step を呼ぶのは MultiNationSim.cs:668 と試験の sim.Diplomacy だけ（grep）＝どれも MultiNationSim が系列を注入した物＝門は Step の道で一度も発火しない。`new Diplomacy()` の試験 3 本（MilitaryWarMultContactTests:25・PolicyPoliticsTests:1339・RevoltIgnitionTests:632）は Step も TryUnificationWars も呼ばない。単一国の Simulation は Diplomacy.Step を呼ばない。TryUnificationWars は Diplomacy の手続き＝〈外交が無い〉の場合は存在しない（Powers が空なら回らない）。
+- 判定の 1 本化（挙動）：Formations.UnificationWarBlock(d, p, targets, t)（UnificationTargets の隣）＝NotTarget→AtWar→Allied→None の順（旧の CanUnificationWar の順と同じ）。World.CanUnificationWar はこれを呼び、理由の文字列（必要州の保有国ではない・交戦中・同盟中）は World の側だけが持つ。AI（TryUnificationWars）は最弱から並べた標的ごとに `UnificationWarBlock == None && DeclareWar` で宣戦する。AI の側に足す判定はプレイヤーと同じ物（同盟中）だけ＝例外の例外にしない。DeclareWar の門（交戦中・従属の関係）は両側とも通る（プレイヤーの DeclareUnificationWarOn も DeclareWar を呼ぶ）。
+
+## 2. 紙で先に読む（今の盤面・種 1〜20）
+- 台本：使い捨ての木 D:/PoB_work/wt_c119usx（main 93fc4a967）の TryUnificationWars に、評価ごとの標的の並びと〈同盟・交戦中・従属〉の印を静的な列へ書く行だけを足し（measurements/m1195_20261118/probe_engine.diff・本体の値は読まない＝挙動は変えない）、SelfPlayMatch.Run(種, 668, lean) を種 1〜20 で回した（probe_Program.cs.txt）。
+- 出力 measurements/m1195_20261118/probe_s1_10.tsv・probe_s11_20.tsv：
+  - 統一の評価（候補と標的が立った四半期）＝種 1〜20 で 2 回（s1 1792 ライン諸邦・s7 1793 ライン諸邦・標的はどちらも 5 邦）。種 11〜20 は 0 回。
+  - 標的に同盟国が入った件数＝0（交戦中 0・従属 0）。
+  - 宣戦＝2 件（s1 ライン諸邦→ヴュルテンベルク・s7 ライン諸邦→バイエルン）＝基線 keep_1191/base_ins の wars_s の declare 2 行と同じ（台本が成績表の走りを写せている確かめ）。a11（種 11〜20）の declare 0 とも合う。
+- 同盟の門が AI の標的の並び（最弱から）をどう変えるか：同盟国の標的を飛ばして、次に弱い同盟でない標的へ進む（旧は同盟国でも最弱なら宣戦）。今の盤面では同盟国が標的に入る四半期が無い＝並びは変わらない。
+- 基線の読み（ur.py paper）：measurements/m1195_20261118/paper_M（種 1〜10：戦争 5712・declare 2）・paper_N1（ヌル腕）・paper_A11（種 11〜20）。gates_flag0_M.txt＝基線どうしで GATES PASS（〈壊さない〉線は旗 0 の盤面で緑・働きは T1〜T3 で示す）。
+
+## 3. 予言（腕の前）
+- P1：腕 B（計器つき 10 種・種 1〜10）の生の表は、keep_1191/base_ins と全ての表でバイト一致（台本 scripts/instruments/c119us/sha_cmp.py の SHA_ALL_SAME）。成績表は b10_20261118_m1191_ins と全行一致（SOURCE-HASH の行を除く）。.cost の推定は m1191 と同じ（±0）。
+- P2：違いが出たら、最初に分かれる四半期は統一の宣戦の四半期（wars_s の declare の行）のはず。統一の宣戦の行より前で分かれたら、恒等の部分の誤り＝止めて報告（採らない）。
+- P3：試験の数 Tests 2669→2673（UnificationWarGateTests の [Fact] 3 本＋UnificationAiNoWaitTests の T4 1 本）・Tests.Ui 234・和 2907・FullLength 3。
+- 予言が当たる（全行一致）なら、この線の働きは単体の試験 T1〜T3 だけが示す（今の盤面で同盟国が標的になる四半期が無いため）。
+
+## 4. 門（〈作者 2026-11-16 の決まり〉①・腕の前に固定・ヌル腕の幅は記録だけ）
+- 止める線：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型はヌル腕の件数と並べる）・1e10 倍以上・空洞化 1/10 未満（規則 A2・an_h2.py -v4・線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒・機構の試験の赤（走査の番人を含む）。
+- G1（戦争の数の発散・c118ur/ur.py gates）：種ごとの内戦を除く戦争の件数が基線の同じ種の 10 倍以上なら止める。
+- G2（史実の桁の線）：統一の宣戦（declare）が 1 種で 50 を超えたら止める（史実 普 3・伊 2＝5 の 10 倍）。成立の年は記録。
+- 単体の機構の試験（盤面は試験の中で置く・独の 6 邦・統一の門だけ 0・AI はライン諸邦だけ）：
+  - T1：最も弱い標的を同盟国に置く→AI は同盟国へ宣戦せず、次に弱い標的へ宣戦する。旧の道（試験のコミットの木）で赤。
+  - T2：プレイヤーの動詞の可否と理由が手で書いた表と同じ（同盟中・交戦中・必要州の保有国ではない〔自国〕・交戦中かつ同盟中＝交戦中・統一の機運なし）。旧の道で緑（旧と同じ）。
+  - T3：AI が宣戦した相手＝宣戦の前にプレイヤーの動詞が許した最も弱い標的（ただ 1 つ）。旧の道で赤。
+  - 旗 0 の確かめ：試験のコミット（恒等の部分の前）の木で T1・T3 が赤、T2 が緑を確かめて measurements/m1195_20261118/tests_flag0.txt に置く。
+- 符号だけの門は無い。nullgate・NG・exact・near は記録。
+
+## 5. 突然変異（㉚・使い捨ての木 D:/PoB_work/wt_c119usx・出力は measurements/m1195_20261118/mut_M*.txt）
+| 変異 | 形 | T1 | T2 | T3 |
+| M0 | 旧の道（試験のコミットの木） | 赤 | 緑 | 赤 |
+| M1 | AI の側だけ同盟の判定を外す（TryUnificationWars で UnificationWarBlock を呼ばない） | 赤 | 緑 | 赤 |
+| M2 | 共有の関数から同盟の判定を外す（両側） | 赤 | 赤 | 緑（両側が同じく許す＝対称は保たれる） |
+| M3 | 共有の関数の AtWar と Allied の順を入れ替える | 緑 | 赤 | 緑 |
+| M4 | 共有の関数から NotTarget の判定を外す | 緑 | 赤 | 緑 |
+| M5 | AI の標的の並びを強い順にする | 赤 | 緑 | 赤 |
+- 試験が緑のままの変異が出たら、同じ線で試験を足して赤を確かめる（★(790)）。
+
+## 6. 走査の番人（㉘）と変わる件数（㉑）・㉜ の grep
+- 触る行：Diplomacy.cs（:336〜:338・:1675〜:1697）・World.cs（:1903〜:1914）・Formations.cs（UnificationTargets の隣に関数と列挙を足す）・MultiNationSim.cs:65・Coefficients.p09_kingship_tax.cs:71〜:73・試験 UnificationAiNoWaitTests.cs（書き直し）・UnificationWarGateTests.cs（新しい）・DormantIdentityTests.cs（RetiredFields に係数 3 本の行を 1 行足す）。
+- 工業化度の読み手の許可表：触れない（0）。`new MoneyStock(`：SimCore で 64 件のまま。route_anchors.tsv（flow262・75 行）：触る行は鍵の行に無い（0）。WriterRatchetTests の宣言の表：統一の行は無い（0）。DormantIdentityTests の〈係数は全て本体のどこかで読まれる〉は 3 本を消すので緑のまま・〈削除した休眠の係数は戻っていない〉は 3 名を足す。
+- ㉜：試験で UnificationAi*・UnificationRng・_unifRetryYear を読むのは UnificationAiNoWaitTests だけ（grep）＝この線で書き直す（乱数の種の対照の行と係数の旧の値の行を外し、欄の墓標 T4 を足す・Assert の向きは変えない）。旧の規則（0.7・3）を固定する番人は他に無い。
+
+## 7. 周辺の点検（記録）
+- DeclareWar の他の呼び手：Diplomacy.cs:2098（仲裁を拒んだ国への大国の宣戦・札 9）＝統一ではない・同盟の門は無い（範囲の外・記録）。World.DeclareUnificationWarOn＝CanUnificationWar ∧ DeclareWar。
+- 宗主と同盟の参戦の連鎖（StartWar→JoinAllies・DefendDependent）は両側で共通＝この線で変わらない。
+- UnificationNatioShare（Formations.cs:350・0.25）：種 1〜20 で候補が立つ四半期は 2 回だけ（§2）＝統一の宣戦が稀なのはこの門のため〈推〉。値は触らない。
+
+## 8. 計算量
+- 割り当て ±0 秒〈推〉（評価ごとの乱数の引き 1 回を消し、標的ごとの Contains を 1 回足す＝種 1〜20 で評価 2 回）。合流の木の累計（.cost を m1191 と比べる）で読む。
+
+## 9. 記録（門にしない）
+- 統一の宣戦の件数・成立の年・戦争の数・nullgate の O・NG（基準 ng1191_20261118）・開幕の 1000 倍以上・英の国債の不履行の種の数・名目 GDP 0 の続き（gdp_zero10.py）。
+
+## 10. 腕と D:
+- 腕 B：`bash scripts/instruments/c119us/armb.sh <コミット> D:/PoB_work/c119us_work`（batch.sh prep plain → INS=1 run c119usB 10 → read_us.sh）。起こす直前に shutil で D: を測り、〈35GB＋26GB〉に届かなければ起こさない。
+- 形の変え直しは 1 回だけ。腕 B の生は合流の判断まで消さない。

@@ -1,0 +1,12 @@
+using PriceOfBread.SimCore;
+int a = int.Parse(args[0]), b = int.Parse(args[1]);
+var seeds = Enumerable.Range(a, b - a + 1).ToArray();
+System.Threading.Tasks.Parallel.ForEach(seeds, new ParallelOptions { MaxDegreeOfParallelism = 10 }, s =>
+{
+    Diplomacy.ProbeTag = "s" + s;
+    var r = SelfPlayMatch.Run((ulong)s, Coefficients.GameQuarters, null, lean: true);
+    Console.Error.WriteLine($"done s{s} {r.Completed}");
+});
+using var o = new StreamWriter(args[2]);
+foreach (var l in Diplomacy.UnifProbe) o.WriteLine("EVAL\t" + l);
+foreach (var l in Diplomacy.UnifDecl) o.WriteLine("DECL\t" + l);
