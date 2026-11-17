@@ -64,7 +64,7 @@ public static class MarketFlow
             if (totalDemand < Eps && m.LastProduced < Eps) continue;
             nSteps++;
 
-            m.TargetStock = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * totalDemand) * region.StockpileFactor(gi, coef);
+            m.TargetStock = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * totalDemand);
             double gap = (m.TargetStock - m.Stock) / (m.TargetStock + m.Stock + Eps);
             double flowIn = m.LastProduced + m.LastImport;
             double supply = System.Math.Max(flowIn, System.Math.Min(flowIn + m.Stock, totalDemand));

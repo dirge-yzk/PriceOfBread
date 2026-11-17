@@ -1,0 +1,32 @@
+# (1185) c118hc 恒等の束の予言・腕の前の最初のコミット
+- 書いた日 2026-11-17・担当 Sonnet 5.5・枝 c118hc（ef7db3cc8 から）・worktree D:/PoB_work/wt_c118hc・作業 D:/PoB_work/c118hc_work（使い捨ての木 wt_c118hcx は項 2 の突然変異用・push しない）。
+- 作ったフォルダ：D:/PoB_work/wt_c118hc・D:/PoB_work/c118hc_work（後で wt_c118hcx・c118hc_art）。
+
+## [1] 恒等の線・予言 0
+- 項 1・2・3 とも挙動を変えない。項 1 は StockpilePanicWeight が既定 0 のため StockpileFactor は常に 1.0（Model.cs:675 の早期の戻り）＝×1.0 を消すだけ（x*1.0 は x とビットで同じ）。浮動小数の順序が変わる箇所は 0（掛け算 1 つを消すだけ・紙の台本で旧≠新の行は 0）。
+- 合否＝素の 5 種・計器つき 10 種が m1184 と名乗り行を除いて全行一致（計器の表の差は宣言だけ＝無し）。
+
+## [2] 消す物と残す物（ef7db3cc8 の grep）
+消す：
+- Model.cs:672 欄 WarScareTension／:673〜:680 StockpileFactor／MarketFlow.cs:67 の `* region.StockpileFactor(gi, coef)`（式は `Math.Max(TargetStockFloor, TargetStockBuffer*totalDemand)` だけになる）。
+- Simulation.cs:1734 warScareTensionNat／:1815 代入。
+- Coefficients.p07_wiring_prewarm.cs:80〜82 の StockpilePanicWeight・StockpileTensionSpan・StockpileOtherFrac（注の見出し行 :79 の戦時備蓄の行は残す／要るなら 1 行に短くする）。
+- DormantIdentityTests.cs:252 の ZeroDefaultLedger の行を RetiredFields へ移す（名簿の期待値は係数の定義から作っていない手書きの名簿）。
+残す（読み手あり）：RivalTensionThreshold（Diplomacy.cs:1709・1734・1745）・Diplomacy.MaxTension（CrownParliament.cs:77・SelfPlay.cs:439・World.cs:1757・InstrumentsWar.cs:278）・MilitaryGoods（他の読み手を grep で確かめる）。
+読み手の grep（SimCore・Runner・App・Display・Tests・Tests.Ui）：上の定義と呼びと DormantIdentityTests／UnitTypeTests:264（注の文だけ・行は無い）／WriterRatchetTests の注の文の言及だけ。Runner・App・Display・Tests.Ui は 0。scripts／measurements の台本：POB_COEF の `StockpilePanicWeight=0.5` が m1178・m1184 の過去の腕の台本にある（過去の記録＝触らない・今後の腕では使えない）。SaveGame：WarScareTension は Region の public double 欄（NonSerialized なし）＝セーブから 1 欄消える（名前と型で書く形＝同じ版の往復は savetest）。
+- 墓標：docs/history の該当行へ 1 行（実装ログ番号つき）。
+
+## [3] 試験と突然変異
+- 項 2a LaborMarketFormTests（帯の床の撤去の番人）：参照より上の側（over=1.6・1.02）の Assert を、MarketFlow.cs の 2 つの塞ぎ（free1 の `want < wrp`・LaborClosed の adj≥0 側 `!(pe < wrp)`）を両方外すと赤になる形へ直す。突然変異表＝Ma（free1 だけ外す）・Mb（`!(pe<wrp)` だけ外す）・Mab（両方）。1 本ずつ外した結果は表に書く（旧 1 本ずつ＝緑と報告 (1181) v）。予言：Mab で赤・Ma と Mb の片方だけは緑の見込み（二重の塞ぎ）。使い捨ての木 wt_c118hcx でだけ行う。
+- 項 2b TradeInstrumentTests.G4（:124〜）：盤面の標本の数 n の下限を前提の Assert として足す（Assert の文と閾値は変えない）。M4（(1179) の突然変異）が赤のままか確かめる。盤面を痩せさせる突然変異 M5（盤面を 36→8 四半期）で前提が赤。
+- 試験の数の予言：Tests 2663→2663（G4 は既存の Fact の中の Assert）・Tests.Ui 234→234〜235（項 2a で新しい Fact が要る場合だけ +1）。合計 2897（+0〜1）。FullLength 3。
+- ㉘ 走査の番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。
+- ㉑ 件数の予言：WriterRatchetTests の宣言の行の書き換え 0 件の見込み。MaxTension は Diplomacy の Cost 台帳を書かない（DiploHegemonScans は Hegemon() の中だけ・Diplomacy.cs:1044）＝依頼文の〈MaxTension の呼びが減ると DiploHegemonScans が下がる〉は読み違いと見込む（回して違えば取り直して名乗る）。
+- 事前登録の点検の grep：工業化度の読み手の許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵・WriterRatchetTests の宣言の表＝項 1 は触れない（件数の変化 0）。
+
+## [4] 一致と stage.py
+- 5 種・計器つき 10 種が m1184 と全行一致（名乗り行の SOURCE-HASH を除く）。stage.py＝段 2 の見込み（SimCore の Region 欄とエンジンの式に触れる）。
+- .cost の推定：台帳は MaxTension・×1.0 を数えない＝推定の変化 0.0 秒の見込み（実 CPU の節約は国×月の 61 回の走査と州×財の 1 回の乗算で 0.1 秒未満と見込む）。依頼の門〈.cost の推定が下がる〉は満たせない見込みで、正直に報告する（余り 8.6 秒は戻らない）。
+
+## [5] 採否
+- 〈判定: 恒等〉なら採る（測った種で一致）。項 3 は docs だけ（試験・成績表に影響なし）。〈作者 2026-11-16 の決まり〉①〜⑦を節の頭へ。古い行は打消し線＋日付。

@@ -249,7 +249,6 @@ public class DormantIdentityTests
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
-        "StockpilePanicWeight",   // (1174) c116hd：戦時の買いだめ（在庫の目標の倍率）を 0.5→0.0 で閉じた（S02-H004a・枝 Model.StockpileFactor と欄 WarScareTension は次の恒等の線で消す）
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -371,6 +370,7 @@ public class DormantIdentityTests
         "DistanceMarginScale",   // (843) c68ui：B12 既定 1.0 の距離の物差し（×1.0 の因子の除去）
         "MilitaryBudgetNeedCapped", "RegionalPriceBaseExcludesColonies", "MachineCastIronRecipe", "ParishEduFunded", "ChilledMeatEnabled", "KeroseneFromOilEnabled", "HouseholdProductionEnabled",   // (811) c13ia：Simulation.cs の旗の焼き込み（どれも既定 1 で点火済み＝旧の枝は消した。番人は MilitaryTests・IvfInitialValuesTests・ReformPathTests・HouseholdProductionTests ほか）
         "MegaprojectEnabled", "MegaprojectStateFrac", "MegaprojectStateCap", "MegaprojectPrestige", "MegaprojectCounterCyclical", "MegaprojectCrisisDrawdown", "MegaprojectForeignShare", "MegaprojectForeignMinRank", "MegaprojectForeignDrawFrac", "MegaprojectForeignYield", "FormationLegitimacyBoost", "MonumentBuildQueue", "MonumentBuiltUnits", "MonumentApplied",   // (1081) c103dm：威信と巨大建造物を消した（係数 11 本・州の欄 3 本）
+        "StockpilePanicWeight",   // (1174) c116hd：戦時の買いだめ（在庫の目標の倍率）を 0.5→0.0 で閉じた（S02-H004a・枝 Model.StockpileFactor と欄 WarScareTension は次の恒等の線で消す）
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

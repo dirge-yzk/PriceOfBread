@@ -1164,3 +1164,7 @@
 ````text
 // 開いた大鉱床の富鉱倍率（浅い高品位の鉱脈＝通常の賦存4.0に掛ける＝開いた財の生産者だけ・Discovery.OpenSite）。衰えは採掘による品位（鉱脈在庫）
 ````
+
+## StockpilePanicWeight・StockpileTensionSpan・StockpileOtherFrac（(1185) c118hc で削除）
+- (1174) c116hd が StockpilePanicWeight を 0.5→0.0 に閉じ、(1184) で採った。既定 0 では Model.StockpileFactor は常に 1.0＝×1.0 を消して係数 3 本・欄 WarScareTension・Simulation の国ごとの MaxTension の呼びを削除した（恒等）。
+- 旧の値：StockpilePanicWeight 0.5（満点の恐慌時に在庫目標を 5 割増し）・StockpileTensionSpan 60.0（40→100）・StockpileOtherFrac 0.33（優先財以外は 1/3）。旧の式は Model.StockpileFactor：`1 + W × clamp01((緊張−RivalTensionThreshold)/Span) × (優先財〔主食・軍需〕 ? 1 : OtherFrac)`。
