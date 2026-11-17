@@ -1,0 +1,3 @@
+置き換えた：1 箇所・D:/PoB_work/c119k3_work/mut/tree_M4/PriceOfBread.SimCore/Military.cs・11278 → 11304 バイト
+  失敗 PriceOfBread.Tests.PeacetimeConscriptGrievanceTests.T2b_戦時の徴募の遺恨は係数に依らない [203 ms]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

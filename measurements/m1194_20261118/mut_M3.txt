@@ -1,0 +1,3 @@
+置き換えた：1 箇所・D:/PoB_work/c119k3_work/mut/tree_M3/PriceOfBread.SimCore/Military.cs・11278 → 11229 バイト
+  失敗 PriceOfBread.Tests.PeacetimeConscriptGrievanceTests.T1b_平時の在地の取り分が国家より大きい本国格の州の徴募も遺恨を積む [2 s]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

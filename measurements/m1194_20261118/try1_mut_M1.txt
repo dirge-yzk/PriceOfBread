@@ -1,0 +1,5 @@
+M1＝係数 0 の木（0f44289db）
+  失敗 PriceOfBread.Tests.PeacetimeConscriptGrievanceTests.T1b_平時の在地の取り分が国家より大きい本国格の州の徴募も遺恨を積む [3 s]
+  失敗 PriceOfBread.Tests.PeacetimeConscriptGrievanceTests.T1a_平時の植民地格の州の徴募は戦時と同じ率で遺恨を積む [43 ms]
+  失敗 PriceOfBread.Tests.PeacetimeConscriptGrievanceTests.T2a_平時の国家が治める本国格の州の徴募は遺恨を積まない [13 ms]
+失敗!   -失敗:     3、合格:     1、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
