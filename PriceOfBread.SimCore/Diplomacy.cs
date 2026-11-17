@@ -1674,7 +1674,7 @@ public sealed class Diplomacy
     }
 
     // プレイヤーはUIボタン（同条件・RNGなし）。〔履歴 Diplomacy.cs#180〕
-    private void TryUnificationWars(Coefficients c)
+    internal void TryUnificationWars(Coefficients c)   // internal＝(1188) 単体の機構の試験が呼ぶ（挙動は変えない）
     {
         if (UnificationRng is null) return;
         foreach (var p in Powers)
