@@ -1,0 +1,3 @@
+# (1187) suite 木=/d/PoB_work/wt_c118mb HEAD=38b1341ec 2026-11-17 20:49:42
+list-tests Tests(Category!=FullLength)=2666 Tests.Ui=234 和=2900 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   335、スキップ:     0、合計:   335、期間: 22 m 19 s - PriceOfBread.Tests.dll (net10.0)

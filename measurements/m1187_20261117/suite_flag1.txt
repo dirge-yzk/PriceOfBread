@@ -1,0 +1,16 @@
+# (1187) suite（㊴ 抜き）木=D:/PoB_work/wt_c118mb HEAD=1a012d00c 2026-11-18 00:40:50
+list-tests Tests(Category!=FullLength)=2666 Tests.Ui=234 和=2900 FullLength=3
+Tests(Category!=FullLength) rc=1 失敗!   -失敗:     7、合格:  2658、スキップ:     1、合計:  2666、期間: 45 m 54 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 40, declared: 883740) [13 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 2967) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 37, declared: 71190) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 25512655) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3254416) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1836) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 29, declared: 33884747) [< 1 ms]
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 17 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全64カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 859・その月の額の和 3.276E+05 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SaveRoundTripTests（四半期の途中を含む往復）：trx の行 5・赤 0
+SUITEDONE 2026-11-18 01:38:57
