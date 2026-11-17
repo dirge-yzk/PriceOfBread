@@ -1,0 +1,10 @@
+applied M1
+M1 失敗:     2、合格:     1 T1_ T3_ 
+applied M2
+M2 失敗:     3、合格:     0 T1_ T2_ T3_ 
+applied M3
+M3 失敗:     1、合格:     2 T2_ 
+applied M4
+M4 失敗:     1、合格:     2 T2_ 
+applied M5
+M5 失敗:     2、合格:     1 T1_ T3_ 
