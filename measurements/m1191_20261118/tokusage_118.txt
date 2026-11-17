@@ -1,0 +1,22 @@
+担当 25 人・手番 1357・読み 207.5M・書き 4.1M・出力 1.0M・助言役 0 回
+費用（Opus 5.5 の入力 1 トークン換算・模型の単価を掛けた）: 計 20.1M＝読み 10.1M（51%）・書き 4.9M（24%）・出力 5.0M（25%）・助言役 0.0M（0%）
+キャッシュ切れの丸ごとの書き直し: 0.3M（費用の 1%）
+文脈 20 万超の手番の読み: 97.0M（読みの 47%）／道具 1 つだけの手番: 1312/1357（97%）
+前の手番からの間隔	手番	書き	丸ごとの書き直し
+〜270秒	1327	2.7M	0
+270〜600秒	4	0.2M	2
+600秒〜	1	0.1M	1
+重い順（上位 12）
+担当	模型	手番	始まり	終わり	読み	書き	切れ	出力	助言役	費用	指示
+a0f741cf47	opus-5-5	203	105K	403K	57.0M	0.4M	0.0M	130K	0回	4.0M	[Workflow harness — user req
+a94ab0c6ae	opus-5-5	126	57K	367K	26.1M	0.4M	0.0M	134K	0回	2.4M	[Workflow harness — user req
+a999c809f0	opus-5-5	124	58K	252K	21.8M	0.2M	0.0M	88K	0回	1.8M	[Workflow harness — user req
+a5b6278bef	opus-5-5	119	59K	226K	19.5M	0.2M	0.0M	67K	0回	1.6M	[Workflow harness — user req
+a0d5d0d509	opus-5-5	108	58K	197K	16.2M	0.2M	0.0M	70K	0回	1.4M	[Workflow harness — user req
+a6ce1f4c7a	opus-5-5	70	39K	252K	10.6M	0.2M	0.0M	85K	0回	1.3M	[Workflow harness — user req
+aa39ec53b2	opus-5-5	36	72K	176K	4.2M	0.2M	0.0M	57K	0回	0.7M	[Workflow harness — user req
+a0e6da267d	opus-5-5	55	59K	130K	5.1M	0.3M	0.1M	23K	0回	0.7M	[Workflow harness — user req
+ad3a910b8a	opus-5-5	66	59K	131K	6.5M	0.1M	0.0M	32K	0回	0.6M	[Workflow harness — user req
+a508511b4a	opus-5-5	41	38K	141K	3.9M	0.1M	0.0M	43K	0回	0.6M	[Workflow harness — user req
+ad9057a325	opus-5-5	52	39K	138K	5.1M	0.1M	0.0M	31K	0回	0.6M	[Workflow harness — user req
+a3d3a45767	opus-5-5	40	37K	142K	4.0M	0.1M	0.0M	36K	0回	0.5M	[Workflow harness — user req
