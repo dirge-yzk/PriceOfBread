@@ -39,7 +39,6 @@ public sealed class Scenario
     public double InitialTreasury { get; init; } = 0.0;
     public double InitialGovDebt { get; init; } = 0.0;
     public BureaucracyLaw InitialBureaucracy { get; init; } = BureaucracyLaw.MeritExam;
-    public double InitialNationalConsciousness { get; init; } = -1;
     public double InitialMassMilitancy { get; init; } = 0;
 
     public double FactoryRentShare { get; init; } = 0.7;

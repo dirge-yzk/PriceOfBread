@@ -60,7 +60,6 @@ public sealed partial class Coefficients
     public double EraFactor(double worldTech, double k) => 1.0;   // 前線技術のランプに沿って距離定数を伸縮させる
 
     // ==== 国民意識の消費側（国民意識doc N4/N7・2026-08-13）====
-    public double SecessionConsciousnessWeight = 0.0;   // (1186) 国民意識の廃止の 1 段目＝0（旧 1.0）。分離圧力に (1 − これ×州の国民意識) を掛ける
     public double MintReserveTargetWeight = 1.0;       // 準備不足に応じて造幣量を絞る強さ
     public double TrilemmaRateResponse = 0.5;          // カバー率の不足に対する金利の応答
 

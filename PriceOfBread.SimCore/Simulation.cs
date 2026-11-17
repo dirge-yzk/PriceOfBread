@@ -110,7 +110,6 @@ public sealed class Simulation
                 _ => CommandLaw.Crown,
             },
             Bureaucracy = scenario.InitialBureaucracy,   // Bureaucracy〔履歴 Simulation.cs#5〕
-            InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
             Longitude = scenario.NationConfig?.Longitude ?? 0, OpeningTreasuryMonths = scenario.NationConfig?.TreasuryMonths ?? 0, OpeningGovDebtToGdpYear = scenario.NationConfig?.GovDebtToGdpYear ?? 0, OpeningStateMonopolyTier = scenario.NationConfig?.OpeningStateMonopolyTier ?? 0, LandTaxBasisFixed = scenario.NationConfig?.LandTaxBasis == "Fixed",   // Longitude〔履歴 Simulation.cs#6〕
             EthnicEnabled = scenario.NationConfig is not null,   // 民族統一度（倍率排除⑧）は各popの CoreEthnicShare 加重平均から創発。NationConfig 由来の国だけ有効化＝合成較正/最小世界は無効で較正不変

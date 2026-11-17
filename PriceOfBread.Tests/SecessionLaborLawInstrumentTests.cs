@@ -132,7 +132,7 @@ public class SecessionLaborLawInstrumentTests
             var targets = w.Regions.Where(x => x.Id != 0 && Politics.RegionCrowd(x) > 1).ToList();
             Assert.True(targets.Count >= 2, $"前提が崩れた：大衆のいる非首都の州が {targets.Count} 件");
             foreach (var q in w.Regions) foreach (var p in q.Pops) p.Militancy = 0;
-            foreach (var r in targets) foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); p.NationalConsciousness = 0.0; }
+            foreach (var r in targets) foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); }
             Politics.CheckSecession(w, c, 0.0);
             var rows = Instruments.SecRowsPending(w);
             Assert.NotNull(rows);

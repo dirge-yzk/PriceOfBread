@@ -820,3 +820,7 @@
     //   AI が欲しい法が〈官僚制度が前提〉で止まった四半期に官僚制度の次の段を目標に置く（SelfPlay.BureaucracyFollowsWants・前提は Government.LawPrereq の同じ 1 本＝プレイヤーの法律タブと同じ）。置いた目標は施行されるまで残る（追記3 の錠）。事前登録 measurements/ab_20261017_prereg.txt
 
 ````
+
+## 国民意識と信任帝政の床の係数（(1193) c119nd で削除）
+- 段 A：NationConsciousnessDerived（既定 0・不動点の枝）・NationConsciousnessPerPop（既定 1・スカラーだけの枝）。
+- 段 B：NationBuildConscript 0.5/WorkingMenStdShare・RedefinedMandateFloor 0.6・RedefinedMandateNcMin 0.5・RedefinedMandateMandateMin 0.6・NationBuildAccumRate 0.03・NationBuildDecayRate 0.0025・NationBuildCrisisDefense 0.5・NationBuildCrisisCivilWar 1.0・NationBuildCrisisIndependence 2.0・NationBuildInitialDefault 0.075・RadioNationWeight 0.5・NationConsciousnessReachDecay 800。

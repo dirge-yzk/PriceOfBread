@@ -513,7 +513,6 @@ public class MilitaryTests
         Assert.Equal(5.0, c.CoercionPerSoldier * u, 9);
         Assert.Equal(0.18, c.MilitaryUpkeepScale * u, 12);
         Assert.Equal(5.0, c.ArmyPoliticalWeight * u, 9);
-        Assert.Equal(0.5, c.NationBuildConscript * u, 12);
         Assert.Equal(4.0, c.WarFeverSoldier * u, 9);
         Assert.Equal(250.0 * 0.18, c.SoldiersPerMilitary * c.MilitaryUpkeepScale, 9);   // 艦隊ゲージの分母の積は不変
         Assert.Equal(c.MaxSoldierFraction.Value * u, Military.PeaceCapShareOfPop(c), 15);    // 平時の上限の人口比

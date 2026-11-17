@@ -244,7 +244,6 @@ public class DormantIdentityTests
         "PolicyRateLoanWeight",
         "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearcherFrac",
-        "SecessionConsciousnessWeight",   // (1186) c118nc：国民意識の廃止の 1 段目（旧 1.0）。(1193) c119nd の段 B で計器の読み手ごと消す。
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
@@ -258,6 +257,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "SecessionConsciousnessWeight", "RedefinedMandateFloor", "RedefinedMandateNcMin", "RedefinedMandateMandateMin", "NationBuildConscript", "NationBuildAccumRate", "NationBuildDecayRate", "NationBuildCrisisDefense", "NationBuildCrisisCivilWar", "NationBuildCrisisIndependence", "NationBuildInitialDefault", "RadioNationWeight", "NationConsciousnessReachDecay",   // (1193) c119nd 段 B：信任帝政の床の分岐と国民意識の物理（漸化式・POP の欄・国民形成費・計器の列）を消した。
         "NationBuildMobilizationWeight", "RevolutionConsciousness", "SkillMobilizationRelief", "NationConsciousnessDerived", "NationConsciousnessPerPop",   // (1193) c119nd 段 A：国民意識の重み 0 の読み手（徴兵の門・革命の目覚め）と既定の焼き込み（不動点の枝・スカラーだけの枝）。
         "NiterBedEnabled", "NiterBedProductivity",   // (1175) c116cl：硝石丘の枝と係数 2 本を削除（旗は既定 0 のまま届かなかった＝休眠 0・硝石を産地にする回で戻す）
         "PriceLawSeesExports", "LaborBandFloorOffGate",   // (1175) c116cl：既定 1 の旗 2 本を焼き込んだ（輸出を需要に足す式・労働 3 財の帯の床の撤去＝常に 1 の経路・旗 0 の番人は LaborMarketFormTests で今の盤面へ移した）

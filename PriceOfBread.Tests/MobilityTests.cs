@@ -277,17 +277,12 @@ public class MobilityTests
     [Fact]
     public void 国内の移動も政治意識と国民意識と思想の分布を人数で運ぶ()
     {
-        var a = new Pop { Size = 30, Consciousness = 0.9, NationalConsciousness = 0.6 };
-        var b = new Pop { Size = 90, Consciousness = 0.1, NationalConsciousness = 0.2 };
+        var a = new Pop { Size = 30, Consciousness = 0.9 };
+        var b = new Pop { Size = 90, Consciousness = 0.1 };
         a.IdeologyShares[2] = 1.0; b.IdeologyShares[0] = 1.0;
         Territory.MoveBetweenRegions(a, b, 10, new Coefficients());
         Assert.Equal((0.1 * 90 + 0.9 * 10) / 100, b.Consciousness, 12);
-        Assert.Equal((0.2 * 90 + 0.6 * 10) / 100, b.NationalConsciousness, 12);
         Assert.Equal(0.9, b.IdeologyShares[0], 12); Assert.Equal(0.1, b.IdeologyShares[2], 12);
-        Assert.Equal(0.9, a.Consciousness, 12); Assert.Equal(0.6, a.NationalConsciousness, 12);   // 送り手の1人あたりは動かない
-        var c = new Pop { Size = 50, NationalConsciousness = -1 };   // 未捕捉の受け手
-        var d = new Pop { Size = 20, NationalConsciousness = 0.7 };
-        Territory.MoveBetweenRegions(d, c, 5, new Coefficients());
-        Assert.Equal(0.7, c.NationalConsciousness, 12);
+        Assert.Equal(0.9, a.Consciousness, 12);   // 送り手の1人あたりは動かない（国民意識の運びは (1193) で国民意識ごと消した）
     }
 }

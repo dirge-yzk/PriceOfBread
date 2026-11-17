@@ -1,0 +1,4 @@
+ビルドに成功しました。
+ビルドに成功しました。
+成功!   -失敗:     0、合格:   248、スキップ:     0、合計:   248、期間: 19 m 18 s - PriceOfBread.Tests.dll (net10.0)
+段 A（f426eb3ff の作業ツリー）の ㉘ の番人＋国民意識の試験（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・NationalConsciousnessRemoved・NcOpenness・CrownParliament・Mobility・Explain・Military）

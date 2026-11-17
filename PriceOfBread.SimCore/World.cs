@@ -682,23 +682,6 @@ public sealed class World
     public int RegimeTenureQuarters { get; internal set; }        // 現政体の在任四半期数（政体交代でリセット）。実績ストックの正の信認ゲート＝長期成功のみ信認へ寄る（始まったばかりの形態は実績を持てない）
     // 読み手＝Politics.Step の1か所＝期待 H＝1/max(1,これ)（政変のたびに「次の政権こそ」が割られる＝最初の政変は期待で起きる）→ 動員（改革派＋急進派）×H・正統性の床 1−H。〔履歴 World.cs#113〕
     public double RecentRegimeChanges { get; internal set; }
-    // 国の国民意識＝捕捉された POP の加重平均（捕捉された POP が無いときだけスカラー）。(1193) で旗 NationConsciousnessPerPop（既定 1）を焼き込んだ。〔履歴 World.cs#114〕
-    private double _ncScalar = -1;
-    public double NationalConsciousness
-    {
-        get
-        {
-            double s = 0, v = 0;
-            // 書き手が触らないPOPは読み手も見ない＝対称にする。〔履歴 World.cs#115〕
-            foreach (var p in AllPops())
-            {
-                if (p.NationalConsciousness < 0) continue;
-                s += p.Size; v += p.Size * p.NationalConsciousness;
-            }
-            return s > 1e-9 ? v / s : _ncScalar;
-        }
-        internal set => _ncScalar = value;
-    }   // 公教育×識字＋徴兵で育つ・多民族は育ちにくい（天井でなく抵抗）・国難は既存結束で符号が決まる両刃。〔履歴 World.cs#116〕
     public double Coercion { get; internal set; }
     // 民族統一度（0..1のスカラー。POPは作らない＝以前の「民族POP不採用」と整合）。史実の初期値→移民（国家間移民）で希釈→同化で回復。
     // 高い＝不満の上昇が鈍い・軍が結束・近代化が通りやすい／低い＝移民を引く（坩堝）・分離圧力。EthnicEnabled が false の世界（合成較正・最小テスト）では全効果が無効＝較正不変。
@@ -858,9 +841,6 @@ public sealed class World
     public FactionState? PendingFactionCrisis { get; set; }   // 通知：非null＝危機が立っている（CheckFactionRevolt が立てて自分で下ろす）。null＝立っていない。
     public string PendingFactionCrisisDemands = "";           // 対象勢力の要求（表示用・通知時と要求の取り直しで更新）
 
-    // P9 国民意識v2（購入モデル）の状態（主フラグ NationBuildPurchaseMode=0 では全て不読＝休眠）
-    public double NationBuildingSpending { get; internal set; }   // 国民形成費の実効値（Government が目標へ平滑）
-    public double InitialNationalConsciousness { get; internal set; } = -1;   // v2初期値（world.json 由来・−1=係数既定 NationBuildInitialDefault）
     public bool BornOfSecession { get; internal set; }            // 分離独立で生まれた国（独立戦争の危機乗数の判定用）
     // P8 天命（0..1・0.5=中立・−1=未捕捉センチネル）：民の統治パフォーマンス評価EMA。主フラグ DynasticMandateEnabled=0 では永遠に−1のまま＝不読・恒等
     public double DynasticMandate { get; internal set; } = -1;

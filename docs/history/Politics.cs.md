@@ -2348,3 +2348,7 @@
 // 受け手不在は全popへ按分
 ````
 
+
+## 信任帝政の床・国民意識の読み手（(1193) c119nd で削除）
+- 床：立憲君主×王冠×国民意識 ≥ RedefinedMandateNcMin 0.5×天命 ≥ RedefinedMandateMandateMin 0.6 のとき 正統性 ≥ RedefinedMandateFloor 0.6×天命（2026-07-18 点火）。消した後の床は 秩序の受け入れ（1−1/max(1,政変の記憶)）×(1−敗戦ショック) だけ。〈作者「しばらくの間、全て推奨で」〉で推奨（§0-2 ★(1191) ②）を採った。
+- 読み手：分離の圧の ×(1−SecessionConsciousnessWeight×州の国民意識)（旧 1.0）・RevolutionAwakensNation（暴力の政体の変化で POP の国民意識を RevolutionConsciousness 0.25 だけ天井へ）・AvgRegionConsciousness。(1186) c118nc で重み 0 にした後、段 A で消した。
