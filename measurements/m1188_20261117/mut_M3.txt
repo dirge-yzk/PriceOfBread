@@ -1,0 +1,7 @@
+rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.UnificationAiNoWaitTests.T3_プレイヤーの動詞は係数によらず同じでAIの標的は動詞が許す相手 [42 ms]
+   Assert.Equal() Failure: Collections differ
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+T3DONE
+ 1 file changed, 1 insertion(+), 1 deletion(-)

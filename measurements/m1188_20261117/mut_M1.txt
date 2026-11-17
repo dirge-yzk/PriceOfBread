@@ -1,0 +1,9 @@
+rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.UnificationAiNoWaitTests.T1_候補と標的を持つAIは種によらず毎回宣戦する [2 s]
+   種 1：候補と標的があるのに宣戦しなかった
+  失敗 PriceOfBread.Tests.UnificationAiNoWaitTests.T2_宣戦の後の四半期に待たずに次に弱い標的へ宣戦する [17 ms]
+   2 回目：交戦中の標的が増えていない（1→1）＝宣戦の後の待ちが残っている
+失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+T3DONE
+ 1 file changed, 1 insertion(+), 1 deletion(-)
