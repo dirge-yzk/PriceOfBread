@@ -1,0 +1,5 @@
+M {'civil': 145.0, 'secession': 3.0, 'mobQ': 13828.0}
+Amob {'civil': 121.0, 'secession': 12.0, 'mobQ': 16068.0}
+Arev {'civil': 139.0, 'secession': 6.0, 'mobQ': 13635.0}
+Asec {'civil': 137.0, 'secession': 3.0, 'mobQ': 13776.0}
+m1184 {'civil': 119.0, 'secession': 12.0, 'mobQ': 15733.0}

@@ -1,0 +1,12 @@
+(1196) c119ra 読む線（波119・腕 0・コミットなし）
+作業の場所: D:/PoB_work/r1196_work/（台本は scripts/ 以下に置く写し・合流が scripts/instruments/r1196/ と measurements/m1196_<日>/ へ写す）
+読むソース: main 93fc4a967（C:/Users/dirge/Documents/PriceOfBread の作業ツリーは読むだけ・worktree は作らない）
+読む生:
+  問い1 D:/PoB_work/keep_1191/base_ins（種 1〜10）・D:/PoB_work/keep_1191/a11（種 11〜20）・D:/PoB_work/keep_1191/n1（ヌル腕・記録）
+        表 wars_s・nation_s・rule_s・secession_s・cess_s・cessp_s・ideology_s ほか（ls で確かめる）
+        ソース Formations.cs・World.cs・Diplomacy.cs・MultiNationSim.cs（成立の判定と名前の付け替え）
+  問い2 D:/PoB_work/keep_1191_rej/m1191_Amob・m1191_Arev・m1191_Asec（絞った表）と keep_1191/base_ins
+        measurements/m1191_20261118/abl/
+  問い3 scratchpad の ledger_S09_2026-11-12.md・.tsv・_反証.md／docs/機能の台帳.md の | S09- の行
+        scripts/instruments/r1189/cmp_rows.py・ledger_check.py・r900/／measurements/m1189_20261117/dl_table_2026-11-17.tsv
+腕 0 本。keep_* は読むだけ。

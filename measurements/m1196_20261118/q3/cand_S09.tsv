@@ -1,0 +1,13 @@
+id	候補	識別子
+K65	保険金（S09-26・A1）	StepMarineInsurance,InsurancePayoutFrac
+K66	安く売るの旗と枝（S09-35・B）	TradeCheapSellSubsidy
+K67	診断の命令 transportsplit（S09-38・F）	transportsplit
+K68	診断の命令 tradewhy（S09-41・G）	tradewhy
+K69	主食の封鎖の上乗せ（S09-22・I）	BlockadeStapleBias
+K70	負の関税の輸出補助（S09-04・K）	DumpingTariff,DumpingExportRatio
+K71	高く買う（S09-34・J）	TryTradeBias,TradeBiasStrength
+K72	保険料（S09-H/反証 §8-7・H）	MarinePremiumRate
+K73	報復と相互低減の偏り（S09-06・C）	TariffRetaliationBias,TariffRetaliation
+K74	鎖国の倍率（S09-05・E）	IsolationExportWeight,IsolationExportFactor
+K75	反覇権の経済封じ込め（S09-29・D）	HegemonContainmentTrade,HegemonContainmentMax
+K76	国の口の交戦と禁輸の分・軍需の口（S09-19・S09-28・L）	MilitaryExportAccess,MilitaryExportTensionThreshold,MilitaryExportAccessFloor

@@ -1,0 +1,11 @@
+# an8 種 1〜10・世界の産出の 1913÷1784（prodcap_s の年末の断面の月の産出・metal_s は年の四半期の平均）
+種1	石炭 17.31	鉄鉱石 14.00	金 1.71	銀 1.23	金metal 1.72	銀metal 1.32	金1913 metal/四半期÷prodcap/月 1.013	銀1913 metal/四半期÷prodcap/月 0.985
+種2	石炭 23.56	鉄鉱石 14.32	金 2.10	銀 1.62	金metal 1.93	銀metal 1.80	金1913 metal/四半期÷prodcap/月 0.996	銀1913 metal/四半期÷prodcap/月 1.024
+種3	石炭 28.90	鉄鉱石 9.66	金 2.06	銀 1.70	金metal 1.83	銀metal 1.87	金1913 metal/四半期÷prodcap/月 0.906	銀1913 metal/四半期÷prodcap/月 1.020
+種4	石炭 30.22	鉄鉱石 15.32	金 2.49	銀 2.62	金metal 2.25	銀metal 2.90	金1913 metal/四半期÷prodcap/月 1.003	銀1913 metal/四半期÷prodcap/月 1.012
+種5	石炭 19.89	鉄鉱石 16.20	金 1.78	銀 3.08	金metal 1.67	銀metal 3.34	金1913 metal/四半期÷prodcap/月 1.007	銀1913 metal/四半期÷prodcap/月 1.014
+種6	石炭 13.81	鉄鉱石 10.80	金 1.46	銀 1.24	金metal 1.30	銀metal 1.31	金1913 metal/四半期÷prodcap/月 0.969	銀1913 metal/四半期÷prodcap/月 0.968
+種7	石炭 24.74	鉄鉱石 10.54	金 2.26	銀 2.01	金metal 2.22	銀metal 2.05	金1913 metal/四半期÷prodcap/月 1.019	銀1913 metal/四半期÷prodcap/月 0.954
+種8	石炭 20.09	鉄鉱石 12.00	金 2.29	銀 1.07	金metal 2.33	銀metal 1.15	金1913 metal/四半期÷prodcap/月 1.051	銀1913 metal/四半期÷prodcap/月 0.988
+種9	石炭 27.86	鉄鉱石 13.78	金 3.46	銀 2.01	金metal 3.38	銀metal 2.30	金1913 metal/四半期÷prodcap/月 0.975	銀1913 metal/四半期÷prodcap/月 1.060
+種10	石炭 32.59	鉄鉱石 15.75	金 1.88	銀 1.87	金metal 1.84	銀metal 2.04	金1913 metal/四半期÷prodcap/月 1.006	銀1913 metal/四半期÷prodcap/月 0.993

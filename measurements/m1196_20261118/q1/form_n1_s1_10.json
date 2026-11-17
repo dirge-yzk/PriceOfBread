@@ -1,0 +1,122 @@
+{
+ "1": {
+  "forms": [],
+  "evidence": [],
+  "declare": [
+   "1794 ライン諸邦->ハノーファー"
+  ],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "2": {
+  "forms": [],
+  "evidence": [],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "3": {
+  "forms": [],
+  "evidence": [],
+  "declare": [
+   "1792 プロイセン->ハノーファー"
+  ],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "4": {
+  "forms": [],
+  "evidence": [],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "5": {
+  "forms": [],
+  "evidence": [
+   {
+    "y": 1801,
+    "rebel": "立憲王政ローマ",
+    "parent": "オスマン",
+    "stem": "ローマ",
+    "code": "civil"
+   },
+   {
+    "y": 1806,
+    "rebel": "共和制ローマ",
+    "parent": "オスマン",
+    "stem": "ローマ",
+    "code": "civil"
+   }
+  ],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "6": {
+  "forms": [],
+  "evidence": [
+   {
+    "y": 1879,
+    "rebel": "立憲王政ローマ",
+    "parent": "オスマン",
+    "stem": "ローマ",
+    "code": "civil"
+   }
+  ],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "7": {
+  "forms": [],
+  "evidence": [
+   {
+    "y": 1809,
+    "rebel": "立憲王政ローマ",
+    "parent": "オスマン",
+    "stem": "ローマ",
+    "code": "civil"
+   },
+   {
+    "y": 1815,
+    "rebel": "共和制ローマ",
+    "parent": "オスマン",
+    "stem": "ローマ",
+    "code": "civil"
+   }
+  ],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "8": {
+  "forms": [],
+  "evidence": [],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "9": {
+  "forms": [],
+  "evidence": [
+   {
+    "y": 1819,
+    "rebel": "立憲王政ドイツ",
+    "parent": "プロイセン",
+    "stem": "ドイツ",
+    "code": "civil"
+   }
+  ],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ },
+ "10": {
+  "forms": [],
+  "evidence": [],
+  "declare": [],
+  "fullSamples": 167,
+  "depMissing": true
+ }
+}
