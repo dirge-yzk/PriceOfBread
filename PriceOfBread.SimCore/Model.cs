@@ -125,7 +125,6 @@ public sealed class Pop
     public double[] Ages = StdAges();
     public Share ChildLaborRate;
     public Share CoreEthnicShare = new Share(1.0);
-    public double NationalConsciousness = -1;
 
     public double MilVoice;
     public double MilWar;
@@ -245,9 +244,6 @@ public sealed class Pop
         to.Militancy = PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1);
         to.Consciousness = PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1);
         to.CoreEthnicShare = new Share(PoliticalQuantities.Clamp01((to.CoreEthnicShare.Value * t0 + cCore * n) / t1));
-        double wTo = to.NationalConsciousness >= 0 ? t0 : 0, wFrom = from.NationalConsciousness >= 0 ? n : 0;
-        if (wTo + wFrom > 1e-12)
-            to.NationalConsciousness = PoliticalQuantities.Clamp01(((wTo > 0 ? to.NationalConsciousness * wTo : 0) + (wFrom > 0 ? from.NationalConsciousness * wFrom : 0)) / (wTo + wFrom));
         var ti = to.IdeologyShares; var fi = from.IdeologyShares;
         for (int i = 0; i < ti.Length && i < fi.Length; i++) ti[i] = (ti[i] * t0 + fi[i] * n) / t1;
         double frac = n / s0;

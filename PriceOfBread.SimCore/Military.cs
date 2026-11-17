@@ -2,8 +2,6 @@
 
 public static class Military
 {
-    internal const double MobilizationGateFloor = 0.05;
-
     public static void StepSkill(World w, Coefficients c, bool atWar)
     {
         bool fighting = atWar || w.InCivilWar;
@@ -126,12 +124,6 @@ public static class Military
             conscriptFrac = c.ConscriptionFloorFraction.Value + (c.ConscriptionFraction.Value - c.ConscriptionFloorFraction.Value) * depth;
         }
         if (atWar && w.Mobilized) conscriptFrac = Math.Max(conscriptFrac, c.MobilizationConscriptFrac.Value);
-        if (c.NationBuildMobilizationWeight > 0)
-        {
-            double ncGate = c.NationBuildMobilizationWeight * (1.0 - Math.Max(0, w.NationalConsciousness));
-            ncGate *= Math.Max(0, 1.0 - c.SkillMobilizationRelief * PoliticalQuantities.Clamp01(w.ArmySkill));
-            conscriptFrac *= Math.Max(MobilizationGateFloor, 1.0 - ncGate);
-        }
         double seatsNat = EstablishmentOf(w, c, out double natManpower);
         bool lawConscripts = w.ConscriptionLaw >= ConscriptionLaw.Selective;
         double soldiersBefore = lawConscripts ? w.SoldierSizeK() : 0;

@@ -127,7 +127,7 @@ public static partial class Instruments
     }
     sealed class RpReg
     {
-        public Region R = null!; public double PopK, N, Tau, Pressure, Rho, RhoGc, Y, Consc, X, Core, Kappa, I, OwnerWeight;
+        public Region R = null!; public double PopK, N, Tau, Pressure, Rho, RhoGc, Y, X, Core, Kappa, I, OwnerWeight;
         public int RhoSource; public RpForces F; public double HShare;
         public double RhoNf, TauNf, HShareNf;   // HShareNf〔履歴 InstrumentsRulePower.cs#7〕
         public double RhoRailGate, RhoNoRail, RhoFullRail, DirectKm; public bool DirectLand;
@@ -203,7 +203,7 @@ public static partial class Instruments
                 var r = nn.Regs[k];
                 double popK = Math.Max(0, r.SumPopulation());
                 double crowd = Politics.RegionCrowd(r);
-                double press = Politics.AvgRegionMilitancy(r) * Math.Max(0, 1.0 - (c.SecessionConsciousnessWeight > 0 ? c.SecessionConsciousnessWeight * Politics.AvgRegionConsciousness(r) : 0.0))
+                double press = Politics.AvgRegionMilitancy(r)
                     * (1.0 - PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(nn.W, r))) * (crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0);
                 double x = 0;
                 for (int j = 0; j < r.ForeignShares.Length && j < r.ForeignRulers.Length; j++)
@@ -212,7 +212,7 @@ public static partial class Instruments
                     var rp = dip.Powers.Find(pp => (pp.BaseName.Length > 0 ? pp.BaseName : pp.Name) == r.ForeignRulers[j]);
                     if (rp is null || rp.Culture != nn.P.Culture) x += r.ForeignShares[j];   // 持ち主と主流の文化が違う外国の取り分（設計 §3-2 の A）
                 }
-                var rr = new RpReg { R = r, PopK = popK, N = popK * st.Q, Pressure = press, Consc = Politics.AvgRegionConsciousness(r), X = x, Core = Politics.AvgRegionCoreShare(r), Y = RpOutputValue(r) };
+                var rr = new RpReg { R = r, PopK = popK, N = popK * st.Q, Pressure = press, X = x, Core = Politics.AvgRegionCoreShare(r), Y = RpOutputValue(r) };
                 // 大圏の届き（今）
                 var rc = Places.Coord(r.Name);
                 rr.RhoGc = (rc.Lat == 0 && rc.Lon == 0) ? double.NaN : RulePowerReach(Geo.DistanceKm(nn.W.Latitude, nn.W.Longitude, rc.Lat, rc.Lon));
@@ -226,7 +226,7 @@ public static partial class Instruments
                 double ri0 = r.RuleInit.Length > 0 ? r.RuleInit[0] : 0, ri1 = r.RuleInit.Length > 1 ? r.RuleInit[1] : 0;
                 rr.Kappa = ri0 > 0 ? Math.Min(1.0, (r.Rule.Length > 0 ? r.Rule[0] : 0) / ri0) : 1.0;
                 double fiProbe = rr.N * 1.0 * ri1 * nn.InterRatio;   // τ 抜きの比（i は τ に依らない）
-                double frProbe = rr.N * rr.Pressure / c.SecessionThreshold + rr.N * rr.Consc * rr.X * (1 - rr.Core);
+                double frProbe = rr.N * rr.Pressure / c.SecessionThreshold;   // (1193) 国民意識を消した＝設計 §3-2 の A の項（N×国民意識×外国の取り分）は 0
                 rr.I = fiProbe + frProbe > 0 ? fiProbe / (fiProbe + frProbe) : 1.0;
                 rr.OwnerWeight = (r.Rule.Length > 0 ? r.Rule[0] : 0) + (r.Rule.Length > 1 ? r.Rule[1] : 0) * rr.I * rr.Kappa;
             }
@@ -299,7 +299,7 @@ public static partial class Instruments
             foreach (var rr in rows)
             {
                 var r = rr.R;
-                rr.F = RulePowerForces(rr.N, rr.Tau, rr.HShare, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, nn.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold, rr.Consc, rr.X, rr.Core);
+                rr.F = RulePowerForces(rr.N, rr.Tau, rr.HShare, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, nn.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold, 0.0, rr.X, rr.Core);
             }
         }
 
@@ -453,7 +453,7 @@ public static partial class Instruments
                         var rr = ln.Rows[k]; var r = rr.R; var c = ln.W.Coef;
                         popAll += rr.PopK;
                         double hs = ln.SumPop > 0 ? hLose * rr.PopK / ln.SumPop * rr.Rho : 0;
-                        var f = RulePowerForces(rr.N, rr.Tau, hs, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, ln.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold, rr.Consc, rr.X, rr.Core);
+                        var f = RulePowerForces(rr.N, rr.Tau, hs, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, ln.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold, 0.0, rr.X, rr.Core);
                         double fw = sumW > 0 ? flow * wg[k] / sumW * rh[k] : 0;
                         var cls = RulePowerClasses(f, rr.ForeignSum + fw, rr.Kappa);
                         // 勝者の取り分が最大＝外国の区分が最大で、勝者の力が他の外国の最大を超える

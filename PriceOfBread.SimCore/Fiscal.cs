@@ -3,8 +3,6 @@
 public static class Fiscal
 {
     private const double ForeignBondYieldRatioCap = 3.0;
-    private const double FranchiseAdultMale = 0.7;
-    private const double FranchiseCensus = 0.25;
     private static readonly RatioToGdpYear DebtToGdpYearUnbounded = new(DebtRatioUnbounded);
     private const double DebtRatioUnbounded = 1e9;
 
@@ -295,18 +293,6 @@ public static class Fiscal
             }
         }
         else w.LastPensionCostPerMonth = new MoneyPerMonth(0);
-
-        {
-            double franchise = w.Suffrage switch { Suffrage.Universal => 1.0, Suffrage.AdultMale => FranchiseAdultMale, Suffrage.Census => FranchiseCensus, _ => 0.0 };
-            double zeal = 1.0 - 0.5 * franchise;
-            double newsW = 0, newsSz = 0;
-            foreach (var p in pops)
-            {
-                if (p.IsSoldier || p.Closed) continue;
-                newsW += p.NewsFill * p.Literacy * p.Size; newsSz += p.Size;
-            }
-            w.NationBuildingSpending = newsSz > 1e-9 ? PoliticalQuantities.Clamp01(newsW / newsSz * zeal) : 0;
-        }
     }
 
     internal static double AdminDistanceMul(World w, Region r)

@@ -688,3 +688,7 @@
 // 所得税（予算権の物差し＝§2-C 予算闘争の核）
 ````
 
+
+## 国民意識の漸化式・AccumulatePopConsciousness・CivicOpenness（(1193) c119nd で削除）
+- 国民意識 v2：NC ← NC×(1−NationBuildDecayRate 0.0025)＋NationBuildAccumRate 0.03×(国民形成費×教育＋RadioNationWeight 0.5×ラジオ＋NationBuildConscript×兵の割合)×危機の乗数×到達(1/(1+km/800))×(天井−NC)。天井＝教育法の段×min(1,識字/0.6)×ProbOr(中核の民族の割合, 開放度)。開放度 CivicOpenness＝(政体の代表度＋参政権の開き＋自由)/3。
+- 読み手が信任帝政の床だけになった後（(1186)）、床と一緒に消した。作者 2026-11-16「国民意識は…移民キャパシティとして設計されていますが、不要でも移民問題が経済的な利害から出るのであれば、廃止しても良いです」。

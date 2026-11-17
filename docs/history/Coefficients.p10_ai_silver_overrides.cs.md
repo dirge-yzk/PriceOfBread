@@ -857,3 +857,6 @@
 
     /// <summary>この走行で上書きされた係数（測定の見出しに出して「掛けたつもり」を防ぐ）。</summary>
 ````
+
+## (1193) c119nd で削除
+- NationBuildMobilizationWeight（(1186) で 0・旧 0.5）・SecessionConsciousnessWeight（(1186) で 0・旧 1.0）。国民意識の物理の削除の線。

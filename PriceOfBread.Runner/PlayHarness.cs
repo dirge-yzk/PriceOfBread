@@ -419,7 +419,6 @@ internal static class PlayHarness
         sb.AppendLine();
         sb.AppendLine("---- 内訳（画面のホバーと同じ関数）----");
         AppendExplain(sb, w, "正統性", "Legitimacy", v => v.ToString("F3"), $"{w.Legitimacy:F3}");
-        AppendExplain(sb, w, "国民意識", "NationalConsciousness", v => v.ToString("P1"), $"{w.NationalConsciousnessDisplay:P0}");
         AppendExplain(sb, w, "行政力", "AdminEfficiency", v => v.ToString("P0"), $"{w.AdminEfficiency:P0}（行政費 目標 {w.Policy.AdminSpendingTarget:P0}／実効 {w.AdminSpending:P0}）");
         if (w.AtWarNow) AppendExplain(sb, w, "厭戦", "Exhaustion", v => v.ToString("P0"), $"{sp.WarExhaustion:P0}");
         sb.AppendLine("  闘争度（階級の層ごとの平均）： " + string.Join(" ", PlayText.ClassLayerMeans(w, p => p.Militancy).Select(x => $"{x.Layer} {x.Mean:P0}")));

@@ -23,7 +23,6 @@ public sealed class NationConfig
     public string? LandTaxBasis = null;
     public int OpeningStateMonopolyTier = 0;
     public BureaucracyLaw Bureaucracy = BureaucracyLaw.Spoils;
-    public double NationalConsciousness0 = -1;
     public double InitialMassMilitancy = 0;
     public double InitialTariff = 0.4;
     public double Industrialization = 0.0;
@@ -48,7 +47,7 @@ public sealed class NationConfig
     {
         SharedWorld = sharedWorld, Seed = seed, StartYear = Calendar.StartYear, Kind = ScenarioKind.Nation, NationConfig = this,
         PoliticsEnabled = true, InitialPolity = Polity, FiscalEnabled = true,
-        InitialPollTax = Government.TaxValue(PolicyAxis.PollTax, PollTaxStage), InitialLandTax = Government.TaxValue(PolicyAxis.LandTax, LandTaxStage), InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialBureaucracy = Bureaucracy, InitialNationalConsciousness = NationalConsciousness0, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,
+        InitialPollTax = Government.TaxValue(PolicyAxis.PollTax, PollTaxStage), InitialLandTax = Government.TaxValue(PolicyAxis.LandTax, LandTaxStage), InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialBureaucracy = Bureaucracy, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,
         EducationLaw = Education, ExternalPressure = 0.3,
         InitialInterestRate = InitialInterestRate,
         InitialTariff = InitialTariff,

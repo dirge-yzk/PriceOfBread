@@ -61,11 +61,6 @@ public sealed partial class Coefficients
     public double RegimeRecordSuccessTenureGate = 20.0;  // 正の信認が満額になる在任年数（長期成功のみ信認へ寄る＝始まったばかりの形態は実績を持てない）
     public double RegimeRecordDecay = 0.00346;     // 実績の四半期減衰率（半減期50年＝2世代・ユーザー指定）
     public double RegimeTrackRecordWeight = 0.3;   // 主フラグ：Transition の各政体支持へ符号付き乗数 (1+これ×実績) を掛ける＝信認された形態は選ばれ/粘り、失望された形態は避けられる
-    // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
-    public double NationBuildConscript = 0.5 / Military.WorkingMenStdShare;      // 徴兵（兵士POP比）の重み＝国民軍の国民形成（ウェーバー「軍は国民の学校」）
-    public double RedefinedMandateFloor = 0.6;      // ①正統性の下限＝立憲君主×王冠保持×高NC×高天命の時のみ Legitimacy≥これ×Mandate（加算でなく床＝二重計上なし）
-    public double RedefinedMandateNcMin = 0.5;      // 高NCの閾値（信任帝政の資格）
-    public double RedefinedMandateMandateMin = 0.6; // 高天命の閾値（⚠緩いと立憲固着＋仏が共和に届かない＝難しく較正）
     public double UnificationV1Only = 1.0;   // 低満足popが嗜好品アヘンを消費→州の依存ストック→労働/満足ペナルティ＋対外流出→輸入禁止の法→輸出国と緊張→戦争は既存機構
     public Share UnificationNatioShare = new(0.25);     // ナショナリズムの国民シェア閾値（Ideologies.National[4]＝エリートの熱が統一の燃料）
     public double UnificationAiPursueChance = 1.0;  // AI追求確率＝(1188) 1.0＝候補と標的が立てば必ず使う（旧 0.7＝AI だけの 30% の見送りは根拠なし・作者「しばらくの間、全て推奨で」で推奨を採った）。系列と係数の物理の削除は波119〜
@@ -84,16 +79,6 @@ public sealed partial class Coefficients
     public double MandateReligiousCircuit = 1.0;   // 開度=国教法（無神論=0）・容量=聖職者/(文盲×ClergyMediationPerCapita)飽和
     public double ClergyMediationPerCapita = 0.005;   // 媒介飽和の基準＝文盲人口の0.5%の聖職者で容量1.0（仏1789実測≈1%＝開始時は各国飽和・世俗化/無神論で痩せて初めて効く）
     public double DynMandateAmplify = 0.8;      // 効果幅：侵食×(1−0.8e)・自然回復×(1+0.8e)（e∈[−1,1]）
-    public double NationBuildAccumRate = 0.03;         // v2蓄積率
-    public double NationBuildDecayRate = 0.0025;       // v2減衰/四半期（1%/年起点・較正帯1〜2%/年。原案0.5%/年は半減期139年で弱すぎ）
-    public double NationBuildCrisisDefense = 0.5;      // 危機乗数：交戦中（防衛戦争の代理・速度のみ＝天井は動かさない・無償の加算項は作らない）
-    public double NationBuildCrisisCivilWar = 1.0;     // 危機乗数：革命/内戦
-    public double NationBuildCrisisIndependence = 2.0; // 危機乗数：独立戦争（分離で生まれた国の初期戦争＝レヴェ・アン・マス）
-    public double NationBuildInitialDefault = 0.075;   // v2初期値の既定（前国民的世界0.05〜0.1帯。「買ってないのに持ってる」一律0.3を廃止）
-    public double RadioNationWeight = 0.5;             // E3：ラジオ項の重み＝size加重RadioFill×これ
-    public double NationConsciousnessDerived = 0.0;   // >0 で、上の蓄積漸化式 NC ← NC(1−decay)+drive×(天井−NC) をその不動点 NC* = 天井×drive/(decay+drive) に置き換える
-    public double NationConsciousnessPerPop = 1.0;      // 国の国民意識＝POPのsize加重平均（0＝旧スカラー・厳密恒等）
-    public double NationConsciousnessReachDecay = 800.0; // 到達が半分になる首都からの距離km
     public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在するが買収/脅迫で歪む（英1872以前）
     public double PaperFranchiseReality = 0.7;         // 非議会政体（専制等）＝紙の参政権＝選挙の実在なし
     public double WomenEduLitBonus = 0.25;             // 女性の権利が教育権の段以上で femaleLit ×(1+これ)（上限=全体識字）＝女子就学が出生転換を早める

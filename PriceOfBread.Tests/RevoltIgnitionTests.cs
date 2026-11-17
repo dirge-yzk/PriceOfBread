@@ -1246,7 +1246,7 @@ public class RevoltIgnitionTests
             w.Tariff = 1.0;             // 国の関税姿勢＝保護の端（州の関税の利害は開幕で0＝乖離1）
             w.Legitimacy = 0.02;        // 引き留めを小さく＝大衆のいる州は離れる向き
             foreach (var q in w.Regions) foreach (var p in q.Pops) p.Militancy = 0;
-            foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); p.NationalConsciousness = 0.0; }   // 州の中で一様＝人を動かしても州の平均は同じ
+            foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = new Share(0.0); }   // 州の中で一様＝人を動かしても州の平均は同じ
             r.Dominance = 0.5;
             foreach (var p in r.Pops)
             {

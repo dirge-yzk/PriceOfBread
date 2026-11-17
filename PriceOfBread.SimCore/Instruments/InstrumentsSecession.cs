@@ -5,8 +5,8 @@ public static partial class Instruments
 {
     internal const string SecessionHeaderText = "quarter\tyear\tnation\tregion\ttier\t"
         + "legitimacyIndex\ttotalPopK\tcoerceIndex\tholdBaseIndex\tholdBaseRebuildGapIndex\tstanceIndex\tsharedDivIndex\trestiveCount\t"
-        + "popK\tcrowdK\tcrowdFactorShare\tmilitancyMeanIndex\tcultureDistanceIndex\tcoreShareMeanShare\tconsciousnessMeanIndex\tsuffrageInclusionShare\t"
-        + "tariffInterestIndex\ttariffGapIndex\ttariffTermIndex\tethnicTermIndex\tconsciousnessFactorShare\tsuffrageFactorShare\t"
+        + "popK\tcrowdK\tcrowdFactorShare\tmilitancyMeanIndex\tcultureDistanceIndex\tcoreShareMeanShare\tsuffrageInclusionShare\t"
+        + "tariffInterestIndex\ttariffGapIndex\ttariffTermIndex\tethnicTermIndex\tsuffrageFactorShare\t"
         + "pressureIndex\tpressureRebuiltIndex\tpressureRebuildGapIndex\teffHoldBeforeShareIndex\tholdShareIndex\tmarginIndex\tdominanceShare\tgoFlag\tcapitalDistanceKm\t"
         + "orderRawNowIndex\torderOldIndex\tmilitancyNationMeanIndex\tmilitancyRegionOwnIndex\torderRegionNowIndex\treachOwnShare\t"
         + "ungovTargetOldShare\tungovTargetNewShare\truleUngovBeforeShare\truleForeignBeforeShare";
@@ -37,8 +37,8 @@ public static partial class Instruments
     }
 
     /// <summary>州の離脱圧力を組み直した結果（<see cref="SecRebuild"/>）。番人（テスト）が世界から直に呼べるよう値の組で返す。</summary>
-    internal readonly record struct SecParts(double Pressure, double TariffTerm, double EthnicTerm, double ConsciousnessFactor, double SuffrageFactor, double CrowdFactor, double CrowdK,
-        double CultureDistance, double Militancy, double CoreShare, double Consciousness, double Inclusion);
+    internal readonly record struct SecParts(double Pressure, double TariffTerm, double EthnicTerm, double SuffrageFactor, double CrowdFactor, double CrowdK,
+        double CultureDistance, double Militancy, double CoreShare, double Inclusion);
 
     /// <summary>Politics.CheckSecession の州ごとの圧力の式を、同じ式・同じ順で組み直す（読むだけ）。cap＝首都の州（Regions[0]）・stance＝国の関税の姿勢。
     /// 本体が圧力の因数を足す・順を変えたらここが追いつかない＝<c>pressureRebuildGapIndex</c> が 0 でなくなる。</summary>
@@ -57,19 +57,13 @@ public static partial class Instruments
             ethnic = c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - core) * mil;
             pressure += ethnic;
         }
-        double consF = 1.0, nc = Politics.AvgRegionConsciousness(r);
-        if (c.SecessionConsciousnessWeight > 0)
-        {
-            consF = Math.Max(0, 1.0 - c.SecessionConsciousnessWeight * nc);
-            pressure *= consF;
-        }
         double incl = PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(w, r));
         double suffF = 1.0 - incl;
         pressure *= suffF;
         double crowd = Politics.RegionCrowd(r);
         double crowdF = crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0;
         pressure *= crowdF;
-        return new SecParts(pressure, tariffTerm, ethnic, consF, suffF, crowdF, crowd, cultDist, mil, core, nc, incl);
+        return new SecParts(pressure, tariffTerm, ethnic, suffF, crowdF, crowd, cultDist, mil, core, incl);
     }
 
     /// <summary>CheckSecession が支配度を積分した直後に呼ぶ（Instruments.On のときだけ）。行は Quarter の SecFold が書く。
@@ -105,8 +99,8 @@ public static partial class Instruments
             var rc = Places.Coord(r.Name);
             if (!(rc.Lat == 0 && rc.Lon == 0)) km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
             rows.Add(string.Join('\t', r.Name, r.Tier.ToString(), head,
-                F(pop), F(p.CrowdK), F(p.CrowdFactor), F(p.Militancy), F(p.CultureDistance), F(p.CoreShare), F(p.Consciousness), F(p.Inclusion),
-                F(r.TariffInterest), F(Math.Abs(stance - r.TariffInterest)), F(p.TariffTerm), F(p.EthnicTerm), F(p.ConsciousnessFactor), F(p.SuffrageFactor),
+                F(pop), F(p.CrowdK), F(p.CrowdFactor), F(p.Militancy), F(p.CultureDistance), F(p.CoreShare), F(p.Inclusion),
+                F(r.TariffInterest), F(Math.Abs(stance - r.TariffInterest)), F(p.TariffTerm), F(p.EthnicTerm), F(p.SuffrageFactor),
                 F(pressure), F(p.Pressure), F(Rel(p.Pressure, pressure)), F(effBefore), F(holdShare), F(holdShare - pressure), F(r.Dominance), r.Dominance > 0 ? "0" : "1", F(km),
                 SecP1Columns(w, c, r, rawNow, orderOld, mbar)));
         }

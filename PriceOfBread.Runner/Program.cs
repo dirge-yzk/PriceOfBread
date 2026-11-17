@@ -2274,7 +2274,6 @@ if (args.Length > 0 && args[0] == "initdump")
             // 技術・制度
             Row(nm, "制度/教育法", tm, w.EducationLaw.ToString(), "区分");
             Row(nm, "制度/政体", tm, w.Polity.ToString(), "区分");
-            Row(nm, "制度/国民意識", tm, w.NationalConsciousness, "0..1");
             Row(nm, "制度/発見の解禁の数", tm, w.Discovered is { } dv ? dv.Count(b => b) : 0, "件");
         }
     }

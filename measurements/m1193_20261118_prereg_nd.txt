@@ -1,0 +1,79 @@
+(1193) c119nd 事前登録：国民意識の物理の削除と信任帝政の床の分岐の削除（挙動の線・3 回の規則の 1 回目）
+作った日 2026-11-18・木 93fc4a967（基線 m1191）・worktree D:/PoB_work/wt_c119nd・枝 c119nd・作業フォルダ D:/PoB_work/c119nd_work
+出発：作者 2026-11-16「既に動いている機能でも、問題があれば作り直したり、削除しても構いません」・「国民意識は…移民キャパシティとして設計されていますが、不要でも移民問題が経済的な利害から出るのであれば、廃止しても良いです」。
+1 段目は c118nc（(1186)・(1191) で採った＝読み手の重み 3 本を 0）。この線は 2 段目＝物理の削除。床の分岐ごと消すのは §0-2 ★(1191) ②（〈作者「しばらくの間、全て推奨で」〉で推奨を採った）。
+新しい係数・状態・旗は 0。消すだけ。形は〈入口〉（床の分岐の削除）。
+
+== 1. 形 ==
+段 A（恒等の部分＝先にコミット・ident で〈判定: 恒等〉を測る）：
+  - 重み 0 の読み手の枝：Politics.cs の分離の圧の枝（SecessionConsciousnessWeight）・RevolutionAwakensNation と呼び出し（RevolutionConsciousness）・Military.cs の徴兵の門（NationBuildMobilizationWeight・SkillMobilizationRelief・MobilizationGateFloor）。
+  - 既定の値の焼き込み：NationConsciousnessDerived＝0（不動点の枝を消す）・NationConsciousnessPerPop＝1（スカラーだけの枝を消す・lever＝1 で w の値＝POP の加重平均）。
+  - 説明の台帳の "NationalConsciousness" の書き手（CrownParliament・MultiNationSim）と App 3 ファイル・Runner 2 ファイルの国民意識の行（initdump と play の表示だけ＝selfplay-batch の成績表に出ない）。
+  - 係数 5 本を消す：NationBuildMobilizationWeight・RevolutionConsciousness・SkillMobilizationRelief・NationConsciousnessDerived・NationConsciousnessPerPop。
+  - 床の条件が読む値（w.NationalConsciousness＝POP の国民意識の加重平均と、その漸化式・POP の欄・移民の運び・国民形成費）は段 A では残す。
+  - 指示から外れる所（先頭で名乗る）：計器の列（secession_s の consciousnessMeanIndex・consciousnessFactorShare、rulepower_s の Consc の項）は段 B へ回す。理由＝段 A では POP の国民意識が残り、計器の値は恒等のまま読める・計器に触れると ident が段 2（全表）になる＝D: が律速。係数 SecessionConsciousnessWeight は計器が読むので段 B で消す。
+段 B（最後のコミット＝挙動を変える）：
+  - Politics.cs の mandateFloor を消す＝legFloor＝orderFloor×(1−DefeatShock)。説明の台帳の〈信任帝政の下限〉の行も消える。
+  - 残りを消す：CrownParliament の国民意識の塊・AccumulatePopConsciousness・CivicOpenness・Pop.NationalConsciousness・Model.cs の移民の運び・World の _ncScalar・NationalConsciousness・NationBuildingSpending・InitialNationalConsciousness・Fiscal.cs の国民形成費の塊・NationConfig.NationalConsciousness0・Scenario.InitialNationalConsciousness・Simulation.cs:113・Politics.AvgRegionConsciousness・計器の列。
+  - 係数 15 本を消す：RedefinedMandateFloor・RedefinedMandateNcMin・RedefinedMandateMandateMin・NationBuildConscript・NationBuildAccumRate・NationBuildDecayRate・NationBuildCrisisDefense・NationBuildCrisisCivilWar・NationBuildCrisisIndependence・NationBuildInitialDefault・RadioNationWeight・NationConsciousnessReachDecay・SecessionConsciousnessWeight（ほか grep で数え直して報告に書く）。
+  - DynasticMandate の他の読み手は残す。名前の混線：p.Consciousness（政治意識）は別物＝触らない。
+  - DormantIdentityTests の RetiredFields と docs/history に墓標。
+
+== 2. 門（〈作者 2026-11-16 の決まり〉①） ==
+止める線（作者の線・1 種でも当たれば止める）：
+  S1 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（四半期の途中を含む）・進行不能。
+  S2 発散：全ての国の価格水準が 1 四半期に 100 倍以上・非有限・開幕の 1e10 倍以上（stoplines1002・plvl_seeds）。100 倍は基準 M とヌル腕 N1 を同じ台本で数え直して並べる（⑰）。建国の直後と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる（㊳）。
+  S3 戦争の数：腕の戦争の数が M の 10 倍以上（warcount.py・--seeds で範囲を渡す）。
+  S4 空洞化：an_h2.py -v4（既定 -ex rule＝規則 A2）でピークの 1/10 未満の名簿の外。この線が原因と読めた件だけ止める＝基線 keep_1191/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ（★(813)）。
+  S5 計算量：推定 ＞248.5 秒（m1191 は 238.5）。
+  S6 機構のテストの赤（ソースを走査する番人を含む）。
+史実の桁の線（10 倍）：
+  H1 政体の遷移の数（scalars の同じ国の続く 2 行で polityCode が変わった回数・10 種の計）：腕÷M が [0.1, 10] の外なら赤。
+  H2 立憲の四半期の割合（polityCode==3 の行÷全ての行）：腕÷M が [0.1, 10] の外なら赤。
+  H3 大戦の兵士÷人口（magn.py・ng.sh の mil180）：基線で内にあった国が外へ出たら赤（c118nc の型）。
+単体の機構の試験（盤面は試験の中で置く・★(1136)）：
+  T1（新しい試験 NationalConsciousnessRemovedTests）：仏の盤面を 20 四半期走らせ、立憲君主・王冠 Absolutist・天命 0.8・正統性 0.05・敗戦ショック 0・政変の記憶 1（秩序の床 0）。Politics.Step の後、正統性が旧の床 0.6×0.8＝0.48 へ引き上げられない（< 0.48）・説明の台帳に〈信任帝政の下限〉が無い。対照：政変の記憶 4 で秩序の床 1−1/4＝0.75 が効く（≥ 0.75）。旧のコード（段 A の木＋盤面で POP の国民意識 0.9）で赤。
+  T2（同じ試験のファイル）：分離の圧（英・CheckSecession の後の州の支配度）・戦時の徴兵（仏・Military.Step の後の兵の数）・暴力の政体の変化の後（仏・ExecuteRegimeChange の後の正統性・闘争度と政治意識の人口の加重の和）が、木 93fc4a967（重み 0）で測った値とビット一致。期待値の出所＝旧の木の実行（同じ出所で作らない）。
+帰属の確かめ（門）：
+  A1 種ごとに、腕 B の scalars_s が M（keep_1191/base_ins）と最初に違う四半期 ≥ M の条件 A（立憲君主・王冠・天命≥0.6）の最初の四半期（厳密の下限）。前なら赤＝恒等の部分の誤り＝止めて報告。床（近似）の最初の四半期とも並べる（記録）。読み手 scripts/instruments/c119nd/paper.py <M> 1 10 <腕>。
+
+== 3. 突然変異ごとにどの門で赤か（㉚） ==
+  M0 旧のコード（段 A の木・T1 の盤面に POP の国民意識 0.9 を置く 1 行を足す）→ T1 赤（床が 0.48 へ引き上げる）。T2 緑。
+  M1 段 B の木に床を国民意識の条件なしで戻す（立憲・王冠・天命≥0.6 なら 0.6×天命）→ T1 赤。T2 緑。
+  M2 分離の圧に ×0.5 を足す（Politics.CheckSecession）→ T2 の分離の圧 赤。
+  M3 戦時の徴兵の割合に ×0.95 を足す（Military.Step）→ T2 の徴兵 赤。
+  M4 暴力の政体の変化で全ての POP の政治意識を +0.25×(1−v)（旧の RevolutionAwakensNation の形を政治意識へ）→ T2 の革命の後 赤。
+  止める線 S1〜S5・H1〜H3 は〈壊さない〉門＝旗 0（基線そのもの）で通る。A1 は旗 0 の腕（基線）で〈最初に分かれる四半期なし〉＝緑。
+  突然変異の出力は measurements/m1193_20261118/mut_*.txt。
+
+== 4. 紙の台本（今の盤面 keep_1191/base_ins・a11・n1） ==
+  measurements/m1193_20261118/paper_M.txt・paper_S11.txt・paper_N1.txt（scripts/instruments/c119nd/paper.py）。
+  M：rows 147618・遷移 2463・立憲の割合 0.4990・条件 A 52745・床（近似）560・床の値＋0.05 以下の四半期 6（種 1・5・7・8）・条件 A の最初の四半期は種ごとに 15〜39・床（近似）の最初は 379〜419（種 4・10 は無し）。
+  S11：床（近似）221・床＋0.05 以下 1。N1：床（近似）448・床＋0.05 以下 6。
+  旗 0 の確かめ：基線の木そのもの＝床（近似）560・A1 は分かれ目なしで緑。
+
+== 5. 予言（〈推〉・門にしない） ==
+  P1 床の四半期は M 560・S11 221 から 0 へ（構築の値で決まる＝門にしない・★(1191)）。
+  P2 床が実際に正統性を引き上げる四半期はまれ（四半期の終わりに床＋0.05 以下は M で 6）＝腕 B の scalars が M と全行一致する種が 4 以上〈推〉。分かれる種は 1・5・7・8 のどれか〈推〉。
+  P3 正統性が落ちる国＝条件 A の立憲君主で国民意識が高い国（英・普・蘭など）〈推〉。政体の遷移の数の変化は ±3% 以内〈推〉。
+  P4 .cost：CrownParliament の POP の周回 2 本（AllPops と州×POP の距離つき）と Fiscal の POP の周回 1 本が消える＝推定 −0.3〜−1.5 秒〈推〉。割り当て 0 秒（減るだけ）。
+  P5 計器の表：secession_s は consciousnessMeanIndex・consciousnessFactorShare の 2 列が消える・rulepower_s は Consc の項が 0 になり frProbe ほかの値が動く（宣言する表）。他の表は分かれ目より前の四半期でバイト一致。
+記録（門にしない）：政体の遷移・内戦・分離・英の国債の不履行・NG（基準 ng1191_20261118）・nullgate（N1 だけ）・名目 GDP 0 の続き・開幕の 1000 倍以上。
+
+== 6. ソースを走査する番人（㉘）と変わる件数の予言（㉑） ==
+  - 工業化度の読み手の許可表：国民意識の行は無い＝変わらない。
+  - `new MoneyStock(` の件数：触らない＝変わらない。route_anchors.tsv の鍵の行：触らない。
+  - WriterRatchetTests：心理量の書き手 Legitimacy 13・Consciousness 2＝変わらない（床の書き込みの行 `w.Legitimacy = legFloor` は残る・NationalConsciousness は `.Consciousness` の型に当たらない）。お金の書き手の表は触らない。計算量の宣言の表は ≤ の番人＝減る向き（増えたら止める）。
+  - DormantIdentityTests：ZeroDefaultLedger から 3 本（NationBuildMobilizationWeight・SecessionConsciousnessWeight・RevolutionConsciousness）・DormantZeroFields から NationConsciousnessDerived を外し、消した係数を RetiredFields へ（〈番人を写しただけ〉の例外）。
+  - 段 A の器のコミットの直後に `dotnet test --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests"`（--artifacts-path D:/PoB_work/c119nd_art）。
+== 7. 旧の規則を固定する番人の grep（㉜） ==
+  grep RedefinedMandate・信任帝政 を Tests と Tests.Ui で：CrownParliamentTests.cs:183 の注だけ（秩序の床の試験＝国民意識の床を固定していない）。
+  消える試験：NationalConsciousnessGateTests（1）・NationalConsciousnessReadersOffTests（3）・NcOpennessTests の国民意識の 5 本（同化の 4 本は残す）・MobilityTests の国民意識の運びの行・MilitaryTests:516 の NationBuildConscript の行・RevoltIgnitionTests:1249・SecessionLaborLawInstrumentTests:135 の国民意識の代入（盤面の置き方の行だけ）・ExplainTests:61 の注。消したメンバーのテストを消す＝〈番人を写しただけ〉の例外として verdict に列挙する。
+== 8. 〈周辺の点検〉 ==
+  - DynasticMandate の読み手は Politics.cs・World.cs・計器 InstrumentsScalars.cs（床の外の読み手は残す）。
+  - 移民の制限法と受け入れの上限は国民意識を読まない（grep で確かめて報告に書く）。
+== 9. 計算量の割り当て ==
+  0 秒（減るだけ）。名目の余り 10.0 秒・保守側 8.6 秒（★(1035)）に触れない。
+== 10. 段の順と D: ==
+  事前登録 → 試験（T1・T2・期待値は 93fc4a967 で取る）→ 段 A → ㉘ → ident（`bash scripts/instruments/ident/ident.sh run c119ndz --tree D:/PoB_work/wt_c119nd --tests-delta <数>`・走っている間はコミットしない）→ 段 B → ㊴ → フルスイート（2 プロジェクト・trx・--list-tests と和）→ savetest（四半期の途中を含む）・leakhunt → 腕 B `INS=1 bash scripts/instruments/batch.sh run c119ndB 10` → 門 → 印 D:/PoB_work/c119nd_work/nd.mark → origin/c119nd。
+  D:：起こす直前に shutil で測る。〈35GB＋量〉（ident 約 30GB・腕 B 約 26GB）に届かなければ起こさない。

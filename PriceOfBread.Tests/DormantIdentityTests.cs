@@ -75,8 +75,6 @@ public class DormantIdentityTests
         // ★ParticipationDiscontent は 2026-10-19 (431) に 1 で**点火**、DiscontentSplit は焼き込んで旗ごと削除（二量分離の完成＝闘争度の目標から生活の項を外し、参加の述語と思想の更新の入力は max(不満度, 闘争度)）。この表から外した。
         "AssimilationRevival",          // ★段4（2026-09-09・§7-7バグa後半）＝民族復興＝抵抗の床を外して符号を反転させる（勾配の差し替え）。
                                         //   0＝床あり＝厳密恒等。点火値 1.0526＝1/0.95（反転点＝ボヘミア1900の識字0.95）
-        "NationConsciousnessDerived",   // ★段4（2026-09-09・作者裁定5／§7-7バグb）＝国民意識をストックから**同じ漸化式の不動点**へ。
-                                        //   0＝旧＝ストック＝厳密恒等。点火値 1.0（記憶が消え、国内経路の運搬漏れが定義ごと消える）
         "SerfGateCoversPool",           // C-03：農奴の移動制限を失業プール経路へも広げる
         // ★DomesticFlightHasHost は 2026-09-22 に**点火**（旗ごと削除＝逃避の受け皿が常に外資の負債を記帳）＝この表から外した。
         // ★ScarceCountsIncludeColonies（希少鉱物の総量保存の k/N に植民地を数える）は 2026-10-04 (197) で**点火**（反証役 vq2#1）＝この表から外した。
@@ -246,7 +244,6 @@ public class DormantIdentityTests
         "PolicyRateLoanWeight",
         "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearcherFrac",
-        "NationBuildMobilizationWeight", "SecessionConsciousnessWeight", "RevolutionConsciousness",   // (1186) c118nc：国民意識の廃止の 1 段目（読み手の重みを 0・旧 0.5・1.0・0.25）。係数と読み手の物理の削除は波119 の恒等の線
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
@@ -260,6 +257,8 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "SecessionConsciousnessWeight", "RedefinedMandateFloor", "RedefinedMandateNcMin", "RedefinedMandateMandateMin", "NationBuildConscript", "NationBuildAccumRate", "NationBuildDecayRate", "NationBuildCrisisDefense", "NationBuildCrisisCivilWar", "NationBuildCrisisIndependence", "NationBuildInitialDefault", "RadioNationWeight", "NationConsciousnessReachDecay",   // (1193) c119nd 段 B：信任帝政の床の分岐と国民意識の物理（漸化式・POP の欄・国民形成費・計器の列）を消した。
+        "NationBuildMobilizationWeight", "RevolutionConsciousness", "SkillMobilizationRelief", "NationConsciousnessDerived", "NationConsciousnessPerPop",   // (1193) c119nd 段 A：国民意識の重み 0 の読み手（徴兵の門・革命の目覚め）と既定の焼き込み（不動点の枝・スカラーだけの枝）。
         "NiterBedEnabled", "NiterBedProductivity",   // (1175) c116cl：硝石丘の枝と係数 2 本を削除（旗は既定 0 のまま届かなかった＝休眠 0・硝石を産地にする回で戻す）
         "PriceLawSeesExports", "LaborBandFloorOffGate",   // (1175) c116cl：既定 1 の旗 2 本を焼き込んだ（輸出を需要に足す式・労働 3 財の帯の床の撤去＝常に 1 の経路・旗 0 の番人は LaborMarketFormTests で今の盤面へ移した）
         "MalariaQuininePerColony",   // (1167) c115qc：植民地の毎月のキニーネ（(1158) で既定 0・(1164) で係数 0 を採った）。枝と係数を削除

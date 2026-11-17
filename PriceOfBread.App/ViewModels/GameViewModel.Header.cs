@@ -83,7 +83,7 @@ public partial class GameViewModel
     //   徴兵対象人口（農民＋都市労働者＋**現役の兵士**＝Military.cs:166 の manpower）のうち兵士になる到達点の兵数（新規分でなく到達点）。
     //   徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝今の兵数を下回らない。
     // 内訳：levée en masse の深さ MobilizationConscriptFrac ×
-    //   国民意識ゲート（低国民意識ほど動員が届かない・下限＝Military.MobilizationGateFloor／熟練度が緩める）× 徴兵法の倍率（皆兵＝UniversalConscriptionFactor）。
+    //   徴兵法の倍率（皆兵＝UniversalConscriptionFactor）。国民意識の門は (1193) で消した。
     // ⚠徴兵法の倍率（皆兵で2.5倍）は Military.cs:190-191 が最後に必ず掛けるのに表示だけが落としていた＝
     //   皆兵の国で実際の 2/5 の数字を出していた（同ファイルの原則「表示だけが別式になるのを避ける」の破れ）。同時に是正。
     public string PolityMobilizationText
@@ -91,9 +91,6 @@ public partial class GameViewModel
         get
         {
             var c = _player.Coef;
-            double ncGate = c.NationBuildMobilizationWeight * (1.0 - Math.Max(0, _player.NationalConsciousness));
-            ncGate *= Math.Max(0, 1.0 - c.SkillMobilizationRelief * Math.Clamp(_player.ArmySkill, 0, 1));
-            double gate = c.NationBuildMobilizationWeight > 0 ? Math.Max(Military.MobilizationGateFloor, 1.0 - ncGate) : 1.0;
             double lawFrac = _player.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0;
             double manpower = 0, soldiers = 0;
             foreach (var r in _player.Regions)
@@ -110,7 +107,7 @@ public partial class GameViewModel
             if (!(soldiers > 0)) return "—";
             // Military.Step の目標兵数と同一式（母数＝農民＋都市労働者＋現役の兵士）。★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ（Military.cs:187 と同じ述語）
             //   ＝志願兵制の国では総動員しても徴募の目標が立たない＝下の下限は今の兵数（表示だけが別式になるのを避ける）。
-            double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac.Value * gate * lawFrac * manpower : 0;
+            double target = _player.ConscriptionLaw >= ConscriptionLaw.Selective ? c.MobilizationConscriptFrac.Value * lawFrac * manpower : 0;
             // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない。目標が今の兵数以下なら総動員しても兵は増えない＝
             //   今の兵数をそのまま出すと下の「兵士 実際」と同じ数が 2 行に並ぶ（2 回目の目の点検 W6）ので、増えないと出す。
             return target > soldiers ? Fmt.Men(target) : "増員なし";
@@ -171,8 +168,6 @@ public partial class GameViewModel
                 .Select(x => $"{PolityRegimeJa(x.Pol)}　{Fmt.Share(x.Sup)}{(x.Pol == current ? "　◀ 現政体" : "")}"));
         }
     }
-    // 国民意識はヘッダーの年次グラフへ一本化＝政治タブの重複行と専用プロパティは撤去（2026-07-16）。
-    // ⚠2026-09-23：その説明API内訳はヘッダーから外れ、政治タブへ移す（受け取りは ExplainTerms("NationalConsciousness") を呼ぶだけ）。
     // 反体制派の戦力比の内訳（実値＝エンジンの勢力値）：改革派＋急進派 対 治安維持力。ChallengeText のホバー。
     // 語は国内勢力の StrengthTip（勢力の強さ／治安維持力／義勇兵）に揃える＝同じ量を2つの名前で呼ばない。
     public string ChallengeTip
@@ -273,7 +268,7 @@ public partial class GameViewModel
         _histFin.Add(NationalScore.Finance(_player));
         _histFood.Add(_player.FoodFill);
         _histLeg.Add(_player.Legitimacy);
-        _histCons.Add(Math.Max(0, _player.NationalConsciousness));   // 初期−1（未捕捉）はグラフを歪めないよう0でクランプ（他系列と同年数に揃える）
+        // 国民意識の系列（SeriesKeys.Consciousness）は (1193) で書き手を消した（国民意識の削除）。
         _histMandate.Add(_player.MandateSpent);   // 上限廃止（2026-07-26）＝生値を採取
         _histTreasury.Add(_player.Treasury.Value);
         // ジニ係数（全POPの1人あたり貯蓄から読むときに計算＝Politics.GiniIndex・2026-09-26 に World の欄を廃止）。
@@ -363,7 +358,7 @@ public partial class GameViewModel
     //   結線済みの呼び手（(501) 段3 の後に grep で確認）：
     //     IndustrializationTerms → GameViewModel.Production.cs の ProdRegionHeadTip（生産タブ・州別上位8）
     //     PopulationTerms        → GameViewModel.Pop.cs（人口のページの規模の吹き出し）
-    //     ExplainTerms("Legitimacy") / ("NationalConsciousness") → GameViewModel.Politics.cs（政治タブ）
+    //     ExplainTerms("Legitimacy") → GameViewModel.Politics.cs（政治タブ）
     //   行政力と対外信用の内訳（旧 AdminTerms・CreditTerms）と階級の層ごとの識字率・満足度・闘争度（旧 LiteracyClassTerms ほか）は、本体の目録（SimCore/Display の FiscalTables・PopTables）が組む。
     //   ⚠消す前に必ず grep で呼び手を数えること（この一覧を信じて呼び手0と決めない）。
     // 汚職＝要因の実値を中立表示（行政効率と清廉度が高いほど上限から削られる）。符号分解は誤読を招いたため撤去（2026-07-16）。
