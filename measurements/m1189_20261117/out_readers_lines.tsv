@@ -1,0 +1,229 @@
+K01	PriceOfBread.SimCore/Simulation.cs:2208	条	capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return;
+K02	PriceOfBread.SimCore/Simulation.cs:2205		double capacity = capacityBaseline * (1 + c.HealthcareCapacityBonus * healthcare + c.HealthFillCapacityBonus * doctorCare
+K03	PriceOfBread.SimCore/Simulation.cs:2125	条	double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);
+K04	PriceOfBread.SimCore/Simulation.cs:2207		+ c.SanitationCapacityWeight * World.UrbanShare * (sanitation - 1.0)) * WorkHoursCapacity(World.WorkHoursValue, c);
+K05	PriceOfBread.SimCore/Simulation.cs:2220	条	femaleLit = Math.Min(litSum / pop, femaleLit * (1.0 + c.WomenEduLitBonus));
+K05	PriceOfBread.SimCore/TechEducation.cs:24	条	if (w.WomenEducationLaw) motherLit = Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
+K06	PriceOfBread.SimCore/Simulation.cs:2139		World.Explain.Add("FoodFill", "前期の食料充足（穀倉の備蓄）", (1 - c.FoodFillSmoothing) * prevFood);
+K06	PriceOfBread.SimCore/Simulation.cs:2140		World.Explain.Add("FoodFill", "今期の主食需給", c.FoodFillSmoothing * rawFill);
+K06	PriceOfBread.SimCore/Simulation.cs:2142	加	World.FoodFill += c.FoodFillSmoothing * (rawFill - prevFood);
+K06	PriceOfBread.SimCore/Simulation.cs:2184		else World.FoodRatioProductionSmoothed = PoliticalQuantities.Toward(World.FoodRatioProductionSmoothed, foodRatioProduction, c.FoodFillSmoothing);
+K06	PriceOfBread.SimCore/Simulation.cs:2341		region.FoodFill = PoliticalQuantities.Toward(region.FoodFill, raw, c.FoodFillSmoothing);
+K06	PriceOfBread.SimCore/Simulation.cs:2206		- c.UrbanCapacityPenalty * World.UrbanShare + c.FoodCapacityWeight * (World.FoodFill - 1.0)
+K06	PriceOfBread.SimCore/Diplomacy.cs:1604	条	|| !(aw.FoodFill >= c.AllyJoinFoodMin)
+K06	PriceOfBread.SimCore/Politics.cs:198	条	double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
+K06	PriceOfBread.SimCore/Politics.cs:283	条	w.FamineMemory = w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
+K06	PriceOfBread.SimCore/SelfPlay.cs:434	条	double famine = Math.Max(0, 1.0 - w.FoodFill);
+K06	PriceOfBread.SimCore/SelfPlay.cs:1065	条	bool famine = !(w.FoodFill >= w.Coef.DynMandateFoodAnchor);
+K06	PriceOfBread.SimCore/Simulation.cs:2133		double prevFood = World.FoodFill;
+K07	PriceOfBread.SimCore/Military.cs:179	条	double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+K07	PriceOfBread.SimCore/MultiNationSim.cs:1065	条	double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));
+K07	PriceOfBread.SimCore/Territory.cs:70	条	=> c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
+K07	PriceOfBread.SimCore/Territory.cs:73	条	=> c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
+K07	PriceOfBread.SimCore/BilateralMarket.cs:673		double freightRevolution = FreightRevolution(frontierTech, c);
+K07	PriceOfBread.SimCore/InternationalMarket.cs:114		internal static double FreightRevolution(double frontierTech, Coefficients c)
+K07	PriceOfBread.SimCore/MultiNationSim.cs:523		return Discovery.WorldPrices(worlds, obs, InternationalMarket.FreightRevolution(frontier, _coef));
+K08	PriceOfBread.SimCore/EconomyStep.cs:1780	条	* (coef.EduReachFromAdmin > 0 ? 1.0 - coef.EduReachFromAdmin * (1.0 - PoliticalQuantities.Clamp01(region.AdminFill)) : 1.0);
+K09	PriceOfBread.SimCore/Simulation.cs:1849	条	else if (World.Coef.TeacherQualityWeight > 0 && r.TeacherPopIndex < r.Pops.Count)
+K09	PriceOfBread.SimCore/Simulation.cs:1853	条	double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
+K09	PriceOfBread.SimCore/Simulation.cs:1870	条	if (World.Coef.TeacherQualityWeight > 0 && r.TeacherPopIndex < r.Pops.Count)
+K09	PriceOfBread.SimCore/Simulation.cs:1873	条	double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
+K10	PriceOfBread.SimCore/EconomyStep.cs:590	条	if (!(coef.GuildLawGate > 0 && coef.GuildRentPremium > 0 && region.ArtisanPopIndex >= 0 && world is not null && (guildDeg = Privileges.GuildDegree(world)) > 0)) return null;
+K10	PriceOfBread.SimCore/Government.cs:66	条	new(PolicyAxis.Guild, w => (int)w.Guild, (w, v) => w.Guild = (GuildLaw)v, (w, p) => (int)p.Guild, 2, Stage: 2, Open: w => w.Coef.GuildLawGate > 0),
+K10	PriceOfBread.SimCore/Meritocracy.cs:122	条	if (c.GuildLawGate > 0 && c.GuildMobilityDrag > 0) f *= 1.0 - PoliticalQuantities.Clamp01(c.GuildMobilityDrag * Privileges.GuildDegree(w));
+K10	PriceOfBread.SimCore/Parliament.cs:293	条	case PolicyAxis.Guild: if (w.Coef.GuildLawGate > 0) p.Guild = (GuildLaw)StepTo((int)w.Guild, 2); break;
+K10	PriceOfBread.SimCore/PolicyPreferences.cs:262	条	return w.Coef.GuildLawGate > 0 ? (trad ? 0.0 : 1.0) : 0.0;
+K10	PriceOfBread.SimCore/Politics.cs:774	条	PolicyAxis.Guild => w.Coef.GuildLawGate > 0 ? StepEnumAxis((int)w.Guild, 2, v => { w.Guild = (GuildLaw)v; p.Guild = w.Guild; }) : 0,
+K10	PriceOfBread.SimCore/Privileges.cs:63	条	Guild => c.GuildLawGate > 0 && c.GuildRentPremium > 0,
+K10	PriceOfBread.SimCore/SelfPlay.cs:254	条	if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);
+K10	PriceOfBread.SimCore/SelfPlay.cs:616	条	if (!(w.Coef.GuildLawGate > 0)) return null;
+K10	PriceOfBread.SimCore/EconomyStep.cs:629	条	double guildRent = guildShare is not null && gi >= 0 && gi < guildShare.Length ? coef.GuildRentPremium * guildDeg * guildShare[gi] : 0;
+K11	PriceOfBread.SimCore/Meritocracy.cs:345	条	if (c.JobPoolTemperature > 0)
+K11	PriceOfBread.SimCore/Meritocracy.cs:369	条	share[i] = Math.Exp(Math.Max((inc - incMax) / c.JobPoolTemperature, -40));
+K11	PriceOfBread.SimCore/Meritocracy.cs:309		double headroom = UrbanHeadroom(r, c);
+K11	PriceOfBread.SimCore/Meritocracy.cs:330		private static double UrbanHeadroom(Region r, Coefficients c)
+K12	PriceOfBread.SimCore/EconomyStep.cs:2519	条	if (coef.ServiceUnemployment > 0)
+K12	PriceOfBread.SimCore/EconomyStep.cs:2528	条	sp.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(coef.ServiceUnemployment * unsold));
+K13	PriceOfBread.SimCore/Meritocracy.cs:301	条	if (c.SerfGateCoversPool > 0 && c.SerfMobilityGate > 0 && !src.IsUrban)
+K13	PriceOfBread.SimCore/Meritocracy.cs:304		flow *= (1.0 - c.SerfMobilityGate) + c.SerfMobilityGate * serfFreePool;
+K13	PriceOfBread.SimCore/PopDecision.cs:73	条	if (flow > 0 && coef.SerfMobilityGate > 0)
+K13	PriceOfBread.SimCore/PopDecision.cs:74		flow *= (1.0 - coef.SerfMobilityGate) + coef.SerfMobilityGate * serfFree;
+K14	PriceOfBread.SimCore/Meritocracy.cs:178	条	if (c.MerchantArtisanCapitalRise > 0)
+K14	PriceOfBread.SimCore/Meritocracy.cs:189		Move(t, capitalist, c.CapitalRiseRatePerQuarter.Value * c.MerchantArtisanCapitalRise * t.Size, c);
+K14	PriceOfBread.SimCore/Meritocracy.cs:248	条	if (c.MerchantArtisanCapitalRise > 0 && r.MerchantPopIndex >= 0 && avgPerCap > Eps)
+K15	PriceOfBread.SimCore/Meritocracy.cs:138		double eff = c.JobSearchRatePerQuarter.Value * (1.0 - c.JobSearchLiteracyWeight * (1.0 - p.Literacy));
+K16	PriceOfBread.SimCore/Meritocracy.cs:82		double effPen = c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m);
+K16	PriceOfBread.SimCore/Meritocracy.cs:487	条	? Math.Max(0, 1.0 - c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m) * (1.0 - src.CoreEthnicShare.Value))
+K17	PriceOfBread.SimCore/EconomyStep.cs:1642	条	if (coef.PopDebtDriven > 0 && coef.HouseholdCreditMonths > 0 && bank is not null && world is not null
+K17	PriceOfBread.SimCore/Meritocracy.cs:214	条	bool debtRuined = c.PopDebtDriven > 0 && c.DebtRuinRatio > 0
+K17	PriceOfBread.SimCore/Simulation.cs:2506	条	if (!(World.Coef.PopDebtDriven > 0) || !(World.Coef.DebtRepayFrac > 0) || World.Bank is null) return;
+K17	PriceOfBread.SimCore/Simulation.cs:2533	条加	if (World.Coef.PopDebtDriven > 0) p.Debt += new MoneyStock(need * World.Coef.PopDebtLossShare);
+K17	PriceOfBread.SimCore/Meritocracy.cs:215	条	&& p.Debt.Value > c.DebtRuinRatio * Math.Max(Eps, Calendar.PerMonthToPerYear(p.EarnedPerMonth).Value);
+K17	PriceOfBread.SimCore/EconomyStep.cs:1648	条	double creditCap = coef.HouseholdCreditMonths * Math.Max(0, p.LastEarnedPerMonth.Value) - p.Debt.Value;
+K17	PriceOfBread.SimCore/Simulation.cs:2510	条	double pay = Math.Min(p.Debt.Value, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
+K18	PriceOfBread.SimCore/EconomyStep.cs:117	条	double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef), need = StapleNeedPerCapita;
+K18	PriceOfBread.SimCore/EconomyStep.cs:139	条	double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef);
+K19	PriceOfBread.SimCore/CapitalMarket.cs:11	条	=> c.CapitalHeadroomFromReturn > 0 ? c.CapitalIndTarget * w.ModernizeReturnShare()
+K20	PriceOfBread.SimCore/EconomyStep.cs:1452	条	if (coef.ConsumeBudgetSavingsRatePerMonth.Value > 0)
+K20	PriceOfBread.SimCore/EconomyStep.cs:1454		double capRate = coef.ConsumeBudgetSavingsRatePerMonth.Value;
+K21	PriceOfBread.SimCore/Military.cs:160	条	bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && !wartimeConscript && (r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]));
+K21	PriceOfBread.SimCore/Military.cs:161	条	DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript || peacetimeColonial, peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0, DraftAgeHi(w));
+K22	PriceOfBread.SimCore/Politics.cs:550	条	if (c.RevoltMilitiaRaise > 0)
+K22	PriceOfBread.SimCore/Politics.cs:557	条加	double share = Math.Min(1.0, c.RevoltMilitiaRaise * p.Militancy);
+K22	PriceOfBread.SimCore/Diplomacy.cs:783	条	if (c.MilitiaCombatValue > 0)
+K22	PriceOfBread.SimCore/Diplomacy.cs:786		p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * n
+K22	PriceOfBread.SimCore/Diplomacy.cs:2305	加	foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civ.Add(pp); civW.Add(pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare.Value)); }
+K23	PriceOfBread.SimCore/Discovery.cs:530	条	double aRow = eng is not null ? ParentEngineers(row, rp!, eng, poolOn && c.DiscoveryClockMotorParent > 0) : double.NaN;
+K24	PriceOfBread.SimCore/MultiNationSim.cs:432	条	if (_coef.OpeningBakeEnabled > 0) OpeningBake.Apply(this);
+K24	PriceOfBread.SimCore/PriceOfBread.SimCore.csproj:14	条	<!-- ★(490) 開幕の焼き込みの表（凍結を解いた試走で落ち着いた盤面・鍵は名前）。旗 OpeningBakeEnabled が正のときだけ開く。Runner の bakeopen で焼き直す -->
+K25	PriceOfBread.SimCore/EconomyStep.cs:1528	条	bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
+K25	PriceOfBread.SimCore/MultiNationSim.cs:1674		"主食の台帳と配り直し：POP×月×段（旗 StapleLedgerSum が正のとき決済後の締め 1 段・旗 StapleDemandRebalance が正のとき月の頭の前計算 1 段・(504)）",
+K26	PriceOfBread.SimCore/BilateralMarket.cs:694	条	if (r2.MerchantPop is { } merchPay && !(c.ImportPayerLive > 0 && !(merchPay.Size > 1e-12))) { payerOf[t2] = [merchPay]; bill[t2] = !(merchPay.Debt.Value > 0); }
+K26	PriceOfBread.SimCore/BilateralMarket.cs:695	条	else if (r2.Pops.Count > 0) payerOf[t2] = !(c.ImportPayerLive > 0) || r2.Pops.TrueForAll(p => p.Size > 1e-12) ? r2.Pops : r2.Pops.Exists(p => p.Size > 1e-12) ? r2.Pops.FindAll(p => p.Size > 1e-12) : n
+K27	PriceOfBread.SimCore/BilateralMarket.cs:760	条	bool cheapOn = c.TradeCheapSellSubsidy > 0 && c.TradeBiasStrength > 0 && c.TradeBiasStrength < 1;
+K27	PriceOfBread.SimCore/Simulation.cs:1918	条	if (World.Coef.TradeCheapSellSubsidy > 0 && World.ExportsByGood is { } payExp)
+K28	PriceOfBread.SimCore/Military.cs:156	条	double lawFrac = w.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0;
+K29	PriceOfBread.SimCore/Simulation.cs:1731	条	double natSoldiers = World.SoldierSizeK(); double warEngageNat = World.Coef.MilitaryWarMultFromContact > 0 && atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(s
+K29	PriceOfBread.SimCore/Simulation.cs:1775	条	double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0) : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);
+K30	PriceOfBread.SimCore/Parliament.cs:31		SyncDynamicParties(w, c);
+K30	PriceOfBread.SimCore/Parliament.cs:194		private static void SyncDynamicParties(World w, Coefficients c)
+K30	PriceOfBread.SimCore/Parliament.cs:25		if (w.Parties.Count == 0)
+K30	PriceOfBread.SimCore/Parliament.cs:27		w.Parties.Add(new PoliticalParty { Name = "保守党", Family = 0, Permanent = true });
+K30	PriceOfBread.SimCore/Parliament.cs:28		w.Parties.Add(new PoliticalParty { Name = "自由党", Family = 1, Permanent = true });
+K30	PriceOfBread.SimCore/Parliament.cs:29		w.Parties.Add(new PoliticalParty { Name = "社会党", Family = 2, Permanent = true });
+K30	PriceOfBread.SimCore/Parliament.cs:141	条	bool dynamic = w.Parties.Count > 3;
+K30	PriceOfBread.SimCore/Parliament.cs:182		foreach (var pt in w.Parties)
+K30	PriceOfBread.SimCore/Parliament.cs:188		foreach (var pt in w.Parties)
+K30	PriceOfBread.SimCore/Parliament.cs:191	条	else foreach (var pt in w.Parties) if (pt.Permanent) pt.VoteShare = pt.Family == 0 ? v0 : pt.Family == 1 ? v1 : v2;
+K30	PriceOfBread.SimCore/Parliament.cs:196	条	for (int i = w.Parties.Count - 1; i >= 0; i--)
+K30	PriceOfBread.SimCore/Parliament.cs:198		var pt = w.Parties[i];
+K30	PriceOfBread.SimCore/Parliament.cs:201	条	else if (++pt.AbsentQuarters >= PartyAbsenceDissolveQuarters) w.Parties.RemoveAt(i);
+K30	PriceOfBread.SimCore/Parliament.cs:208		foreach (var pt in w.Parties)
+K30	PriceOfBread.SimCore/Parliament.cs:216		w.Parties.Add(np);
+K30	PriceOfBread.SimCore/Parliament.cs:239		foreach (var pt in w.Parties)
+K31	PriceOfBread.SimCore/Politics.cs:367	条	if (challenge <= coerce && !reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 1); return; }
+K31	PriceOfBread.SimCore/Politics.cs:368	条	if (!IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) { if (Instruments.On) Instruments.CoupRoute(w, 2); return; }
+K31	PriceOfBread.SimCore/Politics.cs:372		if (w.InCivilWar || w.PendingRebelRegions is not null) { if (Instruments.On) Instruments.CoupRoute(w, 7); return; }
+K31	PriceOfBread.SimCore/Politics.cs:375		if (Instruments.On) Instruments.CoupRoute(w, 3);
+K31	PriceOfBread.SimCore/Politics.cs:387		if (reformFromAbove) { if (Instruments.On) Instruments.CoupRoute(w, 4); return; }
+K31	PriceOfBread.SimCore/Politics.cs:388		if (Instruments.On) Instruments.CoupRoute(w, 5, violent);
+K32	PriceOfBread.SimCore/Credit.cs:12		double hoardRaw = c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence));
+K32	PriceOfBread.SimCore/Credit.cs:13	条	double hoardRatio = !double.IsFinite(hoardRaw) ? c.CurrencyHoldingRatio.Value : hoardRaw < 0 ? 0 : hoardRaw;
+K33	PriceOfBread.SimCore/Credit.cs:41	条	if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney.Value > 1e-9 && w.GoldStandardLaw)
+K33	PriceOfBread.SimCore/Credit.cs:44		double gcFloor = c.GoldCoverMin.Value * (1.0 + c.GoldCoverCreditRestraint);
+K33	PriceOfBread.SimCore/World.cs:1352		double hi = lo * (1.0 + c.GoldCoverCreditRestraint);
+K34	PriceOfBread.SimCore/CapitalMarket.cs:51	条	double fxCredit = System.Math.Clamp(w[i].ExchangeRate, c.ExchangeRateFloor, 1.0);
+K34	PriceOfBread.SimCore/World.cs:898	条	public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);
+K34	PriceOfBread.SimCore/World.cs:1385	条	double floatTarget = Math.Clamp(ppp * (1.0 + bias), c.ExchangeRateFloor, c.ExchangeRateCeil);
+K34	PriceOfBread.SimCore/World.cs:1392	条	silverRel = Math.Clamp(silverRel, c.ExchangeRateFloor, c.ExchangeRateCeil);
+K34	PriceOfBread.SimCore/World.cs:1393	条	if (!(silverRel >= c.ExchangeRateFloor && silverRel <= c.ExchangeRateCeil)) silverRel = 1.0;
+K35	PriceOfBread.SimCore/EconomyStep.cs:830	条	double target = Math.Max(m.LastDemand, m.TargetStock) * region.ColonialAccess;
+K35	PriceOfBread.SimCore/Model.cs:705		public double ColonialAccess = 1.0;
+K35	PriceOfBread.SimCore/Simulation.cs:1726		double colonialAccess = ColonialAccess();
+K35	PriceOfBread.SimCore/Simulation.cs:1769		r.ColonialAccess = colonialAccess;
+K35	PriceOfBread.SimCore/Simulation.cs:2545		private double ColonialAccess()
+K35	PriceOfBread.SimCore/Colonial.cs:13	条	if (colonies <= 0 || r.ColonialResources is null) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
+K35	PriceOfBread.SimCore/EconomyStep.cs:823		if (region.ColonialResources is null)
+K35	PriceOfBread.SimCore/Model.cs:708	条	public int[]? ColonialResources;
+K35	PriceOfBread.SimCore/Simulation.cs:840		ColonialResources = [],
+K35	PriceOfBread.SimCore/Simulation.cs:1373		ColonialResources = [],
+K35	PriceOfBread.SimCore/Territory.cs:160		r.ColonialResources = [];
+K35	PriceOfBread.SimCore/World.cs:1154		if (old.ColonialResources is not null) old.ColonialResources = [];
+K36	PriceOfBread.SimCore/Colonial.cs:41	条	if (c.ColonialUnrestHomeWeight > 1e-9)
+K36	PriceOfBread.SimCore/Colonial.cs:53	条	double homePressure = c.ColonialUnrestHomeWeight * (colMilSum / colPopSum) * Math.Min(1.0, colonies / Math.Max(1.0, c.ColoniesForFullColonial));
+K37	PriceOfBread.SimCore/Politics.cs:288		- c.WarCoercionDrain * warExh;
+K37	PriceOfBread.SimCore/Politics.cs:287	条	+ (Government.AtWar(w) ? c.WarRallyCoercion * Math.Max(0, 1.0 - warExh / Math.Max(1e-9, c.WarRallyDecayPoint)) : 0)
+K38	PriceOfBread.SimCore/Diplomacy.cs:3239	条加	CoolSlot(k, ref slot, t, Math.Max(0, t - c.FrozenTensionDecayRate));
+K39	PriceOfBread.SimCore/Diplomacy.cs:697	条	if (c.HegemonContainmentTrade <= 0) return;
+K39	PriceOfBread.SimCore/Diplomacy.cs:702	条	_hegemonContainLost = Math.Min(c.HegemonContainmentMax, c.HegemonContainmentTrade * excess);
+K39	PriceOfBread.SimCore/Diplomacy.cs:1043	条	Power? best = null; double bestT = c.HegemonThreatMin;
+K39	PriceOfBread.SimCore/Diplomacy.cs:1583	条加	=> enemy == Hegemon(c) ? c.AllyJoinTension * c.AntiHegemonJoinFactor : c.AllyJoinTension;
+K39	PriceOfBread.SimCore/Diplomacy.cs:1755	条	int cap = c.MaxAlliances + (coalitionFoe == hegemon ? c.AntiHegemonExtraAlliances : 0);
+K39	PriceOfBread.SimCore/Diplomacy.cs:1756	条	double chance = coalitionFoe == hegemon ? c.AntiHegemonAllianceChance : 0.4;
+K39	PriceOfBread.SimCore/Diplomacy.cs:331		private double _hegemonContainLost;
+K39	PriceOfBread.SimCore/Diplomacy.cs:678	加	if (fr == _hegemon) lost += _hegemonContainLost;
+K39	PriceOfBread.SimCore/Diplomacy.cs:696		_hegemon = null; _hegemonContainLost = 0;
+K40	PriceOfBread.SimCore/BilateralMarket.cs:671	条	if (c.TransportRevolutionMax > 0)
+K41	PriceOfBread.SimCore/MultiNationSim.cs:674		StepMarineInsurance(); ProbeDiff("海上保険");
+K41	PriceOfBread.SimCore/MultiNationSim.cs:1240		private void StepMarineInsurance()
+K41	PriceOfBread.SimCore/MultiNationSim.cs:1242	条	if (_coef.InsurancePayoutFrac.Value <= 0) return;
+K41	PriceOfBread.SimCore/MultiNationSim.cs:1258		World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac.Value * throughput * risk);
+K41	PriceOfBread.SimCore/BilateralMarket.cs:709	条	if (c.MarinePremiumRate > 0)
+K41	PriceOfBread.SimCore/BilateralMarket.cs:1043	条	premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
+K42	PriceOfBread.SimCore/MultiNationSim.cs:1120	条	if (_coef.CanalInvestReturns.Value > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
+K42	PriceOfBread.SimCore/MultiNationSim.cs:1130	条	if (_coef.CanalInvestReturns.Value > 0 && w.SelfPower is { } shp)
+K42	PriceOfBread.SimCore/MultiNationSim.cs:1171	条	double dividend = _coef.CanalInvestReturns.Value > 0 ? DistributeCanalDividend(cp, toll * _coef.CanalInvestReturns.Value, uw) : 0;
+K42	PriceOfBread.SimCore/MultiNationSim.cs:1178		internal double DistributeCanalDividend(Chokepoint cp, double amount, World payer)
+K42	PriceOfBread.SimCore/MultiNationSim.cs:1126		double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);
+K42	PriceOfBread.SimCore/MultiNationSim.cs:1167		double tollBase = _coef.CanalTollTrafficRate * traffic;
+K43	PriceOfBread.SimCore/World.cs:1731	条	double union = Coef.UnionBargaining > 0 ? 1.0 : LaborUnion switch { LaborUnionLaw.Tolerated => Coef.LaborUnionToleratedOutputMul, LaborUnionLaw.Controlled => Coef.LaborUnionControlledOutputMul, _ => 1
+K44	PriceOfBread.SimCore/Discovery.cs:15	条	=> c.DiscoveryTechPerDecade * (decade - Catalog.DiscoveryBaseDecade) / 10.0;
+K44	PriceOfBread.SimCore/Discovery.cs:13	条	public static double Difficulty(int row, Coefficients c) => DifficultyOf(Catalog.Discoveries[row].Decade, c);
+K44	PriceOfBread.SimCore/Discovery.cs:14		public static double DifficultyOf(int decade, Coefficients c)
+K44	PriceOfBread.SimCore/Discovery.cs:897		double diff = DifficultyOf(site.Decade, c);
+K45	PriceOfBread.SimCore/Simulation.cs:693	条	return row >= 0 && good == Catalog.SilverId && !(c.SilverRushEnabled > 0) ? -1 : row;
+K46	PriceOfBread.SimCore/Simulation.cs:1113		producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborP
+K46	PriceOfBread.SimCore/Simulation.cs:1115		producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPop
+K47	PriceOfBread.SimCore/Catalog.cs:433		new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),
+K47	PriceOfBread.SimCore/Simulation.cs:1228		producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopInd
+K48	PriceOfBread.SimCore/EconomyStep.cs:2447	条	if (mbDir != 0) s.MothballFrac = new Share(Math.Clamp(s.MothballFrac.Value + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap.Value * (1.0 - stateCover)));
+K48	PriceOfBread.SimCore/EconomyStep.cs:2449	条	double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac.Value)), catMax);
+K48	PriceOfBread.SimCore/Model.cs:514		public Share MothballFrac;
+K48	PriceOfBread.SimCore/Simulation.cs:2028	条	if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac.Value > 1e-9)
+K48	PriceOfBread.SimCore/Simulation.cs:2031		fp.BuiltScale *= scrapKeep * fp.MothballFrac.Value + (1.0 - fp.MothballFrac.Value);
+K49	PriceOfBread.SimCore/EconomyStep.cs:2451	条	double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);
+K50	PriceOfBread.SimCore/Diplomacy.cs:177		public sealed class Megaproject
+K50	PriceOfBread.SimCore/Diplomacy.cs:271	条	public List<Megaproject> Megaprojects = [];
+K50	PriceOfBread.SimCore/Megaprojects.cs:3		public static class Megaprojects
+K50	PriceOfBread.SimCore/Megaprojects.cs:22	条	public static double EstimateCost(Region host, Megaproject mp, Coefficients coef) => 0;
+K50	PriceOfBread.SimCore/Megaprojects.cs:23	条	public static bool CanStart(World w, Megaproject mp) => false;
+K50	PriceOfBread.SimCore/Megaprojects.cs:24	条	public static string? StartRefusal(World w, Megaproject mp) => "巨大建造物の機構は無い";
+K50	PriceOfBread.SimCore/Megaprojects.cs:25	条	public static bool TryStart(World w, Megaproject mp) => false;
+K50	PriceOfBread.SimCore/Model.cs:55		Interest, DebtRepay, FactoryBuild, Subsidy, Megaproject, ColonialUpkeep, TributeOut, WarCost, OtherOut,
+K50	PriceOfBread.SimCore/MultiNationSim.cs:1118		if (!Megaprojects.RequirementMet(w, cp.Id)) continue;
+K51	PriceOfBread.SimCore/Military.cs:179	条	double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+K51	PriceOfBread.SimCore/Diplomacy.cs:796		double ff = nw.NavalFuelFillEma;
+K51	PriceOfBread.SimCore/Military.cs:189		w.NavalFuelFillEma = (1.0 - a) * w.NavalFuelFillEma + a * fill;
+K51	PriceOfBread.SimCore/Military.cs:190	条	if (!(w.NavalFuelFillEma >= 0 && w.NavalFuelFillEma <= 1)) w.NavalFuelFillEma = 1.0;
+K51	PriceOfBread.SimCore/World.cs:397		public double NavalFuelFillEma { get; internal set; } = 1.0;
+K51	PriceOfBread.SimCore/Military.cs:188	条	double a = PoliticalQuantities.Clamp01(c.NavalFuelFillSmoothing);
+K51	PriceOfBread.SimCore/Diplomacy.cs:27		public double NavalFuelMul = 1.0;
+K51	PriceOfBread.SimCore/Diplomacy.cs:29	条	? FleetGauge * NavalFuelMul * CrewFill * NavySkillMul
+K51	PriceOfBread.SimCore/Diplomacy.cs:799		p.NavalFuelMul = floor + (1.0 - floor) * ff;
+K51	PriceOfBread.SimCore/Diplomacy.cs:794	条	if (c.NavalFuelPerGauge > 0)
+K51	PriceOfBread.SimCore/Military.cs:175	条	if (!(c.NavalFuelPerGauge > 0)) return;
+K51	PriceOfBread.SimCore/Diplomacy.cs:798	条	double floor = PoliticalQuantities.Clamp01(c.NavalFuelSortieFloor);
+K51	PriceOfBread.SimCore/Military.cs:170		NavalFuelStep(w, c);
+K51	PriceOfBread.SimCore/Military.cs:173		public static void NavalFuelStep(World w, Coefficients c)
+K52	PriceOfBread.SimCore/Simulation.cs:1969		double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);
+K53	PriceOfBread.SimCore/Simulation.cs:1968		double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;
+K54	PriceOfBread.SimCore/Ideology.cs:18		+ w.Coef.VictoryNationalism * w.VictoryShock + w.Coef.ExternalPressureNationalism * w.ExternalPressure;
+K54	PriceOfBread.SimCore/MultiNationSim.cs:365		EducationSpending = pw.EducationSpending, ExternalPressure = pw.ExternalPressure,
+K54	PriceOfBread.SimCore/MultiNationSim.cs:708	条	w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
+K54	PriceOfBread.SimCore/NationConfig.cs:52		EducationLaw = Education, ExternalPressure = 0.3,
+K54	PriceOfBread.SimCore/Politics.cs:325		reformist *= 1 + c.ReformPressureBoost * w.ExternalPressure;
+K54	PriceOfBread.SimCore/Scenario.cs:28		public double ExternalPressure { get; init; } = 0.0;
+K54	PriceOfBread.SimCore/Simulation.cs:91		ExternalPressure = scenario.ExternalPressure,
+K54	PriceOfBread.SimCore/World.cs:649		public double ExternalPressure { get; internal set; }
+K55	PriceOfBread.SimCore/MultiNationSim.cs:1065	条	double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));
+K55	PriceOfBread.SimCore/Territory.cs:70	条	=> c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
+K55	PriceOfBread.SimCore/Territory.cs:73	条	=> c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
+K55	PriceOfBread.SimCore/Simulation.cs:774		var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, lit[0],  3000 * coef.ClosedWealthMultiple, closed: true);
+K55	PriceOfBread.SimCore/Simulation.cs:775		var clergy       = MkPop(6, "聖職者",     false, cfg.Nobility * cfg.ClergyFrac * share,       lit[1], 3000 * coef.ClosedWealthMultiple, closed: true);
+K56	PriceOfBread.SimCore/Diplomacy.cs:1093	条	internal static string CultureGroup(string c) => c switch
+K56	PriceOfBread.SimCore/Diplomacy.cs:1139	条	if (p.Culture.Length > 0) grp[i] = CultureGroup(p.Culture);
+K56	PriceOfBread.SimCore/Diplomacy.cs:1222	条	return CultureGroup(a.Culture) == CultureGroup(b.Culture) ? 0.5 : 1.0;
+K57	PriceOfBread.SimCore/CultureRealms.cs:3		public static class CultureRealms
+K57	PriceOfBread.SimCore/Formations.cs:305		if (rule.CultureOrigin is { } cul && !CultureRealms.HasGained(d, power, cul)) return false;
+K57	PriceOfBread.SimCore/Formations.cs:330		foreach (var r in CultureRealms.Rules) yield return r;
+K58	PriceOfBread.SimCore/World.cs:710	条加	public double ReligiousUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, best = 0; var seen = new System.Collections.Generic.Dictionary<string, double>(); foreach (var r in Regions) { if (st
+K59	PriceOfBread.SimCore/Simulation.cs:1827		r.FemaleParticipation = World.Coef.FemalePartBase + (World.Coef.FemalePartProperty - World.Coef.FemalePartBase) * World.WomenWageRetention;
+K60	PriceOfBread.SimCore/Military.cs:201	条	if (conscription && c.ConscriptGrievanceRate > 0)
+K60	PriceOfBread.SimCore/Military.cs:203	条加	if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * grievanceScale * (da / sa));
+K60	PriceOfBread.SimCore/Military.cs:204	条加	if (b is not null && sb > 1e-9 && db > 1e-12) b.Militancy = Math.Min(1, b.Militancy + c.ConscriptGrievanceRate * grievanceScale * (db / sb));
+K61	PriceOfBread.SimCore/Discovery.cs:159		if (row == PatentRow) s = w.EliteCore;
+K61	PriceOfBread.SimCore/TechEducation.cs:42	条	w.EliteCore = EmergentElite(w, coreOnly: true) ?? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) * EliteMultiplier(w.EducationLaw);
+K61	PriceOfBread.SimCore/World.cs:184		public double EliteCore { get; internal set; }
+K62	PriceOfBread.SimCore/Territory.cs:106		double housingFriction = 1.0 - c.HousingMigrationFriction * (1.0 - r.HousingFill);
+K63	PriceOfBread.SimCore/EconomyStep.cs:1555		if (gi == coef.MedicalGoodId) effBaseNeed *= 1.0 + region.SocialSecurity * coef.MedicalWelfareBoost;
+K64	PriceOfBread.SimCore/Meritocracy.cs:211	条	if (r.ClergyPopIndex >= 0 && p == r.Pops[r.ClergyPopIndex] && p.Size <= c.ClergyFloorShare.Value * total) continue;

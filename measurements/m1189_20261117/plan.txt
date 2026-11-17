@@ -1,0 +1,13 @@
+(1189) c118dl 読む線の作業計画（2026-11-17）
+作業の場所：D:/PoB_work/r1189_work（台本・表・下書き）。worktree・枝は作らない（読むだけ）。ソースは main の木（ef7db3cc8）を git show／grep で読むだけ。
+読む生：
+- D:/PoB_work/keep_1184/base_ins（m1184 の計器つき10種・基線）
+- D:/PoB_work/keep_1184/n1・n2（ヌル腕・絞った表）
+- D:/PoB_work/keep_1184_rej/m1184_At1・m1184_A0（アブレーション・名乗りは manifest のヘッダーで読む）
+読む材料：
+- docs/機能の台帳.md（処置の列・S12 の行）
+- scratchpad：flags_triage_2026-11-12.md/.tsv・lines_round2_2026-11-12.md・ledger_S12_2026-11-12.md/.tsv/_反証.md
+- measurements/m1176_20261116・m1182_20261116・m1155_20261115/ledger_S27_2026-11-15.md
+- docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md（00一覧）・docs/202609/99_実装ログ_20260903.md（(1174)(1176)(1182)(1184)）
+台本：scripts/instruments/r1182/cmp_rows.py・r900/ledger_check.py の写しを D:/PoB_work/r1189_work/ に置く（コミットしない）。
+腕：0 本。

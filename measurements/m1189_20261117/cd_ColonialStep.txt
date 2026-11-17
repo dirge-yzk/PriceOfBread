@@ -1,0 +1,17 @@
+- 49: double shipBurden = 0, quinineWant = 0;
++ 17: double shipBurden = 0;
+--
+- 56: void AccumUpkeep(double clat, double clon, double popWeight, bool malarial)
++ 19: void AccumUpkeep(double clat, double clon, double popWeight)
+--
+- 61: if (malarial) quinineWant += c.MalariaQuininePerColony;
+--
+- 68: AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
++ 30: AccumUpkeep(ccr.Lat, ccr.Lon, pw);
+--
+- 70: double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
++ 32: const double era = 1.0;
+--
+- 81: const int quinineG = Catalog.QuinineId;
+- 82: if (quinineWant > 1e-9) BuyUpkeepGood(w, r, quinineG, quinineWant);
+--

@@ -1,0 +1,34 @@
+順に入れる候補 33 外す 32
+K01 10 Simulation.cs:2208 恒等の見込み（ident で なし
+K03 10 Simulation.cs:2125 挙動 なし
+K10p 10 Meritocracy.cs:122 恒等（休眠） なし
+K20 9 EconomyStep.cs:1452〜:1454 恒等（休眠） なし
+K11 8 Meritocracy.cs（:309・:330〜:337・:345・FillJobs の総取りの枝） 恒等 なし
+K12 8 EconomyStep.cs:2519・:2528 恒等（旗の焼き込み ×1.0 なし
+K15 8 Meritocracy.cs:138 挙動 なし
+K21 8 Military.cs:160・:161 恒等（休眠） 波119 の国民意識の削除と K3 の扱い（Military
+K22 8 Politics.cs:550・:557・Diplomacy.cs:783・:786・:2305 恒等（休眠） 波119 の後（Politics.cs）・段 E（Diplo
+K25 8 EconomyStep.cs:1528・計器 fd の 2 列 恒等（休眠） なし
+K29 8 Simulation.cs:1731・:1775 恒等（旗の焼き込み） hc の合流の後（Simulation.cs:1731・:1
+K47 8 Catalog.cs:433・Simulation.cs:1228 挙動 なし
+K52 8 Simulation.cs:1969・Fiscal 恒等（I） なし
+K59 8 Simulation.cs:2218 挙動 なし
+K08 7 EconomyStep.cs:1780 恒等（休眠） なし
+K09 7 Simulation.cs:1849〜:1873 恒等（休眠） なし
+K14 7 Meritocracy.cs:178・:189・:248 恒等（旗の焼き込み） なし
+K18 7 EconomyStep.cs:117・:139 恒等（休眠・閉じたテーマ） なし
+K23 7 Discovery.cs:530 恒等（休眠） なし
+K26 7 BilateralMarket.cs:694・:695 恒等（休眠・閉じたテーマ） T2・T3（BilateralMarket.cs）
+K33 7 Credit.cs:41・:44・World.cs:1352 恒等の見込み（ident） 波119 の後（World.cs）
+K13 6 Meritocracy.cs:301・:304・PopDecision.cs:73・:74・InstrumentsUrx 恒等（旗の焼き込み） なし
+K38 6 Diplomacy.cs:3239 挙動 ur の後（Diplomacy.cs）
+K49 6 EconomyStep.cs:2451 挙動 なし
+K27 5 BilateralMarket.cs:760・Simulation.cs:1918 恒等（休眠） T2・T3
+K30 5 Parliament.cs（16 行） 恒等 王権と議会の作り直し（Parliament.cs）
+K34 5 World.cs:898・:1385・:1392・CapitalMarket.cs:51 挙動（区分 II） 波119 の後（World.cs）
+K54 5 Ideology.cs:18・MultiNationSim.cs:365 ほか 恒等（本番）・試験の世界は変 波119 の後（Ideology.cs・MultiNatio
+K55 5 Territory.cs:70・:73・MultiNationSim.cs:1065・Simulation.cs:774・:775 恒等（I） 波119 の後（MultiNationSim.cs）
+K31 4 Politics.cs:369〜:388 恒等（届かない枝） 波119 の後（Politics.cs）
+K56 4 Diplomacy.cs・world.json 恒等 段 E（Diplomacy.cs）
+K57 4 Formations.cs・CultureRealms 挙動 ur（統一戦争の AI）の結果の後
+K35 3 Simulation.cs・EconomyStep.cs:823・:830・Model.cs:705・:708・Colonial.cs:13 挙動（61 カ国は恒等・単一 段 E の後（Colonial.cs）

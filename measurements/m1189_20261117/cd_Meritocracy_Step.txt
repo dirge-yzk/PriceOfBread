@@ -1,0 +1,9 @@
++ 16: if (c.SoldierVacancyFromZero > 0) { _seatWorld = w; _seatPayRate = SeatPayRate(w, c); }
++ 17: if (ins) Instruments.SoldierVacBegin(w);
+--
++ 72: if (ins && soldierPop is not null) Instruments.SoldierVacEnter(w, r, soldierPop, soldierVac0);
+--
++ 281: if (ins && soldierPop is not null) Instruments.SoldierVacExit(w, r, soldierPop);
+--
++ 284: _seatWorld = null;
+--

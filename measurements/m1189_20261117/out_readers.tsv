@@ -1,0 +1,65 @@
+id	名	E	I	D	C	T	U	A	R	S	J	E_files	E_cond	E_add	識別子
+K01	扶養力の床（錨の 3 割・S10-H002d）	1	0	0	0	0	0	0	0	0	0	Simulation.cs:1	1	0	re:baseline \* 0\.3
+K02	医者の役務の扶養力の項（S10-H003c）	1	0	0	1	0	0	0	0	0	0	Simulation.cs:1	0	0	HealthFillCapacityBonus
+K03	識字の医療の代理の錠（S10-H004）	1	0	0	1	0	0	0	0	1	0	Simulation.cs:1	1	0	HealthcareEducationGate
+K04	衛生の扶養力の項（S10-H003a の一部）	1	0	0	1	0	0	0	0	2	0	Simulation.cs:1	0	0	SanitationCapacityWeight
+K05	女子教育の上乗せ（S10-H010b）	2	0	0	1	1	0	0	0	0	0	Simulation.cs:1 TechEducation.cs:1	2	0	WomenEduLitBonus
+K06	国の主食の充足の状態（S10-H019・思想⑩）	12	1	0	2	5	0	0	1	4	0	Simulation.cs:7 Politics.cs:2 SelfPlay.cs:2 Diplomacy.cs:1	5	1	FoodFillSmoothing,FoodCapacityWeight,re:World\.FoodFill|w\.FoodFill
+K07	世界の技術の読み手の時代係数（S11-H014i・EraFactor／FreightRevolution）	7	1	0	1	7	0	1	0	14	0	MultiNationSim.cs:2 Territory.cs:2 Military.cs:1 BilateralMarket.cs:1 InternationalMarket.cs:1	4	0	EraFactor,FreightRevolution
+K08	義務教育の給付を行政の届きで細らせる（S11-H003d・休眠）	1	0	0	1	6	0	0	0	4	0	EconomyStep.cs:1	1	0	EduReachFromAdmin
+K09	師範学校の効果（S11-H005b・休眠）	4	0	0	1	1	0	0	0	3	0	Simulation.cs:4	4	0	TeacherQualityWeight
+K10	同業組合法の 3 本（S12-09・休眠）	10	1	0	3	7	3	0	0	4	0	EconomyStep.cs:2 SelfPlay.cs:2 Government.cs:1 Meritocracy.cs:1 Parliament.cs:1 PolicyPreferences.cs:1 Politics.cs:1 Privileges.cs:1	10	0	GuildLawGate,GuildRentPremium,GuildMobilityDrag
+K11	プールの総取りの枝と都市の天井の残り枠（S12-11・S12-13・CS-WTA）	4	0	0	1	4	0	0	0	2	0	Meritocracy.cs:4	2	0	JobPoolTemperature,UrbanHeadroom
+K12	役務の失業の旗の焼き込み（S12-16）	2	0	0	1	0	0	0	0	0	0	EconomyStep.cs:2	2	0	ServiceUnemployment
+K13	農奴の栓の旗の焼き込み（S12-17）	4	2	0	1	5	0	0	0	1	0	Meritocracy.cs:2 PopDecision.cs:2	2	0	SerfMobilityGate
+K14	商業資本の産業化の旗の焼き込み（S12-23）	3	0	0	1	1	0	0	0	0	0	Meritocracy.cs:3	2	0	MerchantArtisanCapitalRise
+K15	職探しの識字の倍率（S12-14）	1	0	0	1	0	0	0	0	0	0	Meritocracy.cs:1	0	0	JobSearchLiteracyWeight
+K16	少数派の摩擦の時代ブレンド（S12-06）	2	0	0	1	0	0	0	0	0	0	Meritocracy.cs:2	1	0	MinorityPenaltyModernBlend
+K17	個人債務の器（S12-27・S22-H048・休眠）	7	0	0	5	4	0	0	0	3	0	Simulation.cs:3 EconomyStep.cs:2 Meritocracy.cs:2	7	1	PopDebtDriven,DebtRuinRatio,HouseholdCreditMonths,DebtRepayFrac,PopDebtLossShare
+K18	自給の効率化材の倍率の旗（休眠・閉じたテーマ）	2	0	0	1	4	0	0	0	11	0	EconomyStep.cs:2	2	0	SubsistenceNoBoughtTech
+K19	外資の余地を収益の持ち分に（休眠）	1	0	0	1	3	0	0	0	5	0	CapitalMarket.cs:1	1	0	CapitalHeadroomFromReturn
+K20	消費の予算の貯蓄の取り崩しの切り（休眠）	2	0	0	1	4	0	0	0	1	0	EconomyStep.cs:2	1	0	ConsumeBudgetSavingsRatePerMonth
+K21	平時の徴募の遺恨（K3・休眠）	2	0	0	1	1	0	0	0	5	0	Military.cs:2	2	0	PeacetimeConscriptGrievance
+K22	蜂起の民兵の札（休眠）	5	0	0	2	5	0	0	0	3	0	Diplomacy.cs:3 Politics.cs:2	3	2	RevoltMilitiaRaise,MilitiaCombatValue
+K23	電動機の親の産業（休眠）	1	1	0	1	4	0	0	0	3	0	Discovery.cs:1	1	0	DiscoveryClockMotorParent
+K24	開幕の焼き込みの旗（休眠）	2	0	0	1	3	0	0	0	7	0	MultiNationSim.cs:1 PriceOfBread.SimCore.csproj:1	2	0	OpeningBakeEnabled
+K25	主食の乗り換えの挟みの外し（休眠）	2	2	0	1	3	0	0	0	1	0	EconomyStep.cs:1 MultiNationSim.cs:1	1	0	StapleDemandRebalance
+K26	輸入の払い手の限定（休眠・閉じたテーマ）	2	0	0	1	6	0	0	0	57	0	BilateralMarket.cs:2	2	0	ImportPayerLive
+K27	安く売るの輸出奨励金（休眠）	2	0	0	1	4	0	0	0	4	0	BilateralMarket.cs:1 Simulation.cs:1	2	0	TradeCheapSellSubsidy
+K28	皆兵の徴兵の倍率（S23-H015）	1	0	0	1	0	0	2	0	1	0	Military.cs:1	1	0	UniversalConscriptionFactor
+K29	軍需の戦時の倍率の旗の焼き込み（S23-H024）	2	0	0	1	3	0	0	0	30	0	Simulation.cs:2	2	0	MilitaryWarMultFromContact
+K30	動的な政党（S18-17・K1）	16	0	0	0	5	0	0	0	3	0	Parliament.cs:16	4	0	SyncDynamicParties,re:\.Parties\b
+K31	経路 6 の非暴力の即時の政変（S15-32）	6	0	0	0	3	6	2	2	880	33	Politics.cs:6	2	0	re:CoupRoute\(w, 5
+K32	タンス預金（D-s1）	2	0	0	2	6	0	0	0	3	0	Credit.cs:2	1	0	CurrencyHoldingRatio,HoardPanicWeight
+K33	金本位を守る与信の絞り（D-s2）	3	0	0	1	0	0	0	0	2	0	Credit.cs:2 World.cs:1	1	0	GoldCoverCreditRestraint
+K34	為替相場の床と天井（D-s3・区分 II）	5	4	0	2	0	0	0	0	11	0	World.cs:4 CapitalMarket.cs:1	5	0	ExchangeRateFloor,ExchangeRateCeil
+K35	単一国の植民地財（D3・S05-K7）	12	0	0	0	5	0	0	0	8	0	Simulation.cs:5 EconomyStep.cs:2 Model.cs:2 Colonial.cs:1 Territory.cs:1 World.cs:1	3	0	ColonialAccess,ColonialResources
+K36	反帝世論の直の加算（S26 D1）	2	0	0	1	0	0	0	0	1	0	Colonial.cs:2	2	0	ColonialUnrestHomeWeight
+K37	戦争が治安維持力を奪う（S24-H037・D1）	2	0	0	2	0	0	0	1	2	0	Politics.cs:2	1	0	WarCoercionDrain,WarRallyCoercion
+K38	凍結の解凍（S25-14・D-c）	1	2	0	1	0	0	0	0	4	0	Diplomacy.cs:1	1	1	FrozenTensionDecayRate
+K39	覇権国の封じ込め（S25-17・D-a）	9	0	0	6	0	0	0	0	3	0	Diplomacy.cs:9	6	2	HegemonContainmentTrade,HegemonContainmentMax,HegemonThreatMin,re:AntiHegemon[A-Za-z]*,_hegemonContainLost
+K40	運賃革命（S08-K1・群2）	1	0	0	3	1	0	1	2	3	0	BilateralMarket.cs:1	1	0	TransportRevolutionMax,TransportRevolutionOnset,TransportRevolutionSpan
+K41	海上保険の給付（S08-K2）	6	0	0	2	5	0	0	0	3	0	MultiNationSim.cs:4 BilateralMarket.cs:2	3	0	StepMarineInsurance,InsurancePayoutFrac,MarinePremiumRate
+K42	運河の配当（S08-K3）	6	0	0	3	7	0	0	0	6	0	MultiNationSim.cs:6	3	0	CanalInvestReturns,DistributeCanalDividend,CanalInvestFrac,CanalTollTrafficRate
+K43	組合法の出力倍率（S02-H010）	1	0	0	2	2	0	0	0	0	0	World.cs:1	1	0	LaborUnionToleratedOutputMul,LaborUnionControlledOutputMul
+K44	発見の表の難易度 Y（S01-H005d）	4	1	0	1	1	0	0	1	1	0	Discovery.cs:4	2	0	DiscoveryTechPerDecade,DifficultyOf
+K45	コムストックの銀の旗（S01-H007d・休眠）	1	1	0	1	2	0	0	0	4	0	Simulation.cs:1	1	0	SilverRushEnabled
+K46	労働力の財の蒸気と電動のレシピ（S01-H010）	2	0	0	0	0	0	0	0	0	0	Simulation.cs:2	0	0	re:RecipeName = "(蒸気機関|電動)"
+K47	石油灯油のレシピ（S01-H019）	2	0	0	0	0	0	0	0	4	0	Catalog.cs:1 Simulation.cs:1	0	0	re:石油灯油
+K48	工場の休止（S05-K6）	5	0	0	0	5	0	0	1	9	0	EconomyStep.cs:2 Simulation.cs:2 Model.cs:1	3	0	MothballFrac
+K49	勢いの投資（S05-K5）	1	0	0	1	0	0	0	0	1	0	EconomyStep.cs:1	1	0	InvestExtrapolationWeight
+K50	巨大建造物の口（DM-P）	9	0	0	0	7	0	1	7	54	0	Megaprojects.cs:5 Diplomacy.cs:2 Model.cs:1 MultiNationSim.cs:1	5	0	re:\bMegaproject[A-Za-z]*\b
+K51	海軍の運用燃料の器（F2）	14	0	0	4	12	0	3	0	6	0	Military.cs:7 Diplomacy.cs:6 World.cs:1	7	0	EraNavalFuel,NavalFuelFillEma,NavalFuelFillSmoothing,NavalFuelMul,NavalFuelPerGauge,NavalFuelSortieFloor,NavalFuelStep
+K52	切り下げの指数（群3）	1	1	0	1	3	0	0	0	1	0	Simulation.cs:1	0	0	DevaluationCapReliefExp
+K53	切り下げの月の上限（群3b）	1	0	0	1	10	0	0	0	0	0	Simulation.cs:1	0	0	DevaluationCapFracPerMonth
+K54	外圧の連鎖（群4・S14-38）	8	2	0	1	12	0	0	0	8	0	MultiNationSim.cs:2 Ideology.cs:1 NationConfig.cs:1 Politics.cs:1 Scenario.cs:1 Simulation.cs:1 World.cs:1	1	0	ExternalPressure,ExternalPressureNationalism
+K55	時代係数の残りと汚職の残骸（群1）	5	0	0	3	2	0	0	0	2	0	Territory.cs:2 Simulation.cs:2 MultiNationSim.cs:1	3	0	EraEpidemicRange,EraMigrationScale,CorruptionLegitimacyErosion,ClosedWealthMultiple
+K56	文化の 2 段の焼き込み（CU）	3	0	0	0	4	0	0	0	1	0	Diplomacy.cs:3	3	0	CultureGroup
+K57	文化圏の自動の統一（L4）	3	0	0	0	4	0	0	0	8	0	Formations.cs:2 CultureRealms.cs:1	0	0	CultureRealms
+K58	宗教統一度（L3）	1	0	0	0	0	0	1	0	0	0	World.cs:1	1	1	ReligiousUnity
+K59	財産権法の参加率の段	1	0	0	1	0	0	0	0	0	0	Simulation.cs:1	0	0	FemalePartProperty
+K60	戦時の強制徴兵の遺恨（S10-H031b）	3	0	0	1	2	0	0	0	1	0	Military.cs:3	3	2	ConscriptGrievanceRate
+K61	特許の行（M4 の後）	3	0	0	0	2	0	0	1	3	0	Discovery.cs:1 TechEducation.cs:1 World.cs:1	1	0	EliteCore
+K62	住居の移民の摩擦（S10-H033b・倍率の一掃）	1	1	0	1	3	0	0	0	0	0	Territory.cs:1	0	0	HousingMigrationFriction
+K63	社会保障の医薬品の倍率（S10-H035a・倍率の一掃）	1	0	0	1	0	0	0	0	0	0	EconomyStep.cs:1	0	0	MedicalWelfareBoost
+K64	聖職者の下限（S12-25）	1	0	0	1	2	0	0	0	0	0	Meritocracy.cs:1	1	0	ClergyFloorShare

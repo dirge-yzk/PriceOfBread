@@ -1,0 +1,65 @@
+id	名	識別子
+K01	扶養力の床（錨の 3 割・S10-H002d）	re:baseline \* 0\.3
+K02	医者の役務の扶養力の項（S10-H003c）	HealthFillCapacityBonus
+K03	識字の医療の代理の錠（S10-H004）	HealthcareEducationGate
+K04	衛生の扶養力の項（S10-H003a の一部）	SanitationCapacityWeight
+K05	女子教育の上乗せ（S10-H010b）	WomenEduLitBonus
+K06	国の主食の充足の状態（S10-H019・思想⑩）	FoodFillSmoothing,FoodCapacityWeight,re:World\.FoodFill|w\.FoodFill
+K07	世界の技術の読み手の時代係数（S11-H014i・EraFactor／FreightRevolution）	EraFactor,FreightRevolution
+K08	義務教育の給付を行政の届きで細らせる（S11-H003d・休眠）	EduReachFromAdmin
+K09	師範学校の効果（S11-H005b・休眠）	TeacherQualityWeight
+K10	同業組合法の 3 本（S12-09・休眠）	GuildLawGate,GuildRentPremium,GuildMobilityDrag
+K11	プールの総取りの枝と都市の天井の残り枠（S12-11・S12-13・CS-WTA）	JobPoolTemperature,UrbanHeadroom
+K12	役務の失業の旗の焼き込み（S12-16）	ServiceUnemployment
+K13	農奴の栓の旗の焼き込み（S12-17）	SerfMobilityGate
+K14	商業資本の産業化の旗の焼き込み（S12-23）	MerchantArtisanCapitalRise
+K15	職探しの識字の倍率（S12-14）	JobSearchLiteracyWeight
+K16	少数派の摩擦の時代ブレンド（S12-06）	MinorityPenaltyModernBlend
+K17	個人債務の器（S12-27・S22-H048・休眠）	PopDebtDriven,DebtRuinRatio,HouseholdCreditMonths,DebtRepayFrac,PopDebtLossShare
+K18	自給の効率化材の倍率の旗（休眠・閉じたテーマ）	SubsistenceNoBoughtTech
+K19	外資の余地を収益の持ち分に（休眠）	CapitalHeadroomFromReturn
+K20	消費の予算の貯蓄の取り崩しの切り（休眠）	ConsumeBudgetSavingsRatePerMonth
+K21	平時の徴募の遺恨（K3・休眠）	PeacetimeConscriptGrievance
+K22	蜂起の民兵の札（休眠）	RevoltMilitiaRaise,MilitiaCombatValue
+K23	電動機の親の産業（休眠）	DiscoveryClockMotorParent
+K24	開幕の焼き込みの旗（休眠）	OpeningBakeEnabled
+K25	主食の乗り換えの挟みの外し（休眠）	StapleDemandRebalance
+K26	輸入の払い手の限定（休眠・閉じたテーマ）	ImportPayerLive
+K27	安く売るの輸出奨励金（休眠）	TradeCheapSellSubsidy
+K28	皆兵の徴兵の倍率（S23-H015）	UniversalConscriptionFactor
+K29	軍需の戦時の倍率の旗の焼き込み（S23-H024）	MilitaryWarMultFromContact
+K30	動的な政党（S18-17・K1）	SyncDynamicParties,re:\.Parties\b
+K31	経路 6 の非暴力の即時の政変（S15-32）	re:CoupRoute\(w, 5
+K32	タンス預金（D-s1）	CurrencyHoldingRatio,HoardPanicWeight
+K33	金本位を守る与信の絞り（D-s2）	GoldCoverCreditRestraint
+K34	為替相場の床と天井（D-s3・区分 II）	ExchangeRateFloor,ExchangeRateCeil
+K35	単一国の植民地財（D3・S05-K7）	ColonialAccess,ColonialResources
+K36	反帝世論の直の加算（S26 D1）	ColonialUnrestHomeWeight
+K37	戦争が治安維持力を奪う（S24-H037・D1）	WarCoercionDrain,WarRallyCoercion
+K38	凍結の解凍（S25-14・D-c）	FrozenTensionDecayRate
+K39	覇権国の封じ込め（S25-17・D-a）	HegemonContainmentTrade,HegemonContainmentMax,HegemonThreatMin,re:AntiHegemon[A-Za-z]*,_hegemonContainLost
+K40	運賃革命（S08-K1・群2）	TransportRevolutionMax,TransportRevolutionOnset,TransportRevolutionSpan
+K41	海上保険の給付（S08-K2）	StepMarineInsurance,InsurancePayoutFrac,MarinePremiumRate
+K42	運河の配当（S08-K3）	CanalInvestReturns,DistributeCanalDividend,CanalInvestFrac,CanalTollTrafficRate
+K43	組合法の出力倍率（S02-H010）	LaborUnionToleratedOutputMul,LaborUnionControlledOutputMul
+K44	発見の表の難易度 Y（S01-H005d）	DiscoveryTechPerDecade,DifficultyOf
+K45	コムストックの銀の旗（S01-H007d・休眠）	SilverRushEnabled
+K46	労働力の財の蒸気と電動のレシピ（S01-H010）	re:RecipeName = "(蒸気機関|電動)"
+K47	石油灯油のレシピ（S01-H019）	re:石油灯油
+K48	工場の休止（S05-K6）	MothballFrac
+K49	勢いの投資（S05-K5）	InvestExtrapolationWeight
+K50	巨大建造物の口（DM-P）	re:\bMegaproject[A-Za-z]*\b
+K51	海軍の運用燃料の器（F2）	EraNavalFuel,NavalFuelFillEma,NavalFuelFillSmoothing,NavalFuelMul,NavalFuelPerGauge,NavalFuelSortieFloor,NavalFuelStep
+K52	切り下げの指数（群3）	DevaluationCapReliefExp
+K53	切り下げの月の上限（群3b）	DevaluationCapFracPerMonth
+K54	外圧の連鎖（群4・S14-38）	ExternalPressure,ExternalPressureNationalism
+K55	時代係数の残りと汚職の残骸（群1）	EraEpidemicRange,EraMigrationScale,CorruptionLegitimacyErosion,ClosedWealthMultiple
+K56	文化の 2 段の焼き込み（CU）	CultureGroup
+K57	文化圏の自動の統一（L4）	CultureRealms
+K58	宗教統一度（L3）	ReligiousUnity
+K59	財産権法の参加率の段	FemalePartProperty
+K60	戦時の強制徴兵の遺恨（S10-H031b）	ConscriptGrievanceRate
+K61	特許の行（M4 の後）	EliteCore
+K62	住居の移民の摩擦（S10-H033b・倍率の一掃）	HousingMigrationFriction
+K63	社会保障の医薬品の倍率（S10-H035a・倍率の一掃）	MedicalWelfareBoost
+K64	聖職者の下限（S12-25）	ClergyFloorShare

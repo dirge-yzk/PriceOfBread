@@ -1,0 +1,4 @@
+Meritocracy.cs +EmptySeatIncome:1 +FillJobs:6 +JobIncome:1 +SeatPayRate:1 +Step:4 -FillJobs:5
+PopDecision.cs 
+EconomyStep.cs +AddConsWithCarry:1 +Run:22 +StatePriceAfford:1 +SupplyTargetAt:1 -Run:16 -StatePriceAfford:1
+Colonial.cs +Step:4 -Step:6
