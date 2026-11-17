@@ -145,4 +145,113 @@ public class MintcapInstrumentTests
         Assert.Equal(System.BitConverter.DoubleToInt64Bits(f1.OthStock), System.BitConverter.DoubleToInt64Bits(off.OthStock));
         Assert.True(parity > 0);
     }
+
+    /// <summary>(1187) E2 の列（aboveBoughtN）に値が立つ盤面：被覆が足りている月に首都の値段が平価を超える＝首都では床の枝も市場買いも立たない。
+    /// その月に首都で買えた量が計器に届けば（壊れたエンジンの型を試験が MintcapBought で直に注ぐ）列が立つ。首都の外の買いと、首都が平価の下の月の買いでは立たない。</summary>
+    [Fact]
+    public void T3_E2の列は平価超えの月に首都で買えた量が届くと立つ()
+    {
+        T3Body(1);   // 銀本位
+        T3Body(2);   // 金本位
+    }
+
+    private static void T3Body(int law)
+    {
+        int metal = law == 1 ? Catalog.SilverId : Catalog.GoldOreId;
+        using var _ = Instrumented();
+        var (sim, w, cap, oth) = Board(metal, 0.0);
+        double parity = Catalog.RefPrices[metal];
+        double rate = w.Coef.MintFloorBuyRatePerMonth.Value;
+        var mc = cap.Markets[metal]; var mo = oth.Markets[metal];
+
+        // 月 1：被覆は足りている（予算 0）・首都は平価×1.5・外の州は平価×0.5
+        Ok(w); mc.Price = parity * 1.5; mo.Price = parity * 0.5; mc.Stock = 100; mo.Stock = 60; Mint(sim);
+        var a = Instruments.MintcapPeek(w)!;
+        Assert.True(a.CapAboveNotAt, "首都の月の模型が〈平価超えで市場買いでない〉と言っていない");
+        Assert.True(a.CapAbove == 1 && a.CapFloor == 0 && a.CapAtMarket == 0, "首都の月の区分＝平価超え 1");
+        Assert.Equal(100.0, mc.Stock);           // 本物の MintGold は平価超えの首都で買わない
+        Assert.Equal(0, a.AboveBought);
+        Assert.Equal(0.0, law == 1 ? a.BoughtCapAg : a.BoughtCapAu);
+        Assert.Equal(60 * rate, law == 1 ? a.BoughtOtherAg : a.BoughtOtherAu, 9);   // 外の州の床の買い（E2 に数えない）
+        Instruments.MintcapBought(w, oth, metal, 5.0);
+        Assert.Equal(0, a.AboveBought);          // 首都の外に届いた量は数えない
+        Instruments.MintcapBought(w, cap, metal, 5.0);
+        Assert.Equal(1, a.AboveBought);          // 平価超えの月に首都で買えた量が届いた＝列が立つ
+
+        // 月 2：首都は平価×0.5（床）＝首都で本物の買いが届いても E2 は立たない
+        mc.Price = parity * 0.5; mo.Stock = 0; Mint(sim);
+        Assert.False(a.CapAboveNotAt);
+        Assert.Equal(1, a.CapFloor);
+        Assert.Equal(1, a.AboveBought);
+        Assert.Equal(5.0 + 100 * rate, law == 1 ? a.BoughtCapAg : a.BoughtCapAu, 9);
+        Assert.Equal(2, a.Months);
+    }
+
+    /// <summary>(1187) E4 の材料の列（銀を産む州の値段÷平価の州の数・中央・最小・最大）と首都の列（在庫・値段÷平価・越境の輸入の和）に値が立つ盤面。
+    /// 英仏の 2 国（外交は凍結）で、仏の首都の外の銀の産地の州 3 つに平価×0.8・1.3・1.0 を置き、ほかの産地の生産者は倒産に（値段は平価×9）・生産者の無い銀の州が在れば平価×7。
+    /// 首都の在庫 123・値段 平価×0.9・月の輸入 4 を置き、計器の月の口を 2 回・四半期の表を 1 回。期待は台本の値から手で書く。</summary>
+    [Fact]
+    public void T5_E4の材料の列と首都の列に値が立つ()
+    {
+        const ulong seed = 1187UL;
+        int ag = Catalog.SilverId;
+        double parity = Catalog.RefPrices[ag];
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_mc5_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        Instruments.SelectTables("mintcap_s");
+        MultiNationSim? sim = null;
+        int bankruptRegions = 0;
+        try
+        {
+            sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed) { DiplomacyFrozen = true };
+            var fr = sim.Nations[1].World;
+            Assert.Equal("フランス", Instruments.NameOf(fr));
+            fr.MonetaryLaw = MonetaryStandardLaw.Silver;
+            var cap = fr.Regions[0];
+            Assert.True(cap.GoodOf(ag) is not null, "前提＝仏の首都の州に銀の市場がある");
+            var prod = new List<Region>(); Region? plain = null;
+            foreach (var r in fr.Regions)
+            {
+                if (ReferenceEquals(r, cap) || r.GoodOf(ag) is null) continue;
+                bool has = false;
+                foreach (var p in r.Producers) if (p.GoodId == ag) { has = true; break; }
+                if (has) prod.Add(r); else if (plain is null) plain = r;
+            }
+            Assert.True(prod.Count >= 4, $"前提＝首都の外に銀の産地の州が 4 つ以上（{prod.Count}）");
+            double[] mul = [0.8, 1.3, 1.0];
+            for (int i = 0; i < prod.Count; i++)
+            {
+                bool live = i < mul.Length;
+                prod[i].Markets[ag].Price = parity * (live ? mul[i] : 9.0);
+                foreach (var p in prod[i].Producers) if (p.GoodId == ag) p.Bankrupt = !live;
+                if (!live) bankruptRegions++;
+            }
+            foreach (var p in cap.Producers) if (p.GoodId == ag) p.Bankrupt = true;   // 首都が産地でも数えない側へ
+            if (plain is not null) plain.Markets[ag].Price = parity * 7.0;   // 生産者の無い銀の州（仏の盤面には無いことがある＝在れば数えない側の対照）
+            var cm = cap.Markets[ag];
+            cm.Stock = 123.0; cm.Price = parity * 0.9; cm.LastImport = 4.0;
+            Instruments.MintcapMonth(fr);
+            Instruments.MintcapMonth(fr);
+            Instruments.Quarter(sim, seed, 0);
+        }
+        finally
+        {
+            if (sim is not null) Instruments.Close(sim);
+            Instruments.SelectTables(null); Instruments.Configure(null, null);
+        }
+        var rows = SubstInstrumentTests.Rows(System.IO.Path.Combine(dir, $"mintcap_s{seed}.tsv"), Instruments.MintcapHeaderText);
+        try { System.IO.Directory.Delete(dir, true); } catch { }
+        var row = rows.Single(r => r["nation"] == "フランス");
+        double D(string c) => SubstInstrumentTests.D(row, c);
+        static void Near(double want, double got, string what) => Assert.True(System.Math.Abs(want - got) <= 1e-12 * System.Math.Max(1.0, System.Math.Abs(want)), $"{what}: 期待 {want} 実際 {got}");
+        Assert.True(bankruptRegions >= 1, "対照＝倒産にした産地の州が 1 つ以上");
+        Assert.Equal(2.0, D("months"));
+        Assert.Equal(3.0, D("originN"));
+        Near(1.0, D("originPoverMed"), "産地の値段÷平価の中央");
+        Near(0.8, D("originPoverMin"), "産地の値段÷平価の最小");
+        Near(1.3, D("originPoverMax"), "産地の値段÷平価の最大");
+        Near(123.0, D("capStock"), "首都の在庫");
+        Near(0.9, D("capPriceOverParity"), "首都の値段÷平価");
+        Near(8.0, D("capImportAgSum"), "首都の越境の輸入の和（4×2 か月）");
+    }
 }
