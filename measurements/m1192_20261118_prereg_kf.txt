@@ -1,0 +1,47 @@
+# (1192) c119kf 恒等の束の予言・腕の前の最初のコミット
+- 書いた日 2026-11-18・担当 Sonnet 5.5・枝 c119kf（93fc4a967 から）・worktree D:/PoB_work/wt_c119kf・作業 D:/PoB_work/c119kf_work（使い捨ての木 wt_c119kfx は項 2 の突然変異用・push しない）。
+- 作ったフォルダ：D:/PoB_work/wt_c119kf・D:/PoB_work/c119kf_work（後で wt_c119kfx・c119kf_art）。
+- 〈作者 2026-11-16 の決まり〉①〜⑦に従う。新しい係数・状態は 0。
+
+## [1] 恒等の線・予言 0
+- 項 1（K01 扶養力の床を消す）：Simulation.cs:2205 `capacity = Math.Max(baseline * 0.3, capacity);` だけを消す。後ろの否定形の門 `if (!(capacity > 1e-9)) return;` は残す（NaN も飛ばす側）。
+- 項 1 の紙の予言：anchor_s（keep_1184/base_ins・147,395 行）で床が効いた行は 0・扶養力÷(0.3×錨) の最小は 1.306。**この数は四半期の標本の月だけを数え、扶養力が 0 か非有限の 39 行（床の外）を除いた値**（月の全部ではない）。
+  標本の外の月で床が効く可能性は残る＝門は ident の〈判定: 恒等〉だけ。違いが出て項 1 に帰るなら項 1 のコミットを戻して ident を取り直し、K01 は挙動の線の候補として報告に書く（この線は挙動の線へ切り替えない）。
+- 項 2（hc の残りの試験）・項 3（mintcap_s の列 capImportAgSum の読み直し）は計器と試験だけ＝エンジンの力学は変えない。浮動小数の順序が変わる箇所は 0。
+- 合否＝素の 5 種・計器つき 10 種が m1191 と名乗り行を除いて全行一致。計器の表の差の宣言＝mintcap_s の capImportAgSum の列だけ（項 3）。
+
+## [2] 消す物と残す物（93fc4a967 の grep）
+消す：
+- Simulation.cs:2205 の `capacity = Math.Max(baseline * 0.3, capacity);`（前の半分だけ）。
+- 項 3：InstrumentsMintcap.cs:76 の読み先（LastImport）を PrevImport へ（下の決定）。
+残す：
+- Simulation.cs:2205 の否定形の門・:2186 の foodAnchor の下限 0.3（別の項＝K01 の外）。
+- CapacityAnchorTests.cs:118 の Assert（`DiagCapacity < 0.3×3218.4`）：錨 0 の盤面＝床 0 なので床の有無に依らず同じ。変えない。
+項 2：
+- DormantIdentityTests.cs RetiredFields の末尾へ StockpileTensionSpan・StockpileOtherFrac・WarScareTension を足す（grep：この 3 名は SimCore・Runner・App・Display に宣言も読みも無い。残りは DormantIdentityTests.cs:374 の注と UnitTypeTests.cs:264 の注の文だけ）。:374 の注〈次の恒等の線で消す〉を直す。
+- Mab の台本と出力を scripts/instruments/c119kf/・measurements/m1192_* へ（(1185) で既に〈Mab 赤・Ma Mb 緑〉を測っている＝再現）。
+項 3 の決定（清算の順を読んで）：
+- 月の順＝Simulation.cs:2011 EconomyStep.Run（EconomyStep.cs:816 で PrevImport←LastImport・LastImport←0）→ :2044 MintGold（頭で MintcapMonth）。国際市場の清算（BilateralMarket.cs:1111 の LastImport +=）はその後＝月の頭の Run で PrevImport へ移る。
+  銀は植民地財でないので EconomyStep.cs:833 の加算も無い＝MintcapMonth の時点で LastImport は常に 0・PrevImport は直前の清算の輸入。**読み先は PrevImport**（〈その月の首都の銀の輸入〉＝計器が見る時点で最後に清算された輸入。1 か月遅れの意味になる＝列の注に書く）。
+読み手の grep：capImportAgSum は InstrumentsMintcap.cs:137 の出力だけ（Tests・Runner・scripts・measurements の読み手を grep し直して確かめる）・POB_COEF の名前なし・SaveGame に載らない（[NonSerialized] の計器の欄）。
+
+## [3] 試験と突然変異
+- 項 1：CapacityAnchorTests に Fact 1 本（扶養力が 0.3×錨を割る盤面で DiagCapacity が生の値に従う）。盤面は試験の中で置く：仏の Simulation を同じ種で 3 本作り、UrbanCapacityPenalty を 0 と 0.1 で 1 回ずつ測って扶養力が penalty の一次式であることから、扶養力＝0.1×錨 になる penalty を逆算し、3 本目でその値に置く。期待は 0.1×(州の錨の和)（本体の式から作らない）。
+- 項 3：MintcapInstrumentTests に Fact 1 本（首都の銀の市場の PrevImport を 7 に置いた盤面で MintGold を月ごとに呼ぶと capImportAgSum が 7）。旧の読み（LastImport）で赤。
+- 試験の数の予言：Tests 2669→2671（+2）・Tests.Ui 234→234。合計 2905（non-full）。FullLength 3。
+- 突然変異の表（どの門で赤か）：
+  - M1 否定形の門も消す → 錨も耕地も無い世界の Fact（CapacityAnchorTests）が赤（NaN）の見込み。
+  - M2 床を 0.9 へ → ident が赤（床が効く月が出る）。紙の見込み：anchor_s の最小比 1.306＝0.9 の床ならほぼ全行が床に当たる。
+  - M3 床を戻す → 項 1 の新しい Fact が赤。
+  - M4 項 3 の読みを LastImport へ戻す → 項 3 の新しい Fact が赤。
+  - Mab（LaborMarketFormTests の二重の塞ぎを両方外す）→ 赤（(1185) の再現）。
+- ㉘ 走査の番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests に CapacityAnchorTests・MintcapInstrumentTests を足して回す。
+- ㉑ 件数の予言：WriterRatchetTests・route_anchors.tsv の書き換え 0 件。`new MoneyStock(` の件数の変化 0。工業化度の読み手の許可表の変化 0。
+- ★(743) の区分：書き換える既存の Assert は 0 件（足すだけ）。DormantIdentityTests.cs の RetiredFields の 3 名の追加は ★(764) の名簿の追加（読み手が無い名の登録）＝機構の Assert ではない。
+
+## [4] 一致と stage.py
+- 5 種・計器つき 10 種が m1191 と全行一致（名乗り行の SOURCE-HASH と、mintcap_s の capImportAgSum の列の値を除く）。stage.py＝段 2（SimCore/Instruments/ に触れる）。
+- .cost の推定の変化 0.0 秒の見込み（床の消去は 1 国×月に 1 回の Math.Max が減るだけ）。
+
+## [5] 採否
+- 〈判定: 恒等〉（測った種で一致・宣言の外の違いが 0）なら採る。D: の空きが〈35GB＋量〉に届かず ident を起こせない間は、採否を保留と報告する（起こせないのに〈恒等〉と書かない）。
