@@ -34,39 +34,35 @@ public sealed record SimMetrics(
     public double MeanMidFrac => Nations.Count > 0 ? Nations.Average(n => n.PriceMidFrac) : 0;
     public double WorstMidFrac => Nations.Count > 0 ? Nations.Min(n => n.PriceMidFrac) : 0;
     public double MeanSat => Nations.Count > 0 ? Nations.Average(n => n.MeanSatisfaction) : 0;
-    public double WorstSat
-    {
-        get
-        {
-            double lo = double.MaxValue;
-            foreach (var n in Nations) if (!n.SpawnedDuringPlay && n.MeanSatisfaction < lo) lo = n.MeanSatisfaction;
-            if (lo < double.MaxValue) return lo;
-            return Nations.Count > 0 ? Nations.Min(n => n.MeanSatisfaction) : 0;
-        }
-    }
-    public string WorstSatDetail
+    // (1209) 満足度・最小国の判定の値＝直近 Validation.SatRecentQuarters 四半期の平均（SatRecentMean・SelfPlay が作る）。
+    //   平均が無い国（窓を作らない経路＝Runner の Metrics.Compute 直・試験）は最後の一点（MeanSatisfaction）。
+    public static double JudgedSat(NationMetrics n) => !(n.SatRecentMean >= 0) ? n.MeanSatisfaction : n.SatRecentMean;
+
+    // 判定の国＝建国が途中でない国のうち JudgedSat の最小（無ければ全ての国から）。WorstSat・WorstSatName・WorstSatDetail はこの 1 国を読む。
+    NationMetrics? WorstSatNation
     {
         get
         {
             NationMetrics? worst = null;
-            foreach (var n in Nations) if (!n.SpawnedDuringPlay && (worst is null || n.MeanSatisfaction < worst.MeanSatisfaction)) worst = n;
-            if (worst is null) foreach (var n in Nations) if (worst is null || n.MeanSatisfaction < worst.MeanSatisfaction) worst = n;
-            return worst is null ? "" : $"・州{worst.ActiveRegions}/{worst.FoundingRegions}・主食{worst.FoodFill:F2}・人口{worst.PopCount:F0}"
-                + (double.IsNaN(worst.SatRecentMean) ? "" : $"・直近{Validation.SatRecentQuarters}四半期 平均{worst.SatRecentMean:F2} 振れ{worst.SatRecentSwing:F2}");
+            foreach (var n in Nations) if (!n.SpawnedDuringPlay && (worst is null || JudgedSat(n) < JudgedSat(worst))) worst = n;
+            if (worst is null) foreach (var n in Nations) if (worst is null || JudgedSat(n) < JudgedSat(worst)) worst = n;
+            return worst;
         }
     }
 
-    public string WorstSatName
+    public double WorstSat => WorstSatNation is { } w ? JudgedSat(w) : 0;
+
+    public string WorstSatDetail
     {
         get
         {
-            string nm = ""; double lo = double.MaxValue;
-            foreach (var n in Nations) if (!n.SpawnedDuringPlay && n.MeanSatisfaction < lo) { lo = n.MeanSatisfaction; nm = n.Name; }
-            if (nm.Length > 0) return nm;
-            foreach (var n in Nations) if (n.MeanSatisfaction < lo) { lo = n.MeanSatisfaction; nm = n.Name + "・分離独立"; }
-            return nm;
+            var worst = WorstSatNation;
+            return worst is null ? "" : $"・州{worst.ActiveRegions}/{worst.FoundingRegions}・主食{worst.FoodFill:F2}・人口{worst.PopCount:F0}"
+                + (double.IsNaN(worst.SatRecentMean) ? "" : $"・直近{Validation.SatRecentQuarters}四半期 平均{worst.SatRecentMean:F2} 振れ{worst.SatRecentSwing:F2} 最後{worst.MeanSatisfaction:F2}");
         }
     }
+
+    public string WorstSatName => WorstSatNation is { } w ? (w.SpawnedDuringPlay ? w.Name + "・分離独立" : w.Name) : "";
 }
 
 public static class Metrics
