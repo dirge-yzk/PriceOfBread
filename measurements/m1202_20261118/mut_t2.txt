@@ -1,0 +1,11 @@
+# (1202) c120t2 突然変異 木=46451e87e 2026-11-18 12:59:48・試験＝DepositSitesOnlyTests（T1・T1prime・T2×2・T3・T4・T5・T6×2）
+base	成功! -失敗: 0、合格: 9、スキップ: 0、合計: 9、期間: 2 m - PriceOfBread.Tests.dll (net10.0)	赤: なし
+mu0_flag0	失敗! -失敗: 7、合格: 1、スキップ: 0、合計: 8、期間: 1 m 18 s - PriceOfBread.Tests.dll (net10.0)	赤: T1_ふつうの鉱物の生産者は州の品位を読まない T1prime_産地の生産者の能力は州の品位に依らない T2_産地の品位は残りに比例する(regionGrade: 0.14999999999999999) T2_産地の品位は残りに比例する(regionGrade: 1) T3_捕捉は開いた後の最初の産出の月 T4_ふつうの生産者は在庫を持たない T5_産地の在庫は四半期の途中のセーブで往復する 
+mu1_nocapture	失敗! -失敗: 3、合格: 6、スキップ: 0、合計: 9、期間: 2 m 49 s - PriceOfBread.Tests.dll (net10.0)	赤: T3_捕捉は開いた後の最初の産出の月 T5_産地の在庫は四半期の途中のセーブで往復する T6_計器depmin_sは欄を写し品位は欄からの式と一致する(flag: 1) 
+mu2_allhold	失敗! -失敗: 2、合格: 7、スキップ: 0、合計: 9、期間: 3 m 18 s - PriceOfBread.Tests.dll (net10.0)	赤: T4_ふつうの生産者は在庫を持たない T6_計器depmin_sは欄を写し品位は欄からの式と一致する(flag: 1) 
+mu3_capturezero	失敗! -失敗: 2、合格: 7、スキップ: 0、合計: 9、期間: 2 m 52 s - PriceOfBread.Tests.dll (net10.0)	赤: T3_捕捉は開いた後の最初の産出の月 T6_計器depmin_sは欄を写し品位は欄からの式と一致する(flag: 1) 
+mu4_nograde	失敗! -失敗: 2、合格: 7、スキップ: 0、合計: 9、期間: 2 m 30 s - PriceOfBread.Tests.dll (net10.0)	赤: T2_産地の品位は残りに比例する(regionGrade: 0.14999999999999999) T2_産地の品位は残りに比例する(regionGrade: 1) 
+mu5_regiongrade	失敗! -失敗: 4、合格: 5、スキップ: 0、合計: 9、期間: 2 m 36 s - PriceOfBread.Tests.dll (net10.0)	赤: T1_ふつうの鉱物の生産者は州の品位を読まない T1prime_産地の生産者の能力は州の品位に依らない T2_産地の品位は残りに比例する(regionGrade: 0.14999999999999999) T2_産地の品位は残りに比例する(regionGrade: 1) 
+mu6_knee	失敗! -失敗: 2、合格: 7、スキップ: 0、合計: 9、期間: 3 m 1 s - PriceOfBread.Tests.dll (net10.0)	赤: T2_産地の品位は残りに比例する(regionGrade: 0.14999999999999999) T2_産地の品位は残りに比例する(regionGrade: 1) 
+mu7_both	失敗! -失敗: 1、合格: 8、スキップ: 0、合計: 9、期間: 3 m 12 s - PriceOfBread.Tests.dll (net10.0)	赤: T1prime_産地の生産者の能力は州の品位に依らない 
+MUTDONE 2026-11-18 13:37:54
