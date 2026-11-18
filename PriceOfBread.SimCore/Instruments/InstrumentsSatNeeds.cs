@@ -8,9 +8,9 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string SatNeedsHeaderText = "year\tq\tnation\tpopK\tsatisfaction\tfoodFillLastMonth"
-        + "\tdailyMet\tdailyTotal\tluxuryMet\tluxuryTotal\totherMet\totherTotal\tdailyFill\tluxuryFill\totherFill\tnonFoodFill";
+        + "\tdailyMet\tdailyTotal\tluxuryMet\tluxuryTotal\totherMet\totherTotal\tdailyFill\tluxuryFill\totherFill\tnonFoodFill\tluxuryWanted";
 
-    internal sealed class SatNeedsAcc { public readonly double[] Met = new double[3], Total = new double[3]; }
+    internal sealed class SatNeedsAcc { public readonly double[] Met = new double[3], Total = new double[3], Want = new double[3]; }
     sealed class SatNeedsSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, SatNeedsAcc> SatNeedsAccs = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, SatNeedsSink> SatNeedsSinks = new();
@@ -21,7 +21,7 @@ public static partial class Instruments
     internal static int SatNeedsCat(GoodTier t) => t == GoodTier.Daily ? 0 : t == GoodTier.Luxury ? 1 : 2;
 
     /// <summary>EconomyStep.Run の必要の台帳の行の直後：重み（POP の大きさ）つきで分子（met）と分母（total）を足す。</summary>
-    internal static void SatNeeds(World? w, Pop p, GoodTier tier, double met, double total)
+    internal static void SatNeeds(World? w, Pop p, GoodTier tier, double met, double total, double want)
     {
         if (w is null || w.WarmupFrozen) return;
         if (!ReferenceEquals(w, satNeedsLastW))
@@ -32,8 +32,11 @@ public static partial class Instruments
         var a = satNeedsLastAcc;
         if (a is null) return;
         int k = SatNeedsCat(tier);
-        a.Met[k] += p.Size * met; a.Total[k] += p.Size * total;
+        a.Met[k] += p.Size * met; a.Total[k] += p.Size * total; a.Want[k] += p.Size * want;
     }
+
+    /// <summary>試験用：欲しい量（Σ POP の大きさ×GoodNeed×needW・格ごと）の写し。嗜好品は分母が met＝充足が常に 1 なので、欲しい量だけがその格の需要を示す（(1214)）。</summary>
+    internal static double[] SatNeedsWantSnapshot(World w) => SatNeedsAccs.TryGetValue(w, out var a) ? (double[])a.Want.Clone() : new double[3];
 
     /// <summary>試験用：貯めた分子・分母の写しと、貯めの白紙化。</summary>
     internal static (double[] Met, double[] Total) SatNeedsSnapshot(World w)
@@ -62,6 +65,7 @@ public static partial class Instruments
             for (int k = 0; k < 3; k++) sb.Append('\t').Append(FR(a.Met[k])).Append('\t').Append(FR(a.Total[k]));
             for (int k = 0; k < 3; k++) sb.Append('\t').Append(a.Total[k] > 1e-9 ? FR(a.Met[k] / a.Total[k]) : "nan");
             sb.Append('\t').Append(tAll > 1e-9 ? FR(mAll / tAll) : "nan");
+            sb.Append('\t').Append(FR(a.Want[1]));   // (1214) 嗜好品の欲しい量（末尾の列）
             sk.W.WriteLine(sb.ToString());
             SatNeedsAccs.AddOrUpdate(w, new SatNeedsAcc());
         }
