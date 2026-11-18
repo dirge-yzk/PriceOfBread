@@ -1,0 +1,17 @@
+(1207) c121uh 事前登録（最初のコミット・Claude Sonnet 5.5）
+基点 326e284ee（main）。枝 c121uh・木 D:/PoB_work/wt_c121uh。
+
+[1] 恒等の線（予言 0）。UrbanHeadroom（残り枠）を消す。段 1 の見込み＝計器に触らない。
+  線の種類は切り替えない。測った種で 0 の分岐が走って違いが出たら、消すコミットを戻して〈挙動の線の候補〉と報告する。
+[2] 消す物と残す物
+  消す：Meritocracy.cs:330〜:338 UrbanHeadroom・:309 の headroom・:310 と :312 の ref headroom の引数・:341 FillJobs の引数 ref urbanHeadroom・:379 の Min 行・:384 の引き算の行。
+  残す：forced の枝（:313〜:327）・softmax の式・PopDecision.MigrationPair（他の読み手あり）。
+  読み手（grep 済み）：SimCore は Meritocracy.cs の中だけ。Tests は IndustrializationReaderTests.cs:116〜:117（反射）と J4 の 2 本、MigrationPairTests.cs:43 はコメントだけ。scripts は c13ib の古い台本の文字列だけ（読み手ではない）。POB_COEF・SaveGame に名前なし（係数でも欄でもない）。
+  他の線との重なり：c121uh だけが Meritocracy.cs :305〜:340・:379・:384 と J4 を持つ（持ち主の表）。WriterRatchetTests の宣言の行は要る時だけ。
+[紙で先に読む] 0 の分岐は、CapitalEnabled の州で、組（最初の農村と最初の都市の POP）の大きさの和が Eps 以下で、それでも別の農村 POP（組の外）が src になる州だけで走る〈推〉。src が組の農村なら和は src.Size 以上で Eps より大きく走らない。計器が無い＝件数は突然変異の腕で読む（M2）。
+[3] 試験：J4 の 2 本（都市化の天井は無く…・職の移しの残枠は組の人口が0…）は旧の規則そのものを固定する型＝★(743) の区分で墓標にする（Assert を弱めない＝丸ごと消す・墓標の注を残す）。足す試験は無し。
+  突然変異 M1：消した後の木で :379 の Min を残り枠 0 で戻す（常に 0）→ ident が赤になること。M2：消す前の木で組の人口 0 の return を外すと既存の番人が赤になること（記録）。
+  走査の番人（㉘）：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests に MobilityTests|JobPoolTemperatureGuardTests を足して回す。書き換える件数（㉑）の予言：試験は 2 本減る（TESTS_NONFULL 2905→2903・--tests-delta -2）。
+[4] 素の 5 種・計器つき 10 種は m1198 と名乗り行を除いて全行一致。計器の表の差は 0。.cost の件数と推定 238.7 秒は同じ。
+[5] 〈判定: 恒等〉なら採る。浮動小数の順序が変わる箇所は無い（項を消すだけ・Min と引き算の削除。+∞ との Min は値を変えない）。
+段の順：腕 Z（素の 5 種・--no-ins）で先に消しの恒等を見る → 一致ならテスト整理→フルスイート→savetest・leakhunt→ident。
