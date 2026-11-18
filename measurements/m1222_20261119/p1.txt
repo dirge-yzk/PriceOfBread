@@ -1,0 +1,10 @@
+種 1：nation_s 一致・scalars_s 一致・region_s 一致
+種 2：nation_s 違う（最初の行 27598・四半期 452・年 1896）・scalars_s 違う（最初の行 9951・四半期 452・年 1896）・region_s 違う（最初の行 144996・四半期 452・年 1896）
+種 3：nation_s 一致・scalars_s 一致・region_s 一致
+種 4：nation_s 違う（最初の行 25420・四半期 416・年 1887）・scalars_s 違う（最初の行 9164・四半期 416・年 1887）・region_s 違う（最初の行 132352・四半期 416・年 1887）
+種 5：nation_s 一致・scalars_s 一致・region_s 一致
+種 6：nation_s 一致・scalars_s 一致・region_s 一致
+種 7：nation_s 違う（最初の行 29619・四半期 473・年 1901）・scalars_s 違う（最初の行 10585・四半期 473・年 1901）・region_s 違う（最初の行 152442・四半期 473・年 1901）
+種 8：nation_s 一致・scalars_s 一致・region_s 一致
+種 9：nation_s 一致・scalars_s 一致・region_s 一致
+種 10：nation_s 違う（最初の行 4520・四半期 74・年 1801）・scalars_s 違う（最初の行 1604・四半期 74・年 1801）・region_s 違う（最初の行 22858・四半期 74・年 1801）
