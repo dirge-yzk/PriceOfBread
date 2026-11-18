@@ -1,0 +1,38 @@
+=== 恒等の判定（測った種で一致） m1226z（2026-11-19 07:42:10）===
+測った木：D:/PoB_work/wt_m1226z（HEAD 6df4ae27b・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_m1226z/scripts/instruments/ident/ident.cfg
+宣言：known_extra=['rulepeace_s:greatCircleOnlyTakenCount', 'rulepeace_s:phiStarMedianIndex', 'rulepeace_s:takenCount', 'rulepeace_s:takenPopShare', 'rulepower_s:bestClass', 'rulepower_s:classSumShare', 'rulepower_s:fForeignRawIndex', 'rulepower_s:fForeignSumIndex', 'rulepower_s:fForeignTopIndex', 'rulepower_s:fResistIndex', 'rulepower_s:foreignSideShare', 'rulepower_s:foreignTopKey', 'rulepower_s:iProbeShare', 'rulepower_s:interShare', 'rulepower_s:localSideShare', 'rulepower_s:navalAllocIndex', 'rulepower_s:newRule0Share', 'rulepower_s:newRule1Share', 'rulepower_s:openDiffIndex', 'rulepower_s:openQualFlag', 'rulepower_s:ownerSideShare', 'rulepower_s:ownerSideShareR', 'rulepower_s:ownerWeightShare', 'rulepower_s:phiStarIndex', 'rulepower_s:pressureIndex', 'rulepower_s:ungovSideShare', 'rulepower_s:ungovSideShareR', 'rulepoweralloc_s:allocIndex', 'rulepoweralloc_s:bShare', 'rulepoweralloc_s:fForeignIndex', 'rulepoweralloc_s:wgtIndex'] tests_delta=6
+腕 a：rc=0 end=2026-11-19 07:22:17
+腕 b：rc=0 end=2026-11-19 07:42:10
+腕 t：rc=0 end=2026-11-19 07:00:29
+腕 s：rc=0 end=2026-11-19 07:20:49
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：a8bf121e783c7f83
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: a8bf121e783c7f83
+[素の 5 種] b5_ia_5.txt 対 b5_20261118_m1212
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261118_m1212.cost
+  ○ 件数の行 45 本・推定 237.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: a8bf121e783c7f83
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261118_m1212_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261118_m1212_ins.cost
+  ○ 件数の行 45 本・推定 238.7 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_m1226z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1219/base_ins
+  基準 1579 本・腕 1579 本・バイト一致 1499 本
+  既知の揺れの列だけが違う表 80 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 12333 欄）×1・cearn_s:経路の行番号だけ（写して一致 12451 欄）×1・cearn_s:経路の行番号だけ（写して一致 12673 欄）×1・cearn_s:経路の行番号だけ（写して一致 13378 欄）×1・cearn_s:経路の行番号だけ（写して一致 13587 欄）×1・cearn_s:経路の行番号だけ（写して一致 13917 欄）×1・cearn_s:経路の行番号だけ（写して一致 14691 欄）×1・cearn_s:経路の行番号だけ（写して一致 16120 欄）×1・cearn_s:経路の行番号だけ（写して一致 17000 欄）×1・cearn_s:経路の行番号だけ（写して一致 19150 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・cpop_s:経路の行番号だけ（写して一致 103164 欄）×1・cpop_s:経路の行番号だけ（写して一致 1332 欄）×1・cpop_s:経路の行番号だけ（写して一致 1357 欄）×1・cpop_s:経路の行番号だけ（写して一致 1588 欄）×1・cpop_s:経路の行番号だけ（写して一致 24859 欄）×1・cpop_s:経路の行番号だけ（写して一致 28982 欄）×1・cpop_s:経路の行番号だけ（写して一致 3507 欄）×1・cpop_s:経路の行番号だけ（写して一致 47469 欄）×1・cpop_s:経路の行番号だけ（写して一致 61626 欄）×1・cpop_s:経路の行番号だけ（写して一致 80603 欄）×1・flow_s:呼び出し位置だけ×10・rulepeace_s:greatCircleOnlyTakenCount,phiStarMedianIndex,takenCount,takenPopShare×10・rulepower_s:bestClass,classSumShare,fForeignRawIndex,fForeignSumIndex,fForeignTopIndex,fResistIndex,foreignSideShare,foreignTopKey,iProbeShare,interShare,localSideShare,navalAllocIndex,newRule0Share,newRule1Share,openDiffIndex,openQualFlag,ownerSideShare,ownerSideShareR,ownerWeightShare,phiStarIndex,pressureIndex,ungovSideShare,ungovSideShareR×2・rulepower_s:bestClass,fForeignRawIndex,fForeignSumIndex,fForeignTopIndex,fResistIndex,foreignSideShare,foreignTopKey,iProbeShare,interShare,localSideShare,navalAllocIndex,newRule0Share,newRule1Share,openDiffIndex,openQualFlag,ownerSideShare,ownerSideShareR,ownerWeightShare,phiStarIndex,pressureIndex,ungovSideShare,ungovSideShareR×8・rulepoweralloc_s:allocIndex,bShare,fForeignIndex,wgtIndex×10
+  ○ 計器の表は恒等（バイト一致 1499・既知の揺れ 80・宣言された増減 0）
+  内訳：共通の表 1579 本＝バイト一致 1499＋既知の揺れ 80＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1579）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261118_m1212.txt（タグの行を除く）
+  ○ タグの行以外が一致（4831 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 95 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_m1226z/measurements/ng1198_20261118:m1198）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2922（基準 2916+6 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等
