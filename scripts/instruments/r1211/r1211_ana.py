@@ -64,6 +64,7 @@ for seed in range(s0, s1 + 1):
         h = f.readline().rstrip('\r\n').split('\t'); ix = {k: i for i, k in enumerate(h)}
         I = lambda k: ix[k]
         iq, inat, ireg, iN = I('quarter'), I('nation'), I('region'), I('nIndex')
+        # (1214) fPushbackIndex は rulepower_s から消えた（c122cr）。m1212 以前の生だけ読める（新しい生は iA の行を外す）。pressureIndex・fResistIndex は (1214) でエンジンと同じ関数の値へ変わった。
         iFS, iFI, iFR, iA, iFU = I('fStateIndex'), I('fInterIndex'), I('fResistIndex'), I('fPushbackIndex'), I('fUngovIndex')
         iFsum, iK = I('fForeignSumIndex'), I('kappaIndex')
         iO, iL, iF, iU, iB, iNB = I('ownerSideShare'), I('localSideShare'), I('foreignSideShare'), I('ungovSideShare'), I('bestClass'), I('nowBestClass')

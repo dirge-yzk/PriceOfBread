@@ -7,6 +7,7 @@ def fl(x):
     except ValueError: return float('nan')
 out = []
 P = lambda *x: out.append(' '.join(str(y) for y in x))
+# (1214) fPushbackIndex（押し返し A）は rulepower_s から消えた（c122cr）。基線 m1212 以前の生を読む台本＝列の名は残す。新しい生では列が無い。
 COLS = ['nation', 'region', 'tier', 'popK', 'nIndex', 'qEngIndex', 'fStateIndex', 'fInterIndex', 'fResistIndex', 'fPushbackIndex', 'fUngovIndex', 'fForeignEngIndex',
         'rhoEngIndex', 'ownerWeightShare', 'nowRule0Share', 'nowRule1Share', 'nowRule2Share', 'nowRule3Share', 'foreignTopKey', 'oEngNationIndex', 'lNationIndex', 'hEngNationIndex', 't0EngShare', 't1EngShare', 't3EngShare', 'qIndex']
 allrec = {}
