@@ -1,0 +1,11 @@
+id	候補	識別子
+K90	機会の因子の床 0.1（S13-20）	OpportunityFactorFloor
+K91	州と州の移民の 1 期の上限 0.2（S13-27）	MaxMigrationFraction
+K92	技術者の出国禁止法（法の軸ごと・S13-50・51）	SpecialistExitBan,SpecialistExitLaw,LastSpecialistExit,SpecialistExitBanPrefScale
+K93	時代の距離（S13-41）	EraMigrationScale
+K94	坩堝と差別の重み（S13-38）	EthnicDraw,DiscriminationLiteracy
+K95	犯罪の旧い式と配り（S13-23・24）	CrimeBase,CrimeMilitancyWeight,CrimeUrbanWeight
+K96	計器の定数の列（urxpd・S13-10）	capBound,wTargetCapped,wCap
+K97	移民制限法を AI が締める閾値の線（S13-05）	ImmigrationReceiveCapPerQuarter
+K98	越境の閾値 0.5（S13-34・35）	CrossBorderOppGapThreshold
+K99	犯罪→満足度の削りの係数（宣言だけ・S13-25）	CrimeSatPenalty

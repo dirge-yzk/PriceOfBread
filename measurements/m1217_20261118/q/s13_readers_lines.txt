@@ -1,0 +1,31 @@
+K90	PriceOfBread.SimCore/Territory.cs:6		internal const double OpportunityFactorFloor = 0.1;
+K90	PriceOfBread.SimCore/Territory.cs:101	条	double wagePull = Math.Max(OpportunityFactorFloor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
+K90	PriceOfBread.SimCore/Territory.cs:107	条	return r.ProductivityBonus * wagePull * land * (1.0 - unemp / pop) * Math.Max(OpportunityFactorFloor, pushPenalty) * Math.Max(OpportunityFactorFloor, housingFriction);
+K91	PriceOfBread.SimCore/Territory.cs:5		private const double MaxMigrationFraction = 0.2;
+K91	PriceOfBread.SimCore/Territory.cs:48	条	double fraction = PoliticalQuantities.ClampOr(c.RegionMobility * gMax, 0, MaxMigrationFraction, 0.0);
+K92	PriceOfBread.SimCore/FactionSnapshot.cs:236	条	PolicyAxis.SpecialistExitBan => increase ? "技術者の出国禁止" : "技術者の出国自由",
+K92	PriceOfBread.SimCore/Government.cs:59	条	new(PolicyAxis.SpecialistExitBan, w => (int)w.SpecialistExitLaw, (w, v) => w.SpecialistExitLaw = (SpecialistExitLaw)v, (w, p) => (int)p.SpecialistExitLaw, 2, Stage: 2),
+K92	PriceOfBread.SimCore/MultiNationSim.cs:1521	条	double ban = PoliticalQuantities.Clamp01(src.SpecialistExitBan);
+K92	PriceOfBread.SimCore/Parliament.cs:282		case PolicyAxis.SpecialistExitBan: p.SpecialistExitLaw = (SpecialistExitLaw)StepTo((int)w.SpecialistExitLaw, 2); break;
+K92	PriceOfBread.SimCore/PolicyPreferences.cs:28		SpecialistExitBan,
+K92	PriceOfBread.SimCore/PolicyPreferences.cs:283		case PolicyAxis.SpecialistExitBan:
+K92	PriceOfBread.SimCore/Politics.cs:778	条	PolicyAxis.SpecialistExitBan => StepEnumAxis((int)w.SpecialistExitLaw, 2, v => { w.SpecialistExitLaw = (SpecialistExitLaw)v; p.SpecialistExitLaw = w.SpecialistExitLaw; }),
+K92	PriceOfBread.SimCore/World.cs:756	条	public double SpecialistExitBan => (int)SpecialistExitLaw / 2.0;
+K92	PriceOfBread.SimCore/Model.cs:49		public enum SpecialistExitLaw { Free, Restricted, Banned }
+K92	PriceOfBread.SimCore/Policy.cs:92		public SpecialistExitLaw SpecialistExitLaw = SpecialistExitLaw.Free;
+K92	PriceOfBread.SimCore/Policy.cs:146		AdminSpendingTarget = o.AdminSpendingTarget; OpiumPossession = o.OpiumPossession; OpiumExportBan = o.OpiumExportBan; ImmigrationRestriction = o.ImmigrationRestriction; SpecialistExitLaw = o.Specialist
+K92	PriceOfBread.SimCore/Validation.cs:204		if (!System.Enum.IsDefined(w.SpecialistExitLaw) || !System.Enum.IsDefined(p.SpecialistExitLaw)) return "技術者流出禁止法";
+K92	PriceOfBread.SimCore/World.cs:754		public SpecialistExitLaw SpecialistExitLaw { get; internal set; } = SpecialistExitLaw.Free;
+K92	PriceOfBread.SimCore/MultiNationSim.cs:1371		foreach (var sim0 in Nations) { var w0 = sim0.World; w0.LastImmigration = 0; w0.LastEmigration = 0; w0.LastSpecialistExit = 0; }
+K92	PriceOfBread.SimCore/MultiNationSim.cs:1586	加	src.LastSpecialistExit += moved;
+K92	PriceOfBread.SimCore/PolicyPreferences.cs:285	条	double exitRate = Math.Max(0, w.LastSpecialistExit) / w.TotalPopulation;
+K92	PriceOfBread.SimCore/World.cs:759		public double LastSpecialistExit { get; internal set; }
+K92	PriceOfBread.SimCore/PolicyPreferences.cs:286		double banPressure = w.Coef.SpecialistExitBanPrefScale * exitRate;
+K93	PriceOfBread.SimCore/Territory.cs:70	条	=> c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
+K93	PriceOfBread.SimCore/Territory.cs:73	条	=> c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
+K94	PriceOfBread.SimCore/MultiNationSim.cs:1381	条	? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * PoliticalQuantities.Clamp01(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy)
+K95	PriceOfBread.SimCore/Crime.cs:25	条加	double crimeRate = c.CrimeBase * (1.0 - order) * PoliticalQuantities.Clamp01(c.CrimeMilitancyWeight * criminal / regionPop) * (1.0 + c.CrimeUrbanWeight * urbanShare);
+K97	PriceOfBread.SimCore/MultiNationSim.cs:1397		dst.Add((d, r, o, la, lo, _coef.ImmigrationReceiveCapPerQuarter.Value * r.SumPopulation() * lawCap * Territory.AbsorbCap(r, _coef), classes));
+K97	PriceOfBread.SimCore/SelfPlay.cs:528	条	&& pressure > w.Coef.ImmigrationRestrictionPrefScale * w.Coef.ImmigrationReceiveCapPerQuarter.Value
+K97	PriceOfBread.SimCore/Territory.cs:85		double cap = (Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter) * dst.SumPopulation() * AbsorbCap(dst, c)).Value;
+K98	PriceOfBread.SimCore/MultiNationSim.cs:1419		double g = dst[x].O - push - _coef.CrossBorderOppGapThreshold;

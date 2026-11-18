@@ -1,0 +1,58 @@
+行	判定	新しい錨	違い	係数
+S13-01	変わらない	MultiNationSim.cs:1384:double lawCap = w.ImmigrationRestriction switch;Coefficients.p08_audit_soldiers.cs:88:ImmigrationSelectiveFrac;Coefficients.p08_audit_soldiers.cs:89:ImmigrationClosedFrac		ImmigrationClosedFrac ImmigrationSelectiveFrac
+S13-02	変わった	NationConfig.cs:34:InitialImmigration;Simulation.cs:164:InitialImmigration	関数 Simulation の字が違う；係数の値 CenterIsFirstProvince:1.0→無 CoreInitByRegionCulture:1.0→無	CenterIsFirstProvince CoreInitByRegionCulture
+S13-03	変わらない	MultiNationSim.cs:368:InitialImmigration = pw.ImmigrationRestriction		
+S13-04	変わらない	PolicyPreferences.cs:280:inflowRate;PolicyPreferences.cs:281:ImmigrationRestrictionPrefScale		CapitalControlPrefScale GuildLawGate ImmigrationRestrictionPrefScale LaborMilitancyConcession LordIntermediaryStake LordReligionStake MilitaryExportPrefScale MonetaryPeerPullScale MonetaryPrefScale OpiumBanPrefScale OpiumTradePrefScale PensionOldWeight RebelArmsMarketEnabled RentProtectionWeightCoef RiotMilitancyThreshold SpecialistExitBanPrefScale SuffrageConcession TariffExportOppositionWeight TariffInterestPrefWeight TariffStateRevenueWeight
+S13-05	変わらない	SelfPlay.cs:527:w.ImmigrationRestriction != ImmigrationLaw.Closed;SelfPlay.cs:528:ImmigrationReceiveCapPerQuarter;SelfPlay.cs:530:immWant		ImmigrationReceiveCapPerQuarter ImmigrationRestrictionPrefScale ImmigrationSelectiveFrac RebelArmsMarketEnabled
+S13-06	変わらない	SelfPlay.cs:526:immWant;SelfPlay.cs:531:UnequalTreatyInForce		ImmigrationReceiveCapPerQuarter ImmigrationRestrictionPrefScale ImmigrationSelectiveFrac RebelArmsMarketEnabled
+S13-07	変わらない	Territory.cs:124:AbsorbCap;Territory.cs:127:double slack;Coefficients.p04_trade.cs:106:ImmigrationAbsorbExponent		ImmigrationAbsorbExponent
+S13-08	変わらない	PopDecision.cs:7:MigrationPair		
+S13-09	変わらない	PopDecision.cs:65:MigrationTemperature;PopDecision.cs:70:coef.Mobility * (targetUrban - curUrban) * total;Coefficients.cs:42:Mobility;Coefficients.cs:43:MigrationTemperature		FamineMigrationFillGate MigrationTemperature Mobility SerfMobilityGate UrbanFlowReal
+S13-10	変わった	PopDecision.cs:73:?	係数が消えた BaseUrbanCap；錨の名が行に無い PopDecision.cs:73	BaseUrbanCap FamineMigrationFillGate MigrationTemperature Mobility SerfMobilityGate UrbanFlowReal
+S13-11	変わった		係数が消えた UrbanCapFollowSpeed	UrbanCapFollowSpeed
+S13-12	変わらない	PopDecision.cs:76:FamineMigrationFillGate;Coefficients.p02_borrow_polity_epidemic.cs:71:FamineMigrationFillGate		FamineMigrationFillGate MigrationTemperature Mobility SerfMobilityGate UrbanFlowReal
+S13-13	変わらない	PopDecision.cs:73:SerfMobilityGate;PopDecision.cs:74:serfFree		FamineMigrationFillGate MigrationTemperature Mobility SerfMobilityGate UrbanFlowReal
+S13-14	変わらない	PopDecision.cs:55:UrbanFlowReal;Coefficients.p06_rank_discovery.cs:120:UrbanFlowReal		FamineMigrationFillGate MigrationTemperature Mobility SerfMobilityGate UrbanFlowReal
+S13-15	変わらない	Territory.cs:97:internal static double Opportunity;Territory.cs:107:return r.ProductivityBonus		CrimePushWeight HousingMigrationFriction OpportunityWageWeight PushUnrestWeight
+S13-16	変わらない	Territory.cs:101:OpportunityWageWeight;Coefficients.p04_trade.cs:89:OpportunityWageWeight		CrimePushWeight HousingMigrationFriction OpportunityWageWeight PushUnrestWeight
+S13-17	変わらない	Territory.cs:106:HousingMigrationFriction		CrimePushWeight HousingMigrationFriction OpportunityWageWeight PushUnrestWeight
+S13-18	変わらない	Territory.cs:104:AvgRegionMilitancy;Territory.cs:105:PushUnrestWeight;Coefficients.p07_wiring_prewarm.cs:117:PushUnrestWeight		CrimePushWeight HousingMigrationFriction OpportunityWageWeight PushUnrestWeight
+S13-19	変わらない	Territory.cs:105:CrimePushWeight;Coefficients.p07_wiring_prewarm.cs:26:CrimePushWeight		CrimePushWeight HousingMigrationFriction OpportunityWageWeight PushUnrestWeight
+S13-20	変わらない	Territory.cs:6:OpportunityFactorFloor		
+S13-21	変わらない	Territory.cs:103:if (!p.IsSoldier)		CrimePushWeight HousingMigrationFriction OpportunityWageWeight PushUnrestWeight
+S13-22	変わらない	Crime.cs:11:EffectiveCoerce;Crime.cs:12:CrimeOrderPerPop;PoliticalQuantities.cs:8:w.Coercion * (w.TotalPopulation		CrimeBase CrimeMilitancyWeight CrimeOrderPerPop CrimeUrbanWeight PoliticalReferencePop
+S13-23	変わらない	Crime.cs:25:double crimeRate;Coefficients.p02_borrow_polity_epidemic.cs:15:CrimeBase;Coefficients.p02_borrow_polity_epidemic.cs:16:CrimeMilitancyWeight;Coefficients.p02_borrow_polity_epidemic.cs:17:CrimeUrbanWeight		CrimeBase CrimeMilitancyWeight CrimeOrderPerPop CrimeUrbanWeight
+S13-24	変わらない	Crime.cs:34:double steal;Crime.cs:46:World.Transfer		CrimeBase CrimeMilitancyWeight CrimeOrderPerPop CrimeUrbanWeight
+S13-25	変わった	Crime.cs:?:(384)	錨 Crime.cs:68 を取り直せない	CrimeBase CrimeMilitancyWeight CrimeOrderPerPop CrimeUrbanWeight
+S13-26	変わらない	Territory.cs:48:RegionMobility;Territory.cs:54:double f = fraction * (gap[d] / wSum)		RegionMobility TransportFriction
+S13-27	変わらない	Territory.cs:5:MaxMigrationFraction		
+S13-28	変わらない	Territory.cs:42:EntryFrictionTerm;Territory.cs:72:EntryFrictionTerm		EraFactor EraMigrationScale MigrationDistanceScale RegionMobility TransportFriction
+S13-29	変わらない	Territory.cs:20:stay[i] = opp[i] * Holding(r, c);Territory.cs:117:internal static double Holding;MultiNationSim.cs:1410:Territory.Holding		LandDiminishExponent RegionMobility TransportFriction
+S13-30	変わらない	Territory.cs:61:ReceiveScale;Territory.cs:85:double cap		ImmigrationReceiveCapPerQuarter RegionMobility TransportFriction
+S13-31	変わらない	Territory.cs:137:sp.IsCriminal		
+S13-32	変わった	Territory.cs:?:(551)	行の字が NEW に無い（関数の外）；錨 Territory.cs:5 を取り直せない	
+S13-33	変わらない	Territory.cs:32:if (!double.IsFinite(stay[s])) continue;MultiNationSim.cs:1393:if (!double.IsFinite(o)) continue;MultiNationSim.cs:1453:double scale		RegionMobility TransportFriction
+S13-34	変わらない	MultiNationSim.cs:1410:double push;MultiNationSim.cs:1419:CrossBorderOppGapThreshold;Coefficients.p08_audit_soldiers.cs:81:CrossBorderOppGapThreshold		CrossBorderOppGapThreshold
+S13-35	変わらない	MultiNationSim.cs:1419:CrossBorderOppGapThreshold;MultiNationSim.cs:1441:double f = flow * (gap[x] * dstA[dst[x].D] / wSum)		
+S13-36	変わらない	MultiNationSim.cs:1436:double flow;Coefficients.p03_debt_money.cs:18:EmigrationRate		EmigrationRate
+S13-37	変わらない	MultiNationSim.cs:1435:EmigrationMaxPerQuarter;MultiNationSim.cs:1433:double effFill;Coefficients.p03_debt_money.cs:19:EmigrationMaxPerQuarter;Coefficients.p07_wiring_prewarm.cs:144:FaminePushMaxFracBoost		EmigrationMaxPerQuarter FaminePushMaxFracBoost
+S13-38	変わらない	MultiNationSim.cs:1381:EthnicDraw;Coefficients.p03_debt_money.cs:96:EthnicDraw;Coefficients.p03_debt_money.cs:99:DiscriminationLiteracy		DiscriminationLiteracy EthnicDraw
+S13-39	変わらない	MultiNationSim.cs:1397:ImmigrationReceiveCapPerQuarter;MultiNationSim.cs:1453:double scale		
+S13-40	変わらない	MultiNationSim.cs:1490:src.PopulationDelta -= moved;MultiNationSim.cs:1491:CumulativeTradeFlow		
+S13-41	変わった	Territory.cs:70:EraFactor;Coefficients.p10_ai_silver_overrides.cs:58:EraMigrationScale	係数が消えた public	EraFactor EraMigrationScale MigrationDistanceScale public
+S13-42	変わらない	Territory.cs:121:Math.Pow(Math.Max(1.0, ratio), c.LandDiminishExponent);Coefficients.p03_debt_money.cs:148:LandDiminishExponent		LandDiminishExponent
+S13-43	変わった	MultiNationSim.cs:1485:Pop.Blend;Model.cs:229:internal static double Blend;Model.cs:245:to.Consciousness;Model.cs:247:IdeologyShares	関数 Blend の字が違う；関数 Blend の字が違う；関数 Blend の字が違う	
+S13-44	変わった	MultiNationSim.cs:?:MigrationFarePerkKm	行の字が NEW に無い（関数の外）；錨 MultiNationSim.cs:1807 を取り直せない	
+S13-45	変わらない	World.cs:1623:ModernizationToRecruit;World.cs:1624:RecruitBudget		ModernizationToHigherEdu ModernizationToRecruit ScholarshipTopStage
+S13-46	変わらない	MultiNationSim.cs:1542:RecruitPremiumScale;MultiNationSim.cs:1544:RecruitCostPerHead;MultiNationSim.cs:1546:RecruitMaxFracOfSource		
+S13-47	変わらない	MultiNationSim.cs:1583:double cost;MultiNationSim.cs:1584:World.Transfer		
+S13-48	変わらない	MultiNationSim.cs:1543:Diplomacy.DistanceNormKm		
+S13-49	変わらない	MultiNationSim.cs:472:_recruitLog		
+S13-50	変わらない	MultiNationSim.cs:1521:SpecialistExitBan;MultiNationSim.cs:1546:(1.0 - ban);World.cs:756:SpecialistExitBan		
+S13-51	変わらない	PolicyPreferences.cs:286:SpecialistExitBanPrefScale;Coefficients.p08_audit_soldiers.cs:87:SpecialistExitBanPrefScale;LawCatalog.cs:108:slot: LawSlot.NoRow		CapitalControlPrefScale GuildLawGate ImmigrationRestrictionPrefScale LaborMilitancyConcession LordIntermediaryStake LordReligionStake MilitaryExportPrefScale MonetaryPeerPullScale MonetaryPrefScale OpiumBanPrefScale OpiumTradePrefScale PensionOldWeight RebelArmsMarketEnabled RentProtectionWeightCoef RiotMilitancyThreshold SpecialistExitBanPrefScale SuffrageConcession TariffExportOppositionWeight TariffInterestPrefWeight TariffStateRevenueWeight
+S13-52	変わらない	MultiNationSim.cs:1351:AssimilationEducationBonus;Coefficients.p03_debt_money.cs:97:EthnicAssimilation;Coefficients.p03_debt_money.cs:98:AssimilationEducationBonus		AssimilationEducationBonus EthnicAssimilation
+S13-53	変わらない	MultiNationSim.cs:1357:double resist;Coefficients.p06_rank_discovery.cs:132:AssimilationLiteracyResist		AssimilationLiteracyResist
+S13-54	変わらない	MultiNationSim.cs:1353:AssimilationRevival;Coefficients.p06_rank_discovery.cs:133:AssimilationRevival		AssimilationRevival
+S13-55	変わらない	MultiNationSim.cs:1485:coreAtDest: dst.EthnicEnabled ? 0.0		
+S13-56	変わらない	Territory.cs:166:CoreEthnicShare = new Share(0.0);Territory.cs:170:CoreEthnicShare = new Share(1.0 - p.CoreEthnicShare.Value)		
+S13-57	変わった	Politics.cs:925:PublicOrder;PowerShares.cs:20:PublicOrder	関数 CheckSecession の字が違う；係数の値 SecessionConsciousnessWeight:1.0→無	ColonyPromotionMinPop CrimeOrderPerPop CultureDistanceFromEthnic CultureSecessionWeight DistanceWarDecay DominanceSpeed MinorityMilitancy PoliticalReferencePop RuleOrderByRegion SecessionConsciousnessWeight SecessionCultureAdditive SecessionHoldCoercion SecessionHoldPerPop SecessionHoldProjection SecessionHoldSharedArmy SecessionPressureScale SecessionThreshold

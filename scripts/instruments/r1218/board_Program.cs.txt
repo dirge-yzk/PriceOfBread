@@ -1,0 +1,44 @@
+// (1218) c122r2 段0 の足し：ColonialPopTests:117 の盤面（英仏・種 83・DiplomacyFrozen・英のジャマイカ・住民を 1000 千人へ倍掛け・貯蓄 +1e5）を
+// (a) 試験と同じ素の EconomyStep.Run 1 回／(b) MultiNationSim.StepDay を 30 日（MarketFlow の日次の値段と月末の国際の清算を含む）で比べる（使い捨て・コミットしない）。
+// 引数：<月数> <出力の tsv>。旗は POB_COEF で置く。
+using System.Globalization;
+using PriceOfBread.SimCore;
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+int months = int.Parse(args[0]);
+using var o = new StreamWriter(args[1], false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+o.WriteLine($"# r1218 board override=[{Coefficients.OverrideSummary()}] months={months}");
+o.WriteLine("mode\tmonth\tgood\tflag\tprice\tout\tsoldDom\texport\tstock\tlastDemand\trev\tcost\trentTest\tscale\tinvDelta\trentSum");
+foreach (var mode in new[] { "run", "dayraw" })
+{
+    var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+    var w = sim.Nations[0].World;
+    var col = w.Regions.First(r => r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == Catalog.CoffeeId && Colonial.AbsenteeRgo(r, p)));
+    double upscale = 1000.0 / col.SumPopulation();
+    // day＝倍掛けだけ（貯蓄の反射の注入は MonthSettle の貨幣の保存の検査に当たる）・dayraw＝盤面に手を入れない
+    if (mode == "run") foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
+    if (mode == "day") foreach (var p in col.Pops) if (p.Size > 1e-9) p.Size *= upscale;
+    var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+    for (int m = 1; m <= months; m++)
+    {
+        double i0 = inv.Savings.Value;
+        if (mode == "run") EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+        else for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay();
+        double rent = 0;
+        foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) rent += p.LastRevenue - p.LastCost;
+        foreach (var p in col.Producers)
+        {
+            if (!Colonial.AbsenteeRgo(col, p)) continue;
+            var mk = col.Markets[p.GoodId];
+            o.WriteLine(string.Join('\t', mode, m, Catalog.Goods[p.GoodId].Name, w.Coef.EndowmentCostFollowsAbundance, G(mk.Price), G(p.Output), G(mk.LastSold), G(mk.LastExport), G(mk.Stock), G(mk.LastDemand),
+                G(p.LastRevenue), G(p.LastCost), G(p.LastRevenue - p.LastCost), G(p.Scale), G(inv.Savings.Value - i0), G(rent)));
+        }
+    }
+}
+Console.WriteLine("BOARDDONE");
+static string G(double x) => x.ToString("G6", CultureInfo.InvariantCulture);
+internal static class BoardX
+{
+    private static readonly System.Reflection.FieldInfo SavingsField =
+        typeof(Pop).GetField("_savings", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+    internal static void SetSavings(this Pop p, double v) => SavingsField.SetValue(p, new MoneyStock(v));
+}

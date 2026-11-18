@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- (1218) 使い捨てのプローブ（コミットしない）。AssemblyName は SimCore の InternalsVisibleTo に合わせる（内部の関数を読むためだけ）。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>PriceOfBread.Tests</AssemblyName>
+    <RootNamespace>R1218Probe</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../PriceOfBread.SimCore/PriceOfBread.SimCore.csproj" />
+  </ItemGroup>
+</Project>

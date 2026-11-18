@@ -1,0 +1,80 @@
+// (1218) c122r2 段0：B-1 の全体の世界のプローブ（使い捨て・コミットしない）。
+// 全体の世界（WorldData.Nations() 全カ国・UtilityAgent・StartWarmup の後）を 12 か月（30 日×12 の StepDay＝MarketFlow の日次の値段と月末の国際の清算を含む）回し、
+// 開幕の時点で英と仏の World にある植民地格の州のうち、不在地主の大農園（Colonial.AbsenteeRgo）を持つ州を毎月末に読む。
+// 旗は POB_COEF（EndowmentCostFollowsAbundance=1）で国ごとの World.Coef の構築の時に置く（播種で割る旗＝構築の後に書いても効かない）。
+// 引数：<種の始め> <種の終わり> <月数> <出力の tsv>
+using System.Globalization;
+using PriceOfBread.SimCore;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong s0 = ulong.Parse(args[0]), s1 = ulong.Parse(args[1]);
+int months = int.Parse(args[2]);
+string outPath = args[3];
+using var o = new StreamWriter(outPath, false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+string ov = Coefficients.OverrideSummary();
+o.WriteLine($"# r1218 probe override=[{ov}] months={months} seeds={s0}..{s1}");
+o.WriteLine("kind\tseed\tmonth\tnation\tregion\tgood\tflag\tprice\tmcNow\tpfEng\tpfNow\tinvAdjPre\tinvAdjInv\tout\toutPrev\tcap\tfillPrev\tsoldDom\texport\tstock\tlastDemand\trev\tcost\trentTest\texpRentApprox\tscale\tsmMargin\tbankrupt\tpfChk\tinvChk");
+for (ulong seed = s0; seed <= s1; seed++)
+{
+    var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+    sim.StartWarmup();
+    // 開幕の時点の英と仏の植民地格の州（不在地主の大農園つき）
+    var watch = new List<(string Nation, World W, Region R)>();
+    foreach (var n in sim.Nations)
+    {
+        var w = n.World; string nm = w.SelfPower?.BaseName ?? "?";
+        if (nm != "イギリス" && nm != "フランス") continue;
+        foreach (var r in w.Regions)
+            if (r.Tier == RegionTier.Colonial && r.Producers.Any(p => Colonial.AbsenteeRgo(r, p))) watch.Add((nm, w, r));
+    }
+    var prevInv = new Dictionary<(Region, int), double>();
+    var prevOF = new Dictionary<Producer, (double Out, double Fill)>();
+    for (int m = 0; m <= months; m++)
+    {
+        if (m > 0) for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay();
+        foreach (var (nm, w0, r) in watch)
+        {
+            var w = sim.Nations.Select(x => x.World).FirstOrDefault(x => x.Regions.Contains(r));
+            if (w is null) continue;
+            var c = w.Coef;
+            string owner = w.SelfPower?.BaseName ?? "?";
+            double rentSum = 0, expSum = 0; int nP = 0;
+            foreach (var p in r.Producers)
+            {
+                if (!Colonial.AbsenteeRgo(r, p)) continue;
+                var mk = r.Markets[p.GoodId];
+                double pfEng = p.Capacity != 0 ? p.DesiredOutput / p.Capacity : double.NaN;   // エンジンが書いた DesiredOutput＝Capacity×profitFactor（Run の時の値）
+                double mcNow = EconomyStep.MineralSelfCost(p, r, c, w) + EconomyStep.InputCostPerUnit(p, r, r, c);
+                double pfNow = EconomyStep.ProfitFactor(p, mk.Price, mcNow, c);   // 月末の値段で組み直した採算（pfEng と一致すれば Run の時の値段と mc を読めている）
+                double invPre = prevInv.TryGetValue((r, p.GoodId), out var ip) ? ip : double.NaN;
+                bool hasPrev = prevOF.TryGetValue(p, out var pv);
+                // 供給①の逆算：Output＝prev＋k×(cap×fill_prev×pf×invAdj−prev)（fill は Run の後で来月の分へ書き直される＝前の月末の値が Run の時の値）
+                double invInv = double.NaN;
+                if (m > 0 && hasPrev && pfEng > 0 && p.Capacity * pv.Fill > 0 && p.Output > 0)
+                    invInv = ((p.Output - pv.Out) / c.SupplyAdjustSpeed + pv.Out) / (p.Capacity * pv.Fill * pfEng);
+                int invChk = double.IsNaN(invPre) || double.IsNaN(invInv) ? -1 : (Math.Abs(invPre - invInv) <= 1e-7 * Math.Max(1.0, Math.Abs(invPre)) ? 1 : 0);
+                int pfChk = m == 0 || double.IsNaN(pfEng) ? -1 : (Math.Abs(pfNow - pfEng) <= 1e-9 ? 1 : 0);
+                double rentTest = p.LastRevenue - p.LastCost;
+                double totalOut = 0;
+                foreach (var q in r.Producers) if (q.GoodId == p.GoodId && q.OwnerPopIndex >= 0 && q.OwnerPopIndex < r.Pops.Count && q.LaborPopIndex >= 0 && q.LaborPopIndex < r.Pops.Count) totalOut += Math.Max(0, q.Output);
+                double share = totalOut > 1e-9 ? Math.Max(0, p.Output) / totalOut : 0;
+                double amt = mk.LastExport * mk.Price * share;
+                double er = EconomyStep.RentShareOf(p, r, c) * amt; er -= er * World.StateProfitShare(p, r, c);
+                rentSum += rentTest; expSum += er; nP++;
+                o.WriteLine(string.Join('\t', "P", seed, m, owner, r.Name, Catalog.Goods[p.GoodId].Name, c.EndowmentCostFollowsAbundance,
+                    G(mk.Price), G(mcNow), G(pfEng), G(pfNow), G(invPre), G(invInv), G(p.Output), G(hasPrev ? pv.Out : double.NaN), G(p.Capacity), G(hasPrev ? pv.Fill : double.NaN),
+                    G(mk.LastSold), G(mk.LastExport), G(mk.Stock), G(mk.LastDemand), G(p.LastRevenue), G(p.LastCost), G(rentTest), G(er),
+                    G(p.Scale), G(p.SmoothedMargin), p.Bankrupt ? 1 : 0, pfChk, invChk));
+            }
+            o.WriteLine(string.Join('\t', "R", seed, m, owner, r.Name, "*", c.EndowmentCostFollowsAbundance, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", G(rentSum), G(expSum), "", "", nP, "", ""));
+            // 次の月の Run の直前の在庫の調整（Run は StepDayClose の MonthSettle の頭で走る＝前の月末の国際の清算の後の Stock と LastDemand を読む）
+            foreach (var p in r.Producers) if (Colonial.AbsenteeRgo(r, p)) { prevInv[(r, p.GoodId)] = EconomyStep.InventoryAdjust(r, p.GoodId, c); prevOF[p] = (p.Output, p.LastInputFill); }
+        }
+        o.Flush();
+    }
+    Console.WriteLine($"seed {seed} done watch={watch.Count}");
+}
+Console.WriteLine("PROBEDONE");
+
+static string G(double x) => x.ToString("G9", CultureInfo.InvariantCulture);

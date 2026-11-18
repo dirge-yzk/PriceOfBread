@@ -1,0 +1,19 @@
+# OLD=7bb40c77 NEW=245780b63 W=±12 行（注と空白を除いた行）
+行	錨	囲む関数	近くの差の塊	差の行（先頭の 3 行・字は 90 字まで）
+S13-02	NationConfig.cs:83:InitialImmigration	（関数の外）	—	
+S13-02	Simulation.cs:185:InitialImmigration	Simulation	0	
+S13-10	Coefficients.cs:1181:BaseUrbanCap	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S13-10	PopDecision.cs:90:(812)	Run	0	
+S13-11	Coefficients.cs:1181:UrbanCapFollowSpeed	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S13-25	Crime.cs:68:(384)	Step	0	
+S13-32	Territory.cs:5:(551)	（関数の外）	—	
+S13-41	Territory.cs:94:EraFactor	MigrationDecay	0	
+S13-41	Coefficients.cs:3519:public double EraFactor(double worldTec	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S13-41	Coefficients.cs:3513:EraMigrationScale	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S13-43	MultiNationSim.cs:1818:Pop.Blend	MoveAbroad	0	
+S13-43	Model.cs:400:internal static double Blend	Blend	0	
+S13-43	Model.cs:419:to.Consciousness	Blend	1	-double wTo = to.NationalConsciousness >= 0 ? t0 : 0, wFrom = from.NationalConsciousness >
+S13-43	Model.cs:424:IdeologyShares	Blend	1	-double wTo = to.NationalConsciousness >= 0 ? t0 : 0, wFrom = from.NationalConsciousness >
+S13-44	MultiNationSim.cs:1807:MigrationFarePerkKm	（関数の外）	—	
+S13-57	Politics.cs:1561:PublicOrder	CheckSecession	0	
+S13-57	PowerShares.cs:48:PublicOrder	StatePatronage	0	

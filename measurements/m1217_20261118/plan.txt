@@ -1,0 +1,11 @@
+(1217) c122rs 読む線の計画（2026-11-18・担当 Opus 5.5）
+作業の場所: D:/PoB_work/r1217_work/（src=245780b63 の git archive 写し・scr=台本・out=出力）。worktree・枝は作らない。コミットしない。腕 0 本。
+読む生（読むだけ）:
+ - D:/PoB_work/keep_1212/base_ins: satneeds_s7/8・nation_s7/8・pop_s7/8・goods_s7/8・tb_s7/8 ほか（M＝計器つき 10 種）
+ - D:/PoB_work/keep_1212/n1: 同じ表（N1）
+ - D:/PoB_work/keep_1212/a11: satneeds 等は無い＝〈無い〉と名乗る（成績表の文だけ読む）
+ - measurements/b10_20261118_m1212_ins・_n1_ins・b10s11_20261118_m1212_ins の 満足度の行
+ - S13: scratchpad ledger_S13_2026-11-12.{md,tsv}・_反証.md・docs/機能の台帳.md の | S13- 行
+ソース: Validation.cs:37-65・MeanSatisfaction の書き手・SelfPlay.cs:1334/1433/1501・S13 の錨
+問い1: 張り付きの 2 国の 0 は 所得/値段/供給/物差し のどれか・いつから・NaN/保存則でないこと・N1/S11 の × 同型か
+問い2: S13 の 12 列 tsv・門 7〜9・処置・削除候補 dl_table・大きな機構から導ける物の一覧（EthnicDraw を含む）
