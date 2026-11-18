@@ -1,0 +1,7 @@
+M3 入れた：D:/PoB_work/c123k3_work/mut/M3/PriceOfBread.SimCore/Simulation.cs
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.HealthcareLiteracyGateTests.T3_社会保障が0なら両方の旗で医者の役務の半分が下から支える [6 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+rc=1
+  失敗 PriceOfBread.Tests.HealthcareLiteracyGateTests.T3_社会保障が0なら両方の旗で医者の役務の半分が下から支える [6 ms]
+   Assert.Equal() Failure: Values are not within tolerance 9.9999999999999998E-13
