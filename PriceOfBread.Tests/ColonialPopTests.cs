@@ -132,6 +132,35 @@ public class ColonialPopTests
         Assert.Equal(rent, inv.Savings.Value - i0, 6);
     }
 
+    /// <summary>★(1221) c123tc：赤字のまま規模を伸ばさない（条件なし）。盤面＝英仏の英のジャマイカ（コーヒー・砂糖の大農園）の限界費用を 20 倍にして値段が費用を下回る生産者を作り、
+    /// EconomyStep.Run を 3 か月。月の損益（収入−支出）が負だった月は、その生産者の規模がその月に増えない。旗 EndowmentCostFollowsAbundance 1 の盤面は規模 1.010→1.115 と伸びる
+    /// （measurements/m1218_20261118/board1.tsv）＝その型の番人。⚠突然変異「規模の目標を 1+|利幅|」で赤。</summary>
+    [Fact]
+    public void 赤字の月に生産者の規模は増えない()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        var col = ColonyWith(w, Catalog.CoffeeId);
+        double upscale = 1000.0 / col.SumPopulation();
+        foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
+        var prs = col.Producers.Where(p => Colonial.AbsenteeRgo(col, p)).ToList();
+        Assert.True(prs.Count >= 2, $"不在地主の大農園が少ない（{prs.Count}）");
+        foreach (var p in prs) p.MarginalCost *= 20.0;   // 値段を費用より下に置く
+        int deficitMonths = 0;
+        for (int m = 0; m < 3; m++)
+        {
+            var before = prs.Select(p => p.Scale).ToArray();
+            EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+            for (int i = 0; i < prs.Count; i++)
+            {
+                if (!(prs[i].LastRevenue - prs[i].LastCost < 0)) continue;
+                deficitMonths++;
+                Assert.True(prs[i].Scale <= before[i] + 1e-12, $"赤字の月（{m + 1}か月目・{Catalog.Goods[prs[i].GoodId].Name}）に規模が増えた：{before[i]:G6}→{prs[i].Scale:G6}");
+            }
+        }
+        Assert.True(deficitMonths >= 2, $"赤字の生産者の月が少ない（{deficitMonths}）＝前提の盤面が立っていない");
+    }
+
     /// <summary>★(173) R4①：植民地の補給線は駐留の缶詰を買わない（駐留の兵は兵士 POP で給与から州の食料を買う＝2度食わせない・思想⑨）。
     /// 盤面＝英仏の英・缶詰を発見済みにして植民地の月（Colonial.Step）を1回＝缶詰の需要が立たない。⚠突然変異「缶詰の請求を戻す」で赤。</summary>
     [Fact]
