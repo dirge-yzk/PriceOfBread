@@ -79,7 +79,7 @@ public class ProductionDiagTests
     {
         // 専売を実際に掛けた財で、楔が動き買い手価格が市場価格から離れることを確かめる
         // （＝「行はあるが常に0」の飾りになっていないことの証明）。
-        var sim = RunWorld(20);
+        var sim = ProductionDiagShared.RunWorld(20);   // ★(1226) 合流：世界を書き換える試験＝共有の世界を使わない（(1221) 反証役 v の中 1）
         var w = sim.Nations[0].World;
         // ⚠奢侈品も避ける（2026-09-04）：**AIは奢侈品へ自動で専売を掛ける**（SelfPlay）ので、
         //   「まだ課税されていない財」という**この検査の前提**が壊れる。冷蔵庫(Luxury)を財表の末尾に足した時に露見した。
