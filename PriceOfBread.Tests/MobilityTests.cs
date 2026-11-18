@@ -118,13 +118,14 @@ public class MobilityTests
     }
 
     [Fact]
-    public void 失業プールの着地はsoftmax按分でも動き総取りを超えない()   // JobPoolTemperature（監査rank2）のON経路
+    public void 失業プールの着地はsoftmax按分でも動き低温の極限を超えない()   // JobPoolTemperature の経路（(1200) の後は softmax の 1 本・旧の総取りの枝は無い）
     {
-        var wta = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 総取り（T=0）
+        var wta = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 低温の極限（T=1e-9＝ほぼ最良の 1 つへ寄る）
         var soft = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());  // softmax（T=0.15）
         wta.Run(20); soft.Run(20);
         wta.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10);
         soft.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10); soft.World.Coef.JobPoolTemperature = 0.15;
+        wta.World.Coef.JobPoolTemperature = 1e-9;   // (1206) 比べる対の直し：以前は温度を置かず既定の 0.15 どうしの比べだった
         double before = 0;
         foreach (var sim in new[] { wta, soft })
         {
@@ -138,7 +139,7 @@ public class MobilityTests
         double movedWta = before - wta.World.Region.Pops[1].Size;
         double movedSoft = before - soft.World.Region.Pops[1].Size;
         Assert.True(movedSoft > 0, "softmax按分で失業農民が全く動かない");
-        Assert.True(movedSoft <= movedWta + 1e-9, $"softmax按分が総取りより多く流した（総取り {movedWta:F2} / softmax {movedSoft:F2}）");
+        Assert.True(movedSoft <= movedWta + 1e-9, $"softmax按分が低温の極限より多く流した（低温 {movedWta:F2} / softmax {movedSoft:F2}）");
     }
 
     [Fact]

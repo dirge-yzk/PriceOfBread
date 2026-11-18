@@ -225,7 +225,7 @@ public class CriminalVesselTests
         double Gained(int criminalIndexMode, bool forced, double temperature)
         {
             var w = QuietBritain();
-            w.Coef.JobPoolTemperature = temperature;   // 0＝総取りの waterfall の枝・正＝低温 softmax の枝（行き先の除外は両方に要る）
+            w.Coef.JobPoolTemperature = temperature;   // 0 以下は Eps へ置き換わる（(1200) の後は softmax の 1 本・ほぼ最良の 1 つへ寄る）・正＝softmax（行き先の除外はどちらにも要る）
             var r = w.Regions[0];
             var crim = Plant(r, 14, size: 1000);
             crim.EarnedPerMonth = new MoneyPerMonth(1e9);
