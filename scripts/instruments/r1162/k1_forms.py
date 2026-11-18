@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 # (1162) c114k1 読むだけ：K1（分離の圧の参政権の割引）の形を紙で当てる。腕 0・1 次の近似（力学の連鎖は数えない）。
 # 引数：生のフォルダ 種の始め 種の終わり 出力 組の名
 # 読む表：secession_s（州の行・CheckSecession の瞬間）・sf_s（国の colonialSuffrageLaw・migrantNativeSuffrageLaw）・monlaw_s（Suffrage）

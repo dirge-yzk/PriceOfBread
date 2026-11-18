@@ -15,6 +15,7 @@ case $G in
   Asec) TABLES1191="$GA" bash $S/m1191/arm1191.sh mAsec 1 10 1 1 "SecessionConsciousnessWeight=1" $H ;;
   Amob) TABLES1191="$GA" bash $S/m1191/arm1191.sh mAmob 1 10 1 1 "NationBuildMobilizationWeight=0.5" $H ;;
   Arev) TABLES1191="$GA" bash $S/m1191/arm1191.sh mArev 1 10 1 1 "RevolutionConsciousness=0.25" $H ;;
+  # (1199) 注：腕 Aur は (1193)(1195) で消えた（係数と分岐が物理的に消えた・旧の木でだけ動く）
   Aur)  TABLES1191="$GA" bash $S/m1191/arm1191.sh mAur 1 10 1 1 "UnificationAiPursueChance=0.7;UnificationAiWarGapYears=3" $H ;;
   p5)   bash $S/m1191/arm1191.sh mp5 0 5 1 1 - $H ;;
   p10)  bash $S/m1191/arm1191.sh mp10 0 10 1 1 - $H ;;

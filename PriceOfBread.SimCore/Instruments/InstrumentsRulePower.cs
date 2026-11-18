@@ -20,16 +20,15 @@ public static partial class Instruments
     /// <summary>力の式の結果（陸軍力の単位）。</summary>
     internal readonly record struct RpForces(double FS, double FI, double FR, double A, double FU);
 
-    /// <summary>州の力（設計 §3-2 の表）：F_S＝国内の分(hShare＝H_n×人口の取り分×ρ)＋A の中核の分／F_I＝N×τ×RuleInit[1]×仲介者の比／F_R＝N×圧力÷閾値＋A の中核でない分／A＝N×国民意識×X／F_U＝N×τ×RuleInit[3]。
+    /// <summary>州の力（設計 §3-2 の表）：F_S＝国内の分(hShare＝H_n×人口の取り分×ρ)／F_I＝N×τ×RuleInit[1]×仲介者の比／F_R＝N×圧力÷閾値／A＝0 の定数〔(1193) で入力の国民意識が消えた〕／F_U＝N×τ×RuleInit[3]。
     /// 純関数（NaN は 0 として扱う＝否定形の守り）。計器とエンジン（段 C′）が同じ関数を呼ぶ。</summary>
-    internal static RpForces RulePowerForces(double n, double tau, double hShare, double ruleInit1, double interRatio, double ruleInit3, double pressure, double secessionThreshold, double consciousness, double xForeign, double coreShare)
+    internal static RpForces RulePowerForces(double n, double tau, double hShare, double ruleInit1, double interRatio, double ruleInit3, double pressure, double secessionThreshold)
     {
         static double P(double x) => x > 0 ? x : 0;
-        double a = P(n) * P(consciousness) * P(xForeign);
-        double core = coreShare > 1 ? 1 : P(coreShare);
-        double fS = P(hShare) + a * core;
+        const double a = 0.0;   // (1193) で入力〔国民意識〕が消えた＝A は 0 の定数。導き直すか A ごと消すかは設計の材料の席〔支配の力の設計 §3-2〕。A が正に戻るときは中核の割合で F_S と F_R に割る式を戻す
+        double fS = P(hShare) + a;
         double fI = P(n) * P(tau) * P(ruleInit1) * P(interRatio);
-        double fR = secessionThreshold > 0 ? P(n) * P(pressure) / secessionThreshold + a * (1 - core) : a * (1 - core);
+        double fR = secessionThreshold > 0 ? P(n) * P(pressure) / secessionThreshold + a : a;
         double fU = P(n) * P(tau) * P(ruleInit3);
         return new RpForces(fS, fI, fR, a, fU);
     }
@@ -127,7 +126,7 @@ public static partial class Instruments
     }
     sealed class RpReg
     {
-        public Region R = null!; public double PopK, N, Tau, Pressure, Rho, RhoGc, Y, X, Core, Kappa, I, OwnerWeight;
+        public Region R = null!; public double PopK, N, Tau, Pressure, Rho, RhoGc, Y, Kappa, I, OwnerWeight;
         public int RhoSource; public RpForces F; public double HShare;
         public double RhoNf, TauNf, HShareNf;   // HShareNf〔履歴 InstrumentsRulePower.cs#7〕
         public double RhoRailGate, RhoNoRail, RhoFullRail, DirectKm; public bool DirectLand;
@@ -205,14 +204,7 @@ public static partial class Instruments
                 double crowd = Politics.RegionCrowd(r);
                 double press = Politics.AvgRegionMilitancy(r)
                     * (1.0 - PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(nn.W, r))) * (crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0);
-                double x = 0;
-                for (int j = 0; j < r.ForeignShares.Length && j < r.ForeignRulers.Length; j++)
-                {
-                    if (!(r.ForeignShares[j] > 0)) continue;
-                    var rp = dip.Powers.Find(pp => (pp.BaseName.Length > 0 ? pp.BaseName : pp.Name) == r.ForeignRulers[j]);
-                    if (rp is null || rp.Culture != nn.P.Culture) x += r.ForeignShares[j];   // 持ち主と主流の文化が違う外国の取り分（設計 §3-2 の A）
-                }
-                var rr = new RpReg { R = r, PopK = popK, N = popK * st.Q, Pressure = press, X = x, Core = Politics.AvgRegionCoreShare(r), Y = RpOutputValue(r) };
+                var rr = new RpReg { R = r, PopK = popK, N = popK * st.Q, Pressure = press, Y = RpOutputValue(r) };
                 // 大圏の届き（今）
                 var rc = Places.Coord(r.Name);
                 rr.RhoGc = (rc.Lat == 0 && rc.Lon == 0) ? double.NaN : RulePowerReach(Geo.DistanceKm(nn.W.Latitude, nn.W.Longitude, rc.Lat, rc.Lon));
@@ -299,7 +291,7 @@ public static partial class Instruments
             foreach (var rr in rows)
             {
                 var r = rr.R;
-                rr.F = RulePowerForces(rr.N, rr.Tau, rr.HShare, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, nn.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold, 0.0, rr.X, rr.Core);
+                rr.F = RulePowerForces(rr.N, rr.Tau, rr.HShare, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, nn.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold);
             }
         }
 
@@ -453,7 +445,7 @@ public static partial class Instruments
                         var rr = ln.Rows[k]; var r = rr.R; var c = ln.W.Coef;
                         popAll += rr.PopK;
                         double hs = ln.SumPop > 0 ? hLose * rr.PopK / ln.SumPop * rr.Rho : 0;
-                        var f = RulePowerForces(rr.N, rr.Tau, hs, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, ln.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold, 0.0, rr.X, rr.Core);
+                        var f = RulePowerForces(rr.N, rr.Tau, hs, r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, ln.InterRatio, r.RuleInit.Length > 3 ? r.RuleInit[3] : 0, rr.Pressure, c.SecessionThreshold);
                         double fw = sumW > 0 ? flow * wg[k] / sumW * rh[k] : 0;
                         var cls = RulePowerClasses(f, rr.ForeignSum + fw, rr.Kappa);
                         // 勝者の取り分が最大＝外国の区分が最大で、勝者の力が他の外国の最大を超える

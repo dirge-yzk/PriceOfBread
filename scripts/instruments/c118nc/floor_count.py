@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 """(1186) c118nc 紙の台本：信任帝政の床（Politics.cs:268-272）が立つ四半期を基線の生で数える。
 条件 A＝polityCode==3（立憲君主）・crown!=0・dynMandate>=0.6（RedefinedMandateMandateMin）。
 国民意識は scalars に列が無い＝secession_s の州の consciousnessMeanIndex を popK で加重平均した近似

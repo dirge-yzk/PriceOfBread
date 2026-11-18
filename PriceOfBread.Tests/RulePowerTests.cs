@@ -92,7 +92,7 @@ public class RulePowerTests
         // 手で置いた数：N=1000・国内の分 240・RuleInit=[0.6, 0.3, 0, 0.1]・仲介者の比 1 ⇒ τ=240÷(1000×0.6)=0.4 ⇒ F_I=120・F_U=40・和 400
         double n = 1000, hShare = 240; double[] ri = [0.6, 0.3, 0.0, 0.1];
         double tau = hShare / (n * ri[0]);
-        var f = Instruments.RulePowerForces(n, tau, hShare, ri[1], 1.0, ri[3], 0.0, 1.43, 0.0, 0.0, 1.0);
+        var f = Instruments.RulePowerForces(n, tau, hShare, ri[1], 1.0, ri[3], 0.0, 1.43);
         var c = Instruments.RulePowerClasses(f, 0.0, 1.0);
         Assert.Equal(0.6, f.FS / c.Total, 12); Assert.Equal(0.3, (f.FI + f.FR) / c.Total, 12); Assert.Equal(0.1, c.Ungov, 12);   // Rule[0]←F_S・Rule[1]←F_I＋F_R・Rule[3]←F_U の割合＝RuleInit のリテラル
         Assert.Equal(0.6 + 0.3, c.Owner, 12); Assert.Equal(0.0, c.Local, 12);   // κ＝1 は 在地の協力者も持ち主の側
@@ -104,15 +104,17 @@ public class RulePowerTests
         Assert.Equal(0.6 + 0.4 * 0.3, c2.Owner, 12); Assert.Equal(0.18, c2.Local, 12);
         // 外国の力が最大なら 2・無統治が最大なら 3
         Assert.Equal(2, Instruments.RulePowerClasses(f, 1000.0, 1.0).Best);
-        var fu = Instruments.RulePowerForces(n, tau, 10.0, ri[1], 1.0, 5.0, 0.0, 1.43, 0.0, 0.0, 1.0);
+        var fu = Instruments.RulePowerForces(n, tau, 10.0, ri[1], 1.0, 5.0, 0.0, 1.43);
         Assert.Equal(3, Instruments.RulePowerClasses(fu, 0.0, 1.0).Best);
-        // 押し返し A は 外国の取り分があるときだけ立ち、中核の割合で F_S と F_R に割れる
-        var fa = Instruments.RulePowerForces(100, 1, 0, 0, 1, 0, 0.0, 1.43, 0.5, 0.2, 0.25);
-        Assert.Equal(10.0, fa.A, 12); Assert.Equal(2.5, fa.FS, 12); Assert.Equal(7.5, fa.FR, 12);
+        // 押し返し A は (1193) で入力〔国民意識〕が消え 0 の定数＝F_S は国内の分だけ・F_R は圧力の分だけ（★(743) ④ の置き換え）
+        var fa = Instruments.RulePowerForces(100, 1, 0, 0, 1, 0, 0.0, 1.43);
+        Assert.Equal(0.0, fa.A, 12); Assert.Equal(0.0, fa.FS, 12); Assert.Equal(0.0, fa.FR, 12);
+        var fp = Instruments.RulePowerForces(100, 1, 7.0, 0, 1, 0, 2.86, 1.43);
+        Assert.Equal(0.0, fp.A, 12); Assert.Equal(7.0, fp.FS, 12); Assert.Equal(100 * 2.86 / 1.43, fp.FR, 12);
         // 否定形：和が 0 以下・NaN は寄せない
         var z = Instruments.RulePowerClasses(new Instruments.RpForces(0, 0, 0, 0, 0), 0.0, 1.0);
         Assert.Equal(-1, z.Best); Assert.True(double.IsNaN(z.Owner));
-        var nz = Instruments.RulePowerForces(double.NaN, double.NaN, double.NaN, 0.3, 1, 0.1, double.NaN, 1.43, double.NaN, double.NaN, double.NaN);
+        var nz = Instruments.RulePowerForces(double.NaN, double.NaN, double.NaN, 0.3, 1, 0.1, double.NaN, 1.43);
         Assert.Equal(0.0, nz.FS + nz.FI + nz.FR + nz.FU);
     }
 

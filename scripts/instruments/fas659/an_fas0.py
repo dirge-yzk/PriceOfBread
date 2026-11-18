@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 """(659) 線 fas 前半：ファシズムの思想が開く年の段0 の読み（読むだけ・コードの木は動かさない）。
 使い方：PYTHONUTF8=1 python an_fas0.py <計器の出力フォルダ（idn_s・ideology_s・scalars_s・secession_s が要る）> [種の数=10]
 出力：標準出力（measurements/fas659_*_read0.txt へ手で保存）。

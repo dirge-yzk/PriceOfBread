@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 # 読むだけ (1182) c117rs：k1（SecessionInclusionOnce）の〈英以外で余り＜0 が減る〉の帰属。
 #  余り＝holdShareIndex − pressureIndex（gates_k1.py の G1 と同じ）・G1 の母集合＝tier Colonial かつ coreShareMeanShare＞1e-9。
 #  同じ種・同じ (四半期, 国, 州) で腕と基線を並べ、基線で余り＜0 → 腕で ≧0（消えた）と逆（増えた）を数える。

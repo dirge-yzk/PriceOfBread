@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 """(1186) c118nc 紙の台本：基線の secession_s の consciousnessFactorShare（＝1−SecessionConsciousnessWeight×州の国民意識）の分布。
 重みを 0 にすると分離の圧は 1/factor 倍になる（同じ盤面の 1 四半期の上げ）。popK 加重の平均と中央値・goFlag の行数。
 使い方: python secfac.py <ins の生のフォルダ> [種の数]"""
