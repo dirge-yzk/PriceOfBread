@@ -174,6 +174,7 @@ public class GoodDurabilityTests
             const double big = 1e12;   // 今月の余り（在庫の桁）に比べて桁違いに大きい持ち越しを置く＝残る割合だけがほぼそのまま見える
             r.ConstructionCarryover = new double[r.Markets.Length];
             foreach (int g in gids) r.ConstructionCarryover[g] = big;
+            if (r.InvestorPopIndex >= 0) r.Pops[r.InvestorPopIndex].EarnedPerMonth = new MoneyPerMonth(0.05 * Math.Max(0, r.Pops[r.InvestorPopIndex].Savings.Value));   // (1223) 盤面の前提：前の月の稼ぎ（旗 InvestBudgetFromEarnings＝1 の予算）を旧の予算（貯蓄の 5%）と同じ額に置く＝私的な建設の月が立つ
             EconomyStep.Run(r, c, 1.0, w.Bank, w);
             foreach (int g in gids)
             {

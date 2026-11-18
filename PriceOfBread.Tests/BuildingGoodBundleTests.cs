@@ -192,6 +192,7 @@ public class BuildingGoodBundleTests
             var sim = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = flag);
             var w = sim.World; var r = CapitalRegion(w);
             r.Pops[r.InvestorPopIndex].SetSavings(1e9);   // 予算が建設の量を縛らない形
+            r.Pops[r.InvestorPopIndex].EarnedPerMonth = new MoneyPerMonth(0.05 * 1e9);   // (1223) 同じ前提を旗 InvestBudgetFromEarnings＝1 の予算（前の月の稼ぎ）でも置く＝旧の予算（貯蓄の 5%）と同じ額
             var ex = Record.Exception(() => EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w));
             Assert.Null(ex);
             paid = r.Pops[r.InvestorPopIndex].PaidPerMonth.Value;
@@ -251,9 +252,10 @@ public class BuildingGoodBundleTests
     [Fact]
     public void 建造物の組の繰越は二重に積まれない()
     {
-        var sim = Make(NationConfig.Britain(), c => c.BuildingGoodBundle = 1);
+        var sim = Make(NationConfig.Britain(), c => { c.BuildingGoodBundle = 1; c.IndCapitalOutputYears = 0; });   // (1223) κ＝0：作ったばかりの盤面（州の前の月の所得 0）と同じ束の量（IndPerConstruction）を、下の前の月の稼ぎを置いても保つ
         var w = sim.World; var r = CapitalRegion(w);
         r.Pops[r.InvestorPopIndex].SetSavings(1e9);
+        r.Pops[r.InvestorPopIndex].EarnedPerMonth = new MoneyPerMonth(0.05 * 1e9);   // (1223) 盤面の前提：前の月の稼ぎ（旗 InvestBudgetFromEarnings＝1 の予算）を旧の予算（貯蓄の 5%）と同じ額に
         r.Markets[Catalog.BuildingId].Stock = 1e9; r.Markets[Catalog.MachineryId].Stock = 1e9;   // 配給が満額
         r.ConstructionCarryover = new double[r.Markets.Length];
         r.ConstructionCarryover[Catalog.BuildingId] = 0.05; r.ConstructionCarryover[Catalog.MachineryId] = 0.005;   // 今月の需要（建造物 2.3969×束＝この州の月で約 0.26・機械 0.15×束＝約 0.04）より小さい＝全量が充当される

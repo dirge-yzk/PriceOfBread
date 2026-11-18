@@ -1921,7 +1921,7 @@ public class InstrumentsTests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
-    private const double LimitUnderTest = 0.60;
+    private const double LimitUnderTest = 0.66;   // (1223) c123iv：盤面の取り直し（旗 InvestBudgetFromEarnings＝1 の木では英の利払い÷歳入が 0.62〜0.77＝0.60 では反転が 0 回・0.66 は旗 0 と旗 1 の両方で反転があり 0.67 以下〔仏の線の不変条件〕）。旧 0.60
     /// <summary>fiscal_s の生の列は G10 に丸めて出る＝そこから組み直した値は相対 1e-8 まで合えばよい（絶対の下限 1e-10）。</summary>
     private static bool Near(double a, double b) => Math.Abs(a - b) <= 1e-10 + 1e-8 * Math.Max(Math.Abs(a), Math.Abs(b));
 

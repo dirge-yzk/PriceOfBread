@@ -20,6 +20,7 @@ public class RailLocoGateWorldTests
         var co = new Coefficients { RailLocoNeedsDiscovery = needs, RailLocoGateWorld = gateWorld };
         typeof(Scenario).GetProperty(nameof(Scenario.Coef))!.SetValue(sc, co);
         var w = new Simulation(sc, new NullAgent()).World;
+        foreach (var r in w.Regions) if (r.InvestorPopIndex >= 0) r.Pops[r.InvestorPopIndex].EarnedPerMonth = new MoneyPerMonth(0.05 * Math.Max(0, r.Pops[r.InvestorPopIndex].Savings.Value));   // (1223) 盤面の前提：投資家の前の月の稼ぎ（旗 InvestBudgetFromEarnings＝1 の建設の予算）を旧の予算（貯蓄の 5%）と同じ額に置く＝私的な建設の月が立つ
         w.Discovered[LocoRow] = own;
         foreach (var r in w.Regions) r.Discovered = w.Discovered;
         if (world is bool wk)
