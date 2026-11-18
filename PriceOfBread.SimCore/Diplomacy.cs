@@ -417,7 +417,12 @@ public sealed class Diplomacy
         _dependency.Add(k);
         if (depPre is not null) Instruments.DepAfter(this, depPre, callerMember, callerLine);
     }
-    public void RemoveDependency(Power suzerain, Power dependent) => _dependency.Remove(DirKey(suzerain, dependent));
+    public void RemoveDependency(Power suzerain, Power dependent, [System.Runtime.CompilerServices.CallerMemberName] string callerMember = "", [System.Runtime.CompilerServices.CallerLineNumber] int callerLine = 0)
+    {
+        bool insHad = Instruments.On && _dependency.Contains(DirKey(suzerain, dependent));   // (1206) dep_s の外しの行（リンクが在った時だけ）
+        _dependency.Remove(DirKey(suzerain, dependent));
+        if (insHad) Instruments.DepRemoved(this, suzerain, dependent, callerMember, callerLine);
+    }
     public bool IsDependentOf(Power suzerain, Power dependent) => _dependency.Contains(DirKey(suzerain, dependent));
     /// <summary>この国の宗主（従属していなければ null）。</summary>
     public Power? Suzerain(Power dependent)

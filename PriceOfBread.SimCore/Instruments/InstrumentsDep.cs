@@ -12,7 +12,7 @@ public static partial class Instruments
         public int ChainLen, Links, Cycles; public bool Cycle, CapHit, AtWar;
     }
 
-    sealed class DepState { public readonly System.Collections.Generic.List<string> Rows = new(); }
+    sealed class DepState { public readonly System.Collections.Generic.List<string> Rows = new(), Cuts = new(); }   // Cuts＝(1206) 外しの行（kindCode 3）＝呼びの行（Rows）の数を変えないため別の置き場
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, DepState> DepStates = new();
 
     /// <summary>計器自身の親の表（国→宗主）とリンクの数。IsDependentOf の素の有無だけを読む。</summary>
@@ -79,6 +79,19 @@ public static partial class Instruments
             I(pre.Links), I(links), I(pre.Cycles), I(DepCycles(d, par))));
     }
 
+    /// <summary>(1206) RemoveDependency の中（実際にリンクが在った時だけ）：外しの行（kindCode 3）を貯める＝離反・宗主の消滅・国の消滅・輪の切断。kindCode 2 は試合の終わりの行（r1196 の指定の 2 から変えた）。</summary>
+    internal static void DepRemoved(Diplomacy d, Power suzerain, Power dependent, string callerMember, int callerLine)
+    {
+        var cp = CpOf(d);
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        DepStates.GetValue(d, _ => new DepState()).Cuts.Add(string.Join('	',
+            "3", I(cp.Month), I(cp.Year), callerMember, I(callerLine), NameOf(suzerain), NameOf(dependent), "", "", "", "", "", "", "", "", "", "", ""));
+    }
+
+    /// <summary>試験用：外しの行の一覧（表に書く行そのもの）。</summary>
+    internal static System.Collections.Generic.List<string> DepCutRows(Diplomacy d)
+        => DepStates.TryGetValue(d, out var st) ? new(st.Cuts) : new();
+
     /// <summary>試合の終わりの全リンクの行（kindCode 2）。</summary>
     internal static string DepFinalRow(Diplomacy d)
     {
@@ -93,6 +106,7 @@ public static partial class Instruments
         using var wr = Open("dep", sk.Seed);
         wr.WriteLine(DepHeaderText);
         foreach (var line in DepRowsPending(d)) wr.WriteLine(line);
+        foreach (var line in DepCutRows(d)) wr.WriteLine(line);   // (1206) 外しの行（kindCode 3）
         wr.WriteLine(DepFinalRow(d));
     }
 
