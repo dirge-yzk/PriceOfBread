@@ -1,0 +1,5 @@
+  失敗 PriceOfBread.Tests.TreasuryLedgerTests.多国でも月の境ごとに全ての国で国庫の変化は台帳の変化に一致する [2 s]
+  失敗 PriceOfBread.Tests.TreasuryLedgerTests.多国でも全ての国で台帳の合計は国庫の変化に一致する [46 s]
+  失敗 PriceOfBread.Tests.TreasuryLedgerTests.主要な区分に値が立つ [15 s]
+  失敗 PriceOfBread.Tests.TreasuryLedgerTests.単一国で台帳の合計は国庫の変化に一致する [884 ms]
+失敗!   -失敗:     4、合格:     7、スキップ:     0、合計:    11、期間: 1 m 7 s - PriceOfBread.Tests.dll (net10.0)
