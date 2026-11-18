@@ -1,0 +1,37 @@
+=== 恒等の判定（測った種で一致） c122cr（2026-11-19 01:07:08）===
+測った木：D:/PoB_work/wt_c122cr（HEAD 4661dc5ee・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c122cr/scripts/instruments/ident/ident.cfg
+宣言：grown=['satneeds_s', 'soldiervac_s'] removed_cols=['rulepower_s:fPushbackIndex', 'soldiervac_s:drawConsHomeK', 'soldiervac_s:drawConsColonialK', 'soldiervac_s:drawConsMilPopHome', 'soldiervac_s:drawConsMilPopColonial', 'soldiervac_s:drawVolHomeK', 'soldiervac_s:drawVolColonialK'] known_extra=['rulepower_s:bestClass', 'rulepower_s:fForeignRawIndex', 'rulepower_s:fForeignSumIndex', 'rulepower_s:fForeignTopIndex', 'rulepower_s:fInterIndex', 'rulepower_s:fResistIndex', 'rulepower_s:fStateIndex', 'rulepower_s:fUngovIndex', 'rulepower_s:foreignSideShare', 'rulepower_s:foreignTopKey', 'rulepower_s:iProbeShare', 'rulepower_s:interShare', 'rulepower_s:localSideShare', 'rulepower_s:navalAllocIndex', 'rulepower_s:newRule0Share', 'rulepower_s:newRule1Share', 'rulepower_s:openDiffIndex', 'rulepower_s:ownerSideShare', 'rulepower_s:ownerSideShareR', 'rulepower_s:ownerWeightShare', 'rulepower_s:phiStarIndex', 'rulepower_s:pressureIndex', 'rulepower_s:rhoNewIndex', 'rulepower_s:rhoNoFreezeIndex', 'rulepower_s:tauIndex', 'rulepower_s:tauNoFreezeIndex', 'rulepower_s:ungovSideShare', 'rulepower_s:ungovSideShareR', 'rulepeace_s:greatCircleOnlyTakenCount', 'rulepeace_s:phiStarMedianIndex', 'rulepeace_s:takenCount', 'rulepeace_s:takenPopShare', 'rulepoweralloc_s:allocIndex', 'rulepoweralloc_s:bShare', 'rulepoweralloc_s:fForeignIndex', 'rulepoweralloc_s:rhoF', 'rulepoweralloc_s:wgtIndex'] tests_delta=3
+腕 a：rc=0 end=2026-11-19 00:34:10
+腕 b：rc=0 end=2026-11-19 00:45:39
+腕 t：rc=0 end=2026-11-19 00:20:05
+腕 s：rc=0 end=2026-11-19 00:32:07
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：a70005bd6663c330
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: a70005bd6663c330
+[素の 5 種] b5_ia_5.txt 対 b5_20261118_m1212
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261118_m1212.cost
+  ○ 件数の行 45 本・推定 237.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: a70005bd6663c330
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261118_m1212_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261118_m1212_ins.cost
+  ○ 件数の行 45 本・推定 238.7 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c122cr/out_ib_10/ins  対  基準 D:/PoB_work/keep_1212/base_ins
+  基準 1579 本・腕 1579 本・バイト一致 1492 本
+  列が増えた表（--grown-ok の宣言）20 本：satneeds_s1.tsv+1列・satneeds_s10.tsv+1列・satneeds_s2.tsv+1列・satneeds_s3.tsv+1列・satneeds_s4.tsv+1列・satneeds_s5.tsv+1列
+  既知の揺れの列だけが違う表 67 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 101 欄）×1・cearn_s:経路の行番号だけ（写して一致 14 欄）×1・cearn_s:経路の行番号だけ（写して一致 26 欄）×1・cearn_s:経路の行番号だけ（写して一致 38 欄）×1・cearn_s:経路の行番号だけ（写して一致 4 欄）×1・cearn_s:経路の行番号だけ（写して一致 55 欄）×1・cearn_s:経路の行番号だけ（写して一致 59 欄）×1・cearn_s:経路の行番号だけ（写して一致 67 欄）×1・cearn_s:経路の行番号だけ（写して一致 84 欄）×1・cearn_s:経路の行番号だけ（写して一致 93 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×7・rulepeace_s:greatCircleOnlyTakenCount,phiStarMedianIndex,takenCount,takenPopShare×10・rulepower_s:bestClass,fForeignRawIndex,fForeignSumIndex,fForeignTopIndex,fInterIndex,fResistIndex,fStateIndex,fUngovIndex,foreignSideShare,foreignTopKey,iProbeShare,interShare,localSideShare,navalAllocIndex,newRule0Share,newRule1Share,openDiffIndex,ownerSideShare,ownerSideShareR,ownerWeightShare,phiStarIndex,pressureIndex,rhoNewIndex,rhoNoFreezeIndex,tauIndex,tauNoFreezeIndex,ungovSideShare,ungovSideShareR×10・rulepoweralloc_s:allocIndex,bShare,fForeignIndex,rhoF,wgtIndex×10
+  ○ 計器の表は恒等（バイト一致 1492・既知の揺れ 67・宣言された増減 20）
+  内訳：共通の表 1579 本＝バイト一致 1492＋既知の揺れ 67＋列が増えた 20＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1579）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261118_m1212.txt（タグの行を除く）
+  ○ タグの行以外が一致（4831 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2916（基準 2913+3 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等
