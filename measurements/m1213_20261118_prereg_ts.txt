@@ -1,0 +1,34 @@
+(1213) c122ts 試験の整理 事前登録（最初のコミット・腕の前）
+〈作者「しばらくの間、全て推奨で」で推奨を採った〉（作者の問い 2026-11-18〈テストが多すぎる可能性はないか〉への推奨）
+
+[1] 恒等の線・予言 0
+- エンジン 0 行（SimCore・Runner・App・Display は触らない）。ident は回さない（エンジンが 0 行＝挙動の腕を持たない）。
+- 変更は PriceOfBread.Tests（TreasuryLedgerTests.cs・InstrumentsTests.cs）・scripts/instruments/c122ts・measurements/m1213_* だけ。
+- 前の値＝measurements/m1212_20261118/suite_8a22a2cc5/（nonfull Tests+Ui の時間の和 5609 秒・FullLength 210 秒・上位 50 本が 3537 秒＝63%）。
+  表＝measurements/m1213_20261118/time_table_before.txt（上位 50 本＋クラスごとの和）。
+
+[2] 処置の一覧（重い上位を点検した結果）
+ 行 | 試験（ファイル） | 時間 | 処置 | 理由 | 突然変異の検出が変わらない理由 | ★(743)
+ T1 | InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される | 344 秒 | 短くする側ではなく FullLength へ移す（Trait の 1 行） | 450 四半期・61 カ国＋計器。前提〈行が 5 以上〉は長い年数でしか成り立たない（種の選び直しの履歴が長さの感度を示す）。短くすると前提が崩れる | scripts・measurements の突然変異の台本はこの試験名を引かない（grep 済み・下の [2-読み手]）。FullLength はフルスイートで走る（分けて回す）＝検出は残る。ただし普段の nonfull では走らない＝名乗る | 区分外（Assert・盤面は 0 変更・区分の印だけ）
+ T2 | TreasuryLedgerTests.主要な区分に値が立つ（40q）と 多国でも全ての国で台帳の合計は…（120q） | 38 秒＋222 秒 | 共有する（Run1789・Lazy・40 四半期目で国 0 の台帳を写し 120 まで進める） | 同じ盤面（61 カ国・種 1789・UtilityAgent）。決定論の走行＝40 四半期目の値は旧の別走行と同じ。どちらも読むだけ | 台帳に記帳しない・区分を落とす突然変異で、旧と同じ 2 本が赤になること（M1・M2） | ★(743) ① 盤面の共有（Assert の式・閾値は同じ）
+- 残した物と理由：
+  - ExplainTests（156 秒）：途中で Explain を装着する＝盤面を書き換える（共有しない）。
+  - MultiNationTests/2/3/4：種・年数・構成が互いに違う（4 カ国 seed 7・99・1789 など）か既に Shared400 で共有済み。短くすると保存則の長い軌道の主張が変わる。
+  - StartWarmupTests1〜4・NationModelTests・TechInstitutionTests・WarThemeTests・PolicyPoliticsTests：1 本ごとに別の盤面・別の係数。共有できる同一盤面が無い（試験の本体を読んで確かめた範囲＝全部は読んでいない・名乗る）。
+  - Tests.Ui ProductionDiagTests：触らない（後の波へ）。
+  - 消す物：0（消せる創発だけの試験を、突然変異の一覧と突き合わせて確かめる時間が無かった。名乗る）。
+- 目安〈単独で 21 分→10 分前後〉には届かない。安全に確かめられた範囲だけ入れる＝記録（門にしない）。
+[2-読み手] scripts/・measurements/*_prereg_*・*_mut_* で T1・T2 の試験名を grep：台本の参照 0（trx と list の記録だけ）。SimCore・Runner・App・Display は試験を読まない。
+[2-重なり] cr（RulePowerTests・CaInstruments1206Tests・HarnessSatRecentTests）・bd・nr・r2 の試験ファイルに触れない。Instruments の㉘の束は InstrumentsTests を FullyQualifiedName で引く＝T1 は Category の指定なしの束では走り続ける（束の側の提案は scripts/instruments/c122ts/suite_bundle_proposal.txt）。
+
+[3] 足す試験・突然変異
+- 足す試験 0。
+- M1：Pay が TreasuryCat.Army の記帳を落とす（World.cs の使い捨ての木）→ 主要な区分に値が立つ が赤。M2：記帳の一部を台帳に入れない（Tax を 0 にする）→ 台帳の合計が国庫の変化に一致する（多国）が赤。共有の前後（HEAD の旧と新）で同じ試験が赤になることを確かめる。
+- ソースを走査する番人（㉘）：TreasuryLedgerTests・InstrumentsTests は ㉘ の走査の対象。書き換える件数の予言（㉑）＝0（走査する静的な件数の番人に触れない）。
+
+[4] 恒等
+- エンジン 0 行＝素の 5 種・計器つき 10 種は m1212 のまま（腕は回さない）。
+[5] 予言
+- --list-tests：nonfull＝2913−1＝2912（Tests 2678＋Ui 234）・FullLength＝3+1＝4（合計 2916 のまま）。TESTS_NONFULL 2912・TESTS_FULL 4 を合流が書く。
+- 時間の和（nonfull）：5609−344−38＝約 5227 秒（負荷の揺れ約 ±10%）。FullLength：210＋約 344＝約 554 秒。nonfull の合計の見込みの減り＝約 7%。
+- 赤 0・スキップ 1。

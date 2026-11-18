@@ -1,0 +1,4 @@
+(1213) 提案（合流が採る・suite1212.sh は直さない）
+- scan（:54 付近）と guards（:69 付近）の F から FullyQualifiedName~MultiNationTests を外す案：MultiNationTests は走査の番人でなく盤面の試験＝束に入れる理由が薄い（(1212) の効率化）。
+- scan の InstrumentsTests は Category の指定が無い＝c122ts が FullLength へ移した 344 秒の 1 本も走る。束の dotnet test に `&Category!=FullLength` を足す案：--filter "(<F>)&Category!=FullLength"。
+- ident.cfg：TESTS_NONFULL 2913→2912・TESTS_FULL 3→4（合流が書き換える）。

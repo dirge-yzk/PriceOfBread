@@ -1,0 +1,4 @@
+PriceOfBread.Tests nonfull rc=0 1196s
+PriceOfBread.Tests full rc=0 1098s
+PriceOfBread.Tests.Ui nonfull rc=0 133s
+PriceOfBread.Tests.Ui full rc=0 1s
