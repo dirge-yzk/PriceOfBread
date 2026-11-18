@@ -131,7 +131,7 @@ public class CapacityAnchorTests
             var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
             sim.World.Coef.UrbanCapacityPenalty = penalty;
             sim.DemographicStep();
-            return (sim.World.DiagCapacity, sim.World.DiagAnchorBaseline);
+            return (sim.World.DiagCapacity, AnchorSum(sim.World));   // (1198) 錨はエンジンの Diag でなく州の錨の和から（反証役 v の低）
         }
         var a = Probe(0.0); var b = Probe(0.1);
         Assert.True(a.Anchor > 1e3, "前提：仏は錨を持つ");
@@ -141,7 +141,7 @@ public class CapacityAnchorTests
         double pen = (target - a.Cap) / slope;
         Assert.True(pen > 0.1 && pen < 100, $"前提：逆算した penalty {pen}");
         var c = Probe(pen);
-        Assert.True(c.Cap < 0.3 * a.Anchor, $"前提：床の下の盤面（{c.Cap}）");
+        Assert.True(c.Cap < 0.3 * a.Anchor, $"床の検出：3 本目は 0.3×錨 の下のはず（{c.Cap}）＝床が戻るとここで赤");
         Assert.Equal(target, c.Cap, target * 1e-6);   // 生の値（床の 0.3×錨 ではない）
     }
 

@@ -36,17 +36,15 @@ public class UnificationAiNoWaitTests
     [Fact]
     public void T1_候補と標的を持つAIは種によらず毎回宣戦する()
     {
-        int boards = 0;
         for (ulong k = 1; k <= 12; k++)
         {
-            boards++;   // 種は MultiNationSim の種（(1195) で統一の専用の系列は消えた＝AI の決定に乱数は無い）
+            // 種は MultiNationSim の種（(1195) で統一の専用の系列は消えた＝AI の決定に乱数は無い）
             var (sim, rhine, c) = Board(k);
             var targets = Targets(sim, rhine, c);
             Assert.DoesNotContain(targets, t => sim.Diplomacy.IsAtWar(rhine, t));
             sim.Diplomacy.TryUnificationWars(c);
             Assert.True(targets.Any(t => sim.Diplomacy.IsAtWar(rhine, t)), $"種 {k}：候補と標的があるのに宣戦しなかった");
         }
-        Assert.True(boards == 12, "対照：12 の盤面を回していない");
     }
 
     [Fact]
@@ -66,16 +64,14 @@ public class UnificationAiNoWaitTests
     }
 
     [Fact]
-    public void T3_プレイヤーの動詞は係数によらず同じでAIの標的は動詞が許す相手()
+    public void T3_AIの標的は宣戦の前にプレイヤーの動詞が許す相手()
     {
         var (sim, rhine, c) = Board(7UL);
         var w = rhine.Nation!;
         w.Coef.UnificationNatioShare = new Share(0.0);
         var others = sim.Diplomacy.Powers.Where(p => p != rhine && p.Nation is not null).ToList();
         (bool, string) Verb(Power t) { bool ok = w.CanUnificationWar(t, out string r); return (ok, r); }
-        var oldV = others.Select(Verb).ToList();
         var newV = others.Select(Verb).ToList();
-        Assert.Equal(oldV, newV);   // 動詞は決定論（乱数も待ちも読まない＝2 度読んで同じ）
         Assert.Contains(newV, v => v.Item1);   // 対照：動詞が許す相手がある
         var allowed = others.Where((t, i) => newV[i].Item1).ToList();
         var weakest = Targets(sim, rhine, c).OrderBy(t => t.Military).ThenBy(t => t.Id).First();

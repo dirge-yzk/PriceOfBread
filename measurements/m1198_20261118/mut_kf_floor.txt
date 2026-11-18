@@ -1,0 +1,6 @@
+# (1198) 合流：kf の新 Fact（錨を AnchorSum へ）を床を戻す突然変異（Simulation.cs:2204 の前に Math.Max(baseline*0.3, capacity)）の木で回した
+  失敗 PriceOfBread.Tests.CapacityAnchorTests.扶養力が錨の床を割る盤面では床で持ち上げず生の値に従う [16 ms]
+   床の検出：3 本目は 0.3×錨 の下のはず（9183.960000000001）＝床が戻るとここで赤
+失敗!   -失敗:     1、合格:     9、スキップ:     0、合計:    10、期間: 42 s - PriceOfBread.Tests.dll (net10.0)
+# 直した木（突然変異なし）：4 クラス 21 本 緑
+成功!   -失敗:     0、合格:    21、スキップ:     0、合計:    21、期間: 13 s - PriceOfBread.Tests.dll (net10.0)

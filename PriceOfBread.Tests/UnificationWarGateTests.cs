@@ -9,7 +9,7 @@ namespace PriceOfBread.Tests;
 /// <summary>(1195) c119us：統一の宣戦の可否を AI とプレイヤーで同じ判定にした番人。
 /// 旧の AI（Diplomacy.TryUnificationWars）は World.CanUnificationWar を通らず DeclareWar を直接呼んだ＝同盟国へも統一の宣戦ができた（プレイヤーは〈同盟中〉で不可）。
 /// 盤面は試験の中で置く＝独の 6 邦・統一の門（ナショナリズムの取り分）だけを 0 に置き、他の係数は既定。AI の決定に入るのはライン諸邦だけ。
-/// 期待値は手で書いた理由の表（本体の判定の関数から作らない）。旧の道では T1・T3 が赤（measurements/m1195_20261118_prereg_us.txt §5）。</summary>
+/// 期待値は手で書いた理由の表（同盟・交戦中の 2 行と保有国でない行）。T2 の残りの標的の行だけは参戦の連鎖があるので本体の IsAtWar・HasAlliance から作る。旧の道では T1・T3 が赤（measurements/m1195_20261118_prereg_us.txt §5）。</summary>
 public class UnificationWarGateTests
 {
     private static readonly string[] German = ["ライン諸邦", "ヴュルテンベルク", "バイエルン", "ザクセン", "ハノーファー", "プロイセン"];
