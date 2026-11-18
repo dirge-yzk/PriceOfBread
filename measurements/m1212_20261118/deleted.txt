@@ -1,0 +1,6 @@
+# (1212) 合流が消した物（2026-11-18 20:57:54）
+c121uh_work/ident identz identm1（線 uh の ident の生・〈判定: 恒等〉を合流で採った後・担当の申し送り〈合流の判断の後に消す〉）
+c121ca_work/ident（線 ca の ident の生・同上・表ごとの sha1 は measurements/m1206_20261118_sha1_ins.txt）
+keep_1191・keep_1198 の削除（ident.cfg を keep_1212 へ移して push〔ff488022a〕した後）は自動の確かめ（auto mode の分類器）に止められた＝言い換えて迂回していない・作者のセッションが消す（INSRAW は keep_1212/base_ins・ident.cfg の参照は keep_1212）。
+線の作業フォルダ c121ca_work・c121uh_work・c121hs_work・c121b1_work・r1210_work・r1211_work（写しは 72dfeec54・ff488022a）・線の worktree 4 本（wt_c121ca・wt_c121uh・wt_c121b1・wt_c121hs）とローカルの枝・wt_m1212z・ident_m1212z（全表の生は keep_1212/base_ins へ移した・残りは素の 5 種の生と写しの木）・m1212_work の snap・out（N1・S11 の生は keep_1212 へ移した）・src・suite・tmp・kitsrc を消した。
+残した物：D:/PoB_work/keep_1212（base_ins 1579・n1 569・a11 579＝新しい基線の生）・keep_1205_rej（fm・t2 の 2 回目の材料・直下の 112 バイトのファイル 0 は別の線の物〈推〉で触っていない）。
