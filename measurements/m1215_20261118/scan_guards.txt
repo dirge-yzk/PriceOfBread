@@ -1,0 +1,5 @@
+# (1215) ㉘ 走査の番人（器のコミット 229bafeee の木）
+  失敗 PriceOfBread.Tests.DormantIdentityTests.既定ゼロの係数は休眠表か台帳のどちらかに載っている [12 ms]
+失敗!   -失敗:     1、合格:   140、スキップ:     0、合計:   141、期間: 15 m 28 s - PriceOfBread.Tests.dll (net10.0)
+# 直し：DormantZeroFields に ArrearsBeyondOpenedRoom の宣言の行（★(749) の宣言の行だけ）→ DormantIdentityTests＋ArrearsOpenedRoomTests
+成功!   -失敗:     0、合格:     9、スキップ:     0、合計:     9、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
