@@ -1,0 +1,88 @@
+(1208) c121b1 事前登録：貿易の B-1＝EndowmentCostFollowsAbundance 0→1（費用が賦存に従う・既にある器の点火・Scarcity は 0 のまま）
+2026-11-18・担当 Claude Opus 5.5・木 D:/PoB_work/wt_c121b1・枝 c121b1（326e284ee から）・基線 m1198（keep_1198/base_ins・ヌル腕 keep_1198/n1＝記録だけ）
+挙動の線・貿易の主の線・3 回の規則の数える 1 回目（(1030) c97eb は腕 B の前に予言の外の赤で止めた＝数えない＝(1041) 反証役 v の訂正・★(899)・★(912)）。
+形は〈入口〉（播種の自己費用を割る 1 行の既定値・計算の経路は既にある）。結果を見る前に固定する。作業フォルダ D:/PoB_work/c121b1_work。
+
+[0] 出発と根拠
+ 作者 2026-11-12「それでよい」（貿易の置き換えの設計・T1＝A-1＋B-1）。作者の言葉「同一生産コスト辺りの産出能力にするのが正しい」（字どおりに取るかは (1041) で作者に聞く物＝この線は今の器〈割る数＝賦存倍率^旗〉のまま）。
+ (1204) の推奨〈B′-1 の 2 回目は回さず、B-1 の旗 1 を先に〉（docs/202611/20261118/20261118_貿易のB′-1の2回目_設計_下書き.md §5・AI の案）。作者「しばらくの間、全て推奨で」で推奨を採った。
+ 確証：作者が〈こうする〉と言った形に近いが、指数 1 と〈豊富側だけ〉は AI の選択＝〈確証なし〉と名乗る。
+
+[1] 形
+ PriceOfBread.SimCore/Coefficients.p04_trade.cs:111 の既定値 1 行（0.0→1.0）と注だけ。式の変更 0・新しい係数 0・状態 0・錠 0・天井 0。
+ 入口＝Simulation.DivideCostByEndowment（:678〜:683・costDiv＞1 の時だけ MarginalCost を costDiv^旗 で割る）。呼び口：Simulation.cs:752（産地の行＝割る数 1.0＝割らない）・:758（賦存の州＝ResourceEndowment×Scale で割る）・:768（非産地 0.4＝Scarcity の旗 0 で割らない）・:1290・:1296・:1304（植民地の同じ 3 本）・Discovery.cs:935／:941（OpenSite＝開いた時に割る）。
+ R1 の段0 の確かめ（grep・今の木 326e284ee）：入っている。
+  (a) 割る数は能力の倍率と別の引数（ApplyEndowment(pr, capMul, costDiv, c)・:758 は能力 ScarceEndowment×Scale・割る数 ResourceEndowment×Scale）＝126.8 と GoldRushEndowment 5.0 は費用へ漏れない（B′）。
+  (b) 級 X（産地の発見の行）は播種で割らない（:752・:1290 の割る数 1.0）・OpenSite で割る（Discovery.cs:931 siteCostDiv）＝(1030) の DiscoveryScore の赤〈級 X の SiteTerms が播種で割った費用を読む〉の経路は閉じている見込み。
+ 旗 0 の器は main（326e284ee）そのもの＝旗 0 の ident と腕 A0 は回さない（基線 m1198 と比べる・m1198z〈判定: 恒等〉が代わる）。
+ 計器：足さない。recipeout_s（unitCostIfAbundance・unitCostIfBprime・二重に割らない守り InstrumentsRecipeout.cs:76・:84）・prodcap_s・nationgood_s・mintreg_s・mintcap_s・goods_s・tb_s が既にある。
+
+[2] 段0：安い確かめ（このコミットの後・腕の前）
+ 旗 1 の木（既定値 1 行だけを変えた写し）をビルドし、ColonialPopTests・DiscoveryScoreTests・CorncfInstrumentTests・RecipeoutInstrumentTests・EconomyTests と使い捨てのプローブ scripts/instruments/r1041/probe_ledger.cs.txt（写しの木に置くだけ・コミットしない）を回す。
+ 止める規則（結果を見る前に固定）：ColonialPopTests〈植民地の月の決算で輸出作物の地代は首都の投資家へ着く〉が赤なら、腕 B を回さずに止める（3 回の規則に数えない＝腕の前の予言の外の赤ではなく、この段の規則どおりの停止＝(1041) の R1／R2 の言葉で根を書く）。
+  試験は書き換えない。前提の Assert を |rent| に緩める R3 は (1041) で退けた。
+ 緑なら次へ進む。DiscoveryScoreTests・CorncfInstrumentTests T5 の赤は [8] の区分で読む（名乗れなければ止める）。
+
+[3] 門（〈作者 2026-11-16 の決まり〉①）
+ 止める線（head の文のまま）：
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  発散：全ての国の価格水準が 1 四半期に 100 倍以上・非有限・開幕の 1e10 倍以上のどれかに 1 種でも当たれば止める（銀・金の値段も同じ台本の価格の列で読む）。〈100 倍〉の型は ★(826) ① と ★(905) ① の読み方（scripts/instruments/c92gf/stoplines1002.sh・建国の直後〔≦4 四半期〕・分母の痩せ〔人口の比 ≧10 か ≦1/10〕を分ける・基準は measurements/m1198_20261118/stopbase/ と同じ台本で keep_1198/base_ins を数え直して並べる）。開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。
+  空洞化 T1：python scripts/instruments/hol/an_h2.py <出力>/ins -v4 の 1/10 未満で、規則 A2 の例外の外、かつ線が原因と読めた件が 1 件でもあれば止める。振り分け＝基線 keep_1198/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない（基線の 1/10 未満は 0 件・1/4 未満は 5 件＝m1198 の gates_merge.txt）。
+  推定の計算量 ＞248.5 秒。
+  機構の試験の赤（走査の番人を含む）。
+ 史実の桁の線（10 倍・記録の帯は門にしない）：新しく 10 倍の外へ出た物が 1 つでもあれば止める。元から外の物は向きを記録。戻った物も別に書く。
+  H1：6 大国の終局の貿易÷GDP（scripts/instruments/r998/q3_trade_gdp.py・1948 の T2＝和÷和の種の中央値）。史実 1913 25.3%・m981 1.68%（既に 10 倍の外＝向きの記録）。1913 の値も並べる。
+  H2：石炭・鉄鉱石・金・銀の世界の産出 1913÷1784（scripts/instruments/r1197/an8.py・種の中央）。史実（AI の一般の知識）石炭 約 110〜130・鉄鉱石 約 110〜150・金 約 35〜45・銀 約 8。m1191 の中央 24.2・13.9・2.08・1.79＝金は既に 10 倍の外・鉄鉱石は際。
+ 単体の機構の試験（盤面を試験の中で置く・旗 0 で赤・突然変異で赤）：
+  U1（新しい試験 1 本・PriceOfBread.Tests/EndowmentCostTests.cs）：同じ財・同じ MarginalCost の 3 つの生産者に、既定の係数で DivideCostByEndowment を賦存倍率 2.0・1.0・0.4 で当てる。
+   限界費用の比〈倍率 1.0÷倍率 2.0〉＝2.0（相対 1e-12）・倍率 0.4 の生産者は動かない（Scarcity は既定 0）・倍率 1.0 は動かない。
+   旗 0（既定 0）では比 1.0＝赤。加えて実経路：開幕の世界（イギリス・単国）で賦存州の RGO の MarginalCost×ResourceEndowment×Scale が同じ財の非賦存の州の MarginalCost と相対 1e-9 で一致（既存の EconomyTests の器の試験の盤面を流用）。
+  既存 T4（RecipeoutInstrumentTests.cs:167〜:175）：旗 1 の盤面のエンジンの mc が旗 0 の盤面の計器の B′ の列と合う・旗 1 の計器は二重に割らない。
+
+[4] 突然変異の表（㉚・腕の前に使い捨ての木で確かめ、出力を measurements/m1208_20261118/ へ）
+ | 変異 | 赤になる門 |
+ | M0 旗 0（既定 0 のまま） | U1（比 1.0） |
+ | M1 Pow の指数を 0.5 に（Math.Pow(costDiv, gate*0.5)） | U1（比 √2）・T4 |
+ | M2 costDiv＞1 の門を外して Scarcity の側にも Abundance の旗を効かせる | U1（倍率 0.4 の生産者が 2.5 倍に上がる） |
+ | M3 InstrumentsRecipeout.cs:84 の二重の守りを外す（dividedNow を常に 0） | T4（旗 1 の盤面で計器が二重に割る） |
+ 止める線と史実の桁の線は突然変異の腕を回さない（計器つきの腕は B の 1 本だけ）。
+
+[5] 狙いの観測量（生から読む・記録・★(1191)）：台本 scripts/instruments/c121b1/b1read.py（recipeout_s・種 1〜10・1790／1870／1913・産出の重み・和÷和）
+ ① 産地（級 E）と非産地（級 N）の単位費用の比 N÷E（今の盤面の値は腕の前に keep_1198/base_ins で取って追記する・(1027) の 1.82 は旧い盤面）。旗 1 で上がる向き（旗 0 の紙の予言〈ifAb〉も同じ台本で並べる）。
+ ② 産地の取り分＝級 E・X の産出÷（E・X・N の産出）（同じ財の組の中・種の中央）。旗 1 で上がる向き〈推〉。
+ ③ 同じ盤面の新÷旧：開幕の年（1784）の prodcap_s の marginalCost を州×生産者で突き合わせ、級 E の行の 新÷旧×endowFromProductivity の 1 からの外れ（記録＝実際に割ったかの直接の観測）。
+ これらは門にしない（11-16 ①）。外れたら〈機構が狙いどおり働いたか〉の段で書く。
+
+[6] 記録（門にしない）
+ 銀の産地の州の生産者の持ち主の替わりと崩れ（B′-1 の 2 回目を起こす合図＝(1204) §5：銀の産地の州が 1/4 未満か持ち主が替わったら申し送る）・造幣の総量（mintreg_s・mintcap_s）・英の国債の不履行の種の数（ukdef975.py・基線と並べる）・NG（ng.sh・基準 rd:measurements/ng1198_20261118:m1198）・ハーネス不合格・nullgate（N1 を 2 回渡す）・exact・near・名目 GDP 0 の続き（gdp_zero10.py＝記録の段の先頭）・home_break・popjump。
+
+[7] 計算量の割り当て：±0〈推〉（播種の時の定数＝式の計算量 0）。越境が増えれば清算の項が増えうる＝割り当て +3.0 秒まで（推定 241.7 秒まで）。上限 248.5 は止める線。
+
+[8] 試験の予言（㉜・旗 1 の木）と走査の番人（㉘）
+ ㉘ の点検（grep・腕の前）：変えるのは係数の既定値 1 行＝工業化度の読み手の許可表・`new MoneyStock(`（SimCore 66 件）・scripts/instruments/flow262/route_anchors.tsv（75 行・Coefficients.p04_trade の行 0）・WriterRatchetTests の宣言の表の行には触らない＝走査の番人の件数は変わらない（予言：変わる件数 0）。
+ 赤になる見込みの試験と扱い（旗 0 の対照を既定に依っていた盤面の明示＝前例 (1030) の (b)(c)・RecipeCostTests の `RecipeCostFollowsProductivity = 0.0`〔(331)〕）：
+  (a) DormantIdentityTests.cs:97 の DormantZeroFields の行〈EndowmentCostFollowsAbundance〉＝旗 1 で赤＝旗 1 のコミットで行を消し点火の墓標の注にする（★(743) ①の型・(1172) TradeBuyBySupplyCurve と同じ作法）。
+  (b) EconomyTests.cs:420 `var off = Seed(new Coefficients());`＝旗 0 の対照が既定に依る（:441 の等号が落ちる）。
+  (c) RecipeoutInstrumentTests.cs:174 と :306 の `Solo(cfg, new Coefficients())`、:213 の `new Coefficients { ResourceEndowmentScale = scale }`（:215 が旗 0 を前提に Assert）。
+  (d) TradePhase0Tests.cs:31・:48・:86 の `new Coefficients()`（旗 0 の対照・:48 の注〈旗 0＝割らない〉）。持ち主の表の外のファイル＝旗の反転に伴う盤面の明示だけ（報告に行を列挙）。
+  (b)(c)(d) の区分：〈旗の既定の値を旧の対照として名指していた試験の盤面の明示〉＝㊴ の〈試験のバグ〉。直し＝対照の盤面に `EndowmentCostFollowsAbundance = 0.0` を書くだけ。Assert の文・閾値・母集合は 1 文字も変えない。
+   旧の盤面に番人を固定する形に当たらない理由＝これらの試験はもともと旗 0 と旗 1 の両方の盤面を並べて機構の向きを確かめる物で、旗 1 の側は既に明示されている＝0 の側の明示は対照の名指しで、機構の値は旗 1 の側で確かめる。
+   試験だけの別のコミット。直しを外す突然変異（明示を消す）で赤・旗 0 の木でも緑。
+  (e) WriterRatchetTests の計算量の宣言の表（最初の 40 四半期・1 種）は軌道が動くので赤になりうる＝★(749)（宣言の行だけ・軌道の件数を写しただけの番人＝取り直したら verdict に列挙）。
+  (f) CorncfInstrumentTests.T5・DiscoveryScoreTests の盤面の前提（行の数・接触の数）が赤なら ★(743) の〈軌道に依る前提〉を名乗れるかを読み、名乗れなければ止める。
+  (g) ColonialPopTests が赤なら [2] の規則で止める。
+ ㉜ のそれでも回す理由：旗 1 のフルスイートの赤が (a)〜(e) の予言した型だけなら腕 B を回す（機構の赤ではない区分）。
+
+[9] 手順
+ ① このファイルを最初のコミット。② 段0（写しの木）。③ 緑なら：旗の既定値 1 行＋(a) の 1 コミット → (b)(c)(d) の明示の 1 コミット → U1 の試験の 1 コミット。
+ ④ ㉘ の束 → ㊴ 計器の束 → ㉜ フルスイート（2 プロジェクト・trx・--list-tests の和・FullLength）・savetest（四半期の途中を含む）・leakhunt。赤なら腕 B を回さない。
+ ⑤ 突然変異 M1〜M3（使い捨ての木）。⑥ 腕の前に [5] の基線の値の追記をコミット。
+ ⑦ 腕 B：INS=1 bash scripts/instruments/batch.sh run c121b1B 10（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は README の 9 国）。起こす前に D: を shutil で測る（〈35GB＋26GB〉）。
+ ⑧ 門・止める線・記録の読み（scripts/instruments/c121b1/read_b1.sh）。旗 1 の出力を見た後のエンジンの変更は ⑭ の枠で 1 回まで。
+ ⑨ 印 D:/PoB_work/c121b1_work/b1.mark・origin/c121b1 へ push。
+
+[10] 周辺の点検（読むだけ・欠損は別の線へ）＝報告に書く
+ Discovery の SiteTerms の級 X（播種で割らないことの確かめ）・植民地の地代の符号（ColonialPopTests の盤面と probe_ledger）・EndowmentCostFollowsScarcity が 0 のままでよいか。
+
+[11] 重なり：持ち主のファイル＝Coefficients.p04_trade.cs:111 の 1 行・EconomyTests.cs（:415〜:460）・RecipeoutInstrumentTests.cs（:167〜:176 と :213・:306 の盤面の明示）・TradePhase0Tests.cs（:31・:48・:86 の盤面の明示）・新しい試験 EndowmentCostTests.cs・DormantIdentityTests.cs:97・WriterRatchetTests.cs（宣言の行だけ）・scripts/instruments/c121b1/・measurements/m1208_*。
+ 他の線（ca：Military.cs・Diplomacy.cs・計器・JobPoolTemperatureGuardTests ほか／uh：Meritocracy.cs・IndustrializationReaderTests／hs：Validation.cs）とファイルは重ならない（DormantIdentityTests.cs・WriterRatchetTests.cs は共有＝自分の行だけ）。
