@@ -1,0 +1,8 @@
+変異	内容	ビルド	赤の試験	緑の試験
+M0	旗 0（試験の旗の明示を外す）	ok	T1a,T1b_T1c,T1d,T2,T3,T4	
+mu1	f を反転（主の文化なら own÷world・少数は 0）	ok	T1a,T1b_T1c,T2,T3	T1d,T4
+mu2	UpdateShares で f＝0 に固定	ok	T1b_T1c,T1d,T3	T1a,T2,T4
+mu3	自由主義から引かずに足すだけ	ok	T1b_T1c	T1a,T1d,T2,T3,T4
+mu4	国の主の文化で f を引く	ok	T1d,T3	T1a,T1b_T1c,T2,T4
+mu5	表を作る行を外す	ok	T3	T1a,T1b_T1c,T1d,T2,T4
+mu6	締めの後に表を消さない	ok	T3	T1a,T1b_T1c,T1d,T2,T4

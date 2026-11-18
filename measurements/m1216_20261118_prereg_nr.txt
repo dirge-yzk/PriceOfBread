@@ -92,3 +92,12 @@
  2. 突然変異（使い捨ての木・試験だけ）→ 旗の既定を 1 にするコミット → ㊴ 計器の束 → フルスイート（2 プロジェクト・trx・--list-tests の和）・FullLength・savetest・leakhunt。
  3. 腕 B（INS=1 batch.sh run c122nrB 10・計器つき 10 種・起こす前に D: を測る〈35GB＋26GB〉）→ 門 → 印 D:/PoB_work/c122nr_work/nr.mark → origin/c122nr。
  形の変え直しは 1 回だけ（⑭）。腕 B の生は合流の判断まで消さない。
+
+[11] 追記（2026-11-19・腕 B の前・旗 1 の出力を見る前）
+ 器の木 f5e1913cc：
+  ㉘ 走査の番人の束（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity）＝緑（144 本）＝予言どおり件数の変化 0。
+  試験 T1〜T4 の最初の版は T1b・T1d・T2 が赤だった＝試験の盤面の誤り（UpdateShares の不満度の入力が前の思想の取り分〔FactionSnapshot.cs:74 の ArgMax(IdeologyShares)〕を読む＝旗 0 の後に旗 1 を同じ POP で回すと出発点が違う）。直し＝両方の旗を同じ前の取り分から始める（試験だけ・Assert の文と閾値は変えない）。エンジンの変更ではない（旗 1 の世界の出力はまだ無い）。
+  腕 Z：ident c122nrz（--no-ins・段 1）〈判定: 恒等（段 1）〉（測った種で一致）＝素の 5 種 b5_20261118_m1212 と全行バイト一致（181 行）・.cost の件数の行 45 本一致・推定 237.2 秒・試験 2919（2913＋6 を宣言）＋FullLength 3。記録 measurements/m1216_20261118/identz/。
+ 突然変異（measurements/m1216_20261118/mut/mut_table.tsv・台本 scripts/instruments/c122nr/mut_nr.py・使い捨ての木は消した）：全ての変異がどれかの試験で赤。
+  M0→全て赤・μ1→T1a・T1b_T1c・T2・T3・μ2→T1b_T1c・T1d・T3・μ3→T1b_T1c・μ4→T1d・T3・μ5→T3・μ6→T3。
+  [4] の表の予言との違い：μ1 は T1d が緑（T1d は手で置いた表を使う＝表を作る関数の変異を通らない）・T2 が赤（反転で Y の f が 1 になる）。M0 は T2・T4 も赤（旗の確かめの Assert）。赤の門が 0 の変異は無い。
