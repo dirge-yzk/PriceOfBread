@@ -1,0 +1,11 @@
+{"seeds": 10, "wars": 5381, "declare": 0, "declareSeeds": 0, "multiFront": 0, "busyAtDeclare": 0, "declareMaxPerSeed": 0}
+s11 wars=599 declare=0 multi=0 busy=0 
+s12 wars=595 declare=0 multi=0 busy=0 
+s13 wars=531 declare=0 multi=0 busy=0 
+s14 wars=522 declare=0 multi=0 busy=0 
+s15 wars=594 declare=0 multi=0 busy=0 
+s16 wars=520 declare=0 multi=0 busy=0 
+s17 wars=521 declare=0 multi=0 busy=0 
+s18 wars=530 declare=0 multi=0 busy=0 
+s19 wars=442 declare=0 multi=0 busy=0 
+s20 wars=527 declare=0 multi=0 busy=0 
