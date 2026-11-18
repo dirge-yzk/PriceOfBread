@@ -41,7 +41,8 @@ public sealed partial class Coefficients
     public double DepositYearsAtBirth = 100.0;    // 初期鉱脈の大きさ＝開始時の産出率で掘り続けて何年分か（3倍掘れば33年で膝に届く）
     public Share DepositGradeKnee = new(0.5);         // 残量がこの割合を切ると品位が線形に低下し始める（浅い高品位層が尽きる点）
     public double DepositGradeFloor = 0.15;       // 掘り尽くしたあとの品位（深部の残滓＝ゼロにしない。閉山は採算側が決める）
-    public double BonanzaDepositYears = 60.0;     // 大鉱床の発見が州の鉱脈に足す量（初期率換算の年数・産地の発見 Discovery.OpenSite）
+    public double BonanzaDepositYears = 60.0;     // 大鉱床の発見が州の鉱脈に足す量（初期率換算の年数・産地の発見 Discovery.OpenSite）。旗 DepositSitesOnly 1 では産地の生産者の開いた後の最初の産出の月の年率の何年分を在庫にするか
+    public double DepositSitesOnly = 0.0;         // (1202) c120t2 旗（T2-1 案 S）：1＝鉱物の在庫を持つのは開いた鉱床の生産者だけ・ふつうの鉱物は州の品位を読まない・産地の品位は床＋(1−床)×残り÷初期。0＝州の鉱脈（DepositYearsAtBirth・膝）
     public double OversightPressCensored = 0.4;   // 検閲付き報道の監視力（自由報道=1.0・国家報道のみ=0.0）
     public double OversightMeritExam = 0.6;       // 科挙型（資格任用）の監視力（専門官僚=1.0・猟官=0.0）
     public double OversightFactorScale = 1.0;   // 1.0＝旧とビット恒等（press自由1.0→noisy-or飽和→汚職0）

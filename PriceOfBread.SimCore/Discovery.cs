@@ -934,7 +934,7 @@ public static class Discovery
         {
             Simulation.ApplyEndowment(p, c.GoldRushEndowment, siteCostDiv, c);
             if (p.Scale < 1.0) p.Scale = 1.0;
-            if (r.MineralDepositInitial > 0)
+            if (!(c.DepositSitesOnly > 0) && r.MineralDepositInitial > 0)   // (1202) 旗 1＝補充は産地の生産者の捕捉へ置き換える（Simulation.StepDeposits）
                 r.MineralDeposit += c.BonanzaDepositYears * r.MineralDepositInitial / System.Math.Max(1e-9, c.DepositYearsAtBirth);
             w.LogAdd($"{w.Year} {r.Name}で{gname}の大鉱脈が見つかった（{who}）");
         }

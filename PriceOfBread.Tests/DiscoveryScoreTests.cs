@@ -938,6 +938,7 @@ public class DiscoveryScoreTests
         var before = r.Producers.Select(q => q.Productivity).ToArray();
         r.MineralDepositInitial = 1000; r.MineralDeposit = 400;
         var c = w.Coef;
+        c.DepositSitesOnly = 0;   // (1202) 州の補充の経路（旗 DepositSitesOnly 0）の番人＝旗 0 を明示（新しい既定の捕捉の番人は DepositSitesOnlyTests.T3）
         Discovery.OpenSite(w, r, p, c);
         Assert.True(p.SiteFound);
         for (int i = 0; i < r.Producers.Count; i++)

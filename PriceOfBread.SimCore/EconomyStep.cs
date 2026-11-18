@@ -935,7 +935,7 @@ public static class EconomyStep
             double harvestMul = fieldLike && harvestSev > 0 ? 1.0 + (effHarvest - 1.0) * harvestSev : 1.0;
             // 作物固有の病虫害（胴枯れ）：その作物の健全度を産出に乗じる。天候(harvestMul)とは独立にロールされ**積算**＝両者の悪い目が重なれば栽培州の産出はほぼ0（アイルランド大飢饉型）。
             if (region.CropHealth is { } ch && s.GoodId < ch.Length) harvestMul *= ch[s.GoodId];
-            double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralGradeFactor : 1.0;   // mineralMul〔履歴 EconomyStep.cs#119〕
+            double mineralMul = Catalog.IsMineral(s.GoodId) ? Simulation.MineralGradeOf(s, region, coef) : 1.0;   // mineralMul〔履歴 EconomyStep.cs#119〕・(1202) 旗 DepositSitesOnly で産地の生産者の品位へ
             // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。〔履歴 EconomyStep.cs#120〕
             bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる
             bool baumol = isService[s.GoodId] && !isLabor;
@@ -2783,7 +2783,7 @@ public static class EconomyStep
     {
         double own = s.MarginalCost * (world?.CostPriceLevel ?? 1.0) * region.LocalPriceMultiplier;   // ①参照価格の単位→州の名目（自己費用の物価水準）
         if (!(coef.MineralCostFollowsGrade > 0) || !s.IsRgo || !Catalog.IsMineral(s.GoodId)) return own;
-        double gm = region.MineralGradeFactor;
+        double gm = Simulation.MineralGradeOf(s, region, coef);   // (1202) 能力と同じ品位の口
         if (!(gm > Eps)) return own;   // 否定形＝NaN/非正の倍率は割らない側へ倒す（Clamp は NaN を消さない）
         return own / gm;
     }

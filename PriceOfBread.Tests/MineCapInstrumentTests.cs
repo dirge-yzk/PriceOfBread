@@ -14,13 +14,14 @@ public class MineCapInstrumentTests
 {
     private const ulong Seed = 1789UL;
 
-    private static (MultiNationSim Sim, string Dir) Run(int quarters)
+    private static (MultiNationSim Sim, string Dir) Run(int quarters, double? depositSitesOnly = null)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_mc_" + Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         Instruments.SelectTables("minecap_s");
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], Seed, _ => new UtilityAgent(), null);
         foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
+        if (depositSitesOnly is { } dso) foreach (var n in sim.Nations) n.World.Coef.DepositSitesOnly = dso;   // (1202) 旗を明示する盤面
         sim.DiplomacyFrozen = true;
         try
         {
@@ -80,7 +81,7 @@ public class MineCapInstrumentTests
     {
         try
         {
-            var (sim, dir) = Run(12);
+            var (sim, dir) = Run(12, 0.0);   // (1202) 州の鉱脈（旗 DepositSitesOnly 0）の経路の番人＝旗 0 を明示（旗 1 の計器の番人は DepositSitesOnlyTests.T6）
             int n = 0, init = 0;
             foreach (var nat in sim.Nations)
             {

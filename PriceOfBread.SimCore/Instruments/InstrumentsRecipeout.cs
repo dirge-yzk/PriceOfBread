@@ -57,7 +57,7 @@ public static partial class Instruments
         double self = p.MarginalCost * w.CostPriceLevel * r.LocalPriceMultiplier;
         if (c.MineralCostFollowsGrade > 0 && p.IsRgo && Catalog.IsMineral(g))
         {
-            double gm = r.MineralGradeFactor;
+            double gm = InsMineralGrade(p, r, c);   // (1202) 旗 DepositSitesOnly の品位の口
             if (gm > 1e-9) self /= gm;
         }
         // 投入費（自州の値段）。労働力の節約は BuysLabor の労働力だけ。

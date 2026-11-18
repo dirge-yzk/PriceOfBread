@@ -298,9 +298,9 @@ public class EconomyTests
             r.Markets[0].Price = r.Producers[0].MarginalCost * (1.0 + c.SupplySlope * 0.4);   // 0.5×1.2＝0.6（飽和前）
             return r;
         }
-        var baseCoef = new Coefficients();
-        var zeroCoef = new Coefficients { MineralCostFollowsGrade = 0.0 };
-        var onCoef = new Coefficients { MineralCostFollowsGrade = 1.0 };
+        var baseCoef = new Coefficients { DepositSitesOnly = 0.0 };   // (1202) 州の品位を読む経路（旗 DepositSitesOnly 0）の盤面＝旗 0 を明示
+        var zeroCoef = new Coefficients { MineralCostFollowsGrade = 0.0, DepositSitesOnly = 0.0 };
+        var onCoef = new Coefficients { MineralCostFollowsGrade = 1.0, DepositSitesOnly = 0.0 };
 
         var off = Poor(baseCoef); var zero = Poor(zeroCoef); var on = Poor(onCoef);
         EconomyStep.Run(off, baseCoef); EconomyStep.Run(zero, zeroCoef); EconomyStep.Run(on, onCoef);

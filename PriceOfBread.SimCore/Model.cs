@@ -529,6 +529,8 @@ public sealed class Producer
     public string RecipeName = "";
     public int SiteRow = -1;
     public bool SiteFound;
+    public double SiteDepositInitial = -1.0;   // (1202) 旗 DepositSitesOnly：開いた鉱床の在庫の初期（開いた後の最初の産出の月に捕える・−1＝未捕捉・ふつうの生産者は持たない）
+    public double SiteDeposit = -1.0;          // (1202) 同じ在庫の残り（毎月の産出だけ減る）。品位は欄にせず読む時に出す（Simulation.MineralGradeOf）
     public int DiscoveryRow
     {
         get

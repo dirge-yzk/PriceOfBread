@@ -23,9 +23,9 @@ public static partial class Instruments
                 var x = RoRead(w, r, p);
                 double price = r.Markets[g].Price;
                 double margin = x.Mc > 1e-9 ? (price - x.Mc) / x.Mc : 0.0;
-                double dep = r.MineralDepositInitial > 0 ? r.MineralDeposit / r.MineralDepositInitial : double.NaN;
+                double dep = InsDepositFrac(p, r, w.Coef);   // (1202) 旗 DepositSitesOnly 1 では産地の生産者の在庫
                 bool nat = r.NationalizedMask != 0 && Nationalization.SectorOf(g) == NationalizedSector.Mines && (r.NationalizedMask & (1 << (int)NationalizedSector.Mines)) != 0;
-                rows.Add(new McProd(g, x.Class, p.Output, p.BuiltScale, dep, r.MineralGradeFactor, 1.0 + margin, nat, price, x.Mc));
+                rows.Add(new McProd(g, x.Class, p.Output, p.BuiltScale, dep, InsMineralGrade(p, r, w.Coef), 1.0 + margin, nat, price, x.Mc));
             }
         }
         return rows;

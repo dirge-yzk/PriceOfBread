@@ -2354,15 +2354,36 @@ public sealed class Simulation
         + c.OverworkHealthSlope * Math.Max(0.0, WorkHours.Twelve.Hours() - hours)
         - c.OverworkMortalityWeight * Math.Max(0.0, hours - WorkHours.Twelve.Hours());
 
+    private void StepMineralDeposits() => StepDeposits(World);
+
     /// <summary>
-    /// 鉱脈＝有限の在庫：毎月、州の鉱物産出の合計だけ減る（**決定論＝サイコロなし**）。〔履歴 Simulation.cs#316〕
+    /// 鉱脈＝有限の在庫：毎月、掘った分だけ減る（**決定論＝サイコロなし**）。〔履歴 Simulation.cs#316〕
+    /// 旗 DepositSitesOnly（(1202) T2-1 案 S）：1＝在庫を持つのは開いた鉱床の生産者だけ（開いた後の最初の産出の月に BonanzaDepositYears 年分を捕える・品位は <see cref="MineralGradeOf"/>）・
+    /// 0＝州の鉱物の産出の和で州の鉱脈が減る（膝）。
     /// </summary>
-    private void StepMineralDeposits()
+    internal static void StepDeposits(World world)
     {
-        var c = World.Coef;
+        var c = world.Coef;
         // 排水と発見は**対の機構**＝同じゲートに置く（較正世界は従来の確率イベントのまま＝24-24-24の前提を壊さない）。〔履歴 Simulation.cs#317〕
-        if (World.WarmupFrozen || World.Diplomacy is null) return;   // WarmupFrozen〔履歴 Simulation.cs#318〕
-        foreach (var r in World.Regions)
+        if (world.WarmupFrozen || world.Diplomacy is null) return;   // WarmupFrozen〔履歴 Simulation.cs#318〕
+        if (c.DepositSitesOnly > 0)
+        {
+            foreach (var r in world.Regions)
+                foreach (var p in r.Producers)
+                {
+                    if (!HoldsSiteDeposit(p)) continue;
+                    double o = p.Output;
+                    if (!(o > 0)) continue;   // 産出なし（NaN も〈なし〉へ倒す＝否定形）
+                    if (p.SiteDepositInitial <= 0)
+                    {
+                        p.SiteDepositInitial = Calendar.PerMonthToPerYear(o) * c.BonanzaDepositYears;   // 捕捉：開いた後の最初の産出の月の年率×年数
+                        p.SiteDeposit = p.SiteDepositInitial;
+                    }
+                    p.SiteDeposit = System.Math.Max(0, p.SiteDeposit - o);   // 掘った分だけ減る
+                }
+            return;
+        }
+        foreach (var r in world.Regions)
         {
             double outSum = 0;
             foreach (var p in r.Producers) if (Catalog.IsMineral(p.GoodId)) outSum += p.Output;
@@ -2380,6 +2401,18 @@ public sealed class Simulation
             if (!(grade >= c.DepositGradeFloor && grade <= 1.0)) grade = 1.0;   // NaNは品位低下なし側へ倒す（否定形＝ClampはNaNを消さない）
             r.MineralGradeFactor = grade;
         }
+    }
+
+    /// <summary>(1202) 在庫を持つ生産者＝開いた鉱床（産地の行・見つかった・鉱物）。</summary>
+    internal static bool HoldsSiteDeposit(Producer p) => p.SiteRow >= 0 && p.SiteFound && Catalog.IsMineral(p.GoodId);
+
+    /// <summary>(1202) 鉱物の生産者の品位（能力と費用の読み口）。旗 DepositSitesOnly 0＝州の品位。1＝産地の生産者は床＋(1−床)×残り÷初期（比例）・それ以外は 1（州の品位を読まない）。</summary>
+    internal static double MineralGradeOf(Producer p, Region r, Coefficients c)
+    {
+        if (!(c.DepositSitesOnly > 0)) return r.MineralGradeFactor;
+        if (!(p.SiteDepositInitial > 1e-9)) return 1.0;   // 未捕捉・ふつうの生産者
+        double grade = c.DepositGradeFloor + (1.0 - c.DepositGradeFloor) * (p.SiteDeposit / p.SiteDepositInitial);
+        return grade >= c.DepositGradeFloor && grade <= 1.0 ? grade : 1.0;   // NaN は品位低下なし側へ倒す（否定形＝今の州の守りと同じ）
     }
 
     /// <summary>

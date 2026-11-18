@@ -55,7 +55,7 @@ public static partial class Instruments
         double grade = 0.0;
         if (c.MineralCostFollowsGrade > 0 && s.IsRgo && Catalog.IsMineral(s.GoodId))
         {
-            double gm = r.MineralGradeFactor;
+            double gm = InsMineralGrade(s, r, c);   // (1202) 旗 DepositSitesOnly の品位の口
             if (gm > 1e-9) grade = own / gm - own;
         }
         double inputs = 0.0;
