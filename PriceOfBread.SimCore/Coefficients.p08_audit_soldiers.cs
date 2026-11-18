@@ -115,7 +115,7 @@ public sealed partial class Coefficients
     public double TreatyPortHomeOnly = 1;        // (1138) c111tp 2026-11-14 点火：1＝条約港の読み手（ForeignPortShare・TreatyPortInForce）が植民地格の港を数えない・0＝旧（全ての港）
     public double ProjectionRuleMin = 1.1;   // 1.1（到達不能）＝{首都}＝旧＝厳密恒等
     public double ProjectionUsesLand = 0.0;   // §14b：非港州も陸路距離（PathGraph）で起点にする（露の中央アジア・シベリア＝鉄道の延伸が投射になる）
-    public double PeacetimeConscriptGrievance = 0.0;   // 0＝旧＝厳密恒等
+    // (1199) 削除：PeacetimeConscriptGrievance（支配度doc §15・平時の植民地徴募の遺恨・既定 0）。K3 の 1.0 は採らず（(1194)・推奨 (a)）、分岐ごと消した
 
     public double NoblePrivilegeWeight = 2.0;   // 特権身分の加算（伝統に＋これ・反動に＋これ/2）＝旧分岐の伝統4/反動2と地代依存度2×1+0.5 の差を埋める尺度（旧と同等の合計から出発）
 

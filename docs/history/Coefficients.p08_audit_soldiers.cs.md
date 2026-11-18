@@ -1354,3 +1354,6 @@
 ````text
 // 外15＋02断線走査2026-07-28実効化：講和で武力奪取した植民地の初期不満＝これ×ColonizeAnnexMilitancy（旧・>0判定のみで値が式に現れず1.0でも100でも同一だった）。1.5＝武力奪取(0.45)＞無血併合(0.3)の序列＝アルジェリア型の抵抗。1.0で併合と同値・0で据え置き
 ````
+
+## (1199) 墓標：PeacetimeConscriptGrievance
+- (1199) c120nk で削除（既定 0・読み手は Military.cs の平時の植民地徴募の分岐だけ）。(1194) c119k3 は 0→1.0 を採らず（推奨 (a)）。分岐 `peacetimeColonial` と DrawFromPool の grievanceScale 引数も同時に消えた。

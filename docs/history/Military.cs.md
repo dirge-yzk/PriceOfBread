@@ -502,3 +502,5 @@
 /// （軍の社会的重み・軍部の組織性。旧の読み手の職業軍の度合い π は (393) で削除）。旧＝MaxSoldierFraction をそのまま人口比として読んだ（母数が全ての人の頃の単位）。</summary>
 ````
 
+## (1199) 墓標：平時の植民地徴募の遺恨の分岐
+- (1199) c120nk：`bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && …` と DrawFromPool の引数 grievanceScale（×1.0 の因子）を削除。DrawFromPool は `wartimeConscript` だけで遺恨の対象を決める。
