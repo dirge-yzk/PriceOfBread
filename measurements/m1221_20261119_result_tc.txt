@@ -1,0 +1,28 @@
+# (1221) c123tc 結果（試験だけ・エンジン 0 行・判定: 恒等〔測った範囲＝試験の数・赤 0・エンジン 0 行〕）
+木：c123tc（出発 81ad1e58d）。コミット：事前登録 4b7ba72f9／項1 2f846a6a2／項2 a3e6b256b／台本。
+[門]
+ git diff --stat（81ad1e58d..）：PriceOfBread.Tests・PriceOfBread.Tests.Ui・scripts・measurements だけ（SimCore・Runner・App・Display 0 行）。
+ フルスイート：Tests 非 FullLength 2682 合格＋スキップ 1（合計 2683）・Ui 234 合格・FullLength 3 合格＝赤 0。
+ --list-tests の和＝2683＋234＝2917（予言 2917＝2916＋足した 1 本）・FullLength 3。suite 一式は measurements/m1221_20261119_suite_tc/。
+ ㉘（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ColonialPopTests）149 本緑。許可表・宣言の表・件数の書き換え 0（予言 0）。
+ savetest・leakhunt：フルスイートの中の試験として緑（別の腕は回していない）。ident は回していない（エンジン 0 行）。
+[項 1] ColonialPopTests
+ 盤面の取り直し：英仏 seed 83・コーヒーを持つ植民地×倍率 0.5〜64（9 通り）×英仏＝36 盤面・1 か月・地代の和＝旗 0 で 32 盤面が正、旗 1 で 0 盤面が正
+ （measurements/m1221_20261119_board_probe_f0.txt・f1.txt）。旗 1 は POB_COEF（係数は型の初期化で 1 回だけ読む＝1 プロセスで混ぜられない）で別プロセス。
+ ジャマイカ：倍率 1 で旗 0 +0.17／旗 1 −42.3、倍率 4 で旗 0 +0.17／旗 1 −3.02（コーヒー単独の地代は旗 1 で正だが、砂糖の赤字が上回る）。
+ →〈盤面では満たせない〉。盤面は今のまま（旗 0 で緑）。R3 は作者に聞く物の材料（反証役 v の (b)）。旗 1 でこの試験は赤（前提の文〈不在地主の大農園に国内の地代が立たない〉）。
+ 足した番人：ColonialPopTests 〈赤字の月に生産者の規模は増えない〉（限界費用 20 倍・3 か月）。旗 0 で緑。旗 1（POB_COEF）でも緑＝この盤面は旗 1 の規模の伸びを再現しない（旗 1 の伸びは費用 1 倍の盤面）。
+ 突然変異：M5 scaleTarget の 1+margin→1+|margin|＝新しい番人が赤（8 本中 1 本）／M6 不在地主への加算を 0 に（④で積まない）＝新旧の木とも〈植民地の月の決算で…〉が赤。
+[項 2] ProductionDiagTests 4 クラス
+ 共有＝ICollectionFixture（ProductionDiagWorlds）。世界の構築 10→3 回（60Q・40Q・20Q 各 1）。読み取りだけの 10 本が共有・書き換える 3 本は自前の世界のまま。テストの数は不変。
+ 時間（Ui の trx）：ProductionDiagTests* の和 333.5 秒→106.7 秒。負荷の比（変えていない Ui 試験の和の 後÷前）1.23 で補正すると 約 87 秒（−74%）。
+ Tests の trx の和は 5012→10026 秒（比 2.0）＝機械の負荷で変えていない試験も 2 倍＝実時間は比べない（Tests 非 FullLength 2014 秒・FullLength 352 秒・Ui 111 秒）。目安〈21→10 分〉は記録（Ui の整理の寄与は小さい）。
+ 突然変異（前の木 81ad1e58d と後の木で同じ試験が赤・赤の集合が一致）：M1 RebuiltMarketPrice×1.001／M2 CostParts.Rebuilt+0.5／M3 稼働率 Rebuilt×1.001＝4 本赤（Tests の価格の分解・Tests の生産コストの内訳・Tests2 の稼働率・Tests4 のレシピごと）、前後で同じ 4 本。
+ M4 ExplainPopConsumption の total×1.001＝Tests3 の購入記帳が赤（前 1 本・後 1 本）。⚠M1〜M4 に赤にならない試験は 11 本（等式の別の面を見る物）＝穴の名乗りだけ・共有が検出を変えた証拠は無い（前後の集合が同じ）。
+[消さない・残す]
+ MultiNationTests 1〜3・StartWarmupTests 1〜4・WarThemeTests・NationModelTests・PolicyPoliticsTests・TechInstitutionTests・ExplainTests：未精査＝残す（この回は盤面の書き換えの見分けまで届かなかった）。
+ 新しい Trait は作らない。FullLength へ入れていない。
+[記録]
+ 作ったフォルダ：D:/PoB_work/wt_c123tc（枝 c123tc）・D:/PoB_work/c123tc_work（oldtree・suite_new・mut・probe）・D:/PoB_work/c123tc_art・c123tc_art_old（片付け済み）。
+ 腕の枠で待った時間 0（腕を回していない）。生は D:/PoB_work/c123tc_work の小さな物のみ残す（ident・probe の生は無い）。hook に止められた回数 0。前面の待ち（waitmark）約 26 回。
+ 増えた行：ColonialPopTests +27・ProductionDiagTests +28（共有の器・属性・ctor）。減った行 0。
