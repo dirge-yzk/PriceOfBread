@@ -190,7 +190,7 @@ public static class Fiscal
         }
 
         if (w.BorrowCooldownMonths > 0) w.BorrowCooldownMonths--;
-        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += 1.0 - payRate; else w.InsolvencyMonths = 0;
+        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += ArrearsOfMonth(w, c, payRate, spare, devalued); else w.InsolvencyMonths = 0;
         if (w.InsolvencyMonths >= c.DefaultArrearsMonths)
         {
             RepudiateDebt(w, c);
@@ -491,6 +491,17 @@ public static class Fiscal
         if (p is null) issuer.GovDebt += h; else p.BondHoldings -= h;
         issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
         holderNation.ForeignBondClaims += h * issuer.FxRate / holderNation.FxRate;
+    }
+
+    /// <summary>(1215) 不履行の累計に積むその月の未払い（月の請求の割合）。旧＝1−r。旗 ArrearsBeyondOpenedRoom＞0 で金本位でない月は、
+    /// 資格がもう許している切り下げのうち兌換の遅れでまだ開いていない分（deficit−余地）を引いた残り＝余地−切り下げ額 を、払えない額（−spare）に対する比で 1−r に掛ける。
+    /// 余地を全て取った月は 0・兌換 0 の月は旧と同じ。比は否定形で 0〜1（NaN と −spare≦0 は旧の 1−r）。</summary>
+    internal static double ArrearsOfMonth(World w, Coefficients c, double payRate, double spare, double devalued)
+    {
+        double unpaid = 1.0 - payRate;
+        if (!(c.ArrearsBeyondOpenedRoom > 0) || w.OnGoldStandard || !(-spare > 0)) return unpaid;
+        double left = (w.DevaluationRoomPerMonth - Math.Max(0, devalued)) / -spare;
+        return !(left < 1) ? unpaid : (left > 0 ? unpaid * left : 0);
     }
 
     internal static void RepudiateDebt(World w, Coefficients c)

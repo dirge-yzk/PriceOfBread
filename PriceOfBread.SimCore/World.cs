@@ -1304,6 +1304,7 @@ public sealed class World
     public double CreditGoldTerm { get; internal set; } = 1.0;    // 内訳②兌換可能性
     public double CreditFxTerm { get; internal set; } = 1.0;      // 内訳③為替（減価＝対外信用の低下）
     public double CreditBondTerm { get; internal set; } = 1.0;    // 内訳④国債の利回りスプレッド
+    public double DevaluationRoomPerMonth { get; internal set; }   // (1215) その月の切り下げの余地（Simulation が月初に書き、同じ月の Fiscal.Step の不履行の累計が読む）
     public double Convertibility { get; internal set; }   // 兌換可能性 0..1（倍率排除②）。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従し、通貨レジームの効果(money集計/為替/切下げ/金利/対外信用)を連続lerpで出す
 
     private double _moTrend; internal double MoTrendForInstruments => _moTrend;   // 広義マネー/実質産出 のゆっくりなトレンド（secular な産出成長を吸収＝残りが信用循環の成分）。〔履歴 World.cs#214〕

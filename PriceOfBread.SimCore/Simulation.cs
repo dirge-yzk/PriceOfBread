@@ -1957,6 +1957,7 @@ public sealed class Simulation
                 if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
                 devalueRoom = deficit * (1.0 - World.Convertibility * (1.0 - specie));
             }
+            World.DevaluationRoomPerMonth = devalueRoom;   // (1215) その月の切り下げの余地＝Fiscal.Step の不履行の累計が読む（毎月ここで書いてから読む）
             if (devalueRoom > 1e-9)
             {
                 double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
