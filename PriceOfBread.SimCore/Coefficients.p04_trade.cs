@@ -17,7 +17,8 @@ public sealed partial class Coefficients
     public double PrivateAbsorptionBlend = 1.0;   // 速度を絞る＝天井なし＝デッドロックなし（敵対審査の推奨形）
     public double ClosedWealthMultiple = 1.0;     // 1.0で旧と厳密恒等
     public double[] LiteracyOddsByClass = [0.85 / 0.15, 0.80 / 0.20, 0.08 / 0.92, 0.25 / 0.75, 0.60 / 0.40, 0.80 / 0.20, 0.85 / 0.15, 0.70 / 0.30, 0.45 / 0.55, 0.30 / 0.70];   // 値＝旧の全国共通のテンプレ（world.json の41〜45国が置いていた 0.85/0.80/0.08/0.25/0.60/0.80/0.85 と直書きの商人 0.70・職人 0.45・使用人 0.30）t をオッズ t/(1−t) …
-    public RatePerMonth IndInvestmentFrac = new(0.05);       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
+    public RatePerMonth IndInvestmentFrac = new(0.05);       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）・旗 InvestBudgetFromEarnings＞0 では EconomyStep から読まない（Runner の表示は読む）
+    public double InvestBudgetFromEarnings = 0;   // (1223) c123iv：＞0 で私的な建設の予算＝min(投資家の前の月の稼ぎ LastEarnedPerMonth の正の部分, 貯蓄の正の部分)・同じ額を投資家の消費の予算から引く（0＝IndInvestmentFrac×貯蓄＝厳密恒等）
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）
     public double IndCapitalOutputYears = 1.0;    // >0 で私的な建設 1 束が上げる工業化度が 1÷N（N＝これ×州の実質の年所得÷基準の束の費用）になる＝州の経済の大きさに比例した投資額

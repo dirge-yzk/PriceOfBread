@@ -786,8 +786,21 @@ public static class EconomyStep
             costL[CostLedger.ZeroPopMonth] += zeroPops; costL[CostLedger.ZeroPopEmptyMonth] += zeroEmpty;
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
+        // (1223) 旗 InvestBudgetFromEarnings＞0：予算＝min(前の月の稼ぎ, 貯蓄)（どちらも正の部分・NaN は 0）を 1 回だけ求め、消費の予算から同じ額を引き、下の建設の予算に使う。
+        double investBudgetFromEarnings = 0;
         if (cap && region.InvestorPopIndex >= 0)
-            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+        {
+            if (coef.InvestBudgetFromEarnings > 0)
+            {
+                var ivp = region.Pops[region.InvestorPopIndex];
+                double ivE = ivp.LastEarnedPerMonth.Value > 0 ? ivp.LastEarnedPerMonth.Value : 0.0;
+                double ivS = ivp.Savings.Value > 0 ? ivp.Savings.Value : 0.0;
+                investBudgetFromEarnings = ivE < ivS ? ivE : ivS;
+                ivp.RemainingBudget -= investBudgetFromEarnings;
+            }
+            else
+                region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+        }
         // budgetStartDiag〔履歴 EconomyStep.cs#91〕
         double budgetStartDiag = 0;
         bool insOn = Instruments.On && world is not null;   // insOn〔履歴 EconomyStep.cs#92〕
@@ -1053,7 +1066,7 @@ public static class EconomyStep
                 buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
                               + coef.ConsLoco * locoGate * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
             // ── 実測（powertrace・1800年）───────────────────────────────────────   投資家の**所得**はGDPの約20%＝妥当（英17,198 / GDP86,742）。〔履歴 EconomyStep.cs#145〕
-            double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+            double budget = coef.InvestBudgetFromEarnings > 0 ? investBudgetFromEarnings : coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
             // 無補償で工場を取られた資本家は次の投資を控える。〔履歴 EconomyStep.cs#146〕
             if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。〔履歴 EconomyStep.cs#147〕
