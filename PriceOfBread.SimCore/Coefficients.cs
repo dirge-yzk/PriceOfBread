@@ -105,7 +105,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double ModernEliteSubCensusVoice = 0.3;    // 倍率排除②：制限選挙(Census)未満での近代エリート（ブルジョワ）の実効発言権
     public double IdeologyVoiceFloor = 0.7;           // 倍率排除②：国民イデオロギー集計で参政権ゲート外の層が持つ最低寄与（公共圏の機運）
     public double ReactionFromLoss = 0;   // （日本固有ではなく全世界＝識字を読む全ての量に効く）
-    public double NationalismFromDispersion = 0;   // (1216) 正＝自由主義の意識の項 2.5×意識×進歩を文化の分断の度合い f で自由主義（1−f）と民族主義（f）へ分ける（f は Ideologies.BuildCultureSplit が盤面から毎回導く）
+    public double NationalismFromDispersion = 1;   // (1216) 正＝自由主義の意識の項 2.5×意識×進歩を文化の分断の度合い f で自由主義（1−f）と民族主義（f）へ分ける（f は Ideologies.BuildCultureSplit が盤面から毎回導く）
     public double IdeologyAffinitySlope = 2.3;        // 倍率排除⑧：政体×思想の制度座標の距離→親和の傾き（親和=clamp(2−slope×距離,−1,2)）
     public double PolityCoordDriftWeight = 0.4;       // 倍率排除⑧段階2：現政体の参加軸を実際の参政権へドリフトする割合（0=固定/段階1・1=完全に実参政権）
     public double ReformPressureBoost = 0.5;          // 外圧が改革派の力を増す（明治の追い風 §A-11）※§8 導出：均衡分布（エリート天井ゲートで元値に復帰）
