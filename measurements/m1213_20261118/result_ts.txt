@@ -2,7 +2,7 @@
 - 変更：InstrumentsTests.cs（接触の内訳の 1 本に Trait FullLength・1 行）・TreasuryLedgerTests.cs（61 カ国・種 1789 の走行を Lazy で共有・Assert 変更 0）。エンジン 0 行（git diff --stat 245780b63 は Tests・scripts・measurements だけ）＝ident は回さない。
 - --list-tests：nonfull Tests 2678＋Ui 234＝2912（予言どおり）・FullLength 4（予言どおり）。合計 2916。
 - フルスイート（Release・trx）：Tests nonfull 2678（合格 2677・スキップ 1）・Ui nonfull 234 合格・Tests FullLength 4 合格・Ui FullLength 0（フィルタに一致なし）。赤 0。
-- 時間（機材の負荷が重い回＝他の担当が走っていた）：nonfull の試験の時間の和 前 5609 秒・後 6653 秒。変えていない 2901 本の和 前 4984・後 6372＝負荷 1.279。補正すると後 約 5203 秒（予言 約 5227）。TreasuryLedgerTests の和 前 281・後 281（補正 220＝−61 秒）。接触の内訳 344 秒（補正前）を nonfull から外した。FullLength の和 前 210（Conservation 1 本）・後 1096（Conservation 443＋接触 652・負荷つき・補正 約 857）。nonfull 全体の実時間（Tests）18 m 15 s のはず→ 19 m 53 s（負荷で伸びた・補正すると約 15.5 分の見込み＝記録だけ・静かな機材で測っていない）。
+- 時間（機材の負荷が重い回＝他の担当が走っていた）：nonfull の試験の時間の和 前 5609 秒・後 6653 秒。変えていない 2901 本の和 前 4984・後 6372＝負荷 1.279。補正すると後 約 5203 秒（予言 約 5227）。TreasuryLedgerTests の和 前 281・後 281（補正 220＝−61 秒）。接触の内訳 344 秒（補正前）を nonfull から外した。FullLength の和 前 210（Conservation 1 本）・後 1096（Conservation 443＋接触 652・負荷つき・補正 約 857）。実時間（負荷つき）：Tests nonfull 19 分 53 秒（前の単独の値は未取得）・Tests FullLength 18 分 15 秒（接触の内訳の 1 本が移ったため。FullLength の合計は増える＝フルスイートの総和は不変・普段の nonfull だけが軽くなる）。静かな機材で測っていない＝記録だけ。
 - 突然変異 M1（World.Pay が Army を台帳に記帳しない・使い捨て）：旧の試験も新の試験も TreasuryLedgerTests の同じ 4 本が赤（mut_M1_old.txt・mut_M1_new.txt）。短くした試験は 0。
 - T1 の FullLength 移動：突然変異の台本に試験名の参照は 0。nonfull では走らない＝名乗る。FullLength は緑。
 - 走査の番人（㉘）の件数：書き換え 0（予言どおり）。フルスイートの中の走査の番人は緑。
