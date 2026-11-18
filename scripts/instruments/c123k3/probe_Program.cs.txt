@@ -1,0 +1,44 @@
+// (1222) c123k3 段0：K03（識字で社会保障の医療を上から切る錠）の紙の影（使い捨て・コミットしない）。
+// 全体の世界（WorldData.Nations()・UtilityAgent・StartWarmup の後＝popprobe と同じ）を旗 0 で回し、四半期の終わりに国ごとに
+// 今の盤面から医療の式を旧（識字の項あり）と新（識字の項なし）で組み直す＝同じ盤面の新÷旧。エンジンの関数は呼ばない（式は事前登録の文から書く）。
+// 引数：<種> <四半期数> <出力の tsv>。月ごとに組み直し、識字の項が決めた月と四半期の終わりの月だけを書く（quarter の列は月の番号）。
+using System.Globalization;
+using System.Reflection;
+using PriceOfBread.SimCore;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong seed = ulong.Parse(args[0]);
+int quarters = int.Parse(args[1]);
+using var o = new StreamWriter(args[2], false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+o.WriteLine($"# k3 probe override=[{Coefficients.OverrideSummary()}] seed={seed} quarters={quarters}");
+o.WriteLine("seed\tquarter\tyear\tnation\tpopK\tlit\tss\tfr\tdoctor\thOld\tdiagH\thNew\tlitBinds\tparen\tdCapShare");
+var wh = typeof(Simulation).GetMethod("WorkHoursCapacity", BindingFlags.NonPublic | BindingFlags.Static)!;
+var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+sim.StartWarmup();
+long nRows = 0;
+for (int q = 1; q <= quarters * 3; q++)
+{
+    for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay();
+    foreach (var n in sim.Nations)
+    {
+        var w = n.World; var c = w.Coef;
+        double pop = w.TotalPopulation; if (!(pop > 1e-9)) continue;
+        double lit = 0, hs = 0;
+        foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; hs += p.HealthFill * p.Size; }
+        lit /= pop; double doc = hs / pop;
+        double ss = w.SocialSecurity, fr = w.FiscalFundingRatio.Value;
+        double a = ss * fr, b = lit / c.HealthcareEducationGate;
+        double hOld = Math.Min(a, b), hNew = a;
+        if (c.HealthcareRealGate > 0) { hOld = Math.Min(hOld, doc / c.HealthcareRealGate); hNew = Math.Min(hNew, doc / c.HealthcareRealGate); }
+        if (c.DoctorHealthcareSubstitute > 0) { hOld = Math.Max(hOld, c.DoctorHealthcareSubstitute * doc); hNew = Math.Max(hNew, c.DoctorHealthcareSubstitute * doc); }
+        double whf = (double)wh.Invoke(null, [w.WorkHoursValue, c])!;
+        double paren = w.DiagCapacityBaseline > 0 && whf > 0 ? w.DiagCapacity / (w.DiagCapacityBaseline * whf) : double.NaN;
+        double dCap = paren > 0 ? c.HealthcareCapacityBonus * (hNew - hOld) / paren : double.NaN;
+        nRows++; if (!(hNew > hOld) && q % 3 != 0) continue;
+        o.WriteLine(string.Join('\t', seed, q, w.Year, w.SelfPower?.BaseName ?? "?", G(pop), G(lit), G(ss), G(fr), G(doc), G(hOld), G(w.DiagHealthcare), G(hNew), hNew > hOld ? 1 : 0, G(paren), G(dCap)));
+    }
+}
+o.WriteLine($"# rows {nRows}");
+Console.WriteLine("PROBEDONE");
+static string G(double x) => x.ToString("G6", CultureInfo.InvariantCulture);

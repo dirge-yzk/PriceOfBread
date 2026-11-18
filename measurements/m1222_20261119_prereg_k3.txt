@@ -1,0 +1,89 @@
+# (1222) c123k3 事前登録：K03 識字で社会保障の医療を上から切る錠を外す（削除の線・旗 1 本・挙動の席 1・3 回の規則の 1 回目）
+- 書いた日 2026-11-19・枝 c123k3（81ad1e58d から）・腕の前にコミットする（最初のコミット）。書いた担当 Claude Opus 5.5。
+- 出発：00一覧〈次の波（波123〜）〉1 節 ①・4 節（削除の線の先頭）・表 measurements/m1189_20261117/dl_table_2026-11-17.tsv の K03（挙動・点 10）・r1189_2026-11-17.md:32〈実体の門と二重〉・台帳 S10-H004（docs/機能の台帳.md:852・〈働く〉）。〈作者「全て推奨で」で推奨を採った〉（AI の推奨・確証なし）。
+- 形は〈尾〉（min の 1 項を外す＝識字の項が min を決める月だけが変わる）。新しい係数は旗 1 本だけ（HealthcareLiteracyGateOff・既定 0）。新しい状態 0。採れば次の合流で旗と HealthcareEducationGate を物理で消す。
+- 根拠：史実の〈医者が要る〉は医療財の消費の門 HealthcareRealGate 0.5（Coefficients.p07_wiring_prewarm.cs:25・Simulation.cs:2124）が直に持つ。識字÷0.6 は同じ史実の 2 本目の代理（思想⑨）。
+
+## 0. 紙の影（段 0・今の盤面＝keep_1219/base_ins と同じ世界・旗 0）
+- keep_1219/base_ins に医者の役務（HealthFill）の列が無い＝使い捨てのプローブ（r1218 の型・D:/PoB_work/c123k3_work/probe・写しは scripts/instruments/c123k3/probe_Program.cs.txt・Probe.csproj.txt・run_probe.sh）。
+  - 全体の世界（WorldData.Nations()・UtilityAgent・StartWarmup）を旗 0 で回し、毎月の終わりの盤面で医療の式を旧（識字の項あり）と新（識字の項なし）で組み直す。エンジンの関数は呼ばない（式は §1 の文から書いた）。
+  - 世界の一致：種 1 の仏の人口（月の終わり 400 四半期）33893.8＝nation_s1 の q399 33893.78694。
+- 結果（measurements/m1222_20261119/shadow_month.txt・四半期の版 shadow_q5.txt〔種 1〜5〕）：
+  - 国×月×種 1,229,246 行のうち、識字の項が min を決めた行は 167（0.014%）。
+  - 決めたのは 4 種 4 国だけ：種 2 プロイセン 1896〜1900（57 か月）・種 4 プロイセン 1887〜1891（44）・種 7 ポルトガル 1901〜1902（7）・種 10 オスマン 1801〜1806（59）。
+  - その月の医療の増え（新−旧）の最大 0.047〜0.137・扶養力の増え（1.2×Δ医療÷扶養力の括弧）の最大 5.6〜13.1%。
+  - 種 1・3・5・6・8・9 は 1 か月も決めない。
+  - 主な国の 1850・1913 年（種 1〜5 の中央）：医者の役務÷0.5 が識字÷0.6 より常に低い（例 英 1913 識字 0.34・医者 0.128・医療 0.101）＝錠を掛けているのは医者の役務の門。
+- 読み：識字の錠はほぼ死んだ項（S10-H004 の〈医者の役務の実体のゲートが同じ物を直に見る〉が盤面でも成り立つ）。
+
+## 1. 形（ソース・main 81ad1e58d を grep）
+- Simulation.cs:2121：`healthcare = c.HealthcareLiteracyGateOff > 0 ? SS×r : Math.Min(SS×r, (litSum/pop)/HealthcareEducationGate)`。旗 0 は今の式と同じ演算の順。
+- 続く :2124 の医者の役務の min と :2126 の 0.5×医者の役務の max は変えない。
+- litSum は母の識字（:2214 付近の femaleLit）も読む＝集計は外さない。
+- Coefficients.p06_rank_discovery.cs:83 の下に旗 HealthcareLiteracyGateOff = 0（器）→ 1（旗 1 のコミット）。
+- HealthcareEducationGate の読み手は :2121 の 1 か所だけ（App・Display・Runner・Tests・計器 0）。
+
+## 2. 段 0 の予言（腕の前・門にしない）
+- P1：腕 B の種 1・3・5・6・8・9 は世界が基線と同じ〈推〉＝nation_s・scalars_s・region_s がバイト一致。月の終わりの盤面で読んだので、月の中で決める月を見落としていれば外れる＝外れたら帰属を読む。
+- P2：種 2・4・7・10 はそれぞれ 1896・1887・1901・1801 年（決めた最初の月）から分かれる。分かれた後の人口・戦争はカオスの揺れ（向きは読まない）。
+- P3：人口の直接の向き＝決めた月の国（普・葡・オスマン）の扶養力が最大 6〜13% 上がる＝その数年の人口は上がる側。世界の人口の増減の向きは予言しない（カオス）。
+- P4：試験の数 Tests 2682→2685（新しい試験 1 ファイル・[Fact] 3 本）・Tests.Ui 234・和 2919・FullLength 3。
+- P5：.cost の推定 ±0（月に 1 つの分岐）。
+- P6：成績表（計器つき 10 種）は種 2・4・7・10 の分だけ m1212 と違う行が出る（行の数は記録）。
+
+## 3. 門（〈作者 2026-11-16 の決まり〉①・腕の前に固定・ヌル腕の幅は記録だけ）
+止める線（1 種でも当たれば止める）：
+  S1 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（四半期の途中を含む）・進行不能。
+  S2 発散：全ての国の価格水準が 1 四半期に 100 倍以上・非有限・開幕の 1e10 倍以上（stoplines1002・plvl_seeds）。100 倍は基準 keep_1219/base_ins とヌル腕 keep_1212/n1 を同じ台本で数え直して並べる（⑰）。建国の直後と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる（㊳・popjump1017）。
+  S3 空洞化：an_h2.py -v4（既定 -ex rule＝規則 A2）でピークの 1/10 未満の名簿の外。この線が原因と読めた件だけ止める＝基線 keep_1219/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ（★(813)）。P1 の種（世界が同じ）で出た件は基線にもある＝〈元から〉。
+  S4 計算量：推定 ＞248.5 秒（m1212 は 238.7）。
+  S5 機構のテストの赤（ソースを走査する番人を含む）。
+史実の桁の線（10 倍・★(1219)＝この線が一番動かす量＝人口）：
+  H1 6 大国（英・仏・普・露・墺・米）と清・インドの 1850 年と 1913 年の人口÷史実（scripts/instruments/c123k3/histpop_k3.py）。国と年ごとの種の中央が 10 以上か 0.1 以下なら赤。
+    - 定義：列強＝その年の最後の四半期に持つ Colonial でない州の和。清・インド＝開幕にその国（インドは 6 国＋英仏のインドの植民地 5 州）の州だった州の和（持ち主を問わない）。史実は Maddison 2001 の丸め〈推〉。
+    - 腕の前の直し（結果を見る前）：普の史実をドイツの領域（33,746・65,058）で書くと旗 0 の基線で 5 件赤＝物差しの誤り＝プロイセン王国の領域（16,300・40,165〈推〉）へ。種ごとの赤では N1 が 4 件（英 種 2・普 種 7＝国が滅ぶ種）＝種ごとは記録・門は種の中央。
+    - 旗 0 の盤面：基線 赤 0（中央の最小 普 1913 0.20・最大 清 1913 1.16）・N1 赤 0（measurements/m1222_20261119/h1_base.txt・h1_n1.txt）。
+単体の機構の試験（盤面は試験の中で置く・PriceOfBread.Tests/HealthcareLiteracyGateTests.cs・仏の 1 国・人口の段 DemographicStep を 1 回・観測は段が書く World.DiagHealthcare と DiagCapacity）：
+  T1：全ての POP の識字 0.1・医者の役務 HealthFill 0.3・社会保障 1・支払い率 1。旗 0＝1/6（識字の錠）・旗 1＝0.6（医者の役務の門）。扶養力は旗 1 で上。
+  T2：識字 0.9（他は T1 と同じ）＝両方の旗で 0.6・扶養力は同じ double。
+  T3：識字 0.9・社会保障 0＝両方の旗で 0.15（0.5×医者の役務の下の支え）。
+  - 指示の T1・T2 だけでは M3（下の支えを外す）が緑のまま＝T3 を足した（★(790)）。
+  - 旗 0 で赤：T1 の旗 1 の Assert は旗の門の無い木（器の前の main）ではコンパイルできない＝旗 0 の確かめは M1（旗の門を外す＝旗 0 の側が赤）で行う。
+狙いどおり働いたか：T1（旗 1 で識字の錠が外れ医者の役務の門まで上がる）を門と同じ重さで読む。腕の上の観測量は P1〜P3（予言・門にしない）。符号だけの門は無い。nullgate・NG（基準 ng1198_20261118）・exact・near は記録。
+
+## 4. 突然変異（㉚・使い捨ての木 D:/PoB_work/c123k3_work/mut・出力 measurements/m1222_20261119/mut_M*.txt）
+| 変異 | 形 | T1 | T2 | T3 |
+| M1 | 旗の門を外す（旗 0 でも識字の項なし） | 赤（旗 0 の側） | 緑 | 緑 |
+| M2 | 旗 1 で医者の役務の門も外す | 赤（旗 1＝1.0） | 赤（旗 1＝1.0） | 緑 |
+| M3 | 下の支え（0.5×医者の役務の max）を外す | 緑 | 緑 | 赤（0） |
+- 試験が緑のままの変異が出たら、同じ線で試験を足して赤を確かめる（★(790)）。
+
+## 5. 走査の番人（㉘）・変わる件数（㉑）・㉜ の grep
+- 工業化度の読み手の許可表（IndustrializationReaderTests の Allowed・Simulation.cs 14）：触る行に語が無い＝0。
+- `new MoneyStock(`：SimCore で 64 件のまま（足さない）。
+- route_anchors.tsv（flow262・75 行）：鍵の行に医療の行は無い＝0。
+- WriterRatchetTests の宣言の表：触る行は計数に無い＝0。
+- DormantIdentityTests：DormantZeroFields に HealthcareLiteracyGateOff を 1 行足す（器）→ 旗 1 のコミットで外す（★(749)）。
+- ㉜：旧の規則（識字の錠）を固定する番人を grep＝Tests・Tests.Ui で HealthcareEducationGate・DiagHealthcare を読む試験 0。DemographicStep を直に呼ぶ試験（CapacityAnchorTests・DemographyBirthWeightTests・FamineTests・IndustrializationReaderTests・InheritanceLawTests）は開幕の盤面＝紙の影で錠が決める月は 1801 年より前に無い＝旗 1 でも緑の予言。社会保障を置く試験（CriminalVesselTests・TaxTests・PolicyPoliticsTests ほか）は医療を読まない。軌道の試験（StartWarmup の史実の桁・FranceTests ほか）は世界が P1 の種で同じ＝緑の予言。赤なら区分を分け、〈番人が旧の規則を固定している〉型なら止めて作者に聞く物へ。
+
+## 6. 周辺の点検（読むだけ・欠損は別の線へ）
+- HealthcareRealGate 0.5（p07:25・注〈0=第3項なし（現行）〉は古い＝今は 0.5 で効く）：紙の影で錠を掛けている本体。注の直しは持ち主の外（記録）。
+- DoctorHealthcareSubstitute 0.5（p02:67・2026-08-21 点火の注）：下の支え。社会保障 0 の英で医療を 0 にしない（Simulation.cs:2125 の注）。
+- 社会保障の書き手：Government.cs:52（法の段から 0〜1）・Politics.cs:755（Slide）・GovernanceSnapshot.cs:50（戻し）・World.cs:392（写し）。州へは Simulation.cs:1809 で写す。
+- 健康保険の肩代わり（S10-H035c・Simulation.cs:1810 InsuranceCoverageMax×社会保障）：医薬品だけ・扶養力が読む医者の役務に届かない＝台帳どおり断線（記録）。
+- 識字の他の読み手：Simulation.cs の母の識字（出生）・TechEducation・Meritocracy・Politics ほか（.Literacy の行 SimCore 34）＝この線は触らない。
+- 欠損の候補（別の線へ）：社会保障×支払い率が医療の上の側を決めるのは、医者の役務の門が緩い月だけ（紙の影では医者の役務の門が先に掛かる）＝社会保障が人口に効く道は薄い〈記録〉。
+
+## 7. 計算量
+- 割り当て ±0 秒〈推〉（月に 1 つの分岐）。2 秒以下の割り当て＝1 本の腕で門にしない（合流の木の累計）。
+
+## 8. 記録（門にしない）
+- 人口の伸び（H1 の表の模擬の値を基線と並べる）・識字・社会保障・NG（基準 ng1198_20261118）・ハーネス不合格・英の国債の不履行の種の数（基線 M 3/10）・nullgate の O・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・旗 1 の成績表が旗 0 と違う行の数・P1 の当たり外れ。
+
+## 9. 腕と D:
+- 腕 Z：器の木（旗 0）で `ident.sh run c123k3z --tree D:/PoB_work/wt_c123k3 --no-ins --tests-delta 3`＝素の 5 種が m1212 と全行一致。
+- ㉘：IndustrializationReaderTests・UnitTypeTests・WriterRatchetTests・DormantIdentityTests と HealthcareLiteracyGateTests（決まり⑦の 4 クラス＋足した試験）。
+- 旗 1 のコミットの後：scripts/instruments/c123k3/suite_k3.sh（㊴ 計器の束→フルスイート 2 プロジェクト・FullLength は分ける・--list-tests の和→savetest・leakhunt）。赤なら腕 B を回さない。
+- 腕 B：`bash scripts/instruments/c123k3/armb.sh <旗 1 のコミット> D:/PoB_work/c123k3_work/armB`（batch.sh prep plain → INS=1 run c123k3B 10 → read_k3.sh）。起こす直前に shutil で D: を測り、〈35GB＋26GB〉に届かなければ 240 秒以内の刻みで測り直す。
+- 形の変え直しは 1 回だけ。腕 B の生は合流の判断まで消さない。
+- ㉗：紙の台本は門の破れを予言しない（P1〜P3）。それでも回す理由＝種 2・4・7・10 は分かれた後の世界が読めない（止める線は腕でしか読めない）。
