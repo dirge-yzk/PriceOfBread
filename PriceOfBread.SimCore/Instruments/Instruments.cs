@@ -2441,10 +2441,17 @@ public static partial class Instruments
     {
         using (var wr = Open("wars", sk.Seed))
         {
-            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK\tq\tentryCode\trebelPolity\tparentPolity");
+            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK\tq\tentryCode");
             int wi = 0;
             foreach (var (year, war) in dip.Wars)
-                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi) + "\t" + WarPolityCols(dp, wi++)));
+                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi++)));
+        }
+        using (var wp = Open("warpolity", sk.Seed))   // (1206) 反乱側の政体と親の政体（wars_s の末尾を試験が読む＝別の表・行は wars_s と同じ順）
+        {
+            wp.WriteLine("startYear\tsideA\tsideB\tcivilWarFlag\trebelPolity\tparentPolity");
+            int pi = 0;
+            foreach (var (year, war) in dip.Wars)
+                wp.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(war.A), NameOf(war.B), war.CivilWarParent is not null ? "1" : "0", WarPolityCols(dp, pi++)));
         }
         using (var iv = Open("invade", sk.Seed))
         {

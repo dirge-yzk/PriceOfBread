@@ -189,13 +189,14 @@ public static class Military
         double da = Math.Min(amount * (sa / pool), sa), db = Math.Min(amount * (sb / pool), sb);
         MoveCohort(a, soldier, da, c, draftHi);
         MoveCohort(b, soldier, db, c, draftHi);
-        double insMa0 = Instruments.On ? (a?.Militancy ?? 0) : 0, insMb0 = Instruments.On ? (b?.Militancy ?? 0) : 0;   // (1206) 計器 soldiervac_s の強制の徴募の列（On の時だけ）
+        bool insOn = Instruments.On;
+        double insMa0 = insOn ? (a?.Militancy ?? 0) : 0, insMb0 = insOn ? (b?.Militancy ?? 0) : 0;   // (1206) 計器 soldiervac_s の強制の徴募の列（On の時だけ）
         if (conscription && c.ConscriptGrievanceRate > 0)
         {
             if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * (da / sa));
             if (b is not null && sb > 1e-9 && db > 1e-12) b.Militancy = Math.Min(1, b.Militancy + c.ConscriptGrievanceRate * (db / sb));
         }
-        if (Instruments.On) Instruments.SoldierVacDraw(w, r, conscription, da + db, (a is null ? 0 : (a.Militancy - insMa0) * a.Size) + (b is null ? 0 : (b.Militancy - insMb0) * b.Size));
+        if (insOn) Instruments.SoldierVacDraw(w, r, conscription, da + db, (a is null ? 0 : (a.Militancy - insMa0) * a.Size) + (b is null ? 0 : (b.Militancy - insMb0) * b.Size));
     }
 
 

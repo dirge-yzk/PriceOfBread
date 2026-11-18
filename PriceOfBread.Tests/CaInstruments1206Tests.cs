@@ -118,6 +118,26 @@ public class CaInstruments1206Tests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { } }
     }
 
+    [Fact]
+    public void T4_内戦の始まりで反乱側の政体と親の政体を控える()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ca4_" + System.Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var (sim, a, b) = DepBoard();
+            var d = sim.Diplomacy;
+            var parentPolity = a.Nation!.Polity;
+            var rebelPolity = parentPolity == Polity.Republic ? Polity.Absolutist : Polity.Republic;   // 親と違う政体を置く（同じ値で一致して見えるのを避ける）
+            d.DeclareCivilWar(a, b, rebelPolity, new Coefficients());
+            Assert.Single(d.Wars);
+            Assert.NotNull(d.Wars[0].CivilWarParent);
+            Assert.Equal(rebelPolity.ToString() + "	" + parentPolity.ToString(), Instruments.WarPolityCols(d, 0));
+            Assert.Equal("-	-", Instruments.WarPolityCols(d, 5));   // 範囲の外は - と -
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { } }
+    }
+
     private static (MultiNationSim sim, Power a, Power b) DepBoard()
     {
         var sim = new MultiNationSim(System.Array.ConvertAll(new[] { "フランス", "イギリス", "スペイン", "ロシア" }, OpeningFixture.Named), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };

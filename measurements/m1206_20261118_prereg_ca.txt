@@ -65,3 +65,11 @@
   .cost の推定は一致（変わるのは件数の行ではなく計器の On の時だけ。素の腕の .cost は不変）。D: は起こす前に shutil で測る（〈35GB＋その量〉）。
 [5] 〈判定: 恒等〉なら採る。違えば該当の項のコミットを外して報告（挙動の線へは切り替えない）。
   NG・止める線：この線は挙動を変えない＝全て記録。作者 2026-11-16 ①の門（破綻・発散・空洞化・計算量・機構の試験）のうち、試験は上の T1〜T3 と手計算の番人。
+
+[追記 2026-11-18・フルスイート（腕の前）の赤 2 本の直し・結果を見る前＝腕の前]
+  赤 1：OnDoubleReadScanTests（Instruments.On を 2 回以上読む関数の件数の番人）＝EconomyStep.Run が 11→12・Military.DrawFromPool が新たに 3 回読み。
+    直し：計器の呼びを既存の局所 insOn（EconomyStep.Run:793）と、DrawFromPool の頭の 1 回の読み（局所 insOn）へ付け替えた＝許可表の行は書き換えない（件数 0 件の書き換え）。
+  赤 2：WarInstrumentTests（wars_s の最後の 2 列が q・entryCode と固定）＝(d) の 2 列を wars_s の末尾へ足せない。
+    直し：wars_s は変えず、新しい表 warpolity_s（startYear・sideA・sideB・civilWarFlag・rebelPolity・parentPolity・wars_s と同じ行の順）へ置いた（Open("warpolity")）。
+    宣言の変更：--grown-ok から wars_s を外し、--added-tables を satneeds_s,warpolity_s にする。試験を書き換えない。
+  試験の数の予言の更新：T4（内戦の始まりで政体 2 つを控える・WarPolityCols）を足した＝CaInstruments1206Tests は 5 本・合計 +6（2905→2911・フルスイート 2676＋Ui 234 は T4 の前の数＝2910）。--tests-delta 6。

@@ -90,7 +90,7 @@ public static partial class Instruments
         acc.Starts++;
     }
     internal static void WarNoteInvade(Diplomacy d) => WarOf(d).InvadeQ.Add(WarOf(d).NextQ);
-    static string WarPolityCols(Diplomacy d, int i) { var st = WarOf(d); return i < st.WarPolity.Count ? st.WarPolity[i] : "-"+"	"+"-"; }
+    internal static string WarPolityCols(Diplomacy d, int i) { var st = WarOf(d); return i < st.WarPolity.Count ? st.WarPolity[i] : "-"+"	"+"-"; }
     static string WarMetaCols(Diplomacy d, int i)
     {
         var st = WarOf(d);
