@@ -1,0 +1,6 @@
+# (1215) c122bd ㉜ で止めた（腕 B を回していない）
+- 旗 1 の木 aa38ad333：㊴ 計器の束 338 緑・Tests 2683 のうち赤 1（スキップ 1）・Tests.Ui 234 緑・FullLength 3 緑・--list-tests の和 2917＝予言 P5 と一致・savetest OK・leakhunt 保存則違反なし（suite_flag1.txt）。
+- 赤：FiscalTests.不履行は払えなかった大きさの累計が月の請求1か月分に届くと起きる（FiscalTests.cs:997 の ①〈r＝0.5 の月 2 つで不履行〉）。
+- 型：機構の番人が旧の規則を固定している型（㉜ の後半）。盤面 QuietBritain（英 1783・金本位）で r＝0.5 の月 1 つ目は金本位（:995 の 0.5 は緑）→ 同じ月の Fiscal.Step:214 で強制離脱（r＜GoldSuspendMinFundingRatio 0.7）→ 2 つ目の月は金本位でない月＝形 (b) は兌換の遅れの分（余地 0・切り下げ 0）を数えない＝不履行しない。番人は〈金本位でない月も 1−r を積む〉旧の規則を、盤面の離脱を通して固定している（番人の注 ★(205) は離脱を名指していない）。
+- 番人を書き換えずに止めた。推奨：番人の盤面を金本位のまま保つ（例 GoldSuspendMinFundingRatio を 0 に置く）＝★(205) の〈大きさの累計〉を金本位の月で確かめる番人に直し、金本位でない月の規則は ArrearsOpenedRoomTests が持つ。これは ★(743) の①〜④に当たらない盤面の直し＝作者に聞く物。
+- 他の旧の規則の番人（TreasuryLedgerTests.cs:296〜:350・FiscalTests.cs:297・DevaluationCapReliefTests.cs:140）は旗 1 で緑。

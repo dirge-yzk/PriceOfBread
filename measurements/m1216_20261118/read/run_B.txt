@@ -1,0 +1,6 @@
+ARMS 取得 c122nrB（上限 6）
+      計算量＝D:/PoB_work/c122nr_work/armB/b10_c122nrB_10.txt.cost　判定: 予算の内（目標にも届いた＝推定 237.8 ≦ 目標 248.5 秒・余りは機能が使ってよい）
+      揺れ: 10種の平均 exact 47.2（標準誤差 1.6pt）・near 85.1（標準誤差 0.6pt）＝線から標準誤差の2倍（exact 3.1・near 1.1pt）以上離れていれば10種を回さずに決めてよい
+rc=1 END 01:33:20
+measure rc=1
+BATCHDONE c122nrB_10

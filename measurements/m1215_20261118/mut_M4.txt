@@ -1,0 +1,7 @@
+M4 入れた：D:/PoB_work/c122bd_work/mut/M4/PriceOfBread.SimCore/World.cs
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T3_兌換の追従は旗で変わらない [52 ms]
+Expected: 0.52500000000000002
+Actual:   1
+     at PriceOfBread.Tests.ArrearsOpenedRoomTests.T3_兌換の追従は旗で変わらない() in D:\PoB_work\c122bd_work\mut\M4\PriceOfBread.Tests\ArrearsOpenedRoomTests.cs:line 117
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+rc=1

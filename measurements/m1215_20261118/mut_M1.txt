@@ -1,0 +1,10 @@
+M1 入れた：D:/PoB_work/c122bd_work/mut/M1/PriceOfBread.SimCore/Fiscal.cs
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T1_離脱の後は余地が開く前に不履行しない_旗0は月m加2に不履行 [4 s]
+Expected: 0
+Actual:   1
+     at PriceOfBread.Tests.ArrearsOpenedRoomTests.T1_離脱の後は余地が開く前に不履行しない_旗0は月m加2に不履行() in D:\PoB_work\c122bd_work\mut\M1\PriceOfBread.Tests\ArrearsOpenedRoomTests.cs:line 56
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T1b_金本位でない月は余地で払えなかった分だけを積む [24 ms]
+Actual: 0.30000000000000004
+     at PriceOfBread.Tests.ArrearsOpenedRoomTests.T1b_金本位でない月は余地で払えなかった分だけを積む() in D:\PoB_work\c122bd_work\mut\M1\PriceOfBread.Tests\ArrearsOpenedRoomTests.cs:line 73
+失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+rc=1
