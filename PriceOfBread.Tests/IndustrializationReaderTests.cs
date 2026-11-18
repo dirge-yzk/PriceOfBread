@@ -113,38 +113,9 @@ public class IndustrializationReaderTests
     // ★(640) 線 idn：発展度 dev（世界最先端の工業化度の項と都市の割合の項）は読み手ごと消した＝旗 IdeologyDevFromUrban の 2 本の試験も消した（番人は IdeaNeedBoardTests）。
 
     // ---- J4 都市化の天井 ------------------------------------------------------------------------------------------
-    private static double Headroom(Region r, Coefficients c)
-        => (double)typeof(Meritocracy).GetMethod("UrbanHeadroom", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [r, c])!;
-
-    [Fact]
-    public void 都市化の天井は無く職の移しの残枠は無限()
-    {
-        var sim = Britain(); var w = sim.World; var r = w.Region; var c = w.Coef;
-        Pop? rural = null, urban = null;
-        foreach (var p in r.Pops) { if (p.Closed || p.IsCriminal) continue; if (p.IsUrban) urban ??= p; else rural ??= p; }
-        Assert.True(rural is not null && urban is not null);
-        rural!.Size = 900; urban!.Size = 100;   // 組の合計 1000・都市 100（手計算の期待の元）
-        r.Industrialization = 0.0; r.OldVintageCapital = 0;
-        Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
-        r.Industrialization = 5.0;
-        Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
-    }
-
-    /// <summary>焼き込み (812) で残した 3 つの早い return の確かめ：首都の州（CapitalEnabled）で、組の人口が 0 の州だけ残枠 0・人口のある州は無限。
-    /// 突然変異（組の人口 0 の return を外す）で赤になる＝焼き込みの前は旗の前にあったこの順序を、天井の式が消えた後も守る。</summary>
-    [Fact]
-    public void 職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限()
-    {
-        var sim = Britain(); var r = sim.World.Region; var c = sim.World.Coef;
-        r.CapitalEnabled = true;
-        Pop? rural = null, urban = null;
-        foreach (var p in r.Pops) { if (p.Closed || p.IsCriminal) continue; if (p.IsUrban) urban ??= p; else rural ??= p; }
-        Assert.True(rural is not null && urban is not null);
-        rural!.Size = 900; urban!.Size = 100;
-        Assert.True(double.IsPositiveInfinity(Headroom(r, c)));
-        rural.Size = 0; urban.Size = 0;
-        Assert.Equal(0.0, Headroom(r, c));
-    }
+    // ★(1207) 線 c121uh：職の移しの残枠（Meritocracy.UrbanHeadroom）は消した＝旧の規則そのものを固定する 2 本（都市化の天井は無く職の移しの残枠は無限・
+    // 職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限）も墓標にした（★(743) の区分＝旧の規則を固定する型・Assert は弱めずに丸ごと消す）。
+    // 消した木と旧の木で素の 5 種が全行一致（ident c121uhz）。
 
     // ---- J5 信用の深さ ------------------------------------------------------------------------------------------------
     /// <summary>与信の上限（説明API の CreditTarget の 1 行目）を、州の工業化度だけを変えた英の盤面で出す（投資家の所得は十分に大きくして返せる額の側を外す）。</summary>

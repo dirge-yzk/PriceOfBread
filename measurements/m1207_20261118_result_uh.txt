@@ -1,0 +1,34 @@
+(1207) c121uh 結果（Claude Sonnet 5.5）
+腕 Z（素の5種・--no-ins・消した木 47d6f1ab5）: 判定: 恒等（段 1）・b5 全行一致・推定 237.2 秒
+ident c121uh（段 1・HEAD 63df34375）:
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261118_m1198.cost
+  ○ 件数の行 45 本・推定 237.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 304c90691babdee3
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261118_m1198_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261118_m1198_ins.cost
+  ○ 件数の行 45 本・推定 238.7 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c121uh_work/ident/out_ib_10/ins  対  基準 D:/PoB_work/keep_1198/base_ins  ※段 1＝集合 29 表だけ
+  ○ 段 1：選ばない表のファイルは 0 本（Open を通らない表 3 種は除く）
+  基準 289 本・腕 289 本・バイト一致 289 本
+  ○ 計器の表は恒等（バイト一致 289・既知の揺れ 0・宣言された増減 0）
+  内訳：共通の表 289 本＝バイト一致 289＋既知の揺れ 0＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 289）・1 表は優
+[注視の表] mon_ib_10.txt 対 mon_20261118_m1198.txt（タグの行を除く）
+  ○ タグの行以外が一致（4831 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 95 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_c121uh/measurements/ng1198_20261118:m1198）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2903（基準 2905-2 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+段 1 は集合の外の計器の表を見ていない
+判定: 恒等（段 1）
+
+M1（:379 の Min を残り枠 0 で戻す・素の 5 種）:
+  ✗ 不一致：素の 5 種：行数 180 対 182・違う行 170
+M2（消す前の木 c8b48b788 で組の人口 0 の return を外す・IndustrializationReaderTests）: 失敗 1 = 職の移しの残枠は組の人口が0の州だけ0_人口のある首都の州は無限（赤）
+㉘（IndustrializationReader|UnitType|Instruments|WriterRatchet|DormantIdentity|Mobility|JobPoolTemperatureGuard|MigrationPair）: 157 合格 0 失敗
+フルスイート Category!=FullLength: Tests 2669（合格 2668・スキップ 1）＋Tests.Ui 234＝2903（予言 2905−2）・赤 0。FullLength 3 は走らせていない（挙動の線でなく 5/10 種一致）
