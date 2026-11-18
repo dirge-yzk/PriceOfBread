@@ -1,0 +1,6 @@
+M5 入れた：D:/PoB_work/c122bd_work/mut/M5/PriceOfBread.SimCore/Fiscal.cs
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T1b_金本位でない月は余地で払えなかった分だけを積む [58 ms]
+Actual: 0.12000000000000002
+     at PriceOfBread.Tests.ArrearsOpenedRoomTests.T1b_金本位でない月は余地で払えなかった分だけを積む() in D:\PoB_work\c122bd_work\mut\M5\PriceOfBread.Tests\ArrearsOpenedRoomTests.cs:line 78
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+rc=1
