@@ -1978,6 +1978,7 @@ public static partial class Instruments
         CmTable(sk, sim.Diplomacy);   // CmTable〔履歴 Instruments.cs#331〕
         ImpTable(sk, sim.Diplomacy);   // ImpTable〔履歴 Instruments.cs#332〕
         DepTable(sk, sim.Diplomacy);   // DepTable〔履歴 Instruments.cs#333〕
+        FormationTable(sk, sim.Diplomacy);   // (1201) c120fm 計器 formation_s
         CanalTable(sk, sim);
         SpendTable(sk);   // SpendTable〔履歴 Instruments.cs#334〕
         CeTable(sk);      // CeTable〔履歴 Instruments.cs#335〕

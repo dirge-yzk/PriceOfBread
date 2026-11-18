@@ -285,7 +285,9 @@ public static class Formations
                 best = rule;
             }
             if (best is null) continue;
+            if (w.Coef.FormationNatioGate > 0 && !NationalistReady(w, w.Coef)) continue;   // (1201) 案 a：宣戦の候補と同じ門（規則に依らない＝Qualifies に置くのと同値・プレイヤーの動詞と同じ国の係数）
             if (!d.RenameNation(power, best.NewName)) continue;
+            if (Instruments.On) Instruments.FormationRow(d, power, best);   // (1201) 計器 formation_s（付け替えの直後・段の書き換えの前）
             power.FormationTier = best.Tier;
             if (best.NewCapital is { } capName)
             {
@@ -347,8 +349,11 @@ public static class Formations
             if (best is null || r.Tier < best.Tier) best = r;
         }
         if (best is null) return null;
-        return Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare.Value ? best : null;
+        return NationalistReady(w, c) ? best : null;
     }
+
+    /// <summary>(1201) 統一の門＝国の民族主義の取り分が閾値以上。宣戦の候補（UnificationCandidate）と成立（Check・旗 FormationNatioGate）が同じこの 1 本を呼ぶ。</summary>
+    public static bool NationalistReady(World w, Coefficients c) => Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare.Value;
 
     public static System.Collections.Generic.List<Power> UnificationTargets(Diplomacy d, Power p, FormationRule r)
     {
@@ -386,6 +391,7 @@ public static class Formations
     private static bool Owns(Diplomacy d, Power power, string regionName)
     {
         if (HasRegion(power, regionName)) return true;
+        if (power.Nation is { } pw && pw.Coef.FormationOwnDirectOnly > 0) return false;   // (1201) 案 b：従属国の州を数えない（国の World.Coef＝プレイヤーの動詞と同じ係数）
         foreach (var dep in d.DependentsOf(power)) if (HasRegion(dep, regionName)) return true;
         return false;
     }

@@ -63,6 +63,8 @@ public sealed partial class Coefficients
     public double RegimeTrackRecordWeight = 0.3;   // 主フラグ：Transition の各政体支持へ符号付き乗数 (1+これ×実績) を掛ける＝信認された形態は選ばれ/粘り、失望された形態は避けられる
     public double UnificationV1Only = 1.0;   // 低満足popが嗜好品アヘンを消費→州の依存ストック→労働/満足ペナルティ＋対外流出→輸入禁止の法→輸出国と緊張→戦争は既存機構
     public Share UnificationNatioShare = new(0.25);     // ナショナリズムの国民シェア閾値（Ideologies.National[4]＝エリートの熱が統一の燃料）
+    public double FormationNatioGate = 0.0;      // (1201) c120fm 案 a：成立（Formations.Check）にも宣戦の候補と同じ取り分の門（Formations.NationalistReady）を掛ける旗（0＝今の形・国の World.Coef を読む）
+    public double FormationOwnDirectOnly = 0.0;  // (1201) c120fm 案 b：Formations.Owns が従属国の州を数えない旗（成立・宣戦の候補と標的の全ての読み手・0＝今の形・国の World.Coef を読む）
     public double OpiumMiseryScale = 2.0;        // 素のアヘン需要の困窮ゲート＝baseNeed×clamp(これ×(1−満足),0,1)
     public double OpiumLaborPenalty = 1.0;       // 依存が労働供給を蝕む＝成人労働×(1−これ×中毒度)（床0.5）
     public double OpiumBanTensionPerMonth = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）

@@ -155,6 +155,8 @@ public class DormantIdentityTests
         // ★RailLocoNeedsDiscovery（(1130) c110lo 機関車の需要と払いに鉄道の発見の門）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 と 1 の番人は RailLocoDiscoveryTests＝旗を明示）。
         // ★RailLocoGateWorld（(1152) c113lc 機関車の門を世界の発見の和で読む）は 2026-11-15 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は RailLocoGateWorldTests＝旗を明示）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
+        "FormationNatioGate",           // (1201) c120fm 案 a 成立に宣戦と同じ民族主義の取り分の門（0＝今の形・番人 FormationGateTests）。点火時にこの表から外す
+        "FormationOwnDirectOnly",       // (1201) c120fm 案 b 成立と宣戦の〈持つ〉が従属国の州を数えない（0＝今の形・番人 FormationGateTests）。点火時にこの表から外す
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
         // ★UbiquitousMineralExempt（(1020) c95ub 遍在の財〔石灰石・珪砂・粘土〕を非産地の 0.4 の外へ出す旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 UbiquitousMineralTests）。
         // ★ColonyPettyEntryEmptyTarget（(1014) c94pe 小営業の入口の空の商人の行き先を飛ばさない旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ColonyPettyEntryTests）。
