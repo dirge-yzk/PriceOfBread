@@ -2413,7 +2413,6 @@ public class InstrumentsTests
     /// 突然変異＝<c>BilateralMarket.AccumulateDiscovery</c> の呼びを述語の外へ出す（買い手が解禁済みの行にも記帳が出る）、で赤。
     /// </summary>
     [Fact]
-    [Trait("Category", "FullLength")]   // ★(1213) 450 四半期・61 カ国＋計器で約 344 秒（フルスイートの最大の 1 本）。前提〈行が 5 以上〉は長い年数でしか成り立たない＝FullLength へ（主張と数は同じ）
     public void 接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される()
     {
         var openNames = new HashSet<string>();   // ★(420) 開幕に居る国の名（構築時の名 BaseName＝計器の国名と同じ。分離・建国で生まれた国を見分ける）
