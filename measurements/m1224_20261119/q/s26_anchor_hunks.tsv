@@ -1,0 +1,52 @@
+# OLD=7bb40c77 NEW=81ad1e58dbe84817cae042de126660459fc46907 W=±12 行（注と空白を除いた行）
+行	錨	囲む関数	近くの差の塊	差の行（先頭の 3 行・字は 90 字まで）
+S26-04	Simulation.cs:1558:natives	PromoteColonyToRegion	2	-ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEnd ／ -else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.Go
+S26-04	Simulation.cs:1565:MkPop	PromoteColonyToRegion	2	-ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEnd ／ -else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.Go
+S26-04	Simulation.cs:1627:ArableLand	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-04	Simulation.cs:1638:Stock	PromoteColonyToRegion	0	
+S26-05	Simulation.cs:1528:IsColonial	PromoteColonyToRegion	1	-ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap
+S26-05	Simulation.cs:1543:ScarceEndowment	PromoteColonyToRegion	3	-ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap ／ -ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEnd ／ -else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.Go
+S26-05	Simulation.cs:1611:AddAdvancedProducers	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-06	Simulation.cs:1626:Culture	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-07	Simulation.cs:1549:PlantationRentShare	PromoteColonyToRegion	3	-ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap ／ -ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEnd ／ -else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.Go
+S26-07	Coefficients.cs:2209:PlantationRentShare	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S26-07	Colonial.cs:128:ExportCrop	ExportCrop	0	
+S26-10	Simulation.cs:1621:CoastalOf	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-10	Landmass.cs:54:CoastalOf	CoastalOf	0	
+S26-11	Simulation.cs:957:RegionTier.Core	BuildProvince	1	-Malarial = p.Malarial,
+S26-11	Simulation.cs:1622:Tier	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-11	Territory.cs:262:Rehome	Rehome	0	
+S26-12	Simulation.cs:951:AddAlternateRecipes	BuildProvince	1	-Malarial = p.Malarial,
+S26-12	Simulation.cs:1614:AddAlternateRecipes	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-16	Colonial.cs:78:coalWant	Step	3	-AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0; ／ -const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-16	Colonial.cs:113:OccupiedShipCapacity	OccupiedShipCapacity	0	
+S26-16	Coefficients.cs:3514:EraColonyCoal	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S26-18	Colonial.cs:60:ColonyShipOccupyPerDist	Step	5	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-18	Colonial.cs:73:steamMult	Step	4	-if (malarial) quinineWant += c.MalariaQuininePerColony; ／ -AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0;
+S26-18	BilateralMarket.cs:241:shipCapNat	StepBilateral	3	 +var railByRegN = ClearScratch.Fit(ref sc.RailByRegN, nn); var railTgtN = ClearScratch.Fi ／ -double railCapNat = W.RailCapacity + Transport.PreRailCapacity(W, c); +bool byReg = railB ／ -double railToPort = railCapNat * share; +double railToPort = byReg ? r.RailTrack + preRai
+S26-18	BilateralMarket.cs:571:shipShare	（関数の外）	—	
+S26-19	Colonial.cs:47:ChokeOpenFor	Step	3	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-19	Colonial.cs:58:SeaDistanceKm	Step	5	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-19	MultiNationSim.cs:1374:RequirementMet	StepCanals	0	
+S26-19	MultiNationSim.cs:1398:IsOpen	StepCanals	0	
+S26-20	Colonial.cs:61:MalariaQuininePerColony	Step	5	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-20	Colonial.cs:82:BuyUpkeepGood	Step	3	-AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0; ／ -const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-20	Coefficients.cs:1475:MalariaQuininePerColony	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S26-21	Colonial.cs:82:BuyUpkeepGood	Step	3	-AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0; ／ -const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-23	Colonial.cs:99:homePressure	Step	1	-const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-23	Colonial.cs:102:Militancy	Step	0	
+S26-23	Coefficients.cs:1831:ColonialUnrestHomeWeight	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S26-23	Coefficients.cs:1532:ColoniesForFullColonial	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S26-28	Simulation.cs:1528:IsColonial	PromoteColonyToRegion	1	-ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap
+S26-35	Validation.cs:242:植民地の保存	Evaluate	0	
+S26-35	MultiNationSim.cs:154:InitialColonyCount	MultiNationSim	1	-if (_coef.MegaprojectEnabled > 0) | -foreach (var mp in WorldData.Megaprojects()) | -Dipl
+S26-37	Coefficients.cs:705:ColonyPromotionMinPop	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S26-37	Politics.cs:1488:ColonyPromotionMinPop	CheckSecession	1	-double cultDist = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Cu
+S26-38	Instruments.cs:2059:Settled	Settled	NEW に無い	
+S26-41	EconomyStep.cs:911:ColonialResources	Run	0	
+S26-41	Simulation.cs:3122:ColonialAccess	ColonialAccess	0	
+S26-41	Simulation.cs:2081:colonialAccess	MonthSettle	1	-double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ?
+S26-44	Territory.cs:262:Rehome	Rehome	0	
+S26-46	Politics.cs:1715:RegionAvgSuffrageInclusion	RegionAvgSuffrageInclusion	0	
+S26-48	Simulation.cs:739:ScarceCountsIncludeColonies	ScarceEndowment	1	-if (!sharedWorld || !(c.ScarceMineralGate > 0) || !Catalog.IsScarceMineral(good, c)) retu
+S26-48	Coefficients.cs:2845:ScarceCountsIncludeColonies	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む

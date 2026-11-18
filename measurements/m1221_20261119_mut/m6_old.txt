@@ -1,0 +1,25 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\EconomyStep.cs(1504,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\Instruments\Instruments.cs(2636,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(184,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(200,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c123tc_work\oldtree\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c123tc_art_old\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:04.00]     PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [FAIL]
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [2 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 6 decimal places
+Expected: 0.17000000000000001 (rounded from 0.17000000000000171)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く() in D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests\ColonialPopTests.cs:line 132
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

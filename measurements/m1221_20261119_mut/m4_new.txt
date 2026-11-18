@@ -1,0 +1,26 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\EconomyStep.cs(1504,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\Instruments.cs(2636,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(184,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(200,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c123tc_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Display -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Display\release\PriceOfBread.Display.dll
+  PriceOfBread.Tests -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+  PriceOfBread.App -> D:\PoB_work\c123tc_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests.Ui -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:33.47]     PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない [FAIL]
+  失敗 PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない [31 s]
+  エラー メッセージ:
+   フランス／香辛料：内訳の和 129.05509653641494 ≠ 合計 129.18415163295134
+  スタック トレース:
+     at PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない() in D:\PoB_work\wt_c123tc\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 258
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 32 s - PriceOfBread.Tests.Ui.dll (net10.0)

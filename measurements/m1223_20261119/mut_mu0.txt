@@ -1,0 +1,10 @@
+(1223) c123iv 突然変異 mu0：PriceOfBread.Tests/InvestBudgetFromEarningsTests.cs
+  旧：var (p1, paid1, _, _) = Month(1.0, 1e6, 500.0);
+  新：var (p1, paid1, _, _) = Month(0.0, 1e6, 500.0);
+終了コード 1
+  成功 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T3_旗1で消費と投資の和は使えるお金を超えない [2 s]
+  失敗 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T1_旗1の計画は前の月の稼ぎ_旗0は貯蓄の5パーセント [19 ms]
+  成功 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T2_稼ぎが負か非有限なら予算は0 [23 ms]
+テストの合計数: 3
+     成功: 2
+     失敗: 1

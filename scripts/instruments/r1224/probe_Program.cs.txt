@@ -1,0 +1,121 @@
+// (1224) c123rb 段 B のプローブ（使い捨て・コミットしない）。(1218) の probe を元に 3 つを足した：
+//  W：助走の四半期ごとの英仏の植民地格の州（不在地主の大農園つき）の大農園の財の市場（値段÷rp・mc・需要・産出・在庫・輸出）と州の POP の稼ぎと貯蓄
+//  D：月 0 と各月末の全世界の〈死んだ市場〉（需要<1e-9・産出<1e-9・値段÷rp<0.02）の財ごとの件数と、そのうち在庫>0 の件数
+//  P：PaySales の呼び出し（SimCore の写しに 1 行の ProbeHook を足した＝値は読むだけ）を月ごとに州×財×種類（造幣・清算・その他）で積み、
+//     PaySales と同じ割り方（Sells の生産者の Output の比）で大農園ごとへ割る＝帳（LastRevenue）に載らない代金
+// 引数：<種の始め> <種の終わり> <月数> <出力の接頭辞>
+using System.Globalization;
+using PriceOfBread.SimCore;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong s0 = ulong.Parse(args[0]), s1 = ulong.Parse(args[1]);
+int months = int.Parse(args[2]);
+string pre = args[3];
+string ov = Coefficients.OverrideSummary();
+using var oW = new StreamWriter(pre + "_W.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oD = new StreamWriter(pre + "_D.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oP = new StreamWriter(pre + "_P.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+foreach (var o in new[] { oW, oD, oP }) o.WriteLine($"# r1224 probe override=[{ov}] months={months} seeds={s0}..{s1}");
+oW.WriteLine("seed\tphase\tt\tnation\tregion\tgood\tpx\trp\tpxRp\tmc\tlastDemand\tlastProduced\tstock\tlastExport\tlastImport\tout\tscale\tbankrupt\tsmMargin\tpopSize\tpopEarned\tpopSavings\tregDemandValue\tgateGood");
+oD.WriteLine("seed\tmonth\tgood\tnDead\tnDeadStock\tnMarketsWithProducer\tnFloor");
+oP.WriteLine("seed\tmonth\tnation\tregion\tgood\tkind\tamount\tprodOut\tprodShare\tlastRevenue\tlastCost\tprice\tmc\tmonetaryLaw\trentShare\tstateShare");
+var acc = new Dictionary<(Region, int, string), double>();
+object lk = new();
+InternationalMarket.ProbeHook = (r, g, amount, minted, clearing, w) =>
+{
+    if (r is null) return;
+    string kind = minted ? "mint" : clearing ? "clear" : "other";
+    lock (lk) { acc.TryGetValue((r, g, kind), out var v); acc[(r, g, kind)] = v + amount; }
+};
+int ng = Catalog.Goods.Length;
+for (ulong seed = s0; seed <= s1; seed++)
+{
+    acc.Clear();
+    var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+    var watch = new List<Region>();
+    foreach (var n in sim.Nations)
+    {
+        var w = n.World; string nm = w.SelfPower?.BaseName ?? "?";
+        if (nm != "イギリス" && nm != "フランス") continue;
+        foreach (var r in w.Regions)
+            if (r.Tier == RegionTier.Colonial && r.Producers.Any(p => Colonial.AbsenteeRgo(r, p))) watch.Add(r);
+    }
+    void DumpW(string phase, int t)
+    {
+        foreach (var r in watch)
+        {
+            var w = sim.Nations.Select(x => x.World).FirstOrDefault(x => x.Regions.Contains(r));
+            if (w is null) continue;
+            var c = w.Coef; string owner = w.SelfPower?.BaseName ?? "?";
+            double size = 0, earned = 0, sav = 0;
+            foreach (var p in r.Pops) { size += p.Size; earned += p.LastEarnedPerMonth.Value; sav += p.Savings.Value; }
+            double regDv = 0; for (int g = 0; g < ng; g++) regDv += r.Markets[g].LastDemand * r.Markets[g].Price;
+            var gate = new double[ng]; Discovery.GoodGates(r, gate, ng, w.WorldDiscovered ?? r.Discovered);
+            foreach (var p in r.Producers)
+            {
+                if (!Colonial.AbsenteeRgo(r, p)) continue;
+                var mk = r.Markets[p.GoodId]; var gd = Catalog.Goods[p.GoodId];
+                double rp = Math.Max(Catalog.RefPrices[p.GoodId] * r.PriceLevel, 1e-12);
+                double mc = EconomyStep.MineralSelfCost(p, r, c, w) + EconomyStep.InputCostPerUnit(p, r, r, c);
+                oW.WriteLine(string.Join('\t', seed, phase, t, owner, r.Name, gd.Name, G(mk.Price), G(rp), G(mk.Price / rp), G(mc), G(mk.LastDemand), G(mk.LastProduced), G(mk.Stock), G(mk.LastExport), G(mk.LastImport),
+                    G(p.Output), G(p.Scale), p.Bankrupt ? 1 : 0, G(p.SmoothedMargin), G(size), G(earned), G(sav), G(regDv), G(gate[p.GoodId])));
+            }
+        }
+        oW.Flush();
+    }
+    void DumpD(int month)
+    {
+        var nDead = new int[ng]; var nDeadS = new int[ng]; var nWith = new int[ng]; var nFloor = new int[ng];
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                var has = new bool[ng]; foreach (var p in r.Producers) if (p.GoodId >= 0 && p.GoodId < ng) has[p.GoodId] = true;
+                for (int g = 0; g < ng; g++)
+                {
+                    if (!has[g]) continue;
+                    var gd = Catalog.Goods[g]; if (gd.Tier == GoodTier.Service) continue;
+                    var mk = r.Markets[g]; double rp = Math.Max(Catalog.RefPrices[g] * r.PriceLevel, 1e-12);
+                    nWith[g]++;
+                    bool floor = mk.Price / rp < 0.02; if (floor) nFloor[g]++;
+                    if (floor && mk.LastDemand < 1e-9 && mk.LastProduced < 1e-9) { nDead[g]++; if (mk.Stock > 1e-9) nDeadS[g]++; }
+                }
+            }
+        for (int g = 0; g < ng; g++) if (nFloor[g] > 0) oD.WriteLine(string.Join('\t', seed, month, Catalog.Goods[g].Name, nDead[g], nDeadS[g], nWith[g], nFloor[g]));
+        oD.Flush();
+    }
+    int q = 0;
+    sim.StartWarmup(() => { q++; DumpW("warm", q); });
+    DumpW("m", 0); DumpD(0);
+    for (int m = 1; m <= months; m++)
+    {
+        lock (lk) acc.Clear();
+        for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay();
+        DumpW("m", m); DumpD(m);
+        foreach (var r in watch)
+        {
+            var w = sim.Nations.Select(x => x.World).FirstOrDefault(x => x.Regions.Contains(r));
+            if (w is null) continue;
+            string owner = w.SelfPower?.BaseName ?? "?";
+            foreach (var kind in new[] { "mint", "clear", "other" })
+                for (int g = 0; g < ng; g++)
+                {
+                    if (!acc.TryGetValue((r, g, kind), out var amt)) continue;
+                    double tot = 0;
+                    foreach (var p in r.Producers) if (p.GoodId == g && p.OwnerPopIndex >= 0 && p.OwnerPopIndex < r.Pops.Count && p.LaborPopIndex >= 0 && p.LaborPopIndex < r.Pops.Count) tot += Math.Max(0, p.Output);
+                    foreach (var p in r.Producers)
+                    {
+                        if (p.GoodId != g || !Colonial.AbsenteeRgo(r, p)) continue;
+                        double sh = tot > 1e-9 ? Math.Max(0, p.Output) / tot : double.NaN;
+                        double mc = EconomyStep.MineralSelfCost(p, r, w.Coef, w) + EconomyStep.InputCostPerUnit(p, r, r, w.Coef);
+                        oP.WriteLine(string.Join('\t', seed, m, owner, r.Name, Catalog.Goods[g].Name, kind, G(amt), G(p.Output), G(sh), G(p.LastRevenue), G(p.LastCost), G(r.Markets[g].Price), G(mc), w.MonetaryLaw, G(EconomyStep.RentShareOf(p, r, w.Coef)), G(World.StateProfitShare(p, r, w.Coef))));
+                    }
+                }
+        }
+        oP.Flush();
+    }
+    Console.WriteLine($"seed {seed} done watch={watch.Count}");
+}
+Console.WriteLine("PROBEDONE");
+
+static string G(double x) => x.ToString("G9", CultureInfo.InvariantCulture);

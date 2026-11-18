@@ -1,0 +1,8 @@
+28a29
+>     internal static System.Action<Region?, int, double, bool, bool, World>? ProbeHook;
+31a33
+>         ProbeHook?.Invoke(r, goodId, amount, minted, from.W is null && from.Pops is null, w);
+709a710
+>     internal static System.Action<Region, int, Pop, double, double, double, double, double>? ProbeDemand;
+1658a1660
+>                     ProbeDemand?.Invoke(region, gi, p, marketNeed, desired, affordable, demand, buyerPrice);

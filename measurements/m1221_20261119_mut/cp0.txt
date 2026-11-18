@@ -1,0 +1,20 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\c123tc_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\ConservationTests.cs(268,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\ClearingScopeTests.cs(361,22): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\ClearingScopeTests.cs(366,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\UnitTypeTests.cs(317,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\UnitTypeTests.cs(317,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\UnitTypeTests.cs(318,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\UnitTypeTests.cs(318,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\ConservationTests.cs(965,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\StartWarmupTests.cs(172,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\wt_c123tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

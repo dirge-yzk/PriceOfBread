@@ -22,7 +22,7 @@ python -X utf8 -I "$S/brk693/plvl_seeds.py" "$K/n1" > "$OUT/plvl_n1.txt" 2>&1; e
 python -X utf8 -I "$S/m975/ukdef975.py" "$INS" "$SB" > "$OUT/ukdef.txt" 2>&1; echo "ukdef rc=$?"
 python -X utf8 -I "$S/m975/ukdef975.py" "$BASE" "$SB" > "$OUT/ukdef_base.txt" 2>&1; echo "ukdef base rc=$?"
 if [ "$CARD" != "-" ]; then
-  python -X utf8 "$S/tools/nullgate.py" "$CARD" "$R/measurements/b10_20261118_m1212_ins" "$R/measurements/b10_20261118_m1212_n1_ins" > "$OUT/nullgate.txt" 2>&1; echo "nullgate rc=$?"
+  python -X utf8 "$S/tools/nullgate.py" "$CARD" "$R/measurements/b10_20261118_m1212_ins" "$R/measurements/b10_20261118_m1212_n1_ins" "$R/measurements/b10_20261118_m1212_n1_ins" > "$OUT/nullgate.txt" 2>&1; echo "nullgate rc=$?"
   [ -f "$CARD.cost" ] && grep -h "推定" "$CARD.cost" > "$OUT/cost.txt" 2>&1
   diff <(grep -v SOURCE-HASH "$CARD") <(grep -v SOURCE-HASH "$R/measurements/b10_20261118_m1212_ins") | grep -c '^[<>]' > "$OUT/card_difflines.txt"
 fi

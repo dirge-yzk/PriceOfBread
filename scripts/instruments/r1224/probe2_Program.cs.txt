@@ -1,0 +1,30 @@
+// (1224) c123rb 段 B の 2 本目のプローブ（使い捨て）：ジャマイカの POP の買いを財ごとに積む（SimCore の写しの ProbeDemand＝値は読むだけ）
+// 引数：<種> <州の名> <出力>
+using System.Globalization;
+using PriceOfBread.SimCore;
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture; CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong seed = ulong.Parse(args[0]); string reg = args[1]; string outPath = args[2];
+int ng = Catalog.Goods.Length; int bucket = 0;
+var acc = new Dictionary<(int B, int G), double[]>(); object lk = new();
+EconomyStep.ProbeDemand = (r, gi, p, need, desired, afford, demand, bp) =>
+{
+    if (r.Name != reg) return;
+    lock (lk)
+    {
+        if (!acc.TryGetValue((bucket, gi), out var a)) acc[(bucket, gi)] = a = new double[8];
+        a[0] += 1; a[1] += need; a[2] += desired; a[3] += afford * bp; a[4] += demand; a[5] += demand * bp; a[6] += afford <= 0 ? 1 : 0; a[7] += bp;
+    }
+};
+using var o = new StreamWriter(outPath, false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+o.WriteLine($"# r1224 probe2 override=[{Coefficients.OverrideSummary()}] seed={seed} region={reg}");
+o.WriteLine("bucket\tgood\ttier\tcalls\tmarketNeed\tdesired\tbudgetLeftAtGood\tdemand\tspend\tcallsBudget0\tbuyerPriceMean");
+var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+sim.StartWarmup(() => { lock (lk) bucket++; });
+for (int m = 1; m <= 12; m++) { lock (lk) bucket = 100 + m; for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay(); }
+foreach (var kv in acc.OrderBy(k => k.Key.B).ThenBy(k => k.Key.G))
+{
+    var a = kv.Value; var g = Catalog.Goods[kv.Key.G];
+    o.WriteLine(string.Join('\t', kv.Key.B, g.Name, g.Tier, a[0], G(a[1]), G(a[2]), G(a[3]), G(a[4]), G(a[5]), a[6], G(a[7] / a[0])));
+}
+Console.WriteLine("PROBE2DONE");
+static string G(double x) => x.ToString("G6", CultureInfo.InvariantCulture);

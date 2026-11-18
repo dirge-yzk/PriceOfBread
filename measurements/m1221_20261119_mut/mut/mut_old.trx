@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="d88a9562-b621-45a1-9df0-d074da9865a6" name="dirge@DIRGE 2026-11-19 04:28:51" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-19T04:28:51.6890143+09:00" queuing="2026-11-19T04:28:51.6890149+09:00" start="2026-11-19T04:28:04.3821595+09:00" finish="2026-11-19T04:31:49.2807790+09:00" />
+  <TestSettings name="default" id="4e8d2732-5fa1-496f-aff4-ca4d7466212e">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-19_04_28_51" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="3a6f0921-24ff-49c3-94b8-e47c5a1510ef" testId="d1ff8694-0a48-a8db-d5a4-07cfa5517f73" testName="PriceOfBread.Tests.ProductionDiagTests4.独占レントの度合は物理側の1本から価格分解と表示が読む" computerName="DIRGE" duration="00:00:00.0013628" startTime="2026-11-19T04:30:46.7793775+09:00" endTime="2026-11-19T04:30:46.7796149+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3a6f0921-24ff-49c3-94b8-e47c5a1510ef" />
+    <UnitTestResult executionId="14cd81f8-6131-4f4b-a7b1-836b7f469117" testId="35197c86-f7db-92fc-fcbc-692097b61263" testName="PriceOfBread.Tests.ProductionDiagTests4.先頭の個体を渡す分解は財で引く分解と同じ" computerName="DIRGE" duration="00:00:35.2749732" startTime="2026-11-19T04:29:53.8194950+09:00" endTime="2026-11-19T04:30:29.0928996+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14cd81f8-6131-4f4b-a7b1-836b7f469117" />
+    <UnitTestResult executionId="4287481b-7529-4df2-9969-ab67d5847442" testId="179cdec2-ecd8-96b8-0251-10d2f1ccad12" testName="PriceOfBread.Tests.ProductionDiagTests3.診断は世界を1ビットも動かさない" computerName="DIRGE" duration="00:00:01.8089253" startTime="2026-11-19T04:30:11.1914335+09:00" endTime="2026-11-19T04:30:12.9998961+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4287481b-7529-4df2-9969-ab67d5847442" />
+    <UnitTestResult executionId="38f2fc8f-2d25-44b3-8b61-29edd0aee2b1" testId="866cf748-6091-5795-b6ed-23e4b908f528" testName="PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する" computerName="DIRGE" duration="00:01:27.3174731" startTime="2026-11-19T04:29:27.1271122+09:00" endTime="2026-11-19T04:30:54.4442058+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="38f2fc8f-2d25-44b3-8b61-29edd0aee2b1">
+      <Output>
+        <ErrorInfo>
+          <Message>フランス／鉄鉱石：内訳の和 0.8098803806908239 ≠ 限界費用 0.3098803806908239（材料 0／人件費 0.05222466961020111／管理・資本 0.2576557110806228）</Message>
+          <StackTrace>   at PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する() in D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 110&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f061d7ac-2bc9-4f73-9561-bdcca0f143b5" testId="f82eb3b0-1939-eca1-6330-f7192a039d68" testName="PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む" computerName="DIRGE" duration="00:01:44.9462074" startTime="2026-11-19T04:28:08.9018048+09:00" endTime="2026-11-19T04:29:53.8178025+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f061d7ac-2bc9-4f73-9561-bdcca0f143b5">
+      <Output>
+        <ErrorInfo>
+          <Message>フランス／鉄鉱石／鉱山：内訳の和 0.8098803806908239 ≠ 限界費用 0.3098803806908239</Message>
+          <StackTrace>   at PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む() in D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 339&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="bc254138-69e8-47c9-a406-618c5de2a30e" testId="01e42965-f71a-4998-c00d-d79616a1372b" testName="PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する" computerName="DIRGE" duration="00:00:54.6435083" startTime="2026-11-19T04:30:54.4457151+09:00" endTime="2026-11-19T04:31:49.0882289+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bc254138-69e8-47c9-a406-618c5de2a30e">
+      <Output>
+        <ErrorInfo>
+          <Message>フランス／鉄鉱石：積み上げ 0.31635728549797765 ≠ 市場価格 0.316041244253724（基本 0.54／物価 0.6643966374409598／需給 0.8808918204147748）</Message>
+          <StackTrace>   at PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する() in D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 46&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="95791a4f-0476-45bb-9595-7b114b8ddcec" testId="6ddda5f8-8bc3-fbf3-c7a1-ce335c8bc27a" testName="PriceOfBread.Tests.ProductionDiagTests4.生産タブの専売のチェックはエンジンの真値と往復する" computerName="DIRGE" duration="00:00:17.6819474" startTime="2026-11-19T04:30:29.0936791+09:00" endTime="2026-11-19T04:30:46.7781940+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95791a4f-0476-45bb-9595-7b114b8ddcec" />
+    <UnitTestResult executionId="f776eb83-1a28-4559-a0d4-af35877b8a18" testId="11348910-a2ed-1f5c-740c-cccc1ba332d4" testName="PriceOfBread.Tests.ProductionDiagTests.生産コストの人件費は労働の投入だけを集める" computerName="DIRGE" duration="00:00:42.5848342" startTime="2026-11-19T04:28:08.9039927+09:00" endTime="2026-11-19T04:28:51.4590382+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f776eb83-1a28-4559-a0d4-af35877b8a18" />
+    <UnitTestResult executionId="14e43502-a813-44f6-911d-d86df3a0f346" testId="606796d0-0f09-6bbd-09f3-127eeb11460d" testName="PriceOfBread.Tests.ProductionDiagTests4.価格の分解は同業組合の上乗せをエンジンと同じ1本から拾う" computerName="DIRGE" duration="00:00:00.1369636" startTime="2026-11-19T04:30:46.7797474+09:00" endTime="2026-11-19T04:30:46.9168044+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14e43502-a813-44f6-911d-d86df3a0f346" />
+    <UnitTestResult executionId="165b4656-3e6e-4b90-b5db-9bf10dfa2915" testId="f8e382e1-d4a5-be29-a8d4-b70b82b11a15" testName="PriceOfBread.Tests.ProductionDiagTests3.誰が買ったかは予算の差で階級に偏る" computerName="DIRGE" duration="00:00:57.9449906" startTime="2026-11-19T04:29:13.3117215+09:00" endTime="2026-11-19T04:30:11.1907858+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="165b4656-3e6e-4b90-b5db-9bf10dfa2915" />
+    <UnitTestResult executionId="49aaba65-12c0-404a-a10b-9f8224c5dc49" testId="65ee62c0-ee7a-2631-4f23-e73d0bac3b03" testName="PriceOfBread.Tests.ProductionDiagTests.価格の分解は買い手の楔をエンジンと同じ式で拾う" computerName="DIRGE" duration="00:00:35.6666719" startTime="2026-11-19T04:28:51.6208161+09:00" endTime="2026-11-19T04:29:27.1264306+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="49aaba65-12c0-404a-a10b-9f8224c5dc49" />
+    <UnitTestResult executionId="2771407a-52b6-401a-9515-0f300fd14309" testId="a7541ed3-031a-7725-55a8-e30ebd8980b9" testName="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は労働不足を素材不足と混ぜない" computerName="DIRGE" duration="00:00:54.3863825" startTime="2026-11-19T04:29:40.1401990+09:00" endTime="2026-11-19T04:30:34.3982952+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2771407a-52b6-401a-9515-0f300fd14309" />
+    <UnitTestResult executionId="60c2845a-76e9-4c7d-b00a-0bd7aae1433e" testId="e10fafb0-d8d6-6d45-3380-378521f79203" testName="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する" computerName="DIRGE" duration="00:01:31.1291725" startTime="2026-11-19T04:28:08.9039138+09:00" endTime="2026-11-19T04:29:40.0125713+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="60c2845a-76e9-4c7d-b00a-0bd7aae1433e">
+      <Output>
+        <ErrorInfo>
+          <Message>フランス／鉄鉱石：内訳の積 0.5493929200549085 ≠ 稼働率 0.5488440759789297（採算 0.4379148830247803／投入充足 0.9635437018255752／在庫調整 1.0217163742940736／慣性 1.2730853043824102）</Message>
+          <StackTrace>   at PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する() in D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 179&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="cc5777c5-706e-4be9-b3e6-40d791603ba7" testId="0d422065-a9a9-6c0b-32dc-1db0ce27bebd" testName="PriceOfBread.Tests.ProductionDiagTests4.生産コストの分解は他州の生産者を所属州の機械化度で評価する" computerName="DIRGE" duration="00:00:00.0080036" startTime="2026-11-19T04:30:46.9172571+09:00" endTime="2026-11-19T04:30:46.9249369+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cc5777c5-706e-4be9-b3e6-40d791603ba7" />
+    <UnitTestResult executionId="52ed4672-5ea9-4d9d-a354-6c0d29a1b0b5" testId="bd542d2d-7c5c-ce23-27a4-70f6907a6db6" testName="PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない" computerName="DIRGE" duration="00:01:04.3764197" startTime="2026-11-19T04:28:08.9040443+09:00" endTime="2026-11-19T04:29:13.2458215+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="52ed4672-5ea9-4d9d-a354-6c0d29a1b0b5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は労働不足を素材不足と混ぜない" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="a7541ed3-031a-7725-55a8-e30ebd8980b9">
+      <Execution id="2771407a-52b6-401a-9515-0f300fd14309" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests2" name="稼働率の内訳は労働不足を素材不足と混ぜない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="f82eb3b0-1939-eca1-6330-f7192a039d68">
+      <Execution id="f061d7ac-2bc9-4f73-9561-bdcca0f143b5" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="レシピごとの分解は恒等式を満たし従来の分解を含む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.価格の分解は買い手の楔をエンジンと同じ式で拾う" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="65ee62c0-ee7a-2631-4f23-e73d0bac3b03">
+      <Execution id="49aaba65-12c0-404a-a10b-9f8224c5dc49" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="価格の分解は買い手の楔をエンジンと同じ式で拾う" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.生産コストの人件費は労働の投入だけを集める" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="11348910-a2ed-1f5c-740c-cccc1ba332d4">
+      <Execution id="f776eb83-1a28-4559-a0d4-af35877b8a18" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="生産コストの人件費は労働の投入だけを集める" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.生産コストの分解は他州の生産者を所属州の機械化度で評価する" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="0d422065-a9a9-6c0b-32dc-1db0ce27bebd">
+      <Execution id="cc5777c5-706e-4be9-b3e6-40d791603ba7" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="生産コストの分解は他州の生産者を所属州の機械化度で評価する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="866cf748-6091-5795-b6ed-23e4b908f528">
+      <Execution id="38f2fc8f-2d25-44b3-8b61-29edd0aee2b1" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="生産コストの内訳は積み上げが限界費用に一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.生産タブの専売のチェックはエンジンの真値と往復する" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="6ddda5f8-8bc3-fbf3-c7a1-ce335c8bc27a">
+      <Execution id="95791a4f-0476-45bb-9595-7b114b8ddcec" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="生産タブの専売のチェックはエンジンの真値と往復する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="e10fafb0-d8d6-6d45-3380-378521f79203">
+      <Execution id="60c2845a-76e9-4c7d-b00a-0bd7aae1433e" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests2" name="稼働率の内訳は掛け合わせると稼働率に一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.先頭の個体を渡す分解は財で引く分解と同じ" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="35197c86-f7db-92fc-fcbc-692097b61263">
+      <Execution id="14cd81f8-6131-4f4b-a7b1-836b7f469117" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="先頭の個体を渡す分解は財で引く分解と同じ" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="01e42965-f71a-4998-c00d-d79616a1372b">
+      <Execution id="bc254138-69e8-47c9-a406-618c5de2a30e" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="価格の分解は積み上げが市場価格と買い手価格に一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.価格の分解は同業組合の上乗せをエンジンと同じ1本から拾う" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="606796d0-0f09-6bbd-09f3-127eeb11460d">
+      <Execution id="14e43502-a813-44f6-911d-d86df3a0f346" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="価格の分解は同業組合の上乗せをエンジンと同じ1本から拾う" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.独占レントの度合は物理側の1本から価格分解と表示が読む" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="d1ff8694-0a48-a8db-d5a4-07cfa5517f73">
+      <Execution id="3a6f0921-24ff-49c3-94b8-e47c5a1510ef" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="独占レントの度合は物理側の1本から価格分解と表示が読む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests3.診断は世界を1ビットも動かさない" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="179cdec2-ecd8-96b8-0251-10d2f1ccad12">
+      <Execution id="4287481b-7529-4df2-9969-ab67d5847442" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests3" name="診断は世界を1ビットも動かさない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests3.誰が買ったかは予算の差で階級に偏る" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="f8e382e1-d4a5-be29-a8d4-b70b82b11a15">
+      <Execution id="165b4656-3e6e-4b90-b5db-9bf10dfa2915" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests3" name="誰が買ったかは予算の差で階級に偏る" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない" storage="d:\pob_work\c123tc_art_old\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="bd542d2d-7c5c-ce23-27a4-70f6907a6db6">
+      <Execution id="52ed4672-5ea9-4d9d-a354-6c0d29a1b0b5" />
+      <TestMethod codeBase="D:\PoB_work\c123tc_art_old\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests3" name="popの購入記帳は内訳の和が合計に一致し販売量を超えない" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d1ff8694-0a48-a8db-d5a4-07cfa5517f73" executionId="3a6f0921-24ff-49c3-94b8-e47c5a1510ef" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="35197c86-f7db-92fc-fcbc-692097b61263" executionId="14cd81f8-6131-4f4b-a7b1-836b7f469117" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="179cdec2-ecd8-96b8-0251-10d2f1ccad12" executionId="4287481b-7529-4df2-9969-ab67d5847442" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="866cf748-6091-5795-b6ed-23e4b908f528" executionId="38f2fc8f-2d25-44b3-8b61-29edd0aee2b1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f82eb3b0-1939-eca1-6330-f7192a039d68" executionId="f061d7ac-2bc9-4f73-9561-bdcca0f143b5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="01e42965-f71a-4998-c00d-d79616a1372b" executionId="bc254138-69e8-47c9-a406-618c5de2a30e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6ddda5f8-8bc3-fbf3-c7a1-ce335c8bc27a" executionId="95791a4f-0476-45bb-9595-7b114b8ddcec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="11348910-a2ed-1f5c-740c-cccc1ba332d4" executionId="f776eb83-1a28-4559-a0d4-af35877b8a18" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="606796d0-0f09-6bbd-09f3-127eeb11460d" executionId="14e43502-a813-44f6-911d-d86df3a0f346" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f8e382e1-d4a5-be29-a8d4-b70b82b11a15" executionId="165b4656-3e6e-4b90-b5db-9bf10dfa2915" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="65ee62c0-ee7a-2631-4f23-e73d0bac3b03" executionId="49aaba65-12c0-404a-a10b-9f8224c5dc49" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7541ed3-031a-7725-55a8-e30ebd8980b9" executionId="2771407a-52b6-401a-9515-0f300fd14309" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e10fafb0-d8d6-6d45-3380-378521f79203" executionId="60c2845a-76e9-4c7d-b00a-0bd7aae1433e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0d422065-a9a9-6c0b-32dc-1db0ce27bebd" executionId="cc5777c5-706e-4be9-b3e6-40d791603ba7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bd542d2d-7c5c-ce23-27a4-70f6907a6db6" executionId="52ed4672-5ea9-4d9d-a354-6c0d29a1b0b5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="15" executed="15" passed="11" failed="4" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:01.47]   Discovering: PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:00:01.62]   Discovered:  PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:00:01.68]   Starting:    PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:01:32.96]       フランス／鉄鉱石：内訳の積 0.5493929200549085 ≠ 稼働率 0.5488440759789297（採算 0.4379148830247803／投入充足 0.9635437018255752／在庫調整 1.0217163742940736／慣性 1.2730853043824102）&#xD;
+[xUnit.net 00:01:32.96]       Stack Trace:&#xD;
+[xUnit.net 00:01:33.00]         D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs(179,0): at PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する()&#xD;
+[xUnit.net 00:01:33.00]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:01:33.00]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:01:46.69]       フランス／鉄鉱石／鉱山：内訳の和 0.8098803806908239 ≠ 限界費用 0.3098803806908239&#xD;
+[xUnit.net 00:01:46.69]       Stack Trace:&#xD;
+[xUnit.net 00:01:46.69]         D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs(339,0): at PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む()&#xD;
+[xUnit.net 00:01:46.69]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:01:46.69]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:02:47.31]       フランス／鉄鉱石：内訳の和 0.8098803806908239 ≠ 限界費用 0.3098803806908239（材料 0／人件費 0.05222466961020111／管理・資本 0.2576557110806228）&#xD;
+[xUnit.net 00:02:47.31]       Stack Trace:&#xD;
+[xUnit.net 00:02:47.31]         D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs(110,0): at PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する()&#xD;
+[xUnit.net 00:02:47.31]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:02:47.31]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:03:41.96]       フランス／鉄鉱石：積み上げ 0.31635728549797765 ≠ 市場価格 0.316041244253724（基本 0.54／物価 0.6643966374409598／需給 0.8808918204147748）&#xD;
+[xUnit.net 00:03:41.96]       Stack Trace:&#xD;
+[xUnit.net 00:03:41.96]         D:\PoB_work\c123tc_work\oldtree\PriceOfBread.Tests.Ui\ProductionDiagTests.cs(46,0): at PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する()&#xD;
+[xUnit.net 00:03:41.96]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)&#xD;
+[xUnit.net 00:03:41.96]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:03:41.96]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:03:41.97]   Finished:    PriceOfBread.Tests.Ui&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="DIRGE" outcome="Error" timestamp="2026-11-19T04:29:40.0954860+09:00">
+        <Text>[xUnit.net 00:01:32.96]     PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DIRGE" outcome="Error" timestamp="2026-11-19T04:29:53.8185640+09:00">
+        <Text>[xUnit.net 00:01:46.69]     PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DIRGE" outcome="Error" timestamp="2026-11-19T04:30:54.4449558+09:00">
+        <Text>[xUnit.net 00:02:47.31]     PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DIRGE" outcome="Error" timestamp="2026-11-19T04:31:49.0886504+09:00">
+        <Text>[xUnit.net 00:03:41.96]     PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

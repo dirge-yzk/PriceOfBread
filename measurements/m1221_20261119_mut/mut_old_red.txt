@@ -1,0 +1,4 @@
+PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する
+PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する
+PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する
+PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む

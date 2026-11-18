@@ -1,0 +1,51 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\EconomyStep.cs(1504,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\Instruments.cs(2636,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(184,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(200,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c123tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c123tc_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+  PriceOfBread.Display -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Display\release\PriceOfBread.Display.dll
+  PriceOfBread.App -> D:\PoB_work\c123tc_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests.Ui -> D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:01:03.81]     PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む [FAIL]
+  失敗 PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む [1 m 3 s]
+  エラー メッセージ:
+   フランス／鉄鉱石／鉱山：内訳の和 0.8098803806908239 ≠ 限界費用 0.3098803806908239
+  スタック トレース:
+     at PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む() in D:\PoB_work\wt_c123tc\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 367
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:05.56]     PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する [FAIL]
+[xUnit.net 00:02:05.60]     PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する [FAIL]
+[xUnit.net 00:02:05.60]     PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する [FAIL]
+  失敗 PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する [1 ms]
+  エラー メッセージ:
+   フランス／鉄鉱石：内訳の積 0.5493929200549085 ≠ 稼働率 0.5488440759789297（採算 0.4379148830247803／投入充足 0.9635437018255752／在庫調整 1.0217163742940736／慣性 1.2730853043824102）
+  スタック トレース:
+     at PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する() in D:\PoB_work\wt_c123tc\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 201
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する [< 1 ms]
+  エラー メッセージ:
+   フランス／鉄鉱石：内訳の和 0.8098803806908239 ≠ 限界費用 0.3098803806908239（材料 0／人件費 0.05222466961020111／管理・資本 0.2576557110806228）
+  スタック トレース:
+     at PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する() in D:\PoB_work\wt_c123tc\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 129
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する [< 1 ms]
+  エラー メッセージ:
+   フランス／鉄鉱石：積み上げ 0.31635728549797765 ≠ 市場価格 0.316041244253724（基本 0.54／物価 0.6643966374409598／需給 0.8808918204147748）
+  スタック トレース:
+     at PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する() in D:\PoB_work\wt_c123tc\PriceOfBread.Tests.Ui\ProductionDiagTests.cs:line 65
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果ファイル: D:\PoB_work\c123tc_work\mut\mut_new.trx
+
+失敗!   -失敗:     4、合格:    11、スキップ:     0、合計:    15、期間: 2 m 4 s - PriceOfBread.Tests.Ui.dll (net10.0)

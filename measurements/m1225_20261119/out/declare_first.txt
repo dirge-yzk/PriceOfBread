@@ -1,0 +1,10 @@
+== nrB
+per_seed_total [1550, 1090, 1065, 965, 1124, 1041, 1198, 1001, 1113, 967]
+per_seed_first [112, 90, 72, 91, 74, 90, 101, 84, 118, 66]
+per_seed_first_and_rested [91, 65, 54, 87, 69, 83, 93, 72, 106, 51]
+first_years_min_med_max 1790 1820 1945
+== M
+per_seed_total [1, 0, 0, 0, 2, 0, 5, 0, 0, 0]
+per_seed_first [1, 0, 0, 0, 2, 0, 5, 0, 0, 0]
+per_seed_first_and_rested [1, 0, 0, 0, 2, 0, 5, 0, 0, 0]
+first_years_min_med_max 1792 1932 1932

@@ -1,0 +1,12 @@
+D:\PoB_work\c123tc_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:01.52]     PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [FAIL]
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [1 s]
+  エラー メッセージ:
+   前提が崩れた：不在地主の大農園に国内の地代が立たない（-3.0152485545065417）
+  スタック トレース:
+     at PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く() in D:\PoB_work\wt_c123tc\PriceOfBread.Tests\ColonialPopTests.cs:line 132
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

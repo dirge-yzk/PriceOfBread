@@ -1,0 +1,6 @@
+id	名	E	I	D	C	T	U	A	R	S	J	E_files	E_cond	E_add	識別子
+K99	反帝世論の植民地の不満→本国の闘争度 ColonialUnrestHomeWeight（S26-23・D1）	2	0	0	1	0	0	0	0	1	0	Colonial.cs:2	2	0	ColonialUnrestHomeWeight
+K99b	同じ式の飽和の数 ColoniesForFullColonial（S26-23）	4	0	0	1	0	0	0	0	0	0	SelfPlay.cs:2 Colonial.cs:1 Simulation.cs:1	3	0	ColoniesForFullColonial
+K100a	単一国用の植民地財の在庫 ColonialResources（S26-41・D3）	7	0	0	0	5	0	0	0	8	0	Simulation.cs:2 Colonial.cs:1 EconomyStep.cs:1 Model.cs:1 Territory.cs:1 World.cs:1	2	0	ColonialResources
+K100b	単一国用の植民地財の入手率 ColonialAccess（S26-41・D3）	5	0	0	0	0	0	0	0	2	0	Simulation.cs:3 EconomyStep.cs:1 Model.cs:1	1	0	ColonialAccess
+K101	運河の着工の技術の門 Chokepoint.TechGate（11-12 反証 §3-1・同名の欄が Diplomacy.cs:183 にもある＝数は上界）	4	0	0	0	1	0	0	0	1	0	Diplomacy.cs:2 MultiNationSim.cs:1 WorldData.cs:1	1	0	TechGate

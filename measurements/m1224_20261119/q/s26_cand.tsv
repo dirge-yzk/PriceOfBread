@@ -1,0 +1,6 @@
+id	候補	識別子
+K99	反帝世論の植民地の不満→本国の闘争度 ColonialUnrestHomeWeight（S26-23・D1）	ColonialUnrestHomeWeight
+K99b	同じ式の飽和の数 ColoniesForFullColonial（S26-23）	ColoniesForFullColonial
+K100a	単一国用の植民地財の在庫 ColonialResources（S26-41・D3）	ColonialResources
+K100b	単一国用の植民地財の入手率 ColonialAccess（S26-41・D3）	ColonialAccess
+K101	運河の着工の技術の門 Chokepoint.TechGate（11-12 反証 §3-1・同名の欄が Diplomacy.cs:183 にもある＝数は上界）	TechGate

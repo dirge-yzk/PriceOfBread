@@ -1,0 +1,30 @@
+== nrB
+プロイセン	defeatShock_med=0.159	warExhaustion_med=0.259
+オーストリア	defeatShock_med=0.167	warExhaustion_med=0.409
+バイエルン	defeatShock_med=0.579	warExhaustion_med=0.593
+ザクセン	defeatShock_med=0.340	warExhaustion_med=0.412
+ハノーファー	defeatShock_med=0.423	warExhaustion_med=0.480
+ヴュルテンベルク	defeatShock_med=0.485	warExhaustion_med=0.524
+ライン諸邦	defeatShock_med=0.168	warExhaustion_med=0.271
+サルデーニャ＝ピエモンテ	defeatShock_med=0.384	warExhaustion_med=0.499
+教皇領	defeatShock_med=0.482	warExhaustion_med=0.538
+トスカーナ	defeatShock_med=0.576	warExhaustion_med=0.610
+ヴェネツィア	defeatShock_med=0.560	warExhaustion_med=0.606
+両シチリア	defeatShock_med=0.163	warExhaustion_med=0.370
+フランス	defeatShock_med=0.174	warExhaustion_med=0.438
+イギリス	defeatShock_med=0.178	warExhaustion_med=0.521
+== M
+プロイセン	defeatShock_med=0.102	warExhaustion_med=0.202
+オーストリア	defeatShock_med=0.093	warExhaustion_med=0.305
+バイエルン	defeatShock_med=0.036	warExhaustion_med=0.028
+ザクセン	defeatShock_med=0.023	warExhaustion_med=0.021
+ハノーファー	defeatShock_med=0.065	warExhaustion_med=0.051
+ヴュルテンベルク	defeatShock_med=0.030	warExhaustion_med=0.018
+ライン諸邦	defeatShock_med=0.084	warExhaustion_med=0.144
+サルデーニャ＝ピエモンテ	defeatShock_med=0.047	warExhaustion_med=0.162
+教皇領	defeatShock_med=0.017	warExhaustion_med=0.025
+トスカーナ	defeatShock_med=0.020	warExhaustion_med=0.030
+ヴェネツィア	defeatShock_med=0.019	warExhaustion_med=0.026
+両シチリア	defeatShock_med=0.057	warExhaustion_med=0.119
+フランス	defeatShock_med=0.170	warExhaustion_med=0.353
+イギリス	defeatShock_med=0.187	warExhaustion_med=0.514
