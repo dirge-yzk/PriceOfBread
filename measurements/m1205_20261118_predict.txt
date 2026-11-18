@@ -1,0 +1,21 @@
+(1205) 合流（波120）の予言（合流の前にコミット・Claude Opus 5.5）
+基点 c68e09bfbb99＝origin/main。木 D:/PoB_work/wt_m1205（枝 m1205）。
+
+[入れる線]
+- 恒等の線 c120nk (1199)：origin/c120nk 6f60cd9dc（線の ident〈判定: 恒等〉段 2・測った木 172ac2315）。
+- 恒等の線 c120k11 (1200)：origin/c120k11 76a68d0d1（線の ident〈判定: 恒等（段 1）〉・測った木 3dfeffdc1）。
+[入れない線]
+- 挙動の線 c120fm (1201)：旗 1 のフルスイートで旧の規則の番人 NationIdentityTests:33 が赤（㉜＝止めて作者に聞く型）・反証役 v2 の中〈案 a では独伊の統一が成立・宣戦の両方で 0/10＝定数 0.25 で閉じる〉。旗 0 の器も入れない（前例＝採らない挙動の線は枝ごと残す・(1191) c118mb・(1198) c119k3）。枝 origin/c120fm に残す。
+- 挙動の線 c120t2 (1202)：止める線 S4（空洞化・種 1 フォートウィリアム・基線の同じ州はピークの 0.999＝線が原因）に当たった＝担当の推奨も〈採らない〉。器も入れない（同じ前例）。枝 origin/c120t2 に残す。
+[消す名前の突き合わせ（★(773)）]
+- nk が消す名前（PeacetimeConscriptGrievance・grievanceScale・peacetimeColonial・nationalConsciousness0・RulePowerForces の引数 consciousness／xForeign／coreShare・RpReg.X／Core）を c120k11 の足した行で grep＝0 件。k11 が消すのは FillJobs の局所の tried[] と while だけ（外の読み手 0）。
+
+[予言＝合わせた木（nk＋k11）は挙動を変えない＝基線は m1198 のまま]
+P1 腕 Z（ident m1205z・段 2・--saveleak --ng --tests-delta 2）：素の 5 種は b5_20261118_m1198 と全行一致（182 行）・計器つき 10 種は b10_20261118_m1198_ins と全行一致（182 行）・計器の表 1559 本＝バイト一致＋既知の揺れ（宣言の無い違い 0）・注視の表は一致・NG は ng1198 と同じ集合（新 0・外 0）・.cost の件数の行と推定 238.7 秒（素の 5 種 237.2 秒）が同じ＝〈判定: 恒等〉。
+P2 テストの数：Category!=FullLength 2905（Tests 2671〔k11 +2〕＋Tests.Ui 234）・FullLength 3。
+P3 フルスイート：赤 0（スキップ 1）。savetest OK・leakhunt 保存則違反なし。
+P4 opening_bake.json を合わせた木で 1 回だけ焼き直す（★(764)・hz4_490/bake.sh・種 1・上限 200）：頭書きの inputHash は nk が手で書いた 4cdf6780e2c8b447 と同じ値になる（k11 は埋め込みの資源に触れない）・表の本文は sourceHash と generated の行を除いて今の表と同じ（消した world.json の 2 鍵は読み手 0）。旗 OpeningBakeEnabled 0＝成績表に効かない（P1 で確かめる）。
+P5 新しい基線は作らない（INSRAW keep_1198/base_ins・KEEPNULL keep_1198/n1・a11 のまま）。ident.cfg は TESTS_NONFULL 2903→2905 だけ。
+
+[止める線の段]：挙動の線を入れないので、M・N1・N2・S11 の腕は回さない（止める線・門の読みは無い）。
+[記録の段]：fm・t2 の腕の記録（線の成績表 b10_20261118_c120fmBa_ins・_c120fmBb_ins・_c120t2B_ins）は採否に使わない。
