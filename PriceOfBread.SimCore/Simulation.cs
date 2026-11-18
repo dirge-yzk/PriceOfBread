@@ -2118,7 +2118,9 @@ public sealed class Simulation
         double baseline = 0.0; foreach (var ar in World.Regions) baseline += ar.AnchorPopulation;   // 錨 0（植民地格の州だけの国）でも飛ばさず門は下の capacity〔履歴 Simulation.cs#271〕
         double litSum = 0, healthSum = 0, foodMet = 0, foodNeed = 0;
         foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; }
-        double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
+        double healthcare = c.HealthcareLiteracyGateOff > 0
+            ? World.SocialSecurity * World.FiscalFundingRatio.Value   // (1222) K03：識字の代理を外す＝医者が要るは下の医者の役務の門だけが持つ（思想⑨）
+            : Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
         double doctorCare = healthSum / pop;   // 医者の役務（医療財）の消費＝乳児死亡の低下。医者が居ない/買えない社会は人口が伸びにくい
         // これ>0で実医療財の消費(HealthFill)を 第3のmin項としてゲート化（1.0＝医者なし→抽象医療も0・中間＝部分ゲート＝実体側への段階移行）。〔履歴 Simulation.cs#272〕
         if (c.HealthcareRealGate > 0) healthcare = Math.Min(healthcare, doctorCare / c.HealthcareRealGate);
