@@ -1,0 +1,12 @@
+(1220) c123cu 結果（判定: 恒等＝測った種で一致）
+木 HEAD＝a4a42a474（試験 T7 の前提の直しまで）。素の 5 種・素の 10 種・計器つき 10 種は名乗り行を除き全行一致・推定 237.2／238.7 秒（m1212 と同じ）。
+計器の表 1579 本：バイト一致 1512・既知の揺れ 37（KNOWN）＋宣言 30＝67。エンジンの表（secession_s・rule_s・rponset_s）は全てバイト一致。
+宣言（--known-extra・extra.txt）：rulepower_s の 23 列・rulepeace_s の 4 列・rulepoweralloc_s の 4 列（首都の行の pressureIndex が 0 になった下流）。各 10 種。
+  pressureIndex の差：種 1 で 40924 行が（基準は正・腕は 0）。差のある行は 169742／218394（国の合計の正規化で首都以外の行へも波及）。
+  secession_s の pressureRebuildGapIndex は作りから 0（列は残す）。
+テスト：Category!=FullLength 2918（Tests 2684・スキップ 1・Ui 234）・FullLength 3＝--list-tests の和と一致。赤 0。
+  ㉘（8 クラス）は T7 の前提の誤りで 1 本赤（158／159）→前提を直して（試験だけの 1 コミット）フルスイートは赤 0。
+savetest OK・leakhunt 保存則違反なし。ident の savetest は途中の四半期を含むかは saveleak.sh の既定のまま。
+突然変異（使い捨ての木）：M1（pressure+=ethnic を消す）→T8 赤・M2（RpPressure の首都の枝を外す）→T7 赤・M3（SecObserve の TariffInterest を +0.001）→SecessionLaborLawInstrumentTests の gap<=1e-12 が赤。
+  M1 の ident の secession_s の赤は腕を回していない（試験の赤だけ）。
+腕の枠で待った時間 0（arms.sh free＝6）。
