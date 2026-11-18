@@ -1,0 +1,67 @@
+(1206) c121ca 事前登録（恒等の線・予言 0）  2026-11-18
+〈作者「しばらくの間、全て推奨で」で推奨を採った（11-12）〉  種類＝恒等（後片付け・計器・名乗り）・段 2（計器のファイルに触る）・測った木 c121ca
+形＝尾でも入口でもない（挙動を変えない・新しい係数と世界の状態は 0・計器の累計は計器の ConditionalWeakTable と [NonSerialized] 同等で Instruments.On の時だけ計算）
+
+[1] 恒等の線・予言 0
+  素の 5 種・計器つき 10 種の成績表は m1198 と名乗り行を除いて全行一致。計器の表の差は下の宣言だけ。
+  数の式と順は 1 つも変えない：Military.DrawFromPool は引数に World・Region を足し、本体の後に Instruments.On の時だけの 1 行を足す。
+  EconomyStep.Run は NeedTotal を足す行の直後に Instruments.On の時だけの 1 行を足す（この持ち主の一覧に無いファイル＝重なりの節）。
+  浮動小数の順序が変わる箇所：なし（旧の式の字を 1 つも書き換えない）。同じ盤面で旧≠新の行の数＝0（紙で確かめた：足す行は読むだけ）。
+
+[2] 項と消す物・残す物（行は 326e284ee の番号）
+  項 1 波120 の後片付け（試験と台本の注・SimCore に触らない）
+    JobPoolTemperatureGuardTests.cs:38〈既定の温度は0点15と同じ移る量〉＝同じ既定を 2 度読む比べ（同語反復）→ 仏の盤面で行き先を農民と都市労働者の 2 つに絞り、
+      農民へ着く量を試験の中の手計算の softmax 1/(1+exp((労働者の所得−農民の所得)/T))×流れ と比べる番人へ替える（T は既定と 0.5 の 2 通り）。
+      旧の 2 本目の Assert（0.15 の移る量 ≦ 1e-9 の移る量）は別の Fact として残す（弱めない・強める方向）。
+      ★(743) の区分：①〜④ に当たらない（旧の旗 0 の経路でも焼き込みでもない）＝番人を同語反復から実の比べへ強める書き換え。verdict に列挙する。
+    CriminalVesselTests.cs:228 の注（〈0＝総取りの waterfall の枝〉）＝注だけ。MilitaryTests.cs:1877 の失敗文＝文字列だけ（Assert の式は不変）。
+    MobilityTests.cs:121〜:141〈失業プールの着地はsoftmax按分でも動き総取りを超えない〉＝名前を〈低温の極限を超えない〉へ・wta の腕に温度 1e-9 を置く
+      （旧は温度を置かず既定の 0.15 どうしの比べ＝意味が無い対）。Assert の式と閾値は不変。★(743) の区分：①〜④ に当たらない（名前と比べる対の直し）＝verdict に列挙。
+    scripts/instruments/ic2/an_ic2.py＝注（1199）を coding の行の後へ（2 行目が coding でなければならない）。
+    k3 の係数名を字面で読む古い台本 6 本（r1074/anchors.py・r1074/build_tsv.py・r1084/flags50.py・r1155/mk_ledger.py・r1161/mk_ledger.py・m1191/docs1191.py）＝先頭に注 1 行（中身は不変）。
+  項 2 平時の強制の徴募の量の計器（soldiervac_s の末尾に 6 列）
+    Military.cs:152 の呼びに world・region を渡し、:184 DrawFromPool の本体（:187〜:198）の後に Instruments.SoldierVacDraw を 1 行（Instruments.On の時だけ）。
+    列：drawConsHomeK・drawConsColonialK（強制＝conscription 真の da＋db・本国格／植民地格）・drawConsMilPopHome・drawConsMilPopColonial（足した闘争度×引いた後の人口）・
+        drawVolHomeK・drawVolColonialK（conscription 偽の da＋db）。州の格＝Region.Tier が Colonial か否か。
+  項 3 ハーネスの最小国の必要の充足の計器（新しい表 satneeds_s）
+    Instruments/InstrumentsSatNeeds.cs（新）。EconomyStep.cs の NeedTotal を足す行（約 :1909）の直後に 1 呼び。列＝year q nation popK satisfaction foodFillLastMonth
+      dailyMet dailyTotal luxuryMet luxuryTotal otherMet otherTotal dailyFill luxuryFill otherFill nonFoodFill（人口重みづけ・四半期の 3 か月ぶん・限界はファイルの頭に書いた）。
+  項 4 r1196 §5 (b)〜(d) の計器
+    (b) nation_s の末尾に displayName（Power.Name）。
+    (c) dep_s に外しの行。r1196 は kind 2 と書いたが kind 2 は試合の終わりの行として既にある＝外しは kindCode 3。呼びの行（Rows）の数を変えないため別の置き場（Cuts）。
+        口は Diplomacy.RemoveDependency の中の 1 呼び（リンクが在った時だけ）＝離反（:1276）・宗主が消えた時の切れ（:1249）・RemovePower（:394）・輪の切断（:413）を 1 か所で拾う
+        （r1196 は 1278・396・1251 の 3 呼びと書いた＝1 か所で拾う方が漏れない。署名に CallerMemberName・CallerLineNumber を足した）。SetDependency の中の〈他の宗主のリンクを外す〉
+        _dependency.Remove は拾わない（限界）。
+    (d) wars_s の末尾に rebelPolity・parentPolity（蜂起の時の値・外国との戦争は - と -）。War.CivilWarPolity と CivilWarParent.Nation.Polity を WarNoteStart で控える。
+  項 5 ident.sh の試験の腕の名乗り
+    ident_check.py：判定の行の直前に〈試験の腕は件数だけ…〉を出す。ident.sh の頭の注・docs/README_線の担当.md に 1 行。試験を走らせる腕は足さない（推奨は名乗りだけ＝
+      理由：試験の腕を走らせるとフルスイートの約 30〜40 分が ident に重なる。赤の有無は ㉘ とフルスイート（trx）で見る）。
+
+  読み手の grep（消す物は無い＝足す物の読み手）：soldiervac_s・dep_s・wars_s・nation_s を読む scripts は列を名前か先頭からの位置で読む＝末尾への追加は影響しない
+    （c100ic/c101vs/c107ha/c113lc/c115sv/c116hd の台本は dep_s の kindCode を 1 か 2 で振り分ける＝kind 3 の行は新しい試合の生でだけ出る）。
+    RemoveDependency の呼び手：Diplomacy.cs（4）・Tests 3 ファイル（引数は 2 つのまま呼べる）。SaveGame：新しい欄は無い。POB_COEF：新しい係数は無い。
+
+  他の線との重なり（grep で確かめた）：
+    uh＝Meritocracy.cs・IndustrializationReaderTests.cs（重ならない）。b1＝Coefficients.p04_trade.cs・EconomyTests.cs・RecipeoutInstrumentTests.cs（重ならない）。
+    hs＝Validation.cs（重ならない）。EconomyStep.cs は ca だけが触る（1 行）。WriterRatchetTests・DormantIdentityTests は宣言の行を書き換える予言＝0 件（下）。
+
+[3] 足す試験（CaInstruments1206Tests.cs）と突然変異
+  T1 平時に皆兵の国の植民地格・本国格の州で、強制でない量の列が 〈引かれた側の POP の大きさの減り〉と一致・強制の列は 0。戦時は強制の列と足した闘争度×人口が一致。
+  T1b 計器が切れている時（Instruments.Configure(null)）は累計が 0（累計は Instruments.On の時だけ）。
+  T2 satneeds_s の貯め（3 つの格の和）が、EconomyStep.Run を 1 州で 1 回回した後の POP の NeedMet・NeedTotal の人口重みづけの和と一致。
+  T3 dep_s の外しの行：リンクが在る時だけ 1 行・逆向きは 0 行・RemovePower の中の外しも出る・呼びの行の数は変わらない。
+  足す試験数の予言＝+4（CaInstruments1206Tests）＋1（JobPoolTemperatureGuardTests：1 本が 2 本へ）＝+5。TESTS_NONFULL 2905→2910（--tests-delta 5）・FullLength 3 のまま。
+  突然変異（使い捨ての木・結果は measurements/m1206_*_mut.txt）：
+    M1 強制の量の累計から db を落とす → T1 が赤。
+    M2 累計を Instruments.On の外で足す（呼びの if を外す）→ T1b が赤（.cost・ident の計算量の番人にも出る見込み）。
+    M3 手計算の番人の softmax の温度を 2 倍 → JobPoolTemperatureGuardTests の新しい Fact が赤。
+    M4 satneeds の累計を重みなし（p.Size を掛けない）→ T2 が赤。M5 外しの行を RemovePower の呼びから落とす（Remove の中の hook を外す）→ T3 が赤。
+  ㉘ 走査の番人：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests（+ JobPoolTemperatureGuardTests・MobilityTests・CriminalVesselTests・MilitaryTests・CaInstruments1206Tests）。
+    WriterRatchetTests の宣言・DormantIdentityTests の件数を書き換える予言＝0 件。`new MoneyStock(` の件数は変えない（0 件足す）。route_anchors.tsv の鍵の行に書き足さない。
+
+[4] 判定
+  素の 5 種（b5_20261118_m1198）・計器つき 10 種（b10_20261118_m1198_ins）を名乗り行を除いて全行比べる。差は次の宣言だけ：
+    --added-tables satneeds_s・--grown-ok soldiervac_s,nation_s,wars_s・--rows-grown-ok dep_s（kind 3 の行が呼びの行と終わりの行の間に入る＝基準の行の順序つき部分列）・--tests-delta 5。
+  .cost の推定は一致（変わるのは件数の行ではなく計器の On の時だけ。素の腕の .cost は不変）。D: は起こす前に shutil で測る（〈35GB＋その量〉）。
+[5] 〈判定: 恒等〉なら採る。違えば該当の項のコミットを外して報告（挙動の線へは切り替えない）。
+  NG・止める線：この線は挙動を変えない＝全て記録。作者 2026-11-16 ①の門（破綻・発散・空洞化・計算量・機構の試験）のうち、試験は上の T1〜T3 と手計算の番人。
