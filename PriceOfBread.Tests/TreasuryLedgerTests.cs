@@ -25,6 +25,22 @@ public class TreasuryLedgerTests
         return s;
     }
 
+    // ★(1213) 61 カ国・種 1789・UtilityAgent の走行を 1 回に（読むだけ＝盤面を書き換える試験は共有しない）。40 四半期目で国 0 の台帳を写し、120 まで進める。
+    private sealed class Run1789
+    {
+        public readonly MultiNationSim Sim = new(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        public readonly System.Collections.Generic.Dictionary<string, double> Start = new();
+        public readonly double[] Ledger40;
+        public Run1789()
+        {
+            foreach (var n in Sim.Nations) Start[n.World.SelfPower!.Name] = n.World.Treasury.Value;
+            for (int q = 0; q < 40; q++) Sim.StepQuarter();
+            Ledger40 = (double[])Sim.Nations[0].World.TreasuryLedger.Clone();
+            for (int q = 40; q < 120; q++) Sim.StepQuarter();
+        }
+    }
+    private static readonly System.Lazy<Run1789> Shared1789 = new(() => new Run1789());
+
     /// <summary>単一国（イギリス・240四半期）で台帳が国庫と一致する。</summary>
     [Fact]
     public void 単一国で台帳の合計は国庫の変化に一致する()
@@ -45,10 +61,9 @@ public class TreasuryLedgerTests
     [Fact]
     public void 多国でも全ての国で台帳の合計は国庫の変化に一致する()
     {
-        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-        var start = new System.Collections.Generic.Dictionary<string, double>();
-        foreach (var n in sim.Nations) start[n.World.SelfPower!.Name] = n.World.Treasury.Value;
-        for (int q = 0; q < 120; q++) sim.StepQuarter();
+        var run = Shared1789.Value;   // ★(1213) 同じ盤面（61 カ国・種 1789）を 1 回だけ回す（旧＝この本と「主要な区分に値が立つ」が別々に回していた）
+        var sim = run.Sim;
+        var start = run.Start;
 
         int checkedCount = 0;
         foreach (var n in sim.Nations)
@@ -103,11 +118,9 @@ public class TreasuryLedgerTests
     [Fact]
     public void 主要な区分に値が立つ()
     {
-        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-        for (int q = 0; q < 40; q++) sim.StepQuarter();
-        var w = sim.Nations[0].World;
+        var ledger40 = Shared1789.Value.Ledger40;   // ★(1213) 同じ走行の 40 四半期目の台帳の写し（同じ種・同じ AI・決定論＝旧の別走行と同じ値）
         foreach (var cat in new[] { TreasuryCat.Tax, TreasuryCat.Admin, TreasuryCat.Army })   // 2026-09-28 段2-1：国家の調達は区分つきで精算＝旧の OtherOut は軍需（Army）へ
-            Assert.True(System.Math.Abs(w.TreasuryLedger[(int)cat]) > 1e-9,
+            Assert.True(System.Math.Abs(ledger40[(int)cat]) > 1e-9,
                 $"{cat} の台帳が1度も動いていない＝記帳の配線が切れている");
     }
 
