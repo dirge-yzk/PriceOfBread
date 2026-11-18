@@ -1,0 +1,21 @@
+M1 PriceOfBread.SimCore/Politics.cs
+  build-err=False
+    失敗 PriceOfBread.Tests.CaInstruments1206Tests.T6_分離の圧の関数は盤面の素の式と一致し計器の口は同じ関数を読む [48 ms]
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+M2 PriceOfBread.SimCore/Instruments/InstrumentsSatNeeds.cs
+  build-err=False
+    失敗 PriceOfBread.Tests.CaInstruments1206Tests.T2b_格の振り分けは日用品と嗜好品とその他の列へ別々に入る [66 ms]
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M3 PriceOfBread.SimCore/Validation.cs
+  build-err=False
+    失敗 PriceOfBread.Tests.HarnessSatRecentTests.T5_全ての国が建国の途中なら落とし先から選び分離独立の印が付く [4 ms]
+  失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 57 ms - PriceOfBread.Tests.dll (net10.0)
+M4 PriceOfBread.SimCore/Instruments/InstrumentsRulePower.cs
+  build-err=False
+    失敗 PriceOfBread.Tests.RulePowerTests.P2_力の式は開幕の抵抗0で目標がRuleInitに一致し_4区分の和が1_和0は寄せない [11 ms]
+    失敗 PriceOfBread.Tests.RulePowerTests.P4_影の表の見出しと和と開幕の自己検査 [8 s]
+  失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+M5 PriceOfBread.SimCore/Instruments/InstrumentsWar.cs
+  build-err=False
+    失敗 PriceOfBread.Tests.CaInstruments1206Tests.T4_内戦の始まりで反乱側の政体と親の政体を控える [75 ms]
+  失敗!   -失敗:     1、合格:     6、スキップ:     0、合計:     7、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
