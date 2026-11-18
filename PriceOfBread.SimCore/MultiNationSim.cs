@@ -639,8 +639,11 @@ public sealed class MultiNationSim
             foreach (var sim in Nations) sim.StepDayDaily();    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
         // 締め境界＝**常に逐次**。〔履歴 MultiNationSim.cs#73〕
         if (_coef.LuxuryIncomeElasticity > 0 && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) DistributeWorldRealIncome();   // ε＝0 は走らない〔履歴 MultiNationSim.cs#74〕
+        List<World>? splitWorlds = null;   // (1216) 文化の分断 f の表＝四半期の末の締め（QuarterEnd の思想の更新）の直前に盤面から作り、締めの直後に消す
+        if (_dayInQuarter == Calendar.QuarterEndDayIndex) { var ws = Nations.ConvertAll(n => n.World); if (Ideologies.BuildCultureSplit(ws)) splitWorlds = ws; }
         foreach (var sim in Nations) sim.StepDayClose();
-        foreach (var sim in Nations) sim.World.FlushLog();      // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
+        if (splitWorlds is not null) Ideologies.ClearCultureSplit(splitWorlds);
+        foreach (var sim in Nations) sim.World.FlushLog();     // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
         if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
 
         bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
