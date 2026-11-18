@@ -43,3 +43,4 @@
 `````text
         // (850) 国の 3 つの量（計器が自分で数える）：R・旗 0 の秩序・m̄
 `````
+(1220) SecParts と SecRebuild を消した（Politics.SecessionParts を呼ぶ）。pressureRebuildGapIndex は同じ関数の同じ入力なので作りから 0（列は残す）。
