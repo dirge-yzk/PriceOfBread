@@ -1,0 +1,8 @@
+seed	year	nation	culture	rule	tier	route	declareBefore	natShare	counts	evidenceCivilWars
+1	1796	オスマン	アラブ	ローマ	4	従属国の州を数えた	0	0.0795	従属国:Subjugate=4 開幕から=12	
+3	1796	オスマン	アラブ	ローマ	4	従属国の州を数えた	0	0.1027	従属国:Subjugate=4 開幕から=12	
+5	1879	オスマン	アラブ	ローマ	4	従属国の州を数えた	0	0.2152	従属国:ResolvePeace=2 開幕から=10	
+6	1805	オスマン	アラブ	ローマ	4	従属国の州を数えた	0	0.1447	従属国:Subjugate=6 開幕から=12	
+7	1799	オスマン	アラブ	ローマ	4	従属国の州を数えた	0	0.2036	従属国:Subjugate=2 開幕から=12	
+7	1799	プロイセン	ドイツ	ドイツ帝国	2	従属国の州を数えた	0	0.1249	従属国:ResolvePeace=3 開幕から=4	
+9	1794	オスマン	アラブ	ローマ	4	従属国の州を数えた	0	0.0968	従属国:Subjugate=2 開幕から=12	
