@@ -1,0 +1,4 @@
+# 883349900fa57db19254a46b1b247cce8fea3e30
+nonfull PriceOfBread.Tests rc=0 2014s
+nonfull PriceOfBread.Tests.Ui rc=0 111s
+full PriceOfBread.Tests rc=0 352s

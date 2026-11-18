@@ -1,0 +1,25 @@
+# (1221) c123tc 事前登録（最初のコミット）／試験だけ・エンジン 0 行
+[1] 恒等の線・予言 0：SimCore・Runner・App・Display は 0 行＝ident は回さない（エンジンの出力は変わりようがない）。
+    git diff --stat は PriceOfBread.Tests・PriceOfBread.Tests.Ui・scripts・measurements だけ。区分 ★(743)＝①軌道に依る前提（項 1）／整理（項 2）。
+[2] 消す物・残す物
+    項 1  ColonialPopTests.cs:116〜133（植民地の月の決算で輸出作物の地代は首都の投資家へ着く）：Assert の文と閾値は変えない。
+          盤面の取り直しは旗 0・旗 1 の両方で rent>1e-6 が立つ盤面を探す＝英仏 seed 83・コーヒーを持つ植民地×倍率 0.5〜64・1 か月・36 盤面（measurements/m1221_20261119_board_probe_f0/f1.txt）。
+          旗 1 は POB_COEF（係数は型の初期化で 1 回だけ読む＝1 プロセスで旗 0 と 1 を混ぜられない）。見つからなければ盤面は今のまま（旗 0 で緑）・R3 は作者に聞く物の材料。
+          足す：〈赤字の月に生産者の規模は増えない〉（条件なし・盤面は試験の中で置く）。
+    項 2  PriceOfBread.Tests.Ui/ProductionDiagTests.cs の 4 クラス（10 本が同じ世界 1789・60／40／20 四半期を作り直す）：共有＝ICollectionFixture（ProductionDiagWorlds）。
+          読み取りだけの 10 本（Tests 4・Tests2 2・Tests3 2・Tests4 2）が共有。世界を書き換える 3 本（診断が世界を動かさない・同業組合の点火・専売の往復）は自分の世界のまま＝共有しない。
+          世界の構築 10 回→3 回。テストの数は変えない（処置は〈共有する〉だけ・〈消す〉は 0）。
+          次に重い順の MultiNationTests 1〜3・StartWarmupTests 1〜4・WarThemeTests・NationModelTests・PolicyPoliticsTests・TechInstitutionTests・ExplainTests は
+          この回は〈残す〉（盤面を書き換えるか別の入力で作る物の見分けを終えていない＝未精査・消す根拠の（1213）の確かめも無い）。
+    読み手の grep：ProductionDiagTests・ProductionDiagShared・ColonialPopTests は PriceOfBread.App（GameViewModel.Production.cs の注の語）・scripts/instruments/m1035・m1044・r1041・r1218・measurements の manifest が名前を引く（読むだけ・名前は変えない）。
+    SimCore・Runner の読み手：なし。POB_COEF の名前：EndowmentCostFollowsAbundance（読むだけ）。SaveGame：触らない。
+    他の線との重なり：cu・k3・iv の試験・TreasuryLedgerTests・InstrumentsTests には触れない。
+[3] 足す試験と突然変異
+    ColonialPopTests 赤字の月に生産者の規模は増えない：突然変異 EconomyStep.cs の scaleTarget の 1.0 + margin を 1.0 + Math.Abs(margin) にすると赤。旗 0 で緑が前提（赤なら恒等として足さず記録へ）。旗 1 の結果も記録。
+    共有へ移した 4 クラス：ProductionDiag.cs の使い捨ての突然変異（RebuiltMarketPrice×1.001・CostParts.Rebuilt+0.5・稼働率の Rebuilt×1.001）で、前の木と後の木の同じ試験が赤。
+    既存の ColonialPopTests の地代の送り先：突然変異〈④で積まない（absentee への加算を外す）〉で赤。
+    ㉘（走査の番人）：エンジン 0 行・許可表・宣言の表・件数を書き換えない＝書き換える件数の予言 0（㉑）。足した試験のクラスを ㉘ の束に加えて 1 回回す。
+[4] 素の 5 種・計器つき 10 種：エンジン 0 行＝m1212 と名乗り行を除いて全行一致が自明（回さない）。
+[5] 門：赤 0（スキップ 1）・--list-tests の和＝2916＋1（赤字の月の番人）＝2917（TESTS_NONFULL 2916・FullLength 3 は変えない）。
+    時間：Ui の ProductionDiag の和（前 約 316 秒）が世界の構築 7 回ぶん減る見込み・実時間は目安で門にしない（前後の負荷の比で補正）。
+    savetest・leakhunt はフルスイートの中で回る。〈判定: 恒等〉と名乗るのは試験の数・赤 0・エンジン 0 行が揃ったときだけ。
