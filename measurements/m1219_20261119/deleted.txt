@@ -1,0 +1,20 @@
+(1219) 片付け 2026-11-19
+消した ident_c122cr
+消した c122ts_work
+消した c122cr_work
+消した c122bd_work
+消した c122nr_work
+消した r1217_work
+消した r1218_work
+消した d1218_work
+消した ident_m1219z
+Dfree 115.9
+worktree を外し、ローカルの枝を消した：wt_c122ts・wt_c122cr・wt_c122bd・wt_c122nr（origin の枝は残す）
+移した：c122nr の腕 B の生 → D:/PoB_work/keep_1219_rej/nrB（1585 本）・合流の腕 Z の生 → D:/PoB_work/keep_1219/base_ins（1579 本）
+消していない：D:/PoB_work/keep_1212（base_ins・n1・a11＝KEEPNULL と種 11〜20 の生を含む）
+この後に消す：wt_m1219（worktree と枝 m1219）・m1219_work
+ls -d D:/PoB_work/keep_*:
+D:/PoB_work/keep_1212
+D:/PoB_work/keep_1219
+D:/PoB_work/keep_1219_rej
+残った孤児のプロセス：MSBuild の節 1 本（PID 20688・02:55:45＝saveleak.sh のビルドの nodeReuse）を止めた＝0
