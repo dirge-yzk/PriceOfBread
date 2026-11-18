@@ -86,3 +86,21 @@
 
 [11] 重なり：持ち主のファイル＝Coefficients.p04_trade.cs:111 の 1 行・EconomyTests.cs（:415〜:460）・RecipeoutInstrumentTests.cs（:167〜:176 と :213・:306 の盤面の明示）・TradePhase0Tests.cs（:31・:48・:86 の盤面の明示）・新しい試験 EndowmentCostTests.cs・DormantIdentityTests.cs:97・WriterRatchetTests.cs（宣言の行だけ）・scripts/instruments/c121b1/・measurements/m1208_*。
  他の線（ca：Military.cs・Diplomacy.cs・計器・JobPoolTemperatureGuardTests ほか／uh：Meritocracy.cs・IndustrializationReaderTests／hs：Validation.cs）とファイルは重ならない（DormantIdentityTests.cs・WriterRatchetTests.cs は共有＝自分の行だけ）。
+
+[追記 1]（2026-11-18・段0 の結果を見た後＝結果の後の追記と名乗る・腕 B は回していない・試験は書き換えていない）
+ 段0（[2] の規則・写しの木＝326e284ee＋7717f8df8 の HEAD に既定値 1 行だけを当てた・scripts/instruments/c121b1/scratch.sh）：
+  旗 1 の木：ColonialPopTests〈植民地の月の決算で輸出作物の地代は首都の投資家へ着く〉が赤〈前提が崩れた：不在地主の大農園に国内の地代が立たない（-42.334348369467996）〉＝(1030) と同じ値。
+   ＝[2] の止める規則に当たった＝腕 B を回さずに止める。3 回の規則に数えない。
+  同じ束の他の赤 8 本は全て [8] (b)(c)(d) の予言の型（旗 0 の対照を既定に依っていた盤面）：EconomyTests の器の試験 1・TradePhase0Tests 4（R1a×2・R1b・RecipeoutBprime）・RecipeoutInstrumentTests 3（T4・T6・B1）。直しはコミットしていない（止めた線の試験は直さない）。
+  緑：DiscoveryScoreTests 全て（(1030) の (h)〈入植者 0 の鉱床が開いた〉は R1 (b) の今の木で再現しない）・CorncfInstrumentTests 全て（T5 を含む）・ColonialPopTests の他の試験・新しい試験 U1 の 2 本。
+  旗 0 の木：U1 の 2 本が赤（旗 0 で赤＝門は何もしない実装で落ちる）・ColonialPopTests は緑。出力 measurements/m1208_20261118/stage0_flag1_sum.txt・stage0_flag0_sum.txt。
+ 根（(1041) の R1／R2 の言葉・使い捨てのプローブ r1041/probe_ledger.cs.txt を写しの木だけに置いた・ledger_flag0.txt・ledger_flag1.txt）：
+  ① A-1（TradeBuyBySupplyCurve＝1・(1172)）と R1 の段0（割る数を能力の倍率と別に・級 X は播種で割らない）が入った今の木でも赤＝値まで (1030) と同じ＝どちらもこの盤面の赤に効かない。
+  ② 判断は売れ残りを見ない：英のジャマイカ（英仏・種 83・住民 1000 千人へ倍掛け）で旗 1 は mc 0.540→0.297（コーヒー・サトウキビとも）・値段 0.54 のまま・ProfitFactor 0→1・margin 0→0.817。
+   最初の月にコーヒーの産出 42.5→190.7（旗 0 は 42.5）・売れた量 67.8・在庫 122.8＝収入 36.6＜費用 38.1。サトウキビは売れた量 0・費用 40.8。和 −42.33。
+   12 か月：コーヒーの産出 1,741・在庫 11,263・売れた量は毎月 67.8・操業規模 1.010→1.115 と伸び続ける（旗 0 は pf 0・産出 7.1 へ縮む・規模 1.000）。
+   ＝判断（EconomyStep.SupplyTargetAt :2716〜:2721 の ProfitFactor・操業規模の margin）は〈作った全てが値段で売れる〉前提・損益は売れた量だけ＝(1041) §1 ① の非対称のまま。R1 では直らず、R2（判断を損益と同じ量で見る）か作りすぎの罰の段が要る〈推〉。
+   盤面の注：この試験は EconomyStep.Run を 1 か月回すだけで、値段の形成は MarketFlow.StepDay（日次）＝盤面では値段が動かない。最初の 1 か月の赤は値段が動いても同じ（値段は月の頭の 0.54 で判断された）〈推〉。
+ 狙いの観測量の基線（[5]・keep_1198/base_ins・b1read_base1198.txt）：N÷E 単位費用の中央 1790 0.988・1870 0.982・1913 0.989（(1027) の 1.82 は旧い盤面）／旗 0 の紙の予言（ifAb）2.77・2.35・2.51／産地の取り分 0.118・0.138・0.119。
+  ③ 開幕の mc の突き合わせを基線どうしで回すと級 E の 513 行で一致 0（旗 0 の盤面では割らない＝読み手は旗 0 で落ちる）・他の級は全て一致。
+ 新しい試験 U1 は PriceOfBread.Tests に置かず scripts/instruments/c121b1/EndowmentCostTests.cs.txt に材料として残した（既定 0 の main では赤＝置けない）。突然変異 M1〜M3 は回していない（腕が無い）。
