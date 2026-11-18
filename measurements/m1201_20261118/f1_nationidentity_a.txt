@@ -1,0 +1,39 @@
+D:\PoB_work\c120fm_work\suite_a\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.12]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:00.37]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:00.48]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.NationIdentityTests.フランスの列強順位は開幕から上位_リスト生成順の32位ではない [7 s]
+  成功 PriceOfBread.Tests.NationIdentityTests.分離独立の建国_州が物理移転し新国家と旧宗主の保存則が立つ [1 s]
+[xUnit.net 00:00:09.95]     PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [FAIL]
+[xUnit.net 00:00:09.95]       Assert.Equal() Failure: Strings differ
+[xUnit.net 00:00:09.95]                  ↓ (pos 0)
+[xUnit.net 00:00:09.95]       Expected: "北ドイツ連邦"
+[xUnit.net 00:00:09.95]       Actual:   "プロイセン"
+[xUnit.net 00:00:09.95]                  ↑ (pos 0)
+[xUnit.net 00:00:09.95]       Stack Trace:
+[xUnit.net 00:00:10.13]         D:\PoB_work\c120fm_work\suite_a\suitesrc\PriceOfBread.Tests\NationIdentityTests.cs(40,0): at PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する()
+[xUnit.net 00:00:10.13]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:10.13]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:10.14]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [106 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "北ドイツ連邦"
+Actual:   "プロイセン"
+           ↑ (pos 0)
+  スタック トレース:
+     at PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する() in D:\PoB_work\c120fm_work\suite_a\suitesrc\PriceOfBread.Tests\NationIdentityTests.cs:line 40
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.NationIdentityTests.従属国の列挙は定義どおりで宗主の鍵が無い国は空 [18 ms]
+  成功 PriceOfBread.Tests.NationIdentityTests.変名は表示名のみでBaseNameは不変_同名は先着のみ [26 ms]
+  成功 PriceOfBread.Tests.NationIdentityTests.UI変体パネルの源_プロイセンは4つの変体を進捗つきで名乗れる [89 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 6
+     成功: 5
+     失敗: 1
+合計時間: 10.9658 秒

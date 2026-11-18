@@ -101,3 +101,11 @@
 - 直した理由：§2 の紙が欧州の規則だけだった（計器が無かったので近似と名乗っていた物を、計器の生で置き換えた）。門（§3）・試験（§5）・突然変異（§6）は変えない。
 - 突然変異の結果（measurements/m1201_20261118/mut/mut_summary.txt）：M0 緑・M1 T1 赤・M2 T1 赤・M3 T2 赤（と T4 の旗 b=1 の行）・M4 T4 赤・M5 T3 赤 3 通り＝§6 の表どおり（M3 は T4 も赤＝表より 1 本多い）。
 - 旗 1（a と b を両方 1）の木で Formations の読み手の試験 23 本：赤は NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する の 1 本だけ（§7 の予言どおり・measurements/m1201_20261118/f1_formation_tests_ab.txt）。
+
+== 12. 追記（2026-11-18・腕の前・旗 1 のフルスイートの後・門は変えない） ==
+- 旗 1（a と b を両方 1 に置き換えた使い捨ての木 c746976da）：㊴ 計器の試験の束 333 緑 → Tests 2679（赤 3・スキップ 1）・FullLength 3 緑・Tests.Ui 234 緑・Ui の FullLength 0＝合計 2916＝--list-tests の和 2679+3+234+0 と一致。savetest OK・leakhunt 保存則違反なし（measurements/m1201_20261118/suite_f1ab/）。
+- 赤 3 の分類：
+  1. NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する＝§7 の予言どおり〈旧の規則の番人〉（旗 a だけでも赤＝f1_nationidentity_a.txt）。書き換えない。pending の先頭へ。
+  2. DormantIdentityTests.休眠フラグは既定でゼロである＝既定を 1 に置いた木で休眠の表の 2 行を外していない＝〈番人を写しただけ〉（点火のコミットで表から外す行）。
+  3. CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで＝計器 formation_s の quarter 列の〈月÷3〉が裸の暦の換算（旗に依らない＝旗 0 の木でも赤だった・ident の試験の腕は数だけを見る）。直し：計器から quarter 列を外し month・year だけにした（エンジンに触れない計器だけの直し＝⑭ の〈形の変え直し〉に数えない・腕の前）。直した木で走査の番人の束（Calendar・FormationGate・DormantIdentity・InstrumentsPlacement・GoodIdGuard・SourceScanCoverage・OnDoubleReadScan・UnitType・IndustrializationReader・計器の軌道の試験）105 緑。
+- 1 の赤があるので ㉜ の文〈赤なら腕 B を回さない〉に当たる。§7 のとおり腕は回す（旗は既定 0 のまま・測るだけ）＝報告の先頭で名乗る。

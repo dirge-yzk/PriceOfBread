@@ -1,0 +1,26 @@
+[xUnit.net 00:00:19.73]     PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [FAIL]
+  失敗 PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [113 ms]
+  エラー メッセージ:
+   休眠のはずの「FormationNatioGate」が既定 1＝**点火されている**。点火したなら本テストの表からも外すこと（表が休眠の一覧である）
+  スタック トレース:
+     at PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである() in D:\PoB_work\c120fm_work\suite_ab\suitesrc\PriceOfBread.Tests\DormantIdentityTests.cs:line 205
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+--
+[xUnit.net 00:00:39.02]     PriceOfBread.Tests.CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで [FAIL]
+  失敗 PriceOfBread.Tests.CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで [472 ms]
+  エラー メッセージ:
+   裸の時間換算が宣言より多いファイル：InstrumentsFormation.cs 1（宣言 0）。率・流れの換算は Calendar.PerYearToPerMonth ほかの名前のある関数を通すこと：
+BilateralMarket.cs: idleQ = (uint)(nations[0].World.Year * Calendar.QuartersPerYear + nations[0].World.Quarter - 1);
+Coefficients.cs: public const int FidelityQuarters1950 = (1950 - Calendar.StartYear) * Calendar.QuartersPerYear;
+CrownParliament.cs: record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));
+Diplomacy.cs: if (c.RankUpdateIntervalQuarters <= 1.001 || _rankClock >= (int)(c.RankUpdateIntervalQuarters * (double)Calendar.MonthsPerQuarter)) { ComputeRanks(c); _rankClock = 0; }
+--
+[xUnit.net 00:01:55.57]     PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [FAIL]
+  失敗 PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [4 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "北ドイツ連邦"
+Actual:   "プロイセン"
+           ↑ (pos 0)

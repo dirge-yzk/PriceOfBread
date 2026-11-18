@@ -3,10 +3,11 @@ namespace PriceOfBread.SimCore;
 // (1201) c120fm 計器 formation_s：統一国家の成立（Formations.Check の名前の付け替えが真のとき）を 1 行ずつ書く。
 // 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない（持ち物は計器の ConditionalWeakTable）。
 // 州の数と従属国は計器が自分で数える（州の名は国の World.Regions・従属は Diplomacy.IsDependentOf の素の有無＝Formations.Owns を呼ばない）。
+// 時は month（Diplomacy の月の通し番号・Check は四半期の頭の月）と year だけ（四半期の番号は読み手が month から出す＝計器に裸の暦の換算を置かない・CalendarTests）。
 // 民族主義の取り分は ideology_s と同じ Ideologies.National の [4]。unificationCandidate は宣戦の候補の規則の名（付け替えの直後・段の書き換えの前の盤面）。
 public static partial class Instruments
 {
-    internal const string FormationHeaderText = "quarter\tmonth\tyear\tbaseName\tnewName\ttier\truleSource\townRegionsCount\tdepRegionsCount\tusedDependents\tnatShare\tunificationCandidate";
+    internal const string FormationHeaderText = "month\tyear\tbaseName\tnewName\ttier\truleSource\townRegionsCount\tdepRegionsCount\tusedDependents\tnatShare\tunificationCandidate";
 
     sealed class FormationState { public readonly System.Collections.Generic.List<string> Rows = new(); }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, FormationState> FormationStates = new();
@@ -40,7 +41,7 @@ public static partial class Instruments
         var cp = CpOf(d);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         FormationStates.GetValue(d, _ => new FormationState()).Rows.Add(string.Join('\t',
-            I(cp.Month / Calendar.MonthsPerQuarter), I(cp.Month), I(w.Year), NameOf(power), rule.NewName, I(rule.Tier), source,
+            I(cp.Month), I(w.Year), NameOf(power), rule.NewName, I(rule.Tier), source,
             I(w.Regions.Count), I(depRegions), string.Join('|', used),
             share.ToString("R", System.Globalization.CultureInfo.InvariantCulture), cand));
     }

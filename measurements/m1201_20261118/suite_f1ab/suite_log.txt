@@ -1,0 +1,40 @@
+置き換えた：1 箇所・D:/PoB_work/c120fm_work/suite_ab/suitesrc/PriceOfBread.SimCore/Coefficients.p09_kingship_tax.cs・14393 → 14393 バイト
+置き換えた：1 箇所・D:/PoB_work/c120fm_work/suite_ab/suitesrc/PriceOfBread.SimCore/Coefficients.p09_kingship_tax.cs・14393 → 14393 バイト
+list PriceOfBread.Tests nonfull 2679
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 234
+list PriceOfBread.Tests.Ui full 0
+bundle rc=0 1249s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   333、スキップ:     0、合計:   333、期間: 20 m 45 s - PriceOfBread.Tests.dll (net10.0)
+nonfull PriceOfBread.Tests rc=1 1472s
+full PriceOfBread.Tests rc=0 277s
+nonfull PriceOfBread.Tests.Ui rc=0 116s
+full PriceOfBread.Tests.Ui rc=0 2s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 52 s - PriceOfBread.Tests.Ui.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:19.73]     PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [FAIL]
+[xUnit.net 00:00:39.02]     PriceOfBread.Tests.CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで [FAIL]
+[xUnit.net 00:01:55.57]     PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [FAIL]
+失敗!   -失敗:     3、合格:  2675、スキップ:     1、合計:  2679、期間: 24 m 29 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\c120fm_work\suite_ab\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 35 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.DormantIdentityTests.休眠フラグは既定でゼロである [113 ms]
+  エラー メッセージ:
+   休眠のはずの「FormationNatioGate」が既定 1＝**点火されている**。点火したなら本テストの表からも外すこと（表が休眠の一覧である）
+--
+  失敗 PriceOfBread.Tests.CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで [472 ms]
+  エラー メッセージ:
+   裸の時間換算が宣言より多いファイル：InstrumentsFormation.cs 1（宣言 0）。率・流れの換算は Calendar.PerYearToPerMonth ほかの名前のある関数を通すこと：
+--
+  失敗 PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [4 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+SUITEDONE
+saveleak rc=0 264s
+savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+SAVELEAKDONE
