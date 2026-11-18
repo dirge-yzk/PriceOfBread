@@ -1,0 +1,2 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\m1198_work\suite2\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
