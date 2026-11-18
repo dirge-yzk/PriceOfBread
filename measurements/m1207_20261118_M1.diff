@@ -1,0 +1,18 @@
+commit d7f67af625696831a40effdd99bceffa22e352c4
+Author: m <m@m>
+Date:   Wed Nov 18 18:42:29 2026 +0900
+
+    M1 mutation (not pushed)
+
+diff --git a/PriceOfBread.SimCore/Meritocracy.cs b/PriceOfBread.SimCore/Meritocracy.cs
+index cf1069d43..ded8b7e91 100644
+--- a/PriceOfBread.SimCore/Meritocracy.cs
++++ b/PriceOfBread.SimCore/Meritocracy.cs
+@@ -364,6 +364,7 @@ public static class Meritocracy
+                 double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, c);
+                 double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);
+                 double f = amount * (share[i] / sumW) * gate * vacancy;
++                if (!src.IsUrban && t.IsUrban) f = Math.Min(f, 0.0);   // M1
+                 if (t.IsSoldier) f = Math.Min(f, soldierVac);
+                 if (f <= Eps) continue;
+                 f = MoveToJob(w, r, i, src, t, f, c, ref soldierVac);

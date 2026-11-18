@@ -1,0 +1,8 @@
+腕 out_mM_10/ins
+基準 D:/PoB_work/ident_m1212z/out_ib_10/ins
+共通の表 529・腕だけ 0・基準だけ 1050
+内訳 一致 529
+腕だけの表 
+基準だけの表（頭） admrule_s,age_s,anchor_s,armsfill_s,basisx_s,burblock_s,burscan_s,ce_s,cearn_s,cederule_s,center_s,cess_s,cgrp_s,chem_s,chemgood_s,clock_s,cons_s,consf_s,corncf_s,cornint_s,coupgate_s,cpeace_s,cpmed_s,cpop_s,cpwd_s,cpwdft_s,cpworld_s,crownpc_s,csc_s,cscx_s,cwmult_s,discflow_s,divhost_s,ed_s,eq_s,eqr_s,factory_s,fb_s,fd_s,flow_s,fm_s,fsx_s,house_s,imp_s,inpb_s,inpf_s,ivf_s,landbase_s,landbasereg_s,
+違い 0
+判定: 共通の表は一致（宣言の範囲）
