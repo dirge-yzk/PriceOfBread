@@ -1,0 +1,67 @@
+(1214) c122cr 事前登録（最初のコミット）— 恒等の束・段 2・基点 245780b63（基線 m1212）
+署名：Claude Sonnet 5.5 が書いた。作者「しばらくの間、全て推奨で」で推奨を採った（A を消す・作者の確認は待ちのまま）。
+
+[1] 恒等の線・予言 0
+  種類＝恒等（エンジンの結果は 1 ビットも変えない）。新しい係数 0・新しい世界の状態 0・計器は Instruments.On の時だけ計算する。
+  判定＝素の 5 種（b5_20261118_m1212）・素の 10 種（b10_20261118_m1212）・計器つき 10 種（b10_20261118_m1212_ins）が名乗り行の SOURCE-HASH を除き全行一致。
+  計器の表の差は宣言だけ（下の [4]）。エンジンの分離・支配の表（secession_s・rule_s・rponset_s）は全行一致。〈判定: 恒等〉なら〈測った種で一致〉と名乗る。
+
+[2] 消す物・足す物・直す物（ファイル:行は基点 245780b63 の値）
+  項 1（ca と hs の後片付け）
+   a. InstrumentsSoldierVac.cs:14〜:15 ヘッダの列の名：drawConsHomeK→drawWarHomeK・drawConsColonialK→drawWarColonialK・drawConsMilPopHome→drawWarMilPopHome・
+      drawConsMilPopColonial→drawWarMilPopColonial・drawVolHomeK→drawPeaceHomeK・drawVolColonialK→drawPeaceColonialK（名の変更は宣言する＝担当が決めた）。
+      意味：Military.Step の `if (!lawConscripts) continue;`（徴兵法が Selective 以上の国だけが引く）と DrawFromPool の conscription＝wartimeConscript＝atWar。
+      drawWar*＝戦時の強制（atWar 真）・drawPeace*＝平時（徴兵法の下の）徴募（atWar 偽）。列の並び・値は同じ。soldiervac_s を名前で読む台本：
+      grep の結果＝scripts/instruments/c115sv/gates_sv.py ほかは drawCons／drawVol の名を読まない（SimCore の 1 ファイルだけ）。注を足す。
+   b. CaInstruments1206Tests.cs:68 T1 の文：〈平時の量と戦時の強制の量〉→〈平時（徴兵法の下）の量と戦時の強制の量〉。
+   c. InstrumentsSatNeeds.cs：列 luxuryWanted（嗜好品の欲しい量＝Σ POP の大きさ×GoodNeed×needW）を表の末尾に 1 本足す。EconomyStep.cs:1910 の計器の呼びに引数 1 つ
+      （p.GoodNeed * needW）を足す＝insOn の枝の中だけ・エンジンの値は読むだけ（EconomyStep.cs は持ち主の表に無い＝1 行だけの触れで報告に名乗る）。
+   d. HarnessSatRecentTests.cs：T5 を足す（全ての国が建国の途中の盤面で、Validation.cs の 2 本目のループ〔落とし先〕と〈・分離独立〉を通る）。Validation.cs は読むだけ。
+   e. JobPoolTemperatureGuardTests の既定 0.15 は固定しない（推奨）＝記録だけ・試験は変えない。
+  項 2（A を消す）
+   a. InstrumentsRulePower.cs:9 見出しの fPushbackIndex・:21 RpForces の A・:28 const double a・:31 fR の + a・:33 の構築・:386 qual の f.A == 0・:398 の F(f.A) を消す。
+      数の等価：P() は 0 以上を返す（+0）＝x + 0.0 は x と同じビット。fR の else 側は 0.0 の定数。
+   b. RulePowerTests.cs:109〜:113 の fa.A・fp.A の Assert を消す（消した欄を名指す Assert の削除＝★(743) の ①〜④ の外・削除の付随）。:115 の RpForces の引数を 4 つへ
+      （構築の形の追随＝区分 ① 相当・値は同じ）。FS と FR の Assert は残す。
+   c. 宣言：--removed-cols rulepower_s:fPushbackIndex。列の数で行を読む台本（★(749)）と scripts/instruments/r1163/decomp.py・r1211/r1211_ana.py の注を grep で直す。
+   d. docs/history/InstrumentsRulePower.cs.md に〈(1214) で A を消した・11-12 の読みは案丙〉。設計の下書き（作者採択の 14 節）の本文は変えない。
+   e. 読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements）：RpForces.A／fPushbackIndex の読み手は InstrumentsRulePower.cs と RulePowerTests.cs と
+      古い台本 2 本（decomp.py・r1211_ana.py＝名前で読む・基線の生は消した列を含む＝古い生を読む台本のため列の名は残し注だけ足す）。POB_COEF・SaveGame に名前なし。
+  項 3（分離の圧をエンジンと同じ関数へ）
+   a. Politics.cs:874〜:885（cultDist→pressure→選挙権→crowd）を internal static double SecessionPressure(World w, Coefficients c, Region r, Region cap, double stance,
+      double tariffInterest) に出し、CheckSecession はそれを呼ぶ（演算の順は 1 つも変えない＝ cultDist の 2 項・Toward・mil・Abs(stance−TI)*mil*Scale*(1+W*cult)・
+      加法項・×(1−Clamp01(包含))・×crowd÷(crowd＋最小人口)）。:873 の r.TariffInterest の代入と :886〜 の SecessionHoldProjection の枝はエンジンに残す。
+      浮動小数の順序が変わる箇所：なし（式をそのまま関数へ移す・局所変数 mil を関数の中へ入れる＝同じ呼び AvgRegionMilitancy(r) を 1 回）。
+      紙の台本：旧と新を同じ盤面で比べる食い違い 0 を試験 T6 で数える（ビット一致 BitConverter）。
+   b. InstrumentsRulePower.cs:204〜:206 の press を RpPressure（上の関数を呼ぶ計器の薄い口）へ置き換える。r.TariffInterest は書かずに読むだけ（前の四半期のエンジンの値）。
+   c. 宣言：pressureIndex・fStateIndex 以外の fR とその下流の列（fResistIndex・interRatioIndex・interShare・kappaIndex・owner/local/foreign/ungovSideShare・classSumShare・
+      bestClass・nowBest 以後の区分の列ほか rulepower_s の全て）を --known-extra。rulepeace_s・rpalloc_s の下流も同じ（宣言は ident 後に差のある列で確定し、増えた行と減った行を報告に列挙）。
+
+[3] 足す試験・突然変異・走査の番人
+  足す試験（3 本・すべて旗 0 のエンジンの既定で緑）
+   T5 HarnessSatRecentTests：全ての国が建国の途中＝最小国は 2 本目のループで選ばれ WorstSatName が〈・分離独立〉で終わる。
+   T2b CaInstruments1206Tests：SatNeeds を格ごとに合成呼びし、日用品・嗜好品・その他の分子・分母・欲しい量が別の格へ入らない（振り分けの Assert）。T2 本体には嗜好品の欲しい量≧分子の Assert を足す。
+   T6 CaInstruments1206Tests：SecessionPressure を盤面（文化・宗教の違う州・関税の利害・闘争度・選挙権の包含）で手計算の式と比べ（試験が自分で組む）、計器の口 RpPressure と一致。
+  突然変異（使い捨ての木で確かめ、出力を measurements/m1214_20261118_mut/ へ）
+   M1 純関数から文化の距離の項を落とす → T6 赤・ident のエンジンの表が不一致（ident で確かめるのは別の腕を回さず T6 と SecessionTests の赤で代える＝名乗る）。
+   M2 satneeds_s の格の振り分けを入れ替える → T2b 赤。
+   M3 Validation.cs:48 の落とし先のループを外す → T5 赤（使い捨ての木・Validation.cs は本線では触らない）。
+   M4 RpForces に正の A を戻す（fR に +0.5）→ RulePowerTests 赤。
+   M5 T4（内戦の始まりの政体列）で rebel・parent の列を入れ替える → T4 赤。
+  走査の番人（㉘）：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests を器のコミットの直後に回す（隔離ビルド D:/PoB_work/c122cr_art）。
+   書き換える件数の予言（㉑）：0（走査の許可表・new MoneyStock( の件数・route_anchors.tsv・WriterRatchetTests の宣言の表は触れない。Politics.cs の行を数える番人が赤なら件数を直さず外す）。
+  試験の数の予言：Category!=FullLength＝Tests 2679＋3＝2682・Tests.Ui 234＝合計 2916（--tests-delta 3）。FullLength は 3 のまま。
+
+[4] 判定（ident・段 2・stage.py）
+  bash scripts/instruments/ident/ident.sh run c122cr --tree D:/PoB_work/wt_c122cr --tests-delta 3 --saveleak
+    --removed-cols rulepower_s:fPushbackIndex
+    --grown-ok satneeds_s,soldiervac_s（soldiervac_s は末尾の 6 列の名の変更＝旧 6 列を --removed-cols へも）
+    --removed-cols に soldiervac_s:drawConsHomeK,drawConsColonialK,drawConsMilPopHome,drawConsMilPopColonial,drawVolHomeK,drawVolColonialK を足す
+    --known-extra rulepower_s の pressureIndex ほか（上の [2] 項 3c）
+  門＝〈判定: 恒等〉・宣言の外の違い 0・secession_s／rule_s／rponset_s は全行一致・突然変異が赤・Assert を弱めていない。
+  不一致なら項ごとに外して報告に回す（項 3 が外す候補の先頭）。D: は起こす直前に測る（35GB＋約 30GB）。
+
+[5] 他の線との重なり
+  nr・bd は Politics.cs に触れない（本線は :873〜:886 だけ）。ts は cr の試験ファイルに触れない。Validation.cs は読むだけ。EconomyStep.cs:1910 の 1 行は他の線の持ち主の表に無い。
+
+[6] 〈判定: 恒等〉なら採る。
