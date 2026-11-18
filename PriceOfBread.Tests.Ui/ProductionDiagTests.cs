@@ -25,8 +25,27 @@ internal static class ProductionDiagShared
     }
 }
 
+/// <summary>★(1221) c123tc：読み取りだけの番人が同じ世界（1789・60／40／20 四半期）を作り直していた＝4 クラス 10 本で 10 回→3 回。
+/// ICollectionFixture＝この集まりが終わると世界を手放す（static の遅延初期化と違いプロセスの終わりまで持たない）。
+/// 世界を書き換える試験（診断が動かさないことの比べ・同業組合の点火・専売の往復）は自分の世界を作る＝この器を使わない。</summary>
+public sealed class ProductionDiagWorlds
+{
+    private readonly System.Collections.Generic.Dictionary<int, MultiNationSim> _w = new();
+    public MultiNationSim Get(int quarters)
+    {
+        if (!_w.TryGetValue(quarters, out var s)) _w[quarters] = s = ProductionDiagShared.RunWorld(quarters);
+        return s;
+    }
+}
+
+[CollectionDefinition("ProductionDiag")]
+public class ProductionDiagCollection : ICollectionFixture<ProductionDiagWorlds> { }
+
+[Collection("ProductionDiag")]
 public class ProductionDiagTests
 {
+    private readonly System.Func<int, MultiNationSim> RunWorld;
+    public ProductionDiagTests(ProductionDiagWorlds f) { RunWorld = f.Get; }
 
     [Fact]
     public void 価格の分解は積み上げが市場価格と買い手価格に一致する()
@@ -154,8 +173,11 @@ public class ProductionDiagTests
 }
 
 /// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人を4つのクラスへ分けた（中身は変えない・共有の道具は ProductionDiagShared）。</summary>
+[Collection("ProductionDiag")]
 public class ProductionDiagTests2
 {
+    private readonly System.Func<int, MultiNationSim> RunWorld;
+    public ProductionDiagTests2(ProductionDiagWorlds f) { RunWorld = f.Get; }
     [Fact]
     public void 稼働率の内訳は掛け合わせると稼働率に一致する()
     {
@@ -205,8 +227,11 @@ public class ProductionDiagTests2
 }
 
 /// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人を4つのクラスへ分けた（中身は変えない・共有の道具は ProductionDiagShared）。</summary>
+[Collection("ProductionDiag")]
 public class ProductionDiagTests3
 {
+    private readonly System.Func<int, MultiNationSim> RunWorld;
+    public ProductionDiagTests3(ProductionDiagWorlds f) { RunWorld = f.Get; }
     [Fact]
     public void popの購入記帳は内訳の和が合計に一致し販売量を超えない()
     {
@@ -315,8 +340,11 @@ public class ProductionDiagTests3
 }
 
 /// <summary>★2026-10-17（開発の高速化）：xUnit はクラスごとに並列＝重い番人を4つのクラスへ分けた（中身は変えない・共有の道具は ProductionDiagShared）。</summary>
+[Collection("ProductionDiag")]
 public class ProductionDiagTests4
 {
+    private readonly System.Func<int, MultiNationSim> RunWorld;
+    public ProductionDiagTests4(ProductionDiagWorlds f) { RunWorld = f.Get; }
     [Fact]
     public void レシピごとの分解は恒等式を満たし従来の分解を含む()
     {
