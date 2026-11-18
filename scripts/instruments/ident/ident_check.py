@@ -741,6 +741,7 @@ def main():
             say('  - ' + m)
     if STAGE == 1:
         say('段 1 は集合の外の計器の表を見ていない' + ('＝不一致は --stage2 を付けて全表の段 2 を回して読む' if verdict != '恒等' else ''))
+    say('試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）')
     say(f'判定: {verdict}' + ('（段 1）' if STAGE == 1 else ''))
     if a['save']:
         d, mdir = a['save'], J(root, 'measurements')
