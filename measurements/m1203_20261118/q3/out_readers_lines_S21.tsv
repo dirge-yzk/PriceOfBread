@@ -1,0 +1,16 @@
+K77	PriceOfBread.SimCore/Fiscal.cs:5		private const double ForeignBondYieldRatioCap = 3.0;
+K77	PriceOfBread.SimCore/Fiscal.cs:363	条	double foreignPool = openness * c.ForeignBondCapacity.Value * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear.Value / Math.Max(1e-9, w.GovBondRatePerYear.Value), 0, ForeignBondYieldRatioCap
+K78	PriceOfBread.SimCore/Government.cs:210		private static int AusterityStage(World w, Coefficients c, PolicyAxis a)
+K78	PriceOfBread.SimCore/Government.cs:308	条	if (targetLevel < AusterityStage(w, c, a)) return (false, "緊縮の下限");
+K78	PriceOfBread.SimCore/Government.cs:211	条	=> (int)Math.Ceiling(PoliticalQuantities.Clamp01(Math.Min(1.0, w.AusterityIntensity * c.AusterityTaxHike) / TaxLawTop(a)) * TaxLawStages);
+K79	PriceOfBread.SimCore/Simulation.cs:1965		double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);
+K79	PriceOfBread.SimCore/Simulation.cs:1964		double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;
+K80	PriceOfBread.SimCore/Fiscal.cs:135		w.CurrencyReformCooldown = c.CurrencyReformCooldownMonths;
+K80	PriceOfBread.SimCore/Fiscal.cs:104	条	if (w.CurrencyReformCooldown > 0) w.CurrencyReformCooldown--;
+K80	PriceOfBread.SimCore/Fiscal.cs:113	条	&& w.CurrencyReformCooldown <= 0)
+K80	PriceOfBread.SimCore/SelfPlay.cs:682	条	if (!w.OnGoldStandard && w.CurrencyReformCooldown <= 0
+K80	PriceOfBread.SimCore/World.cs:861		public int CurrencyReformCooldown { get; internal set; }
+K81	PriceOfBread.SimCore/Fiscal.cs:126		double bite = burn / sav;
+K81	PriceOfBread.SimCore/Fiscal.cs:127	条加	foreach (var p in pops) p.Militancy = Math.Min(1, p.Militancy + bite);
+K82	PriceOfBread.SimCore/Fiscal.cs:197		w.InsolvencyMonths = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;
+K82	PriceOfBread.SimCore/World.cs:868		public bool HadSovereignDefault { get; internal set; }

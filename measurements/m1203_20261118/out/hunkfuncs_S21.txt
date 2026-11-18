@@ -1,0 +1,11 @@
+Fiscal.cs -(外):1 -Step:1
+Simulation.cs +ApplyEndowment:2 +BuildProvince:4 +CatalogEconomy:1 +DemographicStep:1 +DivideCostByEndowment:1 +EnsureScarceCounts:3 +MintGold:5 +MonthSettle:5 +PromoteColonyToRegion:4 +ScarceEndowment:1 +Simulation:2 -AddAdvancedProducers:3 -AddAlternateRecipes:1 -ApplyEndowment:2 -BuildProvince:5 -CatalogEconomy:1 -DemographicStep:1 -EnsureScarceCounts:4 -MintGold:2 -MonthSettle:11 -PortChoice:1 -PromoteColonyToRegion:4 -ScarceEndowment:1 -Simulation:5
+Government.cs 
+CapitalMarket.cs 
+MultiNationSim.cs +DistributeWorldRealIncome:5 +MultiNationSim:1 +ReabsorbNations:2 +StepDay:1 -(外):1 -DistributeWorldRealIncome:1 -MultiNationSim:3 -ReabsorbNations:2 -StepDay:4
+World.cs +AddProximityTension:1 +CanUnificationWar:1 +MilitaryExportAccess:4 +SpendableRevenue:1 -AddProximityTension:1 -CanUnificationWar:1 -CrossFx:1 -SpendableRevenue:2 -StateProfitShare:1
+Credit.cs +Step:2 -(外):1 -Step:2
+CrownParliament.cs +Step:1 -AccumulatePopConsciousness:1 -CivicOpenness:1 -Step:2
+Politics.cs +ForeignPortShare:1 +Step:2 +TreatyPortInForce:1 -AvgRegionConsciousness:1 -CheckSecession:1 -ExecuteRegimeChange:1 -RevolutionAwakensNation:1 -SoldierHoldShare:1 -Step:3 -TreatyPortInForce:1
+SelfPlay.cs -DecideQuarter:1 -NewFacilityOutlayPerMonth:1 -StartMegaproject:1
+Invariants.cs 

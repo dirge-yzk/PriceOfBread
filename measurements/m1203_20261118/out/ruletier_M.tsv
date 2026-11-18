@@ -1,0 +1,13 @@
+nation	tier	rows	stateShare_w	localShare_w	state_plus_local
+イギリス	Colonial	151405	0.557	0.335	0.891
+イギリス	Core	23525	0.814	0.174	0.987
+イギリス	Integrated	17555	0.539	0.448	0.987
+スペイン	Colonial	36170	0.486	0.378	0.864
+スペイン	Core	7609	0.750	0.244	0.994
+スペイン	Integrated	1004	0.544	0.416	0.961
+フランス	Colonial	45701	0.479	0.463	0.942
+フランス	Core	38400	0.712	0.282	0.993
+フランス	Integrated	15248	0.514	0.465	0.978
+日本	Colonial	40309	0.338	0.567	0.905
+日本	Core	47791	0.412	0.585	0.997
+日本	Integrated	1415	0.419	0.564	0.983

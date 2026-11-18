@@ -1,0 +1,18 @@
+- 831: if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }
+--
+- 841: double[]? ncBeforeMig = null;
+- 842: for (int ei = 0; ei < Nations.Count; ei++)
+- 843: if (Nations[ei].World.Explain is not null)
+- 844: { ncBeforeMig ??= new double[Nations.Count]; ncBeforeMig[ei] = Nations[ei].World.NationalConsciousness; }
+--
+- 846: if (ncBeforeMig is not null)
+- 847: for (int ei = 0; ei < Nations.Count && ei < ncBeforeMig.Length; ei++)
+- 848: if (Nations[ei].World.Explain is { } exm)
+- 849: {
+- 850: double d = Nations[ei].World.NationalConsciousness - ncBeforeMig[ei];
+- 851: if (d != 0) exm.Add("NationalConsciousness", "国家間移民による構成の変化", d);
+- 852: }
+--
+- 920: if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
++ 730: if (ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
+--

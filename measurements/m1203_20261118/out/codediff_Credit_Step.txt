@@ -1,0 +1,7 @@
+- 34: double hoardRatio = PoliticalQuantities.ClampOr(c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax, c.CurrencyHoldingRatio.Value);
++ 12: double hoardRaw = c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence));
++ 13: double hoardRatio = !double.IsFinite(hoardRaw) ? c.CurrencyHoldingRatio.Value : hoardRaw < 0 ? 0 : hoardRaw;
+--
+- 93: if (gcFloor > 1e-9 && gcCoverage < gcFloor) maxLoans *= System.Math.Max(GoldCoverCreditFloor, gcCoverage / gcFloor);
++ 45: if (gcFloor > 1e-9 && gcCoverage < gcFloor) maxLoans *= gcCoverage / gcFloor;
+--

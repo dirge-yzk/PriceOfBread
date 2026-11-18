@@ -1,0 +1,7 @@
+id	名	E	I	D	C	T	U	A	R	S	J	E_files	E_cond	E_add	識別子
+K77	外資のプールの信認の倍率の上限（S21-05）	2	0	0	0	0	0	0	0	0	0	Fiscal.cs:2	1	0	ForeignBondYieldRatioCap
+K78	緊縮の人頭税の下限の門（S21-09・S21-08 と 1 本）	3	0	0	1	1	0	0	0	1	0	Government.cs:3	2	0	AusterityStage,AusterityTaxHike
+K79	切り下げの月の上限の枝（S21-20）	2	1	0	2	13	0	0	0	1	0	Simulation.cs:2	0	0	DevaluationCapReliefExp,DevaluationCapFracPerMonth
+K80	再改革の禁止 120 か月（S21-23）	5	0	0	1	0	0	0	0	0	0	Fiscal.cs:3 SelfPlay.cs:1 World.cs:1	3	0	CurrencyReformCooldownMonths,CurrencyReformCooldown
+K81	通貨改革の闘争度への直接の加算（S21-24）	2	0	0	0	0	0	0	0	2	0	Fiscal.cs:2	1	1	bite
+K82	破産の旗（S21-32）	2	0	0	0	8	0	4	4	0	0	Fiscal.cs:1 World.cs:1	0	0	HadSovereignDefault

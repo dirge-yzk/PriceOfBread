@@ -1,0 +1,13 @@
+- 538: {
+- 539: double franchise = w.Suffrage switch { Suffrage.Universal => 1.0, Suffrage.AdultMale => FranchiseAdultMale, Suffrage.Census => FranchiseCensus, _ => 0.0 };
+- 540: double zeal = 1.0 - 0.5 * franchise;
+- 541: double newsW = 0, newsSz = 0;
+- 542: foreach (var p in pops)
+- 543: {
+- 544: if (p.IsSoldier || p.Closed) continue;
+- 545: newsW += p.NewsFill * p.Literacy * p.Size; newsSz += p.Size;
+--
+- 547: w.NationBuildingSpending = newsSz > 1e-9 ? PoliticalQuantities.Clamp01(newsW / newsSz * zeal) : 0;
+- 548: }
+- 550: }
+--

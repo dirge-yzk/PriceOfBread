@@ -1,0 +1,71 @@
+- 195: w.LogAdd($"{w.Year} {w.SelfPower?.Name}の統治が変わった（{derived}）");
++ 103: w.LogAdd($"{w.Year} {w.SelfPower?.Name}の統治が変わった（{PlayText.PolityRegimeJa(derived)}）");
+--
+- 233: if (w.NationalConsciousness < 0)
+- 234: w.NationalConsciousness = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
+- 235: double eduLvl = w.EducationLaw switch { EducationLaw.Compulsory => 1.0, EducationLaw.Public => 0.6, EducationLaw.Religious => 0.2, _ => 0.0 };
+- 236: double popSz = 0, soldierSz = 0, radioSum = 0;
+- 237: foreach (var p in w.AllPops()) { popSz += p.Size; if (p.IsSoldier) soldierSz += p.Size; radioSum += p.RadioFill * p.Size; }
+- 238: double avgLit = PoliticalQuantities.AvgLiteracy(w);
+- 239: double conscript = popSz > 1e-9 ? soldierSz / popSz : 0;
+- 240: {
+- 247: double spendTerm = w.NationBuildingSpending * eduLvl;
+- 248: double radioTerm = c.RadioNationWeight * (popSz > 1e-9 ? radioSum / popSz : 0);
+- 249: double conscriptTerm = c.NationBuildConscript * conscript;
+- 250: bool nbAtWar = false;
+- 251: if (w.Diplomacy is { } dipW && w.SelfPower is { } spW)
+- 252: foreach (var war in dipW.Wars) if (war.A == spW || war.B == spW) { nbAtWar = true; break; }
+- 253: double crisisMult = 1.0 + (nbAtWar ? c.NationBuildCrisisDefense : 0)
+- 254: + (w.InCivilWar ? c.NationBuildCrisisCivilWar : 0)
+- 255: + (w.BornOfSecession && nbAtWar ? c.NationBuildCrisisIndependence : 0);
+- 256: double lawCeil = w.EducationLaw switch { EducationLaw.Compulsory => 0.9, EducationLaw.Public => 0.7, EducationLaw.Religious => 0.4, _ => 0.2 };
+- 257: double ceilingNb = lawCeil * System.Math.Min(1.0, avgLit / 0.6);
+- 263: double openness = CivicOpenness(w);
+- 264: double ceilScalar = ceilingNb * PoliticalQuantities.ProbOr(w.EthnicUnity, openness);
+- 265: double prevNc2 = w.NationalConsciousness;
+- 266: double headroom = System.Math.Max(0, ceilScalar - prevNc2);
+- 267: double ncDrive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
+- 268: double gain = ncDrive * headroom;
+- 269: double lose = prevNc2 * c.NationBuildDecayRate;
+- 278: bool ncDerived = c.NationConsciousnessDerived > 0;
+- 286: double rawNc2 = ncDerived
+- 287: ? (!(c.NationBuildDecayRate + ncDrive > 0) ? 0.0 : ceilScalar * ncDrive / (c.NationBuildDecayRate + ncDrive))
+- 288: : prevNc2 - lose + gain;
+- 289: if (w.Explain != null && !(c.NationConsciousnessPerPop > 0))
+- 290: {
+- 291: w.Explain.Reset("NationalConsciousness");
+- 292: if (ncDerived)
+- 293: {
+- 294: w.Explain.Add("NationalConsciousness", "国民化の天井（教育法×識字×民族の距離）", ceilScalar);
+- 295: w.Explain.Add("NationalConsciousness", "天井に届かない分（新聞・ラジオ・徴兵の弱さ）", rawNc2 - ceilScalar);
+--
+- 297: else
+- 298: {
+- 299: w.Explain.Add("NationalConsciousness", "前期からの国民意識（履歴の累積）", prevNc2);
+- 300: w.Explain.Add("NationalConsciousness", "新聞を読む国民", c.NationBuildAccumRate * spendTerm * crisisMult * headroom);
+- 301: w.Explain.Add("NationalConsciousness", "ラジオ放送", c.NationBuildAccumRate * radioTerm * crisisMult * headroom);
+- 302: w.Explain.Add("NationalConsciousness", "徴兵による育成", c.NationBuildAccumRate * conscriptTerm * crisisMult * headroom);
+- 303: w.Explain.Add("NationalConsciousness", "減衰", -lose);
+- 304: }
+- 305: }
+- 311: w.NationalConsciousness = PoliticalQuantities.Clamp01(rawNc2);
+- 316: if (c.NationConsciousnessPerPop > 0)
+- 317: {
+- 318: double drive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
+- 319: double prevReported = w.NationalConsciousness;
+- 320: double popAvg = AccumulatePopConsciousness(w, c, drive, ceilingNb, c.NationBuildDecayRate, openness, out double wGain, out double wLose);
+- 321: double lever = PoliticalQuantities.Clamp01(c.NationConsciousnessPerPop);
+- 322: w.NationalConsciousness = PoliticalQuantities.Clamp01((1 - lever) * w.NationalConsciousness + lever * popAvg);
+- 326: if (w.Explain != null)
+- 327: {
+- 328: double reported = w.NationalConsciousness;
+- 329: w.Explain.Reset("NationalConsciousness");
+- 330: w.Explain.Add("NationalConsciousness", "前期の国民意識（POP加重平均）", prevReported);
+- 331: w.Explain.Add("NationalConsciousness", "育成（新聞・ラジオ・徴兵）", wGain);
+- 332: w.Explain.Add("NationalConsciousness", "減衰", -wLose);
+- 333: w.Explain.Add("NationalConsciousness", "人口構成の変化（移民・出生・階級移動）", reported - prevReported - wGain + wLose);
+- 334: }
+- 339: }
+- 340: }
+- 341: }
+--

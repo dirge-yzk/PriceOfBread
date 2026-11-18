@@ -1,0 +1,11 @@
+seed	first_div_quarter	year	nations_diff_count	nations	cols_first_nation
+1	382	1878	60	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	securityThreatShare,armyThreatShare,exportsPerClearing
+2	352	1871	61	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	securityThreatShare,exportsPerClearing,importsPerClearing,luxuryExportsPerClearing
+3	391	1881	61	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	securityThreatShare,exportsPerClearing,importsPerClearing,luxuryExportsPerClearing
+4	401	1883	59	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	exportsPerClearing,importsPerClearing
+5	366	1874	60	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	exportsPerClearing,luxuryExportsPerClearing
+6	368	1875	59	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	exportsPerClearing
+7	392	1881	64	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	securityThreatShare,armyThreatShare,exportsPerClearing,importsPerClearing
+8	356	1872	61	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	exportsPerClearing,importsPerClearing,luxuryExportsPerClearing
+9	369	1875	58	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	exportsPerClearing,importsPerClearing
+10	297	1857	61	アシャンティ王国・アフガニスタン・アメリカ・アラビア・アルジェ摂政国・アワド	securityThreatShare,exportsPerClearing,importsPerClearing

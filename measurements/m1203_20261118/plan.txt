@@ -1,0 +1,15 @@
+(1203) c120rh 読む線の計画（2026-11-18・担当 Opus 5.5・コミットしない・腕 0 本）
+作業の場所：D:/PoB_work/r1203_work/（この回に作ったフォルダはここだけ。worktree・枝は作らない＝main c68e09bfb の木を読むだけ）
+台本：D:/PoB_work/r1203_work/scripts/（合流が scripts/instruments/r1203/ へ写す）
+
+読む生（読むだけ）
+- M＝D:/PoB_work/keep_1198/base_ins（種 1〜10・1559 表）
+- N1＝D:/PoB_work/keep_1198/n1（種 1〜10）
+- S11＝D:/PoB_work/keep_1198/a11（種 11〜20）
+- m1191＝D:/PoB_work/keep_1191/base_ins（旧基線・読むだけ）・keep_1191/n1・keep_1191/a11
+- 成績表：measurements/b10_20261118_m1198_ins・_m1198_n1_ins・_m1191_ins・_m1191_n1_ins・b10s11_20261118_m1198_ins・_m1191_ins
+- 門の数：measurements/m1198_20261118/gates_merge.txt
+
+問い①ハーネス不合格：成績表の × の行（満足度・最小国／下流の無い財）を種ごとに並べる→ dcont_s*（satMeanShare）と nation_s（政体・人口・州）で最小国の軌道→ M と m1191 の最初に分かれる四半期（nation_s の行の比較）。
+問い②志願制の植民地の徴募：Military.cs:107〜:153・Meritocracy.cs（soldierVac・FillJobs）→ soldiervac_s・nation_s（conscriptionLaw・soldierK）・pop_s・secession_s・rponset_s。
+問い③台帳 S21：scratchpad の ledger_S21_2026-11-12.md・.tsv・_反証.md／docs/機能の台帳.md の S21 行／r1196・r900/ledger_check.py・r1189/cmp_rows.py／keep_1198 の生で読み直し。

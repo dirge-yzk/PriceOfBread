@@ -1,0 +1,13 @@
+seed	nation	monthIndex	year	defaultNo	onGold_at	onGold_prev	onGold_months12	leftGold_monthsBefore	conv_at	int2rev_max12	atLimit_months12	gateOpen_months12	cooldown_at	binder_mode12	payRate_min12	devalued_months12	insolv_at_prev	debt_at
+2	イギリス	333	1810	1	0	0	10	3	0.9987292249	0.692	2	10	24	noShortfall	0.550	2	0.8531873325	nan
+3	ロシア	1793	1932	1	0	1	12	1	0.4681145789	0.790	6	6	24	full	0.812	6	0.9226394005	nan
+3	オーストリア	1918	1942	1	0	1	12	1	1	2.258	12	0	24	gateClosed	0.990	12	0.9934523151	nan
+4	オスマン	1575	1914	1	0	1	12	1	1	0.728	3	9	24	ticket	0.706	9	0.7465900139	nan
+5	オーストリア	1766	1930	1	0	1	12	1	1	1.378	12	0	24	gateClosed	0.992	12	0.9997612729	nan
+6	イギリス	333	1810	1	0	0	10	3	0.9987292249	0.704	2	10	24	ticket	0.623	12	0.751494001	nan
+6	オーストリア	1995	1949	1	0	1	12	1	1	1.443	12	0	24	gateClosed	0.965	12	0.9794819944	nan
+7	オーストリア	1641	1919	1	0	1	12	1	1	1.054	12	0	24	gateClosed	0.964	12	0.9760252864	nan
+7	ロシア	1696	1924	1	0	1	12	1	1	1.047	12	0	24	gateClosed	0.958	12	0.9790709666	nan
+8	イギリス	129	1793	1	0	0	10	3	0.9584220064	0.945	12	0	24	noShortfall	0.582	2	0.8322355797	nan
+8	オーストリア	1686	1923	1	0	1	12	1	1	1.038	12	0	24	gateClosed	0.960	12	0.9927336616	nan
+9	フランス	1776	1930	1	0	0	11	2	1	0.833	1	11	24	full	0.435	0	0.5653952021	nan

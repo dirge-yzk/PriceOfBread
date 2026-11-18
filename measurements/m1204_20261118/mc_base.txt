@@ -1,0 +1,20 @@
+# src D:/PoB_work/keep_1198/base_ins seeds 10 rows 409597
+bought cap 2.34626e+07 other 2.90373e+08 all 3.13835e+08 capShare 0.0748 (Ag 0.0743 Au 0.0773)
+shadow old 3.14178e+08 new 2.34632e+07 new/old 0.0747 selfcheck old/bought 1.001090
+capImportAgSum all 2.82326e+07
+era 1783-1829 stdM 342573 noGood 0.000 noStock 0.172 floor 0.734 above 0.094 atMkt 0.0000 | bought 1.448e+08 capShare 0.0951 new/old 0.0950 capImpAg 1.265e+06
+era 1830-1869 stdM 294066 noGood 0.000 noStock 0.644 floor 0.098 above 0.258 atMkt 0.0000 | bought 3.253e+07 capShare 0.0155 new/old 0.0155 capImpAg 4.776e+06
+era 1870-1913 stdM 324039 noGood 0.000 noStock 0.409 floor 0.204 above 0.387 atMkt 0.0000 | bought 4.858e+07 capShare 0.0573 new/old 0.0572 capImpAg 1.812e+07
+era 1914-1950 stdM 266976 noGood 0.000 noStock 0.132 floor 0.513 above 0.355 atMkt 0.0000 | bought 8.797e+07 capShare 0.0728 new/old 0.0728 capImpAg 4.07e+06
+capPriceOverParity 四半期末 首都が四半期ずっと平価超え: n 68580 p10 1.013 p50 1.146 p90 1.479 | ずっと床: n 140032 p50 0.844
+銀本位の首都÷産地の中央の値段の比 n 330832 p10 0.958 p50 1.000 p90 1.318
+nation フランス bought 1.378e+07 cap 1.112e+06 capShare 0.0807 other/cap 11.4 new/old 0.0806 capImpAg 1.135e+06 stdM 20058.0
+nation 日本 bought 1.485e+07 cap 6.093e+05 capShare 0.0410 other/cap 23.4 new/old 0.0409 capImpAg 4.106e+05 stdM 20040.0
+nation イギリス bought 3.606e+07 cap 1.072e+05 capShare 0.0030 other/cap 335.3 new/old 0.0030 capImpAg 8.565e+05 stdM 20337.0
+nation アメリカ bought 3.823e+06 cap 7.803e+04 capShare 0.0204 other/cap 48.0 new/old 0.0204 capImpAg 1.218e+06 stdM 20040.0
+nation ロシア bought 3.009e+07 cap 6.583e+06 capShare 0.2187 other/cap 3.6 new/old 0.2187 capImpAg 1.296e+06 stdM 19773.0
+nation プロイセン bought 4.078e+06 cap 1.196e+05 capShare 0.0293 other/cap 33.1 new/old 0.0293 capImpAg 3.981e+05 stdM 20037.0
+nation オーストリア bought 1.651e+07 cap 8.302e+05 capShare 0.0503 other/cap 18.9 new/old 0.0503 capImpAg 3.762e+05 stdM 20133.0
+nation スペイン bought 3.716e+07 cap 9.801e+05 capShare 0.0264 other/cap 36.9 new/old 0.0264 capImpAg 1.265e+07 stdM 20085.0
+nation 清 bought 1.091e+08 cap 1.61e+06 capShare 0.0148 other/cap 66.8 new/old 0.0148 capImpAg 1.101e+06 stdM 20055.0
+nation ドイツ bought 143.1 cap 143.1 capShare 1.0000 other/cap 0.0 new/old 1.0000 capImpAg 30 stdM 18.0

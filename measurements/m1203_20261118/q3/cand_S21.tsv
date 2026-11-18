@@ -1,0 +1,7 @@
+id	候補	識別子
+K77	外資のプールの信認の倍率の上限（S21-05）	ForeignBondYieldRatioCap
+K78	緊縮の人頭税の下限の門（S21-09・S21-08 と 1 本）	AusterityStage,AusterityTaxHike
+K79	切り下げの月の上限の枝（S21-20）	DevaluationCapReliefExp,DevaluationCapFracPerMonth
+K80	再改革の禁止 120 か月（S21-23）	CurrencyReformCooldownMonths,CurrencyReformCooldown
+K81	通貨改革の闘争度への直接の加算（S21-24）	bite
+K82	破産の旗（S21-32）	HadSovereignDefault
