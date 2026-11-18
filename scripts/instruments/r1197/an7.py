@@ -8,7 +8,7 @@ MIN = ['鉄鉱石','石炭','銅鉱','鉛鉱','金','硫黄','石灰石','珪砂
 UBI = {'石灰石','珪砂','粘土'}
 FLOOR, KNEE, BON = 0.15, 0.5, 60.0
 YS = [1820, 1850, 1880, 1913, 1950]
-GOODS = ['石炭','鉄鉱石','銅鉱','錫鉱','鉛鉱','金','銀']
+TARGET_NAMES = ['石炭','鉄鉱石','銅鉱','錫鉱','鉛鉱','金','銀']
 
 def gk(f): return 1.0 if f >= KNEE else FLOOR + (1-FLOOR)*max(0.0, f)/KNEE
 def gp(f): return FLOOR + (1-FLOOR)*min(1.0, max(0.0, f))
@@ -123,7 +123,7 @@ def main():
                 if y not in snaps: continue
                 for key, o in snaps[y].items():
                     reg, g, site = key
-                    if not (o > 0) or g not in GOODS: continue
+                    if not (o > 0) or g not in TARGET_NAMES: continue
                     gr = res[y].get(key, 1.0)
                     acc[(name, y, g, 'site' if site else 'ord')].append((gr, o))
                     if not site:
@@ -171,7 +171,7 @@ def main():
         w.write('scheme\tyear\tgood\tmean\tlt05\tp10\tp50\tp90\n')
         for name in schemes:
             for y in YS:
-                for g in GOODS:
+                for g in TARGET_NAMES:
                     L = acc.get((name, y, g, 'ord'))
                     if not L: continue
                     tot = sum(o for _, o in L)
@@ -182,7 +182,7 @@ def main():
         w.write('scheme\tyear\tgood\tUK\trest\n')
         for name in schemes:
             for y in (1880, 1913):
-                for g in GOODS:
+                for g in TARGET_NAMES:
                     a = uk.get((name, y, g, True)); b = uk.get((name, y, g, False))
                     if a and b and a[1] > 0 and b[1] > 0:
                         w.write(f'{name}\t{y}\t{g}\t{a[0]/a[1]:.3f}\t{b[0]/b[1]:.3f}\n')
