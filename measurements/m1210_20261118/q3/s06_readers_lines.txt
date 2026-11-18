@@ -1,0 +1,26 @@
+K83	PriceOfBread.SimCore/Simulation.cs:1532	条	bool priceOn = c.RegionalPriceLevelWeight > 0;
+K83	PriceOfBread.SimCore/Simulation.cs:1565	条	: Math.Clamp(Math.Pow(rPerCap / natPerCap, c.RegionalPriceLevelWeight), c.RegionalPriceLevelMin, c.RegionalPriceLevelMax);
+K83	PriceOfBread.SimCore/Simulation.cs:1564	条	? c.RegionalPriceLevelMin
+K83	PriceOfBread.SimCore/EconomyStep.cs:2784	条	double own = s.MarginalCost * (world?.CostPriceLevel ?? 1.0) * region.LocalPriceMultiplier;
+K83	PriceOfBread.SimCore/Model.cs:631		public double LocalPriceMultiplier = 1.0;
+K83	PriceOfBread.SimCore/OpeningBake.cs:19		internal static readonly string[] CapNames = ["Industrialization", "OldVintageCapital", "VintageTechLevel", "StrandedVintage", "DevelopmentPeak", "GridCapacity", "PriceLevel", "LocalPriceMultiplier"];
+K83	PriceOfBread.SimCore/OpeningBake.cs:139	条	static double[] CapValues(Region r) => [r.Industrialization, r.OldVintageCapital, 0.0 , r.StrandedVintage, r.DevelopmentPeak, r.GridCapacity, r.PriceLevel, r.LocalPriceMultiplier];
+K83	PriceOfBread.SimCore/OpeningBake.cs:175		r.DevelopmentPeak = cap[4].GetDouble(); r.GridCapacity = cap[5].GetDouble(); r.PriceLevel = cap[6].GetDouble(); r.LocalPriceMultiplier = cap[7].GetDouble();
+K83	PriceOfBread.SimCore/Simulation.cs:1440		r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;
+K83	PriceOfBread.SimCore/Simulation.cs:1567		r.LocalPriceMultiplier = mult;
+K84	PriceOfBread.SimCore/EconomyStep.cs:993	条	if (coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive)
+K84	PriceOfBread.SimCore/EconomyStep.cs:994		boost *= 1.0 - coef.CivilWarEconomyDisruption;
+K85	PriceOfBread.SimCore/World.cs:1700	条	if (Coef.StrikeProductionHit > 0 && LaborUnion != LaborUnionLaw.Illegal)
+K85	PriceOfBread.SimCore/World.cs:1705	条	union *= PoliticalQuantities.Clamp01(1.0 - strikeIntensity * Coef.StrikeProductionHit);
+K85	PriceOfBread.SimCore/World.cs:1704	条加	double strikeIntensity = Math.Max(0, avgMil - Coef.StrikeMilitancyThreshold);
+K86	PriceOfBread.SimCore/Simulation.cs:2016	条	if (World.Coef.DepressionScrapRate > 0 && r.CapitalEnabled && !World.WarmupFrozen)
+K86	PriceOfBread.SimCore/Simulation.cs:2018	条	double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown.Value - World.Coef.DepressionScrapThreshold.Value);
+K87	PriceOfBread.SimCore/EconomyStep.cs:866	条	if (coef.DevelopmentMemory > 0 && !indOff)
+K87	PriceOfBread.SimCore/EconomyStep.cs:871	条	dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
+K87	PriceOfBread.SimCore/EconomyStep.cs:869	条	if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
+K87	PriceOfBread.SimCore/EconomyStep.cs:870	条	if (region.DevelopmentPeak > 1e-9)
+K87	PriceOfBread.SimCore/Model.cs:673		public double DevelopmentPeak;
+K87	PriceOfBread.SimCore/OpeningBake.cs:19		internal static readonly string[] CapNames = ["Industrialization", "OldVintageCapital", "VintageTechLevel", "StrandedVintage", "DevelopmentPeak", "GridCapacity", "PriceLevel", "LocalPriceMultiplier"];
+K87	PriceOfBread.SimCore/OpeningBake.cs:139	条	static double[] CapValues(Region r) => [r.Industrialization, r.OldVintageCapital, 0.0 , r.StrandedVintage, r.DevelopmentPeak, r.GridCapacity, r.PriceLevel, r.LocalPriceMultiplier];
+K87	PriceOfBread.SimCore/OpeningBake.cs:175		r.DevelopmentPeak = cap[4].GetDouble(); r.GridCapacity = cap[5].GetDouble(); r.PriceLevel = cap[6].GetDouble(); r.LocalPriceMultiplier = cap[7].GetDouble();
+K88	PriceOfBread.SimCore/World.cs:1341	条	PriceLevel = PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before;

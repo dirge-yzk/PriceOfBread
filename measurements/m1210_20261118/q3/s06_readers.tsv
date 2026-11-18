@@ -1,0 +1,8 @@
+id	名	E	I	D	C	T	U	A	R	S	J	E_files	E_cond	E_add	識別子
+K83	州の物価の乗数（S06-11）	10	7	0	2	21	0	0	0	4	1	Simulation.cs:5 OpeningBake.cs:3 EconomyStep.cs:1 Model.cs:1	5	0	RegionalPriceLevelWeight,RegionalPriceLevelMin,LocalPriceMultiplier
+K84	内戦の経済麻痺（S06-17）	2	0	0	1	0	0	0	0	4	0	EconomyStep.cs:2	1	0	CivilWarEconomyDisruption
+K85	罷業の減産（S06-18）	3	2	0	2	4	0	0	0	0	0	World.cs:3	3	1	StrikeProductionHit,StrikeMilitancyThreshold
+K86	恐慌の資本破壊と設備の解体（S06-19・S06-20）	2	0	0	2	7	0	0	0	0	0	Simulation.cs:2	2	0	DepressionScrapRate,DepressionScrapThreshold
+K87	開発度の記憶（S06-21）	8	0	0	1	5	0	0	0	2	1	EconomyStep.cs:4 OpeningBake.cs:3 Model.cs:1	5	0	DevelopmentMemory,DevelopmentPeak
+K88	物価の床 0.4（S06-09・記録だけ）	1	1	0	1	4	0	0	0	2	0	World.cs:1	1	0	PriceLevelFloor
+K89	見出しだけの 4 本（S06-26〜29）	0	0	0	0	1	0	0	0	3	0		0	0	DomesticMarkupMax,HoardDishoardRate,HoardCrystallizeRate,CurrentInputFillGates

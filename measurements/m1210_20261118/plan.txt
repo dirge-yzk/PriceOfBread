@@ -1,0 +1,10 @@
+(1210) c121rn 読む線・波121・コミットしない・腕 0
+作業の場所: D:/PoB_work/r1210_work/ （台本は scripts/ の下・出力は out/）
+木: main 326e284ee（worktree は作らない＝読むだけ・main の作業ツリーには書かない）・origin/c120t2・origin/c120fm は git show で読む
+読む生:
+ ① 民族主義: D:/PoB_work/keep_1198/base_ins/ideology_s{1..10}.tsv（picked の国の四半期の行）
+             D:/PoB_work/keep_1205_rej/fmZ_formation/formation_s*.tsv・fmBb_formation/formation_s*.tsv（natShare）
+             keep_1198/base_ins の nation_s・region_s（識字・工業・言語は列が有れば）
+ ② t2: D:/PoB_work/keep_1205_rej/t2B・t2A0（depmin_s・region_s・nation_s・pxmonth）・keep_1198/base_ins
+ ③ S06: scratchpad ledger_S06_2026-11-12.md・.tsv・_反証.md・docs/機能の台帳.md の | S06- 行・keep_1198/base_ins
+台本の雛形: scripts/instruments/r1203/・r900/ledger_check.py・r1189/cmp_rows.py・origin/c120t2:scripts/instruments/c120t2/gread.py

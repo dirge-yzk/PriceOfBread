@@ -1,0 +1,4 @@
+M1 国の最初の行へ戻す rc=1 selftest FAIL | FAIL 同じ州の系列で国 X は 0 件 / FAIL 同じ州の本当の 150 倍は当たる
+M2 州の欠けを名乗らない rc=1 selftest FAIL | FAIL 州が 3→1・人口 1/20 の GDP の 500 倍は州の欠けと人口を名乗る / FAIL 本国格 1→0→1 の跳びは欠けと戻りを名乗る（名の並びの列を数えない）
+M3 続いた四半期の条件を外す rc=1 selftest FAIL | FAIL 欠けた四半期をまたぐ 300 倍は 1 四半期の比に数えない
+M4 名の並びの列を数えに戻す rc=1 (出力なし) ValueError: cannot convert float NaN to integer | 

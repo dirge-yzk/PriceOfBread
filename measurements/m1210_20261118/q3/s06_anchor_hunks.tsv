@@ -1,0 +1,41 @@
+# OLD=7bb40c77 NEW=326e284ee W=±12 行（注と空白を除いた行）
+行	錨	囲む関数	近くの差の塊	差の行（先頭の 3 行・字は 90 字まで）
+S06-01	EconomyStep.cs:2944:double unsold	Run	0	
+S06-01	EconomyStep.cs:2949:FarmUnemploymentStage2	Run	0	
+S06-01	EconomyStep.cs:2952:lpop.UnemploymentRate	Run	0	
+S06-02	EconomyStep.cs:2958:ServiceUnemployment	Run	0	
+S06-02	EconomyStep.cs:2967:sp.UnemploymentRate	Run	0	
+S06-03	EconomyStep.cs:2972:JobSearchUsesEma	Run	0	
+S06-03	EconomyStep.cs:2976:UnemploymentEma	Run	0	
+S06-03	Meritocracy.cs:212:UnemploymentEma	Step	0	
+S06-04	EconomyStep.cs:2930:p.Satisfaction = p.NeedTotal	Run	0	
+S06-04	Crime.cs:68:CrimeSatPenalty	Step	0	
+S06-05	Invariants.cs:20:MoneyConservation	MoneyConservation	0	
+S06-05	Simulation.cs:244:new MoneyConservation	RebaselineInvariants	0	
+S06-05	Simulation.cs:2549:CheckInvariants	MonthSettle	0	
+S06-05	MultiNationSim.cs:449:new Simulation	SpawnNation	0	
+S06-07	Model.cs:400:Blend(	Blend	0	
+S06-08	World.cs:1621:UpdatePriceLevel	UpdatePriceLevel	0	
+S06-08	World.cs:1650:double cyclical	UpdatePriceLevel	0	
+S06-08	MarketFlow.cs:136:region.PriceLevel	StepDay	1	-m.TargetStock = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * totalDema
+S06-17	EconomyStep.cs:1127:CivilWarEconomyDisruption	Run	1	-double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region,
+S06-17	Simulation.cs:1724:r.CivilWarActive	StepDayDaily	0	
+S06-19	Simulation.cs:2481:DepressionScrapRate	MonthSettle	1	-r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate; +r.HigherEduFunding *= pa
+S06-19	Simulation.cs:2482:r.Industrialization *= scrapKeep	MonthSettle	1	-r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate; +r.HigherEduFunding *= pa
+S06-19	Simulation.cs:2483:r.OldVintageCapital *= scrapKeep	MonthSettle	1	-r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate; +r.HigherEduFunding *= pa
+S06-19	EconomyStep.cs:996:double indMult = cap && !indOff	Run	0	
+S06-20	Simulation.cs:2490:fp.BuiltScale *= scrapKeep	MonthSettle	0	
+S06-20	Simulation.cs:2491:FactoryEquipment.Dismantle	MonthSettle	0	
+S06-21	EconomyStep.cs:982:DevelopmentMemory > 0 && !indOff	Run	0	
+S06-21	EconomyStep.cs:985:DevelopmentPeak	Run	0	
+S06-21	Coefficients.cs:1955:IndustrializationOff = 1	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S06-22	MultiNationSim.cs:669:WarmupFrozen = true	WarmupEconomy	0	
+S06-22	Fiscal.cs:274:WarmupFrozen	Step	0	
+S06-22	Government.cs:249:WarmupFrozen	Step	0	
+S06-22	Simulation.cs:2479:WarmupFrozen	MonthSettle	1	-r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate; +r.HigherEduFunding *= pa
+S06-25	Simulation.cs:2199:r.SocialSecurity	MonthSettle	1	-r.WarScareTension = warScareTensionNat;
+S06-25	Simulation.cs:2219:r.HarvestFactor	MonthSettle	1	-r.WarScareTension = warScareTensionNat;
+S06-25	Simulation.cs:2229:r.EducationSpending	MonthSettle	0	
+S06-27	Coefficients.cs:2603:HoardDishoardRate	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S06-28	Coefficients.cs:2482:HoardCrystallizeRate	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S06-29	Coefficients.cs:2547:CurrentInputFillGates	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む

@@ -1,0 +1,8 @@
+id	候補	識別子
+K83	州の物価の乗数（S06-11）	RegionalPriceLevelWeight,RegionalPriceLevelMin,LocalPriceMultiplier
+K84	内戦の経済麻痺（S06-17）	CivilWarEconomyDisruption
+K85	罷業の減産（S06-18）	StrikeProductionHit,StrikeMilitancyThreshold
+K86	恐慌の資本破壊と設備の解体（S06-19・S06-20）	DepressionScrapRate,DepressionScrapThreshold
+K87	開発度の記憶（S06-21）	DevelopmentMemory,DevelopmentPeak
+K88	物価の床 0.4（S06-09・記録だけ）	PriceLevelFloor
+K89	見出しだけの 4 本（S06-26〜29）	DomesticMarkupMax,HoardDishoardRate,HoardCrystallizeRate,CurrentInputFillGates
