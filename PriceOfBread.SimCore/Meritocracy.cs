@@ -306,10 +306,9 @@ public static class Meritocracy
         }
         double srcInc = Math.Max(0, src.EarnedPerMonth.Value) / src.Size;
         double remaining = Math.Min(flow, src.Size);
-        double headroom = UrbanHeadroom(r, c);
-        remaining = FillJobs(r, w, m, avgPerCap, src, srcClass, remaining, srcInc * c.PromotionPremium, secular, higherEdu, ref headroom, ref soldierVac, c);
+        remaining = FillJobs(r, w, m, avgPerCap, src, srcClass, remaining, srcInc * c.PromotionPremium, secular, higherEdu, ref soldierVac, c);
         if (remaining > Eps && srcClass > 0)
-            remaining = FillJobs(r, w, m, avgPerCap, src, srcClass - 1, remaining, -1.0, secular, higherEdu, ref headroom, ref soldierVac, c);
+            remaining = FillJobs(r, w, m, avgPerCap, src, srcClass - 1, remaining, -1.0, secular, higherEdu, ref soldierVac, c);
         if (forced && remaining > Eps)
             for (int cls = Math.Max(0, srcClass - 1); cls >= 0 && remaining > Eps; cls--)
             {
@@ -327,20 +326,9 @@ public static class Meritocracy
             }
     }
 
-    private static double UrbanHeadroom(Region r, Coefficients c)
-    {
-        if (!r.CapitalEnabled) return double.PositiveInfinity;
-        var (rural, urban) = PopDecision.MigrationPair(r);
-        if (rural is null || urban is null) return double.PositiveInfinity;
-        double total = rural.Size + urban.Size;
-        if (total <= Eps) return 0;
-        return double.PositiveInfinity;
-    }
-
     private static double FillJobs(Region r, World w, double m, double avgPerCap, Pop src, int jobClass, double amount, double minIncome,
-                                   double secular, double higherEdu, ref double urbanHeadroom, ref double soldierVac, Coefficients c)
+                                   double secular, double higherEdu, ref double soldierVac, Coefficients c)
     {
-        bool srcRural = !src.IsUrban;
         bool emptySeat = c.SoldierVacancyFromZero > 0;   // (1166) 旗：大きさ 0 の兵の席も空きがあれば候補（Simulation.cs:1354 の器）
         double temperature = c.JobPoolTemperature > Eps ? c.JobPoolTemperature : Eps;   // 否定形のガード（0・負・NaN は Eps へ）
         int n = r.Pops.Count;
@@ -376,12 +364,10 @@ public static class Meritocracy
                 double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, c);
                 double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);
                 double f = amount * (share[i] / sumW) * gate * vacancy;
-                if (srcRural && t.IsUrban) { f = Math.Min(f, urbanHeadroom); }
                 if (t.IsSoldier) f = Math.Min(f, soldierVac);
                 if (f <= Eps) continue;
                 f = MoveToJob(w, r, i, src, t, f, c, ref soldierVac);
                 placed += f;
-                if (srcRural && t.IsUrban) urbanHeadroom -= f;
             }
         return amount - placed;
     }
