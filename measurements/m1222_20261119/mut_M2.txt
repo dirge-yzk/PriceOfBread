@@ -1,0 +1,10 @@
+M2 入れた：D:/PoB_work/c123k3_work/mut/M2/PriceOfBread.SimCore/Simulation.cs
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.HealthcareLiteracyGateTests.T1_識字の低い社会で旗0は識字の錠_旗1は医者の役務の門まで上がる [3 s]
+  失敗 PriceOfBread.Tests.HealthcareLiteracyGateTests.T2_識字の高い社会では両方の旗で同じ値 [11 ms]
+失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+rc=1
+  失敗 PriceOfBread.Tests.HealthcareLiteracyGateTests.T1_識字の低い社会で旗0は識字の錠_旗1は医者の役務の門まで上がる [3 s]
+   Assert.Equal() Failure: Values are not within tolerance 9.9999999999999998E-13
+  失敗 PriceOfBread.Tests.HealthcareLiteracyGateTests.T2_識字の高い社会では両方の旗で同じ値 [11 ms]
+   Assert.Equal() Failure: Values are not within tolerance 9.9999999999999998E-13

@@ -80,7 +80,8 @@ public sealed partial class Coefficients
     // --- 人口動態（ロジスティック＝扶養力へ収束。人口転換。§A-3 拡張）。出生−死亡の純を扶養力との差で表す＝頑健（暴走/崩壊しない）---
     public RatePerMonth PopGrowthRatePerMonth = new(0.006);          // 扶養力へ収束する速さ（月次）
     public double HealthcareCapacityBonus = 1.2;  // 医療（社会保障×識字でgate）が扶養力↑（乳児死亡の低下＝人口増の主因）
-    public double HealthcareEducationGate = 0.6;  // 医療は識字がこれで満額（医者=教育済みPOPが要る）＝教育が人口動態に効く
+    public double HealthcareEducationGate = 0.6;  // 医療は識字がこれで満額（医者=教育済みPOPが要る）＝教育が人口動態に効く。旗 HealthcareLiteracyGateOff＝1 で読み手 0（(1222) K03）
+    public double HealthcareLiteracyGateOff = 0;  // (1222) c123k3 K03：1＝医療の min から識字の項を外す（医者が要るは医者の役務の門 HealthcareRealGate が持つ＝思想⑨）。0＝今の式
     public double UrbanCapacityPenalty = 0.12;    // 都市化で扶養力低下（近代家族＝少子化＝人口転換の後半）
     public double FoodCapacityWeight = 0.5;       // 実食料の扶養力連結（マルサスの積極的抑制）：FoodFill=主食充足(消費ベース∈[0,1])
     public double LandRoomFertilityWeight = 0.3;   // 旧はcapacity乗数でLandAnchorと二重リフトだった→出生側へ移管
