@@ -187,7 +187,7 @@ public class CaInstruments1206Tests
         cap.Culture = "甲"; r.Culture = "乙"; c.CultureSecessionWeight = 0.7; c.SecessionPressureScale = 1.5; c.ColonyPromotionMinPop = 50;
         w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
         w.Tariff = 0.8; r.TariffInterest = 0.3; cap.TariffInterest = 0.3;
-        foreach (var rg in new[] { cap, r }) foreach (var p in rg.Pops) if (p.IsCommoner) p.Militancy = 0.4;
+        foreach (var rg in new[] { cap, r }) foreach (var p in rg.Pops) { if (!p.IsSoldier) p.CoreEthnicShare = new Share(0.4); if (p.IsCommoner) p.Militancy = 0.4; }   // 選挙権の包含＝中核の割合 0.4（T6 と同じ）
         Assert.True(Politics.SecessionPressure(w, c, cap, cap, w.Tariff * 2 - 1, cap.TariffInterest) > 1e-9, "前提が崩れた：首都の素の式が 0（Assert が空振りする）");
         Assert.Equal(0.0, Instruments.RpPressure(w, cap));
         Assert.True(Instruments.RpPressure(w, r) > 1e-9, "前提が崩れた：非首都の圧が 0");
