@@ -1,0 +1,50 @@
+=== 恒等の判定（測った種で一致） c123cu（2026-11-19 04:48:46）===
+測った木：D:/PoB_work/wt_c123cu（HEAD a4a42a474・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c123cu/scripts/instruments/ident/ident.cfg
+宣言： tests_delta=2
+腕 a：rc=0 end=2026-11-19 04:37:47
+腕 b：rc=0 end=2026-11-19 04:48:46
+腕 t：rc=0 end=2026-11-19 04:26:20
+腕 s：rc=0 end=2026-11-19 04:36:05
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：cc627aa72cf0340b
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: cc627aa72cf0340b
+[素の 5 種] b5_ia_5.txt 対 b5_20261118_m1212
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261118_m1212.cost
+  ○ 件数の行 45 本・推定 237.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: cc627aa72cf0340b
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261118_m1212_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261118_m1212_ins.cost
+  ○ 件数の行 45 本・推定 238.7 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c123cu/out_ib_10/ins  対  基準 D:/PoB_work/keep_1219/base_ins
+  基準 1579 本・腕 1579 本・バイト一致 1512 本
+  既知の揺れの列だけが違う表 37 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 101 欄）×1・cearn_s:経路の行番号だけ（写して一致 14 欄）×1・cearn_s:経路の行番号だけ（写して一致 26 欄）×1・cearn_s:経路の行番号だけ（写して一致 38 欄）×1・cearn_s:経路の行番号だけ（写して一致 4 欄）×1・cearn_s:経路の行番号だけ（写して一致 55 欄）×1・cearn_s:経路の行番号だけ（写して一致 59 欄）×1・cearn_s:経路の行番号だけ（写して一致 67 欄）×1・cearn_s:経路の行番号だけ（写して一致 84 欄）×1・cearn_s:経路の行番号だけ（写して一致 93 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×7
+  ✗ 不一致：計器の表：宣言の無い違い 30 本
+      rulepeace_s1.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s10.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s2.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s3.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s4.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s5.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s6.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s7.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s8.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+      rulepeace_s9.tsv	['greatCircleOnlyTakenCount', 'phiStarMedianIndex', 'takenCount', 'takenPopShare']
+  内訳：共通の表 1579 本＝バイト一致 1512＋既知の揺れ 37＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 30＋その他 0（和 1579）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261118_m1212.txt（タグの行を除く）
+  ○ タグの行以外が一致（4831 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2918（基準 2916+2 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+不一致の理由 1 件：
+  - 計器の表：宣言の無い違い 30 本
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 不一致
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込みの結果：rc=0・刈らない：最後の判定の行が〈判定: 恒等〉でない

@@ -50,7 +50,7 @@ public static partial class Instruments
     }
 
     /// <summary>(1214) 州 r の分離の圧（エンジンの CheckSecession と同じ関数）。関税の姿勢は w.Tariff×2−1・州の関税の利害 r.TariffInterest は書かずに読むだけ（前の四半期のエンジンの値）。</summary>
-    internal static double RpPressure(World w, Region r) => Politics.SecessionPressure(w, w.Coef, r, w.Regions[0], w.Tariff * 2 - 1, r.TariffInterest);
+    internal static double RpPressure(World w, Region r) => r.Id == 0 ? 0.0 : Politics.SecessionPressure(w, w.Coef, r, w.Regions[0], w.Tariff * 2 - 1, r.TariffInterest);
 
     static string RpR(double v) => double.IsNaN(v) ? "nan" : double.IsInfinity(v) ? (v > 0 ? "inf" : "-inf") : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
 

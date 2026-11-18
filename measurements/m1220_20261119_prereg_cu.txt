@@ -1,0 +1,42 @@
+(1220) c123cu 事前登録（最初のコミット）— 恒等の線・段 2・基点 81ad1e58d（基線 m1212）
+署名：Claude Sonnet 5.5 が書いた。作者「しばらくの間、全て推奨で進めてください。」で推奨を採った。
+
+[1] 恒等の線・予言 0
+  種類＝恒等（エンジンの結果は 1 ビットも変えない）。新しい係数 0・新しい世界の状態 0。計器は Instruments.On の時だけ計算する。
+  判定＝素の 5 種（b5_20261118_m1212）・素の 10 種（b10_20261118_m1212）・計器つき 10 種（b10_20261118_m1212_ins）が名乗り行の SOURCE-HASH を除き全行一致。
+  計器の表の差は宣言だけ（[4]）。エンジンの分離・支配の表（secession_s・rule_s・rponset_s）は全行一致。〈判定: 恒等〉なら〈測った種で一致〉と名乗る。
+  段 2（計器に触れる）。tc の試験は別の線＝この線の試験は 2 本だけ。
+
+[2] 消す物・足す物・直す物（行は基点 81ad1e58d）
+  項 1 式を 1 本に
+   a. Politics.cs:861 SecessionPressure の本体を SecessionParts（SecParts を返す）へ出し、SecessionPressure はその .Pressure を返す薄い口にする。
+      演算の順は同じ：|stance−TI|*mil*Scale*(1+W*cult) を tariffTerm に置き、pressure=tariffTerm、加法項は pressure+=（旧と同じ順）、×(1−Clamp01(包含))、×crowd÷(crowd+最小人口)。
+      浮動小数の順序が変わる箇所：なし。同じ盤面で旧と新の食い違いの数は 0 のはず＝試験 T8 のビット一致と ident の secession_s 全行一致で数える。
+   b. CheckSecession（:892 の呼び）は変えない（SecessionPressure を呼ぶ）。:890 の r.Id==0 の飛ばしも変えない。
+   c. InstrumentsSecession.cs:39〜:67 SecParts と SecRebuild を消し、SecObserve（:95）は Politics.SecessionParts(w,c,r,cap,stance,r.TariffInterest) を呼ぶ。
+      pressureRebuildGapIndex は作りから 0（同じ関数の同じ入力）。列は残す（宣言＝〈作りから 0〉）。読み手は scripts/instruments/ic2/an_ic2.py:49・r1162/k1_forms.py:58・r986/r986_terms.py:103 と SecessionLaborLawInstrumentTests.cs:71（<=1e-12）＝列が在れば読めるので変更なし。
+      pressureRebuiltIndex も同じ値になる（旧も同じ値）。
+  項 2 InstrumentsRulePower.cs:53 RpPressure：r.Id==0 なら 0（エンジンと同じ）。それ以外は SecessionPressure。
+   宣言：--known-extra rulepower_s の pressureIndex と、首都の行で変わる下流の列（fResistIndex ほか。ident 後に差のある列で確定し、増減を報告に書く）。rulepower_s を読む他の表（rulepeace_s・rpalloc_s・rponset_s）は差が出たら同様に宣言（rponset_s はエンジンの表＝差が出たら外す）。
+  項 3 台本：r1163/decomp.py:10〜:11 の COLS と r1211/r1211_ana.py:67〜:68 の I('fPushbackIndex') を〈列が有れば読む〉にする（新しい生で落ちない）。
+   列の数で行を読む台本の grep（★(749)）：rulepower_s／secession_s を名前の鍵で読む台本は ix[...] 形＝並びに依らない。位置で読む物が見つかれば注を足す。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements）：SecRebuild・SecParts の読み手は InstrumentsSecession.cs だけ（Tests に 0）。POB_COEF・SaveGame に名前なし（新しい状態 0）。
+  他の線との重なり：Politics.cs は SecessionPressure 付近だけ（k3・iv・tc は触れない）。tc・k3・iv の試験ファイルに触れない。
+
+[3] 足す試験・突然変異
+  CaInstruments1206Tests.cs
+   T7 首都の行：RpPressure(w, 首都)==0 かつ首都の素の式は >1e-9（空振り防止）・非首都は >1e-9。
+   T8 SecessionParts の項（民族の項が立つ盤面・EthnicEnabled を置く）：(tariff+ethnic)*suff*crowd と Pressure がビット一致・SecessionPressure とビット一致・加法項 0 で圧が下がる。
+   既存 T6（SecessionPressure と素の式・RpPressure とのビット一致）は変えない。試験の数の予言：Category!=FullLength は 2916＋2＝2918（Tests 2684・Ui 234）。
+  突然変異（使い捨ての木で）
+   M1 SecessionParts から民族の項を落とす（pressure+=ethnic を消す）→ T8 赤（民族の項が圧に入っていない）・ident の secession_s が赤（pressureIndex）。
+   M2 RpPressure の r.Id==0 の枝を外す → T7 赤。
+   M3 古い写しを InstrumentsSecession に戻し 1 項の係数を変える → ［写しを消した後は一致の Assert は SecessionLaborLawInstrumentTests の gap<=1e-12 が担う］M3 は SecObserve に旧写しを戻し SecessionPressureScale を 1.01 倍 → pressureRebuildGapIndex が 0 でなくなり SecessionLaborLawInstrumentTests:71 が赤。
+  走査の番人（㉘）：CaInstruments1206Tests・RulePowerTests・SecessionLaborLawInstrumentTests・InstrumentsTests・DormantIdentityTests・WriterRatchetTests・UnitTypeTests・IndustrializationReaderTests。書き換える件数の予言＝0（新しい欄・係数・new MoneyStock 0）。
+
+[4] 比べる物
+  素の 5 種・素の 10 種・計器つき 10 種が m1212 と全行一致（名乗り行を除く）。
+  計器の表の差の宣言：secession_s は列・行とも不変（pressureRebuildGapIndex は元から 0 の見込み）。rulepower_s は首都の行の pressureIndex と下流が変わる＝--known-extra。
+  テストの数：--tests-delta 2。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。

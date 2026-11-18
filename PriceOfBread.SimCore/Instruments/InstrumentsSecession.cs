@@ -36,36 +36,6 @@ public static partial class Instruments
             F((1.0 - orderOld) * (1.0 - reach)), F((1.0 - orderR) * (1.0 - reach)), F(before3), F(before2));
     }
 
-    /// <summary>州の離脱圧力を組み直した結果（<see cref="SecRebuild"/>）。番人（テスト）が世界から直に呼べるよう値の組で返す。</summary>
-    internal readonly record struct SecParts(double Pressure, double TariffTerm, double EthnicTerm, double SuffrageFactor, double CrowdFactor, double CrowdK,
-        double CultureDistance, double Militancy, double CoreShare, double Inclusion);
-
-    /// <summary>Politics.CheckSecession の州ごとの圧力の式を、同じ式・同じ順で組み直す（読むだけ）。cap＝首都の州（Regions[0]）・stance＝国の関税の姿勢。
-    /// 本体が圧力の因数を足す・順を変えたらここが追いつかない＝<c>pressureRebuildGapIndex</c> が 0 でなくなる。</summary>
-    internal static SecParts SecRebuild(World w, Coefficients c, Region r, Region cap, double stance)
-    {
-        double cultDist = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Culture) ? 0.5 : 0)
-                        + ((r.Religion.Length > 0 && cap.Religion.Length > 0 && r.Religion != cap.Religion) ? 0.5 : 0);
-        double core = Politics.AvgRegionCoreShare(r);
-        if (c.CultureDistanceFromEthnic > 0)
-            cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - core, c.CultureDistanceFromEthnic);
-        double mil = Politics.AvgRegionMilitancy(r);
-        double tariffTerm = Math.Abs(stance - r.TariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);
-        double pressure = tariffTerm, ethnic = 0;
-        if (c.SecessionCultureAdditive > 0 && w.EthnicEnabled)
-        {
-            ethnic = c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - core) * mil;
-            pressure += ethnic;
-        }
-        double incl = PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(w, r));
-        double suffF = 1.0 - incl;
-        pressure *= suffF;
-        double crowd = Politics.RegionCrowd(r);
-        double crowdF = crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0;
-        pressure *= crowdF;
-        return new SecParts(pressure, tariffTerm, ethnic, suffF, crowdF, crowd, cultDist, mil, core, incl);
-    }
-
     /// <summary>CheckSecession が支配度を積分した直後に呼ぶ（Instruments.On のときだけ）。行は Quarter の SecFold が書く。
     /// hold＝共有分母で割った後の国の保持力（本体の変数そのまま）・margins＝州ごとの（共有分母の前の引き留め, 本体の圧力）。</summary>
     internal static void SecObserve(World w, Coefficients c, double coerce, double stance, double hold, double sharedDiv, int restive, List<(Region R, double Hold, double Pressure)> margins)
@@ -92,7 +62,7 @@ public static partial class Instruments
         double mbar = sizeAll > 1e-9 ? milAll / sizeAll : 0;
         foreach (var (r, effBefore, pressure) in margins)
         {
-            var p = SecRebuild(w, c, r, cap, stance);
+            var p = Politics.SecessionParts(w, c, r, cap, stance, r.TariffInterest);   // (1220) 写しをやめエンジンと同じ関数＝pressureRebuildGapIndex は作りから 0
             double pop = 0; foreach (var pp in r.Pops) pop += pp.Size;
             double holdShare = effBefore / sharedDiv;
             double km = double.NaN;

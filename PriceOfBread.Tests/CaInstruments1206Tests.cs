@@ -177,6 +177,46 @@ public class CaInstruments1206Tests
     }
 
     [Fact]
+    public void T7_首都の行の分離の圧は計器でも0でエンジンの扱いと同じ()
+    {
+        // (1220) CheckSecession は Regions[0]（首都）を飛ばす＝圧を計算しない。計器 rulepower_s の口も 0 を返す。期待は 0 と素の式（試験が自分で組む）
+        var sim = France(); var w = sim.World; var c = w.Coef;
+        Assert.True(w.Regions.Count >= 2, "前提が崩れた：州が 2 つ未満");
+        var cap = w.Regions[0]; var r = w.Regions[1];
+        Assert.Equal(0, cap.Id);
+        cap.Culture = "甲"; r.Culture = "乙"; c.CultureSecessionWeight = 0.7; c.SecessionPressureScale = 1.5; c.ColonyPromotionMinPop = 50;
+        w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
+        w.Tariff = 0.8; r.TariffInterest = 0.3; cap.TariffInterest = 0.3;
+        foreach (var rg in new[] { cap, r }) foreach (var p in rg.Pops) { if (!p.IsSoldier) p.CoreEthnicShare = new Share(0.4); if (p.IsCommoner) p.Militancy = 0.4; }   // 選挙権の包含＝中核の割合 0.4（T6 と同じ）
+        Assert.True(Politics.SecessionPressure(w, c, cap, cap, w.Tariff * 2 - 1, cap.TariffInterest) > 1e-9, "前提が崩れた：首都の素の式が 0（Assert が空振りする）");
+        Assert.Equal(0.0, Instruments.RpPressure(w, cap));
+        Assert.True(Instruments.RpPressure(w, r) > 1e-9, "前提が崩れた：非首都の圧が 0");
+    }
+
+    [Fact]
+    public void T8_分離の圧の項の組みは和も掛け算もエンジンの圧と同じビット()
+    {
+        // (1220) SecessionParts の項から期待を別の順で組み直す（(関税の項＋民族の項)×選挙権の因数×群衆の因数）。民族の項が立つ盤面を置く
+        var sim = France(); var w = sim.World; var c = w.Coef;
+        Assert.True(w.Regions.Count >= 2, "前提が崩れた：州が 2 つ未満");
+        var cap = w.Regions[0]; var r = w.Regions[1];
+        cap.Culture = "甲"; r.Culture = "乙"; cap.Religion = "子"; r.Religion = "丑";
+        c.CultureDistanceFromEthnic = 0; c.SecessionCultureAdditive = 0.6; c.MinorityMilitancy = 0.5; c.CultureSecessionWeight = 0.7; c.SecessionPressureScale = 1.5; c.ColonyPromotionMinPop = 50;
+        w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
+        typeof(World).GetProperty("EthnicEnabled")!.SetValue(w, true);
+        foreach (var p in r.Pops) { if (!p.IsSoldier) p.CoreEthnicShare = new Share(0.4); if (p.IsCommoner) p.Militancy = 0.4; }
+        w.Tariff = 0.8; double stance = w.Tariff * 2 - 1; double ti = 0.3;
+        var parts = Politics.SecessionParts(w, c, r, cap, stance, ti);
+        Assert.True(parts.EthnicTerm > 1e-9, "前提が崩れた：民族の項が 0");
+        Assert.True(parts.TariffTerm > 1e-9 && parts.SuffrageFactor > 0 && parts.CrowdFactor > 0, "前提が崩れた：項が 0");
+        Assert.Equal(System.BitConverter.DoubleToInt64Bits((parts.TariffTerm + parts.EthnicTerm) * parts.SuffrageFactor * parts.CrowdFactor), System.BitConverter.DoubleToInt64Bits(parts.Pressure));
+        Assert.Equal(System.BitConverter.DoubleToInt64Bits(parts.Pressure), System.BitConverter.DoubleToInt64Bits(Politics.SecessionPressure(w, c, r, cap, stance, ti)));
+        // 民族の項を落とした盤面（加法項 0）では全体が小さくなる＝項が圧に入っている
+        c.SecessionCultureAdditive = 0;
+        Assert.True(Politics.SecessionPressure(w, c, r, cap, stance, ti) < parts.Pressure, "民族の項が圧に入っていない");
+    }
+
+    [Fact]
     public void T4_内戦の始まりで反乱側の政体と親の政体を控える()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ca4_" + System.Guid.NewGuid().ToString("N"));

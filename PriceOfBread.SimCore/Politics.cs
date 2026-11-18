@@ -856,23 +856,39 @@ public static class Politics
         Parliament.TargetDemand(w, axis, inc);
     }
 
-    /// <summary>(1214) 州 r の分離の圧＝|関税の姿勢−州の関税の利害|×州の闘争度×尺度×(1＋文化の重み×文化の距離)（＋民族の加法項）×(1−選挙権の包含)×群衆÷(群衆＋最小人口)。
+    /// <summary>(1220) 分離の圧の項ごとの値。Pressure が CheckSecession の圧そのもの（計器 secession_s の内訳もこの値）。</summary>
+    internal readonly record struct SecParts(double Pressure, double TariffTerm, double EthnicTerm, double SuffrageFactor, double CrowdFactor, double CrowdK,
+        double CultureDistance, double Militancy, double CoreShare, double Inclusion);
+
+    /// <summary>(1214)(1220) 州 r の分離の圧＝|関税の姿勢−州の関税の利害|×州の闘争度×尺度×(1＋文化の重み×文化の距離)（＋民族の加法項）×(1−選挙権の包含)×群衆÷(群衆＋最小人口) の項ごとの値。
     /// CheckSecession の中の式をそのまま出した純関数（演算の順は同じ）。tariffInterest は呼び手が渡す（エンジンは直前に RegionTariffInterest を代入した値・計器は前の四半期のエンジンの値）。</summary>
-    internal static double SecessionPressure(World w, Coefficients c, Region r, Region cap, double stance, double tariffInterest)
+    internal static SecParts SecessionParts(World w, Coefficients c, Region r, Region cap, double stance, double tariffInterest)
     {
         double cultDist = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Culture) ? 0.5 : 0)
                         + ((r.Religion.Length > 0 && cap.Religion.Length > 0 && r.Religion != cap.Religion) ? 0.5 : 0);
+        double core = AvgRegionCoreShare(r);
         if (c.CultureDistanceFromEthnic > 0)
             cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - AvgRegionCoreShare(r), c.CultureDistanceFromEthnic);
         double mil = AvgRegionMilitancy(r);
-        double pressure = Math.Abs(stance - tariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);
+        double tariffTerm = Math.Abs(stance - tariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);
+        double pressure = tariffTerm, ethnic = 0;
         if (c.SecessionCultureAdditive > 0 && w.EthnicEnabled)
-            pressure += c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - AvgRegionCoreShare(r)) * mil;
-        pressure *= 1.0 - PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));
+        {
+            ethnic = c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - AvgRegionCoreShare(r)) * mil;
+            pressure += ethnic;
+        }
+        double incl = PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));
+        double suffF = 1.0 - incl;
+        pressure *= suffF;
         double crowdSec = RegionCrowd(r);
-        pressure *= crowdSec > 0 ? crowdSec / (crowdSec + c.ColonyPromotionMinPop) : 0.0;
-        return pressure;
+        double crowdF = crowdSec > 0 ? crowdSec / (crowdSec + c.ColonyPromotionMinPop) : 0.0;
+        pressure *= crowdF;
+        return new SecParts(pressure, tariffTerm, ethnic, suffF, crowdF, crowdSec, cultDist, mil, core, incl);
     }
+
+    /// <summary>州 r の分離の圧（SecessionParts の和）。首都（Regions[0]）はエンジンが計算しない（CheckSecession が飛ばす）。</summary>
+    internal static double SecessionPressure(World w, Coefficients c, Region r, Region cap, double stance, double tariffInterest)
+        => SecessionParts(w, c, r, cap, stance, tariffInterest).Pressure;
 
     internal static void CheckSecession(World w, Coefficients c, double coerce)
     {
