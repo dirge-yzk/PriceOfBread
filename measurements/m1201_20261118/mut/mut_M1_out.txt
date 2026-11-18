@@ -1,0 +1,15 @@
+MUTOK M1 D:/PoB_work/c120fm_work/mut_M1/PriceOfBread.SimCore/Formations.cs
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  成功 PriceOfBread.Tests.FormationGateTests.T4_計器は付け替え1件に1行で州の数と使った属国を盤面の数で書く(gateB: 0) [3 s]
+  成功 PriceOfBread.Tests.FormationGateTests.T4_計器は付け替え1件に1行で州の数と使った属国を盤面の数で書く(gateB: 1) [12 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 1, nationalist: False, gateA: 0, gateB: 1) [27 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 1, nationalist: False, gateA: 1, gateB: 1) [5 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 0, nationalist: False, gateA: 1, gateB: 0) [10 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 0, nationalist: False, gateA: 0, gateB: 0) [5 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 1, nationalist: False, gateA: 0, gateB: 0) [6 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 0, nationalist: True, gateA: 1, gateB: 0) [34 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T2_案bは属国の州を数えず直接持てば成立する [8 ms]
+  失敗 PriceOfBread.Tests.FormationGateTests.T1_案aは取り分が門の外なら直接持っても成立しない [8 ms]
+テストの合計数: 10
+     成功: 9
+合計時間: 10.9287 秒

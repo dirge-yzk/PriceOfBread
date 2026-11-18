@@ -1,0 +1,58 @@
+D:\PoB_work\c120fm_work\suite_ab\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.41]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.10]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.27]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.UnificationAiNoWaitTests.T3_AIの標的は宣戦の前にプレイヤーの動詞が許す相手 [5 s]
+  成功 PriceOfBread.Tests.UnificationWarGateTests.T2_プレイヤーの動詞の可否と理由は手で書いた表と同じ [5 s]
+  成功 PriceOfBread.Tests.UnificationWarGateTests.T3_AIが宣戦する相手はプレイヤーの動詞が許す最も弱い標的 [119 ms]
+  成功 PriceOfBread.Tests.UnificationWarGateTests.T1_AIは同盟国へ統一の宣戦をせず同盟でない次の標的へ宣戦する [161 ms]
+  成功 PriceOfBread.Tests.UnificationAiNoWaitTests.T1_候補と標的を持つAIは種によらず毎回宣戦する [366 ms]
+  成功 PriceOfBread.Tests.UnificationAiNoWaitTests.T2_宣戦の後の四半期に待たずに次に弱い標的へ宣戦する [66 ms]
+  成功 PriceOfBread.Tests.UnificationAiNoWaitTests.T4_統一の乱数の系列と待ちの辞書の欄は戻っていない [< 1 ms]
+  成功 PriceOfBread.Tests.NationIdentityTests.フランスの列強順位は開幕から上位_リスト生成順の32位ではない [18 s]
+  成功 PriceOfBread.Tests.NationIdentityTests.分離独立の建国_州が物理移転し新国家と旧宗主の保存則が立つ [1 s]
+[xUnit.net 00:00:21.76]     PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [FAIL]
+[xUnit.net 00:00:21.76]       Assert.Equal() Failure: Strings differ
+[xUnit.net 00:00:21.77]                  ↓ (pos 0)
+[xUnit.net 00:00:21.77]       Expected: "北ドイツ連邦"
+[xUnit.net 00:00:21.77]       Actual:   "プロイセン"
+[xUnit.net 00:00:21.77]                  ↑ (pos 0)
+[xUnit.net 00:00:21.77]       Stack Trace:
+[xUnit.net 00:00:21.78]         D:\PoB_work\c120fm_work\suite_ab\suitesrc\PriceOfBread.Tests\NationIdentityTests.cs(40,0): at PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する()
+[xUnit.net 00:00:21.78]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:21.78]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:21.78]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する [114 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "北ドイツ連邦"
+Actual:   "プロイセン"
+           ↑ (pos 0)
+  スタック トレース:
+     at PriceOfBread.Tests.NationIdentityTests.北ドイツ連邦_直接領有と従属国の領有で成立する() in D:\PoB_work\c120fm_work\suite_ab\suitesrc\PriceOfBread.Tests\NationIdentityTests.cs:line 40
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.NationIdentityTests.従属国の列挙は定義どおりで宗主の鍵が無い国は空 [46 ms]
+  成功 PriceOfBread.Tests.NationIdentityTests.変名は表示名のみでBaseNameは不変_同名は先着のみ [8 ms]
+  成功 PriceOfBread.Tests.NationIdentityTests.UI変体パネルの源_プロイセンは4つの変体を進捗つきで名乗れる [178 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T4_計器は付け替え1件に1行で州の数と使った属国を盤面の数で書く(gateB: 0) [124 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T4_計器は付け替え1件に1行で州の数と使った属国を盤面の数で書く(gateB: 1) [4 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 1, nationalist: False, gateA: 0, gateB: 1) [20 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 1, nationalist: False, gateA: 1, gateB: 1) [8 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 0, nationalist: False, gateA: 1, gateB: 0) [37 ms]
+[xUnit.net 00:00:22.24]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 0, nationalist: False, gateA: 0, gateB: 0) [13 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 1, nationalist: False, gateA: 0, gateB: 0) [5 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T3_プレイヤーの国とAIの国で同じ盤面の成立が同じ(hold: 0, nationalist: True, gateA: 1, gateB: 0) [4 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T2_案bは属国の州を数えず直接持てば成立する [7 ms]
+  成功 PriceOfBread.Tests.FormationGateTests.T1_案aは取り分が門の外なら直接持っても成立しない [10 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 23
+     成功: 22
+     失敗: 1
+合計時間: 27.0123 秒
