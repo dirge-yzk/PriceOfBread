@@ -1,0 +1,5 @@
+PROBE 置いた
+test rc=1 合計時間: 6.3766 秒
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U1_既定の係数で賦存倍率2の州の限界費用は倍率1の州の半分_非産地は動かない [760 ms]
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U1_開幕の世界で賦存州の自己費用は非賦存州の自己費用を賦存倍率で割った値 [1 s]
+SCRATCHDONE 2026-11-18 18:38:56

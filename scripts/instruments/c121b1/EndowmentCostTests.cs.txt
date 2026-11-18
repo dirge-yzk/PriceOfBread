@@ -1,0 +1,60 @@
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>(1208) c121b1：貿易の B-1＝EndowmentCostFollowsAbundance の既定 1（費用が賦存に従う）。事前登録 measurements/m1208_20261118_prereg_b1.txt の U1。
+/// 盤面は試験の中で置く（同じ財・同じ限界費用の生産者に、既定の係数で賦存倍率 2.0・1.0・0.4 を当てる）＋開幕の世界の実経路。
+/// ⚠旗 0（既定 0）で赤・突然変異〈Pow の指数を 0.5 に〉〈costDiv＞1 の門を外す〉で赤。</summary>
+public class EndowmentCostTests
+{
+    [Fact]
+    public void U1_既定の係数で賦存倍率2の州の限界費用は倍率1の州の半分_非産地は動かない()
+    {
+        var c = new Coefficients();
+        var rich = new Producer { Productivity = 1.0, MarginalCost = 8.0 };
+        var plain = new Producer { Productivity = 1.0, MarginalCost = 8.0 };
+        var scarce = new Producer { Productivity = 1.0, MarginalCost = 8.0 };
+        Simulation.DivideCostByEndowment(rich, 2.0, c);
+        Simulation.DivideCostByEndowment(plain, 1.0, c);
+        Simulation.DivideCostByEndowment(scarce, 0.4, c);
+        double ratio = plain.MarginalCost / rich.MarginalCost;
+        Assert.True(System.Math.Abs(ratio - 2.0) <= 1e-12, $"倍率 1.0÷倍率 2.0 の限界費用の比が 2.0 でない：{ratio}");
+        Assert.Equal(8.0, plain.MarginalCost);
+        Assert.Equal(8.0, scarce.MarginalCost);   // 非産地（倍率<1）は Scarcity の旗（既定 0）の持ち場＝上がらない
+        Assert.Equal(1.0, rich.Productivity);     // 費用だけを割る（能力は掛けない）
+    }
+
+    [Fact]
+    public void U1_開幕の世界で賦存州の自己費用は非賦存州の自己費用を賦存倍率で割った値()
+    {
+        static Simulation Seed(Coefficients c) =>
+            new(new Scenario { Kind = ScenarioKind.Nation, NationConfig = WorldData.ByName("イギリス"), Seed = 1, Coef = c }, new NullAgent());
+        static Producer? Rgo(Simulation s, string city, int good) =>
+            s.World.Regions.Find(r => r.Name == city)?.Producers.Find(pr => pr.GoodId == good && pr.IsRgo);
+
+        var cfg = WorldData.ByName("イギリス");
+        var sim = Seed(new Coefficients());
+        int checkedPairs = 0;
+        foreach (var p in cfg.Provinces)
+        foreach (int g in p.Resources)
+        {
+            var e = Rgo(sim, p.City, g);
+            if (e is null || e.SiteRow >= 0) continue;
+            foreach (var q in cfg.Provinces)
+            {
+                if (System.Array.IndexOf(q.Resources, g) >= 0) continue;
+                var n = Rgo(sim, q.City, g);
+                if (n is null || n.SiteRow >= 0) continue;
+                if (n.Productivity >= e.Productivity) continue;   // 非産地 0.4 の州も含む（Scarcity は既定 0＝割らない）
+                double div = (Catalog.IsMineral(g) ? 4.0 : 3.5) * sim.World.Coef.ResourceEndowmentScale;
+                double want = n.MarginalCost / div;
+                Assert.True(System.Math.Abs(e.MarginalCost - want) <= 1e-9 * want,
+                    $"{p.City}・{Catalog.Goods[g].Name}：賦存州の自己費用 {e.MarginalCost} ≠ 非賦存州 {q.City} の {n.MarginalCost}÷{div}");
+                checkedPairs++;
+                break;
+            }
+        }
+        Assert.True(checkedPairs >= 3, $"賦存州と非賦存州の組が 3 未満（{checkedPairs}）＝試験にならない");
+    }
+}
