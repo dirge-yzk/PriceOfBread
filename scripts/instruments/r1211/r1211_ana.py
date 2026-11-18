@@ -65,14 +65,14 @@ for seed in range(s0, s1 + 1):
         I = lambda k: ix[k]
         iq, inat, ireg, iN = I('quarter'), I('nation'), I('region'), I('nIndex')
         # (1214) fPushbackIndex は rulepower_s から消えた（c122cr）。m1212 以前の生だけ読める（新しい生は iA の行を外す）。pressureIndex・fResistIndex は (1214) でエンジンと同じ関数の値へ変わった。
-        iFS, iFI, iFR, iA, iFU = I('fStateIndex'), I('fInterIndex'), I('fResistIndex'), I('fPushbackIndex'), I('fUngovIndex')
+        iFS, iFI, iFR, iA, iFU = I('fStateIndex'), I('fInterIndex'), I('fResistIndex'), ix.get('fPushbackIndex'), I('fUngovIndex')   # (1220) fPushbackIndex は有れば読む（無い生は None）
         iFsum, iK = I('fForeignSumIndex'), I('kappaIndex')
         iO, iL, iF, iU, iB, iNB = I('ownerSideShare'), I('localSideShare'), I('foreignSideShare'), I('ungovSideShare'), I('bestClass'), I('nowBestClass')
         iR2 = I('nowRule2Share'); iTop = I('foreignTopKey')
         for line in f:
             c = line.rstrip('\r\n').split('\t')
             n_rows += 1
-            fs, fi, fr, a, fu = fl(c[iFS]), fl(c[iFI]), fl(c[iFR]), fl(c[iA]), fl(c[iFU])
+            fs, fi, fr, a, fu = fl(c[iFS]), fl(c[iFI]), fl(c[iFR]), (fl(c[iA]) if iA is not None else 0.0), fl(c[iFU])
             fsum, kap = fl(c[iFsum]), fl(c[iK])
             x = fl(c[iR2]); x = x if x > 0 else 0.0
             N = fl(c[iN]); N = N if N > 0 else 0.0

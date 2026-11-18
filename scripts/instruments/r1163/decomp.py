@@ -25,7 +25,7 @@ for s in (1, 2):
         for line in f:
             c = line.rstrip('\n').split('\t'); q = int(c[0])
             if q not in (0, 40, 79): continue
-            r = {k: (c[ix[k]] if k in ('nation', 'region', 'tier', 'foreignTopKey') else fl(c[ix[k]])) for k in COLS}
+            r = {k: (c[ix[k]] if k in ('nation', 'region', 'tier', 'foreignTopKey') else fl(c[ix[k]])) for k in COLS if k in ix}   # (1220) fPushbackIndex は有れば読む（新しい生には列が無い）
             rp[q][r['region']] = r
             v = nat[q].setdefault(r['nation'], {'O': r['oEngNationIndex'], 'L': r['lNationIndex'], 'H': r['hEngNationIndex'], 'pop': 0.0})
             v['pop'] += r['popK'] if not math.isnan(r['popK']) else 0.0
