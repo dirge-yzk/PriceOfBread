@@ -1907,7 +1907,7 @@ public static class EconomyStep
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
                         //   met ≤ GoodNeed（上の met の定義）かつ嗜好は分子=分母＝分子 ≤ 分母は保たれる＝下の Clamp は非拘束のまま（思想⑧）。
                         p.NeedTotal += (good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW;
-                        if (insOn) Instruments.SatNeeds(world, p, good.Tier, met * needW, (good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW);   // (1206) satneeds_s
+                        if (insOn) Instruments.SatNeeds(world, p, good.Tier, met * needW, (good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW, p.GoodNeed * needW);   // (1206) satneeds_s・(1214) 欲しい量の引数
                         if (staple && fdAny)   // 締めは財のループの後〔履歴 EconomyStep.cs#267〕
                         {
                             if (fdLedger) { double raw = sub + qty; if (raw > p.GoodNeed) fdOvf[fdI] += raw - p.GoodNeed; else fdDfc[fdI] += p.GoodNeed - raw; }

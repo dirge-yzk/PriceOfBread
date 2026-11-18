@@ -8,10 +8,13 @@ namespace PriceOfBread.SimCore;
 //   （単価は計器が州の POP を自分で回して組む＝Military.RecruitWage を呼ばない）。力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。
 public static partial class Instruments
 {
+    // (1214) 末尾 6 列の名＝旧 drawCons*／drawVol* を意味へ揃えた（列の並び・値は同じ）。drawWar*＝戦時の強制（Military.DrawFromPool の conscription＝atWar 真）・
+    //   drawPeace*＝平時の徴募（徴兵法が Selective 以上の国だけが Military.Step の `if (!lawConscripts) continue;` を通って引く・atWar 偽）。(1206) の旧名は意味が逆に読めた（反証役 v）。
+    //   soldiervac_s を名前で読む台本（scripts/instruments/c115sv・m1171）はこの 6 列を読まない。古い生（m1206 以前）の列名は drawCons*／drawVol*。
     internal const string SoldierVacHeaderText = "year\tq\tnation\tlawCode\tatWarFlag\tregions\tzeroStart\tzeroVac\tzeroVacColonial\tzeroFilled"
         + "\tfillZeroK\tvacZeroK\toverfillZeroK\tfillPosK\toverfillPosK\teqN\teqSumLogLast\teqMaxAbsLogLast\teqSumLogNow\teqMaxAbsLogNow"
         + "\tseatPayRate\teqSumLogK\teqMaxAbsLogK"
-        + "\tdrawConsHomeK\tdrawConsColonialK\tdrawConsMilPopHome\tdrawConsMilPopColonial\tdrawVolHomeK\tdrawVolColonialK";
+        + "\tdrawWarHomeK\tdrawWarColonialK\tdrawWarMilPopHome\tdrawWarMilPopColonial\tdrawPeaceHomeK\tdrawPeaceColonialK";
 
     sealed class SoldierVacAcc
     {

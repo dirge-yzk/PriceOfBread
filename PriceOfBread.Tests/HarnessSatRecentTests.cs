@@ -56,4 +56,15 @@ public class HarnessSatRecentTests
         Assert.StartsWith("・州7/9・", m.WorstSatDetail);
         Assert.Equal(Verdict.Pass, SatVerdict(m));
     }
+
+    [Fact]
+    public void T5_全ての国が建国の途中なら落とし先から選び分離独立の印が付く()
+    {
+        // 建国が途中でない国が 1 つも無い盤面＝Validation の 2 本目のループ（全ての国から最小を選ぶ）と〈・分離独立〉の分岐を通る（(1209) 反証役 v2）
+        var m = M(N("甲", last: 0.30, recent: 0.30, spawned: true), N("乙", last: 0.0, recent: 0.12, spawned: true), N("丙", last: 0.5, recent: 0.08, spawned: true));
+        Assert.Equal(0.08, m.WorstSat);
+        Assert.Equal("丙・分離独立", m.WorstSatName);
+        Assert.StartsWith("・州1/1・", m.WorstSatDetail);
+        Assert.Equal(Verdict.Pass, SatVerdict(m));
+    }
 }

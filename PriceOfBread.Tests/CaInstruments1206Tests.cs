@@ -60,13 +60,13 @@ public class CaInstruments1206Tests
     }
 
     [Fact]
-    public void T1_徴募の引きの列は平時の量と戦時の強制の量と足した闘争度を州の格ごとに盤面の素の値と一致させる()
+    public void T1_徴募の引きの列は徴兵法の下の平時の量と戦時の強制の量と足した闘争度を州の格ごとに盤面の素の値と一致させる()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ca1_" + System.Guid.NewGuid().ToString("N"));
         Instruments.Configure(dir, "*");
         try
         {
-            // 平時（皆兵の国）：強制でない量が列へ入り、強制の列は 0
+            // 平時（徴兵法の下の国）：平時の徴募の量が drawPeace* の列へ入り、戦時の強制の drawWar* は 0
             var w = Board(out var c);
             Instruments.SoldierVacDrawReset(w);
             var e = Expect(w, c, () => Military.Step(w, c, atWar: false));
@@ -74,7 +74,7 @@ public class CaInstruments1206Tests
             Assert.True(e.home > 1e-6 && e.col > 1e-6, $"前提が崩れた：平時の引きが本国格・植民地格の両方で立たない（{e.home}・{e.col}）");
             Assert.Equal(e.home, s[4], 9); Assert.Equal(e.col, s[5], 9);
             Assert.True(s[0] == 0 && s[1] == 0 && s[2] == 0 && s[3] == 0, "平時の引きが強制の列へ入った");
-            // 戦時：強制の列と足した闘争度×人口
+            // 戦時：drawWar*（戦時の強制の量）と足した闘争度×人口
             w = Board(out c);
             Instruments.SoldierVacDrawReset(w);
             e = Expect(w, c, () => Military.Step(w, c, atWar: true));
@@ -114,8 +114,66 @@ public class CaInstruments1206Tests
             double relM = System.Math.Abs(met.Sum() - expMet) / System.Math.Max(1e-12, System.Math.Abs(expMet));
             double relT = System.Math.Abs(total.Sum() - expTot) / System.Math.Max(1e-12, System.Math.Abs(expTot));
             Assert.True(relM <= 1e-9 && relT <= 1e-9, $"3 つの格の和が POP の素の和と合わない（met {met.Sum()} ≠ {expMet}・total {total.Sum()} ≠ {expTot}）");
+            // (1214) 欲しい量は分子（met）より小さくならない（嗜好品は分母が met＝充足が常に 1 なので、欲しい量の列だけがその格の需要を示す）
+            var want = Instruments.SatNeedsWantSnapshot(w);
+            for (int k = 0; k < 3; k++) Assert.True(want[k] + 1e-9 >= met[k], $"格 {k} の欲しい量 {want[k]} が満たした量 {met[k]} より小さい");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { } }
+    }
+
+    [Fact]
+    public void T2b_格の振り分けは日用品と嗜好品とその他の列へ別々に入る()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ca2b_" + System.Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var sim = France(); var w = sim.World; var p = w.Region.Pops[0];
+            Assert.True(p.Size > 1e-9);
+            Instruments.SatNeedsReset(w);
+            // 3 つの格へ桁の違う値を 1 回ずつ入れる（期待は試験が自分で組む＝振り分けを入れ替えると別の列に入って赤）
+            Instruments.SatNeeds(w, p, GoodTier.Daily, 1, 2, 3);
+            Instruments.SatNeeds(w, p, GoodTier.Luxury, 10, 20, 30);
+            Instruments.SatNeeds(w, p, GoodTier.Service, 100, 200, 300);   // その他の格（日用品でも嗜好品でもない）
+            var (met, total) = Instruments.SatNeedsSnapshot(w);
+            var want = Instruments.SatNeedsWantSnapshot(w);
+            double s = p.Size;
+            Assert.Equal([1 * s, 10 * s, 100 * s], met);
+            Assert.Equal([2 * s, 20 * s, 200 * s], total);
+            Assert.Equal([3 * s, 30 * s, 300 * s], want);
+            Assert.Equal(1, Instruments.SatNeedsCat(GoodTier.Luxury)); Assert.Equal(0, Instruments.SatNeedsCat(GoodTier.Daily)); Assert.Equal(2, Instruments.SatNeedsCat(GoodTier.Producer));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { } }
+    }
+
+    [Fact]
+    public void T6_分離の圧の関数は盤面の素の式と一致し計器の口は同じ関数を読む()
+    {
+        // (1214) Politics.SecessionPressure＝CheckSecession の式（文化の距離・闘争度・選挙権・群衆）。期待は試験が自分で組む（闘争度と群衆は州の庶民の POP を自分で足す）
+        var sim = France(); var w = sim.World; var c = w.Coef;
+        Assert.True(w.Regions.Count >= 2, "前提が崩れた：州が 2 つ未満");
+        var cap = w.Regions[0]; var r = w.Regions[1];
+        cap.Culture = "甲"; cap.Religion = "子"; r.Religion = "子";   // 宗教は同じ・文化だけ違う＝距離 0.5
+        c.CultureDistanceFromEthnic = 0; c.SecessionCultureAdditive = 0; c.CultureSecessionWeight = 0.7; c.SecessionPressureScale = 1.5; c.ColonyPromotionMinPop = 50;
+        w.MigrantNativeSuffrage = MigrantNativeSuffrageLaw.None;
+        foreach (var p in r.Pops) if (!p.IsSoldier) p.CoreEthnicShare = new Share(0.4);   // 選挙権の包含＝中核の割合 0.4
+        w.Tariff = 0.8; double stance = w.Tariff * 2 - 1; double ti = 0.3;
+        double milSum = 0, crowd = 0;
+        foreach (var p in r.Pops) if (p.IsCommoner) { p.Militancy = 0.4; milSum += p.Militancy * p.Size; crowd += p.Size; }
+        Assert.True(crowd > 1e-6, "前提が崩れた：州に庶民がいない");
+        double incl = System.Math.Clamp(Politics.RegionAvgSuffrageInclusion(w, r), 0.0, 1.0);
+        double Expect(double cult) => System.Math.Abs(stance - ti) * (milSum / crowd) * 1.5 * (1 + 0.7 * cult) * (1.0 - incl) * (crowd / (crowd + 50));
+        r.Culture = "乙";
+        double with = Politics.SecessionPressure(w, c, r, cap, stance, ti);
+        Assert.True(Expect(0.5) > 1e-9, "前提が崩れた：圧が 0");
+        Assert.Equal(Expect(0.5), with, 12);
+        r.Culture = "甲";   // 文化が同じ＝距離 0（文化の項が落ちる）
+        double without = Politics.SecessionPressure(w, c, r, cap, stance, ti);
+        Assert.Equal(Expect(0.0), without, 12);
+        Assert.True(with > without * 1.2, "文化の違いが圧を上げない");
+        // 計器の口は同じ関数（関税の姿勢は w.Tariff×2−1・州の関税の利害は r.TariffInterest を読むだけ）
+        r.Culture = "乙"; r.TariffInterest = ti;
+        Assert.Equal(System.BitConverter.DoubleToInt64Bits(with), System.BitConverter.DoubleToInt64Bits(Instruments.RpPressure(w, r)));
     }
 
     [Fact]

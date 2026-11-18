@@ -6,7 +6,7 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string RulePowerHeaderText = "quarter\tyear\tnation\tregion\ttier\tpopK\tqIndex\tnIndex\ttauIndex\tlNationIndex\twNationIndex\twEngageNationIndex\thNationIndex\toNationIndex\toWorldShare\tnavalNationIndex\tnavalAllocIndex\t"
-        + "fStateIndex\tfInterIndex\tfResistIndex\tfPushbackIndex\tfUngovIndex\tfForeignRawIndex\tfForeignSumIndex\tfForeignTopIndex\tforeignTopKey\tpressureIndex\tinterRatioIndex\t"
+        + "fStateIndex\tfInterIndex\tfResistIndex\tfUngovIndex\tfForeignRawIndex\tfForeignSumIndex\tfForeignTopIndex\tforeignTopKey\tpressureIndex\tinterRatioIndex\t"
         + "interShare\tkappaIndex\townerSideShare\tlocalSideShare\tforeignSideShare\tungovSideShare\tclassSumShare\tbestClass\tnowBestClass\tnowRule0Share\tnowRule1Share\tnowRule2Share\tnowRule3Share\tnewRule0Share\tnewRule1Share\t"
         + "rhoNewIndex\trhoSourceCode\treachGreatCircleIndex\trhoDirectRailGateIndex\trhoDirectNoRailIndex\trhoDirectFullRailIndex\tdirectKm\tdirectLandFlag\trailCapacityIndex\topenQualFlag\topenDiffIndex\tphiStarIndex"
         // trhoNoFreezeIndex〔履歴 InstrumentsRulePower.cs#2〕
@@ -18,19 +18,19 @@ public static partial class Instruments
     internal const string RulePeaceHeaderText = "quarter\tyear\twinner\tloser\tscoreIndex\tmonths\tloserRegionCount\ttakenCount\ttakenPopShare\tflowIndex\tloserLandIndex\twinnerLandIndex\tphiStarMedianIndex\tgreatCircleOnlyTakenCount";
 
     /// <summary>力の式の結果（陸軍力の単位）。</summary>
-    internal readonly record struct RpForces(double FS, double FI, double FR, double A, double FU);
+    internal readonly record struct RpForces(double FS, double FI, double FR, double FU);
 
-    /// <summary>州の力（設計 §3-2 の表）：F_S＝国内の分(hShare＝H_n×人口の取り分×ρ)／F_I＝N×τ×RuleInit[1]×仲介者の比／F_R＝N×圧力÷閾値／A＝0 の定数〔(1193) で入力の国民意識が消えた〕／F_U＝N×τ×RuleInit[3]。
+    /// <summary>州の力（設計 §3-2 の表）：F_S＝国内の分(hShare＝H_n×人口の取り分×ρ)／F_I＝N×τ×RuleInit[1]×仲介者の比／F_R＝N×圧力÷閾値／F_U＝N×τ×RuleInit[3]。
     /// 純関数（NaN は 0 として扱う＝否定形の守り）。計器とエンジン（段 C′）が同じ関数を呼ぶ。</summary>
     internal static RpForces RulePowerForces(double n, double tau, double hShare, double ruleInit1, double interRatio, double ruleInit3, double pressure, double secessionThreshold)
     {
         static double P(double x) => x > 0 ? x : 0;
-        const double a = 0.0;   // (1193) で入力〔国民意識〕が消えた＝A は 0 の定数。導き直すか A ごと消すかは設計の材料の席〔支配の力の設計 §3-2〕。A が正に戻るときは中核の割合で F_S と F_R に割る式を戻す
-        double fS = P(hShare) + a;
+        // (1214) 押し返し A は消した（(1193) で入力〔国民意識〕が消えて 0 の定数だった・11-12 の読みは案丙＝輪の閉じ方で満たす）。F_S は国内の分だけ・F_R は圧力の分だけ。
+        double fS = P(hShare);
         double fI = P(n) * P(tau) * P(ruleInit1) * P(interRatio);
-        double fR = secessionThreshold > 0 ? P(n) * P(pressure) / secessionThreshold + a : a;
+        double fR = secessionThreshold > 0 ? P(n) * P(pressure) / secessionThreshold : 0.0;
         double fU = P(n) * P(tau) * P(ruleInit3);
-        return new RpForces(fS, fI, fR, a, fU);
+        return new RpForces(fS, fI, fR, fU);
     }
 
     /// <summary>4 区分の割合（設計 §3-5・§3-6）：持ち主の側＝F_S＋κ×F_I／自立した在地＝(1−κ)×F_I＋F_R／外国＝Σ F_f／無統治＝F_U を 力の和 で割る。和が 0 以下なら全て NaN（寄せない）。
@@ -48,6 +48,9 @@ public static partial class Instruments
         if (u > bv) { best = 3; }
         return (o, l, fo, u, tot, best);
     }
+
+    /// <summary>(1214) 州 r の分離の圧（エンジンの CheckSecession と同じ関数）。関税の姿勢は w.Tariff×2−1・州の関税の利害 r.TariffInterest は書かずに読むだけ（前の四半期のエンジンの値）。</summary>
+    internal static double RpPressure(World w, Region r) => Politics.SecessionPressure(w, w.Coef, r, w.Regions[0], w.Tariff * 2 - 1, r.TariffInterest);
 
     static string RpR(double v) => double.IsNaN(v) ? "nan" : double.IsInfinity(v) ? (v > 0 ? "inf" : "-inf") : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
 
@@ -201,9 +204,7 @@ public static partial class Instruments
             {
                 var r = nn.Regs[k];
                 double popK = Math.Max(0, r.SumPopulation());
-                double crowd = Politics.RegionCrowd(r);
-                double press = Politics.AvgRegionMilitancy(r)
-                    * (1.0 - PoliticalQuantities.Clamp01(Politics.RegionAvgSuffrageInclusion(nn.W, r))) * (crowd > 0 ? crowd / (crowd + c.ColonyPromotionMinPop) : 0.0);
+                double press = RpPressure(nn.W, r);   // (1214) エンジンの分離の圧と同じ関数（Politics.SecessionPressure）。州の関税の利害は前の四半期のエンジンの値を読むだけ
                 var rr = new RpReg { R = r, PopK = popK, N = popK * st.Q, Pressure = press, Y = RpOutputValue(r) };
                 // 大圏の届き（今）
                 var rc = Places.Coord(r.Name);
@@ -218,7 +219,7 @@ public static partial class Instruments
                 double ri0 = r.RuleInit.Length > 0 ? r.RuleInit[0] : 0, ri1 = r.RuleInit.Length > 1 ? r.RuleInit[1] : 0;
                 rr.Kappa = ri0 > 0 ? Math.Min(1.0, (r.Rule.Length > 0 ? r.Rule[0] : 0) / ri0) : 1.0;
                 double fiProbe = rr.N * 1.0 * ri1 * nn.InterRatio;   // τ 抜きの比（i は τ に依らない）
-                double frProbe = rr.N * rr.Pressure / c.SecessionThreshold;   // (1193) 国民意識を消した＝設計 §3-2 の A の項（N×国民意識×外国の取り分）は 0
+                double frProbe = rr.N * rr.Pressure / c.SecessionThreshold;   // 圧はエンジンと同じ関数（(1214)）
                 rr.I = fiProbe + frProbe > 0 ? fiProbe / (fiProbe + frProbe) : 1.0;
                 rr.OwnerWeight = (r.Rule.Length > 0 ? r.Rule[0] : 0) + (r.Rule.Length > 1 ? r.Rule[1] : 0) * rr.I * rr.Kappa;
             }
@@ -383,7 +384,7 @@ public static partial class Instruments
                     // 開幕の自己検査（最初に見た四半期の行だけ）
                     bool first = st.Seen.Add(r);
                     double ri0 = r.RuleInit.Length > 0 ? r.RuleInit[0] : 0, ri1 = r.RuleInit.Length > 1 ? r.RuleInit[1] : 0, ri2 = r.RuleInit.Length > 2 ? r.RuleInit[2] : 0, ri3 = r.RuleInit.Length > 3 ? r.RuleInit[3] : 0;
-                    bool qual = first && ri0 > 0 && rr.HShare > 0 && f.FR == 0 && ri2 == 0 && rr.ForeignSum == 0 && r.ForeignShares.Length == 0 && f.A == 0;
+                    bool qual = first && ri0 > 0 && rr.HShare > 0 && f.FR == 0 && ri2 == 0 && rr.ForeignSum == 0 && r.ForeignShares.Length == 0;
                     double openDiff = double.NaN;
                     if (qual && cls.Total > 0)
                     {
@@ -395,7 +396,7 @@ public static partial class Instruments
                     double phi = f.FS > 0 ? Math.Max(0, (maxOther - rr.Kappa * f.FI) / f.FS) : double.NaN;
                     string cn = cls.Best >= 0 ? RpClassNames[cls.Best] : "none";
                     sb.Append(string.Join('\t', I(q), I(nn.W.Year), nn.Key, r.Name, r.Tier.ToString(), F(rr.PopK), F(st.Q), F(rr.N), F(rr.Tau), F(nn.L), F(nn.WA), F(nn.WB), F(nn.H), F(nn.O), F(totO > 0 ? nn.O / totO : double.NaN), F(nn.Navy), F(rr.NavalAlloc),
-                        F(f.FS), F(f.FI), F(f.FR), F(f.A), F(f.FU), F(rr.ForeignRaw), F(rr.ForeignSum), F(rr.ForeignTop), rr.TopKey, F(rr.Pressure), F(nn.InterRatio),
+                        F(f.FS), F(f.FI), F(f.FR), F(f.FU), F(rr.ForeignRaw), F(rr.ForeignSum), F(rr.ForeignTop), rr.TopKey, F(rr.Pressure), F(nn.InterRatio),
                         F(iShare), F(rr.Kappa), F(cls.Owner), F(cls.Local), F(cls.Foreign), F(cls.Ungov), F(cls.Owner + cls.Local + cls.Foreign + cls.Ungov), cn, RpClassNames[nb], F(nr[0]), F(nr[1]), F(nr[2]), F(nr[3]),
                         F(cls.Total > 0 ? f.FS / cls.Total : double.NaN), F(cls.Total > 0 ? (f.FI + f.FR) / cls.Total : double.NaN),
                         F(rr.Rho), I(rr.RhoSource), F(rr.RhoGc), F(rr.RhoRailGate), F(rr.RhoNoRail), F(rr.RhoFullRail), F(rr.DirectKm), rr.DirectLand ? "1" : "0", F(nn.W.RailCapacity), qual ? "1" : "0", F(openDiff), F(phi),
