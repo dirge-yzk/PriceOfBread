@@ -1,0 +1,31 @@
+(1199) c120nk 結果の記録  2026-11-18  担当 Sonnet 5.5
+木：D:/PoB_work/wt_c120nk  HEAD 172ac2315（項 1）まで測った。この記録のコミットは測った木の外（measurements だけ）。
+作ったフォルダ：D:/PoB_work/c120nk_work（ident・identmut・ログ）・c120nk_art・c120nk_art2・wt_c120nk・wt_c120nk_mut
+
+判定: 恒等（測った種で一致）＝ ident.sh run c120nk（段 2・宣言なし・--tests-delta 0・--saveleak）
+- 素の 5 種：全行バイト一致（182 行）・.cost 件数の行 45 本・推定 237.2 秒・基準 b5_20261118_m1198 と同じ。
+- 計器つき 10 種：全行バイト一致（182 行）・.cost 推定 238.7 秒・基準 b10_20261118_m1198_ins と同じ。
+- 計器の表：基準 1559 本・腕 1559 本・バイト一致 1519・既知の揺れ 40・宣言の無い違い 0（rulepower_s はバイト一致の側）。
+- 注視の表：タグの行以外が一致（4831 行）。
+- テストの数：Category!=FullLength 2903（基準 2903）・FullLength 3（基準 3）＝予言どおり ±0。
+- savetest OK・leakhunt 完走・保存則違反なし。
+生の後始末：計器の表の生 ident/out_ib_10（26GB・基準とバイト一致 1519＋既知の揺れ 40）は sha1 の一覧（m1199_20261118_ins_sha1.txt・1559 表）を置いてから刈った。M2 の生・art・wt_c120nk_mut も消した。残す：D:/PoB_work/c120nk_work（ident のログ・trx・成績表）。
+成績表の写し：measurements/b5_20261118_m1199nk（.cost・.manifest）・b10_20261118_m1199nk_ins（同）。表ごとの sha1：m1199_20261118_ins_sha1.txt。
+
+フルスイート（Release・trx は D:/PoB_work/c120nk_work/full_*.trx）：Tests 2669（合格 2668・スキップ 1・赤 0）＋Tests.Ui 234（赤 0）＝2903。FullLength は回していない（試験の数 3 は --list-tests で一致・器の挙動を変えない恒等の線）。
+㉘ 走査の番人（OpeningBakeTests|RulePowerTests|MilitaryTests|DormantIdentityTests|IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests）：225 緑・0 赤。件数の番人を書き換えた件数＝0（予言どおり）。
+
+突然変異
+- M1（a の定数を 1e-3）：単体で赤＝RulePowerTests.P2・P4 の 2 本が赤（measurements/m1199_20261118_mut_M1_unit.txt）。ident の計器の表では回していない（D: の空き 62GB＝計器つき 10 種を重ねる余裕が無く、単体の赤で名乗る）。
+- M2（平時の植民地の遺恨の枝を戻す）：ident の素の 5 種が不一致（行数 180 対 182・違う行 169・.cost の件数の行 45 本・推定 238.2 秒対 237.2 秒）。判定: 不一致（measurements/m1199_20261118_mut_M2_ident.txt）。
+
+テストの書き換え（★(743)）
+- RulePowerTests.cs:95・:107・:115（呼び出しの引数を 3 つ減らす・② ③ の型＝期待の式は同じ）。
+- RulePowerTests.cs:110〜:111（P2 の A の盤面）：消す入力を名指す前提＝区分 ④ の置き換え。A＝0・FS＝0・FR＝0 の Assert と、hShare 7・圧力ありで FS＝7・FR＝N×圧力÷閾値 の Assert に置き換えた（弱めていない）。Fact の数は変わらない。
+- DormantIdentityTests.cs：DormantZeroFields から PeacetimeConscriptGrievance 1 行を外し RetiredFields へ 1 行（名簿の移動）。
+- 派生の表（★(764) 追記 ①）：opening_bake.json の頭書き inputHash 0d92ff715b5c0a73 → 4cdf6780e2c8b447（world.json の 2 行を消したため・表の中身は不変・OpeningBakeTests 2 本が赤→緑）。
+
+README の直した行（docs/README.md）：:153・:157・:159・:162・:194・:203（打消し線＋〈2026-11-16 で記録だけへ〉）。README_線の担当.md は直す行 0（該当は新しい決まりの行・打消し済み・記録の意味の行だけ）。
+
+足した計器の列：0。新しい係数・状態：0。.cost：件数の行 45 本・推定ともに m1198 と同じ（使う量 0 秒）。
+腕の枠で待った時間：0（arms.sh free は 4〜6）。覗いた回数・前面の待ちは waitmark を使った（約 45 回・どれも 238 秒以下）。hook に止められた回数：1（時間待ちを打とうとして分類器に止められた＝言い換えずに止めて bg.sh と waitmark へ切り替えた）。

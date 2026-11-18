@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 # (1094) S14 の台帳の行（12 列）を TSV に書く。数は out_freq.txt・out_drift.txt・out_readers.txt から写した（M の値・括弧は N1／N2／S11 の幅）。
 # 使い方: python -X utf8 -I mk_ledger.py <out.tsv>
 import sys

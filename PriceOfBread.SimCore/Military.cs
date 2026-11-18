@@ -149,8 +149,7 @@ public static class Military
             if (wartimeConscript) { desired = Math.Max(desired, conscriptFrac * lawFrac * manpower); rate = c.ConscriptionRatePerMonth.Value; }
             double delta = rate * (desired - soldier.Size);
             if (!(delta > 0)) continue;
-            bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && !wartimeConscript && (r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]));
-            DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript || peacetimeColonial, peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0, DraftAgeHi(w));
+            DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript, DraftAgeHi(w));
         }
 
         double sSize = w.SoldierSizeK();
@@ -182,7 +181,7 @@ public static class Military
         if (!(w.NavalFuelFillEma >= 0 && w.NavalFuelFillEma <= 1)) w.NavalFuelFillEma = 1.0;
     }
 
-    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double grievanceScale, double draftHi)
+    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double draftHi)
     {
         double sa = a?.Size ?? 0, sb = b?.Size ?? 0, pool = sa + sb;
         if (pool < 1e-9) return;
@@ -192,8 +191,8 @@ public static class Military
         MoveCohort(b, soldier, db, c, draftHi);
         if (conscription && c.ConscriptGrievanceRate > 0)
         {
-            if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * grievanceScale * (da / sa));
-            if (b is not null && sb > 1e-9 && db > 1e-12) b.Militancy = Math.Min(1, b.Militancy + c.ConscriptGrievanceRate * grievanceScale * (db / sb));
+            if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * (da / sa));
+            if (b is not null && sb > 1e-9 && db > 1e-12) b.Militancy = Math.Min(1, b.Militancy + c.ConscriptGrievanceRate * (db / sb));
         }
     }
 

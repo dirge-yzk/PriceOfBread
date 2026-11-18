@@ -17,7 +17,6 @@
    "govDebtToGdpYear": 0.56,
    "pollTaxStage": 2,
    "landTaxStage": 2,
-   "nationalConsciousness0": 0.1,
    "initialTariff": 0.25,
    "industrialization": 0.25,
    "initialColonies": [
@@ -580,7 +579,6 @@
    "treasury": 0,
    "treasuryMonths": 2.5,
    "govDebtToGdpYear": 0.4,
-   "nationalConsciousness0": 0.32,
    "initialTariff": 0.1,
    "industrialization": 0.2,
    "initialSuffrage": "Census",

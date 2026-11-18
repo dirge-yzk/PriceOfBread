@@ -1,0 +1,44 @@
+(1199) c120nk 事前登録（腕・コミットの前に固定する）  2026-11-18  担当 Sonnet 5.5
+木：D:/PoB_work/wt_c120nk・枝 c120nk・出発 c68e09bfb（main＝m1198）
+
+[1] 種類と予言
+- 恒等の線（束 3 項）。新しい係数・状態は 0。挙動は変わらない。予言＝素の 5 種・計器つき 10 種が m1198（b5_20261118_m1198・b10_20261118_m1198_ins）と名乗り行を除いて全行バイト一致。
+- 〈判定: 恒等〉なら〈測った種で一致〉と名乗る（〈証明〉と書かない）。
+- 計器の表の差は宣言だけ。宣言する表＝無い見込み（rulepower_s の列と行は変えない＝A は 0 の定数のまま列に出る）。
+
+[2] 消す物と残す物
+項 ① nd の後片付け
+ 消す：Instruments/InstrumentsRulePower.cs RulePowerForces の引数 consciousness・xForeign・coreShare（:25）。a は `const double a = 0.0;` の 1 行で残す（注＝(1193) で入力が消えた・導き直すか A ごと消すかは設計の材料の席）。
+   fS＝P(hShare)+a・fR＝(…)+a に畳む（a＝+0.0 なので x+0.0＝x でバイト同一。旧は a*core・a*(1−core)＝+0.0×有限値＝+0.0。core は P(coreShare) を 1 で頭打ちした有限値・n は有限）。
+   呼び手 :302・:456 の 0.0・rr.X・rr.Core の 3 引数を消す。RpReg の X・Core（:130）と、:208〜:214 の x の外国の取り分の合計の計算と :215 の X=・Core= を消す＝読み手は :302・:456 の 2 か所だけ（grep 済み）・副作用の無い読みだけの計算。
+   残す：RpForces の A・rulepower_s の列（設計の席の決定を先取りしない）。
+ 試験：RulePowerTests.cs:95・:107・:115 は呼び出しの引数を 3 つ減らすだけ（★(743) ③ の型＝式と期待は同じ）。:110〜:111 の〈A が外国の取り分で立つ〉は消える入力を名指す前提＝★(743) ④ に当たる書き換え（A は常に 0 になった）。期待を A＝0・FS＝hShare＝0・FR＝0 の Assert へ置き換える（弱めない＝同じ入力の盤面で 0 を明示）。Fact の数は変えない。
+ world.json:20・:583 の "nationalConsciousness0"：読み手 0（SimCore・Runner・App・Display・Tests・POB_COEF・SaveGame を grep 済み＝NationConfig に欄が無い）。scripts/instruments/m247 の 2 本は古い台本の辞書に名があるだけ（触らない）。
+ ★(764)：world.json は埋め込みの資源＝OpeningBake.InputHash が変わる。opening_bake.json の頭書き inputHash（0d92ff715b5c0a73）だけを新しい値へ書き換える（表の中身は不変＝消す鍵は誰も読まない・旗 OpeningBakeEnabled＝0 で開かれない）。★(764) 2026-11-02 追記の ①（入力ハッシュに触れた派生の表）。新しい値は OpeningBakeTests の期待（別の組み立て）が出す値から取る＝同じ出所にしない。OpeningBakeTests 2 本が前後で赤→緑。他の表・件数の番人は動かない見込み。
+ 台本の注：c118nc の floor_count.py・secfac.py・fas659・ic2・r1094・r1155・r1162・r1182・r1189/k1_attr.py・r950/r950_sec.py・r986/r986_terms.py・rd48/sec_terms.py の頭に〈(1193) で欄が消えた・旧の生でだけ動く〉の注。m1191/arms1191.sh の腕 Aur に〈(1193)(1195) で消えた〉の注。中身は変えない。
+ docs/202611/20261112/ の支配の力の設計 §3-2 の行に 1 行（A の入力〈国民意識〉が (1193) で消えた）。
+項 ② k3 の後片付け
+ 消す：Military.cs:152 の peacetimeColonial の宣言・:153 を `DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript, DraftAgeHi(w))`・:185 の引数 grievanceScale（呼び手は :153 の 1 か所・grep 済み）・:193〜:194 の `* grievanceScale`（旧は ×1.0＝バイト同一・平時の分岐は既定 0 で常に偽）。
+ 係数 PeacetimeConscriptGrievance（Coefficients.p08_audit_soldiers.cs:118）を消す。DormantIdentityTests.cs:104 を DormantZeroFields から外して RetiredFields へ。
+ docs/history/Coefficients.p08_audit_soldiers.cs.md・Military.cs.md に墓標。係数の読み手の番人（係数は全て本体のどこかで読まれる）に影響なし（消す欄の名前が減るだけ）。
+項 ③ README の門の古い行（docs だけ）
+ docs/README.md の打消し線の無い行のうち、ヌル腕の幅を門か反証の高にする文を (1185) の作法（打消し線＋〈2026-11-16 で記録だけへ〉）で直す：:153（両側の門 fixgate の当て）・:157（★(866) の〈ヌル腕の幅で閾値を置く〉）・:159（★(879) の〈効きがヌル腕の幅の内なら腕を回さない〉）・:162（★(912) の〈一つ抜きの空振りの率〉）・:194（★(1157) の〈ヌル腕の同じ窓・一つ抜き〉）・:203（★(919) の〈ヌル腕の幅は旗 1 の木の新しいヌル腕でも読み直す〉）。行は消さない。
+ :180・:192・:201・:203 前半は〈ヌル腕の幅で別に読む・並べて記録〉＝記録の意味なので直さない。:100・:107・:142・:223 は新しい決まり自身。
+ docs/README_線の担当.md：該当の行（:46・:53・:61・:66・:71・:144）は新しい決まりか打消し済みか記録の意味＝直す行 0。
+
+[3] 試験・突然変異・走査の番人
+- 足す試験：無し（RulePowerTests P2 を置き換えるだけ・Fact 数は不変）。試験の数の予言＝Tests 2669（スキップ 1）＋Tests.Ui 234＝2903・FullLength 3＝±0。
+- 突然変異：M1＝a の定数を 1e-3 へ → RulePowerTests P2 の A＝0 の Assert が赤＋ ident で rulepower_s が赤。M2＝Military.cs:152 の平時の植民地の遺恨の枝を戻し係数 1.0 → ident の素の 5 種が赤（遺恨の分だけ militancy が動く）。M1・M2 は 1 本の使い捨ての木に重ねて ident（段 2・表の差は表ごとに帰属＝rulepower_s は M1・それ以外と b5 は M2）。
+- ㉘ 走査の番人：RulePowerTests・MilitaryTests・DormantIdentityTests・OpeningBakeTests に加え IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests。件数の番人を書き換える予言＝0 件（WriterRatchetTests の宣言の表・route_anchors.tsv の鍵の行・new MoneyStock( の件数は触らない）。DormantIdentityTests は RetiredFields の 1 行増と DormantZeroFields の 1 行減。
+- ㉑ 走査の件数：消える RulePowerForces の呼び出しは 4 本の試験の行のまま（引数だけ）。
+
+[4] 段 2・合否
+- 段 2（計器のファイルに触る）。ident：素の 5 種・計器つき 10 種を m1198 と全行比較。基準＝ident.cfg の B5・B10INS・INSRAW。
+- 浮動小数の順序が変わる箇所：fS・fR の `a*core` → `+a`（a＝+0.0＝恒等）・DrawFromPool の `×grievanceScale(1.0)`（恒等）。同じ盤面での旧≠新の行＝0 と見込む（紙の台本は a＝+0.0 と有限の core なので自明。a が NaN になる唯一の道は N＝∞だが N は人口×Q で有限）。
+- 計算量：.cost の件数の行は不変（計器の中の死んだ計算を消すだけ・計器を切った既定の経路には載らない）。使う量 0 秒。
+- D:：ident 約 30GB・突然変異 1 本約 30GB＝直前に shutil で測り 35GB＋その量に届かなければ起こさない。
+
+[5] 重なり（他の線との）
+- Military.cs は :150〜:153・:185〜:205 だけ。DormantIdentityTests は RetiredFields と DormantZeroFields の各 1 行（k11・t2 も足す＝合流で両方を残す）。world.json は :20・:583 の 2 行。
+- 触らない：§3-2 の A の導き直しか削除（設計の席）・志願制の植民地の徴募の根（rh）・App の _histCons。
+- 作者の裁定を推奨で上書きした物：k3 は推奨 (a)〈作者「しばらくの間、全て推奨で」で推奨を採った〉で閉じる（3 回目を回さない）。

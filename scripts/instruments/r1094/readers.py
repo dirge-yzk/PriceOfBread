@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 # (1094) S14 の名ごとの読み手の数（コードの行と注の行を分ける・範囲＝SimCore/App/Runner/Tests/XAML/scripts/measure.sh/measurements の .py/.sh/docs）
 # 使い方: python -X utf8 -I readers.py <repo> <out>
 import os, re, sys

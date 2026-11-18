@@ -1,3 +1,4 @@
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 # (1155) 分離の圧と保持の内訳（格ごとの中央・上位 1%）。使い方: secparts.py <生のフォルダ> <種の最初> <種の最後>
 import sys, os, csv, statistics as st
 D, S0, S1 = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]); sys.stdout.reconfigure(newline='\n')

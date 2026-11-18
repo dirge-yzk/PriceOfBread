@@ -101,7 +101,6 @@ public class DormantIdentityTests
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
         // ★PriceLawSupplyIncludesStock と TradeBuyerSolvesAtUnitPrice は 2026-09-08 に 1.0 で**対で点火**（腕 price2b）＝この表から外した。
-        "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
         // ★TreatyPortHomeOnly（(1138) c111tp 条約港の読み手から植民地格の港を外す）は 2026-11-14 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は RuleSharesFormTests の D3 の 2 本（旗 0 を明示）・旗 1 は TreatyPortHomeOnlyTests。
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
         // ★ColonyPlantationRent（実バグ B5＝植民地格の昇格州に大農園の地代）は 2026-10-02 (173) で**点火**（R1＋c6・旗ごと削除）＝この表から外した。
@@ -353,6 +352,7 @@ public class DormantIdentityTests
         "UrbanCapOff", "BaseUrbanCap", "UrbanPerInd", "UrbanCapFollowSpeed", "UrbanIndSmoothed",   // 都市化の天井の旗と目盛り・Region の平滑化の状態（A3）
         // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と、既定 0 で差し戻し・棄却・採否未決だった休眠 5 本（作者 2026-10-25 の答え〈推奨で消す〉）。
         // 期待値の出所は実装ログ (551) の削除の一覧を手で写した名簿。TradeCheapSellSubsidy は古い設計の一覧 H21（波27 貿易の線 R-a）の予定が生きているので残した。
+        "PeacetimeConscriptGrievance",   // (1199) c120nk：支配度doc §15 の平時の植民地徴募の遺恨（既定 0 の器・(1194) で 1.0 を採らず分岐ごと消した）
         "NationalConsciousnessCorruptionWeight",   // (798) c11dm：国民意識の蓄積の門の左の項（既定 0.2 で常に真・他の読み手なし〔Coefficients の注にあった World.civicCarriesEthnic は存在しない〕）。試験〈係数は全て本体のどこかで読まれる〉が門を消した後に赤で知らせた
         "UpkeepDistanceGeneral",   // (804) c12ds：既定 1.0 の距離の物差し（×1.0 の因子の除去・読み手は Fiscal.AdminDistanceMulOfKm・Fiscal の行政の距離の割増）
         "InlandPortDistanceDecay",   // (804) c12ds：既定 1.0 の距離の物差し（×1.0 の因子の除去・読み手は InternationalMarket.InlandRailAfterDecay と計器 portch_s の railDecay の 2 列）
