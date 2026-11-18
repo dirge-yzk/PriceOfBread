@@ -9,7 +9,7 @@
 # 何を回すか（腕は同時に走る＝batch.sh の上限 POB_MAX_ARMS を守る）：
 #   a ＝ 素の 5 種            batch.sh prep→run ia 5            ─ 成績表 b5 を基準の素の 5 種と全行（名乗り行を除く）で突き合わせる
 #   b ＝ 計器つきの 10 種      INS=1 batch.sh run ib 10          ─ 成績表 b10・計器の表（約 380 本×10 種）・注視の表を基準と突き合わせる（計器の国は batch.sh の 9 国の既定）
-#   t ＝ テストの数            Tests をビルドして --list-tests   ─ Category!=FullLength と FullLength の数を基準と突き合わせる
+#   t ＝ テストの数            Tests をビルドして --list-tests   ─ Category!=FullLength と FullLength の数を基準と突き合わせる（(1206) 件数だけ＝赤の試験が有っても〈判定: 恒等〉は付く・赤の有無は ㉘ とフルスイートで見る）
 #   s ＝ savetest と leakhunt  （--saveleak を付けたときだけ）  ─ saveleak.sh：savetest OK と leakhunt の保存則違反なし
 # 測るのは --tree の木（既定＝この台本のある木）。回す道具（batch.sh・measure.sh は木の物）。基準は ident.cfg（--cfg で替える。合流で新しい基線を作ったら cfg を書き換える）。
 #

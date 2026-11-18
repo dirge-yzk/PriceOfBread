@@ -1,0 +1,21 @@
+(1206) c121ca 突然変異の結果（in-place・使い捨て・git checkout で戻した）
+== M1 強制の量から db を落とす（Military.cs）
+  失敗 PriceOfBread.Tests.CaInstruments1206Tests.T1_徴募の引きの列は平時の量と戦時の強制の量と足した闘争度を州の格ごとに盤面の素の値と一致させる [69 ms]
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+== M2
+  失敗 PriceOfBread.Tests.CaInstruments1206Tests.T1b_計器が切れている時は徴募の引きを貯めない [64 ms]
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+== M3
+  失敗 PriceOfBread.Tests.JobPoolTemperatureGuardTests.既定の温度は手計算のsoftmaxの取り分と一致する [37 ms]
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+== M4
+  失敗 PriceOfBread.Tests.CaInstruments1206Tests.T2_必要の充足の貯めは盤面のPOPの充足と一致する [2 s]
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M5
+  失敗 PriceOfBread.Tests.CaInstruments1206Tests.T3_外しの行はリンクが在った時だけ1行出て国の消滅でも出る [124 ms]
+  エラー メッセージ:
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)

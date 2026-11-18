@@ -1959,6 +1959,7 @@ public static partial class Instruments
         MintregTable(sim, seed, q);        // MintregTable（(1168) 造幣の床の効き・mintreg_s）
         MintcapTable(sim, seed, q);        // MintcapTable（(1180) 造幣の買いの置き場・mintcap_s）
         SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
+        SatNeedsTable(sim, seed, q);       // SatNeedsTable（(1206) 必要の充足の内訳・satneeds_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -2004,6 +2005,7 @@ public static partial class Instruments
         MintregClose(sim);     // MintregClose（(1168)）
         MintcapClose(sim);     // MintcapClose（(1180)）
         SoldierVacClose(sim);  // SoldierVacClose（(1166)）
+        SatNeedsClose(sim);    // SatNeedsClose（(1206)）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕
@@ -2444,6 +2446,13 @@ public static partial class Instruments
             foreach (var (year, war) in dip.Wars)
                 wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi++)));
         }
+        using (var wp = Open("warpolity", sk.Seed))   // (1206) 反乱側の政体と親の政体（wars_s の末尾を試験が読む＝別の表・行は wars_s と同じ順）
+        {
+            wp.WriteLine("startYear\tsideA\tsideB\tcivilWarFlag\trebelPolity\tparentPolity");
+            int pi = 0;
+            foreach (var (year, war) in dip.Wars)
+                wp.WriteLine(string.Join('	', year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(war.A), NameOf(war.B), war.CivilWarParent is not null ? "1" : "0", WarPolityCols(dp, pi++)));
+        }
         using (var iv = Open("invade", sk.Seed))
         {
             iv.WriteLine("year	invader	target	targetIsNation	submitted	proximityAdded	addedToTarget	q");
@@ -2527,6 +2536,7 @@ public static partial class Instruments
         foreach (var ex in ext289) cols.Add(ex.Value);
         var ext329 = Extras329(w);   // ext329〔履歴 Instruments.cs#465〕
         foreach (var ex in ext329) cols.Add(ex.Value);
+        cols.Add(w.SelfPower?.Name ?? "");   // (1206) displayName（Power.Name＝成立・付け替えの後の表示名）
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -2548,7 +2558,7 @@ public static partial class Instruments
                 + string.Join('\t', ext286.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext287.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext289.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext329.Select(e => e.Name)));
+                + string.Join('\t', ext329.Select(e => e.Name)) + "\tdisplayName");
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));

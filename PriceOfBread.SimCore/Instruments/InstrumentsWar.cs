@@ -46,6 +46,7 @@ public static partial class Instruments
     {
         public int NextQ;
         public readonly List<(int Q, int Code)> WarMeta = new();
+        public readonly List<string> WarPolity = new();   // (1206) wars_s の rebelPolity・parentPolity（dip.Wars と同じ順）
         public readonly List<int> InvadeQ = new();
         public int TagCode = 0, TagA = -1, TagB = -1;
         public readonly Dictionary<int, WarEntryAcc> Entry = new();
@@ -83,11 +84,13 @@ public static partial class Instruments
         st.TagCode = 0;
         if (code == 0 && war.CivilWarParent is not null) code = war.CivilWarSecession ? 10 : 6;
         st.WarMeta.Add((st.NextQ, code));
+        st.WarPolity.Add(war.CivilWarParent is null ? "-"+"	"+"-" : war.CivilWarPolity.ToString() + "	" + (war.CivilWarParent.Nation?.Polity.ToString() ?? "-"));   // (1206) 反乱側の政体（蜂起の時に決めた物）と親の政体（蜂起の時）
         st.QStarts[code]++;
         var acc = PairAccOf(st, war.A, war.B);
         acc.Starts++;
     }
     internal static void WarNoteInvade(Diplomacy d) => WarOf(d).InvadeQ.Add(WarOf(d).NextQ);
+    internal static string WarPolityCols(Diplomacy d, int i) { var st = WarOf(d); return i < st.WarPolity.Count ? st.WarPolity[i] : "-"+"	"+"-"; }
     static string WarMetaCols(Diplomacy d, int i)
     {
         var st = WarOf(d);

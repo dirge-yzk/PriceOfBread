@@ -149,7 +149,7 @@ public static class Military
             if (wartimeConscript) { desired = Math.Max(desired, conscriptFrac * lawFrac * manpower); rate = c.ConscriptionRatePerMonth.Value; }
             double delta = rate * (desired - soldier.Size);
             if (!(delta > 0)) continue;
-            DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript, DraftAgeHi(w));
+            DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript, DraftAgeHi(w), w, r);
         }
 
         double sSize = w.SoldierSizeK();
@@ -181,7 +181,7 @@ public static class Military
         if (!(w.NavalFuelFillEma >= 0 && w.NavalFuelFillEma <= 1)) w.NavalFuelFillEma = 1.0;
     }
 
-    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double draftHi)
+    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double draftHi, World w, Region r)
     {
         double sa = a?.Size ?? 0, sb = b?.Size ?? 0, pool = sa + sb;
         if (pool < 1e-9) return;
@@ -189,11 +189,14 @@ public static class Military
         double da = Math.Min(amount * (sa / pool), sa), db = Math.Min(amount * (sb / pool), sb);
         MoveCohort(a, soldier, da, c, draftHi);
         MoveCohort(b, soldier, db, c, draftHi);
+        bool insOn = Instruments.On;
+        double insMa0 = insOn ? (a?.Militancy ?? 0) : 0, insMb0 = insOn ? (b?.Militancy ?? 0) : 0;   // (1206) 計器 soldiervac_s の強制の徴募の列（On の時だけ）
         if (conscription && c.ConscriptGrievanceRate > 0)
         {
             if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * (da / sa));
             if (b is not null && sb > 1e-9 && db > 1e-12) b.Militancy = Math.Min(1, b.Militancy + c.ConscriptGrievanceRate * (db / sb));
         }
+        if (insOn) Instruments.SoldierVacDraw(w, r, conscription, da + db, (a is null ? 0 : (a.Militancy - insMa0) * a.Size) + (b is null ? 0 : (b.Militancy - insMb0) * b.Size));
     }
 
 

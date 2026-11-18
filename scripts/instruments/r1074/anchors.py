@@ -1,3 +1,4 @@
+# (1206) 注：k3 の係数名（(1199) で消えた）を字面で読む＝(1199) 以後の木では動かない・旧の生でだけ動く（中身は変えていない）
 """(1074) 台帳の S23 の錨（file:line:名）が 7bb40c772 の木で行に名を含むかを確かめ、外れた物は同じファイルの宣言の行を探す。"""
 import subprocess, re, sys
 REPO = 'C:/Users/dirge/Documents/PriceOfBread'; C = '7bb40c772'

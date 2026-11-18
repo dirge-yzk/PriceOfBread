@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 # -*- coding: utf-8 -*-
+# (1199) 注：(1193) で欄（国民意識）が消えた・旧の生でだけ動く（中身は変えていない）
 """(395) 線 ic2 の計器の読み手（読むだけ）。
 
 使い方：PYTHONUTF8=1 python -I scripts/instruments/ic2/an_ic2.py <計器の出力フォルダ（secession_s*.tsv・factory_s*.tsv・scalars_s*.tsv がある所）> [出力ファイル]

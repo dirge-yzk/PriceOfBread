@@ -10,13 +10,15 @@ public static partial class Instruments
 {
     internal const string SoldierVacHeaderText = "year\tq\tnation\tlawCode\tatWarFlag\tregions\tzeroStart\tzeroVac\tzeroVacColonial\tzeroFilled"
         + "\tfillZeroK\tvacZeroK\toverfillZeroK\tfillPosK\toverfillPosK\teqN\teqSumLogLast\teqMaxAbsLogLast\teqSumLogNow\teqMaxAbsLogNow"
-        + "\tseatPayRate\teqSumLogK\teqMaxAbsLogK";
+        + "\tseatPayRate\teqSumLogK\teqMaxAbsLogK"
+        + "\tdrawConsHomeK\tdrawConsColonialK\tdrawConsMilPopHome\tdrawConsMilPopColonial\tdrawVolHomeK\tdrawVolColonialK";
 
     sealed class SoldierVacAcc
     {
         public int Regions, ZeroStart, ZeroVac, ZeroVacColonial, ZeroFilled, EqN;
         public double FillZero, VacZero, OverZero, FillPos, OverPos, EqSumLast, EqMaxLast, EqSumNow, EqMaxNow, K, EqSumK, EqMaxK;
         public double CurStart, CurVac; public bool CurOn;
+        public double DrawConsHome, DrawConsCol, DrawConsMilHome, DrawConsMilCol, DrawVolHome, DrawVolCol;   // (1206) 徴募の引き（Military.DrawFromPool）：強制（conscription 真）の量・足した闘争度×人口・強制でない量＝本国格／植民地格
     }
     sealed class SoldierVacSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, SoldierVacAcc> SoldierVacAccs = new();
@@ -99,6 +101,24 @@ public static partial class Instruments
         else { a.FillPos += fill; a.OverPos += over; }
     }
 
+    /// <summary>(1206) 徴募の引き（Military.DrawFromPool の本体の後）：da＋db と、強制の時だけ足した闘争度×人口（引いた後の大きさ）を州の格ごとに貯める。Instruments.On の時だけ呼ばれる。</summary>
+    internal static void SoldierVacDraw(World w, Region r, bool conscription, double moved, double milPop)
+    {
+        if (w.WarmupFrozen || !Wants("soldiervac_s")) return;
+        var a = SoldierVacAccs.GetValue(w, _ => new SoldierVacAcc());
+        bool col = r.Tier == RegionTier.Colonial;
+        if (conscription)
+        {
+            if (col) { a.DrawConsCol += moved; a.DrawConsMilCol += milPop; } else { a.DrawConsHome += moved; a.DrawConsMilHome += milPop; }
+        }
+        else if (col) a.DrawVolCol += moved; else a.DrawVolHome += moved;
+    }
+
+    /// <summary>試験用：徴募の引きの累計の写し（本国の強制・植民地格の強制・本国の闘争度×人口・植民地格の闘争度×人口・本国の強制でない量・植民地格の強制でない量）と、累計の白紙化。</summary>
+    internal static double[] SoldierVacDrawSnapshot(World w)
+        => SoldierVacAccs.TryGetValue(w, out var a) ? [a.DrawConsHome, a.DrawConsCol, a.DrawConsMilHome, a.DrawConsMilCol, a.DrawVolHome, a.DrawVolCol] : new double[6];
+    internal static void SoldierVacDrawReset(World w) => SoldierVacAccs.AddOrUpdate(w, new SoldierVacAcc());
+
     static void SoldierVacTable(MultiNationSim sim, ulong seed, int q)
     {
         if (!Wants("soldiervac_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
@@ -119,7 +139,7 @@ public static partial class Instruments
             foreach (double v in new[] { a.FillZero, a.VacZero, a.OverZero, a.FillPos, a.OverPos })
                 sb.Append('\t').Append(FR(v));
             sb.Append('\t').Append(I(a.EqN));
-            foreach (double v in new[] { a.EqSumLast, a.EqMaxLast, a.EqSumNow, a.EqMaxNow, a.K, a.EqSumK, a.EqMaxK })
+            foreach (double v in new[] { a.EqSumLast, a.EqMaxLast, a.EqSumNow, a.EqMaxNow, a.K, a.EqSumK, a.EqMaxK, a.DrawConsHome, a.DrawConsCol, a.DrawConsMilHome, a.DrawConsMilCol, a.DrawVolHome, a.DrawVolCol })
                 sb.Append('\t').Append(FR(v));
             sk.W.WriteLine(sb.ToString());
             SoldierVacAccs.AddOrUpdate(w, new SoldierVacAcc());

@@ -1874,7 +1874,7 @@ public class MilitaryTests
         var split = Arm(0.0);    // (a) 按分
         var all = Arm(100.0);    // (b) 総取り
         double T = new Coefficients().JobPoolTemperature;
-        Assert.True(T > 0, "前提が崩れた：着地の温度が0（総取りのウォーターフォール）");
+        Assert.True(T > 0, "前提が崩れた：着地の温度が 0 以下（Eps へ置き換わり按分にならない・(1200) の後は softmax の 1 本）");
         double share = 1.0 / (1.0 + Math.Exp((split.workPW - split.farmPW) / T));   // 農民の取り分（働き手1人あたりの softmax）
         Assert.True(split.toFarm > 0 && split.toWork > 0, $"(a) 按分にならない（農民 {split.toFarm}・都市労働者 {split.toWork}）");
         Assert.True(Math.Abs(split.toFarm - share * split.flow) <= 1e-9 * split.flow, $"(a) 農民の取り分 {split.toFarm / split.flow:F6} ≠ 働き手1人あたりの softmax {share:F6}");

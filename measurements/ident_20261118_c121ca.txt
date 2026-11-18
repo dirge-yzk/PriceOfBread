@@ -1,0 +1,39 @@
+=== 恒等の判定（測った種で一致） c121ca（2026-11-18 20:41:13）===
+測った木：D:/PoB_work/wt_c121ca（HEAD d6cbdc47c・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c121ca/scripts/instruments/ident/ident.cfg
+宣言：added=['satneeds_s', 'warpolity_s'] grown=['soldiervac_s', 'nation_s'] rows_grown=['dep_s'] tests_delta=6
+腕 a：rc=0 end=2026-11-18 20:25:50
+腕 b：rc=0 end=2026-11-18 20:36:10
+腕 t：rc=0 end=2026-11-18 20:13:56
+腕 s：rc=0 end=2026-11-18 20:23:46
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：32d48d4cc4b04ebd
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 32d48d4cc4b04ebd
+[素の 5 種] b5_ia_5.txt 対 b5_20261118_m1198
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261118_m1198.cost
+  ○ 件数の行 45 本・推定 237.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 32d48d4cc4b04ebd
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261118_m1198_ins
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261118_m1198_ins.cost
+  ○ 件数の行 45 本・推定 238.7 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/c121ca_work/ident/out_ib_10/ins  対  基準 D:/PoB_work/keep_1198/base_ins
+  基準 1559 本・腕 1579 本・バイト一致 1489 本
+  腕にだけある 20 本（うち宣言 20）
+  列が増えた表（--grown-ok の宣言）20 本：nation_s1.tsv+1列・nation_s10.tsv+1列・nation_s2.tsv+1列・nation_s3.tsv+1列・nation_s4.tsv+1列・nation_s5.tsv+1列
+  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）10 本・増えた行 92：dep_s+4・dep_s+5・dep_s+11・dep_s+16・dep_s+10・dep_s+10
+  既知の揺れの列だけが違う表 40 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 36898 欄）×1・cearn_s:経路の行番号だけ（写して一致 41643 欄）×1・cearn_s:経路の行番号だけ（写して一致 45049 欄）×1・cearn_s:経路の行番号だけ（写して一致 45936 欄）×1・cearn_s:経路の行番号だけ（写して一致 48218 欄）×1・cearn_s:経路の行番号だけ（写して一致 49865 欄）×1・cearn_s:経路の行番号だけ（写して一致 50061 欄）×1・cearn_s:経路の行番号だけ（写して一致 51860 欄）×1・cearn_s:経路の行番号だけ（写して一致 54482 欄）×1・cearn_s:経路の行番号だけ（写して一致 55229 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 1489・既知の揺れ 40・宣言された増減 50）
+  内訳：共通の表 1559 本＝バイト一致 1489＋既知の揺れ 40＋列が増えた 20＋行が増えた 10＋列が消えた 0＋宣言の無い違い 0＋その他 0（和 1559）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261118_m1198.txt（タグの行を除く）
+  ○ タグの行以外が一致（4831 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 2911（基準 2905+6 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等

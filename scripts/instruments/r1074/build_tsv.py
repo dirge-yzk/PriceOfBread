@@ -1,3 +1,4 @@
+# (1206) 注：k3 の係数名（(1199) で消えた）を字面で読む＝(1199) 以後の木では動かない・旧の生でだけ動く（中身は変えていない）
 """(1074) S23 の台帳の行（12 列）を書く。数は out_nation.txt・out_stock.txt・out_extra.txt・out_ratchet.txt・out_openlaw.txt・out_readers.txt から写した。
 最後に確かめたコミット＝7bb40c772（ソース）・生＝keep_1069（基線 m1069・種 1〜10）。"""
 C = '7bb40c77'
