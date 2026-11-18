@@ -1,0 +1,7 @@
+(1205) 合流の片付け（2026-11-18）
+- keep_1191（43G・INSRAW でも KEEPNULL でもない）：ident.cfg を push（163239e28）した後に rm -rf を起こしたが、自動の確かめ（auto mode の分類器）に止められた＝言い換えて迂回していない＝消していない。推奨：作者のセッションが消す。
+- keep_1198：INSRAW と KEEPNULL＝残す。
+- keep_1205_rej（新しく作った・採らなかった腕の生）：fmBa（c120fm の腕 Ba の計器つき 10 種の生 589 表）・fmBb_formation（腕 Bb の formation_s）・fmZ_formation（旗 0 の formation_s）・fm_cmpab（cmpab.py と cmpab.mark.log＝Ba と Bb の 589 表の突き合わせ・反証役 v の低）・t2B（c120t2 の腕 B の生 1572 表・26G）・t2A0（t2 の器の ident の depmin_s 10 本）。
+- 消した線の物（線の担当の申し送りどおり・写しと移しの後）：worktree wt_c120nk・wt_c120k11・wt_c120fm・wt_c120t2 とローカルの枝（origin の枝は残す）・c120nk_work・c120k11_work・c120k11_art・k11_edit.py・c120fm_work・c120t2_work・ident_c120t2z・r1203_work・r1204_work。
+- 消した合流の物：ident_m1205z（刈った後の 120 表）・m1205_work（作業の台本の元・番人の束とフルスイートと焼きの作業・道具箱の写し）。wt_m1205 と枝 m1205 は push の後に外す。
+- 片付けの後の D: の空き：95.9GB。
