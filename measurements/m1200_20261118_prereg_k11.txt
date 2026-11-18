@@ -1,0 +1,34 @@
+(1200) c120k11 事前登録（恒等の線・予言 0）  2026-11-18
+〈作者「しばらくの間、全て推奨で」で推奨を採った（11-12）〉  種類＝恒等（削除）・段の見込み＝段 1（計器に触らない）
+
+[1] 恒等の線・予言 0
+  既定（JobPoolTemperature 0.15 > 0）は旧も新も softmax の枝＝総取りの枝は到達不能。新しい係数・状態は 0。
+
+[2] 消す物と残す物
+  消す：Meritocracy.FillJobs の else 側＝総取りの枝（tried[]・while ループ・約 :400〜:425）。
+  残す（紙で読んだ結果の裁定）：UrbanHeadroom と ref urbanHeadroom の器。
+    理由：UrbanHeadroom の total≤Eps→0 は走る盤面がある。MigrationPair は州の最初の農村・都市の POP を選ぶだけで、
+    送り手 src（Size>Eps）が組の外の別の農村 POP でもよい＝組の大きさの和が 0 の首都州で残り枠 0（農村→都市の職の移しが止まる）。
+    消すと挙動が変わる＝恒等でない。よってこの線では天井を消さず、総取りの枝だけを消す。
+    （IndustrializationReaderTests の 職の移しの残枠は組の人口が0の州だけ0 がこの分岐を固定している）
+  温度 ≤0（POB_COEF で置かれた時を含む）の形：否定形の 1 つのガード
+    T = c.JobPoolTemperature > Eps ? c.JobPoolTemperature : Eps（NaN は偽へ落ちる・Eps は既存の const 1e-9・新しい定数なし）。
+    0.15 では同じ値＝同じバイト。forced の枝・softmax の式の字は変えない。
+  読み手の grep（JobPoolTemperature）：SimCore＝Meritocracy.cs と Coefficients.p03_debt_money.cs:44（欄は残す＝POB_COEF の名前解決・UnitValues・SaveGame の反射）／
+    Tests＝CriminalVesselTests.cs:228・MobilityTests.cs:127・MilitaryTests.cs:1876・UnitTypeTests.cs:206（注）／Runner・App・Display＝0／
+    scripts・measurements＝台帳 TSV の記録のみ（台本の読み手なし）。
+  他の線との重なり：Meritocracy.cs（:305〜:420）は本線だけ。fm・t2・nk の持ち主一覧と交わらない。
+  浮動小数の順序が変わる箇所：なし（式を触らない）。
+
+[3] 試験と突然変異
+  足す試験：温度が正の盤面で RouteViaPool の移る量が旧の式（試験の中で softmax を手計算）と同じ＝恒等の番人。
+    温度 0・負・NaN で移る量が有限（NaN が出ない）。
+  M1：ガードを外して T をそのまま使う（0 除算）→ 温度 0 の試験が赤。
+  M2：UrbanHeadroom を有限（0 以外）へ → 組が空の州の既存試験が赤（ident も赤の見込み）。
+  既存の温度 0 を置く試験（CriminalVesselTests.cs:244）は書き換えない（T=Eps の近似総取りでも Assert は通る見込み）。
+  ㉘ 走査の番人：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests。
+    WriterRatchetTests の宣言・DormantIdentityTests の件数を書き換える予言＝0 件。
+
+[4] 素の 5 種・計器つき 10 種は m1198 と名乗り行を除いて全行一致（計器の表の差は 0）。
+[5] 〈判定: 恒等〉なら採る。違えば消した分岐のコミットを戻して報告（挙動の線へは切り替えない）。
+計算量：変えない（.cost の推定一致）。

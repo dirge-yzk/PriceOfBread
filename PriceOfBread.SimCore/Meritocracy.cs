@@ -342,86 +342,48 @@ public static class Meritocracy
     {
         bool srcRural = !src.IsUrban;
         bool emptySeat = c.SoldierVacancyFromZero > 0;   // (1166) 旗：大きさ 0 の兵の席も空きがあれば候補（Simulation.cs:1354 の器）
-        if (c.JobPoolTemperature > 0)
+        double temperature = c.JobPoolTemperature > Eps ? c.JobPoolTemperature : Eps;   // 否定形のガード（0・負・NaN は Eps へ）
+        int n = r.Pops.Count;
+        Span<double> share = n <= 64 ? stackalloc double[n] : new double[n];
+        share.Clear();
+        double incMax = double.NegativeInfinity;
+        for (int i = 0; i < n; i++)
         {
-            int n = r.Pops.Count;
-            Span<double> share = n <= 64 ? stackalloc double[n] : new double[n];
-            share.Clear();
-            double incMax = double.NegativeInfinity;
-            for (int i = 0; i < n; i++)
-            {
-                var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || (!(t.Size > Eps) && !(emptySeat && t.IsSoldier))) continue;
-                if (t.IsSoldier && !(soldierVac > Eps)) continue;
-                if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
-                if (ClassOf(r, i) != jobClass) continue;
-                double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
-                if (inc <= minIncome) continue;
-                share[i] = 1.0; if (inc > incMax) incMax = inc;
-            }
-            if (incMax == double.NegativeInfinity) return amount;
-            double sumW = 0;
-            for (int i = 0; i < n; i++)
-                if (share[i] > 0)
-                {
-                    var t = r.Pops[i];
-                    double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
-                    share[i] = Math.Exp(Math.Max((inc - incMax) / c.JobPoolTemperature, -40));
-                    sumW += share[i];
-                }
-            double placed = 0;
-            for (int i = 0; i < n; i++)
-                if (share[i] > 0)
-                {
-                    var t = r.Pops[i];
-                    double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, c);
-                    double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);
-                    double f = amount * (share[i] / sumW) * gate * vacancy;
-                    if (srcRural && t.IsUrban) { f = Math.Min(f, urbanHeadroom); }
-                    if (t.IsSoldier) f = Math.Min(f, soldierVac);
-                    if (f <= Eps) continue;
-                    f = MoveToJob(w, r, i, src, t, f, c, ref soldierVac);
-                    placed += f;
-                    if (srcRural && t.IsUrban) urbanHeadroom -= f;
-                }
-            return amount - placed;
+            var t = r.Pops[i];
+            if (ReferenceEquals(t, src) || t.Closed || (!(t.Size > Eps) && !(emptySeat && t.IsSoldier))) continue;
+            if (t.IsSoldier && !(soldierVac > Eps)) continue;
+            if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
+            if (ClassOf(r, i) != jobClass) continue;
+            double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
+            if (inc <= minIncome) continue;
+            share[i] = 1.0; if (inc > incMax) incMax = inc;
         }
-        Span<bool> tried = r.Pops.Count <= 64 ? stackalloc bool[r.Pops.Count] : new bool[r.Pops.Count];
-        tried.Clear();
-        while (amount > Eps)
-        {
-            int bestIdx = -1; double bestInc = minIncome;
-            for (int i = 0; i < r.Pops.Count; i++)
+        if (incMax == double.NegativeInfinity) return amount;
+        double sumW = 0;
+        for (int i = 0; i < n; i++)
+            if (share[i] > 0)
             {
-                if (tried[i]) continue;
                 var t = r.Pops[i];
-                if (ReferenceEquals(t, src) || t.Closed || (!(t.Size > Eps) && !(emptySeat && t.IsSoldier))) continue;
-                if (t.IsSoldier && !(soldierVac > Eps)) continue;
-                if (i == r.InvestorPopIndex || i == r.MerchantPopIndex || i == r.CriminalPopIndex) continue;
-                if (ClassOf(r, i) != jobClass) continue;
                 double inc = emptySeat && t.IsSoldier && !(t.Size > Eps) ? EmptySeatIncome(w, r, t, src, c) : JobIncome(t, src);
-                if (inc > bestInc) { bestInc = inc; bestIdx = i; }
+                share[i] = Math.Exp(Math.Max((inc - incMax) / temperature, -40));
+                sumW += share[i];
             }
-            if (bestIdx < 0) break;
-            tried[bestIdx] = true;
-            var dst = r.Pops[bestIdx];
-            double gate = JobGate(r, w, m, avgPerCap, src, bestIdx, jobClass, secular, higherEdu, c);
-            if (gate > Eps)
+        double placed = 0;
+        for (int i = 0; i < n; i++)
+            if (share[i] > 0)
             {
-                double f = amount * gate;
-                if (dst.IsSoldier) f = Math.Min(f, soldierVac);
-                if (srcRural && dst.IsUrban)
-                {
-                    f = Math.Min(f, urbanHeadroom);
-                    if (f <= Eps) continue;
-                    urbanHeadroom -= f;
-                }
+                var t = r.Pops[i];
+                double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, c);
+                double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);
+                double f = amount * (share[i] / sumW) * gate * vacancy;
+                if (srcRural && t.IsUrban) { f = Math.Min(f, urbanHeadroom); }
+                if (t.IsSoldier) f = Math.Min(f, soldierVac);
                 if (f <= Eps) continue;
-                f = MoveToJob(w, r, bestIdx, src, dst, f, c, ref soldierVac);
-                amount -= f;
+                f = MoveToJob(w, r, i, src, t, f, c, ref soldierVac);
+                placed += f;
+                if (srcRural && t.IsUrban) urbanHeadroom -= f;
             }
-        }
-        return amount;
+        return amount - placed;
     }
 
     private static double JobIncome(Pop t, Pop src)
