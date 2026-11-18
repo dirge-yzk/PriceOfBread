@@ -74,10 +74,11 @@ public class InvestBudgetFromEarningsTests
     public void T3_旗1で消費と投資の和は使えるお金を超えない()
     {
         const double S = 600.0;
-        var (p, _, popPaid, debtUp) = Month(1.0, S, 500.0);
+        var (p, paid, popPaid, debtUp) = Month(1.0, S, 500.0);
         Assert.True(Math.Abs(p - 500.0) <= 500.0 * 1e-9, $"前提：計画 {p} が 500 でない");
-        Assert.True(popPaid >= 0.5 * S, $"前提：投資家の支払い {popPaid} が貯蓄の半分に届かない（消費が予算に縛られる盤面でない）");
+        double consumption = popPaid - paid;   // 投資家の支払いのうち建設の決済でない分（消費の予算から出る）
+        Assert.True(consumption >= 0.5 * (S - 500.0), $"前提：建設以外の支払い {consumption} が消費の予算 {S - 500.0} の半分に届かない（消費が予算に縛られる盤面でない）");
         double room = S + (debtUp > 0 ? debtUp : 0.0);
-        Assert.True(popPaid <= room * 1.05, $"投資家の支払い {popPaid} が使えるお金 {room} の 1.05 倍を超える");
+        Assert.True(consumption + p <= room * 1.05, $"建設以外の支払い {consumption}＋投資の計画 {p} が使えるお金 {room} の 1.05 倍を超える（支払いの和 {popPaid}・建設の決済 {paid}）");
     }
 }

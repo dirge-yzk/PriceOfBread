@@ -1,0 +1,10 @@
+(1223) c123iv 突然変異 mu1：PriceOfBread.SimCore/EconomyStep.cs
+  旧：double ivE = ivp.LastEarnedPerMonth.Value > 0 ? ivp.LastEarnedPerMonth.Value : 0.0;
+  新：double ivE = ivp.EarnedPerMonth.Value > 0 ? ivp.EarnedPerMonth.Value : 0.0;
+終了コード 1
+  失敗 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T3_旗1で消費と投資の和は使えるお金を超えない [1 s]
+  失敗 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T1_旗1の計画は前の月の稼ぎ_旗0は貯蓄の5パーセント [17 ms]
+  成功 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T2_稼ぎが負か非有限なら予算は0 [25 ms]
+テストの合計数: 3
+     成功: 1
+     失敗: 2

@@ -1,0 +1,9 @@
+(1223) c123iv 突然変異 mu4（直した T3 で再度）：PriceOfBread.SimCore/EconomyStep.cs
+  旧：ivp.RemainingBudget -= investBudgetFromEarnings;
+  新：ivp.RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+  失敗 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T3_旗1で消費と投資の和は使えるお金を超えない [3 s]
+  成功 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T1_旗1の計画は前の月の稼ぎ_旗0は貯蓄の5パーセント [13 ms]
+  成功 PriceOfBread.Tests.InvestBudgetFromEarningsTests.T2_稼ぎが負か非有限なら予算は0 [11 ms]
+     成功: 2
+     失敗: 1
+[xUnit.net 00:00:04.31]       建設以外の支払い 185.51220835032063＋投資の計画 500 が使えるお金 600 の 1.05 倍を超える（支払いの和 613.3863528912366・建設の決済 427.87414454091595）
