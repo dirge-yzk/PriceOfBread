@@ -1,0 +1,41 @@
+(1241) c126rk 事前登録（恒等の線・最初のコミット）  基準＝m1233（main 3cb2210a0）  木＝D:/PoB_work/wt_c126rk 枝 c126rk
+署名：書いたモデル＝Claude Sonnet 5.5
+
+[1] 恒等の線・予言 0
+- 挙動を変えない。合否＝素の 5 種（b5_20261119_m1233）・計器つき 10 種（b10_20261119_m1233_ins）が、名乗り行の SOURCE-HASH を除いて全行バイト一致。計器の表の差は [4] の宣言だけ。
+- 材料＝(1235) c125rk の項 2（b3ee9a791）・項 3（683cd8e99）を main 3cb2210a0 の上へ cherry-pick（-x なし）して直す。(1235) の反証役 v の高 2 本と低 4 本を晴らして入れ直す。
+- 新しい係数 0・新しい状態 0（計器の置き場は ConditionalWeakTable・エンジンに欄を足さない）。エンジンの力学の値は 1 つも変えない（計器の表と列だけ）。
+- 作者の裁定を上書きした物：なし。
+- ★(743) の区分で名乗る試験の直し：なし（RkInstrumentTests.cs は新しいファイル・既存の試験を書き換えない）。
+- 浮動小数の順序が変わる箇所：なし（エンジンの式に触れない）。紙の台本で旧≠新の行を数える対象も無い＝0。
+
+[2] 消す物と残す物
+- 消す物：なし。paysale_s は paysale2_s へ改名（表が 1 本消え 1 本増える＝宣言）。(1235) の ReachRho（線路を二重に数える形）は消し、ReachKm（下）へ置き換える。
+- 残す物：rulepeace_s の押しの 2 列（枝のまま・直しなし）・Instruments.cs の rulepower_s の既存の noRail の組み方（持ち場の外＝触らない）。
+- 他の線との重なり（grep した結果）：pf（c126pf）は Instruments の表の登録の行を 1 行足す＝登録は 1 行ずつ足すだけにする（合流が並べる）。BilateralMarket.cs・Transport.cs・Politics.cs は読むだけ。Diplomacy.cs は押しの計器の呼び出しの 1 行（:2972 付近）だけ。
+- 触る行：Instruments.cs の nation_s の見出しと cols・Quarter の表の呼び・Close の 1 行ずつ／InstrumentsRulePower.cs の RpSnapshot の門と rulepeace_s の末尾 2 列／Diplomacy.cs の WarEndPush の呼びの 1 行／InstrumentsPaysale.cs（項 3）／InstrumentsRk.cs（新）。
+- 読み手の grep：reach_s・paysale2_s・ReachRho・Paysale2HeaderText は SimCore の計器と RkInstrumentTests だけ。paysale_s の読み手＝scripts/instruments の台本（cmp_bk.py・work_gate.py・m1233/arms1233.sh）＝台本は旧の表名を読む（古い腕の生用）。SaveGame・POB_COEF・Runner・App・Display は 0。
+
+[3] 直す物（反証役 v への答え）と足す試験
+- v 高 1（paysale2_s の見出し 19 列・行 21 列）：列の名前の配列を 1 か所に置き、見出しと列の添字の長さを同じ配列から作る。見出しに diffAll・diffStateStake を足す（R5 が見出しを同じ定数と比べるので緑のままだった）。R5 を強める＝各行の列の数＝見出しの列の数・diffStateStake＝持ち分×diffAll の手計算。
+- v 高 2（reach_s の noRailKm が線路を含む）：RailByRegion＝1 のとき線路の効きは清算の terrCost に入っている（BilateralMarket.cs:428〜:432）。noRailKm は両端の州の terrCost を線路なしの費用（phi＝0・bh だけ・水の州の上書きも同じ）へ差し替え、陸の比は LandSeaCostRatio で PairKmCore を呼ぶ。rhoOwner は清算が組んだままの terrCost で 1 回だけ数える（RailTrack×取り分を重ねない）。ReachKm（新・純関数）が両方を返す。
+- v 低（4 本）：①need は Transport.RailNeedShare（旗 RailNeedByOutput）で数える ②届きに DistanceWarDecay を含む既存の形（Politics.cs:916 の 1÷(1＋DistanceWarDecay×km÷DistanceNormKm)）の列 rhoWarDecay を末尾に足す（新しい式は作らない・ownerKm を入れるだけ） ③e_n の分母の偏りは定義を注に書くだけ（直しは設計の材料の e_n の席・入れない） ④押しの 2 列は枝のまま。
+- reach_s の実時間：Stopwatch で積み、閉じるとき標準エラーへ 1 行（ReachMs）。.cost の項の置き換え（未測の見積もり 0.5〜1 秒）。
+- 台本：scripts/instruments/c124bk/cmp_bk.py は、表が無いとき黙って 0 を返さず非 0 で終える。
+- 足す試験（PriceOfBread.Tests/RkInstrumentTests.cs・8 本）：R1〜R6（枝のまま・R3 は RulePowerReach と ReachKm の手計算へ書き直す・R5 を強める）＋R7＝線路の伸びた州（snapshot の TerrCost を下げた）で noRailKm が動かず ownerKm が下がる・ownerKm＝snap の値そのもの＋R8＝見出しの列の数＝行の列の数（nation_s・reach_s・paysale2_s・rulepeace_s の 4 表）。
+- 突然変異（使い捨ての木・D:/PoB_work/c126rk_work/mut・結果は measurements/m1241_20261119_mut.txt）
+  μ1 paysale2 の見出しから diffAll を外す → R5・R8 が赤。
+  μ2 diffStateStake の持ち分の掛けを外す（PaysaleStake を掛けない）→ R5 が赤。
+  μ3 noRailKm の terrCost 差し替えを外す（線路を戻す）→ R7 が赤。
+  μ4 rhoOwner の km に線路をもう一度掛ける → R7 が赤。
+  μ5 RpSnapshot／ReachTable の !On の門を外す → R4（件数の番人）が赤。
+- ソースを走査する番人（㉘）の点検：IndustrializationReaderTests の許可表（増減 0）・UnitTypeTests の new MoneyStock( の件数（足さない＝増減 0）・route_anchors.tsv の鍵の行（足さない）・WriterRatchetTests／DormantIdentityTests の宣言の表（足さない＝増減 0）・OnDoubleReadScanTests（On を清算の側で二重に読まない＝RpSnapshot の頭の 1 読みだけ）を腕の前に回して結果を書く。
+- テストの数の予言：Tests 2696（スキップ 1）→ 2704（+8）・Tests.Ui 234 のまま・合計 2930→2938・FullLength 3。
+
+[4] 素の 5 種・計器つき 10 種が m1233 と名乗り行を除いて全行一致。計器の表の差（宣言）：
+- --grown-ok nation_s,rulepeace_s（末尾に列が増える）・--added-tables reach_s,paysale2_s・--removed-tables paysale_s。段は stage.py のとおり段 2（計器に触れる）。
+- 計算量：.cost の件数の行は一致する見込み（計器の仕事は件数に入らない）。!Instruments.On の間は計器の仕事 0（R4）。reach_s の実時間は 1 回測って記録する。
+
+[5]〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ、その変更を外して報告に回す（項ごとの木で段 1 の ident を回して帰属を分ける）。
+止める線：破綻・発散・空洞化・計算量（挙動を変えないので全て基線と同じのはず）。
+D:：起こす直前に shutil で〈35GB＋30GB〉を測る。

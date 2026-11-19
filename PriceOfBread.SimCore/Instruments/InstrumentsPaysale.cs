@@ -5,11 +5,14 @@ namespace PriceOfBread.SimCore;
 // 同じ盤面で旧の規則（帳に載せない）と新の規則（載せる）の月の損益の符号を両方数える＝旗 0 でも新の規則の影を数える。
 public static partial class Instruments
 {
-    internal const string PaysaleHeaderText = "quarter\tyear\tnation\tgood\tcalls\tpayToProducers\tpayExport\tpayMint\tpayDomestic\trentPart\trevBooked\tcostBooked\tprodMonths\tnegOld\tnegNew\tflipNegToPos\tflipPosToNeg\tstateMonths\tstateFlipNegToPos";
+    // 列の名前は 1 か所（見出しと行の列の数は同じ配列から作る＝(1241) v 高 1：見出しが 2 列足りないまま R5 が同じ定数と比べて緑だった）
+    internal static readonly string[] PaysaleColNames = ["calls", "payToProducers", "payExport", "payMint", "payDomestic", "rentPart", "revBooked", "costBooked", "prodMonths", "negOld", "negNew", "flipNegToPos", "flipPosToNeg", "stateMonths", "stateFlipNegToPos", "diffAll", "diffStateStake"];
+    internal static readonly string Paysale2HeaderText = "quarter\tyear\tnation\tgood\t" + string.Join('\t', PaysaleColNames);
 
     // 列の添字（PaysaleHeaderText の calls から順）
     const int PsCalls = 0, PsPay = 1, PsExport = 2, PsMint = 3, PsDomestic = 4, PsRent = 5, PsRevB = 6, PsCostB = 7,
-              PsMonths = 8, PsNegOld = 9, PsNegNew = 10, PsFlipNP = 11, PsFlipPN = 12, PsStateMonths = 13, PsStateFlip = 14, PsLen = 15;
+              PsMonths = 8, PsNegOld = 9, PsNegNew = 10, PsFlipNP = 11, PsFlipPN = 12, PsStateMonths = 13, PsStateFlip = 14, PsDiffAll = 15, PsDiffStake = 16;
+    static int PsLen => PaysaleColNames.Length;   // 列の数は見出しと同じ配列から（添字 0〜PsDiffStake の 17 本）
 
     /// <summary>生産者ごとの、前の清算の上書きから次の清算の前までの和（新の規則が載せる分の影と、実際に欄が動いた分）。</summary>
     sealed class PsAcc { public double ShRev, ShCost, BkRev, BkCost; public bool Any; }
@@ -63,12 +66,25 @@ public static partial class Instruments
                 if (negOld && !negNew) q[g, PsFlipNP] += 1;
                 if (!negOld && negNew) q[g, PsFlipPN] += 1;
                 if (p.BuiltScale > 1e-9) { q[g, PsStateMonths] += 1; if (negOld && !negNew) q[g, PsStateFlip] += 1; }
+                double diff = pNew - pOld;   // (1235) 新の規則が足す損益の差（持ち主の分け方に依らない）と、国の持ち分（国の単位÷全ての単位）を掛けた分
+                int su = w.StateUnitsOf(p), pu = w.PrivateUnitsOf(p);
+                q[g, PsDiffAll] += diff; q[g, PsDiffStake] += PaysaleStakeDiff(su, pu, diff);
             }
             a.ShRev = a.ShCost = a.BkRev = a.BkCost = 0; a.Any = false;
         }
     }
 
-    /// <summary>四半期の末：全ての国×その四半期に何か有った財の 1 行。書いたら国の和を 0 へ戻す。</summary>
+    /// <summary>国の持ち分の損益の差＝持ち分×差（diffStateStake の 1 生産者ぶん）。</summary>
+    internal static double PaysaleStakeDiff(int stateUnits, int privateUnits, double diff) => PaysaleStake(stateUnits, privateUnits) * diff;
+
+    /// <summary>国の持ち分＝国の単位÷（国の単位＋民間の単位）。和が正でない・非有限なら 0（否定形）。</summary>
+    internal static double PaysaleStake(int stateUnits, int privateUnits)
+    {
+        long tot = (long)stateUnits + privateUnits;
+        return stateUnits > 0 && tot > 0 ? (double)stateUnits / tot : 0.0;
+    }
+
+    /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）に、その期間に何か有った財の 1 行。書いた後に国の和を 0 へ戻す（書かない四半期は持ち越す）。</summary>
     static void PaysaleTable(MultiNationSim sim, ulong seed, int q)
     {
         var ps = PsSinks.GetValue(sim, _ => new PsSink());
@@ -77,9 +93,10 @@ public static partial class Instruments
         {
             var w = n.World;
             if (!PsWorlds.TryGetValue(w, out var s) || s.Q is not { } a) continue;
-            if (Wants("paysale_s"))
+            if (!(q % 4 == 3 || IsPicked(w, S(w)))) continue;   // 書かない四半期は積んだまま持ち越す（年末に 4 四半期ぶんの行）
+            if (Wants("paysale2_s"))
             {
-                if (ps.W is null) { ps.W = Open("paysale", seed); ps.W.WriteLine(PaysaleHeaderText); }
+                if (ps.W is null) { ps.W = Open("paysale2", seed); ps.W.WriteLine(Paysale2HeaderText); }
                 for (int g = 0; g < a.GetLength(0); g++)
                 {
                     if (!(a[g, PsCalls] > 0) && !(a[g, PsMonths] > 0)) continue;

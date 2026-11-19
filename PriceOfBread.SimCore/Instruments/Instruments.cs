@@ -1944,6 +1944,7 @@ public static partial class Instruments
         CearnTable(sim, seed, q);          // CearnTable〔履歴 Instruments.cs#314〕
         CedeTable(sim, q);                 // CedeTable〔履歴 Instruments.cs#315〕
         RulePowerTable(sim, seed, q);      // RulePowerTable〔履歴 Instruments.cs#316〕
+        ReachTable(sim, seed, q);          // (1235) 0c 届きの表 reach_s
         MinecapTable(sim, seed, q);        // MinecapTable〔履歴 Instruments.cs#317〕
         LandsaleTable(sim, seed, q);       // LandsaleTable〔履歴 Instruments.cs#318〕
         LandshareTable(sim, seed, q);      // LandshareTable〔履歴 Instruments.cs#319〕
@@ -1995,7 +1996,7 @@ public static partial class Instruments
         IdnClose(sim);   // IdnClose〔履歴 Instruments.cs#346〕
         SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // SubstClose〔履歴 Instruments.cs#347〕
         LandbaseClose(sim);   // LandbaseClose〔履歴 Instruments.cs#348〕
-        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim); PaysaleClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
+        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim); PaysaleClose(sim); ReachClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
         BuyShadowClose(sim);   // BuyShadowClose（T0a）
         TbClose(sim);          // TbClose（T0b）
         T1Close(sim);          // T1Close（(1144) T1）
@@ -2537,6 +2538,7 @@ public static partial class Instruments
         var ext329 = Extras329(w);   // ext329〔履歴 Instruments.cs#465〕
         foreach (var ex in ext329) cols.Add(ex.Value);
         cols.Add(w.SelfPower?.Name ?? "");   // (1206) displayName（Power.Name＝成立・付け替えの後の表示名）
+        NationRkCols(w, cols);   // (1235) 0a：末尾に外国の請求の 5 列
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -2558,7 +2560,7 @@ public static partial class Instruments
                 + string.Join('\t', ext286.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext287.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext289.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext329.Select(e => e.Name)) + "\tdisplayName");
+                + string.Join('\t', ext329.Select(e => e.Name)) + "\tdisplayName\t" + NationRkHeaderText);
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
