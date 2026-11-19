@@ -1,0 +1,12 @@
+旗 1 の木 1df58833b のフルスイート（2026-11-20）
+tests rc=1
+ui rc=0
+full rc=0
+失敗!   -失敗:     2、合格:  2699、スキップ:     1、合計:  2702、期間: 41 m 10 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 2 m 22 s - PriceOfBread.Tests.Ui.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 23 s - PriceOfBread.Tests.dll (net10.0)
+list-tests: Tests 2705（非 FullLength 2702＋FullLength 3）・Ui 234・非 FullLength の和 2936（基準 2930＋6）
+[xUnit.net 00:14:17.74]     PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い [FAIL]
+[xUnit.net 00:40:16.19]     PriceOfBread.Tests.CorncfInstrumentTests.T5_輸入の割合 [FAIL]
+直しの後（083392168）の回し直し：成功!   -失敗:     0、合格:   165、スキップ:     0、合計:   165、期間: 1 m 16 s - PriceOfBread.Tests.dll (net10.0)
+㉜ の番人（旗 1・ed0eba4f2 の前の木）：失敗!   -失敗:     1、合格:   135、スキップ:     0、合計:   136、期間: 42 m 19 s - PriceOfBread.Tests.dll (net10.0)
