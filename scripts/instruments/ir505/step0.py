@@ -47,6 +47,7 @@ RULES = [
  (r'^EconomyStep\.cs$', r'productivityMultiplier|TechProductivity', 'C9', '生産性の乗数（TechProductivity）'),
  (r'^TechEducation\.cs$', r'.', '状', '技術水準の状態の更新（GrowTech・AbsorptionOf）'),
  (r'^(Agents|ArmyShape|BilateralMarket|Diplomacy|Megaprojects|SelfPlay)\.cs$', r'TechLevel|Industrialization', 'C10', 'AI の梯子・法の門・技術ゲート・陸軍の質・暴走の監視（AI 側の読み手の置き換えの線）'),
+ # (1235) 注：Chokepoint.TechGate は MultiNationSim.cs の写しごと 2026-11-19 に消えた（K101）。この字面は古い木を読むときだけ当たる。
  (r'^MultiNationSim\.cs$', r'TechGate|ExternalPressureGapScale', 'C10', '技術ゲート・外圧（AI 側）'),
  (r'^MultiNationSim\.cs$', r'WorldTechLevel|TechLevel|GrowTech|frontier', '状', '技術水準の同期（先端の運搬・成長の呼び）'),
  (r'^Simulation\.cs$', r'TechLevel|GrowTech', '状', '技術水準の複製と成長の呼び'),

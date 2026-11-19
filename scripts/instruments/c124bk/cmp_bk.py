@@ -1,4 +1,5 @@
 # (1228) c124bk 同じ盤面の新÷旧（記録）：国営持分の赤字の請求（fiscal_s claimStateLossPerMonth）と払い下げの件数（nation_s stateFactorySoldCount）を
+# (1235) 注：表 paysale_s は paysale2_s へ改名した（挙げた国は毎四半期・全ての国は年末の間引き・末尾に diffAll・diffStateStake）。基線 m1233 の生は旧の名のまま。
 #   国ごと・種の和で、腕と基準を並べる。paysale_s があれば月の損益が負の生産者×月（negOld・negNew）も。
 #   使い方: python -X utf8 -I cmp_bk.py <腕の ins> <基準の ins> [旗 0 の paysale の ins] [種の始め=1] [種の終わり=10]
 import sys, os, collections

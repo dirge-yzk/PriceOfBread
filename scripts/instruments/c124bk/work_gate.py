@@ -1,4 +1,5 @@
 # (1228) c124bk 〈機構が狙いどおり働いたか〉の門（事前登録 4-4）と段 0 の数え。paysale_s を種ごとに和る。
+# (1235) 注：表 paysale_s は paysale2_s へ改名した（挙げた国は毎四半期・全ての国は年末の間引き・末尾に diffAll・diffStateStake）。基線 m1233 の生は旧の名のまま。
 #   使い方: python -X utf8 -I work_gate.py <ins のフォルダ> [種の始め=1] [種の終わり=10]
 #   門 G1：Σ revBooked ÷ Σ payToProducers が 1±1e-9（種ごと）。門 G2：Σ(revBooked−costBooked) ÷ Σ rentPart が 1±1e-9（種ごと）。旗 0 は revBooked＝0＝落ちる。
 #   段 0：財ごとの flipNegToPos・flipPosToNeg・stateFlipNegToPos・negOld・negNew・prodMonths（全ての種の和）。
