@@ -845,7 +845,7 @@ public class ConservationTests
             var sim = Uk(); var w = sim.Nations[0].World;
             sim.Coef.CanalInvestFrac = new(frac);
             var cp = sim.Diplomacy.Chokepoints.Find(k => k.IsCanal && !k.IsOpen)!;
-            cp.TechGate = 0; cp.BuildCost = 1e18;
+            cp.BuildCost = 1e18;
             { int rr = Megaprojects.RequiresRowOf(cp.Id); if (rr >= 0) foreach (var n in sim.Nations) n.World.Discovered[rr] = true; }   // ★(613) 旗 TechGateByDiscovery（既定 1）＝拠出する国の発見の行 requires も開ける
             Invoke(sim, "StepCanals");
             var (pops, sav) = Sav(w);

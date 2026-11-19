@@ -4970,7 +4970,6 @@
    "isOpen": true,
    "isCanal": false,
    "buildCost": 0,
-   "techGate": 0,
    "servesBasins": [
     "Mediterranean",
     "BlackSea"
@@ -4984,7 +4983,6 @@
    "isOpen": true,
    "isCanal": false,
    "buildCost": 0,
-   "techGate": 0,
    "servesBasins": [
     "BlackSea"
    ],
@@ -4997,7 +4995,6 @@
    "isOpen": true,
    "isCanal": false,
    "buildCost": 0,
-   "techGate": 0,
    "servesBasins": [
     "Pacific"
    ]
@@ -5009,7 +5006,6 @@
    "isOpen": false,
    "isCanal": true,
    "buildCost": 150000,
-   "techGate": 2.5,
    "requires": "汽船",
    "servesBasins": [
     "IndianOcean",
@@ -5023,7 +5019,6 @@
    "isOpen": false,
    "isCanal": true,
    "buildCost": 400000,
-   "techGate": 3,
    "requires": "ダイナマイト",
    "servesBasins": [
     "Pacific"
@@ -5036,7 +5031,6 @@
    "isOpen": true,
    "isCanal": false,
    "buildCost": 0,
-   "techGate": 0,
    "servesBasins": [
     "Baltic"
    ],
@@ -5049,7 +5043,6 @@
    "isOpen": true,
    "isCanal": false,
    "buildCost": 0,
-   "techGate": 0,
    "servesBasins": [
     "IndianOcean"
    ]
@@ -5061,7 +5054,6 @@
    "isOpen": true,
    "isCanal": false,
    "buildCost": 0,
-   "techGate": 0,
    "servesBasins": [
     "RedSea"
    ],

@@ -21,7 +21,7 @@ public static class WorldData
     internal sealed record TargetDto(string Name, double Military, bool Quinine, ColonyDto[] Colonies);
     internal sealed record RivalryDto(string A, string B, double Tension);
     internal sealed record DependencyDto(string Suzerain, string Dependent);
-    internal sealed record ChokepointDto(string Id, string Name, string Host, bool IsOpen, bool IsCanal, double BuildCost, double TechGate, Basin[] ServesBasins, string? ExitOfBasin = null, string? Requires = null);
+    internal sealed record ChokepointDto(string Id, string Name, string Host, bool IsOpen, bool IsCanal, double BuildCost, Basin[] ServesBasins, string? ExitOfBasin = null, string? Requires = null);
     internal sealed record WorldSetup(IReadOnlyList<TargetDto> Targets, IReadOnlyList<RivalryDto> Rivalries, IReadOnlyList<DependencyDto> Dependencies, IReadOnlyList<ChokepointDto> Chokepoints);
 
     public static readonly JsonSerializerOptions Options = BuildOptions();
@@ -113,13 +113,13 @@ public static class WorldData
             new DependencyDto("マラータ同盟", "デリー"),
         ],
         [
-            new ChokepointDto("gibraltar", "ジブラルタル海峡", "ジブラルタル", true, false, 0, 0, [Basin.Mediterranean, Basin.BlackSea], ExitOfBasin: "Mediterranean"),
-            new ChokepointDto("bosporus", "ボスポラス海峡", "イスタンブール", true, false, 0, 0, [Basin.BlackSea], ExitOfBasin: "BlackSea"),
-            new ChokepointDto("malacca", "マラッカ海峡", "マレー", true, false, 0, 0, [Basin.Pacific]),
-            new ChokepointDto("suez", "スエズ運河", "カイロ", false, true, 150_000, 2.5, [Basin.IndianOcean, Basin.Pacific]),
-            new ChokepointDto("panama", "パナマ運河", "パナマ", false, true, 400_000, 3.0, [Basin.Pacific]),
-            new ChokepointDto("oresund", "ズンド海峡", "コペンハーゲン", true, false, 0, 0, [Basin.Baltic], ExitOfBasin: "Baltic"),
-            new ChokepointDto("cape", "喜望峰", "ケープ植民地", true, false, 0, 0, [Basin.IndianOcean, Basin.Pacific]),
+            new ChokepointDto("gibraltar", "ジブラルタル海峡", "ジブラルタル", true, false, 0, [Basin.Mediterranean, Basin.BlackSea], ExitOfBasin: "Mediterranean"),
+            new ChokepointDto("bosporus", "ボスポラス海峡", "イスタンブール", true, false, 0, [Basin.BlackSea], ExitOfBasin: "BlackSea"),
+            new ChokepointDto("malacca", "マラッカ海峡", "マレー", true, false, 0, [Basin.Pacific]),
+            new ChokepointDto("suez", "スエズ運河", "カイロ", false, true, 150_000, [Basin.IndianOcean, Basin.Pacific]),
+            new ChokepointDto("panama", "パナマ運河", "パナマ", false, true, 400_000, [Basin.Pacific]),
+            new ChokepointDto("oresund", "ズンド海峡", "コペンハーゲン", true, false, 0, [Basin.Baltic], ExitOfBasin: "Baltic"),
+            new ChokepointDto("cape", "喜望峰", "ケープ植民地", true, false, 0, [Basin.IndianOcean, Basin.Pacific]),
         ]);
 
     public static NationConfig ByName(string name)
