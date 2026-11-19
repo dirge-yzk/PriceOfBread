@@ -1,0 +1,10 @@
+(1241) c126rk 結果（恒等の判定・測った種で一致）
+- 判定: 恒等（ident 段 2・ラベル c126rk・宣言＝--added-tables reach_s,paysale2_s・--removed-tables paysale_s・--grown-ok nation_s,rulepeace_s・--tests-delta 8）。
+  素の 5 種・計器つき 10 種の成績表は m1233 と名乗り行を除いて全行一致・注視 4785 行一致・.cost 件数 45 本・推定 239.0 秒（基準と同じ）・savetest OK・leakhunt 保存則違反なし。
+  計器の表：共通 1582 本＝バイト一致 1532＋既知の揺れ 30＋列が増えた 20（nation_s×10・rulepeace_s×10）＋宣言の無い違い 0。腕にだけある 20 本＝reach_s×10・paysale2_s×10。腕に無い 10 本＝paysale_s×10（宣言）。
+- 1 回目の ident は不一致だった：reach_s の実時間の標準エラー行（[reach_s] ms=… rows=…）が計器つき 10 種の報告に 10 行混ざった。直し＝その行を POB_REACH_MS=1 の時だけ出す（コミット後に ident をやり直して恒等）。1 回目の run の行（種ごと・秒）：8250.8〜8456.9 ms・1134310〜1193523 行（1 試合あたり約 8.3 秒＝reach_s の実時間の 1 回の測り・.cost の件数には入らない計器の仕事・計器を切ると 0）。生は D:/PoB_work/c126rk_work/b10_reachms_run1.txt。
+- テスト：Tests 2704（成功 2703・スキップ 1）＋Tests.Ui 234＝2938（基準 2930＋8・予言どおり）・FullLength 3 成功（Tests 48 分 8 秒・FullLength 5 分 45 秒・Ui 1 分 41 秒）。trx は D:/PoB_work/c126rk_work/trx/。㉘（DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScanTests・InstrumentsTests・RkInstrumentTests）は成功（最初の 1 回は R7 が赤→試験を直して成功）。
+- 突然変異 5 本は全て赤（m1241_20261119_mut.txt）：μ1→R5・R8・μ2→R5・μ3→R7・μ4→R7・μ5→R4。
+- 帰属：1 回目の不一致の原因は標準エラー行 1 件だけ（他の差 0）。
+- 腕の枠で待った時間 0（arms.sh free 4 以上で起動）。
+- 生：D:/PoB_work/ident_c126rk（刈り込み後・残した表 140 本）・sha1 の一覧 measurements/ident_c126rk_manifest.tsv。
