@@ -983,6 +983,9 @@ public class FiscalTests
             w.WarmupFrozen = false;
             w.Coef.MaxInterestShareOfRevenue = new Share(0);   // 借入の門が閉じている（利払い÷歳入≧限界）
             w.Coef.BondRepayFracPerMonth = new RatePerMonth(0);
+            // ★(1234) 盤面は金本位のまま保つ（強制離脱の 3 条件〔Fiscal.Step の金本位の門＝funding 比の下限・正貨準備カバー率の下限・本位の法〕をこの盤面の係数だけで塞ぐ）。
+            //   金本位でない月の累計の規則（兌換の遅れで開いていない切り下げの余地の分）は ArrearsOpenedRoomTests が持つ＝この番人は金本位の月の 1−r の累計だけを見る。
+            w.OnGoldStandard = true; w.Coef.GoldSuspendMinFundingRatio = 0; w.Coef.GoldCoverMin = new Share(0);
             return w;
         }
         static void Month(World w, double r) { w.FiscalFundingRatio = new Share(r); Fiscal.Step(w, w.Coef, r < 1 ? -Ample : 0); }
@@ -990,7 +993,9 @@ public class FiscalTests
         // ① r＝0.5 の月が2つ
         var a = Board(); double d0 = a.GovDebt.Value;
         Assert.True(d0 > 0 && HeldOf(a) > 0, "前提が崩れた：国債と持ち手がいない");
+        Assert.True(a.OnGoldStandard, "前提が崩れた：盤面が金本位でない");
         Month(a, 0.5);
+        Assert.True(a.OnGoldStandard, "前提が崩れた：1 つ目の月で金本位から離れた＝金本位でない月の規則が累計を変える");
         Assert.False(a.HadSovereignDefault, "r＝0.5 の月1つ（累計 0.5）で不履行になった");
         Assert.Equal(0.5, a.InsolvencyMonths);
         Month(a, 0.5);
