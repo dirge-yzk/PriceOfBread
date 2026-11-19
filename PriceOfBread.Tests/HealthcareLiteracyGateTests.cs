@@ -24,7 +24,7 @@ public class HealthcareLiteracyGateTests
     }
 
     [Fact]
-    public void T1_識字の低い社会でも医療は医者の役務の門まで上がる＝識字の錠の復活を禁じる()
+    public void T1_識字の低い社会でも医療は医者の役務の門まで上がる_識字の錠の復活を禁じる()
     {
         var on = Board(0.1, 1.0, 0.3);
         Assert.Equal(0.6, on.Healthcare, 1e-12);   // min(1, 0.3/0.5)＝医者の役務の門。識字 0.1÷0.6＝1/6 の錠が戻れば赤
