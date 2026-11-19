@@ -1,0 +1,5 @@
+(1248) 突然変異（使い捨ての書き換え→dotnet test --filter DissolveNationTests→元へ戻す・台本 D:/PoB_work/c127ex_work/mut.py）
+mu1 pw.ForeignDebt += ...（外国の債務の写し）を外す -> 赤：親の対外債の増え 0 ≠ 205466.74857697476（DissolveNationTests.cs:53）
+mu2 PairFlowQ の詰めを外す -> 赤：Assert.Equal(n-1, pfq.Length) Expected 2 / Actual 3
+mu3 Diplomacy.RemovePower を外す -> 赤：Assert.Equal(powers0-1, Powers.Count) Expected 23 / Actual 24
+穴：消える国は Nations の最後尾（ri=2）＝詰めの添字の取り違え（最後尾以外を除く）は長さと値の比べでは割れない。
