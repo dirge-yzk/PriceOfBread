@@ -6,7 +6,7 @@ public static class Fiscal
     private static readonly RatioToGdpYear DebtToGdpYearUnbounded = new(DebtRatioUnbounded);
     private const double DebtRatioUnbounded = 1e9;
 
-    public static void Step(World w, Coefficients c, double spare = 0, double devalued = 0)
+    public static void Step(World w, Coefficients c, double spare = 0, double devalued = 0, double unopenedRoom = 0)
     {
         if (!w.FiscalEnabled) return;
         double payRate = w.FiscalFundingRatio.Value;
@@ -190,7 +190,7 @@ public static class Fiscal
         }
 
         if (w.BorrowCooldownMonths > 0) w.BorrowCooldownMonths--;
-        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += 1.0 - payRate; else w.InsolvencyMonths = 0;
+        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += ArrearsOfMonth(w, c, payRate, spare, unopenedRoom); else w.InsolvencyMonths = 0;
         if (w.InsolvencyMonths >= c.DefaultArrearsMonths)
         {
             RepudiateDebt(w, c);
@@ -491,6 +491,17 @@ public static class Fiscal
         if (p is null) issuer.GovDebt += h; else p.BondHoldings -= h;
         issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
         holderNation.ForeignBondClaims += h * issuer.FxRate / holderNation.FxRate;
+    }
+
+    /// <summary>(1250) 不履行の累計に積むその月の未払い（月の請求の割合）。旧＝1−r。旗 ArrearsBeyondOpenedRoom＞0 で金本位でない月は、
+    /// 払えない額（−spare＝切り下げの後）のうち、兌換の遅れでまだ開いていない切り下げの余地（unopenedRoom＝deficit−余地）の分を数えない
+    /// ＝1−r に (1−unopenedRoom÷払えない額) を掛ける（＝余地−切り下げ額 の分だけ）。unopenedRoom 0 は旧と同じ値。負は 0・NaN は旧の 1−r。</summary>
+    internal static double ArrearsOfMonth(World w, Coefficients c, double payRate, double spare, double unopenedRoom)
+    {
+        double unpaid = 1.0 - payRate;
+        if (!(c.ArrearsBeyondOpenedRoom > 0) || w.OnGoldStandard || !(-spare > 0) || !(unopenedRoom >= 0)) return unpaid;
+        double left = 1.0 - unopenedRoom / -spare;
+        return left > 0 ? unpaid * left : 0;
     }
 
     internal static void RepudiateDebt(World w, Coefficients c)
