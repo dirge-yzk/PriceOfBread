@@ -1,0 +1,35 @@
+(1240) 合流（波125）の予言（merge の前にコミット・担当 Opus 5.5）
+基点 be048832b（基線 m1233）。
+
+[1] 入れる物と入れない物（線の報告と反証役を読んだ時点の決め）
+- c125ts（恒等・試験だけ）：全部を入れる（反証役 v は低 6・高なし）。
+- c125rk（恒等）：項 1（K101 Chokepoint.TechGate の削除）と事前登録・追記・台帳 S26-41・記録だけを入れる。
+  項 2（0a nation_s の 5 列・0c reach_s・rulepeace_s の押しの 2 列）と項 3（paysale2_s）は入れない。
+  理由：反証役 v の高 2 本が晴れていない（paysale2_s の見出しが 19 列で行が 21 列・reach_s の noRailKm が線路を含んだままで rhoOwner が線路を二重に数える）。合流はエンジンの .cs を直さない＝次の恒等の線へ。
+  項 2 と項 3 はコミットが分かれている（683cd8e99・b3ee9a791）＝cherry-pick で外せる。0eeef082b のうち paysale の改名の注（cmp_bk.py・work_gate.py）は外し、ir505/step0.py の TechGate の注と mut.sh は記録として写す。
+- c125b1（挙動・段 0 で止めた・エンジンと試験 0 行）：記録と台本だけ（枝ごと merge・エンジン 0 行）。
+- c125al（挙動・㉜ で止めた）：器（旗 FoodProcessingNoEngineer 既定 0）も入れない。記録と台本だけを写す。
+  理由：反証役 v2 の高〈DiscoveryEngineerTests の赤は甜菜糖の発見が旗 1 で休眠になることを捕まえた〉が晴れていない・門を通っていない・前例 ★(1205)〈旗 0 の器も入れない〉。
+- c125rd（読む線）：scripts/instruments/r1238/・measurements/m1238_20261119/ へ写す。
+- c125ef（設計の材料）：docs/202611/20261119/20261119_支配の力の段EFG_設計_材料.md・_下書き.md を差し替え（中身は書き換えない・反証役 v の訂正を末尾へ）・scripts/instruments/r1239/・measurements/m1239_20261119/。
+
+[2] 挙動を変えた線は 0 本＝基線は m1233 のまま（M・N1・N2・S11 は回さない）。
+
+[3] 合わせた木の腕 Z（ident m1240z・--saveleak --ng --tests-delta 1・宣言なし）
+- P1：素の 5 種 b5_20261119_m1233・計器つき 10 種 b10_20261119_m1233_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+- P2：.cost の件数の行が m1233 と一致・推定 238.3／239.0 秒。
+- P3：計器の表は宣言なしで一致（既知の揺れだけ）・注視の表一致・NG 102（新 0・外 0）。
+- P4：テスト Category!=FullLength 2930（2929＋ts の T4）・FullLength 3。
+- P5：savetest OK・leakhunt 保存則違反なし。
+
+[4] opening_bake.json（★(764)）
+- P6：world.json の techGate 8 件を消すと入力のハッシュが変わる＝合わせた木の OpeningBakeTests 2 本は焼き直す前に赤（rk の報告と同じ）。
+- P7：焼き直した表は、基点 be048832b の木で同じ台本で焼いた表と頭書き 3 行（sourceHash・generated・inputHash）を除いてバイト一致（techGate は焼きの経路で読まれない）。
+- P8：旗 OpeningBakeEnabled 0＝成績表に効かない（P1 で確かめる）。
+
+[5] フルスイート（最終の木・Category!=FullLength と =FullLength を分ける）
+- P9：Tests 2696（合格 2695・スキップ 1・赤 0）＋Tests.Ui 234＝2930・FullLength 3 緑。--list-tests の和と一致。
+
+[6] 止める線の段と記録の段
+- 止める線：腕 Z が不一致・テストの赤・savetest／leakhunt の失敗のどれかなら、原因の項を外して取り直す。
+- 記録：英の国債の不履行・空洞化・NG・開幕の 1000 倍以上は新しい腕が無い＝m1233 の値のまま。
