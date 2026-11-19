@@ -1,0 +1,46 @@
+# (1234) c125ts 事前登録：試験だけの恒等の線（重い試験の精査の続き・bd の番人の盤面・扶養力の向きの番人 T4）
+- 書いた日 2026-11-19・枝 c125ts（be048832b から）・探索の前にコミットする（最初のコミット）。書いた担当 Claude Sonnet 5.5。
+- 作者の言葉：〈作者「しばらくの間、全て推奨で」で推奨を採った〉（項 2 の ★(1219) ①＝番人の盤面を試験の中で金本位のまま保つ）。
+- 種類：恒等（エンジン 0 行・新しい係数 0・新しい状態 0）。確証：試験の配置の変更だけ＝AI の形（確証なし）。
+
+## [1] 恒等の線・予言 0
+- 差分の .cs は PriceOfBread.Tests だけ（git diff --stat で確かめる）。SimCore・App・Runner・Display は 0 行。
+- 素の 5 種・計器つき 10 種は m1233 と名乗り行を除いて全行一致のはず（エンジンが同じ）。ident は回さない（エンジン 0 行の ts は回さない＝指示）。
+
+## [2] 消す物と残す物・名簿
+- 消す試験 0 本。Assert と閾値は全て同じ（★(743) ①＝同じ盤面を作る写しを 1 本の共有へ）。
+- 項 1 の共有（StartWarmupTests.cs の StartWarmupShared に System.Lazy で 4 本・読むだけ）
+  | 共有 | 中身 | 使う試験（読むだけ） | 除く理由 |
+  | WarmedDefault | Build() → StartWarmup() | StartWarmupTests2.助走は国債を動かさず…（後半）・助走は国庫を動かさず…（後半）／StartWarmupTests3.開幕の歳入は…・助走は法を動かさない（後の側）／StartWarmupTests4.助走は二度目の呼び出しで何もしない（once の側） | 読むだけ |
+  | BareDefault | Build()（助走なし） | StartWarmupTests3.開幕の歳入は…（bare）・助走は法を動かさない（before の側） | 読むだけ |
+  | WarmedRuleless | BuildRuleless() → StartWarmup() | StartWarmupTests2 の 2 本（前半） | 読むだけ |
+  | BareRuleless | BuildRuleless() | StartWarmupTests2 の 2 本（前半） | 読むだけ |
+- 除く試験（盤面を書き換える・走らせる）：助走は暦を一切進めない・助走の長さを変えても…・助走は資本を一切育てない・助走は建材の需要を殺さない（StartWarmup(null,20)）・助走ゼロは素の構築直後と厳密恒等（StepQuarter で進める）・助走は決定論的で…（Step で進める）・助走の後も政治と外交の凍結は…・助走は価格を実勢へ寄せる・助走は豊凶と疫病を…
+- 共有した世界を書き換える語の grep（PoliticalLockEnabled・SetStateMonopolyOn・係数の代入・DiplomacyFrozen・StepQuarter・Run( ）：共有を読む 5 試験の本体に 0 件（実装後に grep して実装ログへ）。
+- 助走は法を動かさない：before＝BareDefault の Laws・after＝WarmedDefault の Laws（同じ Build の助走の前後＝旧の before/after と同じ主張）。
+- 並行：共有は読むだけなので collection は作らない（Lazy は ExecutionAndPublication）。World の導出量の遅延キャッシュの競合は理論上のみ＝赤が出たら共有を外す。
+- 他の線との重なり：b1（ColonialPopTests・EconomyTests・RecipeoutInstrumentTests・CorncfInstrumentTests・DiscoveryScoreTests）・rk（ColonyPromotionTests・TerritoryTests・ConservationTests）・al の新しい試験に触れない（grep で StartWarmupTests・FiscalTests・HealthcareLiteracyGateTests 以外を触らない）。
+- 項 1 の読んだだけで共有しなかった物（記録）：MultiNationTests 系は fis-21 で共有済み・TreasuryLedger は (1213) で共有済み・ExplainTests は 80 四半期の後に Explain を書き換える・ConservationTests は走行を書き換える。
+- 項 2：FiscalTests.cs 不履行は払えなかった大きさの累計…の Board()（:978〜）に、金本位を保つ行を足す（係数の既定は変えない＝この盤面の w.Coef だけ）。
+  - 足す行＝w.OnGoldStandard=true・w.Coef.GoldSuspendMinFundingRatio=0・w.Coef.GoldCoverMin=new Share(0)（強制離脱の 3 条件を盤面で塞ぐ＝Fiscal.cs:213）。足す Assert＝前提（2 つ目の月の後も金本位）。
+  - 金本位でない月の規則は ArrearsOpenedRoomTests（c122bd の枝）が持つ＝この線では書かない。
+- 項 3：HealthcareLiteracyGateTests に T4（同じ盤面で社会保障 0→1 で医療が上がり、扶養力 DiagCapacity も上がる）。(1227) 反証役 v の低 1。
+
+## [3] 足す試験と突然変異（1 本ずつ・出力は measurements/m1234_20261119_mut/）
+- 足す試験：HealthcareLiteracyGateTests.T4（1 本）。Tests 2695→2696・Tests.Ui 234・和 2930・FullLength 3。項 1 と項 2 は本数 0 増。
+  | 突然変異 | 赤になる試験 |
+  | μ1 共有した世界を 1 本の試験の中で書き換える（WarmedDefault の国庫を 1 国書き換える）| 同じ共有を読む別の試験が赤（助走は国庫を動かさず…の後半など） |
+  | μ2 Board() の金本位の行を外す | c122bd の旗 1 の木（aa38ad333＝旗 ArrearsBeyondOpenedRoom 1）で :997 が赤・旧の木（main）では緑のまま |
+  | μ3 HealthcareCapacityBonus＝0 | T4 が赤（扶養力の向き） |
+- 項 2 の確かめ：Board() の行ありで ①今の main で緑 ②使い捨ての木（aa38ad333 の枝を detach で D:/PoB_work/c125ts_work/tree_bd に置き FiscalTests.cs だけ写す・コミットしない）でも緑。両方を名乗る。
+- ㉘ 走査の番人：filter＝DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScanTests・FiscalTests・HealthcareLiteracyGateTests・StartWarmup。書き換える件数の予言＝0（ソースを走査する番人の許可表に触れない）。
+- 点検（grep の結果は実装ログへ）：工業化度の読み手の許可表 0 行・new MoneyStock( の件数 変化なし・route_anchors.tsv 触れない・WriterRatchetTests の宣言の表 触れない。
+
+## [4] 試験の時間の和と壁時計の予言（置き場所の移動を減りと書かない）
+- 基準：measurements/m1233_20261119/suite_523d9167e/trx（Tests 1351 秒の壁・試験ごとの時間の和 5375 秒）。
+- 予言：StartWarmupTests 系の 4 試験（国債 約 25〜30 秒・国庫 約 60 秒・歳入 約 36 秒・法 約 37 秒・二度目 約 48 秒の各 trx の値）から、助走の構築 4 回分＋規則なしの構築 1 回分（各 20〜30 秒）の和が減る＝和で −80〜−120 秒。壁時計は 1351 秒が最長の試験（InstrumentsTests 442 秒）で決まる＝壁の変化は雑音（±30 秒）に埋もれる〈推〉＝壁の減りは名乗らず前後の数字だけを並べる。
+- 前後の比べ：trx の試験ごとの時間（前＝m1233 の trx・後＝この線の trx）を並べ、試験ごとの和と壁を両方書く。
+
+## [5] 判定
+- 〈判定: 恒等〉（エンジン 0 行＝差分の .cs が Tests だけ・測った種で一致の対象外＝ident は回さない）＋フルスイート緑（2930＋FullLength 3）＋savetest・leakhunt 緑なら採る。赤は共有を外すか試験の直しを外して報告。
+- 作者の止める線への影響：なし（エンジン 0 行）。計算量の推定：変化なし（.cost 不変）。
