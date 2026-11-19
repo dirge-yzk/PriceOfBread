@@ -1,0 +1,8 @@
+(1240) 合流の片付け（2026-11-19・main 9ed9fd274 を push した後）
+- keep_1226・keep_1233_rej：新しい ident.cfg（9ed9fd274）を push した後に rm -rf を打った＝自動の確かめ（auto mode の分類器・破壊的な操作）に止められた＝消していない・迂回していない＝作者のセッションが消す（どちらも INSRAW でも KEEPNULL でもない・c125rd が読み終えた）。
+- keep_1240_rej（新しく作った）：rk_ident（D:/PoB_work/c125rk_work/ident から移した＝rk の線の木〔項 2・項 3 を含む〕の ident 段 2 の生・刈った後 9.4GB）・al（D:/PoB_work/c125al_work の probe・mut・f1*.trx を移した＝段 0 のプローブ 20 本と突然変異と旗 1 のフルスイートの trx・5.7MB）。
+- 線の worktree 4 本（wt_c125ts・wt_c125rk・wt_c125b1・wt_c125al）を git worktree remove で外し、ローカルの枝 c125ts・c125rk・c125b1・c125al を消した（origin の枝は残す）。
+- 線の作業フォルダ（c125ts_work・c125rk_work・c125b1_work・c125al_work・r1238_work・r1239_work）は自分で作った物ではない＝消していない（生は上のとおり移した・残りは小さい）。
+- ident_m1240z は判定と記録の後に消した。m1240_work と wt_m1240 は push の後に外す（下の実装ログの続きの行）。
+- 残ったプロセス：自分の道具箱のビルドの MSBuild のノード 1 本（PID 20296・19:14:43 起動・nodeReuse）＝Stop-Process は自動の確かめに止められた＝迂回していない（遊んでいるノードは自分で終わる）。
+- D: の空き 84.6GB。
