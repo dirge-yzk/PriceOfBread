@@ -47,3 +47,10 @@
 
 [5]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す（項ごとの木で段 1 の ident を回して帰属を分ける）。
 止める線：破綻・発散・空洞化・計算量（挙動を変えないので全て基線と同じのはず）。
+
+[追記 1] K100a・K100b を外す（腕の前・段 0 の実測の後・署名 Claude Sonnet 5.5）
+- 実測：3 項を全て入れた木（K100a・K100b・K101 と計器）で Tests（Category!=FullLength）2695 を回した（D:/PoB_work/c125rk_work/probe1・35 分 54 秒）。赤は 3 本：OpeningBakeTests の 2 本（★(764)＝world.json の techGate 8 件を消した入力のハッシュの写し・合流の木で 1 回だけ焼き直す）と ServiceEconomyTests.労働市場は清算し賃金は値幅に収まり労働者は収入を得る（ServiceEconomyTests.cs:121・実測 0.0716・範囲 0.15〜1.5）。
+- 後者は単一国の FullChain の盤面（ScenarioKind.FullChain・Region.ColonialResources が null の枝＝EconomyStep.cs:823 の代金なしの植民地財の輸入を通る）で労働市場の値段を見る機構の試験。★(743) の ①〜④ のどれにも名乗れない（消す欄を名指す Assert でも式の置き換えでもない・盤面を直すと別の試験になる）。
+- 指示のとおり K100a・K100b は外し、この線は K101 だけにする（K100a は挙動へ＝dl_table の注）。Model.cs・Colonial.cs・EconomyStep.cs・Simulation.cs・Territory.cs・World.cs・ColonyPromotionTests.cs・TerritoryTests.cs は触らない（git checkout で戻した）。上の [1]〔試験の直しの ①②〕・[2]〔K100a・K100b の消す物〕はこの追記で打ち消す。K101 の試験の直しは ConservationTests.cs の 1 行（★(743) ③）だけ。
+- 次の波への申し送り：K100a の削除には単一国の FullChain の盤面が植民地財を輸入する形（Simulation.cs:442・:514 の単一国の構築）の置き換えが先に要る（挙動の線）。
+- テストの数の予言は変わらず（+6）。消す試験 0。
