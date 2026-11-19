@@ -88,6 +88,7 @@ public class DormantIdentityTests
         // ★LaborFloorOffGate・LaborBandFloorOffGate・MinimumWageLawGate（(469) 労働の下限の撤去と最低賃金法）は 2026-10-20 (475) の合流で 2・1・1 へ**点火**＝この表から外した。LaborBandFloorOffGate は (1175) で旗ごと焼いた（RetiredFields）。
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
+        "NationalismFromDispersion", "UnificationWarWeary", "FormationCultureNationalism",   // ★器（(1230) c124nr）＝旗 A 自由主義の意識の項を f で民族主義へ分ける・旗 B 統一の宣戦を攻め手の厭戦で塞ぐ・旗 C 候補の取り分を規則の文化の州だけ。0＝今の形
         "MintBuysAtCapital",            // ★器（(1180) c117b0 B-1′ 段 B′-0）＝造幣の買いを首都の州の市場だけに（Simulation.MintGold）。0＝全ての州＝厳密恒等
         "ProjectionUsesLand",           //支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
         // ★BuildingGoodBundle（(550)(555) 工場の建屋の財・建設の束の 2 枠）は 2026-10-25 (555) 線 fb2 で既定 1 へ**点火**＝この表から外した。

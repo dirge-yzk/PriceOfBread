@@ -347,7 +347,10 @@ public static class Formations
             if (best is null || r.Tier < best.Tier) best = r;
         }
         if (best is null) return null;
-        return Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare.Value ? best : null;
+        double share = c.FormationCultureNationalism > 0 && best.CultureIs is { } cul
+            ? Ideologies.NationalOfCulture(w, cul)[NationalistShareIndex]   // (1230) 旗 C：規則の文化の州の POP だけ（少数の民族主義を統一の燃料に混ぜない）
+            : Ideologies.National(w)[NationalistShareIndex];
+        return share >= c.UnificationNatioShare.Value ? best : null;
     }
 
     public static System.Collections.Generic.List<Power> UnificationTargets(Diplomacy d, Power p, FormationRule r)
@@ -374,14 +377,20 @@ public static class Formations
     }
 
     /// <summary>(1195) 統一の宣戦を妨げる物。AI（Diplomacy.TryUnificationWars）とプレイヤー（World.CanUnificationWar）が同じ判定を呼ぶ。</summary>
-    public enum UnificationBlock { None, NotTarget, AtWar, Allied }
+    public enum UnificationBlock { None, NotTarget, AtWar, Allied, Weary }
 
-    /// <summary>(1195) この標的へ統一の宣戦ができるか（targets＝UnificationTargets の結果）。理由の文字列はプレイヤーの側だけが持つ。</summary>
-    public static UnificationBlock UnificationWarBlock(Diplomacy d, Power p, System.Collections.Generic.List<Power> targets, Power t)
-        => !targets.Contains(t) ? UnificationBlock.NotTarget
-         : d.IsAtWar(p, t) ? UnificationBlock.AtWar
-         : d.HasAlliance(p, t) ? UnificationBlock.Allied
-         : UnificationBlock.None;
+    /// <summary>(1195) この標的へ統一の宣戦ができるか（targets＝UnificationTargets の結果）。理由の文字列はプレイヤーの側だけが持つ。
+    /// (1230) 旗 B：攻め手の厭戦が WarWearyThreshold を超えたら Weary（他の入口と同じ述語・攻め手だけを読む）。</summary>
+    public static UnificationBlock UnificationWarBlock(Diplomacy d, Power p, System.Collections.Generic.List<Power> targets, Power t, Coefficients c)
+    {
+        var b = !targets.Contains(t) ? UnificationBlock.NotTarget
+              : d.IsAtWar(p, t) ? UnificationBlock.AtWar
+              : d.HasAlliance(p, t) ? UnificationBlock.Allied
+              : c.UnificationWarWeary > 0 && p.WarExhaustion > c.WarWearyThreshold ? UnificationBlock.Weary
+              : UnificationBlock.None;
+        if (Instruments.On) Instruments.UnifWarEval(d, c, p, t, targets, (int)b);   // 計器（読むだけ）
+        return b;
+    }
 
     private static bool Owns(Diplomacy d, Power power, string regionName)
     {

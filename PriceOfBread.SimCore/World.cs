@@ -1875,11 +1875,12 @@ public sealed class World
         if (Diplomacy is not { } d || SelfPower is not { } sp) { reason = "外交なし"; return false; }
         var rule = Formations.UnificationCandidate(d, sp, this, Coef);
         if (rule is null) { reason = "統一の機運なし"; return false; }
-        reason = Formations.UnificationWarBlock(d, sp, Formations.UnificationTargets(d, sp, rule), target) switch
+        reason = Formations.UnificationWarBlock(d, sp, Formations.UnificationTargets(d, sp, rule), target, Coef) switch
         {
             Formations.UnificationBlock.NotTarget => "必要州の保有国ではない",
             Formations.UnificationBlock.AtWar => "交戦中",
             Formations.UnificationBlock.Allied => "同盟中",
+            Formations.UnificationBlock.Weary => "厭戦",
             _ => "",
         };
         return reason.Length == 0;
