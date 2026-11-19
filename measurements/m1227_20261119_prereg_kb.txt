@@ -1,0 +1,34 @@
+(1227) c124kb 事前登録（最初のコミット）。恒等の線・予言 0。種類＝恒等（区分 I）。基準 m1226。
+作者「しばらくの間、全て推奨で」で推奨を採った（3 項を ident 1 回の 1 本にまとめる）。
+
+[1] 恒等の線・予言 0
+ 素の 5 種・計器つき 10 種・素の 10 種の成績表が m1226（b5_20261119_m1226・b10_20261119_m1226・b10_20261119_m1226_ins）と名乗り行を除いて全行一致。計器の表の差は宣言だけ（0 の見込み）。
+ 段：計器の表に触れない＝stage.py の段 1 の見込み（係数の一覧を書く表に当たれば段 2 と宣言）。
+ 新しい係数・新しい状態は 0。
+
+[2] 消す物と残す物
+ 項 1 k3 の焼き込み（旗 HealthcareLiteracyGateOff 既定 1 の旧枝を消す）
+  消す：Coefficients.p06_rank_discovery.cs:83 HealthcareEducationGate・:84 HealthcareLiteracyGateOff・Simulation.cs:2121〜2123 の旗の三項と旗 0 の min（旗 1 の枝＝SocialSecurity×FiscalFundingRatio だけ残す）。
+  残す：litSum（Simulation.cs:2119〜2120。:2215・:2218 の母の識字が読む）。
+  注の直し：p06:82 HealthcareCapacityBonus の注〈社会保障×識字で gate〉→〈社会保障×支払い率・医者の役務の門〉。
+  読み手の grep（2 係数）：SimCore は Simulation.cs:2121・:2123 のみ。App・Display・Runner 0。Tests は HealthcareLiteracyGateTests.cs:7・:17・DormantIdentityTests.cs:100（注）。scripts は c123k3/mut_apply.py・probe_Program.cs.txt・r1176/mk_tsv_s10.py・m1226/identz1226.sh・ident.cfg:2（注だけ）。POB_COEF の名前の文字列の読み手は無し。SaveGame は欄ごと自動（旧欄名は読まれない＝旧版との互換は要らない）。
+  試験：HealthcareLiteracyGateTests は旗を置く行を消し、旗 0 の Assert を消す（★(743) ①＝旧の規則の焼き込みに伴う）。旗 1 の Assert（T1 0.6・T2 0.6・T3 0.15）は識字の錠の復活を禁じる番人として残す。
+  浮動小数の順序が変わる箇所：なし（旗 1 の枝の式をそのまま残す）。
+ 項 2 cu の残り：Politics.cs:871・:877 の AvgRegionCoreShare(r) を、:869 の core に置き換える。同じ純関数・同じ入力（間に r の状態を変える呼び出しなし）＝ビットで一致。浮動小数の順序は変えない。SecessionLaborLawInstrumentTests.cs:8 の注を今の作りへ直す・:71 の 1e-12 に意味を 1 行。
+ 項 3 削除の線 K10′：Meritocracy.cs:122 の行と p10:28 GuildMobilityDrag を消す。既定 0 で主ゲート GuildLawGate も 0＝休眠＝到達不能。DormantIdentityTests.cs:89 の行は RetiredFields へ移す。GuildLawTests.cs:16 の代入 w.Coef.GuildMobilityDrag = 0.5 を外す（その Assert は取り分と剥離だけで移動の遅れを読まない＝読み手は取り分の Assert のみ。ただし旗 GuildLawGate=1 の盤面で移動の遅れが消える分の軌道は変わる＝試験の盤面の中だけ）。
+  残す：同業組合法の軸（GuildLawGate・GuildRentPremium）。
+ 入れない：HealthcareRealGate と DoctorHealthcareSubstitute・重い試験の精査。
+ 他の線との重なり：bk（InternationalMarket・EconomyStep・p04）・pf（BilateralMarket・Coefficients.cs）・nr（Ideology・Formations・MultiNationSim・World・Diplomacy・p09）とファイルが重ならない。DormantIdentityTests・WriterRatchetTests は宣言の行だけ（合流が束ねる）。
+
+[3] 足す試験と突然変異・走査の番人（㉘）・書き換える件数の予言（㉑）
+ 足す試験：なし（既存の HealthcareLiteracyGateTests の旗 1 の Assert を番人にする）。
+ 突然変異：
+  M1 識字の項を min に戻す（Simulation.cs:2121 を Math.Min(…, 識字/0.6) へ）→ HealthcareLiteracyGateTests T1 が赤（0.6 でなく 1/6）。
+  M2 :877 の 1−core を別の量（1−mil）と取り違える → SecessionLaborLaw 系の (1220) の T8 か ident が赤。
+  K10′ は休眠なので突然変異の対象が無い（到達不能の行の削除）。
+ 走査の番人（㉘）：DormantIdentityTests・WriterRatchetTests・UnitTypeTests・IndustrializationReaderTests・HealthcareLiteracyGateTests・GuildLawTests・SecessionLaborLawInstrumentTests を腕の前に回す。
+ 書き換える件数の予言：DormantIdentityTests の RetiredFields に 1 行（GuildMobilityDrag）・HealthcareLiteracyGateOff と HealthcareEducationGate の 2 名を RetiredFields へ。休眠の表（DormantZeroFields）からは GuildMobilityDrag の 1 行が消える（−1）。WriterRatchetTests の宣言の行は 0 の見込み。
+ 試験の数の予言：HealthcareLiteracyGateTests は 3 本のまま（T1〜T3 の旗 0 の Assert を消す）。Tests 2688・Tests.Ui 234＝2922 のまま（足す・消す試験の本数 0）。
+
+[4] 合否：5 種・10 種・計器つき 10 種が m1226 と全行一致。ng.sh 101・基準 rd:measurements/ng797_20261103:m797 と同じ集合。
+[5] 〈判定: 恒等〉なら採る（〈測った種で一致〉と名乗る）。一致しなければ項ごとの木で段 1 の ident を回して帰属し、その項を外して報告に回す。
