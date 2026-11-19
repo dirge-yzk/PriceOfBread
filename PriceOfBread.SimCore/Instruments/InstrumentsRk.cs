@@ -106,7 +106,7 @@ public static partial class Instruments
     static void ReachClose(MultiNationSim sim)
     {
         if (!ReachSinks.TryGetValue(sim, out var s)) return;
-        if (s.W is not null) System.Console.Error.WriteLine($"[reach_s] ms={ReachTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency:F1} rows={ReachRowCount}");
+        if (s.W is not null && System.Environment.GetEnvironmentVariable("POB_REACH_MS") == "1") System.Console.Error.WriteLine($"[reach_s] ms={ReachTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency:F1} rows={ReachRowCount}");
         s.W?.Dispose(); s.W = null;
     }
 
