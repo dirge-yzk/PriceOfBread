@@ -1,0 +1,1 @@
+# (1250) ㉘ 走査の番人の束（器 cbc642d00・旗 0）：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|FiscalTests|ArrearsOpenedRoomTests＝合格 221・失敗 0（24 分 56 秒・隔離ビルド）

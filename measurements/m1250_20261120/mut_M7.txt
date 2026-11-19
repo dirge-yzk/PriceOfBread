@@ -1,0 +1,5 @@
+M7 入れた：D:/PoB_work/c127bd_work/mut/M7/PriceOfBread.SimCore/Simulation.cs
+rc=1
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.W2_兌換0で貯蓄の上限に当たる月は旗で変わらない 
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)

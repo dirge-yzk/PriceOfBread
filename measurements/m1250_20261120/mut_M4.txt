@@ -1,0 +1,5 @@
+M4 入れた：D:/PoB_work/c127bd_work/mut/M4/PriceOfBread.SimCore/World.cs
+rc=1
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T3_兌換の追従は旗で変わらない 
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)

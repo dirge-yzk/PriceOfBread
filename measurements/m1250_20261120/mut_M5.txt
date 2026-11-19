@@ -1,0 +1,5 @@
+M5 入れた：D:/PoB_work/c127bd_work/mut/M5/PriceOfBread.SimCore/Fiscal.cs
+rc=1
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T1b_金本位でない月は余地で払えなかった分だけを積む 
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
