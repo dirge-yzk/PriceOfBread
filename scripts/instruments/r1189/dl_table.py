@@ -1,3 +1,4 @@
+# (1227) 注：GuildMobilityDrag は c124kb で消えた＝字面で読む古い台本
 # (1189) 問い1：削除の候補の表と順位。読み手の数は dl_readers.py の出力（out_readers.tsv・木 ef7db3cc8）。
 #  (b) 他の量と重なる（思想⑨）・(c) 閾値・錠・床・出来事の加算を持つ・(d) 難しい設計の線が触るファイルにある（段 E・F・G＝Diplomacy.cs・Colonial.cs／
 #  貿易 T2・T3＝BilateralMarket.cs／王権と議会＝Parliament.cs・CrownParliament.cs／国民意識の物理の削除〔波119〕＝Politics.cs・World.cs・Military.cs・Ideology.cs・MultiNationSim.cs・App・Runner）

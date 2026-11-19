@@ -1,3 +1,4 @@
+# (1227) 注：係数 HealthcareLiteracyGateOff・HealthcareEducationGate は c124kb で消えた＝この台本は字面で名前を読む古い台本（今の木では当たらない）
 # (1222) c123k3 突然変異を木に 1 本入れる（バイトで読み書き・ちょうど 1 回の置き換え）。使い方: python mut_apply.py <木> <M1..M3>
 import sys
 tree, m = sys.argv[1], sys.argv[2]
