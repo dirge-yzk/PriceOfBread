@@ -1,0 +1,10 @@
+(1226) 片付け 2026-11-19
+消した c123k3_work/armB/out_c123k3B_10/ins（k3 の腕 B の生・keepsum は measurements/m1226_20261119/keepsum_k3B.tsv）
+消した ident_c123cu（cu を入れると決めた後）
+消した ident_m1226z（腕 Z の生・刈り込みの残り 150 本の keepsum は identz/keepsum_z_remaining.tsv）
+消した m1226_work/src_mN1・src_mS11（腕の写しの木）
+消した c123cu_work・c123tc_work・c123k3_work・c123iv_work・r1224_work・r1225_work（写しの後）
+worktree を外し、ローカルの枝を消した：wt_c123cu・wt_c123tc・wt_c123k3・wt_c123iv・wt_m1226z（origin の枝は残す）
+移した：c123iv の腕 B の生 → D:/PoB_work/keep_1226_rej/ivB（1585 本）・M の生 → D:/PoB_work/keep_1226/base_ins（1580 本）・N1 → keep_1226/n1（569 本）・S11 → keep_1226/a11（579 本）
+消していない：D:/PoB_work/keep_1212・keep_1219・keep_1219_rej（指示の文が〈push の後は消してよい〉と〈残す＝作者のセッション〉の両方を書いている＝消さない側・§0-2 ★(1226) ③）
+この後に消す：wt_m1226（worktree と枝 m1226）・m1226_work（道具箱を建て直した後）
