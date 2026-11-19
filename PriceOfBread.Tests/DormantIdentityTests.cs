@@ -19,6 +19,7 @@ public class DormantIdentityTests
     private static readonly string[] DormantZeroFields =
     [
         // ★PaySalesToProducerBook（(1228) c124bk 記帳の線）は 2026-11-19 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は PaySalesProducerBookTests の T1・T4 の旗 0 の段）。
+        // ★CapSkipSellerPotential（(1244) c126pf 容量で飛ばした売り手の申し出を潜在量へ）は 2026-11-20 に 1 で**点火**（腕 B の前）＝この表から外した（旗 0 の経路の番人は CapSkipSellerPotentialTests の旗 0 の Assert）。
         // ★LordReligionStake・LordIntermediaryStake は 2026-11-11 (1048) c99db に 1 で**点火**＝この表から外した（旗 0 の経路の番人は LordstatD1aTests の D1a_2）。
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
