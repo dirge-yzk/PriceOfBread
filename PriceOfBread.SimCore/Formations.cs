@@ -347,10 +347,7 @@ public static class Formations
             if (best is null || r.Tier < best.Tier) best = r;
         }
         if (best is null) return null;
-        double share = c.FormationCultureNationalism > 0 && best.CultureIs is { } cul
-            ? Ideologies.NationalOfCulture(w, cul)[NationalistShareIndex]   // (1230) 旗 C：規則の文化の州の POP だけ（少数の民族主義を統一の燃料に混ぜない）
-            : Ideologies.National(w)[NationalistShareIndex];
-        return share >= c.UnificationNatioShare.Value ? best : null;
+        return Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare.Value ? best : null;
     }
 
     public static System.Collections.Generic.List<Power> UnificationTargets(Diplomacy d, Power p, FormationRule r)

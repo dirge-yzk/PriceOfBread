@@ -6,14 +6,14 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(1230) c124nr 民族主義の根と統一の宣戦（事前登録 measurements/m1230_20261119_prereg_nr.txt の T1a〜TC）。
-/// 旗 A <see cref="Coefficients.NationalismFromDispersion"/>：自由主義の意識の項 2.5×意識×進歩を州の札の f＝1−最大の国の X÷世界の X で自由主義（1−f）と民族主義（f）へ分ける。
+/// <summary>(1230) c124nr・(1249) c127nr 民族主義の根と統一の宣戦（事前登録 measurements/m1249_20261120_prereg_nr.txt の [3]）。
+/// 旗 A <see cref="Coefficients.NationalismFromDispersion"/>：自由主義の意識の項 2.5×意識×進歩を州の札の f＝1−M_X÷世界の X で自由主義（1−f）と民族主義（f）へ分ける。
+///   (1249) 形 A′：M_X＝X の人口が最大の 1 国の X（主の文化を問わない）＝1 国だけが持つ文化は f＝0。
 /// 旗 B <see cref="Coefficients.UnificationWarWeary"/>：攻め手の厭戦＞WarWearyThreshold なら統一の宣戦を塞ぐ（AI とプレイヤーが同じ判定）。
-/// 旗 C <see cref="Coefficients.FormationCultureNationalism"/>：統一の候補の門の民族主義の取り分を規則の文化の州の POP だけで数える。
 /// 期待の f は試験が POP の大きさを自分で足して作る（本体の関数から作らない）。盤面は試験の中で置く。</summary>
 public class NationalismUnificationTests
 {
-    private const string X = "試験X", Y = "試験Y", Z = "試験Z";
+    private const string X = "試験X", Y = "試験Y", Z = "試験Z", W = "試験W", V = "試験V";
     private const int Lib = (int)Ideology.Liberalism, Nat = (int)Ideology.Nationalism;
 
     private static NationConfig[] Pick(params string[] names) => [.. WorldData.Nations().Where(c => names.Contains(c.Name))];
@@ -90,9 +90,9 @@ public class NationalismUnificationTests
         Assert.Equal(1.0 / 3.0, fx, 12);
         Assert.Equal(fx, Ideologies.CultureSplitOf(bd.A, X), 12);
         Assert.Equal(fx, Ideologies.CultureSplitOf(bd.B, X), 12);   // 同じ X の人はどの国でも同じ f
-        Assert.Equal(1.0, Ideologies.CultureSplitOf(bd.A, Z), 12);  // 主の国の無い少数＝1
+        Assert.Equal(0.0, Ideologies.CultureSplitOf(bd.A, Z), 12);  // (1249) 形 A′：甲だけが持つ文化＝0（形 A では主の国が無い＝1）
         Assert.Equal(0.0, Ideologies.CultureSplitOf(bd.C, Y), 12);  // 1 国が全てを持つ＝0
-        Assert.Equal(1.0, Ideologies.CultureSplitOf(bd.C, Z), 12);  // 表は世界で 1 枚＝丙からも引ける
+        Assert.Equal(0.0, Ideologies.CultureSplitOf(bd.C, Z), 12);  // 表は世界で 1 枚＝丙からも引ける
         Assert.True(double.IsNaN(Ideologies.CultureSplitOf(bd.A, "")), "空の札は表に無い");
         Ideologies.ClearCultureSplit(ws);
         Assert.True(double.IsNaN(Ideologies.CultureSplitOf(bd.A, X)), "消した後は表が無い");
@@ -130,30 +130,22 @@ public class NationalismUnificationTests
     }
 
     [Fact]
-    public void T1d_少数の州はf1で上がり_空の札の州は旗0と同じ()
+    public void T1d_1国だけの文化の州と空の札の州は旗0と同じ()
     {
         var bd = MakeBoard();
         var (off, on, _, _) = Run(bd);
         var popsA = WithRegion(bd.A);
-        int zRows = 0, zRaised = 0, eRows = 0;
+        int zRows = 0, eRows = 0;
         for (int i = 0; i < popsA.Count; i++)
         {
             var (rg, p) = popsA[i];
             if (!(p.Size > 0)) continue;
-            if (ReferenceEquals(rg, bd.ZRegion))
-            {
-                zRows++;
-                Assert.True(on[0][i][Nat] >= off[0][i][Nat] - 1e-15, $"Z の POP {i}：民族主義が下がった");
-                if (on[0][i][Nat] > off[0][i][Nat] + 1e-9) zRaised++;
-            }
-            else if (ReferenceEquals(rg, bd.EmptyRegion))
-            {
-                eRows++;
-                for (int j = 0; j < Ideologies.Count; j++) Assert.Equal(off[0][i][j], on[0][i][j]);   // 表に無い札＝f＝0＝バイト一致
-            }
+            if (ReferenceEquals(rg, bd.ZRegion)) zRows++;
+            else if (ReferenceEquals(rg, bd.EmptyRegion)) eRows++;
+            else continue;
+            for (int j = 0; j < Ideologies.Count; j++) Assert.Equal(off[0][i][j], on[0][i][j]);   // (1249) 形 A′：Z は甲だけ＝f 0・空の札は表に無い＝f 0＝バイト一致
         }
         Assert.True(zRows >= 1 && eRows >= 1, $"対照：Z {zRows} 行・空の札 {eRows} 行");
-        Assert.True(zRaised >= 1, $"少数の州 Z の POP で民族主義が上がった行 {zRaised}/{zRows}");
     }
 
     [Fact]
@@ -284,44 +276,99 @@ public class NationalismUnificationTests
         Assert.True(Declared(1, thr) >= 1, $"攻め手の厭戦がちょうど {thr}：塞がない（他の入口と同じ >）");
     }
 
-    // ---- 旗 C：候補の門の取り分を規則の文化の州だけで数える ----
+    // ---- (1249) 形 A′：M_X＝X の人口が最大の 1 国（主の文化を問わない） ----
+
+    /// <summary>A′ の盤面：甲（プロイセン）乙（フランス）丙（ザクセン）。mainIsX＝甲と乙の全ての州が X（主の文化 X）・丙は Y。
+    /// そうでなければ甲＝Y の州と X の州 1 つ（主 Y）・乙＝W の州と X の州 1 つ（主 W）・丙＝V。甲の X：乙の X＝share：1−share（乙の X の州の POP を縮尺）。
+    /// zInA＝甲の別の州 1 つを Z（甲だけが持つ）。意識 0.6・闘争 0。</summary>
+    private static (Board Bd, double Xa, double Xb) SplitBoard(double share, bool mainIsX, bool zInA)
+    {
+        var sim = Sim();
+        var a = Nation(sim, "プロイセン"); var b = Nation(sim, "フランス"); var c = Nation(sim, "ザクセン");   // 乙は人の居る州が 2 つ以上の国（ザクセンは 1 州）
+        var pa = a.Regions.Where(r => RegionPop(r) > 0).ToList(); var pb = b.Regions.Where(r => RegionPop(r) > 0).ToList();
+        Assert.True(pa.Count >= 3 && pb.Count >= 2, $"前提：人の居る州 甲 {pa.Count}・乙 {pb.Count}");
+        foreach (var r in a.Regions) r.Culture = mainIsX ? X : Y;
+        foreach (var r in b.Regions) r.Culture = mainIsX ? X : W;
+        foreach (var r in c.Regions) r.Culture = mainIsX ? Y : V;
+        if (!mainIsX) { pa[0].Culture = X; pb[0].Culture = X; }
+        Region z = pa[^1];
+        if (zInA) z.Culture = Z;
+        a.SelfPower!.Culture = mainIsX ? X : Y; b.SelfPower!.Culture = mainIsX ? X : W; c.SelfPower!.Culture = mainIsX ? Y : V;
+        double xa = 0, xb = 0;
+        foreach (var r in a.Regions) if (r.Culture == X) xa += RegionPop(r);
+        foreach (var r in b.Regions) if (r.Culture == X) xb += RegionPop(r);
+        Assert.True(xa > 0 && xb > 0, $"前提：X の人口が正（甲 {xa}・乙 {xb}）");
+        double k = (1.0 - share) / share * xa / xb;
+        foreach (var r in b.Regions) if (r.Culture == X) foreach (var p in r.Pops) p.Size *= k;
+        xb = 0; foreach (var r in b.Regions) if (r.Culture == X) xb += RegionPop(r);
+        foreach (var w in new[] { a, b, c })
+            foreach (var r in w.Regions) foreach (var p in r.Pops) { p.Consciousness = 0.6; p.Militancy = 0; }
+        Assert.False(Ideologies.EraGates(a).Fascism > 0 || Ideologies.EraGates(b).Fascism > 0 || Ideologies.EraGates(c).Fascism > 0, "前提：ファシズムは未発見（eraFasc＝0）");
+        return (new Board(sim, a, b, c, z, z), xa, xb);
+    }
+
+    private static double[] BuildAndRead(Board bd, params string[] cultures)
+    {
+        var ws = new[] { bd.A, bd.B, bd.C };
+        foreach (var w in ws) SetFlag(w, 1);
+        Assert.True(Ideologies.BuildCultureSplit(ws), "旗 1 で表を作る");
+        var f = cultures.Select(x => Ideologies.CultureSplitOf(bd.A, x)).ToArray();
+        Ideologies.ClearCultureSplit(ws);
+        return f;
+    }
 
     [Fact]
-    public void TC_候補の門は規則の文化の州の民族主義だけを読む()
+    public void TA1_主の文化でない2国に60対40で分かれた文化はf04で民族主義へ()
     {
-        FormationRule? Cand(double flag)
+        var (bd, xa, xb) = SplitBoard(0.6, mainIsX: false, zInA: false);
+        double fx = 1.0 - Math.Max(xa, xb) / (xa + xb);
+        Assert.Equal(0.4, fx, 9);   // 盤面の前提（試験が州の人口から自分で出す）
+        var f = BuildAndRead(bd, X, Y, W);
+        Assert.Equal(fx, f[0], 12);   // 形 A では主の国が無い＝1
+        Assert.Equal(0.0, f[1], 12); Assert.Equal(0.0, f[2], 12);   // 1 国だけの Y と W＝0
+        var (off, on, _, _) = Run(bd);
+        int rows = 0, raised = 0, same = 0;
+        for (int k = 0; k < 2; k++)
         {
-            var sim = new MultiNationSim(Pick("プロイセン"), 13UL, _ => new NullAgent());
-            var p = sim.Diplomacy.Powers.First(q => q.BaseName == "プロイセン");
-            var w = p.Nation!;
-            p.FormationTier = 1;   // 北ドイツ連邦の後（段 1 の規則は CultureIs: null＝旗 C が効かない）＝候補はドイツ（CultureIs ドイツ）
-            var regs = w.Regions.Where(r => RegionPop(r) > 0).ToList();
-            double tot = regs.Sum(RegionPop), zpop = 0;
-            foreach (var r in regs)
+            var pops = WithRegion(k == 0 ? bd.A : bd.B);
+            for (int i = 0; i < pops.Count; i++)
             {
-                if (zpop < 0.6 * tot) { r.Culture = Z; zpop += RegionPop(r); } else r.Culture = "ドイツ";
-            }
-            Assert.Contains(regs, r => r.Culture == "ドイツ");   // 前提：ドイツの札の州が残る
-            foreach (var r in w.Regions)
-                foreach (var pp in r.Pops)
+                if (!(pops[i].Item2.Size > 0)) continue;
+                if (pops[i].Item1.Culture == X)
                 {
-                    pp.Consciousness = 0.6;
-                    Array.Clear(pp.IdeologyShares);
-                    pp.IdeologyShares[r.Culture == Z ? Nat : Lib] = 1.0;   // Z の州だけが民族主義
+                    rows++;
+                    Assert.True(on[k][i][Nat] >= off[k][i][Nat] - 1e-15, $"国 {k} の X の POP {i}：民族主義が下がった");
+                    if (on[k][i][Nat] > off[k][i][Nat] + 1e-9) raised++;
                 }
-            var c = new Coefficients { FormationCultureNationalism = flag };
-            Assert.True(Ideologies.National(w)[Nat] >= c.UnificationNatioShare.Value, $"前提：国の全体の取り分 {Ideologies.National(w)[Nat]} ≧ 門");
-            // ドイツの札の州の POP は全て民族主義 0（上で置いた）＝規則の文化の州だけの取り分は 0＜門
-            return Formations.UnificationCandidate(sim.Diplomacy, p, w, c);
+                else { same++; for (int j = 0; j < Ideologies.Count; j++) Assert.Equal(off[k][i][j], on[k][i][j]); }
+            }
         }
-        var c0 = Cand(0);
-        Assert.NotNull(c0);
-        Assert.Equal("ドイツ", c0!.NewName);
-        Assert.Null(Cand(1));
+        Assert.True(rows >= 2 && same >= 2, $"対照：X の POP {rows} 行・他の札 {same} 行");
+        Assert.True(raised * 2 >= rows, $"X の POP で民族主義が上がった行 {raised}/{rows}");
+    }
+
+    [Fact]
+    public void TA2_1国だけが持つ文化はf0()
+    {
+        var (bd, _, _) = SplitBoard(0.6, mainIsX: false, zInA: true);
+        var f = BuildAndRead(bd, Z, Y);
+        Assert.Equal(0.0, f[0], 12);   // 形 A では主の国が無い＝1
+        Assert.Equal(0.0, f[1], 12);
+    }
+
+    [Fact]
+    public void TA3_主の文化の2国に70対30で分かれた文化はf03()
+    {
+        var (bd, xa, xb) = SplitBoard(0.7, mainIsX: true, zInA: false);
+        double fx = 1.0 - Math.Max(xa, xb) / (xa + xb);
+        Assert.Equal(0.3, fx, 9);   // 盤面の前提
+        var f = BuildAndRead(bd, X, Y);
+        Assert.Equal(fx, f[0], 12);   // 形 A と同じ
+        Assert.Equal(0.0, f[1], 12);
     }
 }
 
-/// <summary>(1230) c124nr 計器 formation2_s・unifwar_s の番人（Instruments の大域の状態を触る＝Instruments の束）。期待は試験が盤面に置いた値と手の数え。</summary>
+/// <summary>(1230) c124nr・(1249) c127nr 計器 formation2_s・unifwar_s・tensionwhy_s の番人（Instruments の大域の状態を触る＝Instruments の束）。期待は試験が盤面に置いた値と手の数え。</summary>
 [Collection("Instruments")]
 public class NationalismUnificationInstrumentTests
 {
@@ -371,5 +418,40 @@ public class NationalismUnificationInstrumentTests
         int fn = Array.IndexOf(fh, "nation"), fe = Array.IndexOf(fh, "exhaust"), fw = Array.IndexOf(fh, "wearyNew"), fr = Array.IndexOf(fh, "rule");
         var fr1 = f.Skip(1).Select(l => l.Split('\t')).Where(x => x[fn] == "ライン諸邦").ToList();
         Assert.Contains(fr1, x => x[fr] == "ドイツ" && x[fe] == "0.6" && x[fw] == "1");
+    }
+    [Fact]
+    public void TK1_tensionwhyの理由の列の和は緊張の終値と同じで列強を含まない組は書かない()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tw_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        Instruments.SelectTables("tensionwhy_s");
+        var sim = new MultiNationSim([.. WorldData.Nations().Where(n => German.Contains(n.Name))], Seed, _ => new NullAgent());
+        var d = sim.Diplomacy;
+        var ps = d.Powers;
+        Power great = ps[0], minor1 = ps[1], minor2 = ps[2];
+        try
+        {
+            d._rank[great.Id] = PowerRank.Great; d._rank[minor1.Id] = PowerRank.Minor; d._rank[minor2.Id] = PowerRank.Minor;
+            d.AddTension(great, minor1, 30.0, TensionReason.Ethnic);
+            d.AddTension(great, minor1, 12.5, TensionReason.Religion);
+            d.AddTension(minor1, minor2, 50.0, TensionReason.Ethnic);   // 列強を含まない組＝書かない
+            Instruments.Quarter(sim, Seed, 0);
+        }
+        finally { Instruments.Close(sim); Instruments.SelectTables(null); Instruments.Configure(null, null); }
+        var t = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"tensionwhy_s{Seed}.tsv"));
+        var h = t[0].Split('\t');
+        Assert.Equal(Instruments.TensionWhyHeaderText.Split('\t'), h);
+        int ia = Array.IndexOf(h, "nationA"), ib = Array.IndexOf(h, "nationB"), it = Array.IndexOf(h, "tension"), i0 = Array.IndexOf(h, "Initial");
+        Assert.Equal(System.Enum.GetValues<TensionReason>().Length, h.Length - i0);   // 理由の列は全て
+        var rows = t.Skip(1).Select(l => l.Split('\t')).ToList();
+        string ng = great.BaseName.Length > 0 ? great.BaseName : great.Name, n1 = minor1.BaseName.Length > 0 ? minor1.BaseName : minor1.Name, n2 = minor2.BaseName.Length > 0 ? minor2.BaseName : minor2.Name;
+        var gm = rows.Where(x => (x[ia] == ng && x[ib] == n1) || (x[ia] == n1 && x[ib] == ng)).ToList();
+        Assert.Single(gm);
+        double sum = 0; for (int j = i0; j < h.Length; j++) sum += double.Parse(gm[0][j], System.Globalization.CultureInfo.InvariantCulture);
+        double tot = double.Parse(gm[0][it], System.Globalization.CultureInfo.InvariantCulture);
+        Assert.True(tot >= 42.5 - 1e-9, $"対照：置いた緊張 {tot}");
+        Assert.True(Math.Abs(sum - tot) <= 1e-9 * Math.Max(1.0, tot), $"理由の列の和 {sum}≠緊張 {tot}");
+        Assert.True(double.Parse(gm[0][Array.IndexOf(h, "Ethnic")], System.Globalization.CultureInfo.InvariantCulture) >= 30.0 - 1e-9, "置いた民族の理由が列に出る");
+        Assert.DoesNotContain(rows, x => (x[ia] == n1 && x[ib] == n2) || (x[ia] == n2 && x[ib] == n1));
     }
 }

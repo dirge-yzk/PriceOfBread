@@ -81,7 +81,7 @@ public static class Ideologies
     //   国ごとに同じ辞書を引く（国の無い盤面の試験でも World から引ける）。
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, Dictionary<string, double>> CultureSplit = new();
 
-    /// <summary>f(X)＝1−M_X÷W_X。W_X＝世界の文化 X の人口（州の札・POP の大きさの和）。M_X＝主の文化（Power.Culture）が X の国のうち、X の人口が最大の国の X の人口（無ければ 0＝f＝1）。
+    /// <summary>f(X)＝1−M_X÷W_X。W_X＝世界の文化 X の人口（州の札・POP の大きさの和）。M_X＝X の人口が最大の 1 国の X の人口（主の文化を問わない＝(1249) 形 A′・1 国だけが持つ文化は f＝0）。
     /// 札が空の州と人口 0 の州は数えない（表に無い札＝f＝0）。どの国の旗も 0 なら何もしない（false）。</summary>
     internal static bool BuildCultureSplit(IReadOnlyList<World> worlds)
     {
@@ -102,8 +102,7 @@ public static class Ideologies
                 own[r.Culture] = own.GetValueOrDefault(r.Culture) + pop;
                 total[r.Culture] = total.GetValueOrDefault(r.Culture) + pop;
             }
-            string main = w.SelfPower?.Culture ?? "";
-            if (main.Length > 0 && own.TryGetValue(main, out double m) && m > largest.GetValueOrDefault(main)) largest[main] = m;
+            foreach (var kv in own) if (kv.Value > largest.GetValueOrDefault(kv.Key)) largest[kv.Key] = kv.Value;   // (1249) 形 A′：主の文化を問わない
         }
         var f = new Dictionary<string, double>(total.Count);
         foreach (var kv in total) f[kv.Key] = 1.0 - largest.GetValueOrDefault(kv.Key) / kv.Value;
@@ -230,14 +229,6 @@ public static class Ideologies
     public static double[] National(World w) => Aggregate(w, w.AllPops());
 
     public static double[] Regional(World w, Region r) => Aggregate(w, r.Pops);
-
-    /// <summary>(1230) 州の札が <paramref name="culture"/> の州の POP だけの国の思想の取り分（重みは <see cref="National"/> と同じ）。</summary>
-    public static double[] NationalOfCulture(World w, string culture) => Aggregate(w, PopsOfCulture(w, culture));
-
-    private static IEnumerable<Pop> PopsOfCulture(World w, string culture)
-    {
-        foreach (var r in w.Regions) if (r.Culture == culture) foreach (var p in r.Pops) yield return p;
-    }
 
     public static double[] Soldiers(World w, out double totalWeight) => Aggregate(w, SoldierPops(w), out totalWeight);
 
