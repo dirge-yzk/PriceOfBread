@@ -1,0 +1,60 @@
+# OLD=7bb40c77 NEW=3cb2210a0 W=±12 行（注と空白を除いた行）
+行	錨	囲む関数	近くの差の塊	差の行（先頭の 3 行・字は 90 字まで）
+S28-01	Coefficients.cs:2375:HarvestVariation	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-01	Simulation.cs:2027:Rng.NextDouble	MonthSettle	0	
+S28-01	Simulation.cs:2219:HarvestFactor	MonthSettle	1	-r.WarScareTension = warScareTensionNat;
+S28-03	Coefficients.cs:2378:HarvestPersistence	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-03	Simulation.cs:2034:rho * (_prevHarvestFactor	MonthSettle	0	
+S28-05	Coefficients.cs:2746:CenterIsFirstProvince	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-05	Simulation.cs:134:CenterIsFirstProvince	Simulation	4	-InitialNationalConsciousness = scenario.InitialNationalConsciousness, ／ -if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital( ／ -double g = scenario.Coef.CoreInitByRegionCulture;
+S28-06	Catalog.cs:318:WeatherExposure	WeatherExposure	0	
+S28-06	EconomyStep.cs:1051:WeatherExposure	Run	3	 +bool t1Copy = coef.TradeBuyBySupplyCurve > 0 || insOn; ／ -if (sleep[pi] == 1) continue; +if (sleep[pi] == 1) { if (t1Copy) { var sz = region.Produc ／ -if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; continue; } +if (s.Bankrupt) { s.Ou
+S28-07	Coefficients.cs:601:CropDiseaseChance	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-07	Coefficients.cs:602:CropDiseaseSeverity	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-07	Coefficients.cs:603:CropDiseaseRecovery	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-07	Simulation.cs:2047:CropDiseaseChance	MonthSettle	0	
+S28-07	Catalog.cs:373:IsDiseaseProneCrop	（関数の外）	—	
+S28-08	EconomyStep.cs:141:StapleHarvestFactor	StapleHarvestFactor	0	
+S28-08	EconomyStep.cs:2214:StapleHarvestFactor	Run	1	 +if (insOn) Instruments.SatNeeds(world, p, good.Tier, met * needW, (good.Tier == GoodTier
+S28-09	Coefficients.cs:2075:FoodFillSmoothing	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-09	Simulation.cs:2619:FoodFillSmoothing	DemographicStep	1	-double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litS
+S28-09	Simulation.cs:2865:FoodFillSmoothing	SmoothRegionalFoodFill	0	
+S28-15	MultiNationSim.cs:1320:EpidemicTransmitRange	StepEpidemicTransmission	0	
+S28-15	MultiNationSim.cs:1321:EpidemicTradeTransmit	StepEpidemicTransmission	0	
+S28-15	MultiNationSim.cs:1323:EpidemicWarTransmit	StepEpidemicTransmission	0	
+S28-15	Coefficients.cs:3519:EraFactor	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-16	Climate.cs:36:StapleSelfSufficient	StapleSelfSufficient	0	
+S28-16	Simulation.cs:872:StapleSelfSufficient	BuildProvince	2	-ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowment ／ -else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, 
+S28-17	Climate.cs:19:RiceSuitable	（関数の外）	—	
+S28-17	Simulation.cs:837:RiceSuitable	BuildProvince	2	-var (city, share, resources, culture, religion, _, _, _, _, _) = p; +var (city, share, re ／ -ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap
+S28-18	Climate.cs:30:CottonSuitable	（関数の外）	—	
+S28-18	Simulation.cs:840:CottonSuitable	BuildProvince	3	-var (city, share, resources, culture, religion, _, _, _, _, _) = p; +var (city, share, re ／ -ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap ／ -ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowment
+S28-19	Catalog.cs:377:IsColonial	（関数の外）	—	
+S28-19	Simulation.cs:832:IsColonial	BuildProvince	2	-var (city, share, resources, culture, religion, _, _, _, _, _) = p; +var (city, share, re ／ -ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap
+S28-20	Simulation.cs:759:ApplyEndowment	ApplyEndowment	2	-internal static void ApplyEndowment(Producer pr, double endowment, Coefficients c) +inter ／ -pr.Productivity *= endowment; | -double gate = endowment > 1.0 ? c.EndowmentCostFollowsAb
+S28-20	Simulation.cs:828:ProvinceResources	BuildProvince	2	-var (city, share, resources, culture, religion, _, _, _, _, _) = p; +var (city, share, re ／ -ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef); +Ap
+S28-21	Coefficients.cs:1044:LandDiminishExponent	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-21	Territory.cs:167:LandDiminishExponent	LandFactor	0	
+S28-21	EconomyStep.cs:1120:regionLandFactor	Run	0	
+S28-22	Coefficients.cs:3542:RentScarcityElasticity	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-23	Megaprojects.cs:259:ArableLand	ApplyEffect	NEW に無い	
+S28-23	Simulation.cs:2649:arableSum	DemographicStep	0	
+S28-24	Coefficients.cs:3423:DepositYearsAtBirth	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-24	Coefficients.cs:3424:DepositGradeKnee	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-24	Coefficients.cs:3425:DepositGradeFloor	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-24	Simulation.cs:2905:DepositYearsAtBirth	StepMineralDeposits	0	
+S28-24	EconomyStep.cs:1056:MineralGradeFactor	Run	1	-if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; continue; } +if (s.Bankrupt) { s.Ou
+S28-24	Simulation.cs:2900:IsMineral	StepMineralDeposits	0	
+S28-25	Discovery.cs:1215:DiscoveryNeedHalfSite	SiteTerms	0	
+S28-25	Discovery.cs:1224:OpenSite	OpenSite	2	 +double siteCostDiv = System.Array.IndexOf(r.Resources, p.GoodId) < 0 ? Simulation.Resour ／ -Simulation.ApplyEndowment(p, c.GoldRushEndowment, c); +Simulation.ApplyEndowment(p, c.Gol
+S28-25	Coefficients.cs:2388:GoldRushEndowment	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-25	Coefficients.cs:3426:BonanzaDepositYears	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-28	Coefficients.cs:3441:MineralScaleCap	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-28	Coefficients.cs:3442:FarmScaleCap	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-28	Coefficients.cs:3443:RgoScaleSpeedFactor	（係数）	—	係数の宣言は cmp の〈係数〉の列で読む
+S28-28	EconomyStep.cs:2849:MineralScaleCap	Run	1	-catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
+S28-28	EconomyStep.cs:2850:RgoScaleSpeedFactor	Run	1	-catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
+S28-31	Simulation.cs:2702:(667)	DemographicStep	1	-capacity = Math.Max(baseline * 0.3, capacity); if (!(capacity > 1e-9)) return; +if (!(cap
+S28-33	GameViewModel.News.cs:179:HarvestFactor	DetectEvents	0	
+S28-33	GameViewModel.Map.cs:735:EpidemicActiveYears	BuildProvinceHover	1	-{ | -double ncW = 0, ncSum = 0; | -foreach (var pp in rg.Pops) if (pp.NationalConsciousne
+S28-33	Discovery.cs:1235:LogAdd	OpenSite	3	 +double siteCostDiv = System.Array.IndexOf(r.Resources, p.GoodId) < 0 ? Simulation.Resour ／ -Simulation.ApplyEndowment(p, c.GoldRushEndowment, c); +Simulation.ApplyEndowment(p, c.Gol ／ -else w.LogAdd($"{w.Year} {r.Name}で{gname}の植林が始まった（{who}）"); +else { Simulation.DivideCost

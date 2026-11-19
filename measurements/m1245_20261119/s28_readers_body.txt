@@ -1,0 +1,18 @@
+K102	PriceOfBread.SimCore/Simulation.cs:43	条	if (c.HarvestSkew <= 0) return (u - 0.5) * 2.0 * a;
+K102	PriceOfBread.SimCore/Simulation.cs:44	条	double k = System.Math.Clamp(c.HarvestSkew, 0, 0.95);
+K102	PriceOfBread.SimCore/Simulation.cs:40		internal static double SkewHarvest(double u, Coefficients c)
+K102	PriceOfBread.SimCore/Simulation.cs:1681		double harvestEps = 1.0 + SkewHarvest(u, World.Coef);
+K103	PriceOfBread.SimCore/MultiNationSim.cs:1052	条	double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));
+K104	PriceOfBread.SimCore/MultiNationSim.cs:1435		double maxFrac = _coef.EmigrationMaxPerQuarter.Value * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
+K105	PriceOfBread.SimCore/Simulation.cs:2378	条	double knee = System.Math.Clamp(c.DepositGradeKnee.Value, 1e-6, 1.0);
+K106	PriceOfBread.SimCore/Diplomacy.cs:335	条	public DeterministicRng? SubmitRng;
+K106	PriceOfBread.SimCore/Diplomacy.cs:1389	条	if (c.SubmitProbabilistic > 0 && SubmitRng is { } submitRng && c.AISubmitMilRatio > 1.0)
+K106	PriceOfBread.SimCore/MultiNationSim.cs:65		Diplomacy.SubmitRng = new DeterministicRng(seed ^ 0xA5B4_C3D2_E1F0UL);
+K107	PriceOfBread.SimCore/EconomyStep.cs:2786	条	if (!(coef.MineralCostFollowsGrade > 0) || !s.IsRgo || !Catalog.IsMineral(s.GoodId)) return own;
+K108	PriceOfBread.SimCore/SelfPlay.cs:1263		private const double HarvestBadDecay = 0.9;
+K108	PriceOfBread.SimCore/SelfPlay.cs:1422	条	harvestBad[i] = Math.Max(1.0 - w.HarvestFactor, harvestBad[i] * HarvestBadDecay);
+K108	PriceOfBread.SimCore/SelfPlay.cs:1331		var harvestBad = new double[configs.Length];
+K108	PriceOfBread.SimCore/SelfPlay.cs:1361		System.Array.Resize(ref inDepression, nn); System.Array.Resize(ref heatPeak, nn); System.Array.Resize(ref harvestBad, nn);
+K108	PriceOfBread.SimCore/SelfPlay.cs:1427	条	if (harvestBad[i] > harvestMark) harvestDepressions++;
+K108	PriceOfBread.SimCore/SelfPlay.cs:1206		double MaxDrawdown, int DepressionEpisodes, int OverheatDepressions, int HarvestDepressions,
+K108	PriceOfBread.SimCore/SelfPlay.cs:1631	条	int totalHarvest = completed.Sum(r => r.HarvestDepressions);

@@ -1,0 +1,12 @@
+./EconomyStep.cs:675:            region.Pops[rp].EarnedPerMonth += new MoneyPerMonth(rk);
+./EconomyStep.cs:772:            p.LastEarnedPerMonth = p.EarnedPerMonth;
+./EconomyStep.cs:774:            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.LandTaxBasis
+./EconomyStep.cs:1880:                    if (distM > 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(qty * m.Price * distM);   // 流通マ�
+./EconomyStep.cs:1884:                        region.Pops[region.ArtisanPopIndex].EarnedPerMonth += new MoneyPerMonth(guildPay);
+./EconomyStep.cs:1892:                            region.Pops[region.InvestorPopIndex].EarnedPerMonth += new MoneyPerMonth(monPay);
+./EconomyStep.cs:2333:            region.Pops[region.SoldierPopIndex].EarnedPerMonth += new MoneyPerMonth(pay);
+./EconomyStep.cs:2367:                if (merchantCut > Eps) { region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(merchantCut); revenue[gi] -= merch
+./EconomyStep.cs:2425:            region.Pops[s.LaborPopIndex].EarnedPerMonth += new MoneyPerMonth(wages);
+./EconomyStep.cs:2486:            if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(revenue[gi]);
+./EconomyStep.cs:2487:            else if (totalPop > Eps) foreach (var p in region.Pops) p.EarnedPerMonth += new MoneyPerMonth(revenue[gi] * (p.Size / totalPop));
+./Model.cs:182:            pops[i]._savings += new MoneyStock(share); if (income) pops[i].EarnedPerMonth += new MoneyPerMonth(share);

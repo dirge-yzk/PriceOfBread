@@ -1,0 +1,9 @@
+系列	作る行（3cb2210a0）	種の混ぜ	引く行	何を引くか	頻度（ソース）	区分	生きているか
+主系列 Simulation.Rng（国ごと）	Simulation.cs:66	scenario.Seed	Simulation.cs:1680；単一国の世界だけ Simulation.cs:2058→Diplomacy.cs:1755・:1769	国の局地の豊凶 1 個（年 1 回）；単一国の外交	国×年 1 回	自然	生きている（多国では豊凶だけ）
+疫病 Simulation.EpidemicRng（国ごと）	Simulation.cs:67	Seed^0xC0FFEED15EA5E	Simulation.cs:1706（2 個）・World.cs:1008・:1018（州の抽選・pickRng）・MultiNationSim.cs:1061（受け手の伝播の確率・重さ・抽選）	内部の発生・重さ・襲う州・伝播	国×年 2 個＋発生ごとに州が 2 つ以上なら 1〜2 個＋伝播の候補ごと	自然	生きている
+作物の病気 Simulation.HarvestRng（国ごと）	Simulation.cs:68	Seed^0xBADC0FFEE0DDF00D	Simulation.cs:1698・:1700	病気に弱い作物ごとの発生と重さ	国×年×健全度 0.9 超の作物ごと 1 個＋発生で 1 個	自然	生きている
+帯の天候 MultiNationSim._weatherRng（世界に 1 本）	MultiNationSim.cs:64	seed^0xC11A7E5EED	MultiNationSim.cs:1079	緯度帯ごとの豊凶	年×帯ごと 1 個	自然	生きている
+外交 MultiNationSim.Rng（世界に 1 本）	MultiNationSim.cs:63	seed^0x9E3779B9	MultiNationSim.cs:667→Diplomacy.cs:1755・:1769	AI の同盟の成立（0.4・覇権が敵なら 0.7）・AI の属国化の試み（AiColonizeChance 0.12×自制）	月×候補の対ごと	政治と AI	生きている（属国化の試みは AI だけ＝!p.IsPlayer）
+勢力の変異 World.FactionRng（国ごと）	Simulation.cs:123	Seed^0xFAC71035EED5	Factions.cs:53	勢力の変異の受理（FactionMutationRate 0.002×危機）	危機の床を超えた勢力ごと	政治	生きている
+AI World.AiRng（国ごと）	Simulation.cs:123	Seed^0xA1C0FFEE5EED0337	SelfPlay.cs:389	専売の段を広げる抽選（MonopolyBurdenPushMode 1）	確率が正の判定ごと	AI	生きている
+屈服 Diplomacy.SubmitRng（世界に 1 本）	MultiNationSim.cs:65	seed^0xA5B4C3D2E1F0	Diplomacy.cs:1392	屈服の確率化	SubmitProbabilistic＝0＝一度も引かない	AI	休眠（00一覧 :2513〈温存〉）

@@ -1,0 +1,8 @@
+id	名	識別子
+K102	収穫の左の歪み HarvestSkew と SkewHarvest（S28-02）	HarvestSkew,SkewHarvest
+K103	疫病の時代の距離 EraEpidemicRange（S28-15）	EraEpidemicRange
+K104	飢饉の押し出し FaminePushMaxFracBoost（S28-10）	FaminePushMaxFracBoost
+K105	鉱脈の品位の折れ点 DepositGradeKnee（S28-24）	DepositGradeKnee
+K106	屈服の確率化の系列 SubmitRng と SubmitProbabilistic（S28-30）	SubmitRng,SubmitProbabilistic
+K107	鉱脈の品位を費用へ MineralCostFollowsGrade（S28-27）	MineralCostFollowsGrade
+K108	不作先行の恐慌の数え HarvestBadDecay と harvestBad（S28-32）	HarvestBadDecay,harvestBad,HarvestDepressions

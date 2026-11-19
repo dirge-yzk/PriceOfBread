@@ -1,0 +1,13 @@
+3cb2210a0:PriceOfBread.SimCore/Diplomacy.cs:1392:                                submitYields = submitRng.NextDouble() < PoliticalQuantities.Clamp01((sideRatio - 1.0) / (c.AISubmitMilRatio - 1.0));
+3cb2210a0:PriceOfBread.SimCore/Diplomacy.cs:1755:                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && rng.NextDouble() < chance)
+3cb2210a0:PriceOfBread.SimCore/Diplomacy.cs:1769:                if (p.Nation is not null && Suzerain(p) is null && rng.NextDouble() < colonizeChance)
+3cb2210a0:PriceOfBread.SimCore/Factions.cs:53:                    ulong u = w.FactionRng.NextULong();
+3cb2210a0:PriceOfBread.SimCore/MultiNationSim.cs:1061:            if (rng.NextDouble() < chance) w.TriggerEpidemic(_coef, EpidemicTransmitSeverityFloor + rng.NextDouble(), transmitted: true, pickRng: rng);   // 伝染＝死亡スパイク＋感染窓（連鎖しうる）
+3cb2210a0:PriceOfBread.SimCore/MultiNationSim.cs:1079:                double bandEps = 1.0 + (_weatherRng.NextDouble() - 0.5) * 2.0 * _coef.WeatherBandVariation;   // 帯全体の豊凶（同じ帯の国は同じ値＝気候相関）
+3cb2210a0:PriceOfBread.SimCore/SelfPlay.cs:389:        u = rng.NextDouble();
+3cb2210a0:PriceOfBread.SimCore/Simulation.cs:1680:            double u = Rng.NextDouble();   // RNG消費はSkew/ρに関わらず1回（決定論系列不変）
+3cb2210a0:PriceOfBread.SimCore/Simulation.cs:1698:                if (cropHealth[g] > 0.9 && HarvestRng.NextDouble() < hc.CropDiseaseChance)
+3cb2210a0:PriceOfBread.SimCore/Simulation.cs:1700:                    cropHealth[g] = hc.CropDiseaseSeverity * (0.5 + HarvestRng.NextDouble());   // 新規の胴枯れ＝0.15〜0.45へ激減（重さに揺らぎ）
+3cb2210a0:PriceOfBread.SimCore/Simulation.cs:1706:            double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // epiRoll〔履歴 Simulation.cs#194〕
+3cb2210a0:PriceOfBread.SimCore/World.cs:1008:        first = pos == 1 ? only : DrawByUrbanPopulation(sum, null, rng is null ? 0.5 : rng.NextDouble());
+3cb2210a0:PriceOfBread.SimCore/World.cs:1018:        second = pos == 2 ? last : DrawByUrbanPopulation(rest, first, rng is null ? 0.5 : rng.NextDouble());

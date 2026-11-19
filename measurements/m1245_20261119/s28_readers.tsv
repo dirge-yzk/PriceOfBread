@@ -1,0 +1,8 @@
+id	名	E	I	D	C	T	U	A	R	S	J	E_files	E_cond	E_add	識別子
+K102	収穫の左の歪み HarvestSkew と SkewHarvest（S28-02）	4	0	0	1	6	0	0	0	0	0	Simulation.cs:4	2	0	HarvestSkew,SkewHarvest
+K103	疫病の時代の距離 EraEpidemicRange（S28-15）	1	0	0	1	0	0	0	0	0	0	MultiNationSim.cs:1	1	0	EraEpidemicRange
+K104	飢饉の押し出し FaminePushMaxFracBoost（S28-10）	1	0	0	1	2	0	0	0	0	0	MultiNationSim.cs:1	0	0	FaminePushMaxFracBoost
+K105	鉱脈の品位の折れ点 DepositGradeKnee（S28-24）	1	0	0	1	3	0	0	0	0	0	Simulation.cs:1	1	0	DepositGradeKnee
+K106	屈服の確率化の系列 SubmitRng と SubmitProbabilistic（S28-30）	3	0	0	1	3	0	0	0	9	0	Diplomacy.cs:2 MultiNationSim.cs:1	2	0	SubmitRng,SubmitProbabilistic
+K107	鉱脈の品位を費用へ MineralCostFollowsGrade（S28-27）	1	2	0	1	9	0	0	0	1	0	EconomyStep.cs:1	1	0	MineralCostFollowsGrade
+K108	不作先行の恐慌の数え HarvestBadDecay と harvestBad（S28-32）	7	0	0	0	0	0	0	0	0	0	SelfPlay.cs:7	3	0	HarvestBadDecay,harvestBad,HarvestDepressions

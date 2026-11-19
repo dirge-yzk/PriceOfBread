@@ -1,0 +1,8 @@
+(1245) c126s28 読むだけ：台帳 S28 環境と災害の確かめ（2026-11-19・Claude Opus 5.5）
+作業の場所：D:/PoB_work/r1245_work/（q/＝表と出力・scripts/＝台本の写し）。worktree と枝は作らない（読むだけ・git show で 3cb2210a0 を読む）。コミットも push もしない。
+木：3cb2210a0（main＝HEAD）。11-12 の紙の段の木：7bb40c77。
+土台：11-12 の紙の段 ledger_S28_2026-11-12.md/.tsv（33 行・scratchpad）・台帳 §4-6-S28（:2243〜:2279・同じ 33 行）・§3 の S28-H001〜H032（:1836〜:1871）・文書 docs/ゲーム概要と実装機能.md の S28 の範囲（§1 では 6513〜6708）。
+台本の型：scripts/instruments/r1224/cmp_rows.py・anchor_hunks.py・mk_tsv_s26.py・trial_ledger_s26.py・ledger_check.py・dl_table.py・dl_readers.py（写しを scripts/ へ）。
+読む生（読むだけ）：D:/PoB_work/keep_1233/base_ins（m1233・計器つき 10 種）の fd_s・epi_s・site_s・dep_s・region_s・nationgood_s・prodcap_s・minecap_s・scalars_s ほか、要る物だけ。ヌル腕・種 11〜20 は使わない（予定）。
+手順：①cmp_rows と anchor_hunks で 7bb40c77→3cb2210a0 の錨の変化を数える ②変わった行と頻度で読める行を keep_1233 で読み直す ③41 見出しの対応（S28 の 32＋他の系統と同じ題 9） ④消す候補の一覧 ⑤DeterministicRng の読み手の数 ⑥tsv と md・ledger_check の門を台帳の写しで通す。
+腕 0 本。
