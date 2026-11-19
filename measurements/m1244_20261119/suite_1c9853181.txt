@@ -1,0 +1,4 @@
+# (1244) Tests の取り直し HEAD=1c9853181 2026-11-20 03:36:30
+list-tests Tests(Category!=FullLength)=2700
+Tests(Category!=FullLength) rc=0 成功!   -失敗:     0、合格:  2699、スキップ:     1、合計:  2700、期間: 32 m 36 s - PriceOfBread.Tests.dll (net10.0)
+DONE 2026-11-20 04:10:03

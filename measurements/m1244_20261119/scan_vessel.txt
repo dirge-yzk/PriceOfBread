@@ -1,0 +1,4 @@
+  失敗 PriceOfBread.Tests.OnDoubleReadScanTests.InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない [139 ms]
+失敗!   -失敗:     1、合格:   147、スキップ:     0、合計:   148、期間: 14 m 46 s - PriceOfBread.Tests.dll (net10.0)
+--- OnDoubleRead の直しの後（Instruments.On の読みを 1 本の局所へ・12→11）:
+成功!   -失敗:     0、合格:    12、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,2 @@
+D:/PoB_work/m1247_work/out_mS11_10_s11/ins/region_s20.tsv rows 668 peak ('1886', 374.749342, 'デンマーク') min after ('1937', 16.66746618, 'ネーデルラント') ratio 0.044 last ('1950', 34.20124289, 'ネーデルラント')
+D:/PoB_work/keep_1233/a11/region_s20.tsv rows 668 peak ('1895', 103.0824831, 'デンマーク') min after ('1940', 69.14562326, 'デンマーク') ratio 0.671 last ('1950', 74.32419941, 'デンマーク')

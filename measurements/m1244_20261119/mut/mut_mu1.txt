@@ -1,0 +1,5 @@
+# mu1（97145bac2）
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ [3 s]
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま [138 ms]
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0 [133 ms]
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致 [294 ms]
