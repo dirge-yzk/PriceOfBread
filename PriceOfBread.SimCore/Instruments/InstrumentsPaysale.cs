@@ -7,7 +7,7 @@ public static partial class Instruments
 {
     // 列の名前は 1 か所（見出しと行の列の数は同じ配列から作る＝(1241) v 高 1：見出しが 2 列足りないまま R5 が同じ定数と比べて緑だった）
     internal static readonly string[] PaysaleColNames = ["calls", "payToProducers", "payExport", "payMint", "payDomestic", "rentPart", "revBooked", "costBooked", "prodMonths", "negOld", "negNew", "flipNegToPos", "flipPosToNeg", "stateMonths", "stateFlipNegToPos", "diffAll", "diffStateStake"];
-    internal static readonly string Paysale2HeaderText = "quarter	year	nation	good	" + string.Join('	', PaysaleColNames);
+    internal static readonly string Paysale2HeaderText = "quarter\tyear\tnation\tgood\t" + string.Join('\t', PaysaleColNames);
 
     // 列の添字（PaysaleHeaderText の calls から順）
     const int PsCalls = 0, PsPay = 1, PsExport = 2, PsMint = 3, PsDomestic = 4, PsRent = 5, PsRevB = 6, PsCostB = 7,

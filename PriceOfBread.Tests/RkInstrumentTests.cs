@@ -124,11 +124,11 @@ public class RkInstrumentTests
             }
             Assert.True(lowered > 0, "対照：terrCost を下げても ownerKm が動かない州が無い");
             var h = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"reach_s{Seed}.tsv"));
-            var hd = h[0].Split('	'); int ro = Array.IndexOf(hd, "rhoOwner"), ok = Array.IndexOf(hd, "ownerKm");
+            var hd = h[0].Split('\t'); int ro = Array.IndexOf(hd, "rhoOwner"), ok = Array.IndexOf(hd, "ownerKm");
             Assert.True(h.Length > 1, "対照：行が無い");
             foreach (var l in h.Skip(1))
             {
-                var x = l.Split('	'); Assert.Equal(hd.Length, x.Length);
+                var x = l.Split('\t'); Assert.Equal(hd.Length, x.Length);
                 Assert.Equal(Instruments.RulePowerReach(D(x[ok])), D(x[ro]), 6);   // rhoOwner＝ownerKm の届き（線路をもう一度掛けない）
             }
             try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
@@ -147,9 +147,9 @@ public class RkInstrumentTests
             {
                 var f = System.IO.Path.Combine(dir, $"{t}{Seed}.tsv");
                 if (!System.IO.File.Exists(f)) { Assert.True(t == "rulepeace_s", "表が出ない：" + t); continue; }   // 講和の表は外交を止めた盤面では出ない
-                var ln = System.IO.File.ReadAllLines(f); int hc = ln[0].Split('	').Length;
+                var ln = System.IO.File.ReadAllLines(f); int hc = ln[0].Split('\t').Length;
                 Assert.True(ln.Length > 1, "対照：行が無い " + t);
-                foreach (var l in ln) Assert.Equal(hc, l.Split('	').Length);
+                foreach (var l in ln) Assert.Equal(hc, l.Split('\t').Length);
                 seen++;
             }
             Assert.True(seen >= 3);
@@ -196,8 +196,8 @@ public class RkInstrumentTests
         Assert.Equal(6.0, Instruments.PaysaleStakeDiff(3, 1, 8.0), 12);     // 持ち分 3/4×差 8（手計算）
         Assert.Equal(0.0, Instruments.PaysaleStakeDiff(0, 5, 8.0), 12);
         Assert.Equal(17, Instruments.PaysaleColNames.Length);
-        Assert.Contains("diffAll", Instruments.Paysale2HeaderText.Split('	')); Assert.Contains("diffStateStake", Instruments.Paysale2HeaderText.Split('	'));
-        Assert.Equal(4 + Instruments.PaysaleColNames.Length, Instruments.Paysale2HeaderText.Split('	').Length);
+        Assert.Contains("diffAll", Instruments.Paysale2HeaderText.Split('\t')); Assert.Contains("diffStateStake", Instruments.Paysale2HeaderText.Split('\t'));
+        Assert.Equal(4 + Instruments.PaysaleColNames.Length, Instruments.Paysale2HeaderText.Split('\t').Length);
         try
         {
             var (_, dirNone) = Run("paysale2_s", "", 8, true);

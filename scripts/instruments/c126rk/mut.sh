@@ -16,7 +16,7 @@ open(p,'wb').write(b.replace(o,n).encode('utf-8'))" "$T/$F" "$3" "$4" || { echo 
   git -C "$T" checkout -- "$F"
 }
 I=PriceOfBread.SimCore/Instruments
-run mu1 $I/InstrumentsPaysale.cs "string.Join('\t', PaysaleColNames);" "string.Join('\t', PaysaleColNames.Where(x => x != \"diffAll\"));"
+run mu1 $I/InstrumentsPaysale.cs 'PaysaleColNames);' 'PaysaleColNames.Where(x => x != "diffAll"));'
 run mu2 $I/InstrumentsPaysale.cs 'PaysaleStake(stateUnits, privateUnits) * diff;' 'diff;'
 run mu3 $I/InstrumentsRk.cs 'snap.TerrCost[a] = HorseCostOf(snap.Tr[a].r, c); snap.TerrCost[b] = HorseCostOf(snap.Tr[b].r, c);' ''
 run mu4 $I/InstrumentsRk.cs 'double owner = snap.Get(a, b);' 'double owner = snap.Get(a, b) * (1.0 - 0.5 * (1.0 - 0.5));'

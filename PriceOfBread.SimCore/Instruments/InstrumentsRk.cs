@@ -63,7 +63,7 @@ public static partial class Instruments
         return (w.Regions.Count > 0 ? 1.0 / w.Regions.Count : 1.0, tot);
     }
 
-    internal const string ReachHeaderText = "quarter	year	nation	region	noRailKm	railTrack	railNeed	railPhi	ownerShare	rhoNoRail	rhoOwner	ownerKm	rhoWarDecay";
+    internal const string ReachHeaderText = "quarter\tyear\tnation\tregion\tnoRailKm\trailTrack\trailNeed\trailPhi\townerShare\trhoNoRail\trhoOwner\townerKm\trhoWarDecay";
     internal static long ReachRowCount;   // 純カウンタ（番人が〈計器が切れている時は増えない〉を数える）
     internal static long ReachTicks;      // reach_s の実時間（Stopwatch の刻み・.cost の項の測り）
     sealed class ReachSink { public System.IO.StreamWriter? W; }
@@ -95,7 +95,7 @@ public static partial class Instruments
                 double need = target * Transport.RailNeedShare(w, basis, r);
                 double phi = Transport.RailPhi(r.RailTrack, need);
                 double own = r.Rule.Length > 0 ? r.Rule[0] : 0.0;
-                rs.W.WriteLine(string.Join('	', I(q), I(w.Year), NameOf(w), r.Name, F(kmNo), F(r.RailTrack), F(need), F(phi), F(own),
+                rs.W.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), r.Name, F(kmNo), F(r.RailTrack), F(need), F(phi), F(own),
                     F(RulePowerReach(kmNo)), F(RulePowerReach(kmOwn)), F(kmOwn), F(WarDecayReach(kmOwn, c.DistanceWarDecay))));
                 ReachRowCount++;
             }
