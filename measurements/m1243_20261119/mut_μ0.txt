@@ -1,0 +1,6 @@
+# (1243) 突然変異 μ0・木=55b14558b
+applied μ0 PriceOfBread.SimCore/Coefficients.p06_rank_discovery.cs
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+rc=1（1＝U1 が赤）
+   本国の大衆の POP 0/20 の闘争度が植民地の月で 0.2→0.2054 に動いた（植民地の闘争度が直に移っている）
