@@ -75,7 +75,7 @@ public sealed partial class Coefficients
     public double InterventionSubmitBar = 0.5;   // 応諾の敷居（無次元）
     public double InterventionRivalTension = 22.0;   // 提案が他の列強との緊張を上げる量（ColonizeRivalTension=22.0 と同型・同値）
     public double InterventionWarMinMonths = 12.0;   // 開戦からこの月数未満の戦争には口を出さない（始まったばかりの戦争に列強は動かない）
-    public double ColonialUnrestHomeWeight = 0.006; // C1植民地不満→本国大衆の闘争度（反帝世論）の月次係数（植民地人口加重平均不満×帝国規模）
+    public double ColonialUnrestHomeWeight = 0.0; // (1243) c126k99：K99 反帝世論（植民地の闘争度→本国の大衆の闘争度）を閉じた（旧 0.006・門が通れば塊ごと消す）
 
     // --- 人口動態（ロジスティック＝扶養力へ収束。人口転換。§A-3 拡張）。出生−死亡の純を扶養力との差で表す＝頑健（暴走/崩壊しない）---
     public RatePerMonth PopGrowthRatePerMonth = new(0.006);          // 扶養力へ収束する速さ（月次）
