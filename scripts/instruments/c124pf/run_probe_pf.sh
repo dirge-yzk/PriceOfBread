@@ -15,7 +15,7 @@ cp $TREE/scripts/instruments/r1224/Probe.csproj.txt $W/src/probe/Probe.csproj
 cp $TREE/scripts/instruments/c124pf/probe_pf_Program.cs.txt $W/src/probe/Program.cs
 dotnet build $W/src/probe/Probe.csproj -c Release --artifacts-path $W/art -v q -nologo > $W/build.txt 2>&1 || { echo BUILDFAIL; exit 1; }
 EXE=$W/art/bin/Probe/release/PriceOfBread.Tests.exe
-for F in 0 1; do for B in 0 1; do
+for F in ${PF_F:-0 1}; do for B in ${PF_B:-0 1}; do
   POB_COEF="SellOfferExcessStock=$F;EndowmentCostFollowsAbundance=$B" $EXE $S0 $S1 $MO $W/out/f${F}b${B} > $W/run_f${F}b${B}.txt 2>&1 || { echo RUNFAIL f$F b$B; exit 1; }
 done; done
 echo PROBEDONE > $W/probe.done
