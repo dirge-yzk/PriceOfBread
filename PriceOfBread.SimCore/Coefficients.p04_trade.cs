@@ -156,6 +156,6 @@ public sealed partial class Coefficients
     public double OpiumExportPressureTension = 40.0;    // 「緊張が高い」とみなす閾値（Tension は 100 で宣戦水準）
     public double OpiumExportPressureThreshold = 1.2;   // 外圧の合計がこれを超えたら輸出を禁じる（TradeWeight の和＝交易上の重み）
     public Share InterestCapitalization = new(0.0);   // 未払い利息を残高へ繰り入れる比率
-    public double PaySalesToProducerBook = 0;   // (1228) c124bk 旗：1＝InternationalMarket.PaySales の代金を生産者の帳へ（LastRevenue に代金・LastCost に賃金の分＝損益の増えは地代）。0＝帳は国内の売上だけ（番人 PaySalesProducerBookTests）
+    public double PaySalesToProducerBook = 1;   // (1228) c124bk 旗：1＝InternationalMarket.PaySales の代金を生産者の帳へ（LastRevenue に代金・LastCost に賃金の分＝損益の増えは地代）。0＝帳は国内の売上だけ（番人 PaySalesProducerBookTests）
     public RatePerQuarter CanalInvestFrac = new(0.03);      // 運河へ毎四半期投じる投資家貯蓄の割合（全経済国が拠出＝集合投資。スエズは欧州全体の利益）
 }
