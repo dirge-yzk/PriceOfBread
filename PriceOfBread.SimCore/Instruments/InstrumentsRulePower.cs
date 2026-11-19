@@ -15,7 +15,7 @@ public static partial class Instruments
     /// 数は "R"。〔履歴 InstrumentsRulePower.cs#3〕
     /// </summary>
     internal const string RpAllocHeaderText = "quarter\tyear\tnation\tregion\tcandKind\tyIndex\trhoF\tsShare\tbShare\twgtIndex\tallocIndex\tfForeignIndex";
-    internal const string RulePeaceHeaderText = "quarter\tyear\twinner\tloser\tscoreIndex\tmonths\tloserRegionCount\ttakenCount\ttakenPopShare\tflowIndex\tloserLandIndex\twinnerLandIndex\tphiStarMedianIndex\tgreatCircleOnlyTakenCount";
+    internal const string RulePeaceHeaderText = "quarter\tyear\twinner\tloser\tscoreIndex\tmonths\tloserRegionCount\ttakenCount\ttakenPopShare\tflowIndex\tloserLandIndex\twinnerLandIndex\tphiStarMedianIndex\tgreatCircleOnlyTakenCount\twinnerPush\tloserPush";
 
     /// <summary>力の式の結果（陸軍力の単位）。</summary>
     internal readonly record struct RpForces(double FS, double FI, double FR, double FU);
@@ -94,7 +94,7 @@ public static partial class Instruments
     internal static void RpSnapshot(bool firstClearingOfQuarter, IReadOnlyList<Simulation> nations, TrEntry[] tr, int tc, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, double[] terrCost, double[] landRatio, int[] landNode, double[] landGraft, double landRoute)
     {
         if (!On || !firstClearingOfQuarter) return;   // 計器の門はここで読む（清算の側の On の読みを増やさない・OnDoubleReadScanTests）
-        if (!(Wants("rulepower_s") || Wants("rulepeace_s") || Wants("rulepoweralloc_s") || Wants("rponset_s"))) return;
+        if (!(Wants("rulepower_s") || Wants("rulepeace_s") || Wants("rulepoweralloc_s") || Wants("rponset_s") || Wants("reach_s"))) return;
         if (nations.Count == 0 || nations[0].World.Diplomacy is not { } dip) return;
         RpSnapCount++;
         var s = new RpSnap { Tc = tc, LandRoute = landRoute, Tr = new TrEntry[tc], SeaNodeOf = new int[tc], SeaHalf = new double[tc], TerrCost = new double[tc], LandRatio = new double[tc], LandNode = new int[tc], LandGraft = new double[tc], SuezOkN = (bool[])suezOkN.Clone(), PanOkN = (bool[])panOkN.Clone() };
@@ -460,7 +460,7 @@ public static partial class Instruments
                         if (f.FS > 0) phis.Add(Math.Max(0, (mo - rr.Kappa * f.FI) / f.FS));
                     }
                     phis.Sort(); double phiMed = phis.Count > 0 ? phis[phis.Count / 2] : double.NaN;
-                    sb.Append(string.Join('\t', I(q), I(wn.W.Year), wn.Key, ln.Key, F(e.Score), I(e.Months), I(ln.Rows.Length), I(taken), F(popAll > 0 ? takenPop / popAll : double.NaN), F(flow), F(ln.L), F(wn.L), F(phiMed), I(takenGc))).Append('\n');
+                    sb.Append(string.Join('\t', I(q), I(wn.W.Year), wn.Key, ln.Key, F(e.Score), I(e.Months), I(ln.Rows.Length), I(taken), F(popAll > 0 ? takenPop / popAll : double.NaN), F(flow), F(ln.L), F(wn.L), F(phiMed), I(takenGc), F(WarPushOf(e).Winner), F(WarPushOf(e).Loser))).Append('\n');
                 }
                 if (sb.Length > 0) System.IO.File.AppendAllText(System.IO.Path.Combine(Dir, $"rulepeace_s{seed}.tsv"), sb.ToString(), new System.Text.UTF8Encoding(false));
             }
