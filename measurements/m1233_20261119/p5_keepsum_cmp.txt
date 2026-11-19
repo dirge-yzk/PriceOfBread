@@ -1,0 +1,4 @@
+# (1233) P5：M の生（keepsum_M.tsv）と bk の腕 B の生（keepsum_bkB.tsv）の sha256 の突き合わせ
+M 1592 本・bk の腕 B 1592 本・共通 1592・一致 1543・違う 49・M にだけ 0・B にだけ 0
+違う表（表の頭×本数）: {'burscan_s': 10, 'cearn_s': 10, 'clock_s': 10, 'cpop_s': 9, 'flow_s': 10}
+M にだけ: [] ／B にだけ: []
