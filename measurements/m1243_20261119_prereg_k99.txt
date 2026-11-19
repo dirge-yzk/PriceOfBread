@@ -1,0 +1,76 @@
+# (1243) c126k99 事前登録：削除の線 K99 反帝世論（ColonialUnrestHomeWeight）と探針 AntiImperialOpinion を消す（挙動の線・3 回の規則の 1 回目）
+# 枝 c126k99（3cb2210a0 から）・worktree D:/PoB_work/wt_c126k99・作業フォルダ D:/PoB_work/c126k99_work・書き手 Claude Opus 5.5
+# このファイルは腕の前の最初のコミット。数を変えるときは腕の前に理由つきで追記する（結果の後に変えたら〈結果の後の変更〉と名乗る）。
+
+## 0. 先頭に名乗る物
+- 作者 2026-11-16「既に動いている機能でも、問題があれば作り直したり、削除しても構いません。」と、2026-11-12 の削減の方針（重要でない機能は削減・既存の大きな機構の結果として出す）の下で、推奨で起こす（作者「しばらくの間、全て推奨で」で推奨を採った）。
+- 形は〈入口〉の削除（尾ではない）：植民地格の州の闘争度が本国（と全ての大衆）の闘争度へ直に移る 1 本の道を消す。
+- 削除の線は毎波 1 本（(1189) の表の順）・00一覧〈次の波（波126〜）〉1 節 ①。答え待ちではない。
+- 確証：削除そのものは作者 2026-11-16 の文の下の推奨＝〈確証なし〉と扱う（作者が名指しで〈消す〉と裁定した物ではない）。
+
+## 1. 現物（main 3cb2210a0・grep で確かめた）
+- Coefficients.p06_rank_discovery.cs:78 `ColonialUnrestHomeWeight = 0.006`。
+- Colonial.cs:41〜:57：`if (c.ColonialUnrestHomeWeight > 1e-9)` の塊＝植民地格の州の闘争度（Politics.RegionMilitancy の人口加重）×Min(1, colonies÷Max(1, ColoniesForFullColonial))×重みを、`w.AllPops()` の全ての大衆の POP（植民地格の州の住民を含む）の Militancy に毎月 Math.Min(1, …) で足す。
+- 探針 MechanismProbe.cs:7 `Site.AntiImperialOpinion`（Colonial.cs:50 の Eval・:54 の Hit）。読み手は Runner の `firecheck` の動詞（Site を 0〜Count で回す＝名前で引かない＝Runner は触らない）。
+- 試験・App・Runner の読み手は 0（grep・measurements/m1231_20261119/q/dl_table_S26_1231.tsv の K99 の行と同じ）。台本 scripts/instruments/r1148/mk_ledger.py:42 に名（注だけ書く）・r1148/freq.py:13 に値の写し（読み手の台本・触らない）。
+- 消さない：K99b ColoniesForFullColonial（SelfPlay.cs:441・:442 と残りの読み手）・K100a（Colonial.cs:13 の読み手）・K100b・植民地の闘争度の他の経路。
+
+## 2. 形
+- 腕 B の木＝係数の既定を 0 にした木（既にある `> 1e-9` の門で塊は丸ごと飛ぶ）。旗 0 の道は今の木そのもの＝器も旗も作らない。**腕 Z は今の木と同じなので回さない**（基線 m1233 そのもの）。
+- 門が通ったら、塊・係数・探針を物理で消すコミットを足す。そのコミットの木の段 1 の ident が腕 B の成績表と一致することを確かめる（腕 Z の代わり）。
+- 探針の表（firecheck の出力）は site が 1 つ減る（Site.Count 8→7）＝宣言。
+- 思想⑨（二重計上）：本国の大衆の闘争度は戦費・税・厭戦・徴兵・生活苦から既に出る〈推〉＝〈周辺の点検〉§7 で書き手を grep で名指す。
+
+## 3. 門（〈作者 2026-11-16 の決まり〉①）
+### 3-1 止める線（作者）
+- 破綻：クラッシュ・NaN・保存則・savetest（四半期の途中を含む）・leakhunt・進行不能（10 種とも 668 四半期を完走）。
+- 発散：全ての国の価格水準が 1 四半期に 100 倍以上・非有限・開幕の 1e10 倍以上のどれか 1 種でも（scripts/instruments/c92gf/stoplines1002.sh と brk693/plvl_seeds.py・**基線 keep_1233/base_ins とヌル腕 keep_1233/n1 を同じ台本で数え直して並べる**＝⑰）。建国の直後（系列の最初の行から 4 四半期以内）と〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉の四半期は ㊳ のとおりヌル腕の件数と並べる（m1017/popjump1017.py）。
+- 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（既定 -ex rule＝規則 A2：植民地格・緯度の絶対値 55 度以上・world.json の開幕の人口 20 千人未満＝7 州）でピークの 1/10 未満が名簿の外に出た件。**その線が原因と読めた件だけで止める**＝基線 keep_1233/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ（★(813)・結果を見る前にここへ写した）。主要国の州と本国格の州は例外にしない。
+- 計算量：推定の計算量 ≦248.5 秒（名目）。割り当て＝**0 秒**（減る側：毎月の植民地格の州の走査と全ての POP の走査が消える・この塊は CostLedger の項に入っていない＝.cost の推定は直接には動かない・軌道の差による項の件数の揺れだけ）。.cost は項ごとに基線 m1233（239.0 秒）と並べて記録。
+- 機構と不変条件を守るテストの赤（ソースを走査する番人を含む）。
+
+### 3-2 史実の桁の線（10 倍）＝この線が一番動かす量
+- 量＝植民地を持つ国（英 イギリス・仏 フランス・蘭 ネーデルラント・西 スペイン・葡 ポルトガル）の本国の闘争度（secession_s の Core・Integrated の行の popK 加重の militancyMeanIndex の、種ごとの四半期の中央の、種の中央）。読み手 scripts/instruments/c126k99/mag_k99.py。
+- 門 H：国ごとの 新÷旧（旧＝基線 keep_1233/base_ins）が **10 以上か 0.1 以下**なら破れ（史実の値が無い量＝同じ盤面の旧の規則を物差しにした桁の線）。
+- 蜂起の点火の数（wars_s の civilWarFlag=1）は同じ台本で並べて記録（門ではない）。
+
+### 3-3 単体の機構の試験（盤面は試験の中で置く・今の既定 0.006 で赤・突然変異で赤）
+- U1（PriceOfBread.Tests/AntiImperialOpinionRemovedTests.cs）：英仏の盤面（seed 83・DiplomacyFrozen）の英で、植民地格の州の POP の闘争度を 0.9、植民地格でない州の大衆の POP の闘争度を 0.2 に置き、Colonial.Step（月の 1 回）を呼ぶ。植民地格でない州の大衆の POP の Militancy が 1 ビットも動かない（Assert.Equal）。前提の対照：植民地格の州の数＞0・本国の大衆の POP の数＞0・SelfPower.Colonies＞0。
+- 旗 0（今の既定 0.006）：homePressure＝0.006×0.9×min(1, colonies÷3)＞0 が足される＝赤（§5 の紙の台本で確かめる）。
+
+## 4. 突然変異ごとにどの門で赤か（㉚・腕の前の紙の表）
+| 突然変異 | 入れ方（使い捨ての木 git archive） | U1 | 門 H | 止める線 |
+| μ0（旗 0＝今の既定 0.006 に戻す） | 係数の既定を 0.006 へ | 赤 | 緑（新÷旧≈1・基線そのもの） | 緑（基線そのもの） |
+| μ1（加算を戻す） | 物理の削除の後の木に塊を戻し、重みを 0.006 の定数で置く | 赤 | 緑（μ0 と同じ形） | 緑 |
+| μ2（植民地格の判定を本国の州へ向ける） | μ1 の塊の `cr.Tier != RegionTier.Colonial` を `cr.Tier == RegionTier.Colonial` へ（本国の州の闘争度 0.2 を圧に使う） | 赤（0.006×0.2×min(1,colonies÷3)＞0 が足される） | 読まない（腕を回さない） | 読まない |
+- 門 H と止める線は〈壊さない〉門＝何もしない実装（旗 0）で落ちない。〈狙いどおり働いた〉は U1 で示す（旗 0 で赤）。
+- ㉚ の〈項を消した突然変異と元の形の差が雑音の内なら働いていない〉：この線は項を消すこと自体が狙い＝採る理由は U1 と作者 2026-11-16 の削減の方針（世界の差の大きさは記録）。
+
+## 5. 紙の台本の出力（今の盤面 keep_1233/base_ins で取った物）
+- measurements/m1243_20261119/paper_mag_base.txt（基線と基線＝旗 0 の値・門 H は全て 1.0＝ok）・paper_mag_n1.txt（N1 と基線＝記録：英 0.901・仏 1.112・蘭 0.983・西 1.039・葡 2.207＝種の揺れで桁の線に届かない）。
+- 旧の規則の月の加算（反事実の近似）の種の中央：英 0.00173・仏 0.00151・蘭 0.00057・西 0.00121・葡 0.00065。追従 0.30／月の定常のずれ≈加算÷0.30＝英 0.0058・仏 0.0050・蘭 0.0019・西 0.0040・葡 0.0022。本国の闘争度の水準 英 0.329・仏 0.200・蘭 0.068・西 0.171・葡 0.067。
+- **段 0 の予言**（符号と大きさ）：本国の闘争度は下がる側・新÷旧の直接の効きは 英 約 0.98・仏 約 0.97・蘭 約 0.97・西 約 0.98・葡 約 0.97（ずれ÷水準）。種の揺れ（N1 で 0.90〜2.2）が直接の効きより大きい＝門 H（10 倍）には届かない見込み。蜂起の数は向きを予言しない（軌道の揺れ＝N1 で 139→125）。紙の台本は門の破れを予言しない（㉗ の追記は要らない）。
+- 旗 0 の盤面で U1 が落ちることは §3-3 の式で確かめた（homePressure＞0）＋事前登録の後の手番で今の木（0.006）で U1 を回し赤を確かめて記録（measurements/m1243_20261119/u1_flag0.txt）。
+
+## 6. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表（IndustrializationReaderTests）：Colonial.cs の行は無い＝変わらない。
+- `new MoneyStock(` の件数：SimCore で 64＝変わらない（触らない）。
+- route_anchors.tsv（flow262）の Colonial.cs の鍵の行 2 本（Procure・World.Transfer）＝本文の字で引く＝触らない・変わらない。
+- WriterRatchetTests の宣言の表：`心理量への書き手は増やさない`（Militancy 基準 25・≦の門）＝物理の削除で Militancy の書き手が 1 箇所減る（n→n−1）＝表は下げない（≦のまま通る）。計算量の宣言の表（40 四半期の件数）は既定 0 の木で軌道が変わる＝許し +2% の内の見込み・超えたら軌道の件数を写しただけの番人として取り直し、verdict に列挙する。
+- DormantIdentityTests：既定 0 のコミットで `既定ゼロの係数は休眠表か台帳のどちらかに載っている` が赤になる＝ZeroDefaultLedger へ 1 行（理由つき）を足す（予言：missing 1 件＝ColonialUnrestHomeWeight）。物理の削除のコミットで ZeroDefaultLedger の行を消し RetiredFields へ 1 行足す（`係数は全て本体のどこかで読まれる` は欄ごと消えるので通る）。
+- MechanismProbe.Site.Count 8→7（宣言）。試験の読み手 0。
+- ㉘ の filter＝IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|AntiImperialOpinionRemovedTests。
+
+## 7. 周辺の点検（思想⑨・旗 1 の木の番人の grep＝㉜）
+- 本国の大衆の闘争度の他の書き手（grep `Militancy` の書き手・Politics の力学 1 本が目標へ 0.30／月で追う）：戦費・税・厭戦（WarExhaustion）・徴兵・生活苦は Politics の目標の項から入る〈推〉＝植民地の闘争度の直の移しを消しても本国の不満の入口は残る。
+- 置き換える旧の規則：〈植民地格の州の闘争度を本国の大衆へ直に足す〉。それを固定する試験の grep（`AntiImperial|ColonialUnrestHomeWeight|homePressure` を PriceOfBread.Tests と PriceOfBread.Tests.Ui で）＝0 件。Colonial.Step を呼ぶ試験（ColonialPopTests:32・:177・:195・:198、FuelOperatingCostTests:340・:345、MilitaryTests:300）は Militancy を読まない（維持費・海運・燃料・請求・貯蓄）＝旧の規則を固定しない。
+- ㉜ の改め（作者 2026-11-19）：一覧に無い赤が旗 1（既定 0）の木で出たら〈試験のバグ〉か〈周りの壊れ〉かを調べ同じ線で直す。旧の規則の番人の赤は新しい規則の機構の試験へ書き換え、旧→新の表と各々が赤になる突然変異を腕 B の前に追記としてコミットする。原因の読めない赤と止める線に当たった時だけ止める。
+
+## 8. 記録（採否に使わない）
+- 反乱・内戦（wars_s の civilWarFlag）・政変（成績表の〈10年内に政変3回〉）の数・英の国債の不履行（m975/ukdef975.py・基線 M 4/10）・NG（ng.sh・基準 rd:measurements/ng1233_20261119:m1233・出力フォルダは D:/… で渡す）・ハーネスの不合格・nullgate.py の O（基線 m1233・N1 を 2 回）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・本国の崩れ（home_break.py）・成績表の旗 0 と違う行の数・同じ盤面の新÷旧（mag_k99.py）。
+
+## 9. 重なり（他の線の持ち主のファイル）
+- al の Simulation.cs・Catalog.cs・Discovery.cs・p07、pf の BilateralMarket.cs・p04・InstrumentsCapskip.cs、rk の Instruments*.cs・Diplomacy.cs に触れない。共有の DormantIdentityTests.cs（ZeroDefaultLedger と RetiredFields に自分の行だけ）・WriterRatchetTests.cs（要るときだけ自分の行）。Colonial.cs は :41〜:57 だけ（:13 の K100a は触らない）。
+
+## 10. D: と腕
+- 腕 B を起こす直前に shutil で空きを測り〈35GB＋28GB＝63GB〉に届かなければ 240 秒以内の刻みで測り直す。腕 B の生は合流の判断まで消さない（D:/PoB_work/c126k99_work/armB/out_c126k99B_10/ins）。
