@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="799cc634-bba1-4594-9434-911d925fb906" name="dirge@DIRGE 2026-11-19 15:17:10" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-19T15:17:10.7899570+09:00" queuing="2026-11-19T15:17:10.7899572+09:00" start="2026-11-19T15:17:10.2695222+09:00" finish="2026-11-19T15:17:10.7903135+09:00" />
+  <TestSettings name="default" id="8414f995-1054-4566-a267-8f16ab3d17f8">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-19_15_17_10" />
+  </TestSettings>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="0" executed="0" passed="0" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:00.07]   Discovering: PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:00:00.12]   Discovered:  PriceOfBread.Tests.Ui&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="DIRGE" outcome="Warning" timestamp="2026-11-19T15:17:10.7424852+09:00">
+        <Text>No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\m1233_work\suite\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
