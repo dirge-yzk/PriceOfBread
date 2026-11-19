@@ -1,0 +1,6 @@
+mu1:   失敗 PriceOfBread.Tests.RkInstrumentTests.R5_paysale2は挙げない国なら年末だけ_国の;  失敗 PriceOfBread.Tests.RkInstrumentTests.R8_計器の表の各行の列の数が見出しと同; | 失敗!   -失敗:     2、合格:     6、スキップ:     0、合計:     8�
+mu2:   失敗 PriceOfBread.Tests.RkInstrumentTests.R5_paysale2は挙げない国なら年末だけ_国の; | 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8�
+mu3:   失敗 PriceOfBread.Tests.RkInstrumentTests.R7_線路の伸びた州でnoRailKmは動かずownerKm; | 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8�
+mu4:   失敗 PriceOfBread.Tests.RkInstrumentTests.R7_線路の伸びた州でnoRailKmは動かずownerKm; | 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8�
+mu5:   失敗 PriceOfBread.Tests.RkInstrumentTests.R4_計器が切れている時は仕事の件数が増; | 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8�
+done
