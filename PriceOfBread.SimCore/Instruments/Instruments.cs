@@ -402,7 +402,7 @@ public static partial class Instruments
     /// </summary>
     internal static void PreEconomy(World w, Region r)
     {
-        if (Live(w) is not { } st || !IsPicked(w, st)) return;
+        PaysaleMonth(w, r); if (Live(w) is not { } st || !IsPicked(w, st)) return;   // PaysaleMonth＝(1228) paysale_s の月の符号（挙げた国に限らない）
         if (!st.CapSnap.TryGetValue(r, out var buf) || buf.Length != r.Pops.Count) st.CapSnap[r] = buf = new double[r.Pops.Count];
         for (int i = 0; i < buf.Length; i++) buf[i] = r.Pops[i].Savings.Value;
     }
@@ -1949,7 +1949,7 @@ public static partial class Instruments
         LandshareTable(sim, seed, q);      // LandshareTable〔履歴 Instruments.cs#319〕
         if (DscOn) DscTable(sim, seed, q); // DscTable〔履歴 Instruments.cs#320〕
         NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // NationgoodTable〔履歴 Instruments.cs#321〕
-        SellrTable(sim, seed, q);          // SellrTable〔履歴 Instruments.cs#322〕
+        SellrTable(sim, seed, q); PaysaleTable(sim, seed, q);          // SellrTable・PaysaleTable＝(1228)〔履歴 Instruments.cs#322〕
         BuyShadowTable(sim, seed, q);      // BuyShadowTable（T0a・s4cost_s・s7staple_s）
         TbTable(sim, seed, q);             // TbTable（T0b・tb_s）
         T1Table(sim, seed, q);             // T1Table（(1144) T1・t1buy_s）
@@ -1995,7 +1995,7 @@ public static partial class Instruments
         IdnClose(sim);   // IdnClose〔履歴 Instruments.cs#346〕
         SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // SubstClose〔履歴 Instruments.cs#347〕
         LandbaseClose(sim);   // LandbaseClose〔履歴 Instruments.cs#348〕
-        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
+        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim); PaysaleClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
         BuyShadowClose(sim);   // BuyShadowClose（T0a）
         TbClose(sim);          // TbClose（T0b）
         T1Close(sim);          // T1Close（(1144) T1）

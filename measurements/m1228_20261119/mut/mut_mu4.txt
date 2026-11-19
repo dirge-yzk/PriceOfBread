@@ -1,0 +1,14 @@
+# (1228) 突然変異 mu4 コミット 45ddc0c68
+mu4: 入れた（2 箇所）
+rc=1
+rc=1   失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1p_造幣の代金も同じく売上へ載る [75 ms] 失敗!   -失敗:     5、合格:     0、スキップ:     0、合計:     5、期間: 4 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T3_産出3対1の生産者は増えも3対1 [4 s]
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T4_損益の増えは国の取り分を含む地代の全額 [93 ms]
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1_旗1で売上が代金の割りだけ増え旗0では増えない [58 ms]
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T2_費用は賃金の分だけ増える [54 ms]
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1p_造幣の代金も同じく売上へ載る [75 ms]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T3_産出3対1の生産者は増えも3対1 [4 s]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T4_損益の増えは国の取り分を含む地代の全額 [93 ms]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1_旗1で売上が代金の割りだけ増え旗0では増えない [58 ms]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T2_費用は賃金の分だけ増える [54 ms]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1p_造幣の代金も同じく売上へ載る [75 ms]

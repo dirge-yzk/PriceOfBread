@@ -1,0 +1,86 @@
+# (1228) c124bk 記帳の線 事前登録（波124・挙動・3 回の規則の 1 回目・腕の前の最初のコミット）
+担当 Claude Opus 5.5。基準 m1226（main 8846c6a0f・BASE_COMMIT 0b65b3dde）。作業フォルダ D:/PoB_work/c124bk_work・worktree D:/PoB_work/wt_c124bk・枝 c124bk。
+形の種類＝〈入口〉（帳の欄の書き方を変える・お金の流れは 1 ビットも変えない）。
+
+## 1. 形
+- 旗 1 本 Coefficients.PaySalesToProducerBook（p04_trade.cs・既定 0・新しい係数は無い）。
+- InternationalMarket.PaySales（:29）の生産者ごとの割り（amt_i＝amount×Output_i÷ΣOutput）の中で、旗 1 のとき
+    pr.LastRevenue += amt_i ;  pr.LastCost += wages_i（＝amt_i − RentShareOf×amt_i・国の取り分 sc を引く前の地代の残り）
+  を足す。損益の増え＝amt_i − wages_i＝RentShareOf×amt_i＝その生産者の地代（国の取り分 sc を含む）。分子と分母を同じ割り方でそろえる（(1224) 反証役 v の中〜高）。
+- NaN は否定形で落とす（wages_i >= 0 が偽〔NaN を含む〕なら両方とも足さない）。amt_i は既存の `if (!(amt > 0)) continue;` を通った物だけ。
+- 旗 0 は今のまま（足し算の行を通らない）。お金の移し（World.Transfer）・受け手・額は旗に関係なく同じ＝保存則に触れない。
+- 呼び手（全て同じ規則＝例外を作らない・決まり③）：BilateralMarket.cs:1183（輸出の代金）・Simulation.cs:2450（造幣・minted）・InternationalMarket.cs:103（Procure＝Colonial.cs:120 国家の調達・Transport.cs:129／203 燃料と船と線路）・MultiNationSim.cs:1113・:1217・:1218（運河と港の工賃＝労働の財）。
+  労働の財（LaborId）の生産者は在る（Simulation.cs:426・:1108 ほか・OwnerPopIndex＝LaborPopIndex・RentShare 0）＝運河と港の工賃は労働の生産者の帳にも載る。地代 0 なので損益の増えは 0（ΔRev＝ΔCost＝amt）・StateProfitShare は BuiltScale 0 で 0＝国の請求と売却の可否に効かない〈推・段 0 の計器で確かめる〉。
+- 新しい状態は作らない（LastRevenue・LastCost は既にセーブに載る欄）。EconomyStep.cs（:2431・:733）は触らない（下の月の順で要らない）。
+
+## 2. 月の順（ソースで読んだ・腕の前）
+- 1 日の順：StepDayOpen → StepDayDaily（並列）→ StepDayClose（月末なら MonthSettle）→ MultiNationSim の Market.Step（月の第 1・2 月末：MultiNationSim.cs:652・四半期末：:671）。
+- MonthSettle の中：国の請求（Simulation.cs:1935 AddStateClaim＝pr.LastCost − pr.LastRevenue を読む）→ EconomyStep.Run（:2010→EconomyStep.cs:2431 で上書き・眠った生産者は :733 で 0）→ MintGold（:2043→造幣の PaySales）。
+- ＝輸出（Market.Step）と造幣は上書きの〈後〉＝+= は次の月の請求まで残る。Procure（日の段）は上書きの〈前〉に当たる日もある＝その分は次の清算の上書きで消えるが、消える前に同じ月の請求（:1935）が読む。
+- ＝読み手が見る窓＝〈前の清算の上書き〉から〈次の請求〉まで＝国内の売上 1 か月＋その窓の PaySales の分（1 か月分）。二重にも欠けにもならない。上書きの側を書き換える形は要らない＝採らない。
+- 四半期の計器（SelfPlay.cs:1356 Instruments.Quarter＝四半期末の Market.Step の後）は、四半期の第 3 月の国内＋造幣＋輸出を読む（その月の日の段の Procure は清算で消えた後＝計器の側の窓の違い・記録）。
+
+## 3. 読み手（変わる物の予言）
+- エンジン：Simulation.cs:1580 AddStateClaim（国営持分の赤字の請求＝StateProfitShare×max(0, LastCost−LastRevenue)）＝輸出・造幣の多い国営持分の生産者の赤字の見込みが減る（向き＝請求↓・支払い率↑〈推〉）。World.cs:1989 CanSellFactory（profit＝LastRevenue−LastCost が正の時だけ売れる・買値 UnitSalePrice は profit に比例）＝輸出する国営工場が売れやすく・高く（SelfPlay.cs:1165 の AI と PlayHarness の両方＝同じ機構）。
+- SmoothedMargin の書き手（EconomyStep.cs:2464・:2465）は値段と限界費用（margin）だけを読む＝LastRevenue を読まない（grep 済み）＝規模の目標は変わらない。
+- 計器：InstrumentsCearn.cs:681・:698・:701・:721（cearn_s・cpop_s の売上の列）＝旗 1 で値が変わる（記録）。
+- 試験（旗 1 で緑の予言）：ColonialPopTests.cs:130・:156（EconomyStep.Run を直に呼ぶ＝PaySales を通らない）・PhantomProductionTests.cs:213（同）・LandShareTests.cs:478（beforeLast と cpop_s が同じ時点の LastRevenue を読む）・InstrumentsTests.cs:606・:1008・StateFactoryTests.cs:81・:164・:187（欄を直に置く）。＝赤 0 の予言。
+- Runner/PlayFacts.cs:30・PlayHarness.cs:563・:597 は読むだけ（触れない）。App の表示も読むだけ。
+
+## 4. 門（〈作者 2026-11-16 の決まり〉①＝止める線＋史実の桁の線＋単体の機構の試験）
+### 4-1 止める線（腕 B〔計器つき 10 種・種 1〜10〕・読み手は scripts/instruments/c124bk/read_bk.sh＝c123k3/read_k3.sh の写しで基線を keep_1226 へ）
+- 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（四半期の途中を含む）・進行不能。
+- 発散：全ての国の価格水準が 1 四半期に 100 倍以上・非有限・開幕の 1e10 倍以上が 1 種でも（stoplines1002.sh・plvl_seeds.py）。建国の直後（系列の最初の行から 4 四半期以内）と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は、基準（keep_1226/base_ins）と N1（keep_1226/n1）を同じ台本で数え直して並べる（㊳）。
+- 空洞化：an_h2.py -v4（規則 A2＝既定 -ex rule）でピークの 1/10 未満が名簿の外に出たら、件ごとに基線の同じ種・同じ州を keep_1226/base_ins で読む。基線ですでにピークの 1/4 未満なら〈元からの弱さ〉＝止めない（記録の先頭）。そうでなければ〈線が原因〉＝止める。
+- 計算量：推定の計算量 ＞248.5 秒（.cost）。割り当て＝±0〈推〉（足し算 2 つ・計器は INS のときだけ）。2 秒以下の割り当ては 1 本の腕で門にしない＝記録。
+- 機構と不変条件のテストの赤（走査の番人を含む）。
+### 4-2 史実の桁の線
+- この線が一番動かす量＝国営持分の赤字の請求（AddStateClaim の StateLoss）と、輸出する生産者の月の損益。当てる史実の数は無い＝名乗って記録だけ（段 0 で選び直したら追記する）。
+### 4-3 単体の機構の試験（PriceOfBread.Tests/PaySalesProducerBookTests.cs・盤面は試験の中で置く＝英の Simulation を 2 か月・売り手の居ない財に 2 つの生産者を置く・期待は文字の値〔同じ出所から作らない〕）
+- T1：旗 1 で PaySales（清算所が払う）100 → 産出 3:1・地代の取り分 0.4 の生産者 A の LastRevenue が +75。旗 0 で +0（同じ試験の中で両方）。
+- T1′：minted: true の造幣の呼びで同じ +75。
+- T2：同じ盤面で LastCost が +45（＝75×(1−0.4)）。
+- T3：A と B の売上の増えの比が 3:1（+75・+25）。
+- T4：国営持分 0.5（BuiltScale÷Scale）を置いた A で、損益の増え（ΔRev−ΔCost）が地代の全額 30（国の取り分 15 を含む）と 1e-9 で一致・旗 0 で 0。
+- 突然変異（使い捨ての木・scripts/instruments/c124bk/mut_bk.sh・出力 measurements/m1228_20261119/mut_*.txt）と赤になる試験の表（㉚）：
+    μ1 LastRevenue へ足さない            → T1・T1′・T3・T4 が赤
+    μ2 LastCost へ足さない               → T2・T4 が赤（分子と分母）
+    μ3 旗の門を外す（常に足す）          → T1 の旗 0 の段・T4 の旗 0 の段が赤
+    μ4 割りを均等にする（amount÷生産者数）→ T1・T3 が赤（T2 も赤）
+    μ5 minted の呼びで足さない           → T1′ が赤
+### 4-4 機構が狙いどおり働いたか（観測量・門）
+- 計器 paysale_s（新しい表・四半期・国×財）：腕 B の全ての行の和で、revBooked÷payToProducers が 1±1e-9、(revBooked−costBooked)÷rentPart が 1±1e-9（実際に動いた欄の差＝計器が生産者の欄を前と後で読む＝⑮）。旗 0（腕 Z）では revBooked＝0＝この門は落ちる（紙の台本 scripts/instruments/c124bk/work_gate.py を腕 Z の出力で回して確かめる）。
+- μ1 で revBooked＝0・μ2 で第 2 の比が 1 から外れる（台本で読む）。μ4 は和が同じ＝この門では拾えない＝T3 が拾う（名乗る）。
+### 4-5 記録（採否に使わない）
+- 同じ盤面の新÷旧（成績表・nation_s の主な列）・旗 1 の出力が旗 0 と違う行の数・nullgate（記録）・NG（ng.sh・基準 rd:measurements/ng1226_20261119:m1226）・exact・near・ハーネス不合格・英の国債の不履行の種の数（ukdef975.py）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・home_break。
+- ジャマイカの大農園の地代の符号（帳＝LastRevenue−LastCost・旗 0 と 1）・ColonialPopTests の前提（★(1226) ①）は試験が EconomyStep.Run を直に呼ぶので旗に関わらない（予言）＝世界の中の符号は paysale_s の符号の反転の数で記録。
+- 段 0（下の 6 節）の予言と腕 B の実際の差。
+
+## 5. 計器 paysale_s（旗 0 の器で入れる・Instruments.On の時だけ計算）
+- 置き場：新しいファイル PriceOfBread.SimCore/Instruments/InstrumentsPaysale.cs（ConditionalWeakTable で生産者ごと・国ごと＝エンジンの欄を足さない）。受け口＝PaySales の割りの中の 1 行（生産者の欄の前の値を渡し、計器が後の値を自分で読む）と Instruments.PreEconomy の 1 行（清算の上書きの前＝請求が読んだのと同じ値で、旧の規則と新の規則の損益の符号を両方数える＝同じ盤面の旧と新の恒等の計器）と四半期の書き出しの 1 行。
+- 列：quarter year nation good calls payToProducers payExport payMint payDomestic rentPart revBooked costBooked prodMonths negOld negNew flipNegToPos flipPosToNeg stateMonths stateFlipNegToPos。行＝挙げた国は毎四半期・全ての国は年末（pay_s と同じ）・その四半期に何か有った財だけ。
+- 宣言：ident の --added-tables paysale_s。走査の番人と DormantIdentity の行（PaySalesToProducerBook を DormantZeroFields へ・旗 1 の時に外す）。
+
+## 6. 段 0（腕の前の予言）
+- 腕 Z（旗 0 の器・計器つき 10 種）の paysale_s の flipNegToPos・stateFlipNegToPos を財ごと（砂糖・コーヒー・金ほか）に数え、腕 B の予言としてここへ追記してから旗 1 のコミットを打つ（腕 Z の盤面＝m1226 と全行一致＝今の盤面）。
+- ソースからの向きの予言（腕の前）：お金の流れは同じ＝世界は国の請求と AI の払い下げの 2 本の経路だけで動く。国の請求の StateLoss の項は減る（0 以上の差）・払い下げの件数は増える〈推〉。大きさは段 0 の数で書く。
+
+## 7. 点検
+- ㉘ 走査の番人の点検（grep・2026-11-19）：new MoneyStock( は SimCore に 64 件（足さない）・工業化度の読み手の許可表（IndustrializationReaderTests）に触れない・route_anchors.tsv（scripts/instruments/flow262/）の鍵は行の文字で、PaySales の呼び手の行は変えない・InstrumentsTests.cs:559〈経路に InternationalMarket.cs が出ない〉＝PaySales の中に Transfer を足さない・WriterRatchetTests の宣言の表に LastRevenue・LastCost の行は無い＝取り直し 0（㉑ 変わる件数の予言＝0）。
+- ㉜ 旗 1 の木で旧の規則を固定している番人の grep：LastRevenue・LastCost を読む試験は上の 3 節の 9 本だけ＝どれも PaySales を通らないか同じ時点を読む＝旧の規則の固定 0 の予言。
+- 周辺の点検（読むだけ）：SmoothedMargin と規模の目標（LastRevenue を読まない）・不在地主の地代の経路（EconomyStep.cs:696・PaySales の地代は AddRentRecipients で同じ受け手へ）・StateProfitShare（World.cs:1944＝BuiltScale÷Scale＋王冠の枠）。
+- 重なり（00一覧 波124 の持ち主の表）：kb＝Simulation.cs:2119〜:2123・Politics.cs・Meritocracy.cs・p06・p10／pf＝BilateralMarket.cs:1050〜:1075・Coefficients.cs／nr＝Ideology.cs・Formations.cs・MultiNationSim.cs:646・World.cs:1878〜:1884・Diplomacy.cs:1693・p09。この線は InternationalMarket.cs（PaySales）・p04・新しい計器のファイル・Instruments.cs の受け口の行（PreEconomy の 1 行・四半期の書き出しの 1 行・Sink の欄の 1 行）・新しい試験・DormantIdentityTests の宣言の行＝重なり 0。
+- 事前登録の点検：外した物差し（補給崩壊の倍化・10pt・NG の正味・ヌル腕の幅）を門に写していない。符号だけの門を置いていない（4-4 は比が 1±1e-9 の大きさの門）。
+
+## 8. 追記（2026-11-19・腕 B の前・旗 1 のコミットの前）＝腕 Z の結果と段 0 の予言
+- 腕 Z：ident c124bkz（木 45ddc0c68・段 2）〈判定: 恒等〉（測った種で一致）＝素の 5 種 182 行・計器つき 10 種 182 行が m1226 と全行一致・.cost 237.2／237.8 秒・表 1590＝一致 1560＋既知の揺れ 20＋宣言 10（paysale_s）・注視 4851 行・テスト 2927（+5 を宣言）＋3（measurements/m1228_20261119/identz.txt）。
+- 計器の直し（787d7a9a7・計器の分岐の中だけ）：腕 Z の paysale_s は輸出の代金が 0＝計器が Live（月の決算の間だけ立つ）で切っていた＝輸出の清算（決算の後）を数えていなかった。〈助走の外なら数える〉へ直し、旗 0 の木で計器つき 10 種（paysale_s だけ・腕 Z′）を回し直した＝成績表は m1226 の計器つき 10 種と全行一致（差 0 行）・推定 237.8 秒。段 0 はこの腕 Z′ で数えた（measurements/m1228_20261119/stage0_armZ2.txt・腕 Z の版は stage0_armZ.txt）。
+- 門 G1・G2 の紙の確かめ：旗 0（腕 Z′）で G1＝0・G2＝0＝10 種とも〈落ちる〉（4-4 の〈旗 0 で落ちる〉の確かめ）。
+- 段 0（旗 0 の盤面で新の規則の影・種 1〜10・全期間・生産者×月）：
+  - 生産者へ割られた代金の和＝輸出 1.098e9・造幣 1.643e8・国内（Procure・運河・港）3.621e8。
+  - 月の損益が負の生産者×月＝旧 22,737,023 → 新 9,251,855（全 47,082,768）・負→正 13,485,168・正→負 0（損益の増えは地代≧0＝形から正→負は 0）。
+  - 国営持分のある生産者×月 300,412 のうち負→正 97,295（32%）＝AddStateClaim の StateLoss の請求が減り、CanSellFactory の profit＞0 の条件が立つ国×月が増える〈予言・大きさは成績表と claim の計器で読む〉。
+  - 砂糖：負 387,652 → 182,426（負→正 205,226・国営持分の負→正 2,937）／コーヒー：42,925 → 190（42,735）／金：440,547 → 14,068（426,479・国営 216）。
+  - 工場（地代の取り分 1）は賃金の分 0＝損益の増え＝代金の全額（帆船・機械・機関車ほか）。
+- 予言（腕 B）：G1・G2 は 10 種とも 1±1e-9（通る）。止める線は 0 件〈推〉（お金の移しは同じ＝保存則・NaN に触れない・世界が動くのは国の請求と払い下げの 2 本だけ）。計算量 ±0（237.8 秒前後・世界の軌道が変われば件数の差で動く）。
+- 史実の桁の線：段 0 で一番動く量＝月の損益の符号（生産者×月）と国営持分の赤字の請求＝当てる史実の数は無い＝記録だけ（4-2 のまま）。
