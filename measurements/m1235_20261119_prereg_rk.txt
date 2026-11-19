@@ -1,0 +1,49 @@
+(1235) c125rk 事前登録（恒等の線・最初のコミット）  基準＝m1233（main be048832b）  木＝D:/PoB_work/wt_c125rk 枝 c125rk
+署名：書いたモデル＝Claude Sonnet 5.5
+
+[1] 恒等の線・予言 0
+- 挙動を変えない。合否＝素の 5 種（b5_20261119_m1233）・計器つき 10 種（b10_20261119_m1233_ins）が、名乗り行の SOURCE-HASH を除いて全行バイト一致。計器の表の差は下の宣言だけ。
+- 3 項は根が別＝項ごとにコミット。新しい係数 0・新しい状態 0（計器の置き場は ConditionalWeakTable・エンジンに欄を足さない）。
+- 作者の裁定を上書きした物：なし（台帳 S26 の〈消す〉は 00一覧 0 節 ④⑤⑥ と 4 節の推奨＝〈作者「しばらくの間、全て推奨で」で推奨を採った〉）。
+- ★(743) の区分で名乗る試験の直し（verdict にも列挙する）
+  ① 項 1：ColonyPromotionTests.cs の 3 行（Assert.NotNull(…ColonialResources)・旧 :86・:112・:131）＝消す欄を名指す前提の Assert（常に真）→ ④。
+  ② 項 1：TerritoryTests.cs の 2 行（cap.ColonialResources = [1]・Assert.Empty(cap.ColonialResources!)）と注の 1 句＝消す欄を置いて空を確かめる行 → ④（削除の付随・SetCapital の Id と座標の Assert は残す）。
+  ③ 項 1：ConservationTests.cs:848 の `cp.TechGate = 0;`＝消す欄に値を置く行 → ③（欄ごと消す・BuildCost = 1e18 は残す）。
+  ④ 単一国の盤面で植民地財の枝（EconomyStep の null の枝＝代金なしの植民地財の輸入）を通る試験：腕の前の段 0 の実測で名指す（下の [2b]）。名乗れなければ K100a・K100b を外して K101 だけにする。
+- 浮動小数の順序が変わる箇所：なし（式の書き換えは無い・削除と計器の足しだけ）。紙の台本で旧≠新の行を数える対象も無い＝0。
+
+[2] 消す物と残す物
+消す（物理で）
+- K100a Region.ColonialResources（Model.cs:695）。エンジンの読み手：Colonial.cs:13（null で早抜け→ colonies<=0 だけに）・EconomyStep.cs:823〜:835（null の枝＝代金なしの植民地財の輸入）・Simulation.cs:839・:1372（多国は常に []）・Territory.cs:160・World.cs:1121。61 カ国の世界では常に [] ＝null の枝は通らない。単一国の盤面だけが通る。
+- K100b Region.ColonialAccess（Model.cs:692）・Simulation.cs:1725 の ColonialAccess() の呼び・:1767 の毎月の書き・:2541〜 の関数（TradeAccess を呼ぶが副作用なし＝Diplomacy.cs:668 を読んで確認）。読み手は K100a の null の枝（EconomyStep.cs:830）だけ。
+- K101 Chokepoint.TechGate（Diplomacy.cs:167）・MultiNationSim.cs:119 の写し・WorldData.cs:24 の DTO の引数と :116〜:122 の 7 本の位置引数・world.json の techGate 8 件・ConservationTests.cs:848。Diplomacy.cs:183 の同名の欄（別の型）は触らない。
+残す：ColoniesForFullColonial（Colonial.cs:53・SelfPlay.cs:441・:442 が読む＝K99 は次の波）。ProductionDiag.TechGateClosed（別の物）。
+読み手の grep（全域：SimCore・Runner・App・Display・Tests・Tests.Ui・scripts・measurements・POB_COEF・SaveGame）
+- ColonialResources：SimCore 7（上の行）・Tests 5（ColonyPromotionTests 3・TerritoryTests 2）・scripts 台本の注 6 本（r1127・r1148・r1224・r1231 の mk_ledger／dl_table の字面・c113qn/paper.py の注）＝注だけを書く・measurements 1（mk_table267.py の字面）＝触らない。Runner・App・Display 0。
+- ColonialAccess：SimCore 5・Tests 0・scripts 台本の字面のみ。Runner・App・Display 0。
+- TechGate（Chokepoint）：SimCore 4（Diplomacy.cs:167・MultiNationSim.cs:119・WorldData.cs:24・world.json）・Tests 1（ConservationTests.cs:848）。DormantIdentityTests と WriterRatchetTests の表に名前は無い（grep 済み）。
+- POB_COEF の名前解決・SaveGame：3 欄とも Region・Chokepoint の欄＝リフレクションで書かれる。欄が消えるだけ＝savetest を必ず回す（四半期の途中を含む）。
+他の線との重なり（枝 c125b1・c125al・c125ts を grep）：消す名前を b1・al・ts の枝で grep する。結果は実装時に記録（下の [2c]）。Simulation.cs は :839・:1372・:1725・:1767・:2541〜 だけ（al の :412〜:999 と重ならない）。Colonial.cs は :13 だけ。
+足す（計器）
+- 0a：nation_s の末尾（displayName の後ろ）に 5 列：foreignDebt（World.ForeignDebt・書き手 Fiscal.cs:488 BookForeignDebt）・foreignCapitalIn（World.ForeignCapitalIn・書き手 CapitalMarket.cs の流入と HostRentDividend の配当）・foreignBondClaims（World.ForeignBondClaims・書き手 BookForeignDebt）・capitalAbroad（World.CapitalAbroad・書き手 CapitalMarket.cs）・e_n＝F÷(F＋年間の名目 GDP)・F＝foreignDebt＋foreignCapitalIn。e の分母の物差しは AI の案（確証なし）＝段 P の前に確かめる。
+- 0c：Instruments.ReachRho（純関数・km×(1−覆い×(1−RailCostFraction))・覆い＝RailPhi×取り分）・reach_s（新しい表・挙げた国は毎四半期・全ての国は年末・旗 0・On の時だけ計算）・rulepeace_s の末尾に winnerPush・loserPush（Diplomacy.EndWar の既にある On の読みの中で WarEndPush＝終戦の記録へ War.PushA・PushB を計器の置き場で紐づけ）。使う既存の係数：RailPhi（Transport）・RailCostFraction・DistanceNormKm・LandSeaCostRatio（線路なしの距離）。
+- 項 3：paysale_s を paysale2_s へ改名（行の間引き＝挙げた国は毎四半期・全ての国は年末 q%4==3・書かない四半期は積んだまま持ち越す＝年末に 4 四半期ぶんの行）＋末尾 2 列 diffAll・diffStateStake（国の持ち分＝StateUnitsOf÷(StateUnitsOf＋PrivateUnitsOf)×新の規則が足す損益の差）。改名の理由＝ident に〈行が減る〉の宣言が無く、表の名を変えて --removed-tables・--added-tables で宣言するのが宣言の内で一番小さいため。
+- 触る行の報告（他の線との合流）：Diplomacy.cs:167（欄の削除）と :2972（On の既存の読みの中へ 1 呼び）・Instruments.cs の nation の見出しと cols（displayName の後ろ）と Quarter の表の呼び・Close・InstrumentsRulePower.cs の RpSnapshot の門の 1 行・rulepeace の見出しと行の末尾。
+
+[3] 足す試験（PriceOfBread.Tests/RkInstrumentTests.cs・6 本）と突然変異
+- R1 e_n の式の手計算（30＋10・160 → 0.2）と否定形。R2 nation_s の末尾 5 列と各行の e_n が同じ行の別の列から手で数えた値と一致。R3 ReachRho の単調と手計算（km＝DistanceNormKm・覆い 1・費用の比 0.5 で 2/3）。R4 計器が切れている時は複写・表・届きの行の件数が増えない（対照＝入れた時は増える）。R5 paysale2_s は挙げない国なら年末だけ（対照＝挙げた国は毎四半期）・国の持ち分の手計算。R6 講和の押しの写しの向き。
+- 突然変異（使い捨ての木・使い捨ての木は D:/PoB_work/c125rk_work/mut・結果は measurements/m1235_20261119_mut.txt）
+  μ1 e の式の分母を取り違える（F÷(F＋GDP) → F÷GDP）→ R1・R2 が赤。
+  μ2 鉄道の項の符号を逆にする（1−覆い×(1−fr) → 1＋覆い×(1−fr)）→ R3 が赤。
+  μ3 RpSnapshot の `!On ||` の門を外す → R4 が赤（切れている時に複写が増える）。
+  μ4 paysale2 の年末の門を外す → R5 が赤。 μ5 WarEndPush の向きを逆にする → R6 が赤。
+- K100・K101 は削除なので突然変異の対象が無い（機構の追加ではない）。
+- ソースを走査する番人（㉘）の点検：IndustrializationReaderTests の許可表（工業化度の読み手：増減 0 を grep で確認）・UnitTypeTests の `new MoneyStock(` の件数（足さない＝増減 0）・route_anchors.tsv の鍵の行（足さない）・WriterRatchetTests の宣言の表（計器だけ＝件数は動かない見込み）・OnDoubleReadScanTests（Diplomacy.cs の On の読みは EndWar の既にある 1 箇所の中へ入れた＝表に載る関数が増えない）・DormantIdentityTests（消す欄は表にない）。書き換える件数の予言（㉑）：0。
+- テストの数の予言：Tests 2695→2701（+6）・Tests.Ui 234 のまま・合計 2929→2935・FullLength 3。
+
+[4] 素の 5 種・計器つき 10 種が m1233 と名乗り行を除いて全行一致。計器の表の差（宣言）：
+- --grown-ok nation_s,rulepeace_s（末尾に列が増える）・--added-tables reach_s,paysale2_s・--removed-tables paysale_s。段は stage.py（計器に触れる＝段 2）。.cost は変えない見込み（植民地財の枝は 61 カ国の世界で通らない）。
+- 計算量：計器の仕事は .cost の件数に入らない＝件数の行は一致する見込み。ident の .cost と別に、reach_s の実時間を一度測って記録する（未測の見積もり〈推 0.5〜1 秒〉の置き換え）。普段の計算量 0 は R4 で固定。
+
+[5]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す（項ごとの木で段 1 の ident を回して帰属を分ける）。
+止める線：破綻・発散・空洞化・計算量（挙動を変えないので全て基線と同じのはず）。
