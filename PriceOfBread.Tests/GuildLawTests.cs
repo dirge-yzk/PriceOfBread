@@ -13,7 +13,7 @@ public class GuildLawTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        w.Coef.PrivilegeLedgerEnabled = 1; w.Coef.GuildLawGate = 1; w.Coef.GuildRentPremium = 0.15; w.Coef.GuildMobilityDrag = 0.5;
+        w.Coef.PrivilegeLedgerEnabled = 1; w.Coef.GuildLawGate = 1; w.Coef.GuildRentPremium = 0.15;
         var money = new MoneyConservation(w);
         sim.Run(8);
         money.Check(w);

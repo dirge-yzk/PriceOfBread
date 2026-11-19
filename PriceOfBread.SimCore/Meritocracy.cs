@@ -119,7 +119,6 @@ public static class Meritocracy
                     if (attract > 1.0)
                     {
                         double f = Math.Min(c.ArtisanDeclineRatePerQuarter.Value * artisan.Size * Math.Min(attract - 1.0, 1.0), artisan.Size);
-                        if (c.GuildLawGate > 0 && c.GuildMobilityDrag > 0) f *= 1.0 - PoliticalQuantities.Clamp01(c.GuildMobilityDrag * Privileges.GuildDegree(w));
                         if (c.JobSearchRatePerQuarter.Value > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, f, secular, higherEdu, c, ref soldierVac, forced: true);
                         else Move(artisan, from, f, c);
                     }

@@ -86,7 +86,6 @@ public class DormantIdentityTests
         "GuildLawGate",                 // 特権システム 段4＝同業組合法の主ゲート（法が動かない）
         // ★LaborFloorOffGate・LaborBandFloorOffGate・MinimumWageLawGate（(469) 労働の下限の撤去と最低賃金法）は 2026-10-20 (475) の合流で 2・1・1 へ**点火**＝この表から外した。LaborBandFloorOffGate は (1175) で旗ごと焼いた（RetiredFields）。
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
-        "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
         "MintBuysAtCapital",            // ★器（(1180) c117b0 B-1′ 段 B′-0）＝造幣の買いを首都の州の市場だけに（Simulation.MintGold）。0＝全ての州＝厳密恒等
         "ProjectionUsesLand",           //支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
@@ -97,7 +96,7 @@ public class DormantIdentityTests
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
         // ★SoldierVacancyFromZero（(1166) c115sv 大きさ 0 の兵の席）は 2026-11-16 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は SoldierVacancyFromZeroTests の F0）。
         // ★TradeBuyBySupplyCurve（(1144) T1 A-1）は 2026-11-16 (1172) c116t1 で 1 に**点火**＝この表から外した（旗 0 の経路の番人は TradeT1Tests の M3〔旗 0〕・M5）。
-        // ★HealthcareLiteracyGateOff（(1222) c123k3 K03 医療の min から識字の項を外す）は 2026-11-19 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は HealthcareLiteracyGateTests の旗 0 の Assert）。
+        // ★HealthcareLiteracyGateOff（(1222) c123k3 K03 医療の min から識字の項を外す）は 2026-11-19 に 1 で腕 B の木へ＝この表から外した（(1227) で旗ごと焼いた＝RetiredFields・番人は HealthcareLiteracyGateTests）。
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
@@ -257,6 +256,8 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "GuildMobilityDrag",   // (1227) c124kb 項 3 K10′：同業組合の移動の遅れ（既定 0・主ゲート GuildLawGate も 0＝休眠）を削除。法の軸 GuildLawGate・GuildRentPremium は残す
+        "HealthcareLiteracyGateOff", "HealthcareEducationGate",   // (1227) c124kb 項 1：(1222) K03 の旗（既定 1）と識字の錠の係数を焼き込んだ（旗 0 の枝と係数を消した＝番人は HealthcareLiteracyGateTests）
         "SecessionConsciousnessWeight", "RedefinedMandateFloor", "RedefinedMandateNcMin", "RedefinedMandateMandateMin", "NationBuildConscript", "NationBuildAccumRate", "NationBuildDecayRate", "NationBuildCrisisDefense", "NationBuildCrisisCivilWar", "NationBuildCrisisIndependence", "NationBuildInitialDefault", "RadioNationWeight", "NationConsciousnessReachDecay",   // (1193) c119nd 段 B：信任帝政の床の分岐と国民意識の物理（漸化式・POP の欄・国民形成費・計器の列）を消した。
         "NationBuildMobilizationWeight", "RevolutionConsciousness", "SkillMobilizationRelief", "NationConsciousnessDerived", "NationConsciousnessPerPop",   // (1193) c119nd 段 A：国民意識の重み 0 の読み手（徴兵の門・革命の目覚め）と既定の焼き込み（不動点の枝・スカラーだけの枝）。
         "NiterBedEnabled", "NiterBedProductivity",   // (1175) c116cl：硝石丘の枝と係数 2 本を削除（旗は既定 0 のまま届かなかった＝休眠 0・硝石を産地にする回で戻す）

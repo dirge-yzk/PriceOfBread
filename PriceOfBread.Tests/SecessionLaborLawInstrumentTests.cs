@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>
 /// ★(395) 恒等の線 ic2 の計器の番人（読むだけ・軌道に触れない）。
-/// ①州の分離の内訳 <c>secession_s</c>：組み直した圧力が本体の圧力と一致（pressureRebuildGapIndex＝0）・組み直した中央の保持力が本体の hold×共有分母に合う・
+/// ①州の分離の内訳 <c>secession_s</c>：組み直した圧力の差 pressureRebuildGapIndex は (1220) 以後は作りから 0（本体と同じ値を 1 回だけ求めて使う＝独立の突き合わせではない）・組み直した中央の保持力が本体の hold×共有分母に合う・
 ///   連続する 2 四半期の行で、支配度の増分が行の marginIndex×DominanceSpeed に合う（本体が独立に書いた r.Dominance との突き合わせ＝行の中だけで閉じない）・
 ///   最後の四半期の行の支配度と関税利害が世界の Region.Dominance／TariffInterest に合う。
 /// ②労働の列を財ごとに：3 財の BoundDesired／BoundLoss／Need の和が既存の合算列に合い（同じ分類を財ごとに割っただけ）・plainLabor の市場の列が既存の労働力の列に合い・
@@ -68,6 +68,7 @@ public class SecessionLaborLawInstrumentTests
             int nonZeroPressure = 0, withMargin = 0;
             foreach (var r in rows)
             {
+                // 1e-12＝倍精度の丸めの余裕（差は作りから 0＝列の配線が壊れて非 0 になったときだけ赤）
                 Assert.True(Math.Abs(Col(h, r, "pressureRebuildGapIndex")) <= 1e-12, $"組み直した圧力が本体とずれた {r[Array.IndexOf(h, "nation")]}/{r[Array.IndexOf(h, "region")]} 差 {Col(h, r, "pressureRebuildGapIndex")}");
                 Assert.True(Math.Abs(Col(h, r, "holdBaseRebuildGapIndex")) <= 1e-9, $"中央の保持力の組み直しが本体とずれた {Col(h, r, "holdBaseRebuildGapIndex")}");
                 double dom = Col(h, r, "dominanceShare"); Assert.True(dom >= 0 && dom <= 1, $"支配度が [0,1] の外 {dom}");

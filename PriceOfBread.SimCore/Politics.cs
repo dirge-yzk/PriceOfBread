@@ -868,13 +868,13 @@ public static class Politics
                         + ((r.Religion.Length > 0 && cap.Religion.Length > 0 && r.Religion != cap.Religion) ? 0.5 : 0);
         double core = AvgRegionCoreShare(r);
         if (c.CultureDistanceFromEthnic > 0)
-            cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - AvgRegionCoreShare(r), c.CultureDistanceFromEthnic);
+            cultDist = PoliticalQuantities.Toward(cultDist, 1.0 - core, c.CultureDistanceFromEthnic);
         double mil = AvgRegionMilitancy(r);
         double tariffTerm = Math.Abs(stance - tariffInterest) * mil * c.SecessionPressureScale * (1 + c.CultureSecessionWeight * cultDist);
         double pressure = tariffTerm, ethnic = 0;
         if (c.SecessionCultureAdditive > 0 && w.EthnicEnabled)
         {
-            ethnic = c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - AvgRegionCoreShare(r)) * mil;
+            ethnic = c.SecessionCultureAdditive * c.MinorityMilitancy * cultDist * (1.0 - core) * mil;
             pressure += ethnic;
         }
         double incl = PoliticalQuantities.Clamp01(RegionAvgSuffrageInclusion(w, r));

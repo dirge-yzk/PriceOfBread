@@ -1,3 +1,4 @@
+# (1227) 注：HealthcareEducationGate は c124kb で消えた＝字面で読む古い台本
 # 読むだけ (1176) c116rl：11-12 の S10 の 76 行を、台帳の id（S10-Hnnn＋枝の字）・今の木 b9570c8a7 の錨・写しと読み直しの別で 12 列の TSV に書く。
 #  (1169) の mk_tsv.py の形を写した。入力：11-12 の tsv（scratchpad）・out_cmp_S10.tsv。出力：ledger_S10_2026-11-16.tsv（12 列）と side_S10_2026-11-16.tsv（写しの別）。
 # 使い方: python -X utf8 -I mk_tsv_s10.py <scratchpad> <作業フォルダ>
