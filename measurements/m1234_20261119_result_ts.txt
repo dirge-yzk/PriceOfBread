@@ -1,0 +1,10 @@
+# (1234) c125ts 結果（試験だけの恒等）
+- 木：1fb9804f4（フルスイートの対象）・差分の .cs は Tests の 3 ファイルだけ（SimCore・Runner・App・Display は 0 行）。ident は回さない（エンジン 0 行）。
+- フルスイート：Tests nonfull 2696（合格 2695・スキップ 1）・Tests.Ui 234・FullLength 3＝和 2933（--list-tests の和と一致・事前登録の予言 2930＋3 のとおり）。全て緑。savetest OK（0.0E+000）・leakhunt 完走（保存則違反なし）。
+- ㉘ の走査の番人（DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScan・FiscalTests・HealthcareLiteracyGateTests・StartWarmup）：195 本緑・書き換えた件数 0（予言どおり）。
+- 項 1：StartWarmupTests の読むだけの 5 本（国債・国庫・歳入・法・二度目）を共有（Lazy 4 本）。共有を読む本体に書き換えの語 0 件。
+  - 同じ機械の前後の並べ（StartWarmupTests 16 本だけ・--no-build・2 回ずつ）：壁 旧 150・117 秒／新 104・96 秒・試験ごとの時間の和（後の 1 回）旧 398.4 秒→新 304.0 秒（−94 秒）。予言（和 −80〜−120）のとおり。
+  - フルスイート全体の壁は 2113 秒（m1233 は 1351 秒）＝他の線の腕で機械が混んでいた雑音で、前後の比べには使わない。全体の和も 5375→7043 秒＝同じ理由。壁の減りは全体では名乗らない（置き場所の移動を減りと書かない）。
+- 項 2：Board() に金本位を保つ 3 行＋前提の Assert 2 本。今の main で緑（㉘ の 195 本）。c122bd の旗 1 の木（aa38ad333）で、旧の Board は :997 手前の〈r＝0.5 の月2つで不履行にならない〉で赤（mu2_bdtree_oldBoard_RED）・新の Board は緑（mu2_bdtree_newBoard_GREEN）。両方確かめた。
+- 項 3：T4 追加（社会保障 0→1 で医療 0.15→0.6・扶養力が上がる向き）。μ3（HealthcareCapacityBonus＝0）で T4 だけ赤（T1〜T3 緑）。
+- μ1：共有した世界を書き換える 2 本を足すと、後に走った StartWarmupTests2 の 1 本が赤（共有の安全の番人が働く）。使い捨て（コミットしない）。
