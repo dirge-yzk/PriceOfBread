@@ -52,13 +52,14 @@ public sealed partial class InternationalMarket
                     if (!Sells(pr, rr, goodId)) continue;
                     double amt = amount * (Math.Max(0, pr.Output) / totalOut);
                     if (!(amt > 0)) continue;
-                    if (coef.UnionBargaining > 0 && Instruments.On) Instruments.SbExport(w, amt, pr.BuysLabor && !pr.IsRgo);
+                    bool insOn = Instruments.On;   // (1228) 計器の旗の読みを 1 本に（OnDoubleReadScanTests の表の 4 のまま）
+                    if (coef.UnionBargaining > 0 && insOn) Instruments.SbExport(w, amt, pr.BuysLabor && !pr.IsRgo);
                     double rent = EconomyStep.RentShareOf(pr, rr, coef) * amt;
                     double wages = amt - rent;
                     // (1228) 記帳：代金を生産者の帳へ（売上に amt・費用に賃金の分＝損益の増えは地代〔国の取り分を含む〕）。お金の移しは下のまま。
                     double revBefore = pr.LastRevenue, costBefore = pr.LastCost;
                     if (coef.PaySalesToProducerBook > 0 && wages >= 0) { pr.LastRevenue += amt; pr.LastCost += wages; }
-                    if (Instruments.On) Instruments.PaysaleAlloc(w, pr, amt, wages, revBefore, costBefore, minted, from.W is null && from.Pops is null);
+                    if (insOn) Instruments.PaysaleAlloc(w, pr, amt, wages, revBefore, costBefore, minted, from.W is null && from.Pops is null);
                     double sc =rent * World.StateProfitShare(pr, rr, coef);
                     if (sc > 0) { stateCut += sc; rent -= sc; }
                     if (rent > 0)

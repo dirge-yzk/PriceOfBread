@@ -18,7 +18,7 @@ public class DormantIdentityTests
     /// <summary>★ここに並ぶのは「休眠0で入れた器」＝点火時にこの表からも外す（＝表そのものが休眠の一覧になる）。</summary>
     private static readonly string[] DormantZeroFields =
     [
-        "PaySalesToProducerBook",      // (1228) c124bk 記帳の線：PaySales の代金を生産者の帳へ（0＝帳は国内の売上だけ・番人 PaySalesProducerBookTests）。点火時にこの表から外す
+        // ★PaySalesToProducerBook（(1228) c124bk 記帳の線）は 2026-11-19 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は PaySalesProducerBookTests の T1・T4 の旗 0 の段）。
         // ★LordReligionStake・LordIntermediaryStake は 2026-11-11 (1048) c99db に 1 で**点火**＝この表から外した（旗 0 の経路の番人は LordstatD1aTests の D1a_2）。
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
