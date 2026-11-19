@@ -86,3 +86,13 @@
 [10] ぶつかり（他の線の持ち物を grep した）
 - c126rk：Instruments/Instruments.cs の表の登録の行（rk も 1 行ずつ足す）＝合流で並べて解く。触る行＝Instruments.cs の MintcapTable の次の 1 行と MintcapClose の次の 1 行。
 - c126al・c126k99：BilateralMarket.cs・Coefficients.p04_trade.cs に触れない（al は Simulation・Catalog・Discovery・p07・k99 は Colonial・p06）＝重ならない。DormantIdentityTests.cs・WriterRatchetTests.cs は宣言の行だけ（各線 1 行）。
+
+[11] 追記 1（2026-11-19・器 97145bac2 の後・段 0 のプローブと突然変異を読んだ後・腕 Z と腕 B の前）
+- ㉘ の束（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・OnDoubleReadScan・CapSkipSellerPotential）148 本：赤 1＝OnDoubleReadScanTests〈StepBilateral の Instruments.On の読み 12→13〉。直し＝読みを 1 本の局所 insOnC にまとめ、:1083・:1086 の 2 本もそれへ（値は同じ静的な欄＝清算の中で変わらない）＝11。直した後 OnDoubleRead・CapSkip・DormantIdentity の 12 本緑（measurements/m1244_20261119/scan_vessel.txt・器のコミットに入れた）。
+- 突然変異（97145bac2 の写し・measurements/m1244_20261119/mut/）：μ1→T1・T2・T3・T4 赤／μ2→T1・T2・T4 赤（T3 緑）／μ3→T1・T2・T4 赤（T3 緑）／μ4→T4 赤（T1〜T3 緑）＝表どおり（表に無い赤＝μ1〜μ3 の T4 は A の潜在量の同じ式で落ちる）。
+- 段 0（scripts/instruments/c126pf/run_probe.sh 97145bac2 1 3 12・出力 measurements/m1244_20261119/probe_out/・要約 stage0_T.txt）：
+  種 3（旗 0 でコーヒーの番の capLeft[ジャマイカ]＝0 が 12/12・候補 0・成約 0＝(1238) の型）：旗 1 で候補 0→39・成約 0→35 件・量 0→239・月 12 の容量 2.82→67.5・潜在量 5.73→131。
+  種 1・2（旗 0 で錠なし）：ジャマイカのコーヒーの量 1,838→870・805→754（他の容量 0 の売り手も取り分を得る＝国の船腹のゼロサムでジャマイカの容量 300→169・232→125）。
+  世界の死んだ市場（月 12）：359→342・330→349（+5.8%）・324→264。
+  go／no-go：（a）は事前登録の字句では〈判定不能〉（3 種とも旗 0 の月 0〜12 の jamCap の最小が正＝2.82 以上・錠は容量 0 ではなく先の財が使い切る型）。ただし種 3 の錠（コーヒーの番の残り 0）は旗 1 で開いた。（b）は量が減った種 2 つ（1・2）のどちらも死んだ市場が 10% 以上は増えていない＝成り立たない。＝go（腕 Z・腕 B へ進む）。
+- 記録（〈推〉）：錠の無い種ではジャマイカの取り分が他の容量 0 の州へ分かれ、コーヒーの量が減る（種 1 で半分）＝狙いは〈錠を外す〉で〈ジャマイカを増やす〉ではない。腕 B の H3・H5 で桁を読む。
