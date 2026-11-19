@@ -1,0 +1,34 @@
+(1248) c127ex 事前登録（最初のコミット・腕の前）  木 35ad4cc23・枝 c127ex・種類＝恒等（形は〈尾〉でも〈入口〉でもない＝力学を変えない純粋な切り出し）
+
+[1] 恒等の線・予言 0
+- 項 1：MultiNationSim.ReabsorbNations の予約 1 組ぶんの本体（旧 :955〜:1027）を internal DissolveNation(parentP, rebelP, pi, ri, rebelWon, rebelPolity, peaceful) へ移す。
+  予約の環・pi/ri の探索・`pi<0||ri<0||pi==ri` の continue・PendingReintegrations.Clear は ReabsorbNations に残す。文の順・演算の順は不変（インデントを 4 字下げるだけ）。
+  internal にする理由＝番人が 1 組だけ直に踏む（ReabsorbNations と同じ作り）。
+- 項 2（席が空けば）：rk の低 4 の試験と注だけ（この登録の時点では未着手＝着手したら追記）。
+- 新しい係数 0・新しい状態 0・SaveGame の分岐 0。浮動小数の順序が変わる箇所 0（式は 1 字も変えない）＝旧と新の食い違いの数の予言 0。
+- 予言：計算量の台帳（CostLedger）の件数は !Instruments.On でも増減 0。成績表は m1233 と全行一致。
+
+[2] 消す物と残す物
+- 消す物 0。足す物＝DissolveNation（MultiNationSim.cs の ReabsorbNations の直後）・Tests の DissolveNationTests.cs。
+- 読み手 grep（DissolveNation の名）＝SimCore・Runner・App・Display・Tests・scripts・measurements に既存 0 件（新しい名）。
+- ReabsorbNations の読み手（変えない）：SimCore の MultiNationSim.cs と Diplomacy.cs（コメント）・App の GameViewModel.cs（コメント）・Tests（FiscalTests・TerritoryTests・WarThemeTests・RevoltIgnitionTests・ColonyPromotionTests）・scripts/instruments/r942/mkfix942.py。POB_COEF の名・SaveGame の名の表への影響 0（欄を足さない）。
+- 他の線との重なり：c127nr は MultiNationSim.cs:639〜:645 だけ・この線は :927 以降だけ（重ならない）。Diplomacy.cs は読むだけ。
+
+[3] 足す試験と突然変異・走査の番人
+- 新しい試験 1 本：DissolveNationTests.国の消滅の1本_…（盤面は試験の中で置く・DissolveNation を直に呼ぶ）。
+  見る物＝世界の基礎貨幣の和（換算の台帳の動きだけ）・親の対外債／政府債務／債権の増え＝反乱国×換算・対外債と債権の金の値打ちの和・銀と金の準備の和と親の増え・Nations と Powers の数・PairFlowQ の詰め（値の添字）。
+- 突然変異（使い捨ての木で 1 本ずつ・赤を確かめて measurements に出力を置く）
+  μ1：`pw.ForeignDebt += ...`（外国の債務の写し）を外す → 親の対外債の増えの Assert が赤
+  μ2：PairFlowQ の詰め（Where で ri を除く）を外す → 行列の長さ・値の Assert が赤
+  μ3：Diplomacy.RemovePower を外す → Powers の数の Assert が赤
+  ※PairFlowQ の盤面は消える国が最後尾（添字の取り違えの検出は長さと詰め後の値まで）＝穴として名乗る。
+- ㉘ の filter：DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScanTests・FiscalTests・TerritoryTests・WarThemeTests・RevoltIgnitionTests・ColonyPromotionTests・DissolveNationTests。
+- ソースを走査する番人の書き換え件数の予言（㉑）：0 件（許可表の行・宣言の行は触らない見込み＝赤が出たら追記）。
+- 点検の予言：`new MoneyStock(` の件数は SimCore で 64 のまま（項 1 は式を変えない）。
+
+[4] 成績表：素の 5 種（b5_20261119_m1233）・計器つき 10 種（b10_20261119_m1233_ins）・MON が名乗り行を除き全行一致。計器の表の差は宣言 0。ident 段 1（項 2 が出力を変えないなら）。
+テスト数の予言：Tests 2704＋1＝2705（スキップ 1）・Tests.Ui 234・合計 2939・FullLength 3。
+
+[5] 採否：〈判定: 恒等〉（測った種で一致）かつ μ1〜μ3 が赤なら採る。一致しなければ項を外して報告に回す。
+
+入れない物：最後の 1 州のガードの廃止・征服での消滅（段 F）・操作国が消えた時の終わり方・ci の段 0・エンジンの力学。
