@@ -1,0 +1,21 @@
+q20	laborP=0.3285	laborSold=1145	laborProd=1161	colStock=948.82	colImp=0	colProd=422.68	facColOut=104.26	facAllOut=5307.4	workerSav=7.1195E+05
+q40	laborP=0.3904	laborSold=1210.8	laborProd=1280.1	colStock=717.45	colImp=0	colProd=434.25	facColOut=113.19	facAllOut=5505.3	workerSav=5.7865E+05
+q60	laborP=0.3858	laborSold=1158.9	laborProd=1272.7	colStock=699.76	colImp=0	colProd=438.58	facColOut=108.08	facAllOut=5848.2	workerSav=5.1874E+05
+q80	laborP=0.39385	laborSold=1171.4	laborProd=1206.6	colStock=626.51	colImp=0	colProd=443.8	facColOut=102.47	facAllOut=5576	workerSav=5.1243E+05
+q100	laborP=0.38979	laborSold=1206.6	laborProd=1271.9	colStock=612.71	colImp=0	colProd=402.7	facColOut=111.72	facAllOut=6019.7	workerSav=5.2941E+05
+q120	laborP=0.38979	laborSold=1200.3	laborProd=1309.8	colStock=683.49	colImp=0	colProd=451.28	facColOut=112.92	facAllOut=5630.6	workerSav=5.3823E+05
+q140	laborP=0.38179	laborSold=1189.6	laborProd=1265.2	colStock=608.19	colImp=0	colProd=426.1	facColOut=110.31	facAllOut=5668	workerSav=5.9835E+05
+q160	laborP=0.39447	laborSold=1233.4	laborProd=1233.4	colStock=737.82	colImp=0	colProd=468.41	facColOut=101.74	facAllOut=5523.2	workerSav=5.489E+05
+q180	laborP=0.38783	laborSold=1171	laborProd=1171	colStock=620.87	colImp=0	colProd=435.67	facColOut=98.618	facAllOut=5768.2	workerSav=5.0427E+05
+q200	laborP=0.39318	laborSold=1217.6	laborProd=1217.6	colStock=628.13	colImp=0	colProd=432.45	facColOut=103.83	facAllOut=5692.1	workerSav=4.9994E+05
+good	茶	stock=95.961	price=0.4723	imp=0	prod=70.914	dem=67.199	users=0
+good	コーヒー	stock=107.31	price=0.4723	imp=0	prod=79.303	dem=75.149	users=0
+good	香辛料	stock=81.456	price=0.47665	imp=0	prod=54.27	dem=53.955	users=0
+good	アヘン	stock=282.52	price=0.47552	imp=0	prod=182.74	dem=180.54	users=0
+good	生ゴム	stock=0.0028083	price=0.010347	imp=0	prod=0	dem=0	users=1
+good	パーム油	stock=22.45	price=0.46011	imp=0	prod=21.422	dem=27.272	users=1
+good	象牙	stock=0	price=0.67023	imp=0	prod=4.6096	dem=4.7815	users=1
+good	サトウキビ	stock=9.3157	price=0.49803	imp=0	prod=11.459	dem=9.6487	users=1
+good	カカオ	stock=29.113	price=0.38382	imp=0	prod=7.7284	dem=11.85	users=1
+good	グアノ	stock=6.2353E-06	price=0.010348	imp=0	prod=0	dem=0	users=0
+good	金鶏樹皮	stock=6.2353E-06	price=0.010348	imp=0	prod=0	dem=0	users=1
