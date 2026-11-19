@@ -1,0 +1,5 @@
+1783-1849	種あたり 件 A=27.3 B=28.7	月 A=498 B=617	交戦した種=10/10	A{'ally': 10, 'main': 239, 'mediation': 19, 'subjugate': 2, 'suzerain': 3}	B{'ally': 245, 'main': 12, 'mediation': 3, 'suzerain': 27}
+1850-1899	種あたり 件 A=11.3 B=8.7	月 A=208 B=184	交戦した種=10/10	A{'ally': 15, 'main': 93, 'mediation': 1, 'suzerain': 4}	B{'ally': 66, 'main': 6, 'mediation': 1, 'suzerain': 14}
+1900-1913	種あたり 件 A=4.4 B=3.9	月 A=84 B=73	交戦した種=8/10	A{'main': 40, 'mediation': 2, 'suzerain': 2}	B{'ally': 32, 'main': 4, 'suzerain': 3}
+1914-1918	種あたり 件 A=1.9 B=1.9	月 A=24 B=36	交戦した種=7/10	A{'ally': 1, 'main': 17, 'mediation': 1}	B{'ally': 13, 'main': 3, 'suzerain': 3}
+1919-1950	種あたり 件 A=13.0 B=13.1	月 A=178 B=198	交戦した種=10/10	A{'ally': 3, 'main': 122, 'mediation': 1, 'suzerain': 4}	B{'ally': 100, 'main': 21, 'mediation': 1, 'suzerain': 9}

@@ -1,0 +1,12 @@
+diff --git a/PriceOfBread.SimCore/BilateralMarket.cs b/PriceOfBread.SimCore/BilateralMarket.cs
+index 08b2240bf..4d310932c 100644
+--- a/PriceOfBread.SimCore/BilateralMarket.cs
++++ b/PriceOfBread.SimCore/BilateralMarket.cs
+@@ -1070,6 +1070,7 @@ public sealed partial class InternationalMarket
+                     double X = tr[t].access * Math.Max(0, Math.Min(xPrice, xNeed));
+                     if (g == c.OpiumGoodId && oban[ni]) X *= Contraband.LeakFraction(tr[t].r.AdminFill, c);
+                     double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
++                    if (c.SellOfferExcessStock > 0) { double exS = sellers[bestA].Stock; if (exS > 0) yPrice += exS; }   // (1229) 目標を超える在庫（清算の頭の Stock−TargetStock＝売り手の入口の値・成約で減るのは LastExport の側だけ）
+                     double Y = sellAccB * Math.Max(0, Math.Min(yPrice, left[bestA]));
+                     double pot = Math.Min(Math.Min(X, Y), left[bestA]);
+                     pot = Math.Min(pot, budget[t] / Math.Max(1e-12, costA));

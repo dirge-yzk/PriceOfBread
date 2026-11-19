@@ -1,0 +1,5 @@
+1783-1849	組=50.4/種	monthsGe140=3439.5	monthsGt100=11568.6	gateOpenMonths=448.4	starts=62.9	submits=56.2
+1850-1899	組=29.0/種	monthsGe140=1924.0	monthsGt100=5511.2	gateOpenMonths=332.0	starts=31.3	submits=49.1
+1900-1913	組=18.3/種	monthsGe140=586.7	monthsGt100=1755.6	gateOpenMonths=129.6	starts=8.8	submits=20.8
+1914-1918	組=17.3/種	monthsGe140=234.0	monthsGt100=779.0	gateOpenMonths=61.3	starts=4.7	submits=9.4
+1919-1950	組=35.1/種	monthsGe140=1766.3	monthsGt100=7065.5	gateOpenMonths=541.6	starts=31.1	submits=91.4

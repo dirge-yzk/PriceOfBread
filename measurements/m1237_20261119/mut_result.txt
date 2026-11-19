@@ -1,0 +1,4 @@
+mu1	PriceOfBread.SimCore/Simulation.cs	rc=1	赤=T1,T3	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+mu2	PriceOfBread.SimCore/Catalog.cs	rc=1	赤=T2,T3	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mu3	PriceOfBread.SimCore/Catalog.cs	rc=1	赤=T1	失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mu4	PriceOfBread.SimCore/Simulation.cs	rc=1	赤=T1,T3	失敗!   -失敗:     2、合格:     1、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)

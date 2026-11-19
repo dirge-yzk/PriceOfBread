@@ -1,0 +1,30 @@
+nrB	1	1900	23	1914	23	{'Core': 1, 'Integrated': 3, 'Colonial': 19}
+nrB	2	1900	23	1914	24	{'Core': 5, 'Colonial': 18, 'Integrated': 1}
+nrB	3	1900	42	1914	53	{'Core': 5, 'Colonial': 44, 'Integrated': 4}
+nrB	4	1900	10	1914	10	{'Core': 1, 'Colonial': 9}
+nrB	5	1900	19	1914	22	{'Core': 2, 'Colonial': 19, 'Integrated': 1}
+nrB	6	1900	19	1914	20	{'Core': 4, 'Colonial': 14, 'Integrated': 2}
+nrB	7	1900	32	1914	32	{'Core': 3, 'Colonial': 26, 'Integrated': 3}
+nrB	8	1900	8	1914	8	{'Core': 3, 'Colonial': 5}
+nrB	9	1900	21	1914	21	{'Core': 1, 'Colonial': 20}
+nrB	10	1900	26	1914	31	{'Core': 3, 'Colonial': 24, 'Integrated': 4}
+base	1	1900	9	1914	11	{'Core': 2, 'Colonial': 9}
+base	2	1900	57	1914	69	{'Core': 5, 'Colonial': 45, 'Integrated': 19}
+base	3	1900	9	1914	9	{'Core': 1, 'Colonial': 6, 'Integrated': 2}
+base	4	1900	27	1914	30	{'Core': 3, 'Colonial': 25, 'Integrated': 2}
+base	5	1900	37	1914	38	{'Core': 4, 'Colonial': 29, 'Integrated': 5}
+base	6	1900	23	1914	33	{'Core': 4, 'Colonial': 24, 'Integrated': 5}
+base	7	1900	18	1914	29	{'Core': 4, 'Colonial': 21, 'Integrated': 4}
+base	8	1900	38	1914	46	{'Core': 4, 'Colonial': 39, 'Integrated': 3}
+base	9	1900	27	1914	34	{'Core': 4, 'Colonial': 26, 'Integrated': 4}
+base	10	1900	41	1914	41	{'Core': 5, 'Colonial': 35, 'Integrated': 1}
+n1	1	1900	3	1914	5	{'Core': 1, 'Colonial': 2, 'Integrated': 2}
+n1	2	1900	17	1914	17	{'Core': 1, 'Colonial': 16}
+n1	3	1900	11	1914	11	{'Core': 5, 'Colonial': 6}
+n1	4	1900	52	1914	60	{'Core': 5, 'Integrated': 9, 'Colonial': 46}
+n1	5	1900	37	1914	37	{'Core': 4, 'Colonial': 30, 'Integrated': 3}
+n1	6	1900	38	1914	44	{'Core': 2, 'Colonial': 36, 'Integrated': 6}
+n1	7	1900	19	1914	33	{'Core': 1, 'Colonial': 22, 'Integrated': 10}
+n1	8	1900	26	1914	22	{'Core': 5, 'Colonial': 15, 'Integrated': 2}
+n1	9	1900	16	1914	18	{'Core': 2, 'Colonial': 12, 'Integrated': 4}
+n1	10	1900	17	1914	22	{'Core': 2, 'Colonial': 20}

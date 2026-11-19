@@ -1,0 +1,4 @@
+# c125rd probe override=[SellOfferExcessStock=1 EndowmentCostFollowsAbundance=0] months=1 seeds=1..1
+seed	month	nWith	nFloor	nDead	nDeadStock	nDeadAbove	nDeadExported	stockDead
+1	0	33039	512	510	510	471	15	184043.286
+1	1	33039	497	492	492	452	17	176477.91

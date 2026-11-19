@@ -1,0 +1,2 @@
+# c125rd probe override=[SellOfferExcessStock=1 EndowmentCostFollowsAbundance=0] months=1 seeds=1..1
+seed	phase	t	buyerRegion	buyerNation	qty	unitA	buyerLocalPrice	frA	costA	sA	sellerPx

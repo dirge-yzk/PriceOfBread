@@ -1,0 +1,10 @@
+s1	war=4	soldierMonthsK1914_18=10119	1912+25m A vs オスマン [main] | 1912+25m B vs 朝鮮 [ally] | 1916+21m B vs 日本 [main] | 1916+28m B vs モロッコ [ally]
+s2	war=0	soldierMonthsK1914_18=637	
+s3	war=3	soldierMonthsK1914_18=2473	1917+16m A vs ハイデラバード [main] | 1917+15m B vs マラータ同盟 [suzerain] | 1918+18m A vs 日本 [ally]
+s4	war=9	soldierMonthsK1914_18=19472	1915+13m A vs ネーデルラント [main] | 1915+21m A vs シク連邦 [mediation] | 1915+18m B vs シャム [ally] | 1916+21m A vs ロシア [main] | 1916+11m B vs ハイデラバード [ally] | 1918+12m A vs ポーランド [main] | 1918+19m B vs オスマン [ally] | 1918+9m A vs トスカーナ [main] | 1918+10m B vs オーストリア [ally]
+s5	war=0	soldierMonthsK1914_18=0	
+s6	war=8	soldierMonthsK1914_18=13457	1916+13m A vs 教皇領 [main] | 1916+15m B vs フランス [ally] | 1916+12m A vs ポルトガル [main] | 1916+21m B vs アメリカ [ally] | 1916+64m B vs ネーデルラント [suzerain] | 1917+11m A vs スウェーデン [main] | 1918+12m A vs ダホメ王国 [main] | 1918+29m B vs フランス [ally]
+s7	war=7	soldierMonthsK1914_18=37975	1914+8m A vs スペイン [main] | 1915+9m B vs フランス [main] | 1915+11m B vs ポーランド [ally] | 1916+5m A vs スペイン [main] | 1917+6m B vs フランス [main] | 1917+7m B vs ポーランド [ally] | 1918+15m A vs マラータ同盟 [main]
+s8	war=0	soldierMonthsK1914_18=0	
+s9	war=5	soldierMonthsK1914_18=19469	1912+24m A vs フランス [mediation] | 1917+6m A vs オーストリア [main] | 1917+12m A vs ダホメ王国 [main] | 1917+16m B vs アメリカ [ally] | 1917+27m B vs エチオピア [suzerain]
+s10	war=5	soldierMonthsK1914_18=8011	1916+9m A vs ライン諸邦 [main] | 1916+10m B vs ポルトガル [ally] | 1918+13m A vs ネパール [main] | 1918+19m B vs スペイン [ally] | 1918+14m A vs ロシア [main]

@@ -1,0 +1,10 @@
+s1	war=5	soldierMonthsK1914_18=8002	1913+14m B vs フランス [suzerain] | 1915+11m A vs ラヘジ [main] | 1917+15m A vs シク連邦 [main] | 1917+12m A vs オマーン [main] | 1917+22m B vs 朝鮮 [ally]
+s2	war=13	soldierMonthsK1914_18=37462	1915+22m B vs フランス [main] | 1915+9m B vs 教皇領 [ally] | 1915+10m A vs マイソール [main] | 1915+21m B vs マラータ同盟 [ally] | 1915+16m B vs ライン諸邦 [suzerain] | 1915+7m A vs ジェノヴァ [main] | 1918+11m B vs 日本 [main] | 1918+27m B vs スペイン [ally] | 1918+16m A vs アメリカ [main] | 1918+13m A vs ポーランド [main] | 1918+27m B vs ライン諸邦 [ally] | 1918+9m A vs トスカーナ [main] | 1918+15m B vs オスマン [ally]
+s3	war=0	soldierMonthsK1914_18=0	
+s4	war=1	soldierMonthsK1914_18=1220	1918+24m A vs アメリカ [ally]
+s5	war=7	soldierMonthsK1914_18=15511	1914+9m A vs 朝鮮 [main] | 1914+18m B vs オーストリア [ally] | 1914+8m A vs デリー [main] | 1914+23m B vs ネーデルラント [ally] | 1915+11m A vs アメリカ [mediation] | 1915+18m B vs 両シチリア [ally] | 1918+9m A vs 共和制ダホメ [suzerain]
+s6	war=8	soldierMonthsK1914_18=18272	1914+12m A vs ロシア [main] | 1914+13m A vs オスマン [main] | 1915+13m A vs アメリカ [main] | 1915+13m B vs オーストリア [ally] | 1916+8m A vs ロシア [main] | 1916+9m B vs 清 [ally] | 1918+8m A vs プロイセン [main] | 1918+10m A vs ロシア [main]
+s7	war=14	soldierMonthsK1914_18=43700	1913+25m A vs モロッコ [main] | 1913+27m B vs 日本 [ally] | 1913+12m A vs オヨ帝国 [main] | 1914+11m A vs スペイン [main] | 1914+13m B vs シク連邦 [ally] | 1914+16m B vs フランス [ally] | 1914+15m A vs ジェノヴァ [main] | 1914+24m B vs ネーデルラント [ally] | 1914+13m B vs ハイデラバード [ally] | 1917+9m A vs ヴェネツィア [main] | 1917+16m B vs ロシア [ally] | 1917+16m A vs アシャンティ王国 [main] | 1917+9m B vs ソコト [ally] | 1917+13m A vs デンマーク [main]
+s8	war=3	soldierMonthsK1914_18=23264	1910+61m B vs 日本 [main] | 1917+20m B vs フランス [main] | 1917+15m A vs オスマン [main]
+s9	war=6	soldierMonthsK1914_18=10977	1913+13m A vs オーストリア [main] | 1913+20m B vs フランス [ally] | 1917+7m A vs フランス [suzerain] | 1918+12m A vs マラータ同盟 [mediation] | 1918+12m B vs 清 [ally] | 1918+5m A vs オーストリア [main]
+s10	war=1	soldierMonthsK1914_18=2680	1918+13m B vs フランス [main]

@@ -1,0 +1,10 @@
+s1	war=0	soldierMonthsK1914_18=0	
+s2	war=1	soldierMonthsK1914_18=6972	1916+24m B vs 日本 [main]
+s3	war=9	soldierMonthsK1914_18=17236	1912+25m A vs アメリカ [main] | 1913+16m B vs モロッコ [ally] | 1916+10m A vs アルジェ摂政国 [main] | 1916+6m B vs モロッコ [ally] | 1917+10m A vs 共和制コンゴ [suzerain] | 1917+5m A vs モロッコ [main] | 1917+9m B vs ハワイ王国 [ally] | 1918+4m A vs デリー [main] | 1918+5m B vs ポーランド [ally]
+s4	war=0	soldierMonthsK1914_18=0	
+s5	war=2	soldierMonthsK1914_18=333	1918+9m A vs アシャンティ王国 [main] | 1918+14m B vs 日本 [ally]
+s6	war=0	soldierMonthsK1914_18=0	
+s7	war=0	soldierMonthsK1914_18=0	
+s8	war=0	soldierMonthsK1914_18=0	
+s9	war=0	soldierMonthsK1914_18=0	
+s10	war=5	soldierMonthsK1914_18=7373	1916+13m B vs フランス [main] | 1916+10m B vs ポルトガル [ally] | 1916+12m B vs モロッコ [ally] | 1918+14m B vs 日本 [main] | 1918+14m B vs ハイデラバード [ally]

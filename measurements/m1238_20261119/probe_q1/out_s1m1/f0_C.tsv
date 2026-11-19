@@ -1,0 +1,4 @@
+# c125rd probe override=[SellOfferExcessStock=0 EndowmentCostFollowsAbundance=0] months=1 seeds=1..1
+seed	month	coffeeDemand	coffeeDemandRegions	coffeeProduced	coffeeExport	coffeeStock
+1	0	24490.175	294	2530.26134	1775.20213	12903.8513
+1	1	24909.0125	298	2546.17282	1563.75468	12067.6175

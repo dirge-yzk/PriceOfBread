@@ -1,0 +1,9 @@
+(1238) c125rd 読む線の計画（腕 0・コミットなし・worktree 作らない＝main の木 be048832b を読むだけ）
+作業の場所：D:/PoB_work/r1238_work/（台本の写し scripts/ ・出力 out/）
+問い 1（最初）nr の H3 の帰属
+  生：D:/PoB_work/keep_1233_rej/nrB（腕・旗3本1・m1226の木）／D:/PoB_work/keep_1226/base_ins（基準）／D:/PoB_work/keep_1226/n1（N1）
+  表：warentry_s・wars_s・warpair_s・nation_s・ideology_s・rule_s・casualty_s・idn_s・fm_s・formation2_s・unifwar_s
+  材料：measurements/m1230_20261119/・m1230_20261119_prereg_nr.txt・scripts/instruments/c124nr/・r1225/・docs/202611/20261119/20261119_民族主義の根と統一の宣戦_設計_下書き.md
+問い 2 pf の錠：プローブ（--artifacts-path D:/PoB_work/r1238_work/art_pf）・種1〜3・TsExit 段ごとの出口
+  材料：measurements/m1229_*・scripts/instruments/c124pf/・origin/c124pf（ec1ac0e8a）
+問い 3 段 3 の .cost 取り直し：measurements/m1231_20261119/q1_result.txt:25-30・設計書 §12-6・b10_20261119_m1233_ins.cost
