@@ -1,0 +1,23 @@
+== mu0 rc=0 ['成功!   -失敗:     0、合格:     7、スキップ:     0、合計:     7、期間: 10 s - PriceOfBread.Tests.dll (net10.0)']
+== mu1 rc=1 ['失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 13 s - PriceOfBread.Tests.dll (net10.0)']
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T1_技師0の州で旗1ならパンと小麦粉の投入が充足し旗0では0
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T3_旗1の行は旗0の行から技師の1行だけを除いた物で単位の費用が技師の分だけ下がる
+  赤 PriceOfBread.Tests.ServiceEconomyTests.複数レシピの財は並存し市場が選ぶ(foodNoEngineer:
+== mu2 rc=1 ['失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 17 s - PriceOfBread.Tests.dll (net10.0)']
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T2_範囲の外の工場は旗1でも技師の行を持ち技師0の州で充足0
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T4_旗1でも甜菜糖の発見の親の技師は正で独立に足した値と一致する
+== mu3 rc=1 ['失敗!   -失敗:     3、合格:     4、スキップ:     0、合計:     7、期間: 12 s - PriceOfBread.Tests.dll (net10.0)']
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T1_技師0の州で旗1ならパンと小麦粉の投入が充足し旗0では0
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.試験の名前の表とエンジンの列挙は同じ集合
+  赤 PriceOfBread.Tests.ServiceEconomyTests.複数レシピの財は並存し市場が選ぶ(foodNoEngineer:
+== mu4 rc=1 ['失敗!   -失敗:     4、合格:     3、スキップ:     0、合計:     7、期間: 12 s - PriceOfBread.Tests.dll (net10.0)']
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T2_範囲の外の工場は旗1でも技師の行を持ち技師0の州で充足0
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T4_旗1でも甜菜糖の発見の親の技師は正で独立に足した値と一致する
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.試験の名前の表とエンジンの列挙は同じ集合
+  赤 PriceOfBread.Tests.ServiceEconomyTests.複数レシピの財は並存し市場が選ぶ(foodNoEngineer:
+== mu5 rc=1 ['失敗!   -失敗:     5、合格:     2、スキップ:     0、合計:     7、期間: 8 s - PriceOfBread.Tests.dll (net10.0)']
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T2_範囲の外の工場は旗1でも技師の行を持ち技師0の州で充足0
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T3_旗1の行は旗0の行から技師の1行だけを除いた物で単位の費用が技師の分だけ下がる
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.T4_旗1でも甜菜糖の発見の親の技師は正で独立に足した値と一致する
+  赤 PriceOfBread.Tests.FoodProcessingNoEngineerTests.試験の名前の表とエンジンの列挙は同じ集合
+  赤 PriceOfBread.Tests.ServiceEconomyTests.複数レシピの財は並存し市場が選ぶ(foodNoEngineer:

@@ -176,15 +176,32 @@ public class ServiceEconomyTests
         Assert.InRange(sim.World.AdminEfficiency, 0.0, 1.0);
     }
 
-    [Fact]
-    public void 複数レシピの財は並存し市場が選ぶ()   // 電力＝石炭火力 or 石油火力（A+B+(C or D)＝燃料違いの並存レシピ）
+    // ★(1242) c126al ㉜ の改め（作者 2026-11-19）：旧の規則〈労働を買う全ての生産者が技師も買う〉を新しい規則の試験へ。
+    // 旗 0 の行は旧と同じ検査。旗 1 の行は、食品の加工の 9 財（試験の中の名前の表 FoodProcessingNoEngineerTests.Food9）の既定のレシピだけ技師を買わず、それ以外は全て買う。
+    // 残した性質＝全ての工場が労働力を買う（雇用の一本化）・電力のレシピの並存・技師の役務の生産者・120 か月の保存則。
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 複数レシピの財は並存し市場が選ぶ(double foodNoEngineer)   // 電力＝石炭火力 or 石油火力（A+B+(C or D)＝燃料違いの並存レシピ）
     {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(23), new NullAgent());
+        var sc = NationConfig.Britain().ToScenario(23);
+        sc.Coef.FoodProcessingNoEngineer = foodNoEngineer;
+        var sim = new Simulation(sc, new NullAgent());
         var r = sim.World.Regions[0];
         Assert.True(r.Producers.Count(p => p.GoodId == Catalog.ElectricityId) >= 2, "電力のレシピ（石炭火力/石油火力）が並存していない");
         Assert.True(r.Producers.Any(p => p.GoodId == Catalog.AdvLaborId), "高度労働力（技師の役務）の生産者が居ない");
-        Assert.True(r.Producers.Where(p => p.BuysLabor).All(p => p.Inputs.Any(i => i.GoodId == Catalog.LaborId) && p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId)),
-            "労働力＋高度労働力を買わない工場がある（雇用の一本化の漏れ）");
+        Assert.True(r.Producers.Where(p => p.BuysLabor).All(p => p.Inputs.Any(i => i.GoodId == Catalog.LaborId)), "労働力を買わない工場がある（雇用の一本化の漏れ）");
+        int exempt = 0, checkedN = 0;
+        foreach (var p in r.Producers.Where(p => p.BuysLabor))
+        {
+            bool ex0 = foodNoEngineer > 0 && p.RecipeName.Length == 0 && FoodProcessingNoEngineerTests.Food9.Contains(Catalog.Goods[p.GoodId].Name);
+            bool hasAdv = p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId);
+            Assert.True(hasAdv != ex0, $"{Catalog.Goods[p.GoodId].Name}〈{p.RecipeName}〉：技師の行 {hasAdv}・新しい規則の除外 {ex0}（旗 {foodNoEngineer}）");
+            checkedN++; if (ex0) exempt++;
+        }
+        Assert.True(checkedN >= 20, $"調べた工場が {checkedN} しかない");   // 対照の件数
+        if (foodNoEngineer > 0) Assert.True(exempt >= 1, "旗 1 で技師を買わない食品の加工の工場が無い");
+        else Assert.Equal(0, exempt);
         var ex = Record.Exception(() => sim.Run(120));   // 複数生産者でも保存則（売上の産出シェア分配）が破れない
         Assert.Null(ex);
     }
