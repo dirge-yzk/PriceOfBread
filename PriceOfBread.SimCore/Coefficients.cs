@@ -22,6 +22,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double PriceCeilFactor = 100.0;    // 暴騰の天井（安全網）
     public double SoftBandSharpness = 8.0;    // 価格安全網(SoftBand)の対数空間飽和の鋭さ（→∞でハードクランプ。旧 MarketFlow関数内 const 8.0 を係数化＝sweep対象）
     public double TargetStockBuffer = 1.0;   // 在庫目標 ＝ 総需要 × これ（≒保有したい在庫＝数期分の需要）
+    public double SellOfferExcessStock = 0.0;   // (1229) 清算の売りの申し出（BilateralMarket の yPrice）に、売り手の入口と同じ〈清算の頭の Stock−TargetStock〉を着値に依らず足す（0＝足さない＝厳密恒等）
     // === テーマH（産業組織・固定資本・住宅）===
     public double InventoryAdjustGain = 0.1;     // メッツラー在庫循環＝在庫についての期待
     public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）

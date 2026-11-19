@@ -1960,6 +1960,7 @@ public static partial class Instruments
         MintcapTable(sim, seed, q);        // MintcapTable（(1180) 造幣の買いの置き場・mintcap_s）
         SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
         SatNeedsTable(sim, seed, q);       // SatNeedsTable（(1206) 必要の充足の内訳・satneeds_s）
+        DeadmkTable(sim, seed, q);         // DeadmkTable（(1229) 床に張り付いた市場・deadmk_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
         ScoreFold(sk, seed, q, sim);       // ScoreFold〔履歴 Instruments.cs#325〕
@@ -2006,6 +2007,7 @@ public static partial class Instruments
         MintcapClose(sim);     // MintcapClose（(1180)）
         SoldierVacClose(sim);  // SoldierVacClose（(1166)）
         SatNeedsClose(sim);    // SatNeedsClose（(1206)）
+        DeadmkClose(sim);      // DeadmkClose（(1229)）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
         ArmsClose(sim);    // ArmsClose〔履歴 Instruments.cs#352〕
