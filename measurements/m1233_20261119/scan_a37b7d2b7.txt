@@ -1,0 +1,8 @@
+D:\PoB_work\m1233_work\suite_scan\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:   267、スキップ:     0、合計:   267、期間: 9 m 6 s - PriceOfBread.Tests.dll (net10.0)
+== Tests.Ui
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:    45、スキップ:     0、合計:    45、期間: 22 s - PriceOfBread.Tests.Ui.dll (net10.0)
