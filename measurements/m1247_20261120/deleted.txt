@@ -1,0 +1,9 @@
+# (1247) 合流が消した物（2026-11-20）
+keep_1247_rej/alB・k99B（線 c126al・c126k99 の腕 B の生を c126*_work/armB/out_*/ins から移した）から cpop_s・cearn_s・prodcap_s・subst_s・cgrp_s・flow_s・paysale_s・sellr_s の表（各 10 本・合わせて約 24GB）を消した＝★(778)〈残せないほど大きいなら門が読む表だけ残す〉・両線の読み手と反証役の集計に使った表（clock_s・engineer_s・region_s・nation_s・wars_s・secession_s・pxgoods_s・disc* ほか）は残した（alB 15.7GB・k99B 16.1GB）
+c126pf_work/armB/out_c126pfB_10/ins（線 c126pf の腕 B の生・29.1GB）＝pf を採ったので木 T の M が代わる・消す前に keepsum を m1247_work/keepsum_pfB.tsv に取った（M の生と表ごとに突き合わせる）
+ident_c126pfz（線 c126pf の腕 Z の生・刈り込み後 11GB）＝反証役 v2 が飛ばした回数の旗 0÷旗 1 を読み終えた（数は実装ログ (1244) に写した）・pf を採った
+c126rk_art・c126rk_mutart（線 c126rk の隔離ビルドの産物 1.3GB・41MB）
+keep_1247_rej/pfM・pfS11（合わせた木 T の M・S11 の生を移した）から読み手の表（nation_s・region_s・stock_s・wars_s・casualty_s・pxmonth_s・port_s・capskip_s・sellr_s・nationgood_s・secession_s・migration_s・clock_s・engineer_s・disc_s・scalars_s・pxgoods_s・epi_s・pop_s・rule_s・rulepower_s・fiscal_s）の外を消した（M 21.6GB・S11 7.1GB）＝M は pf の腕 B と keepsum で同じ（keepsum_M.tsv）
+m1247_work の N1 の途中の生（out_mN1_10・snap_mN1_10・src_mN1）＝pf を採らないと決めた後に止めた腕
+ident_c126rk（線 c126rk の ident の生・刈り込み後 11GB）＝合わせた木の腕 Z で恒等を確かめた後
+ident_m1247z（自分の腕 Z の生・刈り込み後 10.9GB）＝keep_1247/base_ins を作った後
