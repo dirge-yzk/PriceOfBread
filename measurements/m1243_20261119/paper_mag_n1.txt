@@ -1,0 +1,9 @@
+# (1243) mag_k99 new=D:/PoB_work/keep_1233/n1 seeds=1,2,3,4,5,6,7,8,9,10 old=D:/PoB_work/keep_1233/base_ins seeds=1,2,3,4,5,6,7,8,9,10
+nation	homeMilitancyNewIndex	homeMilitancyOldIndex	ratioNewOld	oldRuleAddPerMonthIndex	oldRuleOffsetIndex	civilWarsNewCount	civilWarsOldCount	gateH
+イギリス	0.29688	0.32938	0.9013	0.001545	0.005149	11	10	ok
+フランス	0.22234	0.19997	1.112	0.001474	0.004913	6	2	ok
+ネーデルラント	0.066752	0.067931	0.9826	0.0005849	0.00195	0	0	ok
+スペイン	0.17794	0.17134	1.039	0.001189	0.003962	11	9	ok
+ポルトガル	0.14847	0.067279	2.207	0.0008682	0.002894	9	5	ok
+civilWarsAll	new=125	old=139
+GATE_H ok（読めた国 5・破れ 0）

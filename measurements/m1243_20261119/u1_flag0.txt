@@ -1,0 +1,5 @@
+# (1243) U1 を今の木（ac07b4fff＋試験・ColonialUnrestHomeWeight＝0.006＝旗 0）で回した結果＝赤（期待どおり）
+[xUnit.net 00:00:02.39]     PriceOfBread.Tests.AntiImperialOpinionRemovedTests.植民地の闘争度は本国の大衆の闘争度へ直に移らない [FAIL]
+  失敗 PriceOfBread.Tests.AntiImperialOpinionRemovedTests.植民地の闘争度は本国の大衆の闘争度へ直に移らない [1 s]
+   本国の大衆の POP 0/20 の闘争度が植民地の月で 0.2→0.2054 に動いた（植民地の闘争度が直に移っている）
+     at PriceOfBread.Tests.AntiImperialOpinionRemovedTests.植民地の闘争度は本国の大衆の闘争度へ直に移らない() in D:\PoB_work\wt_c126k99\PriceOfBread.Tests\AntiImperialOpinionRemovedTests.cs:line 32

@@ -1,0 +1,155 @@
+// (1242) c126al 段 0（(1237) の写しに E 行・S 行と名前の表を足した）。元＝(1231) c124rd 問い 3 の使い捨てのプローブ（コミットしない）：ジャマイカのパンの買い値が助走 2 四半期で跳ねる根。
+// 値は読むだけ（SimCore に手を入れない・フックなし）。引数：<種> <出力>
+// 出力 1：J 行＝ジャマイカの主食と穀物の鎖（パン・小麦粉・麦・米・ジャガイモ・トウモロコシ）の市場の欄（助走の四半期ごと＋本番 12 か月）。
+// 出力 2：W 行＝世界の全ての州×財で、値段÷(基準×州の物価) の分布と、供給 0（産出＋輸入＝0・需要＞0）の主食の市場の数・パンの在庫の目標超え（pf の線が売りに足す量）の和。
+using System.Globalization;
+using PriceOfBread.SimCore;
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture; CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong seed = ulong.Parse(args[0]); string outPath = args[1];
+using var o = new StreamWriter(outPath, false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+o.WriteLine($"# r1231 probe override=[{Coefficients.OverrideSummary()}] seed={seed}");
+o.WriteLine("kind\tphase\tt\tregion\tgood\tprice\trpLocal\tratio\tdemand\tproduced\timport\texport\tstock\ttarget\tpriceLevel");
+var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+string[] watch = ["パン", "小麦粉", "麦", "米", "ジャガイモ", "トウモロコシ"];
+int ng = Catalog.Goods.Length;
+int bread = Array.FindIndex(Catalog.Goods, g => g.Name == "パン");
+void Dump(string phase, int t)
+{
+    foreach (var n in sim.Nations)
+        foreach (var r in n.World.Regions)
+        {
+            if (r.Name != "ジャマイカ") continue;
+            foreach (var pr in r.Producers)
+            {
+                string gn = Catalog.Goods[pr.GoodId].Name; if (gn != "パン" && gn != "小麦粉") continue;
+                o.WriteLine(string.Join('	', "P", phase, t, r.Name, gn, $"recipe={pr.RecipeName}", $"cap={G(pr.Capacity)}", $"out={G(pr.Output)}", $"desired={G(pr.DesiredOutput)}", $"mc={G(pr.MarginalCost)}", $"scale={G(pr.Scale)}", $"built={G(pr.BuiltScale)}", $"inFill={G(pr.LastInputFill)}", $"matFill={G(pr.LastMaterialFill)}", $"bankrupt={pr.Bankrupt}", $"moth={G(pr.MothballFrac.Value)}", $"labor={pr.LaborPopIndex}", $"owner={pr.OwnerPopIndex}", $"rgo={pr.IsRgo}", $"buysLabor={pr.BuysLabor}", "inputs=" + string.Join(',', pr.Inputs.Select(ip => { var im = r.Markets[ip.GoodId]; return $"{Catalog.Goods[ip.GoodId].Name}:{G(ip.QtyPerOutput)}:p{G(im.Price)}:d{G(im.LastDemand)}:q{G(im.LastProduced)}:i{G(im.LastImport)}:s{G(im.Stock)}"; }))));
+            }
+            if (phase == "open" || t <= 2 || t == 20)
+            {
+                foreach (int lg in new[] { Catalog.LaborId, Catalog.AdvLaborId, Catalog.FarmLaborId })
+                {
+                    var lm = r.Markets[lg];
+                    o.WriteLine(string.Join('	', "L", phase, t, r.Name, Catalog.Goods[lg].Name, G(lm.Price), G(lm.LastDemand), G(lm.LastProduced), G(lm.Stock)));
+                }
+                o.WriteLine(string.Join('	', "Q", phase, t, r.Name, string.Join(' ', r.Pops.Select((pp, i) => $"{i}:{pp.ClassName}={G(pp.Size)}"))));
+                foreach (var pr in r.Producers)
+                    if (Catalog.IsLaborGood(pr.GoodId)) o.WriteLine(string.Join('	', "LP", phase, t, r.Name, Catalog.Goods[pr.GoodId].Name, $"labor={pr.LaborPopIndex}", $"cap={G(pr.Capacity)}", $"out={G(pr.Output)}"));
+            }
+            foreach (var w in watch)
+            {
+                int gi = Array.FindIndex(Catalog.Goods, g => g.Name == w); if (gi < 0) continue;
+                var m = r.Markets[gi]; double rp = (r.Goods.FirstOrDefault(x => x.Id == gi)?.RefPrice ?? Catalog.RefPrices[gi]) * r.PriceLevel;
+                o.WriteLine(string.Join('\t', "J", phase, t, r.Name, w, G(m.Price), G(rp), G(m.Price / rp), G(m.LastDemand), G(m.LastProduced), G(m.LastImport), G(m.LastExport), G(m.Stock), G(m.TargetStock), G(r.PriceLevel)));
+            }
+        }
+    // 世界：主食の市場（需要＞0）・供給 0 の数・比の分布
+    long stapleMk = 0, stapleDead = 0, stapleDeadHi = 0, stapleHi = 0, allMk = 0, allHi2 = 0, allHi10 = 0, breadMk = 0, breadDead = 0, breadHi10 = 0, breadSurplusRegions = 0;
+    double breadExcessStock = 0, breadDeadNeed = 0, breadDemandAll = 0;
+    long regions = 0, advZeroRegions = 0, breadDeadAdvZero = 0, stapleDeadAdvZero = 0; double advZeroPopK = 0, popAll = 0;
+    var ratios = new List<double>();
+    foreach (var n in sim.Nations)
+        foreach (var r in n.World.Regions)
+        {
+            var am = r.Markets[Catalog.AdvLaborId]; bool advZero = !(am.LastProduced > 0) && !(am.Stock > 0);
+            double rpop = r.Pops.Sum(pp => pp.Size); regions++; popAll += rpop; if (advZero) { advZeroRegions++; advZeroPopK += rpop; }
+            foreach (var g in r.Goods)
+            {
+                int gi = g.Id; if (g.Tier == GoodTier.Service) continue;
+                var m = r.Markets[gi]; if (!(m.LastDemand > 0)) continue;
+                double rp = g.RefPrice * r.PriceLevel; if (!(rp > 0)) continue;
+                double ratio = m.Price / rp; double sup = m.LastProduced + m.LastImport;
+                allMk++; ratios.Add(ratio); if (ratio > 2) allHi2++; if (ratio > 10) allHi10++;
+                if (g.Tier == GoodTier.Staple)
+                {
+                    stapleMk++; if (ratio > 10) stapleHi++;
+                    if (!(sup > 1e-9 * m.LastDemand)) { stapleDead++; if (ratio > 10) stapleDeadHi++; if (advZero) stapleDeadAdvZero++; }
+                }
+                if (gi == bread)
+                {
+                    breadMk++; breadDemandAll += m.LastDemand; if (ratio > 10) breadHi10++;
+                    if (!(sup > 1e-9 * m.LastDemand)) { breadDead++; breadDeadNeed += m.LastDemand; if (advZero) breadDeadAdvZero++; }
+                    if (m.Stock > m.TargetStock) breadExcessStock += m.Stock - m.TargetStock;
+                    if (m.LastProduced > m.LastDemand) breadSurplusRegions++;
+                }
+            }
+        }
+    ratios.Sort();
+    double Q(double q) => ratios.Count == 0 ? double.NaN : ratios[(int)Math.Min(ratios.Count - 1, Math.Floor(q * ratios.Count))];
+    o.WriteLine(string.Join('\t', "W", phase, t, $"allMk={allMk}", $"ratioMed={G(Q(0.5))}", $"ratioP90={G(Q(0.9))}", $"ratioP99={G(Q(0.99))}", $"gt2={allHi2}", $"gt10={allHi10}",
+        $"stapleMk={stapleMk}", $"stapleGt10={stapleHi}", $"stapleDead={stapleDead}", $"stapleDeadGt10={stapleDeadHi}",
+        $"breadMk={breadMk}", $"breadGt10={breadHi10}", $"breadDead={breadDead}", $"breadDeadDemandShare={G(breadDeadNeed / Math.Max(1e-12, breadDemandAll))}",
+        $"breadExcessStock={G(breadExcessStock)}", $"breadSurplusRegions={breadSurplusRegions}", $"breadDemandAll={G(breadDemandAll)}", $"regions={regions}", $"advZeroRegions={advZeroRegions}", $"advZeroPopShare={G(advZeroPopK / Math.Max(1e-12, popAll))}", $"breadDeadAdvZero={breadDeadAdvZero}", $"stapleDeadAdvZero={stapleDeadAdvZero}"));
+}
+// (1242) c126al：プローブの中の名前の表（エンジンの列挙を呼ばない）。Old10＝(1237) の 10 財・Food9＝(1242) の 9 財（砂糖を外した）。
+HashSet<string> Old10 = ["小麦粉", "パン", "肉", "砂糖", "加工肉", "干物", "ビール", "蒸留酒", "チーズ", "チョコレート"];
+HashSet<string> Food9 = ["小麦粉", "パン", "肉", "加工肉", "干物", "ビール", "蒸留酒", "チーズ", "チョコレート"];
+int beetRow = Catalog.DiscoveryRowOf(Catalog.SugarId, "甜菜糖");
+// (1242) E 行＝国ごとの甜菜糖の親の技師（エンジン）と、同じ盤面で砂糖の生産者の〈産出×技師の行の量〉を独立に足した値。
+void DumpE(string phase, int t)
+{
+    foreach (var n in sim.Nations)
+    {
+        var w = n.World;
+        double eng = Discovery.ParentEngineersByRow(w, w.LastDiscoveryView, w.Coef)[beetRow];
+        double ind = 0; int emp = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+            {
+                if (p.GoodId != Catalog.SugarId || !(Discovery.Gate(r, p) > 0) || !(p.Output > 0)) continue;
+                double q = 0; foreach (var i in p.Inputs) if (i.GoodId == Catalog.AdvLaborId) q += i.QtyPerOutput;
+                if (q > 0) { ind += p.Output * q; emp++; }
+            }
+        }
+        o.WriteLine(string.Join('	', "E", phase, t, w.SelfPower?.BaseName ?? "?", G(eng), G(ind), emp, w.Discovered is { } k && beetRow < k.Length && k[beetRow] ? 1 : 0));
+    }
+}
+// (1242) S 行＝同じ盤面の旧と新：技師の役務が無い州（産出 0・在庫 0）で、9 財の既定のレシピのうち〈旧の規則なら錠＝技師の行を持つはず〉の州×財と、
+// 〈今の盤面で技師の行を持つ＝錠〉の州×財の数、技師の値段×行の量（旧の規則の単位の費用の差）の中央。
+void DumpS(string phase, int t)
+{
+    long oldLock = 0, nowLock = 0; var dc = new List<double>();
+    foreach (var n in sim.Nations)
+        foreach (var r in n.World.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            var am = r.Markets[Catalog.AdvLaborId]; if (am.LastProduced > 0 || am.Stock > 0) continue;
+            foreach (var p in r.Producers)
+            {
+                if (p.RecipeName.Length != 0 || !p.BuysLabor || !Food9.Contains(Catalog.Goods[p.GoodId].Name)) continue;
+                oldLock++;
+                bool has = false; foreach (var i in p.Inputs) if (i.GoodId == Catalog.AdvLaborId) has = true;
+                if (has) nowLock++;
+                dc.Add(am.Price * Catalog.AdvLaborPerOutput(p.GoodId));
+            }
+        }
+    dc.Sort();
+    o.WriteLine(string.Join('	', "S", phase, t, $"oldLock={oldLock}", $"nowLock={nowLock}", $"advCostMed={G(dc.Count == 0 ? double.NaN : dc[dc.Count / 2])}"));
+}
+// (1237) 段 0：植民地格の州の加工した食品の産出 0 の数・パンの比の中央（植民地格と本国格）
+void DumpC(string phase, int t)
+{
+    int col = 0, colZero = 0, colZero9 = 0; var rc = new List<double>(); var rh = new List<double>(); double colFood = 0, homeFood = 0;
+    foreach (var n in sim.Nations)
+        foreach (var r in n.World.Regions)
+        {
+            double food = 0;
+            double food9 = 0;
+            foreach (var g in r.Goods) { string gn = Catalog.Goods[g.Id].Name; if (Old10.Contains(gn)) food += r.Markets[g.Id].LastProduced; if (Food9.Contains(gn)) food9 += r.Markets[g.Id].LastProduced; }
+            var bg = r.Goods.FirstOrDefault(x => x.Id == bread);
+            double br = double.NaN;
+            if (bg is not null && r.Markets[bread].LastDemand > 0) br = r.Markets[bread].Price / (bg.RefPrice * r.PriceLevel);
+            if (r.Tier == RegionTier.Colonial) { col++; if (!(food > 0)) colZero++; if (!(food9 > 0)) colZero9++; colFood += food; if (br == br) rc.Add(br); }
+            else if (r.Tier == RegionTier.Core) { homeFood += food; if (br == br) rh.Add(br); }
+        }
+    double Med(List<double> l) { if (l.Count == 0) return double.NaN; l.Sort(); return l[l.Count / 2]; }
+    o.WriteLine(string.Join('	', "C", phase, t, $"colonial={col}", $"colonialFoodZero={colZero}", $"colonialFood9Zero={colZero9}", $"colonialFood={G(colFood)}", $"homeFood={G(homeFood)}", $"breadRatioColMed={G(Med(rc))}", $"breadRatioHomeMed={G(Med(rh))}", $"nCol={rc.Count}", $"nHome={rh.Count}"));
+}
+int wq = 0;
+Dump("open", 0); DumpC("open", 0); DumpE("open", 0); DumpS("open", 0);
+sim.StartWarmup(() => { wq++; Dump("warm", wq); DumpC("warm", wq); });
+for (int mo = 1; mo <= 12; mo++) { for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay(); Dump("m", mo); DumpC("m", mo); if (mo == 12) { DumpE("m", mo); DumpS("m", mo); } }
+o.Flush();
+Console.WriteLine("PROBEDONE");
+static string G(double x) => x.ToString("G6", CultureInfo.InvariantCulture);
