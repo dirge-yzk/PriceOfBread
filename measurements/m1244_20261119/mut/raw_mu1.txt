@@ -1,0 +1,78 @@
+D:\PoB_work\c126pf_work\mut\mu1\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:01.01]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.92]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:02.09]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:05.87]     PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ [FAIL]
+[xUnit.net 00:00:05.88]       Assert.Equal() Failure: Values are not within 9 decimal places
+[xUnit.net 00:00:05.88]       Expected: 1 (rounded from 1)
+[xUnit.net 00:00:05.88]       Actual:   0 (rounded from 0)
+[xUnit.net 00:00:05.88]       Stack Trace:
+[xUnit.net 00:00:05.89]         D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs(111,0): at PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ()
+[xUnit.net 00:00:05.89]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.89]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ [3 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 1 (rounded from 1)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ() in D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs:line 111
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:06.01]     PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま [FAIL]
+[xUnit.net 00:00:06.01]       旗 1 で次の四半期の A の容量が 0（0）
+[xUnit.net 00:00:06.01]       Stack Trace:
+[xUnit.net 00:00:06.01]         D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs(97,0): at PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま()
+[xUnit.net 00:00:06.01]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:06.01]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.01]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.14]     PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0 [FAIL]
+[xUnit.net 00:00:06.14]       旗 1 で A の潜在量が 0（0）
+[xUnit.net 00:00:06.14]       Stack Trace:
+[xUnit.net 00:00:06.14]         D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs(82,0): at PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0()
+[xUnit.net 00:00:06.14]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:06.14]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.14]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.43]     PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致 [FAIL]
+[xUnit.net 00:00:06.43]       Assert.Equal() Failure: Values are not within 9 decimal places
+[xUnit.net 00:00:06.43]       Expected: 1 (rounded from 1)
+[xUnit.net 00:00:06.43]       Actual:   0 (rounded from 0)
+[xUnit.net 00:00:06.43]       Stack Trace:
+[xUnit.net 00:00:06.43]         D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs(138,0): at PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致()
+[xUnit.net 00:00:06.43]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:06.44]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.44]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.45]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま [138 ms]
+  エラー メッセージ:
+   旗 1 で次の四半期の A の容量が 0（0）
+  スタック トレース:
+     at PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま() in D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs:line 97
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0 [133 ms]
+  エラー メッセージ:
+   旗 1 で A の潜在量が 0（0）
+  スタック トレース:
+     at PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0() in D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs:line 82
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致 [294 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 1 (rounded from 1)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致() in D:\PoB_work\c126pf_work\mut\mu1\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs:line 138
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+テストの実行に失敗しました。
+テストの合計数: 4
+     失敗: 4
+合計時間: 9.4182 秒
