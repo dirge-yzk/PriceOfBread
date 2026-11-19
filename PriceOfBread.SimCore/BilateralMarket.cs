@@ -13,6 +13,18 @@ public sealed partial class InternationalMarket
     internal long[]? CostOrNull => _cost;
     internal static bool DealConstAlwaysStale;
 
+    /// <summary>(1244) c126pf：容量で飛ばした売り手の申し出のうち、その行で通るはずだった量＝min(残り, max(0, X_lp−unmetQ−skipQ))。
+    /// X_lp＝買い手の X を買い手の自分の値段 lp で読んだ値（Q＝P＝産出そのもの・P̂ を引かない）＝入手率×max(0, min(価格の量, 不足))×禁輸の漏れ。NaN は 0。</summary>
+    internal static double CapSkipQty(Market m, double rpT, double lp, double access, double twoEps, double eps, bool a1On, double leak, double left, double unmetQ, double skipQ)
+    {
+        double ratio = rpT / lp;
+        double xPrice = m.LastDemand * Math.Pow(ratio, twoEps) - (m.LastProduced + m.LastImport);
+        double xNeed = a1On ? m.TargetStock + m.LastDemand * Math.Pow(ratio, eps) - m.LastProduced - m.Stock : m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+        double x = access * Math.Max(0, Math.Min(xPrice, xNeed)) * leak;
+        double q = Math.Min(left, Math.Max(0, x - unmetQ - skipQ));
+        return q > 0 ? q : 0.0;
+    }
+
     internal static double InlandRailAfterDecay(double railToPort, double nearestPortKm)
         => railToPort / (1.0 + nearestPortKm / Diplomacy.DistanceNormKm);
 
@@ -761,6 +773,7 @@ public sealed partial class InternationalMarket
         double[]? sellCheap = cheapOn ? new double[nn] : null;
         double[]? subPay = cheapOn ? new double[tc] : null;
         bool a1On = c.TradeBuyBySupplyCurve > 0;   // (1144) T1 A-1
+        bool insOnC = Instruments.On, capSkipOn = c.CapSkipSellerPotential > 0 && !thin, capSkipIns = insOnC && !thin;   // (1244) c126pf：容量で飛ばした売り手の申し出を潜在量へ（潜在量を書くのは四半期の最初の清算だけ＝:1193）
         long nA1 = 0, a1Tot = 0;
         if (a1On) { a1Tot = A1Index(tr, tc, gc, sc); nA1 += a1Tot; }
         var a1St = sc.A1St; var a1Pr = sc.A1Pr;
@@ -918,7 +931,7 @@ public sealed partial class InternationalMarket
                 if (candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = sc.CandS = new int[cn0]; candD = sc.CandD = new double[cn0]; candK = sc.CandK = new double[cn0]; candF = sc.CandF = new double[cn0]; }
                 int rowBase = t * tc; bool hostileRow = natAnyHostile[ni];
                 double tMargin = c.TransportMargin, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
-                double unmetQ = 0;
+                double unmetQ = 0, skipQ = 0;
                 double baseMul = 1 + c.TransportMargin * adValoremRev;
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);
                 double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;
@@ -963,6 +976,15 @@ public sealed partial class InternationalMarket
                             if (capLeft[sn] <= 1e-12)
                             {
                                 if (MultiNationSim.TimeOn) CntSkips++;
+                                if (capSkipOn || capSkipIns)
+                                {   // (1244) 旗 CapSkipSellerPotential：買い手の容量が尽きた行は売り手にも未充足を積む（:1084）のと対称に、売り手の容量が尽きた行もその行で通るはずだった量を売り手の州の潜在量へ（買い手の側には足さない）
+                                    bool priced = sel.Price * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul) < lp;
+                                    double qS = priced ? CapSkipQty(m, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], lp, tr[t].access, twoEps, c.PriceElasticity, a1On,
+                                        g == c.OpiumGoodId && oban[ni] ? Contraband.LeakFraction(tr[t].r.AdminFill, c) : 1.0, left[s2], unmetQ, skipQ) : 0.0;
+                                    double addW = 0;
+                                    if (capSkipOn) { addW = qS * Wg * potW; potNew[sn] += addW; skipQ += qS; }
+                                    if (capSkipIns) Instruments.CapSkip(nations[tr[sn].nation].World, g, mktOf[sn], m, tr[t].r, tr[t].access, Wg, priced, addW);
+                                }
                                 int nxS = nextS![s2];
                                 if (prevS < 0) headS = nxS; else nextS[prevS] = nxS;
                                 s2 = nxS; continue;
@@ -1080,10 +1102,10 @@ public sealed partial class InternationalMarket
                     {
                         double doneQ = qA > 1e-12 ? qA : 0.0;
                         double newUnmet = Math.Min(pot - doneQ, Math.Max(0, X - doneQ - unmetQ));
-                        double potBefore = Instruments.On ? potNew[t] : 0.0;
+                        double potBefore = insOnC ? potNew[t] : 0.0;
                         if (potW != 1.0) { potNew[t] += (doneQ + newUnmet) * Wg * potW; potNew[snA] += (doneQ + newUnmet) * Wg * potW; }
                         else { potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmet) * Wg; }
-                        if (Instruments.On) Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore);
+                        if (insOnC) Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore);
                         unmetQ += newUnmet;
                     }
                     if (!(qA > 1e-12))
