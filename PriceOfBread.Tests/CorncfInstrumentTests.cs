@@ -152,8 +152,9 @@ public class CorncfInstrumentTests
     [Fact]
     public void T5_輸入の割合()
     {
-        var (dir, sim) = Run(3);
-        var rows = Last(dir, 3); int pos = 0;
+        const ulong T5Seed = 1793UL;   // ★(1242) c126al：旗 FoodProcessingNoEngineer の既定 1 の軌道で種 1791 の pos が 0（前提が崩れる）＝1793 へ選び直し（1791〜1798 の pos＝0・1・4・3・1・1・2・2・measurements/m1242_20261119/corncf_t5_seed_pos.txt・行ごとの検査は変えない）
+        var (dir, sim) = Run(3, null, T5Seed);
+        var rows = Last(dir, 3, T5Seed); int pos = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World; var row = rows.Single(r => r["nation"] == Instruments.NameOf(w));

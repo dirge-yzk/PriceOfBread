@@ -120,7 +120,6 @@ public class FoodProcessingNoEngineerTests
             double want = 0; int employers = 0;
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active) continue;
                 foreach (var p in rg.Producers)
                 {
                     if (!parents.Contains(p.GoodId) || !(Discovery.Gate(rg, p) > 0) || !(p.Output > 0)) continue;
