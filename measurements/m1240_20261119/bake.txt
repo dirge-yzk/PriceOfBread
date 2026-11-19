@@ -1,0 +1,4 @@
+(1240) opening_bake.json の焼き直し（★(764)・合わせた木 4c203bf52＝ts＋rk の項 1・hz4_490/bake.sh 種 1・上限 200・120 四半期で収束）
+- inputHash：4cdf6780e2c8b447→4bf72f47ba1f82de（world.json の techGate 8 件を消した＝予言 P6）。sourceHash 6d333a3f34b32b2e→d201a85ebd62378d・generated 2026-11-18→2026-11-19。
+- 本文：基点 be048832b の木（main の作業ツリー）で同じ台本・同じ引数で焼いた表（D:/PoB_work/m1240_work/bake0）と、合わせた木の表は sourceHash・inputHash・generated の 3 行を除いてバイト一致（3,641,566 バイト）＝予言 P7 は当たり。今のコミットの表（2026-11-18 の焼き）とも本文はバイト一致。
+- 旗 OpeningBakeEnabled 0＝読まれない＝成績表に効かない（腕 Z の全行一致で確かめる＝予言 P8）。
