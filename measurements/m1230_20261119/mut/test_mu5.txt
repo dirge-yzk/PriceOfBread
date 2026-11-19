@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TL3_閾値ちょうどは塞がない 
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 6 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,3 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1a_表のfは最大の国の外に住む割合で文化ごとに1つ 
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1d_少数の州はf1で上がり_空の札の州は旗0と同じ 
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
