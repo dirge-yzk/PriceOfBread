@@ -338,7 +338,8 @@ public class NationalismUnificationInstrumentTests
         int nTargets;
         try
         {
-            var c = new Coefficients { UnificationNatioShare = new Share(0.0) };   // 旗 B は 0（今の形）
+            var c = new Coefficients { UnificationNatioShare = new Share(0.0), UnificationWarWeary = 0 };   // 旗 B は 0（今の形）＝既定に依らず盤面で置く（(1230) 点火の後の直し）
+            Assert.Equal(0.0, c.UnificationWarWeary);   // 対照：この盤面は旗 0
             var rhine = sim.Diplomacy.Powers.First(p => p.BaseName == "ライン諸邦");
             foreach (var p in sim.Diplomacy.Powers) p.IsPlayer = p != rhine;
             var rule = Formations.UnificationCandidate(sim.Diplomacy, rhine, rhine.Nation!, c);
