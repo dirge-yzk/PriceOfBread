@@ -30,6 +30,7 @@ public sealed partial class Coefficients
     public double ChilledMeatColdInput = 0.15;    // 加工肉1単位あたりの冷蔵庫の投入量（設備の摩耗＝機械と同じ扱い）
     public double KeroseneOilInput = 0.5;         // 灯油1単位あたりの原油
     public double KeroseneOilProductivity = 1.6;  // 連続精製の生産性（既定＝鯨油レシピの相対。史実の価格差5〜10倍はこれと投入係数の合成で出す）
+    public double FoodProcessingNoEngineer = 0;   // (1237) c125al 旗：1＝食品の加工の財（Catalog.IsFoodProcessingGood）の既定のレシピ（CatalogEconomy）から高度労働力（技師）の投入の行を外す・0＝今のまま（全ての工場に AdvLaborPerOutput の行）。参照価格（Catalog.RefPrices・static）は旗を読まない＝旧の値のまま（焼き込みの時に Catalog の枝へ移す）
     public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）
     public double WeaponStrengthRifle = 3.0;       // 構築時（Simulation.AddAlternateRecipes）に一度だけ読む
     public double WeaponStrengthArtillery = 4.0;   // 構築時（Simulation.AddAlternateRecipes）に一度だけ読む

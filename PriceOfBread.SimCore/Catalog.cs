@@ -366,6 +366,9 @@ public static class Catalog
         _ => 0.02,
     };
 
+    /// <summary>(1237) c125al：食品の加工の財＝投入が農産・畜産・漁獲・塩とこの組の財だけで、人が食べるか飲む物（小麦粉・パン・肉・砂糖・加工肉・干物・ビール・蒸留酒・チーズ・チョコレート）。缶詰（鉄と錫）・ワイン（ガラス）・飼料（人が食べない）・煙草は入れない。旗 FoodProcessingNoEngineer が正のとき、CatalogEconomy の既定のレシピから高度労働力の行を外す。</summary>
+    public static bool IsFoodProcessingGood(int id) => id is FlourId or BreadId or MeatId or SugarId or PreservedMeatId or DriedFishId or BeerId or SpiritsId or CheeseId or ChocolateId;
+
     public const double LaborPerOutput = 0.5;
     public const double FarmLaborPerOutput = 0.4;
     public const double FactoryVa = 0.06;

@@ -911,7 +911,10 @@ public sealed class Simulation
                 BuysLabor = isFactory,
                 IsRgo = !isFactory,
                 EffGoods = isFactory ? [] : Catalog.RgoBoosterGoods(d.Id),   // RGOの効率化材の候補（肥料/帆船/飼料/工具・火薬）。工場は空（電化を使う）
-                Inputs = isFactory ? [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(d.Id))]
+                // (1237) c125al：旗 FoodProcessingNoEngineer が正なら、食品の加工の財の既定のレシピは高度労働力の行を持たない（リービッヒの最小は行の有無で効く＝量 0 の行では外れない）。
+                Inputs = isFactory ? (coef.FoodProcessingNoEngineer > 0 && Catalog.IsFoodProcessingGood(d.Id)
+                                        ? [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput)]
+                                        : [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(d.Id))])
                                    : d.Id == Catalog.CrudeOilId
                                        ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(Catalog.MachineryId, coef.OilMachineryInput)]   // Input〔履歴 Simulation.cs#89〕
                                        : [new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],
