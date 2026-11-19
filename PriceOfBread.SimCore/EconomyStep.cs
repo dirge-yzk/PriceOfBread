@@ -819,21 +819,6 @@ public static class EconomyStep
             m.PopBought = null;   // 純記帳（項目6）＝popの購入は今月の台帳と同じ寿命。書き直されるのは③の取引のとき
         }
 
-        // 植民地素材の輸入（植民地と制海で供給）。〔履歴 EconomyStep.cs#100〕
-        if (region.ColonialResources is null)
-        {
-            // 単一国（テスト）：従来どおり全植民地財を入手率で輸入（産出率1.0）。
-            foreach (var good in region.Goods)
-                if (good.IsColonial)
-                {
-                    var m = region.Markets[good.Id];
-                    double target = Math.Max(m.LastDemand, m.TargetStock) * region.ColonialAccess;
-                    double import = Math.Max(0, target - m.Stock);
-                    m.Stock += import;
-                    m.LastImport += import;
-                }
-        }
-
         // 労働配分の重み＝前期総需要。工業化度の減価償却（維持に投資が要る）。
         int npops = region.Pops.Count;
         var laborTotalW = scratch.LaborTotalW;
