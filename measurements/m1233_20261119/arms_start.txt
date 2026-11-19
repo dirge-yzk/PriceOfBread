@@ -8,3 +8,5 @@ mM start 2026-11-19 14:28:53 ins=1 N=10 SB=1 cearn=1 coef=- HEAD=8d3b67877 Dfree
 mM end 2026-11-19 14:46:47 rc=0
 mp5 start 2026-11-19 15:20:59 ins=0 N=5 SB=1 cearn=1 coef=- HEAD=8d3b67877 Dfree=34.44GB armsfree=6
 mp10 start 2026-11-19 15:20:59 ins=0 N=10 SB=1 cearn=1 coef=- HEAD=8d3b67877 Dfree=34.44GB armsfree=6
+mp5 end 2026-11-19 15:30:45 rc=0
+mp10 end 2026-11-19 15:30:48 rc=0

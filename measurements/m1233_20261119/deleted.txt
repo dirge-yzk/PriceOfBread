@@ -1,0 +1,8 @@
+# (1233) 合流が消した生（帰属を読み終えた物・決まり ⑲）
+2026-11-19 13:23:27 D:/PoB_work/c124bk_work/armB/out_c124bkB_10/ins（28.7GB・採る見込みの線 bk の腕 B の生・keepsum を measurements/m1233_20261119/keepsum_bkB.tsv に取った後）
+2026-11-19 13:23:30 D:/PoB_work/ident_c124kb（4.2GB・kb の ident の生・〈判定: 恒等〉の記録は measurements/m1227_20261119_ident_kb.txt）
+2026-11-19 14:28:31 D:/PoB_work/ident_m1233z（12GB・腕 Z の ident の生・〈判定: 恒等〉の後・成績表と報告は measurements/ に写した）
+2026-11-19 14:28:31 D:/PoB_work/m1233_work/src_mN1・src_mS11（腕の写しの木・ビルドの元）
+2026-11-19 14:28:31 D:/PoB_work/c124bk_work/armz2（1.2GB・bk の腕 Z′ の生・合わせた木の腕 Z が全表を確かめた後）
+2026-11-19 15:45:27 D:/PoB_work/keep_1219_rej（26GB・nr の 1 回目の腕 B の生・新しい ident.cfg〔a37b7d2b7〕を push した後・INSRAW でも KEEPNULL でもない古い keep）
+2026-11-19 15:45:39 D:/PoB_work/keep_1226_rej（26GB・iv の腕 B の生 ivB・iv は 3 回目で閉じ rd (1231) が読み終えた・新しい ident.cfg を push した後・INSRAW でも KEEPNULL でもない古い keep）

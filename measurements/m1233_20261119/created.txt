@@ -1,0 +1,5 @@
+作ったフォルダ: D:/PoB_work/m1233_work (2026-11-19 開始)
+D:/PoB_work/wt_m1233 (worktree・枝 m1233)
+D:/PoB_work/wt_m1233z (worktree・木 Z・detached)
+D:/PoB_work/keep_1233_rej（新しく作った・nr の腕 B の生 nrB を移した）
+D:/PoB_work/keep_1233（新しい基線の生 base_ins・n1・a11）
