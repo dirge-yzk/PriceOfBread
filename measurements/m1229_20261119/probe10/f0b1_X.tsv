@@ -1,0 +1,4 @@
+# c124pf probe override=[SellOfferExcessStock=0 EndowmentCostFollowsAbundance=1] months=12 seeds=1..10
+seed	phase	t	buyerRegion	buyerNation	qty	unitA	buyerLocalPrice	frA	costA	sA	sellerPx
+3	m	8	アボメイ	?	0.147129641	43.6362337	46.6690426	0.142965496	27.4163954	16.5816951	0.070108361
+3	m	8	オヨ=イレ	?	0.213545187	33.6277023	32.7186032	0.196946884	18.8393488	12.1021564	0.070108361

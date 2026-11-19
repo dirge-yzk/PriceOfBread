@@ -1,0 +1,55 @@
+# OLD=aa8ee7e51 NEW=8846c6a0f W=±12 行（注と空白を除いた行）
+行	錨	囲む関数	近くの差の塊	差の行（先頭の 3 行・字は 90 字まで）
+S26-04	Simulation.cs:1312:natives	PromoteColonyToRegion	0	
+S26-04	Simulation.cs:1317:MkPop	PromoteColonyToRegion	0	
+S26-04	Simulation.cs:1371:ArableLand	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-04	Simulation.cs:1382:Stock	PromoteColonyToRegion	0	
+S26-05	Simulation.cs:1286:IsColonial	PromoteColonyToRegion	0	
+S26-05	Simulation.cs:1301:ScarceEndowment	PromoteColonyToRegion	0	
+S26-05	Simulation.cs:1358:AddAdvancedProducers	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-06	Simulation.cs:1370:Culture	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-07	Simulation.cs:1303:PlantationRentShare	PromoteColonyToRegion	0	
+S26-07	Coefficients.p07_wiring_prewarm.cs:88:PlantationRentShare	（関数の外）	—	
+S26-07	Colonial.cs:75:ExportCrop	ExportCrop	0	
+S26-10	Simulation.cs:1365:CoastalOf	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-10	Landmass.cs:41:CoastalOf	CoastalOf	0	
+S26-11	Simulation.cs:826:RegionTier.Core	BuildProvince	1	-Malarial = p.Malarial,
+S26-11	Simulation.cs:1366:Tier	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-11	Territory.cs:155:Rehome	Rehome	0	
+S26-12	Simulation.cs:820:AddAlternateRecipes	BuildProvince	1	-Malarial = p.Malarial,
+S26-12	Simulation.cs:1361:AddAlternateRecipes	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,
+S26-16	Colonial.cs:39:coalWant	Step	3	-AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0; ／ -const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-16	Colonial.cs:66:OccupiedShipCapacity	OccupiedShipCapacity	0	
+S26-16	Coefficients.p10_ai_silver_overrides.cs:63:EraColonyCoal	（関数の外）	—	
+S26-18	Colonial.cs:23:ColonyShipOccupyPerDist	Step	5	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-18	Colonial.cs:36:steamMult	Step	4	-if (malarial) quinineWant += c.MalariaQuininePerColony; ／ -AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0;
+S26-18	BilateralMarket.cs:304:shipCapNat	StepBilateral	0	
+S26-18	BilateralMarket.cs:591:shipShare	（関数の外）	—	
+S26-19	Colonial.cs:15:ChokeOpenFor	Step	3	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-19	Colonial.cs:21:SeaDistanceKm	Step	5	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-19	MultiNationSim.cs:1119:RequirementMet	StepCanals	0	
+S26-19	MultiNationSim.cs:1138:IsOpen	StepCanals	0	
+S26-20	Colonial.cs:24:MalariaQuininePerColony	Step	5	-double shipBurden = 0, quinineWant = 0; +double shipBurden = 0; ／ -void AccumUpkeep(double clat, double clon, double popWeight, bool malarial) +void AccumUp ／ -if (malarial) quinineWant += c.MalariaQuininePerColony;
+S26-20	Colonial.cs:43:BuyUpkeepGood	Step	3	-AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0; ／ -const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-20	Coefficients.p04_trade.cs:151:MalariaQuininePerColony	（関数の外）	—	
+S26-21	Colonial.cs:43:BuyUpkeepGood	Step	3	-AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial); +AccumUpkeep(ccr.Lat, ccr.Lon, pw); ／ -double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal); +const double era = 1.0; ／ -const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-23	Colonial.cs:57:homePressure	Step	1	-const int quinineG = Catalog.QuinineId; | -if (quinineWant > 1e-9) BuyUpkeepGood(w, r, qu
+S26-23	Colonial.cs:60:Militancy	Step	0	
+S26-23	Coefficients.p06_rank_discovery.cs:81:ColonialUnrestHomeWeig	（関数の外）	—	
+S26-23	Coefficients.p05_port_insurance.cs:19:ColoniesForFullColonia	（関数の外）	—	
+S26-28	Simulation.cs:1286:IsColonial	PromoteColonyToRegion	0	
+S26-35	Validation.cs:169:植民地の保存	Evaluate	0	
+S26-35	MultiNationSim.cs:134:InitialColonyCount	MultiNationSim	0	
+S26-37	Coefficients.p02_borrow_polity_epidemic.cs:101:ColonyPromoti	（関数の外）	—	
+S26-37	Politics.cs:895:ColonyPromotionMinPop	CheckSecession	1	-double cultDist = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Cu
+S26-38	Instruments.cs:2096:Settled	Settled	NEW に無い	
+S26-40	EconomyStep.cs:823:ColonialResources	Run	0	
+S26-41	EconomyStep.cs:823:ColonialResources	Run	0	
+S26-41	Simulation.cs:2545:ColonialAccess	ColonialAccess	0	
+S26-41	Simulation.cs:1730:colonialAccess	MonthSettle	1	-double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ?
+S26-44	Politics.cs:865:CheckSecession	CheckSecession	0	
+S26-44	Territory.cs:155:Rehome	Rehome	0	
+S26-46	Politics.cs:1041:RegionAvgSuffrageInclusion	RegionAvgSuffrageInclusion	0	
+S26-46	Politics.cs:165:RegionAvgSuffrageInclusion	Step	0	
+S26-46	Politics.cs:865:CheckSecession	CheckSecession	0	
+S26-V01	Simulation.cs:1370:Culture = w.Region.Culture	PromoteColonyToRegion	1	-Tier = tier, Dominance = 0.0, Malarial = col.Malarial, +Tier = tier, Dominance = 0.0,

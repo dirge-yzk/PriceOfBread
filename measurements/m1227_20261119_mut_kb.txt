@@ -1,0 +1,51 @@
+# (1227) c124kb の突然変異の出力（(1233) 合流が D:/PoB_work/c124kb_work の m*.mark.log から写した・反証役 v の低 3）
+# 対応（mark.log の中身と担当の報告から読んだ・m3 と m4 は推測を含む）：m1＝識字の項を min に戻す／m2＝Politics.cs:877 の 1−core を 1−mil へ（既存の Secession 系 5 本）／m2b＝m2 を SecessionCoreShareTests で／m3＝直さない木で SecessionCoreShareTests（緑＝対照）／m4＝:871 だけの取り違え
+== m1
+PriceOfBread.Tests.HealthcareLiteracyGateTests.T1_識字の低い社会でも医療は医者の役務の門まで上がる_識字の錠の復活を禁じる [FAIL]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== m2
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 1 m 3 s - PriceOfBread.Tests.dll (net10.0)
+== m2b
+PriceOfBread.Tests.SecessionCoreShareTests.T2_文化の距離は中核でない割合へ引かれる [FAIL]
+PriceOfBread.Tests.SecessionCoreShareTests.T1_民族の項は加法と少数派の闘争と距離と中核でない割合と州の闘争度の積 [FAIL]
+失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== m3
+成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== m4
+PriceOfBread.Tests.SecessionCoreShareTests.T2_文化の距離は中核でない割合へ引かれる [FAIL]
+失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== 直しの台本 ed1.py
+import re
+def rw(p, f):
+    b=open(p,'rb').read(); n=f(b); assert n!=b, p; open(p,'wb').write(n)
+# Simulation.cs: replace 3 lines
+def sim(b):
+    lines=b.split(b'\n')
+    i=[k for k,l in enumerate(lines) if b'double healthcare = c.HealthcareLiteracyGateOff > 0' in l][0]
+    eol=b'\r' if lines[i].endswith(b'\r') else b''
+    new='        double healthcare = World.SocialSecurity * World.FiscalFundingRatio.Value;   // 社会保障(充足率で減衰)＝財政不足で医療→人口増が鈍る。医者が要るは下の医者の役務の門だけが持つ（思想⑨・(1222) K03 の識字の項の削除を (1227) で焼いた）'.encode('utf-8')+eol
+    lines[i:i+3]=[new]
+    return b'\n'.join(lines)
+rw('PriceOfBread.SimCore/Simulation.cs', sim)
+def p06(b):
+    lines=b.split(b'\n')
+    out=[]
+    for l in lines:
+        if b'public double HealthcareEducationGate' in l or b'public double HealthcareLiteracyGateOff' in l: continue
+        if b'public double HealthcareCapacityBonus' in l:
+            l=l.replace('医療（社会保障×識字でgate）'.encode(),'医療（社会保障×支払い率・医者の役務の門）'.encode())
+        out.append(l)
+    return b'\n'.join(out)
+rw('PriceOfBread.SimCore/Coefficients.p06_rank_discovery.cs', p06)
+== 直しの台本 ed2.py
+def rw(p, f):
+    b=open(p,'rb').read(); n=f(b); assert n!=b, p; open(p,'wb').write(n)
+def rep(b, old, new, cnt=1):
+    o=old.encode(); assert b.count(o)==cnt,(old,b.count(o)); return b.replace(o,new.encode())
+def t(b):
+    b=rep(b,'(1222) c123k3 K03：医療の min から識字の項を外す旗 <see cref="Coefficients.HealthcareLiteracyGateOff"/> の番人。','(1222) c123k3 K03：医療の min から識字の項を外した形の番人（旗と係数は (1227) c124kb で物理で消した＝識字の錠の復活を禁じる）。')
+    b=rep(b,'突然変異で赤：M1 旗の門を外す（旗 0 の T1 が赤）・M2 医者の役務の門も一緒に外す（旗 1 の T1 が赤）・M3','突然変異で赤：M1 識字の項を min に戻す（T1 が赤）・M2 医者の役務の門も一緒に外す（T1 が赤）・M3')
+    b=rep(b,'double socialSecurity, double healthFill, double flag)','double socialSecurity, double healthFill)')
+    b=rep(b,'        w.Coef.HealthcareLiteracyGateOff = flag;\r\n' if b'\r\n' in b else '        w.Coef.HealthcareLiteracyGateOff = flag;\n','')
+    return b
+rw('PriceOfBread.Tests/HealthcareLiteracyGateTests.cs', t)

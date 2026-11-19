@@ -1,0 +1,365 @@
+# r1231 probe override=[] seed=7
+kind	phase	t	region	good	price	rpLocal	ratio	demand	produced	import	export	stock	target	priceLevel
+P	open	0	ジャマイカ	小麦粉	recipe=	cap=0	out=0.5	desired=0	mc=0.06	scale=0.05	built=0	inFill=1	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.54:d0:q0:i0:s0,労働力:0.5:p0.5:d0:q0:i0:s0,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	open	0	ジャマイカ	パン	recipe=	cap=0	out=0.5	desired=0	mc=0.06	scale=0.05	built=0	inFill=1	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p0.866:d0:q0:i0:s0,労働力:0.5:p0.5:d0:q0:i0:s0,高度労働力:0.02:p0.8:d0:q0:i0:s0
+L	open	0	ジャマイカ	労働力	0.5	0	0	0
+L	open	0	ジャマイカ	高度労働力	0.8	0	0	0
+L	open	0	ジャマイカ	農業労働力	0.5	0	0	0
+Q	open	0	ジャマイカ	0:貴族=0 1:農民=250 2:工場労働者=0 3:資本家=0 4:技師=0 5:聖職者=0 6:教師=0 7:官僚=0 8:医者=0 9:商人=0 10:職人=0 11:使用人=0 12:兵士=0
+LP	open	0	ジャマイカ	労働力	labor=2	cap=0	out=0
+LP	open	0	ジャマイカ	労働力	labor=2	cap=0	out=0.5
+LP	open	0	ジャマイカ	労働力	labor=2	cap=0	out=0.5
+LP	open	0	ジャマイカ	労働力	labor=2	cap=0	out=0.5
+LP	open	0	ジャマイカ	労働力	labor=2	cap=0	out=0.5
+LP	open	0	ジャマイカ	農業労働力	labor=1	cap=0	out=75
+LP	open	0	ジャマイカ	高度労働力	labor=4	cap=0	out=0
+J	open	0	ジャマイカ	パン	1.192	1.192	1	0	0	0	0	0	200	1
+J	open	0	ジャマイカ	小麦粉	0.866	0.866	1	0	0	0	0	0	200	1
+J	open	0	ジャマイカ	麦	0.54	0.54	1	0	0	0	0	0	200	1
+J	open	0	ジャマイカ	米	0.54	0.54	1	0	0	0	0	0	200	1
+J	open	0	ジャマイカ	ジャガイモ	0.54	0.54	1	0	0	0	0	0	200	1
+J	open	0	ジャマイカ	トウモロコシ	0.54	0.54	1	0	0	0	0	0	200	1
+W	open	0	allMk=0	ratioMed=NaN	ratioP90=NaN	ratioP99=NaN	gt2=0	gt10=0	stapleMk=0	stapleGt10=0	stapleDead=0	stapleDeadGt10=0	breadMk=0	breadGt10=0	breadDead=0	breadDeadDemandShare=0	breadExcessStock=0	breadSurplusRegions=0	breadDemandAll=0	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=0	stapleDeadAdvZero=0
+P	warm	1	ジャマイカ	小麦粉	recipe=	cap=0.557964	out=0	desired=0.557964	mc=0.06	scale=0.332241	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.401773:d20.2661:q37.626:i0:s57.7885,労働力:0.5:p0.443348:d0:q6.13977:i0:s6.13977,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	1	ジャマイカ	パン	recipe=	cap=0.00091137	out=0	desired=0	mc=0.06	scale=0.147609	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p2.49791:d4.9523:q0:i0:s0,労働力:0.5:p0.443348:d0:q6.13977:i0:s6.13977,高度労働力:0.02:p0.8:d0:q0:i0:s0
+L	warm	1	ジャマイカ	労働力	0.443348	0	6.13977	6.13977
+L	warm	1	ジャマイカ	高度労働力	0.8	0	0	0
+L	warm	1	ジャマイカ	農業労働力	0.585403	513.507	835.406	321.899
+Q	warm	1	ジャマイカ	0:貴族=0 1:農民=248.748 2:工場労働者=1.25169 3:資本家=0 4:技師=0 5:聖職者=0 6:教師=0 7:官僚=0 8:医者=0 9:商人=0 10:職人=0 11:使用人=0 12:兵士=0.000576074
+LP	warm	1	ジャマイカ	労働力	labor=2	cap=9.57805	out=2.9237
+LP	warm	1	ジャマイカ	労働力	labor=2	cap=12.4515	out=0
+LP	warm	1	ジャマイカ	労働力	labor=2	cap=19.1561	out=0
+LP	warm	1	ジャマイカ	労働力	labor=2	cap=0	out=0
+LP	warm	1	ジャマイカ	労働力	labor=2	cap=10.5359	out=3.21607
+LP	warm	1	ジャマイカ	農業労働力	labor=1	cap=1902.46	out=835.406
+LP	warm	1	ジャマイカ	高度労働力	labor=4	cap=0	out=0
+J	warm	1	ジャマイカ	パン	1.85638	0.8344	2.22481	35.5596	0	0	0	0	19.4689	0.7
+J	warm	1	ジャマイカ	小麦粉	2.49791	0.6062	4.12061	4.9523	0	0	0	0	5.82624	0.7
+J	warm	1	ジャマイカ	麦	0.401773	0.378	1.06289	20.2661	37.626	0	0	57.7885	23.8425	0.7
+J	warm	1	ジャマイカ	米	0.286244	0.378	0.757258	16.4575	37.626	0	0	94.0204	15.7167	0.7
+J	warm	1	ジャマイカ	ジャガイモ	0.250645	0.378	0.663082	5.34676	34.1129	0	0	87.3188	4.71402	0.7
+J	warm	1	ジャマイカ	トウモロコシ	0.24176	0.378	0.639577	3.64253	38.1583	0	0	120.426	3.14344	0.7
+W	warm	1	allMk=23465	ratioMed=0.91597	ratioP90=2.22481	ratioP99=4.12061	gt2=3083	gt10=0	stapleMk=1540	stapleGt10=0	stapleDead=242	stapleDeadGt10=0	breadMk=308	breadGt10=0	breadDead=88	breadDeadDemandShare=0.0117797	breadExcessStock=707.441	breadSurplusRegions=0	breadDemandAll=269702	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=81	stapleDeadAdvZero=106
+P	warm	2	ジャマイカ	小麦粉	recipe=	cap=0.937461	out=0	desired=0.937461	mc=0.06	scale=0.71273	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.267068:d12.4459:q23.1071:i0:s83.4876,労働力:0.5:p0.30909:d0:q10.6008:i0:s10.6008,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	2	ジャマイカ	パン	recipe=	cap=0.0563774	out=0	desired=0.0413399	mc=0.06	scale=0.237061	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.8013:d3.04133:q0:i0:s0,労働力:0.5:p0.30909:d0:q10.6008:i0:s10.6008,高度労働力:0.02:p0.8:d0:q0:i0:s0
+L	warm	2	ジャマイカ	労働力	0.30909	0	10.6008	10.6008
+L	warm	2	ジャマイカ	高度労働力	0.8	0	0	0
+L	warm	2	ジャマイカ	農業労働力	0.508376	315.358	1320.57	1005.21
+Q	warm	2	ジャマイカ	0:貴族=0 1:農民=248.745 2:工場労働者=1.25018 3:資本家=0 4:技師=0 5:聖職者=0 6:教師=0 7:官僚=0 8:医者=0 9:商人=0 10:職人=0 11:使用人=0 12:兵士=0.00504338
+LP	warm	2	ジャマイカ	労働力	labor=2	cap=9.56716	out=5.53645
+LP	warm	2	ジャマイカ	労働力	labor=2	cap=12.4373	out=0
+LP	warm	2	ジャマイカ	労働力	labor=2	cap=19.1343	out=0
+LP	warm	2	ジャマイカ	労働力	labor=2	cap=0	out=0
+LP	warm	2	ジャマイカ	労働力	labor=2	cap=10.5239	out=5.06437
+LP	warm	2	ジャマイカ	農業労働力	labor=1	cap=1902.46	out=1320.57
+LP	warm	2	ジャマイカ	高度労働力	labor=4	cap=0	out=0
+J	warm	2	ジャマイカ	パン	41.0179	0.8344	49.1586	4.01901	0	0	0	0	6.19397	0.7
+J	warm	2	ジャマイカ	小麦粉	29.8013	0.6062	49.1608	3.04133	0	0	0	0	3.57804	0.7
+J	warm	2	ジャマイカ	麦	0.267068	0.378	0.70653	12.4459	23.1071	0	0	83.4876	14.6423	0.7
+J	warm	2	ジャマイカ	米	0.23902	0.378	0.632328	26.0589	23.1071	0	0	85.2965	26.0675	0.7
+J	warm	2	ジャマイカ	ジャガイモ	0.132897	0.378	0.351579	7.81768	20.9496	0	0	84.8547	7.92282	0.7
+J	warm	2	ジャマイカ	トウモロコシ	0.0970409	0.378	0.256722	5.21178	23.4339	0	0	163.188	5.28188	0.7
+W	warm	2	allMk=22310	ratioMed=0.796134	ratioP90=15.9384	ratioP99=49.1608	gt2=5831	gt10=2686	stapleMk=1538	stapleGt10=201	stapleDead=166	stapleDeadGt10=128	breadMk=306	breadGt10=146	breadDead=82	breadDeadDemandShare=0.00246282	breadExcessStock=100.907	breadSurplusRegions=0	breadDemandAll=154612	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=79	stapleDeadAdvZero=101
+P	warm	3	ジャマイカ	小麦粉	recipe=	cap=0.881935	out=0	desired=0.881935	mc=0.06	scale=1.03895	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.196588:d7.64336:q14.1906:i0:s91.1383,労働力:0.5:p0.215489:d0:q9.36423:i0:s9.36423,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	3	ジャマイカ	パン	recipe=	cap=0.136529	out=0	desired=0.100655	mc=0.06	scale=0.414939	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p28.9977:d1.86776:q0:i0:s0,労働力:0.5:p0.215489:d0:q9.36423:i0:s9.36423,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	3	ジャマイカ	パン	39.9137	0.811901	49.1608	5.53853	0	0	0	0	5.2259	0.681125
+J	warm	3	ジャマイカ	小麦粉	28.9977	0.589854	49.1608	1.86776	0	0	0	0	2.19736	0.681125
+J	warm	3	ジャマイカ	麦	0.196588	0.367807	0.534486	7.64336	14.1906	0	0	91.1383	8.99219	0.681125
+J	warm	3	ジャマイカ	米	0.256412	0.367807	0.697136	25.0926	14.1906	0	0	47.0239	24.9523	0.681125
+J	warm	3	ジャマイカ	ジャガイモ	0.118015	0.367807	0.320861	7.81796	12.8657	0	0	60.7409	7.81796	0.681125
+J	warm	3	ジャマイカ	トウモロコシ	0.0694038	0.367807	0.188696	5.21197	14.3914	0	0	168.732	5.21197	0.681125
+W	warm	3	allMk=22488	ratioMed=0.814787	ratioP90=25.1464	ratioP99=49.1608	gt2=7327	gt10=3966	stapleMk=1539	stapleGt10=246	stapleDead=145	stapleDeadGt10=121	breadMk=307	breadGt10=190	breadDead=78	breadDeadDemandShare=0.00362927	breadExcessStock=4.86525	breadSurplusRegions=4	breadDemandAll=144437	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=78	stapleDeadAdvZero=99
+P	warm	4	ジャマイカ	小麦粉	recipe=	cap=0.843167	out=0	desired=0.843167	mc=0.06	scale=1.31865	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.158987:d4.69398:q8.71481:i0:s89.0828,労働力:0.5:p0.150233:d0:q7.60169:i0:s7.60169,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	4	ジャマイカ	パン	recipe=	cap=0.238256	out=0	desired=0.176371	mc=0.06	scale=0.566548	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p28.8735:d1.14704:q0:i0:s0,労働力:0.5:p0.150233:d0:q7.60169:i0:s7.60169,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	4	ジャマイカ	パン	39.7427	0.808423	49.1608	6.41514	0	0	0	0	6.22175	0.678207
+J	warm	4	ジャマイカ	小麦粉	28.8735	0.587328	49.1608	1.14704	0	0	0	0	1.34946	0.678207
+J	warm	4	ジャマイカ	麦	0.158987	0.366232	0.434117	4.69398	8.71481	0	0	89.0828	5.52233	0.678207
+J	warm	4	ジャマイカ	米	0.298139	0.366232	0.814072	24.0809	8.71481	0	0	0	25.0286	0.678207
+J	warm	4	ジャマイカ	ジャガイモ	0.144991	0.366232	0.395899	7.81977	7.90112	0	0	34.3555	7.81977	0.678207
+J	warm	4	ジャマイカ	トウモロコシ	0.0869515	0.366232	0.237422	5.21318	8.8381	0	0	154.847	5.21318	0.678207
+W	warm	4	allMk=22227	ratioMed=0.846023	ratioP90=24.4352	ratioP99=49.1608	gt2=8189	gt10=4020	stapleMk=1539	stapleGt10=235	stapleDead=140	stapleDeadGt10=111	breadMk=307	breadGt10=200	breadDead=80	breadDeadDemandShare=0.00424347	breadExcessStock=27.5409	breadSurplusRegions=3	breadDemandAll=144471	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=80	stapleDeadAdvZero=101
+P	warm	5	ジャマイカ	小麦粉	recipe=	cap=0.815696	out=0	desired=0.815696	mc=0.06	scale=1.55845	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.138097:d2.88269:q5.35199:i0:s82.2107,労働力:0.5:p0.104739:d0:q5.95476:i0:s5.95476,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	5	ジャマイカ	パン	recipe=	cap=0.369263	out=0	desired=0.274102	mc=0.06	scale=0.695616	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p28.5551:d0.704424:q0:i0:s0,労働力:0.5:p0.104739:d0:q5.95476:i0:s5.95476,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	5	ジャマイカ	パン	39.3045	0.79951	49.1608	6.88325	0	0	0	0	6.76845	0.67073
+J	warm	5	ジャマイカ	小麦粉	28.5551	0.580852	49.1608	0.704424	0	0	0	0	1	0.67073
+J	warm	5	ジャマイカ	麦	0.138097	0.362194	0.381279	2.88269	5.35199	0	0	82.2107	3.3914	0.67073
+J	warm	5	ジャマイカ	米	0.292603	0.362194	0.807863	25.2697	69.8668	0	0	114.686	22.1046	0.67073
+J	warm	5	ジャマイカ	ジャガイモ	0.190976	0.362194	0.527274	7.8236	4.85228	0	0	12.2178	7.8236	0.67073
+J	warm	5	ジャマイカ	トウモロコシ	0.11931	0.362194	0.329408	5.21573	5.4277	0	0	131.954	5.21573	0.67073
+W	warm	5	allMk=22350	ratioMed=0.881436	ratioP90=24.1711	ratioP99=49.1608	gt2=8740	gt10=3923	stapleMk=1539	stapleGt10=226	stapleDead=134	stapleDeadGt10=94	breadMk=307	breadGt10=190	breadDead=63	breadDeadDemandShare=0.00331955	breadExcessStock=11.1836	breadSurplusRegions=8	breadDemandAll=148960	regions=308	advZeroRegions=85	advZeroPopShare=0.056684	breadDeadAdvZero=63	stapleDeadAdvZero=85
+P	warm	6	ジャマイカ	小麦粉	recipe=	cap=0.842666	out=0	desired=0.842666	mc=0.06	scale=1.76405	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.124084:d1.77033:q3.28679:i0:s73.331,労働力:0.5:p0.073021:d0:q3.78548:i0:s3.78548,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	6	ジャマイカ	パン	recipe=	cap=0.528191	out=0	desired=0.392662	mc=0.06	scale=0.805345	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p27.3137:d0.432605:q0:i0:s0,労働力:0.5:p0.073021:d0:q3.78548:i0:s3.78548,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	6	ジャマイカ	パン	37.5957	0.764751	49.1608	7.38666	0	0	0	0	7.38027	0.64157
+J	warm	6	ジャマイカ	小麦粉	27.3137	0.555599	49.1608	0.432605	0	0	0	0	1	0.64157
+J	warm	6	ジャマイカ	麦	0.124084	0.346448	0.358162	1.77033	3.28679	0	0	73.331	2.08274	0.64157
+J	warm	6	ジャマイカ	米	0.192602	0.346448	0.555935	26.0985	42.907	0	0	164.396	26.0985	0.64157
+J	warm	6	ジャマイカ	ジャガイモ	0.289698	0.346448	0.836195	10.894	2.9799	0	0	0	7.82955	0.64157
+J	warm	6	ジャマイカ	トウモロコシ	0.152519	0.346448	0.440238	5.2197	3.33329	0	0	105.957	5.2197	0.64157
+W	warm	6	allMk=22739	ratioMed=0.93363	ratioP90=19.6178	ratioP99=49.1608	gt2=9104	gt10=3590	stapleMk=1539	stapleGt10=238	stapleDead=141	stapleDeadGt10=111	breadMk=307	breadGt10=198	breadDead=77	breadDeadDemandShare=0.00432721	breadExcessStock=11.5688	breadSurplusRegions=9	breadDemandAll=157365	regions=308	advZeroRegions=87	advZeroPopShare=0.0578605	breadDeadAdvZero=77	stapleDeadAdvZero=99
+P	warm	7	ジャマイカ	小麦粉	recipe=	cap=0.899922	out=0	desired=0.899922	mc=0.06	scale=1.94033	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.113989:d0:q2.0185:i0:s65.0949,労働力:0.5:p0.0509082:d0:q2.94554:i0:s2.94554,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	7	ジャマイカ	パン	recipe=	cap=0.705072	out=0	desired=0.524662	mc=0.06	scale=0.898526	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d0:q0:i0:s0,労働力:0.5:p0.0509082:d0:q2.94554:i0:s2.94554,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	7	ジャマイカ	パン	35.8679	0.729604	49.1608	7.62507	0	0	0	0	7.79434	0.612084
+J	warm	7	ジャマイカ	小麦粉	26.0584	0.530064	49.1608	0	0	0	0	0	1	0.612084
+J	warm	7	ジャマイカ	麦	0.113989	0.330525	0.344873	0	2.0185	0	0	65.0949	1.27906	0.612084
+J	warm	7	ジャマイカ	米	0.179061	0.330525	0.541748	26.1257	26.3502	0	0	150.492	26.1257	0.612084
+J	warm	7	ジャマイカ	ジャガイモ	0.267647	0.330525	0.809762	7.83772	24.0055	0	0	38.7817	7.32635	0.612084
+J	warm	7	ジャマイカ	トウモロコシ	0.171565	0.330525	0.519068	5.22514	2.04705	0	0	80.0667	5.22514	0.612084
+W	warm	7	allMk=21952	ratioMed=1.05002	ratioP90=14.7592	ratioP99=49.1608	gt2=9088	gt10=2903	stapleMk=1540	stapleGt10=238	stapleDead=130	stapleDeadGt10=109	breadMk=308	breadGt10=198	breadDead=81	breadDeadDemandShare=0.00467057	breadExcessStock=10.1311	breadSurplusRegions=5	breadDemandAll=161432	regions=308	advZeroRegions=84	advZeroPopShare=0.058984	breadDeadAdvZero=81	stapleDeadAdvZero=101
+P	warm	8	ジャマイカ	小麦粉	recipe=	cap=0.951103	out=0	desired=0.951103	mc=0.06	scale=2.09146	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.00614843:d0:q1.23961:i0:s58.1933,労働力:0.5:p0.0354918:d0:q2.2398:i0:s2.2398,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	8	ジャマイカ	パン	recipe=	cap=0.823822	out=0	desired=0.542794	mc=0.06	scale=0.969665	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d0:q0:i0:s0,労働力:0.5:p0.0354918:d0:q2.2398:i0:s2.2398,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	8	ジャマイカ	パン	34.7431	0.706725	49.1608	8.12713	0	0	0	0	8.10504	0.59289
+J	warm	8	ジャマイカ	小麦粉	26.0584	0.513443	50.7522	0	0	0	0	0	1	0.59289
+J	warm	8	ジャマイカ	麦	0.00614843	0.320161	0.0192042	0	1.23961	0	0	58.1933	1	0.59289
+J	warm	8	ジャマイカ	米	0.195174	0.320161	0.609612	26.1268	16.1823	0	0	105.093	26.1268	0.59289
+J	warm	8	ジャマイカ	ジャガイモ	0.167719	0.320161	0.523859	7.83803	14.7424	0	0	42.408	7.83803	0.59289
+J	warm	8	ジャマイカ	トウモロコシ	0.18237	0.320161	0.569621	5.22536	1.25715	0	0	55.9326	5.22536	0.59289
+W	warm	8	allMk=23942	ratioMed=1.09522	ratioP90=14.9693	ratioP99=49.1608	gt2=9962	gt10=3232	stapleMk=1539	stapleGt10=223	stapleDead=113	stapleDeadGt10=101	breadMk=307	breadGt10=186	breadDead=77	breadDeadDemandShare=0.00523525	breadExcessStock=4.14335E-13	breadSurplusRegions=4	breadDemandAll=160566	regions=308	advZeroRegions=86	advZeroPopShare=0.0623737	breadDeadAdvZero=77	stapleDeadAdvZero=94
+P	warm	9	ジャマイカ	小麦粉	recipe=	cap=1.00373	out=0	desired=1.00373	mc=0.06	scale=2.22104	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.00602866:d0:q0:i0:s49.2654,労働力:0.5:p0.0247439:d0:q1.6745:i0:s1.6745,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	9	ジャマイカ	パン	recipe=	cap=0.905591	out=0	desired=0.549702	mc=0.06	scale=1.02518	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d0:q0:i0:s0,労働力:0.5:p0.0247439:d0:q1.6745:i0:s1.6745,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	9	ジャマイカ	パン	34.0583	0.692794	49.1608	8.24188	0	0	0	0	8.27624	0.581203
+J	warm	9	ジャマイカ	小麦粉	26.0584	0.503322	51.7728	0	0	0	0	0	1	0.581203
+J	warm	9	ジャマイカ	麦	0.00602866	0.31385	0.0192088	0	0	0	0	49.2654	1	0.581203
+J	warm	9	ジャマイカ	米	0.211318	0.31385	0.673309	26.1667	9.93798	0	0	46.4866	26.1667	0.581203
+J	warm	9	ジャマイカ	ジャガイモ	0.155078	0.31385	0.494115	7.85002	9.05366	0	0	28.1534	7.85002	0.581203
+J	warm	9	ジャマイカ	トウモロコシ	0.190258	0.31385	0.606208	5.23335	0	0	0	32.6241	5.23335	0.581203
+W	warm	9	allMk=24277	ratioMed=1.30531	ratioP90=16.5995	ratioP99=49.1608	gt2=10508	gt10=3468	stapleMk=1539	stapleGt10=192	stapleDead=276	stapleDeadGt10=90	breadMk=307	breadGt10=173	breadDead=80	breadDeadDemandShare=0.00561143	breadExcessStock=0	breadSurplusRegions=5	breadDemandAll=161616	regions=308	advZeroRegions=82	advZeroPopShare=0.0558314	breadDeadAdvZero=80	stapleDeadAdvZero=223
+P	warm	10	ジャマイカ	小麦粉	recipe=	cap=1.04122	out=0	desired=1.04122	mc=0.06	scale=2.33214	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.00602866:d0:q0:i0:s40.9191,労働力:0.5:p0.0172508:d0:q1.23561:i0:s1.23561,高度労働力:0.02:p0.8:d0:q0:i0:s0
+P	warm	10	ジャマイカ	パン	recipe=	cap=0.978139	out=0	desired=0.626474	mc=0.06	scale=1.07528	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d0:q0:i0:s0,労働力:0.5:p0.0172508:d0:q1.23561:i0:s1.23561,高度労働力:0.02:p0.8:d0:q0:i0:s0
+J	warm	10	ジャマイカ	パン	34.4904	0.701583	49.1608	8.07797	0	0	0	0	8.03889	0.588577
+J	warm	10	ジャマイカ	小麦粉	26.0584	0.509707	51.1242	0	0	0	0	0	1	0.588577
+J	warm	10	ジャマイカ	麦	0.00602866	0.317831	0.0189681	0	0	0	0	40.9191	1	0.588577
+J	warm	10	ジャマイカ	米	0.289852	0.317831	0.911968	28.6338	78.4624	0	28.6376	26.2132	26.2132	0.588577
+J	warm	10	ジャマイカ	ジャガイモ	0.186271	0.317831	0.58607	7.86395	5.56008	0	0	10.9448	7.86395	0.588577
+J	warm	10	ジャマイカ	トウモロコシ	0.203451	0.317831	0.640122	5.24263	0	0	0	12.2939	5.24263	0.588577
+W	warm	10	allMk=24716	ratioMed=1.45248	ratioP90=19.1819	ratioP99=49.1608	gt2=11064	gt10=3643	stapleMk=1540	stapleGt10=183	stapleDead=241	stapleDeadGt10=93	breadMk=308	breadGt10=159	breadDead=81	breadDeadDemandShare=0.00584748	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=169194	regions=308	advZeroRegions=82	advZeroPopShare=0.0558744	breadDeadAdvZero=81	stapleDeadAdvZero=199
+P	warm	11	ジャマイカ	小麦粉	recipe=	cap=1.05468	out=0	desired=1.05468	mc=0.06	scale=2.4274	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.00602866:d2.25466E-16:q0:i0:s33.9867,労働力:0.5:p0.0120268:d3.59563E-14:q0.902284:i0:s0.902284,高度労働力:0.02:p0.8:d1.23351E-16:q0:i0:s0
+P	warm	11	ジャマイカ	パン	recipe=	cap=1.04086	out=0	desired=0.688183	mc=0.06	scale=1.11956	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d1.41842E-16:q0:i0:s0,労働力:0.5:p0.0120268:d3.59563E-14:q0.902284:i0:s0.902284,高度労働力:0.02:p0.8:d1.23351E-16:q0:i0:s0
+J	warm	11	ジャマイカ	パン	34.7571	0.707008	49.1608	9.63796	0	0	0	0	8.58603	0.593128
+J	warm	11	ジャマイカ	小麦粉	26.0584	0.513648	50.7319	1.41842E-16	0	0	0	0	1	0.593128
+J	warm	11	ジャマイカ	麦	0.00602866	0.320289	0.0188226	2.25466E-16	0	0	0	33.9867	1	0.593128
+J	warm	11	ジャマイカ	米	0.265007	0.320289	0.827401	26.2655	126.114	0	105.56	26.2655	26.2655	0.593128
+J	warm	11	ジャマイカ	ジャガイモ	0.272644	0.320289	0.851246	10.8286	9.83486	0	0	0	7.87965	0.593128
+J	warm	11	ジャマイカ	トウモロコシ	0.317545	0.320289	0.991432	6.61647	24.3483	0	0	18.3635	5.2531	0.593128
+W	warm	11	allMk=24804	ratioMed=1.60476	ratioP90=22.3946	ratioP99=49.1608	gt2=11352	gt10=3758	stapleMk=1540	stapleGt10=175	stapleDead=215	stapleDeadGt10=95	breadMk=308	breadGt10=144	breadDead=82	breadDeadDemandShare=0.00665944	breadExcessStock=0	breadSurplusRegions=1	breadDemandAll=169810	regions=308	advZeroRegions=84	advZeroPopShare=0.0567275	breadDeadAdvZero=81	stapleDeadAdvZero=165
+P	warm	12	ジャマイカ	小麦粉	recipe=	cap=1.05157	out=0	desired=1.05157	mc=0.06	scale=2.50906	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.00602866:d4.46207E-16:q0:i0:s28.2288,労働力:0.5:p0.00838475:d1.01929E-13:q0.653025:i0:s0.653025,高度労働力:0.02:p0.8:d2.48213E-16:q0:i0:s0
+P	warm	12	ジャマイカ	パン	recipe=	cap=1.19651	out=0	desired=0.791105	mc=0.06	scale=1.15695	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d3.23424E-16:q0:i0:s0,労働力:0.5:p0.00838475:d1.01929E-13:q0.653025:i0:s0.653025,高度労働力:0.02:p0.8:d2.48213E-16:q0:i0:s0
+J	warm	12	ジャマイカ	パン	34.7546	0.706957	49.1608	17.789	0	0.361853	0	0.361853	11.91	0.593085
+J	warm	12	ジャマイカ	小麦粉	26.0584	0.513611	50.7356	3.23424E-16	0	0	0	0	1	0.593085
+J	warm	12	ジャマイカ	麦	0.00602866	0.320266	0.0188239	4.46207E-16	0	0	0	28.2288	1	0.593085
+J	warm	12	ジャマイカ	米	0.287065	0.320266	0.896334	26.3212	254.669	0	183.949	69.1408	26.3212	0.593085
+J	warm	12	ジャマイカ	ジャガイモ	0.222763	0.320266	0.695557	7.89635	29.6026	0	0	50.3894	7.89635	0.593085
+J	warm	12	ジャマイカ	トウモロコシ	0.15948	0.320266	0.497961	5.26423	16.7778	0	0	56.2391	5.26423	0.593085
+W	warm	12	allMk=25284	ratioMed=1.6861	ratioP90=23.8666	ratioP99=49.1608	gt2=11659	gt10=3839	stapleMk=1540	stapleGt10=159	stapleDead=143	stapleDeadGt10=38	breadMk=308	breadGt10=128	breadDead=20	breadDeadDemandShare=0.00224548	breadExcessStock=31.4047	breadSurplusRegions=4	breadDemandAll=170401	regions=308	advZeroRegions=84	advZeroPopShare=0.0569362	breadDeadAdvZero=20	stapleDeadAdvZero=98
+P	warm	13	ジャマイカ	小麦粉	recipe=	cap=0.942223	out=0	desired=0.942223	mc=0.06	scale=2.57908	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.0442681:d0.0306245:q0:i0:s23.3856,労働力:0.5:p0.010043:d22.5982:q0.486843:i0:s0,高度労働力:0.02:p1.11001:d0.0172553:q0:i0:s0
+P	warm	13	ジャマイカ	パン	recipe=	cap=0.61332	out=0	desired=0	mc=0.06	scale=1.04446	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p26.0584:d0:q0:i0:s0,労働力:0.5:p0.010043:d22.5982:q0.486843:i0:s0,高度労働力:0.02:p1.11001:d0.0172553:q0:i0:s0
+J	warm	13	ジャマイカ	パン	10.7099	0.715817	14.9618	29.4251	0	1.96669	0	1.96669	29.882	0.600518
+J	warm	13	ジャマイカ	小麦粉	26.0584	0.520048	50.1076	0	0	0	0	0	1	0.600518
+J	warm	13	ジャマイカ	麦	0.0442681	0.32428	0.136512	0.0306245	0	0	0	23.3856	1	0.600518
+J	warm	13	ジャマイカ	米	0.263861	0.32428	0.813685	20.8028	247.314	0	255.468	22.6617	22.6617	0.600518
+J	warm	13	ジャマイカ	ジャガイモ	0.134059	0.32428	0.413405	7.90255	18.1797	0	0	57.911	7.90255	0.600518
+J	warm	13	ジャマイカ	トウモロコシ	0.112759	0.32428	0.347722	5.3001	10.3036	0	0	66.1022	5.26948	0.600518
+W	warm	13	allMk=25374	ratioMed=1.83029	ratioP90=24.9527	ratioP99=49.1608	gt2=12326	gt10=3924	stapleMk=1540	stapleGt10=159	stapleDead=131	stapleDeadGt10=36	breadMk=308	breadGt10=124	breadDead=16	breadDeadDemandShare=0.00204159	breadExcessStock=8.94234	breadSurplusRegions=6	breadDemandAll=173703	regions=308	advZeroRegions=82	advZeroPopShare=0.0557363	breadDeadAdvZero=16	stapleDeadAdvZero=93
+P	warm	14	ジャマイカ	小麦粉	recipe=	cap=0.519234	out=0	desired=0.519234	mc=0.06	scale=2.63912	built=0	inFill=0	matFill=0.756679	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.131356:d10.4183:q0:i0:s0,労働力:0.5:p0.0395119:d13.1502:q0.592804:i0:s0,高度労働力:0.02:p1.14471:d0.0101055:q0:i0:s0
+P	warm	14	ジャマイカ	パン	recipe=	cap=1.10488	out=0	desired=1.10488	mc=0.06	scale=1.11377	built=0	inFill=0	matFill=0.00652126	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p14.2076:d0.0331463:q0:i0.00580638:s0.00580638,労働力:0.5:p0.0395119:d13.1502:q0.592804:i0:s0,高度労働力:0.02:p1.14471:d0.0101055:q0:i0:s0
+J	warm	14	ジャマイカ	パン	35.6028	0.724212	49.1608	31.0161	0	0	0	0	29.8092	0.60756
+J	warm	14	ジャマイカ	小麦粉	14.2076	0.526147	27.0031	0.0331463	0	0.00580638	0	0.00580638	1	0.60756
+J	warm	14	ジャマイカ	麦	0.131356	0.328082	0.400376	10.4183	0	0	0	0	12.2553	0.60756
+J	warm	14	ジャマイカ	米	0.264838	0.328082	0.80723	24.3826	269.986	0	190.37	136.392	23.4548	0.60756
+J	warm	14	ジャマイカ	ジャガイモ	0.124237	0.328082	0.378676	7.93409	11.1646	0	0	41.8987	7.9027	0.60756
+J	warm	14	ジャマイカ	トウモロコシ	0.119926	0.328082	0.365536	5.3363	6.32773	0	0	60.927	5.33162	0.60756
+W	warm	14	allMk=25129	ratioMed=2.035	ratioP90=48.1981	ratioP99=49.1608	gt2=12643	gt10=4220	stapleMk=1540	stapleGt10=159	stapleDead=204	stapleDeadGt10=99	breadMk=308	breadGt10=121	breadDead=81	breadDeadDemandShare=0.00909659	breadExcessStock=0	breadSurplusRegions=5	breadDemandAll=180900	regions=308	advZeroRegions=83	advZeroPopShare=0.0558983	breadDeadAdvZero=81	stapleDeadAdvZero=161
+P	warm	15	ジャマイカ	小麦粉	recipe=	cap=0.252547	out=0	desired=0.252547	mc=0.06	scale=2.27697	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.309888:d18.371:q21.2196:i0:s7.55189,労働力:0.5:p0.132202:d5.07102:q1.39395:i0:s0,高度労働力:0.02:p1.16361:d0.0103754:q0:i0:s0
+P	warm	15	ジャマイカ	パン	recipe=	cap=3.43423	out=0	desired=3.43423	mc=0.06	scale=1.38279	built=0	inFill=0	matFill=0.127102	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p3.06805:d0.103027:q0:i0.01796:s0.01796,労働力:0.5:p0.132202:d5.07102:q1.39395:i0:s0,高度労働力:0.02:p1.16361:d0.0103754:q0:i0:s0
+J	warm	15	ジャマイカ	パン	36.1906	0.736168	49.1608	31.0466	0	0	0	0	31.0466	0.61759
+J	warm	15	ジャマイカ	小麦粉	3.06805	0.534833	5.73646	0.103027	0	0.01796	0	0.01796	1	0.61759
+J	warm	15	ジャマイカ	麦	0.309888	0.333499	0.929204	18.371	21.2196	0	0.4234	7.55189	7.55189	0.61759
+J	warm	15	ジャマイカ	米	0.207545	0.333499	0.622326	26.3427	173.614	0	26.3109	379.298	26.3426	0.61759
+J	warm	15	ジャマイカ	ジャガイモ	0.155591	0.333499	0.46654	8.00238	6.85647	0	0	21.3096	8.00233	0.61759
+J	warm	15	ジャマイカ	トウモロコシ	0.151132	0.333499	0.453171	5.33555	3.88602	0	0	48.4752	5.33569	0.61759
+W	warm	15	allMk=25149	ratioMed=2.10787	ratioP90=49.1552	ratioP99=49.1608	gt2=12829	gt10=4394	stapleMk=1540	stapleGt10=155	stapleDead=190	stapleDeadGt10=98	breadMk=308	breadGt10=121	breadDead=81	breadDeadDemandShare=0.00852873	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=183087	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=81	stapleDeadAdvZero=156
+P	warm	16	ジャマイカ	小麦粉	recipe=	cap=0.10817	out=0	desired=0.10817	mc=0.06	scale=1.96648	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.31255:d29.0629:q44.9533:i0:s37.6785,労働力:0.5:p0.223188:d3.07041:q2.96443:i0:s0,高度労働力:0.02:p1.17161:d0.00984558:q0:i0:s0
+P	warm	16	ジャマイカ	パン	recipe=	cap=3.7854	out=0	desired=3.7854	mc=0.06	scale=1.61345	built=0	inFill=0	matFill=0.125843	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p2.41935:d3.73541:q0:i0.831442:s0.831442,労働力:0.5:p0.223188:d3.07041:q2.96443:i0:s0,高度労働力:0.02:p1.17161:d0.00984558:q0:i0:s0
+J	warm	16	ジャマイカ	パン	36.4376	0.741225	49.1586	25.7666	0	0	0	0	30.4204	0.621833
+J	warm	16	ジャマイカ	小麦粉	2.41935	0.538507	4.49269	3.73541	0	0.831442	0	0.831442	2.50747	0.621833
+J	warm	16	ジャマイカ	麦	0.31255	0.33579	0.930792	29.0629	44.9533	0	0	37.6785	30.2534	0.621833
+J	warm	16	ジャマイカ	米	0.10221	0.33579	0.304387	26.6709	106.621	0	0	594.656	26.6709	0.621833
+J	warm	16	ジャマイカ	ジャガイモ	0.204345	0.33579	0.608551	8.0014	4.21073	0	0	3.29077	8.00142	0.621833
+J	warm	16	ジャマイカ	トウモロコシ	0.17698	0.33579	0.527055	5.33454	2.3865	0	0	33.1441	5.33467	0.621833
+W	warm	16	allMk=25444	ratioMed=2.17021	ratioP90=49.1597	ratioP99=49.1608	gt2=13167	gt10=4725	stapleMk=1539	stapleGt10=155	stapleDead=170	stapleDeadGt10=96	breadMk=307	breadGt10=114	breadDead=80	breadDeadDemandShare=0.00970857	breadExcessStock=0	breadSurplusRegions=4	breadDemandAll=184455	regions=308	advZeroRegions=82	advZeroPopShare=0.0558314	breadDeadAdvZero=80	stapleDeadAdvZero=141
+P	warm	17	ジャマイカ	小麦粉	recipe=	cap=0.0773712	out=0	desired=0.0773712	mc=0.06	scale=1.70028	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.308532:d17.8489:q49.1495:i0:s20.9984,労働力:0.5:p0.218651:d3.07375:q4.6219:i0:s1.54815,高度労働力:0.02:p1.17732:d0.0123395:q0:i0:s0
+P	warm	17	ジャマイカ	パン	recipe=	cap=4.36548	out=0	desired=4.36548	mc=0.06	scale=1.8112	built=0	inFill=0	matFill=0.230012	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p1.79783:d4.29707:q0:i1.29338:s1.29338,労働力:0.5:p0.218651:d3.07375:q4.6219:i0:s1.54815,高度労働力:0.02:p1.17732:d0.0123395:q0:i0:s0
+J	warm	17	ジャマイカ	パン	14.2698	0.744839	19.1582	30.0488	0	0	0	0	30.5057	0.624865
+J	warm	17	ジャマイカ	小麦粉	1.79783	0.541133	3.32234	4.29707	0	1.29338	0	1.29338	3.84235	0.624865
+J	warm	17	ジャマイカ	麦	0.308532	0.337427	0.914367	17.8489	49.1495	0	33.5238	20.9984	20.9984	0.624865
+J	warm	17	ジャマイカ	米	0.0746274	0.337427	0.221166	26.7113	65.4785	0	0	636.459	26.7113	0.624865
+J	warm	17	ジャマイカ	ジャガイモ	0.375456	0.337427	1.1127	8.95673	7.35138	0	0	0	10.4999	0.624865
+J	warm	17	ジャマイカ	トウモロコシ	0.198854	0.337427	0.589324	5.34294	1.46561	0	0	17.3219	5.34267	0.624865
+W	warm	17	allMk=25790	ratioMed=2.22618	ratioP90=49.1603	ratioP99=49.1608	gt2=13542	gt10=5026	stapleMk=1539	stapleGt10=154	stapleDead=174	stapleDeadGt10=99	breadMk=307	breadGt10=112	breadDead=80	breadDeadDemandShare=0.00982176	breadExcessStock=0	breadSurplusRegions=5	breadDemandAll=186544	regions=308	advZeroRegions=85	advZeroPopShare=0.0565274	breadDeadAdvZero=80	stapleDeadAdvZero=139
+P	warm	18	ジャマイカ	小麦粉	recipe=	cap=0.0689415	out=0	desired=0.0689415	mc=0.06	scale=1.47204	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.251519:d11.5715:q43.4755:i0:s25.9019,労働力:0.5:p0.20095:d3.1885:q5.47802:i0:s2.28952,高度労働力:0.02:p1.17945:d0.0122016:q0:i0:s0
+P	warm	18	ジャマイカ	パン	recipe=	cap=4.63903	out=0	desired=4.63903	mc=0.06	scale=1.98076	built=0	inFill=0	matFill=0.171559	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p3.08383:d4.9425:q0:i0:s0,労働力:0.5:p0.20095:d3.1885:q5.47802:i0:s2.28952,高度労働力:0.02:p1.17945:d0.0122016:q0:i0:s0
+J	warm	18	ジャマイカ	パン	19.9084	0.746186	26.6802	30.5819	0	0	0	0	25.8749	0.625995
+J	warm	18	ジャマイカ	小麦粉	3.08383	0.542112	5.68854	4.9425	0	0	0	0	4.81501	0.625995
+J	warm	18	ジャマイカ	麦	0.251519	0.338037	0.744057	11.5715	43.4755	0	55.9633	25.9019	13.613	0.625995
+J	warm	18	ジャマイカ	米	0.0902318	0.338037	0.266928	26.7112	40.212	0	0	587.071	26.7112	0.625995
+J	warm	18	ジャマイカ	ジャガイモ	0.42388	0.338037	1.25394	5.90431	14.6409	0	0	10.9612	9.15679	0.625995
+J	warm	18	ジャマイカ	トウモロコシ	0.229739	0.338037	0.679626	5.34279	0	0	0	1.39748	5.34282	0.625995
+W	warm	18	allMk=25809	ratioMed=2.25924	ratioP90=49.1605	ratioP99=49.1608	gt2=13686	gt10=5076	stapleMk=1538	stapleGt10=154	stapleDead=157	stapleDeadGt10=92	breadMk=307	breadGt10=112	breadDead=80	breadDeadDemandShare=0.0104795	breadExcessStock=0	breadSurplusRegions=10	breadDemandAll=188464	regions=308	advZeroRegions=81	advZeroPopShare=0.0557113	breadDeadAdvZero=80	stapleDeadAdvZero=129
+P	warm	19	ジャマイカ	小麦粉	recipe=	cap=0.158899	out=0	desired=0.158899	mc=0.06	scale=1.40721	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.299677:d7.85203:q37.4243:i0:s39.7869,労働力:0.5:p0.181998:d3.45198:q6.00668:i0:s2.5547,高度労働力:0.02:p1.18955:d0.0113108:q0:i0:s0
+P	warm	19	ジャマイカ	パン	recipe=	cap=3.47809	out=0	desired=0.90793	mc=0.06	scale=1.89321	built=0	inFill=0	matFill=0.0986898	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p3.85204:d5.93447:q0:i1.06293:s1.06293,労働力:0.5:p0.181998:d3.45198:q6.00668:i0:s2.5547,高度労働力:0.02:p1.18955:d0.0113108:q0:i0:s0
+J	warm	19	ジャマイカ	パン	4.5305	0.752576	6.01999	21.0036	0	0	0	0	30.6369	0.631356
+J	warm	19	ジャマイカ	小麦粉	3.85204	0.546754	7.0453	5.93447	0	1.06293	0	1.06293	5.03814	0.631356
+J	warm	19	ジャマイカ	麦	0.299677	0.340932	0.878993	7.85203	37.4243	0	0	39.7869	9.23756	0.631356
+J	warm	19	ジャマイカ	米	0.141829	0.340932	0.416003	26.732	24.6952	0	90.4528	355.308	26.732	0.631356
+J	warm	19	ジャマイカ	ジャガイモ	0.262792	0.340932	0.770805	7.00571	13.1022	0	13.5004	9.31505	7.53669	0.631356
+J	warm	19	ジャマイカ	トウモロコシ	0.441214	0.340932	1.29414	5.13411	8.34988	0	0	3.21577	6.29849	0.631356
+W	warm	19	allMk=25863	ratioMed=2.31837	ratioP90=49.1607	ratioP99=49.1608	gt2=13871	gt10=5235	stapleMk=1538	stapleGt10=109	stapleDead=122	stapleDeadGt10=28	breadMk=307	breadGt10=72	breadDead=43	breadDeadDemandShare=0.00658395	breadExcessStock=5.63472	breadSurplusRegions=4	breadDemandAll=190152	regions=308	advZeroRegions=85	advZeroPopShare=0.0567972	breadDeadAdvZero=43	stapleDeadAdvZero=99
+P	warm	20	ジャマイカ	小麦粉	recipe=	cap=0.115781	out=0	desired=0.115781	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.28484:d13.1277:q26.6355:i0:s23.4066,労働力:0.5:p0.166203:d3.55155:q6.32336:i0:s2.7718,高度労働力:0.02:p1.217:d0.0134749:q0:i0:s0
+P	warm	20	ジャマイカ	パン	recipe=	cap=4.85064	out=0	desired=4.85064	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0.349929	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p2.44567:d3.58879:q0:i0.820823:s0.820823,労働力:0.5:p0.166203:d3.55155:q6.32336:i0:s2.7718,高度労働力:0.02:p1.217:d0.0134749:q0:i0:s0
+L	warm	20	ジャマイカ	労働力	0.166203	3.55155	6.32336	2.7718
+L	warm	20	ジャマイカ	高度労働力	1.217	0.0134749	0	0
+L	warm	20	ジャマイカ	農業労働力	0.0250173	88.5883	185.063	96.4744
+Q	warm	20	ジャマイカ	0:貴族=0 1:農民=246.798 2:工場労働者=1.67725 3:資本家=0 4:技師=0 5:聖職者=0 6:教師=0 7:官僚=0 8:医者=0 9:商人=0 10:職人=0 11:使用人=0 12:兵士=1.52509
+LP	warm	20	ジャマイカ	労働力	labor=2	cap=12.9296	out=6.32336
+LP	warm	20	ジャマイカ	労働力	labor=2	cap=16.8085	out=0
+LP	warm	20	ジャマイカ	労働力	labor=2	cap=25.8592	out=0
+LP	warm	20	ジャマイカ	労働力	labor=2	cap=0	out=0
+LP	warm	20	ジャマイカ	労働力	labor=2	cap=14.2226	out=0
+LP	warm	20	ジャマイカ	農業労働力	labor=1	cap=1870.74	out=185.063
+LP	warm	20	ジャマイカ	高度労働力	labor=4	cap=0	out=0
+J	warm	20	ジャマイカ	パン	37.8509	0.769942	49.1608	31.1543	0	0	0	0	30.8513	0.645925
+J	warm	20	ジャマイカ	小麦粉	2.44567	0.559371	4.37218	3.58879	0	0.820823	0	0.820823	6.50927	0.645925
+J	warm	20	ジャマイカ	麦	0.28484	0.348799	0.816631	13.1277	26.6355	0	0	23.4066	15.3101	0.645925
+J	warm	20	ジャマイカ	米	0.231555	0.348799	0.663862	26.7513	15.1659	0	23.2466	161.2	26.7514	0.645925
+J	warm	20	ジャマイカ	ジャガイモ	0.289487	0.348799	0.829954	8.02537	11.1961	0	0	10.6485	8.02545	0.645925
+J	warm	20	ジャマイカ	トウモロコシ	0.290925	0.348799	0.834077	5.35056	11.6178	0	0	20.0138	5.35059	0.645925
+W	warm	20	allMk=25696	ratioMed=2.33741	ratioP90=49.1607	ratioP99=49.1608	gt2=13784	gt10=4817	stapleMk=1537	stapleGt10=131	stapleDead=152	stapleDeadGt10=89	breadMk=307	breadGt10=105	breadDead=80	breadDeadDemandShare=0.00897158	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=190573	regions=308	advZeroRegions=84	advZeroPopShare=0.0561891	breadDeadAdvZero=80	stapleDeadAdvZero=124
+P	m	1	ジャマイカ	小麦粉	recipe=	cap=0.100742	out=0	desired=0.100742	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.258:d15.0277:q24.1567:i0:s13.1277,労働力:0.5:p0.160695:d4.10881:q6.34055:i0:s2.23174,高度労働力:0.02:p1.26753:d0.0143795:q0:i0:s0
+P	m	1	ジャマイカ	パン	recipe=	cap=5.57856	out=0	desired=5.57856	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0.111077	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p2.23916:d6.94628:q0:i2.65161:s2.65161,労働力:0.5:p0.160695:d4.10881:q6.34055:i0:s2.23174,高度労働力:0.02:p1.26753:d0.0143795:q0:i0:s0
+L	m	1	ジャマイカ	労働力	0.160695	4.10881	6.34055	2.23174
+L	m	1	ジャマイカ	高度労働力	1.26753	0.0143795	0	0
+L	m	1	ジャマイカ	農業労働力	0.0239803	102.249	181.629	79.3802
+Q	m	1	ジャマイカ	0:貴族=0 1:農民=247.011 2:工場労働者=1.67873 3:資本家=0 4:技師=0 5:聖職者=0 6:教師=0 7:官僚=0 8:医者=0 9:商人=0 10:職人=0 11:使用人=0 12:兵士=1.52509
+LP	m	1	ジャマイカ	労働力	labor=2	cap=12.9282	out=6.34055
+LP	m	1	ジャマイカ	労働力	labor=2	cap=16.8067	out=0
+LP	m	1	ジャマイカ	労働力	labor=2	cap=25.8564	out=0
+LP	m	1	ジャマイカ	労働力	labor=2	cap=0	out=0
+LP	m	1	ジャマイカ	労働力	labor=2	cap=14.221	out=0
+LP	m	1	ジャマイカ	農業労働力	labor=1	cap=1870.53	out=181.629
+LP	m	1	ジャマイカ	高度労働力	labor=4	cap=0	out=0
+J	m	1	ジャマイカ	パン	39.4363	0.802192	49.1607	21.3979	0	0	0	0	31.1543	0.67298
+J	m	1	ジャマイカ	小麦粉	2.23916	0.582801	3.84207	6.94628	0	2.65161	0	2.65161	3.58879	0.67298
+J	m	1	ジャマイカ	麦	0.258	0.363409	0.709943	15.0277	24.1567	0	18.0035	13.1277	13.1277	0.67298
+J	m	1	ジャマイカ	米	0.255774	0.363409	0.703818	18.4758	14.5296	0	30.5261	117.056	26.7513	0.67298
+J	m	1	ジャマイカ	ジャガイモ	0.281107	0.363409	0.773528	5.54278	10.7594	0	0	13.7354	8.02537	0.67298
+J	m	1	ジャマイカ	トウモロコシ	0.25322	0.363409	0.69679	3.69543	10.3897	0	0	25.5073	5.35056	0.67298
+W	m	1	allMk=25712	ratioMed=2.34064	ratioP90=49.1606	ratioP99=49.1608	gt2=13796	gt10=5008	stapleMk=1538	stapleGt10=139	stapleDead=164	stapleDeadGt10=93	breadMk=307	breadGt10=104	breadDead=80	breadDeadDemandShare=0.0106712	breadExcessStock=0	breadSurplusRegions=2	breadDemandAll=177454	regions=308	advZeroRegions=81	advZeroPopShare=0.0557126	breadDeadAdvZero=80	stapleDeadAdvZero=125
+P	m	2	ジャマイカ	小麦粉	recipe=	cap=0.087745	out=0	desired=0.087745	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.287792:d18.2266:q24.0826:i0:s18.1961,労働力:0.5:p0.156627:d0:q6.33088:i0:s6.33088,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	2	ジャマイカ	パン	recipe=	cap=5.28273	out=0	desired=5.28273	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0.3745	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p1.83171:d6.65558:q0:i0:s0,労働力:0.5:p0.156627:d0:q6.33088:i0:s6.33088,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+L	m	2	ジャマイカ	労働力	0.156627	0	6.33088	6.33088
+L	m	2	ジャマイカ	高度労働力	1.26797	0	0	0
+L	m	2	ジャマイカ	農業労働力	0.0231885	115.091	177.912	62.8211
+Q	m	2	ジャマイカ	0:貴族=0 1:農民=247.213 2:工場労働者=1.6801 3:資本家=0 4:技師=0 5:聖職者=0 6:教師=0 7:官僚=0 8:医者=0 9:商人=0 10:職人=0 11:使用人=0 12:兵士=1.52509
+LP	m	2	ジャマイカ	労働力	labor=2	cap=12.9305	out=6.33088
+LP	m	2	ジャマイカ	労働力	labor=2	cap=16.8096	out=0
+LP	m	2	ジャマイカ	労働力	labor=2	cap=25.861	out=0
+LP	m	2	ジャマイカ	労働力	labor=2	cap=0	out=0
+LP	m	2	ジャマイカ	労働力	labor=2	cap=14.2235	out=0
+LP	m	2	ジャマイカ	農業労働力	labor=1	cap=1870.95	out=177.912
+LP	m	2	ジャマイカ	高度労働力	labor=4	cap=0	out=0
+J	m	2	ジャマイカ	パン	39.4364	0.802192	49.1608	21.9699	0	0	0	0	21.3979	0.67298
+J	m	2	ジャマイカ	小麦粉	1.83171	0.582801	3.14294	6.65558	0	0	0	0	6.94628	0.67298
+J	m	2	ジャマイカ	麦	0.287792	0.363409	0.791922	18.2266	24.0826	0	0	18.1961	15.0277	0.67298
+J	m	2	ジャマイカ	米	0.290276	0.363409	0.798757	18.9365	16.7843	0	19.2284	88.6517	18.4758	0.67298
+J	m	2	ジャマイカ	ジャガイモ	0.253647	0.363409	0.697965	5.68094	9.47582	0	0	14.7832	5.54278	0.67298
+J	m	2	ジャマイカ	トウモロコシ	0.212562	0.363409	0.584912	3.7873	8.83126	0	0	29.0208	3.69543	0.67298
+W	m	2	allMk=24492	ratioMed=2.32725	ratioP90=49.1607	ratioP99=49.1608	gt2=13185	gt10=4693	stapleMk=1540	stapleGt10=141	stapleDead=159	stapleDeadGt10=94	breadMk=308	breadGt10=106	breadDead=81	breadDeadDemandShare=0.0121119	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=179045	regions=308	advZeroRegions=82	advZeroPopShare=0.0557554	breadDeadAdvZero=81	stapleDeadAdvZero=136
+P	m	3	ジャマイカ	小麦粉	recipe=	cap=0.0909827	out=0	desired=0.0909827	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.285711:d22.2477:q23.5941:i0:s18.4506,労働力:0.5:p0.138883:d0:q6.21612:i0:s6.21612,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	3	ジャマイカ	パン	recipe=	cap=4.94587	out=0	desired=4.94587	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p4.9255:d6.42935:q0:i0:s0,労働力:0.5:p0.138883:d0:q6.21612:i0:s6.21612,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	3	ジャマイカ	パン	39.4364	0.802192	49.1608	22.458	0	0	0	0	21.9699	0.67298
+J	m	3	ジャマイカ	小麦粉	4.9255	0.582801	8.45142	6.42935	0	0	0	0	6.65558	0.67298
+J	m	3	ジャマイカ	麦	0.285711	0.363409	0.786197	22.2477	23.5941	0	0	18.4506	18.2266	0.67298
+J	m	3	ジャマイカ	米	0.315548	0.363409	0.8683	19.3528	20.3776	0	17.749	66.6085	18.9365	0.67298
+J	m	3	ジャマイカ	ジャガイモ	0.237795	0.363409	0.654345	5.80585	8.05445	0	0	14.0751	5.68094	0.67298
+J	m	3	ジャマイカ	トウモロコシ	0.187592	0.363409	0.516201	3.87056	7.50657	0	0	30.9156	3.7873	0.67298
+W	m	3	allMk=24457	ratioMed=2.3492	ratioP90=49.1607	ratioP99=49.1608	gt2=13211	gt10=4635	stapleMk=1540	stapleGt10=141	stapleDead=164	stapleDeadGt10=97	breadMk=308	breadGt10=108	breadDead=82	breadDeadDemandShare=0.0122502	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=176105	regions=308	advZeroRegions=82	advZeroPopShare=0.0561456	breadDeadAdvZero=81	stapleDeadAdvZero=128
+P	m	4	ジャマイカ	小麦粉	recipe=	cap=0.1989	out=0	desired=0.1989	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.297756:d25.5076:q24.0992:i0:s15.9352,労働力:0.5:p0.123148:d0:q6.01562:i0:s6.01562,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	4	ジャマイカ	パン	recipe=	cap=4.27687	out=0	desired=3.2012	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.2507:d6.00766:q0:i0:s0,労働力:0.5:p0.123148:d0:q6.01562:i0:s6.01562,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	4	ジャマイカ	パン	40.3729	0.821242	49.1607	22.8234	0	0	0	0	22.458	0.688962
+J	m	4	ジャマイカ	小麦粉	29.2507	0.596641	49.0256	6.00766	0	0	0	0	6.42935	0.688962
+J	m	4	ジャマイカ	麦	0.297756	0.372039	0.800335	25.5076	24.0992	0	0	15.9352	22.2477	0.688962
+J	m	4	ジャマイカ	米	0.33835	0.372039	0.909446	19.5068	25.1803	0	8.1295	60.156	19.3528	0.688962
+J	m	4	ジャマイカ	ジャガイモ	0.233665	0.372039	0.628065	5.90183	6.84628	0	0	12.2046	5.80585	0.688962
+J	m	4	ジャマイカ	トウモロコシ	0.174469	0.372039	0.468954	3.93456	6.38059	0	0	31.5067	3.87056	0.688962
+W	m	4	allMk=24557	ratioMed=2.3461	ratioP90=49.1607	ratioP99=49.1608	gt2=13254	gt10=4764	stapleMk=1540	stapleGt10=140	stapleDead=153	stapleDeadGt10=102	breadMk=308	breadGt10=107	breadDead=81	breadDeadDemandShare=0.0121601	breadExcessStock=0	breadSurplusRegions=1	breadDemandAll=176815	regions=308	advZeroRegions=82	advZeroPopShare=0.0562895	breadDeadAdvZero=80	stapleDeadAdvZero=126
+P	m	5	ジャマイカ	小麦粉	recipe=	cap=0.297562	out=0	desired=0.297562	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.314906:d27.579:q26.7631:i0:s14.1632,労働力:0.5:p0.109196:d0:q5.76234:i0:s5.76234,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	5	ジャマイカ	パン	recipe=	cap=4.03118	out=0	desired=2.9896	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.3313:d5.5712:q0:i0:s0,労働力:0.5:p0.109196:d0:q5.76234:i0:s5.76234,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	5	ジャマイカ	パン	40.3729	0.821242	49.1608	23.115	0	0	0	0	22.8234	0.688962
+J	m	5	ジャマイカ	小麦粉	29.3313	0.596641	49.1608	5.5712	0	0	0	0	6.00766	0.688962
+J	m	5	ジャマイカ	麦	0.314906	0.372039	0.846433	27.579	26.7631	0	0	14.1632	25.5076	0.688962
+J	m	5	ジャマイカ	米	0.333535	0.372039	0.896505	19.7678	29.6793	0	0	66.4581	19.5068	0.688962
+J	m	5	ジャマイカ	ジャガイモ	0.23861	0.372039	0.641356	5.97828	5.81934	0	0	9.6047	5.90183	0.688962
+J	m	5	ジャマイカ	トウモロコシ	0.169648	0.372039	0.455995	3.98552	5.4235	0	0	31.0542	3.93456	0.688962
+W	m	5	allMk=24582	ratioMed=2.36923	ratioP90=49.1607	ratioP99=49.1608	gt2=13346	gt10=4821	stapleMk=1539	stapleGt10=137	stapleDead=142	stapleDeadGt10=95	breadMk=307	breadGt10=108	breadDead=80	breadDeadDemandShare=0.0123534	breadExcessStock=0	breadSurplusRegions=1	breadDemandAll=175386	regions=308	advZeroRegions=82	advZeroPopShare=0.0562798	breadDeadAdvZero=79	stapleDeadAdvZero=121
+P	m	6	ジャマイカ	小麦粉	recipe=	cap=0.380643	out=0	desired=0.380643	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.332655:d27.7734:q32.0428:i0:s17.5828,労働力:0.5:p0.0968251:d0:q5.47358:i0:s5.47358,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	6	ジャマイカ	パン	recipe=	cap=3.82647	out=0	desired=2.83999	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.3313:d5.19259:q0:i0:s0,労働力:0.5:p0.0968251:d0:q5.47358:i0:s5.47358,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	6	ジャマイカ	パン	40.3729	0.821242	49.1608	23.4287	0	0	0	0	23.115	0.688962
+J	m	6	ジャマイカ	小麦粉	29.3313	0.596641	49.1608	5.19259	0	0	0	0	5.5712	0.688962
+J	m	6	ジャマイカ	麦	0.332655	0.372039	0.894139	27.7734	32.0428	0	0	17.5828	27.579	0.688962
+J	m	6	ジャマイカ	米	0.30331	0.372039	0.815263	20.2008	31.2722	0	0	73.542	19.7678	0.688962
+J	m	6	ジャマイカ	ジャガイモ	0.251243	0.372039	0.675314	6.06025	5.15968	0	0	6.78319	5.97828	0.688962
+J	m	6	ジャマイカ	トウモロコシ	0.171263	0.372039	0.460336	4.04017	4.60998	0	0	29.7608	3.98552	0.688962
+W	m	6	allMk=24661	ratioMed=2.35432	ratioP90=49.1607	ratioP99=49.1608	gt2=13421	gt10=4773	stapleMk=1539	stapleGt10=131	stapleDead=150	stapleDeadGt10=96	breadMk=307	breadGt10=108	breadDead=80	breadDeadDemandShare=0.0125824	breadExcessStock=0	breadSurplusRegions=4	breadDemandAll=174180	regions=308	advZeroRegions=81	advZeroPopShare=0.0558243	breadDeadAdvZero=79	stapleDeadAdvZero=115
+P	m	7	ジャマイカ	小麦粉	recipe=	cap=0.448055	out=0	desired=0.448055	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.338477:d26.7138:q38.5175:i0:s28.3315,労働力:0.5:p0.0858555:d0:q5.15683:i0:s5.15683,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	7	ジャマイカ	パン	recipe=	cap=3.62666	out=0	desired=2.69416	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.839:d4.85052:q0:i0:s0,労働力:0.5:p0.0858555:d0:q5.15683:i0:s5.15683,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	7	ジャマイカ	パン	41.0717	0.835458	49.1607	23.6053	0	0	0	0	23.4287	0.700888
+J	m	7	ジャマイカ	小麦粉	29.839	0.606969	49.1607	4.85052	0	0	0	0	5.19259	0.700888
+J	m	7	ジャマイカ	麦	0.338477	0.378479	0.894309	26.7138	38.5175	0	0	28.3315	27.7734	0.700888
+J	m	7	ジャマイカ	米	0.278654	0.378479	0.736247	20.3579	30.4879	0	0	79.2594	20.2008	0.700888
+J	m	7	ジャマイカ	ジャガイモ	0.267191	0.378479	0.705959	6.10738	4.88549	0	0	4.20466	6.06025	0.700888
+J	m	7	ジャマイカ	トウモロコシ	0.17865	0.378479	0.472021	4.07159	3.91848	0	0	27.822	4.04017	0.700888
+W	m	7	allMk=24633	ratioMed=2.36624	ratioP90=49.1607	ratioP99=49.1608	gt2=13476	gt10=4926	stapleMk=1539	stapleGt10=143	stapleDead=149	stapleDeadGt10=99	breadMk=307	breadGt10=109	breadDead=81	breadDeadDemandShare=0.0127583	breadExcessStock=0	breadSurplusRegions=5	breadDemandAll=174004	regions=308	advZeroRegions=82	advZeroPopShare=0.0564212	breadDeadAdvZero=79	stapleDeadAdvZero=107
+P	m	8	ジャマイカ	小麦粉	recipe=	cap=0.508735	out=0	desired=0.508735	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.324118:d25.4596:q43.3492:i0:s44.5213,労働力:0.5:p0.0761287:d0:q4.83049:i0:s4.83049,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	8	ジャマイカ	パン	recipe=	cap=3.50241	out=0	desired=2.60342	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.839:d4.53261:q0:i0:s0,労働力:0.5:p0.0761287:d0:q4.83049:i0:s4.83049,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	8	ジャマイカ	パン	41.0717	0.835458	49.1608	23.6874	0	0	0	0	23.6053	0.700888
+J	m	8	ジャマイカ	小麦粉	29.839	0.606969	49.1608	4.53261	0	0	0	0	4.85052	0.700888
+J	m	8	ジャマイカ	麦	0.324118	0.378479	0.85637	25.4596	43.3492	0	0	44.5213	26.7138	0.700888
+J	m	8	ジャマイカ	米	0.260287	0.378479	0.687718	20.4344	28.1333	0	0	82.2027	20.3579	0.700888
+J	m	8	ジャマイカ	ジャガイモ	0.287289	0.378479	0.75906	6.13031	5.06994	0	0	2.30336	6.10738	0.700888
+J	m	8	ジャマイカ	トウモロコシ	0.189367	0.378479	0.500336	4.08687	3.33071	0	0	25.3966	4.07159	0.700888
+W	m	8	allMk=24644	ratioMed=2.33382	ratioP90=49.1607	ratioP99=49.1608	gt2=13416	gt10=4906	stapleMk=1539	stapleGt10=142	stapleDead=145	stapleDeadGt10=96	breadMk=307	breadGt10=109	breadDead=80	breadDeadDemandShare=0.0127218	breadExcessStock=0	breadSurplusRegions=5	breadDemandAll=176323	regions=308	advZeroRegions=83	advZeroPopShare=0.0562834	breadDeadAdvZero=79	stapleDeadAdvZero=104
+P	m	9	ジャマイカ	小麦粉	recipe=	cap=0.552628	out=0	desired=0.552628	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.297962:d24.7013:q44.49:i0:s61.6387,労働力:0.5:p0.0675039:d0:q4.50247:i0:s4.50247,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	9	ジャマイカ	パン	recipe=	cap=3.36247	out=0	desired=2.50073	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p29.839:d4.2273:q0:i0:s0,労働力:0.5:p0.0675039:d0:q4.50247:i0:s4.50247,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	9	ジャマイカ	パン	41.0717	0.835458	49.1608	23.7038	0	0	0	0	23.6874	0.700888
+J	m	9	ジャマイカ	小麦粉	29.839	0.606969	49.1608	4.2273	0	0	0	0	4.53261	0.700888
+J	m	9	ジャマイカ	麦	0.297962	0.378479	0.787261	24.7013	44.49	0	0	61.6387	25.4596	0.700888
+J	m	9	ジャマイカ	米	0.248923	0.378479	0.657693	20.4551	24.9951	0	0	81.8106	20.4344	0.700888
+J	m	9	ジャマイカ	ジャガイモ	0.312498	0.378479	0.825669	6.13652	5.80191	0	0	1.50808	6.13031	0.700888
+J	m	9	ジャマイカ	トウモロコシ	0.198983	0.378479	0.525743	4.09101	2.8311	0	0	22.6129	4.08687	0.700888
+W	m	9	allMk=24608	ratioMed=2.33225	ratioP90=49.1607	ratioP99=49.1608	gt2=13404	gt10=4742	stapleMk=1539	stapleGt10=138	stapleDead=132	stapleDeadGt10=95	breadMk=307	breadGt10=108	breadDead=81	breadDeadDemandShare=0.0129865	breadExcessStock=0	breadSurplusRegions=4	breadDemandAll=175562	regions=308	advZeroRegions=82	advZeroPopShare=0.056022	breadDeadAdvZero=79	stapleDeadAdvZero=106
+P	m	10	ジャマイカ	小麦粉	recipe=	cap=0.576651	out=0	desired=0.576651	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.27204:d24.6926:q42.0635:i0:s37.5982,労働力:0.5:p0.0598561:d0:q4.17392:i0:s4.17392,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	10	ジャマイカ	パン	recipe=	cap=3.1878	out=0	desired=2.37244	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p30.3981:d3.95422:q0:i0:s0,労働力:0.5:p0.0598561:d0:q4.17392:i0:s4.17392,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	10	ジャマイカ	パン	41.8412	0.851111	49.1607	23.8277	0	0	0	0	23.7038	0.714019
+J	m	10	ジャマイカ	小麦粉	30.3981	0.618341	49.1607	3.95422	0	0	0	0	4.2273	0.714019
+J	m	10	ジャマイカ	麦	0.27204	0.38557	0.705552	24.6926	42.0635	0	37.713	37.5982	24.7013	0.714019
+J	m	10	ジャマイカ	米	0.24527	0.38557	0.636122	20.5671	21.9183	0	0	78.2531	20.4551	0.714019
+J	m	10	ジャマイカ	ジャガイモ	0.340771	0.38557	0.88381	6.82906	7.0855	0	0	1.4629	6.13652	0.714019
+J	m	10	ジャマイカ	トウモロコシ	0.208505	0.38557	0.540769	4.11343	2.40644	0	0	19.5491	4.09101	0.714019
+W	m	10	allMk=24800	ratioMed=2.35852	ratioP90=49.1607	ratioP99=49.1608	gt2=13583	gt10=4928	stapleMk=1540	stapleGt10=143	stapleDead=142	stapleDeadGt10=96	breadMk=308	breadGt10=110	breadDead=82	breadDeadDemandShare=0.0133522	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=173236	regions=308	advZeroRegions=81	advZeroPopShare=0.0557836	breadDeadAdvZero=80	stapleDeadAdvZero=109
+P	m	11	ジャマイカ	小麦粉	recipe=	cap=0.599346	out=0	desired=0.599346	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.300029:d23.8839:q44.1069:i0:s55.5654,労働力:0.5:p0.0530749:d0:q3.85538:i0:s3.85538,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	11	ジャマイカ	パン	recipe=	cap=3.08384	out=0	desired=2.29601	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p30.3981:d3.70517:q0:i0:s0,労働力:0.5:p0.0530749:d0:q3.85538:i0:s3.85538,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	11	ジャマイカ	パン	41.8413	0.851111	49.1608	24.0777	0	0	0	0	23.8277	0.714019
+J	m	11	ジャマイカ	小麦粉	30.3981	0.618341	49.1608	3.70517	0	0	0	0	3.95422	0.714019
+J	m	11	ジャマイカ	麦	0.300029	0.38557	0.778143	23.8839	44.1069	0	0	55.5654	24.6926	0.714019
+J	m	11	ジャマイカ	米	0.248053	0.38557	0.643339	20.7864	19.6124	0	0	72.384	20.5671	0.714019
+J	m	11	ジャマイカ	ジャガイモ	0.365594	0.38557	0.94819	7.19265	8.76634	0	0	2.74401	6.82906	0.714019
+J	m	11	ジャマイカ	トウモロコシ	0.217534	0.38557	0.564187	4.15728	2.04547	0	0	16.2643	4.11343	0.714019
+W	m	11	allMk=24819	ratioMed=2.34117	ratioP90=49.1607	ratioP99=49.1608	gt2=13591	gt10=4983	stapleMk=1539	stapleGt10=137	stapleDead=122	stapleDeadGt10=80	breadMk=307	breadGt10=107	breadDead=65	breadDeadDemandShare=0.0122964	breadExcessStock=1.94511E-13	breadSurplusRegions=2	breadDemandAll=171525	regions=308	advZeroRegions=81	advZeroPopShare=0.0561161	breadDeadAdvZero=65	stapleDeadAdvZero=98
+P	m	12	ジャマイカ	小麦粉	recipe=	cap=0.610188	out=0	desired=0.610188	mc=0.06	scale=1.22077	built=0	inFill=0	matFill=1	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=麦:1:p0.273255:d23.9401:q41.901:i0:s27.0901,労働力:0.5:p0.0470619:d0:q3.54981:i0:s3.54981,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+P	m	12	ジャマイカ	パン	recipe=	cap=2.98056	out=0	desired=2.21992	mc=0.06	scale=2.05107	built=0	inFill=0	matFill=0	bankrupt=False	moth=0	labor=2	owner=3	rgo=False	buysLabor=True	inputs=小麦粉:1:p30.3981:d3.48162:q0:i0:s0,労働力:0.5:p0.0470619:d0:q3.54981:i0:s3.54981,高度労働力:0.02:p1.26797:d0:q0:i0:s0
+J	m	12	ジャマイカ	パン	41.8413	0.851111	49.1608	24.0825	0	0	0	0	24.0777	0.714019
+J	m	12	ジャマイカ	小麦粉	30.3981	0.618341	49.1608	3.48162	0	0	0	0	3.70517	0.714019
+J	m	12	ジャマイカ	麦	0.273255	0.38557	0.708704	23.9401	41.901	0	43.1023	27.0901	23.8839	0.714019
+J	m	12	ジャマイカ	米	0.253641	0.38557	0.657834	20.7975	18.1831	0	0	65.4265	20.7864	0.714019
+J	m	12	ジャマイカ	ジャガイモ	0.371412	0.38557	0.963279	6.21987	10.2138	0	0	6.18918	7.19265	0.714019
+J	m	12	ジャマイカ	トウモロコシ	0.22655	0.38557	0.587571	4.1595	1.73865	0	0	12.8676	4.15728	0.714019
+W	m	12	allMk=24791	ratioMed=2.32134	ratioP90=49.1607	ratioP99=49.1608	gt2=13572	gt10=4828	stapleMk=1539	stapleGt10=138	stapleDead=131	stapleDeadGt10=93	breadMk=307	breadGt10=107	breadDead=79	breadDeadDemandShare=0.0137491	breadExcessStock=0	breadSurplusRegions=3	breadDemandAll=169696	regions=308	advZeroRegions=80	advZeroPopShare=0.0557852	breadDeadAdvZero=79	stapleDeadAdvZero=105

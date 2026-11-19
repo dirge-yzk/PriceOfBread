@@ -1,0 +1,22 @@
+K99	PriceOfBread.SimCore/Colonial.cs:41	条	if (c.ColonialUnrestHomeWeight > 1e-9)
+K99	PriceOfBread.SimCore/Colonial.cs:53	条	double homePressure = c.ColonialUnrestHomeWeight * (colMilSum / colPopSum) * Math.Min(1.0, colonies / Math.Max(1.0, c.ColoniesForFullColonial));
+K99b	PriceOfBread.SimCore/Colonial.cs:53	条	double homePressure = c.ColonialUnrestHomeWeight * (colMilSum / colPopSum) * Math.Min(1.0, colonies / Math.Max(1.0, c.ColoniesForFullColonial));
+K99b	PriceOfBread.SimCore/SelfPlay.cs:441		double colonyDefense = ColonyDefenseWeight * w.Coef.ColoniesForFullColonial
+K99b	PriceOfBread.SimCore/SelfPlay.cs:442	条	* Math.Min(1.0, colonyUnits / Math.Max(1.0, w.Coef.ColoniesForFullColonial));
+K99b	PriceOfBread.SimCore/Simulation.cs:2548	条	double byColonies = PoliticalQuantities.Clamp01(p.Colonies / World.Coef.ColoniesForFullColonial);
+K100a	PriceOfBread.SimCore/Colonial.cs:13	条	if (colonies <= 0 || r.ColonialResources is null) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
+K100a	PriceOfBread.SimCore/EconomyStep.cs:823		if (region.ColonialResources is null)
+K100a	PriceOfBread.SimCore/Model.cs:695	条	public int[]? ColonialResources;
+K100a	PriceOfBread.SimCore/Simulation.cs:839		ColonialResources = [],
+K100a	PriceOfBread.SimCore/Simulation.cs:1372		ColonialResources = [],
+K100a	PriceOfBread.SimCore/Territory.cs:160		r.ColonialResources = [];
+K100a	PriceOfBread.SimCore/World.cs:1121		if (old.ColonialResources is not null) old.ColonialResources = [];
+K100b	PriceOfBread.SimCore/EconomyStep.cs:830	条	double target = Math.Max(m.LastDemand, m.TargetStock) * region.ColonialAccess;
+K100b	PriceOfBread.SimCore/Model.cs:692		public double ColonialAccess = 1.0;
+K100b	PriceOfBread.SimCore/Simulation.cs:1725		double colonialAccess = ColonialAccess();
+K100b	PriceOfBread.SimCore/Simulation.cs:1767		r.ColonialAccess = colonialAccess;
+K100b	PriceOfBread.SimCore/Simulation.cs:2543		private double ColonialAccess()
+K101	PriceOfBread.SimCore/Diplomacy.cs:167		public double TechGate;
+K101	PriceOfBread.SimCore/Diplomacy.cs:183		public double TechGate;
+K101	PriceOfBread.SimCore/MultiNationSim.cs:119		BuildCost = cp.BuildCost, TechGate = cp.TechGate, ServesBasins = [.. cp.ServesBasins],
+K101	PriceOfBread.SimCore/WorldData.cs:24	条	internal sealed record ChokepointDto(string Id, string Name, string Host, bool IsOpen, bool IsCanal, double BuildCost, double TechGate, Basin[] ServesBasins, string? ExitOfBasin = null, string? Requir

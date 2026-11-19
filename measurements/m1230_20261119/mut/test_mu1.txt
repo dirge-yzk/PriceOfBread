@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1a_表のfは最大の国の外に住む割合で文化ごとに1つ 
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 11 s - PriceOfBread.Tests.dll (net10.0)

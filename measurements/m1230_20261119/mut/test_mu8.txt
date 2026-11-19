@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TL1_攻め手の厭戦が閾値を超えるとAIもプレイヤーも宣戦しない 
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 7 s - PriceOfBread.Tests.dll (net10.0)

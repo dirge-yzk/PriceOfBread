@@ -1,0 +1,94 @@
+// (1229) c124pf 段 0 のプローブ（使い捨て・(1224) の probe の型）。SimCore の写しに値を読むだけの呼び口 ProbeDeal を 1 行足す（probe_pf_hook.py）。
+//  J：助走の四半期ごとと月ごとのジャマイカのコーヒーの市場（値段÷rp・在庫・目標・輸出・需要・産出）
+//  X：ジャマイカのコーヒーの成約（月・買い手の州と国・量・着値 unitA・運賃の率 frA・買い手の費用 costA・売り手の値段 sA）
+//  D：月 0 と月末の世界の死んだ市場（作り手のある市場・値段÷rp＜0.02・需要と産出＜1e-9）の数・在庫あり・輸出あり
+// 引数：<種の始め> <種の終わり> <月数> <出力の接頭辞>
+using System.Globalization;
+using PriceOfBread.SimCore;
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture; CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong s0 = ulong.Parse(args[0]), s1 = ulong.Parse(args[1]); int months = int.Parse(args[2]); string pre = args[3];
+string ov = Coefficients.OverrideSummary();
+using var oJ = new StreamWriter(pre + "_J.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oX = new StreamWriter(pre + "_X.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oD = new StreamWriter(pre + "_D.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oG = new StreamWriter(pre + "_G.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oC = new StreamWriter(pre + "_C.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+using var oR = new StreamWriter(pre + "_R.tsv", false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+oR.WriteLine("seed\tmonth\tnation\tregion\ttier\tnWith\tnDead\tpopSize\tpopSavings\tpriceLevel");
+foreach (var o in new[] { oJ, oX, oD, oG, oC, oR }) o.WriteLine($"# c124pf probe override=[{ov}] months={months} seeds={s0}..{s1}");
+oJ.WriteLine("seed\tphase\tt\tpx\trp\tpxRp\tstock\ttarget\tlastExport\tprevExport\tlastDemand\tlastProduced\tlastImport");
+oX.WriteLine("seed\tphase\tt\tbuyerRegion\tbuyerNation\tqty\tunitA\tbuyerLocalPrice\tfrA\tcostA\tsA\tsellerPx");
+oD.WriteLine("seed\tmonth\tnWith\tnFloor\tnDead\tnDeadStock\tnDeadAbove\tnDeadExported\tstockDead");
+oG.WriteLine("seed\tmonth\tgood\tnDead\tnFloor\tnWith");
+oC.WriteLine("seed\tmonth\tcoffeeDemand\tcoffeeDemandRegions\tcoffeeProduced\tcoffeeExport\tcoffeeStock");
+int coffee = Array.FindIndex(Catalog.Goods, g => g.Name == "コーヒー");
+string phase = "warm"; int tt = 0; ulong seedNow = 0;
+Region? jam = null;
+InternationalMarket.ProbeDeal = (seller, buyer, g, q, unitA, frA, costA, sA) =>
+{
+    if (g != coffee || !ReferenceEquals(seller, jam)) return;
+    string bn = "?";
+    lock (oX) oX.WriteLine(string.Join('\t', seedNow, phase, tt, buyer.Name, bn, G(q), G(unitA), G(buyer.Markets[g].Price), G(frA), G(costA), G(sA), G(seller.Markets[g].Price)));
+};
+int ng = Catalog.Goods.Length;
+for (ulong seed = s0; seed <= s1; seed++)
+{
+    seedNow = seed;
+    var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+    jam = null;
+    foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.Name == "ジャマイカ") jam = r;
+    void DumpJ(string ph, int t)
+    {
+        if (jam is null) return;
+        var m = jam.Markets[coffee]; double rp = Math.Max(Catalog.RefPrices[coffee] * jam.PriceLevel, 1e-12);
+        oJ.WriteLine(string.Join('\t', seed, ph, t, G(m.Price), G(rp), G(m.Price / rp), G(m.Stock), G(m.TargetStock), G(m.LastExport), G(m.PrevExport), G(m.LastDemand), G(m.LastProduced), G(m.LastImport)));
+        oJ.Flush();
+    }
+    void DumpD(int month)
+    {
+        int nWith = 0, nFloor = 0, nDead = 0, nDeadS = 0, nAbove = 0, nExp = 0; double st = 0;
+        var deadG = new int[ng]; var floorG = new int[ng]; var withG = new int[ng];
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                var has = new bool[ng]; foreach (var p in r.Producers) if (p.GoodId >= 0 && p.GoodId < ng) has[p.GoodId] = true;
+                int rw = 0, rd = 0;
+                for (int g = 0; g < ng; g++) { if (!has[g] || Catalog.Goods[g].Tier == GoodTier.Service) continue; var m2 = r.Markets[g]; rw++; if (m2.Price / Math.Max(Catalog.RefPrices[g] * r.PriceLevel, 1e-12) < 0.02 && m2.LastDemand < 1e-9 && m2.LastProduced < 1e-9) rd++; }
+                if (rw > 0 && rd > 0) { double ps = 0, sv = 0; foreach (var pp in r.Pops) { ps += pp.Size; sv += pp.Savings.Value; } oR.WriteLine(string.Join('\t', seed, month, n.World.SelfPower?.BaseName ?? "?", r.Name, r.Tier, rw, rd, G(ps), G(sv), G(r.PriceLevel))); }
+                for (int g = 0; g < ng; g++)
+                {
+                    if (!has[g] || Catalog.Goods[g].Tier == GoodTier.Service) continue;
+                    var mk = r.Markets[g]; double rp = Math.Max(Catalog.RefPrices[g] * r.PriceLevel, 1e-12);
+                    nWith++; withG[g]++;
+                    if (!(mk.Price / rp < 0.02)) continue;
+                    nFloor++; floorG[g]++;
+                    if (!(mk.LastDemand < 1e-9 && mk.LastProduced < 1e-9)) continue;
+                    nDead++; st += mk.Stock; deadG[g]++;
+                    if (mk.Stock > 1e-9) nDeadS++;
+                    if (mk.Stock - mk.TargetStock > 1e-12) nAbove++;
+                    if (mk.LastExport > 1e-12 || mk.PrevExport > 1e-12) nExp++;
+                }
+            }
+        oD.WriteLine(string.Join('\t', seed, month, nWith, nFloor, nDead, nDeadS, nAbove, nExp, G(st)));
+        oD.Flush();
+        for (int g = 0; g < ng; g++) if (deadG[g] > 0 || floorG[g] > 0) oG.WriteLine(string.Join('\t', seed, month, Catalog.Goods[g].Name, deadG[g], floorG[g], withG[g]));
+        double cd = 0, cp = 0, ce = 0, cs = 0; int cr = 0;
+        foreach (var n2 in sim.Nations) foreach (var r in n2.World.Regions) { var mk = r.Markets[coffee]; cd += mk.LastDemand; cp += mk.LastProduced; ce += mk.LastExport; cs += mk.Stock; if (mk.LastDemand > 1e-9) cr++; }
+        oC.WriteLine(string.Join('\t', seed, month, G(cd), cr, G(cp), G(ce), G(cs)));
+        oG.Flush(); oC.Flush();
+    }
+    int q = 0;
+    phase = "warm";
+    sim.StartWarmup(() => { q++; tt = q; DumpJ("warm", q); });
+    phase = "m"; tt = 0; DumpJ("m", 0); DumpD(0);
+    for (int mo = 1; mo <= months; mo++)
+    {
+        tt = mo;
+        for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay();
+        DumpJ("m", mo); DumpD(mo);
+    }
+    oX.Flush();
+    Console.WriteLine($"seed {seed} done jam={(jam is null ? "none" : "ok")}");
+}
+Console.WriteLine("PROBEDONE");
+static string G(double x) => x.ToString("G9", CultureInfo.InvariantCulture);

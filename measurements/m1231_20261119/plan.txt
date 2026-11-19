@@ -1,0 +1,11 @@
+(1231) 読む線 c124rd 作業計画（2026-11-19・担当 Opus 5.5・コミットしない・腕 0）
+作業の場所：D:/PoB_work/r1231_work（台本 scripts/・出力 out_*）。worktree と枝は作らない（main の作業ツリーは読むだけ・台本は写しで回す）。
+読む生（読むだけ）：
+ Q1 資本家の消失：
+  - 腕 D:/PoB_work/keep_1226_rej/ivB（c123iv 旗 1・計器つき 10 種）
+  - 基線 D:/PoB_work/keep_1226/base_ins（m1226）※ ivB の親の木の生 keep_1219 は消えている＝k3 の差が混ざる。chain.txt の基準の列（keep_1219）と m1226 で取り直した列を並べて混ざりの大きさを書く。
+  - 表：consf（home・flowEarnedLast／flowConsumptionPaidLast／flowBudget＝州×月の正の部分／flowPlanned／paid）・cons（州×四半期）・class・spend・flow・railspend
+  - 材料：measurements/m1223_20261119/armB_read/・merge_note_1226.txt・result.txt・scripts/instruments/c123iv/chain.py・設計書 §12-2〜12-7
+ Q2 台帳 S26：measurements/m1148_20261115/ledger_S26_2026-11-15.tsv/.md・measurements/m1224_20261119/q/・scripts/instruments/r1224/（写しで回す）・docs/機能の台帳.md §4-6
+ Q3 ジャマイカのパン：keep_1226/base_ins の pxgoods・cearn・goods ほか（開幕の 2 四半期）・r1224 のプローブの写し（D:/PoB_work/r1231_work/probe・--artifacts-path D:/PoB_work/r1231_work/art）
+追記（終わり）：腕 0・ビルドはプローブ 1 本（--artifacts-path D:/PoB_work/r1231_work/art）を 5 回（失敗 1・欄の足し 3）。出力は q1_result.txt・q1_prereg_draft.txt・q/ledger_S26_2026-11-19b.{tsv,md}・q/side_S26_2026-11-19b.tsv・q/dl_table_S26_1231.tsv・q3_result.txt。

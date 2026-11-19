@@ -1,0 +1,7 @@
+# (1230) suite 木=/d/PoB_work/wt_c124nr HEAD=d14ac4ad6 2026-11-19 10:58:44
+list-tests Tests(Category!=FullLength)=2700 Tests.Ui=234 和=2934 FullLength=3
+㉘ 走査の番人＋T1・T2 rc=1 失敗!   -失敗:     3、合格:   150、スキップ:     0、合計:   153、期間: 19 m 53 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1743) [3 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1836) [< 1 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationInstrumentTests.TI_旗0の盤面で旧と新の判定を並べて書く [270 ms]
+STOP 走査の番人が赤

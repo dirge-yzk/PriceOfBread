@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T3_実の経路_四半期の末に表を作り締めの後に消す 
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
