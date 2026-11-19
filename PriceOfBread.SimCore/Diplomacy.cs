@@ -164,7 +164,6 @@ public sealed class Chokepoint
     public bool IsOpen;              // 開通済みか
     public double BuildProgress;     // 運河の建設進捗（資本家の投資の累計）
     public double BuildCost;         // 運河の建設総額（IsCanal のみ。名前ディスパッチを廃しデータ化）
-    public double TechGate;          // 運河の着工に要る技術水準（IsCanal のみ）
     public Basin[] ServesBasins = [];  // この咽喉を通って交易する海盆。〔履歴 Diplomacy.cs#33〕
     public Power? Owner;             // 現扼者（host から毎四半期解決）
     public int ExitOfBasin = -1;     // この咽喉が唯一の出口である閉鎖海盆（Basin値・-1=該当なし）。13l地政学＝RouteTension が読む。⚠intで持つ＝SaveGameのプリミティブswitchに確実に載せる（sbyte事故の教訓）

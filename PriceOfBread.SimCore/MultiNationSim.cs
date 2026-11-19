@@ -116,7 +116,7 @@ public sealed class MultiNationSim
             Diplomacy.Chokepoints.Add(new Chokepoint
             {
                 Id = cp.Id, Name = cp.Name, Host = cp.Host, IsOpen = cp.IsOpen, IsCanal = cp.IsCanal,
-                BuildCost = cp.BuildCost, TechGate = cp.TechGate, ServesBasins = [.. cp.ServesBasins],
+                BuildCost = cp.BuildCost, ServesBasins = [.. cp.ServesBasins],
                 ExitOfBasin = cp.ExitOfBasin is { } eb && System.Enum.TryParse<Basin>(eb, out var ebv) ? (int)ebv : -1,   // 13l地政学：閉鎖海盆の出口（データ側が真実源・不正名は-1＝該当なしへ倒す）
             });
         }
