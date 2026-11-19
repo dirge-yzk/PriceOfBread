@@ -247,6 +247,7 @@ public class DormantIdentityTests
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
+        "ColonialUnrestHomeWeight",   // (1243) c126k99：K99 反帝世論を 0.006→0 で閉じた（腕 B の木・門が通れば塊・係数・探針を物理で消し RetiredFields へ移す）
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
