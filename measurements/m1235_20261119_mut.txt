@@ -1,0 +1,6 @@
+mu1:   失敗 PriceOfBread.Tests.RkInstrumentTests.R1_e_n_の式の手計算と否定形;  失敗 PriceOfBread.Tests.RkInstrumentTests.R2_国の表の末尾の5列と各行のe_nが同じ�; | 失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6�
+mu2:   失敗 PriceOfBread.Tests.RkInstrumentTests.R3_届きρの単調と手計算; | 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6�
+mu3:   失敗 PriceOfBread.Tests.RkInstrumentTests.R4_計器が切れている時は仕事の件数が増; | 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6�
+mu4:   失敗 PriceOfBread.Tests.RkInstrumentTests.R5_paysale2は挙げない国なら年末だけ_国の; | 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6�
+mu5:   失敗 PriceOfBread.Tests.RkInstrumentTests.R6_講和の押しの写しが勝者と敗者の向き; | 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6�
+done
