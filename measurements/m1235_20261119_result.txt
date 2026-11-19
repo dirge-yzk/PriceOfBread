@@ -1,0 +1,12 @@
+(1235) c125rk 結果（署名 Claude Sonnet 5.5・木 HEAD fb44517e5）
+判定: 恒等（ident 段 2・測った種で一致）＝ measurements/m1235_20261119_ident_check.txt
+フルスイート（HEAD の木・Release）
+tests.txt:失敗!   -失敗:     2、合格:  2698、スキップ:     1、合計:  2701、期間: 19 m 41 s - PriceOfBread.Tests.dll (net10.0)
+ui.txt:成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 32 s - PriceOfBread.Tests.Ui.dll (net10.0)
+full.txt:成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 58 s - PriceOfBread.Tests.dll (net10.0)
+赤（Tests）：
+  失敗 PriceOfBread.Tests.OpeningBakeTests.同梱の表は今の世界と鍵が全て一致し_旗1で助走へ入れて貯蓄が旗0と違う [316 
+  失敗 PriceOfBread.Tests.OpeningBakeTests.表の入力のハッシュが今の世界と違えば検証が赤_鍵が同じでも値が古い表を�
+＝OpeningBakeTests 2 本は ★(764)（world.json の techGate 8 件を消した入力のハッシュの写し）＝合流の木で焼き直す。機構の赤は 0。
+段 0 の実測（K100 を入れた木）：Tests 2695 中 3 赤＝OpeningBake 2＋ServiceEconomyTests 1（K100a・K100b を外した理由）
+合計 2701＋234＝2935（ident の --list-tests 2935 と一致）・FullLength 3 緑。
