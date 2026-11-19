@@ -1,0 +1,11 @@
+// (1242) c126al ㉜ の 5.：InstrumentsTests.接触の内訳 の盤面の種の選び直しのための使い捨てのプローブ（試験の盤面をそのまま写す・旗 1＝既定）。
+using PriceOfBread.SimCore;
+ulong seed = ulong.Parse(args[0]); string dir = args[1]; System.IO.Directory.CreateDirectory(dir);
+Instruments.Configure(dir, "*");
+var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent(), new Coefficients { DiscoveryCarrierDownstream = 0 });
+Instruments.Phase(sim, seed, "open"); sim.StartWarmup(); Instruments.Phase(sim, seed, "warm");
+for (int q = 0; q < 450; q++) { sim.StepQuarter(); Instruments.Quarter(sim, seed, q); }
+Instruments.Close(sim); Instruments.Configure(null, null);
+var f = System.IO.Path.Combine(dir, "disccontact_s" + seed + ".tsv");
+int n = System.IO.File.Exists(f) ? System.IO.File.ReadAllLines(f).Length - 1 : -1;
+Console.WriteLine($"seed {seed} rows {n}");
