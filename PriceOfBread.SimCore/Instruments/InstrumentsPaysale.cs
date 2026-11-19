@@ -29,7 +29,7 @@ public static partial class Instruments
     /// 記帳の前の欄の値。欄の後の値は計器が自分で読む（実際に動いた量）。</summary>
     internal static void PaysaleAlloc(World w, Producer pr, double amt, double wages, double revBefore, double costBefore, bool minted, bool outside)
     {
-        if (Live(w) is null) return;
+        if (w.WarmupFrozen) return;   // 月の決算の外（輸出の清算・日の段）でも数える＝Live（決算の間だけ立つ）は使わない
         int g = pr.GoodId;
         if (g < 0 || g >= Catalog.Goods.Length) return;
         double dRev = pr.LastRevenue - revBefore, dCost = pr.LastCost - costBefore;
@@ -45,7 +45,7 @@ public static partial class Instruments
     /// <summary>受け口（Instruments.PreEconomy＝州の清算の上書きの前・国の請求が読んだのと同じ欄）：旧の規則と新の規則の月の損益の符号を数え、生産者の和を 0 へ戻す。</summary>
     static void PaysaleMonth(World w, Region r)
     {
-        if (Live(w) is null) return;
+        if (w.WarmupFrozen) return;
         double[,]? q = null;
         foreach (var p in r.Producers)
         {
