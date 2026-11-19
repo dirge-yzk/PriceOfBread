@@ -24,6 +24,12 @@ internal static class StartWarmupShared
 
     /// <summary>★(388) 開幕の国庫と国債の規則（world.json の treasuryMonths／govDebtToGdpYear）を外し、絶対額（国庫 20,000・英仏蘭は国債 500,000）を置いた盤面
     /// ＝規則のない国の旧の経路（助走が国庫と国債を動かさない）を、何もしない機構にならない非零の値で見る。規則のある国の置き方は OpeningFiscalRuleTests が見る。</summary>
+    // ★(1234) c125ts：読むだけの試験が同じ盤面を作り直していた＝既定の助走・規則なしの助走・助走なしの 4 つを 1 回ずつ作って共有する（書き換える試験・進める試験は使わない）。
+    internal static readonly System.Lazy<MultiNationSim> WarmedDefault = new(() => { var s = Build(); s.StartWarmup(); return s; });
+    internal static readonly System.Lazy<MultiNationSim> BareDefault = new(() => Build());
+    internal static readonly System.Lazy<MultiNationSim> WarmedRuleless = new(() => { var s = BuildRuleless(); s.StartWarmup(); return s; });
+    internal static readonly System.Lazy<MultiNationSim> BareRuleless = new(() => BuildRuleless());
+
     internal static MultiNationSim BuildRuleless(ulong seed = 1789UL)
     {
         var cfgs = WorldData.Nations().Select(c =>
@@ -126,9 +132,8 @@ public class StartWarmupTests2
     public void 助走は国債を動かさず開幕の英の国債は年GDPの約1倍()
     {
         // ★(388) ①は規則のない盤面（旧の経路）で見る。規則のある既定の盤面では助走が歳入×月数と比×年GDP で置く（設計どおり）ので ② は既定の盤面で読む。
-        var bare = BuildRuleless();
-        var warmed = BuildRuleless();
-        warmed.StartWarmup();
+        var bare = BareRuleless.Value;
+        var warmed = WarmedRuleless.Value;
         static double Held(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings.Value; return h; }
         for (int i = 0; i < bare.Nations.Count; i++)
         {
@@ -138,8 +143,7 @@ public class StartWarmupTests2
             Assert.Equal(Held(a), Held(b), 6);
         }
         Assert.True(bare.Nations.Any(n => n.World.GovDebt.Value > 0), "前提が崩れた（動かさない主張が空洞＝国債が全て0）");
-        warmed = Build();
-        warmed.StartWarmup();
+        warmed = WarmedDefault.Value;
         var names = WorldData.Nations().Select(n => n.Name).ToList();
         double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         Assert.InRange(Ratio("イギリス"), 0.9, 1.4);
@@ -159,14 +163,12 @@ public class StartWarmupTests2
     public void 助走は国庫を動かさず開幕の国庫は年GDPの数パーセント()
     {
         // ★(388) ①は規則のない盤面（旧の経路）で見る。規則のある既定の盤面では助走の終わりに歳入×月数で置く（設計どおり）ので ② は既定の盤面で読む。
-        var bare = BuildRuleless();
-        var warmed = BuildRuleless();
-        warmed.StartWarmup();
+        var bare = BareRuleless.Value;
+        var warmed = WarmedRuleless.Value;
         for (int i = 0; i < bare.Nations.Count; i++)
             Assert.Equal(bare.Nations[i].World.Treasury.Value, warmed.Nations[i].World.Treasury.Value);
         Assert.True(bare.Nations.All(n => n.World.Treasury.Value > 0), "前提が崩れた（動かさない主張が空洞＝国庫が0）");
-        warmed = Build();
-        warmed.StartWarmup();
+        warmed = WarmedDefault.Value;
         var names = WorldData.Nations().Select(n => n.Name).ToList();
         double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         double R(string name) => Ratio(names.IndexOf(name));
@@ -201,7 +203,7 @@ public class StartWarmupTests3
     {
         var cfgs = WorldData.Nations();
         var names = cfgs.Select(n => n.Name).ToList();
-        var bare = Build();
+        var bare = BareDefault.Value;
         for (int i = 0; i < names.Count; i++)
         {
             var w = bare.Nations[i].World;
@@ -213,8 +215,7 @@ public class StartWarmupTests3
         Assert.Equal(0.0, B("イギリス").PollTax); Assert.Equal(0.0, B("清").PollTax); Assert.Equal(0.0, B("ロシア").LandTax);
         Assert.True(B("フランス").PollTax > 0 && B("フランス").LandTax > 0, "仏のタイユ・カピタシオンとヴァンティエームが無い");
 
-        var sim = Build();
-        sim.StartWarmup();
+        var sim = WarmedDefault.Value;
         double Rev(int i) { var w = sim.Nations[i].World; return w.LastRevenuePerMonth / w.NominalGdpPerMonth; }   // 月次÷月次＝年の比
         double Direct(int i)
         {
@@ -264,9 +265,8 @@ public class StartWarmupTests3
             v.Add(("年金", (long)w.Pension));
             return v;
         }
-        var sim = Build();
-        var before = sim.Nations.Select(n => Laws(n.World)).ToArray();
-        sim.StartWarmup();
+        var before = BareDefault.Value.Nations.Select(n => Laws(n.World)).ToArray();   // 助走の前＝同じ Build の助走なしの盤面（共有）
+        var sim = WarmedDefault.Value;
         for (int i = 0; i < sim.Nations.Count; i++)
         {
             var w = sim.Nations[i].World;
@@ -340,8 +340,7 @@ public class StartWarmupTests4
     public void 助走は二度目の呼び出しで何もしない()
     {
         // 入口が1本である以上、誤って2度呼ばれても盤面が二重に助走してはならない（ロード経路・診断からの再入）。
-        var once = Build();
-        once.StartWarmup();
+        var once = WarmedDefault.Value;
         var twice = Build();
         twice.StartWarmup();
         twice.StartWarmup();

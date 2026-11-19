@@ -44,4 +44,15 @@ public class HealthcareLiteracyGateTests
         var on = Board(0.9, 0.0, 0.3);
         Assert.Equal(0.15, on.Healthcare, 1e-12);   // max(0, 0.5×0.3)
     }
+
+    /// <summary>(1234) T4：扶養力の向き。同じ盤面で社会保障だけを 0 から 1 へ変えると、医療が上がり、扶養力（DiagCapacity）も上がる（HealthcareCapacityBonus が正）。
+    /// 識字・医者の役務は固定＝識字の錠の有無に関わらず、(1227) kb で消えた T1 の扶養力の向きの主張を別の形で持つ。突然変異 M4：HealthcareCapacityBonus＝0 で赤。</summary>
+    [Fact]
+    public void T4_社会保障だけを上げると医療と扶養力が上がる_扶養力の向き()
+    {
+        var lo = Board(0.9, 0.0, 0.3);
+        var hi = Board(0.9, 1.0, 0.3);
+        Assert.True(hi.Healthcare > lo.Healthcare + 0.1, $"社会保障 0→1 で医療が上がらない（{lo.Healthcare}→{hi.Healthcare}）");
+        Assert.True(hi.Capacity > lo.Capacity, $"医療が上がったのに扶養力が上がらない（{lo.Capacity}→{hi.Capacity}）");
+    }
 }

@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2e07f737-17f7-4da6-bfe4-aef318c3c482" name="dirge@DIRGE 2026-11-19 17:06:28" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-19T17:06:28.9866905+09:00" queuing="2026-11-19T17:06:28.9866910+09:00" start="2026-11-19T17:06:18.7918538+09:00" finish="2026-11-19T17:08:14.6755011+09:00" />
+  <TestSettings name="default" id="9a11f55e-2f05-422f-8c68-fff9bade86a6">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-19_17_06_28" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5657333c-e93a-4a1d-b9af-a27dc5e31743" testId="d6d80f3e-32ac-d238-7264-9cf90014648c" testName="PriceOfBread.Tests.StartWarmupTests3.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁" computerName="DIRGE" duration="00:00:16.8717107" startTime="2026-11-19T17:06:34.7997082+09:00" endTime="2026-11-19T17:06:51.6356770+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5657333c-e93a-4a1d-b9af-a27dc5e31743" />
+    <UnitTestResult executionId="6a749556-431b-44fc-8243-b4e8eab55615" testId="5195a79e-e5d5-c787-d597-bfe222020d5d" testName="PriceOfBread.Tests.StartWarmupTests.助走は暦を一切進めない(quarters: 20)" computerName="DIRGE" duration="00:00:18.1941526" startTime="2026-11-19T17:06:28.9664541+09:00" endTime="2026-11-19T17:06:47.1065871+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6a749556-431b-44fc-8243-b4e8eab55615" />
+    <UnitTestResult executionId="81fde7ae-6317-4d00-b0c7-77f710e96c0a" testId="5564d9ea-26b0-e470-4ee1-c78d1fce5640" testName="PriceOfBread.Tests.StartWarmupTests4.助走は二度目の呼び出しで何もしない" computerName="DIRGE" duration="00:00:24.9117802" startTime="2026-11-19T17:07:49.6015943+09:00" endTime="2026-11-19T17:08:14.5129236+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="81fde7ae-6317-4d00-b0c7-77f710e96c0a" />
+    <UnitTestResult executionId="0b9bb620-d45c-48f2-b89d-e8cd27c02410" testId="5dbfbdc1-3e17-35c9-57fe-4bf71d1eb85a" testName="PriceOfBread.Tests.StartWarmupTests4.助走は決定論的で助走後の本編も再現する" computerName="DIRGE" duration="00:00:45.3742965" startTime="2026-11-19T17:06:49.4668975+09:00" endTime="2026-11-19T17:07:34.8408257+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0b9bb620-d45c-48f2-b89d-e8cd27c02410" />
+    <UnitTestResult executionId="96dbdd92-51f8-4cf4-b52e-3a75fff94f38" testId="a567c4aa-1ef0-a84b-eeae-bd8ee2178416" testName="PriceOfBread.Tests.StartWarmupTests4.助走は価格を実勢へ寄せる" computerName="DIRGE" duration="00:00:25.8103763" startTime="2026-11-19T17:06:20.1369912+09:00" endTime="2026-11-19T17:06:45.9525117+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="96dbdd92-51f8-4cf4-b52e-3a75fff94f38" />
+    <UnitTestResult executionId="127f80f1-d37f-436b-b3d0-6f0264330800" testId="8cfad854-52ff-5b6a-2dae-44d7015f7ab8" testName="PriceOfBread.Tests.StartWarmupTests3.助走は建材の需要を殺さない" computerName="DIRGE" duration="00:00:18.2406636" startTime="2026-11-19T17:07:08.1242180+09:00" endTime="2026-11-19T17:07:26.3645462+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="127f80f1-d37f-436b-b3d0-6f0264330800" />
+    <UnitTestResult executionId="c9b2b006-721d-4cc5-891f-510c83dc987d" testId="ca6baaa7-9f0a-7a9d-d043-86e8852f92eb" testName="PriceOfBread.Tests.StartWarmupTests3.助走は法を動かさない" computerName="DIRGE" duration="00:00:16.4877978" startTime="2026-11-19T17:06:51.6758760+09:00" endTime="2026-11-19T17:07:08.1236594+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c9b2b006-721d-4cc5-891f-510c83dc987d" />
+    <UnitTestResult executionId="01800e57-bba8-4690-8285-a6ced4597202" testId="9a31e634-67c9-c890-e25f-6d3ec531f4e1" testName="PriceOfBread.Tests.StartWarmupTests3.助走ゼロは素の構築直後と厳密恒等" computerName="DIRGE" duration="00:00:14.6211063" startTime="2026-11-19T17:06:20.1369517+09:00" endTime="2026-11-19T17:06:34.7633869+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="01800e57-bba8-4690-8285-a6ced4597202" />
+    <UnitTestResult executionId="c733e260-cbe7-4175-9bfd-83e0f6ce7057" testId="4eab0ec9-74fe-8017-e64d-e02e81cc7327" testName="PriceOfBread.Tests.StartWarmupTests2.助走は国債を動かさず開幕の英の国債は年GDPの約1倍" computerName="DIRGE" duration="00:00:25.6939678" startTime="2026-11-19T17:07:47.7851192+09:00" endTime="2026-11-19T17:08:13.4786289+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c733e260-cbe7-4175-9bfd-83e0f6ce7057" />
+    <UnitTestResult executionId="def739f3-9287-42a3-b9d4-4dea3ddda12f" testId="4d8108c0-5ea0-6f80-e324-7d1d355f6a18" testName="PriceOfBread.Tests.StartWarmupTests4.助走は豊凶と疫病を引かず初回のロールは最初の実月に走る" computerName="DIRGE" duration="00:00:03.5136831" startTime="2026-11-19T17:06:45.9532904+09:00" endTime="2026-11-19T17:06:49.4663307+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="def739f3-9287-42a3-b9d4-4dea3ddda12f" />
+    <UnitTestResult executionId="c529aad4-f354-4996-9328-691efd75f962" testId="5d498c5c-d66e-f468-ce62-df97cee548e9" testName="PriceOfBread.Tests.StartWarmupTests.助走の長さを変えても人口と識字は動かない" computerName="DIRGE" duration="00:00:45.5124883" startTime="2026-11-19T17:07:19.1119572+09:00" endTime="2026-11-19T17:08:04.6203550+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c529aad4-f354-4996-9328-691efd75f962" />
+    <UnitTestResult executionId="8da68958-eb0c-4803-9aba-8b354c6ed70d" testId="8f1eaf1a-7c15-211b-5f12-c43c58b123c3" testName="PriceOfBread.Tests.StartWarmupTests4.助走の後も政治と外交の凍結は解けている" computerName="DIRGE" duration="00:00:14.7600055" startTime="2026-11-19T17:07:34.8414558+09:00" endTime="2026-11-19T17:07:49.6009761+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8da68958-eb0c-4803-9aba-8b354c6ed70d" />
+    <UnitTestResult executionId="72c210ba-3ecf-4538-ad46-eba819c09bb6" testId="888a88ed-940d-5d32-5fca-83a8e9b57a1d" testName="PriceOfBread.Tests.StartWarmupTests2.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント" computerName="DIRGE" duration="00:00:28.8016369" startTime="2026-11-19T17:07:18.9831137+09:00" endTime="2026-11-19T17:07:47.7844943+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="72c210ba-3ecf-4538-ad46-eba819c09bb6" />
+    <UnitTestResult executionId="4fa315b0-24c0-440c-bb15-ad71ed33de61" testId="87044cba-e26b-3a8c-0035-9dfee8c76d03" testName="PriceOfBread.Tests.StartWarmupTests2.助走は資本を一切育てない" computerName="DIRGE" duration="00:00:58.8404222" startTime="2026-11-19T17:06:20.1368107+09:00" endTime="2026-11-19T17:07:18.9825252+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4fa315b0-24c0-440c-bb15-ad71ed33de61" />
+    <UnitTestResult executionId="2c06961a-bb9b-46ab-abe5-0eb78e3db172" testId="9a9e6971-ccb4-4a2a-ca9b-5c4b05d86cfb" testName="PriceOfBread.Tests.StartWarmupTests.助走は暦を一切進めない(quarters: 40)" computerName="DIRGE" duration="00:00:32.0009848" startTime="2026-11-19T17:06:47.1068586+09:00" endTime="2026-11-19T17:07:19.1116987+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2c06961a-bb9b-46ab-abe5-0eb78e3db172" />
+    <UnitTestResult executionId="ee88961d-1e7e-486b-aa2a-ecb9ea8d9f8d" testId="7ad54d1e-e898-f82f-edda-2d3325977da7" testName="PriceOfBread.Tests.StartWarmupTests.助走は暦を一切進めない(quarters: 4)" computerName="DIRGE" duration="00:00:08.7653141" startTime="2026-11-19T17:06:20.1344931+09:00" endTime="2026-11-19T17:06:28.9122227+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ee88961d-1e7e-486b-aa2a-ecb9ea8d9f8d" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests3.助走は法を動かさない" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="ca6baaa7-9f0a-7a9d-d043-86e8852f92eb">
+      <Execution id="c9b2b006-721d-4cc5-891f-510c83dc987d" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests3" name="助走は法を動かさない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests4.助走の後も政治と外交の凍結は解けている" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="8f1eaf1a-7c15-211b-5f12-c43c58b123c3">
+      <Execution id="8da68958-eb0c-4803-9aba-8b354c6ed70d" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests4" name="助走の後も政治と外交の凍結は解けている" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests3.助走は建材の需要を殺さない" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="8cfad854-52ff-5b6a-2dae-44d7015f7ab8">
+      <Execution id="127f80f1-d37f-436b-b3d0-6f0264330800" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests3" name="助走は建材の需要を殺さない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests4.助走は豊凶と疫病を引かず初回のロールは最初の実月に走る" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="4d8108c0-5ea0-6f80-e324-7d1d355f6a18">
+      <Execution id="def739f3-9287-42a3-b9d4-4dea3ddda12f" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests4" name="助走は豊凶と疫病を引かず初回のロールは最初の実月に走る" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests4.助走は決定論的で助走後の本編も再現する" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="5dbfbdc1-3e17-35c9-57fe-4bf71d1eb85a">
+      <Execution id="0b9bb620-d45c-48f2-b89d-e8cd27c02410" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests4" name="助走は決定論的で助走後の本編も再現する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests2.助走は資本を一切育てない" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="87044cba-e26b-3a8c-0035-9dfee8c76d03">
+      <Execution id="4fa315b0-24c0-440c-bb15-ad71ed33de61" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests2" name="助走は資本を一切育てない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests.助走は暦を一切進めない(quarters: 4)" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="7ad54d1e-e898-f82f-edda-2d3325977da7">
+      <Execution id="ee88961d-1e7e-486b-aa2a-ecb9ea8d9f8d" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests" name="助走は暦を一切進めない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests.助走の長さを変えても人口と識字は動かない" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="5d498c5c-d66e-f468-ce62-df97cee548e9">
+      <Execution id="c529aad4-f354-4996-9328-691efd75f962" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests" name="助走の長さを変えても人口と識字は動かない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests3.助走ゼロは素の構築直後と厳密恒等" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="9a31e634-67c9-c890-e25f-6d3ec531f4e1">
+      <Execution id="01800e57-bba8-4690-8285-a6ced4597202" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests3" name="助走ゼロは素の構築直後と厳密恒等" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests2.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="888a88ed-940d-5d32-5fca-83a8e9b57a1d">
+      <Execution id="72c210ba-3ecf-4538-ad46-eba819c09bb6" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests2" name="助走は国庫を動かさず開幕の国庫は年GDPの数パーセント" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests.助走は暦を一切進めない(quarters: 40)" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="9a9e6971-ccb4-4a2a-ca9b-5c4b05d86cfb">
+      <Execution id="2c06961a-bb9b-46ab-abe5-0eb78e3db172" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests" name="助走は暦を一切進めない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests3.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="d6d80f3e-32ac-d238-7264-9cf90014648c">
+      <Execution id="5657333c-e93a-4a1d-b9af-a27dc5e31743" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests3" name="開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests2.助走は国債を動かさず開幕の英の国債は年GDPの約1倍" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="4eab0ec9-74fe-8017-e64d-e02e81cc7327">
+      <Execution id="c733e260-cbe7-4175-9bfd-83e0f6ce7057" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests2" name="助走は国債を動かさず開幕の英の国債は年GDPの約1倍" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests4.助走は二度目の呼び出しで何もしない" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="5564d9ea-26b0-e470-4ee1-c78d1fce5640">
+      <Execution id="81fde7ae-6317-4d00-b0c7-77f710e96c0a" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests4" name="助走は二度目の呼び出しで何もしない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests.助走は暦を一切進めない(quarters: 20)" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="5195a79e-e5d5-c787-d597-bfe222020d5d">
+      <Execution id="6a749556-431b-44fc-8243-b4e8eab55615" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests" name="助走は暦を一切進めない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.StartWarmupTests4.助走は価格を実勢へ寄せる" storage="d:\pob_work\c125ts_bdart\bin\priceofbread.tests\release\priceofbread.tests.dll" id="a567c4aa-1ef0-a84b-eeae-bd8ee2178416">
+      <Execution id="96dbdd92-51f8-4cf4-b52e-3a75fff94f38" />
+      <TestMethod codeBase="D:\PoB_work\c125ts_bdart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.StartWarmupTests4" name="助走は価格を実勢へ寄せる" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d6d80f3e-32ac-d238-7264-9cf90014648c" executionId="5657333c-e93a-4a1d-b9af-a27dc5e31743" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5195a79e-e5d5-c787-d597-bfe222020d5d" executionId="6a749556-431b-44fc-8243-b4e8eab55615" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5564d9ea-26b0-e470-4ee1-c78d1fce5640" executionId="81fde7ae-6317-4d00-b0c7-77f710e96c0a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5dbfbdc1-3e17-35c9-57fe-4bf71d1eb85a" executionId="0b9bb620-d45c-48f2-b89d-e8cd27c02410" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a567c4aa-1ef0-a84b-eeae-bd8ee2178416" executionId="96dbdd92-51f8-4cf4-b52e-3a75fff94f38" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8cfad854-52ff-5b6a-2dae-44d7015f7ab8" executionId="127f80f1-d37f-436b-b3d0-6f0264330800" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ca6baaa7-9f0a-7a9d-d043-86e8852f92eb" executionId="c9b2b006-721d-4cc5-891f-510c83dc987d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9a31e634-67c9-c890-e25f-6d3ec531f4e1" executionId="01800e57-bba8-4690-8285-a6ced4597202" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4eab0ec9-74fe-8017-e64d-e02e81cc7327" executionId="c733e260-cbe7-4175-9bfd-83e0f6ce7057" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4d8108c0-5ea0-6f80-e324-7d1d355f6a18" executionId="def739f3-9287-42a3-b9d4-4dea3ddda12f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5d498c5c-d66e-f468-ce62-df97cee548e9" executionId="c529aad4-f354-4996-9328-691efd75f962" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8f1eaf1a-7c15-211b-5f12-c43c58b123c3" executionId="8da68958-eb0c-4803-9aba-8b354c6ed70d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="888a88ed-940d-5d32-5fca-83a8e9b57a1d" executionId="72c210ba-3ecf-4538-ad46-eba819c09bb6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="87044cba-e26b-3a8c-0035-9dfee8c76d03" executionId="4fa315b0-24c0-440c-bb15-ad71ed33de61" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9a9e6971-ccb4-4a2a-ca9b-5c4b05d86cfb" executionId="2c06961a-bb9b-46ab-abe5-0eb78e3db172" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7ad54d1e-e898-f82f-edda-2d3325977da7" executionId="ee88961d-1e7e-486b-aa2a-ecb9ea8d9f8d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="16" executed="16" passed="16" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:00.16]   Discovering: PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:00.52]   Discovered:  PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:00.56]   Starting:    PriceOfBread.Tests&#xD;
+[xUnit.net 00:01:54.98]   Finished:    PriceOfBread.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
