@@ -1118,7 +1118,6 @@ public sealed class World
             if (old is not null)
             {
                 old.Id = capital.Id;   // Idスワップ＝州Idの一意性を維持（旧首都は新首都の旧Idへ）
-                if (old.ColonialResources is not null) old.ColonialResources = [];   // 植民地財は首都州だけ（null は単一国テストの旧経路＝触らない）
                 if (old.ArmsStock is { } oldArms) { foreach (var (g, a) in oldArms) arms[g] = arms.GetValueOrDefault(g) + a; oldArms.Clear(); }
             }
             capital.Id = 0;

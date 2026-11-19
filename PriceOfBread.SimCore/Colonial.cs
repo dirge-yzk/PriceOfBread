@@ -10,7 +10,7 @@ public static class Colonial
     {
         int colonies = w.SelfPower?.Colonies ?? 0;
         var r = w.Region;
-        if (colonies <= 0 || r.ColonialResources is null) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
+        if (colonies <= 0) { w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
 
         bool suezOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.SuezId, w.SelfPower) ?? false;
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;

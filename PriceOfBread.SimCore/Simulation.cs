@@ -834,7 +834,6 @@ public sealed class Simulation
             ClergyPopIndex = 6, TeacherPopIndex = 7, BureaucratPopIndex = 8, DoctorPopIndex = 9, SoldierPopIndex = 5, MerchantPopIndex = 10, ArtisanPopIndex = 11, ServantPopIndex = 12,
             CriminalPopIndex = AddCriminalPop(pops, coef, worker.Literacy), ResearcherPopIndex = resFrac > 0 ? 13 : -1,   // ★段②：研究者は休眠時 -1＝Meritocracy の昇格先に数えない（POP自体も並んでいない）
             EducationProducerIndex = eduIdx,
-            ColonialResources = [],   // 多国＝植民地ベース（首都州 Id0 のみ StepMonth で更新）
             Goods = goods,
             Pops = pops,
             Producers = producers,
@@ -1367,7 +1366,6 @@ public sealed class Simulation
             InvestorPopIndex = 3, MeritFromIndex = 2, MeritToIndex = 4,
             ClergyPopIndex = 5, TeacherPopIndex = 6, BureaucratPopIndex = 7, DoctorPopIndex = 8, MerchantPopIndex = 9, ArtisanPopIndex = 10, ServantPopIndex = 11, SoldierPopIndex = 12, CriminalPopIndex = AddCriminalPop(pops, coef, peasant.Literacy),
             EducationProducerIndex = eduIdx,
-            ColonialResources = [],   // 植民地財の産出は首都州（Id0）のみが担う（BuildProvince と同じ）
             Goods = goods, Pops = pops, Producers = producers, Markets = markets,
         };
         region.SeaBasin = SeaGraph.BasinAt(clat, clon);   // 港州＝海盆を積出港座標から（WirePortDistances の港側と同じ規則）
@@ -1720,7 +1718,6 @@ public sealed class Simulation
         bool atWarNation = World.Diplomacy is { } dipN && World.SelfPower is { } spN && dipN.Wars.Any(war => war.A == spN || war.B == spN);
         if (!(World.Coef.IrreversibleLaws > 0 && childRegress && !atWarNation && World.RuptureWindowQuarters <= 0))
             World.ChildLaborLegal = PoliticalQuantities.Toward(World.ChildLaborLegal, childTarget, World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce));
-        double colonialAccess = ColonialAccess();                        // 植民地素材の入手率（植民地×制海・封鎖で↓）
         double nationPop = World.TotalPopulation;                        // 行政予算の地域按分に使う
         bool navalYard = false;   // navalYard〔履歴 Simulation.cs#197〕
         foreach (var pr in World.Regions) if (pr.IsPort) { navalYard = true; break; }
@@ -1762,7 +1759,6 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             {
                 navIdx++;
-                r.ColonialAccess = colonialAccess;
                 // 軍需調達：軍隊（兵士POP）＋治安維持力に比例、交戦中は増（武器需要ブーム）。財源は国庫の一部。
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
@@ -2534,16 +2530,6 @@ public sealed class Simulation
 
 
     // 到達不能になったため。〔履歴 Simulation.cs#339〕
-
-    // 植民地素材の入手率＝植民地保有 × 制海（禁輸/交戦で交易アクセス↓）。外交なしなら満額。
-    private double ColonialAccess()
-    {
-        if (World.Diplomacy is null) return 1.0;
-        var p = World.SelfPower ?? World.Diplomacy.Player;
-        if (p is null) return 1.0;
-        double byColonies = PoliticalQuantities.Clamp01(p.Colonies / World.Coef.ColoniesForFullColonial);
-        return byColonies * World.Diplomacy.TradeAccess(p);
-    }
 
     private void CheckInvariants()
     {

@@ -83,7 +83,6 @@ public class ColonyPromotionTests
                 // 本国の州の割譲＝編入（ゲーム中にコア化しない）・植民地格の州は植民地のまま
                 Assert.Equal(tier0[reg.Name] == RegionTier.Colonial ? RegionTier.Colonial : RegionTier.Integrated, reg.Tier);
                 Assert.Equal(dom0[reg.Name], reg.Dominance);     // 支配度は動かさない（0 にすると翌四半期に独立の戦争＝回1-1 の計測で差し戻し）
-                Assert.NotNull(reg.ColonialResources);            // null＝単一国の旧経路（植民地財が代金なしに湧く・col-02）
                 for (int i = 0; i < reg.Pops.Count; i++)
                     Assert.Equal(sameCulture ? core0[reg.Name][i] : 0.0, reg.Pops[i].CoreEthnicShare.Value);
             }
@@ -109,7 +108,6 @@ public class ColonyPromotionTests
             var rw = sim.Nations.First(n => n.World.Regions.Contains(canada)).World;
             Assert.NotSame(pw, rw);
             Assert.Equal(RegionTier.Colonial, canada.Tier);   // 戦争の決着まで格は動かさない
-            Assert.NotNull(canada.ColonialResources);          // null＝単一国の旧経路（植民地財が代金なしに湧く・col-02）
             Assert.True(natives.CoreEthnicShare.Value > 0.75, $"建国で民族の割合が反転していない（旧少数派が新しい国の中核・{natives.CoreEthnicShare.Value:F3}）");
             var war = sim.Diplomacy.Wars.Single(x => x.CivilWarParent == pw.SelfPower && (x.A == rw.SelfPower || x.B == rw.SelfPower));
             Assert.True(war.CivilWarSecession, "前提が崩れた：分離独立の戦争になっていない");
@@ -128,7 +126,6 @@ public class ColonyPromotionTests
                 sim.StepQuarter();   // 再併合は四半期末
                 Assert.Contains(canada, pw.Regions);
                 Assert.Equal(RegionTier.Colonial, canada.Tier);   // 失敗した蜂起で植民地が本土に化けない
-                Assert.NotNull(canada.ColonialResources);
                 Assert.True(natives.CoreEthnicShare.Value < 0.25, $"再併合で民族の割合が裏返ったまま戻った（{natives.CoreEthnicShare.Value:F3}／出発 {core0:F3}）");
             }
         }
