@@ -28,6 +28,7 @@ public class DormantIdentityTests
         // ★LaborClosedForm（(spb) 案 B 労働の閉じた式）は 2026-10-24 に 1 で**点火**＝この表から外した。
         // ★UrbanCapOff（(687) 線 urb2）は 2026-10-30 に 1 で**点火**＝この表から外した。(812) で旗ごと焼き込んだ（RetiredFields）。
         // ★DependencyCycleBreak（(1064) c101vs 宗主と属国の輪を切る）は 2026-11-12 に 1 で**点火**＝この表から外した。旗 0 の経路の番人は DependencyCycleTests（旗を明示）。
+        "FoodProcessingNoEngineer",    // ★(1237) c125al 食品の加工の財の既定のレシピから技師の行を外す旗（0＝今のまま・番人 FoodProcessingNoEngineerTests）。点火時にこの表から外す。
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
         // ★RailByRegion（(1097) c105rr 支配の力の段 R・州の線路）は 2026-11-13 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）。
         // ★RailNeedByOutput（(1137) c111rb 段 R の need の基底・鉄道の need の取り分を州の産出の比へ）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。
