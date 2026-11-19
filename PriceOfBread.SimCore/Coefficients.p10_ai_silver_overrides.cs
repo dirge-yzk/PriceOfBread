@@ -25,7 +25,6 @@ public sealed partial class Coefficients
     public double MinimumWageAiFromFloor = 1.0;   // 0＝今の規則〈本国の都市の割合の線で上げる目標だけを書く〉（UtilityAgent.MinimumWageTargetFromBoard）
     public double GuildLawGate = 0.0;   // 主ゲート＝法が動く（Government/AI目標/要求経路/UI）
     public double GuildRentPremium = 0.0;   // 取り分＝職人の自営レシピの財への上乗せ（買い手価格×これ×法の度合×職人の供給シェア＝消費者→職人・台帳へ）
-    public double GuildMobilityDrag = 0.0;   // 歪み＝職人→工場労働者の没落（Meritocracy）が法の度合×これ だけ遅れる（0..1）
     // ==== 内戦を戦争に一元化（docs/202608/20260827_内戦を戦争に一元化する_部分完了.md・2026-08-30実装）＝主フラグ点火済み（FactionJoinMilitancy は段2で削除＝下記）====
     public double FactionRejectionMutation = 0.5;   // 0＝拒否カウンタは積むだけ＝読み手なし＝厳密恒等
     public double FactionMergeRangeKm = 800.0;   // 0＝1命令も走らない＝厳密恒等
