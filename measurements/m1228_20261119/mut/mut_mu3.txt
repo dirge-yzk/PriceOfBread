@@ -1,0 +1,8 @@
+# (1228) 突然変異 mu3 コミット 45ddc0c68
+mu3: 入れた（1 箇所）
+rc=1
+rc=1   失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1_旗1で売上が代金の割りだけ増え旗0では増えない [41 ms] 失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 3 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T4_損益の増えは国の取り分を含む地代の全額 [61 ms]
+  失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1_旗1で売上が代金の割りだけ増え旗0では増えない [41 ms]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T4_損益の増えは国の取り分を含む地代の全額 [61 ms]
+失敗 PriceOfBread.Tests.PaySalesProducerBookTests.T1_旗1で売上が代金の割りだけ増え旗0では増えない [41 ms]
