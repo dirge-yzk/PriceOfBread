@@ -1,0 +1,3 @@
+D:/PoB_work/keep_1233/base_ins/region_s10.tsv rows 668 peak ('1794', 8.648161194, 'イギリス') min after ('1888', 4.836619045, 'イギリス') ratio 0.559 last ('1950', 7.126320334, 'イギリス')
+D:/PoB_work/c126k99_work/armB/out_c126k99B_10/ins/region_s10.tsv rows 668 peak ('1857', 63.96990466, 'アメリカ') min after ('1949', 6.323471503, 'アメリカ') ratio 0.099 last ('1950', 6.325850052, 'アメリカ')
+D:/PoB_work/keep_1233/n1/region_s10.tsv rows 668 peak ('1928', 37.55855563, 'イギリス') min after ('1950', 27.80976491, 'イギリス') ratio 0.74 last ('1950', 27.80976491, 'イギリス')
