@@ -119,7 +119,6 @@ public sealed partial class Coefficients
     // === 開始前の助走（作者裁定2026-08-10「助走をプレイヤーの世界と自己対戦バッチで統一し、延長する」）===
     public int StartWarmupQuarters = 20;        // 助走の長さ（四半期）
     public int StartWarmupTechIterations = 8;  // 技術の助走の反復回数（旧 GameViewModel のハードコード8）
-    public RatePerMonth ConsumeBudgetSavingsRatePerMonth = new(0);   // d＞0 の月率（貯蓄のうち1か月に消費へ回してよい割合）
 
     public int MonopolyBurdenPushMode = 1;   // MonopolyBurdenPushMode＝AI が専売の段を広げる判定に、払えていて r＝1 のままでも利払いが重い間（借入の門が閉じ国庫を食う間）の動きを足す
 
