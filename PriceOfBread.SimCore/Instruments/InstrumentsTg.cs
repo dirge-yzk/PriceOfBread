@@ -30,6 +30,7 @@ internal static class Tg
     internal static bool Lwk = true;
     internal static bool Mintcap = true;
     internal static bool Pay = true;
+    internal static bool PopClose = true;
     internal static bool Paysale = true;
     internal static bool Portch = true;
     internal static bool Prdf = true;
@@ -81,6 +82,7 @@ internal static class Tg
         Lwk = Instruments.Wants("age_s") || Instruments.Wants("lwk_s") || Instruments.Wants("pop_s") || Instruments.Wants("rdh_s") || Instruments.Wants("urx_s") || Instruments.Wants("urxpd_s") || Instruments.Wants("urxrt_s");
         Mintcap = Instruments.Wants("mintcap_s") || Instruments.Wants("mintreg_s");
         Pay = Instruments.Wants("pay_s");
+        PopClose = Instruments.Wants("popclose_s");
         Paysale = Instruments.Wants("paysale2_s");
         Portch = Instruments.Wants("portch_s") || Instruments.Wants("portlm_s");
         Prdf = Instruments.Wants("prdf_s");
