@@ -1,0 +1,7 @@
+(1258) c128uf 突然変異の表（使い捨ての木 D:/PoB_work/wt_c128uf_mut・コミット 7f824e048・台本 scripts/instruments/c128uf/mut_uf.sh）
+1 回目の μ1 は置き換えの模様が 2 か所に当たり適用されず（APPLYFAIL を足した）・1 回目の μ3 は Diplomacy.cs が CRLF で AI の呼び手への追加が当たらず〈判定を消しただけ〉になった＝どちらも直して回し直した物が下。
+μ0: applied μ0 / T1 T4 赤 / 合計の行: 
+μ1: applied μ1 / T1 T4 赤 / 合計の行: 
+μ2: applied μ2 / T3 赤 / 合計の行: 
+μ3: applied μ3 / T1 T4 赤 / 合計の行: 
+μ4: applied μ4 / T1 T4 赤 / 合計の行: 

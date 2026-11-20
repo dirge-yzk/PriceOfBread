@@ -1,0 +1,65 @@
+applied μ0
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\EconomyStep.cs(1489,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\Instruments\Instruments.cs(2640,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(184,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(200,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c128uf_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c128uf_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c128uf_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c128uf_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.02] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.66]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.55]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.69]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.UnificationSkipFormedTests.T3_別の札の成立や低い段の成立は候補を消さない [3 s]
+[xUnit.net 00:00:05.20]     PriceOfBread.Tests.UnificationSkipFormedTests.T1_他の国がドイツ帝国を名乗ると資格のある邦の候補が消える_旗0では残る [FAIL]
+[xUnit.net 00:00:05.20]       Assert.Null() Failure: Value is not null
+[xUnit.net 00:00:05.20]       Expected: null
+[xUnit.net 00:00:05.20]       Actual:   FormationRule { NewName = ドイツ, Tier = 2, BaseNames = System.String[], CultureIs = ドイツ, ReligionIs = , ExcludeBaseNames = System.String[], RequiredAll = System.String[], ReligionAnyOf = , AnyOfSet = , AnyOfMin = 0, NewCapital = , CultureOrigin =  }
+[xUnit.net 00:00:05.20]       Stack Trace:
+[xUnit.net 00:00:05.23]         D:\PoB_work\wt_c128uf_mut\PriceOfBread.Tests\UnificationSkipFormedTests.cs(48,0): at PriceOfBread.Tests.UnificationSkipFormedTests.T1_他の国がドイツ帝国を名乗ると資格のある邦の候補が消える_旗0では残る()
+[xUnit.net 00:00:05.23]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.23]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.23]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.24]     PriceOfBread.Tests.UnificationSkipFormedTests.T4_プレイヤーの動詞とAIの宣戦も同じ判定を通る [FAIL]
+[xUnit.net 00:00:05.24]       Assert.Null() Failure: Value is not null
+[xUnit.net 00:00:05.24]       Expected: null
+[xUnit.net 00:00:05.24]       Actual:   FormationRule { NewName = ドイツ, Tier = 2, BaseNames = System.String[], CultureIs = ドイツ, ReligionIs = , ExcludeBaseNames = System.String[], RequiredAll = System.String[], ReligionAnyOf = , AnyOfSet = , AnyOfMin = 0, NewCapital = , CultureOrigin =  }
+[xUnit.net 00:00:05.24]       Stack Trace:
+[xUnit.net 00:00:05.24]         D:\PoB_work\wt_c128uf_mut\PriceOfBread.Tests\UnificationSkipFormedTests.cs(96,0): at PriceOfBread.Tests.UnificationSkipFormedTests.T4_プレイヤーの動詞とAIの宣戦も同じ判定を通る()
+[xUnit.net 00:00:05.24]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.24]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.24]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.26]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.UnificationSkipFormedTests.T1_他の国がドイツ帝国を名乗ると資格のある邦の候補が消える_旗0では残る [7 ms]
+  エラー メッセージ:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   FormationRule { NewName = ドイツ, Tier = 2, BaseNames = System.String[], CultureIs = ドイツ, ReligionIs = , ExcludeBaseNames = System.String[], RequiredAll = System.String[], ReligionAnyOf = , AnyOfSet = , AnyOfMin = 0, NewCapital = , CultureOrigin =  }
+  スタック トレース:
+     at PriceOfBread.Tests.UnificationSkipFormedTests.T1_他の国がドイツ帝国を名乗ると資格のある邦の候補が消える_旗0では残る() in D:\PoB_work\wt_c128uf_mut\PriceOfBread.Tests\UnificationSkipFormedTests.cs:line 48
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.UnificationSkipFormedTests.T2_まだ誰も成立していない盤面では旗1と旗0の候補が同じ [34 ms]
+  失敗 PriceOfBread.Tests.UnificationSkipFormedTests.T4_プレイヤーの動詞とAIの宣戦も同じ判定を通る [4 ms]
+  エラー メッセージ:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   FormationRule { NewName = ドイツ, Tier = 2, BaseNames = System.String[], CultureIs = ドイツ, ReligionIs = , ExcludeBaseNames = System.String[], RequiredAll = System.String[], ReligionAnyOf = , AnyOfSet = , AnyOfMin = 0, NewCapital = , CultureOrigin =  }
+  スタック トレース:
+     at PriceOfBread.Tests.UnificationSkipFormedTests.T4_プレイヤーの動詞とAIの宣戦も同じ判定を通る() in D:\PoB_work\wt_c128uf_mut\PriceOfBread.Tests\UnificationSkipFormedTests.cs:line 96
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+テストの実行に失敗しました。
+テストの合計数: 4
+     成功: 2
+     失敗: 2
+合計時間: 7.8850 秒
