@@ -1,0 +1,15 @@
+μ00 rc=0 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T3_旗0では兵は州の間を動かない 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T2_移す量は率と超過で決まり受け手は空席の比で受ける 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T1_席を超える州から空席の州へ兵が動き総数は保存 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる 
+μ5 rc=1 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T3_旗0では兵は州の間を動かない 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T2_移す量は率と超過で決まり受け手は空席の比で受ける 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T1_席を超える州から空席の州へ兵が動き総数は保存 
+  失敗 PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる 
+μ6 rc=1 
+  失敗 PriceOfBread.Tests.SoldierToVacantSeatTests.T3_旗0では兵は州の間を動かない 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T2_移す量は率と超過で決まり受け手は空席の比で受ける 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T1_席を超える州から空席の州へ兵が動き総数は保存 
+  成功 PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる 
