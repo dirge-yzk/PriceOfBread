@@ -112,6 +112,15 @@ public class RkInstrumentTests
                 var (a, o) = Instruments.ReachKm(snap, capIx, dst[k], c, land); no0[k] = a; own0[k] = o;
                 Assert.Equal(snap.Get(capIx, dst[k]), o, 12);                          // 清算の値そのもの（線路を重ねない）
             }
+            // (1262) c129sb rk の低 4：線路 0 の対（首都も相手も RailTrack 0）では noRail＝owner＝清算が terrCost に入れた値が HorseCostOf と一致する。HorseCostOf の値の誤り（地形の費用・大河と小川の上書き）で割れる。
+            var dstRegions = w.Regions.Skip(1).ToList(); int noRailPairs = 0;
+            for (int k = 0; k < dst.Length; k++)
+            {
+                if (w.Regions[0].RailTrack > 0 || dstRegions[k].RailTrack > 0) continue;
+                Assert.Equal(own0[k], no0[k], 9);
+                noRailPairs++;
+            }
+            Assert.True(noRailPairs > 0, "対照：線路 0 の対が 1 つも無い");
             for (int i = 0; i < snap.TerrCost.Length; i++) snap.TerrCost[i] *= 0.5;   // 線路が伸びた（terrCost が下がった）盤面
             snap.Km = null;
             int lowered = 0;
@@ -210,6 +219,17 @@ public class RkInstrumentTests
             Assert.True(qsAll.Length > 0 && qsAll.Any(x => x % 4 != 3), "対照：挙げた国の行が毎四半期に出ない");
             Assert.True(qsNone.Length > 0 && qsNone.All(x => x % 4 == 3), "挙げない国の行が年末以外に出た：" + string.Join(',', qsNone));
             Assert.True(lnNone.Length < lnAll.Length, "間引きで行が減らない");
+            // (1262) c129sb rk の低 4：PaysaleMonth の su（国の棟数）と pu（民間の棟数）の順。国営の棟が無い生産者（BuiltScale が 0＝stateMonths 0）の行では、国の持ち分 0 ＝ diffStateStake は 0。su と pu を取り違えると持ち分が 1 になって diffAll と同じ値が出る。
+            var hd = lnAll[0].Split('	'); int iAll = System.Array.IndexOf(hd, "diffAll"), iStk = System.Array.IndexOf(hd, "diffStateStake"), iSm = System.Array.IndexOf(hd, "stateMonths");
+            int noState = 0, nonzeroAll = 0;
+            foreach (var l in lnAll.Skip(1))
+            {
+                var x = l.Split('	');
+                double dAll = D(x[iAll]), dStk = D(x[iStk]);
+                Assert.True(System.Math.Abs(dStk) <= System.Math.Abs(dAll) * (1 + 1e-9) + 1e-9, $"国の持ち分の差が全体の差を超えた {dStk} {dAll}");
+                if (D(x[iSm]) == 0) { Assert.Equal(0.0, dStk, 9); noState++; if (System.Math.Abs(dAll) > 1e-9) nonzeroAll++; }
+            }
+            Assert.True(noState > 0 && nonzeroAll > 0, $"対照：国営の棟が無く差が 0 でない行が無い（{noState}・{nonzeroAll}）");
             try { System.IO.Directory.Delete(dirNone, true); System.IO.Directory.Delete(dirAll, true); } catch (System.IO.IOException) { }
         }
         finally { Reset(); }

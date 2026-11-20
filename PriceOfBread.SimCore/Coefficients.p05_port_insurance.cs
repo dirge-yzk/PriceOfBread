@@ -16,7 +16,7 @@ public sealed partial class Coefficients
     public double MarinePremiumRate = 0.003;   // 保険料率＝海路の成約の額×これ（1件の航海あたり・荷主→輸入国の引受の商人）
     public Share InsurancePayoutFrac = new(0.5);   // 保険金＝封鎖損失(取扱高×(1−raid))×これを 商人基金→損をした荷主（各州の捌き手の商人・海路の取扱高の比）へ（基金が尽きれば部分払い＝ロイズの破綻）
 
-    public double ColoniesForFullColonial = 3.0;  // 植民地素材を満たすのに要る植民地数（少ないと入手率↓・封鎖で更に↓）
+    public double ColoniesForFullColonial = 3.0;  // 植民地の数がこれで満額になる目盛り（入手率ではない・読み手は Colonial.cs の本国の不安の重みと SelfPlay.cs の植民地防衛の重み）
     public double WhitePeaceScore = 0.25;         // 戦勝点がこれ未満の講和は白紙（得るものなし）
     public double ForcedPeaceBlankOverCollapse = 0;   // AI とプレイヤーで同じ経路
     public double ColonyCaptureBudget = 100;       // 完全勝利(戦勝点1)の奪取予算＝100点（budget ＝ 戦勝点 × これ）

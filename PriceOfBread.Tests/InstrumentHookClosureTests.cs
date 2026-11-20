@@ -124,6 +124,8 @@ public class InstrumentHookClosureTests
     }
 
     // 組＝共有する状態を持つ file の束（束ごとに 1 つの bool）。表の名は書く表（Open の鍵）。
+    private static readonly HashSet<string> NoOutputInThisRun = ["BuyShadow/Nationgood", "BuyShadow/Recipeout", "Lwk/Rdh", "BuyShadow/Tradeskip", "BuyShadow/Sellr", "Cede/Impose"];
+
     [Theory]
         [InlineData("Basisx/Basisx", "basisx_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Basisx/Corncf", "corncf_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
@@ -221,6 +223,9 @@ public class InstrumentHookClosureTests
             Assert.True(Bytes(a).AsSpan().SequenceEqual(Bytes(b)), $"{group}/{t}：選んだ表のバイトが全表の走りと一致しない {FirstDiff(a, b)}");
             compared++;
         }
+        // 出力が両方とも無いまま緑になる群＝この走り（4 国・種 1789）では表が出ない群（(1262) c129sb で数えた 6 群）。ここに無い群で比べた表が 0 本なら赤＝新しい空振りを見逃さない。
+        if (!NoOutputInThisRun.Contains(group)) Assert.True(compared > 0, $"{group}：対照＝比べた表が 0 本（出力が両方とも無いまま緑になる）");
+        else Assert.True(compared == 0, $"{group}：表が出るようになった＝NoOutputInThisRun の名簿から外す");
         Assert.True(sel.State <= full.State, $"{group}：選ばない表の積算が全表の走りより多い");
         try { System.IO.Directory.Delete(sel.Dir, true); } catch { }
     }
@@ -241,10 +246,18 @@ public class InstrumentHookClosureTests
     }
 
     /// <summary>全ての表を 1 本ずつ単独で選ぶ（環境変数 POB_IH_EXHAUSTIVE=1 のときだけ・約 5 分）。束に入れ損ねた共有する状態をここで拾う。</summary>
-    [Fact]
+    /// <summary>環境変数 POB_IH_EXHAUSTIVE=1 が無いときは Skip（(1262) c129sb：以前は黙って return して緑に数えていた＝走っていないのに通ったと読めた）。</summary>
+    private sealed class FactIfExhaustiveAttribute : FactAttribute
+    {
+        public FactIfExhaustiveAttribute()
+        {
+            if (System.Environment.GetEnvironmentVariable("POB_IH_EXHAUSTIVE") != "1") Skip = "POB_IH_EXHAUSTIVE=1 のときだけ走る（約 5 分）";
+        }
+    }
+
+    [FactIfExhaustive]
     public void EveryTableAloneIsByteIdenticalToFullRun()
     {
-        if (System.Environment.GetEnvironmentVariable("POB_IH_EXHAUSTIVE") != "1") return;
         var full = Full.Value;
         var names = System.IO.Directory.GetFiles(full.Dir, "*_s1789.tsv").Select(f => System.IO.Path.GetFileName(f)[..^"1789.tsv".Length]).OrderBy(x => x, StringComparer.Ordinal).ToList();
         var bad = new List<string>();

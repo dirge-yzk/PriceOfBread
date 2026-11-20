@@ -9,7 +9,7 @@ public static partial class Instruments
     internal static readonly string[] PaysaleColNames = ["calls", "payToProducers", "payExport", "payMint", "payDomestic", "rentPart", "revBooked", "costBooked", "prodMonths", "negOld", "negNew", "flipNegToPos", "flipPosToNeg", "stateMonths", "stateFlipNegToPos", "diffAll", "diffStateStake"];
     internal static readonly string Paysale2HeaderText = "quarter\tyear\tnation\tgood\t" + string.Join('\t', PaysaleColNames);
 
-    // 列の添字（PaysaleHeaderText の calls から順）
+    // 列の添字（PaysaleColNames の calls から順）
     const int PsCalls = 0, PsPay = 1, PsExport = 2, PsMint = 3, PsDomestic = 4, PsRent = 5, PsRevB = 6, PsCostB = 7,
               PsMonths = 8, PsNegOld = 9, PsNegNew = 10, PsFlipNP = 11, PsFlipPN = 12, PsStateMonths = 13, PsStateFlip = 14, PsDiffAll = 15, PsDiffStake = 16;
     static int PsLen => PaysaleColNames.Length;   // 列の数は見出しと同じ配列から（添字 0〜PsDiffStake の 17 本）

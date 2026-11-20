@@ -65,4 +65,30 @@ public class DissolveNationTests
         Assert.Equal(n - 1, pfq.Length);
         for (int a = 0; a < n - 1; a++) { Assert.Equal(n - 1, pfq[a].Length); for (int b = 0; b < n - 1; b++) Assert.Equal(10 * a + b + 1, pfq[a][b]); }
     }
+
+    // (1262) c129sb ex の穴：消える国が名簿の最後でない（中ほど）の対照。最後の国を溶かす上の試験では、行列の最後の行と列を落とす書き方（Take(n-1)）でも値が合ってしまう。
+    [Fact]
+    public void 国の消滅の1本_中ほどの国を溶かすと行列は消えた国の行と列だけを除いて詰まる()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var pw = sim.Nations[0].World;
+        pw.PendingRebelRegions = [pw.Regions[1]]; pw.PendingRebelPolity = Polity.Republic;
+        sim.StepQuarter();
+        Assert.True(sim.Nations.Count == 3, "前提が崩れた：反乱国家が建っていない");
+        int pi = 0, ri = 1;   // 中ほど（フランス）を親（イギリス）へ溶かす＝最後（反乱国家）は残って添字が 1 つ前へ詰まる
+        var rw = sim.Nations[ri].World; var lastW = sim.Nations[2].World;
+        var rebelP = rw.SelfPower!; var parentP = pw.SelfPower!;
+        int n = sim.Nations.Count;
+        var q = new double[n][];
+        for (int a = 0; a < n; a++) { q[a] = new double[n]; for (int b = 0; b < n; b++) q[a][b] = 10 * a + b + 1; }
+        sim.Market.PairFlowQ = q;
+        sim.DissolveNation(parentP, rebelP, pi, ri, rebelWon: true, Polity.Republic, null);
+        Assert.Equal(n - 1, sim.Nations.Count);
+        Assert.DoesNotContain(sim.Nations, x => ReferenceEquals(x.World, rw));
+        Assert.Same(lastW, sim.Nations[1].World);   // 最後の国が 1 つ前へ詰まった
+        var pfq = sim.Market.PairFlowQ!;
+        Assert.Equal(n - 1, pfq.Length);
+        int[] old = [0, 2];   // 詰めた後の添字 → 溶かす前の添字（消えた 1 を飛ばす）
+        for (int a = 0; a < n - 1; a++) { Assert.Equal(n - 1, pfq[a].Length); for (int b = 0; b < n - 1; b++) Assert.Equal(10 * old[a] + old[b] + 1, pfq[a][b]); }
+    }
 }

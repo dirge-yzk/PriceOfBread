@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # (1260) 合流の読み手：c128uf/read_uf.sh（keep_1254 の基線・N1・ng1254・uf の門）をそのまま呼び、記録の読み手を足した
-#   （stoplines1002〔(1254) の止める線の台本〕・gdp_jump797・ukdef の基準・metal100〔記録＝基準でも赤〕・dec_after の基準）。
+#   （stoplines1002〔(1254) の止める線の台本〕・gdp_jump797・ukdef の基準・metal100〔1 四半期以内の 2 行だけ比べる＝(1262)・silverst_s は疎な表〕・dec_after の基準）。
 #   使い方: bash read1260.sh <ins（D:/ の形）> <成績表（D:/ の形・無ければ -）> <タグ> <出力フォルダ（D:/ の形）> <種の起点 1|11>
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 D0="$(cd "$(dirname "$0")" && pwd)"; R="$(cd "$D0/../../.." && pwd -W)"; S=$R/scripts/instruments

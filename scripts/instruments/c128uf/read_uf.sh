@@ -31,7 +31,8 @@ python -X utf8 -I "$S/m1254/unif_read_s.py" "$BASE" "$INS" $SB > "$OUT/unif_read
 python -X utf8 -I "$S/c119nd/paper.py" "$BASE" $SB $SE "$INS" > "$OUT/paper_B.txt" 2>&1; echo "paper rc=$?"
 python -X utf8 -I "$S/c119nd/paper.py" "$INS" $SB $SE > "$OUT/paper_Bself.txt" 2>&1; echo "paper self rc=$?"   # H1・H2 の腕の値（腕 B の後に足した＝宣言した H1・H2 の読みの欠け・数え方は同じ）
 bash "$S/ng.sh" "$INS" "$TAG" "$OUT/ng" rd:$R/measurements/ng1254_20261120:m1254 > "$OUT/ng.txt" 2>&1; echo "ng rc=$?"
-python -X utf8 -I "$S/c118nc/magn.py" "$R/measurements/ng1254_20261120/mil180_m1254.txt" "$OUT/ng/mil180_$TAG.txt" > "$OUT/magn_H.txt" 2>&1; echo "magn rc=$?"
+MAGNB="$R/measurements/ng1254_20261120/mil180_m1254.txt"; [ "$SB" = 11 ] && MAGNB="$R/measurements/m1254_20261120/readS11/ng/mil180_mS11.txt"   # S11 の H3 は S11 の基線の ng と比べる（(1260) の取り直しの形）
+python -X utf8 -I "$S/c118nc/magn.py" "$MAGNB" "$OUT/ng/mil180_$TAG.txt" > "$OUT/magn_H.txt" 2>&1; echo "magn rc=$?"
 # 機構の観測量 G1（UA）と記録
 python -X utf8 -I "$D0/uf_read.py" "$INS" $SB $SE B > "$OUT/uf_B.txt" 2>&1; echo "uf B rc=$?"
 python -X utf8 -I "$D0/uf_read.py" "$BASE" $SB $SE M > "$OUT/uf_M.txt" 2>&1; echo "uf M rc=$?"
