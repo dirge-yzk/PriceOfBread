@@ -4,3 +4,4 @@ ident_m1248x（線 c127ex の ident の生・4.2GB）と c127ex_art（隔離ビ�
 m1254_work/suite_r の建てた物（自分の物）。
 ident_m1254z（自分の腕 Z の生・刈り込み後）＝判定: 恒等を measurements/m1254_20261120/identz/ に写した後
 c127bd_work/armB・c127nr_work/armB（読み手の表だけに刈った腕 B の生）と c127nr_work/z0_tables（旗 0 の新しい 3 表）＝bd・nr を採った（S11 の止める線と両方の門が通った）＝合わせた木の M が新しい基線の生
+（push の後）keep_1233・keep_1247・keep_1247_rej の削除は自動の確かめ（権限の分類器）に止められた＝消していない・作者のセッションが消す。m1254_work の腕の作業の物（out_*・src_*・建てた物・tmp）は生を keep_1254 へ移した後に消した。
