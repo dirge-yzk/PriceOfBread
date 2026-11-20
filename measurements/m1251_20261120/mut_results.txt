@@ -1,0 +1,17 @@
+(1251) c127kc 突然変異の結果（使い捨ての木 D:/PoB_work/wt_c127kc_mut1・_mut2・頭 47e2c4fa1 から・trx は D:/PoB_work/c127kc_work/mut）
+mu1＝EconomyStep に代金なしの補充の枝を条件なしで戻す・mu2＝BuildFullChain と BuildFrance に `if (d.IsColonial) continue;` を戻す
+
+mu1	Failed	単一国の盤面で植民地財は代金なしに輸入されず州の中で生産される
+mu1	Failed	多国の州でEconomyStepは植民地財を代金なしに補充しない
+mu1	Passed	労働市場は清算し賃金は値幅に収まり労働者は収入を得る
+	msg	四半期 1：茶 が代金なしに 43.1725 輸入された
+	msg	ロンドン：茶 が代金なしに 1000 輸入された
+mu2	Passed	多国の州でEconomyStepは植民地財を代金なしに補充しない
+mu2	Failed	単一国の盤面で植民地財は代金なしに輸入されず州の中で生産される
+mu2	Failed	労働市場は清算し賃金は値幅に収まり労働者は収入を得る
+	msg	植民地財がどれも州の中で生産されていない＝産地が無い
+	msg	Assert.InRange() Failure: Value not in range Range:  (0.14999999899999999 - 1.5000000010000001) Actual: 0.071545623740473935
+
+追記（FullChainTests の書き換えの後・同じ μ2 の木に書き換えた試験を写して回した）
+mu2	Failed	全50財がロードされ放置で破綻せず基礎貨幣を保存する	Expected: 149 Actual: 138（植民地財の生産者 11 本が無い）
+本の木	Passed	同じ試験（149 本・植民地財 11 品目に生産者 1 本ずつ・投入は役務だけ）
