@@ -1,0 +1,91 @@
+(1270) c130rc 事前登録：招聘の受入先を〈機会が最大の 1 州〉から技師の空席の比へ（旗 RecruitDestByVacancy・3 回の規則の 1 回目）・2026-11-21・書いたモデル Claude Opus 5.5
+
+== 先頭の名乗り ==
+- 出発：00一覧〈次の波〉2 節①・(1252) の推奨②（measurements/m1252_20261120/report.txt:26〜:36）。前提の計器 popclose_s（specialistInK・specialistOutK）は (1267) で入った。
+- 3 回の規則：このテーマの 1 回目。
+- 形の種類：〈入口〉（受け入れる州の選び方の 1 か所）。新しい係数 0・新しい状態 0（空席は既存の Market.LastShortage を読む）・旗 1 本（RecruitDestByVacancy・既定 0 の器→1）。
+- 確証：〈お雇いの技師は技師の足りない所へ入る〉は AI の案＝〈確証なし〉。作者 2026-11-20「確認した。全て推奨で進めてよい」で推奨のまま確定した物として進める。
+- 作者 2026-11-19 の改め（原文）：「抜本的な改修を行おうとした時、既存のテストで落ちるからNGというのは違和感がある。抜本的な改修→それに合わせて周囲のモジュールを修正→テスト という流れになるべきではないのか？」
+
+== 形（実装の形と一致させる＝★(778)）==
+- 置き換える旧の規則：RecruitSpecialists（MultiNationSim.cs:1521〜:1525）の受入先＝Territory.Opportunity が最大の 1 州。
+- 空席の量（2 つの候補のうち 1 つを選ぶ）：**州の高度労働力の市場の足りない量＝`r.Markets[Catalog.AdvLaborId].LastShortage`**（EconomyStep.cs:1901 の `max(0, totalDemand − available)`・前の月の清算の値・単位は高度労働力の量／月）。
+  - 選んだ理由：もう一方の〈Σ EngineerUse − 州の技師の供給〉の EngineerUse は実際の産出×投入（Discovery.cs:17）＝使えた量で、足りない分を含まない（買えた量は供給を超えない）＝空席を測れない。
+- 旗 1 の形：
+  1. 受け入れる国の州を順に見て、空席 v＞0（否定形＝NaN も弾く）かつ機会が有限の州を集める（新しい分岐は〈機会が有限〉の旧の規則と同じ弾きだけ）。
+  2. 集まらなければ呼ばない（`continue`）。予約は既存の無条件のゼロ化（:1567〜:1569）で戻る＝新しい返金の分岐を作らない。
+  3. 送出元の選び方は旧のまま（その予算で最も多く呼べる国を 1 つ・RecruitMaxFracOfSource のまま）。
+  4. heads は空席の比で州に配る＝州ごとに MoveSpecialists(src, dst, srcR, r, heads×v_r÷Σv, perHead) を州の順で呼ぶ（**最大の 1 州にはしない**＝名乗る。理由：最大の 1 州は旧と同じ〈1 州へ集める〉の形で、(1252) の膨らんでから抜ける州の道を残す。費用は下の .cost の項）。
+  5. 割増 premium の dstO＝**受け入れる州の機会の空席の重みの平均**（Σ v_r×O_r ÷ Σ v_r）。
+- 研究者も同じ州へ入る（SpecialistClasses の 2 階級を MoveSpecialists が比で運ぶ＝旧と同じ）。受け皿の POP が無い州の分は呼ばれない（MoveSpecialists の既存の弾き）。
+- 旗 0 の経路は旧のコードのまま（else の枝）＝ビット同じ（腕 Z で確かめる）。
+
+== 段 0（腕の前・今の盤面）==
+- 紙の台本 scripts/instruments/c130rc/paper_rc.py を keep_1267/base_ins（種 1〜10）に当てた＝measurements/m1270_20261121/paper_base/paper_rc.txt：
+  - 着いた量の合計 192,785.8 千人（行 406,117）＝指示の基準（192,762 千人・n=406,103）と popclose_s の同じ列（差は数え方の端＝nan 行の扱い〈推〉）。
+  - 格ごと：Core 0.7172・Integrated 0.0601・Colonial 0.2227。
+  - 着いた州が国の工場の産出の最大の州＝0.369。着いた州に工場が無い＝0（工場の数 0 は空席の近似にならない＝名乗る）。
+- 空席そのものは表に無い＝使い捨てのプローブ（試験の形・コミットしない・種 1・UtilityAgent・助走の後 400 四半期・10 四半期ごと）で州の LastShortage を読んだ〈近似＝計器つきの成績表の種と軌道ではない〉：measurements/m1270_20261121/probe_summary.txt。
+  - 空席の州がある国：平均 54.1／61（四半期 9 は 40／61・後は 45〜56）。
+  - 空席は有るのに旧の受入先（機会が最大）の空席が 0 の国：平均 9.3（四半期 9 は 18）＝例 清→ポンディシェリ・バンダアチェ（空席 0）、ロシア→ウラル・アナディリ（空席 0）。
+  - 植民地格の州の空席の割合（国ごとの中央）＝0（全ての標本）。足りない量÷需要の中央 0.004〜0.29。
+- 予言（主な観測量の符号と大きさ・腕の前）：
+  - P1 招聘の植民地格への割合は下がる（0.2227→0.03〜0.15〈推〉）。
+  - P2 着いた量の合計は 0.6〜1.0 倍〈推〉（空席の無い国は呼ばない＝序盤に約 1/3 の国）。
+  - P3 国×種の〈最大の 1 州の割合〉の中央は下がる（0.734→0.4〜0.65〈推〉）・着いた州の数の中央は増える（2→3〜8〈推〉）。
+  - P4 swell.py の S・B・J は基準（0・0・0）から増えない〈推〉。
+  - P5 発見の時計の W（世界の技師の雇用の和）は動かない〈推〉（需要の側の和・人の置き場が変わるだけ）＝記録。
+  - 見込みは〈悪くする〉でない＝腕を回す（㉗：紙の台本は門の破れを予言しない）。
+
+== 門（〈作者 2026-11-16 の決まり〉①）==
+1. 止める線：
+   - 破綻：クラッシュ・NaN・保存則・savetest・進行不能。
+   - 発散：stoplines1002（stoplines906 を呼ぶ）。1e10 倍・非有限は止める。〈1 四半期に 100 倍〉は gdp_jump833 の〈それ以外〉の行が止める線・〈建国の直後〉〈分母の痩せ〉は記録（基準とヌル腕を同じ台本で数え直す＝⑰：基準 keep_1267/base_ins・N1 keep_1260/n1）。〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉はヌル腕と並べて読む（㊳）。
+   - 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（規則 A2）でピークの 1/10 未満。**線が原因の件だけで止める**＝基準 keep_1267/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。フォートウィリアム・チャーチル型の〈膨らんでから抜ける州〉（持ち主の移りや入植で基準のピークの数倍へ膨らんでから抜ける）は件ごとに swell.py と popclose_s の specialistInK で振り分けを書く（結果の後に振り分けの規則を変えない＝★(1247)：今の規則では〈線が原因〉になる）。
+   - 計算量：推定 248.5 秒を超える。
+   - 機構のテストの赤（走査の番人を含む）。
+   - 開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。名目 GDP 0 の続き（gdp_zero10）は記録の段の先頭。
+   - 紙の台本（基準の生に同じ台本＝★(1254)）：stoplines1002 は基準で 100 倍以上 0・1e10 倍以上 0・非有限 0・開幕の 1000 倍以上 0・空洞化 1/10 未満 0（1/4 未満 13）・gdp_zero10 0＝旗 0 の盤面で緑（measurements/m1270_20261121/paper_base/）。
+2. 史実の桁の線（この線が一番動かす量・scripts/instruments/c130rc/gate_rc.py）：史実の数が手元に無い＝基準を代わりに置く（AI の決め・名乗る）。
+   - H1 国ごとの技師（class_s の技師の sizeK・1851・1913 年・種の中央・基準 ≥1 千人の国×年）：腕÷基準が 0.1 未満か 10 超＝NG。
+   - H2 招聘の植民地格への割合（popclose_s の specialistInK の格 Colonial の和÷全体・種 10 本の和）：腕÷基準が 0.1 未満（0.0223 未満）＝NG。上の側（2.227）は割合が 1 以下で届かない＝名乗る。下の側の理由：植民地への技師の招聘も史実にある〈推〉（インドの公共事業局の技師・ジャワの技師）＝ほぼ 0 へ落ちるのは史実の外。基準は線から 10 倍＝50% 以内でない（★(1233)）。
+   - H3 国ごとの着いた量（popclose_s の specialistInK の受け手の国の和・種 10 本の和・基準の和 ≥100 千人の国＝61 国）：腕÷基準が 0.1 未満か 10 超＝NG。
+   - 紙の台本：基準どうしで NG 0（paper_base/gate_rc.txt）。〈何もしない実装〉（旗 0）でも緑＝壊さない門の性質（〈働いた〉は 3 の単体の試験で示す）。
+3. 単体の機構の試験（PriceOfBread.Tests/RecruitVacancyTests.cs・盤面は試験の中で置く＝6 国を 1 四半期温め、受け入れる国ロシアの州の空席を手で書き、予算はロシアだけ・非公開の RecruitSpecialists を 1 回）：
+   - T1 空席のある州へ入り、機会が最大で空席 0 の州へは入らない（〈辺境の高機会・空席 0／工業の州・空席あり〉の型）。
+   - T2 着いた量の比＝空席の比（3：1・相対 1e-6）。
+   - T3 空席が無ければ呼ばない（人口・国庫が動かない・予約は 0）。
+   - T4 配っても世界の人口と基礎貨幣の和は閉じる（MoveAbroad の保存）。
+   - 突然変異（㉚・使い捨ての木 D:/PoB_work/c130rc_work/mut・出力 measurements/m1270_20261121/mut_result.txt）と赤の門：
+     | μ | 変える所 | 赤になる試験（予言） |
+     | μ0 | 盤面の旗を 0（旧の規則） | T1（hi へ入る）・T2（a・b に入らない）・T3（hi へ入る） |
+     | μopp | 配る重みを空席から機会へ戻す（v_r の代わりに O_r） | T2（比が 3 でない） |
+     | μsign | 空席の符号を逆（v＝−LastShortage） | T1・T2・T4（どこにも入らない）。T3 は緑のまま（何もしない形と同じ） |
+     | μmax | 配らず空席が最大の 1 州だけ | T2（b に入らない） |
+     | μskip | 空席の州が無くても旧の受入先へ呼ぶ（continue を外して旧の州） | T3 |
+   - 旗 1 の出力が旗 0 と違う行の数は記録。
+
+== 記録（門にしない）==
+- popclose_s の specialistInK の州の分布（格ごと・国×種の最大の 1 州の割合・着いた州の数）＝gate_rc.py の記録の行と paper_rc.py。基準は合計 192,785.8 千人（指示の 192,762・n=406,103）。
+- swell.py の S/B/J（scripts/instruments/r1252/・基準の種で）。
+- 発見の時計の W（engineer_s・clock_s が無い腕では engineer_s の engineerPerMonth）＝動かない予言。
+- 英の国債の不履行の種の数・NG（ng.sh・基準 rd:measurements/ng1260_20261120:m1260）・nullgate（記録）・home_break・plvl・popjump。
+- 〈周辺の点検〉（読むだけ）：RecruitBudget の書き手は World.cs:1623 の 1 本（ApplyModernizationInvestment）＝近代化の予算×ModernizationToRecruit 0.05・読み手は RecruitSpecialists と Simulation.cs:1900 の四半期の請求・Instruments.cs:324。k99 の植民地格の州（フォートウィリアム・チャーチル）は (1252) で〈機会が最大の州〉の重なりが強い＝この線で入る量が変わる＝記録に件ごとの specialistInK を書く。
+
+== ㉘ 走査の番人の点検（器の差分＝MultiNationSim.cs の RecruitSpecialists の中・Coefficients.cs:76・DormantIdentityTests の表の 1 行・新しい試験）==
+- 工業化度の読み手 0・`new MoneyStock(` の増え 0（MultiNationSim.cs は 3 のまま）・route_anchors.tsv の鍵の行（:57 招聘の支度金の Transfer）は触らない・WriterRatchetTests の宣言は旗 0 で動かない（RecruitSpecialists は CostLedger に件数を持たない）・Instruments.On の読みは増えない（OnDoubleReadScanTests）。
+- 絞り込み：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|PopCloseInstrumentTests|RecruitVacancyTests。
+- 変わる件数の予言（㉑）：走査の番人の件数は変わらない（0 件）。
+
+== ㉜ 旗 1 の木で旧の規則を固定する番人（grep・腕の前）==
+- grep（MoveSpecialists・RecruitSpecialists・specialistIn・PopMoveKind.Specialist・RecruitBudget・LastSpecialistExit）：ConservationTests.cs:731〜:757（MoveSpecialists を直接呼ぶ＝受入先を選ばない＝変わらない）・PopCloseInstrumentTests.cs:57〜:59（MoveSpecialists を直接・予算 0）・ModernizationAbolishedTests.cs:20〜:40（予算の割合だけ）・AiFirstWaveTests.cs:247・:273（LastImmigration を手で書く）。
+- 旧の規則〈機会が最大の 1 州〉そのものを固定する試験は 0 件の予言。軌道に依る試験（WriterRatchetTests の宣言の表＝★(749)・接触の内訳の種）は旗 1 で動き得る＝赤なら ㊴ の区分で読む。
+
+== 計算量の割り当て ==
+- +0.3 秒〈推〉（項ごと：機会の計算は空席の州だけ＝旧の全ての州より少ないか同じ・MoveSpecialists の呼びは空席の州の数だけ増える〔国あたり 1→中央 5〜15〈推〉・CostLedger に件数が無い＝推定の式に直接は入らない〕・軌道の変化の分 ±0.3〈推〉）。m1260 の推定 236.4 秒・余り約 9.2 秒（保守側）の内。2 秒以下＝1 本の腕で門にしない（★(694)）＝推定 248.5 秒を超えるときだけ止める。
+
+== 腕 ==
+- 腕 Z：器の木（旗 0）・`bash scripts/instruments/ident/ident.sh run c130rcz --tree <器の木> --work D:/PoB_work/ident_c130rc --tests-delta 4`（段 1・RecruitVacancyTests 4 本）。走っている間はその木にコミットしない（㉙）。
+- 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c130rcB 10`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝SMALL（ident.cfg :152）＋popclose_s・engineer_s・factory_s（止める線の台本・門・記録の読み手が開く表を grep した＝stoplines1002〔nation_s・pxmonth_s・scalars_s・region_s〕・an_h2〔region_s・migration_s〕・home_break〔stock_s〕・ng.sh〔casualty_s・wars_s〕・ukdef975〔fiscal_s〕・gate_rc〔class_s・popclose_s〕・swell〔region_s〕は全て SMALL の内）。
+- 読み手：scripts/instruments/c130rc/read_rc.sh（c129al/read_al.sh の写し＋gate_rc・swell・paper_rc）。基準 keep_1267/base_ins・N1 keep_1260/n1・NG 基準 ng1260_20261120・nullgate の基準 m1260。
+- D:：腕 B は約 8〜10GB〈推〉＝起こす直前に shutil で〈35GB＋10GB〉を測る。
