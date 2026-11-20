@@ -2490,18 +2490,17 @@ public static class EconomyStep
                 lpop.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(unsold));
             }
 
-        // 式は労働3財と同一（売れ残り率）×強度乗数。〔履歴 EconomyStep.cs#357〕
-        if (coef.ServiceUnemployment > 0)
-            foreach (var s in region.Producers)
-                if (s.GoodId is Catalog.EducationId or Catalog.HealthcareId or Catalog.AdminId or Catalog.DomesticServiceId
-                    && s.LaborPopIndex >= 0 && s.LaborPopIndex < region.Pops.Count)
-                {
-                    var m = region.Markets[s.GoodId];
-                    var sp = region.Pops[s.LaborPopIndex];
-                    if (sp.IsSoldier) continue;
-                    double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
-                    sp.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(coef.ServiceUnemployment * unsold));
-                }
+        // 式は労働3財と同一（売れ残り率）。(1263) c129k12 で旗 ServiceUnemployment（×1.0）を焼いた。〔履歴 EconomyStep.cs#357〕
+        foreach (var s in region.Producers)
+            if (s.GoodId is Catalog.EducationId or Catalog.HealthcareId or Catalog.AdminId or Catalog.DomesticServiceId
+                && s.LaborPopIndex >= 0 && s.LaborPopIndex < region.Pops.Count)
+            {
+                var m = region.Markets[s.GoodId];
+                var sp = region.Pops[s.LaborPopIndex];
+                if (sp.IsSoldier) continue;
+                double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+                sp.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(unsold));
+            }
 
         // -1=未捕捉（初回は現在値から開始＝跳躍なし）。〔履歴 EconomyStep.cs#358〕
         if (coef.JobSearchUsesEma > 0)
