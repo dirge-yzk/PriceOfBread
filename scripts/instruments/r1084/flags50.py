@@ -13,7 +13,7 @@ for t in open(W + '/t2_paper.tsv', encoding='utf-8').read().split('\n')[2:]:
 # 名: (新しい推奨, 区分, 束, 理由 1 行)
 K = {
  'SubsistenceNoBoughtTech': ('消す', 'E0', '束A', 'EconomyStep.cs:113・:134 の三項の右（StapleEffTech）を残す・3 回の不採用で閉じた'),
- 'ConsumeBudgetSavingsRatePerMonth': ('消す', 'E0', '束A', 'EconomyStep.cs:1737 の if の塊・相方は 10-16 に削除・精査 経7〈不要〉'),
+ 'ConsumeBudgetSavingsRatePerMonth': ('消す', 'E0', '束A', 'EconomyStep.cs:1737 の if の塊・相方は 10-16 に削除・精査 経7〈不要〉・(1257) c128k20 で枝と係数を削除済み'),
  'EduReachFromAdmin': ('消す', 'E0', '束A', 'EconomyStep.cs:2108 の `* (旗>0 ? … : 1.0)`＝×1.0 の除去（前例 (804)(843)）・⚠精査 経11〈修正〉と作者 2026-09-08 の裁定を覆す（紙 S04-33〈作者裁定を上書き・推奨で〉が作者「全て推奨で」で決定済み）'),
  'StapleDemandRebalance': ('点火の線（紙 S04-L5 で 1 回・不採用なら器を消す）', 'E1', 'S04-L5', '紙 S04-10（19:14・旗の表 17:04 より後）〈直す（線 S04-L5 で 1 回試す）〉作者「全て推奨で」で決定＝消すのは不採用の後。消すときは：EconomyStep.cs:1819 の項・InstrumentsFd.cs:60 の条件と :72 の段の符号（+0）は列の値を変えない・MultiNationSim.cs:202 は CostLedger の説明の文字列＝字を残すか .cost の説明の差を宣言'),
  'FactoryBuildRefIsReal': ('消す', 'E0', '束A', 'Coefficients.cs:1161 の関数の中の if 1 行だけ（作者 11-12 の裁定③）・⚠精査 経3〈修正（点火）〉は 11-12 の裁定が後'),
