@@ -89,3 +89,15 @@
 - 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c130rcB 10`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝SMALL（ident.cfg :152）＋popclose_s・engineer_s・factory_s（止める線の台本・門・記録の読み手が開く表を grep した＝stoplines1002〔nation_s・pxmonth_s・scalars_s・region_s〕・an_h2〔region_s・migration_s〕・home_break〔stock_s〕・ng.sh〔casualty_s・wars_s〕・ukdef975〔fiscal_s〕・gate_rc〔class_s・popclose_s〕・swell〔region_s〕は全て SMALL の内）。
 - 読み手：scripts/instruments/c130rc/read_rc.sh（c129al/read_al.sh の写し＋gate_rc・swell・paper_rc）。基準 keep_1267/base_ins・N1 keep_1260/n1・NG 基準 ng1260_20261120・nullgate の基準 m1260。
 - D:：腕 B は約 8〜10GB〈推〉＝起こす直前に shutil で〈35GB＋10GB〉を測る。
+
+== 追記 1（腕 Z・突然変異・旗 1 の計器の束の後・腕 B の前・2026-11-21）==
+- 腕 Z c130rcz（器の木 c3081b8fb＝旗 0・別の worktree wt_c130rc_z・--work D:/PoB_work/ident_c130rc・--tests-delta 4）：**判定: 恒等（段 1）**＝測った種で一致。素の 5 種 179 行・計器つき 10 種 184 行が m1260 と全行バイト一致・推定 234.9／236.4 秒・計器の 29 表 289 本バイト一致・注視の表 4934 行一致・Category!=FullLength 3067（3063＋4）・FullLength 3（measurements/m1270_20261121/ident_c130rcz.txt）。㉙：走っている間は別の worktree＝測った木の HEAD は動いていない。
+- ㉘（器の木 c3081b8fb・8 クラス）：152 本 全て緑（scan28z.txt）。
+- 突然変異（使い捨ての木・measurements/m1270_20261121/mut_result.txt）：none 緑・μ0 赤（T1・T2・T3・T4）・μopp 赤（T2）・μsign 赤（T1・T2・T4）・μmax 赤（T2）・μskip 赤（T3）。予言との差：μ0 で T4 も赤（T4 の対照〈招聘が起きていない〉＝旧の規則では a・b に入らない）＝予言の外れの側でなく赤が 1 本多い。
+- 旗 1 の木 85e21046c の計器の束（㊴＝FullyQualifiedName~Instrument）＋㉘：554 本のうち赤 4（スキップ 1）＝全て WriterRatchetTests の宣言の表（★(749) 軌道の件数を写しただけの番人）。取り直した行（1 種 40 四半期の実測）：
+  - 建設：見た生産者（旬）ConstructionSeen 1885→2118（+12.4%）
+  - 請求：見た生産者（月）ClaimProducers 1786→1835（+2.7%）
+  - 倒産の空の生産者×月 DeadProdBankrupt 2967→2190（−26.2%）
+  - 外交：覇権の判定の国×国 DiploHegemonScans 2077716→1835652（−11.7%）
+  - 新しい計数の処理は無い（RecruitSpecialists は CostLedger に件数を持たない）。機構の向き・大きさの Assert には触れていない。
+- ㉜ の一覧の外の赤 0。

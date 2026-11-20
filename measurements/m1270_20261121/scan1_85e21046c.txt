@@ -1,0 +1,6 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 2967) [1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1885) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2077716) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1786) [< 1 ms]
+失敗!   -失敗:     4、合格:   549、スキップ:     1、合計:   554、期間: 36 m 30 s - PriceOfBread.Tests.dll (net10.0)

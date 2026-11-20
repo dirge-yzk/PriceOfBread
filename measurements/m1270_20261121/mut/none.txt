@@ -1,0 +1,6 @@
+  成功 PriceOfBread.Tests.RecruitVacancyTests.T2_着いた量は空席の比 [4 s]
+  成功 PriceOfBread.Tests.RecruitVacancyTests.T4_配っても世界の人口と基礎貨幣は閉じる [886 ms]
+  成功 PriceOfBread.Tests.RecruitVacancyTests.T3_空席が無ければ呼ばない [461 ms]
+  成功 PriceOfBread.Tests.RecruitVacancyTests.T1_空席のある州へ入り_機会が最大の空席0の州へは入らない [542 ms]
+テストの実行に成功しました。
+     成功: 4
