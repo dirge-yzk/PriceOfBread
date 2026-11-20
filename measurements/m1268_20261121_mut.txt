@@ -1,0 +1,5 @@
+(1268) 突然変異（c130ih・2026-11-21）
+μ4＋μ5：Tg.War を常に真・Tg.Ed を常に真 → UnselectedTablesAccumulateNothing 赤：溜まっている（入口の閉じが効いていない）：WarSts,EdDiags
+μ6：Tg.War を wars_s だけにする → 赤 2 件（Cede 群・War/Warpair）。War 群（6 表）は緑のまま＝束の中の 1 表の行が拾う
+  失敗 PriceOfBread.Tests.InstrumentHookClosureTests.SelectedGroupIsByteIdenticalToFullRun(group: "Cede", csv: "cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep"···) [1 s]
+  失敗 PriceOfBread.Tests.InstrumentHookClosureTests.SelectedGroupIsByteIdenticalToFullRun(group: "War/Warpair", csv: "warpair_s") [1 s]
