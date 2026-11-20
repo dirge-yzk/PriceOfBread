@@ -1,0 +1,11 @@
+(1252) c127sw 読む線の計画（2026-11-20）
+作業の場所: D:/PoB_work/r1252_work/（表・出力）・台本 scripts/instruments/r1252/（コミットしない・合流が写す）
+worktree・枝は作らない（読むだけ・main の作業ツリーは読むだけ）。腕 0 本。
+読む生（読むだけ・消さない）:
+  基線 M  : D:/PoB_work/keep_1233/base_ins（種 1〜10）
+  基線 N1 : D:/PoB_work/keep_1233/n1（種 1〜10）
+  基線 S11: D:/PoB_work/keep_1233/a11（種 11〜20）
+  腕     : D:/PoB_work/keep_1247_rej/alB・k99B（種 1〜10・全表）・pfM（種 1〜10）・pfS11（種 11〜20・表は一部）
+使う表: region（州の人口と持ち主）・pop・migration・xmig・cess・cessp・secession・casualty・epi・nation
+記録: measurements/m1243_20261119・m1244_*・m1247_20261120/holcase_*・実装ログ (1243)(1244)(1247)
+問い: 1 内訳（2 件）2 錨 3 頻度（線×種）4 推奨と次の波の素案

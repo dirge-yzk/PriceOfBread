@@ -681,6 +681,8 @@
         //   常に 1.0 の産出率 Region.ColonialOutput・海上リードタイムのパイプライン Region.ColonialImportPipeline／係数 ColonialImportLagMonths ごと物理削除）。
 `````
 
+〔★(1254) 追記：(1251) c127kc で、この注の下の単一国の植民地財の補充の枝〈ColonialResources is null〉と欄 ColonialResources・ColonialAccess・関数 ColonialAccess() を消した＝単一国の構築も植民地財の生産者を置く〕
+
 ## §101　形=trail　元の行=943-943　次のメンバー=continue
 `````text
 // ★(186) 眠った生産者（重み0・労働の数にも入れない）
