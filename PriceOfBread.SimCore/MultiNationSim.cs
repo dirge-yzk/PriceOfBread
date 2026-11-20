@@ -306,7 +306,9 @@ public sealed class MultiNationSim
                 if (garrison is null || !(garrison.Size > 1e-9)) continue;
                 double stay = 1.0 - PoliticalQuantities.Clamp01(garrison.Militancy);   // 寝返らない割合＝1−闘争度
                 if (!(stay > 0)) continue;   // 否定形＝NaN も全員寝返る側へ倒れる（Math.Clamp は NaN を除去しない）
+                double insG0 = Instruments.On ? garrison.Size : 0;   // (1261) popclose_s
                 Military.MoveCohort(garrison, loyalPop, garrison.Size * stay, _coef);
+                if (Instruments.On) Instruments.PopMove(Instruments.PopMoveKind.Garrison, rr, loyalRegion, insG0 - garrison.Size);   // (1261) 兵の移しの口（gs の前提）
                 if (rr.ArmsStock is { } arms)
                 {
                     var kept = loyalRegion.ArmsStock ??= new System.Collections.Generic.Dictionary<int, double>();
@@ -1585,7 +1587,9 @@ public sealed class MultiNationSim
             if (!(flow > 1e-9)) continue;
             arrived.Add(dp); arrivedFlow.Add(flow);
             // ★人的資本を運搬（⚠招聘の要点はまさにこれ＝識字と技能を持って来る）。大衆移民と同じ1本（持参金＝自分の貯蓄を持って来る・運賃なし）。
-            moved += MoveAbroad(src, dst, sp, dp, flow);
+            double mvSp = MoveAbroad(src, dst, sp, dp, flow);
+            moved += mvSp;
+            if (Instruments.On) Instruments.PopMove(Instruments.PopMoveKind.Specialist, srcR, dstR, mvSp);   // (1261) popclose_s
         }
         if (!(moved > 0)) return;
         // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。〔履歴 MultiNationSim.cs#161〕

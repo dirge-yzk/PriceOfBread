@@ -149,6 +149,7 @@ public class InstrumentHookClosureTests
         [InlineData("Cede/Unif", "formation2_s,tensionwhy_s,unifwar_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Lwk/Lwk", "lwk_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Lwk/Rdh", "rdh_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
+        [InlineData("PopClose/PopClose", "popclose_s")]   // (1261) 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Mintcap/Mintcap", "mintcap_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Mintcap/Mintreg", "mintreg_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Portch/Portch", "portch_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
@@ -189,6 +190,7 @@ public class InstrumentHookClosureTests
         [InlineData("Lwk", "age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s")]
         [InlineData("Mintcap", "mintcap_s,mintreg_s")]
         [InlineData("Pay", "pay_s")]
+        [InlineData("PopClose", "popclose_s")]
         [InlineData("Paysale", "paysale2_s")]
         [InlineData("Portch", "portch_s,portlm_s")]
         [InlineData("Prdf", "prdf_s")]
@@ -226,7 +228,7 @@ public class InstrumentHookClosureTests
     }
 
     // 閉じた file の累積の置き場（辞書・ConditionalWeakTable）。nation_s だけを選ぶ走りで空のまま、全表の走りでは溜まる。
-    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs"];
+    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs"];
 
     [Fact]
     public void UnselectedTablesAccumulateNothing()

@@ -1340,6 +1340,7 @@ public sealed class Simulation
                 if (mp.Size > 1e-9 && same.PopOf(mp.ClassId) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
             double inP = same.SumPopulation() - pop0;
             w.PopulationDelta += inP;   // inP〔履歴 Simulation.cs#141〕
+            if (Instruments.On) Instruments.PopMove(Instruments.PopMoveKind.ColonyMerge, null, same, inP);   // (1261) popclose_s
             same.AnnexBaggage += inP;   // 案Y（観測専用）：併合の持ち込み人口＝本土の自然増ではない（新しい州のときと同じ記帳）
             return same;
         }

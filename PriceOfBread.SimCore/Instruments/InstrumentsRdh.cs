@@ -29,10 +29,11 @@ public static partial class Instruments
     [ThreadStatic] static Region? RdhCurRegion;
 
     /// <summary>DemographicStep の州のループの頭と終わり（読むだけ）：出生と死の hook（<see cref="DemoPop"/>・<see cref="DemoFamine"/>）を足す州。</summary>
-    internal static void RdhRegion(Region? r) { if (RdhOn) RdhCurRegion = r; }
+    internal static void RdhRegion(Region? r) { if (RdhOn || Tg.PopClose) RdhCurRegion = r; }
 
     static void RdhDemo(double births, double deathsNormal, double deathsFamine)
     {
+        if (Tg.PopClose && RdhCurRegion is { } pcr) PopCloseDemo(pcr, births, deathsNormal, deathsFamine);   // (1261) popclose_s
         if (!RdhOn || RdhCurRegion is not { } r) return;
         var a = RdhOf(r); a.Births += births; a.DeathsNormal += deathsNormal; a.DeathsFamine += deathsFamine;
     }

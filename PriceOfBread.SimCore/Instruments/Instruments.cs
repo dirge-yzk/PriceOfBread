@@ -1854,6 +1854,7 @@ public static partial class Instruments
         if (time == "warm") { TrClear(sim); ScopeClear(sim); AibClear(sim); }   // ScopeClear〔履歴 Instruments.cs#249〕
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // Nations〔履歴 Instruments.cs#250〕
         RdhPhase(sim, seed, time);   // RdhPhase〔履歴 Instruments.cs#251〕
+        PopClosePhase(sim, time);    // (1261) popclose_s
     }
 
     /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）。財政の月次の行を書き出し、階級の所得と支出の四半期の合計をゼロへ戻す。</summary>
@@ -1971,6 +1972,7 @@ public static partial class Instruments
         SubstTable(sim, seed, q); CornintTable(sim, seed, q); MerchTable(sim, seed, q); PxstepTable(sim, seed, q); CorncfTable(sim, seed, q); LordstatTable(sim, seed, q);   // SubstTable〔履歴 Instruments.cs#326〕
         LandbaseTable(sim, seed, q);   // LandbaseTable〔履歴 Instruments.cs#327〕
         BasisxTable(sim, seed, q); WarQuarter(sim, seed, q);   // BasisxTable〔履歴 Instruments.cs#328〕
+        PopCloseTable(sim, seed, q);   // (1261) popclose_s
         foreach (var cp in sim.Diplomacy.Chokepoints)   // Chokepoints〔履歴 Instruments.cs#329〕
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -2027,6 +2029,7 @@ public static partial class Instruments
         InheritIntentClose(sim);   // InheritIntentClose〔履歴 Instruments.cs#362〕
         PrdfClose(sim);  // PrdfClose〔履歴 Instruments.cs#363〕
         RdhClose(sim);   // RdhClose〔履歴 Instruments.cs#364〕
+        PopCloseClose(sim);   // (1261) popclose_s
         PrdsClose(sim);  // PrdsClose〔履歴 Instruments.cs#365〕
         CessClose(sim, sk.Seed);   // CessClose〔履歴 Instruments.cs#366〕
         CedeClose(sim, sk.Seed);   // CedeClose〔履歴 Instruments.cs#367〕
@@ -2108,6 +2111,7 @@ public static partial class Instruments
         var f = FlowOf(src); f.MigrationOutK += sizeK; FlowOf(dst).MigrationInK += sizeK;
         var to = f.MigrationTo ??= new();
         to[dst] = to.GetValueOrDefault(dst) + sizeK;
+        PopMove(PopMoveKind.Migration, src, dst, sizeK);   // (1261) popclose_s
     }
     /// <summary>
     /// 越境の移民（MultiNationSim.MoveMigrants の運搬の前・読むだけ）。〔履歴 Instruments.cs#418〕
@@ -2117,6 +2121,7 @@ public static partial class Instruments
         var f = FlowOf(src); f.CrossBorderOutK += flowK; FlowOf(dst).CrossBorderInK += flowK;
         var to = f.CrossBorderTo ??= new();   // region_s の越境の列と同じ量を組に分けただけ〔履歴 Instruments.cs#419〕
         to[dst] = to.GetValueOrDefault(dst) + flowK;
+        PopMove(PopMoveKind.CrossBorder, src, dst, flowK);   // (1261) popclose_s
     }
 
     /// <summary>州ごとの行（<c>region</c>＝全ての国の全ての州・四半期の末）と州の間の移民の組（<c>migration</c>＝出る州→入る州の量）。州の空洞化（F1 の線）の読み手 <c>scripts/instruments/hol/an_h2.py</c> が読む。
