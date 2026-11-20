@@ -1,0 +1,63 @@
+    public static readonly DiscoveryRow[] Discoveries =
+    [
+        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),
+        new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),
+        new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),
+        new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),
+        new("黄鉄鉱法", SulfuricAcidId, "黄鉄鉱法", DiscoveryField.Process, 1830),
+        new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),
+        new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),
+        new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),
+        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),
+        new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),
+        new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),
+        new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),
+        new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),
+        new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),
+        new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880),
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880, EngineerParent: SteamEngineId),
+        new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),
+        new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),
+        new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910),
+        new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910),
+        new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),
+        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId),
+        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId),
+        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight),
+        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId),
+        new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId),
+        new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId),
+        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId),
+        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId),
+        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId),
+        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId, After: "加硫ゴム"),
+        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId, After: "蒸気機関"),
+        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId, After: "内燃機関"),
+        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId, After: "電化製品"),
+        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea, After: "汽船"),
+        new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),
+        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea, After: "装甲艦"),
+        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land, After: "内燃機関"),
+        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air, After: "内燃機関"),
+        new("化学兵器", ChemicalWeaponId, "", DiscoveryField.Weapon, 1910, WarDomain.Land),
+        new("特許", NoGood, "", DiscoveryField.Institution, 1780),
+        new("株式会社", NoGood, "", DiscoveryField.Institution, 1850),
+        new("社会主義", NoGood, "", DiscoveryField.Idea, 1830),
+        new("共産主義", NoGood, "", DiscoveryField.Idea, 1840, After: "社会主義"),
+        new("帝国主義", NoGood, "", DiscoveryField.Idea, 1860),
+        new("ファシズム", NoGood, "", DiscoveryField.Idea, 1920),
+        new("合成染料", DyeId, "合成染料", DiscoveryField.Process, 1850),
+        new("ルブラン法", SodaAshId, "ルブラン法", DiscoveryField.Process, 1790),
+        new("ソルベー法", SodaAshId, "ソルベー法", DiscoveryField.Process, 1860),
+        new("電解", SodaAshId, "電解", DiscoveryField.Process, 1890, After: "石炭火力"),
+        new("鋳鉄の骨組み", BuildingId, "鋳鉄の骨組み", DiscoveryField.Process, 1790),
+    ];
+    public const int NoGood = -1;
+
+    private static readonly (int Good, string Recipe, int SuccessorGood, string SuccessorRecipe)[] Retirements =
+    [
+        (SteamEngineId, "鋳鉄の機関", SteelId, ""),
+    ];
+
+    private static readonly int[] WeaponSuccessorGoods = [RifleId, ArtilleryId, SteamEngineId];
+
