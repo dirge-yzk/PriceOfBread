@@ -51,8 +51,7 @@ public sealed partial class Coefficients
     public double MaintLocoRate = 0.5;   // 経18（係数化・中立）：インフラ保守1単位あたりの機関車(車両更新)消費率
     public double MaintAdvLaborRate = 0.4;   // 経18（係数化・中立）：インフラ保守1単位あたりの高度労働力(機関士・保線技師)消費率
     public double MaintLaborRate = 0.3;   // 経18（係数化・中立）：インフラ保守1単位あたりの労働力(火夫・荷役)消費率
-    public double GridReplaceRate = 0.002;   // 経18（係数化・中立）：送電網の置換需要率
-    public double GridKeepPerMonth = 0.998;   // 経18（係数化・中立）：送電網の月の残存率(毎月GridCapacityに乗算＝1−これが経年劣化)
+    public double GridReplaceRate = 0.002;   // 経18（係数化・中立）：送電網の置換需要率（＝月の劣化率。EconomyStep の劣化は 1−これ）
     public Share CurrencyHoldingRatio = new(0.1);   // 経6（流通現金）：家計・企業の手元現金退蔵比率
     public double HoardPanicWeight = 1.0;       // 信用崩壊時の退蔵増幅（Confidence=0で退蔵率が2倍＝準備がさらに1割減る）
     public double WageClampMin = 0.3;   // 経12：賃金/役務の床＝WageClampMin×(参照価格×物価水準)

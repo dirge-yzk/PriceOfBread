@@ -1122,7 +1122,7 @@ public static class EconomyStep
             {
                 double gridP = Math.Max(region.Markets[Catalog.GridId].Price, Eps);
                 double gridBudget = Math.Max(0, budget - construction * buildCostPerUnit - maintenance * maintCostPerUnit);
-                double gridWant = coef.GridBuildRate * Math.Max(0, region.LastElecWant - region.GridCapacity) + coef.GridReplaceRate * region.GridCapacity;   // 経18：送電網の置換需要（既定0.002＝旧直書きと同値・中立。GridKeepPerMonth=0.998 の劣化と対＝二重表現。notes参照）
+                double gridWant = coef.GridBuildRate * Math.Max(0, region.LastElecWant - region.GridCapacity) + coef.GridReplaceRate * region.GridCapacity;   // 経18：送電網の置換需要（既定0.002＝旧直書きと同値・中立。劣化は 1−GridReplaceRate＝同じ率の 1 本。(1255)）
                 gridBuild = Math.Min(gridWant, gridBudget / gridP);
                 investDemand[Catalog.GridId] += gridBuild;
             }
@@ -2146,8 +2146,8 @@ public static class EconomyStep
             if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Grid), gridCost, gridQ, gridCost);   // InvestorPopIndex〔履歴 EconomyStep.cs#302〕
             if (!warmFrozen) region.GridCapacity += gridQ;   // ★助走：送電網も買って払うが容量にはしない（能力の凍結）
         }
-        // ⚠助走中は劣化も止める（GridKeepPerMonth と GridReplaceRate は対＝片方だけ効かせると定常が崩れる。係数の注記どおり）。
-        if (!warmFrozen) region.GridCapacity *= coef.GridKeepPerMonth;   // 送電網の経年劣化（維持＝再敷設が要る。経18：既定0.998＝旧直書きと同値・中立。GridReplaceRate=0.002 の置換需要と対＝二重表現。notes参照）
+        // ⚠助走中は劣化も止める（劣化は 1−GridReplaceRate＝置換需要率と 1 本。(1255) で残存率の係数 GridKeepPerMonth を消した）。
+        if (!warmFrozen) region.GridCapacity *= 1.0 - coef.GridReplaceRate;   // 送電網の経年劣化（維持＝再敷設が要る。(1255)：1.0−0.002 は旧 GridKeepPerMonth 0.998 とビット一致）
 
         // 買えた艦は下の決済で積む（劣化→積み増し＝旧 FleetStock と同じ順）。〔履歴 EconomyStep.cs#303〕
         if (region.FleetUnits is { } fleetUnits)
