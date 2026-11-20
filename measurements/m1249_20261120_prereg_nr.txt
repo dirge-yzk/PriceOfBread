@@ -136,3 +136,9 @@
       [9] の〈他の行の赤は止める〉に当たる。分類：同じ ★(749) の型（旗 B が統一の宣戦を塞ぎ戦争の数が変わる→同盟の候補の居る月が減る軌道の件数・減る側＝計算量の改善）。
       ㉜ の改め（作者 2026-11-19）〈一覧に無い赤は原因を調べて同じ線で直す・止めるのは原因が読めない赤だけ〉に従い、止めずに記録して合流の木で 1 回取り直す（この線では表を書き換えない）。
       ＝事前登録の [9] の文より ㉜ の改めを先にした（報告の先頭に名乗る）。機構の向き・大きさ・判定の Assert ではない。
+
+[追記 2026-11-20・腕 B の前（D: の空きと表の絞り）]
+  腕 B を起こす直前の D: の空き 56.6GB（shutil）＜〈35GB＋28GB〉。走っている腕 0 本（arms.sh free 6）＝待っても空かない見込み。
+  ＝腕 B を表を絞って回す（armb.sh の NR_TABLES＝POB_INSTRUMENTS_TABLES）：keep_1247/base_ins の 162 表＋新しい 3 表から、門・止める線・記録の読み手（read_nr.sh・ng.sh・stoplines906 とその下の台本）が開かない大きい 16 表を外した 149 表（scripts/instruments/c127nr/nr_tables.txt）。
+    外した表（keep_1247 で約 16.6GB）：cpop_s・sellr_s・cearn_s・prodcap_s・rulepower_s・subst_s・cgrp_s・mintreg_s・paysale2_s・pop_s・tradeskip_s・merch_s・xmig_s・habitlg_s・lwk_s・opium_s（grep で読み手 0＝ident と刈り込みの道具だけが名を持つ）。
+    計器は読むだけ＝表の選びは世界を変えない（腕 Z の素の 5 種と計器つき 10 種が同じ成績表）。腕の見込みの量 約 12GB＝35＋12＝47GB ≦ 56.6GB。
