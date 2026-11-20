@@ -33,6 +33,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/> の国ごとの段）：挙げた国の首都の州の行を 1 本書く。</summary>
     static void ArmsFold(MultiNationSim sim, ulong seed, World w, int q, bool picked)
     {
+        if (!Tg.Arms) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!picked || !Wants("armsfill_s") || w.Regions.Count == 0 || w.WarmupFrozen || w.SelfPower is not { } sp) return;
         var cap = w.Regions[0]; var c = w.Coef;
         if (cap.ArmsStock is null) return;   // 武器庫が一度も開いていない＝軍需の段が走っていない（書かない行を 0 と数えない）
@@ -110,6 +111,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void ArmsClose(MultiNationSim sim)
     {
+        if (!Tg.Arms) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (ArmsSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

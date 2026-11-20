@@ -12,6 +12,7 @@ public static partial class Instruments
     /// <summary>購入が州の工業化度の在庫に足した点 <paramref name="points"/> と、それを設備に足した Scale の合計 <paramref name="installed"/>（EconomyStep が INS=1 のときだけ呼ぶ）。</summary>
     internal static void EquipmentBought(World w, Region r, double points, double installed)
     {
+        if (!Tg.Equipment) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = EqAccs.GetOrCreateValue(w);
         a.Points += points; a.Installed += installed;
     }
@@ -19,12 +20,14 @@ public static partial class Instruments
     /// <summary>配り（Distribute）1 回の台帳：<paramref name="drift"/>＝民間の持分の合計の達成値と目標の相対差・<paramref name="shortfall"/>＝薄めきれなかった・<paramref name="netScale"/>＝適格な個体の Scale の純増（配った量＋薄めの変化）。</summary>
     internal static void EquipmentDistributed(World w, double drift, bool shortfall, double netScale)
     {
+        if (!Tg.Equipment) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = EqAccs.GetOrCreateValue(w);
         a.DistNet += netScale; if (drift > a.DriftMax) a.DriftMax = drift; if (shortfall) a.Short++;
     }
     /// <summary>退場（Retire）1 回の台帳：<paramref name="netScale"/>＝戻した量−消えた量。</summary>
     internal static void EquipmentRetired(World w, double drift, bool shortfall, double netScale)
     {
+        if (!Tg.Equipment) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = EqAccs.GetOrCreateValue(w);
         a.RetiredNet += netScale; if (drift > a.DriftMax) a.DriftMax = drift; if (shortfall) a.Short++;
     }
@@ -33,6 +36,7 @@ public static partial class Instruments
 
     static void EqFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Equipment) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var acc = EqAccs.GetOrCreateValue(w);
         double points = acc.Points, installed = acc.Installed, completed = acc.Completed, dismantled = acc.Dismantled, distNet = acc.DistNet, retiredNet = acc.RetiredNet, driftMax = acc.DriftMax; int renormShort = acc.Short;
         acc.Points = acc.Installed = acc.Completed = acc.Dismantled = acc.DistNet = acc.RetiredNet = acc.DriftMax = 0; acc.Short = 0;   // 助走の月の分は EquipmentBought が呼ばれない（旗は暦が進む月だけ）＝四半期ごとに戻す

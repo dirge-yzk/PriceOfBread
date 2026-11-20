@@ -31,6 +31,7 @@ public static partial class Instruments
     /// <summary>EntryCtx.Finish（消費の財のループの後）から：投資家 POP の今月の消費の支払いを写す（翌月の判定が〈前月の消費の支払い〉として読む）。挙げた国だけ（EntryBegin が決める）。</summary>
     internal static void U4ConsStash(Region r, int popIndex, double consumptionPaid)
     {
+        if (!Tg.U4) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = U4Accs.GetValue(r, _ => new U4Acc());
         a.HasLastCons = true; a.LastConsPop = popIndex; a.LastCons = consumptionPaid;
     }
@@ -39,6 +40,7 @@ public static partial class Instruments
     /// <paramref name="desiredUnits"/>・<paramref name="budgetUnits"/>・<paramref name="unitMoney"/>・<paramref name="plannedUnits"/>＝本体の min の 2 つの引数・束の費用×(1+工賃)・min の結果（本体から引数で受ける・計算し直さない）。</summary>
     internal static void U4Decide(Region r, double desiredUnits, double budgetUnits, double unitMoney, double plannedUnits)
     {
+        if (!Tg.U4) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = U4Accs.GetValue(r, _ => new U4Acc());
         // 振動の履歴：判定は決済より前＝この時点の CurPaid は前に判定した月の支払いの和（建てない月は 0）
         double x = a.CurPaid; a.CurPaid = 0;
@@ -86,6 +88,7 @@ public static partial class Instruments
     /// <summary>ConsRegionPaid（建設の決済・州×月）から：払った額と建った束。</summary>
     internal static void U4Paid(Region r, double builtUnits, double cost)
     {
+        if (!Tg.U4) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = U4Accs.GetValue(r, _ => new U4Acc());
         a.CurPaid += cost; a.Paid += cost; a.Built += builtUnits;
     }
@@ -93,6 +96,7 @@ public static partial class Instruments
     /// <summary>助走の明け（ClearCons）：全ての写しを戻す（助走の月の消費・振動の履歴を持ち越さない）。</summary>
     static void U4ClearWorld(World w)
     {
+        if (!Tg.U4) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         U4Departed.Remove(w);   // Remove〔履歴 InstrumentsU4.cs#2〕
         foreach (var r in w.Regions) if (U4Accs.TryGetValue(r, out var a)) a.ClearAll();
     }
@@ -102,6 +106,7 @@ public static partial class Instruments
     /// </summary>
     static void U4Depart(World from, Region r)
     {
+        if (!Tg.U4) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!U4Accs.TryGetValue(r, out var a)) return;
         var snap = new U4Acc(); snap.Judged = a.Judged; snap.Desiring = a.Desiring; snap.Bound = a.Bound; snap.FlowAvail = a.FlowAvail; snap.FlowDesiring = a.FlowDesiring; snap.FlowBound = a.FlowBound; snap.Osc = a.Osc;
         snap.Desired = a.Desired; snap.Budget = a.Budget; snap.Planned = a.Planned; snap.BoundCut = a.BoundCut; snap.FlowDesired = a.FlowDesired; snap.FlowBudget = a.FlowBudget; snap.FlowPlanned = a.FlowPlanned; snap.FlowCurPlanned = a.FlowCurPlanned; snap.FlowEarned = a.FlowEarned; snap.FlowCons = a.FlowCons;
@@ -114,6 +119,7 @@ public static partial class Instruments
     /// <summary>四半期の末（挙げた国だけ）：consf_s の行（区分 2 本）を書き、四半期の積みを戻す（月をまたぐ写しは残す）。</summary>
     static void ConsfRows(Sink sk, ulong seed, int q, World w)
     {
+        if (!Tg.U4) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         sk.Consf ??= Open("consf", seed);
         if (!sk.ConsfHeader) { sk.Consf.WriteLine(ConsfHeaderText); sk.ConsfHeader = true; }
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

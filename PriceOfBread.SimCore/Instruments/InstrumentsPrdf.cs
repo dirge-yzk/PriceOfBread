@@ -15,6 +15,7 @@ public static partial class Instruments
     /// <summary><see cref="Factions.Step"/> の終わり（計器だけ）：この国のこの四半期の行を溜める。<paramref name="observed"/> は Factions.Step が求めたクラスタ（読むだけ）。</summary>
     internal static void PrdfObserve(World w, List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> observed, double totalPop)
     {
+        if (!Tg.Prdf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         const int com = (int)Ideology.Communism, soc = (int)Ideology.Socialism;
         double thr = FactionSnapshot.MinSizeFraction * totalPop;
         int nBody = 0, nBodyCom = 0, nBodySoc = 0, nCellCom = 0;
@@ -66,6 +67,7 @@ public static partial class Instruments
     /// <summary><see cref="Politics"/> の TriggerFactionRevolt の目標政体が決まった直後（計器だけ）：当四半期の行に目標を記す（Factions.Step より後に呼ばれる）。</summary>
     internal static void PrdfRevolt(World w, int target)
     {
+        if (!Tg.Prdf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!PrdfPending.TryGetValue(w, out var rows) || rows.Count == 0) return;
         var row = rows[^1];
         if (row.Q != Calendar.QuarterIndexOfTick(w.Tick)) return;
@@ -75,6 +77,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：溜めた行を書き出す。</summary>
     static void PrdfTable(MultiNationSim sim, ulong seed)
     {
+        if (!Tg.Prdf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         foreach (var n in sim.Nations)
         {
@@ -90,6 +93,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void PrdfClose(MultiNationSim sim)
     {
+        if (!Tg.Prdf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (PrdfSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

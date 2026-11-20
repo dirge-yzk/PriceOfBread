@@ -19,6 +19,7 @@ public static partial class Instruments
     /// <summary>nation_s の行の末尾へ足す 5 列（見出しは <see cref="NationRkHeaderText"/>）。読むだけ。</summary>
     static void NationRkCols(World w, List<string> cols)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         double fd = w.ForeignDebt.Value, fci = w.ForeignCapitalIn.Value;
         cols.Add(F(fd)); cols.Add(F(fci)); cols.Add(F(w.ForeignBondClaims.Value)); cols.Add(F(w.CapitalAbroad.Value));
         cols.Add(F(ForeignClaimShare(fd, fci, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value)));
@@ -72,6 +73,7 @@ public static partial class Instruments
     /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）に、首都から各州への届きの行（持ち主の取り分で数えた分）。四半期の最初の清算の複写（RpSnap）が要る。</summary>
     static void ReachTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("reach_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         if (RpSnapOf(sim.Diplomacy) is not { } snap) return;
         long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
@@ -105,6 +107,7 @@ public static partial class Instruments
 
     static void ReachClose(MultiNationSim sim)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!ReachSinks.TryGetValue(sim, out var s)) return;
         if (s.W is not null && System.Environment.GetEnvironmentVariable("POB_REACH_MS") == "1") System.Console.Error.WriteLine($"[reach_s] ms={ReachTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency:F1} rows={ReachRowCount}");
         s.W?.Dispose(); s.W = null;
@@ -117,6 +120,7 @@ public static partial class Instruments
     /// <summary>終戦の 1 本の記録の追記の直後（Instruments.On のときだけ）：その戦争の積んだ押し（毎月 war.PushA・PushB に足されたもの）を、いま追記した記録へ紐づける。</summary>
     internal static void WarEndPush(Diplomacy d, War war)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (d.EndedWars.Count == 0) return;
         WarPushes.AddOrUpdate(d.EndedWars[^1], new PushBox { A = war.PushA, B = war.PushB });
     }

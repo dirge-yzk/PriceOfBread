@@ -10,6 +10,7 @@ public static partial class Instruments
     /// <paramref name="scanTicks"/>・<paramref name="scanVisits"/>＝世界の合計の巡回の累計（Stopwatch の刻みと訪れた生産者・計算量の単価の根拠）。</summary>
     internal static void ClockSample(MultiNationSim sim, double worldTotal, long scanTicks, long scanVisits)
     {
+        if (!Tg.Clock) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var nations = sim.Nations;
         if (nations.Count == 0) return;
         int nr = Catalog.Discoveries.Length;
@@ -66,6 +67,7 @@ public static partial class Instruments
 
     static void ClockTable(Sink sk, ulong seed, MultiNationSim sim)
     {
+        if (!Tg.Clock) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         foreach (var n in sim.Nations)
         {
             var st = S(n.World);

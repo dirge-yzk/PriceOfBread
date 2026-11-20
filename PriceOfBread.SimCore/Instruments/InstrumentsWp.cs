@@ -12,6 +12,7 @@ public static partial class Instruments
 
     static void WpFold(Sink sk, ulong seed, World w, int q)
     {
+        if (!Tg.Wp) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(w.TotalPopulation > 0)) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var cap = w.Region;

@@ -26,6 +26,7 @@ public static partial class Instruments
     internal static void SelectTables(string? csv)
     {
         TablesSel = ParseTables(csv);
+        Tg.Refresh();   // (1256) 表ごとの入口の bool も同じ選びで決め直す
         CearnOn = System.Environment.GetEnvironmentVariable("POB_CEARN") != "0" && (TablesSel is null || Wants("cearn_s") || Wants("cgrp_s") || Wants("cpop_s"));   // 3 表とも選ばれなければ累積ごと飛ぶ（POB_CEARN=0 と同じ既存の切り口）
     }
     static string[] SplitNames(string? s) => s is { Length: > 0 } ? s.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) : [];
@@ -34,6 +35,7 @@ public static partial class Instruments
     internal static void Configure(string? dir, string? nations)
     {
         Dir = dir ?? ""; Picked = SplitNames(nations); On = Dir.Length > 0;
+        Tg.Refresh();   // (1256)
         if (On) System.IO.Directory.CreateDirectory(Dir);
     }
 

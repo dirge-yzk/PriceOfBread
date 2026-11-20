@@ -40,6 +40,7 @@ public static partial class Instruments
     /// <summary>PopDecision.Run の直前（読むだけ・助走の月も）：Run と同じ式で、その州のその月の〈移る値打ち〉・g・流れ・門を積む。</summary>
     internal static void RdhPd(World w, Region region, double serfFree)
     {
+        if (!Tg.Lwk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!RdhOn) return;
         var a = RdhOf(region);
         var c = w.Coef;
@@ -102,6 +103,7 @@ public static partial class Instruments
     /// <summary>断面（<see cref="Phase"/>）：open は O の行・warm は助走の和の W の行。</summary>
     static void RdhPhase(MultiNationSim sim, ulong seed, string time)
     {
+        if (!Tg.Lwk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (time == "open") RdhRows(sim, seed, "O", -1);
         else if (time == "warm") RdhRows(sim, seed, "W", -1);
     }
@@ -112,6 +114,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void RdhClose(MultiNationSim sim)
     {
+        if (!Tg.Lwk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (RdhSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

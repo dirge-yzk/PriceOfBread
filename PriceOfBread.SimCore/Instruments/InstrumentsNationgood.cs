@@ -27,6 +27,7 @@ public static partial class Instruments
     /// <summary>清算の頭：越境の蓄えを 0 へ戻す（World.ImportsByGood の 0 戻しと同じ位置）。計器が切れていれば何もしない。</summary>
     internal static void NgHead(InternationalMarket m, IReadOnlyList<Simulation> nations, int gc, double[]? tar = null, double[]? exRate = null)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On) return;
         var a = NgAccs.GetValue(m, _ => new NgAcc());
         int nn = nations.Count;
@@ -45,6 +46,7 @@ public static partial class Instruments
     /// <summary>四半期の末の最後：次の四半期のために、移った州の集合を空にし、居る州を覚える（最初の呼びは覚えるだけ＝新しい州に数えない）。</summary>
     internal static void NgEventsRoll(MultiNationSim sim)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (sim.Diplomacy is not { } dip) return;
         var ev = NgEvs.GetValue(dip, _ => new NgEv());
         ev.Moved.Clear();
@@ -86,6 +88,7 @@ public static partial class Instruments
 
     static void NationgoodTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || sim.Nations.Count == 0 || !NgYear(sim.Nations[0].World.Year)) return;
         if (!NgAccs.TryGetValue(sim.Market, out var a) || !a.Any) return;   // 国の名簿は清算のたびに World→添字で写す（NgHead）＝清算の後に増減・並べ替えがあっても World で引く・清算に居なかった国の行は越境 0

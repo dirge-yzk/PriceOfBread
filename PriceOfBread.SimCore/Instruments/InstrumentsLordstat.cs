@@ -53,6 +53,7 @@ public static partial class Instruments
 
     static void LordstatTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = LordstatSinks.GetValue(sim, _ => new LordstatSink());
         sk.W ??= Open("lordstat", seed);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -134,6 +135,7 @@ public static partial class Instruments
 
     static void LordstatClose(MultiNationSim sim)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (LordstatSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

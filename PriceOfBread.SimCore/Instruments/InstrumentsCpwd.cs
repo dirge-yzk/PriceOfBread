@@ -40,6 +40,7 @@ public static partial class Instruments
     /// </summary>
     internal static void CpwdMark(IReadOnlyList<Simulation> nations, int i, int slot, double flightTotal)
     {
+        if (!Tg.Cpwd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On) return;
         if (slot == 0 && i == 0) CpwdBegin(nations);
         if (_cpwdF0 is null || _cpwdF1 is null || i >= _cpwdF0.Length) return;
@@ -52,6 +53,7 @@ public static partial class Instruments
     /// <summary>国 <paramref name="i"/> の利札の行（落としの後）：<paramref name="paid"/>＝TakeGold の返り値。請求・未払い・落とすはずの額は計器が状態から書く。</summary>
     internal static void CpwdRow(IReadOnlyList<Simulation> nations, int i, double paid, double flightTotal)
     {
+        if (!Tg.Cpwd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || _cpwdF0 is null || _cpwdF1 is null || _cpwdBuf is null || i >= _cpwdF0.Length) return;
         var w = nations[i].World;
         double e = w.FxRate, f0 = _cpwdF0[i], f1 = _cpwdF1[i], f2 = w.ForeignCapitalIn.Value;
@@ -94,6 +96,7 @@ public static partial class Instruments
     /// <summary>還流の段の前（<paramref name="phase"/> 0）と後（1）の対外資産の金建ての和。</summary>
     internal static void CpwdOwner(IReadOnlyList<Simulation> nations, int phase)
     {
+        if (!Tg.Cpwd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || _cpwdA0 is null) return;
         double s = 0;
         for (int i = 0; i < nations.Count && i < _cpwdA0.Length; i++)
@@ -109,6 +112,7 @@ public static partial class Instruments
     /// <summary>呼び出しの終わり：世界の行を溜める。</summary>
     internal static void CpwdEnd(IReadOnlyList<Simulation> nations)
     {
+        if (!Tg.Cpwd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || _cpworldBuf is null) return;
         double fs = 0, ab = 0;
         foreach (var n in nations) { var w = n.World; fs += w.ForeignCapitalIn.Value * w.FxRate; ab += w.CapitalAbroad.Value * w.FxRate; }
@@ -123,6 +127,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：溜めた行を追記する。</summary>
     static void CpwdTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Cpwd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (_cpwdBuf is null && _cpworldBuf is null && _cpwdftBuf is null) return;
         if (!ReferenceEquals(sim.Nations.Count > 0 ? sim.Nations[0].World.Diplomacy : null, _cpwdKey)) { _cpwdBuf?.Clear(); _cpworldBuf?.Clear(); _cpwdftBuf?.Clear(); return; }
         var sk = CpwdSinks.GetValue(sim, _ => new CpwdSink());
@@ -153,6 +158,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void CpwdClose(MultiNationSim sim)
     {
+        if (!Tg.Cpwd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (CpwdSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.WW?.Dispose(); sk.WW = null; sk.WF?.Dispose(); sk.WF = null; }
     }
 }

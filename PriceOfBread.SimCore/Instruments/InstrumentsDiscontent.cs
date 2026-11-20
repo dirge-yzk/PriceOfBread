@@ -15,6 +15,7 @@ public static partial class Instruments
 
     static void DcontFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Discontent) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var c = w.Coef;
         double[] coord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);

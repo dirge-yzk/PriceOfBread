@@ -19,22 +19,26 @@ public static partial class Instruments
     /// <summary>TryBuildFacility が（国家の支払い率 r の門を通って）入った：その回の余地（上限−数えた出費）とバッファ・国庫。</summary>
     internal static void AiBuildEnter(World w, double room, double buffer)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         a.Calls++; a.RoomSum += room; a.BufferSum += buffer; a.TreasuryEntry = w.Treasury.Value;
     }
     /// <summary>門で戻った回（funding＝支払い率 r＜1・そうでなければ月の出費の余地が無い）。funding の回は Enter の前に戻る＝ここで calls に足す。</summary>
     internal static void AiBuildReturn(World w, bool funding)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         if (funding) { a.Calls++; a.ReturnFunding++; } else a.ReturnRoom++;
     }
     internal static void AiBuildOverCap(World w, int goodId)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         a.OverCap++; string n = Catalog.Goods[goodId].Name; a.OverCapGoods.TryGetValue(n, out var c); a.OverCapGoods[n] = c + 1;
     }
     internal static void AiBuildSkipRoom(World w, int goodId)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         a.SkipRoom++; string n = Catalog.Goods[goodId].Name; a.SkippedGoods.TryGetValue(n, out var c); a.SkippedGoods[n] = c + 1;
     }
@@ -43,6 +47,7 @@ public static partial class Instruments
     /// </summary>
     internal static void AiBuildBest(World w, int goodId, bool rootDead)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         a.BestN++;
         if (!rootDead) return;
@@ -53,6 +58,7 @@ public static partial class Instruments
     /// </summary>
     internal static void AiBuildRootDropped(World w, int goodId, int blockerGood)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         a.RootDropped++; string n = Catalog.Goods[goodId].Name; a.DroppedGoods.TryGetValue(n, out var c); a.DroppedGoods[n] = c + 1;
         string b = blockerGood >= 0 && blockerGood < Catalog.Goods.Length ? Catalog.Goods[blockerGood].Name : "-"; a.DroppedBlockers.TryGetValue(b, out var c2); a.DroppedBlockers[b] = c2 + 1;   // 行き止まりの財（根が無い原因）
@@ -60,6 +66,7 @@ public static partial class Instruments
     /// <summary>州の最良を SetStateTarget で押した結果：<paramref name="started"/>＝着工した（ConstructionLeft ＞ 0）・そうでなければ拒まれて意志が残った。</summary>
     internal static void AiBuildTried(World w, int goodId, double est, bool started, bool overCostCap)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = AibAccs.GetOrCreateValue(w);
         if (!started) { a.Refused++; return; }
         a.Started++; if (overCostCap) a.StartedOverCap++; a.StartedOutlay += est > 0 ? est : 0;
@@ -70,6 +77,7 @@ public static partial class Instruments
     /// <summary>助走の分は数えない（Phase の warm が呼ぶ）。助走は 20 四半期の AI の判断が最初の行に積まれ、G0 の分母が偏る。</summary>
     static void AibClear(MultiNationSim sim)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         foreach (var n in sim.Nations)
         {
             var a = AibAccs.GetOrCreateValue(n.World);
@@ -81,6 +89,7 @@ public static partial class Instruments
 
     static void AibFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.AiBuild) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var a = AibAccs.GetOrCreateValue(w);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

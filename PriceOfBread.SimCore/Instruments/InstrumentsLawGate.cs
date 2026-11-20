@@ -7,6 +7,7 @@ public static partial class Instruments
 
     static void LawGateFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.LawGate) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         int Code(AntitrustLaw? a) => a is { } v ? (int)v : -1;

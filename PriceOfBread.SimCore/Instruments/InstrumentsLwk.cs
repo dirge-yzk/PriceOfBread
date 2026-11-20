@@ -21,6 +21,7 @@ public static partial class Instruments
     /// <summary>hook A（EconomyStep の供給のループの前・毎月）：計器が自分で州の m と POP の役割を数える。</summary>
     internal static void LwkRegion(Region r, Coefficients c)
     {
+        if (!Tg.Lwk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var reg = LwkRegs.GetOrCreateValue(r);
         reg.Coef = c;
         int n = r.Pops.Count;
@@ -54,6 +55,7 @@ public static partial class Instruments
     /// <summary>hook B（EconomyStep の労働の塊・InitialWork の捕捉の直後・民兵の前）：エンジンが使った <paramref name="workEngine"/> と参加率 <paramref name="part"/> を受け取り、旧と新の式は計器が書く。</summary>
     internal static void LwkWork(Region r, int lp, double part, double workEngine)
     {
+        if (!Tg.Lwk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!LwkRegs.TryGetValue(r, out var reg) || reg.Coef is not { } c || lp < 0 || lp >= r.Pops.Count || lp >= reg.Role.Length) return;
         var p = r.Pops[lp];
         var rec = LwkRecs.GetOrCreateValue(p);
@@ -80,6 +82,7 @@ public static partial class Instruments
 
     static void LwkFold(Sink sk, ulong seed, World w, int q, bool yearEnd)
     {
+        if (!Tg.Lwk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!yearEnd) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string nation = NameOf(w);

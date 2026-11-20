@@ -129,6 +129,7 @@ public static partial class Instruments
     /// <summary>受け口（EconomyStep の④・RGO だけ・INS のときだけ）：国営持分と赤字の枝の後・割る前の地代の総額 <paramref name="rent"/>。</summary>
     internal static void LandshareRgo(World w, Region r, Producer s, double rent, double sf0)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         // WarmupFrozen〔履歴 InstrumentsLandshare.cs#9〕
         if (!w.WarmupFrozen && s.IsRgo)
         {
@@ -188,6 +189,7 @@ public static partial class Instruments
     /// </summary>
     internal static void LandshareExp(World w, Region r, Producer s, double rent, double sc)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(rent > 0)) return;
         var a = LsAccs.GetValue(w, _ => new LsAcc());
         a.MExp += rent;
@@ -215,6 +217,7 @@ public static partial class Instruments
     /// <summary>月の閉じ（Instruments.MonthClose の頭・その月の全ての州の EconomyStep と不在地主の送金の後）：期待と data と実際を比べ、四半期の和へ足す。</summary>
     internal static void LandshareMonth(World w)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!LsAccs.TryGetValue(w, out var a)) return;
         if (!w.WarmupFrozen)
         {
@@ -284,6 +287,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：全ての国の行を書き、四半期の和を 0 へ戻す。</summary>
     static void LandshareTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = LandshareSinks.GetValue(sim, _ => new LandshareSink());
         sk.W ??= Open("landshare", seed);
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -356,6 +360,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void LandshareClose(MultiNationSim sim)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (LandshareSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

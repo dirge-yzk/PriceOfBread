@@ -37,6 +37,7 @@ public static partial class Instruments
     /// </summary>
     internal static void ScopeRowX(InternationalMarket m, World buyer, Region r, long fills, long invalid, long toBest, long skippedLB)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var s = CscAccs.GetValue(m, _ => new CscState());
         var key = (NameOf(buyer), (int)r.Tier, CscxPayer(r));
         if (!s.MapX.TryGetValue(key, out var a)) s.MapX[key] = a = new CscxAcc();
@@ -65,6 +66,7 @@ public static partial class Instruments
     /// <summary>走査した買い手行の終わり（<c>BilateralMarket</c>・読むだけ）。<paramref name="cls"/>＝行の種類（0〜3）・<paramref name="dealt"/>＝1 件でも成約したか・<paramref name="fell"/>＝覚えが尽きて探し直したか。</summary>
     internal static void ScopeRow(InternationalMarket m, World buyer, int cls, bool dealt, bool fell, bool thr, long fills)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = CscOf(m, buyer, 0, cls);
         a.Rows++; if (dealt) a.DealtRows++; if (fell) a.FallbackRows++;
         a.Fills += fills;
@@ -73,12 +75,14 @@ public static partial class Instruments
     /// <summary>番でなくて飛ばした行（種類 4）。<paramref name="thr"/>＝買い手の州が律速か（飛ばした行のうち律速の州の行が (ii) の起こす母集団）。</summary>
     internal static void ScopeSkip(InternationalMarket m, World buyer, bool thr)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = CscOf(m, buyer, 0, 4);
         a.Rows++; if (thr) a.ThrRows++;
     }
     /// <summary>潜在量の記帳 1 件（買い手の役）。<paramref name="raw"/>＝行が足そうとした素の量（重みを掛ける前）・<paramref name="added"/>＝実際に買い手の州の潜在量へ足した量（重みを含む・前後の差）。</summary>
     internal static void ScopePot(InternationalMarket m, World buyer, int cls, bool thr, double raw, double added)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = CscOf(m, buyer, 0, cls);
         a.PotRaw += raw; a.PotAdded += added;
         if (thr) a.ThrPotRaw += raw;
@@ -86,6 +90,7 @@ public static partial class Instruments
     /// <summary>成約 1 件（買い手の国の役 B と売り手の国の役 S）。</summary>
     internal static void ScopeDeal(InternationalMarket m, World buyer, World seller, int cls, bool afterFallback, double qty, double unit, double bestDelivered, double localPrice, double sellerShipPrice, bool thr)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var b = CscOf(m, buyer, 0, cls);
         if (thr) b.ThrQty += qty;
         b.Deals++; b.Qty += qty; b.QUnit += qty * unit; b.QBest += qty * bestDelivered; b.QLp += qty * localPrice; b.QSell += qty * sellerShipPrice;
@@ -123,6 +128,7 @@ public static partial class Instruments
     /// <summary>年の終わり（と試合の終わりの残り）：蓄えを行にして書き、0 へ戻す。</summary>
     static void ScopeFold(Sink sk, ulong seed, int q, MultiNationSim sim, bool force = false)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd && !force) return;
         if (!CscAccs.TryGetValue(sim.Market, out var s) || s.Map.Count == 0) return;

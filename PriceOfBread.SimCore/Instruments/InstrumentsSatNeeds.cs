@@ -23,6 +23,7 @@ public static partial class Instruments
     /// <summary>EconomyStep.Run の必要の台帳の行の直後：重み（POP の大きさ）つきで分子（met）と分母（total）を足す。</summary>
     internal static void SatNeeds(World? w, Pop p, GoodTier tier, double met, double total, double want)
     {
+        if (!Tg.SatNeeds) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w is null || w.WarmupFrozen) return;
         if (!ReferenceEquals(w, satNeedsLastW))
         {
@@ -45,6 +46,7 @@ public static partial class Instruments
 
     static void SatNeedsTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.SatNeeds) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("satneeds_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var sk = SatNeedsSinks.GetValue(sim, _ => new SatNeedsSink());
         if (sk.W is null) { sk.W = Open("satneeds", seed); sk.W.WriteLine(SatNeedsHeaderText); }

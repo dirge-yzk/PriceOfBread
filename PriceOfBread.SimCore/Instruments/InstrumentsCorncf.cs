@@ -127,6 +127,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：全ての国の行を書く。</summary>
     static void CorncfTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = CorncfSinks.GetValue(sim, _ => new CorncfSink());
         sk.W ??= Open("corncf", seed);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -243,6 +244,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void CorncfClose(MultiNationSim sim)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (CorncfSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

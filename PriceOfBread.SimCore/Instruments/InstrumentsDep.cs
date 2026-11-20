@@ -68,6 +68,7 @@ public static partial class Instruments
     /// <summary>SetDependency の尻（張った後）：1 行を貯める。</summary>
     internal static void DepAfter(Diplomacy d, DepPre pre, string callerMember, int callerLine)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var par = DepParents(d, out int links);
         string cut = pre.SuzOfSuz is { } ss && !d.IsDependentOf(ss, pre.Suz) ? NameOf(ss) : "";
         var cp = CpOf(d);
@@ -82,6 +83,7 @@ public static partial class Instruments
     /// <summary>(1206) RemoveDependency の中（実際にリンクが在った時だけ）：外しの行（kindCode 3）を貯める＝離反・宗主の消滅・国の消滅・輪の切断。kindCode 2 は試合の終わりの行（r1196 の指定の 2 から変えた）。</summary>
     internal static void DepRemoved(Diplomacy d, Power suzerain, Power dependent, string callerMember, int callerLine)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var cp = CpOf(d);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         DepStates.GetValue(d, _ => new DepState()).Cuts.Add(string.Join('	',
@@ -103,6 +105,7 @@ public static partial class Instruments
 
     static void DepTable(Sink sk, Diplomacy d)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         using var wr = Open("dep", sk.Seed);
         wr.WriteLine(DepHeaderText);
         foreach (var line in DepRowsPending(d)) wr.WriteLine(line);

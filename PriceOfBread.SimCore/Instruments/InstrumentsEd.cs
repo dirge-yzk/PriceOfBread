@@ -27,6 +27,7 @@ public static partial class Instruments
 
     static void EdFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Ed) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         double mmPop = 0; int natStage = Government.TaxStage(PolicyAxis.EducationSpending, w.EducationSpending);
         double popK = 0, fundW = 0, fundedPop = 0, shortPop = 0, need = 0, priv = 0, avail = 0, want = 0, take = 0, wantMoney = 0, takeMoney = 0, demand = 0, produced = 0, sold = 0, priceW = 0, relW = 0, priceDen = 0, hWant = 0, hTake = 0, hGross = 0, hSub = 0, hSubExp = 0, coverW = 0, fillNum = 0, fillDen = 0;

@@ -93,6 +93,7 @@ public static partial class Instruments
     /// <summary>複写の口（BilateralMarket.StepBilateral の中で毎回呼ばれ、頭の On／Wants の門で何もせず戻る・実際に写すのは四半期の最初の清算）。値を書かない・清算の配列を握らない（長さ tc だけ写す）。</summary>
     internal static void RpSnapshot(bool firstClearingOfQuarter, IReadOnlyList<Simulation> nations, TrEntry[] tr, int tc, int[] seaNodeOf, double[] seaHalf, bool[] suezOkN, bool[] panOkN, double[] terrCost, double[] landRatio, int[] landNode, double[] landGraft, double landRoute)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || !firstClearingOfQuarter) return;   // 計器の門はここで読む（清算の側の On の読みを増やさない・OnDoubleReadScanTests）
         if (!(Wants("rulepower_s") || Wants("rulepeace_s") || Wants("rulepoweralloc_s") || Wants("rponset_s") || Wants("reach_s"))) return;
         if (nations.Count == 0 || nations[0].World.Diplomacy is not { } dip) return;
@@ -146,6 +147,7 @@ public static partial class Instruments
     /// <summary>四半期の末：影の表を全ての国の全ての州へ書く。呼び口は Quarter の 1 行。</summary>
     static void RulePowerTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool wantP = Wants("rulepower_s"), wantW = Wants("rulepeace_s"), wantA = Wants("rulepoweralloc_s") && q % 40 == 0, wantO = Wants("rponset_s");
         if (!(wantP || wantW || wantA || wantO) || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         RpTableCount++;

@@ -127,6 +127,7 @@ public static partial class Instruments
 
     static void RecipeoutTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || sim.Nations.Count == 0 || !NgYear(sim.Nations[0].World.Year)) return;
         var sk = RoSinks.GetValue(sim, _ => new RoSink());

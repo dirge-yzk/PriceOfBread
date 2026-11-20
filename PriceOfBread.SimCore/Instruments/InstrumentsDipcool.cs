@@ -69,6 +69,7 @@ public static partial class Instruments
     /// <summary>緊張の走査の直後：エンジンが書いた値を読み、四半期の数へ積む。</summary>
     internal static void DipcoolAfter(Diplomacy d, Coefficients c, Dictionary<long, double> tension, DipcoolPre pre)
     {
+        if (!Tg.Dipcool) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = DipcoolSinks.GetValue(d, _ => new DipcoolSink()).Acc;
         a.Months++;
         foreach (var r in pre.Rows)
@@ -108,6 +109,7 @@ public static partial class Instruments
 
     static void DipcoolTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Dipcool) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = DipcoolSinks.GetValue(sim.Diplomacy, _ => new DipcoolSink());
         var a = sk.Acc; sk.Acc = new DipcoolAcc();
         if (!Wants("dipcool_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
@@ -122,6 +124,7 @@ public static partial class Instruments
 
     static void DipcoolClose(MultiNationSim sim)
     {
+        if (!Tg.Dipcool) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (DipcoolSinks.TryGetValue(sim.Diplomacy, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

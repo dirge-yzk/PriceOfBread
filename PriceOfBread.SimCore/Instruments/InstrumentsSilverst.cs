@@ -49,6 +49,7 @@ public static partial class Instruments
     /// <summary>造幣の引き取り（MintGold から州・金属・量）。銀と金鉱以外は溜めない。</summary>
     internal static void SilverMintCapture(Region r, int metal, double qty)
     {
+        if (!Tg.Silverst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (metal != Catalog.SilverId && metal != Catalog.GoldOreId) return;
         var a = SilverMintAccs.GetOrCreateValue(r);
         if (metal == Catalog.SilverId) { a.Ag += qty; a.MonthsAg++; } else { a.Au += qty; a.MonthsAu++; }

@@ -26,6 +26,7 @@ public static partial class Instruments
     /// <summary>講和が植民地の争奪の節に入った所（予算を立てた直後）。前の講和の行を閉じ、この講和の文脈を置く。</summary>
     internal static void CessPeace(Diplomacy dip, int year, Power winner, Power loser, double score, double absScore, double budget)
     {
+        if (!Tg.Cess) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var st = CessOf(dip);
         CessFlush(st);
         st.Seq++; st.Open = true; st.Year = year;
@@ -51,6 +52,7 @@ public static partial class Instruments
     /// <summary>②③④（州の移転）を移す直前に呼ぶ（読むだけ）。region＝移る州（まだ敗者の州一覧にある）。route＝2〜4。engineCost・budgetBefore・budgetAfter＝②はエンジンの値・③④は nan（この講和の①②の後の残りを使う）。reachKm＝③④の実効距離（②は nan）。</summary>
     internal static void CessObserveRegion(Diplomacy dip, Coefficients c, int year, int route, Power winner, Power loser, Region region, double engineCost, double budgetBefore, double budgetAfter, double reachKm)
     {
+        if (!Tg.Cess) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var cc = Climate.CityCoord(region.Name);
         CessCore(dip, c, year, route, winner, loser, region.Name, region.Tier.ToString(), cc.Lat, cc.Lon, region, region.Resources.Length,
             Math.Max(0, region.SumPopulation()) / Math.Max(1e-9, dip.ColonyUnitPop), engineCost, budgetBefore, budgetAfter, reachKm);
@@ -127,6 +129,7 @@ public static partial class Instruments
     /// <summary>試合の終わり：cess_s・cessp_s を書く（行が無くても見出しは書く＝読み手が空の表を読める）。</summary>
     internal static void CessClose(MultiNationSim sim, ulong seed)
     {
+        if (!Tg.Cess) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var st = CessOf(sim.Diplomacy);
         CessFlush(st);
         using (var wr = Open("cess", seed)) { wr.WriteLine(CessHeaderText); foreach (var row in st.Rows) wr.WriteLine(row); }

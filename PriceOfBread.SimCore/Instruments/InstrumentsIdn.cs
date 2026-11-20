@@ -14,6 +14,7 @@ public static partial class Instruments
     /// <summary><see cref="Discovery.Step"/> の <c>Score</c> の直後（計器だけ）：この国のこの四半期の行を溜める（全ての国・毎四半期）。</summary>
     internal static void IdnObserve(World w, Discovery.WorldView? view, Coefficients c, Discovery.Terms[] terms)
     {
+        if (!Tg.Idn) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         int q = Calendar.QuarterIndexOfTick(w.Tick);   // 全ての国を毎四半期書く（G1 の覆いを〈全ての国・全ての四半期〉にそろえる＝事前登録 追記 3）
         double popK = w.TotalPopulation;
         if (!(popK > 0)) return;
@@ -37,6 +38,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：溜めた行を書き出す。</summary>
     static void IdnTable(MultiNationSim sim, ulong seed)
     {
+        if (!Tg.Idn) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         foreach (var n in sim.Nations)
         {
             if (!IdnPending.TryGetValue(n.World, out var rows) || rows.Count == 0) continue;
@@ -51,6 +53,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void IdnClose(MultiNationSim sim)
     {
+        if (!Tg.Idn) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (IdnSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

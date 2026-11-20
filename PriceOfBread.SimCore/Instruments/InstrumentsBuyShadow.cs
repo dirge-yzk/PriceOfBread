@@ -38,6 +38,7 @@ public static partial class Instruments
     /// 偏りはエンジンの局所変数で読めない＝再構成（貿易収支＝累積の差・政策金利・物価水準・実質 GDP の公式を、ここで書き直す）。</summary>
     internal static void BsBiasRead(World w, double gdp)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("s4cost_s")) return;
         var a = BsWs.GetValue(w, _ => new BsW());
         double flow = w.CumulativeTradeFlow.Value, bal = flow - a.PrevFlow; a.PrevFlow = flow;
@@ -107,6 +108,7 @@ public static partial class Instruments
 
     static void BuyShadowTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool w4 = Wants("s4cost_s"), w7 = Wants("s7staple_s");
         if ((!w4 && !w7) || sim.Nations.Count == 0) return;
         int yearLabel = sim.Nations[0].World.Year;
@@ -260,6 +262,7 @@ public static partial class Instruments
     /// <summary>行の門（旧の門）の直前の呼び。</summary>
     internal static void TbRow(InternationalMarket mk, World w, Region r, int g, Market m, Coefficients c, double lp, double rpT, double headPrice, double lbMulMin, double fx)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("tb_s")) return;
         var a = TbNOf(TbStates.GetValue(mk, _ => new TbState()), w);
         var x = TbClassify(r, g, m, c, w, lp, rpT, headPrice, lbMulMin, fx);
@@ -276,6 +279,7 @@ public static partial class Instruments
     /// <summary>成約の直後の呼び（m.Stock は成約の後）。</summary>
     internal static void TbDeal(InternationalMarket mk, World w, World sellerW, Region r, Region sellerR, int g, Market m, Coefficients c, double lp, double unitA, double rpT, double qA, bool cross, double fx)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("tb_s")) return;
         var st = TbStates.GetValue(mk, _ => new TbState());
         var a = TbNOf(st, w);
@@ -304,6 +308,7 @@ public static partial class Instruments
 
     static void TbTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("tb_s") || sim.Nations.Count == 0) return;
         _tbEpoch++;
         if (!TbStates.TryGetValue(sim.Market, out var st)) return;
@@ -476,6 +481,7 @@ public static partial class Instruments
     /// <summary>行の門の直前の呼び：旧の門・計器の A-1 の門・W2(a) の母集合。engSkip＝エンジンの門の結果・engPh0＝エンジンが門で評価した P̂（評価しなければ NaN）。</summary>
     internal static void T1Row(InternationalMarket mk, World w, Region r, int g, Market m, double lp, double rpT, double headPrice, double lbMulMin, double fx, bool a1On, bool engSkip, double engPh0)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("t1buy_s")) return;
         var st = T1States.GetValue(mk, _ => new T1State());
         var a = T1NOf(st, w); var c = w.Coef;
@@ -524,6 +530,7 @@ public static partial class Instruments
     /// <summary>成約の直後の呼び（m.Stock は成約の後）。engQ＝エンジンがこの成約に使った Q（旗 0 は NaN）。</summary>
     internal static void T1Deal(InternationalMarket mk, World w, Region r, int g, Market m, double lp, double unitA, double rpT, double qA, bool cross, double vA, double fx, double engQ)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("t1buy_s")) return;
         var st = T1States.GetValue(mk, _ => new T1State());
         var a = T1NOf(st, w); var c = w.Coef;
@@ -564,6 +571,7 @@ public static partial class Instruments
 
     static void T1Table(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("t1buy_s") || sim.Nations.Count == 0) return;
         if (!Wants("tb_s")) _tbEpoch++;   // 生産者の一覧を四半期ごとに作り直す（tb_s が回るときは TbTable が進める＝同じ刻み）
         if (!T1States.TryGetValue(sim.Market, out var st)) return;

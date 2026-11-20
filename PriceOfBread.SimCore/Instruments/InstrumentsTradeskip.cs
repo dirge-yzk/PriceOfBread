@@ -285,6 +285,7 @@ public static partial class Instruments
     internal static string FR(double v) => double.IsNaN(v) ? "nan" : double.IsInfinity(v) ? (v > 0 ? "inf" : "-inf") : v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);   // FR〔履歴 InstrumentsTradeskip.cs#19〕
     static void TradeskipTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.BuyShadow) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         if (!yearEnd || !TsAccs.TryGetValue(sim.Market, out var a) || !a.Filled || !a.Ended) return;   // 行は清算に居た国（TsBegin の時点の名簿・名前も写し）だけ
         var sk = TsSinks.GetValue(sim, _ => new TsSink());

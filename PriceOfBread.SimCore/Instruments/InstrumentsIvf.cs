@@ -16,6 +16,7 @@ public static partial class Instruments
     /// <summary>建設の組を求めた月（EconomyStep の私的な建設の頭＝資本区画があって投資家の POP がある州だけ。追記 2 で工場建設の頭の呼びは外した）。助走の月は数えない。前の月から組が替わったら Flips を 1 足す（最初の月は替わりに数えない）。</summary>
     internal static void IvfChoice(World w, Region r, bool building)
     {
+        if (!Tg.Ivf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen) return;
         var a = IvfAccs.GetValue(r, _ => new IvfAcc());
         a.Months++; if (building) a.EraMonths++;   // EraMonths〔履歴 InstrumentsIvf.cs#2〕
@@ -27,6 +28,7 @@ public static partial class Instruments
     /// <summary>私的な建設の決済（construction＞0 の月）：組の 4 成分の配給率の最小を足す。</summary>
     internal static void IvfConstruction(World w, Region r, double r0, double r1, double r2, double r3)
     {
+        if (!Tg.Ivf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen) return;
         var a = IvfAccs.GetValue(r, _ => new IvfAcc());
         a.BottleMonths++;
@@ -35,6 +37,7 @@ public static partial class Instruments
 
     static void IvfFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Ivf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!((picked && q <= IvfMaxQuarter) || yearEnd)) return;
         double popK = w.TotalPopulation;
         if (!(popK > 0)) return;   // 死んだ国（人口 0）は行を出さない

@@ -21,6 +21,7 @@ public static partial class Instruments
     /// </summary>
     internal static void LwStep(Region r, int goodId, double price, double floor)
     {
+        if (!Tg.Lw) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (goodId != Catalog.LaborId) return;
         var rec = LwSteps.GetOrCreateValue(r);
         rec.Price = price; rec.Floor = floor; rec.Fresh = true;
@@ -34,6 +35,7 @@ public static partial class Instruments
 
     static void LwFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Lw) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var c = w.Coef;
         var plain = new LwAcc(); var farm = new LwAcc();
