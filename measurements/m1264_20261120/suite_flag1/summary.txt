@@ -1,0 +1,8 @@
+/d/PoB_work/c129al_work/suite1/nonfull.log:  失敗 PriceOfBread.Tests.CorncfInstrumentTests.T5_輸入の割合 [472 ms]
+/d/PoB_work/c129al_work/suite1/nonfull.log:失敗!   -失敗:     1、合格:  2823、スキップ:     1、合計:  2825、期間: 42 m 57 s - PriceOfBread.Tests.dll (net10.0)
+/d/PoB_work/c129al_work/suite1/ui.log:成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 42 s - PriceOfBread.Tests.Ui.dll (net10.0)
+list_PriceOfBread.Tests.Ui_full.txt 0
+list_PriceOfBread.Tests.Ui_nonfull.txt 234
+list_PriceOfBread.Tests_full.txt 3
+list_PriceOfBread.Tests_nonfull.txt 2825
+成功!   -失敗:     0、合格:    27、スキップ:     0、合計:    27、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
