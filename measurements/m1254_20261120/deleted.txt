@@ -1,0 +1,6 @@
+# (1254) 合流が消した物（2026-11-20）
+c127bd_work/armB/out_c127bdB_10/ins と c127nr_work/armB/out_c127nrB_10/ins から読み手の表（nation_s・region_s・stock_s・wars_s・casualty_s・pxmonth_s・nationgood_s・secession_s・migration_s・clock_s・engineer_s・disc_s・scalars_s・pxgoods_s・epi_s・rule_s・fiscal_s・silverst_s・warpair_s・ideology_s・idn_s・formation2_s・unifwar_s・tensionwhy_s）の外を消した（bd 25.35GB・nr 9.09GB）＝★(778)〈残せないほど大きいなら門が読む表だけ〉・線と反証役 v・v2 は帰属を読み終えていた・合わせた木の腕を回す D: の空きのため（腕 Z＋M の前の空き 46.8GB）。
+ident_m1248x（線 c127ex の ident の生・4.2GB）と c127ex_art（隔離ビルド 1.3GB）＝ex は線の ident で〈判定: 恒等（段 1）〉・判定の全文は measurements/m1248_20261120/ident_m1248x.txt に写した・合わせた木の腕 Z で恒等を確かめ直す（走行中に D: の空きが 26.5GB へ下がった）。
+m1254_work/suite_r の建てた物（自分の物）。
+ident_m1254z（自分の腕 Z の生・刈り込み後）＝判定: 恒等を measurements/m1254_20261120/identz/ に写した後
+c127bd_work/armB・c127nr_work/armB（読み手の表だけに刈った腕 B の生）と c127nr_work/z0_tables（旗 0 の新しい 3 表）＝bd・nr を採った（S11 の止める線と両方の門が通った）＝合わせた木の M が新しい基線の生

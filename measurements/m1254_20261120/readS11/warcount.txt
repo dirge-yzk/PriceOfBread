@@ -1,0 +1,9 @@
+M: war=0 civil=0 secession=0 deadK_war=0 deadK_civil=0 deadK_sec=0 種ごとの分離=['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'] 種ごとの内戦=['-', '-', '-', '-', '-', '-', '-', '-', '-', '-']
+N1: war=5541 civil=120 secession=5 deadK_war=161379 deadK_civil=868 deadK_sec=10 種ごとの分離=[0, 0, 0, 0, 2, 0, 0, 0, 1, 2] 種ごとの内戦=[9, 18, 16, 13, 12, 7, 8, 16, 12, 9]
+B: war=0 civil=0 secession=0 deadK_war=0 deadK_civil=0 deadK_sec=0 種ごとの分離=['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'] 種ごとの内戦=['-', '-', '-', '-', '-', '-', '-', '-', '-', '-']
+N1/M war: 5541/0 = inf STOP(>=10倍)
+N1/M civil: 120/0 = inf STOP(>=10倍)
+N1/M secession: 5/0 = inf STOP(>=10倍)
+B/M war: 0/0 = inf STOP(>=10倍)
+B/M civil: 0/0 = inf STOP(>=10倍)
+B/M secession: 0/0 = inf STOP(>=10倍)

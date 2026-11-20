@@ -1,0 +1,11 @@
+seed 11	max/1792 1.500
+seed 12	max/1792 1.268
+seed 13	max/1792 1.323
+seed 14	max/1792 1.315
+seed 15	max/1792 1.472
+seed 16	max/1792 1.117
+seed 17	max/1792 1.206
+seed 18	max/1792 1.304
+seed 19	max/1792 1.242
+seed 20	max/1792 1.321
+MAX 1.500	H1 緑（線 18）
