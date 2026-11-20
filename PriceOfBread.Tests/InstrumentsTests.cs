@@ -839,53 +839,6 @@ public class InstrumentsTests
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 
-    /// <summary>★(273) 段5 の上限（係数 <c>ConsumeBudgetSavingsRatePerMonth</c>＝d）：d＝1/120 にすると、計器（<c>CapOf</c>＝同じ式の写し）が読む「大衆の Paid ＞ 上限」の割合 <c>capBoundPaidShareD120</c> が全ての行で 0 になる
-    /// （＝予算が上限で切られ、大衆の Paid は 前月の所得＋貯蓄×d を超えない）。d＝0 の対照では同じ指標が部分的に立つ（上限が実際に拘束する盤面であることの確認）。
-    /// 期待は計器の側（貯蓄の月初の写しと前月の所得から作る）＝EconomyStep の切る式から作らない。
-    /// ⚠壊し方＝EconomyStep の上限の行を外す（拘束が立って赤）・上限を前月の所得だけにする（貯蓄の項が無く対照の差が消えて赤）・d＝0 でも評価する（d＝0 の対照の拘束が消えて赤）。</summary>
-    [Fact]
-    public void 段5の上限は大衆の_Paidを前月の所得プラス貯蓄のd倍の内に収める()
-    {
-        double MaxBound(double d, out double minOff)
-        {
-            string dir = NewDir();
-            try
-            {
-                var sim = Make();
-                foreach (var n in sim.Nations) n.World.Coef.ConsumeBudgetSavingsRatePerMonth = new RatePerMonth(d);
-                Instruments.Configure(dir, "*");
-                try { RunMatch(sim, Quarters, instr: true); }
-                finally { Instruments.Configure(null, null); }
-                var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
-                double max = 0; minOff = double.PositiveInfinity; int rows = 0; var ff = FirstFourNames(dir);   // (989) B12
-                foreach (var r in nr)
-                {
-                    double b = Col(nh, r, "capBoundPaidShareD120"); if (double.IsNaN(b)) continue;
-                    if (ff.Contains(r[Array.IndexOf(nh, "nation")])) rows++; max = Math.Max(max, b); minOff = Math.Min(minOff, b);
-                }
-                Assert.True(rows >= 4 * Quarters - 2, $"拘束の行が少ない（{rows}）");
-                return max;
-            }
-            finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
-        }
-        double on = MaxBound(1.0 / 120, out _);
-        double off = MaxBound(0.0, out _);
-        Assert.True(off > 0.05, $"対照（d＝0）で拘束が立たない（最大の割合 {off:G6}）＝この盤面では上限を測れていない");
-        Assert.True(on <= 0.5 * off, $"d＝1/120 の上限が効いているのに大衆の Paid が上限を超える割合が対照の半分以下に下がらない（上限あり {on:G6}・なし {off:G6}）");
-    }
-
-    /// <summary>★(273) 上限が決して効かない d（1e9）の走行は、d＝0（上限なし）の走行と全ビットで一致する＝上限の分岐が、効かないときに他の状態を何も動かさない（乱数・書き込み・順序）。
-    /// ⚠壊し方＝上限の分岐の中で予算以外（Savings・Earned など）を書く・d＞0 のとき別の順序で POP を走査する、で赤。</summary>
-    [Fact]
-    public void 段5の上限が効かない大きさのdは上限なしとビット一致する()
-    {
-        var off = Make(); RunMatch(off, Quarters, instr: false);
-        var big = Make();
-        foreach (var n in big.Nations) n.World.Coef.ConsumeBudgetSavingsRatePerMonth = new RatePerMonth(1e9);
-        RunMatch(big, Quarters, instr: false);
-        Assert.Equal(Digest(off), Digest(big));
-    }
-
     /// <summary>残存国の財の表：条件の述語を手で確かめ、本国を失った国（オーストリアの州を首都1つを残して割譲）の四半期の末の需給が、世界の市場の値の直の和に合う。
     /// 期待値は盤面の市場から作る（計器の式から作らない）。対照＝割譲前の四半期にはその国の行が無い・十分に大きい国の行は無い。</summary>
     [Fact]

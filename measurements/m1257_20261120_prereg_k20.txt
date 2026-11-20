@@ -1,0 +1,35 @@
+(1257) c128k20 事前登録（腕・項の前の最初のコミット）  基点 f442e96a0・枝 c128k20・worktree D:/PoB_work/wt_c128k20
+種類：削除（恒等）。段 1（普段の層）。予言 0。
+
+[1] 恒等の線
+- 作者 2026-11-16「既に動いている機能でも、問題があれば作り直したり、削除しても構いません。」・作者 2026-11-06 の〈働かない物の削除〉・精査 docs/202610/20261018/20261018_休眠と作りかけの精査.md:87（経7〈不要〉）。
+- 資本と投資の材料（docs/202611/20261119/20261119_資本と投資の作り直し_設計_材料.md:43）はこの器を〈今ある物〉として挙げるだけで、点火の予定は無い（grep で確かめた）＝消す。
+- 係数 ConsumeBudgetSavingsRatePerMonth は既定 0＝EconomyStep の枝は一度も評価されない＝本体の出力は 1 ビットも変わらない。浮動小数の順序が変わる箇所は無い（式を消すだけ・残る式に触れない）。
+
+[2] 消す物と残す物（読み手の grep：*.cs *.py *.sh *.xaml *.json *.cfg の全域）
+消す：
+- Coefficients.p07_wiring_prewarm.cs:122 の係数（RatePerMonth・既定 0）。
+- EconomyStep.cs:1436〜:1445 の if の塊（注〔履歴 #191〕は docs/history/EconomyStep.cs.md に既に有る）。
+- DormantIdentityTests.cs:82 の行 → RetiredFields へ移す。
+- EconomyTests.cs:671〜 の d の試験 1 本・InstrumentsTests.cs:842〜 の d の試験 2 本。
+- scripts/instruments/r1084/flags50.py:16 の注・docs/ゲーム概要と実装機能.md:500 の行。
+残す：
+- 計器 CapOf（Instruments.cs）と列 capBoundPaidShareD120＝自分の d の並び CapDs を読み係数は読まない。この線は Instruments.cs に触れない。
+- 過去の docs・measurements の記録（歴史）。docs/history へは係数の行の写しが既にある。
+読み手の grep の結果：SimCore＝係数の宣言と EconomyStep の 1 枝だけ／Runner・App・Display＝0／Tests＝上の 3 ファイル／scripts＝flags50.py の注 1 行／POB_COEF の名前の文字列＝scripts に 0／SaveGame＝係数は World.Coef 経由で名前で書かれる型（RatePerMonth は既存の型）＝欄が減るだけ（旧版の互換は要らない）。機能の台帳は grep で該当の行が無い（行の追加も不要）。
+他の線との重なり：EconomyStep.cs は :1430〜:1447 だけ（c128ci の :2140〜:2155 と離れる）・Coefficients.p07 は :122 の 1 行・DormantIdentityTests と WriterRatchetTests は自分の行だけ。
+
+[3] 試験
+- 新しい試験は無い（機構を消す）。DormantIdentityTests.RetiredFields が係数名の復活を禁じる（名前が Coefficients に残らないこと）。
+- 旧→新の表：
+  EconomyTests 段5の上限は予算を前月の所得プラス貯蓄のd倍で切り〜（d＞0 の枝だけを確かめる）→ 消す。
+  InstrumentsTests 段5の上限は大衆の_Paidを〜収める（エンジンの d を置く）→ 消す。CapOf の式の単体の試験は、同じファイルの CapOf の拘束の試験（d の並びを自分で持つ）が既に守る＝書き換えず消す。
+  InstrumentsTests 段5の上限が効かない大きさのdは上限なしとビット一致する → 消す（分岐が無くなる）。
+  DormantIdentityTests.DormantZeroFields の行 → RetiredFields へ。
+  ★(743) の区分：消す機構だけを確かめていた試験の削除（②の外の〈機構ごと削除〉）。機構の向き・大きさを黙って弱める書き換えは無い。
+- 突然変異 μ1：枝を残して係数だけ消す → ビルドが赤（読み手の取り残し）。
+- 試験の数の予言（㉑）：Tests 2728→2725・Tests.Ui 234 のまま・合計 2962→2959（--tests-delta -3）。DormantIdentityTests の表は 1 行減って RetiredFields が 1 行増える。
+- ㉘ 点検：IndustrializationReaderTests の許可表・new MoneyStock( の件数・route_anchors.tsv の鍵・WriterRatchetTests の宣言の表は、この係数と枝に触れない（grep 0）＝書き換えの予言 0。
+
+[4] 恒等：素の 5 種・計器つき 10 種が m1254 と名乗り行を除いて全行一致。計器の表の差の宣言は無し。計算量の件数は増えない（減る側）。
+[5]〈判定: 恒等〉なら採る。一致しなければ変更を外して報告に回す。

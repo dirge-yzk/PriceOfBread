@@ -79,7 +79,6 @@ public class DormantIdentityTests
         "SerfGateCoversPool",           // C-03：農奴の移動制限を失業プール経路へも広げる
         // ★DomesticFlightHasHost は 2026-09-22 に**点火**（旗ごと削除＝逃避の受け皿が常に外資の負債を記帳）＝この表から外した。
         // ★ScarceCountsIncludeColonies（希少鉱物の総量保存の k/N に植民地を数える）は 2026-10-04 (197) で**点火**（反証役 vq2#1）＝この表から外した。
-        "ConsumeBudgetSavingsRatePerMonth",   // ★(273) 線P 段5＝消費の予算を min(予算, 前月の所得＋貯蓄×d) で切る（EconomyStep.Run ③の入口）。0＝分岐に入らず評価しない＝厳密恒等（d＝0 を式に入れると min(予算, 前月の所得) になり恒等でないのでコードは d＞0 のときだけ評価する）。腕は POB_COEF で置く。
         // ★LuxuryIncomeElasticity・DomesticServiceIncomeFactorExponent（(302)(329) 奢侈品と家事奉仕の所得弾力）は 2026-10-14 (331) の合流で**点火**（0.5・1）＝この表から外した。
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
@@ -259,6 +258,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "ConsumeBudgetSavingsRatePerMonth",   // (1257) c128k20 K20：消費の予算の上限（EconomyStep の d＞0 の枝・既定 0＝休眠）を枝ごと削除。計器 CapOf は自分の d の並びで残る。
         "GuildMobilityDrag",   // (1227) c124kb 項 3 K10′：同業組合の移動の遅れ（既定 0・主ゲート GuildLawGate も 0＝休眠）を削除。法の軸 GuildLawGate・GuildRentPremium は残す
         "HealthcareLiteracyGateOff", "HealthcareEducationGate",   // (1227) c124kb 項 1：(1222) K03 の旗（既定 1）と識字の錠の係数を焼き込んだ（旗 0 の枝と係数を消した＝番人は HealthcareLiteracyGateTests）
         "SecessionConsciousnessWeight", "RedefinedMandateFloor", "RedefinedMandateNcMin", "RedefinedMandateMandateMin", "NationBuildConscript", "NationBuildAccumRate", "NationBuildDecayRate", "NationBuildCrisisDefense", "NationBuildCrisisCivilWar", "NationBuildCrisisIndependence", "NationBuildInitialDefault", "RadioNationWeight", "NationConsciousnessReachDecay",   // (1193) c119nd 段 B：信任帝政の床の分岐と国民意識の物理（漸化式・POP の欄・国民形成費・計器の列）を消した。

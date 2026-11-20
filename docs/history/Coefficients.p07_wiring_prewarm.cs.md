@@ -1171,3 +1171,6 @@
 
 ## (1193) c119nd で削除
 - SkillMobilizationRelief 0.5（読み手は徴兵の国民意識の門だけ）。国民意識の物理の削除の線。
+
+## (1257) c128k20 で削除
+- ConsumeBudgetSavingsRatePerMonth 0（読み手は EconomyStep の d＞0 の枝だけ＝既定で評価されない）。枝の注は docs/history/EconomyStep.cs.md の §191。計器 CapOf は自分の d の並びを持つので残した。

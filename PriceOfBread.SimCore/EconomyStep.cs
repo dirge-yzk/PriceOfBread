@@ -1433,17 +1433,6 @@ public static class EconomyStep
             for (int pi = 0; pi < np; pi++) inputNeed[Catalog.ElectricityId] += elecNeed[pi];
         }
 
-        // d＞0 のときだけ評価する（既定の d＝0 は式に入れると min(予算, 前月の所得) になり恒等でない）。〔履歴 EconomyStep.cs#191〕
-        if (coef.ConsumeBudgetSavingsRatePerMonth.Value > 0)
-        {
-            double capRate = coef.ConsumeBudgetSavingsRatePerMonth.Value;
-            foreach (var p in region.Pops)
-            {
-                double budgetCap = Math.Max(0, p.LastEarnedPerMonth.Value) + Math.Max(0, p.Savings.Value) * capRate;
-                if (p.RemainingBudget > budgetCap) p.RemainingBudget = budgetCap;
-            }
-        }
-
         // 2 か所で止める：①月初（ここ・家計の与信の分岐の前＝負の穴を借りて埋めて買う形を避ける）②買う場所（下の `affordable`＝②の塵は月初の床では届かない）。〔履歴 EconomyStep.cs#192〕
         if (Instruments.On && world is not null)
             foreach (var p in region.Pops)
