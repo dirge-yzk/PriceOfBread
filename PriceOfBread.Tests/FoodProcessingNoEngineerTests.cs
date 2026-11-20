@@ -138,7 +138,7 @@ public class FoodProcessingNoEngineerTests
     /// al の形が食品の技師を外した世界の合計 W_al＝ρ×W_base を、旧の W0（7854.08）と旧の合計 W_base の時計の段 S へ写す（ρ＝0.757×0.714÷0.991＝試験のリテラル）。
     /// 盤面＝多国の世界（種 7・既定の係数・1 四半期）。W_base＝7854.08×3×0.98（d＝3 の行が S＝0.3 の点）。期待は試験の中のリテラルと手計算の S（本体の ClockStage を使わない）。
     /// この試験は 1 か月の写像だけを守る＝多年の帰還（狙い）は腕 B の生で読む（〈旗 1 の式から値が決まる〉型＝働いた証拠にしない）。
-    /// ⚠壊し方＝W0′ を 7854.08 のまま（ρ＝1）・幅を W0 に比例させない（(W−W0×d)÷w）・view の世界の W を読まず自国の技師の和を使う → 赤。旗 0 の木（W0＝7854.08）でも赤。</summary>
+    /// 許しは S で 1e-4（W0′ を小数 2 桁へ丸めた差 5.7e-7 が S で約 5.6e-6 になる＝事前登録の丸め方から・追記 1）。⚠壊し方＝W0′ を 7854.08 のまま（ρ＝1）・幅を W0 に比例させない（(W−W0×d)÷w）・view の世界の W を読まず自国の技師の和を使う → 赤。旗 0 の木（W0＝7854.08）でも赤。</summary>
     [Fact]
     public void T5_旗1のW0は食品の割合が1マイナスローの世界の合計を旧のW0の段へ写す()
     {
@@ -174,8 +174,8 @@ public class FoodProcessingNoEngineerTests
                 var d = Catalog.Discoveries[row];
                 if (Discovery.IsSpread(d.Field) || d.Decade - Catalog.DiscoveryBaseDecade != 30) continue;
                 if (!(tInf[row].Tech > 0)) continue;   // A＝0 か前提の行がまだ（C＝0）
-                Assert.True(System.Math.Abs(tAl[row].Tech - tBase[row].Tech) <= 1e-6 * tInf[row].Tech, $"{w.SelfPower?.BaseName} {d.Name}：W0′ の段 {tAl[row].Tech} ≠ 旧の W0 の段 {tBase[row].Tech}");
-                Assert.True(System.Math.Abs(tAl[row].Tech / tInf[row].Tech - sHand) <= 1e-6, $"{w.SelfPower?.BaseName} {d.Name}：S＝{tAl[row].Tech / tInf[row].Tech} ≠ {sHand}");
+                Assert.True(System.Math.Abs(tAl[row].Tech - tBase[row].Tech) <= 1e-4 * tInf[row].Tech, $"{w.SelfPower?.BaseName} {d.Name}：W0′ の段 {tAl[row].Tech} ≠ 旧の W0 の段 {tBase[row].Tech}");
+                Assert.True(System.Math.Abs(tAl[row].Tech / tInf[row].Tech - sHand) <= 1e-4, $"{w.SelfPower?.BaseName} {d.Name}：S＝{tAl[row].Tech / tInf[row].Tech} ≠ {sHand}");
                 compared++;
             }
         }
