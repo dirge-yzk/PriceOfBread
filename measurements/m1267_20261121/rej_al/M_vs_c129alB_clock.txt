@@ -1,0 +1,1 @@
+clock_s の違う行 830・既知の揺れ（kind=C の worldTotalPerMonth だけ）の外 0 []

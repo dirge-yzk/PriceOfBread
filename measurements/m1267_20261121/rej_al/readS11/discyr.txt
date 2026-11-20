@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1267\scripts\instruments\c126al\discyr.py", line 13, in <module>
+    A=[first(f'{arm}/disc_s{s}.tsv') for s in range(1,11)]
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PoB_work\wt_m1267\scripts\instruments\c126al\discyr.py", line 5, in first
+    r=csv.reader(open(p,encoding='utf-8'),delimiter='\t'); h=next(r); ix={c:i for i,c in enumerate(h)}
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:/PoB_work/m1267_work/out_mS11_10_s11/ins/disc_s1.tsv'

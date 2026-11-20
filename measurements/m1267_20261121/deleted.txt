@@ -1,0 +1,5 @@
+(1267) 合流が消した物（2026-11-21）
+- D:/PoB_work/keep_1254（約 50GB）：INSRAW でも KEEPNULL でもない（ident.cfg は m1260＝keep_1260 を指す）。合流の指示〈新しい ident.cfg をコミットして push した後は、keep_1254・keep_1260 のうち INSRAW でも KEEPNULL でもない古い keep を消してよい〉により、第 1 段の ident.cfg（47089d5cd・origin/main へ push 済み）の後に消した。読み手 read1260.sh・c128uf/read_uf.sh は keep_1254 を指したまま（過去の回の台本）＝この回の読み手 read1267.sh は keep_1260 を指す。
+- D:/PoB_work/ident_m1267z（腕 Z の ident の生・判定の出力は identz/ に写した）＝al の採否の前に消した（INSRAW の元にできなくなった＝popclose_s だけの腕 mZpc を回し直した・違反として名乗る）。
+- D:/PoB_work/m1267_work の腕の生 out_mM_10（読み手の表 39 種 384 本を keep_1267_rej/M_ins へ移し、残り 1274 本 25.2GB を消した・全表の要約は rej_al/keepsum_M_full.tsv）・out_mS11_10_s11（生は keep_1267_rej/S11_ins へ移した）・out_mZS11_10_s11・out_mZpc_10（popclose_s を keep_1267/base_ins へ写した後）・out_mp5_5・out_mp10_10・src_*・suite_T・suite_s1。
+消さなかった（線の担当が作った物）：ident_c129sb（9.8GB）・ident_c129k12（4.2GB）・c129al_work（腕 B の生 3.0GB・帰属は読み終えた＝M の生と 350 表が一致）・c129pc_work・c129pc_art・c129sb_work・c129k12_work・r1265_work・r1266_work（写した）。前の回の ident_c128ci・ident_c128k20・c128ih_work・c128uf_work・c128ci_work・c128k20_work・r1259_work も残した。keep_1260 は消さない（keep_1260/n1・a11 は KEEPNULL・base_ins は INSRAW でなくなった＝作者のセッションで消してよい）。

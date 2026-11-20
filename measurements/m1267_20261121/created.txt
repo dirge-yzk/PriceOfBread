@@ -1,0 +1,4 @@
+作ったフォルダ: D:/PoB_work/m1267_work D:/PoB_work/wt_m1267 (2026-11-21 00:18:58)
+D:/PoB_work/wt_m1267z D:/PoB_work/ident_m1267z（腕 Z）
+D:/PoB_work/keep_1267_rej（採らなかった al の腕 M〔読み手の表だけに刈った〕・S11 の生）
+D:/PoB_work/keep_1267（新しい INSRAW base_ins＝keep_1260/base_ins の写し＋木 Z の popclose_s・cearn_s）
