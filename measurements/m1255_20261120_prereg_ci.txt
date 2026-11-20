@@ -1,0 +1,32 @@
+(1255) c128ci 事前登録（恒等の線・段 0・予言 0）  2026-11-20
+基準：m1254（b10_20261120_m1254・b5_20261120_m1254・b10_20261120_m1254_ins）・main f442e96a0・枝 c128ci。
+
+[1] 形：恒等（★(743) の区分＝名前の整理・読み手の無い係数の削除・計器の追加）。挙動を変えない。予言 0。
+    作者「全て推奨で」で推奨を採った（00一覧 次の波 0 節 ②・設計 docs/202611/20261119 の段 0）。
+    項 1＝劣化の 1 本化／項 2＝計器 capinv_s／項 3＝docs の古い門の文に打消し線（コードに触れない）。
+
+[2] 消す物と残す物
+  消す：Coefficients.p08_audit_soldiers.cs:55 GridKeepPerMonth（0.998）。
+  残す：:54 GridReplaceRate（0.002・EconomyStep.cs:1125 gridWant が読む）。型は double のまま（RatePerMonth への替えは入れない＝UnitTypeTests 不変）。
+  替える：EconomyStep.cs:2150 `*= coef.GridKeepPerMonth` → `*= 1.0 - coef.GridReplaceRate`＋注。
+  読み手の grep（f442e96a0）：SimCore＝EconomyStep.cs:2150 の 1 か所だけ（定義を除く）。Tests・Runner・App・Display・scripts＝0。
+    POB_COEF の名前は文字列の指定＝scripts と measurements の台本に GridKeepPerMonth は 0（grep 済み。measurements の m11xx の生の写しは過去の記録で読み手ではない）。SaveGame は係数を載せない。
+    docs＝実装ログ・00一覧・台帳・設計の下書きに言及（記録の側）。台帳は〈消した〉と書き足す。
+  浮動小数：1.0−0.002 と 0.998 のビット一致を .NET 10 の小さな実行で確かめた（両方 3fefef9db22d0e56）。順序の変わる箇所＝この 1 行だけ・旧新の食い違い 0。
+  他の線との重なり：EconomyStep.cs は :2149〜:2150 だけ（k20 は :1430〜:1447）・Coefficients.p08 は :54〜:55 だけ・Instruments.cs は登録 1 行＋閉じ 1 行（ih はフックの入口）。
+
+[3] 足す試験と突然変異
+  CapinvInstrumentTests（新・PriceOfBread.Tests/CapinvInstrumentTests.cs）：
+    T1 行の列の数＝見出しの列の数（★(1240)）。
+    T2 旗 0（既定）で gridKeepMinusRetiredLiteral＝0・gridReplaceDemandPerMonth＝GridReplaceRate×gridCapacitySum（影と本物の差 0）。
+    T3 劣化 1−GridReplaceRate が 0.998 とビット一致。
+    T4 本国格だけを数える（植民地格の州の送電網は含めない）。
+  突然変異：μ1 列を 1 本落とす→T1 赤。μ2 劣化の式を 1−2×率にする→ident 不一致（かつ T2/T3 赤）。μ3 植民地格を数える→T4 赤。
+  予言：試験の数 2962＋4＝2966（Tests 2732＋Ui 234）・FullLength 3。
+  ㉘ の filter：IndustrializationReader・UnitType・InstrumentsTests・WriterRatchet・DormantIdentity・OnDoubleReadScan・Capinv。
+  ㉑ 書き換える番人の件数：0 件の予言（DormantIdentityTests の消した係数の名簿に読み手は無い＝grep 0。RetiredFields は旗の名簿で係数ではない）。WriterRatchetTests の宣言＝0。
+  走査の番人の点検：`new MoneyStock(` の件数は不変（計器は読むだけ）・工業化度の読み手の許可表は不変・route_anchors.tsv の鍵の行は触らない。
+
+[4] 成績表：素の 5 種・素の 10 種・計器つき 10 種が m1254 と名乗り行を除いて全行一致。計器の表の差は --added-tables capinv_s だけ。
+    計器が切れているとき（INS なし）の .cost の件数は増えない。
+[5] 〈判定: 恒等〉（測った種で一致）なら採る。一致しなければ項 1 を外して報告に回す。
