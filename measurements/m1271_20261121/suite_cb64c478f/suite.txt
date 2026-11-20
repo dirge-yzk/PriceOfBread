@@ -1,0 +1,10 @@
+# (1271) suite 木=/d/PoB_work/wt_c130gs HEAD=cb64c478f 2026-11-21 04:19:20
+list-tests Tests(Category!=FullLength)=2833 Tests.Ui=234 和=3067 FullLength=3
+㉘ 走査の番人＋T1・T2 rc=1 失敗!   -失敗:     6、合格:   228、スキップ:     0、合計:   234、期間: 34 m 6 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 2967) [11 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2077716) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 25512655) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17266684) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 29, declared: 33884747) [< 1 ms]
+  失敗 PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる [663 ms]
+STOP 走査の番人が赤

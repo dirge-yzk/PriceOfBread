@@ -127,6 +127,9 @@ public static class Military
         double seatsNat = EstablishmentOf(w, c, out double natManpower);
         bool lawConscripts = w.ConscriptionLaw >= ConscriptionLaw.Selective;
         double soldiersBefore = lawConscripts ? w.SoldierSizeK() : 0;
+        if (c.SoldierToVacantSeat > 0)   // (1271) 旗：徴募の前に、席を超える州の兵を空席の州へ（NaN は旧の形へ倒れる）
+            MoveToVacantSeats(w, c, seatsNat, natManpower,
+                atWar && lawConscripts ? conscriptFrac * (w.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0) : double.NaN);
         foreach (var r in w.Regions)
         {
 
@@ -159,6 +162,56 @@ public static class Military
         w.MilitaryReadiness = PoliticalQuantities.Clamp01(moraleFill * equipFillEff);
 
         NavalFuelStep(w, c);
+    }
+
+    /// <summary>(1271) 旗 SoldierToVacantSeat：同じ国の中で、兵が席を超える州の〈超過×SoldierMigrationRatePerMonth〉を、席の空いた州へ空席の比で移す。
+    /// 席＝下の徴募のループの目標と同じ式（平時＝国の定員×州の兵役の母数の比・徴兵の法がある国の戦時＝その値と warFrac×母数の大きい方）。
+    /// 移す総量＝min(率×Σ超過, Σ空席)＝兵の総数は保存（移すだけ）。お金・年齢・思想は MoveCohort（Pop.Blend）のまま・熟練は国の値（ArmySkill）で動かない。
+    /// 徴兵の法に依らない（駐屯の配置は徴募の法と別）・戦時も同じ式。移し元と移し先の組は州の順の北西隅の規則（組の数は州の数−1 以下）。</summary>
+    internal static void MoveToVacantSeats(World w, Coefficients c, double seatsNat, double natManpower, double warFrac)
+    {
+        if (!(natManpower > 1e-9)) return;
+        int n = w.Regions.Count;
+        var pops = new Pop?[n]; var gap = new double[n];
+        double over = 0, vacant = 0;
+        for (int i = 0; i < n; i++)
+        {
+            var r = w.Regions[i];
+            Pop? s = null;
+            foreach (var p in r.Pops) if (p.IsSoldier) { s = p; break; }
+            if (s is null) continue;
+            double manpower = RegionManpower(r, c);
+            double seat = seatsNat * (manpower / natManpower);
+            if (warFrac > 0) seat = Math.Max(seat, warFrac * manpower);
+            double g = seat - s.Size;
+            if (!double.IsFinite(g)) continue;
+            pops[i] = s; gap[i] = g;
+            if (g < 0) over -= g; else vacant += g;
+        }
+        double move = Math.Min(c.SoldierMigrationRatePerMonth.Value * over, vacant);
+        if (!(move > 1e-12)) return;
+        double outScale = move / over, inScale = move / vacant;
+        bool insOn = Instruments.On;
+        int j = -1; double need = 0;
+        for (int i = 0; i < n; i++)
+        {
+            if (pops[i] is not { } src || !(gap[i] < 0)) continue;
+            double give = -gap[i] * outScale;
+            while (give > 1e-12)
+            {
+                if (!(need > 1e-12))
+                {
+                    do j++; while (j < n && !(pops[j] is not null && gap[j] > 0));
+                    if (j >= n) return;
+                    need = gap[j] * inScale;
+                    continue;
+                }
+                double amt = Math.Min(give, need), s0 = src.Size;
+                MoveCohort(src, pops[j], amt, c);
+                if (insOn) Instruments.PopMove(Instruments.PopMoveKind.Garrison, w.Regions[i], w.Regions[j], s0 - src.Size);   // (1271) popclose_s の garrisonInK／OutK
+                give -= amt; need -= amt;
+            }
+        }
     }
 
     public static void NavalFuelStep(World w, Coefficients c)

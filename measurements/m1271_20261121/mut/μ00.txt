@@ -1,0 +1,41 @@
+μ00 無変更
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (88 ミリ秒)。
+  D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (291 ミリ秒)。
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\EconomyStep.cs(1478,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\Instruments.cs(2648,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(187,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(203,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c130gs_work\mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\ConservationTests.cs(268,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\ClearingScopeTests.cs(361,22): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\ClearingScopeTests.cs(366,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\ConservationTests.cs(965,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\SubsistenceNoBoughtTechTests.cs(20,17): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\StartWarmupTests.cs(174,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\UnitTypeTests.cs(317,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\UnitTypeTests.cs(317,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\UnitTypeTests.cs(318,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\UnitTypeTests.cs(318,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c130gs_work\mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c130gs_work\mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.78]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.32]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.35]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T3_旗0では兵は州の間を動かない [2 s]
+[xUnit.net 00:00:05.36]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T2_移す量は率と超過で決まり受け手は空席の比で受ける [4 ms]
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T1_席を超える州から空席の州へ兵が動き総数は保存 [2 ms]
+  成功 PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる [1 s]
+
+テストの実行に成功しました。
+テストの合計数: 4
+     成功: 4
+合計時間: 7.4076 秒

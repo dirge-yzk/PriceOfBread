@@ -1,0 +1,120 @@
+(1271) c130gs 事前登録：兵が席を超える州から空席の州へ（Military.Step の側・旗 SoldierToVacantSeat・1 回目）・2026-11-21・書いたモデル Claude Opus 5.5
+
+== 先頭の名乗り ==
+- 出発：00一覧〈次の波〉2 節②・(1252) の推奨③（measurements/m1252_20261120/report.txt:22・:27）。pf の 3 回目（レイキャヴィク型＝首都発の分離で忠誠の守備兵が NextCapital へ移り、再併合の後も戻らない）の前提。答え待ちではない。
+- 作者 2026-11-20「確認した。全て推奨で進めてよい」＝答え待ちの物は推奨のまま確定。この線の形は AI の案（(1252) の推奨③）＝〈確証なし〉。〈兵の総数を保存して移す〉は保存則の形（確証あり）。
+- 3 回の規則：1 回目。
+- 形の種類：〈入口〉（Military.Step の徴募のループの前に 1 本の関数を足す）。新しい係数 0（率は既存の SoldierMigrationRatePerMonth）・新しい状態 0・新しい旗 1（SoldierToVacantSeat・既定 0 で器→1 で点火）。
+
+== 形（実装の形と一致させる＝★(778)）==
+- 旗 SoldierToVacantSeat（Coefficients.p08_audit_soldiers.cs の SoldierMigrationRatePerMonth の次の行・double・既定 0）。
+- Military.Step（:129 の soldiersBefore の後・徴募のループの前）で、旗が 0 より大きいとき Military.MoveToVacantSeats を 1 回呼ぶ（比較は `> 0`＝NaN は旧の形へ倒れる）。
+- MoveToVacantSeats(w, c, seatsNat, natManpower, warFrac)：
+  - 席（州 r）＝seatsNat×(RegionManpower(r)÷natManpower)＝徴募のループの desired と同じ式。徴兵の法（選抜以上）がある国の戦時は warFrac＝conscriptFrac×lawFrac（総動員を含む・徴募のループと同じ値）で、席＝max(席, warFrac×母数)。それ以外は warFrac＝NaN（平時の席だけ）。
+  - 兵の POP（州の最初の IsSoldier）を持つ州だけ。超過＝max(0, 兵−席)・空席＝max(0, 席−兵)。
+  - 移す総量 M＝min(SoldierMigrationRatePerMonth×Σ超過, Σ空席)。送り手 i は 超過_i×M÷Σ超過、受け手 j は 空席_j×M÷Σ空席（空席の比）。
+  - 組は州の順の北西隅の規則（送り手と受け手を州の順に 2 本の指で進める＝組の数は州の数−1 以下・決定論）。1 組ごとに Military.MoveCohort(送り手の兵, 受け手の兵, 量)＝Pop.Blend（兵から兵＝draft の枝を通らない＝年齢の層・識字・闘争度・思想・お金〔貯蓄・負債・国債〕をそのまま運ぶ）。熟練は国の値（w.ArmySkill）＝移しで動かない（DiluteSkill は総数が同じなので何もしない）。
+  - Instruments.On のとき 1 組ごとに Instruments.PopMove(Garrison, 送り手の州, 受け手の州, 送り手の兵の減り)（popclose_s の garrisonOutK／InK）。On は関数の中で 1 回だけ読む（OnDoubleReadScanTests）。
+- 名乗る物：
+  - 兵の総数を保存する（移すだけ・Blend の from.Size−＝n／to.Size＋＝n）。
+  - お金と熟練を運ぶ形は MoveCohort のまま。
+  - **徴兵の法が無い国（志願兵制・:142 で徴募のループが continue する国）でも移す**＝駐屯の配置は徴募の法と別（AI の決め・確証なし）。
+  - **戦時も同じ式**（例外を作らない・前線への配りは支配の力の段 E の物＝入れない）。戦時の席は徴募の目標と同じ式（徴兵の法がある国は動員の目標）。
+  - 率は平時も戦時も SoldierMigrationRatePerMonth（0.08／月）。
+  - 移しは徴募の前＝空席の州は、まず余った兵で埋まり、残りの空席だけを徴募する。席を超える州の平時の復員（Meritocracy.cs:59〜:70・四半期）は、移しで超過が減った分だけ減る。
+- 新しい係数 0・新しい状態 0（席は盤面から毎月導く・保存する欄なし）・計数 0（CostLedger は MultiNationSim.cs＝持ち主の外）。
+
+== 段 0（腕の前・今の盤面 keep_1267/base_ins）==
+- 紙の台本 scripts/instruments/c130gs/paper_gs.py（cpop_s＋rule_s から州ごとの兵と席の近似を読み、移しの量を見込む）→ measurements/m1271_20261121/paper0.txt。
+  - **限界（名乗る）**：cpop_s は植民地の州だけを書く表（フランスは植民地 6 州だけ・パリなど本国の州の行が無い）＝紙の見込みは植民地の州の間だけの近似。州ごとの兵の在庫を書く表は他に無い（region_s・rule_s・popclose_s に兵の列なし）。席の比 k は国の Σ兵÷Σ母数（国の総数が席に釣り合う前提）・母数の年齢の比は一定（0.28）・AdminFill＝1 と置く近似。
+  - 結果（植民地の州だけ）：移しの見込みの和 種の中央 6,059 千人（10 種 2,817〜11,145・国×四半期 91,153）。兵÷席の階級（兵の大きさの重み）：0.9〜1.1 が 5.77M・0.5〜0.9 が 0.49M・1.1〜2 が 0.47M・3 以上 0.14M（州×四半期 7,398）。
+  - 予言：腕 B の popclose_s の garrisonInK の和は基準（首都の分離の守備兵だけ・m1267 の keepsum で 7,240 千人・n＝132）の 10 倍以上（本国の州を含むので紙の見込みより大きい〈推〉）。行の数は基準の 100 倍以上（ほぼ全ての州で毎月少しずつ動く）。
+- 単体の試験（器の木で旗を試験の中で 1 と置いて緑・旗 0 で赤）を器のコミットの前に回した：T1〜T4 緑（D:/PoB_work/c130gs_work/t0.txt）。旗 0 で赤は突然変異 μ0 で確かめる（下の表）。
+- 止める線と門の台本を基準の生で先に回す（★(1254)）：read_gs.sh を keep_1267/base_ins に腕として当て、旗 0 の盤面で止める線が緑・H1・H2 が NG なしかを確かめる（結果は追記 1・腕の前）。
+
+== 門（〈作者 2026-11-16 の決まり〉①）==
+1. 止める線：
+   - 破綻：クラッシュ・NaN・保存則・savetest・leakhunt・進行不能。
+   - 発散：stoplines906（1e10 倍・非有限は止める。〈1 四半期に 100 倍〉は gdp_jump906 --founding の〈それ以外〉の行だけが止める線・〈建国の直後〉〈建国の後の 0 の続き〉〈分母の痩せ〉は記録＝N1 の件数と並べる）・popjump1017（政府の人口が 1 四半期で 1/10 未満か 10 倍以上＝㊳・N1 と並べる）・plvl_seeds。基準とヌル腕は同じ台本で数え直す（⑰）：基準 keep_1267/base_ins・N1 keep_1260/n1。
+   - 空洞化 T1：an_h2.py -v4（規則 A2）でピークの 1/10 未満の件を 1 件ずつ振り分ける（結果を見る前に固定）：
+     (a) 基準 keep_1267/base_ins の同じ種で同じ州がすでにピークの 1/4 未満 →〈元からの弱さ〉＝止めない。
+     (b)〈膨らんでから抜ける州〉：腕のピークの四半期を含む前の 8 四半期の popclose_s の garrisonInK の和が〈ピーク−8 四半期前の人口〉の半分以上で、かつ腕の落ちた後の人口が 8 四半期前の人口の 1/4 以上 →〈兵が入って出ただけ＝人が抜けきっていない〉＝記録（止めない）。
+     (c) それ以外 →〈線が原因〉＝止める。
+     (b) の判定の台本は件が出たときに書く（読む列は popclose_s の garrisonInK と region_s の populationK だけ・上の不等式のまま）。
+   - 計算量：推定 248.5 秒を超える。
+   - 機構のテストの赤（走査の番人を含む）。下の ㉜ の一覧の旧の規則の番人は線の中で書き換える（作者 2026-11-19）。
+   - 名目 GDP 0 の続き（gdp_zero10）は記録の段の先頭。開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。
+2. 史実の桁の線（この線が一番動かす量）：
+   - H1 国ごとの兵士の数（ng.sh の sold＝兵士÷人口%・年末の断面・交戦していない年）：腕で NG（史実と 10 倍の外）になった期間のうち、基準 m1260（measurements/ng1260_20261120/sold_m1260.txt）が NG でない物、または基準も NG で腕の倍率が max(10, 基準の倍率) を超える物＝NG（基準の NG は 清 1855-1864 10.2 倍）。読み手 scripts/instruments/c130gs/gs_sold.py。
+   - H2 首都の州の兵の割合：**州ごとの兵の在庫を書く表が無い**（cpop_s は植民地の州だけ）＝読めない。代わりに〈首都の州の人口の割合〉（region_s の populationK・首都＝rule_s の capitalDistanceKm＝0・1851 年と 1913 年の最初の四半期・計器の 9 国・種の中央）の腕÷基準が 1/10 以下か 10 倍以上の国が 1 つでもあれば NG（史実の数の代わりに基準を置く＝AI の決め・名乗る）。読み手 gs_read.py ②。
+3. 単体の機構の試験（盤面は試験の中で置く・旗は試験の中で置く・期待は試験の中の式から）：PriceOfBread.Tests/SoldierToVacantSeatTests.cs
+   - T1（2 州の型）：フランス 1789・志願兵制・平時・定員は人口の側。州 A の兵＝席の 3 倍・州 B の兵＝0 → A が減る・B が増える・B は席を超えない・兵の総数が保存（相対 1e-9）。
+   - T2（量の型）：A だけに兵（席の 3 倍）→ A の減り＝min(0.08×(兵−席), Σ他の席)（相対 1e-9）・受け手の増分÷席が全ての受け手で同じ（空席の比・1e-9）・受け手 2 以上。
+   - T3（旗 0）：T1 の盤面で旗 0 → 全ての州の兵が 1 ビットも動かない。
+   - T4（hook・[Collection("Instruments")]）：英仏 2 国の MultiNationSim・1 四半期進めた後のフランスで A だけに兵 → popclose_s の A の garrisonOutK＝人口の差・各州の garrisonInK＝人口の差（9 桁）・残差 1e-6 未満・受け手 2 以上・Σ garrisonInK＝A の減り（6 桁＝表の丸め）。
+   - 突然変異（使い捨ての木 D:/PoB_work/wt_c130gs_mut・出力 measurements/m1271_20261121/mut/）と赤の門（㉚）：
+     | μ | 変える所 | 赤になる試験 |
+     | μ0 | 旗の門を外す（Step の `if (c.SoldierToVacantSeat > 0)` を `if (false)`） | T1・T2・T4 |
+     | μ1 | 向きを逆（MoveCohort(src, pops[j]) を MoveCohort(pops[j], src)） | T1・T2・T4 |
+     | μ2 | 移し元を減らさない（MoveCohort を `pops[j]!.Size += amt` に） | T1（保存）・T2・T4 |
+     | μ3 | 空席の比を崩す（need＝gap[j]×inScale を need＝move に＝最初の受け手に全て） | T2 |
+     | μ4 | 率を外す（M＝min(Σ超過, Σ空席)） | T2 |
+     | μ5 | hook を外す | T4 |
+     | μ6 | 旗 0 でも走る（`> 0` を `>= 0`） | T3 |
+   - 旗 1 の出力が旗 0 と違う行の数は記録（成績表の行の差）。
+- 狙いの数字（機構の観測量だけ）：T1〜T4 緑・μ0〜μ6 が表のとおり赤。腕 B の garrisonInK の和が基準より大きい（記録・予言は段 0）。
+
+== 記録（門にしない）==
+- popclose_s の garrisonInK／OutK（基準 7,240 千人・n＝132）・国ごとの上位（gs_read.py ①）。
+- 州ごとの兵の数の分布：植民地の州だけ（paper_gs.py を腕の生に当てる・cpop_s）。本国の州は読めない（名乗る）。
+- 内戦と分離の回数（warcount.py・基準と N1 と並べる）。
+- P1-1 の Rule[3]：州の秩序（Politics.cs:950〜:972 の orderR）は国の EffectiveCoerce と州の闘争度（Politics.RegionMilitancy＝IsCommoner＝兵を除く）だけを読む＝**州の兵の数を読まない＝この線は州の秩序に〈効かない〉**（grep：Politics.cs:1018〜:1022・Model.cs:108）。
+- 〈周辺の点検〉（読むだけ）：再併合 MultiNationSim.cs:927・:969（州だけ戻す＝兵は戻さない・この線は再併合の後も毎月の移しで超過を戻す）・Meritocracy.cs:331 SoldierVacancyFromZero（大きさ 0 の兵の席は社会移動の行き先＝この線の受け手にもなる・席＞0 の州だけ）。
+- ほか：英の国債の不履行の種の数（ukdef975）・NG（ng.sh・基準 rd:measurements/ng1260_20261120:m1260）・nullgate（記録）・home_break・gdp_zero10・ヌル腕の幅（記録だけ）。
+
+== ㉘ 走査の番人の点検（器の差分＝Military.cs・Coefficients.p08・DormantIdentityTests・新しい試験）==
+- 工業化度の読み手の許可表：触れない（Military.cs に工業化度の読みを足さない）。
+- `new MoneyStock(`：足す 0。
+- route_anchors.tsv：鍵は呼び出しの行のコードの文字（Military.cs の `Pop.Blend(from, to, amount, draft: draft, draftLo: 20, draftHi: draftHi);`）＝その行を変えない＝鍵の行の外。移しは MoveCohort を通る＝経路名は〈徴兵と復員(階級の運搬)〉に載る（記録）。
+- OnDoubleReadScanTests：MoveToVacantSeats が On を 1 回読む・Step は読まない＝許可表は変わらない予言。
+- WriterRatchetTests の宣言の表：旗 0 で件数は動かない（器の木）。新しい計数なし。
+- DormantIdentityTests：DormantZeroFields に SoldierToVacantSeat を 1 行足す（器）→点火のコミットで外して注の行にする。
+- 試験の数（㉑）：TESTS_NONFULL 3063→3067（+4＝T1〜T4・DormantZeroFields は Fact の中の配列＝数は変わらない）。腕 Z は `--tests-delta 4`。
+- 絞り込み：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|PopCloseInstrumentTests|SoldierToVacantSeat。
+
+== ㉜ 旗 1 の木で旧の規則を固定する番人（grep・腕の前）==
+- 置き換える旧の規則：〈兵が席を超える州の兵を他の州へ移さない（Military.cs:151 の `if (!(delta > 0)) continue;`＝徴募は増やすだけ）〉。
+- grep（`Military.Step(`・`SoldierMigrationRatePerMonth`）：MilitaryTests.cs・CaInstruments1206Tests.cs・NationalConsciousnessRemovedTests.cs・UnitTypeTests.cs（型の宣言だけ）。州ごとの兵が動かないことを Assert する試験は見つからない（旧の規則そのものを固定する番人 0 の予言）。
+- 赤の候補（軌道に依る前提）：MilitaryTests の総数を比べる試験（移しは総数を保存するが、空席が埋まると徴募が減る＝選抜以上の盤面で総数が変わり得る）・CaInstruments1206Tests（兵を 1.0 に置いて引きを立てる盤面）・WriterRatchetTests の宣言の表（★(749) 軌道の件数の写し）・InstrumentsTests の軌道に依る前提。赤は区分を名乗ってから直す（㊴・★(743) の改め）。
+- 一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて同じ線で直す。原因が読めない赤は止める。
+
+== 計算量の割り当て ==
+- 0.3 秒（推）。推定の計算量は新しい計数を足さない（CostLedger は MultiNationSim.cs＝持ち主の外）＝推定は軌道の差だけで動く。実測の CPU は .cost の記録で読む。1 か月に国ごと MoveCohort の呼び出しは兵の POP を持つ州の数−1 以下（徴募のループの DrawFromPool＝州ごと 2 本と同じ桁）。m1260 の推定 236.4 秒・余り約 9.2 秒（保守側）の内。2 秒以下の項は合流の木の累計で読む。
+
+== 腕 ==
+- 腕 Z：器の木（旗 0）・`bash scripts/instruments/ident/ident.sh run c130gsz --tree D:/PoB_work/wt_c130gs_z --work D:/PoB_work/ident_c130gs --tests-delta 4`（段 1）。走っている間は器の worktree にコミットしない（㉙＝腕 Z は別の worktree に器のコミットを置いて回す）。
+- 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c130gsB 10`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は 9 国）・表を絞る＝SMALL（29）＋BYPASS（3）＋popclose_s・rule_s・cpop_s・secession_s・soldiervac_s（止める線の台本・H1・H2・記録の読み手が開く表を grep した）。
+- 読み手：scripts/instruments/c130gs/read_gs.sh（c128uf/read_uf.sh の写し・基準 keep_1267/base_ins・N1 keep_1260/n1・NG 基準 ng1260_20261120・nullgate の基準 m1260）＋gs_sold.py（H1）・gs_read.py（H2 と記録①）・paper_gs.py（記録）・warcount.py（記録）。
+- D:：腕 B は起こす直前に shutil で〈35GB＋量〉を測る（量＝基準の宣言した表の 10 種の大きさ＋写しとビルド 約 1GB＝追記で書く）。
+- ㉗：紙の台本は門の破れを予言しない（段 0 は植民地の州の近似のみ・止める線の予言は無し）。空洞化は (b) の型が出る見込み〈推〉＝首都発の分離で膨らんだ州（レイキャヴィク型）から兵が出る。
+
+== 追記 1（器と腕 Z の後・旗 1 のフルスイートの前・腕 B の前・2026-11-21）==
+- 単体の試験（器の木 7261f2f33・旗は試験の中で置く）：T1〜T4 緑。突然変異（measurements/m1271_20261121/mut/・mut_result.txt）：μ00 全て緑・μ0 T1 T2 T4 赤・μ1 T1 T2 T4 赤・μ2 T1 T2 T4 赤・μ3 T2 T4 赤・μ4 T2 T4 赤・μ5 T4 赤・μ6 T3 T4 赤＝予言の赤は全て赤。予言の外の赤（名乗る）：μ3・μ4・μ6 の T4（T4 は 1 四半期を旗 0 の既定で進めてから盤面を置く＝μ6 は旗 0 でも移しが走り盤面の前提が変わる〈推〉・μ3 は受け手が 1 つになり〈受け手 2 以上〉が落ちる・μ4 は量の変化で行の検査が落ちる〈推〉）。
+- ㉘（器の木 7261f2f33・8 クラス）：152 本 全て緑（measurements/m1271_20261121/scan28z.txt）。
+- 腕 Z c130gsz（木 wt_c130gs_z＝7261f2f33・--work D:/PoB_work/ident_c130gs・--tests-delta 4）：**判定: 恒等（段 1）**＝測った種で一致。素の 5 種 179 行・計器つき 10 種 184 行が m1260 と全行バイト一致・推定 234.9／236.4 秒・計器の表 289 本バイト一致（measurements/m1271_20261121/identz.txt）。生は採否が決まるまで残す。
+- ★(1254) 紙の台本（read_gs.sh を基準 keep_1267/base_ins に腕として当てた＝旗 0 の盤面・measurements/m1271_20261121/paper_base/）：止める線 0（pxjump・gdpjump・gdpjump833 の〈それ以外〉0・1e10 倍以上 0・非有限 0）・空洞化 1/10 未満 0・H1 NG なし・H2 NG なし（18 行 全て比 1.000・欠け 0）・garrisonInK 7,239.8 千人（132 行）＝m1267 の keepsum と同じ・内戦 130・分離 2（N1 107・14）・英の国債の不履行 1/10。旗 0 で門は全て緑（落ちる門は単体の試験だけ＝μ0）。
+- 腕 B の D: の量：基準の宣言した 37 表の 10 種＝8.2GB＋写しとビルド 約 1GB＝約 9.5GB＝床は〈35GB＋9.5GB〉。
+
+== 追記 2（旗 1 の木 cb64c478f の ㉘ の束・試験の直しの前・2026-11-21）==
+- 赤 6 本（measurements/m1271_20261121/suite_cb64c478f/）：
+  1. WriterRatchetTests 5 行（★(749) 軌道の件数の写し・㉜ の一覧の候補どおり）：価格の日次の写像 17266684→18273055（+5.8%）・清算の着値の充填 25512655→27304042（+7.0%）・倒産の空の生産者×月 2967→2505（−15.6%）・着値の下界を評価した売り手 33884747→36613591（+8.1%）・覇権の判定の国×国 2077716→2810632（+35.3%）。新しい計数の処理は無い＝表を取り直す（試験だけのコミット）。
+  2. **T4 の許しの誤り（試験のバグ・この線が書いた試験）**：popclose_s の値は 10 桁の有効数字で丸めて書く（0.1106951065）＝1 を超えない値でも 9 桁の小数の許しを超える（0.11069510650378334 対 0.1106951065）。旗 0 の既定で 1 四半期を進めた器の木では値が小さく通っていた。区分＝この線が書いた新しい試験の許しの誤り（旧の盤面に番人を固定する形ではない＝盤面も Assert の意味も変えない）。直し方（結果を見る前に固定）：:143 と :150 の 9 桁の比較を〈|差|≦1e-9×max(1, |人口の差|)〉（表の 10 桁の丸めの内）へ。Σ の比較（6 桁）はそのまま。直しを外す突然変異＝直しの前の試験（cb64c478f）で赤（上の 1 本）・μ5（hook を外す）が直しの後も T4 で赤かを旗 1 の木で回し直す。
+
+== 追記 3（旗 1 のフルスイート・腕 B を起こす時・2026-11-21）==
+- 突然変異（旗 1 の木 06fc66c4e・measurements/m1271_20261121/mut_flag1/）：μ00 全て緑・μ5 T4 赤（T4 の直しの後も hook を外すと赤）・μ6 T3 赤（旗 1 の木では T4 は緑＝追記 1 の予言の外の赤は旗 0 の既定の盤面に依る物だった）。
+- フルスイート（旗 1 の木 06fc66c4e・measurements/m1271_20261121/suite_06fc66c4e/）：㉘ の束 234 本 緑・㊴ 計器の束 447（合格 446・スキップ 1）緑・Tests Category!=FullLength 2833（合格 2831・スキップ 2）緑・Tests.Ui 234 緑・FullLength 3 緑。--list-tests：Tests 2833＋Ui 234＝3067＋FullLength 3（基準 3063＋T1〜T4 の 4）＝一致。savetest OK（12 四半期・61 カ国・最大相対差 0）・leakhunt 保存則違反なし。
+- 書き換えた試験：WriterRatchetTests の宣言の表 5 行（★(749)・追記 2 の値）・SoldierToVacantSeatTests の T4 の 2 行（この線の試験の許し・追記 2）。旧の規則を固定する番人の赤は 0（㉜ の予言どおり）。
+- 腕 B：木 armB_commit（06fc66c4e に台本だけを足したコミット・エンジンは cb64c478f と同じ）・起こした時 2026-11-21 06:08・D: の空き 106.0GB（床 44.5GB）・腕の空き 6。
+
+== 追記 4（腕 B の後・2026-11-21）==
+- 結果と採否は measurements/m1271_20261121/result_B.txt：採る（止める線 0・H1 H2 NG 0・単体の試験 緑）。段 0 の予言〈garrisonInK 10 倍以上〉は外れ（3.3 倍）＝記録（門ではない）。規則は結果の後に変えていない。
