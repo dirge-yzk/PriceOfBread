@@ -1520,6 +1520,23 @@ public sealed class MultiNationSim
             if (!(dst.RecruitBudget > 0)) continue;   // ★否定形＝NaN の予算も弾く
             // 受入先＝機会が最も高い州（★大衆移民の行き先選定と同じ物差し＝新しいスカラーを置かない）
             Region? dstR = null; double dstO = double.NegativeInfinity;
+            List<(Region R, double V)>? vac = null; double vacSum = 0;
+            if (_coef.RecruitDestByVacancy > 0)
+            {
+                // (1270) 受入先＝技師の空席（州の高度労働力の市場の足りない量＝前の清算の LastShortage）の比で配る。割増の dstO＝受け入れる州の機会の空席の重みの平均。
+                double ow = 0;
+                foreach (var r in dst.Regions)
+                {
+                    double v = r.Markets[Catalog.AdvLaborId].LastShortage;
+                    if (!(v > 0)) continue;   // 否定形＝NaN も弾く
+                    double o = Territory.Opportunity(r, _coef);
+                    if (!double.IsFinite(o)) continue;
+                    (vac ??= new()).Add((r, v)); vacSum += v; ow += v * o;
+                }
+                if (vac is null) continue;   // 空席の州が無い＝呼ばない（予約は下の無条件のゼロ化で戻る）
+                dstR = vac[0].R; dstO = ow / vacSum;
+            }
+            else
             foreach (var r in dst.Regions)
                 { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (dstR is null || o > dstO)) { dstR = r; dstO = o; } }
             if (dstR is null) continue;
@@ -1560,6 +1577,9 @@ public sealed class MultiNationSim
             }
             if (bestS >= 0 && bestSrcR is not null)
             {
+                if (vac is not null)
+                    foreach (var (r, v) in vac) MoveSpecialists(Nations[bestS].World, dst, bestSrcR, r, bestHeads * (v / vacSum), bestCost);
+                else
                 MoveSpecialists(Nations[bestS].World, dst, bestSrcR, dstR, bestHeads, bestCost);
                 srcKnown[bestS] = srcKnown[d] = false;   // 州の POP が動いた2国だけ引き直す
             }
