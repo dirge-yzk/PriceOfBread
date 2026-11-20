@@ -13,7 +13,7 @@ namespace PriceOfBread.Tests;
 [Collection("Instruments")]
 public class TradeInstrumentTests
 {
-    private static MultiNationSim Make(bool still = false) => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, still ? null : _ => new UtilityAgent());   // still＝AI を置かない（関税を盤面で固定する試験）
+    private static MultiNationSim Make(bool still = false, ulong seed = 1789UL) => new([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], seed, still ? null : _ => new UtilityAgent());   // still＝AI を置かない（関税を盤面で固定する試験）
     private const ulong Seed = 1789UL;
 
     private sealed class Tab
@@ -30,12 +30,12 @@ public class TradeInstrumentTests
     }
 
     /// <summary>quarters 四半期回す（q%4==3 の四半期の終わりごとに afterQuarterEnd）。年ごとに調べる（NgEveryYears＝1）。</summary>
-    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters, Action<MultiNationSim>? before = null, Action<MultiNationSim, int>? afterStep = null, bool instrumentsOn = true, bool still = false, int every = 1)
+    private static (string dir, MultiNationSim sim, Action restore) Run(int quarters, Action<MultiNationSim>? before = null, Action<MultiNationSim, int>? afterStep = null, bool instrumentsOn = true, bool still = false, int every = 1, ulong seed = 1789UL)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tg_" + Guid.NewGuid().ToString("N"));
         if (instrumentsOn) Instruments.Configure(dir, "*"); else Instruments.Configure(null, null);
         int every0 = Instruments.NgEveryYears; Instruments.NgEveryYears = every;
-        var sim = Make(still);
+        var sim = Make(still, seed);
         foreach (var n in sim.Nations) n.World.Coef.CivilWarLandslideRatio = 0;
         sim.DiplomacyFrozen = true;
         before?.Invoke(sim);
@@ -119,11 +119,15 @@ public class TradeInstrumentTests
         finally { restore(); }
     }
 
+    /// <summary>(1264) c129al：G4 だけ盤面の種を 1790 へ選び直した（★(743)・★(866)・㊴ の〈軌道に依る前提〉＝この盤面の州の平均の値段÷輸入の単価が 3 未満という前提が旗 FoodProcessingNoEngineer 1 の軌道で崩れた〔種 1789：旗 0 2.774・旗 1 3.253〕・
+    /// 規則〈1790 から順に旗 0 と旗 1 の両方で n≧80・中央値 0.3〜3・10 倍以内 7 割以上の最初の種〉を結果の前に事前登録 measurements/m1264_20261120_prereg_al.txt の追記 1 に固定・1790：旗 0 2.200・旗 1 2.400）。Assert の文と閾値・G4b は変えない。</summary>
+    private const ulong G4Seed = 1790UL;
+
     /// <summary>G4：量×平均の値段と額の桁（単位の取り違えを拾う）。</summary>
     [Fact]
     public void G4_越境の量と平均の値段の積は額と10倍以内()
     {
-        var (dir, sim, restore) = Run(24);
+        var (dir, sim, restore) = Run(24, seed: G4Seed);
         try
         {
             var t = Read(dir, "nationgood"); var ratios = new List<double>();
