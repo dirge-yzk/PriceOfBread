@@ -1,0 +1,84 @@
+(1258) c128uf 事前登録：統一が成立した後の同じ規則の宣戦を候補から外す（旗 UnificationSkipFormed・挙動の席 1・この題の 3 回の規則の 1 回目）
+担当 Claude Opus 5.5・2026-11-20・枝 c128uf（f442e96a0 から）・worktree D:/PoB_work/wt_c128uf・作業フォルダ D:/PoB_work/c128uf_work（突然変異の木 D:/PoB_work/wt_c128uf_mut・隔離ビルド D:/PoB_work/c128uf_art・c128uf_mutart）。
+基準＝m1254（成績表 b10_20261120_m1254_ins・b5_20261120_m1254・生 D:/PoB_work/keep_1254/base_ins〔種 1〜10〕・a11〔11〜20〕・ヌル腕 N1 keep_1254/n1・NG ng1254_20261120）。
+出発＝00一覧〈次の波（波128〜）〉1 節 ②・(1249) 反証役 v2〈ドイツ帝国の成立の後のドイツ系の規則の宣戦 183/667〉・(1254) の記録 M 133/617（21.6%）・S11 71/555（12.8%）＝(1254) の推奨②を〈作者「全て推奨で」で推奨を採った〉。答え待ちではない。
+ここの形・門の数・史実の数は全て AI の案（確証なし）。作者が〈こうする〉と裁定した形ではない。
+
+[0] 形の種類：入口（統一の宣戦の候補の述語 1 行）。旗 1 本・腕 B 1 本。新しい係数 0・新しい状態 0・タイマー 0・天井 0。
+  3 回の規則：uf＝1 回目。
+  〈既にある機構の結果として出せる〉：成立の事実は国の名（RenameNation が付けた名）と FormationTier で既にある＝読むだけ（決まり②）。
+  名乗り：成立した国を攻める道は普通の戦争の入口に残る。閉じるのは統一の宣戦の枠（Formations.UnificationCandidate の候補）だけ。
+
+[1] 形（PriceOfBread.SimCore/Formations.cs:337〜 UnificationCandidate・Coefficients.p09_kingship_tax.cs の旗 1 行・既定 0＝今のまま）
+  旗が 1 の時、規則 r について〈他の国 q（q≠自分・q.Nation がある・q.FormationTier≧r.Tier）の今の名が、ある規則 f の NewName で、
+    f の札（f.CultureIs・文化の無い規則は f.NewName）が r の札と同じ・f.Tier≧r.Tier〉なら r を候補から外す（次に低い段の規則が残れば、それが候補）。
+  関数 FormedElsewhere（private・Formations.cs の UnificationCandidate の直後）。呼び手は AI（Diplomacy.cs:1686）とプレイヤー（World.cs:1867・:1875）＝同じ関数＝対称（呼び手は変えない）。
+  ★指示の形からの変更（段 0 の (b) が理由・腕の前）：指示は〈他の国が r.NewName を名乗っていれば〉だった。段 0 で、成立した国の名は文化の領域の規則（CultureRealms・
+    NewName〈ドイツ帝国〉〈イタリア王国〉・段 2）の名で、統一の候補の規則（Formations.Rules・NewName〈ドイツ〉〈イタリア〉・段 2）の名と違う＝名だけで比べると基準の 10 種で 1 件も外れない（何もしない実装）。
+    ＝札（文化）で比べる。名の持ち方は RenameNation（Diplomacy.cs:473）＝q.Name が NewName になる・開幕の 61 国の名に規則の NewName と同じ物は無い（world.json と 50 の規則の名を突き合わせた）。
+  消えた国（q.Nation が null）は数えない＝成立した国が消えたら統一の候補は戻る。
+
+[2] 段 0（既存の生だけで読んだ・台本 scripts/instruments/c128uf/uf_read.py・m1254/dec_after.py・出力 measurements/m1258_20261120/s0/）
+  (a) dec_after.py：M（keep_1254/base_ins 種 1〜10）宣戦 617・成立の後の同じ規則 133（21.6%）・S11（a11 種 11〜20）555・71（12.8%）＝(1254) の記録と同じ。
+      攻め手（M）：ザクセン・バイエルン・ハノーファー・ヴュルテンベルク。成立は種 1・2・6・8 のプロイセン（1794〜1804）。
+  (b) 成立の名：nation_s の displayName は〈ドイツ帝国〉（CultureRealms の段 2）＝dec_after の NAMES（CultureRealms の名＋北ドイツ連邦）と同じ集合で読める。
+      ただし統一の候補の規則の名は〈ドイツ〉＝RenameNation の名とは違う（[1] の★）。種 7 はオーストリアが 1900 年に〈ドイツ帝国〉（dec_after はオーストリアに formation2_s の行が無いので数えない）。
+  (c) uf_read.py（独立の読み手・エンジンの関数を呼ばない）：
+      U＝統一の宣戦＝unifwar_s の engineCode=0 と同じ四半期・同じ組の wars_s の declare（内戦でない）。M で U 617＝wars_s の declare の全て（Hu1 の数と同じ＝この世界の declare は全て統一の宣戦）。
+      UA＝U のうち、攻め手の候補（formation2_s の未達で段が最小の規則）の札を他の国が先の四半期から名乗り、その国がまだある物。
+      M：U 617・UA 137（22.2%）・EX 12995／S11：U 555・UA 73（13.2%）・EX 8567／N1：U 633・UA 164（25.9%）・EX 15356。
+      EX＝候補の四半期（国×四半期）のうち札が他の国で成立済みの物＝新しい規則が候補を消す四半期（同じ盤面の旧と新の差）。
+      dec_after と uf_read の差（133 と 137）＝種 7 のオーストリアの成立（3）と、同じ四半期の成立の扱い（1）。
+  (d) 予言（腕の前・符号と大きさ）：
+      G1 UA（腕 B）＝0（旗 1 は候補を消す＝エンジンの述語と読み手の述語が同じ札・同じ段なら 0。外れうる所＝formation2_s は四半期の末・宣戦は四半期の頭の月＝持ち主の変わりで候補の段が読み違う行）。
+      U（＝Hu1×10）は下がる：M の 617 から UA の 137 を引いた 480 前後〈推〉（外された邦が別の規則で戦わない・統一の宣戦が無くなった後の軌道の変化で ±）。Hu1 61.7→約 48。
+      Hw（内戦を除く戦争の数 腕÷基準）＝0.8〜0.95〈推〉（declare 以外の入口の戦争は変わらない）。H1・H2・H3 は動かない〈推〉（独の邦の宣戦は列強の大戦と別）。
+      止める線：触れる量は統一の宣戦の数だけ＝発散・空洞化の向きの予言は無し（戦争が減る向き）。
+
+[3] 門（〈作者 2026-11-16 の決まり〉①）＝止める線＋史実の桁の線＋単体の機構の試験。他は全て記録。
+  S1 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（四半期の途中を含む）・進行不能（未完走）＝1 種でも赤なら止める。
+  S2 発散：stoplines906（価格水準の 1 四半期 100 倍以上・1e10 倍以上・非有限・名目 GDP の跳び）・plvl_seeds を腕・基準・N1 で同じ台本（⑰）。建国の直後（系列の最初の行から 4 四半期）と ㊳ 政府の人口の 1/10・10 倍（popjump1017）は N1 の件数と並べて読む。
+  S3 空洞化 T1：an_h2.py -v4（既定 -ex rule＝規則 A2）でピークの 1/10 未満の名簿の外。**その線が原因と読めた件だけ止める**＝基線 keep_1254/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+  S4 計算量：.cost の推定 ＞248.5 秒なら止める（m1254 は 238.4・余り 10.1）。割り当て＝+0〜0.1 秒〈推〉（四半期ごとに 61 国×最大 3 規則×他の国の FormationTier の比べ・成立した国だけ 50 規則の名を見る）。2 秒以下＝1 本の腕で門にしない（★(694)）＝合流の累計で読む。
+  S5 機構と不変条件のテスト：旗 1 のフルスイート（Category!=FullLength・FullLength・Tests.Ui を分け、合計を --list-tests と突き合わせる）・㉘ 走査の番人・㊴ 計器の束。
+  史実の桁の線（両側 [0.1,10]・この線が一番動かす量を含む）：
+    Hu1 統一の宣戦の件数（wars_s の declare・内戦を除く・10 種の平均）：史実〈推〉約 10 → 赤＝100 超（下側は記録＝統一が起きないのは止める線でない）。m1254 M 61.7。
+    〈成立の後の同じ規則の宣戦〉（dec_after・記録の数）予言 21.6%→0 近く。
+    Hu2 同じ組の再戦（種ごとの最多の 10 種の平均）：赤＝30 超。Hw 戦争の数 腕÷基準：赤＝10 以上か 0.1 以下。
+    H1 政体の遷移の数 腕÷基準・H2 立憲の割合 腕÷基準 ∈ [0.1,10]（paper.py）。H3 大戦の兵士÷人口（magn.py・赤＝新しい桁外れの国）。
+  機構の観測量 G1（狙いどおり働いた）：腕 B の UA ≦ 0.1×基準 M の UA（=13）。旗 0（基準の生）では UA 137＝赤（下の [5]）。
+  単体の機構の試験（盤面は試験の中で置く・旗 0 で赤・突然変異で赤）＝PriceOfBread.Tests/UnificationSkipFormedTests.cs（新・4 本）：
+    T1 プロイセンが〈ドイツ帝国〉（段 2）を名乗った盤面で、資格のある 5 邦の候補が全て null。対照：旗 0 の同じ盤面でライン諸邦の候補は〈ドイツ〉。
+    T2 誰も成立していない盤面では旗 1 と旗 0 の候補が 6 邦とも同じ＝手で書いた表（プロイセン〈北ドイツ連邦〉・他〈ドイツ〉）。
+    T3 別の札の成立（プロイセンが〈ローマ〉段 3）と低い段の成立（〈北ドイツ連邦〉段 1）はライン諸邦の候補〈ドイツ〉を消さない。
+    T4 プレイヤーの道（World.UnificationRule が null・CanUnificationWar が偽）と AI の道（TryUnificationWars で宣戦 0）。対照：旗 0 で候補〈ドイツ〉・AI の宣戦 1 以上。
+  突然変異（㉚・使い捨ての木・scripts/instruments/c128uf/mut_uf.sh・出力 measurements/m1258_20261120/mut/）：
+    | μ | 中身 | 赤になる試験（予言） | G1 |
+    | μ0 | 旗を見ない（何もしない実装） | T1・T4 | 赤（基準の生＝旗 0 と同じ） |
+    | μ1 | 自分の名と比べる（q≠p を q＝p に） | T1・T4 | ― |
+    | μ2 | 札を見ず段だけ（他の国の FormationTier≧r.Tier で外す） | T3 | ― |
+    | μ3 | 判定を AI の呼び手だけに入れる | T1・T4（プレイヤーの道） | ― |
+    | μ4 | 札でなく規則の名だけ（指示の文の形） | T1・T4 | 赤〈推〉（名〈ドイツ〉を名乗る国が基準に無い） |
+    G1 の突然変異の腕は回さない（1 腕 約 15GB・計器つき 10 種）＝旗 0 の基準の生で G1 が赤なことで代える（μ0 と同じ）。
+
+[4] ㉘・㉑・㉜
+  ㉘ 走査の番人：工業化度の読み手の許可表（Formations.cs は載っていない・触る行に工業化度の読みは無い）・`new MoneyStock(` の件数（SimCore 64・変えない）・route_anchors.tsv（scripts/instruments/flow262/・Formations の鍵の行は無い）・WriterRatchetTests の宣言の表（Formations の行は無い・書く欄を足さない）。
+    DormantIdentityTests の休眠 0 の表に〈UnificationSkipFormed〉を 1 行足す（器のコミット）→ 点火のコミットで外して〈点火〉の注に替える。
+  ㉑ ソースを走査する件数の番人の変わる件数：0〈推〉（private の関数 1 本・係数 1 本＝係数の数の番人があれば +1）。
+  ㉜ 置き換える旧の規則＝〈統一の候補は他の国の成立を見ない〉。それを固定する試験（grep〈UnificationCandidate|UnificationRule|TryUnificationWars|CanUnificationWar〉と〈RenameNation|FormationTier =〉）：
+    NationalismUnificationTests・UnificationAiNoWaitTests・UnificationWarGateTests＝どれも成立した国を盤面に置かない（RenameNation を呼ばない）＝旗 1 で赤になる予言 0。
+    NationIdentityTests:24〜29 は RenameNation を呼ぶが候補を読まない＝赤の予言 0。
+
+[5] 紙の台本（★(1254)・腕の前に基準の生で回す・旗 0 で緑か）：scripts/instruments/c128uf/read_uf.sh を keep_1254/base_ins を〈腕〉として回した（出力 measurements/m1258_20261120/paper0/）。
+  （結果は下の [5'] に写す）
+
+[6] 腕 B（⓪(a) 表を絞る）：`NR_TABLES=… bash scripts/instruments/c128uf/armb.sh <旗 1 のコミット> D:/PoB_work/c128uf_work`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定の 9 国）。
+  表の宣言＝ident.cfg の SMALL 29 表＋BYPASS 3 表（habitlg_s・inheritintent_s・inheritpar_s＝選びの外で必ず出る）＋formation2_s・unifwar_s・tensionwhy_s＋台本が開く表 secession_s（paper.py）。
+    台本ごとの表（grep）：stoplines906＝nation_s・pxmonth_s（＋an_h2 の region_s）・unif_read_s＝formation2_s・unifwar_s・wars_s・paper＝scalars_s・secession_s・ng.sh＝nation_s・stock_s・wars_s・casualty_s・
+    ukdef975＝fiscal_s・home_break＝nation_s・region_s・stock_s・uf_read と dec_after＝nation_s・formation2_s・wars_s・unifwar_s。
+  D:：起こす直前に shutil で〈35GB＋量〉を測る。量は表を絞った腕で 約 15GB〈推〉。
+  記録：ドイツ帝国とイタリア王国の成立（種ごと・uf_read と formations の行）・英の国債の不履行（ukdef975）・全ての国の不履行（alldef）・NG（ng.sh・基準 ng1254）・nullgate（記録）・同じ盤面の新÷旧（成績表の差の行の数）・開幕の 1000 倍以上・gdp_zero10。
+  〈周辺の点検〉（読むだけ）：
+    成立の後の UnificationTargets：候補が null なら呼ばれない（Diplomacy.cs:1687・World.cs:1875 の後）＝変わる所は無い。
+    成立した国の次の段の規則：〈ドイツ帝国〉の次は〈神聖ローマ〉（Formations・段 3）と〈神聖ローマ帝国〉（CultureRealms・段 3）＝どちらも UnificationV1 の外＝UnificationV1Only=1 で候補にならない（今と同じ）。
+    北ドイツ連邦（文化の無い規則・札＝規則の名）：他の国の〈ドイツ帝国〉では外れない＝プロイセンが未成立のまま他の邦がドイツ帝国を名乗った盤面では、プロイセンの北ドイツ連邦の候補は残る（記録・基準の 10 種には無い形）。
