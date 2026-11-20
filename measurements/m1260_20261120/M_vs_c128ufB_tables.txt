@@ -1,0 +1,1 @@
+M の生の表と c128uf の腕 B の生の表（D:/PoB_work/c128uf_work/out_c128ufB_10/ins・36 表 359 本）の sha1：一致 359・違う 0・欠け 0（M は 1644 本）
