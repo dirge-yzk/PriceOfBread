@@ -1,0 +1,47 @@
+μ5 適用
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\BilateralMarket.cs(1002,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\EconomyStep.cs(1478,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\Instruments.cs(2648,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(187,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(203,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c130gs_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c130gs_work\mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c130gs_work\mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c130gs_work\mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.69]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.48]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.55]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T3_旗0では兵は州の間を動かない [3 s]
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T2_移す量は率と超過で決まり受け手は空席の比で受ける [5 ms]
+  成功 PriceOfBread.Tests.SoldierToVacantSeatTests.T1_席を超える州から空席の州へ兵が動き総数は保存 [2 ms]
+[xUnit.net 00:00:08.09]     PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる [FAIL]
+[xUnit.net 00:00:08.09]       Assert.Equal() Failure: Values are not within 9 decimal places
+[xUnit.net 00:00:08.10]       Expected: 6.7898993540000001 (rounded from 6.7898993536946364)
+[xUnit.net 00:00:08.10]       Actual:   0 (rounded from 0)
+[xUnit.net 00:00:08.10]       Stack Trace:
+[xUnit.net 00:00:08.10]         D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\SoldierToVacantSeatTests.cs(143,0): at PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる()
+[xUnit.net 00:00:08.10]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:08.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:08.10]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:08.10]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる [2 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 6.7898993540000001 (rounded from 6.7898993536946364)
+Actual:   0 (rounded from 0)
+  スタック トレース:
+     at PriceOfBread.Tests.SoldierToVacantSeatHookTests.T4_兵の移しが州の残差を閉じる() in D:\PoB_work\wt_c130gs_mut\PriceOfBread.Tests\SoldierToVacantSeatTests.cs:line 143
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+テストの実行に失敗しました。
+テストの合計数: 4
+     成功: 3
+     失敗: 1
+合計時間: 10.4891 秒
