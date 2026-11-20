@@ -134,7 +134,8 @@ public static class Meritocracy
                     if (u <= Eps) continue;
                     int cls = ClassOf(r, i);
                     if (cls < 0) continue;
-                    double eff = c.JobSearchRatePerQuarter.Value * (1.0 - c.JobSearchLiteracyWeight * (1.0 - p.Literacy));
+                    double eff = c.JobSearchLiteracyOff > 0 ? c.JobSearchRatePerQuarter.Value   // (1269) K15：旗 1 で識字の倍率を外す
+                        : c.JobSearchRatePerQuarter.Value * (1.0 - c.JobSearchLiteracyWeight * (1.0 - p.Literacy));
                     double poolFlow = eff * u * p.Size;
                     RouteViaPool(r, w, m, avgPerCap, p, cls, poolFlow, secular, higherEdu, c, ref soldierVac, forced: p.IsSoldier);
                 }
