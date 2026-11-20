@@ -378,6 +378,7 @@ public class DormantIdentityTests
         "MegaprojectEnabled", "MegaprojectStateFrac", "MegaprojectStateCap", "MegaprojectPrestige", "MegaprojectCounterCyclical", "MegaprojectCrisisDrawdown", "MegaprojectForeignShare", "MegaprojectForeignMinRank", "MegaprojectForeignDrawFrac", "MegaprojectForeignYield", "FormationLegitimacyBoost", "MonumentBuildQueue", "MonumentBuiltUnits", "MonumentApplied",   // (1081) c103dm：威信と巨大建造物を消した（係数 11 本・州の欄 3 本）
         "StockpilePanicWeight", "StockpileTensionSpan", "StockpileOtherFrac", "WarScareTension",   // (1174) c116hd：戦時の買いだめ（在庫の目標の倍率）を 0.5→0.0 で閉じた（S02-H004a）。(1185) c118hc で枝 Model.StockpileFactor と欄 WarScareTension・係数 StockpileTensionSpan・StockpileOtherFrac も消した＝(1192) c119kf で名簿へ
         "UnificationAiPursueChance", "UnificationAiCooldownYears", "UnificationAiWarGapYears",   // (1195) c119us：統一戦争の AI の乱数と待ちの係数 3 本を削除（(1188) で 1.0・0 にした道を焼いた＝候補と標的が立った四半期に必ず使う）
+        "GridKeepPerMonth",   // (1255) c128ci：送電網の劣化の残存率 0.998（劣化は 1−GridReplaceRate の 1 本・ビット一致・(1262) で名簿へ）
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：
