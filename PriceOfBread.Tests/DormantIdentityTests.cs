@@ -154,7 +154,7 @@ public class DormantIdentityTests
         // ★ResourceRowsFix（(1025) c96rd 段0″a 資源のデータ＝world.json に足した史実の産地の 10 行を州の構築で使う旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ResourceRowsTests）
         // ★RailLocoNeedsDiscovery（(1130) c110lo 機関車の需要と払いに鉄道の発見の門）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 と 1 の番人は RailLocoDiscoveryTests＝旗を明示）。
         // ★RailLocoGateWorld（(1152) c113lc 機関車の門を世界の発見の和で読む）は 2026-11-15 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は RailLocoGateWorldTests＝旗を明示）。
-        "ArrearsBeyondOpenedRoom",      // (1250) c127bd 金本位でない月の不履行の累計を開いた余地で払えなかった分だけにする旗（0＝1−r・番人 ArrearsOpenedRoomTests）
+        // ★ArrearsBeyondOpenedRoom（(1250) c127bd 金本位でない月の不履行の累計を開いた余地で払えなかった分だけにする旗）は 2026-11-20 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は ArrearsOpenedRoomTests）
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
         // ★UbiquitousMineralExempt（(1020) c95ub 遍在の財〔石灰石・珪砂・粘土〕を非産地の 0.4 の外へ出す旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 UbiquitousMineralTests）。
