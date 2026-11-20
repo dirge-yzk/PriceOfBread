@@ -1,0 +1,8 @@
+M2 PairFlowQ の詰めを Take(n-1) へ: rc=1 赤=1 ['失敗 PriceOfBread.Tests.DissolveNationTests.国の消滅の1本_中ほどの国を溶かすと行列は消えた国の行と列だけを除いて詰まる [5 s]'] 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M3 HorseCostOf の値を +1: rc=1 赤=1 ['失敗 PriceOfBread.Tests.RkInstrumentTests.R7_線路の伸びた州でnoRailKmは動かずownerKmは清算の値のまま下がる [8 s]'] 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 1 m 46 s - PriceOfBread.Tests.dll (net10.0)
+M4 PaysaleMonth の su と pu の順を逆: rc=1 赤=1 ['失敗 PriceOfBread.Tests.RkInstrumentTests.R5_paysale2は挙げない国なら年末だけ_国の持ち分の手計算 [1 m 1 s]'] 失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 2 m 37 s - PriceOfBread.Tests.dll (net10.0)
+M6a 送電網の劣化を 1−2×率: rc=1 赤=1 ['失敗 PriceOfBread.Tests.GridDegradeEngineTests.送電網は月ごとに置換需要率だけ朽ちる_買い戻しを入れても手計算の範囲に入る [41 s]'] 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 41 s - PriceOfBread.Tests.dll (net10.0)
+M6b 送電網の劣化を消す: rc=1 赤=1 ['失敗 PriceOfBread.Tests.GridDegradeEngineTests.送電網は月ごとに置換需要率だけ朽ちる_買い戻しを入れても手計算の範囲に入る [39 s]'] 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 39 s - PriceOfBread.Tests.dll (net10.0)
+M5 FormedElsewhere の段の条件を消す: rc=1 赤=1 ['失敗 PriceOfBread.Tests.UnificationSkipFormedTests.T5_名前だけが同じで成立の段が無い国は成立した国と数えない_段の条件を消すと赤 [47 ms]'] 失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M7 退役した係数 GridKeepPerMonth を戻す: rc=1 赤=1 ['失敗 PriceOfBread.Tests.DormantIdentityTests.削除した休眠の係数は戻っていない [60 ms]'] 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 68 ms - PriceOfBread.Tests.dll (net10.0)
+対照（変異なし）: rc=0 成功!   -失敗:     0、合格:    16、スキップ:     0、合計:    16、期間: 2 m 21 s - PriceOfBread.Tests.dll (net10.0)
