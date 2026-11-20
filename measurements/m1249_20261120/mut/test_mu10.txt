@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1b_T1c_分断の文化のPOPは民族主義へ移り_和は同じ [10 ms]
+失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

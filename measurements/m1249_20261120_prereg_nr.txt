@@ -119,3 +119,11 @@
   落ちたら採らずに止める（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ。腕 B の生は合流の判断まで消さない。
 
 [12] ぶつかり：ex の MultiNationSim.cs:927〜:1028、bd・kc の World.cs の行（:1121・:1304）に触れない。表の登録（Instruments.cs）と宣言の番人（DormantIdentityTests・WriterRatchetTests）の行は 1 行ずつ足す。
+
+[追記 2026-11-20・旗 1 の前（旗 1 の出力を見る前）]
+  ① 腕 Z＝ident c127nrz（木 194ff38d8・段 2・SOURCE-HASH 0dec0e31e6af364f・--added-tables formation2_s,unifwar_s,tensionwhy_s・--tests-delta 15）〈判定: 恒等〉（測った種で一致）。
+     素の 5 種 179 行・計器つき 10 種 181 行が m1233 と全行バイト一致・.cost の推定 238.3／239.0 秒が一致・計器の表 1602 本＝一致 1542＋既知の揺れ 60・宣言の 30 本・注視 4785 行一致・試験の数 2953（2938＋15）・FullLength 3。
+     記録 measurements/m1249_20261120/ident/。未コミット 2 本は台本（suite_nr.sh）と突然変異の表＝エンジンの外。旗 0 の新しい 3 表（30 本）は D:/PoB_work/c127nr_work/z0_tables に残した（tensionwhy_s の旗 0 の側）。
+  ② 突然変異 13 本は全てどれかの試験で赤（measurements/m1249_20261120/mut/mut_table.tsv）。予言との差（予言より赤が多い物だけ・緑に残った物は無い）：
+     μ0 は T1d・T2・T4 も赤（(1230) と同じ型＝試験の手順が旗 1 で表を作ることを Assert する）。μ2 は T3・T5 も赤。μ3 は T1d・T2 も赤。μ5 は TL1 も赤（(1230) の実測と同じ）。
+  ③ ㉘（4 クラス＋OnDoubleReadScanTests＋NationalismUnification）：器の木で 156 緑・赤 3（TA1〜TA3＝盤面の前提〈乙の人の居る州が 2 以上〉がザクセン 1 州で成り立たない＝試験の盤面の取り違え）→ 乙をフランスに替えて 15 本緑（器のコミット 194ff38d8 に含む・Assert の文と閾値は変えていない）。

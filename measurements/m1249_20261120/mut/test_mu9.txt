@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1d_1国だけの文化の州と空の札の州は旗0と同じ [12 ms]
+失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
