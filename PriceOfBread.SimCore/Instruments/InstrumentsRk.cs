@@ -70,7 +70,7 @@ public static partial class Instruments
     sealed class ReachSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, ReachSink> ReachSinks = new();
 
-    /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）に、首都から各州への届きの行（持ち主の取り分で数えた分）。四半期の最初の清算の複写（RpSnap）が要る。</summary>
+    /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）に、首都から各州への届きの行（持ち主の取り分で数えた分）。四半期の最初の清算の複写（RpSnap）が要る。⚠列の時点が混ざる：km の列（noRailKm・ownerKm・rho*）は四半期の最初の清算の複写から、rail*（railTrack・railNeed・railPhi）と ownerShare は四半期の末の州の値から取る。</summary>
     static void ReachTable(MultiNationSim sim, ulong seed, int q)
     {
         if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
