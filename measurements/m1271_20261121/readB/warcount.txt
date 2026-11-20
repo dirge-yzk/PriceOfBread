@@ -1,0 +1,9 @@
+arm: war=7254 civil=137 secession=8 deadK_war=174156 deadK_civil=778 deadK_sec=10 種ごとの分離=[0, 0, 7, 0, 0, 0, 0, 0, 1, 0] 種ごとの内戦=[12, 8, 19, 10, 23, 19, 10, 15, 9, 12]
+base: war=6929 civil=130 secession=2 deadK_war=147318 deadK_civil=755 deadK_sec=0 種ごとの分離=[0, 0, 0, 0, 0, 1, 0, 0, 0, 1] 種ごとの内戦=[7, 13, 21, 13, 8, 13, 13, 12, 15, 15]
+n1: war=7093 civil=107 secession=14 deadK_war=165667 deadK_civil=616 deadK_sec=6 種ごとの分離=[0, 0, 0, 0, 7, 0, 6, 1, 0, 0] 種ごとの内戦=[14, 10, 8, 19, 9, 10, 11, 7, 10, 9]
+base/arm war: 6929/7254 = 0.955 ok
+base/arm civil: 130/137 = 0.949 ok
+base/arm secession: 2/8 = 0.250 ok
+n1/arm war: 7093/7254 = 0.978 ok
+n1/arm civil: 107/137 = 0.781 ok
+n1/arm secession: 14/8 = 1.750 ok

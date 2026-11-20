@@ -115,3 +115,6 @@
 - フルスイート（旗 1 の木 06fc66c4e・measurements/m1271_20261121/suite_06fc66c4e/）：㉘ の束 234 本 緑・㊴ 計器の束 447（合格 446・スキップ 1）緑・Tests Category!=FullLength 2833（合格 2831・スキップ 2）緑・Tests.Ui 234 緑・FullLength 3 緑。--list-tests：Tests 2833＋Ui 234＝3067＋FullLength 3（基準 3063＋T1〜T4 の 4）＝一致。savetest OK（12 四半期・61 カ国・最大相対差 0）・leakhunt 保存則違反なし。
 - 書き換えた試験：WriterRatchetTests の宣言の表 5 行（★(749)・追記 2 の値）・SoldierToVacantSeatTests の T4 の 2 行（この線の試験の許し・追記 2）。旧の規則を固定する番人の赤は 0（㉜ の予言どおり）。
 - 腕 B：木 armB_commit（06fc66c4e に台本だけを足したコミット・エンジンは cb64c478f と同じ）・起こした時 2026-11-21 06:08・D: の空き 106.0GB（床 44.5GB）・腕の空き 6。
+
+== 追記 4（腕 B の後・2026-11-21）==
+- 結果と採否は measurements/m1271_20261121/result_B.txt：採る（止める線 0・H1 H2 NG 0・単体の試験 緑）。段 0 の予言〈garrisonInK 10 倍以上〉は外れ（3.3 倍）＝記録（門ではない）。規則は結果の後に変えていない。
