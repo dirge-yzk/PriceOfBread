@@ -1,0 +1,8 @@
+(1248) c127ex 結果：判定: 恒等（段 1）・測った木 = c127ex の HEAD（項 1＋DissolveNationTests＋記録）・SOURCE-HASH 4128ac8afb406f47
+- 素の 5 種：b5_20261119_m1233 と全行バイト一致（179 行）・.cost 件数 45 本・推定 238.3 秒
+- 計器つき 10 種：b10_20261119_m1233_ins と全行バイト一致（181 行）・.cost 件数 45 本・推定 239.0 秒（m1233 と同じ）
+- 計器の表 290 本バイト一致・MON 一致 4785 行・savetest OK・leakhunt 違反なし
+- テストの数：Tests 2705（合格 2704・スキップ 1）＋Tests.Ui 234＝2939（予言どおり）・FullLength 3＝全て緑（suite/ の trx）
+- ㉘（11 束）295 件緑・突然変異 μ1〜μ3 は赤（m1248_20261120_mutations_ex.txt）
+- 項 2（rk の低 4 の試験と注）は席が空かず未着手＝次の恒等の線へ。
+- 生：D:/PoB_work/ident_m1248x（合流の判断まで残す・⑲）・作業 D:/PoB_work/c127ex_work・隔離ビルド D:/PoB_work/c127ex_art
