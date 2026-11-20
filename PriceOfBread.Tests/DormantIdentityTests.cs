@@ -259,6 +259,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "ServiceUnemployment",   // (1263) c129k12 K12：役務専任 pop の失業の強度（既定 1.0＝×1.0）の旗を焼いた（式は残す）
         "ConsumeBudgetSavingsRatePerMonth",   // (1257) c128k20 K20：消費の予算の上限（EconomyStep の d＞0 の枝・既定 0＝休眠）を枝ごと削除。計器 CapOf は自分の d の並びで残る。
         "GuildMobilityDrag",   // (1227) c124kb 項 3 K10′：同業組合の移動の遅れ（既定 0・主ゲート GuildLawGate も 0＝休眠）を削除。法の軸 GuildLawGate・GuildRentPremium は残す
         "HealthcareLiteracyGateOff", "HealthcareEducationGate",   // (1227) c124kb 項 1：(1222) K03 の旗（既定 1）と識字の錠の係数を焼き込んだ（旗 0 の枝と係数を消した＝番人は HealthcareLiteracyGateTests）

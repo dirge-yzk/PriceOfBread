@@ -1,0 +1,21 @@
+(1263) c129k12 事前登録（最初のコミット）。恒等の線・予言 0。種類＝恒等（区分 I・旗の焼き込み ×1.0）。基準 m1260。
+作者 2026-11-16「既に動いている機能でも、問題があれば作り直したり、削除しても構いません。」・作者 2026-11-12 の古い旗の始末（推奨で進めて）。作者「しばらくの間、全て推奨で」で推奨を採った。
+出発：00一覧〈次の波〉1 節・(1189) の表 measurements/m1189_20261117/dl_table_2026-11-17.tsv の K12（恒等・読み手 E2・D1・前提の線なし）。
+
+[1] 恒等の線・予言 0
+ 素の 5 種・計器つき 10 種が m1260（b5_20261120_m1260・b10_20261120_m1260_ins）と名乗り行を除いて全行一致。計器の表の差は 0（計器に触れない）。段 1（`--work D:/PoB_work/ident_c129k12`）。不一致なら段 2 で帰属を読み、止めて報告。
+ 浮動小数の順序が変わる箇所＝無し。旧 Clamp01(1.0 * unsold) と新 Clamp01(unsold)：1.0*x は IEEE で x とビット一致（NaN も NaN のまま通り Clamp01 へ入る＝前後で同じ）。unsold は 1.0 - LastSold/LastProduced（LastProduced>Eps の枝だけ）で係数を含まない。紙の台本で旧と新の食い違い＝0（式の同値）。
+
+[2] 消す物と残す物
+ 消す：Coefficients.p03_debt_money.cs:50 ServiceUnemployment（既定 1.0・旗）／EconomyStep.cs:2494 if (coef.ServiceUnemployment > 0)（外して常に通る）／:2503 の係数の乗算（Clamp01(unsold) へ）。
+ 残す：役務専任 pop の失業の式（教育・医療・行政・家事奉仕の売れ残り率）。注は docs/history へ。
+ 読み手の grep（全域）：SimCore＝上記 2 箇所と欄の宣言だけ／Runner・App・Display＝0／Tests＝0（RetiredFields へ足す）／scripts＝scripts/instruments/r1189/mk_tsv_s12.py の説明文だけ（実行に影響なし）／measurements＝過去の台本・表の文字だけ／POB_COEF の名前の文字列＝0／SaveGame＝係数は World.Coef の欄でリフレクション＝欄の削除で書き手も読み手も同時に消える（savetest で確認）。
+ 他の線との重なり：EconomyStep.cs は :2488〜:2506 だけ・Coefficients.p03 は :50 だけ・DormantIdentityTests は RetiredFields の 1 行だけ・WriterRatchetTests は宣言の行だけ（ServiceUnemployment の宣言があれば）。他の線（pc・sb・al）の持ち主の行と重ならない。
+
+[3] 足す試験と突然変異
+ DormantIdentityTests.RetiredFields に ServiceUnemployment を足す（欄が戻れば赤）。新しい機構の試験は無い（恒等の削除）。
+ 突然変異 μ1：係数だけ消して式に読み手を残す → ビルドが赤。μ2：RetiredFields の名前を戻した欄の復活 → RetiredFields が赤。
+ ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests）：書き換える件数の予言＝0（係数は読み手 1 つで走査の表に載らない見込み。WriterRatchetTests に載っていれば宣言の行を 1 つ消す＝〈番人を写しただけ〉として報告）。
+
+[4] 成績表：素の 5 種・計器つき 10 種が m1260 と全行一致（計器の表の差は 0）。計算量の件数は増えない（.cost の推定が一致）。
+[5] 〈判定: 恒等〉なら採る。〈測った種で一致〉と名乗る。

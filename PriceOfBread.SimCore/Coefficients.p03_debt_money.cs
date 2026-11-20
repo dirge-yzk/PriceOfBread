@@ -47,7 +47,6 @@ public sealed partial class Coefficients
     public RatePerQuarter PettyEntryRatePerQuarter = new(0.02);             // >0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖
     public double SerfGateCoversPool = 0.0;   // ＝農奴が「職探し」なら都市へ入れる
     public double SerfMobilityGate = 1.0;            // 都市→農村は自由＝非対称
-    public double ServiceUnemployment = 1.0;         // 使用人の袋小路（U恒0＝プール対象外・出口ゼロ）の解消
     public double JobSearchLiteracyWeight = 0.5;     // 1783年の教区縁故社会と1911年の職業紹介所社会の探索効率差＝識字（新聞求人・文書応募）が代理
     public double JobSearchUsesEma = 0.02;           // プール流入の駆動を瞬間UでなくU多年EMAへ＝循環失業は滞留して闘争度になり（Politics既存）、慢性失業だけが職業転換を駆動（手織工の遅さと恐慌の怒りが同じ係数から分岐）
     public double MinorityPenaltyModernBlend = 0.5;  // 開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）
