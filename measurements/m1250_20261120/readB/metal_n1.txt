@@ -1,0 +1,13 @@
+seed 1 no silverst
+seed 2 no silverst
+seed 3 no silverst
+seed 4 no silverst
+seed 5 no silverst
+seed 6 no silverst
+seed 7 no silverst
+seed 8 no silverst
+seed 9 no silverst
+seed 10 no silverst
+pAg	続く行の比の最大 0.000 None	開幕比の最大 0.000
+pAu	続く行の比の最大 0.000 None	開幕比の最大 0.000
+非有限 0	判定 緑（続く行の比 100 以上か非有限）

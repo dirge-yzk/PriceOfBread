@@ -1,0 +1,7 @@
+M1 入れた：D:/PoB_work/c127bd_work/mut/M1/PriceOfBread.SimCore/Fiscal.cs
+rc=1
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T1_離脱の後は余地が開く前に不履行しない_旗0は月m加2に不履行 
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.W1_兌換1の不換の月はSimulationを通しても積まない_旗0は積む 
+  失敗 PriceOfBread.Tests.ArrearsOpenedRoomTests.T1b_金本位でない月は余地で払えなかった分だけを積む 
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     3、合格:     3、スキップ:     0、合計:     6、期間: 6 s - PriceOfBread.Tests.dll (net10.0)

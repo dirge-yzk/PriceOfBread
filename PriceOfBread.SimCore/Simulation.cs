@@ -1935,6 +1935,7 @@ public sealed class Simulation
         double spare = payable - claims + Math.Min(0, World.Treasury.Value);
         // ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。〔履歴 Simulation.cs#237〕
         double devalued = 0;   // devalued〔履歴 Simulation.cs#238〕
+        double unopenedRoom = 0;   // (1250) 兌換の遅れでまだ開いていない切り下げの余地（deficit−余地）＝Fiscal.Step の不履行の累計が読む（旗 ArrearsBeyondOpenedRoom）
         if (World.FiscalEnabled)
         {
             if (Instruments.On) Instruments.PreBorrow(World, payable, spare);
@@ -1951,6 +1952,7 @@ public sealed class Simulation
                 if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
                 devalueRoom = deficit * (1.0 - World.Convertibility * (1.0 - specie));
             }
+            unopenedRoom = deficit - devalueRoom;
             if (devalueRoom > 1e-9)
             {
                 double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
@@ -2036,7 +2038,7 @@ public sealed class Simulation
         StepMineralDeposits();   // ゲート0＝即return＝恒等〔履歴 Simulation.cs#259〕
         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。〔履歴 Simulation.cs#260〕
         ProbeCheck("月次鋳造");
-        Fiscal.Step(World, World.Coef, spare, devalued);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
+        Fiscal.Step(World, World.Coef, spare, devalued, unopenedRoom);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
         ProbeCheck("月次財政");
         // ★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない （売却は資本家→国庫の移転＝Fiscal の課税ベースを後から動かさない）。〔履歴 Simulation.cs#261〕
         World.StepStateTargets();
