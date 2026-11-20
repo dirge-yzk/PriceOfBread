@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1274\scripts\instruments\c130rc\gate_rc.py", line 26, in <module>
+    ea,ta,na,ra=load(A); eb,tb,nb,rb=load(B)
+                                     ^^^^^^^
+  File "D:\PoB_work\wt_m1274\scripts\instruments\c130rc\gate_rc.py", line 20, in load
+    for ix,x in rows(f"{d}/popclose_s{s}.tsv"):
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PoB_work\wt_m1274\scripts\instruments\c130rc\gate_rc.py", line 10, in rows
+    f=open(p,encoding='utf-8',newline=''); r=csv.reader(f,delimiter='\t'); h=next(r); ix={c:i for i,c in enumerate(h)}
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:/PoB_work/keep_1260/a11/popclose_s11.tsv'
