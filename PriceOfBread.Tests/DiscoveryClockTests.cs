@@ -372,10 +372,9 @@ public class DiscoveryClockTests
         Assert.True(CostLedger.UnitMicros[CostLedger.DiscoveryWorldScans] > 0);
     }
 
-    /// <summary>新しい既定（係数に何も書かない盤面）で、開幕の世界の高度労働力の雇用 W は d＝3 の行の傾斜の下端 W0×3×(1−w/2) より小さく、d＞0 の行は 1783 年のうちに 1 本も開かない（時計が 1783 年の洪水を止める＝狙い T0・T1）。
-    /// (1264) c129al の書き換え（㉜ の改め・事前登録 measurements/m1264_20261120_prereg_al.txt）：既定の W0 は W0′＝7854.08×0.757×0.714÷0.991＝4283.67（旗 FoodProcessingNoEngineer 1 と対）。
-    /// 旧の前提〈W は d＝2 の下端（W0×2×0.95）より下〉は新しい規則では成り立たない（旗 1 の開幕の W は約 0.757 倍・d＝2 の下端 8,139）＝前提を d＝3 の下端（12,208）へ移した。行が開かない Assert と件数の下限は旧のまま。
-    /// 期待値は手計算の不等式（W0′ の既定は 4283.67・w は 0.1 → d＝3 の下端 12,208）と、行ごとの解禁の有無（制度と思想の行・d≦0 の行・データで開幕に解禁済みの行は除く）。
+    /// <summary>新しい既定（係数に何も書かない盤面）で、開幕の世界の高度労働力の雇用 W は d＝2 の行の傾斜の下端 W0×2×(1−w/2) より小さい＝d＞0 の行は 1783 年のうちに 1 本も開かない（時計が 1783 年の洪水を止める＝狙い T0・T1）。
+    /// 期待値は手計算の不等式（W0 の既定は (1264) c129al から W0′＝7854.08×0.757×0.714÷0.991＝4283.67〔旗 FoodProcessingNoEngineer 1 と対〕・d の最小は 2・w は 0.1 → 下端 8,139）と、行ごとの解禁の有無（制度と思想の行・d≦0 の行・データで開幕に解禁済みの行は除く）。
+    /// (1264) の ㉜ の一覧で〈W0 の値を固定する試験ではなく 1783 年の洪水を止める T0 の機構の番人〉と区分した（旗 1＋W0′ の盤面でも旧の Assert のまま緑＝事前登録の追記 2）。
     /// ⚠壊し方＝既定を W0＝0 に戻す（(415) の式へ → 転炉鋼・機関車が 1783 年に開く）・傾斜の下端を W0×d より下げる → 赤。</summary>
     [Fact]
     public void 新しい既定では1783年のうちにd正の行は1本も開かない()
@@ -386,7 +385,7 @@ public class DiscoveryClockTests
         double wTot = HandWorld(sim);
         var c = sim.Coef;
         Assert.True(c.DiscoveryClockWorldPerMonth > 0 && c.DiscoveryOwnHalfPerMonth > 0, "新しい既定で時計の形が点いていない");
-        Assert.True(wTot < c.DiscoveryClockWorldPerMonth * 3.0 * (1.0 - c.DiscoveryClockRampWidth / 2.0), $"開幕の W {wTot} が d＝3 の傾斜の下端以上＝この検査の前提が崩れた");
+        Assert.True(wTot < c.DiscoveryClockWorldPerMonth * 2.0 * (1.0 - c.DiscoveryClockRampWidth / 2.0), $"開幕の W {wTot} が d＝2 の傾斜の下端以上＝この検査の前提が崩れた");
         int checkedRows = 0, opened = 0;
         for (int i = 0; i < before.Count; i++)   // 分離・建国で増えた国は数えない（開幕の国だけ）
         {
