@@ -8,6 +8,7 @@ n = int(sys.argv[4]) if len(sys.argv) > 4 else 10
 SEEDS = range(sb, sb + n)
 W0A, W0B, WID = round(7854.08 * 0.757 * 0.714 / 0.991, 2), 7854.08, 0.1
 FOODCHILD = ('缶詰', '魚の缶詰', '冷蔵')
+NAT = {'イギリス': '英', 'フランス': '仏', 'プロイセン': '普', '清': '清'}   # H2 の国（clock_s の britainPerMonth ほかは基準の生で nan＝追記 1 で factory_s の担い手の人数へ替えた）
 
 def rows(p):
     if not os.path.exists(p): return
@@ -27,16 +28,21 @@ def load(d):
         sup, W, nat, eng = {}, {}, {}, {}
         for ix, x in rows(f'{d}/factory_s{s}.tsv'):
             v = num(x[ix['advLaborSupplyCapacityUnitsPerMonth']])
+            nm = NAT.get(x[ix['nation']])
+            if nm is not None:   # H2：国の技師の人数（高度労働力の担い手の人口・千人）・年の最初の四半期
+                k = num(x[ix['advLaborSupplierPopK']]); y = int(x[ix['year']]); q = int(x[ix['quarter']])
+                if k == k and (y not in nat or nat[y][0] > q or (nat[y][0] == q)):
+                    if y not in nat or nat[y][0] > q: nat[y] = [q, {}]
+                    nat[y][1][nm] = nat[y][1].get(nm, 0.0) + k
             if v == v: sup[int(x[ix['year']])] = sup.get(int(x[ix['year']]), {}); sup[int(x[ix['year']])][int(x[ix['quarter']])] = sup[int(x[ix['year']])].get(int(x[ix['quarter']]), 0.0) + v
         for ix, x in rows(f'{d}/clock_s{s}.tsv'):
             if x[ix['kind']] != 'W': continue
             y = int(x[ix['year']]); W[y] = num(x[ix['worldTotalPerMonth']])
-            nat[y] = {k: num(x[ix[c]]) for k, c in (('英', 'britainPerMonth'), ('仏', 'francePerMonth'), ('普', 'prussiaPerMonth'), ('清', 'chinaPerMonth'))}
         for ix, x in rows(f'{d}/engineer_s{s}.tsv'):
             if x[ix['kind']] != 'T': continue
             y = int(x[ix['year']]); v = num(x[ix['engineerPerMonth']])
             if v == v: eng.setdefault(y, {}); eng[y][x[ix['row']]] = eng[y].get(x[ix['row']], 0.0) + v
-        out[s] = {'sup': {y: q[min(q)] for y, q in sup.items()}, 'W': W, 'nat': nat, 'eng': eng}
+        out[s] = {'sup': {y: q[min(q)] for y, q in sup.items()}, 'W': W, 'nat': {y: v[1] for y, v in nat.items()}, 'eng': eng}
     return out
 
 def near(m, y):
@@ -82,5 +88,5 @@ for y in (1851, 1913):
         a, b, r = ratio(lambda d, y: near(d['nat'], y).get(k, float('nan')) if d['nat'] else float('nan'), y)
         out = r == r and (r <= 0.1 or r >= 10)
         bad += out
-        print(f'H2 国の技師の雇用 {k} {y}\t腕 {a:.1f}\t基準 {b:.1f}\t腕÷基準 {r:.3f}\t{"NG" if out else "内"}')
+        print(f'H2 国の技師の人数（advLaborSupplierPopK・千人） {k} {y}\t腕 {a:.1f}\t基準 {b:.1f}\t腕÷基準 {r:.3f}\t{"NG" if out else "内"}')
 print(f'H2 判定：{"NG" if bad else "緑"}（1/10 以下か 10 倍以上の国×年 {bad}）')
