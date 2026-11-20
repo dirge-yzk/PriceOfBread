@@ -31,8 +31,8 @@ public static partial class Instruments
         var a = EqAccs.GetOrCreateValue(w);
         a.RetiredNet += netScale; if (drift > a.DriftMax) a.DriftMax = drift; if (shortfall) a.Short++;
     }
-    internal static void EquipmentCompleted(World w, double scale) { EqAccs.GetOrCreateValue(w).Completed += scale; }
-    internal static void EquipmentDismantled(World w, double scale) { EqAccs.GetOrCreateValue(w).Dismantled += scale; }
+    internal static void EquipmentCompleted(World w, double scale) { if (!Tg.Equipment) return; EqAccs.GetOrCreateValue(w).Completed += scale; }
+    internal static void EquipmentDismantled(World w, double scale) { if (!Tg.Equipment) return; EqAccs.GetOrCreateValue(w).Dismantled += scale; }
 
     static void EqFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
