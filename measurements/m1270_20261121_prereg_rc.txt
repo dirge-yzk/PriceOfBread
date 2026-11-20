@@ -101,3 +101,8 @@
   - 外交：覇権の判定の国×国 DiploHegemonScans 2077716→1835652（−11.7%）
   - 新しい計数の処理は無い（RecruitSpecialists は CostLedger に件数を持たない）。機構の向き・大きさの Assert には触れていない。
 - ㉜ の一覧の外の赤 0。
+
+== 追記 2（㉜ 旗 1 のフルスイート・腕 B の前・2026-11-21）==
+- 旗 1 の木 90e4ab446（宣言の表の取り直しの後）：Tests Category!=FullLength 2833（合格 2831・スキップ 2・失敗 0）・FullLength 3 緑・Tests.Ui 234 緑。--list-tests：Tests 2836（＝2833＋3）・Ui 234＝基準 3063＋4（RecruitVacancyTests）と一致。
+- savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（種 1789・200 四半期・保存則違反なし・説明できない増減 0）。measurements/m1270_20261121/suite_90e4ab446/。
+- 腕 B：`POB_WORK=D:/PoB_work/c130rc_work/armB`・prep commit:90e4ab446 plain → `INS=1 POB_INSTRUMENTS_TABLES=<SMALL>,popclose_s,factory_s bash scripts/instruments/batch.sh run c130rcB 10`。起こす直前の D: の空き 109.4GB（〈35GB＋10GB〉以上）。
