@@ -952,81 +952,87 @@ public sealed class MultiNationSim
             int pi = Nations.FindIndex(n => n.World.SelfPower == parentP);
             int ri = Nations.FindIndex(n => n.World.SelfPower == rebelP);
             if (pi < 0 || ri < 0 || pi == ri) continue;   // どちらかが既に消滅（防御・二重予約）
-            var pw = Nations[pi].World; var rw = Nations[ri].World;
-            // ★政体の変更は州が戻った後（下の決着の当てはめ）＝革命の後始末（失脚・恐怖政治・土地改革）が再統一した国の全POPに掛かる（旧経路の内戦の勝ちと同じ範囲）。〔履歴 MultiNationSim.cs#109〕
-            double T = rw.Treasury.Value;
-            var moving = new System.Collections.Generic.List<Region>(rw.Regions);
-            // rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。〔履歴 MultiNationSim.cs#110〕
-            List<(Pop Pop, MoneyStock Held)>? inherit = rebelWon ? [] : null;
-            foreach (var rr in moving)
-                foreach (var pp in rr.Pops)
-                {
-                    if (inherit is not null) { if (pp.BondHoldings.Value > 0) inherit.Add((pp, pp.BondHoldings)); }
-                    else rw.GovDebt -= pp.BondHoldings;
-                    pp.BondHoldings = default;
-                }
-            // ★返還州の Id は親の中で最大＋1（Territory.Adopt）。〔履歴 MultiNationSim.cs#111〕
-            foreach (var rr in moving) Territory.TransferRegion(rw, pw, rr, Territory.Rehoming.Returned);
-            // 遷都の1本（World.SetCapital＝Id と Regions[0]・距離の基準の座標・植民地財）。〔履歴 MultiNationSim.cs#112〕
-            if (pw.SecedingRegion is { } seat && moving.Contains(seat)) pw.SetCapital(seat);
-            if (pw.SecedingRegion is { } seat2 && (moving.Contains(seat2) || !Diplomacy.Wars.Exists(x => x.CivilWarParent == parentP))) pw.SecedingRegion = null;
-            // 金属の準備は現物＝換算しない。〔履歴 MultiNationSim.cs#113〕
-            double Tin = World.CrossFx(rw, pw, T, book: false);   // 換算の目安（台帳には積まない＝移し方の1本が積む）
-            if (T > 0) World.Transfer((rw, null), (pw, null, null), T, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
-            else if (T < 0) World.Transfer((pw, null), (rw, null, null), -Tin, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
-            MoneyStock L = default;
-            if (pw.Bank is { } pb && rw.Bank is { } rb)
-            {
-                MoneyStock loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
-                pb.Loans += loansIn; pb.HouseholdLoans += hhIn; L = loansIn + hhIn;
-            }
-            pw.CumulativeTradeFlow -= L;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
-            pw.ForeignCapitalIn += World.CrossFx(rw, pw, rw.ForeignCapitalIn, book: false); pw.CapitalAbroad += World.CrossFx(rw, pw, rw.CapitalAbroad, book: false);
-            // 反乱国の対外債の否認（政府の勝ち）：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（債権の増減の1本＝CapitalMarket.AdjustClaims・
-            //   四半期の償還と同じ規則）。反乱国自身の債権は次の行で親へ。
-            if (!rebelWon && rw.PrevForeignDebt.Value > 1e-9) CapitalMarket.AdjustClaims(Nations, ri, -rw.PrevForeignDebt.Value);
-            pw.ForeignBondClaims += World.CrossFx(rw, pw, rw.ForeignBondClaims, book: false);
-            pw.ForeignIntPaidThisQuarter += World.CrossFx(rw, pw, rw.ForeignIntPaidThisQuarter, book: false); pw.PendingForeignBorrow += World.CrossFx(rw, pw, rw.PendingForeignBorrow, book: false);
-            pw.SilverReserveQty += rw.SilverReserveQty; pw.GoldReserveQty += rw.GoldReserveQty;
-            // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
-            foreach (var col in rebelP.ColonyList) Diplomacy.AcquireColony(parentP, col, _coef);   // 植民地の受け取りの1本（講和の奪取・無血併合と同じ＝国を持つ受け手は植民地格の州へ）
-            rebelP.ColonyList.Clear();
-            // 反乱の勝ち＝政体変更の実行部（急進革命だけ国債の否認・失脚・土地改革・覚醒・断裂の窓＝即時の政変と同じ規則）／同じ政体の要求戦は要求をのむ（ConcedeToFaction）。〔履歴 MultiNationSim.cs#114〕
-            var movement = pw.RevoltingFaction is { } mv && moving.Contains(mv.Region) ? mv : null;
-            // ★計器（F3b蜂起doc §5 段1・純記帳）：鎮圧の実体は「親が内戦に勝って再併合する」この経路＝決着した運動の名をここで出す（力学は読まない）。
-            string spentName = movement is not null && !rebelWon ? $"（{Factions.DisplayName(movement)}の蜂起を鎮圧）" : "";
-            var polityBefore = pw.Polity;
-            if (pw.PoliticsEnabled && !(peaceful?.Contains(rebelP) ?? false))
-                Politics.SettleRevolt(pw, _coef, rebelWon, rebelPolity, movement, moving.SelectMany(r => r.Pops));
-            // 国内元本＝Σ保有＝rw.GovDebt−rw.ForeignDebt＝親の不変条件も閉じる。〔履歴 MultiNationSim.cs#115〕
-            if (inherit is not null)
-            {
-                // ★人と動くお金の換算（段4e）：反乱国の国債の元本と保有は反乱国の通貨＝親の通貨へ（名目の残高＝換算の台帳に積まない・Σ保有＝国内元本の不変条件は同じ比で保つ）。
-                foreach (var (hp, h) in inherit) hp.BondHoldings += World.CrossFx(rw, pw, h, book: false);
-                double debt0 = pw.GovDebt.Value; MoneyStock rwDebt = World.CrossFx(rw, pw, rw.GovDebt, book: false);
-                pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
-                if (pw.GovDebt.Value > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt.Value * rw.GovAvgCouponPerYear) / pw.GovDebt.Value;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
-            }
-            // IsPlayer〔履歴 MultiNationSim.cs#116〕
-            if (rebelP.IsPlayer)
-            {
-                rebelP.IsPlayer = false; parentP.IsPlayer = true;
-                Nations[pi].SetAgent(new NullAgent());
-                Diplomacy.Log.Add($"{pw.Year} {rebelP.Name}は{parentP.Name}へ再併合された＝操作国は{parentP.Name}");
-            }
-            Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
-            CostLedger.AddInto(_costDeparted ??= new long[CostLedger.Count], Nations[ri].World.CostOrNull);   // 計算量の台帳：消える国の件数を受け皿へ（診断・軌道に触れない）
-            Nations.RemoveAt(ri);
-            // PairFlowQ〔履歴 MultiNationSim.cs#117〕
-            if (Market.PairFlowQ is { } pfq && ri < pfq.Length)
-                Market.PairFlowQ = pfq.Where((_, a) => a != ri).Select(row => row.Where((_, b) => b != ri).ToArray()).ToArray();
-            Diplomacy.Log.Add(!rebelWon
-                ? $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}"
-                : rebelPolity != polityBefore
-                ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{PlayText.PolityRegimeJa(rebelPolity)}の下で再統一"
-                : $"{pw.Year} {rebelP.Name}の要求が通り{parentP.Name}へ再統一");
+            DissolveNation(parentP, rebelP, pi, ri, rebelWon, rebelPolity, peaceful);
         }
         Diplomacy.PendingReintegrations.Clear();
+    }
+
+    // 予約 1 組ぶんの国の消滅の本体（反乱国 ri を親 pi へ溶かす）＝ReabsorbNations の予約の環から切り出した 1 本（段 F の講和・征服の消滅も同じ関数を呼ぶ前提・文の順は元のまま・internal＝番人が 1 組だけ直に踏む）。
+    internal void DissolveNation(Power parentP, Power rebelP, int pi, int ri, bool rebelWon, Polity rebelPolity, System.Collections.Generic.HashSet<Power>? peaceful)
+    {
+        var pw = Nations[pi].World; var rw = Nations[ri].World;
+        // ★政体の変更は州が戻った後（下の決着の当てはめ）＝革命の後始末（失脚・恐怖政治・土地改革）が再統一した国の全POPに掛かる（旧経路の内戦の勝ちと同じ範囲）。〔履歴 MultiNationSim.cs#109〕
+        double T = rw.Treasury.Value;
+        var moving = new System.Collections.Generic.List<Region>(rw.Regions);
+        // rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。〔履歴 MultiNationSim.cs#110〕
+        List<(Pop Pop, MoneyStock Held)>? inherit = rebelWon ? [] : null;
+        foreach (var rr in moving)
+            foreach (var pp in rr.Pops)
+            {
+                if (inherit is not null) { if (pp.BondHoldings.Value > 0) inherit.Add((pp, pp.BondHoldings)); }
+                else rw.GovDebt -= pp.BondHoldings;
+                pp.BondHoldings = default;
+            }
+        // ★返還州の Id は親の中で最大＋1（Territory.Adopt）。〔履歴 MultiNationSim.cs#111〕
+        foreach (var rr in moving) Territory.TransferRegion(rw, pw, rr, Territory.Rehoming.Returned);
+        // 遷都の1本（World.SetCapital＝Id と Regions[0]・距離の基準の座標・植民地財）。〔履歴 MultiNationSim.cs#112〕
+        if (pw.SecedingRegion is { } seat && moving.Contains(seat)) pw.SetCapital(seat);
+        if (pw.SecedingRegion is { } seat2 && (moving.Contains(seat2) || !Diplomacy.Wars.Exists(x => x.CivilWarParent == parentP))) pw.SecedingRegion = null;
+        // 金属の準備は現物＝換算しない。〔履歴 MultiNationSim.cs#113〕
+        double Tin = World.CrossFx(rw, pw, T, book: false);   // 換算の目安（台帳には積まない＝移し方の1本が積む）
+        if (T > 0) World.Transfer((rw, null), (pw, null, null), T, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
+        else if (T < 0) World.Transfer((pw, null), (rw, null, null), -Tin, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
+        MoneyStock L = default;
+        if (pw.Bank is { } pb && rw.Bank is { } rb)
+        {
+            MoneyStock loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
+            pb.Loans += loansIn; pb.HouseholdLoans += hhIn; L = loansIn + hhIn;
+        }
+        pw.CumulativeTradeFlow -= L;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
+        pw.ForeignCapitalIn += World.CrossFx(rw, pw, rw.ForeignCapitalIn, book: false); pw.CapitalAbroad += World.CrossFx(rw, pw, rw.CapitalAbroad, book: false);
+        // 反乱国の対外債の否認（政府の勝ち）：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（債権の増減の1本＝CapitalMarket.AdjustClaims・
+        //   四半期の償還と同じ規則）。反乱国自身の債権は次の行で親へ。
+        if (!rebelWon && rw.PrevForeignDebt.Value > 1e-9) CapitalMarket.AdjustClaims(Nations, ri, -rw.PrevForeignDebt.Value);
+        pw.ForeignBondClaims += World.CrossFx(rw, pw, rw.ForeignBondClaims, book: false);
+        pw.ForeignIntPaidThisQuarter += World.CrossFx(rw, pw, rw.ForeignIntPaidThisQuarter, book: false); pw.PendingForeignBorrow += World.CrossFx(rw, pw, rw.PendingForeignBorrow, book: false);
+        pw.SilverReserveQty += rw.SilverReserveQty; pw.GoldReserveQty += rw.GoldReserveQty;
+        // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
+        foreach (var col in rebelP.ColonyList) Diplomacy.AcquireColony(parentP, col, _coef);   // 植民地の受け取りの1本（講和の奪取・無血併合と同じ＝国を持つ受け手は植民地格の州へ）
+        rebelP.ColonyList.Clear();
+        // 反乱の勝ち＝政体変更の実行部（急進革命だけ国債の否認・失脚・土地改革・覚醒・断裂の窓＝即時の政変と同じ規則）／同じ政体の要求戦は要求をのむ（ConcedeToFaction）。〔履歴 MultiNationSim.cs#114〕
+        var movement = pw.RevoltingFaction is { } mv && moving.Contains(mv.Region) ? mv : null;
+        // ★計器（F3b蜂起doc §5 段1・純記帳）：鎮圧の実体は「親が内戦に勝って再併合する」この経路＝決着した運動の名をここで出す（力学は読まない）。
+        string spentName = movement is not null && !rebelWon ? $"（{Factions.DisplayName(movement)}の蜂起を鎮圧）" : "";
+        var polityBefore = pw.Polity;
+        if (pw.PoliticsEnabled && !(peaceful?.Contains(rebelP) ?? false))
+            Politics.SettleRevolt(pw, _coef, rebelWon, rebelPolity, movement, moving.SelectMany(r => r.Pops));
+        // 国内元本＝Σ保有＝rw.GovDebt−rw.ForeignDebt＝親の不変条件も閉じる。〔履歴 MultiNationSim.cs#115〕
+        if (inherit is not null)
+        {
+            // ★人と動くお金の換算（段4e）：反乱国の国債の元本と保有は反乱国の通貨＝親の通貨へ（名目の残高＝換算の台帳に積まない・Σ保有＝国内元本の不変条件は同じ比で保つ）。
+            foreach (var (hp, h) in inherit) hp.BondHoldings += World.CrossFx(rw, pw, h, book: false);
+            double debt0 = pw.GovDebt.Value; MoneyStock rwDebt = World.CrossFx(rw, pw, rw.GovDebt, book: false);
+            pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
+            if (pw.GovDebt.Value > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt.Value * rw.GovAvgCouponPerYear) / pw.GovDebt.Value;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
+        }
+        // IsPlayer〔履歴 MultiNationSim.cs#116〕
+        if (rebelP.IsPlayer)
+        {
+            rebelP.IsPlayer = false; parentP.IsPlayer = true;
+            Nations[pi].SetAgent(new NullAgent());
+            Diplomacy.Log.Add($"{pw.Year} {rebelP.Name}は{parentP.Name}へ再併合された＝操作国は{parentP.Name}");
+        }
+        Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
+        CostLedger.AddInto(_costDeparted ??= new long[CostLedger.Count], Nations[ri].World.CostOrNull);   // 計算量の台帳：消える国の件数を受け皿へ（診断・軌道に触れない）
+        Nations.RemoveAt(ri);
+        // PairFlowQ〔履歴 MultiNationSim.cs#117〕
+        if (Market.PairFlowQ is { } pfq && ri < pfq.Length)
+            Market.PairFlowQ = pfq.Where((_, a) => a != ri).Select(row => row.Where((_, b) => b != ri).ToArray()).ToArray();
+        Diplomacy.Log.Add(!rebelWon
+            ? $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}"
+            : rebelPolity != polityBefore
+            ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{PlayText.PolityRegimeJa(rebelPolity)}の下で再統一"
+            : $"{pw.Year} {rebelP.Name}の要求が通り{parentP.Name}へ再統一");
     }
 
     // 疫病の国家間伝播（B-4）：感染国（EpidemicActiveYears>0）から、近接（首都距離＝陸路）と交易接触（両国の交易開放度の積＝海路の港）で、未感染国へ年次で飛び火。
