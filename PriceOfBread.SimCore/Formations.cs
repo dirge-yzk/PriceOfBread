@@ -343,11 +343,26 @@ public static class Formations
             if (c.UnificationV1Only > 0 && System.Array.IndexOf(UnificationV1, r.NewName) < 0) continue;
             if (r.Tier <= p.FormationTier) continue;
             if (!IdentityEligible(p, r)) continue;
+            if (c.UnificationSkipFormed > 0 && FormedElsewhere(d, p, r)) continue;   // (1258) 同じ統一がもう成立した規則は候補にしない
             if (Qualifies(d, p, r, c)) continue;
             if (best is null || r.Tier < best.Tier) best = r;
         }
         if (best is null) return null;
         return Ideologies.National(w)[NationalistShareIndex] >= c.UnificationNatioShare.Value ? best : null;
+    }
+
+    /// <summary>(1258) 他の国が r と同じ統一をもう成立させたか。既にある状態（国の名と FormationTier）から導く＝新しい状態なし。
+    /// 他の国の今の名がある規則 f の NewName（RenameNation が成立の時に付けた名）で、f の札（文化・文化の無い規則は規則の名）が r と同じ・f の段≧r の段。</summary>
+    private static bool FormedElsewhere(Diplomacy d, Power p, FormationRule r)
+    {
+        string key = r.CultureIs ?? r.NewName;
+        foreach (var q in d.Powers)
+        {
+            if (q == p || q.Nation is null || q.FormationTier < r.Tier) continue;
+            foreach (var f in Enumerate())
+                if (f.NewName == q.Name && f.Tier >= r.Tier && (f.CultureIs ?? f.NewName) == key) return true;
+        }
+        return false;
     }
 
     public static System.Collections.Generic.List<Power> UnificationTargets(Diplomacy d, Power p, FormationRule r)

@@ -65,6 +65,7 @@ public sealed partial class Coefficients
     public Share UnificationNatioShare = new(0.25);     // ナショナリズムの国民シェア閾値（Ideologies.National[4]＝エリートの熱が統一の燃料）
     public double NationalismFromDispersion = 1;   // (1230)(1249) 旗 A：正＝自由主義の意識の項 2.5×意識×進歩を州の札の f＝1−最大の国（主の文化を問わない）の X÷世界の X で自由主義（1−f）と民族主義（f）へ分ける（Ideologies.BuildCultureSplit が四半期の末に盤面から導く）
     public double UnificationWarWeary = 1;         // (1230) 旗 B：正＝攻め手の WarExhaustion＞WarWearyThreshold なら統一の宣戦を塞ぐ（Formations.UnificationWarBlock・AI とプレイヤーが同じ判定）
+    public double UnificationSkipFormed = 0;      // (1258) 旗：正＝同じ統一（規則の札＝文化・文化の無い規則は規則の名・段≧）を他の国がもう成立させていれば、その規則を統一の候補から外す（Formations.UnificationCandidate＝AI とプレイヤーが同じ関数・成立した国への普通の戦争の入口は残る）
     public double OpiumMiseryScale = 2.0;        // 素のアヘン需要の困窮ゲート＝baseNeed×clamp(これ×(1−満足),0,1)
     public double OpiumLaborPenalty = 1.0;       // 依存が労働供給を蝕む＝成人労働×(1−これ×中毒度)（床0.5）
     public double OpiumBanTensionPerMonth = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
