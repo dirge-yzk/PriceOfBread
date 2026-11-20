@@ -19,7 +19,7 @@ for s in range(s0, s1 + 1):
         h = hist[r['nation']]; h.append(r)
         if len(h) < 2 or not num(r['sovereignDefaultCumulativeCount']) > num(h[-2]['sovereignDefaultCumulativeCount']): continue
         p = h[-2]; q = int(p['quarter'])
-        g, law = gold.get((r['nation'], q), (float('nan'), '?'))
+        onGold, law = gold.get((r['nation'], q), (float('nan'), '?'))
         off = 0
         for x in reversed(h[:-1]):
             gg = gold.get((r['nation'], int(x['quarter'])), (float('nan'),))[0]
@@ -29,7 +29,7 @@ for s in range(s0, s1 + 1):
         rev = num(p['revenueBaseMeanPerMonth']) * 12
         debt = num(p['govDebtStock'])
         dv = num(h[-2]['ledgerDevalueCumulative']) - num(h[max(0, len(h) - 6)]['ledgerDevalueCumulative'])
-        G = 'A' if g > 0 else ('B' if g == 0 else '?')
+        G = 'A' if onGold > 0 else ('B' if onGold == 0 else '?')
         yr = int(r['year']); n += 1; dec[yr // 10 * 10] += 1; grp[G] += 1
         if yr // 10 * 10 == 1930: grp['1930' + G] += 1
         war['war' if w4 > 0 else 'peace'] += 1

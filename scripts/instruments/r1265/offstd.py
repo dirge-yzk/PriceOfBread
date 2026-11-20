@@ -16,9 +16,9 @@ for s in range(s0, s1 + 1):
     ep = collections.defaultdict(list); prev = {}
     for r in csv.DictReader(open(f'{raw}/nation_s{s}.tsv', encoding='utf-8'), delimiter='\t'):
         n = r['nation']; p = prev.get(n); prev[n] = r
-        g, law = gold.get((n, r['quarter']), ('?', '?'))
+        onGold, law = gold.get((n, r['quarter']), ('?', '?'))
         rev = num(r['revenueBaseMeanPerMonth']) * 12; debt = num(r['govDebtStock'])
-        if g != '0' or not rev > 0 or p is None: continue
+        if onGold != '0' or not rev > 0 or p is None: continue
         nq += 1
         itr = num(r['interestMeanPerMonth']) * 12 / rev
         if not itr >= 0.67: continue
