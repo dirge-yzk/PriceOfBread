@@ -222,14 +222,12 @@ public class TerritoryTests
         Assert.Equal((cc.Lat, cc.Lon), (fr.Latitude, fr.Longitude));
         Assert.NotEqual((lat0, lon0), (fr.Latitude, fr.Longitude));
 
-        // 国家形成の遷都も同じ1本＝Id の入れ替え・座標・旧首都は植民地財の産出をやめる（植民地財は首都州だけ）
+        // 国家形成の遷都も同じ1本＝Id の入れ替え・座標（(1251) 旧首都の ColonialResources の欄は消した）
         var next = fr.Regions[^1]; int nextId = next.Id;
-        cap.ColonialResources = [1];
         fr.SetCapital(next);
         Assert.Same(next, fr.Regions[0]);
         Assert.Equal(0, next.Id);
         Assert.Equal(nextId, cap.Id);
-        Assert.Empty(cap.ColonialResources!);
         var nc = Places.Coord(next.Name);
         Assert.Equal((nc.Lat, nc.Lon), (fr.Latitude, fr.Longitude));
     }

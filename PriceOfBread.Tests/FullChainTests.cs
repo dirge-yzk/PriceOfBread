@@ -20,7 +20,18 @@ public class FullChainTests
         var sim = new Simulation(Full(1), new NullAgent());
         Assert.Equal(122, sim.World.Regions[0].Goods.Count);   // ★2026-10-25 (550)：121→122＝建造物を足した（作り手は旗 0 で置かない＝下の生産者の数は動かない）   // ★2026-10-23 (493)：120→121＝ソーダ灰を足した（化学薬品を硫酸とソーダ灰に割った）   // ★2026-09-30 (129)：119→120＝金鶏樹皮を戻した（作者裁定 2026-09-30）   // ★2026-09-30 段1（財の削減）：130→119＝11財を畳んだ（金鶏樹皮・茶葉・コーヒー豆・コークス・パルプ・機械部品・工具・発電機・包帯・精密工作機械・戦闘機）   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
-        Assert.Equal(132 + 1 + (sim.World.Coef.BuildingGoodBundle > 0 ? 5 : 0), sim.World.Regions[0].Producers.Count);   // 132 本（既定の行・並存レシピ・家内工業の 8 本ほか）＋鋳鉄の機械 1 本（各州）＋建造物の作り手 5 本（旗 BuildingGoodBundle 既定 1＝木造〔既定〕＋煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリート造）。数の経緯（(169)(418)(493)(536)(555) ほか）は実装ログ。
+        Assert.Equal(132 + 1 + 11 + (sim.World.Coef.BuildingGoodBundle > 0 ? 5 : 0), sim.World.Regions[0].Producers.Count);   // (1251) +11＝植民地財 11 品目（茶・コーヒー・香辛料・アヘン・生ゴム・パーム油・象牙・サトウキビ・カカオ・グアノ・金鶏樹皮）の生産者（単一国も多国と同じ道＝代金なしの補充の枝は消した）   // 132 本（既定の行・並存レシピ・家内工業の 8 本ほか）＋鋳鉄の機械 1 本（各州）＋建造物の作り手 5 本（旗 BuildingGoodBundle 既定 1＝木造〔既定〕＋煉瓦造・鋳鉄の骨組み・鋼の骨組み・鉄筋コンクリート造）。数の経緯（(169)(418)(493)(536)(555) ほか）は実装ログ。
+        // (1251) 植民地財は品目ごとに生産者（投入は役務＝労働だけの一次産品）が 1 本ずつ＝旧の構築は 0 本で、在庫を代金なしに補充していた。
+        int colonialGoods = 0;
+        foreach (var g in sim.World.Regions[0].Goods)
+        {
+            if (g is null || !g.IsColonial) continue;
+            colonialGoods++;
+            int rgo = 0;
+            foreach (var p in sim.World.Regions[0].Producers) if (p.GoodId == g.Id) { rgo++; Assert.All(p.Inputs, i => Assert.Equal(GoodTier.Service, Catalog.Goods[i.GoodId].Tier)); }
+            Assert.Equal(1, rgo);
+        }
+        Assert.Equal(11, colonialGoods);
 
         double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));

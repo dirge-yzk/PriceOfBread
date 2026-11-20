@@ -1,0 +1,36 @@
+using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+// 段 0 の探り（コミットしない）
+public class ZzKcProbeTests
+{
+    [Fact]
+    public void ZzKcProbe()
+    {
+        var path = System.Environment.GetEnvironmentVariable("KC_PROBE_OUT");
+        if (string.IsNullOrEmpty(path)) return;
+        var sim = new Simulation(new Scenario { Seed = 5, Kind = ScenarioKind.FullChain }, new NullAgent());
+        var r = sim.World.Regions[0];
+        var sb = new System.Text.StringBuilder();
+        var colonial = r.Goods.Where(g => g is not null && g.IsColonial).Select(g => g.Id).ToHashSet();
+        for (int q = 1; q <= 200; q++)
+        {
+            sim.StepQuarter();
+            if (q % 20 != 0) continue;
+            var lab = r.Markets[Catalog.LaborId];
+            double colStock = colonial.Sum(g => r.Markets[g].Stock), colImp = colonial.Sum(g => r.Markets[g].LastImport), colProd = colonial.Sum(g => r.Markets[g].LastProduced);
+            double facColOut = r.Producers.Where(p => p.Inputs.Any(i => colonial.Contains(i.GoodId))).Sum(p => p.Output);
+            double facAllOut = r.Producers.Where(p => p.Inputs.Count > 0).Sum(p => p.Output);
+            sb.AppendLine($"q{q}\tlaborP={lab.Price:G5}\tlaborSold={lab.LastSold:G5}\tlaborProd={lab.LastProduced:G5}\tcolStock={colStock:G5}\tcolImp={colImp:G5}\tcolProd={colProd:G5}\tfacColOut={facColOut:G5}\tfacAllOut={facAllOut:G5}\tworkerSav={r.Pops[1].Savings.Value:G5}");
+        }
+        foreach (int g in colonial)
+        {
+            var m = r.Markets[g];
+            sb.AppendLine($"good\t{Catalog.Goods[g].Name}\tstock={m.Stock:G5}\tprice={m.Price:G5}\timp={m.LastImport:G5}\tprod={m.LastProduced:G5}\tdem={m.LastDemand:G5}\tusers={r.Producers.Count(p => p.Inputs.Any(i => i.GoodId == g))}");
+        }
+        System.IO.File.WriteAllText(path, sb.ToString());
+    }
+}

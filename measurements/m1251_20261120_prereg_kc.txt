@@ -1,0 +1,76 @@
+(1251) c127kc 事前登録（腕の前・最初のコミット）＝削除の線 K100a ColonialResources・K100b ColonialAccess
+署名：Claude Opus 5.5（線の担当）。木＝D:/PoB_work/wt_c127kc（枝 c127kc・35ad4cc23 から）。
+
+[0] 名乗り
+- 作者 2026-11-16（原文）「既に動いている機能でも、問題があれば作り直したり、削除しても構いません。」
+- 2026-11-19 の ㉜ の改め（作者の原文「抜本的な改修を行おうとした時、既存のテストで落ちるからNGというのは違和感がある。抜本的な改修→それに合わせて周囲のモジュールを修正→テスト という流れになるべきではないのか？」）＝旧の規則を固定する番人は、新しい規則の機構の試験へ書き換える。
+- 挙動の線（単一国の盤面だけが変わる）。61 カ国の世界は null の枝を通らない＝世界の成績表は m1233 と全行一致の予言。腕 B は ident 段 1 が一致しなかった時だけ（3 回の規則の 1 回目）。
+- 形の種類＝入口（単一国の構築の道を多国の道へ揃える）。尾ではない。
+- 既にある大きな機構の結果として出せないか：出せる＝植民地財は多国と同じく生産者（RGO）と市場から来る。代金なしの補充という別の機構を消すのがこの線。
+
+[1] 置き換える旧の規則
+- 旧：Region.ColonialResources が null の州（単一国の構築 Simulation.cs:442 BuildFullChain・:514 BuildFrance ほか単一国の盤面）は、EconomyStep.cs:822〜:835 で全ての植民地財を max(前期需要, 目標在庫)×ColonialAccess まで代金なしに補充する。単一国の構築は植民地財の生産者を置かない（Simulation.cs:395・:470 の `if (d.IsColonial) continue;`）。Colonial.cs:13 は null を単一国の印として早抜け。
+- 新：植民地財を代金なしに湧かせる枝は無い（どの州も多国と同じ道）。単一国の構築も多国の CatalogEconomy と同じく植民地財の生産者を置く（単一州の世界には賦存の名簿が無い＝門なしで置く）＝段 0 の判定（下の [3]）で〈盤面の壊れ〉と読めた時だけ。Colonial.cs:13 は colonies<=0 だけで早抜け。
+- 消す物：EconomyStep.cs:822〜:835 の枝・Model.cs:692 ColonialAccess・:695 ColonialResources・Simulation.cs:1725 の ColonialAccess() の呼び・:1767 の州への書き・:2541〜:2548 の関数・:839・:1372 の `ColonialResources = []`（欄が消えるので）・Territory.cs:160・World.cs:1121 の書き。新しい係数 0・新しい状態 0。係数 ColoniesForFullColonial は読み手が残る（Colonial.cs:53・SelfPlay.cs:441・:442）＝消さない。
+
+[2] 旧の規則を固定する試験（grep の結果・main 35ad4cc23）
+- ColonyPromotionTests.cs:86・:112・:131 Assert.NotNull(…ColonialResources)＝〈多国の州が代金なしの枝に入らない〉の番人。欄が消える＝枝が物理で無い。守っていた性質〈多国の州で植民地財が代金なしに湧かない〉は新しい試験 U2 が全ての州について持つ＝3 行を消し U2 へ引き継ぐ。
+- TerritoryTests.cs:227・:232（遷都で旧首都の ColonialResources を [] へ）＝欄が消える＝2 行を消す。残りの Assert（Id の入れ替え・座標）は残す。
+- ServiceEconomyTests.cs:113〜 労働市場は清算し賃金は値幅に収まり労働者は収入を得る（単一国 FullChain・(1235) の段 0 で赤＝0.0716・範囲 0.15〜1.5）。範囲を広げない。
+- 予言：上の 3 ファイル以外に赤は出ない（(1235) の段 0 の実測＝Tests 2695 中この 1 本だけが K100 による赤）。ただし単一国の構築に生産者を足した場合は単一国の盤面（FullChain・France）の試験が動く＝赤が出たら ㉜ の改めのとおり〈旧の規則の固定〉か〈周りの壊れ〉かを読んで同じ線で直し、表を追記する。
+
+[3] 段 0（腕の前・結果を見る前に決める規則）
+- 0a：ColonialAccess() の TradeAccess（Diplomacy.cs:667〜682）に副作用が無いことを読む＝HasEmbargo（_embargo.Contains）・Wars の走査・TradeWeight・_hegemon の読みだけ＝書きなし（ソースで確認済み）。PoliticalQuantities.ClampOr も純関数。
+- 0b：ServiceEconomyTests の赤の読み。使い捨ての木で null の枝だけを消し（探り A）、FullChain 種 5・200 か月の州 0 で、植民地財の在庫・植民地財を投入に持つ工場の産出・労働の需要を旧の木と並べる。
+  規則：植民地財の在庫が 0 へ落ち、それを投入に持つ工場の産出と労働の買いが旧より減っていれば〈盤面の壊れ（植民地財の欠け）〉＝単一国の構築に植民地財の生産者を置く（探り B）。探り B で労働の値段が旧の範囲 0.15〜1.5 に入れば、その形で入れる。入らなければ〈原因が読めない赤〉として止めて報告（範囲を広げない・物差しを替えない）。
+  植民地財の在庫が落ちないのに労働の値段が落ちるなら、原因が読めない＝止めて報告。
+
+[4] 門（作者 2026-11-16 の決まり①）
+- G0：ident 段 1（ident.sh run c127kcz）が〈判定: 恒等〉＝世界の成績表は m1233 と全行一致（.cost も一致）。一致なら腕 B を回さない（3 回の規則に数えない）。
+- 単体の機構の試験（盤面は試験の中で置く・今の木で赤・突然変異で赤）：
+  U1（単一国の盤面・FullChain 種 5）：植民地財は代金なしの輸入が 0（全ての植民地財・全ての月で LastImport==0）。かつ盤面が植民地財を使うなら、その植民地財は州の中で生産されている（LastProduced の和＞0 の植民地財が 1 つ以上）。今の木で赤（null の枝が LastImport を書く・生産者 0）。
+  U2（多国の州の形・EconomyStep を 1 か月）：植民地財の在庫が需要より低く生産者の無い州で、EconomyStep.Run が植民地財の LastImport を書かない（0）。今の木でも緑（ColonialResources＝[] の州）＝新しい木でも緑。
+- 止める線（不一致で腕 B を回した時だけ読む）：破綻・1 四半期 100 倍・1e10 倍・空洞化 1/10 未満（an_h2.py -v4・規則 A2・その線が原因と読めた件だけ＝基線 keep_1247/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉）・推定の計算量 ＞248.5 秒・機構の試験の赤。史実の桁の線（腕 B を回した時だけ・一番動かす量＝植民地財の値段の水準と輸入）。ヌル腕との比べは記録だけ。
+
+[5] 突然変異（使い捨ての木・どの門で赤か）
+| 変異 | U1 | U2 | ServiceEconomy 労働 | G0 |
+| μ1 EconomyStep に代金なしの補充の枝を条件なしで戻す | 赤（LastImport>0） | 赤 | —（記録） | 不一致の見込み（記録・回さない） |
+| μ2 単一国の構築で植民地財の生産者を外す（`if (d.IsColonial) continue;` を戻す）※探り B を入れた時だけ | 赤（産出 0） | 緑 | 赤の見込み（0.0716 の型） | 一致（単一国だけ） |
+- U1 の前半（輸入 0）は μ1 で、後半（産地）は μ2 で落ちる。U2 は μ1 で落ちる。
+
+[6] ソースを走査する番人（㉘）と件数の予言（㉑）
+- grep の結果：工業化度の読み手の許可表・WriterRatchetTests の宣言の表・DormantIdentityTests の名簿・scripts/instruments/flow262/route_anchors.tsv の鍵に ColonialResources・ColonialAccess・消す行は無い。`new MoneyStock(` は SimCore で 64＝この線は増減 0。
+- 予言：㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests）は緑のまま・件数の変化 0。
+
+[7] 試験の数
+- Tests：U1・U2 を 1 ファイル 2 本で足す＝+2。消すテストは 0（Assert の行だけ消す）。TESTS_NONFULL 2938→2940（--tests-delta 2）。
+
+[8] 計算量
+- :1725 の ColonialAccess()（国ごと毎月・Powers の走査 1 周）と :1767 の州ごとの書き、EconomyStep の null の判定（州ごと毎月）が消える＝減る側。CostLedger（MultiNationSim.cs）にこの項は無い＝推定の .cost は不変の予言（ident が .cost を突き合わせる）。割り当て 0 秒。
+
+[9] 入れない物
+- K99・K99b・K102・植民地の維持費の式・Simulation.cs の :1940〜:1965（bd）・Colonial.cs の :41〜:57（K99）。
+
+[10] 触る行（ぶつかり）
+- Simulation.cs：:395（BuildFullChain の植民地財の continue）・:470（BuildFrance の同じ行）＝探り B を入れた時だけ・:839・:1372（欄の初期化の 1 行ずつ）・:1725・:1767・:2539〜:2548。:441・:514 の構築の中身はこの 2 行の他は触らない。
+- EconomyStep.cs :822〜:835・Colonial.cs :13・Model.cs :692・:695・Territory.cs :160・World.cs :1121。
+- 試験：ColonyPromotionTests.cs :86・:112・:131・TerritoryTests.cs :225〜:232・ServiceEconomyTests（範囲は変えない＝触らない見込み）・新しい試験 ColonialFreeImportTests.cs。
+
+[追記 1] 段 0 の結果（腕の前・[3] の規則を当てた・署名 Claude Opus 5.5）
+- 0a：TradeAccess は読むだけ（Diplomacy.cs:667〜682）＝:1725 の呼びを消しても多国の世界は動かない見込み。
+- 0b：探りの試験 measurements/m1251_20261120/ZzKcProbeTests.cs.txt（FullChain 種 5・200 四半期・州 0・20 四半期ごと）。生 probe_old.txt・probe_A.txt・probe_B.txt。
+  旧：労働の値段 0.340・労働の販売 1128・植民地財の在庫 600・代金なしの輸入 252/月・植民地財を使う工場の産出 90.5・工場の産出 5292・植民地財の生産 0。U1 は赤（予言どおり）。
+  探り A（null の枝だけを消す）：植民地財の在庫 600→0.001・植民地財を使う工場の産出 90.5→0・労働の販売 1128→2.8・労働の値段 0.0715（(1235) の 0.0716 と同じ型）・工場の産出 5292→1195。＝[3] の規則で〈盤面の壊れ（植民地財の欠け）〉。
+  探り B（＋単一国の構築 Simulation.cs:395・:470 の `if (d.IsColonial) continue;` を消す＝多国の CatalogEconomy と同じく生産者を置く）：労働の値段 0.393（旧の範囲 0.15〜1.5 の内）・労働の販売 1218・植民地財の生産 432/月・代金なしの輸入 0・植民地財を使う工場の産出 103.8・工場の産出 5692。U1・U2・ServiceEconomyTests の労働の試験は緑。＝この形で入れる。範囲は広げていない。
+- 生ゴム・グアノ・金鶏樹皮は探り B で生産 0（需要 0＝使い手の工場が動かない月）。U1 の後半は〈生産の和＞0 の植民地財が 1 つ以上〉なのでこの 3 つに依らない。
+
+[追記 2] ㉜ の改め：フルスイート（Tests・Category!=FullLength・2706 中）の赤 1 本の読みと書き換え（署名 Claude Opus 5.5）
+- 赤：FullChainTests.全50財がロードされ放置で破綻せず基礎貨幣を保存する（FullChainTests.cs:23 の Assert.Equal(132 + 1 + 5, 生産者の数)＝実測 149）。
+- 区分：旧の規則〈単一国の構築は植民地財の生産者を置かない〉を固定する静的な数の番人＝事前登録 [2] の一覧に無かった（grep の漏れ＝生産者の数は植民地財の名で引けなかった）。試験のバグでも周りの壊れでもない。
+- 旧→新の表：
+  | 旧 | 新 |
+  | 生産者の数＝132＋1＋建造物 5 | 生産者の数＝132＋1＋11＋建造物 5（植民地財 11 品目） |
+  | （無し） | 植民地財は品目ごとに生産者 1 本・その投入は役務（労働）だけ・植民地財は 11 品目 |
+  残した性質：構築の数の固定（数が動けば赤）と、その後の 400 四半期の破綻なし・基礎貨幣の保存（Assert は変えない）。
+- 突然変異：μ2（単一国の構築に `if (d.IsColonial) continue;` を戻す）で赤（Expected 149・Actual 138）＝measurements/m1251_20261120/mut_results.txt の追記。
+- 書き換えの後、Tests の Category!=FullLength をやり直す（Tests.Ui と FullLength は SimCore と Tests の他のファイルが同じ＝この回の 1 回目の結果を使う）。

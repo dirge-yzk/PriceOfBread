@@ -689,10 +689,8 @@ public sealed class Region
     public double FemaleParticipation = 0.4;
     public double WomenWageRetention;
     public double ChildLaborLegal = 1.0;
-    public double ColonialAccess = 1.0;
     public int[] Resources = [];
     public string Culture = "", Religion = "";
-    public int[]? ColonialResources;
     public double OpiumAddiction;
     public double[]? ConstructionCarryover;
     public double SocialSecurity;

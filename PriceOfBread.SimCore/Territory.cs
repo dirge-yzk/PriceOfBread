@@ -157,7 +157,6 @@ public static class Territory
         if (how != Rehoming.Sovereign)
         {
             foreach (var m in r.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
-            r.ColonialResources = [];
         }
         switch (how)
         {

@@ -1,0 +1,21 @@
+q20	laborP=0.21188	laborSold=704.73	laborProd=904.14	colStock=123.83	colImp=0	colProd=0	facColOut=0	facAllOut=3358.8	workerSav=5.7128E+05
+q40	laborP=0.19393	laborSold=275.71	laborProd=291.44	colStock=28.051	colImp=0	colProd=0	facColOut=0	facAllOut=2421.6	workerSav=93899
+q60	laborP=0.15864	laborSold=109.01	laborProd=115.64	colStock=6.9323	colImp=0	colProd=0	facColOut=0	facAllOut=1785.6	workerSav=38729
+q80	laborP=0.1243	laborSold=41.637	laborProd=45.31	colStock=1.8353	colImp=0	colProd=0	facColOut=0	facAllOut=1520.5	workerSav=17387
+q100	laborP=0.093419	laborSold=14.773	laborProd=15.785	colStock=0.50951	colImp=0	colProd=0	facColOut=0	facAllOut=1352.3	workerSav=7289
+q120	laborP=0.077716	laborSold=6.2804	laborProd=6.484	colStock=0.14573	colImp=0	colProd=0	facColOut=0	facAllOut=1286.8	workerSav=3421.2
+q140	laborP=0.072245	laborSold=3.8391	laborProd=3.8666	colStock=0.042415	colImp=0	colProd=0	facColOut=0	facAllOut=1247.9	workerSav=2099.2
+q160	laborP=0.071465	laborSold=3.1232	laborProd=3.1232	colStock=0.012469	colImp=0	colProd=0	facColOut=0	facAllOut=1231	workerSav=1609.2
+q180	laborP=0.071843	laborSold=2.8953	laborProd=2.9039	colStock=0.0036856	colImp=0	colProd=0	facColOut=0	facAllOut=1225.3	workerSav=1399.1
+q200	laborP=0.071546	laborSold=2.8125	laborProd=2.8165	colStock=0.0010927	colImp=0	colProd=0	facColOut=0	facAllOut=1194.6	workerSav=1249.3
+good	茶	stock=0	price=26.547	imp=0	prod=0	dem=21.474	users=0
+good	コーヒー	stock=0	price=26.547	imp=0	prod=0	dem=21.474	users=0
+good	香辛料	stock=0	price=26.547	imp=0	prod=0	dem=15.339	users=0
+good	アヘン	stock=0	price=26.547	imp=0	prod=0	dem=6.1355	users=0
+good	生ゴム	stock=0.0010881	price=0.54	imp=0	prod=0	dem=0	users=1
+good	パーム油	stock=0	price=26.547	imp=0	prod=0	dem=0.016816	users=1
+good	象牙	stock=0	price=26.547	imp=0	prod=0	dem=0.0033909	users=1
+good	サトウキビ	stock=0	price=26.547	imp=0	prod=0	dem=0.00088002	users=1
+good	カカオ	stock=0	price=26.547	imp=0	prod=0	dem=0.0046042	users=1
+good	グアノ	stock=2.3124E-06	price=0.54	imp=0	prod=0	dem=0	users=0
+good	金鶏樹皮	stock=2.3124E-06	price=0.54	imp=0	prod=0	dem=0	users=1
