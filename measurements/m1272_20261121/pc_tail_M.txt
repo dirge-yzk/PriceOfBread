@@ -1,0 +1,3 @@
+対の数 50
+al 窓の合計（千人年あたり） birthsK:43.06 deathsNormalK:41.41 deathsFamineK:8.76 mig:-3.35 cb:-0.30 gar:0.00 spe:0.01 merge:0.00
+base 窓の合計（千人年あたり） birthsK:39.85 deathsNormalK:37.38 deathsFamineK:2.85 mig:-0.60 cb:-0.14 gar:0.00 spe:0.01 merge:0.00

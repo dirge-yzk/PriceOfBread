@@ -1,0 +1,16 @@
+./Crime.cs:7:        if (!w.PoliticsEnabled) { w.PublicOrder = 1.0; w.CrimeRate = 0; return; }
+./Crime.cs:11:        double effCoerce = PoliticalQuantities.EffectiveCoerce(w, c);
+./Crime.cs:13:        w.PublicOrder = order;
+./CrownParliament.cs:55:                && w.ReformistPower + w.RadicalPower > PoliticalQuantities.EffectiveCoerce(w, c))
+./GovernanceSnapshot.cs:28:            _freedom = w.Freedom, _polity = w.Polity, _baseCoercion = w.BaseCoercion, _coercion = w.Coercion, _legitimacy = w.Legitimacy,
+./GovernanceSnapshot.cs:47:        w.Freedom = _freedom; w.Polity = _polity; w.BaseCoercion = _baseCoercion; w.Coercion = _coercion; w.Legitimacy = _legitimacy;
+./MultiNationSim.cs:394:        nw.Coercion = pw.Coercion;
+./PoliticalQuantities.cs:7:    public static double EffectiveCoerce(World w, Coefficients c)
+./PoliticalQuantities.cs:8:        => w.Coercion * (w.TotalPopulation / Math.Max(1.0, c.PoliticalReferencePop));
+./Politics.cs:137:        double momentum = PoliticalQuantities.Clamp01((w.ReformistPower + w.RadicalPower) / Math.Max(1, PoliticalQuantities.EffectiveCoerce(w, c)) * c.BandwagonSensitivity);
+./Politics.cs:284:        w.Coercion = w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio.Value * warDrain;
+./Politics.cs:285:        double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
+./Politics.cs:949:            double order = PoliticalQuantities.Clamp01(w.PublicOrder);
+./Politics.cs:954:                rawOrder = PoliticalQuantities.EffectiveCoerce(w, c) / Math.Max(1e-9, w.TotalPopulation * c.CrimeOrderPerPop);
+./Politics.cs:1145:        => PoliticalQuantities.ChallengeRatio(w.ReformistPower + w.RadicalPower, PoliticalQuantities.EffectiveCoerce(w, w.Coef));
+./PowerShares.cs:20:        double order = PoliticalQuantities.Clamp01(w.PublicOrder);

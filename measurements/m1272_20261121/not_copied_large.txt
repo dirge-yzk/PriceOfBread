@@ -1,0 +1,5 @@
+cls_alS11.tsv 8208K
+cls_baseM.tsv 8164K
+cls_baseS11.tsv 8344K
+cpop_al_s17.tsv 3456K
+cpop_base_s17.tsv 4280K

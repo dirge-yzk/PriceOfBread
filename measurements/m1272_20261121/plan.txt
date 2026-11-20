@@ -1,0 +1,10 @@
+(1272) c130ah 読む線の計画（2026-11-21）
+作業の場所: D:/PoB_work/r1272_work/（台本・表・下書き）。コミットしない。worktree は作らない（main の木は読むだけ）。
+読む生:
+  al の腕 S11 : D:/PoB_work/keep_1267_rej/S11_ins/*_s11..s20.tsv（主に s17）
+  al の腕 M   : D:/PoB_work/keep_1267_rej/M_ins/
+  基準 S11    : D:/PoB_work/keep_1260/a11/（clock_s・factory_s 無し）
+  基準 M      : D:/PoB_work/keep_1267/base_ins/
+  記録        : measurements/m1267_20261121/rej_al/readS11/・readM/
+ソース: Catalog.cs（PreservedMeatId）・origin/c129al のレシピ・EconomyStep.cs（腐敗）
+腕: 0 本。
