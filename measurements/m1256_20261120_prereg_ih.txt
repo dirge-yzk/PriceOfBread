@@ -32,3 +32,13 @@
  3. .cost で CPU を測り、全表・SMALL・素（m1254）を並べる。記録。予言は SMALL で全表より 2 割減以上〈推・外れても採否には使わない〉。
  - 門：〈判定: 恒等〉と選んだ表のバイト一致。計器が切れているとき（!Instruments.On）に計算量の件数が増えない。
  - D: の見積もり：全表 約 30GB＋SMALL 約 3GB〈推〉。腕の枠・D: の空きは起こす直前に測る。
+
+★追記（結果の後・事前登録の形は変えていない）2026-11-20
+ - 実装の形：Instruments/InstrumentsTg.cs に束 45 本の static bool と Refresh（SelectTables・Configure から決め直し・型の初期化でも）。入口の閉じ 189 本（void のフック・対応表 measurements/m1256_20261120_hookmap.tsv）。1 行・式の本体 30 本と閉じない file 25 本は対応表に〈閉じない〉で列挙（波129 以降）。本体のインラインの積算（項 3）は入れていない。
+ - 閉じない理由の追加（試験で拾った）：核（Instruments.cs）が file の中の関数で列を作る型は閉じない（War＝wars_s の読み）・Rk の束は nation_s の列を作るので nation_s を束の表に足した。Scope は Pxstep が CscxClose を呼ぶので同じ束（旧の束の割りが μ1 で赤になる）。
+ - 試験：InstrumentHookClosureTests 85 本（束の行 45・束の中の 1 file の行 36・SMALL 1・対照 1・累積 1・単独の全表 1〔POB_IH_EXHAUSTIVE=1 のときだけ・全表を 1 本ずつ単独で選ぶ・約 15 分・緑〕）。clock_s・burscan_s は走査の時計を書くので有無だけ比べる。
+ - 突然変異：μ1＝Pxstep の束から Scope の表を外す → Pxstep/Scope の行が赤（cscx_s が空）。μ2＝Refresh を全て真にする → UnselectedTablesAccumulateNothing が赤。μ3＝SelectTables の Refresh を消す → 同じ試験が赤。元に戻して全て緑。
+ - 判定 1：ident 段 2＝〈判定: 恒等〉（計器の表 1634 本中バイト一致 1614・既知の揺れ 20〔burscan_s・clock_s の時計〕・宣言された増減 0）・savetest OK・leakhunt 保存則違反なし・素の 5 種と計器つき 10 種は m1254 と名乗り行を除き全行一致・推定の計算量 238.4 秒（m1254 と同じ）。
+ - 判定 2：SMALL の走り（計器つき 10 種）の 29 表×10 種＝289 ファイルが全表の走りと sha1 で全て一致（measurements/m1256_20261120/small_sha1.tsv）・SMALL の成績表も m1254 の計器つき 10 種と全行一致・.cost の件数の行も一致（推定 238.4 秒）。
+ - 判定 3（CPU・記録）：1 試合の CPU 秒＝全表（ident の腕 b・他の腕 3 本と同時＝負荷つき）1056.9・SMALL（単独で起こした）687.8＝約 35% 減（予言 2 割減以上〈推〉は当たり）。素 485.9・計器つき m1254 1113.1 は別の日の負荷（他のプロセスが 9〜11 コア）で測ったもの＝並べるのは記録だけ（負荷が違うので差の大きさは目安）。
+ - 試験の数：Tests 2728（スキップ 1）→2813・Tests.Ui 234・FullLength 3 ＝ 3050 全て緑（--list-tests は ident が 2962＋85 を確かめた）。㉘の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests・InstrumentHookClosureTests）229 本緑。書き換えた既存の試験 0 件。
