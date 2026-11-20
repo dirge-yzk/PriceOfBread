@@ -306,7 +306,7 @@ public sealed class MultiNationSim
                 if (garrison is null || !(garrison.Size > 1e-9)) continue;
                 double stay = 1.0 - PoliticalQuantities.Clamp01(garrison.Militancy);   // 寝返らない割合＝1−闘争度
                 if (!(stay > 0)) continue;   // 否定形＝NaN も全員寝返る側へ倒れる（Math.Clamp は NaN を除去しない）
-                double insG0 = Instruments.On ? garrison.Size : 0;   // (1261) popclose_s
+                double insG0 = garrison.Size;   // (1261) popclose_s（移す前の兵・hook が実際に移った量を引く）
                 Military.MoveCohort(garrison, loyalPop, garrison.Size * stay, _coef);
                 if (Instruments.On) Instruments.PopMove(Instruments.PopMoveKind.Garrison, rr, loyalRegion, insG0 - garrison.Size);   // (1261) 兵の移しの口（gs の前提）
                 if (rr.ArmsStock is { } arms)

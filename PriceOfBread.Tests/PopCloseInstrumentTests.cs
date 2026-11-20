@@ -144,4 +144,27 @@ public class PopCloseInstrumentTests
         }
         finally { Instruments.RdhOn = rdh0; Instruments.Configure(null, null); Instruments.SelectTables(null); }
     }
+
+    [Fact]
+    public void T6_州の間の移民と越境の移民が州の残差を閉じる()
+    {
+        var sim = Make(); var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        var a = uk.Regions[0]; var b = uk.Regions[1]; var x = fr.Regions[0];
+        SetSize(a, PopClass.Peasant, 50); SetSize(b, PopClass.Peasant, 40); SetSize(x, PopClass.Peasant, 30);
+        var mr = typeof(Territory).GetMethod("MoveRegion", BindingFlags.Static | BindingFlags.NonPublic)!;
+        double a0 = a.SumPopulation(), b0 = b.SumPopulation(), x0 = x.SumPopulation();
+        var o = Scenario(sim, () =>
+        {
+            var size0 = a.Pops.Select(p => p.Size).ToArray();
+            mr.Invoke(null, [a, b, 0.1, size0, uk.Coef]);
+            sim.MoveMigrants(uk, fr, b, x, PopClass.Peasant, 2.0);
+        });
+        double inter = b.SumPopulation() - b0, cross = x.SumPopulation() - x0;
+        Assert.True(cross > 1.0, $"前提が崩れた：越境で動かない（{cross}）");
+        Assert.True(a0 - a.SumPopulation() > 1.0, "前提が崩れた：州の間で動かない");
+        Assert.Equal(cross, o.Col(o.Row(x.Name), "crossBorderInK"), 9);
+        Assert.True(o.Col(o.Row(a.Name), "migrationOutK") > 1.0, "州の間の流出の列が空");
+        foreach (var r in new[] { a, b, x }) Assert.True(Math.Abs(o.Col(o.Row(r.Name), "residualK")) < 1e-6, $"{r.Name} の残差 {o.Col(o.Row(r.Name), "residualK")}");
+        Assert.True(inter + cross > 0, "対照：動いた量が無い");
+    }
 }
