@@ -1,0 +1,9 @@
+(1260) 合流が消した物・消さなかった物（2026-11-20）
+消した（この回に合流が作った物）：
+- D:/PoB_work/ident_m1260z（腕 Z の ident の生・ident の刈り込みの後 9.8GB・判定の出力は measurements/m1260_20261120/identz/ に写した）
+- D:/PoB_work/m1260_work（腕 M・S11・N1・p5・p10 の作業・snap・src・フルスイートの art・読み手の出力〔measurements/m1260_20261120/read*/ に写した〕）。M・S11・N1 の計器の生は消さずに keep_1260/base_ins・a11・n1 へ移した。
+- worktree D:/PoB_work/wt_m1260z と枝 m1260z（腕 Z 専用・main に入れていない）。worktree wt_m1260 と枝 m1260 は最後の push の後に外す。
+- 線の worktree wt_c128ci・wt_c128ih・wt_c128k20・wt_c128uf とローカルの枝（4 本とも origin の枝と同じ頭・未コミット 0 を確かめた）＝(1254) と同じ片付け。
+消さなかった（線の担当が作った物・合流の走行中に ident_c128ci・ident_c128k20 を消そうとして自動の確かめに止められた＝以後は試していない）：
+- D:/PoB_work/ident_c128ci（約 9.8GB）・ident_c128k20（約 4.2GB）・c128ih_work（約 30GB・ih の ident の生＝刈り込みが rc=3）・c128uf_work（腕 B の生 3.6GB＝帰属は読み終えた・M の 36 表と sha1 で一致）・c128ci_work・c128k20_work・r1259_work（小）。＝作者のセッションで消してよい（推奨）。
+- D:/PoB_work/keep_1254（約 50GB・INSRAW でも KEEPNULL でもなくなった＝作者のセッションで消してよい・合流は指示〈keep_1254 は誰も消さない〉に従った）。
