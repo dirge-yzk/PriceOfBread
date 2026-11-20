@@ -38,4 +38,5 @@ python -X utf8 -I $R25/declare_first.py "$INS" 1 10 > "$OUT/declare_first.txt" 2
 python -X utf8 -I "$S/c124nr/unif_read.py" "$BASE" "$INS" > "$OUT/unif_read.txt" 2>&1; echo "unif_read rc=$?"
 for t in M=$BASE N1=$K/n1 B=$INS; do n=${t%%=*}; d=${t#*=}; python -X utf8 -I "$D0/h3uk.py" "$d" 1 10 $n; done > "$OUT/h3uk.txt" 2>&1; echo "h3uk rc=$?"
 for t in M=$BASE N1=$K/n1 B=$INS; do n=${t%%=*}; d=${t#*=}; python -X utf8 -I "$S/r1238/uk_seedtab.py" "$d" 1 10 $n; done > "$OUT/uk_seedtab.txt" 2>&1; echo "uk_seedtab rc=$?"
+python -X utf8 -I "$D0/tw_read.py" Z0=D:/PoB_work/c127nr_work/z0_tables B=$INS > "$OUT/tw_read.txt" 2>&1; echo "tw_read rc=$?"
 echo READDONE
