@@ -7,6 +7,7 @@ public static partial class Instruments
 
     static void ScoreFold(Sink sk, ulong seed, int q, MultiNationSim sim)
     {
+        if (!Tg.Rk) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (sim.Nations.Count == 0 || (q != 0 && q % Calendar.QuartersPerYear != Calendar.QuartersPerYear - 1)) return;   // QuartersPerYear〔履歴 InstrumentsScore.cs#2〕
         var ws = sim.Nations.ConvertAll(n => n.World);
         int n = ws.Count;

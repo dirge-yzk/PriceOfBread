@@ -10,6 +10,7 @@ public static partial class Instruments
 
     static void FbFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Fb) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(w.Coef.BuildingGoodBundle > 0)) return;
         if (!(picked || yearEnd)) return;
         if (w.WarmupFrozen) return;

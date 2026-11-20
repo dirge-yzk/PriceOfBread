@@ -59,6 +59,7 @@ public static partial class Instruments
 
     static void RuleFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var c = w.Coef;
         // 行を出す前に前の値を取り、今の値を次の四半期のために置く。〔履歴 InstrumentsRule.cs#6〕
         var lagSt = RuleLags.GetValue(w, _ => new RuleLagState());

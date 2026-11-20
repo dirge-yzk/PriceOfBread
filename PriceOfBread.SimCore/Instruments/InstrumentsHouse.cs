@@ -21,6 +21,7 @@ public static partial class Instruments
 
     static void HouseFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.House) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         int nGoods = HouseGoods.Length;
         var home = new double[nGoods]; var all = new double[nGoods];

@@ -25,6 +25,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/> の国ごとの段）：1 国の行を書く。</summary>
     static void CenterFold(MultiNationSim sim, ulong seed, World w, int q)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.Regions.Count == 0 || w.WarmupFrozen || w.SelfPower is not { } sp) return;
         CenterWorkCount++;
         var sk = CenterSinks.GetValue(sim, _ => new CenterSink());
@@ -146,6 +147,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void CenterClose(MultiNationSim sim)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (CenterSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.P?.Dispose(); sk.P = null; }
     }
 }

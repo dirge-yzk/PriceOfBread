@@ -18,6 +18,7 @@ public static partial class Instruments
     /// <summary>月末（<see cref="MonthClose"/> の入口）：投資家の POP の IndustrialRentPerMonth の和をその四半期の欄へ足す。</summary>
     static void DivhostMonth(World w)
     {
+        if (!Tg.Divhost) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = DivhostAccs.GetValue(w, _ => new double[2]);
         double s = 0;
         foreach (var (_, p) in w.AllPopsWithRegion()) if (CapitalMarket.IsInvestor(p)) s += p.IndustrialRentPerMonth.Value;
@@ -27,6 +28,7 @@ public static partial class Instruments
     /// <summary>CapitalMarket.Step の配当の行：1 国 1 回。<paramref name="fci"/>・<paramref name="invSavBefore"/>＝配当の時点（払う前）の値・<paramref name="req"/>＝エンジンの請求額・<paramref name="paid"/>＝TakeGold の返り値。</summary>
     internal static void DivhostRecord(IReadOnlyList<Simulation> nations, int i, double e, double fci, double invSavBefore, double req, double paid)
     {
+        if (!Tg.Divhost) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On) return;
         var w = nations[i].World;
         var key = nations[0].World.Diplomacy;
@@ -54,6 +56,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：溜めた行を追記する。</summary>
     static void DivhostTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Divhost) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (_divhostBuf is null || _divhostBuf.Length == 0) return;
         if (!ReferenceEquals(sim.Nations.Count > 0 ? sim.Nations[0].World.Diplomacy : null, _divhostKey)) { _divhostBuf.Clear(); return; }
         var sk = DivhostSinks.GetValue(sim, _ => new DivhostSink());
@@ -67,6 +70,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void DivhostClose(MultiNationSim sim)
     {
+        if (!Tg.Divhost) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (DivhostSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

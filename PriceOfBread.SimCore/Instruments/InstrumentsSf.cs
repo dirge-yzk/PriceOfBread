@@ -45,6 +45,7 @@ public static partial class Instruments
 
     static void SfFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Sf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var v = SfRow(w);
         sk.Sf ??= Open("sf", seed);

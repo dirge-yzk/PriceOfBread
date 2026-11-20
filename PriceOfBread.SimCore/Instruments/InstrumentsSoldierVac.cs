@@ -43,6 +43,7 @@ public static partial class Instruments
     /// <summary>社会移動の頭（州の移動の前）：国の大きさ＞0 の兵が実際に受け取った比＝Σ兵の EarnedPerMonth÷Σ（兵の大きさ×計器が組む単価×SoldierPayMult）を計器が自分で組む。</summary>
     internal static void SoldierVacBegin(World w)
     {
+        if (!Tg.SoldierVac) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("soldiervac_s")) return;
         var a = SoldierVacAccs.GetValue(w, _ => new SoldierVacAcc());
         bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
@@ -63,6 +64,7 @@ public static partial class Instruments
 
     internal static void SoldierVacEnter(World w, Region r, Pop soldier, double vac0)
     {
+        if (!Tg.SoldierVac) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("soldiervac_s")) return;
         var a = SoldierVacAccs.GetValue(w, _ => new SoldierVacAcc());
         a.CurOn = true; a.CurStart = soldier.Size; a.CurVac = vac0;
@@ -90,6 +92,7 @@ public static partial class Instruments
 
     internal static void SoldierVacExit(World w, Region r, Pop soldier)
     {
+        if (!Tg.SoldierVac) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("soldiervac_s")) return;
         var a = SoldierVacAccs.GetValue(w, _ => new SoldierVacAcc());
         if (!a.CurOn) return;
@@ -107,6 +110,7 @@ public static partial class Instruments
     /// <summary>(1206) 徴募の引き（Military.DrawFromPool の本体の後）：da＋db と、強制の時だけ足した闘争度×人口（引いた後の大きさ）を州の格ごとに貯める。Instruments.On の時だけ呼ばれる。</summary>
     internal static void SoldierVacDraw(World w, Region r, bool conscription, double moved, double milPop)
     {
+        if (!Tg.SoldierVac) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("soldiervac_s")) return;
         var a = SoldierVacAccs.GetValue(w, _ => new SoldierVacAcc());
         bool col = r.Tier == RegionTier.Colonial;
@@ -124,6 +128,7 @@ public static partial class Instruments
 
     static void SoldierVacTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.SoldierVac) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("soldiervac_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var sk = SoldierVacSinks.GetValue(sim, _ => new SoldierVacSink());
         if (sk.W is null) { sk.W = Open("soldiervac", seed); sk.W.WriteLine(SoldierVacHeaderText); }

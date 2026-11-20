@@ -18,6 +18,7 @@ public static partial class Instruments
     internal static void PxStep(Region r, long live, long steps, long dormant, long labor, long svcClosed, long svcDaily, long goodsClosed, long pinned, long goodsDaily,
         long runsLabor, long runsSvc, long runsGoods)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = PxAccs.GetValue(r, _ => new PxAcc());
         int o = (int)r.Tier * PxB;
         a.Cnt[o + 0] += labor; a.Cnt[o + 1] += svcClosed; a.Cnt[o + 2] += svcDaily; a.Cnt[o + 3] += goodsClosed; a.Cnt[o + 4] += pinned; a.Cnt[o + 5] += goodsDaily;
@@ -81,6 +82,7 @@ public static partial class Instruments
     /// <summary>Close の呼び口：年の途中で終わった残りを書き、pxstep_s と cscx_s の書き手を閉じる。</summary>
     static void PxstepClose(MultiNationSim sim)
     {
+        if (!Tg.Pxstep) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         ulong seed = PxSinks.TryGetValue(sim, out var s0) ? s0.Seed : 0;
         PxFold(sim, seed, 0, true);
         if (PxSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }

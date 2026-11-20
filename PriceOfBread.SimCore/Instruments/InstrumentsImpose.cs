@@ -29,6 +29,7 @@ public static partial class Instruments
     /// <summary>矯正の後（ログ〈政体を矯正〉の直後）：1 行を貯め、敗者の王冠の登録簿の最後の書き手を 2（矯正講和）にする。</summary>
     internal static void ImpAfter(Diplomacy d, ImpPre pre, Power winner, Power loser, World ww, World dw, double absScore, bool crushing)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         CrownSource(dw, 2);
         var st = ImpStates.GetValue(d, _ => new ImpState());
         var cp = CpOf(d);
@@ -42,6 +43,7 @@ public static partial class Instruments
 
     static void ImpTable(Sink sk, Diplomacy d)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!ImpStates.TryGetValue(d, out _)) return;
         using var wr = Open("imp", sk.Seed);
         wr.WriteLine(ImpHeaderText);

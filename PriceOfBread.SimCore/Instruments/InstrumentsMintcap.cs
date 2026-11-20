@@ -45,6 +45,7 @@ public static partial class Instruments
     /// <summary>MintGold の頭：国の全ての州を計器が自分で走査して旧の影と新の影（首都だけ）を数える。</summary>
     internal static void MintcapMonth(World w)
     {
+        if (!Tg.Mintcap) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("mintcap_s") || w.Regions.Count == 0) return;
         var a = MintcapAccs.GetValue(w, _ => new MintcapAcc());
         a.Months++; a.CapAboveNotAt = false;
@@ -87,6 +88,7 @@ public static partial class Instruments
     /// <summary>SilverMintCapture の隣：実際に買えた量を首都と首都の外に分けて溜める（計器が首都を自分で選ぶ）。</summary>
     internal static void MintcapBought(World w, Region r, int metal, double qty)
     {
+        if (!Tg.Mintcap) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (metal != Catalog.SilverId && metal != Catalog.GoldOreId) return;
         if (!MintcapAccs.TryGetValue(w, out var a) || w.Regions.Count == 0) return;
         bool isCap = ReferenceEquals(r, w.Regions[0]);
@@ -97,6 +99,7 @@ public static partial class Instruments
 
     static void MintcapTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Mintcap) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("mintcap_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var sk = MintcapSinks.GetValue(sim, _ => new MintcapSink());
         if (sk.W is null) { sk.W = Open("mintcap", seed); sk.W.WriteLine(MintcapHeaderText); }

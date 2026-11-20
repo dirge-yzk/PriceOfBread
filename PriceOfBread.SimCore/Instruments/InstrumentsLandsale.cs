@@ -101,6 +101,7 @@ public static partial class Instruments
     /// <summary>受け口（Fiscal.Step の徴税の走査の直前・INS のときだけ＝On の確かめは中）：全ての POP の請求と払える割合を計器が自分で組み、未払いと売りの期待を月の積みへ足す。お金は動かさない。</summary>
     internal static void LandsaleStep(World w)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || w.WarmupFrozen || w.Regions.Count == 0) return;
         var a = LdAccs.GetValue(w, _ => new LdAcc());
         a.Armed = true;
@@ -184,6 +185,7 @@ public static partial class Instruments
     /// <summary>月の閉じ（Instruments.MonthClose・Fiscal.Step の後・LandshareMonth の前）：エンジンの取れた土地税と比べ、四半期の和へ足す。</summary>
     internal static void LandsaleMonth(World w)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!LdAccs.TryGetValue(w, out var a)) return;
         a.Months++;
         if (!a.Armed) return;
@@ -213,6 +215,7 @@ public static partial class Instruments
     /// <summary>四半期の末：全ての国の行を書き、四半期の和を 0 へ戻す。</summary>
     static void LandsaleTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = LandsaleSinks.GetValue(sim, _ => new LandsaleSink());
         sk.W ??= Open("landsale", seed);
         if (!sk.Header) { sk.W.WriteLine(LandsaleHeaderText); sk.Header = true; }
@@ -265,6 +268,7 @@ public static partial class Instruments
     /// </summary>
     internal static void LandsaleSaleBegin(World w, Region r, int seller)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || w.WarmupFrozen || !LdAccs.TryGetValue(w, out var a)) return;
         a.Pend = false;
         var p = r.Pops[seller];
@@ -299,6 +303,7 @@ public static partial class Instruments
     /// </summary>
     internal static void LandsaleSaleEnd(World w, Region r, int seller, double moved)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!On || w.WarmupFrozen || !LdAccs.TryGetValue(w, out var a)) return;
         if (!a.Pend) { if (moved > 0) { a.QSaleActual += moved; a.QSaleMaxRel = double.PositiveInfinity; } return; }   // 写しが売りを立てなかったのにエンジンが売った
         a.Pend = false;
@@ -336,6 +341,7 @@ public static partial class Instruments
 
     static void LandsaleClose(MultiNationSim sim)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (LandsaleSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

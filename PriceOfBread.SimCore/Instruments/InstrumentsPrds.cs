@@ -99,6 +99,7 @@ public static partial class Instruments
     /// <summary>POP のループの中の <c>Normalize(r)</c> の直後（計器だけ）：この POP を累計へ積む。<paramref name="r"/> は正規化後（読むだけ）。</summary>
     internal static void PrdsAdd(PrdsAcc a, Pop p, double[] r, double mil, double t, int shadowAxis, double sumRaw)
     {
+        if (!Tg.Prds) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         double s = p.Size;
         if (s <= 1e-9) return;
         a.PopK += s;
@@ -126,6 +127,7 @@ public static partial class Instruments
     /// <summary><see cref="Ideologies.UpdateShares"/> の終わり（計器だけ）：この国のこの四半期の行を溜める。</summary>
     internal static void PrdsEnd(PrdsAcc a)
     {
+        if (!Tg.Prds) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var w = a.W;
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         double all = a.PopK;
@@ -169,6 +171,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：溜めた行を書き出す。</summary>
     static void PrdsTable(MultiNationSim sim, ulong seed)
     {
+        if (!Tg.Prds) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         foreach (var n in sim.Nations)
         {
             if (!PrdsPending.TryGetValue(n.World, out var rows) || rows.Count == 0) continue;
@@ -183,6 +186,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void PrdsClose(MultiNationSim sim)
     {
+        if (!Tg.Prds) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (PrdsSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

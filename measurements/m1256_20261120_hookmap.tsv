@@ -1,0 +1,253 @@
+種類	ファイル	フック	行	束(Tg)	書く表(束の和)	束のファイル数	持ち越し印	本体の呼び位置
+閉じた	InstrumentsAdmin.cs	AdmRuleFold	8	Admin	admrule_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsAiBuild.cs	AiBuildEnter	20	AiBuild	aib_s	1		SelfPlay.cs:840
+閉じた	InstrumentsAiBuild.cs	AiBuildReturn	26	AiBuild	aib_s	1		SelfPlay.cs:820;SelfPlay.cs:841
+閉じた	InstrumentsAiBuild.cs	AiBuildOverCap	31	AiBuild	aib_s	1		SelfPlay.cs:882
+閉じた	InstrumentsAiBuild.cs	AiBuildSkipRoom	36	AiBuild	aib_s	1		SelfPlay.cs:902
+閉じた	InstrumentsAiBuild.cs	AiBuildBest	44	AiBuild	aib_s	1		SelfPlay.cs:892
+閉じた	InstrumentsAiBuild.cs	AiBuildRootDropped	54	AiBuild	aib_s	1		SelfPlay.cs:863
+閉じた	InstrumentsAiBuild.cs	AiBuildTried	61	AiBuild	aib_s	1		SelfPlay.cs:904
+閉じた	InstrumentsAiBuild.cs	AibClear	71	AiBuild	aib_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsAiBuild.cs	AibFold	82	AiBuild	aib_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsAnchor.cs	AnchorFold	8	Anchor	anchor_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsArms.cs	ArmsFold	34	Arms	armsfill_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsArms.cs	ArmsClose	111	Arms	armsfill_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBasisx.cs	BasisxMonth	112	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBasisx.cs	BasisxTable	161	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBasisx.cs	BasisxClose	208	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBuyShadow.cs	BsBiasRead	39	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBuyShadow.cs	BuyShadowTable	108	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBuyShadow.cs	TbRow	261	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:888
+閉じた	InstrumentsBuyShadow.cs	TbDeal	277	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1144
+閉じた	InstrumentsBuyShadow.cs	TbTable	305	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsBuyShadow.cs	T1Row	477	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:912
+閉じた	InstrumentsBuyShadow.cs	T1Deal	525	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1144
+閉じた	InstrumentsBuyShadow.cs	T1Table	565	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCede.cs	CedeBefore	33	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCede.cs	CedeTable	83	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCede.cs	CedeClose	147	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCenter.cs	CenterFold	26	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCenter.cs	CenterClose	147	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCess.cs	CessPeace	27	Cess	cess_s,cessp_s	1		Diplomacy.cs:2601
+閉じた	InstrumentsCess.cs	CessObserveRegion	52	Cess	cess_s,cessp_s	1		Diplomacy.cs:2697;Diplomacy.cs:2915;Diplomacy.cs:2941
+閉じた	InstrumentsCess.cs	CessClose	128	Cess	cess_s,cessp_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsChem.cs	ChemFold	35	Chem	chem_s,chemgood_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCivwar.cs	CwMonth	26	Civwar	cwmult_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCivwar.cs	CwWarm	73	Civwar	cwmult_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCivwar.cs	CwFold	81	Civwar	cwmult_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCivwar.cs	CwClose	97	Civwar	cwmult_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsClock.cs	ClockSample	11	Clock	clock_s	1		MultiNationSim.cs:503
+閉じた	InstrumentsClock.cs	ClockTable	67	Clock	clock_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCorncf.cs	CorncfTable	128	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCorncf.cs	CorncfClose	244	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCornint.cs	CornintTable	21	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCornint.cs	CornintClose	166	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCpeace.cs	CpAfter	56	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:2434
+閉じた	InstrumentsCpeace.cs	CpTable	68	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCpmed.cs	CmAfter	58	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:2432
+閉じた	InstrumentsCpmed.cs	CmTable	67	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCpwd.cs	CpwdMark	41	Cpwd	cpwd_s,cpwdft_s,cpworld_s	1		CapitalMarket.cs:103;CapitalMarket.cs:108
+閉じた	InstrumentsCpwd.cs	CpwdRow	53	Cpwd	cpwd_s,cpwdft_s,cpworld_s	1		CapitalMarket.cs:112
+閉じた	InstrumentsCpwd.cs	CpwdOwner	95	Cpwd	cpwd_s,cpwdft_s,cpworld_s	1		CapitalMarket.cs:115;CapitalMarket.cs:132
+閉じた	InstrumentsCpwd.cs	CpwdEnd	110	Cpwd	cpwd_s,cpwdft_s,cpworld_s	1		CapitalMarket.cs:173
+閉じた	InstrumentsCpwd.cs	CpwdTable	124	Cpwd	cpwd_s,cpwdft_s,cpworld_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCpwd.cs	CpwdClose	154	Cpwd	cpwd_s,cpwdft_s,cpworld_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDep.cs	DepAfter	69	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:417
+閉じた	InstrumentsDep.cs	DepRemoved	83	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:423
+閉じた	InstrumentsDep.cs	DepTable	104	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDipcool.cs	DipcoolAfter	70	Dipcool	dipcool_s	1		Diplomacy.cs:3245
+閉じた	InstrumentsDipcool.cs	DipcoolTable	109	Dipcool	dipcool_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDipcool.cs	DipcoolClose	123	Dipcool	dipcool_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDiscontent.cs	DcontFold	16	Discontent	dcont_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDivhost.cs	DivhostMonth	19	Divhost	divhost_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDivhost.cs	DivhostRecord	28	Divhost	divhost_s	1		CapitalMarket.cs:110
+閉じた	InstrumentsDivhost.cs	DivhostTable	55	Divhost	divhost_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsDivhost.cs	DivhostClose	68	Divhost	divhost_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsEd.cs	EdFold	28	Ed	ed_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsEquipment.cs	EquipmentBought	13	Equipment	eq_s,eqr_s	1		EconomyStep.cs:2055
+閉じた	InstrumentsEquipment.cs	EquipmentDistributed	20	Equipment	eq_s,eqr_s	1		FactoryEquipment.cs:53;FactoryEquipment.cs:57
+閉じた	InstrumentsEquipment.cs	EquipmentRetired	26	Equipment	eq_s,eqr_s	1		FactoryEquipment.cs:78
+閉じた	InstrumentsEquipment.cs	EqFold	34	Equipment	eq_s,eqr_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsFb.cs	FbFold	11	Fb	fb_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsFd.cs	FdPop	29	Fd	fd_s	1		EconomyStep.cs:1926
+閉じた	InstrumentsFd.cs	FdFold	43	Fd	fd_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsHouse.cs	HouseFold	22	House	house_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsIdn.cs	IdnObserve	15	Idn	idn_s	1		Discovery.cs:809
+閉じた	InstrumentsIdn.cs	IdnTable	38	Idn	idn_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsIdn.cs	IdnClose	52	Idn	idn_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsImpose.cs	ImpAfter	30	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:2795
+閉じた	InstrumentsImpose.cs	ImpTable	43	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsIvf.cs	IvfChoice	17	Ivf	ivf_s	1		EconomyStep.cs:1031
+閉じた	InstrumentsIvf.cs	IvfConstruction	28	Ivf	ivf_s	1		EconomyStep.cs:2044
+閉じた	InstrumentsIvf.cs	IvfFold	36	Ivf	ivf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLandsale.cs	LandsaleStep	102	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Fiscal.cs:19
+閉じた	InstrumentsLandsale.cs	LandsaleMonth	185	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLandsale.cs	LandsaleTable	214	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLandsale.cs	LandsaleSaleBegin	266	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	LandSale.cs:19
+閉じた	InstrumentsLandsale.cs	LandsaleSaleEnd	300	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	LandSale.cs:21
+閉じた	InstrumentsLandsale.cs	LandsaleClose	337	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLandshare.cs	LandshareRgo	130	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	EconomyStep.cs:2408
+閉じた	InstrumentsLandshare.cs	LandshareExp	189	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	InternationalMarket.cs:67
+閉じた	InstrumentsLandshare.cs	LandshareMonth	216	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLandshare.cs	LandshareTable	285	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLandshare.cs	LandshareClose	357	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLawGate.cs	LawGateFold	8	LawGate	lawgate_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLordstat.cs	LordstatTable	54	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLordstat.cs	LordstatClose	135	Basisx	basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s	6	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLw.cs	LwStep	22	Lw	labor_s	1		MarketFlow.cs:115
+閉じた	InstrumentsLw.cs	LwFold	35	Lw	labor_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsLwk.cs	LwkRegion	22	Lwk	age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s	2	共有する状態あり（束で 1 つの bool）	EconomyStep.cs:896
+閉じた	InstrumentsLwk.cs	LwkWork	55	Lwk	age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s	2	共有する状態あり（束で 1 つの bool）	EconomyStep.cs:966
+閉じた	InstrumentsLwk.cs	LwkFold	81	Lwk	age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsMineCap.cs	MinecapTable	34	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsMintcap.cs	MintcapMonth	46	Mintcap	mintcap_s,mintreg_s	2	共有する状態あり（束で 1 つの bool）	Simulation.cs:2387
+閉じた	InstrumentsMintcap.cs	MintcapBought	88	Mintcap	mintcap_s,mintreg_s	2	共有する状態あり（束で 1 つの bool）	Simulation.cs:2452
+閉じた	InstrumentsMintcap.cs	MintcapTable	98	Mintcap	mintcap_s,mintreg_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsMintreg.cs	MintregMonth	31	Mintcap	mintcap_s,mintreg_s	2	共有する状態あり（束で 1 つの bool）	Simulation.cs:2387
+閉じた	InstrumentsMintreg.cs	MintregBought	69	Mintcap	mintcap_s,mintreg_s	2	共有する状態あり（束で 1 つの bool）	Simulation.cs:2452
+閉じた	InstrumentsMintreg.cs	MintregTable	77	Mintcap	mintcap_s,mintreg_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsNationgood.cs	NgHead	28	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:637
+閉じた	InstrumentsNationgood.cs	NgEventsRoll	46	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsNationgood.cs	NationgoodTable	87	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPay.cs	PayFold	8	Pay	pay_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPay.cs	Add	26	Pay	pay_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPaysale.cs	PaysaleAlloc	33	Paysale	paysale2_s	1		InternationalMarket.cs:62
+閉じた	InstrumentsPaysale.cs	PaysaleMonth	49	Paysale	paysale2_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPaysale.cs	PaysaleTable	88	Paysale	paysale2_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPortch.cs	PortchTable	31	Portch	portch_s,portlm_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPortch.cs	PortchClose	79	Portch	portch_s,portlm_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPortlm.cs	PortlmTable	118	Portch	portch_s,portlm_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPortlm.cs	PortlmClose	165	Portch	portch_s,portlm_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPrdf.cs	PrdfObserve	16	Prdf	prdf_s	1		Factions.cs:101
+閉じた	InstrumentsPrdf.cs	PrdfRevolt	67	Prdf	prdf_s	1		Politics.cs:557
+閉じた	InstrumentsPrdf.cs	PrdfTable	76	Prdf	prdf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPrdf.cs	PrdfClose	91	Prdf	prdf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPrds.cs	PrdsAdd	100	Prds	prds_s	1		Ideology.cs:74
+閉じた	InstrumentsPrds.cs	PrdsEnd	127	Prds	prds_s	1		Ideology.cs:76
+閉じた	InstrumentsPrds.cs	PrdsTable	170	Prds	prds_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPrds.cs	PrdsClose	184	Prds	prds_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsProdcap.cs	ProdcapTable	12	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsPxstep.cs	PxStep	18	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	MarketFlow.cs:218
+閉じた	InstrumentsPxstep.cs	PxstepClose	82	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRailSpend.cs	RailSpendAdd	29	RailSpend	railspend_s	1		EconomyStep.cs:2081;EconomyStep.cs:2119
+閉じた	InstrumentsRailSpend.cs	RailSpendMonth	40	RailSpend	railspend_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRailSpend.cs	RailSpendTable	68	RailSpend	railspend_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRdh.cs	RdhPd	41	Lwk	age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s	2	共有する状態あり（束で 1 つの bool）	Simulation.cs:2061
+閉じた	InstrumentsRdh.cs	RdhPhase	103	Lwk	age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRdh.cs	RdhClose	113	Lwk	age_s,lwk_s,pop_s,rdh_s,urx_s,urxpd_s,urxrt_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRecipeout.cs	RecipeoutTable	128	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRk.cs	NationRkCols	20	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRk.cs	ReachTable	73	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRk.cs	ReachClose	106	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRk.cs	WarEndPush	118	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:2971
+閉じた	InstrumentsRule.cs	RuleFold	60	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsRulePower.cs	RpSnapshot	94	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:639
+閉じた	InstrumentsRulePower.cs	RulePowerTable	147	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSatNeeds.cs	SatNeeds	24	SatNeeds	satneeds_s	1		EconomyStep.cs:1895
+閉じた	InstrumentsSatNeeds.cs	SatNeedsTable	46	SatNeeds	satneeds_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSb.cs	SbRegionMonth	24	Sb	sbr_s,sbrreg_s,sbu_s	1		EconomyStep.cs:2362
+閉じた	InstrumentsSb.cs	SbExport	33	Sb	sbr_s,sbrreg_s,sbu_s	1		InternationalMarket.cs:56
+閉じた	InstrumentsSb.cs	SbFactory	40	Sb	sbr_s,sbrreg_s,sbu_s	1		EconomyStep.cs:2392
+閉じた	InstrumentsSb.cs	SbRgo	53	Sb	sbr_s,sbrreg_s,sbu_s	1		EconomyStep.cs:2386
+閉じた	InstrumentsSb.cs	SbFold	70	Sb	sbr_s,sbrreg_s,sbu_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsScalars.cs	ScalarsFold	22	Scalars	scalars_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsScope.cs	ScopeRowX	38	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1166
+閉じた	InstrumentsScope.cs	ScopeRow	66	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1166
+閉じた	InstrumentsScope.cs	ScopeSkip	74	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:866
+閉じた	InstrumentsScope.cs	ScopePot	80	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1086
+閉じた	InstrumentsScope.cs	ScopeDeal	87	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1144
+閉じた	InstrumentsScope.cs	ScopeFold	124	Pxstep	csc_s,cscx_s,pxstep_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsScore.cs	ScoreFold	8	Rk	reach_s,rponset_s,rulepeace_s,rulepower_s,rulepoweralloc_s,score_s	4	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSellr.cs	SellrTable	25	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSf.cs	SfFold	46	Sf	sf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSilverParity.cs	SilverParityCapture	22	SilverParity	silverpar_s	1		MultiNationSim.cs:735
+閉じた	InstrumentsSilverParity.cs	SilverParityTable	60	SilverParity	silverpar_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSilverParity.cs	SilverParityClose	94	SilverParity	silverpar_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSilverst.cs	SilverMintCapture	50	Silverst	silverst_s,silverwt_s	2	共有する状態あり（束で 1 つの bool）	Simulation.cs:2452
+閉じた	InstrumentsSilverWeight.cs	SilverWeightState	31	Silverst	silverst_s,silverwt_s	2	共有する状態あり（束で 1 つの bool）	MultiNationSim.cs:724
+閉じた	InstrumentsSilverWeight.cs	SilverWeightEnd	51	Silverst	silverst_s,silverwt_s	2	共有する状態あり（束で 1 つの bool）	MultiNationSim.cs:736
+閉じた	InstrumentsSilverWeight.cs	SilverWeightClose	90	Silverst	silverst_s,silverwt_s	2	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSoldierVac.cs	SoldierVacBegin	44	SoldierVac	soldiervac_s	1		Meritocracy.cs:17
+閉じた	InstrumentsSoldierVac.cs	SoldierVacEnter	64	SoldierVac	soldiervac_s	1		Meritocracy.cs:72
+閉じた	InstrumentsSoldierVac.cs	SoldierVacExit	91	SoldierVac	soldiervac_s	1		Meritocracy.cs:280
+閉じた	InstrumentsSoldierVac.cs	SoldierVacDraw	108	SoldierVac	soldiervac_s	1		Military.cs:199
+閉じた	InstrumentsSoldierVac.cs	SoldierVacTable	125	SoldierVac	soldiervac_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSubst.cs	SubstTable	40	Subst	subst_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSubst.cs	SubstClose	110	Subst	subst_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsSubst.cs	SubstMonthHead	158	Subst	subst_s	1		EconomyStep.cs:713
+閉じた	InstrumentsTradeskip.cs	TradeskipTable	286	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsTreatyPort.cs	TportTable	45	TreatyPort	tport_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsTreatyPort.cs	TportClose	64	TreatyPort	tport_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsU4.cs	U4ConsStash	32	U4	consf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsU4.cs	U4Decide	40	U4	consf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsU4.cs	U4Paid	87	U4	consf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsU4.cs	U4ClearWorld	94	U4	consf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsU4.cs	U4Depart	103	U4	consf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsU4.cs	ConsfRows	115	U4	consf_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsUnif.cs	UnifWarEval	24	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Formations.cs:388
+閉じた	InstrumentsUnif.cs	UnifTable	40	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsUnif.cs	UnifClose	155	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsWar.cs	WarTagDefault	72	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:1569
+閉じた	InstrumentsWar.cs	WarNoteStart	79	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsWar.cs	WarPairEvent	111	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:459;Diplomacy.cs:1397;Diplomacy.cs:2971
+閉じた	InstrumentsWar.cs	WarPairSample	121	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:842
+閉じた	InstrumentsWar.cs	WarEval	235	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Diplomacy.cs:1783
+閉じた	InstrumentsWar.cs	WarQuarter	315	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsWar.cs	WarClose	384	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsWp.cs	WpFold	13	Wp	wp_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じない(1 行・式の本体)	InstrumentsBuyShadow.cs	BuyShadowClose						oneline
+閉じない(1 行・式の本体)	InstrumentsBuyShadow.cs	TbClose						oneline
+閉じない(1 行・式の本体)	InstrumentsBuyShadow.cs	T1Close						oneline
+閉じない(1 行・式の本体)	InstrumentsCess.cs	CessObserveColony						expr
+閉じない(1 行・式の本体)	InstrumentsClock.cs	ClockOpened						expr
+閉じない(1 行・式の本体)	InstrumentsCpeace.cs	CpIter						oneline
+閉じない(1 行・式の本体)	InstrumentsCpeace.cs	CpMonth						oneline
+閉じない(1 行・式の本体)	InstrumentsEd.cs	EdBegin						oneline
+閉じない(1 行・式の本体)	InstrumentsEd.cs	EdSet						oneline
+閉じない(1 行・式の本体)	InstrumentsEd.cs	HigherEdSet						oneline
+閉じない(1 行・式の本体)	InstrumentsEd.cs	HigherPaidBegin						oneline
+閉じない(1 行・式の本体)	InstrumentsEd.cs	HigherPaid						oneline
+閉じない(1 行・式の本体)	InstrumentsEquipment.cs	EquipmentCompleted						oneline
+閉じない(1 行・式の本体)	InstrumentsEquipment.cs	EquipmentDismantled						oneline
+閉じない(1 行・式の本体)	InstrumentsMintcap.cs	MintcapClose						oneline
+閉じない(1 行・式の本体)	InstrumentsMintreg.cs	MintregClose						oneline
+閉じない(1 行・式の本体)	InstrumentsNationgood.cs	NgRegionMoved						oneline
+閉じない(1 行・式の本体)	InstrumentsNationgood.cs	NationgoodClose						oneline
+閉じない(1 行・式の本体)	InstrumentsPaysale.cs	PaysaleClose						oneline
+閉じない(1 行・式の本体)	InstrumentsProdcap.cs	ProdcapClose						oneline
+閉じない(1 行・式の本体)	InstrumentsPxstep.cs	PxstepTable						oneline
+閉じない(1 行・式の本体)	InstrumentsRailSpend.cs	RailSpendClose						oneline
+閉じない(1 行・式の本体)	InstrumentsRdh.cs	RdhRegion						oneline
+閉じない(1 行・式の本体)	InstrumentsRdh.cs	RdhTable						expr
+閉じない(1 行・式の本体)	InstrumentsRecipeout.cs	RecipeoutClose						oneline
+閉じない(1 行・式の本体)	InstrumentsSatNeeds.cs	SatNeedsClose						oneline
+閉じない(1 行・式の本体)	InstrumentsScope.cs	ScopeClear						oneline
+閉じない(1 行・式の本体)	InstrumentsSellr.cs	SellrClose						oneline
+閉じない(1 行・式の本体)	InstrumentsSoldierVac.cs	SoldierVacClose						oneline
+閉じない(1 行・式の本体)	InstrumentsTradeskip.cs	TradeskipClose						oneline
+閉じない(1 行・式の本体)	InstrumentsWar.cs	WarTag						oneline
+閉じない(1 行・式の本体)	InstrumentsWar.cs	WarNoteInvade						expr
+閉じない(ファイル)	InstrumentsBur.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsCapacity.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsCearn.cs	*						special;core:Begin;core:Borrow;core:EnvWantsAny;core:SavKind;core:SavKindNames;core:_routeFile;core:_routeLine;core:_routeTo（波129 以降）
+閉じない(ファイル)	InstrumentsCoup.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsCrown.cs	*						core:Mobilization（波129 以降）
+閉じない(ファイル)	InstrumentsDsc.cs	*						special（波129 以降）
+閉じない(ファイル)	InstrumentsEpi.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsFm.cs	*						special;core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsHabitlg.cs	*						no-kinds（波129 以降）
+閉じない(ファイル)	InstrumentsIdeology.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsInheritIntent.cs	*						core:ConsDepart;no-kinds（波129 以降）
+閉じない(ファイル)	InstrumentsInp.cs	*						core:Begin;core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsLandbase.cs	*						core:Claim（波129 以降）
+閉じない(ファイル)	InstrumentsLawgate2.cs	*						core:FindFront（波129 以降）
+閉じない(ファイル)	InstrumentsMerch.cs	*						core:Route（波129 以降）
+閉じない(ファイル)	InstrumentsModernize.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsMon.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsPop.cs	*						core:CeOtherClasses;core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsReform.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsRegionProd.cs	*						no-kinds（波129 以降）
+閉じない(ファイル)	InstrumentsSecession.cs	*						core:WState（波129 以降）
+閉じない(ファイル)	InstrumentsSvcBuy.cs	*						core:FlowOf;core:Flows（波129 以降）
+閉じない(ファイル)	InstrumentsTransport.cs	*						special;core:Route（波129 以降）
+閉じない(ファイル)	InstrumentsUrx.cs	*						core:PopOwner;core:WState（波129 以降）

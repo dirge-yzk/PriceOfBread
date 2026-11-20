@@ -32,6 +32,7 @@ public static partial class Instruments
     /// <summary>州が移る時点（<see cref="RegionMoved"/> の最初の文・Rehome の前）：前の値を写して貯める。助走の間と単国の世界は貯めない。</summary>
     static void CedeBefore(World from, World? to, Region r, Territory.Rehoming how)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (from.WarmupFrozen || from.Diplomacy is not { } dip) return;
         var st = CedeStates.GetValue(dip, _ => new CedeState());
         st.Pending.Add(new CedeEv
@@ -82,6 +83,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/> の全ての国の段）：貯めた事象の後の値を読み、行を貯める。</summary>
     static void CedeTable(MultiNationSim sim, int q)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!CedeStates.TryGetValue(sim.Diplomacy, out var st) || st.Pending.Count == 0) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         foreach (var ev in st.Pending)
@@ -146,6 +148,7 @@ public static partial class Instruments
     /// <summary>試合の終わり：cederule_s を書く（行が無くても見出しは書く＝読み手が空の表を読める・見出しと行の書き先はここの 1 本）。</summary>
     static void CedeClose(MultiNationSim sim, ulong seed)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var st = CedeStates.GetValue(sim.Diplomacy, _ => new CedeState());
         using var wr = Open("cederule", seed);
         wr.WriteLine(CedeHeaderText);

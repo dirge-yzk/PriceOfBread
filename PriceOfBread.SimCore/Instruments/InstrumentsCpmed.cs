@@ -57,6 +57,7 @@ public static partial class Instruments
     /// <summary>ResolvePeace の直後：実際に動いた値を足して行を積む。</summary>
     internal static void CmAfter(Diplomacy d, War war, CmPre pre)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         bool hit = d.CpHit;
         double led = System.Math.Abs(CmLed(war.A) - pre.LedA) + System.Math.Abs(CmLed(war.B) - pre.LedB);
@@ -66,6 +67,7 @@ public static partial class Instruments
 
     static void CmTable(Sink sk, Diplomacy d)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!CmStates.TryGetValue(d, out var st)) return;
         using var wr = Open("cpmed", sk.Seed);
         wr.WriteLine(CpmedHeaderText);

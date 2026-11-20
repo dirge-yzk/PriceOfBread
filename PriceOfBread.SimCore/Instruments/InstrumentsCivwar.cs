@@ -25,6 +25,7 @@ public static partial class Instruments
     /// <summary>月（<see cref="WarMonth"/> の中）：内戦か・交戦かを計器が自分で決め、旧と新の規則と実際の値を積む。</summary>
     static void CwMonth(World w)
     {
+        if (!Tg.Civwar) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.Diplomacy is not { } d || w.SelfPower is not { } sp) return;
         bool civil = false, war = false;
         foreach (var x in d.Wars)
@@ -72,6 +73,7 @@ public static partial class Instruments
     /// <summary>助走の直後（<see cref="Phase"/> の "warm"）：助走の月の積算を捨てる。</summary>
     static void CwWarm(MultiNationSim sim)
     {
+        if (!Tg.Civwar) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         foreach (var n in sim.Nations) CwAccs.Remove(n.World);
     }
 
@@ -80,6 +82,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/> の国ごとの段）：交戦の月が 1 以上の国の行を書き、積算を捨てる。</summary>
     static void CwFold(MultiNationSim sim, ulong seed, World w, int q)
     {
+        if (!Tg.Civwar) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!CwAccs.TryGetValue(w, out var a)) return;
         CwAccs.Remove(w);
         if (a.Civil + a.Foreign <= 0) return;
@@ -96,6 +99,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void CwClose(MultiNationSim sim)
     {
+        if (!Tg.Civwar) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (CwSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

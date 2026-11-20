@@ -55,6 +55,7 @@ public static partial class Instruments
     /// <summary>講和の後：ResolvePeace が書いた実際の値を足して行を積む。</summary>
     internal static void CpAfter(Diplomacy d, War war, CpPre pre)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var r = pre.Rec;
         r.Hit = d.CpHit;
         if (!r.Hit) return;   // 白紙・内戦・賠償の枝の前で終わった講和は事象に入れない（国を持たない側がいる講和は入れる＝取り分の分母に押しが残る）
@@ -67,6 +68,7 @@ public static partial class Instruments
 
     static void CpTable(Sink sk, Diplomacy d)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!CpStates.TryGetValue(d, out _)) return;
         using var wr = Open("cpeace", sk.Seed);
         wr.WriteLine(CpeaceHeaderText);

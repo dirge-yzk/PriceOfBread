@@ -30,6 +30,7 @@ public static partial class Instruments
     /// </summary>
     internal static void SilverWeightState(MultiNationSim sim, Region r, double wUsed, double lnRatio, double demandAu, double producedAu, double demandAg, double producedAg)
     {
+        if (!Tg.Silverst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = SilverWeightSinks.GetValue(sim, _ => new SilverWeightSink());
         bool oneSided = demandAu < 0.01 * producedAu;
         sk.N++; sk.SumLn += lnRatio; if (oneSided) sk.OneSided++;
@@ -50,6 +51,7 @@ public static partial class Instruments
     /// <summary>注入の直後（助走の注入も含む）：World に入った rel と WorldSilverPrice を読み、挟みに当たる銀本位国を数えて 1 行を溜める。</summary>
     internal static void SilverWeightEnd(MultiNationSim sim, bool frozen, bool ratioOk)
     {
+        if (!Tg.Silverst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = SilverWeightSinks.GetValue(sim, _ => new SilverWeightSink());
         sk.Seq++;
         if (sim.Nations.Count == 0) { sk.Reset(); return; }
@@ -89,6 +91,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：溜めた行を書く。</summary>
     static void SilverWeightClose(MultiNationSim sim, ulong seed)
     {
+        if (!Tg.Silverst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         SilverstClose(sim, seed);   // SilverstClose〔履歴 InstrumentsSilverWeight.cs#11〕
         if (!SilverWeightSinks.TryGetValue(sim, out var sk) || sk.Rows.Count == 0) return;
         using var wr = Open("silverwt", seed);

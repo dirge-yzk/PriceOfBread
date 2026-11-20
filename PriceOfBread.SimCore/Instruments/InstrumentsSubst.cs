@@ -39,6 +39,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：全ての国の全ての州の行を書く。</summary>
     static void SubstTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Subst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("subst_s")) return;   // subst_s〔履歴 InstrumentsSubst.cs#4〕
         var sk = SubstSinks.GetValue(sim, _ => new SubstSink());
         sk.W ??= Open("subst", seed);
@@ -109,6 +110,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void SubstClose(MultiNationSim sim)
     {
+        if (!Tg.Subst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (SubstSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 
@@ -157,6 +159,7 @@ public static partial class Instruments
     /// <summary>月の頭（EconomyStep.Run の頭・エンジンの SubsistenceHead の前・助走の月は呼ばれない）：州の材料を撮る。前の月に焼いた州はエンジンの焼いた結果を点検する。</summary>
     internal static void SubstMonthHead(World w, Region r)
     {
+        if (!Tg.Subst) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("subst_s")) return;   // subst_s〔履歴 InstrumentsSubst.cs#8〕
         var h = SubstHeads.GetValue(r, _ => new SubstHeadState());
         var (cap, lp, _) = S2FarmLabor(r);

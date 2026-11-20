@@ -111,6 +111,7 @@ public static partial class Instruments
     /// <summary>月の閉じ（<see cref="MonthClose"/>・Fiscal.Step の後）：支払い率の述語・姿勢を写し、四半期の締め月は和を写して H4 の D・G・B を数え、月の和を 0 へ戻す。</summary>
     internal static void BasisxMonth(World w)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.Regions.Count == 0 || !BxPicked(w)) return;
         var a = BxNats.GetValue(w, _ => new BxNat());
         int stn = S(w).ModStance;
@@ -160,6 +161,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>・QuarterEnd の後）：計器の国の名簿の国の行（basisx_s）を書き、規則の影の凍結を 1 歩進める。</summary>
     static void BasisxTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var sk = BasisxSinks.GetValue(sim, _ => new BasisxSink());
         if (sk.W is null) { sk.W = Open("basisx", seed); sk.W.WriteLine(BasisxHeaderText); }
         string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -207,6 +209,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void BasisxClose(MultiNationSim sim)
     {
+        if (!Tg.Basisx) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (BasisxSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

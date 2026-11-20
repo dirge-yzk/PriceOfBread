@@ -21,6 +21,7 @@ public static partial class Instruments
 
     static void ScalarsFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Scalars) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd)) return;
         double popK = w.TotalPopulation;
         if (!(popK > 0)) return;   // 死んだ国（人口 0）は行を出さない

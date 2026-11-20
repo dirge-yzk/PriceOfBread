@@ -30,6 +30,7 @@ public static partial class Instruments
     /// <summary>年末の四半期の末（<see cref="Quarter"/>）：全ての国の内陸州を 1 行ずつ書く。</summary>
     static void PortchTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Portch) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (q % Calendar.QuartersPerYear != Calendar.QuartersPerYear - 1) return;
         var sk = PortchSinks.GetValue(sim, _ => new PortchSink());
         var inv = System.Globalization.CultureInfo.InvariantCulture;
@@ -78,6 +79,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void PortchClose(MultiNationSim sim)
     {
+        if (!Tg.Portch) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (PortchSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

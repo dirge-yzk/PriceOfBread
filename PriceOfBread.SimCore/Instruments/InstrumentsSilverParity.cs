@@ -21,6 +21,7 @@ public static partial class Instruments
     /// <paramref name="ratioOk"/>＝比が正当か。助走中は呼ばれない（呼び手が門）。</summary>
     internal static void SilverParityCapture(MultiNationSim sim, double silverWorld, double rel, bool ratioOk)
     {
+        if (!Tg.SilverParity) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (sim.Nations.Count == 0) return;
         var sk = SilverparSinks.GetValue(sim, _ => new SilverparSink());
         double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];
@@ -59,6 +60,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：溜めた捕捉と今の E・法を合わせて 3 行（S・G・F）を書く。捕捉が無い四半期（助走・銀の財が無い）は何も書かない。</summary>
     static void SilverParityTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.SilverParity) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!SilverparSinks.TryGetValue(sim, out var sk) || !sk.Pending) return;
         sk.Pending = false;
         var es = new List<double>[3]; for (int i = 0; i < 3; i++) es[i] = [];
@@ -93,6 +95,7 @@ public static partial class Instruments
     /// <summary>試合の終わり（<see cref="Close"/>）：書き出しを閉じる。</summary>
     static void SilverParityClose(MultiNationSim sim)
     {
+        if (!Tg.SilverParity) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (SilverparSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

@@ -30,6 +30,7 @@ public static partial class Instruments
     /// <summary>MintGold の頭：全ての州を計器が自分で走査して理由ごとの月を数える。</summary>
     internal static void MintregMonth(World w)
     {
+        if (!Tg.Mintcap) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("mintreg_s")) return;
         bool fiat = w.MonetaryLaw == MonetaryStandardLaw.Fiat;
         int metal = fiat ? Catalog.GoldOreId : w.MonetaryLaw == MonetaryStandardLaw.Silver ? Catalog.SilverId : Catalog.GoldOreId;
@@ -68,6 +69,7 @@ public static partial class Instruments
     /// <summary>SilverMintCapture の隣：実際に買えた量を全ての州で溜める（模型が買わないと言った月に買えたら modelMiss）。</summary>
     internal static void MintregBought(Region r, int metal, double qty)
     {
+        if (!Tg.Mintcap) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (metal != Catalog.SilverId && metal != Catalog.GoldOreId) return;
         if (!MintregAccs.TryGetValue(r, out var a)) return;
         a.Bought++; if (!a.ModelBuy) a.MissBought++;
@@ -76,6 +78,7 @@ public static partial class Instruments
 
     static void MintregTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Mintcap) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("mintreg_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var sk = MintregSinks.GetValue(sim, _ => new MintregSink());
         if (sk.W is null) { sk.W = Open("mintreg", seed); sk.W.WriteLine(MintregHeaderText); }

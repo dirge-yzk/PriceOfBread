@@ -7,6 +7,7 @@ public static partial class Instruments
 
     static void AdmRuleFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Admin) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var c = w.Coef;
         double d = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount.Value);

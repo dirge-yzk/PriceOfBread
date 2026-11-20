@@ -34,6 +34,7 @@ public static partial class Instruments
 
     static void ChemFold(Sink sk, ulong seed, World w, int q, bool picked)
     {
+        if (!Tg.Chem) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!picked || !(w.TotalPopulation > 0)) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         foreach (int row in ChemRows)

@@ -23,6 +23,7 @@ public static partial class Instruments
     /// <summary>州の月（法が禁止でない国）の前走査の結果を積む。</summary>
     internal static void SbRegionMonth(World w, in UnionBargaining.Ctx ctx)
     {
+        if (!Tg.Sb) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.RegionMonths++; a.KappaSum += ctx.Kappa;
         if (w.LaborUnion == LaborUnionLaw.Tolerated) a.TolMonths++; else if (w.LaborUnion == LaborUnionLaw.Controlled) a.CtrlMonths++;
@@ -32,6 +33,7 @@ public static partial class Instruments
     /// <summary>輸出代金・輸送財の代金（InternationalMarket.PaySales）の分け前を積む（旗 UnionBargaining が正のときだけ呼ばれる・読むだけ）。</summary>
     internal static void SbExport(World w, double amount, bool factory)
     {
+        if (!Tg.Sb) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.ExportAll += amount; if (factory) a.ExportFactory += amount;
     }
@@ -39,6 +41,7 @@ public static partial class Instruments
     /// <summary>適格な工場×月の結果を積む。ownerLoss と wageGain は rent・wages の前後の差から（Transfer の返り値とは別の変数）。</summary>
     internal static void SbFactory(World w, in UnionBargaining.Outcome o, double va, double rentBefore, double rentAfter, double wagesBefore, double wagesAfter)
     {
+        if (!Tg.Sb) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.EligN++; if (o.Transfer > 0) a.PosN++; if (o.Guarded) a.GuardN++;
         a.VaSum += va; a.ExcessSum += o.Excess; a.USum += o.Transfer;
@@ -52,6 +55,7 @@ public static partial class Instruments
     /// <summary>産地×月（付加価値が非負）の地代の分け方を積む（INS のときだけ呼ばれる）。rent・wages は国営の分け前を引く前の値。</summary>
     internal static void SbRgo(World w, Region r, Producer s, double va, double rent, double wages, double ruralPop, double revenue, double inCost)
     {
+        if (!Tg.Sb) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = SbAccs.GetValue(w, _ => new SbAcc());
         a.RgoN++; a.RgoVa += va; a.RgoRent += rent; a.RgoWages += wages;
         if (s.OwnerPopIndex == s.LaborPopIndex) { a.SelfN++; a.SelfVa += va; a.SelfResid += Math.Abs(rent + wages - va); }
@@ -69,6 +73,7 @@ public static partial class Instruments
 
     static void SbFold(Sink sk, ulong seed, World w, int q, bool picked)
     {
+        if (!Tg.Sb) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var c = w.Coef;
         if (!(w.TotalPopulation > 0)) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

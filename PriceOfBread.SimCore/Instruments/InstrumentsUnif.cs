@@ -23,6 +23,7 @@ public static partial class Instruments
     /// <summary>統一の宣戦の可否の評価 1 件（Formations.UnificationWarBlock の中・Instruments.On の時だけ）。code＝エンジンの判定（UnificationBlock の値）。</summary>
     internal static void UnifWarEval(Diplomacy d, Coefficients c, Power p, Power t, System.Collections.Generic.List<Power> targets, int code)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("unifwar_s") || p.Nation is not { } pw || pw.WarmupFrozen) return;
         bool tin = false; foreach (var x in targets) if (ReferenceEquals(x, t)) { tin = true; break; }
         bool war = d.IsAtWar(p, t), ally = d.HasAlliance(p, t);
@@ -39,6 +40,7 @@ public static partial class Instruments
 
     static void UnifTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         bool wf = Wants("formation2_s"), wu = Wants("unifwar_s"), wtw = Wants("tensionwhy_s");
         if ((!wf && !wu && !wtw) || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var d = sim.Diplomacy;
@@ -154,6 +156,7 @@ public static partial class Instruments
 
     static void UnifClose(MultiNationSim sim)
     {
+        if (!Tg.Cede) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!UnifStates.TryGetValue(sim.Diplomacy, out var st)) return;
         st.Wf?.Dispose(); st.Wf = null; st.Wu?.Dispose(); st.Wu = null; st.Wt?.Dispose(); st.Wt = null; st.Pending.Clear();
     }

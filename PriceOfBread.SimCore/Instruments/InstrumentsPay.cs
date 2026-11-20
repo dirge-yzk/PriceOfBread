@@ -7,6 +7,7 @@ public static partial class Instruments
 
     static void PayFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {
+        if (!Tg.Pay) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!(picked || yearEnd) || !(w.TotalPopulation > 0)) return;
         var a = w.DiagPay ?? new double[PayDiag.Len];
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -25,6 +26,7 @@ internal static class PayDiag
 
     static void Add(World w, int k, double amount)
     {
+        if (!Tg.Pay) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var a = w.DiagPay ??= new double[Len];
         a[k] += 1; a[k + 1] += amount;
     }

@@ -44,6 +44,7 @@ public static partial class Instruments
 
     static void TportTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.TreatyPort) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("tport_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var sk = TportSinks.GetValue(sim, _ => new TportSink());
         if (sk.W is null) { sk.W = Open("tport", seed); sk.W.WriteLine(TportHeaderText); }
@@ -63,6 +64,7 @@ public static partial class Instruments
 
     static void TportClose(MultiNationSim sim)
     {
+        if (!Tg.TreatyPort) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (TportSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; }
     }
 }

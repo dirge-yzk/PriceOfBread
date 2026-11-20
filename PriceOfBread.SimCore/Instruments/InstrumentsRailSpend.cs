@@ -28,6 +28,7 @@ public static partial class Instruments
     /// <summary>決済の直後に呼ぶ：maint＝保守の決済（偽は建設に付く分）。量は実際に移った量・値段はその月の清算の値段。</summary>
     internal static void RailSpendAdd(World w, Region r, bool maint, double railQty, double railPrice, double locoQty, double locoPrice)
     {
+        if (!Tg.RailSpend) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("railspend_s")) return;
         var a = RsAccs.GetValue(w, _ => new RsAcc());
         int b = (RsKnown(r.Discovered) ? 8 : 0) + (maint ? 4 : 0);
@@ -39,6 +40,7 @@ public static partial class Instruments
     /// <summary>月の締め（MonthClose）：月の数と、国が機関車を知らない月の数。</summary>
     static void RailSpendMonth(World w)
     {
+        if (!Tg.RailSpend) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (w.WarmupFrozen || !Wants("railspend_s")) return;
         var a = RsAccs.GetValue(w, _ => new RsAcc());
         a.Months++; if (!RsKnown(w.Discovered)) a.MonthsPre++;
@@ -67,6 +69,7 @@ public static partial class Instruments
 
     static void RailSpendTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.RailSpend) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         if (!Wants("railspend_s") || sim.Nations.Count == 0 || sim.Nations[0].World.WarmupFrozen) return;
         var sk = RsSinks.GetValue(sim, _ => new RsSink());
         if (sk.W is null) { sk.W = Open("railspend", seed); sk.W.WriteLine(RailSpendHeaderText); }
