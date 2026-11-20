@@ -1,0 +1,34 @@
+(1256) c128ih 事前登録（腕の前・最初のコミット）  線＝恒等・計器のフックを表ごとに閉じる（⓪(b)）
+出発：作者のセッション 2026-11-20 の点検 ⓪(b)。推奨で採った・作者の確認待ち。形＝入口（尾ではない）。
+
+[1] 恒等の線・予言 0
+ - 変えるのは SimCore/Instruments/ だけ（フックの入口の bool と、その bool を決め直す 2 行）。表の中身・列・名・本体は変えない。計器が切れていれば（!Instruments.On）本体から 1 命令も走らない＝変化なし。
+ - 判定は CearnOn と同じ static bool（Tg.<束>）。決め直しは SelectTables・Configure・Tg の型初期化。呼びごとに HashSet は引かない。
+ - 浮動小数の順序が変わる箇所＝無し（積算を飛ばすだけ・式は触らない）。
+ - 予言：素の 5 種・計器つき 10 種（全表）は m1254 と名乗り行を除き全行バイト一致。SMALL の走りの 29 表は全表の走りと表ごとにバイト一致。
+ - 区分（★(743)）：既存の試験の書き換えは 0 件の予言（新しい試験ファイル 1 本を足すだけ）。
+
+[2] 消す物と残す物
+ - 消す物：無し（削除ではない）。足す物：Instruments/InstrumentsTg.cs（束ごとの bool 約 45 本と Refresh）・フックの入口 1 行（約 190 本の void の計器の関数）。
+ - 束の作り方：Instruments/ の各 file が宣言する名前（static・class・const）を他の file が使えば同じ束にする（共有する状態の持ち越し）。束の書く表＝束の全ての file の Open の鍵の和。
+ - 閉じない file（理由つき・対応表 measurements/m1256_20261120_hookmap.tsv の末尾）：Instruments.cs 本体・Fm・Dsc・Transport・Cearn（既存の CearnOn）・Instruments.cs の WState／請求・戦争などの共有の状態へ書く file（Bur・Capacity・Coup・Epi・Ideology・Inp・Modernize・Mon・Pop・Reform・Secession・Urx・Landbase・Crown・Lawgate2・Merch・Paysale・SvcBuy・U4・InheritIntent・Habitlg・RegionProd）＝波129 以降。閉じない file の表は束の和に入れる（束が書き手を持つ表を選べば束は開く）。
+ - 本体のインラインの積算（項 3）：この席では入れない（EconomyStep.cs の :1425〜:1460 と :2140〜:2160 はぶつかり・他は席が無い）＝対応表に〈波129 以降〉。
+ - 読み手の grep：POB_INSTRUMENTS_TABLES・SelectTables・Configure・Wants の読み手は Instruments/・Tests・scripts/instruments（ident.cfg の SMALL・batch.sh）。SaveGame・POB_COEF の名前は触らない。
+
+[3] 足す試験と突然変異（新しい試験ファイル 1 本 PriceOfBread.Tests/InstrumentHookClosureTests.cs）
+ - SelectedGroupIsByteIdenticalToFullRun（Theory・束ごと＋SMALL の行）：短い盤面（4 国・10 四半期・戦争 1 本）で、束の表だけ選んだ走りの表のバイトが全表の走りと一致。clock_s は走査の時計の刻みを書くので有無だけ。
+ - UnselectedTablesAccumulateNothing：nation_s だけ選ぶと計器の static 欄の累積が全表の走りより少ない。
+ - FullRunWritesManyTables：対照（全表の走りが 90 表以上・累積が空でない）。
+ - EveryTableAloneIsByteIdenticalToFullRun（POB_IH_EXHAUSTIVE=1 のときだけ・全ての表を 1 本ずつ単独で選ぶ）。
+ - 突然変異：μ1＝束を割る（束の表を片方だけにする）→ 束の一致の行が赤。μ2＝入口の閉じを外す（Tg.Refresh が全て真）→ UnselectedTablesAccumulateNothing が赤。μ3＝SelectTables の Tg.Refresh を消す → 試験の切り替えで赤。結果は実装の後に追記。
+ - ソースを走査する番人（㉘）：OnDoubleReadScanTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・IndustrializationReaderTests・UnitTypeTests を足した試験と合わせて回す。書き換える件数の予言（㉑）＝0 件。WriterRatchetTests の宣言の表・route_anchors.tsv の鍵の行・`new MoneyStock(` の件数は変わらない予言。
+ - 他の線との重なり：c128ci が Instruments.cs の表の登録 1 行と InstrumentsCapinv.cs（新）・Simulation.cs の呼び 1 行・k20 が InstrumentsTests.cs :840〜:890 を触る。この線は Instruments.cs の SelectTables と Configure の 2 行だけ（登録の並びは触らない）・InstrumentsTests.cs には触らない。Formations.cs・Military.cs・EconomyStep.cs・Coefficients.p07/p08/p09 には触らない。
+
+[4] 成績表：素の 5 種・計器つき 10 種（全表）が m1254（b5_20261120_m1254・b10_20261120_m1254_ins）と名乗り行の SOURCE-HASH を除き全行一致。計器の表の差は宣言だけ（無し）。
+
+[5] 判定（採る条件）
+ 1. ident 段 2（全表）で〈判定: 恒等〉（測った種で一致）。
+ 2. SMALL の走り（POB_INSTRUMENTS_TABLES＝ident.cfg の SMALL）で計器つき 10 種を 1 回：選んだ 29 表が全表の走りと表ごとにバイト一致（sha1 の一覧で突き合わせる）。
+ 3. .cost で CPU を測り、全表・SMALL・素（m1254）を並べる。記録。予言は SMALL で全表より 2 割減以上〈推・外れても採否には使わない〉。
+ - 門：〈判定: 恒等〉と選んだ表のバイト一致。計器が切れているとき（!Instruments.On）に計算量の件数が増えない。
+ - D: の見積もり：全表 約 30GB＋SMALL 約 3GB〈推〉。腕の枠・D: の空きは起こす直前に測る。
