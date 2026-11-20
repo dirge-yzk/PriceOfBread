@@ -108,4 +108,22 @@ public class UnificationSkipFormedTests
         int wars0 = s0.Diplomacy.Powers.Count(t => t != r0 && s0.Diplomacy.IsAtWar(r0, t));
         Assert.True(wars0 >= 1, $"対照：旗 0 で宣戦が無い（{wars0}）");
     }
+
+    [Fact]
+    public void T5_名前だけが同じで成立の段が無い国は成立した国と数えない_段の条件を消すと赤()
+    {
+        // (1262) c129sb：FormedElsewhere の段の条件は 1 本（q.FormationTier ≥ r.Tier）。名前が規則の名と同じでも、成立の段が 0 の国（開幕から同名・Check を通っていない）は数えない。
+        var (s1, r1, p1) = Board(1);
+        Form(s1.Diplomacy, p1, "ドイツ帝国", 2);
+        p1.FormationTier = 0;   // 名前はドイツ帝国のまま・成立の記録（段）が無い
+        int checkedPowers = 0;
+        foreach (var q in s1.Diplomacy.Powers.Where(q => q != p1 && q.Nation is not null))
+        {
+            Assert.Equal("ドイツ", Formations.UnificationCandidate(s1.Diplomacy, q, q.Nation!, C(1))?.NewName);
+            checkedPowers++;
+        }
+        Assert.True(checkedPowers >= 5, $"対照：調べた邦が少なすぎる（{checkedPowers}）");
+        p1.FormationTier = 2;   // 段を戻すと（同じ名前で）候補が消える＝段が効いている
+        Assert.Null(Formations.UnificationCandidate(s1.Diplomacy, r1, r1.Nation!, C(1)));
+    }
 }

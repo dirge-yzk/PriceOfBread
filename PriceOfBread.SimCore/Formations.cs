@@ -352,7 +352,7 @@ public static class Formations
     }
 
     /// <summary>(1258) 他の国が r と同じ統一をもう成立させたか。既にある状態（国の名と FormationTier）から導く＝新しい状態なし。
-    /// 他の国の今の名がある規則 f の NewName（RenameNation が成立の時に付けた名）で、f の札（文化・文化の無い規則は規則の名）が r と同じ・f の段≧r の段。</summary>
+    /// 他の国の今の名がある規則 f の NewName（RenameNation が成立の時に付けた名）で、f の札（文化・文化の無い規則は規則の名）が r と同じ・その国の FormationTier（成立の時に f の段が入る）≧r の段。</summary>
     private static bool FormedElsewhere(Diplomacy d, Power p, FormationRule r)
     {
         string key = r.CultureIs ?? r.NewName;
@@ -360,7 +360,7 @@ public static class Formations
         {
             if (q == p || q.Nation is null || q.FormationTier < r.Tier) continue;
             foreach (var f in Enumerate())
-                if (f.NewName == q.Name && f.Tier >= r.Tier && (f.CultureIs ?? f.NewName) == key) return true;
+                if (f.NewName == q.Name && (f.CultureIs ?? f.NewName) == key) return true;   // 段は外側の q.FormationTier ≥ r.Tier だけ（(1262)：名前は規則ごとに唯一で、成立の時に FormationTier＝その規則の段を同時に書く＝f.Tier ≥ r.Tier と同じ）
         }
         return false;
     }
