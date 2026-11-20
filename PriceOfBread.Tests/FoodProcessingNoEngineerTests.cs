@@ -134,4 +134,51 @@ public class FoodProcessingNoEngineerTests
         }
     }
 
+    /// <summary>(1264) c129al T5（写像の試験・事前登録 measurements/m1264_20261120_prereg_al.txt）：旗 1 の時計の定数 W0′ は、食品の加工の割合が 1−ρ の世界で
+    /// al の形が食品の技師を外した世界の合計 W_al＝ρ×W_base を、旧の W0（7854.08）と旧の合計 W_base の時計の段 S へ写す（ρ＝0.757×0.714÷0.991＝試験のリテラル）。
+    /// 盤面＝多国の世界（種 7・既定の係数・1 四半期）。W_base＝7854.08×3×0.98（d＝3 の行が S＝0.3 の点）。期待は試験の中のリテラルと手計算の S（本体の ClockStage を使わない）。
+    /// この試験は 1 か月の写像だけを守る＝多年の帰還（狙い）は腕 B の生で読む（〈旗 1 の式から値が決まる〉型＝働いた証拠にしない）。
+    /// ⚠壊し方＝W0′ を 7854.08 のまま（ρ＝1）・幅を W0 に比例させない（(W−W0×d)÷w）・view の世界の W を読まず自国の技師の和を使う → 赤。旗 0 の木（W0＝7854.08）でも赤。</summary>
+    [Fact]
+    public void T5_旗1のW0は食品の割合が1マイナスローの世界の合計を旧のW0の段へ写す()
+    {
+        const double W0Old = 7854.08, Rho = 0.757 * 0.714 / 0.991, Width = 0.1;
+        double wBase = W0Old * 3 * 0.98, wAl = Rho * wBase;
+        double sHand = System.Math.Clamp((wBase / (W0Old * 3) - 1.0) / Width + 0.5, 0.0, 1.0);
+        Assert.Equal(0.3, sHand, 9);
+        var cNew = new Coefficients();
+        var cOld = new Coefficients { DiscoveryClockWorldPerMonth = W0Old, FoodProcessingNoEngineer = 0 };
+        Assert.Equal(Width, cNew.DiscoveryClockRampWidth);
+        var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        sim.StepQuarter();
+        // 旗 1 の盤面：列挙の 9 財（試験の名前の表）の既定のレシピは技師を雇わない＝W_al は食品の技師を含まない
+        var food = new HashSet<int>(Catalog.Goods.Where(g => Food9.Contains(g.Name)).Select(g => g.Id));
+        Assert.Equal(9, food.Count);
+        int foodProducers = 0;
+        foreach (var n in sim.Nations)
+            foreach (var rg in n.World.Regions)
+                foreach (var p in rg.Producers)
+                    if (food.Contains(p.GoodId) && p.RecipeName.Length == 0) { foodProducers++; Assert.Equal(0.0, AdvQty(p)); }
+        Assert.True(foodProducers >= 20, $"列挙の財の既定のレシピの生産者が少なすぎる（{foodProducers}）");
+        int compared = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            var view = w.LastDiscoveryView;
+            Assert.NotNull(view);
+            var tAl = Discovery.Evaluate(w, view! with { WorldAdvLabor = wAl }, cNew, includeKnown: true);
+            var tBase = Discovery.Evaluate(w, view! with { WorldAdvLabor = wBase }, cOld, includeKnown: true);
+            var tInf = Discovery.Evaluate(w, view! with { WorldAdvLabor = 1e12 }, cNew, includeKnown: true);
+            for (int row = 0; row < tAl.Length; row++)
+            {
+                var d = Catalog.Discoveries[row];
+                if (Discovery.IsSpread(d.Field) || d.Decade - Catalog.DiscoveryBaseDecade != 30) continue;
+                if (!(tInf[row].Tech > 0)) continue;   // A＝0 か前提の行がまだ（C＝0）
+                Assert.True(System.Math.Abs(tAl[row].Tech - tBase[row].Tech) <= 1e-6 * tInf[row].Tech, $"{w.SelfPower?.BaseName} {d.Name}：W0′ の段 {tAl[row].Tech} ≠ 旧の W0 の段 {tBase[row].Tech}");
+                Assert.True(System.Math.Abs(tAl[row].Tech / tInf[row].Tech - sHand) <= 1e-6, $"{w.SelfPower?.BaseName} {d.Name}：S＝{tAl[row].Tech / tInf[row].Tech} ≠ {sHand}");
+                compared++;
+            }
+        }
+        Assert.True(compared >= 20, $"比べた国×行が少なすぎる（{compared}）");
+    }
 }

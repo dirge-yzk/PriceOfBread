@@ -108,7 +108,7 @@ public sealed partial class Coefficients
     public double DiscoveryNeedHalfSite = 0.04;     // 産地の発見（大鉱床・植林＝Catalog.Sites）の必要性の半分点＝強度がこの値で35
     public double DiscoverySiteFindHalfPop = 10;     // 産地の見つける力の人の半分点（1単位=1000人）＝技術力＝70×min(1, 技術水準÷難易度)×N÷(N＋これ)（N＝鉱床は入植者〔中核民族の人数〕・植林は住民）
     public double DiscoveryEngineerHalfPerMonth = 3.42; // 発見の技術力の置き換え（段3・既定で点火）＝技術力＝70×A÷(A＋これ×d)×押し（A＝その発見の親の産業の生産者が雇った高度労働力の月あたりの量・d＝(行の年代−1780)÷10・d≦0 の行は 1）
-    public double DiscoveryClockWorldPerMonth = 7854.08;  // 発見の時計の細い傾斜（枝 dk・2026-10-20 腕 B の採用で既定 0→7854.08＝予備計測の規則から。0 以下＝旗＝(415) の式のまま）＝d＞0 の行の技術力＝70×S×C・S
+    public double DiscoveryClockWorldPerMonth = 4283.67;  // (1264) c129al：W0′＝7854.08×0.757×0.714÷0.991（左から順に double・小数 2 桁へ四捨五入）＝旗 FoodProcessingNoEngineer 1 が W の定義から食品の加工の技師を外した分の換算（ρ の出所は事前登録 measurements/m1264_20261120_prereg_al.txt・旗 0 の盤面の値は 7854.08）。旧の注：発見の時計の細い傾斜（枝 dk・2026-10-20 腕 B の採用で既定 0→7854.08＝予備計測の規則から。0 以下＝旗＝(415) の式のまま）＝d＞0 の行の技術力＝70×S×C・S
     public double DiscoveryClockRampWidth = 0.1;    // DiscoveryClockWorldPerMonth が正のときだけ読む
     public double DiscoveryOwnHalfPerMonth = 12.5677;     // 単位は W0 と同じ
     public double DiscoveryClockMotorParent = 0;    // 出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）
