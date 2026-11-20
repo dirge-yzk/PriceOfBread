@@ -1,0 +1,5 @@
+# (1269) suite 木=/d/PoB_work/wt_c130k15 HEAD=a799ac43f 2026-11-21 05:06:58
+list-tests Tests(Category!=FullLength)=2832 Tests.Ui=234 和=3066 FullLength=3
+㊴ 計器の束 rc=1 失敗!   -失敗:     1、合格:   445、スキップ:     1、合計:   447、期間: 17 m 48 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing [2 s]
+STOP 計器の束が赤

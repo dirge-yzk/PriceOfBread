@@ -1,0 +1,14 @@
+D:\PoB_work\c130k15_work\suite1\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:16:51.12]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+[xUnit.net 00:16:52.97]     PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing [2 s]
+  エラー メッセージ:
+   選ばない表の積算が溜まっている（入口の閉じが効いていない）：EqAccs
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing() in D:\PoB_work\wt_c130k15\PriceOfBread.Tests\InstrumentHookClosureTests.cs:line 246
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:   445、スキップ:     1、合計:   447、期間: 17 m 48 s - PriceOfBread.Tests.dll (net10.0)

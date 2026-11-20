@@ -95,3 +95,9 @@
 - 腕 Z（段 1）：`bash scripts/instruments/ident/ident.sh run c130k15z --tree D:/PoB_work/wt_c130k15 --tests-delta 3 --work D:/PoB_work/ident_c130k15`。生は採否が決まるまで消さない。
 - 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c130k15B 10`（計器つき 10 種・種 1〜10）・表を絞る（⓪(a)：POB_INSTRUMENTS_TABLES＝ident.cfg の SMALL の 29 表＝止める線の台本（stoplines906・1002・popjump1017・an_h2・gdp_zero10・plvl_seeds・home_break・ukdef975）と ng.sh と mag_k15（labor_s・class_s）が開く表を grep した＝全て SMALL に入る）。D: は約 4GB〈推〉＝起こす直前に shutil で〈35GB＋4GB〉を測る。
 - 読み手：scripts/instruments/c130k15/read_k15.sh（c129al/read_al.sh の写し・al の門を外し mag_k15 を足した）。腕 B の生は合流の判断まで消さない（D:/PoB_work/c130k15_work/armB/out_c130k15B_10/ins）。
+
+## 12. 追記 1（腕 B の前・旗 1 の木の ㊴ 計器の束の赤・2026-11-21）
+- 旗 1 の木 a799ac43f の ㊴ 計器の束：447 本中 1 本赤＝InstrumentHookClosureTests.UnselectedTablesAccumulateNothing〈選ばない表の積算が溜まっている：EqAccs〉（measurements/m1269_20261121/suite_flag1/t_ins_1.txt）。
+- 区分：一覧（§7 の旧の規則の番人）に無い赤＝〈周りの壊れ〉（計器の口の閉じ漏れ）。InstrumentsEquipment.cs:34 `EquipmentCompleted`・:35 `EquipmentDismantled` だけが `if (!Tg.Equipment) return;` を持たない（同じファイルの EquipmentBought・Distributed・Retired・EqFold は持つ）。旗 1 で軌道が変わり、この試験の盤面（4 国・種 1789）で工場の完成か取り壊し（World.cs:1560・FactoryEquipment.cs:13 の呼び手）が起き、nation_s だけを選ぶ走りでも EqAccs に溜まった〈推〉。旗 0 の木では盤面で呼ばれなかったので緑だった〈推〉。
+- 直し：その 2 行に `if (!Tg.Equipment) return;` を足す（計器だけ・エンジンの値を読む行は無い＝選んだ走りの出力は変わらない・選ばない走りは書かない積算を溜めないだけ）。c130ih の 27fffa99a の :34・:35 と**同じバイト**（diff で確かめた）＝合流で同じ変更として重なる。持ち主の外のファイル（Instruments/ は c130ih）＝触った行は InstrumentsEquipment.cs:34・:35 の 2 行だけと報告に列挙する。
+- 試験は書き換えない（Assert・閾値・母集合はそのまま）。直しの後に ㊴ からやり直す。直しを外す突然変異＝旗 1 の木 a799ac43f そのもの（赤を上で確かめた）。
