@@ -1,0 +1,9 @@
+(1265) c129df 読む線：英の国債の不履行（S11 4/10・金本位の月）と 1930 年代の不履行の減り（bd の後）。腕 0 本。コミットしない。
+作業の場所: D:/PoB_work/r1265_work/（台本は scripts/ の形で D:/PoB_work/r1265_work/scripts/instruments/r1265/ に置く＝合流が写す）
+読む生（読むだけ）:
+  M   D:/PoB_work/keep_1260/base_ins  種 1〜10（fiscal_s・nation_s・war 系の表）
+  S11 D:/PoB_work/keep_1260/a11       種 11〜20
+  N1  D:/PoB_work/keep_1260/n1        種 1〜10
+  比べ: measurements/m1260_20261120/readM・readS11・readN1、実装ログ (1250)・(1254)
+ソース: Fiscal.cs（InsolvencyMonths・SovereignDefaultCount・金本位の停止と復帰・ArrearsBeyondOpenedRoom・RepudiateDebt）、Simulation.cs（unopenedRoom）
+問い: 1 英の5件の道 2 史実と並べる〈推〉 3 1930年代 12→6 の内訳 4 推奨を1つ
