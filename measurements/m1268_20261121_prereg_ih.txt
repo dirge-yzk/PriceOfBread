@@ -1,0 +1,24 @@
+(1268) c130ih 事前登録（腕の前・最初のコミット）  線＝恒等・ih の残り  形＝入口
+出発：00一覧〈次の波〉0 節①・(1267) の推奨①。作者 2026-11-20 全て推奨で確定。基線 m1260（3febe202c）。
+
+[1] 恒等の線・予言 0
+ - 変えるのは SimCore/Instruments/ だけ（InstrumentsTg.cs に Tg.Habitlg・Tg.War を足し、フックの入口 1 行を足す）と InstrumentHookClosureTests.cs。係数・式・列・順序は触らない。
+ - 浮動小数の順序が変わる箇所＝無し（積算を飛ばすだけ）。
+ - 予言：素の 5 種・計器つき 10 種が m1260 と名乗り行を除き全行バイト一致。計器の表の差は宣言だけ（無し）。
+ - 区分（★(743)）：既存の試験の書き換え 0 件（InlineData の追加 5 行と ClosedAccs の 2 名の追加だけ＝件数の写し・Assert は触らない）。
+
+[2] 閉じる物と残す物（measurements/m1268_20261121_hookmap2.tsv）
+ - 対応表で〈閉じない〉だった 1 行の式 32 本を仕分け：新しく閉じる 13 本（Ed 5・Equipment 2・NgRegionMoved・PxstepTable・CpIter・CpMonth・WarTag・WarNoteInvade）・既に閉じ済みの読み落とし 4 本（CessObserveColony・ClockOpened・RdhRegion・RdhTable）・書き手の Dispose／Clear だけで閉じる物の無い 15 本。
+ - War の 7 行：対応表は Cede の束で閉じたと書いたが、InstrumentsWar.cs に Tg の入口は無かった（読み違え）。Tg.War（wars_s・warpolity_s・invade_s・warentry_s・warpair_s・warband_s の和）を足し、WarTagDefault・WarNoteStart・WarPairEvent・WarPairSample・WarEval・WarQuarter と上の 2 本を閉じる。CpMonth は WarEval が月を読むので Tg.Cede || Tg.War。
+ - HabitLgStep は Tg.Habitlg（読み手は habitlg_s だけ）。InheritIntent は ConsDepart（核）を呼ぶので閉じない（理由を対応表に書く）。ファイル 24 本の閉じない理由は m1256 のまま。
+ - 他の線との重なり：MultiNationSim.cs・Military.cs・Meritocracy.cs・Coefficients*.cs には触れない。InstrumentsPopClose.cs には触れない。本体のインラインの積算は入れない（この席では触らない）。
+
+[3] 足す試験と突然変異
+ - SelectedGroupIsByteIdenticalToFullRun に InlineData 5 行（War/Wars・War/Invade・War/Warpair・War・Habitlg）。ClosedAccs に WarSts・EdDiags。試験の数の予言：Tests 2829→2834（スキップ 2）・合計 3063→3068。
+ - 突然変異：μ4＝WarTag・WarNoteStart の入口を外す → UnselectedTablesAccumulateNothing が赤（WarSts）。μ5＝EdBegin の入口を外す → 赤（EdDiags）。μ6＝Tg.War を wars_s だけにする → War の束の行が赤。出力は measurements/m1268_20261121_mut.txt。
+ - NoOutputInThisRun の 6 群に表が出る盤面：群ごとに別の盤面（売り手の制限・貿易の見送り・移しの請求ほか）が要る。この席の範囲で置けなければ理由を名乗って残す（報告に書く）。
+ - POB_IH_EXHAUSTIVE=1 の全表の単独の走りを 1 回回し、出力を measurements に置く。
+ - ソースを走査する番人（㉘）：DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScan・InstrumentHookClosure・PopCloseInstrument。書き換える件数の予言 0。
+
+[4] 成績表：素の 5 種・計器つき 10 種が m1260（b5_20261120_m1260・b10_20261120_m1260_ins）と名乗り行を除き全行一致。
+[5] 判定：ident 段 2 で〈判定: 恒等〉（測った種で一致）。門：!Instruments.On で計算量の件数が増えない・.cost は減るか同じ。
