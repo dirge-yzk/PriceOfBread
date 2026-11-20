@@ -1,0 +1,4 @@
+m2 入れた：D:/PoB_work/c130k15_work/mut/m2/PriceOfBread.SimCore/Meritocracy.cs
+rc=1
+  失敗 PriceOfBread.Tests.JobSearchLiteracyOffTests.T1_旗1では識字0と識字1の失業者が同じ量だけ職へ移る [10 s]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)

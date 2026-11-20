@@ -1,0 +1,11 @@
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1885) [21 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 1943 件（宣言 1885・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理な�
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\wt_c130k15\PriceOfBread.Tests\WriterRatchetTests.cs:line 584
+--
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2077716) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2877748 件（宣言 2077716・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい�
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\wt_c130k15\PriceOfBread.Tests\WriterRatchetTests.cs:line 584

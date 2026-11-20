@@ -1,0 +1,4 @@
+m3 入れた：D:/PoB_work/c130k15_work/mut/m3/PriceOfBread.SimCore/Meritocracy.cs
+rc=1
+  失敗 PriceOfBread.Tests.JobSearchLiteracyOffTests.T3_旗1の流れは旧の式で識字の項が消えた時の流れと等しい [810 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 8 s - PriceOfBread.Tests.dll (net10.0)

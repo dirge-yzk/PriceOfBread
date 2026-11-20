@@ -99,6 +99,7 @@ public class DormantIdentityTests
         // ★SoldierVacancyFromZero（(1166) c115sv 大きさ 0 の兵の席）は 2026-11-16 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は SoldierVacancyFromZeroTests の F0）。
         // ★TradeBuyBySupplyCurve（(1144) T1 A-1）は 2026-11-16 (1172) c116t1 で 1 に**点火**＝この表から外した（旗 0 の経路の番人は TradeT1Tests の M3〔旗 0〕・M5）。
         // ★HealthcareLiteracyGateOff（(1222) c123k3 K03 医療の min から識字の項を外す）は 2026-11-19 に 1 で腕 B の木へ＝この表から外した（(1227) で旗ごと焼いた＝RetiredFields・番人は HealthcareLiteracyGateTests）。
+        // ★JobSearchLiteracyOff（(1269) c130k15 K15 職探しの率から識字の倍率を外す）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は JobSearchLiteracyOffTests の T2・T3 が旗を明示して持つ）。
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
         // ★RecipeCostFollowsProductivity（(328) 流れG ①＝動力の別レシピの自己費用を生産性の比で割る）は 2026-10-14 (331) の合流で**点火**＝この表から外した。
         // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
