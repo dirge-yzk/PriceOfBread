@@ -1,0 +1,37 @@
+(1262) c129sb 事前登録：恒等の小物の束（段 1）。基線 m1260（main 5c3fdb35e）。先頭のコミット。
+
+[1] 恒等の線・予言 0
+  挙動を変えない。成績表（素の 5 種・計器つき 10 種）は m1260 と名乗り行（SOURCE-HASH）を除いて全行バイト一致。
+  エンジンの式に触れるのは 1 か所だけ（項 7：Formations.FormedElsewhere の段の条件 2 つ→1 つ・下の [2]）。他は試験・注・scripts。
+
+[2] 消す物・変える物（読み手の grep）
+  項 7 Formations.cs FormedElsewhere：`q.FormationTier < r.Tier` と `f.Tier >= r.Tier` の 2 つのうち後者を消す。
+    根拠：Formations の規則の NewName は唯一（40 規則・重複 0＝python で数えた）・RenameNation の呼び手は Formations.Check の 1 か所で、直後に FormationTier＝その規則の段を書く
+    ＝q.Name が f.NewName なら（FormationTier>0 の国では）q.FormationTier＝f.Tier。FormationTier＝0 の国（開幕から同名）は前者で外れる＝後者は常に前者に含まれる。
+    読み手：UnificationCandidate の 1 か所（FormedElsewhere は private）。浮動小数の式なし（整数・文字列の比較だけ）。
+    浮動小数の順序が変わる箇所：なし（紙の台本の数える食い違い 0）。恒等でなければ ident で落ちる＝その変更を外す。
+  項 4・3 の注：Coefficients.p05_port_insurance.cs:19・Instruments/InstrumentsPaysale.cs:12・InstrumentsRk.cs（ReachTable の注）＝注の文字だけ。
+  項 5 DormantIdentityTests.RetiredFields に GridKeepPerMonth を足す（GridKeepPerMonth の全域 grep：SimCore・Tests・App・Runner とも注だけ）。
+  他の線との重なり：c129pc（DormantIdentityTests・WriterRatchetTests の宣言の行だけ）・al（InstrumentsTests の 1 行）＝触る行が別。Instruments/ は注の行だけ・Formations.cs は :340〜:362 だけ。
+
+[3] 足す試験と突然変異（赤になる試験・★(743) の区分＝試験を強める物は ①、注だけの物は区分なし）
+  T-ex  DissolveNationTests（中ほどの国を溶かす）：MultiNationSim.DissolveNation の PairFlowQ の詰めを Take(n-1)（最後の行と列を落とす）にする→赤。
+  T-rk7 RkInstrumentTests.R7 に線路 0 の対（noRail＝owner）：InstrumentsRk.HorseCostOf の戻りに +1 を足す→赤。
+  T-rk5 RkInstrumentTests.R5 に diffStateStake の配線：InstrumentsPaysale の su と pu の引数の順を逆にする→赤。
+  T-grid GridDegradeEngineTests（新・エンジンを通す）：EconomyStep.cs:2139 を 1.0−2.0×率にする→赤・劣化の行を消す→赤。
+  T-uf5 UnificationSkipFormedTests.T5（名前が同じで段 0 の国は成立と数えない）：FormedElsewhere の q.FormationTier の条件を消す→赤。
+  T-ih  InstrumentHookClosureTests：EveryTableAlone を環境変数が無いとき Skip（黙った return を止める）。SelectedGroup に compared＞0 の Assert。
+  T-ret DormantIdentityTests.RetiredFields に GridKeepPerMonth（突然変異：Coefficients へ同名の欄を足す→削除した休眠の係数は戻っていない が赤）。
+  scripts：metal100.py（1 四半期以内の 2 行だけ比べる・基線で緑・合成の 100 倍の行で赤）・read_uf.sh（S11 の H3 は S11 の基線の ng で比べる）。
+  ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests＋触れた試験のクラス
+    （DissolveNationTests・RkInstrumentTests・InstrumentHookClosureTests・UnificationSkipFormedTests・GridDegradeEngineTests・CapinvInstrumentTests）。
+    `new MoneyStock(` の件数は変えない（予言 0）・route_anchors.tsv は触らない・WriterRatchetTests の宣言の表は触らない。
+    書き換える件数の予言（㉑）：走査の件数の番人の書き換え 0 件。
+
+[4] 試験の数の予言
+  新しい Fact＝3（DissolveNation・T5・GridDegrade）。非 FullLength 3052→3055（Tests 2821＋Tests.Ui 234）。スキップ 1→2（EveryTableAlone）。
+  R5・R7・ih の compared は既存の Fact の中の Assert の追加＝件数は変わらない。FullLength 3 のまま。
+  成績表 5 種・計器つき 10 種は m1260 と全行一致（計器の表の差は宣言だけ＝なし）。
+
+[5] 〈判定: 恒等〉なら採る。
+  ident：段 1・--work D:/PoB_work/ident_c129sb。不一致なら段 2 で帰属を読んで止めて報告（項 7 を外す候補が第一）。
