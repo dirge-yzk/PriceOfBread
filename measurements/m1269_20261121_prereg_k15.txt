@@ -1,0 +1,97 @@
+# (1269) c130k15 事前登録：削除の線 K15 職探しの識字の倍率 JobSearchLiteracyWeight を外す（旗 JobSearchLiteracyOff・挙動の線・3 回の規則の 1 回目）
+# 枝 c130k15（3febe202c から）・worktree D:/PoB_work/wt_c130k15・作業フォルダ D:/PoB_work/c130k15_work・書き手 Claude Opus 5.5
+# このファイルは腕の前の最初のコミット。数を変えるときは腕の前に理由つきで追記する（結果の後に変えたら〈結果の後の変更〉と名乗る）。
+
+## 0. 先頭に名乗る物
+- 作者 2026-11-16「既に動いている機能でも、問題があれば作り直したり、削除しても構いません。」
+- 作者 2026-11-11「根拠のない倍率は一掃したい」
+- 出発：00一覧〈次の波（波130〜）〉1 節・(1189) の表 measurements/m1189_20261117/dl_table_2026-11-17.tsv の K15（読み手 E1・重なり有・史実で重要 否・消し方 挙動・前提の線なし・点 8）。K12 の次。答え待ちではない。
+- 形は〈入口〉（尾ではない）：職探しの巡回の流れの率の掛け算 1 本を外す。
+- 確証：削除そのものは上の作者の 2 文の下の推奨＝〈確証なし〉と扱う（作者が名指しで K15 を〈消す〉と裁定した物ではない）。作者 2026-11-20「確認した。全て推奨で進めてよい」で推奨のまま進める。
+
+## 1. 現物（main 3febe202c・grep で確かめた）
+- Coefficients.p03_debt_money.cs:50 `public double JobSearchLiteracyWeight = 0.5;`
+- Meritocracy.cs:137 `double eff = c.JobSearchRatePerQuarter.Value * (1.0 - c.JobSearchLiteracyWeight * (1.0 - p.Literacy));`（:128〜:140 の職探しの巡回・poolFlow＝eff×u×p.Size を RouteViaPool へ・兵の行は forced: p.IsSoldier）。
+- 係数の読み手：SimCore は Meritocracy.cs:137 の 1 箇所だけ。Tests・Tests.Ui・App・Runner・POB_COEF の名前の文字列（scripts）＝0。注と文書：UnitTypeTests.cs:206 の注・docs/history/Coefficients.p03_debt_money.cs.md:308・docs/history/Meritocracy.cs.md:261・docs/202608/20260815_失業プールと社会移動_部分完了.md:142・docs/ゲーム概要と実装機能.md:2082・docs/機能の台帳.md:984（S12-H007）。
+- 消さない：JobSearchRatePerQuarter（作り直しはこの線に入れない）・JobSearchUsesEma・JobPoolTemperature・K25 以降。
+
+## 2. 形
+- 旗 `JobSearchLiteracyOff`（double・既定 0 の器 → 旗 1）を p03 の :50 の隣に置く。
+- Meritocracy.cs:137 を `double eff = c.JobSearchLiteracyOff > 0 ? c.JobSearchRatePerQuarter.Value : <今の式そのまま>;` に。旗 0 の枝は今の式と同じ演算の順＝1 ビットも変わらない。旗 1 で eff＝JobSearchRatePerQuarter（識字に依らない）。
+- 新しい係数 0（旗だけ）・新しい状態 0・新しい分岐は旗の 1 本だけ。係数と旗の焼き込みは採った後の削除の線。
+- 計器は足さない（Instruments/ は c130ih の持ち物）。同じ盤面の旧と新は単体の試験の盤面で数える（§3-3）。
+- 重なり（思想⑨）：識字は職探しの行き先の門でもう効いている＝Meritocracy.cs:440 JobGate（class 1 の職＝src.Literacy×gateEdu×secular）・:436（官僚）・:87 昇格の流れ（from.Literacy×gateEdu）・:148 聖職者・:476 識字の選び。class 1 の職探しでは識字が〈流れの率〉と〈行き先の門〉で二重に掛かっている。SimCore の `.Literacy` の読み手＝Simulation 7・Meritocracy 6・Politics 3 ほか（grep）。K15 を外しても識字の働き（資格）は門の側に残る。
+
+## 3. 門（〈作者 2026-11-16 の決まり〉①）
+### 3-1 止める線（作者）
+- 破綻：クラッシュ・NaN・保存則・savetest（四半期の途中を含む）・leakhunt・進行不能（10 種とも 668 四半期を完走）。
+- 発散：stoplines906（stoplines1002 が呼ぶ）。1e10 倍・非有限は止める。〈1 四半期に 100 倍〉は gdp_jump906 の〈それ以外〉の行だけが止める線。〈建国の直後〉〈建国の後の 0 の続き〉〈分母の痩せ〉と〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉（㊳・popjump1017）は記録で N1（keep_1260/n1）の件数と並べる。基準 keep_1267/base_ins と N1 を同じ台本で数え直して並べる（⑰）。
+- 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（既定 -ex rule＝規則 A2：植民地格・緯度の絶対値 55 度以上・world.json の開幕の人口 20 千人未満＝7 州）でピークの 1/10 未満が名簿の外に出た件。**その線が原因と読めた件だけで止める**＝基準 keep_1267/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ（★(813)・結果を見る前にここへ写した）。主要国の州と本国格の州は例外にしない。
+- 計算量：推定の計算量 ≦248.5 秒（名目）。割り当て＝**0 秒**（.cost は ±0〈推〉：巡回の回数は u>Eps の POP の数で決まり旗で変わらない・eff の式が短くなるだけ・軌道の差による件数の揺れだけ）。.cost は項ごとに基線 m1260（236.4 秒）と並べて記録。
+- 機構と不変条件を守るテストの赤（ソースを走査する番人を含む）。
+
+### 3-2 史実の桁の線（10 倍）＝この線が一番動かす量
+- 量（読み手 scripts/instruments/c130k15/mag_k15.py・表 labor_s と class_s）：
+  - U＝失業率（labor_s の plainUnemploymentShare の年の四半期の平均・POP の失業率の書き手 EconomyStep:2490・:2502 の元）。9 国×1850・1913。
+  - R＝階級の構成の 1 年の入れ替わり ½Σ|s_c(年+1)−s_c(年)|（class_s の年の最後の四半期の行・社会移動の流れの正味の代わり＝職探しの総流量は計器が無い）。9 国×1850・1913。
+- 門 H-a（史実）：U の腕の種の中央÷史実が 10 以上か 0.1 以下で、基準の同じ比が (0.1,10) の内なら赤（基準がすでに外なら〈元から〉＝記録）。史実（全て〈推〉＝AI の記憶の値）：英 1850 約 4%（Feinstein 1972 の組合の失業の系列）・英 1913 約 2.1%（商務院の組合の失業の報告）・独 1913 約 2.9%（組合の報告・プロイセンで読む）・仏 1913 約 4.7%（組合の報告）・米 1913 約 4.3%（Lebergott 1964）。露・清・オスマンは史実の値が無い。
+- 門 H-b（同じ盤面の旧の規則を物差しにした桁の線）：U（基準 ≧0.005 の行）と R（基準 ≧1e-4 の行）の 新÷旧（種の中央どうし）が 10 以上か 0.1 以下なら赤。床の下の行は記録。
+- 記録：工場労働者の割合 F・兵士の割合 S（class_s）の 新÷旧。識字の低い国（露・清・オスマン）の U と F の 新÷旧を先頭に書く。
+
+### 3-3 単体の機構の試験（盤面は試験の中で置く・旗 0 で赤・突然変異で赤）
+- 試験 PriceOfBread.Tests/JobSearchLiteracyOffTests.cs。盤面＝英の 1 国（NationConfig.Britain・seed 41・Run(20)・JobSearchRatePerQuarter 0.10）で、農民の POP（class 0＝行き先の門は識字を読まない）を失業率 0.5（瞬間と EMA）・所得 0.5／人、都市労働者を 10／人に置き、農民の識字だけを 0 と 1 にした 2 つの盤面で Meritocracy.Step を 1 回呼び、農民の大きさの減り（移った量）を比べる。
+  - T1：旗 1（試験の中で置く）で、識字 0 と識字 1 の移った量が等しい（Assert.Equal・double）。前提：移った量＞0。
+  - T2（対照＝盤面が識字を読めること）：旗 0 で、識字 0 の移った量が識字 1 の 0.75 倍未満（旧の式は 0.5＋0.5×識字＝0.5 倍〈推〉・途中の流入で識字が混ざる分の余裕）。
+  - T3（大きさ）：旗 1・重み 0.5 の識字 0 の移った量が、旗 0・重み 0（旧の式で識字の項が消える＝率×1.0）の識字 0 の移った量と等しい（Assert.Equal）。
+- 旗 0（今の既定）：T1 は 0.5 倍の差で赤（T2 がその差を名乗る）。
+
+## 4. 突然変異ごとにどの門で赤か（㉚・腕の前の紙の表）
+| 突然変異 | 入れ方（使い捨ての木 git archive） | T1 | T2 | T3 | 門 H・止める線 |
+| μ0（旗 0＝今の既定） | 試験の中の旗の置きを 0 に | 赤 | 緑 | 赤 | 緑（基線そのもの） |
+| μ1（重みを残す） | 旗 1 の枝を今の式に（`c.JobSearchLiteracyOff > 0 ? <今の式> : <今の式>`） | 赤 | 緑 | 赤 | 読まない（腕を回さない） |
+| μ2（識字の向きを逆） | 旗 1 の枝を `rate×(1−w×p.Literacy)` に | 赤 | 緑 | 緑（識字 0 で率×1） | 読まない |
+| μ3（大きさの取り違え） | 旗 1 の枝を `rate×0.5` に（識字に依らないが半分） | 緑 | 緑 | 赤 | 読まない |
+- 門 H と止める線は〈壊さない〉門＝何もしない実装（旗 0）で落ちない。〈狙いどおり働いた〉は T1・T3 で示す（旗 0 で赤）。
+- ㉚ の〈項を消した突然変異と元の形の差が雑音の内なら働いていない〉：この線は項を消すこと自体が狙い＝採る理由は T1・T3 と作者の 2 文（世界の差の大きさは記録）。
+
+## 5. 紙の台本の出力（今の盤面 keep_1267/base_ins で取った物）
+- 台本 scripts/instruments/c130k15/read_k15.sh を基準の生 keep_1267/base_ins に腕と基準の両方として当てた（旗 0 の盤面＝★(1254)）。出力 measurements/m1269_20261121/paper_base/（ng.sh は記録・走り終えたら追記）。
+  - 止める線（stop1002.txt）：100 倍以上 0（建国の直後 0・それ以外 0）・1e10 倍以上 0・非有限 0・開幕の 1000 倍以上 0。popjump（㊳ の記録）7 行・4 組。
+  - 空洞化（hol_v4.txt）：ピークの 1/10 未満 0 件・1/4 未満 13 件（移民 6・飢え 6・その他 1＝〈元からの弱さ〉の名簿の元）。
+  - gdp_zero10 0 区間・英の不履行 1/10（種 3）・home_break は記録。
+  - 門 H（mag_base.txt）：基準と基準＝H-a 赤 0・H-b 赤 0（新÷旧は全て 1）＝旗 0 の盤面で緑。史実との比（基準）：英 1850 3.66・英 1913 4.28・普 1913 1.29・仏 1913 0.78・米 1913 2.29＝線（10）から 50% 以内の物は無い（★(1233)）。
+  - 記録 N1 と基準（mag_n1.txt）：U の新÷旧 0.58〜1.40・R 0.67〜2.07・F 0.95〜1.22・S 0.67〜1.89＝種の揺れ。H-a・H-b 赤 0。
+- 単体の試験（§3-3）は器の木で一度ビルドして T1〜T3 を回した（試験の中で旗を置く＝3 本とも緑・コンパイルの確かめ＝腕ではない・事前登録の前に回したと名乗る）。旗 0 で赤になることは突然変異 μ0 で確かめる（§4）。
+- 紙の台本は門の破れを予言しない（㉗ の追記は要らない）。
+
+## 6. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表（IndustrializationReaderTests）：Meritocracy.cs の行は :116 の注だけ＝変わらない。
+- `new MoneyStock(` の件数：SimCore で 64＝変わらない（触らない）。
+- route_anchors.tsv（flow262）の Meritocracy.cs の鍵の行は :69 の Pop.Blend の 1 本＝触らない・変わらない。
+- WriterRatchetTests の宣言の表：Meritocracy.cs の行は無い（grep 0）。計算量の宣言の表（40 四半期の件数）は旗 1 の木で軌道が変わる＝許し +2% の内の見込み・超えたら軌道の件数を写しただけの番人として取り直し、verdict に列挙する。
+- DormantIdentityTests：器のコミットで DormantZeroFields に旗の行を 1 行足す（★(749)）・旗 1 のコミットでその行を外して注の行にする。
+- OnDoubleReadScanTests：関数ごとの Instruments.On の読みの数を数える番人＝この線は Instruments.On の読みに触れない＝変わらない。
+- 試験の数（㉑）：Tests 2829→2832（T1〜T3）・Tests.Ui 234 のまま・合計 3063→3066（ident の --tests-delta 3）。
+- ㉘ の filter＝IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|JobSearchLiteracyOffTests。
+
+## 7. 周辺の点検（読むだけ）と旗 1 の木の番人の grep（㉜）
+- JobSearchUsesEma（0.02）：u は UnemploymentEma（≧0 のとき）＝慢性の失業だけが流れを駆動する。K15 の後も同じ。
+- RouteViaPool の forced: p.IsSoldier（兵の行）：兵の u は Simulation.cs:2001〈未払いの割合〉。兵の行の eff も識字を読んでいた＝旗 1 で兵の識字が低い国ほど未払いの兵が職へ移る流れが増える（2÷(1＋識字) 倍〈推〉）。gs（(1271)・兵の在庫を共にする）の線と合成で読むのは合流の門が落ちた時だけ。兵の割合 S を記録に置く。
+- 置き換える旧の規則：〈職探しの率＝率×(1−0.5×(1−識字))〉。それを固定する試験の grep（`JobSearchLiteracy` を PriceOfBread.Tests と PriceOfBread.Tests.Ui で）＝0 件（UnitTypeTests.cs:206 の注だけ）。MobilityTests の 2 本（:89・:121）と JobPoolTemperatureGuardTests は農民の識字を置かず旗 0 と旗 1 の両方の盤面の差を Assert しない（向きの Assert だけ）＝旧の規則を固定しない〈推〉。
+- ㉜ の改め（作者 2026-11-19）：一覧に無い赤が旗 1 の木で出たら〈試験のバグ〉か〈周りの壊れ〉かを調べ同じ線で直す。原因の読めない赤と止める線に当たった時だけ止める。
+
+## 8. 記録（採否に使わない）
+- 英の国債の不履行（ukdef975・基線 M 1/10）・NG（ng.sh・基準 rd:measurements/ng1260_20261120:m1260・出力フォルダは D:/… で渡す）・nullgate.py の O（基線 m1260・N1 を 2 回）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・本国の崩れ（home_break.py）・成績表の旗 0 と違う行の数・同じ盤面の新÷旧（mag_k15.py の F・S）・識字の低い国（露・清・オスマン）の失業率の新÷旧と工場労働者の割合。
+
+## 9. 段 0 の予言（符号と大きさ・腕の前）
+- 旗 1 で職探しの率の倍率は 新÷旧＝2÷(1＋識字)。国の識字（lawgate_s の literacyHome・基準 種 1）：1850 清 0.21→1.65 倍・露 0.31→1.53・オスマン 0.33→1.50・墺 0.42→1.41・仏 0.42→1.41・普 0.47→1.36・米 0.47→1.36・英 0.59→1.26／1913 清 0.23→1.63・露 0.48→1.35・オスマン 0.68→1.19・英 0.82→1.10。失業する大衆の識字は国の平均より低い＝実際の倍率はこれより大きい側〈推〉。
+- U は下がる側か動かない〈推〉（失業の POP から職へ移る量が増える）。R は上がる側（最大で約 1.6 倍〈推〉）。どちらも 10 倍には届かない見込み（N1 の新÷旧で U 0.58〜1.40・R 0.67〜2.07＝種の揺れが直接の効きと同じ桁）。
+- 空洞化：職探しは州の中の階級の間の移しだけ（RouteViaPool は州 r の中）＝直接の道は無い。軌道の差による間接の件だけ〈推〉。
+
+## 10. 重なり（他の線の持ち主のファイル）
+- c130ih の Instruments/・c130rc の MultiNationSim.cs と Coefficients.cs :75〜:78・c130gs の Military.cs と p08 に触れない。Meritocracy.cs は :125〜:145 だけ（:137 の 1 行）・p03 は :50 の隣の 1 行だけ。共有の DormantIdentityTests.cs（DormantZeroFields に自分の行だけ）・WriterRatchetTests.cs（要るときだけ自分の行）。
+
+## 11. D: と腕
+- 腕 Z（段 1）：`bash scripts/instruments/ident/ident.sh run c130k15z --tree D:/PoB_work/wt_c130k15 --tests-delta 3 --work D:/PoB_work/ident_c130k15`。生は採否が決まるまで消さない。
+- 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c130k15B 10`（計器つき 10 種・種 1〜10）・表を絞る（⓪(a)：POB_INSTRUMENTS_TABLES＝ident.cfg の SMALL の 29 表＝止める線の台本（stoplines906・1002・popjump1017・an_h2・gdp_zero10・plvl_seeds・home_break・ukdef975）と ng.sh と mag_k15（labor_s・class_s）が開く表を grep した＝全て SMALL に入る）。D: は約 4GB〈推〉＝起こす直前に shutil で〈35GB＋4GB〉を測る。
+- 読み手：scripts/instruments/c130k15/read_k15.sh（c129al/read_al.sh の写し・al の門を外し mag_k15 を足した）。腕 B の生は合流の判断まで消さない（D:/PoB_work/c130k15_work/armB/out_c130k15B_10/ins）。
