@@ -73,7 +73,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public int ScholarshipTopStage = 0;   // 教育費の軸（EducationSpending・4 段）の最上段の国だけが、高等教育を買う POP の自己負担を国庫の負担分だけ下げる（買い手の値段の楔＝健康保険 #3 の insure と同型・社会保障法の最上段が年金であるのと同じ型）
     public Share ModernizationToRecruit = new(0.05);   // 近代化予算のうち招聘へ回す割合
     public double RecruitCostPerHead = 100.0;      // 技師1人を呼ぶ基礎費用
-    public double RecruitDestByVacancy = 0.0;      // (1270) 招聘の受入先：0＝機会が最大の 1 州／1＝州の高度労働力の足りない量（前の清算の LastShortage＝技師の空席）の比で配る（空席が無ければ呼ばない）
+    public double RecruitDestByVacancy = 1.0;      // (1270) 招聘の受入先：0＝機会が最大の 1 州／1（既定・2026-11-21 c130rc）＝州の高度労働力の足りない量（前の清算の LastShortage＝技師の空席）の比で配る（空席が無ければ呼ばない）
     public double RecruitPremiumScale = 0.5;       // 割増の物差し＝相手国の機会がこれだけ上回ると費用が2倍（お雇い外国人は大臣より高給）
     public RatePerQuarter RecruitMaxFracOfSource = new(0.02);   // 1四半期に1国から抜ける上限（送出側の規模比）
 
