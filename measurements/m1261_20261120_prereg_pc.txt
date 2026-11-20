@@ -1,0 +1,41 @@
+(1261) c129pc 事前登録（腕の前・最初のコミット）2026-11-20  worktree D:/PoB_work/wt_c129pc・枝 c129pc（5c3fdb35e から）・基線 m1260
+形：恒等の線（計器の足しだけ）・尾でも入口でもない＝観測の追加。予言 0。
+
+[1] 恒等の線・予言 0
+  - 足す物：新しい表 popclose_s（州×四半期・Instruments/InstrumentsPopClose.cs）と、兵の移しの口 Instruments.PopMove(kind=Garrison…)。
+  - 計器が切れている（!Instruments.On）か popclose_s が選ばれない（!Tg.PopClose）ときは、エンジンの値も計算量の件数も増えない。
+  - 既存の表の列は変えない。rdh_s の出力は変えない（出生・死亡は RdhDemo の中で popclose へも足すだけ）。
+  - 浮動小数の順序が変わる箇所：エンジン側は MoveSpecialists の 1 行（moved += MoveAbroad(..)）を 2 文に割る（同じ値・同じ順）。紙の台本：旧と新が食い違う行 0。
+    守備兵の hook は insG0 を読むだけ・吸収の hook は inP を読むだけ（どちらも既にある値）。
+
+[2] 消す物と残す物
+  - 消す物：なし。
+  - 触る行：MultiNationSim.cs の SpawnNation（:309 の前後）と MoveSpecialists（:1588）・Simulation.cs の PromoteColonyToRegion（:1340 付近）・
+    Instruments/Instruments.cs（Phase・Quarter・Close に各 1 行・Migrated と CrossBorder の末尾に PopMove の呼び）・
+    Instruments/InstrumentsTg.cs（欄 PopClose と Refresh の 1 行）・Instruments/InstrumentsRdh.cs（RdhRegion の条件と RdhDemo の頭に popclose の足し）・新しい InstrumentsPopClose.cs。
+  - 読み手の grep（前の木）：popclose・PopMove・PopClose は SimCore・Runner・App・Display・Tests・scripts・measurements に 0 件（名前の衝突なし）。POB_COEF の名前・SaveGame の欄は足さない（計器の欄は ConditionalWeakTable＝セーブに載らない）。
+  - 対応表：measurements/m1261_20261120_popmoves.tsv（項 1）。
+  - 他の線との重なり：sb（Instruments の注・InstrumentHookClosureTests.cs:210〜260・WriterRatchetTests の宣言）・k12（EconomyStep・WriterRatchetTests の宣言）・al（Simulation.cs のレシピの行）＝
+    Simulation.cs は :1340 付近の 1 行（al と離れる）・InstrumentHookClosureTests.cs は pc が InlineData を 2 行と ClosedAccs の 1 語を足す（sb は :210〜260 だけ＝行が離れる）・WriterRatchetTests/DormantIdentityTests は宣言の行だけ。
+
+[3] 足す試験（PriceOfBread.Tests/PopCloseInstrumentTests.cs・盤面は試験の中で置く）と突然変異
+  T1 招聘（MoveSpecialists を反射で 1 回）→ 両州の |残差| < 1e-6K
+  T2 首都の分離（SpawnSecededNations・分離する州に守備兵を置く）→ 分離した州と親の首都の |残差| < 1e-6K ・守備兵の列が > 0
+  T3 植民地の吸収（PromoteColonyToRegion を同名の州へ）→ その州の |残差| < 1e-6K ・colonyMergeIn の列が > 0
+  T4 各行の列の数＝見出しの列の数（★(1240)）
+  + InstrumentHookClosureTests の SelectedGroupIsByteIdenticalToFullRun に InlineData 2 行（"PopClose/PopClose"・"PopClose"）・ClosedAccs に PopCloseAccs を 1 語。
+  突然変異（全て赤を確かめ、結果を measurements/m1261_20261120_mutations.txt に書く）：
+    μ1 :1588 の hook を外す → T1 赤   μ2 :309 の hook を外す → T2 赤   μ3 出生の列を足さない → 走り（10 四半期）の残差検査 T5 赤
+    μ4 吸収の hook を外す → T3 赤   μ0 全ての hook の無い木（今の木に表だけ足した形）→ T1・T2・T3 全て赤
+  T5 10 四半期の走りで、出生・死亡の列の合計が rdh_s（POB_INSTRUMENTS_RDH）の births・deaths の合計と一致（同じ出所から作らない＝rdh は別の hook の列）。
+  ㉘ の filter：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|InstrumentHookClosureTests|PopCloseInstrumentTests。
+  書き換える件数の予言（㉑）：走査の番人の件数の書き換え 0（WriterRatchet・Dormant は件数が動けば宣言の行だけ＝動いたら verdict に列挙）。
+
+[4] 試験の数の予言：3052 → 3058（T1〜T5 の 5 本＋InlineData 2 行・T5 が 5 本目に数える＝Facts 5 ＋ Theory 行 2 − 1 の数え違いに備え 3058〜3059 を許容として最初に書く）。
+    ※実測が 3058・3059 以外なら verdict に原因を書く。
+    素の 5 種・計器つき 10 種：m1260（b5_20261120_m1260・b10_20261120_m1260_ins）と名乗り行（SOURCE-HASH）を除き全行バイト一致。計器の表の差＝宣言 popclose_s だけ。
+    ident：段 2・`--work D:/PoB_work/ident_c129pc`・`--added-tables popclose_s`。D: は起こす直前に shutil で〈35GB＋量〉を測る。
+
+[5] 〈判定: 恒等〉なら採る。ならなければ変更を外して報告に回す。
+    記録（門にしない）：ident の全表の生から、10 種で残差率が四半期 1% を超える州×四半期の数と上位の州・招聘・守備兵・吸収の量の分布（波130 の材料）。
+    入れない物：招聘の受け入れ先の変更・兵の配り直し・再併合で兵を戻すこと・既存の表の列の変更。

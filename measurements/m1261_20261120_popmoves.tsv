@@ -1,0 +1,14 @@
+場所	呼び手	移すもの	州の間か	今の計器	この線
+Territory.cs:141 MoveRegion→:145 MoveBetweenRegions→Pop.Blend	Territory.cs:141（毎月の移民）	州間の移民	州の間	region_s・migration_s（Instruments.Migrated）	popclose へ Migrated の中から足す
+MultiNationSim.cs:1478 MoveMigrants→:1486 MoveAbroad	MoveMigrants	越境の移民	国をまたぐ	region_s・xmig_s（Instruments.CrossBorder）	popclose へ CrossBorder の中から足す
+MultiNationSim.cs:1588 MoveSpecialists→MoveAbroad	招聘（段④）	技師・研究者	国をまたぐ	なし（CrossBorder を通らない）	hook（kind=Specialist）
+MultiNationSim.cs:309 SpawnNation→Military.MoveCohort	首都の分離の守備兵	守備兵（兵）	州の間（分離する州→親の首都）	なし	hook（kind=Garrison）
+Simulation.cs:1340 PromoteColonyToRegion→MoveBetweenRegions	植民地の吸収（同名の州）	現地住民	州の外→州（器から）	AnnexBaggage（観測だけ・列に出ない）	hook（kind=ColonyMerge）
+Simulation.cs:1377 PromoteColonyToRegion の新しい州	新しい州	現地住民	新しい州	なし	fresh=1 の行（残差は nan）
+Military.cs:190・:191 MoveCohort（徴募）	月の徴募	兵	州の中だけ	soldiervac_s ほか	州の中＝記帳しない
+Simulation.cs:804・:805 MoveCohort（徴兵）	徴兵	兵	州の中だけ	なし	州の中＝記帳しない
+Meritocracy.cs:421・:478 MoveToJob・Move	職の移り	階級間	州の中だけ	なし	州の中＝記帳しない
+PopDecision.cs:84 Blend	農村と都市の移り	階級間	州の中だけ	urx_s	州の中＝記帳しない
+Territory.cs:187 TransferRegion・:155 Rehome・Diplomacy.cs:467・:2953	割譲・分離・返還	州ごと国を移る（人口は州に付いて動かない）	国の持ち主だけ	cede_s ほか	州の人口は変わらない＝記帳しない
+Simulation.cs:2292 DemographicStep	出生・死亡	増減	州の中	rdh_s（POB_INSTRUMENTS_RDH 時のみ）	popclose の出生・死亡の列（RdhDemo の中で足す）
+World.cs:980 KillPops（戦死・粛清）・Simulation.cs:2303 飢え	死亡	減	州の中	casualty_s ほか	飢えは出生・死亡の列・戦死と粛清は残差に出る（記録）
