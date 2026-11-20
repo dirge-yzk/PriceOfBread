@@ -67,10 +67,11 @@ public static partial class Instruments
 
     // ---------------------------------------------------------------- 札・q ----------------------------------------------------------------
     /// <summary>入口の札を立てる（呼び手の行の頭・AddBelligerent／StartWar の直前）。組の鍵つき＝別の組の戦争には効かない。</summary>
-    internal static void WarTag(Diplomacy d, Power a, Power b, int code) { var st = WarOf(d); st.TagCode = code; st.TagA = a.Id; st.TagB = b.Id; }
+    internal static void WarTag(Diplomacy d, Power a, Power b, int code) { if (!Tg.War) return; var st = WarOf(d); st.TagCode = code; st.TagA = a.Id; st.TagB = b.Id; }
     /// <summary>既に同じ組の札が立っていなければ立てる（DeclareWar の既定の札＝統一）。</summary>
     internal static void WarTagDefault(Diplomacy d, Power a, Power b, int code)
     {
+        if (!Tg.War) return;
         var st = WarOf(d);
         if (st.TagCode != 0 && ((st.TagA == a.Id && st.TagB == b.Id) || (st.TagA == b.Id && st.TagB == a.Id))) return;
         st.TagCode = code; st.TagA = a.Id; st.TagB = b.Id;
@@ -78,6 +79,7 @@ public static partial class Instruments
     /// <summary>戦争が立った所（WarStarted）：札と、次の Quarter(q) の q を記録する。</summary>
     internal static void WarNoteStart(Diplomacy d, War war)
     {
+        if (!Tg.War) return;
         var st = WarOf(d);
         int code = 0;
         if (st.TagCode != 0 && ((st.TagA == war.A.Id && st.TagB == war.B.Id) || (st.TagA == war.B.Id && st.TagB == war.A.Id))) code = st.TagCode;
@@ -89,7 +91,7 @@ public static partial class Instruments
         var acc = PairAccOf(st, war.A, war.B);
         acc.Starts++;
     }
-    internal static void WarNoteInvade(Diplomacy d) => WarOf(d).InvadeQ.Add(WarOf(d).NextQ);
+    internal static void WarNoteInvade(Diplomacy d) { if (!Tg.War) return; WarOf(d).InvadeQ.Add(WarOf(d).NextQ); }
     internal static string WarPolityCols(Diplomacy d, int i) { var st = WarOf(d); return i < st.WarPolity.Count ? st.WarPolity[i] : "-"+"	"+"-"; }
     static string WarMetaCols(Diplomacy d, int i)
     {
@@ -110,6 +112,7 @@ public static partial class Instruments
     /// <summary>組の出来事（1＝AI の屈服・2＝講和の置き直し・3＝分離の置き直し）。</summary>
     internal static void WarPairEvent(Diplomacy d, Power a, Power b, int kind)
     {
+        if (!Tg.War) return;
         var st = WarOf(d); var acc = PairAccOf(st, a, b);
         if (kind == 1) { acc.Submits++; st.QSubmits++; }
         else if (kind == 2) { acc.Peace++; st.QPeace++; }
@@ -120,6 +123,7 @@ public static partial class Instruments
     /// <summary>外交の月の歩の頭（または四半期の末）：全ての組の緊張を読む。四半期の最初の月（month%3==0）の頭は前の四半期の末なので読まない。</summary>
     internal static void WarPairSample(Diplomacy d, Coefficients c, int month, bool endOfQuarter)
     {
+        if (!Tg.War) return;
         if (!endOfQuarter && month % Calendar.MonthsPerQuarter == 0) return;
         var st = WarOf(d);
         if (WarNoPair && !endOfQuarter) return;
@@ -234,6 +238,7 @@ public static partial class Instruments
     /// <summary>TryAiSubjugate の CanInvade の評価 1 件（Diplomacy.cs:2021 の同じ行から）。reason＝CanInvade の戻りの理由（通れば空）。</summary>
     internal static void WarEval(Diplomacy d, Coefficients c, Power great, Power target, string reason)
     {
+        if (!Tg.War) return;
         if (great.Nation is not { } gw) return;
         var st = WarOf(d);
         if (!st.Entry.TryGetValue(great.Id, out var acc)) st.Entry[great.Id] = acc = new WarEntryAcc();
@@ -314,6 +319,7 @@ public static partial class Instruments
     /// <summary>四半期の末（Instruments.Quarter）：最後の月の標本を取り、3 本の表に q を付けて書く。出来事はこの Quarter(q) の q に属し、NextQ を q+1 にする。</summary>
     static void WarQuarter(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.War) return;
         var d = sim.Diplomacy;
         var st = WarOf(d);
         var c = sim.Nations.Count > 0 ? sim.Nations[0].World.Coef : null;

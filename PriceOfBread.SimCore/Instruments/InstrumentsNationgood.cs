@@ -42,7 +42,7 @@ public static partial class Instruments
     // NgEv〔履歴 InstrumentsNationgood.cs#4〕
     sealed class NgEv { public readonly HashSet<Region> Seen = new(ReferenceEqualityComparer.Instance); public readonly HashSet<Region> Moved = new(ReferenceEqualityComparer.Instance); public bool HaveSeen; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, NgEv> NgEvs = new();
-    internal static void NgRegionMoved(World from, Region r) { if (from.Diplomacy is { } dip) NgEvs.GetValue(dip, _ => new NgEv()).Moved.Add(r); }
+    internal static void NgRegionMoved(World from, Region r) { if (!Tg.BuyShadow) return; if (from.Diplomacy is { } dip) NgEvs.GetValue(dip, _ => new NgEv()).Moved.Add(r); }
     /// <summary>四半期の末の最後：次の四半期のために、移った州の集合を空にし、居る州を覚える（最初の呼びは覚えるだけ＝新しい州に数えない）。</summary>
     internal static void NgEventsRoll(MultiNationSim sim)
     {

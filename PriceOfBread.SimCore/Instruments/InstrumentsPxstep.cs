@@ -77,7 +77,7 @@ public static partial class Instruments
     }
 
     /// <summary>Quarter の呼び口（Instruments.cs の MerchTable の行に名だけ足す）。</summary>
-    internal static void PxstepTable(MultiNationSim sim, ulong seed, int q) { PxSinks.GetValue(sim, _ => new PxSink()).Seed = seed; PxFold(sim, seed, q, false); }
+    internal static void PxstepTable(MultiNationSim sim, ulong seed, int q) { if (!Tg.Pxstep) return; PxSinks.GetValue(sim, _ => new PxSink()).Seed = seed; PxFold(sim, seed, q, false); }
 
     /// <summary>Close の呼び口：年の途中で終わった残りを書き、pxstep_s と cscx_s の書き手を閉じる。</summary>
     static void PxstepClose(MultiNationSim sim)

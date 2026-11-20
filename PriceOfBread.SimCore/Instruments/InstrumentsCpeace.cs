@@ -23,9 +23,9 @@ public static partial class Instruments
     static CpState CpOf(Diplomacy d) => CpStates.GetValue(d, _ => new CpState());
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<War, System.Runtime.CompilerServices.StrongBox<bool>> CpIterFlags = new();
-    internal static void CpIter(War war, bool collapsed) { CpIterFlags.Remove(war); CpIterFlags.Add(war, new System.Runtime.CompilerServices.StrongBox<bool>(collapsed)); }
+    internal static void CpIter(War war, bool collapsed) { if (!Tg.Cede) return; CpIterFlags.Remove(war); CpIterFlags.Add(war, new System.Runtime.CompilerServices.StrongBox<bool>(collapsed)); }
 
-    internal static void CpMonth(Diplomacy d, int month, int year) { var st = CpOf(d); st.Month = month; st.Year = year; }
+    internal static void CpMonth(Diplomacy d, int month, int year) { if (!Tg.Cede && !Tg.War) return; var st = CpOf(d); st.Month = month; st.Year = year; }
 
     internal sealed class CpPre { public CpRec Rec = new(); }
 
