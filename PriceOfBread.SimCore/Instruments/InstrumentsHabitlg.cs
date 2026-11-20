@@ -65,6 +65,7 @@ public static partial class Instruments
     /// <summary>州のその月の更新の前（<c>EconomyStep</c> の中毒度の更新の直前・読むだけ）：前の月の遷移を今の在庫で閉じ、今の月の前の在庫と pc を蓄える。</summary>
     internal static void HabitLgStep(Region r, Coefficients c, double perCapita)
     {
+        if (!Tg.Habitlg) return;
         var a = HabitlgAccs.GetValue(r, _ => new HabitlgAcc());
         double s = r.OpiumAddiction;
         if (a.HasPrev && a.PrevCoef is not null) HabitLgTrans(a, a.PrevCoef, a.PrevS, a.PrevPc, s);

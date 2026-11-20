@@ -22,6 +22,7 @@ internal static class Tg
     internal static bool Equipment = true;
     internal static bool Fb = true;
     internal static bool Fd = true;
+    internal static bool Habitlg = true;
     internal static bool House = true;
     internal static bool Idn = true;
     internal static bool Ivf = true;
@@ -49,6 +50,7 @@ internal static class Tg
     internal static bool TreatyPort = true;
     internal static bool U4 = true;
     internal static bool Wp = true;
+    internal static bool War = true;
 
     static Tg() { Refresh(); }
 
@@ -74,6 +76,7 @@ internal static class Tg
         Equipment = Instruments.Wants("eq_s") || Instruments.Wants("eqr_s");
         Fb = Instruments.Wants("fb_s");
         Fd = Instruments.Wants("fd_s");
+        Habitlg = Instruments.Wants("habitlg_s");
         House = Instruments.Wants("house_s");
         Idn = Instruments.Wants("idn_s");
         Ivf = Instruments.Wants("ivf_s");
@@ -101,5 +104,6 @@ internal static class Tg
         TreatyPort = Instruments.Wants("tport_s");
         U4 = Instruments.Wants("consf_s");
         Wp = Instruments.Wants("wp_s");
+        War = Instruments.Wants("wars_s") || Instruments.Wants("warpolity_s") || Instruments.Wants("invade_s") || Instruments.Wants("warentry_s") || Instruments.Wants("warpair_s") || Instruments.Wants("warband_s");
     }
 }

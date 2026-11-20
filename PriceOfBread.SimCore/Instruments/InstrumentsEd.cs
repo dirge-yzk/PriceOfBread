@@ -16,14 +16,14 @@ public static partial class Instruments
     static readonly EdDiag EdZero = new();
     internal static EdDiag EdDiagOf(Region r) => EdDiags.TryGetValue(r, out var d) ? d : EdZero;
     /// <summary>教育の月の始め：必要量・民間の買いたい量・供給を置き、国庫の買いたい分と取れた分を 0 に戻す。</summary>
-    internal static void EdBegin(Region r, double need, double priv, double avail) { var d = EdDiags.GetOrCreateValue(r); d.Need = need; d.Priv = priv; d.Avail = avail; d.Want = 0; d.Take = 0; }
-    internal static void EdSet(Region r, double want, double take) { var d = EdDiags.GetOrCreateValue(r); d.Want = want; d.Take = take; }
-    internal static void HigherEdSet(Region r, double want, double take) { var d = EdDiags.GetOrCreateValue(r); d.HigherWant = want; d.HigherTake = take; }
+    internal static void EdBegin(Region r, double need, double priv, double avail) { if (!Tg.Ed) return; var d = EdDiags.GetOrCreateValue(r); d.Need = need; d.Priv = priv; d.Avail = avail; d.Want = 0; d.Take = 0; }
+    internal static void EdSet(Region r, double want, double take) { if (!Tg.Ed) return; var d = EdDiags.GetOrCreateValue(r); d.Want = want; d.Take = take; }
+    internal static void HigherEdSet(Region r, double want, double take) { if (!Tg.Ed) return; var d = EdDiags.GetOrCreateValue(r); d.HigherWant = want; d.HigherTake = take; }
     /// <summary>
     /// 〔履歴 InstrumentsEd.cs#6〕
     /// </summary>
-    internal static void HigherPaidBegin(Region r) { var d = EdDiags.GetOrCreateValue(r); d.HigherGross = 0; d.HigherSub = 0; }
-    internal static void HigherPaid(Region r, double gross, double subsidy) { var d = EdDiags.GetOrCreateValue(r); d.HigherGross += gross; d.HigherSub += subsidy; }
+    internal static void HigherPaidBegin(Region r) { if (!Tg.Ed) return; var d = EdDiags.GetOrCreateValue(r); d.HigherGross = 0; d.HigherSub = 0; }
+    internal static void HigherPaid(Region r, double gross, double subsidy) { if (!Tg.Ed) return; var d = EdDiags.GetOrCreateValue(r); d.HigherGross += gross; d.HigherSub += subsidy; }
 
     static void EdFold(Sink sk, ulong seed, World w, int q, bool picked, bool yearEnd)
     {

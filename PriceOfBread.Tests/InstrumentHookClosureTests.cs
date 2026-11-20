@@ -164,6 +164,9 @@ public class InstrumentHookClosureTests
         [InlineData("Rk/Score", "score_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Silverst/Silverst", "silverst_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Silverst/SilverWeight", "silverwt_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
+        [InlineData("War/Wars", "wars_s")]   // (1268) 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
+        [InlineData("War/Invade", "invade_s")]   // (1268) 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
+        [InlineData("War/Warpair", "warpair_s")]   // (1268) 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("SMALL", "nation_s,stock_s,wars_s,casualty_s,region_s,migration_s,pxmonth_s,scalars_s,aib_s,canal_s,class_s,disc_s,engineer_s,epi_s,goods_s,ideology_s,idn_s,invade_s,labor_s,monai_s,mongood_s,monlaw_s,pclamp_s,pxgoods_s,lawgate_s,reform_s,sbu_s,sf_s,fiscal_s")]   // ident.cfg の SMALL（計器つき 10 種の標準の読み手が読む 29 表）
         [InlineData("Admin", "admrule_s")]
         [InlineData("AiBuild", "aib_s")]
@@ -211,6 +214,8 @@ public class InstrumentHookClosureTests
         [InlineData("TreatyPort", "tport_s")]
         [InlineData("U4", "consf_s")]
         [InlineData("Wp", "wp_s")]
+        [InlineData("War", "invade_s,warband_s,warentry_s,warpair_s,warpolity_s,wars_s")]   // (1268) 束
+        [InlineData("Habitlg", "habitlg_s")]   // (1268) 束
     public void SelectedGroupIsByteIdenticalToFullRun(string group, string csv)
     {
         var full = Full.Value;
@@ -233,7 +238,7 @@ public class InstrumentHookClosureTests
     }
 
     // 閉じた file の累積の置き場（辞書・ConditionalWeakTable）。nation_s だけを選ぶ走りで空のまま、全表の走りでは溜まる。
-    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs"];
+    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags"];
 
     [Fact]
     public void UnselectedTablesAccumulateNothing()

@@ -1,0 +1,63 @@
+(1268) c130ih 仕分け直し	種類	ファイル	フック	束・理由
+閉じた(1268)	InstrumentsWar.cs	WarTagDefault	War
+閉じた(1268)	InstrumentsWar.cs	WarNoteStart	War
+閉じた(1268)	InstrumentsWar.cs	WarPairEvent	War
+閉じた(1268)	InstrumentsWar.cs	WarPairSample	War
+閉じた(1268)	InstrumentsWar.cs	WarEval	War
+閉じた(1268)	InstrumentsWar.cs	WarQuarter	War
+閉じない(積算なし)	InstrumentsBuyShadow.cs	BuyShadowClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsBuyShadow.cs	TbClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsBuyShadow.cs	T1Close	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じた(既に)	InstrumentsCess.cs	CessObserveColony	Cess（本体の 2 行目で閉じ済み・対応表の読み落とし）
+閉じた(既に)	InstrumentsClock.cs	ClockOpened	Clock（本体の 2 行目で閉じ済み）
+閉じた(1268)	InstrumentsCpeace.cs	CpIter	Cede
+閉じた(1268)	InstrumentsCpeace.cs	CpMonth	Cede||War
+閉じた(1268)	InstrumentsEd.cs	EdBegin	Ed
+閉じた(1268)	InstrumentsEd.cs	EdSet	Ed
+閉じた(1268)	InstrumentsEd.cs	HigherEdSet	Ed
+閉じた(1268)	InstrumentsEd.cs	HigherPaidBegin	Ed
+閉じた(1268)	InstrumentsEd.cs	HigherPaid	Ed
+閉じた(1268)	InstrumentsEquipment.cs	EquipmentCompleted	Equipment
+閉じた(1268)	InstrumentsEquipment.cs	EquipmentDismantled	Equipment
+閉じない(積算なし)	InstrumentsMintcap.cs	MintcapClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsMintreg.cs	MintregClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じた(1268)	InstrumentsNationgood.cs	NgRegionMoved	BuyShadow
+閉じない(積算なし)	InstrumentsNationgood.cs	NationgoodClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsPaysale.cs	PaysaleClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsProdcap.cs	ProdcapClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じた(1268)	InstrumentsPxstep.cs	PxstepTable	Pxstep
+閉じない(積算なし)	InstrumentsRailSpend.cs	RailSpendClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じた(既に)	InstrumentsRdh.cs	RdhRegion	RdhOn||PopClose（核の共有の入口・閉じ済み）
+閉じた(既に)	InstrumentsRdh.cs	RdhTable	RdhRows の先頭 RdhOn で閉じ済み
+閉じない(積算なし)	InstrumentsRecipeout.cs	RecipeoutClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsSatNeeds.cs	SatNeedsClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsScope.cs	ScopeClear	積算でなく Clear だけ（空にするので閉じる物が無い）
+閉じない(積算なし)	InstrumentsSellr.cs	SellrClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsSoldierVac.cs	SoldierVacClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じない(積算なし)	InstrumentsTradeskip.cs	TradeskipClose	書き手の Dispose だけ・積算なし（null 安全）＝閉じる物が無い
+閉じた(1268)	InstrumentsWar.cs	WarTag	War
+閉じた(1268)	InstrumentsWar.cs	WarNoteInvade	War
+閉じない(共有の状態に書く)	InstrumentsBur.cs	*	
+閉じない(共有の状態に書く)	InstrumentsCapacity.cs	*	
+閉じない(共有の状態に書く)	InstrumentsCearn.cs	*	
+閉じない(共有の状態に書く)	InstrumentsCoup.cs	*	
+閉じない(共有の状態に書く)	InstrumentsCrown.cs	*	
+閉じない(共有の状態に書く)	InstrumentsDsc.cs	*	
+閉じない(共有の状態に書く)	InstrumentsEpi.cs	*	
+閉じない(共有の状態に書く)	InstrumentsFm.cs	*	
+閉じた(1268)	InstrumentsHabitlg.cs	HabitLgStep	Habitlg（他は純関数）
+閉じない(共有の状態に書く)	InstrumentsIdeology.cs	*	
+閉じない(共有の状態に書く)	InstrumentsInheritIntent.cs	*	ConsDepart（核）を呼ぶ＝Before の入口は閉じられない・残りは次の席
+閉じない(共有の状態に書く)	InstrumentsInp.cs	*	
+閉じない(共有の状態に書く)	InstrumentsLandbase.cs	*	
+閉じない(共有の状態に書く)	InstrumentsLawgate2.cs	*	
+閉じない(共有の状態に書く)	InstrumentsMerch.cs	*	
+閉じない(共有の状態に書く)	InstrumentsModernize.cs	*	
+閉じない(共有の状態に書く)	InstrumentsMon.cs	*	
+閉じない(共有の状態に書く)	InstrumentsPop.cs	*	
+閉じない(共有の状態に書く)	InstrumentsReform.cs	*	
+閉じない(積算なし)	InstrumentsRegionProd.cs	*	RegionProdRow は純関数（積算しない）
+閉じない(共有の状態に書く)	InstrumentsSecession.cs	*	
+閉じない(共有の状態に書く)	InstrumentsSvcBuy.cs	*	
+閉じない(共有の状態に書く)	InstrumentsTransport.cs	*	
+閉じない(共有の状態に書く)	InstrumentsUrx.cs	*	
