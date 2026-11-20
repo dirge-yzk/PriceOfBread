@@ -140,14 +140,14 @@ public class SoldierToVacantSeatHookTests
         double outA = pop0[a] - a.SumPopulation();
         Assert.True(outA > 1.0, $"前提が崩れた：兵が動かない（{outA}）");
         var ra = rows.Single(x => x[Array.IndexOf(h, "region")] == a.Name);
-        Assert.Equal(outA, Col(ra, "garrisonOutK"), 9);
+        Assert.True(Math.Abs(outA - Col(ra, "garrisonOutK")) <= 1e-9 * Math.Max(1.0, Math.Abs(outA)), $"garrisonOutK {Col(ra, "garrisonOutK")} と人口の差 {outA}");   // 表は 10 桁の有効数字で丸めて書く
         double inSum = 0; int receivers = 0;
         foreach (var r in w.Regions)
         {
             if (ReferenceEquals(r, a)) continue;
             double gain = r.SumPopulation() - pop0[r];
             var row = rows.Single(x => x[Array.IndexOf(h, "region")] == r.Name);
-            Assert.Equal(gain, Col(row, "garrisonInK"), 9);
+            Assert.True(Math.Abs(gain - Col(row, "garrisonInK")) <= 1e-9 * Math.Max(1.0, Math.Abs(gain)), $"{r.Name} の garrisonInK {Col(row, "garrisonInK")} と人口の差 {gain}");
             Assert.True(Math.Abs(Col(row, "residualK")) < 1e-6, $"{r.Name} の残差 {Col(row, "residualK")}");
             if (gain > 1e-9) receivers++;
             inSum += Col(row, "garrisonInK");
