@@ -26,7 +26,9 @@ public static class Ideologies
         var (dCoord, dLawGap) = FactionSnapshot.MembershipContext(w, true);
         int dSeen = 0;
         var prds = Instruments.On ? Instruments.PrdsBegin(w, eraSoc, eraComm, dCoord, dLawGap) : null;
-        foreach (var p in w.AllPops())
+        var split = w.Coef.NationalismFromDispersion > 0 && CultureSplit.TryGetValue(w, out var sp) ? sp : null;   // (1230) 表が無い（四半期の末の締めの外）＝f＝0＝今の式
+        Region? splitRegion = null; double fCult = 0;
+        foreach (var (rg, p) in w.AllPopsWithRegion())
         {
             var r = p.IdeologyShares;
             dSeen++;
@@ -43,7 +45,14 @@ public static class Ideologies
             }
             else
                 r[1] += 2.0 * mil * conserv;
-            r[2] += 2.5 * cons * prog;
+            if (split is null) r[2] += 2.5 * cons * prog;
+            else
+            {
+                if (!ReferenceEquals(rg, splitRegion)) { splitRegion = rg; fCult = split.TryGetValue(rg.Culture, out double fv) && fv >= 0 && fv <= 1 ? fv : 0; }
+                double lib = 2.5 * cons * prog;
+                r[2] += lib * (1.0 - fCult);
+                r[4] += lib * fCult;
+            }
             r[3] += (1.5 * cons + 1.0 * mil) * prog;
             r[5] += (1.0 * cons + 1.5 * mil) * prog;
             r[6] += 2.0 * mil * prog;
@@ -67,6 +76,47 @@ public static class Ideologies
         if (prds is not null) Instruments.PrdsEnd(prds);
         w.Cost[CostLedger.ParticipationPops] += dSeen;
     }
+
+    // (1230) 文化の分断の度合い f の表（世界で 1 枚・文化の札→f）。MultiNationSim.StepDay が四半期の末の締めの直前に作り、締めの直後に消す＝セーブの点をまたがない（状態ではない・盤面から導く）。
+    //   国ごとに同じ辞書を引く（国の無い盤面の試験でも World から引ける）。
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, Dictionary<string, double>> CultureSplit = new();
+
+    /// <summary>f(X)＝1−M_X÷W_X。W_X＝世界の文化 X の人口（州の札・POP の大きさの和）。M_X＝X の人口が最大の 1 国の X の人口（主の文化を問わない＝(1249) 形 A′・1 国だけが持つ文化は f＝0）。
+    /// 札が空の州と人口 0 の州は数えない（表に無い札＝f＝0）。どの国の旗も 0 なら何もしない（false）。</summary>
+    internal static bool BuildCultureSplit(IReadOnlyList<World> worlds)
+    {
+        bool any = false;
+        foreach (var w in worlds) if (w.Coef.NationalismFromDispersion > 0) { any = true; break; }
+        if (!any) return false;
+        var total = new Dictionary<string, double>();
+        var largest = new Dictionary<string, double>();
+        var own = new Dictionary<string, double>();
+        foreach (var w in worlds)
+        {
+            own.Clear();
+            foreach (var r in w.Regions)
+            {
+                if (r.Culture.Length == 0) continue;
+                double pop = 0; foreach (var p in r.Pops) pop += p.Size;
+                if (!(pop > 0)) continue;
+                own[r.Culture] = own.GetValueOrDefault(r.Culture) + pop;
+                total[r.Culture] = total.GetValueOrDefault(r.Culture) + pop;
+            }
+            foreach (var kv in own) if (kv.Value > largest.GetValueOrDefault(kv.Key)) largest[kv.Key] = kv.Value;   // (1249) 形 A′：主の文化を問わない
+        }
+        var f = new Dictionary<string, double>(total.Count);
+        foreach (var kv in total) f[kv.Key] = 1.0 - largest.GetValueOrDefault(kv.Key) / kv.Value;
+        foreach (var w in worlds) CultureSplit.AddOrUpdate(w, f);
+        return true;
+    }
+
+    internal static void ClearCultureSplit(IReadOnlyList<World> worlds) { foreach (var w in worlds) CultureSplit.Remove(w); }
+
+    /// <summary>試験の盤面用：表を手で置く（null で消す）。</summary>
+    internal static void SetCultureSplit(World w, Dictionary<string, double>? table) { if (table is null) CultureSplit.Remove(w); else CultureSplit.AddOrUpdate(w, table); }
+
+    /// <summary>表の f（表が無い・札が表に無い＝NaN）。</summary>
+    internal static double CultureSplitOf(World w, string culture) => CultureSplit.TryGetValue(w, out var t) && t.TryGetValue(culture, out double f) ? f : double.NaN;
 
     public readonly record struct EraGateSet(double Socialism, double Communism, double Imperialism, double Fascism);
 

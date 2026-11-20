@@ -1,0 +1,12 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1a_表のfは最大の国の外に住む割合で文化ごとに1つ [4 s]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T3_実の経路_四半期の末に表を作り締めの後に消す [2 s]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TL1_攻め手の厭戦が閾値を超えるとAIもプレイヤーも宣戦しない [45 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T4_四半期の途中のセーブの後も同じ表が導ける [796 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T5_割譲で札が移った州も世界のfを読む [49 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA2_1国だけが持つ文化はf0 [41 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T2_fが0の国は旗1でも取り分が同じ [6 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA1_主の文化でない2国に60対40で分かれた文化はf04で民族主義へ [6 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1b_T1c_分断の文化のPOPは民族主義へ移り_和は同じ [22 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA3_主の文化の2国に70対30で分かれた文化はf03 [5 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1d_1国だけの文化の州と空の札の州は旗0と同じ [6 ms]
+失敗!   -失敗:    11、合格:     4、スキップ:     0、合計:    15、期間: 8 s - PriceOfBread.Tests.dll (net10.0)

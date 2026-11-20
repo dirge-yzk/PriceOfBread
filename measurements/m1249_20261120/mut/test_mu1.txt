@@ -1,0 +1,5 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1a_表のfは最大の国の外に住む割合で文化ごとに1つ [8 s]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA2_1国だけが持つ文化はf0 [9 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA1_主の文化でない2国に60対40で分かれた文化はf04で民族主義へ [6 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1d_1国だけの文化の州と空の札の州は旗0と同じ [9 ms]
+失敗!   -失敗:     4、合格:    11、スキップ:     0、合計:    15、期間: 16 s - PriceOfBread.Tests.dll (net10.0)

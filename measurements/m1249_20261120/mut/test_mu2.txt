@@ -1,0 +1,7 @@
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1a_表のfは最大の国の外に住む割合で文化ごとに1つ [3 s]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T3_実の経路_四半期の末に表を作り締めの後に消す [1 s]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T5_割譲で札が移った州も世界のfを読む [65 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA1_主の文化でない2国に60対40で分かれた文化はf04で民族主義へ [19 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.T1b_T1c_分断の文化のPOPは民族主義へ移り_和は同じ [8 ms]
+  失敗 PriceOfBread.Tests.NationalismUnificationTests.TA3_主の文化の2国に70対30で分かれた文化はf03 [12 ms]
+失敗!   -失敗:     6、合格:     9、スキップ:     0、合計:    15、期間: 7 s - PriceOfBread.Tests.dll (net10.0)

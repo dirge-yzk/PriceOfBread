@@ -374,14 +374,20 @@ public static class Formations
     }
 
     /// <summary>(1195) 統一の宣戦を妨げる物。AI（Diplomacy.TryUnificationWars）とプレイヤー（World.CanUnificationWar）が同じ判定を呼ぶ。</summary>
-    public enum UnificationBlock { None, NotTarget, AtWar, Allied }
+    public enum UnificationBlock { None, NotTarget, AtWar, Allied, Weary }
 
-    /// <summary>(1195) この標的へ統一の宣戦ができるか（targets＝UnificationTargets の結果）。理由の文字列はプレイヤーの側だけが持つ。</summary>
-    public static UnificationBlock UnificationWarBlock(Diplomacy d, Power p, System.Collections.Generic.List<Power> targets, Power t)
-        => !targets.Contains(t) ? UnificationBlock.NotTarget
-         : d.IsAtWar(p, t) ? UnificationBlock.AtWar
-         : d.HasAlliance(p, t) ? UnificationBlock.Allied
-         : UnificationBlock.None;
+    /// <summary>(1195) この標的へ統一の宣戦ができるか（targets＝UnificationTargets の結果）。理由の文字列はプレイヤーの側だけが持つ。
+    /// (1230) 旗 B：攻め手の厭戦が WarWearyThreshold を超えたら Weary（他の入口と同じ述語・攻め手だけを読む）。</summary>
+    public static UnificationBlock UnificationWarBlock(Diplomacy d, Power p, System.Collections.Generic.List<Power> targets, Power t, Coefficients c)
+    {
+        var b = !targets.Contains(t) ? UnificationBlock.NotTarget
+              : d.IsAtWar(p, t) ? UnificationBlock.AtWar
+              : d.HasAlliance(p, t) ? UnificationBlock.Allied
+              : c.UnificationWarWeary > 0 && p.WarExhaustion > c.WarWearyThreshold ? UnificationBlock.Weary
+              : UnificationBlock.None;
+        if (Instruments.On) Instruments.UnifWarEval(d, c, p, t, targets, (int)b);   // 計器（読むだけ）
+        return b;
+    }
 
     private static bool Owns(Diplomacy d, Power power, string regionName)
     {

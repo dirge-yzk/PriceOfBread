@@ -1689,7 +1689,7 @@ public sealed class Diplomacy
             if (targets.Count == 0) continue;
             targets.Sort((x, y) => x.Military != y.Military ? x.Military.CompareTo(y.Military) : x.Id.CompareTo(y.Id));   // 最弱から・同値はId＝決定論の全順序
             foreach (var t in targets)
-                if (Formations.UnificationWarBlock(this, p, targets, t) == Formations.UnificationBlock.None && DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); break; }
+                if (Formations.UnificationWarBlock(this, p, targets, t, c) == Formations.UnificationBlock.None && DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); break; }
         }
     }
 

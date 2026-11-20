@@ -1,0 +1,4 @@
+per_seed_total [45, 78, 106, 42, 37, 108, 73, 33, 48, 97]
+per_seed_first [21, 47, 63, 19, 30, 63, 46, 23, 24, 72]
+per_seed_first_and_rested [20, 47, 63, 18, 30, 60, 46, 23, 24, 71]
+first_years_min_med_max 1792 1851 1947
