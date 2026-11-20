@@ -1,0 +1,10 @@
+(1251) c127kc 結果（署名 Claude Opus 5.5）＝できた（削除の線・腕 B は回さない）
+- 事前登録 072b93e6e（追記 1＝段 0・追記 2＝㉜ の書き換え）。
+- 段 0：TradeAccess は読むだけ。null の枝だけを消すと単一国の FullChain の植民地財が 0 へ落ち労働の販売 1128→2.8・労働の値段 0.0715＝盤面の壊れ。単一国の構築に植民地財の生産者を置くと労働の値段 0.393（旧の範囲 0.15〜1.5 の内・範囲は変えていない）。生 m1251_20261120/probe_*.txt。
+- コミット：27b14860a 試験 U1・U2（今の木で U1 赤）／d1d33a754 項 1 単一国の構築に植民地財の生産者／6fd179094 項 2 null の枝を消す／47e2c4fa1 項 3 2 欄と ColonialAccess() を消す／fb3b38fc9 ㉜ FullChainTests の書き換え。
+- ㉘（6 クラス＋ColonyPromotion・Territory・ServiceEconomy・U1・U2）：179/179 緑（m1251_20261120/t28_guardians.txt）。
+- ident c127kcz（木 47e2c4fa1・SOURCE-HASH 1f39b66aa1cce60d）：判定: 恒等（段 1）＝素の 5 種 179 行・計器つき 10 種 181 行が m1233 と全行バイト一致・.cost 件数の行 45 本一致（推定 238.3 秒／239.0 秒）・計器の小さい表 290 本バイト一致・--list-tests 2940（2938＋2 を宣言）・FullLength 3。m1251_20261120/ident/。
+- 突然変異：μ1（補充の枝を条件なしで戻す）→ U1・U2 赤／μ2（単一国の構築の植民地財の continue を戻す）→ U1・ServiceEconomy の労働（0.0715）・FullChainTests（149 対 138）赤・U2 緑。m1251_20261120/mut_results.txt。
+- フルスイート：1 回目 Tests 2706 中赤 1（FullChainTests の生産者の数＝㉜ で書き換え）・Ui 234 緑・FullLength 3 緑。やり直し Tests Category!=FullLength 2705 合格＋スキップ 1＝2706。--list-tests 2706＋3＋234。trx は m1251_20261120/suite/。
+- savetest OK（12 四半期・62 カ国・最大相対差 0）・leakhunt 保存則違反なし（1789・200 四半期）。m1251_20261120/saveleak/。
+- 計算量：.cost は一致（ColonialAccess() の毎月の計算は CostLedger の項に無い＝推定は不変・実の CPU は僅かに減る）。
