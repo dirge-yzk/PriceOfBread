@@ -32,4 +32,7 @@ python -X utf8 -I "$S/c130rc/gate_rc.py" "$INS" "$BASE" $SB $SE > "$OUT/gate_rc.
 python -X utf8 -I "$S/r1252/swell.py" "$TAG" "$INS" $SB $SE "$BASE" > "$OUT/swell.txt" 2>&1; echo "swell rc=$?"
 python -X utf8 -I "$S/r1252/swell.py" base "$BASE" $SB $SE - > "$OUT/swell_base.txt" 2>&1; echo "swell base rc=$?"
 python -X utf8 -I "$S/c130rc/paper_rc.py" "$INS" $SB $SE > "$OUT/paper_rc.txt" 2>&1; echo "paper_rc rc=$?"
+python -X utf8 -I "$S/c130rc/rec_w.py" "$INS" "$BASE" $SB $SE > "$OUT/rec_w.txt" 2>&1; echo "rec_w rc=$?"
+python -X utf8 "$S/hol/an_h2.py" "$INS" -v5 > "$OUT/hol_v5.txt" 2>&1; echo "hol v5 rc=$?"
+python -X utf8 -I "$S/c130rc/hol_attr.py" "$OUT/hol_v5.txt" "$BASE" > "$OUT/hol_attr.txt" 2>&1; echo "hol_attr rc=$?"
 echo READDONE
