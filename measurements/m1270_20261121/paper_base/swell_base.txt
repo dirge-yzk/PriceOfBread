@@ -1,0 +1,12 @@
+#base	種	版	州	格	A2例外	持ち主の移り(年:前→後)	前の最大K	基準のピークK	後のピーク(年)K	後の最小(年)K	比	膨らむ区間ΔK	州間流入K	越境流入K	残差K	最大の1四半期の残差K(年)
+#計	base	種1	S=0	B=0	J=0
+#計	base	種2	S=0	B=0	J=0
+#計	base	種3	S=0	B=0	J=0
+#計	base	種4	S=0	B=0	J=0
+#計	base	種5	S=0	B=0	J=0
+#計	base	種6	S=0	B=0	J=0
+#計	base	種7	S=0	B=0	J=0
+#計	base	種8	S=0	B=0	J=0
+#計	base	種9	S=0	B=0	J=0
+#計	base	種10	S=0	B=0	J=0
+#合計	base	種1-10	S=0	B=nan	J=0
