@@ -89,7 +89,7 @@ public class DormantIdentityTests
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
         // ★NationalismFromDispersion・UnificationWarWeary（(1249) c127nr）は 2026-11-20 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は NationalismUnificationTests が旗を明示して持つ）
         // ★UnificationSkipFormed（(1258) c128uf）は 2026-11-20 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は UnificationSkipFormedTests が旗を明示して持つ）
-        "SoldierToVacantSeat",          // ★器（(1271) c130gs）＝席を超える州の兵を空席の州へ（Military.MoveToVacantSeats）。0＝移さない＝厳密恒等
+        // ★SoldierToVacantSeat（(1271) c130gs 席を超える州の兵を空席の州へ）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は SoldierToVacantSeatTests の T3）。
         "MintBuysAtCapital",            // ★器（(1180) c117b0 B-1′ 段 B′-0）＝造幣の買いを首都の州の市場だけに（Simulation.MintGold）。0＝全ての州＝厳密恒等
         "ProjectionUsesLand",           //支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
         // ★BuildingGoodBundle（(550)(555) 工場の建屋の財・建設の束の 2 枠）は 2026-10-25 (555) 線 fb2 で既定 1 へ**点火**＝この表から外した。
