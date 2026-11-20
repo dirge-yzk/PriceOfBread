@@ -101,3 +101,8 @@
 - 区分：一覧（§7 の旧の規則の番人）に無い赤＝〈周りの壊れ〉（計器の口の閉じ漏れ）。InstrumentsEquipment.cs:34 `EquipmentCompleted`・:35 `EquipmentDismantled` だけが `if (!Tg.Equipment) return;` を持たない（同じファイルの EquipmentBought・Distributed・Retired・EqFold は持つ）。旗 1 で軌道が変わり、この試験の盤面（4 国・種 1789）で工場の完成か取り壊し（World.cs:1560・FactoryEquipment.cs:13 の呼び手）が起き、nation_s だけを選ぶ走りでも EqAccs に溜まった〈推〉。旗 0 の木では盤面で呼ばれなかったので緑だった〈推〉。
 - 直し：その 2 行に `if (!Tg.Equipment) return;` を足す（計器だけ・エンジンの値を読む行は無い＝選んだ走りの出力は変わらない・選ばない走りは書かない積算を溜めないだけ）。c130ih の 27fffa99a の :34・:35 と**同じバイト**（diff で確かめた）＝合流で同じ変更として重なる。持ち主の外のファイル（Instruments/ は c130ih）＝触った行は InstrumentsEquipment.cs:34・:35 の 2 行だけと報告に列挙する。
 - 試験は書き換えない（Assert・閾値・母集合はそのまま）。直しの後に ㊴ からやり直す。直しを外す突然変異＝旗 1 の木 a799ac43f そのもの（赤を上で確かめた）。
+
+## 13. 追記 2（腕 B の前・旗 1 の木 97755b47c のフルスイート・2026-11-21）
+- Tests（Category!=FullLength）2832 中 2 本赤・Tests.Ui 234 緑・FullLength 3 緑・savetest OK・leakhunt 保存則違反なし（measurements/m1269_20261121/suite_flag1/suite_2.txt）。--list-tests 2832＋234＝3066・FullLength 3（予言 §6 のとおり）。
+- 赤 2 本＝WriterRatchetTests.計算量の見た件数は宣言した表を超えない の item 2〈建設：見た生産者（旬）〉1885→1943（+3.1%）・item 11〈外交：覇権の判定の国×国〉2077716→2877748（+38.5%）。§6 で予告した型（軌道の件数を写しただけの番人＝★(749)）＝表を実測へ取り直す（新しい計数の処理は無い・機構の向きと大きさを主張しない番人）。全長の計算量は腕 B の .cost で読む（止める線 248.5 秒）。
+- 取り直しは WriterRatchetTests.cs の 2 行の数だけ（他の試験の判定は読まない）＝やり直しは WriterRatchetTests の束だけにする（フルスイートの他の 2830 本は同じビルドの結果のまま・作業の節約＝〈作者 2026-11-16 の決まり〉⑦）。
