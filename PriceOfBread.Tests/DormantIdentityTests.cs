@@ -149,7 +149,7 @@ public class DormantIdentityTests
         // ★LordOppositionByRentLoss（(547) 農奴解放・土地改革への旧支配層の反対の強さを次の一段で失う所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は Rs2LordOppositionTests。
         // ★LordOppositionReverseGain（(558) 農奴解放・土地改革への旧支配層の減らす向きの強さを 1 段戻したときに得る所得の割合へ）は 2026-10-25 に 1 で**点火**（腕 B・計器つき 10 種・止める線に当たらず）＝この表から外した。(803) で旗ごと削除（RetiredFields）。番人は Rs3LordReverseGainTests。
         // ★LandTaxFixedBasis（(937) c82lt 土地税の算定の基準 A-2・定額の国の凍結した基数）は 2026-11-08 の (958) c85lt・(964) c86lt で 1 に**点火**（1 回目 (945) は採らず）＝この表から外した。
-        // ★CapSkipSellerPotential（(1277) c131pf 容量で飛ばした売り手の申し出を潜在量へ）は 2026-11-21 に 1 で**点火**（腕 B の前）＝この表から外した（旗 0 の経路の番人は CapSkipSellerPotentialTests の旗 0 の Assert）。
+        "CapSkipSellerPotential",       // (1277) c131pf 容量で飛ばした売り手の申し出を潜在量へ（0＝旧＝飛ばした売り手は潜在量を残さない・番人 CapSkipSellerPotentialTests）。点火時にこの表から外し注へ。
         "ImportPayerLive",              // (863) c71ip 輸入の払い手を人の居る POP に限る旗（0＝今の形・1 ビットも変わらない・番人 ImportPayerLiveTests）。点火時にこの表から外す
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★EmptyPopEstate（(848) c69eh 人の居ない POP の在庫の相続 R1）は 2026-11-05 に 1 で**点火**＝この表から外した。
@@ -160,7 +160,7 @@ public class DormantIdentityTests
         // ★RailLocoGateWorld（(1152) c113lc 機関車の門を世界の発見の和で読む）は 2026-11-15 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は RailLocoGateWorldTests＝旗を明示）。
         // ★ArrearsBeyondOpenedRoom（(1250) c127bd 金本位でない月の不履行の累計を開いた余地で払えなかった分だけにする旗）は 2026-11-20 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は ArrearsOpenedRoomTests）
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
-        // ★ColonyLabelsFromData（(1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は ColonyLabelsFromDataTests.T1c＝旗を明示）
+        "ColonyLabelsFromData",         // (1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない（0＝首都の写し・番人 ColonyLabelsFromDataTests）。点火時にこの表から外す
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
         // ★UbiquitousMineralExempt（(1020) c95ub 遍在の財〔石灰石・珪砂・粘土〕を非産地の 0.4 の外へ出す旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 UbiquitousMineralTests）。
         // ★ColonyPettyEntryEmptyTarget（(1014) c94pe 小営業の入口の空の商人の行き先を飛ばさない旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ColonyPettyEntryTests）。
