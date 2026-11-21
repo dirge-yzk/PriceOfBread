@@ -44,8 +44,7 @@ public class GroupTwoBakedInTests
         w.Policy.ProgressiveTaxTarget = 0.0; w.Policy.SocialSecurityTarget = 0.0;
         w.Policy.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;
         UtilityAgent.Apply(w, UtilityAgent.ChooseStance(w, out _));
-        Assert.True(w.Policy.ProgressiveTaxTarget >= Government.ProgressiveTaxTop - 1e-12);
-        Assert.True(w.Policy.SocialSecurityTarget >= 1.0 - 1e-12);
+        Assert.Equal(World.StateMonopolyMaxTier, w.StateMonopolyTier);
         Assert.Equal(SocialSecurityLaw.Pension, w.Policy.SocialSecurityLaw);
     }
 
@@ -57,7 +56,8 @@ public class GroupTwoBakedInTests
         w.Policy.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;
         w.Policy.SocialSecurityTarget = 0.0;
         UtilityAgent.Apply(w, UtilityAgent.ChooseStance(w, out _));
-        Assert.True(w.Policy.SocialSecurityTarget < 1.0, "プロレタリア独裁でない国にソ連風の税制の置き方が走った");
+        Assert.True(w.StateMonopolyTier < World.StateMonopolyMaxTier, "プロレタリア独裁でない国にソ連風の税制の置き方が走った");
+        Assert.NotEqual(SocialSecurityLaw.Pension, w.Policy.SocialSecurityLaw);
     }
 
     [Fact]
