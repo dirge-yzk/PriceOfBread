@@ -1,0 +1,19 @@
+# (1283) suite 木=/d/PoB_work/wt_c132fg HEAD=83ac5e051 2026-11-22 02:17:24
+list-tests Tests(Category!=FullLength)=2861 Tests.Ui=234 和=3095 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   451、スキップ:     1、合計:   452、期間: 49 m 14 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=1 失敗!   -失敗:    10、合格:  2849、スキップ:     2、合計:  2861、期間: 32 m 10 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2151680) [1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 38, declared: 131028) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 40, declared: 883740) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 22, declared: 291450) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 32, declared: 4979512) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 33, declared: 195506) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 16397287) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1949) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 39, declared: 112840) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 31, declared: 4979512) [< 1 ms]
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   234、スキップ:     0、合計:   234、期間: 1 m 21 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 53 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全65カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-22 03:55:10
