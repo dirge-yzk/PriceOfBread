@@ -1,0 +1,7 @@
+arm D:/PoB_work/m1280_work/out_mM_10/ins rule=new: H1_cult_ne_cap=27392 H2_colonial_born_nations=9 H2_colonial_go=1 nq=410614 rec_civilwar_nq=788 rec_cult_empty=74
+base D:/PoB_work/keep_1274/base_ins rule=old: H1_cult_ne_cap=31184 H2_colonial_born_nations=14 H2_colonial_go=25 nq=409480 rec_civilwar_nq=804
+H1 主流の文化≠首都の札の国×四半期 腕 27392／基準 31184＝0.8784（NG＝0.1 未満か 10 超）
+H2 植民地格の分離の判定＋植民地格だけで現れた国 腕 10（1＋9）／基準 39（25＋14）（NG＝腕＞10×max(基準,1)・基準≧10 で腕＜基準÷10）
+記録 植民地格の州の人口（千人・種の和）四半期 0/268/520/667：腕 504312 688410 928747 1065976 基準 504302 688395 938245 1042436
+記録 内戦の国×四半期 腕 788 基準 804・空の主流の札 腕 74 基準 0
+GATE_CR 緑
