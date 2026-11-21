@@ -47,13 +47,11 @@ public static class Politics
 
     private static double SchoolingConversion(Pop p, double convertNow, Coefficients c)
     {
-        if (c.ConsciousnessFromSchoolingStock <= 0) return convertNow;
         double stock = p.SchoolingConvStock;
         if (stock < 0) stock = convertNow;
         stock = p.GenerationalMix(stock, convertNow, Calendar.MonthsPerQuarter);
         p.SchoolingConvStock = stock;
-        double g = c.ConsciousnessFromSchoolingStock;
-        return (1.0 - g) * convertNow + g * stock;
+        return stock;   // 旧の混ぜ (1−g)×今＋g×ストック は g＝1 でストックそのもの（2026-11-22 (1282)）
     }
 
 

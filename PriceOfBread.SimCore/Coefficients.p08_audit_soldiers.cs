@@ -100,7 +100,6 @@ public sealed partial class Coefficients
     public double ReformFromAboveLegitThreshold = 0.4;   // 政2：上からの改革が発火する正統性の上限（Legitimacy<これ＝侵食が進行中の体制のみ自己改革）
     public double SecessionHoldCoercion = 1.0;   // 政5（分離の中央保持力判定がデッドコード）：>0でholdに軍・警察(Coercion)由来の飽和項を加え第2条件を活性化（大軍の帝国ほど分離を抑える）
     public double SecessionCultureAdditive = 3.0;   // 参考例（5.0の場合）＝強民族州(文化距離1×少数派0.8×不満0.8)で加算≈0.64＝関税項と合わせ閾値超えが可能に＝バルカン型の民族分離を実数化
-    public double ConsciousnessFromSchoolingStock = 1.0;   // 政15（変換係数が現行の教育法を読む＝世代遅れなし）：混合比∈[0,1]
     public double CultureDistanceFromEthnic = 1.0;   // 0で厳密恒等
     public double SecessionHoldSharedArmy = 1.0;   // 0で分母1＝厳密恒等
     public double SecessionHoldProjection = 1.0;   // 0で厳密恒等
