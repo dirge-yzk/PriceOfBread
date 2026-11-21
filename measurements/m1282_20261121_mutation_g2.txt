@@ -1,0 +1,11 @@
+m1282 突然変異（使い捨ての木・旧の道を戻す・各 1・Release・フィルタは名のとおり）全て赤
+opulence  RelieveOpulence を先頭で return        → PolicyPoliticsTests の 2 本が赤（失敗 2/88）
+survival  生存の効用の脅威の逆比の項を消す       → GroupTwoBakedInTests 赤（1/5）
+soviet    ソ連風の置き方の枝を消す               → GroupTwoBakedInTests 赤（1/5）
+minwage   入口を FromBoard（旧の規則）へ戻す     → MinimumWageAiFloorTests 赤（1/7）
+schooling 就学の履歴を通さず現在値を返す         → GroupTwoBakedInTests 赤（1/5）
+mandate   天命の宗教の回路の掛けを消す           → GroupTwoBakedInTests 赤（1/5）
+weakaxis  反対の力の割りを消す                   → LordStakeD1bD2Tests・Rs3LordReverseGainTests 赤（3/11）
+particip  参加の述語を旧の二値へ戻す             → PolicyPoliticsTests・DiscontentReaderTests 赤
+modbudget 近代化投資を min クランプへ戻す        → RevoltIgnitionTests.R4_ 赤（1/…）
+台本 D:/PoB_work/c132g2_work/mut.py（コミットしない）
