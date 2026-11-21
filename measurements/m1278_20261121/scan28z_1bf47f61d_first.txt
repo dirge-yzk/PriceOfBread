@@ -1,0 +1,15 @@
+D:\PoB_work\c131cr_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:03.77]     PriceOfBread.Tests.ColonyLabelsFromDataTests.T4_旗1で国の主流の札は植民地の人口で入れ替わらない [FAIL]
+  失敗 PriceOfBread.Tests.ColonyLabelsFromDataTests.T4_旗1で国の主流の札は植民地の人口で入れ替わらない [419 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: Tuple ("イングランド", "プロテスタント")
+Actual:   Tuple ("ベンガル", "ヒンドゥー教")
+  スタック トレース:
+     at PriceOfBread.Tests.ColonyLabelsFromDataTests.T4_旗1で国の主流の札は植民地の人口で入れ替わらない() in D:\PoB_work\wt_c131cr\PriceOfBread.Tests\ColonyLabelsFromDataTests.cs:line 118
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:   156、スキップ:     0、合計:   157、期間: 23 m 3 s - PriceOfBread.Tests.dll (net10.0)

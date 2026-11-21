@@ -1,0 +1,148 @@
+(1278) c131cr 事前登録：植民地 110 州の文化と宗教の札を首都の写しから土地のデータへ（★(1150)③ のデータの直し・旗 ColonyLabelsFromData・3 回の規則の 1 回目）・2026-11-21・書いたモデル Claude Opus 5.5
+
+== 先頭の名乗り ==
+- 出発：(1148) 台帳 S26-06・32・V01（measurements/m1148_20261115/ledger_S26_2026-11-15.md :20・:41・:87）＝働かない（110/110 が首都の札）。L6・R1。観戦の X1・N19・U11。
+- 作者 2026-11-20（原文）「確認した。全て推奨で進めてよい」により、★(1150)③ は〈データの直し〉として推奨のまま確定した（凍結の対象外）。答え待ちではない。
+- 3 回の規則：このテーマの 1 回目。
+- 形の種類：〈入口〉（昇格した植民地の州の札を書く 1 か所）＋国の主流の札の数え（1 か所）。新しい係数 0・新しい状態 0（札は既存の Region.Culture・Religion＝セーブ済みの文字列）・旗 1 本（ColonyLabelsFromData・既定 0 の器→1）。旗の席は植民地の部品の隣＝Coefficients.p08_audit_soldiers.cs の OpeningColonyDominanceFull の次の行（grep で選んだ）。
+- 作者 2026-11-11（原文）「改宗・文化の混ざり合いや分離などは、実装しないでください。」には当たらない（AI の読み）：札は動かない土地のデータで、改宗・混ざり合い・札の動く機構を足さない。
+- 確証：札の選び（下の表）は AI の推定＝〈確証なし・推〉。〈植民地の州の札は首都の写しでなく土地の住民の札〉と〈国の主流は植民地の人口で入れ替わらない〉は史実の向き（AI の読み）。
+- 作者 2026-11-19 の改め（原文）：「抜本的な改修を行おうとした時、既存のテストで落ちるからNGというのは違和感がある。抜本的な改修→それに合わせて周囲のモジュールを修正→テスト という流れになるべきではないのか？」
+
+== 形（実装の形と一致させる＝★(778)）==
+- 置き換える旧の規則 1：Simulation.PromoteColonyToRegion（Simulation.cs:1363）の `Culture = w.Region.Culture, Religion = w.Region.Religion`（首都の州の札の写し）。開幕の 81 名（MultiNationSim.cs:152）も途中の接収（Diplomacy.cs:2025 AcquireColony）も同じ関数。
+- 旗 1 の形 1：`Culture = Places.CultureOf(col.Name) ?? ""`・`Religion = Places.ReligionOf(col.Name) ?? ""`。データに無い名は空（首都へ逃がさない・fail-closed＝番人 T2 と RegionLabelInvariantTests が赤）。
+- Places.cs：Place と Row に Culture・Religion（RuleOf と同じ型＝名で引く・無い名と空は null）。places.json の植民地の名 110 行に "culture"・"religion" を足す（データだけ・座標と kind と terrain と rule は変えない）。
+- 置き換える旧の規則 2（紙の反転を受けて同じ旗に入れる・名乗る）：Diplomacy.MajorityCultureReligion（Diplomacy.cs:1079〜:1091）＝全ての州の人口加重。旗 1 では **植民地格（RegionTier.Colonial）の州を数えない**（既存の RegionTier・条件 1 つ・例外の重ね 0）。理由：札をデータにすると、英はベンガル 2 州（2,600 万人）がイングランドの札を超え主流がベンガル／ヒンドゥー教へ、蘭はジャワが本国を超えて宗教がイスラムへ反転する（紙の ex の行）。
+  - 名乗り：植民地格の州だけを持つ国（独立の戦争の途中の国＝Rehoming.Sovereign の前）は主流の札が空になる（基準の盤面で 199 国×四半期／409,480）。空の札は読み手が〈不明〉として扱う既存の道（緊張は飛ばす・距離は 0.5）＝新しい分岐を足さない。
+  - 名乗り：中核民族の割合（Pop.CoreEthnicShare）で重みを付ける形は採らない＝同化（MultiNationSim.cs:1362〜:1373）でベンガルの中核の割合が 1 へ寄り（基準の種 1 の Q300 で 0.34）、数十年後に英の主流がベンガルへ反転する。
+  - MajorityCultureReligion を private から internal へ（アクセスの拡大だけ・試験 T4 が呼ぶ）。
+- CulturalGoodId（Simulation.cs:1366 の首都の写し）は入れない（需要を動かす別の根・次の線）。
+- 旗 0 の経路は旧のコードのまま（三項の偽の枝・homeOnly＝false）＝ビット同じ（腕 Z で確かめる）。
+
+== 札の表（scripts/instruments/c131cr/colony_labels.tsv・110 名・全て〈推〉）==
+- 宗教は既存の集合（world.json の provinces の 16 種）だけから選んだ＝新しい宗教の札 0。
+- 文化：既存の札を使った名＝フランス（カナダ・ルイジアナ・フロリダ）・イングランド（ジブラルタル・セントジョンズ・バハマ諸島）・マラーター（ボンベイ）・アカン（沿岸西アフリカ）・オランダ（ケープタウン）・スペイン（17 名）・ポルトガル（6 名）・アラブ（センナール・ムルズク）・ベルベル（シンゲッティ）。
+- 新しい文化の札（出典〈推〉＝1783 年ごろの住民の多数の民族・言語の一般の知識）：クレオール（カリブ・マスカリン・スリナムの奴隷の多数）・タミル・ウォロフ・ベンガル・アボリジニ・イヌイト・クリー・オジブワ・サリッシュ・デネ・テムネ・トリンギット・ユピック・ジャワ・シンハラ・ブギス・モルッカ・ナワ・ケチュア・タガログ・アマゾン先住・アイマラ・グアラニー・マプチェ・テウェルチェ・モロ・スワヒリ・ソマリ・トゥピ・ムブンドゥ・ショナ・琉球・カリフォルニア先住・ダヤク・マレー・コサ・ショショーニ・ヌビア・シルック・ソンガイ・トゥアレグ・マバ・ガンダ・ルンディ・ズールー・ツワナ・ナマ・モンゴ・ファン・カザフ・アチェ・パプア・マオリ（53 札）。
+  - 新しい札は Diplomacy.CultureGroup の表に無い＝それ自体が 1 グループ（既存の `_ => c` の枝）。表は触らない（持ち主の範囲の外）。
+- 名乗り（記録）：RegionLabelInvariantTests の AllowCultureEmpty（グリエフ〈カザフ〉・セントポール〈ダコタ・オジブワ〉）は〈今ある名で説明できない〉が理由＝この線でカザフ・オジブワの札ができた＝次の線でその 2 州の札を埋められる（この線では触らない）。
+
+== 紙（腕の前・今の盤面 keep_1274/base_ins・種 1〜10）==
+- 台本 scripts/instruments/c131cr/paper_cr.py（エンジンの関数を呼ばない＝region_s の州の人口と台本が持つ札で数える）。出力 measurements/m1278_20261121/paper_base/paper_cr.txt。
+  - 国×四半期 409,480。旧の規則（植民地＝昇格の時の持ち主の首都の札・全ての州）に対し：
+    - データの札・全ての州（旗 2 を入れない形）：主流が変わる 16,609（文化 16,305・宗教 14,423）＝英が 432 四半期（種 1）ベンガル／ヒンドゥー教・蘭が 668 四半期イスラム ほか。
+    - データの札・植民地格を数えない（この線の形）：主流が変わる 8,178（2.0%）（文化 7,452・宗教 6,366）。主な国＝英（アイルランド札へ 5 種で計 1,228 四半期〈英の本国の人口が減る種〉・旧はカトリック〔接収した西の植民地の札〕→プロテスタントへ戻る）・デンマーク（ノルウェー札・旧はヌーク 6 千人で僅差を越えていた）・蘭（統合格の独・英の札）・ビルマ・アメリカ（旧のカトリック→プロテスタント）・シャム・アワドほか。空の札 199。
+  - 主流の文化が首都の州の札と違う国×四半期：旧 32,899 → この線の形 29,885。
+- 読み手の一覧（grep・r.Culture・r.Religion・p.Culture・p.Religion）と動く物：
+  1. Diplomacy.cs:821 国の主流の札（AffinityTensions の民族・宗教の緊張・保護の利害・Formations の CultureIs/ReligionIs・Diplomacy.cs:2953 の sameCore）＝上の紙のとおり動く。
+  2. Diplomacy.cs:1151〜:1153・:1213 保護の利害（州の宗教の人口）＝植民地の州の宗教が首都と違えば、同じ宗教の国の保護の利害が立つ（例：ジャワのイスラム）＝動く。
+  3. Politics.cs:867〜:868 分離の文化の距離＝CultureDistanceFromEthnic 1.0 で Toward(x, 1−core, 1.0)＝1−core に置き換わる＝札は効かない（浮動小数の端の 1 ulp を除く）＝ほぼ動かない。
+  4. Ideology.cs:51・:99〜:103 民族の散らばり（CultureSplit・自由主義と民族主義の分け）＝植民地の州の住民の札が首都の札でなくなる＝首都の札の散らばりから植民地が抜け、植民地の札ごとに散らばりが立つ＝動く。
+  5. MultiNationSim.cs:403 独立・分離で生まれた国の最初の札＝州の札＝動く（次の月の同期で 1 に従う）。
+  6. Simulation.cs:135〜:146 開幕の中核の割合＝植民地の昇格（MultiNationSim.cs:152）より前＝動かない。
+  7. World.cs:692 ReligiousUnity＝SimCore に読み手 0（表示だけ）。
+  8. CultureRealms.cs（world.json の provinces を読む）＝動かない。
+  9. 計器 InstrumentsUnif.cs・InstrumentsCede.cs＝読むだけ。
+- 〈周辺の点検〉（読むだけ）：割譲の Territory.Rehome（Territory.cs:155〜:181）は札を触らない（格・中核の割合・市場の印だけ）＝確かめた。
+
+== 予言（主な観測量の符号と大きさ・腕の前）==
+- P1 植民地格の州の札：開幕に昇格した州の全てがデータの札・首都と違う文化の札の州は 50 以上（開幕の 81 名のうち首都と同じ文化の札の名は 27〈英 3・蘭 1・西 17・葡 6〉＝違う名は 54）。
+- P2 腕 B の主流の札が旧と違う国×四半期：紙の 8,178 の 0.5〜2 倍〈推〉（軌道が変わる分）＝記録。
+- P3 H1（主流の文化≠首都の札）の腕÷基準：0.9〜1.0〈推〉（紙 0.958）。
+- P4 H2（植民地格の分離の判定・植民地格だけで現れた国）：基準 39（25＋14）から 0.5〜2 倍〈推〉（分離の式は札を読まない＝P4 は民族主義の散らばりと外交の緊張を通る間接の動きだけ）。
+- P5 計算量：±0.3 秒〈推〉（新しい走査 0・MajorityCultureReligion の州ごとの比べ 1 つ）。
+- 見込みは〈悪くする〉でない＝腕を回す（㉗：紙の台本は止める線の破れを予言しない）。
+
+== 門（〈作者 2026-11-16 の決まり〉①）==
+1. 止める線：
+   - 破綻：クラッシュ・NaN・保存則・savetest・進行不能。
+   - 発散：scripts/instruments/c92gf/stoplines1002.sh（stoplines906 を呼ぶ）。1e10 倍・非有限は止める。〈1 四半期に 100 倍〉は gdp_jump833 の〈それ以外〉の行が止める線・〈建国の直後〉〈分母の痩せ〉は記録（基準とヌル腕を同じ台本で数え直す＝⑰：基準 keep_1274/base_ins・N1 keep_1274/n1）。
+   - 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（規則 A2）でピークの 1/10 未満。**線が原因の件だけで止める**＝基準 keep_1274/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（scripts/instruments/c131cr/hol_attr.py＝c130rc の写し）。結果の後に振り分けを変えない。
+   - 計算量：推定 248.5 秒を超える。
+   - 機構のテストの赤（走査の番人を含む）。
+   - 開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。名目 GDP 0 の続き（gdp_zero10）は記録の段の先頭。
+   - 紙の台本（基準の生に同じ台本＝★(1254)）：measurements/m1278_20261121/paper_base/stop1002_base.txt＝100 倍以上 0・1e10 倍以上 0・非有限 0・開幕の 1000 倍以上 0・空洞化 1/10 未満 0・英の国債の不履行 2/10＝旗 0 の盤面で緑。
+2. 史実の桁の線（この線が一番動かす量・scripts/instruments/c131cr/gate_cr.py・史実の数が手元に無い＝基準を代わりに置く＝AI の決め・名乗る）：
+   - H1 国の主流の文化の札が首都の州の札と違う国×四半期（腕は new の規則・基準は old の規則で台本が数える）：腕÷基準が 0.1 未満か 10 超＝NG。
+   - H2 植民地格の州の分離の判定が通った回数（secession_s goFlag=1・Colonial）＋植民地格の州だけで現れた国の数：腕＞10×max(基準,1)、または基準≧10 で腕＜基準÷10＝NG。
+   - 紙の台本：基準どうし（old 対 old）で緑・基準の盤面を new の規則で数えて緑（H1 0.958・H2 1.0）＝measurements/m1278_20261121/paper_base/gate_cr_base_old.txt・gate_cr_base_newrule.txt。〈何もしない実装〉（旗 0）でも緑＝壊さない門の性質（〈働いた〉は 3 の単体の試験で示す）。
+3. 単体の機構の試験（PriceOfBread.Tests/ColonyLabelsFromDataTests.cs・盤面は試験の中で置く＝61 国を NullAgent で構築・期待の札は字で書く）：
+   - T1 旗 1 で開幕に昇格した字の 10 州（英のベンガル・カナダ・豪、蘭のバタヴィア・セイロン、西の中央メキシコ・フィリピン、仏のポンディシェリ、オマーンのザンジバル、葡のルアンダ）の札が字の期待の札。
+   - T1b 旗 1 で植民地格の全ての州に札がある・首都と違う文化の札の州が 50 以上（見た州 75 以上）。
+   - T1c 旗 0 では植民地格の全ての州の札が首都の写し（旧の規則の番人）。
+   - T2 不変条件：world.json の植民地の名の全て（initialColonies と abstractTargets の colonies・110 名以上）に文化と宗教のデータがある。
+   - T3 旗 1 で途中の昇格（同じ関数を直に）もデータの札（キサンガニ＝モンゴ／土着信仰）・データの無い名は空。
+   - T4 旗 1 で英の主流はイングランド／プロテスタント（前提＝ベンガルの札の人口＞本国のイングランドの札の人口）・蘭はオランダ／プロテスタント。
+   - T4b 旗 1 で中核ベンガルを統合格へ置くと英の主流がベンガル／ヒンドゥー教（数えないのは植民地格だけ）。
+   - 突然変異（㉚・使い捨ての木 D:/PoB_work/c131cr_work/mut・出力 measurements/m1278_20261121/mut_result.txt）と赤の予言：
+     | μ | 変える所 | 赤になる試験（予言） |
+     | none | 何も変えない | なし |
+     | mu0 | 試験の盤面の旗を 0 | T1・T1b（首都と違う 0）・T3・T4b（旧の数えでも T4 は緑＝旧の札はイングランド） |
+     | mucap | :1363 を首都の札へ戻す（旗を見ない） | T1・T1b・T3 |
+     | mufall | データに無い名を首都の札へ逃がす | T3（空でない） |
+     | mudata | places.json のキサンガニの札を消す | T2・T3 |
+     | mufilt | 主流の数えから植民地格の除外を外す | T4（英がベンガル） |
+     | mufall2 | 主流の数えを中核格だけに狭める | T4b |
+   - 旗 1 の出力が旗 0 と違う行の数は記録。
+
+== 記録（門にしない）==
+- 内戦の国×四半期（nation_s civilWarMonths>0）・植民地格の州の人口（四半期 0・268・520・667）・空の主流の札の国×四半期＝gate_cr.py の記録の行。
+- paper_cr.py を腕の生に当てた〈主流の札が旧と違う国×四半期〉（同じ盤面で旧と新の両方を数える）。
+- 英の国債の不履行の種の数・NG（ng.sh・基準 rd:measurements/ng1274_20261121:m1274）・nullgate（記録・m1274・N1）・home_break・plvl・popjump。
+
+== ㉘ 走査の番人の点検（器の差分＝Simulation.cs:1363 の 1 行→4 行・Diplomacy.cs:1079〜:1093・Places.cs・places.json・Coefficients.p08_audit_soldiers.cs の 1 行・DormantIdentityTests の表の 1 行・新しい試験）==
+- 工業化度の読み手 0・`new MoneyStock(` の増え 0・route_anchors.tsv の鍵の行は触らない（Simulation.cs・Diplomacy.cs の札の行は鍵に無い＝grep 0）・WriterRatchetTests の宣言は旗 0 で動かない（CostLedger に件数を持つ処理を足さない）・Instruments の読み手 0。
+- 絞り込み：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|ColonyLabelsFromDataTests|RegionLabelInvariantTests|OpeningColonyDominanceTests。
+- 変わる件数の予言（㉑）：走査の番人の件数は変わらない（0 件）。
+
+== ㉜ 旗 1 の木で旧の規則を固定する番人（grep・腕の前）==
+- grep（.Culture・.Religion・MajorityCulture・PromoteColonyToRegion を試験で）：旧の規則〈植民地の札＝首都の写し〉そのものを Assert する試験は 0 件（RegionLabelInvariantTests は札が空でないことだけ＝データで埋まる・注の文〈首都の州の札を写す〉は古くなる＝持ち主の外・報告に書く）。T1c は旗を明示する旧の規則の番人（旗 1 の既定でも 0 を渡す）。
+- 旗 1 で動き得る試験：国の主流の札を外交の月の同期で読む試験（NationalismUnificationTests・ColonyPromotionTests は札を試験の中で置く＝植民地格の州を数えない形で主流が変わる盤面か、赤なら ㊴ の区分で読む）・WriterRatchetTests の宣言の表（★(749)・軌道の件数を写しただけ）。
+
+== 計算量の割り当て ==
+- ±0.3 秒〈推〉（新しい走査 0・2 秒以下の割り当て＝1 本の腕で門にしない＝★(694)・合流の木の累計で読む）。
+
+== 腕 ==
+- 腕 Z：器の木（旗 0）・`bash scripts/instruments/ident/ident.sh run c131crz --tree <器の木> --work D:/PoB_work/ident_c131cr --tests-delta 7`（段 1・ColonyLabelsFromDataTests 7 本）。走っている間はその木にコミットしない（㉙）。
+- 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c131crB 10`（計器つき 10 種・種 1〜10）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝SMALL（ident.cfg :153）＋secession_s（gate_cr の H2）。region_s・nation_s が SMALL に無ければ足す。
+- 読み手：scripts/instruments/c131cr/read_cr.sh（c130rc/read_rc.sh の写し＋gate_cr・paper_cr）。基準 keep_1274/base_ins・N1 keep_1274/n1・NG 基準 ng1274_20261121・nullgate の基準 m1274。
+- D:：腕 B は約 4〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る。
+
+== 追記 1（腕 Z・突然変異・旗 1 の計器の束の後・腕 B の前・2026-11-21）==
+- 腕 Z c131crz（器の木 1bf47f61d＝旗 0・別の worktree wt_c131cr_z・--work D:/PoB_work/ident_c131cr・--tests-delta 7）：**判定: 恒等（段 1）**＝測った種で一致。素の 5 種 180 行・計器つき 10 種 180 行が m1274 と全行バイト一致・推定 235.4／234.2 秒・計器の 29 表 290 本バイト一致・テスト 3086（基準 3079＋7）・FullLength 3（measurements/m1278_20261121/identz_c131crz.txt）。
+- ㉘（器の木 1bf47f61d・9 クラス）：157 本のうち赤 1（T4＝試験の盤面が国ごとの w.Coef に旗を置いていなかった＝試験のバグ・盤面で両方に置いて直した＝エンジンは変えていない）→直した後の ColonyLabelsFromDataTests・GoodIdGuardTests・DormantIdentityTests 55 本 全て緑（scan28z_1bf47f61d_first.txt・scan28z_1bf47f61d_new.txt）。写した台本（scripts/instruments/c131cr/）は GoodIdGuardTests で緑。
+- 突然変異（使い捨ての木・measurements/m1278_20261121/mut_result.txt）：none 緑・mu0 赤（T1・T1b・T3・T4・T4b）・mucap 赤（T1・T1b・T3・T4・T4b）・mufall 赤（T3）・mudata 赤（T2・T3）・mufilt 赤（T4）・mufall2 赤（T4b）。予言との差：mu0・mucap で T4 も赤（T4 の前提の行〈ベンガルの札の人口＞本国のイングランドの札〉が旧の札では 0＝前提の Assert で落ちる）。
+- 旗 1 の木 5dfb66c61 の計器の束（㊴＝FullyQualifiedName~Instrument）＋㉘＋NationalismUnificationTests・ColonyPromotionTests：593 本のうち赤 4（スキップ 1）＝全て WriterRatchetTests の宣言の表（★(749) 軌道の件数を写しただけの番人）。取り直した行（1 種 40 四半期の実測・コミット 59f88de3c）：
+  - 価格：日次の写像の回 PriceDailyRuns 18273055→16397287（−10.3%）
+  - 請求：見た生産者（月）ClaimProducers 1902→1949（+2.5%）
+  - 倒産の空の生産者×月 DeadProdBankrupt 2213→1809（−18.3%）
+  - 外交：覇権の判定の国×国 DiploHegemonScans 1412040→2389000（+69.2%・m1270 の基点 2077716 の +15%）
+  - 新しい計数の処理は無い。機構の向き・大きさの Assert には触れていない。㉜ の一覧の外の赤 0。
+
+== 追記 2（㉜ 旗 1 のフルスイート・腕 B の前・2026-11-21）==
+- 旗 1 の木 59f88de3c（宣言の表の取り直しの後）：Tests Category!=FullLength 2852（合格 2848・スキップ 2・失敗 2）・FullLength 3 緑・Tests.Ui 234 緑。--list-tests：Tests 2855（＝2852＋3）・Ui 234＝基準 3079＋7（ColonyLabelsFromDataTests）と一致。
+- 赤 2＝OpeningBakeTests の 2 本（同梱の表の入力のハッシュ 4bf72f47ba1f82de≠世界 a72b4243ee8bd775）＝places.json（埋め込みのデータ）を直した線が必ず赤にする〈派生の表と件数の写し〉の区分（README ★(764)）＝機構の赤ではない・旗 0 の器の木でも同じ赤（データの差で入る）。線の担当は触らず赤のまま報告し、合流の木で 1 回だけ焼き直す（bake.sh・OpeningBakeEnabled＝0 で成績表に効かない）。㉜ の一覧の外の機構の赤 0。
+- savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（種 1789・200 四半期・保存則違反なし・説明できない増減 0）。measurements/m1278_20261121/suite_59f88de3c/。
+- 腕 B：`POB_WORK=D:/PoB_work/c131cr_work/armB`・prep commit:<このコミット> plain → `INS=1 POB_INSTRUMENTS_TABLES=<SMALL>,secession_s bash scripts/instruments/batch.sh run c131crB 10`。
+
+== 追記 3（腕 B の前・表の絞りの変更と理由・2026-11-21）==
+- D: の空きが〈35GB＋腕 B の量〉に届かなかった（フルスイートの後 33.1GB→自分の隔離ビルド 1.3GB と腕 Z の木の写しとビルド〔src_*・art_it・生ではない〕を消して 36.5GB→他の線の片付けで 38.0GB）。腕 Z の生（out_ib_10/ins・2.4GB）は消していない（段 1 の判定は prune.py が刈らない＝採否が決まるまで残す）。
+- 腕 B の表を SMALL＋secession_s（約 3.9GB）から、止める線と門と記録の読み手が読む表だけへ絞る（約 2.5GB）：nation_s・region_s・secession_s・fiscal_s・stock_s・scalars_s・migration_s・pxmonth_s・wars_s・casualty_s・cessp_s・pclamp_s・tnation_s（BYPASS の habitlg_s ほかは常に出る）。読み手の表（grep）：stoplines1002（nation・region・pxmonth・cessp・tnation）・an_h2（region・migration）・gdp_zero10・plvl・popjump（nation）・home_break（nation・region・stock）・ukdef975（fiscal）・ng.sh（nation・stock・wars・casualty）・gate_cr（region・secession・nation）。
+- 外れる物（記録だけ）：batch.sh が自動で回す注視の読み手 an_mon の表（aib・class・disc・engineer ほか）＝注視は記録＝採否に使わない。門と止める線は変えない。起こす直前の空き 38.0GB（〈35GB＋2.5GB〉以上）。
+
+== 追記 4（腕 B の結果・門・2026-11-21・結果の後に門と規則は変えていない）==
+- 腕 B c131crB（旗 1 の木 4a5145bd3＝59f88de3c と SimCore 同じ・計器つき 10 種・種 1〜10・表は追記 3 の 13 表）：成績表 measurements/b10_20261121_c131crB_ins（SOURCE-HASH 338c4e311d851145）・生 D:/PoB_work/c131cr_work/armB/out_c131crB_10/ins（150 本）。読み手の出力 measurements/m1278_20261121/readB/。
+- 止める線：
+  - 破綻 0/10（未完走 0）・savetest OK・leakhunt 保存則違反なし（追記 2）。
+  - 1 四半期に 100 倍以上 0（建国の直後 0・分母の痩せ 0・建国の後の 0 の続き 0・それ以外 0）・1e10 倍以上 0・非有限 0（基準 keep_1274/base_ins と N1 keep_1274/n1 も同じ台本で 0・0・0＝⑰）。pxmonth 3 か月比の最大 1.106。開幕の 1000 倍以上 0。
+  - 空洞化 1/10 未満 0 件（1/4 未満 2 件〈移民 2〉・基準は 1/4 未満 2 件）＝hol_attr の件 0。
+  - 計算量：推定 235.1 秒（基準 m1274 234.2 秒・+0.9 秒・割り当て ±0.3〈推〉を 0.6 秒超えた＝2 秒以下＝1 本の腕で門にしない★(694)・合流の木の累計で読む）＜上限 248.5 秒。
+  - 機構のテストの赤 0（フルスイートの赤は ★(764) の OpeningBakeTests 2 本だけ）。
+- 史実の桁の線（gate_cr）：H1 腕 27,280／基準 31,184＝0.875（緑）・H2 腕 17（6＋11）／基準 39（25＋14）（緑）。記録：N1 対 基準で H1 0.896・H2 11（2＋9）＝ヌル腕どうしでも H2 は 3.5 倍揺れる。GATE_CR 緑。
+- 単体の機構の試験：ColonyLabelsFromDataTests 7 本 緑（旗 1 の木のフルスイート）・突然変異 6 本とも赤（追記 1）＝〈狙いどおり働いた〉。
+- 記録：
+  - 同じ盤面の旧と新（paper_cr を腕の生に当てた）：主流の札が旧の規則と違う国×四半期 6,235／411,491（1.5%・文化 5,663・宗教 3,061）・空の札 104・主流の文化≠首都の札 旧 29,308→新 27,280。
+  - 植民地格の州の人口（千人・種の和・四半期 0/268/520/667）：腕 504,302／666,178／889,338／1,026,037・基準 504,302／688,395／938,245／1,042,436。
+  - 内戦の国×四半期 腕 879・基準 804。
+  - 英の国債の不履行 0/10（基準 2/10・N1 2/10）。名目 GDP 0 の続き 0（基準 0）。home_break の① 鳴る国なし。英の崩れ（実質 GDP が最大の 5% を割る）arm 0/10・base 1/10・n1 0/10。
+  - NG 93（基準 m1274 の 91・新しい 13・外れた 11）。nullgate〈雑音の内〉。成績表の基準 m1274_ins との差 240 行（旗 1 の出力が旗 0 と違う行）。ハーネス不合格を含む試合 5/10（基準 4/10）。
