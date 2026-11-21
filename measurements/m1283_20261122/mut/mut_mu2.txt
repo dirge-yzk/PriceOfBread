@@ -1,0 +1,11 @@
+# mu2（af9783f5c）
+  成功 PriceOfBread.Tests.UrxInstrumentTests.区間の差の和は水準の変化に一致し最後の水準は世界の数え直しに合う [13 s]
+  成功 PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False) [9 ms]
+  成功 PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True) [1 ms]
+  成功 PriceOfBread.Tests.UrxInstrumentTests.往復の積みの純は都市の規模の差に合い_州の生産の列は工場の表と合う [5 s]
+  成功 PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる [1 ms]
+  成功 PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する [< 1 ms]
+  失敗 PriceOfBread.Tests.FamineGateReturnsRuralTests.旗1_門の外では旗0と同じ流れ_ビット一致 [7 ms]
+  成功 PriceOfBread.Tests.FamineGateReturnsRuralTests.計器の駆動の行は旗1の門の月に本物のRunと一致する [1 ms]
+  成功 PriceOfBread.Tests.FamineGateReturnsRuralTests.旗1_飢えの門が掛かりgが負なら都市から農村へ_Mobility掛けるg掛ける都市の規模_旗0は0 [1 ms]
+  成功 PriceOfBread.Tests.FamineGateReturnsRuralTests.旗1_門が掛かってもgが正なら流れは0 [< 1 ms]
