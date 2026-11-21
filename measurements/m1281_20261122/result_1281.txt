@@ -1,0 +1,5 @@
+(1281) c132kx 結果：判定: 恒等（測った種で一致）。木 e15efcad7＋cd2af255c＋台本の 1 コミット（SOURCE-HASH 68eafbdae8df54c4）。
+素の 5 種・計器つき 10 種とも m1280 と全行バイト一致（177／180 行）。計器の表 1666 本＝バイト一致 1616＋既知の揺れ 50・宣言の無い違い 0。推定 235.8／235.5 秒（m1280 の 235.5 と同じ・件数の行 45 本一致）。
+テスト：Tests 2847（成功 2845・スキップ 2）＋Tests.Ui 234 ＝ 3081（3091 −10・予言 −9±3）・FullLength 3 全て成功。savetest OK・leakhunt 保存則違反なし。
+消した係数：K08・K09・K14・K18・K23・K25・K29・K52。残した孤児：MilitaryWarMult・WarMobilizationDepth（InstrumentsCivwar と試験が読む）・DiscoveryRow.EngineerParent（試験が読む）。
+計器の列：InstrumentsFd の最終列は値を変えず（旗の項を消すだけ）・devcap の最終列は定数 F(1.0)＝列の値は不変。
