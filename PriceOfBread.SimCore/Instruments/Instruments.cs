@@ -1964,6 +1964,7 @@ public static partial class Instruments
         MintregTable(sim, seed, q);        // MintregTable（(1168) 造幣の床の効き・mintreg_s）
         MintcapTable(sim, seed, q);        // MintcapTable（(1180) 造幣の買いの置き場・mintcap_s）
         CapskipTable(sim, seed, q);        // CapskipTable（(1277) 容量で飛ばした売り手・capskip_s）
+        ArrearsTable(sim, seed, q);        // ArrearsTable（(1284) 不履行の導火線と本位の停止の旧新・arrears_s）
         SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
         SatNeedsTable(sim, seed, q);       // SatNeedsTable（(1206) 必要の充足の内訳・satneeds_s）
         UnifTable(sim, seed, q);           // UnifTable（(1230)(1249) 民族主義の根と統一の宣戦・formation2_s・unifwar_s・tensionwhy_s）
@@ -2013,6 +2014,7 @@ public static partial class Instruments
         MintregClose(sim);     // MintregClose（(1168)）
         MintcapClose(sim);     // MintcapClose（(1180)）
         CapskipClose(sim);     // CapskipClose（(1277)）
+        ArrearsClose(sim);     // ArrearsClose（(1284)）
         SoldierVacClose(sim);  // SoldierVacClose（(1166)）
         SatNeedsClose(sim);    // SatNeedsClose（(1206)）
         UnifClose(sim);        // UnifClose（(1230)）

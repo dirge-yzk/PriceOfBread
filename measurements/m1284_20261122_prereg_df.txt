@@ -78,3 +78,7 @@
 
 ■ 10 順
  事前登録（このコミット）→ 器（旗 0・arrears_s・試験）→ ㉘ → ident（`--work D:/PoB_work/ident_c132df --added-tables arrears_s --tests-delta 4`）→ 突然変異 → 旗 1＋㉜ の書き換え → ㊴ → フルスイート・savetest・leakhunt → 腕 B（表に fiscal_s・arrears_s を入れる）→ 門 → 印 D:/PoB_work/c132df_work/df.mark → origin/c132df。形の変え直しは 1 回まで（⑭）。
+
+■ 4b 追記（器のコミット・腕の前）：止める線の台本 stoplines906 を基準の生 keep_1280/base_ins（旗 0）で回した（★(1254)）＝緑。
+ ukdefault 1/10（種 10）・pxjump 100 倍以上 0・1e10 0・非有限 0・gdpjump833 の〈それ以外〉0（分母の痩せ 1＝種 2 ラヘジ 1866）・fixgate 緑・gdp_zero10 0・plvl 比≧100 0・開幕の 1000 倍以上 0・hol 1/10 未満 0（1/4 未満 2＝移民・セントポール 種 2・7）。
+ 出力 measurements/m1284_20261122/stop_base.txt。

@@ -190,7 +190,12 @@ public static class Fiscal
         }
 
         if (w.BorrowCooldownMonths > 0) w.BorrowCooldownMonths--;
-        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += ArrearsOfMonth(w, c, payRate, spare, unopenedRoom); else w.InsolvencyMonths = 0;
+        // (1284) owes＝不履行の導火線の述語（払えない月・国債あり・利払いが上限の外・助走でない）。旗 ArrearsOnePredicate＞0 は本位の停止の門も同じ述語で、累計と判定の前に置く（C1＋C2）。
+        bool owes = payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen;
+        bool onePredicate = c.ArrearsOnePredicate > 0;
+        Instruments.ArrearsMonth(w, c, spare, unopenedRoom);   // 計器（読むだけ）：arrears_s
+        if (onePredicate) MetallicStandardGate(w, c, owes, broken);
+        if (owes) w.InsolvencyMonths += ArrearsOfMonth(w, c, payRate, spare, unopenedRoom); else w.InsolvencyMonths = 0;
         if (w.InsolvencyMonths >= c.DefaultArrearsMonths)
         {
             RepudiateDebt(w, c);
@@ -204,12 +209,16 @@ public static class Fiscal
         double gdpDenom = gdpPerYear.Value;
         RatioToGdpYear dGdp = gdpDenom > 1e-9 ? Calendar.ToGdpYear(w.GovDebt, gdpPerYear) : (w.GovDebt.Value > 0 ? DebtToGdpYearUnbounded : default);
         if (!(dGdp <= DebtToGdpYearUnbounded)) dGdp = DebtToGdpYearUnbounded;
+        if (!onePredicate) MetallicStandardGate(w, c, w.FiscalFundingRatio.Value < c.GoldSuspendMinFundingRatio, broken);
+        // 本位の停止と復帰の門。fundingTrip＝停止の財政の項（旗 0＝r＜GoldSuspendMinFundingRatio・旗 ArrearsOnePredicate＞0＝owes）。法と正貨カバーの項は共通。
+        static void MetallicStandardGate(World w, Coefficients c, bool fundingTrip, bool broken)
+        {
         if (w.MonetaryEnabled)
         {
             double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             if (w.OnGoldStandard)
             {
-                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < c.GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin.Value)
+                if (!w.MetallicStandardLaw || fundingTrip || coverage < c.GoldCoverMin.Value)
                 {
                     w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;
                     if (w.GoldStandardSuspendedInCrisis)
@@ -223,6 +232,7 @@ public static class Fiscal
             else if (w.MetallicStandardLaw && w.FiscalFundingRatio >= c.GoldStandardMinFunding
                      && coverage >= c.GoldCoverMin.Value * c.GoldRejoinCoverMargin && !broken)
             { w.OnGoldStandard = true; w.GoldStandardSuspendedInCrisis = false; }
+        }
         }
         double fisher = Math.Max(c.FisherDeflationFloor, w.ExpectedInflationPerYear.Value) * c.FisherInflationWeight;
         double convDiscount = 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount);
