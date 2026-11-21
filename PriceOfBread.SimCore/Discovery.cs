@@ -4,7 +4,7 @@ public enum DiscoveryField { Institution, Idea, Process, Weapon, Product }
 
 public enum WarDomain { None, Land, Sea, Air }
 
-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "", int EngineerParent = -1);
+public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "");
 
 public static class Discovery
 {

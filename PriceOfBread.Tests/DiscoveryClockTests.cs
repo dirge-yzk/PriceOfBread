@@ -44,12 +44,13 @@ public class DiscoveryClockTests
         return 0;
     }
 
-    /// <summary>行の親の財の集合（<paramref name="clock"/>＝時計の形のとき行の <see cref="DiscoveryRow.EngineerParent"/> を優先・既定の規則は行の財か置き換える財）＋代表のレシピの労働でない投入。</summary>
-    private static HashSet<int> ParentGoods(int row, Producer rp, bool clock)
+    /// <summary>行の親の財の集合（行の財か置き換える財・<paramref name="extraParent"/> が 0 以上ならその財も足す）＋代表のレシピの労働でない投入。</summary>
+    private static HashSet<int> ParentGoods(int row, Producer rp, int extraParent = -1)
     {
         var d = Catalog.Discoveries[row];
-        int g0 = clock && d.EngineerParent >= 0 ? d.EngineerParent : d.Replaces >= 0 ? d.Replaces : d.Good;
+        int g0 = d.Replaces >= 0 ? d.Replaces : d.Good;
         var goods = new HashSet<int> { g0 };
+        if (extraParent >= 0) goods.Add(extraParent);
         foreach (var inp in rp.Inputs)
             if (inp.GoodId != Catalog.LaborId && inp.GoodId != Catalog.AdvLaborId && inp.GoodId != Catalog.FarmLaborId) goods.Add(inp.GoodId);
         return goods;
@@ -193,7 +194,7 @@ public class DiscoveryClockTests
                 if (Catalog.DiscoveryAfter[row] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[row])) continue;   // 前提の行がまだの国は判定しない（点数 0）
                 double dd = (d.Decade - 1780) / 10.0;
                 if (!(dd > 0)) { d0++; continue; }   // d≦0 の行は下の別の検査
-                double a = HandA(w, ParentGoods(row, rp, clock: false));   // 電動機の親は今の規則（行の財か置き換える先の財＋電力の投入・旗 DiscoveryClockMotorParent は c132kx で消した）
+                double a = HandA(w, ParentGoods(row, rp));   // 電動機の親は今の規則（行の財か置き換える先の財＋電力の投入・旗 DiscoveryClockMotorParent は c132kx で消した）
                 double sHand = System.Math.Clamp((wTot / (w0 * dd) - 1.0) / wid + 0.5, 0.0, 1.0);
                 double cHand = a > 0 ? a / (a + TestOwn) : 0.0;
                 double want = Discovery.TermMax * sHand * cHand;
@@ -318,7 +319,7 @@ public class DiscoveryClockTests
                 var rp0 = RepOf(w, row);
                 if (rp0 is null) continue;
                 if (Catalog.DiscoveryAfter[row] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[row])) continue;
-                double aOld = HandA(w, ParentGoods(row, rp0, clock: false)), dd = (d.Decade - 1780) / 10.0;
+                double aOld = HandA(w, ParentGoods(row, rp0)), dd = (d.Decade - 1780) / 10.0;
                 double ef = !(dd > 0) ? 1.0 : !(aOld > 0) ? 0.0 : aOld / (aOld + w.Coef.DiscoveryEngineerHalfPerMonth * dd);   // 手書きの (415) の比（本体の関数を使わない）
                 double old415 = Discovery.TermMax * ef;
                 Assert.True(noW[row].Tech <= old415 * (1 + 1e-9) + 1e-9, $"{d.Name}：既定の技術力 {noW[row].Tech} が (415) の上限 {old415} を超えた");
@@ -331,15 +332,11 @@ public class DiscoveryClockTests
 
         // 電動機の親：今の規則（置き換える先の財か自分の財＋電力の投入）＝蒸気機関の財を足さない
         int motor = Row("電動機");
-        Assert.Equal(Catalog.SteamEngineId, Catalog.Discoveries[motor].EngineerParent);
         var rp = RepOf(Nation(sim, "イギリス"), motor);
         Assert.NotNull(rp);
         var eng = new double[Catalog.Goods.Length];
         eng[Catalog.SteamEngineId] = 5.0; eng[Catalog.ElectricityId] = 2.0;
         Assert.Equal(2.0, Discovery.ParentEngineers(motor, rp!, eng));   // 蒸気機関の財（5.0）は足さない＝労働力の財を除いた投入（電力 2.0）だけ
-        // 電動機の行だけが親の欄を持つ（国別・他の行の定めを変えていない）
-        for (int r = 0; r < Catalog.Discoveries.Length; r++)
-            Assert.True(r == motor ? Catalog.Discoveries[r].EngineerParent >= 0 : Catalog.Discoveries[r].EngineerParent == -1, $"{Catalog.Discoveries[r].Name}：親の欄");
         // 旗は W0 と幅の両方が正のときだけ：W0 が正でも幅が 0 なら新しい経路に入らない（巡回も走らない）
         var half = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
         half.Coef.DiscoveryClockWorldPerMonth = 1000; half.Coef.DiscoveryClockRampWidth = 0;
@@ -421,7 +418,7 @@ public class DiscoveryClockTests
                 if (rp is null) continue;
                 if (Catalog.DiscoveryAfter[motor] >= 0 && !Discovery.Known(w.Discovered, Catalog.DiscoveryAfter[motor])) continue;
                 var terms = Discovery.Evaluate(w, w.LastDiscoveryView! with { WorldAdvLabor = wTot }, w.Coef, includeKnown: true);
-                double aSteam = HandA(w, ParentGoods(motor, rp, clock: true)), aOld = HandA(w, ParentGoods(motor, rp, clock: false));
+                double aSteam = HandA(w, ParentGoods(motor, rp, extraParent: Catalog.SteamEngineId)), aOld = HandA(w, ParentGoods(motor, rp));
                 double a = aOld;
                 double want = Discovery.TermMax * sHand * (a > 0 ? a / (a + TestOwn) : 0.0);
                 Assert.True(System.Math.Abs(terms[motor].Tech - want) <= 1e-9 * System.Math.Max(1.0, want), $"{n.World.SelfPower?.BaseName} 電動機（旗 {flag}）：技術力 {terms[motor].Tech} ≠ {want}（A蒸気={aSteam}・A旧={aOld}）");

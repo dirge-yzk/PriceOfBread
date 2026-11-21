@@ -63,8 +63,6 @@ public sealed partial class Coefficients
     public double[] MilitaryWearRatesPerMonth = [0.02, 1.0, 0.02, 0.02, 0.02, 1.0, 0.02];   // 必要量＝汽船1003／小銃5013／火砲2005／軍艦501 に対し買えたのは 汽船0.0／小銃32.7／火砲13.9／軍艦6.4＝装備充足0〜1%
     public double MilitaryUpkeepScale = 0.18 / Military.WorkingMenStdShare;                 // 兵士1人あたりの平時軍需消費スケール（0.12→0.18＝戦争が減っても常備軍の調達で火薬/鉛/帆船の連鎖を維持＝死蔵防止）
     public double InitialArsenalMonths = 60.0;   // 播種の対象財は Simulation.InitialArmsIndustryGoods
-    public double MilitaryWarMult = 9.0;                      // 元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
-    public double WarMobilizationDepth = 0.5;                 // 長期戦ほど総動員(WWI型)
     public double WarArmsDemandPerContact = 42.0;             // 接触の割合 1 あたりの軍需の上乗せの倍率（Simulation の戦時の倍率が読む＝1＋これ×接触の割合）
     public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
     public double[] MilitaryQualityRates = [0.5, 0.1];       // 各上位軍需の消費比率（基本より少量＝高価な少数精鋭）

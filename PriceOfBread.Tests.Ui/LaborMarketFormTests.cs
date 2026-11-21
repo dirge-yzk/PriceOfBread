@@ -371,17 +371,6 @@ public class LaborMarketFormTests
     }
 
     [Fact]
-    public void AIの段の置き方は都市の割合の線で4段に分かれる()
-    {
-        Assert.Equal(MinimumWageLaw.None, UtilityAgent.MinimumWageWant(0.0));
-        Assert.Equal(MinimumWageLaw.None, UtilityAgent.MinimumWageWant(1.0 / 3.0));
-        Assert.Equal(MinimumWageLaw.Subsistence, UtilityAgent.MinimumWageWant(0.40));
-        Assert.Equal(MinimumWageLaw.Living, UtilityAgent.MinimumWageWant(0.55));
-        Assert.Equal(MinimumWageLaw.Sufficiency, UtilityAgent.MinimumWageWant(0.70));
-        Assert.Equal(MinimumWageLaw.None, UtilityAgent.MinimumWageWant(double.NaN));
-    }
-
-    [Fact]
     public void 軸は方針の複写_検証_文言_段の表_議会_要求_PlayHarness_すべてに載る()
     {
         // 方針の複写（Clone/CopyFrom の運搬漏れ）

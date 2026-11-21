@@ -437,7 +437,7 @@ public static class Catalog
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),
         new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),
         new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880),
-        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880, EngineerParent: SteamEngineId),
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),
         new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),
         new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),
         new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910),
