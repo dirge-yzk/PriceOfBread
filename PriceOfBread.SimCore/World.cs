@@ -1596,9 +1596,7 @@ public sealed class World
         double demand = Coef.ModernizationCostGdpShare * Math.Max(0, NominalGdpPerMonth.Value) * costMul * convex;   // 要求額（frac→1で発散）
         double half = Math.Max(0, Treasury.Value) * 0.5;                 // 国庫の半分/四半期は依然として上限（暴走防止）
         // ソフト形＝demand/(1+demand/half)  （SelfPlay.Score.Military と同じ既存の逓減形）＝fracの序が全帯で保存され、frac=1.0 の漸近値は旧の壁と同額（上限は保存）。〔履歴 World.cs#251〕
-        double budget = Coef.ModernizationBudgetSoftCap > 0
-            ? half / (1.0 + half / demand)
-            : Math.Min(demand, half);
+        double budget = half / (1.0 + half / demand);
         // 近代化投資は鉄道の免許・検地・工場の認可を要する＝**それを握っているのが旧支配層**なので、   彼らの政治力が強いほど話が進まない。〔履歴 World.cs#252〕
         if (Coef.ModernizationOldGuardResist > 0)
         {
