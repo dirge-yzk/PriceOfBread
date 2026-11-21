@@ -1,0 +1,46 @@
+m1282 事前登録 (1282) c132g2 恒等（一掃）：既定 1 の古い旗の群 2（政治と AI の 9 名）の焼き込み
+基線 main fa4653318（m1280）。区分は README ★(743)。作者 2026-11-12「推奨で進めて」・作者 2026-11-21 の一掃の裁定。
+
+[1] 恒等の線・予言 0
+ - 既定 1 の道だけを残し、旗と旧の道を消す。係数のリテラルは書き換えない。
+ - 浮動小数の順序が変わる箇所：なし。値 1.0 を掛ける項を畳む箇所は x*1.0==x（IEEE で厳密）で、足し引きの順序は変えない。
+   畳む式（旧→新）：
+   SurvivalHopelessScale  1.0 - S*(1.0 - c)   → 1.0 - (1.0 - c)        （重み 1 を式へ畳む・式は残す）
+   FactionTargetsWeakAxis 1.0 + W*opp         → 1.0 + opp              （重み 1 を式へ畳む）
+   MandateReligiousCircuit 1.0 - K*(1.0 - a)  → 1.0 - (1.0 - a)        （重み 1・残す側の式を焼く）
+   OpulenceTaxRelief      1.0 - R*(1.0 - mul) → 1.0 - (1.0 - mul)      （重み 1）
+   ConsciousnessFromSchoolingStock (1-g)*now + g*stock（g=1）→ stock  （0*now は +0・0+stock は stock＝now は有限の表の値・stock は非負）
+   紙の台本で同じ盤面の旧と新の食い違い数：x*1.0 と x の比べは数学的に厳密のため 0（0 でなければその箇所を外す）。
+ - cearn_s・cpop_s の経路の名の行番号の違いは写像で 0。書き換える行に route_anchors の鍵の行は無い（SelfPlay.cs・Politics.cs・FactionSnapshot.cs・World.cs の該当行を grep）。
+
+[2] 消す物（名前・ファイル:行・読み手）main fa4653318 で git grep -w した全域（SimCore・App・Display・Runner・Tests・Tests.Ui・scripts・POB_COEF の名前・SaveGame は欄の名で係数は載らない）
+ OpulenceTaxRelief       Coefficients.p04_trade.cs:15 / SelfPlay.cs:694・698 / 試験 PolicyPoliticsTests:752・764・806・RevoltIgnitionTests:1496(注) / scripts/instruments/m203/inj_t203.py:84-85（閉じた線の注入の台本＝触らない・記録）
+ SurvivalHopelessScale   p06:28 / SelfPlay.cs:460-461（戦争の入口の波は今無い）
+ SovietTaxProfile        p08:16 / SelfPlay.cs:986
+ MinimumWageAiFromFloor  p10:25 / SelfPlay.cs:630（MinimumWageTargetChosen は FromFloor へ畳む）/ 試験 MinimumWageAiFloorTests:108・115・183・193・211 / DormantIdentityTests:170(注)
+   MinimumWageTargetFromBoard は Tests.Ui(LaborMarketFormTests:380-384)が読む＝owns の外のため残す（孤児・本番の読み手 0・記録）
+ ConsciousnessFromSchoolingStock p08:104 / Politics.cs:50・55 / scripts/instruments/r1094/mult.py:6・readers.py:6（名の一覧・触らない）
+ MandateReligiousCircuit p09:79 / Politics.cs:216・223
+ FactionTargetsWeakAxis  p06:38 / FactionSnapshot.cs:134-135 / 試験 LordStakeD1bD2Tests:76・146・PolicyPoliticsTests:1893・1900・Rs3LordReverseGainTests:120・122
+ ParticipationDiscontent Coefficients.cs:103 / FactionSnapshot.cs:42・52・68 / 試験 DiscontentReaderTests:110-129・PolicyPoliticsTests:269-306・InstrumentsTests:1630(注)・WriterRatchetTests:560(注)・DormantIdentityTests:76(注) / App GameViewModel.Politics.cs:348-349 は注だけ＝触らず 00一覧の ⑲ へ（合流）
+   MultiNationSim.cs:1689 の費目の名の文字列は変えない（cost の表のバイト）。FactionSnapshot.MilitancyThreshold は旧の二値の読み手が消えると孤児：残す（定数・読み手を grep して下に名乗る）
+ ModernizationBudgetSoftCap p10:84 / World.cs:1599 / 試験 RevoltIgnitionTests:12(注)・38・231・235
+ NationConsciousnessPerPop は (1193) で消えた＝数えない。
+ 孤児になる係数：なし（ClergyMediationPerCapita・SurvivalThreatRatio などは残す式が読む）。
+ 他の線との重なり：c132kx は Coefficients.cs :70-71・:142・p04 :35・p06 :114 ほか別の行・SelfPlay.cs には触れない。c132fg・c132df とは持ち主のファイルが別。
+
+[3] 足す試験と突然変異（名ごとに旧の道を戻す→赤・種 3）
+ 試験は残した道の主張が今の盤面で通る形：
+  - ParticipationDiscontent：PolicyPoliticsTests 段3_（旗 0 の側）→ 閾値の下の闘争度 0.3 も運動に数えられる主張へ。DiscontentReaderTests は旗の切替を外し新の式だけ。
+  - OpulenceTaxRelief：RelieveOpulence を internal にして直接呼び、潤沢な国の税の目標が下がり専売の段が動かない主張。
+  - FactionTargetsWeakAxis：期待値に 1/(1+反対の力) を掛ける（反対の力は手で呼ぶ）。
+  - MinimumWageAiFromFloor：旗の 0 の腕を外し、入口が FromFloor で台帳が増える主張だけ残す。
+  - ModernizationBudgetSoftCap：R4 は off の腕を外し、0.3<0.6<1.0 の単調性と frac=1.0 が NaN でなく国庫の半分以下の主張。
+  - SurvivalHopelessScale・SovietTaxProfile・ConsciousnessFromSchoolingStock・MandateReligiousCircuit：既存の機構の試験が今の盤面で通ること（旗を読む試験は無い）。
+ 突然変異（旧の道を戻す・各 1）：各名で「旗の枝の復活」＝該当の式を旧の形へ戻す → 上の試験（または既存の機構の試験）が赤。赤にならない名は穴として記録し試験を足す。
+ ㉘ 走査の番人：IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・OnDoubleReadScan を器のコミットの直後に回す。
+ ㉑ 書き換える件数の予言：許可表・宣言の表の行は旗の名の注だけ（件数 0 の変化）。route_anchors の鍵の行 0。new MoneyStock( の件数は不変。
+
+[4] 素の 5 種・計器つき 10 種が m1280 と名乗り行を除いて全行一致（計器の表の差は宣言だけ）。ng は m797 と同じ集合。
+[5] 〈判定: 恒等〉なら採る（測った種で一致）。一致しなければその変更を外して報告に回す。
+ 試験の数の予言：3091（消す試験 0・書き直しだけ）。計算量の件数が増えない（ParticipationPops は countCost 呼びで旧も旗 1＝同じ）。
