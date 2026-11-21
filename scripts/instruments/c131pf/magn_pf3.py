@@ -30,7 +30,7 @@ def mean(v): return sum(v) / len(v) if v else float('nan')
 def seed(raw, s):
     out = {}
     pn, pg, pp, ps = (os.path.join(raw, f'{t}_s{s}.tsv') for t in ('nation', 'nationgood', 'port', 'sellr'))
-    if not all(os.path.exists(p) for p in (pn, pg, pp, ps)): return None
+    if not all(os.path.exists(p) for p in (pn, pg, pp)): return None   # sellr_s は記録の H5 だけが読む＝無ければ H5 は空（腕 B は D: の床のため sellr_s を外す・追記 4）
     nrows = list(rows(pn))
     yend = max(int(r[ix['year']]) for ix, r in nrows)
     yk = {1850: 1850, 1913: 1913, yend: END}
@@ -79,12 +79,15 @@ def seed(raw, s):
         out[('H3', y)] = mean(jam[y]) if jam[y] else 0.0
         out[('H4', y)] = mean([mean(v) for v in hhi[y].values()])
     cof = {1850: [], 1910: []}
-    for ix, r in rows(ps):
-        y = int(r[ix['year']])
-        if y in cof and r[ix['region']] == JAM and r[ix['good']] == 'コーヒー':
-            q = fl(r[ix['prevExportAll']])
-            if q == q: cof[y].append(q)
-    for y in cof: out[('H5', y)] = mean(cof[y]) if cof[y] else 0.0
+    if os.path.exists(ps):
+        for ix, r in rows(ps):
+            y = int(r[ix['year']])
+            if y in cof and r[ix['region']] == JAM and r[ix['good']] == 'コーヒー':
+                q = fl(r[ix['prevExportAll']])
+                if q == q: cof[y].append(q)
+        for y in cof: out[('H5', y)] = mean(cof[y]) if cof[y] else 0.0
+    else:
+        for y in cof: out[('H5', y)] = float('nan')
     return out
 
 def read(raw, sb):
