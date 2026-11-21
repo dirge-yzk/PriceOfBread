@@ -10,16 +10,16 @@ for s in range(s0, s1 + 1):
     n_new = 0; n_uk = 0
     for r in csv.DictReader(f, delimiter='\t'):
         tot['rows'] += 1
-        g = r['onGoldBefore'] == '1'; po = r['predOld'] == '1'; pn = r['predNew'] == '1'; ow = r['owes'] == '1'
-        if g and pn: n_new += 1; nat_new[r['nation']] += 1; dec_new[int(r['year']) // 10 * 10] += 1
-        if g and pn and r['nation'] == UK: n_uk += 1
-        if g and po: tot['goldPredOld'] += 1
-        if g and pn and not po: tot['goldNewOnly'] += 1
-        if g and po and not pn: tot['goldOldOnly'] += 1
-        if ow and not g: tot['owesOffGold'] += 1
-        if ow and g: tot['owesOnGold'] += 1
+        onG = r['onGoldBefore'] == '1'; po = r['predOld'] == '1'; pn = r['predNew'] == '1'; ow = r['owes'] == '1'
+        if onG and pn: n_new += 1; nat_new[r['nation']] += 1; dec_new[int(r['year']) // 10 * 10] += 1
+        if onG and pn and r['nation'] == UK: n_uk += 1
+        if onG and po: tot['goldPredOld'] += 1
+        if onG and pn and not po: tot['goldNewOnly'] += 1
+        if onG and po and not pn: tot['goldOldOnly'] += 1
+        if ow and not onG: tot['owesOffGold'] += 1
+        if ow and onG: tot['owesOnGold'] += 1
         try:
-            if float(r['arrNewMonth']) > 0 and not g: tot['offGoldAccrueNew'] += 1
+            if float(r['arrNewMonth']) > 0 and not onG: tot['offGoldAccrueNew'] += 1
         except ValueError: pass
     per_seed_new.append(n_new); uk_new.append(n_uk)
 print(f'# (1284) arrears_sum {raw} 種 {s0}〜{s1}')

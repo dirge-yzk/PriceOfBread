@@ -23,12 +23,12 @@ shadow = collections.Counter()
 for s in range(s0, s1 + 1):
     prev = {}; cnt = 0; ukc = 0; ukyrs = []; open_run = {}
     for r in csv.DictReader(open(f'{raw}/mintcap_s{s}.tsv', encoding='utf-8'), delimiter='\t'):
-        n = r['nation']; g = r['onGold']; law = r['law']; p = prev.get(n); prev[n] = (g, law)
-        if p is not None and p[0] == '1' and g == '0' and law in ('1', '2'):
+        n = r['nation']; onG = r['onGold']; law = r['law']; p = prev.get(n); prev[n] = (onG, law)
+        if p is not None and p[0] == '1' and onG == '0' and law in ('1', '2'):
             cnt += 1; open_run[n] = 0
             if n == UK: ukc += 1; ukyrs.append(int(r['year']))
-        elif g == '0' and n in open_run: open_run[n] += 1
-        elif g == '1' and n in open_run:
+        elif onG == '0' and n in open_run: open_run[n] += 1
+        elif onG == '1' and n in open_run:
             runs.append(open_run[n] + 1)
             if n == UK: uk_runs.append(open_run[n] + 1)
             del open_run[n]
