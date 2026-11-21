@@ -43,7 +43,6 @@ public sealed partial class Coefficients
     public RatePerQuarter JobSearchRatePerQuarter = new(0.025);         // 同階級のもっともマシな職へ資格（識字×高等教育）の按分で転職し、駄目なら1段下の最良職へ降格
     public double JobPoolTemperature = 0.15;     // 値はMigrationTemperature同値
     // --- 社会移動リアリティ監査 2026-08-15（docs/202608/20260815_社会移動リアリティ監査_部分完了.md・点火状況は各行参照・点火は1本1バッチのA/B）---
-    public double MerchantArtisanCapitalRise = 1.0;  // 閾値/率は既存CapitalRiseThreshold/CapitalRiseRatePerQuarterを共用（これは率の乗数・1で専門職と同率）
     public RatePerQuarter PettyEntryRatePerQuarter = new(0.02);             // >0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖
     public double SerfGateCoversPool = 0.0;   // ＝農奴が「職探し」なら都市へ入れる
     public double SerfMobilityGate = 1.0;            // 都市→農村は自由＝非対称

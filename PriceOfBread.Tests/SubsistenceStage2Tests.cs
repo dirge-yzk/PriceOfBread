@@ -11,7 +11,7 @@ public class SubsistenceStage2Tests
     private static MultiNationSim Two(ulong seed, double flag)
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: seed) { DiplomacyFrozen = true };
-        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; n.World.Coef.SubsistenceNoBoughtTech = 0; }
+        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; }
         return sim;
     }
 

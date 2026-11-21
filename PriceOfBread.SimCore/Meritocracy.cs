@@ -174,7 +174,6 @@ public static class Meritocracy
                     if (AssetPerCap(t) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))
                         Move(t, capitalist, c.CapitalRiseRatePerQuarter.Value * t.Size, c);
                 }
-                if (c.MerchantArtisanCapitalRise > 0)
                 {
                     for (int pi = 0; pi < 2; pi++)
                     {
@@ -185,7 +184,7 @@ public static class Meritocracy
                         if (AssetPerCap(t) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))
                         {
                             double szC0 = ins ? t.Size : 0;
-                            Move(t, capitalist, c.CapitalRiseRatePerQuarter.Value * c.MerchantArtisanCapitalRise * t.Size, c);
+                            Move(t, capitalist, c.CapitalRiseRatePerQuarter.Value * t.Size, c);
                             if (ins && pi == 0) Instruments.MerchRoute(r, 2, szC0 - t.Size);
                         }
                     }
@@ -244,7 +243,7 @@ public static class Meritocracy
                     }
                 }
 
-            if (c.MerchantArtisanCapitalRise > 0 && r.MerchantPopIndex >= 0 && avgPerCap > Eps)
+            if (r.MerchantPopIndex >= 0 && avgPerCap > Eps)
             {
                 var mt = r.Pops[r.MerchantPopIndex];
                 double pcM = mt.Size > Eps ? AssetPerCap(mt) : 0;

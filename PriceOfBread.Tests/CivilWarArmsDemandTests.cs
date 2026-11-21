@@ -28,7 +28,6 @@ public class CivilWarArmsDemandTests
             {
                 Assert.Equal(9.0, n.World.Coef.MilitaryWarMult);          // 前提（旧と新の規則の列の期待の出所）
                 Assert.Equal(0.5, n.World.Coef.WarMobilizationDepth);
-                n.World.Coef.MilitaryWarMultFromContact = 1.0;
                 n.World.Coef.WarArmsDemandPerContact = kappa;
             }
             fr.SelfPower!.WarExhaustion = 0.4; es.SelfPower!.WarExhaustion = 0.0;

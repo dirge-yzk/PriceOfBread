@@ -45,7 +45,7 @@ public static partial class Instruments
     {
         if (!Tg.Fd) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         var c = w.Coef;
-        if (!(c.StapleLedgerSum > 0 || c.StapleDemandRebalance > 0 || c.HarvestShortfallToMarket > 0) || !picked || !(w.TotalPopulation > 0)) return;
+        if (!(c.StapleLedgerSum > 0 || c.HarvestShortfallToMarket > 0) || !picked || !(w.TotalPopulation > 0)) return;
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string nation = NameOf(w);
         foreach (var r in w.Regions)
@@ -57,7 +57,7 @@ public static partial class Instruments
             if (!sk.FdHeader) { sk.Fd.WriteLine(FdHeaderText); sk.FdHeader = true; }
             sk.Fd.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), F(d.PopK), F(d.StapleNeed), F(d.MarketNeed), F(d.Desired), F(d.DesiredOld), F(d.Demand), F(d.Sub), F(d.OldMet), F(d.Carry), F(d.CarryPopK),
                 F(Div(d.FillOldW, d.FillPopK)), F(Div(d.FillNewW, d.FillPopK)), F(d.BelowOldK), F(d.BelowNewK), F(d.HarvestMean), F(Div(d.SubsW, d.StapleNeed)), F(d.ClampBindShare), F(d.WeatherHarvestMean), F(d.LandFactor), F(d.OverNeedPopK),
-                I((c.StapleLedgerSum > 0 ? 1 : 0) + (c.StapleDemandRebalance > 0 ? 2 : 0) + (c.HarvestShortfallToMarket > 0 ? 4 : 0))));
+                I((c.StapleLedgerSum > 0 ? 1 : 0) + (c.HarvestShortfallToMarket > 0 ? 4 : 0))));
         }
     }
 }

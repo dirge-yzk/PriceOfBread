@@ -75,7 +75,7 @@ public class ServiceEconomyTests
         var (r, _, _, _) = EduRegion(workerSavings: 0, compulsoryFunding: 1.0, supplyPerTeacher: 0.9);
         foreach (var p in r.Pops) p.SetSavings(0);
         r.AdminFill = 0.4;
-        EconomyStep.Run(r, new Coefficients { EduReachFromAdmin = 0.5 });
+        EconomyStep.Run(r, new Coefficients());
         var m = r.Markets[Catalog.EducationId];
         double dist = r.Pops.Where(p => !p.IsSoldier).Sum(p => p.GoodNeed * p.EducationFill);
         Assert.True(m.LastSold > 1e-9, "国庫が教育を買っていない（テストの前提が崩れている）");
@@ -84,7 +84,7 @@ public class ServiceEconomyTests
     }
 
     [Fact]
-    public void 教育給付の行政の脚は天井にだけ効き行政ゼロでも給付は消えない()
+    public void 教育給付は行政の充足に依らない_行政ゼロでも給付は消えない()
     {
         static Region Arm(double adminFill)
         {
@@ -93,21 +93,12 @@ public class ServiceEconomyTests
             r.AdminFill = adminFill;
             return r;
         }
-        // (a) 係数0＝AdminFill を1ビットも見ない（休眠の恒等）
-        var offHigh = Arm(1.0); var offLow = Arm(0.0);
-        EconomyStep.Run(offHigh, new Coefficients());
-        EconomyStep.Run(offLow, new Coefficients());
-        Assert.Equal(offHigh.CumEducationCost, offLow.CumEducationCost, 12);
-
-        // (b) 係数0.5＝天井が 1−0.5×(1−AdminFill) 倍。供給が潤沢な腕なので比は形どおり 1:0.5
-        var c = new Coefficients { EduReachFromAdmin = 0.5 };
-        var onHigh = Arm(1.0); var onLow = Arm(0.0);
-        EconomyStep.Run(onHigh, c);
-        EconomyStep.Run(onLow, c);
-        Assert.Equal(offHigh.CumEducationCost, onHigh.CumEducationCost, 12);   // 行政満額なら係数の有無で変わらない
-        Assert.Equal(0.5, onLow.CumEducationCost / onHigh.CumEducationCost, 9);
-        // (c) 床＝行政ゼロでも給付は消えない（素の ×AdminFill に書き換えた瞬間に赤）
-        Assert.True(onLow.CumEducationCost > 0, "行政ゼロで給付が消えた＝床(1−係数)が失われている");
+        // 係数 EduReachFromAdmin は c132kx で消した＝給付の天井は AdminFill を見ない（行政満額と行政ゼロで同じ）。
+        var high = Arm(1.0); var low = Arm(0.0);
+        EconomyStep.Run(high, new Coefficients());
+        EconomyStep.Run(low, new Coefficients());
+        Assert.Equal(high.CumEducationCost, low.CumEducationCost, 12);
+        Assert.True(low.CumEducationCost > 0, "行政ゼロで給付が消えた");
     }
 
     [Fact]

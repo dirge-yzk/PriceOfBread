@@ -182,7 +182,7 @@ public class SubstInstrumentTests
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_subst2_" + Guid.NewGuid().ToString("N"));
         var sim = Two(1791UL);
-        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; n.World.Coef.SubsistenceNoBoughtTech = 0; }
+        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; }
         sim.StartWarmup(quartersOverride: 1);
         Instruments.Configure(dir, "*");
         try { for (int q = 0; q < 2; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1791UL, q); } }

@@ -1,0 +1,8 @@
+(1281) c132kx 突然変異（使い捨ての木 D:/PoB_work/c132kx_work/mut・台本 scripts/instruments/c132kx/mut1281.py）＝6 本とも赤（失敗 件/合計）
+M08 EduReachFromAdmin の到達 r を戻す → 赤（ServiceEconomyTests・StateEduDemandTests 失敗 6/27）
+M18 EconomyStep の t を 1.0 に固定 → 赤（SubsistenceNoBoughtTechTests 失敗 1/1）
+M23 ParentEngineers に EngineerParent を戻す → 赤（DiscoveryClockTests 失敗 2/10）
+M25 主食の挟み Math.Clamp を外す → 赤（FoodLedgerTests 失敗 3/11）
+M29 warMult を MilitaryWarMult に戻す → 赤（MilitaryWarMultContactTests 失敗 6/6）
+M52 DevaluationAllowed を Math.Min に戻す → 赤（DevaluationCapReliefTests 失敗 4/8）
+K09（枝が無いことが主張・読み手の試験なし）と K14（rank1 の昇格を見る試験が無い＝既存の穴）は突然変異なし。

@@ -328,12 +328,8 @@ public static class Fiscal
     internal static bool BorrowGateOpen(World w, Coefficients c)
         => !(w.BorrowCooldownMonths > 0) && !w.WarmupFrozen && w.LastInterestPerMonth < c.MaxInterestShareOfRevenue * w.LastRevenuePerMonth;
 
-    internal static double DevaluationAllowed(double room, double cap, double reliefExp)
-    {
-        if (!(reliefExp > 0) || !(cap > 0) || !(room > cap)) return Math.Min(room, cap);
-        if (reliefExp >= 1.0) return room;
-        return Math.Min(room, cap * Math.Pow(room / cap, reliefExp));
-    }
+    internal static double DevaluationAllowed(double room, double cap)
+        => !(cap > 0) || !(room > cap) ? Math.Min(room, cap) : room;
 
     internal static double FiatPressureOfLedger(double devalue, double savingsBefore, double issue)
     {

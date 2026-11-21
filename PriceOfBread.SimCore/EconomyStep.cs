@@ -37,9 +37,8 @@ public static class EconomyStep
         public Good[] ConsumeOrder = [];
         public int[] SortSlot = [];    // ★(spt2) 財の Id→今の顔ぶれの位置＋1（NearSort.TryReorder の作業配列・全て 0 のまま返る）
         public Good[] SortBuf = [];    // ★(spt2) 並べ直しの作業配列
-        public double[] PopNorm = [], FoodOvf = [], FoodDfc = [];   // PopNorm〔履歴 EconomyStep.cs#7〕
+        public double[] FoodOvf = [], FoodDfc = [];   // PopNorm〔履歴 EconomyStep.cs#7〕
         public double[] StapleSubst = [], StapleSelf = [];          // StapleSubst〔履歴 EconomyStep.cs#8〕
-        public int[] StapleIds = []; public double[] StapleE = [];  // StapleIds〔履歴 EconomyStep.cs#9〕
     }
     /// <summary>
     /// 主食の交差弾力の冪＝(主食の幾何平均 ÷ 自分の値段比)^CrossElasticity（旧は消費の財のループの中の 2 行。〔履歴 EconomyStep.cs#10〕
@@ -114,7 +113,7 @@ public static class EconomyStep
         }
         var (cap, lp) = HumanFarmLabor(region);
         double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
-        double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef), need = StapleNeedPerCapita;   // u〔履歴 EconomyStep.cs#16〕
+        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef), need = StapleNeedPerCapita;   // u〔履歴 EconomyStep.cs#16〕
         for (int i = 0; i < pops.Count; i++)
         {
             var p = pops[i];
@@ -136,7 +135,7 @@ public static class EconomyStep
         var (cap, _) = HumanFarmLabor(region);
         if (!(cap > 0)) return 0;
         double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
-        double u = UnsoldFarmCapacity(sold, cap), t = coef.SubsistenceNoBoughtTech > 0 ? 1.0 : StapleEffTech(region, coef);   // u〔履歴 EconomyStep.cs#18〕
+        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef);   // u〔履歴 EconomyStep.cs#18〕
         double lneed = StapleNeedPerCapita * lpop.Size / (lpop.SubsistenceBasis * t);
         return PoliticalQuantities.Clamp01((u - lneed) / cap);
     }
@@ -160,17 +159,13 @@ public static class EconomyStep
     /// 旗①②③のどれかが正の月だけ呼ぶ（全て 0 の月は呼ばない＝厳密恒等）。〔履歴 EconomyStep.cs#21〕
     /// </summary>
     private static void StapleFoodPrepare(Region region, Coefficients coef, Scratch scratch, double[] demandGate, double stapleMeanRatio, double regionLandFactor, int ng,
-        bool ledger, bool rebalance, bool shortfall, Instruments.FdDiag? fdd)
+        bool ledger, bool shortfall, Instruments.FdDiag? fdd)
     {
         int np = region.Pops.Count;
-        if (scratch.PopNorm.Length < np) { scratch.PopNorm = new double[np]; scratch.FoodOvf = new double[np]; scratch.FoodDfc = new double[np]; }
+        if (scratch.FoodOvf.Length < np) { scratch.FoodOvf = new double[np]; scratch.FoodDfc = new double[np]; }
         else { System.Array.Clear(scratch.FoodOvf, 0, np); System.Array.Clear(scratch.FoodDfc, 0, np); }
         if (scratch.StapleSubst.Length < ng) { scratch.StapleSubst = new double[ng]; scratch.StapleSelf = new double[ng]; }
-        int n = 0;
-        foreach (var g in region.Goods) if (g.Tier == GoodTier.Staple && g.Id < ng) n++;
-        if (scratch.StapleIds.Length < n) { scratch.StapleIds = new int[n]; scratch.StapleE = new double[n]; }
-        double[] subst = scratch.StapleSubst, self = scratch.StapleSelf, es = scratch.StapleE; int[] ids = scratch.StapleIds;
-        int k = 0;
+        double[] subst = scratch.StapleSubst, self = scratch.StapleSelf;
         double eSum = 0, hSum = 0, hwSum = 0, bindSum = 0;
         foreach (var g in region.Goods)
         {
@@ -180,22 +175,10 @@ public static class EconomyStep
             self[id] = shortfall ? (double.IsFinite(f) ? Math.Max(0.0, f) : 1.0) : 1.0;   // 追記 2：豊作も凶作も対称（自給の産出 sub＝必要量×自給率×収穫係数 と同じ向き）。非有限は 1（旧）へ倒れる
             subst[id] = CrossSubstitution(Math.Max(region.Markets[id].Price, Eps), g.RefPrice, stapleMeanRatio, coef.CrossElasticity);
             double e = (g.BaseNeed + Habit.StockOf(region, Habit.Of(coef, id))) * demandGate[id];   // 消費の財のループの effBaseNeed と同じ式（主食に医薬・住居・動物性の補正は無い）
-            ids[k] = id; es[k] = e; k++;
             if (fdd is not null)
             {
                 eSum += e; hSum += e * f; hwSum += e * StapleHarvestFactor(region, id, 1.0);
                 if (subst[id] < coef.PriceFactorMin || subst[id] > coef.PriceFactorMax) bindSum += e;
-            }
-        }
-        if (rebalance)
-        {
-            var norm = scratch.PopNorm;
-            for (int i = 0; i < np; i++)
-            {
-                double s = region.Pops[i].SubsistenceShare, s0 = 0, s1 = 0;
-                for (int j = 0; j < k; j++) { int id = ids[j]; double m = es[j] * Math.Max(0.0, 1.0 - s * self[id]); s0 += m; s1 += m * subst[id]; }
-                double r = s0 / s1;
-                norm[i] = s1 > 0 && double.IsFinite(r) ? r : 1.0;
             }
         }
         if (fdd is not null) { fdd.HarvestMean = eSum > 0 ? hSum / eSum : double.NaN; fdd.WeatherHarvestMean = eSum > 0 ? hwSum / eSum : double.NaN; fdd.LandFactor = regionLandFactor; fdd.ClampBindShare = eSum > 0 ? bindSum / eSum : double.NaN; }
@@ -1499,16 +1482,15 @@ public static class EconomyStep
         double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
         // 旗①②③が全て 0 の月は下の塊の中を 1 行も走らない（厳密恒等）。〔履歴 EconomyStep.cs#200〕
         bool fdLedger = coef.StapleLedgerSum > 0;
-        bool fdRebalance = coef.StapleDemandRebalance > 0 && coef.CrossElasticity > 0 && stapleN > 1 && !(coef.FoodIncludesAnimalProtein > 0);
         bool fdShortfall = coef.HarvestShortfallToMarket > 0;
-        bool fdAny = fdLedger || fdRebalance || fdShortfall;
+        bool fdAny = fdLedger || fdShortfall;
         Instruments.FdDiag? fdd = fdAny && Instruments.On ? Instruments.FdBegin(region) : null;   // fdd〔履歴 EconomyStep.cs#201〕
-        double[] fdSelf = [], fdNorm = [], fdOvf = [], fdDfc = [];
+        double[] fdSelf = [], fdOvf = [], fdDfc = [];
         if (fdAny)
         {
-            StapleFoodPrepare(region, coef, scratch, demandGate, stapleMeanRatio, regionLandFactor, ng, fdLedger, fdRebalance, fdShortfall, fdd);
-            fdSelf = scratch.StapleSelf; fdNorm = scratch.PopNorm; fdOvf = scratch.FoodOvf; fdDfc = scratch.FoodDfc;
-            if (costL is not null && (fdLedger || fdRebalance)) costL[CostLedger.StapleLedgerPops] += (long)region.Pops.Count * ((fdRebalance ? 1 : 0) + (fdLedger ? 1 : 0));   // 計算量の台帳：前計算 1 段＋決済後の締め 1 段
+            StapleFoodPrepare(region, coef, scratch, demandGate, stapleMeanRatio, regionLandFactor, ng, fdLedger, fdShortfall, fdd);
+            fdSelf = scratch.StapleSelf; fdOvf = scratch.FoodOvf; fdDfc = scratch.FoodDfc;
+            if (costL is not null && fdLedger) costL[CostLedger.StapleLedgerPops] += (long)region.Pops.Count;   // 計算量の台帳：前計算 1 段＋決済後の締め 1 段
         }
         // 飛ばす側でも GoodNeed・GoodDemand には +0 を書く（財ごとの作業欄＝飛ばすと前の財の値が残る）。〔履歴 EconomyStep.cs#202〕
         bool skipZeroPop = !insOn && insSpend is null && insEnt is null && fdd is null && !BudgetBindDiag.On;
@@ -1555,7 +1537,7 @@ public static class EconomyStep
                 && !habit.Active
                 && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
             // ★必要の無い財は楔・価格弾力の冪を求めない（計算量・恒等）：下で使うのは POP のループ（needless なら回さない）と後段の POP のループ（同）だけ＝needless の財では値が読まれない。
-            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0, fdOldFactor = 0;
+            double stateMonop = 0, distM = 0, monRent = 0, guildRent = 0, insure = 0, buyerPrice = 0, priceFactor = 0;
             if (!needless)
             {
                 // BuyerWedge〔履歴 EconomyStep.cs#208〕
@@ -1570,7 +1552,6 @@ public static class EconomyStep
                 {
                     double subst = CrossSubstitution(usePrice, good.RefPrice, stapleMeanRatio, coef.CrossElasticity);
                     priceFactor = Math.Clamp(selfFactor * subst, coef.PriceFactorMin, elasMax);
-                    if (fdRebalance && staple) { fdOldFactor = priceFactor; priceFactor = subst; }   // fdRebalance〔履歴 EconomyStep.cs#211〕
                 }
                 else
                     priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
@@ -1598,8 +1579,7 @@ public static class EconomyStep
                 if (marketNeed > 0)
                 {
                     double desired = marketNeed * priceFactor;
-                    if (fdRebalance && staple) desired *= fdNorm[pIdx];   // fdRebalance〔履歴 EconomyStep.cs#220〕
-                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.SubsistenceShare) * (fdRebalance ? fdOldFactor : priceFactor); }   // SubsistenceShare〔履歴 EconomyStep.cs#221〕
+                    if (fdd is not null && staple) { fdd.MarketNeed += marketNeed; fdd.Desired += desired; fdd.DesiredOld += p.GoodNeed * (1.0 - p.SubsistenceShare) * priceFactor; }   // SubsistenceShare〔履歴 EconomyStep.cs#221〕
                     if (incomeElasticGood) desired *= gi == Catalog.DomesticServiceId && coef.DomesticServiceIncomeFactorExponent != 1.0 ? Math.Pow(incomeFactorOfPop![pIdx], coef.DomesticServiceIncomeFactorExponent) : incomeFactorOfPop![pIdx];   // DomesticServiceIncomeFactorExponent〔履歴 EconomyStep.cs#222〕
                     // 既定0=スキップ=bit恒等。〔履歴 EconomyStep.cs#223〕
                     if (coef.PanicBuyWeight > 0 && staple)
@@ -1750,8 +1730,7 @@ public static class EconomyStep
                         if (costL is not null) costL[CostLedger.ConsumePopGoods] += region.Pops.Count;   // 計算量の台帳（診断）：尽きた月の POP の 1 周（旗 0 は入らない＝0 件・計器だけの読みも数えない）
                     }
                     // 財源率（教育費スライダー：満額1.0＝全民就学・半分＝半数就学）も行政の届きも**天井にだけ**効く。〔履歴 EconomyStep.cs#246〕
-                    double want = unmet * region.CompulsoryEduFunding
-                        * (coef.EduReachFromAdmin > 0 ? 1.0 - coef.EduReachFromAdmin * (1.0 - PoliticalQuantities.Clamp01(region.AdminFill)) : 1.0);   // 国庫の買いたい分（旧の take の式から Math.Min(remaining, …) を外した中身）
+                    double want = unmet * region.CompulsoryEduFunding;   // 国庫の買いたい分（旧の take の式から Math.Min(remaining, …) を外した中身）
                     double take = Math.Min(remaining, want);
                     double boughtQty = 0;
                     if (take > 1e-12)

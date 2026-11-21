@@ -2018,7 +2018,7 @@ public class MilitaryTests
             sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             c.MilitaryEnvelopeShare = new Share(1000);     // 器を大きく＝給与の後に装備の上限が残る
             for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
-            c.WarArmsDemandPerContact = kappa;    // (973) 旗 MilitaryWarMultFromContact 1＝戦時の倍率は 1＋κ×接触の割合＝双子は κ を替える。月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
+            c.WarArmsDemandPerContact = kappa;    // (973) 戦時（旗 MilitaryWarMultFromContact は c132kx で焼いた）＝戦時の倍率は 1＋κ×接触の割合＝双子は κ を替える。月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
             sim.StepDay();
             double ceil = 0;
             foreach (var r in w.Regions) ceil += r.MilitaryBudgetCeiling;
