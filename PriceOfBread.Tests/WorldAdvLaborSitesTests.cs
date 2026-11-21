@@ -15,7 +15,6 @@ public class WorldAdvLaborSitesTests
         foreach (var w in worlds)
             foreach (var r in w.Regions)
             {
-                if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Producers)
                 {
                     double o = p.Output; if (!(o > 0)) continue;
@@ -48,7 +47,7 @@ public class WorldAdvLaborSitesTests
         var sim = Board();
         SameBits(sim, "既定の盤面");
         long all = 0, listed = 0;
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) { all += r.Producers.Count; listed += Discovery.AdvLaborSites(r).Length / 2; }
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { all += r.Producers.Count; listed += Discovery.AdvLaborSites(r).Length / 2; }
         Assert.True(listed > 0 && listed < all, $"飛ばしが働いていない（表 {listed}／全 {all}）");
     }
 
@@ -57,7 +56,7 @@ public class WorldAdvLaborSitesTests
     {
         var sim = Board();
         SameBits(sim, "既定の盤面");
-        var rg = sim.Nations[0].World.Regions.First(r => r.State == RegionState.Active && r.Producers.Any(p => p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId)));
+        var rg = sim.Nations[0].World.Regions.First(r => r.Producers.Any(p => p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId)));
         // 巡回の表を一度作らせてから書き換える
         var users = rg.Producers.Where(p => p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId)).ToList();
         var nonUser = rg.Producers.First(p => !p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId));
