@@ -73,7 +73,7 @@ public class LordStakeD1bD2Tests
         var sim = Board(1.0, 0.0);
         foreach (var n in sim.Nations)
         {
-            var w = n.World; w.Coef.FactionTargetsWeakAxis = 0;
+            var w = n.World;
             w.StateReligion = StateReligionLaw.ReligiousFreedom;   // 上げ 0（−1）・戻し 1×比＝非対称
             var (lords, clergy) = Sums(w); double sh = clergy / lords;
             var d = FactionSnapshot.ComputeDemands(w, 0, false).Find(x => x.Axis == PolicyAxis.StateReligion);
@@ -81,7 +81,7 @@ public class LordStakeD1bD2Tests
             Assert.False(d.Increase);
             double head = FactionSnapshot.Headroom(w, PolicyAxis.StateReligion, false);
             Assert.True(head > 0.1, $"盤面の前提が崩れた（可動域 {head}）");
-            Assert.Equal(2.0 * (0.5 + sh) * head, d.Score, 9);
+            Assert.Equal(2.0 * (0.5 + sh) * head / (1.0 + PolicyPreferences.OpposingPower(w, PolicyAxis.StateReligion, false, PolicyPreferences.Build(w))), d.Score, 9);
         }
     }
 
@@ -143,7 +143,7 @@ public class LordStakeD1bD2Tests
         var sim = Board(0.0, 1.0);
         foreach (var n in sim.Nations)
         {
-            var w = n.World; w.Coef.FactionTargetsWeakAxis = 0;
+            var w = n.World;
             var (lords, _) = Sums(w); double rho = Rho(w);
             Assert.True(lords > 0 && rho > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（ρ {rho}）");
             w.LastRuleCut = 2.0 / rho * lords; double cr = w.LastRuleCut / lords * rho;   // cr≈2＝要求の上位 3 に入るほど大きく置く（盤面の作り物・式の形を見るだけ・ρ は国で 1e-2 の桁もある）
@@ -153,7 +153,7 @@ public class LordStakeD1bD2Tests
             Assert.False(d.Increase);
             double head = FactionSnapshot.Headroom(w, PolicyAxis.Bureaucracy, false);
             Assert.True(head > 0.1, $"盤面の前提が崩れた（可動域 {head}）");
-            Assert.Equal(2.0 * (0.5 + cr) * head, d.Score, 9);
+            Assert.Equal(2.0 * (0.5 + cr) * head / (1.0 + PolicyPreferences.OpposingPower(w, PolicyAxis.Bureaucracy, false, PolicyPreferences.Build(w))), d.Score, 9);
         }
     }
 }

@@ -131,8 +131,7 @@ public static class FactionSnapshot
             double strength = System.Math.Abs(prefInc);
             if (!increase && PolicyPreferences.DirectionAware(w, axis, bloc)) strength = System.Math.Abs(PolicyPreferences.Pref(axis, bloc, e, w, false));
             double score = strength * Headroom(w, axis, increase);
-            if (w.Coef.FactionTargetsWeakAxis > 0)
-                score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase, e);
+            score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, e);
             if (score > MinDemandScore) list.Add(new Demand(axis, increase, score));
         }
         list.Sort((a, b) => { int cmp = b.Score.CompareTo(a.Score); return cmp != 0 ? cmp : a.Axis.CompareTo(b.Axis); });

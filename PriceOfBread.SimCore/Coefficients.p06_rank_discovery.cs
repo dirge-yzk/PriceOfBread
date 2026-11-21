@@ -34,7 +34,6 @@ public sealed partial class Coefficients
     public double FactionStrikeLegitimacy = 0.5;   // 第6段6-5：体制の弱み判定＝正統性がこれ未満なら好機
     public Share FactionStrikeDrawdown = new(0.1);     // 第6段6-5：体制の弱み判定＝GDPドローダウンがこれ超（恐慌）なら好機
     public double FactionOverwhelmFactor = 1.5;    // 第6段6-5：圧倒判定＝勢力強度が保持力のこれ倍超なら好機を待たず打つ（雪崩は止まらない）
-    public double FactionTargetsWeakAxis = 1.0;    // 要求スコア÷(1+これ×OpposingPower)＝体制の守りが薄い軸を優先（状況依存の要求）
     public double PoliticalBudgetGate = 0.5;       // 「全部を同時には押せない」
     public double ArmyPoliticalWeight = 5.0 / Military.WorkingMenStdShare;       // 力＝これ×兵士人口シェア×(1−議会統制)＝文民統制の確立が軍を政治から退場させる
     public double ArmyPcPressure = 0.02;           // 王権寄りの軍（lean>0）が文民統制の確立を毎期押し戻す（プロイセン統帥権・憲法紛争1862）
