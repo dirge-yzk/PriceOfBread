@@ -1,0 +1,40 @@
+(1289) c133cl 事前登録 ― 恒等：一掃の後片付け（kx・g2 の反証役の試験と注）＋孤児 3 組の削除＋README の古い門の文の打消しのやり直し。基線 m1287（main 0072408c5）。
+
+[1] 恒等の線・予言 0（★(743) の区分＝恒等）。結果を 1 ビットも変えない。段 2（ident `--work D:/PoB_work/ident_c133cl`）。
+    浮動小数の順序が変わる箇所の予言＝0 件（削除と注・試験・計器の列の削除だけ。式は 1 つも書き換えない）。同じ盤面で旧≠新の行を数える対象＝無し。
+    cearn_s・cpop_s の経路の名の行番号の違いは ident_check.py の写像で 0（前例 m843）。
+    金を動かす呼び出しの鍵の行（scripts/instruments/flow262/route_anchors.tsv）は書き換える行に無い（grep：SelfPlay.cs・Discovery.cs・Catalog.cs・Coefficients.p07・InstrumentsCivwar.cs の行は 0 件）。
+    Simulation.cs は :1949 の行末の注だけ（式は不変）。`new MoneyStock(` の件数は 65 のまま。工業化度の読み手の許可表は触らない。
+
+[2] 項ごとの対象（main 0072408c5 で grep した行）
+ 項 A（kx の後片付け・試験と注だけ。SimCore は注だけ）
+   A1 K09 の赤の試験：origin/c132kx_cut 1e91a9fc5 の ServiceEconomyTests（公教育と義務教育の教師の生産性は基底のまま・Theory 4 件）を写す。
+   A2 K14 の赤の試験：643c2df6e の MobilityTests（蓄財した商人が資本家に昇格する・Fact 1）を写す。
+   A3 M18 の :139 だけを壊す試験：EconomyStep.cs:139 FarmUnemploymentStage2 の t を技術の比へ戻す。SubsistenceNoBoughtTechTests.cs の UnempFn は宣言だけで使われていない＝使う Fact を 1 本足す（期待値は盤面の欄から試験が自前で数える）。
+   A4 DevaluationCapReliefTests.cs の else の枝（不等式）を Math.Min(余地, 切り) とのビット一致へ戻す。
+   A5 注の一巡：Coefficients.p07_wiring_prewarm.cs:68・Simulation.cs:1949・DevaluationCapReliefTests.cs:7・DormantIdentityTests.cs:139〜:140・CivilWarArmsDemandTests.cs:8 の cref。mut1281.py は作業フォルダに残っておらず入手不能＝scripts/instruments/c133cl/ に突然変異の台本を新しく書く。
+ 項 B（g2 の後片付け）
+   B1 PolicyPoliticsTests の門の不動点の試験：lowered>0 を同じ盤面の対照つきで戻す。突然変異＝SelfPlay.cs:1167 の `RelieveOpulence(w);` を消す（使い捨ての写しで行う）→赤。
+   B2 RevoltIgnitionTests R4：Assert.Equal(off10, on10) を戻す。
+   B3 古い旗名の残る注と試験の名：SubsistenceNoBoughtTechTests（旗は消えた）・FlagBake1282Tests・MinimumWageAiFloorTests・Rs3LordReverseGainTests・PolicyPoliticsTests:733・:787・RevoltIgnitionTests:12・:230 ほか。コードの名前の変更は試験の名（メソッド・クラス）だけ。
+   B4 rep.py を scripts/instruments/c133cl/ へ写す。台帳の g2 の 5 行の〈ソース〉の列を直す（機能は残る＝旗は焼き込み）。
+ 項 C（孤児の削除・SimCore の宣言と読み手 0 の物だけ）
+   C1 MinimumWageWant：SelfPlay.cs:642〜:645（読み手は Tests.Ui/LaborMarketFormTests.cs:374〜:382 の Fact 1 本だけ）。MinimumWageSufficiencyUrbanLine（SelfPlay.cs:197）は他の読み手が 0 で孤児＝一緒に消す。AntitrustUrbanLine・TrustbustUrbanLine（:196・:198）は :608〜:618 が読むので残す。
+   C2 DiscoveryRow.EngineerParent：Discovery.cs:7 の引数・Catalog.cs:440 の指定。本体の読み手は 0。試験 DiscoveryClockTests.cs:47〜:51（ParentGoods の clock 引数）・:334・:342 を消す＝ParentGoods の第 3 引数を〈足す親の財〉へ（期待の出所は変えない）。
+   C3 MilitaryWarMult・WarMobilizationDepth：Coefficients.p07_wiring_prewarm.cs:66〜:67。本体の読み手は 0。計器 InstrumentsCivwar.cs:40〜:44・:61 の規則の列を消す（下記の宣言）。試験 CivilWarArmsDemandTests.cs:29〜:30・:52〜:55・WarThemeTests.cs:21・:35。MilitaryTests.cs:2006 は注だけ。scripts/instruments/c77cw/mut903.py ほか過去の台本は経緯なので残す。
+   計器の扱い＝cwmult_s の規則の列を消す（表ごと消さない）。消す列＝warMultOldRuleCivilSumIndex・warMultNewRuleCivilSumIndex・warMultNewRuleForeignSumIndex・oldRuleMismatchMonthsCount・newRuleMismatchMonthsCount の 5 列。残す＝warExhaustionCivilSumShare ほか。宣言＝`--removed-cols cwmult_s:<5 列>`。WriterRatchetTests の宣言の表（★(749)）は CostLedger の件数の表で、計器は件数に入らない＝取り直しは 0 行の見込み（.cost の件数の行が 1 本でも違えば止める）。
+   App・Display・Runner・POB_COEF の名前の表・SaveGame の名前の表に読み手：0（grep）。本物の読み手が見つかった名は外して 00一覧の ⑲ へ。
+ 項 D（docs・別の 1 コミット）
+   docs/README.md と docs/README_線の担当.md を〈ヌル腕の幅の外〉〈両側の門〉〈大きさの門〉〈上限の門〉で grep し、〈作者 2026-11-16 の決まり〉①と食い違う文だけを ~~ ~~ で囲み直後に〈2026-11-16 で記録だけへ〉を付ける。README.md:107 の読み替えの注が既に読み替えている文は、注の側に番号を足すだけ。行は消さない・作者の言葉は変えない。
+
+[3] 足す試験と突然変異（種 3 の盤面で赤になること）
+   A1 ← 教師の生産性に質の補正を掛ける（使い捨て）／A2 ← Meritocracy の商人・職人の昇格を止める／A3 ← EconomyStep.cs:139 の t を 1.0 に固定（:117 は触らない）→ 赤・:117 だけ固定した変異では緑（もう一方の試験が赤）
+   A4 ← Fiscal.DevaluationAllowed の Math.Min を別の式に替える → 赤／B1 ← SelfPlay.cs:1167 の RelieveOpulence を消す → 赤／B2 ← ModernizationBudget の漸近の式を壊す → 赤
+   ㉘ ソースを走査する番人（器のコミットの直後）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests と書き直したクラス。赤なら ident の前に直すか止める。
+   ㉑ 書き換える件数の予言：静的な件数・値の番人の書き換え＝0 件（係数の件数を数える番人があれば赤で名乗る）。
+   試験の数の予言：3093 −1（LaborMarketFormTests の Fact）＋4（K09）＋1（K14）＋1（M18 の :139）＝3098（±2＝B1 の対照を別の Fact にする場合 +1）。FullLength は 3 のまま。
+
+[4] 判定：素の 5 種・計器つき 10 種が m1287 と名乗り行を除いて全行一致（計器の表の差は cwmult_s の 5 列の宣言だけ）。.cost の件数の行が増えない。史実の桁の NG は触らない（ng.sh は回さない＝世界が同じバイト）。
+
+[5]〈判定: 恒等〉（測った種で一致）なら採る。一致しなければ、その変更を外して報告に回す。
+    D:/PoB_work の使用：c133cl_work（作業）・ident_c133cl（段 2・約 30GB・起こす前に〈35＋30GB〉を測る）・c133cl_art（隔離ビルド）。他の線のフォルダには触れない。
