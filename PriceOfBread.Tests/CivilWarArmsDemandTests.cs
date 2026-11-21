@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>★(903) 線 c77cw の計器 <c>cwmult_s</c>（内戦の軍需の倍率）の不変条件。★(973) c87mw ⑰ で旗 CivilWarArmsDemandUnified を旧の 2.0 の枝ごと消した＝
 /// 旧の式の字（11.7・18・厭戦の差 2.7）を固定した 4 件と旗の Theory を消し（事前登録 measurements/m973_20261108_prereg_mw.txt §0 (a) 1〜6）、
-/// 計器の試験を接触の割合の規則（<see cref="Coefficients.MilitaryWarMultFromContact"/> 1）の κ の双子へ直した。〈内戦＝対外戦〉の機構の番人は MilitaryWarMultContactTests の T4。
+/// 計器の試験を接触の割合の規則（旗 MilitaryWarMultFromContact 1＝(1281) c132kx で焼いた）の κ の双子へ直した。〈内戦＝対外戦〉の機構の番人は MilitaryWarMultContactTests の T4。
 /// 期待値は式の外から：κ は試験が置く字・接触の割合は計器が自分で数えた値（エンジンの Diplomacy.Engagement を呼ばない別の出所）。</summary>
 [Collection("Instruments")]
 public class CivilWarArmsDemandTests
