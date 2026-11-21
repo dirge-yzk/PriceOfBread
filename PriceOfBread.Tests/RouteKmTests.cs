@@ -134,6 +134,20 @@ public class RouteKmTests
     }
     private static string Str(string[] h, string[] r, string name) { int i = Array.IndexOf(h, name); Assert.True(i >= 0, "列が無い " + name); return r[i]; }
 
+    /// <summary>(1277) 越境の移民を 1 回置く（k＝0 仏→普・1 普→英・2 墺→仏・各国の最初の州の労働者の 1%）。置けたら true。</summary>
+    private static bool PlaceCrossBorder(MultiNationSim sim, int k)
+    {
+        int[] from = [0, 1, 3], to = [1, 2, 0];   // 盤面の国の並び＝仏 0・普 1・英 2・墺 3（MultiNationSim の作りの順）
+        if (sim.Nations.Count < 4) return false;
+        var src = sim.Nations[from[k]].World; var dst = sim.Nations[to[k]].World;
+        if (src.Regions.Count == 0 || dst.Regions.Count == 0) return false;
+        var sp = src.Regions[0].PopOf(PopClass.Worker);
+        if (sp is null || !(sp.Size > 1e-6)) return false;
+        double em = src.LastEmigration;
+        sim.MoveMigrants(src, dst, src.Regions[0], dst.Regions[0], PopClass.Worker, 0.01 * sp.Size);
+        return src.LastEmigration > em;
+    }
+
     [Fact]
     public void 陸路は貿易の経路の表と一致し_migration_sのrouteKmは表と合い_xmig_sは区域の越境の量と閉じる()
     {
@@ -147,7 +161,9 @@ public class RouteKmTests
             sim.StartWarmup();
             Instruments.Phase(sim, 1789UL, "warm");
             // (880) 盤面の四半期の数 40→60（Assert の式とリテラルは不変）＝旗 0・ImportPayerLive＝1・SubsistenceNoBoughtTech＝1 の 3 つで xmig_s の行が 20 以上になる {40,60,80} の最小（事前登録 measurements/m880_20261106_prereg_id.txt [5]・数は measurements/m880_20261106/routekm880.txt）
-            try { for (int q = 0; q < 60; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); } }
+            // ★(1277) c131pf 試験だけの直し（㊴・区分＝軌道に依る前提・(1181) の PlaceWar と同じ型）：越境の移民を試験の中で置く（4 四半期おきに 仏→普・普→英・墺→仏 の順で労働者の 1%）＝旗 CapSkipSellerPotential 1 の木で 60 四半期の自然の越境が対照に届かなかった（種 1789〜1792）。突き合わせと対照の Assert の文と閾値は変えない。
+            int placed = 0;
+            try { for (int q = 0; q < 60; q++) { sim.StepQuarter(); if (q % 4 == 0 && PlaceCrossBorder(sim, q / 4 % 3)) placed++; Instruments.Quarter(sim, 1789UL, q); } }
             finally { Instruments.Close(sim); }
             string P(string f) => System.IO.Path.Combine(dir, f + "_s1789.tsv");
 
@@ -214,6 +230,7 @@ public class RouteKmTests
                 double o = outSum[q], x = xSum.GetValueOrDefault(q);
                 Near(o, x); Near(inSum[q], x);
             }
+            Assert.True(placed >= 10, $"越境を置けた回数が {placed}（盤面の前提の破れ）");
             Assert.True(xSum.Count >= 5, "越境の移民が起きた四半期が少ない");
             Assert.True(xNations.Count >= 3, $"(982) 対照：越境の移民に関わった国が {xNations.Count}（3 未満）＝越境の突き合わせが 1 組の国の対に偏っている");
         }
