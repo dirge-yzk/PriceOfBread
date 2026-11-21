@@ -25,7 +25,6 @@ public sealed partial class Coefficients
     public double ColonizeRivalTension = 22.0;     // 植民地化が他の列強との緊張を高める量（グレートゲーム＝勢力圏争い・他列強の警戒）
     public double SurvivalThreatRatio = 1.5;       // 最強他国の軍が自軍のこれ倍超＝存亡の脅威（生存軍拡が立つ閾値）
     public double SurvivalMilitaryWeight = 1.5;    // ×(脅威比−閾値)＝生存のための軍備効用（弱小が脅威下で軍拡）
-    public double SurvivalHopelessScale = 1.0;   // つまり clamp(ratio−1.5, 0, 3) は開幕から最終まで上限3に張り付き、生存効用は「脅威に応じた軍拡」でなく
 
     public double StanceRevoltWelfare = 2.0;       // 旧AIはLegitimacy/Militancy不読＝革命が見えなかった
     public double StanceRevoltCoercion = 1.0;      // 譲歩との綱引きは教義バイアスと不足の大小が決める（政体ラベル分岐なし）
