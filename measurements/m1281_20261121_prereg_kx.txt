@@ -1,0 +1,57 @@
+(1281) 線 c132kx 恒等（一掃）：(1189) の表の恒等の残り 8 名の物理の削除と焼き込み
+木 D:/PoB_work/wt_c132kx・枝 c132kx（fa465331801484ccb3614effccf2e776d48dfc56 から）・基線 m1280
+
+[1] 恒等の線・予言 0
+  ★(743) の区分＝恒等（既定 0 は旗 0 の道だけを残し枝を消す・既定 1 は旗 1 の道だけを残す）。挙動を変えない。
+  合否＝段 2（ident.sh run c132kx --work D:/PoB_work/ident_c132kx）の〈判定: 恒等〉・全ての表が m1280 とバイト一致・計算量の件数が増えない。
+  新しい係数 0・旗 0・状態 0。
+
+[2] 消す物と残す物（main fa4653318 で grep・SimCore/Runner/App/Display/Tests/Tests.Ui を全域）
+  K08 EduReachFromAdmin（既定 0）  Coefficients.cs:71・EconomyStep.cs:1754（want の ×(旗>0 ? … : 1.0) を除去＝×1.0 の除去）。
+      読み手：Tests＝StateEduDemandTests・ServiceEconomyTests:78・:103・DormantIdentityTests:124。App/Display/Runner＝0。
+  K09 TeacherQualityWeight（既定 0）  Coefficients.cs:70・Simulation.cs:1843〜:1867（教師の質 q の 2 つの枝＝旗 0 では偽の枝）。
+      読み手：DormantIdentityTests:123 のみ。App/Display/Runner＝0。
+  K14 MerchantArtisanCapitalRise（既定 1）  Coefficients.p03:46・Meritocracy.cs:177・:188・:247。
+      旗 1 の道だけ残す。:188 の `率 * 旗 * 人数` は 旗＝1.0 の掛け算の除去（x*1.0==x でバイト一致の見込み）。
+      読み手：MobilityTests:52（旗 0 で rank1 を止める双子の片側＝今の盤面の主張へ移す）。App/Display/Runner＝0。
+  K18 SubsistenceNoBoughtTech（既定 0）  Coefficients.p02:41・EconomyStep.cs:117・:139（三項の左＝1.0 を除去し StapleEffTech を残す）。
+      読み手：SubsistenceNoBoughtTechTests（旗 1 の道の番人＝SubsistenceBakedTechTests へ移す・旗 0 の道の主張へ）・SubsistenceStage2Tests:14・SubstInstrumentTests:185・RouteKmTests:163（注のみ）・DormantIdentityTests:36。
+  K23 DiscoveryClockMotorParent（既定 0）  Coefficients.p06:114・Discovery.cs:530・InstrumentsClock.cs:52。
+      旗 0 では clockParent は常に偽＝ParentEngineers の引数 clockParent を消す。孤児：DiscoveryRow.EngineerParent（Discovery.cs:7・Catalog.cs:440）は読み手が 0 になる＝同じ線で消す。
+      読み手：DiscoveryClockTests:21・:22・:197・:322・:340・:341・:405〜・DormantIdentityTests:141。
+  K25 StapleDemandRebalance（既定 0）  Coefficients.p04:35・EconomyStep.cs:1502 とその枝（fdRebalance・fdOldFactor・StapleFoodPrepare の rebalance 引数と PopNorm・fdNorm）・InstrumentsFd.cs:48・:60。
+      孤児：Scratch.PopNorm・StapleIds・StapleE（読み手 0）も同じ線で消す。
+      計器の列：InstrumentsFd.cs:60 の末尾の列の値は〈台帳 1＋乗り換え 2＋不足 4〉の和の旗の符号化＝旗 2 の項を除くだけで値は変わらない（旗 0 のとき 2 は常に 0）。列は消さない・宣言の表は取り直さない。
+      読み手：FoodLedgerTests（T5 は旗 2 の道だけの番人＝消す・T3 は旗 2 の保存の主張＝今の挟みの主張へ移す）・DormantIdentityTests:145。MultiNationSim.cs:1694 の費目の名の文字列は変えない（cost の表のバイト）。
+  K29 MilitaryWarMultFromContact（既定 1）  Coefficients.p07:68・Simulation.cs:1729・:1771（旗 1 の道だけ残す）。
+      孤児：WarArmsDemandPerContact は残す（本体が読む）。MilitaryWarMult・WarMobilizationDepth は Simulation の読みが消えるが InstrumentsCivwar.cs:40・:41（旧の規則の列）が読む＝残す（計器の列の値を変えない）。
+      Simulation の変数 warExh・mobilize（旧の枝のためだけ）は消す。読み手：CivilWarArmsDemandTests:31・MilitaryWarMultContactTests（旗 0 の腕を消す）・MilitaryTests:2021（注）・WriterRatchetTests:556〜:557（注・宣言の表は変えない）。
+  K52 DevaluationCapReliefExp（既定 1）  Coefficients.cs:142・Simulation.cs:1965・Fiscal.cs:331 DevaluationAllowed・Instruments.cs:857。
+      DevaluationAllowed(room, cap, 1)＝(!(cap>0)||!(room>cap)) なら Min(room,cap)・そうでなければ room（Math.Pow の枝は 1 で通らない）＝2 引数に直す。
+      計器の列：Instruments.cs:857 の最終の列は定数 F(1.0) で書く＝列の値を変えない（G10 の書式で 1）。読み手：DevaluationCapReliefTests・ArrearsOpenedRoomTests:135（W2 の前提＝旗 0 の切りは消える）。
+  DormantIdentityTests の表の行：SubsistenceNoBoughtTech・TeacherQualityWeight・EduReachFromAdmin・DiscoveryClockMotorParent・StapleDemandRebalance の 5 行を消す（K14・K29・K52 は既に表の外）。
+  scripts の読み手：過去の線の台本・突然変異の台本（c69id・c73ts・c85mw・c87mw・r1084・r1182・r1189・m1184 ほか）が名前の文字列を持つ＝歴史の記録で本体の読み手ではない（実行されない）。
+  POB_COEF の名前解決：消した名前を渡す台本は上の過去の台本のみ（grep で確認）。SaveGame は名前と型でフィールドを書く＝savetest で同じ版の往復を確かめる。
+  他の線との重なり：Simulation.cs :1725〜:1780・:1840〜:1870・:1960〜:1970／EconomyStep.cs :110〜:145・:1495〜:1600・:1750〜:1760／Fiscal.cs :325〜:345／Meritocracy.cs :170〜:250／Coefficients.cs :70〜:71・:142／p02:41・p03:46・p04:35・p06:114・p07:68／Instruments.cs :857・InstrumentsClock.cs:52・InstrumentsFd.cs:48・:60／Discovery.cs:7・:26・:530／Catalog.cs:440。
+      c132g2・c132fg・c132df の持ち主の行と重ならない（指示文の持ち主の表と一致）。
+
+[3] 足す試験と突然変異・走査の番人の点検（㉘）・書き換える件数の予言（㉑）
+  名ごとに残した道の主張が今の盤面で通る試験を 1 本（既存の番人の書き直し）：
+    K08 StateEduDemandTests＝到達は常に 1（AdminFill 0.4 でも買いたい分は 1.0×財源率×必要量）＋ServiceEconomyTests＝AdminFill に依らない。
+    K09 試験は不要（旗 0 で通らない枝の削除）＝残る主張は既存の教育の試験（StateEduDemandTests ほか）。
+    K14 MobilityTests＝商人・職人の貯蓄を 0 にした双子で③だけを見る。
+    K18 SubsistenceBakedTechTests＝焼く ρ は技術の比で割る・σ は T で動く。
+    K23 DiscoveryClockTests＝電動機の親は蒸気機関の財を足さない（A の手の算術）。
+    K25 FoodLedgerTests T3＝市場の必要量は独立の期待・欲しい量は挟みで縮む。
+    K29 MilitaryWarMultContactTests＝対外戦 1＋κ×接触の割合・内戦も同じ式。
+    K52 DevaluationCapReliefTests＝余地は切りを超えて余地そのもの・単調・連続・閉じる月。
+  突然変異（名ごと・種 3 は使い捨ての木で）：消した枝か旧の値を戻す→番人が赤。結果は measurements/m1281_20261121_mut_kx.txt に出力。
+  走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests＋書き直した試験のクラスを器のコミットの直後に回す。
+  走査の件数・許可表：工業化度の読み手の許可表の行・`new MoneyStock(` の件数・route_anchors.tsv の鍵（Simulation.cs の haircut／issue の行・Meritocracy.cs の Pop.Blend の行）は書き換える行に無い（grep 済み）＝変わらない予言。WriterRatchetTests の宣言の表（計算量）は書き換えない（予言 0 件）。
+  書き換える試験の件数の予言：試験の総数 3091 → 3083（SubsistenceNoBoughtTechTests 5→2＝−3・FoodLedgerTests T5 −1・DevaluationCapReliefTests の Theory 4 例→Fact 1＝−3 と √ の記録の Fact −1＝−4）。--list-tests と突き合わせる。
+  ★(743) の区分で書き換えた試験は全て〈旧の道を固定する番人を今の盤面の主張へ移す〉（★(826)②）。作者の止める線の機構（保存・対称・セーブの往復）の Assert は削っていない。
+
+[4] 素の 5 種・計器つき 10 種が m1280 と名乗り行を除いて全行一致（計器の表の差は宣言だけ＝無し）
+  cearn_s・cpop_s の経路の名の行番号の違いは ident_check.py の写像で 0（前例 m843・scratchpad flags_triage_2026-11-12.md §1-3′）。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。浮動小数の順序が変わる箇所：×1.0 の除去（K08・K14）・Pow の枝の除去（K52 は 1 で通らない枝）・K29 の三項の除去（旗 1 の枝は同じ式）。同じ盤面で旧と新の比較の食い違いは紙の台本で 0 と見込む（x*1.0 は IEEE で恒等）。
