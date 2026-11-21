@@ -457,8 +457,7 @@ public sealed class UtilityAgent : INationAgent
             if (ratio > w.Coef.SurvivalThreatRatio)
             {
                 survival = w.Coef.SurvivalMilitaryWeight * PoliticalQuantities.ClampOr(ratio - w.Coef.SurvivalThreatRatio, 0, SurvivalRatioCap, 0);
-                if (w.Coef.SurvivalHopelessScale > 0)
-                    survival *= 1.0 - w.Coef.SurvivalHopelessScale * (1.0 - PoliticalQuantities.Clamp01(w.Coef.SurvivalThreatRatio / ratio));
+                survival *= 1.0 - (1.0 - PoliticalQuantities.Clamp01(w.Coef.SurvivalThreatRatio / ratio));
             }
         }
         double militaristBase = (doctrine == Doctrine.Militarist ? MilitaristBaseUtility : 0.0) * (1.0 - PoliticalQuantities.Clamp01((fiscalNeed - MilitaristEscapeThreshold) / MilitaristEscapeThreshold));
