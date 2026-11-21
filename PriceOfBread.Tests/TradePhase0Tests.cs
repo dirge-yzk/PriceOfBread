@@ -12,7 +12,6 @@ public class TradePhase0Tests
     private const ulong Seed = 1789UL;
     private static NationConfig Sicily() => WorldData.Nations().First(n => n.Provinces.Any(p => p.City == "パレルモ"));
     private static NationConfig[] Configs() => [NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria(), Sicily()];
-    private static MultiNationSim MakeBig() => new(Configs(), Seed, _ => new UtilityAgent());
 
     /// <summary>国の単体の Simulation を共有世界の形で作る。係数は構築の前に渡す（播種の賦存の割りが構築時に走る）。</summary>
     private static Simulation Solo(NationConfig cfg, Coefficients coef)
@@ -28,7 +27,7 @@ public class TradePhase0Tests
     private static IEnumerable<(World off, World on)> OffOnWorlds(IEnumerable<NationConfig>? cfgs = null)
     {
         foreach (var cfg in cfgs ?? Configs())
-            yield return (Solo(cfg, new Coefficients()).World, Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World);
+            yield return (Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World, Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World);   // (1291) 旗 0 の対照を盤面で明示
     }
 
     /// <summary>R1 (a)：能力の倍率と費用を割る数は別の引数。126.8 のような逆算の倍率で費用を割らない（割る数を倍率に戻す変異で赤）。</summary>
@@ -45,7 +44,7 @@ public class TradePhase0Tests
         Assert.Equal(2.0 * 126.8, pr2.Productivity);
         Assert.Equal(8.0, pr2.MarginalCost);
         var off = new Producer { Productivity = 2.0, MarginalCost = 8.0 };
-        Simulation.ApplyEndowment(off, 126.8, 4.0, new Coefficients());   // 旗 0＝割らない
+        Simulation.ApplyEndowment(off, 126.8, 4.0, new Coefficients { EndowmentCostFollowsAbundance = 0.0 });   // 旗 0＝割らない（(1291) 盤面で明示）
         Assert.Equal(8.0, off.MarginalCost);
     }
 
@@ -83,7 +82,7 @@ public class TradePhase0Tests
             var site = Catalog.Sites[si];
             foreach (bool inRes in new[] { false, true })
             {
-                var wOn = Solo(NationConfig.Britain(), new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World; var wOff = Solo(NationConfig.Britain(), new Coefficients()).World;
+                var wOn = Solo(NationConfig.Britain(), new Coefficients { EndowmentCostFollowsAbundance = 1.0 }).World; var wOff = Solo(NationConfig.Britain(), new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World;   // (1291) 旗 0 の対照を盤面で明示
                 Region Promote(World w) => Simulation.PromoteColonyToRegion(w, w.Coef, new Colony { Name = site.Place, Resources = inRes ? [site.Good] : [], PopSize = 50, Latitude = 10, Longitude = 10, Population = 1.0 }, RegionTier.Colonial);
                 var rOn = Promote(wOn); var rOff = Promote(wOff);
                 var pOn = rOn.Producers.Find(p => p.GoodId == site.Good && p.SiteRow >= 0); var pOff = rOff.Producers.Find(p => p.GoodId == site.Good && p.SiteRow >= 0);
@@ -106,13 +105,13 @@ public class TradePhase0Tests
     [Fact]
     public void RecipeoutBprime_割る数は通常の賦存()
     {
-        var sim = MakeBig(); int hits = 0;
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+        int hits = 0;   // (1291) 旗 0 の盤面を明示＝MakeBig と同じ国の共有世界の形の単体（MultiNationSim の国の世界は既定の係数で播種する・既定は 1）
+        foreach (var nw in Configs().Select(cfg => Solo(cfg, new Coefficients { EndowmentCostFollowsAbundance = 0.0 }).World)) foreach (var r in nw.Regions) foreach (var p in r.Producers)
         {
-            var x = Instruments.RoRead(n.World, r, p);
+            var x = Instruments.RoRead(nw, r, p);
             if (x.Class != "E" || !(x.Rule > 10.0)) continue;
             hits++;
-            double div = Simulation.ResourceEndowment(p.GoodId) * n.World.Coef.ResourceEndowmentScale;
+            double div = Simulation.ResourceEndowment(p.GoodId) * nw.Coef.ResourceEndowmentScale;
             double expect = x.Self / div + (x.Mc - x.Self);
             Assert.True(System.Math.Abs(expect - x.IfBprime) <= 1e-9 * System.Math.Max(1.0, expect), $"B′ の費用 期待 {expect}・実際 {x.IfBprime}");
             Assert.True(x.IfBprime > x.IfAbundance, "逆算の倍率で割る旧の列より B′ は高い");

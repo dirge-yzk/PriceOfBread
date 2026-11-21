@@ -112,7 +112,9 @@ public class ColonialPopTests
 
     /// <summary>★(173) R1（呼び手の側＝EconomyStep の④）：植民地格の州の月の決算で、輸出作物の大農園が国内で売った地代は首都の投資家の貯蓄へ着く
     /// （＝不在地主の大農園の地代の和）・在地の資本家の口座には残らない。盤面＝英仏の英のジャマイカ（コーヒー＝州の住民が飲む）に住民の貯蓄を入れて1か月。
-    /// ⚠突然変異「④で積まない」「精算の後に送らない」で赤。</summary>
+    /// ⚠突然変異「④で積まない」「精算の後に送らない」で赤。
+    /// (1291) c133b1：旗 EndowmentCostFollowsAbundance 1（既定）の盤面ではジャマイカのコーヒーの自己費用が 1/3.5 になり、この 1 か月の地代は負（−42.33＝不在地主が在地の口座を埋める側）。
+    ///   主張は符号を問わず〈不在地主の大農園の地代の和が首都の投資家の貯蓄の増減と一致する〉（黒字は送り・赤字は埋め＝両方の向きの単体は上の試験）。何もしない形を拾わないよう |地代|＞1e-6 を前提に残す。</summary>
     [Fact]
     public void 植民地の月の決算で輸出作物の地代は首都の投資家へ着く()
     {
@@ -128,7 +130,7 @@ public class ColonialPopTests
         EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
         double rent = 0;
         foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) rent += p.LastRevenue - p.LastCost;
-        Assert.True(rent > 1e-6, $"前提が崩れた：不在地主の大農園に国内の地代が立たない（{rent}）");
+        Assert.True(System.Math.Abs(rent) > 1e-6, $"前提が崩れた：不在地主の大農園に国内の地代が立たない（{rent}）");
         Assert.Equal(rent, inv.Savings.Value - i0, 6);
     }
 

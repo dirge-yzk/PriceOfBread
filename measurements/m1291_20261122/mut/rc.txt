@@ -1,0 +1,8 @@
+f1all rc=0
+f0all rc=1
+mu1_gate rc=1
+mu2_pow2 rc=1
+mu3_scarce rc=1
+mu4_noseed rc=1
+mu5_noremit rc=1
+MUTDONE 2026-11-22 08:51:39

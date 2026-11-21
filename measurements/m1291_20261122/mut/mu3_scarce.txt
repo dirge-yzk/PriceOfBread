@@ -1,0 +1,8 @@
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/mu3_scarce/src/PriceOfBread.SimCore/Coefficients.p04_trade.cs・20722 → 20722 バイト
+置き換え PriceOfBread.SimCore/Coefficients.p04_trade.cs
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/mu3_scarce/src/PriceOfBread.SimCore/Simulation.cs・255623 → 255624 バイト
+置き換え PriceOfBread.SimCore/Simulation.cs
+test rc=1 合計時間: 4.5526 秒
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U2_既定の係数で非産地の限界費用と能力は動かない [187 ms]
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U3_開幕の世界で賦存州の自己費用は非賦存州の自己費用を賦存倍率で割った値 [1 s]
+SCRATCHDONE 2026-11-22 08:50:00

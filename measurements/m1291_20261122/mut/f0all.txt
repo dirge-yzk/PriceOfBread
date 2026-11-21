@@ -1,0 +1,5 @@
+test rc=1 合計時間: 51.5056 秒
+  失敗 PriceOfBread.Tests.DormantIdentityTests.既定ゼロの係数は休眠表か台帳のどちらかに載っている [120 ms]
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U3_開幕の世界で賦存州の自己費用は非賦存州の自己費用を賦存倍率で割った値 [1 s]
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U1_既定の係数で賦存倍率2の州の限界費用は倍率1の州の半分_旗0では割らない [< 1 ms]
+SCRATCHDONE 2026-11-22 08:47:19

@@ -1,0 +1,4 @@
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/f1all/src/PriceOfBread.SimCore/Coefficients.p04_trade.cs・20722 → 20722 バイト
+置き換え PriceOfBread.SimCore/Coefficients.p04_trade.cs
+test rc=0 合計時間: 50.0367 秒
+SCRATCHDONE 2026-11-22 08:45:38

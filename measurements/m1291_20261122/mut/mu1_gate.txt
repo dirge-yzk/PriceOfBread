@@ -1,0 +1,7 @@
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/mu1_gate/src/PriceOfBread.SimCore/Coefficients.p04_trade.cs・20722 → 20722 バイト
+置き換え PriceOfBread.SimCore/Coefficients.p04_trade.cs
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/mu1_gate/src/PriceOfBread.SimCore/Simulation.cs・255623 → 255595 バイト
+置き換え PriceOfBread.SimCore/Simulation.cs
+test rc=1 合計時間: 4.4526 秒
+  失敗 PriceOfBread.Tests.EndowmentCostTests.U1_既定の係数で賦存倍率2の州の限界費用は倍率1の州の半分_旗0では割らない [1 ms]
+SCRATCHDONE 2026-11-22 08:48:14
