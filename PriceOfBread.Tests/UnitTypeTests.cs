@@ -203,7 +203,7 @@ public class UnitTypeTests
         (typeof(Coefficients), "WarCasualtyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "WarCasualtyCapPerMonth", typeof(RatePerMonth)),
         // ★(317) 割合の型の残り その5＝人口・移民・社会移動の係数（係数のテーマ3）。3か月ごとの実行の刻みの率は新しい型 RatePerQuarter（名前に PerQuarter を足した）、月の率は RatePerMonth、年の率は RatePerYear、
-        //   法の率・下限・昇格の比率は Share。EmigrationRate（機会差 1 あたりの率）・MinorityPromotionPenalty・JobPoolTemperature・JobSearchLiteracyWeight・JobSearchUsesEma は移していない
+        //   法の率・下限・昇格の比率は Share。EmigrationRate（機会差 1 あたりの率）・MinorityPromotionPenalty・JobPoolTemperature・JobSearchUsesEma は移していない
         (typeof(Coefficients), "CapitalRiseRatePerQuarter", typeof(RatePerQuarter)),
         (typeof(Coefficients), "UpperFallRatePerQuarter", typeof(RatePerQuarter)),
         (typeof(Coefficients), "MiddleFallRatePerQuarter", typeof(RatePerQuarter)),
