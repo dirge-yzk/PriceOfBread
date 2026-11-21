@@ -1357,3 +1357,4 @@
 
 ## (1199) 墓標：PeacetimeConscriptGrievance
 - (1199) c120nk で削除（既定 0・読み手は Military.cs の平時の植民地徴募の分岐だけ）。(1194) c119k3 は 0→1.0 を採らず（推奨 (a)）。分岐 `peacetimeColonial` と DrawFromPool の grievanceScale 引数も同時に消えた。
+- (1282) SovietTaxProfile・ConsciousnessFromSchoolingStock（既定 1）を削除（恒等）。

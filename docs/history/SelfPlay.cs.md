@@ -3892,3 +3892,4 @@
 /// <summary>計算量の台帳の全試合の和（<see cref="CostLedger"/> の添字・中断した試合もそこまでの件数を足す）。</summary>
 ````
 
+- (1282) OpulenceTaxRelief・SurvivalHopelessScale・SovietTaxProfile・MinimumWageAiFromFloor の旗の枝を焼き込み（MinimumWageTargetChosen は FromFloor を返すだけ・RelieveOpulence は internal へ・恒等）。

@@ -824,3 +824,4 @@
 ## 国民意識と信任帝政の床の係数（(1193) c119nd で削除）
 - 段 A：NationConsciousnessDerived（既定 0・不動点の枝）・NationConsciousnessPerPop（既定 1・スカラーだけの枝）。
 - 段 B：NationBuildConscript 0.5/WorkingMenStdShare・RedefinedMandateFloor 0.6・RedefinedMandateNcMin 0.5・RedefinedMandateMandateMin 0.6・NationBuildAccumRate 0.03・NationBuildDecayRate 0.0025・NationBuildCrisisDefense 0.5・NationBuildCrisisCivilWar 1.0・NationBuildCrisisIndependence 2.0・NationBuildInitialDefault 0.075・RadioNationWeight 0.5・NationConsciousnessReachDecay 800。
+- (1282) MandateReligiousCircuit（既定 1）を削除（重み 1 を式へ畳む・恒等）。

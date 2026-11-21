@@ -860,3 +860,4 @@
 
 ## (1193) c119nd で削除
 - NationBuildMobilizationWeight（(1186) で 0・旧 0.5）・SecessionConsciousnessWeight（(1186) で 0・旧 1.0）。国民意識の物理の削除の線。
+- (1282) MinimumWageAiFromFloor・ModernizationBudgetSoftCap（既定 1）を削除（恒等）。

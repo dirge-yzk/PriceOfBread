@@ -414,3 +414,4 @@
 // 参政権の範囲2法（2026-08-16。英字enum名がUIへ漏れる罠を封じる）
 ````
 
+- (1282) ParticipationDiscontent・FactionTargetsWeakAxis の旗の枝を焼き込み（旧の二値の側を削除・MilitancyThreshold は読み手が試験だけの定数として残す・恒等）。
