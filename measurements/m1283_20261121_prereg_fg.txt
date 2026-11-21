@@ -1,0 +1,89 @@
+(1283) c132fg 事前登録：飢えの門で都市から農村へ戻す (A)（旗 FamineGateReturnsRural・3 回の規則の 1 回目・群 2 の先頭）・2026-11-21・書いたモデル Claude Opus 5.5
+
+== 先頭の名乗り ==
+- 出発：作者 2026-11-21 の裁定（群 2「これが片方向なのは問題なので修正を加える」）・00一覧〈次の波（波132〜）〉2 の①・(1272) の推奨 (A)（measurements/m1272_20261121/report_1272.txt 問い 4）。答え待ちではない。al の 3 回目の前提。
+- 3 回の規則：このテーマの 1 回目。
+- 形の種類：〈入口〉（PopDecision.Run の飢えの門の 1 か所）。新しい係数 0・新しい状態 0・旗 1 本（FamineGateReturnsRural・既定 0 の器→1）。
+- 確証：〈飢えて門で止められた都市の人が農村へ戻る〉の向きは作者の裁定（片方向をやめる）。戻る量の式（UrbanFlowReal の負の枝と同じ Mobility×g×都市の規模）・g の定義（自給の値と家賃を含む MigrationValues）・門の 0.8 は AI の決めの写し＝〈確証なし〉。史実の向き：都市の飢えで農村へ戻る（露 1918〜21 年のペトログラードの人口 約 250 万→約 70 万・日本の 1930 年代の帰農）〈推〉。
+- (1272) の反証役 v の中 4 の名乗り：(A) が閉じるのは種 17 の減りの約 1/4〈推〉・工場労働者の罠は〈推〉・0.4 の切れ目は (1272) の担当の自前・(A) は門の中の例外（決まり③）。下の〈根の側との比べ〉で根の側の候補と並べた。
+
+== 形（実装の形と一致させる＝★(778)）==
+- 置き換える旧の規則：PopDecision.cs:76 の飢えの門〈flow＞0 かつ 都市の FoodFill＜FamineMigrationFillGate（0.8）かつ 都市＜農村 → flow＝0〉（止めるだけ）。
+- 旗 1 の形：門が掛かった月だけ MigrationValues(region, coef, rural, urban).Gsym を呼び、g＜0 なら flow＝coef.Mobility×g×urban.Size（負＝都市→農村・UrbanFlowReal の負の枝 :58 と同じ式と同じ掛け算の順）。g≧0 なら 0 のまま（旧と同じ）。
+- 旗 0 の経路：flow＝0 のまま（MigrationValues を呼ばない）＝ビット同じ（腕 Z で確かめる）。
+- UrbanFlowReal＝1 の枝では門が掛かるのは g＞0 の月だけ＝旗 1 でも何も変わらない（g は同じ値）。
+- 計器の写し InstrumentsUrx.cs:149（UrxPdDrive）を同じ形に合わせる（:143〜:148 の農奴の門の行には触れない）。urxpd_s の sumFlowNeg・rdh_s の flowToRuralK・urxrt_s の PopDecision の urbanOutK に戻りが入る（新しい列 0）。
+- 決まり③：門の中の例外の 1 段（門→戻す）。例外の例外は作らない（g の符号の外に閾値を足さない）。
+
+== 根の側との比べ（決まり③④・腕の前に 1 つ決める）==
+- 根の側の候補〈UrbanFlowReal＝1 にして飢えの門を消す〉：全ての州×月の流れを g の式へ置き換える。UrbanFlowReal＝1 は urbd の段 3（urb4・(713)＝点火の 3 回目）で S11 の空洞化 1/10 未満 2 件（種 15 バロー・種 16 バーミンガム）で採らなかった（反証役：開幕の過渡 g≈−0.5 から一斉に都市→農村〈推〉）＝同じ形の 4 回目は 3 回の規則で回さない。飢えの門を消すのを足しても、変わるのは門の 21.9％ の州×月の外の 78％ の流れ＝同じ形の主の部分。
+- (A) が変えるのは門が掛かり g＜0 の月だけ（下の紙で本国の州×月の約 13〜19％）。
+- **採る形＝(A)**（同じ旗名）。
+- 台帳 S13-14・S04-26〈採らなければ UrbanFlowReal と SubsistenceValuePerMonth の欄ごと消す〉との関係：(A) を採ると、MigrationValues と自給の値 SubsistenceValuePerMonth はエンジンの読み手を持つ（門の月だけ）＝S04-26 の〈読まれない欄〉は外れる。旗 UrbanFlowReal（0）の欄はこの線でも読まれない＝消す候補のまま（この線では消さない）。
+
+== 段 0（腕の前・今の盤面 keep_1280/base_ins）==
+- 紙の台本 1 scripts/instruments/c132fg/paper_fg.py（measurements/m1283_20261121/paper/paper_fg.txt）：
+  - 本国格の州（urxpd_s の famineGated＝エンジンの式の写しの月ごとの数・9 国・種 1〜10）：門が掛かる州×月 422,474／1,932,135＝0.219（1783〜99 0.359・1800〜49 0.338・1850〜99 0.105・1900〜50 0.150）。
+  - 植民地格の州（cpop_s の四半期末の値の近似・家賃 0＝g＜0 の割合は下側）：門が掛かる州×四半期 302,159／660,070＝0.458・その中の g＜0 0.785・g＜0 の平均 g −1.40。戻る量の見積もり 598,707 千人（種 10 本の和・四半期×3 か月）。
+- 紙の台本 2 scripts/instruments/c132fg/paper_rdh.py（使い捨てのプローブ＝基点 fa465331 の木で種 1 を旗 0・POB_INSTRUMENTS_RDH=1・region_s は keep_1280 の種 1 とバイト一致＝同じ軌道・measurements/m1283_20261121/paper/paper_rdh_s1.txt）：門の月の中の g＜0 の割合（重なりの下と上）＝全て 0.8435〜0.8479・本国格 0.8769〜0.8830（1850 前 0.843〜0.848・後 0.956〜0.965）・植民地格 0.819〜0.822。門の月の割合 本国格 0.157（1850 前 0.259・後 0.082）・植民地格 0.431。
+- 予言（主な観測量の符号と大きさ・腕の前）：
+  - P1 都市→農村の流れ（urxpd の sumFlowNeg・本国の州・9 国・種 10 本の和）は増える：腕÷基準 1.5〜20 倍〈推〉。
+  - P2 都市と農村の往復（urxrt の PopDecision の urbanOutK）は増える（同じ向き・P1 と同じ桁〈推〉）。
+  - P3 本国の都市化率（gate_fg の H1）は 1850 年に下がる（0.6〜1.0 倍〈推〉）・1913 年は 0.7〜1.05 倍〈推〉（門の月の割合が 1850 年後に下がる）。
+  - P4 飢えの死の世界の和（popclose の deathsFamineK）は下がる（0.5〜1.0 倍〈推〉＝戻った人は農村の充足で食べる）。
+  - P5 門が掛かる州×月（famineGated）は動く（向きは読めない＝記録）。
+  - 危うさ（名乗る）：g＜0 の平均 −1.4＝門の月に都市の対の約 2.8％/月が戻る＝urb4 の開幕の過渡と同じ型（一斉の都市→農村）が門の月に限って起き得る〈推〉。空洞化は州の中の移りでは起きないが、州の間の移民の向きが変われば起き得る（urb4 の型）。
+  - 見込みは〈悪くする〉でない（観測量は狙いの向き）＝腕を回す。㉗：紙の台本は止める線の破れを予言しない（州の中の移り）＝回す。
+
+== 門（〈作者 2026-11-16 の決まり〉①）==
+1. 止める線：
+   - 破綻：クラッシュ・NaN・保存則・savetest・進行不能。
+   - 発散：stoplines1002（stoplines906 を呼ぶ）。1e10 倍・非有限は止める。〈1 四半期に 100 倍〉は gdp_jump の〈それ以外〉の行が止める線・〈建国の直後〉〈分母の痩せ〉は記録（基準とヌル腕を同じ台本で数え直す＝⑰：基準 keep_1280/base_ins・N1 keep_1280/n1）。〈政府の人口が 1 四半期で 1/10 未満か 10 倍以上〉はヌル腕と並べて読む（㊳・popjump1017）。
+   - 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（規則 A2）でピークの 1/10 未満（植民地格の州を含む）。**線が原因の件だけで止める**＝基準 keep_1280/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（scripts/instruments/c131cr/hol_attr.py）。〈膨らんでから抜ける州〉（基準のピークの数倍へ膨らんでから抜ける）は件ごとに region_s の人口の道と popclose_s の移りの列で振り分けを書く（結果の後に振り分けの規則を変えない）。
+   - 計算量：推定 248.5 秒を超える。
+   - 機構のテストの赤（走査の番人を含む）。
+   - 開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。名目 GDP 0 の続き（gdp_zero10）は記録の段の先頭。
+2. 史実の桁の線（この線が一番動かす量・scripts/instruments/c132fg/gate_fg.py）：
+   - H1 国ごとの都市化率（本国の州〔Core と Integrated〕の (人口−農村の人口)÷人口・1850 年と 1913 年・種の中央・9 国）。史実の値（〈推〉・定義は国ごとに違う＝桁だけ）：英 0.54／0.79（1851・1911 年の国勢調査・イングランドとウェールズ）・仏 0.26／0.44（人口 2000 以上の市町村）・普 0.28／独 0.60・米 0.15／0.46（2500 以上）・露 0.07／0.15（1897 年 0.13）・日 0.12／0.18〈推〉・清 0.06／0.06（Rozman ほか〈推〉）・墺 0.15／0.35〈推〉・オスマン 0.15／0.20〈推〉。NG＝腕÷史実が 0.1 未満か 10 超で、かつ基準÷史実が 0.1〜10 の内（基準もすでに外なら〈元から〉で記録）。
+   - H2 国ごとの飢えの死（popclose_s の deathsFamineK・全期間・種 10 本の和・基準の和 ≥100 千人の国）：史実の数が手元に無い＝基準を代わりに置く（AI の決め）。腕÷基準が 0.1 未満か 10 超＝NG。
+   - 紙の台本（基準の生に同じ台本＝★(1254)）：下の〈段 0 の止める線の台本〉。
+3. 単体の機構の試験（PriceOfBread.Tests/FamineGateReturnsRuralTests.cs・盤面は試験の中で置く＝英の開幕の州の対の POP に稼ぎ・自給の値・食べ物の充足を書く・g の期待は盤面の量から手で作る）：
+   - T1 飢えた都市（充足 0.5）・足りる農村（0.95）・都市の値打ちが低い（農村 0.1＋自給 2.0＞都市 0.6）で旗 1 は Mobility×g×都市の規模だけ都市→農村（相対 1e-9）・州の人口と貯蓄の和が閉じる。
+   - T2 同じ盤面で旗 0 は 0（止めるだけ）。
+   - T3 門の外（都市の充足 0.9）では旗 1 も旧の式の農村→都市と同じビット。
+   - T4 門が掛かっても g＞0 なら旗 1 は 0。
+   - T5 計器の写し UrxPdDrive の流れ＝旗 1 の本物の Run の都市の増分。
+   - 突然変異（㉚・使い捨ての木 D:/PoB_work/c132fg_work/mut・出力 measurements/m1283_20261121/mut_result.txt）と赤の門：
+     | μ | 変える所 | 赤になる試験（予言） |
+     | mu0 | 盤面の旗を 0（旧の規則） | T1・T5 |
+     | musign | g の符号を逆（g＞0 で戻す） | T1・T4・T5 |
+     | mugate | 門の外でも戻す（門の前に g＜0 なら戻す） | T3 |
+     | musize | 都市の規模→農村の規模 | T1・T5 |
+     | muoff | 旗を見ない（旗 0 でも戻す） | T2 |
+     | muinst | 計器の写しを旧のまま | T5 |
+   - 旗 1 の出力が旗 0 と違う行の数は記録。
+
+== 記録（門にしない）==
+- 種 17 カルメン・デ・パタゴネス型の州＝an_h2 -v4 の 1/4 未満の件数（基準 M 2）・hol_attr の振り分け。
+- 都市と農村の往復の量（urxrt_s の PopDecision の urbanInK・urbanOutK）・門の州×月（urxpd）・rdh_s の famineGateMonths と flowToRuralK（州×四半期）。
+- 本国の都市化率の 1800・1850・1900・1913・1940 年（gate_fg）。
+- 英の国債の不履行の種の数（ukdef975）・NG（ng.sh・基準 rd:measurements/ng1280_20261121:m1280）・nullgate（記録）・home_break・plvl・popjump・名目 GDP 0 の続き（gdp_zero10）。
+- 〈周辺の点検〉（読むだけ）：自給の値 SubsistenceValuePerMonth の書き手（EconomyStep.cs）・職探し（Meritocracy.cs:125〜:145）＝下の追記で書く。
+
+== ㉘ 走査の番人の点検（器の差分＝PopDecision.cs の Run の門の中・Coefficients.p02:72 の 1 行・InstrumentsUrx.cs:149・DormantIdentityTests の表の 1 行・新しい試験）==
+- 工業化度の読み手 0・`new MoneyStock(` の増え 0（PopDecision.cs は 0 のまま）・route_anchors.tsv の鍵の行（flow262/route_anchors.tsv:68 PopDecision.cs の `Pop.Blend(src, dst, amount);`＝Move の中）は触らない・WriterRatchetTests の宣言は旗 0 で動かない（PopDecision.cs は CostLedger に件数を持たない＝grep 0）・Instruments.On の読みは増えない（OnDoubleReadScanTests・PopDecision.cs の Instruments. は 0）。
+- 絞り込み：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|UrxInstrumentTests|FamineGateReturnsRuralTests。
+- 変わる件数の予言（㉑）：走査の番人の件数は変わらない（0 件）。
+
+== ㉜ 旗 1 の木で旧の規則を固定する番人（grep・腕の前）==
+- grep（FamineMigrationFillGate・FamineGated・PopDecision.Run）：UrxInstrumentTests.cs:55（Match〈飢えの門が閉じる〉expectFlowNonZero false＝写しと本物の差を見る＝旗 1 でも写しが合えば緑）・:67（`d2.FamineGated && d2.Flow == 0`＝旧の規則〈止めるだけ〉そのもの＝盤面の g が負なら旗 1 で赤）・FamineTests.cs:171（`starving <= 0`＝戻りは負＝緑のまま）・:170（refuge＝門の外）・UrbanFlowRealTests（UrbanFlowReal の枝）・MigrationPairTests・CriminalVesselTests（門に当たらない）。
+- 旧の規則を固定する試験の一覧＝UrxInstrumentTests.cs:67 の 1 本（盤面の g が負のとき）。赤なら ㉜ の改めのとおり新しい規則の試験へ書き換える（門の印が立つ・流れは旗 1 の式＝Mobility×g×都市の規模か 0）。
+
+== 計算量の割り当て ==
+- +0.1 秒〈推〉（MigrationValues は門の月だけ＝州×月の約 23％・中は州の人口の和 2 回と割り算・軌道の変化の分 ±0.3〈推〉）。m1280 の推定 235.5 秒・余り約 12〜13 秒（保守側）の内。2 秒以下＝1 本の腕で門にしない（★(694)）＝推定 248.5 秒を超えるときだけ止める。
+
+== 腕 ==
+- 腕 Z：器の木（旗 0）・`bash scripts/instruments/ident/ident.sh run c132fgz --tree <器の木> --work D:/PoB_work/ident_c132fg --tests-delta 5`（段 1・FamineGateReturnsRuralTests 5 本）。走っている間はその木にコミットしない（㉙）。
+- 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c132fgB 10`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝nation_s,stock_s,wars_s,casualty_s,region_s,migration_s,pxmonth_s,scalars_s,fiscal_s,popclose_s,urxpd_s,urxrt_s,rdh_s（POB_INSTRUMENTS_RDH=1）＝止める線の台本・門・記録の読み手が開く表を grep した（stoplines1002〔nation_s・pxmonth_s・scalars_s・region_s〕・an_h2〔region_s・migration_s〕・home_break〔stock_s〕・ng.sh〔nation_s・stock_s・wars_s・casualty_s〕・ukdef975〔fiscal_s〕・gate_fg〔region_s・popclose_s・urxpd_s・urxrt_s〕・paper_rdh〔rdh_s〕）。
+- 読み手：scripts/instruments/c132fg/read_fg.sh（c131cr/read_cr.sh の写し＋gate_fg）。基準 keep_1280/base_ins・N1 keep_1280/n1・NG 基準 ng1280_20261121・nullgate の基準 m1280。
+- D:：腕 B は約 6〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る。
