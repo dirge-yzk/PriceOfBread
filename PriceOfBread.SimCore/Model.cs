@@ -491,6 +491,10 @@ public sealed class Producer
     public MoneyPerMonth? FrozenLandRentPerMonth;
     public double[]? LandShares;
     public List<Input> Inputs = [];
+    /// <summary>(1275) Inputs を差し替えず中身だけ書き換えたとき、州の高度労働力の添字の表を作り直させる。</summary>
+    internal void NoteInputsChanged() { if (_siteRegion is { } sr) sr.AdvSitesDirty = true; }
+    /// <summary>(1288) Inputs[i] を書く。今の値と同じなら書かず印も立てない（毎月同じ値を書き直す呼び手が表を作り直させない）。</summary>
+    internal void SetInput(int i, Input v) { if (Inputs[i] == v) return; Inputs[i] = v; NoteInputsChanged(); }
     public double LastInputFill = 1.0;
     public double LastMaterialFill = 1.0;
     public double Scale = 1.0;
@@ -747,6 +751,13 @@ public sealed class Region
     [System.NonSerialized] internal Producer[]? BuildSites;
     [System.NonSerialized] internal Producer[]? StateSites;
     [System.NonSerialized] internal bool SitesDirty;
+    /// <summary>(1275) 高度労働力を投入に持つ生産者の添字の表（Discovery.AdvLaborSites が作る導出・セーブに載せない）。</summary>
+    [System.NonSerialized] internal int[]? AdvSites;
+    [System.NonSerialized] internal List<Producer>? AdvSitesList;
+    [System.NonSerialized] internal int AdvSitesCount;
+    [System.NonSerialized] internal bool AdvSitesDirty;
+    /// <summary>(1288) 表を作り直した回数（診断・試験と実の時間の測定だけが読む）。</summary>
+    [System.NonSerialized] internal int AdvSitesBuilds;
     [System.NonSerialized] internal long GdpVersion;
     /// <summary>(1137) 旗 RailNeedByOutput＝1 のとき World.GdpPerMonth の取り直しの輪だけが書く州の産出の値（作業領域・セーブに載らない）。読むのは Transport.RailNeedShare だけ。</summary>
     [System.NonSerialized] internal double GdpOutputMemo;
