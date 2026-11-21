@@ -45,7 +45,7 @@ public static class Politics
         _ => 0.1,
     };
 
-    private static double SchoolingConversion(Pop p, double convertNow, Coefficients c)
+    internal static double SchoolingConversion(Pop p, double convertNow, Coefficients c)
     {
         double stock = p.SchoolingConvStock;
         if (stock < 0) stock = convertNow;

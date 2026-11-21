@@ -115,6 +115,18 @@ public static class FactionSnapshot
 
     internal static bool IsInstantAxis(PolicyAxis a) => a is PolicyAxis.Coercion or PolicyAxis.NavyUpkeep or PolicyAxis.Tariff;
 
+    /// <summary>1 軸の要求の点＝選好の強さ×残りの可動域÷(1＋反対の力)。向きは increase へ。ComputeDemands の 1 軸分（順位づけの前）。</summary>
+    internal static double AxisScore(World w, PolicyAxis axis, int bloc, in PolicyPreferences.Profile e, out bool increase)
+    {
+        double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);
+        increase = prefInc >= 0;
+        double strength = System.Math.Abs(prefInc);
+        if (!increase && PolicyPreferences.DirectionAware(w, axis, bloc)) strength = System.Math.Abs(PolicyPreferences.Pref(axis, bloc, e, w, false));
+        double score = strength * Headroom(w, axis, increase);
+        score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, e);
+        return score;
+    }
+
     public static List<Demand> ComputeDemands(World w, int bloc, bool lawsOnly = false)
     {
         var list = new List<Demand>();
@@ -123,12 +135,7 @@ public static class FactionSnapshot
         {
             if (axis == PolicyAxis.NationalizationAll) continue;
             if (lawsOnly && IsInstantAxis(axis)) continue;
-            double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);
-            bool increase = prefInc >= 0;
-            double strength = System.Math.Abs(prefInc);
-            if (!increase && PolicyPreferences.DirectionAware(w, axis, bloc)) strength = System.Math.Abs(PolicyPreferences.Pref(axis, bloc, e, w, false));
-            double score = strength * Headroom(w, axis, increase);
-            score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, e);
+            double score = AxisScore(w, axis, bloc, e, out bool increase);
             if (score > MinDemandScore) list.Add(new Demand(axis, increase, score));
         }
         list.Sort((a, b) => { int cmp = b.Score.CompareTo(a.Score); return cmp != 0 ? cmp : a.Axis.CompareTo(b.Axis); });
