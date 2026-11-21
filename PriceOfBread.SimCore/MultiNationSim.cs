@@ -1775,7 +1775,7 @@ public static class CostLedger
     /// <summary>
     /// 巡回は技師を雇わない生産者（一次産品の大半）で門の照会を飛ばす。〔履歴 MultiNationSim.cs#204〕
     /// </summary>
-    public const double DiscoveryWorldScanUnitMicros = 0.06;
+    public const double DiscoveryWorldScanUnitMicros = 0.018;   // (1275) 数える物＝高度労働力を投入に持つ生産者（旧は全生産者・0.06）。巡回 1 回の実測：旧 2.51 ms／5.4 万件＝46 ns・新 0.53 ms／3.8 万件＝14 ns（旧の単位 0.06 との比 1.29 を掛けて 0.018）〈推〉
     /// <summary>
     /// その 6 秒を 1 試合の POP×月（約 842 万＝台帳「月次：POP×月」の件数）×3 層（11−8）= 約 2,527 万で割った 0.24。〔履歴 MultiNationSim.cs#205〕
     /// </summary>
