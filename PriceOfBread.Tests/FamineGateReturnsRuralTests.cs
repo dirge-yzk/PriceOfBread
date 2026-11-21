@@ -61,7 +61,7 @@ public class FamineGateReturnsRuralTests
     public void T2_旗0は同じ盤面で動かさない_門は止めるだけ()
     {
         var (r, rural, urban, c) = Board(0.1, 2.0, 0.6, 0.95, 0.5);
-        Assert.Equal(0.0, c.FamineGateReturnsRural);
+        c.FamineGateReturnsRural = 0;   // 旗 0 の経路（既定は 1）
         Assert.Equal(0.0, Moved(r, rural, urban, c));
     }
 
@@ -71,7 +71,7 @@ public class FamineGateReturnsRuralTests
         // 都市の充足 0.9≧0.8＝門は掛からない＝旧の式の農村→都市（正）が旗 0 と 1 で同じビット
         var (r0, ru0, ur0, c0) = Board(0.1, 2.0, 0.6, 0.95, 0.9);
         var (r1, ru1, ur1, c1) = Board(0.1, 2.0, 0.6, 0.95, 0.9);
-        c1.FamineGateReturnsRural = 1;
+        c0.FamineGateReturnsRural = 0; c1.FamineGateReturnsRural = 1;
         double d0 = Moved(r0, ru0, ur0, c0), d1 = Moved(r1, ru1, ur1, c1);
         Assert.True(d0 > 1e-9, "前提：旧の式で農村→都市が出ていない");
         Assert.Equal(BitConverter.DoubleToInt64Bits(d0), BitConverter.DoubleToInt64Bits(d1));
