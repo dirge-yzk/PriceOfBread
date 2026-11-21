@@ -1,0 +1,26 @@
+# (1276) c131k15 事前登録：恒等の線 K15 の焼き込み（JobSearchLiteracyWeight と旗 JobSearchLiteracyOff の物理の削除）
+# 枝 c131k15（0cea95a9f から）・worktree D:/PoB_work/wt_c131k15・書き手 Claude Sonnet 5.5。最初のコミット。
+
+## [1] 恒等の線・予言 0
+- 区分：★(743) の ①（旗の旧の枝の焼き込み）。既定は旗 1（(1274) で採った＝m1274 は旗 1）＝既定の経路だけ残し、旗 0 の枝と係数を消す。
+- 世界は恒等の見込み：旗 1 の経路は eff＝JobSearchRatePerQuarter.Value そのまま（演算 0 回）。浮動小数の順序が変わる箇所は無い（旧の式の枝を消すだけ）。紙の台本の食い違い 0。
+
+## [2] 消す物と残す物
+- 消す：Coefficients.p03_debt_money.cs:50 JobSearchLiteracyWeight・:51 JobSearchLiteracyOff。
+- 直す：Meritocracy.cs:137〜:138 の三項 → `double eff = c.JobSearchRatePerQuarter.Value;`
+- 読み手の grep（0cea95a9f）：SimCore は Meritocracy.cs:137〜:138 と p03 の 2 行だけ。Runner・App・Display＝0。scripts の読み手＝過去の線の台本（c130k15・m1274・ident.cfg の注）で POB_COEF の名前の解決は 0。SaveGame は欄をリフレクションで読むだけで名前の表は持たない（互換不要）。Tests＝JobSearchLiteracyOffTests・DormantIdentityTests.cs:103 の注・UnitTypeTests.cs:206 の注。
+- 残す：JobSearchRatePerQuarter・JobSearchUsesEma・JobPoolTemperature（作り直しは入れない）。
+- DormantIdentityTests.RetiredFields に 2 名を足す（復活の番人）。
+- 他の線との重なり：c131wa は Discovery・MultiNationSim:490〜:510、c131pf は BilateralMarket・p04、c131cr は Places・Simulation:1355〜:1370、c131fg は PopDecision・p02＝重ならない。p03 は :48〜:53、Meritocracy.cs は :125〜:145 だけを触る。
+
+## [3] 試験と突然変異
+- JobSearchLiteracyOffTests：旗 0 の側（T2）と旗・重みの設定を外す。T1（識字 0 と識字 1 の同じ失業率の POP の移る量が等しい）は残す。T3 は〈移る量が 0 より大きく、率×失業率×規模以下〉（期待値は盤面の率から独立に書く）に書き換える。名前は変えない。
+- 突然変異 μ1＝Meritocracy.cs の eff に識字の項（1−0.5×(1−識字)）を戻す → T1 赤。μ2＝eff を 2 倍 → T3 の上限で赤。
+- ㉘ の走査の番人：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|JobSearchLiteracyOffTests を項の直後に回す。
+- ㉑ の件数の予言：Tests 2845→2844（T2 を外す）・Tests.Ui 234・合計 3078。WriterRatchetTests の宣言の表・IndustrializationReaderTests の許可表・MoneyStock の件数（64）は Meritocracy.cs の該当行に無い＝変わらない（腕の前に grep で確かめる）。
+
+## [4] 門
+- 素の 5 種・計器つき 10 種が m1274（b5_20261121_m1274・b10_20261121_m1274_ins）と名乗り行を除いて全行バイト一致。ident 段 1 で〈判定: 恒等〉なら〈測った種で一致〉と名乗る。不一致なら段 2・それでも不一致ならこの線を外して報告に回す。
+- 計算量の件数が増えない（.cost の推定が一致）。
+
+## [5] 〈判定: 恒等〉なら採る。
