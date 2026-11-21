@@ -785,7 +785,7 @@ public class PolicyPoliticsTests
         //   （プレイヤーは法律タブで同じ門を通る＝非対称・幽霊戦線）。新＝反射は Apply の中、門の前。
         // 主張：AI の1四半期の判断の後、税の5軸の目標は門の不動点（もう一度門を通しても1ビットも動かない）。
         //   2026-11-22 (1282)：旗 OpulenceTaxRelief の焼き込みで、反射を切った腕との比べは無い（反射の効きは直上の 2 本が見る）。
-        static World[] Arm()
+        static World[] Arm(bool deep = true)
         {
             var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
             for (int q = 0; q < 12; q++) sim.StepQuarter();
@@ -794,19 +794,22 @@ public class PolicyPoliticsTests
             {
                 var w = ws[i] = sim.Nations[i].World;
                 double line = UtilityAgent.OpulenceLineOf(w);
-                if (line > 1e-9) w.SetTreasuryRaw(System.Math.Max(w.Treasury.Value, 8 * line));   // 両腕とも同じ国庫＝反射を深く効かせる（倍率0.25＝床）＝段を跨ぐ減税を確実に作る
+                if (line > 1e-9) w.SetTreasuryRaw(deep ? System.Math.Max(w.Treasury.Value, 8 * line) : line);   // 深い腕＝国庫が緩衝の 8 倍（反射が深く効く・倍率0.25＝床）／対照の腕＝国庫が緩衝ちょうど（反射は何もしない）＝同じ盤面で反射の有無だけが差
                 new UtilityAgent().DecideQuarter(w);
             }
             return ws;
         }
         static double[] Taxes(NationPolicy p) => [p.IncomeTaxTarget, p.ProgressiveTaxTarget, p.PollTaxTarget, p.LandTaxTarget, p.EducationSpendingTarget];
         var on = Arm();
-        int considered = 0;
+        var off = Arm(deep: false);
+        int considered = 0, lowered = 0;
         for (int i = 0; i < on.Length; i++)
         {
             var w = on[i];
             if (UtilityAgent.OpulenceLineOf(w) > 1e-9) considered++;
             var before = Taxes(w.Policy);
+            var offT = Taxes(off[i].Policy);
+            for (int k = 0; k < 4; k++) if (before[k] < offT[k] - 1e-9) { lowered++; break; }   // 軸 0〜3＝所得・累進・人頭・土地の税（教育費は反射の対象外）
             UtilityAgent.GateAllLawTargets(w, w.Policy);
             var after = Taxes(w.Policy);
             for (int k = 0; k < before.Length; k++)
@@ -814,6 +817,7 @@ public class PolicyPoliticsTests
                     $"{w.SelfPower?.Name}：税の軸{k}の目標 {before[k]:R} が門を通すと {after[k]:R} へ動く＝AI の反射が門の外の段を置いた");
         }
         Assert.True(considered > 0, "緩衝が正の国が1つも無い＝反射の定義域の外（番人が空回り）");
+        Assert.True(lowered > 0, "反射を深く効かせても税の目標が 1 国も下がらない＝減税反射が AI の判断の中で走っていない（番人が空回り）");
     }
 
     [Fact]
