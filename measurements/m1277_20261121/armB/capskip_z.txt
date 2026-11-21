@@ -1,0 +1,15 @@
+seed	skips	skipsPricedOut	offerWeight	shadowAllWeight	shadowWeight	addedWeight	dedupWeight	added/shadow	dedup/added
+1	(無い)
+2	(無い)
+3	(無い)
+4	(無い)
+5	(無い)
+6	(無い)
+7	(無い)
+8	(無い)
+9	(無い)
+10	(無い)
+和	0	0	0	0	0	0	0	nan	nan
+足した量の国の上位: 
+足した量の年代: 
+コーヒーの影の量の国の上位: 
