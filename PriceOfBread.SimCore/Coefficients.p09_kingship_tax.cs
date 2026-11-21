@@ -76,7 +76,6 @@ public sealed partial class Coefficients
     public double DynMandateFoodAnchor = 0.8;   // 食料アンカー＝飢饉閾値基準（プローブ検証済み：1.0基準は慢性輸入国=英を常時罰し終盤BD化→0.8で解消。罰すべきは飢饉であって輸入依存ではない）
     public double DynMandateWarWeight = 0.4;    // perf: −戦争重み×WarExhaustion
     public double DynMandateEmaRate = 0.08;     // EMA率/四半期（時定数≈3年）
-    public double MandateReligiousCircuit = 1.0;   // 開度=国教法（無神論=0）・容量=聖職者/(文盲×ClergyMediationPerCapita)飽和
     public double ClergyMediationPerCapita = 0.005;   // 媒介飽和の基準＝文盲人口の0.5%の聖職者で容量1.0（仏1789実測≈1%＝開始時は各国飽和・世俗化/無神論で痩せて初めて効く）
     public double DynMandateAmplify = 0.8;      // 効果幅：侵食×(1−0.8e)・自然回復×(1+0.8e)（e∈[−1,1]）
     public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在するが買収/脅迫で歪む（英1872以前）

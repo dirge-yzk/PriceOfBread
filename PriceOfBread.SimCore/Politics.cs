@@ -47,13 +47,11 @@ public static class Politics
 
     private static double SchoolingConversion(Pop p, double convertNow, Coefficients c)
     {
-        if (c.ConsciousnessFromSchoolingStock <= 0) return convertNow;
         double stock = p.SchoolingConvStock;
         if (stock < 0) stock = convertNow;
         stock = p.GenerationalMix(stock, convertNow, Calendar.MonthsPerQuarter);
         p.SchoolingConvStock = stock;
-        double g = c.ConsciousnessFromSchoolingStock;
-        return (1.0 - g) * convertNow + g * stock;
+        return stock;
     }
 
 
@@ -213,14 +211,13 @@ public static class Politics
                 if (dmClamp != 0) w.Explain.Add("DynasticMandate", "評価の飽和", dmClamp);
             }
             double dynE = (w.DynasticMandate - 0.5) * 2.0 * uneduShare;
-            if (c.MandateReligiousCircuit > 0)
             {
                 double lawOpen = w.StateReligion switch { StateReligionLaw.InnerFreedom => 0.85, StateReligionLaw.ReligiousFreedom => 0.7, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
                 bool clergyModeled = false; double clergySize = 0;
                 foreach (var p in w.AllPops()) if (p.ClassId == PopClass.Clergy) { clergyModeled = true; clergySize += p.Size; }
                 double illit = uneduShare * w.TotalPopulation;
                 double capacity = clergyModeled && illit > 1e-9 ? Math.Min(1.0, clergySize / (illit * c.ClergyMediationPerCapita)) : 1.0;
-                dynE *= 1.0 - c.MandateReligiousCircuit * (1.0 - lawOpen * capacity);
+                dynE *= 1.0 - (1.0 - lawOpen * capacity);
             }
             dynErodeMul = 1.0 - c.DynMandateAmplify * dynE;   // [PORT:P3] 天命→正統性の連続項レバー（侵食/回復の乗数）。名君＝侵食が鈍る／暗君＝加速
             dynRegenMul = 1.0 + c.DynMandateAmplify * dynE;
