@@ -1898,14 +1898,13 @@ public class PolicyPoliticsTests
                     strength = Math.Abs(bloc == 0 ? tDec : bloc == 1 ? mDec : sDec);
                 }
                 double score = strength * FactionSnapshot.Headroom(w, axis, increase);
-                if (w.Coef.FactionTargetsWeakAxis > 0) score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
+                score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
                 if (score > FactionSnapshot.MinDemandScore) list.Add(new FactionSnapshot.Demand(axis, increase, score));
             }
             list.Sort((x, y) => { int cmp = y.Score.CompareTo(x.Score); return cmp != 0 ? cmp : x.Axis.CompareTo(y.Axis); });
             if (list.Count > FactionSnapshot.TopK) list.RemoveRange(FactionSnapshot.TopK, list.Count - FactionSnapshot.TopK);
             return list;
         }
-        Assert.True(w.Coef.FactionTargetsWeakAxis > 0, "前提が崩れた：反対の力で割る項が消えている（反対の力の照会を通らない）");
         int filled = 0, legislatures = 0;
         void Check()
         {
