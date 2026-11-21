@@ -1,0 +1,33 @@
+K08 赤 rc=1 失敗!   -失敗:     7、合格:    21、スキップ:     0、合計:    28、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.StateEduDemandTests.供給が尽きた月は買いたい分だけを需要へ足す_購入と支払いと充足は財源率0と同じ [3 s]
+失敗 PriceOfBread.Tests.StateEduDemandTests.供給が足りる月は国庫が買い_足す量は買えた量と同じ_二重に数えない [16 ms]
+失敗 PriceOfBread.Tests.StateEduDemandTests.一部だけ取れた月は取れなかった分を足す_買えた分を二重に数えない [162 ms]
+失敗 PriceOfBread.Tests.StateEduDemandTests.行政の充足を渡せばその値から出発する_渡さない呼び手を変えない [5 ms]
+K09 緑 rc=0 成功!   -失敗:     0、合格:    41、スキップ:     0、合計:    41、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+
+K14 赤 rc=1 失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 26 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.MobilityTests.蓄財した商人が資本家に昇格する [364 ms]
+K18 赤 rc=1 失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.SubsistenceBakedTechTests.焼いた月の食べる割合は開幕の割合で_技術の比を動かすと動く [4 s]
+失敗 PriceOfBread.Tests.SubsistenceBakedTechTests.焼く値は技術の比で割る [1 s]
+K23 赤 rc=1 失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.DiscoveryClockTests.W0がゼロなら世界の合計を読まず_415の式のまま [1 s]
+失敗 PriceOfBread.Tests.DiscoveryClockTests.電動機の親の産業は蒸気機関の財を足さない [1 s]
+K25 赤 rc=1 失敗!   -失敗:     2、合格:     8、スキップ:     0、合計:    10、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.FoodLedgerTests.T3_保存_市場に出す必要量は独立に組んだ期待と一致し欲しい量は挟みで縮む [6 s]
+失敗 PriceOfBread.Tests.FoodLedgerTests.T2_台帳だけ_パンが買えず野菜が安い盤面で野菜の過分がパンの不足を埋める_手の算術 [452 ms]
+K29 赤 rc=1 失敗!   -失敗:     8、合格:     0、スキップ:     0、合計:     8、期間: 24 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.MilitaryWarMultContactTests.計器は同じ盤面で接触の割合の規則を数える [15 s]
+失敗 PriceOfBread.Tests.MilitaryWarMultContactTests.内戦は対外戦と同じ式 [658 ms]
+失敗 PriceOfBread.Tests.MilitaryWarMultContactTests.接触が0の戦争は平時の倍率になる [117 ms]
+失敗 PriceOfBread.Tests.MilitaryWarMultContactTests.接触は毎月その場の盤面から求め直す [108 ms]
+K52 赤 rc=1 失敗!   -失敗:     4、合格:     5、スキップ:     0、合計:     9、期間: 44 s - PriceOfBread.Tests.dll (net10.0)
+失敗 PriceOfBread.Tests.DevaluationCapReliefTests.余地が切り以下か切りが正でない月は旧の式と同じビットを返し_切りを超える余地はそのまま返る [1 ms]
+失敗 PriceOfBread.Tests.DevaluationCapReliefTests.切りが外れた赤字では切り下げが旧の切りを超え_物価は桁で伸び_下流は有限で貨幣は保存される [4 s]
+失敗 PriceOfBread.Tests.DevaluationCapReliefTests.計器devcapは旧の切りに当たった月を全ての国から出し_切り下げは切りを超える [32 s]
+失敗 PriceOfBread.Tests.DevaluationCapReliefTests.切りを超える余地は切り無しで余地そのもの_上限がない [2 ms]
+END
+K09 赤
+  失敗 PriceOfBread.Tests.ServiceEconomyTests.公教育と義務教育の教師の生産性は基底のまま_教師の質の補正を掛けない(coexist: 0, law: Compulsory) [7 s]
+  失敗 PriceOfBread.Tests.ServiceEconomyTests.公教育と義務教育の教師の生産性は基底のまま_教師の質の補正を掛けない(coexist: 0, law: Public) [19 ms]
+失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 8 s - PriceOfBread.Tests.dll (net10.0)
