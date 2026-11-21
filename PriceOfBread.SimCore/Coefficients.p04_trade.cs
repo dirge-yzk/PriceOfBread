@@ -106,7 +106,7 @@ public sealed partial class Coefficients
     public double SulfurFromPyriteProductivity = 0.7;   // 硫黄法比の生産性（黄鉄鉱法は歩留まりが低い＝高コスト）
     public double SilverRushEnabled = 0.0;   // 0＝表の銀の行を置かない（西部の銀は非産地の0.4のまま）＝旧と同じ
     public double MineralCostFollowsGrade = 0.0;         // 0＝鉱脈で割らない（自己費用＝MarginalCost×自己費用の物価水準×州の乗数のまま）＝厳密恒等
-    public double EndowmentCostFollowsAbundance = 0.0;   // 賦存倍率>1 の州：自己費用÷倍率^これ（0＝割らない＝厳密恒等／1＝完全に「同一費用あたりの産出能力」）
+    public double EndowmentCostFollowsAbundance = 1.0;   // (1291) 点火・賦存倍率>1 の州：自己費用÷倍率^これ（0＝割らない／1＝完全に「同一費用あたりの産出能力」・指数 1 と豊富な側だけは AI の選択＝確証なし）
     public double TradeBuyBySupplyCurve = 1.0;   // (1172) 3 回目の旗 1・(1144) T1 A-1：清算の買いの〈来月の国内の見込み〉を u′＝min(着値, 州の値段) での供給①の見込み min(P, P̂(u′)) で読み、需要の倍率 (rpT÷u′)^ε を掛ける（0＝旧の xNeed＝厳密恒等）
     public double EndowmentCostFollowsScarcity = 0.0;    // 賦存倍率<1（非産地 0.4）の州：自己費用÷倍率^これ＝費用が上がる（0＝上げない＝厳密恒等）
     public double RecipeCostFollowsProductivity = 1.0;   // 点火（枝 gp の腕 B〔b10_20261014_gp329B_ins〕の形・合流の担当が作者 2026-10-14 の止める線の規則で読み直して採った）
