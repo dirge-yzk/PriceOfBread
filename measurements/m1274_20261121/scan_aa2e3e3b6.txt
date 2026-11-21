@@ -1,0 +1,6 @@
+D:\PoB_work\m1274_work\suite_s\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:13:38.74]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+
+成功!   -失敗:     0、合格:   530、スキップ:     1、合計:   531、期間: 13 m 49 s - PriceOfBread.Tests.dll (net10.0)

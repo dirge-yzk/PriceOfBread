@@ -1,0 +1,11 @@
+(1274) 合流が消した物と消さなかった物（2026-11-21）
+消した（この回に自分で作った物だけ）：
+- D:/PoB_work/ident_m1274z（腕 Z の生・判定: 恒等・記録は identz/・S11 の採否の後に消した）
+- D:/PoB_work/m1274_work（作業フォルダ・台本の写しと読みと成績表は measurements/m1274_20261121/ と measurements/ の基線の成績表へ写した後に消した）
+- worktree D:/PoB_work/wt_m1274z と枝 m1274z（腕 Z の木・push していない）・worktree D:/PoB_work/wt_m1274 と枝 m1274（main へ早送りで入れた後）
+外した（線の担当が作った worktree・枝は origin にある）：wt_c130ih（未追跡の ident_c130ih_manifest.tsv は measurements/m1268_20261121_ident_manifest.tsv へ写した）・wt_c130k15・wt_c130rc・wt_c130gs とローカルの枝 c130ih・c130k15・c130rc・c130gs。
+消さなかった：
+- keep_1274（新しい INSRAW base_ins・KEEPNULL n1・a11）
+- keep_1260・keep_1267（INSRAW でも KEEPNULL でもなくなった＝指示の許しの内だが、消すのは作者のセッションへ残した）・keep_1267_rej（(1272) が読み終えた・作者のセッションへ）
+- 線の生（c130k15_work・ident_c130k15・c130rc_work・ident_c130rc・c130gs_work・ident_c130gs・c130ih_work・ident_c130ih・r1272_work・r1273_work）＝採否は決まった・作者のセッションで消してよい
+- 採らなかった腕の生 keep_1274_rej は作っていない（採らなかった腕が無い）
