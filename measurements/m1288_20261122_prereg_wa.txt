@@ -1,0 +1,36 @@
+(1288) c133wa 事前登録：WorldAdvLabor の巡回の入れ直し（恒等・予言 0）・2026-11-22・書いたモデル Claude Sonnet 5.5
+
+== [1] 恒等の線（★(743) の区分＝導出の表の追加・結果は 1 ビットも変えない）==
+- 出発：(1275) c131wa は段 1 で〈不一致〉（.cost の DiscoveryWorldScans の件数と推定の 4 件）。反証役 v の高＝Simulation.cs の NoteInputsChanged を毎月無条件に呼ぶ形は、四半期ごとにほぼ全ての州の表を作り直し、その作り直しが台帳の件数の外・微小ベンチの外にあった。
+- 形の種類：入口。枝 origin/c131wa の d88a3dfd2・2b042756d・177d80e91 を main 0072408c5 の上へ手で写す（枝の base が古いので merge しない）。
+- 今回の差：Producer.SetInput(i, Input) を足し、今の Inputs[i] と値が違う時だけ書いて NoteInputsChanged（Region.AdvSitesDirty）を呼ぶ。同じなら書かず印も立てない。Simulation.cs:1847・:1854 の 2 行をこの呼び出しに替える（値は同じ定数）。
+- 診断の欄：Region.AdvSitesBuilds（[NonSerialized] 作り直しの回数・試験と実の時間の測定だけが読む・状態ではなく数える欄）。
+- 新しい係数 0・旗 0・保存する状態 0（表は導出のキャッシュ＝Producers の同一性・件数・Dirty の 3 つが変わったときだけ作り直す。和は旧の全巡回と同じ部分列を同じ順で足す＝ビット一致）。
+- 浮動小数の順序が変わる箇所：無し（同じ項を同じ順で足す。除外するのは u≦0 になる項だけで、旧も足していない）。
+
+== [2] 消す物と残す物・読み手の grep ==
+- 消す物：無し。足す物：Discovery.AdvLaborSites・EngineerUseAt・AdvLaborAt、Region の NonSerialized 5 欄（AdvSites・AdvSitesList・AdvSitesCount・AdvSitesDirty・AdvSitesBuilds）、Producer.NoteInputsChanged・SetInput。
+- Inputs の書き手（grep 済み）：Simulation.cs:936（ToWeaponStrength＝リスト差し替え・州の生成前の静的な構築のみ＝表は最初の巡回で作る）・:1847・:1854（Inputs[0] の書き換え）だけ。Producers の Add/Remove/Insert/Clear/添字代入は SimCore に無い。
+- WorldAdvLabor の読み手：MultiNationSim.cs:500（唯一）・Tests（DiscoveryClockTests・DiscoveryEngineerTests・DiscoveryScoreTests）。
+- 金を動かす呼び出しの鍵の行（scripts/instruments/flow262/route_anchors.tsv）：書き換える行（Simulation.cs:1847・:1854 の Inputs[0]・Discovery.cs の巡回・Model.cs のフィールド）に鍵の行は無い（grep で Transfer・PaySales の行のみ）。
+- 他の線との重なり：Simulation.cs は :1845〜:1856 だけ（cl は :1949 の注だけ）・Discovery.cs は :60〜:115 だけ・Model.cs は :470〜:520・:760〜:770・MultiNationSim.cs は :495〜:505 と :1778 だけ（費目の名 :1742 は変えない）。
+
+== 台帳（.cost）で変わる項の宣言 ==
+- 変わる項：DiscoveryWorldScans の件数（旧＝全生産者・新＝高度労働力を投入に持つ生産者＝約 7 割）と、その結果の推定。向き＝どちらも下がる。他の件数の行は一致。
+- 単位 DiscoveryWorldScanUnitMicros（MultiNationSim.cs:1778）は、作り直しを含めた 1 回の実測で取り直す（枝の値 0.018 は作り直しを含まない暫定）。結果は追記の欄に書く。
+- ident の判定がこの項だけの不一致なら、合流は上の宣言（DiscoveryWorldScans の件数と推定が下がる・他の行は一致）と突き合わせて読み、成績表・計器の表が全行一致なら恒等（測った種で一致）として採る。
+
+== 実の時間（ident の前に測る）==
+- 盤面：keep の種 1 の 10 年（40 四半期）を scratch の台本（試験の木の外・コミットしない）で回す。SimCore に手を入れない。
+- 数える物：月あたりの Region.AdvSitesBuilds の増え（旧の形＝毎月無条件に印を立てた場合も同じ台本で数える）・1 回の作り直しの時間・巡回 1 回（作り直しを含む）の時間。clock_s の worldTotalPerMonth は既知の揺れなので並べるだけ（記録）。
+- 門：新の巡回（作り直しを含む）の実の時間の合計が旧の全巡回より大きければ入れない（名乗って止める）。推定は下がる。
+
+== [3] 足す試験と突然変異 ==
+- WorldAdvLaborSitesTests（枝の 2 本＋足す 3 本）：①表の和が旧の全巡回とビット一致・表は全生産者より少ない ②Inputs の書き換え・生産者の追加の後も一致 ③同じ財の SetInput では AdvSitesDirty が立たず作り直しの回数が増えない ④財が変わると印が立ち、和が全生産者の巡回とビット一致 ⑤同じ値を何度書いても作り直しは 0 回（毎月の模擬）。
+- 突然変異（全て赤の予定）：M1 件数・同一性の照合を外す→②赤。M2 対象を 1 件落とす→①赤。M3 NoteInputsChanged を空にする→②④赤。M4 印を立てない（SetInput が変化時に呼ばない）→④赤。M5 条件を逆にする（同じ時に書く・違う時は書かない）→③④赤。M6 毎回立てる→③⑤赤（回数の Assert）。
+- ㉘ 走査の番人：DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScan・DiscoveryClock と足した試験をコミット直後に回す。書き換える件数の予言（㉑）：Region のフィールド列を走査する番人があれば NonSerialized の 5 欄は許可表の外で緑のはず（赤なら許可表の行を足す）。工業化度の読み手の許可表・`new MoneyStock(` の件数は触らない（0 件増）。WriterRatchetTests の宣言の表は DiscoveryWorldScans の件数だけが対象（取り直した単位の行）。
+- 試験の数の予言：3093＋足した数（5 本）＝3098（Tests 2865＋Tests.Ui 233）。
+
+== [4] 成績表 ==
+- 素の 5 種・計器つき 10 種は m1287 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言だけ。ident 段 1（--work D:/PoB_work/ident_c133wa）で判定し、宣言の外の不一致の時だけ段 2。
+== [5] 〈判定: 恒等〉なら採る。推定と実の時間の両方が下がらなければ入れない。一致しなければこの変更を外して報告に回す。
