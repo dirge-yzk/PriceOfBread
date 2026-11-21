@@ -1,0 +1,12 @@
+(1280) 合流が消した物と消さなかった物（2026-11-21）
+消した：
+- D:/PoB_work/ident_m1280z（腕 Z の生・判定: 恒等・刈り込みの表ごとの sha1 は identz/prune_manifest_m1280z.tsv・記録は identz/・S11 の採否の後に消した）
+- D:/PoB_work/keep_1274/base_ins・keep_1274/n1（新しい ident.cfg〔m1280〕を push した後＝INSRAW でも KEEPNULL でもなくなった・表ごとの sha256 は measurements/m1274_20261121/keepsum_insraw1274.tsv と measurements/m1280_20261121/keepsum_keep1274_n1.tsv）
+- D:/PoB_work/c131pf_work・c131cr_work・ident_c131cr（線の作業フォルダ・pf と cr を採った後・線の記録は measurements/m1277_20261121/・m1278_20261121/）
+- D:/PoB_work/m1280_work（合流の作業フォルダ・成績表と読みは measurements/ と measurements/m1280_20261121/ へ写した後）
+- worktree wt_m1280z と枝 m1280z（origin/m1280z は残す）・worktree wt_m1280 と枝 m1280（main へ早送りで入れた後・origin/m1280 は残す）
+外した（線の担当が作った worktree・枝は origin にある）：wt_c131cr・wt_c131k15・wt_c131pf・wt_c131wa とローカルの枝 c131cr・c131k15・c131pf・c131wa（どれも origin と同じ頭・未コミット 0）。
+消さなかった：
+- keep_1280（新しい INSRAW base_ins・KEEPNULL n1・a11）
+- keep_1274/a11（S11 の種 19 ヤウンデ王国の名目 GDP 0 の続きの生＝次の波の読む線〈3〉が読む・読んだら消してよい）
+- 採らなかった腕の生 keep_1280_rej は作っていない（採らなかった腕が無い・c131wa の生は線の作業フォルダごと作者のセッションが消した）
