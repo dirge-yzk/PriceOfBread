@@ -22,7 +22,6 @@ public sealed partial class Coefficients
     public double UbiquitousMineralExempt = 1.0;   // 段0″b（AI の案・確証なし・事前登録 measurements/m1020_20261110_prereg_ub.txt）：> 0 のとき遍在の財
     public double ResourceRowsFix = 1.0;   // 段0″a 資源のデータ（AI の案・確証なし・事前登録 measurements/m1025_20261110_prereg_rd.txt）
     public double EmptyPopEstate = 1.0;   // 0＝何もしない
-    public double MinimumWageAiFromFloor = 1.0;   // 0＝今の規則〈本国の都市の割合の線で上げる目標だけを書く〉（UtilityAgent.MinimumWageTargetFromBoard）
     public double GuildLawGate = 0.0;   // 主ゲート＝法が動く（Government/AI目標/要求経路/UI）
     public double GuildRentPremium = 0.0;   // 取り分＝職人の自営レシピの財への上乗せ（買い手価格×これ×法の度合×職人の供給シェア＝消費者→職人・台帳へ）
     // ==== 内戦を戦争に一元化（docs/202608/20260827_内戦を戦争に一元化する_部分完了.md・2026-08-30実装）＝主フラグ点火済み（FactionJoinMilitancy は段2で削除＝下記）====
@@ -81,7 +80,6 @@ public sealed partial class Coefficients
 
     // ==== 蜂起R群 2026-08-16（docs/202608/20260816_蜂起不発と極端プレイ診断_部分完了.md・実装時は全て休眠＝既定0で厳密ビット恒等＝0で新しい読み書きゼロ・分岐1回のみ）====
     public double FactionRevoltLocalCoerce = 0.5;   // F3b点火の単位整合＝左辺FactionStrength（州×ブロック×主軸クラスタ規模）vs 右辺全国coerce の按分ブレンド（0..1）
-    public double ModernizationBudgetSoftCap = 1.0;   // // R4（診断B3・最初の1手）：近代化投資のminクランプ→漸近逓減（World.ModernizationBudget）
 
     // ==== 海ノード吸着の是正 2026-08-16（docs/202608/20260816_海ノード吸着の是正_完了.md・実装時は休眠＝既定0で厳密ビット恒等／★点火梯子で0.5へ点火済み・live）====
     public double ImportPayerLive = 0;   // 0＝今の形（商人の POP があれば人数を見ずにその 1 POP・1 ビットも変わらない）

@@ -97,25 +97,16 @@ public class MinimumWageAiFloorTests
     // ---------------------------------------------------------------- 旗 0 は今の規則・旗 1 は盤面から
 
     [Fact]
-    public void 旗0の入口は今の規則そのもので計算量の台帳も増えない_旗1は台帳に数える()
+    public void 入口は盤面から読む規則で台帳に数える()   // 旗 0（旧の規則）の側は旗ごと消えた（(1282)）
     {
         var sim = Build();
         var w = sim.World;
         long Led() => w.Cost[CostLedger.MinimumWageBasketScans];
-        foreach (var cur in new[] { MinimumWageLaw.None, MinimumWageLaw.Subsistence, MinimumWageLaw.Living, MinimumWageLaw.Sufficiency })
-        {
-            w.MinimumWage = cur;
-            w.Coef.MinimumWageAiFromFloor = 0;
-            long before = Led();
-            Assert.Equal(UtilityAgent.MinimumWageTargetFromBoard(w), UtilityAgent.MinimumWageTargetChosen(w));
-            Assert.Equal(before, Led());
-        }
-        // 旗 1 は新しい規則（読み手を呼ぶ＝台帳が増える）。
         w.MinimumWage = MinimumWageLaw.None;
-        w.Coef.MinimumWageAiFromFloor = 1;
         long b1 = Led();
-        UtilityAgent.MinimumWageTargetChosen(w);
-        Assert.True(Led() > b1, "旗 1 で盤面を読んでいない");
+        var chosen = UtilityAgent.MinimumWageTargetChosen(w);
+        Assert.Equal(UtilityAgent.MinimumWageTargetFromFloor(w), chosen);   // 入口は盤面の規則の 1 本
+        Assert.True(Led() > b1, "盤面を読んでいない");
     }
 
     // ---------------------------------------------------------------- 盤面の読み（手の参照との一致）
@@ -180,7 +171,6 @@ public class MinimumWageAiFloorTests
         Assert.True(double.IsNaN(h2.Unemployment));
         Assert.True(double.IsNaN(MinimumWageFloor.BindShare(h2, MinimumWageLaw.Living)));
         w.MinimumWage = MinimumWageLaw.Living;
-        w.Coef.MinimumWageAiFromFloor = 1;
         Assert.Null(UtilityAgent.MinimumWageTargetFromFloor(w));       // 失業が読めない＝何も書かない
     }
 
@@ -190,7 +180,6 @@ public class MinimumWageAiFloorTests
     public void 床が縛って失業が高ければ下げ_縛らなければ下げず_失業が低ければ縛っていても下げない()
     {
         var w = Build().World;
-        w.Coef.MinimumWageAiFromFloor = 1;
         w.MinimumWage = MinimumWageLaw.Living;
         var all = new[] { 0.95 };                                    // 全ての州で値段＝生活の床の 0.95 倍（縛る）
         SetBoard(w, 2, all, 0.8);
@@ -208,7 +197,6 @@ public class MinimumWageAiFloorTests
     public void 失業が低く次の段が広くは縛らなければ上げ_広ければ上げない()
     {
         var w = Build().World;
-        w.Coef.MinimumWageAiFromFloor = 1;
         w.MinimumWage = MinimumWageLaw.None;
         var home = Home(w);
         Assert.True(home.Count >= 3);

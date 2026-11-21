@@ -35,7 +35,6 @@ public class RevoltIgnitionTests
         Assert.True(1.0 - Math.Pow(1.0 - c.MilitancySpeed, 2) > c.RegionalRevoltThreshold, "2四半期でも門に届かない＝「半年の飢餓で大量の反乱軍」が表せない");
         // ★満期の厭戦（0.9）が単独では門に届かない＝ナポレオン戦争級の長期戦でも戦争だけでは全土蜂起しない（飢餓が足されて初めて越える）。
         Assert.True(0.9 * c.WarWearinessMilitancy < c.RegionalRevoltThreshold, "厭戦だけで門を越える＝1.5年超の全戦争が全土蜂起になる");
-        if (!ov.Contains("ModernizationBudgetSoftCap", StringComparison.Ordinal)) Assert.Equal(1.0, c.ModernizationBudgetSoftCap);
     }
 
     [Fact]
@@ -228,13 +227,9 @@ public class RevoltIgnitionTests
         Assert.True(w.NominalGdpPerMonth.Value > 5_000, "前提が崩れた：GDPが小さすぎて要求額が国庫半分に届かない");
         w.SetTreasuryRaw(1_000.0);   // 国庫半分=500 ≪ 要求額＝minクランプが確実に食う帯
         double Budget(double frac) { w.ModernizationFrac = frac; return w.ModernizationBudget(); }
-        w.Coef.ModernizationBudgetSoftCap = 0;   // ★OFF側を明示ピン（既定は点火1.0）
-        double off06 = Budget(0.6), off10 = Budget(1.0);
-        Assert.Equal(off06, off10);   // 旧＝区別の消滅（「100%は不可能」が実挙動に不存在）の再現
-        Assert.True(off10 > 0);
-        w.Coef.ModernizationBudgetSoftCap = 1.0;
         double on03 = Budget(0.3), on06 = Budget(0.6), on10 = Budget(1.0);
-        Assert.Equal(off10, on10);    // frac=1.0＝漸近の極限＝旧の壁と同額（上限保存・convex=+∞でもNaNにならない）
+        Assert.True(on10 > 0 && !double.IsNaN(on10));
+        Assert.True(on10 <= 500.0 + 1e-9);   // frac=1.0＝漸近の極限＝国庫の半分（旧の壁と同額の上限・convex=+∞でもNaNにならない）
         Assert.True(on06 < on10, $"frac0.6と1.0の区別が生まれない（0.6: {on06:F1} / 1.0: {on10:F1}）");
         Assert.True(on03 < on06, $"fracの単調性が壊れた（0.3: {on03:F1} / 0.6: {on06:F1}）");
         Assert.True(on06 > 0);

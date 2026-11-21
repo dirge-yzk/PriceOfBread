@@ -626,7 +626,7 @@ public sealed class UtilityAgent : INationAgent
     }
 
     internal static MinimumWageLaw? MinimumWageTargetChosen(World w)
-        => w.Coef.MinimumWageAiFromFloor > 0 ? MinimumWageTargetFromFloor(w) : MinimumWageTargetFromBoard(w);
+        => MinimumWageTargetFromFloor(w);
 
     internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)
     {
