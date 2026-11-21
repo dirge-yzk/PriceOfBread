@@ -2356,3 +2356,6 @@
 ## (1214) c122cr の追記
 - CheckSecession の分離の圧の式（文化の距離→闘争度→選挙権→群衆）を internal static Politics.SecessionPressure へ出した（演算の順は同じ・エンジンと計器 rulepower_s が同じ関数を呼ぶ）。r.TariffInterest の代入と SecessionHoldProjection の枝はエンジンに残した。
 (1220) SecessionPressure の本体を SecessionParts（項ごとの値）へ出し、SecessionPressure はその .Pressure を返す口にした（演算の順は同じ）。計器 secession_s の SecRebuild の写しは消し、SecObserve も SecessionParts を呼ぶ＝pressureRebuildGapIndex は作りから 0。
+
+## (1282) c132g2 で削除
+- 旗 ConsciousnessFromSchoolingStock・MandateReligiousCircuit の読み手。

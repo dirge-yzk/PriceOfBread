@@ -414,3 +414,6 @@
 // 参政権の範囲2法（2026-08-16。英字enum名がUIへ漏れる罠を封じる）
 ````
 
+
+## (1282) c132g2 で削除
+- 旗 ParticipationDiscontent・FactionTargetsWeakAxis の読み手。

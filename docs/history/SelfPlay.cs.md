@@ -3892,3 +3892,6 @@
 /// <summary>計算量の台帳の全試合の和（<see cref="CostLedger"/> の添字・中断した試合もそこまでの件数を足す）。</summary>
 ````
 
+
+## (1282) c132g2 で削除
+- 旗 OpulenceTaxRelief・SurvivalHopelessScale・SovietTaxProfile・MinimumWageAiFromFloor の読み手（RelieveOpulence は internal へ）。MinimumWageTargetFromBoard・MinimumWageTargetChosen を消した。
