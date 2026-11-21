@@ -1,0 +1,27 @@
+(1275) c131wa 事前登録：WorldAdvLabor の巡回の高速化（恒等・予言 0）・2026-11-21・書いたモデル Claude Sonnet 5.5
+
+== [1] 恒等の線（★(743) の区分＝導出の表の追加・結果は 1 ビットも変えない）==
+- 出発：00一覧〈次の波〉0 節②・(1260) の足し〈WorldAdvLabor の巡回〉。決まり⑦（高速化は毎回）。答え待ちではない。形の種類〈入口〉。
+- 形：(ii) 州ごとに〈高度労働力を投入に持つ生産者の添字〉の表（昇順）を持ち、WorldAdvLabor は表の生産者だけを旧と同じ順（国→州→生産者）で足す。u＞0 の項だけが和に入るので、u＝0 の生産者を飛ばしても和はバイト一致する。(i) 生産者ごとの添字は、投入の表を見るために生産者の欄を毎回読む＝州の表より訪れる件数が多いので採らない（.cost は実測で確かめる）。
+- 導けるか：表は Producers と各 Inputs から毎回導ける導出。セーブに載せない（[NonSerialized]・読み込み後は最初の巡回で作り直す）＝新しい状態ではない（決まり②）。
+- 作り直しの口（全て grep 済み）：Producers の差し替え・件数の変化（表が持つ同一性と件数の照合で自動）／Inputs の差し替え（Simulation.cs:936 ToWeaponStrength＝州の生成前の静的な構築のみ・表は最初の巡回で作る）／Inputs の中身の書き換え（Simulation.cs:1853・:1867 の教育生産者の Inputs[0]＝高度労働力でない投入への置き換え→Producer.NoteInputsChanged で Region.AdvSitesDirty）。Producers.Add 等の書き手は SimCore に無い。
+- 新しい係数 0・旗 0・計算の順序は変えない（和は同じ部分列を同じ順で足す）。
+
+== [2] 消す物と残す物・読み手の grep ==
+- 消す物：無し。足す物：Discovery.AdvLaborSites・Discovery.UsesAdvLabor・Region の NonSerialized 4 欄（AdvSites・AdvSitesList・AdvSitesCount・AdvSitesDirty）・Producer.NoteInputsChanged。
+- WorldAdvLabor の読み手：MultiNationSim.cs:498（唯一）・Tests（DiscoveryClockTests・DiscoveryEngineerTests・DiscoveryScoreTests）。EngineersByGood は作り直さない（同じ表を使える＝名乗るだけ）。
+- 他の線との重なり：MultiNationSim.cs は :490〜:510 だけ（台帳の数え方）・Discovery.cs は :17〜:100 と新しい関数・Simulation.cs は :1853・:1867 の 2 行・Model.cs は Region と Producer に欄。Instruments/ に触れない。
+
+== 台帳の数え方（DiscoveryWorldScans）==
+- 訪れた件数＝表の生産者の数（旧は全生産者）に変わる。単位 DiscoveryWorldScanUnitMicros は、計器つきの Stopwatch（_clockTicks）の前後で取り直す（0.06 → 実測）。宣言の表（WriterRatchetTests の計算量の表）は ★(749) で取り直す。推定の .cost の見積もり：−2〜−3 秒〈推〉。
+- !Instruments.On のときの計算量の件数は旧と同じ条件（clockOn のときだけ数える）で増えない。
+
+== [3] 足す試験と突然変異 ==
+- WorldAdvLaborSitesTests（新しい 1 本）：①盤面（既定の構築）で旧の全巡回（試験の中の写し）と新の和がビットで一致 ②Inputs を書き換えた後（NoteInputsChanged あり）も一致 ③生産者の差し替え・足した後も一致 ④表の件数が全生産者より少ない（＝飛ばしが働く）。
+- 突然変異：M1 作り直しの口（件数・同一性の照合）を外す→③赤。M2 対象の生産者を 1 件落とす→①赤。M3 NoteInputsChanged を外す→②赤。
+- ㉘ 走査の番人：DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScan・DiscoveryClock と足した試験。書き換える件数の予言（㉑）：Region のフィールド列挙を数える番人は無い見込み＝0。
+- 試験の数の予言：3079＋足した数（4 本前後）。
+
+== [4] 成績表 ==
+- 素の 5 種・計器つき 10 種は m1274 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言だけ。ident 段 1 で判定し、不一致の時だけ段 2。
+== [5] 〈判定: 恒等〉なら採る。一致しなければこの変更を外して報告に回す。
