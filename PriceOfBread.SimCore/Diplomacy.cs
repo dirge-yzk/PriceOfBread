@@ -1076,11 +1076,13 @@ public sealed class Diplomacy
     }
 
     // === 緊張の差分化（民族/宗教/法の隔たり）＝陣営化の駆動。〔履歴 Diplomacy.cs#135〕
-    private static (string culture, string religion) MajorityCultureReligion(World w)
+    internal static (string culture, string religion) MajorityCultureReligion(World w)
     {
         var ct = new Dictionary<string, double>(); var rt = new Dictionary<string, double>();
+        bool homeOnly = w.Coef.ColonyLabelsFromData > 0;   // (1278) c131cr 旗 1：植民地格の州は国の主流の札に数えない（植民地の札が土地のデータになった後、宗主の主流が植民地の人口で入れ替わらない）
         foreach (var r in w.Regions)
         {
+            if (homeOnly && r.Tier == RegionTier.Colonial) continue;
             double pop = 0; foreach (var p in r.Pops) pop += p.Size;
             if (pop <= 0) continue;
             if (r.Culture.Length > 0) ct[r.Culture] = ct.GetValueOrDefault(r.Culture) + pop;

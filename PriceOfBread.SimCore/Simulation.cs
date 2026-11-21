@@ -1360,7 +1360,10 @@ public sealed class Simulation
             Rule = Places.RuleOf(col.Name) is { } colRule0 ? colRule0 : [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝places.json の rule（開始時のデータ・土地の側）から始める（無い名前は間接統治〔在地1.0〕・段2で支配度と同じ物理で国家区分が育つ）
             RuleInit = Places.RuleOf(col.Name) is { } colRule1 ? colRule1 : [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
             Terrain = Places.TerrainOf(col.Name),   // Terrain〔履歴 Simulation.cs#146〕
-            Resources = [.. col.Resources], Culture = w.Region.Culture, Religion = w.Region.Religion,
+            Resources = [.. col.Resources],
+            // (1278) c131cr 旗 1：札は土地のデータ（places.json の culture・religion）。データに無い名は空＝首都の札へ逃がさない（番人 ColonyLabelsFromDataTests）
+            Culture = coef.ColonyLabelsFromData > 0 ? Places.CultureOf(col.Name) ?? "" : w.Region.Culture,
+            Religion = coef.ColonyLabelsFromData > 0 ? Places.ReligionOf(col.Name) ?? "" : w.Region.Religion,
             ArableLand = Math.Max(1.0, peasantSize) * LandHeadroom,   // 本土州と同じ規則（耕地賦存＝初期農民×余裕）
             CapitalEnabled = true, Industrialization = 0.0,
             CulturalGoodId = w.Region.CulturalGoodId,
