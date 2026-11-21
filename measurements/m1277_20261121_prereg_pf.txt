@@ -116,3 +116,9 @@
 [14] 追記 4（2026-11-21・腕 B の前）
 - 腕 B は表を絞る（指示の ⓪(a)）：ident.cfg の SMALL＋popclose_s・port_s・capskip_s・nationgood_s。sellr_s（先読みの 1 種で 192MB＝10 種で約 1.9GB）は記録の H5 だけが読む＝外す（D: の床〈35GB＋量〉が届かない時間が続いている）。magn_pf3.py は sellr_s が無ければ H5 を空にする（門 H1・H6 と他の記録は同じ式・基準どうしの出力は前と同じ）。
 - 門・記録の他の項目は変えない。
+
+[15] 追記 5（2026-11-21・腕 B の前・D: の床）
+- D: の空き 37.9GB が 30 分以上動かない（腕の枠は 6 空き）。追記 4 の表（1 種 382MB）と commit: の写し（measurements を含む 1.3GB）では〈35GB＋約 5.6GB〉に届かない。
+- 腕 B の表を、門と記録の読み手が読む 13 表へ絞る：nation_s・stock_s・wars_s・casualty_s（NG）・region_s・migration_s・pxmonth_s・scalars_s（止める線・空洞化）・fiscal_s（英の国債の不履行）・nationgood_s・port_s（史実の桁 H1・H6）・capskip_s（計器）・popclose_s（空洞化の振り分け）＝先読みの 1 種で約 277MB。監視の読み手 an_mon.py の表（aib_s ほか）は外す＝注視の一覧は欠けた表の行が空になる（記録だけ・門に使わない）。
+- 写しは batch.sh prep の dir:（作業ツリー・measurements と docs を除く）から。作業ツリーが汚れていないこと・HEAD が測るコミットであることを台本が確かめる。見込みの量は約 3.2GB（表 2.8＋写しとビルド 0.4）＝床 38.2GB。
+- 門・記録の項目と読み方は変えない。
