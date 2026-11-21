@@ -107,3 +107,20 @@
 - 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c131crB 10`（計器つき 10 種・種 1〜10）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝SMALL（ident.cfg :153）＋secession_s（gate_cr の H2）。region_s・nation_s が SMALL に無ければ足す。
 - 読み手：scripts/instruments/c131cr/read_cr.sh（c130rc/read_rc.sh の写し＋gate_cr・paper_cr）。基準 keep_1274/base_ins・N1 keep_1274/n1・NG 基準 ng1274_20261121・nullgate の基準 m1274。
 - D:：腕 B は約 4〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る。
+
+== 追記 1（腕 Z・突然変異・旗 1 の計器の束の後・腕 B の前・2026-11-21）==
+- 腕 Z c131crz（器の木 1bf47f61d＝旗 0・別の worktree wt_c131cr_z・--work D:/PoB_work/ident_c131cr・--tests-delta 7）：**判定: 恒等（段 1）**＝測った種で一致。素の 5 種 180 行・計器つき 10 種 180 行が m1274 と全行バイト一致・推定 235.4／234.2 秒・計器の 29 表 290 本バイト一致・テスト 3086（基準 3079＋7）・FullLength 3（measurements/m1278_20261121/identz_c131crz.txt）。
+- ㉘（器の木 1bf47f61d・9 クラス）：157 本のうち赤 1（T4＝試験の盤面が国ごとの w.Coef に旗を置いていなかった＝試験のバグ・盤面で両方に置いて直した＝エンジンは変えていない）→直した後の ColonyLabelsFromDataTests・GoodIdGuardTests・DormantIdentityTests 55 本 全て緑（scan28z_1bf47f61d_first.txt・scan28z_1bf47f61d_new.txt）。写した台本（scripts/instruments/c131cr/）は GoodIdGuardTests で緑。
+- 突然変異（使い捨ての木・measurements/m1278_20261121/mut_result.txt）：none 緑・mu0 赤（T1・T1b・T3・T4・T4b）・mucap 赤（T1・T1b・T3・T4・T4b）・mufall 赤（T3）・mudata 赤（T2・T3）・mufilt 赤（T4）・mufall2 赤（T4b）。予言との差：mu0・mucap で T4 も赤（T4 の前提の行〈ベンガルの札の人口＞本国のイングランドの札〉が旧の札では 0＝前提の Assert で落ちる）。
+- 旗 1 の木 5dfb66c61 の計器の束（㊴＝FullyQualifiedName~Instrument）＋㉘＋NationalismUnificationTests・ColonyPromotionTests：593 本のうち赤 4（スキップ 1）＝全て WriterRatchetTests の宣言の表（★(749) 軌道の件数を写しただけの番人）。取り直した行（1 種 40 四半期の実測・コミット 59f88de3c）：
+  - 価格：日次の写像の回 PriceDailyRuns 18273055→16397287（−10.3%）
+  - 請求：見た生産者（月）ClaimProducers 1902→1949（+2.5%）
+  - 倒産の空の生産者×月 DeadProdBankrupt 2213→1809（−18.3%）
+  - 外交：覇権の判定の国×国 DiploHegemonScans 1412040→2389000（+69.2%・m1270 の基点 2077716 の +15%）
+  - 新しい計数の処理は無い。機構の向き・大きさの Assert には触れていない。㉜ の一覧の外の赤 0。
+
+== 追記 2（㉜ 旗 1 のフルスイート・腕 B の前・2026-11-21）==
+- 旗 1 の木 59f88de3c（宣言の表の取り直しの後）：Tests Category!=FullLength 2852（合格 2848・スキップ 2・失敗 2）・FullLength 3 緑・Tests.Ui 234 緑。--list-tests：Tests 2855（＝2852＋3）・Ui 234＝基準 3079＋7（ColonyLabelsFromDataTests）と一致。
+- 赤 2＝OpeningBakeTests の 2 本（同梱の表の入力のハッシュ 4bf72f47ba1f82de≠世界 a72b4243ee8bd775）＝places.json（埋め込みのデータ）を直した線が必ず赤にする〈派生の表と件数の写し〉の区分（README ★(764)）＝機構の赤ではない・旗 0 の器の木でも同じ赤（データの差で入る）。線の担当は触らず赤のまま報告し、合流の木で 1 回だけ焼き直す（bake.sh・OpeningBakeEnabled＝0 で成績表に効かない）。㉜ の一覧の外の機構の赤 0。
+- savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（種 1789・200 四半期・保存則違反なし・説明できない増減 0）。measurements/m1278_20261121/suite_59f88de3c/。
+- 腕 B：`POB_WORK=D:/PoB_work/c131cr_work/armB`・prep commit:<このコミット> plain → `INS=1 POB_INSTRUMENTS_TABLES=<SMALL>,secession_s bash scripts/instruments/batch.sh run c131crB 10`。
