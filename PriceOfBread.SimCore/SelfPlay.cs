@@ -689,13 +689,13 @@ public sealed class UtilityAgent : INationAgent
         TryBuildFacility(w);
     }
 
-    private static void RelieveOpulence(World w)
+    internal static void RelieveOpulence(World w)
     {
-        if (w.Coef.OpulenceTaxRelief <= 0 || w.SelfPower is null) return;
+        if (w.SelfPower is null) return;
         double buffer = OpulenceLineOf(w);
         if (!(buffer > 1e-9) || w.Treasury.Value <= buffer) return;
         double mul = Math.Max(OpulenceTaxFloor, buffer / w.Treasury.Value);
-        mul = 1.0 - w.Coef.OpulenceTaxRelief * (1.0 - mul);
+        mul = 1.0 - (1.0 - mul);
         var p = w.Policy;
         p.IncomeTaxTarget *= mul; p.PollTaxTarget *= mul;
         p.LandTaxTarget *= mul; p.ProgressiveTaxTarget *= mul; p.TariffTarget *= mul;
