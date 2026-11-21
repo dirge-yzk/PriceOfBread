@@ -1493,7 +1493,7 @@ public class RevoltIgnitionTests
         {
             var f = new FactionState { Region = w.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0, Rejections = 3.0 };
             w.Factions.Add(f); w.PendingFactionCrisis = f;   // 同じ危機の札（通知）
-            // ★(82) で置いた潤沢の減税の明示ピン（OpulenceTaxRelief=0）は (85) で外した＝反射が門（GateAllLawTargets）の前へ移り、
+            // ★(82) で置いた潤沢の減税の明示ピン（旗は (1282) で削除）は (85) で外した＝反射が門（GateAllLawTargets）の前へ移り、
             //   縮めた税の目標も危機の要求と同じ門を通る＝ピンなしでこの番人が緑であること自体が対称の証拠（(82) は門の後の倍率が段3→2 を置いて赤だった）。
         }
         Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // 前提：出発点の法目標が同じ

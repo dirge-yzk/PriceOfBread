@@ -749,41 +749,29 @@ public class PolicyPoliticsTests
     [Fact]
     public void 国庫が潤沢でも専売の対象は削られない()   // (d)＝F3
     {
-        // 潤沢の減税反射（UtilityAgent.RelieveOpulence）の**射程**のアブレーション：係数 OpulenceTaxRelief を切った腕と
-        // 既定の腕を、分岐の直前まで厳密に同じ世界で走らせ、最後の1四半期だけ差を作る。
+        // 潤沢の減税反射（UtilityAgent.RelieveOpulence）を、12 四半期走らせた盤面で直接呼ぶ（旗の腕との比べは旗の削除で消えた＝反射の前後を同じ国で見る）。
         // 旧＝この反射が `SetStateMonopolyTier(Tier-1)` で段を丸ごと落としていた（率への連続倍率・床0.25 の翻訳になっていない）。
-        static (int[] Tiers, double[] Income, int Opulent) Arm(bool relief)
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        for (int q = 0; q < 12; q++) sim.StepQuarter();
+        int opulent = 0; bool relieved = false;
+        foreach (var n in sim.Nations)
         {
-            var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-            for (int q = 0; q < 12; q++) sim.StepQuarter();
-            int opulent = 0;
-            foreach (var n in sim.Nations)
-            {
-                double line = UtilityAgent.OpulenceLineOf(n.World);
-                if (line > 1e-9 && n.World.Treasury.Value > line) opulent++;
-                if (!relief) n.World.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス＝1国ずつ書く
-            }
-            sim.StepQuarter();
-            var t = new int[sim.Nations.Count]; var inc = new double[sim.Nations.Count];
-            // ★盤面の直し（2026-09-30 段3-2）：反射が走ったかは税の目標5本（所得・人頭・土地・累進・関税＝RelieveOpulence が掛ける全て）の和で見る
-            //   （旧＝所得税の目標だけ＝1783年の所得税は全ての国で0（(109)）で、潤沢な国の所得税の目標が0の軌道では反射が走っても下がらない）。
-            for (int i = 0; i < sim.Nations.Count; i++)
-            {
-                var pol = sim.Nations[i].World.Policy;
-                t[i] = sim.Nations[i].World.StateMonopolyTier;
-                inc[i] = pol.IncomeTaxTarget + pol.PollTaxTarget + pol.LandTaxTarget + pol.ProgressiveTaxTarget + pol.TariffTarget;
-            }
-            return (t, inc, opulent);
+            var w = n.World;
+            double line = UtilityAgent.OpulenceLineOf(w);
+            if (!(line > 1e-9) || w.Treasury.Value <= line) continue;
+            opulent++;
+            var pol = w.Policy;
+            int tier = w.StateMonopolyTier;
+            double before = pol.IncomeTaxTarget + pol.PollTaxTarget + pol.LandTaxTarget + pol.ProgressiveTaxTarget + pol.TariffTarget;
+            UtilityAgent.RelieveOpulence(w);
+            double after = pol.IncomeTaxTarget + pol.PollTaxTarget + pol.LandTaxTarget + pol.ProgressiveTaxTarget + pol.TariffTarget;
+            Assert.True(after <= before + 1e-12, "減税反射が税の目標を上げた");
+            if (after < before - 1e-9) relieved = true;
+            Assert.True(w.StateMonopolyTier == tier,
+                $"減税反射が専売の対象を動かした（{w.SelfPower?.Name}：段{tier}→段{w.StateMonopolyTier}）＝率の割引と段の翻訳が等価でない");
         }
-        var off = Arm(relief: false);
-        var on = Arm(relief: true);
-        Assert.True(on.Opulent > 0, "国庫が潤沢な国が1つも無い＝減税反射の定義域の外で測っている（番人が空回り）");
-        bool relieved = false;
-        for (int i = 0; i < on.Income.Length; i++) if (on.Income[i] < off.Income[i] - 1e-9) relieved = true;
+        Assert.True(opulent > 0, "国庫が潤沢な国が1つも無い＝減税反射の定義域の外で測っている（番人が空回り）");
         Assert.True(relieved, "潤沢なのに税の目標が1国も下がらない＝減税反射そのものが走っていない（番人が空回り）");
-        for (int i = 0; i < on.Tiers.Length; i++)
-            Assert.True(on.Tiers[i] == off.Tiers[i],
-                $"減税反射が専売の対象を動かした（国{i}：反射あり 段{on.Tiers[i]} vs 反射なし 段{off.Tiers[i]}）＝率の割引と段の翻訳が等価でない");
     }
 
     [Fact]
@@ -793,37 +781,27 @@ public class PolicyPoliticsTests
         //   税の目標へ連続の倍率を掛けた＝段の格子から外れた目標（英の人頭税 0.5→0.42）や、門が拒む段を AI だけが置けた
         //   （プレイヤーは法律タブで同じ門を通る＝非対称・幽霊戦線）。新＝反射は Apply の中、門の前。
         // 主張：AI の1四半期の判断の後、税の5軸の目標は門の不動点（もう一度門を通しても1ビットも動かない）。
-        //   反射を切った腕と比べて目標が下がった国がある＝反射が門を通って実際に効いている（空回りでない）。
-        static World[] Arm(bool relief)
-        {
-            var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-            for (int q = 0; q < 12; q++) sim.StepQuarter();
-            var ws = new World[sim.Nations.Count];
-            for (int i = 0; i < ws.Length; i++)
-            {
-                var w = ws[i] = sim.Nations[i].World;
-                double line = UtilityAgent.OpulenceLineOf(w);
-                if (!relief) w.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス
-                if (line > 1e-9) w.SetTreasuryRaw(System.Math.Max(w.Treasury.Value, 8 * line));   // 両腕とも同じ国庫＝反射を深く効かせる（倍率0.25＝床）＝段を跨ぐ減税を確実に作る
-                new UtilityAgent().DecideQuarter(w);
-            }
-            return ws;
-        }
+        //   国庫を深く潤沢にした国で、反射を直接呼ぶと目標が下がる＝反射が実際に効いている（空回りでない）。
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        for (int q = 0; q < 12; q++) sim.StepQuarter();
         static double[] Taxes(NationPolicy p) => [p.IncomeTaxTarget, p.ProgressiveTaxTarget, p.PollTaxTarget, p.LandTaxTarget, p.EducationSpendingTarget];
-        var off = Arm(relief: false);
-        var on = Arm(relief: true);
         int lowered = 0;
-        for (int i = 0; i < on.Length; i++)
+        foreach (var n in sim.Nations)
         {
-            var w = on[i];
+            var w = n.World;
+            double line = UtilityAgent.OpulenceLineOf(w);
+            if (line > 1e-9) w.SetTreasuryRaw(System.Math.Max(w.Treasury.Value, 8 * line));   // 反射を深く効かせる（倍率0.25＝床）＝段を跨ぐ減税を確実に作る
+            var pre = Taxes(w.Policy);
+            UtilityAgent.RelieveOpulence(w);
+            var mid = Taxes(w.Policy);
+            for (int k = 0; k < pre.Length; k++) if (mid[k] < pre[k] - 1e-9) { lowered++; break; }
+            new UtilityAgent().DecideQuarter(w);
             var before = Taxes(w.Policy);
             UtilityAgent.GateAllLawTargets(w, w.Policy);
             var after = Taxes(w.Policy);
             for (int k = 0; k < before.Length; k++)
                 Assert.True(before[k] == after[k],
                     $"{w.SelfPower?.Name}：税の軸{k}の目標 {before[k]:R} が門を通すと {after[k]:R} へ動く＝AI の反射が門の外の段を置いた");
-            var offT = Taxes(off[i].Policy);
-            for (int k = 0; k < before.Length; k++) if (before[k] < offT[k] - 1e-9) { lowered++; break; }
         }
         Assert.True(lowered > 0, "反射を深く効かせても税の目標が1国も下がらない＝減税反射が門を通っていない（番人が空回り）");
     }

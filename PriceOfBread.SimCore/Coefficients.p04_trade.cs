@@ -12,7 +12,6 @@ public sealed partial class Coefficients
     public double DevelopmentMemory = 0.4;   // 点火2026-09-06＝0.0→0.4・〔4-5〕開発度の記憶
     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）
     public Share DepressionScrapThreshold = new(0.20);  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
-    public double OpulenceTaxRelief = 1.0;         // 旧＝スタンスの税目標が固定率で、黒字国が経済から貨幣を吸い上げ続けデフレ螺旋（プロイセン国庫1.3M/GDP17k・米38M）
     public double LandedPowerCapitalization = 8000;   // 土地は政治力ではあるが流動的な購買力ではない
     public double PrivateAbsorptionBlend = 1.0;   // 速度を絞る＝天井なし＝デッドロックなし（敵対審査の推奨形）
     public double ClosedWealthMultiple = 1.0;     // 1.0で旧と厳密恒等
