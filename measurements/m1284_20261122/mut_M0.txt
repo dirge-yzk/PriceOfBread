@@ -1,0 +1,4 @@
+M0 入れた：D:/PoB_work/c132df_work/mut/M0/PriceOfBread.SimCore/Fiscal.cs（0 箇所）
+rc=0
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     4、スキップ:     0、合計:     4、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
