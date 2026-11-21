@@ -157,6 +157,6 @@ public sealed partial class Coefficients
     public double OpiumExportPressureThreshold = 1.2;   // 外圧の合計がこれを超えたら輸出を禁じる（TradeWeight の和＝交易上の重み）
     public Share InterestCapitalization = new(0.0);   // 未払い利息を残高へ繰り入れる比率
     public double PaySalesToProducerBook = 1;   // (1228) c124bk 旗：1＝InternationalMarket.PaySales の代金を生産者の帳へ（LastRevenue に代金・LastCost に賃金の分＝損益の増えは地代）。0＝帳は国内の売上だけ（番人 PaySalesProducerBookTests）
-    public double CapSkipSellerPotential = 0;   // (1277) c131pf 旗：1＝清算で容量が尽きて飛ばした売り手の申し出のうち値段の門を通る物（その行で通るはずだった量＝min(残り, 買い手の X を lp で読んだ値−その行の未充足−既に足した分)）を売り手の州の潜在量へ足し、同じ行の次の売り手の側の未充足からその分を引く（BilateralMarket.cs の :963 の分岐と :1083・買い手の側は変えない）。0＝旧（飛ばした売り手は潜在量を残さない）
+    public double CapSkipSellerPotential = 1;   // (1277) c131pf 旗：1＝清算で容量が尽きて飛ばした売り手の申し出のうち値段の門を通る物（その行で通るはずだった量＝min(残り, 買い手の X を lp で読んだ値−その行の未充足−既に足した分)）を売り手の州の潜在量へ足し、同じ行の次の売り手の側の未充足からその分を引く（BilateralMarket.cs の :963 の分岐と :1083・買い手の側は変えない）。0＝旧（飛ばした売り手は潜在量を残さない）
     public RatePerQuarter CanalInvestFrac = new(0.03);      // 運河へ毎四半期投じる投資家貯蓄の割合（全経済国が拠出＝集合投資。スエズは欧州全体の利益）
 }
