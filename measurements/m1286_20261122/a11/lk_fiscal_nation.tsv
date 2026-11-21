@@ -1,0 +1,8 @@
+nation	blockedByCalm	blockedByCoolOnly	cooldownMonths	defaults	lockBindMonths	lockBindUnpaid	lockWouldBorrow	offGold	offGoldBroken	offGoldBrokenDecay15	offGoldBrokenDecay25	offGoldBrokenDecay35	offGoldBrokenPrinting	reforms
+イギリス	2552	111	72	3	0	0	0	2887	2804	2865	2867	2867	2153	8
+オスマン	48	0	24	1	1	1	1245.37	51	49	51	51	51	3	1
+オーストリア	146	0	96	4	30	30	80145.5	159	153	159	159	159	38	3
+フランス	25	0	24	1	0	0	0	29	27	29	29	29	2	1
+プロイセン	502	0	0	0	0	0	0	506	502	499	500	500	501	0
+ロシア	25	0	24	1	0	0	0	357	27	27	27	27	2	0
+清	240	0	123	6	66	66	1.94612e+06	257	250	256	256	256	77	3

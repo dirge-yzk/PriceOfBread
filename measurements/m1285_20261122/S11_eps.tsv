@@ -1,0 +1,31 @@
+seed	nat	startq	year0	lastyear	n	cats	born_q	born_colonial	had_home_before	end	endq	tiers	popK	regs	homeregs
+11	イギリス	409	1885	1950	259	A_colonial_only:259	0	False	True	run_end	-1	Colonial	22151.9	アリススプリングス;イカルイト;エドモントン;セントマイケル;ダーウィン;チャーチル;ナイン;バロー;バンクーバー;フォートウィリアム;フォートシンプソン;フォートユーコン;ホバート;中核ベンガル	
+11	キサンガニ王国	427	1890	1890	3	A_colonial_only:3	427	True	False	nation_gone	430	Colonial	2772.0	キサンガニ	
+11	キサンガニ共和国	460	1898	1902	16	A_colonial_only:16	460	True	False	home_label	476	Colonial	2627.2	キサンガニ	
+11	南アフリカ共和国	482	1903	1907	14	A_colonial_only:14	482	True	False	home_label	496	Colonial	941.0	南アフリカ	
+11	共和制コーカンド	648	1945	1945	2	A_colonial_only:2	648	True	False	nation_gone	650	Colonial	904.2	アクモラ	
+12	共和制イギリス	143	1819	1823	17	A_colonial_only:17	143	True	False	home_label	160	Colonial	9645.2	内陸ベンガル	
+13	ビルマ	358	1872	1873	4	A_colonial_only:4	0	False	True	home_label	362	Colonial	19054.7	中核ベンガル	
+13	カンパラ王国	483	1904	1904	3	A_colonial_only:3	483	True	False	nation_gone	486	Colonial	642.9	カンパラ	
+13	カンパラ王国	487	1905	1905	4	A_colonial_only:4	483	True	False	nation_gone	491	Colonial	618.3	カンパラ	
+13	カンパラ王国	492	1906	1907	4	A_colonial_only:4	483	True	False	nation_gone	496	Colonial	571.0	カンパラ	
+13	カンパラ王国	497	1907	1908	4	A_colonial_only:4	483	True	False	nation_gone	501	Colonial	536.1	カンパラ	
+13	キサンガニ王国	498	1907	1908	3	A_colonial_only:3	498	True	False	nation_gone	501	Colonial	2766.2	キサンガニ	
+13	カンパラ王国	502	1908	1909	4	A_colonial_only:4	483	True	False	nation_gone	506	Colonial	504.2	カンパラ	
+13	カンパラ王国	507	1910	1910	4	A_colonial_only:4	483	True	False	nation_gone	511	Colonial	464.6	カンパラ	
+13	カンパラ王国	512	1911	1912	5	A_colonial_only:5	483	True	False	home_label	517	Colonial	440.3	カンパラ	
+14	アクモラ王国	77	1802	1804	10	A_colonial_only:10	77	True	False	home_label	87	Colonial	749.4	アクモラ	
+14	ブラワヨ王国	458	1897	1899	6	A_colonial_only:6	458	True	False	nation_gone	464	Colonial	231.0	ブラワヨ	
+14	ブラワヨ王国	465	1899	1900	4	A_colonial_only:4	458	True	False	nation_gone	469	Colonial	222.9	ブラワヨ	
+14	ブラワヨ共和国	473	1901	1903	10	A_colonial_only:10	473	True	False	home_label	483	Colonial	222.3	ブラワヨ	
+14	南アフリカ王国	572	1926	1926	3	A_colonial_only:3	572	True	False	nation_gone	575	Colonial	935.2	南アフリカ	
+14	南アフリカ王国	576	1927	1928	4	A_colonial_only:4	572	True	False	nation_gone	580	Colonial	907.7	南アフリカ	
+14	南アフリカ王国	581	1928	1929	5	A_colonial_only:5	572	True	False	nation_gone	586	Colonial	895.7	南アフリカ	
+15	デンマーク	253	1846	1846	1	C_home_label_empty:1	0	False	True	home_label	254	Core	61.9	レイキャヴィク	レイキャヴィク
+16	ポルトガル	93	1806	1807	4	A_colonial_only:4	0	False	True	home_label	97	Colonial	2994.0	クイアバ;ゴイアス;サルヴァドール;サンルイス;テテ;ブラジル;マナウス;ルアンダ	
+16	ライン諸邦	536	1917	1917	3	A_colonial_only:3	0	False	True	home_label	539	Colonial	382.7	ダーバン	
+16	ハワイ王国	638	1942	1943	4	A_colonial_only:4	0	False	True	home_label	642	Colonial	386.0	アルタ=カリフォルニア;パナマ	
+16	共和制ハワイ	645	1944	1945	5	A_colonial_only:5	638	False	True	nation_gone	650	Colonial	260.0	アルタ=カリフォルニア	
+18	共和制マダガスカル	441	1893	1893	2	A_colonial_only:2	441	True	False	nation_gone	443	Colonial	12810.7	内陸ベンガル	
+18	キサンガニ王国	467	1900	1900	3	A_colonial_only:3	467	True	False	nation_gone	470	Colonial	2989.3	キサンガニ	
+19	イギリス	320	1863	1863	1	A_colonial_only:1	0	False	True	home_label	321	Colonial	32608.0	アデレード;アリススプリングス;イカルイト;ウィンドワード諸島;エドモントン;オークランド;セントジョンズ;ダーウィン;チャーチル;ナイン;バハマ諸島;バンクーバー;パース;フォートウィリアム;フォートシンプソン;フリータウン;ブリスベン;ホバート;モガディシュ;中核ベンガル;内陸ベンガル;北部サン=ドマング;小アンティル;沿岸西アフリカ	

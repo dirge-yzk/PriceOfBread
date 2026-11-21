@@ -1,0 +1,9 @@
+raw=D:/PoB_work/keep_1280/base_ins seeds=1..10 空の国×四半期 計 74
+  A_colonial_only 74
+  B_home_pop0 0
+  C_home_label_empty 0
+  D_other 0
+区間 12 本・長さ 最小 2 中央 5 最大 17・長さ 20 以上の区間 0 本で 0 国×四半期
+種ごと s2:21 s4:12 s5:12 s7:20 s8:2 s10:7
+区間の終わり home_label:2 nation_gone:10
+区間の国の生まれ（植民地格だけで生まれた, 前に本国格の人が居た）(False, True):1 (True, False):11

@@ -1,0 +1,1 @@
+D:/PoB_work/keep_1280/base_ins 種 1..10: H1_fb=27318 H1_new=27392 cult_changed=74 cult_empty_new=74 cult_nq=410614 rel_changed=74 rel_empty_new=74 rel_nq=410614

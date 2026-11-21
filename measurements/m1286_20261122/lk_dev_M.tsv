@@ -1,0 +1,77 @@
+cons	below0.75	66
+cons	belowPeak	10635
+cons	reliefSum	104.417
+cons	reliefSumHalf15	90.4258
+cons	reliefSumHalf25	95.5665
+cons	reliefSumHalf35	97.9451
+cons	rows	239776
+score	below0.5	20133
+score	below0.75	26313
+score	belowPeak	42404
+score	reliefSum	7757.82
+score	reliefSumHalf15	6121.58
+score	reliefSumHalf25	6749.56
+score	reliefSumHalf35	7028.42
+score	rows	103263
+#worst(ratio<0.5) seed	tab	nation	key	quarter	ratio
+#1	score	フランス	フランス	543	0.495
+#1	score	フランス	フランス	547	0.468
+#1	score	フランス	フランス	551	0.455
+#1	score	フランス	フランス	555	0.442
+#1	score	フランス	フランス	559	0.429
+#1	score	フランス	フランス	563	0.417
+#1	score	フランス	フランス	567	0.405
+#1	score	フランス	フランス	571	0.393
+#1	score	フランス	フランス	575	0.382
+#1	score	フランス	フランス	579	0.371
+#1	score	フランス	フランス	583	0.36
+#1	score	フランス	フランス	587	0.349
+#1	score	フランス	フランス	591	0.338
+#1	score	フランス	フランス	595	0.328
+#1	score	フランス	フランス	599	0.317
+#1	score	フランス	フランス	603	0.308
+#1	score	フランス	フランス	607	0.298
+#1	score	フランス	フランス	611	0.288
+#1	score	フランス	フランス	615	0.279
+#1	score	フランス	フランス	619	0.27
+#1	score	フランス	フランス	623	0.261
+#1	score	フランス	フランス	627	0.252
+#1	score	フランス	フランス	631	0.244
+#1	score	フランス	フランス	635	0.235
+#1	score	フランス	フランス	639	0.227
+#1	score	フランス	フランス	643	0.219
+#1	score	フランス	フランス	647	0.211
+#1	score	フランス	フランス	651	0.204
+#1	score	フランス	フランス	655	0.196
+#1	score	フランス	フランス	659	0.19
+#1	score	フランス	フランス	663	0.181
+#1	score	フランス	フランス	667	0.173
+#1	score	日本	日本	503	0.486
+#1	score	日本	日本	507	0.47
+#1	score	日本	日本	511	0.455
+#1	score	日本	日本	515	0.44
+#1	score	日本	日本	519	0.425
+#1	score	日本	日本	523	0.411
+#1	score	日本	日本	527	0.402
+#1	score	日本	日本	531	0.388
+#1	score	日本	日本	535	0.376
+#1	score	日本	日本	539	0.364
+#1	score	日本	日本	543	0.352
+#1	score	日本	日本	547	0.341
+#1	score	日本	日本	551	0.33
+#1	score	日本	日本	555	0.319
+#1	score	日本	日本	559	0.31
+#1	score	日本	日本	563	0.3
+#1	score	日本	日本	567	0.291
+#1	score	日本	日本	571	0.282
+#1	score	日本	日本	575	0.273
+#1	score	日本	日本	579	0.265
+#1	score	日本	日本	583	0.257
+#1	score	日本	日本	587	0.249
+#1	score	日本	日本	591	0.242
+#1	score	日本	日本	595	0.235
+#1	score	日本	日本	599	0.228
+#1	score	日本	日本	603	0.221
+#1	score	日本	日本	607	0.214
+#1	score	日本	日本	611	0.208
+#worstCount	20133

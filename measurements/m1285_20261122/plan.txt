@@ -1,0 +1,18 @@
+(1285) c132rd 読む線 plan（2026-11-21・腕 0・コミットなし）
+作業の場所: D:/PoB_work/r1285_work（台本は同フォルダの scripts/ ＝リポジトリの scripts/instruments/r1285/ は作らない・合流が写す）
+worktree・枝は作らない（読むだけ・main の木 fa4653318 のソースを読むだけ・編集しない）
+
+読む生（読むだけ・消さない・移さない）
+- S11: D:/PoB_work/keep_1280/a11  region_s11..20・nation_s11..20・secession_s・formation2_s ほか
+- M  : D:/PoB_work/keep_1280/base_ins region_s1..10・nation_s1..10
+- ヤウンデ: D:/PoB_work/keep_1274/a11 種 19（region_s19・nation_s19・pxmonth_s19・factory_s19・pop_s19・goods_s19・fiscal_s19・mintreg/mintcap など）
+- 比べ: keep_1280/a11 種 19（同じ表）
+- 参照: measurements/m1280_20261121/readS11/gate_cr.txt・readM/gate_cr.txt・scripts/instruments/c131cr/gate_cr.py
+- データ: world.json・places.json（colony_labels の出どころ）
+
+問い
+1 空の主流の札の国×四半期を 3 分類（植民地格だけ／本国格の州が人口 0／それ以外）×続いた四半期
+2 Power.Culture/Religion の読み手ごとの "" の動き（file:line）・fail-open
+3 直す形の推奨 1 つ・旗・単体の試験・止める線の素案・恒等か挙動か
+4 ヤウンデ王国（keep_1274/a11 種 19）の名目 GDP 0 の区間の州・POP・生産者・価格・通貨・m1280 で消えた理由・★(905)① の区分
+5 keep_1274 は消してよいか

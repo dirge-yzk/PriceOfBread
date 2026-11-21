@@ -1,0 +1,13 @@
+seed	nat	startq	year0	lastyear	n	cats	born_q	born_colonial	had_home_before	end	endq	tiers	popK	regs	homeregs
+2	共和制イギリス	90	1805	1809	17	A_colonial_only:17	90	True	False	nation_gone	107	Colonial	16132.3	中核ベンガル	
+2	ライン諸邦	560	1923	1924	4	A_colonial_only:4	0	False	True	home_label	564	Colonial	307.6	ウィンドワード諸島	
+4	共和制イギリス	73	1801	1804	12	A_colonial_only:12	73	True	False	nation_gone	85	Colonial	16189.0	中核ベンガル	
+5	アクモラ王国	92	1806	1807	5	A_colonial_only:5	92	True	False	home_label	97	Colonial	750.6	アクモラ	
+5	共和制ポルトガル	217	1837	1839	7	A_colonial_only:7	217	True	False	nation_gone	224	Colonial	2317.3	ブラジル	
+7	共和制オマーン	97	1807	1809	8	A_colonial_only:8	97	True	False	nation_gone	105	Colonial	90.7	モガディシュ	
+7	共和制スペイン	152	1821	1822	4	A_colonial_only:4	152	True	False	nation_gone	156	Colonial	4212.7	中央メキシコ	
+7	共和制スペイン	200	1833	1834	5	A_colonial_only:5	152	True	False	nation_gone	205	Colonial	3490.0	中央メキシコ	
+7	共和制ネーデルラント	348	1870	1870	3	A_colonial_only:3	348	True	False	nation_gone	351	Colonial	2972.7	バタヴィア	
+8	共和制ネーデルラント	122	1813	1814	2	A_colonial_only:2	122	True	False	nation_gone	124	Colonial	2782.0	バタヴィア	
+10	共和制イギリス	285	1854	1855	3	A_colonial_only:3	285	True	False	nation_gone	288	Colonial	17767.7	中核ベンガル	
+10	共和制イギリス	400	1883	1884	4	A_colonial_only:4	285	True	False	nation_gone	404	Colonial	10873.9	内陸ベンガル	

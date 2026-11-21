@@ -1,0 +1,24 @@
+offAtEnd	2	フランス	from=1932	months=215	printShare=0.99	medPrintToGdpM=0.8507
+reformCheck	4	オスマン	1945	goldWithin48m=1
+offAtEnd	4	オーストリア	from=1949	months=4	printShare=0.67	medPrintToGdpM=0.0486
+reformCheck	5	イギリス	1804	goldWithin48m=1
+reformCheck	5	イギリス	1817	goldWithin48m=1
+reformCheck	5	清	1919	goldWithin48m=1
+offAtEnd	6	フランス	from=1919	months=361	printShare=0.99	medPrintToGdpM=0.0760
+reformCheck	6	イギリス	1794	goldWithin48m=1
+reformCheck	6	イギリス	1870	goldWithin48m=1
+reformCheck	6	イギリス	1880	goldWithin48m=1
+offAtEnd	6	オスマン	from=1918	months=383	printShare=0.90	medPrintToGdpM=0.2410
+reformCheck	6	オーストリア	1948	goldWithin48m=1
+reformCheck	6	清	1935	goldWithin48m=1
+reformCheck	7	イギリス	1803	goldWithin48m=1
+reformCheck	7	イギリス	1819	goldWithin48m=1
+offAtEnd	7	オーストリア	from=1949	months=10	printShare=0.22	medPrintToGdpM=0.0363
+offAtEnd	8	イギリス	from=1815	months=1614	printShare=1.00	medPrintToGdpM=0.3162
+reformCheck	8	ロシア	1944	goldWithin48m=1
+reformCheck	8	オーストリア	1942	goldWithin48m=1
+reformCheck	9	イギリス	1812	goldWithin48m=1
+offAtEnd	9	イギリス	from=1854	months=1142	printShare=1.00	medPrintToGdpM=0.7349
+reformCheck	9	オーストリア	1938	goldWithin48m=1
+reformCheck	10	イギリス	1871	goldWithin48m=0
+offAtEnd	10	イギリス	from=1802	months=1772	printShare=0.96	medPrintToGdpM=0.6362

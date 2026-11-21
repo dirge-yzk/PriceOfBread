@@ -1,0 +1,55 @@
+PriceOfBread.SimCore/CultureRealms.cs:30:                if (string.IsNullOrEmpty(p.Culture)) continue;
+PriceOfBread.SimCore/CultureRealms.cs:31:                if (!map.TryGetValue(p.Culture, out var list)) map[p.Culture] = list = [];
+PriceOfBread.SimCore/CultureRealms.cs:43:                if (string.IsNullOrEmpty(p.Culture)) continue;
+PriceOfBread.SimCore/CultureRealms.cs:44:                string k = n.Name + "" + p.Culture;
+PriceOfBread.SimCore/CultureRealms.cs:55:            if (!ByCulture.TryGetValue(realm.Culture, out var cities) || cities.Count < 2) continue;
+PriceOfBread.SimCore/CultureRealms.cs:57:            rules.Add(new FormationRule(realm.GreatName, TierB, null, realm.Culture, null, null, [.. cities],
+PriceOfBread.SimCore/CultureRealms.cs:58:                NewCapital: realm.Capital, CultureOrigin: realm.Culture));
+PriceOfBread.SimCore/CultureRealms.cs:61:                rules.Add(new FormationRule(realm.Name, TierA, null, realm.Culture, null, null, [],
+PriceOfBread.SimCore/CultureRealms.cs:62:                    AnyOfSet: [.. cities], AnyOfMin: half, NewCapital: realm.Capital, CultureOrigin: realm.Culture));
+PriceOfBread.SimCore/Diplomacy.cs:628:        TensionReason.Religion => "宗教の隔たり",
+PriceOfBread.SimCore/Diplomacy.cs:821:            (p.Culture, p.Religion) = MajorityCultureReligion(nw);   // 主流文化/宗教＝州ラベルの人口加重多数派（緊張の差分化に使う）
+PriceOfBread.SimCore/Diplomacy.cs:1088:            if (r.Culture.Length > 0) ct[r.Culture] = ct.GetValueOrDefault(r.Culture) + pop;
+PriceOfBread.SimCore/Diplomacy.cs:1089:            if (r.Religion.Length > 0) rt[r.Religion] = rt.GetValueOrDefault(r.Religion) + pop;
+PriceOfBread.SimCore/Diplomacy.cs:1143:            if (p.Culture.Length > 0) grp[i] = CultureGroup(p.Culture);
+PriceOfBread.SimCore/Diplomacy.cs:1144:            if (p.Religion.Length > 0) fam[i] = ReligionFamily(p.Religion);
+PriceOfBread.SimCore/Diplomacy.cs:1153:                if (string.IsNullOrEmpty(r.Religion)) continue;   // 旧は相手の宗教（空でない）と一致したときだけ足した＝空の州は誰とも一致しない
+PriceOfBread.SimCore/Diplomacy.cs:1155:                ref double slot = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(byRel, r.Religion, out _);
+PriceOfBread.SimCore/Diplomacy.cs:1163:            if (a.Religion.Length == 0 || b.Religion.Length == 0) return 0;
+PriceOfBread.SimCore/Diplomacy.cs:1164:            if (a.Religion == b.Religion) return 0;
+PriceOfBread.SimCore/Diplomacy.cs:1166:            double match = popByRel![ib] is { } t ? t.GetValueOrDefault(a.Religion) : 0;
+PriceOfBread.SimCore/Diplomacy.cs:1175:                if (a.Culture.Length != 0 && b.Culture.Length != 0)
+PriceOfBread.SimCore/Diplomacy.cs:1177:                    if (a.Culture == b.Culture) AddTensionKeyed(k, -c.EthnicAffinityRelief, TensionReason.Ethnic);                          // 同一民族＝強い親近
+PriceOfBread.SimCore/Diplomacy.cs:1182:                if (a.Religion.Length != 0 && b.Religion.Length != 0)
+PriceOfBread.SimCore/Diplomacy.cs:1184:                    if (a.Religion == b.Religion) AddTensionKeyed(k, -c.ReligionAffinityRelief, TensionReason.Religion);        // 同一宗教＝親近
+PriceOfBread.SimCore/Diplomacy.cs:1189:                        AddTensionKeyed(k, c.ReligionTensionPerMonth * dist, TensionReason.Religion);
+PriceOfBread.SimCore/Diplomacy.cs:1207:        if (a.Religion.Length == 0 || b.Religion.Length == 0) return 0;
+PriceOfBread.SimCore/Diplomacy.cs:1208:        if (a.Religion == b.Religion) return 0;                     // 同宗教国どうし＝保護利害は立たない
+PriceOfBread.SimCore/Diplomacy.cs:1215:            if (r.Religion == a.Religion) match += pop;             // 州religion==religion(a)。上の同宗教ガードにより自動的に !=religion(b)
+PriceOfBread.SimCore/Diplomacy.cs:1224:        if (a.Culture.Length == 0 || b.Culture.Length == 0) return 0.5;   // 不明＝中庸
+PriceOfBread.SimCore/Diplomacy.cs:1225:        if (a.Culture == b.Culture) return 0.0;
+PriceOfBread.SimCore/Diplomacy.cs:1226:        return CultureGroup(a.Culture) == CultureGroup(b.Culture) ? 0.5 : 1.0;
+PriceOfBread.SimCore/Diplomacy.cs:1231:        if (a.Religion.Length == 0 || b.Religion.Length == 0) return 0.5;
+PriceOfBread.SimCore/Diplomacy.cs:1232:        if (a.Religion == b.Religion) return 0.0;
+PriceOfBread.SimCore/Diplomacy.cs:1233:        string fa = ReligionFamily(a.Religion), fb = ReligionFamily(b.Religion);
+PriceOfBread.SimCore/Diplomacy.cs:2955:        Territory.TransferRegion(loser, ww, cede, Territory.Rehoming.Ceded, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
+PriceOfBread.SimCore/Formations.cs:319:        if (rule.ReligionAnyOf is not null && System.Array.IndexOf(rule.ReligionAnyOf, power.Religion) < 0) return false;
+PriceOfBread.SimCore/Formations.cs:322:        if (!eligible && rule.CultureIs is not null && power.Culture == rule.CultureIs) eligible = true;
+PriceOfBread.SimCore/Formations.cs:323:        if (!eligible && rule.ReligionIs is not null && power.Religion == rule.ReligionIs) eligible = true;
+PriceOfBread.SimCore/Ideology.cs:51:                if (!ReferenceEquals(rg, splitRegion)) { splitRegion = rg; fCult = split.TryGetValue(rg.Culture, out double fv) && fv >= 0 && fv <= 1 ? fv : 0; }
+PriceOfBread.SimCore/Ideology.cs:99:                if (r.Culture.Length == 0) continue;
+PriceOfBread.SimCore/Ideology.cs:102:                own[r.Culture] = own.GetValueOrDefault(r.Culture) + pop;
+PriceOfBread.SimCore/Ideology.cs:103:                total[r.Culture] = total.GetValueOrDefault(r.Culture) + pop;
+PriceOfBread.SimCore/MultiNationSim.cs:403:            Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
+PriceOfBread.SimCore/Places.cs:27:            if (!d.TryAdd(r.Name, new Place(r.Name, r.Lat, r.Lon, r.Kind, r.Terrain, r.Rule, r.Culture, r.Religion)))
+PriceOfBread.SimCore/Places.cs:62:        => ByName.TryGetValue(name, out var p) && !string.IsNullOrEmpty(p.Culture) ? p.Culture : null;
+PriceOfBread.SimCore/Places.cs:66:        => ByName.TryGetValue(name, out var p) && !string.IsNullOrEmpty(p.Religion) ? p.Religion : null;
+PriceOfBread.SimCore/Politics.cs:867:        double cultDist = ((r.Culture.Length > 0 && cap.Culture.Length > 0 && r.Culture != cap.Culture) ? 0.5 : 0)
+PriceOfBread.SimCore/Politics.cs:868:                        + ((r.Religion.Length > 0 && cap.Religion.Length > 0 && r.Religion != cap.Religion) ? 0.5 : 0);
+PriceOfBread.SimCore/Simulation.cs:135:                    if (string.IsNullOrEmpty(r.Culture)) continue;
+PriceOfBread.SimCore/Simulation.cs:137:                    byCulture[r.Culture] = byCulture.GetValueOrDefault(r.Culture) + rp;
+PriceOfBread.SimCore/Simulation.cs:144:                if (majority.Length > 0 && !string.IsNullOrEmpty(r.Culture))
+PriceOfBread.SimCore/Simulation.cs:145:                    core = r.Culture == majority ? 1.0 : 0.0;   // 一致州 1.0／不一致州 0.0（旧の混ぜ u0+g×(x−u0) は u0=g=1 で x そのもの）
+PriceOfBread.SimCore/Simulation.cs:1365:            Culture = coef.ColonyLabelsFromData > 0 ? Places.CultureOf(col.Name) ?? "" : w.Region.Culture,
+PriceOfBread.SimCore/Simulation.cs:1366:            Religion = coef.ColonyLabelsFromData > 0 ? Places.ReligionOf(col.Name) ?? "" : w.Region.Religion,
+PriceOfBread.SimCore/World.cs:692:    public double ReligiousUnity { get { if (!EthnicEnabled) return 1.0; double s = 0, best = 0; var seen = new System.Collections.Generic.Dictionary<string, double>(); foreach (var r in Regions) { if (string.IsNullOrEmpty(r.Religion)) continue; double p = 0; foreach (var q in r.Pops) p += q.Size; if (p <= 0) continue; s += p; double v = seen.TryGetValue(r.Religion, out var e) ? e + p : p; seen[r.Religion] = v; if (v > best) best = v; } return s > 1e-9 ? best / s : 1.0; } }

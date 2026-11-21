@@ -1,0 +1,31 @@
+seed	nation	year	kind	cumDevToGdpMonth
+1	ロシア	1927	default	
+2	フランス	1932	default	
+4	オスマン	1942	default	
+4	オスマン	1945	reform	11.251
+4	オーストリア	1949	default	
+5	イギリス	1804	reform	0.043
+5	イギリス	1817	reform	0.108
+5	清	1914	default	
+5	清	1919	reform	8.156
+6	イギリス	1794	reform	0.025
+6	イギリス	1870	reform	0.153
+6	イギリス	1873	default	
+6	イギリス	1880	reform	1.543
+6	オーストリア	1944	default	
+6	オーストリア	1948	reform	4.046
+6	清	1931	default	
+6	清	1935	reform	3.625
+7	イギリス	1803	reform	0.194
+7	イギリス	1819	reform	0.212
+7	ロシア	1944	default	
+7	オーストリア	1949	default	
+7	清	1940	default	
+8	ロシア	1940	default	
+8	ロシア	1944	reform	5.201
+8	オーストリア	1940	default	
+8	オーストリア	1942	reform	6.593
+9	イギリス	1812	reform	0.069
+9	オーストリア	1934	default	
+9	オーストリア	1938	reform	2.598
+10	イギリス	1871	reform	211.183
