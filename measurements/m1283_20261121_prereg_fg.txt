@@ -87,3 +87,10 @@
 - 腕 B：旗 1 の木・`INS=1 bash scripts/instruments/batch.sh run c132fgB 10`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝nation_s,stock_s,wars_s,casualty_s,region_s,migration_s,pxmonth_s,scalars_s,fiscal_s,popclose_s,urxpd_s,urxrt_s,rdh_s（POB_INSTRUMENTS_RDH=1）＝止める線の台本・門・記録の読み手が開く表を grep した（stoplines1002〔nation_s・pxmonth_s・scalars_s・region_s〕・an_h2〔region_s・migration_s〕・home_break〔stock_s〕・ng.sh〔nation_s・stock_s・wars_s・casualty_s〕・ukdef975〔fiscal_s〕・gate_fg〔region_s・popclose_s・urxpd_s・urxrt_s〕・paper_rdh〔rdh_s〕）。
 - 読み手：scripts/instruments/c132fg/read_fg.sh（c131cr/read_cr.sh の写し＋gate_fg）。基準 keep_1280/base_ins・N1 keep_1280/n1・NG 基準 ng1280_20261121・nullgate の基準 m1280。
 - D:：腕 B は約 6〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る。
+
+== 追記 1（器のコミットの後・腕 Z と腕 B の前・2026-11-21）==
+- ★(1254) 止める線の台本を基準の生で先に回した（scripts/instruments/c132fg/read_fg.sh を INS＝keep_1280/base_ins で・measurements/m1283_20261121/paper_base/）：stoplines1002 は基準で gdp_jump833 の〈それ以外〉0（100 倍以上 1 件＝種 2 ラヘジ 1866＝分母の痩せ）・1e10 倍以上 0・非有限 0・pxmonth 3 か月比の最大 1.106・空洞化 1/10 未満 0（1/4 未満 2〔移民〕）・hol_attr 0 件・gdp_zero10 0（N1 も 0）・英の不履行 1/10（種 10）＝旗 0 の盤面で緑。
+- gate_fg の基準どうし：H1 は 18 行とも〈内〉（基準÷史実 0.649〜7.333＝模型の都市の階級は史実の都市の定義より広い＝清 1850 年 6.8 倍・露 7.3 倍は線の 10 倍に近い＝名乗る）・H2 は全て 1.000・NG 0。〈何もしない実装〉（旗 0）でも緑＝壊さない門の性質（〈働いた〉は単体の試験 T1〜T5 で示す）。
+- 基準の記録の値（P1・P2 の分母）：urxpd の本国の州の都市→農村の流れの和 6,420,506 千人・門の州×月 422,474／1,932,135。urxrt の PopDecision の都市から（9 国の和）＝8,226,152 千人〈和は手で足した〉。
+- ㉘（器の木 a1453aeef・8 クラス）：153 本 全て緑（measurements/m1283_20261121/scan28z.txt・CPU の取り合いで 51 分）。
+- 旗 1 のコミットで試験の T2・T3 の旗 0 の側を盤面で明示に置いた（既定が 1 になると T2 の〈既定 0〉の前提が成り立たない＝試験のバグの区分〈軌道でなく既定に依る前提〉・Assert の文は変えない・旗 0 の経路を名指しする形）。突然変異の表は変えない（mu0 の置き換えは旗 1 を書く 4 箇所のまま）。
