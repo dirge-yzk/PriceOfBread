@@ -15,7 +15,9 @@ W132="urxpd_s,urxrt_s,arrears_s"   # (1287) fg の記録（urxpd_s・urxrt_s）�
 G=${1:?組}; H=${2:?コミット}
 case $G in
   M)    bash $S/m1287/arm1287.sh mM 1 10 1 1 - $H ;;
+  M2)   bash $S/m1287/arm1287.sh mM2 1 10 1 1 - $H ;;   # (1287) 木 T2（df を外した木）の M
   S11)  TABLES1287="$A11,$CA,$BK,$W127,cpop_s,admrule_s,rule_s,soldiervac_s,mintreg_s,mintcap_s,nationgood_s,armsfill_s,pop_s,tb_s,t1buy_s,secession_s,cessp_s,rulepower_s,sf_s,rponset_s,$W129,$W130,$W132" bash $S/m1287/arm1287.sh mS11 1 10 11 1 - $H ;;
+  S11b)  TABLES1287="$A11,$CA,$BK,$W127,cpop_s,admrule_s,rule_s,soldiervac_s,mintreg_s,mintcap_s,nationgood_s,armsfill_s,pop_s,tb_s,t1buy_s,secession_s,cessp_s,rulepower_s,sf_s,rponset_s,$W129,$W130,$W132" bash $S/m1287/arm1287.sh mS11b 1 10 11 1 - $H ;;   # (1287) 木 T2 の S11
   p5)   bash $S/m1287/arm1287.sh mp5 0 5 1 1 - $H ;;
   p10)  bash $S/m1287/arm1287.sh mp10 0 10 1 1 - $H ;;
   N1)   TABLES1287="$NUL,$CA,$BK,$W127,$W129,$W130,$W132" bash $S/m1287/arm1287.sh mN1 1 10 1 0 SupplySlope=0.50000001 $H ;;
