@@ -505,7 +505,7 @@ public sealed class UtilityAgent : INationAgent
         if (GuildTargetFromBoard(w) is { } guildTarget)
             p.Guild = guildTarget;
         {
-            var mwChosen = MinimumWageTargetChosen(w);
+            var mwChosen = MinimumWageTargetFromFloor(w);
             if (mwChosen is { } mwTarget)
                 p.MinimumWage = mwTarget;
         }
@@ -618,15 +618,6 @@ public sealed class UtilityAgent : INationAgent
         if (u > AntitrustUrbanLine) return w.Guild >= GuildLaw.Limited ? null : GuildLaw.Limited;
         return null;
     }
-
-    internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
-    {
-        MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
-        return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
-    }
-
-    internal static MinimumWageLaw? MinimumWageTargetChosen(World w)
-        => w.Coef.MinimumWageAiFromFloor > 0 ? MinimumWageTargetFromFloor(w) : MinimumWageTargetFromBoard(w);
 
     internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)
     {

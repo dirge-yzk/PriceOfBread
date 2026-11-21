@@ -22,7 +22,6 @@ public sealed partial class Coefficients
     public double UbiquitousMineralExempt = 1.0;   // 段0″b（AI の案・確証なし・事前登録 measurements/m1020_20261110_prereg_ub.txt）：> 0 のとき遍在の財
     public double ResourceRowsFix = 1.0;   // 段0″a 資源のデータ（AI の案・確証なし・事前登録 measurements/m1025_20261110_prereg_rd.txt）
     public double EmptyPopEstate = 1.0;   // 0＝何もしない
-    public double MinimumWageAiFromFloor = 1.0;   // 0＝今の規則〈本国の都市の割合の線で上げる目標だけを書く〉（UtilityAgent.MinimumWageTargetFromBoard）
     public double GuildLawGate = 0.0;   // 主ゲート＝法が動く（Government/AI目標/要求経路/UI）
     public double GuildRentPremium = 0.0;   // 取り分＝職人の自営レシピの財への上乗せ（買い手価格×これ×法の度合×職人の供給シェア＝消費者→職人・台帳へ）
     // ==== 内戦を戦争に一元化（docs/202608/20260827_内戦を戦争に一元化する_部分完了.md・2026-08-30実装）＝主フラグ点火済み（FactionJoinMilitancy は段2で削除＝下記）====
