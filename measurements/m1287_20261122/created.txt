@@ -1,2 +1,5 @@
 D:/PoB_work/m1287_work
 D:/PoB_work/wt_m1287 (枝 m1287)
+D:/PoB_work/wt_m1287z (枝 m1287z)
+D:/PoB_work/keep_1287_rej
+D:/PoB_work/keep_1287
