@@ -117,18 +117,18 @@ public class Rs3LordReverseGainTests
     public void 要求の順位は旧支配層の土地改革を減らす要求の強さを得から取り直す()
     {
         // 減らす向きの強さ＝2×(0.5＋得)（進める向きの値〔全面の次は無い＝損 0＝1.0〕ではない）。要求の点＝強さ×可動域÷(1＋FactionTargetsWeakAxis×反対の力) なので、
-        // 反対の力の項を 0 にして（FactionTargetsWeakAxis＝0＝選好×可動域のみ）、点＝手の式の強さ×可動域に一致することを見る。強さは本体の Pref から作らない（手の式）。
+        // 2026-11-22 (1282)：旗 FactionTargetsWeakAxis を焼き込んだため、点＝手の式の強さ×可動域÷(1＋反対の力) に一致することを見る。強さは本体の Pref から作らない（手の式）。
         var w = Board(NationConfig.Russia());
-        w.Coef.FactionTargetsWeakAxis = 0;
         w.SerfEmancipation = ReformLevel.Full; w.LandReform = ReformLevel.Full;
         double ratio = LordRentToIncome(w);
-        var d = FactionSnapshot.ComputeDemands(w, 0, false).Find(x => x.Axis == PolicyAxis.LandReform);
-        Assert.True(d.Score > 0, "盤面の前提が崩れた（旧支配層の要求の上位 3 に土地改革が入らない）");
-        Assert.False(d.Increase);
+        double score = FactionSnapshot.AxisScore(w, PolicyAxis.LandReform, 0, PolicyPreferences.Build(w), out bool inc);   // 順位づけの前の 1 軸の点（反対の力で割るため上位 3 に入るとは限らない）
+        Assert.True(score > 0, "盤面の前提が崩れた（旧支配層の土地改革を減らす要求の点が 0）");
+        Assert.False(inc);
         double gain = (0.5 - 0.3) / 0.3 * ratio;   // 農奴解放が全面＝戻した後の上限 0.5
         double head = FactionSnapshot.Headroom(w, PolicyAxis.LandReform, false);
         Assert.True(head > 0.1, $"盤面の前提が崩れた（土地改革が全面で減らす向きの可動域 {head}）");
-        Assert.Equal(2.0 * (0.5 + gain) * head, d.Score, 9);
+        double op = PolicyPreferences.OpposingPower(w, PolicyAxis.LandReform, false, PolicyPreferences.Build(w));   // 反対の力は別の関数・別の試験の主張
+        Assert.Equal(2.0 * (0.5 + gain) * head / (1.0 + op), score, 9);
     }
 
     [Fact]

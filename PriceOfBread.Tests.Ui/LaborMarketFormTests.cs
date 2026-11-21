@@ -371,21 +371,6 @@ public class LaborMarketFormTests
     }
 
     [Fact]
-    public void AIの目標は都市の割合の線に従い下げる目標は書かない()
-    {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var w = sim.World;
-        double u = UtilityAgent.HomeUrbanShare(w);
-        var want = u > 2.0 / 3.0 ? MinimumWageLaw.Sufficiency : u > 0.5 ? MinimumWageLaw.Living : u > 1.0 / 3.0 ? MinimumWageLaw.Subsistence : (MinimumWageLaw?)null;   // 別の出所（リテラル）で
-        Assert.Equal(want, UtilityAgent.MinimumWageTargetFromBoard(w));
-        w.MinimumWage = MinimumWageLaw.Sufficiency;   // 施行済みの床を引き下げる目標は立てない
-        Assert.Null(UtilityAgent.MinimumWageTargetFromBoard(w));
-        w.MinimumWage = MinimumWageLaw.Subsistence;   // 現行が目標以上なら書かない・未満なら目標は現行より上
-        var t = UtilityAgent.MinimumWageTargetFromBoard(w);
-        Assert.True(t is null || t > MinimumWageLaw.Subsistence);
-    }
-
-    [Fact]
     public void AIの段の置き方は都市の割合の線で4段に分かれる()
     {
         Assert.Equal(MinimumWageLaw.None, UtilityAgent.MinimumWageWant(0.0));

@@ -13,7 +13,6 @@ public sealed partial class Coefficients
     public Share MilitaryEnvelopeShare = new(0.7);   // 四分位の幅は旧 7.6倍・新 5.9倍
     public RatePerYear OpulenceSpendRatePerYear = new(0.6);         // 梯子0.3→0.6→1.2/年
     public double PanicBuyWeight = 0.5;   // 点火2026-09-06＝0.0→0.5・〔6-2〕主食の買占め（B3 自己成就期待の残り半分）
-    public double SovietTaxProfile = 1.0;          // ソ連風税制（2026-08-08作者裁定＝完全な計画経済の代替）：プロレタリア独裁は
     public Share SerfCashShareFloor = new(0.15);       // 0=恒等
     public Share MaxSoldierFraction = new(0.04);               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合
     public double MilitarismStrengthBonus = 1.3;            // 同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
@@ -101,7 +100,6 @@ public sealed partial class Coefficients
     public double ReformFromAboveLegitThreshold = 0.4;   // 政2：上からの改革が発火する正統性の上限（Legitimacy<これ＝侵食が進行中の体制のみ自己改革）
     public double SecessionHoldCoercion = 1.0;   // 政5（分離の中央保持力判定がデッドコード）：>0でholdに軍・警察(Coercion)由来の飽和項を加え第2条件を活性化（大軍の帝国ほど分離を抑える）
     public double SecessionCultureAdditive = 3.0;   // 参考例（5.0の場合）＝強民族州(文化距離1×少数派0.8×不満0.8)で加算≈0.64＝関税項と合わせ閾値超えが可能に＝バルカン型の民族分離を実数化
-    public double ConsciousnessFromSchoolingStock = 1.0;   // 政15（変換係数が現行の教育法を読む＝世代遅れなし）：混合比∈[0,1]
     public double CultureDistanceFromEthnic = 1.0;   // 0で厳密恒等
     public double SecessionHoldSharedArmy = 1.0;   // 0で分母1＝厳密恒等
     public double SecessionHoldProjection = 1.0;   // 0で厳密恒等

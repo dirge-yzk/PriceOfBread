@@ -264,27 +264,9 @@ public class PolicyPoliticsTests
     }
 
     [Fact]
-    public void 段3_旗0の参加の述語は闘争度の二値である()   // (a) 旗 0＝旧＝ビット恒等の側（不満度を1度も読まない）
-    {
-        Assert.Equal(1.0, new Coefficients().ParticipationDiscontent);   // ★既定は 1（2026-10-19 (431) で点火）。以下は旗 0 の旧の二値を踏む
-
-        var (below, popB) = 参加の盤面(militancy: 0.30, drop: 0);   // 閾値0.5の下＝1人も数えられない
-        below.Coef.ParticipationDiscontent = 0;
-        Assert.Equal(0.0, 参加の総和(below).Size);
-        Assert.True(popB > 0, "母数が0＝上の0は『popがいない』の写しにすぎない");
-
-        var (above, popA) = 参加の盤面(militancy: 0.60, drop: 0);   // 閾値の上＝全員が満額（二値）
-        above.Coef.ParticipationDiscontent = 0;
-        var (size, milSum) = 参加の総和(above);
-        Assert.Equal(popA, size, 6);
-        Assert.Equal(0.60, milSum / size, 9);
-    }
-
-    [Fact]
     public void 段3_点火すると参加は重みになり閾値が消える()   // (b) 蜂起の門と「運動に数えられる下限」の取り違えの解消
     {
         var (w, pop) = 参加の盤面(militancy: 0.30, drop: 0);   // 不満度0＝参加は闘争度そのもの
-        w.Coef.ParticipationDiscontent = 1.0;
         var (size, milSum) = 参加の総和(w);
         Assert.Equal(0.30 * pop, size, 6);      // 閾値の下でも**0.3人分**が運動に数えられる（旧は0人）
         Assert.Equal(0.30, milSum / size, 9);   // 参加加重の平均闘争度＝この腕では闘争度そのもの
@@ -295,7 +277,6 @@ public class PolicyPoliticsTests
     {
         // 腕1＝生活が落ちた（失望0.4→不満度 0.8×0.4=0.32）が闘争度は低い（0.20）＝**不満度が参加を決める**
         var (w1, pop1) = 参加の盤面(militancy: 0.20, drop: 0.4);
-        w1.Coef.ParticipationDiscontent = 1.0;
         var p1 = w1.Regions[0].Pops[0];
         double d1 = Politics.Discontent(w1, w1.Coef, p1, PoliticalQuantities.DriftedPolityCoord(w1.Polity, w1.Suffrage, w1.Coef), 0);
         Assert.True(d1 > 0.20, $"前提が崩れた：不満度が闘争度を上回っていない（{d1:F3}）");
@@ -303,7 +284,6 @@ public class PolicyPoliticsTests
 
         // 腕2＝同じ盤面で闘争度だけを上げる（0.20→0.80）＝**闘争度が上書きする**（生活は1ミリも変えていない）
         var (w2, pop2) = 参加の盤面(militancy: 0.80, drop: 0.4);
-        w2.Coef.ParticipationDiscontent = 1.0;
         Assert.Equal(0.80 * pop2, 参加の総和(w2).Size, 6);
 
         // 記憶を持たない側＝盤面（参照点）を戻せば参加もその場で戻る（ストックなら戻らない）
@@ -749,41 +729,52 @@ public class PolicyPoliticsTests
     [Fact]
     public void 国庫が潤沢でも専売の対象は削られない()   // (d)＝F3
     {
-        // 潤沢の減税反射（UtilityAgent.RelieveOpulence）の**射程**のアブレーション：係数 OpulenceTaxRelief を切った腕と
-        // 既定の腕を、分岐の直前まで厳密に同じ世界で走らせ、最後の1四半期だけ差を作る。
-        // 旧＝この反射が `SetStateMonopolyTier(Tier-1)` で段を丸ごと落としていた（率への連続倍率・床0.25 の翻訳になっていない）。
-        static (int[] Tiers, double[] Income, int Opulent) Arm(bool relief)
+        // 潤沢の減税反射（UtilityAgent.RelieveOpulence）の**射程**：率への連続倍率であって、専売の段（SetStateMonopolyTier）は動かさない。
+        // 旧＝この反射が `SetStateMonopolyTier(Tier-1)` で段を丸ごと落としていた。2026-11-22 (1282)：旗 OpulenceTaxRelief を焼き込んだため、
+        //   旗を切った腕との比べをやめ、反射を直に呼んだ前後の段と税の目標で見る（同じ世界・反射の呼びだけが差）。
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        for (int q = 0; q < 12; q++) sim.StepQuarter();
+        static double Taxes(NationPolicy p) => p.IncomeTaxTarget + p.PollTaxTarget + p.LandTaxTarget + p.ProgressiveTaxTarget + p.TariffTarget;
+        int opulent = 0, relieved = 0;
+        foreach (var n in sim.Nations)
         {
-            var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
-            for (int q = 0; q < 12; q++) sim.StepQuarter();
-            int opulent = 0;
-            foreach (var n in sim.Nations)
-            {
-                double line = UtilityAgent.OpulenceLineOf(n.World);
-                if (line > 1e-9 && n.World.Treasury.Value > line) opulent++;
-                if (!relief) n.World.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス＝1国ずつ書く
-            }
-            sim.StepQuarter();
-            var t = new int[sim.Nations.Count]; var inc = new double[sim.Nations.Count];
-            // ★盤面の直し（2026-09-30 段3-2）：反射が走ったかは税の目標5本（所得・人頭・土地・累進・関税＝RelieveOpulence が掛ける全て）の和で見る
-            //   （旧＝所得税の目標だけ＝1783年の所得税は全ての国で0（(109)）で、潤沢な国の所得税の目標が0の軌道では反射が走っても下がらない）。
-            for (int i = 0; i < sim.Nations.Count; i++)
-            {
-                var pol = sim.Nations[i].World.Policy;
-                t[i] = sim.Nations[i].World.StateMonopolyTier;
-                inc[i] = pol.IncomeTaxTarget + pol.PollTaxTarget + pol.LandTaxTarget + pol.ProgressiveTaxTarget + pol.TariffTarget;
-            }
-            return (t, inc, opulent);
+            var w = n.World;
+            double line = UtilityAgent.OpulenceLineOf(w);
+            if (!(line > 1e-9)) continue;
+            w.SetTreasuryRaw(System.Math.Max(w.Treasury.Value, 8 * line));   // 国庫が緩衝の 8 倍＝反射が深く効く
+            opulent++;
+            int tier = w.StateMonopolyTier; double before = Taxes(w.Policy);
+            UtilityAgent.RelieveOpulence(w);
+            Assert.True(w.StateMonopolyTier == tier, $"{w.SelfPower?.Name}：減税反射が専売の段を動かした（段{tier}→{w.StateMonopolyTier}）");
+            if (Taxes(w.Policy) < before - 1e-9) relieved++;
         }
-        var off = Arm(relief: false);
-        var on = Arm(relief: true);
-        Assert.True(on.Opulent > 0, "国庫が潤沢な国が1つも無い＝減税反射の定義域の外で測っている（番人が空回り）");
-        bool relieved = false;
-        for (int i = 0; i < on.Income.Length; i++) if (on.Income[i] < off.Income[i] - 1e-9) relieved = true;
-        Assert.True(relieved, "潤沢なのに税の目標が1国も下がらない＝減税反射そのものが走っていない（番人が空回り）");
-        for (int i = 0; i < on.Tiers.Length; i++)
-            Assert.True(on.Tiers[i] == off.Tiers[i],
-                $"減税反射が専売の対象を動かした（国{i}：反射あり 段{on.Tiers[i]} vs 反射なし 段{off.Tiers[i]}）＝率の割引と段の翻訳が等価でない");
+        Assert.True(opulent > 0, "国庫が潤沢な国が1つも無い＝減税反射の定義域の外で測っている（番人が空回り）");
+        Assert.True(relieved > 0, "潤沢なのに税の目標が1国も下がらない＝減税反射そのものが走っていない（番人が空回り）");
+    }
+
+    [Fact]
+    public void 潤沢の減税は税の5軸の目標へ床0_25までの同じ倍率を掛ける()   // 2026-11-22 (1282)＝旗の焼き込みの後の機構の試験
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        for (int q = 0; q < 12; q++) sim.StepQuarter();
+        int checkedAxes = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            double line = UtilityAgent.OpulenceLineOf(w);
+            if (!(line > 1e-9)) continue;
+            w.SetTreasuryRaw(8 * line);   // 緩衝の 8 倍＝倍率は max(床 0.25, 1/8)＝0.25（手の式・床の値は別の出所のリテラル）
+            var p = w.Policy;
+            double[] before = [p.IncomeTaxTarget, p.PollTaxTarget, p.LandTaxTarget, p.ProgressiveTaxTarget, p.TariffTarget];
+            UtilityAgent.RelieveOpulence(w);
+            double[] after = [p.IncomeTaxTarget, p.PollTaxTarget, p.LandTaxTarget, p.ProgressiveTaxTarget, p.TariffTarget];
+            for (int k = 0; k < before.Length; k++)
+            {
+                Assert.Equal(before[k] * 0.25, after[k], 12);
+                if (before[k] != 0) checkedAxes++;
+            }
+        }
+        Assert.True(checkedAxes > 0, "目標が 0 でない軸が 1 つも無い＝倍率を確かめられていない（番人が空回り）");
     }
 
     [Fact]
@@ -793,8 +784,8 @@ public class PolicyPoliticsTests
         //   税の目標へ連続の倍率を掛けた＝段の格子から外れた目標（英の人頭税 0.5→0.42）や、門が拒む段を AI だけが置けた
         //   （プレイヤーは法律タブで同じ門を通る＝非対称・幽霊戦線）。新＝反射は Apply の中、門の前。
         // 主張：AI の1四半期の判断の後、税の5軸の目標は門の不動点（もう一度門を通しても1ビットも動かない）。
-        //   反射を切った腕と比べて目標が下がった国がある＝反射が門を通って実際に効いている（空回りでない）。
-        static World[] Arm(bool relief)
+        //   2026-11-22 (1282)：旗 OpulenceTaxRelief の焼き込みで、反射を切った腕との比べは無い（反射の効きは直上の 2 本が見る）。
+        static World[] Arm()
         {
             var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
             for (int q = 0; q < 12; q++) sim.StepQuarter();
@@ -803,29 +794,26 @@ public class PolicyPoliticsTests
             {
                 var w = ws[i] = sim.Nations[i].World;
                 double line = UtilityAgent.OpulenceLineOf(w);
-                if (!relief) w.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス
                 if (line > 1e-9) w.SetTreasuryRaw(System.Math.Max(w.Treasury.Value, 8 * line));   // 両腕とも同じ国庫＝反射を深く効かせる（倍率0.25＝床）＝段を跨ぐ減税を確実に作る
                 new UtilityAgent().DecideQuarter(w);
             }
             return ws;
         }
         static double[] Taxes(NationPolicy p) => [p.IncomeTaxTarget, p.ProgressiveTaxTarget, p.PollTaxTarget, p.LandTaxTarget, p.EducationSpendingTarget];
-        var off = Arm(relief: false);
-        var on = Arm(relief: true);
-        int lowered = 0;
+        var on = Arm();
+        int considered = 0;
         for (int i = 0; i < on.Length; i++)
         {
             var w = on[i];
+            if (UtilityAgent.OpulenceLineOf(w) > 1e-9) considered++;
             var before = Taxes(w.Policy);
             UtilityAgent.GateAllLawTargets(w, w.Policy);
             var after = Taxes(w.Policy);
             for (int k = 0; k < before.Length; k++)
                 Assert.True(before[k] == after[k],
                     $"{w.SelfPower?.Name}：税の軸{k}の目標 {before[k]:R} が門を通すと {after[k]:R} へ動く＝AI の反射が門の外の段を置いた");
-            var offT = Taxes(off[i].Policy);
-            for (int k = 0; k < before.Length; k++) if (before[k] < offT[k] - 1e-9) { lowered++; break; }
         }
-        Assert.True(lowered > 0, "反射を深く効かせても税の目標が1国も下がらない＝減税反射が門を通っていない（番人が空回り）");
+        Assert.True(considered > 0, "緩衝が正の国が1つも無い＝反射の定義域の外（番人が空回り）");
     }
 
     [Fact]
@@ -1890,14 +1878,13 @@ public class PolicyPoliticsTests
                     strength = Math.Abs(bloc == 0 ? tDec : bloc == 1 ? mDec : sDec);
                 }
                 double score = strength * FactionSnapshot.Headroom(w, axis, increase);
-                if (w.Coef.FactionTargetsWeakAxis > 0) score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
+                score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
                 if (score > FactionSnapshot.MinDemandScore) list.Add(new FactionSnapshot.Demand(axis, increase, score));
             }
             list.Sort((x, y) => { int cmp = y.Score.CompareTo(x.Score); return cmp != 0 ? cmp : x.Axis.CompareTo(y.Axis); });
             if (list.Count > FactionSnapshot.TopK) list.RemoveRange(FactionSnapshot.TopK, list.Count - FactionSnapshot.TopK);
             return list;
         }
-        Assert.True(w.Coef.FactionTargetsWeakAxis > 0, "前提が崩れた：反対の力で割る項が消えている（反対の力の照会を通らない）");
         int filled = 0, legislatures = 0;
         void Check()
         {

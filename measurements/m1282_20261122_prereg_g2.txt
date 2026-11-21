@@ -1,0 +1,50 @@
+m1282 事前登録（線 c132g2・(1282)・恒等〔一掃〕・最初のコミット）
+基は main fa4653318（基線 m1280）。区分＝★(743) の恒等（既定 1 の古い旗の焼き込み）。予言 0＝世界の出力は 1 ビットも変わらない。
+
+[1] 恒等の線
+ 既定 1 の道だけを残し、旗と旧の道を消す。式は残す（値 1 を畳むだけ）。
+ 浮動小数の順序が変わる箇所＝0（下の畳みは全て 1.0 掛けの除去か、恒真の分岐の除去）。
+ 紙の台本（同じ盤面で旧と新の食い違いの数）＝1.0*x は IEEE で x と同値・(1.0-1.0)*a+1.0*b は b（a 有限・b≧0）・
+ 1.0-1.0*(y) は 1.0-(y)。この 3 つの食い違いは 0（式を書き換えず、掛け算の 1.0 を外すだけ。1.0-(1.0-mul) は mul に簡約しない）。
+
+[2] 消す名と読み手（main fa4653318 で grep）
+ OpulenceTaxRelief       p04:15 / SelfPlay.cs:694・698 / 試験 PolicyPoliticsTests:752・764・806・RevoltIgnitionTests:1496（注のみ）
+ SurvivalHopelessScale   p06:28 / SelfPlay.cs:460・461（重み＝値 1 を式へ畳む・戦争の入口の波は触れない）
+ SovietTaxProfile        p08:16 / SelfPlay.cs:986（倍率の一掃の B＝残す側を焼く）
+ MinimumWageAiFromFloor  p10:25 / SelfPlay.cs:630 / 試験 MinimumWageAiFloorTests・LaborMarketFormTests（FromBoard の読み手 1）
+ ConsciousnessFromSchoolingStock p08:104 / Politics.cs:50・55
+ MandateReligiousCircuit p09:79 / Politics.cs:216・223
+ FactionTargetsWeakAxis  p06:38 / FactionSnapshot.cs:134・135（重み）/ 試験 LordStakeD1bD2Tests・PolicyPoliticsTests:1893・1900・Rs3LordReverseGainTests
+ ParticipationDiscontent Coefficients.cs:103 / FactionSnapshot.cs:42・52・68 / 試験 DiscontentReaderTests・PolicyPoliticsTests:269〜306・InstrumentsTests:1630（注）・WriterRatchetTests:560（注）
+ ModernizationBudgetSoftCap p10:84 / World.cs:1599 / 試験 RevoltIgnitionTests:12・38・231・235
+ NationConsciousnessPerPop は (1193) で消済＝数えない。
+ 読み手の範囲＝SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名・SaveGame。
+ App の注（GameViewModel.Politics.cs:348〜349）は触らず 00一覧の ⑲ へ書く（合流）。
+ MultiNationSim.cs:1689・1691 の費目の名の文字列は変えない。
+ MinimumWageTargetChosen・MinimumWageTargetFromBoard は旗の道＝消す（SelfPlay.cs:509 は FromFloor を直に呼ぶ）。
+ MinimumWageWant は SelfPlay.cs:652（宣言の範囲の外）＝残す（その試験も残す）。孤児として 00一覧へ。
+ 孤児になる係数は消した後に grep して名乗る（記録へ）。
+ 他の線との重なり＝SelfPlay.cs・Politics.cs・FactionSnapshot.cs・World.cs の宣言の行だけ（kx・fg・df は触らない）。
+
+[3] 足す試験と突然変異（名ごとに旧の道を戻す→赤・種 3）
+ 試験は旗なしの今の盤面の主張へ書き直す（期待値は手の式・同じ出所から作らない）。
+ 突然変異は名ごとに 1 本（旧の道の復活）：試験で赤になることを確かめて measurements/m1282_*_mut.txt に残す。
+ ㉘ DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScanTests＋書き直したクラスを器の直後に回す。
+ ㉑ 走査の件数の番人の書き換え＝予言 0（宣言の表に消す名は載っていない・載っていれば表の行を消すだけ）。
+ 点検＝route_anchors.tsv の鍵はコード文字列（行番号でない）＝書き換える行に鍵の行は無い（cearn_s・cpop_s の経路の名の写像は 0）。
+ 試験の数の予言＝3091 から 3089〜3091（旗の旧の道だけを踏む試験 2 本を消す・直接の機構の試験を 1 本足す）。
+
+[4] 門
+ 素の 5 種・計器つき 10 種が m1280 と全行一致（名乗り行を除く）・計器の表の差は宣言だけ。
+ 計算量の件数が増えない（.cost の件数の行が一致）。
+
+[5] 〈判定: 恒等〉（段 2・--work D:/PoB_work/ident_c132g2）なら採る。一致しなければその名を外して報告へ回す。
+ 〈証明〉とは書かない（測った種で一致）。
+
+[追記 2026-11-22・腕（ident）の前・結果の前]
+ 試験の数の予言（訂正）＝3091−2（PolicyPoliticsTests の旧の二値 1・LaborMarketFormTests の FromBoard 1）＋1（潤沢の減税の倍率）＋4（FlagBake1282Tests）＝3094。
+ 追加の変更（恒等）：RelieveOpulence と Politics.SchoolingConversion を private→internal（試験が直に呼ぶ）・FactionSnapshot.AxisScore を ComputeDemands の 1 軸分から取り出した（式・順序は同じ）。
+ SelfPlay.cs の MinimumWageWant（:652）は残す（宣言の範囲の外・その試験も残す）。FactionSnapshot.cs の AxisScore は :121〜:136（宣言の範囲を少し超える・他の線は触らない）。
+ 孤児の係数＝0（消した読み手が持っていた他の係数はどれも他の読み手が居る）。
+ 畳みの紙の台本（旧と新で食い違う行）：ConsciousnessFromSchoolingStock は (1−1)×今＋1×ストック＝0×今＋ストック＝ストック（今は有限で正）。食い違い 0。
+ 突然変異は M1〜M9（scripts/instruments/c132g2/ に台本・結果は measurements/m1282_20261122_g2_mut.txt）。

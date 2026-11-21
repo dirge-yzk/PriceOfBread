@@ -1060,3 +1060,6 @@
 ````text
 2026-11-14 に 1 で点火（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。(1137) c111rb 段 R の need の基底：鉄道の need の取り分（敷きと清算の φ）を州の産出の比（産出×参照価格・役務を除く＝GdpPerMonth と同じ式）へ。0＝潜在量の比。RailByRegion＝0 では読まない
 ````
+
+## (1282) c132g2 で削除
+- OpulenceTaxRelief（旧 1.0）。旗の焼き込み＝RelieveOpulence は無条件。倍率は 1.0−(1.0−mul)（式の順は変えない）。

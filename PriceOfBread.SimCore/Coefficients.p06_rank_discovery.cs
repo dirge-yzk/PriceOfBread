@@ -25,7 +25,6 @@ public sealed partial class Coefficients
     public double ColonizeRivalTension = 22.0;     // 植民地化が他の列強との緊張を高める量（グレートゲーム＝勢力圏争い・他列強の警戒）
     public double SurvivalThreatRatio = 1.5;       // 最強他国の軍が自軍のこれ倍超＝存亡の脅威（生存軍拡が立つ閾値）
     public double SurvivalMilitaryWeight = 1.5;    // ×(脅威比−閾値)＝生存のための軍備効用（弱小が脅威下で軍拡）
-    public double SurvivalHopelessScale = 1.0;   // つまり clamp(ratio−1.5, 0, 3) は開幕から最終まで上限3に張り付き、生存効用は「脅威に応じた軍拡」でなく
 
     public double StanceRevoltWelfare = 2.0;       // 旧AIはLegitimacy/Militancy不読＝革命が見えなかった
     public double StanceRevoltCoercion = 1.0;      // 譲歩との綱引きは教義バイアスと不足の大小が決める（政体ラベル分岐なし）
@@ -35,7 +34,6 @@ public sealed partial class Coefficients
     public double FactionStrikeLegitimacy = 0.5;   // 第6段6-5：体制の弱み判定＝正統性がこれ未満なら好機
     public Share FactionStrikeDrawdown = new(0.1);     // 第6段6-5：体制の弱み判定＝GDPドローダウンがこれ超（恐慌）なら好機
     public double FactionOverwhelmFactor = 1.5;    // 第6段6-5：圧倒判定＝勢力強度が保持力のこれ倍超なら好機を待たず打つ（雪崩は止まらない）
-    public double FactionTargetsWeakAxis = 1.0;    // 要求スコア÷(1+これ×OpposingPower)＝体制の守りが薄い軸を優先（状況依存の要求）
     public double PoliticalBudgetGate = 0.5;       // 「全部を同時には押せない」
     public double ArmyPoliticalWeight = 5.0 / Military.WorkingMenStdShare;       // 力＝これ×兵士人口シェア×(1−議会統制)＝文民統制の確立が軍を政治から退場させる
     public double ArmyPcPressure = 0.02;           // 王権寄りの軍（lean>0）が文民統制の確立を毎期押し戻す（プロイセン統帥権・憲法紛争1862）

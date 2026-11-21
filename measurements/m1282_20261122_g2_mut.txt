@@ -1,0 +1,12 @@
+m1282 突然変異（旧の道を戻す・機構を外す）の結果。木 c132g2・台本 scripts/instruments/c132g2/mut.sh（wt_c132g2_mut で当て、隔離ビルドで該当の試験だけ回す）
+M1: 失敗!   -失敗:     2、合格:    85、スキップ:     0、合計:    87、期間: 39 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.PolicyPoliticsTests.潤沢の減税は税の5軸の目標へ床0_25までの同じ;  失敗 PriceOfBread.Tests.PolicyPoliticsTests.国庫が潤沢でも専売の対象は削られない [4 s];
+M2: 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.FlagBake1282Tests.存亡の効用は脅威比を超えた分に自軍比の逓減�;
+M3: 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.FlagBake1282Tests.プロレタリア独裁のAIは最高段の専売と年金を�;
+M4（初回）: 成功＝赤にならない（呼び口の試験が無かった）→ 試験を足して M4 を再度（下）
+M5: 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.FlagBake1282Tests.識字から政治意識への変換は就学履歴のストッ�;
+M6: 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.FlagBake1282Tests.天命の宗教媒介は国教法の開度で正統性の回復�;
+M7: 失敗!   -失敗:     4、合格:    90、スキップ:     0、合計:    94、期間: 46 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.要求の順位は旧支配層の土地改革を減らす�;  失敗 PriceOfBread.Tests.LordStakeD1bD2Tests.D2_要求の順位は旧支配層の官僚制度を戻す要�;  失敗 PriceOfBread.Tests.LordStakeD1bD2Tests.D1b_要求の順位は旧支配層の国教を戻す要求の�;
+M8: 失敗!   -失敗:     3、合格:    89、スキップ:     0、合計:    92、期間: 47 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.PolicyPoliticsTests.段3_点火すると参加は重みになり閾値が消える;  失敗 PriceOfBread.Tests.PolicyPoliticsTests.段3_参加は不満度で決まり闘争度が上書きする;  失敗 PriceOfBread.Tests.DiscontentReaderTests.参加の頭数は闘争度の高いPOPと低いPOPで旧の;
+M9: 失敗!   -失敗:     1、合格:    55、スキップ:     0、合計:    56、期間: 18 s - PriceOfBread.Tests.dll (net10.0) ::   失敗 PriceOfBread.Tests.RevoltIgnitionTests.R4_近代化投資のfrac06と10に区別が生まれる [222 ;
+M4（試験の追加の後）: 失敗＝赤（スタンスの適用は盤面から選んだ目標を最低賃金の目標へ書く）
+対応：M1 OpulenceTaxRelief（反射を止める）・M2 SurvivalHopelessScale（逓減を外す）・M3 SovietTaxProfile（分岐を外す）・M4 MinimumWageAiFromFloor（呼び口を外す）・M5 ConsciousnessFromSchoolingStock（今の変換係数を返す）・M6 MandateReligiousCircuit（媒介を外す）・M7 FactionTargetsWeakAxis（反対の力の除算を外す）・M8 ParticipationDiscontent（旧の二値）・M9 ModernizationBudgetSoftCap（旧の min）

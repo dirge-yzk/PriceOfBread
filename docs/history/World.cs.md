@@ -2134,3 +2134,6 @@
     /// 保有の台帳（Σ保有 ＝ GovDebt − ForeignDebt）は、置き直すたびに空にして <see cref="Fiscal.SeedBondHoldings"/> で投資家の貯蓄比に起票し直す（金は動かない）。</para>
     /// <para>既定（<see cref="OpeningTreasuryMonths"/>＝<see cref="OpeningGovDebtToGdpYear"/>＝0）は旧の <c>RebaseTreasury(treasuryBefore)</c> と同じ1文＝新しい分岐に入らない（規則のない国・分離独立の国・番人の国の経路。★(388) 以後の既定の world.json は 61 国が規則を持つ）。</para></summary>
 `````
+
+## (1282) c132g2 で削除
+- 旗 ModernizationBudgetSoftCap の読み手（旧の min(demand, half) の枝）。

@@ -457,8 +457,7 @@ public sealed class UtilityAgent : INationAgent
             if (ratio > w.Coef.SurvivalThreatRatio)
             {
                 survival = w.Coef.SurvivalMilitaryWeight * PoliticalQuantities.ClampOr(ratio - w.Coef.SurvivalThreatRatio, 0, SurvivalRatioCap, 0);
-                if (w.Coef.SurvivalHopelessScale > 0)
-                    survival *= 1.0 - w.Coef.SurvivalHopelessScale * (1.0 - PoliticalQuantities.Clamp01(w.Coef.SurvivalThreatRatio / ratio));
+                survival *= 1.0 - (1.0 - PoliticalQuantities.Clamp01(w.Coef.SurvivalThreatRatio / ratio));
             }
         }
         double militaristBase = (doctrine == Doctrine.Militarist ? MilitaristBaseUtility : 0.0) * (1.0 - PoliticalQuantities.Clamp01((fiscalNeed - MilitaristEscapeThreshold) / MilitaristEscapeThreshold));
@@ -506,7 +505,7 @@ public sealed class UtilityAgent : INationAgent
         if (GuildTargetFromBoard(w) is { } guildTarget)
             p.Guild = guildTarget;
         {
-            var mwChosen = MinimumWageTargetChosen(w);
+            var mwChosen = MinimumWageTargetFromFloor(w);
             if (mwChosen is { } mwTarget)
                 p.MinimumWage = mwTarget;
         }
@@ -620,15 +619,6 @@ public sealed class UtilityAgent : INationAgent
         return null;
     }
 
-    internal static MinimumWageLaw? MinimumWageTargetFromBoard(World w)
-    {
-        MinimumWageLaw want = MinimumWageWant(HomeUrbanShare(w));
-        return want == MinimumWageLaw.None || w.MinimumWage >= want ? null : want;
-    }
-
-    internal static MinimumWageLaw? MinimumWageTargetChosen(World w)
-        => w.Coef.MinimumWageAiFromFloor > 0 ? MinimumWageTargetFromFloor(w) : MinimumWageTargetFromBoard(w);
-
     internal static MinimumWageLaw? MinimumWageTargetFromFloor(World w)
     {
         var cost = w.Cost;
@@ -689,13 +679,13 @@ public sealed class UtilityAgent : INationAgent
         TryBuildFacility(w);
     }
 
-    private static void RelieveOpulence(World w)
+    internal static void RelieveOpulence(World w)
     {
-        if (w.Coef.OpulenceTaxRelief <= 0 || w.SelfPower is null) return;
+        if (w.SelfPower is null) return;
         double buffer = OpulenceLineOf(w);
         if (!(buffer > 1e-9) || w.Treasury.Value <= buffer) return;
         double mul = Math.Max(OpulenceTaxFloor, buffer / w.Treasury.Value);
-        mul = 1.0 - w.Coef.OpulenceTaxRelief * (1.0 - mul);
+        mul = 1.0 - (1.0 - mul);
         var p = w.Policy;
         p.IncomeTaxTarget *= mul; p.PollTaxTarget *= mul;
         p.LandTaxTarget *= mul; p.ProgressiveTaxTarget *= mul; p.TariffTarget *= mul;
@@ -983,7 +973,7 @@ public sealed class UtilityAgent : INationAgent
                     p.Suffrage = Suffrage.Census;
                 break;
         }
-        if (w.Coef.SovietTaxProfile > 0 && w.Polity == Polity.ProletarianDictatorship)
+        if (w.Polity == Polity.ProletarianDictatorship)
         {
             stateMonopTier = World.StateMonopolyMaxTier;
             p.ProgressiveTaxTarget = Math.Max(p.ProgressiveTaxTarget, Government.ProgressiveTaxTop);

@@ -1130,3 +1130,7 @@
 
 ## (1193) c119nd で削除
 - RevolutionConsciousness（(1186) で 0・旧 0.25）。国民意識の物理の削除の線。
+
+## (1282) c132g2 で削除
+- SurvivalHopelessScale（旧 1.0・重み）＝値 1 を式へ畳んだ。
+- FactionTargetsWeakAxis（旧 1.0・重み）＝score ÷ (1＋反対の力) に畳んだ。

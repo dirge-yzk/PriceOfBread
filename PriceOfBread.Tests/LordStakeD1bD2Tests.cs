@@ -73,15 +73,16 @@ public class LordStakeD1bD2Tests
         var sim = Board(1.0, 0.0);
         foreach (var n in sim.Nations)
         {
-            var w = n.World; w.Coef.FactionTargetsWeakAxis = 0;
+            var w = n.World;
             w.StateReligion = StateReligionLaw.ReligiousFreedom;   // 上げ 0（−1）・戻し 1×比＝非対称
             var (lords, clergy) = Sums(w); double sh = clergy / lords;
-            var d = FactionSnapshot.ComputeDemands(w, 0, false).Find(x => x.Axis == PolicyAxis.StateReligion);
-            Assert.True(d.Score > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（旧支配層の要求の上位に国教が入らない）");
-            Assert.False(d.Increase);
+            double score = FactionSnapshot.AxisScore(w, PolicyAxis.StateReligion, 0, PolicyPreferences.Build(w), out bool inc);   // 2026-11-22 (1282)：順位づけの前の 1 軸の点（反対の力で割るため上位 3 に入るとは限らない）
+            Assert.True(score > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（旧支配層の国教を戻す要求の点が 0）");
+            Assert.False(inc);
             double head = FactionSnapshot.Headroom(w, PolicyAxis.StateReligion, false);
             Assert.True(head > 0.1, $"盤面の前提が崩れた（可動域 {head}）");
-            Assert.Equal(2.0 * (0.5 + sh) * head, d.Score, 9);
+            double op = PolicyPreferences.OpposingPower(w, PolicyAxis.StateReligion, false, PolicyPreferences.Build(w));   // 反対の力は別の関数・別の試験の主張
+            Assert.Equal(2.0 * (0.5 + sh) * head / (1.0 + op), score, 9);
         }
     }
 
@@ -143,17 +144,18 @@ public class LordStakeD1bD2Tests
         var sim = Board(0.0, 1.0);
         foreach (var n in sim.Nations)
         {
-            var w = n.World; w.Coef.FactionTargetsWeakAxis = 0;
+            var w = n.World;
             var (lords, _) = Sums(w); double rho = Rho(w);
             Assert.True(lords > 0 && rho > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（ρ {rho}）");
             w.LastRuleCut = 2.0 / rho * lords; double cr = w.LastRuleCut / lords * rho;   // cr≈2＝要求の上位 3 に入るほど大きく置く（盤面の作り物・式の形を見るだけ・ρ は国で 1e-2 の桁もある）
             w.Bureaucracy = BureaucracyLaw.MeritExam; w.LandReform = ReformLevel.Limited;   // 上げ 0（−1）・戻し cr＝非対称
-            var all = FactionSnapshot.ComputeDemands(w, 0, false); var d = all.Find(x => x.Axis == PolicyAxis.Bureaucracy);
-            Assert.True(d.Score > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（旧支配層の要求の上位に官僚制度が入らない・ρ {rho}・上位 {string.Join(",", all.Select(x => x.Axis + ":" + x.Score.ToString("F3")))}）");
-            Assert.False(d.Increase);
+            double score = FactionSnapshot.AxisScore(w, PolicyAxis.Bureaucracy, 0, PolicyPreferences.Build(w), out bool inc);
+            Assert.True(score > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（旧支配層の官僚制度を戻す要求の点が 0・ρ {rho}）");
+            Assert.False(inc);
             double head = FactionSnapshot.Headroom(w, PolicyAxis.Bureaucracy, false);
             Assert.True(head > 0.1, $"盤面の前提が崩れた（可動域 {head}）");
-            Assert.Equal(2.0 * (0.5 + cr) * head, d.Score, 9);
+            double op = PolicyPreferences.OpposingPower(w, PolicyAxis.Bureaucracy, false, PolicyPreferences.Build(w));
+            Assert.Equal(2.0 * (0.5 + cr) * head / (1.0 + op), score, 9);
         }
     }
 }
