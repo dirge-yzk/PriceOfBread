@@ -40,3 +40,11 @@ m1282 事前登録（線 c132g2・(1282)・恒等〔一掃〕・最初のコミ�
 
 [5] 〈判定: 恒等〉（段 2・--work D:/PoB_work/ident_c132g2）なら採る。一致しなければその名を外して報告へ回す。
  〈証明〉とは書かない（測った種で一致）。
+
+[追記 2026-11-22・腕（ident）の前・結果の前]
+ 試験の数の予言（訂正）＝3091−2（PolicyPoliticsTests の旧の二値 1・LaborMarketFormTests の FromBoard 1）＋1（潤沢の減税の倍率）＋4（FlagBake1282Tests）＝3094。
+ 追加の変更（恒等）：RelieveOpulence と Politics.SchoolingConversion を private→internal（試験が直に呼ぶ）・FactionSnapshot.AxisScore を ComputeDemands の 1 軸分から取り出した（式・順序は同じ）。
+ SelfPlay.cs の MinimumWageWant（:652）は残す（宣言の範囲の外・その試験も残す）。FactionSnapshot.cs の AxisScore は :121〜:136（宣言の範囲を少し超える・他の線は触らない）。
+ 孤児の係数＝0（消した読み手が持っていた他の係数はどれも他の読み手が居る）。
+ 畳みの紙の台本（旧と新で食い違う行）：ConsciousnessFromSchoolingStock は (1−1)×今＋1×ストック＝0×今＋ストック＝ストック（今は有限で正）。食い違い 0。
+ 突然変異は M1〜M9（scripts/instruments/c132g2/ に台本・結果は measurements/m1282_20261122_g2_mut.txt）。
