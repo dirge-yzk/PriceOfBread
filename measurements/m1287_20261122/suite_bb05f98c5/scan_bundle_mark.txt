@@ -1,0 +1,24 @@
+list PriceOfBread.Tests nonfull 2860
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 233
+list PriceOfBread.Tests.Ui full 0
+scan rc=0 1390s
+scan_ui rc=0 47s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:    45、スキップ:     0、合計:    45、期間: 38 s - PriceOfBread.Tests.Ui.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   632、スキップ:     1、合計:   633、期間: 23 m 7 s - PriceOfBread.Tests.dll (net10.0)
+SCANDONE
+scan rc=0
+list PriceOfBread.Tests nonfull 2860
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 233
+list PriceOfBread.Tests.Ui full 0
+bundle rc=0 1324s
+bundle_ui rc=0 70s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  1680、スキップ:     1、合計:  1681、期間: 22 m 1 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   233、スキップ:     0、合計:   233、期間: 1 m 9 s - PriceOfBread.Tests.Ui.dll (net10.0)
+BUNDLEDONE
+bundle rc=0

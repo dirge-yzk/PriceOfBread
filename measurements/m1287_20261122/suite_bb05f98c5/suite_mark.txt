@@ -1,0 +1,26 @@
+list PriceOfBread.Tests nonfull 2860
+list PriceOfBread.Tests full 3
+list PriceOfBread.Tests.Ui nonfull 233
+list PriceOfBread.Tests.Ui full 0
+nonfull PriceOfBread.Tests rc=0 1325s
+full PriceOfBread.Tests rc=0 192s
+nonfull PriceOfBread.Tests.Ui rc=0 69s
+full PriceOfBread.Tests.Ui rc=0 1s
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   233、スキップ:     0、合計:   233、期間: 1 m 7 s - PriceOfBread.Tests.Ui.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:  2858、スキップ:     2、合計:  2860、期間: 22 m 2 s - PriceOfBread.Tests.dll (net10.0)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\m1287_work\suite_full\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 10 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE
+saveleak rc=0 209s
+保存 45.6MB（647ms）／読込 402ms（300四半期時点）
+savetest OK：12四半期後も全65カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+      終了コード=0　テスト=0　出力=D:/PoB_work/m1287_work/suite_full/leakhunt.txt　マニフェスト=D:/PoB_work/m1287_work/suite_full/leakhunt.txt.manifest（SOURCE-HASH=c991072b75192001）
+SL-END 08:17:39
+SAVELEAKDONE
