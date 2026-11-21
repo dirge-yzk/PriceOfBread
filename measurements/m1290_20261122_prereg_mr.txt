@@ -1,0 +1,104 @@
+(1290) c133mr 挙動の線の事前登録：国の主流の札を格の順で選ぶ（旗 MajorityLabelTierOrder・1 回目）（2026-11-22・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発
+ 00一覧〈次の波（波133〜）〉2 の②。(1285) c132rd の推奨 1（AI の案・確証なし）。(1278) c131cr〈国の主流の札は植民地格の州を数えない〉の副作用＝植民地格の州だけの国の札が空になる。
+ 残す群 9 の R8〈植民地 110 名の札〉の続き。答え待ちではない。1 回目（3 回の規則の 1 回目）。形の種類＝〈入口〉（本国格に札の付いた人口が無い国×札だけで働く・他は今のまま）。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果）
+ 旧の規則：ColonyLabelsFromData 1 の下で、本国格の州が無いか札が空の国は主流の札が ""（Diplomacy.cs:1091 Best が "" を返す）。
+ grep〈MajorityCultureReligion|ColonyLabelsFromData〉（PriceOfBread.Tests・PriceOfBread.Tests.Ui）＝ColonyLabelsFromDataTests.cs・DormantIdentityTests.cs・WriterRatchetTests.cs。
+  ColonyLabelsFromDataTests の T4・T4b は本国格の札が有る英・蘭（植民地格を数えない）＝新の規則でも同じ答え＝旧の規則〈空〉を固定する Assert は無い＝赤の予言 0。
+  DormantIdentityTests：器のコミットで DormantZeroFields に MajorityLabelTierOrder を足し、点火のコミットで外す（★ColonyLabelsFromData の行と同じ作法）。
+  WriterRatchetTests：旗を読む行は無い。1 種 40 四半期の軌道の件数の InlineData（★(749)＝軌道の件数を写しただけの番人）は、開幕の 10 年に植民地格だけの国が出ない限り変わらない〈推〉。変わったら ★(749) の例外として取り直し、verdict に列挙する。
+
+■ 形（AI の案・確証なし＝〈格の順〉は (1285) の推奨・作者の裁定ではない）
+ Diplomacy.MajorityCultureReligion（:1079〜:1093）：旗 1 かつ ColonyLabelsFromData 1 の時、本国格（Core・Integrated）の州で札の付いた人口の表を先に作る（今の通り）。
+  その表が空の札だけ（文化と宗教は別々）、植民地格の州で札の付いた人口を数え直し、最多の札を選ぶ。例外は 1 段だけ（決まり③の内）。首都の札へ逃がさない。
+ 旗 0 は今と 1 ビットも同じ（新しい枝に入らない・本国格の足し算の順は変えない）。ColonyLabelsFromData 0 の時は旗 1 でも今の形（全ての州で数える）。
+ 新しい係数 0・新しい状態 0（旗 1 本だけ・Coefficients.p08_audit_soldiers.cs の ColonyLabelsFromData の隣）。
+ C 型（world.json の culture "" の 12 州・植民地を持たない国）はこの形で直らない＝土地のデータの線として 00一覧へ（この線では直さない）。
+
+■ 計器（器の段で入れる・旗 0）
+ 新しい表 labeltier_s（PriceOfBread.SimCore/Instruments/InstrumentsLabelTier.cs・四半期の末・国ごと・Instruments.cs の登録の 2 行）。
+  列：quarter year nation colonyData tierOrder regions colonialRegions powerCulture powerReligion powerCultureEmptyFlag powerReligionEmptyFlag
+      homeLabelledPopC homeLabelledPopR colLabelledPopC colLabelledPopR oldCulture oldReligion newCulture newReligion tierC tierR capCulture capReligion changedC changedR
+  計器はエンジンの関数を呼ばない（MajorityCultureReligion を呼ばず、州と札と POP の人口を自分で数え、旧の規則と新の規則を両方組む・同じ盤面）。
+  nation_s の列は足さない（nation_s のバイトを保つ）。ident には --added-tables labeltier_s で宣言する。足した計器の列＝上の 25 列（新しい表）。
+
+■ 紙（今の盤面＝keep_1287/base_ins〔M〕・keep_1287/a11〔S11〕・台本 scripts/instruments/r1285/q3_paper.py・出力 measurements/m1290_20261122/pre/q3_paper_*.txt）
+ M：空の文化の札 53→0・空の宗教の札 53→0・主流が今と違う国×四半期 53（文化）・53（宗教）・H1（主流≠首都の札）27,477→27,434（国×四半期 410,001）。
+ S11：空の文化の札 85→0・空の宗教の札 85→0・違う国×四半期 85・85・H1 26,271→26,186（409,651）。
+ （指示の紙の予言〈M 0・S11 1〉は m1280 の盤面の値＝今の盤面では S11 も 0。デンマークの C 型は a11 の今の盤面に出ない。）
+ ＝変わるのは国×四半期の 0.013〜0.021%。
+
+■ 段 0 の予言（ソースと基線の生から・向きと桁・〈推〉・門にしない）
+ P1 空の主流の札の国×四半期（labeltier_s の powerCultureEmptyFlag）：基準 M 53 → 腕 B 0〜数件（植民地格の州にも札の無い国だけが残る）〈推〉。
+ P2 札が変わった国×四半期（changedC）：53 前後・軌道が変わるので ±数倍〈推〉。変わる読み手＝CultureGroup（:1143）・民族の緊張（:1177）・距離（:1225）・割譲の sameCore（:2955）・形成の資格（Formations.cs:322）。
+   宗教の読み手（:1144・:1163・:1182・:1207・:1231・Formations.cs:319・:323）は changedR。
+ P3 割譲の sameCore（""=="" で 1 になっていた組）：空の札の国が減る＝1 の割合は基準 0.0722 から同じ桁で上下〈推〉。
+ P4 止める線：州の人口を動かす経路は無い（札は緊張と割譲の印に効くだけ）＝間接（戦争と割譲の軌道）だけ＝基準と同じ桁〈推〉。
+ ＝見込みは〈悪くする〉ではない（空の札という壊れた状態を無くす向き）＝腕を回す。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（PriceOfBread.Tests/MajorityLabelTierOrderTests.cs・盤面は試験の中で置く・期待の札は字で書く）：
+  T1 本国格なし・植民地格 X 100／Y 50（首都＝Y）→ 旗 1 で (X, x教)・旗 0 で ("", "")（旗 0 の実装では旗 1 の Assert が赤）。
+  T2 本国格 H 10＋植民地格 X 100 → 旗 1 でも (H, h教)。
+  T3 本国格の札が空の州 2 つ（人口 10 ずつ）＋植民地格 X 100 → (X, x教)。
+  T4 宗教も別に選ぶ：本国格〈文化 H・宗教 空〉＋植民地格〈X・z教〉→ (H, z教)／本国格〈文化 空・宗教 h教〉→ (X, h教)。
+  T5 ColonyLabelsFromData 0 では旗 1 でも旗 0 と同じ（全ての州で数える）。
+  T6 計器 labeltier_s の行（旧と新の札・格・changed・Power の空の印・首都の札・札の付いた人口）。
+ 止める線（作者の止める線・腕 B の生を読み手 scripts/instruments/c133mr/read_mr.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines906（pxjump：pxmonth の 3 か月比と nation_s の priceLevel の四半期比 100 倍以上・1e10 倍以上・非有限／gdpjump の 3 区分の〈それ以外〉だけ／plvl・開幕の 1000 倍）。
+     建国の直後と分母の痩せ（政府の人口が 1 四半期で 1/10 未満か 10 倍以上＝popjump1017）はヌル腕と並べる。基準とヌル腕を同じ台本で数え直す（⑰・pre_base.sh）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ。植民地格の州も含む。
+     基準の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ（基準 keep_1287/base_ins の 1/4 未満 7 件を名簿として持つ）。
+  S4 推定の計算量 ＞248.5 秒（名目）。割り当て +0 秒〈推〉（本国格の表が空の国だけ州を 1 度なめ直す・それ以外は条件 1 つ）。2 秒以下＝合流の累計で読む（★(694)）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 史実の桁の線（10 倍・この線が一番動かす量）：当てる史実の量が無い（空の札は史実に無い状態）＝一番動かす量〈空の主流の札の国×四半期〉を紙の予言（M 0・S11 0）と並べて記録する。働きは T1〜T4 で示す。
+ gdp_zero10・ヌル腕の幅・nullgate は記録だけ。
+
+■ 旗 0 で門が落ちることの確かめ（★(790)）
+ T1 の旗 1 の Assert は、旗 0 の実装（＝突然変異 M3〈逃げ道を外す〉）で赤（"" ≠ X）。止める線は〈壊さない〉門＝旗 0 の基準で回して緑を確かめた（下）。
+
+■ 基準で回した止める線（★(1254)・台本 scripts/instruments/c133mr/pre_base.sh・出力 measurements/m1290_20261122/pre/）
+ keep_1287/base_ins：pxjump 100 倍以上 0・1e10 倍以上 0・非有限 0／gdpjump 100 倍以上 0／plvl 比≧100 0・開幕の 1000 倍以上 0／gdp_zero10 0／空洞化 1/10 未満 0・1/4 未満 7（移民 6・その他 1）。＝緑。
+ keep_1287/n1：gdpjump 100 倍以上 2（建国の直後 1・それ以外 1＝種 8 キサンガニ王国 1946）・plvl 0・空洞化 1/10 未満 0・1/4 未満 3。英の国債の不履行 基準 2/10・N1 3/10。
+ 記録の台本 rec_mr.py：基準 割譲 1,543 件（sameCore 1 の割合 0.0722）・統一の宣戦の評価 5,458（通った 411）・民族の緊張の行 1,299,929（反目 1,196,647・親近 101,979）／N1 0.0815・409・…。
+
+■ 記録（採否に使わない）
+ R1 一番動かす量（lt_sum.py の emptyC・emptyR・changedC・changedR・tier の内訳・changedC の国）と紙の予言。
+ R2 H1（主流≠首都の札＝q3_paper の H1_fb 腕÷基準の H1_new）と割譲の sameCore の 1 の割合（rec_mr.py）の〈腕÷基準〉。統一の宣戦（通った評価）と民族の緊張の件数（腕÷基準）。
+ R3 同じ盤面の新÷旧＝成績表の行の差の数（card_difflines）。旗 1 の出力が旗 0 と違う行の数。
+ R4 nullgate.py（O・NG）・ng.sh（基準 rd:measurements/ng1287_20261122:m1287）・home_break・英の国債の不履行の種の数・開幕の 1000 倍以上・名目 GDP 0 の続き（gdp_zero10）。
+ R5 1 四半期に 100 倍以上と 1e10 倍以上の読み（基準とヌル腕を同じ台本で数え直して並べる）・popjump1017。
+ R6 周辺の点検（読むだけ）：p.Culture・p.Religion の読み手ごとに、旗 1 で変わる国×四半期（labeltier_s の changedC・changedR）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c133mr/mut_mr.sh・出力 measurements/m1290_20261122/mut/）
+ M1 植民地格を常に足す                       → T2 赤（X）・T4 赤
+ M2 首都の札へ逃がす（首都＝Y）                → T1 赤（Y）・T3 赤（首都の札は空）・T4 赤
+ M3 逃げ道を外す（旗 1 が何もしない＝旗 0 の実装）→ T1 赤・T3 赤・T4 赤
+ M4 本国格の札の人口でなく本国格の州の有無で選ぶ → T3 赤（本国格の州 2 つ＝植民地格へ行かない）・T4 赤
+ M5 宗教だけ逃がさない                         → T1 赤（宗教 ""）・T3 赤・T4 赤
+ 止める線は〈壊さない〉門＝突然変異では腕を回さない（腕の枠の節約）。
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+ grep の結果（main 0072408c5）：
+  工業化度の読み手の許可表（IndustrializationReaderTests）：("Diplomacy.cs", 1)＝この線は工業化度を読まない＝変化 0。InstrumentsLabelTier.cs は読み手でない。
+  `new MoneyStock(`（SimCore）64 件＝この線は足さない＝64 のまま。
+  scripts/instruments/flow262/route_anchors.tsv の鍵の行〈Diplomacy.cs World.Transfer(…prizeRaw…)〉＝触らない＝変化 0。
+  WriterRatchetTests の宣言の表：この線は CostLedger の数え手を足さない＝宣言の行の変化 0。軌道の件数は上の㉜のとおり。
+  OnDoubleReadScanTests：計器の受け口をエンジンの関数に置かない（四半期の末の表だけ）＝Instruments.On の読みの変化 0。
+  DormantIdentityTests.DormantZeroFields：器で +1（MajorityLabelTierOrder）・点火で −1。
+
+■ 計算量の割り当て
+ .cost：+0 秒〈推〉（同じ走査に条件 1 つ・本国格の表が空の国〔国×四半期の 0.02%〕だけ州を 1 度なめ直す）。計器の表は INS=1 の時だけ。
+
+■ ほかの線との重なり（指示の持ち主の一覧の grep）
+ c133wa（Discovery.cs・Model.cs・MultiNationSim.cs・Simulation.cs）・c133cl（SelfPlay.cs・Discovery.cs:7・Catalog.cs・p07・Simulation.cs:1949・InstrumentsCivwar.cs）・c133b1（p04_trade.cs:109 ほか）と持ち主のファイルは重ならない。
+ 共有：Instruments.cs（この線は登録の 2 行＝ArrearsTable と ArrearsClose の直後）・DormantIdentityTests.cs（ArrearsOnePredicate の行の直後の 1 行）・WriterRatchetTests.cs（変えたら軌道の件数の行だけ）。
+
+■ 順
+ 1 この事前登録 → 2 器（旗 0・labeltier_s・試験）→ ㉘ → 3 腕 Z（段 1・ident.sh run c133mrz --work D:/PoB_work/ident_c133mr --added-tables labeltier_s --tests-delta +6）
+ → 4 突然変異 → 5 旗 1 → ㊴ 計器の束 → フルスイート・savetest・leakhunt → 6 腕 B（計器つき 10 種）→ 門 → 印 D:/PoB_work/c133mr_work/mr.mark。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
