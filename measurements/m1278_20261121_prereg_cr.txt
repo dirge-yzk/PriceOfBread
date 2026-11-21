@@ -124,3 +124,8 @@
 - 赤 2＝OpeningBakeTests の 2 本（同梱の表の入力のハッシュ 4bf72f47ba1f82de≠世界 a72b4243ee8bd775）＝places.json（埋め込みのデータ）を直した線が必ず赤にする〈派生の表と件数の写し〉の区分（README ★(764)）＝機構の赤ではない・旗 0 の器の木でも同じ赤（データの差で入る）。線の担当は触らず赤のまま報告し、合流の木で 1 回だけ焼き直す（bake.sh・OpeningBakeEnabled＝0 で成績表に効かない）。㉜ の一覧の外の機構の赤 0。
 - savetest OK（12 四半期後も全 61 カ国が継続系列と一致・最大相対差 0）・leakhunt 完走（種 1789・200 四半期・保存則違反なし・説明できない増減 0）。measurements/m1278_20261121/suite_59f88de3c/。
 - 腕 B：`POB_WORK=D:/PoB_work/c131cr_work/armB`・prep commit:<このコミット> plain → `INS=1 POB_INSTRUMENTS_TABLES=<SMALL>,secession_s bash scripts/instruments/batch.sh run c131crB 10`。
+
+== 追記 3（腕 B の前・表の絞りの変更と理由・2026-11-21）==
+- D: の空きが〈35GB＋腕 B の量〉に届かなかった（フルスイートの後 33.1GB→自分の隔離ビルド 1.3GB と腕 Z の木の写しとビルド〔src_*・art_it・生ではない〕を消して 36.5GB→他の線の片付けで 38.0GB）。腕 Z の生（out_ib_10/ins・2.4GB）は消していない（段 1 の判定は prune.py が刈らない＝採否が決まるまで残す）。
+- 腕 B の表を SMALL＋secession_s（約 3.9GB）から、止める線と門と記録の読み手が読む表だけへ絞る（約 2.5GB）：nation_s・region_s・secession_s・fiscal_s・stock_s・scalars_s・migration_s・pxmonth_s・wars_s・casualty_s・cessp_s・pclamp_s・tnation_s（BYPASS の habitlg_s ほかは常に出る）。読み手の表（grep）：stoplines1002（nation・region・pxmonth・cessp・tnation）・an_h2（region・migration）・gdp_zero10・plvl・popjump（nation）・home_break（nation・region・stock）・ukdef975（fiscal）・ng.sh（nation・stock・wars・casualty）・gate_cr（region・secession・nation）。
+- 外れる物（記録だけ）：batch.sh が自動で回す注視の読み手 an_mon の表（aib・class・disc・engineer ほか）＝注視は記録＝採否に使わない。門と止める線は変えない。起こす直前の空き 38.0GB（〈35GB＋2.5GB〉以上）。
