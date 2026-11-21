@@ -33,7 +33,6 @@ public class DormantIdentityTests
         // ★RailNeedByOutput（(1137) c111rb 段 R の need の基底・鉄道の need の取り分を州の産出の比へ）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。
         // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
         // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
-        "SubsistenceNoBoughtTech",     // ★(877) c73ts 自給の段 2′ Σ2′：技術の比 T を自給の 3 か所（焼く ρ・σ・(b′) の lneed）から外す旗（0＝S1-a のまま・番人 SubsistenceNoBoughtTechTests）。点火時にこの表から外す
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
         // ★RuleOrderByRegion（(850) c69po・(862) c71po 州ごとの治安 P1-1）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は RuleOrderP1Tests の P1_0・P1_2・P1_5 と RuleSharesFormTests の D2 の 2 本（旗 0 を明示）。
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
@@ -120,8 +119,6 @@ public class DormantIdentityTests
         // ★FiscalLawStages（税・支出・軍事費の段＝作者裁定2026-09-12 R1/R2）は 2026-09-20 に**点火**（旗と段の無い世界の枝ごと削除・AiMobilization も同時に削除）＝この表から外した。
         // ★CoupForceShare／CoupMassArmyDiscount（作者裁定2026-09-19 R3/R4＝クーデタ項の取り分化と職業軍の度合い π）は 2026-09-20 に既定化（腕 A4）＝旗と旧式の枝ごと削除＝この表から外した。
         // ★EquipNeedsDiscovery（装備の発見）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
-        "TeacherQualityWeight",   // 知識と人的資本の経路（作者採用2026-09-06）＝0で従来（★EduFundingCashClamp は 2026-09-27 線2 で点火・旗ごと削除）
-        "EduReachFromAdmin",            // 特権 段1（作者裁定2026-09-08）＝義務教育の国庫給付の天井に行政の充足率（0で×1.0＝給付は行政を見ない＝従来）
         "EduProducersCoexist",          // ★教育の三層化 段1 器（2026-09-12）＝教区学校（聖職者・紙）と公立学校（教師・書籍）を常設2件で並置し教育法を非活性側の Scale=0 へ降格。
                                         //   0＝AddServiceProducers が従来の1件だけを add・StepMonth の月次差し替えがそのまま走る・EconomyStep は Scale を読まない＝ビット恒等。点火は段3（batch30 単独＋savetest）
         // ★下2本は D-35 の反射走査が拾った（**初期化子を書かない宣言**＝`public double X;` なので静的なテキスト検索では見つからない）。
@@ -138,11 +135,9 @@ public class DormantIdentityTests
         // ★AiModernizeFromReturn（(416) AI の近代化投資の信号を設備の収益へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。(591) で旗ごと削除（RetiredFields）。
         // ★AiLawGateFromBoard（(423) 工業化度を読む AI の法の門を盤面の実物へ）は 2026-10-19 に 3 で**点火**（止める線に当たらず）＝この表から外した。(599) で旗ごと削除（RetiredFields）。
         // ★ScoreFromWorldShare（国力の物差しを世界の総量に対する割合へ）は 2026-10-20 (449) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
-        "DiscoveryClockMotorParent",    // ★(461) 同・電動機の親の産業を蒸気機関の財にする別の旗（DiscoveryClockWorldPerMonth が正のときだけ読む・既定 0＝今の規則）
         "OpeningBakeEnabled",           // ★(490) 開幕の焼き込みの読み込み（<see cref="OpeningBake"/>）＝0 で表（opening_bake.json）を開きもしない。倒さない（焼くのは工業化度の削除の後・(464) の順）。鍵の一致と読み込みの往復は OpeningBakeTests
         // ★DevaluationCapReliefExp（(587) 切り下げの月の上限の緩め）は 2026-10-27 に 1 で**点火**（線 hyp の腕 B・止める線に当たらず）＝この表から外した。0 に戻せば旧の切り（貯蓄×DevaluationCapFracPerMonth）。
         // ★StapleLedgerSum・HarvestShortfallToMarket（(504) 食料の台帳を主食の和へ①③）は 2026-10-23 に 1 で**点火**（腕 C・止める線に当たらず）＝この表から外した。②は表に残る。
-        "StapleDemandRebalance",        // ★(504) 主食どうしの乗り換えの配り直し②（挟みを外し欲しい量の和を必要量に合わせる）＝0 で今の挟み。点火は同上
         // ★MoTrendInitNeedsGdp（(972) c87mt (D) 実質 GDP が正になってから M/Y の趨勢の基準を置く）は 2026-11-08 に 1 で**点火**＝この表から外した。
         // ★UnionBargaining（(520) 交渉の取り分）は 2026-10-24 に 1 で**点火**・LandRentResidual（産地の地代の残りの道）は (529) で撤回して旗ごと削除（腕 B1″〔種 21〜30〕・B2・合成の腕 B3・止める線に当たらず）＝この表から外した。
         // ★RentScarcityElasticity（産地の地代の土地稀少弾力）は (529) で既定 0＝休眠にし、(541) で墓標へ消した＝この表から外した（復活を禁じる番人は Hz8IdentityTests）。

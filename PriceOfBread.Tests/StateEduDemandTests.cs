@@ -12,19 +12,18 @@ public class StateEduDemandTests
     private const double Funding = 0.5;
 
     /// <summary>開幕の英を 1 月だけ回す。poorGroups の階級は貯蓄 0（民間の買いたい量 0・国庫の未充足＝必要量）・他は貯蓄を厚く（予算が拘束しない）。supplyMul は教育の産出の倍率。</summary>
-    internal static (Region Region, World World) OneMonth(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double reachFromAdmin = 0, double? adminFill = null)
+    internal static (Region Region, World World) OneMonth(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double? adminFill = null)
     {
-        var (r, w) = Setup(supplyMul, poorPeasantsAndWorkers, funding, reachFromAdmin, adminFill);
+        var (r, w) = Setup(supplyMul, poorPeasantsAndWorkers, funding, adminFill);
         EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
         return (r, w);
     }
 
     /// <summary><see cref="OneMonth"/> の月を回す前までの盤面（(854) 分けた：渡さなければ AdminFill に触れないことを回す前の値で確かめるため）。</summary>
-    internal static (Region Region, World World) Setup(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double reachFromAdmin = 0, double? adminFill = null)
+    internal static (Region Region, World World) Setup(double supplyMul, bool poorPeasantsAndWorkers = true, double funding = Funding, double? adminFill = null)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        w.Coef.EduReachFromAdmin = reachFromAdmin;          // 既定 0＝到達 r＝1（行政の届きの式を外して手の算術を単純に）。正のときの r＝1−係数×(1−AdminFill)（AdminFill は前月値＝ここで置く）
         var r = w.Region;
         if (adminFill is double af) r.AdminFill = af;       // 渡したときだけ置く（(854) 渡さなければ Region の既定のまま＝(846) の前の盤面）
         r.CompulsoryEduFunding = funding;                   // 国庫が買う率 f（月次の設定は Simulation が毎月書く＝1 月だけ回す試験は直に置く）
@@ -161,16 +160,18 @@ public class StateEduDemandTests
     }
 
     [Fact]
-    public void 行政の届きが足りない州は国庫の買いたい分が到達率の分だけ縮む()
+    public void 行政の充足は国庫の買いたい分を縮めない_充足が違っても同じビット()
     {
-        // 到達 r＝1−EduReachFromAdmin×(1−AdminFill)（EconomyStep の want の式）。係数 0.5・AdminFill 0.4 なら r＝1−0.5×0.6＝0.7（手の算術）。旧の第 9 の試験〈旗の既定は 1〉の代わり（旗が焼かれて主張が空になった）。
-        var (a, _) = OneMonth(0.001, funding: 0.0, reachFromAdmin: 0.5, adminFill: 0.4);
-        var (b, wb) = OneMonth(0.001, reachFromAdmin: 0.5, adminFill: 0.4);
-        var (c, wc) = OneMonth(0.001);                                                  // 届きの式を外した盤面（r＝1）
+        // 係数 EduReachFromAdmin（到達 r＝1−係数×(1−AdminFill)）は c132kx で消した。今の形＝買いたい分＝未充足×財源率だけ（行政の脚は無い）。
+        // 期待値は手の算術（未充足の貧しい人の必要量×財源率）で、行政の充足 0.0・0.4・1.0 のどれでも同じ。
         int e = Catalog.EducationId;
-        double diffReach = b.Markets[e].LastDemand - a.Markets[e].LastDemand;
-        Assert.Equal(0.7 * Funding * PoorNeed(wb), diffReach, 9);
-        Assert.True(diffReach < c.Markets[e].LastDemand - OneMonth(0.001, funding: 0.0).Region.Markets[e].LastDemand, "前提が崩れた：届きの式が買いたい分を縮めていない");
+        var (a, _) = OneMonth(0.001, funding: 0.0, adminFill: 0.4);
+        foreach (double af in new[] { 0.0, 0.4, 1.0 })
+        {
+            var (b, wb) = OneMonth(0.001, adminFill: af);
+            double diff = b.Markets[e].LastDemand - a.Markets[e].LastDemand;
+            Assert.Equal(Funding * PoorNeed(wb), diff, 9);
+        }
     }
 
     [Fact]
@@ -194,7 +195,6 @@ public class StateEduDemandTests
         // 教育は役務＝値段の帯は財の PriceCeilFactor でなく賃金の帯（床 WageClampMin・天井 WageClampMax）。発散しない（帯の中・有限）ことを確かめる。
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World; var r = w.Region;
-        w.Coef.EduReachFromAdmin = 0;
         int e = Catalog.EducationId;
         foreach (var s in r.Producers) if (s.GoodId == e) s.Output *= 0.001;
         foreach (var p in w.AllPops()) p.SetSavings(0.0);
@@ -220,7 +220,6 @@ public class StateEduDemandTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
-        w.Coef.EduReachFromAdmin = 0;
         var r = w.Region;
         r.CompulsoryEduFunding = funding;
         r.Markets[Catalog.EducationId].Stock = 0;
@@ -268,12 +267,15 @@ public class StateEduDemandTests
     [Fact]
     public void 行政の充足を渡せばその値から出発する_渡さない呼び手を変えない()
     {
-        // 渡した値が Region に置かれる（月の途中で EconomyStep が上書きする前の値は届きの式 EduReachFromAdmin が読む＝到達の試験が渡している）。
-        // 届きの式が正のとき、渡した充足が低いほど国庫の買いたい分は縮む（渡さなければ Region の既定＝縮み方は別）。
-        var (low, _) = OneMonth(0.001, reachFromAdmin: 0.5, adminFill: 0.2);
-        var (high, _) = OneMonth(0.001, reachFromAdmin: 0.5, adminFill: 1.0);
+        // 渡した値が Region に置かれる（月を回す前）。月の中で国庫の買いたい分は充足に依らない（上の試験）。
+        var (r1, _) = Setup(0.001, adminFill: 0.2);
+        var (r2, _) = Setup(0.001, adminFill: 1.0);
+        Assert.Equal(0.2, r1.AdminFill);
+        Assert.Equal(1.0, r2.AdminFill);
         int e = Catalog.EducationId;
-        Assert.True(low.Markets[e].LastDemand < high.Markets[e].LastDemand, "渡した充足が届きの式に効いていない");
+        var (low, _) = OneMonth(0.001, adminFill: 0.2);
+        var (high, _) = OneMonth(0.001, adminFill: 1.0);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(high.Markets[e].LastDemand), BitConverter.DoubleToInt64Bits(low.Markets[e].LastDemand));
     }
 }
 

@@ -111,7 +111,6 @@ public sealed partial class Coefficients
     public double DiscoveryClockWorldPerMonth = 7854.08;  // 発見の時計の細い傾斜（枝 dk・2026-10-20 腕 B の採用で既定 0→7854.08＝予備計測の規則から。0 以下＝旗＝(415) の式のまま）＝d＞0 の行の技術力＝70×S×C・S
     public double DiscoveryClockRampWidth = 0.1;    // DiscoveryClockWorldPerMonth が正のときだけ読む
     public double DiscoveryOwnHalfPerMonth = 12.5677;     // 単位は W0 と同じ
-    public double DiscoveryClockMotorParent = 0;    // 出典は Devine 1983 だが支えるのは置き換えの関係で知識の出所ではない（確証なし）
     public double OpeningBakeEnabled = 0;           // 0＝表（opening_bake.json）を開きもしない＝厳密恒等
     public double RecipeEquipment = 1;              // 0＝旧の規則（操業規模 Scale は利幅を目標にただで伸び縮みする）＝厳密恒等
     public double UnionBargaining = 1;              // 0＝今の規則（組合の産出の乗数 0.95／0.98 が残り、工場の付加価値は全て持ち主）

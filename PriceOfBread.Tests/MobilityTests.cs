@@ -49,7 +49,7 @@ public class MobilityTests
         var midC = rc.Pops[rc.MeritToIndex]; var capC = rc.Pops[rc.InvestorPopIndex];
         capC.SetSavings(capC.Savings.Value - (take)); midC.SetSavings(midC.Savings.Value + (take));   // 同じ種・同じ20四半期＝同じ盤面へ同じ移転（盤面の書き込みは Board.SetSavings＝(139) の init・(144) 合流）
         ctl.World.Coef.CapitalRiseThreshold = double.PositiveInfinity;   // ③（中流→資本家）を止める（閾値は rank1 の商人・職人→資本家と共有＝下で両方の腕の rank1 を止める）
-        sim.World.Coef.MerchantArtisanCapitalRise = 0; ctl.World.Coef.MerchantArtisanCapitalRise = 0;   // ★(144) 反証の指摘：両方の腕で rank1 を止める＝差が③だけになる（商人が閾値を越える盤面でも③の壊れを見逃さない）
+        foreach (var wd in new[] { sim.World, ctl.World }) foreach (int mi in new[] { wd.Region.MerchantPopIndex, wd.Region.ArtisanPopIndex }) if (mi >= 0) wd.Region.Pops[mi].SetSavings(0);   // ★c132kx：旗 MerchantArtisanCapitalRise（rank1 を止める）を焼いた＝商人・職人の蓄財を両方の腕で 0 にして rank1 の昇格の条件を満たさせない＝差が③だけになる
         double cap0 = cap.Size;
         Assert.Equal(cap0, capC.Size);   // 前提：双子は同じ盤面（同じ種・同じ20四半期＝移転の前の資本家の規模が一致）
         for (int i = 0; i < 8; i++) { Meritocracy.Step(sim.World, sim.World.Coef); Meritocracy.Step(ctl.World, ctl.World.Coef); }   // 昇格機構のみを回す（人口動態を挟まない＝衛生等の人口ノイズと隔離）
