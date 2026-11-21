@@ -454,14 +454,31 @@ public class InstrumentsTests
     [Fact]
     public void 州の人口と移動の表が揃い流れの出と入が合う()
     {
+        // ★(1277) c131pf 試験だけの直し（㊴・区分＝軌道に依る前提）：越境の口の対照（totalCross＞0）は〈4 国 40 四半期で越境が起きる〉という軌道の前提に依る＝旗 CapSkipSellerPotential 1 の木で種 1789 は越境 0 になった。
+        //   規則の検査（①〜④と対照の Assert の文と閾値）は変えず、越境が起きる種を前から順に選ぶ（試した種の全てで①〜④を確かめる）。口の写しが漏れればどの種でも 0＝赤のまま。
+        double totalCross = 0; int tried = 0;
+        foreach (ulong seed in new ulong[] { 1789UL, 1790UL, 1791UL, 1792UL })
+        {
+            tried++;
+            totalCross = RegionAndMigrationTables(seed);
+            if (totalCross > 0) break;
+        }
+        Assert.True(tried >= 1, "種を 1 つも試していない");
+        Assert.True(totalCross > 0, "越境の移民が1件も写っていない（MultiNationSim.MoveMigrants の口の写しの漏れか、盤面で越境が起きていない）");
+    }
+
+    /// <summary>州の人口と移動の表の①〜④を 1 つの種で確かめ、越境の出の和を返す（対照は呼び手）。表の名の種は RunMatch が計器へ渡す 1789 の札（盤面の種ではない）。</summary>
+    private static double RegionAndMigrationTables(ulong seed)
+    {
         string dir = NewDir();
         try
         {
             Instruments.Configure(dir, null);
-            try { RunMatch(Make(), 40, instr: true); }
+            try { RunMatch(Make(seed), 40, instr: true); }
             finally { Instruments.Configure(null, null); }
 
             var (rh, rr) = Table(System.IO.Path.Combine(dir, "region_s1789.tsv"));
+            Assert.True(rr.Count >= 40, $"州の表の行が少ない（調べた行 {rr.Count}）");
             Assert.All(rr, r => Assert.Equal(rh.Length, r.Length));
             int iq = Array.IndexOf(rh, "quarter"), ix = Array.IndexOf(rh, "nationIndex"), ig = Array.IndexOf(rh, "region");
             Assert.Equal(rr.Count, rr.Select(r => (r[iq], r[ix], r[ig])).Distinct().Count());
@@ -484,7 +501,6 @@ public class InstrumentsTests
                 Assert.All(g, r => { foreach (var c in new[] { "populationK", "ruralPopulationK", "migrationOutKPerQuarter", "migrationInKPerQuarter", "crossBorderOutKPerQuarter", "crossBorderInKPerQuarter" }) Assert.True(Col(rh, r, c) >= 0, c); });
             }
             Assert.True(totalMoved > 0, "州の間の移民が1件も写っていない（写しの漏れか、盤面で移民が起きていない）");
-            Assert.True(totalCross > 0, "越境の移民が1件も写っていない（MultiNationSim.MoveMigrants の口の写しの漏れか、盤面で越境が起きていない）");
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             var natPop = nr.ToDictionary(r => (r[Array.IndexOf(nh, "quarter")], r[Array.IndexOf(nh, "nationIndex")]), r => Col(nh, r, "populationK"));
@@ -494,6 +510,7 @@ public class InstrumentsTests
                 double expect = natPop[g.Key];
                 Assert.InRange(act - expect, -1e-9 * Math.Max(1, expect), 1e-9 * Math.Max(1, expect));
             }
+            return totalCross;
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
