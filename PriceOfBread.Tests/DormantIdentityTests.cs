@@ -34,6 +34,7 @@ public class DormantIdentityTests
         // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
         // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
+        // ★FamineGateReturnsRural（(1283) c132fg）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は FamineGateReturnsRuralTests の T1・T2）。旧の注：飢えの門が掛かった月に g が負なら都市→農村へ戻す（0 で門は流れを 0 にするだけ・番人 FamineGateReturnsRuralTests）
         // ★RuleOrderByRegion（(850) c69po・(862) c71po 州ごとの治安 P1-1）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は RuleOrderP1Tests の P1_0・P1_2・P1_5 と RuleSharesFormTests の D2 の 2 本（旗 0 を明示）。
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
         "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
