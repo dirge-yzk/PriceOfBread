@@ -69,16 +69,52 @@ public static class Discovery
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active) continue;
-                foreach (var p in r.Producers)
+                var prods = r.Producers;
+                var sites = AdvLaborSites(r);
+                for (int s = 0; s < sites.Length; s += 2)
                 {
                     n++;
-                    double u = EngineerUse(p);
+                    var p = prods[sites[s]];
+                    double u = EngineerUseAt(p, sites[s + 1]);
                     if (!(u > 0) || p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || !(Gate(r, p) > 0)) continue;
                     total += u;
                 }
             }
         visited = n;
         return total;
+    }
+
+    /// <summary>(1275) EngineerUse と同じ値。添字 ii は AdvLaborSites が持つ〈最初の高度労働力の投入の位置〉（外れていたら EngineerUse へ倒れる）。</summary>
+    internal static double EngineerUseAt(Producer p, int ii)
+    {
+        double o = p.Output;
+        if (!(o > 0)) return 0;
+        var inputs = p.Inputs;
+        if ((uint)ii >= (uint)inputs.Count || inputs[ii].GoodId != Catalog.AdvLaborId) return EngineerUse(p);
+        double q = inputs[ii].QtyPerOutput;
+        return q > 0 ? o * q : 0;
+    }
+
+    /// <summary>(1275) 州の生産者のうち高度労働力を投入に持つ物の（添字・最初の高度労働力の投入の位置）の組を昇順（＝巡回の和の順は旧と同じ）に並べた表（偶数番目が生産者・奇数番目が投入の位置）。導出（Inputs と Producers から毎回導ける）＝セーブに載せず、Producers の同一性・件数・Region.AdvSitesDirty が変わったときだけ作り直す。
+    /// 作り直しの口：Producers の差し替え・件数の増減（自動）／Inputs の書き換え（Producer.NoteInputsChanged）。</summary>
+    internal static int[] AdvLaborSites(Region r)
+    {
+        var list = r.Producers;
+        if (r.AdvSites is { } cur && !r.AdvSitesDirty && ReferenceEquals(r.AdvSitesList, list) && r.AdvSitesCount == list.Count) return cur;
+        int k = 0;
+        foreach (var p in list) if (AdvLaborAt(p) >= 0) k++;
+        var a = k == 0 ? System.Array.Empty<int>() : new int[2 * k];
+        int j = 0;
+        for (int i = 0; i < list.Count; i++) { int ii = AdvLaborAt(list[i]); if (ii >= 0) { a[j++] = i; a[j++] = ii; } }
+        r.AdvSites = a; r.AdvSitesList = list; r.AdvSitesCount = list.Count; r.AdvSitesDirty = false;
+        return a;
+    }
+
+    static int AdvLaborAt(Producer p)
+    {
+        var inputs = p.Inputs;
+        for (int i = 0; i < inputs.Count; i++) if (inputs[i].GoodId == Catalog.AdvLaborId) return i;
+        return -1;
     }
 
     internal static double[] EngineersByGood(World w)

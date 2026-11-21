@@ -1850,7 +1850,7 @@ public sealed class Simulation
                         // 宗教学校：聖職者が教える。少人数しか教えられない（供給希少）＝下層に行き渡らず識字が低位で頭打ち。紙を消費（写本・教義書）。
                         ep.LaborPopIndex = r.ClergyPopIndex; ep.OwnerPopIndex = r.ClergyPopIndex;
                         ep.Productivity = World.Coef.ClergyEduProductivity;
-                        if (ep.Inputs.Count > 0) ep.Inputs[0] = new Input(Catalog.PaperId, 0.05);   // 紙（教材）
+                        if (ep.Inputs.Count > 0) { ep.Inputs[0] = new Input(Catalog.PaperId, 0.05); ep.NoteInputsChanged(); }   // 紙（教材）
                     }
                     else if (World.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory && r.TeacherPopIndex >= 0)
                     {
@@ -1864,7 +1864,7 @@ public sealed class Simulation
                             double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
                             if (q > 0) ep.Productivity *= q;
                         }
-                        if (ep.Inputs.Count > 0) ep.Inputs[0] = new Input(Catalog.BookId, 0.05);   // 書籍（教科書）＝紙の上位投入
+                        if (ep.Inputs.Count > 0) { ep.Inputs[0] = new Input(Catalog.BookId, 0.05); ep.NoteInputsChanged(); }   // 書籍（教科書）＝紙の上位投入
                     }
                     else ep.Productivity = 0;   // 学校なし＝教育の供給なし（識字は停滞）
                 }
