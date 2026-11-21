@@ -1,0 +1,31 @@
+(1287) 合流（波132）の予言（merge の前にコミットする・★(711)）
+基点 fa4653318（基線 m1280・INSRAW keep_1280/base_ins・KEEPNULL keep_1280/n1・a11・NG ng1280〔94 件〕・TESTS_NONFULL 3091）。
+作ったフォルダ：D:/PoB_work/m1287_work・D:/PoB_work/wt_m1287（枝 m1287）。この後に作る物は created.txt に書き足す。
+
+入れる順（1 段で入れる＝D: の空き 122.2GB ≧〈35GB＋腕 Z 約 30GB＋M 約 28GB＋S11 約 10GB〉＝★(1280)）：
+  恒等の線 c132kx（c2ed20711・判定: 恒等〔段 2〕）→ c132g2（85ae26857・判定: 恒等〔段 2〕）→ 挙動の線 c132fg（bcc7bced6）→ c132df（4b82a7246）。
+外す線：無し。反証役の〈高〉は 4 本とも無い（kx・g2・fg〔v・v2〕・df〔v・v2〕は中と低だけ）。中の指摘は線の担当の範囲の直し＝合流はエンジンの .cs を直さない＝記録と次の波へ回す。
+merge-tree：6 組（kx×g2・kx×fg・kx×df・g2×fg・g2×df・fg×df）全て衝突なし。
+消す名前（★(773)）：kx の 8 名（EduReachFromAdmin・TeacherQualityWeight・SubsistenceNoBoughtTech・DiscoveryClockMotorParent・StapleDemandRebalance・MerchantArtisanCapitalRise・MilitaryWarMultFromContact・DevaluationCapReliefExp）と引数 reliefExp・clockParent・fdOldFactor、
+  g2 の 11 名（OpulenceTaxRelief・SovietTaxProfile・MinimumWageAiFromFloor・ConsciousnessFromSchoolingStock・MandateReligiousCircuit・ParticipationDiscontent・ModernizationBudgetSoftCap・SurvivalHopelessScale・FactionTargetsWeakAxis・MinimumWageTargetFromBoard・MinimumWageTargetChosen）。
+  kx の差分の足した行で g2 の名を使う行 0・g2 の差分で kx の名を使う行 0・fg と df の差分の .cs の足した行で両方の名を読む行 0（fg の 1 件は WriterRatchetTests の注の文字列）＝grep773.txt。
+  使わない枝：origin/c132kx_cut・c132g2_cut・c132fg_cut・c132df_cut（前の試み＝反証役 v の指摘どおり取り違えない）。
+合流はエンジンの .cs を直さない（衝突の解消だけ）。
+
+== 予言（成績表のバイト一致・止める線の段）==
+P1 腕 Z（枝 m1287z＝合わせた木 T から fg の点火 7a8babcdd・df の点火 0cca4e5de の SimCore と DormantIdentityTests の行を戻し、WriterRatchetTests を基点 fa4653318 の版へ＝★(1274)）：
+   ident 段 2〈判定: 恒等〉＝素の 5 種（177 行）・計器つき 10 種（180 行）が m1280 と全行バイト一致・計器の表は一致＋既知の揺れだけ・新しい表は arrears_s 1 つ（--added-tables）・.cost の件数の行が一致。
+   テストの差 +2（3091−10〔kx〕+4〔g2〕+4〔fg〕+4〔df〕＝3093）。
+   旗 0 の木で df の書き換えた番人（FiscalTests:998・ArrearsOpenedRoomTests T1・T2）は赤のはず＝腕 Z は試験の合否を読まない（数だけ）。
+P2 合わせた木 T のテスト：Tests＋Tests.Ui の Category!=FullLength＝3093・FullLength 3（--list-tests の和と一致）。savetest OK・leakhunt 保存則違反なし。
+P3 WriterRatchetTests：fg が単独の木で取り直した 10 行（★(749)）は、df の軌道の変化が重なる合わせた木では外れる行が出る（★(1274)〈線が単独の木で取り直した値は合わせた木で外れる〉）＝ratchet の束の失敗の文の実測で取り直す（★(749) の区分で名乗る）。
+P4 合わせた木の M（計器つき 10 種・全表）の向き（〈推〉・門にしない）：
+   fg の量：urxpd_s の sumFlowNeg が基準 644,919 の 2〜3 倍・世界の飢えの死は基準より減る（fg 単独 0.843 倍）。
+   df の量：G1 英の本位の停止 1.2→約 3（史実 3）・G2 全ての国 7→約 30。英の国債の不履行 1/10 前後。
+   成績表は m1280 と違う（fg の腕 B 260 行・df の腕 B 262 行の差の和に近い）。
+P5 止める線（M・S11 とも）：価格の 1 四半期 100 倍以上 0・1e10 倍以上 0・非有限 0・名目 GDP の 100 倍の〈それ以外〉0（3 区分）・空洞化 1/10 未満〈線が原因〉0・推定の計算量 ≦248.5 秒（fg 231.8・df 234.8・合わせて 約 231〜235）。
+   史実の桁の線：fg の H1（9 国の都市化率 1850・1913÷史実が [0.1,10] の内）・H2（世界の飢えの死÷1.5 億が [0.1,10] の内）・df の G1 [0.3,30]・G2 [5,500]。
+   注視：清の 1913 年の都市化率÷史実 0.06（fg の腕 B 8.06 倍・基準 6.39・N1 6.05＝反証役 v2）＝合わせた木で 10 倍に届けば H1 の赤（止める）。
+P6 記録の段（採否に使わない）：NG（ng1280 との差）・nullgate・英の不履行の種の数・home_break・popjump（⑰）・gdp_zero10・開幕の 1000 倍・1930 年代の不履行（df で 0 へ）・空洞化 1/4 未満（フィラデルフィア型）。
+P7 最終の採否は S11（種 11〜20）で 1 回だけ（同じ門）。M で門が 1 つでも落ちた時だけ、1 本ずつ旗を 0 にした腕で帰属を読む（作者のセッション 2026-11-18）。
+P8 採れば新しい基線 m1287（keep_1287/base_ins・n1・a11・ident.cfg・NG の基準）。ヌル腕は N1 の 1 本（★(1191)）＝S11 の止める線を読んでから起こす（★(1247)）。
