@@ -111,7 +111,7 @@ public sealed partial class Coefficients
     public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）
     public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
     public double ArrearsBeyondOpenedRoom = 1.0;    // (1250) >0：金本位でない月の不履行の累計は〈開いた切り下げの余地で払えなかった分〉だけ＝兌換の遅れでまだ開いていない余地の分を数えない（0＝累計は 1−r）
-    public double ArrearsOnePredicate = 1;          // (1284) c132df 2026-11-22 点火（腕 B の木）・旗：>0＝本位の停止の門を不履行の導火線と同じ述語（払えない月・国債あり・利払いが上限の外・助走でない）にし、累計と判定の前に置く（法と正貨カバーの項は残す・GoldSuspendMinFundingRatio を読まない）。0＝旧（r＜GoldSuspendMinFundingRatio・判定の後）
+    public double ArrearsOnePredicate = 0;          // (1284) c132df 旗：>0＝本位の停止の門を不履行の導火線と同じ述語（払えない月・国債あり・利払いが上限の外・助走でない）にし、累計と判定の前に置く（法と正貨カバーの項は残す・GoldSuspendMinFundingRatio を読まない）。0＝旧（r＜GoldSuspendMinFundingRatio・判定の後）
     public double ConvertibilityDropSpeed = 0.34;   // 危機で兌換が崩れる速さ（兌換停止は一夜＝速い・非対称）
     public double ConvertibilityCoverageBand = 1.0; // 加入していても準備が薄れれば兌換が目減りする＝金本位期でも物価/為替/国債金利のチャネルが死なない
     public double FisherInflationWeight = 0.5;       // 名目国債金利＝実質＋これ×期待インフレ（高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い）
