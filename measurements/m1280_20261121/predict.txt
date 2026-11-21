@@ -1,0 +1,41 @@
+(1280) 合流（波131）の予言（merge の前にコミットする・★(711)）
+基点 0cea95a9f（基線 m1274・INSRAW keep_1274/base_ins・KEEPNULL keep_1274/n1・a11・NG ng1274）。
+入れる順：第 1 段＝恒等の線 c131k15（22bdf67da）→ ident.cfg のテストの数（3079→3078）を push → INSRAW でも KEEPNULL でもない keep_1260・keep_1267・keep_1267_rej を消す（★(1267) の型・D: 36.2GB＜〈35＋30GB〉）。
+         第 2 段＝挙動の線 c131pf（f8591e03c）→ c131cr（0f6c02bac）。
+外す線：恒等の線 c131wa（177d80e91）。理由は 2 つ。
+  ① ident の判定の行が〈判定: 不一致（段 1）〉（.cost の DiscoveryWorldScans の件数と推定の 4 件）＝指示の〈判定: 恒等のときだけ〉に当たらない。
+  ② 反証役 v の高（Simulation.cs:1853・:1867 の NoteInputsChanged が毎月無条件に呼ばれ、四半期ごとにほぼ全ての州の表を作り直す＝作り直しの仕事は台帳の件数の外・微小ベンチは作り直しを測っていない＝.cost の −1.8 秒は帳簿の上だけで、実の時間が増えるおそれ）が晴れていない。合流はエンジンの .cs を直さない。
+  成績表の恒等（180 行×2・計器の表 290 本）は崩れていない＝次の波で NoteInputsChanged の条件づけと clock_s の実測をして入れ直す（申し送り）。
+merge-tree：k15×pf・k15×cr は衝突なし。pf×cr は WriterRatchetTests.cs だけ（:437 DeadProdBankrupt・:552/:553 DiploHegemonScans を両方が別の値で取り直した）。DormantIdentityTests.cs は自動で合う。
+消す名前：k15 が JobSearchLiteracyWeight・JobSearchLiteracyOff を消す。pf・cr の枝の差分で新しくこの名を読む行は 0（manifest の sha1 と試験の一覧の写しだけ）。pf・cr は SimCore のメンバーを消さない（cr は MajorityCultureReligion を private→internal）。
+合流はエンジンの .cs を直さない。
+
+== 予言（成績表のバイト一致）==
+P0 第 1 段の木（基点＋k15）：SimCore・Tests は c131k15 の頭 22bdf67da と同じバイト＝線の ident〈判定: 恒等（段 1）〉（素の 5 種 180 行・計器つき 10 種 180 行・計器の表 290 本が m1274 と一致）がそのまま当てはまる。フルスイートも線の結果（Tests 2844＝合格 2842＋スキップ 2・Ui 234・FullLength 3）がそのまま当てはまる＝回し直さない（ソースから自明・回す前に必要性を確かめる）。
+P1 腕 Z（枝 m1280z＝木 T から pf の点火 7379a3037・cr の点火 5dfb66c61 の SimCore と DormantIdentityTests の行を戻し、WriterRatchetTests を基点＋k15 の版へ）：
+   ident 段 2〈判定: 恒等〉＝素の 5 種・計器つき 10 種が m1274 と全行バイト一致・計器の表は一致＋既知の揺れだけ・新しい表は capskip_s 1 つ（--added-tables）。
+   テスト Category!=FullLength 3091（第 1 段の 3078＋13＝pf 6・cr 7）・FullLength 3。OpeningBakeTests 2 本は places.json の入力のハッシュで赤（★(764)・成績表に効かない）。
+P2 木 T の M（計器つき 10 種・全表）：成績表は pf・cr の腕 B のどちらとも一致しない（2 本の挙動の合成）。m1274 との差は 230〜400 行〈推〉。
+P3 推定の計算量：m1274 234.2 秒＋pf +0.7＋cr +0.9＝約 235.8 秒（±3 秒〈推〉・上限 248.5 秒の内）。
+P4 WriterRatchetTests の宣言の表（★(749)）：線が取り直した行（:357 PriceDailyRuns・:426 ClaimProducers・:437 DeadProdBankrupt・:552 DiploHegemonScans）は合わせた木で値が動く＝合わせた木の失敗の文の実測で取り直す（★(1274)）。線が触っていない行も外れることがある（波130 の DeadProdOther）。
+P5 OpeningBakeTests 2 本は木 T で 1 回だけ焼き直す（★(764)・bake.sh・旗 OpeningBakeEnabled＝0 で開かれない＝成績表に効かない）。
+
+== 止める線（合わせた木の M と S11・基準とヌル腕を同じ台本で数え直す）==
+S1 価格水準の 1 四半期 100 倍以上（建国の直後の型はヌル腕の件数と並べる）・1e10 倍以上・非有限・開幕の 1000 倍以上：0 件の見込み（2 本の腕 B とも 0・pf の名目 GDP の建国の直後 1 件〔ブラワヨ 1933〕は記録）。
+S2 空洞化 1/10 未満（an_h2 -v4・規則 A2）：件ごとに基線の同じ種で同じ州が 1/4 未満か（種 1〜10 keep_1274/base_ins・種 11〜20 keep_1274/a11）を表に書く（m1247/holcase.py）。〈元からの弱さ〉は記録の先頭・〈線が原因〉が 1 件でもあれば採らない（帰属は線を 1 本抜いた木の S11 を SMALL で）。見込み 0 件。pf は 3 回目＝S11 で〈線が原因〉の空洞化が pf に帰属したら pf を閉じて記録へ。
+S3 名目 GDP 0 の続き（gdp_zero10）は記録（★(919)・★(1274)）。推定の計算量 ＞248.5 秒は当たらない見込み。
+S4 機構のテスト：合わせた木のフルスイート・savetest・leakhunt・走査の番人（㉘＋㊴＋OnDoubleReadScanTests の束）が緑の見込み（宣言の表の取り直しは ★(749)・焼き直しは ★(764) の範囲だけ）。
+
+== 線の門（線の事前登録の門を合わせた木の M でもう一度読む・最終の採否は S11 で 1 回）==
+pf：史実の桁 H1 貿易÷GDP・H6 港の律速率（magn_pf3.py・種の中央の腕÷基準が [0.1, 10]）赤 0。単体の試験 CapSkipSellerPotentialTests T1〜T6 緑。S11 は基準 a11（BB=11）と比べる。
+cr：史実の桁 H1（主流の札が首都の札と違う国×四半期の比）・H2（植民地格の分離＋植民地格だけで現れた国）（gate_cr.py・腕 new・基準 old）緑。単体の試験 ColonyLabelsFromDataTests 7 本緑。S11 は基準 a11（a11 に region_s・secession_s・nation_s がある）。
+合成の読み（1 本ずつ旗を 0 にした腕）は M で門が 1 つでも落ちた時だけ回す（★(1143)・作者のセッション 2026-11-18）。
+
+== 記録（採否に使わない）==
+R1 NG（基準 ng1274 91 件）・nullgate・英の国債の不履行（M・S11・N1 の種の数を m1274 の M 2/10・S11 1/10・N1 2/10 と並べる）・home_break・㊳ 政府の人口の跳び・dec_after・warcount・名目 GDP 0 の続き。
+R2 主な数の向き〈推〉：pf＝貿易÷GDP の 1913 年が上がる向き（腕 B 1.216）・cr＝主流の札が首都の札と違う国×四半期が増える・空の札の国×四半期は約 100（反証役 v の中）・英の主流の宗教の入れ替わり（反証役 v の低）。英の国債の不履行は 2 本の腕 B とも 0/10。
+R3 ヌル腕は N1 の 1 本（SupplySlope 0.50000001・計器つき 10 種・★(1191)）＝S11 の止める線を読んでから起こす（★(1247)）。N2 は回さない。
+
+== D: の段取り ==
+起こす直前に shutil で〈35GB＋量〉を測る。量の見込み：M 約 28GB（全表）・腕 Z（段 2）約 30GB・S11 約 14GB・N1 約 9GB。
+第 1 段の push の後に keep_1260（23GB）・keep_1267（28GB）・keep_1267_rej（17GB）を消して約 104GB。M と腕 Z を先に（挙動の腕を先に起こす）・腕 Z の刈り込みの後に S11・N1。
