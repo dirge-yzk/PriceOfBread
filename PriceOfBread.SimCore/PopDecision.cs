@@ -73,7 +73,15 @@ public static class PopDecision
         if (flow > 0 && coef.SerfMobilityGate > 0)
             flow *= (1.0 - coef.SerfMobilityGate) + coef.SerfMobilityGate * serfFree;
 
-        if (flow > 0 && urban.FoodFill < coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill) flow = 0;
+        if (flow > 0 && urban.FoodFill < coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill)
+        {
+            flow = 0;
+            if (coef.FamineGateReturnsRural > 0)
+            {
+                double g = MigrationValues(region, coef, rural, urban).Gsym;
+                if (g < 0) flow = coef.Mobility * g * urban.Size;   // (1283) 飢えの門の月だけ：UrbanFlowReal の負の枝と同じ式で都市→農村
+            }
+        }
         if (flow > 0) Move(rural, urban, flow);
         else if (flow < 0) Move(urban, rural, -flow);
     }

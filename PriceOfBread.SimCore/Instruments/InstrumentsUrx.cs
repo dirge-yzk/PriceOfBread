@@ -146,7 +146,7 @@ public static partial class Instruments
             if (f < 1.0) serf = true;
             flow *= f;
         }
-        if (flow > 0 && urban.FoodFill < coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill) { flow = 0; famine = true; }
+        if (flow > 0 && urban.FoodFill < coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill) { flow = 0; famine = true; if (coef.FamineGateReturnsRural > 0 && mv.Gsym < 0) flow = coef.Mobility * mv.Gsym * urban.Size; }
         d = new UrxPdDriveRow(total, urban.Size, incUrban, incRural, z, targetPre, target, cur, cap, capBound, serf, famine, flow, mv.SubsistenceValue, mv.HousingCost, mv.Gsym);
         return true;
     }

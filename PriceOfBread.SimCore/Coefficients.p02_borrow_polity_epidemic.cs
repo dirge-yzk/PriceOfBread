@@ -69,6 +69,7 @@ public sealed partial class Coefficients
     public double FamineExcessMortalityExponent = 4.0; // 2026-10-01 (143) 飢えの超過死亡の凸さ（飢えの深さの指数）＝史実の飢饉の死は栄養の不足に強く凸（浅い慢性の不足は病気との相乗で少し・深い不足は数か月で死ぬ）
     public double FamineDeathFillFloor = 0.8;          // 旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた
     public double FamineMigrationFillGate = 0.8;       // 飢えの超過死亡の門 FamineDeathFillFloor と値は同じ 0.8 だが別の係数＝片方を較正し直してももう片方は動かない（旧は1本が2つの意味を持っていた）
+    public double FamineGateReturnsRural = 0;          // (1283) c132fg 旗：飢えの門が農村→都市を止めた月に、移る値打ち MigrationValues の g が負なら Mobility×g×都市の規模で都市→農村へ戻す（0＝止めるだけ）
     public double CropDiseaseChance = 0.02;        // 病害に弱い作物1つあたりの年次の胴枯れ発生確率（健全時のみ）
     public double CropDiseaseSeverity = 0.3;       // 胴枯れ時の作物産出倍率の基準（×0.5〜1.5の揺らぎ＝0.15〜0.45へ激減）
     public double CropDiseaseRecovery = 0.4;       // 病害からの年次回復速度（CropHealth→1.0へ。0.4で胴枯れは約4年で癒える＝多年飢饉）
