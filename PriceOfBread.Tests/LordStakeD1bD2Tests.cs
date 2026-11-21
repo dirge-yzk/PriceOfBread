@@ -71,18 +71,21 @@ public class LordStakeD1bD2Tests
     public void D1b_要求の順位は旧支配層の国教を戻す要求の強さを得から取り直す()
     {
         var sim = Board(1.0, 0.0);
+        int checkedN = 0;
         foreach (var n in sim.Nations)
         {
             var w = n.World;
             w.StateReligion = StateReligionLaw.ReligiousFreedom;   // 上げ 0（−1）・戻し 1×比＝非対称
             var (lords, clergy) = Sums(w); double sh = clergy / lords;
             var d = FactionSnapshot.ComputeDemands(w, 0, false).Find(x => x.Axis == PolicyAxis.StateReligion);
-            Assert.True(d.Score > 0, $"{Instruments.NameOf(w)}：盤面の前提が崩れた（旧支配層の要求の上位に国教が入らない）");
+            if (!(d.Score > 0)) continue;   // 反対の力で割ると上位 3 に入らない国（(1282) で反対の力の項が常時になった）は数えない＝下で数が 0 なら赤
             Assert.False(d.Increase);
             double head = FactionSnapshot.Headroom(w, PolicyAxis.StateReligion, false);
             Assert.True(head > 0.1, $"盤面の前提が崩れた（可動域 {head}）");
             Assert.Equal(2.0 * (0.5 + sh) * head / (1.0 + PolicyPreferences.OpposingPower(w, PolicyAxis.StateReligion, false, PolicyPreferences.Build(w))), d.Score, 9);
+            checkedN++;
         }
+        Assert.True(checkedN >= 1, "旧支配層の要求の上位に国教が入る国が 1 つも無い＝番人が空回り");
     }
 
     [Fact]
