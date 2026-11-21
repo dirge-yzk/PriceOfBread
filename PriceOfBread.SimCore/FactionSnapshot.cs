@@ -39,7 +39,7 @@ public static class FactionSnapshot
                 else { clusters[key] = (r, p.Size * part, p.Militancy * p.Size * part); order.Add(key); }
             }
         }
-        if (countCost && w.Coef.ParticipationDiscontent > 0) w.Cost[CostLedger.ParticipationPops] += seen;
+        if (countCost) w.Cost[CostLedger.ParticipationPops] += seen;
         var result = new List<(Region, int, int, double, double)>(order.Count);
         foreach (var key in SortBySizeDesc(order, clusters))
         {
@@ -49,7 +49,7 @@ public static class FactionSnapshot
         return result;
     }
 
-    internal static (double[] Coord, double[] LawGap) MembershipContext(World w) => MembershipContext(w, w.Coef.ParticipationDiscontent > 0);
+    internal static (double[] Coord, double[] LawGap) MembershipContext(World w) => MembershipContext(w, true);
 
     internal static (double[] Coord, double[] LawGap) MembershipContext(World w, bool byDiscontent)
     {
@@ -64,10 +64,7 @@ public static class FactionSnapshot
 
     internal static double Participation(World w, Pop p, double[] coord, double[] lawGap)
     {
-        var c = w.Coef;
-        return c.ParticipationDiscontent > 0
-            ? Math.Max(DiscontentOf(w, p, coord, lawGap), p.Militancy)
-            : p.Militancy <= MilitancyThreshold ? 0.0 : 1.0;
+        return Math.Max(DiscontentOf(w, p, coord, lawGap), p.Militancy);
     }
 
     internal static (int Bloc, int Ideo) BlocIdeo(Pop p)
