@@ -227,6 +227,28 @@ public class ServiceEconomyTests
     private static Simulation NationWorld(Coefficients c, EducationLaw law, ulong seed = 7) =>
         new(new Scenario { Kind = ScenarioKind.Nation, NationConfig = WorldData.ByName("イギリス"), Seed = seed, Coef = c, EducationLaw = law }, new NullAgent());
 
+    [Theory]
+    [InlineData(0.0, EducationLaw.Public)]
+    [InlineData(1.0, EducationLaw.Public)]
+    [InlineData(0.0, EducationLaw.Compulsory)]
+    [InlineData(1.0, EducationLaw.Compulsory)]
+    public void 公教育と義務教育の教師の生産性は基底のまま_教師の質の補正を掛けない(double coexist, EducationLaw law)
+    {
+        // 旗 TeacherQualityWeight（師範学校の効果の補正）は消した（(1281)）＝教師の識字・高等教育の充足が何であれ生産性は TeacherEduProductivity そのまま。
+        var sim = NationWorld(new Coefficients { EduProducersCoexist = coexist }, law);
+        for (int i = 0; i < 2 * Calendar.DaysPerMonth; i++) sim.StepDay();
+        var r = sim.World.Region;
+        Assert.True(r.TeacherPopIndex >= 0, "教師の階級が無い");
+        int n = 0;
+        foreach (var p in r.Producers)
+            if (p.GoodId == Catalog.EducationId && p.LaborPopIndex == r.TeacherPopIndex && p.Scale > 0)
+            {
+                Assert.Equal(sim.World.Coef.TeacherEduProductivity, p.Productivity);
+                n++;
+            }
+        Assert.True(n >= 1, "教師が教える生産者が操業していない");
+    }
+
     [Fact]
     public void 教育生産者の並置は器ゼロで生産者の数と添字が旧と一致し軌道も動かない()
     {
