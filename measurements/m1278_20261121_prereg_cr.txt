@@ -129,3 +129,20 @@
 - D: の空きが〈35GB＋腕 B の量〉に届かなかった（フルスイートの後 33.1GB→自分の隔離ビルド 1.3GB と腕 Z の木の写しとビルド〔src_*・art_it・生ではない〕を消して 36.5GB→他の線の片付けで 38.0GB）。腕 Z の生（out_ib_10/ins・2.4GB）は消していない（段 1 の判定は prune.py が刈らない＝採否が決まるまで残す）。
 - 腕 B の表を SMALL＋secession_s（約 3.9GB）から、止める線と門と記録の読み手が読む表だけへ絞る（約 2.5GB）：nation_s・region_s・secession_s・fiscal_s・stock_s・scalars_s・migration_s・pxmonth_s・wars_s・casualty_s・cessp_s・pclamp_s・tnation_s（BYPASS の habitlg_s ほかは常に出る）。読み手の表（grep）：stoplines1002（nation・region・pxmonth・cessp・tnation）・an_h2（region・migration）・gdp_zero10・plvl・popjump（nation）・home_break（nation・region・stock）・ukdef975（fiscal）・ng.sh（nation・stock・wars・casualty）・gate_cr（region・secession・nation）。
 - 外れる物（記録だけ）：batch.sh が自動で回す注視の読み手 an_mon の表（aib・class・disc・engineer ほか）＝注視は記録＝採否に使わない。門と止める線は変えない。起こす直前の空き 38.0GB（〈35GB＋2.5GB〉以上）。
+
+== 追記 4（腕 B の結果・門・2026-11-21・結果の後に門と規則は変えていない）==
+- 腕 B c131crB（旗 1 の木 4a5145bd3＝59f88de3c と SimCore 同じ・計器つき 10 種・種 1〜10・表は追記 3 の 13 表）：成績表 measurements/b10_20261121_c131crB_ins（SOURCE-HASH 338c4e311d851145）・生 D:/PoB_work/c131cr_work/armB/out_c131crB_10/ins（150 本）。読み手の出力 measurements/m1278_20261121/readB/。
+- 止める線：
+  - 破綻 0/10（未完走 0）・savetest OK・leakhunt 保存則違反なし（追記 2）。
+  - 1 四半期に 100 倍以上 0（建国の直後 0・分母の痩せ 0・建国の後の 0 の続き 0・それ以外 0）・1e10 倍以上 0・非有限 0（基準 keep_1274/base_ins と N1 keep_1274/n1 も同じ台本で 0・0・0＝⑰）。pxmonth 3 か月比の最大 1.106。開幕の 1000 倍以上 0。
+  - 空洞化 1/10 未満 0 件（1/4 未満 2 件〈移民 2〉・基準は 1/4 未満 2 件）＝hol_attr の件 0。
+  - 計算量：推定 235.1 秒（基準 m1274 234.2 秒・+0.9 秒・割り当て ±0.3〈推〉を 0.6 秒超えた＝2 秒以下＝1 本の腕で門にしない★(694)・合流の木の累計で読む）＜上限 248.5 秒。
+  - 機構のテストの赤 0（フルスイートの赤は ★(764) の OpeningBakeTests 2 本だけ）。
+- 史実の桁の線（gate_cr）：H1 腕 27,280／基準 31,184＝0.875（緑）・H2 腕 17（6＋11）／基準 39（25＋14）（緑）。記録：N1 対 基準で H1 0.896・H2 11（2＋9）＝ヌル腕どうしでも H2 は 3.5 倍揺れる。GATE_CR 緑。
+- 単体の機構の試験：ColonyLabelsFromDataTests 7 本 緑（旗 1 の木のフルスイート）・突然変異 6 本とも赤（追記 1）＝〈狙いどおり働いた〉。
+- 記録：
+  - 同じ盤面の旧と新（paper_cr を腕の生に当てた）：主流の札が旧の規則と違う国×四半期 6,235／411,491（1.5%・文化 5,663・宗教 3,061）・空の札 104・主流の文化≠首都の札 旧 29,308→新 27,280。
+  - 植民地格の州の人口（千人・種の和・四半期 0/268/520/667）：腕 504,302／666,178／889,338／1,026,037・基準 504,302／688,395／938,245／1,042,436。
+  - 内戦の国×四半期 腕 879・基準 804。
+  - 英の国債の不履行 0/10（基準 2/10・N1 2/10）。名目 GDP 0 の続き 0（基準 0）。home_break の① 鳴る国なし。英の崩れ（実質 GDP が最大の 5% を割る）arm 0/10・base 1/10・n1 0/10。
+  - NG 93（基準 m1274 の 91・新しい 13・外れた 11）。nullgate〈雑音の内〉。成績表の基準 m1274_ins との差 240 行（旗 1 の出力が旗 0 と違う行）。ハーネス不合格を含む試合 5/10（基準 4/10）。
