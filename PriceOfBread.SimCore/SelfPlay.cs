@@ -982,7 +982,7 @@ public sealed class UtilityAgent : INationAgent
                     p.Suffrage = Suffrage.Census;
                 break;
         }
-        if (w.Coef.SovietTaxProfile > 0 && w.Polity == Polity.ProletarianDictatorship)
+        if (w.Polity == Polity.ProletarianDictatorship)
         {
             stateMonopTier = World.StateMonopolyMaxTier;
             p.ProgressiveTaxTarget = Math.Max(p.ProgressiveTaxTarget, Government.ProgressiveTaxTop);
