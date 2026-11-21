@@ -112,6 +112,7 @@ public sealed partial class Coefficients
     public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）
     public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
     public double ArrearsBeyondOpenedRoom = 1.0;    // (1250) >0：金本位でない月の不履行の累計は〈開いた切り下げの余地で払えなかった分〉だけ＝兌換の遅れでまだ開いていない余地の分を数えない（0＝累計は 1−r）
+    public double ArrearsOnePredicate = 0.0;        // (1284) c132df >0：兌換の停止の門を不履行の判定の前に置き、述語を不履行の導火線の積む条件（r＜1・国債＞0・利払いが上限・助走でない）と同じにする（正貨カバーと本位の法の条件は残す・GoldSuspendMinFundingRatio は読まない）。0＝今の形
     public double ConvertibilityDropSpeed = 0.34;   // 危機で兌換が崩れる速さ（兌換停止は一夜＝速い・非対称）
     public double ConvertibilityCoverageBand = 1.0; // 加入していても準備が薄れれば兌換が目減りする＝金本位期でも物価/為替/国債金利のチャネルが死なない
     public double FisherInflationWeight = 0.5;       // 名目国債金利＝実質＋これ×期待インフレ（高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い）

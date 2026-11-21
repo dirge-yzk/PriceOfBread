@@ -190,7 +190,11 @@ public static class Fiscal
         }
 
         if (w.BorrowCooldownMonths > 0) w.BorrowCooldownMonths--;
-        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyMonths += ArrearsOfMonth(w, c, payRate, spare, unopenedRoom); else w.InsolvencyMonths = 0;
+        bool arrearsMonth = payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen;   // 不履行の導火線の積む条件（払えない月）＝旗 ArrearsOnePredicate＞0 で兌換の停止の門も同じ述語
+        Instruments.ArrearsMonth(w, c, spare, unopenedRoom, underLimit);   // (1284) 計器 arrears_s（読むだけ・中で Instruments.On を読む＝この関数の On の読みを増やさない）
+        bool goldGateFirst = c.ArrearsOnePredicate > 0, onGoldBeforeGate = w.OnGoldStandard;
+        if (goldGateFirst && w.MonetaryEnabled && w.OnGoldStandard) GoldGateOfArrears(arrearsMonth);   // (1284) 旗 1：停止の門を不履行の判定の前に（払えない月が始まったら本位を離れる）
+        if (arrearsMonth) w.InsolvencyMonths += ArrearsOfMonth(w, c, payRate, spare, unopenedRoom); else w.InsolvencyMonths = 0;
         if (w.InsolvencyMonths >= c.DefaultArrearsMonths)
         {
             RepudiateDebt(w, c);
@@ -207,22 +211,30 @@ public static class Fiscal
         if (w.MonetaryEnabled)
         {
             double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
-            if (w.OnGoldStandard)
+            if (w.OnGoldStandard || (goldGateFirst && onGoldBeforeGate))   // 旗 1 で今月の頭に金本位だった国は、前の門で離れても今月は戻らない（旧の if/else と同じ）
             {
-                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < c.GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin.Value)
-                {
-                    w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;
-                    if (w.GoldStandardSuspendedInCrisis)
-                    {
-                        bool coverTrip = coverage < c.GoldCoverMin.Value;
-                        w.GoldSuspensions++; if (coverTrip) w.GoldCoverSuspensions++;
-                        w.LogAdd($"{w.Year} {w.SelfPower?.Name}が兌換停止（金本位から強制離脱・{(coverTrip ? $"正貨準備カバー率{coverage:P0}<{c.GoldCoverMin:P0}" : "財政不足")}）");
-                    }
-                }
+                if (!goldGateFirst && (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < c.GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin.Value))
+                    SuspendGold(coverage);
             }
             else if (w.MetallicStandardLaw && w.FiscalFundingRatio >= c.GoldStandardMinFunding
                      && coverage >= c.GoldCoverMin.Value * c.GoldRejoinCoverMargin && !broken)
             { w.OnGoldStandard = true; w.GoldStandardSuspendedInCrisis = false; }
+        }
+        // (1284) 旗 1 の停止の門：述語は不履行の導火線と同じ（払えない月）・正貨カバーと本位の法の条件は旧のまま。
+        void GoldGateOfArrears(bool unpaidMonth)
+        {
+            double coverage0 = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            if (!w.MetallicStandardLaw || unpaidMonth || coverage0 < c.GoldCoverMin.Value) SuspendGold(coverage0);
+        }
+        void SuspendGold(double coverage)
+        {
+            w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;
+            if (w.GoldStandardSuspendedInCrisis)
+            {
+                bool coverTrip = coverage < c.GoldCoverMin.Value;
+                w.GoldSuspensions++; if (coverTrip) w.GoldCoverSuspensions++;
+                w.LogAdd($"{w.Year} {w.SelfPower?.Name}が兌換停止（金本位から強制離脱・{(coverTrip ? $"正貨準備カバー率{coverage:P0}<{c.GoldCoverMin:P0}" : "財政不足")}）");
+            }
         }
         double fisher = Math.Max(c.FisherDeflationFloor, w.ExpectedInflationPerYear.Value) * c.FisherInflationWeight;
         double convDiscount = 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount);
