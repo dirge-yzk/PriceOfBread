@@ -1,0 +1,155 @@
+seed 1 new_any_flip=1645 new_cult_flip=1552 new_cult_ne_cap=4234 new_rel_flip=1617 newhome_any_flip=769 newhome_cult_empty=80 newhome_cult_flip=745 newhome_cult_ne_cap=3515 newhome_rel_flip=769 nq=41363 old_cult_ne_cap=3812 nations_new=8 nations_newhome=7
+  new_flip_nations: イギリス オマーン シャム ネーデルラント ブラワヨ王国 共和制イギリス 南アフリカ王国 第2共和制イギリス
+  newhome_flip_nations: イギリス シャム ネーデルラント ブラワヨ王国 共和制イギリス 南アフリカ王国 第2共和制イギリス
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=432
+  ex new オマーン firstQ=156 old=アラブ/イスラム new=スワヒリ/イスラム quarters=4
+  ex new シャム firstQ=274 old=漢/儒仏 new=マレー/イスラム quarters=2
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=668
+  ex new ブラワヨ王国 firstQ=588 old=日本/神仏 new=ショナ/土着信仰 quarters=44
+  ex new 共和制イギリス firstQ=195 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=473
+  ex new 南アフリカ王国 firstQ=647 old=日本/神仏 new=コサ/土着信仰 quarters=18
+  ex new 第2共和制イギリス firstQ=242 old=スペイン/カトリック new=ナワ/カトリック quarters=4
+  ex newhome イギリス firstQ=281 old=イングランド/カトリック new=イングランド/プロテスタント quarters=44
+  ex newhome シャム firstQ=274 old=漢/儒仏 new=/ quarters=2
+  ex newhome ネーデルラント firstQ=73 old=オランダ/プロテスタント new=ドイツ/カトリック quarters=184
+  ex newhome ブラワヨ王国 firstQ=588 old=日本/神仏 new=/ quarters=44
+  ex newhome 共和制イギリス firstQ=195 old=イングランド/プロテスタント new=/ quarters=473
+  ex newhome 南アフリカ王国 firstQ=647 old=日本/神仏 new=/ quarters=18
+  ex newhome 第2共和制イギリス firstQ=242 old=スペイン/カトリック new=/ quarters=4
+seed 2 new_any_flip=1270 new_cult_flip=1267 new_cult_ne_cap=3675 new_rel_flip=1202 newhome_any_flip=318 newhome_cult_flip=318 newhome_cult_ne_cap=2484 newhome_rel_flip=236 nq=40776 old_cult_ne_cap=2733 nations_new=8 nations_newhome=7
+  new_flip_nations: アワド イギリス エチオピア オスマン オマーン ネーデルラント ビルマ マイソール
+  newhome_flip_nations: アワド イギリス エチオピア オスマン ネーデルラント ビルマ マイソール
+  ex new アワド firstQ=464 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=4
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=298
+  ex new エチオピア firstQ=187 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=61
+  ex new オスマン firstQ=468 old=イングランド/イスラム new=ベンガル/イスラム quarters=64
+  ex new オマーン firstQ=168 old=アラブ/イスラム new=スワヒリ/イスラム quarters=4
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=668
+  ex new ビルマ firstQ=515 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=27
+  ex new マイソール firstQ=164 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=144
+  ex newhome アワド firstQ=464 old=イングランド/プロテスタント new=ヒンドゥスタン/イスラム quarters=4
+  ex newhome イギリス firstQ=317 old=イングランド/プロテスタント new=アイルランド/プロテスタント quarters=3
+  ex newhome エチオピア firstQ=187 old=イングランド/プロテスタント new=アムハラ/エチオピア正教 quarters=61
+  ex newhome オスマン firstQ=468 old=イングランド/イスラム new=アラブ/イスラム quarters=64
+  ex newhome ネーデルラント firstQ=653 old=イングランド/プロテスタント new=オランダ/プロテスタント quarters=15
+  ex newhome ビルマ firstQ=515 old=イングランド/プロテスタント new=ビルマ/上座部仏教 quarters=27
+  ex newhome マイソール firstQ=164 old=イングランド/プロテスタント new=カンナダ/ヒンドゥー教 quarters=144
+seed 3 new_any_flip=1460 new_cult_flip=1457 new_cult_ne_cap=3942 new_rel_flip=1373 newhome_any_flip=436 newhome_cult_flip=323 newhome_cult_ne_cap=2808 newhome_rel_flip=244 nq=40774 old_cult_ne_cap=2655 nations_new=5 nations_newhome=4
+  new_flip_nations: アシャンティ王国 イギリス オーストリア デンマーク ネーデルラント
+  newhome_flip_nations: アシャンティ王国 イギリス オーストリア デンマーク
+  ex new アシャンティ王国 firstQ=541 old=マラーター/ヒンドゥー教 new=アカン/土着信仰 quarters=37
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=668
+  ex new オーストリア firstQ=57 old=フランス/カトリック new=ドイツ/カトリック quarters=48
+  ex new デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=39
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=668
+  ex newhome アシャンティ王国 firstQ=541 old=マラーター/ヒンドゥー教 new=アカン/土着信仰 quarters=37
+  ex newhome イギリス firstQ=356 old=イングランド/プロテスタント new=アイルランド/プロテスタント quarters=312
+  ex newhome オーストリア firstQ=57 old=フランス/カトリック new=ドイツ/カトリック quarters=48
+  ex newhome デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=39
+seed 4 new_any_flip=1654 new_cult_flip=1476 new_cult_ne_cap=3655 new_rel_flip=1357 newhome_any_flip=536 newhome_cult_empty=5 newhome_cult_flip=536 newhome_cult_ne_cap=2903 newhome_rel_flip=238 nq=40762 old_cult_ne_cap=3032 nations_new=6 nations_newhome=5
+  new_flip_nations: イギリス デンマーク ネーデルラント ビルマ フランス 共和制イギリス
+  newhome_flip_nations: デンマーク ネーデルラント ビルマ フランス 共和制イギリス
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=457
+  ex new デンマーク firstQ=8 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=23
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=ジャワ/イスラム quarters=668
+  ex new ビルマ firstQ=165 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=159
+  ex new フランス firstQ=326 old=イングランド/カトリック new=ベンガル/ヒンドゥー教 quarters=342
+  ex new 共和制イギリス firstQ=47 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=5
+  ex newhome デンマーク firstQ=8 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=23
+  ex newhome ネーデルラント firstQ=332 old=オランダ/プロテスタント new=スペイン/カトリック quarters=7
+  ex newhome ビルマ firstQ=165 old=イングランド/プロテスタント new=ビルマ/上座部仏教 quarters=159
+  ex newhome フランス firstQ=326 old=イングランド/カトリック new=フランス/カトリック quarters=342
+  ex newhome 共和制イギリス firstQ=47 old=イングランド/プロテスタント new=/ quarters=5
+seed 5 new_any_flip=1783 new_cult_flip=1779 new_cult_ne_cap=4332 new_rel_flip=1652 newhome_any_flip=679 newhome_cult_empty=17 newhome_cult_flip=637 newhome_cult_ne_cap=2635 newhome_rel_flip=589 nq=40786 old_cult_ne_cap=3139 nations_new=4 nations_newhome=5
+  new_flip_nations: イギリス スウェーデン ネーデルラント ビルマ
+  newhome_flip_nations: イギリス スウェーデン ネーデルラント ビルマ 共和制ポルトガル
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=668
+  ex new スウェーデン firstQ=330 old=漢/プロテスタント new=モンゴ/プロテスタント quarters=38
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=547
+  ex new ビルマ firstQ=138 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=530
+  ex newhome イギリス firstQ=543 old=イングランド/プロテスタント new=イングランド/カトリック quarters=94
+  ex newhome スウェーデン firstQ=330 old=漢/プロテスタント new=スウェーデン/プロテスタント quarters=38
+  ex newhome ネーデルラント firstQ=229 old=オランダ/プロテスタント new=/ quarters=14
+  ex newhome ビルマ firstQ=138 old=イングランド/プロテスタント new=ビルマ/上座部仏教 quarters=530
+  ex newhome 共和制ポルトガル firstQ=154 old=ポルトガル/カトリック new=/ quarters=3
+seed 6 new_any_flip=1937 new_cult_flip=1931 new_cult_ne_cap=4442 new_rel_flip=1193 newhome_any_flip=1591 newhome_cult_flip=1468 newhome_cult_ne_cap=3414 newhome_rel_flip=1198 nq=40758 old_cult_ne_cap=3865 nations_new=7 nations_newhome=6
+  new_flip_nations: アメリカ イギリス オマーン スペイン デンマーク ネーデルラント ポルトガル
+  newhome_flip_nations: アメリカ オマーン スペイン デンマーク ネーデルラント ポルトガル
+  ex new アメリカ firstQ=335 old=アメリカ/プロテスタント new=アメリカ/カトリック quarters=333
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=122
+  ex new オマーン firstQ=122 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=87
+  ex new スペイン firstQ=209 old=スペイン/カトリック new=ベンガル/カトリック quarters=418
+  ex new デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=20
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=668
+  ex new ポルトガル firstQ=310 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=289
+  ex newhome アメリカ firstQ=338 old=スペイン/プロテスタント new=アメリカ/プロテスタント quarters=330
+  ex newhome オマーン firstQ=122 old=イングランド/プロテスタント new=アラブ/イスラム quarters=87
+  ex newhome スペイン firstQ=229 old=イングランド/カトリック new=スペイン/カトリック quarters=398
+  ex newhome デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=20
+  ex newhome ネーデルラント firstQ=120 old=オランダ/プロテスタント new=イングランド/プロテスタント quarters=335
+  ex newhome ポルトガル firstQ=247 old=ポルトガル/カトリック new=ハウサ/イスラム quarters=421
+seed 7 new_any_flip=1352 new_cult_flip=1347 new_cult_ne_cap=3393 new_rel_flip=1211 newhome_any_flip=774 newhome_cult_empty=8 newhome_cult_flip=734 newhome_cult_ne_cap=2751 newhome_rel_flip=460 nq=41408 old_cult_ne_cap=2628 nations_new=4 nations_newhome=6
+  new_flip_nations: イギリス デンマーク ネーデルラント 第2立憲王政ネーデルラント
+  newhome_flip_nations: イギリス デンマーク ネーデルラント ポルトガル 共和制ポルトガル 第2立憲王政ネーデルラント
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=668
+  ex new デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=16
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=377
+  ex new 第2立憲王政ネーデルラント firstQ=377 old=オランダ/プロテスタント new=ジャワ/イスラム quarters=291
+  ex newhome イギリス firstQ=237 old=イングランド/プロテスタント new=アイルランド/プロテスタント quarters=306
+  ex newhome デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=16
+  ex newhome ネーデルラント firstQ=237 old=オランダ/プロテスタント new=イングランド/プロテスタント quarters=152
+  ex newhome ポルトガル firstQ=488 old=ポルトガル/カトリック new=スペイン/カトリック quarters=2
+  ex newhome 共和制ポルトガル firstQ=147 old=ポルトガル/カトリック new=/ quarters=7
+  ex newhome 第2立憲王政ネーデルラント firstQ=377 old=オランダ/プロテスタント new=/ quarters=291
+seed 8 new_any_flip=1850 new_cult_flip=1847 new_cult_ne_cap=3263 new_rel_flip=1610 newhome_any_flip=1666 newhome_cult_empty=3 newhome_cult_flip=1358 newhome_cult_ne_cap=2134 newhome_rel_flip=1398 nq=41000 old_cult_ne_cap=2897 nations_new=6 nations_newhome=5
+  new_flip_nations: イギリス オマーン カンボジア デンマーク ネーデルラント 第2立憲王政イギリス
+  newhome_flip_nations: イギリス オマーン カンボジア デンマーク 第2立憲王政イギリス
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=668
+  ex new オマーン firstQ=99 old=オランダ/プロテスタント new=ジャワ/イスラム quarters=569
+  ex new カンボジア firstQ=379 old=漢/儒仏 new=マレー/イスラム quarters=289
+  ex new デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=222
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=99
+  ex new 第2立憲王政イギリス firstQ=463 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=3
+  ex newhome イギリス firstQ=60 old=イングランド/プロテスタント new=アイルランド/プロテスタント quarters=583
+  ex newhome オマーン firstQ=99 old=オランダ/プロテスタント new=アラブ/イスラム quarters=569
+  ex newhome カンボジア firstQ=379 old=漢/儒仏 new=クメール/上座部仏教 quarters=289
+  ex newhome デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=222
+  ex newhome 第2立憲王政イギリス firstQ=463 old=イングランド/プロテスタント new=/ quarters=3
+seed 9 new_any_flip=1954 new_cult_flip=1951 new_cult_ne_cap=4100 new_rel_flip=1828 newhome_any_flip=773 newhome_cult_empty=86 newhome_cult_flip=741 newhome_cult_ne_cap=2657 newhome_rel_flip=647 nq=41079 old_cult_ne_cap=3060 nations_new=10 nations_newhome=9
+  new_flip_nations: アワド イギリス ウジジ王国 クルマン王国 シャム ダーバン王国 デンマーク ネーデルラント ブラワヨ王国 南アフリカ王国
+  newhome_flip_nations: アワド イギリス ウジジ王国 クルマン王国 シャム ダーバン王国 デンマーク ブラワヨ王国 南アフリカ王国
+  ex new アワド firstQ=145 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=290
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=668
+  ex new ウジジ王国 firstQ=543 old=マラーター/ヒンドゥー教 new=ルンディ/土着信仰 quarters=33
+  ex new クルマン王国 firstQ=527 old=日本/神仏 new=ツワナ/土着信仰 quarters=41
+  ex new シャム firstQ=115 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=30
+  ex new ダーバン王国 firstQ=524 old=日本/神仏 new=ズールー/土着信仰 quarters=65
+  ex new デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=3
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=668
+  ex new ブラワヨ王国 firstQ=549 old=日本/神仏 new=ショナ/土着信仰 quarters=28
+  ex new 南アフリカ王国 firstQ=538 old=日本/神仏 new=コサ/土着信仰 quarters=128
+  ex newhome アワド firstQ=145 old=イングランド/プロテスタント new=ヒンドゥスタン/イスラム quarters=290
+  ex newhome イギリス firstQ=418 old=イングランド/プロテスタント new=イングランド/カトリック quarters=155
+  ex newhome ウジジ王国 firstQ=543 old=マラーター/ヒンドゥー教 new=/ quarters=33
+  ex newhome クルマン王国 firstQ=527 old=日本/神仏 new=/ quarters=41
+  ex newhome シャム firstQ=115 old=イングランド/プロテスタント new=タイ/上座部仏教 quarters=30
+  ex newhome ダーバン王国 firstQ=524 old=日本/神仏 new=/ quarters=65
+  ex newhome デンマーク firstQ=0 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=3
+  ex newhome ブラワヨ王国 firstQ=549 old=日本/神仏 new=/ quarters=28
+  ex newhome 南アフリカ王国 firstQ=538 old=日本/神仏 new=/ quarters=128
+seed 10 new_any_flip=1704 new_cult_flip=1698 new_cult_ne_cap=5934 new_rel_flip=1380 newhome_any_flip=636 newhome_cult_flip=592 newhome_cult_ne_cap=4584 newhome_rel_flip=587 nq=40774 old_cult_ne_cap=5078 nations_new=6 nations_newhome=5
+  new_flip_nations: アメリカ アルジェ摂政国 イギリス デンマーク ネーデルラント ビルマ
+  newhome_flip_nations: アメリカ アルジェ摂政国 イギリス デンマーク ビルマ
+  ex new アメリカ firstQ=322 old=アメリカ/プロテスタント new=アメリカ/カトリック quarters=302
+  ex new アルジェ摂政国 firstQ=487 old=イングランド/プロテスタント new=タミル/ヒンドゥー教 quarters=181
+  ex new イギリス firstQ=0 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=465
+  ex new デンマーク firstQ=25 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=25
+  ex new ネーデルラント firstQ=0 old=オランダ/プロテスタント new=オランダ/イスラム quarters=668
+  ex new ビルマ firstQ=480 old=イングランド/プロテスタント new=ベンガル/ヒンドゥー教 quarters=63
+  ex newhome アメリカ firstQ=325 old=アメリカ/カトリック new=アメリカ/プロテスタント quarters=343
+  ex newhome アルジェ摂政国 firstQ=487 old=イングランド/プロテスタント new=アラブ/イスラム quarters=181
+  ex newhome イギリス firstQ=124 old=イングランド/プロテスタント new=アイルランド/プロテスタント quarters=24
+  ex newhome デンマーク firstQ=25 old=デンマーク/プロテスタント new=ノルウェー/プロテスタント quarters=25
+  ex newhome ビルマ firstQ=480 old=イングランド/プロテスタント new=ビルマ/上座部仏教 quarters=63
+total new_any_flip=16609 new_cult_flip=16305 new_cult_ne_cap=40970 new_rel_flip=14423 newhome_any_flip=8178 newhome_cult_empty=199 newhome_cult_flip=7452 newhome_cult_ne_cap=29885 newhome_rel_flip=6366 nq=409480 old_cult_ne_cap=32899
+unknown_regions 
