@@ -1,0 +1,23 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+    0 個の警告
+    0 エラー
+
+経過時間 00:00:01.15
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Display -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.Display\release\PriceOfBread.Display.dll
+  PriceOfBread.Tests -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+  PriceOfBread.App -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests.Ui -> D:\PoB_work\m1280_work\suite\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+
+ビルドに成功しました。
+    0 個の警告
+    0 エラー
+
+経過時間 00:00:02.46

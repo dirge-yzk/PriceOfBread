@@ -1,0 +1,25 @@
+(1280) 合流（波131）の途中の記録（2026-11-21・続きから進めるための 1 枚）
+
+== 済んだ物 ==
+- 第 1 段：恒等の線 c131k15 を入れ、ident.cfg の TESTS_NONFULL を 3078 へ直して main へ push した（origin/main＝9f22e90eb）。基準は m1274 のまま。
+- 外した線：c131wa（ident の判定の行が〈判定: 不一致（段 1）〉・反証役 v の高〈NoteInputsChanged が毎月無条件＝表の作り直しが台帳の外・.cost の −1.8 秒は帳簿の上だけのおそれ〉が晴れていない）。
+- 第 2 段の木 T（枝 m1280・worktree D:/PoB_work/wt_m1280）：c131pf と c131cr を merge（a8135ef69）。WriterRatchetTests の衝突は pf の行を残し cr の行を注にした。
+  - 宣言の表（★(749)）：合わせた木の 1 種 40 四半期の実測で外れたのは DeadProdBankrupt だけ（宣言 1468・実測 1519）＝1519 へ。他の 59 行は許しの内。
+  - 開幕の焼き込み（★(764)）：合わせた木で 1 回焼き直した（bake.sh・種 1・120 四半期で収束）＝OpeningBakeTests 2 本が緑。
+  - ㉘＋㊴＋OnDoubleReadScanTests の束：Tests 1680（合格 1679・スキップ 1）・Ui 234 が緑（36cab91a0）。
+  - フルスイート（36cab91a0）：Tests Category!=FullLength 2857（合格 2855・スキップ 2）・FullLength 3・Ui 234＝--list-tests の 2857＋3＋234 と一致。savetest OK・leakhunt 完走（保存則違反なし・世界の台帳の説明できない増減 0）。記録は suite_36cab91a0/。
+  - 設計の材料 c131b2 を写した（f405fed1c）。写した台本 b2shadow.py の後の走査の番人の束（scan）552 本（合格 551・スキップ 1）緑（scan_f405fed1c.txt）。
+- テストプレイの道具箱 D:/PoB_play/kit を main の頭 9f22e90eb で建て直した。
+- 腕 Z の木（枝 m1280z・worktree D:/PoB_work/wt_m1280z・4f5bc43a9）：木 T から pf の点火 7379a3037・cr の点火 5dfb66c61 の SimCore と DormantIdentityTests の行を戻し、WriterRatchetTests を第 1 段 9f22e90eb の版へ。
+
+== 止まった所 ==
+- D: の空きが床に届かない（測った値 30.7GB＜〈35GB＋腕 Z 約 30GB〉・〈35GB＋M 約 28GB〉）。
+- ★(1267) の型で keep_1260・keep_1267・keep_1267_rej（約 68GB・INSRAW でも KEEPNULL でもない）を消そうとしたが、権限の仕組みが消す命令を止めた。迂回はしていない。表ごとの sha1 の一覧は sha1_keep_*.txt に置いた。
+- 線の生（ident_c131cr 2.5・ident_c131k15 3.8・ident_c131wa 3.8・c131cr_work 2.0・c131pf_work 2.6GB）を全て消しても約 45GB＝床に届かない。
+
+== 続き（作者が D: の古い keep を消すか、消すことを許した後）==
+1. 腕 Z：bash scripts/instruments/tools/bg.sh D:/PoB_work/m1280_work/identz.mark bash scripts/instruments/m1280/identz1280.sh（段 2・--tests-delta 13・--added-tables capskip_s）。
+   M：bash scripts/instruments/tools/bg.sh D:/PoB_work/m1280_work/mM.mark bash scripts/instruments/m1280/arms1280.sh M 36cab91a0（エンジンは a8135ef69 と同じ）。
+2. M の読み：bash scripts/instruments/m1280/read1280.sh D:/PoB_work/m1280_work/out_mM_10/ins <M の成績表> mM D:/PoB_work/m1280_work/readM 1。
+3. 腕 Z の刈り込みの後に S11（arms1280.sh S11）→ 読み（種の起点 11）→ 採否 → N1・p5・p10。
+4. 採ったら keep_1280・ident.cfg・NG の基準・00一覧・README・CURRENT・実装ログ。
