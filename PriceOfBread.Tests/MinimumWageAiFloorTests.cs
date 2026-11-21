@@ -111,6 +111,20 @@ public class MinimumWageAiFloorTests
         }
     }
 
+    [Fact]
+    public void スタンスの適用は盤面から選んだ目標を最低賃金の目標へ書く()   // 2026-11-22 (1282)：旗 MinimumWageAiFromFloor の焼き込みの呼び口
+    {
+        var w = Build().World;
+        w.MinimumWage = MinimumWageLaw.None;
+        var home = Home(w);
+        var one = new double[home.Count]; for (int i = 0; i < one.Length; i++) one[i] = 3.0; one[0] = 0.9;   // 州 0 だけ籠を割る（直上の試験と同じ盤面）
+        SetBoard(w, 1, one, 0.1);
+        Assert.Equal(MinimumWageLaw.Subsistence, UtilityAgent.MinimumWageTargetFromFloor(w));   // 前提：盤面の目標は生存
+        w.Policy.MinimumWage = MinimumWageLaw.None;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+        Assert.Equal(MinimumWageLaw.Subsistence, w.Policy.MinimumWage);
+    }
+
     // ---------------------------------------------------------------- 盤面の読み（手の参照との一致）
 
     [Fact]
