@@ -65,8 +65,7 @@ public sealed partial class Coefficients
     public double InitialArsenalMonths = 60.0;   // 播種の対象財は Simulation.InitialArmsIndustryGoods
     public double MilitaryWarMult = 9.0;                      // 元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
     public double WarMobilizationDepth = 0.5;                 // 長期戦ほど総動員(WWI型)
-    public double MilitaryWarMultFromContact = 1.0;           // 0＝今の式（事前登録 measurements/m959_20261108_prereg_mw.txt）
-    public double WarArmsDemandPerContact = 42.0;             // 接触の割合 1 あたりの軍需の上乗せの倍率（旗 MilitaryWarMultFromContact が読む・戦時の倍率＝1＋これ×接触の割合）
+    public double WarArmsDemandPerContact = 42.0;             // 接触の割合 1 あたりの軍需の上乗せの倍率（戦時の倍率＝1＋これ×接触の割合）
     public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
     public double[] MilitaryQualityRates = [0.5, 0.1];       // 各上位軍需の消費比率（基本より少量＝高価な少数精鋭）
     public double MilitaryQualityBonus = 0.6;                // 上位軍需を満たした時の Power.Military 乗数の最大上乗せ（+60%）

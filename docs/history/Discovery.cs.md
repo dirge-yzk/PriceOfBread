@@ -1029,5 +1029,5 @@
 ## L1233 T `Simulation.ApplyEndowment(p, c.GoldRushEndowment, siteCostDiv, c);`
 ````
 // 富鉱の倍率は能力にだけ掛ける（費用を割るのは通常の賦存〔RE×Scale〕・(1073) R1）
+// 2026-11-21 (1281) c132kx：ParentEngineers の clockParent 引数と DiscoveryRow.EngineerParent を消した（旗 DiscoveryClockMotorParent は 0 の道だけ残した）。
 ````
-

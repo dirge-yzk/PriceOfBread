@@ -1231,5 +1231,5 @@
 ## L914 T `if (held.Value > 0 || !(dom.Value > 0) || BondLedger.Balanced(w, held)) return;`
 ````
 // 検査が割れない（端数の残差だけ）なら起票しない＝台帳入りのセーブはビット不変
+// 2026-11-21 (1281) c132kx：DevaluationAllowed を 2 引数にした（旗 DevaluationCapReliefExp は 1 に焼いて消した・Pow の枝を消した）。
 ````
-

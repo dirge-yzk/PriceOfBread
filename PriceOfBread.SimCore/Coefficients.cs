@@ -67,8 +67,6 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double UniversityProductivity = 2.0;   // 大学1単位の高等教育の産出（研究者1人あたり）
     public double HigherEduNeedPerEducated = 0.0; // 高等教育の必要量＝これ×前月EducationFill×識字×人数（0=需要ゼロ＝厳密恒等）
     public double PromotionGateHigherEdu = 0.0;   // 技師・研究者への昇格を高等教育の充足で絞る度合い（0=絞らない＝厳密恒等／1=買えていない分だけ資格が消える）
-    public double TeacherQualityWeight = 0.0;     // 段5：教育の生産性×(1+これ×(教師の識字×教師の高等教育充足−1))＝師範学校の効果
-    public double EduReachFromAdmin = 0.0;   // 就学督促・教員俸給の支払・校舎の設置は地方行政の実体が要る（法を布告しても村に届かない）
     public double ModernizationToHigherEdu = 0.0;   // 1=全額が人材（作者の意図する最終形）
     public int ScholarshipTopStage = 0;   // 教育費の軸（EducationSpending・4 段）の最上段の国だけが、高等教育を買う POP の自己負担を国庫の負担分だけ下げる（買い手の値段の楔＝健康保険 #3 の insure と同型・社会保障法の最上段が年金であるのと同じ型）
     public Share ModernizationToRecruit = new(0.05);   // 近代化予算のうち招聘へ回す割合
@@ -139,7 +137,6 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public RatioToGdpYear AusterityRange = new(0.7);          // ここ幅で緊縮が0→満額（債務÷年名目GDP = Start+Range＝1.0 で弱者救済ゼロ・逆進課税が最大上乗せ）
     public double AusterityTaxHike = 0.5;        // 満額緊縮時に人頭税へ上乗せする逆進課税の幅（貴族免除の人頭税＝負担は弱者に集中）
     public RatePerMonth DevaluationCapFracPerMonth = new(0.05);     // 月に切り下げ（インフレ税）で吸える総貯蓄の上限割合
-    public double DevaluationCapReliefExp = 1;     // 切り下げの月の上限を緩める指数
     public Share FiatIssueFrac = new(0.2);   // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：赤字補填の切り下げのうち、popから取らず新規発行する割合＝マネーストック膨張(M↑→P↑)
     public RatioToGdpYear DebtDistressRatio = new(3.0);        // 対外信用（CapitalMarket の信用の債務の項＝1−債務÷年名目GDP÷これ）が尽きる債務の水準＝外資が逃げ、呼べなくなる（読み手は CapitalMarket だけ・国債の起債は読まない）
     public RatePerYear BondRateMaxPerYear = new(0.30);            // 国債金利の上限（年率）

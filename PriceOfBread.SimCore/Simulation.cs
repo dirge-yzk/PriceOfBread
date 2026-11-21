@@ -1726,7 +1726,7 @@ public sealed class Simulation
         bool navalYard = false;   // navalYard〔履歴 Simulation.cs#197〕
         foreach (var pr in World.Regions) if (pr.IsPort) { navalYard = true; break; }
         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
-        double natSoldiers = World.SoldierSizeK(); double warEngageNat = World.Coef.MilitaryWarMultFromContact > 0 && atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // natSoldiers〔履歴 Simulation.cs#198〕
+        double natSoldiers = World.SoldierSizeK(); double warEngageNat = atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // natSoldiers〔履歴 Simulation.cs#198〕
         // navalSpendNat〔履歴 Simulation.cs#199〕
         double navalSpendNat = World.NavalSpendShare.Value;
         double monopolyRentFactorNat = World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 };
@@ -1766,9 +1766,7 @@ public sealed class Simulation
                 // 軍需調達：軍隊（兵士POP）＋治安維持力に比例、交戦中は増（武器需要ブーム）。財源は国庫の一部。
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
-                double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
-                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // 旗 0 では WarMobilizationDepth=0 なら mobilize=1、>0 で長期戦ほど軍需倍率↑（総動員）〔履歴 Simulation.cs#204〕
-                double warMult = World.Coef.MilitaryWarMultFromContact > 0 ? (atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0) : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // warMult〔履歴 Simulation.cs#205〕
+                double warMult = atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0;   // warMult〔履歴 Simulation.cs#205〕
                 // 軍隊規模(兵数)×戦時倍率に比例。〔履歴 Simulation.cs#206〕
                 {
                     double share = r.Id == 0 ? 1.0 : 0.0;   // 軍需調達は首都州のみ（駐屯州調達の器 GarrisonProcurement は (1132) で消した）
@@ -1840,13 +1838,6 @@ public sealed class Simulation
                         bool publicOn = World.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory && r.TeacherPopIndex >= 0;
                         if (!parishOn) ep.Scale = 0;
                         if (!publicOn) pub.Scale = 0;
-                        else if (World.Coef.TeacherQualityWeight > 0 && r.TeacherPopIndex < r.Pops.Count)
-                        {
-                            // 教師の質（師範学校の効果）＝公立学校側の恒久プロパティ。基底 TeacherEduProductivity から毎月計算し直す（累積乗算にしない）。0 で不読＝構築時の値のまま
-                            var tp = r.Pops[r.TeacherPopIndex];
-                            double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
-                            pub.Productivity = World.Coef.TeacherEduProductivity * (q > 0 ? q : 1.0);
-                        }
                     }
                     else if (World.EducationLaw == EducationLaw.Religious && r.ClergyPopIndex >= 0)
                     {
@@ -1860,13 +1851,6 @@ public sealed class Simulation
                         // 公教育・義務教育：教師が教える。大量に教えられる＝大衆識字が可能（聖職者は収入源を失い没落）。**書籍**を消費（近代の教科書＝紙の一段上）。
                         ep.LaborPopIndex = r.TeacherPopIndex; ep.OwnerPopIndex = r.TeacherPopIndex;
                         ep.Productivity = World.Coef.TeacherEduProductivity;
-                        // 0 で不読（×1.0）〔履歴 Simulation.cs#225〕
-                        if (World.Coef.TeacherQualityWeight > 0 && r.TeacherPopIndex < r.Pops.Count)
-                        {
-                            var tp = r.Pops[r.TeacherPopIndex];
-                            double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
-                            if (q > 0) ep.Productivity *= q;
-                        }
                         if (ep.Inputs.Count > 0) ep.Inputs[0] = new Input(Catalog.BookId, 0.05);   // 書籍（教科書）＝紙の上位投入
                     }
                     else ep.Productivity = 0;   // 学校なし＝教育の供給なし（識字は停滞）
@@ -1962,7 +1946,7 @@ public sealed class Simulation
                 double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
                 // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。〔履歴 Simulation.cs#240〕
                 double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
-                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap, World.Coef.DevaluationCapReliefExp);   // 指数 0 は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式〔履歴 Simulation.cs#241〕
+                double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap);   // 指数 0 は旧の `Math.Min(余地, 貯蓄×上限)` と同じ式〔履歴 Simulation.cs#241〕
                 if (Instruments.On) Instruments.DevCap(World, devalueRoom, devalueCap, devalue);   // 計器（読むだけ）：旧の切りに当たった月
                 if (devalue > 1e-9)
                 {

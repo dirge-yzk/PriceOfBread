@@ -32,7 +32,6 @@ public sealed partial class Coefficients
     public Share FactoryMothballCap = new(0.9);      // 休止できる床の上限割合（×民営持分。国営持分は休止しない＝国庫が支える既存設計の維持）
     public double FoodIncludesAnimalProtein = 0.0;   // 段1b：動物性タンパク（加工肉63/干物64・Nutrition=1）を食料に数え、交差弾力の食卓に参加させ、主食の必要量を AnimalNutritionNeedRatio で譲る（総食料需要は中立）
     public double StapleLedgerSum = 1;               // 食料の台帳を主食の和へ①（事前登録 measurements/fd504_20261023_prereg.txt）
-    public double StapleDemandRebalance = 0;         // 0＝今の挟み（主食の相対価格の倍率を PriceFactorMin／Max で挟む）＝厳密恒等
     public double HarvestShortfallToMarket = 1;      // 凶作で自給が減った分を市場の需要へ③
 
     public double FactoryBuildAfford(double cpuNow, double cpuRef)   // 工場建設の採算：素材束の現在費用÷参照費用の比に対し建設可能率（0 より大きく 1 以下）を滑らかに返す（崖でなく漸減）

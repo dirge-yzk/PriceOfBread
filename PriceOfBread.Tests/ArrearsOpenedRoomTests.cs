@@ -124,7 +124,7 @@ public class ArrearsOpenedRoomTests
 
     /// <summary>不換のフランスで、毎月の月初に国債の平均クーポンを利払いの請求が広義の貨幣の 0.3 倍になる高さへ置き、借入を閉じ、兌換を conv に置いて months か月進める。
     /// 返り値＝不履行の累計・不履行の回数・切り下げの累計の増分。</summary>
-    private static (double arrears, int defaults, double devalued) RunMonths(double flag, double conv, double reliefExp, int months)
+    private static (double arrears, int defaults, double devalued) RunMonths(double flag, double conv, int months)
     {
         var cfg = OpeningFixture.Named("フランス");
         cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
@@ -132,7 +132,6 @@ public class ArrearsOpenedRoomTests
         var w = sim.World;
         Assert.False(w.OnGoldStandard, "前提が崩れた：不換のフランスが金本位");
         w.Coef.ArrearsBeyondOpenedRoom = flag;
-        w.Coef.DevaluationCapReliefExp = reliefExp;
         w.Coef.MaxInterestShareOfRevenue = new Share(0);   // 利払いの上限の門が閉じている＝不履行の累計が数える月
         w.WarmupFrozen = false;
         double d0 = w.CumulativeDevaluation;
@@ -150,8 +149,8 @@ public class ArrearsOpenedRoomTests
     [Fact]
     public void W1_兌換1の不換の月はSimulationを通しても積まない_旗0は積む()
     {
-        var on = RunMonths(1.0, 1.0, 1.0, 3);
-        var off = RunMonths(0.0, 1.0, 1.0, 3);
+        var on = RunMonths(1.0, 1.0, 3);
+        var off = RunMonths(0.0, 1.0, 3);
         Assert.Equal(0.0, off.devalued);   // 前提：兌換 1＝余地 0＝切り下げ 0
         Assert.True(off.arrears > 0 || off.defaults > 0, $"前提が崩れた：旗 0 で赤字の月が累計を積まない（累計 {off.arrears}・不履行 {off.defaults}）");
         Assert.Equal(0.0, on.devalued);
@@ -160,12 +159,12 @@ public class ArrearsOpenedRoomTests
     }
 
     [Fact]
-    public void W2_兌換0で貯蓄の上限に当たる月は旗で変わらない()
+    public void W2_兌換0で切り下げが余地を埋める月は旗に依らず積まない()
     {
-        var on = RunMonths(1.0, 0.0, 0.0, 3);   // 1 か月目は利払いの請求がまだ前の月の高さ＝赤字が立つのは 2 か月目から
-        var off = RunMonths(0.0, 0.0, 0.0, 3);
+        // 旧の W2 は切りが貯蓄の上限に当たる月（旗 DevaluationCapReliefExp 0）を使った＝その旗は 1 に焼いて消えた（(1281)）。今は余地は切り無しで全て埋まる。
+        var on = RunMonths(1.0, 0.0, 3);   // 1 か月目は利払いの請求がまだ前の月の高さ＝赤字が立つのは 2 か月目から
+        var off = RunMonths(0.0, 0.0, 3);
         Assert.True(off.devalued > 0, $"前提が崩れた：兌換 0 の月に切り下げが無い（{off.devalued}）");
-        Assert.True(off.arrears > 0 || off.defaults > 0, $"前提が崩れた：貯蓄の上限で取り切れない月が累計を積まない（{off.arrears}）");
         Assert.Equal(off.defaults, on.defaults);
         Assert.Equal(off.arrears, on.arrears);   // まだ開いていない余地 0＝旧と同じ値
     }

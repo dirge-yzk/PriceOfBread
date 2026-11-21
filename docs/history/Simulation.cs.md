@@ -2361,4 +2361,5 @@
     // 扶養力の床（capacity = Math.Max(baseline * 0.3, capacity)）＝錨の 0.3 倍を割る扶養力を床で持ち上げていた。(1192) c119kf で消した（設計思想⑧＝天井・床で削らない）。
     // 消す前の測り：anchor_s（m1184 の計器つき 10 種・147,395 行・四半期の標本の月だけ）で床が効いた行は 0・扶養力÷(0.3×錨) の最小 1.306（扶養力が 0 か非有限の 39 行は床の外）。
     // 後ろの否定形の門（!(capacity > 1e-9) は NaN も飛ばす側）は残した。番人は CapacityAnchorTests の 扶養力が錨の床を割る盤面では床で持ち上げず生の値に従う。
+// 2026-11-21 (1281) c132kx：旗 TeacherQualityWeight（0 の道）・MilitaryWarMultFromContact（1 の道）・DevaluationCapReliefExp（1 の道）を消した・warExh と mobilize の変数を消した。
 `````

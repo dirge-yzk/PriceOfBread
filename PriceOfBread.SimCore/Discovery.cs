@@ -4,7 +4,7 @@ public enum DiscoveryField { Institution, Idea, Process, Weapon, Product }
 
 public enum WarDomain { None, Land, Sea, Air }
 
-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "", int EngineerParent = -1);
+public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, string After = "");
 
 public static class Discovery
 {
@@ -23,10 +23,10 @@ public static class Discovery
         return 0;
     }
 
-    internal static double ParentEngineers(int row, Producer rp, double[] eng, bool clockParent = false)
+    internal static double ParentEngineers(int row, Producer rp, double[] eng)
     {
         var d = Catalog.Discoveries[row];
-        int g0 = clockParent && d.EngineerParent >= 0 ? d.EngineerParent : d.Replaces >= 0 ? d.Replaces : d.Good;
+        int g0 = d.Replaces >= 0 ? d.Replaces : d.Good;
         double a = g0 >= 0 && g0 < eng.Length ? eng[g0] : 0;
         foreach (var inp in rp.Inputs)
         {
@@ -527,7 +527,7 @@ public static class Discovery
                 wSum += wt; wDom += wt * dom;
             }
             double push = wSum > 0 ? wDom / wSum : 1.0;
-            double aRow = eng is not null ? ParentEngineers(row, rp!, eng, poolOn && c.DiscoveryClockMotorParent > 0) : double.NaN;
+            double aRow = eng is not null ? ParentEngineers(row, rp!, eng) : double.NaN;
             if (engineerOut is not null && row < engineerOut.Length) engineerOut[row] = aRow;
             double tech = poolOn && d.Decade > Catalog.DiscoveryBaseDecade ? TermMax * ClockStage(row, wClock, c) * OwnCapacity(row, aRow, c)
                                                                             : TermMax * (engOn ? EngineerFactor(row, aRow, c) : ratio) * push;

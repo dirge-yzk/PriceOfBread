@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(587) 切り下げ（インフレ税）の月の上限の緩め（旗 DevaluationCapReliefExp・既定 0）の番人＝機構と不変条件だけ。
+/// <summary>★(587) 切り下げ（インフレ税）の月の上限の緩め（旗 DevaluationCapReliefExp は 1 に焼いて消した＝(1281)）の番人＝機構と不変条件だけ。
 /// 作者 2026-10-26「ゲームの制御が簡単なことは重要だが、極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」。事前登録 <c>measurements/hyp587_20261027_prereg.txt</c>。
 /// 既存の <c>PriceLevelCeilFreeTests</c> の増発の番人は <c>FiatInflationPressure</c> を直接書く＝切り下げの道（余地→切り→移し方→圧）を一度も通らない。ここは実際の赤字（国庫の当座借越）で通す。
 /// 期待値は式の外側の性質（旧の切りを超える・余地以下・連続・単調・有限・保存）で書く＝緩めの式を写さない。</summary>
@@ -14,36 +14,31 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     // ---------------- 関数（Fiscal.DevaluationAllowed） ----------------
 
     [Fact]
-    public void 既定の指数は1で_指数0と負と非数は旧の式と同じビットを返す()
+    public void 余地が切り以下か切りが正でない月は旧の式と同じビットを返し_切りを超える余地はそのまま返る()
     {
-        Assert.Equal(1.0, new Coefficients().DevaluationCapReliefExp);   // 2026-10-27 に点火（線 hyp の腕 B）
         double[] rooms = [0, 1e-12, 0.5, 5, 7.3, 1e6, 1e300, double.PositiveInfinity, double.NaN, -3];
         double[] caps = [0, 1e-9, 1, 5, 123.4, 1e9, double.NaN, -2];
-        foreach (double exp in new[] { 0.0, -1.0, double.NaN })
-            foreach (double room in rooms)
-                foreach (double cap in caps)
-                {
-                    double old = Math.Min(room, cap);   // 旧の式（試験側の手書き）
-                    double now = Fiscal.DevaluationAllowed(room, cap, exp);
-                    Assert.True(BitConverter.DoubleToInt64Bits(old) == BitConverter.DoubleToInt64Bits(now), $"指数 {exp}・余地 {room}・切り {cap}：旧 {old} ≠ 今 {now}");
-                }
+        foreach (double room in rooms)
+            foreach (double cap in caps)
+            {
+                bool open = cap > 0 && room > cap;   // 試験側の手書きの条件
+                double want = open ? room : Math.Min(room, cap);
+                double now = Fiscal.DevaluationAllowed(room, cap);
+                Assert.True(BitConverter.DoubleToInt64Bits(want) == BitConverter.DoubleToInt64Bits(now), $"余地 {room}・切り {cap}：期待 {want} ≠ 今 {now}");
+            }
     }
 
-    [Theory]
-    [InlineData(0.25)]
-    [InlineData(0.5)]
-    [InlineData(1.0)]
-    [InlineData(3.0)]
-    public void 緩めても_余地以下で切り以上_切りの所で連続_余地について単調(double exp)
+    [Fact]
+    public void 緩めても_余地以下で切り以上_切りの所で連続_余地について単調()
     {
         const double cap = 5.0;
         foreach (double room in new[] { 0.0, 0.1, 4.999, 5.0 })
-            Assert.Equal(room, Fiscal.DevaluationAllowed(room, cap, exp));   // 余地が切り以下の月はどの指数でも余地そのもの
-        Assert.True(Math.Abs(Fiscal.DevaluationAllowed(cap * (1 + 1e-9), cap, exp) - cap) < 1e-6, "切りの所で連続でない");
+            Assert.Equal(room, Fiscal.DevaluationAllowed(room, cap));   // 余地が切り以下の月は余地そのもの
+        Assert.True(Math.Abs(Fiscal.DevaluationAllowed(cap * (1 + 1e-9), cap) - cap) < 1e-6, "切りの所で連続でない");
         double prev = cap;
         for (double room = cap * 1.0001; room < 1e12; room *= 1.7)
         {
-            double v = Fiscal.DevaluationAllowed(room, cap, exp);
+            double v = Fiscal.DevaluationAllowed(room, cap);
             Assert.True(v >= cap && v <= room, $"余地 {room}：{v} が [切り, 余地] に無い");
             Assert.True(v >= prev, $"余地 {room}：単調でない（{v} < {prev}）");
             prev = v;
@@ -51,27 +46,19 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void 指数1は切り無し_指数0_5は余地より小さく増え続け上限がない()
+    public void 切りを超える余地は切り無しで余地そのもの_上限がない()
     {
         const double cap = 5.0;
-        Assert.Equal(1e9, Fiscal.DevaluationAllowed(1e9, cap, 1.0));   // 切り無し＝余地そのもの
-        double v4 = Fiscal.DevaluationAllowed(1e4, cap, 0.5), v6 = Fiscal.DevaluationAllowed(1e6, cap, 0.5);
-        Assert.True(v4 > cap, "√ でも切りを超えない");
-        Assert.True(v4 < 1e4 && v6 < 1e6, "√ が余地を超える");
-        double ratio = v6 / v4;
-        Assert.True(ratio > 1.0 && ratio < 100.0, $"余地が 100 倍のとき √ の額は増えるが 100 倍より小さいはず（{ratio}）");   // 準線形
-        double huge = Fiscal.DevaluationAllowed(1e200, cap, 0.5);
-        Assert.True(double.IsFinite(huge) && huge > 1e90, $"上限がある（{huge}）");   // 天井が無い
+        Assert.Equal(1e9, Fiscal.DevaluationAllowed(1e9, cap));
+        double huge = Fiscal.DevaluationAllowed(1e200, cap);
+        Assert.True(double.IsFinite(huge) && huge == 1e200, $"余地そのものでない（{huge}）");
     }
 
     [Fact]
-    public void 切りが正でない月は指数が正でも閉じたまま()
+    public void 切りが正でない月は閉じたまま()
     {
-        foreach (double exp in new[] { 0.5, 1.0, 5.0 })
-        {
-            Assert.Equal(0.0, Fiscal.DevaluationAllowed(10, 0, exp));     // 係数 0＝余地を閉じる試験の作法
-            Assert.True(double.IsNaN(Fiscal.DevaluationAllowed(10, double.NaN, exp)));   // 非数はそのまま運ばれ呼び手の `> 1e-9` で落ちる
-        }
+        Assert.Equal(0.0, Fiscal.DevaluationAllowed(10, 0));     // 係数 0＝余地を閉じる試験の作法
+        Assert.True(double.IsNaN(Fiscal.DevaluationAllowed(10, double.NaN)));   // 非数はそのまま運ばれ呼び手の `> 1e-9` で落ちる
     }
 
     // ---------------- 物価の平滑は増発を打ち消さず閾値を作る（事前登録 §4 の確かめ・圧を直接書く） ----------------
@@ -108,13 +95,12 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     /// <summary>不換のフランスで、毎月の月初に国債の平均クーポンを、利払いの請求が広義の貨幣の fMonth 倍になる高さへ置いて赤字を作り（利払いは国内の保有者＝POP へ戻る＝印刷した金は経済へ入る）、
     /// 借入を閉じ、兌換 0 のまま <paramref name="months"/> か月進める。月の切り下げ額は <see cref="World.CumulativeDevaluation"/> の窓（30 日）ごとの差で読む。
     /// ⚠赤字を作る手は〈クーポンを置く〉1つだけ＝国庫から POP へ金を移して借越を作る手は使わない（借越の金が貨幣の厚みに入って切りの有無と無関係に物価を押す）。</summary>
-    private (double[] devPerMonth, double[] savStart, double[] priceEndOfQuarter, bool finiteAll, double maxP, bool defaulted, double[] pressFull, double[] pressIssue) RunDeficit(double relief, double fMonth, int months)
+    private (double[] devPerMonth, double[] savStart, double[] priceEndOfQuarter, bool finiteAll, double maxP, bool defaulted, double[] pressFull, double[] pressIssue) RunDeficit(double fMonth, int months)
     {
         var cfg = OpeningFixture.Named("フランス");
         cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
         var sim = new Simulation(cfg.ToScenario(19), new NullAgent());
         var w = sim.World;
-        w.Coef.DevaluationCapReliefExp = relief;
         Assert.True(w.MonetaryEnabled);
         var mc = new MoneyConservation(w);
         var dev = new double[months]; var sav = new double[months]; var pq = new double[months / 3];
@@ -141,38 +127,21 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void 切りを外すと赤字で切り下げが旧の切りを超え_物価は桁で伸び_下流は有限で貨幣は保存される()
+    public void 切りが外れた赤字では切り下げが旧の切りを超え_物価は桁で伸び_下流は有限で貨幣は保存される()
     {
         const int months = 72;      // 24 四半期
         const double fMonth = 0.3;  // 月に広義の貨幣の 30%（閾値の月 18.5% の上・基線の最大 3.6% の約 8 倍）の赤字
-        var off = RunDeficit(0, fMonth, months);
-        var on = RunDeficit(1, fMonth, months);
+        var on = RunDeficit(fMonth, months);
         double capFrac = new Coefficients().DevaluationCapFracPerMonth.Value;
-        // H1 切りが外れた：指数 0 は毎月の切り下げが貯蓄×上限割合（5% の揺れ込み）以下・指数 1 は後半 12 か月のうち 6 か月以上が切りの 1.5 倍を超える
-        for (int m = 0; m < months; m++)
-            Assert.True(off.devPerMonth[m] <= capFrac * off.savStart[m] * 1.05, $"指数 0：{m} か月目の切り下げ {off.devPerMonth[m]:F1} が切り {capFrac * off.savStart[m]:F1} を超えた");
-        int bound = 0; for (int m = 0; m < months; m++) if (off.devPerMonth[m] >= 0.9 * capFrac * off.savStart[m]) bound++;
-        Assert.True(bound >= 3, $"指数 0 で切りに当たった月が {bound}＝この盤面は切りを試していない");
+        // H1 切りが外れた：後半 12 か月のうち 6 か月以上が切りの 1.5 倍を超える
         int over = 0; for (int m = months - 12; m < months; m++) if (on.devPerMonth[m] > 1.5 * capFrac * on.savStart[m]) over++;
-        Assert.True(over >= 6, $"指数 1：後半 12 か月のうち切りの 1.5 倍を超えた月が {over}");
-        // H2 ハイパーインフレに届く：24 四半期後の P が 100 を超え、指数 0 の 10 倍以上
-        double pOn = on.priceEndOfQuarter[^1], pOff = off.priceEndOfQuarter[^1];
-        Assert.True(pOn > 50.0, $"指数 1 の P が桁で伸びない（{pOn}）");   // ★(687) 100→50（UrbanCapOff の点火で 24 四半期後の P が 96.97＝この盤面の軌道が動いた・下の 10 倍以上の比と有限の番人は変えない）。★(694) 合流（反証役 urb2〔bv〕中〜高）：これは結果を見た後に閾値を**緩めた**＝機構の番人は 10 倍の比の方（00一覧 §0-2 ★(694) で作者に知らせた）
-        Assert.True(pOn >= 10.0 * pOff, $"指数 1 の P {pOn} が指数 0 の P {pOff} の 10 倍に届かない");
-        Assert.True(off.maxP < 5.0, $"指数 0 の P が頭打ちにならない（最大 {off.maxP}）");
+        Assert.True(over >= 6, $"後半 12 か月のうち切りの 1.5 倍を超えた月が {over}");
+        // H2 ハイパーインフレに届く：24 四半期後の P が 50 を超える
+        double pOn = on.priceEndOfQuarter[^1];
+        Assert.True(pOn > 50.0, $"P が桁で伸びない（{pOn}）");
         // H3 下流が有限（保存は盤面の中で四半期ごとに Check 済み）
-        Assert.True(off.finiteAll && on.finiteAll, "物価・期待インフレ・国債金利・政策金利・国庫・為替のどれかが有限でない");
-        output.WriteLine($"P(q24)：指数0={pOff:F2}・指数1={pOn:E3}／切り下げ後半12か月の中央 指数0={Median(off.devPerMonth[^12..]):E2}・指数1={Median(on.devPerMonth[^12..]):E2}／切り超え月={over}／切りに当たった月（指数0）={bound}／債務不履行 指数0={off.defaulted}・指数1={on.defaulted}");
-    }
-
-    [Fact]
-    public void 指数0_5の平方根で緩めた盤面の物価の経路を記録する()
-    {
-        // 事前登録 §3-2・§6 H6：採否に使わない記録。√（指数 0.5）で同じ赤字の盤面を通した P の経路。
-        const int months = 72;
-        var half = RunDeficit(0.5, 0.3, months);
-        Assert.True(half.finiteAll, "√ の盤面で下流が有限でない");
-        output.WriteLine($"√（指数0.5）・月に広義の貨幣の30%の赤字：P(q24)={half.priceEndOfQuarter[^1]:E3}・最大P={half.maxP:E3}・債務不履行={half.defaulted}");
+        Assert.True(on.finiteAll, "物価・期待インフレ・国債金利・政策金利・国庫・為替のどれかが有限でない");
+        output.WriteLine($"P(q24)={pOn:E3}／切り下げ後半12か月の中央={Median(on.devPerMonth[^12..]):E2}／切り超え月={over}");
     }
 
     [Fact]
@@ -181,8 +150,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
         // 事前登録 追記4：採否に使わない記録（反証役の指摘）。①H2 の盤面の四半期ごとの圧（全体＝haircut＋発行／発行分だけ）を同じ漸化式（RunPressure と同じ UpdatePriceLevel）へ流した P の経路。
         // ②指数 0 が切りに当たってから債務不履行までの区間で、指数 1 が同じ月数に切り下げた額の比（債務不履行の前の同じ月数の区間での比較＝債務不履行による打ち切りを除く）。
         const int months = 72;
-        var on = RunDeficit(1, 0.3, months);
-        var off = RunDeficit(0, 0.3, months);
+        var on = RunDeficit(0.3, months);
         double Series(double[] f)
         {
             var w = BuildBritain();
@@ -192,11 +160,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
         double full = Series(on.pressFull), issue = Series(on.pressIssue);
         double maxFull = on.pressFull.Max(), maxIssue = on.pressIssue.Max();
         Assert.True(double.IsFinite(full) && double.IsFinite(issue));
-        // 区間：指数 0 の切り下げが最初に 0 になった月（債務不履行で赤字ごと消えた月）まで
-        int first = Array.FindIndex(off.devPerMonth, x => x > 0.0); int cut = first < 0 ? months : Array.FindIndex(off.devPerMonth, first, x => x <= 0.0); if (cut < 0) cut = months;
-        double sumOff = 0, sumOn = 0; for (int m = 0; m < cut; m++) { sumOff += off.devPerMonth[m]; sumOn += on.devPerMonth[m]; }
         output.WriteLine($"圧の経路を流した P(q24)：全体の圧（haircut＋発行）={full:E3}／発行分だけの圧={issue:E3}／四半期の圧の最大 全体={maxFull:F3}・発行分={maxIssue:F3}（閾値 5/9=0.556）");
-        output.WriteLine($"指数 0 が債務不履行へ落ちるまでの {cut} か月の切り下げの合計：指数 0={sumOff:E3}・指数 1={sumOn:E3}・比={(sumOff > 0 ? sumOn / sumOff : double.NaN):F2}");
     }
 
     private static double Median(double[] a) { var b = (double[])a.Clone(); Array.Sort(b); return b[b.Length / 2]; }
@@ -221,9 +185,8 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
     // ---------------- 計器 devcap_s（全ての国・まばら） ----------------
 
     [Fact]
-    public void 計器devcapは旧の切りに当たった月を全ての国から出し_指数0は切りで止まり_指数1は切りを超える()
+    public void 計器devcapは旧の切りに当たった月を全ての国から出し_切り下げは切りを超える()
     {
-        foreach (double relief in new[] { 0.0, 1.0 })
         {
             string dir = Path.Combine(Path.GetTempPath(), "pob_devcap_" + Guid.NewGuid().ToString("N"));
             try
@@ -239,7 +202,6 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
                     // 挙げていない国（イギリスの外）の不換の1国を選び、その国庫を当座借越にして切り下げの余地を作る
                     var target = sim.Nations.First(n => NameOf(n) != "イギリス" && n.World.MonetaryEnabled && n.World.FiscalEnabled);
                     var tw = target.World;
-                    tw.Coef.DevaluationCapReliefExp = relief;
                     tw.OnGoldStandard = false; tw.Convertibility = 0;
                     var pop = tw.Regions[0].Pops[0];
                     World.Transfer((tw, null), (tw, [pop], [1.0]), 0.3 * tw.BroadMoney.Value, TreasuryCat.OtherOut);
@@ -256,8 +218,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
                 double P(string s) => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture);
                 Assert.All(mine, r => Assert.True(P(r[iRoom]) > P(r[iCap]), "room が cap 以下の月が出た"));
                 var first = mine[0];
-                if (relief == 0.0) Assert.True(Math.Abs(P(first[iDev]) - P(first[iCap])) <= 1e-9 * P(first[iCap]), "指数 0 の切り下げが切りで止まっていない");
-                else Assert.True(P(first[iDev]) > 1.5 * P(first[iCap]), "指数 1 の切り下げが切りを超えていない");
+                Assert.True(P(first[iDev]) > 1.5 * P(first[iCap]), "切り下げが切りを超えていない");
             }
             finally { try { Directory.Delete(dir, true); } catch { } }
         }

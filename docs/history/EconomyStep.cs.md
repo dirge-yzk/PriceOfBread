@@ -2448,4 +2448,5 @@
 ## §380　形=trail　元の行=3259-3259　次のメンバー=ElecLaborSave
 `````text
 // 電化＋工業化由来の機械化で労働投入↓。LaborSaveRate=0で第2因子=1.0＝恒等。機械化度は所属州の量（旧 Producer.Mechanization の写しは2026-09-11に削除＝home は生産者の所属州を渡す）
+// 2026-11-21 (1281) c132kx：旗 EduReachFromAdmin・SubsistenceNoBoughtTech・StapleDemandRebalance を消した（0 の道だけ残す・fdRebalance・PopNorm・StapleIds・StapleE も消した）。
 `````

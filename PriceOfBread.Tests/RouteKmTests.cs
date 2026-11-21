@@ -160,7 +160,7 @@ public class RouteKmTests
             Instruments.Phase(sim, 1789UL, "open");
             sim.StartWarmup();
             Instruments.Phase(sim, 1789UL, "warm");
-            // (880) 盤面の四半期の数 40→60（Assert の式とリテラルは不変）＝旗 0・ImportPayerLive＝1・SubsistenceNoBoughtTech＝1 の 3 つで xmig_s の行が 20 以上になる {40,60,80} の最小（事前登録 measurements/m880_20261106_prereg_id.txt [5]・数は measurements/m880_20261106/routekm880.txt）
+            // (880) 盤面の四半期の数 40→60（Assert の式とリテラルは不変）＝旗 0・ImportPayerLive＝1（(1281) で旧の旗 SubsistenceNoBoughtTech は消した）の盤面で xmig_s の行が 20 以上になる {40,60,80} の最小（事前登録 measurements/m880_20261106_prereg_id.txt [5]・数は measurements/m880_20261106/routekm880.txt）
             // ★(1277) c131pf 試験だけの直し（㊴・区分＝軌道に依る前提・(1181) の PlaceWar と同じ型）：越境の移民を試験の中で置く（4 四半期おきに 仏→普・普→英・墺→仏 の順で労働者の 1%）＝旗 CapSkipSellerPotential 1 の木で 60 四半期の自然の越境が対照に届かなかった（種 1789〜1792）。突き合わせと対照の Assert の文と閾値は変えない。
             int placed = 0;
             try { for (int q = 0; q < 60; q++) { sim.StepQuarter(); if (q % 4 == 0 && PlaceCrossBorder(sim, q / 4 % 3)) placed++; Instruments.Quarter(sim, 1789UL, q); } }

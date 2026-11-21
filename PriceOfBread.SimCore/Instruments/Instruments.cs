@@ -854,7 +854,7 @@ public static partial class Instruments
     {
         if (!(cap > 0) || !(room > cap)) return;
         var st = S(w);
-        st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" + st.PcWarmN : "q" + st.PcGameN), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(w.Coef.DevaluationCapReliefExp)));
+        st.DcRows.Add(string.Join('\t', (w.WarmupFrozen ? "w" + st.PcWarmN : "q" + st.PcGameN), NameOf(w), F(w.Year), F(room), F(cap), F(devalued), F(room / cap), F(1.0)));
     }
     /// <summary>
     /// 〔履歴 Instruments.cs#145〕
