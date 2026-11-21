@@ -1,0 +1,154 @@
+./CapitalMarket.cs:206:        => !p.IsSoldier && p.IsModernElite;
+./Coefficients.p10_ai_silver_overrides.cs:66:    public double ParliamentStreetSupersede = 0.5;   // 未代表（小営業・軍・国庫）は街頭のまま
+./Colonial.cs:56:                    foreach (var pop in w.AllPops()) if (Politics.IsMassPop(pop)) pop.Militancy = Math.Min(1, pop.Militancy + homePressure);
+./Diplomacy.cs:2485:        foreach (var pop in w.AllPops()) { if (pop.IsSoldier) soldierPop += pop.Size; else if (pop.Closed) nobPop += pop.Size; }
+./Diplomacy.cs:2505:        foreach (var pop in w.AllPops()) { if (pop.IsSoldier) soldiers.Add(pop); else if (pop.Closed) officers.Add(pop); }
+./EconomyStep.cs:1253:                    if (bloc != f.Bloc || ideo != f.Ideo) continue;
+./EconomyStep.cs:2823:    internal static int ServiceRank(Pop p) => Politics.IsMassPop(p) ? 0 : p.IsModernElite ? 1 : 2;
+./Factions.cs:35:        var consciousnessByBloc = new double?[PolicyPreferences.BlocCount];
+./Factions.cs:40:            foreach (var f in w.Factions) if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo) { st = f; break; }
+./Factions.cs:73:                if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo && size >= FactionSnapshot.MinSizeFraction * totalPop) { seen = true; break; }
+./Factions.cs:83:            ordered.Sort((a, b) => a.Region.Name != b.Region.Name ? string.CompareOrdinal(a.Region.Name, b.Region.Name) : a.Bloc != b.Bloc ? a.Bloc.CompareTo(b.Bloc) : a.Ideo.CompareTo(b.Ideo));
+./Factions.cs:89:                    if (a.Bloc != b.Bloc || a.Ideo != b.Ideo || a.Mutated != b.Mutated || ReferenceEquals(a.Region, b.Region)) continue;
+./Factions.cs:105:        f.Mutated ? f.MutantName : $"{f.Region.Name}の{FactionSnapshot.IdeologyJa((Ideology)f.Ideo)}{FactionSnapshot.BlocJa(f.Bloc)}";
+./Factions.cs:112:            int b = PolicyPreferences.BlocOf(p);
+./FactionSnapshot.cs:47:            result.Add((reg, key.Bloc, key.Ideo, size, milSum));
+./FactionSnapshot.cs:63:        => Politics.Discontent(w, w.Coef, p, coord, lawGap.Length > 0 ? lawGap[PolicyPreferences.BlocOf(p)] : 0);
+./FactionSnapshot.cs:74:        => (PolicyPreferences.BlocOf(p), ArgMax(p.IdeologyShares));
+./FactionSnapshot.cs:83:        var demandsByBloc = new List<Demand>?[PolicyPreferences.BlocCount];
+./Fiscal.cs:255:            foreach (var p in pops) if (!p.Closed && !p.IsModernElite) masses.Add(p);
+./Fiscal.cs:432:        if (progressiveRate > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
+./Fiscal.cs:434:        if (pollRate > 1e-9 && p.IsCommoner)
+./Fiscal.cs:450:        => Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? (titheRate * p.LastEarnedPerMonth).Value : 0;
+./Ideology.cs:43:                double gate = (p.Closed || p.IsSoldier) ? 1.0 : PoliticalQuantities.Clamp01(1.0 - cons);
+./Ideology.cs:69:                double royalSupply = p.Closed ? royalPrivilege : (p.IsModernElite ? royalPatronage : 0);
+./Ideology.cs:149:        if (p.Closed)
+./Ideology.cs:166:            r[2] = (p.IsModernElite ? 3.0 : 1.0) + 3 * rich * (1 - rentier);
+./Ideology.cs:167:            r[3] = p.IsModernElite ? 2.0 : 1.0;
+./Ideology.cs:171:            r[8] = (p.IsModernElite ? 1.0 : 0) + rich * (1 - rentier);
+./Instruments/Instruments.cs:1146:        StartGates.GetValue(p, _ => new GateAtStart()).Closed = closed;
+./Instruments/Instruments.cs:1221:        if (StartGates.TryGetValue(p, out var g) && g.Closed) st.FacDoneClosedAtStart++;
+./Instruments/InstrumentsBasisx.cs:77:    static double BxPb(Pop p, double deg) => p.IsCriminal ? 0.0 : (p.Closed && !p.IsSoldier ? 1.0 - deg : 1.0);
+./Instruments/InstrumentsCearn.cs:300:            if (pollOn && p.IsCommoner && !p.IsCriminal) poll += c.PollTaxRate * w.PollTax * p.Size;   // 査定の全額（届く割合と払える割合を掛けない）
+./Instruments/InstrumentsCearn.cs:468:    internal static int CgGroupOf(Pop p) => p.IsSoldier ? 3 : p.Closed ? 2 : p.IsModernElite ? 1 : 0;
+./Instruments/InstrumentsCearn.cs:735:    internal static double CgPollClaim(Pop p, double rate, double level) => level > 1e-9 && !p.Closed && !p.IsSoldier && p.ClassId != PopClass.Criminal ? rate * level * p.Size : 0;
+./Instruments/InstrumentsCenter.cs:80:            if (unionMob > 0 && Politics.IsMassPop(p)) reform += p.Size * p.Consciousness * unionMob;
+./Instruments/InstrumentsCenter.cs:89:            if (p.Closed) mClosed += refOut; else if (p.IsModernElite) mElite += refOut; else mMass += refOut;
+./Instruments/InstrumentsCornint.cs:10:    /// <summary>ブロックの添字（純関数）：0 旧支配層（Closed）・1 近代エリート・2 大衆。PolicyPreferences.BlocOf と同じ三項式を計器が自分で書く。</summary>
+./Instruments/InstrumentsCornint.cs:11:    internal static int CnBloc(Pop p) => p.Closed ? 0 : p.IsModernElite ? 1 : 2;
+./Instruments/InstrumentsDiscontent.cs:40:                double bgap = gap.Length > 0 ? gap[PolicyPreferences.BlocOf(p)] : 0;
+./Instruments/InstrumentsDiscontent.cs:42:                if (Politics.IsMassPop(p))
+./Instruments/InstrumentsFm.cs:51:        double street = c.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && PolicyPreferences.HasLegislature(w.Polity)
+./Instruments/InstrumentsFm.cs:52:            ? 1.0 - PoliticalQuantities.Clamp01(c.ParliamentStreetSupersede) : 1.0;
+./Instruments/InstrumentsLandbase.cs:128:                    rBloc[p.Closed ? 0 : p.IsModernElite ? 1 : 2] += rent; regBase += rent;
+./Instruments/InstrumentsLandbase.cs:131:                    double privBase = p.Closed && !p.IsSoldier ? 1.0 - deg : 1.0;
+./Instruments/InstrumentsLandbase.cs:140:                    if (pollLevel > 1e-9 && p.IsCommoner) cl += c.PollTaxRate * pollLevel * p.Size;
+./Instruments/InstrumentsLandbase.cs:142:                    if (tithe && p.IsCommoner && !p.IsModernElite && p.LastEarnedPerMonth.Value > 0) cl += titheRate * p.LastEarnedPerMonth.Value;
+./Instruments/InstrumentsLandbase.cs:336:                double privBase = p.Closed && !p.IsSoldier ? 1.0 - deg : 1.0;
+./Instruments/InstrumentsLandsale.cs:117:        double PB(Pop p) => p.Closed && !p.IsSoldier ? 1.0 - exemptDeg : 1.0;
+./Instruments/InstrumentsLandsale.cs:143:                if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier) kProg = w.ProgressiveTax * earned * consent;
+./Instruments/InstrumentsLandsale.cs:144:                if (w.PollTax > 1e-9 && p.IsCommoner) kPoll = c.PollTaxRate * w.PollTax * p.Size;
+./Instruments/InstrumentsLandsale.cs:150:                double tithe = clergy && Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? titheRate * p.LastEarnedPerMonth.Value : 0;
+./Instruments/InstrumentsLandsale.cs:280:        foreach (var j in buyers) { var q = r.Pops[j]; double sj = System.Math.Max(0, q.Savings.Value); sumS += sj; sumSpb += sj * (q.Closed && !q.IsSoldier ? 1.0 - a.ExemptDeg : 1.0); }
+./Instruments/InstrumentsLordstat.cs:72:                    if (!p.IsCriminal && p.IsCommoner && !p.IsModernElite && p.LastEarnedPerMonth.Value > 0) tithBase += p.LastEarnedPerMonth.Value;
+./Instruments/InstrumentsPopPref.cs:24:            if (p.IsCommoner) tp += p.Size;
+./Instruments/InstrumentsPopPref.cs:31:        double[,] old = new double[nA, PolicyPreferences.BlocCount]; bool haveOld = w.PopSums is null;
+./Instruments/InstrumentsPopPref.cs:35:            for (int a = 0; a < nA; a++) for (int b = 0; b < PolicyPreferences.BlocCount; b++) old[a, b] = PolicyPreferences.Pref(PopPreference.Axes[a], b, prof, w);
+./Instruments/InstrumentsPopPref.cs:50:                p.IsCommoner && tp > 0 ? p.Size / tp : 0.0, p.Size / tsz,
+./Instruments/InstrumentsPopPref.cs:52:            int b = PolicyPreferences.BlocOf(p);
+./Instruments/InstrumentsPrdf.cs:50:            if (f.Ideo == com && bodyCom.Contains((f.Region.Id, f.Bloc)) && f.Cohesion > maxCoh) maxCoh = f.Cohesion;
+./Instruments/InstrumentsPrds.cs:48:        foreach (var (key, v) in cell) { if (v >= thr) nBody++; if (v > max) { max = v; topReg = key.Region; topBloc = key.Bloc; } }   // 同点＝挿入順で先のセル
+./Instruments/InstrumentsPrds.cs:120:            if (part > 0) a.Cells.Add(new PrdsCell(p, PolicyPreferences.BlocOf(p), part, realAxis, shadowAxis));
+./Instruments/InstrumentsPrds.cs:150:            realItems.Add((rid, c.Bloc, c.RealAxis, sz));
+./Instruments/InstrumentsPrds.cs:151:            shadowItems.Add((rid, c.Bloc, c.ShadowAxis, sz));
+./Instruments/InstrumentsRule.cs:26:        foreach (var p in r.Pops) if (p.IsCommoner) { mil += p.Militancy * p.Size; size += p.Size; }
+./Instruments/InstrumentsSb.cs:93:                if (p.Closed) closedE += p.EarnedPerMonth.Value;
+./Instruments/InstrumentsSb.cs:98:                    if (!p.IsUrban && PolicyPreferences.BlocOf(p) == 2) { massE += p.EarnedPerMonth.Value; massSize += p.Size; }
+./Instruments/InstrumentsSecession.cs:20:        foreach (var p in r.Pops) if (p.IsCommoner) { mil += p.Militancy * p.Size; size += p.Size; }
+./Instruments/InstrumentsSecession.cs:59:            foreach (var p in rr.Pops) if (p.IsCommoner) { mi += p.Militancy * p.Size; si += p.Size; }
+./Instruments/InstrumentsSubst.cs:76:                        if (pollLevel > 1e-9 && !p.Closed && !p.IsSoldier && p.ClassId != PopClass.Criminal) poll += c.PollTaxRate * pollLevel * p.Size;
+./InterestGroups.cs:12:            if (p.Closed) trad += pw;
+./InterestGroups.cs:13:            else if (p.IsModernElite) modern += pw;
+./InterestGroups.cs:40:            + (p.Closed && w.Coef.LandedPowerCapitalization > 0 ? w.Coef.LandedPowerCapitalization * Math.Max(0, p.LandRentPerMonth.Value) : 0);
+./InterestGroups.cs:67:        => p.Closed ? closedMul
+./InterestGroups.cs:72:        double gate = p.Closed ? 1.0
+./InterestGroups.cs:73:                    : p.IsModernElite ? (s >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
+./Meritocracy.cs:24:                total += p.Size; totalSav += Math.Max(0, p.Savings.Value); if (p.IsModernElite) modern += p.Size;
+./Meritocracy.cs:52:            foreach (var p in r.Pops) if (p.IsModernElite) { he += p.EducationFill * p.Size; hw += p.Size; }
+./Meritocracy.cs:132:                    if (p.Closed || p.Size <= Eps) continue;
+./Meritocracy.cs:162:                            foreach (var pp in r.Pops) if (pp.IsCommoner && pp.ClassId == PopClass.Worker) { dest = pp; break; }
+./Meritocracy.cs:209:                    bool upper = p.Closed || isCapitalist;
+./Meritocracy.cs:291:        if (p.Closed || i == r.InvestorPopIndex) return 2;
+./Meritocracy.cs:319:                    if (ReferenceEquals(t, src) || t.Closed || t.IsSoldier || t.Size <= Eps) continue;
+./Meritocracy.cs:341:            if (ReferenceEquals(t, src) || t.Closed || (!(t.Size > Eps) && !(emptySeat && t.IsSoldier))) continue;
+./Model.cs:106:    public bool IsModernElite;
+./Model.cs:108:    public bool IsCommoner => !Closed && !IsSoldier;
+./MultiNationSim.cs:1398:                ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac.Value,
+./Parliament.cs:224:        double voice = f.Bloc == 0 ? 1.0
+./Parliament.cs:225:                     : f.Bloc == 1 ? (w.Suffrage >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
+./Parliament.cs:314:        foreach (var d in FactionSnapshot.ComputeDemands(w, f.Bloc, lawsOnly: true)) TargetDemand(w, d.Axis, d.Increase);
+./PlayText.cs:101:        => (p.Closed || p.ClassName == CapitalistClass) ? 0 : (p.IsModernElite || p.ClassName is BureaucratClass or ArtisanClass or MerchantClass) ? 1 : 2;
+./PolicyPreferences.cs:42:    internal const int BlocCount = 3;
+./PolicyPreferences.cs:65:        foreach (var p in w.AllPops()) if (p.IsCommoner) { u += p.UnemploymentRate.Value * p.Size; size += p.Size; }
+./PolicyPreferences.cs:69:    internal static int BlocOf(Pop p) => p.Closed ? 0 : p.IsModernElite ? 1 : 2;
+./PolicyPreferences.cs:83:        for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;
+./PolicyPreferences.cs:106:        internal double[] Wealth = new double[BlocCount], Rent = new double[BlocCount], Income = new double[BlocCount], Poll = new double[BlocCount];
+./PolicyPreferences.cs:107:        internal double[] Old = new double[BlocCount], BlocPop = new double[BlocCount];
+./PolicyPreferences.cs:108:        internal double[] LandBase = new double[BlocCount];
+./PolicyPreferences.cs:123:            for (int i = 0; i < BlocCount; i++)
+./PolicyPreferences.cs:138:            int b = BlocOf(p);
+./PolicyPreferences.cs:145:            if (p.IsCommoner) { o.Poll[b] += p.Size; o.Tp += p.Size; }
+./PolicyPreferences.cs:188:    { if (total > 1e-9) for (int i = 0; i < BlocCount; i++) a[i] /= total; }
+./PolicyPreferences.cs:340:        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Pref(a, party, e, w, sign > 0) * sign;
+./PolicyPreferences.cs:348:        for (int b = 0; b < BlocCount; b++)
+./PolicyPreferences.cs:354:            for (int party = 0; party < BlocCount; party++)
+./PolicyPreferences.cs:422:        var list = new List<(string, double)>(BlocCount + 3);
+./PolicyPreferences.cs:423:        double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
+./PolicyPreferences.cs:424:            ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
+./PolicyPreferences.cs:425:        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w, increasing) * sign));
+./PolicyPreferences.cs:429:            for (int party = 0; party < BlocCount; party++)
+./PolicyPreferences.cs:449:        double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
+./PolicyPreferences.cs:450:            ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
+./PolicyPreferences.cs:451:        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w, increasing) * sign;
+./PolicyPreferences.cs:462:        double[] gap = new double[BlocCount], wsum = new double[BlocCount];
+./PolicyPreferences.cs:466:            for (int b = 0; b < BlocCount; b++)
+./PolicyPreferences.cs:475:        for (int b = 0; b < BlocCount; b++)
+./Politics.cs:132:                    foreach (var p in r.Pops) if (p.IsCommoner) p.Militancy *= c.ReformMilitancyRelief;
+./Politics.cs:313:            if (unionMob > 0 && IsMassPop(p))
+./Politics.cs:549:                int pb = PolicyPreferences.BlocOf(p);
+./Politics.cs:550:                if (pb != best.Bloc) continue;
+./Politics.cs:617:        var d = FactionSnapshot.ComputeDemands(w, f.Bloc, lawsOnly: true);
+./Politics.cs:646:        double voice = f.Bloc == 0 ? 1.0
+./Politics.cs:647:                     : f.Bloc == 1 ? (w.Suffrage >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
+./Politics.cs:680:            int pb = PolicyPreferences.BlocOf(p);
+./Politics.cs:681:            if (pb >= 2 || pb == f.Bloc || p.IsSoldier) continue;
+./Politics.cs:687:            if (b == f.Bloc || size[b] <= 1e-9) continue;
+./Politics.cs:708:        var demands = FactionSnapshot.ComputeDemands(w, f.Bloc);
+./Politics.cs:716:        foreach (var p in f.Region.Pops) if (p.IsCommoner) p.Militancy *= c.ReformMilitancyRelief;
+./Politics.cs:831:                dead = w.KillPops(worst.Pops.FindAll(p => p.IsCommoner), null, dead, violent: true);
+./Politics.cs:1021:        foreach (var p in r.Pops) if (p.IsCommoner) { mil += p.Militancy * p.Size; size += p.Size; }
+./Politics.cs:1027:        double crowd = 0; foreach (var p in r.Pops) if (p.IsCommoner) crowd += p.Size;
+./Politics.cs:1171:    internal static bool IsMassPop(Pop p) => p.IsCommoner && !p.IsModernElite;
+./Politics.cs:1177:            if (IsMassPop(p)) { mil += p.Militancy * p.Size; size += p.Size; }
+./Politics.cs:1188:            if (IsMassPop(p)) { dis += Discontent(w, c, p, coord, gap.Length > 0 ? gap[PolicyPreferences.BlocOf(p)] : 0) * p.Size; size += p.Size; }
+./Politics.cs:1201:            bool deposed = (depTrad && p.Closed)
+./Politics.cs:1202:                        || (depModern && p.IsModernElite)
+./Politics.cs:1203:                        || (depMass && IsMassPop(p));
+./Politics.cs:1220:            foreach (var p in w.AllPops()) if (IsMassPop(p)) { masses.Add(p); ms += p.Size; }
+./PopDecision.cs:12:            if (p.Closed || p.IsCriminal) continue;
+./Privileges.cs:71:        => p.Closed && !p.IsSoldier ? 1.0 - TaxExemptionDegree(w, c, crownShare) : 1.0;
+./SelfPlay.cs:161:        foreach (var p in w.AllPops()) if (Politics.IsMassPop(p)) { s += p.Satisfaction * p.Size; n += p.Size; }
+./SelfPlay.cs:527:            if (w.ImmigrationRestriction != ImmigrationLaw.Closed
+./SelfPlay.cs:532:            StepLawToward(w, p, PolicyAxis.ImmigrationRestriction, (int)p.ImmigrationRestriction, immWant, (int)ImmigrationLaw.Closed,
+./Simulation.cs:206:                if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
+./Simulation.cs:499:        var bourgeois    = new Pop { ClassId = 3, ClassName = "資本家",     IsUrban = true,  Size = 2500,  Savings = new MoneyStock(8_000_000), Satisfaction = 1.0, Literacy = 0.80, IsModernElite = true };   // 深い連鎖の投資元手（§8較正までのバッファ）
+./Simulation.cs:500:        var engineer     = new Pop { ClassId = 4, ClassName = "技師",       IsUrban = true,  Size = 520,   Savings = new MoneyStock(416_000),   Satisfaction = 1.0, Literacy = 0.85, IsModernElite = true };  // 工場の生産性（近代エリート）
+./Simulation.cs:501:        var teacher      = new Pop { ClassId = 7, ClassName = "教師",       IsUrban = true,  Size = 112,   Savings = new MoneyStock(89_600),    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 公教育の教育を算出
+./Simulation.cs:502:        var bureaucrat   = new Pop { ClassId = 8, ClassName = "官僚",       IsUrban = true,  Size = 98,    Savings = new MoneyStock(78_400),    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 行政を算出
+./Simulation.cs:503:        var doctor       = new Pop { ClassId = 9, ClassName = "医者",       IsUrban = true,  Size = 70,    Savings = new MoneyStock(56_000),    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 医療を算出
+./Simulation.cs:504:        var merchant     = new Pop { ClassId = 10, ClassName = "商人",      IsUrban = true,  Size = 500,   Savings = new MoneyStock(750_000),   Satisfaction = 1.0, Literacy = 0.70, IsModernElite = true };  // 流通マージン＋貿易の仲立ち
+./Simulation.cs:1266:        => new() { ClassId = id, ClassName = name, IsUrban = urban, Size = size, Savings = new MoneyStock(size * wealthPer), Satisfaction = 1.0, Literacy = lit, Closed = closed, IsModernElite = modern, SubsistenceBasis = subs };
+./Territory.cs:79:            if (sp.IsCommoner && (dstClasses >> sp.ClassId & 1) != 0) m += sp.Size;
+./Territory.cs:137:            if (sp.Closed || sp.IsSoldier || sp.IsCriminal) continue;
+./UnionBargaining.cs:26:            if (ReferenceEquals(f.Region, r) && f.Bloc == 2) num += f.Size * f.Cohesion;
+./UnionBargaining.cs:30:            if (PolicyPreferences.BlocOf(p) == 2) { den += p.Size; if (ins) { massN += p.Size; if (p.IsUrban) urbanMass += p.Size; } }

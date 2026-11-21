@@ -1,0 +1,12 @@
+381c6980515a4b1f95e7085a9c4d43649e670e3a *tables/b2_bloc.tsv
+4076607599629510deb62f5a607e2224cf947be6 *tables/b2_counts.txt
+57dec43df08f77c0410aeab48b1bb547c444c728 *tables/b2_parl.tsv
+c514ea8783e84646d7b6f8ee8ee4a2679ce5b247 *tables/b2_seats.tsv
+db9e4bcfa10bfad90c3b88e7558a4c20c32fd40c *tables/b2_selfcheck.tsv
+8a6b428159bae7d9c87a97b6ccf59d60488d1970 *readers_raw.txt
+dbf884e40ea5c023961f58af1facf05bac347bfc *scripts/instruments/r1280/b2shadow.py
+5f55be3f0b09cb121018e4bbd46fa79fe4d29ec7 *patch/crown_s12.diff
+844e9e697dcea7818be2d6788db55f614715af17 *patch/mkpatch.py
+bee100df0a189c255f46bc237b334c7ab52f3ec5 *patch/new.md
+d90a762234c09bcbab15c2c0a21eed964178a35f *material.md
+c8f5bfe46279c7065ed251c7d14e89e8a468ab6a *draft.md

@@ -1,0 +1,4 @@
+nationQuarters_A=10413
+blocRows=31218
+parlRows(legislature,seats>0)=19260
+Brows=10413
