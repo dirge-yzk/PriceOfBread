@@ -107,9 +107,6 @@ public class DiscontentReaderTests
         }
         Assert.True(hi > 0 && mid > 0 && lo > 0);
         static double Total(World w2) { double s = 0; foreach (var cl in FactionSnapshot.ComputeClusters(w2)) s += cl.Size; return s; }
-        w.Coef.ParticipationDiscontent = 0;
-        Assert.Equal(hi, Total(w), 6);
-        w.Coef.ParticipationDiscontent = 1.0;
         Assert.Equal(0.8 * hi + 0.5 * mid + 0.2 * lo, Total(w), 6);
     }
 
@@ -123,10 +120,6 @@ public class DiscontentReaderTests
         var w = Board(drop: 0.0);
         int expect = ActivePops(w).Count();
         long b0 = w.Cost[CostLedger.ParticipationPops];   // 盤面を作る Run の中の思想の更新が載せた分（2026-10-19 (431)：思想の入力は常に不満度を問う）からの差分で見る
-        w.Coef.ParticipationDiscontent = 0;
-        FactionSnapshot.ComputeClusters(w, countCost: true);
-        Assert.Equal(b0, w.Cost[CostLedger.ParticipationPops]);   // 参加の述語の旗 0＝この呼びは件数を足さない（推定の計算量は旧と同じ）
-        w.Coef.ParticipationDiscontent = 1.0;
         FactionSnapshot.ComputeClusters(w);
         FactionSnapshot.Compute(w);   // 画面の表示の経路は台帳へ足さない（World 非変更の約束・画面と headless で台帳が分かれない）
         Assert.Equal(b0, w.Cost[CostLedger.ParticipationPops]);

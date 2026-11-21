@@ -100,7 +100,6 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double WantWeight = 0.8;                   // 不満(1-充足)の闘争度寄与（満たされた階級は穏健＝改革派）
     public double PoliticalDistanceWeight = 0.25;     // 政治の空間モデル：意識×dist(POPの理想点, 現政体座標) の闘争度寄与（旧 VoiceWeight＝参政権ギャップの一般化＝4軸全体の乖離）
     public double DiscontentLawGap = 0.0;   // 読み手は Politics.Discontent 1箇所
-    public double ParticipationDiscontent = 1.0;   // 0 は旧の二値（番人が両方を踏む）
     public double FiscalStressBufferMonths = 5.0;     // 国庫がこれを下回るほど逼迫度→1（旧＝絶対額50,000固定を53カ国へ一律適用＝小国が恒久破産モード・大国は無風の規模非中立）
     public double SuffrageConcession = 1.0;           // 革命脅威下でエリートが参政権拡大に譲歩する強さ（trad/modern の反対 −1 に threat×これを加算）
     public double ModernEliteSubCensusVoice = 0.3;    // 倍率排除②：制限選挙(Census)未満での近代エリート（ブルジョワ）の実効発言権

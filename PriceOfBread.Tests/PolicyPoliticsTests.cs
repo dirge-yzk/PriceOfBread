@@ -264,19 +264,16 @@ public class PolicyPoliticsTests
     }
 
     [Fact]
-    public void 段3_旗0の参加の述語は闘争度の二値である()   // (a) 旗 0＝旧＝ビット恒等の側（不満度を1度も読まない）
+    public void 段3_参加の述語は闘争度の二値でなく重みである()   // (a) 旧の二値の側は旗ごと消えた（(1282)）＝今の盤面の主張
     {
-        Assert.Equal(1.0, new Coefficients().ParticipationDiscontent);   // ★既定は 1（2026-10-19 (431) で点火）。以下は旗 0 の旧の二値を踏む
+        var (below, popB) = 参加の盤面(militancy: 0.30, drop: 0);   // 旧の閾値0.5の下＝旧は1人も数えない
+        var sB = 参加の総和(below).Size;
+        Assert.True(popB > 0, "母数が0＝下の主張は『popがいない』の写しにすぎない");
+        Assert.True(sB > 0.0 && sB < popB, $"閾値の下の闘争度 0.3 が全員でも 0 人でもない重みで数えられていない（{sB}）");
 
-        var (below, popB) = 参加の盤面(militancy: 0.30, drop: 0);   // 閾値0.5の下＝1人も数えられない
-        below.Coef.ParticipationDiscontent = 0;
-        Assert.Equal(0.0, 参加の総和(below).Size);
-        Assert.True(popB > 0, "母数が0＝上の0は『popがいない』の写しにすぎない");
-
-        var (above, popA) = 参加の盤面(militancy: 0.60, drop: 0);   // 閾値の上＝全員が満額（二値）
-        above.Coef.ParticipationDiscontent = 0;
+        var (above, popA) = 参加の盤面(militancy: 0.60, drop: 0);   // 旧の閾値の上＝旧は全員が満額
         var (size, milSum) = 参加の総和(above);
-        Assert.Equal(popA, size, 6);
+        Assert.Equal(0.60 * popA, size, 6);   // 重み＝闘争度そのもの（満額ではない）
         Assert.Equal(0.60, milSum / size, 9);
     }
 
@@ -284,7 +281,6 @@ public class PolicyPoliticsTests
     public void 段3_点火すると参加は重みになり閾値が消える()   // (b) 蜂起の門と「運動に数えられる下限」の取り違えの解消
     {
         var (w, pop) = 参加の盤面(militancy: 0.30, drop: 0);   // 不満度0＝参加は闘争度そのもの
-        w.Coef.ParticipationDiscontent = 1.0;
         var (size, milSum) = 参加の総和(w);
         Assert.Equal(0.30 * pop, size, 6);      // 閾値の下でも**0.3人分**が運動に数えられる（旧は0人）
         Assert.Equal(0.30, milSum / size, 9);   // 参加加重の平均闘争度＝この腕では闘争度そのもの
@@ -295,7 +291,6 @@ public class PolicyPoliticsTests
     {
         // 腕1＝生活が落ちた（失望0.4→不満度 0.8×0.4=0.32）が闘争度は低い（0.20）＝**不満度が参加を決める**
         var (w1, pop1) = 参加の盤面(militancy: 0.20, drop: 0.4);
-        w1.Coef.ParticipationDiscontent = 1.0;
         var p1 = w1.Regions[0].Pops[0];
         double d1 = Politics.Discontent(w1, w1.Coef, p1, PoliticalQuantities.DriftedPolityCoord(w1.Polity, w1.Suffrage, w1.Coef), 0);
         Assert.True(d1 > 0.20, $"前提が崩れた：不満度が闘争度を上回っていない（{d1:F3}）");
@@ -303,7 +298,6 @@ public class PolicyPoliticsTests
 
         // 腕2＝同じ盤面で闘争度だけを上げる（0.20→0.80）＝**闘争度が上書きする**（生活は1ミリも変えていない）
         var (w2, pop2) = 参加の盤面(militancy: 0.80, drop: 0.4);
-        w2.Coef.ParticipationDiscontent = 1.0;
         Assert.Equal(0.80 * pop2, 参加の総和(w2).Size, 6);
 
         // 記憶を持たない側＝盤面（参照点）を戻せば参加もその場で戻る（ストックなら戻らない）
