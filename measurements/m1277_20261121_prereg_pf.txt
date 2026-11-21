@@ -92,3 +92,11 @@
 [10] ぶつかり（他の線の持ち物を指示文の表で確かめた）
 - c131wa（Discovery・MultiNationSim :490〜:510）・c131k15（p03・Meritocracy）・c131cr（places.json・Places・Simulation :1355〜:1370）・c131fg（PopDecision・p02・InstrumentsUrx）＝BilateralMarket・p04・InstrumentsCapskip に触れない。
 - Instruments/Instruments.cs：この線は MintcapTable の次の 1 行（CapskipTable）と MintcapClose の次の 1 行（CapskipClose）だけ。fg の計器（InstrumentsUrx）が同じ並びに登録の行を足すなら合流で並べて解く。DormantIdentityTests.cs は "ImportPayerLive" の前の 1 行・WriterRatchetTests.cs は旗 1 の取り直しの行だけ。
+
+[11] 追記 1（2026-11-21・旗 1 のコミット 7379a3037 の後・腕 B の前・試験だけの直しの前）
+- 腕 Z：ident.sh の段は自動で 2（計器のファイル Instruments/ に触れた＝stage.py の規則）。段 2 は D: に〈35＋30GB〉が要り、起こした時の空き 39.7GB では届かない＝走り始めて約 10 分で止めた（Runner を止め、check は走り不足）。腕 t の試験の数は 3085（3079＋6）で通った。
+  ⇒ 腕 Z は器のコミット dce12496d の木（旗 0）を、D: が床に届いた時に測る（旗 1 のコミットは測る木に入れない）。測る木と判定の行の HEAD の名乗りは dce12496d。
+- ㊴ の赤 1：InstrumentsTests〈州の人口と移動の表が揃い流れの出と入が合う〉の対照 totalCross＞0（越境の移民が 1 件も写っていない）。
+  ・区分：README ★(743) の〈軌道に依る前提〉＝4 国 40 四半期で越境が起きるかは軌道に依る（旗 1 で種 1789 の 40 四半期の越境が 0 になった）。口の写し（MoveMigrants）は SimCore のこの線で触れていない。
+  ・旧の盤面に番人を固定する形に当たらない理由：旗 0 に固定せず、規則の検査（①〜④と対照の Assert の文と閾値）をそのままに、越境が起きる種を前から順に選ぶ（1789・1790・1791・1792＝試した全ての種で①〜④を確かめる）。写しが漏れればどの種でも 0＝赤のまま。
+  ・足す対照：州の表の行の数 ≧40。旗 0（器 a76f606a8 の使い捨ての木）と旗 1 の両方で緑を確かめる。直しを外す突然変異＝旗 1 の木の元の試験（㊴ の赤＝D:/PoB_work/c131pf_work/suite1/t_ins.txt）。直しは試験だけの別のコミット。SimCore に触れない。直した後はフルスイートからやり直す。
