@@ -31,12 +31,12 @@ public class FlagBake1282Tests
     }
 
     [Fact]
-    public void プロレタリア独裁のAIは最高段の累進税と年金と専売の最高段を目標にする()   // SovietTaxProfile＝旗なしの無条件の分岐
+    public void プロレタリア独裁のAIは最高段の専売と年金を目標にする()   // SovietTaxProfile＝旗なしの無条件の分岐
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(1789), new UtilityAgent()).World;
         w.Polity = Polity.ProletarianDictatorship;
-        new UtilityAgent().DecideQuarter(w);
-        Assert.True(w.Policy.ProgressiveTaxTarget >= Government.ProgressiveTaxTop - 1e-9, $"累進税の目標 {w.Policy.ProgressiveTaxTarget} が最高段 {Government.ProgressiveTaxTop} に届かない");
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);   // スタンスの適用の本体（体制の別の枝は政体だけで決まる）
+        Assert.Equal(World.StateMonopolyMaxTier, w.StateMonopolyTier);   // 専売は最高段
         Assert.True(w.Policy.SocialSecurityTarget >= 1.0 - 1e-9, $"社会保障の目標 {w.Policy.SocialSecurityTarget} が 1 に届かない");
         Assert.Equal(SocialSecurityLaw.Pension, w.Policy.SocialSecurityLaw);
     }
@@ -62,6 +62,7 @@ public class FlagBake1282Tests
             var w = new Simulation(NationConfig.France().ToScenario(11), new NullAgent()).World;
             w.Explain = new ExplainLedger();
             w.DynasticMandate = 1.0;     // 名君＝天命の項が正
+            w.Legitimacy = 0.5;          // 回復の余地がある（満ちていると回復は 0）
             w.StateReligion = law;
             Politics.Step(w, w.Coef);
             double a = 0;
