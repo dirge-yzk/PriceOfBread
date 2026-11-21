@@ -918,7 +918,8 @@ public sealed partial class InternationalMarket
                 if (candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = sc.CandS = new int[cn0]; candD = sc.CandD = new double[cn0]; candK = sc.CandK = new double[cn0]; candF = sc.CandF = new double[cn0]; }
                 int rowBase = t * tc; bool hostileRow = natAnyHostile[ni];
                 double tMargin = c.TransportMargin, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
-                double unmetQ = 0;
+                double unmetQ = 0, skipQ = 0;   // (1277) skipQ＝この行で容量で飛ばした売り手へ足した量の和（旗 CapSkipSellerPotential 0 では 0 のまま）
+                bool insOnC = Instruments.On, capSkipOn = !thin && c.CapSkipSellerPotential > 0, capSkipIns = insOnC && !thin;   // (1277) c131pf：潜在量を書くのは四半期の最初の清算だけ（:1193 の !thin）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);
                 double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;
@@ -963,6 +964,23 @@ public sealed partial class InternationalMarket
                             if (capLeft[sn] <= 1e-12)
                             {
                                 if (MultiNationSim.TimeOn) CntSkips++;
+                                if (capSkipOn || capSkipIns)
+                                {   // (1277) c131pf 旗 CapSkipSellerPotential：容量が尽きて飛ばす売り手のうち値段の門（:973 と同じ下界）を通る物は、この行で通るはずだった量 qS を売り手の州の潜在量へ（買い手の側には足さない）。
+                                    // qS＝min(残り, max(0, X_lp−unmetQ−skipQ))・X_lp＝買い手の X を買い手の自分の値段 lp で読んだ値（P̂ を引かない）。足した qS は skipQ に数え、次の売り手の側の未充足から引く（:1085）。
+                                    bool priced = sel.Price * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul) < lp;
+                                    double addW = 0;
+                                    if (capSkipOn && priced)
+                                    {
+                                        double ratioS = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] / lp;
+                                        double xpS = m.LastDemand * Math.Pow(ratioS, twoEps) - (m.LastProduced + m.LastImport);
+                                        double xnS = a1On ? m.TargetStock + m.LastDemand * Math.Pow(ratioS, c.PriceElasticity) - m.LastProduced - m.Stock : m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
+                                        double xS = tr[t].access * Math.Max(0, Math.Min(xpS, xnS));
+                                        if (g == c.OpiumGoodId && oban[ni]) xS *= Contraband.LeakFraction(tr[t].r.AdminFill, c);
+                                        double qS = Math.Min(left[s2], Math.Max(0, xS - unmetQ - skipQ));
+                                        if (qS > 0) { addW = qS * Wg * potW; potNew[sn] += addW; skipQ += qS; }
+                                    }
+                                    if (capSkipIns) Instruments.CapSkip(nations[tr[sn].nation].World, g, mktOf[sn], m, tr[t].r, tr[t].access, Wg, priced, addW);
+                                }
                                 int nxS = nextS![s2];
                                 if (prevS < 0) headS = nxS; else nextS[prevS] = nxS;
                                 s2 = nxS; continue;
@@ -1080,10 +1098,11 @@ public sealed partial class InternationalMarket
                     {
                         double doneQ = qA > 1e-12 ? qA : 0.0;
                         double newUnmet = Math.Min(pot - doneQ, Math.Max(0, X - doneQ - unmetQ));
-                        double potBefore = Instruments.On ? potNew[t] : 0.0;
-                        if (potW != 1.0) { potNew[t] += (doneQ + newUnmet) * Wg * potW; potNew[snA] += (doneQ + newUnmet) * Wg * potW; }
-                        else { potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmet) * Wg; }
-                        if (Instruments.On) Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore);
+                        double newUnmetS = skipQ > 0 ? Math.Min(newUnmet, Math.Max(0, X - doneQ - unmetQ - skipQ)) : newUnmet;   // (1277) 売り手の側の未充足は、この行で飛ばした売り手へ足した skipQ を引く（同じ需要を二度数えない）。買い手の側は newUnmet のまま
+                        double potBefore = insOnC ? potNew[t] : 0.0;
+                        if (potW != 1.0) { potNew[t] += (doneQ + newUnmet) * Wg * potW; potNew[snA] += (doneQ + newUnmetS) * Wg * potW; }
+                        else { potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmetS) * Wg; }
+                        if (insOnC) { Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore); if (skipQ > 0) Instruments.CapSkipDedup(nations[siA].World, g, (newUnmet - newUnmetS) * Wg * potW); }
                         unmetQ += newUnmet;
                     }
                     if (!(qA > 1e-12))

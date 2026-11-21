@@ -1,0 +1,20 @@
+IndustrializationReader BilateralMarket: 0
+new MoneyStock( SimCore: 66
+route_anchors BilateralMarket: 10
+6:BilateralMarket.cs	PaySales((null, null), rS, g, rev[t] - comm, wS);	清算所の輸出代金(世界の外→生産者
+14:BilateralMarket.cs	comm = World.Transfer((null, null), (wS, [merchComm], null), revX[t] * c.MerchantTradeMargin.Value
+15:BilateralMarket.cs	World.Transfer((null, null), (nations[i].World, shipOwners[i], null), amt, TreasuryCat.OtherIn, in
+16:BilateralMarket.cs	if (portRecv[t] > 0 && portOwner[t] is { } po) World.Transfer((null, null), (nations[tr[t].nation]
+17:BilateralMarket.cs	if (premRecv[i] > 0 && underwriters[i] is { } uw) World.Transfer((null, null), (nations[i].World, 
+18:BilateralMarket.cs	if (paySub[t] > 0 && payerOf[t] is { } ps) World.Transfer((w0, null), (w0, ps, null), paySub[t] * 
+19:BilateralMarket.cs	if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenuePerClearing += World.Transfer((w
+20:BilateralMarket.cs	if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse
+21:BilateralMarket.cs	w0.LastTariffRevenuePerClearing -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[
+22:BilateralMarket.cs	World.Transfer((nations[k.U].World, null), (nations[k.O].World, null, null), toll, TreasuryCat.Oth
+UnitTypeTests BilateralMarket|InstrumentsCapskip: 0
+OnDoubleRead StepBilateral 表: 18:        ["BilateralMarket.cs::StepBilateral#0"] = 12,
+Instruments.On in BilateralMarket now: 13 (main: 14)
+== ㉜ 潜在量・律速率・容量を読む試験
+CapSkipSellerPotentialTests.cs ClearScratchTests.cs ClearingFillInstrumentTests.cs ClearingScopeTests.cs ClearingThrottleScanTests.cs ConservationTests.cs DiscoveryScoreTests.cs RailByRegionTests.cs RailNeedByOutputTests.cs TradeClearingTests.cs 
+== 他の線の持ち物と重なるか（BilateralMarket・p04・InstrumentsCapskip・Instruments.cs の登録の行）
+0cea95a9f (1274) 片付けの記録（最後の頭の走査の番人 530＋45 緑・kit を aa2e3e3b6 で建て直した・線と腕 Z の worktree とローカルの枝を外した・線の記録の写し）

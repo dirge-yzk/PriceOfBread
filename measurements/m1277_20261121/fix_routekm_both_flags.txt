@@ -1,0 +1,4 @@
+成功!   -失敗:     0、合格:    65、スキップ:     0、合計:    65、期間: 45 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 15 s - PriceOfBread.Tests.dll (net10.0)
+R1=0 R2=0
+1 行目＝旗 1（RouteKmTests 5＋WriterRatchetTests 60）・2 行目＝旗 0（器 a76f606a8 の使い捨ての木＋直しの RouteKmTests 5）

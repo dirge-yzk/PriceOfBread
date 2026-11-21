@@ -1,0 +1,124 @@
+(1277) c131pf 事前登録（挙動の線・形は〈入口〉・2026-11-21・書いたモデル Claude Opus 5.5・腕の前のコミット）
+題：容量で飛ばした売り手の申し出を潜在量へ足し、同じ行の次の売り手の側の未充足からその分を引く（旗 CapSkipSellerPotential・既定 0・計器 capskip_s）。3 回の規則の 3 回目＝最後（1 回目 (1229) c124pf・2 回目 (1244) c126pf）。落ちたら pf を閉じて記録へ。
+木：worktree D:/PoB_work/wt_c131pf・枝 c131pf（0cea95a9f から）。作業フォルダ D:/PoB_work/c131pf_work（この回に作った）・ident の作業 D:/PoB_work/ident_c131pf。
+基準＝m1274（INSRAW keep_1274/base_ins・KEEPNULL keep_1274/n1・a11〔種 11〜20〕・NG ng1274_20261121）。
+出発：00一覧〈次の波（波131〜）〉2 節①・(1244) の反証役 v・v2・(1252) の読み（膨らむ道＝首都の分離の守備兵の移し MultiNationSim.cs:300〜:311 と席を超える兵 Military.cs＝後者は gs (1271) で m1274 に入った）・錠の根は (1238) の段 3 の capLeft[snA]。
+
+[0] 先頭（名乗り）
+- 2 回目の形（BilateralMarket.cs の :963 の飛ばしの枝で qS を売り手の潜在量へ）を今の木へ載せ直し、v の中（同じ行の次の売り手 B の newUnmet が skipQ を引かない＝売り手の側の行の和が最大約 2X）を直す。
+- 指示文の〈その行で足した qS を unmet の側にも数え、売り手の側の和が X を超えないようにする〉の読み方（AI の推奨・確証なし）：
+  ・unmetQ そのものに qS を足すと、買い手の側の newUnmet も減り（買い手の潜在量が旗で変わる）、:1092 の環の出口の条件も動く。2 回目の形は〈買い手の側には足さない〉で、買い手の未充足は次善の売り手の行の newUnmet が既に数える。
+  ・そこで売り手の側だけに newUnmetS＝min(newUnmet, max(0, X−doneQ−unmetQ−skipQ)) を使い、買い手の側は newUnmet のまま（旗 0 と旗 1 で買い手の潜在量は同じ・unmetQ の積み方も同じ）。
+  ・保てる不等式は〈売り手の側の行の和−その行の実際の成約 ≦ X_lp〉（影と未充足の和が X を超えない）。成約は実際に船腹を使った量なので引けない＝影 qS と実際の成約が同じ需要を数える分（最大 min(qS, 成約)）は残る。これは〈容量の無い安い売り手も取り分の入力に入る〉というこの線の狙いそのもの（成約した B と、容量が有れば選ばれた A の両方が潜在量を持つ）。字句どおりの〈和 ≦ X〉は、B が全量を通した行で A の潜在量を 0 に戻す形になり、狙いの錠（T2）を閉じたままにする＝採らない。
+- 新しい係数は旗 1 本（Coefficients.p04_trade.cs・double・既定 0）。新しい状態 0（potNew・skipQ は清算の作業の局所・書き出しは既にある Region.LastTradePotential）。
+- 入れない物：capLeft の財の順の作り直し（設計の物）・貿易 T1 の A-L・関税・取り分の下限（設計思想⑧）。App・Display・Runner に触れない。〈証明〉の字を使わない。
+
+[1] 形（事前登録で選んだ 1 つ・旗 1 の時だけ）
+- 行の頭（:921）：skipQ＝0（行の局所）。capSkipOn＝!thin かつ旗＞0（潜在量を書くのは四半期の最初の清算だけ＝:1193 の !thin）。insOnC＝Instruments.On を 1 回だけ読む（:1083・:1086 の 2 つの読みもこれに替える＝OnDoubleReadScan の StepBilateral の読みは 12→11）。
+- :963 の飛ばしの枝：値段の門 priced＝sel.Price×(安く売る行は lbMulCheap・他は lbMul)＜lp（:971〜:973 と同じ下界）。priced のときだけ
+  qS＝min(left[s2], max(0, X_lp−unmetQ−skipQ))・X_lp＝access×max(0, min(D×(rpT÷lp)^(2ε)−(P＋輸入), 〔A-1 が正なら〕TS＋D×(rpT÷lp)^ε−P−S〔0 なら TS＋D−P−S〕))×〈アヘンの禁輸の漏れ〉（P̂ を引かない）。
+  qS＞0 なら potNew[sn]＋＝qS×Wg×potW・skipQ＋＝qS（買い手の側 potNew[t] には足さない）。NaN は足さない（qS＞0 の否定形）。
+- :1082 の成約の枝：newUnmetS＝skipQ＞0 なら min(newUnmet, max(0, X−doneQ−unmetQ−skipQ))・そうでなければ newUnmet。potNew[snA]＋＝(doneQ＋newUnmetS)×Wg(×potW)・potNew[t] は今のまま (doneQ＋newUnmet)・unmetQ＋＝newUnmet は今のまま。
+- 旗 0：skipQ は 0 のまま＝newUnmetS は newUnmet と同じ値（同じ式・同じ順）・飛ばしの枝は計器の時だけ計器を呼ぶ（エンジンの値を書かない）＝全行バイト一致の見込み。
+- 確証：〈容量で塞がれた申し出も船腹の取り分の入力に入る〉の向きは、買い手の側が既にそうしている現物の対称（確証 高）。量の細部（X_lp・unmetQ と skipQ を引く・値段の門・買い手に足さない・売り手の側だけ skipQ を引く）は AI の推奨（確証なし）。
+
+[2] 先読み（腕 Z・腕 B の前・S11 の種 20 だけ）
+- (1247) の S11 で種 20 レイキャヴィク（int）374.7→16.7 千人〈線が原因〉で採らなかった。gs (1271) が席を超える兵を空席の州へ移すので、膨らむ道の 1 本は今の木で閉じた〈推〉。首都の分離の守備兵の移し（MultiNationSim.cs:300〜:311）は残る。
+- 台本：`batch.sh run c131pfp0 1 20`（旗 0）と `c131pfp1 1 20`（POB_COEF=CapSkipSellerPotential=1）を器のコミットの木で・計器つき・表を絞る（ident.cfg の SMALL＋popclose_s・port_s・capskip_s・nationgood_s・sellr_s）。
+- 読む物：①旗 0 の popclose_s20・region_s20 が keep_1274/a11 の同じ表とバイト一致（器の恒等の種 20 の確かめ）②レイキャヴィク（デンマーク）の人口の最大と最小と、garrisonInK・specialistInK の和と最大の四半期を旗 0・旗 1・a11 で並べる ③`an_h2.py <出力>/ins -v4` の 1/10 未満の名簿の外。
+- no-go（腕の前に固定）：旗 1 の種 20 で 1/10 未満の名簿の外が 1 件でも出て、keep_1274/a11 の種 20 の同じ州がピークの 1/4 以上（＝〈線が原因〉）なら、腕 B を回さずに閉じる（pf は閉じて記録へ）。1/4 未満なら〈元からの弱さ〉で進める。
+- 紙の予言：旗 1 で売り手の容量 0 の州が潜在量を持つ＝取り分が他の州から移る（国の船腹のゼロサム）。レイキャヴィクの人口の道（守備兵・移民）はこの線と直に繋がらない＝(1247) の件は守備兵の移しと席を超える兵の重なり〈推〉。gs の後の木で同じ件が出るかは答えがソースから決まらない＝回す。
+
+[3] 門（〈作者 2026-11-16 の決まり〉①・ヌル腕の幅は記録だけ）
+ 止める線（1 種でも当たれば止める）：
+  S1 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（四半期の途中を含む）・進行不能・完走 10/10。
+  S2 発散：stoplines906（価格水準の 1 四半期 100 倍の 3 区分・1e10 倍・非有限・名目 GDP の 1 四半期 100 倍・plvl_seeds の開幕の 1000 倍〔記録〕）。基準 keep_1274/base_ins を同じ台本で数え直して並べる（⑰）。紙の確かめ：基準で 0（measurements/m1277_20261121/stop_base_keep1274.txt＝100 倍 0・1e10 倍 0・非有限 0・空洞化 1/10 未満 0）。
+  S3 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（既定 -ex rule＝規則 A2）でピークの 1/10 未満の名簿の外。**この線が原因と読めた件だけ止める＝基線 keep_1274/base_ins の同じ種で同じ州が既にピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ**。腕 B（種 1〜10）と先読みの種 20（基準 a11）の両方で読む。
+  S4 計算量：推定 ＞248.5 秒（m1274 は 234.2・余り約 14.3 秒）。割り当て +0.4 秒〈推〉（2 回目の清算 53.31→53.67・この形は成約の枝に min を 1 つ足すだけ＝同じ桁）。2 秒以下は 1 本の腕で門にしない（★(694)）＝合流の累計で読む・腕の .cost は記録。
+  S5 機構の試験の赤（ソースを走査する番人を含む）。
+ 史実の桁の線（10 倍・この線が一番動かす量・読み手 scripts/instruments/c131pf/magn_pf3.py・種の中央値の腕÷基準が [0.1, 10] の外なら赤）：
+  H1 6 大国（仏英米露普清）の貿易÷名目 GDP（国ごとの比の単純平均）1850・1913・終局（1950）。史実 1913 年 0.253＝HistoricalReference.cs:209 TradeOpenness1913 の 6 国の単純平均（記録・表の元の典拠は表に書かれていない）。m981 の終局 1.68% は記録。
+  H6 港の律速率（port_s tradeThrottleIndex・6 大国の港の州×四半期の平均）1850・1913・終局。
+  紙の確かめ：基準どうしで 6 行とも 1.0000＝緑（measurements/m1277_20261121/magn_base.txt）。基準の値：H1 1850 0.0345・1913 0.0313・終局 0.0260（1913 の史実との比 0.124）・H6 1850 0.947・1913 0.914・終局 0.889。
+  旗 0 で門が落ちるか：H1・H6 は〈壊さない〉の門＝旗 0（何もしない実装）は 1.0000 で通る。働きは単体の試験 T1〜T6 で示す（旗 0 の値を試験の中で Assert する）。
+ 単体の機構の試験（盤面は試験の中で置く・PriceOfBread.Tests/CapSkipSellerPotentialTests.cs・(1244) の T1〜T4 の写し＋T5・T6）：
+  盤面：英仏の世界（ClearingScopeTests.Board の作り）・英の港の州が売り手（A 0.5×・B 0.6×…×世界の値段）・仏の 1 州だけが買い手・他の財は動かない・英の州の潜在量は最後の売り手だけ 1（他の売り手の容量 0）。期待値は試験の中で市場の欄から組む（エンジンの式を呼ばない）。
+  T1 旗 1 で A の潜在量＝min(left_A, X_lp)×Wg（相対 1e-9）・旗 0 で 0・成約と在庫は旗で同じ・B と買い手の潜在量は旗で同じ。
+  T2 次の四半期に旗 1 で A の容量＞0 かつ A が売る・旗 0 で容量 0 かつ売らない。
+  T3 計器 capskip_s：影は旗に依らず正・足した量は旗 0 で 0・旗 1 で影と一致・差し引き（dedupWeight）は旗 0 で 0。
+  T4 同じ行の 2 人目の容量 0 の売り手は行の残り min(left_A2, X_lp−qA)×Wg。
+  T5（新）買い手の国の船腹を絞り B の成約を X_lp の 1/4 にした盤面：旗 1 で〈売り手の側の行の和−成約〉≦ X_lp（相対 1e-9）・B の潜在量は旗 1 で旗 0 より小さい・買い手の潜在量は旗で同じ・成約は旗で同じ。前提の Assert：旗 0 で B の側の未充足＞X_lp÷2（見分けられる盤面）。
+  T6（新）A の値段を買い手の 20÷8 倍の上へ（A は B の後ろ・容量 0 で飛ばしの枝を通る）：旗 1 でも A の潜在量＝0・成約と在庫は旗で同じ。
+ 突然変異（使い捨ての木・出力 measurements/m1277_20261121/mut/・台本 scripts/instruments/c131pf/mut_pf.sh）：
+| 変異 | 赤になる試験（予言） |
+| μ1 足す量を 0（addW＝0×Wg×potW） | T1・T2・T3・T4・T5（A の潜在量が 0） |
+| μ4 qS が unmetQ と skipQ を引かない（max(0, xS)） | T4 |
+| μ5 売り手の側の未充足が skipQ を引かない（newUnmetS＝newUnmet＝2 回目の形） | T5 |
+| μ6 値段の門を外す（priced＝true） | T6 |
+  ※ 旗 0 で門が落ちる確かめ＝T1〜T6 は旗 0 の値を同じ試験の中で Assert する（何もしない実装は T1・T2・T3・T5 の旗 1 の側で赤）。
+
+[4] ソースを走査する番人（㉘）と件数の予言（㉑）・grep の結果（D:/PoB_work/c131pf_work/grep_prereg.txt）
+- 工業化度の読み手の許可表（IndustrializationReaderTests.cs）：BilateralMarket の行 0＝変わらない。
+- `new MoneyStock(` の件数：SimCore で 66＝変わらない。
+- route_anchors.tsv（flow262）の BilateralMarket の鍵の行 10 本（:6・:14〜:22）＝この線は鍵の行に触れない（お金を動かさない）。
+- UnitTypeTests：BilateralMarket・InstrumentsCapskip の名指し 0＝変わらない。
+- OnDoubleReadScanTests：StepBilateral の Instruments.On の読み 12→11（表の値 12 は〈増えない〉の上限＝緑の予言・表は書き換えない）。
+- WriterRatchetTests の宣言の表：CostLedger の行を足さない。旗 0 の器は件数を変えない。旗 1 の木で軌道の件数（建設・中身の無い物ほか）が許しを超えて動けば〈軌道の件数を写しただけの番人〉（★(702)・★(749)）として取り直し、verdict に列挙する。
+- DormantIdentityTests：器のコミットで DormantZeroFields に CapSkipSellerPotential を 1 行。旗を 1 にするコミットでその行を注へ替える。
+- 計器の表：capskip_s を足す（ident の宣言 --added-tables capskip_s）。Instruments.cs は表の書きと閉じの 2 行（MintcapTable の次〔SoldierVacTable の前〕・MintcapClose の次）。
+
+[5] ㉜：旗 1 の木でフルスイートの番人が旧の規則を固定していないか（grep）
+- 置き換える旧の規則：〈容量で飛ばした売り手は潜在量を残さない〉（:963〜:969）と〈売り手の側の未充足は買い手の側と同じ newUnmet〉（:1084〜:1085）。
+- 潜在量・律速率・容量を読む試験（grep LastTradePotential|LastTradeThrottle|LastTransportCap）：ClearScratchTests・ClearingFillInstrumentTests・ClearingScopeTests・ClearingThrottleScanTests・ConservationTests・DiscoveryScoreTests・RailByRegionTests・RailNeedByOutputTests・TradeClearingTests（＋この線の CapSkipSellerPotentialTests）。
+  ・Board の盤面は船腹 1e9＝売り手の容量が尽きない＝:963 を通らない見込み＝変わらない。(1244) の旗 1 の木ではこの一覧から赤は出なかった（赤は WriterRatchetTests の宣言の表 3 行だけ）。
+  ・赤が出たら〈旧の規則を固定する番人〉か〈軌道に依る前提〉かを読み、作者 2026-11-19 の改め（㉜）のとおり新しい規則の試験へ書き換える（書き換えを外す突然変異で赤）。原因が読めない赤は止める。
+
+[6] 周辺の点検（読むだけ）
+- capLeft は財の順（gOrder）で全ての財が共有する＝先の財が国の容量を使い切ると後の財の売り手が容量 0 で飛ばされる（(1238) の錠の根・段 3 の capLeft[snA]）。この線は財の順を変えない＝錠の根は残り、取り分の入力を通して間接に開く。
+- 飛ばした売り手は連結の表から外れる（:966〜:967）＝1 回の清算で 1 つの売り手につき 1 度だけ qS が付く（その財の最初に当たった買い手の行）。
+- LastTradePotential の読み手：港の拡張（MultiNationSim.cs:1198・PortCongestionTarget）・鉄道の目標（Transport.cs:39・:89〜:94）・発見（Discovery.cs:752・:785）。潜在量の和が増えると律速率の和が下がる＝港の拡張の採算と鉄道の目標が上がる〈推〉＝H6 と記録の港の容量の和で読む。
+
+[7] 記録（門にしない）
+- 計器 capskip_s：国×財×四半期の飛ばした回数・値段の門で止まった回数・申し出・影（値段を問わない／通った物）・足した量・差し引き。飛ばした回数の腕 B÷腕 Z（腕 Z の生 ident_c131pf）。
+- H2〜H5・H7（magn_pf3.py）・英の国債の不履行の種の数（基準 M 2/10）・NG（ng.sh・基準 rd:measurements/ng1274_20261121:m1274）・名目 GDP 0 の続き（gdp_zero10）・開幕の 1000 倍以上・空洞化 1/4 未満・nullgate.py（記録）・同じ盤面の新÷旧（港の容量の和・潜在量の和）。
+
+[8] 順
+1. この事前登録（最初のコミット）→ 2. 旗と器（既定 0）と計器 capskip_s と試験 T1〜T6 と Dormant の行 → ㉘（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・OnDoubleReadScan・CapSkipSellerPotential）→ 突然変異 → 先読み（[2]・種 20）と腕 Z（`ident.sh run c131pfz --tree D:/PoB_work/wt_c131pf --work D:/PoB_work/ident_c131pf --added-tables capskip_s --tests-delta +6`・段 1・不一致の時だけ段 2）→ 3. 旗の既定を 1 にするコミット → ㊴ → ㉜ フルスイート（--list-tests と突き合わせ）→ savetest・leakhunt → 腕 B（`INS=1 bash scripts/instruments/batch.sh run c131pfB 10`・D: を〈35GB＋約 8GB〉で測ってから）→ 門 → 印 D:/PoB_work/c131pf_work/pf.mark → origin/c131pf。
+- 試験の数の差：Tests は +6（CapSkipSellerPotentialTests の 6 本）＝ident の --tests-delta +6（指示の --tests-delta は線ごとの足した数）。
+- 形の変え直しは 1 回だけ（⑭）。結果を見た後に門を変えない。種 11〜20 は線では回さない（先読みの種 20 の 1 本だけ＝指示文の〈先に読む〉）。
+
+[9] 計算量の割り当て：+0.4 秒〈推〉（[3] S4）。線の合計が余り約 14.3 秒に収まるかは合流が .cost で読む。
+
+[10] ぶつかり（他の線の持ち物を指示文の表で確かめた）
+- c131wa（Discovery・MultiNationSim :490〜:510）・c131k15（p03・Meritocracy）・c131cr（places.json・Places・Simulation :1355〜:1370）・c131fg（PopDecision・p02・InstrumentsUrx）＝BilateralMarket・p04・InstrumentsCapskip に触れない。
+- Instruments/Instruments.cs：この線は MintcapTable の次の 1 行（CapskipTable）と MintcapClose の次の 1 行（CapskipClose）だけ。fg の計器（InstrumentsUrx）が同じ並びに登録の行を足すなら合流で並べて解く。DormantIdentityTests.cs は "ImportPayerLive" の前の 1 行・WriterRatchetTests.cs は旗 1 の取り直しの行だけ。
+
+[11] 追記 1（2026-11-21・旗 1 のコミット 7379a3037 の後・腕 B の前・試験だけの直しの前）
+- 腕 Z：ident.sh の段は自動で 2（計器のファイル Instruments/ に触れた＝stage.py の規則）。段 2 は D: に〈35＋30GB〉が要り、起こした時の空き 39.7GB では届かない＝走り始めて約 10 分で止めた（Runner を止め、check は走り不足）。腕 t の試験の数は 3085（3079＋6）で通った。
+  ⇒ 腕 Z は器のコミット dce12496d の木（旗 0）を、D: が床に届いた時に測る（旗 1 のコミットは測る木に入れない）。測る木と判定の行の HEAD の名乗りは dce12496d。
+- ㊴ の赤 1：InstrumentsTests〈州の人口と移動の表が揃い流れの出と入が合う〉の対照 totalCross＞0（越境の移民が 1 件も写っていない）。
+  ・区分：README ★(743) の〈軌道に依る前提〉＝4 国 40 四半期で越境が起きるかは軌道に依る（旗 1 で種 1789 の 40 四半期の越境が 0 になった）。口の写し（MoveMigrants）は SimCore のこの線で触れていない。
+  ・旧の盤面に番人を固定する形に当たらない理由：旗 0 に固定せず、規則の検査（①〜④と対照の Assert の文と閾値）をそのままに、越境が起きる種を前から順に選ぶ（1789・1790・1791・1792＝試した全ての種で①〜④を確かめる）。写しが漏れればどの種でも 0＝赤のまま。
+  ・足す対照：州の表の行の数 ≧40。旗 0（器 a76f606a8 の使い捨ての木）と旗 1 の両方で緑を確かめる。直しを外す突然変異＝旗 1 の木の元の試験（㊴ の赤＝D:/PoB_work/c131pf_work/suite1/t_ins.txt）。直しは試験だけの別のコミット。SimCore に触れない。直した後はフルスイートからやり直す。
+
+[12] 追記 2（2026-11-21・試験だけの直し 0b7b40729 の後の旗 1 の木のフルスイートで赤 3・直しの前）
+- WriterRatchetTests の計算量の宣言の表 2 行＝★(749) の〈軌道の件数を写しただけの番人〉（[4] の予告どおりの型）：DeadProdBankrupt 2,213→1,468（−33.7%）・DiploHegemonScans 1,412,040→2,151,680（+52.4%）。失敗の文の実測で取り直す（機構の向きと大きさを主張しない番人）。全長の推定の計算量は腕 B の .cost で読む（S4）。
+- RouteKmTests〈陸路は貿易の経路の表と一致し…xmig_s は区域の越境の量と閉じる〉の対照〈越境の移民が起きた四半期が少ない〉（xSum の四半期 ≧5）：区分＝★(743) の〈軌道に依る前提〉（(880) は同じ対照のために盤面を 40→60 四半期へ延ばした前例）。
+  ・旧の盤面に番人を固定する形に当たらない理由：旗 0 に固定せず、突き合わせ（陸路・routeKm・越境の閉じ）と対照の 3 つの Assert の文と閾値をそのままに、対照が揃う種を前から順に選ぶ（1789〜1792・試した全ての種で突き合わせを確かめる）。
+  ・旗 0（器の使い捨ての木）と旗 1 の両方で緑を確かめる。直しを外した形＝旗 1 の木の元の試験は赤（D:/PoB_work/c131pf_work/suite2/t_main.txt）。SimCore に触れない。直した後はフルスイートからやり直す。
+- 記録（門にしない）：4 国の小さい盤面の 2 本の試験で旗 1 の越境の移民が減った＝腕 B の region_s の越境の出の和を基準と並べて記録する。
+
+[13] 追記 3（2026-11-21・追記 2 の直しを試した後・コミットの前）
+- RouteKmTests の〈種を前から選ぶ〉直しは、旗 1 で種 1789〜1792 の 4 つとも対照が揃わなかった（種 1792 は xmig_s が 0 行）＝旗 0 の種 1789 は緑。〈軌道の揺れ〉ではなく、旗 1 が 4 国の小さい盤面の 60 四半期の越境の移民を減らす向き〈推〉＝記録（[12] の最後の行）として腕 B で全体の越境の量を読む。
+- 直しを (1181) の PlaceWar と同じ型へ替える：越境の移民を試験の中で置く（12 四半期ごとに 3 つの対〔仏→普・普→英・墺→仏〕へ、MoveMigrants で労働者の 1% を 4 四半期おきに・PopCloseInstrumentTests:160 の前例）。突き合わせ（陸路・routeKm・越境の閉じ）と対照の 3 つの Assert の文と閾値は変えない。置いた回数の対照（≧10）を足す。旗 0 と旗 1 で緑・置かない形（元の試験）は旗 1 で赤。
+- InstrumentsTests の直し（0b7b40729・種を前から選ぶ）は旗 0・旗 1 で緑のまま＝替えない。
+
+[14] 追記 4（2026-11-21・腕 B の前）
+- 腕 B は表を絞る（指示の ⓪(a)）：ident.cfg の SMALL＋popclose_s・port_s・capskip_s・nationgood_s。sellr_s（先読みの 1 種で 192MB＝10 種で約 1.9GB）は記録の H5 だけが読む＝外す（D: の床〈35GB＋量〉が届かない時間が続いている）。magn_pf3.py は sellr_s が無ければ H5 を空にする（門 H1・H6 と他の記録は同じ式・基準どうしの出力は前と同じ）。
+- 門・記録の他の項目は変えない。
+
+[15] 追記 5（2026-11-21・腕 B の前・D: の床）
+- D: の空き 37.9GB が 30 分以上動かない（腕の枠は 6 空き）。追記 4 の表（1 種 382MB）と commit: の写し（measurements を含む 1.3GB）では〈35GB＋約 5.6GB〉に届かない。
+- 腕 B の表を、門と記録の読み手が読む 13 表へ絞る：nation_s・stock_s・wars_s・casualty_s（NG）・region_s・migration_s・pxmonth_s・scalars_s（止める線・空洞化）・fiscal_s（英の国債の不履行）・nationgood_s・port_s（史実の桁 H1・H6）・capskip_s（計器）・popclose_s（空洞化の振り分け）＝先読みの 1 種で約 277MB。監視の読み手 an_mon.py の表（aib_s ほか）は外す＝注視の一覧は欠けた表の行が空になる（記録だけ・門に使わない）。
+- 写しは batch.sh prep の dir:（作業ツリー・measurements と docs を除く）から。作業ツリーが汚れていないこと・HEAD が測るコミットであることを台本が確かめる。見込みの量は約 3.2GB（表 2.8＋写しとビルド 0.4）＝床 38.2GB。
+- 門・記録の項目と読み方は変えない。

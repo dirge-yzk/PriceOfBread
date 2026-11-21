@@ -1,0 +1,31 @@
+D:\PoB_work\c131pf_work\mut\mu5\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.60]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:00.99]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.02]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:02.92]     PriceOfBread.Tests.CapSkipSellerPotentialTests.T5_同じ行の次の売り手の側の未充足は飛ばした売り手へ足した量を引き買い手の側は変えない [FAIL]
+[xUnit.net 00:00:02.92]       売り手の側の行の和−成約が X_lp を超えた 109.375 > 62.5
+[xUnit.net 00:00:02.92]       Stack Trace:
+[xUnit.net 00:00:02.92]         D:\PoB_work\c131pf_work\mut\mu5\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs(168,0): at PriceOfBread.Tests.CapSkipSellerPotentialTests.T5_同じ行の次の売り手の側の未充足は飛ばした売り手へ足した量を引き買い手の側は変えない()
+[xUnit.net 00:00:02.92]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:02.92]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T5_同じ行の次の売り手の側の未充足は飛ばした売り手へ足した量を引き買い手の側は変えない [1 s]
+  エラー メッセージ:
+   売り手の側の行の和−成約が X_lp を超えた 109.375 > 62.5
+  スタック トレース:
+     at PriceOfBread.Tests.CapSkipSellerPotentialTests.T5_同じ行の次の売り手の側の未充足は飛ばした売り手へ足した量を引き買い手の側は変えない() in D:\PoB_work\c131pf_work\mut\mu5\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs:line 168
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ [48 ms]
+[xUnit.net 00:00:03.26]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま [122 ms]
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T6_値段の門で止まる容量0の売り手には足さない [53 ms]
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0 [45 ms]
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致 [66 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 6
+     成功: 5
+     失敗: 1
+合計時間: 5.0682 秒

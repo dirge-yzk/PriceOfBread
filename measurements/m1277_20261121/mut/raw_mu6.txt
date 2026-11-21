@@ -1,0 +1,37 @@
+D:\PoB_work\c131pf_work\mut\mu6\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.65]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.09]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.12]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T5_同じ行の次の売り手の側の未充足は飛ばした売り手へ足した量を引き買い手の側は変えない [2 s]
+[xUnit.net 00:00:03.46]     PriceOfBread.Tests.CapSkipSellerPotentialTests.T6_値段の門で止まる容量0の売り手には足さない [FAIL]
+[xUnit.net 00:00:03.46]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:03.46]       Expected: 0
+[xUnit.net 00:00:03.46]       Actual:   62.5
+[xUnit.net 00:00:03.48]       Stack Trace:
+[xUnit.net 00:00:03.48]         D:\PoB_work\c131pf_work\mut\mu6\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs(183,0): at PriceOfBread.Tests.CapSkipSellerPotentialTests.T6_値段の門で止まる容量0の売り手には足さない()
+[xUnit.net 00:00:03.48]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:03.48]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.48]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:03.57]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T4_同じ行の2人目の容量0の売り手は行の残りの量だけ [72 ms]
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T2_次の四半期に旗1では取り分と容量が開き成約し旗0では閉じたまま [130 ms]
+  失敗 PriceOfBread.Tests.CapSkipSellerPotentialTests.T6_値段の門で止まる容量0の売り手には足さない [44 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   62.5
+  スタック トレース:
+     at PriceOfBread.Tests.CapSkipSellerPotentialTests.T6_値段の門で止まる容量0の売り手には足さない() in D:\PoB_work\c131pf_work\mut\mu6\PriceOfBread.Tests\CapSkipSellerPotentialTests.cs:line 183
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T1_容量0で飛ばした売り手の潜在量は旗1でその行の量になり旗0では0 [41 ms]
+  成功 PriceOfBread.Tests.CapSkipSellerPotentialTests.T3_計器は同じ盤面で旧と新を両方数え旗1の足した量は影と一致 [67 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 6
+     成功: 5
+     失敗: 1
+合計時間: 5.5194 秒

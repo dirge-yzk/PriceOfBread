@@ -1,0 +1,14 @@
+D:\PoB_work\c131pf_work\suite1\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:13:39.31]     PriceOfBread.Tests.InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う [6 s]
+  エラー メッセージ:
+   越境の移民が1件も写っていない（MultiNationSim.MoveMigrants の口の写しの漏れか、盤面で越境が起きていない）
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う() in D:\PoB_work\wt_c131pf\PriceOfBread.Tests\InstrumentsTests.cs:line 487
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:22:40.34]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+
+失敗!   -失敗:     1、合格:   450、スキップ:     1、合計:   452、期間: 23 m 42 s - PriceOfBread.Tests.dll (net10.0)
