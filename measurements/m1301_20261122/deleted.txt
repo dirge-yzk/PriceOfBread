@@ -1,0 +1,6 @@
+(1301) 合流が消した物（2026-11-22）
+D:/PoB_work/keep_1294_rej（c133b1_armB 190 本 4,037,285,210 バイト＋b10_c133b1B_10.txt の 3 本・bi (1297) が読み終えた・INSRAW でも KEEPNULL でもない・新しい ident.cfg の push〔78fa85cf2〕の後・要約 keepsum_rej1294_c133b1_armB.tsv）
+D:/PoB_work/ident_c134tk（線 tk の ident の生 1697 本 29,733,809,314 バイト・要約 keepsum_ident_c134tk.tsv）
+D:/PoB_work/ident_c134f1（線 f1 の ident の残り 1.7MB・刈った 120 表の sha1 は sha1_ident_c134f1_left.tsv）
+D:/PoB_work/wt_c134tk・wt_c134f1・wt_c134bi・wt_c134k49（git worktree remove・ローカルの枝も消した・origin の枝は残す）
+D:/PoB_work/ident_m1301z（腕 Z の残り・生は keep_1301/base_ins へ移した後）・D:/PoB_work/wt_m1301（git worktree remove・枝 m1301 も消した）・D:/PoB_work/m1301_work（この記録の写しの後）

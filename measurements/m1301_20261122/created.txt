@@ -1,0 +1,5 @@
+D:/PoB_work/m1301_work
+D:/PoB_work/wt_m1301（枝 m1301）
+D:/PoB_work/keep_1301_rej（c134f1_armB・c134k49_armB を線の作業フォルダから移した）
+D:/PoB_work/ident_m1301z（腕 Z の ident・PRUNE=0）
+D:/PoB_work/keep_1301（base_ins＝ident m1301z の腕 b の生を移した）
