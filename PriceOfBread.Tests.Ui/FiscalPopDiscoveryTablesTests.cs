@@ -349,4 +349,12 @@ public class FiscalPopDiscoveryTablesTests
         foreach (double v in new double[] { 0, 114, 41099.4, 5430 })
             Assert.Equal(PriceOfBread.App.Fmt.PopFmtK(v), DisplayFormat.PopK(v));
     }
+
+    [Fact]
+    public void 発見の表は名前と棒の列だけを持つ()
+    {
+        var (sim, w) = Board(6);
+        foreach (var t in new ITable[] { DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites })
+            Assert.Equal(["name", "bar"], t.ColumnInfos.Select(c => c.Key).ToArray());
+    }
 }

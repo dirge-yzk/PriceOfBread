@@ -54,14 +54,11 @@ public static class DiscoveryTables
         => double.IsNaN(tech) ? new BarCell([(fraction * Discovery.GateScore, KnownInk)], Discovery.GateScore)
                               : new BarCell([(tech, TechInk), (need, NeedInk), (double.IsNaN(transmit) ? 0 : transmit, TransmitInk)], Discovery.GateScore);
 
+    /// <summary>発見の表の列は名前と棒の 2 つだけ（作者指示 2026-11-23：グラフのみ・棒が量を担う＝同じ量の数の列と年代の列は持たない）。</summary>
     private static IReadOnlyList<Column<DiscoveryLine>> DiscoveryColumns { get; } =
     [
         Col.Text<DiscoveryLine>("name", "名前", l => l.Name),
         Col.Bar<DiscoveryLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, l.Transmit)),
-        Col.Number<DiscoveryLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
-        Col.Number<DiscoveryLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
-        Col.Number<DiscoveryLine>("transmit", "伝播", Unit.Count, l => l.Transmit, ink: _ => TransmitInk),
-        Col.Text<DiscoveryLine>("era", "年代", l => l.Era),
     ];
 
     /// <summary>発見の表・技術（2026-11-11 作者指示：棒＝100 の入れ物に技術力・必要性・伝わりを塗り分け。2 段組みの左）。</summary>
@@ -70,7 +67,7 @@ public static class DiscoveryTables
 
     /// <summary>発見の表・政府と思想（2 段組みの右）。政府の行（特許・株式会社）は制度の施行か未施行を「状態」の列に持つ。</summary>
     public static Table<DiscoveryLine> SocialDiscoveries { get; } = new("discovery.social", "政府と思想", Page.Discovery, (_, w) => DiscoveryLines(w).Where(l => l.Group != Groups[2]).ToList(), l => l.Key, l => l.Name,
-        [.. DiscoveryColumns, Col.Text<DiscoveryLine>("state", "状態", l => l.State)], l => l.Group);
+        [Col.Text<DiscoveryLine>("name", "名前", l => l.State.Length > 0 ? $"{l.Name}　{l.State}" : l.Name), DiscoveryColumns[1]], l => l.Group);   // 制度の施行か未施行は名前の列の末尾へ
 
     /// <summary>産地の発見の行（自国の稼働中の州にある大鉱床と植林）。見つかった産地は 100%・まだの産地は点数（技術力＋必要性）の割合。値はエンジンが判定に読む同じ関数（国の中で 1 度の採点）。</summary>
     public static IReadOnlyList<SiteLine> SiteLines(World w)
@@ -102,14 +99,10 @@ public static class DiscoveryTables
         return lines.OrderByDescending(l => l.Fraction).ThenBy(l => l.Decade).ThenBy(l => l.Name, StringComparer.Ordinal).ThenBy(l => l.Region, StringComparer.Ordinal).ToList();
     }
 
-    /// <summary>産地の表（州名・産地・棒・技術力・必要性・年代）。</summary>
+    /// <summary>産地の表（州名と産地の名前・棒）。</summary>
     public static Table<SiteLine> Sites { get; } = new("discovery.sites", "産地", Page.Discovery, (_, w) => SiteLines(w), l => l.Key, l => l.Name,
     [
-        Col.Text<SiteLine>("region", "州名", l => l.Region),
-        Col.Text<SiteLine>("name", "名前", l => l.Name),
+        Col.Text<SiteLine>("name", "名前", l => $"{l.Region}　{l.Name}"),
         Col.Bar<SiteLine>("bar", "解禁", l => DiscoveryBar(l.Fraction, l.Tech, l.Need, 0)),
-        Col.Number<SiteLine>("tech", "技術力", Unit.Count, l => l.Tech, ink: _ => TechInk),
-        Col.Number<SiteLine>("need", "必要性", Unit.Count, l => l.Need, ink: _ => NeedInk),
-        Col.Text<SiteLine>("era", "年代", l => l.Era),
     ]);
 }

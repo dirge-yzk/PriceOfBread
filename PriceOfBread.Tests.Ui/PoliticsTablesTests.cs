@@ -92,18 +92,18 @@ public class PoliticsTablesTests
     }
 
     [Fact]
-    public void 制度は政府の行の状態の列が持ち_発見の2値と同じ()
+    public void 制度は政府の行の名前の列の末尾が持ち_発見の2値と同じ()
     {
         var (sim, w) = Board();
         var t = DiscoveryTables.SocialDiscoveries.Read(sim, w);
-        int state = t.Columns.ToList().FindIndex(c => c.Key == "state");
+        int state = t.Columns.ToList().FindIndex(c => c.Key == "name");   // 制度の施行は名前の列の末尾（列は名前と棒だけ）
         Assert.True(state >= 0);
         var patent = t.Rows.First(r => r.Name == "特許");
         var joint = t.Rows.First(r => r.Name == "株式会社");
-        Assert.Equal(w.PatentLaw ? "施行" : "未施行", (string)patent.Cells[state]!);
-        Assert.Equal(w.JointStock ? "施行" : "未施行", (string)joint.Cells[state]!);
+        Assert.EndsWith(w.PatentLaw ? "　施行" : "　未施行", (string)patent.Cells[state]!);
+        Assert.EndsWith(w.JointStock ? "　施行" : "　未施行", (string)joint.Cells[state]!);
         var rail = t.Rows.First(r => r.Name == "鉄道");   // 鉄道の施行も政府の行の状態の列に出る（V16）
-        Assert.Equal(w.Railways ? "施行" : "未施行", (string)rail.Cells[state]!);
+        Assert.EndsWith(w.Railways ? "　施行" : "　未施行", (string)rail.Cells[state]!);
         Assert.DoesNotContain(t.Rows, r => r.Name == "特許制度");   // 名の衝突を作らない
         Assert.DoesNotContain(DiscoveryTables.Discoveries.Read(sim, w).Rows, r => r.Name == "報せの速さ");
     }

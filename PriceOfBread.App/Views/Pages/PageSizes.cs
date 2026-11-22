@@ -37,7 +37,7 @@ public static class PageSizes
         Slot.FiscalMoney => 513,    // 支出と収入（段の押し釦 約 236 を持つ表）
         Slot.Finance => 610,        // 金融の表・国債と外資信用の表
         Slot.Population => 610,     // 階級の表（列が多い）
-        Slot.Discovery => 824,      // 技術（表 2 つ並び）が最も広い列・政府と思想と産地は右の列（比は ColumnWeights）
+        Slot.Discovery => 580,      // 技術（名前と棒だけの表が 2 つ並び＝各 約 270・間 8・欄の枠 16）が最も広い列・政府と思想と産地は右の列（比は ColumnWeights）
         Slot.DiplomacyWar => 666,   // 国の一覧が最も広い列（ColumnWeights の真ん中）
         _ => 530,                   // 法の表と選んだ法・権利と議会
     };
