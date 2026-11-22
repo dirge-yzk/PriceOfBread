@@ -1,0 +1,16 @@
+(1294) 消す名の grep（★(773)）：cl が消す名を、wa・mr・b1 の差分の足した行と、合わせた木の全域で数える
+MinimumWageWant in +c133wa: 0
+MinimumWageWant in +c133mr: 0
+MinimumWageWant in +c133b1: 0
+MinimumWageSufficiencyUrbanLine in +c133wa: 0
+MinimumWageSufficiencyUrbanLine in +c133mr: 0
+MinimumWageSufficiencyUrbanLine in +c133b1: 0
+EngineerParent in +c133wa: 0
+EngineerParent in +c133mr: 0
+EngineerParent in +c133b1: 0
+MilitaryWarMult in +c133wa: 0
+MilitaryWarMult in +c133mr: 0
+MilitaryWarMult in +c133b1: 0
+WarMobilizationDepth in +c133wa: 0
+WarMobilizationDepth in +c133mr: 0
+WarMobilizationDepth in +c133b1: 0

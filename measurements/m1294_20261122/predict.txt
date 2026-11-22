@@ -1,0 +1,30 @@
+(1294) 合流（波133）の予言（merge の前にコミットする・★(711)）
+基点 0072408c5（基線 m1287・INSRAW keep_1287/base_ins・KEEPNULL keep_1287/n1・a11・NG ng1287〔77 件〕・TESTS_NONFULL 3093）。
+main の作業ツリーには origin に無いコミットが 2 本ある（2901a3d2f・8410e3dcd＝作者のセッションの Codex の画像の素材・PriceOfBread.App/Assets と docs/flag-artwork.md だけ）。
+  合流の木 m1294 はこの 2 本の上に作る＝push で origin へ出る（SimCore・Tests・Runner には触れていない＝恒等の判定に効かない）。
+作ったフォルダ：D:/PoB_work/m1294_work・D:/PoB_work/wt_m1294（枝 m1294）。この後に作る物は created.txt に書き足す。
+
+入れる順：恒等の線 c133wa（911a61b6b・段 1 の表示は〈不一致〉＝宣言の .cost の 4 件だけ・成績表と計器の表は全行一致）→ c133cl（56d1baa48・判定: 恒等〔段 2〕）→ 挙動の線 c133mr（894d91c1c）。
+外す線：c133b1＝線の自分の門（史実の桁の線 H2 の銀 1913÷1784 0.775＜0.8）で採らなかった＝旗 1 のコミット c57083c68 も試験だけのコミット d210c3326・654f37ff6 も入れない。
+  記録（measurements/m1291_*・scripts/instruments/c133b1/）だけをパスで写す。3 回の規則では 1 回目に数える。
+反証役の〈高〉：wa・cl・mr・b1 は 0。ak の v の高 1 件＝(a)〈0 の近くからの跳び〉の物差しを推奨として 00一覧に写さない（作者に問う材料の側へ）＝合流はこのとおり扱う。
+merge-tree：3 組（wa×cl・wa×mr・cl×mr）とも衝突なし（mt_*.txt）。
+消す名前（★(773)）：cl の 5 名（MinimumWageWant・MinimumWageSufficiencyUrbanLine・DiscoveryRow.EngineerParent・MilitaryWarMult・WarMobilizationDepth）と計器 cwmult_s の 5 列。
+  wa・mr・b1 の差分の足した行で読む行 0（grep773.txt）。wa・mr は名前を消していない。
+合流はエンジンの .cs を直さない（衝突の解消だけ）。
+
+== 予言（成績表のバイト一致・止める線の段と記録の段）==
+P1 腕 Z（枝 m1294z＝合わせた木 m1294 から mr の点火 01d2e25da の p08 の 1 行と DormantIdentityTests の 1 行を戻した木）：
+   ident 段 2（計器 Instruments/ に触れる）。宣言＝--added-tables labeltier_s・--removed-cols cwmult_s の 5 列・--cost-allow DiscoveryWorldScans・--tests-delta 15。
+   素の 5 種・計器つき 10 種の成績表＝m1287 と全行バイト一致。.cost は DiscoveryWorldScans の件数の行と推定だけ違う（推定 約 −1.2 秒＝232.1→約 230.9・231.8→約 230.6）。
+   ident の表示は〈不一致〉（.cost の宣言の項だけ・wa と同じ）＝宣言の外の差 0 なら恒等と読む。計器の表＝一致＋既知の揺れ＋labeltier_s の 10 本＋cwmult_s の列が消えた 10 本・宣言の無い違い 0。
+   テストの数 3108（Tests 2860＋wa 4＋cl 6＋mr 6＝2876・Ui 233−cl 1＝232）・FullLength 3。NG 77 同じ集合。
+P2 合わせた木 m1294（mr の旗 1）の M（計器つき 10 種・全表）：成績表は mr の腕 B（b10_20261122_c133mrB_ins）と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+   .cost の推定＝mr の腕 B 232.1 秒から wa の分 約 −1.2 秒＝約 230.9 秒。
+   止める線（段 1＝止める線）：100 倍〈それ以外〉0・1e10 倍 0・非有限 0・開幕の 1000 倍 0・空洞化 1/10 未満 0・gdp_zero10 0（mr の腕 B と同じ軌道）。
+   mr の門：空の主流の札（文化・宗教）の国×四半期 0（紙の予言 0）・単体の試験 T1〜T6 緑。
+P3 S11（計器つき 10 種・種 11〜20・最終の採否）：止める線 0〈推〉・空の主流の札 85→0（紙の予言 0）。
+P4 N1（SupplySlope 0.50000001・計器つき 10 種）：新しいヌル腕。止める線は記録（m1287 の N1 はキサンガニ王国の 100 倍〈それ以外〉1 件）。N2 は回さない（(1287) と同じ・KEEPNULL は n1 と a11）。
+P5 WriterRatchetTests の宣言の表の取り直し 0（mr の線で変わらなかった・wa と cl は恒等）。
+P6 素の 10 種（p10）・素の 5 種（p5）は新しい基線の成績表として回す＝予言は無い（mr の旗 1 の軌道）。
+記録の段（採否に使わない）：NG・nullgate・英の国債の不履行（mr の腕 B 2/10）・home_break・popjump・史実の桁の記録。
