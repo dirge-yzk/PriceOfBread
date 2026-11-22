@@ -1,0 +1,35 @@
+(1308) 合流（波135）の予言（merge の前にコミットする・★(711)）
+基点 22c8d10bfeca（基線 m1294・INSRAW keep_1301/base_ins・KEEPNULL keep_1294/n1・a11・NG ng1294〔81 件〕・TESTS_NONFULL 3109）。main＝origin/main＝22c8d10bf（fetch で確かめた）。
+作ったフォルダ：D:/PoB_work/m1308_work・D:/PoB_work/wt_m1308（枝 m1308）。この後に作る物は created.txt に書き足す。
+
+== 入れる物と外す物 ==
+恒等の線 c135tl (1302)（4ad19c6d1・判定: 恒等〔段 2〕・反証役 v は低 2・情報 1）：入れる。
+恒等の線 c135ar (1303)（cd42d5ad9・宣言 --rewritten-tables arrears_s@scripts/instruments/c135ar/arrears_recheck.py で判定: 恒等・宣言なしで不一致〔予言どおり〕・反証役 v は中 1・低 4）：入れる。
+  v の中〈台本は規則そのものを読まない〉は v 自身が〈今回の合流は止めない〉＝生の独立の数え直しで裏づけた。台本の限界の 3 点目として記録に写し、他の表へ広げる前の直しを次の波へ送る。
+挙動の線 c135nc (1304)（ef2ac6870・旗 NextCapitalHomeFirst 1・止める線 0・G1 0・G2 0・反証役 v は低 3・v2 は低 2＝高 0）：入れる。
+挙動の線 c135k47 (1305)（8dc49a0be・旗 LampOilPetroleumDupOff 1・止める線 0・G1 緑・(a) 通る・反証役 v は中 2・低 4、v2 は低 3＝高 0）：入れる。
+  v の中 2 件（発見の画面に死んだ行が残る・台帳 S01-H019 の行が古い）は合流が docs で直す（台帳の行・申し送り）。エンジンの .cs は直さない。
+読む線 c135c3 (1306)：r1306_work の台本を scripts/instruments/r1306/、表を measurements/m1306_20261123/ へ写す（コミットしない線＝合流が写す）。
+設計の材料 c135ub (1307)：material.md・draft.md を docs/202611/20261123/ へ写す。台本は scripts/instruments/r1307/、表は measurements/m1307_20261123/。
+  v の中〈keep_1301_rej/c134f1_armB は合流が消してよい〉はこの回の決まり（keep_1294・keep_1301・keep_1301_rej は誰も消さない）に反する＝消さない。
+merge-tree：6 組とも衝突なし（m1308_work/mt_*.txt）。
+消す名前（★(773)）：4 線とも消した名前 0（tl は局所変数だけ・ar の ArWorld は欄を足しただけ・nc と k47 は足すだけ）＝他の枝で grep する名前は無い。
+合流はエンジンの .cs を直さない（衝突の解消だけ）。
+
+== 予言（成績表のバイト一致・止める線の段と記録の段）==
+P1 腕 Z（枝 m1308z＝合わせた木 m1308 から nc の点火 0e1b9e8bd と k47 の点火 9e54c5b37 を戻した木＝旗 2 本とも 0）：ident 段 2・PRUNE=1。
+   宣言＝--added-tables capcol_s・--rows-grown-ok treasledger_s・--rewritten-tables arrears_s@scripts/instruments/c135ar/arrears_recheck.py・--tests-delta 14（tl 3・ar 1・nc 8・k47 2）。
+   素の 5 種＝b5_20261122_m1294 と全行バイト一致（178 行）。計器つき 10 種＝b10_20261122_m1294_ins と全行バイト一致（179 行・名乗り行の SOURCE-HASH を除く）。
+   .cost＝件数の行 45 本と推定 232.1 秒が一致。計器の表＝バイト一致＋既知の揺れ 20＋capcol_s 10（足した表）＋treasledger_s 10（行が増えた・計 106 行）＋arrears_s 10（台本で通った）・宣言の無い違い 0。
+   注視の表 4846 行一致。テストの数 3123（Tests 2891・Ui 232）・FullLength 3。NG 81 同じ集合。savetest OK・leakhunt 保存則違反なし。判定: 恒等。
+P2 合わせた木 m1308（旗 2 本とも 1）の M（計器つき 10 種・全表）：どちらの線の腕 B とも全行一致しない〈推〉（k47 は開幕から生産者の並びが 1 本ずれる・nc は英の首都の付け替えで後半が分かれる）。
+   止める線（段 1＝止める線）：100 倍〈それ以外〉0・1e10 倍 0・非有限 0・開幕の 1000 倍 0・空洞化 1/10 未満の〈線が原因〉0・gdp_zero10 0〈推〉。推定の計算量 228〜234 秒〈推〉＜248.5。
+   nc の門：G1（g1Flag の和）＝0・G2（diffOldHome0Count の和）＝0（規則の形から＝受け口の外の道が出れば記録・読み替えない）。
+   k47 の門：石油灯油の産出（recipeout_s）＝10 種・全ての年で 0（構築の形から）。史実の桁 (a) 近代の灯油の取り分 1913 は比 1/10 より上〈推〉。(b) は基線で既に当たる＝記録。
+P3 S11（計器つき 10 種・種 11〜20・最終の採否・同じ門）：止める線 0〈推〉・nc の G1 0・G2 0・k47 の石油灯油 0。
+P4 N1（SupplySlope 0.50000001）・N2（0.49999999）（計器つき 10 種・表を絞る）：新しいヌル腕。止める線は記録。
+P5 アブレーション（旗を 1 本ずつ 0 にした腕）は、M で門が全て通れば回さない（作者のセッション 2026-11-18 の効率化）。
+P6 WriterRatchetTests の宣言の表：k47 の取り直し（ClaimProducers 1830・DiploHegemonScans 1889444）が合わせた木でも通る〈推〉＝nc の付け替えは最初の 40 四半期の種 1 の軌道に入らない〈推〉。赤なら ★(749) で取り直して名乗る。
+P7 フルスイート（合わせた木）：Category!=FullLength 3123（Tests 2891＋Ui 232）緑・FullLength 3 緑・--list-tests と一致・savetest OK・leakhunt 保存則違反なし。
+P8 採れば新しい基線 m1308＝INSRAW keep_1308/base_ins（M の全表）・KEEPNULL keep_1308/n1・n2・a11（S11）・NG ng1308・素の 5 種 p5。
+記録の段（採否に使わない）：NG・nullgate・英の国債の不履行（M・S11・N1・N2 を m1294 と並べる）・home_break・popjump・史実の桁の記録・ヌル腕の幅。
