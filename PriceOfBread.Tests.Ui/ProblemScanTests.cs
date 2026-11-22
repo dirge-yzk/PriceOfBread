@@ -169,4 +169,25 @@ public class ProblemScanTests
             Assert.False(unavailable[g], $"作れない財が不足に並んだ: {p.Target}");
         }
     }
+
+    [Fact]
+    public void 輸送力不足は州の律速率の不足分で_運ぶ見込みが無い州と余裕のある州は並ばない_貿易の頁へ結ぶ()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.Prussia()], seed: 1789);
+        for (int i = 0; i < 8; i++) sim.StepQuarter();
+        var w = sim.Nations[0].World;
+        // 機構：律速率と潜在量を直接置いて、並びと大きさを読む（創発の量は試験に書かない）
+        var tight = w.Regions[0]; var loose = w.Regions[^1];
+        tight.LastTradePotential = 100; tight.LastTradeThrottle = 0.25;
+        loose.LastTradePotential = 100; loose.LastTradeThrottle = 1.0;
+        var items = ProblemScan.Scan(sim, w).Where(p => p.Kind == ProblemKind.TransportShortage).ToList();
+        var t = Assert.Single(items, p => p.Key == "transport|" + tight.Name);
+        Assert.Equal(0.75, t.Size, 9);
+        Assert.Equal(Unit.Share, t.Unit);
+        Assert.Equal(Page.Trade, t.Page);
+        Assert.DoesNotContain(items, p => p.Key == "transport|" + loose.Name);
+        Assert.All(items, p => Assert.InRange(p.Size, 0.0, 1.0));
+        tight.LastTradePotential = 0;   // 運びたかった量が無ければ不足ではない
+        Assert.DoesNotContain(ProblemScan.Scan(sim, w), p => p.Kind == ProblemKind.TransportShortage && p.Key == "transport|" + tight.Name);
+    }
 }
