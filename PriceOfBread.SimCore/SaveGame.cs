@@ -29,6 +29,100 @@ public static class SaveGame
         return sim;
     }
 
+    /// <summary>(1309) 欄の比べの結果。Values＝値の違い・OrderOnly＝辞書や集合の列挙の順だけの違い（値は同じ）・Compared＝比べた対象の数。</summary>
+    internal sealed class StateDiffResult
+    {
+        public int Values, OrderOnly; public long Compared;
+        public readonly List<string> Samples = new();
+    }
+
+    /// <summary>(1309) 2 つのシミュの保存される欄（セーブと同じ FieldsOf）を並行にたどって比べる。シミュの道からは呼ばない（savetest と試験だけ）。
+    /// 値は bit で比べる。辞書と集合は鍵で突き合わせ、値が同じで列挙の順だけ違うものは OrderOnly に数える。max＝Samples に残す件数。</summary>
+    internal static StateDiffResult StateDiff(MultiNationSim a, MultiNationSim b, int max)
+    {
+        var res = new StateDiffResult();
+        var seen = new Dictionary<object, object>(ReferenceEqualityComparer.Instance);
+        var work = new Stack<(object? A, object? B, Func<string> Path)>();
+        void Diff(Func<string> path, string what) { res.Values++; if (res.Samples.Count < max) res.Samples.Add($"{path()}：{what}"); }
+        static bool ValueKey(Type t) => t.IsValueType || t == typeof(string);
+        work.Push((a, b, () => "sim"));
+        while (work.Count > 0)
+        {
+            var (x, y, path) = work.Pop();
+            res.Compared++;
+            if (x is null || y is null) { if (!(x is null && y is null)) Diff(path, "片方が null"); continue; }
+            var t = x.GetType();
+            if (t != y.GetType()) { Diff(path, $"型 {t.Name}⇔{y.GetType().Name}"); continue; }
+            if (x is double dx) { if (System.BitConverter.DoubleToInt64Bits(dx) != System.BitConverter.DoubleToInt64Bits((double)y)) Diff(path, $"{dx:R}⇔{(double)y:R}"); continue; }
+            if (x is IUnitValue ux) { if (System.BitConverter.DoubleToInt64Bits(ux.Value) != System.BitConverter.DoubleToInt64Bits(((IUnitValue)y).Value)) Diff(path, $"{ux.Value:R}⇔{((IUnitValue)y).Value:R}"); continue; }
+            if (t.IsPrimitive || t.IsEnum || x is string) { if (!x.Equals(y)) Diff(path, $"{x}⇔{y}"); continue; }
+            if (!t.IsValueType)
+            {
+                if (seen.TryGetValue(x, out var prev)) { if (!ReferenceEquals(prev, y)) Diff(path, "共有の形が違う"); continue; }
+                seen[x] = y;
+            }
+            if (t.IsArray || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(List<>)))
+            {
+                var la = (System.Collections.IList)x; var lb = (System.Collections.IList)y;
+                if (la.Count != lb.Count) { Diff(path, $"長さ {la.Count}⇔{lb.Count}"); continue; }
+                if (la is double[] pda)
+                {   // 数の配列は 1 要素ずつ作業の列に積まず、その場で bit で比べる（メモリを節約）
+                    var pdb = (double[])lb;
+                    for (int i = 0; i < pda.Length; i++) if (System.BitConverter.DoubleToInt64Bits(pda[i]) != System.BitConverter.DoubleToInt64Bits(pdb[i])) { int k = i; Diff(() => $"{path()}[{k}]", $"{pda[k]:R}⇔{pdb[k]:R}"); }
+                    res.Compared += pda.Length; continue;
+                }
+                for (int i = la.Count - 1; i >= 0; i--) { int k = i; work.Push((la[k], lb[k], () => $"{path()}[{k}]")); }
+                continue;
+            }
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            {
+                var da = (System.Collections.IDictionary)x; var db = (System.Collections.IDictionary)y;
+                if (da.Count != db.Count) { Diff(path, $"件数 {da.Count}⇔{db.Count}"); continue; }
+                var ka = new List<object>(); foreach (var k in da.Keys) ka.Add(k);
+                var kb = new List<object>(); foreach (var k in db.Keys) kb.Add(k);
+                if (!ValueKey(t.GetGenericArguments()[0]))
+                {   // 鍵が参照型＝列挙の順で突き合わせる（順の違いは値の違いに出る）
+                    for (int i = ka.Count - 1; i >= 0; i--) { int k = i; work.Push((ka[k], kb[k], () => $"{path()}.鍵[{k}]")); work.Push((da[ka[k]], db[kb[k]], () => $"{path()}.値[{k}]")); }
+                    continue;
+                }
+                bool order = true;
+                for (int i = 0; i < ka.Count; i++)
+                {
+                    var key = ka[i];
+                    if (!db.Contains(key)) { Diff(() => $"{path()}.鍵", $"{key} が片方に無い"); continue; }
+                    if (!key.Equals(kb[i])) order = false;
+                    work.Push((da[key], db[key], () => $"{path()}[{key}]"));
+                }
+                if (!order) { res.OrderOnly++; if (res.Samples.Count < max) res.Samples.Add($"{path()}：順だけ（{t.Name}）"); }
+                continue;
+            }
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(HashSet<>))
+            {
+                var ia = new List<object>(); foreach (var o in (System.Collections.IEnumerable)x) ia.Add(o);
+                var ib = new List<object>(); foreach (var o in (System.Collections.IEnumerable)y) ib.Add(o);
+                if (ia.Count != ib.Count) { Diff(path, $"件数 {ia.Count}⇔{ib.Count}"); continue; }
+                if (!ValueKey(t.GetGenericArguments()[0]))
+                { for (int i = ia.Count - 1; i >= 0; i--) { int k = i; work.Push((ia[k], ib[k], () => $"{path()}[{k}]")); } continue; }
+                var setB = new HashSet<object>(ib); bool allIn = true, order = true;
+                for (int i = 0; i < ia.Count; i++) { if (!setB.Contains(ia[i])) allIn = false; if (!ia[i].Equals(ib[i])) order = false; }
+                if (!allIn) Diff(path, "要素が違う");
+                else if (!order) { res.OrderOnly++; if (res.Samples.Count < max) res.Samples.Add($"{path()}：順だけ（{t.Name}）"); }
+                continue;
+            }
+            foreach (var f in FieldsOf(t)) { var fi = f; work.Push((fi.GetValue(x), fi.GetValue(y), () => $"{path()}.{fi.DeclaringType!.Name}.{fi.Name}")); }
+        }
+        return res;
+    }
+
+    /// <summary>(1309) 保存の点の対照＝A の側で、眠りの印・清算の失敗の印・清算の覚えが立っている市場の数（印が次の読み手より前に立っている件数）。</summary>
+    internal static (int Asleep, int FailLp, int Partners) MarkCounts(MultiNationSim s)
+    {
+        int a = 0, f = 0, p = 0;
+        foreach (var n in s.Nations) foreach (var r in n.World.Regions) foreach (var m in r.Markets)
+        { if (m.FlowAsleep) a++; if (m.ClearFailLp > 0) f++; if (m.ClearPartners is not null) p++; }
+        return (a, f, p);
+    }
+
     private enum Tag : byte
     {
         Null = 0, Ref = 1, Obj = 2, Struct = 3, Arr = 4, ListT = 5, DictT = 6, SetT = 7,
