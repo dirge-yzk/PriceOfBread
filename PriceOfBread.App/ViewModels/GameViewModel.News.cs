@@ -170,8 +170,8 @@ public partial class GameViewModel
                     if (!_prevCivilWarKeys.Contains(k))
                     {
                         bool mineCw = cwp.Nation == _player;
-                        QueueNews("ev_civilwar", cwp.Name, cwp.Nation?.Latitude ?? 0, cwp.Nation?.Longitude ?? 0, mineCw);
-                        Annal("⚔", $"{cwp.Name}で内戦：{reb.Name}が地図の上に立った");
+                        CountNews("内戦の始まり", false);   // 年表へは流さない（外交ログの内戦の始まりと同じ出来事が 2 行になるため）＝年代記は残す
+                        Annal("⚔", $"{cwp.Name}で内戦が起き、{reb.Name}が立った");
                     }
                 }
             foreach (var k in _prevCivilWarKeys)
@@ -190,7 +190,7 @@ public partial class GameViewModel
             bool mine = w == _player;
             long id = powers[i].Id;
             if (_prevPolities.TryGetValue(id, out var prev) && w.Polity != prev)
-            { QueueNews("ev_revolution", powers[i].Name, w.Latitude, w.Longitude, mine, PolityRegimeJa(w.Polity)); Annal("🏛", $"{powers[i].Name}：{PolityRegimeJa(prev)} → {PolityRegimeJa(w.Polity)}"); }
+            { QueueNews("ev_revolution", powers[i].Name, w.Latitude, w.Longitude, mine, powers[i].Name, PolityRegimeJa(w.Polity)); Annal("🏛", $"{powers[i].Name}：{PolityRegimeJa(prev)} → {PolityRegimeJa(w.Polity)}"); }
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
@@ -307,7 +307,7 @@ public partial class GameViewModel
     private void QueueNews(string id, string nation, double srcLat, double srcLon, bool isPlayer, params object[] args)
     {
         var e = AlertCatalog.Make(id, args);
-        DispatchNews(e.Icon, $"{nation}で、{e.Text}", e.Color, srcLat, srcLon, isPlayer);
+        DispatchNews(e.Icon, AlertCatalog.WholeSentence(id) ? e.Text : $"{nation}で、{e.Text}", e.Color, srcLat, srcLon, isPlayer);
     }
 
     // 任意文面の報せを距離ラグ付きで配達キューへ（外交ログ用。QueueNews と同じ伝播則＝電信普及で短縮・1870で実質0）。

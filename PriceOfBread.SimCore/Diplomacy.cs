@@ -1294,7 +1294,7 @@ public sealed class Diplomacy
             {
                 RemoveDependency(s, d);
                 AddTension(s, d, DefectionTensionResidue, TensionReason.Defection);   // 離反は遺恨を残す
-                Log.Add($"{_year} {d.Name}が{s.Name}への従属から離反（闘争度{Politics.AvgMassMilitancy(d.Nation):F2}・軍{d.Military:F1}＞抑え{hold:F1}）");   // 文言注意：「独立」は植民地独立の集計語＝使わない
+                Log.Add($"{_year} {d.Name}が{s.Name}への従属から離反した");   // 文言注意：「独立」は植民地独立の集計語＝使わない
             }
         }
     }
@@ -1416,7 +1416,7 @@ public sealed class Diplomacy
                                     wn.Explain?.Add("Legitimacy", "屈服の屈辱(国内の怒り)", -actualCost);
                                     wn.Legitimacy -= actualCost;
                                 }
-                                Log.Add($"{_year} {weak.Name}が{strong.Name}に屈服（緊張緩和）");
+                                Log.Add($"{_year} {weak.Name}が{strong.Name}に屈服した");
                             }
                             else { if (ins) Instruments.WarTag(this, a, b, 1); StartWar(a, b, c); _warClock[k] = 0; atWar = WarKeySet(); }
                         }
@@ -1526,7 +1526,7 @@ public sealed class Diplomacy
         WarsStarted++;
         // 挙動には一切影響しない（書くだけ）。〔履歴 Diplomacy.cs#166〕
         _warCount[Key(a, b)] = _warCount.GetValueOrDefault(Key(a, b)) + 1;
-        Log.Add($"{_year} {a.Name}×{b.Name} 開戦（緊張{Tension(a, b):F0}）");
+        Log.Add($"{_year} {a.Name}と{b.Name}が開戦した");
         // 交戦の入口の1本（強制禁輸・同盟は「参加義務なし」＝敵への緊張が高い同盟国だけ参戦＝別の1v1戦争として・両陣営の同盟へ問う）
         AddBelligerent(new War { A = a, B = b }, c, depth: 0);
         // 従属の防衛＝宗主のみ参戦義務（ユーザー指示）。攻守どちらでも従属の宗主は無条件で従属側に参戦。
@@ -1553,7 +1553,7 @@ public sealed class Diplomacy
         if (suz is null || suz == enemy || suz.Nation is null || AtWar(suz, enemy) || InDependency(suz, enemy)) return;
         // 届かない/疲弊した宗主は属国を見殺しにする（A1の離反へ繋がる）。〔履歴 Diplomacy.cs#168〕
         if (suz.WarExhaustion > c.WarWearyThreshold || Projection(suz, enemy, c) < c.DefendProjectionMin) return;
-        Log.Add($"{_year} {suz.Name}が宗主として参戦→{enemy.Name}（{dependent.Name}を防衛）");
+        Log.Add($"{_year} {suz.Name}が{dependent.Name}を守るため、{enemy.Name}との戦争に加わった");
         if (Instruments.On) Instruments.WarTag(this, suz, enemy, 5); AddBelligerent(new War { A = suz, B = enemy }, c, depth: 1, visited: []);   // AddBelligerent〔履歴 Diplomacy.cs#169〕
     }
 
@@ -1565,7 +1565,7 @@ public sealed class Diplomacy
         if (AtWar(parent, rebel)) return;
         WarsStarted++;
         _warCount[Key(parent, rebel)] = _warCount.GetValueOrDefault(Key(parent, rebel)) + 1;
-        Log.Add(secession ? $"{_year} {rebel.Name}が{parent.Name}からの独立を宣言＝分離独立戦争" : $"{_year} {parent.Name}で内戦＝{rebel.Name}が地図の上に立った");
+        Log.Add(secession ? $"{_year} {rebel.Name}が{parent.Name}からの独立を宣言した（分離独立戦争）" : $"{_year} {parent.Name}で内戦が起き、{rebel.Name}が立った");
         // 交戦の入口の1本（内戦中は敵対州間の交易が禁輸/密輸の既存機構に乗る＝doc §3 の④が自動になる・同盟は親側だけに問う）
         if (Instruments.On) Instruments.WarTag(this, parent, rebel, secession ? 10 : 6); AddBelligerent(new War { A = parent, B = rebel, CivilWarParent = parent, CivilWarPolity = rebelPolity, CivilWarSecession = secession }, c, depth: 0);
         // parent〔履歴 Diplomacy.cs#171〕
@@ -1640,7 +1640,7 @@ public sealed class Diplomacy
                 if (ally.PendingCallToArms is null) ally.PendingCallToArms = (belligerent, enemy);
                 continue;
             }
-            Log.Add($"{_year} {ally.Name}が同盟により参戦→{enemy.Name}" + (depth > 0 ? $"（連鎖{depth + 1}段目）" : ""));
+            Log.Add($"{_year} {ally.Name}が同盟に従い、{enemy.Name}との戦争に加わった");
             if (Instruments.On) Instruments.WarTag(this, ally, enemy, 4); AddBelligerent(new War { A = ally, B = enemy }, c, depth + 1, visited);   // 機能5-④-1：参戦国の同盟へさらに伝播（既定2段・0で1段のみ＝旧）
         }
     }
@@ -1654,7 +1654,7 @@ public sealed class Diplomacy
         player.PendingCallToArms = null;
         if (join && !AtWar(player, call.Enemy))
         {
-            Log.Add($"{_year} {player.Name}が同盟により参戦→{call.Enemy.Name}");
+            Log.Add($"{_year} {player.Name}が同盟に従い、{call.Enemy.Name}との戦争に加わった");
             if (Instruments.On) Instruments.WarTag(this, player, call.Enemy, 8); AddBelligerent(new War { A = player, B = call.Enemy }, c, depth: 1, visited: []);   // AddBelligerent〔履歴 Diplomacy.cs#179〕
         }
         else if (!join && c.AllyRefusalTension > 0)
@@ -1704,7 +1704,7 @@ public sealed class Diplomacy
             if (targets.Count == 0) continue;
             targets.Sort((x, y) => x.Military != y.Military ? x.Military.CompareTo(y.Military) : x.Id.CompareTo(y.Id));   // 最弱から・同値はId＝決定論の全順序
             foreach (var t in targets)
-                if (Formations.UnificationWarBlock(this, p, targets, t, c) == Formations.UnificationBlock.None && DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が統一の機運={rule.NewName}へ・必要州を求め{t.Name}に宣戦"); break; }
+                if (Formations.UnificationWarBlock(this, p, targets, t, c) == Formations.UnificationBlock.None && DeclareWar(p, t, c)) { Log.Add($"{_year} {p.Name}が{rule.NewName}への統一を掲げ、{t.Name}に宣戦した"); break; }
         }
     }
 
@@ -2014,13 +2014,13 @@ public sealed class Diplomacy
                 // 接収した Colony は受け取りの1本（AcquireColony＝国を持つ受け手はその場で植民地格の州へ・不満は上で col.Militancy に置いた後＝Promote が現地農民の Militancy へ写す）。
                 foreach (var col in target.ColonyList) AcquireColony(great, col, c);
                 target.ColonyList.Clear();
-                Log.Add($"{_year} {great.Name}が{target.Name}を侵略（併合・植民地+{n}）");
+                Log.Add($"{_year} {great.Name}が{target.Name}を侵略し、{n}州を植民地にした");
             }
             else
             {
                 SetDependency(great, target);
                 if (target.Nation is { } tw) foreach (var pop in tw.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + c.ColonizeAnnexMilitancy);   // A5：屈服した属国住民の遺恨＝離反圧（StepDependencyの離反判定に乗る）
-                Log.Add($"{_year} {target.Name}が{great.Name}に屈服し属国化（侵略）");
+                Log.Add($"{_year} {target.Name}が{great.Name}に屈服し、属国になった");
             }
             return true;
         }
@@ -2553,7 +2553,7 @@ public sealed class Diplomacy
         bool blank = EndedWarRecord.VerdictOf(war.Score, regimeWar, c.WhitePeaceScore) == WarVerdict.Blank;   // blank〔履歴 Diplomacy.cs#280〕
         if (blank && cwRebel is not null)   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
         {
-            Log.Add($"{_year} {cwParent!.Name}の内戦は膠着のまま終わった＝分断（{cwRebel.Name}が存続）");
+            Log.Add($"{_year} {cwParent!.Name}の内戦は膠着のまま終わり、{cwRebel.Name}が残った（分断）");
             // 首都の分離独立が分断で固まった＝首都州は反乱国に残る＝政府の戦時の首都がそのまま首都（首都を返す記しを外す）。〔履歴 Diplomacy.cs#281〕
             if (cwParent.Nation is { } splitW)
             {
@@ -2568,7 +2568,7 @@ public sealed class Diplomacy
         }
         if (blank)   // 戦勝点が小さい＝白紙講和（得るものなし）。政体の内戦は上の注記どおり勝者の枝へ〔内戦の白紙は上の枝で終わっている〕
         {
-            Log.Add($"{_year} {war.A.Name}×{war.B.Name} 白紙講和（戦勝点{s:+0.00;-0.00}）");
+            Log.Add($"{_year} {war.A.Name}と{war.B.Name}が白紙で講和した");
             return;
         }
         Power winner = s > 0 ? war.A : war.B, loser = s > 0 ? war.B : war.A;
@@ -2589,8 +2589,8 @@ public sealed class Diplomacy
             // 再併合＝州は全て親へ戻る（四半期末の MultiNationSim.ReabsorbNations）。反乱の勝ち＝親に CivilWarPolity を敷く（革命の成就）／同じ政体なら要求をのむ。
             PendingReintegrations.Add((cwParent!, cwRebel, rebelWon, war.CivilWarPolity));
             Log.Add(rebelWon
-                ? $"{_year} {cwParent!.Name}の内戦は{cwRebel.Name}の勝利＝革命の成就（政体change・再統合）"
-                : $"{_year} {cwParent!.Name}が内戦を鎮定＝{cwRebel.Name}を再併合");
+                ? $"{_year} {cwParent!.Name}の内戦は{cwRebel.Name}の勝利に終わった（革命の成就）"
+                : $"{_year} {cwParent!.Name}が内戦を鎮め、{cwRebel.Name}を再併合した");
             // 国家として何かを失ったのは鎮定された反乱国の住民だけ（敗戦の怒り＝その州の住民が親へ持ち帰り、鎮圧の後始末が和らげる）。〔履歴 Diplomacy.cs#285〕
             OutcomeShocks(c, cwParent!.Nation, rebelWon ? null : cwRebel.Nation, absScore);
             return;
@@ -2731,7 +2731,7 @@ public sealed class Diplomacy
             Fiscal.BookForeignDebt(null, new MoneyStock(repBase - rep), lw, ww);
         }
         if (Instruments.On) { CpHit = true; CpRep = rep; CpBudget0 = budget0; CpCaptured = captured; CpCeded = false; CpRepRaw = (c.ReparationGdpFraction.Value * loser.GdpPerMonth * saPay).Value; CpRepCut = repCut; CpTpMult = farCrush ? c.TreatyPortReparationMult : 1.0; CpPayR = loser.Nation is not null && winner.Nation is not null ? loser.Nation.FiscalFundingRatio.Value : double.NaN; }   // TreatyPortReparationMult〔履歴 Diplomacy.cs#309〕
-        Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // Add〔履歴 Diplomacy.cs#310〕
+        Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利し、{(captured > 0 ? $"植民地{captured}州（{string.Join("・", captNames)}）と" : "")}賠償{rep:F0}を得た");   // Add〔履歴 Diplomacy.cs#310〕
 
         // 決定的敗北の本国帰結（doc改善#3）：敗戦ショックで正統性を揺るがし（→Politics 遷移＝敗戦→革命・仏1870/露1917）、
         // 圧勝なら敗者の非首都州を1つ割譲（領土再編＝普仏戦争のアルザス・ロレーヌ）。全て多国限定＝較正中立。
@@ -2753,7 +2753,7 @@ public sealed class Diplomacy
                 if (crushing && !ratifyRefused && tooFarToRule && Suzerain(loser) is null && dw.Regions.Count > 0)
                 {
                     // 持分は国力比で連続に風化する（TreatyPortLapse）。〔履歴 Diplomacy.cs#316〕
-                    Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（賠償{rep:F0}・戦勝点{absScore:0.00}）");
+                    Log.Add($"{_year} {winner.Name}が{loser.Name}に条約港を開かせた（賠償{rep:F0}）");
                     {
                         Region? port = null;
                         foreach (var r in dw.Regions)
@@ -2770,7 +2770,7 @@ public sealed class Diplomacy
                     {
                         ceded = CedeTerritoryOnce(cg, c, dw, winner, loser.Name, ref budget, cessReach, takePrize: false);   // 必要な土地＝境界州を割譲し、核（首都）は残して属国化＝間接統治（異民族/異教は直接統治が高コスト）
                         SetDependency(winner, loser);   // 異民族/異教＝間接統治の属国（金銭貢納・宗主のみ参戦義務）
-                        Log.Add($"{_year} {winner.Name}が{loser.Name}を属国化（統治コスト高・戦勝点{absScore:0.00}）");
+                        Log.Add($"{_year} {winner.Name}が{loser.Name}を属国にした");
                         handled = true;
                     }
                     else
@@ -2779,7 +2779,7 @@ public sealed class Diplomacy
                         if (dw.Regions.Count <= 1)
                         {
                             SetDependency(winner, loser);
-                            Log.Add($"{_year} {winner.Name}が{loser.Name}を従属化（単州の同族国=併合不能のため保護国・戦勝点{absScore:0.00}）");
+                            Log.Add($"{_year} {winner.Name}が{loser.Name}を保護国にした");
                         }
                         else ceded = CedeTerritoryOnce(cg, c, dw, winner, loser.Name, ref budget, cessReach, takePrize: true);   // 同族＝安く併呑＝首都含む価値ある州を直接併合（属国化せず吸収）
                         handled = true;
@@ -2806,7 +2806,7 @@ public sealed class Diplomacy
                         dw.Legitimacy = Math.Min(dw.Legitimacy, c.ImposedRegimeLegitimacy);   // 銃剣の上の玉座＝正統性は低く始まる（復古の芽）
                         if (dw.Legitimacy != legBeforeImpose)   // legBeforeImpose〔履歴 Diplomacy.cs#321〕
                             dw.Explain?.Add("Legitimacy", "矯正講和(銃剣の上の玉座)", dw.Legitimacy - legBeforeImpose);
-                        Log.Add($"{_year} {winner.Name}が{loser.Name}の政体を矯正（矯正講和・戦勝点{absScore:0.00}）");
+                        Log.Add($"{_year} {winner.Name}が講和で{loser.Name}の政体を改めさせた");
                         if (impPre is not null) Instruments.ImpAfter(this, impPre, winner, loser, ww0, dw, absScore, crushing);   // Instruments〔履歴 Diplomacy.cs#322〕
                     }
                 }
@@ -2969,7 +2969,7 @@ public sealed class Diplomacy
         foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満
         // 0〔履歴 Diplomacy.cs#341〕
         loser.LostRegionsCumulative += 1.0;
-        Log.Add($"{_year} {winner.Name}が{loserName}から{cede.Name}を州移転（領土再編）");
+        Log.Add($"{_year} {winner.Name}が{loserName}から{cede.Name}を割譲させた");
     }
 
     /// <summary>終戦の1本（講和 StepWars と国の除去 RemovePower が通る）＝記録・禁輸の解除・緊張の置き直し・戦争の削除。</summary>

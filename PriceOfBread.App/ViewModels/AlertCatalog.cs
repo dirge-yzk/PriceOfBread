@@ -40,6 +40,12 @@ public static class AlertCatalog
         return map;
     }
 
+    /// <summary>国名を文の中に持つ報せ（頭に「{国}で、」を付けない）。</summary>
+    public static bool WholeSentence(string id) => id == "ev_revolution";
+
+    /// <summary>csv にある全ての id（試験が書式の穴を全 id で確かめる）。</summary>
+    public static IReadOnlyCollection<string> Ids { get { _entries ??= Load(); return _entries.Keys; } }
+
     /// <summary>id の文言で AlertRow を作る。CSVに無ければ id をそのまま出す（壊れても気づける）。</summary>
     public static AlertRow Make(string id, params object[] args)
     {

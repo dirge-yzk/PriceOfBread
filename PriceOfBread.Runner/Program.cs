@@ -3932,7 +3932,7 @@ if (args.Length > 0 && args[0] == "chronicle")
     // 3) 戦争サマリー
     int opens = m.Diplomacy.Log.Count(l => l.Contains("開戦"));
     int decisivePeace = m.Diplomacy.Log.Count(l => l.Contains("講和") && !l.Contains("白紙"));
-    int whitePeace = m.Diplomacy.Log.Count(l => l.Contains("白紙講和"));
+    int whitePeace = m.Diplomacy.Log.Count(l => l.Contains("白紙で講和"));
     Console.WriteLine($"\n## 3. 戦争サマリー　開戦{opens}回／決定的講和{decisivePeace}・白紙講和{whitePeace}・独立{m.Diplomacy.Log.Count(l => l.Contains("独立"))}回");
     int civilWars = m.Nations.Count(n => n.World.HadCivilWar), secs = m.Nations.Count(n => n.World.HadSecession);
     // C-高1完成検証（2026-07-25）：下賜（欽定憲法＝上からの改革でPC床を与えた回数）の実測＝発生国数と総回数

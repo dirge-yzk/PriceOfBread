@@ -48,7 +48,7 @@ public class ImposeAndCrownSourceTests
             Assert.True(rows.Count > 0, string.Join("|", sim.Diplomacy.Log.TakeLast(5)) + " wars=" + sim.Diplomacy.Wars.Count);
             Assert.Equal(Header.Length, Instruments.ImpHeaderText.Split('\t').Length);
             Assert.Equal(1, rows.Count(r => true));                     // 矯正講和は 1 件
-            Assert.Equal(1, sim.Diplomacy.Log.Count(l => l.Contains("の政体を矯正")));   // ログの件数と行数が合う
+            Assert.Equal(1, sim.Diplomacy.Log.Count(l => l.Contains("の政体を改めさせた")));   // ログの件数と行数が合う
             var row = rows[0].Split('\t'); Assert.Equal(Header.Length, row.Length);
             Assert.Equal("20", Col(row, "quarter"));                    // 61 / 3
             Assert.Equal("61", Col(row, "month"));

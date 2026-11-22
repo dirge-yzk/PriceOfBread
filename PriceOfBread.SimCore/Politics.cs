@@ -365,7 +365,7 @@ public static class Politics
             if (RaiseRevolt(w, w.Regions[0], attractor))
             {
                 if (Instruments.On) Instruments.CoupRoute(w, 3);
-                w.LogAdd($"{w.Year} {w.SelfPower?.Name}の首都{w.Regions[0].Name}で蜂起＝政府は首都を出て戦う（内戦）");
+                w.LogAdd($"{w.Year} {w.SelfPower?.Name}の首都{w.Regions[0].Name}で蜂起が起き、内戦になった");
                 return;
             }
         }
@@ -555,7 +555,7 @@ public static class Politics
         if (RaiseRevolt(w, best.Region, target))
         {
             w.RevoltingFaction = best;
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が蜂起し{best.Region.Name}に拠って立った（内戦）");
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が蜂起し、{best.Region.Name}に拠って内戦を始めた");
             return;
         }
         bool won = FactionStrength(w, c, best) > coerce + LoyalistMilitia(w, c, best);

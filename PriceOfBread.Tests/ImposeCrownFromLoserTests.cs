@@ -35,7 +35,7 @@ public class ImposeCrownFromLoserTests
         return (sim, uk.Nation!);
     }
 
-    private static int Imposed(MultiNationSim sim) => sim.Diplomacy.Log.Count(l => l.Contains("の政体を矯正"));
+    private static int Imposed(MultiNationSim sim) => sim.Diplomacy.Log.Count(l => l.Contains("の政体を改めさせた"));
 
     [Fact]
     public void 旗1_専制の勝者が共和の敗者を矯正すると絶対になる_旗0は専制()

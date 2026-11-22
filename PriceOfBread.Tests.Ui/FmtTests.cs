@@ -31,6 +31,23 @@ public class FmtTests
     private static List<string> Tidy(List<string> log) => Fmt.TidyDiploLog(log, 0);
 
     [Fact]
+    public void 年表の新しい文言でも賠償は金額の書式になり_戦勝点の数字は文に残らない()
+    {
+        var t = Tidy(new List<string>
+        {
+            "1800 英が仏に勝利し、植民地2州（A・B）と賠償50を得た",
+            "1800 英が仏に勝利し、賠償1200を得た",
+            "1800 英が仏に条約港を開かせた（賠償50）",
+            "1800 英と仏が白紙で講和した",
+        });
+        Assert.Equal(4, t.Count);
+        Assert.Equal("英が仏に勝利し、植民地2州（A・B）と賠償£50を得た", t[0]);
+        Assert.Equal("英が仏に勝利し、賠償" + Fmt.Money(1200) + "を得た", t[1]);
+        Assert.Equal("英が仏に条約港を開かせた（賠償£50）", t[2]);
+        Assert.Equal("英と仏が白紙で講和した", t[3]);
+    }
+
+    [Fact]
     public void 旧の金額の書式は1文字も変わらない_Moneyは小さな負の額に符号を残す旧の挙動のまま()
     {
         Assert.Equal("£0", Fmt.Money(0));

@@ -63,7 +63,7 @@ public static class Parliament
             if (w.QuartersSinceElection >= c.ElectionIntervalQuarters || noConfidence)
             {
                 if (noConfidence && w.QuartersSinceElection < c.ElectionIntervalQuarters)
-                    w.LogAdd($"{w.Year} {w.SelfPower?.Name}で内閣不信任＝繰り上げ総選挙");
+                    w.LogAdd($"{w.Year} {w.SelfPower?.Name}で内閣が不信任され、繰り上げ総選挙になった");
                 w.GoverningParty = (int)Winner(w);
                 w.QuartersSinceElection = 0;
                 w.ElectionsHeld++;

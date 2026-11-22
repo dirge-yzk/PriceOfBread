@@ -1025,7 +1025,7 @@ public sealed class MultiNationSim
         {
             rebelP.IsPlayer = false; parentP.IsPlayer = true;
             Nations[pi].SetAgent(new NullAgent());
-            Diplomacy.Log.Add($"{pw.Year} {rebelP.Name}は{parentP.Name}へ再併合された＝操作国は{parentP.Name}");
+            Diplomacy.Log.Add($"{pw.Year} {rebelP.Name}は{parentP.Name}へ再併合された（以後は{parentP.Name}として続ける）");
         }
         Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
         CostLedger.AddInto(_costDeparted ??= new long[CostLedger.Count], Nations[ri].World.CostOrNull);   // 計算量の台帳：消える国の件数を受け皿へ（診断・軌道に触れない）
@@ -1034,10 +1034,10 @@ public sealed class MultiNationSim
         if (Market.PairFlowQ is { } pfq && ri < pfq.Length)
             Market.PairFlowQ = pfq.Where((_, a) => a != ri).Select(row => row.Where((_, b) => b != ri).ToArray()).ToArray();
         Diplomacy.Log.Add(!rebelWon
-            ? $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}"
+            ? $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合し、内戦の傷跡だけが残った{spentName}"
             : rebelPolity != polityBefore
-            ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{PlayText.PolityRegimeJa(rebelPolity)}の下で再統一"
-            : $"{pw.Year} {rebelP.Name}の要求が通り{parentP.Name}へ再統一");
+            ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制し、{PlayText.PolityRegimeJa(rebelPolity)}の下で再統一した"
+            : $"{pw.Year} {rebelP.Name}の要求が通り、{parentP.Name}は再統一された");
     }
 
     // 疫病の国家間伝播（B-4）：感染国（EpidemicActiveYears>0）から、近接（首都距離＝陸路）と交易接触（両国の交易開放度の積＝海路の港）で、未感染国へ年次で飛び火。

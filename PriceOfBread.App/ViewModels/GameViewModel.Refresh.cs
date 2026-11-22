@@ -253,7 +253,7 @@ public partial class GameViewModel
             var (newsKind, newsScope) = NewsKinds.Classify(body);   // 年表へ流す種類の表（NewsKinds）＝消す物は作らない（数だけ数える）
             if (!NewsKinds.Passes(newsScope, body.Contains(Me.Name, StringComparison.Ordinal))) { CountNews(newsKind, false); continue; }
             CountNews(newsKind, true);
-            string icon = warLine ? "⚔" : body.Contains("同盟") ? "🤝" : body.Contains("講和") ? "🕊" : body.Contains("侵略") || body.Contains("属国") ? "🏴" : body.Contains("成立を宣言") || body.Contains("から独立") ? "👑" : body.Contains("座礁") ? "🏭" : body.Contains("職人が没落") ? "🔨" : "🌐";   // 座礁/職人の没落（通知・2026-09-05）
+            string icon = warLine ? "⚔" : body.Contains("同盟") ? "🤝" : body.Contains("講和") ? "🕊" : body.Contains("侵略") || body.Contains("属国") || body.Contains("保護国") || body.Contains("割譲") ? "🏴" : body.Contains("成立を宣言") || body.Contains("から独立") ? "👑" : body.Contains("座礁") ? "🏭" : body.Contains("職人が没落") ? "🔨" : "🌐";   // 座礁/職人の没落（通知・2026-09-05）
             // 発生地＝本文で最初に名前が出る国。**自国が当事者（本文に自国名）なら距離ラグなしで即時**＝宣戦布告される・属国化される等の重大事を見逃さない。
             bool mentionsMe = body.Contains(Me.Name, StringComparison.Ordinal);
             Power? src = null; int best = int.MaxValue;
