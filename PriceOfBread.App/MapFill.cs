@@ -41,7 +41,7 @@ public static class MapFill
     public const int Nx = 3600;                    // 表示は経度360°ぶん＝東西で巻く
     public static readonly int Ny = (int)Math.Round((MapData.LatTop - MapData.LatBottom) / CellDeg);
     private const double KmPerDeg = 111.32;        // 緯度1°の距離（子午線）
-    private const byte FillAlpha = 105;            // 背景の陸色が透けて見える濃さ
+    private const byte FillAlpha = 150;            // 背景の陸色が透けて見える濃さ（2026-11-22 鮮やかに：105→150）
     private const byte BorderAlpha = 200;          // 国境線の濃さ（B1'・2026-09-05）
     /// <summary>段2の1回の渡海の上限（km・実際の水の上だけを数える）。
     /// ⚠渡海の長さは**合計の最短経路に沿って**測る（海峡の最も狭い所を選ぶとは限らない）＝実際の海峡の幅より長めに出る。
