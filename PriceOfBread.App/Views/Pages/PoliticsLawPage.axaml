@@ -41,7 +41,7 @@
                         <TextBlock Text="{Binding StakePrevText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
-                <ctl:StatRow Label="前提法" Value="{Binding StakePrereqText}" IsVisible="{Binding HasStakePrereq}"/>
+                <TextBlock Text="{Binding StakePrereqText}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" IsVisible="{Binding HasStakePrereq}"/>
                 <ItemsControl ItemsSource="{Binding StakeBlocks}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:StakeBlockVM">
