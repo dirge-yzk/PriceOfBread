@@ -7,17 +7,17 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Layout;
 
-/// <summary>画面に出せるもの＝7 ページと地図と州の窓。宣言の順が <see cref="PageKeys"/> のページの順（地図・州は後ろ＝キーを持たない）。
-/// 地図と生産は背景・それ以外の 6 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
-public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Map, Province }
+/// <summary>画面に出せるもの＝8 ページと地図と州の窓。宣言の順が <see cref="Page"/> の宣言の順（キーの割り当て・釦の並びは <see cref="PageKeys.HeaderOrder"/>）（地図・州は後ろ＝キーを持たない）。
+/// 地図と生産は背景・それ以外の 7 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
+public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade, Map, Province }
 
 /// <summary>画面に出せるものの名前とキー。キーは本体の <see cref="PageKeys"/> が持つ。ここは引くだけ。</summary>
 public static class SlotInfo
 {
     public static readonly IReadOnlyList<Slot> All = Enum.GetValues<Slot>();
 
-    /// <summary>ヘッダーの押し釦に並ぶもの（7 ページ。地図は釦を持たない）。</summary>
-    public static readonly IReadOnlyList<Slot> Pages = All.Where(s => s != Slot.Map && s != Slot.Province).ToArray();
+    /// <summary>ヘッダーの押し釦に並ぶもの（8 ページ。並びは本体の PageKeys.HeaderOrder。地図は釦を持たない）。</summary>
+    public static readonly IReadOnlyList<Slot> Pages = PageKeys.HeaderOrder.Select(p => (Slot)(int)p).ToArray();
 
     public static string Name(Slot s) => s == Slot.Map ? PageKeys.MapName : s == Slot.Province ? "州" : PageKeys.Name((Page)s);
     /// <summary>文字のキー。生産（Tab）と地図（キー無し）は '\0'。</summary>
@@ -146,7 +146,8 @@ public sealed class LayoutModel
     /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。市場・財政・POP の 3 枚が 1920 幅の盤（左の列を除く約 1660）に横に並ぶ幅。</summary>
     public static double DefaultWidth(Slot slot) => slot switch
     {
-        Slot.Market => 480,        // 1 列に積む（値段の表と輸出入の表が縦に並ぶ）
+        Slot.Market => 480,        // 財の値段の表だけ（表の自然な幅）
+        Slot.Trade => 1040,        // 輸出と輸入の 2 列が左右に並ぶ幅
         Slot.Population => 620,    // 階級の表の幅
         _ => 540,
     };

@@ -37,7 +37,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
     /// <summary>単位から決まる最小幅（FontSmall=12px で半角の数字 約 6.65px・全角 12px）。</summary>
     public static double MinWidthOf(Unit unit) => unit switch
     {
-        Unit.MoneyStock or Unit.MoneyPerMonth or Unit.MoneyPerYear or Unit.RealGdpPerMonth => 48,   // 「£1.2k/月」7 文字分
+        Unit.MoneyStock or Unit.MoneyPerMonth or Unit.MoneyPerMonthSmall or Unit.MoneyPerYear or Unit.RealGdpPerMonth => 48,   // 「£1.2k/月」7 文字分
         Unit.Share or Unit.RatePerMonth => 28,                                                   // 「100%」4 文字分
         Unit.RatePerYear or Unit.RatePerQuarter => 46,
         Unit.RatioToGdpYear => 70,

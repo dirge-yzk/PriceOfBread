@@ -10,6 +10,8 @@ public enum Unit
     PricePerUnit,
     /// <summary>倍率（国内価格÷世界価格など。「×0.34」の形・小数 2 桁）。</summary>
     Multiple,
+    /// <summary>月の金額のうち £1 未満の小さな額も小数で読める物（貿易の財ごとの行。£0 に丸めない）。£1 以上は <see cref="MoneyPerMonth"/> と同じ。</summary>
+    MoneyPerMonthSmall,
 }
 
 /// <summary>段の押し釦 1 つの中身（法・税・支出の行の段。今の LawRowVM の段が持つ物をそのまま型にする）。<paramref name="Why"/>＝選べない段の押せない理由（短い語・閾値を出さない・選べる段は null。釦の下に出す）。</summary>

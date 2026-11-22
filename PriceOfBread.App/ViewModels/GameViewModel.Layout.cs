@@ -30,6 +30,7 @@ public partial class GameViewModel
     public bool DiscoveryShown => Layout.IsShown(Slot.Discovery);
     public bool FiscalShown => Layout.IsShown(Slot.FiscalMoney);
     public bool MarketShown => Layout.IsShown(Slot.Market);
+    public bool TradeShown => Layout.IsShown(Slot.Trade);
     public bool DiplomacyShown => Layout.IsShown(Slot.DiplomacyWar);
 
     public bool LeftOpen => Layout.LeftOpen;
@@ -67,7 +68,7 @@ public partial class GameViewModel
         switch (s)
         {
             case Slot.Production: TimeIt("生産ページが見えた(RefreshProduction)", RefreshProduction); break;
-            case Slot.Market: RefreshTrade(); break;
+            case Slot.Market or Slot.Trade: RefreshTrade(); break;
             case Slot.FiscalMoney: UpdateForecast(); break;
             case Slot.Population: RefreshPopulation(); break;
             case Slot.DiplomacyWar: RefreshFactions(); break;

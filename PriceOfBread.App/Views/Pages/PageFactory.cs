@@ -8,7 +8,8 @@ namespace PriceOfBread.App.Views.Pages;
 /// <para>段3 の持ち物（ページごとに別の担当が並行で作る＝自分の行のファイルだけを触る）：</para>
 /// <list type="table">
 /// <item><term>生産</term><description>Views/Pages/ProductionPage.axaml・ViewModels/GameViewModel.Production.cs</description></item>
-/// <item><term>市場・清算・貿易</term><description>Views/Pages/MarketPage.axaml・GameViewModel.Trade.cs</description></item>
+/// <item><term>財の価格</term><description>Views/Pages/MarketPage.axaml・GameViewModel.Trade.cs</description></item>
+/// <item><term>貿易</term><description>Views/Pages/TradePage.axaml・GameViewModel.Trade.cs</description></item>
 /// <item><term>財政と貨幣</term><description>Views/Pages/FiscalMoneyPage.axaml・GameViewModel.Fiscal.cs</description></item>
 /// <item><term>人口</term><description>Views/Pages/PopulationPage.axaml・GameViewModel.Pop.cs・Rows.cs の人口の行</description></item>
 /// <item><term>政治と法</term><description>Views/Pages/PoliticsLawPage.axaml・GameViewModel.Politics.cs・Law.cs・LawRowVM.cs</description></item>
@@ -22,6 +23,7 @@ public static class PageFactory
     {
         Slot.Production => new ProductionPage(),
         Slot.Market => new MarketPage(),
+        Slot.Trade => new TradePage(),
         Slot.FiscalMoney => new FiscalMoneyPage(),
         Slot.Population => new PopulationPage(),
         Slot.PoliticsLaw => new PoliticsLawPage(),

@@ -17,11 +17,11 @@ public class DisplayCatalogTests
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var pages = Enum.GetValues<Page>();
-        Assert.Equal(7, pages.Length);
+        Assert.Equal(8, pages.Length);
         Assert.Equal('\0', PageKeys.Key(Page.Production));
         var lettered = pages.Where(p => p != Page.Production).ToArray();
-        Assert.Equal("QWERAS", new string(lettered.Select(PageKeys.Key).ToArray()));
-        Assert.Equal("DFZXCV", PageKeys.FreeKeys);
+        Assert.Equal("QWERASD", new string(lettered.Select(PageKeys.Key).ToArray()));
+        Assert.Equal("FZXCV", PageKeys.FreeKeys);
         // 重なりが無く、ページと空きで列が過不足なく埋まる
         string all = new string(lettered.Select(PageKeys.Key).ToArray()) + PageKeys.FreeKeys;
         Assert.Equal(PageKeys.Priority, all);
@@ -39,12 +39,16 @@ public class DisplayCatalogTests
             Assert.Equal(p, PageKeys.PageOfKey(PageKeys.Key(p)));
             Assert.Equal(p, PageKeys.PageOfKey(char.ToLowerInvariant(PageKeys.Key(p))));
         }
-        Assert.Null(PageKeys.PageOfKey('F'));   // 地図のキーは無い
+        Assert.Null(PageKeys.PageOfKey('F'));   // 空きのキー
         Assert.Null(PageKeys.PageOfKey('\0'));
         Assert.Null(PageKeys.PageOfKey('Z'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
         Assert.Equal("Tab：生産", PageKeys.ButtonText(Page.Production));
-        Assert.Equal("Q：市場と貿易", PageKeys.ButtonText(Page.Market));
+        Assert.Equal("Q：財の価格", PageKeys.ButtonText(Page.Market));
+        Assert.Equal("D：貿易", PageKeys.ButtonText(Page.Trade));   // 貿易は宣言の末尾＝優先度の列から D
+        // 押し釦の並び（1 か所）：貿易は財の価格のすぐ右・全てのページが 1 度ずつ
+        Assert.Equal(Page.Trade, PageKeys.HeaderOrder[PageKeys.HeaderOrder.ToList().IndexOf(Page.Market) + 1]);
+        Assert.Equal(Enum.GetValues<Page>().OrderBy(p => p).ToList(), PageKeys.HeaderOrder.OrderBy(p => p).ToList());
         Assert.True(DisplayNames.IsValid(PageKeys.MapName));
     }
 
@@ -238,7 +242,7 @@ public class DisplayCatalogTests
     [Fact]
     public void 表の一覧_表の鍵は重ならず_列の鍵と名前は規則に合い_数の列は単位を持つ()
     {
-        Assert.Equal(17, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す（統合：段3 の 3 枝の静的な表を全部載せて 15＋階級の既定の形で 16＋発見の政府と思想〔2026-11-11 2 段組み〕で 17・制度の表を政府の行の状態の列へ吸収して 16〔2026-11-12〕。行を呼ぶ側が渡す表〔支出・収入〕は載せない）
+        Assert.Equal(16, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す（統合：段3 の 3 枝の静的な表を全部載せて 15＋階級の既定の形で 16＋発見の政府と思想〔2026-11-11 2 段組み〕で 17・制度の表を政府の行の状態の列へ吸収して 16〔2026-11-12〕。行を呼ぶ側が渡す表〔支出・収入〕は載せない）
         Assert.Equal(TableCatalog.All.Count, TableCatalog.All.Select(t => t.Key).Distinct().Count());
         foreach (var t in TableCatalog.All)
         {

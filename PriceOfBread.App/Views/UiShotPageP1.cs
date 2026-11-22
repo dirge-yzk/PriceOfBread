@@ -11,8 +11,8 @@ using PriceOfBread.App.ViewModels;
 
 namespace PriceOfBread.App.Views;
 
-/// <summary>--uishot の生産ページ・市場ページの撮影の段と検査（(501) 段3）。MainWindow の撮影の流れから 1 行で呼ぶ。
-/// ・生産と市場を 1 枚ずつ撮る。外側が縦に流れていないことは呼び手の判定（<c>LogOuterFlow</c>）を使う。
+/// <summary>--uishot の生産ページ・財の価格ページ・貿易ページの撮影の段と検査（(501) 段3）。MainWindow の撮影の流れから 1 行で呼ぶ。
+/// ・生産・財の価格・貿易を 1 枚ずつ撮る。外側が縦に流れていないことは呼び手の判定（<c>LogOuterFlow</c>）を使う。
 /// ・各表について〈見出しの列の左端＝値の列の左端〉を測って BootLog に書く。盤（財カード）が中央の幅に追従したことも書く。</summary>
 internal static class UiShotPageP1
 {
@@ -31,9 +31,15 @@ internal static class UiShotPageP1
         Report(window, "生産");
         if (UiShotWindows.GameViewOf(window) is { } gvw) UiShotWindows.OpenFull(gvw, lay, Slot.Market); else lay.Open(Slot.Market);
         await Task.Delay(900);
-        capture($"{nextNo():D2}_市場.png");
-        logOuter("市場");
-        Report(window, "市場");
+        capture($"{nextNo():D2}_財の価格.png");
+        logOuter("財の価格");
+        Report(window, "財の価格");
+        lay.Reset();
+        if (UiShotWindows.GameViewOf(window) is { } gvt) UiShotWindows.OpenFull(gvt, lay, Slot.Trade); else lay.Open(Slot.Trade);
+        await Task.Delay(900);
+        capture($"{nextNo():D2}_貿易.png");
+        logOuter("貿易");
+        Report(window, "貿易");
         lay.Reset();
         await Task.Delay(300);
     }

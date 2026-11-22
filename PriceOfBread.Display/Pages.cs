@@ -1,11 +1,11 @@
 namespace PriceOfBread.SimCore.Display;
 
-/// <summary>画面の 7 ページ（設計 docs/202610/20261023 §3）。表示の目録は文字と読み口だけを持つ＝盤面に書かない・状態を持たない・計算の順序も係数も持たない
+/// <summary>画面の 8 ページ（設計 docs/202610/20261023 §3）。表示の目録は文字と読み口だけを持つ＝盤面に書かない・状態を持たない・計算の順序も係数も持たない
 /// （<see cref="PlayText"/> と同じ立場＝シムの軌道に触れない）。</summary>
-public enum Page { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery }
+public enum Page { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade }
 
 /// <summary>ページの切り替えキー。生産は Tab（地図との切り替え・作者の指示 2026-11-04）・残りのページは優先度の列 <see cref="Priority"/>（作者の指示 2026-10-23
-/// 「QWERASDFZXCV の優先度で、順に埋める」）を前から、<see cref="Page"/> の宣言順に割り当てる（生産を除く＝市場が Q）。残りは空き。
+/// 「QWERASDFZXCV の優先度で、順に埋める」）を前から、<see cref="Page"/> の宣言順に割り当てる（生産を除く＝財の価格が Q・貿易は末尾なので D）。残りは空き。
 /// 地図にはキーが無い（Tab で生産と切り替える・開いているページのキーをもう一度押すか Esc で戻る）。
 /// 割り当ては列と宣言順から導く＝表を手で書かない（ページを足すと自動で次のキーが埋まる）。</summary>
 public static class PageKeys
@@ -17,7 +17,8 @@ public static class PageKeys
     public static string Name(Page page) => page switch
     {
         Page.Production => "生産",
-        Page.Market => "市場と貿易",
+        Page.Market => "財の価格",
+        Page.Trade => "貿易",
         Page.FiscalMoney => "財政と貨幣",
         Page.Population => "POP",
         Page.PoliticsLaw => "政治と法",
@@ -25,6 +26,16 @@ public static class PageKeys
         Page.Discovery => "発見",
         _ => "",
     };
+
+    /// <summary>ヘッダーの押し釦の並び（1 か所）。貿易は財の価格のすぐ右・残りは宣言の順（キーは宣言の順で決まり、並びとは別）。</summary>
+    public static IReadOnlyList<Page> HeaderOrder { get; } = BuildHeaderOrder();
+
+    private static List<Page> BuildHeaderOrder()
+    {
+        var order = System.Enum.GetValues<Page>().Where(p => p != Page.Trade).ToList();
+        order.Insert(order.IndexOf(Page.Market) + 1, Page.Trade);
+        return order;
+    }
 
     /// <summary>地図の名前。</summary>
     public const string MapName = "地図";
@@ -46,6 +57,6 @@ public static class PageKeys
         return null;
     }
 
-    /// <summary>押し釦の文字（「Tab:生産」「Q:市場・清算・貿易」の形）。</summary>
+    /// <summary>押し釦の文字（「Tab:生産」「Q:財の価格」の形）。</summary>
     public static string ButtonText(Page page) => $"{(page == Page.Production ? ProductionKeyName : Key(page).ToString())}：{Name(page)}";
 }

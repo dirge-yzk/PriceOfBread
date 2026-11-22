@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
+             x:Class="PriceOfBread.App.Views.Pages.TradePage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/TradePage.axaml ＝ 貿易のページ（作者指示 2026-11-22）。左に輸出・右に輸入。輸送の表は持たない（輸送力の不足は問題の一覧）。
+         欄の並べ（2 列・狭ければ 1 列）は PageGrid が決める（並べの表は TradePage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の TradeTables）が名乗る。 -->
+    <Grid Margin="4">
+        <ctl:PageGrid x:Name="TradeGrid">
+        <ctl:Section x:Name="ExportsSection" Key="exports" Title="輸出">
+            <ctl:Section.Body>
+                <Grid x:Name="ExportsBody" RowDefinitions="*,Auto">
+                    <ctl:TableView Grid.Row="0" Snapshot="{Binding ExportTable}" InnerScroll="True"/>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Column="0" Text="輸出総額" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding TradeExportTotal}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextAlignment="Right"/>
+                    </Grid>
+                </Grid>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        <ctl:Section x:Name="ImportsSection" Key="imports" Title="輸入">
+            <ctl:Section.Body>
+                <Grid x:Name="ImportsBody" RowDefinitions="*,Auto">
+                    <ctl:TableView Grid.Row="0" Snapshot="{Binding ImportTable}" InnerScroll="True"/>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Column="0" Text="輸入総額" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding TradeImportTotal}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextAlignment="Right"/>
+                    </Grid>
+                </Grid>
+            </ctl:Section.Body>
+        </ctl:Section>
+
+        </ctl:PageGrid>
+    </Grid>
+</UserControl>

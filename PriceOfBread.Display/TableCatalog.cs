@@ -6,7 +6,7 @@ public static class TableCatalog
 {
     public static IReadOnlyList<ITable> All { get; } =
     [
-        TradeTables.Imports, TradeTables.Exports, TradeTables.Transport, MarketTables.Prices,
+        TradeTables.Imports, TradeTables.Exports, MarketTables.Prices,
         ProductionTables.Goods, ProductionTables.Equipment, ProductionTables.Labor,
         FiscalTables.Finance, FiscalTables.Debt,
         PopTables.ClassesPlain, PopTables.Regions, PopTables.Religion, PopTables.Culture,
