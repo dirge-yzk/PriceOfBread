@@ -53,7 +53,12 @@
                     <ItemsControl ItemsSource="{Binding ShownHover.Lines}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontWeight="{Binding Weight}" FontSize="{StaticResource FontEmph}" TextWrapping="{Binding Wrap}"/>
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Image Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,4,0" VerticalAlignment="Top"
+                                           IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Text}" Foreground="{Binding Brush}" FontWeight="{Binding Weight}"
+                                               FontSize="{StaticResource FontEmph}" TextWrapping="{Binding Wrap}"/>
+                                </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

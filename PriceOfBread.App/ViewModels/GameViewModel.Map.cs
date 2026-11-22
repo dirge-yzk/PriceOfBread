@@ -715,8 +715,10 @@ public partial class GameViewModel
         // （＝括弧の開発度）が消える／重なり回避で小さい州のラベルは出ないため、ホバーでも同じ値を出す。
         // ★定義も丸めもラベルと完全一致（TotalIndustrialization×70・指標名はUIと通知で完全一致の規約）。2026-08-31にラベルが小数1桁(F1)へ変わったのに合わせる。
         info.Lines.Add(new MapHoverLine { Text = $"開発度：{rg.TotalIndustrialization * 70:F1}", Brush = HoverText });
-        if (!string.IsNullOrEmpty(rg.Culture) || !string.IsNullOrEmpty(rg.Religion))
-            info.Lines.Add(new MapHoverLine { Text = $"文化：{rg.Culture}　宗教：{rg.Religion}", Brush = HoverDim });
+        if (!string.IsNullOrEmpty(rg.Culture))
+            info.Lines.Add(new MapHoverLine { Text = $"文化：{rg.Culture}", Brush = HoverDim });
+        if (!string.IsNullOrEmpty(rg.Religion))
+            info.Lines.Add(new MapHoverLine { Text = $"宗教：{rg.Religion}", Icon = ReligionIcons.Of(rg.Religion), Brush = HoverDim });
         // 状態：過密（収穫逓減）・疫病・主食不足（該当時のみ）
         if (rg.ArableLand < 1e8)
         {

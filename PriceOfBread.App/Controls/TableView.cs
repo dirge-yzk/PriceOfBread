@@ -439,6 +439,7 @@ public sealed class TableView : UserControl
             return tableKey switch
             {
                 "pop.classes" or "politics.stakes" => ClassIcons.OfKey(rowKey),
+                "pop.religion" => ReligionIcons.Of(rowKey),
                 "diplomacy.nations" => FlagIcons.Of(rowKey),
                 _ => null,
             };

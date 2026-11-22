@@ -243,6 +243,7 @@ public sealed record AnnalRow(string Date, string Icon, string Text);
 // 州○ホバーの詳細（地図左上パネルに表示）。行ごとに色/太さ＝生産量上位のハイライト等。
 public sealed class MapHoverLine
 {
+    public IImage? Icon { get; init; }
     public string Text { get; init; } = "";
     public IBrush Brush { get; init; } = Brushes.Black;
     public FontWeight Weight { get; init; } = FontWeight.Normal;

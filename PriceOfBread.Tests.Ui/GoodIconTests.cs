@@ -21,6 +21,22 @@ public class GoodIconTests
     }
 
     [Fact]
+    public void 世界データに登場する宗教のアイコンが全てある()
+    {
+        string root = Path.GetDirectoryName(Path.GetDirectoryName(Here()))!;
+        var provinces = WorldData.Nations().SelectMany(nation => nation.Provinces).Select(province => province.Religion);
+        foreach (var religion in provinces.Concat(Places.All.Select(place => place.Religion)).Where(r => !string.IsNullOrEmpty(r)).Distinct())
+        {
+            string? uri = ReligionIcons.UriOf(religion);
+            Assert.NotNull(uri);
+            Assert.True(File.Exists(Path.Combine(root, "PriceOfBread.App", "Assets", "Religions", uri.Split('/')[^1])), religion);
+        }
+        Assert.Equal(ReligionIcons.UriOf("ヒンドゥー教"), ReligionIcons.UriOf("ヒンドゥー"));
+        Assert.Null(ReligionIcons.UriOf(null));
+        Assert.Null(ReligionIcons.UriOf("未登録"));
+    }
+
+    [Fact]
     public void 財の表の行の鍵から財の番号へ戻る()
     {
         Assert.True(GoodIcons.IsGoodTable("production.goods"));
