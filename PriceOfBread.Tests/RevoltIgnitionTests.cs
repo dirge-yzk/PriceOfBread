@@ -9,7 +9,7 @@ namespace PriceOfBread.Tests;
 /// R1 coerce飽和を壁→漸近逓減（Government.CoercionTargetFromForce・旧の旗 CoercionSoftCap は2026-10-18に焼き込み）／
 /// R2 FactionRevoltLocalCoerce＝F3b右辺の州pop按分ブレンド（Politics.LocalizedHold）／
 /// R3 は★段2（2026-09-09）で機構ごと消滅＝熱は州平均闘争度1量（同じ主張を新しい形で測る2本に書き直し済み）／
-/// R4 ModernizationBudgetSoftCap＝近代化投資のminクランプ→漸近逓減（World.ModernizationBudget）。
+/// R4 近代化投資のminクランプ→漸近逓減（World.ModernizationBudget・旗 ModernizationBudgetSoftCap は (1282) c132g2 で焼き込み）。
 /// ⚠**R1・R2・R4は2026-08-16の点火梯子で点火済み**（R1=1.0＋水準 CoercionMax 4000→2000／R2=0.5／R4=1.0。R3は段2で削除）
 /// ＝既定はもう休眠ではない。各テストは**旧式（OFF）側を明示的に0へピン**して対照を取る
 /// （pob-ignition-comment-sweep の教訓＝既定に寄りかかった対照は点火で空洞化する）。
@@ -229,7 +229,11 @@ public class RevoltIgnitionTests
         double Budget(double frac) { w.ModernizationFrac = frac; return w.ModernizationBudget(); }
         // 2026-11-22 (1282)：旗 ModernizationBudgetSoftCap を焼き込み（旧の min クランプとの比べは無い）。
         double on03 = Budget(0.3), on06 = Budget(0.6), on10 = Budget(1.0);
-        Assert.True(on10 > 0 && on10 <= 500.0 + 1e-9, $"frac=1.0 の漸近の極限が国庫半分の上限（500）を超えた／NaN（{on10}）");   // 上限保存・convex=+∞でもNaNにならない
+        // frac=1.0＝漸近の極限＝国庫半分（1000×0.5＝500）の壁と同額に旧支配層の抵抗の係数（1−抵抗×旧勢力の取り分）だけを掛けた値（上限保存・convex=+∞でもNaNにならない）。500 は試験の置いた国庫から・抵抗の掛けは盤面から試験が自前で数える。
+        var (trad, modern, mass) = InterestGroups.Blocs(w);
+        double blocTot = trad + modern + mass;
+        double guard = System.Math.Max(0, 1.0 - w.Coef.ModernizationOldGuardResist * (blocTot > 1e-9 ? trad / blocTot : 0));
+        Assert.Equal(500.0 * guard, on10, 9);
         Assert.True(on06 < on10, $"frac0.6と1.0の区別が生まれない（0.6: {on06:F1} / 1.0: {on10:F1}）");
         Assert.True(on03 < on06, $"fracの単調性が壊れた（0.3: {on03:F1} / 0.6: {on06:F1}）");
         Assert.True(on06 > 0);

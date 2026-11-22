@@ -194,7 +194,6 @@ public sealed class UtilityAgent : INationAgent
     private const double ModernizerWelBias = 1.2;
     internal const double GoldLiteracyLine = 0.75;
     internal const double AntitrustUrbanLine = 1.0 / 3.0;
-    internal const double MinimumWageSufficiencyUrbanLine = 2.0 / 3.0;
     internal const double TrustbustUrbanLine = 0.5;
     internal const double MinimumWageUnempLowerLine = 0.5;
     internal const double MinimumWageBindLowerMin = 0.5;
@@ -638,11 +637,6 @@ public sealed class UtilityAgent : INationAgent
         if (cur < MinimumWageLaw.Sufficiency && unemployment < MinimumWageUnempRaiseLine && bindNext >= 0 && bindNext <= MinimumWageBindRaiseMax) return cur + 1;
         return cur;
     }
-
-    internal static MinimumWageLaw MinimumWageWant(double urbanShare)
-        => urbanShare > MinimumWageSufficiencyUrbanLine ? MinimumWageLaw.Sufficiency
-         : urbanShare > TrustbustUrbanLine ? MinimumWageLaw.Living
-         : urbanShare > AntitrustUrbanLine ? MinimumWageLaw.Subsistence : MinimumWageLaw.None;
 
     public void DecideQuarter(World w)
     {

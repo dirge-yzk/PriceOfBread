@@ -5,8 +5,8 @@ public static partial class Instruments
 {
     sealed class CwAcc
     {
-        public int Civil, Foreign, OldMis, NewMis, CtMis, ZeroM;
-        public double ActC, OldC, NewC, ExhC, ActF, NewF, MilC;
+        public int Civil, Foreign, CtMis, ZeroM;
+        public double ActC, ExhC, ActF, MilC;
         public double AmmoD, AmmoP, PowD, PowP, LeadD, LeadP;
         public double Ct, CtR, ZeroAct;
     }
@@ -15,8 +15,8 @@ public static partial class Instruments
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, CwSink> CwSinks = new();
 
     internal const string CwHeaderText = "quarter\tyear\tnationUid\tnation\tcivilWarMonthsCount\tforeignWarMonthsCount\t"
-        + "warMultActualCivilSumIndex\twarMultOldRuleCivilSumIndex\twarMultNewRuleCivilSumIndex\twarExhaustionCivilSumShare\t"
-        + "warMultActualForeignSumIndex\twarMultNewRuleForeignSumIndex\toldRuleMismatchMonthsCount\tnewRuleMismatchMonthsCount\t"
+        + "warMultActualCivilSumIndex\twarExhaustionCivilSumShare\t"
+        + "warMultActualForeignSumIndex\t"
         + "militaryScaleCivilSumIndex\tammunitionDemandCivilQty\tammunitionProducedCivilQty\tgunpowderDemandCivilQty\tgunpowderProducedCivilQty\tleadDemandCivilQty\tleadProducedCivilQty\t"
         + "contactShareSumIndex\twarMultContactRuleSumIndex\tcontactRuleMismatchMonthsCount\tzeroContactWarMonthsCount\twarMultActualZeroContactSumIndex";
 
@@ -37,11 +37,7 @@ public static partial class Instruments
         if (!war) return;
         var c = w.Coef; var acc = CwAccs.GetValue(w, _ => new CwAcc());
         double exh = sp.WarExhaustion;
-        double ruleNew = c.MilitaryWarMult * (1.0 + c.WarMobilizationDepth * exh);
-        double ruleOld = civil ? c.MilitaryWarMult * 2.0 : ruleNew;
         double actual = w.Region.MilitaryWarMultLast;
-        if (CwMismatch(actual, ruleOld)) acc.OldMis++;
-        if (CwMismatch(actual, ruleNew)) acc.NewMis++;
         // nFront〔履歴 InstrumentsCivwar.cs#2〕
         var nFront = new System.Collections.Generic.Dictionary<Power, int>();
         foreach (var x in d.Wars) { nFront[x.A] = nFront.GetValueOrDefault(x.A) + 1; nFront[x.B] = nFront.GetValueOrDefault(x.B) + 1; }
@@ -58,8 +54,8 @@ public static partial class Instruments
         acc.Ct += share; acc.CtR += ruleContact;
         if (CwMismatch(actual, ruleContact)) acc.CtMis++;
         if (share < 1e-9) { acc.ZeroM++; acc.ZeroAct += actual; }
-        if (!civil) { acc.Foreign++; acc.ActF += actual; acc.NewF += ruleNew; return; }
-        acc.Civil++; acc.ActC += actual; acc.OldC += ruleOld; acc.NewC += ruleNew; acc.ExhC += exh;
+        if (!civil) { acc.Foreign++; acc.ActF += actual; return; }
+        acc.Civil++; acc.ActC += actual; acc.ExhC += exh;
         foreach (var r in w.Regions)
         {
             acc.MilC += r.MilitaryScale;
@@ -91,7 +87,7 @@ public static partial class Instruments
         if (!sk.Header) { sk.W.WriteLine(CwHeaderText); sk.Header = true; }
         sk.W.WriteLine(string.Join('\t',
             CwI(q), CwI(w.Year), CwI(S(w).Uid), NameOf(w), CwI(a.Civil), CwI(a.Foreign),
-            F(a.ActC), F(a.OldC), F(a.NewC), F(a.ExhC), F(a.ActF), F(a.NewF), CwI(a.OldMis), CwI(a.NewMis),
+            F(a.ActC), F(a.ExhC), F(a.ActF),
             F(a.MilC), F(a.AmmoD), F(a.AmmoP), F(a.PowD), F(a.PowP), F(a.LeadD), F(a.LeadP),
             F(a.Ct), F(a.CtR), CwI(a.CtMis), CwI(a.ZeroM), F(a.ZeroAct)));
     }

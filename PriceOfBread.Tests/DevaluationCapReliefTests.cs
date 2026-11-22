@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(587) 切り下げ（インフレ税）の月の上限の緩め（旗 DevaluationCapReliefExp・既定 0）の番人＝機構と不変条件だけ。
+/// <summary>★(587) 切り下げ（インフレ税）の月の上限の緩め（旗 DevaluationCapReliefExp は c132kx で消した＝切りを超える余地を全て切り下げる形だけが残る）の番人＝機構と不変条件だけ。
 /// 作者 2026-10-26「ゲームの制御が簡単なことは重要だが、極端な場合にはハイパーインフレが起きる機構を捨てたくはない。なので、数値としての天井は可能なら排除したい」。事前登録 <c>measurements/hyp587_20261027_prereg.txt</c>。
 /// 既存の <c>PriceLevelCeilFreeTests</c> の増発の番人は <c>FiatInflationPressure</c> を直接書く＝切り下げの道（余地→切り→移し方→圧）を一度も通らない。ここは実際の赤字（国庫の当座借越）で通す。
 /// 期待値は式の外側の性質（旧の切りを超える・余地以下・連続・単調・有限・保存）で書く＝緩めの式を写さない。</summary>
@@ -24,7 +24,7 @@ public class DevaluationCapReliefTests(ITestOutputHelper output)
             {
                 double now = Fiscal.DevaluationAllowed(room, cap);
                 if (cap > 0 && room > cap) Assert.True(BitConverter.DoubleToInt64Bits(room) == BitConverter.DoubleToInt64Bits(now), $"余地 {room}・切り {cap}：切りを超える余地は余地そのものを返す（{now}）");
-                else if (!double.IsNaN(room) && !double.IsNaN(cap)) Assert.True(now <= room && now <= cap, $"余地 {room}・切り {cap}：{now} が小さい方を超えた");
+                else if (!double.IsNaN(room) && !double.IsNaN(cap)) Assert.True(BitConverter.DoubleToInt64Bits(Math.Min(room, cap)) == BitConverter.DoubleToInt64Bits(now), $"余地 {room}・切り {cap}：旧の式 Math.Min(余地, 切り) と {now} が違う");
                 else Assert.True(double.IsNaN(now), $"余地 {room}・切り {cap}：非数が運ばれない（{now}）");
             }
     }

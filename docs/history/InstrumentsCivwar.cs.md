@@ -23,3 +23,6 @@
 `````text
         // (959) 接触の割合の規則：前線の数は全ての戦争の両側で数え、自国が当事者の戦線ごとに弱い側の押しを足し、自軍の Military で割る
 `````
+
+## (1289) c133cl で削除
+- cwmult_s の規則の 5 列（warMultOldRuleCivilSumIndex・warMultNewRuleCivilSumIndex・warMultNewRuleForeignSumIndex・oldRuleMismatchMonthsCount・newRuleMismatchMonthsCount）と、それを数える CwAcc の欄・規則の 2 行（旧＝MilitaryWarMult×2.0（内戦）・新＝MilitaryWarMult×(1+WarMobilizationDepth×厭戦)）。係数を消したため。

@@ -3895,3 +3895,6 @@
 
 ## (1282) c132g2 で削除
 - 旗 OpulenceTaxRelief・SurvivalHopelessScale・SovietTaxProfile・MinimumWageAiFromFloor の読み手（RelieveOpulence は internal へ）。MinimumWageTargetFromBoard・MinimumWageTargetChosen を消した。
+
+## (1289) c133cl で削除
+- MinimumWageWant（都市の割合の線で最低賃金の段を 4 つに分ける旧の置き方・`>2/3 充足・>1/2 生活・>1/3 生存・他 なし`）と MinimumWageSufficiencyUrbanLine（2/3）。読み手は Tests.Ui/LaborMarketFormTests の試験 1 本だけ（AI は (1282) c132g2 で盤面から選ぶ形へ）。AntitrustUrbanLine・TrustbustUrbanLine は別の読み手があるので残した。
