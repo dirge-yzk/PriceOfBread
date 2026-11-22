@@ -1,0 +1,10 @@
+seed6 residual rows 41101 nan 12 abs>1e-6 
+seed1 residual rows 40760 nan 5 abs>1e-6 0
+seed2 residual rows 40765 nan 7 abs>1e-6 0
+seed3 residual rows 40778 nan 7 abs>1e-6 0
+seed4 residual rows 40799 nan 17 abs>1e-6 0
+seed5 residual rows 40780 nan 7 abs>1e-6 0
+seed7 residual rows 41780 nan 11 abs>1e-6 0
+seed8 residual rows 41073 nan 11 abs>1e-6 0
+seed9 residual rows 41439 nan 17 abs>1e-6 0
+seed10 residual rows 40799 nan 12 abs>1e-6 0
