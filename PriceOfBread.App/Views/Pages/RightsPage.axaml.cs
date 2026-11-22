@@ -10,9 +10,10 @@ public partial class RightsPage : UserControl
     [
         new SectionSpec("power", "権力", 9),
         new SectionSpec("parliament", "議会", 10, 2),
+        new SectionSpec("crown", "政体", 7),
     ],
     [
-        ["power"],
+        ["power", "crown"],
         ["parliament"],
     ]);
 

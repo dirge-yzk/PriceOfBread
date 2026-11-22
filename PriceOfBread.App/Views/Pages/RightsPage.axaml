@@ -141,5 +141,19 @@
                 </StackPanel>
             </StackPanel>
         </ctl:Section>
+
+        <!-- 王権と議会：政体の名前・望まれている政体・議会統制力・政治資本・協力度・政変圧力（政体が動くかの量） -->
+        <ctl:Section Key="crown" Title="政体">
+            <StackPanel Spacing="2">
+                <ctl:StatRow Label="政体" Value="{Binding PolityText}"/>
+                <ctl:StatRow Label="王冠の形" Value="{Binding CrownText}"/>
+                <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}"/>
+                <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Note="{Binding ParliamentControlTip}"/>
+                <ctl:StatRow Label="政治資本の残り" Value="{Binding PoliticalCapitalText}" Note="{Binding PoliticalCapitalTip}"/>
+                <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" ValueBrush="{Binding ChallengeBrush}"/>
+                <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}" IsVisible="{Binding HasPowerStruggle}"/>
+                <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}" IsVisible="{Binding HasPowerStruggle}"/>
+            </StackPanel>
+        </ctl:Section>
     </ctl:PageGrid>
 </UserControl>

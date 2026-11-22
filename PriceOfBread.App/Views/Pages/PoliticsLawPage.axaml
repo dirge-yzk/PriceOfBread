@@ -10,73 +10,15 @@
          法の表は本体の目録（SimCore/Display/LawTables.cs）が行を並べる＝法を足すとき画面は直さない。
          値の行は共通の部品 StatRow（名前と値とホバー）。半円は共通の HalfPie。-->
     <UserControl.Resources>
-        <DataTemplate x:Key="StakeRowTemplate" x:DataType="vm:StakeRowVM">
-            <Grid ColumnDefinitions="Auto,4,*,Auto" Margin="0,1">
-                <Image Grid.Column="0" Source="{Binding Icon}" Height="18" Stretch="Uniform"/>
-                <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Text="{Binding Text}" Classes="val" FontSize="{StaticResource FontSmall}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-            </Grid>
-        </DataTemplate>
     </UserControl.Resources>
     <ctl:PageGrid x:Name="Sections" Margin="4">
 
         <!-- 法の表：群ごとに法の名前と段の押し釦。国有化の門が開いている間は末尾に国有化の群。見出しは止めて中身だけ流す -->
         <ctl:Section Key="law" Title="法の表" Scrolls="False">
-            <ctl:TableView x:Name="LawTableView" Snapshot="{Binding LawTable}" SelectedKey="{Binding LawSelectedKey}" InnerScroll="True"/>
+            <ctl:TableView x:Name="LawTableView" Snapshot="{Binding LawTable}" SelectedKey="{Binding LawSelectedKey}" DetailKey="{Binding LawSelectedKey}" InnerScroll="True"/>
         </ctl:Section>
 
-        <!-- 選んだ法：法の表の行を押して選ぶ。前提法・段の名で書いた賛成と反対の半円・階級ごとの賛成寄りと反対寄り（賛成 n%）。説明の文は置かない。 -->
-        <ctl:Section Key="stakes" Title="選んだ法">
-            <StackPanel Spacing="4">
-                <TextBlock Text="{Binding StakeLawName}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
-                <Grid ColumnDefinitions="*,*">
-                    <StackPanel Grid.Column="0" Spacing="1" Background="Transparent" IsVisible="{Binding HasStakeNext}">
-                        <ctl:HalfPie Radius="29" Slices="{Binding StakeNextSlices}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding StakeNextCaption}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding StakeNextText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Spacing="1" Background="Transparent" IsVisible="{Binding HasStakePrev}">
-                        <ctl:HalfPie Radius="29" Slices="{Binding StakePrevSlices}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding StakePrevCaption}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding StakePrevText}" Classes="val" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Grid>
-                <TextBlock Text="{Binding StakePrereqText}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" IsVisible="{Binding HasStakePrereq}"/>
-                <ItemsControl ItemsSource="{Binding StakeBlocks}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:StakeBlockVM">
-                            <StackPanel Spacing="2" Margin="0,4,0,0">
-                                <TextBlock Text="{Binding Caption}" Classes="section"/>
-                                <Grid ColumnDefinitions="*,8,*">
-                                    <StackPanel Grid.Column="0" Spacing="1">
-                                        <TextBlock Text="賛成寄り" Foreground="{StaticResource GreenBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold"/>
-                                        <ItemsControl ItemsSource="{Binding Pro}" ItemTemplate="{StaticResource StakeRowTemplate}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="1">
-                                        <TextBlock Text="反対寄り" Foreground="{StaticResource RustBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold"/>
-                                        <ItemsControl ItemsSource="{Binding Con}" ItemTemplate="{StaticResource StakeRowTemplate}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </ctl:Section>
 
-        <!-- 王権と議会：政体の名前・望まれている政体・議会統制力・政治資本・協力度・政変圧力（政体が動くかの量） -->
-        <ctl:Section Key="crown" Title="政体">
-            <StackPanel Spacing="2">
-                <ctl:StatRow Label="政体" Value="{Binding PolityText}"/>
-                <ctl:StatRow Label="王冠の形" Value="{Binding CrownText}"/>
-                <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}"/>
-                <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Note="{Binding ParliamentControlTip}"/>
-                <ctl:StatRow Label="政治資本の残り" Value="{Binding PoliticalCapitalText}" Note="{Binding PoliticalCapitalTip}"/>
-                <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" ValueBrush="{Binding ChallengeBrush}"/>
-                <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}" IsVisible="{Binding HasPowerStruggle}"/>
-                <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}" IsVisible="{Binding HasPowerStruggle}"/>
-            </StackPanel>
-        </ctl:Section>
 
     </ctl:PageGrid>
 </UserControl>

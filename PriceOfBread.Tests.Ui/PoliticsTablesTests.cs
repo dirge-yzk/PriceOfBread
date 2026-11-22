@@ -118,4 +118,21 @@ public class PoliticsTablesTests
         var v2 = new VerbCell("侵略", false, () => { }, null, "戦力余剰が必要");
         Assert.Equal("戦力余剰が必要", v2.Tip);
     }
+
+    [Fact]
+    public void 法を選ぶと選んだ行の直後に賛否の差し込みが入る_選ばなければ入らない()
+    {
+        var (sim, w) = Board();
+        var keys = PoliticsTables.Laws.Read(sim, w).Rows.Select(r => r.Key).ToList();
+        Assert.True(keys.Count > 1);
+        foreach (int at in new[] { 0, keys.Count / 2, keys.Count - 1 })
+        {
+            var order = PriceOfBread.App.Controls.TableView.WithDetail(keys, keys[at]);
+            Assert.Equal(keys.Count + 1, order.Count);
+            Assert.Equal(keys[at], order[order.ToList().IndexOf(null) - 1]);   // 差し込みの直前が選んだ行
+            Assert.Equal(keys, order.Where(k => k is not null).ToList());      // 他の行の並びは変わらない
+        }
+        Assert.Equal(keys, PriceOfBread.App.Controls.TableView.WithDetail(keys, null));        // 閉じている＝差し込み無し
+        Assert.Equal(keys, PriceOfBread.App.Controls.TableView.WithDetail(keys, "存在しない鍵"));   // 表に無い鍵＝差し込み無し
+    }
 }
