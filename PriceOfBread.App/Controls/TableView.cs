@@ -33,27 +33,9 @@ public sealed class TableView : UserControl
     /// <summary>選んでいる行の鍵（行の背景で示す）。行を選ぶ表（生産ページの財の表）が使う。null なら選ばない。</summary>
     public string? SelectedKey { get => GetValue(SelectedKeyProperty); set => SetValue(SelectedKeyProperty, value); }
 
-    /// <summary>選んだ行の直後に差し込んで出す中身の鍵（行の鍵・null か表に無い鍵なら差し込まない）。同じ行をもう一度押して null に戻せば閉じる（作者の指示 2026-11-23）。</summary>
-    public static readonly StyledProperty<string?> DetailKeyProperty = AvaloniaProperty.Register<TableView, string?>(nameof(DetailKey));
-    public string? DetailKey { get => GetValue(DetailKeyProperty); set => SetValue(DetailKeyProperty, value); }
-    /// <summary>差し込む中身（法の賛成寄りと反対寄りなど）。行の幅いっぱいに出す。</summary>
-    public static readonly StyledProperty<Control?> DetailContentProperty = AvaloniaProperty.Register<TableView, Control?>(nameof(DetailContent));
-    public Control? DetailContent { get => GetValue(DetailContentProperty); set => SetValue(DetailContentProperty, value); }
-    private readonly Border _detailHost = new() { Margin = new Thickness(0, 0, 0, 4) };
-
-    /// <summary>差し込みの置き場：行の鍵の並びの中で <paramref name="detailKey"/> の行があればその鍵（差し込みはその行の直後）・無ければ null。</summary>
-    public static string? DetailAnchor(IEnumerable<string> rowKeys, string? detailKey)
-        => detailKey is not null && rowKeys.Contains(detailKey) ? detailKey : null;
-
-    /// <summary>行の鍵の並びに差し込みの印（null）を入れた並び。差し込みは選んだ行のすぐ後ろ（番人が読む）。</summary>
-    public static IReadOnlyList<string?> WithDetail(IEnumerable<string> rowKeys, string? detailKey)
-    {
-        var keys = rowKeys.ToList();
-        var anchor = DetailAnchor(keys, detailKey);
-        var list = new List<string?>();
-        foreach (var k in keys) { list.Add(k); if (k == anchor) list.Add(null); }
-        return list;
-    }
+    /// <summary>行 <paramref name="key"/> の上端の位置（<paramref name="relativeTo"/> の座標）。行が表に無い・まだ置かれていない時は null。流れた表でも今見えている位置を返す。</summary>
+    public double? RowTop(string key, Visual relativeTo)
+        => _rows.TryGetValue(key, out var rp) && rp.Root.IsAttachedToVisualTree() ? rp.Root.TranslatePoint(new Point(0, 0), relativeTo)?.Y : null;
 
     /// <summary>行の余白（押し釦の外）を押した。引数は行の鍵（国の一覧の行を押すと地図がその国へ動く、など）。</summary>
     public event Action<string>? RowActivated;
@@ -162,8 +144,6 @@ public sealed class TableView : UserControl
         SnapshotProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
         InnerScrollProperty.Changed.AddClassHandler<TableView>((v, _) => v.AttachBody());
         SelectedKeyProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplySelection());
-        DetailKeyProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
-        DetailContentProperty.Changed.AddClassHandler<TableView>((v, _) => { v._detailHost.Child = v.DetailContent; v.Rebuild(); });
         ScrollXProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplyScrollX());
     }
 
@@ -274,7 +254,6 @@ public sealed class TableView : UserControl
         var live = new HashSet<string>();
         string? lastGroup = null;
         var viewRows = snap.View(_sortColumn, _sortDescending).ToList();
-        string? detailAfter = DetailContent is null ? null : DetailAnchor(viewRows.Select(r => r.Key), DetailKey);
         foreach (var row in viewRows)
         {
             if (row.Group is { Length: > 0 } g && g != lastGroup)
@@ -287,7 +266,6 @@ public sealed class TableView : UserControl
             rp.Update(snap.Columns, row);
             live.Add(row.Key);
             wanted.Add(rp.Root);
-            if (detailAfter is not null && row.Key == detailAfter) wanted.Add(_detailHost);   // 選んだ行のすぐ下に開く
         }
         foreach (var dead in _rows.Keys.Where(k => !live.Contains(k)).ToList()) _rows.Remove(dead);
         if (!_body.Children.SequenceEqual(wanted)) { _body.Children.Clear(); _body.Children.AddRange(wanted); }

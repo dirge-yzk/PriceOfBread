@@ -4,7 +4,7 @@
              xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.StakeDetail"
              x:DataType="vm:GameViewModel">
-    <!-- 法の表で選んだ行のすぐ下に開く中身（作者の指示 2026-11-23）：前提法・段の名で書いた賛成と反対の半円・階級ごとの賛成寄りと反対寄り。説明の文は置かない。 -->
+    <!-- 法の表の右の欄の中身（作者の指示 2026-11-23：選んだ行の高さにそろって上下に動く）：前提法・段の名で書いた賛成と反対の半円・階級ごとの賛成寄りと反対寄り。説明の文は置かない。 -->
     <UserControl.Resources>
         <DataTemplate x:Key="StakeRowTemplate" x:DataType="vm:StakeRowVM">
             <Grid ColumnDefinitions="Auto,4,*,Auto" Margin="0,1">

@@ -72,7 +72,7 @@ public partial class MainWindow
         }
         catch (Exception ex) { BootLog.Write($"uishot: 段の押し釦の書き込み 失敗 {ex}"); }
         BootLog.Write($"uishot: 財政の表 支出{gvm.SpendTable.Rows.Count}行・収入{gvm.IncomeTable.Rows.Count}行・金融{gvm.FinanceTable.Rows.Count}行・国債{gvm.DebtTable.Rows.Count}行・見出し「{gvm.SpendTitle}」「{gvm.IncomeTitle}」");
-        BootLog.Write($"uishot: 年次の線の点の数 粗出生率{gvm.BirthRateValues.Count}・粗死亡率{gvm.DeathRateValues.Count}・合計出生率{gvm.FertilityValues.Count}（人口の線は人口のページを開いた後）　年齢の層{gvm.AgePyramid.Labels.Count}層");
+        BootLog.Write($"uishot: 出生と死 粗出生率{gvm.BirthRateText}・粗死亡率{gvm.DeathRateText}・合計出生率{gvm.FertilityText}（人口のページを開いた後）　年齢の層{gvm.AgePyramid.Labels.Count}層");
         lay.Reset();
         await Task.Delay(300);
     }

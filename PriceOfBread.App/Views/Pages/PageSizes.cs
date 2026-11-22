@@ -56,8 +56,8 @@ public static class PageSizes
     /// <summary>頁が割れる列の数（欄の置き場の列の数。最大 3）。</summary>
     public static int MaxColumns(Slot slot) => PlanOf(slot) is { } t ? Math.Clamp(t.Columns3.Count, 1, 3) : 1;
 
-    /// <summary>最低でもこの列の数で開く頁（支出と収入・輸出と輸入は左右に並べる）。</summary>
-    public static int MinColumns(Slot slot) => slot is Slot.Trade or Slot.FiscalMoney ? Math.Min(2, MaxColumns(slot)) : 1;
+    /// <summary>最低でもこの列の数で開く頁（支出と収入・輸出と輸入・法の表と賛否は左右に並べる）。</summary>
+    public static int MinColumns(Slot slot) => slot is Slot.Trade or Slot.FiscalMoney or Slot.PoliticsLaw ? Math.Min(2, MaxColumns(slot)) : 1;
 
     /// <summary>最小の列の数から順の窓の幅の候補（狭い順）。各候補の幅で頁が実際にその列の数に割れること（<see cref="PagePlan.ColumnCount(double, PageTable)"/>）は番人が確かめる。</summary>
     public static IReadOnlyList<double> Candidates(Slot slot) => PlanOf(slot) is null ? [540] : Enumerable.Range(MinColumns(slot), MaxColumns(slot) - MinColumns(slot) + 1).Select(n => Width(slot, n)).ToList();

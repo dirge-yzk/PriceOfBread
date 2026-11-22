@@ -1,3 +1,4 @@
+using PriceOfBread.App.Controls;
 using PriceOfBread.App.ViewModels;
 using PriceOfBread.SimCore;
 using PriceOfBread.SimCore.Display;
@@ -120,19 +121,28 @@ public class PoliticsTablesTests
     }
 
     [Fact]
-    public void 法を選ぶと選んだ行の直後に賛否の差し込みが入る_選ばなければ入らない()
+    public void 賛否の欄の縦の位置は選んだ行の位置から決まる_欄の中に収まる()
+    {
+        const double child = 200, host = 600;
+        Assert.Equal(0, FollowLayout.Top(null, child, host));            // 選びが無い＝先頭
+        Assert.Equal(0, FollowLayout.Top(-50, child, host));             // 表が流れて行が上へ出た＝先頭
+        Assert.Equal(0, FollowLayout.Top(double.NaN, child, host));
+        Assert.Equal(137, FollowLayout.Top(137, child, host));           // 行の上端にそろう
+        Assert.Equal(host - child, FollowLayout.Top(580, child, host));  // 下からはみ出す時は収まる所まで上げる
+        Assert.Equal(host - child, FollowLayout.Top(5000, child, host));
+        Assert.Equal(0, FollowLayout.Top(300, 900, host));               // 欄より高い中身は先頭
+        for (double r = -100; r < 800; r += 37)                          // 行が下へ動けば欄も下へ動く（単調）
+            Assert.True(FollowLayout.Top(r + 37, child, host) >= FollowLayout.Top(r, child, host));
+    }
+
+    [Fact]
+    public void 選んだ法の賛否は段を持つ法ごとに読める()
     {
         var (sim, w) = Board();
+        var defs = LawCatalog.In(LawSlot.Law).Where(d => d.IsVisible(w)).ToList();
+        Assert.NotEmpty(defs);
+        Assert.Contains(defs, d => LawStakes.Split(w, d, true) is not null || LawStakes.Split(w, d, false) is not null);
         var keys = PoliticsTables.Laws.Read(sim, w).Rows.Select(r => r.Key).ToList();
-        Assert.True(keys.Count > 1);
-        foreach (int at in new[] { 0, keys.Count / 2, keys.Count - 1 })
-        {
-            var order = PriceOfBread.App.Controls.TableView.WithDetail(keys, keys[at]);
-            Assert.Equal(keys.Count + 1, order.Count);
-            Assert.Equal(keys[at], order[order.ToList().IndexOf(null) - 1]);   // 差し込みの直前が選んだ行
-            Assert.Equal(keys, order.Where(k => k is not null).ToList());      // 他の行の並びは変わらない
-        }
-        Assert.Equal(keys, PriceOfBread.App.Controls.TableView.WithDetail(keys, null));        // 閉じている＝差し込み無し
-        Assert.Equal(keys, PriceOfBread.App.Controls.TableView.WithDetail(keys, "存在しない鍵"));   // 表に無い鍵＝差し込み無し
+        Assert.All(defs, d => Assert.Contains(d.Key, keys));   // 選べる法は表の行にある＝右の欄はどの行を選んでも出る
     }
 }

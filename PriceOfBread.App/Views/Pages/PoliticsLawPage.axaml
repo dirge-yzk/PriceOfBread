@@ -15,10 +15,13 @@
 
         <!-- 法の表：群ごとに法の名前と段の押し釦。国有化の門が開いている間は末尾に国有化の群。見出しは止めて中身だけ流す -->
         <ctl:Section Key="law" Title="法の表" Scrolls="False">
-            <ctl:TableView x:Name="LawTableView" Snapshot="{Binding LawTable}" SelectedKey="{Binding LawSelectedKey}" DetailKey="{Binding LawSelectedKey}" InnerScroll="True"/>
+            <ctl:TableView x:Name="LawTableView" Snapshot="{Binding LawTable}" SelectedKey="{Binding LawSelectedKey}" InnerScroll="True"/>
         </ctl:Section>
 
-
+        <!-- 賛否の欄：選んだ法の行の高さにそろって上下に動く（FollowPanel）。選びが無い間は空 -->
+        <ctl:Section Key="stake" Title="賛否" Scrolls="False">
+            <ctl:FollowPanel x:Name="StakeHost"/>
+        </ctl:Section>
 
     </ctl:PageGrid>
 </UserControl>

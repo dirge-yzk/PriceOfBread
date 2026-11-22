@@ -19,16 +19,14 @@
                 <TextBlock Text="{Binding CropLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" IsVisible="{Binding CropLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 <TextBlock Text="{Binding ChildLaborLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" IsVisible="{Binding ChildLaborLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 <ctl:AgeBars Data="{Binding AgePyramid}"/>
-            </StackPanel>
-        </ctl:Section>
-        <ctl:Section Key="births" Title="出生と死">
-            <StackPanel Spacing="6">
-                <TextBlock Text="粗出生率" Classes="range"/>
-                <ctl:LineChart x:Name="BirthChart" Values="{Binding BirthRateValues}" Height="44" Stroke="{StaticResource BlueBrush}"/>
-                <TextBlock Text="粗死亡率" Classes="range"/>
-                <ctl:LineChart x:Name="DeathChart" Values="{Binding DeathRateValues}" Height="44" Stroke="{StaticResource RustBrush}"/>
-                <TextBlock Text="合計出生率" Classes="range"/>
-                <ctl:LineChart x:Name="FertilityChart" Values="{Binding FertilityValues}" Height="44" Stroke="{StaticResource GrayBrush}"/>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Text="粗出生率" Classes="range"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding BirthRateText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                    <TextBlock Grid.Row="1" Text="粗死亡率" Classes="range"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DeathRateText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                    <TextBlock Grid.Row="2" Text="合計出生率" Classes="range"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FertilityText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/>
+                </Grid>
             </StackPanel>
         </ctl:Section>
         <ctl:Section Key="religion" Title="宗教" Scrolls="False">
