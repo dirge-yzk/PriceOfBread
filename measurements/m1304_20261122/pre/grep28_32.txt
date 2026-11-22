@@ -1,0 +1,18 @@
+# IndustrializationReaderTests Territory/Instruments 行
+26:        ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
+# new MoneyStock( SimCore
+66
+# route_anchors Territory
+71:Territory.cs	internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c) => Pop.Blend(sp, dp, moveSize);	州の間の移民(POPの運搬)	
+# OnDouble Territory
+47:        ["Territory.cs::static#0"] = 4,
+# WriterRatchet NextCapital/Territory/capcol
+210:    [InlineData(".Rebase(", "Territory.cs", 1)]            // 割譲の通貨の付け替え（換算の台帳と対）
+# ㉜ tests NextCapital
+PriceOfBread.Tests/DormantIdentityTests.cs
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs
+PriceOfBread.Tests/RevoltIgnitionTests.cs
+# ㉜ tests TransferRegion with capital (Regions[0] ceded)
+PriceOfBread.Tests/TerritoryTests.cs:214:        Territory.TransferRegion(fr, br, oldCap, Territory.Rehoming.Ceded);   // 講和で首都を取られた
+# Regions[0] 件数 Tests
+282

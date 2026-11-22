@@ -1,0 +1,12 @@
+seed	G1	capColHome0	capColCivil	maxSovColCap	ukRemitToGdp1913	G1nations
+11	234	0	0	1	nan	スペイン:127,日本:107
+12	1	1	9	1	nan	オマーン:1
+13	0	0	0	0	nan	
+14	0	0	0	0	nan	
+15	4	0	0	1	nan	スペイン:4
+16	0	0	0	0	nan	
+17	0	1	3	1	nan	
+18	0	0	0	0	nan	
+19	0	1	2	1	nan	
+20	350	1	5	2	nan	マラータ同盟:350
+計	G1=589	capColHome0=4	capColCivil=19	maxSovColCap の種の中央=1・最大=2
