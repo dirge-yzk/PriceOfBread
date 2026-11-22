@@ -98,6 +98,7 @@
                 <ctl:StatRow Label="王冠の形" Value="{Binding CrownText}"/>
                 <ctl:StatRow Label="望まれている政体" Value="{Binding PolityAttractorText}"/>
                 <ctl:StatRow Label="議会統制力" Value="{Binding ParliamentControlText}" Note="{Binding ParliamentControlTip}"/>
+                <ctl:StatRow Label="政治資本の残り" Value="{Binding PoliticalCapitalText}" Note="{Binding PoliticalCapitalTip}"/>
                 <ctl:StatRow Label="政変圧力" Value="{Binding ChallengeText}" ValueBrush="{Binding ChallengeBrush}"/>
                 <ctl:StatRow Label="軍の忠誠" Value="{Binding ArmyLoyaltyText}" IsVisible="{Binding HasPowerStruggle}"/>
                 <ctl:StatRow Label="軍の政治力" Value="{Binding ArmyPowerText}" IsVisible="{Binding HasPowerStruggle}"/>

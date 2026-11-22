@@ -16,7 +16,7 @@ public partial class MarketPage : UserControl
         new SectionSpec("imports", "輸入", MinRows: 6),
         new SectionSpec("transport", "輸送", MinRows: 3),
     ],
-    [["prices"], ["exports"], ["imports", "transport"]],
+    [["prices"], ["exports", "transport"], ["imports"]],
     ColumnMinWidth: 420,    // 幅が 3 列入れば値段・輸出・輸入が横に並ぶ（輸入が輸出の下へ押し出されない）・2 列なら左に値段・右に輸出と輸入・狭ければ 1 列に積む（幅で決まる 1 本の規則）
     ColumnWeights: [1, 1, 1]);
 

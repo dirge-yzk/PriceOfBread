@@ -23,6 +23,7 @@ public partial class GameViewModel
     [ObservableProperty] private TableSnapshot _cultureTable = TableSnapshot.Empty;
     // ---- 年齢の層・児童の就業率・出生と死の線 ----
     [ObservableProperty] private AgePyramid _agePyramid = AgePyramid.Empty;
+    [ObservableProperty] private string _cropLine = "";   // 国の作柄（州の表の列ではなく国の 1 行）
     [ObservableProperty] private string _childLaborLine = "";   // 児童の就業率（創発量＝家計困窮×合法度×就学。法の 2 値でなく実態が数年かけて落ちる様子）
     [ObservableProperty] private IReadOnlyList<double> _birthRateValues = [];
     [ObservableProperty] private IReadOnlyList<double> _deathRateValues = [];
@@ -115,6 +116,7 @@ public partial class GameViewModel
         ReligionTable = TableSnapshot.From(PopTables.Religion.Read(_sim, _player));
         CultureTable = TableSnapshot.From(PopTables.Culture.Read(_sim, _player));
         AgePyramid = PopTables.Pyramid(_player);
+        CropLine = $"作柄 {Fmt.Share(PopTables.NationCropFill(_player))}";
         ChildLaborLine = PopTables.ChildLaborRate(_player) is double r ? $"児童の就業率 {Fmt.Share(r)}" : "";
         RebuildDemographyLines();
     }

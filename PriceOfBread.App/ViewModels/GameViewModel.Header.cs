@@ -249,7 +249,7 @@ public partial class GameViewModel
         double popTotal = 0, litSum = 0;
         foreach (var p in _player.AllPops()) { popTotal += p.Size; litSum += p.Size * p.Literacy; }
         _histPop.Add(popTotal);
-        _histGdp.Add(_player.GdpPerMonth.Value);
+        _histGdp.Add(_player.NominalGdpPerMonth.Value);   // 名目の 1 本（財政の行・国の一覧と同じ）
         _histProd.Add(TotalProductionValue());
         _histTech.Add(_player.TechLevel);
         _histLit.Add(popTotal > 1e-9 ? litSum / popTotal : 0);

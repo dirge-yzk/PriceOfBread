@@ -61,8 +61,21 @@ public static class FlagIcons
 
     public static string UriOf(string nation) => Pictures.Of("Flags", nation);
 
+    /// <summary>旗を探す名の順＝与えられた名そのまま→政体の語（○○王国・○○共和国など）を外した元の名。内戦の反乱勢力（頭書きの名）は親の旗を借りない。</summary>
+    public static IEnumerable<string> Candidates(string nation)
+    {
+        yield return nation;
+        string bare = PriceOfBread.SimCore.SecessionNames.StripPolityTitle(nation);
+        if (bare != nation) yield return bare;
+    }
+
     public static IImage? Of(string? nation)
-        => (string.IsNullOrEmpty(nation) ? null : Pictures.Load(UriOf(nation))) ?? Pictures.Load(Pictures.Of("Flags", UnknownFile));
+    {
+        if (!string.IsNullOrEmpty(nation))
+            foreach (var c in Candidates(nation))
+                if (Pictures.Load(UriOf(c)) is { } img) return img;
+        return Pictures.Load(Pictures.Of("Flags", UnknownFile));
+    }
 }
 
 /// <summary>階級の絵（Assets/PopClasses/＜PopClass の番号＞.png・番号は階級の番号そのまま＝全身の人物）。無ければ null（空）。</summary>

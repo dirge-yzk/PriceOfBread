@@ -16,6 +16,7 @@
         <ctl:Section Key="age" Title="年齢の層">
             <StackPanel Spacing="4">
                 <!-- 児童の就業率は図の上（図の下に浮かせない）・字は本文の小（B36） -->
+                <TextBlock Text="{Binding CropLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" IsVisible="{Binding CropLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 <TextBlock Text="{Binding ChildLaborLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" IsVisible="{Binding ChildLaborLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 <ctl:AgeBars Data="{Binding AgePyramid}"/>
             </StackPanel>

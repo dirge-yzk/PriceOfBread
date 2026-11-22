@@ -127,6 +127,7 @@ public partial class MainWindow
         Show(Slot.Population);
         var age = g.AgePyramid;
         var ageRows = Enumerable.Range(0, age.Labels.Count).Select(i => (IReadOnlyList<string>)[age.Labels[i], Fmt.PopFmtK(age.Male[i]), Fmt.PopFmtK(age.Female[i])]).ToList();
+        if (g.CropLine.Length > 0) ageRows.Add([g.CropLine, "", ""]);
         if (g.ChildLaborLine.Length > 0) ageRows.Add([g.ChildLaborLine, "", ""]);
         t.Add(UiShotDump.TextTable("pop.age", "年齢の層", Page.Population, ["層", "男性", "女性"], ageRows));
         t.Add(UiShotDump.TextTable("pop.births", "出生と死", Page.Population, ["線", "最新", "最小", "最大", "点の数"],

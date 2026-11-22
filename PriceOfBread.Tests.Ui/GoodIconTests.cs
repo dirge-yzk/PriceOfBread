@@ -39,6 +39,16 @@ public class GoodIconTests
     }
 
     [Fact]
+    public void 政体の語が付いた表示名でも元の国名の旗を引く()
+    {
+        string root = Path.GetDirectoryName(Path.GetDirectoryName(Here()))!;
+        var n = WorldData.Nations().First(x => File.Exists(Path.Combine(root, "PriceOfBread.App", "Assets", "Flags", x.Name + ".png")));
+        foreach (var title in new[] { "王国", "共和国", "立憲王国", "帝国" })
+            Assert.Contains(n.Name, FlagIcons.Candidates(n.Name + title));
+        Assert.Equal(new[] { "王政・" + n.Name }, FlagIcons.Candidates("王政・" + n.Name).Take(1).ToArray());   // 反乱勢力は親の旗を借りない
+    }
+
+    [Fact]
     public void 階級の番号の全てに絵がある()
     {
         string root = Path.GetDirectoryName(Path.GetDirectoryName(Here()))!;

@@ -93,10 +93,10 @@
                             <Grid RowDefinitions="Auto,*">
                                 <!-- 見出し＝国名（強さ）を左・難易度を右端へ（作者指示2026-08-15）。難易度は3値の色分け（VM側のブラシ） -->
                                 <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <Image Source="{Binding Flag}" Height="14" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                                    <Image Source="{Binding Flag}" Height="14" Stretch="Uniform" Margin="0,0,4,0" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Title}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Grid.Column="2" Classes="cardTitle" Text="{Binding Difficulty}"
-                                               Foreground="{Binding DifficultyBrush}" Margin="6,0,0,0"/>
+                                               Foreground="{Binding DifficultyBrush}" Margin="4,0,0,0" VerticalAlignment="Top"/>
                                 </Grid>
                                 <TextBlock Grid.Row="1" Classes="cardBody" ctl:LatinText.Text="{Binding Description}"/>
                             </Grid>
