@@ -1,0 +1,11 @@
+seed 1: born=5 added=5 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 2: born=7 added=7 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 3: born=7 added=7 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 4: born=17 added=17 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 5: born=7 added=7 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 6: born=12 added=12 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 7: born=11 added=11 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 8: born=11 added=11 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 9: born=17 added=17 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+seed 10: born=12 added=12 real=[] extra=[] | mutated real=['ROWS_NOT_SUBSEQUENCE']
+total_added 106 real_total 0
