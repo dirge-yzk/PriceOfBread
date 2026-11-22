@@ -1,0 +1,48 @@
+(1303) c135ar 事前登録（最初のコミット・腕の前）  恒等の線（3 回の規則に数えない）  基準 m1294・INSRAW D:/PoB_work/keep_1301/base_ins
+
+[1] 恒等の線・予言 0
+  挙動を変えない。エンジン（Fiscal.cs ほか）の .cs は 0 行・新しい係数・旗・状態は 0。素の 5 種・計器つき 10 種の成績表は m1294 と名乗り行を除き全行一致、.cost の件数も一致。
+  変わるのは計器の表 arrears_s の中身だけ（underLimit を前の月の比へ・(1295) 項 B の入れ直し）。(1301) は ident〈不一致〉で外した＝owes（行を書く条件）が underLimit に依り、基準の行が部分列にならない。
+  よって先に ident の宣言の形を作る（README ★(1301)）。
+
+[2] 足す物と触る物
+  項 A（道具）：scripts/instruments/ident/ident_check.py に `--rewritten-tables <表>@<検算の台本>`（複数は , で区切る）。
+    その表が基準と違ってよいのは、台本〔python 台本 <基準の生> <腕の生>〕が 0 を返した表だけ。非 0・台本が無い・起動できない＝〈不一致〉。
+    他の表の判定と、宣言の無い時の判定は 1 字も変えない（宣言が空なら cmp_ins の分岐は通らない）。ident.sh の先頭の説明と KP の組み立て（刈り込みの保護）に同じ宣言を足す。
+  検算の台本 scripts/instruments/c135ar/arrears_recheck.py（基準の生と腕の生だけを読む・エンジンを呼ばない）：
+    (a) 見出しが同じ。(b) 腕の全行で owes＝(payRate＜1 かつ govDebt＞1e-9 かつ underLimit＝0 かつ warm＝0) が自分の列で成り立つ。基準の全行も同じ式で成り立つ。
+    (c) 行の鍵（underLimit・owes・predNew・arrOldMonth・arrNewMonth・cumOld・cumNew 以外の全列）で基準と腕を突き合わせる。共通の行の順序は同じ。
+    (d) 共通の行の違いは上の 7 列だけ。predNew・arrOldMonth・arrNewMonth は同じ行で owes が違う時だけ違ってよい。cumOld・cumNew はその国に owes の食い違い（基準だけの行・腕だけの行を含む）が先にあった後だけ。
+    (e) 基準だけの行は 基準の owes＝1・underLimit＝0・predOld＝0。腕だけの行は 腕の owes＝1・underLimit＝0・predOld＝0。
+    全て満たせば 0・外れれば非 0（最初の違反を最大 5 行）。
+  項 B：Instruments/InstrumentsArrears.cs の underLimit の行だけ（ArWorld に PrevInt・PrevRev を足して 6a83959a6 を写す・列の名は変えない）。
+  試験：T5 ArrearsUnderLimitPrevMonthTests（743dca273 で消した物を戻す＝TreasLedgerInstrumentTests.cs の末尾から・新しいファイル ArrearsUnderLimitPrevMonthTests.cs へ置く）。
+  道具の自己試験 scripts/instruments/c135ar/selftest_rewritten.py：合成の組 3 つ。規則どおり→台本 0・規則の外の 1 行→非 0・宣言の外の表の 1 バイト→cmp_ins が〈不一致〉。
+  消す物：0。
+
+  読み手の grep（underLimit・ArrearsMonth・arrears_s）：SimCore＝Fiscal.cs:196（受け口の呼びだけ）・Instruments.cs・InstrumentsArrears.cs／Tests＝ArrearsOnePredicateTests.cs・FiscalTests.cs・TreasLedgerInstrumentTests.cs／
+  App＝GameViewModel.Fiscal.cs（エンジンの語・計器の表は読まない）／scripts＝c132df・c133b1・c134tk・m1287・m1294 の台本（過去の腕の読み手）・ident.cfg の注。
+  POB_COEF の名前の文字列・SaveGame の名前は 0（係数も状態も足さない）。
+  他の線との重なり：tl＝InstrumentsTreasLedger.cs と Instruments.cs の FiscalRow（ar は触らない）。ar の持ち物は InstrumentsArrears.cs の underLimit の行・scripts/instruments/ident/（ident_check.py の宣言と分岐・ident.sh の :18 と :100）・ArrearsUnderLimitPrevMonthTests.cs。
+  ident.cfg の値は合流が持つ＝触らない。他の表への宣言の当てはめは 0。
+
+[3] 試験と突然変異（腕の前に紙で・実行して赤を確かめる）
+  新しい試験＝ArrearsUnderLimitPrevMonthTests の T5 の 1 本（非 FullLength 3109 → 3110・クラスは 1 つ増える）。自己試験は xUnit の外（python）。
+  M1 台本が常に 0 を返す → 合成の非 0 の組（selftest の組 2）で赤。
+  M2 宣言の表以外の違いを通す（cmp_ins が rewritten の表名の照合を前方一致の広い形へ）→ 組 3 で赤（宣言の外の表が通ってしまう）。
+  M3 underLimit を今月の比に戻す → T5 で赤。
+  M4 台本の (e)（基準だけの行の条件）を外す → 組 2b〔基準だけの行が owes＝0〕で赤。
+  走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests を項 A の直後と項 B の後に回す。
+  書き換える番人の件数の予言（㉑）：0 件。点検（grep）：`new MoneyStock(` は InstrumentsArrears.cs に 0（項 B も増やさない）。WriterRatchetTests の宣言の表・DormantIdentityTests の宣言は触らない（新しいエンジンの欄は無い）。
+  route_anchors.tsv の鍵の行は触らない。On の読みは ArrearsMonth の中の 1 回のまま（OnDoubleReadScanTests）。
+  浮動小数の順序が変わる箇所：0（計器の比較 intr＜L×rev を前の月の値で評価するだけ・式の形は同じ）。
+
+[4] 成績表の予言
+  素の 5 種・計器つき 10 種の成績表（b5_ia_5・b10_ib_10）は m1294 と名乗り行を除いて全行一致。.cost も一致（推定 232.1 秒）。
+  計器の表：arrears_s 10 本（種 1〜10）だけが基準と違う（宣言の下）。他の計器の表は全てバイト一致か既知の揺れ。
+  違う行の数の予言（measurements/m1295_20261122/arrears_diff.txt の数と一致する）：基準だけの行 計 22（4・1・1・3・2・0・2・5・1・3）・腕だけの行 計 567（72・30・58・54・59・57・68・74・40・55）。行の総数 738→806・570→599・1507→1564・465→516・791→848・1398→1455・1601→1667・665→734・933→972・896→948。
+  同じ生に宣言なしで ident_check.py の check だけを掛けると arrears_s の 10 本で〈宣言の無い違い〉＝〈不一致〉（宣言が働いた証拠・ident の走りは 1 回だけで、宣言なしは check だけ）。
+
+[5] 採る条件
+  宣言ありで〈判定: 恒等〉・宣言なしで〈不一致〉・[4] の成績表の全行一致・計算量の件数が増えない・T5 と自己試験と突然変異 M1〜M4 が赤を出す・フルスイート（3110＋FullLength 3）・savetest・leakhunt。
+  一致しなければ項 B を外して報告に回す（項 A の道具だけ残してよいかは合流が決める）。〈証明〉の字は使わない。
