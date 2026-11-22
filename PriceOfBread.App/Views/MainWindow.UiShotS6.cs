@@ -92,7 +92,7 @@ public partial class MainWindow
             await Task.Delay(1200);
             var page = UiShotWindows.PageOf(gameView, Slot.Market);
             var tv = page?.GetVisualDescendants().OfType<TableView>().FirstOrDefault(t => t.Snapshot?.Key == "market.prices");
-            var sv = tv?.GetVisualDescendants().OfType<ScrollViewer>().OrderByDescending(v => v.Extent.Height).FirstOrDefault();   // 絞り込みの文字の欄の中の流れ（小さい）でなく行の流れ
+            var sv = tv?.GetVisualDescendants().OfType<ScrollViewer>().OrderByDescending(v => v.Extent.Height).FirstOrDefault();   // 行の流れ（最も長い流れ）
             if (sv is not null)
             {
                 sv.Offset = new Avalonia.Vector(0, Math.Max(0, Math.Min(sv.Extent.Height - sv.Viewport.Height, 120)));

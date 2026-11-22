@@ -6,7 +6,7 @@ using PriceOfBread.SimCore.Display;
 namespace PriceOfBread.Tests;
 
 /// <summary>★(501) 段1：共通の表・線グラフ・半円の部品と、名前つきの系列の倉の番人。描画そのものは --uishot が見る＝ここは Avalonia に依らない部分
-/// （目録→文字への変換・並べ替えと絞り込み・扇形の Path データ・系列のセーブの往復・貿易の表の保存）だけを見る。</summary>
+/// （目録→文字への変換・並べ替え・扇形の Path データ・系列のセーブの往復・貿易の表の保存）だけを見る。</summary>
 public class ControlsTests
 {
     private sealed record R(string Key, string Name, string? Grp, double Amount, double Share, string Note);
@@ -57,21 +57,19 @@ public class ControlsTests
     public void 並べ替え_数の列は数で_同値は元の並び_数でない値は昇順でも降順でも末尾()
     {
         var s = Snap(new R("a", "甲", null, 50, 0.1, ""), new R("b", "乙", null, double.NaN, 0.2, ""), new R("c", "丙", null, 300, 0.3, ""), new R("d", "丁", null, 50, 0.4, ""));
-        Assert.Equal(new[] { "a", "b", "c", "d" }, s.View(null, -1, false).Select(r => r.Key).ToArray());     // 本体の並びのまま
-        Assert.Equal(new[] { "a", "d", "c", "b" }, s.View(null, 1, false).Select(r => r.Key).ToArray());     // 昇順：同値の甲・丁は元の並び・NaN は末尾
-        Assert.Equal(new[] { "c", "a", "d", "b" }, s.View(null, 1, true).Select(r => r.Key).ToArray());      // 降順でも NaN は末尾
-        Assert.Equal(new[] { "d", "c", "b", "a" }, s.View(null, 0, false).Select(r => r.Key).ToArray());     // 文字の列は文字の順（コード順＝丁・丙・乙・甲）
-        Assert.Equal(new[] { "a", "b", "c", "d" }, s.View(null, 0, true).Select(r => r.Key).ToArray());
+        Assert.Equal(new[] { "a", "b", "c", "d" }, s.View(-1, false).Select(r => r.Key).ToArray());     // 本体の並びのまま
+        Assert.Equal(new[] { "a", "d", "c", "b" }, s.View(1, false).Select(r => r.Key).ToArray());     // 昇順：同値の甲・丁は元の並び・NaN は末尾
+        Assert.Equal(new[] { "c", "a", "d", "b" }, s.View(1, true).Select(r => r.Key).ToArray());      // 降順でも NaN は末尾
+        Assert.Equal(new[] { "d", "c", "b", "a" }, s.View(0, false).Select(r => r.Key).ToArray());     // 文字の列は文字の順（コード順＝丁・丙・乙・甲）
+        Assert.Equal(new[] { "a", "b", "c", "d" }, s.View(0, true).Select(r => r.Key).ToArray());
     }
 
     [Fact]
-    public void 絞り込みは名前の一部_大文字小文字を問わない_群の中だけ並べ替える()
+    public void 群は最初に現れた順のまま_群の中だけ並べ替える()
     {
         var s = Snap(new R("a", "Tea", "x", 1, 0, ""), new R("b", "Coffee", "y", 5, 0, ""), new R("c", "Cocoa", "x", 9, 0, ""), new R("d", "Cotton", "y", 2, 0, ""));
-        Assert.Equal(new[] { "b", "c", "d" }, s.View("co", -1, false).Select(r => r.Key).ToArray());
         // 群は最初に現れた順のまま（x → y）・群の中だけ金額の降順
-        Assert.Equal(new[] { "c", "a", "b", "d" }, s.View(null, 1, true).Select(r => r.Key).ToArray());
-        Assert.Empty(s.View("存在しない", -1, false));
+        Assert.Equal(new[] { "c", "a", "b", "d" }, s.View(1, true).Select(r => r.Key).ToArray());
     }
 
     [Fact]
@@ -186,14 +184,13 @@ public class ControlsTests
         double mpc = w.Coef.MonthsPerClearing;
         double sumI = imp.Rows.Sum(r => ((NumberCell)r.Cells[1]!).Value) * mpc;
         double sumE = exp.Rows.Sum(r => ((NumberCell)r.Cells[1]!).Value) * mpc;
-        Assert.Equal(ti, sumI, 6);   // 総額は全額＝行の和（小さな財は「その他」の 1 行に入る）
+        Assert.Equal(ti, sumI, 6);   // 総額は全額＝行の和（小さな財も全て行に出る）
         Assert.Equal(te, sumE, 6);
         Assert.True(imp.Rows.Count + exp.Rows.Count > 0, "清算を通しても貿易の行が 1 つも無い＝この試験の前提が崩れた");
         foreach (var d in new[] { imp, exp })
         {
-            var named = d.Rows.Where(r => r.Key != TradeTables.OtherGood.ToString()).ToList();   // 「その他」は最後に置く（小さな財の合計）
-            Assert.True(d.Rows.Count == 0 || named.Count == d.Rows.Count || d.Rows[^1].Key == TradeTables.OtherGood.ToString());
-            var vals = named.Select(r => ((NumberCell)r.Cells[1]!).Value).ToList();
+            Assert.All(d.Rows, r => Assert.True(int.TryParse(r.Key, out int g) && g >= 0, "貿易の行は財の行だけ（まとめ行を持たない）"));
+            var vals = d.Rows.Select(r => ((NumberCell)r.Cells[1]!).Value).ToList();
             Assert.Equal(vals.OrderByDescending(v => v).ToList(), vals);   // 額の降順
             Assert.Equal(d.Rows.Count, d.Rows.Select(r => r.Key).Distinct().Count());   // 行の鍵が重ならない
             Assert.All(d.Rows, r =>
@@ -202,7 +199,7 @@ public class ControlsTests
                 double ratio = ((NumberCell)r.Cells[2]!).Value;   // 価格比（旧は金額の後ろの「(×0.34)」）＝数でない行は「—」・数なら正
                 Assert.True(double.IsNaN(ratio) || ratio > 0);
                 double frac = ((NumberCell)r.Cells[3]!).Value;
-                Assert.True(frac is >= 0 and <= 1.0000001 || (r.Key == TradeTables.OtherGood.ToString() && double.IsNaN(frac)));   // 「その他」は割合を持たない
+                Assert.True(frac is >= 0 and <= 1.0000001);
             });
         }
     }

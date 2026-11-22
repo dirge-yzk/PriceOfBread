@@ -15,7 +15,6 @@ namespace PriceOfBread.App.Controls;
 /// ・行は作り直さず、鍵で値だけ流す（SyncRows の規律＝毎月の更新でボタンとツールチップを壊さない）。
 /// ・見出しは止めて、中身だけを流す（<see cref="InnerScroll"/> が真のとき。ページの外側は縦に流れない／長い一覧は欄の中だけで流れる）。
 /// ・見出しを押すと並べ替え（同じ列をもう一度で降順）。群（<see cref="RowView.Group"/>）があれば群の見出しで区切る。
-/// ・<see cref="Filterable"/> が真なら絞り込みの文字の欄を出す。
 /// ・列の幅は単位から決めた最小幅（<c>MinWidth</c>）。固定の <c>Width</c> は値を黙って切るので使わない。見出しと行は列の大きさを共有する。
 /// ・Avalonia の描画の部品だけ。XAML を持たない＝結線は <see cref="SnapshotProperty"/> の 1 本（呼び手の XAML が x:DataType 付きで束縛する）。</summary>
 /// <summary>凡例の 1 項（色の丸と名）。</summary>
@@ -24,13 +23,10 @@ public readonly record struct LegendItem(string Name, IBrush Brush);
 public sealed class TableView : UserControl
 {
     public static readonly StyledProperty<TableSnapshot?> SnapshotProperty = AvaloniaProperty.Register<TableView, TableSnapshot?>(nameof(Snapshot));
-    public static readonly StyledProperty<bool> FilterableProperty = AvaloniaProperty.Register<TableView, bool>(nameof(Filterable));
     public static readonly StyledProperty<bool> InnerScrollProperty = AvaloniaProperty.Register<TableView, bool>(nameof(InnerScroll));
     public static readonly StyledProperty<string?> SelectedKeyProperty = AvaloniaProperty.Register<TableView, string?>(nameof(SelectedKey));
 
     public TableSnapshot? Snapshot { get => GetValue(SnapshotProperty); set => SetValue(SnapshotProperty, value); }
-    /// <summary>絞り込みの文字の欄を出すか。</summary>
-    public bool Filterable { get => GetValue(FilterableProperty); set => SetValue(FilterableProperty, value); }
     /// <summary>中身（行）だけを欄の中で流すか。偽なら行の数だけ高くなる（外側の流れに任せる）。</summary>
     public bool InnerScroll { get => GetValue(InnerScrollProperty); set => SetValue(InnerScrollProperty, value); }
 
@@ -70,7 +66,7 @@ public sealed class TableView : UserControl
         return m is { } a ? (a.Gaps, a.Columns) : (0, 0);
     }
 
-    /// <summary>中身の高さの見積り（絞り込みの欄・見出し・行・群の見出し・横の流れの目盛りの分）。欄の高さを中身に合わせる上限に使う（A10）。
+    /// <summary>中身の高さの見積り（見出し・行・群の見出し・横の流れの目盛りの分）。欄の高さを中身に合わせる上限に使う（A10）。
     /// 押し釦の行は高いので行の高さを大きく見積もる＝足りなくて最後の行が半分に切れることのないよう、やや多めに取る。</summary>
     public double EstimatedHeight()
     {
@@ -81,8 +77,8 @@ public sealed class TableView : UserControl
         return ChromeHeight() + snap.Rows.Count * row + groups * 34;
     }
 
-    /// <summary>行の外の高さ（絞り込みの欄・見出し・横の流れの目盛り・余白）。</summary>
-    public double ChromeHeight() => (Filterable ? 28 : 0) + (_legendCount > 0 ? 20 : 0) + 24 + (ScrollX ? 14 : 0) + 6;
+    /// <summary>行の外の高さ（見出し・横の流れの目盛り・余白）。</summary>
+    public double ChromeHeight() => (_legendCount > 0 ? 20 : 0) + 24 + (ScrollX ? 14 : 0) + 6;
 
     /// <summary>表の行の数（撮影の検査用）。</summary>
     public int RowCount => _rows.Count;
@@ -128,7 +124,6 @@ public sealed class TableView : UserControl
 
     private readonly StackPanel _top = new() { Orientation = Orientation.Vertical };
     private readonly Grid _root = new() { RowDefinitions = new RowDefinitions("Auto,Auto,*") };
-    private readonly TextBox _filterBox = new() { Watermark = "絞り込み", MinHeight = 22, Margin = new Thickness(0, 0, 0, 2), IsVisible = false };
     private readonly Grid _header = new();
     private readonly StackPanel _body = new() { Spacing = 0 };
     private readonly RowSnapBorder _bodyHost = new() { ClipToBounds = true };   // 内側で流れる表の行が見出しに重ならない（流した行は見出しの下で切る）
@@ -137,14 +132,12 @@ public sealed class TableView : UserControl
     private string _columnSig = "";
     private int _sortColumn = -1;
     private bool _sortDescending;
-    private string _filter = "";
     private TextBlock[] _headerCells = [];
     private ColumnKind[] _kinds = [];
 
     static TableView()
     {
         SnapshotProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
-        FilterableProperty.Changed.AddClassHandler<TableView>((v, _) => { v._filterBox.IsVisible = v.Filterable; v.Rebuild(); });
         InnerScrollProperty.Changed.AddClassHandler<TableView>((v, _) => v.AttachBody());
         SelectedKeyProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplySelection());
         ScrollXProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplyScrollX());
@@ -172,11 +165,10 @@ public sealed class TableView : UserControl
     public TableView()
     {
         Grid.SetIsSharedSizeScope(_root, true);   // 見出しと行が同じ列の大きさを共有する
-        _top.Children.Add(_legendPanel); _top.Children.Add(_filterBox);   // 行 0＝凡例と絞り込み（行の番号は変えない＝見出しは 1・行は 2）
+        _top.Children.Add(_legendPanel);   // 行 0＝凡例（行の番号は変えない＝見出しは 1・行は 2）
         _bodyHost.RowControls = () => _body.Children;
         Grid.SetRow(_top, 0); Grid.SetRow(_header, 1); Grid.SetRow(_bodyHost, 2);
         _root.Children.Add(_top); _root.Children.Add(_header); _root.Children.Add(_bodyHost);
-        _filterBox.TextChanged += (_, _) => { _filter = _filterBox.Text ?? ""; Rebuild(); };
         Content = _root;
         AttachBody();
         AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(ClearJump, Avalonia.Threading.DispatcherPriority.Loaded);   // 付いた直後も（流れの部品が前回の位置を持ち越すことがある）
@@ -257,7 +249,7 @@ public sealed class TableView : UserControl
         var wanted = new List<Control>();
         var live = new HashSet<string>();
         string? lastGroup = null;
-        foreach (var row in snap.View(_filter, _sortColumn, _sortDescending))
+        foreach (var row in snap.View(_sortColumn, _sortDescending))
         {
             if (row.Group is { Length: > 0 } g && g != lastGroup)
             {

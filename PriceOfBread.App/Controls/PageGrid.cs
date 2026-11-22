@@ -56,7 +56,7 @@ public static class PagePlan
         double min = MinHeight(s);
         if (caps is null || !caps.TryGetValue(s.Key, out double cap)) return min;
         // 中身が最小の高さに近い（全部の行が収まる）なら中身の全部を最小にする＝最後の行が半分に切れない（A11）。
-        // 中身が多い欄は最小の行数のまま（表の見出しと絞り込みの欄の分だけ足す＝最小の行数はデータの行数）
+        // 中身が多い欄は最小の行数のまま（表の見出しの分だけ足す＝最小の行数はデータの行数）
         if (cap <= min + 3 * RowHeight) return Math.Max(HeaderHeight, cap);
         return chrome is not null && chrome.TryGetValue(s.Key, out double ch) ? min + ch : min;
     }
@@ -83,7 +83,7 @@ public static class PagePlan
     }
 
     /// <summary>1 つの列の割り当て。<paramref name="height"/> が無限大なら最小の高さのまま。</summary>
-    /// <param name="chrome">表の見出し・絞り込みの欄の高さ（最小の行数に足す＝データの行が最低でも最小の行数だけ見える）。</param>
+    /// <param name="chrome">表の見出しの高さ（最小の行数に足す＝データの行が最低でも最小の行数だけ見える）。</param>
     /// <param name="caps">欄ごとの高さの上限（中身に合わせる。見出しを含む）。余りの高さをこの上限を超えて分けない（超えた分は他の欄へ回し、全部が上限なら空ける）。</param>
     public static IReadOnlyList<SectionPlace> PlanColumn(IReadOnlyList<SectionSpec> column, double height, IReadOnlyDictionary<string, double>? caps = null, IReadOnlyDictionary<string, double>? chrome = null, IReadOnlySet<string>? exact = null)
     {
@@ -249,7 +249,7 @@ public sealed class PageGrid : Panel
         Avalonia.Threading.Dispatcher.UIThread.Post(InvalidateMeasure, Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
-    /// <summary>欄ごとの高さの上限（中身に合わせる）と、表の見出し・絞り込みの高さ。幅 <paramref name="w"/> の列に割ったときの見積り。</summary>
+    /// <summary>欄ごとの高さの上限（中身に合わせる）と、表の見出しの高さ。幅 <paramref name="w"/> の列に割ったときの見積り。</summary>
     private (Dictionary<string, double> Caps, Dictionary<string, double> Chrome) CapsOf(PageTable t, double w)
     {
         var caps = new Dictionary<string, double>();

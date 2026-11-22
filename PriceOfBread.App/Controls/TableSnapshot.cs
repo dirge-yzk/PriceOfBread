@@ -91,20 +91,14 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
         return new TableSnapshot(data.Key, data.Name, cols, rows, data.Page);
     }
 
-    /// <summary>並べ替えと絞り込みを掛けた行（表の描き方が使う）。<paramref name="sortColumn"/> が負なら本体の並びのまま。数の列は数で・他は文字で、同値は元の並びのまま。</summary>
-    public IReadOnlyList<RowView> View(string? filter, int sortColumn, bool descending)
+    /// <summary>並べ替えを掛けた行（表の描き方が使う）。<paramref name="sortColumn"/> が負なら本体の並びのまま。数の列は数で・他は文字で、同値は元の並びのまま。</summary>
+    public IReadOnlyList<RowView> View(int sortColumn, bool descending)
     {
-        IEnumerable<RowView> q = Rows;
-        if (!string.IsNullOrWhiteSpace(filter))
-        {
-            string f = filter.Trim();
-            q = q.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase));
-        }
         if (sortColumn >= 0 && sortColumn < Columns.Count)
         {
             int ci = sortColumn;
             bool numeric = Columns[ci].Kind is ColumnKind.Number or ColumnKind.Stage;
-            var rows = q.ToList();
+            var rows = Rows.ToList();
             var groupOrder = new Dictionary<string, int>();   // 群は本体の並び（最初に現れた順）のまま・群の中だけ並べ替える
             foreach (var r in rows) groupOrder.TryAdd(r.Group ?? "", groupOrder.Count);
             var list = rows.Select((r, i) => (r, i)).ToList();
@@ -117,7 +111,7 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
             });
             return list.Select(t => t.r).ToList();
         }
-        return q.ToList();
+        return Rows.ToList();
     }
 
     // 数でない値（NaN）は昇順でも降順でも常に末尾。比べは否定形で書く（NaN は大小の比べがすべて偽）。
