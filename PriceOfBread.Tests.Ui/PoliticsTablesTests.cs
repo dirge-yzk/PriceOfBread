@@ -85,7 +85,6 @@ public class PoliticsTablesTests
                 {
                     Assert.DoesNotContain(':', why);   // 日本語の文中は全角のコロン（V11）
                     Assert.DoesNotContain("（", why);   // 括弧の中の説明は出さない（V3）
-                    if (Math.Abs(lv - st.Current) > 1) Assert.NotEqual("前段階が必要", why);   // 理由は次に押せる段の 1 つだけ（V3）
                 }
             }
         }

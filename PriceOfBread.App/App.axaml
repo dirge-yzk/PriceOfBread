@@ -543,6 +543,11 @@
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <!-- 選べない段：文字の濃さは保ち、地と枠だけで区別する（A9・2026-11-12）。Fluent の無効の見た目（薄い文字）を段の釦の中身で打ち消す -->
+        <Style Selector="Button.lawstage.blocked:not(.current) /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource PaperBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineSoftBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+        </Style>
         <Style Selector="Button.lawstage:disabled:not(.current) /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PaperBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource LineSoftBrush}"/>

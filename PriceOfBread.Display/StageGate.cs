@@ -9,13 +9,11 @@ public static class StageGate
     /// <summary>法の表（<see cref="LawDef"/>）の 1 行から。</summary>
     public static StageCell Of(World w, LawDef def)
     {
-        var cell = Make(w, def.Axis, def.Name, def.Stages, def.LevelBase, () => def.Current(w), () => def.Target(w), v => def.SetTarget(w.Policy, v));
-        int cur = def.Current(w);
-        // 前提法の理由は選んだ法の欄（PrereqNote）に出す＝法の表の釦の下には出さない（政治の門などの他の理由はそのまま）
-        return cell with { Why = level => level > cur && !CanReach(w, def.Axis, level, cur) ? null : Why(w, def.Axis, level, cur) };
+        // 押せない理由（前提法・政治の門など）は表の行には出さず、その段の釦を押した時の確かめの窓が出す（作者の指示 2026-11-23）
+        return Make(w, def.Axis, def.Name, def.Stages, def.LevelBase, () => def.Current(w), () => def.Target(w), v => def.SetTarget(w.Policy, v));
     }
 
-    /// <summary>選んだ法の「次の段」を動かすのに要る他の法（前提法）が満たされていない時のその語（「前提 ◯◯:△△」の形）。満たされている・次の段が無い時は null。</summary>
+    /// <summary>選んだ法の「次の段」を動かすのに要る他の法（前提法）が満たされていない時のその語（「前提法：◯◯：△△」の形）。満たされている・次の段が無い時は null。</summary>
     public static string? PrereqNote(World w, LawDef def)
     {
         int cur = def.Current(w);
@@ -42,17 +40,10 @@ public static class StageGate
             level => Why(w, axis, level, cur));
     }
 
-    /// <summary>選べない段の押せない理由（短い語）。選べる段は null。前提法は「前提 ◯◯:△△」・政治の門は賛成不足など（<see cref="Government"/> の理由の語）。</summary>
+    /// <summary>選べない段の押せない理由（短い語・確かめの窓に出す）。選べる段は null。前提法は「前提法：◯◯：△△」・政治の門は賛成不足など（<see cref="Government"/> の理由の語）。</summary>
     public static string? Why(World w, PolicyAxis? axis, int level, int cur)
     {
-        string? r = WhyRaw(w, axis, level, cur);
-        // 理由は「次に押せるはずの段」（現在の隣）の 1 つだけに出す＝その先の段の同じ理由・「前段階が必要」の繰り返しは出さない（V3）
-        if (r is not null && Math.Abs(level - cur) > 1)
-        {
-            if (r == "前段階が必要") return null;
-            if (r == WhyRaw(w, axis, cur + Math.Sign(level - cur), cur)) return null;
-        }
-        return r;
+        return WhyRaw(w, axis, level, cur);   // 確かめの窓へ出すので、遠い段の同じ理由も落とさない
     }
 
     private static string? WhyRaw(World w, PolicyAxis? axis, int level, int cur)
@@ -68,6 +59,7 @@ public static class StageGate
     {
         "払えない請求が前提" => "財政難が前提",
         _ when reason.StartsWith("後退不能（", StringComparison.Ordinal) => "後退不能",
+        _ when reason.StartsWith("前提 ", StringComparison.Ordinal) => "前提法：" + reason["前提 ".Length..],
         _ => reason,
     }).Replace(':', '：');   // 日本語の文中のコロンは全角（V11）
 
