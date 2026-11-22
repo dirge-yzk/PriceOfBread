@@ -125,6 +125,21 @@ public class SaveRoundTripTests
         var sd = SaveGame.StateDiff(sim1, sim2, 4);
         Assert.Equal(1, sd.Values);
         Assert.Contains("ReservationWage", sd.Samples[0]);
+        mk.ReservationWage -= 1.0;
+        Assert.Equal(0, SaveGame.StateDiff(sim1, sim2, 4).Values);
+
+        // 順だけの違い：同じ鍵と値で列挙の順が違う辞書（Remove の後の追加が空いた枠を使う）は、値の違いに数えず順だけに数える
+        var fi = typeof(Diplomacy).GetField("_tensionRamp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var dA = (Dictionary<long, double>)fi.GetValue(sim1.Diplomacy)!; var dB = (Dictionary<long, double>)fi.GetValue(sim2.Diplomacy)!;
+        dA.Clear(); dB.Clear();
+        foreach (long k in new long[] { 1, 2, 3 }) dA[k] = k; dA.Remove(1); dA[4] = 4;   // 列挙の順 4,2,3
+        foreach (long k in new long[] { 2, 3, 4 }) dB[k] = k;                            // 列挙の順 2,3,4
+        Assert.False(dA.Keys.SequenceEqual(dB.Keys));
+        var so = SaveGame.StateDiff(sim1, sim2, 4);
+        Assert.Equal(0, so.Values);
+        Assert.Equal(1, so.OrderOnly);
+        dB[2] = 5.0;   // 値が違えば値の違い
+        Assert.Equal(1, SaveGame.StateDiff(sim1, sim2, 4).Values);
     }
 
     /// <summary>(1309) 初期化子つきの [NonSerialized] の欄は、読み込みで初期化子が走らない（SaveGame の GetUninitializedObject 系）ので初期値が 0 に化ける。
