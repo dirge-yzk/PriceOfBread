@@ -1967,6 +1967,7 @@ public static partial class Instruments
         CapskipTable(sim, seed, q);        // CapskipTable（(1277) 容量で飛ばした売り手・capskip_s）
         TreasLedgerTable(sim, seed, q);    // TreasLedgerTable（(1295) 国庫の科目ごとの出入り・treasledger_s）
         ArrearsTable(sim, seed, q);        // ArrearsTable（(1284) 不履行の導火線と本位の停止の旧新・arrears_s）
+        CapColTable(sim, seed, q);         // CapColTable（(1304) 首都の格と付け替えの旧新・capcol_s）
         LabelTierTable(sim, seed, q);      // LabelTierTable（(1290) 国の主流の札の格の順の旧新・labeltier_s）
         SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
         SatNeedsTable(sim, seed, q);       // SatNeedsTable（(1206) 必要の充足の内訳・satneeds_s）
@@ -2019,6 +2020,7 @@ public static partial class Instruments
         CapskipClose(sim);     // CapskipClose（(1277)）
         ArrearsClose(sim);     // ArrearsClose（(1284)）
         TreasLedgerClose(sim); // TreasLedgerClose（(1295)）
+        CapColClose(sim);      // CapColClose（(1304)）
         LabelTierClose(sim);   // LabelTierClose（(1290)）
         SoldierVacClose(sim);  // SoldierVacClose（(1166)）
         SatNeedsClose(sim);    // SatNeedsClose（(1206)）
