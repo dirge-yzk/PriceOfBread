@@ -5,7 +5,7 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(501) 段3：生産ページと市場・清算・貿易ページの表（SimCore/Display）の番人。機構と不変条件だけを見る（画面の見た目は --uishot が見る）。
+/// <summary>★(501) 段3：生産・財の価格・貿易ページの表（SimCore/Display）の番人。機構と不変条件だけを見る（画面の見た目は --uishot が見る）。
 /// 目録は盤面を読むだけ＝ここで固定するのは、行の鍵・群・集計の一致・旗で出し分ける欄・ページの欄の並べの宣言。</summary>
 public class ProductionMarketTablesTests
 {
@@ -158,15 +158,15 @@ public class ProductionMarketTablesTests
                         Assert.Equal(t.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
                     }
             }
-        // 市場ページ
-        foreach (var plan2 in new[] { MarketPage.Plan })
+        // 財の価格・貿易ページ
+        foreach (var plan2 in new[] { MarketPage.Plan, TradePage.Plan })
             foreach (int cols in Enumerable.Range(1, 3))
             {
                 var arranged = PagePlan.Arrange(plan2, cols);
                 Assert.Equal(plan2.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
             }
         // 欄は常に開いている：低い高さでも全ての欄が割り当てを持つ（生産＝供給の網・市場＝財の値段ほか）
-        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.Plan })
+        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.Plan, TradePage.Plan })
         {
             var plan = PagePlan.Plan(t, 700, 400);
             Assert.Equal(t.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), plan.SelectMany(c => c).Select(p => p.Key).OrderBy(k => k).ToList());

@@ -92,6 +92,7 @@ public static class Fmt
         {
             case Unit.MoneyStock: return Money(ZeroAt(v, 0));
             case Unit.MoneyPerMonth: return Money(ZeroAt(v, 0)) + "/月";
+            case Unit.MoneyPerMonthSmall: return (v > 0 && v < 1 ? "£" + v.ToString(v < 0.01 ? "F3" : "F2", System.Globalization.CultureInfo.InvariantCulture) : Money(ZeroAt(v, 0))) + "/月";   // £1 未満の小さな額は小数で（£0 に丸めない）
             case Unit.MoneyPerYear: return Money(ZeroAt(v, 0)) + "/年";
             case Unit.Share: return DisplayFormat.Share(v);   // 1% 未満（丸めて 0%）の割合は小数 1 桁（A7）
             case Unit.RatePerYear: return Percent(v, 1) + "/年";

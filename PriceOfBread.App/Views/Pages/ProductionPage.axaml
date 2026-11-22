@@ -182,7 +182,7 @@
         <!-- 財の表：行は本体の生産の表（SimCore/Display/ProductionTables）。財の名前の行を押すとその財の詳細へ。 -->
         <ctl:Section x:Name="GoodsSection" Key="goods" Title="財の表">
             <ctl:Section.Body>
-                <ctl:TableView x:Name="GoodsTable" Snapshot="{Binding ProdGoodTable}" SelectedKey="{Binding ProdSelectedKey}" InnerScroll="True" Filterable="True" ScrollX="True"/>
+                <ctl:TableView x:Name="GoodsTable" Snapshot="{Binding ProdGoodTable}" SelectedKey="{Binding ProdSelectedKey}" InnerScroll="True" ScrollX="True"/>
             </ctl:Section.Body>
         </ctl:Section>
 

@@ -520,7 +520,7 @@ public partial class MainWindow : Window
                 BootLog.Write($"uishot: 盤 {ps.Extent.Width}×{ps.Extent.Height} 視野 {ps.Viewport.Width}×{ps.Viewport.Height} 送り {ps.Offset}");
                 Capture(dir, $"{k++:D2}_生産タブ_盤の右下.png");
             }
-            // 生産ページと市場ページの撮影の段と検査（(501) 段3・Views/UiShotPageP1.cs）
+            // 生産・財の価格・貿易ページの撮影の段と検査（(501) 段3・Views/UiShotPageP1.cs）
             try { await UiShotPageP1.Run(this, gvm, dir, n => Capture(dir, n), tag => LogOuterFlow(gameView, tag), () => k++); }
             catch (Exception ex) { BootLog.Write($"uishot: 生産と市場の段 失敗 {ex}"); }
             // 問題の一覧の撮影と、飛び先の確かめ（(501) 段4・段5・Views/MainWindow.UiShotFinal.cs）

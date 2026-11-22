@@ -57,7 +57,7 @@ public class DisplayTradeReadersTests
             int checkedRows = 0;
             foreach (var row in data.Rows)
             {
-                if (!int.TryParse(row.Key, out int g) || g < 0) continue;   // 「その他」の行は財の列に入らない
+                if (!int.TryParse(row.Key, out int g) || g < 0) continue;
                 double p = Math.Max(wp[g], 1e-9);
                 double expect = w.Region.Markets[g].Price * fx / p;
                 double got = ((NumberCell)row.Cells[2]!).Value;

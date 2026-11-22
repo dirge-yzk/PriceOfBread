@@ -5,7 +5,7 @@ namespace PriceOfBread.SimCore.Display;
 /// <paramref name="Demand"/>・<paramref name="Supply"/>・<paramref name="Shortage"/>＝自国の活きている州の前期の総需要・産出・満たせなかった需要の和。</summary>
 public sealed record MarketLine(int Good, string Name, string Tier, double Domestic, double World, double Gap, double Demand, double Supply, double Shortage);
 
-/// <summary>市場・清算・貿易ページの表のうち、輸入と輸出（<see cref="TradeTables"/>）以外。旧 App には無かった表（設計 §3-3「財の値段の表」）。</summary>
+/// <summary>財の価格ページの表（輸入と輸出は貿易ページ・<see cref="TradeTables"/>）。旧 App には無かった表（設計 §3-3「財の値段の表」）。</summary>
 public static class MarketTables
 {
     /// <summary>財の層の並び（凡例と同じ順＝素材→主食→日用品→奢侈品→生産財）。</summary>

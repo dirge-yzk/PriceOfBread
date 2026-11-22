@@ -1,4 +1,4 @@
-﻿// GameViewModel.Trade.cs ＝ 市場・清算・貿易ページ＝財の値段の表・輸出入一覧・輸送サマリ・条約港・清算の線（輸出・輸入・収支の四半期の系列）。
+﻿// GameViewModel.Trade.cs ＝ 財の価格ページ（財の値段の表）と貿易ページ（輸出入一覧）・清算の線（輸出・輸入・収支の四半期の系列）。
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,6 @@ public partial class GameViewModel
     [ObservableProperty] private TableSnapshot _priceTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _exportTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _importTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _transportTable = TableSnapshot.Empty;
     // 清算の線＝四半期ごとの輸出・輸入・収支（月割）。名前つきの系列の倉に貯め（セーブは倉が名前と値の組で往復する）、画面へは点列の写しを渡す。
     private const string ClearingExportKey = "clearing.export", ClearingImportKey = "clearing.import", ClearingBalanceKey = "clearing.balance";
     [ObservableProperty] private string _tradeExportTotal = "—";
@@ -47,15 +46,14 @@ public partial class GameViewModel
     private void RefreshTrade()
     {
         SampleClearingSeries();
-        if (!MarketShown) return;
         var w = _player;
-        PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
+        if (MarketShown) PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
+        if (!TradeShown) return;
 
         // ---- 第1部：輸出入一覧（§3-4テレメトリ＝国際決済の国別×財別額。決済前/単一国は空） ----
         // 行は本体の貿易の表が組む（額の降順・世界価格比・依存度/世界シェア・相手）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing）。
         ExportTable = TableSnapshot.From(TradeTables.Exports.Read(_sim, w));
         ImportTable = TableSnapshot.From(TradeTables.Imports.Read(_sim, w));
-        TransportTable = TableSnapshot.From(TradeTables.Transport.Read(_sim, w));
         var (expTotal, impTotal) = TradeTables.Totals(w);
         double mpcTot = w.Coef.MonthsPerClearing;
         TradeExportTotal = $"{Fmt.Money(expTotal / mpcTot)}/月";

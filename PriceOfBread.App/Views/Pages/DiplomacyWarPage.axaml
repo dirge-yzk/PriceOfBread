@@ -14,7 +14,7 @@
         <ctl:Section Key="nations" Title="国の一覧" Scrolls="False">
             <Grid RowDefinitions="Auto,*">
                 <TextBlock Text="{Binding UnifLine}" IsVisible="{Binding UnifLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="4,2,0,4"/>
-                <ctl:TableView Grid.Row="1" x:Name="NationList" Snapshot="{Binding NationTable}" Filterable="True" InnerScroll="True"/>
+                <ctl:TableView Grid.Row="1" x:Name="NationList" Snapshot="{Binding NationTable}" InnerScroll="True"/>
             </Grid>
         </ctl:Section>
 

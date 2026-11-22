@@ -69,7 +69,7 @@ internal static class UiShotParts
         }
         var snap = TableSnapshot.From(new TableData("sample", "見本", columns, rows));
 
-        var table = new TableView { Snapshot = snap, Filterable = true, InnerScroll = true, Height = 300 };
+        var table = new TableView { Snapshot = snap, InnerScroll = true, Height = 300 };
         var line = new LineChart
         {
             Height = 70, Width = 330, Stroke = B("BlueBrush", Brushes.SteelBlue), LabelFormat = v => Fmt.Of(Unit.MoneyStock, v),
@@ -92,7 +92,7 @@ internal static class UiShotParts
             Spacing = 10, Margin = new Thickness(16), Width = 720,
             Children =
             {
-                new TextBlock { Text = "共通の表（絞り込み・並べ替え・群・半円・段・動詞）", Foreground = ink, FontWeight = FontWeight.Bold },
+                new TextBlock { Text = "共通の表（並べ替え・群・半円・段・動詞）", Foreground = ink, FontWeight = FontWeight.Bold },
                 table,
                 new TextBlock { Text = "線グラフ（欠けた点・平ら・空）", Foreground = ink, FontWeight = FontWeight.Bold },
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16, Children = { line, lineFlat, lineEmpty } },

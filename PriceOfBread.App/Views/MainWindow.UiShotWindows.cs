@@ -41,13 +41,13 @@ public partial class MainWindow
                 gvm.OpenSlotCommand.Execute(s);
                 await Task.Delay(300);
             }
-            // 市場を広げる＝幅で 2 列（左に値段・右に輸出入）へ切り替わる
-            gvm.OpenSlotCommand.Execute(Slot.Market);
+            // 貿易を広げる＝輸出と輸入が左右に並ぶ（既定の幅でも並ぶ）
+            gvm.OpenSlotCommand.Execute(Slot.Trade);
             await Task.Delay(500);
-            if (gameView.FindControl<WindowLayer>("Windows") is { } wl) lay.SetRect(Slot.Market, new WindowRect(0, 0, 900, wl.Bounds.Height));
+            if (gameView.FindControl<WindowLayer>("Windows") is { } wl) lay.SetRect(Slot.Trade, new WindowRect(0, 0, 1100, wl.Bounds.Height));
             await Task.Delay(900);
-            BootLog.Write($"uishot: 窓[市場を広げた] {Now()}");
-            Capture(dir, $"{no():D2}_窓_市場_2列.png");
+            BootLog.Write($"uishot: 窓[貿易を広げた] {Now()}");
+            Capture(dir, $"{no():D2}_窓_貿易_2列.png");
             lay.Reset();
             foreach (var background in new[] { Slot.Map, Slot.Production })
             {

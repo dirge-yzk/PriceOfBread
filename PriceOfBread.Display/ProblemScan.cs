@@ -1,7 +1,7 @@
 namespace PriceOfBread.SimCore.Display;
 
 /// <summary>問題の一覧の種類（設計 §5-2）。宣言の順が画面の並び（種類ごとに大きさの順）。</summary>
-public enum ProblemKind { GoodShortage, Bankruptcy, RegionHunger, Unemployment, Discontent, Deficit, War, Faction, MovableLaw }
+public enum ProblemKind { GoodShortage, TransportShortage, Bankruptcy, RegionHunger, Unemployment, Discontent, Deficit, War, Faction, MovableLaw }
 
 /// <summary>問題の一覧の 1 行。<paramref name="Key"/>＝種類と対象で一意（前の四半期との突き合わせの鍵）。<paramref name="Size"/>＝その種類の中での大きさ（単位は <paramref name="Unit"/>）。
 /// 押すと <paramref name="Page"/> を開き、<paramref name="TableKey"/> の表の <paramref name="RowKey"/> の行へ飛ぶ（表を持たない対象は空）。<paramref name="Section"/>＝飛ぶ先の欄（表を持たない対象。空なら指定なし）。</summary>
@@ -18,6 +18,7 @@ public static class ProblemScan
     public static string KindName(ProblemKind k) => k switch
     {
         ProblemKind.GoodShortage => "財の不足",
+        ProblemKind.TransportShortage => "輸送力不足",
         ProblemKind.Bankruptcy => "倒産と休止",
         ProblemKind.RegionHunger => "州の飢え",
         ProblemKind.Unemployment => "失業",
@@ -61,6 +62,7 @@ public static class ProblemScan
     {
         var all = new List<ProblemItem>();
         Shortage(sim, w, all);
+        Transport(w, all);
         Bankruptcy(w, all);
         Hunger(w, all);
         Classes(w, all);
@@ -83,6 +85,20 @@ public static class ProblemScan
             if (l.Good >= 0 && l.Good < unavailable.Length && unavailable[l.Good]) continue;
             if (!(l.Shortage > 0) || !(l.Demand > 0)) continue;   // 否定形＝NaN も落とす
             o.Add(new ProblemItem(ProblemKind.GoodShortage, "short|" + l.Good, l.Name, Math.Min(1.0, l.Shortage / l.Demand), Unit.Share, Page.Market, "market.prices", l.Good.ToString()));   // 財の値段の表の行（国内で作られない財は生産の財の表に行が無い＝不足の列を持つ値段の表へ飛ぶ）
+        }
+    }
+
+    // 輸送力不足＝州ごとの、港（と船腹・鉄道）で運びきれなかった交易の割合（1 − 港の律速率）。律速率は BilateralMarket の港の段が毎清算に記帳する量
+    // （上限の容量 ÷ 運びたかった潜在量・1 で頭打ち）＝ここで新しい式も状態も作らない。運びたかった潜在量が無い州（律速率は初期値の 1）は大きさ 0 で床に落ちる。
+    // 貿易の頁へ結ぶ（欄は指定しない＝輸送の表は無い）。
+    private static void Transport(World w, List<ProblemItem> o)
+    {
+        foreach (var r in w.Regions)
+        {
+            if (!(r.LastTradePotential > 0)) continue;   // 否定形＝NaN も落とす
+            double cut = 1.0 - r.LastTradeThrottle;
+            if (!(cut > 0)) continue;
+            o.Add(new ProblemItem(ProblemKind.TransportShortage, "transport|" + r.Name, r.Name, Math.Min(1.0, cut), Unit.Share, Page.Trade, "", ""));
         }
     }
 

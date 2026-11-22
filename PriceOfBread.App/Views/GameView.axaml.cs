@@ -120,7 +120,7 @@ public partial class GameView : UserControl
     private void OnGlobalKeyDown(object? sender, KeyEventArgs e)
     {
         if (Program.UiShotDir is not null) return;   // 無人の撮影の間は本物のキーを受けない（撮影は VM の口を直接呼ぶ＝外から届いたキーで配置が動いて撮影がずれた回があった）
-        if (e.Source is ComboBox or TextBox) return;
+        if (e.Source is ComboBox) return;   // 文字の入力欄は無い（表の絞り込みは廃止＝ページを開いてもキーが欄に取られず、Q はそのまま窓を閉じる）
         if ((e.Source as Control)?.FindAncestorOfType<ComboBox>() is not null) return;   // ComboBox展開中は Source が ComboBoxItem 等になる＝祖先でもガード
         if (DataContext is not ViewModels.GameViewModel vm) return;
         // モーダル（確認/Escメニュー/#106外交・戦争・国内危機ポップアップ）表示中はタブ・速度・停止系ショートカットを無視（Esc/F5/F9/F11は従来どおり）
@@ -139,7 +139,7 @@ public partial class GameView : UserControl
             vm.TogglePauseCommand.Execute(null);
             // 押すたびフォーカスを地図へ集める。理由＝パネルやモーダルを閉じてフォーカス先の要素が木から消えると焦点が null のまま誰も戻さず、
             // 以後キーが届かない経路ができるから（これまでの MapHost.Focus() の呼び手は Loaded の1回と地図の押下だけだった）。
-            // ⚠ フォーカスを奪うので**文字入力欄があるとその入力が切れる**。上のガードで TextBox/ComboBox が Source のときは既に抜けている（現状 TextBox は0個）。
+            // ⚠ フォーカスを奪うので**文字入力欄があるとその入力が切れる**。上のガードで ComboBox が Source のときは既に抜けている（文字入力欄は0個）。
             // スライダーの矢印キー微調整も外れるため、フォーカスを戻すのは**スペースだけ**に限る（他のキーは握るだけ）。
             FocusSink();
             e.Handled = true;
@@ -160,8 +160,8 @@ public partial class GameView : UserControl
             if (_keyTop is Window w) w.WindowState = w.WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
             e.Handled = true;
         }
-        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・市場が Q・地図のキーは無い」・2026-11-11「窓の開閉」）：
-        // 割り当ては本体の PageKeys が持つ（Q 市場・清算・貿易・W 財政と貨幣・E 人口・R 政治と法・A 外交と戦争・S 発見・DFZXCV 空き）。
+        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・財の価格が Q・地図のキーは無い」・2026-11-11「窓の開閉」）：
+        // 割り当ては本体の PageKeys が持つ（Q 財の価格・W 財政と貨幣・E 人口・R 政治と法・A 外交と戦争・S 発見・D 貿易・FZXCV 空き）。
         // 浮かぶ窓の開閉の切り替え（開いていれば閉じ・閉じていれば開いて前へ）。空きのキーは何もしない。Tab（背景の生産と地図の切り替え）は上で処理する。
         else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotCommand.Execute(slot); e.Handled = true; }
         else if (isPriorityKey) e.Handled = true;   // 空きのキー＝何も開かない（押下だけ握る）
