@@ -22,8 +22,6 @@ public class NewsKindsTests
     [InlineData("ハンガリーが墺を制し、共和政の下で再統一した")]
     [InlineData("ハンガリーの要求が通り、墺は再統一された")]
     [InlineData("ハンガリーは墺へ再併合された（以後は墺として続ける）")]
-    [InlineData("墺の首都ウィーンで蜂起が起き、内戦になった")]
-    [InlineData("墺で労働党が蜂起し、ウィーンに拠って内戦を始めた")]
     [InlineData("清が英への従属から離反した")]
     [InlineData("清が英に屈服した")]
     [InlineData("英が清を守るため、仏との戦争に加わった")]
@@ -44,6 +42,8 @@ public class NewsKindsTests
     [InlineData("清で一揆が起きた")]
     [InlineData("英の内戦は労働党の勝利に終わった（革命の成就）")]
     [InlineData("英が内戦を鎮め、労働党を再併合した")]
+    [InlineData("墺の首都ウィーンで蜂起が起き、内戦になった")]
+    [InlineData("墺で労働党が蜂起し、ウィーンに拠って内戦を始めた")]
     public void 消す物の行は年表へ流さない(string body)
         => Assert.Equal(NewsKinds.Scope.Drop, NewsKinds.Classify(body).Scope);
 

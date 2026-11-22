@@ -29,7 +29,7 @@ public class ZzProbeWar
             var aw = uk.Nation!;
             int logN = d.Log.Count;
             bool ok = d.DeclareWar(fr, pr, c);
-            string tail = string.Join(" | ", d.Log.Skip(logN).Where(s => s.Contains("参戦")));
+            string tail = string.Join(" | ", d.Log.Skip(logN).Where(s => s.Contains("参戦") || s.Contains("戦争に加わった")));
             lines.Add($"PROBE flag={Environment.GetEnvironmentVariable("POB_COEF") ?? "-"} seed={seed} ukMil={uk.Military:R} frMil={fr.Military:R} prMil={pr.Military:R} frSide/ukSide={frSide / ukSide:F4} (thr {c.AppeaseMilitaryRatio}) weary={uk.WarExhaustion} civ={aw.InCivilWar} food={aw.FoodFill} fund={aw.FiscalFundingRatio} legit={aw.Legitimacy} declared={ok} log=[{tail}]");
         }
         File.WriteAllLines(Environment.GetEnvironmentVariable("PROBE_OUT")!, lines);

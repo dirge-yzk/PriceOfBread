@@ -18,7 +18,6 @@ public class AlertCatalogFormatTests
         ["ev_austerity_end"] = [],
         ["ev_devaluation"] = [],
         ["ev_revolution"] = ["英", "立憲君主政"],
-        ["ev_civilwar"] = [],
     };
 
     [Fact]

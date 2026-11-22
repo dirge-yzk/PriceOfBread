@@ -3852,7 +3852,7 @@ if (args.Length > 0 && args[0] == "chronicle")
             var rebelP = war.A == war.CivilWarParent ? war.B : war.A;
             int pIdx = m.Nations.FindIndex(nn => nn.World.SelfPower == war.CivilWarParent);
             if (war.CivilWarSecession) { secWarCount++; Ev(c, pIdx, "内戦", $"分離独立戦争が勃発（{rebelP.Name}）"); }
-            else { civilWarCount++; Ev(c, pIdx, "内戦", $"内戦が勃発（{rebelP.Name}が地図の上に立った・{war.CivilWarPolity}）"); }
+            else { civilWarCount++; Ev(c, pIdx, "内戦", $"内戦が勃発（{rebelP.Name}が立った・{war.CivilWarPolity}）"); }
         }
         // 共有外交ログの差分（開戦・講和・独立・運河・疫病・鉱山枯渇・凶作）を日付つきで取り込む
         for (int li = prevLog; li < m.Diplomacy.Log.Count; li++)
@@ -4212,13 +4212,13 @@ if (args.Length > 0 && args[0] == "factionprobe")
             if (line.Contains("一揆を鎮圧")) fpF1Sup++;
             else if (line.Contains("一揆に譲歩")) fpF1Con++;
             else if (line.Contains("分離独立戦争")) fpSecOpen++;
-            else if (line.Contains("地図の上に立った")) fpCwOpen++;
+            else if (line.Contains("で内戦が起き、")) fpCwOpen++;
             else if (line.Contains("の下で再統一")) fpRebelWin++;
             else if (line.Contains("立ち行かず")) fpRump++;          // 残骸の平和的復帰＝軍事的決着でない（下の再併合から差し引く）
             else if (line.Contains("再併合")) fpParentWin++;
             // ★是正2026-09-11（99ログ「Runner/Program.cs:5432 は『に拠って立った』だけを数える」の指摘）：TriggerFactionRevolt の4枝全部を蜂起に数える
             //   （内戦一元化＝に拠って立った／民族＝分離の内乱を起こした／政体戦＝が蜂起した／要求戦＝要求を掲げて蜂起した）。firecheck の FactionRevolt と同じ母集団になる。
-            else if (line.Contains("に拠って立った") || line.Contains("が分離の内乱を起こした") || line.Contains("が要求を掲げて蜂起した") || line.Contains("が蜂起した")) fpRevolt++;
+            else if (line.Contains("に拠って内戦を始めた") || line.Contains("が分離の内乱を起こした") || line.Contains("が要求を掲げて蜂起した") || line.Contains("が蜂起した")) fpRevolt++;
             // ★危機の行き先（2026-09-08）：蜂起0回のとき「点火しなかった」のか「点火したが逸れた」のかを分ける
             //   （F3bの決着3枝は必ず1行ずつ書く＝AI側は受諾／別軸譲歩／蜂起。⚠無血鎮圧の枝は2026-09-08の段6で物理削除）。
             else if (line.Contains("の要求を受け入れた") || line.Contains("の要求を法で受け入れた")) fpF3Concede++;   // ★要求は法の経路：「法で受け入れた」（Politics.CrisisThroughLawPath）も受諾の実体＝同じ行に数える
