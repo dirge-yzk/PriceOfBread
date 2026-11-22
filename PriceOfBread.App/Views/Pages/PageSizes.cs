@@ -32,10 +32,10 @@ public static class PageSizes
     /// <summary>いちばん広い列の自然な幅（欄の枠を含む）。表の自然な幅（列の最小幅と名前の幅）に欄の枠 16 を足した見積り。</summary>
     public static double ColumnWidth(Slot slot) => slot switch
     {
-        Slot.Market => 812,         // 財の値段を左右に 2 つ並べる（表 1 つが約 394・間 8・欄の枠 16）
+        Slot.Market => 752,         // 財の値段を左右に 2 つ並べる（表 1 つが約 364＝名前 110・数の列 5 つ 188・列の間 40・縦の帯 14・間 8・欄の枠 16・作者指示 2026-11-23 列の外の余白を削る）
         Slot.Trade => 513,          // 輸出と輸入（段の押し釦を持たない表）
         Slot.FiscalMoney => 513,    // 支出と収入（段の押し釦 約 236 を持つ表）
-        Slot.Finance => 610,        // 金融の表・国債と外資信用の表
+        Slot.Finance => 513,        // 金融の表（段の押し釦 約 236 を持つ＝最も広い列）。国債と外資信用の表は右の列で約 316（比は ColumnWeights）
         Slot.Population => 610,     // 階級の表（列が多い）
         Slot.Discovery => 580,      // 技術（名前と棒だけの表が 2 つ並び＝各 約 270・間 8・欄の枠 16）が最も広い列・政府と思想と産地は右の列（比は ColumnWeights）
         Slot.DiplomacyWar => 666,   // 国の一覧が最も広い列（ColumnWeights の真ん中）
@@ -56,8 +56,8 @@ public static class PageSizes
     /// <summary>頁が割れる列の数（欄の置き場の列の数。最大 3）。</summary>
     public static int MaxColumns(Slot slot) => PlanOf(slot) is { } t ? Math.Clamp(t.Columns3.Count, 1, 3) : 1;
 
-    /// <summary>最低でもこの列の数で開く頁（支出と収入・輸出と輸入は左右に並べる）。</summary>
-    public static int MinColumns(Slot slot) => slot is Slot.Trade or Slot.FiscalMoney ? Math.Min(2, MaxColumns(slot)) : 1;
+    /// <summary>最低でもこの列の数で開く頁（支出と収入・輸出と輸入・金融と国債は左右に並べる）。</summary>
+    public static int MinColumns(Slot slot) => slot is Slot.Trade or Slot.FiscalMoney or Slot.Finance ? Math.Min(2, MaxColumns(slot)) : 1;
 
     /// <summary>最小の列の数から順の窓の幅の候補（狭い順）。各候補の幅で頁が実際にその列の数に割れること（<see cref="PagePlan.ColumnCount(double, PageTable)"/>）は番人が確かめる。</summary>
     public static IReadOnlyList<double> Candidates(Slot slot) => PlanOf(slot) is null ? [540] : Enumerable.Range(MinColumns(slot), MaxColumns(slot) - MinColumns(slot) + 1).Select(n => Width(slot, n)).ToList();

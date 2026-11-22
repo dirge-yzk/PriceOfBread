@@ -19,7 +19,7 @@ public class DisplayCatalogTests
         var pages = Enum.GetValues<Page>();
         Assert.Equal(10, pages.Length);
         Assert.Equal('\0', PageKeys.Key(Page.Production));
-        var lettered = pages.Where(p => p != Page.Production).ToArray();
+        var lettered = PageKeys.HeaderOrder.Where(p => p != Page.Production).ToArray();   // 並びの順に前から
         Assert.Equal("QWERASDFZ", new string(lettered.Select(PageKeys.Key).ToArray()));
         Assert.Equal("XCV", PageKeys.FreeKeys);
         // 重なりが無く、ページと空きで列が過不足なく埋まる
@@ -40,17 +40,18 @@ public class DisplayCatalogTests
             Assert.Equal(p, PageKeys.PageOfKey(char.ToLowerInvariant(PageKeys.Key(p))));
         }
         Assert.Null(PageKeys.PageOfKey('X'));   // 空きのキー
+        Assert.Equal(Page.Market, PageKeys.HeaderOrder[1]); Assert.Equal(Page.Discovery, PageKeys.HeaderOrder[^1]);
         Assert.Null(PageKeys.PageOfKey('\0'));
         Assert.Null(PageKeys.PageOfKey('C'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
         Assert.Equal("Tab：生産", PageKeys.ButtonText(Page.Production));
-        Assert.Equal("Q：財の価格", PageKeys.ButtonText(Page.Market));
-        Assert.Equal("D：貿易", PageKeys.ButtonText(Page.Trade));
-        Assert.Equal("F：金融", PageKeys.ButtonText(Page.Finance));   // 金融は宣言の末尾＝優先度の列から F
+        Assert.Equal("Q：財価格", PageKeys.ButtonText(Page.Market));
+        Assert.Equal("W：貿易", PageKeys.ButtonText(Page.Trade));
+        Assert.Equal("R：金融", PageKeys.ButtonText(Page.Finance));   // 並びの 5 番目（生産を除き 4 番目）＝優先度の列から R
         // 押し釦の並び（1 か所）：貿易は財の価格のすぐ右・全てのページが 1 度ずつ
         Assert.Equal(Page.Trade, PageKeys.HeaderOrder[PageKeys.HeaderOrder.ToList().IndexOf(Page.Market) + 1]);
         Assert.Equal(Page.Finance, PageKeys.HeaderOrder[PageKeys.HeaderOrder.ToList().IndexOf(Page.FiscalMoney) + 1]);   // 金融は財政と貨幣のすぐ右
-        Assert.Equal("Z：権利と議会", PageKeys.ButtonText(Page.Rights));   // 金融の次＝優先度の列から Z
+        Assert.Equal("D：権利と議会", PageKeys.ButtonText(Page.Rights));   // 政治と法の次＝優先度の列から D
         Assert.Equal(Page.Rights, PageKeys.HeaderOrder[PageKeys.HeaderOrder.ToList().IndexOf(Page.PoliticsLaw) + 1]);   // 政治と法のすぐ右
         Assert.Equal(Enum.GetValues<Page>().OrderBy(p => p).ToList(), PageKeys.HeaderOrder.OrderBy(p => p).ToList());
         Assert.True(DisplayNames.IsValid(PageKeys.MapName));

@@ -5,9 +5,9 @@ namespace PriceOfBread.SimCore.Display;
 public enum Page { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade, Finance, Rights }
 
 /// <summary>ページの切り替えキー。生産は Tab（地図との切り替え・作者の指示 2026-11-04）・残りのページは優先度の列 <see cref="Priority"/>（作者の指示 2026-10-23
-/// 「QWERASDFZXCV の優先度で、順に埋める」）を前から、<see cref="Page"/> の宣言順に割り当てる（生産を除く＝財の価格が Q・貿易は D・金融は F）。残りは空き。
+/// 「QWERASDFZXCV の優先度で、順に埋める」）を前から、<see cref="HeaderOrder"/> の並びの順に割り当てる（生産を除く＝財価格 Q・貿易 W・財政と貨幣 E・金融 R・POP A・政治と法 S・権利と議会 D・外交と戦争 F・発見 Z）。残りは空き。
 /// 地図にはキーが無い（Tab で生産と切り替える・開いているページのキーをもう一度押すか Esc で戻る）。
-/// 割り当ては列と宣言順から導く＝表を手で書かない（ページを足すと自動で次のキーが埋まる）。</summary>
+/// 割り当ては列と並びの順から導く＝表を手で書かない（ページを足すと自動で次のキーが埋まる）。</summary>
 public static class PageKeys
 {
     /// <summary>キーの優先度の列（作者の指示）。</summary>
@@ -17,7 +17,7 @@ public static class PageKeys
     public static string Name(Page page) => page switch
     {
         Page.Production => "生産",
-        Page.Market => "財の価格",
+        Page.Market => "財価格",
         Page.Trade => "貿易",
         Page.Finance => "金融",
         Page.Rights => "権利と議会",
@@ -29,17 +29,12 @@ public static class PageKeys
         _ => "",
     };
 
-    /// <summary>ヘッダーの押し釦の並び（1 か所）。貿易は財の価格のすぐ右・金融は財政と貨幣のすぐ右・権利と議会は政治と法のすぐ右・残りは宣言の順（キーは宣言の順で決まり、並びとは別）。</summary>
-    public static IReadOnlyList<Page> HeaderOrder { get; } = BuildHeaderOrder();
-
-    private static List<Page> BuildHeaderOrder()
-    {
-        var order = System.Enum.GetValues<Page>().Where(p => p != Page.Trade && p != Page.Finance && p != Page.Rights).ToList();
-        order.Insert(order.IndexOf(Page.Market) + 1, Page.Trade);
-        order.Insert(order.IndexOf(Page.FiscalMoney) + 1, Page.Finance);
-        order.Insert(order.IndexOf(Page.PoliticsLaw) + 1, Page.Rights);
-        return order;
-    }
+    /// <summary>ヘッダーの押し釦の並び（手で書くのは 1 か所・関連の順・作者の指示 2026-11-23）。キーはこの並びの順に <see cref="Priority"/> から振る（宣言の順ではない）。</summary>
+    public static IReadOnlyList<Page> HeaderOrder { get; } =
+    [
+        Page.Production, Page.Market, Page.Trade, Page.FiscalMoney, Page.Finance,
+        Page.Population, Page.PoliticsLaw, Page.Rights, Page.DiplomacyWar, Page.Discovery,
+    ];
 
     /// <summary>地図の名前。</summary>
     public const string MapName = "地図";
@@ -47,8 +42,8 @@ public static class PageKeys
     /// <summary>生産のキーの名前（押し釦の文字）。生産だけは文字のキーでなく Tab。</summary>
     public const string ProductionKeyName = "Tab";
 
-    /// <summary>ページの文字のキー（<see cref="Priority"/> の前から、生産を除くページの宣言順）。生産は文字のキーを持たない（'\0'）。</summary>
-    public static char Key(Page page) => page == Page.Production ? '\0' : Priority[(int)page - 1];
+    /// <summary>ページの文字のキー（<see cref="Priority"/> の前から、生産を除く並びの順）。生産は文字のキーを持たない（'\0'）。</summary>
+    public static char Key(Page page) => page == Page.Production ? '\0' : Priority[HeaderOrder.ToList().IndexOf(page) - 1];
 
     /// <summary>空きのキー（最後のページの次から末尾まで）。</summary>
     public static string FreeKeys => Priority[(System.Enum.GetValues<Page>().Length - 1)..];
@@ -61,6 +56,6 @@ public static class PageKeys
         return null;
     }
 
-    /// <summary>押し釦の文字（「Tab:生産」「Q:財の価格」の形）。</summary>
+    /// <summary>押し釦の文字（「Tab:生産」「Q:財価格」の形）。</summary>
     public static string ButtonText(Page page) => $"{(page == Page.Production ? ProductionKeyName : Key(page).ToString())}：{Name(page)}";
 }
