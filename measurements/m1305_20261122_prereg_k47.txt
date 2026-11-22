@@ -1,0 +1,69 @@
+(1305) c135k47 挙動（削除）の線の事前登録：灯油の近代レシピ 2 本の重なりのうち「石油灯油」を消す（K47・S01-H019・1 回目）（2026-11-22・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発と回の数
+ 00一覧〈次の波〉1（削除の席・(1189) の表の順の先頭）。K47 の行＝measurements/m1189_20261117/dl_table_2026-11-17.tsv:49（読み手 8・史実で重要 否・消し方 挙動）・r1189_2026-11-17.md:39〈灯油の 2 本〉。
+ 作者 2026-11-21 の裁定：群 4＝世界が変わる削除を毎回の波に 1〜2 本。方針〈重要でない機能は削減〉。答え待ちではない。3 回の規則：1 回目。
+ 消す理由：同じ史実（ケロシンが鯨油を駆逐した）を 2 本のレシピで表している＝思想⑨（二重計上の禁止）。残すのは「石油ケロシン」（keroDefault・原油 p07 KeroseneOilInput 0.5・生産性 p07 KeroseneOilProductivity 1.6×7）。
+ 形の種類＝〈入口〉（灯油の生産者の 1 本を建てない＝州の生産者の並びが 1 本減る）。作者が〈重要でない機能は削減〉と決めた形＝確証あり（ヌル腕は読まない）。
+
+■ 形
+ 器（旗 0）：Coefficients.p07_wiring_prewarm.cs の KeroseneOilProductivity の隣に一時の旗 LampOilPetroleumDupOff（既定 0）。
+  Simulation.cs AddAdvancedProducers の「石油灯油」の producers.Add の前に `if (!(coef.LampOilPetroleumDupOff > 0))`（NaN は旧へ）。旗 1 で Add を飛ばす。
+ 発見の行（段 0 の grep の結果）：Catalog.cs:433 new("石油灯油", LampOilId, "石油灯油", Process, 1850) は生産者の RecipeName と Catalog.DiscoveryRowOf(good, recipe) で結ぶ（Model.cs:538 Producer.DiscoveryRow）。
+  発見の点数 Discovery.Score（Discovery.cs:501〜502）は `var rp = rep[row]; if (!spread && rp is null) continue;`＝Process の行で州に生産者が 1 本も無ければ点数を作らない＝既定の Terms（Score 0）で GateScore に届かず、発見されない（Discovery.cs:823）。
+  world.json の knownDiscoveries に「石油灯油」は無い（grep 0）。After の鎖・Retirements にも無い（Catalog.cs の grep は :433 だけ）。
+  ＝旗 1 で行が残ると〈どの国も発見しない・解禁する生産者が無い・点数の計算に入らない〉＝働かない静的な行。静的な表は旗に乗らない＝旗 1 のコミットでは行を残し（行の番号をずらさない）、物理の削除（旗とレシピの行と発見の行）は採った後の焼き込みの恒等の線で行う。
+ 旗 1 のコミット：旗の既定を 1・DormantZeroFields から外す。OpeningBakeTests が赤なら bakeopen（既存の道 scripts/instruments/hz4_490/bake.sh・Runner のコードは触らない）で opening_bake.json を取り直す（(1297) の反証役 v：鍵と inputHash の取り直しは要る）。
+ 焼き込みの表を読むか（★(1301)・grep）：OpeningBakeEnabled（p06:112）の既定 0・読み手は MultiNationSim.cs:433 だけ＝既定の世界は表を読まない。表は試験（OpeningBakeTests の鍵＝州ごとの生産者の数と財）だけが読む。
+ 新しい係数・状態 0（一時の旗 1 本だけ・焼き込みで消える）。石油ケロシンの係数・K59 ほか他の削除・OpeningBakeEnabled の既定は触らない。
+
+■ 紙の台本（今の盤面 keep_1301/base_ins・台本 scripts/instruments/c135k47/paper_k47.py・出力 measurements/m1305_20261122/paper_base.txt）
+ recipeout_s（計器の 9 国の和・種の中央値）：
+  年    灯油の計  既定（鯨油・魚油） 石油ケロシン 石油灯油  石油灯油の取り分  原油（9 国の産出）  石油灯油の原油の使い÷9 国の原油
+  1850  73989    69705   4426    1.66   0.000014   1920   0.0014
+  1870  90020    76791   13225   2.32   0.000025   4500   0.0007
+  1913  108200   92622   15070   19.05  0.000176   6871   0.0025
+  1950  82345    60786   21074   12.73  0.000152   8670   0.0015
+  石油灯油の取り分の最大（全ての種・年）＝0.0047。鯨油・魚油の取り分が 0.5 を下回る年は 10 種とも無い（1950 年も既定が 74%）。
+ 予言（腕の前に書く）：
+  ① 灯油の市場：石油灯油は既に石油ケロシンに負けていて産出は灯油の 0.02% 以下＝消しても灯油の計・石油ケロシンの産出・原油の需要は〈推〉で雑音の内（原油の 1 単位あたりの需要が下がる分〔原油の使いの 0.3% 以下〕で原油の値段が下がる〈推〉・大きさは種の揺れより小さい〈推〉）。
+  ② 世界の他の量：州の生産者の並びが 1 本減る（生産者の番号が後ろへずれる・乱数の消費と走査の順が変わる）＝成績表は混沌の揺れで全体が動く〈推〉＝帰属は〈同じ盤面の新÷旧〉で読み、点の予言は門にしない（教訓③）。
+  ③ 計算量：生産者が全ての州で 1 本減る＝推定は下がる（−0.5 秒以下〈推〉）。割り当て 0 秒（増やさない）。2 秒以下は 1 本の腕で門にしない（★(694)）＝.cost を基線 m1294（232.1 秒）と並べる記録。
+  ④ 試験：FullChainTests の生産者の件数（132＋1＋11＋5）は変わらない（FullChain は AddAdvancedProducers を呼ばない〔Simulation.cs:381〜455 の grep〕）。OpeningBakeTests の鍵（州ごとの生産者の数）は旗 1 で赤〈推〉＝表を取り直す。
+
+■ 門（〈作者 2026-11-16 の決まり〉①：止める線＋史実の桁の線＋単体の機構の試験）
+ G1 単体の機構の試験 LampOilDuplicateRecipeTests（盤面を試験の中で置く＝英の 1 国の世界・旗は Coefficients で明示）：
+  T1 旗 1 の世界の灯油の近代レシピは「石油ケロシン」の 1 本だけ（既定の行のある州ごとに）・その原油の投入は 0.5・「石油灯油」はどの州にも無い・既定の行のある州 ≧3（対照の件数）。
+  T2 旗 0 の世界は「石油ケロシン」と「石油灯油」の 2 本（石油灯油の原油 1.0）＝旗が原因であることの対照。
+  旗 0 で赤＝T1 の盤面の旗を 0 に置くと赤（突然変異 M0）。
+ G2 止める線（この回の形をそのまま写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散＝全ての国の nation_s の priceLevel が 1 四半期に 100 倍以上（系列の最初の行から 4 四半期以内＝建国の直後の型はヌル腕の件数と並べて記録）・非有限・開幕の 1e10 倍以上（3 か月比は nation_s で読む・pxmonth_s では読まない＝★(1301)）・
+  空洞化 T1＝an_h2.py -v4 のピークの 1/10 未満（規則 A2 の例外以外・植民地格の州を含む・**線が原因と読めた件だけ**＝基線 keep_1301/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒（基線 232.1・余り約 16.4 秒）・機構と不変条件を守る試験の赤（走査の番人を含む）。
+ G3 史実の桁の線（線が一番動かす量＝灯油と原油・ゲームの値÷史実が 10 倍以上か 1/10 以下で当たる・種の中央値・9 国の和）：
+  (a) 灯油の中の近代の灯油（石油の 2 本の和・旗 1 では石油ケロシンだけ）の取り分 1913 年〈推 0.95〉＝基線 0.1395（比 0.147＝通る）。
+  (b) 原油の産出の 1913÷1870〈推 約 65＝世界 0.8→52 Mt〉＝基線 1.11（比 0.017＝**基線で既に当たる**）＝(b) は〈元からの外れ〉として記録へ下げる（線が原因で新しく当たる物ではない・腕の前に名乗る）。腕が基線より史実から遠ざかった向きの大きさは記録に書く。
+ 記録だけ：鯨油・魚油の取り分が 0.5 を下回る最初の年・原油の単位費用（recipeout の unitCostOutW の産出の重みの平均＝値段の近似）・近代の取り分 1870（史実〈推 0.5〉）・同じ盤面の新÷旧・nullgate（O・NG）・ヌル腕の幅・gdp_zero10・NG（ng.sh・基準 ng1294_20261122）・開幕の 1000 倍以上・英の国債の不履行の種の数・成績表の差の行の数。
+ 外した物差しを門に写していない（★(675) の点検）：〈補給崩壊…倍〉〈10pt〉〈NG の正味〉の grep＝この文書に門として 0 件。符号だけの門 0。
+
+■ 突然変異ごとの門の赤（㉚・腕の前・台本 scripts/instruments/c135k47/mut_k47.sh・出力 measurements/m1305_20261122/mut/mut.txt）
+  M0 試験の旗を 0 に置く（旗 0 の盤面）     → G1 T1 赤（予言）
+  M1 旗が何もしない（if を常に真）           → G1 T1 赤（予言）・T2 緑
+  M2 ケロシンの方を消す（石油ケロシンを建てない）→ G1 T1 赤・T2 赤・SecondRecipeContentsTests 赤（予言）
+  （G2・G3 は世界の帯の門＝突然変異の腕は回さない。M1 は旗 1 の世界を旗 0 と同じにする＝G3 (a) は基線と同じ値で通る＝G3 は〈何もしない実装〉を拾わない＝働きは G1 で示す）
+
+■ 走査の番人（㉘）と変わる件数（㉑）
+ 器のコミットの直後に scripts/instruments/c135k47/scan_k47.sh（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests＋LampOilDuplicateRecipeTests・SecondRecipeContentsTests）。
+ 点検の grep（器の前）：工業化度の読み手の許可表＝触らない（工業化度の語を足さない）・`new MoneyStock(` の件数＝SimCore 64（変えない）・route_anchors.tsv の鍵の行＝Simulation.cs の鍵の行 5 本（:11・:60〜:64）は灯油の行と別（触らない）・WriterRatchetTests の宣言の表＝旗 0 で件数は変わらない（変わる件数の予言 0）。DormantZeroFields に 1 行足す（旗 1 のコミットで外す）。
+ 旗 1 の木：生産者の件数が全ての州で 1 本減る＝WriterRatchetTests の計算量の見た件数は下がる（10% を超えて下がる表は無い〈推〉＝生産者は州に約 150 本）。
+
+■ ㉜ 旗 1 の木で旧の規則を固定する番人の grep（腕 B の前）
+ 「石油灯油」を名指す試験：0 件（PriceOfBread.Tests の grep）。LampOil を名指す試験：SecondRecipeContentsTests（ケロシンは残る＝緑の予言）・DiscoveryScoreTests:353〜:360・:1234（ガス灯が灯油を置き換える＝灯油の市場が生きていれば緑の予言）・GoodIdGuardTests:100（財の名前＝緑）・SulfuricAcidSodaAshTests:82（灯油の参照の値段＝静的＝緑の予言）。
+ 生産者の件数を名指す試験：FullChainTests:23（変わらない予言）・OpeningBakeTests:73〜:74（州ごとの生産者の数＝赤の予言＝表の取り直しで緑）・BuildingGoodBundleTests:90（旗どうしの差＝緑）・PhantomProductionTests:206・FactoryEquipmentTests:208・:309〜:310・RecipeoutInstrumentTests:180（盤面から数える＝緑）。
+ 置き換える旧の規則＝〈灯油の近代レシピは 2 本〉。それを固定する試験は 0 件（上の grep）。一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて同じ線で直す。
+
+■ 計算量の割り当て：0 秒（生産者が減る＝下がる向き）。
+
+■ 腕
+ 腕 Z：`bash scripts/instruments/ident/ident.sh run c135k47z --tree D:/PoB_work/wt_c135k47 --tests-delta 2 --work D:/PoB_work/ident_c135k47`（旗 0・〈判定: 恒等〉が要る・走っている間はコミットしない＝㉙）。
+ 腕 B：旗 1 の木で計器の束（Famine・Fiscal・Military・Revolt・WriterRatchet と Instrument）→フルスイート（分けて回し合計を --list-tests と突き合わせる）→savetest・leakhunt→ `INS=1 bash scripts/instruments/batch.sh run c135k47B 10`（表を絞る＝止める線の表＋recipeout_s・prodcap_s・goods_s）。
+ 読み手：scripts/instruments/c135k47/read_k47.sh（基準とヌル腕も同じ台本で数え直す＝⑰）。基準の側は腕の前に回した（measurements/m1305_20261122/pre_base/）。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
