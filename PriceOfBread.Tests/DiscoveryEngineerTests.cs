@@ -152,6 +152,8 @@ public class DiscoveryEngineerTests
     /// <summary>T4：本体の <see cref="Discovery.ParentEngineers"/> を、開幕の英の盤面で門の開いた高度労働力の雇い手（生産者の財）の集合に1ずつ置いた配列で呼ぶ＝親の産業（行の財か置き換える財・代表のレシピの労働でない投入の財）に雇い手が1つでも居る行は A＞0 になる。
     /// 開幕に雇い手が親の産業に居ない行は、別の発見が先に要る連鎖（名簿 <see cref="NeedsEarlierDiscovery"/>）として手書きで固定する（名簿の外で A＝0 の行が出たら赤・名簿の行が A＞0 になっても赤＝名簿が古い）。
     /// ⚠壊し方＝本体の ParentEngineers が投入の財を親に入れない → 機関車（置き換える物が財でない）などで赤。T4 が守るのは〈親の定義が構造として A＞0 になりうる〉ことだけで、〈発見の前に A が正になる〉ことは census が見る。</summary>
+    /// <summary>(1305) c135k47：重なりを消した製法の行（旗 LampOilPetroleumDupOff 1＝「石油灯油」を建てない）。代表の生産者を持たず、発見の点数を作らない（Terms が既定）＝働かない静的な行。物理の削除は焼き込みの恒等の線で行と一緒に消す。</summary>
+    private static readonly string[] RemovedDuplicateRows = ["石油灯油"];
     private static readonly string[] NeedsEarlierDiscovery = ["電動機", "化学兵器", "合成ゴム"];   // ★2026-10-23 (493)：化学兵器（塩＋電力）と合成ゴム（カーバイド＝石灰石＋石炭＋電力）は化学薬品でなく電力を材料にした＝電力の工場が先に要る連鎖へ移った（機構の意味は変えない・名簿の追随）   // 電力の工場（石炭火力・石油火力の発見）が先に要る＝census でも A＝0（6/6 件）の既知の連鎖
 
     [Fact]
@@ -163,14 +165,25 @@ public class DiscoveryEngineerTests
         foreach (var rg in w.Regions) foreach (var p in rg.Producers)
             if (AdvQty(p) > 0 && Discovery.Gate(rg, p) > 0 && p.GoodId >= 0 && p.GoodId < eng.Length) eng[p.GoodId] = 1;
         var zero = new List<string>();
+        var noRep = new List<string>();
+        var terms = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true);
+        int checkedRows = 0;
         for (int row = 0; row < Catalog.Discoveries.Length; row++)
         {
             var d = Catalog.Discoveries[row];
             if (Discovery.IsSpread(d.Field)) continue;
             var rp = w.Regions.SelectMany(rg => rg.Producers).FirstOrDefault(p => p.DiscoveryRow == row);
+            if (RemovedDuplicateRows.Contains(d.Name))
+            {
+                if (rp is null) { noRep.Add(d.Name); Assert.True(terms[row] == default, $"{d.Name}：代表の生産者の無い行が発見の点数を作った（{terms[row]}）"); }
+                continue;
+            }
             Assert.True(rp is not null, $"{d.Name}：イギリスに代表の生産者が居ない");
+            checkedRows++;
             if (!(Discovery.ParentEngineers(row, rp!, eng) > 0)) zero.Add(d.Name);
         }
+        Assert.Equal(RemovedDuplicateRows.OrderBy(x => x, System.StringComparer.Ordinal), noRep.OrderBy(x => x, System.StringComparer.Ordinal));   // 名簿の行に生産者が建てば赤＝名簿が古い
+        Assert.True(checkedRows > 40, $"検査した製法の行が少なすぎる（{checkedRows}）");
         Assert.Equal(NeedsEarlierDiscovery.OrderBy(x => x), zero.OrderBy(x => x));
     }
 
