@@ -1759,6 +1759,7 @@ public static partial class Instruments
     /// </summary>
     internal static void TreasuryRebased(World w, double before, double to)
     {
+        TreasLedgerRebased(w, before, to);
         var st = S(w);
         if (!IsPicked(w, st)) return;
         st.PxResetSince += to - before; st.PxResetCount++;
@@ -1964,6 +1965,7 @@ public static partial class Instruments
         MintregTable(sim, seed, q);        // MintregTable（(1168) 造幣の床の効き・mintreg_s）
         MintcapTable(sim, seed, q);        // MintcapTable（(1180) 造幣の買いの置き場・mintcap_s）
         CapskipTable(sim, seed, q);        // CapskipTable（(1277) 容量で飛ばした売り手・capskip_s）
+        TreasLedgerTable(sim, seed, q);    // TreasLedgerTable（(1295) 国庫の科目ごとの出入り・treasledger_s）
         ArrearsTable(sim, seed, q);        // ArrearsTable（(1284) 不履行の導火線と本位の停止の旧新・arrears_s）
         LabelTierTable(sim, seed, q);      // LabelTierTable（(1290) 国の主流の札の格の順の旧新・labeltier_s）
         SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
