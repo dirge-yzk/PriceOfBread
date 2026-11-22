@@ -1,0 +1,14 @@
+# rec_k49 base D:/PoB_work/keep_1294/base_ins 種 1..10 読めた種 10
+① 開幕（四半期 0）の工場の能力と産出（種の中央）
+  イギリス	capacity 59482.3	output 32521.8
+  フランス	capacity 99036.6	output 55342
+  プロイセン	capacity 16738.9	output 10144.4
+  アメリカ	capacity 18504.1	output 9882.95
+  ロシア	capacity 32324.8	output 20277.6
+  オーストリア	capacity 54824	output 31068.8
+  オスマン	capacity 22701.7	output 13735.8
+  清	capacity 326192	output 150455
+  日本	capacity 93268	output 41695.4
+② 能力の四半期の |Δln| n=60030 中央 0.01297 90% 0.042388 99% 0.11559 最大 0.83804
+③ 工場の倒産の数 国×四半期 n=60120 平均 27.408 最大 372
+④ 名目 GDP の四半期の |Δln| n=60030 中央 0.013072 90% 0.038819 99% 0.098997
