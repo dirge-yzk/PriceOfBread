@@ -1,0 +1,189 @@
+arm	seed	tier	key	regionQuarters	sumPopK
+arm	1	colony	all	66906	0.0
+arm	1	colony	urban0	490	1229272.8
+arm	1	colony	urban_lt0.1pct	5357	0.0
+arm	1	home	all	151636	0.0
+arm	1	colony	urban0_q0	4	
+arm	1	colony	urban0_q1	4	
+arm	1	colony	urban0_q4	4	
+arm	1	colony	urban0_q40	3	
+arm	1	colony	urban0_q280	2	
+arm	1	colony	reentry	103	
+arm	2	colony	all	64625	0.0
+arm	2	colony	urban0	468	1129953.8
+arm	2	colony	urban_lt0.1pct	3745	0.0
+arm	2	home	all	151636	0.0
+arm	2	colony	urban0_q0	4	
+arm	2	colony	urban0_q1	4	
+arm	2	colony	urban0_q4	4	
+arm	2	colony	urban0_q400	1	
+arm	2	colony	reentry	84	
+arm	3	colony	all	62832	0.0
+arm	3	colony	urban0	515	869073.0
+arm	3	colony	urban_lt0.1pct	3020	0.0
+arm	3	home	all	151636	0.0
+arm	3	colony	urban0_q0	4	
+arm	3	colony	urban0_q1	4	
+arm	3	colony	urban0_q4	4	
+arm	3	colony	urban0_q40	4	
+arm	3	colony	urban0_q280	1	
+arm	3	colony	reentry	65	
+arm	4	colony	all	55940	0.0
+arm	4	colony	urban0	298	643340.4
+arm	4	colony	urban_lt0.1pct	1413	0.0
+arm	4	home	all	151636	0.0
+arm	4	colony	urban0_q0	4	
+arm	4	colony	urban0_q1	4	
+arm	4	colony	urban0_q4	4	
+arm	4	colony	urban0_q40	5	
+arm	4	colony	reentry	29	
+arm	5	colony	all	64454	0.0
+arm	5	colony	urban0	640	387809.5
+arm	5	colony	urban_lt0.1pct	2789	0.0
+arm	5	home	all	151636	0.0
+arm	5	colony	urban0_q0	4	
+arm	5	colony	urban0_q1	4	
+arm	5	colony	urban0_q4	4	
+arm	5	colony	urban0_q40	5	
+arm	5	colony	urban0_q400	1	
+arm	5	colony	reentry	84	
+arm	6	colony	all	62561	0.0
+arm	6	colony	urban0	465	1371072.4
+arm	6	colony	urban_lt0.1pct	2737	0.0
+arm	6	home	all	151636	0.0
+arm	6	colony	urban0_q0	4	
+arm	6	colony	urban0_q1	4	
+arm	6	colony	urban0_q4	4	
+arm	6	colony	urban0_q40	4	
+arm	6	colony	urban0_q280	1	
+arm	6	colony	reentry	82	
+arm	7	colony	all	55932	0.0
+arm	7	colony	urban0	404	279903.8
+arm	7	colony	urban_lt0.1pct	1248	0.0
+arm	7	home	all	151636	0.0
+arm	7	colony	urban0_q0	4	
+arm	7	colony	urban0_q1	4	
+arm	7	colony	urban0_q4	4	
+arm	7	colony	urban0_q40	4	
+arm	7	colony	reentry	38	
+arm	8	colony	all	55339	0.0
+arm	8	colony	urban0	533	614284.2
+arm	8	colony	urban_lt0.1pct	563	0.0
+arm	8	home	all	151636	0.0
+arm	8	colony	urban0_q0	4	
+arm	8	colony	urban0_q1	4	
+arm	8	colony	urban0_q4	4	
+arm	8	colony	urban0_q40	4	
+arm	8	colony	reentry	13	
+arm	9	colony	all	54726	0.0
+arm	9	colony	urban0	324	847055.9
+arm	9	colony	urban_lt0.1pct	669	0.0
+arm	9	home	all	151636	0.0
+arm	9	colony	urban0_q0	4	
+arm	9	colony	urban0_q1	4	
+arm	9	colony	urban0_q4	4	
+arm	9	colony	urban0_q40	4	
+arm	9	colony	reentry	10	
+arm	10	colony	all	66367	0.0
+arm	10	colony	urban0	509	1069092.9
+arm	10	colony	urban_lt0.1pct	3994	0.0
+arm	10	home	all	151636	0.0
+arm	10	colony	urban0_q0	4	
+arm	10	colony	urban0_q1	4	
+arm	10	colony	urban0_q4	4	
+arm	10	colony	urban0_q40	2	
+arm	10	colony	reentry	86	
+base	1	colony	all	66906	0.0
+base	1	colony	urban0	490	1229272.8
+base	1	colony	urban_lt0.1pct	5357	0.0
+base	1	home	all	151636	0.0
+base	1	colony	urban0_q0	4	
+base	1	colony	urban0_q1	4	
+base	1	colony	urban0_q4	4	
+base	1	colony	urban0_q40	3	
+base	1	colony	urban0_q280	2	
+base	1	colony	reentry	103	
+base	2	colony	all	64625	0.0
+base	2	colony	urban0	468	1129953.8
+base	2	colony	urban_lt0.1pct	3745	0.0
+base	2	home	all	151636	0.0
+base	2	colony	urban0_q0	4	
+base	2	colony	urban0_q1	4	
+base	2	colony	urban0_q4	4	
+base	2	colony	urban0_q400	1	
+base	2	colony	reentry	84	
+base	3	colony	all	62832	0.0
+base	3	colony	urban0	515	869073.0
+base	3	colony	urban_lt0.1pct	3020	0.0
+base	3	home	all	151636	0.0
+base	3	colony	urban0_q0	4	
+base	3	colony	urban0_q1	4	
+base	3	colony	urban0_q4	4	
+base	3	colony	urban0_q40	4	
+base	3	colony	urban0_q280	1	
+base	3	colony	reentry	65	
+base	4	colony	all	55940	0.0
+base	4	colony	urban0	298	643340.4
+base	4	colony	urban_lt0.1pct	1413	0.0
+base	4	home	all	151636	0.0
+base	4	colony	urban0_q0	4	
+base	4	colony	urban0_q1	4	
+base	4	colony	urban0_q4	4	
+base	4	colony	urban0_q40	5	
+base	4	colony	reentry	29	
+base	5	colony	all	64454	0.0
+base	5	colony	urban0	640	387809.5
+base	5	colony	urban_lt0.1pct	2789	0.0
+base	5	home	all	151636	0.0
+base	5	colony	urban0_q0	4	
+base	5	colony	urban0_q1	4	
+base	5	colony	urban0_q4	4	
+base	5	colony	urban0_q40	5	
+base	5	colony	urban0_q400	1	
+base	5	colony	reentry	84	
+base	6	colony	all	62561	0.0
+base	6	colony	urban0	465	1371072.4
+base	6	colony	urban_lt0.1pct	2737	0.0
+base	6	home	all	151636	0.0
+base	6	colony	urban0_q0	4	
+base	6	colony	urban0_q1	4	
+base	6	colony	urban0_q4	4	
+base	6	colony	urban0_q40	4	
+base	6	colony	urban0_q280	1	
+base	6	colony	reentry	82	
+base	7	colony	all	55932	0.0
+base	7	colony	urban0	404	279903.8
+base	7	colony	urban_lt0.1pct	1248	0.0
+base	7	home	all	151636	0.0
+base	7	colony	urban0_q0	4	
+base	7	colony	urban0_q1	4	
+base	7	colony	urban0_q4	4	
+base	7	colony	urban0_q40	4	
+base	7	colony	reentry	38	
+base	8	colony	all	55339	0.0
+base	8	colony	urban0	533	614284.2
+base	8	colony	urban_lt0.1pct	563	0.0
+base	8	home	all	151636	0.0
+base	8	colony	urban0_q0	4	
+base	8	colony	urban0_q1	4	
+base	8	colony	urban0_q4	4	
+base	8	colony	urban0_q40	4	
+base	8	colony	reentry	13	
+base	9	colony	all	54726	0.0
+base	9	colony	urban0	324	847055.9
+base	9	colony	urban_lt0.1pct	669	0.0
+base	9	home	all	151636	0.0
+base	9	colony	urban0_q0	4	
+base	9	colony	urban0_q1	4	
+base	9	colony	urban0_q4	4	
+base	9	colony	urban0_q40	4	
+base	9	colony	reentry	10	
+base	10	colony	all	66367	0.0
+base	10	colony	urban0	509	1069092.9
+base	10	colony	urban_lt0.1pct	3994	0.0
+base	10	home	all	151636	0.0
+base	10	colony	urban0_q0	4	
+base	10	colony	urban0_q1	4	
+base	10	colony	urban0_q4	4	
+base	10	colony	urban0_q40	2	
+base	10	colony	reentry	86	

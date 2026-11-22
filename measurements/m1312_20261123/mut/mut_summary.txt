@@ -1,0 +1,139 @@
+B_none	rc=1	赤 10	失敗!   -失敗:    10、合格:    26、スキップ:     0、合計:    36、期間: 41 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+M0_flag0_path	rc=1	赤 12	失敗!   -失敗:    12、合格:    24、スキップ:     0、合計:    36、期間: 45 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T1_工員0の州でも値打ちが都市の側なら次の月に流れが正_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T2_鏡_農民0の州でも値打ちが農村の側なら都市から戻れる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T4_工員の失業が都市の値打ちを下げる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T5_旗0の道は旧の式_稼ぎ割る人数_の値打ちを読む
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_自給を0にすると名目の現金の比べと同じ向き_住居を0にしたとき
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_釣り合い_V農村とV都市が等しければ流れは0
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1でも農奴の門と飢えの門は残る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+M1_vu_earned	rc=1	赤 17	失敗!   -失敗:    17、合格:    19、スキップ:     0、合計:    36、期間: 41 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T1_工員0の州でも値打ちが都市の側なら次の月に流れが正_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T2_鏡_農民0の州でも値打ちが農村の側なら都市から戻れる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T3_連続_工員0と工員1e6千人_稼ぎ0_の流れはほとんど同じ
+  PriceOfBread.Tests.EmptyUrbanValueTests.T4_工員の失業が都市の値打ちを下げる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T5_旗0の道は旧の式_稼ぎ割る人数_の値打ちを読む
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_自給を0にすると名目の現金の比べと同じ向き_住居を0にしたとき
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_釣り合い_V農村とV都市が等しければ流れは0
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1でも農奴の門と飢えの門は残る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+M2_vr_earned	rc=1	赤 18	失敗!   -失敗:    18、合格:    18、スキップ:     0、合計:    36、期間: 42 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T1_工員0の州でも値打ちが都市の側なら次の月に流れが正_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T2_鏡_農民0の州でも値打ちが農村の側なら都市から戻れる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T4_工員の失業が都市の値打ちを下げる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T5_旗0の道は旧の式_稼ぎ割る人数_の値打ちを読む
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_家賃が現金を超えるときは0で切る_gは符号が反転せず発散しない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_自給を0にすると名目の現金の比べと同じ向き_住居を0にしたとき
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_釣り合い_V農村とV都市が等しければ流れは0
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+M3_empty_only	rc=1	赤 10	失敗!   -失敗:    10、合格:    26、スキップ:     0、合計:    36、期間: 43 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T2_鏡_農民0の州でも値打ちが農村の側なら都市から戻れる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T3_連続_工員0と工員1e6千人_稼ぎ0_の流れはほとんど同じ
+  PriceOfBread.Tests.EmptyUrbanValueTests.T4_工員の失業が都市の値打ちを下げる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T5_旗0の道は旧の式_稼ぎ割る人数_の値打ちを読む
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_自給を0にすると名目の現金の比べと同じ向き_住居を0にしたとき
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_釣り合い_V農村とV都市が等しければ流れは0
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1でも農奴の門と飢えの門は残る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+M4_no_unemp	rc=1	赤 11	失敗!   -失敗:    11、合格:    25、スキップ:     0、合計:    36、期間: 39 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T4_工員の失業が都市の値打ちを下げる_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+M5_sender_swap	rc=1	赤 17	失敗!   -失敗:    17、合格:    19、スキップ:     0、合計:    36、期間: 40 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T1_工員0の州でも値打ちが都市の側なら次の月に流れが正_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T2_鏡_農民0の州でも値打ちが農村の側なら都市から戻れる_手の算術
+  PriceOfBread.Tests.EmptyUrbanValueTests.T3_連続_工員0と工員1e6千人_稼ぎ0_の流れはほとんど同じ
+  PriceOfBread.Tests.EmptyUrbanValueTests.T4_工員の失業が都市の値打ちを下げる_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の積みの純は都市の規模の差に合い_州の生産の列は工場の表と合う
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+M6_ignore_flag	rc=1	赤 12	失敗!   -失敗:    12、合格:    24、スキップ:     0、合計:    36、期間: 45 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.T5_旗0の道は旧の式_稼ぎ割る人数_の値打ちを読む
+  PriceOfBread.Tests.FamineGateReturnsRuralTests.旗1_飢えの門が掛かりgが負なら都市から農村へ_Mobility掛けるg掛ける都市の規模_旗0は0
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+Mi1_stuck_add_off	rc=1	赤 11	失敗!   -失敗:    11、合格:    25、スキップ:     0、合計:    36、期間: 43 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.計器U0_都市0の州を数え_次の月も0なら案の流れを読んだ月だけ数える
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+Mi2_flow_cond_off	rc=1	赤 11	失敗!   -失敗:    11、合格:    25、スキップ:     0、合計:    36、期間: 39 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.EmptyUrbanValueTests.計器U0_都市0の州を数え_次の月も0なら案の流れを読んだ月だけ数える
+  PriceOfBread.Tests.UrbanFlowRealTests.V_住居の門の下では住居の費用が立たない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.流れの向きの反転の数え方_前の月も今の月も0でなく符号が逆のときだけ
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 0.10000000000000001, incUrban: 0.29999999999999999, toUrban: True)
+  PriceOfBread.Tests.UrxInstrumentTests.往復の表の口はPopDecisionの流れに合う(incRural: 5, incUrban: 0.01, toUrban: False)
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは天井と門の印を正しく立てる
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する

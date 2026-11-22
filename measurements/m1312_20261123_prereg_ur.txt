@@ -91,3 +91,22 @@
 ■ ファイルの持ち主と重なり（㉞）
  この線：PopDecision.cs（MigrationValues と旗 1 の枝）・Instruments/InstrumentsUrx.cs（urxpd_s の列）・Coefficients.p06_rank_discovery.cs:116・EmptyUrbanValueTests.cs（新）・UrbanFlowRealTests.cs・FamineGateReturnsRuralTests.cs・RdhInstrumentTests.cs（前提の行）・DormantIdentityTests.cs と WriterRatchetTests.cs（宣言の行）。持ち主の外：UrxInstrumentTests.cs:133 の 1 行（列の数）。
  他の線（sv＝SaveGame・BilateralMarket・Runner の savetest／tc＝PolicyPoliticsTests／kb＝Simulation :1222〜:1225・Catalog :433・p07）とは重ならない。ur の旗 1 は TaxChainCheck の数を動かしうる（合流が tc の新しい Assert を ur の旗 1 の木でも読む）。
+
+■ 追記（2026-11-23・段 0 の紙・腕 Z の生 D:/PoB_work/ident_c136ur/out_ib_10/ins〔旗 0・計器つき 10 種〕・腕 B の前・旗 1 の出力はまだ無い）
+ 腕 Z：判定: 恒等（測った種で一致・段 2・宣言 grown=urxpd・tests_delta=+1・推定 227.4 秒＝基準と一致・measurements/m1312_20261123/ident_c136urz.txt）。
+ 止める線の台本を基準 keep_1308/base_ins で先に回した（measurements/m1312_20261123/pre_base/）：空洞化 1/10 未満 0 件・1/4 未満 5 件（移民 4・飢え 1）・priceLevel 100 倍 0・1e10 倍 0・非有限 0・史実の桁の線に当たった数 0・植民地格の農業の外 1850 0.220・1913 0.354（史実〈推〉0.10 との比 2.2・3.5）・英の国債の不履行 3/10。
+ U0 の読み（scripts/instruments/c136ur/u0_gate.py・measurements/m1312_20261123/paper_z.txt・paper_g.txt）：
+  R_F＝rgoResidualSum÷farmEarnedSum＝0.868・農業労働の売上÷稼ぎ＝0.187・R_U＝1−1.023＝−0.023 → R_F−R_U＝0.89 ≥ 0.10 → 決めた規則のとおり **案 A′**。
+  案 A′ の V_r は 9 国の全てで V_u の 3〜7 倍（例：英 1880〜1913 V_u 4.37・V_r(A′) 23.5／旧の式の農民の稼ぎ＋自給 3.99）＝g_A′＞0 の州×月は 0.3%。g_A′ は開幕 −0.61〜−1.75・1880〜1913 −1.04〜−1.37。
+  案 A は g_A＞0 の州×月 80.7%（V_u は旧の式の工員の稼ぎの 1.1〜5 倍・V_r は 0.9〜1.9 倍）。
+  旗 0 の都市 0 の州×月：植民地格 405〜1,392／種・本国格 0。そのうち g_A＞0・g_A′＞0 は **0 件**（案 A でも A′ でも空の都市の側の値打ちが低い）＝emptyUrbanStuck は旗 0 で 0。
+ 紙が予言すること（㉗・★(719)）：
+  ① 案 A′ を旗 1 にすると、9 国の全ての州で都市の工員が毎月 1.2〜3.5%（Mobility×|g_A′|）ずつ農村へ移る。値段の戻り（P_L が 3〜7 倍に上がる）が無ければ 10 年で 0.97^120≈0.03＝都市の工員は幾何級数で減り続け、Eps を割った州は g_A′≤0 のまま入らない＝(1296) の吸収の状態（v2 の高）が、値打ちの読みの形を変えても戻る見込み。
+  ② 門 G1（emptyUrbanStuck＝0）は旗 0（何もしない実装）の盤面でも 0＝**判別の力が無い**（事前登録の〈旗 0 では正になる見込み〉は外れた）。腕 B で G1 が通っても〈機構が狙いどおり働いた〉証拠にならない（ゲート緑≠働いた）。
+  ③ 案 A′ の V_r が旧の式の農民の稼ぎの 5〜8 倍＝ρ（買った農業労働 1 単位あたりの RGO の残余）×ℓ は、RGO が農民の人数から直に能力を持つ道（EconomyStep.cs:971）を数えず、残余を買った労働の量で割るので大きく出る〈推〉＝A′ の狙い〈左右を釣り合わせる〉に届いていない。
+ 判定（結果を見る前に固定した規則のとおり）：決めた規則は案 A′ を選ぶ。紙は案 A′ が狙い（空の都市に入れる＝片方向を直す）を外し、門 G1 も判別できないことを予言する。
+  ★(719)〈腕を回す前に設計書の数から no-go が予測できる線は回さない〉と段 0 の規律〈見込みが悪くするなら腕を回さず記録だけで終える〉により、**腕 B を回さない＝この線は〈記録だけ〉で終える**。
+  案 A へ乗り換えるのは結果を見た後の規則の付け替え＝しない。A′ の ρ の定義を直すのは結果の後の形の変え直し＝この回ではしない（3 回目＝最後）。
+  3 回の規則：urbd 段 3 は 3 回とも採らなかった＝4 回目は回さない。上流へ：農民の稼ぎの 87% が RGO の残余（売った労働は 19%）＝〈移る人の値打ち〉を州の労働の値段だけで読めない根は、農民の家計が自分の産出から得る取り分（自給の世帯の家計 3-0）と、PopDecision と Meritocracy の 2 本の道（U2）。
+ 突然変異（旗 1 の使い捨ての木 D:/PoB_work/wt_c136ur_mut・案 A の枝・measurements/m1312_20261123/mut/mut_summary.txt）：M0 T1・T2・T4・T5 赤／M1 T1〜T5 赤／M2 T1・T2・T4・T5 赤／M3 T2〜T5 赤／M4 T4 赤／M5 T1〜T4 赤／M6 T5 赤／Mi1・Mi2 計器の番人 赤＝表のとおり（変異なしの木の 10 本の赤は既定 1 の前提の行＝下の engine_A_not_applied.patch で旗を明示に直して 47 本緑）。
+ 入れなかった物の写し：案 A の枝・T1〜T5・旧の規則の番人の書き換え（UrbanFlowRealTests の旗 1 の 6 本を市場の値段の盤面へ・Board の旗の明示・RdhInstrumentTests の前提の行・UrxInstrumentTests の BoardW の旗の明示・FamineGateReturnsRuralTests と DormantIdentityTests の行・p06:116 の 1）＝measurements/m1312_20261123/engine_A_not_applied.patch（記録・main に入れない）。

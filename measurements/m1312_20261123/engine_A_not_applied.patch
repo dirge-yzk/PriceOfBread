@@ -1,0 +1,408 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.p06_rank_discovery.cs b/PriceOfBread.SimCore/Coefficients.p06_rank_discovery.cs
+index b6301a30e..b40aacb5d 100644
+--- a/PriceOfBread.SimCore/Coefficients.p06_rank_discovery.cs
++++ b/PriceOfBread.SimCore/Coefficients.p06_rank_discovery.cs
+@@ -113,7 +113,7 @@ public sealed partial class Coefficients
+     public double RecipeEquipment = 1;              // 0＝旧の規則（操業規模 Scale は利幅を目標にただで伸び縮みする）＝厳密恒等
+     public double UnionBargaining = 1;              // 0＝今の規則（組合の産出の乗数 0.95／0.98 が残り、工場の付加価値は全て持ち主）
+     public double IndustrializationOff = 1;         // 0＝今のまま＝厳密恒等
+-    public double UrbanFlowReal = 0;        // 0＝今の式（シグモイドの目標の都市の割合＋名目の温度 MigrationTemperature・1 ビットも変わらない）
++    public double UrbanFlowReal = 1;        // 1＝(1312) 移る値打ち（州の労働の値段×ℓ×(1−失業)）の対称の相対差に比例・0＝シグモイドの目標の都市の割合＋名目の温度 MigrationTemperature
+     public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする
+     public double DiscoveryNeedHalfInstitution = 0.5; // 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35
+     public double DiscoveryNeedHalfIdea = 0.2;      // 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35
+diff --git a/PriceOfBread.SimCore/PopDecision.cs b/PriceOfBread.SimCore/PopDecision.cs
+index b1028eeec..526b14761 100644
+--- a/PriceOfBread.SimCore/PopDecision.cs
++++ b/PriceOfBread.SimCore/PopDecision.cs
+@@ -21,8 +21,6 @@ public static class PopDecision
+ 
+     internal static MigrationValueRow MigrationValues(Region region, Coefficients coef, Pop rural, Pop urban)
+     {
+-        double earnedR = rural.Size > Eps ? rural.EarnedPerMonth.Value / rural.Size : 0.0;
+-        double earnedU = urban.Size > Eps ? urban.EarnedPerMonth.Value / urban.Size : 0.0;
+         double sub = rural.Size > Eps ? rural.SubsistenceValuePerMonth.Value / rural.Size : 0.0;
+         double housing = 0.0;
+         if (coef.HousingNeedPerUrban > 0 && Catalog.HousingId < region.Markets.Length)
+@@ -30,8 +28,24 @@ public static class PopDecision
+             double totalPop = region.SumPopulation();
+             if (HousingGateOpen(coef, region.SumUrbanPopulation(), totalPop)) housing = coef.HousingNeedPerUrban * region.Markets[Catalog.HousingId].Price;
+         }
+-        double vr = (earnedR > 0 ? earnedR : 0.0) + (sub > 0 ? sub : 0.0);
+-        double vuRaw = (earnedU > 0 ? earnedU : 0.0) - housing;
++        double vr, vuRaw;
++        if (coef.UrbanFlowReal > 0)
++        {   // (1312) 旗 1：州の労働の値段で評価した働き口＝ℓ×値段×(1−失業)（空かどうかを読まない 1 本の式・人数 0 の側も値段と ℓ で正）
++            var mk = region.Markets;
++            double pl = Catalog.LaborId < mk.Length ? mk[Catalog.LaborId].Price : 0.0;
++            double pf = Catalog.FarmLaborId < mk.Length ? mk[Catalog.FarmLaborId].Price : 0.0;
++            double ell = LaborPerHead(region, rural, urban);
++            double vrw = ell * pf * (1.0 - rural.UnemploymentRate.Value);
++            vr = (vrw > 0 ? vrw : 0.0) + (sub > 0 ? sub : 0.0);
++            vuRaw = ell * pl * (1.0 - urban.UnemploymentRate.Value) - housing;
++        }
++        else
++        {
++            double earnedR = rural.Size > Eps ? rural.EarnedPerMonth.Value / rural.Size : 0.0;
++            double earnedU = urban.Size > Eps ? urban.EarnedPerMonth.Value / urban.Size : 0.0;
++            vr = (earnedR > 0 ? earnedR : 0.0) + (sub > 0 ? sub : 0.0);
++            vuRaw = (earnedU > 0 ? earnedU : 0.0) - housing;
++        }
+         double vu = vuRaw > 0 ? vuRaw : 0.0;
+         double sum = vr + vu;
+         double g = sum > Eps ? 2.0 * (vu - vr) / sum : 0.0;
+@@ -39,6 +53,23 @@ public static class PopDecision
+         return new MigrationValueRow(vr, vu, sub > 0 ? sub : 0.0, housing, g);
+     }
+ 
++    /// <summary>(1312) 州の一人あたりの労働の量 ℓ＝(対の農村と都市が担い手の、労働と農業労働の生産者の Capacity の和)÷対の人数（工場の労働と農業労働の単位を足す）。</summary>
++    internal static double LaborPerHead(Region region, Pop rural, Pop urban)
++    {
++        double total = rural.Size + urban.Size;
++        if (!(total > Eps)) return 0.0;
++        double cap = 0;
++        foreach (var s in region.Producers)
++        {
++            if (s.GoodId != Catalog.LaborId && s.GoodId != Catalog.FarmLaborId) continue;
++            int li = s.LaborPopIndex;
++            if (li < 0 || li >= region.Pops.Count) continue;
++            var lp = region.Pops[li];
++            if (ReferenceEquals(lp, rural) || ReferenceEquals(lp, urban)) cap += s.Capacity;
++        }
++        return cap / total;
++    }
++
+     internal readonly record struct MigrationValueRow(double VRural, double VUrban, double SubsistenceValue, double HousingCost, double Gsym);
+ 
+     public static void Run(Region region, Coefficients coef, double serfFree = 1.0)
+diff --git a/PriceOfBread.Tests/DormantIdentityTests.cs b/PriceOfBread.Tests/DormantIdentityTests.cs
+index 57e5a6883..bf13701df 100644
+--- a/PriceOfBread.Tests/DormantIdentityTests.cs
++++ b/PriceOfBread.Tests/DormantIdentityTests.cs
+@@ -33,7 +33,7 @@ public class DormantIdentityTests
+         // ★RailNeedByOutput（(1137) c111rb 段 R の need の基底・鉄道の need の取り分を州の産出の比へ）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。
+         // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
+         // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
+-        "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
++        // ★UrbanFlowReal（(706) 線 urb3）は (1312) c136ur が 2026-11-23 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は UrbanFlowRealTests の〈旗0は新しい入力…〉・EmptyUrbanValueTests の T5・FamineGateReturnsRuralTests〔旗を明示で 0〕）。
+         // ★FamineGateReturnsRural（(1283) c132fg）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は FamineGateReturnsRuralTests の T1・T2）。旧の注：飢えの門が掛かった月に g が負なら都市→農村へ戻す（0 で門は流れを 0 にするだけ・番人 FamineGateReturnsRuralTests）
+         // ★RuleOrderByRegion（(850) c69po・(862) c71po 州ごとの治安 P1-1）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は RuleOrderP1Tests の P1_0・P1_2・P1_5 と RuleSharesFormTests の D2 の 2 本（旗 0 を明示）。
+         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
+diff --git a/PriceOfBread.Tests/EmptyUrbanValueTests.cs b/PriceOfBread.Tests/EmptyUrbanValueTests.cs
+index bd15ac57d..113758484 100644
+--- a/PriceOfBread.Tests/EmptyUrbanValueTests.cs
++++ b/PriceOfBread.Tests/EmptyUrbanValueTests.cs
+@@ -5,7 +5,8 @@ namespace PriceOfBread.Tests;
+ 
+ /// <summary>
+ /// (1312) 線 c136ur：空の都市の階級の値打ち（urbd 段 3 の 3 回目）。
+-/// ①計器 U0（urxpd_s の末尾の列）：都市の POP が 0 の州×月・前の月に案の流れ＞Eps と読んだのに次の月も 0 の州×月を、盤面を試験の中で置いて手で数える。
++/// ①旗 UrbanFlowReal 1 の値打ち（T1〜T5）：V_u＝ℓ×P_L×(1−u_U)−家賃・V_r＝ℓ×P_F×(1−u_R)＋自給・ℓ＝対の労働 2 財の生産者の Capacity÷対の人数。
++/// ②計器 U0（urxpd_s の末尾の列）：都市の POP が 0 の州×月・前の月に案の流れ＞Eps と読んだのに次の月も 0 の州×月を、盤面を試験の中で置いて手で数える。
+ /// 期待値は盤面の量（P_L・P_F・Capacity・失業・人数）から試験が自分で組む（計器もエンジンの関数も呼ばない）。
+ /// 計器の静的な旗（<see cref="Instruments.On"/>）を触るので `Instruments` 収集で直列に回す。
+ /// </summary>
+@@ -27,23 +28,105 @@ public class EmptyUrbanValueTests
+         rural.FoodNeed = 0.8 * rural.Size; rural.FoodMet = 0.9 * rural.FoodNeed;
+         urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = 0.9 * urban.FoodNeed;
+         r.Markets[Catalog.LaborId].Price = pl; r.Markets[Catalog.FarmLaborId].Price = pf;
+-        int nl = 0;
++        bool doneU = false, doneR = false;   // 対の POP ごとに最初の 1 本だけに Capacity を置き、他の労働 2 財の生産者は 0（ℓ を盤面で決める）
+         foreach (var s in r.Producers)
+         {
++            if (s.IsRgo) s.LaborWeight = 0;   // RGO の残余（案 A′ の項）を外す＝案 A と A′ が同じ値
++            if (s.GoodId != Catalog.LaborId && s.GoodId != Catalog.FarmLaborId) continue;
++            s.Capacity = 0;
+             if (s.LaborPopIndex < 0 || s.LaborPopIndex >= r.Pops.Count) continue;
+             var lp = r.Pops[s.LaborPopIndex];
+-            if (s.GoodId == Catalog.LaborId && ReferenceEquals(lp, urban)) { s.Capacity = capPerHead * urban.Size; nl++; }
+-            else if (s.GoodId == Catalog.FarmLaborId && ReferenceEquals(lp, rural)) { s.Capacity = capPerHead * rural.Size; nl++; }
+-            else if (s.GoodId == Catalog.LaborId || s.GoodId == Catalog.FarmLaborId) s.Capacity = 0;
+-            if (s.IsRgo) s.LaborWeight = 0;   // RGO の残余（案 A′ の項）を外す＝案 A と A′ が同じ値
++            if (!doneU && s.GoodId == Catalog.LaborId && ReferenceEquals(lp, urban)) { s.Capacity = capPerHead * urban.Size; doneU = true; }
++            else if (!doneR && s.GoodId == Catalog.FarmLaborId && ReferenceEquals(lp, rural)) { s.Capacity = capPerHead * rural.Size; doneR = true; }
+         }
+-        Assert.True(nl >= 2, $"前提：対の労働 2 財の生産者が {nl} 本");
++        Assert.True(doneU && doneR, "前提：対の労働 2 財の生産者が無い");
+         r.CapitalEnabled = false;
+         return (w, r, rural, urban, c);
+     }
+ 
+     static double G(double vr, double vu) => vr + vu > 1e-9 ? 2.0 * (vu - vr) / (vr + vu) : 0.0;
+ 
++    /// <summary>本物の Run の前後の都市 POP の規模の差（農村→都市が正）。保存（農村の減り＝都市の増え）も見る。</summary>
++    static double Moved(Region r, Pop rural, Pop urban, Coefficients c)
++    {
++        double u0 = urban.Size, r0 = rural.Size;
++        PopDecision.Run(r, c, 1.0);
++        double d = urban.Size - u0;
++        Assert.True(Math.Abs((r0 - rural.Size) - d) <= 1e-9 * Math.Max(1, Math.Abs(d)), "保存：農村の減りと都市の増えが合わない");
++        return d;
++    }
++
++    [Fact]
++    public void T1_工員0の州でも値打ちが都市の側なら次の月に流れが正_手の算術()
++    {
++        // ℓ＝0.5×1000÷1000＝0.5・V_u＝0.5×3×1＝1.5・V_r＝0.5×1×1＝0.5 → g＝2×1.0÷2.0＝1 → 流れ＝0.02×1×1000＝20
++        var (w, r, rural, urban, c) = Board(1000, 0, pl: 3.0, pf: 1.0, capPerHead: 0.5);
++        c.UrbanFlowReal = 1; Assert.Equal(0.02, c.Mobility);
++        double g = G(0.5, 1.5);
++        Assert.Equal(1.0, g, 12);
++        var v = PopDecision.MigrationValues(r, c, rural, urban);
++        Assert.Equal(0.5, v.VRural, 12); Assert.Equal(1.5, v.VUrban, 12);   // ℓ×値段の大きさ（g は ℓ の倍率に依らない＝値も見る）
++        double d = Moved(r, rural, urban, c);
++        Assert.True(d > 0, $"工員 0 の州に入らない（{d}）");
++        Assert.Equal(0.02 * g * 1000, d, 9);
++    }
++
++    [Fact]
++    public void T2_鏡_農民0の州でも値打ちが農村の側なら都市から戻れる_手の算術()
++    {
++        // ℓ＝0.5×1000÷1000＝0.5・V_u＝0.5×1＝0.5・V_r＝0.5×3＝1.5（自給は農民 0 で 0）→ g＝−1 → 流れ＝0.02×(−1)×1000＝−20
++        var (w, r, rural, urban, c) = Board(0, 1000, pl: 1.0, pf: 3.0, capPerHead: 0.5);
++        c.UrbanFlowReal = 1;
++        double g = G(1.5, 0.5);
++        Assert.Equal(-1.0, g, 12);
++        double d = Moved(r, rural, urban, c);
++        Assert.True(rural.Size > 0, "農民 0 の州に戻れない");
++        Assert.Equal(0.02 * g * 1000, d, 9);
++    }
++
++    [Fact]
++    public void T3_連続_工員0と工員1e6千人_稼ぎ0_の流れはほとんど同じ()
++    {
++        // 1e-6 千人＝PopDecision の Eps（1e-9 千人）より確かに大きい・入ったばかりで稼ぎ 0
++        var (w0, r0, rural0, urban0, c0) = Board(1000, 0, pl: 3.0, pf: 1.0, capPerHead: 0.5);
++        var (w1, r1, rural1, urban1, c1) = Board(1000, 1e-6, pl: 3.0, pf: 1.0, capPerHead: 0.5);
++        c0.UrbanFlowReal = 1; c1.UrbanFlowReal = 1;
++        Assert.Equal(0.0, urban1.EarnedPerMonth.Value);
++        Assert.True(urban1.Size > 1e-9);
++        double d0 = Moved(r0, rural0, urban0, c0), d1 = Moved(r1, rural1, urban1, c1);
++        Assert.True(d0 > 0, $"前提：工員 0 の州に入らない（{d0}）");
++        Assert.True(Math.Abs(d0 - d1) <= 1e-6 * Math.Abs(d0), $"人数 0 と 1e-6 千人で流れが飛ぶ（{d0} と {d1}）");
++    }
++
++    [Fact]
++    public void T4_工員の失業が都市の値打ちを下げる_手の算術()
++    {
++        // ℓ＝(0.5×1000＋0.5×500)÷1500＝0.5・V_u＝0.5×3×(1−0.5)＝0.75・V_r＝0.5 → g＝2×0.25÷1.25＝0.4 → 流れ＝0.02×0.4×1000＝8
++        var (w, r, rural, urban, c) = Board(1000, 500, pl: 3.0, pf: 1.0, capPerHead: 0.5, uU: 0.5);
++        c.UrbanFlowReal = 1;
++        double g = G(0.5, 0.75);
++        Assert.Equal(0.4, g, 12);
++        Assert.Equal(0.02 * g * 1000, Moved(r, rural, urban, c), 9);
++        // 失業 0 の盤面は流れが大きい（V_u＝1.5・g＝1）
++        var (w2, r2, rural2, urban2, c2) = Board(1000, 500, pl: 3.0, pf: 1.0, capPerHead: 0.5, uU: 0.0);
++        c2.UrbanFlowReal = 1;
++        Assert.Equal(0.02 * G(0.5, 1.5) * 1000, Moved(r2, rural2, urban2, c2), 9);
++    }
++
++    [Fact]
++    public void T5_旗0の道は旧の式_稼ぎ割る人数_の値打ちを読む()
++    {
++        // 旗 0：V_r＝稼ぎ 0.2/人・V_u＝稼ぎ 0.6/人（家賃 0・自給 0）＝案の値（ℓ×値段＝V_r 0.5・V_u 1.5）と違う盤面
++        var (w, r, rural, urban, c) = Board(1000, 500, pl: 3.0, pf: 1.0, capPerHead: 0.5);
++        rural.EarnedPerMonth = new MoneyPerMonth(0.2 * rural.Size); urban.EarnedPerMonth = new MoneyPerMonth(0.6 * urban.Size);
++        c.UrbanFlowReal = 0;
++        var v0 = PopDecision.MigrationValues(r, c, rural, urban);
++        Assert.Equal(0.2, v0.VRural, 12); Assert.Equal(0.6, v0.VUrban, 12); Assert.Equal(G(0.2, 0.6), v0.Gsym, 12);
++        c.UrbanFlowReal = 1;
++        var v1 = PopDecision.MigrationValues(r, c, rural, urban);
++        Assert.Equal(0.5, v1.VRural, 12); Assert.Equal(1.5, v1.VUrban, 12);
++    }
++
+     [Fact]
+     public void 計器U0_都市0の州を数え_次の月も0なら案の流れを読んだ月だけ数える()
+     {
+diff --git a/PriceOfBread.Tests/FamineGateReturnsRuralTests.cs b/PriceOfBread.Tests/FamineGateReturnsRuralTests.cs
+index 0d8901dbd..2e8970e8a 100644
+--- a/PriceOfBread.Tests/FamineGateReturnsRuralTests.cs
++++ b/PriceOfBread.Tests/FamineGateReturnsRuralTests.cs
+@@ -29,7 +29,7 @@ public class FamineGateReturnsRuralTests
+         urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = urbanFill * urban.FoodNeed;
+         r.Markets[Catalog.HousingId].Price = 2.0;
+         r.CapitalEnabled = false;
+-        Assert.Equal(0.0, c.UrbanFlowReal);   // 前提：今の既定（シグモイドの旧の式）の上で門を見る
++        c.UrbanFlowReal = 0;   // 前提：シグモイドの旧の式の上で門を見る（(1312) で既定が 1 になった＝旗を明示で 0 に置く・旗 1 では門は流れ＞0＝g＞0 の月だけで fg の枝に届かない）
+         Assert.Equal(0.8, c.FamineMigrationFillGate);
+         Assert.Equal(0.02, c.Mobility);
+         c.FamineGateReturnsRural = flag;
+diff --git a/PriceOfBread.Tests/RdhInstrumentTests.cs b/PriceOfBread.Tests/RdhInstrumentTests.cs
+index f72094f14..30442490e 100644
+--- a/PriceOfBread.Tests/RdhInstrumentTests.cs
++++ b/PriceOfBread.Tests/RdhInstrumentTests.cs
+@@ -30,6 +30,21 @@ public class RdhInstrumentTests
+         r.Markets[Catalog.HousingId].Price = housing / 0.03;
+         r.CapitalEnabled = false;
+         c.UrbanFlowReal = 1;   // 流れ＝Mobility×g×送り手の規模（案B）
++        // (1312) 旗 1 の値打ちは州の労働の値段で読む（ℓ×P×(1−u)）＝対の労働 2 財の生産者の Capacity を人数どおり（ℓ＝1）・失業 0・P_F と P_L に 1 人・月の現金を置く（稼ぎの列は計器の別の欄が読む＝そのまま）
++        bool doneU = false, doneR = false;
++        foreach (var s in r.Producers)
++        {
++            if (s.IsRgo) s.LaborWeight = 0;
++            if (s.GoodId != Catalog.LaborId && s.GoodId != Catalog.FarmLaborId) continue;
++            s.Capacity = 0;
++            if (s.LaborPopIndex < 0 || s.LaborPopIndex >= r.Pops.Count) continue;
++            var lp = r.Pops[s.LaborPopIndex];
++            if (!doneU && s.GoodId == Catalog.LaborId && ReferenceEquals(lp, urban)) { s.Capacity = urban.Size; doneU = true; }
++            else if (!doneR && s.GoodId == Catalog.FarmLaborId && ReferenceEquals(lp, rural)) { s.Capacity = rural.Size; doneR = true; }
++        }
++        Assert.True(doneU && doneR, "前提：対の労働 2 財の生産者が無い");
++        rural.UnemploymentRate = new Share(0); urban.UnemploymentRate = new Share(0);
++        r.Markets[Catalog.FarmLaborId].Price = incRural; r.Markets[Catalog.LaborId].Price = incUrban;
+         c.SerfMobilityGate = 0;   // 農奴の門を外す（流れの手の算術を門に依らせない）
+         return (w, r, rural, urban);
+     }
+diff --git a/PriceOfBread.Tests/UrbanFlowRealTests.cs b/PriceOfBread.Tests/UrbanFlowRealTests.cs
+index 8f1a9d7c7..e77aac920 100644
+--- a/PriceOfBread.Tests/UrbanFlowRealTests.cs
++++ b/PriceOfBread.Tests/UrbanFlowRealTests.cs
+@@ -99,10 +99,11 @@ public class UrbanFlowRealTests
+     // ---------------------------------------------------------------- ② 移る値打ち V ----------------------------------------------------------------
+ 
+     /// <summary>対（最初の農村・最初の都市）の盤面。income は 1 人・月。housingOn＝州の都市の割合を住居の門（<c>HousingUrbanThreshold</c>）の上／下に置く。</summary>
+-    static (World w, Region r, Pop rural, Pop urban, Coefficients c) Board(double earnedR, double subR, double earnedU, double housingPrice, bool housingOn)
++    static (World w, Region r, Pop rural, Pop urban, Coefficients c) Board(double earnedR, double subR, double earnedU, double housingPrice, bool housingOn, bool market = false)
+     {
+         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 住居の市場がある盤面（飢饉の盤面には無い）
+         var w = sim.World; var r = w.Region; var c = w.Coef;
++        c.UrbanFlowReal = 0;   // 前提：旗 0 の式の盤面（(1312) で既定が 1 になった＝旗を明示で 0 に置く・旗 1 の試験は Board の後で 1 を置く）
+         var (rural0, urban0) = PopDecision.MigrationPair(r);
+         var rural = rural0!; var urban = urban0!;
+         // 州の都市の割合を 0.6 に（対の都市 POP の規模で調整・他の POP は動かさない）。門の下は、門の閾値を 0.9 へ上げて作る（英の開幕は他の都市 POP が多く、規模だけでは 0.25 の下へ行けない）
+@@ -119,9 +120,31 @@ public class UrbanFlowRealTests
+         urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = 0.9 * urban.FoodNeed;
+         r.Markets[Catalog.HousingId].Price = housingPrice;
+         r.CapitalEnabled = false;
++        if (market) Market(r, rural, urban, earnedR, earnedU);
+         return (w, r, rural, urban, c);
+     }
+ 
++    /// <summary>(1312) 旗 1 の値打ちは州の労働の値段で読む（V_u＝ℓ×P_L×(1−u_U)−家賃・V_r＝ℓ×P_F×(1−u_R)＋自給）。
++    /// 対の労働 2 財の生産者の Capacity を人数どおり（ℓ＝1）・失業 0 に置き、P_F・P_L に〈1 人・月の現金〉の値を置く。稼ぎは 0 に戻す（旧の式なら値打ちが違う盤面）。</summary>
++    static void Market(Region r, Pop rural, Pop urban, double cashR, double cashU)
++    {
++        bool doneU = false, doneR = false;
++        foreach (var s in r.Producers)
++        {
++            if (s.IsRgo) s.LaborWeight = 0;
++            if (s.GoodId != Catalog.LaborId && s.GoodId != Catalog.FarmLaborId) continue;
++            s.Capacity = 0;
++            if (s.LaborPopIndex < 0 || s.LaborPopIndex >= r.Pops.Count) continue;
++            var lp = r.Pops[s.LaborPopIndex];
++            if (!doneU && s.GoodId == Catalog.LaborId && ReferenceEquals(lp, urban)) { s.Capacity = urban.Size; doneU = true; }
++            else if (!doneR && s.GoodId == Catalog.FarmLaborId && ReferenceEquals(lp, rural)) { s.Capacity = rural.Size; doneR = true; }
++        }
++        Assert.True(doneU && doneR, "前提：対の労働 2 財の生産者が無い");
++        rural.UnemploymentRate = new Share(0); urban.UnemploymentRate = new Share(0);
++        r.Markets[Catalog.FarmLaborId].Price = cashR; r.Markets[Catalog.LaborId].Price = cashU;
++        rural.EarnedPerMonth = new MoneyPerMonth(0); urban.EarnedPerMonth = new MoneyPerMonth(0);
++    }
++
+     static double G(double vr, double vu) => vr + vu > 1e-9 ? 2.0 * (vu - vr) / (vr + vu) : 0.0;
+ 
+     [Fact]
+@@ -180,7 +203,7 @@ public class UrbanFlowRealTests
+         // 同じ所得の 2 つの盤面で、自給の値と住居の価格だけを大きく違えても、旗 0 の Run の結果は 1 ビットも違わない
+         var (wa, ra, rua, ura, ca) = Board(0.10, 0.0, 0.30, housingPrice: 1.0, housingOn: true);
+         var (wb, rb, rub, urb, cb) = Board(0.10, 5.0, 0.30, housingPrice: 100.0, housingOn: true);
+-        Assert.Equal(0.0, ca.UrbanFlowReal); Assert.Equal(0.0, cb.UrbanFlowReal);
++        ca.UrbanFlowReal = 0; cb.UrbanFlowReal = 0;   // 旗 0 の経路の番人（(1312) で既定が 1 になった＝旗を明示で 0 に置く）
+         double da = Moved(wa, ra, rua, ura, ca), db = Moved(wb, rb, rub, urb, cb);
+         Assert.True(Math.Abs(da) > 1e-9, "前提：この盤面で人が動いていない");
+         Assert.Equal(BitConverter.DoubleToInt64Bits(da), BitConverter.DoubleToInt64Bits(db));
+@@ -190,13 +213,13 @@ public class UrbanFlowRealTests
+     public void 旗1の流れは手の算術どおり_農村から都市と都市から農村()
+     {
+         // 農村→都市：vr＝0.10＋0.05＝0.15・vu＝0.60−0.03×2＝0.54 → g＞0 → 流れ＝0.02×g×農村の規模
+-        var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true);
++        var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true, market: true);
+         c.UrbanFlowReal = 1; Assert.Equal(0.02, c.Mobility);
+         double g = G(0.15, 0.54), rs = rural.Size;
+         Assert.True(g > 0);
+         Assert.Equal(0.02 * g * rs, Moved(w, r, rural, urban, c), 9);
+         // 都市→農村：vr＝0.50＋0.30＝0.80・vu＝0.40−0.06＝0.34 → g＜0 → 流れ＝0.02×g×都市の規模（負）
+-        var (w2, r2, rural2, urban2, c2) = Board(0.50, 0.30, 0.40, housingPrice: 2.0, housingOn: true);
++        var (w2, r2, rural2, urban2, c2) = Board(0.50, 0.30, 0.40, housingPrice: 2.0, housingOn: true, market: true);
+         c2.UrbanFlowReal = 1;
+         double g2 = G(0.80, 0.34), us = urban2.Size;
+         Assert.True(g2 < 0);
+@@ -207,7 +230,7 @@ public class UrbanFlowRealTests
+     public void 旗1_釣り合い_V農村とV都市が等しければ流れは0()
+     {
+         // vr＝0.20＋0.10＝0.30・vu＝0.36−0.03×2＝0.30
+-        var (w, r, rural, urban, c) = Board(0.20, 0.10, 0.36, housingPrice: 2.0, housingOn: true);
++        var (w, r, rural, urban, c) = Board(0.20, 0.10, 0.36, housingPrice: 2.0, housingOn: true, market: true);
+         c.UrbanFlowReal = 1;
+         Assert.Equal(0.0, Moved(w, r, rural, urban, c), 9);
+     }
+@@ -216,10 +239,10 @@ public class UrbanFlowRealTests
+     public void 旗1_自給を0にすると名目の現金の比べと同じ向き_住居を0にしたとき()
+     {
+         // 自給 0・住居の門の下＝V は現金そのもの＝都市の現金が高ければ農村→都市・低ければ都市→農村（旧の名目の比べと同じ向き）
+-        var (w, r, rural, urban, c) = Board(0.10, 0.0, 0.30, housingPrice: 5.0, housingOn: false);
++        var (w, r, rural, urban, c) = Board(0.10, 0.0, 0.30, housingPrice: 5.0, housingOn: false, market: true);
+         c.UrbanFlowReal = 1;
+         Assert.True(Moved(w, r, rural, urban, c) > 0);
+-        var (w2, r2, rural2, urban2, c2) = Board(0.30, 0.0, 0.10, housingPrice: 5.0, housingOn: false);
++        var (w2, r2, rural2, urban2, c2) = Board(0.30, 0.0, 0.10, housingPrice: 5.0, housingOn: false, market: true);
+         c2.UrbanFlowReal = 1;
+         Assert.True(Moved(w2, r2, rural2, urban2, c2) < 0);
+     }
+@@ -228,10 +251,10 @@ public class UrbanFlowRealTests
+     public void 旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る()
+     {
+         // 自給の値＝量×値段。値段が 2 倍なら自給の値が 2 倍（欄を倍にして盤面で確かめる）→ vr が増え g が減る
+-        var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true);
++        var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true, market: true);
+         c.UrbanFlowReal = 1;
+         double d1 = Moved(w, r, rural, urban, c);
+-        var (w2, r2, rural2, urban2, c2) = Board(0.10, 0.10, 0.60, housingPrice: 2.0, housingOn: true);
++        var (w2, r2, rural2, urban2, c2) = Board(0.10, 0.10, 0.60, housingPrice: 2.0, housingOn: true, market: true);
+         c2.UrbanFlowReal = 1;
+         double d2 = Moved(w2, r2, rural2, urban2, c2);
+         Assert.True(d1 > 0 && d2 > 0 && d2 < d1, $"自給の値が 2 倍で流れが細らない（{d1}→{d2}）");
+@@ -243,12 +266,12 @@ public class UrbanFlowRealTests
+     public void 旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも()
+     {
+         // 農村の V＝0・都市の V＝1 → g＝2 → 流れ＝0.02×2×農村の規模＝農村の 4%（ちょうど）
+-        var (w, r, rural, urban, c) = Board(0.0, 0.0, 1.03, housingPrice: 1.0, housingOn: true);   // vu＝1.03−0.03＝1.0
++        var (w, r, rural, urban, c) = Board(0.0, 0.0, 1.03, housingPrice: 1.0, housingOn: true, market: true);   // vu＝1.03−0.03＝1.0
+         c.UrbanFlowReal = 1;
+         double rs = rural.Size;
+         Assert.Equal(0.04 * rs, Moved(w, r, rural, urban, c), 9);
+         // 逆：都市の V＝0（家賃で切る）・農村の V＞0 → g＝−2 → 都市の 4%
+-        var (w2, r2, rural2, urban2, c2) = Board(0.5, 0.0, 0.0, housingPrice: 1.0, housingOn: true);
++        var (w2, r2, rural2, urban2, c2) = Board(0.5, 0.0, 0.0, housingPrice: 1.0, housingOn: true, market: true);
+         c2.UrbanFlowReal = 1;
+         double us = urban2.Size;
+         Assert.Equal(-0.04 * us, Moved(w2, r2, rural2, urban2, c2), 9);
+@@ -257,13 +280,13 @@ public class UrbanFlowRealTests
+     [Fact]
+     public void 旗1でも農奴の門と飢えの門は残る()
+     {
+-        var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true);
++        var (w, r, rural, urban, c) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true, market: true);
+         c.UrbanFlowReal = 1; c.SerfMobilityGate = 1.0;
+         double open = Moved(w, r, rural, urban, c, 1.0);
+-        var (w2, r2, rural2, urban2, c2) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true);
++        var (w2, r2, rural2, urban2, c2) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true, market: true);
+         c2.UrbanFlowReal = 1; c2.SerfMobilityGate = 1.0;
+         Assert.Equal(0.25 * open, Moved(w2, r2, rural2, urban2, c2, 0.25), 9);   // 農奴の門＝(1−g)+g×serfFree＝0.25
+-        var (w3, r3, rural3, urban3, c3) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true);
++        var (w3, r3, rural3, urban3, c3) = Board(0.10, 0.05, 0.60, housingPrice: 2.0, housingOn: true, market: true);
+         c3.UrbanFlowReal = 1; urban3.FoodMet = 0.2 * urban3.FoodNeed;   // 都市が飢えの線の下で農村より食べられない
+         Assert.Equal(0.0, Moved(w3, r3, rural3, urban3, c3));
+     }
+diff --git a/PriceOfBread.Tests/UrxInstrumentTests.cs b/PriceOfBread.Tests/UrxInstrumentTests.cs
+index a1ef32e69..9161e5af8 100644
+--- a/PriceOfBread.Tests/UrxInstrumentTests.cs
++++ b/PriceOfBread.Tests/UrxInstrumentTests.cs
+@@ -30,6 +30,7 @@ public class UrxInstrumentTests
+         rural.FoodNeed = 0.8 * rural.Size; rural.FoodMet = fillRural * rural.FoodNeed; rural.EarnedPerMonth = new MoneyPerMonth(incRural * rural.Size);
+         urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = fillUrban * urban.FoodNeed; urban.EarnedPerMonth = new MoneyPerMonth(incUrban * urban.Size);
+         r.CapitalEnabled = capital;
++        w.Coef.UrbanFlowReal = 0;   // 前提：シグモイドの旧の式の写しを見る盤面（(1312) で既定が 1 になった＝旗を明示で 0 に置く）
+         return (w, r, rural, urban, w.Coef);
+     }
+ 
