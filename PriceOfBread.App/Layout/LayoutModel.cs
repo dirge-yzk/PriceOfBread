@@ -128,6 +128,7 @@ public sealed class LayoutModel
     /// <summary>位置と大きさを覚える（ドラッグや大きさの変更が終わったとき）。非有限の値は捨てる・最小の大きさへ丸める。変わらなければ何もしない。</summary>
     public void SetRect(Slot slot, WindowRect rect)
     {
+        if (slot == Slot.Province) return;   // 州の窓は左上に固定（位置は覚えない・作者の指示 2026-11-23）
         if (!IsWindow(slot) || !(double.IsFinite(rect.X) && double.IsFinite(rect.Y) && double.IsFinite(rect.W) && double.IsFinite(rect.H))) return;
         rect = new WindowRect(rect.X, rect.Y, Math.Max(MinWindowWidth, rect.W), Math.Max(MinWindowHeight, rect.H));
         if (_rects.TryGetValue(slot, out var cur) && cur == rect) return;
@@ -230,7 +231,7 @@ public sealed class LayoutModel
             if (d.Windows is not null && d.Version >= FormatVersion)
                 foreach (var (name, v) in d.Windows)
                 {
-                    if (!Enum.TryParse<Slot>(name, out var slot) || !Enum.IsDefined(slot) || !IsWindow(slot) || v is not { Length: 4 }) continue;   // 知らない窓・壊れた記録は捨てる
+                    if (!Enum.TryParse<Slot>(name, out var slot) || !Enum.IsDefined(slot) || !IsWindow(slot) || slot == Slot.Province || v is not { Length: 4 }) continue;   // 知らない窓・壊れた記録は捨てる
                     if (!v.All(double.IsFinite)) continue;
                     m._rects[slot] = new WindowRect(v[0], v[1], Math.Max(MinWindowWidth, v[2]), Math.Max(MinWindowHeight, v[3]));
                 }
