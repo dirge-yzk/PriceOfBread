@@ -278,7 +278,7 @@ public static class PopTables
         Col.Number<RegionLine>("housing", "住居の充足", Unit.Share, l => l.HousingFill, hide: l => !l.HousingShown),
         Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule, RulePalette)),
         Col.Number<RegionLine>("port", "港の拡張", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
-        Col.Number<RegionLine>("rail", "線路", Unit.Count, l => l.RailTrack, hide: l => !(l.RailTrack > 0)),
+        Col.Number<RegionLine>("rail", "線路", Unit.Count, l => l.RailTrack),
         Col.Number<RegionLine>("crop", "作柄", Unit.Share, l => l.CropFill),
     ]);
 

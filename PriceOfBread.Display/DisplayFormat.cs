@@ -15,6 +15,10 @@ public static class DisplayFormat
         return $"{sign}£{a:N0}";
     }
 
+    /// <summary>一人当たりの金額。人数で割った小さな値の桁に応じて小数を詰める（£150・£50.5・£5.25・£0.123）。</summary>
+    public static string MoneyPerHead(double v)
+        => v >= 100 ? $"£{v:N0}" : v >= 10 ? $"£{v:F1}" : v >= 1 ? $"£{v:F2}" : v >= 0.1 ? $"£{v:F3}" : $"£{v:F4}";
+
     /// <summary>有効数字 3 桁の金額（£15.3k・£7.18k・£3.31M）。1000 未満は <see cref="Money"/> と同じ。欄の見出しの合計どうしを引き算で突き合わせられる桁（2 回目の目の点検 W14）。</summary>
     public static string MoneyFine(double v)
     {

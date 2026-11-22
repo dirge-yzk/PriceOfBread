@@ -265,14 +265,17 @@ public static class FiscalTables
             && w.FiscalFundingRatio >= c0.GoldStandardMinFunding;
     }
 
+    private static double PerHead(World w) { double pop = w.TotalPopulation; return pop > 1e-9 ? w.GdpPerMonth.Value / (pop * 1000.0) : 0; }
+
     private static IReadOnlyList<FinanceLine> FinanceLines(MultiNationSim sim, World w)
     {
-        double gdp = w.NominalGdpPerMonth.Value, pop = w.TotalPopulation;
-        int gdpRank = 1; foreach (var n in sim.Nations) if (n.World.NominalGdpPerMonth.Value > gdp) gdpRank++;   // 自国より名目 GDP の大きい国の数＋1
+        double gdp = w.GdpPerMonth.Value, gdpPc = PerHead(w);   // 実質（国どうしを比べられる）。人口は千人単位
+        int gdpRank = 1, pcRank = 1;   // 自国より大きい国の数＋1（総額と一人当たりの 2 本）
+        foreach (var n in sim.Nations) { if (n.World.GdpPerMonth.Value > gdp) gdpRank++; if (PerHead(n.World) > gdpPc) pcRank++; }
         var rows = new List<FinanceLine>
         {
-            new("gdp", "GDP", $"{DisplayFormat.Money(gdp)}/月", StageCell.None, null),
-            new("gdpPerHead", "一人当たり GDP", $"{DisplayFormat.MoneyFine(pop > 0 ? gdp / pop : 0)}/月　世界{gdpRank}位", StageCell.None, null),
+            new("gdp", "GDP", $"{DisplayFormat.Money(gdp)}/月　世界{gdpRank}位", StageCell.None, null),
+            new("gdpPerHead", "一人当たり GDP", $"{DisplayFormat.MoneyPerHead(gdpPc)}/月　世界{pcRank}位", StageCell.None, null),
             new("price", "物価（開始時比）", PlayText.PriceLevelText(w), StageCell.None, null),
             new("fx", "為替", PlayText.ExchangeRateText(w), StageCell.None, null),
         };

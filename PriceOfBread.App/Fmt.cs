@@ -42,8 +42,7 @@ public static class Fmt
         return s == Money(0) ? s + "/月" : (v < 0 ? DisplayFormat.Minus : "+") + s + "/月";
     }
 
-    public static string MoneyPerHead(double v)
-        => v >= 100 ? $"£{v:N0}" : v >= 10 ? $"£{v:F1}" : v >= 1 ? $"£{v:F2}" : v >= 0.1 ? $"£{v:F3}" : $"£{v:F4}";
+    public static string MoneyPerHead(double v) => DisplayFormat.MoneyPerHead(v);
 
     // 人数と量は DisplayFormat.Amount の 1 本（k・M・有効数字 3 桁・2026-11-12 A2）。旧の「〇K」（POP・2026-08-02）と「200は0.2k」（量・2026-08-10）はこの書式に置き換わった。
     // 人数の語（人）は DisplayFormat.PersonSuffix で切り替える。

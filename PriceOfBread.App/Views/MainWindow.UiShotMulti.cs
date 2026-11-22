@@ -113,7 +113,7 @@ public partial class MainWindow
     private static UiShotDump.UiShotExtra CollectExtra(GameViewModel g)
     {
         var lay = g.Layout;
-        var header = new List<string> { $"国={g.PlayerTitle}", $"暦={g.DateText}", g.TreasuryText };
+        var header = new List<string> { $"国={g.PlayerTitle}", $"暦={g.DateText}", g.TreasuryText, $"戦力余剰：{g.ExpansionText}" };
         header.AddRange(g.HeaderStats.Select(h => h.Text));
         header.RemoveAll(string.IsNullOrWhiteSpace);
         var t = new List<TableSnapshot>();
