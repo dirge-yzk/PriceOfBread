@@ -9,6 +9,31 @@
              x:Class="PriceOfBread.App.Views.GameView"
              x:DataType="vm:GameViewModel"
              Background="{StaticResource PaperBrush}" Foreground="{StaticResource InkBrush}" FontFamily="{StaticResource UiFont}" FontWeight="Normal">
+    <UserControl.Resources>
+        <!-- ヘッダーの数字 1 つ（国庫・国債・GDP・満足度〜正統性）。グラフを持つ数字は、押すとその下に時系列のグラフが開く（もう一度押すか外を押すと閉じる）。 -->
+        <DataTemplate x:Key="HeaderStatCell" x:DataType="vm:HeaderStat">
+            <Panel Margin="0,0,12,0" MinWidth="{Binding BoxWidth}" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}" IsVisible="{Binding Plain}" VerticalAlignment="Center"/>
+                <Button Classes="hdrgraph" IsVisible="{Binding HasHover}">
+                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}"/>
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                            <StackPanel Width="272" Spacing="4">
+                                <TextBlock Text="{Binding GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
+                                           IsVisible="{Binding GraphTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding HasGraph}">
+                                    <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
+                                        <Polyline Points="{Binding SafePoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
+                                    </Canvas>
+                                </Border>
+                                <TextBlock Text="{Binding RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding HasGraph}"/>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </Panel>
+        </DataTemplate>
+    </UserControl.Resources>
     <!-- Views/GameView.axaml ＝ 画面の外枠だけ（ヘッダー・左の列・中央のページ・通知・モーダル）。各ページの中身は Views/Pages/*.axaml。 -->
     <!-- ページ中心UI（ライトテーマ）：背景（地図か生産）に 6 ページが浮かぶ窓で重なる。キーの割り当ては本体の PageKeys（QWERASDF・ZXCV は空き）を正とする。
          外交＝行にホバーでアクションメニュー・クリックでカメラ移動。侵略/統一戦争＝確認モーダル（侵略は膨張度消費）。実国家間の開戦＝緊張の創発のみ。
@@ -34,19 +59,7 @@
                             </ToolTip.Tip>
                         </TextBlock>
                     </DockPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="190" Margin="0,0,16,0" ToolTip.ShowDelay="30">
-                        <ToolTip.Tip>
-                            <StackPanel Width="272" Spacing="4">
-                                <TextBlock Text="{Binding TreasuryHover.GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}"/>
-                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding TreasuryHover.HasGraph}">
-                                    <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
-                                        <Polyline Points="{Binding TreasurySparkPoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
-                                    </Canvas>
-                                </Border>
-                                <TextBlock Text="{Binding TreasuryHover.RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding TreasuryHover.HasGraph}"/>
-                            </StackPanel>
-                        </ToolTip.Tip>
-                    </TextBlock>
+                    <ContentControl Grid.Column="1" Content="{Binding TreasuryHover}" ContentTemplate="{StaticResource HeaderStatCell}" VerticalAlignment="Center"/>
                     <ItemsControl x:Name="HeaderStatList" Grid.Column="2" ItemsSource="{Binding HeaderStats}" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -54,26 +67,7 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:HeaderStat">
-                                <Panel Margin="0,0,12,0" MinWidth="{Binding BoxWidth}" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}" IsVisible="{Binding Plain}"/>
-                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}" IsVisible="{Binding HasHover}"
-                                               ToolTip.ShowDelay="30">
-                                        <ToolTip.Tip>
-                                            <StackPanel Width="272" Spacing="4">
-                                                <TextBlock Text="{Binding GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
-                                                           IsVisible="{Binding GraphTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding HasGraph}">
-                                                    <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
-                                                        <Polyline Points="{Binding SafePoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
-                                                    </Canvas>
-                                                </Border>
-                                                <TextBlock Text="{Binding RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding HasGraph}"/>
-                                            </StackPanel>
-                                        </ToolTip.Tip>
-                                    </TextBlock>
-                                </Panel>
-                            </DataTemplate>
+                            <StaticResource ResourceKey="HeaderStatCell"/>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>

@@ -1,7 +1,7 @@
 ﻿// GameViewModel.Fiscal.cs ＝ 財政と貨幣のページ（(501) UI の作り直し 段3）。
 // 支出・収入・金融・国債と外資信用は、本体の目録（SimCore/Display/FiscalTables）が渡す表を共通の表（Controls/TableView）が描く。
 // 予測と実効の額・段の押し釦（税・教育費・軍事費・社会保障・行政費・近代化投資・関税・政策金利・通貨制度・資本移動・通貨改革）の読み口と書き口は目録の側（AI と同じ門を通る）。
-// ここに残すのは、App だけが採れる標本（教育費・専売益・外資の流れの四半期差分／国庫の台帳の月の差分）と、ヘッダーの国債の文字と、年次系列（国庫・国債・技術水準）の値の写し。
+// ここに残すのは、App だけが採れる標本（教育費・専売益・外資の流れの四半期差分／国庫の台帳の月の差分）と、国債の年次の標本（ヘッダーの国債の線）。
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,10 +31,9 @@ public partial class GameViewModel
     [ObservableProperty] private TableSnapshot _debtTable = TableSnapshot.Empty;
     // 欄の見出しに合計を載せる（表の列と合計の位置を揃える仕掛けを作らない）：支出＝予測と払った額の合計／収入＝予測と入った額の合計（国庫の台帳は両方の表の実績の列へ吸収した）
     [ObservableProperty] private string _spendTitle = "支出", _incomeTitle = "収入";
-    // ---- 年次の線（名前つきの系列の倉から値を写す）----
-    [ObservableProperty] private IReadOnlyList<double> _treasuryValues = [];
-    [ObservableProperty] private IReadOnlyList<double> _govDebtValues = [];
-    [ObservableProperty] private IReadOnlyList<double> _gdpValues = [];
+    // 予想収支と実収支（財政の頁の頭に大きく出す。符号つき・月あたり・色は赤字だけ赤）
+    [ObservableProperty] private string _balanceForecastText = "", _balanceActualText = "";
+    [ObservableProperty] private IBrush _balanceForecastBrush = SeverityBrushes.Normal, _balanceActualBrush = SeverityBrushes.Normal;
 
     private const string GovDebtSeries = "fiscal.govDebt", FiscalYearSeries = "fiscal.sampleYear";
 
@@ -89,29 +88,29 @@ public partial class GameViewModel
     }
 
     /// <summary>財政の更新（月・四半期の Refresh と、財政のページが見えた瞬間と、段の押し釦を押した直後）。
-    /// 見えている時だけ表と線を組む（見えていないページは更新を受けない）。ヘッダーの国債の文字は常に追従する。</summary>
+    /// 見えている時だけ表を組む（見えていないページは更新を受けない）。</summary>
     private void UpdateForecast()
     {
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法の表へ移行・2026-07-30）
         SampleFiscalYear();   // 年に 1 回の採取は見えているかに依らない（線は見えた時に写す）
-        if (!FiscalShown) return;
+        if (!FiscalShown && !FinanceShown) return;
         var flows = new FiscalFlows(_eduMonthly, _stateMonopMonthly, _fInMonthly, _fOutMonthly, _ledgerDiff);
+        if (FinanceShown)
+        {
+            FinanceTable = SnapFiscal(FiscalTables.Finance);
+            DebtTable = SnapFiscal(FiscalTables.DebtOf(flows));
+        }
+        if (!FiscalShown) return;
         var budget = FiscalTables.Budget(_player, flows);
         SpendTable = SnapFiscal(FiscalTables.Spend(budget));
         IncomeTable = SnapFiscal(FiscalTables.Income(budget));
-        FinanceTable = SnapFiscal(FiscalTables.Finance);
-        DebtTable = SnapFiscal(FiscalTables.DebtOf(flows));
         SpendTitle = $"支出　予測 {Fmt.MoneyPerMonthFine(budget.SpendForecast)}　{FiscalTables.SpendActualName} {Fmt.MoneyPerMonthFine(budget.SpendActual)}";
-        IncomeTitle = $"収入　予測 {Fmt.MoneyPerMonthFine(budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.MoneyPerMonthFine(budget.IncomeActual)}　収支 {Fmt.SignedMoneyPerMonthFine(budget.BalanceActual)}";
-        // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
-        TreasuryValues = _histTreasury.ToArray();
-        GovDebtValues = _series.Of(GovDebtSeries).ToArray();
-        GdpValues = _histGdp.ToArray();
+        IncomeTitle = $"収入　予測 {Fmt.MoneyPerMonthFine(budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.MoneyPerMonthFine(budget.IncomeActual)}";
+        BalanceForecastText = Fmt.SignedMoneyPerMonthFine(budget.BalanceForecast);
+        BalanceActualText = Fmt.SignedMoneyPerMonthFine(budget.BalanceActual);
+        BalanceForecastBrush = budget.BalanceForecast < 0 ? SeverityBrushes.Danger : SeverityBrushes.Normal;
+        BalanceActualBrush = budget.BalanceActual < 0 ? SeverityBrushes.Danger : SeverityBrushes.Normal;
     }
 
-    [ObservableProperty] private HeaderStat _treasuryHover = new();   // 国庫のホバーグラフ（年次推移・2026-07-16）
-    // ★2026-08-02 描画クラッシュの修正：Avalonia の Polyline は Points が null だと CreateDefiningGeometry で ArgumentNullException を投げ、毎フレーム描画パスが中断する。
-    //   バインド経路の途中が null だと Points に null が届く＝VM 側で必ず非 null を返すプロパティを用意してそこへバインドする。空の Points は例外にならない。
-    public global::Avalonia.Points TreasurySparkPoints => TreasuryHover?.Points ?? new();
-    partial void OnTreasuryHoverChanged(HeaderStat value) => OnPropertyChanged(nameof(TreasurySparkPoints));
+    [ObservableProperty] private HeaderStat _treasuryHover = new();   // ヘッダーの国庫の数字と年次の線（押すと線が開く）。Points は HeaderStat 側で必ず非 null
 }

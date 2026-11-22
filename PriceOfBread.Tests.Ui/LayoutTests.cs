@@ -19,17 +19,18 @@ public class LayoutTests
     }
 
     [Fact]
-    public void キーは生産がTab_残りが作者の指示の順_Q財の価格_W財政_E人口_R政治と法_A外交と戦争_S発見_D貿易_地図にキーは無い_FZXCVは空き()
+    public void キーは生産がTab_残りが作者の指示の順_Q財の価格_W財政_E人口_R政治と法_A外交と戦争_S発見_D貿易_F金融_地図にキーは無い_ZXCVは空き()
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var expected = new (Slot Slot, char Key, string Name)[]
         {
             (Slot.Market, 'Q', "財の価格"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
-            (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"), (Slot.Trade, 'D', "貿易"),
+            (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"), (Slot.Trade, 'D', "貿易"), (Slot.Finance, 'F', "金融"),
         };
-        Assert.Equal(10, SlotInfo.All.Count);
-        Assert.Equal(8, SlotInfo.Pages.Count);   // 押し釦に並ぶのは 8 ページ（地図は釦もキーも持たない）
+        Assert.Equal(11, SlotInfo.All.Count);
+        Assert.Equal(9, SlotInfo.Pages.Count);   // 押し釦に並ぶのは 9 ページ（地図は釦もキーも持たない）
         Assert.Equal(Slot.Trade, SlotInfo.Pages[SlotInfo.Pages.ToList().IndexOf(Slot.Market) + 1]);   // 貿易は財の価格のすぐ右
+        Assert.Equal(Slot.Finance, SlotInfo.Pages[SlotInfo.Pages.ToList().IndexOf(Slot.FiscalMoney) + 1]);   // 金融は財政と貨幣のすぐ右
         Assert.DoesNotContain(Slot.Map, SlotInfo.Pages);
         Assert.DoesNotContain(Slot.Province, SlotInfo.Pages);   // 州の窓は釦もキーも持たない
         Assert.Equal("州", SlotInfo.Name(Slot.Province));
@@ -46,8 +47,8 @@ public class LayoutTests
         Assert.Equal("生産", SlotInfo.Name(Slot.Production));
         Assert.Equal("地図", SlotInfo.Name(Slot.Map));
         Assert.Null(SlotInfo.OfKey('\0'));   // 生産（Tab）と地図は文字のキーで引けない
-        foreach (char free in "FZXCV") Assert.Null(SlotInfo.OfKey(free));   // 空きのキーは何にも割り当てない
-        Assert.Equal("FZXCV", PageKeys.FreeKeys);
+        foreach (char free in "ZXCV") Assert.Null(SlotInfo.OfKey(free));   // 空きのキーは何にも割り当てない
+        Assert.Equal("ZXCV", PageKeys.FreeKeys);
         Assert.Null(SlotInfo.OfKey('1'));
     }
 
@@ -83,7 +84,7 @@ public class LayoutTests
     {
         Assert.False(LayoutModel.IsWindow(Slot.Map));
         Assert.False(LayoutModel.IsWindow(Slot.Production));
-        foreach (var s in new[] { Slot.Market, Slot.Trade, Slot.FiscalMoney, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery })
+        foreach (var s in new[] { Slot.Market, Slot.Trade, Slot.FiscalMoney, Slot.Finance, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery })
             Assert.True(LayoutModel.IsWindow(s), s.ToString());
         var m = new LayoutModel();
         m.Open(Slot.Production);   // 背景が替わるだけ（窓は増えない）

@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:ctl="using:PriceOfBread.App.Controls"
+             x:Class="PriceOfBread.App.Views.Pages.FinancePage"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Pages/FinancePage.axaml ＝ 金融のページ（作者指示 2026-11-22）。金融（物価・為替・金利・通貨制度・資本移動）と国債と外資信用。
+         財政と貨幣のページから移した。表の行と列は本体の目録（SimCore/Display/FiscalTables）が渡す。国債の残高と GDP はヘッダー。 -->
+    <ctl:PageGrid x:Name="PageBody" Margin="4">
+        <ctl:Section Key="finance" Title="金融" Scrolls="False">
+            <ctl:TableView Snapshot="{Binding FinanceTable}" InnerScroll="True"/>
+        </ctl:Section>
+        <ctl:Section Key="debt" Title="国債と外資信用" Scrolls="False">
+            <ctl:TableView Snapshot="{Binding DebtTable}" InnerScroll="True"/>
+        </ctl:Section>
+    </ctl:PageGrid>
+</UserControl>

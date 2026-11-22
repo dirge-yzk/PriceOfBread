@@ -17,11 +17,11 @@ public class DisplayCatalogTests
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var pages = Enum.GetValues<Page>();
-        Assert.Equal(8, pages.Length);
+        Assert.Equal(9, pages.Length);
         Assert.Equal('\0', PageKeys.Key(Page.Production));
         var lettered = pages.Where(p => p != Page.Production).ToArray();
-        Assert.Equal("QWERASD", new string(lettered.Select(PageKeys.Key).ToArray()));
-        Assert.Equal("FZXCV", PageKeys.FreeKeys);
+        Assert.Equal("QWERASDF", new string(lettered.Select(PageKeys.Key).ToArray()));
+        Assert.Equal("ZXCV", PageKeys.FreeKeys);
         // 重なりが無く、ページと空きで列が過不足なく埋まる
         string all = new string(lettered.Select(PageKeys.Key).ToArray()) + PageKeys.FreeKeys;
         Assert.Equal(PageKeys.Priority, all);
@@ -39,15 +39,17 @@ public class DisplayCatalogTests
             Assert.Equal(p, PageKeys.PageOfKey(PageKeys.Key(p)));
             Assert.Equal(p, PageKeys.PageOfKey(char.ToLowerInvariant(PageKeys.Key(p))));
         }
-        Assert.Null(PageKeys.PageOfKey('F'));   // 空きのキー
+        Assert.Null(PageKeys.PageOfKey('Z'));   // 空きのキー
         Assert.Null(PageKeys.PageOfKey('\0'));
         Assert.Null(PageKeys.PageOfKey('Z'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
         Assert.Equal("Tab：生産", PageKeys.ButtonText(Page.Production));
         Assert.Equal("Q：財の価格", PageKeys.ButtonText(Page.Market));
-        Assert.Equal("D：貿易", PageKeys.ButtonText(Page.Trade));   // 貿易は宣言の末尾＝優先度の列から D
+        Assert.Equal("D：貿易", PageKeys.ButtonText(Page.Trade));
+        Assert.Equal("F：金融", PageKeys.ButtonText(Page.Finance));   // 金融は宣言の末尾＝優先度の列から F
         // 押し釦の並び（1 か所）：貿易は財の価格のすぐ右・全てのページが 1 度ずつ
         Assert.Equal(Page.Trade, PageKeys.HeaderOrder[PageKeys.HeaderOrder.ToList().IndexOf(Page.Market) + 1]);
+        Assert.Equal(Page.Finance, PageKeys.HeaderOrder[PageKeys.HeaderOrder.ToList().IndexOf(Page.FiscalMoney) + 1]);   // 金融は財政と貨幣のすぐ右
         Assert.Equal(Enum.GetValues<Page>().OrderBy(p => p).ToList(), PageKeys.HeaderOrder.OrderBy(p => p).ToList());
         Assert.True(DisplayNames.IsValid(PageKeys.MapName));
     }
