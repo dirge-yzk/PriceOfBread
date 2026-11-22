@@ -1,0 +1,9 @@
+(1289) c133cl 突然変異の結果（wt_c133cl_mut で 1 本ずつ・scripts/instruments/c133cl/mut/*.py）。MA2・MA3・MA3b は初回の走りが git の index.lock で巻き戻せず前の変異が重なったため、単独で取り直した。
+MA1: テストの合計数: 17      成功: 15      失敗: 2  ::   失敗 PriceOfBread.Tests.ServiceEconomyTests.公教育と義務教育の教師の生産性は基底のま�;  失敗 PriceOfBread.Tests.ServiceEconomyT
+MA4: テストの合計数: 8      成功: 5      失敗: 3  ::   失敗 PriceOfBread.Tests.DevaluationCapReliefTests.余地が切り以下の月は余地そのもの_切り�;  失敗 PriceOfBread.Tests.DevaluationCapRel
+MB1: テストの合計数: 83      成功: 82      失敗: 1  ::   失敗 PriceOfBread.Tests.PolicyPoliticsTests.潤沢の減税もAIの税の目標を門の外へ置かない;
+MB2: テストの合計数: 56      成功: 55      失敗: 1  ::   失敗 PriceOfBread.Tests.RevoltIgnitionTests.R4_近代化投資のfrac06と10に区別が生まれる [206 ;
+MA2: テストの合計数: 13      成功: 12      失敗: 1  ::   失敗 PriceOfBread.Tests.MobilityTests.蓄財した商人が資本家に昇格する [228 ms];
+MA3: テストの合計数: 2      成功: 1      失敗: 1  ::   失敗 PriceOfBread.Tests.SubsistenceTechShareTests.自給の農民の失業の割合も技術の比を割�;
+MA3b: テストの合計数: 2      成功: 1      失敗: 1  ::   失敗 PriceOfBread.Tests.SubsistenceTechShareTests.焼いた月の食べる割合は開幕の割合で_そ�;
+対応：MA1=K09（教師の生産性に補正）・MA2=K14（商人・職人の昇格を止める）・MA3=EconomyStep.cs:139 だけ t=1.0（新しい失業の試験だけ赤）・MA3b=EconomyStep.cs:127 だけ t=1.0（元の食べる割合の試験だけ赤）・MA4=DevaluationAllowed の Min を Max・MB1=SelfPlay.cs:1167 の RelieveOpulence を消す・MB2=ModernizationBudget の漸近の式を半分に

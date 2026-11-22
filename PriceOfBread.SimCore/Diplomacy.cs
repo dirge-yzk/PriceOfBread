@@ -1088,6 +1088,19 @@ public sealed class Diplomacy
             if (r.Culture.Length > 0) ct[r.Culture] = ct.GetValueOrDefault(r.Culture) + pop;
             if (r.Religion.Length > 0) rt[r.Religion] = rt.GetValueOrDefault(r.Religion) + pop;
         }
+        // (1290) c133mr 旗 MajorityLabelTierOrder 1：格の順＝本国格に札の付いた人口が無い札（文化と宗教は別々）だけ、植民地格の州で数える（首都の札へ逃がさない）
+        if (homeOnly && w.Coef.MajorityLabelTierOrder > 0 && (ct.Count == 0 || rt.Count == 0))
+        {
+            bool needC = ct.Count == 0, needR = rt.Count == 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.Tier != RegionTier.Colonial) continue;
+                double pop = 0; foreach (var p in r.Pops) pop += p.Size;
+                if (pop <= 0) continue;
+                if (needC && r.Culture.Length > 0) ct[r.Culture] = ct.GetValueOrDefault(r.Culture) + pop;
+                if (needR && r.Religion.Length > 0) rt[r.Religion] = rt.GetValueOrDefault(r.Religion) + pop;
+            }
+        }
         static string Best(Dictionary<string, double> t) { string b = ""; double bv = 0; foreach (var kv in t) if (kv.Value > bv) { bv = kv.Value; b = kv.Key; } return b; }
         return (Best(ct), Best(rt));
     }

@@ -1,0 +1,13 @@
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/s0f1/src/PriceOfBread.SimCore/Coefficients.p04_trade.cs・20722 → 20722 バイト
+置き換え PriceOfBread.SimCore/Coefficients.p04_trade.cs
+test rc=1 合計時間: 49.4955 秒
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [1 s]
+  失敗 PriceOfBread.Tests.EconomyTests.器_賦存が同一費用あたりの産出能力になる_ゲート0は厳密恒等 [2 ms]
+  失敗 PriceOfBread.Tests.TradePhase0Tests.R1a_希少鉱物の産地は通常の賦存で割られる_能力は変わらない [17 ms]
+  失敗 PriceOfBread.Tests.TradePhase0Tests.R1a_費用を割る数は能力の倍率と別 [< 1 ms]
+  失敗 PriceOfBread.Tests.TradePhase0Tests.R1b_産地の発見の行は播種で割らず開いた時に割る [1 ms]
+  失敗 PriceOfBread.Tests.TradePhase0Tests.RecipeoutBprime_割る数は通常の賦存 [61 ms]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T4_旗1のエンジンの費用は旗0の計器の案Bプライムの列と合う [2 ms]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.T6_旗1の盤面の案Bプライムの列はエンジンの費用そのままで二重に割らない [5 ms]
+  失敗 PriceOfBread.Tests.RecipeoutInstrumentTests.B1_案Bプライムの列は自己費用を賦存の倍率だけで割った値に投入費を足す [1 ms]
+SCRATCHDONE 2026-11-22 08:36:57

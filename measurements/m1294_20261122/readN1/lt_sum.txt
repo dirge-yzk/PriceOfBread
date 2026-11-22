@@ -1,0 +1,13 @@
+# (1290) lt_sum D:/PoB_work/m1294_work/out_mN1_10/ins 種 1..10
+種 1	H1=2781	changedC=5	changedR=5	nq=41020	pwNeNewC=3	pwNeNewR=2	tierC_C=5	tierC_H=41015	tierR_C=5	tierR_H=41015
+種 2	H1=2924	nq=41244	pwNeNewC=2	pwNeNewR=1	tierC_H=41244	tierR_H=41244
+種 3	H1=1482	nq=40782	pwNeNewC=8	pwNeNewR=4	tierC_H=40782	tierR_H=40782
+種 4	H1=3718	changedC=5	changedR=5	nq=43124	pwNeNewC=6	pwNeNewR=3	tierC_C=5	tierC_H=43119	tierR_C=5	tierR_H=43119
+種 5	H1=1837	changedC=4	changedR=4	nq=40779	pwNeNewC=1	pwNeNewR=2	tierC_C=4	tierC_H=40775	tierR_C=4	tierR_H=40775
+種 6	H1=2435	changedC=13	changedR=13	nq=41233	pwNeNewC=11	pwNeNewR=3	tierC_C=13	tierC_H=41220	tierR_C=13	tierR_H=41220
+種 7	H1=1878	nq=40773	pwNeNewC=8	tierC_H=40773	tierR_H=40773
+種 8	H1=4293	changedC=273	changedR=273	nq=40786	pwNeNewC=13	pwNeNewR=9	tierC_C=273	tierC_H=40513	tierR_C=273	tierR_H=40513
+種 9	H1=3344	changedC=1	changedR=1	nq=41216	pwNeNewC=7	pwNeNewR=1	tierC_C=1	tierC_H=41215	tierR_C=1	tierR_H=41215
+種 10	H1=2373	changedC=8	changedR=8	nq=42265	pwNeNewC=10	pwNeNewR=1	tierC_C=8	tierC_H=42257	tierR_C=8	tierR_H=42257
+計	H1=27065	changedC=309	changedR=309	nq=413222	pwNeNewC=69	pwNeNewR=26	tierC_C=309	tierC_H=412913	tierR_C=309	tierR_H=412913
+changedC の国（国×四半期）: ハイデラバード 270・アクモラ王国 8・共和制イギリス 8・第4立憲王政イギリス 5・南アフリカ王国 4・ヤウンデ共和国 4・共和制ポルトガル 4・ブラワヨ王国 3・第2立憲王政イギリス 1・立憲王政イギリス 1・ジェノヴァ 1

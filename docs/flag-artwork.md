@@ -1,13 +1,13 @@
 # 国旗アイコン
 
-開始国61件。PNGのファイル名は `world.json` の国名です。ゲーム中に追加される国など、同名の画像がない場合には `_unknown.png` が利用できます。
+開始国61件と、ゲーム中に現れる固定名の国を収録しています。PNGのファイル名にはゲーム内で使われる国名を用います。同名の画像がない場合に利用できる `_unknown.png` も収録しています。
 
-1783年の開始データ向けの固定素材です。史料ベースの旗も、紋章や配色を小さな表示向けに簡略化しています。「代用デザイン」には、王家の紋章から再構成したもの、後代の旗を用いたもの、ゲーム用の創作旗が含まれます。図形を描き起こして、共通の生地の陰影を適用しています。
+以下は1783年の開始データ向けの旗です。史料ベースの旗も、紋章や配色を小さな表示向けに簡略化しています。「代用デザイン」には、王家の紋章から再構成したもの、後代の旗を用いたもの、ゲーム用の創作旗が含まれます。図形を描き起こして、共通の生地の陰影を適用しています。
 
 | 国 | 根拠 | デザイン |
 | --- | --- | --- |
 | フランス | [史料ベース](https://commons.wikimedia.org/wiki/Historical_flags) | ブルボン朝の白地王旗と三つの百合紋を簡略化。 |
-| 日本 | [史料ベース](https://en.wikipedia.org/wiki/List_of_Japanese_flags) | 徳川幕府の白・黒・白の船旗。 |
+| 日本 | [史料ベース](https://en.wikipedia.org/wiki/List_of_Japanese_flags) | 徳川幕府の白・黒・白の船旗を基に、縮小表示で判別できるよう中央の黒帯を太く調整。 |
 | イギリス | [史料ベース](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 1801年以前のユニオン旗。 |
 | アメリカ | [史料ベース](https://www.si.edu/spotlight/flag-day/flag-facts) | 13本の縞と13星。星の並びは当時の複数の型から円形を採用。 |
 | ロシア | [史料ベース](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 白・青・赤の商船旗。 |
@@ -55,7 +55,7 @@
 | ザクセン | [代用デザイン](https://commons.wikimedia.org/wiki/Flags_of_territories_of_the_Holy_Roman_Empire) | 黒金の横縞と緑の冠状斜帯を用いた選帝侯家の紋章旗。 |
 | ハノーファー | [代用デザイン](https://www.crwflags.com/fotw/flags/de-ha_kd.html) | 白馬の紋章を赤地に配置した識別旗。 |
 | ヴュルテンベルク | [代用デザイン](https://commons.wikimedia.org/wiki/Flags_of_territories_of_the_Holy_Roman_Empire) | 三本の鹿角を用いたヴュルテンベルク家の紋章旗。 |
-| 阮氏 | [代用デザイン](https://commons.wikimedia.org/wiki/Category:Fictional_flags_of_Vietnam) | 黄金の地に月と赤い円を置いたゲーム用デザイン。 |
+| 阮氏 | [代用デザイン](https://commons.wikimedia.org/wiki/Category:Fictional_flags_of_Vietnam) | 赤地に金の龍と宝珠を配したゲーム用デザイン。 |
 | ラヘジ | [代用デザイン](https://www.crwflags.com/fotw/Flags/ye_lahej.html) | 赤白と交差する短剣・槍の旗を参考。採用年は未確認。 |
 | デリー | [代用デザイン](https://en.wikipedia.org/wiki/List_of_office-holders_in_India) | ムガル朝の緑地の軍旗と獅子・太陽を用いた識別旗。 |
 | アワド | 代用デザイン | 王侯家の双魚の紋章を旗にした代用。 |
@@ -67,3 +67,57 @@
 | オヨ帝国 | 代用デザイン | オヨの騎兵を参考にした、馬のシルエットを持つゲーム用デザイン。 |
 | ボルヌ帝国 | 代用デザイン | 群青地と金の幾何学文様を組み合わせたゲーム用デザイン。 |
 | ハワイ王国 | [代用デザイン](https://digitalarchives-documents.hawaii.gov/documents/1640/32.pdf) | カメハメハ1世期に成立した旗を代用。王国の成立・旗の採用とも開始年より後。 |
+
+## ゲーム中に現れる国
+
+専用の旗を用意する対象は、優先度「高」の21件と「中」の17件です。旗は `PriceOfBread.App/Assets/Flags` に国名と同じファイル名で収録しています。
+
+旗を表示するUIでは、`Power.Name` と同名の素材を参照し、一致しない場合は `_unknown.png` を使用します。低優先の固定名、内戦の反乱勢力、都市名に由来する自動命名の国にも、共通の `_unknown.png` を使用する想定です。政体に応じて変わる画面表示名は、ファイル名の検索に用いません。
+
+### 優先度 高（21件）
+
+| 国 | 出現経路 | 基準 | デザイン |
+| --- | --- | --- | --- |
+| ドイツ | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 黒・白・赤の帝国旗。 |
+| 北ドイツ連邦 | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 連邦の黒・白・赤。ドイツとは意匠を共用。 |
+| イタリア | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 緑白赤にサヴォイアの盾。 |
+| ローマ | 統一 | ゲーム用図案 | 金鷲を中央に置いた復興ローマの旗。 |
+| 神聖ローマ | 統一 | [代用デザイン](https://commons.wikimedia.org/wiki/Flags_of_territories_of_the_Holy_Roman_Empire) | 帝国の双頭の黒鷲。ゲーム内の再統一を表す。 |
+| フランス帝国 | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | フランス第一帝政期の青・白・赤。 |
+| 大英帝国 | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 1801年以降のユニオン旗。 |
+| ポーランド＝リトアニア | 統一 | [代用デザイン](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 白鷲と騎馬紋を組み合わせた再統一旗。 |
+| スカンジナビア | 統一 | [代用デザイン](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 統一国の代用旗。カルマル同盟の赤・黄を配色の手がかりに、順序を変更。 |
+| イベリア | 統一 | ゲーム用図案 | スペインとポルトガルの識別色を合わせた統一旗。 |
+| 大ネーデルラント | 統一 | ゲーム用図案 | 旧オランダの橙白青と金色の獣章を組み合わせた旗。 |
+| ユーゴスラビア | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 王国期の青・白・赤。 |
+| ギリシャ | 統一・分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 青白の縞と左上の白十字を持つ海上旗。 |
+| ハンガリー | 統一・分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 赤・白・緑の三色。 |
+| チェコスロバキア | 統一 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 白赤の横二色と青い三角。 |
+| バーラト | 統一 | ゲーム用図案 | 橙・白・緑と輪を用いた統一旗。 |
+| ムガル帝国 | 統一 | [代用デザイン](https://en.wikipedia.org/wiki/List_of_office-holders_in_India) | 緑地と獅子・太陽を基にした復興旗。 |
+| 大日本 | 統一 | ゲーム用図案 | 日輪を大きく簡略化した統一旗。 |
+| 中華 | 統一・文化圏 | [ゲーム用図案](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 五色旗の配色を用いたゲーム内国家の識別旗。 |
+| 統一朝鮮 | 統一 | [代用デザイン](https://smarthistory.org/korean-national-flag) | 後代の太極旗に見られる太極を用いた統一旗。 |
+| 満洲国 | 統一・分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 黄地の左上に赤・青・白・黒の四色。 |
+
+### 優先度 中（17件）
+
+| 国 | 出現経路 | 基準 | デザイン |
+| --- | --- | --- | --- |
+| アイルランド | 分離独立 | [代用デザイン](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 緑地に金のアイルランド竪琴。 |
+| スコットランド | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 青地に白の聖アンデレ十字。 |
+| ベルギー | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 黒・黄・赤の縦三色。 |
+| セルビア | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 赤・青・白の横三色。 |
+| ブルガリア | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 白・緑・赤の横三色。 |
+| ルーマニア | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 青・黄・赤の縦三色。 |
+| エジプト | 分離独立 | [代用デザイン](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 赤地に三日月と星を三組配置した王朝旗の簡略図案。 |
+| ウクライナ | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 青・黄の横二色。 |
+| ラトビア | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | えんじの地に細い白帯。 |
+| リトアニア | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 黄・緑・赤の横三色。 |
+| アメリカ連合国 | 分離独立 | [史料を基に簡略化](https://www.si.edu/object/first-confederate-national-flag%3Anmah_461713) | 連合国最初期の国旗 Stars and Bars の赤白赤と星の環。 |
+| カタルーニャ | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 黄地に赤い横帯を四本配置するセニェーラの簡略図案。 |
+| ノルウェー | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 赤地に白で縁取った青の北欧十字。 |
+| フィンランド | 分離独立 | [史料を基に簡略化](https://commons.wikimedia.org/wiki/Timeline_of_national_flags) | 白地に青の北欧十字。 |
+| 台湾 | 分離独立 | [代用デザイン](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 台湾民主国の青地と黄虎を手がかりにした代用旗。 |
+| チベット | 分離独立 | [代用デザイン](https://commons.wikimedia.org/wiki/Gallery_of_historic_flags) | 放射状の赤青と雪山を用いた雪獅子旗の簡略図案。 |
+| モンゴル | 分離独立 | [代用デザイン](https://www.crwflags.net/FOTW/flags/mn.html) | 独立期の旗に見られるソヨンボを簡略化。 |

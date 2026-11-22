@@ -1,0 +1,12 @@
+# (1290) rec_mr D:/PoB_work/c133mr_work/armb/out_c133mrB_10/ins 種 1..10 タグ arm
+種 1	cede=130	cede1=5	cedenan=5	unifEval=684	unifGo=60	ethPos=115242	ethNeg=7874	ethRows=123242
+種 2	cede=188	cede1=15	cedenan=7	unifEval=478	unifGo=31	ethPos=118306	ethNeg=11399	ethRows=129834
+種 3	cede=149	cede1=4	cedenan=7	unifEval=200	unifGo=18	ethPos=122346	ethNeg=10999	ethRows=133437
+種 4	cede=153	cede1=14	cedenan=17	unifEval=393	unifGo=28	ethPos=115869	ethNeg=9479	ethRows=125491
+種 5	cede=147	cede1=10	cedenan=7	unifEval=352	unifGo=33	ethPos=120200	ethNeg=10445	ethRows=130766
+種 6	cede=133	cede1=9	cedenan=12	unifEval=467	unifGo=44	ethPos=108865	ethNeg=9161	ethRows=118165
+種 7	cede=170	cede1=13	cedenan=11	unifEval=1633	unifGo=83	ethPos=113723	ethNeg=11716	ethRows=125576
+種 8	cede=177	cede1=17	cedenan=11	unifEval=379	unifGo=32	ethPos=116764	ethNeg=10166	ethRows=127042
+種 9	cede=200	cede1=14	cedenan=17	unifEval=1020	unifGo=53	ethPos=122124	ethNeg=10994	ethRows=133232
+種 10	cede=168	cede1=19	cedenan=12	unifEval=347	unifGo=33	ethPos=123662	ethNeg=10559	ethRows=134356
+計	cede=1615	cede1=120	cedenan=106	unifEval=5953	unifGo=415	ethPos=1177101	ethNeg=102792	ethRows=1281141	sameCoreShare=0.079523

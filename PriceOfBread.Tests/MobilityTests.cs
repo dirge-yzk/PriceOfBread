@@ -58,6 +58,33 @@ public class MobilityTests
     }
 
     [Fact]
+    public void 蓄財した商人が資本家に昇格する()   // rank1 商人・職人→資本家（旗 MerchantArtisanCapitalRise を 1 に焼いて消した＝(1281)）。同じ移転の双子で昇格の閾値だけ無限大＝差が rank1 の昇格
+    {
+        static (Simulation Sim, double Take) Build()
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(43), new NullAgent());
+            sim.Run(20);
+            var r = sim.World.Region;
+            Assert.True(r.InvestorPopIndex >= 0 && r.MerchantPopIndex >= 0, "英に資本家か商人が無い");
+            var mer = r.Pops[r.MerchantPopIndex]; var cap = r.Pops[r.InvestorPopIndex];
+            double totalSav = 0, total = 0;
+            foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings.Value); total += p.Size; }
+            double want = 20.0 * (totalSav / total) * mer.Size;
+            double take = System.Math.Min(System.Math.Max(0, want - System.Math.Max(0, mer.Savings.Value)), System.Math.Max(0, cap.Savings.Value));
+            cap.SetSavings(cap.Savings.Value - take); mer.SetSavings(mer.Savings.Value + take);   // 財源は資本家から（貨幣保存）
+            return (sim, take);
+        }
+        var (sim, take) = Build(); var (ctl, take2) = Build();
+        Assert.True(take > 0 && take == take2, "セットアップ不足：商人へ移せていない");
+        ctl.World.Coef.CapitalRiseThreshold = double.PositiveInfinity;   // 昇格（専門職・商人・職人→資本家）を止める双子
+        var r = sim.World.Region; var rc = ctl.World.Region;
+        double cap0 = r.Pops[r.InvestorPopIndex].Size;
+        for (int i = 0; i < 8; i++) { Meritocracy.Step(sim.World, sim.World.Coef); Meritocracy.Step(ctl.World, ctl.World.Coef); }
+        double cap1 = r.Pops[r.InvestorPopIndex].Size, capCtl = rc.Pops[rc.InvestorPopIndex].Size;
+        Assert.True(cap1 > capCtl, $"蓄財した商人が資本家に昇格しない（資本家 {cap0:F1}→{cap1:F1}・昇格を止めた双子 {capCtl:F1}）");
+    }
+
+    [Fact]
     public void 食えない中層は労働者に転落し不満を持ち込む()   // 宗教国の失業教師＝収入ゼロの中層は消える（受け皿＝下層）
     {
         var sim = new Simulation(NationConfig.Russia().ToScenario(47), new NullAgent());   // 宗教法＝教師に職がない

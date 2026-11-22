@@ -1,0 +1,7 @@
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/mu5_noremit/src/PriceOfBread.SimCore/Coefficients.p04_trade.cs・20722 → 20722 バイト
+置き換え PriceOfBread.SimCore/Coefficients.p04_trade.cs
+置き換えた：1 箇所・D:/PoB_work/c133b1_work/mu5_noremit/src/PriceOfBread.SimCore/EconomyStep.cs・224918 → 224878 バイト
+置き換え PriceOfBread.SimCore/EconomyStep.cs
+test rc=1 合計時間: 3.9620 秒
+  失敗 PriceOfBread.Tests.ColonialPopTests.植民地の月の決算で輸出作物の地代は首都の投資家へ着く [1 s]
+SCRATCHDONE 2026-11-22 08:51:39

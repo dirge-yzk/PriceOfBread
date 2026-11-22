@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>★(480) 線 ma：AI が最低賃金法に置く目標を、盤面の実物（本国の労働の失業と、床が縛る広がり）から選ぶ形（旗 <see cref="Coefficients.MinimumWageAiFromFloor"/>・★(486) から既定 1）の番人。
+/// <summary>★(480) 線 ma：AI が最低賃金法に置く目標を、盤面の実物（本国の労働の失業と、床が縛る広がり）から選ぶ形（旗 MinimumWageAiFromFloor は (1282) c132g2 で焼き込み＝常にこの形）の番人。
 /// 事前登録 measurements/ma480_20261021_prereg.txt [2] F2 と [8] G6。
 /// 期待値は実装と同じ出所から作らない：床・籠・能力・失業の期待値はテストの中で（財の層の序数・生産者の列挙・POP の人数）から手で組む。
 /// 線の値（失業 1/4・1/2・縛りの広がり 1/3・1/2・縛りの読み 1.05）は AI の選び（確証なし）＝ここではリテラルで書く。</summary>

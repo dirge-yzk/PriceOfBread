@@ -1,0 +1,13 @@
+# (1290) lt_sum D:/PoB_work/c133mr_work/armb/out_c133mrB_10/ins 種 1..10
+種 1	H1=2099	nq=40760	pwNeNewC=4	pwNeNewR=6	tierC_H=40760	tierR_H=40760
+種 2	H1=3554	nq=40765	pwNeNewC=6	pwNeNewR=4	tierC_H=40765	tierR_H=40765
+種 3	H1=2915	nq=40778	pwNeNewC=9	pwNeNewR=3	tierC_H=40778	tierR_H=40778
+種 4	H1=2417	nq=40799	pwNeNewC=13	pwNeNewR=16	tierC_H=40799	tierR_H=40799
+種 5	H1=4602	nq=40780	pwNeNewC=3	tierC_H=40780	tierR_H=40780
+種 6	H1=2544	changedC=22	changedR=22	nq=41101	pwNeNewC=10	pwNeNewR=6	tierC_C=22	tierC_H=41079	tierR_C=22	tierR_H=41079
+種 7	H1=2289	changedC=7	changedR=7	nq=41780	pwNeNewC=16	pwNeNewR=6	tierC_C=7	tierC_H=41773	tierR_C=7	tierR_H=41773
+種 8	H1=3930	changedC=5	changedR=5	nq=41073	pwNeNewC=14	pwNeNewR=1	tierC_C=5	tierC_H=41068	tierR_C=5	tierR_H=41068
+種 9	H1=2651	changedC=10	changedR=10	nq=41439	pwNeNewC=8	pwNeNewR=4	tierC_C=10	tierC_H=41429	tierR_C=10	tierR_H=41429
+種 10	H1=2701	changedC=4	changedR=4	nq=40799	pwNeNewC=7	tierC_C=4	tierC_H=40795	tierR_C=4	tierR_H=40795
+計	H1=29702	changedC=48	changedR=48	nq=410074	pwNeNewC=90	pwNeNewR=46	tierC_C=48	tierC_H=410026	tierR_C=48	tierR_H=410026
+changedC の国（国×四半期）: 共和制デンマーク 17・南アフリカ王国 9・共和制イギリス 9・第2立憲王政イギリス 5・デンマーク 4・共和制ポルトガル 4

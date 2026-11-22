@@ -5,7 +5,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// テーマE（戦争の取得動学）のうち本セッションで実装した creation 動学2項目（戦時動員 WarMobilizationDepth・海軍建艦 NavalBuildRate）の dormant 配線検証。
+/// テーマE（戦争の取得動学）のうち本セッションで実装した creation 動学（海軍建艦 NavalBuildRate・戦時動員 WarMobilizationDepth は (1289) で係数ごと消した）の dormant 配線検証。
 /// ※casus belli(戦争目標)は③制度層＝ユーザー既決定で除外。距離損耗/講和制海ゲート/海戦累積/同盟共同戦線は署名変更・未実装ヘルパを要するため #17 へ延期。
 /// 既定（係数0/恒等値）は現行恒等＝較正中立（140本体が担保）。有効化時の保存則を確認。
 /// </summary>
@@ -18,7 +18,6 @@ public class WarThemeTests
     public void テーマE_既定係数が方針どおり()   // 休眠復旧2026-07-08：A復旧（トリアージ文書）で戦時動員は有効化＝新既定を番人化。海軍系はB保留＝中立のまま
     {
         var c = new Coefficients();
-        Assert.Equal(0.5, c.WarMobilizationDepth);   // A-5有効化（WWI型総動員）
         // ★2026-08-10（作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）：
         //   旧 NavalEmphasisWeight（海軍シェアへの政策傾斜）は係数ごと撤去＝海軍シェアの入力は払った金の比だけ。
         //   ★(151)：旧式（地理の比）へ戻す旗 NavalShareFromUpkeep は読み手ごと削除＝常に払った金の比（下の「海軍シェアは払った金の比だけから決まる」が見る）。
@@ -27,12 +26,11 @@ public class WarThemeTests
     }
 
     [Fact]
-    public void テーマE_海軍建艦と戦時動員の有効化でも保存則が保たれる()
+    public void テーマE_海軍に厚い維持費でも保存則が保たれる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
         foreach (var n in sim.Nations)
         {
-            n.World.Coef.WarMobilizationDepth = 1.0;              // 戦時動員の段階性（各国の経済係数）
             n.World.SetMilitaryUpkeep(new Share(0.10), new Share(0.30));               // 海軍に厚い維持費（2026-08-10：抽象スタンスでなく払う金で置く）
         }
         var ex = Record.Exception(() => sim.Run(200));

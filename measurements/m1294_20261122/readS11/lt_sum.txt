@@ -1,0 +1,13 @@
+# (1290) lt_sum D:/PoB_work/m1294_work/out_mS11_10_s11/ins 種 11..20
+種 11	H1=2297	nq=40768	pwNeNewC=2	pwNeNewR=4	tierC_H=40768	tierR_H=40768
+種 12	H1=2835	changedC=4	changedR=4	nq=40812	pwNeNewC=7	tierC_C=4	tierC_H=40808	tierR_C=4	tierR_H=40808
+種 13	H1=1958	nq=40776	pwNeNewC=1	tierC_H=40776	tierR_H=40776
+種 14	H1=2283	nq=41919	pwNeNewC=10	pwNeNewR=5	tierC_H=41919	tierR_H=41919
+種 15	H1=3267	nq=40794	pwNeNewC=5	pwNeNewR=1	tierC_H=40794	tierR_H=40794
+種 16	H1=2517	nq=40779	pwNeNewC=12	pwNeNewR=5	tierC_H=40779	tierR_H=40779
+種 17	H1=4080	changedC=4	changedR=4	nq=40812	pwNeNewC=4	pwNeNewR=5	tierC_C=4	tierC_H=40808	tierR_C=4	tierR_H=40808
+種 18	H1=3031	nq=40808	pwNeNewC=21	pwNeNewR=4	tierC_H=40808	tierR_H=40808
+種 19	H1=2710	changedC=3	changedR=3	nq=40756	pwNeNewC=3	pwNeNewR=1	tierC_C=3	tierC_H=40753	tierR_C=3	tierR_H=40753
+種 20	H1=3156	changedC=6	changedR=6	nq=40785	pwNeNewC=7	pwNeNewR=9	tierC_C=6	tierC_H=40779	tierR_C=6	tierR_H=40779
+計	H1=28134	changedC=17	changedR=17	nq=409009	pwNeNewC=72	pwNeNewR=34	tierC_C=17	tierC_H=408992	tierR_C=17	tierR_H=408992
+changedC の国（国×四半期）: 共和制朝鮮 6・共和制スペイン 4・共和制イギリス 4・キサンガニ王国 3
