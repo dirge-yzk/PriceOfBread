@@ -197,8 +197,11 @@ public partial class MainWindow : Window
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Width = 1920; Height = 1080;
-        Position = new PixelPoint(-20000, -20000);
+        Position = OffScreen;
+        Opened += (_, _) => Position = OffScreen;   // 開く時に画面の内へ戻されるので、開いた後にもう一度外へ
     }
+
+    private static readonly PixelPoint OffScreen = new(-20000, -20000);
 
     /// <summary>撮影の窓を 1920 幅へ（フルスクリーン→最大化の順に試す）。画面の状態で窓の状態が効かない回があったので、大きさを BootLog に残す。
     /// 画面に出さない撮影（既定）は <see cref="HideForShots"/> で既に 1920 幅＝窓の状態は変えない（フルスクリーンにすると画面に出る）。</summary>

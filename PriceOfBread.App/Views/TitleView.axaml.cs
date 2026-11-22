@@ -17,6 +17,7 @@ public partial class TitleView : UserControl
         Loaded += (_, _) =>
         {
             if (TopLevel.GetTopLevel(this) is not Window win) return;
+            if (Program.UiShotDir is not null && !Program.UiShotVisible) return;   // 画面に出さない撮影は 1920×1080 のまま（MainWindow.HideForShots）
             if (win.WindowState != WindowState.Normal) win.WindowState = WindowState.Normal;
             win.Width = InitialWidth;
             win.Height = InitialHeight;
