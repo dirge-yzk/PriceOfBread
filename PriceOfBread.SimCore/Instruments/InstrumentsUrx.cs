@@ -4,7 +4,9 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string UrxHeaderText = "quarter	year	nation	group	section	months	dUrbanK	dRuralK";
-    internal const string UrxPdHeaderText = "quarter	year	nation	regionMonths	noPair	capBound	serfGated	famineGated	sumFlowPos	sumFlowNeg	sumTotal	sumPairUrban	sumRegionPop	sumRegionUrban	wTargetPre	wTargetCapped	wCur	wCap	wIncU	wIncR	wZ	wSubV	wHousU	wGsym	flowFlipRegionMonths	wAbsGsym";
+    internal const string UrxPdHeaderText = "quarter	year	nation	regionMonths	noPair	capBound	serfGated	famineGated	sumFlowPos	sumFlowNeg	sumTotal	sumPairUrban	sumRegionPop	sumRegionUrban	wTargetPre	wTargetCapped	wCur	wCap	wIncU	wIncR	wZ	wSubV	wHousU	wGsym	flowFlipRegionMonths	wAbsGsym	famineBackK	famineRegainK	famineRegainRegionMonths	oppSignRegionMonths	wShortVU	wShortVR	wGsymA";
+    // (1296) F0 の列の窓：飢えの門の月から何か月目までを〈取り戻し〉に数えるか（計器の読みの窓・シミュの係数ではない）
+    internal const int UrxRegainWindowMonths = 12;
     static readonly string[] UrxGroups = ["Core", "Other"];
 
     sealed class UrxState
@@ -22,6 +24,10 @@ public static partial class Instruments
         public long PdFlipRegionMonths;                                               // PdFlipRegionMonths〔履歴 InstrumentsUrx.cs#3〕
         public double PdWAbsGsym;                                                     // PdWAbsGsym〔履歴 InstrumentsUrx.cs#4〕
         public readonly Dictionary<Region, int> PdPrevSign = new(ReferenceEqualityComparer.Instance);   // 四半期をまたいで持つ（累積と違い Fold で消さない）〔履歴 InstrumentsUrx.cs#5〕
+        // (1296) F0 の列：門の月の農村への流れ・門の後の窓の都市への流れ・2 本の物差しの符号の逆・食べられなかった量の値・案 A の g
+        public double PdFamineBackK, PdFamineRegainK, PdWShortVU, PdWShortVR, PdWGsymA;
+        public long PdFamineRegainRegionMonths, PdOppSignRegionMonths;
+        public readonly Dictionary<Region, long> PdLastGateMonth = new(ReferenceEqualityComparer.Instance);   // 州ごとの最後の門の月（Tick÷30・四半期をまたいで持つ＝Fold で消さない）
     }
     sealed class UrxAcc { public readonly double[] U = new double[2], R = new double[2]; public int N; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, UrxState> UrxStates = new();
@@ -108,6 +114,50 @@ public static partial class Instruments
         int sgn = d.Flow > 0 ? 1 : d.Flow < 0 ? -1 : 0;   // sgn〔履歴 InstrumentsUrx.cs#9〕
         if (ux.PdPrevSign.TryGetValue(region, out int prevSgn) && prevSgn != 0 && sgn != 0 && prevSgn != sgn) ux.PdFlipRegionMonths++;
         ux.PdPrevSign[region] = sgn;
+        UrxPdF0(w, ux, region, d);
+    }
+
+    /// <summary>
+    /// (1296) F0 の列（読むだけ）。門の月：農村への流れ（−flow）を famineBackK へ・その月を州の最後の門の月に。門でない月：最後の門の月から 1〜12 か月目で都市への流れが正なら famineRegainK と州×月の数へ。
+    /// oppSign＝シグモイドの (目標−今) と g の符号が逆（両方 0 でない）。p̄＝州の主食の値段を基礎の必要量で重みづけた平均（計器が州の市場から組む）・u＝(FoodNeed−FoodMet)÷規模（0 で切る）。
+    /// 案 A の g＝2(V_u−V_r)/(V_u+V_r)・V_r＝max(0, max(0,稼ぎ_r)＋自給の値−p̄u_r)・V_u＝max(0, max(0,稼ぎ_u)−家賃−p̄u_u)。重みは他の w 列と同じ対の規模。
+    /// </summary>
+    static void UrxPdF0(World w, UrxState ux, Region region, in UrxPdDriveRow d)
+    {
+        long month = w.Tick / Calendar.DaysPerMonth;
+        if (d.FamineGated)
+        {
+            if (d.Flow < 0) ux.PdFamineBackK += -d.Flow;
+            ux.PdLastGateMonth[region] = month;
+        }
+        else if (d.Flow > 0 && ux.PdLastGateMonth.TryGetValue(region, out long gm))
+        {
+            long k = month - gm;
+            if (k >= 1 && k <= UrxRegainWindowMonths) { ux.PdFamineRegainK += d.Flow; ux.PdFamineRegainRegionMonths++; }
+        }
+        double drive = d.TargetPre - d.Cur;
+        if ((drive > 0 && d.Gsym < 0) || (drive < 0 && d.Gsym > 0)) ux.PdOppSignRegionMonths++;
+        var (rural, urban) = PopDecision.MigrationPair(region);
+        if (rural is null || urban is null) return;
+        double pw = 0, pn = 0; int ng = Math.Min(region.Markets.Length, Catalog.Goods.Length);
+        for (int g = 0; g < ng; g++)
+            if (Catalog.Goods[g].Tier == GoodTier.Staple) { pw += Catalog.Goods[g].BaseNeed * region.Markets[g].Price; pn += Catalog.Goods[g].BaseNeed; }
+        double pbar = pn > 0 ? pw / pn : 0.0;
+        double ur = rural.Size > 1e-9 ? Math.Max(0.0, rural.FoodNeed - rural.FoodMet) / rural.Size : 0.0;
+        double uu = urban.Size > 1e-9 ? Math.Max(0.0, urban.FoodNeed - urban.FoodMet) / urban.Size : 0.0;
+        double shR = pbar * ur, shU = pbar * uu;
+        ux.PdWShortVR += d.Total * shR; ux.PdWShortVU += d.Total * shU;
+        double vr = Math.Max(0.0, Math.Max(0.0, d.IncRural) + d.SubsistenceValue - shR);
+        double vu = Math.Max(0.0, Math.Max(0.0, d.IncUrban) - d.HousingCost - shU);
+        double gA = vr + vu > 1e-9 ? 2.0 * (vu - vr) / (vr + vu) : 0.0;
+        ux.PdWGsymA += d.Total * gA;
+    }
+
+    /// <summary>番人用（(1296) F0）：今の四半期の F0 の列の積みの写し（積みは消さない）。</summary>
+    internal static (double FamineBackK, double FamineRegainK, long FamineRegainRegionMonths, long OppSignRegionMonths, double WShortVU, double WShortVR, double WGsymA) UrxPdPeekF0(World w)
+    {
+        var ux = Ux(w);
+        return (ux.PdFamineBackK, ux.PdFamineRegainK, ux.PdFamineRegainRegionMonths, ux.PdOppSignRegionMonths, ux.PdWShortVU, ux.PdWShortVR, ux.PdWGsymA);
     }
 
     /// <summary>
@@ -237,12 +287,15 @@ public static partial class Instruments
                 ux.PdCapBound.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdSerfGated.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdFamineGated.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 F(ux.PdFlowPos), F(ux.PdFlowNeg), F(ux.PdTotal), F(ux.PdPairUrban), F(ux.PdRegionPop), F(ux.PdRegionUrban),
                 F(ux.PdWTargetPre), F(ux.PdWTargetCapped), F(ux.PdWCur), F(ux.PdWCap), F(ux.PdWIncU), F(ux.PdWIncR), F(ux.PdWZ),
-                F(ux.PdWSubV), F(ux.PdWHousU), F(ux.PdWGsym), ux.PdFlipRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture), F(ux.PdWAbsGsym)));
+                F(ux.PdWSubV), F(ux.PdWHousU), F(ux.PdWGsym), ux.PdFlipRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture), F(ux.PdWAbsGsym),
+                F(ux.PdFamineBackK), F(ux.PdFamineRegainK), ux.PdFamineRegainRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdOppSignRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                F(ux.PdWShortVU), F(ux.PdWShortVR), F(ux.PdWGsymA)));
             ux.PdRegionMonths = ux.PdNoPair = ux.PdCapBound = ux.PdSerfGated = ux.PdFamineGated = 0;
             ux.PdFlowPos = ux.PdFlowNeg = ux.PdTotal = ux.PdPairUrban = ux.PdRegionPop = ux.PdRegionUrban = 0;
             ux.PdWTargetPre = ux.PdWTargetCapped = ux.PdWCur = ux.PdWCap = ux.PdWIncU = ux.PdWIncR = ux.PdWZ = 0;
             ux.PdWSubV = ux.PdWHousU = ux.PdWGsym = 0; ux.PdFlipRegionMonths = 0;   // PdWSubV〔履歴 InstrumentsUrx.cs#14〕
             ux.PdWAbsGsym = 0;   // PdWAbsGsym〔履歴 InstrumentsUrx.cs#15〕
+            ux.PdFamineBackK = ux.PdFamineRegainK = ux.PdWShortVU = ux.PdWShortVR = ux.PdWGsymA = 0; ux.PdFamineRegainRegionMonths = ux.PdOppSignRegionMonths = 0;   // (1296) F0
         }
     }
 }

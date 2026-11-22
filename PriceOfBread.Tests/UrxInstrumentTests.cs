@@ -130,7 +130,7 @@ public class UrxInstrumentTests
             }
             // urxpd_s：本国の州の月次の行があり、regionMonths が正
             var (ph, prow) = Table(System.IO.Path.Combine(dir, "urxpd_s1789.tsv"));
-            Assert.Equal(26, ph.Length);   // (713) urb4：末尾に wAbsGsym（25→26）
+            Assert.Equal(33, ph.Length);   // (713) urb4：末尾に wAbsGsym（25→26）・(1296) F0 の 7 列（26→33）
             Assert.True(prow.Count > 0 && prow.Any(r => D(r[3]) > 0), "urxpd の行が無い");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
@@ -235,6 +235,142 @@ public class UrxInstrumentTests
             Assert.Equal(Instruments.UrxRtHeaderText, string.Join('\t', rh));
             Assert.All(rrows, x => Assert.Equal(rh.Length, x.Length));
             Assert.Contains(rrows, x => x[3] == "PopDecision" && (D(x[4]) > 0 || D(x[5]) > 0));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    // ---------------------------------------------------------------- (1296) F0 の列（famineBackK・famineRegainK・famineRegainRegionMonths・oppSignRegionMonths・wShortVU・wShortVR・wGsymA） ----------------------------------------------------------------
+
+    /// <summary>英国の開幕の州（本国格）の対の盤面。住居の門は閾値 0.9 で閉じる（家賃 0）。対の都市と農村の規模を同じにする（今の割合 0.5）。主食の値段を全て 2.0 に置く（p̄＝2.0 は重みに依らない）。</summary>
+    private static (World w, Region r, Pop rural, Pop urban, Coefficients c) BoardF0(double earnedR, double subR, double earnedU, double fillR, double fillU)
+    {
+        var w = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
+        var r = w.Region; var c = w.Coef;
+        var (rural0, urban0) = PopDecision.MigrationPair(r);
+        var rural = rural0!; var urban = urban0!;
+        urban.Size = rural.Size;
+        c.HousingUrbanThreshold = 0.9;
+        Assert.True(r.SumUrbanPopulation() / r.SumPopulation() <= c.HousingUrbanThreshold, "前提：住居の門が閉じていない");
+        Assert.Equal(RegionTier.Core, r.Tier);
+        for (int g = 0; g < Math.Min(r.Markets.Length, Catalog.Goods.Length); g++)
+            if (Catalog.Goods[g].Tier == GoodTier.Staple) r.Markets[g].Price = 2.0;
+        rural.EarnedPerMonth = new MoneyPerMonth(earnedR * rural.Size); rural.SubsistenceValuePerMonth = new MoneyPerMonth(subR * rural.Size);
+        urban.EarnedPerMonth = new MoneyPerMonth(earnedU * urban.Size);
+        rural.FoodNeed = 0.8 * rural.Size; rural.FoodMet = fillR * rural.FoodNeed;
+        urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = fillU * urban.FoodNeed;
+        r.CapitalEnabled = false;
+        Assert.Equal(0.02, c.Mobility);
+        c.UrbanFlowReal = 0;   // F0 の列は旧の式（シグモイド）の盤面で読む＝門と fg の枝に届く形
+        c.FamineGateReturnsRural = 1;
+        return (w, r, rural, urban, c);
+    }
+
+    private static double Gs(double vr, double vu) => vr + vu > 1e-9 ? 2.0 * (vu - vr) / (vr + vu) : 0.0;
+
+    [Fact]
+    public void F0_門の月の農村への流れが_famineBackK_に入り本物のRunの都市の減りと一致する()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_f0a_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            // 稼ぎは都市が高い（0.30＞0.10＝シグモイドの目標＞今＝流れ＞0＝門に入る）・自給 0.40 で V_r 0.50＞V_u 0.30＝g＝−0.5＝fg の枝で都市→農村
+            var (w, r, rural, urban, c) = BoardF0(0.10, 0.40, 0.30, 0.9, 0.2);
+            double us = urban.Size, g = Gs(0.10 + 0.40, 0.30);
+            Assert.Equal(-0.5, g, 12);
+            Instruments.UrxPd(w, r, 1.0);
+            double u0 = urban.Size;
+            PopDecision.Run(r, c, 1.0);
+            double moved = u0 - urban.Size;   // 都市の減り（本物の Run）
+            var f = Instruments.UrxPdPeekF0(w);
+            Assert.Equal(0.02 * 0.5 * us, f.FamineBackK, 9);   // 手の算術：Mobility×|g|×都市の規模
+            Assert.True(moved > 1e-6, "前提：門の月に都市から農村へ動いていない");
+            Assert.Equal(moved, f.FamineBackK, 9);
+            Assert.Equal(1, f.OppSignRegionMonths);   // シグモイドは都市へ・g は農村へ＝逆
+            Assert.Equal(0, f.FamineRegainRegionMonths);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void F0_門の月から12か月の窓の都市への流れが_famineRegainK_に入り13か月目は入らない()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_f0b_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var (w, r, rural, urban, c) = BoardF0(0.10, 0.40, 0.30, 0.9, 0.2);
+            long m0 = 100; w.Tick = m0 * Calendar.DaysPerMonth;
+            Instruments.UrxPd(w, r, 1.0);   // 門の月
+            // 門の後：都市も食べられる（門なし）・自給 0（g＞0＝シグモイドも g も都市へ）
+            rural.SubsistenceValuePerMonth = new MoneyPerMonth(0.0); urban.FoodMet = 0.9 * urban.FoodNeed;
+            double total = rural.Size + urban.Size;
+            double target = 1.0 / (1.0 + Math.Exp(-(0.30 - 0.10) / 0.15));   // 手の算術：シグモイドの目標（温度 0.15）
+            double perMonth = 0.02 * (target - 0.5) * total;                    // 旧の式の流れ（今の割合 0.5）
+            Assert.Equal(0.15, c.MigrationTemperature);
+            for (int k = 1; k <= 13; k++)
+            {
+                w.Tick = (m0 + k) * Calendar.DaysPerMonth;
+                Instruments.UrxPd(w, r, 1.0);
+                var f = Instruments.UrxPdPeekF0(w);
+                int expectN = Math.Min(k, 12);
+                Assert.Equal(expectN, f.FamineRegainRegionMonths);
+                Assert.Equal(expectN * perMonth, f.FamineRegainK, 9);
+            }
+            Assert.True(perMonth > 1e-6, "前提：門の後の月に都市への流れが無い");
+            Assert.Equal(1, Instruments.UrxPdPeekF0(w).OppSignRegionMonths);   // 門の月の 1 回だけ（門の後は両方都市へ＝同じ向き）
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void F0_oppSign_は符号が逆の月だけ数え_同じ向きは数えない()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_f0c_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var (w, r, rural, urban, c) = BoardF0(0.10, 0.0, 0.30, 0.9, 0.9);   // シグモイドも g も都市へ＝同じ向き
+            Instruments.UrxPd(w, r, 1.0);
+            Assert.Equal(0, Instruments.UrxPdPeekF0(w).OppSignRegionMonths);
+            rural.EarnedPerMonth = new MoneyPerMonth(0.30 * rural.Size); urban.EarnedPerMonth = new MoneyPerMonth(0.10 * urban.Size);   // 両方農村へ＝同じ向き
+            Instruments.UrxPd(w, r, 1.0);
+            Assert.Equal(0, Instruments.UrxPdPeekF0(w).OppSignRegionMonths);
+            rural.EarnedPerMonth = new MoneyPerMonth(0.10 * rural.Size); urban.EarnedPerMonth = new MoneyPerMonth(0.30 * urban.Size);
+            rural.SubsistenceValuePerMonth = new MoneyPerMonth(0.40 * rural.Size);   // シグモイドは都市へ・g は農村へ＝逆
+            Instruments.UrxPd(w, r, 1.0);
+            Assert.Equal(1, Instruments.UrxPdPeekF0(w).OppSignRegionMonths);
+            rural.SubsistenceValuePerMonth = new MoneyPerMonth(0.0);   // 自給を戻す＝両方都市へ＝同じ向き＝数えない
+            Instruments.UrxPd(w, r, 1.0);
+            Assert.Equal(1, Instruments.UrxPdPeekF0(w).OppSignRegionMonths);
+            Assert.Equal(4, Instruments.UrxPdPeek(w).RegionMonths);   // 対照：4 か月とも数えた
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    [Fact]
+    public void F0_食べられなかった量の値と案Aのgは手の算術どおり_Vは0で切る()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_f0d_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            // p̄＝2.0・u_r＝0.8×(1−0.9)＝0.08・u_u＝0.8×(1−0.2)＝0.64 → p̄u_r＝0.16・p̄u_u＝1.28
+            var (w, r, rural, urban, c) = BoardF0(0.10, 0.40, 0.30, 0.9, 0.2);
+            double total = rural.Size + urban.Size;
+            Instruments.UrxPd(w, r, 1.0);
+            var f = Instruments.UrxPdPeekF0(w);
+            Assert.Equal(total * 0.16, f.WShortVR, 9);
+            Assert.Equal(total * 1.28, f.WShortVU, 9);
+            // V_r＝0.10＋0.40−0.16＝0.34・V_u＝max(0, 0.30−1.28)＝0 → g＝−2
+            Assert.Equal(total * -2.0, f.WGsymA, 9);
+            // 2 か月目：都市も食べられる（u_u＝0.08）→ V_u＝0.30−0.16＝0.14・V_r＝0.34
+            urban.FoodMet = 0.9 * urban.FoodNeed;
+            Instruments.UrxPd(w, r, 1.0);
+            var f2 = Instruments.UrxPdPeekF0(w);
+            Assert.Equal(total * (1.28 + 0.16), f2.WShortVU, 9);
+            Assert.Equal(total * (0.16 + 0.16), f2.WShortVR, 9);
+            Assert.Equal(total * (-2.0 + Gs(0.34, 0.14)), f2.WGsymA, 9);
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
