@@ -31,9 +31,9 @@ internal static class UiShotPageP1
         Report(window, "生産");
         if (UiShotWindows.GameViewOf(window) is { } gvw) UiShotWindows.OpenFull(gvw, lay, Slot.Market); else lay.Open(Slot.Market);
         await Task.Delay(900);
-        capture($"{nextNo():D2}_財の価格.png");
-        logOuter("財の価格");
-        Report(window, "財の価格");
+        capture($"{nextNo():D2}_財価格.png");
+        logOuter("財価格");
+        Report(window, "財価格");
         lay.Reset();
         if (UiShotWindows.GameViewOf(window) is { } gvt) UiShotWindows.OpenFull(gvt, lay, Slot.Trade); else lay.Open(Slot.Trade);
         await Task.Delay(900);

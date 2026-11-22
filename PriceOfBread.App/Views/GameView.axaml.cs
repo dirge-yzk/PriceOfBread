@@ -160,8 +160,8 @@ public partial class GameView : UserControl
             if (_keyTop is Window w) w.WindowState = w.WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
             e.Handled = true;
         }
-        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・財の価格が Q・地図のキーは無い」・2026-11-11「窓の開閉」）：
-        // 割り当ては本体の PageKeys が持つ（Q 財の価格・W 財政と貨幣・E 人口・R 政治と法・A 外交と戦争・S 発見・D 貿易・FZXCV 空き）。
+        // ページのキー（作者の指示 2026-10-23「QWERASDFZXCV の優先度で、順に埋める」・2026-11-04「生産は Tab・財価格が Q・地図のキーは無い」・2026-11-11「窓の開閉」）：
+        // 割り当ては本体の PageKeys が持つ（Q 財価格・W 貿易・E 財政と貨幣・R 金融・A POP・S 政治と法・D 権利と議会・F 外交と戦争・Z 発見・XCV 空き）。
         // 浮かぶ窓の開閉の切り替え（開いていれば閉じ・閉じていれば開いて前へ）。空きのキーは何もしない。Tab（背景の生産と地図の切り替え）は上で処理する。
         else if (letter is { } ch && SlotInfo.OfKey(ch) is { } slot) { vm.OpenSlotCommand.Execute(slot); e.Handled = true; }
         else if (isPriorityKey) e.Handled = true;   // 空きのキー＝何も開かない（押下だけ握る）

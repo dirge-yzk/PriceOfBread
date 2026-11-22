@@ -31,13 +31,13 @@ public class LayoutTests
     }
 
     [Fact]
-    public void キーは生産がTab_残りが作者の指示の順_Q財の価格_W財政_E人口_R政治と法_A外交と戦争_S発見_D貿易_F金融_Z権利と議会_地図にキーは無い_XCVは空き()
+    public void キーは生産がTab_残りは並びの順_Q財価格_W貿易_E財政と貨幣_R金融_A_POP_S政治と法_D権利と議会_F外交と戦争_Z発見_地図にキーは無い_XCVは空き()
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var expected = new (Slot Slot, char Key, string Name)[]
         {
-            (Slot.Market, 'Q', "財の価格"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
-            (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"), (Slot.Trade, 'D', "貿易"), (Slot.Finance, 'F', "金融"), (Slot.Rights, 'Z', "権利と議会"),
+            (Slot.Market, 'Q', "財価格"), (Slot.Trade, 'W', "貿易"), (Slot.FiscalMoney, 'E', "財政と貨幣"), (Slot.Finance, 'R', "金融"),
+            (Slot.Population, 'A', "POP"), (Slot.PoliticsLaw, 'S', "政治と法"), (Slot.Rights, 'D', "権利と議会"), (Slot.DiplomacyWar, 'F', "外交と戦争"), (Slot.Discovery, 'Z', "発見"),
         };
         Assert.Equal(12, SlotInfo.All.Count);
         Assert.Equal(10, SlotInfo.Pages.Count);   // 押し釦に並ぶのは 10 ページ（地図は釦もキーも持たない）
@@ -79,7 +79,7 @@ public class LayoutTests
     }
 
     [Fact]
-    public void 財の価格のキーQは窓を開き_もう一度Qで閉じる_貿易はD()
+    public void 財価格のキーQは窓を開き_もう一度Qで閉じる_貿易はW()
     {
         var m = new LayoutModel();
         var q = SlotInfo.OfKey('Q')!.Value;
@@ -88,7 +88,7 @@ public class LayoutTests
         Assert.True(m.IsShown(Slot.Market));
         m.Toggle(SlotInfo.OfKey('q')!.Value);   // 表に文字の欄は無い＝キーは窓の開閉にそのまま届く
         Assert.False(m.IsShown(Slot.Market));
-        Assert.Equal(Slot.Trade, SlotInfo.OfKey('D'));
+        Assert.Equal(Slot.Trade, SlotInfo.OfKey('W'));
     }
 
     [Fact]
@@ -448,9 +448,10 @@ public class LayoutTests
     }
 
     [Fact]
-    public void 財の価格は2段組で入る幅_支出と収入と輸出と輸入は最初から左右に並ぶ()
+    public void 財価格は2段組で入る幅_支出と収入と輸出と輸入と金融と国債は最初から左右に並ぶ()
     {
-        Assert.True(LayoutModel.DefaultWidth(Slot.Market) >= 2 * 394);   // 表 2 つ分
+        Assert.True(LayoutModel.DefaultWidth(Slot.Market) >= 2 * 364);   // 表 2 つ分
+        Assert.True(PagePlan.ColumnCount(LayoutModel.DefaultWidth(Slot.Finance) - PriceOfBread.App.Views.Pages.PageSizes.Frame, PriceOfBread.App.Views.Pages.FinancePage.Plan) == 2);
         Assert.True(PagePlan.ColumnCount(LayoutModel.DefaultWidth(Slot.FiscalMoney) - PriceOfBread.App.Views.Pages.PageSizes.Frame, PriceOfBread.App.Views.Pages.FiscalMoneyPage.Plan) == 2);
         Assert.True(PagePlan.ColumnCount(LayoutModel.DefaultWidth(Slot.Trade) - PriceOfBread.App.Views.Pages.PageSizes.Frame, PriceOfBread.App.Views.Pages.TradePage.Plan) == 2);
     }

@@ -43,13 +43,14 @@
 
         <!-- 上部バー＝1段（2026-11-03 作者）：左＝国名（地位）・国庫・満足度〜正統性｜右＝ページの押し釦・速度の箱・日付。折り返さない（2段化は2026-08-02に却下済み）。 -->
         <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,8" ZIndex="2">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="Auto,*">
+                <!-- ★2026-11-23：数字の側（左）を優先して自然な幅で取り、残りが右の釦と日付＝1920 幅で入り切らなければ右が 2 段に折れる（数字が釦の下に隠れない）。 -->
                 <!-- 可変長の項目は画素の最小幅（MinWidth）＝桁が増減しても右の項目が動かない（2026-09-23「文字数固定」）。Width でなく MinWidth＝溢れる値は切れずに伸びる。
                      ToolTip.ShowDelay=30（2026-09-23）。国庫の 190＝「国庫:-£999.99M（−£999.99M）」の見積り。 -->
                 <!-- ★2026-11-03（作者）：ヘッダーは1段＝国名（地位）・国庫（先月の収支）・満足度・不満度・闘争度・正統性（4つは深刻度の色）。
                      外した項目は docs/202610/20261023/20261023_UIの作り直し_設計.md「ヘッダーから外した項目（2026-11-03）」に控えた（再配置の待ち）。
                      列＝左詰め（国名・国庫は Auto・概況の列が *＝右の余りを取る）。 -->
-                <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Center">
+                <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="Auto,Auto,Auto" VerticalAlignment="Center">
                     <DockPanel Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
                         <Image DockPanel.Dock="Left" Source="{Binding PlayerFlag}" Height="22" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding PlayerTitle}" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"
@@ -71,7 +72,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <WrapPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" ItemSpacing="8" LineSpacing="4" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <!-- タブボタン列＝**速度の左**（2026-08-02ユーザー指示）。ボタンの並び（左から）は主題のまとまり順で固定。
                          ★2026-08-10（作者指示）：E=貿易・S=政治へ入れ替え（旧 E=政治・S=貿易）＝ボタンは動かさずラベルのキーだけ入れ替える。
                          ⚠キーの実体は GameView.axaml.cs の KeyDown。ここは表示ラベルなので**両方を同時に直す**こと。 -->
@@ -80,7 +81,7 @@
                     <ItemsControl ItemsSource="{Binding PageButtons}" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="3"/>
+                                <WrapPanel Orientation="Horizontal" ItemSpacing="3" LineSpacing="3" HorizontalAlignment="Right"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -101,7 +102,7 @@
                     <!-- Width固定（2026-07-27ユーザー指摘）：可変幅数字で日付の幅が毎日揺れ→Auto列→ヘッダー全体が毎tick再レイアウトされていた -->
                     <TextBlock Text="{Binding DateText}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                VerticalAlignment="Center" HorizontalAlignment="Right" Width="100" TextAlignment="Right"/>
-                </StackPanel>
+                </WrapPanel>
             </Grid>
         </Border>
 
