@@ -67,3 +67,13 @@
  腕 B：旗 1 の木で計器の束（Famine・Fiscal・Military・Revolt・WriterRatchet と Instrument）→フルスイート（分けて回し合計を --list-tests と突き合わせる）→savetest・leakhunt→ `INS=1 bash scripts/instruments/batch.sh run c135k47B 10`（表を絞る＝止める線の表＋recipeout_s・prodcap_s・goods_s）。
  読み手：scripts/instruments/c135k47/read_k47.sh（基準とヌル腕も同じ台本で数え直す＝⑰）。基準の側は腕の前に回した（measurements/m1305_20261122/pre_base/）。
  形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記 2026-11-23（旗 1 の木のフルスイートの後・腕 B の前・エンジンは変えない＝形の変え直しではない）
+ 旗 1 の木 766ff1804：㊴ 計器の束 747（スキップ 1）緑・Category!=FullLength 2879＝--list-tests 2879 のうち赤 1・Ui 232＝232 緑・FullLength 3 緑・savetest OK・leakhunt 保存則違反なし（measurements/m1305_20261122/suite1_766ff1804.txt）。
+ 計器の束の前に WriterRatchetTests の宣言の表 2 行が赤（ClaimProducers 1700→1830・DiploHegemonScans 2844252→1889444）＝★(749) 軌道の件数を写しただけの番人＝82474f554 で取り直した。
+ 赤 1＝DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる（DiscoveryEngineerTests.cs:171 `Assert.True(rp is not null, "{d.Name}：イギリスに代表の生産者が居ない")`）。
+  区分：㉜ の〈旧の規則を固定する番人〉（上の ㉜ の grep は「石油灯油」と LampOil の名で探したので拾えなかった＝一覧に無い赤）。旧の規則＝〈製法の行はどれも州に代表の生産者を持つ〉。新しい規則＝〈重なりを消した行（「石油灯油」）だけは代表の生産者を持たず、発見の点数を作らない〔Discovery.Evaluate の Terms が既定＝発見されない〕・他の製法の行は今までどおり代表を持つ〉。
+  旧の盤面に番人を固定する形に当たらない理由：行は旗 1 で働かない静的な行として残す（事前登録の形のまま）＝番人を新しい規則の試験へ書き換える（Assert の文と閾値〔rp is not null・NeedsEarlierDiscovery の集合の一致〕は他の行に残す）。
+  書き換え：名簿 RemovedDuplicateRows＝["石油灯油"]（NeedsEarlierDiscovery と同じ型）＝代表の生産者が居ない製法の行の集合が名簿とちょうど一致（名簿の行に生産者が建っても赤＝名簿が古い・名簿の外の行に生産者が居なくても赤）・名簿の行は Discovery.Evaluate（includeKnown）の Terms が既定（0・0・0）。対照の件数＝検査した製法の行が 40 を超える。
+  突然変異（試験の直しを外す・赤を確かめる）：Mt1 名簿を空にする → 赤・Mt2 旗が何もしない（石油灯油を建てる）→ 赤（名簿の行に生産者）・Mt3 名簿の行の Terms の検査を外す → 記録（働きの検査の有無）。
+ 物理の削除（旗・Simulation.cs のレシピの行・Catalog.cs:433・名簿 RemovedDuplicateRows）は採った後の焼き込みの恒等の線（申し送り）。
