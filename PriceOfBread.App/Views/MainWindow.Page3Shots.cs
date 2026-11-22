@@ -32,6 +32,14 @@ public partial class MainWindow
                 LogPage3(gameView, slot, tag);
             }
 
+            // 前提法が選んだ法の側に出ること（次の段の前提が未達の法を選んで撮る）
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
+            await Task.Delay(900);
+            string? picked = gvm.SelectLawWithPrereqForShot();
+            await Task.Delay(700);
+            BootLog.Write($"uishot: 選んだ法 前提法あり「{picked ?? "該当なし"}」前提法の欄「{gvm.StakePrereqText}」・賛否の組 {gvm.StakeBlocks.Count}");
+            Capture(dir, "p3_政治と法_前提法.png");
+
             // ---- 仕組みの確かめ ----
             // 段の押し釦：法の表の段を 1 つ押すと目標が置かれる（置く先は AI・議会と同じ口）。押した後の表が読み直されて目標の印が付く。確かめたら元の目標に戻す。
             lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);

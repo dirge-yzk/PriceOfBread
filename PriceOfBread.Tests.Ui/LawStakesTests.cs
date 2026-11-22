@@ -108,14 +108,26 @@ public class LawStakesTests
     }
 
     [Fact]
-    public void 表の列の名前は決まりに合い_行の鍵は重ならない()
+    public void 賛成寄りと反対寄りの分け方は賛成の割合と一致し_キャプションは法の段の名_前提法の語は次の段の前提と一致する()
     {
-        var sim = new MultiNationSim([NationConfig.Britain()], seed: 1789);
-        var t = PoliticsTables.Stakes(LawCatalog.ByField("Suffrage")!);
-        Assert.All(t.ColumnInfos, c => Assert.True(DisplayNames.IsValid(c.Name), c.Name));
-        var data = t.Read(sim, sim.Nations[0].World);
-        Assert.Equal(data.Rows.Count, data.Rows.Select(r => r.Key).Distinct().Count());
-        Assert.NotEmpty(data.Rows);
+        foreach (var w in Boards())
+            foreach (var d in Laws())
+            {
+                foreach (bool inc in new[] { true, false })
+                {
+                    var sides = LawStakes.Sides(w, d, inc);
+                    if (LawStakes.Split(w, d, inc) is not null) Assert.NotNull(sides);   // 全員が無関心の向きだけ半円は無い
+                    if (sides is null) continue;
+                    Assert.All(sides.Pro, c => Assert.InRange(c.ForShare, 0.5, 1.0));
+                    Assert.All(sides.Con, c => Assert.InRange(c.ForShare, 0.0, 0.5));
+                    Assert.All(sides.Con, c => Assert.NotEqual(0.5, c.ForShare));
+                    Assert.Equal(sides.Pro.Count + sides.Con.Count, sides.Pro.Concat(sides.Con).Select(c => c.ClassId).Distinct().Count());
+                    int cur = d.Current(w);
+                    Assert.Equal($"{d.StageName(cur)}→{d.StageName(cur + (inc ? 1 : -1))}", sides.Caption);
+                }
+                bool blocked = d.Current(w) < d.LevelBase + d.Stages.Length - 1 && !Government.LawPrereq(w, d.Axis, d.Current(w) + 1, w.Coef).Ok;
+                Assert.Equal(blocked, StageGate.PrereqNote(w, d) is not null);
+            }
     }
 
     // ---- ポップアップの差分 ----

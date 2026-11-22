@@ -11,6 +11,13 @@ public sealed record StakeLine(string Key, string Name, string Group, StakeKind 
 /// <summary>半円 1 つ（その一歩の賛成と反対の割合・和 1）。<paramref name="Caption"/>＝「今の段→その段」。</summary>
 public sealed record StakeSplit(string Caption, double For, double Against);
 
+/// <summary>階級（POP）1 つの賛否の寄り。<paramref name="ForShare"/>＝その階級の中で賛成する割合（0 から 1）。</summary>
+public sealed record ClassStance(int ClassId, string Name, double ForShare);
+
+/// <summary>一歩（今の段から隣の段）への階級ごとの賛否の寄り。<paramref name="Caption"/>＝「今の段の名→隣の段の名」（実際の法の段の名）。
+/// <paramref name="Pro"/>＝賛成が半分以上の階級・<paramref name="Con"/>＝半分未満の階級。</summary>
+public sealed record StakeSides(string Caption, IReadOnlyList<ClassStance> Pro, IReadOnlyList<ClassStance> Con);
+
 /// <summary>選んだ法の賛否（盤面は読むだけ・状態を持たない）。行の和は議会の門の純支持（<see cref="PolicyPreferences.NetSupport(World, PolicyAxis, bool)"/>）と一致する。
 /// 出どころの差し替え口は <see cref="Voices"/> と <see cref="ClassPref"/> の 2 本だけ。
 /// 「得・損」とは名乗らない＝エンジンの好みは所得の変化でなく、賛成・反対とその押す力。</summary>
@@ -126,6 +133,38 @@ public static class LawStakes
         foreach (var r in rows) { if (r.K > 0) pro += r.K; else con -= r.K; }
         int cur = def.Current(w);
         return new StakeSplit($"{def.StageName(cur)}→{def.StageName(cur + (increasing ? 1 : -1))}", pro / abs, con / abs);
+    }
+
+    /// <summary>その向きの一歩について、階級ごとに賛成寄りか反対寄りかを分ける。階級の中の賛成の割合＝その階級の行（ブロックごと）の押す力のうち正の分の割合
+    /// （<see cref="Pushes"/> の行＝議会の門の純支持と同じ項）。賛成が半分以上なら賛成寄り・半分未満なら反対寄り。無関心（押す力が 0）の階級は出さない。段が無い向きは null。</summary>
+    public static StakeSides? Sides(World w, LawDef def, bool increasing)
+    {
+        if (!HasStep(w, def, increasing)) return null;
+        var e = PolicyPreferences.Build(w);
+        var voices = Voices(w);
+        var (rows, _) = Pushes(w, def, voices, e, increasing);
+        var order = new List<int>();
+        var pro = new Dictionary<int, double>();
+        var con = new Dictionary<int, double>();
+        var names = new Dictionary<int, string>();
+        foreach (var r in rows)
+        {
+            if (r.Kind != StakeKind.Class) continue;
+            var v = voices[r.Index];
+            if (!pro.ContainsKey(v.ClassId)) { order.Add(v.ClassId); pro[v.ClassId] = 0; con[v.ClassId] = 0; names[v.ClassId] = v.Name; }
+            if (r.K > 0) pro[v.ClassId] += r.K; else con[v.ClassId] -= r.K;
+        }
+        var left = new List<ClassStance>();
+        var right = new List<ClassStance>();
+        foreach (int id in order)
+        {
+            double total = pro[id] + con[id];
+            if (!(total > 0)) continue;
+            double share = pro[id] / total;
+            (share >= 0.5 ? left : right).Add(new ClassStance(id, names[id], share));
+        }
+        int cur = def.Current(w);
+        return new StakeSides($"{def.StageName(cur)}→{def.StageName(cur + (increasing ? 1 : -1))}", left, right);
     }
 
     /// <summary>行の押す力の合計（試験が議会の門の純支持と突き合わせる）。向きに段が無くても求める。</summary>

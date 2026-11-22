@@ -8,7 +8,22 @@ public static class StageGate
 {
     /// <summary>法の表（<see cref="LawDef"/>）の 1 行から。</summary>
     public static StageCell Of(World w, LawDef def)
-        => Make(w, def.Axis, def.Name, def.Stages, def.LevelBase, () => def.Current(w), () => def.Target(w), v => def.SetTarget(w.Policy, v));
+    {
+        var cell = Make(w, def.Axis, def.Name, def.Stages, def.LevelBase, () => def.Current(w), () => def.Target(w), v => def.SetTarget(w.Policy, v));
+        int cur = def.Current(w);
+        // 前提法の理由は選んだ法の欄（PrereqNote）に出す＝法の表の釦の下には出さない（政治の門などの他の理由はそのまま）
+        return cell with { Why = level => level > cur && !CanReach(w, def.Axis, level, cur) ? null : Why(w, def.Axis, level, cur) };
+    }
+
+    /// <summary>選んだ法の「次の段」を動かすのに要る他の法（前提法）が満たされていない時のその語（「前提 ◯◯:△△」の形）。満たされている・次の段が無い時は null。</summary>
+    public static string? PrereqNote(World w, LawDef def)
+    {
+        int cur = def.Current(w);
+        if (cur >= def.LevelBase + def.Stages.Length - 1) return null;
+        var a = def.Axis;
+        var (ok, reason) = Government.LawPrereq(w, a, cur + 1, w.Coef);
+        return ok ? null : Plain(PlayText.FormatPrereq(reason));
+    }
 
     /// <summary>財政の項の表（<see cref="FiscalStage"/>）の 1 行から（税・教育費・軍事費の段）。</summary>
     public static StageCell Of(World w, FiscalStage st)
