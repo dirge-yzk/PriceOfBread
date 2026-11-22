@@ -685,34 +685,42 @@ public partial class GameViewModel
         var rp = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg);   // 4 区分の定義は表と同じ 1 本（国家・在地勢力・外国勢力・無統治）
         double dom = rp[0].Share, fLocal = rp[1].Share, fForeign = rp[2].Share, fUngov = rp[3].Share;
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
-        string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2), ru = HalfPie.Slice(35, 35, 34, f3, 1.0);   // 無統治＝半円では白（地図では透明・作者の指示 2026-11-23）
-        // 外国勢力＝支配している外国の国ごとの色の切れ＋国名の一覧（持分の大きい順）。持分は区分の外国勢力の分へ按分（地図の塗りと同じ）。一覧は常に 3 行＝窓の高さを変えない。
-        var fParts = new List<(string Name, double Share)>();
+        // 作者指示 2026-11-23：凡例は「国家」でなく持ち主の国の名。持ち主・外国勢力の各国・在地勢力・無統治を 1 本の一覧にして割合（支配度）の大きい順に並べ、半円の切れも同じ順。
+        //   色＝持ち主の国の色・外国は各国の色・在地勢力は黒・無統治は白（今のまま）。一覧は常に 5 行＝窓の高さを変えない（0% の項は出さない・多いときは末尾を畳む）。
+        var ents = new List<(string Name, double Share, IBrush Brush, IBrush Edge, bool Foreign)>();
+        if (dom > 0) ents.Add((nation, dom, new SolidColorBrush(NationColorByName(ownerWorld.SelfPower?.Name ?? ownerWorld.Region.Name)), Brushes.Transparent, false));
+        if (fLocal > 0) ents.Add((PriceOfBread.SimCore.Display.PopTables.RuleLocalName, fLocal, Brushes.Black, Brushes.Transparent, false));
+        if (fUngov > 0) ents.Add((PriceOfBread.SimCore.Display.PopTables.RuleUngovernedName, fUngov, Brushes.White, HoverDim, false));
         {
             double tot = 0; int fn = System.Math.Min(rg.ForeignRulers.Length, rg.ForeignShares.Length);
             for (int k = 0; k < fn; k++) if (rg.ForeignShares[k] > 0 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) tot += rg.ForeignShares[k];
             if (fForeign > 0 && tot > 0)
                 for (int k = 0; k < fn; k++)
-                    if (rg.ForeignShares[k] > 0 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) fParts.Add((rg.ForeignRulers[k], rg.ForeignShares[k] / tot * fForeign));
-            fParts.Sort((x, y) => y.Share.CompareTo(x.Share));
+                    if (rg.ForeignShares[k] > 0 && !string.IsNullOrEmpty(rg.ForeignRulers[k]))
+                        ents.Add((rg.ForeignRulers[k], rg.ForeignShares[k] / tot * fForeign, new SolidColorBrush(NationColorByName(rg.ForeignRulers[k])), Brushes.Transparent, true));   // 外国勢力の分へ按分（地図の塗りと同じ）
         }
+        var sorted = ents.OrderByDescending(e => e.Share).ThenBy(e => e.Name, System.StringComparer.Ordinal).ToList();   // 同率は名前順＝決定論
         var fSlices = new List<RuleSlice>();
         var fRows = new List<RuleForeignRow>();
         {
-            double at = f2;
-            foreach (var (fname, fshare) in fParts)
+            double at = 0;
+            foreach (var e in sorted)
             {
-                var fbrush = new SolidColorBrush(NationColorByName(fname));
-                fSlices.Add(new RuleSlice(HalfPie.Slice(35, 35, 34, at, at + fshare), fbrush));
-                at += fshare;
+                fSlices.Add(new RuleSlice(HalfPie.Slice(35, 35, 34, at, at + e.Share), e.Brush));
+                at += e.Share;
             }
-            for (int k = 0; k < 3; k++)
+            const int LegendRows = 5;
+            for (int k = 0; k < LegendRows; k++)
             {
-                if (k < fParts.Count && !(k == 2 && fParts.Count > 3))
-                    fRows.Add(new RuleForeignRow(new SolidColorBrush(NationColorByName(fParts[k].Name)), fParts[k].Name, Fmt.Share(fParts[k].Share)));
-                else if (k == 2 && fParts.Count > 3)
-                    fRows.Add(new RuleForeignRow(Brushes.Transparent, $"他 {fParts.Count - 2} か国", Fmt.Share(fParts.Skip(2).Sum(t => t.Share))));
-                else fRows.Add(new RuleForeignRow(Brushes.Transparent, "　", ""));
+                if (sorted.Count <= LegendRows ? k < sorted.Count : k < LegendRows - 1)
+                    fRows.Add(new RuleForeignRow(sorted[k].Brush, sorted[k].Name, Fmt.Share(sorted[k].Share), sorted[k].Edge));
+                else if (k == LegendRows - 1 && sorted.Count > LegendRows)
+                {
+                    var rest = sorted.Skip(LegendRows - 1).ToList();
+                    string label = rest.All(t => t.Foreign) ? $"他 {rest.Count} か国" : $"他 {rest.Count} 件";
+                    fRows.Add(new RuleForeignRow(Brushes.Transparent, label, Fmt.Share(rest.Sum(t => t.Share)), Brushes.Transparent));
+                }
+                else fRows.Add(new RuleForeignRow(Brushes.Transparent, "　", "", Brushes.Transparent));
             }
         }
         string rb = "", rbText = "";
@@ -723,9 +731,8 @@ public partial class GameViewModel
             // ★2026-09-23（作者指摘「フィラデルフィア(アメリカ(シャムの属国))」＝括弧が二重）：州名と国名は**全角スペースで並べる**。
             //   nation は属国のとき既に「アメリカ(シャムの属国)」という括弧付きの名前（:124・作者指示2026-08-03）＝これを更に括弧で包まない。
             Title = $"{rg.Name}（{nation}）", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
-            RuleState = rs, RuleLocal = rl, RuleStateBrush = new SolidColorBrush(NationColorByName(ownerWorld.SelfPower?.Name ?? ownerWorld.Region.Name)), ForeignSlices = fSlices, ForeignRows = fRows, RuleBand = rb,
-            RuleStateText = $"{Fmt.Share(dom)}", RuleLocalText = $"{Fmt.Share(fLocal)}",
-            RuleUngoverned = ru, RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
+            ForeignSlices = fSlices, ForeignRows = fRows, RuleBand = rb,
+            RuleBandText = rbText,
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
