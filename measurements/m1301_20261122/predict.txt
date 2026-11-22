@@ -1,0 +1,31 @@
+(1301) 合流（波134）の予言（merge の前にコミットする・★(711)）
+基点 dab6ec928（基線 m1294・INSRAW keep_1294/base_ins・KEEPNULL keep_1294/n1・a11・NG ng1294〔81 件〕・TESTS_NONFULL 3104）。
+main の作業ツリーには origin に無いコミットが 1 本ある（c962f61b2＝作者のセッションの Codex の画像の素材・PriceOfBread.App/Assets/Flags と docs/flag-artwork.md だけ）。
+  合流の木 m1301 はこの 1 本の上に作る＝push で origin へ出る（SimCore・Tests・Runner には触れていない＝恒等の判定に効かない）。
+作ったフォルダ：D:/PoB_work/m1301_work・D:/PoB_work/wt_m1301（枝 m1301）。この後に作る物は created.txt に書き足す。
+
+== 入れる物と外す物 ==
+恒等の線 c134tk (1295)：判定は〈不一致〉（arrears_s の 10 本＝項 B が表の中身を変えた）。事前登録 [5]〈一致しなければ、その変更を外して報告に回す〉のとおり、
+  項 B のコミット 6a83959a6（InstrumentsArrears.cs の underLimit）を戻し、項 B の試験 T5（TreasLedgerInstrumentTests.cs の class ArrearsUnderLimitPrevMonthTests）を消す。
+  項 A（treasledger_s・Close の直し・T1〜T4・T6）は入れる。反証役 v の中〈項 B〉は (a) を採った形。
+挙動の線 c134f1 (1296)：外す。反証役 v2 の〈高〉（人数 0 の都市の階級は値打ち 0 と読まれ、旗 1 では入れない＝植民地格 64 州・5534 万人が q40 で都市 0・
+  担い手の人口 0 の生産者×月が全長で 4.1 倍）が晴れていない＝〈反証役の指摘（high）が晴れない物は外す〉・正しい挙動の規律〈機構が設計した働きをしていない形は採らない〉。
+  urbd 段 3 の 2 回目の不採用に数える（3 回の規則＝残り 1 回）。記録（measurements/m1296_*・b10_20261122_c134f1B_ins*・scripts/instruments/c134f1/）だけをパスで写す。
+挙動の線 c134k49 (1298)：外す（線の自分の判定＝既定 0 の木で機構のテスト PolicyPoliticsTests の C3 の鎖の番人が赤・原因は読めていない＝㉜〈原因が読めない赤は止める〉）。
+  K49 の 1 回目の不採用に数える。記録（measurements/m1298_*・b10_20261122_m1298_k49B_ins*・mon_20261122_m1298_k49B.txt・scripts/instruments/c134k49/）だけをパスで写す。
+挙動の線 c134bi (1297)：段 0 で止めた（SimCore・Tests 0 行）＝枝の 1 コミット f4aed035a（事前登録・段 0 の台本と出力）を merge する。3 回の規則に数えない。
+読む線 c134cp (1299)：D:/PoB_work/r1299_work の台本を scripts/instruments/r1299/、表と result_1299.txt を measurements/m1299_20261122/ へ写す。
+設計の材料 c134sv (1300)：material.md・draft.md を docs/202611/20261122/ へ写す（題の行に状態・中身は書き換えない・反証役 v の訂正は末尾に足す）。台本は scripts/instruments/r1300/。
+消す名前（★(773)）：入れる差分（tk の項 A・bi）が消す名前は 0（tk の項 A は足すだけ・項 B は戻す）。
+
+== 予言（成績表のバイト一致・止める線の段と記録の段）==
+P1 合わせた木 m1301（挙動の線の旗は無い＝この木が腕 Z）：ident 段 2（計器 Instruments/ に触れる）・--added-tables treasledger_s・--tests-delta 5・PRUNE=0（新しい INSRAW に使う）。
+   素の 5 種の成績表＝b5_20261122_m1294 と全行バイト一致。計器つき 10 種の成績表＝b10_20261122_m1294_ins と全行バイト一致（名乗り行の SOURCE-HASH を除く）。
+   .cost＝推定 232.1 秒・件数の行は全て一致。計器の表＝バイト一致＋既知の揺れ 20（burscan_s・clock_s）＋腕にだけある treasledger_s の 10 本。
+   arrears_s の 10 本はバイト一致（項 B を戻したため）。宣言の無い違い 0。注視の表は一致。
+   テストの数 3109（Tests 2872＋tk 5＝2877・Ui 232）・FullLength 3。NG 81 件＝ng1294 と同じ集合（新しい 0・外れた 0）。savetest OK・leakhunt 保存則違反なし。判定: 恒等。
+P2 挙動を変えた線は入れない＝基線は m1294 のまま。M・S11・N1・N2 は回さない（止める線の段は P1 の全行一致で m1294 と同じ＝100 倍〈それ以外〉0・1e10 倍 0・非有限 0・開幕の 1000 倍 0・空洞化 1/10 未満 0）。
+P3 WriterRatchetTests の宣言の表の取り直し 0（入れる差分はエンジンに触れない）。
+P4 フルスイート：Category!=FullLength 3109（Tests 2877＋Ui 232）緑・FullLength 3 緑・--list-tests と一致。
+P5 INSRAW を keep_1301/base_ins へ＝P1 の腕の計器つき 10 種の全表（treasledger_s を含む）。BASE_COMMIT と STAGE_BASE は P1 を測った木。KEEPNULL・NG_BASE は m1294 のまま。
+記録の段（採否に使わない）：NG・nullgate・英の国債の不履行（m1294 と同じ軌道＝M 2/10）。
