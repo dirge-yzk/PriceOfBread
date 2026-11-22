@@ -1,0 +1,4 @@
+keep_1294/base_ins silverProduced n 10 median ratio 0.954 1784 76580 1913 73174 per-seed 0.93 3.47 0.92 1.53 1.46 0.67 0.82 0.95 0.96 1.01
+keep_1294/base_ins goldProduced n 10 median ratio 1.674 1784 28643 1913 49035 per-seed 4.59 1.81 1.54 1.30 2.18 1.46 1.37 1.92 1.88 1.16
+keep_1294_rej/c133b1_armB silverProduced n 10 median ratio 0.798 1784 628172 1913 490109 per-seed 0.90 0.72 0.67 0.78 0.58 0.82 1.81 0.72 0.86 1.03
+keep_1294_rej/c133b1_armB goldProduced n 10 median ratio 7.827 1784 26437 1913 236040 per-seed 19.58 6.78 13.01 5.08 14.10 7.82 1.47 35.68 1.93 7.84

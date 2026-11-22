@@ -1,0 +1,52 @@
+// (1297) c134bi 段 0 のプローブ（使い捨て・SimCore に手を入れない・エンジンの関数を呼ばない＝生産者の欄を自分で数える）。
+// 銀・金・鉄鉱石・石炭の世界の和（能力 Capacity・産出 Output・操業規模 Scale）を、構築の直後（播種の後・助走の前）・助走の四半期ごと・助走の後の四半期ごとに書く。
+// 旗は POB_COEF で渡す（ヘッダーに OverrideSummary）。引数：<種の始め> <種の終わり> <助走の四半期> <助走の後の四半期> <銀の Scale の倍率（初期値の揺らし・1＝触らない）> <出力> [焼き込みの表の JSON＝構築の直後に OpeningBake.Apply で読む]
+using System.Globalization;
+using PriceOfBread.SimCore;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong s0 = ulong.Parse(args[0]), s1 = ulong.Parse(args[1]);
+int wq = int.Parse(args[2]), after = int.Parse(args[3]);
+double silverScaleMul = double.Parse(args[4], CultureInfo.InvariantCulture);
+using var o = new StreamWriter(args[5], false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+o.WriteLine($"# c134bi probe override=[{Coefficients.OverrideSummary()}] warmup={wq} after={after} silverScaleMul={silverScaleMul} seeds={s0}..{s1}");
+o.WriteLine("seed\tphase\tq\tyear\tgood\tnProd\tsumCap\tsumOut\tsumScale\tsumStock\tmedPrice");
+string[] names = ["銀", "金", "鉄鉱石", "石炭"];
+int[] ids = names.Select(nm => Array.FindIndex(Catalog.Goods, g => g.Name == nm)).ToArray();
+for (ulong seed = s0; seed <= s1; seed++)
+{
+    var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+    if (silverScaleMul != 1.0)
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Producers)
+            if (p.GoodId == ids[0]) { p.Scale *= silverScaleMul; p.BuiltScale *= silverScaleMul; }
+    void Dump(string phase, int q)
+    {
+        int year = sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0;
+        for (int k = 0; k < ids.Length; k++)
+        {
+            int g = ids[k]; int np = 0; double cap = 0, outp = 0, sc = 0, st = 0; var px = new List<double>();
+            foreach (var n in sim.Nations)
+                foreach (var r in n.World.Regions)
+                {
+                    if (g < r.Markets.Length) { st += r.Markets[g].Stock; px.Add(r.Markets[g].Price); }
+                    foreach (var p in r.Producers)
+                    {
+                        if (p.GoodId != g) continue;
+                        np++; cap += p.Capacity; outp += p.Output; sc += p.Scale;
+                    }
+                }
+            px.Sort(); double med = px.Count == 0 ? double.NaN : px[px.Count / 2];
+            o.WriteLine(string.Join('\t', seed, phase, q, year, names[k], np, G(cap), G(outp), G(sc), G(st), G(med)));
+        }
+        o.Flush();
+    }
+    Dump("seed", 0);
+    if (args.Length > 6) { using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(args[6])); OpeningBake.Apply(sim, doc); Dump("bake", 0); }
+    int wqi = 0;
+    sim.StartWarmup(() => { wqi++; Dump("warm", wqi); }, wq);
+    for (int q = 1; q <= after; q++) { sim.Run(1); Dump("run", q); }
+    Console.WriteLine($"seed {seed} done");
+}
+Console.WriteLine("PROBEDONE");
+static string G(double x) => x.ToString("G9", CultureInfo.InvariantCulture);
