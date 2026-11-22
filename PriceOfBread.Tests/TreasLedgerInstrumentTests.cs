@@ -107,6 +107,19 @@ public class TreasLedgerInstrumentTests
     }
 
     [Fact]
+    public void T6_Closeで書き手が閉じられファイルを消せる()
+    {
+        WithInstruments(dir =>
+        {
+            var sim = NewSim();
+            Instruments.Quarter(sim, Seed, 0);
+            Instruments.Close(sim);
+            string path = System.IO.Path.Combine(dir, $"treasledger_s{Seed}.tsv");
+            using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None)) Assert.True(fs.Length > 0);
+        });
+    }
+
+    [Fact]
     public void T4_台帳を通らない国庫の動きは残差に出る()
     {
         WithInstruments(_ =>

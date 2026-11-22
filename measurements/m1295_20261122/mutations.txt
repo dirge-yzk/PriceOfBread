@@ -1,0 +1,21 @@
+== M1 前の値（台帳）を更新しない
+[xUnit.net 00:00:03.63]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T2_前の四半期の値を更新する_2四半期目は差分だけ [FAIL]
+[xUnit.net 00:00:03.97]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T3_助走明けのリベースの四半期に印と跳びを書き_その後の差分は台帳の捨てを引きずらない [
+失敗!   -失敗:     2、合格:     3、スキップ:     0、合計:     5、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+== M2 0 の科目の行も書く
+[xUnit.net 00:00:02.41]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T1_差分の行が科目ごとに一致し_残差0_0の科目は書かない [FAIL]
+[xUnit.net 00:00:02.53]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T2_前の四半期の値を更新する_2四半期目は差分だけ [FAIL]
+[xUnit.net 00:00:02.71]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T3_助走明けのリベースの四半期に印と跳びを書き_その後の差分は台帳の捨てを引きずらない [
+失敗!   -失敗:     3、合格:     2、スキップ:     0、合計:     5、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M3 リベースの印を落とし置き直さない（M5 を含む）
+[xUnit.net 00:00:02.79]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T3_助走明けのリベースの四半期に印と跳びを書き_その後の差分は台帳の捨てを引きずらない [
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M5 リベースで台帳の前の値を 0 へ置き直さない
+[xUnit.net 00:00:02.68]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T3_助走明けのリベースの四半期に印と跳びを書き_その後の差分は台帳の捨てを引きずらない [
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M4 underLimit を今月の比に戻す
+[xUnit.net 00:00:01.76]     PriceOfBread.Tests.ArrearsUnderLimitPrevMonthTests.T5_underLimitは前の月の比で判定する [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M6 TreasLedgerClose が書き手を閉じない
+[xUnit.net 00:00:05.32]     PriceOfBread.Tests.TreasLedgerInstrumentTests.T6_Closeで書き手が閉じられファイルを消せる [FAIL]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 5 s - PriceOfBread.Tests.dll (net10.0)

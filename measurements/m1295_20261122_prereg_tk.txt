@@ -29,3 +29,8 @@
 
 [4] 素の 5 種・計器つき 10 種が m1294 と名乗り行を除いて全行一致（計器の表の差は宣言だけ：treasledger_s の追加・arrears_s の underLimit 系の列）。試験の数の予言：3104＋5＝3109（Category!=FullLength 2877＋Ui 232）・FullLength 3。計算量の件数は増えない。
 [5]〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。浮動小数の順序が変わる箇所：なし（計器の側の新しい算術だけ）。
+
+[追記 2026-11-22・腕の前・フルスイートの 1 回目が赤になったため]
+ フルスイートの 1 回目で PortlmInstrumentTests が赤：treasledger_s の書き手を Instruments.Close が閉じず、試験の後始末の Directory.Delete が失敗した（他の表は XxxClose を Close から呼ぶ）。
+ 直し：TreasLedgerClose を足し Instruments.Close に 1 行（Instruments.cs の行は計 3 行になった）。試験 T6（Close の後にファイルを排他で開ける）を足す・M6（書き手を閉じない）で T6 が赤。
+ 試験の数の予言を 3104＋6＝3110（Category!=FullLength 2878＋Ui 232）に改める（T1〜T4・T6 と ArrearsUnderLimitPrevMonthTests.T5）。1 回目のフルスイートは中断し、この直しの木で最初からやり直す。

@@ -2018,6 +2018,7 @@ public static partial class Instruments
         MintcapClose(sim);     // MintcapClose（(1180)）
         CapskipClose(sim);     // CapskipClose（(1277)）
         ArrearsClose(sim);     // ArrearsClose（(1284)）
+        TreasLedgerClose(sim); // TreasLedgerClose（(1295)）
         LabelTierClose(sim);   // LabelTierClose（(1290)）
         SoldierVacClose(sim);  // SoldierVacClose（(1166)）
         SatNeedsClose(sim);    // SatNeedsClose（(1206)）
