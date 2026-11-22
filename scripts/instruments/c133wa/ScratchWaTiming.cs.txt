@@ -1,0 +1,44 @@
+using System.Diagnostics;
+using PriceOfBread.SimCore;
+using Xunit;
+using Xunit.Abstractions;
+namespace PriceOfBread.Tests;
+[Collection("Instruments")]
+public class ScratchWaTiming
+{
+    private readonly ITestOutputHelper _o; public ScratchWaTiming(ITestOutputHelper o) { _o = o; }
+    static double FullScan(IEnumerable<World> worlds)
+    {
+        double total = 0;
+        foreach (var w in worlds) foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var p in r.Producers) { double u = Discovery.EngineerUse(p); if (!(u > 0) || p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || !(Discovery.Gate(r, p) > 0)) continue; total += u; } }
+        return total;
+    }
+    [Fact]
+    public void Timing()
+    {
+        if (System.Environment.GetEnvironmentVariable("WA_TIMING") != "1") return;
+        var sim = new MultiNationSim(WorldData.Nations(), 1, _ => new UtilityAgent());
+        long tOld = 0, tSteady = 0, tRebuild = 0, builds = 0, nq = 0, buildsTotalRegionsEver = 0;
+        double dummy = 0;
+        for (int q = 0; q < 40; q++)
+        {
+            sim.StepQuarter(); nq++;
+            var ws = sim.Nations.Select(n => n.World).ToList();
+            long b0 = 0; foreach (var w in ws) foreach (var r in w.Regions) b0 += r.AdvSitesBuilds;
+            // 新の形の定常（表は sim が作り直した状態のまま）
+            Discovery.WorldAdvLabor(ws, out _);
+            long b1 = 0; foreach (var w in ws) foreach (var r in w.Regions) b1 += r.AdvSitesBuilds;
+            var sw = Stopwatch.StartNew(); for (int k = 0; k < 5; k++) dummy += Discovery.WorldAdvLabor(ws, out _); tSteady += sw.ElapsedTicks / 5;
+            sw.Restart(); for (int k = 0; k < 5; k++) dummy += FullScan(ws); tOld += sw.ElapsedTicks / 5;
+            // 全州の表を作り直させた 1 回（c131wa の無条件の形が 1 回の巡回ごとにする作り直し）
+            sw.Restart(); for (int k = 0; k < 5; k++) { foreach (var w in ws) foreach (var r in w.Regions) r.AdvSitesDirty = true; dummy += Discovery.WorldAdvLabor(ws, out _); } tRebuild += sw.ElapsedTicks / 5;
+            builds += b1 - b0;
+            if (q % 8 == 7) _o.WriteLine($"q{q} 州の作り直し(この四半期の巡回の中)={b1 - b0}");
+        }
+        long all = 0, listed = 0; foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { if (r.State != RegionState.Active) continue; all += r.Producers.Count; listed += Discovery.AdvLaborSites(r).Length / 2; }
+        _o.WriteLine($"件数 旧(全生産者)={all}・新(表)={listed}");
+        double ms = 1000.0 / Stopwatch.Frequency;
+        _o.WriteLine($"四半期数={nq} 旧の全巡回 平均/回={tOld * ms / nq:F3}ms・新の定常 平均/回={tSteady * ms / nq:F3}ms・全州作り直し+巡回 平均/回={tRebuild * ms / nq:F3}ms");
+        _o.WriteLine($"州の作り直し 合計={builds}（四半期あたり {(double)builds / nq:F2}）dummy={dummy:E3}");
+    }
+}
