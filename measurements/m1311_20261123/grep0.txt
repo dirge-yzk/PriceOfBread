@@ -1,0 +1,33 @@
+## MoneyStock
+64
+## route_anchors Simulation
+scripts/instruments/flow262/route_anchors.tsv
+11:Simulation.cs	double paid = InternationalMarket.PaySales((null, null), r, metal, want - impPart, World, minted: true);	造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)	
+60:Simulation.cs	haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);	切り下げの課税(全POP→国庫)	
+61:Simulation.cs	issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);	切り下げの新規発行(不換の発行者→国庫)	
+62:Simulation.cs	paid += World.Transfer((null, null), (World, r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? [r.Pops[r.MerchantPopIndex]] : r.Pops, null), impPart, TreasuryCat.OtherIn, income: true, outside: World.Outside.Mint);	金の輸入(造幣局→商人)	
+63:Simulation.cs	double sold = World.Transfer((World, [r.Pops[b]]), (null, null, null), qty * price, outside: World.Outside.Mint) / price;	金の売却(POP→造幣局)	
+64:Simulation.cs	World.Transfer((null, null), (World, one, unit ??= [1.0]), need, outside: World.Outside.Credit);	損失の負債化(銀行→貯蓄が負のPOP)	
+## 石油灯油 in tests/scripts/data
+PriceOfBread.Tests/DiscoveryEngineerTests.cs
+PriceOfBread.Tests/DormantIdentityTests.cs
+PriceOfBread.Tests/LampOilDuplicateRecipeTests.cs
+PriceOfBread.SimCore/Catalog.cs
+PriceOfBread.SimCore/Coefficients.p07_wiring_prewarm.cs
+PriceOfBread.SimCore/Simulation.cs
+scripts/instruments/c135k47/mut2_k47.sh
+scripts/instruments/c135k47/paper_k47.py
+scripts/instruments/c136kb/paper_kb.py
+scripts/instruments/m1308/read1308.sh
+scripts/instruments/need159/an_q11.py
+scripts/instruments/r1189/dl_table.py
+scripts/instruments/r1224/dl_table.py
+scripts/instruments/r1245/dl_table.py
+scripts/instruments/r1253/shadow2.py
+scripts/instruments/r1253/shadow2_rule.py
+scripts/instruments/r1253/shadow2_sat.py
+scripts/instruments/r1260/shadow3.py
+## Discoveries.Length in tests
+## DiscoveryRows count
+PriceOfBread.Tests/ColonialPopTests.cs:173:        foreach (var row in Enumerable.Range(0, Catalog.Discoveries.Length).Where(i => Catalog.Discoveries[i].Good == Catalog.CannedFoodId)) w.Discovered[row] = true;
+PriceOfBread.Tests/ColonialPopTests.cs:190:        foreach (var row in Enumerable.Range(0, Catalog.Discoveries.Length).Where(i => Catalog.Discoveries[i].Good == Catalog.SteamshipId)) w.Discovered[row] = true;

@@ -1,0 +1,73 @@
+(1311) c136kb 挙動（削除）の線の事前登録：K47 の焼き込み＝旗 LampOilPetroleumDupOff・「石油灯油」のレシピ・発見の行を物理に消す（S01-H019・1 回目）（2026-11-23・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発と回の数
+ 00一覧〈次の波〉1 の①。(1305) c135k47 を (1308) で採った（旗 1）。発見の行は旗 0 を旧へ戻すために残していた＝この線で消す。
+ 作者 2026-11-21 の裁定（群 4＝世界が変わる削除を毎回の波に 1〜2 本）。方針〈重要でない機能は削減〉。答え待ちではない。3 回の規則：1 回目。
+ 形の種類＝〈入口〉（灯油の近代レシピの 1 本と、その発見の行を消す）。作者が〈消す〉と決めた形＝確証あり（ヌル腕は読まない）。
+
+■ 形（項ごとに 1 コミット）
+ 項 1（恒等）：Coefficients.p07_wiring_prewarm.cs:33 の旗 LampOilPetroleumDupOff を消す。Simulation.cs:1223〜:1226（注 1 行・if・producers.Add の 2 行）を消す＝旗 1 の世界と同じ。消した注は docs/history/Simulation.cs.md の §348 へ。
+  LampOilDuplicateRecipeTests の旗 0 の T2 を消す（消したメンバーの試験の削除）・T1 の盤面から旗の代入を外す。DormantIdentityTests.cs:172 の注の行を消す。
+  腕 Z＝この木（ident 段 1・基準 m1308）で〈判定: 恒等〉。宣言 --tests-delta -1（T2）。
+ 項 2（挙動〈推〉＝下の予言で恒等に近い）：Catalog.cs:433 の発見の行 new("石油灯油", LampOilId, "石油灯油", Process, 1850) を消す＝:434 以後の行の番号が 1 つ前へずれる。
+  DiscoveryEngineerTests の名簿 RemovedDuplicateRows と、その分岐を消し、T4 で〈全ての製法の行（思想・制度の外）に英の代表の生産者が居る〉を例外なしで主張する（main 1c8873228 では「石油灯油」の行で赤）。
+  LampOilDuplicateRecipeTests に T3〈発見の表の灯油の行は「石油ケロシン」の 1 本だけ〉（Catalog の表を手で書いた名前で読む・main で赤）を足す。
+  docs/機能の台帳.md の S01-H019 の行を直す。新しい係数・状態 0。
+
+■ 段 0 の grep（行の番号を読む所・main 1c8873228）
+ 行は名前で引く：Catalog.DiscoveryRowOf(good, recipe)（Catalog.cs:520）・DiscoveryAfter（:489〜:494 名前で FindIndex）・world.json の knownDiscoveries（Simulation.cs:191 名前で引く・「石油灯油」は無い）・Megaprojects.RequiresRowOf（名前）・Discovery.PatentRow／SocialismRow／LocomotiveRow（名前）。数字の行の番号の直書き：SimCore・Tests・Runner に 0 件（grep `Discover(ed|ies)\[[0-9]+\]`）。
+ 行の数で作る配列：World.Discovered（bool[]・セーブは同じ版の往復だけ＝形は名前と型のまま・長さが 1 減る）・MultiNationSim:458／:529・BilateralMarket:49 DiscoveryImportQ・Improvement.ColumnCount（行＋財の列）・Discovery.SpreadRows（名前の種類から作る）・Discovery の Terms の配列。
+ 発見の点数：Discovery.Evaluate（Discovery.cs:494〜:502）で「石油灯油」は製法の行で代表の生産者が無い＝:502 の continue で既定の Terms＝点数 0・発見されない。発見の時計（InstrumentsClock）・発見の点数の乱数：Discovery.cs に Rng・Random は 0 件。
+ disc_s（kind T・E）：基準の生 keep_1308/base_ins の 10 種で「石油灯油」の行は 0（既に書いていない）。計器の表 約 250 種の s1 で「石油灯油」の文字は 0 件。
+ Display/DiscoveryTables.cs と Runner/Program.cs の発見の読み手：行を回すだけ＝表示から行が 1 本消える（コードは触らない・App・Display・Runner は 0 行）。
+
+■ 予言（腕の前に書く）
+ ① 項 1：旗 1 の世界と同じ＝成績表 3 枚・計器の表は全行一致（ident 段 1 で〈判定: 恒等〉）。試験は 3123→3122。
+ ② 項 2：「石油灯油」の行は世界の中で点数も需要も輸入も 0 で、乱数を使わない＝行を消しても足し算から 0 の項が抜けるだけ＝成績表と計器の表は基準の生と全行一致〈推〉。
+   それでも〈世界が変わる〉と書かれた線なので、腕 B（計器つき 10 種）で確かめる。違いが出たら、違う表と最初の行を読み、行の番号を読む所の取り違えか（破綻の候補）、0 の項の抜けか（浮動小数の順）を名乗る。
+ ③ 試験：3122＋T3 1＝3123（Tests 2891＋Ui 232）。WriterRatchetTests の宣言の表は動かない〈推〉（生産者の数は項 1 で既に旗 1 と同じ・発見の行は計数の対象でない）。動いたら ★(749) の形で取り直して名乗る。
+ ④ 計算量：±0 秒〈推〉（割り当て 0 秒）。2 秒以下は 1 本の腕で門にしない＝.cost を基準 m1308 と並べる記録。
+
+■ 門（〈作者 2026-11-16 の決まり〉①：止める線＋史実の桁の線＋単体の機構の試験）
+ G1 単体の機構の試験（盤面を試験の中で置く・main〔＝旧〕で赤・突然変異で赤）：
+  T1 LampOilDuplicateRecipeTests：英の 1 国の世界の灯油の近代レシピは「石油ケロシン」の 1 本だけ・原油 0.5・既定の行のある州 ≧3（対照の件数）。
+  T3 LampOilDuplicateRecipeTests：Catalog.Discoveries の灯油（LampOilId）の行は「石油ケロシン」の 1 本だけ（main で赤）。
+  T4 DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる：名簿なし＝製法の全ての行に英の代表の生産者（main で赤）・検査した行 ＞40・NeedsEarlierDiscovery の集合の一致（変えない）。
+ G2 止める線（この回の形をそのまま写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・価格水準の四半期比 100 倍（建国の直後〔系列の最初の行から 4 四半期以内〕と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は、基準とヌル腕 N1 の件数と並べる＝同じ台本で数え直す⑰）・1e10 倍・非有限・開幕の 1000 倍（記録＝同じ国が半分以上の種なら NG）・推定の計算量 ＞248.5 秒。
+  空洞化 T1＝an_h2.py -v4 のピークの 1/10 未満（規則 A2 の例外以外・主要国と本国格の州は例外にしない）・**線が原因と読めた件だけ**で止める＝基準 keep_1308/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+  機構と不変条件のテストの赤（走査の番人を含む）。gdp_zero10 は記録（止める線に書かない）。
+ G3 史実の桁の線（線が一番動かす量・ゲームの値÷史実が 10 倍以上か 1/10 以下で当たる・種の中央値・9 国）：
+  (a) 灯油の中の近代の灯油（石油ケロシン）の取り分 1913 年〈推 0.95〉＝基準 m1308 0.1612（比 0.170＝通る）。
+  (k) 石油ケロシンの発見の年（disc_s の kind E の 9 国の中の最初・種の中央）＝開幕 1783 からの経過年の比〈史実〈推〉1853＝70 年〉＝基準 1837（54 年・比 0.771＝通る）。
+ 記録だけ：発見の行ごとの最初の年の基準との差（paper_kb.py の〈差のある行〉）・原油の単位費用（recipeout の unitCostOutW の産出の重み＝値段の近似）・原油の産出 1913÷1870（基準 1.49・史実〈推〉65＝基準で既に当たる＝〈元からの外れ〉で門にしない）・同じ盤面の新÷旧・nullgate（O・NG）・ng.sh（基準 ng1308_20261123）・英の国債の不履行の種の数・.cost。
+ 外した物差しを門に写していない（★(675) の点検）：〈補給崩壊…倍〉〈10pt〉〈NG の正味〉はこの文書に門として 0 件。符号だけの門 0。ヌル腕の幅は記録だけ。
+
+■ 紙の台本（今の盤面 keep_1308/base_ins・台本 scripts/instruments/c136kb/paper_kb.py・出力 measurements/m1311_20261123/paper_base.txt）
+  1913：灯油の計 99172.7・既定（鯨油・魚油）85880.5・石油ケロシン 16966.0・石油灯油 0（10 種・全ての年で 0）・近代の取り分 0.1612・原油 7174.0。
+  石油ケロシンの最初の年（種 1〜10）＝1833 1834 1885 1830 1832 1860 1840 1890 1877 1830（中央 1837）。「石油灯油」の E の行 0。
+  旗 0（何もしない実装）で門が落ちるかの確かめ：G3 と G2 は世界の帯の門＝〈何もしない実装〉でも通る（予言②のとおり世界が同じ）＝働きは G1 で示す。G1 は main（＝何もしない実装）で T3・T4 が赤（下の M0）。
+
+■ 突然変異ごとの門の赤（㉚・腕の前・台本 scripts/instruments/c136kb/mut_kb.sh・使い捨ての木 D:/PoB_work/c136kb_work/mut/・出力 measurements/m1311_20261123/mut.txt）
+  M0 何もしない実装（main の木 1c8873228 で試験だけ新しい物）      → T3 赤・T4 赤（予言）
+  M1 石油ケロシンのレシピを建てない（Simulation.cs の keroDefault の Add を外す）→ T1 赤・T4 赤（予言）
+  M2 「石油灯油」の発見の行を戻す（Catalog.cs）                 → T3 赤・T4 赤（予言）
+  M3 「石油灯油」の行とレシピの両方を戻す                       → T1 赤・T3 赤（予言）
+  Mv （記録・(1305) 反証役 v の低）項 1 の木（名簿と Terms の Assert が残る木）で Discovery.cs:502 の `if (!spread && rp is null) continue;` を外す → T4 の Terms の Assert が赤か緑かを記録する（予言なし）。
+  （G2・G3 は突然変異の腕を回さない＝世界の帯の門は〈何もしない実装〉を拾わない）
+
+■ 走査の番人（㉘）と変わる件数（㉑）
+ 項 1 のコミットの直後に scripts/instruments/c136kb/scan_kb.sh（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests＋LampOilDuplicateRecipeTests・SecondRecipeContentsTests・DiscoveryEngineerTests）。項 2 の後にも回す。
+ 点検の grep（器の前）：工業化度の読み手の許可表＝触らない（工業化度の語を足さない）・`new MoneyStock(` の件数＝SimCore 64（変えない）・route_anchors.tsv（scripts/instruments/flow262）の Simulation.cs の鍵の行 6 本（:11・:60〜:64）は文の鍵で行の番号を持たない・灯油の行と別（触らない）・WriterRatchetTests の宣言の表＝ClaimProducers 1830 ほか（動かない予言）。
+ 変わる件数の予言：Catalog.Discoveries の行の数 −1。ソースを走査する件数の番人で行の数を名指す物は 0 件（Tests の grep `Discoveries.Length` に数の比べ 0 件）。
+
+■ ㉜ 旧の規則を固定する番人の grep（項 2 の前・腕 B の前）
+ 「石油灯油」を名指す試験：DiscoveryEngineerTests.cs:156（名簿＝この線で消す）・LampOilDuplicateRecipeTests（T2＝項 1 で消す・T1 の DoesNotContain は残す）・DormantIdentityTests.cs:172（注）。LampOil を名指す試験：SecondRecipeContentsTests:51（ケロシンは残る＝緑の予言）・DiscoveryScoreTests:353〜:360・:1234（ガス灯が灯油を置き換える＝灯油の財は残る＝緑の予言）・GoodIdGuardTests:100（財は残る＝緑）。
+ 置き換える旧の規則＝〈製法の行の中に代表の生産者の無い行が名簿の分だけある〉。それを固定する試験＝DiscoveryEngineerTests の T4 の名簿の分岐（この線で新しい規則〈例外なし〉へ書き換える・外す突然変異 M2 で赤）。
+
+■ 計算量の割り当て：0 秒。
+
+■ 腕
+ 腕 Z：`bash scripts/instruments/ident/ident.sh run c136kbz --tree D:/PoB_work/wt_c136kbz --tests-delta -1 --work D:/PoB_work/ident_c136kb`（項 1 のコミットの検出用の木〔wt_c136kbz・コミットしない〕・〈判定: 恒等〉が要る・㉙）。
+ 腕 B：項 2 の木で計器の束（Famine・Fiscal・Military・Revolt・WriterRatchet と Instrument）→フルスイート（分けて回し合計を --list-tests と突き合わせる）→savetest・leakhunt→ `INS=1 bash scripts/instruments/batch.sh run c136kbB 10`（表を絞る＝止める線と NG の読み手の 9 表＋disc_s・recipeout_s・prodcap_s・goods_s・fiscal_s・起こす直前に〈35GB＋8GB〉を shutil で測る）。
+ 読み手：scripts/instruments/c136kb/read_kb.sh（基準とヌル腕も同じ台本で数え直す＝⑰・表ごとの基準の生とのバイトの一致も数える）。基準の側は腕の前に回した（measurements/m1311_20261123/pre_base/）。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。㉗：紙の台本は門の破れを予言しない。
