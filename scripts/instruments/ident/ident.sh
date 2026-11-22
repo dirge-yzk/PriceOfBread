@@ -18,6 +18,7 @@
 #   --added-tables   <表の名前の頭,...>   腕にだけあってよい計器の表（足した計器）
 #   --grown-ok       <表の名前の頭,...>   列が末尾に増えてよい表（足した列）
 #   --rows-grown-ok  <表の名前の頭,...>   行が増えてよい表（基準の行〔共通の列〕が腕の行の順序つき部分列であること＝足した行だけが増える・(781)）
+#   --rewritten-tables <表の名前@検算の台本,...>  (1303) 表の中身が宣言どおり変わってよい表（台本〔基準の生・腕の生を受ける〕が 0 を返した表だけ・非 0 は不一致・台本は測る木の相対パスか絶対パス）
 #   --known-extra    <表:列[@列=値],...>  既知の揺れに足す表と列（cfg の KNOWN 以外。@列=値 はその値の行だけ。表ごとの揺れの本数を報告に出す）
 #   （flow_s は呼び出し位置 sourceFile・sourceLine を除いた行の多重集合で比べる＝並べ替え・移動は宣言なしで通る。2 つの呼び出し位置を 1 つに合わせると不一致＝その宣言はまだ無い）
 #   --tests-delta    <整数>               Category!=FullLength の数の増減（消したメンバーのテスト分だけ減ってよい＝負の数）
@@ -97,7 +98,7 @@ case "$CMD" in
       CF="${CFG:-$ROOT/scripts/instruments/ident/ident.cfg}"
       BASEINS=$(grep '^INSRAW=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r')
       KP=$(grep '^KNOWN=' "$CF" | head -1 | cut -d= -f2- | tr ',' '\n' | cut -d: -f1 | tr '\n' ',')$(grep '^PRUNE_KEEP=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r'),   # (1061) NG の読み手の 4 表は刈らない
-      i=0; while [ $i -lt ${#EXTRA[@]} ]; do case "${EXTRA[$i]}" in --added-tables|--grown-ok|--removed-tables|--rows-grown-ok|--known-extra) KP="$KP$(echo "${EXTRA[$((i+1))]}" | tr ',' '\n' | cut -d: -f1 | cut -d@ -f1 | tr '\n' ',')" ;; esac; i=$((i+1)); done
+      i=0; while [ $i -lt ${#EXTRA[@]} ]; do case "${EXTRA[$i]}" in --added-tables|--grown-ok|--removed-tables|--rows-grown-ok|--known-extra|--rewritten-tables) KP="$KP$(echo "${EXTRA[$((i+1))]}" | tr ',' '\n' | cut -d: -f1 | cut -d@ -f1 | tr '\n' ',')" ;; esac; i=$((i+1)); done
       SAVED=""; i=0; while [ $i -lt ${#EXTRA[@]} ]; do [ "${EXTRA[$i]}" = "--save" ] && SAVED="${EXTRA[$((i+1))]}_"; i=$((i+1)); done
       PRESPEC=$(grep '^PRESPEC=' "$CF" | head -1 | cut -d= -f2- | tr -d '\r'); [ -n "$PRESPEC" ] && PRESPEC="$ROOT/$PRESPEC"   # (1061) cfg の物（m1053 の決め打ちをやめた）
       # (1054) manifest は measurements/ident_<日付>_<ラベル>_manifest.tsv へ写す（--save が無ければ日付なし）。--allow は自分の作業フォルダの名だけ。
