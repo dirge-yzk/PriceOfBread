@@ -184,8 +184,8 @@ public partial class GameViewModel
             string powName = pow.Name;
             // 宣戦布告は 1 本（2026-11-11 作者指示）：統一戦争ができる相手は同じ押し釦の地の色を変え、押すと統一戦争の確かめの窓へ
             object? declare = showUnif && canUnif ? new VerbCell("宣戦布告", true, () => DiploUnifWarCommand.Execute(powName), null, null, UnificationFill)
-                            : showInvade ? new VerbCell("宣戦布告", canInvade, () => DiploInvadeCommand.Execute(powName), null, ReasonTip(invReason))
-                            : showUnif ? new VerbCell("宣戦布告", false, () => DiploUnifWarCommand.Execute(powName), null, ReasonTip(unifReason))
+                            : showInvade ? new VerbCell("宣戦布告", canInvade, () => DiploInvadeCommand.Execute(powName), null, ReasonTip(invReason), TipOnHover: true)
+                            : showUnif ? new VerbCell("宣戦布告", false, () => DiploUnifWarCommand.Execute(powName), null, ReasonTip(unifReason), TipOnHover: true)
                             : null;
             rows.Add(new RowData(pow.Name, name, rank,
                 [new NumberCell(oi + 1), new TextCell(name, null, Swatch: NationInk.PolityInk(derived)), new TextCell(badge, null, BadgeFill: badgeFill),

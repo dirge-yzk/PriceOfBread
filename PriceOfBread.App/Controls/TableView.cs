@@ -544,10 +544,13 @@ public sealed class TableView : UserControl
                     btn.Tag = vb;   // 押した時に呼ぶのは最新の動詞
                     btn.Click -= OnVerbClick; btn.Click += OnVerbClick;
                     b.Background = Brushes.Transparent;
-                    // 押せない理由は動詞の下に常に見せる（ホバーは廃止・作者の指示 2026-11-11）。押せる動詞には出さない
+                    // 押せない理由は動詞の右に常に見せる（作者の指示 2026-11-11）。押せる動詞には出さない。TipOnHover の動詞（宣戦布告）だけ指を乗せた時に出す（作者の指示 2026-11-23）
                     var note = (TextBlock)sp.Children[1];
-                    note.Text = vb.Enabled || string.IsNullOrEmpty(vb.Tip) ? "" : vb.Tip;
+                    string reason = vb.Enabled || string.IsNullOrEmpty(vb.Tip) ? "" : vb.Tip;
+                    note.Text = vb.TipOnHover ? "" : reason;
                     note.IsVisible = note.Text.Length > 0;
+                    ToolTip.SetTip(btn, vb.TipOnHover && reason.Length > 0 ? reason : null);   // 押せない釦にも出す（ShowOnDisabled）
+                    ToolTip.SetShowOnDisabled(btn, vb.TipOnHover && reason.Length > 0);
                     break;
             }
         }

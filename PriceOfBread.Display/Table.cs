@@ -24,7 +24,7 @@ public sealed record StageCell(IReadOnlyList<string> Labels, int LevelBase, int 
 
 /// <summary>行の動詞 1 つの中身（侵略・統一戦争・調停・補助金・専売・建設）。押した時に呼ぶのは本体の口だけ。
 /// <paramref name="Tip"/>＝押せない理由（押し釦の右に出す。null か空なら出さない）。<paramref name="Fill"/>＝押し釦の地の色（「#RRGGBB」・統一戦争ができる宣戦布告など）。</summary>
-public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null, string? Fill = null);
+public sealed record VerbCell(string Name, bool Enabled, Action Invoke, string? ConfirmText = null, string? Tip = null, string? Fill = null, bool TipOnHover = false);   // TipOnHover＝押せない理由を右に書かず、指を乗せた時だけ出す（宣戦布告・作者の指示 2026-11-23）
 
 /// <summary>積み上げの棒 1 本の中身（<paramref name="Full"/> の入れ物に、項ごとに色を塗り分けた長さを積む。発見の技術力・必要性・伝わり＝100 で解禁）。
 /// <paramref name="Parts"/>＝（値・色「#RRGGBB」）。和が入れ物を超えた分は描かない。</summary>
