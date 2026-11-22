@@ -685,7 +685,7 @@ public partial class GameViewModel
         var rp = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg);   // 4 区分の定義は表と同じ 1 本（国家・在地勢力・外国勢力・無統治）
         double dom = rp[0].Share, fLocal = rp[1].Share, fForeign = rp[2].Share, fUngov = rp[3].Share;
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
-        string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2);   // 無統治の分は塗らない（地図と同じ＝透明）
+        string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2), ru = HalfPie.Slice(35, 35, 34, f3, 1.0);   // 無統治＝半円では白（地図では透明・作者の指示 2026-11-23）
         // 外国勢力＝支配している外国の国ごとの色の切れ＋国名の一覧（持分の大きい順）。持分は区分の外国勢力の分へ按分（地図の塗りと同じ）。一覧は常に 3 行＝窓の高さを変えない。
         var fParts = new List<(string Name, double Share)>();
         {
@@ -725,7 +725,7 @@ public partial class GameViewModel
             Title = $"{rg.Name}（{nation}）", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
             RuleState = rs, RuleLocal = rl, RuleStateBrush = new SolidColorBrush(NationColorByName(ownerWorld.SelfPower?.Name ?? ownerWorld.Region.Name)), ForeignSlices = fSlices, ForeignRows = fRows, RuleBand = rb,
             RuleStateText = $"{Fmt.Share(dom)}", RuleLocalText = $"{Fmt.Share(fLocal)}",
-            RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
+            RuleUngoverned = ru, RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
