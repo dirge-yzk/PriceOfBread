@@ -35,30 +35,34 @@ def main():
     need = ('quarter', 'nation', 'payRate', 'govDebt', 'warm') + FREE + ('predOld',)
     if any(n not in ix for n in need):
         viol('(a) 必要な列が無い'); return finish(bad, 0, 0, 0, 0)
-    keyidx = [ix['payRate'], ix['govDebt']]   # 月の鍵＝（四半期・国）の中で払える率と国債（月ごとに違う）。他の列は共通の行で突き合わせる
     fixed = [i for h, i in ix.items() if h not in KEYCOLS_SKIP]
+    keyidx = fixed   # 月の鍵＝自由でない列の全部＋同じ鍵の何番目か（払える率が 1 に張り付く月は同じ値が続く）
+    near = [ix['payRate'], ix['govDebt']]   # 残った基準だけの行と腕だけの行がこれで一致したら、自由でない列が変わった行（(c) の違反）
 
-    def owes_of(r):
-        return float(r[ix['payRate']]) < 1 and float(r[ix['govDebt']]) > 1e-9 and r[ix['underLimit']] == '0' and r[ix['warm']] == '0'
+    def owes_of(r):   # None＝判定できない（payRate は 10 桁に丸めて書かれる＝1 と書かれた行は r＜1 かもしれない）
+        pr = float(r[ix['payRate']])
+        rest = float(r[ix['govDebt']]) > 1e-9 and r[ix['underLimit']] == '0' and r[ix['warm']] == '0'
+        if not rest: return False
+        if pr >= 1 - 1e-9: return None
+        return True
 
     # (b) 自分の列で owes が成り立つ
     for tag, rows in (('基準', rb), ('腕', ra)):
         n = 0
         for k, r in enumerate(rows):
-            if (r[ix['owes']] == '1') != owes_of(r):
+            o = owes_of(r)
+            if o is not None and (r[ix['owes']] == '1') != o:
                 n += 1
                 if n <= 2: viol(f'(b) {tag} の行 {k + 2} で owes が自分の列と食い違う')
         if n > 2: viol(f'(b) {tag} の食い違いは計 {n} 行')
 
     def group(rows, tag):
-        g = OrderedDict(); dup = 0
+        g = OrderedDict(); cnt = {}
         for r in rows:
             gk = (r[ix['quarter']], r[ix['nation']])
             key = tuple(r[i] for i in keyidx)
-            d = g.setdefault(gk, OrderedDict())
-            if key in d: dup += 1
-            d[key] = r
-        if dup: viol(f'(c) {tag} に鍵の重複 {dup} 行')
+            c = cnt.get((gk, key), 0); cnt[(gk, key)] = c + 1
+            g.setdefault(gk, OrderedDict())[key + (str(c),)] = r
         return g
 
     gb, ga = group(rb, '基準'), group(ra, '腕')
@@ -76,6 +80,10 @@ def main():
         if cb != ca:
             viol(f'(c) {gk} の共通の行の順序が違う')
         # この四半期の食い違いは先に数える（cum は同じ四半期の後の行にも及ぶ）
+        nb = {tuple(db[k][i] for i in near) for k in kb if k not in sa}
+        for k in ka:
+            if k not in sb and tuple(da[k][i] for i in near) in nb:
+                viol(f'(c) {gk} で基準だけの行と腕だけの行が月の値で一致（自由でない列が変わった行）')
         for k in kb:
             if k not in sa:
                 bo += 1; dirty.add(nat)
