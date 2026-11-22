@@ -1,0 +1,15 @@
+(1294) 合流が消した物（2026-11-22）
+自分で作った物：
+- 最初の木（wa→cl→mr）の腕 Z の生 D:/PoB_work/ident_m1294z（keepsum wa_eval/keepsum_identz_wa.tsv・判定の写し wa_eval/ident_m1294z_with_wa.txt）と組み直した木の腕 Z の生（判定: 恒等で 130 本に刈った後・manifest measurements/ident_20261122_m1294z_manifest.tsv）
+- 最初の木の M・S11 の生（keepsum wa_eval/keepsum_mM_wa.tsv・keepsum_mS11_wa.tsv・読み手の表 wa_eval/readM_wa_txt・readS11_wa_txt）
+- 組み直した木の M・S11・N1 の ins 以外の出力・p5 の出力・src_*・suite_scan（ins は keep_1294 へ移した）
+- worktree wt_m1294z（枝 m1294z）・ローカルの枝 m1294wa（最初の木・origin に無い）
+線の物（線の報告が〈合流の判断で消してよい〉と書いた物・keepsum を取ってから）：
+- D:/PoB_work/c133mr_work（腕 B の生＝合わせた木の M と全行一致・keepsum_c133mrB.tsv）
+- D:/PoB_work/ident_c133cl（刈った残り 120 本・keepsum_ident_c133cl_left.tsv・刈った分は measurements/ident_20261122_c133cl_manifest.tsv）・c133cl_work
+- D:/PoB_work/ident_c133wa（keepsum_ident_c133wa_left.tsv・measurements/keepsum_ident1288.tsv）・c133wa_work
+- D:/PoB_work/c133b1_work（腕 B の ins は keep_1294_rej/c133b1_armB へ移した・残りの出力を消した）
+- worktree wt_c133wa・wt_c133cl・wt_c133mr・wt_c133b1 とローカルの枝 c133wa・c133cl・c133mr・c133b1（origin の枝は残す）
+古い keep（ident.cfg を keep_1294 へ替えて push した後・指示〈keep_1287_rej は ak が読み終えた後なら合流が消してよい〉）：
+- D:/PoB_work/keep_1287_rej（T1_M・T1_S11＝measurements/m1287_20261122/keepsum_rej_T1_*.tsv・c132df_armB＝keepsum_rej1287_c132df_armB.tsv・ak の要る行は measurements/m1292_20261122/akmola_T1M_s6/）
+残した物：keep_1287（一世代前の基線の生・消すのは作者のセッション）・keep_1294・keep_1294_rej・D:/PoB_work/r1292_work・r1293_work（読む線と設計の材料の作業フォルダ・写した後も残す＝(1287) と同じ）
