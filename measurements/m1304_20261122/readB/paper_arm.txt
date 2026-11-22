@@ -1,0 +1,12 @@
+seed	G1	capColHome0	capColCivil	maxSovColCap	ukRemitToGdp1913	G1nations
+1	0	0	0	0	0.001392	
+2	0	0	0	0	0.002306	
+3	0	0	0	0	0.001401	
+4	0	0	0	0	0.000425	
+5	0	0	0	0	0.001232	
+6	0	1	1	1	0.000168	
+7	0	0	0	0	0.002265	
+8	0	1	4	1	0.002246	
+9	0	1	8	1	0.001697	
+10	0	1	3	1	0.002177	
+計	G1=0	capColHome0=4	capColCivil=16	maxSovColCap の種の中央=0・最大=1
