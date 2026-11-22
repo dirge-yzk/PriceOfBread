@@ -97,3 +97,7 @@
 - 腕 Z：m1294 で代える（§0）。
 - 腕 B：既定 0 の木・`INS=1 bash scripts/instruments/batch.sh run c134k49B 10`（計器つき 10 種・種 1〜10・台本 scripts/instruments/c134k49/armb.sh）・表を絞る（⓪(a)：POB_INSTRUMENTS_TABLES＝nation_s・stock_s・wars_s・casualty_s・region_s・migration_s・pxmonth_s・scalars_s・fiscal_s〔止める線の台本と ng.sh と ukdef975 が開く表＝c133mr の腕 B と同じ〕＋factory_s〔mag_k49・rec_k49〕＋capinv_s〔投資の表・記録〕）。D: は 4〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る（計画の時点 148.3GB）。
 - 読み手：scripts/instruments/c134k49/read_k49.sh（c133mr/read_mr.sh の写し・mag_k49 と rec_k49 を足した）。腕 B の生は合流の判断まで消さない（D:/PoB_work/c134k49_work/armB/out_c134k49B_10/ins）。
+
+## 12. 追記 1（腕 B の前・2026-11-22）
+- ㉘ の走査の番人（既定 0 の木 fd03bd375・scan_k49.sh）：146 本中 3 本赤＝WriterRatchetTests.計算量の見た件数は宣言した表を超えない の item 6〈請求：見た生産者（月）〉1700→1850（+8.8%）・item 37〈中身の無い物（その他）〉63990→65445（+2.3%）・item 11〈外交：覇権の判定の国×国〉2844252→1667552（−41%）。§6 で予告した型（軌道の件数を写しただけの番人＝★(749)）＝表を実測へ取り直した（519d9d5c1・新しい計数の処理は無い・機構の向きと大きさを主張しない番人）。他の 143 本は緑（InvestMomentumDeletionTests 4・DormantIdentityTests・OnDoubleReadScanTests ほか）。
+- 突然変異（mut_k49.sh・measurements/m1298_20261122/mut/）：μ0 T1・T2 赤／μ1 T1・T2・T3 赤／μ2 T4 赤／μ3 T1・T2 赤。§4 の表との違いは μ3 の T3 だけ（予言 赤→実際 緑）：T3 は A と B の差（勢いの項だけが作る）を読む＝利幅の係数を変えても差は同じ。μ3 は T1・T2 の手の式で赤＝門の穴ではない。表は直さず、この外れを記録する。
