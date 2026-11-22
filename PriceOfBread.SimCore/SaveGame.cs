@@ -25,7 +25,6 @@ public static class SaveGame
         if (bands != Pop.Layout.Bands) throw new InvalidDataException($"セーブデータの年齢の層の数（{bands}）が今の設定（{Pop.Layout.Bands}・POB_AGE_BANDS）と違う");
         object? root = new GraphReader(br).ReadValue();
         var sim = root as MultiNationSim ?? throw new InvalidDataException("セーブデータの復元に失敗（ルートが MultiNationSim でない）");
-        foreach (var n in sim.Nations) Fiscal.SeedBondHoldings(n.World);
         return sim;
     }
 
