@@ -19,6 +19,7 @@ public partial class MainWindow : Window
         // UI自動撮影モード（#134・2026-07-25）：`--uishot <dir>` 起動でタイトル→自動開始→目標年まで進行→全タブを連番PNG保存→終了。
         // 開発ビルドの実地UI確認を無人化する恒久機能（外部の画面操作ツールに依存しない）。
         if (Program.UiShotDir is not null) Opened += (_, _) => RunUiShot(Program.UiShotDir);
+        if (Program.UiShotDir is not null && !Program.UiShotVisible) HideForShots();
         if (Program.PerfOut is not null) Opened += (_, _) => RunPerf(Program.PerfOut);
         if (Program.BakeMaskOut is not null) Opened += (_, _) => { try { MapPane.BakeLandmask(Program.BakeMaskOut, Program.BakeMaskForRoads); } catch (Exception ex) { BootLog.Write("bakemask 失敗: " + ex.Message); } Environment.Exit(0); };
     }
@@ -187,10 +188,23 @@ public partial class MainWindow : Window
         BootLog.Write($"uishot: 外側の流れ[{tag}] {(!outerFlowing ? "流れていない" : "流れている")}　窓{Bounds.Width:F0}×{winH:F0}・本体{gvH:F0}　{string.Join(" / ", parts)}");
     }
 
-    /// <summary>撮影の窓を 1920 幅へ（フルスクリーン→最大化の順に試す）。画面の状態で窓の状態が効かない回があったので、大きさを BootLog に残す。</summary>
+    /// <summary>撮影の窓を画面の外に 1920×1080 で置く（手前に出さない・タスクバーに出さない・枠なし＝中身が 1920×1080）。</summary>
+    private void HideForShots()
+    {
+        ShowActivated = false;
+        ShowInTaskbar = false;
+        WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+        CanResize = false;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Width = 1920; Height = 1080;
+        Position = new PixelPoint(-20000, -20000);
+    }
+
+    /// <summary>撮影の窓を 1920 幅へ（フルスクリーン→最大化の順に試す）。画面の状態で窓の状態が効かない回があったので、大きさを BootLog に残す。
+    /// 画面に出さない撮影（既定）は <see cref="HideForShots"/> で既に 1920 幅＝窓の状態は変えない（フルスクリーンにすると画面に出る）。</summary>
     private async Task EnsureBigWindow()
     {
-        for (int i = 0; i < 3 && Bounds.Width < 1800; i++)
+        for (int i = 0; i < 3 && Bounds.Width < 1800 && Program.UiShotVisible; i++)
         {
             WindowState = i == 1 ? WindowState.Maximized : WindowState.FullScreen;
             await Task.Delay(900);

@@ -34,6 +34,8 @@ sealed class Program
     public static string? UiShotDir;
     public static int UiShotNation = 2;   // 既定＝イギリス（world.json順：仏0・日1・英2・米3）
     public static int UiShotYear = 1793;  // 既定＝10年進めて市場・貿易が立った状態（複数の年を渡した時は最後の年）
+    /// <summary>撮影の窓を画面に出すか（既定は出さない＝画面の外に置き・手前に出さず・タスクバーにも出さない。写す処理は窓の視覚木を直接描くので見えている必要が無い・作者の指示 2026-11-22「UI を確認するたびにゲームを起動されると作業が中断する」）。</summary>
+    public static bool UiShotVisible;
     public static int[] UiShotYears = { 1793 };   // `--uishot <dir> <国> 1790,1800,1810`：各年に着いたら一時停止して全ページを <dir>/<年>/ に撮る。年が 1 つなら <dir> 直下（従来どおり）
     // ★観戦モード（`--autoplay`・単独でも `--uishot` と一緒でも）：選んだ国にも効用AIを差し、画面は通常と同じ。MainWindowViewModel.Spectate の初期値。
     public static bool Autoplay;
@@ -93,6 +95,7 @@ sealed class Program
                     else BootLog.Write($"uishot: 年の引数が読めない「{args[i + 3]}」→既定の{UiShotYear}年");
                 }
             }
+            else if (args[i] == "--uishot-visible") UiShotVisible = true;
             else if (args[i] == "--autoplay") Autoplay = true;
             else if (args[i] == "--seed" && i + 1 < args.Length)
             {
