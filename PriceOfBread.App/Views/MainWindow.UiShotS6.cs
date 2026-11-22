@@ -54,7 +54,7 @@ public partial class MainWindow
             gvm.OpenSlotCommand.Execute(Slot.Market); await Task.Delay(500);
             BootLog.Write($"uishot: 市場[もう一度Q＝窓が閉じる] {Now()}");
 
-            // ---- 年表の 3 つの絞り（左の列）----
+            // ---- 年表の 3 つの絞り（画面下の帯）----
             lay.Reset();
             await Task.Delay(800);
             foreach (var (key, name) in new[] { ("world", "全国"), ("great", "列強"), ("mine", "自国") })
@@ -67,6 +67,7 @@ public partial class MainWindow
                 Capture(dir, $"{no():D2}_S6_年表_{name}.png");
             }
             gvm.SetNewsFilterCommand.Execute("world");
+            BootLog.Write("uishot: 年表の種類（残した/消した）" + string.Join("　", gvm.NewsKindTally.OrderByDescending(kv => kv.Value.Kept + kv.Value.Dropped).Select(kv => $"{kv.Key} {kv.Value.Kept}/{kv.Value.Dropped}")));
 
             // ---- 列の左端の判定が働くことの確かめ：段の押し釦の入れ物を中央寄せに戻すと、判定が左端のずれを出す（直した判定は積み上げでなく中身の位置を測る）----
             lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
