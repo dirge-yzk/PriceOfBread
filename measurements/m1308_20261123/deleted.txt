@@ -1,0 +1,5 @@
+(1308) 合流が消した物（第 1 段の push 055992e7d の後・★(1267)・指示の許し〈新しい ident.cfg を push した後は INSRAW でも KEEPNULL でもない古い keep を消してよい〉）
+D:/PoB_work/keep_1294/base_ins（29.4GB・INSRAW でも KEEPNULL でもない・要約 measurements/keepsum_insraw1294.tsv）
+D:/PoB_work/keep_1301_rej（3.7GB・c134f1_armB と c134k49_armB＝読む線 c3 と設計の材料 ub が読み終えた・要約 measurements/m1301_20261122/keepsum_rej1301_*.tsv）
+D:/PoB_work/ident_c135tl（10.8GB・線 tl の ident の生・線が〈合流が消してよい〉・要約 measurements/m1308_20261123/keepsum_ident_c135tl.tsv）
+空き 69.3GB → 113.2GB。keep_1294 の n1・a11（KEEPNULL）と keep_1301/base_ins（INSRAW）は残した。
