@@ -42,8 +42,8 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                var (sim, prices) = BuildWarmedSim(playerIndex, spectate);
-                Dispatcher.UIThread.Post(() => FinishStart(loading, sim, playerIndex, prices));
+                var sim = BuildWarmedSim(playerIndex, spectate);
+                Dispatcher.UIThread.Post(() => FinishStart(loading, sim, playerIndex));
             }
             catch (Exception ex)
             {
@@ -60,11 +60,11 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>助走済みのシムからゲーム画面へ（UIスレッド専用＝GameViewModel はタイマーを起動する）。
     /// ★読み込み画面が既に別画面へ差し替わっていたら捨てる（uishot のフォールバック等に追い越された
     /// 遅着の世界で現画面を潰さない）。</summary>
-    private void FinishStart(LoadingViewModel loading, MultiNationSim sim, int playerIndex, List<double>[]? warmupPrices)
+    private void FinishStart(LoadingViewModel loading, MultiNationSim sim, int playerIndex)
     {
         loading.Stop();
         if (!ReferenceEquals(CurrentPage, loading)) return;
-        CurrentPage = Wire(new GameViewModel(sim, playerIndex, warmupPrices, GoToTitle, LoadQuick));
+        CurrentPage = Wire(new GameViewModel(sim, playerIndex, GoToTitle, LoadQuick));
     }
 
     /// <summary>新規ゲームの世界を組んで開始前の助走を回す（SimCore の純粋計算のみ＝どのスレッドでも安全）。
@@ -73,9 +73,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <para>地図中心UI（2026-06-29 再構成）：世界全体を描くため world.json の全国家を投入（先頭7＝従来の選択可能国と同順＝playerIndex 互換）。</para>
     /// <para>開始前の助走（作者裁定2026-08-10）＝**自己対戦バッチと同じ1本**（<see cref="MultiNationSim.StartWarmup"/>）を通す。
     /// 長さは Coefficients.StartWarmupQuarters の1本で決まる。助走は暦を進めない（World.WarmupFrozen）＝エンジンの開始日も表示と同じ 1783/01/01。</para>
-    /// <para>★助走中の価格標本は素の List&lt;double&gt; に積む（Avalonia の型に触れない）＝GameViewModel が引き取って
-    /// 価格グラフの先頭になる（作者フィードバック2026-08-10 項目1＝開幕の1四半期目から線が引ける）。刻みは本編と同じ四半期
-    /// ＝x軸は一様。観測だけ＝力学は不変。式と40本上限は GameViewModel.Production.cs の SampleWorldPrices の1本（呼ぶだけ）。</para></summary>
+    /// </summary>
     // ★A2'（2026-09-05・動作改善）：助走済みの世界の**キャッシュ**。起動の約31秒は StartWarmupQuarters=20 の助走（シム定義＝変えない）。
     //   2回目以降は SaveGame（savetest でビット恒等）から読むだけ＝数秒。鍵＝SimCore の MVID（ビルドごとに変わる＝コード/埋め込みデータの変更で自動失効）
     //   ＋playerIndex（プレイヤー国だけ NullAgent＝国ごとに別）＋助走長。書けない/読めないときは従来どおり組む（致命的にしない）。
@@ -84,9 +82,9 @@ public partial class MainWindowViewModel : ViewModelBase
         var mvid = typeof(MultiNationSim).Assembly.ManifestModule.ModuleVersionId.ToString("N");
         return System.IO.Path.Combine(GameViewModel.SaveDir, SimFactory.WarmCacheFileName(mvid, playerIndex, new Coefficients().StartWarmupQuarters, spectate, Program.Seed));   // 観戦は鍵が別（世界が別物）・種も鍵
     }
-    private const string WarmMagic = "POBWARM1";
+    private const string WarmMagic = "POBWARM2";
 
-    private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSim(int playerIndex, bool spectate)
+    private static MultiNationSim BuildWarmedSim(int playerIndex, bool spectate)
     {
         string cachePath = WarmCachePath(playerIndex, spectate);
         try
@@ -98,18 +96,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 using var br = new System.IO.BinaryReader(fs, System.Text.Encoding.UTF8, leaveOpen: true);
                 if (br.ReadString() == WarmMagic)
                 {
-                    int nLists = br.ReadInt32();
-                    List<double>[]? hist = nLists > 0 ? new List<double>[nLists] : null;
-                    for (int i = 0; i < nLists; i++)
-                    {
-                        int n = br.ReadInt32();
-                        var l = new List<double>(n);
-                        for (int k = 0; k < n; k++) l.Add(br.ReadDouble());
-                        hist![i] = l;
-                    }
                     var cached = SaveGame.Load(fs);
                     BootLog.Write($"⏱ 助走キャッシュから読み込み {sw.ElapsedMilliseconds}ms（{System.IO.Path.GetFileName(cachePath)}）");
-                    return (cached, hist);
+                    return cached;
                 }
             }
         }
@@ -121,34 +110,29 @@ public partial class MainWindowViewModel : ViewModelBase
             using var fs = System.IO.File.Create(cachePath);
             using var bw = new System.IO.BinaryWriter(fs, System.Text.Encoding.UTF8, leaveOpen: true);
             bw.Write(WarmMagic);
-            var hist = built.PriceHist;
-            bw.Write(hist?.Length ?? 0);
-            if (hist is not null) foreach (var l in hist) { bw.Write(l.Count); foreach (var v in l) bw.Write(v); }
             bw.Flush();
-            SaveGame.Save(built.Sim, fs);
+            SaveGame.Save(built, fs);
             BootLog.Write($"助走キャッシュを書いた（{System.IO.Path.GetFileName(cachePath)}）");
         }
         catch (Exception ex) { BootLog.Write($"助走キャッシュ書き込み失敗: {ex.Message}"); }
         return built;
     }
 
-    private static (MultiNationSim Sim, List<double>[]? PriceHist) BuildWarmedSimFresh(int playerIndex, bool spectate)
+    private static MultiNationSim BuildWarmedSimFresh(int playerIndex, bool spectate)
     {
         // プレイヤー国は NullAgent（介入なし）＝UIが政策を握る。他国は効用AI。観戦は全国が効用AIで IsPlayer なし（SimFactory.Make）。
         var sim = SimFactory.Make(WorldData.Nations(), playerIndex, spectate, Program.Seed);
-        var player = sim.Nations[playerIndex].World;
         // ★専売は材を1つも選ばない状態で開始（作者裁定2026-09-20＝率という状態が無い）＝World.StateMonopolyMargins が全て0の既定そのもの。書き込みは不要。
-        List<double>[]? hist = null;
-        sim.StartWarmup(() => hist = GameViewModel.SampleWorldPrices(sim, player, hist));   // 本編の四半期標本と同じ1本（2026-09-11 #19a）
-        return (sim, hist);
+        sim.StartWarmup();
+        return sim;
     }
 
     // UI自動撮影モード（#134）：国選択画面を飛ばして直接開始。★ここは同期のまま（UIスレッドで組む）＝撮影側は
     // 「盤面が出ている」前提で次の操作へ進むため、裏スレッド化しない（uishot 専用の入口・実プレイヤーは通らない）。
     public void AutoStart(int playerIndex)
     {
-        var (sim, prices) = BuildWarmedSim(playerIndex, Spectate);
-        CurrentPage = Wire(new GameViewModel(sim, playerIndex, prices, GoToTitle, LoadQuick));
+        var sim = BuildWarmedSim(playerIndex, Spectate);
+        CurrentPage = Wire(new GameViewModel(sim, playerIndex, GoToTitle, LoadQuick));
     }
     // 同モード：国選択画面そのものを撮るための入口（AutoStart はここを飛ばすので、この画面だけ無人で確認できなかった）。
     public void ShowNationSelect() => GoToNationSelect();
@@ -171,7 +155,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var sim = old.Sim;
         if (newIndex < 0 || newIndex >= sim.Nations.Count) return;
         old.Shutdown();
-        var vm = Wire(new GameViewModel(sim, newIndex, null, GoToTitle, LoadQuick));
+        var vm = Wire(new GameViewModel(sim, newIndex, GoToTitle, LoadQuick));
         if (notice.Length > 0) vm.ShowNotice(notice);
         CurrentPage = vm;
     }
@@ -181,13 +165,13 @@ public partial class MainWindowViewModel : ViewModelBase
         if (CurrentPage is not GameViewModel old) return;
         var sim = old.Sim;
         if (newIndex < 0 || newIndex >= sim.Nations.Count) return;
-        if (old.Spectating) { old.Shutdown(); CurrentPage = Wire(new GameViewModel(sim, newIndex, null, GoToTitle, LoadQuick)); return; }   // 観戦は操作者も IsPlayer も触らず画面だけ付け替える
+        if (old.Spectating) { old.Shutdown(); CurrentPage = Wire(new GameViewModel(sim, newIndex, GoToTitle, LoadQuick)); return; }   // 観戦は操作者も IsPlayer も触らず画面だけ付け替える
         int oldIndex = old.PlayerIndex;
         sim.Nations[oldIndex].SetAgent(new UtilityAgent());
         sim.Nations[newIndex].SetAgent(new NullAgent());
         foreach (var p in sim.Diplomacy.Powers) p.IsPlayer = false;
         sim.Nations[newIndex].World.SelfPower!.IsPlayer = true;
         old.Shutdown();
-        CurrentPage = Wire(new GameViewModel(sim, newIndex, null, GoToTitle, LoadQuick));
+        CurrentPage = Wire(new GameViewModel(sim, newIndex, GoToTitle, LoadQuick));
     }
 }

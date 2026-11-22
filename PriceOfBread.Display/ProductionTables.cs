@@ -132,10 +132,9 @@ public sealed class ProductionStats
     }
 }
 
-/// <summary>財の表の 1 行（盤の節点も同じ値から作る）。<paramref name="PriceGap"/>＝首都の値段（為替込み）÷世界価格 − 1（世界に無い財・世界価格が立たない財は NaN）。
-/// <paramref name="InpFill"/>＝原料の充足率（産出が無い月は測っていない＝NaN）。<paramref name="SurplusRate"/>＝(国内生産 − 国内消費) ÷ 国内生産（生産が実用ゼロは NaN）。</summary>
+/// <summary>財の表の 1 行（盤の節点も同じ値から作る）。<paramref name="InpFill"/>＝原料の充足率（産出が無い月は測っていない＝NaN）。<paramref name="SurplusRate"/>＝(国内生産 − 国内消費) ÷ 国内生産（生産が実用ゼロは NaN）。</summary>
 public sealed record GoodLine(int Good, string Name, bool IsFactory, bool None, bool Blocked, bool HasProducer, bool Inactive,
-                              double Prod, double Sold, double Exp, double Imp, double Util, double InpFill, double SurplusRate, double PriceGap,
+                              double Prod, double Sold, double Exp, double Imp, double Util, double InpFill, double SurplusRate,
                               int State, int Private, int Pending, int Planned);
 
 /// <summary>設備の表の 1 行（財ごと）。<paramref name="Share"/>＝自国の設備の合計に占める割合／<paramref name="StateShare"/>＝その財の設備のうち国営の持分／<paramref name="IdleShare"/>＝休止中（倒産）の設備の割合。</summary>
@@ -167,8 +166,6 @@ public static class ProductionTables
     {
         var result = new List<GoodLine>();
         double q = st.QtyEps;
-        var capR = w.Region;
-        double exRate = w.ExchangeRate;   // 輸出入判定と同じ金建て換算＝世界価格と比べられる形に揃える
         foreach (var d in Catalog.Goods)
         {
             if (d.Tier == GoodTier.Service) continue;
@@ -180,12 +177,9 @@ public static class ProductionTables
             bool inactive = blocked || (none && !st.HasProducer[gi]);
             double util = st.Cap[gi] > q ? Math.Clamp(st.Outp[gi] / st.Cap[gi], 0, 1) : 0;
             double inpFill = st.Outp[gi] > q ? Math.Clamp(st.InpFillW[gi] / st.Outp[gi], 0, 1) : double.NaN;
-            double wpg = gi < sim.Market.Price.Count ? sim.Market.Price[gi] : 0;
-            double lpg = gi < capR.Markets.Length ? capR.Markets[gi].Price : 0;
-            bool hasPd = !unavail[gi] && wpg > 1e-6 && lpg > 1e-9;   // まだ存在しない財は世界価格との比を出さない
             result.Add(new GoodLine(gi, d.Name, isFactory, none, blocked, st.HasProducer[gi], inactive,
                 st.Prod[gi], st.Sold[gi], st.Exp[gi], st.Imp[gi], util, inpFill, SurplusRate(st.Prod[gi], st.Sold[gi], q),
-                hasPd ? lpg * exRate / wpg - 1.0 : double.NaN, stU, pvU, pendU, planU));
+                stU, pvU, pendU, planU));
         }
         return result;
     }
@@ -217,13 +211,12 @@ public static class ProductionTables
 
     private static double NanIf(bool cond, double v) => cond ? double.NaN : v;
 
-    /// <summary>財の表（世界価格比・生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
+    /// <summary>財の表（生産量・輸出量・輸入量・稼働率・材料供給・国営工場・民営工場）。</summary>
     public static Table<GoodLine> Goods { get; } = new("production.goods", "財の表", Page.Production,
         (sim, w) => ShownLines(AllLines(sim, w, ProductionStats.Collect(w), ProductionDiag.UnavailableGoods(sim, w.Coef))),
         l => l.Good.ToString(), l => l.Name,
     [
         Col.Text<GoodLine>("name", "財名", l => l.Name),
-        Col.Number<GoodLine>("gap", "世界価格比", Unit.Share, l => l.PriceGap + 1.0, ink: l => MarketTables.RatioInk(l.PriceGap)),   // 市場の財の値段の表と同じ名・書式・色
         Col.Number<GoodLine>("prod", "生産量", Unit.Quantity, l => l.Prod),
         Col.Number<GoodLine>("exp", "輸出量", Unit.Quantity, l => l.Exp),
         Col.Number<GoodLine>("imp", "輸入量", Unit.Quantity, l => l.Imp),

@@ -8,6 +8,17 @@ namespace PriceOfBread.Tests;
 public class LayoutTests
 {
     [Fact]
+    public void 生産を開くと州の窓は閉じる()
+    {
+        var m = new LayoutModel();
+        m.Open(Slot.Province);
+        Assert.True(m.IsShown(Slot.Province));
+        m.Open(Slot.Production);
+        Assert.True(m.IsShown(Slot.Production));
+        Assert.False(m.IsShown(Slot.Province));
+    }
+
+    [Fact]
     public void キーは生産がTab_残りが作者の指示の順_Q市場_W財政_E人口_R政治と法_A外交と戦争_S発見_地図にキーは無い_DFZXCVは空き()
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);

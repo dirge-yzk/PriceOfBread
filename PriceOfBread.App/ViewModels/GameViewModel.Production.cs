@@ -38,13 +38,6 @@ public partial class GameViewModel
     public string? ProdSelectedKey => _prodSelGood >= 0 ? _prodSelGood.ToString() : null;
     /// <summary>設備の欄を出すか（旗 <see cref="Coefficients.RecipeEquipment"/> が 0 の世界では欄ごと出さない）。</summary>
     [ObservableProperty] private bool _prodEquipmentOn = true;
-    /// <summary>価格グラフ（対世界価格の比）の点列。★ProdDetail が null（財を未選択）でも**必ず非null**を返す＝
-    /// Polyline が null を受けて毎フレーム例外を投げる描画クラッシュを構造的に閉じる。</summary>
-    /// ★枠は常時表示（作者原則2026-08-10）＝標本が足りない開幕に枠ごと消えて下が跳ねない。点が0本なら何も描かれないだけ。
-    public global::Avalonia.Points ProdSparkPoints => ProdDetail?.WorldSparkPoints ?? new();
-    /// <summary>価格グラフの補助線（項目2・2026-08-10）＝枠に収まる段階とその逆数の水平線。中心線（比1.0）は常に y=32 なので XAML の1本。</summary>
-    public Geometry ProdSparkGrid => ProdDetail?.SparkGrid ?? SparkGridEmpty;
-    partial void OnProdDetailChanged(ProdDetail? value) { OnPropertyChanged(nameof(ProdSparkPoints)); OnPropertyChanged(nameof(ProdSparkGrid)); }
     [ObservableProperty] private double _prodCanvasW = 2200;
     [ObservableProperty] private double _prodCanvasH = 1200;
     private int _prodSelGood = -1;
@@ -98,13 +91,6 @@ public partial class GameViewModel
     /// 行内間隔 PRowGapX(16) の1.6倍強＝「詰まった並び」と「切れ目」が一目で違う。</summary>
     private const double PCatGap = 26;
     private const double MaterialFillThreshold = 0.95;   // 材料供給がこれ未満＝ボトルネック/産出律速の表示
-    // 価格グラフ（240×64のスパークライン）：中央線＝対世界価格の比1.0。上下それぞれ SparkHalfH に「枠」までを割り当てる。
-    private const double SparkMidY = 32.0, SparkHalfH = 30.0;
-    /// <summary>価格グラフの縦の段階集合（作者仕様2026-08-10 項目2）＝＋25%/＋50%/＋100%/＋200%/＋400%。
-    /// 比は0未満にならないので**対数**で置く＝×b と ×(1/b)（−20%/−33%/−50%/−67%/−80%）が中心線から等距離に来る。
-    /// 枠（縦の範囲）はこの集合の中から**データが収まる最小のもの**を選ぶ＝連続的に伸縮させない（目盛りが意味を持つ）。</summary>
-    private static readonly double[] SparkBrackets = [1.25, 1.5, 2.0, 3.0, 5.0];
-    private static readonly Geometry SparkGridEmpty = new StreamGeometry();   // 補助線の空実体（財を未選択でも Path.Data に非nullを渡す）
 
     // 節点色（tier別のアクセント＝縁と左帯・tier別の淡い地色＝最初から明るく判別できる）
     private static readonly IBrush PAccStaple  = new SolidColorBrush(Color.Parse("#3E7A4E"));
@@ -559,8 +545,6 @@ public partial class GameViewModel
             // ★2026-11-04（作者）：カードは材名＋価格％だけを大きく出す（稼働率・生産・過不足は財の表にある）。工場の縦線は〈合計の棟数〉と〈実質稼働数＝棟数×稼働率〉の2行。
             // 世界価格との比較（項目3）＝首都価格×為替／世界価格−1（本体の目録の PriceGap）。安い＝青・高い＝赤。
             // グラフ本体は四半期再構築なので、この％も四半期（右パネルの首都価格行は日次）。
-            bool hasPd = !double.IsNaN(ln.PriceGap);   // まだ存在しない財は世界価格との比を出さない（作者裁定2026-08-10）
-            double pdg = hasPd ? ln.PriceGap : 0;
             // 稼働率行の赤＝素材が買えず産出が絞られている工場（労働不足は含まない）。材名の赤（ボトルネック変色）は廃止（2026-08-16）
             bool starving = !none && isFactory && inpFill < MaterialFillThreshold;   // NaN（産出なし＝未測定）は false＝赤にしない
             var nd = _nodeByGood![gi];   // 器は据え置き＝値だけ流す（GoodId/X/Y/W/H/品名は静的）
@@ -569,13 +553,11 @@ public partial class GameViewModel
             bool noSource = none && !hasProducer[gi];
             nd.NameBrush = blocked || noSource ? PDimText : PNameText;
             // ★書式の第3節「0%」は必須（2026-09-23・.NET 10で実測）＝**この画面の率の書式は全部3節**
-            //   （nd.PriceDiff／ProdTableRow の Price・Surplus・MatCost／ProdDetail.PriceDiff／BuildPriceRows の Pct の6箇所）。
+            //   （ProdTableRow の Price・Surplus・MatCost／BuildPriceRows の Pct の4箇所）。
             //   2節の "+0%;-0%" は、0へ丸まる負数（−0.4%など）に対して負号を付けたうえで**第1節**を使う＝
             //   「-+0%」という符号が2つ並んだ文字列を出していた（-0.002 → "-+0%"／-0.2 → "-20%" と挙動が割れる）。
             //   第3節を足すと 0 も −0.0 も0へ丸まる負も「0%」＝符号の無い零になる（丸めて消えた符号を書かない）。
             //   ⚠色は割れていなかった（`!(x < 0)` は -0.002 を正しく赤に落とす）＝色の式は触らない。
-            nd.PriceDiff = hasPd ? Fmt.Share(pdg + 1.0) : "";   // 世界価格を 100% とした国内価格（市場の財の値段の表と同じ形・B14）
-            nd.PriceDiffBrush = pdg <= 0 ? PPriceBelow : PPriceAbove;
             nd.Accent = blocked ? PAccTechShort : TierAccent(d.Tier);
             blockedOf[gi] = blocked; inactiveOf[gi] = inactive;   // 地色・枠・沈みは選択と併せて ApplyProdSelection が塗る（式は1箇所）
             // 縦線の中の工場カウンター（作者仕様2026-09-07 (1)）＝「今ある棟数 / 予定を含めた棟数」。
@@ -646,8 +628,6 @@ public partial class GameViewModel
         if (fresh is null) { ProdDetail = null; return; }
         if (ProdDetail is { } cur && cur.GoodId == fresh.GoodId) cur.CopyFrom(fresh);
         else ProdDetail = fresh;
-        OnPropertyChanged(nameof(ProdSparkPoints));   // CopyFrom 経路（同じ財の更新）は OnProdDetailChanged が走らない
-        OnPropertyChanged(nameof(ProdSparkGrid));
         OnPropertyChanged(nameof(ProdRegionHeadTip));   // 州別の見出しのホバー（工業化の州別上位8）＝get-only なので追従には通知が要る
     }
 
@@ -676,7 +656,6 @@ public partial class GameViewModel
         double world = gi < _sim.Market.Price.Count ? _sim.Market.Price[gi] : 0;
         double ex = _player.ExchangeRate;   // エンジンの輸出入判定は金建て（局所価格×為替）＝表示も揃える
         var cap0 = _player.Regions[0];
-        double local = gi < cap0.Markets.Length ? cap0.Markets[gi].Price : 0;
         // 稼働率とその内訳（作者フィードバック2026-08-10 項目5）：設備欄を全廃したので、この分解は
         // **州別テーブルの「生産」列のツールチップ**が受け持つ（全国値＝集計範囲は節点カードと同一）。
         string utilTip = BuildUtilTip(ProductionDiag.ExplainUtilization(_player, gi));
@@ -909,7 +888,6 @@ public partial class GameViewModel
         if (subOk) subTip = subPriv < 1.0 ? $"民営持分 {Fmt.Share(subPriv)}" : null;
 
         var trade = BuildTradeInfo(gi, unavail);
-        var (sparkPts, sparkGrid, sparkTip) = unavail ? (new global::Avalonia.Points(), SparkGridEmpty, (string?)null) : BuildRatioSpark(gi);   // まだ存在しない財は価格グラフを描かない（枠は残る＝下が跳ねない）
         var detail = new ProdDetail(_player, gi, RefreshProduction, subsRate[gi], r => SetItemSubsidyRate(gi, r),
                                     _player.TradeBiasOf(gi), b => _player.SetTradeBias(gi, b))
         {
@@ -920,10 +898,6 @@ public partial class GameViewModel
             IsOpium = gi == _player.Coef.OpiumGoodId && _player.Coef.OpiumAddictionGrowth > 0,   // アヘン禁令を生産タブのアヘンノードに出す（2026-07-20ユーザー指示）
             Title = d.Name,
             Tier = TierLabel(gi),   // 見出しだけ素材の産地区分を出す（作者要望2026-09-07 (4)）
-            // 項目7（2026-08-10）：詳細パネルでも財名の横に世界価格との比を出す（カードと同じ様式＝安い青・高い赤）。
-            //   式はカード（RefreshProduction）と同一＝首都価格×為替／世界価格−1。
-            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? Fmt.Share(local * ex / world) : "",   // 世界価格を 100% とした国内価格（B14）
-            PriceDiffBrush = world > 1e-6 && local > 1e-9 && local * ex / world - 1.0 > 0 ? PPriceAbove : PPriceBelow,
             LegalMonopoly = legalMonopoly,
             // 数値ブロック＝**2行**（作者指示2026-08-10 C）：
             //   1行目 RGO生産量　工場生産量　輸入量／2行目 国内消費　輸出量　廃棄率
@@ -937,10 +911,6 @@ public partial class GameViewModel
                               : $"採取生産量：{Fmt.Qty(prodRgo[gi])}　工場生産量：{Fmt.Qty(prodFac[gi])}　輸入量：{Fmt.Qty(imp[gi])}",
             NatLine2 = unavail ? "国内消費：—　輸出量：—　廃棄率：—"
                                : $"国内消費：{Fmt.Qty(sold[gi])}　輸出量：{Fmt.Qty(exp[gi])}　廃棄率：{(double.IsNaN(spoilRate) ? "—" : Fmt.Share(spoilRate))}",
-            WorldPriceLine = !unavail && world > 1e-6 ? $"世界価格 £{world:F2}" : "世界価格 —",   // 価格グラフの中央線が指す実数値
-            WorldSparkPoints = sparkPts,
-            SparkGrid = sparkGrid,
-            SparkScaleTip = sparkTip,
             // 「製品1あたり: …」「月ごとの消費: …」の2行は廃止（作者フィードバック2026-08-10 項目4）＝
             // レシピの必要量は生産コスト欄の各行「材名(×数量)」が、今月の実消費は同じ行の金額が既に持っている。
             HasUses = uses.Count > 0,
@@ -964,43 +934,6 @@ public partial class GameViewModel
 
     /// <summary>用途行のクリック＝その財をグラフ上で選択（詳細パネルも切替）。</summary>
     [RelayCommand] private void SelectUseGood(int gid) => SelectProdGood(gid);
-
-    // ===== 財パネル拡張（外国経済doc 3-1＋貿易特化レバー3・2026-07-24）＝世界シェア・首位生産国・世界価格スパークライン =====
-    // （輸入依存度・首位供給/需要国・独占上乗せは2026-08-10 項目2で全廃＝他の行と重複していた）
-    private List<double>[]? _wpHist;   // 対世界価格の比の直近40四半期（DetectEvents＝四半期ごとにサンプル。★開始前の助走4四半期もここに入る＝2026-08-10 項目1）
-    private int _wpVersion;            // 標本の版（四半期ごとに進む）。点列の記憶はこれで無効化する＝40本で満杯後は点数が変わらないので点数はキーにできない
-    private global::Avalonia.Points[]? _wpSpark;   // 財ごとのスパークラインの点列（版が同じなら使い回す）
-    private Geometry[]? _wpGrid;                   // 財ごとの補助線（枠が変わらない限り同じ実体＝再描画が起きない）
-    private string[]? _wpTip;                      // 財ごとの目盛りのツールチップ
-    private int[]? _wpSparkVer;
-
-    /// <summary>価格グラフの標本（作者仕様2026-08-10）。★世界価格の実数ではなく**首都価格÷世界価格**を積む
-    /// ＝グラフの中央線が世界価格（比＝1.0）になり、上下が「世界より高い／安い」を意味する。
-    /// 物差しは見出しの価格割合・節点カードの％と同一（局所価格×為替／世界価格）＝画面のどこでも同じ数を指す。
-    /// ★呼ばれるのは2箇所＝開始前の助走（<see cref="MultiNationSim.WarmupEconomy"/> の各四半期・4点）と本編の四半期（DetectEvents）。
-    /// どちらも刻みは四半期＝x軸は一様のまま（項目1・2026-08-10）。</summary>
-    private void SampleWorldPrices()
-    {
-        _wpHist = SampleWorldPrices(_sim, _player, _wpHist);
-        _wpVersion++;
-    }
-    /// <summary>標本の本体（唯一定義）。開始前の助走（MainWindowViewModel＝GameViewModel がまだ無い）も同じ1本を呼ぶ＝式と40本上限が2つに割れない（2026-09-11 #19a）。
-    /// <paramref name="hist"/> が null なら作って返す。</summary>
-    internal static List<double>[] SampleWorldPrices(MultiNationSim sim, World player, List<double>[]? hist)
-    {
-        var wp = sim.Market.Price;
-        var cap = player.Region;
-        double ex = player.ExchangeRate;
-        hist ??= Enumerable.Range(0, wp.Count).Select(_ => new List<double>()).ToArray();
-        for (int g = 0; g < wp.Count && g < hist.Length; g++)
-        {
-            var h = hist[g];
-            double local = g < cap.Markets.Length ? cap.Markets[g].Price : 0;
-            h.Add(wp[g] > 1e-6 && local > 1e-9 ? local * ex / wp[g] : double.NaN);   // 値が無い四半期は非有限＝点ごと落ちる（線は途切れる）
-            if (h.Count > 40) h.RemoveAt(0);
-        }
-        return hist;
-    }
 
     // 価格の分解（#128・2026-07-25／★2026-08-10に「積み上げて最後に大きく合計」へ改装＝作者仕様 項目8）。
     //
@@ -1180,67 +1113,6 @@ public partial class GameViewModel
                 worldExp > QtyEps && topExpV > QtyEps ? $"最大の輸出国 {topExp} {Fmt.Share(topExpV / worldExp)}" : "");
     }
 
-    /// <summary>世界価格スパークラインの点列（2026-08-02に文字列→Points へ変更）。
-    /// ★旧実装は "x,y x,y …" の**文字列**を Polyline.Points へバインドし、Avalonia の型変換に解析させていた。
-    ///   価格に非有限値が1つでも混じると "NaN,NaN" となり、変換が **null** を返す。Polyline は Points が null だと
-    ///   MeasureOverride の CreateDefiningGeometry で ArgumentNullException を投げ、**毎フレーム**レイアウト/描画が
-    ///   中断する＝「商品をクリックするとフリーズする」の正体（作者報告2026-08-02）。
-    ///   点列を自前で組めば解析が描画経路から消え、この種の失敗が構造的に起きなくなる。非有限値は点ごと落とす
-    ///   （否定形の判定＝NaN も弾く）。
-    /// ★2026-08-10：系列を**対世界価格の比**へ変更（作者仕様）。中央（y=32）が比1.0＝世界価格。
-    /// ★同日の項目2：縦を**対数**にした＝比は0未満にならないので、×b と ×(1/b) が中心線から等距離に来る唯一の整合的な置き方。
-    ///   y ＝ 32 − ln(比) ÷ ln(枠) × 30。枠は <see cref="SparkBrackets"/>（×1.25/1.5/2/3/5＝＋25/50/100/200/400%）の中から
-    ///   **窓の全点が収まる最小のもの**を選ぶ（連続的な伸縮をやめた＝旧 amp 方式では同じ縦位置が財ごと・月ごとに別の比を指していた）。
-    ///   補助線は枠に収まる段階とその逆数に引く（中心線は常に y=32＝XAML の1本）。データが最大枠（×5）を超える月は点が上下端へ張り付く。</summary>
-    private (global::Avalonia.Points Pts, Geometry Grid, string? Tip) BuildRatioSpark(int gi)
-    {
-        if (_wpHist is null || gi < 0 || gi >= _wpHist.Length) return (new(), SparkGridEmpty, null);   // 標本を1度も採っていない（ロード直後）＝ツールチップも出さない
-        // ★2026-08-10：詳細パネルは**日次**（速度3で毎秒約20回）に組み直されるが、世界価格の標本は四半期にしか動かない。
-        //   版が同じなら同じ実体を返す＝バインド先の Polyline / Path に同一参照が入り、再描画そのものが起きない。
-        _wpSpark ??= new global::Avalonia.Points[_wpHist.Length];
-        _wpGrid ??= new Geometry[_wpHist.Length];
-        _wpTip ??= new string[_wpHist.Length];
-        if (_wpSparkVer is null) { _wpSparkVer = new int[_wpHist.Length]; System.Array.Fill(_wpSparkVer, -1); }
-        if (_wpSparkVer[gi] == _wpVersion && _wpSpark[gi] is { } memo) return (memo, _wpGrid[gi] ?? SparkGridEmpty, _wpTip[gi]);
-        var h = _wpHist[gi];
-        // 枠＝|ln(比)| の最大が収まる最小の段階。有限な点が1つも無ければ最小枠（×1.25）。
-        double maxDev = 0, last = double.NaN;
-        double lo = double.PositiveInfinity, hi = double.NegativeInfinity;
-        foreach (double v in h) { if (!Finite(v)) continue; maxDev = Math.Max(maxDev, Math.Abs(Math.Log(v))); last = v; lo = Math.Min(lo, v); hi = Math.Max(hi, v); }
-        double frame = SparkBrackets[^1];
-        foreach (double b in SparkBrackets) if (maxDev <= Math.Log(b) + 1e-12) { frame = b; break; }
-        double lnFrame = Math.Log(frame);
-        var pts = new global::Avalonia.Points();
-        for (int i = 0; i < h.Count; i++)
-        {
-            if (!Finite(h[i])) continue;   // 非有限・非正は点ごと落とす（線は途切れる）
-            double x = 240.0 * i / Math.Max(1, h.Count - 1);
-            double y = Math.Clamp(SparkMidY - Math.Log(h[i]) / lnFrame * SparkHalfH, 2.0, 62.0);   // 上＝世界より高い
-            pts.Add(new global::Avalonia.Point(x, y));
-        }
-        // 補助線＝枠以下の各段階とその逆数。1px の線が2行に滲まないよう半ピクセルへ寄せ、上下は中心から同じ距離に置く。
-        var geo = new StreamGeometry();
-        using (var ctx = geo.Open())
-            foreach (double b in SparkBrackets)
-            {
-                if (b > frame + 1e-12) break;
-                double dy = Math.Round(Math.Log(b) / lnFrame * SparkHalfH) + 0.5;
-                Line(ctx, SparkMidY - dy); Line(ctx, SparkMidY + dy);
-            }
-        // 図の右に出す 3 行＝枠の外へ張り付いた点も実数で読める（S3・量の名は世界価格比・V8）
-        string tip = Finite(lo) && Finite(hi) ? $"世界価格比\n最小 {Fmt.Share(lo)}\n最大 {Fmt.Share(hi)}" : "";
-        _wpSpark[gi] = pts; _wpGrid[gi] = geo; _wpTip[gi] = tip; _wpSparkVer[gi] = _wpVersion;
-        return (pts, geo, tip);
-
-        static bool Finite(double v) => v > 1e-12 && v < double.MaxValue;   // 否定形でなく下限つきの肯定形＝NaN も0以下も同時に弾く（対数が定義される値だけ通す）
-        static void Line(StreamGeometryContext ctx, double y)
-        {
-            ctx.BeginFigure(new global::Avalonia.Point(0, y), false);
-            ctx.LineTo(new global::Avalonia.Point(240, y));
-            ctx.EndFigure(false);
-        }
-    }
-
     /// <summary>誰がこの財を買ったか（作者フィードバック2026-08-10 項目6）＝用途の先頭行のツールチップ。
     /// 階級名は<see cref="Pop.ClassName"/>（エンジンが持つ実名）をそのまま使う＝UI に階級の一覧を書き写さない。
     /// ★これは**好みではなく結果**＝1人あたりの必要量は全階級共通で、違うのは買える予算だけ。
@@ -1312,8 +1184,6 @@ public sealed partial class ProdNode : ObservableObject
     public double H { get; init; }
     public string Name { get; init; } = "";
     [ObservableProperty] private IBrush? _nameBrush;        // 通常#2A2118／技術不足・産地なし＝灰(PDimText)
-    [ObservableProperty] private string _priceDiff = "";    // 品名の隣＝首都価格の世界価格比（＋12%／−8%）。安い＝青・高い＝赤（2026-08-09 項目3）
-    [ObservableProperty] private IBrush? _priceDiffBrush;
     [ObservableProperty] private IBrush? _accent;
     // 工場カウンター（作者要望2026-09-07 (1)）＝カテゴリを示す縦線を広げてその中に「今ある棟数/予定を含めた棟数」を出し、分母を▲/▼で動かす（2026-09-23）。
     // 民営＝完成した棟数の**1つ書き**（2026-09-23＝分子と分母が同じ値だった2つ書きをやめた）、
@@ -1328,12 +1198,8 @@ public sealed partial class ProdNode : ObservableObject
     public ProdNode() { }
     public ProdNode(Action<int> onStep) { _onStepFactory = onStep; }
     // ClickMode=Press と同じ理由でコマンドは軽い（押下で確定）。州別カウンター（ProdRegionRow）と同じ作法。
-    [RelayCommand] private void UpFactory() => _onStepFactory?.Invoke(+1);
-    [RelayCommand] private void DownFactory() => _onStepFactory?.Invoke(-1);
-    [RelayCommand] private void UpFactory10() => _onStepFactory?.Invoke(+10);
-    [RelayCommand] private void DownFactory10() => _onStepFactory?.Invoke(-10);
-    [RelayCommand] private void UpFactory100() => _onStepFactory?.Invoke(+100);
-    [RelayCommand] private void DownFactory100() => _onStepFactory?.Invoke(-100);
+    [RelayCommand] private void UpFactory() => _onStepFactory?.Invoke(+10);
+    [RelayCommand] private void DownFactory() => _onStepFactory?.Invoke(-10);
     [ObservableProperty] private IBrush? _background;
     [ObservableProperty] private IBrush? _borderBrush;
     [ObservableProperty] private double _borderThickness = 1.0;
@@ -1376,9 +1242,6 @@ public sealed partial class ProdDetail : ObservableObject
     public bool IsOpium { get; init; }   // この財がアヘン（かつ依存機構ON）＝詳細パネルにアヘン禁令チェックを出す
     [ObservableProperty] private string _title = "";
     [ObservableProperty] private string _tier = "";
-    // 項目7（2026-08-10）：財名の横の世界価格比（カードと同じ様式＝安い青 #1F5FA8・高い赤 #B02418）。値が無い財は空文字
-    [ObservableProperty] private string _priceDiff = "";
-    [ObservableProperty] private IBrush? _priceDiffBrush;
     // 数値ブロック＝**2行**（作者指示2026-08-10）：
     //   1行目 RGO生産量　工場生産量　輸入量／2行目 国内消費　輸出量　廃棄率
     [ObservableProperty] private string _natLine = "";
@@ -1402,7 +1265,7 @@ public sealed partial class ProdDetail : ObservableObject
     // 生産コストの内訳（左段）＝限界費用 mc の内訳。★2026-09-07：レシピごとに分け、合計行（IsTotal）を各レシピの末尾に置いた
     // ＝合計は行の一部（旧 CostTotalText の器の外の1行は廃止＝レシピが2本以上のとき「どのレシピの合計か」が言えなかった）。
     public ObservableCollection<ProdCostRow> CostRows { get; } = new();
-    // 財パネル拡張（外国経済doc 3-1＋貿易特化レバー3・2026-07-24）：世界シェア・首位生産国＋世界価格40四半期スパークライン
+    // 財パネル拡張（外国経済doc 3-1＋貿易特化レバー3・2026-07-24）：世界シェア・首位生産国
     // （TradeLine＝輸入依存度・独占上乗せ・首位輸出国・首位輸入国 は2026-08-10 項目2で全廃＝他の行と重複していた）
     /// <summary>全角スペース区切りの1行を、折返し可能な断片へ割る（2026-08-02・作者指摘
     /// 「輸入ウェアなどの項目が文字数で折り返されることがある」）。日本語は語境界を持たないので
@@ -1414,17 +1277,6 @@ public sealed partial class ProdDetail : ObservableObject
     public string[] NatSegs2 => Segs(NatLine2);
     partial void OnNatLineChanged(string value) => OnPropertyChanged(nameof(NatSegs));
     partial void OnNatLine2Changed(string value) => OnPropertyChanged(nameof(NatSegs2));
-    // ★2026-08-02 描画クラッシュの修正：Avalonia の Polyline は Points が null だと CreateDefiningGeometry で
-    //   ArgumentNullException を投げ、**毎フレーム**その例外で描画パスが中断する（＝操作を受け付けない「フリーズ」に見える）。
-    //   ProdDetail 自体が null（財を未選択）だと `{Binding ProdDetail.WorldSparkPoints}` が null を返すため、
-    //   「見えないから安全」という前提が成り立たない。**空文字を作らない**＋XAML側で TargetNullValue を置く、の二重で塞ぐ。
-    // ★枠は**常に出す**（作者原則2026-08-10）＝標本が2点に満たない開幕だけ 68px の枠が消え、下の全てが跳ね上がっていた。
-    //   点が無い時は空の枠（Polyline が0点＝何も描かない・null ではないのでクラッシュしない）。
-    [ObservableProperty] private global::Avalonia.Points _worldSparkPoints = new();
-    // 価格グラフの目盛り（作者仕様2026-08-10 項目2）＝補助線の形と、枠/段階/直近/標本数のツールチップ（データのみ）。
-    // 中心線（比1.0）は常に y=32 なので XAML の1本（濃く太い）。補助線は淡い1px＝既存のグラフ作法に合わせる。
-    [ObservableProperty] private Geometry? _sparkGrid;
-    [ObservableProperty] private string? _sparkScaleTip;
     [ObservableProperty] private bool _legalMonopoly;   // 塩/茶の法的独占＝バッジ表示（独占機構が有効な時のみ）
     public ObservableCollection<ProdRegionRow> Regions { get; } = new();
     public ObservableCollection<ProdUseRow> Uses { get; } = new();   // 用途（この財の消費先・2026-07-19）
@@ -1469,11 +1321,10 @@ public sealed partial class ProdDetail : ObservableObject
     { _w = w; GoodId = goodId; _onChanged = onChanged; _subsidyRate = subsidyRate; _onSetSubsidy = onSetSubsidy; _tradeBias = tradeBias; _onSetBias = onSetBias; }
     public void CopyFrom(ProdDetail s)
     {
-        Title = s.Title; Tier = s.Tier; PriceDiff = s.PriceDiff; PriceDiffBrush = s.PriceDiffBrush;
-        NatLine = s.NatLine; NatLine2 = s.NatLine2; WorldPriceLine = s.WorldPriceLine;
+        Title = s.Title; Tier = s.Tier;
+        NatLine = s.NatLine; NatLine2 = s.NatLine2;
         LegalMonopoly = s.LegalMonopoly;
         ProdShareLine = s.ProdShareLine; ExportShareLine = s.ExportShareLine; TopProducerLine = s.TopProducerLine; TopExporterLine = s.TopExporterLine;
-        WorldSparkPoints = s.WorldSparkPoints; SparkGrid = s.SparkGrid; SparkScaleTip = s.SparkScaleTip;   // 財パネル拡張（2026-07-24）＋目盛り（2026-08-10 項目2）
         PriceTotalText = s.PriceTotalText; PriceTotalTip = s.PriceTotalTip;   // 右段の合計（左段の合計はレシピごとの行＝CostRows の中）
         SubsidyRate = s.SubsidyRate; TradeBias = s.TradeBias;
         OnPropertyChanged(nameof(MonopolyOn));   // ★専売は鏡を持たない＝値は流さず「読み直せ」とだけ言う（譲歩・強制施行でエンジン側が動いた時も表示が追う）
