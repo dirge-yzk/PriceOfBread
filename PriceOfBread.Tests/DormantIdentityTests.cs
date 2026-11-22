@@ -168,7 +168,7 @@ public class DormantIdentityTests
         // ★MinimumWageAiFromFloor（(480) AI が最低賃金法に置く目標を盤面の実物から選ぶ旗）は 2026-10-21 (486) に 1 で**点火**（腕 B・止める線に当たらず）＝この表から外した。
         // ★LandShareTaxSale（(991) c90sl 土地の持ち分 B-1 段 1〜2 土地税の払えない分の公売の旗）は 2026-11-09 (997) c91sl で 1 に**点火**＝この表から外した（番人 LandSaleTests）。
         // ★RecruitDestByVacancy（(1270) c130rc 招聘の受入先を技師の空席の比へ）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は RecruitVacancyTests の μ0 の突然変異）。
-        "LampOilPetroleumDupOff",      // (1305) c135k47 灯油の近代レシピの重なり「石油灯油」を建てない旗（0＝旧の 2 本・番人 LampOilDuplicateRecipeTests）
+        // ★LampOilPetroleumDupOff（(1305) c135k47 灯油の近代レシピの重なり「石油灯油」を建てない旗）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は LampOilDuplicateRecipeTests の T2）。
     ];
 
     /// <summary>★1.0 が恒等の scale 型の器の休眠表（レビュー2026-09-07）：反射走査（既定0だけを数える）の外にあるので手で書く。点火時にこの表からも外す。</summary>

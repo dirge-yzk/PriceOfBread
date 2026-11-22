@@ -30,7 +30,7 @@ public sealed partial class Coefficients
     public double ChilledMeatColdInput = 0.15;    // 加工肉1単位あたりの冷蔵庫の投入量（設備の摩耗＝機械と同じ扱い）
     public double KeroseneOilInput = 0.5;         // 灯油1単位あたりの原油
     public double KeroseneOilProductivity = 1.6;  // 連続精製の生産性（既定＝鯨油レシピの相対。史実の価格差5〜10倍はこれと投入係数の合成で出す）
-    public double LampOilPetroleumDupOff = 0;     // (1305) c135k47 一時の旗：1＝灯油の近代レシピの重なり「石油灯油」（原油 1.0）を建てず「石油ケロシン」の 1 本にする（思想⑨）・0＝旧（2 本）
+    public double LampOilPetroleumDupOff = 1;     // (1305) c135k47 2026-11-22 旗 1（腕 B の木）・一時の旗：1＝灯油の近代レシピの重なり「石油灯油」（原油 1.0）を建てず「石油ケロシン」の 1 本にする（思想⑨）・0＝旧（2 本）
     public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）
     public double WeaponStrengthRifle = 3.0;       // 構築時（Simulation.AddAlternateRecipes）に一度だけ読む
     public double WeaponStrengthArtillery = 4.0;   // 構築時（Simulation.AddAlternateRecipes）に一度だけ読む
