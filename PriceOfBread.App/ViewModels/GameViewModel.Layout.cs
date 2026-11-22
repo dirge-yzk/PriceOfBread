@@ -67,7 +67,7 @@ public partial class GameViewModel
     {
         switch (s)
         {
-            case Slot.Production: HoverPinned = false; MapHover = null; TimeIt("生産ページが見えた(RefreshProduction)", RefreshProduction); break;
+            case Slot.Production: MapHover = null; TimeIt("生産ページが見えた(RefreshProduction)", RefreshProduction); break;
             case Slot.Market or Slot.Trade: RefreshTrade(); break;
             case Slot.FiscalMoney: UpdateForecast(); break;
             case Slot.Population: RefreshPopulation(); break;
