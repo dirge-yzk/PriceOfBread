@@ -1,0 +1,27 @@
+## 腕 種=[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+year	lampTot	default	kerosene	petroLamp	petroLampShare	modernShare	crude	petroLampCrudeUseShare	keroCrudeUseShare	crudeUnitCost（種の中央値）
+1850	72424.0	63656.2	8145.6	0.0000	0.000000	0.1125	4310.6	0.000000	1.2250	0.4961
+1870	82949.5	71604.4	11747.9	0.0000	0.000000	0.1323	4779.9	0.000000	1.1337	0.5158
+1913	102658.6	82618.2	20360.9	0.0000	0.000000	0.1723	9269.8	0.000000	1.0571	0.5162
+1950	91628.6	66374.0	22417.8	0.0000	0.000000	0.2758	9765.2	0.000000	1.1533	0.5518
+石油灯油の取り分の最大（全ての種・年）=0.000000
+鯨油・魚油の取り分が 0.5 を下回る最初の年（種ごと）=s11:None s12:None s13:None s14:None s15:None s16:None s17:None s18:None s19:None s20:None
+史実の桁 (a) 近代の灯油の取り分 1913=0.1723 史実〈推〉0.95 比=0.181 → 通る
+史実の桁 (b) 原油の産出 1913÷1870=2.01 史実〈推〉65.0 比=0.031 → 当たる
+記録 近代の灯油の取り分 1870=0.1323 史実〈推〉0.5 比=0.265
+## 基準 種=[]
+year	lampTot	default	kerosene	petroLamp	petroLampShare	modernShare	crude	petroLampCrudeUseShare	keroCrudeUseShare	crudeUnitCost（種の中央値）
+1850	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1870	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1913	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1950	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+石油灯油の取り分の最大（全ての種・年）=nan
+鯨油・魚油の取り分が 0.5 を下回る最初の年（種ごと）=
+史実の桁 (a) 近代の灯油の取り分 1913=nan 史実〈推〉0.95 比=nan → 当たる
+史実の桁 (b) 原油の産出 1913÷1870=nan 史実〈推〉65.0 比=nan → 当たる
+記録 近代の灯油の取り分 1870=nan 史実〈推〉0.5 比=nan
+## 同じ年の新÷旧（種の中央値どうし）
+tot	1850:nan	1870:nan	1913:nan	1950:nan
+kero	1850:nan	1870:nan	1913:nan	1950:nan
+crude	1850:nan	1870:nan	1913:nan	1950:nan
+ccost	1850:nan	1870:nan	1913:nan	1950:nan

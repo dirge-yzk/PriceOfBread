@@ -2,3 +2,4 @@ D:/PoB_work/m1308_work
 D:/PoB_work/wt_m1308（枝 m1308）
 D:/PoB_work/wt_m1308z（枝 m1308z・腕 Z の木）
 D:/PoB_work/ident_m1308z
+D:/PoB_work/keep_1308（base_ins・a11・n1・n2）
