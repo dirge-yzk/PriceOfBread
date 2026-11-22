@@ -1,0 +1,12 @@
+(1288) c133wa 結果・2026-11-22・書いたモデル Claude Sonnet 5.5
+- 木：c133wa（main 0072408c5 の上に事前登録 0bd9d2539→項 b5774db8b→試験→単位 30ff3a7a5→試験の直し）。ident 段 1（--work D:/PoB_work/ident_c133wa・--saveleak・--tests-delta 4・--cost-allow DiscoveryWorldScans）。
+- 判定：段 1 は〈不一致〉の表示。中身は宣言した 4 件だけ（.cost の DiscoveryWorldScans の件数 37,726,638→26,471,211［計器つき］と、その結果の推定。素の 5 種 232.1→230.9 秒・計器つき 10 種 231.8→230.6 秒＝−1.2 秒）。
+  素の 5 種の成績表は m1287 と 178 行全行バイト一致・計器つき 10 種は 182 行全行バイト一致・計器の表 290 本バイト一致・注視の表 4,821 行一致・savetest OK・leakhunt 保存則違反なし・テスト数 Category!=FullLength 3097（3093+4）＋FullLength 3。測った種で一致（成績表は恒等）。段 2 は走らせていない（宣言の外の差が無い）。
+- フルスイート（隔離ビルド・trx は D:/PoB_work/c133wa_work/trx）：Tests Category!=FullLength 2864（初回は ScalarDeletionTests の Region.State の許可表で 1 赤＝WorldAdvLaborSitesTests の試験のバグ・枝の 177d80e91 と同じ直しで緑・直し後に該当 2 組 19 緑）／Tests.Ui 233／FullLength 3＝全て緑。
+- 試験の数：予言 3098 に対し 3097（足したのは 4 本＝枝の 2＋SetInput の 2）。予言の 5 本は ③ と ⑤ を 1 本に束ねたため＝名乗る。
+- 実の時間：事前登録の追記のとおり（旧 2.56 ms→新 1.19 ms＝0.46 倍・作り直し 0 回・c131wa の無条件の形は 4.68 ms で旧より悪化）。
+- NG：計器の表（nation_s ほか ng.sh の読み手が読む表）が全てバイト一致のため NG の集合も同じ（ng.sh は回していない）。
+- 突然変異 M1〜M6：全て赤（measurements/m1288_20261122_prereg_wa.txt の追記・scripts/instruments/c133wa/mut.py）。
+- 足した計器の列：無し。触った行：Simulation.cs:1847・:1854・Discovery.cs:65 付近と新関数・Model.cs:491 付近と Region の 5 欄・MultiNationSim.cs:1778。
+- 生：D:/PoB_work/ident_c133wa（out_ib_10/ins 2.5GB を含む 3.8GB・判定が〈恒等〉でないので刈っていない・合流の判断まで残す）。keepsum：measurements/keepsum_ident1288.tsv。
+- 腕の枠で待った時間：0。前面の待ち：約 30 回（waitmark）。hook に止められた回数：1（変数名に禁止の綴りを入れた＝言い換えず撤回）。
