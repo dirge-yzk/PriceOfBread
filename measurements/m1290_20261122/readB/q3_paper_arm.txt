@@ -1,0 +1,1 @@
+D:/PoB_work/c133mr_work/armb/out_c133mrB_10/ins 種 1..10: H1_fb=29703 H1_new=29751 cult_changed=48 cult_empty_new=48 cult_nq=410074 rel_changed=48 rel_empty_new=48 rel_nq=410074
