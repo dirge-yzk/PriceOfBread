@@ -22,15 +22,23 @@ public partial class MainWindow
         var lay = gvm.Layout;
         try
         {
-            foreach (var slot in new[] { Slot.PoliticsLaw, Slot.DiplomacyWar })
+            foreach (var slot in new[] { Slot.PoliticsLaw, Slot.Rights, Slot.DiplomacyWar })
             {
                 lay.Reset(); UiShotWindows.OpenFull(gameView, lay, slot);
                 await Task.Delay(1100);
                 string tag = SlotInfo.Name(slot);
-                Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}.png");
+                Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : slot == Slot.Rights ? "権利と議会" : "外交と戦争")}.png");
                 LogOuterFlow(gameView, tag);
                 LogPage3(gameView, slot, tag);
             }
+
+            // 前提法が選んだ法の側に出ること（次の段の前提が未達の法を選んで撮る）
+            lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.PoliticsLaw);
+            await Task.Delay(900);
+            string? picked = gvm.SelectLawWithPrereqForShot();
+            await Task.Delay(700);
+            BootLog.Write($"uishot: 選んだ法 前提法あり「{picked ?? "該当なし"}」前提法の欄「{gvm.StakePrereqText}」・賛否の組 {gvm.StakeBlocks.Count}");
+            Capture(dir, "p3_政治と法_前提法.png");
 
             // ---- 仕組みの確かめ ----
             // 段の押し釦：法の表の段を 1 つ押すと目標が置かれる（置く先は AI・議会と同じ口）。押した後の表が読み直されて目標の印が付く。確かめたら元の目標に戻す。
@@ -55,7 +63,7 @@ public partial class MainWindow
         {
             if (s != slot) continue;
             var grid = page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault();
-            var table = slot == Slot.PoliticsLaw ? PoliticsLawPage.Table : DiplomacyWarPage.Table;
+            var table = slot == Slot.PoliticsLaw ? PoliticsLawPage.Table : slot == Slot.Rights ? RightsPage.Table : DiplomacyWarPage.Table;
             var keys = page.GetVisualDescendants().OfType<Section>().Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
             var want = table.Sections.Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
             string cols = grid?.LastPlan is { } pl ? pl.Count.ToString() : "?";

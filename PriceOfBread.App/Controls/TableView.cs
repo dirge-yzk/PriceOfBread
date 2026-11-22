@@ -430,7 +430,7 @@ public sealed class TableView : UserControl
             if (columnKey != "name") return null;
             return tableKey switch
             {
-                "pop.classes" or "politics.stakes" => ClassIcons.OfKey(rowKey),
+                "pop.classes" => ClassIcons.OfKey(rowKey),
                 "diplomacy.nations" => FlagIcons.Of(rowKey),
                 _ => null,
             };

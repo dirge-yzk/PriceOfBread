@@ -13,6 +13,7 @@ namespace PriceOfBread.App.Views.Pages;
 /// <item><term>金融</term><description>Views/Pages/FinancePage.axaml・GameViewModel.Fiscal.cs</description></item>
 /// <item><term>財政と貨幣</term><description>Views/Pages/FiscalMoneyPage.axaml・GameViewModel.Fiscal.cs</description></item>
 /// <item><term>人口</term><description>Views/Pages/PopulationPage.axaml・GameViewModel.Pop.cs・Rows.cs の人口の行</description></item>
+/// <item><term>権利と議会</term><description>Views/Pages/RightsPage.axaml・GameViewModel.Politics.cs</description></item>
 /// <item><term>政治と法</term><description>Views/Pages/PoliticsLawPage.axaml・GameViewModel.Politics.cs・Law.cs・LawRowVM.cs</description></item>
 /// <item><term>外交と戦争</term><description>Views/Pages/DiplomacyWarPage.axaml・GameViewModel.Diplomacy.cs・War.cs・Popups.cs の動詞</description></item>
 /// <item><term>発見</term><description>Views/Pages/DiscoveryPage.axaml・GameViewModel.Discovery.cs</description></item>
@@ -26,6 +27,7 @@ public static class PageFactory
         Slot.Market => new MarketPage(),
         Slot.Trade => new TradePage(),
         Slot.Finance => new FinancePage(),
+        Slot.Rights => new RightsPage(),
         Slot.FiscalMoney => new FiscalMoneyPage(),
         Slot.Population => new PopulationPage(),
         Slot.PoliticsLaw => new PoliticsLawPage(),

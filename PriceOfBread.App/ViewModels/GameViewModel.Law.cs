@@ -59,7 +59,9 @@ public partial class GameViewModel
 
     // === 選んだ法の欄（賛成と反対の層）。法の表の行を押して選ぶ。値は本体（SimCore/Display/LawStakes）の読み口だけ＝盤面は読むだけ。
     [ObservableProperty] private string? _lawSelectedKey;
-    [ObservableProperty] private TableSnapshot _stakeTable = TableSnapshot.Empty;
+    [ObservableProperty] private IReadOnlyList<StakeBlockVM> _stakeBlocks = [];
+    [ObservableProperty] private string _stakePrereqText = "";
+    [ObservableProperty] private bool _hasStakePrereq;
     [ObservableProperty] private string _stakeLawName = "";
     [ObservableProperty] private bool _hasStakeNext;
     [ObservableProperty] private bool _hasStakePrev;
@@ -79,6 +81,15 @@ public partial class GameViewModel
         RefreshStakes();
     }
 
+    /// <summary>uishot（無人撮影）専用：次の段の前提法が満たされていない法を選ぶ（無ければ何もしない）。選んだ法の鍵を返す。</summary>
+    public string? SelectLawWithPrereqForShot()
+    {
+        var def = LawCatalog.In(LawSlot.Law).FirstOrDefault(d => d.IsVisible(_player) && StageGate.PrereqNote(_player, d) is not null);
+        if (def is null) return null;
+        SelectLaw(def.Key);
+        return def.Key;
+    }
+
     /// <summary>選んだ法の欄を読み直す。選んだ法が無い（または見えなくなった）時は法の表の先頭の行＝欄を空にしない。</summary>
     private void RefreshStakes()
     {
@@ -91,7 +102,9 @@ public partial class GameViewModel
             LawSelectedKey = def.Key;
         }
         StakeLawName = def.Name;
-        StakeTable = TableSnapshot.From(PoliticsTables.Stakes(def).Read(_sim, w));
+        StakeBlocks = new[] { LawStakes.Sides(w, def, true), LawStakes.Sides(w, def, false) }.OfType<StakeSides>().Select(StakeBlockVM.From).ToList();
+        StakePrereqText = StageGate.PrereqNote(w, def) ?? "";
+        HasStakePrereq = StakePrereqText.Length > 0;
         var next = LawStakes.Split(w, def, true);
         var prev = LawStakes.Split(w, def, false);
         HasStakeNext = next is not null; HasStakePrev = prev is not null;

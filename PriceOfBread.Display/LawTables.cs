@@ -52,23 +52,4 @@ public static class PoliticsTables
             new StageColumn<LawLine>("stage", "段階", StageOf),
         ],
         l => l.Group);
-
-    /// <summary>賛成の字の色・反対の字の色（<c>GreenBrush</c>・<c>RustBrush</c> と同じ値）。</summary>
-    private const string ForInk = "#2E7D32", AgainstInk = "#A0432D";
-
-    private static string? InkOf(double? v) => v is { } x && x > 0 ? ForInk : v is { } y && y < 0 ? AgainstInk : null;
-
-    /// <summary>選んだ法の賛否の表（階級ごと＋議会の党・軍・国庫）。法を呼ぶ側が渡す表なので表の目録（<see cref="TableCatalog"/>）には載せない（支出・収入の表と同じ前例）。
-    /// 列：名前・人数・影響力（階級の和で 100%）・次の段・前の段（その一歩の押す力の割合・正＝賛成・負＝反対）。</summary>
-    public static Table<StakeLine> Stakes(LawDef def) => new("politics.stakes", "選んだ法", Page.PoliticsLaw,
-        (_, w) => LawStakes.Lines(w, def),
-        l => l.Key, l => l.Name,
-        [
-            Col.Text<StakeLine>("name", "名前", l => l.Name),
-            Col.Number<StakeLine>("people", "人数", Unit.People, l => l.People, hide: l => l.Kind != StakeKind.Class),
-            Col.Number<StakeLine>("voice", "影響力", Unit.Share, l => l.Voice, hide: l => l.Kind != StakeKind.Class),
-            Col.Number<StakeLine>("next", "次の段", Unit.Share, l => l.Next ?? double.NaN, hide: l => l.Next is null, ink: l => InkOf(l.Next)),
-            Col.Number<StakeLine>("prev", "前の段", Unit.Share, l => l.Prev ?? double.NaN, hide: l => l.Prev is null, ink: l => InkOf(l.Prev)),
-        ],
-        l => l.Group);
 }

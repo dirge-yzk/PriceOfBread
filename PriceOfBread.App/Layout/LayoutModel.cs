@@ -9,7 +9,7 @@ namespace PriceOfBread.App.Layout;
 
 /// <summary>画面に出せるもの＝9 ページと地図と州の窓。宣言の順が <see cref="Page"/> の宣言の順（キーの割り当て・釦の並びは <see cref="PageKeys.HeaderOrder"/>）（地図・州は後ろ＝キーを持たない）。
 /// 地図と生産は背景・それ以外の 8 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
-public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade, Finance, Map, Province }
+public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade, Finance, Rights, Map, Province }
 
 /// <summary>画面に出せるものの名前とキー。キーは本体の <see cref="PageKeys"/> が持つ。ここは引くだけ。</summary>
 public static class SlotInfo
