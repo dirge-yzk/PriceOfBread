@@ -113,9 +113,21 @@ public sealed class WindowLayer : Canvas
     private WindowRect Open(Slot slot, FloatingWindow w)
     {
         if (slot == Slot.Province) return LayoutModel.ProvinceRect(Bounds.Width, Bounds.Height);
-        double width = LayoutModel.DefaultWidth(slot);
-        w.Page?.Measure(new Size(width - 2, double.PositiveInfinity));   // 自然な高さ（ページの欄は上限なしで測ると自然な高さになる）
-        double height = Math.Clamp(FloatingWindow.TitleHeight + 2 + (w.Page?.DesiredSize.Height ?? 0), LayoutModel.MinWindowHeight, Bounds.Height);
+        // 中身が全部見える窓の大きさ（作者指示 2026-11-23）：列の数の候補（狭い順）ごとに自然な高さを測り、盤の高さに全部入る最小の列の数を選ぶ。
+        // どれも入らなければ高さが最も低い候補（盤の高さまでで切る＝それ以上は窓の中で流れる）。
+        double width = LayoutModel.DefaultWidth(slot), height = 0;
+        bool first = true;
+        double maxH = Bounds.Height;
+        foreach (double cand in PriceOfBread.App.Views.Pages.PageSizes.Candidates(slot))
+        {
+            if (!first && cand > Bounds.Width) break;   // 盤より広い候補は採らない
+            w.Page?.Measure(new Size(cand - 2, double.PositiveInfinity));   // 自然な高さ（ページの欄は上限なしで測ると自然な高さになる）
+            double h = FloatingWindow.TitleHeight + 2 + (w.Page?.DesiredSize.Height ?? 0);
+            if (first || h <= maxH || h < height) { width = cand; height = h; }
+            first = false;
+            if (height <= maxH) break;
+        }
+        height = Math.Clamp(height, LayoutModel.MinWindowHeight, Bounds.Height);
         var occupied = _layout!.OpenWindows.Where(s => s != slot && s != Slot.Province).Select(s => _layout.RectOf(s) ?? _layout.AutoRectOf(s)).OfType<WindowRect>().ToList();
         // 3 枚目からは高さを領域の約 6 割までにする＝4 枚目以降の置き場を、3 枚目の下に空ける（窓を重ねず・小さな窓で見比べる）
         if (occupied.Count >= 2) height = Math.Min(height, Math.Max(LayoutModel.MinWindowHeight, (Bounds.Height - 4) * 0.6));

@@ -54,9 +54,8 @@ public class FiscalPopDiscoveryTablesTests
         var flows = new FiscalFlows(120, 340, 5, 7, new double[(int)TreasuryCat.Count]);
         var b = FiscalTables.Budget(w, flows);
         // 予測の列を持たない項は、予測の合計に足す見込みの額を Forecast に持つ（列は隠す）
-        double Fc(BudgetLine l) => l.NoAmounts || l.Child || l.NoForecast ? 0 : l.Forecast;   // 見出しの予測＝列に見える行の和(V1)
-        //    // 内訳の行（陸軍・海軍）は軍事費の行に含まれる＝足さない
-        double Ac(BudgetLine l) => l.NoAmounts || l.Child ? 0 : l.Actual;
+        double Fc(BudgetLine l) => l.NoAmounts || l.NoForecast ? 0 : l.Forecast;   // 見出しの予測＝列に見える行の和(V1)
+        double Ac(BudgetLine l) => l.NoAmounts ? 0 : l.Actual;
         Assert.Equal(b.SpendForecast, b.Spend.Sum(Fc), 6);
         Assert.Equal(b.SpendActual, b.Spend.Sum(Ac), 6);
         Assert.Equal(b.IncomeForecast, b.Income.Sum(Fc), 6);
@@ -133,9 +132,9 @@ public class FiscalPopDiscoveryTablesTests
         Assert.Equal(w.Coef.TariffFloor, w.Policy.TariffTarget, 9);
         // 軍事費の最下段は 1（「なし」の段が無い）
         var mil = b.Spend.First(l => l.Key == "military");
-        Assert.False(mil.NoAmounts);   // 段と合計の額を 1 行に置く（陸軍・海軍はその内訳の行）
+        Assert.False(mil.NoAmounts);   // 段と合計の額を 1 行に置く（陸軍・海軍の内訳の行は消した＝作者指示 2026-11-23）
         Assert.Equal(1, mil.Stage.LevelBase);
-        Assert.All(b.Spend.Where(l => l.Key is "army" or "navy"), l => Assert.True(l.Child));
+        Assert.DoesNotContain(b.Spend, l => l.Key is "army" or "navy");
         Assert.Contains(b.Spend, l => l.Key == "debtRepay");   // 起債と償還は常に出す（B30）
         Assert.Contains(b.Income, l => l.Key == "debtBorrow");
     }
@@ -156,15 +155,14 @@ public class FiscalPopDiscoveryTablesTests
         var flows = new FiscalFlows(0, 0, 0, 0, diff);
         Assert.Equal(900.5 + 120 - 300.25 - 77 - 132 - 10 - 400 - 20, FiscalTables.LedgerBalance(flows), 9);
         var b = FiscalTables.Budget(w, flows);
-        Assert.Equal(300.25, b.Spend.First(l => l.Key == "army").Actual, 9);
-        Assert.Equal(10, b.Spend.First(l => l.Key == "navy").Actual, 9);
+        Assert.Equal(300.25 + 10, b.Spend.First(l => l.Key == "military").Actual, 9);   // 陸と海の払った額は軍事費の 1 行に合わさる
         Assert.Equal(77, b.Spend.First(l => l.Key == "education").Actual, 9);
         Assert.Equal(132, b.Spend.First(l => l.Key == "modernization").Actual, 9);   // 予算の要求でなく払った額
         Assert.Equal(120, b.Income.First(l => l.Key == "tariff").Actual, 9);
         Assert.Equal(400, b.Spend.First(l => l.Key == $"cat.{TreasuryCat.FactoryBuild}").Actual, 9);
         Assert.DoesNotContain(b.Spend, l => l.Key == $"cat.{TreasuryCat.Subsidy}");
-        Assert.Equal(b.Spend.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.SpendActual, 6);
-        Assert.Equal(b.Income.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.IncomeActual, 6);
+        Assert.Equal(b.Spend.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.SpendActual, 6);
+        Assert.Equal(b.Income.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.IncomeActual, 6);
         Assert.Equal(300.25 + 10, b.Spend.First(l => l.Key == "military").Actual, 9);
     }
 
@@ -350,5 +348,13 @@ public class FiscalPopDiscoveryTablesTests
             Assert.Equal(PriceOfBread.App.Fmt.Money(v), DisplayFormat.Money(v));
         foreach (double v in new double[] { 0, 114, 41099.4, 5430 })
             Assert.Equal(PriceOfBread.App.Fmt.PopFmtK(v), DisplayFormat.PopK(v));
+    }
+
+    [Fact]
+    public void 発見の表は名前と棒の列だけを持つ()
+    {
+        var (sim, w) = Board(6);
+        foreach (var t in new ITable[] { DiscoveryTables.Discoveries, DiscoveryTables.SocialDiscoveries, DiscoveryTables.Sites })
+            Assert.Equal(["name", "bar"], t.ColumnInfos.Select(c => c.Key).ToArray());
     }
 }

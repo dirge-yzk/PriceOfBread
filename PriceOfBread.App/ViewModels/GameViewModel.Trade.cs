@@ -19,6 +19,9 @@ namespace PriceOfBread.App.ViewModels;
 public partial class GameViewModel
 {
     [ObservableProperty] private TableSnapshot _priceTable = TableSnapshot.Empty;
+    /// <summary>財の値段の 2 段組（作者指示 2026-11-23）。群を割らず行の数がほぼ半分になる所で左右に分ける（同じ列）。</summary>
+    [ObservableProperty] private TableSnapshot _priceTableLeft = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _priceTableRight = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _exportTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _importTable = TableSnapshot.Empty;
     // 清算の線＝四半期ごとの輸出・輸入・収支（月割）。名前つきの系列の倉に貯め（セーブは倉が名前と値の組で往復する）、画面へは点列の写しを渡す。
@@ -47,7 +50,11 @@ public partial class GameViewModel
     {
         SampleClearingSeries();
         var w = _player;
-        if (MarketShown) PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
+        if (MarketShown)
+        {
+            PriceTable = TableSnapshot.From(MarketTables.Prices.Read(_sim, w));
+            (PriceTableLeft, PriceTableRight) = PriceTable.SplitByGroup();
+        }
         if (!TradeShown) return;
 
         // ---- 第1部：輸出入一覧（§3-4テレメトリ＝国際決済の国別×財別額。決済前/単一国は空） ----

@@ -4,13 +4,16 @@
              xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.MarketPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/MarketPage.axaml ＝ 財の価格のページ（設計 §3-3）。財の値段の表だけ（輸出と輸入は貿易のページ・作者指示 2026-11-22）。
+    <!-- Views/Pages/MarketPage.axaml ＝ 財の価格のページ（設計 §3-3）。財の値段の表だけ（輸出と輸入は貿易のページ・作者指示 2026-11-22）。2 段組（群を割らず行がほぼ半分で左右へ・作者指示 2026-11-23）。
          欄の並べは PageGrid が決める（並べの表は MarketPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の MarketTables）が名乗る。 -->
     <Grid Margin="4">
         <ctl:PageGrid x:Name="MarketGrid">
         <ctl:Section x:Name="PricesSection" Key="prices" Title="財の値段">
             <ctl:Section.Body>
-                <ctl:TableView x:Name="PricesTable" Snapshot="{Binding PriceTable}" InnerScroll="True"/>
+                <Grid ColumnDefinitions="*,8,*">
+                    <ctl:TableView x:Name="PricesLeft" Snapshot="{Binding PriceTableLeft}" InnerScroll="True"/>
+                    <ctl:TableView Grid.Column="2" x:Name="PricesRight" Snapshot="{Binding PriceTableRight}" InnerScroll="True"/>
+                </Grid>
             </ctl:Section.Body>
         </ctl:Section>
 

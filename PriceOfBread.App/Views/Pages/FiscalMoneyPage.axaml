@@ -4,7 +4,7 @@
              xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.FiscalMoneyPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/FiscalMoneyPage.axaml ＝ 財政と貨幣のページ（(501) 段3・作者指示 2026-11-22）。頭に予想収支と実収支を大きく・その下に支出（左）と収入（右）を並べる。
+    <!-- Views/Pages/FiscalMoneyPage.axaml ＝ 財政と貨幣のページ（(501) 段3・作者指示 2026-11-22）。頭に予想収支と実収支を大きく（各箱の下に左＝支出の合計・右＝収入の合計）・その下に支出（左）と収入（右）を並べる。
          金融と国債と外資信用は金融のページ（FinancePage）へ移した。国庫・国債・GDP はヘッダー（押すと線が開く）。
          欄の並べは .axaml.cs の PageTable（設計 §3-3）。行と列は本体の目録（SimCore/Display/FiscalTables）が渡す＝財政の項・段を足すときにこの XAML は直さない。
          ページの外側は流れない（長い一覧は表の中だけで流れ、見出しの行は止まる）。 -->
@@ -14,12 +14,32 @@
                 <StackPanel Spacing="2">
                     <TextBlock Text="予想収支" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
                     <TextBlock Text="{Binding BalanceForecastText}" Foreground="{Binding BalanceForecastBrush}" FontSize="30" FontWeight="Bold"/>
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="支出" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                            <TextBlock Text="{Binding BalanceForecastSpendText}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="収入" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                            <TextBlock Text="{Binding BalanceForecastIncomeText}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="12,6" Margin="4,0,0,0">
                 <StackPanel Spacing="2">
                     <TextBlock Text="実収支" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
                     <TextBlock Text="{Binding BalanceActualText}" Foreground="{Binding BalanceActualBrush}" FontSize="30" FontWeight="Bold"/>
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="支出" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                            <TextBlock Text="{Binding BalanceActualSpendText}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="収入" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
+                            <TextBlock Text="{Binding BalanceActualIncomeText}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>

@@ -14,7 +14,7 @@ public partial class PopulationPage : UserControl
         new SectionSpec("births", "出生と死", 6), new SectionSpec("religion", "宗教", 4), new SectionSpec("culture", "文化", 4),
     ],
     [["classes", "regions"], ["age", "births", "religion", "culture"]],
-    ColumnMinWidth: 640);   // 階級の表は列が多い（約 610 の幅）＝それより狭くなる列には割らず、1 列へ積む
+    ColumnMinWidth: 610);   // 階級の表は列が多い（約 610 の幅）＝それより狭くなる列には割らず、1 列へ積む
 
     public PopulationPage()
     {

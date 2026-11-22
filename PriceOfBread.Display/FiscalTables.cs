@@ -9,9 +9,8 @@ public sealed record FiscalFlows(double EduMonthly, double StateMonopolyMonthly,
 
 /// <summary>予算の表の 1 行（支出か収入の 1 項）。<see cref="Forecast"/>＝予測（目標の段ベース）・<see cref="Actual"/>＝実効（今いま実際に流れている額）。
 /// <see cref="Stage"/>＝その項の段の押し釦（無ければ <see cref="StageCell.None"/>）。<see cref="Tip"/>＝項の名前にカーソルを合わせた時の文。
-/// <see cref="NoForecast"/>＝予測を出さない項（実績だけの項）。<see cref="NoAmounts"/>＝金額を出さない項。
-/// <see cref="Child"/>＝上の行の内訳（陸軍と海軍は軍事費の内訳＝合計には足さない）。</summary>
-public sealed record BudgetLine(string Key, string Name, double Forecast, double Actual, StageCell Stage, string? Tip, bool NoForecast = false, bool NoAmounts = false, bool Child = false);
+/// <see cref="NoForecast"/>＝予測を出さない項（実績だけの項）。<see cref="NoAmounts"/>＝金額を出さない項。</summary>
+public sealed record BudgetLine(string Key, string Name, double Forecast, double Actual, StageCell Stage, string? Tip, bool NoForecast = false, bool NoAmounts = false);
 
 /// <summary>予算の予想（支出と収入の項・合計）。<see cref="FiscalTables.Budget"/> が盤面を読んで組む。</summary>
 public sealed record BudgetResult(IReadOnlyList<BudgetLine> Spend, IReadOnlyList<BudgetLine> Income,
@@ -104,7 +103,6 @@ public static class FiscalTables
         double In(TreasuryCat cat) => LedgerOf(f, cat);      // 収入側の入った額
 
         double pSoldier = w.LastSoldierPayPerMonth.Value;
-        double navShare = w.NavalSpendShare.Value;   // 陸海の配分はエンジン自身の 1 本（NavyUpkeep/(Army+Navy)）
         double colonialUp = (w.LastColonialUpkeepPerMonth * w.FiscalFundingRatio).Value;
         double tribOut = Calendar.PerQuarterToPerMonth(w.LastTributeOutPerQuarter * w.FiscalFundingRatio.Value);
         double tribIn = Calendar.PerQuarterToPerMonth(w.LastTributeInPerQuarter);
@@ -119,15 +117,13 @@ public static class FiscalTables
             + string.Concat(PlayText.ExplainTerms(w, "AdminEfficiency").Select(t => "\n" + PlayText.SignedLine(t.Delta, t.Reason, v => DisplayFormat.Share(v))));
         string Pair(double target, double eff) => $"目標 {DisplayFormat.Share(target)}　実効 {DisplayFormat.Share(eff)}";
 
-        BudgetLine Line(string key, string name, double fc, double ac, StageCell? st = null, string? tip = null, bool noFc = false, bool noAmounts = false, bool child = false)
-            => new(key, name, fc, ac, st ?? StageCell.None, tip, noFc, noAmounts, child);
+        BudgetLine Line(string key, string name, double fc, double ac, StageCell? st = null, string? tip = null, bool noFc = false, bool noAmounts = false)
+            => new(key, name, fc, ac, st ?? StageCell.None, tip, noFc, noAmounts);
 
         var spend = new List<BudgetLine>
         {
-            // 軍事費の段は合計だけに掛かる＝段と合計の額を 1 行に置く。陸海の 2 行は地理が決めた比で合計が割れた結果＝その内訳（合計には足さない）
+            // 軍事費の段は合計だけに掛かる＝段と合計の額を 1 行に置く（陸海の内訳の行は作者指示 2026-11-23 で消した）
             Line("military", "軍事費", mil + pSoldier, Paid(TreasuryCat.Army) + Paid(TreasuryCat.Navy), FiscalStageOf(w, nameof(NationPolicy.MilitarySpendingTarget))),
-            Line("army", "うち陸軍維持費", mil * (1 - navShare) + pSoldier, Paid(TreasuryCat.Army), tip: Pair(w.Policy.ArmyUpkeepTarget, w.ArmyUpkeep.Value), child: true),
-            Line("navy", "うち海軍維持費", mil * navShare, Paid(TreasuryCat.Navy), tip: Pair(w.Policy.NavyUpkeepTarget, w.NavyUpkeep.Value), child: true),
             Line("admin", "行政費", admin, Paid(TreasuryCat.Admin), Lever(w, "行政費", 0, 1, () => w.AdminSpending, () => w.Policy.AdminSpendingTarget, v => w.Policy.AdminSpendingTarget = v), adminTip),
             Line("education", "教育費", f.EduMonthly, Paid(TreasuryCat.Education), FiscalStageOf(w, nameof(NationPolicy.EducationSpendingTarget)), PlayText.EducationSpendingText(w)),
             Line("welfare", "社会保障", wel, Paid(TreasuryCat.Welfare), StageGate.Of(w, LawCatalog.In(LawSlot.Welfare).First()), Pair(w.Policy.SocialSecurityTarget, w.SocialSecurity)),
@@ -173,7 +169,7 @@ public static class FiscalTables
         }
 
         // 行にしなかった小さい区分と税の 4 行の食い違いは、台帳の収支との差として側ごとに「その他」へ畳む＝実績の合計の差が国庫の収支（台帳）と厳密に一致する（V1）
-        double ActSum(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual);
+        double ActSum(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts).Sum(l => l.Actual);
         double rest = LedgerBalance(f) - (ActSum(income) - ActSum(spend));
         //   同じ側に台帳の区分の「その他の収入／その他の支出」の行が既にあれば、その行が受ける（「その他の収入」と「その他」の 2 行が並ばない・2026-11-12）
         if (f.LedgerDiff.Any(x => x != 0) && rest >= 0.5) AddRest(income, "restIn", "cat.OtherIn", rest);
@@ -188,7 +184,7 @@ public static class FiscalTables
             Smooth(income, "tributeIn", "restIn", "cat.OtherIn", tribIn, In(TreasuryCat.TributeIn));
         }
 
-        double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.Child && !l.NoForecast).Sum(l => l.Forecast);
+        double Fc(List<BudgetLine> ls) => ls.Where(l => !l.NoAmounts && !l.NoForecast).Sum(l => l.Forecast);
         return new BudgetResult(spend, income, Fc(spend), ActSum(spend), Fc(income), ActSum(income));
     }
 

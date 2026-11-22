@@ -24,7 +24,8 @@ public partial class DiplomacyWarPage : UserControl
         ["war", "past"],
         ["nations"],
         ["army", "faction", "mediation"],
-    ], ColumnWeights: [1, 1.4, 1]);   // 国の一覧は列が多い（順位・国名・関係・緊張・宣戦布告とその理由＝約 650）＝真ん中の列だけを広げ、理由の列が欄の外へ出ないようにする。列の数は幅で決まる（広い幅では 3 列のまま・2026-11-12 点検2回目 2-2）
+    ], ColumnMinWidth: 470, ColumnWeights: [1, 1.4, 1]);   // 最小の幅＝3 列のときの左右の列の自然な幅（窓の初めの幅の見積り PageSizes と揃える）
+    // 国の一覧は列が多い（順位・国名・関係・緊張・宣戦布告とその理由＝約 650）＝真ん中の列だけを広げ、理由の列が欄の外へ出ないようにする。列の数は幅で決まる（広い幅では 3 列のまま・2026-11-12 点検2回目 2-2）
 
     public DiplomacyWarPage()
     {

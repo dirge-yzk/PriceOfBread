@@ -17,18 +17,9 @@ public partial class TradePage : UserControl
     ColumnMinWidth: 430,
     ColumnWeights: [1, 1]);
 
-    /// <summary>2 列に並べないとき、輸出と輸入が自然な高さ（行が多い）で下の欄を押し出さないための、1 つの欄の高さの上限（表は欄の中で流れる）。</summary>
-    private const double StackedMaxHeight = 330;
-
     public TradePage()
     {
         InitializeComponent();
         TradeGrid.Table = Plan;
-        TradeGrid.PropertyChanged += (_, e) =>
-        {
-            if (e.Property != Visual.BoundsProperty) return;
-            double cap = PagePlan.ColumnCount(TradeGrid.Bounds.Width, Plan) >= 2 ? double.PositiveInfinity : StackedMaxHeight;
-            if (ExportsSection.MaxHeight != cap) { ExportsSection.MaxHeight = cap; ImportsSection.MaxHeight = cap; }
-        };
     }
 }

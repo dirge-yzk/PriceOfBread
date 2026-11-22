@@ -31,6 +31,32 @@ public sealed record TableSnapshot(string Key, string Name, IReadOnlyList<Column
         return this with { Rows = rows };
     }
 
+    /// <summary>行の順のまま、群（<see cref="RowView.Group"/>）を割らずに、見た目の高さ（行 1・群の見出し 約 1.7 行）が左右でなるべく等しくなる所で 2 つの表に分ける（左右は同じ列）。
+    /// 群が 1 つだけなら右は空。キーは左に ".left"・右に ".right" を付ける。</summary>
+    public (TableSnapshot Left, TableSnapshot Right) SplitByGroup()
+    {
+        const double headerRows = 1.7;
+        // 同じ群が続く行をひと塊にする
+        var runs = new List<(int Start, int Count, double Height)>();
+        for (int i = 0; i < Rows.Count;)
+        {
+            int j = i + 1;
+            while (j < Rows.Count && Rows[j].Group == Rows[i].Group) j++;
+            runs.Add((i, j - i, (j - i) + (Rows[i].Group is { Length: > 0 } ? headerRows : 0)));
+            i = j;
+        }
+        double total = runs.Sum(r => r.Height), acc = 0, best = double.MaxValue;
+        int cut = Rows.Count;   // 左へ入れる行の数
+        for (int k = 0; k < runs.Count; k++)
+        {
+            acc += runs[k].Height;
+            double worst = Math.Max(acc, total - acc);
+            if (k < runs.Count - 1 && worst < best) { best = worst; cut = runs[k].Start + runs[k].Count; }
+        }
+        if (runs.Count <= 1) cut = Rows.Count;
+        return (this with { Key = Key + ".left", Rows = Rows.Take(cut).ToList() }, this with { Key = Key + ".right", Rows = Rows.Skip(cut).ToList() });
+    }
+
     /// <summary>2 つ目以降の文字の列の最大の幅（これを超える長い文字は末尾を省略記号にする。最後の列で「身分制免税 …」のように切れすぎない幅）。</summary>
     public const double LaterTextMaxWidth = 180;
 

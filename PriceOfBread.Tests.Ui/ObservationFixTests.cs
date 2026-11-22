@@ -45,7 +45,7 @@ public class ObservationFixTests
             var trib = b.Spend.First(l => l.Key == "tributeOut");
             Assert.Equal(Calendar.PerQuarterToPerMonth(3000 * r), trib.Actual, 6);   // 払った月でも他の月でも同じ月あたり
             Assert.Equal(FiscalTables.LedgerBalance(new FiscalFlows(0, 0, 0, 0, led)), b.BalanceActual, 4);   // 収支は台帳のまま
-            Assert.Equal(b.Spend.Where(l => !l.NoAmounts && !l.Child).Sum(l => l.Actual), b.SpendActual, 6);
+            Assert.Equal(b.Spend.Where(l => !l.NoAmounts).Sum(l => l.Actual), b.SpendActual, 6);
         }
     }
 

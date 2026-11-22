@@ -33,6 +33,8 @@ public partial class GameViewModel
     [ObservableProperty] private string _spendTitle = "支出", _incomeTitle = "収入";
     // 予想収支と実収支（財政の頁の頭に大きく出す。符号つき・月あたり・色は赤字だけ赤）
     [ObservableProperty] private string _balanceForecastText = "", _balanceActualText = "";
+    /// <summary>予想収支と実収支の箱の内訳（左＝支出の合計・右＝収入の合計。作者指示 2026-11-23）。</summary>
+    [ObservableProperty] private string _balanceForecastSpendText = "", _balanceForecastIncomeText = "", _balanceActualSpendText = "", _balanceActualIncomeText = "";
     [ObservableProperty] private IBrush _balanceForecastBrush = SeverityBrushes.Normal, _balanceActualBrush = SeverityBrushes.Normal;
 
     private const string GovDebtSeries = "fiscal.govDebt", FiscalYearSeries = "fiscal.sampleYear";
@@ -106,6 +108,10 @@ public partial class GameViewModel
         IncomeTable = SnapFiscal(FiscalTables.Income(budget));
         SpendTitle = $"支出　予測 {Fmt.MoneyPerMonthFine(budget.SpendForecast)}　{FiscalTables.SpendActualName} {Fmt.MoneyPerMonthFine(budget.SpendActual)}";
         IncomeTitle = $"収入　予測 {Fmt.MoneyPerMonthFine(budget.IncomeForecast)}　{FiscalTables.IncomeActualName} {Fmt.MoneyPerMonthFine(budget.IncomeActual)}";
+        BalanceForecastSpendText = Fmt.MoneyPerMonthFine(budget.SpendForecast);
+        BalanceForecastIncomeText = Fmt.MoneyPerMonthFine(budget.IncomeForecast);
+        BalanceActualSpendText = Fmt.MoneyPerMonthFine(budget.SpendActual);
+        BalanceActualIncomeText = Fmt.MoneyPerMonthFine(budget.IncomeActual);
         BalanceForecastText = Fmt.SignedMoneyPerMonthFine(budget.BalanceForecast);
         BalanceActualText = Fmt.SignedMoneyPerMonthFine(budget.BalanceActual);
         BalanceForecastBrush = budget.BalanceForecast < 0 ? SeverityBrushes.Danger : SeverityBrushes.Normal;
