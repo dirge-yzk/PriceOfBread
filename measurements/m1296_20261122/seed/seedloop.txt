@@ -1,0 +1,10 @@
+flag=1	seed=1789	赤=2	FiscalTests.対外借入の債権は貸し手が払った額で換・MilitaryTests.交戦中も装備の上限は戦時の倍率で
+flag=1	seed=1790	赤=2	FiscalTests.対外借入の債権は貸し手が払った額で換・MilitaryTests.交戦中も装備の上限は戦時の倍率で
+flag=1	seed=1791	赤=1	FiscalTests.対外借入の債権は貸し手が払った額で換
+flag=1	seed=1792	赤=1	FiscalTests.対外借入の債権は貸し手が払った額で換
+flag=1	seed=1793	赤=1	FiscalTests.対外借入の債権は貸し手が払った額で換
+flag=0	seed=1789	赤=0	
+flag=0	seed=1790	赤=1	MilitaryTests.交戦中も装備の上限は戦時の倍率で
+flag=0	seed=1791	赤=1	MilitaryTests.交戦中も装備の上限は戦時の倍率で
+flag=0	seed=1792	赤=1	MilitaryTests.交戦中も装備の上限は戦時の倍率で
+flag=0	seed=1793	赤=0	
