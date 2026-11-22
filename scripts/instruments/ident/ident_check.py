@@ -38,7 +38,7 @@ def ok(s):
 
 
 def parse_args(argv):
-    a = {'label': argv[0], 'removed': [], 'added': [], 'grown': [], 'rows_grown': [], 'removed_cols': [], 'known_extra': [], 'cost_allow': [],
+    a = {'label': argv[0], 'removed': [], 'added': [], 'grown': [], 'rows_grown': [], 'removed_cols': [], 'known_extra': [], 'cost_allow': [], 'rewritten': [],
          'tests_delta': 0, 'saveleak': False, 'ng': False, 'save': None, 'work': None, 'cfg': None, 'tree': None, 'root': None}
     i = 1
     while i < len(argv):
@@ -56,6 +56,7 @@ def parse_args(argv):
         elif k == '--grown-ok': a['grown'] = [x for x in v.split(',') if x]
         elif k == '--rows-grown-ok': a['rows_grown'] = [x for x in v.split(',') if x]
         elif k == '--removed-cols': a['removed_cols'] = [x for x in v.split(',') if x]   # (786) 表:列（基準にある列を腕で消してよい＝消した計器の列）
+        elif k == '--rewritten-tables': a['rewritten'] = [x for x in v.split(',') if x]   # (1303) 表@検算の台本（表の中身が宣言どおり変わった・台本が 0 を返した時だけ基準と違ってよい）
         elif k == '--known-extra': a['known_extra'] = [x for x in v.split(',') if x]
         elif k == '--cost-allow': a['cost_allow'] = [x for x in v.split(',') if x]
         elif k == '--tests-delta': a['tests_delta'] = int(v)
@@ -445,7 +446,25 @@ def pruned_ok(new, base, fa, have):
     return ok
 
 
-def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=(), only=None, bypass=()):
+def _rw_abs(x, tree, root):   # (1303) 表@台本 の台本のパスを、測った木（無ければ根）の下の物へ
+    t, s = x.split('@', 1) if '@' in x else (x, '')
+    if s and not os.path.isabs(s) and not re.match(r'^[a-zA-Z]:', s):
+        s = J(tree, s) if os.path.isfile(J(tree, s)) else J(root, s)
+    return t + '@' + s
+
+
+def run_rewritten(script, pa, pb):
+    """(1303) 検算の台本を基準の生と腕の生で走らせる。返す物＝（rc, 台本の最初の出力の行）。台本が無い・起動できない＝rc 99。"""
+    if not os.path.isfile(script): return 99, '台本が無い ' + script
+    try:
+        r = subprocess.run([sys.executable, '-X', 'utf8', '-I', script, pa, pb], capture_output=True, text=True, encoding='utf-8', timeout=900)
+    except Exception as e:
+        return 99, '起動できない ' + str(e)[:80]
+    ls = [x for x in r.stdout.splitlines() if x.strip()]
+    return r.returncode, (ls[0] if ls else '')
+
+
+def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols=(), only=None, bypass=(), rewritten=()):
     say(f'[計器の表] 腕 {new}  対  基準 {base}' + (f'  ※段 1＝集合 {len(only)} 表だけ' if only is not None else ''))
     if not os.path.isdir(new):
         miss('計器の出力フォルダが無い'); return
@@ -481,10 +500,17 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     bad_missing = [f for f in missing if not pref(f, removed)]
     bad_only = [f for f in only if not pref(f, added)]
     known_hit, grown_hit, real, rows_hit, cols_hit = [], [], [], [], []
+    RW = dict(x.split('@', 1) for x in rewritten if '@' in x)   # (1303) 表の名前（arrears_s）→ 台本のパス
+    rw_hit = []
     for f in diffs:
         if not f.endswith('.tsv'):
             real.append((f, ['NONTSV'])); continue
         t = table_of(f)
+        if t in RW:   # (1303) --rewritten-tables：台本が 0 を返した時だけ基準と違ってよい（他の表・宣言の無い時は通らない）
+            rc, msg = run_rewritten(RW[t], J(base, f), J(new, f))
+            if rc == 0:
+                rw_hit.append((f, msg)); continue
+            real.append((f, [f'検算の台本が非 0（rc={rc}）：{msg}'])); continue
         if t == 'flow_s' and flow_same_but_location(J(base, f), J(new, f)):
             known_hit.append((f, ['呼び出し位置だけ' + _decl(known, 'flow_s')])); continue
         if t == 'cearn_s':
@@ -526,7 +552,8 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
     # (853) 表示の内訳：共通の表を 1 つの区分にだけ数える（優先＝宣言の無い違い・列が増えた・行が増えた・列が消えた・既知の揺れ）。判定（bad_missing・bad_only・real）には触れない。
     gf, rf, cf, kf = ({f for f, _ in x} for x in (grown_hit, rows_hit, cols_hit, known_hit))
     realf = {f for f, _ in real}
-    part = Counter('real' if f in realf else 'grown' if f in gf else 'rows' if f in rf else 'cols' if f in cf else 'known' if f in kf else 'other' for f in diffs)
+    rwf = {f for f, _ in rw_hit}
+    part = Counter('real' if f in realf else 'grown' if f in gf else 'rows' if f in rf else 'cols' if f in cf else 'known' if f in kf else 'rw' if f in rwf else 'other' for f in diffs)
     say(f'  基準 {len(fa)} 本・腕 {len(fb)} 本・バイト一致 {same} 本')
     if missing:
         say(f'  基準にあって腕に無い {len(missing)} 本（うち宣言 {len(missing) - len(bad_missing)}）')
@@ -536,6 +563,8 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         say(f'  列が増えた表（--grown-ok の宣言）{len(grown_hit)} 本：' + '・'.join(f'{f}+{len(e)}列' for f, e in grown_hit[:6]))
     if rows_hit:
         say(f'  行が増えた表（--rows-grown-ok の宣言・基準の行は順序つき部分列として全て残る）{len(rows_hit)} 本・増えた行 {sum(n for _, n in rows_hit)}：' + '・'.join(f'{table_of(f)}+{n}' for f, n in rows_hit[:6]))
+    if rw_hit:   # (1303)
+        say(f'  表の中身が宣言どおり変わった表（--rewritten-tables・検算の台本が 0）{len(rw_hit)} 本：' + '・'.join(f'{f}［{m}］' for f, m in rw_hit[:3]))
     if cols_hit:
         say(f'  列が消えた表（--removed-cols の宣言・残りの列は全行バイト一致）{len(cols_hit)} 本：' + '・'.join(sorted(set(table_of(f) + ':' + ','.join(c) for f, c in cols_hit))))
     if known_hit:
@@ -554,7 +583,7 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         for f, d in real[:10]:
             say(f'      {f}	{d[:6]}')
     if not (bad_missing or bad_only or real):
-        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {part["known"]}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + part["grown"] + part["rows"] + part["cols"]}）')
+        ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {part["known"]}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + part["grown"] + part["rows"] + part["cols"]}）' + (f'・検算の台本で通った表 {part["rw"]}' if part['rw'] else ''))
     # (853) 内訳の和＝共通の表の数（表示だけ・合わなければ注意の行を出す）
     tot = same + sum(part.values())
     say(f'  内訳：共通の表 {len(both)} 本＝バイト一致 {same}＋既知の揺れ {part["known"]}＋列が増えた {part["grown"]}＋行が増えた {part["rows"]}＋列が消えた {part["cols"]}＋宣言の無い違い {part["real"]}＋その他 {part["other"]}（和 {tot}）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える'
@@ -681,7 +710,7 @@ def main():
     CEARN.update(root=root, base=cfg.get('BASE_COMMIT') or None, tree=tree)   # (835) cearn_s の経路の列の規則（BASE_COMMIT が無ければ使わない）
     say(f'測った木：{tree}（HEAD {sh_out(["git", "-C", tree, "rev-parse", "--short", "HEAD"])}・未コミット {len(sh_out(["git", "-C", tree, "status", "--porcelain"]).splitlines())} 本）')
     say(f'基準の設定：{cfgp}')
-    say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'rows_grown', 'removed_cols', 'known_extra', 'cost_allow') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
+    say('宣言：' + (' '.join(f'{k}={v}' for k, v in a.items() if k in ('removed', 'added', 'grown', 'rows_grown', 'removed_cols', 'known_extra', 'cost_allow', 'rewritten') and v) + (f' tests_delta={a["tests_delta"]}' if a['tests_delta'] else '') or 'なし'))
     for ar in ('a', 'b', 't', 's'):
         if ar in arms:
             dp = J(W, 'marks', ar + '.done')
@@ -721,7 +750,8 @@ def main():
         cmp_report('計器つき 10 種', pb, base('B10INS'))
         cmp_cost('計器つき 10 種の .cost', pb + '.cost', base('B10INS') + '.cost', a['cost_allow'])
         cmp_ins(J(W, 'out_ib_10', 'ins'), cfg['INSRAW'], known, a['removed'], a['added'], a['grown'], a['rows_grown'], a['removed_cols'],
-                only=set(x for x in cfg.get('SMALL', '').split(',') if x) if STAGE == 1 else None, bypass=tuple(x for x in cfg.get('BYPASS', '').split(',') if x))
+                only=set(x for x in cfg.get('SMALL', '').split(',') if x) if STAGE == 1 else None, bypass=tuple(x for x in cfg.get('BYPASS', '').split(',') if x),
+                rewritten=tuple(_rw_abs(x, tree, root) for x in a['rewritten']))
         cmp_mon(J(W, 'mon_ib_10.txt'), base('MON'))
         if a['ng']:
             run_ng(W, {**cfg}, root)
