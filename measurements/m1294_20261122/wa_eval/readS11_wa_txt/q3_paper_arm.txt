@@ -1,0 +1,1 @@
+D:/PoB_work/m1294_work/out_mS11_10_s11/ins 種 11..20: H1_fb=28125 H1_new=28142 cult_changed=17 cult_empty_new=17 cult_nq=409009 rel_changed=17 rel_empty_new=17 rel_nq=409009

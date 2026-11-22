@@ -1,0 +1,13 @@
+# (1290) rec_mr D:/PoB_work/m1294_work/out_mS11_10_s11/ins 種 11..20 タグ arm
+種 11	cede=0	cede1=0	cedenan=0	unifEval=724	unifGo=47	ethPos=104352	ethNeg=8132	ethRows=112583
+種 12	cede=0	cede1=0	cedenan=0	unifEval=21	unifGo=7	ethPos=122301	ethNeg=9080	ethRows=131535
+種 13	cede=0	cede1=0	cedenan=0	unifEval=203	unifGo=18	ethPos=100089	ethNeg=7954	ethRows=108099
+種 14	cede=0	cede1=0	cedenan=0	unifEval=882	unifGo=67	ethPos=113818	ethNeg=10564	ethRows=124467
+種 15	cede=0	cede1=0	cedenan=0	unifEval=1156	unifGo=71	ethPos=123901	ethNeg=10907	ethRows=134958
+種 16	cede=0	cede1=0	cedenan=0	unifEval=1068	unifGo=67	ethPos=107441	ethNeg=9107	ethRows=116662
+種 17	cede=0	cede1=0	cedenan=0	unifEval=98	unifGo=20	ethPos=127514	ethNeg=11004	ethRows=138624
+種 18	cede=0	cede1=0	cedenan=0	unifEval=220	unifGo=27	ethPos=128481	ethNeg=11232	ethRows=139872
+種 19	cede=0	cede1=0	cedenan=0	unifEval=1771	unifGo=79	ethPos=126741	ethNeg=9873	ethRows=136754
+種 20	cede=0	cede1=0	cedenan=0	unifEval=676	unifGo=66	ethPos=113875	ethNeg=10257	ethRows=124258
+計	cede=0	cede1=0	cedenan=0	unifEval=6819	unifGo=469	ethPos=1168513	ethNeg=98110	ethRows=1267812	sameCoreShare=nan
+欠け: cederule_s11 cederule_s12 cederule_s13 cederule_s14 cederule_s15 cederule_s16 cederule_s17 cederule_s18 cederule_s19 cederule_s20
