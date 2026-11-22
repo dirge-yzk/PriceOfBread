@@ -9,25 +9,65 @@ using Avalonia.Platform;
 
 namespace PriceOfBread.App.Controls;
 
-/// <summary>画像の共通の読み込み（avares:// の 1 本のパスを 1 回だけ読み使い回す）。無い・読めない時は null。財のアイコン・国旗・階級の絵が共有する。</summary>
+/// <summary>画像の共通の読み込み（avares:// の 1 本のパスを 1 回だけ読み使い回す）。無い・読めない時は null。財のアイコン・国旗・階級の絵が共有する。
+/// 実行ファイルの横に assets_dir.txt（1 行目＝Assets のフォルダ）があれば、そのフォルダの画像を先に読む＝画像を足しても建て直さずに起動し直すだけで出る。</summary>
 public static class Pictures
 {
+    private const string Prefix = "avares://PriceOfBread.App/Assets/";
     private static readonly Dictionary<string, IImage?> Cache = new();
+
+    /// <summary>先に読むディスクのフォルダ（Assets に当たる）。無ければ埋め込みの画像だけ。</summary>
+    public static string? DiskRoot { get; set; } = ReadDiskRoot();
+
+    private static string? ReadDiskRoot()
+    {
+        try
+        {
+            string file = System.IO.Path.Combine(AppContext.BaseDirectory, "assets_dir.txt");
+            if (!System.IO.File.Exists(file)) return null;
+            foreach (var line in System.IO.File.ReadAllLines(file))
+            {
+                string dir = line.Trim();
+                if (dir.Length > 0) return System.IO.Directory.Exists(dir) ? dir : null;
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    /// <summary>埋め込みのパスに当たるディスクの画像のパス（DiskRoot が無い・ファイルが無い時は null）。</summary>
+    public static string? DiskPathOf(string uriText)
+    {
+        if (DiskRoot is null || !uriText.StartsWith(Prefix, StringComparison.Ordinal)) return null;
+        string path = System.IO.Path.Combine(DiskRoot, uriText[Prefix.Length..].Replace('/', System.IO.Path.DirectorySeparatorChar));
+        return System.IO.File.Exists(path) ? path : null;
+    }
+
+    private static IImage? FromDisk(string uriText)
+    {
+        if (DiskPathOf(uriText) is not { } path) return null;
+        try { return new Bitmap(path); } catch { return null; }
+    }
 
     public static IImage? Load(string uriText)
     {
         if (Cache.TryGetValue(uriText, out var hit)) return hit;
-        IImage? img = null;
+        return Cache[uriText] = FromDisk(uriText) ?? Embedded(uriText);
+    }
+
+    private static IImage? Embedded(string uriText)
+    {
         try
         {
             var uri = new Uri(uriText);
-            if (AssetLoader.Exists(uri)) { using var s = AssetLoader.Open(uri); img = new Bitmap(s); }
+            if (!AssetLoader.Exists(uri)) return null;
+            using var s = AssetLoader.Open(uri);
+            return new Bitmap(s);
         }
-        catch { img = null; }
-        return Cache[uriText] = img;
+        catch { return null; }
     }
 
-    internal static string Of(string folder, string file) => "avares://PriceOfBread.App/Assets/" + folder + "/" + file + ".png";
+    internal static string Of(string folder, string file) => Prefix + folder + "/" + file + ".png";
 }
 
 /// <summary>財のアイコン（Assets/Goods/＜財の Id＞.png）。画像が無い財は null（空）。

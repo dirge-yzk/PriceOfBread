@@ -28,6 +28,25 @@ public class GoodIconTests
     }
 
     [Fact]
+    public void 横のフォルダの画像を埋め込みより先に引く()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "pob_assets_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(dir, "Flags"));
+        string file = Path.Combine(dir, "Flags", "試しの国.png");
+        File.WriteAllBytes(file, [0]);
+        var before = Pictures.DiskRoot;
+        try
+        {
+            Pictures.DiskRoot = dir;
+            Assert.Equal(file, Pictures.DiskPathOf(FlagIcons.UriOf("試しの国")));
+            Assert.Null(Pictures.DiskPathOf(FlagIcons.UriOf("無い国")));
+            Pictures.DiskRoot = null;
+            Assert.Null(Pictures.DiskPathOf(FlagIcons.UriOf("試しの国")));
+        }
+        finally { Pictures.DiskRoot = before; Directory.Delete(dir, true); }
+    }
+
+    [Fact]
     public void 開始国の全てに国旗の画像がある()
     {
         string root = Path.GetDirectoryName(Path.GetDirectoryName(Here()))!;
