@@ -411,4 +411,57 @@ public class LayoutTests
                 }
             }
     }
+
+    [Fact]
+    public void 窓の幅の候補は列の数ごとに頁がその列の数に割れる幅で_狭い順で_最小の幅を下回らない()
+    {
+        foreach (var slot in new[] { Slot.Market, Slot.Trade, Slot.Finance, Slot.FiscalMoney, Slot.Population, Slot.PoliticsLaw, Slot.DiplomacyWar, Slot.Discovery, Slot.Rights })
+        {
+            var plan = PriceOfBread.App.Views.Pages.PageSizes.PlanOf(slot)!;
+            var cands = PriceOfBread.App.Views.Pages.PageSizes.Candidates(slot);
+            int first = PriceOfBread.App.Views.Pages.PageSizes.MinColumns(slot);
+            Assert.NotEmpty(cands);
+            Assert.Equal(PriceOfBread.App.Views.Pages.PageSizes.MaxColumns(slot) - first + 1, cands.Count);
+            for (int i = 0; i < cands.Count; i++)
+            {
+                Assert.True(cands[i] >= LayoutModel.MinWindowWidth, slot.ToString());
+                if (i > 0) Assert.True(cands[i] > cands[i - 1], slot.ToString());
+                // 窓の縁と頁の余白を除いた幅で、頁が実際にその列の数に割れる（多すぎも少なすぎもしない。置き場の列の数が上限）
+                Assert.True(first + i == Math.Min(PagePlan.ColumnCount(cands[i] - PriceOfBread.App.Views.Pages.PageSizes.Frame, plan), plan.Columns3.Count), $"{slot} {cands[i]} 列{first + i}");
+            }
+            Assert.Equal(cands[0], LayoutModel.DefaultWidth(slot));
+        }
+        // 窓にならない枠は見積りを持たない
+        Assert.Null(PriceOfBread.App.Views.Pages.PageSizes.PlanOf(Slot.Production));
+    }
+
+    [Fact]
+    public void 財の価格は2段組で入る幅_支出と収入と輸出と輸入は最初から左右に並ぶ()
+    {
+        Assert.True(LayoutModel.DefaultWidth(Slot.Market) >= 2 * 394);   // 表 2 つ分
+        Assert.True(PagePlan.ColumnCount(LayoutModel.DefaultWidth(Slot.FiscalMoney) - PriceOfBread.App.Views.Pages.PageSizes.Frame, PriceOfBread.App.Views.Pages.FiscalMoneyPage.Plan) == 2);
+        Assert.True(PagePlan.ColumnCount(LayoutModel.DefaultWidth(Slot.Trade) - PriceOfBread.App.Views.Pages.PageSizes.Frame, PriceOfBread.App.Views.Pages.TradePage.Plan) == 2);
+    }
+
+    [Fact]
+    public void 表の2段組の分け方は群を割らず_高さがなるべく等しく_行の順と全行を保つ()
+    {
+        TableSnapshot Make(params (string Group, int Rows)[] groups)
+        {
+            var rows = new List<RowView>(); int n = 0;
+            foreach (var (g, c) in groups) for (int i = 0; i < c; i++) rows.Add(new RowView("r" + n, "n" + n++, g, []));
+            return new TableSnapshot("t", "t", [], rows);
+        }
+        var snap = Make(("a", 10), ("b", 4), ("c", 6), ("d", 10));
+        var (l, r) = snap.SplitByGroup();
+        Assert.Equal(snap.Rows.Select(x => x.Key), l.Rows.Concat(r.Rows).Select(x => x.Key));
+        Assert.NotEmpty(l.Rows); Assert.NotEmpty(r.Rows);
+        Assert.Empty(l.Rows.Select(x => x.Group).Intersect(r.Rows.Select(x => x.Group)));   // 群は左右に割れない
+        Assert.NotEqual(l.Key, r.Key);
+        // 群が 1 つなら全部左・空の表は空
+        var (one, none) = Make(("a", 5)).SplitByGroup();
+        Assert.Equal(5, one.Rows.Count); Assert.Empty(none.Rows);
+        var (e1, e2) = Make().SplitByGroup();
+        Assert.Empty(e1.Rows); Assert.Empty(e2.Rows);
+    }
 }

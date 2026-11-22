@@ -144,16 +144,8 @@ public sealed class LayoutModel
     /// <summary>州の窓の位置と大きさ（幅は固定・左上）。</summary>
     public static WindowRect ProvinceRect(double hostW, double hostH) => Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);
 
-    /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。市場・財政・POP の 3 枚が 1920 幅の盤（左の列を除く約 1660）に横に並ぶ幅。</summary>
-    public static double DefaultWidth(Slot slot) => slot switch
-    {
-        Slot.Market => 420,        // 財の値段の表だけ（表の自然な幅に詰める）
-        Slot.FiscalMoney => 1040,  // 支出と収入の 2 列が左右に並ぶ幅
-        Slot.Finance => 620,       // 金融の表と国債と外資信用の表（2 列に割れる幅は要らない）
-        Slot.Trade => 1040,        // 輸出と輸入の 2 列が左右に並ぶ幅
-        Slot.Population => 620,    // 階級の表の幅
-        _ => 540,
-    };
+    /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（頁ごとの見積りは <see cref="PriceOfBread.App.Views.Pages.PageSizes"/> の 1 本）。盤に入る列の数の選びは窓の層が中身の高さを測って決める。</summary>
+    public static double DefaultWidth(Slot slot) => PriceOfBread.App.Views.Pages.PageSizes.DefaultWidth(slot);
 
     /// <summary>大きさ（<paramref name="w"/>×<paramref name="h"/>）の窓を、<paramref name="occupied"/> の窓と重ならない次の空き場所（左から右・上から下）へ置く。
     /// 空きが無ければ窓ごとに少しずつずらした重ね方（<paramref name="slot"/> の番号で決まる起点）。領域の中に収める。</summary>

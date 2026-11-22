@@ -12,7 +12,8 @@ public partial class DiscoveryPage : UserControl
     ],
     // 2 段組み（2026-11-11 作者指示「空白が多すぎる」）：技術＝左・政府と思想・産地＝右（制度は政府の行の状態の列へ吸収・2026-11-12）
     [["discovery"], ["social", "sites"]],
-    ColumnMinWidth: 520);
+    ColumnMinWidth: 520,
+    ColumnWeights: [1.54, 1]);   // 左の技術は表が 2 つ並ぶ（約 824）・右の政府と思想と産地は約 536
 
     public DiscoveryPage()
     {
