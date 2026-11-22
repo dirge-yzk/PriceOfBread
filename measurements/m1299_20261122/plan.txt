@@ -1,0 +1,24 @@
+(1299) 読む線 c134cp — 主権国の首都の州が植民地格のまま残る件（Seceded の格）と C 型
+書き手 Opus 5.5・2026-11-22・main dab6ec928（worktree は作らない＝main の作業ツリーを読むだけ・コミットしない）
+腕 0 本。
+
+作業の場所
+- D:/PoB_work/r1299_work/ （表・下書き・台本の出力）
+- 台本：D:/PoB_work/r1299_work/scripts/ に置く（コミットしない。合流が scripts/instruments/r1299/ へ写す）
+  ※指示の〈scripts/instruments/r1299/〉は main の作業ツリーの中＝読む線は main の作業ツリーで作業しない→作業フォルダに置き、合流が写す。
+
+読む生（読むだけ）
+- D:/PoB_work/keep_1294/base_ins  （m1294 の計器つき 10 種・種 1〜10）：region_s・nation_s・labeltier_s・secession_s・cederule_s・wars_s／warpair_s
+- D:/PoB_work/keep_1294/a11       （種 11〜20 の基準）：同じ表
+- D:/PoB_work/keep_1294/n1        （ヌル腕 N1）：同じ表
+- 枝 origin/c133mr の measurements/m1290_*（readB）
+- measurements/m1285_20261122/（grep_culture.txt・q1〜q4）・scripts/instruments/r1285/
+- PriceOfBread.SimCore/world.json（culture）・places.json
+
+読むソース（grep し直す）
+- Territory.cs Rehome（Ceded・Seceded・Returned・Sovereign）・TransferRegion・NextCapital・SetCapital
+- MultiNationSim.cs SpawnNation（:331 の注）・ReabsorbNations（Returned）
+- Diplomacy.cs RegisterIndependence（:457）・ConfirmIndependence（:2872）・ResolvePeace の内戦の枝・戦の終わり方（ResolvePeace を通らない終わり）
+- RegionTier.Colonial の読み手（SimCore）
+
+問い 1〜5 は指示文のとおり。出力は q1_*.tsv … q5 と result_1299.txt。

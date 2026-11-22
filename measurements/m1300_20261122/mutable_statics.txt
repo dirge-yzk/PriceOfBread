@@ -1,0 +1,25 @@
+./BilateralMarket.cs:7:    internal static long TimeListsTicks, TimeClearTicks;
+./BilateralMarket.cs:8:    internal static long CntGoods, CntBuyers, CntRollIters, CntScanSteps, CntSkips, CntFills, CntDeals;
+./BilateralMarket.cs:9:    internal static long CntIdleSkips, CntScopeRows, CntScopeFallbacks, CntScopeWalk;
+./BilateralMarket.cs:10:    internal static long CntRowSkipNeed, CntRowSkipRef, CntRowSkipDead, CntRowSkipBudget, CntCutLp, CntWedgeSkips;
+./BilateralMarket.cs:14:    internal static bool DealConstAlwaysStale;
+./BudgetBindDiag.cs:5:    public static bool On;
+./Catalog.cs:529:    private static int[]? _defaultRowOfGood;
+./Geo.cs:36:    static Tab? _tab;
+./MechanismProbe.cs:18:    public static bool Enabled;
+./MultiNationSim.cs:630:    public static long TicksNations, TicksMarket;   // POB_TIME=1 の計器。〔履歴 MultiNationSim.cs#70〕
+./PathGraph.cs:57:    private static bool[] Added = [];
+./PathGraph.cs:389:    private static double[]? _landMatrix;
+./PopScan.cs:33:    internal static bool Verify = InitVerify();
+./PopScan.cs:42:    internal static long Checks, Opened;
+./Simulation.cs:626:    private static int[]? _scarceCountsWithColonies;   // 財ID→産地の数（world.json から1回だけ数える・決定論）。〔履歴 Simulation.cs#46〕
+./Simulation.cs:627:    private static int _scarceTotalWithColonies;
+./Simulation.cs:1484:    public static bool ConservationProbe;
+./TradeReachDiag.cs:5:    public static bool On;
+./TradeReachDiag.cs:7:    public static int RegTotal, RegLinked, RegFrozen, RegNoPortLink, RegNoCoord;
+./TradeReachDiag.cs:8:    public static int[] ActiveByNation = [], LinkedByNation = [];
+./TradeReachDiag.cs:10:    public static double ValueCross, ValueDomestic;
+./TradeReachDiag.cs:11:    public static long TxCross, TxDomestic;
+./TradeReachDiag.cs:12:    public static double KmValWeighted;
+./TradeReachDiag.cs:14:    public static double[] CrossByNation = [], DomByNation = [];
+./TradeReachDiag.cs:15:    public static double[] CrossRefByNation = [], DomRefByNation = [];

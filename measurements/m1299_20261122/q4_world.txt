@@ -1,0 +1,16 @@
+本国の州 227・文化の札が空 12・宗教の札が空 0
+開幕の植民地 81・places.json の文化の札が空 0・宗教の札が空 0
+開幕に植民地を持たない国 53 / 61
+
+本国	日本	蝦夷地	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=8	札の空の州=1	開幕の植民地=0
+本国	アメリカ	セントポール	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=5	札の空の州=1	開幕の植民地=0
+本国	ロシア	ウラジオストク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	ヤクーツク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	オホーツク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	ペトロパヴロフスク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	スレドネコリムスク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	アナディリ	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	トゥルハンスク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	オブドルスク	culture=''	religion='土着信仰'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	ロシア	グリエフ	culture=''	religion='イスラム'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=24	札の空の州=9	開幕の植民地=4
+本国	デンマーク	レイキャヴィク	culture=''	religion='プロテスタント'	popK=	places.culture=None	places.religion=None	places.kind='state'	国の州の数=4	札の空の州=1	開幕の植民地=1

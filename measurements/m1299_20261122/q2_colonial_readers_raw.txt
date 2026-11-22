@@ -1,0 +1,37 @@
+ArmyShape.cs:127:                if (home is not null) home[nd] = r.Tier != RegionTier.Colonial;
+Colonial.cs:27:            if (cr.Tier != RegionTier.Colonial) continue;
+Colonial.cs:46:                    if (cr.Tier != RegionTier.Colonial) continue;
+Colonial.cs:69:        => r.Tier == RegionTier.Colonial && s.IsRgo && ExportCrop(s.GoodId) && Array.IndexOf(r.Resources, s.GoodId) >= 0;
+Diplomacy.cs:57:                if (r.Tier == RegionTier.Colonial) m += r.SumPopulation() / dipU.ColonyUnitPop;
+Diplomacy.cs:68:            foreach (var r in nw.Regions) if (r.Tier == RegionTier.Colonial) n++;
+Diplomacy.cs:375:                if (r.Tier == RegionTier.Colonial)
+Diplomacy.cs:466:                if (r.Tier == RegionTier.Colonial) SovereignColonialRegions++;
+Diplomacy.cs:1085:            if (homeOnly && r.Tier == RegionTier.Colonial) continue;
+Diplomacy.cs:1097:                if (r.Tier != RegionTier.Colonial) continue;
+Diplomacy.cs:1352:                        if (r.Tier != RegionTier.Colonial) continue;
+Diplomacy.cs:2040:            Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial);
+Diplomacy.cs:2691:                    if (r.Tier != RegionTier.Colonial || r.Id == 0) continue;
+Diplomacy.cs:2921:            bool colonialReach = r.Tier == RegionTier.Colonial
+Diplomacy.cs:3133:                if (r.Tier != RegionTier.Colonial) continue;
+Discovery.cs:186:            bool colonial = r.Tier == RegionTier.Colonial;
+Discovery.cs:478:            bool colonial = r.Tier == RegionTier.Colonial;
+EconomyStep.cs:422:    internal static bool NavalHomePort(Region r) => r.IsPort && r.Tier != RegionTier.Colonial && r.LastPortThroughput > 0;
+EconomyStep.cs:2326:        double[]? absentee = world is not null && region.Tier == RegionTier.Colonial && Colonial.AbsenteeOwner(world, region) is not null ? new double[region.Pops.Count] : null;
+InterestGroups.cs:56:        if (r.Tier == RegionTier.Colonial)
+InterestGroups.cs:83:        return r.Tier == RegionTier.Colonial ? v * SuffrageInclusion(w, r, p) : v;
+MinimumWageFloor.cs:83:            if (r.Tier == RegionTier.Colonial) continue;
+MultiNationSim.cs:152:                var reg = Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
+PoliticalQuantities.cs:55:            if (coreOnly && r.Tier == RegionTier.Colonial) continue;
+Politics.cs:1075:            if (w.Coef.TreatyPortHomeOnly > 0 && r.Tier == RegionTier.Colonial) continue;   // (1138) 旗 1＝植民地格の港を本国の関税の母集合に入れない（旗 0 は短絡＝旧の行）
+Politics.cs:1088:            if (r.IsPort && !(c.TreatyPortHomeOnly > 0 && r.Tier == RegionTier.Colonial) && ForeignShareSum(r) >= line) return true;   // (1138) 旗 1＝植民地格の港では立たない
+SelfPlay.cs:33:            if (r.Tier == RegionTier.Colonial) continue;
+SelfPlay.cs:598:            if (r.Tier == RegionTier.Colonial) continue;
+SelfPlay.cs:1281:            foreach (var r in w.Regions) if (r.Tier != RegionTier.Colonial) n++;
+Simulation.cs:1295:                if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare.Value > pr.RentShare.Value)
+Simulation.cs:1549:            if (r.Tier != RegionTier.Colonial) { mainSav += rSav; mainEarn += rEarn; mainPop += rPop; }
+TechEducation.cs:100:            if (coreOnly && r.Tier == RegionTier.Colonial) continue;
+Territory.cs:164:                if (r.Tier != RegionTier.Colonial) r.Tier = RegionTier.Integrated;
+Territory.cs:233:        bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
+World.cs:1767:                if (r.Tier == RegionTier.Colonial)
+World.cs:1899:                if (tr.Tier == RegionTier.Colonial)
+World.cs:1919:                if (qr.Tier == RegionTier.Colonial)

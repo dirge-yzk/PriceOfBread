@@ -1,0 +1,5 @@
+# M2（fd03bd375）
+  成功 PriceOfBread.Tests.InvestMomentumDeletionTests.助走の工場の規模の目標は平滑の採算を読まない [2 s]
+  成功 PriceOfBread.Tests.InvestMomentumDeletionTests.対照_重みを置けば盤面は勢いの差を出す [636 ms]
+  失敗 PriceOfBread.Tests.InvestMomentumDeletionTests.労働を買わない生産者は重みの有無で同じ [324 ms]
+  成功 PriceOfBread.Tests.InvestMomentumDeletionTests.役務の財の生産者の規模の目標は平滑の採算を読まない [301 ms]

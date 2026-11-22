@@ -1,0 +1,65 @@
+== T1OutPrev
+./BilateralMarket.cs:276:    /// <summary>(1144) A-1 の P̂(p)＝州×財の生産者の〈供給①を値段 p で読み直した来月の産出〉の和（写し T1OutPrev・T1Base・T1Mc から・
+./BilateralMarket.cs:286:            double b = p.T1Base, o0 = p.T1OutPrev, mc = p.T1Mc;
+./BilateralMarket.cs:302:        for (long k = 0; k < n; k++) { var p = pr[k]; p.T1OutPrev = 0; p.T1Base = 0; p.T1Mc = 0; }
+./EconomyStep.cs:885:            if (sleep[pi] == 1) { if (t1Copy) { var sz = region.Producers[pi]; sz.T1OutPrev = 0; sz.T1Base = 0; sz.T1Mc = 0; } continue; }   // continue〔履歴 EconomyStep.cs#11
+./EconomyStep.cs:887:            if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; if (t1Copy) { s.T1OutPrev = 0; s.T1Base = 0; s.T1Mc = 0; } continue; }   // 倒産工場は操業停止（産出0
+./EconomyStep.cs:975:            if (t1Copy) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
+./Model.cs:485:    //   T1OutPrev＝供給①の Toward の前の産出・T1Base＝能力×投入充足×在庫の調整（未発明は −1）・T1Mc＝供給①の mc。3 つとも 0＝写しが無�
+./Model.cs:486:    [System.NonSerialized] internal double T1OutPrev, T1Base, T1Mc;
+== T1Base
+./BilateralMarket.cs:276:    /// <summary>(1144) A-1 の P̂(p)＝州×財の生産者の〈供給①を値段 p で読み直した来月の産出〉の和（写し T1OutPrev・T1Base・T1Mc から・
+./BilateralMarket.cs:277:    /// 写しが無い生産者（3 つとも 0＝眠り・倒産・その月に供給①を通らない）は今の産出のまま（退かない）・未発明（T1Base＜0
+./BilateralMarket.cs:286:            double b = p.T1Base, o0 = p.T1OutPrev, mc = p.T1Mc;
+./BilateralMarket.cs:302:        for (long k = 0; k < n; k++) { var p = pr[k]; p.T1OutPrev = 0; p.T1Base = 0; p.T1Mc = 0; }
+./EconomyStep.cs:885:            if (sleep[pi] == 1) { if (t1Copy) { var sz = region.Producers[pi]; sz.T1OutPrev = 0; sz.T1Base = 0; sz.T1Mc = 0; } continue; }   // continue〔履歴 EconomyStep.cs#11
+./EconomyStep.cs:887:            if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; if (t1Copy) { s.T1OutPrev = 0; s.T1Base = 0; s.T1Mc = 0; } continue; }   // 倒産工場は操業停止（産出0
+./EconomyStep.cs:975:            if (t1Copy) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
+./Model.cs:485:    //   T1OutPrev＝供給①の Toward の前の産出・T1Base＝能力×投入充足×在庫の調整（未発明は −1）・T1Mc＝供給①の mc。3 つとも 0＝写しが無�
+== T1Mc
+./BilateralMarket.cs:276:    /// <summary>(1144) A-1 の P̂(p)＝州×財の生産者の〈供給①を値段 p で読み直した来月の産出〉の和（写し T1OutPrev・T1Base・T1Mc から・
+./BilateralMarket.cs:286:            double b = p.T1Base, o0 = p.T1OutPrev, mc = p.T1Mc;
+./BilateralMarket.cs:302:        for (long k = 0; k < n; k++) { var p = pr[k]; p.T1OutPrev = 0; p.T1Base = 0; p.T1Mc = 0; }
+./EconomyStep.cs:885:            if (sleep[pi] == 1) { if (t1Copy) { var sz = region.Producers[pi]; sz.T1OutPrev = 0; sz.T1Base = 0; sz.T1Mc = 0; } continue; }   // continue〔履歴 EconomyStep.cs#11
+./EconomyStep.cs:887:            if (s.Bankrupt) { s.Output = 0; s.HeadsLastMonth = 0; if (t1Copy) { s.T1OutPrev = 0; s.T1Base = 0; s.T1Mc = 0; } continue; }   // 倒産工場は操業停止（産出0
+./EconomyStep.cs:975:            if (t1Copy) { s.T1OutPrev = t1Prev; s.T1Base = t1Base; s.T1Mc = t1Mc; }   // (1144) T1 A-1 の写し（流れの値・読み手は清算と計器だけ）
+./Model.cs:485:    //   T1OutPrev＝供給①の Toward の前の産出・T1Base＝能力×投入充足×在庫の調整（未発明は −1）・T1Mc＝供給①の mc。3 つとも 0＝写しが無�
+./Model.cs:486:    [System.NonSerialized] internal double T1OutPrev, T1Base, T1Mc;
+== ClearSellerPos
+./BilateralMarket.cs:836:            { gStamp = ++_scopeStamp; for (int s = 0; s < sellers.Count; s++) { var sr0 = tr[sellers[s].Node].r; sr0.ClearSellerPos = s; sr0.ClearSellerStamp = gStamp; } }
+./BilateralMarket.cs:873:                    foreach (var pr in pmem) if (pr.ClearSellerStamp == gStamp) member[pr.ClearSellerPos] = rowStamp;
+./Model.cs:785:    [System.NonSerialized] internal int ClearSellerPos;
+== ClearSellerStamp
+./BilateralMarket.cs:836:            { gStamp = ++_scopeStamp; for (int s = 0; s < sellers.Count; s++) { var sr0 = tr[sellers[s].Node].r; sr0.ClearSellerPos = s; sr0.ClearSellerStamp = gStamp; } }
+./BilateralMarket.cs:873:                    foreach (var pr in pmem) if (pr.ClearSellerStamp == gStamp) member[pr.ClearSellerPos] = rowStamp;
+./Model.cs:786:    [System.NonSerialized] internal int ClearSellerStamp;
+== ClearingSerial
+./BilateralMarket.cs:112:    [System.NonSerialized] internal int ClearingSerial;
+./BilateralMarket.cs:344:        ClearingSerial++;
+== _scopeStamp
+./BilateralMarket.cs:63:    [System.NonSerialized] private int _scopeStamp;
+./BilateralMarket.cs:836:            { gStamp = ++_scopeStamp; for (int s = 0; s < sellers.Count; s++) { var sr0 = tr[sellers[s].Node].r; sr0.ClearSellerPos = s; sr0.ClearSellerStamp = gStamp; } }
+== _popSums
+./World.cs:1431:        get => _popSums;
+./World.cs:1432:        set { if (_popSums is null != value is null) { PopWindow.Open += value is null ? -1 : 1; if (PopWindow.Verify && value is not null) System.Threading.Interlocked.Increment(ref P
+./World.cs:1434:    [System.NonSerialized] private PopWindow? _popSums;
+== _discRow
+./Model.cs:538:                _discRow = Catalog.DiscoveryRowOf(GoodId, RecipeName);
+./Model.cs:542:            return _discRow;
+./Model.cs:547:    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
+== _discGood
+./Model.cs:536:            if (_discGood != GoodId || !ReferenceEquals(_discRecipe, RecipeName))
+./Model.cs:540:                _discGood = GoodId; _discRecipe = RecipeName;
+./Model.cs:547:    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
+== _siteRegion
+./Model.cs:480:        set { if (_siteRegion is { } sr) sr.GdpVersion++; _output = value; }
+./Model.cs:504:            if (_siteRegion is { } sr && (value > 1e-9) != (_builtScale > 1e-9)) sr.SitesDirty = true;
+./Model.cs:509:    [System.NonSerialized] internal Region? _siteRegion;
+./Model.cs:517:            if (_siteRegion is { } sr && ((value > 0) != (_constructionLeft > 0) || (value <= 0) != (_constructionLeft <= 0))) sr.SitesDirty = true;
+./Model.cs:766:            p._siteRegion = this;
+./World.cs:1193:                    s._siteRegion = r;   // 産出の書き込みの宛先（生産者は州をまたがない）
+== _liveRegion
+./Model.cs:567:            if (_liveRegion is { } lr && (_lastDemand < DeadEps && value < DeadEps) != (_lastDemand < DeadEps && _lastProduced < DeadEps)) lr.LiveDirty = true;
+./Model.cs:583:            if (_liveRegion is { } lr && (value < DeadEps && _lastProduced < DeadEps) != (_lastDemand < DeadEps && _lastProduced < DeadEps)) lr.LiveDirty = true;
+./Model.cs:589:    [System.NonSerialized] internal Region? _liveRegion;
+./Model.cs:796:            if (!ReferenceEquals(m._liveRegion, this)) m._liveRegion = this;

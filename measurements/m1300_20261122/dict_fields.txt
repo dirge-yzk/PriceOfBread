@@ -1,0 +1,22 @@
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/BilateralMarket.cs:209:        public Dictionary<Region, double> PortStart = new();
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/BilateralMarket.cs:210:        public Dictionary<string, int> TransitPortOwner = new();
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:170:    public Dictionary<int, double> InvestorShares = new();   // 外7：運河建設への各Power(Id)の累計拠出額＝持分（通行料配当の按分基準）。CanalInvestReturns=0では書き込み/参照とも走らず無影響
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:287:    private readonly Dictionary<long, int> _warCount = [];   // 挙動非依存＝書くだけ〔履歴 Diplomacy.cs#46〕
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:288:    internal readonly Dictionary<long, double> _grudge = [];  // 講和時の復讐心で1へ立ち、失地と同じ半減期で薄れる（高緊張帯の冷める速さ＝平時の減衰×(1−遺恨)）〔履歴 Diplomacy.cs#47〕
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:318:    private readonly Dictionary<long, double> _tension = [];
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:320:    private readonly Dictionary<long, double[]> _tensionWhy = [];
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:322:    internal readonly Dictionary<long, int> _warClock = [];   // 緊張100以上が続いた月数
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:325:    private readonly HashSet<long> _alliance = [];
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:326:    private readonly HashSet<long> _embargo = [];
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:332:    private readonly HashSet<long> _dependency = [];   // DirKey(宗主,従属) の有無＝属国関係（種別なし）
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:334:    internal readonly Dictionary<int, PowerRank> _rank = [];
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:1810:    private readonly Dictionary<long, double> _tensionRamp = new();          // DirKey(押した国, 相手) → 残りの反映量（符号付き）
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Diplomacy.cs:3019:        public HashSet<int> Nodes = new(); public bool CanCross, Suez, Panama; public double WorldShare, Lat, Lon;
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Explain.cs:7:    private readonly Dictionary<string, List<Term>> _quantities = new();
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Factions.cs:15:    public Dictionary<int, double>? ArmsStock;
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Model.cs:714:    public Dictionary<int, double>? ArmsStock;
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/MultiNationSim.cs:16:    private readonly Dictionary<int, double> _prevBandFactor = new();   // 帯ごとの前年 WeatherBandFactor（AR(1)の帯別遅延項・WeatherBandPersistence）
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/SaveGame.cs:63:        private readonly Dictionary<object, int> _ids = new(ReferenceEqualityComparer.Instance);
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/SaveGame.cs:64:        private readonly Dictionary<Type, int> _typeIds = new();
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/SaveGame.cs:166:        private readonly HashSet<Type> _fieldListWritten = new();
+C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/SaveGame.cs:184:        private readonly Dictionary<Type, object?> _donors = new();

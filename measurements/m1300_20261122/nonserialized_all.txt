@@ -1,0 +1,43 @@
+PriceOfBread.SimCore/BilateralMarket.cs:11:    [System.NonSerialized] private long[]? _cost;
+PriceOfBread.SimCore/BilateralMarket.cs:25:    [System.NonSerialized] private int[][]? _discCarriers, _discRowsByCarrier;
+PriceOfBread.SimCore/BilateralMarket.cs:63:    [System.NonSerialized] private int _scopeStamp;
+PriceOfBread.SimCore/BilateralMarket.cs:112:    [System.NonSerialized] internal int ClearingSerial;
+PriceOfBread.SimCore/Diplomacy.cs:18:    [System.NonSerialized] internal int _syncGdpWindow;
+PriceOfBread.SimCore/Diplomacy.cs:19:    [System.NonSerialized] internal double _syncGdp;
+PriceOfBread.SimCore/Diplomacy.cs:20:    [System.NonSerialized] internal Region[]? _syncGdpRegions;
+PriceOfBread.SimCore/Diplomacy.cs:279:    // ⚠作業領域＝セーブに載らない（[NonSerialized]）・シミュの値はこれを1つも読まない。〔履歴 Diplomacy.cs#44〕
+PriceOfBread.SimCore/Diplomacy.cs:280:    [System.NonSerialized] private long[]? _cost;
+PriceOfBread.SimCore/Diplomacy.cs:323:    [System.NonSerialized] private Dictionary<World, CrownForm>? _crownAtPeaceHead;   // _crownAtPeaceHead〔履歴 Diplomacy.cs#56〕
+PriceOfBread.SimCore/Diplomacy.cs:338:    [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // CpCeded〔履歴 Diplomacy.cs#62〕
+PriceOfBread.SimCore/Diplomacy.cs:339:    [System.NonSerialized] internal double CpRepCut, CpTpMult, CpPayR;   // CpPayR〔履歴 Diplomacy.cs#63〕
+PriceOfBread.SimCore/Diplomacy.cs:754:    [System.NonSerialized] private int _syncWindow, _syncWindowSeq;
+PriceOfBread.SimCore/Model.cs:105:    [System.NonSerialized] public double SubsistenceShare;
+PriceOfBread.SimCore/Model.cs:475:    [System.NonSerialized] internal double HeadsLastMonth;
+PriceOfBread.SimCore/Model.cs:486:    [System.NonSerialized] internal double T1OutPrev, T1Base, T1Mc;
+PriceOfBread.SimCore/Model.cs:509:    [System.NonSerialized] internal Region? _siteRegion;
+PriceOfBread.SimCore/Model.cs:547:    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
+PriceOfBread.SimCore/Model.cs:548:    [System.NonSerialized] private string? _discRecipe;
+PriceOfBread.SimCore/Model.cs:589:    [System.NonSerialized] internal Region? _liveRegion;
+PriceOfBread.SimCore/Model.cs:747:    [System.NonSerialized] internal Producer[]? BuildSites;
+PriceOfBread.SimCore/Model.cs:748:    [System.NonSerialized] internal Producer[]? StateSites;
+PriceOfBread.SimCore/Model.cs:749:    [System.NonSerialized] internal bool SitesDirty;
+PriceOfBread.SimCore/Model.cs:750:    [System.NonSerialized] internal long GdpVersion;
+PriceOfBread.SimCore/Model.cs:752:    [System.NonSerialized] internal double GdpOutputMemo;
+PriceOfBread.SimCore/Model.cs:783:    [System.NonSerialized] internal Good[]? LiveGoods;
+PriceOfBread.SimCore/Model.cs:784:    [System.NonSerialized] internal bool LiveDirty;
+PriceOfBread.SimCore/Model.cs:785:    [System.NonSerialized] internal int ClearSellerPos;
+PriceOfBread.SimCore/Model.cs:786:    [System.NonSerialized] internal int ClearSellerStamp;
+PriceOfBread.SimCore/MultiNationSim.cs:537:    [System.NonSerialized] private List<(World Src, World Dst, double Heads)>? _recruitLog;
+PriceOfBread.SimCore/MultiNationSim.cs:1627:    // ⚠作業領域＝セーブに載らない（[NonSerialized]＝SaveGame が辿らない）・シミュの値はどれも読まない。〔履歴 MultiNationSim.cs#164〕
+PriceOfBread.SimCore/MultiNationSim.cs:1628:    [System.NonSerialized] private long[]? _cost;
+PriceOfBread.SimCore/MultiNationSim.cs:1629:    [System.NonSerialized] private long[]? _costDeparted;
+PriceOfBread.SimCore/MultiNationSim.cs:1630:    [System.NonSerialized] private long _clockTicks, _clockVisits;   // 軌道は読まない〔履歴 MultiNationSim.cs#165〕
+PriceOfBread.SimCore/SaveGame.cs:51:                    if (f.IsDefined(typeof(NonSerializedAttribute), false)) continue;
+PriceOfBread.SimCore/World.cs:22:    [System.NonSerialized] private long[]? _cost;
+PriceOfBread.SimCore/World.cs:89:    [System.NonSerialized] public OpeningBake.RunOptions? BakeRun;
+PriceOfBread.SimCore/World.cs:172:    [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
+PriceOfBread.SimCore/World.cs:174:    [System.NonSerialized] internal double DiagSfPensionToSoldiersCum, DiagSfCheapSubsidyPaidCum, DiagSfVoteWeightUsed, DiagSfBudgetNegCumPopMonthK, DiagSfBudgetNegCumAmount;
+PriceOfBread.SimCore/World.cs:176:    [System.NonSerialized] internal double DiagSfBiasSwitchCum, DiagSfStressFoldCum;
+PriceOfBread.SimCore/World.cs:178:    [System.NonSerialized] internal double[]? DiagPay;
+PriceOfBread.SimCore/World.cs:1216:    [System.NonSerialized] private GdpMemo? _gdpMemo;
+PriceOfBread.SimCore/World.cs:1434:    [System.NonSerialized] private PopWindow? _popSums;

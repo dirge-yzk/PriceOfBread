@@ -1,0 +1,22 @@
+seed	nation	capital	path	class	quarters	y0	y1	capitalPopShareMedian	homePopShareMedian	homeRegionsMin	homeRegionsMax
+11	スペイン	ヌエバ・エスパーニャ銀地帯	cap_ceded	orig_sov	127	1918	1950	0.151	0.458	8	8
+11	日本	中核ベンガル	cap_ceded	orig_sov	107	1888	1915	0.340	0.595	7	9
+12	オマーン	内陸ベンガル	cap_seceded	orig_sov	1	1828	1828	0.983	0.002	1	1
+12	オマーン	内陸ベンガル	cap_seceded	orig_cw	6	1828	1830	0.983	0.002	1	1
+12	共和制スペイン	中央メキシコ	unknown	born_sov	1	1813	1813	1.000	0.000	0	0
+12	共和制スペイン	中央メキシコ	unknown	born_cw	3	1813	1814	1.000	0.000	0	0
+15	スペイン	中央メキシコ	cap_seceded	orig_sov	1	1874	1874	0.143	0.630	12	12
+15	スペイン	中央メキシコ	cap_ceded	orig_sov	3	1874	1884	0.159	0.599	11	12
+17	共和制イギリス	中核ベンガル	born	born_sov	1	1791	1791	1.000	0.000	0	0
+17	共和制イギリス	中核ベンガル	born	born_cw	3	1792	1792	1.000	0.000	0	0
+19	キサンガニ王国	キサンガニ	born	born_sov	1	1908	1908	1.000	0.000	0	0
+19	キサンガニ王国	キサンガニ	born	born_cw	2	1909	1909	1.000	0.000	0	0
+20	マラータ同盟	中核ベンガル	cap_ceded	orig_sov	350	1862	1950	0.211	0.765	8	12
+20	共和制朝鮮	内陸ベンガル	born	born_sov	1	1882	1882	1.000	0.000	0	0
+20	共和制朝鮮	内陸ベンガル	born	born_cw	5	1883	1884	1.000	0.000	0	0
+
+# 区分×本国格の州の有無の国×四半期
+# born_cw	home=0	13
+# born_sov	home=0	4
+# orig_cw	home>0	6
+# orig_sov	home>0	589

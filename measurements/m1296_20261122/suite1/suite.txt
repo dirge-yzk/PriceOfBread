@@ -1,0 +1,28 @@
+# (1296) suite 木=/d/PoB_work/wt_c134f1 HEAD=e7dc4c67c 2026-11-22 16:50:44
+list-tests Tests(Category!=FullLength)=2878 Tests.Ui=232 和=3110 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   455、スキップ:     1、合計:   456、期間: 19 m 56 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=1 失敗!   -失敗:    19、合格:  2857、スキップ:     2、合計:  2878、期間: 46 m 33 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.CalendarTests.量の換算は暦の関数を通す_裸の換算は宣言した数まで [144 ms]
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.武器購入_点火すると資金が参加者の貯蓄から減り売り手に届く [721 ms]
+  失敗 PriceOfBread.Tests.FiscalTests.対外借入の債権は貸し手が払った額で換算され翌四半期に数え直さない [236 ms]
+  失敗 PriceOfBread.Tests.MilitaryTests.交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま [374 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17420888) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 38, declared: 117600) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 39, declared: 101158) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 31, declared: 4472144) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 35, declared: 191513) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 32, declared: 4472144) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 40, declared: 754773) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 29, declared: 36613591) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1700) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 37, declared: 63990) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 1519) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 27304042) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 36, declared: 47291) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2844252) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 33, declared: 175483) [< 1 ms]
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 2 m 6 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 5 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 556・その月の額の和 1.426E+05 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-22 18:10:57

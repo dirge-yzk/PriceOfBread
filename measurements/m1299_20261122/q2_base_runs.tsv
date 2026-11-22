@@ -1,0 +1,38 @@
+seed	nation	capital	path	class	quarters	y0	y1	capitalPopShareMedian	homePopShareMedian	homeRegionsMin	homeRegionsMax
+1	イギリス	中核ベンガル	cap_ceded	orig_sov	1	1945	1945	0.173	0.443	34	34
+3	イギリス	中核ベンガル	cap_seceded	orig_sov	1	1813	1813	0.409	0.269	4	4
+6	イギリス	内陸ベンガル	cap_seceded	orig_sov	16	1874	1878	0.325	0.485	7	7
+6	イギリス	内陸ベンガル	cap_seceded	orig_cw	1	1874	1874	0.326	0.484	7	7
+6	イギリス	内陸ベンガル	reorder	orig_cw	1	1878	1878	0.310	0.501	7	7
+6	イギリス	内陸ベンガル	reorder	orig_sov	286	1878	1950	0.293	0.354	5	8
+6	デンマーク	中核ベンガル	cap_seceded	orig_sov	1	1878	1878	1.000	0.000	0	0
+6	デンマーク	中核ベンガル	cap_seceded	orig_cw	3	1878	1878	1.000	0.000	0	0
+6	共和制デンマーク	中核ベンガル	born	born_sov	1	1881	1881	1.000	0.000	0	0
+6	共和制デンマーク	中核ベンガル	born	born_cw	16	1881	1885	1.000	0.000	0	0
+6	第2立憲王政イギリス	内陸ベンガル	born	born_rebel_pending	1	1878	1878	1.000	0.000	0	0
+7	イギリス	内陸ベンガル	cap_seceded	orig_sov	1	1865	1865	0.489	0.379	3	3
+7	イギリス	内陸ベンガル	cap_seceded	orig_cw	1	1866	1866	0.489	0.379	3	3
+7	南アフリカ王国	南アフリカ	born	born_sov	1	1877	1877	1.000	0.000	0	0
+7	南アフリカ王国	南アフリカ	born	born_cw	3	1877	1878	1.000	0.000	0	0
+7	第2立憲王政イギリス	内陸ベンガル	born	born_sov	1	1866	1866	1.000	0.000	0	0
+7	第2立憲王政イギリス	内陸ベンガル	born	born_cw	2	1866	1866	1.000	0.000	0	0
+8	南アフリカ王国	南アフリカ	born	born_sov	1	1875	1875	1.000	0.000	0	0
+8	南アフリカ王国	南アフリカ	born	born_cw	4	1875	1876	1.000	0.000	0	0
+9	イギリス	マドラス	cap_seceded	orig_sov	1	1940	1940	0.112	0.284	10	10
+9	イギリス	マドラス	cap_seceded	orig_cw	1	1940	1940	0.112	0.284	10	10
+9	イギリス	マドラス	reorder	orig_cw	1	1940	1940	0.107	0.288	10	10
+9	イギリス	マドラス	reorder	orig_sov	37	1941	1950	0.107	0.290	10	10
+9	共和制イギリス	中核ベンガル	born	born_sov	1	1803	1803	1.000	0.000	0	0
+9	共和制イギリス	中核ベンガル	born	born_cw	8	1804	1805	1.000	0.000	0	0
+9	第2立憲王政イギリス	マドラス	born	born_rebel_pending	1	1940	1940	1.000	0.000	0	0
+10	共和制ポルトガル	ブラジル	born	born_sov	1	1827	1827	1.000	0.000	0	0
+10	共和制ポルトガル	ブラジル	born	born_cw	3	1827	1828	1.000	0.000	0	0
+
+# 区分×本国格の州の有無の国×四半期
+# born_cw	home=0	36
+# born_rebel_pending	home=0	2
+# born_sov	home=0	6
+# orig_cw	home=0	3
+# orig_cw	home>0	5
+# orig_sov	home=0	1
+# orig_sov	home>0	343

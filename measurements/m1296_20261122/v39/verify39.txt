@@ -1,0 +1,9 @@
+flag1_all	赤 0	成功!   -失敗:     0、合格:   115、スキップ:     0、合計:   115、期間: 30 s - PriceOfBread.Tests.dll (net10.0)
+flag0_traj	赤 0	成功!   -失敗:     0、合格:    15、スキップ:     0、合計:    15、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+mut_fiscal_repay_on	赤 1	失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+  FiscalTests.対外借入の債権は貸し手が払った額で換算され翌四半期に数え直さない
+mut_fiscal_noconvert_engine	赤 0	成功!   -失敗:     0、合格:     1、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+mut_revolt_mob_off	赤 1	失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+  RevoltIgnitionTests.武器購入_点火すると資金が参加者の貯蓄から減り売り手に届く
+mut_military_seed1789	赤 1	失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+  MilitaryTests.交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま

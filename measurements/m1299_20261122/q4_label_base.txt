@@ -1,0 +1,14 @@
+seed 1: rows[col=0] 34913・rows[col>0] 5847
+seed 2: rows[col=0] 33006・rows[col>0] 7759
+seed 3: rows[col=0] 32384・rows[col>0] 8394
+seed 4: rows[col=0] 31381・rows[col>0] 9418
+seed 5: rows[col=0] 31853・rows[col>0] 8927
+seed 6: homeLabelC=0[col>0] 22・rows[col=0] 33321・rows[col>0] 7780
+seed 7: homeLabelC=0[col>0] 7・rows[col=0] 30859・rows[col>0] 10921
+seed 8: homeLabelC=0[col>0] 5・rows[col=0] 30716・rows[col>0] 10357
+seed 9: homeLabelC=0[col>0] 10・rows[col=0] 32096・rows[col>0] 9343
+seed 10: homeLabelC=0[col>0] 4・rows[col=0] 33214・rows[col>0] 7585
+合計: homeLabelC=0[col>0] 48・rows[col=0] 323743・rows[col>0] 86331
+
+# 例（種・四半期・年・国・州）
+
