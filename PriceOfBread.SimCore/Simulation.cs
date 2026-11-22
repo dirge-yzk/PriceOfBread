@@ -1221,6 +1221,7 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.CanvasId, 0.6), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
         // 石油灯油＝ケロシン（灯油68の近代レシピ・発見の表の1850年代＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
+        if (!(coef.LampOilPetroleumDupOff > 0))   // (1305) 旗 1＝石油ケロシンと同じ史実の重なりを建てない
         producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = new Share(1.0), BuysLabor = true,
             Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
         // 圧縮帯（自動車1.50・WWI財1.55・ラジオ1.60）へ整合。〔履歴 Simulation.cs#126〕
