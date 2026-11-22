@@ -13,7 +13,7 @@ public class LayoutTests
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);
         var expected = new (Slot Slot, char Key, string Name)[]
         {
-            (Slot.Market, 'Q', "市場と貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
+            (Slot.Market, 'Q', "価格と貿易"), (Slot.FiscalMoney, 'W', "財政と貨幣"), (Slot.Population, 'E', "POP"),
             (Slot.PoliticsLaw, 'R', "政治と法"), (Slot.DiplomacyWar, 'A', "外交と戦争"), (Slot.Discovery, 'S', "発見"),
         };
         Assert.Equal(9, SlotInfo.All.Count);
@@ -65,6 +65,30 @@ public class LayoutTests
         Assert.Equal(Slot.Production, m.Background);
         Assert.Empty(m.OpenWindows);
         Assert.False(m.IsShown(Slot.Map));
+    }
+
+    [Fact]
+    public void 生産に切り替えると州の窓が消え_地図に戻ると前の表示に戻る()
+    {
+        var layout = new LayoutModel();
+        layout.Open(Slot.Province);
+        int changed = 0;
+        layout.Changed += () => changed++;
+
+        layout.ToggleProductionMap();
+        Assert.Equal(Slot.Production, layout.Background);
+        Assert.False(layout.IsShown(Slot.Province));
+        Assert.Equal(1, changed);
+
+        Assert.True(layout.Escape());
+        Assert.Equal(Slot.Map, layout.Background);
+        Assert.True(layout.IsShown(Slot.Province));
+        Assert.Equal(2, changed);
+
+        layout.Close(Slot.Province);
+        layout.ToggleProductionMap();
+        layout.ToggleProductionMap();
+        Assert.False(layout.IsShown(Slot.Province));
     }
 
     [Fact]

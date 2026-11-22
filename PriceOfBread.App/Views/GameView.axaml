@@ -117,7 +117,7 @@
              背景の箱は Views/PageHost・窓の層は Views/WindowLayer（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
         <Grid ColumnDefinitions="Auto,*" RowDefinitions="*">
             <!-- 左の列（畳める）。畳むと細い取っ手だけが残り、押すと開く。 -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" IsVisible="{Binding !ProductionShown}">
                 <Border Width="260" IsVisible="{Binding LeftOpen}" Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
                     <Grid RowDefinitions="*,5,*">
                         <DockPanel Grid.Row="0">

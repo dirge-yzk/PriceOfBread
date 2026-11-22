@@ -1,4 +1,5 @@
 using PriceOfBread.App.Controls;
+using PriceOfBread.App.Layout;
 using PriceOfBread.App.Views.Pages;
 using PriceOfBread.SimCore;
 using PriceOfBread.SimCore.Display;
@@ -139,34 +140,21 @@ public class ProductionMarketTablesTests
     [Fact]
     public void ページの欄の並べの表は宣言と置き場が食い違わず_どの幅でも全ての欄が置かれる()
     {
-        // 生産ページ：狭い（1 つの PageGrid）／広い（盤の列と他の欄の列の 2 つ）× 設備の欄の有無。欄は全て 1 度ずつどこかの表に載る
-        foreach (bool wide in new[] { false, true })
-            foreach (bool equip in new[] { false, true })
-            foreach (bool full in wide ? new[] { false, true } : new[] { false })   // 全面（Q）は広いときだけ・盤の列は供給の網だけ
-            {
-                var plans = ProductionPage.BuildPlans(wide, equip, full);
-                if (full) Assert.Equal(["supply"], plans[0].Sections.Select(s => s.Key).ToArray());
-                Assert.Equal(wide ? 2 : 1, plans.Length);
-                var keys = plans.SelectMany(p => p.Sections).Select(s => s.Key).OrderBy(k => k).ToList();
-                var expected = new List<string> { "supply", "goods", "detail", "regions", "labor" };
-                if (equip) expected.Add("equipment");
-                Assert.Equal(expected.OrderBy(k => k).ToList(), keys);
-                foreach (var t in plans)
-                    foreach (int cols in Enumerable.Range(1, 3))   // 列の数（財の番号ではない）
-                    {
-                        var arranged = PagePlan.Arrange(t, cols);   // 表に無い鍵・重複は例外
-                        Assert.Equal(t.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
-                    }
-            }
-        // 市場ページ
-        foreach (var plan2 in new[] { MarketPage.Plan })
+        foreach (var plan in new[] { ProductionPage.SupplyPlan, ProductionPage.DetailPlan, MarketPage.Plan })
             foreach (int cols in Enumerable.Range(1, 3))
             {
-                var arranged = PagePlan.Arrange(plan2, cols);
-                Assert.Equal(plan2.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
+                var arranged = PagePlan.Arrange(plan, cols);
+                Assert.Equal(plan.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), arranged.SelectMany(c => c).Select(s => s.Key).OrderBy(k => k).ToList());
             }
+
+        Assert.Equal(new[] { "supply" }, ProductionPage.SupplyPlan.Sections.Select(s => s.Key));
+        var marketColumns = PagePlan.ColumnCount(LayoutModel.DefaultWidth(Slot.Market) - 25, MarketPage.Plan);
+        Assert.Equal(3, marketColumns);
+        var market = PagePlan.Arrange(MarketPage.Plan, marketColumns);
+        Assert.Equal("exports", market[1][0].Key);
+        Assert.Equal("imports", market[2][0].Key);
         // 欄は常に開いている：低い高さでも全ての欄が割り当てを持つ（生産＝供給の網・市場＝財の値段ほか）
-        foreach (var t in new[] { ProductionPage.BuildPlans(false, true)[0], ProductionPage.BuildPlans(true, true)[0], MarketPage.Plan })
+        foreach (var t in new[] { ProductionPage.SupplyPlan, ProductionPage.DetailPlan, MarketPage.Plan })
         {
             var plan = PagePlan.Plan(t, 700, 400);
             Assert.Equal(t.Sections.Select(s => s.Key).OrderBy(k => k).ToList(), plan.SelectMany(c => c).Select(p => p.Key).OrderBy(k => k).ToList());

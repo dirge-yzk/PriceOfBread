@@ -4,37 +4,37 @@
              xmlns:ctl="using:PriceOfBread.App.Controls"
              x:Class="PriceOfBread.App.Views.Pages.MarketPage"
              x:DataType="vm:GameViewModel">
-    <!-- Views/Pages/MarketPage.axaml ＝ 市場・清算・貿易のページ（設計 §3-3）。1 枚：左に財の値段、右に輸出と輸入（作者指示 2026-11-12）。
-         欄の並べ（幅で 2／1 列）は PageGrid が決める（並べの表は MarketPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。
+    <!-- Views/Pages/MarketPage.axaml ＝ 価格と貿易のページ。左に財の値段、右に輸出と輸入を並べる。
+         欄の並べ（幅で 3／2／1 列）は PageGrid が決める（並べの表は MarketPage.axaml.cs）。表の行と列は本体の目録（SimCore/Display の MarketTables・TradeTables）が名乗る。
          窓の中は 1 本で流れる＝欄は自然な高さ（PageGrid の高さに上限が無いとき）。 -->
     <Grid Margin="4">
         <ctl:PageGrid x:Name="MarketGrid">
         <ctl:Section x:Name="PricesSection" Key="prices" Title="財の値段">
             <ctl:Section.Body>
-                <ctl:TableView x:Name="PricesTable" Snapshot="{Binding PriceTable}" InnerScroll="True" Filterable="True"/>
+                <ctl:TableView x:Name="PricesTable" Snapshot="{Binding PriceTable}" InnerScroll="True" MaxHeight="620"/>
             </ctl:Section.Body>
         </ctl:Section>
 
         <ctl:Section x:Name="ExportsSection" Key="exports" Title="輸出">
             <ctl:Section.Body>
-                <Grid x:Name="ExportsBody" RowDefinitions="*,Auto">
-                    <ctl:TableView Grid.Row="0" Snapshot="{Binding ExportTable}" InnerScroll="True"/>
-                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                <Grid x:Name="ExportsBody" RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
                         <TextBlock Grid.Column="0" Text="輸出総額" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
                         <TextBlock Grid.Column="1" Text="{Binding TradeExportTotal}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextAlignment="Right"/>
                     </Grid>
+                    <ctl:TableView Grid.Row="1" Snapshot="{Binding ExportTable}" InnerScroll="True"/>
                 </Grid>
             </ctl:Section.Body>
         </ctl:Section>
 
         <ctl:Section x:Name="ImportsSection" Key="imports" Title="輸入">
             <ctl:Section.Body>
-                <Grid x:Name="ImportsBody" RowDefinitions="*,Auto">
-                    <ctl:TableView Grid.Row="0" Snapshot="{Binding ImportTable}" InnerScroll="True"/>
-                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                <Grid x:Name="ImportsBody" RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
                         <TextBlock Grid.Column="0" Text="輸入総額" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}"/>
                         <TextBlock Grid.Column="1" Text="{Binding TradeImportTotal}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextAlignment="Right"/>
                     </Grid>
+                    <ctl:TableView Grid.Row="1" Snapshot="{Binding ImportTable}" InnerScroll="True"/>
                 </Grid>
             </ctl:Section.Body>
         </ctl:Section>

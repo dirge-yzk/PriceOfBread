@@ -29,27 +29,11 @@ public partial class GameViewModel
     public ObservableCollection<ProdTierLine> ProdTierLines { get; } = new();
     private Dictionary<int, ProdNode>? _nodeByGood;   // 節点の器（財id→インスタンス）。非nullなら器は構築済み
     [ObservableProperty] private ProdDetail? _prodDetail;
-    /// <summary>生産ページの 3 つの表（財の表・設備の表・労働の表）。行と列は本体の目録（SimCore/Display/ProductionTables）が名乗り、共通の表（Controls/TableView）が描く。
-    /// 値は盤の節点（財カード）と同じ 1 周（RefreshProduction）の集計から作る＝UI に第二の式を置かない。</summary>
-    [ObservableProperty] private TableSnapshot _prodGoodTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _prodEquipTable = TableSnapshot.Empty;
-    [ObservableProperty] private TableSnapshot _prodLaborTable = TableSnapshot.Empty;
-    /// <summary>財の表で選んでいる行の鍵（財の番号。選んでいなければ null）。</summary>
-    public string? ProdSelectedKey => _prodSelGood >= 0 ? _prodSelGood.ToString() : null;
-    /// <summary>設備の欄を出すか（旗 <see cref="Coefficients.RecipeEquipment"/> が 0 の世界では欄ごと出さない）。</summary>
-    [ObservableProperty] private bool _prodEquipmentOn = true;
-    /// <summary>価格グラフ（対世界価格の比）の点列。★ProdDetail が null（財を未選択）でも**必ず非null**を返す＝
-    /// Polyline が null を受けて毎フレーム例外を投げる描画クラッシュを構造的に閉じる。</summary>
-    /// ★枠は常時表示（作者原則2026-08-10）＝標本が足りない開幕に枠ごと消えて下が跳ねない。点が0本なら何も描かれないだけ。
-    public global::Avalonia.Points ProdSparkPoints => ProdDetail?.WorldSparkPoints ?? new();
-    /// <summary>価格グラフの補助線（項目2・2026-08-10）＝枠に収まる段階とその逆数の水平線。中心線（比1.0）は常に y=32 なので XAML の1本。</summary>
-    public Geometry ProdSparkGrid => ProdDetail?.SparkGrid ?? SparkGridEmpty;
-    partial void OnProdDetailChanged(ProdDetail? value) { OnPropertyChanged(nameof(ProdSparkPoints)); OnPropertyChanged(nameof(ProdSparkGrid)); }
     [ObservableProperty] private double _prodCanvasW = 2200;
     [ObservableProperty] private double _prodCanvasH = 1200;
     private int _prodSelGood = -1;
 
-    private const double PNodeW = 204, PNodeH = 56, PMargin = 24;
+    private const double PNodeW = 268, PNodeH = 76, PMargin = 24;
     // ★縦並び（作者指示2026-08-15）：層＝行（上＝素材・下＝最深加工財の逆ピラミッド）。
     //   行内の横間隔は小さく（カードが並ぶ）・行間は大きく（辺のベジェの通り道）。
     private const double PRowGapX = 16;
@@ -241,7 +225,6 @@ public partial class GameViewModel
     /// 技術不足（blocked）と休止（inactive）は集計の産物なので、直近の値を配列で持ち越す。</summary>
     private void ApplyProdSelection()
     {
-        OnPropertyChanged(nameof(ProdSelectedKey));   // 財の表の選んでいる行
         if (_nodeByGood is null || _pLayout is null) return;
         int sel = _prodSelGood;
         var selIn = sel >= 0 && _pLayout.TryGetValue(sel, out var sn) ? sn.In : (IReadOnlyList<int>)Array.Empty<int>();
@@ -354,7 +337,7 @@ public partial class GameViewModel
         }
         // 分割数＝均等割りを保ったまま、全ての断片が幅予算 PRowBudgetW に収まる**最小値**（作者指示2026-08-15＝横スクロールなし）。
         // 枚数でなく**実幅**で判定する＝カテゴリ余白 PCatGap の入り方が断片ごとに違っても予算超過を漏らさない。
-        // 断片1枚（PNodeW=204）は常に予算内＝parts=row.Count で必ず fits＝ループは有限。
+        // 断片1枚（PNodeW）は常に予算内＝parts=row.Count で必ず fits＝ループは有限。
         // LayerEnd＝層（元のDAG深さ）の**最終行**＝tier区切り線を引く位置。同一層の分割行間には引かない（作者指示2026-08-15）。
         var screenRows = new List<(List<PNode> Nodes, bool LayerEnd)>();
         foreach (var row in layers)
@@ -558,9 +541,6 @@ public partial class GameViewModel
             double surplusRate = ln.SurplusRate;   // 過不足＝**生産に対する比**。NaN＝生産なし
             // ★2026-11-04（作者）：カードは材名＋価格％だけを大きく出す（稼働率・生産・過不足は財の表にある）。工場の縦線は〈合計の棟数〉と〈実質稼働数＝棟数×稼働率〉の2行。
             // 世界価格との比較（項目3）＝首都価格×為替／世界価格−1（本体の目録の PriceGap）。安い＝青・高い＝赤。
-            // グラフ本体は四半期再構築なので、この％も四半期（右パネルの首都価格行は日次）。
-            bool hasPd = !double.IsNaN(ln.PriceGap);   // まだ存在しない財は世界価格との比を出さない（作者裁定2026-08-10）
-            double pdg = hasPd ? ln.PriceGap : 0;
             // 稼働率行の赤＝素材が買えず産出が絞られている工場（労働不足は含まない）。材名の赤（ボトルネック変色）は廃止（2026-08-16）
             bool starving = !none && isFactory && inpFill < MaterialFillThreshold;   // NaN（産出なし＝未測定）は false＝赤にしない
             var nd = _nodeByGood![gi];   // 器は据え置き＝値だけ流す（GoodId/X/Y/W/H/品名は静的）
@@ -568,14 +548,6 @@ public partial class GameViewModel
             //   技術不足（blocked）と同じ淡色を使う＝「触れない材」の色の文法を1つに保つ。
             bool noSource = none && !hasProducer[gi];
             nd.NameBrush = blocked || noSource ? PDimText : PNameText;
-            // ★書式の第3節「0%」は必須（2026-09-23・.NET 10で実測）＝**この画面の率の書式は全部3節**
-            //   （nd.PriceDiff／ProdTableRow の Price・Surplus・MatCost／ProdDetail.PriceDiff／BuildPriceRows の Pct の6箇所）。
-            //   2節の "+0%;-0%" は、0へ丸まる負数（−0.4%など）に対して負号を付けたうえで**第1節**を使う＝
-            //   「-+0%」という符号が2つ並んだ文字列を出していた（-0.002 → "-+0%"／-0.2 → "-20%" と挙動が割れる）。
-            //   第3節を足すと 0 も −0.0 も0へ丸まる負も「0%」＝符号の無い零になる（丸めて消えた符号を書かない）。
-            //   ⚠色は割れていなかった（`!(x < 0)` は -0.002 を正しく赤に落とす）＝色の式は触らない。
-            nd.PriceDiff = hasPd ? Fmt.Share(pdg + 1.0) : "";   // 世界価格を 100% とした国内価格（市場の財の値段の表と同じ形・B14）
-            nd.PriceDiffBrush = pdg <= 0 ? PPriceBelow : PPriceAbove;
             nd.Accent = blocked ? PAccTechShort : TierAccent(d.Tier);
             blockedOf[gi] = blocked; inactiveOf[gi] = inactive;   // 地色・枠・沈みは選択と併せて ApplyProdSelection が塗る（式は1箇所）
             // 縦線の中の工場カウンター（作者仕様2026-09-07 (1)）＝「今ある棟数 / 予定を含めた棟数」。
@@ -597,12 +569,6 @@ public partial class GameViewModel
             nd.FactoryTip = $"国営 {stU}棟　民営 {pvU}棟　建設予定 {pendU}棟　全国目標 {planU}棟　稼働率 {Fmt.Share(utilV)}";
         }
         _sBlocked = blockedOf; _sInactive = inactiveOf;
-        // 財の表・設備の表・労働の表（本体の目録が行と列を名乗る）。財の表は盤の節点と同じ集計から（二度走査しない）。
-        var shown = ProductionTables.ShownLines(all);
-        ProdGoodTable = TableSnapshot.From((ProductionTables.Goods with { Rows = (_, _) => shown }).Read(_sim, _player));
-        ProdEquipTable = TableSnapshot.From(ProductionTables.Equipment.Read(_sim, _player));
-        ProdLaborTable = TableSnapshot.From(ProductionTables.Labor.Read(_sim, _player));
-        ProdEquipmentOn = _player.Coef.RecipeEquipment > 0;
         ApplyProdSelection();   // 選択に依存する見た目（節点の枠/地色/沈み・辺の強調）＝選択だけの塗り直しと同じ経路を通す
 
         // 統計配列を保持＝詳細パネル（価格は日次）だけを軽く再構築できるようにする（グラフ本体は四半期）
@@ -646,8 +612,6 @@ public partial class GameViewModel
         if (fresh is null) { ProdDetail = null; return; }
         if (ProdDetail is { } cur && cur.GoodId == fresh.GoodId) cur.CopyFrom(fresh);
         else ProdDetail = fresh;
-        OnPropertyChanged(nameof(ProdSparkPoints));   // CopyFrom 経路（同じ財の更新）は OnProdDetailChanged が走らない
-        OnPropertyChanged(nameof(ProdSparkGrid));
         OnPropertyChanged(nameof(ProdRegionHeadTip));   // 州別の見出しのホバー（工業化の州別上位8）＝get-only なので追従には通知が要る
     }
 
@@ -1312,8 +1276,6 @@ public sealed partial class ProdNode : ObservableObject
     public double H { get; init; }
     public string Name { get; init; } = "";
     [ObservableProperty] private IBrush? _nameBrush;        // 通常#2A2118／技術不足・産地なし＝灰(PDimText)
-    [ObservableProperty] private string _priceDiff = "";    // 品名の隣＝首都価格の世界価格比（＋12%／−8%）。安い＝青・高い＝赤（2026-08-09 項目3）
-    [ObservableProperty] private IBrush? _priceDiffBrush;
     [ObservableProperty] private IBrush? _accent;
     // 工場カウンター（作者要望2026-09-07 (1)）＝カテゴリを示す縦線を広げてその中に「今ある棟数/予定を含めた棟数」を出し、分母を▲/▼で動かす（2026-09-23）。
     // 民営＝完成した棟数の**1つ書き**（2026-09-23＝分子と分母が同じ値だった2つ書きをやめた）、
@@ -1332,8 +1294,6 @@ public sealed partial class ProdNode : ObservableObject
     [RelayCommand] private void DownFactory() => _onStepFactory?.Invoke(-1);
     [RelayCommand] private void UpFactory10() => _onStepFactory?.Invoke(+10);
     [RelayCommand] private void DownFactory10() => _onStepFactory?.Invoke(-10);
-    [RelayCommand] private void UpFactory100() => _onStepFactory?.Invoke(+100);
-    [RelayCommand] private void DownFactory100() => _onStepFactory?.Invoke(-100);
     [ObservableProperty] private IBrush? _background;
     [ObservableProperty] private IBrush? _borderBrush;
     [ObservableProperty] private double _borderThickness = 1.0;

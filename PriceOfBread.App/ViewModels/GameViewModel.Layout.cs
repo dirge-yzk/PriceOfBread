@@ -57,6 +57,7 @@ public partial class GameViewModel
         if (now.Contains(Slot.PoliticsLaw)) PoliticsTabAlert = false;   // 動かせる法の点灯は、政治と法のページを見たら消灯
         foreach (var s in added) RefreshOnShown(s);
         OnPropertyChanged(nameof(LeftOpen)); OnPropertyChanged(nameof(LeftClosed));
+        OnPropertyChanged(nameof(ProductionShown));
         SyncPageButtons();
         LayoutStore.Save(Layout);
     }

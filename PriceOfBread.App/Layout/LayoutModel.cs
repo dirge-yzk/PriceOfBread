@@ -46,6 +46,7 @@ public sealed class LayoutModel
     public Slot Background { get; private set; } = Slot.Map;
     public bool LeftOpen { get; private set; } = true;
 
+    private int _provinceMapIndex = -1;
     private readonly List<Slot> _open = new();                       // 開いている窓。後ろほど前（重なりの順）
     private readonly Dictionary<Slot, WindowRect> _rects = new();    // 覚えている位置と大きさ（利用者が動かした物・開閉に依らず残る・保存する）
     private readonly Dictionary<Slot, WindowRect> _auto = new();     // 開いたときに空き場所へ置いた位置と大きさ（開いている間だけ・保存しない）
@@ -74,6 +75,17 @@ public sealed class LayoutModel
         if (!IsWindow(slot))
         {
             if (slot == Background) return;
+            if (slot == Slot.Production)
+            {
+                _provinceMapIndex = _open.IndexOf(Slot.Province);
+                if (_provinceMapIndex >= 0) _open.RemoveAt(_provinceMapIndex);
+            }
+            else if (_provinceMapIndex >= 0)
+            {
+                if (!_open.Contains(Slot.Province))
+                    _open.Insert(Math.Min(_provinceMapIndex, _open.Count), Slot.Province);
+                _provinceMapIndex = -1;
+            }
             Background = slot;
             Raise();
             return;
@@ -143,10 +155,10 @@ public sealed class LayoutModel
     /// <summary>州の窓の位置と大きさ（幅は固定・左上）。</summary>
     public static WindowRect ProvinceRect(double hostW, double hostH) => Fit(new WindowRect(12, 12, 460, Math.Min(420, hostH - 24)), hostW, hostH);
 
-    /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。市場・財政・POP の 3 枚が 1920 幅の盤（左の列を除く約 1660）に横に並ぶ幅。</summary>
+    /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。価格と貿易は、輸出と輸入が横に並ぶ幅で開く。</summary>
     public static double DefaultWidth(Slot slot) => slot switch
     {
-        Slot.Market => 480,        // 1 列に積む（値段の表と輸出入の表が縦に並ぶ）
+        Slot.Market => 1120,
         Slot.Population => 620,    // 階級の表の幅
         _ => 540,
     };
@@ -195,6 +207,7 @@ public sealed class LayoutModel
     public void Reset()
     {
         Background = Slot.Map; LeftOpen = true;
+        _provinceMapIndex = -1;
         _open.Clear(); _rects.Clear(); _auto.Clear();
         Raise();
     }

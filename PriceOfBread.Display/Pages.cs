@@ -17,7 +17,7 @@ public static class PageKeys
     public static string Name(Page page) => page switch
     {
         Page.Production => "生産",
-        Page.Market => "市場と貿易",
+        Page.Market => "価格と貿易",
         Page.FiscalMoney => "財政と貨幣",
         Page.Population => "POP",
         Page.PoliticsLaw => "政治と法",
