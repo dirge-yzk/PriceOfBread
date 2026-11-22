@@ -130,7 +130,10 @@
                                             <Button Classes="row" Command="{Binding ActivateCommand}">
                                                 <Grid ColumnDefinitions="*,Auto,16" Margin="0,2">
                                                     <TextBlock Grid.Column="0" Text="{Binding Kind}" IsVisible="{Binding IsHeader}" Classes="section" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Margin="0,4,0,0"/>
-                                                    <TextBlock Grid.Column="0" Text="{Binding Target}" IsVisible="{Binding IsItem}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" Margin="8,0,0,0"/>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="8,0,0,0" IsVisible="{Binding IsItem}">
+                                                        <Image Source="{Binding GoodIcon}" Width="14" Height="14" VerticalAlignment="Center" IsVisible="{Binding GoodIcon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                        <TextBlock Text="{Binding Target}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
                                                     <TextBlock Grid.Column="1" Text="{Binding SizeText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"/>
                                                     <TextBlock Grid.Column="2" Text="{Binding Trend}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" Margin="4,0,0,0"/>
                                                 </Grid>

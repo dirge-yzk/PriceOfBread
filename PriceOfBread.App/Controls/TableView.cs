@@ -427,7 +427,7 @@ public sealed class TableView : UserControl
                     Grid.SetColumn(_cells[i]!, i);
                     Root.Children.Add(_cells[i]!);
                 }
-                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip), i);
+                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip), i, i == 0 && _owner.Snapshot is { } sn && GoodIcons.IsGoodTable(sn.Key) ? GoodIcons.OfKey(row.Key) : null);
             }
         }
 
@@ -476,7 +476,9 @@ public sealed class TableView : UserControl
         /// <summary>文字のセルの中身と飾り（色の丸・バッジの背景・数の文字色）。飾りが無いセルは既定の見た目へ戻す（前の月に飾りがあった行も）。</summary>
         private static readonly FontFamily BulletFont = new("avares://PriceOfBread.App/Assets/Fonts#Noto Sans JP");
 
-        private static void ApplyText(TextBlock tb, ColumnSpec spec, CellView cell, int index)
+        private const double IconSize = 14;
+
+        private static void ApplyText(TextBlock tb, ColumnSpec spec, CellView cell, int index, IImage? icon = null)
         {
             IBrush defaultInk = spec.Kind == ColumnKind.Number ? Brush("InkBrush", Brushes.Black)
                                                                 : index == 0 ? Brush("InkBrush", Brushes.Black) : Brush("InkMutedBrush", Brushes.Gray);
@@ -484,14 +486,16 @@ public sealed class TableView : UserControl
             tb.Foreground = badge is not null ? InkOf("#FFF6E8") ?? Brushes.White : InkOf(cell.Color) ?? defaultInk;
             tb.Background = badge ?? Brushes.Transparent;
             tb.Padding = badge is not null ? new Thickness(4, 0) : default;
-            if (InkOf(cell.Swatch) is { } dot)
+            var dot = InkOf(cell.Swatch);
+            if (dot is not null || icon is not null)
             {
-                string sig = cell.Swatch + "|" + cell.Text;
+                string sig = cell.Swatch + "|" + (icon is null ? "" : "i") + "|" + cell.Text;
                 if (!Equals(tb.Tag, sig))
                 {
                     tb.Text = null; tb.Inlines?.Clear();
                     tb.Inlines ??= new Avalonia.Controls.Documents.InlineCollection();
-                    tb.Inlines.Add(new Avalonia.Controls.Documents.Run("● ") { Foreground = dot, FontFamily = BulletFont, FontSize = tb.FontSize + 3 });   // 丸は日本語側の字体で描く（Times の「●」は点ほどに小さい・点検⑥）
+                    if (icon is not null) tb.Inlines.Add(new Avalonia.Controls.Documents.InlineUIContainer(new Image { Source = icon, Width = IconSize, Height = IconSize, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center }));   // 財のアイコンは名前の左・行の高さに収める
+                    if (dot is not null) tb.Inlines.Add(new Avalonia.Controls.Documents.Run("● ") { Foreground = dot, FontFamily = BulletFont, FontSize = tb.FontSize + 3 });   // 丸は日本語側の字体で描く（Times の「●」は点ほどに小さい・点検⑥）
                     tb.Inlines.Add(new Avalonia.Controls.Documents.Run(cell.Text));
                     tb.Tag = sig;
                 }
@@ -503,12 +507,12 @@ public sealed class TableView : UserControl
             }
         }
 
-        private static void Fill(Control control, ColumnSpec spec, CellView cell, bool rowHasTip, int index)
+        private static void Fill(Control control, ColumnSpec spec, CellView cell, bool rowHasTip, int index, IImage? icon = null)
         {
             switch (control)
             {
                 case TextBlock tb:
-                    ApplyText(tb, spec, cell, index);
+                    ApplyText(tb, spec, cell, index, icon);
                     break;
                 case StackBar bar:
                     bar.Cell = cell.Extra as BarCell;
