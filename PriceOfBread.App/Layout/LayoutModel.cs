@@ -146,7 +146,7 @@ public sealed class LayoutModel
     /// <summary>ページごとの窓の初めの幅＝中身の自然な幅（列の幅の合計と欄の余白）。市場・財政・POP の 3 枚が 1920 幅の盤（左の列を除く約 1660）に横に並ぶ幅。</summary>
     public static double DefaultWidth(Slot slot) => slot switch
     {
-        Slot.Market => 480,        // 財の値段の表だけ（表の自然な幅）
+        Slot.Market => 400,        // 財の値段の表だけ（表の自然な幅に詰める）
         Slot.Trade => 1040,        // 輸出と輸入の 2 列が左右に並ぶ幅
         Slot.Population => 620,    // 階級の表の幅
         _ => 540,
