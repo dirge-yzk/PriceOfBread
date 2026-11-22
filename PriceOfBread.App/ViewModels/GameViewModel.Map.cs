@@ -219,7 +219,6 @@ public partial class GameViewModel
         BuildPathGraphLayer();    // 03地理 手順1：陸グラフの辺（§6＝地理の型F検出器を兼ねる）
 
         MapLabels = labels;   // 一括差し替え＝バインディング通知1回（要素単位の更新イベントを出さない）
-        RefreshPinnedHover();   // ★州パネルのピン＝作り直した要約へ差し替え（レビュー是正2026-09-07）
     }
 
     // 海盆ラベルの位置（海上の代表点）。表示は英語・ツールチップに日本語名＋母港とする国の一覧。
@@ -686,27 +685,47 @@ public partial class GameViewModel
         var rp = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg);   // 4 区分の定義は表と同じ 1 本（国家・在地勢力・外国勢力・無統治）
         double dom = rp[0].Share, fLocal = rp[1].Share, fForeign = rp[2].Share, fUngov = rp[3].Share;
         double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
-        string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2), rf = HalfPie.Slice(35, 35, 34, f2, f3), ru = HalfPie.Slice(35, 35, 34, f3, 1.0);
-        string who = "";   // 外国勢力の持ち主（2026-11-11 作者指示「どこの国か知りたい」）＝持分の大きい順
-        if (fForeign > 0.0005 && rg.ForeignRulers.Length > 0)
+        string rs = HalfPie.Slice(35, 35, 34, 0, f1), rl = HalfPie.Slice(35, 35, 34, f1, f2);   // 無統治の分は塗らない（地図と同じ＝透明）
+        // 外国勢力＝支配している外国の国ごとの色の切れ＋国名の一覧（持分の大きい順）。持分は区分の外国勢力の分へ按分（地図の塗りと同じ）。一覧は常に 3 行＝窓の高さを変えない。
+        var fParts = new List<(string Name, double Share)>();
         {
-            var parts = new List<(string Name, double Share)>();
-            for (int k = 0; k < rg.ForeignRulers.Length && k < rg.ForeignShares.Length; k++)
-                if (rg.ForeignShares[k] > 0.0005 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) parts.Add((rg.ForeignRulers[k], rg.ForeignShares[k]));
-            parts.Sort((x, y) => y.Share.CompareTo(x.Share));
-            who = string.Join("・", parts.Take(4).Select(t => $"{t.Name} {Fmt.Share(t.Share)}"));
+            double tot = 0; int fn = System.Math.Min(rg.ForeignRulers.Length, rg.ForeignShares.Length);
+            for (int k = 0; k < fn; k++) if (rg.ForeignShares[k] > 0 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) tot += rg.ForeignShares[k];
+            if (fForeign > 0 && tot > 0)
+                for (int k = 0; k < fn; k++)
+                    if (rg.ForeignShares[k] > 0 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) fParts.Add((rg.ForeignRulers[k], rg.ForeignShares[k] / tot * fForeign));
+            fParts.Sort((x, y) => y.Share.CompareTo(x.Share));
+        }
+        var fSlices = new List<RuleSlice>();
+        var fRows = new List<RuleForeignRow>();
+        {
+            double at = f2;
+            foreach (var (fname, fshare) in fParts)
+            {
+                var fbrush = new SolidColorBrush(NationColorByName(fname));
+                fSlices.Add(new RuleSlice(HalfPie.Slice(35, 35, 34, at, at + fshare), fbrush));
+                at += fshare;
+            }
+            for (int k = 0; k < 3; k++)
+            {
+                if (k < fParts.Count && !(k == 2 && fParts.Count > 3))
+                    fRows.Add(new RuleForeignRow(new SolidColorBrush(NationColorByName(fParts[k].Name)), fParts[k].Name, Fmt.Share(fParts[k].Share)));
+                else if (k == 2 && fParts.Count > 3)
+                    fRows.Add(new RuleForeignRow(Brushes.Transparent, $"他 {fParts.Count - 2} か国", Fmt.Share(fParts.Skip(2).Sum(t => t.Share))));
+                else fRows.Add(new RuleForeignRow(Brushes.Transparent, "　", ""));
+            }
         }
         string rb = "", rbText = "";
         double ago = rg.RuleStateTenYearsAgo();
-        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {Fmt.Share(ago)}"; }
+        if (ago >= 0) { rb = HalfPie.Arc(35, 35, 32, ago); rbText = $"10年前の国家 {Fmt.Share(ago)}"; } else rbText = "　";   // 無いときも 1 行ぶん空ける＝下の行の位置を変えない
         var info = new MapHoverInfo
         {
             // ★2026-09-23（作者指摘「フィラデルフィア(アメリカ(シャムの属国))」＝括弧が二重）：州名と国名は**全角スペースで並べる**。
             //   nation は属国のとき既に「アメリカ(シャムの属国)」という括弧付きの名前（:124・作者指示2026-08-03）＝これを更に括弧で包まない。
             Title = $"{rg.Name}（{nation}）", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
-            RuleState = rs, RuleLocal = rl, RuleForeign = rf, RuleUngoverned = ru, RuleBand = rb,
+            RuleState = rs, RuleLocal = rl, RuleStateBrush = new SolidColorBrush(NationColorByName(ownerWorld.SelfPower?.Name ?? ownerWorld.Region.Name)), ForeignSlices = fSlices, ForeignRows = fRows, RuleBand = rb,
             RuleStateText = $"{Fmt.Share(dom)}", RuleLocalText = $"{Fmt.Share(fLocal)}",
-            RuleForeignText = $"{Fmt.Share(fForeign)}", RuleForeignWho = who, RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
+            RuleUngovernedText = $"{Fmt.Share(fUngov)}", RuleBandText = rbText,
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
@@ -739,12 +758,18 @@ public partial class GameViewModel
             }
         }
         if (rg.IsPort)
-            info.Lines.Add(new MapHoverLine { Text = $"港の拡張：{rg.PortCapacity:F0}　取引額：{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
+        {
+            info.Lines.Add(new MapHoverLine { Text = $"港の取引額：{Fmt.Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });
+            if (rg.LastTradeThrottle < 1.0)   // 港の律速（積み出しが律速率に絞られている）のときだけ
+                info.Lines.Add(new MapHoverLine { Text = $"港の詰まり {Fmt.Share(1.0 - rg.LastTradeThrottle)}", Brush = HoverWarn, Weight = FontWeight.Bold });
+        }   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
         AppendChokepoint(info, rg.Name);   // 海峡/運河のhost州はここに統合表示
         AppendWorldShare(info, rg, ownerWorld);
         return info;
     }
 
+    // ★2026-11-22：右の列は「主な移入品」＝州の単位（州の消費が州の生産を上回る財・足りない量の多い順・自給＝生産÷消費）。旧・所有国の輸入の世界シェアは州の物差しでなく、左と揃わなかった。
+    //   下の旧い説明のうち「輸出材」の段は現在の仕様ではない。
     // ── 州ホバーの「世界の中での位置」（作者フィードバック2026-08-10）─────────────────────────
     // 旧「生産物: 全品目を生産量の降順で列挙」は廃止。量の羅列は「この州は世界の中でどれだけ重いのか」に答えられず、
     // 品目が増えるほど読めなくなっていた。代わりに**世界シェアの高い上位3材**だけを、量とシェアの対で出す。
@@ -769,13 +794,10 @@ public partial class GameViewModel
     {
         var top3Prod = new List<(string Name, double Amt, double Share)>();
         var top3Imp = new List<(string Name, double Amt, double Share)>();
-        var wp = _sim.Market.Price;
-        var oimp = ownerWorld.ImportsByGood;
         var wprod = _worldProdByGood;
         int gn = System.Math.Min(rg.Markets.Length, Catalog.Goods.Length);
         double prodFloor = MarketPresenceShare * _worldProdValueTotal;   // 生産材の候補：財ごとの世界生産**額**の下限
         double madeFloor = MadeInWorldShare * _worldProdValueTotal;      // 世界のどこかで作られている最低線（輸出材の生産ゲート）
-        double impFloor = MadeInWorldShare * _worldImpTotal;             // 輸出材の候補：財ごとの世界輸出額の下限（無視できる取引だけを切る）
         for (int gi = 0; gi < Catalog.Goods.Length; gi++)
         {
             if (Catalog.Goods[gi].Tier == GoodTier.Service || Catalog.Goods[gi].NonTradeable) continue;   // 役務・非交易財は世界市場を持たない
@@ -788,15 +810,11 @@ public partial class GameViewModel
                 double share = amt / wprod![gi];
                 if (amt >= DisplayGrainQty && share >= ShareFloor) top3Prod.Add((Catalog.Goods[gi].Name, amt, share));
             }
-            if (existsInWorld && _worldImpByGood is { } wimp && gi < wimp.Length && wimp[gi] >= impFloor && wimp[gi] > 1e-9
-                && oimp is not null && gi < oimp.Length && oimp[gi] > 1e-9)
+            // 移入品＝この州の消費が生産を上回る財（州の記帳：LastDemand と LastProduced）。足りない量＝消費−生産・自給＝生産÷消費。新しい状態は作らない。
+            if (gi < gn)
             {
-                double p = gi < wp.Count ? System.Math.Max(wp[gi], 1e-9) : 1.0;
-                double share = oimp[gi] / wimp[gi];
-                double qty = oimp[gi] / p / ownerWorld.Coef.MonthsPerClearing;   // 清算単位→月割＝貿易タブの輸出一覧と同一の式（2026-08-23）
-                // 作者指摘2026-08-16「輸出0.0kなのに世界の83%」＝世界貿易が細い間は微小値どうしの比が高シェアを名乗る。
-                // 表示粒度未満（Qtyで0.0kに丸まる量）は世界シェアを語る資格がない＝量の下限で切る（分母側の相対floorでは細い世界を切れない）。
-                if (share >= ShareFloor && qty >= DisplayGrainQty) top3Imp.Add((Catalog.Goods[gi].Name, qty, share));
+                double dem = rg.Markets[gi].LastDemand, made = rg.Markets[gi].LastProduced, lack = dem - made;
+                if (dem > 1e-9 && lack >= DisplayGrainQty) top3Imp.Add((Catalog.Goods[gi].Name, lack, made / dem));
             }
         }
         // シェア降順→同率は量の多い順→名前順（同率が並ぶ序盤でも並びが揺れない＝決定論）
@@ -806,7 +824,7 @@ public partial class GameViewModel
             c = y.Amt.CompareTo(x.Amt); return c != 0 ? c : string.CompareOrdinal(x.Name, y.Name);
         }
         top3Prod.Sort(ByShare);
-        top3Imp.Sort(ByShare);
+        top3Imp.Sort((x, y) => { int c = y.Amt.CompareTo(x.Amt); return c != 0 ? c : string.CompareOrdinal(x.Name, y.Name); });   // 足りない量の多い順
         // 1%未満は小数1桁（P0だと全て「0%」に潰れて情報が消える）。1%以上は他のUIと同じ P0。
         // 表記＝「材名 量(世界n%)」（作者指摘2026-08-16「材名(量) 世界のn% は読みづらい」＝POPタブ規模の「量(比%)」と同じ読み順に統一）。
         // 該当なしは「なし」（旧「—」・無理に3つ出さない＝資格を満たした分だけ並ぶ）。
@@ -815,9 +833,19 @@ public partial class GameViewModel
         //   WrapPanel へ並べているのと同じ理由）。ここは XAML を持たない側なので、改行を材の切れ目に自分で入れる＝
         //   1材は最長でも「ジャガイモ 1234.5k(世界100%)」≈190px でパネルの内幅470px（GameView.axaml:304 Width=500・Padding14）に必ず収まり、
         //   折返しそのものが起きない。2行目以降は全角スペース1つ下げて頭の「生産材:」の続きだと分かる形にする。
+        // 常に 3 行（足りない行は全角スペース）＝該当が無くても欄の高さを変えない。該当なしは先頭に「なし」。
+        static string Pad3(IEnumerable<string> lines)
+        {
+            var l = lines.Take(3).ToList();
+            if (l.Count == 0) l.Add("なし");
+            while (l.Count < 3) l.Add("　");
+            return string.Join("\n", l);
+        }
         static string Top3(List<(string Name, double Amt, double Share)> src)
-            => src.Count == 0 ? "なし" : string.Join("\n", src.Take(3).Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}（世界{(t.Share < 0.01 ? t.Share.ToString("P1") : Fmt.Share(t.Share))}）"));
-        info.ProducedGoods = Top3(top3Prod); info.ImportedGoods = Top3(top3Imp);   // 窓「州」で 生産材＝左・輸入材＝右（2026-11-11 作者指示）
+            => Pad3(src.Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}（世界{(t.Share < 0.01 ? t.Share.ToString("P1") : Fmt.Share(t.Share))}）"));
+        static string TopIn(List<(string Name, double Amt, double Share)> src)
+            => Pad3(src.Select(t => $"{t.Name} {Fmt.Qty(t.Amt)}（自給 {Fmt.Share(t.Share)}）"));
+        info.ProducedGoods = Top3(top3Prod); info.ImportedGoods = TopIn(top3Imp);   // 窓「州」で 生産材＝左・輸入材＝右（2026-11-11 作者指示）
     }
 
     /// <summary>州ホバーの世界シェアの分母（財別の世界計）。エンジンの実式をそのまま合算する＝

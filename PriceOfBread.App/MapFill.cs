@@ -35,13 +35,13 @@ namespace PriceOfBread.App;
 /// ⚠表示のみ＝ここで作った物をエンジンは一切読まない（塗りは観測であって領有ではない）。</summary>
 public static class MapFill
 {
-    public readonly record struct Seed(double Lat, double Lon, Color Color, double Weight = 1.0);   // Weight＝支配度（0..1）。1−Weight のぶんだけ塗りの色を黒へ寄せる（支配の届かない州は暗い）
+    public readonly record struct Seed(double Lat, double Lon, Color Color, double Weight = 1.0);   // Color＝支配の持分で混ぜた色（無統治の分を除いて正規化・在地勢力の分は黒）／Weight＝1−無統治（0..1）。塗りの不透明度に掛ける＝無統治は透けて地図本来の色が見える
 
     public const double CellDeg = Landmask.Step;   // 0.1°（陸マスクと同じ）
     public const int Nx = 3600;                    // 表示は経度360°ぶん＝東西で巻く
     public static readonly int Ny = (int)Math.Round((MapData.LatTop - MapData.LatBottom) / CellDeg);
     private const double KmPerDeg = 111.32;        // 緯度1°の距離（子午線）
-    private const byte FillAlpha = 105;            // 背景の陸色が透けて見える濃さ
+    private const byte FillAlpha = 150;            // 背景の陸色が透けて見える濃さ（2026-11-22 鮮やかに：105→150）
     private const byte BorderAlpha = 200;          // 国境線の濃さ（B1'・2026-09-05）
     /// <summary>段2の1回の渡海の上限（km・実際の水の上だけを数える）。
     /// ⚠渡海の長さは**合計の最短経路に沿って**測る（海峡の最も狭い所を選ぶとは限らない）＝実際の海峡の幅より長めに出る。
@@ -332,11 +332,11 @@ public static class MapFill
             ownFinal[c] = own;
             var col = seeds[own].Color;
             int o = c * 4;
-            // 支配度＝色を黒へ寄せる（濃さは変えない＝背景の透け方は同じ・Weight=1 で従来と同じ値）
-            int a = FillAlpha, k = (int)(255 * seeds[own].Weight);
-            px[o] = (byte)(col.B * k / 255 * a / 255);       // プリマルチプライ済みBGRA
-            px[o + 1] = (byte)(col.G * k / 255 * a / 255);
-            px[o + 2] = (byte)(col.R * k / 255 * a / 255);
+            // 支配度＝不透明度に掛ける（無統治の分は透明＝下の地図の色）。色は持分で混ぜ済み（国家＝持ち主・外国勢力＝各国・在地勢力＝黒）。Weight=1 で従来の不透明度。
+            int a = (int)(FillAlpha * seeds[own].Weight);
+            px[o] = (byte)(col.B * a / 255);       // プリマルチプライ済みBGRA
+            px[o + 1] = (byte)(col.G * a / 255);
+            px[o + 2] = (byte)(col.R * a / 255);
             px[o + 3] = (byte)a;
         }
         // 国境線＝東または南の隣が別の国（両方とも塗られている所だけ）。線の色＝自国色を暗く・不透明寄り（1格子＝約0.5画面px＝細線）。

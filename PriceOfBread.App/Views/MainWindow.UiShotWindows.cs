@@ -24,7 +24,7 @@ public partial class MainWindow
             lay.Open(Slot.Province);
             if (gvm.PlayerCapitalCanvas() is { } pc && gvm.MapHitAt(pc.X, pc.Y).Hover is { } hv) gvm.MapHover = hv;
             await Task.Delay(900);
-            BootLog.Write($"uishot: 窓[州] {Now()}・題 {gvm.ShownHover?.Title}・外国勢力 {gvm.ShownHover?.RuleForeignWho}");
+            BootLog.Write($"uishot: 窓[州] {Now()}・題 {gvm.ShownHover?.Title}・外国勢力 {string.Join("・", gvm.ShownHover?.ForeignRows.Select(r => r.Name + r.Share) ?? [])}");
             Capture(dir, $"{no():D2}_窓_州.png");
             LogOuterFlow(gameView, "窓 州");
             gvm.MapHover = null;

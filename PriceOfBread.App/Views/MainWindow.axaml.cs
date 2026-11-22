@@ -389,14 +389,14 @@ public partial class MainWindow : Window
                 await Task.Delay(700);
                 Capture(dir, "03e_地図_州名帯.png");
             }
-            // ★州パネル（2026-09-07 作者指示「政治・支配度は半円で」）：州をピン留めして撮る＝支配度の半円（(399) で区分は常に動く）とピンの表示の無人確認
+            // ★州パネル（2026-09-07 作者指示「政治・支配度は半円で」）：州の窓を出して撮る＝支配度の半円（(399) で区分は常に動く）
             //   ★F7：州○の廃止＝自国の首都の座標を塗り分けのセルで当てる（クリックと同じ MapHitAt）
             var pin = gvm.PlayerCapitalCanvas() is { } pc ? gvm.MapHitAt(pc.X, pc.Y) : default;
             if (pin.Region is not null && pin.Hover is not null)
             {
-                gvm.TogglePin(pin.Hover, pin.Region); gvm.Layout.Open(Slot.Province); await Task.Delay(500); Capture(dir, "03f_州パネル.png");   // 州の窓を開いて撮る（W20＝窓が写っていなかった）
+                gvm.MapHover = pin.Hover; gvm.Layout.Open(Slot.Province); await Task.Delay(500); Capture(dir, "03f_州パネル.png");   // 州の窓を開いて撮る（W20＝窓が写っていなかった）
                 gvm.Layout.Close(Slot.Province);
-                gvm.HoverPinned = false; gvm.MapHover = null; await Task.Delay(200);
+                gvm.MapHover = null; await Task.Delay(200);
             }
             // 全景（2026-09-02）＝州名が消えて**国名（英語）**が出る帯。政治の塗り分けの全体像もここで見る。
             if (this.GetVisualDescendants().OfType<MapPane>().FirstOrDefault() is { } gv)

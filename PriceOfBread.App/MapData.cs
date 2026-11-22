@@ -237,6 +237,23 @@ public static class MapData
     public static Color NationColor(string name, int fallbackIndex)
     {
         uint v = NationHex.TryGetValue(name, out var h) ? h : Palette[((fallbackIndex % Palette.Length) + Palette.Length) % Palette.Length];
-        return Color.FromRgb((byte)(v >> 16), (byte)(v >> 8), (byte)v);
+        return Vivid(Color.FromRgb((byte)(v >> 16), (byte)(v >> 8), (byte)v));
+    }
+
+    /// <summary>表の色を鮮やかにする（2026-11-22 作者指示）＝色相は保ち、彩度を引き上げ、明るさは中程度へ寄せる（国どうしの見分けと地名の文字の読みを保つ）。
+    /// 灰色に近い色（オーストリアの白など）は色相が無いので彩度を足さず、そのまま。</summary>
+    private static Color Vivid(Color c)
+    {
+        double r = c.R / 255.0, g = c.G / 255.0, b = c.B / 255.0;
+        double mx = System.Math.Max(r, System.Math.Max(g, b)), mn = System.Math.Min(r, System.Math.Min(g, b)), d = mx - mn;
+        double l = (mx + mn) / 2;
+        if (d < 0.08) return c;   // 無彩色に近い
+        double s = d / (1 - System.Math.Abs(2 * l - 1));
+        double h = mx == r ? ((g - b) / d % 6 + 6) % 6 : mx == g ? (b - r) / d + 2 : (r - g) / d + 4;
+        s = System.Math.Min(1.0, s * 1.45 + 0.1);
+        l = System.Math.Clamp(l, 0.36, 0.56);
+        double ch = (1 - System.Math.Abs(2 * l - 1)) * s, x = ch * (1 - System.Math.Abs(h % 2 - 1)), m = l - ch / 2;
+        (double R, double G, double B) = (int)h switch { 0 => (ch, x, 0.0), 1 => (x, ch, 0.0), 2 => (0.0, ch, x), 3 => (0.0, x, ch), 4 => (x, 0.0, ch), _ => (ch, 0.0, x) };
+        return Color.FromRgb((byte)System.Math.Round((R + m) * 255), (byte)System.Math.Round((G + m) * 255), (byte)System.Math.Round((B + m) * 255));
     }
 }

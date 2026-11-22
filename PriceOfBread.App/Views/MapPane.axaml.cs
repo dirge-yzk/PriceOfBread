@@ -18,7 +18,7 @@ namespace PriceOfBread.App.Views;
 // 地図中心UI（2026-06-29 再構成）：MapRoot（仮想2000×780＝MapData.MapWidth×MapHeight）に拡縮(Scale)＋移動(Translate)の RenderTransform を当てる。
 // ホイール=カーソル中心ズーム／背景ドラッグ=パン。**縦はマップ外に出ない（クランプ）／横は東西ループ（折り返し）**。
 // ★F7（2026-09-28）：州○を廃止＝州のホバー・クリックは**塗り分けのセル**で当てる（GameViewModel.MapHitAt）。押下は常にパンの始まりで、
-//   動かさずに離したときだけクリック（州パネルのピン留め／他国植民地の狙い）。横ループは VM が層を2コピー描き、ここで translate.X を周期で折り返して継ぎ目なく繋ぐ。
+//   動かさずに離したときだけクリック（他国植民地の狙い）。横ループは VM が層を2コピー描き、ここで translate.X を周期で折り返して継ぎ目なく繋ぐ。
 public partial class MapPane : UserControl
 {
     private readonly ScaleTransform _scale = new(1, 1);
@@ -38,7 +38,7 @@ public partial class MapPane : UserControl
         MapHost.PointerReleased += OnReleased;
         MapHost.PointerCaptureLost += (_, _) => _panning = false;   // 窓の外で離した・別のアプリへ移った＝離した知らせが来ない。パンが残るとホバーが効かなくなる
         MapHost.SizeChanged += OnHostSizeChanged;
-        MapHost.PointerExited += (_, _) => { if (DataContext is ViewModels.GameViewModel vmx && !vmx.HoverPinned) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
+        MapHost.PointerExited += (_, _) => { if (DataContext is ViewModels.GameViewModel vmx) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
         MapHost.Focusable = true;
         DataContextChanged += (_, _) => _hoverGate.Reset();
         Loaded += OnMapLoaded;
@@ -113,7 +113,7 @@ public partial class MapPane : UserControl
 
     private void HoverAt(PointerEventArgs e)
     {
-        if (DataContext is not ViewModels.GameViewModel vm || vm.HoverPinned) return;   // ピン留め中は持ち替えない（§7）
+        if (DataContext is not ViewModels.GameViewModel vm) return;
         var host = e.GetPosition(MapHost);
         if (!_hoverGate.Moved(host.X, host.Y)) return;   // 開始・読み込みの直後はポインタが実際に動くまで窓「州」の首都を上書きしない
         var p = e.GetPosition(MapRoot);   // キャンバス座標（拡縮・移動を織り込む）
@@ -122,14 +122,13 @@ public partial class MapPane : UserControl
     }
 
     // クリック（動かさずに離した）：他国の植民地＝狙いのトグル（02断線走査2026-07-28＝講和の優先割譲 Colony.PlayerInterest の書き手）。
-    //   州＝左クリックで州パネルをピン留め（同じ州でもう一度＝解除・2026-09-07）。右クリックは植民地の狙いだけ（旧・植民地○と同じ）。
+    //   州の左クリックでは何もしない（ピン留めは2026-11-22に廃止）。
     private void ClickAt(PointerEventArgs e, bool left)
     {
         if (DataContext is not ViewModels.GameViewModel vm) return;
         var p = e.GetPosition(MapRoot);
         var (hover, region, aim) = vm.MapHitAt(p.X, p.Y);
         if (aim is not null) vm.ToggleColonyInterest(aim);
-        else if (left && region is not null && hover is not null) vm.TogglePin(hover, region);   // 鍵は州＝四半期の作り直しに耐える
     }
 
     // 外交の行クリック：その国の座標（仮想キャンバス）が画面中央に来るよう translate を合わせる（ズームは維持）。
