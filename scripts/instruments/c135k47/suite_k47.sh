@@ -15,7 +15,7 @@ if [ "${SKIPSCAN:-1}" != 1 ]; then dotnet test PriceOfBread.Tests -c Release --a
 echo "㉘ 走査の番人＋T1・T2 rc=$RS $(grep -E '合計' $WK/t_scan.txt | tail -1)" >> $O
 if [ $RS != 0 ]; then grep -E "^\s+失敗 " $WK/t_scan.txt >> $O; echo "STOP 走査の番人が赤" >> $O; exit 1; fi
 fi   # SKIPSCAN=1 は走査の束を飛ばす（フルスイートが同じ試験を含む）
-if [ "${SKIPINS:-0}" = 1 ]; then echo "㊴ は先に別に回した（SKIPINS=1）" > $WK/t_ins.txt; RC=0; else dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "FullyQualifiedName~Instrument" > $WK/t_ins.txt 2>&1; RC=$?; fi
+if [ "${SKIPINS:-0}" = 1 ]; then echo "㊴ は先に別に回した（SKIPINS=1）" > $WK/t_ins.txt; RC=0; else dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "Category!=FullLength&(FullyQualifiedName~Famine|FullyQualifiedName~Fiscal|FullyQualifiedName~Military|FullyQualifiedName~Revolt|FullyQualifiedName~WriterRatchet|FullyQualifiedName~Instrument)" > $WK/t_ins.txt 2>&1; RC=$?; fi
 echo "㊴ 計器の束 rc=$RC $(grep -E '合計' $WK/t_ins.txt | tail -1)" >> $O
 if [ $RC != 0 ]; then grep -E "^\s+失敗 " $WK/t_ins.txt >> $O; echo "STOP 計器の束が赤" >> $O; exit 1; fi
 dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "Category!=FullLength" --logger "trx;LogFileName=tests.trx" --results-directory $WK/trx > $WK/t_main.txt 2>&1; R1=$?
