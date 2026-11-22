@@ -30,6 +30,8 @@ public static partial class Instruments
         System.Array.Clear(s.PrevLedger); s.PrevTreasury = to; s.Have = true; s.Rebased = true; s.Jump = to - before;
     }
 
+    static void TreasLedgerClose(MultiNationSim sim) { if (TlSinks.TryGetValue(sim, out var s)) { s.W?.Dispose(); s.W = null; } }
+
     /// <summary>四半期の末：全ての国の行を書く。</summary>
     static void TreasLedgerTable(MultiNationSim sim, ulong seed, int q)
     {
