@@ -1,0 +1,22 @@
+(1306) c135c3 読むだけ：C3 の鎖の番人（PolicyPoliticsTests.実税が重い世界ほど生活が苦しく闘争度が高い）が既定 0（InvestExtrapolationWeight=0）の木で赤になる原因
+書き手 Claude Opus 5.5・2026-11-22・main 22c8d10bf
+
+作業の場所
+- D:/PoB_work/r1306_work/（台本・表・下書き・使い捨ての木 tree_main・tree_k0 は git archive で展開＝worktree は作らない）
+- 台本 D:/PoB_work/r1306_work/scripts/（コミットしない・合流が scripts/instruments/r1306/ へ写す）
+- SimCore に手を入れない。試験の写しの中に診断の出力を足すだけ（使い捨て・main の PriceOfBread.Tests は触らない）
+- 既定 0 の木＝main の写しの試験の盤面で w.Coef.InvestExtrapolationWeight = 0 を置く（origin/c134k49 の SimCore の差はこの係数だけ＝git diff で確かめた・残りは treasledger の計器の差）
+
+読む生
+- measurements/m1298_20261122/taxchain/diag_*.txt（main と既定 0 の帰属の数・揺らし）
+- measurements/m1298_20261122/result_k49.txt
+- D:/PoB_work/keep_1301_rej/c134k49_armB（読むだけ・この問いは試験の盤面＝単国の仏 1789 なので、腕の生は補助だけ）
+- ソース：EconomyStep.cs:2405・Coefficients.p08_audit_soldiers.cs:62・Simulation.cs:1159〜1168・Politics.cs の闘争度の項・国の基盤の調達の入口
+
+腕 0 本。使い捨ての試験の走り（1 回約 10 分）を 2〜3 回。
+
+取り直し方（tree・art は片付けで消した）：
+  mkdir -p D:/PoB_work/r1306_work/tree && git -C C:/Users/dirge/Documents/PriceOfBread archive 22c8d10bf PriceOfBread.SimCore PriceOfBread.Tests | tar -x -C D:/PoB_work/r1306_work/tree
+  bash D:/PoB_work/r1306_work/scripts/run.sh R1306M_     （突然変異の表 out/mut.tsv・約 10 秒＋ビルド）
+  bash D:/PoB_work/r1306_work/scripts/run.sh R1306Main   （書き出し out/pop_*・prod_*・reg_*・mkt_*）※ R1306K0w も同様
+  python -X utf8 -I scripts/a6_sweep.py out ほか a1〜a8

@@ -1,0 +1,26 @@
+== main_w100
+tax0 q1 infraBud=0 elecBud=0 adminBud=3290 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.257e+05 poll=0
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.098 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.092 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.536
+tax0 q10 infraBud=0 elecBud=0 adminBud=3296 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.248e+05 poll=0
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.305 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.301 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.632
+tax0 q20 infraBud=0 elecBud=0 adminBud=3244 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.249e+05 poll=0
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.501 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.511 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.704
+tax0.6 q1 infraBud=0 elecBud=0 adminBud=3452 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.302e+05 poll=1507
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.098 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.091 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.536
+tax0.6 q10 infraBud=0 elecBud=0 adminBud=3812 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.677e+05 poll=1435
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.389 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.381 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.663
+tax0.6 q20 infraBud=0 elecBud=0 adminBud=4180 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=4.073e+05 poll=1397
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.657 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.646 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.769
+== k0_w100
+tax0 q1 infraBud=0 elecBud=0 adminBud=3292 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.258e+05 poll=0
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.075 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.066 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.525
+tax0 q10 infraBud=0 elecBud=0 adminBud=3295 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.249e+05 poll=0
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.284 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.279 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.618
+tax0 q20 infraBud=0 elecBud=0 adminBud=3245 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.25e+05 poll=0
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.435 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.441 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.676
+tax0.6 q1 infraBud=0 elecBud=0 adminBud=3453 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.304e+05 poll=1508
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.075 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.066 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.525
+tax0.6 q10 infraBud=0 elecBud=0 adminBud=3818 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=3.683e+05 poll=1435
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.39 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.386 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.654
+tax0.6 q20 infraBud=0 elecBud=0 adminBud=4194 infraFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] elecFill=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] treasury=4.085e+05 poll=1398
+    ガス灯_built=0 ガス灯_cost=0 ガス灯_n=8 ガス灯_rev=0 ガス灯_scale=4.798 水道局_built=0 水道局_cost=0 水道局_n=8 水道局_rev=0 水道局_scale=4.793 電灯網_built=0 電灯網_cost=0 電灯網_n=8 電灯網_rev=0 電灯網_scale=2.81

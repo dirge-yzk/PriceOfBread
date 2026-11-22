@@ -1,0 +1,98 @@
+== main_w100
+pop 0 1 1 size=2844 unemp=0.000 earned=1958
+pop 0 1 2 size=151 unemp=0.000 earned=414.1
+pop 0 2 1 size=2853 unemp=0.000 earned=1984
+pop 0 2 2 size=146 unemp=0.000 earned=437.3
+pop 0 3 1 size=2861 unemp=0.000 earned=1928
+pop 0 3 2 size=141 unemp=0.034 earned=446.3
+pop 0 6 1 size=2886 unemp=0.000 earned=1751
+pop 0 6 2 size=127 unemp=0.044 earned=392.2
+pop 0 10 1 size=2921 unemp=0.000 earned=2830
+pop 0 10 2 size=108 unemp=0.000 earned=395.1
+pop 0 20 1 size=2993 unemp=0.000 earned=1268
+pop 0 20 2 size=72 unemp=0.000 earned=178.5
+pop 0.6 1 1 size=2844 unemp=0.000 earned=1957
+pop 0.6 1 2 size=151 unemp=0.000 earned=415.4
+pop 0.6 2 1 size=2853 unemp=0.000 earned=1968
+pop 0.6 2 2 size=146 unemp=0.000 earned=440.2
+pop 0.6 3 1 size=2861 unemp=0.000 earned=1939
+pop 0.6 3 2 size=141 unemp=0.049 earned=436
+pop 0.6 6 1 size=2887 unemp=0.000 earned=1760
+pop 0.6 6 2 size=127 unemp=0.047 earned=376
+pop 0.6 10 1 size=2924 unemp=0.000 earned=2419
+pop 0.6 10 2 size=107 unemp=0.000 earned=358.2
+pop 0.6 20 1 size=2996 unemp=0.000 earned=1537
+pop 0.6 20 2 size=73 unemp=0.000 earned=258.9
+prod 0 1 35 - g42 scale=0.161 inFill=0.941 rev=847.3 cost=252.6 sm=+1.578
+prod 0 1 47 - g54 scale=0.101 inFill=0.806 rev=2329 cost=929.3 sm=+0.880
+prod 0 2 35 - g42 scale=0.161 inFill=0.968 rev=794.5 cost=242.7 sm=+1.605
+prod 0 2 47 - g54 scale=0.101 inFill=0.776 rev=2418 cost=882.1 sm=+0.894
+prod 0 3 35 - g42 scale=0.161 inFill=0.999 rev=760.6 cost=232.1 sm=+1.630
+prod 0 3 47 - g54 scale=0.101 inFill=0.740 rev=2486 cost=851.5 sm=+0.913
+prod 0 6 35 - g42 scale=0.161 inFill=1.000 rev=725.3 cost=193.5 sm=+1.745
+prod 0 6 47 - g54 scale=0.100 inFill=0.702 rev=2300 cost=801.9 sm=+0.950
+prod 0 10 35 - g42 scale=0.161 inFill=0.910 rev=604.3 cost=161.7 sm=+1.937
+prod 0 10 47 - g54 scale=0.099 inFill=0.691 rev=1719 cost=640.7 sm=+0.969
+prod 0 20 35 - g42 scale=0.162 inFill=0.813 rev=351.2 cost=58.7 sm=+2.501
+prod 0 20 47 - g54 scale=0.098 inFill=0.517 rev=1759 cost=367.3 sm=+1.229
+prod 0.6 1 35 - g42 scale=0.161 inFill=0.936 rev=846.9 cost=252.2 sm=+1.578
+prod 0.6 1 47 - g54 scale=0.101 inFill=0.807 rev=2298 cost=928.6 sm=+0.879
+prod 0.6 2 35 - g42 scale=0.161 inFill=0.978 rev=796.3 cost=244.9 sm=+1.604
+prod 0.6 2 47 - g54 scale=0.101 inFill=0.790 rev=2252 cost=883.8 sm=+0.887
+prod 0.6 3 35 - g42 scale=0.161 inFill=0.998 rev=762.3 cost=235.8 sm=+1.628
+prod 0.6 3 47 - g54 scale=0.101 inFill=0.773 rev=2252 cost=848.6 sm=+0.898
+prod 0.6 6 35 - g42 scale=0.161 inFill=1.000 rev=699.3 cost=194.5 sm=+1.722
+prod 0.6 6 47 - g54 scale=0.100 inFill=0.737 rev=2091 cost=770.4 sm=+0.927
+prod 0.6 10 35 - g42 scale=0.161 inFill=0.980 rev=586.4 cost=154.4 sm=+1.897
+prod 0.6 10 47 - g54 scale=0.099 inFill=0.713 rev=1752 cost=635.4 sm=+0.960
+prod 0.6 20 35 - g42 scale=0.162 inFill=0.812 rev=352.1 cost=54.93 sm=+2.621
+prod 0.6 20 47 - g54 scale=0.098 inFill=0.504 rev=1780 cost=376.4 sm=+1.225
+== k0_w100
+pop 0 1 1 size=2821 unemp=0.000 earned=1837
+pop 0 1 2 size=175 unemp=0.000 earned=417.1
+pop 0 2 1 size=2833 unemp=0.000 earned=1920
+pop 0 2 2 size=167 unemp=0.000 earned=412.5
+pop 0 3 1 size=2843 unemp=0.000 earned=1873
+pop 0 3 2 size=160 unemp=0.000 earned=433.1
+pop 0 6 1 size=2872 unemp=0.000 earned=1726
+pop 0 6 2 size=142 unemp=0.017 earned=392.9
+pop 0 10 1 size=2911 unemp=0.000 earned=2722
+pop 0 10 2 size=118 unemp=0.000 earned=384.8
+pop 0 20 1 size=2990 unemp=0.000 earned=1297
+pop 0 20 2 size=77 unemp=0.000 earned=191.5
+pop 0.6 1 1 size=2821 unemp=0.000 earned=1837
+pop 0.6 1 2 size=175 unemp=0.000 earned=417.9
+pop 0.6 2 1 size=2740 unemp=0.000 earned=1938
+pop 0.6 2 2 size=260 unemp=0.000 earned=443.6
+pop 0.6 3 1 size=2725 unemp=0.000 earned=1897
+pop 0.6 3 2 size=278 unemp=0.055 earned=495.1
+pop 0.6 6 1 size=2752 unemp=0.000 earned=1723
+pop 0.6 6 2 size=262 unemp=0.174 earned=471.1
+pop 0.6 10 1 size=2770 unemp=0.000 earned=1775
+pop 0.6 10 2 size=263 unemp=0.000 earned=483.1
+pop 0.6 20 1 size=2882 unemp=0.000 earned=1536
+pop 0.6 20 2 size=196 unemp=0.000 earned=375.6
+prod 0 1 35 - g42 scale=0.161 inFill=0.961 rev=1000 cost=310.9 sm=+1.533
+prod 0 1 47 - g54 scale=0.100 inFill=0.888 rev=2414 cost=1092 sm=+0.839
+prod 0 2 35 - g42 scale=0.161 inFill=0.928 rev=918.9 cost=292.5 sm=+1.553
+prod 0 2 47 - g54 scale=0.100 inFill=0.845 rev=2468 cost=1011 sm=+0.850
+prod 0 3 35 - g42 scale=0.161 inFill=0.992 rev=868.3 cost=282.3 sm=+1.568
+prod 0 3 47 - g54 scale=0.100 inFill=0.802 rev=2521 cost=969.6 sm=+0.866
+prod 0 6 35 - g42 scale=0.161 inFill=1.000 rev=820.1 cost=235.2 sm=+1.650
+prod 0 6 47 - g54 scale=0.099 inFill=0.758 rev=2362 cost=906.1 sm=+0.897
+prod 0 10 35 - g42 scale=0.161 inFill=0.924 rev=679.6 cost=187.6 sm=+1.812
+prod 0 10 47 - g54 scale=0.099 inFill=0.749 rev=1808 cost=730.8 sm=+0.917
+prod 0 20 35 - g42 scale=0.162 inFill=0.806 rev=381.3 cost=68.81 sm=+2.360
+prod 0 20 47 - g54 scale=0.097 inFill=0.532 rev=1840 cost=401.1 sm=+1.184
+prod 0.6 1 35 - g42 scale=0.161 inFill=0.957 rev=999.7 cost=310.5 sm=+1.533
+prod 0.6 1 47 - g54 scale=0.101 inFill=0.888 rev=2382 cost=1091 sm=+0.838
+prod 0.6 2 35 - g42 scale=0.161 inFill=0.950 rev=985 cost=317.4 sm=+1.552
+prod 0.6 2 47 - g54 scale=0.100 inFill=0.859 rev=2463 cost=1085 sm=+0.843
+prod 0.6 3 35 - g42 scale=0.161 inFill=0.910 rev=1062 cost=358.7 sm=+1.563
+prod 0.6 3 47 - g54 scale=0.100 inFill=0.826 rev=2705 cost=1183 sm=+0.847
+prod 0.6 6 35 - g42 scale=0.161 inFill=1.000 rev=1402 cost=468.4 sm=+1.601
+prod 0.6 6 47 - g54 scale=0.099 inFill=0.978 rev=2550 cost=1528 sm=+0.810
+prod 0.6 10 35 - g42 scale=0.161 inFill=0.972 rev=1140 cost=440.1 sm=+1.560
+prod 0.6 10 47 - g54 scale=0.098 inFill=0.972 rev=2487 cost=1259 sm=+0.809
+prod 0.6 20 35 - g42 scale=0.162 inFill=0.954 rev=1038 cost=365.8 sm=+1.536
+prod 0.6 20 47 - g54 scale=0.095 inFill=0.954 rev=2204 cost=1121 sm=+0.777
