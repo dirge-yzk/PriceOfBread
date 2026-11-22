@@ -1,0 +1,4 @@
+  失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.灯油の近代レシピは石油ケロシンの1本だけで原油は0_5 [2 s]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.発見の表の灯油の行は石油ケロシンの1本だけ [46 ms]
+  エラー メッセージ:

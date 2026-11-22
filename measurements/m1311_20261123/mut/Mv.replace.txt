@@ -1,0 +1,1 @@
+置き換えた：1 箇所・D:/PoB_work/c136kb_work/mut/Mv/PriceOfBread.SimCore/Discovery.cs・44455 → 44504 バイト

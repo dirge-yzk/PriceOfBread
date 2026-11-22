@@ -1,0 +1,4 @@
+  失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.発見の表の灯油の行は石油ケロシンの1本だけ [6 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [3 ms]
+  エラー メッセージ:

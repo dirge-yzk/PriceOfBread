@@ -1,0 +1,6 @@
+  失敗 PriceOfBread.Tests.SecondRecipeContentsTests.石油ケロシンの行は原油と労働と技師を投入にし生産性は1_6かける7 [1 ms]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.灯油の近代レシピは石油ケロシンの1本だけで原油は0_5 [2 s]
+  エラー メッセージ:
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [3 ms]
+  エラー メッセージ:
