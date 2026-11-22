@@ -1,0 +1,13 @@
+PriceOfBread.SimCore/BilateralMarket.cs:171:    private bool LastPairWasLand;
+PriceOfBread.SimCore/BilateralMarket.cs:547:            kmLand[ix] = LastPairWasLand;
+PriceOfBread.SimCore/BilateralMarket.cs:572:                if (!(k >= 0)) { k = PairKm(s, t, ix); kmTab[ix] = k; kmLand[ix] = LastPairWasLand; }
+PriceOfBread.SimCore/BilateralMarket.cs:585:            LastPairWasLand = land;
+PriceOfBread.Tests/SaveRoundTripTests.cs:91:        // バイト列の一致は比べない：印の外の差が 2 件ある（辞書 Diplomacy._tensionRamp の
+scripts/instruments/c102rp/mut.sh:45:b=b.replace(a,"        LastPairWasLand = viaLand < viaSea; land = viaLand < viaSea;   // M2",1)
+scripts/instruments/c102rp/mut.sh:48:run M2_口の中でLastPairWasLandを書く "FullyQualifiedName~RulePowerTests.P1"
+scripts/instruments/sp398/patch_toggle.py:17: ("    private bool LastPairWasLand;", "    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServ
+scripts/instruments/sp398/patch_toggle2.py:17: ("    private bool LastPairWasLand;", "    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerSer
+scripts/instruments/sp398/patch_toggle3.py:17: ("    private bool LastPairWasLand;", "    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerSer
+measurements/m1309_20261123/lastpair_grep.txt
+measurements/m1103_20261113/prereg_merge.txt
+measurements/m1078_20261112/files.txt

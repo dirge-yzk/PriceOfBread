@@ -1,0 +1,275 @@
+# (1309) c136sv 事前登録（最初のコミット・腕の前）　2026-11-23　枝 c136sv（1c8873228 から）
+## [1] 恒等の線（予言 0・★(743) の区分＝恒等）
+- 種類：恒等（月の途中の savetest の道具 S0＋走り書きの欄を返り値へ S1＋xUnit S2）。新しい係数・旗・シミュの状態は 0。
+- 作者の言葉：2026-11-13「マルコフ性を満たしていないものがあるか洗い出し」（残す群 1）。この線に限り Runner に触れてよい（Program.cs の savetest の枝だけ）。
+- 推奨で進める物：(1300) の案 1。〈作者「全て推奨で」で推奨を採った〉（2026-11-20）。
+- 合否：素の 5 種・計器つき 10 種が m1308 と名乗り行（SOURCE-HASH）を除き全行一致（段 1・違えば段 2）。〈判定: 恒等〉と出たら〈測った種で一致〉と名乗る。
+- 計算量：件数は増えない（StateDiff はシミュの道から呼ばない・savetest の枝だけ）。
+
+## [2] 消す物・足す物・残す物
+消す：BilateralMarket.cs:171 `private bool LastPairWasLand;`（欄）。:547・:572 は PairKm の out 返り値を受け、:585 は out へ書く。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements・POB_COEF・SaveGame の名前表）の結果は D:/PoB_work/c136sv_work/lastpair_grep.txt を measurements/m1309_20261123/ へ写した物：SimCore＝BilateralMarket.cs の 4 行だけ／Tests＝SaveRoundTripTests.cs:91 の注の文字列だけ／Runner・App・Display・POB_COEF＝0。
+  PairKm は BilateralMarket.cs:579 の局所関数（呼び手は :545・:572 の 2 箇所だけ）。浮動小数の式は触らない（km の式の順序・リテラルは 1 字も変えない）。
+足す：SaveGame.cs に internal static StateDiff（FieldsOf を共用・シミュの道から呼ばない）／Program.cs savetest の第 5・6 引数／SaveRoundTripTests の試験／走査の番人 1 本。
+残す：SaveGame.cs:28 Fiscal.SeedBondHoldings は、StateDiff で〈何もしない〉と読めた時だけ消す（読めなければ残して理由を記録）。
+他の線との重なり：BilateralMarket.cs はこの線だけ（4 行）・Program.cs は savetest の枝だけ・DormantIdentityTests と WriterRatchetTests は宣言の行だけ（今回は変更なしの見込み＝0 行）・SaveGame.cs は他の線と重ならない。
+
+### 隠れた状態の表と予言（セーブに載らない物）
+(a) [NonSerialized] 40 欄（下の〈ns 一覧〉）。予言＝作業欄・キャッシュ（読み込み後に再導出）か計器＝値の違い 0 件。StateDiff は NonSerialized を走査しない＝比べの外。外の欄の影響は 2 量の継続系列の一致と 45・75 日の続きの一致で間接に読む。
+(b) 静的な ConditionalWeakTable 3 本：EconomyStep.cs:19 ConsumePrev・Simulation.cs:1421 CreditMonth・Ideology.cs:82 CultureSplit。予言＝ConsumePrev・CultureSplit は四半期の頭で入れ直す〈推〉・CreditMonth は読み込み後の fresh の枝で取り直す（Simulation.cs:1456〜1459）。入力が月の中で変わらないかは今の木で数え直していない＝〈推・届いていない〉。静的＝StateDiff の外・続きの一致で間接に読む。
+(c) [ThreadStatic]（下の〈ts 一覧〉＝SimCore で grep して数え直した行）。予言＝計器の物と作業の表（_kmScratch・_clearScratch・_scratch・flagBuf・PrefetchSink）。_kmScratch は同じプロセスで A の終わりの温かい表を B_k が受け継ぐ＝同一プロセスの形でだけ通る前提（別プロセスの保存→読みは範囲外・記録）。署名が全ての入力を覆うかは届いていない〈推〉。
+
+## [3] 足す試験と突然変異・走査の番人
+S0 の予言（savetest 1789 300 12 0,45,75 state・S1 の前）：各点の値の違いは 0 か 1 件（LastPairWasLand＝_kmScratch の温かさで偶然一致しうる〈推〉）・順だけの違いは Diplomacy._tensionRamp（Remove の 5 欄のどれか）・それ以外 0。S1 の後は値の違い 0 件。0 日の点でも眠り・清算の覚え・失敗の印は立っている（反証役 v）＝0 日の点の眠りの市場の数が 0 とは限らない。
+対照（v の中①）：〈印が次の読み手より前に立っている〉件数。保存の点の _dayInQuarter が第 1 清算の後で、次の読み（BilateralMarket.cs:859・:870 と MarketFlow.cs:61 の monthStart でない段）より前であること。各点の行に 印前 を出す。0 日の点では M1 が緑のまま（空振りの再現）と紙で名乗る。
+'savetest OK' を出す条件（v の中③）：2 量が一致し、かつ 3 点とも値の違い 0 件。引数 4 つまでの出力は旧と 1 字も変えない（ms を除く）。ident_check.py は変えない（:640 は 'savetest OK' の文字列だけを読む）。
+S2：SaveRoundTripTests の途中のセーブを 45・75 日の 2 点で StateDiff 値の違い 0 件（今の 3 量の Assert は残す）。対照の Assert・:91 の注を〈順だけの違い（Remove の 5 欄）は値の違いに数えない〉へ。StateDiff の自己試験 1 本（わざと 1 欄を違えると値の違い 1 件・順だけ 0）。初期化子つき [NonSerialized] を数える番人 1 本（許可表＝実測の行・理由つき）。
+試験の数の予言：3123＋2（番人 1・StateDiff の自己試験 1）＝3125（Category!=FullLength 側 2891→2893・Ui 232・FullLength 3）。
+ソースを走査する番人の点検（㉘）：DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・OnDoubleReadScanTests・SaveRoundTripTests を S1 の後に回す。書き換える件数の予言＝0（Coefficients・Instruments に触れない・`new MoneyStock(` の件数は変わらない）。route_anchors.tsv の鍵の行・工業化度の読み手の許可表は触らない。
+突然変異（使い捨ての木・結果は measurements/m1309_20261123/mutations.txt）：
+ M1 Model.cs:591 の ClearFailLp に [NonSerialized] → 新しい形の 45・75 の点で値の違い＞0＝赤・xUnit 赤・saveleak→ident_check.py が FAIL になる列。
+ M2 Model.cs:590 の眠りの印に [NonSerialized] → 赤。
+ M3 StateDiff の辞書を順で比べる形へ → _tensionRamp が値の違いへ＝赤。
+ M5 S1 を外す（欄を戻す）→ 緑の公算もある＝緑なら穴と名乗り自己試験で足す。
+ M6 対照の Assert を外し保存の点を 0 日だけへ → M1 を当てても緑（空振りの再現）。
+ M7 番人の許可表の行を外す → 番人が赤。
+savetest の秒：旧と新（記録）〈推：新は +10〜20 秒〉。
+
+## [4] 腕
+素の 5 種が b5_20261123_m1308・計器つき 10 種が b10_20261123_m1308_ins と SOURCE-HASH を除き全行一致。腕 Z は段 1（Runner の savetest の枝は走らない・局所関数の out は値を変えない）。違えば段 2。ヌル腕は回さない。D: は起こす直前に 35GB＋量を測る。
+
+## [5] 〈判定: 恒等〉なら採る。一致しなければ S1 を外して報告に回す。
+浮動小数の順序が変わる箇所：0（km の式に触れない・out の bool を運ぶだけ）。同じ盤面の旧と新の食い違い数＝PairKm の bool の流れは 1 対 1 で 0。
+入れない物：計器の表の比べ・列挙の順を鍵で並べる直し（挙動の線）・操作国の付け替え（App）・片方向の錠・〈証明〉の字。
+
+## ns 一覧（[NonSerialized]・SimCore・41 行）
+PriceOfBread.SimCore/BilateralMarket.cs:11
+PriceOfBread.SimCore/BilateralMarket.cs:25
+PriceOfBread.SimCore/BilateralMarket.cs:63
+PriceOfBread.SimCore/BilateralMarket.cs:112
+PriceOfBread.SimCore/Diplomacy.cs:18
+PriceOfBread.SimCore/Diplomacy.cs:19
+PriceOfBread.SimCore/Diplomacy.cs:20
+PriceOfBread.SimCore/Diplomacy.cs:280
+PriceOfBread.SimCore/Diplomacy.cs:323
+PriceOfBread.SimCore/Diplomacy.cs:338
+PriceOfBread.SimCore/Diplomacy.cs:339
+PriceOfBread.SimCore/Diplomacy.cs:754
+PriceOfBread.SimCore/Model.cs:105
+PriceOfBread.SimCore/Model.cs:475
+PriceOfBread.SimCore/Model.cs:486
+PriceOfBread.SimCore/Model.cs:509
+PriceOfBread.SimCore/Model.cs:547
+PriceOfBread.SimCore/Model.cs:548
+PriceOfBread.SimCore/Model.cs:589
+PriceOfBread.SimCore/Model.cs:747
+PriceOfBread.SimCore/Model.cs:748
+PriceOfBread.SimCore/Model.cs:749
+PriceOfBread.SimCore/Model.cs:750
+PriceOfBread.SimCore/Model.cs:752
+PriceOfBread.SimCore/Model.cs:783
+PriceOfBread.SimCore/Model.cs:784
+PriceOfBread.SimCore/Model.cs:785
+PriceOfBread.SimCore/Model.cs:786
+PriceOfBread.SimCore/MultiNationSim.cs:537
+PriceOfBread.SimCore/MultiNationSim.cs:1628
+PriceOfBread.SimCore/MultiNationSim.cs:1629
+PriceOfBread.SimCore/MultiNationSim.cs:1630
+PriceOfBread.SimCore/SaveGame.cs:51
+PriceOfBread.SimCore/World.cs:22
+PriceOfBread.SimCore/World.cs:89
+PriceOfBread.SimCore/World.cs:172
+PriceOfBread.SimCore/World.cs:174
+PriceOfBread.SimCore/World.cs:176
+PriceOfBread.SimCore/World.cs:178
+PriceOfBread.SimCore/World.cs:1216
+PriceOfBread.SimCore/World.cs:1434
+## ts 一覧（[ThreadStatic]）
+PriceOfBread.SimCore/BilateralMarket.cs:200
+PriceOfBread.SimCore/BilateralMarket.cs:202
+PriceOfBread.SimCore/BilateralMarket.cs:204
+PriceOfBread.SimCore/BilateralMarket.cs:250
+PriceOfBread.SimCore/EconomyStep.cs:187
+PriceOfBread.SimCore/EconomyStep.cs:204
+PriceOfBread.SimCore/FactoryEquipment.cs:108
+PriceOfBread.SimCore/Instruments/Instruments.cs:1231
+PriceOfBread.SimCore/Instruments/Instruments.cs:1232
+PriceOfBread.SimCore/Instruments/Instruments.cs:1233
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:56
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:150
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:189
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:247
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:8
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:9
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:13
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:18
+PriceOfBread.SimCore/Instruments/InstrumentsDivhost.cs:9
+PriceOfBread.SimCore/Instruments/InstrumentsDivhost.cs:10
+PriceOfBread.SimCore/Instruments/InstrumentsDivhost.cs:11
+PriceOfBread.SimCore/Instruments/InstrumentsRdh.cs:29
+PriceOfBread.SimCore/Instruments/InstrumentsSatNeeds.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsSatNeeds.cs:18
+PriceOfBread.SimCore/Instruments/InstrumentsTradeskip.cs:26
+PriceOfBread.SimCore/Instruments/InstrumentsTradeskip.cs:30
+PriceOfBread.SimCore/Instruments/InstrumentsTransport.cs:58
+PriceOfBread.SimCore/Instruments/InstrumentsTransport.cs:59
+PriceOfBread.SimCore/MarketFlow.cs:31
+PriceOfBread.SimCore/Meritocracy.cs:395
+PriceOfBread.SimCore/Meritocracy.cs:396
+PriceOfBread.SimCore/Model.cs:811
+PriceOfBread.SimCore/PopScan.cs:44
+## CWT
+PriceOfBread.SimCore/EconomyStep.cs:19
+PriceOfBread.SimCore/Ideology.cs:82
+PriceOfBread.SimCore/Instruments/Instruments.cs:185
+PriceOfBread.SimCore/Instruments/Instruments.cs:283
+PriceOfBread.SimCore/Instruments/Instruments.cs:284
+PriceOfBread.SimCore/Instruments/Instruments.cs:1137
+PriceOfBread.SimCore/Instruments/Instruments.cs:1234
+PriceOfBread.SimCore/Instruments/Instruments.cs:1391
+PriceOfBread.SimCore/Instruments/Instruments.cs:1435
+PriceOfBread.SimCore/Instruments/Instruments.cs:1485
+PriceOfBread.SimCore/Instruments/Instruments.cs:2106
+PriceOfBread.SimCore/Instruments/InstrumentsAiBuild.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsArms.cs:8
+PriceOfBread.SimCore/Instruments/InstrumentsArrears.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsArrears.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsBasisx.cs:20
+PriceOfBread.SimCore/Instruments/InstrumentsBasisx.cs:24
+PriceOfBread.SimCore/Instruments/InstrumentsBasisx.cs:48
+PriceOfBread.SimCore/Instruments/InstrumentsBuyShadow.cs:20
+PriceOfBread.SimCore/Instruments/InstrumentsBuyShadow.cs:22
+PriceOfBread.SimCore/Instruments/InstrumentsBuyShadow.cs:192
+PriceOfBread.SimCore/Instruments/InstrumentsBuyShadow.cs:194
+PriceOfBread.SimCore/Instruments/InstrumentsBuyShadow.cs:445
+PriceOfBread.SimCore/Instruments/InstrumentsCapCol.cs:23
+PriceOfBread.SimCore/Instruments/InstrumentsCapCol.cs:24
+PriceOfBread.SimCore/Instruments/InstrumentsCapinv.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsCapskip.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsCapskip.cs:18
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:52
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:53
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:55
+PriceOfBread.SimCore/Instruments/InstrumentsCearn.cs:464
+PriceOfBread.SimCore/Instruments/InstrumentsCede.cs:26
+PriceOfBread.SimCore/Instruments/InstrumentsCenter.cs:10
+PriceOfBread.SimCore/Instruments/InstrumentsCess.cs:23
+PriceOfBread.SimCore/Instruments/InstrumentsCivwar.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsCivwar.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsCorncf.cs:8
+PriceOfBread.SimCore/Instruments/InstrumentsCornint.cs:8
+PriceOfBread.SimCore/Instruments/InstrumentsCpeace.cs:22
+PriceOfBread.SimCore/Instruments/InstrumentsCpeace.cs:25
+PriceOfBread.SimCore/Instruments/InstrumentsCpmed.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsCpwd.cs:20
+PriceOfBread.SimCore/Instruments/InstrumentsCrown.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsCrown.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsCrown.cs:19
+PriceOfBread.SimCore/Instruments/InstrumentsDep.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsDipcool.cs:34
+PriceOfBread.SimCore/Instruments/InstrumentsDivhost.cs:13
+PriceOfBread.SimCore/Instruments/InstrumentsDivhost.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsDsc.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsEd.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsEquipment.cs:10
+PriceOfBread.SimCore/Instruments/InstrumentsFd.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsHabitlg.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsHabitlg.cs:18
+PriceOfBread.SimCore/Instruments/InstrumentsIdn.cs:10
+PriceOfBread.SimCore/Instruments/InstrumentsIdn.cs:12
+PriceOfBread.SimCore/Instruments/InstrumentsImpose.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsInheritIntent.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsInheritIntent.cs:20
+PriceOfBread.SimCore/Instruments/InstrumentsInheritIntent.cs:30
+PriceOfBread.SimCore/Instruments/InstrumentsInheritIntent.cs:32
+PriceOfBread.SimCore/Instruments/InstrumentsInheritIntent.cs:34
+PriceOfBread.SimCore/Instruments/InstrumentsInp.cs:148
+PriceOfBread.SimCore/Instruments/InstrumentsIvf.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsLabelTier.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs:24
+PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs:44
+PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs:45
+PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs:201
+PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs:204
+PriceOfBread.SimCore/Instruments/InstrumentsLandbase.cs:221
+PriceOfBread.SimCore/Instruments/InstrumentsLandsale.cs:99
+PriceOfBread.SimCore/Instruments/InstrumentsLandsale.cs:213
+PriceOfBread.SimCore/Instruments/InstrumentsLandshare.cs:76
+PriceOfBread.SimCore/Instruments/InstrumentsLandshare.cs:116
+PriceOfBread.SimCore/Instruments/InstrumentsLandshare.cs:285
+PriceOfBread.SimCore/Instruments/InstrumentsLawgate2.cs:13
+PriceOfBread.SimCore/Instruments/InstrumentsLordstat.cs:8
+PriceOfBread.SimCore/Instruments/InstrumentsLw.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsLwk.cs:18
+PriceOfBread.SimCore/Instruments/InstrumentsLwk.cs:19
+PriceOfBread.SimCore/Instruments/InstrumentsMerch.cs:26
+PriceOfBread.SimCore/Instruments/InstrumentsMerch.cs:58
+PriceOfBread.SimCore/Instruments/InstrumentsMerch.cs:59
+PriceOfBread.SimCore/Instruments/InstrumentsMineCap.cs:80
+PriceOfBread.SimCore/Instruments/InstrumentsMintcap.cs:24
+PriceOfBread.SimCore/Instruments/InstrumentsMintcap.cs:25
+PriceOfBread.SimCore/Instruments/InstrumentsMintreg.cs:22
+PriceOfBread.SimCore/Instruments/InstrumentsMintreg.cs:23
+PriceOfBread.SimCore/Instruments/InstrumentsMon.cs:177
+PriceOfBread.SimCore/Instruments/InstrumentsMon.cs:178
+PriceOfBread.SimCore/Instruments/InstrumentsNationgood.cs:23
+PriceOfBread.SimCore/Instruments/InstrumentsNationgood.cs:25
+PriceOfBread.SimCore/Instruments/InstrumentsNationgood.cs:44
+PriceOfBread.SimCore/Instruments/InstrumentsPaysale.cs:21
+PriceOfBread.SimCore/Instruments/InstrumentsPaysale.cs:22
+PriceOfBread.SimCore/Instruments/InstrumentsPaysale.cs:23
+PriceOfBread.SimCore/Instruments/InstrumentsPopClose.cs:25
+PriceOfBread.SimCore/Instruments/InstrumentsPopClose.cs:46
+PriceOfBread.SimCore/Instruments/InstrumentsPortch.cs:9
+PriceOfBread.SimCore/Instruments/InstrumentsPortlm.cs:12
+PriceOfBread.SimCore/Instruments/InstrumentsPrdf.cs:11
+PriceOfBread.SimCore/Instruments/InstrumentsPrdf.cs:13
+PriceOfBread.SimCore/Instruments/InstrumentsPrds.cs:78
+PriceOfBread.SimCore/Instruments/InstrumentsPrds.cs:80
+PriceOfBread.SimCore/Instruments/InstrumentsProdcap.cs:10
+PriceOfBread.SimCore/Instruments/InstrumentsPxstep.cs:13
+PriceOfBread.SimCore/Instruments/InstrumentsPxstep.cs:14
+PriceOfBread.SimCore/Instruments/InstrumentsRailSpend.cs:25
+PriceOfBread.SimCore/Instruments/InstrumentsRailSpend.cs:26
+PriceOfBread.SimCore/Instruments/InstrumentsRdh.cs:23
+PriceOfBread.SimCore/Instruments/InstrumentsRdh.cs:62
+PriceOfBread.SimCore/Instruments/InstrumentsRecipeout.cs:92
+PriceOfBread.SimCore/Instruments/InstrumentsRk.cs:71
+PriceOfBread.SimCore/Instruments/InstrumentsRk.cs:118
+PriceOfBread.SimCore/Instruments/InstrumentsRule.cs:7
+PriceOfBread.SimCore/Instruments/InstrumentsRule.cs:115
+PriceOfBread.SimCore/Instruments/InstrumentsRulePower.cs:88
+PriceOfBread.SimCore/Instruments/InstrumentsRulePower.cs:120
+PriceOfBread.SimCore/Instruments/InstrumentsSatNeeds.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsSatNeeds.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsSb.cs:20
+PriceOfBread.SimCore/Instruments/InstrumentsSb.cs:21
+PriceOfBread.SimCore/Instruments/InstrumentsScope.cs:56
+PriceOfBread.SimCore/Instruments/InstrumentsSellr.cs:15
+PriceOfBread.SimCore/Instruments/InstrumentsSilverParity.cs:16
+PriceOfBread.SimCore/Instruments/InstrumentsSilverst.cs:12
+PriceOfBread.SimCore/Instruments/InstrumentsSilverst.cs:20
+PriceOfBread.SimCore/Instruments/InstrumentsSilverWeight.cs:24
+PriceOfBread.SimCore/Instruments/InstrumentsSoldierVac.cs:27
+PriceOfBread.SimCore/Instruments/InstrumentsSoldierVac.cs:28
+PriceOfBread.SimCore/Instruments/InstrumentsSubst.cs:25
+PriceOfBread.SimCore/Instruments/InstrumentsSubst.cs:129
+PriceOfBread.SimCore/Instruments/InstrumentsTradeskip.cs:247
+PriceOfBread.SimCore/Instruments/InstrumentsTradeskip.cs:249
+PriceOfBread.SimCore/Instruments/InstrumentsTransport.cs:57
+PriceOfBread.SimCore/Instruments/InstrumentsTransport.cs:365
+PriceOfBread.SimCore/Instruments/InstrumentsTransport.cs:511
+PriceOfBread.SimCore/Instruments/InstrumentsTreasLedger.cs:17
+PriceOfBread.SimCore/Instruments/InstrumentsTreasLedger.cs:18
+PriceOfBread.SimCore/Instruments/InstrumentsTreatyPort.cs:13
+PriceOfBread.SimCore/Instruments/InstrumentsU4.cs:27
+PriceOfBread.SimCore/Instruments/InstrumentsU4.cs:117
+PriceOfBread.SimCore/Instruments/InstrumentsUnif.cs:21
+PriceOfBread.SimCore/Instruments/InstrumentsUrx.cs:27
+PriceOfBread.SimCore/Instruments/InstrumentsUrx.cs:161
+PriceOfBread.SimCore/Instruments/InstrumentsWar.cs:61
+PriceOfBread.SimCore/Simulation.cs:1421
