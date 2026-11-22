@@ -146,11 +146,11 @@
                                                           Fill="{Binding $self.(TextElement.Foreground)}"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
-                                                <TextBlock Text="{Binding TotalCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
+                                                <TextBlock Text="{Binding TotalCount}" FontSize="{StaticResource FontSmall}" FontWeight="Bold"
                                                            Foreground="{StaticResource OnFillBrush}" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
                                                 <!-- 実質稼働数は色が意味を持つ＝縦線の地色（tier のアクセント）の上でも読める白い縁取りの面を敷く -->
                                                 <Border Background="{StaticResource TraceBrush}" CornerRadius="2" Height="13" Margin="2,0">
-                                                    <TextBlock Text="{Binding RunningCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
+                                                    <TextBlock Text="{Binding RunningCount}" FontSize="{StaticResource FontSmall}" FontWeight="Bold"
                                                                Foreground="{Binding RunningBrush}" TextAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                 </Border>
                                                 <Button Classes="counter updown" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
@@ -165,16 +165,9 @@
                                         <StackPanel VerticalAlignment="Center" Spacing="0">
                                             <!-- 品名の隣＝世界価格との比較（2026-08-09 項目3）。安い＝青・高い＝赤。値が無い財は空文字＝行は詰まらない -->
                                             <StackPanel Orientation="Horizontal" Spacing="2">
-                                                <Image Source="{Binding GoodId, Converter={x:Static ctl:GoodIconConverter.Instance}}" Width="14" Height="14" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{Binding NameBrush}" VerticalAlignment="Center"/>   <!-- 2026-11-12：17→15（Noto Sans JP の仮名は 1.000em の全角＝旧書体の 0.63〜0.83em より広い。6 文字の「トウモロコシ」と比が 129px に収まる大きさ） -->
+                                                <Image Source="{Binding GoodId, Converter={x:Static ctl:GoodIconConverter.Instance}}" Width="24" Height="24" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{Binding NameBrush}" VerticalAlignment="Center"/>   <!-- 2026-11-12：17→15（Noto Sans JP の仮名は 1.000em の全角＝旧書体の 0.63〜0.83em より広い。6 文字の「トウモロコシ」と比が 129px に収まる大きさ） -->
                                                 <TextBlock Text="{Binding PriceDiff}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{Binding PriceDiffBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <!-- 全国工場目標の ±10・±100（±1 は縦線の▲▼）。押すと目標を置くだけ・数字つきの押し釦 -->
-                                            <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,2,0,0">
-                                                <Button Classes="counter" Content="−100" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding DownFactory100Command}" IsEnabled="{Binding CanDownFactory}"/>
-                                                <Button Classes="counter" Content="−10" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding DownFactory10Command}" IsEnabled="{Binding CanDownFactory}"/>
-                                                <Button Classes="counter" Content="+10" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding UpFactory10Command}" IsEnabled="{Binding CanUpFactory}"/>
-                                                <Button Classes="counter" Content="+100" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding UpFactory100Command}" IsEnabled="{Binding CanUpFactory}"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </DockPanel>

@@ -1328,12 +1328,8 @@ public sealed partial class ProdNode : ObservableObject
     public ProdNode() { }
     public ProdNode(Action<int> onStep) { _onStepFactory = onStep; }
     // ClickMode=Press と同じ理由でコマンドは軽い（押下で確定）。州別カウンター（ProdRegionRow）と同じ作法。
-    [RelayCommand] private void UpFactory() => _onStepFactory?.Invoke(+1);
-    [RelayCommand] private void DownFactory() => _onStepFactory?.Invoke(-1);
-    [RelayCommand] private void UpFactory10() => _onStepFactory?.Invoke(+10);
-    [RelayCommand] private void DownFactory10() => _onStepFactory?.Invoke(-10);
-    [RelayCommand] private void UpFactory100() => _onStepFactory?.Invoke(+100);
-    [RelayCommand] private void DownFactory100() => _onStepFactory?.Invoke(-100);
+    [RelayCommand] private void UpFactory() => _onStepFactory?.Invoke(+10);
+    [RelayCommand] private void DownFactory() => _onStepFactory?.Invoke(-10);
     [ObservableProperty] private IBrush? _background;
     [ObservableProperty] private IBrush? _borderBrush;
     [ObservableProperty] private double _borderThickness = 1.0;
