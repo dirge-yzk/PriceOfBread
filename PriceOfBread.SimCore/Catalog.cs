@@ -430,7 +430,6 @@ public static class Catalog
         new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),
         new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),
         new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),
-        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),
         new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),
         new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),
         new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),

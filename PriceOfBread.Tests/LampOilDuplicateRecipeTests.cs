@@ -38,4 +38,18 @@ public class LampOilDuplicateRecipeTests
         Assert.True(regions >= 3, $"灯油の既定の行がある州が {regions}（盤面の前提が崩れた）");   // 対照の件数
         Assert.DoesNotContain(w.Regions.SelectMany(r => r.Producers), p => p.RecipeName == "石油灯油");   // 既定の行の無い州にも建たない
     }
+
+    /// <summary>T3（(1311) c136kb）：発見の表で灯油（LampOilId）を作る行は「石油ケロシン」の 1 本だけ（製法の行・レシピの名も「石油ケロシン」）。
+    /// 「石油灯油」の発見の行は消した＝表の中のどの行の名前にもレシピの名前にも無い。期待は手で書いた名前（Catalog の表から作らない）。</summary>
+    [Fact]
+    public void 発見の表の灯油の行は石油ケロシンの1本だけ()
+    {
+        var rows = Catalog.Discoveries.Where(d => d.Good == Catalog.LampOilId).ToList();
+        Assert.True(rows.Count == 1, $"灯油の発見の行＝[{string.Join(",", rows.Select(d => d.Name))}]（石油ケロシンの 1 本のはず）");
+        Assert.Equal("石油ケロシン", rows[0].Name);
+        Assert.Equal("石油ケロシン", rows[0].Recipe);
+        Assert.Equal(DiscoveryField.Process, rows[0].Field);
+        Assert.DoesNotContain(Catalog.Discoveries, d => d.Name == "石油灯油" || d.Recipe == "石油灯油");
+        Assert.True(Catalog.Discoveries.Count(d => d.Replaces == Catalog.LampOilId) >= 1, "灯油を置き換える行（ガス灯）が無い（表の前提が崩れた）");   // 対照の件数
+    }
 }
