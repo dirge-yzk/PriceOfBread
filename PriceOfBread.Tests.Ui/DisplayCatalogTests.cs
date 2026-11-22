@@ -41,7 +41,7 @@ public class DisplayCatalogTests
         }
         Assert.Null(PageKeys.PageOfKey('X'));   // 空きのキー
         Assert.Null(PageKeys.PageOfKey('\0'));
-        Assert.Null(PageKeys.PageOfKey('Z'));
+        Assert.Null(PageKeys.PageOfKey('C'));
         Assert.Equal("生産", PageKeys.Name(Page.Production));
         Assert.Equal("Tab：生産", PageKeys.ButtonText(Page.Production));
         Assert.Equal("Q：財の価格", PageKeys.ButtonText(Page.Market));
