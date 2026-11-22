@@ -1,0 +1,14 @@
+seed	rows	G1	G2	picks	diffOld	diffNew	otherChange	maxSovColCap	G1_after_other	G1_after_pickHome0	G1_other
+1	40760	0	0	4	0	1	4	0	0	0	0
+2	40765	0	0	10	0	0	8	0	0	0	0
+3	40778	0	0	6	0	1	4	0	0	0	0
+4	40799	0	0	20	0	0	16	0	0	0	0
+5	40780	0	0	9	0	0	6	0	0	0	0
+6	41101	303	0	13	0	1	10	1	287	0	16
+7	41780	1	0	13	0	1	9	1	0	0	1
+8	41073	0	0	14	0	0	12	0	0	0	0
+9	41439	39	0	18	0	1	15	1	38	0	1
+10	40799	0	0	10	0	0	8	0	0	0	0
+計	G1=343（種 3）	G2=0	picks=117	diffOld=0	diffNew=5	otherChange=92	maxSovColCap 種の中央=0・最大=1	欠けた種=0
+G1 の国：イギリス:343
+門：G1 赤・G2 緑
