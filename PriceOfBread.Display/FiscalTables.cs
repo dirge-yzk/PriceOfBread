@@ -265,14 +265,19 @@ public static class FiscalTables
             && w.FiscalFundingRatio >= c0.GoldStandardMinFunding;
     }
 
-    private static IReadOnlyList<FinanceLine> FinanceLines(MultiNationSim sim, World w)
+    /// <summary>名目 GDP の世界順位（国の一覧と同じ国の集合＝国力の並びに出る実国家で、自国より大きい国の数＋1）。ヘッダーの GDP の線の題が読む。</summary>
+    public static int GdpRank(MultiNationSim sim, World w)
     {
         double gdp = w.NominalGdpPerMonth.Value;   // 名目の 1 本（国の一覧の詳細・対年 GDP 比と同じ値）
-        int gdpRank = 1;   // 国の一覧と同じ国の集合（国力の並びに出る実国家）で自国より大きい国の数＋1
-        foreach (var p in sim.Diplomacy.Powers) if (p.Nation is { } nw && nw != w && nw.NominalGdpPerMonth.Value > gdp) gdpRank++;
+        int rank = 1;
+        foreach (var p in sim.Diplomacy.Powers) if (p.Nation is { } nw && nw != w && nw.NominalGdpPerMonth.Value > gdp) rank++;
+        return rank;
+    }
+
+    private static IReadOnlyList<FinanceLine> FinanceLines(MultiNationSim sim, World w)
+    {
         var rows = new List<FinanceLine>
         {
-            new("gdp", "GDP", $"{DisplayFormat.Money(gdp)}/月　世界{gdpRank}位", StageCell.None, null),
             new("price", "物価（開始時比）", PlayText.PriceLevelText(w), StageCell.None, null),
             new("fx", "為替", PlayText.ExchangeRateText(w), StageCell.None, null),
         };
@@ -308,7 +313,7 @@ public static class FiscalTables
     }
 
     /// <summary>金融の表（物価・為替・金利・通貨制度・資本移動・通貨改革）。</summary>
-    public static Table<FinanceLine> Finance { get; } = new("fiscal.finance", "金融", Page.FiscalMoney, FinanceLines, l => l.Key, l => l.Name,
+    public static Table<FinanceLine> Finance { get; } = new("fiscal.finance", "金融", Page.Finance, FinanceLines, l => l.Key, l => l.Name,
     [
         Col.Text<FinanceLine>("name", "項目", l => l.Name, l => l.Tip),
         Col.Text<FinanceLine>("value", "現在", l => l.Value),
@@ -321,7 +326,6 @@ public static class FiscalTables
     {
         var rows = new List<DebtLine>();
         double gdpYear = w.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value) : 0;
-        rows.Add(new("debt", "国債", "残高", DisplayFormat.Money(w.GovDebt.Value)));
         rows.Add(new("debtGdp", "国債", "対年GDP", $"{DisplayFormat.Share(gdpYear)}"));
         rows.Add(new("bondRate", "国債", "金利", $"{DisplayFormat.Share(w.GovBondRatePerYear)}"));
         rows.Add(new("bondPrice", "国債", "債券価格", $"{DisplayFormat.Share(w.BondPrice)}"));
@@ -342,7 +346,7 @@ public static class FiscalTables
     }
 
     /// <summary>国債と外資信用の表（群＝国債・外資信用）。外資の流れの月の標本は App が採る（<see cref="FiscalFlows"/>）。</summary>
-    public static Table<DebtLine> DebtOf(FiscalFlows f) => new("fiscal.debt", "国債と外資信用", Page.FiscalMoney, (_, w) => DebtLines(w, f), l => l.Key, l => l.Name,
+    public static Table<DebtLine> DebtOf(FiscalFlows f) => new("fiscal.debt", "国債と外資信用", Page.Finance, (_, w) => DebtLines(w, f), l => l.Key, l => l.Name,
     [
         Col.Text<DebtLine>("name", "項目", l => l.Name),
         Col.Text<DebtLine>("value", "現在", l => l.Value),

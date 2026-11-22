@@ -451,7 +451,9 @@ public partial class GameViewModel : ViewModelBase
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫：{Fmt.Money(_player.Treasury.Value)}（{Fmt.SignedMoneyPerMonth(_monthDelta)}）";   // ★2026-11-03 作者「国庫:£n(+£n)」＝括弧の中は先月の収支
+        TreasuryText = $"国庫：{Fmt.Money(_player.Treasury.Value)}（{Fmt.SignedMoneyPerMonth(_monthDelta)}）";
+        TreasuryHover.Text = TreasuryText;   // ヘッダーの国庫の数字（日次）
+        // ★2026-11-03 作者「国庫:£n(+£n)」＝括弧の中は先月の収支
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }
 

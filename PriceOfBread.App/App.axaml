@@ -350,7 +350,8 @@
         <!-- ★(501) 段2：ヘッダーのページの押し釦。枠の太さは常に 2（見えているか＝Active で色だけが変わる＝押し釦の幅が動かない）。
              Active は alert／war の前に置く＝同じ重さなら後ろが勝つので、動かせる法（金）と交戦（赤）が選んだ頁（橙）より優先される。 -->
         <Style Selector="Button.tab.page">
-            <Setter Property="Padding" Value="9,4"/>
+            <Setter Property="Padding" Value="5,4"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <Style Selector="Button.tab.page.active">
@@ -363,6 +364,19 @@
         </Style>
         <Style Selector="Button.tab.page.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        </Style>
+        <!-- ヘッダーの数字の押し釦（押すとグラフが開く）。見た目は文字だけ（指を置くと薄く塗る）。 -->
+        <Style Selector="Button.hdrgraph">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.hdrgraph:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource TraceBrush}"/>
         </Style>
         <!-- 左右の列の畳み・開きの取っ手（細い押し釦）。 -->
         <Style Selector="Button.edge">

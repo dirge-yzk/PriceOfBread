@@ -30,6 +30,7 @@ public partial class GameViewModel
     public bool DiscoveryShown => Layout.IsShown(Slot.Discovery);
     public bool FiscalShown => Layout.IsShown(Slot.FiscalMoney);
     public bool MarketShown => Layout.IsShown(Slot.Market);
+    public bool FinanceShown => Layout.IsShown(Slot.Finance);
     public bool TradeShown => Layout.IsShown(Slot.Trade);
     public bool DiplomacyShown => Layout.IsShown(Slot.DiplomacyWar);
 
@@ -69,7 +70,7 @@ public partial class GameViewModel
         {
             case Slot.Production: MapHover = null; TimeIt("生産ページが見えた(RefreshProduction)", RefreshProduction); break;
             case Slot.Market or Slot.Trade: RefreshTrade(); break;
-            case Slot.FiscalMoney: UpdateForecast(); break;
+            case Slot.FiscalMoney or Slot.Finance: UpdateForecast(); break;
             case Slot.Population: RefreshPopulation(); break;
             case Slot.DiplomacyWar: RefreshFactions(); break;
             case Slot.Discovery: RefreshDiscovery(); break;

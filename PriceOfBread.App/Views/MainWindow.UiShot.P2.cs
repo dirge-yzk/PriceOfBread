@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace PriceOfBread.App.Views;
 
-/// <summary>--uishot の撮影の段（(501) 段3・財政と貨幣／人口／発見）。各ページを撮り、外側が縦に流れていないこと（LogOuterFlow）・
+/// <summary>--uishot の撮影の段（(501) 段3・金融／財政と貨幣／人口／発見）。各ページを撮り、外側が縦に流れていないこと（LogOuterFlow）・
 /// 表の見出しの列と値の列の左端が揃うこと・段の押し釦の書き込みが表へ戻ることを BootLog に書く。</summary>
 public partial class MainWindow
 {
     private async Task ShootPagesFiscalPopulationDiscovery(string dir, GameViewModel gvm, GameView gameView, LayoutModel lay)
     {
-        foreach (var slot in new[] { Slot.FiscalMoney, Slot.Population, Slot.Discovery })
+        foreach (var slot in new[] { Slot.Finance, Slot.FiscalMoney, Slot.Population, Slot.Discovery })
         {
             lay.Reset(); UiShotWindows.OpenFull(gameView, lay, slot);
             await Task.Delay(1300);
@@ -27,6 +27,29 @@ public partial class MainWindow
             LogTables(gameView, slot, tag);
         }
 
+        // ヘッダーの数字を押して線を開いた状態（国庫・国債・GDP の 3 枚）。もう一度押す＝閉じることも確かめる
+        lay.Reset(); await Task.Delay(300);
+        var hdrButtons = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(gameView).OfType<Avalonia.Controls.Button>().Where(b => b.Classes.Contains("hdrgraph")).ToList();
+        BootLog.Write($"uishot: ヘッダーの線の釦 {hdrButtons.Count}個");
+        string[] hdrNames = ["国庫", "国債", "GDP"];
+        for (int i = 0; i < Math.Min(3, hdrButtons.Count); i++)
+        {
+            var hb = hdrButtons[i];
+            hb.Flyout?.ShowAt(hb);
+            await Task.Delay(700);
+            Capture(dir, $"P2_ヘッダーの線_{hdrNames[i]}.png");
+            // 開いた線は別の窓（既定の撮影に写らない）＝中身だけを別の画像へ
+            if (hb.Flyout is Avalonia.Controls.Flyout { Content: Avalonia.Controls.Control fc } && fc.Bounds.Width > 1)
+            {
+                using var fbmp = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)fc.Bounds.Width + 16, (int)fc.Bounds.Height + 16), new Vector(96, 96));
+                fbmp.Render(fc);
+                fbmp.Save(System.IO.Path.Combine(dir, $"P2_ヘッダーの線の中身_{hdrNames[i]}.png"));
+            }
+            bool opened = hb.Flyout?.IsOpen == true;
+            hb.Flyout?.Hide();
+            await Task.Delay(300);
+            BootLog.Write($"uishot: ヘッダーの線 {hdrNames[i]} 開いた={opened} 閉じた={(hb.Flyout?.IsOpen == false)}");
+        }
         // 段の押し釦の書き込み：行政費を最上段へ置く→表の目標の段が動く→元へ戻す（押した直後に停止中でも表が読み直されること）
         lay.Reset(); UiShotWindows.OpenFull(gameView, lay, Slot.FiscalMoney);
         await Task.Delay(900);
@@ -49,7 +72,7 @@ public partial class MainWindow
         }
         catch (Exception ex) { BootLog.Write($"uishot: 段の押し釦の書き込み 失敗 {ex}"); }
         BootLog.Write($"uishot: 財政の表 支出{gvm.SpendTable.Rows.Count}行・収入{gvm.IncomeTable.Rows.Count}行・金融{gvm.FinanceTable.Rows.Count}行・国債{gvm.DebtTable.Rows.Count}行・見出し「{gvm.SpendTitle}」「{gvm.IncomeTitle}」");
-        BootLog.Write($"uishot: 年次の線の点の数 国庫{gvm.TreasuryValues.Count}・国債{gvm.GovDebtValues.Count}・粗出生率{gvm.BirthRateValues.Count}・粗死亡率{gvm.DeathRateValues.Count}・合計出生率{gvm.FertilityValues.Count}（人口の線は人口のページを開いた後）　年齢の層{gvm.AgePyramid.Labels.Count}層");
+        BootLog.Write($"uishot: 年次の線の点の数 粗出生率{gvm.BirthRateValues.Count}・粗死亡率{gvm.DeathRateValues.Count}・合計出生率{gvm.FertilityValues.Count}（人口の線は人口のページを開いた後）　年齢の層{gvm.AgePyramid.Labels.Count}層");
         lay.Reset();
         await Task.Delay(300);
     }
