@@ -1,0 +1,10 @@
+# (1298) suite 木=/d/PoB_work/wt_c134k49 HEAD=519d9d5c1 2026-11-22 16:26:11
+list-tests Tests(Category!=FullLength)=2876 Tests.Ui=232 和=3108 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   451、スキップ:     1、合計:   452、期間: 26 m 54 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=1 失敗!   -失敗:     1、合格:  2873、スキップ:     2、合計:  2876、期間: 38 m 44 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.実税が重い世界ほど生活が苦しく闘争度が高い [10 s]
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 2 m 4 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 5 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 47・その月の額の和 1.317E+04 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-22 17:54:19
