@@ -1,0 +1,2 @@
+4bd6865addf1c4d1061989bcb170ad2a575a8d12 *D:/PoB_work/c134bi_work/bake_f1.json
+52991593d6b6a24731a7f3a8ea32106557b47881 *PriceOfBread.SimCore/opening_bake.json
