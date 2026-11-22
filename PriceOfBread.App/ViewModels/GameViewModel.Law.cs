@@ -81,6 +81,14 @@ public partial class GameViewModel
         RefreshStakes();
     }
 
+    /// <summary>法の表の行を押した：選んでいない行なら開き、開いている行をもう一度押すと閉じる（作者の指示 2026-11-23）。</summary>
+    public void ToggleLaw(string key)
+    {
+        if (LawCatalog.ByField(key) is null) return;
+        if (LawSelectedKey == key) { LawSelectedKey = null; return; }
+        SelectLaw(key);
+    }
+
     /// <summary>uishot（無人撮影）専用：次の段の前提法が満たされていない法を選ぶ（無ければ何もしない）。選んだ法の鍵を返す。</summary>
     public string? SelectLawWithPrereqForShot()
     {
@@ -90,17 +98,12 @@ public partial class GameViewModel
         return def.Key;
     }
 
-    /// <summary>選んだ法の欄を読み直す。選んだ法が無い（または見えなくなった）時は法の表の先頭の行＝欄を空にしない。</summary>
+    /// <summary>選んだ法の中身（法の表の選んだ行の下）を読み直す。選んだ法が無い（または見えなくなった）時は閉じる。</summary>
     private void RefreshStakes()
     {
         var w = _player;
         var def = LawSelectedKey is { } k && LawCatalog.ByField(k) is { } d && d.Slot != LawSlot.NoRow && d.IsVisible(w) ? d : null;
-        if (def is null)
-        {
-            def = LawCatalog.In(LawSlot.Law).FirstOrDefault(x => x.IsVisible(w));
-            if (def is null) return;
-            LawSelectedKey = def.Key;
-        }
+        if (def is null) { if (LawSelectedKey is not null) LawSelectedKey = null; return; }   // 選んでいない・見えなくなった法＝閉じる（先頭の行を勝手に開かない）
         StakeLawName = def.Name;
         StakeBlocks = new[] { LawStakes.Sides(w, def, true), LawStakes.Sides(w, def, false) }.OfType<StakeSides>().Select(StakeBlockVM.From).ToList();
         StakePrereqText = StageGate.PrereqNote(w, def) ?? "";

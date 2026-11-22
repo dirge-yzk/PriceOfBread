@@ -33,6 +33,28 @@ public sealed class TableView : UserControl
     /// <summary>選んでいる行の鍵（行の背景で示す）。行を選ぶ表（生産ページの財の表）が使う。null なら選ばない。</summary>
     public string? SelectedKey { get => GetValue(SelectedKeyProperty); set => SetValue(SelectedKeyProperty, value); }
 
+    /// <summary>選んだ行の直後に差し込んで出す中身の鍵（行の鍵・null か表に無い鍵なら差し込まない）。同じ行をもう一度押して null に戻せば閉じる（作者の指示 2026-11-23）。</summary>
+    public static readonly StyledProperty<string?> DetailKeyProperty = AvaloniaProperty.Register<TableView, string?>(nameof(DetailKey));
+    public string? DetailKey { get => GetValue(DetailKeyProperty); set => SetValue(DetailKeyProperty, value); }
+    /// <summary>差し込む中身（法の賛成寄りと反対寄りなど）。行の幅いっぱいに出す。</summary>
+    public static readonly StyledProperty<Control?> DetailContentProperty = AvaloniaProperty.Register<TableView, Control?>(nameof(DetailContent));
+    public Control? DetailContent { get => GetValue(DetailContentProperty); set => SetValue(DetailContentProperty, value); }
+    private readonly Border _detailHost = new() { Margin = new Thickness(0, 0, 0, 4) };
+
+    /// <summary>差し込みの置き場：行の鍵の並びの中で <paramref name="detailKey"/> の行があればその鍵（差し込みはその行の直後）・無ければ null。</summary>
+    public static string? DetailAnchor(IEnumerable<string> rowKeys, string? detailKey)
+        => detailKey is not null && rowKeys.Contains(detailKey) ? detailKey : null;
+
+    /// <summary>行の鍵の並びに差し込みの印（null）を入れた並び。差し込みは選んだ行のすぐ後ろ（番人が読む）。</summary>
+    public static IReadOnlyList<string?> WithDetail(IEnumerable<string> rowKeys, string? detailKey)
+    {
+        var keys = rowKeys.ToList();
+        var anchor = DetailAnchor(keys, detailKey);
+        var list = new List<string?>();
+        foreach (var k in keys) { list.Add(k); if (k == anchor) list.Add(null); }
+        return list;
+    }
+
     /// <summary>行の余白（押し釦の外）を押した。引数は行の鍵（国の一覧の行を押すと地図がその国へ動く、など）。</summary>
     public event Action<string>? RowActivated;
 
@@ -140,6 +162,8 @@ public sealed class TableView : UserControl
         SnapshotProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
         InnerScrollProperty.Changed.AddClassHandler<TableView>((v, _) => v.AttachBody());
         SelectedKeyProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplySelection());
+        DetailKeyProperty.Changed.AddClassHandler<TableView>((v, _) => v.Rebuild());
+        DetailContentProperty.Changed.AddClassHandler<TableView>((v, _) => { v._detailHost.Child = v.DetailContent; v.Rebuild(); });
         ScrollXProperty.Changed.AddClassHandler<TableView>((v, _) => v.ApplyScrollX());
     }
 
@@ -249,7 +273,9 @@ public sealed class TableView : UserControl
         var wanted = new List<Control>();
         var live = new HashSet<string>();
         string? lastGroup = null;
-        foreach (var row in snap.View(_sortColumn, _sortDescending))
+        var viewRows = snap.View(_sortColumn, _sortDescending).ToList();
+        string? detailAfter = DetailContent is null ? null : DetailAnchor(viewRows.Select(r => r.Key), DetailKey);
+        foreach (var row in viewRows)
         {
             if (row.Group is { Length: > 0 } g && g != lastGroup)
             {
@@ -261,6 +287,7 @@ public sealed class TableView : UserControl
             rp.Update(snap.Columns, row);
             live.Add(row.Key);
             wanted.Add(rp.Root);
+            if (detailAfter is not null && row.Key == detailAfter) wanted.Add(_detailHost);   // 選んだ行のすぐ下に開く
         }
         foreach (var dead in _rows.Keys.Where(k => !live.Contains(k)).ToList()) _rows.Remove(dead);
         if (!_body.Children.SequenceEqual(wanted)) { _body.Children.Clear(); _body.Children.AddRange(wanted); }
@@ -561,6 +588,19 @@ public sealed class TableView : UserControl
                 DispatchVerb(vb, (btn.FindAncestorOfType<TableView>()?.ConfirmVerb) ?? DefaultConfirm);
         }
 
+        // 選べる段は目標を置く。選べない段は押すと確かめの窓を開き、不可の理由だけを見せる（実行は無効・作者の指示 2026-11-23）。
+        private static void OnStageClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (sender is not Button { Tag: (StageCell cell, int level) } btn) return;
+            if (cell.CanSelect(level)) { cell.Select(level); return; }
+            if (cell.Why?.Invoke(level) is not { Length: > 0 } why) return;
+            int i = level - cell.LevelBase;
+            string label = i >= 0 && i < cell.Labels.Count ? cell.Labels[i] : "";
+            string name = cell.Hover(level)?.Split('\n')[0].Replace(':', '：') is { Length: > 0 } head ? head : label;
+            var vb = new VerbCell(name, false, () => { }, why);
+            (btn.FindAncestorOfType<TableView>()?.ConfirmVerb ?? DefaultConfirm)?.Invoke(vb);
+        }
+
         private static void FillStages(BalancedWrapPanel wp, StageCell st)
         {
             // 段の釦は理由の有無で幅も間も変えない＝理由は釦の列の最後（右の続き・入りきらなければ次の行）に 1 つだけ置く（V2）
@@ -570,31 +610,27 @@ public sealed class TableView : UserControl
                 for (int i = 0; i < st.Labels.Count; i++)
                 {
                     var btn = new Button { Classes = { "lawstage" } };
-                    btn.Click += (s, _) => { if (s is Button { Tag: (StageCell cell, int level) } && cell.CanSelect(level)) cell.Select(level); };
+                    btn.Click += OnStageClick;
                     wp.Children.Add(new Border { Background = Brushes.Transparent, Margin = new Thickness(0, 0, 3, 2), Child = btn });
                 }
                 var why = new TextBlock { FontSize = Small, TextWrapping = TextWrapping.NoWrap, IsVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 2) };
                 why.Foreground = Application.Current is { } app && app.TryFindResource("InkMutedBrush", app.ActualThemeVariant, out var r) && r is IBrush mb ? mb : Brushes.Gray;
                 wp.Children.Add(why);
             }
-            string? up = null, down = null;   // 理由は 1 つだけ＝進める側（現在の段より上の最初の押せない段）を優先・無ければ下げる側（V3）
             for (int i = 0; i < st.Labels.Count; i++)
             {
                 int level = st.LevelBase + i;
                 var btn = (Button)((Border)wp.Children[i]).Child!;
                 btn.Content = st.Labels[i];
                 btn.Tag = (st, level);   // 最新の段の中身を持たせる
-                btn.IsEnabled = st.CanSelect(level);
-                if (!btn.IsEnabled && st.Why?.Invoke(level) is { Length: > 0 } why)
-                {
-                    if (level > st.Current) up ??= why; else down = why;
-                }
+                bool can = st.CanSelect(level);
+                bool explain = !can && st.Why?.Invoke(level) is { Length: > 0 };
+                btn.IsEnabled = can || explain;   // 選べない段も押せる＝確かめの窓が理由を見せる
+                btn.Classes.Set("blocked", !can);
                 btn.Classes.Set("current", st.Current == level);
                 btn.Classes.Set("target", st.Target == level && st.Target != st.Current);
             }
-            var whyText = (TextBlock)wp.Children[^1];
-            whyText.Text = up ?? down ?? "";
-            whyText.IsVisible = whyText.Text.Length > 0;
+            ((TextBlock)wp.Children[^1]).IsVisible = false;   // 理由の文字は表の行には出さない（確かめの窓へ移した）
         }
     }
 }
