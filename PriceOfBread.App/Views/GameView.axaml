@@ -112,15 +112,14 @@
         </Border>
 
         <Grid Grid.Row="1">
-        <!-- ★(501) 段2：本体＝左の列（問題の一覧・年表）｜中央（背景＋浮かぶ窓）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
+        <!-- ★(501) 段2：本体＝左の列（問題の一覧）｜中央（背景＋浮かぶ窓・その下に年表の帯）。外側は縦に流れない＝長い一覧は欄の中だけで流れる。
              旧は中央が地図・右にタブのドック・年表が地図の左下に浮いていた。地図は中央に出せる 1 つのページ（Views/MapPane）。
              背景の箱は Views/PageHost・窓の層は Views/WindowLayer（配置は ViewModels/GameViewModel.Layout.cs の Layout）。 -->
-        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*">
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">
             <!-- 左の列（畳める）。畳むと細い取っ手だけが残り、押すと開く。 -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal">
+            <StackPanel Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal">
                 <Border Width="260" IsVisible="{Binding LeftOpen}" Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
-                    <Grid RowDefinitions="*,5,*">
-                        <DockPanel Grid.Row="0">
+                        <DockPanel>
                             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="10,6,4,4">
                                 <TextBlock Text="問題の一覧" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center"/>
                                 <Button Grid.Column="1" Classes="edge" Content="◀" Command="{Binding ToggleLeftColumnCommand}"/>
@@ -146,43 +145,41 @@
                                 </ItemsControl>
                             </ScrollViewer>
                         </DockPanel>
-                        <GridSplitter Grid.Row="1" Background="{StaticResource LineBrush}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
-                        <!-- 年表（旧は地図の左下に浮いていた）。全国（すべて）・列強・自国の切替。列の幅に合わせて折り返す。 -->
-                        <DockPanel Grid.Row="2">
-                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="10,6,10,4">
-                                <TextBlock Text="年表" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="全国" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
-                                <Button Classes="mini" Classes.active="{Binding NewsGreat}" Content="列強" Command="{Binding SetNewsFilterCommand}" CommandParameter="great"/>
-                                <Button Classes="mini" Classes.active="{Binding NewsMine}" Content="自国" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
-                            </StackPanel>
-                            <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
-                            <!-- 余白はスクロールの Padding でなく中身の Margin（Padding はスクロールの範囲に入らない） -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                <ItemsControl ItemsSource="{Binding Alerts}" Margin="10,4,10,8">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid ColumnDefinitions="Auto,*" Margin="0,2">
-                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,7,0" VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontEmph}"/>
-                                                    <Image Source="{Binding Flag}" Height="12" Stretch="Uniform" Margin="4,0,0,0" VerticalAlignment="Center" IsVisible="{Binding Flag, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                                </StackPanel>
-                                                <!-- 切らずに折り返す（2026-08-01）。列の幅いっぱいまで -->
-                                                <TextBlock Grid.Column="1" ctl:LatinText.Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="Wrap"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </DockPanel>
-                    </Grid>
                 </Border>
                 <Button Classes="edge" IsVisible="{Binding LeftClosed}" Content="▶" Command="{Binding ToggleLeftColumnCommand}" VerticalAlignment="Top" Margin="2,6,0,0"/>
             </StackPanel>
 
             <!-- 中央＝背景（地図か生産・Tab で切り替え）＋その上に浮かぶ窓（それ以外のページ）。分割とピン留めは廃止（2026-11-04） -->
-            <v:PageHost x:Name="Center" Grid.Column="1"/>
+            <v:PageHost x:Name="Center" Grid.Column="1" Grid.Row="0"/>
             <!-- 浮かぶ窓の層（作者の指示 2026-11-11）：背景の上に重ねる。窓の無い所の押下は下の背景へ通る -->
-            <v:WindowLayer x:Name="Windows" Grid.Column="1"/>
+            <v:WindowLayer x:Name="Windows" Grid.Column="1" Grid.Row="0"/>
+            <!-- 年表の帯（作者の指示 2026-11-22）：地図と窓の領域の下に横いっぱい。1 行＝1 件（日付・国旗・本文）を折り返さず、5〜6 行の高さの中で流れる。切替は見出しに置く。窓の層は上の行だけ＝帯に重ならない -->
+            <Border Grid.Column="1" Grid.Row="1" Height="152" Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="10,4,10,3">
+                        <TextBlock Text="年表" Classes="section" FontSize="{StaticResource FontBody}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="全国" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
+                        <Button Classes="mini" Classes.active="{Binding NewsGreat}" Content="列強" Command="{Binding SetNewsFilterCommand}" CommandParameter="great"/>
+                        <Button Classes="mini" Classes.active="{Binding NewsMine}" Content="自国" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
+                    </StackPanel>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource LineBrush}"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Alerts}" Margin="10,2,10,2">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,*" Margin="0,1">
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,7,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontEmph}"/>
+                                            <Image Source="{Binding Flag}" Height="12" Stretch="Uniform" Margin="4,0,0,0" VerticalAlignment="Center" IsVisible="{Binding Flag, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" ctl:LatinText.Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
         </Grid>
 
         <!-- モーダル層（レビュー2026-07-19）：外側Gridの兄弟として配置＝ZIndexが生産タブ(8)・出来事パネル(8)と正しく比較される
