@@ -144,10 +144,10 @@
             </StackPanel>
 
             <!-- 中央＝背景（地図か生産・Tab で切り替え）＋その上に浮かぶ窓（それ以外のページ）。分割とピン留めは廃止（2026-11-04） -->
-            <v:PageHost x:Name="Center" Grid.Column="1" Grid.Row="0"/>
+            <v:PageHost x:Name="Center" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
             <!-- 浮かぶ窓の層（作者の指示 2026-11-11）：背景の上に重ねる。窓の無い所の押下は下の背景へ通る -->
-            <v:WindowLayer x:Name="Windows" Grid.Column="1" Grid.Row="0"/>
-            <!-- 年表の帯（作者の指示 2026-11-22）：地図と窓の領域の下。左右と下に余白を取り（作者の指示 2026-11-23）画面の端へ貼り付かない・最大幅つき。1 行＝1 件（日付・国旗・本文）を折り返さず、5〜6 行の高さの中で流れる。切替は見出しに置く。窓の層は上の行だけ＝帯に重ならない -->
+            <v:WindowLayer x:Name="Windows" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" ZIndex="3"/>
+            <!-- 年表の帯（作者の指示 2026-11-22）：地図と窓の領域の下。左右と下に余白を取り（作者の指示 2026-11-23）画面の端へ貼り付かない・最大幅つき。1 行＝1 件（日付・国旗・本文）を折り返さず、5〜6 行の高さの中で流れる。切替は見出しに置く。窓の層は盤いっぱい（帯の上にも重なってよい・帯より手前・作者の指示 2026-11-23） -->
             <Border Grid.Column="1" Grid.Row="1" Height="152" Margin="16,0,16,12" MaxWidth="1500" HorizontalAlignment="Stretch" ClipToBounds="True" Background="{StaticResource PaperBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="10,4,10,3">

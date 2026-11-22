@@ -19,6 +19,18 @@ public class LayoutTests
     }
 
     [Fact]
+    public void 州の窓は動かせない_位置を覚えず保存からも読まない()
+    {
+        var m = new LayoutModel();
+        m.SetRect(Slot.Province, new WindowRect(300, 300, 500, 500));
+        Assert.Null(m.RectOf(Slot.Province));
+        var back = LayoutModel.FromJson("{\"Version\":" + 99 + ",\"Windows\":{\"Province\":[300,300,500,500]}}");
+        Assert.Null(back.RectOf(Slot.Province));
+        m.SetRect(Slot.Market, new WindowRect(300, 300, 500, 500));
+        Assert.NotNull(m.RectOf(Slot.Market));   // 他の窓は動かせる
+    }
+
+    [Fact]
     public void キーは生産がTab_残りが作者の指示の順_Q財の価格_W財政_E人口_R政治と法_A外交と戦争_S発見_D貿易_F金融_Z権利と議会_地図にキーは無い_XCVは空き()
     {
         Assert.Equal("QWERASDFZXCV", PageKeys.Priority);

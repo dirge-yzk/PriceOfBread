@@ -103,7 +103,7 @@ public sealed class WindowLayer : Canvas
         foreach (var slot in _layout.OpenWindows)
         {
             if (!_windows.TryGetValue(slot, out var w) || w.Interacting) continue;
-            var r = _layout.RectOf(slot) ?? _layout.AutoRectOf(slot) ?? Open(slot, w);
+            var r = slot == Slot.Province ? LayoutModel.ProvinceRect(Bounds.Width, Bounds.Height) : _layout.RectOf(slot) ?? _layout.AutoRectOf(slot) ?? Open(slot, w);   // 州の窓は保存された位置を読まず左上の決まった位置
             w.SetRect(LayoutModel.Fit(r, Bounds.Width, Bounds.Height));
             if (slot == Slot.Province) { w.Height = double.NaN; w.MaxHeight = Bounds.Height; }   // 州の窓の高さは中身に合わせる
         }
@@ -173,7 +173,7 @@ public sealed class FloatingWindow : Border
         var name = new TextBlock { Text = title, FontWeight = FontWeight.Bold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0), Foreground = Brush("InkBrush", Brushes.Black) };
         var bar = new Grid { ColumnDefinitions = { new ColumnDefinition(1, GridUnitType.Star), new ColumnDefinition(GridLength.Auto) } };
         bar.Children.Add(name); Grid.SetColumn(close, 1); bar.Children.Add(close);
-        _titleBar = new Border { Height = TitleHeight, Background = Brush("TraceBrush", Brushes.Tan), Child = bar, Cursor = new Cursor(StandardCursorType.SizeAll) };
+        _titleBar = new Border { Height = TitleHeight, Background = Brush("TraceBrush", Brushes.Tan), Child = bar, Cursor = slot == Slot.Province ? new Cursor(StandardCursorType.Arrow) : new Cursor(StandardCursorType.SizeAll) };
         _titleBar.PointerPressed += (s, e) => Begin(s, e, Mode.Move, false, false, false, false);
         _titleBar.PointerMoved += OnMoved;
         _titleBar.PointerReleased += OnReleased;
@@ -245,6 +245,7 @@ public sealed class FloatingWindow : Border
 
     private void Begin(object? sender, PointerPressedEventArgs e, Mode mode, bool l, bool t, bool r, bool b)
     {
+        if (_slot == Slot.Province) return;   // 州の窓は動かせず大きさも変えられない（作者の指示 2026-11-23）
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed || LayerOf() is not { } layer) return;
         _mode = mode; _left = l; _top = t; _right = r; _bottom = b;
         _startPoint = e.GetPosition(layer);
