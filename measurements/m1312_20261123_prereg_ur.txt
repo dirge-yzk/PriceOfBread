@@ -1,0 +1,93 @@
+(1312) c136ur 挙動の線の事前登録：空の都市の階級の値打ち＝器 U0（urxpd_s の末尾の 21 列）＋旗 UrbanFlowReal の枝の値打ちを州の労働の値段で（案 A か A′）・旗 0→1（urbd 段 3 の 3 回目＝最後）（2026-11-23・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発と回の数
+ 作者 2026-11-21 の裁定（群 2）「これが片方向なのは問題なので修正を加える」。00一覧〈次の波〉2 の①と 0 の⑧（U0 を 2 の① と 1 本にした）。設計の材料 (1307) c135ub の下書き docs/202611/20261123/20261123_空の都市の階級の値打ち_下書き.md の推奨（案 A・AI の案・確証なし）と末尾の反証役 v の訂正。
+ 先に解く高：(1296) f1 の反証役 v2〈人数 0 の都市の階級は値打ち 0 と読まれ二度と入らない〉（腕 B の種 1 の q40 で植民地格 64 州・5534 万人）。README ★(1301)（片側の人数 0 の盤面）。
+ 3 回の規則：urbd 段 3 の **3 回目＝最後**（1 回目＝(713) urb4・2 回目＝(1296) c134f1）。外れたら 4 回目は回さず、上流（溜まりの 1 本化 U2・自給の世帯の家計 3-0）へ。答え待ちではない。
+ 形の種類＝〈全ての州×月〉（旗 1 の流れの式の値打ちが替わる）。入口ではない。
+
+■ 形（作者が〈片方向を直す〉と裁定した向き＝確証あり。案 A／A′ の V の式・ℓ の定義・失業の掛け方は AI の選び＝確証なし）
+ 旗 UrbanFlowReal 1 の枝の値打ち（PopDecision.MigrationValues の中で coef.UrbanFlowReal＞0 の時だけ読む。旗 0 は今の式のまま＝:82 の FamineGateReturnsRural の道と InstrumentsUrx.cs:140 の計器の写しは旧の値）：
+  ℓ＝(対の農村と都市の POP が担い手の、労働 LaborId 84 と農業労働 FarmLaborId 92 の生産者の Capacity の和)÷(農村＋都市の人数)（単位の混ざりを名乗る＝工場の労働と農業労働を足す）。
+  案 A：V_u＝max(0, ℓ×P_L×(1−u_U)−家賃)・V_r＝max(0, ℓ×P_F×(1−u_R))＋自給の値の一人あたり（PopDecision.cs:26 のまま）。
+  案 A′：V_r の値段の項に〈農業労働 1 単位あたりの RGO の残余〉ρ を足す＝V_r＝max(0, ℓ×(P_F＋ρ)×(1−u_R))＋自給。ρ＝Σ_RGO（担い手が対の農村）LaborWeight×(1−min(RentShare, FarmRentCap))×max(0, P−投入の費用)÷(農業労働の投入の量) ÷ ΣLaborWeight（ΣLaborWeight＝0 なら 0）。V_u は A と同じ。
+  g と流れは今の旗 1 の式のまま（g＝2(V_u−V_r)/(V_u＋V_r)・流れ＝Mobility×g×送り手の人数・農奴の門と飢えの門は残る）。
+  空かどうかを読まない 1 本の式（〈作者 2026-11-16 の決まり〉③）。新しい係数 0・新しい状態 0・閾値 0。
+ A か A′ かの決め方（結果を見る前に固定）：腕 Z（旗 0）の U0 の列で R_F＝rgoResidualSum÷farmEarnedSum（農民の稼ぎのうち RGO の残余）と R_U＝1−laborSalesSum÷urbanEarnedSum（工員の稼ぎのうち労働の売上の外）を全期間・計器の 9 国・10 種の和で読み、
+  R_F−R_U ≥ 0.10 なら案 A′（左右で抜ける量の非対称が 10 ポイント以上＝反証役 v の〈分子と分母の非対称〉を直す）、そうでなければ案 A（差が小さい＝項を足さない）。決めた案と R_F・R_U を、旗 1 のコミットの前に追記する。
+ 器 U0（恒等・計器・ident 段 2）：Instruments/InstrumentsUrx.cs の urxpd_s の末尾に 21 列（既存の 26 列の並びと値は変えない）。全ての格の州×月（Core に限らない）で数える。値打ちは計器が州の市場から自分で組む（エンジンの関数を呼ばない・PopDecision.MigrationPair だけは対の定義として読む）。
+  emptyUrbanColRegionMonths・emptyUrbanHomeRegionMonths＝MigrationPair の都市の POP の Size≤1e-9 の州×月（植民地格＝Colonial・本国格＝Core と Integrated）。
+  emptyUrbanGPosRegionMonths・emptyUrbanGPosA2RegionMonths＝そのうち案 A・A′ の g＞0。
+  emptyUrbanStuckRegionMonths・emptyUrbanStuckA2RegionMonths＝**門の量**：前の月（Tick の差が 1 か月）に都市 0 で、案の流れ（農奴の門と飢えの門を掛けた後）＞1e-9 千人と読んだのに、今の月も都市 0 の州×月。
+  mktRegionMonths・mktTotal・gPosMarketRegionMonths・gPosMarketA2RegionMonths・wVuMarket・wVrMarket・wVrMarketA2（対の人数で重みづけた和）。
+  farmLaborSalesSum（P_F×農業労働の売れた量）・rgoResidualSum（Σ_RGO 残余×産出）・farmEarnedSum・laborSalesSum・urbanEarnedSum（農民と工員の稼ぎの内訳の比の材料）。
+  ppRegionQuarters・ppOppRegionQuarters・ppCancelK＝州×四半期の PopDecision と Meritocracy（Pop.Blend の呼び手のファイル）の同じ州の農村と都市の間の純の逆符号の数と Σmin(|pd|,|me|)。
+  計器の状態は ConditionalWeakTable と UrxState の辞書（シミュの状態ではない・セーブに載せない）。
+ 休眠になる FamineGateReturnsRural・MigrationTemperature は消さない（U3＝焼き込みの線で消す）と名乗る。
+
+■ 門（〈作者 2026-11-16 の決まり〉①：止める線＋史実の桁の線＋単体の機構の試験・ヌル腕の幅と gdp_zero10 は記録だけ）
+ S1 破綻：10 種完走・フルスイート（Category!=FullLength と FullLength を分け、合計を --list-tests と突き合わせる）・savetest OK・leakhunt 保存則違反なし。
+ S2 発散：全ての国の priceLevel の四半期比 100 倍以上（建国の直後＝系列の最初の行から 4 四半期以内と、人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる＝㊳）・1e10 倍以上・非有限＝0。pxmonth の 3 か月比の最大と名目 GDP の四半期比も同じ台本で基準とヌル腕を数え直す（⑰）。開幕の 1000 倍以上は記録。
+ S3 空洞化 T1（an_h2.py -v4・規則 A2・植民地格を含む）：ピークの 1/10 未満で〈線が原因〉と読めた件が 1 件でもあれば止める。基準 keep_1308/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ（この基準は結果を見る前に写した）。
+ S4 計算量：推定 ＞248.5 秒で止める（m1308 の M 227.4 秒）。
+ S5 機構と不変条件の試験の赤（ソースを走査する番人を含む）。
+ H 史実の桁の線（10 倍・c136ur/magn_ur.py）：〈農業の外の人口の割合〉9 国×1850・1913（町の割合は記録）と、①b 植民地格（全ての国の和）の農業の外の割合（この線が一番動かす量・史実〈推〉0.10＝0.05〜0.2 の中ほど）。腕÷史実が 10 以上か 0.1 以下で当たる。
+ G0 単体の機構の試験 EmptyUrbanValueTests（盤面を試験の中で置く・期待値は P_L・P_F・Capacity・失業・人数から試験が組む・MigrationValues を呼ばない）：
+  T1 工員 0 の州で g＞0 なら Run の後の工員＝Mobility×g×農民（相対 1e-9）＞0。
+  T2 鏡：農民 0 の州で P_F が高ければ都市から戻れる（Run の後の農民＝Mobility×|g|×工員）。
+  T3 連続：工員 0 と 1e-6 千人（Earned 0＝Eps 1e-9 より確かに大きい）の流れの差が相対 1e-6 以内。
+  T4 失業：工員 500・u_U 0.5 で V_u が賃金の項の半分・流れが式どおり。
+  T5 旗 0 の道：UrbanFlowReal 0 で MigrationValues が旧の式（稼ぎ÷人数）の値（:82・:140 が読む値）＝案の値と違う盤面で手の算術。
+  （A′ を採ったら T6：RGO の残余 ρ が V_r に入る＝手の算術・M7 で ρ を外すと赤）
+ G1 U0 の門（機構が狙いどおり働いたか・★(636) の観測量・止める線と混ぜない）：腕 B（種 1〜10）で採った案の emptyUrbanStuck（案 A は emptyUrbanStuckRegionMonths・A′ は …A2…）の和＝0。
+  外す条件＝0 件でない（構造で書く・旗 0 の S11 の 2 倍は使わない＝v の低）。0 でなければ、件ごとに〈他の道が 1 か月の中で都市を 0 に戻した〉かを読み、読めなければ採らない。
+
+■ 突然変異と、どの門で赤になるか（㉚・紙で確かめてから写した・使い捨ての木 D:/PoB_work/wt_c136ur_mut で回す）
+ M0 旗 0 の道（MigrationValues と Run の旗の分岐を偽に）：T1 赤（シグモイドの流れ 0.02×0.5×1000＝10 ≠ 手の 20）・T2 赤・T4 赤。
+ M1 V_u を稼ぎ÷人数へ戻す（今の旗 1 の式＝何もしない実装）：T1 赤（工員 0 で V_u＝0→g＝−2→流れ 0）・T3 赤・T4 赤。G1 も腕では大きな数（紙：(1296) 腕 B の植民地格の都市 0 は 123,944 州×四半期）。
+ M2 案を都市の側だけ（V_r は稼ぎ÷人数＋自給）：T2 赤（農民 0 で V_r＝0→g＝＋2→流れ＝Mobility×2×0＝0）。
+ M3 Size≤Eps の時だけ案（他は稼ぎ÷人数）：T3 赤（1e-6 千人＞Eps＝稼ぎ 0 で V_u＝0→g＝−2→流れは都市→農村の負・0 の盤面は正）。紙で確かめた（v の訂正：1e-9 千人では M3 が緑のまま）。
+ M4 (1−u) を外す：T4 赤。
+ M5 送り手の人数を逆（g＞0 で工員の人数）：T1 赤（工員 0→流れ 0）。
+ M6 旗を見ずに案（旗 0 でも案の値）：T5 赤。
+ 計器の番人（EmptyUrbanValueTests の計器 U0）：Mi1 次の月の判定の加算を外す→赤・Mi2 前の月の流れの条件（＞1e-9）を外す→赤（P_L＜P_F の月を数える）。
+
+■ 紙の台本の出力（今の盤面 keep_1308/base_ins・旗 0）
+ 止める線の台本を先に回した（scripts/instruments/c136ur/read_ur.sh・出力 D:/PoB_work/c136ur_work/pre_base/ の要約は下の追記に写す）。
+ U0 の列は今の生に無い＝開幕の P_L・P_F と g の符号、R_F・R_U、旗 0 の emptyUrbanStuck の数は腕 Z の生で読み、旗 1 の前に追記する（段 0 の紙）。旗 0（シグモイド）では、都市 0 の州の目標 σ(z) は稼ぎの差 z が −40 に張り付くと約 4e-18＝流れが Eps に届かず都市 0 のまま（(1307) D-1：基準の植民地格の都市 0 は q0 40・q40 35 が続く）＝案の g＞0 の州があれば旗 0 の emptyUrbanStuck は正になる見込み〈推〉。
+ ㉗：紙が門の破れを予言したら、旗 1 の前に〈それでも回す理由〉を 1 行書く。
+
+■ 段 0 の予言（向きと桁・〈推〉・門にしない）
+ P1 植民地格の都市 0 の州×月（emptyUrbanCol）：旗 0 より減る（案の g＞0 の州で入る）。g の符号は腕 Z で読む。
+ P2 押し合い（ppOpp）：記録。案 A は失業を値打ちに入れる＝Meritocracy の溜まりとの逆向きは (1296) の旗 1 より減る〈推〉。
+ P3 案 A のとき V_r が今の農民の稼ぎの 1/3 前後まで下がる恐れ（v の訂正）＝都市へ寄る。R_F で読む。
+ P4 計算量：エンジンに州×月の生産者の並びの 1 周（A′ は RGO ごとに投入の費用）を足す＝CostLedger の件数は足さない＝推定は軌道の変化だけで動く。実測 +0.3 秒以下〈推〉。
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+ 工業化度の読み手の許可表：読まない（0 行）。`new MoneyStock(` の件数：SimCore 64 のまま。route_anchors.tsv（scripts/instruments/flow262/）の鍵の行：触らない。
+ CalendarTests の裸の時間換算：計器は Tick の差を Calendar.DaysPerMonth と比べるだけ（掛け算・割り算なし）＝件数は変わらない。
+ UrxInstrumentTests.cs:133 の urxpd_s の列の数 26→47（★(764) の静的な件数の番人・件数は予言と一致するときだけ）＝持ち主の外の 1 行を触る（合流で名乗る）。
+ WriterRatchetTests の宣言の表：器（旗 0）では変わらない。旗 1 では軌道が変わる＝★(749) の〈軌道の件数を写しただけの番人〉を 1 種 40 四半期の実測へ取り直す（行の名を旗 1 のフルスイートで列挙）。
+ DormantIdentityTests:36 の UrbanFlowReal の行：旗 1 で表から外す（(1296) の fix32 と同じ形）。
+
+■ 旗 1 の木でフルスイートの番人が旧の規則を固定していないかの grep（㉜）
+ 置き換える旧の規則＝旗 1 の値打ちを稼ぎ÷人数で読む式（PopDecision.cs:24〜:25・:33〜:35 の旗 1 の読み）。
+ 名指す試験（grep MigrationValues・UrbanFlowReal・PopDecision）：UrbanFlowRealTests.cs（MigrationValues 7・UrbanFlowReal 17・PopDecision 8）・HousingGateSharedTests.cs（2・1・5）・FamineGateReturnsRuralTests.cs（0・1・3）・RdhInstrumentTests.cs（0・1・3）・DormantIdentityTests.cs（0・1・0）・UrxInstrumentTests.cs（0・0・10）・MigrationPairTests.cs・CriminalVesselTests.cs・FamineTests.cs・FiscalTests.cs・OpeningBakeTests.cs・SerfInitialDataTests.cs（PopDecision の名指しだけ）。
+ 旧の規則を固定する試験＝UrbanFlowRealTests.cs の旗 1 の 6 本（:189〜:281 の〈手の算術どおり〉〈釣り合い〉〈自給 0〉〈食料の値段〉〈最大 4%〉〈農奴と飢えの門〉＝盤面の稼ぎから V を組む）。新しい規則の試験へ書き換える（Assert は案の式で・保存〔農村の減り＝都市の増え〕・符号・送り手の最大 4%・農奴と飢えの門は残す・書き換えを外す突然変異で赤）。
+ 旗 0 を前提に置く行：UrbanFlowRealTests.cs:183・FamineGateReturnsRuralTests.cs:32（Assert.Equal(0.0, …UrbanFlowReal)）＝旗を明示で 0 に置く形へ（(1296) と同じ）。RdhInstrumentTests.cs:32 は旗 1 を明示＝前提の行だけ読む。
+
+■ 計算量の割り当て
+ +0.3 秒以下〈推〉（.cost の推定は件数×単価＝この線は件数の項を足さない＝推定の差は軌道の変化だけ）。余りは保守側で約 15.8 秒。
+
+■ 記録（採否に使わない）
+ 押し合い（pushpull.py と U0 の pp 列）・担い手 0 の生産者×月（.cost と WriterRatchet の DeadProdZeroPop）・ヌル腕の幅（nullgate）・gdp_zero10・NG（ng.sh・基準 ng1308_20261123）・英の国債の不履行の種の数・成績表が旗 0 と違う行の数・町の割合。
+
+■ 周辺の点検（読むだけ）
+ Meritocracy.cs:99 の例外（空の商人＝ColonyPettyEntryEmptyTarget）・職探しの溜まり（Meritocracy.cs:128〜:140・:327〜:371）・自給の値 PopDecision.cs:26。この線では触らない（U2 と例外の置き換えは別の線）。
+
+■ 入れない物
+ U2（溜まりの農村と都市の間を外す）・U3（焼き込み）・Meritocracy.cs の例外の置き換え・自給の世帯の家計の段。
+
+■ ファイルの持ち主と重なり（㉞）
+ この線：PopDecision.cs（MigrationValues と旗 1 の枝）・Instruments/InstrumentsUrx.cs（urxpd_s の列）・Coefficients.p06_rank_discovery.cs:116・EmptyUrbanValueTests.cs（新）・UrbanFlowRealTests.cs・FamineGateReturnsRuralTests.cs・RdhInstrumentTests.cs（前提の行）・DormantIdentityTests.cs と WriterRatchetTests.cs（宣言の行）。持ち主の外：UrxInstrumentTests.cs:133 の 1 行（列の数）。
+ 他の線（sv＝SaveGame・BilateralMarket・Runner の savetest／tc＝PolicyPoliticsTests／kb＝Simulation :1222〜:1225・Catalog :433・p07）とは重ならない。ur の旗 1 は TaxChainCheck の数を動かしうる（合流が tc の新しい Assert を ur の旗 1 の木でも読む）。
