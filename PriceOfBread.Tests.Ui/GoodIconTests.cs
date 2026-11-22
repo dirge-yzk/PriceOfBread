@@ -26,4 +26,25 @@ public class GoodIconTests
         Assert.True(GoodIcons.IsGoodTable("production.goods"));
         Assert.False(GoodIcons.IsGoodTable("pop.regions"));
     }
+
+    [Fact]
+    public void 開始国の全てに国旗の画像がある()
+    {
+        string root = Path.GetDirectoryName(Path.GetDirectoryName(Here()))!;
+        var missing = new List<string>();
+        foreach (var n in WorldData.Nations())
+            if (!File.Exists(Path.Combine(root, "PriceOfBread.App", "Assets", "Flags", n.Name + ".png"))) missing.Add(n.Name);
+        Assert.True(missing.Count == 0, "国旗の無い開始国: " + string.Join(", ", missing));
+        Assert.True(File.Exists(Path.Combine(root, "PriceOfBread.App", "Assets", "Flags", FlagIcons.UnknownFile + ".png")));
+    }
+
+    [Fact]
+    public void 階級の番号の全てに絵がある()
+    {
+        string root = Path.GetDirectoryName(Path.GetDirectoryName(Here()))!;
+        var missing = new List<int>();
+        for (int c = 0; c < PopClass.Count; c++)
+            if (!File.Exists(Path.Combine(root, "PriceOfBread.App", "Assets", "PopClasses", ClassIcons.UriOf(c).Split('/')[^1]))) missing.Add(c);
+        Assert.True(missing.Count == 0, "絵の無い階級の番号: " + string.Join(", ", missing));
+    }
 }

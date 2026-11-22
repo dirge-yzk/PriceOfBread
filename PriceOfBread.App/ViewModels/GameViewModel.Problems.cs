@@ -31,9 +31,13 @@ public sealed partial class ProblemRow : ObservableObject
     [ObservableProperty] private string _sizeText = "";
     [ObservableProperty] private string _trend = "";
     public bool IsItem => !IsHeader;
-    /// <summary>財の問題（不足・停止）の行の財のアイコン。他の種類は null。</summary>
-    public Avalonia.Media.IImage? GoodIcon => IsItem && Key.IndexOf('|') is var bar and > 0 && (Key.StartsWith("short|", StringComparison.Ordinal) || Key.StartsWith("bankrupt|", StringComparison.Ordinal))
-        ? PriceOfBread.App.Controls.GoodIcons.OfKey(Key[(bar + 1)..]) : null;
+    /// <summary>行の絵＝財の問題（不足・停止）は財のアイコン・階級の問題（失業・闘争）は階級の絵。他の種類は null。</summary>
+    public Avalonia.Media.IImage? Icon => !IsItem || Key.IndexOf('|') is not (var bar and > 0) ? null : Key[..bar] switch
+    {
+        "short" or "bankrupt" => PriceOfBread.App.Controls.GoodIcons.OfKey(Key[(bar + 1)..]),
+        "unemp" or "milit" => int.TryParse(Key[(bar + 1)..], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int cid) ? PriceOfBread.App.Controls.ClassIcons.Of(cid) : null,
+        _ => null,
+    };
     public void CopyFrom(ProblemRow s) { IsHeader = s.IsHeader; Kind = s.Kind; Target = s.Target; SizeText = s.SizeText; Trend = s.Trend; }
 }
 

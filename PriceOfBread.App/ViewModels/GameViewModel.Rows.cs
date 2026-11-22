@@ -25,6 +25,7 @@ public sealed partial class WarRow : ObservableObject
 {
     public string Key { get; init; } = "";
     [ObservableProperty] private string _enemy = "";
+    [ObservableProperty] private Avalonia.Media.IImage? _enemyFlag;
     [ObservableProperty] private string _score = "";
     [ObservableProperty] private IBrush _scoreBrush = Brushes.Gray;
     [ObservableProperty] private string _info = "";
@@ -37,7 +38,7 @@ public sealed partial class WarRow : ObservableObject
     partial void OnTermsChanged(IReadOnlyList<StatTerm> value) => OnPropertyChanged(nameof(HasTerms));
     public void CopyFrom(WarRow s)
     {
-        Enemy = s.Enemy; Score = s.Score; ScoreBrush = s.ScoreBrush; Info = s.Info; Forces = s.Forces;
+        Enemy = s.Enemy; EnemyFlag = s.EnemyFlag; Score = s.Score; ScoreBrush = s.ScoreBrush; Info = s.Info; Forces = s.Forces;
         Losses = s.Losses; Cost = s.Cost; Exhaustion = s.Exhaustion; Terms = s.Terms;
     }
 }
@@ -163,6 +164,8 @@ public sealed class AlertRow
     public IBrush Color { get; }
     public bool Mine { get; }
     public bool Great { get; }
+    /// <summary>本文の先頭に出る国の国旗（国が出ない行は null）。</summary>
+    public Avalonia.Media.IImage? Flag { get; init; }
     public AlertRow(string icon, string text, string colorHex, bool mine = false, bool great = false)
     {
         // alerts.csv の color 列が不正（綴り誤り・桁数不足・空）でも落ちない契約を守る＝TryParse で失敗時は中立グレーへ（Make の string.Format 保護と対称）。

@@ -26,9 +26,10 @@
                         <DataTemplate x:DataType="vm:WarRow">
                             <Border BorderBrush="{StaticResource LineSoftBrush}" BorderThickness="0,0,0,1" Padding="0,6,0,10">
                                 <StackPanel Spacing="3">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Text="{Binding Enemy}" Foreground="{StaticResource InkBrush}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding Score}" Foreground="{Binding ScoreBrush}" FontSize="{StaticResource FontLead}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Image Source="{Binding EnemyFlag}" Height="18" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Enemy}" Foreground="{StaticResource InkBrush}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Score}" Foreground="{Binding ScoreBrush}" FontSize="{StaticResource FontLead}" FontWeight="Bold" VerticalAlignment="Center"/>
                                     </Grid>
                                     <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                                     <TextBlock Text="{Binding Forces}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>

@@ -58,6 +58,7 @@ public partial class NationChoice : ObservableObject
     private readonly Action<int> _select;
     public int Index { get; }
     public string Name { get; }
+    public IImage? Flag => PriceOfBread.App.Controls.FlagIcons.Of(Name);
     /// <summary>おすすめカードの見出しの左側＝国名（強さ）。★難易度は <see cref="Difficulty"/> へ分離（作者指示2026-08-15）
     /// ＝見出しの右端に難易度色で出す（1本の文字列だと右寄せも色分けもできない）。</summary>
     public string Title { get; }

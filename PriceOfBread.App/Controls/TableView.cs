@@ -427,8 +427,21 @@ public sealed class TableView : UserControl
                     Grid.SetColumn(_cells[i]!, i);
                     Root.Children.Add(_cells[i]!);
                 }
-                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip), i, i == 0 && _owner.Snapshot is { } sn && GoodIcons.IsGoodTable(sn.Key) ? GoodIcons.OfKey(row.Key) : null);
+                Fill(_cells[i]!, spec, cell, !string.IsNullOrEmpty(row.Tip), i, _owner.Snapshot is { } sn ? RowIcon(sn.Key, spec.Key, i, row.Key) : null);
             }
+        }
+
+        /// <summary>名前の欄の左に置く絵＝財の表は財のアイコン・階級と法の賛否の表は階級の絵・国の一覧は国旗（高さは行に収め、幅は絵の縦横比に従う）。</summary>
+        private static IImage? RowIcon(string tableKey, string columnKey, int index, string rowKey)
+        {
+            if (GoodIcons.IsGoodTable(tableKey)) return index == 0 ? GoodIcons.OfKey(rowKey) : null;
+            if (columnKey != "name") return null;
+            return tableKey switch
+            {
+                "pop.classes" or "politics.stakes" => ClassIcons.OfKey(rowKey),
+                "diplomacy.nations" => FlagIcons.Of(rowKey),
+                _ => null,
+            };
         }
 
         private static Control Create(ColumnSpec spec, int index)
@@ -494,7 +507,7 @@ public sealed class TableView : UserControl
                 {
                     tb.Text = null; tb.Inlines?.Clear();
                     tb.Inlines ??= new Avalonia.Controls.Documents.InlineCollection();
-                    if (icon is not null) tb.Inlines.Add(new Avalonia.Controls.Documents.InlineUIContainer(new Image { Source = icon, Width = IconSize, Height = IconSize, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center }));   // 財のアイコンは名前の左・行の高さに収める
+                    if (icon is not null) tb.Inlines.Add(new Avalonia.Controls.Documents.InlineUIContainer(new Image { Source = icon, Height = IconSize, Stretch = Stretch.Uniform, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center }));   // 財のアイコンは名前の左・行の高さに収める
                     if (dot is not null) tb.Inlines.Add(new Avalonia.Controls.Documents.Run("● ") { Foreground = dot, FontFamily = BulletFont, FontSize = tb.FontSize + 3 });   // 丸は日本語側の字体で描く（Times の「●」は点ほどに小さい・点検⑥）
                     tb.Inlines.Add(new Avalonia.Controls.Documents.Run(cell.Text));
                     tb.Tag = sig;

@@ -33,6 +33,18 @@ public partial class GameViewModel
     private bool NewsPasses(bool mine, bool great) => NewsFilter switch { "mine" => mine, "great" => great, _ => true };
     /// <summary>列強が関わる出来事か。列強の判定は外交の既存の定義（<see cref="Diplomacy.IsGreatPower"/>＝国力の順位）をそのまま使う。
     /// 本文に名前が出る国（旧名も）に列強がいれば真・自国の出来事は自国が列強のときも真。</summary>
+    /// <summary>本文で最初に出る国の国旗（国名が出ない本文は null）。</summary>
+    private Avalonia.Media.IImage? FirstNationFlag(string body)
+    {
+        string? best = null; int at = int.MaxValue;
+        foreach (var p in _sim.Diplomacy.Powers)
+        {
+            int i = body.IndexOf(p.Name, StringComparison.Ordinal);
+            if (i >= 0 && i < at && MentionsName(body, p.Name)) { best = p.Name; at = i; }
+        }
+        return best is null ? null : PriceOfBread.App.Controls.FlagIcons.Of(best);
+    }
+
     private bool InvolvesGreatPower(string body, bool mine)
     {
         var dip = _sim.Diplomacy;
@@ -337,7 +349,7 @@ public partial class GameViewModel
     // 配達：日付は「届いた日」。全件リストへ積み、フィルタ（世界⇄自国のみ）に合う分だけ表示へ。
     private void DeliverNews(string icon, string body, IBrush color, double eventDay, bool mine = true)
     {
-        var row = new AlertRow(icon, $"{EventDate()} {Fmt.Zen(body)}", color, mine, InvolvesGreatPower(body, mine));   // 経過の表記（nヶ月前）は付けない＝日付がある（B6）
+        var row = new AlertRow(icon, $"{EventDate()} {Fmt.Zen(body)}", color, mine, InvolvesGreatPower(body, mine)) { Flag = FirstNationFlag(body) };   // 経過の表記（nヶ月前）は付けない＝日付がある（B6）
         _allAlerts.Insert(0, row);
         while (_allAlerts.Count > AlertsKept) _allAlerts.RemoveAt(_allAlerts.Count - 1);
         if (NewsPasses(mine, row.Great))

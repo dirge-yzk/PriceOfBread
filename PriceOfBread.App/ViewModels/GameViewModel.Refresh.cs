@@ -138,6 +138,7 @@ public partial class GameViewModel
             {
                 Key = enemy.Id.ToString(),
                 Enemy = tr.EnemyName,
+                EnemyFlag = PriceOfBread.App.Controls.FlagIcons.Of(enemy.Name),
                 Score = $"戦勝点 {Fmt.SignedPct(sc)}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
                 Info = $"{DateAt(tr.StartDay)} 開戦　{war.Months}か月経過",

@@ -25,12 +25,15 @@
                      外した項目は docs/202610/20261023/20261023_UIの作り直し_設計.md「ヘッダーから外した項目（2026-11-03）」に控えた（再配置の待ち）。
                      列＝左詰め（国名・国庫は Auto・概況の列が *＝右の余りを取る）。 -->
                 <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Center">
-                    <TextBlock Grid.Column="0" Text="{Binding PlayerTitle}" FontWeight="Bold" FontSize="18" Margin="0,0,16,0" VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis" ToolTip.ShowDelay="30">
-                        <ToolTip.Tip>
-                            <TextBlock Text="{Binding PlayerScoreTip}" FontSize="{StaticResource FontSmall}"/>
-                        </ToolTip.Tip>
-                    </TextBlock>
+                    <DockPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <Image DockPanel.Dock="Left" Source="{Binding PlayerFlag}" Height="22" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding PlayerTitle}" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" ToolTip.ShowDelay="30">
+                            <ToolTip.Tip>
+                                <TextBlock Text="{Binding PlayerScoreTip}" FontSize="{StaticResource FontSmall}"/>
+                            </ToolTip.Tip>
+                        </TextBlock>
+                    </DockPanel>
                     <TextBlock Grid.Column="1" Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="190" Margin="0,0,16,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <StackPanel Width="272" Spacing="4">
@@ -131,7 +134,7 @@
                                                 <Grid ColumnDefinitions="*,Auto,16" Margin="0,2">
                                                     <TextBlock Grid.Column="0" Text="{Binding Kind}" IsVisible="{Binding IsHeader}" Classes="section" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Margin="0,4,0,0"/>
                                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="8,0,0,0" IsVisible="{Binding IsItem}">
-                                                        <Image Source="{Binding GoodIcon}" Width="14" Height="14" VerticalAlignment="Center" IsVisible="{Binding GoodIcon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                        <Image Source="{Binding Icon}" Height="14" Stretch="Uniform" VerticalAlignment="Center" IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                                         <TextBlock Text="{Binding Target}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"/>
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1" Text="{Binding SizeText}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}" Margin="6,0,0,0"/>
@@ -159,7 +162,10 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Grid ColumnDefinitions="Auto,*" Margin="0,2">
-                                                <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="{StaticResource FontEmph}" Margin="0,0,7,0"/>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,7,0" VerticalAlignment="Top">
+                                                    <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontEmph}"/>
+                                                    <Image Source="{Binding Flag}" Height="12" Stretch="Uniform" Margin="4,0,0,0" VerticalAlignment="Center" IsVisible="{Binding Flag, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                </StackPanel>
                                                 <!-- 切らずに折り返す（2026-08-01）。列の幅いっぱいまで -->
                                                 <TextBlock Grid.Column="1" ctl:LatinText.Text="{Binding Text}" Foreground="{Binding Color}" FontSize="{StaticResource FontEmph}" TextWrapping="Wrap"/>
                                             </Grid>

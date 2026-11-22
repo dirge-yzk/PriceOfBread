@@ -92,9 +92,10 @@
                                  `*` 行なら本文に「残りの高さ」が渡る＝入らない行が落ちる＝寸法が変われば行数も追随する。 -->
                             <Grid RowDefinitions="Auto,*">
                                 <!-- 見出し＝国名（強さ）を左・難易度を右端へ（作者指示2026-08-15）。難易度は3値の色分け（VM側のブラシ） -->
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Classes="cardTitle" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Difficulty}"
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Image Source="{Binding Flag}" Height="14" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="2" Classes="cardTitle" Text="{Binding Difficulty}"
                                                Foreground="{Binding DifficultyBrush}" Margin="6,0,0,0"/>
                                 </Grid>
                                 <TextBlock Grid.Row="1" Classes="cardBody" ctl:LatinText.Text="{Binding Description}"/>
@@ -117,11 +118,12 @@
                         <DataTemplate x:DataType="vm:NationChoice">
                             <Button Classes="nation" Command="{Binding ChooseCommand}"
                                     Width="150" Height="22" HorizontalContentAlignment="Stretch" Padding="6,0">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center">   <!-- 長い名は枠に合わせて縮める（切らない） -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                    <Image Source="{Binding Flag}" Height="12" Stretch="Uniform" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center">   <!-- 長い名は枠に合わせて縮める（切らない） -->
                                         <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkBrush}"/>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="1" Text="{Binding StrengthLabel}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource GrayBrush}"
+                                    <TextBlock Grid.Column="2" Text="{Binding StrengthLabel}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource GrayBrush}"
                                                VerticalAlignment="Center" Margin="3,0,0,0"/>
                                 </Grid>
                             </Button>

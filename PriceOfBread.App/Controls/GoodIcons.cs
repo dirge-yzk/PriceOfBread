@@ -9,27 +9,34 @@ using Avalonia.Platform;
 
 namespace PriceOfBread.App.Controls;
 
-/// <summary>財のアイコン（Assets/Goods/＜財の Id＞.png）。財ごとに 1 回だけ読み使い回す。画像が無い財は null（空）。
-/// パスは財の Id から実行時に組む（番号を数字で書かない＝財の削減で振り直されても名前の通りに引く）。</summary>
-public static class GoodIcons
+/// <summary>画像の共通の読み込み（avares:// の 1 本のパスを 1 回だけ読み使い回す）。無い・読めない時は null。財のアイコン・国旗・階級の絵が共有する。</summary>
+public static class Pictures
 {
-    private static readonly Dictionary<int, IImage?> Cache = new();
+    private static readonly Dictionary<string, IImage?> Cache = new();
 
-    public static string UriOf(int goodId) => "avares://PriceOfBread.App/Assets/Goods/" + goodId.ToString(CultureInfo.InvariantCulture) + ".png";
-
-    public static IImage? Of(int goodId)
+    public static IImage? Load(string uriText)
     {
-        if (goodId < 0) return null;
-        if (Cache.TryGetValue(goodId, out var hit)) return hit;
+        if (Cache.TryGetValue(uriText, out var hit)) return hit;
         IImage? img = null;
         try
         {
-            var uri = new Uri(UriOf(goodId));
+            var uri = new Uri(uriText);
             if (AssetLoader.Exists(uri)) { using var s = AssetLoader.Open(uri); img = new Bitmap(s); }
         }
         catch { img = null; }
-        return Cache[goodId] = img;
+        return Cache[uriText] = img;
     }
+
+    internal static string Of(string folder, string file) => "avares://PriceOfBread.App/Assets/" + folder + "/" + file + ".png";
+}
+
+/// <summary>財のアイコン（Assets/Goods/＜財の Id＞.png）。画像が無い財は null（空）。
+/// パスは財の Id から実行時に組む（番号を数字で書かない＝財の削減で振り直されても名前の通りに引く）。</summary>
+public static class GoodIcons
+{
+    public static string UriOf(int goodId) => Pictures.Of("Goods", goodId.ToString(CultureInfo.InvariantCulture));
+
+    public static IImage? Of(int goodId) => goodId < 0 ? null : Pictures.Load(UriOf(goodId));
 
     public static IImage? OfKey(string? rowKey) => int.TryParse(rowKey, NumberStyles.None, CultureInfo.InvariantCulture, out int id) ? Of(id) : null;
 
@@ -45,4 +52,32 @@ public sealed class GoodIconConverter : IValueConverter
     public static readonly GoodIconConverter Instance = new();
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value is int id ? GoodIcons.Of(id) : null;
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>国旗（Assets/Flags/＜国名＞.png）。同名の画像が無い国（ゲーム中にできる国・反乱勢力など）は _unknown。国名はシミュが付けた名のまま引く。</summary>
+public static class FlagIcons
+{
+    public const string UnknownFile = "_unknown";
+
+    public static string UriOf(string nation) => Pictures.Of("Flags", nation);
+
+    public static IImage? Of(string? nation)
+        => (string.IsNullOrEmpty(nation) ? null : Pictures.Load(UriOf(nation))) ?? Pictures.Load(Pictures.Of("Flags", UnknownFile));
+}
+
+/// <summary>階級の絵（Assets/PopClasses/＜PopClass の番号＞.png・番号は階級の番号そのまま＝全身の人物）。無ければ null（空）。</summary>
+public static class ClassIcons
+{
+    public static string UriOf(int classId) => Pictures.Of("PopClasses", classId.ToString(CultureInfo.InvariantCulture));
+
+    public static IImage? Of(int classId) => classId < 0 ? null : Pictures.Load(UriOf(classId));
+
+    /// <summary>行の鍵「class.＜番号＞」「class.＜番号＞.＜党派＞」の番号の部分から。</summary>
+    public static IImage? OfKey(string? rowKey)
+    {
+        if (rowKey is null || !rowKey.StartsWith("class.", StringComparison.Ordinal)) return null;
+        var rest = rowKey.AsSpan(6);
+        int dot = rest.IndexOf('.');
+        return int.TryParse(dot < 0 ? rest : rest[..dot], NumberStyles.None, CultureInfo.InvariantCulture, out int id) ? Of(id) : null;
+    }
 }

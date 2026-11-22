@@ -97,7 +97,8 @@ public partial class GameViewModel : ViewModelBase
     [ObservableProperty] private string _playerRankText = "";
     /// <summary>ヘッダーの国名＝「フランス（列強7位）」（2026-11-03 作者）。</summary>
     public string PlayerTitle => PlayerRankText.Length > 0 ? $"{PlayerName}（{PlayerRankText}）" : PlayerName;
-    partial void OnPlayerNameChanged(string value) => OnPropertyChanged(nameof(PlayerTitle));
+    public Avalonia.Media.IImage? PlayerFlag => PriceOfBread.App.Controls.FlagIcons.Of(PlayerName);
+    partial void OnPlayerNameChanged(string value) { OnPropertyChanged(nameof(PlayerTitle)); OnPropertyChanged(nameof(PlayerFlag)); }
     partial void OnPlayerRankTextChanged(string value) => OnPropertyChanged(nameof(PlayerTitle));
     // 速度レベル（1〜3＝レート）と再生状態は分離：1/2/3は速度の選択（ハイライトのみ）・スペースで再生/停止。
     [ObservableProperty] private int _speed = 2;
