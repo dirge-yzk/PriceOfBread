@@ -142,6 +142,17 @@ public class SaveRoundTripTests
         Assert.Equal(1, SaveGame.StateDiff(sim1, sim2, 4).Values);
     }
 
+    /// <summary>(1309) 距離の表の走り書き（旧 LastPairWasLand＝書いた直後に読むだけの bool の欄）は国際市場の欄に戻さない＝PairKm の返り値で運ぶ。
+    /// 国際市場（InternationalMarket）の実体の欄に、名前が Last で始まる bool があれば赤（セーブに載る走り書きは、保存の点で比べても同じ値が載るだけで違いに出ない＝穴）。</summary>
+    [Fact]
+    public void 国際市場に走り書きのbool欄を置かない()
+    {
+        var bad = typeof(InternationalMarket).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)
+            .Where(f => f.FieldType == typeof(bool) && f.Name.StartsWith("Last", System.StringComparison.Ordinal)).Select(f => f.Name).ToArray();
+        Assert.True(bad.Length == 0, "走り書きの bool 欄：" + string.Join(",", bad));
+        Assert.True(typeof(InternationalMarket).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic).Length > 2, "対照：欄を数えられている");
+    }
+
     /// <summary>(1309) 初期化子つきの [NonSerialized] の欄は、読み込みで初期化子が走らない（SaveGame の GetUninitializedObject 系）ので初期値が 0 に化ける。
     /// 許可表は理由つき（読み込み後に引き直される物だけ）。新しい物が増えたら赤＝理由を書くか、状態ならセーブに載せる。</summary>
     [Fact]

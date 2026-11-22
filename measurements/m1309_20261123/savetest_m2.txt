@@ -1,0 +1,35 @@
+保存 46.9MB（902ms）／300四半期＋0日の点
+savetest 保存の点 0日・印前（眠り 2104・失敗 21623・覚え 2892）
+保存 46.9MB（502ms）／300四半期＋45日の点
+savetest 保存の点 45日・印前（眠り 1975・失敗 21425・覚え 2815）
+保存 46.9MB（629ms）／300四半期＋75日の点
+savetest 保存の点 75日・印前（眠り 2007・失敗 21260・覚え 2815）
+savetest 状態 0日の点 値の違い 0・順だけ 4・比べた対象 6088124（読込 865ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._tensionRamp：順だけ（Dictionary`2）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._embargo：順だけ（HashSet`1）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._dependency：順だけ（HashSet`1）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._alliance：順だけ（HashSet`1）
+  乖離（45日の点） フランス: 基礎貨幣 12006842.19⇔12006842.65　人口 29103⇔29103
+  乖離（45日の点） 日本: 基礎貨幣 31383650.35⇔31383652.69　人口 90262⇔90262
+  乖離（45日の点） イギリス: 基礎貨幣 11632443.74⇔11632444.15　人口 43837⇔43837
+  乖離（45日の点） アメリカ: 基礎貨幣 2873327.88⇔2873328.42　人口 25694⇔25694
+  乖離（45日の点） ロシア: 基礎貨幣 4836591.04⇔4836591.57　人口 42383⇔42383
+savetest 状態 45日の点 値の違い 1171262・順だけ 4・比べた対象 6088124（読込 685ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[0]：0.5474216687218417⇔0.5474216959994673
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[1]：6.4624100780384595⇔6.462410138390533
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[2]：0.03245928131277527⇔0.032459280944259886
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[4]：3.038887449097121⇔3.038887310711769
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[5]：0.008332447147209755⇔0.00833244718156096
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[6]：0.559405859137254⇔0.5594057388328356
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[7]：1.3801555374730496⇔1.380155543248173
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[8]：3.7523956546798662⇔3.7523956115926884
+savetest 状態 75日の点 値の違い 1169509・順だけ 4・比べた対象 6088123（読込 732ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[0]：0.5474216687218417⇔0.5474216621106843
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[1]：6.4624100780384595⇔6.462410061258344
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[2]：0.03245928131277527⇔0.03245928128534024
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[4]：3.038887449097121⇔3.0388875224739964
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[5]：0.008332447147209755⇔0.008332447147482797
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[6]：0.559405859137254⇔0.5594058596853111
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[7]：1.3801555374730496⇔1.3801555407650383
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation._agent.UtilityAgent._importEma[8]：3.7523956546798662⇔3.752395661310107
+savetest 乖離 120（2量）・状態の違いのある点 2/3（最大相対差 2.7E-007）
