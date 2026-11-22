@@ -1,0 +1,105 @@
+(1291) c133b1 事前登録：貿易の B-1＝EndowmentCostFollowsAbundance 0→1（賦存の多い州の自己費用を賦存倍率で割る・既にある器の点火・Scarcity は 0 のまま）＝腕 B は 1 回目
+2026-11-22・担当 Claude Opus 5.5・木 D:/PoB_work/wt_c133b1・枝 c133b1（0072408c5 から）・基線 m1287（keep_1287/base_ins・ヌル腕 keep_1287/n1＝記録だけ）
+作業フォルダ D:/PoB_work/c133b1_work（この回に作ったフォルダ：c133b1_work・wt_c133b1）。形は〈入口〉（播種の自己費用を割る 1 行の既定値・計算の経路は既にある）。門は結果を見る前に固定する。
+
+[先頭の名乗り]
+ 作者 2026-11-19 の改め（原文「抜本的な改修を行おうとした時、既存のテストで落ちるからNGというのは違和感がある。抜本的な改修→それに合わせて周囲のモジュールを修正→テスト という流れになるべきではないのか？」・㉜ の改め）は、§0-2 ★(1226) ① の推奨〈ColonialPopTests の前提を読み替えない〉より後の作者の言葉＝この線は試験の赤で止めない。旧の規則を固定する試験は [8] の一覧のとおり新しい規則の主張へ書き換える。
+ 3 回の規則：(1208) c121b1 と (1236) c125b1 は段 0 で止めた＝腕 B を回していない＝数えていない。この線の腕 B が 1 回目。
+ 確証：作者 2026-11-12「それでよい」（貿易の置き換えの設計・T1＝A-1＋B-1）に近い形だが、指数 1 と〈豊富な側だけ〉は AI の選択＝〈確証なし〉。
+ 群 5：作者「貿易必要性を上げるほど、世界が破綻しやすくなる筈」＝止める線と空洞化の門を必ず通す（合流は S11 まで読む）。
+
+[1] 形
+ PriceOfBread.SimCore/Coefficients.p04_trade.cs:109 の既定値（0.0→1.0）と注だけ。:111 EndowmentCostFollowsScarcity は 0 のまま触らない。式の変更 0・新しい係数 0・新しい状態 0・錠 0・天井 0。
+ 入口＝Simulation.DivideCostByEndowment（Simulation.cs:676〜:681・costDiv＞1 の時だけ MarginalCost を costDiv^旗 で割る）・呼び口 Simulation.cs:670（ApplyEndowment・播種 :750・:756・:766・:1287・:1293・:1301）・Discovery.cs:935・:941。
+ 計器の読み手 InstrumentsRecipeout.cs:76・:84（二重に割らない守り）。読むだけ。計器は足さない（recipeout_s・prodcap_s が既にある）。
+ SimCore で変える行は p04 の 1 行だけ＝旗 0 の木の SimCore は main 0072408c5 と git diff 0 行＝腕 Z は m1287 の成績表で代える（効率化⑦・b10_20261122_m1287・b5_20261122_m1287・b10_20261122_m1287_ins）。
+
+[2] 段 0（記録だけ・止めない）＝m1287 の木（0072408c5・SimCore に手を入れない）
+ (2a) 旗 1 の写しの木（既定値 1 行だけ・scripts/instruments/c133b1/scratch.sh）で ColonialPopTests・DiscoveryScoreTests・CorncfInstrumentTests・RecipeoutInstrumentTests・EconomyTests・TradePhase0Tests：
+  赤 9・成功 118。ColonialPopTests〈植民地の月の決算で輸出作物の地代は首都の投資家へ着く〉が赤〈前提が崩れた：不在地主の大農園に国内の地代が立たない（-42.334348369467996）〉＝(1208)・(1236) とビット単位で同じ値。
+  他の赤 8 本は (1236) と同じ型（EconomyTests 1・TradePhase0Tests 4・RecipeoutInstrumentTests 3＝旗 0 の対照を既定に頼る）。DiscoveryScoreTests・CorncfInstrumentTests は全て緑。出力 measurements/m1291_20261122/stage0_flag1_sum.txt。
+ (2b) 全体の世界のプローブ（scripts/instruments/c133b1/probe_Program.cs.txt＝(1236) の写し・旗 0 と旗 1・種 1〜10・助走の後 12 か月・measurements/m1291_20261122/probe_sum.txt・生 probe_f0.tsv.gz・probe_f1.tsv.gz）：
+  | 量 | (1236) 旗 0 | (1236) 旗 1 | m1287 旗 0 | m1287 旗 1 |
+  | ジャマイカの不在地主の地代（月 1〜12×10 種）正・負・0 | 114・3・3 | 34・6・80 | 120・0・0 | 75・32・13 |
+  | コーヒー：月 0 で値段÷mc＜0.1 の種 | 3/10 | 10/10 | 1/10 | 0/10 |
+  | コーヒー：12 か月とも産出 0 の種 | — | 8/10 | 0/10 | 1/10 |
+  | コーヒー：損益の和（月 1〜12）種の中央 | 172.6 | 0.0 | 219.9 | 0.055（最大 25.9・負の月 29/120） |
+  | コーヒー：規模 月 0→月 12 の伸び 中央 | 1.084 | 0.885 | 1.085 | 1.015 |
+  | サトウキビ：損益の和 中央・規模の伸び 中央 | 0.0・1.060 | 0.0・0.886 | 33.8・1.092 | −0.005・0.894（産出 月12÷月1 中央 0） |
+  | 英仏の植民地格の州×月で地代の和が正（2040 のうち） | 1295 | 1227 | 1391 | 1401 |
+  | 大農園×月（4920 のうち）値段÷mc＜0.1・産出 0 | 1813・3581 | 789・2595 | 877・3279 | 281・2188 |
+  pf の効きの読み〈推〉：旗 1 でコーヒーが値段の床に張り付く種が 10/10→0/10、12 か月とも産出 0 の種が 8/10→1/10＝(1236) v2 の根の候補〈容量で飛ばした売り手〉は (1277) pf（CapSkipSellerPotential 1）の後に消えた向き。ただし m1233→m1287 の間には pf の他の線も入っている＝pf だけへの帰属は〈推〉。
+  旗 1 でもジャマイカの地代は種ごとの和が 0.0〜25.9（旗 0 は 23〜574）＝安くなった分は値段に移り、地代はほぼ 0 の近く（自己費用を割ると値段も下がる・競争の形）。サトウキビは旗 1 で規模が縮む（伸び 0.894）。
+ (2c) 単体の盤面（EconomyStep.Run を 1 州で 1 か月）は PaySales を通らない＝世界の改善は盤面に届かない。主張は〈地代の和＝首都の投資家の貯蓄の増減〉で、符号は盤面の結果＝[8] (g) の書き換えにする。
+
+[3] 門（〈作者 2026-11-16 の決まり〉①・腕 B＝計器つき 10 種・種 1〜10）
+ 止める線（この波の head のとおり）：
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  100 倍：stoplines906 の名目 GDP と価格水準の 1 四半期 100 倍は 3 区分の〈それ以外〉だけで読む。建国の直後（≦4 四半期）と分母の痩せ（政府の人口の比 ≧10 か ≦1/10）は基準 keep_1287/base_ins と N1 keep_1287/n1 を同じ台本で数え直して並べる（⑰・★(826)①）。今の盤面：基準〈それ以外〉0・N1〈それ以外〉1（種 8 キサンガニ王国 1946）＝ヌル腕にも出る型（記録）。腕で〈それ以外〉が出たら件ごとに基準と N1 の同じ国の型と並べ、ヌル腕に無い型なら止める。
+  1e10 倍・非有限：1 件でも止める。開幕の 1000 倍（plvl_seeds の〈開幕の1000倍以上〉）：1 件でも出たら件ごとに作者 2026-10-29 の規則（直前の数年に敗戦・内戦・疫病・封鎖・国家の崩壊があれば見逃す）で振り分け、事象の無い件は止める。今の盤面 0。
+  空洞化 T1：python scripts/instruments/hol/an_h2.py <出力>/ins -v4 の 1/10 未満で、規則 A2 の例外（植民地格の places.json・緯度の絶対値 55 度以上・開幕の人口 20 千人未満＝7 州）の外、植民地格の州を含む、かつ線が原因と読めた件が 1 件でもあれば止める。振り分け＝基線 keep_1287/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。〈膨らんでから抜ける州〉（腕のピークが基線のピークを超えてから 1/10 未満へ落ちる州）は件ごとに年の行を並べて振り分ける。今の盤面：1/10 未満 0 件・1/4 未満 7 件。
+  推定の計算量 ＞248.5 秒（m1287 の M 231.8 秒）。
+  機構の試験の赤（走査の番人を含む）。
+  gdp_zero10 は記録だけ（今の盤面 0）。
+ 史実の桁の線（その線が一番動かす量・新しく 10 倍の外へ出たら止める・元から外の物は向きの記録・戻った物も書く）：
+  H1：6 大国の貿易÷GDP（scripts/instruments/r998/q3_trade_gdp.py・T2＝和÷和の種の中央）。今の盤面 m1287：1913 0.0106・1948 0.0123。史実 1913 25.3%＝既に約 24 倍の外＝向きの記録（上がれば史実の側）。
+  H2：石炭・鉄鉱石・金・銀の世界の産出 1913÷1784（scripts/instruments/r1197/an8.py・prodcap_s・種の中央）。今の盤面 m1287：石炭 19.20・鉄鉱石 11.21・金 2.01・銀 1.10。
+   史実の参照（出典は (1236) の [3] のとおり＝measurements/m1236_20261119_prereg_b1.txt を枝 origin/c125b1 から写した値）：石炭 約 110〜130（Mitchell・Flinn 1984）・鉄鉱石（銑鉄の比で代える）約 160〜230（Mitchell・Riden 1977 ほか）〈推〉・金 約 35〜45（Soetbeer）・銀 約 8（Soetbeer）。
+   ＝今の盤面で内：石炭（約 6 倍）・銀（約 7 倍）。既に外：鉄鉱石（14〜21 倍）・金（17〜22 倍）＝向きの記録。
+   止める線：石炭の中央が 11.0（110÷10）を下回る・銀の中央が 0.8 を下回るか 80 を超える。
+ 単体の機構の試験（盤面を試験の中で置く・旗 0 で赤・突然変異で赤）＝新しい試験 PriceOfBread.Tests/EndowmentCostTests.cs（材料 scripts/instruments/c121b1/EndowmentCostTests.cs.txt を直した物）：
+  U1：同じ MarginalCost 8.0 の生産者に、既定の係数で DivideCostByEndowment を倍率 2.0 と 1.0 で当てる＝比〈1.0÷2.0〉が 2.0（相対 1e-12）・倍率 1.0 は 8.0 のまま。同じ盤面で旗 0 を明示した係数では比 1.0（相対 1e-12）。
+  U2：既定の係数で倍率 0.4（非産地）の生産者は MarginalCost 8.0 のまま・Productivity は倍率 0.4 と 2.0 のどちらでも動かない（費用だけを割る）。
+  U3：開幕の世界（イギリス・単国・種 1）の播種の実経路で、賦存州の RGO の MarginalCost が、同じ財の非賦存州の MarginalCost÷(鉱物 4.0／他 3.5×ResourceEndowmentScale) と相対 1e-9 で一致（組 3 以上・割る数はエンジンの関数を呼ばずに置く）。
+  旗 0（既定 0）では U1・U3 が赤（U2 は旗 0 でも緑＝μ3 の番人）。
+
+[4] 突然変異の表（㉚・腕の前に使い捨ての写しの木で確かめ・台本 scripts/instruments/c133b1/mut_b1.sh・出力 measurements/m1291_20261122/mut/）
+ | 変異 | 赤になる門（予言） |
+ | μ0 旗 0（既定 0 のまま） | U1（比 1.0）・U3 |
+ | μ1 旗の門を外す（costDiv＞1 の gate を係数でなく 1.0 に） | U1 の旗 0 の明示の Assert（比 2.0 になる） |
+ | μ2 指数 2（Math.Pow(costDiv, 2.0*gate)） | U1 の量の Assert（比 4）・U3 |
+ | μ3 希少の側も割る（costDiv＜1 の gate を EndowmentCostFollowsAbundance に） | U2（倍率 0.4 の生産者が 20.0 になる） |
+ | μ4 播種の呼び口を飛ばす（ApplyEndowment の DivideCostByEndowment を消す） | U3（U1・U2 は関数を直に呼ぶ＝緑） |
+ | μ5 精算の後に送らない（EconomyStep.cs:2449 の RemitAbsenteeRent を消す） | 書き換えた ColonialPopTests〈地代は首都の投資家へ着く〉（[8] (g) の書き換えの番人） |
+ | 書き換えを外す（[8] (b)〜(g) の直しの前＝段 0 の (2a)） | (2a) の 9 本（実測済み） |
+ 止める線と史実の桁の線は突然変異の腕を回さない（計器つきの腕は B の 1 本だけ）。
+
+[5] 狙いの観測量（記録・門にしない）：scripts/instruments/c121b1/b1read.py（recipeout_s・種 1〜10・産出の重み・和÷和）
+ 紙の台本の出力（今の盤面 keep_1287/base_ins・旗 0・measurements/m1291_20261122/pre/b1read_base.txt）：N÷E 単位費用の中央 1790 1.0063・1870 0.9848・1913 0.9793／旗 1 の紙の予言（ifAb）2.8527・2.4402・2.4653／産地の取り分 0.1292・0.1475・0.1219。
+  ＝旗 0 の盤面では N÷E が 1 の近く（割らない）＝〈N÷E が 1.5 を超える〉は旗 0 では落ちる（旗 0 で門が落ちることの確かめ・記録の扱い）。
+ 段 0 の予言（腕の前）：旗 1 で N÷E は 1 より上へ（紙の 2.4〜2.9 より下＝値段と規模が動いて費用の差の一部は戻る〈推〉）・産地の取り分は上がる向き〈推〉。見込みは〈悪くする〉ではない＝腕を回す。
+ ㉗：紙の台本は採否の門の破れを予言しない（H1 は元から外・H2 の石炭と銀の向きはソースから決まらない＝回す理由）。
+
+[6] 記録（門にしない）
+ ジャマイカのコーヒーの産出（prodcap_s）・植民地格の州の産出 0 の件数・産地と非産地の単位費用（b1read）・ジャマイカの地代の符号（段 0 のプローブ）・NG（ng.sh・基準 rd:measurements/ng1287_20261122:m1287）・英の国債の不履行の種の数（今の盤面 2/10・N1 3/10）・nullgate（記録）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・人口が 1 四半期で 1/10 未満か 10 倍以上の四半期（popjump1017）・同じ盤面の新÷旧（H1・H2・b1read）・旗 1 の成績表が旗 0 と違う行の数。
+
+[7] 計算量の割り当て：0 秒〈推〉（播種の時の定数だけ）。越境が増えれば清算の項が増えうる＝読むのは .cost の推定（上限 248.5 秒が止める線・m1287 の余り 約 16.7 秒）。
+
+[8] 走査の番人（㉘）と試験の予言（㉑・㉜）
+ ㉘ の点検（grep・0072408c5）：変えるのは係数の既定値 1 行と試験＝工業化度の読み手の許可表（IndustrializationReaderTests）に触らない・`new MoneyStock(`（SimCore 64 件）は変わらない・scripts/instruments/flow262/route_anchors.tsv（75 行・Coefficients.p04_trade の行 0）・WriterRatchetTests の宣言の表（EndowmentCost の行 0）に触らない。
+  予言：走査の番人の件数の変わり 0。㉘ の束＝IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|EndowmentCostTests。
+  試験の数の予言：Category!=FullLength 2860→2863（EndowmentCostTests 3 本）・Ui 233 のまま・FullLength 3 のまま。
+ 置き換える旧の規則＝〈賦存は量にしか効かず単位費用は全州同一〉（旗 0）。それを固定する試験（grep `EndowmentCostFollows` と `new Coefficients()` の対照・段 0 の (2a) の実測）と書き換え：
+  (a) DormantIdentityTests.cs:99 の DormantZeroFields の行＝旗 1 で赤＝行を消し点火の墓標の注にする（旗 0 の経路の番人は U1 の旗 0 の盤面）。
+  (b) EconomyTests.cs:424 の旗 0 の対照 `Seed(new Coefficients())`＝盤面に EndowmentCostFollowsAbundance = 0.0 を明示。
+  (c) RecipeoutInstrumentTests.cs:174・:306 の `Solo(cfg, new Coefficients())`・:213 の旗 0 前提＝盤面に 0.0 を明示。
+  (d) TradePhase0Tests.cs:31・:48・:86 の `new Coefficients()`＝盤面に 0.0 を明示。RecipeoutBprime（:107〜）は MakeBig（MultiNationSim＝国の世界は既定の係数で播種する・係数を渡す口が国の世界に届かない）を、同じ国の共有世界の形の単体 Solo(cfg, 旗 0) に替える（主張・閾値・母集合の国は同じ・使われなくなった MakeBig を消す）。
+  (b)(c)(d) の区分＝〈旗の既定の値を旧の対照として名指していた試験の盤面の明示〉＝㊴ の〈試験のバグ〉。Assert の文と閾値は変えない。旧の盤面に番人を固定する形に当たらない理由＝旗 0 と旗 1 の盤面を並べて機構の向きを確かめる試験で、旗 1 の側は既に明示されている＝0 の側の明示は対照の名指し。旗 0 と旗 1 の両方で緑を確かめる（mut の f0all・f1all）。
+  (e) WriterRatchetTests の計算量の宣言の表は軌道が動くので赤になりうる＝★(749)（宣言の行だけ・軌道の件数を写しただけの番人）。
+  (f) CorncfInstrumentTests・DiscoveryScoreTests は段 0 で緑。
+  (g) ColonialPopTests〈植民地の月の決算で輸出作物の地代は首都の投資家へ着く〉（旧の規則の盤面の前提〈地代＞0〉を固定）＝㉜ の改めで新しい規則の主張へ：前提を |地代|＞1e-6（何もしない形を拾う守りは残す）・Assert〈地代の和＝首都の投資家の貯蓄の増減〉はそのまま（符号を問わず送り・埋め）。黒字と赤字の両方の向きは同じクラスの単体〈国内の地代は精算の後に本国の首都の投資家へ送られる〉が持つ（変えない）。書き換えの番人＝μ5。
+ ㉜ のそれでも回す理由：旗 1 のフルスイートの赤が (a)〜(g) の型だけなら腕 B を回す。一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて同じ線で直す。原因の読めない赤は止める。
+
+[9] 手順
+ ① このファイルを最初のコミット。② 旗 1 のコミット（p04:109 と (a)・EndowmentCostTests）→ 試験だけのコミット（(b)(c)(d)(g)）→ ㉘ の束 → ㊴ 計器の束 → フルスイート（Category!=FullLength・=FullLength・Tests.Ui を分ける・合計を --list-tests と突き合わせる）・savetest・leakhunt。原因の読めない赤なら腕 B を回さない。
+ ③ 突然変異 μ0〜μ5（使い捨ての木・mut_b1.sh）。
+ ④ 腕 B：scripts/instruments/c133b1/armb.sh（INS=1 bash scripts/instruments/batch.sh run c133b1B 10・計器つき 10 種・表を絞る＝12 表＋prodcap_s・recipeout_s・metal_s・arrears_s・POB_INSTRUMENTS_NATIONS は batch.sh の既定の名簿）。起こす前に D: を shutil で測る（〈35GB＋8GB〉）。
+ ⑤ 門・止める線・記録の読み（scripts/instruments/c133b1/read_b1.sh・基準とヌル腕の側は pre_base.sh で数え直し済み）。旗 1 の出力を見た後のエンジンの変更は ⑭ の枠で 1 回まで。
+ ⑥ 印 D:/PoB_work/c133b1_work/b1.mark・origin/c133b1 へ push。
+
+[10] 周辺の点検（読むだけ・欠損は別の線へ）
+ InventoryAdjust（EconomyStep.cs:2678 の呼び・:2723 の定義＝産出の目標の乗数・利得 0.1）。PaySales の呼び手＝BilateralMarket.cs:1202・InternationalMarket.cs:108・MultiNationSim.cs:1124・:1228・:1229・Simulation.cs:2432（EconomyStep.cs に呼び出し 0 行＝単体の盤面は PaySales を通らない）。
+
+[11] 重なり（指示文の持ち主の表）
+ 持ち主：Coefficients.p04_trade.cs:109 の 1 行と注・EndowmentCostTests.cs（新）・ColonialPopTests.cs（:113〜:133）・EconomyTests.cs（:424）・RecipeoutInstrumentTests.cs（:174・:213・:306）・TradePhase0Tests.cs（:15 の MakeBig・:31・:48・:86・:107〜:112）・DormantIdentityTests.cs:99・scripts/instruments/c133b1/・measurements/m1291_*。
+ 他の線：c133wa（Discovery.cs:60〜:115・Model.cs・MultiNationSim.cs・Simulation.cs:1845〜:1856）・c133cl（SelfPlay.cs・Discovery.cs:7・Catalog.cs:440・Simulation.cs:1949 の注ほか）・c133mr（Diplomacy.cs・p08）とファイルは重ならない（Simulation.cs と Discovery.cs はこの線は読むだけ）。DormantIdentityTests.cs と WriterRatchetTests.cs は自分の行だけ。

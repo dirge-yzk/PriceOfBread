@@ -1,0 +1,48 @@
+// (1291) c133b1（(1236) c125b1 の写し） 段 0 のプローブ（使い捨て・r1224 の probe の W の部分だけを写し、帳の列を足した・SimCore にフックを足さない）。
+// 全体の世界（WorldData.Nations・StartWarmup の助走の後）を 12 か月回し、英仏の植民地格の州の不在地主の大農園（Colonial.AbsenteeRgo）の行を月末ごとに書く。
+// 旗は POB_COEF で渡す（ヘッダーに OverrideSummary）。引数：<種の始め> <種の終わり> <月数> <出力のファイル>
+using System.Globalization;
+using PriceOfBread.SimCore;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+ulong s0 = ulong.Parse(args[0]), s1 = ulong.Parse(args[1]);
+int months = int.Parse(args[2]);
+using var o = new StreamWriter(args[3], false, new System.Text.UTF8Encoding(false)) { NewLine = "\n" };
+o.WriteLine($"# c133b1 probe override=[{Coefficients.OverrideSummary()}] months={months} seeds={s0}..{s1}");
+o.WriteLine("seed\tmonth\tnation\tregion\tgood\tout\tscale\tlastRevenue\tlastCost\tpx\tmc\tsmMargin\tstock\tlastProduced\tlastDemand\tlastExport\tbankrupt\tflagAb\tflagBook");
+for (ulong seed = s0; seed <= s1; seed++)
+{
+    var sim = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
+    sim.StartWarmup(() => { });
+    void Dump(int m)
+    {
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; string nm = w.SelfPower?.BaseName ?? "?";
+            if (nm != "イギリス" && nm != "フランス") continue;
+            foreach (var r in w.Regions)
+            {
+                if (r.Tier != RegionTier.Colonial) continue;
+                foreach (var p in r.Producers)
+                {
+                    if (!Colonial.AbsenteeRgo(r, p)) continue;
+                    var mk = r.Markets[p.GoodId];
+                    double mc = EconomyStep.MineralSelfCost(p, r, w.Coef, w) + EconomyStep.InputCostPerUnit(p, r, r, w.Coef);
+                    o.WriteLine(string.Join('\t', seed, m, nm, r.Name, Catalog.Goods[p.GoodId].Name, G(p.Output), G(p.Scale), G(p.LastRevenue), G(p.LastCost), G(mk.Price), G(mc),
+                        G(p.SmoothedMargin), G(mk.Stock), G(mk.LastProduced), G(mk.LastDemand), G(mk.LastExport), p.Bankrupt ? 1 : 0, G(w.Coef.EndowmentCostFollowsAbundance), G(w.Coef.PaySalesToProducerBook)));
+                }
+            }
+        }
+        o.Flush();
+    }
+    Dump(0);
+    for (int m = 1; m <= months; m++)
+    {
+        for (int d = 0; d < PriceOfBread.SimCore.Calendar.DaysPerMonth; d++) sim.StepDay();
+        Dump(m);
+    }
+    Console.WriteLine($"seed {seed} done");
+}
+Console.WriteLine("PROBEDONE");
+static string G(double x) => x.ToString("G9", CultureInfo.InvariantCulture);

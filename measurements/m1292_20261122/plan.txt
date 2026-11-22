@@ -1,0 +1,10 @@
+(1292) c133ak 読む線の計画（腕 0 本・コミットしない・push しない）
+作業の場所：D:/PoB_work/r1292_work/（台本・表・下書き）。台本は C:/Users/dirge/Documents/PriceOfBread/scripts/instruments/r1292/（コミットしない）。worktree は作らない（main の作業ツリーは読むだけ）。
+読む生（読むだけ・消さない）：
+  D:/PoB_work/keep_1287_rej/T1_M（種 6 アクモラ王国）・T1_S11（頻度）
+  D:/PoB_work/keep_1287/base_ins（基準・種 5/6 のアクモラ王国）・n1（種 8 キサンガニ王国 1946）・a11（種 11〜20 の頻度）
+  measurements/m1287_20261122/readM_T1・readN1・decision_df.txt・keepsum_rej_T1_M.tsv
+  measurements/m1285_20261122/result_1285.txt:67〜:84・y1274/・yaounde_nation_1274.txt（ヤウンデ型）
+読む表：nation（nominalGdpPerYear・populationK）・stock（totalMoneyStock・treasuryStock・govDebtStock）・pxmonth（priceLevelIndex・broadMoney・treasury・loans・階級の稼ぎ）・region（工場と採取の稼働数・earnedPerMonth）・mintcap（law・onGold・fiatM・capStock）・silverst・fiscal（支払いの請求）
+ソース（grep）：名目 GDP の書き手・MultiNationSim.cs の分離の国庫の分与・Fiscal の支払い率・兵士の給与・官僚
+問い 1〜6 は指示のとおり。結果：q1〜q6 の出力ファイルと report.txt。
