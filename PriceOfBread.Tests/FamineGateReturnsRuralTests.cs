@@ -29,7 +29,7 @@ public class FamineGateReturnsRuralTests
         urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = urbanFill * urban.FoodNeed;
         r.Markets[Catalog.HousingId].Price = 2.0;
         r.CapitalEnabled = false;
-        Assert.Equal(0.0, c.UrbanFlowReal);   // 前提：今の既定（シグモイドの旧の式）の上で門を見る
+        c.UrbanFlowReal = 0;   // 前提：シグモイドの旧の式の上で門を見る（(1296) で既定が 1 になった＝旗を明示で 0 に置く・旗 1 では門は流れ＞0＝g＞0 の月だけで fg の枝に届かない）
         Assert.Equal(0.8, c.FamineMigrationFillGate);
         Assert.Equal(0.02, c.Mobility);
         c.FamineGateReturnsRural = flag;

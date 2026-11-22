@@ -18,7 +18,9 @@ public class FamineTests
     [Fact]
     public void 局地飢饉で食料不足の州だけが減り豊富な州は減らない()   // §A-3拡張：局地飢饉（★2026-09-30 (131) 相対的剥奪の死は削除＝POP の飢えの上乗せが運ぶ）
     {
-        var on = new Simulation(Famine(1), new NullAgent());
+        var son = Famine(1); son.Coef.Mobility = 0;   // (1296) 州の中の移動を外す（移動の規則に依らない盤面・㊴）
+        Assert.Equal(0.0, son.Coef.Mobility);
+        var on = new Simulation(son, new NullAgent());
         double rich0 = on.World.Regions[0].SumPopulation();
         double poor0 = on.World.Regions[1].SumPopulation();
         on.Run(120);   // 30年
@@ -30,7 +32,8 @@ public class FamineTests
         Assert.True(richOn > rich0 * 0.95, $"食料豊富な州まで道連れに減った（{rich0:F0}→{richOn:F0}）＝局地化していない");
 
         // 飢えの上乗せの寄与を分離：上乗せ OFF（FamineExcessMortality=0）より ON の方が不足州がさらに減る
-        var off = new Simulation(Famine(1, mortality: 0), new NullAgent());
+        var soff = Famine(1, mortality: 0); soff.Coef.Mobility = 0;
+        var off = new Simulation(soff, new NullAgent());
         off.Run(120);
         Assert.True(poorOn < off.World.Regions[1].SumPopulation(),
             $"局地飢饉ショックが不足州を追加で減らしていない（ON {poorOn:F0} ≥ OFF {off.World.Regions[1].SumPopulation():F0}）");
@@ -55,8 +58,10 @@ public class FamineTests
         //   ①不足州の pop は飢饉死の門の下に居る（慢性）②政治の駆動は0（平常＝初回の低さを捕まえた後、充足はそこから落ちていない）
         //   ③物理の経路は平常を1ビットも読まない＝平常を「豊かさに慣れた 1.0」に置いた腕と人口の軌道がビット一致。
         //   そして④不足州は3年で2割以上減る（物理の経路が慢性の不足に効き続ける）。
-        var a = new Simulation(Famine(1), new NullAgent());
-        var b = new Simulation(Famine(1), new NullAgent());
+        var sa = Famine(1); sa.Coef.Mobility = 0; var sb = Famine(1); sb.Coef.Mobility = 0;   // (1296) 州の中の移動を外す（移動の規則に依らない盤面・㊴）
+        var a = new Simulation(sa, new NullAgent());
+        var b = new Simulation(sb, new NullAgent());
+        int checkedPops = 0;
         foreach (var p in b.World.AllPops()) p.FoodRef = 1.0;
         var c = a.World.Coef;
         var poor = a.World.Regions[1];
@@ -70,12 +75,14 @@ public class FamineTests
             {
                 if (!(p.FoodNeed > 1e-9)) continue;
                 double fill = p.FoodMet / p.FoodNeed;
+                checkedPops++;
                 Assert.True(fill < c.FamineDeathFillFloor, $"前提：不足州が慢性的に食えていない（{q}四半期目 {p.ClassName} 充足 {fill:F3}）");
                 Assert.Equal(0.0, Politics.FamineDrive(p, c));   // 慢性の低さは政治の駆動にならない
             }
             for (int i = 0; i < a.World.Regions.Count; i++)
                 Assert.Equal(a.World.Regions[i].SumPopulation(), b.World.Regions[i].SumPopulation());   // 平常を読む物理の経路は無い（厳密一致）
         }
+        Assert.True(checkedPops >= 12, $"対照：調べた POP×四半期が {checkedPops}＝前提を何も検査していない");
         Assert.True(poor.SumPopulation() < poor0 * 0.8, $"慢性の不足で不足州が減らない（{poor0:F0}→{poor.SumPopulation():F0}）＝物理の経路が止まった");
     }
 

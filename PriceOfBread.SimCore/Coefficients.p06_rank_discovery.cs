@@ -113,7 +113,7 @@ public sealed partial class Coefficients
     public double RecipeEquipment = 1;              // 0＝旧の規則（操業規模 Scale は利幅を目標にただで伸び縮みする）＝厳密恒等
     public double UnionBargaining = 1;              // 0＝今の規則（組合の産出の乗数 0.95／0.98 が残り、工場の付加価値は全て持ち主）
     public double IndustrializationOff = 1;         // 0＝今のまま＝厳密恒等
-    public double UrbanFlowReal = 0;        // 0＝今の式（シグモイドの目標の都市の割合＋名目の温度 MigrationTemperature・1 ビットも変わらない）
+    public double UrbanFlowReal = 1;        // (1296) 2026-11-22 に 1＝流れ＝Mobility×g×送り手の規模（g＝移る値打ちの対称の相対差）。0＝旧の式（シグモイドの目標の都市の割合＋名目の温度 MigrationTemperature）
     public double CapitalHeadroomFromReturn = 0;    // 外資の余地 headroom を CapitalIndTarget×World.ModernizeReturnShare()（国庫の配り先の設備の収益の持ち分）にする
     public double DiscoveryNeedHalfInstitution = 0.5; // 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35
     public double DiscoveryNeedHalfIdea = 0.2;      // 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35

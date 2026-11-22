@@ -180,7 +180,7 @@ public class UrbanFlowRealTests
         // 同じ所得の 2 つの盤面で、自給の値と住居の価格だけを大きく違えても、旗 0 の Run の結果は 1 ビットも違わない
         var (wa, ra, rua, ura, ca) = Board(0.10, 0.0, 0.30, housingPrice: 1.0, housingOn: true);
         var (wb, rb, rub, urb, cb) = Board(0.10, 5.0, 0.30, housingPrice: 100.0, housingOn: true);
-        Assert.Equal(0.0, ca.UrbanFlowReal); Assert.Equal(0.0, cb.UrbanFlowReal);
+        ca.UrbanFlowReal = 0; cb.UrbanFlowReal = 0;   // 旗 0 の経路の番人（(1296) で既定が 1 になった＝旗を明示で 0 に置く）
         double da = Moved(wa, ra, rua, ura, ca), db = Moved(wb, rb, rub, urb, cb);
         Assert.True(Math.Abs(da) > 1e-9, "前提：この盤面で人が動いていない");
         Assert.Equal(BitConverter.DoubleToInt64Bits(da), BitConverter.DoubleToInt64Bits(db));
@@ -369,5 +369,38 @@ public class UrbanFlowRealTests
             Assert.True(p.WAbsGsym > Math.Abs(p.WGsym) + 0.1 * total, "wAbsGsym が符号つきの和の絶対値と区別できない");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    // ---------------------------------------------------------------- ⑤ (1296) 既定の旗（UrbanFlowReal 1）の機構の試験（旗は置かない＝既定に頼る＝旗 0 の木では赤） ----------------------------------------------------------------
+
+    [Fact]
+    public void 既定_V農村とV都市が等しい州では流れは0_旧のシグモイドなら流れる盤面()
+    {
+        // vr＝0.20＋0.10＝0.30・vu＝0.36−0.03×2＝0.30（旗は置かない）
+        var (w, r, rural, urban, c) = Board(0.20, 0.10, 0.36, housingPrice: 2.0, housingOn: true);
+        double total = rural.Size + urban.Size, cur = urban.Size / total;
+        double target = 1.0 / (1.0 + Math.Exp(-(0.36 - 0.20) / 0.15));   // 手の算術：旧の式の目標（温度 0.15）
+        Assert.Equal(0.15, c.MigrationTemperature);
+        Assert.True(Math.Abs(0.02 * (target - cur) * total) > 1e-3, "前提：旧の式でも流れない盤面＝旗 0 で赤にならない");
+        Assert.Equal(0.0, Moved(w, r, rural, urban, c), 9);
+    }
+
+    [Fact]
+    public void 既定_自給の値を2倍にすると農村への流れが手の算術の比で増え_送り手は都市()
+    {
+        // 住居の門の下（家賃 0）：vu＝0.40。自給 0.30 → vr＝0.50・g1＝2(0.40−0.50)/0.90／自給 0.60 → vr＝0.80・g2＝2(0.40−0.80)/1.20（旗は置かない）
+        var (w, r, rural, urban, c) = Board(0.20, 0.30, 0.40, housingPrice: 5.0, housingOn: false);
+        double us = urban.Size;
+        Assert.True(Math.Abs(rural.Size - urban.Size) > 1.0, "前提：農村と都市の規模が同じ＝送り手の取り違えが見えない");
+        double d1 = Moved(w, r, rural, urban, c);
+        var (w2, r2, rural2, urban2, c2) = Board(0.20, 0.60, 0.40, housingPrice: 5.0, housingOn: false);
+        double us2 = urban2.Size;
+        double d2 = Moved(w2, r2, rural2, urban2, c2);
+        double g1 = G(0.50, 0.40), g2 = G(0.80, 0.40);
+        Assert.True(g1 < 0 && g2 < g1);
+        Assert.Equal(0.02 * g1 * us, d1, 9);    // 流れ＝Mobility×g×都市の規模（負＝都市→農村）
+        Assert.Equal(0.02 * g2 * us2, d2, 9);
+        Assert.Equal(g2 / g1, d2 / d1, 6);      // 比＝3（手の算術）
+        Assert.Equal(3.0, g2 / g1, 9);
     }
 }
