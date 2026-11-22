@@ -248,6 +248,9 @@ public sealed class MapHoverLine
     public FontWeight Weight { get; init; } = FontWeight.Normal;
     public global::Avalonia.Media.TextWrapping Wrap { get; init; } = global::Avalonia.Media.TextWrapping.Wrap;   // 生産物ハイライト等は NoWrap（改行なし）
 }
+public sealed record RuleSlice(string Path, IBrush Brush);
+public sealed record RuleForeignRow(IBrush Brush, string Name, string Share);
+
 public sealed class MapHoverInfo
 {
     public string Title { get; init; } = "";
@@ -256,18 +259,18 @@ public sealed class MapHoverInfo
     public string TitleNote => Title.IndexOf('（') is > 0 and var i ? Title[i..] : "";
     public List<MapHoverLine> Lines { get; } = new();
     public string ProducedGoods { get; set; } = "";   // 生産材（世界シェア上位）。窓「州」の左
-    public string ImportedGoods { get; set; } = "";   // 輸入材（所有国の輸入額の世界シェア上位）。窓「州」の右
+    public string ImportedGoods { get; set; } = "";   // 移入品（州の消費が州の生産を上回る財・足りない量の順）。窓「州」の右
     // ★支配度 §7（州パネル・2026-09-07）：4区分の半円（SVG 記法→Conv.PathData）＋外周の帯（10年前の国家区分）＋凡例の値。HasRule=false＝描かない（区分が動かない世界）。
     public bool HasRule { get; init; }
     public string RuleState { get; init; } = "";
     public string RuleLocal { get; init; } = "";
-    public string RuleForeign { get; init; } = "";
+    public IBrush RuleStateBrush { get; init; } = Brushes.Gray;   // 国家の区分の色＝持ち主の国の色（地図の塗りと同じ）
+    public List<RuleSlice> ForeignSlices { get; init; } = new();   // 外国勢力の区分＝国ごとの色の切れ（地図の塗りと同じ色）
+    public List<RuleForeignRow> ForeignRows { get; init; } = new();   // 外国勢力の国名の一覧（常に同じ行数＝窓の高さを変えない）
     public string RuleUngoverned { get; init; } = "";
     public string RuleBand { get; init; } = "";
     public string RuleStateText { get; init; } = "";
     public string RuleLocalText { get; init; } = "";
-    public string RuleForeignText { get; init; } = "";
-    public string RuleForeignWho { get; init; } = "";   // 外国勢力の持ち主（国名と持分）
     public string RuleUngovernedText { get; init; } = "";
     public string RuleBandText { get; init; } = "";
 }

@@ -128,22 +128,6 @@ public partial class GameViewModel : ViewModelBase
     /// <summary>画面に出す国の名（国の一覧と同じ国号つきの名・<see cref="PowerLabel"/>）。欄ごとに同じ国が別の名で出ない（W10）。</summary>
     private string Lbl(Power p) => PowerLabel.Of(p, _sim.Diplomacy.Wars);
     partial void OnMapHoverChanged(MapHoverInfo? value) { if (value is not null) ShownHover = value; }
-    // ★州パネルのピン留め（支配度 §7「ホバーで要約・クリックでピン」・2026-09-07）：州の左クリックで左上パネルを固定。同じ州でもう一度＝解除。他の州＝持ち替え（当たりは塗り分けのセル＝MapHitAt）。
-    [ObservableProperty] private bool _hoverPinned;
-    private Region? _pinnedRegion;   // ピンの鍵＝州（MapHoverInfo は四半期ごとに作り直される＝実体で比べると「同じ州で解除」が壊れ、表示も固まる＝レビュー是正2026-09-07）
-    public void TogglePin(MapHoverInfo? hover, Region? region)
-    {
-        if (hover is null || region is null) return;
-        if (HoverPinned && ReferenceEquals(_pinnedRegion, region)) { HoverPinned = false; _pinnedRegion = null; return; }
-        MapHover = hover; _pinnedRegion = region; HoverPinned = true;
-    }
-    /// <summary>四半期の作り直しの後＝ピン留めの州の最新の要約へ差し替える（州が消えた＝分離/割譲ならピンを外す）。</summary>
-    private void RefreshPinnedHover()
-    {
-        if (!HoverPinned || _pinnedRegion is null) return;
-        if (_provHoverCache.TryGetValue(_pinnedRegion, out var fresh)) MapHover = fresh;
-        else { HoverPinned = false; _pinnedRegion = null; MapHover = null; }
-    }
     // 旧・国選択（SelectedNationName/Info/IsPlayer/DetailModalOpen）＝クリックモーダル廃止後の残骸を削除（監査2026-07-12 死35）
 
     // Escメニュー（設定=無効・タイトルに戻る）と終局（1949年12月のあと＝EndYear の1950年到達でランキング表示）
