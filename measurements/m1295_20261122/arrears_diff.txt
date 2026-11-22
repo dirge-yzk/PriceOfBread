@@ -1,0 +1,10 @@
+s1 base_only=4 arm_only=72 base_only_predOld1=0 rows 738->806
+s2 base_only=1 arm_only=30 base_only_predOld1=0 rows 570->599
+s3 base_only=1 arm_only=58 base_only_predOld1=0 rows 1507->1564
+s4 base_only=3 arm_only=54 base_only_predOld1=0 rows 465->516
+s5 base_only=2 arm_only=59 base_only_predOld1=0 rows 791->848
+s6 base_only=0 arm_only=57 base_only_predOld1=0 rows 1398->1455
+s7 base_only=2 arm_only=68 base_only_predOld1=0 rows 1601->1667
+s8 base_only=5 arm_only=74 base_only_predOld1=0 rows 665->734
+s9 base_only=1 arm_only=40 base_only_predOld1=0 rows 933->972
+s10 base_only=3 arm_only=55 base_only_predOld1=0 rows 896->948

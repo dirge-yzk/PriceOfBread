@@ -1,0 +1,51 @@
+=== 恒等の判定（測った種で一致） c134tk（2026-11-22 17:43:07）===
+測った木：D:/PoB_work/wt_c134tk（HEAD d47da4708・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c134tk/scripts/instruments/ident/ident.cfg
+宣言：added=['treasledger'] tests_delta=6
+腕 a：rc=0 end=2026-11-22 17:29:25
+腕 b：rc=0 end=2026-11-22 17:43:06
+腕 t：rc=0 end=2026-11-22 17:19:12
+腕 s：rc=0 end=2026-11-22 17:28:54
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：1351b6e55da6e102
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 1351b6e55da6e102
+[素の 5 種] b5_ia_5.txt 対 b5_20261122_m1294
+  ○ 全行バイト一致（178 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261122_m1294.cost
+  ○ 件数の行 45 本・推定 232.1 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 1351b6e55da6e102
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261122_m1294_ins
+  ○ 全行バイト一致（179 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261122_m1294_ins.cost
+  ○ 件数の行 45 本・推定 232.1 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c134tk/out_ib_10/ins  対  基準 D:/PoB_work/keep_1294/base_ins
+  基準 1687 本・腕 1697 本・バイト一致 1657 本
+  腕にだけある 10 本（うち宣言 10）
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ✗ 不一致：計器の表：宣言の無い違い 10 本
+      arrears_s1.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s10.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s2.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s3.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s4.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s5.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s6.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s7.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s8.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+      arrears_s9.tsv	['ROWS', 'arrNewMonth', 'arrOldMonth', 'convertibility', 'coverage', 'cumNew']
+  内訳：共通の表 1687 本＝バイト一致 1657＋既知の揺れ 20＋列が増えた 0＋行が増えた 0＋列が消えた 0＋宣言の無い違い 10＋その他 0（和 1687）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261122_m1294.txt（タグの行を除く）
+  ○ タグの行以外が一致（4846 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 3110（基準 3104+6 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+不一致の理由 1 件：
+  - 計器の表：宣言の無い違い 10 本
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 不一致
+刈らない：最後の判定の行が〈判定: 恒等〉でない
+刈り込みの結果：rc=0・刈らない：最後の判定の行が〈判定: 恒等〉でない

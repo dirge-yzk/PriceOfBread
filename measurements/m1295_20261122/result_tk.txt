@@ -1,0 +1,9 @@
+(1295) c134tk 結果（Claude Sonnet 5.5・木 d47da4708 の 1 つ前までの内容＝SOURCE-HASH 1351b6e55da6e102）
+ident 段 2（--saveleak --added-tables treasledger --tests-delta 6）：素の 5 種・計器つき 10 種の成績表と .cost（推定 232.1 秒）は m1294 と全行バイト一致・計器の表 1687 本のうち 1657 本がバイト一致・既知の揺れ 20（burscan_s・clock_s）・腕にだけ 10（treasledger_s・宣言済み）・
+ 宣言の無い違い 10 本＝arrears_s（全 10 種）だけ・注視の表は一致・テストの数 3110（3104＋6）・FullLength 3・savetest OK・leakhunt 保存則違反なし。最後の行は 判定: 不一致（arrears_s のみ）。
+ arrears_s は underLimit を前の月の比へ直した線の宣言どおりの変化。ident の宣言（--rows-grown-ok・--known-extra）では吸収できない（行の条件 owes が underLimit に依るため基準の行が部分列にならない）＝判定の行は恒等にならず、刈り込みは走っていない。
+ underLimit から導かれる列（underLimit・owes・predNew・arrOldMonth・arrNewMonth・cumOld・cumNew）を除いた残りの列で突き合わせた差は arrears_diff.txt：基準にだけある行 0〜5（全て predOld=0＝owes だけで書かれた行）・腕にだけある行 30〜74 ＝行を書く条件 owes の変化だけ。
+treasledger_s（10 種）：全ての国×四半期・残差（_residual）は 10 種全てで 1e-6 を超える行 0（nan は最初の観測の行 5〜17）・リベースの印 61 国・科目の行は 0 を書かない。生は 1 種約 34.5MB。
+ アクモラ型を読む列（科目ごとの差分・_treasuryEnd・_privateMoney）は出ている。ただし ident の生には〈アクモラ王国〉の名の国が無い（10 種とも grep 0）＝基線の木では同じ国が立たない（軌道が違う）。読むのは df の 3 回目の腕 B の生（次の波）。
+ 分離の国庫の分与（TreasuryCat.OtherOut）は科目の行に出る＝残差は 0 で、台帳を通らない動きは無い。
+試験：非 FullLength 2878（成功 2876・スキップ 2）・FullLength 3（trx は suite/）。突然変異 M1〜M6 は mutations.txt（全て赤）。
