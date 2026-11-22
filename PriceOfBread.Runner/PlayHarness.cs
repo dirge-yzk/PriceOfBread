@@ -14,7 +14,7 @@ namespace PriceOfBread.Runner;
 ///
 /// ★ 使い方： dotnet PriceOfBread.Runner.dll play &lt;作業dir&gt; [国名=清] [進める四半期数=4] [seed=1789]
 ///   1) &lt;dir&gt;/state.bin が無ければ新規開始（★App と同じ手順＝プレイヤー国だけ NullAgent・IsPlayer・専売0・StartWarmup）
-///   (419) 画面の問いかけ（最後通牒・参戦要請・国内の危機・総選挙の公示）に答える動詞は `!ultimatum`・`!callarms`・`!election`（`!crisis` は内容の照会のみ）。全国工場の目標は `!target`・巨大建造物の着工は `!mega`。待っている問いかけと使える動詞は報告の 2 行目。
+///   (419) 画面の問いかけ（最後通牒・参戦要請・国内の危機・総選挙の公示）に答える動詞は `!ultimatum`・`!callarms`・`!election`（`!crisis` は内容の照会のみ）。全国工場の目標は `!target`。待っている問いかけと使える動詞は報告の 2 行目。
 ///   (442) 6 番目の引数に `要約` を付けると標準出力は先頭 60 行＋前回の報告に無かった行だけ（report.txt は全文）。
 ///   (442) 画面が時間を止める待ちのうち World の状態から読めて答える動詞のある物（最後通牒・参戦要請・総選挙の公示）と国内の危機が立っていると、その四半期で進むのを止めて報告の先頭に待ちと答える動詞を書く（答えるまで進まない。国内の危機は通知＝この呼び出しの最初に立っていた札と別の札が立ったときだけ止める）。
 ///   (443) 画面が時間を止めるのに play が止めない物＝既知の違い：緊張のポップアップ（TensionRaise／TensionEase・通知済みの印は App の ViewModel の中だけ）・終戦の通知・内戦の陣営選択。
@@ -442,21 +442,6 @@ internal static class PlayHarness
         if (sp.PendingWar is { } pw) sb.AppendLine($"  ⚠★最後通牒の待ち： {pw.Name}（要求を受け入れる／開戦）");
         if (sp.PendingCallToArms is { } ca) sb.AppendLine($"  ⚠★参戦要請の待ち： {ca.Caller.Name} が {ca.Enemy.Name} と交戦（受ける／断る）");
 
-        // ★(419) 巨大建造物（自国が建設地の州を持つもの・生産タブの一覧と同じ集合）。着工は `!mega 名前`
-        {
-            var megas = sim.Diplomacy.Megaprojects.Where(m => ReferenceEquals(m.Owner, sp)).OrderBy(m => m.Name, StringComparer.Ordinal).ToList();
-            if (megas.Count > 0)
-            {
-                sb.AppendLine();
-                sb.AppendLine("---- 巨大建造物（自国が建設地）→ !mega 名前 ----");
-                foreach (var m in megas)
-                {
-                    var host = w.Regions.FirstOrDefault(r => r.Name == m.Host);
-                    sb.AppendLine($"  {m.Name,-14} {m.Host,-10} {MegaStateText(w, m)}　見積 {(host is null ? 0 : Megaprojects.EstimateCost(host, m, coef)):N0}　着工{(Megaprojects.CanStart(w, m) ? "可" : "不可")}");
-                }
-            }
-        }
-
         sb.AppendLine();
         sb.AppendLine("---- 世界（国力上位10）----");
         foreach (var n in sim.Nations.OrderByDescending(x => x.World.ScoreStanding).Take(10))
@@ -735,15 +720,6 @@ internal static class PlayHarness
                     var c1 = w.FactoryCounter(gi);
                     return $"全国工場の目標 {a[1]}: 分母 {c0.Planned}→{c1.Planned}{(target != w.FactoryTargetOf(gi) ? $"（要求 {target} は 0〜{w.FactoryTargetMax} に丸めた）" : "")}（国営 {c1.State}・民営 {c1.Private}・建設予定 {c1.Pending}・上限 {w.FactoryTargetMax}）";
                 }
-                case "mega":   // App: StartMega → Megaprojects.TryStart
-                {
-                    if (a.Length < 2) return "⚠`!mega 建造物名`（自国が建設地を持つもの）";
-                    var mp = w.Diplomacy?.Megaprojects.FirstOrDefault(m => m.Name == a[1] && ReferenceEquals(m.Owner, w.SelfPower));
-                    if (mp is null) return $"⚠自国が建設地の建造物に無い: {a[1]}";
-                    if (Megaprojects.StartRefusal(w, mp) is { } megaWhy) return $"⚠着工 {a[1]} 不可（{megaWhy}・{MegaStateText(w, mp)}）";   // ★(435) 理由は本体の述語（CanStart と同じ 1 本）
-                    if (!Megaprojects.TryStart(w, mp)) return $"⚠着工 {a[1]} 不可（実行できなかった）";
-                    return $"着工 {a[1]}（{MegaStateText(w, mp)}）";
-                }
                 default: return $"⚠不明な動作: {a[0]}";
             }
         }
@@ -793,7 +769,7 @@ internal static class PlayHarness
     internal static string PromptsLine(World w, Power sp)
     {
         var ps = PendingItems(w, sp);
-        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps.Select(p => p.Text)))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !mega !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !answer !crisis";
+        return $"待っている問いかけ： {(ps.Count == 0 ? "なし" : string.Join(" ； ", ps.Select(p => p.Text)))}　使える動詞： !factory !sell !subsidy !state !monopoly !bias !target !provoke !ease !invade !unify !mediate !ultimatum !callarms !election !answer !crisis";
     }
 
     /// <summary>★(442) 進めてはいけない待ち（画面なら問いのポップアップが開いていて時間が止まっている物）。<see cref="PendingItems"/> のうち、
@@ -912,10 +888,6 @@ internal static class PlayHarness
         else if (blocked.Count > 0)   // 最後の 1 四半期で待ちが立った（次の呼び出しは答えを適用してから進む）
             sb.AppendLine($"⏸ 次は答えるまで進めない：{string.Join(" ； ", blocked)}");
     }
-
-    /// <summary>★(419) 巨大建造物の状態（データだけ＝着工の可否の理由を再導出しない。可否は <see cref="Megaprojects.CanStart"/> の 1 本）。</summary>
-    private static string MegaStateText(World w, Megaproject mp)
-        => $"{(mp.IsComplete ? "完成" : mp.Started ? $"建設中 {(mp.BuildUnits > 1e-9 ? Math.Clamp(mp.BuildProgress / mp.BuildUnits, 0, 1) : 0):P0}" : "未着工")}・必要な発見 {Megaprojects.RequiresNameOf(mp.Id)}";
 
     /// <summary>★(410) 闘争度の目標の 4 本（人口加重の和 <paramref name="sum"/>÷<paramref name="size"/>）を画面のホバーと同じ名前・同じ 0.5% 未満の省略で並べる（多い順）。1 本も無ければ「なし」。</summary>
     private static string MilParts(double[] sum, double size)

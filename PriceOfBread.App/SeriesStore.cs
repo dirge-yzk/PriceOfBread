@@ -63,7 +63,7 @@ public static class SeriesKeys
 {
     public const string Industry = "nation.industry", Credit = "nation.credit", Finance = "nation.finance",
         Population = "nation.population", Gdp = "nation.gdp", Production = "nation.production", Tech = "nation.tech",
-        Literacy = "nation.literacy", Satisfaction = "nation.satisfaction", Militancy = "nation.militancy", Corruption = "nation.corruption",
-        Food = "nation.food", Legitimacy = "nation.legitimacy", Consciousness = "nation.consciousness", Mandate = "nation.mandate",
+        Literacy = "nation.literacy", Satisfaction = "nation.satisfaction", Militancy = "nation.militancy",
+        Food = "nation.food", Legitimacy = "nation.legitimacy",
         Treasury = "nation.treasury", Gini = "nation.gini", Discontent = "nation.discontent";
 }

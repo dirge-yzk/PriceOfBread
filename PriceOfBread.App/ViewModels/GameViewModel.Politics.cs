@@ -341,8 +341,6 @@ public partial class GameViewModel
     // internal＝ヘッダーの「反体制派の戦力比」（GameViewModel.Header.cs）も同じ2色を読む＝同一の物差しは同一の配色。
     internal static readonly IBrush FactionStrengthCalm = UiRes.Brush("GrayBrush", Brushes.Gray);
     internal static readonly IBrush FactionStrengthDanger = new SolidColorBrush(Color.Parse("#A0432D"));
-    // 反乱勢力の末列の見出し＝その世界で実際に点火を決めている量の名前（段4の点火後は戦力比でなく2門の近接度）。3文字＝列幅48pxのまま。
-    public string FactionProximityHeader => _player.Coef.RevoltIgnitionIntensity > 0 ? "近接度" : "戦力比";
 
     // 国内勢力（F2・設計メモ2026-07-09 §3 Phase2）：運動に参加したpopを地域×階級×イデオロギー主軸で観察（読み取り専用・World非変更）。
     // ⚠参加の述語はエンジン側の1本（FactionSnapshot.ComputeClusters）＝既定（ParticipationDiscontent＝1・2026-10-19 (431)）は max(不満度, 闘争度) の**重み**＝規模は「参加した頭数」になる。
@@ -367,7 +365,7 @@ public partial class GameViewModel
             var demandsByBloc = new List<FactionSnapshot.Demand>?[PolicyPreferences.BlocCount];
             // 強さ比（UI修正R7・2026-08-16 診断「警告と点火の乖離」）：闘争度はどの点火不等式にも単独で現れない＝
             // 蜂起の真の近接度＝F3b点火不等式そのもの（Politics.CheckFactionRevolt）を行ごとに出す
-            // ＝旧は力の門（FactionStrength > 保持力+郷勇）、段4の点火後は連言2門（下の RevoltIgnitionIntensity 分岐）。
+            // ＝力の門（FactionStrength > 保持力+郷勇）。
             // いずれも純関数の再計算＝World非変更。分母ガードは PoliticalQuantities.ChallengeRatio と同じ Max(1,·)。
             double coerce = PoliticalQuantities.EffectiveCoerce(_player, _player.Coef);   // エンジンの判定と同一式（第5段5-1の一元化・ChallengeTipと同じ）
             foreach (var f in liveFactions.OrderByDescending(x => x.Size))
@@ -382,19 +380,6 @@ public partial class GameViewModel
                 double militia = Politics.LoyalistMilitia(_player, _player.Coef, f);   // internal（InternalsVisibleTo・読み取り専用）
                 double ratio = strength / Math.Max(1.0, coerce + militia);
                 string tip = $"勢力の強さ {strength:F1}\n治安維持力 {coerce:F1}\n義勇兵 {militia:F1}";
-                // ★段4＝点火の付け替え（F3b蜂起doc §3-5・2026-09-08）。点火が戦力比から連言2門へ移ったら**この列も移す**＝
-                //   さもないと赤い行から蜂起せず白い行から蜂起する（画面が嘘をつく）。近接度＝2門の**律速側**＝
-                //   min(意志÷門1, 絶望÷門2)＝100%超⇔両門を越える⇔エンジンの点火条件そのもの（100%の意味は旧列と同じ）。
-                //   戦力比は「勝てるか」＝決着の見込みとしてホバーに残る（LoyalistMilitia の読み手はここと Politics の決着）。
-                if (_player.Coef.RevoltIgnitionIntensity > 0)
-                {
-                    double intensity = strength / Math.Max(1e-9, f.Size);
-                    double despair = Politics.RegionRevoltHeat(f.Region, _player.Coef)
-                                   + _player.Coef.RevoltGrievanceWeight * Math.Min(1.0, _player.Coef.FactionRejectionMutation * f.Rejections);
-                    ratio = Math.Min(intensity / _player.Coef.RevoltIgnitionIntensity, despair / Math.Max(1e-9, _player.Coef.RegionalRevoltThreshold));
-                    tip = $"組織された意志 {intensity:F3}（点火 {_player.Coef.RevoltIgnitionIntensity:F3}）\n"
-                        + $"州の絶望 {despair:F3}（点火 {_player.Coef.RegionalRevoltThreshold:F3}）\n" + tip;
-                }
                 rows.Add(new FactionRow
                 {
                     Key = display,

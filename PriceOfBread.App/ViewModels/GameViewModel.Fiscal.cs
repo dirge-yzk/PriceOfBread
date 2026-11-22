@@ -34,6 +34,7 @@ public partial class GameViewModel
     // ---- 年次の線（名前つきの系列の倉から値を写す）----
     [ObservableProperty] private IReadOnlyList<double> _treasuryValues = [];
     [ObservableProperty] private IReadOnlyList<double> _govDebtValues = [];
+    [ObservableProperty] private IReadOnlyList<double> _gdpValues = [];
 
     private const string GovDebtSeries = "fiscal.govDebt", FiscalYearSeries = "fiscal.sampleYear";
 
@@ -92,7 +93,6 @@ public partial class GameViewModel
     private void UpdateForecast()
     {
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法の表へ移行・2026-07-30）
-        UpdateDebtHeader();
         SampleFiscalYear();   // 年に 1 回の採取は見えているかに依らない（線は見えた時に写す）
         if (!FiscalShown) return;
         var flows = new FiscalFlows(_eduMonthly, _stateMonopMonthly, _fInMonthly, _fOutMonthly, _ledgerDiff);
@@ -106,34 +106,12 @@ public partial class GameViewModel
         // 年次の線：写しを作り直す（同じ List の参照では線が描き直されない）
         TreasuryValues = _histTreasury.ToArray();
         GovDebtValues = _series.Of(GovDebtSeries).ToArray();
+        GdpValues = _histGdp.ToArray();
     }
 
-    // 国債（借入）＝ヘッダー表示（借金ボタン廃止・2026-07-21／借入はエンジンが r＜1 の月に自動・2026-09-28）。DebtHeaderText＝残高（＋デフォルト予兆）／Tip＝内訳／Brush＝支払不能で赤。
-    private void UpdateDebtHeader()
-    {
-        var c = _player.Coef;
-        // ★(405) 比の門を相対に：残りの未払いの大きさ left を u（払えない割合）で割った月数が、ゲームに残る月数の内に収まるときだけ出す（割り算をしないので u が極小でも溢れない・u か left が NaN なら出さない）
-        double unpaidShare = 1.0 - _player.FiscalFundingRatio.Value;
-        double arrearsLeft = Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyMonths);
-        double gameMonthsLeft = Math.Max(0, Calendar.YearsToMonths(Calendar.EndYear - Calendar.StartYear) - _simDays / Calendar.DaysPerMonth);
-        bool showDefaultEta = _player.InsolvencyMonths > 0 && unpaidShare > 0 && arrearsLeft <= unpaidShare * gameMonthsLeft;
-        DebtHeaderText = $"国債：{Fmt.Money(_player.GovDebt.Value)}"
-                       + (showDefaultEta
-                          ? $"　デフォルトまで{Math.Ceiling(arrearsLeft / unpaidShare):F0}か月" : "");   // ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数
-        // 財7単位フリップ（2026-07-26）：表示も対年GDP（史実の債務比率と直接比較できる単位）。分母＝年次名目（月次 NominalGdpPerMonth×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位
-        DebtHeaderTip = $"国債 {Fmt.Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? Math.Min(9.99, Calendar.ToGdpYear(_player.GovDebt, Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)).Value) : 0):P0}　金利 {Fmt.Share(_player.GovBondRatePerYear)}　債券価格 {Fmt.Share(_player.BondPrice)}"
-                       + (_player.ForeignDebt.Value > 1 ? $"\nうち対外 {Fmt.Money(_player.ForeignDebt.Value)}" : "")
-                       + (_player.AusterityIntensity > 0 ? $"\n緊縮 {Fmt.Share(_player.AusterityIntensity)}" : "")
-                       + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Fmt.Money(_player.CumulativeDevaluation)}" : "")
-                       + (_player.FiscalFundingRatio.Value < 1 ? $"\n支払い率 {Fmt.Share(_player.FiscalFundingRatio)}" : "");
-        DebtHeaderBrush = _player.InsolvencyMonths > 0 ? NewsRed : TermNeutral;
-    }
-    [ObservableProperty] private string _debtHeaderText = "";
-    [ObservableProperty] private string _debtHeaderTip = "";
     [ObservableProperty] private HeaderStat _treasuryHover = new();   // 国庫のホバーグラフ（年次推移・2026-07-16）
     // ★2026-08-02 描画クラッシュの修正：Avalonia の Polyline は Points が null だと CreateDefiningGeometry で ArgumentNullException を投げ、毎フレーム描画パスが中断する。
     //   バインド経路の途中が null だと Points に null が届く＝VM 側で必ず非 null を返すプロパティを用意してそこへバインドする。空の Points は例外にならない。
     public global::Avalonia.Points TreasurySparkPoints => TreasuryHover?.Points ?? new();
     partial void OnTreasuryHoverChanged(HeaderStat value) => OnPropertyChanged(nameof(TreasurySparkPoints));
-    [ObservableProperty] private IBrush _debtHeaderBrush = TermNeutral;
 }

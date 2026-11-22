@@ -167,11 +167,8 @@ public partial class GameViewModel : ViewModelBase
     private List<double> _histLit => _series.Of(SeriesKeys.Literacy);
     private List<double> _histSat => _series.Of(SeriesKeys.Satisfaction);
     private List<double> _histMil => _series.Of(SeriesKeys.Militancy);
-    private List<double> _histCorr => _series.Of(SeriesKeys.Corruption);
     private List<double> _histFood => _series.Of(SeriesKeys.Food);   // 主食充足の年次履歴（ヘッダーホバー）
     private List<double> _histLeg => _series.Of(SeriesKeys.Legitimacy);   // 正統性・国民意識の年次履歴（2026-07-15＝説明API/隠れドライバのヘッダーホバー）
-    private List<double> _histCons => _series.Of(SeriesKeys.Consciousness);
-    private List<double> _histMandate => _series.Of(SeriesKeys.Mandate);   // 政治資本（MandateSpent）の年次履歴（ヘッダーホバー・2026-07-16）
     private List<double> _histTreasury => _series.Of(SeriesKeys.Treasury);  // 国庫の年次履歴（ヘッダー国庫のホバーグラフ・2026-07-16）
     // ★2026-08-13（作者指摘「信用が非常に大切というのがUIからわからない」＋ヘッダー監査）：工業化・金融・対外信用の3系列（国力スコアの項）。
     private List<double> _histInd => _series.Of(SeriesKeys.Industry);

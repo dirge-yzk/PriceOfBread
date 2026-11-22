@@ -6,7 +6,7 @@ public sealed record ClassLine(int ClassId, string Name, int Layer, double Size,
     string Tip, string? SatisfactionTip, string? MilitancyTip, string Privileges, string? PrivilegeTip, string? LayerTip, double Discontent = 0);
 
 /// <summary>州の表の 1 行。割合は 0〜1・人数は千人。<see cref="Rule"/>＝支配度の 4 区分（国家・在地・外国・無統治）。</summary>
-public sealed record RegionLine(string Name, double Population, double Unemployed, double FoodFill, double HousingFill, bool HousingShown, IReadOnlyList<(string Name, double Share)> Rule, bool IsPort, double PortCapacity);
+public sealed record RegionLine(string Name, double Population, double Unemployed, double FoodFill, double HousingFill, bool HousingShown, IReadOnlyList<(string Name, double Share)> Rule, bool IsPort, double PortCapacity, double RailTrack, double CropFill);
 
 /// <summary>文化・宗教の構成の 1 行（州のラベルを州人口で加重した合計）。</summary>
 public sealed record CompositionLine(string Name, double Population, double Share);
@@ -131,7 +131,6 @@ public static class PopTables
 
         // 不満度（階級ごと）＝ヘッダーの不満度と同じ式（Politics.Discontent）を階級の POP の人口加重で平均する
         double[] disCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, w.Coef);
-        double[] disGap = w.Coef.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
         var lines = new List<ClassLine>();
         foreach (int cid in order)
         {
@@ -148,7 +147,7 @@ public static class PopTables
                 size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt.Value;
                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
                 satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size;
-                disW += Politics.Discontent(w, w.Coef, p, disCoord, disGap.Length > 0 ? disGap[PolicyPreferences.BlocOf(p)] : 0) * p.Size; litW += p.Literacy * p.Size;
+                disW += Politics.Discontent(w, w.Coef, p, disCoord, 0) * p.Size; litW += p.Literacy * p.Size;
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
                 femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size;
                 if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
@@ -242,6 +241,20 @@ public static class PopTables
         return [(RuleStateName, dom), (RuleLocalName, loc), (RuleForeignName, foreign), (RuleUngovernedName, ungov)];
     }
 
+    /// <summary>州の主食の作柄＝州の収穫係数×緯度帯の天候×主食の作物の健全度（主食ごとの実産出で重みづけ）。主食の産出が無い州は天候だけ。</summary>
+    private static double CropFill(Region rg)
+    {
+        double outSum = 0, healthSum = 0;
+        foreach (var g in rg.Goods)
+        {
+            if (g.Tier != GoodTier.Staple) continue;
+            double o = rg.Markets[g.Id].LastProduced;
+            if (!(o > 0)) continue;
+            outSum += o; healthSum += o * (rg.CropHealth is { } ch && g.Id < ch.Length ? ch[g.Id] : 1.0);
+        }
+        return rg.HarvestFactor * rg.WeatherBandFactor * (outSum > 0 ? healthSum / outSum : 1.0);
+    }
+
     /// <summary>自国の稼働中の州（人口の降順）。</summary>
     public static IReadOnlyList<RegionLine> RegionLines(World w)
     {
@@ -250,7 +263,7 @@ public static class PopTables
         {
             double un = 0;
             foreach (var p in rg.Pops) if (!p.IsSoldier) un += p.Size * p.UnemploymentRate.Value;   // 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
-            lines.Add(new RegionLine(rg.Name, rg.SumPopulation(), un, rg.FoodFill, rg.HousingFill, w.Coef.HousingNeedPerUrban > 0, RuleParts(rg), rg.IsPort, rg.PortCapacity));
+            lines.Add(new RegionLine(rg.Name, rg.SumPopulation(), un, rg.FoodFill, rg.HousingFill, w.Coef.HousingNeedPerUrban > 0, RuleParts(rg), rg.IsPort, rg.PortCapacity, rg.RailTrack, CropFill(rg)));
         }
         return lines.Select((l, i) => (l, i)).OrderByDescending(t => t.l.Population).ThenBy(t => t.i).Select(t => t.l).ToList();
     }
@@ -265,6 +278,8 @@ public static class PopTables
         Col.Number<RegionLine>("housing", "住居の充足", Unit.Share, l => l.HousingFill, hide: l => !l.HousingShown),
         Col.Share<RegionLine>("rule", "支配度", l => new ShareCell(l.Rule, RulePalette)),
         Col.Number<RegionLine>("port", "港の拡張", Unit.Count, l => l.PortCapacity, hide: l => !l.IsPort),
+        Col.Number<RegionLine>("rail", "線路", Unit.Count, l => l.RailTrack, hide: l => !(l.RailTrack > 0)),
+        Col.Number<RegionLine>("crop", "作柄", Unit.Share, l => l.CropFill),
     ]);
 
     // ===== 宗教と文化の構成 =====

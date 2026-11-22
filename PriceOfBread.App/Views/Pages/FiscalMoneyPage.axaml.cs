@@ -23,5 +23,6 @@ public partial class FiscalMoneyPage : UserControl
         PageBody.Table = Plan;
         TreasuryChart.LabelFormat = v => Fmt.Of(Unit.MoneyStock, v);
         DebtChart.LabelFormat = v => Fmt.Of(Unit.MoneyStock, v);
+        GdpChart.LabelFormat = v => Fmt.Of(Unit.MoneyStock, v);
     }
 }

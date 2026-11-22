@@ -52,13 +52,12 @@ public partial class GameViewModel
         UnifLine = unifRule != null ? $"統一の機運　目標 {unifRule.NewName}" : "";   // 外交タブ上部の状態表示（機運なし＝非表示）
         if (Layout.IsShown(Slot.DiplomacyWar)) BuildNationTable(powers, scoreByPower, linesByPower, me, warEnemyIds, unifTargets);   // 国の一覧の表（外交と戦争のページが見えている間だけ）
         double willCap = _player.Coef.ExpansionWillCap;
-        ExpansionText = $"戦力余剰：{Fmt.Share(_player.ExpansionWill / willCap)}";   // ★2026-09-23作者指示「余剰戦力」→「戦力余剰」。好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
+        ExpansionText = Fmt.Share(_player.ExpansionWill / willCap); ArmySkillText = Fmt.Share(_player.ArmySkill);   // ★2026-09-23作者指示「余剰戦力」→「戦力余剰」。好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
         // ★政治資本（MandateSpent）のヘッダー表示は撤去（2026-08-15作者確認＝選挙梯子E5で廃止予定・表示部分を前倒し。内部は「紛争記憶」への改名待ち＝E5本体）
         OnPropertyChanged(nameof(ExpansionTip));   // 戦力余剰・好戦世論のホバー内訳を再計算
         // ★防衛同盟の枠数はヘッダーから撤去（2026-08-23作者指示）＝同盟の有無は外交タブの国カードのバッジ「同盟」で読む。
 
         // 概況（ヘッダーの満足度〜正統性・2026-11-03 に1段へ）。外した項目の控えは下の stats の注記。
-        double corrRate = EffectiveCorruption();
         // 技術力＝世界前線比（自国技術÷各国最高＝0〜100%）。開始盤面は技術の助走（WarmupTech・2026-07-13）で前線t≈0.23まで育つ＝
         // 全国ゼロの「団子」を脱し、識字×世俗教育の差が前線比で見える（前線<0.05のみ「揺籃期」＝助走を通らない単一国/古いセーブの安全弁）。
         // 旧表示「技術力:{Fmt.Share(TechLevel)}」は0〜3の絶対値を%扱い（後期300%超）＋「遅れ」を別スケールの前線比で出す不整合＝初期に0%/98%と矛盾表示になっていた（2026-07-12修正）。

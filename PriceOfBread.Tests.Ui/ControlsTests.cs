@@ -163,7 +163,7 @@ public class ControlsTests
     public void 系列の名前は全て違い_名前を挟んでも既存の系列はずれない()
     {
         var keys = typeof(SeriesKeys).GetFields().Where(f => f.IsLiteral).Select(f => (string)f.GetRawConstantValue()!).ToList();
-        Assert.Equal(18, keys.Count);   // ヘッダーの年次系列 18 本（位置で並べていた旧の配列と同数）
+        Assert.Equal(15, keys.Count);   // ヘッダーの年次系列 15 本（読み手の無い汚職・国民意識・政治資本の 3 本を消した）
         Assert.Equal(keys.Count, keys.Distinct().Count());
         // 途中に別の名前を挟んだ倉で書いても、読み手は名前で引く＝人口がずれない
         var w = new SeriesStore(); w.Of(SeriesKeys.Industry).Add(7); w.Of("nation.extra").Add(0.5); w.Of(SeriesKeys.Population).Add(32.4);

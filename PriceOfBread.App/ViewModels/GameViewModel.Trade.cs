@@ -21,6 +21,7 @@ public partial class GameViewModel
     [ObservableProperty] private TableSnapshot _priceTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _exportTable = TableSnapshot.Empty;
     [ObservableProperty] private TableSnapshot _importTable = TableSnapshot.Empty;
+    [ObservableProperty] private TableSnapshot _transportTable = TableSnapshot.Empty;
     // 清算の線＝四半期ごとの輸出・輸入・収支（月割）。名前つきの系列の倉に貯め（セーブは倉が名前と値の組で往復する）、画面へは点列の写しを渡す。
     private const string ClearingExportKey = "clearing.export", ClearingImportKey = "clearing.import", ClearingBalanceKey = "clearing.balance";
     [ObservableProperty] private string _tradeExportTotal = "—";
@@ -54,6 +55,7 @@ public partial class GameViewModel
         // 行は本体の貿易の表が組む（額の降順・世界価格比・依存度/世界シェア・相手）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing）。
         ExportTable = TableSnapshot.From(TradeTables.Exports.Read(_sim, w));
         ImportTable = TableSnapshot.From(TradeTables.Imports.Read(_sim, w));
+        TransportTable = TableSnapshot.From(TradeTables.Transport.Read(_sim, w));
         var (expTotal, impTotal) = TradeTables.Totals(w);
         double mpcTot = w.Coef.MonthsPerClearing;
         TradeExportTotal = $"{Fmt.Money(expTotal / mpcTot)}/月";

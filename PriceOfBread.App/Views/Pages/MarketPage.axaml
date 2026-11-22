@@ -39,6 +39,10 @@
             </ctl:Section.Body>
         </ctl:Section>
 
+        <ctl:Section Key="transport" Title="輸送" Scrolls="False">
+            <ctl:TableView Snapshot="{Binding TransportTable}" InnerScroll="True"/>
+        </ctl:Section>
+
         </ctl:PageGrid>
     </Grid>
 </UserControl>

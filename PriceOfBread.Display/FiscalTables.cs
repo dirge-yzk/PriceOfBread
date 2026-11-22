@@ -265,10 +265,14 @@ public static class FiscalTables
             && w.FiscalFundingRatio >= c0.GoldStandardMinFunding;
     }
 
-    private static IReadOnlyList<FinanceLine> FinanceLines(World w)
+    private static IReadOnlyList<FinanceLine> FinanceLines(MultiNationSim sim, World w)
     {
+        double gdp = w.NominalGdpPerMonth.Value, pop = w.TotalPopulation;
+        int gdpRank = 1; foreach (var n in sim.Nations) if (n.World.NominalGdpPerMonth.Value > gdp) gdpRank++;   // 自国より名目 GDP の大きい国の数＋1
         var rows = new List<FinanceLine>
         {
+            new("gdp", "GDP", $"{DisplayFormat.Money(gdp)}/月", StageCell.None, null),
+            new("gdpPerHead", "一人当たり GDP", $"{DisplayFormat.MoneyFine(pop > 0 ? gdp / pop : 0)}/月　世界{gdpRank}位", StageCell.None, null),
             new("price", "物価（開始時比）", PlayText.PriceLevelText(w), StageCell.None, null),
             new("fx", "為替", PlayText.ExchangeRateText(w), StageCell.None, null),
         };
@@ -304,7 +308,7 @@ public static class FiscalTables
     }
 
     /// <summary>金融の表（物価・為替・金利・通貨制度・資本移動・通貨改革）。</summary>
-    public static Table<FinanceLine> Finance { get; } = new("fiscal.finance", "金融", Page.FiscalMoney, (_, w) => FinanceLines(w), l => l.Key, l => l.Name,
+    public static Table<FinanceLine> Finance { get; } = new("fiscal.finance", "金融", Page.FiscalMoney, FinanceLines, l => l.Key, l => l.Name,
     [
         Col.Text<FinanceLine>("name", "項目", l => l.Name, l => l.Tip),
         Col.Text<FinanceLine>("value", "現在", l => l.Value),
@@ -325,6 +329,7 @@ public static class FiscalTables
         if (w.AusterityIntensity > 0) rows.Add(new("austerity", "国債", "債務緊縮の強度", $"{DisplayFormat.Share(w.AusterityIntensity)}"));
         if (w.CumulativeDevaluation > 1) rows.Add(new("devaluation", "国債", "切下げ累計", DisplayFormat.Money(w.CumulativeDevaluation)));
         if (w.FiscalFundingRatio.Value < 1) rows.Add(new("funding", "国債", "支払い率", $"{DisplayFormat.Share(w.FiscalFundingRatio)}"));
+        if (w.InsolvencyMonths > 0) rows.Add(new("arrears", "国債", "未払いの累計", $"月の請求の{w.InsolvencyMonths:F1}か月分"));
         rows.Add(new("credit", "外資信用", "総合の評点", $"{DisplayFormat.Share(w.CreditRating)}"));
         rows.Add(new("creditDebt", "外資信用", "国債残高の評点", $"{DisplayFormat.Share(w.CreditDebtTerm)}"));
         rows.Add(new("creditGold", "外資信用", "兌換の評点", $"{DisplayFormat.Share(w.CreditGoldTerm)}"));

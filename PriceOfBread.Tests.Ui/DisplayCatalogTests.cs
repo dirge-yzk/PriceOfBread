@@ -197,7 +197,7 @@ public class DisplayCatalogTests
     [Fact]
     public void 財政の項の表は台帳の区分を全て1度ずつ持ち_名前は規則に合う()
     {
-        var cats = Enum.GetValues<TreasuryCat>().Where(c => c != TreasuryCat.Count).ToList();
+        var cats = Enum.GetValues<TreasuryCat>().Where(c => c != TreasuryCat.Count && c != TreasuryCat.AntiCorruption && c != TreasuryCat.Megaproject).ToList();   // 書き手が無い 2 区分（汚職の根絶・巨大建造物）は台帳の行に持たない
         Assert.Equal(cats, FiscalCatalog.Items.Select(i => i.Cat).ToList());   // 宣言の順・過不足なし
         Assert.All(FiscalCatalog.Items, i => Assert.True(DisplayNames.IsValid(i.Name), $"台帳の名前が規則に合わない: {i.Cat}"));
         Assert.Equal(FiscalCatalog.Items.Count, FiscalCatalog.Items.Select(i => i.Name).Distinct().Count());
@@ -238,7 +238,7 @@ public class DisplayCatalogTests
     [Fact]
     public void 表の一覧_表の鍵は重ならず_列の鍵と名前は規則に合い_数の列は単位を持つ()
     {
-        Assert.Equal(16, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す（統合：段3 の 3 枝の静的な表を全部載せて 15＋階級の既定の形で 16＋発見の政府と思想〔2026-11-11 2 段組み〕で 17・制度の表を政府の行の状態の列へ吸収して 16〔2026-11-12〕。行を呼ぶ側が渡す表〔支出・収入〕は載せない）
+        Assert.Equal(17, TableCatalog.All.Count);   // 表を足したら一覧と番人の期待を同じ回で直す（統合：段3 の 3 枝の静的な表を全部載せて 15＋階級の既定の形で 16＋発見の政府と思想〔2026-11-11 2 段組み〕で 17・制度の表を政府の行の状態の列へ吸収して 16〔2026-11-12〕。行を呼ぶ側が渡す表〔支出・収入〕は載せない）
         Assert.Equal(TableCatalog.All.Count, TableCatalog.All.Select(t => t.Key).Distinct().Count());
         foreach (var t in TableCatalog.All)
         {

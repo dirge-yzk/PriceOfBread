@@ -169,6 +169,13 @@
                                                 <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{Binding NameBrush}" VerticalAlignment="Center"/>   <!-- 2026-11-12：17→15（Noto Sans JP の仮名は 1.000em の全角＝旧書体の 0.63〜0.83em より広い。6 文字の「トウモロコシ」と比が 129px に収まる大きさ） -->
                                                 <TextBlock Text="{Binding PriceDiff}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{Binding PriceDiffBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
+                                            <!-- 全国工場目標の ±10・±100（±1 は縦線の▲▼）。押すと目標を置くだけ・数字つきの押し釦 -->
+                                            <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,2,0,0">
+                                                <Button Classes="counter" Content="−100" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding DownFactory100Command}" IsEnabled="{Binding CanDownFactory}"/>
+                                                <Button Classes="counter" Content="−10" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding DownFactory10Command}" IsEnabled="{Binding CanDownFactory}"/>
+                                                <Button Classes="counter" Content="+10" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding UpFactory10Command}" IsEnabled="{Binding CanUpFactory}"/>
+                                                <Button Classes="counter" Content="+100" ClickMode="Press" Height="15" MinHeight="0" MinWidth="0" Padding="3,0" FontSize="10" Command="{Binding UpFactory100Command}" IsEnabled="{Binding CanUpFactory}"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </DockPanel>
                                 </Border>
@@ -198,10 +205,12 @@
                         <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                             <Image Source="{Binding ProdDetail.GoodId, Converter={x:Static ctl:GoodIconConverter.Instance}}" Width="32" Height="32" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ProdDetail.Tier}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Foreground="{StaticResource GrayBrush}" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
-                            <TextBlock Text="{Binding ProdDetail.Title}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
-                            <TextBlock Text="{Binding ProdDetail.PriceDiff}" FontSize="{StaticResource FontBody}" FontWeight="Bold"
-                                       Foreground="{Binding ProdDetail.PriceDiffBrush}" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding ProdDetail.Title}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ProdDetail.PriceDiff}" FontSize="{StaticResource FontLead}" FontWeight="Bold"
+                                       Foreground="{Binding ProdDetail.PriceDiffBrush}" VerticalAlignment="Center"/>
+                            <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="2" Padding="5,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ProdDetail.Tier}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}" VerticalAlignment="Center"/>
+                            </Border>
                             <Border IsVisible="{Binding ProdDetail.LegalMonopoly}" Background="#8A5A28" CornerRadius="2" Padding="5,0" VerticalAlignment="Center">
                                 <TextBlock Text="独占" Foreground="{StaticResource OnFillBrush}" FontSize="{StaticResource FontTiny}"/>
                             </Border>
@@ -403,7 +412,7 @@
         <ctl:Section x:Name="RegionsSection" Key="regions" Title="州別の工場" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ctl:Section.Body>
                 <Grid x:Name="RegionsBody" RowDefinitions="Auto,*" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
-                        <Grid ColumnDefinitions="*,36,82,44,44,52,60" Margin="0,0,12,0">
+                        <Grid ColumnDefinitions="*,36,128,44,44,52,60" Margin="0,0,12,0">
                             <!-- 見出し「州名」のホバー＝工業化の州別上位8（2026-09-23）。行は増やさず既にある見出しのセルに載せる。
                                  式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
                             <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"
@@ -424,7 +433,7 @@
                                       <StackPanel>
                                         <!-- ★1行（作者フィードバック2026-08-10 項目3）。MinHeight はボタンの高さに固定＝
                                              カウンターを持たない州（産地なし）の行だけ低くならない＝行の高さが州によって変わらない。 -->
-                                        <Grid ColumnDefinitions="*,36,82,44,44,52,60" MinHeight="19">
+                                        <Grid ColumnDefinitions="*,36,128,44,44,52,60" MinHeight="19">
                                             <!-- 接17：州名ホバー＝工業化資本の新旧内訳（ヴィンテージ層が休眠なら CapitalTip=null＝出ない） -->
                                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
@@ -446,12 +455,20 @@
                                                     <TextBlock Text="{Binding StateFac}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" TextAlignment="Center"
                                                                VerticalAlignment="Center" HorizontalAlignment="Stretch" IsVisible="{Binding !HasCounter}"/>
                                                     <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding HasCounter}">
-                                                        <Button Grid.Column="0" Classes="counter" Content="−" ClickMode="Press"
-                                                                Command="{Binding DownCommand}" IsEnabled="{Binding CanDown}"/>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                            <Button Classes="counter" Content="−10" ClickMode="Press" MinWidth="0" Padding="2,0" FontSize="10"
+                                                                    Command="{Binding Down10Command}" IsEnabled="{Binding CanDown}"/>
+                                                            <Button Classes="counter" Content="−" ClickMode="Press"
+                                                                    Command="{Binding DownCommand}" IsEnabled="{Binding CanDown}"/>
+                                                        </StackPanel>
                                                         <TextBlock Grid.Column="1" Text="{Binding StateFac}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" Foreground="{StaticResource InkBrush}"
                                                                    TextAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Button Grid.Column="2" Classes="counter" Content="+" ClickMode="Press"
-                                                                Command="{Binding UpCommand}" IsEnabled="{Binding CanUp}"/>
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                            <Button Classes="counter" Content="+" ClickMode="Press"
+                                                                    Command="{Binding UpCommand}" IsEnabled="{Binding CanUp}"/>
+                                                            <Button Classes="counter" Content="+10" ClickMode="Press" MinWidth="0" Padding="2,0" FontSize="10"
+                                                                    Command="{Binding Up10Command}" IsEnabled="{Binding CanUp}"/>
+                                                        </StackPanel>
                                                     </Grid>
                                                 </Panel>
                                             </Border>

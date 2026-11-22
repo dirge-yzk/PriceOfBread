@@ -243,8 +243,6 @@ public partial class GameViewModel
     }
     // 移民の収支はヘッダーの人口 Stat へ統合（POPタブから移動・専用プロパティ撤去2026-07-12）。
 
-    // 実効汚職＝正準定義 World.EffectiveCorruption を読む（(1−行政)×(1−監視)・0..1）。★(399) で汚職の財政の漏れ（歳入からの漏れ）は物理削除した＝漏れ率ではなく汚職の度合い。
-    private double EffectiveCorruption() => _player.EffectiveCorruption;
 
     private void SampleYearStats()
     {
@@ -262,14 +260,11 @@ public partial class GameViewModel
         //   ★2026-09-25：満足度も「大衆のみ」（NationalScore.MeanSatisfaction が Politics.IsMassPop を呼ぶ）へ揃えた＝3系列が同じ母集団。
         //   ⚠_histSat はセーブされる系列＝それより前のセーブを読むと、その年までは全POPの定義の値が混ざる。
         _histDis.Add(Politics.AvgMassDiscontent(_player));
-        _histCorr.Add(EffectiveCorruption());
         _histInd.Add(_player.MeanIndustrialization);
         _histCredit.Add(_player.CreditRating);
         _histFin.Add(NationalScore.Finance(_player));
         _histFood.Add(_player.FoodFill);
         _histLeg.Add(_player.Legitimacy);
-        // 国民意識の系列（SeriesKeys.Consciousness）は (1193) で書き手を消した（国民意識の削除）。
-        _histMandate.Add(_player.MandateSpent);   // 上限廃止（2026-07-26）＝生値を採取
         _histTreasury.Add(_player.Treasury.Value);
         // ジニ係数（全POPの1人あたり貯蓄から読むときに計算＝Politics.GiniIndex・2026-09-26 に World の欄を廃止）。
         //   0（貯蓄が全く無い開始直後の世界）を起点に残すと折れ線が毎回そこまで落ちる＝測れた年から始める（起点の年は系列長から逆算＝RangeText）。

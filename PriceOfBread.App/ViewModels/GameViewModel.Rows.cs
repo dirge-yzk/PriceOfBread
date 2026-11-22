@@ -122,8 +122,7 @@ public sealed partial class FactionRow : ObservableObject
     [ObservableProperty] private string _size = "";
     // 結束∈[0,1]（FactionState.Cohesion）＝運動体としての持続の証。闘争度は戦力比の因子そのものなので列にしない（2026-09-08）。
     [ObservableProperty] private string _cohesion = "";
-    // 蜂起への近接度＝エンジンの点火条件と同じ物差し・100%超＝蜂起圏（旧＝戦力比 FactionStrength÷(EffectiveCoerce+郷勇)／
-    // 段4の点火後＝連言2門の律速側 min(意志÷門1, 絶望÷門2)。見出しも切り替わる＝GameViewModel.FactionProximityHeader）。
+    // 蜂起への近接度＝戦力比 FactionStrength÷(EffectiveCoerce+郷勇)・100%超＝蜂起圏。
     // スナップショット行（永続FactionState無し＝強度が定義されない）は "—"＋ホバー無し（HasStrengthTip=false）。
     [ObservableProperty] private string _strength = "";
     [ObservableProperty] private string _strengthTip = "";      // 内訳ホバー（勢力の強さ／治安維持力／義勇兵＝ChallengeTipと同作法）

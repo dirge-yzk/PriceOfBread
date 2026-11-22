@@ -24,6 +24,8 @@
                 <ctl:LineChart x:Name="TreasuryChart" Values="{Binding TreasuryValues}" Height="56" Stroke="{StaticResource BlueBrush}"/>
                 <TextBlock Text="国債" Classes="range"/>
                 <ctl:LineChart x:Name="DebtChart" Values="{Binding GovDebtValues}" Height="56" Stroke="{StaticResource RustBrush}"/>
+                <TextBlock Text="GDP" Classes="range"/>
+                <ctl:LineChart x:Name="GdpChart" Values="{Binding GdpValues}" Height="56" Stroke="{StaticResource GreenBrush}"/>
             </StackPanel>
         </ctl:Section>
     </ctl:PageGrid>

@@ -227,7 +227,7 @@ public class PlayHarnessTests
         var (sim, w, me, foe, third) = Board();
         string none = PlayHarness.PromptsLine(w, me);
         Assert.Contains("待っている問いかけ： なし", none);
-        Assert.Contains("!ultimatum", none); Assert.Contains("!callarms", none); Assert.Contains("!election", none); Assert.Contains("!target", none); Assert.Contains("!mega", none);   // 使える動詞は常に出す
+        Assert.Contains("!ultimatum", none); Assert.Contains("!callarms", none); Assert.Contains("!election", none); Assert.Contains("!target", none);   // 使える動詞は常に出す
         me.PendingWar = foe;
         me.PendingCallToArms = (foe, third);
         w.PendingElection = new ElectionEvent { AgendaIdeologies = [0, 1], AgendaAxes = [PolicyAxis.Suffrage, PolicyAxis.Censorship], AgendaIncrease = [true, true], AgendaLabels = ["自由主義：参政権", "保守主義：報道"] };
@@ -301,14 +301,14 @@ public class PlayHarnessTests
         var (sim, w, _, _, _) = Board();
         var led = w.TreasuryLedger;
         Array.Clear(led);
-        led[(int)TreasuryCat.Tax] = 1500; led[(int)TreasuryCat.Devalue] = 300; led[(int)TreasuryCat.AntiCorruption] = -40; led[(int)TreasuryCat.TributeOut] = -70;
+        led[(int)TreasuryCat.Tax] = 1500; led[(int)TreasuryCat.Devalue] = 300; led[(int)TreasuryCat.Admin] = -40; led[(int)TreasuryCat.TributeOut] = -70;
         var before = (double[])led.Clone();
         before[(int)TreasuryCat.Tax] = 1000; before[(int)TreasuryCat.Devalue] = 300;
         string r = Report(sim, before);
         Assert.Contains("収入（開始からの累計・括弧は直近の 1 四半期）", r);
         Assert.Contains("Tax:1,500（直近の四半期 +500）", r);
         Assert.Contains("Devalue:300（直近の四半期 0）", r);
-        Assert.Contains("AntiCorruption:-40", r); Assert.Contains("TributeOut:-70", r);
+        Assert.Contains("Admin:-40", r); Assert.Contains("TributeOut:-70", r);
         string r2 = Report(sim, null);
         Assert.Contains("収入（開始からの累計のみ）", r2);
         Assert.DoesNotContain("直近の四半期", r2);
@@ -995,7 +995,7 @@ public class PlayHarnessTests
         string card = System.IO.File.ReadAllText(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "scripts", "play", "操作カード.md"));
         string line = PlayHarness.PromptsLine(w, me);
         var verbs = line[(line.IndexOf("使える動詞：", StringComparison.Ordinal) + "使える動詞：".Length)..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        Assert.True(verbs.Length >= 18);
+        Assert.True(verbs.Length >= 17);
         foreach (string v in verbs) Assert.True(card.Contains("`" + v + " ") || card.Contains("`" + v + "`"), $"操作カードに {v} の書き方が無い");
         foreach (var law in PriceOfBread.SimCore.Display.LawCatalog.All)
             Assert.True(law.Fields.Any(f => card.Contains("`" + f + "=")), $"操作カードに法 {law.Name}（{law.Key}）の書き方が無い");

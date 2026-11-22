@@ -426,7 +426,7 @@ public partial class GameViewModel
         foreach (var pn in lay.Values)
         {
             int gid = pn.Id;   // 器は静的（作り直さない）＝財idを閉じ込めても別の財を操作しない
-            var nd = new ProdNode(() => StepFactoryTargetAll(gid, +1), () => StepFactoryTargetAll(gid, -1))
+            var nd = new ProdNode(d => StepFactoryTargetAll(gid, d))
             { GoodId = pn.Id, W = PNodeW, H = PNodeH, Name = Catalog.Goods[pn.Id].Name };
             byGood[pn.Id] = nd;
             ProdNodes.Add(nd);
@@ -798,9 +798,7 @@ public partial class GameViewModel
             // ★行の命令は**州の実体**を捕まえる（2026-08-09）＝旧実装は生成時の添字 rIdx を閉じ込めていた。
             //   行は据え置き同期（CopyFrom）で使い回されるので、州の増減で添字がずれると**別の州を操作してしまう**。
             var rgRef = rg;
-            keyed.Add((m.LastProduced, new ProdRegionRow(
-                () => StepStateTargetAt(rgRef, gi, +1),
-                () => StepStateTargetAt(rgRef, gi, -1))
+            keyed.Add((m.LastProduced, new ProdRegionRow(d => StepStateTargetAt(rgRef, gi, d))
             {
                 Name = rg.Name,
                 // 接17（監査2026-07-11・2026-07-25実装）：新旧資本の内訳＝旧式資本を抱えた産業と新鋭産業の区別（売却・補助金判断の材料）。休眠（旧世代0）なら出さない
@@ -1286,7 +1284,10 @@ public partial class GameViewModel
     ///   ／国営の払い下げは州別カウンター）。</summary>
     private void StepFactoryTargetAll(int gid, int delta)
     {
-        _player.SetFactoryTarget(gid, _player.FactoryCounter(gid).Planned + delta);
+        var fc = _player.FactoryCounter(gid);
+        int target = fc.Planned + delta;
+        if (delta < 0) target = Math.Max(target, Math.Min(fc.Planned, fc.State + fc.Private + fc.Pending));   // 下げは予定のうち州へ配っていない分まで（▼の押せる範囲と同じ）
+        _player.SetFactoryTarget(gid, target);
         RefreshProduction();
     }
 
@@ -1323,12 +1324,16 @@ public sealed partial class ProdNode : ObservableObject
     [ObservableProperty] private bool _canUpFactory;
     [ObservableProperty] private bool _canDownFactory;
     [ObservableProperty] private string? _factoryTip;   // 「国営 n棟　民営 n棟　目標 n棟」＝データのツールチップ
-    private readonly Action? _onUpFactory, _onDownFactory;
+    private readonly Action<int>? _onStepFactory;
     public ProdNode() { }
-    public ProdNode(Action onUp, Action onDown) { _onUpFactory = onUp; _onDownFactory = onDown; }
+    public ProdNode(Action<int> onStep) { _onStepFactory = onStep; }
     // ClickMode=Press と同じ理由でコマンドは軽い（押下で確定）。州別カウンター（ProdRegionRow）と同じ作法。
-    [RelayCommand] private void UpFactory() => _onUpFactory?.Invoke();
-    [RelayCommand] private void DownFactory() => _onDownFactory?.Invoke();
+    [RelayCommand] private void UpFactory() => _onStepFactory?.Invoke(+1);
+    [RelayCommand] private void DownFactory() => _onStepFactory?.Invoke(-1);
+    [RelayCommand] private void UpFactory10() => _onStepFactory?.Invoke(+10);
+    [RelayCommand] private void DownFactory10() => _onStepFactory?.Invoke(-10);
+    [RelayCommand] private void UpFactory100() => _onStepFactory?.Invoke(+100);
+    [RelayCommand] private void DownFactory100() => _onStepFactory?.Invoke(-100);
     [ObservableProperty] private IBrush? _background;
     [ObservableProperty] private IBrush? _borderBrush;
     [ObservableProperty] private double _borderThickness = 1.0;
@@ -1550,12 +1555,14 @@ public sealed partial class ProdRegionRow : ObservableObject
     // 安い（マイナス）＝青・高い（プラス）＝赤。素材投入を持たないRGOは「—」。
     [ObservableProperty] private string _matCost = "";
     [ObservableProperty] private IBrush? _matCostBrush;
-    private readonly Action? _onUp, _onDown;
+    private readonly Action<int>? _onStep;
     public ProdRegionRow() { }
-    public ProdRegionRow(Action onUp, Action onDown) { _onUp = onUp; _onDown = onDown; }
+    public ProdRegionRow(Action<int> onStep) { _onStep = onStep; }
     // ClickMode=Press と同じ理由でコマンドは軽い（押下で確定＝行が伸縮してもクリックが捨てられない）
-    [RelayCommand] private void Up() => _onUp?.Invoke();
-    [RelayCommand] private void Down() => _onDown?.Invoke();
+    [RelayCommand] private void Up() => _onStep?.Invoke(+1);
+    [RelayCommand] private void Down() => _onStep?.Invoke(-1);
+    [RelayCommand] private void Up10() => _onStep?.Invoke(+10);
+    [RelayCommand] private void Down10() => _onStep?.Invoke(-10);
     public void CopyFrom(ProdRegionRow s)
     {
         CapitalTip = s.CapitalTip;

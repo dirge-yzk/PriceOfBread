@@ -113,7 +113,7 @@ public partial class MainWindow
     private static UiShotDump.UiShotExtra CollectExtra(GameViewModel g)
     {
         var lay = g.Layout;
-        var header = new List<string> { $"国={g.PlayerTitle}", $"暦={g.DateText}", g.TreasuryText, g.DebtHeaderText, g.ExpansionText };
+        var header = new List<string> { $"国={g.PlayerTitle}", $"暦={g.DateText}", g.TreasuryText };
         header.AddRange(g.HeaderStats.Select(h => h.Text));
         header.RemoveAll(string.IsNullOrWhiteSpace);
         var t = new List<TableSnapshot>();
@@ -147,7 +147,7 @@ public partial class MainWindow
         }
         t.Add(UiShotDump.TextTable("diplomacy.army", "軍事力の必要量", Page.DiplomacyWar, ["名前", "必要量", "実際", "充足率"],
             armyRows.Count == 0 ? [["軍備なし"]] : armyRows, armyRows.Count == 0 ? null : armyGroups));
-        t.Add(UiShotDump.TextTable("diplomacy.factions", "反乱勢力", Page.DiplomacyWar, ["名前", "反乱規模", "結束", g.FactionProximityHeader, "要求"],
+        t.Add(UiShotDump.TextTable("diplomacy.factions", "反乱勢力", Page.DiplomacyWar, ["名前", "反乱規模", "結束", "戦力比", "要求"],
             g.DomesticFactions.Count == 0 ? [["目立った反乱勢力なし"]] : g.DomesticFactions.Select(r => (IReadOnlyList<string>)[r.Name, r.Size, r.Cohesion, r.Strength, r.Demands]).ToList()));
         t.Add(UiShotDump.TextTable("diplomacy.mediation", "他国の戦争", Page.DiplomacyWar, ["戦争", "内容", "調停"],
             g.MediationRows.Count == 0 ? [["他国の戦争なし"]] : g.MediationRows.Select(r => (IReadOnlyList<string>)[r.Title, r.Info, r.CanMediate ? "提案できる" : "不可 " + r.Reason]).ToList()));

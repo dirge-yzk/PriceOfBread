@@ -8,6 +8,9 @@ namespace PriceOfBread.SimCore.Display;
 /// <param name="Partner">実際に最も多く取引した相手（無ければ空）</param>
 public sealed record TradeLine(int Good, string Name, double Raw, double MonthlyValue, double PriceRatio, double Fraction, string Partner);
 
+/// <summary>輸送の表の 1 行（鉄道の容量・船の容量・蒸気船の割合）。</summary>
+public sealed record TransportLine(string Key, string Name, string Value);
+
 /// <summary>貿易の表（輸入・輸出）。旧 App の貿易タブが手で組んでいた行を本体の目録へ移した（設計 §3-3・§7-1 段1）。
 /// 盤面は読むだけ・書かない。額の降順（同額は財の番号順）。月割で £0 に丸まる小さな財は 1 行の「その他」にまとめて最後に置く（行の和＝総額）。</summary>
 public static class TradeTables
@@ -102,6 +105,24 @@ public static class TradeTables
 
     /// <summary>輸出の表（額の降順・世界シェア・輸出先）。</summary>
     public static Table<TradeLine> Exports { get; } = Make("trade.exports", "輸出", true, "世界シェア", "輸出先");
+
+    private static IReadOnlyList<TransportLine> TransportLines(MultiNationSim _, World w)
+    {
+        var rows = new List<TransportLine>
+        {
+            new("rail", "鉄道の容量", DisplayFormat.Amount(w.RailCapacity)),
+            new("ship", "船の容量", DisplayFormat.Amount(w.ShipCapacity)),
+        };
+        if (w.ShipCapacity > 1e-9) rows.Add(new("steam", "蒸気船の割合", DisplayFormat.Share(w.ShipSteamShare)));
+        return rows;
+    }
+
+    /// <summary>輸送の表（鉄道の容量・船の容量・蒸気船の割合）。盤面の量を読むだけ。</summary>
+    public static Table<TransportLine> Transport { get; } = new("trade.transport", "輸送", Page.Market, TransportLines, l => l.Key, l => l.Name,
+    [
+        Col.Text<TransportLine>("name", "項目", l => l.Name),
+        Col.Text<TransportLine>("value", "現在", l => l.Value),
+    ]);
 
     /// <summary>清算 1 回分の輸出と輸入の総額（全額＝台帳と同じ。小さな財は表の「その他」の 1 行に入っている）。月割は呼び手が <see cref="Coefficients.MonthsPerClearing"/> で割る。</summary>
     public static (double Export, double Import) Totals(World w)

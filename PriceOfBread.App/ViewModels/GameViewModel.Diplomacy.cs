@@ -232,6 +232,7 @@ public partial class GameViewModel
     [ObservableProperty] private string _confirmBody = "";
     [ObservableProperty] private string _confirmAcceptLabel = "";
     [ObservableProperty] private bool _confirmCan;
+    [ObservableProperty] private string _armySkillText = "";
     [ObservableProperty] private string _expansionText = "";   // 遠征余力・主戦論（上部バーに常時表示）
     // ジニ係数のヘッダー枠（_giniHeaderText）は削除（2026-08-10）＝2026-08-02にヘッダー2行目（HeaderStats）へ移設して以来、
     // どこからもバインドされないまま毎 Refresh に空文字を書き込むだけの死コードだった。

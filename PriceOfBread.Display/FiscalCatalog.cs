@@ -28,10 +28,10 @@ public static class FiscalCatalog
         I(TreasuryCat.Army, "陸軍", FiscalSide.Outlay), I(TreasuryCat.Navy, "海軍", FiscalSide.Outlay),
         I(TreasuryCat.Admin, "行政", FiscalSide.Outlay), I(TreasuryCat.Education, "教育", FiscalSide.Outlay),
         I(TreasuryCat.Welfare, "社会保障", FiscalSide.Outlay), I(TreasuryCat.Pension, "年金の給付", FiscalSide.Outlay),
-        I(TreasuryCat.Modernization, "近代化投資", FiscalSide.Outlay), I(TreasuryCat.AntiCorruption, "汚職の根絶", FiscalSide.Outlay),
+        I(TreasuryCat.Modernization, "近代化投資", FiscalSide.Outlay),
         I(TreasuryCat.Interest, "国債の利払い", FiscalSide.Outlay), I(TreasuryCat.DebtRepay, "国債の償還", FiscalSide.Outlay),
         I(TreasuryCat.FactoryBuild, "工場の建設", FiscalSide.Outlay), I(TreasuryCat.Subsidy, "補助金", FiscalSide.Outlay),
-        I(TreasuryCat.Megaproject, "巨大建造物", FiscalSide.Outlay), I(TreasuryCat.ColonialUpkeep, "植民地の維持", FiscalSide.Outlay),
+        I(TreasuryCat.ColonialUpkeep, "植民地の維持", FiscalSide.Outlay),
         I(TreasuryCat.TributeOut, "貢納の支払", FiscalSide.Outlay), I(TreasuryCat.WarCost, "戦費", FiscalSide.Outlay),
         I(TreasuryCat.OtherOut, "その他の支出", FiscalSide.Outlay),
     ];

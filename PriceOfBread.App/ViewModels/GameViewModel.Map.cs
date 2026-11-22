@@ -649,7 +649,7 @@ public partial class GameViewModel
         if (!_cpByHost.TryGetValue(hostName, out var list)) return;
         foreach (var cp in list)
         {
-            // 発見の門が閉じている運河は並べない（巨大建造物の一覧と同じ Megaprojects.RequirementMet・どの国の発見で読むかは扼者の国。扼者が居なければ自国）
+            // 発見の門が閉じている運河は並べない（Megaprojects.RequirementMet は運河の発見の門を引く 1 本・どの国の発見で読むかは扼者の国。扼者が居なければ自国）
             if (!cp.IsOpen && !Megaprojects.RequirementMet(cp.Owner?.Nation ?? _player, cp.Id)) continue;
             string kind = cp.IsCanal ? "運河" : "海峡";
             string state = cp.IsOpen ? "開通" : $"未開通（進捗 {(cp.BuildCost > 1e-9 ? cp.BuildProgress / cp.BuildCost : 0):P0}）";

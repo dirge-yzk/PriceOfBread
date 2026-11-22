@@ -12,7 +12,10 @@
 
         <!-- 国の一覧：ランクごとの群・順位・国名・関係・緊張・動詞。見出しは止めて中身だけ流す -->
         <ctl:Section Key="nations" Title="国の一覧" Scrolls="False">
-            <ctl:TableView x:Name="NationList" Snapshot="{Binding NationTable}" Filterable="True" InnerScroll="True"/>
+            <Grid RowDefinitions="Auto,*">
+                <TextBlock Text="{Binding UnifLine}" IsVisible="{Binding UnifLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="4,2,0,4"/>
+                <ctl:TableView Grid.Row="1" x:Name="NationList" Snapshot="{Binding NationTable}" Filterable="True" InnerScroll="True"/>
+            </Grid>
         </ctl:Section>
 
         <!-- 戦争：交戦中の戦況（戦勝点・戦死・民間人の死・戦費・厭戦）。厭戦はホバーで内訳 -->
@@ -70,6 +73,8 @@
         <ctl:Section Key="army" Title="軍事力の必要量">
             <StackPanel Spacing="2" Grid.IsSharedSizeScope="True">
                 <ctl:StatRow Label="総動員時の兵数" Value="{Binding PolityMobilizationText}"/>
+                <ctl:StatRow Label="戦力余剰" Value="{Binding ExpansionText}"/>
+                <ctl:StatRow Label="軍の練度" Value="{Binding ArmySkillText}"/>
                 <!-- 総動員の判断の材料＝AI と同じ 1 本（Diplomacy.WarScale）。交戦中だけ出す -->
                 <ctl:StatRow Label="戦争の規模" Value="{Binding WarScaleText}" IsVisible="{Binding PlayerAtWar}"/>
                 <ctl:StatRow Label="陣営の本国の敗色" Value="{Binding WarHomeLosingText}" IsVisible="{Binding PlayerAtWar}"/>
@@ -115,7 +120,7 @@
             </StackPanel>
         </ctl:Section>
 
-        <!-- 反乱勢力（表示のみ・対処は国内危機のポップアップへ）。末列は蜂起への近さ（100%超＝蜂起圏＝警告赤）。見出しは点火中の式で切り替わる -->
+        <!-- 反乱勢力（表示のみ・対処は国内危機のポップアップへ）。末列は戦力比（100%超＝蜂起圏＝警告赤） -->
         <ctl:Section Key="faction" Title="反乱勢力">
             <StackPanel Grid.IsSharedSizeScope="True">
                 <TextBlock Text="目立った反乱勢力なし" Classes="dim" IsVisible="{Binding NoFactions}"/>
@@ -128,7 +133,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="1" Text="反乱規模" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
                     <TextBlock Grid.Column="2" Text="結束" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
-                    <TextBlock Grid.Column="3" Text="{Binding FactionProximityHeader}" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
+                    <TextBlock Grid.Column="3" Text="戦力比" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="8,0,0,0"/>
                 </Grid>
                 <ItemsControl ItemsSource="{Binding DomesticFactions}">
                     <ItemsControl.ItemTemplate>
