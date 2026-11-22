@@ -3,3 +3,10 @@ D:/PoB_work/keep_1294/base_ins（29.4GB・INSRAW でも KEEPNULL でもない・
 D:/PoB_work/keep_1301_rej（3.7GB・c134f1_armB と c134k49_armB＝読む線 c3 と設計の材料 ub が読み終えた・要約 measurements/m1301_20261122/keepsum_rej1301_*.tsv）
 D:/PoB_work/ident_c135tl（10.8GB・線 tl の ident の生・線が〈合流が消してよい〉・要約 measurements/m1308_20261123/keepsum_ident_c135tl.tsv）
 空き 69.3GB → 113.2GB。keep_1294 の n1・a11（KEEPNULL）と keep_1301/base_ins（INSRAW）は残した。
+
+第 2 段の片付け（帰属を読み終え、keepsum の後）：
+D:/PoB_work/c135nc_work（1.9GB・腕 B の生・keepsum_c135ncB.tsv）
+D:/PoB_work/c135k47_work（3.3GB・腕 B の生・keepsum_c135k47B.tsv）
+D:/PoB_work/ident_c135ar（0.2GB・keepsum_ident_c135ar_left.tsv）・D:/PoB_work/c135ar_work（突然変異の本体 2 本は measurements/m1303_20261122/ へ写した）・D:/PoB_work/c135tl_work
+D:/PoB_work/r1306_work・r1307_work（台本・表・材料は写した）
+D:/PoB_work/ident_m1308z（腕 Z の刈り残り 9.4GB・keepsum_ident_m1308z_left.tsv）

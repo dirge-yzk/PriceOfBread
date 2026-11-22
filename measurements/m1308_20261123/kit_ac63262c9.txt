@@ -1,0 +1,6 @@
+    0 エラー
+
+経過時間 00:00:19.77
+D:/PoB_play/kit/build/bin/PriceOfBread.Runner/release/PriceOfBread.Display.dll
+DISPLAYDLL
+KITDONE

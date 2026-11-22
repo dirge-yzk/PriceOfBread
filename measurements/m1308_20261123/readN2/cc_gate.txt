@@ -1,0 +1,14 @@
+seed	rows	G1	G2	picks	diffOld	diffNew	otherChange	maxSovColCap	G1_after_other	G1_after_pickHome0	G1_other
+1	41099	0	0	13	1	0	9	0	0	0	0
+2	41401	0	0	15	5	0	13	0	0	0	0
+3	40804	0	0	15	0	0	13	0	0	0	0
+4	41048	0	0	13	0	0	11	0	0	0	0
+5	40790	0	0	12	0	0	9	0	0	0	0
+6	40771	0	0	9	4	0	6	0	0	0	0
+7	41481	0	0	18	1	0	15	0	0	0	0
+8	40793	0	0	13	0	0	11	0	0	0	0
+9	40791	0	0	13	2	0	13	0	0	0	0
+10	40791	0	0	9	0	0	5	0	0	0	0
+計	G1=0（種 0）	G2=0	picks=130	diffOld=13	diffNew=0	otherChange=105	maxSovColCap 種の中央=0・最大=0	欠けた種=0
+G1 の国：
+門：G1 緑・G2 緑
