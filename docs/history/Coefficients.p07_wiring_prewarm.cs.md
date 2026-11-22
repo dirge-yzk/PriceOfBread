@@ -1174,3 +1174,6 @@
 
 ## (1257) c128k20 で削除
 - ConsumeBudgetSavingsRatePerMonth 0（読み手は EconomyStep の d＞0 の枝だけ＝既定で評価されない）。枝の注は docs/history/EconomyStep.cs.md の §191。計器 CapOf は自分の d の並びを持つので残した。
+
+## (1289) c133cl で削除
+- MilitaryWarMult 9.0（元3.0の3倍＝9.0・5倍は軍が溶けすぎたため3倍に決定）と WarMobilizationDepth 0.5（長期戦ほど総動員・WWI 型）。本体の読み手は (1281) c132kx で 0（旗 MilitaryWarMultFromContact の旧の枝）。計器 cwmult_s の規則の 5 列と、試験の前提の Assert だけが読んでいた。戦時の倍率は 1＋WarArmsDemandPerContact×接触の割合。
