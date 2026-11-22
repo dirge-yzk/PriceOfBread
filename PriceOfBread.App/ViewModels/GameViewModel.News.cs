@@ -113,7 +113,6 @@ public partial class GameViewModel
 
     private void DetectEvents()
     {
-        SampleWorldPrices();   // 財パネルの世界価格スパークライン（40四半期・2026-07-24）：四半期ごとにサンプル
         var powers = _sim.Diplomacy.Powers;
         // 分離独立の建国（新国家の誕生・R8民族分離）：前四半期になかった実国のIdが現れたらワールドニュース。count変動に強いId基準（初回は積まず基準化のみ）。
         var curIds = new System.Collections.Generic.HashSet<long>();

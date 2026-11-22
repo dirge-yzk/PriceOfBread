@@ -163,11 +163,9 @@
                                             </StackPanel>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="0">
-                                            <!-- 品名の隣＝世界価格との比較（2026-08-09 項目3）。安い＝青・高い＝赤。値が無い財は空文字＝行は詰まらない -->
                                             <StackPanel Orientation="Horizontal" Spacing="2">
                                                 <Image Source="{Binding GoodId, Converter={x:Static ctl:GoodIconConverter.Instance}}" Width="24" Height="24" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{Binding NameBrush}" VerticalAlignment="Center"/>   <!-- 2026-11-12：17→15（Noto Sans JP の仮名は 1.000em の全角＝旧書体の 0.63〜0.83em より広い。6 文字の「トウモロコシ」と比が 129px に収まる大きさ） -->
-                                                <TextBlock Text="{Binding PriceDiff}" FontSize="{StaticResource FontBody}" FontWeight="Bold" Foreground="{Binding PriceDiffBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </DockPanel>
@@ -192,15 +190,12 @@
         <ctl:Section x:Name="DetailSection" Key="detail" Title="選んだ財" FitContent="True" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ctl:Section.Body>
                 <StackPanel Spacing="4" IsVisible="{Binding ProdDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
-                        <!-- 見出し行（作者仕様2026-08-10 再構成）＝カテゴリ　材名　価格割合。
-                             価格割合＝対世界価格の比（カードと同じ様式＝安い青・高い赤）。 -->
+                        <!-- 見出し行（作者仕様2026-08-10 再構成）＝カテゴリ　材名。 -->
                         <!-- ★閉じるボタン（作者指示2026-08-11）＝右パネルだけを畳む。TABでも同じことが起きる（2段で閉じる）。 -->
                         <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                             <Image Source="{Binding ProdDetail.GoodId, Converter={x:Static ctl:GoodIconConverter.Instance}}" Width="32" Height="32" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding ProdDetail.Title}" FontSize="{StaticResource FontTitle}" FontWeight="Bold" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ProdDetail.PriceDiff}" FontSize="{StaticResource FontLead}" FontWeight="Bold"
-                                       Foreground="{Binding ProdDetail.PriceDiffBrush}" VerticalAlignment="Center"/>
                             <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="2" Padding="5,0" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding ProdDetail.Tier}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource GrayBrush}" VerticalAlignment="Center"/>
                             </Border>
@@ -251,24 +246,6 @@
                                        IsVisible="{Binding ProdDetail.ExportShareLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                             <TextBlock Text="{Binding ProdDetail.TopExporterLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}"
                                        IsVisible="{Binding ProdDetail.TopExporterLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                        </StackPanel>
-                        <!-- ⑤価格グラフ（作者仕様2026-08-10）＝首都価格÷世界価格の40四半期。中央の水平線＝世界価格（比1.0）。
-                             ★枠は常に出す＝標本が2点に満たない開幕に枠ごと消えて下が68px跳ねない（点が0本なら空枠）。
-                             ★縦は対数（項目2）＝×1.25/1.5/2/3/5 とその逆数が中心線から等距離に並ぶ。補助線は淡い1px・中心線は濃い2px。
-                               枠（どこまでが上下端か）と段階の一覧はホバーで読む＝グラフの中に文字を置かない。 -->
-                        <TextBlock Text="{Binding ProdDetail.WorldPriceLine}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" Margin="0,4,0,0"/>
-                        <!-- 図の外へ張り付いた点の実数（世界価格比の最小と最大）＝図の右に置く（図の下の行にすると下の積み上げが押し出される・V8） -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Width="248" Height="68" HorizontalAlignment="Left"
->
-                            <Canvas Width="240" Height="64" Margin="3,1,0,0" ClipToBounds="True">
-                                <Path Data="{Binding ProdSparkGrid}" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
-                                <Rectangle Canvas.Left="0" Canvas.Top="31" Width="240" Height="2" Fill="{StaticResource Gray70Brush}"/>
-                                <Polyline Points="{Binding ProdSparkPoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
-                            </Canvas>
-                        </Border>
-                            <TextBlock Text="{Binding ProdDetail.SparkScaleTip}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" VerticalAlignment="Bottom"
-                                       IsVisible="{Binding ProdDetail.SparkScaleTip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         </StackPanel>
                         <!-- ⑥2段組＝【左】生産にかかるコスト（限界費用の内訳・合計＝生産コスト）／【右】価格の積み上げ（合計＝販売価格）。
                              どちらもエンジン（ProductionDiag）の実式そのもの＝番人テストが「積み上げ＝実際の値」を固定している

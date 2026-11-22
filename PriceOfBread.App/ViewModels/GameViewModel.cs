@@ -223,17 +223,13 @@ public partial class GameViewModel : ViewModelBase
     public bool Spectating => SimFactory.IsSpectating(_sim);
     private Region? _watchHome;   // 観戦中だけ四半期ごとに控える映す国の首都州（国が消えた後に、その州を受け取った国＝吸収した国を引く手掛かり）
 
-    public GameViewModel(MultiNationSim sim, int playerIndex, List<double>[]? warmupPrices, Action? onExit = null, Action? onLoad = null)
+    public GameViewModel(MultiNationSim sim, int playerIndex, Action? onExit = null, Action? onLoad = null)
     {
         _playerIndex = playerIndex;
         _onExit = onExit;
         _onLoad = onLoad;
         _sim = sim;
         _player = _sim.Nations[playerIndex].World;
-        // 助走中の価格標本を引き取る＝開幕の1四半期目から価格グラフに線が引ける（作者フィードバック2026-08-10 項目1）。
-        // 刻みは本編と同じ四半期＝x軸は一様。_wpVersion は標本数＝SampleWorldPrices が1標本ごとに進めるのと同じ数え方。
-        _wpHist = warmupPrices;
-        _wpVersion = warmupPrices is { Length: > 0 } ? warmupPrices[0].Count : 0;
         _lastSampledYear = _player.Year;
         SampleYearStats();   // 開始時点（1783）を年次グラフの起点に
         InitAfterSimReady();
