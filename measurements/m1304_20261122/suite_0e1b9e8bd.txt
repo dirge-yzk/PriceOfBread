@@ -1,0 +1,11 @@
+# (1304) suite 木=/d/PoB_work/wt_c135nc HEAD=0e1b9e8bd 2026-11-22 23:35:18
+list-tests Tests(Category!=FullLength)=2885 Tests.Ui=232 和=3117 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   754、スキップ:     1、合計:   755、期間: 1 h 3 m - PriceOfBread.Tests.dll (net10.0)
+# (1304) suite2 木=/d/PoB_work/wt_c135nc HEAD=0e1b9e8bd 2026-11-23 00:46:20
+list-tests Category!=FullLength=2885 束=755（うち FullLength 0） 残り=2130 束−束の FullLength＋残り=2885
+Tests(残り) rc=0 成功!   -失敗:     0、合格:  2129、スキップ:     1、合計:  2130、期間: 11 m 18 s - PriceOfBread.Tests.dll (net10.0)
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 52 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 58 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-23 01:11:34

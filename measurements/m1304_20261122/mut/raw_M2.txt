@@ -1,0 +1,129 @@
+D:\PoB_work\c135nc_work\mut\M2\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.67]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.13]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.18]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.TerritoryTests.地域間移民でも人口と基礎貨幣は保存される [722 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.小さな州への流入は受け入れの上限を超えない_超えた分は出る州に残る [< 1 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.州の不穏は平民の民間人の闘争度だけで兵と貴族を含まない [2 s]
+  成功 PriceOfBread.Tests.TerritoryTests.移民だけでは州は空にならない_流出は残る人の土地の持ち分で止まる [6 ms]
+[xUnit.net 00:00:05.97]     PriceOfBread.Tests.NextCapitalHomeFirstTests.T4_蜂起のleavingを選ばない [FAIL]
+[xUnit.net 00:00:05.97]       Assert.Same() Failure: Values are not the same instance
+[xUnit.net 00:00:05.97]       Expected: Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 5180.3044776000015, AnnexBaggage = 0, ArableLand = 5666.8891465589159, ··· }
+[xUnit.net 00:00:05.97]       Actual:   Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 1523.6189640000005, AnnexBaggage = 0, ArableLand = 1666.732101929093, ··· }
+[xUnit.net 00:00:05.97]       Stack Trace:
+[xUnit.net 00:00:05.98]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(93,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.T4_蜂起のleavingを選ばない()
+[xUnit.net 00:00:05.98]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.98]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.98]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:05.99]     PriceOfBread.Tests.NextCapitalHomeFirstTests.T3_同点はIdの小さい方 [FAIL]
+[xUnit.net 00:00:05.99]       Assert.Same() Failure: Values are not the same instance
+[xUnit.net 00:00:05.99]       Expected: Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 5789.7520632000005, AnnexBaggage = 0, ArableLand = 6333.5819873305527, ··· }
+[xUnit.net 00:00:05.99]       Actual:   Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 1523.6189640000005, AnnexBaggage = 0, ArableLand = 1666.732101929093, ··· }
+[xUnit.net 00:00:05.99]       Stack Trace:
+[xUnit.net 00:00:05.99]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(83,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.T3_同点はIdの小さい方()
+[xUnit.net 00:00:05.99]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:05.99]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:05.99]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.TerritoryTests.再併合の返還州は親の中で一意のIdを受ける [801 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.辺境へ移民が流入する [172 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.首都を失った国は遷都し距離の基準の座標も新しい首都へ移る [40 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.国を除いた四半期も交易の接触は正しい国に付く [782 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.同一シードで辺境開発は決定論的 [138 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.入口の形_遠い行き先は差が負になり1人も行かない [8 ms]
+  失敗 PriceOfBread.Tests.NextCapitalHomeFirstTests.T4_蜂起のleavingを選ばない [21 ms]
+  エラー メッセージ:
+   Assert.Same() Failure: Values are not the same instance
+Expected: Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 5180.3044776000015, AnnexBaggage = 0, ArableLand = 5666.8891465589159, ··· }
+Actual:   Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 1523.6189640000005, AnnexBaggage = 0, ArableLand = 1666.732101929093, ··· }
+  スタック トレース:
+     at PriceOfBread.Tests.NextCapitalHomeFirstTests.T4_蜂起のleavingを選ばない() in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 93
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.NextCapitalHomeFirstTests.T3_同点はIdの小さい方 [22 ms]
+  エラー メッセージ:
+   Assert.Same() Failure: Values are not the same instance
+Expected: Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 5789.7520632000005, AnnexBaggage = 0, ArableLand = 6333.5819873305527, ··· }
+Actual:   Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 1523.6189640000005, AnnexBaggage = 0, ArableLand = 1666.732101929093, ··· }
+  スタック トレース:
+     at PriceOfBread.Tests.NextCapitalHomeFirstTests.T3_同点はIdの小さい方() in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 83
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.87]     PriceOfBread.Tests.NextCapitalHomeFirstTests.T6_計器capcol_sの受け口の行は付け替えの回数と旧新の選びに一致する [FAIL]
+[xUnit.net 00:00:06.87]       Assert.Equal() Failure: Strings differ
+[xUnit.net 00:00:06.87]                  ↓ (pos 0)
+[xUnit.net 00:00:06.87]       Expected: "2"
+[xUnit.net 00:00:06.87]       Actual:   "1"
+[xUnit.net 00:00:06.87]                  ↑ (pos 0)
+[xUnit.net 00:00:06.87]       Stack Trace:
+[xUnit.net 00:00:06.87]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(142,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.<>c.<T6_計器capcol_sの受け口の行は付け替えの回数と旧新の選びに一致する>b__11_0()
+[xUnit.net 00:00:06.87]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(114,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.WithInstruments(Action body)
+[xUnit.net 00:00:06.87]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(130,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.T6_計器capcol_sの受け口の行は付け替えの回数と旧新の選びに一致する()
+[xUnit.net 00:00:06.87]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:06.87]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.87]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.91]     PriceOfBread.Tests.NextCapitalHomeFirstTests.T5_割譲の艦隊の戻り先はT1と同じC [FAIL]
+[xUnit.net 00:00:06.91]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:06.91]       Expected: 7
+[xUnit.net 00:00:06.91]       Actual:   0
+[xUnit.net 00:00:06.91]       Stack Trace:
+[xUnit.net 00:00:06.91]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(106,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.T5_割譲の艦隊の戻り先はT1と同じC()
+[xUnit.net 00:00:06.91]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:06.91]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.91]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:06.92]     PriceOfBread.Tests.NextCapitalHomeFirstTests.T1_割譲の後の首都は本国格のC_旗0では植民地格のB [FAIL]
+[xUnit.net 00:00:06.92]       Assert.Same() Failure: Values are not the same instance
+[xUnit.net 00:00:06.92]       Expected: Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 5789.7520632000005, AnnexBaggage = 0, ArableLand = 6333.5819873305527, ··· }
+[xUnit.net 00:00:06.92]       Actual:   Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 1523.6189640000005, AnnexBaggage = 0, ArableLand = 1666.732101929093, ··· }
+[xUnit.net 00:00:06.92]       Stack Trace:
+[xUnit.net 00:00:06.92]         D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs(54,0): at PriceOfBread.Tests.NextCapitalHomeFirstTests.T1_割譲の後の首都は本国格のC_旗0では植民地格のB()
+[xUnit.net 00:00:06.92]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:06.92]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.92]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:07.13]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.NextCapitalHomeFirstTests.T6_計器capcol_sの受け口の行は付け替えの回数と旧新の選びに一致する [877 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "2"
+Actual:   "1"
+           ↑ (pos 0)
+  スタック トレース:
+     at PriceOfBread.Tests.NextCapitalHomeFirstTests.<>c.<T6_計器capcol_sの受け口の行は付け替えの回数と旧新の選びに一致する>b__11_0() in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 142
+   at PriceOfBread.Tests.NextCapitalHomeFirstTests.WithInstruments(Action body) in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 114
+   at PriceOfBread.Tests.NextCapitalHomeFirstTests.T6_計器capcol_sの受け口の行は付け替えの回数と旧新の選びに一致する() in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 130
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.NextCapitalHomeFirstTests.T2_本国格が無い時は今と同じ全ての州から選ぶ(flag: 1) [7 ms]
+  成功 PriceOfBread.Tests.NextCapitalHomeFirstTests.T2_本国格が無い時は今と同じ全ての州から選ぶ(flag: 0) [15 ms]
+  失敗 PriceOfBread.Tests.NextCapitalHomeFirstTests.T5_割譲の艦隊の戻り先はT1と同じC [12 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 7
+Actual:   0
+  スタック トレース:
+     at PriceOfBread.Tests.NextCapitalHomeFirstTests.T5_割譲の艦隊の戻り先はT1と同じC() in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 106
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.NextCapitalHomeFirstTests.T1_割譲の後の首都は本国格のC_旗0では植民地格のB [14 ms]
+  エラー メッセージ:
+   Assert.Same() Failure: Values are not the same instance
+Expected: Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 5789.7520632000005, AnnexBaggage = 0, ArableLand = 6333.5819873305527, ··· }
+Actual:   Region { AdminBudget = 0, AdminFill = 0, AnchorPopulation = 1523.6189640000005, AnnexBaggage = 0, ArableLand = 1666.732101929093, ··· }
+  スタック トレース:
+     at PriceOfBread.Tests.NextCapitalHomeFirstTests.T1_割譲の後の首都は本国格のC_旗0では植民地格のB() in D:\PoB_work\c135nc_work\mut\M2\PriceOfBread.Tests\NextCapitalHomeFirstTests.cs:line 54
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.NextCapitalHomeFirstTests.T7_旗0の計器の行は旧の選びと一致し_g1Flagが立つ [199 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 18
+     成功: 13
+     失敗: 5
+合計時間: 9.3610 秒

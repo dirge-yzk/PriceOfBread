@@ -229,7 +229,7 @@ public static class Territory
             to.CumulativeTradeFlow += Bin; to.PopulationDelta += P;
             Transport.Receive(to, rail, ship, from.ShipSteamShare.Value);
         }
-        if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);
+        if (wasCapital) { var cap = NextCapital(from); Instruments.CapColPickIfOn(from); if (cap is not null) from.SetCapital(cap); Instruments.CapColSetIfOn(from); }   // (1304) c135nc capcol_s の受け口
         bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial;
         RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
@@ -253,10 +253,15 @@ public static class Territory
 
     internal static Region? NextCapital(World from, IReadOnlyList<Region>? leaving = null)
     {
+        // (1304) c135nc 旗 NextCapitalHomeFirst 1：leaving の外に本国格（Core・Integrated）の州が 1 つでもあれば、その中から選ぶ（無ければ今と同じ全ての州）
+        bool homeOnly = false;
+        if (from.Coef.NextCapitalHomeFirst > 0)
+            foreach (var q in from.Regions) if (q.Tier != RegionTier.Colonial && !(leaving is not null && leaving.Contains(q))) { homeOnly = true; break; }
         Region? cap = null; double capBest = double.MinValue;
         foreach (var q in from.Regions)
         {
             if ((leaving is not null && leaving.Contains(q))) continue;
+            if (homeOnly && q.Tier == RegionTier.Colonial) continue;
             double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
             if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
         }
