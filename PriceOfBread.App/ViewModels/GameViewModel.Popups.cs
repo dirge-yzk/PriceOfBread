@@ -347,6 +347,10 @@ public partial class GameViewModel
 
     private string WillPct(double v) => Fmt.Share((v / _player.Coef.ExpansionWillCap));   // 膨張度の％表示（上限比）
 
+    /// <summary>確かめの窓の兵力の比べ＝エンジンの開戦の可否（World.CanInvade の兵力の条件）が読む Power.Military を、兵数に直して並べる。</summary>
+    private string MilitaryCompareLine(Power t)
+        => $"兵力 自国 {Fmt.Men(_player.SelfPower!.Military * _player.Coef.SoldiersPerMilitary)}／相手 {Fmt.Men(t.Military * _player.Coef.SoldiersPerMilitary)}";
+
     // P4 統一戦争（プレイヤーの動詞・AIと同条件＝RNGなし・無償）：確認モーダル経由
     [RelayCommand]
     private void DiploUnifWar(string? name)
