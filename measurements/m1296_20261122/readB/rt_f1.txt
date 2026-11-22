@@ -1,0 +1,13 @@
+route	量	腕	基準	腕÷基準
+Meritocracy	in	336708.9	207961.5	1.619
+Meritocracy	net	274472.3	-43908.8	-6.251
+Meritocracy	out	53290.6	225493.2	0.236
+Military	in	0.0	0.0	nan
+Military	net	-103027.9	-111219.3	0.926
+Military	out	103027.9	111219.3	0.926
+MultiNationSim	in	9420.0	9848.4	0.957
+MultiNationSim	net	1533.0	2008.5	0.763
+MultiNationSim	out	7789.3	7959.8	0.979
+PopDecision	in	530630.0	1958588.5	0.271
+PopDecision	net	-208481.3	179753.4	-1.160
+PopDecision	out	700618.1	1786197.5	0.392
