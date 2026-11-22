@@ -59,7 +59,7 @@ public sealed partial class Coefficients
     public double WarFarmOutputDamage = 0.3;      // 戦争→飢饉→政変の連鎖
     public double WarLivestockRequisition = 0.03; // 回復は既存のRGO供給弾力（年単位）から自然に出る＝回復コードなし（鉱脈在庫と同じ思想）
     public double WarLivestockOutputDamage = 0.5; // 05-A：畜産(19)は重め＝役畜・軍馬の徴発が市場価格経由で農業を締める
-    public double InvestExtrapolationWeight = 0.3; // 05-B2：投資の外挿期待の重み（採算の勢い項）
+    public double InvestExtrapolationWeight = 0; // (1298) K49 で 0.3→0（規模の目標に採算の勢いを足さない・係数と項の削除は焼き込みの線・番人 InvestMomentumDeletionTests）
     public double FreightRatePer10Mm = 0.10;     // 運賃率＝荷価の10%/10,000km（ロンドン→ボンベイ18,000kmで約18%）
     public double RiskLambda = 2.0;              // 03手順7：リスク線積分の強度＝1−exp(−λΣ敵支配度×km/1e4)
     public double LandRouteEnabled = 1.0;   // 0=旧・国一律（首都→重心）
