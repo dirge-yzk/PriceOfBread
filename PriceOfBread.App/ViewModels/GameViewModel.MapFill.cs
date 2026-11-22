@@ -76,19 +76,26 @@ public partial class GameViewModel
             foreach (var rg in w.Regions)
             {
                 if (!MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
-                // ★裁定②（2026-09-23 作者指示「支配度は国家でない割合だけ、色を薄くするか黒くする」）：濃さ＝live な rg.Dominance。
-                //   旧＝休眠の rg.Rule[0]（常に 1.0＝濃淡が一度も出なかった）。1−支配度のぶんだけ黒くする（MapFill.Build の色の変調・2026-11-03 に薄くする→黒くするへ）。
-                //   ⚠旧コードは Seed に生値・指紋に ×64 の整数を渡していた＝1/64 未満しか動かない四半期は塗りが古いまま残った（量子化キャッシュの不変条件の破れ）。
-                //     いまは wq ひとつから値も指紋も作る＝「焼き直さない」と「同じ絵」が一致する。
-                //   ★(843) 裁定 D1（★(826) ⑤）：塗りの元は 1−Rule[0]（国家でない割合）の区分＝表の〈支配度〉の列・州パネルの半円と同じ 4 区分（PopTables.RuleParts の 1 本）。
-                //     Region.Dominance は別の量（呼び名は帰属）で、塗りには使わない。
-                double raw = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg)[0].Share;
-                if (!(raw > 0)) raw = 0; else if (!(raw < 1)) raw = 1;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
-                int wq = (int)(raw * DominanceQ);
-                double wgt = wq / (double)DominanceQ;
-                seeds.Add(new MapFill.Seed(co.Lat, co.Lon, col, wgt));
+                // ★州の色＝支配度の 4 区分（PopTables.RuleParts の 1 本・表の〈支配度〉の列と州の窓の半円と同じ定義）を混ぜる（2026-11-22 作者指示）：
+                //   国家の分＝持ち主の国の色・外国勢力の分＝その外国の国ごとの色（Region.ForeignRulers・ForeignShares の持分）・在地勢力の分＝黒・無統治の分＝透明（不透明度に掛ける）。
+                //   ⚠値も指紋も量子化した入力（DominanceQ 刻みの整数）から作る＝「焼き直さない」と「同じ絵」が一致する（量子化キャッシュの不変条件）。
+                var rp = PriceOfBread.SimCore.Display.PopTables.RuleParts(rg);
+                int qState = QuantShare(rp[0].Share), qLocal = QuantShare(rp[1].Share), qUngov = QuantShare(rp[3].Share);
+                int qForeign = System.Math.Max(0, DominanceQ - qState - qLocal - qUngov);   // 4 区分の合計＝DominanceQ に保つ（丸めの差は外国勢力が受ける）
+                double inv = 1.0 / DominanceQ;
+                double cr = qState * inv * col.R, cg = qState * inv * col.G, cb = qState * inv * col.B;
+                sig = Mix(Mix(Mix(Mix(sig, (ulong)rg.Name.GetHashCode()), (ulong)ni), (ulong)qState), (ulong)(qLocal * 64 + qUngov));
+                if (qForeign > 0)
+                {
+                    var (fr, fg, fb, fsig) = ForeignMix(rg, qForeign);
+                    cr += fr * inv; cg += fg * inv; cb += fb * inv;
+                    sig = Mix(sig, fsig);
+                }
+                int qCover = DominanceQ - qUngov;
+                double cover = qCover * inv;
+                Avalonia.Media.Color mixed = qCover <= 0 ? default : Avalonia.Media.Color.FromRgb(ToByte(cr / cover), ToByte(cg / cover), ToByte(cb / cover));
+                seeds.Add(new MapFill.Seed(co.Lat, co.Lon, mixed, cover));
                 targets.Add((rg, null, false));
-                sig = Mix(Mix(Mix(sig, (ulong)rg.Name.GetHashCode()), (ulong)ni), (ulong)wq);
             }
             if (w.SelfPower is { } sp)
                 foreach (var colony in sp.ColonyList)
@@ -146,6 +153,40 @@ public partial class GameViewModel
 
     /// <summary>uishot 用（2026-10-23）：緯度経度を画面の中央へ（島の塗りの無人の確かめ）。</summary>
     public void CenterOnLatLon(double lat, double lon) { var (x, y) = MapData.Project(lat, lon); CenterMap?.Invoke(x, y); }
+
+    private static byte ToByte(double v) => (byte)System.Math.Round(!(v > 0) ? 0 : v < 255 ? v : 255);   // ⚠NaN は 0 へ（否定形）
+    private static int QuantShare(double share) { if (!(share > 0)) return 0; if (!(share < 1)) return DominanceQ; return (int)(share * DominanceQ); }
+
+    /// <summary>国名→色（模型国の並びの番号を代替の番号に使う＝国の塗りと同じ色）。見つからない名前は名前の文字列から決める。</summary>
+    internal Avalonia.Media.Color NationColorByName(string name)
+    {
+        for (int ni = 0; ni < _sim.Nations.Count; ni++)
+        {
+            var w = _sim.Nations[ni].World;
+            if ((w.SelfPower?.Name ?? w.Region.Name) == name) return MapData.NationColor(name, ni);
+        }
+        return MapData.NationColor(name, name.Length);
+    }
+
+    /// <summary>外国勢力の分（qForeign/DominanceQ）を、持分の比で外国ごとの色へ按分した色の和（0..255×その分）と指紋。持ち主の内訳が無いときは黒。</summary>
+    private (double R, double G, double B, ulong Sig) ForeignMix(Region rg, int qForeign)
+    {
+        double total = 0;
+        int n = System.Math.Min(rg.ForeignRulers.Length, rg.ForeignShares.Length);
+        for (int k = 0; k < n; k++) if (rg.ForeignShares[k] > 0 && !string.IsNullOrEmpty(rg.ForeignRulers[k])) total += rg.ForeignShares[k];
+        if (!(total > 0)) return (0, 0, 0, 0xF0F0UL);
+        double r = 0, g = 0, b = 0; ulong sg = 0xF1F1UL;
+        for (int k = 0; k < n; k++)
+        {
+            if (!(rg.ForeignShares[k] > 0) || string.IsNullOrEmpty(rg.ForeignRulers[k])) continue;
+            int qk = (int)(rg.ForeignShares[k] / total * qForeign * 8);   // 指紋の刻み＝按分の 1/8（値も同じ整数から作る）
+            double f = qk / 8.0;                                          // DominanceQ 刻みの分
+            var c = NationColorByName(rg.ForeignRulers[k]);
+            r += f * c.R; g += f * c.G; b += f * c.B;
+            sg = Mix(Mix(sg, (ulong)rg.ForeignRulers[k].GetHashCode()), (ulong)qk);
+        }
+        return (r, g, b, sg);
+    }
 
     private static ulong Mix(ulong h, ulong v) => (h ^ v) * 1099511628211UL;   // FNV-1a 64
 }
