@@ -157,7 +157,7 @@ public class DormantIdentityTests
         // ★ArrearsBeyondOpenedRoom（(1250) c127bd 金本位でない月の不履行の累計を開いた余地で払えなかった分だけにする旗）は 2026-11-20 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は ArrearsOpenedRoomTests）
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★MajorityLabelTierOrder（(1290) c133mr 国の主流の札を格の順で選ぶ）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は MajorityLabelTierOrderTests の T1）。
-        "NextCapitalHomeFirst",         // (1304) c135nc 首都の付け替えを格の順に（0＝今の形・番人 NextCapitalHomeFirstTests）。点火時にこの表から外す
+        // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T1・T7）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★ColonyLabelsFromData（(1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は ColonyLabelsFromDataTests.T1c＝旗を明示）
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
