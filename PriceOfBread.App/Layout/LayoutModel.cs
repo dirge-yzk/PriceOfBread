@@ -73,6 +73,7 @@ public sealed class LayoutModel
     {
         if (!IsWindow(slot))
         {
+            if (slot == Slot.Production) Close(Slot.Province);   // 生産を開いたら州の窓は閉じる（Tab・ヘッダーの釦・問題の飛び先のどれでもここを通る）
             if (slot == Background) return;
             Background = slot;
             Raise();
