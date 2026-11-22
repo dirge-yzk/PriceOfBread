@@ -22,12 +22,12 @@ public partial class MainWindow
         var lay = gvm.Layout;
         try
         {
-            foreach (var slot in new[] { Slot.PoliticsLaw, Slot.DiplomacyWar })
+            foreach (var slot in new[] { Slot.PoliticsLaw, Slot.Rights, Slot.DiplomacyWar })
             {
                 lay.Reset(); UiShotWindows.OpenFull(gameView, lay, slot);
                 await Task.Delay(1100);
                 string tag = SlotInfo.Name(slot);
-                Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : "外交と戦争")}.png");
+                Capture(dir, $"p3_{(slot == Slot.PoliticsLaw ? "政治と法" : slot == Slot.Rights ? "権利と議会" : "外交と戦争")}.png");
                 LogOuterFlow(gameView, tag);
                 LogPage3(gameView, slot, tag);
             }
@@ -55,7 +55,7 @@ public partial class MainWindow
         {
             if (s != slot) continue;
             var grid = page.GetVisualDescendants().OfType<PageGrid>().FirstOrDefault();
-            var table = slot == Slot.PoliticsLaw ? PoliticsLawPage.Table : DiplomacyWarPage.Table;
+            var table = slot == Slot.PoliticsLaw ? PoliticsLawPage.Table : slot == Slot.Rights ? RightsPage.Table : DiplomacyWarPage.Table;
             var keys = page.GetVisualDescendants().OfType<Section>().Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
             var want = table.Sections.Select(x => x.Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
             string cols = grid?.LastPlan is { } pl ? pl.Count.ToString() : "?";

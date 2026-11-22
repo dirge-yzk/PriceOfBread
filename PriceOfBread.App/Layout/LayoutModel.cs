@@ -7,16 +7,16 @@ using PriceOfBread.SimCore.Display;
 
 namespace PriceOfBread.App.Layout;
 
-/// <summary>画面に出せるもの＝8 ページと地図と州の窓。宣言の順が <see cref="Page"/> の宣言の順（キーの割り当て・釦の並びは <see cref="PageKeys.HeaderOrder"/>）（地図・州は後ろ＝キーを持たない）。
-/// 地図と生産は背景・それ以外の 7 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
-public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade, Map, Province }
+/// <summary>画面に出せるもの＝9 ページと地図と州の窓。宣言の順が <see cref="Page"/> の宣言の順（キーの割り当て・釦の並びは <see cref="PageKeys.HeaderOrder"/>）（地図・州は後ろ＝キーを持たない）。
+/// 地図と生産は背景・それ以外の 8 ページと州は浮かぶ窓（州＝地図で指している州の情報。釦もキーも持たず、最初から開いている）。</summary>
+public enum Slot { Production, Market, FiscalMoney, Population, PoliticsLaw, DiplomacyWar, Discovery, Trade, Rights, Map, Province }
 
 /// <summary>画面に出せるものの名前とキー。キーは本体の <see cref="PageKeys"/> が持つ。ここは引くだけ。</summary>
 public static class SlotInfo
 {
     public static readonly IReadOnlyList<Slot> All = Enum.GetValues<Slot>();
 
-    /// <summary>ヘッダーの押し釦に並ぶもの（8 ページ。並びは本体の PageKeys.HeaderOrder。地図は釦を持たない）。</summary>
+    /// <summary>ヘッダーの押し釦に並ぶもの（9 ページ。並びは本体の PageKeys.HeaderOrder。地図は釦を持たない）。</summary>
     public static readonly IReadOnlyList<Slot> Pages = PageKeys.HeaderOrder.Select(p => (Slot)(int)p).ToArray();
 
     public static string Name(Slot s) => s == Slot.Map ? PageKeys.MapName : s == Slot.Province ? "州" : PageKeys.Name((Page)s);

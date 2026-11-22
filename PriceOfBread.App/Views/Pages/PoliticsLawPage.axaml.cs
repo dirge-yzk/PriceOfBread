@@ -9,19 +9,17 @@ namespace PriceOfBread.App.Views.Pages;
 /// <summary>政治と法のページ（(501) 段3）。欄の並べの表（<see cref="Table"/>）を持つ＝ページのどこに欄を置くかは手で決める（設計 §6-9）。</summary>
 public partial class PoliticsLawPage : UserControl
 {
-    /// <summary>欄・最小の行数・置き場。2026-11-11 作者指示：法を左の列いっぱい・右の列に政治（権力・政体・議会）。
+    /// <summary>欄・最小の行数・置き場。2026-11-11 作者指示：法を左の列いっぱい・右の列に政体（権力と議会は権利と議会のページ）。
     /// 政体の詳細・政治影響力・権力の奪い合い・政体の実績は畳んで政体の欄へ要点だけを寄せた。制度は発見のページ。</summary>
     public static PageTable Table { get; } = new(
     [
         new SectionSpec("law", "法の表", 12, 3),
         new SectionSpec("stakes", "選んだ法", 16),
-        new SectionSpec("power", "権力", 9),
         new SectionSpec("crown", "政体", 7),
-        new SectionSpec("parliament", "議会", 10, 2),
     ],
     [
         ["law"],
-        ["stakes", "power", "crown", "parliament"],
+        ["stakes", "crown"],
     ]);
 
     public PoliticsLawPage()
