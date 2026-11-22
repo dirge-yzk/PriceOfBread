@@ -133,4 +133,84 @@ public class TreasLedgerInstrumentTests
             Near(10, a["_ledgerSum"], "Σ"); Near(123.5, a["_residual"], "残差");
         });
     }
+
+    // ---- (1302) c135tl：tk の後片付け（途中で生まれた国の受け取り・Peek は四半期ごと・差分と残差の算術は 1 本）
+
+    private static IEnumerable<string[]> PeekRows(MultiNationSim sim) => Instruments.TreasLedgerPeek(sim).Select(l => l.Split('	'));
+
+    [Fact]
+    public void T7_分離で生まれた子の国は最初の四半期に受け取った初期の国庫を_bornTreasuryの行で出し_親のOtherOutと足して0()
+    {
+        WithInstruments(_ =>
+        {
+            var sim = NewSim(); var uk = Of(sim, "イギリス");
+            Instruments.Quarter(sim, Seed, 0);
+            In(uk, TreasuryCat.Tax, 5000);   // 分与の元手（助走の無い盤面の国庫は 0）
+            double before = uk.Treasury.Value; Assert.True(before > 0);
+            var parent = sim.Nations.First(n => ReferenceEquals(n.World, uk));
+            var reg = uk.Regions[^1];   // 首都でない州（分離の対象）
+            int n0 = sim.Nations.Count;
+            typeof(MultiNationSim).GetMethod("SpawnNation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .Invoke(sim, [parent, new List<Region> { reg }, null]);
+            Assert.Equal(n0 + 1, sim.Nations.Count);
+            double given = before - uk.Treasury.Value;   // 試験が手で測った親の国庫の減り（分与の額）
+            Assert.True(given > 0, "分与が 0＝試験の盤面が効いていない");
+            var child = sim.Nations[^1].World; string cn = Instruments.NameOf(child);
+            Instruments.Quarter(sim, Seed, 1);
+            var c = Rows(sim, 1, cn);
+            Assert.True(c.ContainsKey("_bornTreasury"), "子の最初の観測に _bornTreasury が無い");
+            Near(given, c["_bornTreasury"], "子が受け取った初期の国庫");
+            Assert.True(double.IsNaN(c["_treasuryDelta"]) && double.IsNaN(c["_residual"]), "既存の nan の行は変えない");
+            var a = Rows(sim, 1, "イギリス");
+            Near(-given, a["OtherOut"], "親の OtherOut");
+            Near(0, a["OtherOut"] + c["_bornTreasury"], "親の OtherOut と子の受け取りの和");
+            Assert.False(a.ContainsKey("_bornTreasury"), "親（既に観測した国）には書かない");
+            Instruments.Quarter(sim, Seed, 2);
+            Assert.False(Rows(sim, 2, cn).ContainsKey("_bornTreasury"), "2 四半期目には書かない");
+        });
+    }
+
+    [Fact]
+    public void T8_2四半期目のPeekに前の四半期の行が無い()
+    {
+        WithInstruments(_ =>
+        {
+            var sim = NewSim();
+            Instruments.Quarter(sim, Seed, 0);
+            int n0 = Instruments.TreasLedgerPeek(sim).Count; Assert.True(n0 > 0);
+            Instruments.Quarter(sim, Seed, 1);
+            Assert.All(PeekRows(sim), v => Assert.Equal("1", v[0]));
+            Instruments.Quarter(sim, Seed, 2);
+            Assert.All(PeekRows(sim), v => Assert.Equal("2", v[0]));
+            Assert.True(Instruments.TreasLedgerPeek(sim).Count > 0);
+        });
+    }
+
+    [Fact]
+    public void T9_共通の関数の差分が_FiscalRowの列とtreasledger_sの行で一致する()
+    {
+        WithInstruments(_ =>
+        {
+            var sim = NewSim(); var uk = Of(sim, "イギリス");
+            Instruments.Quarter(sim, Seed, 0);
+            double t0 = uk.Treasury.Value;
+            In(uk, TreasuryCat.Tax, 1000.25); Out(uk, TreasuryCat.Army, 300.5); Out(uk, TreasuryCat.OtherOut, 50.125);
+            uk.SetTreasuryRaw(uk.Treasury.Value + 11.5);   // 台帳の外の動き（残差 11.5）
+            Instruments.Quarter(sim, Seed, 1);
+            var tl = Rows(sim, 1, "イギリス");
+            var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+            var st = typeof(Instruments).GetMethod("S", bf, [typeof(World)])!.Invoke(null, [uk])!;
+            st.GetType().GetField("PrevTreasury")!.SetValue(st, t0);
+            var fr = typeof(Instruments).GetMethod("FiscalRow", bf)!;
+            var hs = new System.Text.StringBuilder(); var vs = new System.Text.StringBuilder();
+            fr.Invoke(null, [uk, st, hs, true]); fr.Invoke(null, [uk, st, vs, false]);
+            var names = hs.ToString().Split('	'); var vals = vs.ToString().Split('	');
+            double Col(string n) => double.Parse(vals[Array.IndexOf(names, n)], System.Globalization.CultureInfo.InvariantCulture);
+            Near(1000.25, Col("ledgerTaxPerMonth"), "FiscalRow Tax"); Near(-300.5, Col("ledgerArmyPerMonth"), "FiscalRow Army"); Near(-50.125, Col("ledgerOtherOutPerMonth"), "FiscalRow OtherOut");
+            Near(tl["Tax"], Col("ledgerTaxPerMonth"), "Tax 列と行"); Near(tl["Army"], Col("ledgerArmyPerMonth"), "Army 列と行");
+            Near(tl["_ledgerSum"], Col("ledgerSumPerMonth"), "Σ 列と行");
+            Near(tl["_treasuryDelta"], Col("treasuryDeltaPerMonth"), "国庫の変化 列と行");
+            Near(tl["_residual"], Col("ledgerResidualPerMonth"), "残差 列と行"); Near(11.5, tl["_residual"], "残差は手で置いた 11.5");
+        });
+    }
 }
