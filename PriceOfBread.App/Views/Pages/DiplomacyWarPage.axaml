@@ -13,7 +13,10 @@
         <!-- 国の一覧：ランクごとの群・順位・国名・関係・緊張・動詞。見出しは止めて中身だけ流す -->
         <ctl:Section Key="nations" Title="国の一覧" Scrolls="False">
             <Grid RowDefinitions="Auto,*">
-                <TextBlock Text="{Binding UnifLine}" IsVisible="{Binding UnifLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="4,2,0,4"/>
+                <StackPanel>
+                    <TextBlock Text="{Binding ExpansionText, StringFormat='戦力余剰　{0}'}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="4,2,0,2"/>
+                    <TextBlock Text="{Binding UnifLine}" IsVisible="{Binding UnifLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="4,2,0,4"/>
+                </StackPanel>
                 <ctl:TableView Grid.Row="1" x:Name="NationList" Snapshot="{Binding NationTable}" InnerScroll="True"/>
             </Grid>
         </ctl:Section>

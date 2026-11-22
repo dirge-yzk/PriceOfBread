@@ -18,5 +18,6 @@ public partial class DiscoveryPage : UserControl
     {
         InitializeComponent();
         PageBody.Table = Plan;
+        foreach (var t in new[] { TechLeft, TechRight, SocialList, SiteList }) t.Legend = PriceOfBread.App.ViewModels.GameViewModel.DiscoveryLegend;   // 棒の色（技術力・必要性・伝播・解禁済み）＝国の一覧の政体の凡例と同じ仕組み
     }
 }
