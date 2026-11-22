@@ -1596,10 +1596,10 @@ public static partial class Instruments
         C("borrowGateOpenFlag", st.GateOpenNow < 0 ? double.NaN : st.GateOpenNow); C("directTaxNetPerMonth", st.RevDirectNet); C("indirectRevenuePerMonth", st.RevIndirect);
         C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt.Value);
         C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyMonths); C("defaultCount", w.SovereignDefaultCount);
-        var led = w.TreasuryLedger; double dSum = 0;
-        for (int k = 0; k < NCat; k++) { double d = led[k] - st.PrevLedger[k]; dSum += d; C("ledger" + ((TreasuryCat)k) + "PerMonth", d); }
-        double dT = w.Treasury.Value - st.PrevTreasury;
-        C("treasuryEndStock", w.Treasury.Value); C("treasuryDeltaPerMonth", dT); C("ledgerSumPerMonth", dSum); C("ledgerResidualPerMonth", dT - dSum);
+        Span<double> dk = stackalloc double[NCat];
+        var (dT, dSum, dRes) = LedgerStep(w.TreasuryLedger, st.PrevLedger, w.Treasury.Value, st.PrevTreasury, dk);   // 差分と残差の算術は treasledger_s と共通
+        for (int k = 0; k < NCat; k++) C("ledger" + ((TreasuryCat)k) + "PerMonth", dk[k]);
+        C("treasuryEndStock", w.Treasury.Value); C("treasuryDeltaPerMonth", dT); C("ledgerSumPerMonth", dSum); C("ledgerResidualPerMonth", dRes);
         // unpaid〔履歴 Instruments.cs#223〕
         double unpaid = UnpaidBeforeDevaluationShare(st.ClaimsTotal, st.Payable0, st.Borrowed);
         C("interestToRevenueShareAtGate", st.GateRev > 0 ? st.GateInt / st.GateRev : double.NaN); C("interestAtLimitFlag", st.LimitNow < 0 ? double.NaN : st.LimitNow);

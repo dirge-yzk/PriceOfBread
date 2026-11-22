@@ -1,0 +1,15 @@
+== Ma _bornTreasury を書かない
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T7_分離で生まれた子の国は最初の四半期に受け取った初期の国庫を_bornTreasuryの行で出し_親のOtherOutと足して
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+== Mb Peek を空にしない
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T8_2四半期目のPeekに前の四半期の行が無い [2 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+== Mc LedgerStep の符号を逆にする
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T7_分離で生まれた子の国は最初の四半期に受け取った初期の国庫を_bornTreasuryの行で出し_親のOtherOutと足して
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T4_台帳を通らない国庫の動きは残差に出る [183 ms]
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T1_差分の行が科目ごとに一致し_残差0_0の科目は書かない [181 ms]
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T9_共通の関数の差分が_FiscalRowの列とtreasledger_sの行で一致する [305 ms]
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T2_前の四半期の値を更新する_2四半期目は差分だけ [172 ms]
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T3_助走明けのリベースの四半期に印と跳びを書き_その後の差分は台帳の捨てを引きずらない [163 ms]
+失敗!   -失敗:     6、合格:     2、スキップ:     0、合計:     8、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+done

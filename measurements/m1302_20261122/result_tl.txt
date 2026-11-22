@@ -1,0 +1,8 @@
+(1302) c135tl 結果（Claude Sonnet 5.5）
+判定: 恒等（測った種で一致・段 2・宣言＝treasledger_s の行の増え 106・テストの差 +3）。ident_20261122_c135tl.txt・成績表 b5_20261122_c135tl・b10_20261122_c135tl_ins は m1294 と全行バイト一致・.cost の推定 232.1 秒で一致（件数の行 45 本）。
+試験：Category!=FullLength 3112（Tests 2880〔合格 2878・スキップ 2〕＋Ui 232）・FullLength 3＝全て緑（suite/）。㉘ 走査の番人 150 本緑（scan28.txt）。savetest OK・leakhunt 保存則違反なし。
+突然変異：Ma→T7 赤・Mb→T8 赤・Mc→T1・T2・T3・T4・T7・T9 赤（mutations.txt）。
+項 C の鍵：前の値の鍵は元から World の参照（ConditionalWeakTable<World,…>）＝移す物なし。値が変わる行は 0。
+種 6 のアクモラ型：途中で生まれた 12 国の最初の観測の四半期に _bornTreasury が出る（seed6_born_rows.txt・ledgerSum=0＝受け取りは全て台帳の外・delta と residual は nan のまま）。
+足した計器の列：treasledger_s の item 値 _bornTreasury のみ（列は増えない）。
+ident は PRUNE=1（D: の空き 40GB・基準と一致した 1577 表 20.46GB を刈り、差のある表 10 本＋既知の揺れ 20 本＋他の 120 本を残した・sha1 は sha1_ident_c135tl_kept_raw.txt）。

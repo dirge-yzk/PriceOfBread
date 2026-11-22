@@ -1,0 +1,12 @@
+q39 year1793 nation=立憲王政ロシア bornTreasury=80939.77589891825 treasuryEnd=80939.77589891825 ledgerSum=0 delta=nan residual=nan
+q109 year1810 nation=立憲王政オーストリア bornTreasury=17885.087700512002 treasuryEnd=17885.087700512002 ledgerSum=0 delta=nan residual=nan
+q116 year1812 nation=立憲王政オーストリア bornTreasury=15816.144605279049 treasuryEnd=15816.144605279049 ledgerSum=0 delta=nan residual=nan
+q135 year1817 nation=立憲王政オスマン bornTreasury=22757.602830001673 treasuryEnd=22757.602830001673 ledgerSum=0 delta=nan residual=nan
+q254 year1846 nation=立憲王政プロイセン bornTreasury=37149.16864290491 treasuryEnd=37149.16864290491 ledgerSum=0 delta=nan residual=nan
+q363 year1874 nation=立憲王政イギリス bornTreasury=27885.305367587764 treasuryEnd=27885.305367587764 ledgerSum=0 delta=nan residual=nan
+q379 year1878 nation=立憲王政デンマーク bornTreasury=5556.896088302185 treasuryEnd=5556.896088302185 ledgerSum=0 delta=nan residual=nan
+q380 year1878 nation=第2立憲王政イギリス bornTreasury=69462.79492143699 treasuryEnd=69462.79492143699 ledgerSum=0 delta=nan residual=nan
+q392 year1881 nation=共和制デンマーク bornTreasury=112230.08464646015 treasuryEnd=112230.08464646015 ledgerSum=0 delta=nan residual=nan
+q595 year1932 nation=共和制両シチリア bornTreasury=56314.30143922593 treasuryEnd=56314.30143922593 ledgerSum=0 delta=nan residual=nan
+q599 year1933 nation=立憲王政日本 bornTreasury=16463.55819325951 treasuryEnd=16463.55819325951 ledgerSum=0 delta=nan residual=nan
+q637 year1942 nation=共和制オヨ bornTreasury=39244.99342892415 treasuryEnd=39244.99342892415 ledgerSum=0 delta=nan residual=nan

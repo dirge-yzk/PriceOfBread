@@ -1,0 +1,35 @@
+(1302) c135tl 事前登録（腕の前のコミット）＝恒等の線：tk の後片付け（途中で生まれた国の国庫の受け取りの行・Peek を四半期ごとに空に・差分と残差の算術を 1 本へ）
+木 D:/PoB_work/wt_c135tl・枝 c135tl（22c8d10bfeca から）・基線 m1294（INSRAW＝keep_1301/base_ins）。書いた担当 Claude Sonnet 5.5。
+
+[1] 恒等の線・予言 0（★(743) の区分＝計器だけ）
+ エンジン（計器でない SimCore）には 1 行も触れない。新しい係数・旗・シミュの状態は 0（前の値は計器の ConditionalWeakTable＝今の鍵は World の参照＝名前でない。項 C の「鍵を World へ」は既に満たされている）。
+ 項 A：途中で生まれた国（treasledger_s の TlWorld.Have が false の最初の観測の四半期＝基線で _treasuryDelta・_residual が nan の行）に、新しい item の行 _bornTreasury＝その行の _treasuryEnd−_ledgerSum を 1 行足す（_residual の直後）。
+   既存の行（nan の行を含む）は 1 バイトも変えない＝行の増えだけ。宣言：--rows-grown-ok treasledger_s。
+   紙の確かめ（measurements/m1302_paper_rows.txt・scripts/instruments/c135tl/paper_rows.py）：基線 10 種の treasledger_s に _bornTreasury を足した腕を作り、ident_check.cols_diff(rows_grown=True) が
+   10 種とも 〈基準の行は順序つき部分列〉（real 0）で、増えた行は種ごと 5・7・7・17・7・12・11・11・17・12＝計 106。値を 1 つ変えた腕は 10 種とも ROWS_NOT_SUBSEQUENCE（門は何もしない実装では通らない）。
+   予言：腕の treasledger_s の増えた行は計 106（nc・ar と無関係＝ほかの表は 1 バイトも変わらない）。
+ 項 B：TlSink.Peek を、TreasLedgerTable の頭で四半期ごとに空にする（ArrearsPeek の s.Rows.Clear() と同じ形）。試験の読み口は最後の四半期の行だけになる。書き出す表は変わらない。
+ 項 C：差分と残差の算術（科目の差分・その和・国庫の変化・残差＝国庫の変化−和）を 1 本の関数 LedgerStep にし、FiscalRow（月の表・Instruments.cs）と treasledger_s の両方から呼ぶ。
+   浮動小数の順序は保つ（科目の差分は led[k]−prev[k]・和は k の昇順・残差は dT−dSum）。両方の表のバイトは変えない。
+   浮動小数の順序が変わる箇所：なし。同じ盤面で旧と新の食い違いの数は、試験（共通の関数と FiscalRow の列・treasledger_s の行の一致）と ident（全行一致）で数える。0 でなければその項を外す。
+ 入れない物：分離の国庫の分与と行政の出口の直し（挙動）・arrears_s・nation_s の列・〈0 の近くからの跳び〉の区分。
+
+[2] 消す物と残す物
+ 消す物：FiscalRow と treasledger_s の中の重複した算術の行（InstrumentsTreasLedger.cs の差分ループ・Instruments.cs:1600〜1602）。残す物：両方の表の列・見出し・登録。
+ 足す物：LedgerStep（InstrumentsTreasLedger.cs・新しい補助関数の理由＝既存に同じ形が無い。grep：LedgerStep・「dSum」は FiscalRow と TreasLedgerTable の 2 か所だけ）。
+ 読み手の grep（TlSink・TlWorld・TreasLedger・treasledger）：SimCore は InstrumentsTreasLedger.cs と Instruments.cs の登録 3 行・Tests は TreasLedgerInstrumentTests.cs・scripts は m1301 の台本 2 本だけ（Runner・App・Display・POB_COEF・SaveGame に 0）。
+ 他の線との重なり：Instruments.cs は FiscalRow の 3 行（:1600〜:1602）と呼びの行だけ（nc は登録の行・ar は触れない）。route_anchors.tsv（scripts/instruments/flow262/）に treasledger・TreasLedger・FiscalRow・Instruments.cs の鍵の行は 0（grep 済み）＝書き換えない。
+ `new MoneyStock(` の件数は 64 から増えない予言（新しい式で作らない）。Instruments.On の読みは増えない（Wants("treasledger_s") のまま）＝OnDoubleReadScanTests の表は変わらない予言。
+
+[3] 足す試験（PriceOfBread.Tests/TreasLedgerInstrumentTests.cs）と突然変異
+ T7 分離で子の国が生まれる盤面（英の州を 1 つ SpawnNation で分離）：子の最初の四半期に _bornTreasury が 1 行・値は親の国庫の減り（試験が手で測った分与の額）と 1e-12 で一致・親の OtherOut の差分と足して 0。
+ T8 2 四半期目の Peek に前の四半期の行が無い（先頭の行の四半期の列が最後の四半期だけ）。
+ T9 共通の関数 LedgerStep の差分が、FiscalRow の列（ledger…PerMonth・ledgerSumPerMonth・ledgerResidualPerMonth）と treasledger_s の行で一致する（同じ盤面・手で置いた額と比べる）。
+ 突然変異（使い捨ての木・measurements/m1302_20261122/mutations.txt に出力）：Ma _bornTreasury を書かない → T7 で赤。Mb Peek を空にしない → T8 で赤。Mc LedgerStep の符号を逆にする → T1・T9 で赤。
+ ㉘ ソースを走査する番人の点検：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests・TreasLedgerInstrumentTests を器の直後に回す。書き換える既存の試験の行の予言：0。
+ 工業化度の読み手の許可表・WriterRatchetTests の宣言の表・DormantIdentityTests は変わらない予言（grep：treasledger 0 件）。
+
+[4] 素の 5 種・計器つき 10 種が m1294 と名乗り行を除いて全行一致（計器の表の差は宣言だけ：treasledger_s の行の増え 106）。試験の数の予言：3109＋3＝3112（Category!=FullLength・Ui 232 を含む）・FullLength 3。
+ 計算量：件数が増えない（LedgerStep は同じ回数の算術・_bornTreasury は途中で生まれた国の最初の 1 四半期に 1 行）。
+
+[5]〈判定: 恒等〉（段 2・宣言は treasledger_s の行の増えだけ）なら採る。一致しなければ、その変更を外して報告に回す。〈証明〉とは書かない（測った種で一致）。
