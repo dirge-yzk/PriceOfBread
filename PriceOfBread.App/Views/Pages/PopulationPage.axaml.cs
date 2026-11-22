@@ -10,18 +10,15 @@ public partial class PopulationPage : UserControl
 {
     public static PageTable Plan { get; } = new(
     [
-        new SectionSpec("classes", "階級", 16), new SectionSpec("regions", "州の表", 8, 3), new SectionSpec("age", "年齢の層", 8),
-        new SectionSpec("births", "出生と死", 6), new SectionSpec("religion", "宗教", 4), new SectionSpec("culture", "文化", 4),
+        new SectionSpec("classes", "階級", 16), new SectionSpec("regions", "州の表", 8, 3), new SectionSpec("age", "年齢の層", 11),
+        new SectionSpec("religion", "宗教", 4), new SectionSpec("culture", "文化", 4),
     ],
-    [["classes", "regions"], ["age", "births", "religion", "culture"]],
+    [["classes", "regions"], ["age", "religion", "culture"]],
     ColumnMinWidth: 610);   // 階級の表は列が多い（約 610 の幅）＝それより狭くなる列には割らず、1 列へ積む
 
     public PopulationPage()
     {
         InitializeComponent();
         PageBody.Table = Plan;
-        BirthChart.LabelFormat = v => Fmt.Of(Unit.RatePerYear, v);
-        DeathChart.LabelFormat = v => Fmt.Of(Unit.RatePerYear, v);
-        FertilityChart.LabelFormat = v => v.ToString("0.0");
     }
 }

@@ -25,9 +25,9 @@ public partial class GameViewModel
     [ObservableProperty] private AgePyramid _agePyramid = AgePyramid.Empty;
     [ObservableProperty] private string _cropLine = "";   // 国の作柄（州の表の列ではなく国の 1 行）
     [ObservableProperty] private string _childLaborLine = "";   // 児童の就業率（創発量＝家計困窮×合法度×就学。法の 2 値でなく実態が数年かけて落ちる様子）
-    [ObservableProperty] private IReadOnlyList<double> _birthRateValues = [];
-    [ObservableProperty] private IReadOnlyList<double> _deathRateValues = [];
-    [ObservableProperty] private IReadOnlyList<double> _fertilityValues = [];
+    [ObservableProperty] private string _birthRateText = "−";   // 粗出生率の最新の年の値（年に 1 回の標本の差分）
+    [ObservableProperty] private string _deathRateText = "−";
+    [ObservableProperty] private string _fertilityText = "−";   // 合計出生率の代理
 
     // ★規模と失業者の増減の矢印（作者指示 2026-08-16）＝四半期スタンプ方式。Refresh は月次でも呼ばれる＝毎回差分を取ると 1 か月ぶんの微動しか出ない
     //   →四半期境界でのみ差分を確定し、境界間は前回確定値を表示。
@@ -86,7 +86,10 @@ public partial class GameViewModel
             death.Add(pAvg > 1e-9 ? (dth[i] - dth[i - 1]) / dy / pAvg : double.NaN);
             tfr.Add(fAvg > 1e-9 ? (b[i] - b[i - 1]) / dy / fAvg * 35.0 : double.NaN);
         }
-        BirthRateValues = birth; DeathRateValues = death; FertilityValues = tfr;
+        static double? Last(List<double> v) { for (int i = v.Count - 1; i >= 0; i--) if (double.IsFinite(v[i])) return v[i]; return null; }
+        BirthRateText = Last(birth) is double b0 ? Fmt.Of(Unit.RatePerYear, b0) : "−";
+        DeathRateText = Last(death) is double d0 ? Fmt.Of(Unit.RatePerYear, d0) : "−";
+        FertilityText = Last(tfr) is double t0 ? t0.ToString("0.0") : "−";
     }
 
     /// <summary>人口の更新（月・四半期の Refresh と、人口のページが見えた瞬間）。階級の集約と増減の矢印の差分は、見えているかに依らず毎月採る

@@ -130,8 +130,8 @@ public partial class MainWindow
         if (g.CropLine.Length > 0) ageRows.Add([g.CropLine, "", ""]);
         if (g.ChildLaborLine.Length > 0) ageRows.Add([g.ChildLaborLine, "", ""]);
         t.Add(UiShotDump.TextTable("pop.age", "年齢の層", Page.Population, ["層", "男性", "女性"], ageRows));
-        t.Add(UiShotDump.TextTable("pop.births", "出生と死", Page.Population, ["線", "最新", "最小", "最大", "点の数"],
-            [LineRow("粗出生率", g.BirthRateValues, "P2"), LineRow("粗死亡率", g.DeathRateValues, "P2"), LineRow("合計出生率", g.FertilityValues, "F2")]));
+        t.Add(UiShotDump.TextTable("pop.births", "出生と死", Page.Population, ["項目", "最新"],
+            [["粗出生率", g.BirthRateText], ["粗死亡率", g.DeathRateText], ["合計出生率", g.FertilityText]]));
 
         Show(Slot.DiplomacyWar);
         g.RefreshDiplomacyPage();
@@ -155,14 +155,6 @@ public partial class MainWindow
 
         Show(Slot.Discovery);   // 発見の表は目録が読む（Build が書く）。ここは見えた瞬間の更新を画面と同じに走らせるだけ
         return new UiShotDump.UiShotExtra(header, t);
-    }
-
-    /// <summary>線グラフの最新・最小・最大・点の数（有限の点だけ）。</summary>
-    private static IReadOnlyList<string> LineRow(string name, IReadOnlyList<double> v, string fmt)
-    {
-        var f = v.Where(double.IsFinite).ToList();
-        if (f.Count == 0) return [name, "—", "—", "—", "0"];
-        return [name, f[^1].ToString(fmt), f.Min().ToString(fmt), f.Max().ToString(fmt), f.Count.ToString()];
     }
 
     /// <summary>時点の終わり：この時点の判定（外側の流れ・表の左端・UI の例外・異常の行）を記録へ。</summary>
