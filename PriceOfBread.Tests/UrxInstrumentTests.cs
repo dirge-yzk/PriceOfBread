@@ -300,7 +300,6 @@ public class UrxInstrumentTests
         try
         {
             var (w, r, rural, urban, c) = BoardF0(0.10, 0.40, 0.30, 0.9, 0.2);
-            long m0 = 100; w.Tick = m0 * Calendar.DaysPerMonth;
             Instruments.UrxPd(w, r, 1.0);   // 門の月
             // 門の後：都市も食べられる（門なし）・自給 0（g＞0＝シグモイドも g も都市へ）
             rural.SubsistenceValuePerMonth = new MoneyPerMonth(0.0); urban.FoodMet = 0.9 * urban.FoodNeed;
@@ -310,7 +309,6 @@ public class UrxInstrumentTests
             Assert.Equal(0.15, c.MigrationTemperature);
             for (int k = 1; k <= 13; k++)
             {
-                w.Tick = (m0 + k) * Calendar.DaysPerMonth;
                 Instruments.UrxPd(w, r, 1.0);
                 var f = Instruments.UrxPdPeekF0(w);
                 int expectN = Math.Min(k, 12);

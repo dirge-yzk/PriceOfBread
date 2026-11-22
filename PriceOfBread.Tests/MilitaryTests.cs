@@ -2012,7 +2012,7 @@ public class MilitaryTests
     {
         (double ceil, double pay, double warMult) Twin(double kappa)
         {
-            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1793);   // (1296) ㊴ 種の選び直し 1789→1793（前提〈戦時の倍率＞1＝最初の月に接触がある〉が旗 UrbanFlowReal 1 の種 1789・1790 で崩れた・1793 は旗 0 と 1 の両方で成り立つ＝measurements/m1296_20261122/seed/seedloop.txt・規則の検査は変えない）
             sim.StepQuarter();
             var w = sim.Nations[0].World; var c = w.Coef;
             sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });

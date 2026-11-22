@@ -27,7 +27,7 @@ public static partial class Instruments
         // (1296) F0 の列：門の月の農村への流れ・門の後の窓の都市への流れ・2 本の物差しの符号の逆・食べられなかった量の値・案 A の g
         public double PdFamineBackK, PdFamineRegainK, PdWShortVU, PdWShortVR, PdWGsymA;
         public long PdFamineRegainRegionMonths, PdOppSignRegionMonths;
-        public readonly Dictionary<Region, long> PdLastGateMonth = new(ReferenceEqualityComparer.Instance);   // 州ごとの最後の門の月（Tick÷30・四半期をまたいで持つ＝Fold で消さない）
+        public readonly Dictionary<Region, int> PdSinceGate = new(ReferenceEqualityComparer.Instance);   // 州ごとの最後の門の月から数えた月（対のある本国の州×月だけ数える・窓を過ぎたら消す・四半期をまたいで持つ＝Fold で消さない）
     }
     sealed class UrxAcc { public readonly double[] U = new double[2], R = new double[2]; public int N; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, UrxState> UrxStates = new();
@@ -118,22 +118,26 @@ public static partial class Instruments
     }
 
     /// <summary>
-    /// (1296) F0 の列（読むだけ）。門の月：農村への流れ（−flow）を famineBackK へ・その月を州の最後の門の月に。門でない月：最後の門の月から 1〜12 か月目で都市への流れが正なら famineRegainK と州×月の数へ。
+    /// (1296) F0 の列（読むだけ）。門の月：農村への流れ（−flow）を famineBackK へ・その月を州の最後の門の月に。門でない月：最後の門の月から 1〜12 か月目（対のある本国の州×月で数える）で都市への流れが正なら famineRegainK と州×月の数へ。
     /// oppSign＝シグモイドの (目標−今) と g の符号が逆（両方 0 でない）。p̄＝州の主食の値段を基礎の必要量で重みづけた平均（計器が州の市場から組む）・u＝(FoodNeed−FoodMet)÷規模（0 で切る）。
     /// 案 A の g＝2(V_u−V_r)/(V_u+V_r)・V_r＝max(0, max(0,稼ぎ_r)＋自給の値−p̄u_r)・V_u＝max(0, max(0,稼ぎ_u)−家賃−p̄u_u)。重みは他の w 列と同じ対の規模。
     /// </summary>
     static void UrxPdF0(World w, UrxState ux, Region region, in UrxPdDriveRow d)
     {
-        long month = w.Tick / Calendar.DaysPerMonth;
         if (d.FamineGated)
         {
             if (d.Flow < 0) ux.PdFamineBackK += -d.Flow;
-            ux.PdLastGateMonth[region] = month;
+            ux.PdSinceGate[region] = 0;
         }
-        else if (d.Flow > 0 && ux.PdLastGateMonth.TryGetValue(region, out long gm))
+        else if (ux.PdSinceGate.TryGetValue(region, out int k0))
         {
-            long k = month - gm;
-            if (k >= 1 && k <= UrxRegainWindowMonths) { ux.PdFamineRegainK += d.Flow; ux.PdFamineRegainRegionMonths++; }
+            int k = k0 + 1;
+            if (k > UrxRegainWindowMonths) ux.PdSinceGate.Remove(region);
+            else
+            {
+                ux.PdSinceGate[region] = k;
+                if (d.Flow > 0) { ux.PdFamineRegainK += d.Flow; ux.PdFamineRegainRegionMonths++; }
+            }
         }
         double drive = d.TargetPre - d.Cur;
         if ((drive > 0 && d.Gsym < 0) || (drive < 0 && d.Gsym > 0)) ux.PdOppSignRegionMonths++;

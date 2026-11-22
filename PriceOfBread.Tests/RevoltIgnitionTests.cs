@@ -1056,10 +1056,11 @@ public class RevoltIgnitionTests
     // ============================================================================================
     /// <summary>単国の英（開幕から20四半期）の首都州に運動を1本立て、最大の大衆POPを唯一の参加者（闘争度0.9・貯蓄大＝予算は縛らない）にする。
     /// 束と主軸は FactionSnapshot の同じ1本で導く（テストが参加の述語を再実装しない）。他POPの闘争度は0＝参加者は1人＝払い手の帳簿が読める。</summary>
-    private static (Simulation Sim, FactionState F, Pop Payer) 武装する運動(double enabled, Action<Coefficients>? tune = null, ulong seed = 42)
+    private static (Simulation Sim, FactionState F, Pop Payer) 武装する運動(double enabled, Action<Coefficients>? tune = null, ulong seed = 42, Action<Coefficients>? pre = null)
     {
         // ★(613) 線 tl：技術水準の削除で軌道が動き、種 41 は 1 年買い続けた武器庫が減る盤面になった（43・44・47・48 も同じ）＝42 で成立（種の選び直しは (604) と同じ作法・機構の旗に固定して赤を避けない）
         var sim = new Simulation(NationConfig.Britain().ToScenario(seed), new NullAgent());
+        pre?.Invoke(sim.World.Coef);   // (1296) 助走の前に係数を置く口（使うのは下の 1 本だけ）
         sim.Run(20);
         var w = sim.World; var c = w.Coef;
         c.RebelArmsMarketEnabled = enabled;
@@ -1130,7 +1131,8 @@ public class RevoltIgnitionTests
 
         // 通しで1年走らせても貨幣保存の番人（Simulation の月次 CheckInvariants）が黙っている＋買い続けた武器庫が育つ（別の世界＝直接 Run の帳簿と混ぜない）
         // ★(1020) c95ub：遍在の財の旗で軌道が動き、種 42 は期末が 1 四半期目を 0.05% 下回る端になった（47・50 も同じ・買い付けの累計は同じ大きさ）＝種 43 で成立（(613) と同じ作法・measurements/m1020_20261110/probe_arms.tsv）。
-        var (sim2, f2, payer2) = 武装する運動(enabled: 1, seed: 43);
+        var (sim2, f2, payer2) = 武装する運動(enabled: 1, seed: 43, pre: c => c.Mobility = 0);   // (1296) 州の中の移動を外す（移動の規則に依らない盤面・㊴ 軌道に依る前提）
+        Assert.Equal(0.0, sim2.World.Coef.Mobility);
         // ★「買い続けた」の前提を明示で保つ（2026-09-22）：参加の2条件＝闘争度＞MilitancyThreshold と運動の鍵（束・主軸）を毎四半期そのままにする。
         //   旧は盤面任せだった＝闘争度は σ=0.3/四半期で減衰して2四半期目に参加の門0.5を割り（旧でも新でも2四半期目以降は1回も買っていない）、
         //   階層3分割の後の世界ではさらに参加者のイデオロギーの argmax が1四半期目に隣の主軸へ移って f2 の鍵から外れた

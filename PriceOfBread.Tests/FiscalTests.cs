@@ -1303,6 +1303,10 @@ public class FiscalTests
         var sim = FrozenWorld("プロイセン", "イギリス");   // 借り手＝普（開幕の国債が小さく借入の上限に届いていない）・貸し手＝英
         sim.StepQuarter();   // 共有層が外資の引き受け余力を注入
         var bw = sim.Nations[0].World; var lw = sim.Nations[1].World;
+        // (1296) ㊴ 軌道に依る前提：普がこの四半期に国債を返さないこと（返済は債権の繰上げの後に対外債だけを減らし、英の債権は翌四半期の繰上げで合う＝四半期末の比べでは月 1%/12 の返済 3 か月分＝約 0.25% ずれる）。
+        //   旗 UrbanFlowReal 1 の軌道では普の歳入に余りが出て床の返済が走った（種 1789〜1793 の全てで約 0.25% の赤）。盤面で床の返済の率を 0 に置く（換算の規則の検査は変えない）。
+        bw.Coef.BondRepayFracPerMonth = new RatePerMonth(0);
+        Assert.Equal(0.0, bw.Coef.BondRepayFracPerMonth.Value);
         lw.Coef.ForeignBondCapacity = new Share(0);   // 英は外資で借りない（普の債権が動かない）
         Assert.True(bw.ForeignBondInvestorPool > 0, "前提が崩れた：外資の引き受け余力が注入されていない");
         double fd0 = bw.ForeignDebt.Value, prev0 = bw.PrevForeignDebt.Value, cl0 = lw.ForeignBondClaims.Value, gd0 = bw.GovDebt.Value;
