@@ -12,10 +12,10 @@
     <UserControl.Resources>
         <!-- ヘッダーの数字 1 つ（国庫・国債・GDP・満足度〜正統性）。グラフを持つ数字は、押すとその下に時系列のグラフが開く（もう一度押すか外を押すと閉じる）。 -->
         <DataTemplate x:Key="HeaderStatCell" x:DataType="vm:HeaderStat">
-            <Panel Margin="0,0,12,0" MinWidth="{Binding BoxWidth}" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}" IsVisible="{Binding Plain}" VerticalAlignment="Center"/>
+            <Panel Margin="0,0,8,0" MinWidth="{Binding BoxWidth}" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontEmph}" IsVisible="{Binding Plain}" VerticalAlignment="Center"/>
                 <Button Classes="hdrgraph" IsVisible="{Binding HasHover}">
-                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontLead}"/>
+                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontEmph}"/>
                     <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
                             <StackPanel Width="272" Spacing="4">
@@ -50,7 +50,7 @@
                      外した項目は docs/202610/20261023/20261023_UIの作り直し_設計.md「ヘッダーから外した項目（2026-11-03）」に控えた（再配置の待ち）。
                      列＝左詰め（国名・国庫は Auto・概況の列が *＝右の余りを取る）。 -->
                 <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Center">
-                    <DockPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
+                    <DockPanel Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
                         <Image DockPanel.Dock="Left" Source="{Binding PlayerFlag}" Height="22" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding PlayerTitle}" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"
                                    TextTrimming="CharacterEllipsis" ToolTip.ShowDelay="30">
@@ -80,7 +80,7 @@
                     <ItemsControl ItemsSource="{Binding PageButtons}" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="6"/>
+                                <StackPanel Orientation="Horizontal" Spacing="3"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>

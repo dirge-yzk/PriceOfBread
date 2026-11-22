@@ -38,6 +38,13 @@ public partial class MainWindow
             hb.Flyout?.ShowAt(hb);
             await Task.Delay(700);
             Capture(dir, $"P2_ヘッダーの線_{hdrNames[i]}.png");
+            // 開いた線は別の窓（既定の撮影に写らない）＝中身だけを別の画像へ
+            if (hb.Flyout is Avalonia.Controls.Flyout { Content: Avalonia.Controls.Control fc } && fc.Bounds.Width > 1)
+            {
+                using var fbmp = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)fc.Bounds.Width + 16, (int)fc.Bounds.Height + 16), new Vector(96, 96));
+                fbmp.Render(fc);
+                fbmp.Save(System.IO.Path.Combine(dir, $"P2_ヘッダーの線の中身_{hdrNames[i]}.png"));
+            }
             bool opened = hb.Flyout?.IsOpen == true;
             hb.Flyout?.Hide();
             await Task.Delay(300);

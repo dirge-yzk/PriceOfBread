@@ -23,7 +23,7 @@ public partial class GameViewModel
     {
         UpdateDate();
         RefreshDaily();   // 国庫の1行は日次と同じ1本（2026-09-11 #19d）＝物価/為替/詳細パネルの価格も同時に最新化
-        TreasuryHover = StatG(TreasuryText, "国庫", _histTreasury, Fmt.Money, 190);   // 国庫の数字と年次推移の線（ヘッダー・押すと線が開く）。文字は日次が追従（RefreshDaily）
+        TreasuryHover = StatG(TreasuryText, "国庫", _histTreasury, Fmt.Money, 158);   // 国庫の数字と年次推移の線（ヘッダー・押すと線が開く）。文字は日次が追従（RefreshDaily）
         // 技術水準の年次推移（_histTech）はセーブの系列として残す（財政と貨幣のページの技術水準の欄は 2026-11-11 作者指示で削除）。
         // ⚠ここで同じものを二度作らない（同じ量を2つの名前で呼ばない）。採取は SampleYearStats の _histTech.Add の1本だけ。
         RefreshTrade();   // 貿易タブ（2026-07-24）：開いている時のみ集計（閉＝即return）
@@ -91,8 +91,8 @@ public partial class GameViewModel
         double gdpNow = _player.NominalGdpPerMonth.Value;   // 名目の 1 本（財政の行・国の一覧と同じ）
         var stats = new List<HeaderStat>
         {
-            StatG($"国債：{Fmt.Money(_player.GovDebt.Value)}", "国債", _series.Of(GovDebtSeries), Fmt.Money, 130),
-            StatG($"GDP：{Fmt.Money(gdpNow)}/月", "GDP", _histGdp, Fmt.Money, 150, $"GDP　世界{FiscalTables.GdpRank(_sim, _player)}位"),
+            StatG($"国債：{Fmt.Money(_player.GovDebt.Value)}", "国債", _series.Of(GovDebtSeries), Fmt.Money, 88),
+            StatG($"GDP：{Fmt.Money(gdpNow)}/月", "GDP", _histGdp, Fmt.Money, 104, $"GDP　世界{FiscalTables.GdpRank(_sim, _player)}位"),
             Sev(StatG($"満足度：{Fmt.Share(sat)}", "満足度", _histSat, v => Fmt.Share(v), 76), SeverityBrushes.LowIsBad(sat, 0.5, 0.25)),
             Sev(StatG($"不満度：{Fmt.Share(dis)}", "不満度", _histDis, v => Fmt.Share(v), 76), SeverityBrushes.HighIsBad(dis, 0.25, 0.5)),
             Sev(StatG($"闘争度：{Fmt.Share(mil)}", "闘争度", _histMil, v => Fmt.Share(v), 76), SeverityBrushes.HighIsBad(mil, 0.25, 0.5)),
