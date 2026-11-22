@@ -97,3 +97,16 @@
 ■ 入れない物：F2（飢えの門を消す）・K13・al・dh・自給の世帯の段 3・新しい係数・閾値・固定の月。
 ■ 他の線との重なり：c134tk（Instruments.cs の登録の 2 行・InstrumentsArrears.cs）・c134bi（p04・opening_bake.json）・c134k49（p08）とファイルは重ならない。
   DormantIdentityTests.cs と WriterRatchetTests.cs は自分の行だけ（DormantIdentityTests の UrbanFlowReal の 1 行）。
+
+■ 追記（2026-11-22・腕 B の前・旗 1 の使い捨ての木 D:/PoB_work/wt_c134f1_mut で関連の 10 クラス 68 本を回した後・㉜㊴）
+ 器の腕 Z：ident c134f1z〈判定: 恒等〉（段 2・素の 5 種と計器つき 10 種が m1294 と全行一致・計器の表 1687 本＝一致 1657＋既知の揺れ 20＋列が増えた urxpd_s 10・テスト 3108）＝measurements/m1296_20261122/ident_c134f1z.txt。
+ 旗 1 の木の赤 8 本の区分と直し（Assert の文と閾値は変えない・SimCore には触れない）：
+  ① 旗 0 の対照を既定に頼る型（㉜の一覧に有り）5 本：UrbanFlowRealTests の旗0は新しい入力…（既定 0 を Assert）・FamineGateReturnsRuralTests の 4 本（盤面で既定 0 を Assert）
+     → 旗を明示で 0 に置く（旧の式の経路の番人として残す・旗 1 では飢えの門は流れ＞0 の月だけで fg の枝に届かない）。
+  ② DormantIdentityTests の休眠の表：点火した旗 UrbanFlowReal を表から外し、注の行にする（点火のたびの型）。
+  ③ FamineTests の 2 本（:19 局地飢饉で食料不足の州だけが減り…・:50 回B_c_物理の経路は慢性の不足にも効き続ける）＝README ★(743) の区分〈軌道に依る前提〉。
+     前提〈不足州が慢性的に食えていない〉〈不足州が 30 年で減る〉が州の中の移動の規則の軌道に依る（旗 1 では不足州の都市の POP が自給のある農村へ移り、充足 0.835 へ上がる）。
+     直し＝その 2 本の盤面の Mobility を 0（州の中の移動を外す）。旧の盤面に番人を固定する形に当たらない理由：Mobility は PopDecision だけが読む＝旧の式と新しい式を同じに外す（旗 0 と旗 1 の両方で緑）。
+     対照の件数の Assert（Mobility＝0・調べた POP×四半期≧12）を足す。直しを外す突然変異 M5 で 2 本とも赤（measurements/m1296_20261122/mut/mut_summary.txt）。
+ 突然変異の結果（腕の前・試験 47 本）：B（旗 1・変異なし）赤 0／M0 旗 0 赤 3（T1・T2・休眠の表の台帳の番人）／M1 赤 12／M2 赤 5／M3 赤 1（F0b）／M4 赤 3（F0a・F0b・F0c）／M5 赤 2。
+ 試験の数の予言は変えない（3104→3110）。

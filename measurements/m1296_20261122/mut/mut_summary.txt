@@ -1,0 +1,33 @@
+B_flag1_none	rc=0	赤 0	成功!   -失敗:     0、合格:    47、スキップ:     0、合計:    47、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+M0_flag0	rc=1	赤 3	失敗!   -失敗:     3、合格:    44、スキップ:     0、合計:    47、期間: 28 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.DormantIdentityTests.既定ゼロの係数は休眠表か台帳のどちらかに載っている
+  PriceOfBread.Tests.UrbanFlowRealTests.既定_V農村とV都市が等しい州では流れは0_旧のシグモイドなら流れる盤面
+  PriceOfBread.Tests.UrbanFlowRealTests.既定_自給の値を2倍にすると農村への流れが手の算術の比で増え_送り手は都市
+M1_denom_vu	rc=1	赤 12	失敗!   -失敗:    12、合格:    35、スキップ:     0、合計:    47、期間: 27 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.FamineGateReturnsRuralTests.旗1_飢えの門が掛かりgが負なら都市から農村へ_Mobility掛けるg掛ける都市の規模_旗0は0
+  PriceOfBread.Tests.UrbanFlowRealTests.V_家賃が現金を超えるときは0で切る_gは符号が反転せず発散しない
+  PriceOfBread.Tests.UrbanFlowRealTests.V_農村は現金と自給_都市は現金から住居_手の算術
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_食料の値段が上がると_自給の値が増え_農村から都市への流れが比例で細る
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+  PriceOfBread.Tests.UrbanFlowRealTests.既定_自給の値を2倍にすると農村への流れが手の算術の比で増え_送り手は都市
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の列_wAbsGsym_は符号が混ざっても打ち消し合わない
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の積みの列は_total_で重みを付けた和
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.F0_門の月の農村への流れが_famineBackK_に入り本物のRunの都市の減りと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.往復の積みの純は都市の規模の差に合い_州の生産の列は工場の表と合う
+M2_sender_swap	rc=1	赤 5	失敗!   -失敗:     5、合格:    42、スキップ:     0、合計:    47、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1_1か月に動けるのは送り手の最大4パーセント_農村が空でも都市の割合が極端でも
+  PriceOfBread.Tests.UrbanFlowRealTests.旗1の流れは手の算術どおり_農村から都市と都市から農村
+  PriceOfBread.Tests.UrbanFlowRealTests.既定_自給の値を2倍にすると農村への流れが手の算術の比で増え_送り手は都市
+  PriceOfBread.Tests.UrbanFlowRealTests.計器の駆動の行は本物のMigrationValuesと手の算術に合い_旗1の流れは本物のRunと一致する
+  PriceOfBread.Tests.UrxInstrumentTests.駆動の写しは本物のPopDecisionの前後の差と一致する
+M3_window0	rc=1	赤 1	失敗!   -失敗:     1、合格:    46、スキップ:     0、合計:    47、期間: 34 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.UrxInstrumentTests.F0_門の月から12か月の窓の都市への流れが_famineRegainK_に入り13か月目は入らない
+M4_samesign	rc=1	赤 3	失敗!   -失敗:     3、合格:    44、スキップ:     0、合計:    47、期間: 29 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.UrxInstrumentTests.F0_oppSign_は符号が逆の月だけ数え_同じ向きは数えない
+  PriceOfBread.Tests.UrxInstrumentTests.F0_門の月から12か月の窓の都市への流れが_famineRegainK_に入り13か月目は入らない
+  PriceOfBread.Tests.UrxInstrumentTests.F0_門の月の農村への流れが_famineBackK_に入り本物のRunの都市の減りと一致する
+M5_famine_fix_off	rc=1	赤 2	失敗!   -失敗:     2、合格:    45、スキップ:     0、合計:    47、期間: 30 s - PriceOfBread.Tests.dll (net10.0)
+  PriceOfBread.Tests.FamineTests.回B_c_物理の経路は慢性の不足にも効き続ける
+  PriceOfBread.Tests.FamineTests.局地飢饉で食料不足の州だけが減り豊富な州は減らない
