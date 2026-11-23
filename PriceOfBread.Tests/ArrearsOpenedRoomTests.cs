@@ -45,18 +45,19 @@ public class ArrearsOpenedRoomTests
             var w = Board(flag);
             Assert.True(w.MonetaryEnabled && w.MetallicStandardLaw, "前提が崩れた：英に貨幣経済か金属の本位の法が無い");
             w.OnGoldStandard = true; w.Convertibility = 1.0;
-            Month(w, 0.6);   // 月 m：金本位の月の未払い 0.4（旧と同じ）→ この月に強制離脱（r＜0.7）
+            Month(w, 0.6);   // 月 m：(1284) 旗 ArrearsOnePredicate（既定 1）＝払えない月は累計の前に本位を離れる → 離れた月はまだ開いていない余地＝払えない額の全て
             Assert.False(w.OnGoldStandard, "前提が崩れた：r＝0.6 の月に兌換を止めない");
-            Assert.InRange(w.InsolvencyMonths, 0.4 - 1e-12, 0.4 + 1e-12);
+            double m0 = flag > 0 ? 0.0 : 0.4;   // 旗 1＝0 を積む・旗 0＝1−r
+            Assert.InRange(w.InsolvencyMonths, m0 - 1e-12, m0 + 1e-12);
             Assert.Equal(0, w.SovereignDefaultCount);
             Month(w, 0.6);   // 月 m+1：兌換はまだ 1（追従は四半期の末）＝まだ開いていない余地＝払えない額の全て
             Month(w, 0.6);   // 月 m+2
             if (flag > 0)
             {
                 Assert.Equal(0, w.SovereignDefaultCount);
-                Assert.InRange(w.InsolvencyMonths, 0.4 - 1e-12, 0.4 + 1e-12);   // 金本位でない月は 0 を積む
+                Assert.Equal(0.0, w.InsolvencyMonths);   // 金本位でない月は 0 を積む（離れた月 m から）
             }
-            else Assert.Equal(1, w.SovereignDefaultCount);   // 旧：0.4＋0.4＋0.4＝1.2 で月 m+2 に不履行
+            else Assert.Equal(1, w.SovereignDefaultCount);   // 旗 0：0.4＋0.4＋0.4＝1.2 で月 m+2 に不履行
         }
     }
 
@@ -79,8 +80,11 @@ public class ArrearsOpenedRoomTests
         }
     }
 
+    /// <summary>(1284) 書き換え（旧＝r 0.75 の月は金本位のまま両方の旗で同じに積む〈群 A の型〉）：旗 ArrearsOnePredicate（既定 1）では払えない月（上限の外）は同じ月に本位を離れる。
+    /// 離れた後の月の量：旗 1＝まだ開いていない余地の分を数えない＝0・旗 0＝1−r＝0.25×4 で 4 か月目に不履行（旧の T2 の線と同じ月）。
+    /// 〈金本位の月の量は旗 ArrearsBeyondOpenedRoom で変わらない〉は ArrearsOfMonth を金本位の盤面で直に呼んで残す。</summary>
     [Fact]
-    public void T2_金本位のままの月は両方の旗で同じに積む()
+    public void T2_払えない月は両方の旗で同じ月に離れる_金本位の月の量は旗で変わらない()
     {
         int[] at = new int[2]; double[] after1 = new double[2];
         for (int k = 0; k < 2; k++)
@@ -90,15 +94,23 @@ public class ArrearsOpenedRoomTests
             for (int m = 1; m <= 8 && w.SovereignDefaultCount == 0; m++)
             {
                 Month(w, 0.75);
-                Assert.True(w.OnGoldStandard || w.SovereignDefaultCount > 0, "前提が崩れた：r＝0.75 の月に兌換を止めた（群 A の型にならない）");
-                if (m == 1) after1[k] = w.InsolvencyMonths;
+                if (m == 1) { Assert.False(w.OnGoldStandard, "(1284) 新の規則：r＝0.75・上限の外の月に本位を離れない"); after1[k] = w.InsolvencyMonths; }
                 if (w.SovereignDefaultCount > 0) at[k] = m;
             }
         }
-        Assert.InRange(after1[0], 0.25 - 1e-12, 0.25 + 1e-12);
-        Assert.Equal(after1[1], after1[0]);
-        Assert.Equal(4, at[0]);   // 0.25×4＝1.0（2 進で丁度）で 4 か月目に不履行
-        Assert.Equal(at[1], at[0]);
+        Assert.Equal(0.0, after1[0]);
+        Assert.InRange(after1[1], 0.25 - 1e-12, 0.25 + 1e-12);
+        Assert.Equal(0, at[0]);
+        Assert.Equal(4, at[1]);   // 0.25×4＝1.0（2 進で丁度）で 4 か月目に不履行
+        double[] gold = new double[2];
+        for (int k = 0; k < 2; k++)
+        {
+            var v = Board(k == 0 ? 1.0 : 0.0);
+            v.OnGoldStandard = true;
+            gold[k] = Fiscal.ArrearsOfMonth(v, v.Coef, 0.75, -Ample, Ample);
+        }
+        Assert.Equal(0.25, gold[0]);
+        Assert.Equal(gold[1], gold[0]);
     }
 
     [Fact]
