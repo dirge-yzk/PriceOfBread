@@ -4,7 +4,7 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string UrxHeaderText = "quarter	year	nation	group	section	months	dUrbanK	dRuralK";
-    internal const string UrxPdHeaderText = "quarter	year	nation	regionMonths	noPair	capBound	serfGated	famineGated	sumFlowPos	sumFlowNeg	sumTotal	sumPairUrban	sumRegionPop	sumRegionUrban	wTargetPre	wTargetCapped	wCur	wCap	wIncU	wIncR	wZ	wSubV	wHousU	wGsym	flowFlipRegionMonths	wAbsGsym";
+    internal const string UrxPdHeaderText = "quarter	year	nation	regionMonths	noPair	capBound	serfGated	famineGated	sumFlowPos	sumFlowNeg	sumTotal	sumPairUrban	sumRegionPop	sumRegionUrban	wTargetPre	wTargetCapped	wCur	wCap	wIncU	wIncR	wZ	wSubV	wHousU	wGsym	flowFlipRegionMonths	wAbsGsym	emptyUrbanColRegionMonths	emptyUrbanHomeRegionMonths	emptyUrbanGPosRegionMonths	emptyUrbanGPosA2RegionMonths	emptyUrbanStuckRegionMonths	emptyUrbanStuckA2RegionMonths	mktRegionMonths	mktTotal	gPosMarketRegionMonths	gPosMarketA2RegionMonths	wVuMarket	wVrMarket	wVrMarketA2	farmLaborSalesSum	rgoResidualSum	farmEarnedSum	laborSalesSum	urbanEarnedSum	ppRegionQuarters	ppOppRegionQuarters	ppCancelK";
     static readonly string[] UrxGroups = ["Core", "Other"];
 
     sealed class UrxState
@@ -22,7 +22,14 @@ public static partial class Instruments
         public long PdFlipRegionMonths;                                               // PdFlipRegionMonths〔履歴 InstrumentsUrx.cs#3〕
         public double PdWAbsGsym;                                                     // PdWAbsGsym〔履歴 InstrumentsUrx.cs#4〕
         public readonly Dictionary<Region, int> PdPrevSign = new(ReferenceEqualityComparer.Instance);   // 四半期をまたいで持つ（累積と違い Fold で消さない）〔履歴 InstrumentsUrx.cs#5〕
+        // (1312) U0：全ての格の州×月（Core に限らない）。案 A／A′ の値打ちは計器が州の市場から自分で組む（エンジンの関数を呼ばない）
+        public long MkEmptyCol, MkEmptyHome, MkEmptyGPos, MkEmptyGPosA2, MkStuck, MkStuckA2, MkRegionMonths, MkGPos, MkGPosA2;
+        public double MkTotal, MkWVu, MkWVr, MkWVrA2, MkFarmSales, MkRgoResid, MkFarmEarned, MkLaborSales, MkUrbanEarned;
+        public readonly Dictionary<Region, (long Tick, int Bits)> MkPrevEmpty = new(ReferenceEqualityComparer.Instance);   // 前の月に都市 0 で流れ＞Eps と読んだ州（bit0 案 A・bit1 案 A′）・Fold で消さない
     }
+    // (1312) U0 の押し合い：州×四半期の PopDecision と Meritocracy の都市への純（Pop.Blend の呼び手のファイルで分ける）
+    sealed class UrxPpAcc { public readonly Dictionary<Pop, Region> RegionOf = new(ReferenceEqualityComparer.Instance); public readonly Dictionary<Region, double[]> Net = new(ReferenceEqualityComparer.Instance); public readonly List<Region> Order = []; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<WState, UrxPpAcc> UrxPpStates = new();
     sealed class UrxAcc { public readonly double[] U = new double[2], R = new double[2]; public int N; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, UrxState> UrxStates = new();
     static UrxState Ux(World w) => UrxStates.GetValue(w, _ => new UrxState());
@@ -90,9 +97,11 @@ public static partial class Instruments
     /// </summary>
     internal static void UrxPd(World w, Region region, double serfFree)
     {
-        if (!On || w.WarmupFrozen || region.Tier != RegionTier.Core) return;
+        if (!On || w.WarmupFrozen) return;
         var st = S(w); if (!IsPicked(w, st)) return;
         var ux = Ux(w);
+        UrxMkt(w, st, ux, region, serfFree);   // (1312) U0：全ての格
+        if (region.Tier != RegionTier.Core) return;
         if (!UrxPdDrive(w.Coef, region, serfFree, out var d)) { ux.PdNoPair++; ux.PdPrevSign[region] = 0; return; }
         ux.PdRegionMonths++;
         if (d.CapBound) ux.PdCapBound++;
@@ -117,6 +126,13 @@ public static partial class Instruments
     {
         var ux = Ux(w);
         return (ux.PdRegionMonths, ux.PdFlipRegionMonths, ux.PdWSubV, ux.PdWHousU, ux.PdWGsym, ux.PdTotal, ux.PdWAbsGsym);
+    }
+
+    /// <summary>(1312) 番人用：今の四半期の U0 の積みの写し（積みは消さない）。</summary>
+    internal static (long EmptyCol, long EmptyHome, long EmptyGPos, long EmptyGPosA2, long Stuck, long StuckA2, long RegionMonths, double WVu, double WVr, double WVrA2, double Total) UrxMktPeek(World w)
+    {
+        var ux = Ux(w);
+        return (ux.MkEmptyCol, ux.MkEmptyHome, ux.MkEmptyGPos, ux.MkEmptyGPosA2, ux.MkStuck, ux.MkStuckA2, ux.MkRegionMonths, ux.MkWVu, ux.MkWVr, ux.MkWVrA2, ux.MkTotal);
     }
 
     internal readonly record struct UrxPdDriveRow(double Total, double UrbanSize, double IncUrban, double IncRural, double Z, double TargetPre, double TargetCapped, double Cur, double Cap, bool CapBound, bool SerfGated, bool FamineGated, double Flow, double SubsistenceValue, double HousingCost, double Gsym);
@@ -155,6 +171,88 @@ public static partial class Instruments
         return true;
     }
 
+    /// <summary>(1312) U0（読むだけ）：案 A（V_u＝ℓ×P_L×(1−u_U)−家賃・V_r＝ℓ×P_F×(1−u_R)＋自給）と案 A′（V_r の値段に農業労働 1 単位あたりの RGO の残余を足す）を州の市場から組み、
+    /// 都市の POP が 0 の州×月・その次の月も 0 のまま（前の月に案の流れ＞Eps と読んだのに）の州×月を数える。ℓ＝(労働と農業労働の生産者の Capacity)÷対の人数。</summary>
+    static void UrxMkt(World w, WState st, UrxState ux, Region region, double serfFree)
+    {
+        if (region.Pops.Count < 2) return;
+        var (rural, urban) = PopDecision.MigrationPair(region);
+        if (rural is null || urban is null) return;
+        double total = rural.Size + urban.Size;
+        if (total <= 1e-9) return;
+        var pp = UrxPpStates.GetValue(st, _ => new UrxPpAcc());
+        foreach (var p in region.Pops) pp.RegionOf[p] = region;
+        var mk = region.Markets;
+        double pl = Catalog.LaborId < mk.Length ? mk[Catalog.LaborId].Price : 0.0;
+        double pf = Catalog.FarmLaborId < mk.Length ? mk[Catalog.FarmLaborId].Price : 0.0;
+        double cap = 0, rhoW = 0, rhoSum = 0, rgoResid = 0;
+        foreach (var s in region.Producers)
+        {
+            int li = s.LaborPopIndex;
+            if (li < 0 || li >= region.Pops.Count) continue;
+            var lp = region.Pops[li];
+            bool pair = ReferenceEquals(lp, rural) || ReferenceEquals(lp, urban);
+            if (pair && (s.GoodId == Catalog.LaborId || s.GoodId == Catalog.FarmLaborId)) cap += s.Capacity;
+            if (!s.IsRgo || !ReferenceEquals(lp, rural) || s.GoodId < 0 || s.GoodId >= mk.Length) continue;
+            double ic = 0, qf = 0;
+            foreach (var inp in s.Inputs) { if (inp.GoodId >= 0 && inp.GoodId < mk.Length) ic += mk[inp.GoodId].Price * inp.QtyPerOutput; if (inp.GoodId == Catalog.FarmLaborId) qf += inp.QtyPerOutput; }
+            double rs = s.RentShare.Value < region.FarmRentCap.Value ? s.RentShare.Value : region.FarmRentCap.Value;
+            double rent = mk[s.GoodId].Price - ic;
+            double resid = rent > 0 ? (1.0 - rs) * rent : 0.0;   // 産出 1 単位あたりの担い手の残余
+            rgoResid += resid * s.Output;
+            if (qf > 0 && s.LaborWeight > 0) { rhoSum += s.LaborWeight * resid / qf; rhoW += s.LaborWeight; }
+        }
+        double ell = cap / total;
+        double rho = rhoW > 0 ? rhoSum / rhoW : 0.0;
+        double uU = urban.UnemploymentRate.Value, uR = rural.UnemploymentRate.Value;
+        double housing = 0.0;
+        if (w.Coef.HousingNeedPerUrban > 0 && Catalog.HousingId < mk.Length)
+        {
+            double tp = region.SumPopulation();
+            double us = tp > 1e-9 ? region.SumUrbanPopulation() / tp : 0.0;
+            if (us > w.Coef.HousingUrbanThreshold) housing = w.Coef.HousingNeedPerUrban * mk[Catalog.HousingId].Price;
+        }
+        double sub = rural.Size > 1e-9 ? rural.SubsistenceValuePerMonth.Value / rural.Size : 0.0;
+        if (!(sub > 0)) sub = 0;
+        double vuRaw = ell * pl * (1.0 - uU) - housing;
+        double vu = vuRaw > 0 ? vuRaw : 0.0;
+        double vrw = ell * pf * (1.0 - uR), vrw2 = ell * (pf + rho) * (1.0 - uR);
+        double vr = (vrw > 0 ? vrw : 0.0) + sub, vr2 = (vrw2 > 0 ? vrw2 : 0.0) + sub;
+        double gA = vu + vr > 1e-9 ? 2.0 * (vu - vr) / (vu + vr) : 0.0;
+        double gA2 = vu + vr2 > 1e-9 ? 2.0 * (vu - vr2) / (vu + vr2) : 0.0;
+        double FlowOf(double g)
+        {
+            double f = g > 0 ? w.Coef.Mobility * g * rural.Size : w.Coef.Mobility * g * urban.Size;
+            if (f > 0 && w.Coef.SerfMobilityGate > 0) f *= (1.0 - w.Coef.SerfMobilityGate) + w.Coef.SerfMobilityGate * serfFree;
+            if (f > 0 && urban.FoodFill < w.Coef.FamineMigrationFillGate && urban.FoodFill < rural.FoodFill) f = 0;
+            return f;
+        }
+        long tick = w.Tick;
+        bool empty = !(urban.Size > 1e-9);
+        ux.MkRegionMonths++; ux.MkTotal += total;
+        if (gA > 0) ux.MkGPos++;
+        if (gA2 > 0) ux.MkGPosA2++;
+        ux.MkWVu += total * vu; ux.MkWVr += total * vr; ux.MkWVrA2 += total * vr2;
+        ux.MkFarmSales += Catalog.FarmLaborId < mk.Length ? mk[Catalog.FarmLaborId].LastSold * pf : 0.0;
+        ux.MkLaborSales += Catalog.LaborId < mk.Length ? mk[Catalog.LaborId].LastSold * pl : 0.0;
+        ux.MkRgoResid += rgoResid; ux.MkFarmEarned += rural.EarnedPerMonth.Value; ux.MkUrbanEarned += urban.EarnedPerMonth.Value;
+        int bits = 0;
+        if (empty)
+        {
+            if (region.Tier == RegionTier.Colonial) ux.MkEmptyCol++; else ux.MkEmptyHome++;
+            if (gA > 0) ux.MkEmptyGPos++;
+            if (gA2 > 0) ux.MkEmptyGPosA2++;
+            if (ux.MkPrevEmpty.TryGetValue(region, out var pv) && tick - pv.Tick > 0 && tick - pv.Tick <= Calendar.DaysPerMonth)
+            {
+                if ((pv.Bits & 1) != 0) ux.MkStuck++;
+                if ((pv.Bits & 2) != 0) ux.MkStuckA2++;
+            }
+            if (FlowOf(gA) > 1e-9) bits |= 1;
+            if (FlowOf(gA2) > 1e-9) bits |= 2;
+        }
+        ux.MkPrevEmpty[region] = (tick, bits);
+    }
+
     // 純（入−出）は urx_s の区間・urxpd_s の流れと同じ向きで、往復の総量＝入＋出。〔履歴 InstrumentsUrx.cs#12〕
     internal const string UrxRtHeaderText = "quarter\tyear\tnation\troute\turbanInK\turbanOutK\tcalls";
     sealed class UrxRtAcc { public readonly Dictionary<string, double[]> Routes = new(); public readonly List<string> Order = []; }
@@ -173,6 +271,12 @@ public static partial class Instruments
         int cut = Math.Max(routeFile.LastIndexOf('/'), routeFile.LastIndexOf('\\')) + 1;
         int dot = routeFile.LastIndexOf('.');
         string route = dot > cut ? routeFile.Substring(cut, dot - cut) : routeFile.Substring(cut);
+        if (srcUrban != dstUrban && sf is not null && (route == "PopDecision" || route == "Meritocracy") && UrxPpStates.TryGetValue(sf, out var pp)
+            && pp.RegionOf.TryGetValue(from, out var rgF) && pp.RegionOf.TryGetValue(to, out var rgT) && ReferenceEquals(rgF, rgT))
+        {   // (1312) U0 の押し合い（読むだけ）：同じ州の中の農村と都市の間の移り＝正は都市へ
+            if (!pp.Net.TryGetValue(rgF, out var nv)) { nv = new double[2]; pp.Net[rgF] = nv; pp.Order.Add(rgF); }
+            nv[route == "PopDecision" ? 0 : 1] += dstUrban ? n : -n;
+        }
         if (dstUrban && stt is not null && stt.Active && (!same || !srcUrban)) UrxRtAdd(stt, route, n, 0);
         if (srcUrban && sf is not null && sf.Active && (!same || !dstUrban)) UrxRtAdd(sf, route, 0, n);
     }
@@ -213,6 +317,7 @@ public static partial class Instruments
         if (!UrxStates.TryGetValue(w, out var ux) || !ux.Armed) return;
         UrxMark(w, "四半期末後");   // Fold の時点までの差を締める＝_level が region_s と同じ時点の水準になる
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string L(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string nm = NameOf(w), qs = I(q), year = I(w.Year);
         sk.Urx ??= Open("urx", seed);
         if (!sk.UrxHeader) { sk.Urx.WriteLine(UrxHeaderText); sk.UrxHeader = true; }
@@ -229,6 +334,18 @@ public static partial class Instruments
             Array.Clear(a.U); Array.Clear(a.R); a.N = 0;
         }
         for (int g = 0; g < 2; g++) sk.Urx.WriteLine(string.Join('	', qs, year, nm, UrxGroups[g], "_level", "0", F(ux.PrevU[g]), F(ux.PrevR[g])));
+        long ppN = 0, ppOpp = 0; double ppCancel = 0;   // (1312) U0 の押し合い：州×四半期
+        if (UrxPpStates.TryGetValue(st, out var ppa))
+        {
+            foreach (var rg in ppa.Order)
+            {
+                var nv = ppa.Net[rg];
+                if (nv[0] == 0 && nv[1] == 0) continue;
+                ppN++;
+                if (nv[0] * nv[1] < 0) { ppOpp++; ppCancel += Math.Min(Math.Abs(nv[0]), Math.Abs(nv[1])); }
+                nv[0] = nv[1] = 0;
+            }
+        }
         if (ux.PdRegionMonths + ux.PdNoPair > 0)
         {
             sk.UrxPdW ??= Open("urxpd", seed);
@@ -237,12 +354,16 @@ public static partial class Instruments
                 ux.PdCapBound.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdSerfGated.ToString(System.Globalization.CultureInfo.InvariantCulture), ux.PdFamineGated.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 F(ux.PdFlowPos), F(ux.PdFlowNeg), F(ux.PdTotal), F(ux.PdPairUrban), F(ux.PdRegionPop), F(ux.PdRegionUrban),
                 F(ux.PdWTargetPre), F(ux.PdWTargetCapped), F(ux.PdWCur), F(ux.PdWCap), F(ux.PdWIncU), F(ux.PdWIncR), F(ux.PdWZ),
-                F(ux.PdWSubV), F(ux.PdWHousU), F(ux.PdWGsym), ux.PdFlipRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture), F(ux.PdWAbsGsym)));
+                F(ux.PdWSubV), F(ux.PdWHousU), F(ux.PdWGsym), ux.PdFlipRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture), F(ux.PdWAbsGsym),
+                L(ux.MkEmptyCol), L(ux.MkEmptyHome), L(ux.MkEmptyGPos), L(ux.MkEmptyGPosA2), L(ux.MkStuck), L(ux.MkStuckA2), L(ux.MkRegionMonths), F(ux.MkTotal), L(ux.MkGPos), L(ux.MkGPosA2),
+                F(ux.MkWVu), F(ux.MkWVr), F(ux.MkWVrA2), F(ux.MkFarmSales), F(ux.MkRgoResid), F(ux.MkFarmEarned), F(ux.MkLaborSales), F(ux.MkUrbanEarned), L(ppN), L(ppOpp), F(ppCancel)));
             ux.PdRegionMonths = ux.PdNoPair = ux.PdCapBound = ux.PdSerfGated = ux.PdFamineGated = 0;
             ux.PdFlowPos = ux.PdFlowNeg = ux.PdTotal = ux.PdPairUrban = ux.PdRegionPop = ux.PdRegionUrban = 0;
             ux.PdWTargetPre = ux.PdWTargetCapped = ux.PdWCur = ux.PdWCap = ux.PdWIncU = ux.PdWIncR = ux.PdWZ = 0;
             ux.PdWSubV = ux.PdWHousU = ux.PdWGsym = 0; ux.PdFlipRegionMonths = 0;   // PdWSubV〔履歴 InstrumentsUrx.cs#14〕
             ux.PdWAbsGsym = 0;   // PdWAbsGsym〔履歴 InstrumentsUrx.cs#15〕
         }
+        ux.MkEmptyCol = ux.MkEmptyHome = ux.MkEmptyGPos = ux.MkEmptyGPosA2 = ux.MkStuck = ux.MkStuckA2 = ux.MkRegionMonths = ux.MkGPos = ux.MkGPosA2 = 0;
+        ux.MkTotal = ux.MkWVu = ux.MkWVr = ux.MkWVrA2 = ux.MkFarmSales = ux.MkRgoResid = ux.MkFarmEarned = ux.MkLaborSales = ux.MkUrbanEarned = 0;
     }
 }
