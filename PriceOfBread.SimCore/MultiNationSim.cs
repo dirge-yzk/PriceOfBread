@@ -322,11 +322,21 @@ public sealed class MultiNationSim
                 }
             }
 
-        // --- 1) 国庫の分与（新国家の運転資金＝移転前の人口比）---
+        // --- 1) 国庫の分与（新国家の運転資金＝旗 0：移転前の人口比・旗 1〔(1318) SecessionTreasuryByMoney〕：移転前の民間の貨幣の比）---
         double P = 0;
         foreach (var rr in regs) P += rr.SumPopulation();
         double parentPop = pw.TotalPopulation;   // 移転前（reg込み）
-        double T = Math.Max(0, pw.Treasury.Value) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
+        double T;
+        if (pw.Coef.SecessionTreasuryByMoney > 0)
+        {
+            // 分子と分母は同じ定義の和（州の貯蓄の和・負の貯蓄も含む）。どちらかが 0 以下なら 0（下の人口の守りと同じ形）。比が 1 を超える盤面（残る州の貯蓄の和が負）も削らない。
+            MoneyStock moved = default;
+            foreach (var rr in regs) moved += rr.SumSavings();
+            double sMoved = moved.Value, sParent = pw.TotalMoney.Value;   // 移転前（reg込み）
+            T = Math.Max(0, pw.Treasury.Value) * (sMoved > 0 && sParent > 0 ? sMoved / sParent : 0);
+        }
+        else T = Math.Max(0, pw.Treasury.Value) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
+        Instruments.SecTreasIfOn(this, pw, regs, T);   // (1318) sectreas_s の受け口（中で Instruments.On を読む）
 
         // ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。〔履歴 MultiNationSim.cs#32〕
         double railIn = 0, shipIn = 0;   // railIn〔履歴 MultiNationSim.cs#33〕
