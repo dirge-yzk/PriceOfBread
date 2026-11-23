@@ -1,0 +1,12 @@
+(1316) c137sm 記録（書き手 Sonnet 5.5）
+判定: 恒等（測った種で一致）＝ident c137sm 段 2（HEAD afd00c40c・SOURCE-HASH 2565bd7e6856a254）。素の 5 種 179 行・計器つき 10 種 181 行が m1308 と全行バイト一致・.cost の推定 230.7 秒（素）・227.4 秒（計器つき）・件数の行 45 本一致。
+計器の表 1700 本＝バイト一致 1650＋既知の揺れ 40＋列が増えた 10（popclose_s の 3 列〔killedViolentK・killedOtherK・residualClosedK〕・宣言 --grown-ok popclose_s）＋宣言の無い違い 0。注視の表 4692 行一致。savetest OK・leakhunt 完走。
+試験：Category!=FullLength 3134（3128＋6＝足した 6 本）・FullLength 3・Ui 232 緑。フルスイート Tests 2902（合格 2899・スキップ 2・赤 1＝GoodIdGuardTests が自分の自己試験の無名の整数の配列を拾った→文字列へ直して緑）・FullLength 3 緑・Ui 232 緑・㉘ の束 139 緑。
+足した試験：SaveRoundTripTests.cs（日の位置の Assert〔既存の試験の中〕・StateDiffは集合の順だけと要素違いを分ける）・DiscoveryEngineerTests.cs（代表の生産者が居ない製法の行の項は何も書かれない）・EmptyUrbanValueTests.cs（案A素の項ρは手の算術と一致する）・PopCloseInstrumentTests.cs（T7・T8）・FormationLabelTests.cs（新しい・1 本）。
+突然変異：M1・M2・M3・M4・M5 全て赤（measurements/m1316_20261123_mut/）。M4 は T7 だけ赤（T8 は 3 四半期に死の記帳の事象が無く緑のまま）。ar の (f)(g) は自己試験の組 4a・4b が赤（ar_selftest_mut.txt）。
+ソースを走査する番人の書き換え：0 件（予言どおり）。
+増えた行と減った行：計器の表の行は popclose_s の末尾 3 列だけ増えた。素と計器つきの成績表の行は増減 0。
+作ったフォルダ：D:/PoB_work/wt_c137sm・c137sm_work・c137sm_art（片付け済み）・ident_c137sm。消した物：ident の刈り込みで基準と生のバイトが一致した表 1570 本（19.54GB・sha1 は prune_manifest.tsv と measurements/ident_c137sm_manifest.tsv）。残した物：ident_c137sm/out_ib_10 の 130 表（揺れ・列が増えた表ほか・合流の判断まで・⑲）・c137sm_work の突然変異の出力。
+腕の枠で待った時間：0（arms.sh free＝6）。覗いた回数：約 6。前面の待ち（waitmark）：約 40 回。hook に止められた回数：1（変数名に時間待ちの字を使った）。
+見つけたが直さなかった物：(1) マラーター帝国は Formations.Rules〔Tier 2〕と CultureRealms の大名〔Tier 3〕で同じ名の規則の段が違う＝FormedElsewhere の q.FormationTier ≥ r.Tier と f.Tier ≥ r.Tier が同値でない（挙動の疑い・名簿で固定）。(2) clock_s の nan は W・C・E の行の〈該当なし〉で T 行は 0 件＝直す物なし。(3) 検算の台本の (h) は列から組めない（紙の台本で 10 種の食い違い）。
+終わらない項（番号で 00一覧 0 の① に残す）：項 8 pf の重なりの列・項 9 ih の項 4・項 10 閉じの穴・計器の列 soldierK と LastShortage・ar の (h)。
