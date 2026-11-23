@@ -178,6 +178,29 @@ public class DiscoveryEngineerTests
         Assert.Equal(NeedsEarlierDiscovery.OrderBy(x => x), zero.OrderBy(x => x));
     }
 
+    /// <summary>(1316) c137sm 項 2＝発見の採点の〈代表の生産者が居ない製法の行〉の道：1 本の製法の行（英に代表の生産者が居る・未発見）の生産者を英の盤面から全て外すと、その行の Terms は default（技術・必要・伝わり全て 0）になる
+    /// （Discovery.cs の `if (!spread && rp is null) continue;`）。対照：外す前は Tech＞0。⚠壊し方＝そのガードを外す（Mv）→ 代表の無い行の `rp!` で例外 → 赤。
+    /// 使う盤面は試験の中で作り直す（共有の BoardOff を書き換えない）。</summary>
+    [Fact]
+    public void 代表の生産者が居ない製法の行の項は何も書かれない()
+    {
+        var sim = Board(0);
+        var w = Nation(sim, "イギリス");
+        int row = -1;
+        for (int r = 0; r < Catalog.Discoveries.Length && row < 0; r++)
+        {
+            if (Discovery.IsSpread(Catalog.Discoveries[r].Field) || Discovery.Known(w.Discovered, r)) continue;
+            if (w.Regions.SelectMany(rg => rg.Producers).Any(p => p.DiscoveryRow == r)) row = r;
+        }
+        Assert.True(row >= 0, "前提：英に代表の生産者が居る未発見の製法の行が無い");
+        var before = Discovery.Evaluate(w, null, w.Coef)[row];
+        Assert.True(before.Tech > 0, $"対照：外す前の技術の項が 0（{Catalog.Discoveries[row].Name}）");
+        int removed = 0;
+        foreach (var rg in w.Regions) removed += rg.Producers.RemoveAll(p => p.DiscoveryRow == row);
+        Assert.True(removed >= 1, "前提：外した生産者が 0");
+        Assert.Equal(default(Discovery.Terms), Discovery.Evaluate(w, null, w.Coef)[row]);
+    }
+
     /// <summary>T3（(824) c65id で今の既定の盤面へ移した）：技師の旗 DiscoveryEngineerHalfPerMonth が 0 のとき、製法の行の技術力は今の式そのもの（70×min(1, 技術水準÷難易度)を超えず、技術水準で増える）。
     /// 制度と思想の行は技術水準を読まない（既定＝旗 TechThresholdOff の焼き込み前から 1）：特許（d＝0）は 70・d＞0 の社会主義は 70×本国の識字÷基準 0.5（識字は手で置く：本国 0.25・植民地 1.0 → 35）。
     /// 技術水準を 0 から 100 まで動かしても制度と思想の行は動かない。⚠壊し方＝旗0でも技師の式を使う／製法の行の比を固定する → 製法の行が技術水準で動かず赤（陽性の対照 hi＞lo）。
