@@ -1,0 +1,58 @@
+PriceOfBread.Tests/DormantIdentityTests.cs:35:        // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
+PriceOfBread.Tests/DormantIdentityTests.cs:141:        // ★StapleLedgerSum・HarvestShortfallToMarket（(504) 食料の台帳を主食の和へ①③）は 2026-10-23 に 1 で**点火**（腕 C・�
+PriceOfBread.Tests/FoodLedgerTests.cs:8:/// <summary>(504) 線 fd：食料の台帳を栄養の和へ（旗 StapleLedgerSum・HarvestShortfallToMarket・旗 StapleDemandRebalance は c132kx で消し�
+PriceOfBread.Tests/FoodLedgerTests.cs:46:        c.StapleLedgerSum = ledger; c.HarvestShortfallToMarket = shortfall;
+PriceOfBread.Tests/FoodLedgerTests.cs:76:        Assert.Equal(1.0, c.StapleLedgerSum); Assert.Equal(1.0, c.HarvestShortfallToMarket);   // 既定＝①③は点火（1）・②は休眠（0・腕 B �
+PriceOfBread.Tests/FoodLedgerTests.cs:117:            var off = Expect(Ratio, Avail, ledger: false, s: pa.SubsistenceShare);   // 農民（自給率 0.7）も手の算術で突き合わせる
+PriceOfBread.Tests/FoodLedgerTests.cs:118:            var on = Expect(Ratio, Avail, ledger: true, s: pa.SubsistenceShare);
+PriceOfBread.Tests/FoodLedgerTests.cs:131:        Assert.Equal(0.3, EconomyStep.StapleLedgerCarry(0.3, 0.5, 1.1), 12);    // 過分＜不足＝過分
+PriceOfBread.Tests/FoodLedgerTests.cs:132:        Assert.Equal(0.5, EconomyStep.StapleLedgerCarry(0.8, 0.5, 1.1), 12);    // 過分＞不足＝不足
+PriceOfBread.Tests/FoodLedgerTests.cs:133:        Assert.Equal(0.0, EconomyStep.StapleLedgerCarry(0.8, 0.0, 1.1));        // 不足なし＝満たされた
+PriceOfBread.Tests/FoodLedgerTests.cs:134:        Assert.Equal(0.0, EconomyStep.StapleLedgerCarry(0.0, 0.5, 1.1));        // 過分なし
+PriceOfBread.Tests/FoodLedgerTests.cs:135:        Assert.Equal(0.0, EconomyStep.StapleLedgerCarry(0.8, 1e-16, 1.1));      // 不足が必要量の 1e-9 以下（丸めの 1 ulp）＝満たされたと
+PriceOfBread.Tests/FoodLedgerTests.cs:136:        Assert.Equal(0.0, EconomyStep.StapleLedgerCarry(0.8, 1.1e-9, 1.1));     // ちょうど許容（1e-9×1.1）＝足さない（厳密に超えたとき
+PriceOfBread.Tests/FoodLedgerTests.cs:137:        Assert.Equal(2e-9, EconomyStep.StapleLedgerCarry(0.8, 2e-9, 1.1), 15);  // 許容を超えた不足は足す
+PriceOfBread.Tests/FoodLedgerTests.cs:138:        Assert.Equal(0.0, EconomyStep.StapleLedgerCarry(double.NaN, 0.5, 1.1)); // NaN は足さない
+PriceOfBread.Tests/FoodLedgerTests.cs:139:        Assert.Equal(0.0, EconomyStep.StapleLedgerCarry(0.8, double.NaN, 1.1));
+PriceOfBread.Tests/FoodLedgerTests.cs:159:            var off = Expect(ratio, avail, ledger: false, s: pa.SubsistenceShare);
+PriceOfBread.Tests/FoodLedgerTests.cs:160:            var on = Expect(ratio, avail, ledger: true, s: pa.SubsistenceShare);
+PriceOfBread.Tests/FoodLedgerTests.cs:181:            Assert.Equal(Expect(Ratio, Avail, ledger: true, s: p.SubsistenceShare).NewMet * p.Size, p.FoodMet, 9);
+PriceOfBread.Tests/FoodLedgerTests.cs:185:            Assert.Equal(Expect(Ratio, Avail, ledger: false, s: p.SubsistenceShare).NewMet * p.Size, p.FoodMet, 9);
+PriceOfBread.Tests/FoodLedgerTests.cs:201:            for (int i = 0; i < 5; i++) expectMarket += p.Size * E[i] * Math.Max(0.0, 1.0 - p.SubsistenceShare * F);
+PriceOfBread.Tests/FoodLedgerTests.cs:208:        double expect2 = r2.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.SubsistenceShare));
+PriceOfBread.Tests/FoodLedgerTests.cs:223:        double oldMarket = rr.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.SubsistenceShare));
+PriceOfBread.Tests/FoodLedgerTests.cs:228:        Assert.Equal(oldMarket - rr.Pops.Sum(p => p.Size * E.Sum() * p.SubsistenceShare * 0.3), good, 9);   // 手の算術：自給の増え分 (1.3−1.0) �
+PriceOfBread.Tests/FoodLedgerTests.cs:231:        double extra = r7.Pops.Sum(p => p.Size * E.Sum() * p.SubsistenceShare * 0.3);
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:7:/// <c>Pop.SubsistenceShare</c> は [NonSerialized] で EconomyStep.Run の頭が毎月書く＝Run の外か読み込みの直後は 0 になる。以前の
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:8:/// 自給の基を持つ POP の依存度を 1 に見ていた。今の読み方＝InstrumentsCearn・InstrumentsSubst と同じ三項式（Productivity で
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:16:    /// <summary>自給の基 <paramref name="basis"/> を国 0 の工場労働者に置いて 1 四半期回した世界（旗 SubsistenceStage2＝0 を明
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:20:        foreach (var n in sim.Nations) n.World.Coef.SubsistenceStage2 = 0;    // 前提を既定に頼らず明示（旗 0＝食べる割合は欄そのも�
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:22:        sim.StepQuarter();                                                      // EconomyStep.Run の頭が欄 SubsistenceShare を書く
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:35:        Assert.All(workers, p => Assert.Equal(0.3, p.SubsistenceShare));
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:47:        Assert.All(workers2, p => Assert.Equal(0.0, p.SubsistenceShare));       // 食べる割合の欄は [NonSerialized]＝読み込みの直後は 0（�
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:56:        // Productivity の POP は欄 SubsistenceBasis が割合でなく生産性 ρ＝割合は SubsistenceShare から読む（三項式の Productivity
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:61:        foreach (var p in workers) { p.SubsistenceBasisKind = SubsistenceBasisKind.Productivity; p.SubsistenceBasis = 7.0; p.SubsistenceShare = 0.25; }   //
+PriceOfBread.Tests/IdeaBoardLoadTests.cs:63:        foreach (var p in workers) { p.SubsistenceBasisKind = SubsistenceBasisKind.OpeningShare; p.SubsistenceBasis = 0.25; p.SubsistenceShare = 0.0; }
+PriceOfBread.Tests/LandbaseInstrumentTests.cs:44:                    a.V[(q, nat, r.Name)] = r.LastSubsistenceOutput * StapleP(r);
+PriceOfBread.Tests/LandbaseInstrumentTests.cs:163:            double sp = StapleP(r), rs = StapleShare(w, r), v = r.LastSubsistenceOutput * sp;
+PriceOfBread.Tests/LandTaxFixedBasisTests.cs:142:    /// 盤面＝自営でない RGO に持ち分の枠（貴族 0.6・農民の自作〔担い手〕0.4）を置き、凍結の後の月の前に州�
+PriceOfBread.Tests/LandTaxFixedBasisTests.cs:165:        r!.LastSubsistenceOutput = 250.0;
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:7:/// <summary>★(849) 自給の段 2（旗 <see cref="Coefficients.SubsistenceStage2"/>・事前登録 measurements/m849_20261105_prereg_ss.txt）の機�
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:9:public class SubsistenceStage2Tests
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:14:        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; }
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:54:            Assert.Equal(BitConverter.DoubleToInt64Bits(p.SubsistenceBasis), BitConverter.DoubleToInt64Bits(p.SubsistenceShare));
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:84:            Assert.InRange(p.SubsistenceShare, 0.0, 1.0);
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:97:            Assert.Equal(p.SubsistenceBasis, p.SubsistenceShare);
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:131:        Assert.Equal(1.0, big!.SubsistenceShare, 12);   // min(1) の上側
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:175:            Assert.InRange(p.SubsistenceShare, 0.0, 1.0);
+PriceOfBread.Tests/SubsistenceStage2Tests.cs:176:            if (p.SubsistenceShare < 1.0 && p.SubsistenceShare > 0) below++;
+PriceOfBread.Tests/SubsistenceTechShareTests.cs:17:            n.World.Coef.SubsistenceStage2 = 1;
+PriceOfBread.Tests/SubsistenceTechShareTests.cs:74:            Assert.True(Math.Abs(p.SubsistenceShare - d0) <= 1e-12, $"焼いた月の食べる割合が開幕の割合と違う {p.SubsistenceShare} 
+PriceOfBread.Tests/SubsistenceTechShareTests.cs:76:            double s1 = p.SubsistenceShare;
+PriceOfBread.Tests/SubsistenceTechShareTests.cs:81:            if (BitConverter.DoubleToInt64Bits(p.SubsistenceShare) != BitConverter.DoubleToInt64Bits(s1)) moved++;
+PriceOfBread.Tests/SubstInstrumentTests.cs:185:        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; }
+PriceOfBread.Tests/SubstInstrumentTests.cs:195:            double se = D(r, "s2SigmaEngine"), si = D(r, "s2SigmaInst"), ub = D(r, "s2UnempB"), ue = D(r, "s2UnempEngine"), e = D(r, "s2EEnd");
+PriceOfBread.Tests/UrbanFlowRealTests.cs:49:            for (int i = 0; i < Staples.Length; i++) expect += Math.Min(Need[i] * p.Size * p.SubsistenceShare, Need[i] * p.Size) * ratio[i] * Catalog.RefPri
+PriceOfBread.Tests/UrbanFlowRealTests.cs:71:                double raw = Need[i] * p.Size * p.SubsistenceShare * harvest;   // 手の算術（goods.json の必要量の literal）
+PriceOfBread.Tests/WriterRatchetTests.cs:556:    [InlineData(CostLedger.DiploHegemonScans, 1889444L)]   // ★(1305) c135k47 旗 LampOilPetroleumDupOff 1 の木 9e54c5b37 の 1 種 40 四半期の実�
+PriceOfBread.Tests/WriterRatchetTests.cs:557:    // （合流 (1280) で注へ）[InlineData(CostLedger.DiploHegemonScans, 2389000L)]   // ★(1278) c131cr 旗 ColonyLabelsFromData 1 の木 5dfb66c61 

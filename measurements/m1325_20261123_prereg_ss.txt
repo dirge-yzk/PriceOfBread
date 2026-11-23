@@ -1,0 +1,148 @@
+(1325) c138ss 挙動の線の事前登録：自給の世帯の家計 3-1（余りを売る・旗 SubsistenceSellSurplus・1 回目）と器の段（s3 の写しの突き合わせ・subst_s の 3-1 の列）（2026-11-23・担当 Opus 5.5・腕の前のコミット）
+
+■ 先頭（指示の形から外れた所・推奨の直し＝README §1-7 の型・作者 2026-11-16 の決まり ④⑤）
+ F1 3-2（旗 SubsistenceTechBracket）は作らない＝段 0 の決定。指示の推奨の候補〈同じ州の主食の RGO が発見の改良で得た効率（EffBoost×EffFill）を写す形〉は、
+    今の自家の畑の t そのもの（EconomyStep.StapleEffTech〔:76〕＝主食の RGO の産出で重みづけた 1＋EffBoost×EffFill）。t＝T×B にこれを掛けると T² になり同じ量を 2 回数える（思想⑨）。
+    発見の行から主食の畑へ届く道は 2 本だけで、どちらも既に入っている：過リン酸石灰・窒素固定（肥料＝効率化材）は EffFill を通って T に、
+    畜力・蒸気・電動の農業労働のレシピ（発見の門）は人力の農業労働の売れ残り U に入る（Catalog.cs:423〜 の発見の表を grep で確かめた）。
+    残る差（RGO だけに掛かる TechProductivity の括弧＝World.cs:1705〜:1707・工業化度の indMult）は技術水準と工業化度＝削除の途中の量で、指示の〈入れない物〉に当たる。
+    ＝発見の行から導けて、二重に数えず、新しい係数 0 の B は今の盤面に無い。B は技術の括弧を置き換える〈改良の発見〉の機構（Improvement.cs の列・今は計器 dsc2_s だけ）が入った後の線へ回す。
+    作者 2026-11-04「技術向上(農薬など）の出現と共に、売却割合が増える方が自然」は、3-1 と今の T（肥料の EffFill）で向きが出る（量は小さい＝下の予言）。
+ F2 腕 B は 1 本（腕 1＝SellSurplus だけ）。腕 2 は F1 で消えた。重い仕事は 1 本。
+ F3 反証役 v の中 2（輸出の受け手）は (b) を選ぶ：売れ残った余りは m.Stock＝持ち主の無い共同の在庫（今の規則と同じ）＝輸出（PaySales）は在庫の売上として今の作り手へ配る。
+    InternationalMarket.cs は触らない。限界として名乗り、計器に〈出した余り〉と〈売れた余り〉の列を足す（差＝在庫へ入った余り＝輸出された余りの上界）。
+ F4 史実の桁の線：κ_E（下の H1）は腕 1 では動かない予言（材料 D：1913 年 ΣE÷Σ必要量 0.00009）＝素案 §4-2 のとおり腕 1 では記録（③ 点の予言は門にしない）。
+    門に置く史実の桁の線は H2（1913 年の農業の外の割合・9 国・壊さない側）。κ_E を史実へ寄せる線は F1 の後の線（B）の門。
+
+■ 出発
+ 00一覧〈次の波（波138〜）〉2 の②・0 の②。§0-2 ★(1321) ③④。作者 2026-11-04「売る割合は、自給して余った分」「技術向上(農薬など）の出現と共に、売却割合が増える方が自然」＝作者「全て推奨で」で推奨を採った。
+ 作者 2026-11-21：群 6 の 3-0〜3-2 は残す。答え待ちではない。3 回の規則の 1 回目（旗 SubsistenceSellSurplus）。形の種類＝〈入口〉（自給の余りの行き先と按分だけを変える）。
+ 材料：docs/202611/20261123/20261123_自給の世帯の家計の段3-1＋3-2_事前登録の素案_下書き.md（§1・§3・§4・反証役 v の訂正 中 1〜4・低 5）・同じ名の _材料.md・measurements/m1320_20261123/。
+
+■ 置き換える旧の規則（素案 §1 の ①〜⑤・⑥は F1 で外す）と、それを固定する試験（㉜・grep の結果＝measurements/m1325_20261123/pre/grep32.txt・58 行）
+ ① σraw＞1 の自給は食べられも売られもせず扶養力の分子に入る（消える自給）。② 自給の過分（sub＞GoodNeed）は台帳の持ち越しで他の主食の不足を埋める。
+ ③ (b′) の失業 clamp01((U−Lneed)÷能力)。④〈作り手の居ない財〉は producerCount＝0。⑤ 按分のガードの頭数は producerCount。
+ 旧の規則を固定する試験（旗 1 の木で赤の予言・㉜ の改めで新しい規則の試験へ書き換える）：
+  SubsistenceStage2Tests:104（旗1の農民の失業は…_両側）＝③ の式そのもの＝書き換え（Theory(旗 0/1)・旗 1 は新しい式・f̄ は盤面の収穫係数・s_E は売れ行きの上下の幅で挟む・両側と min(1) の上側は残す）。
+  SubstInstrumentTests:185〜201（自給の段2の列は旗0と旗1で…）＝旗 1 の行の失業の比べ＝書き換え（旗 SellSurplus＝1 の行は新しい式・旗 0 の行の Assert は変えない）。
+  SubsistenceTechShareTests:89（自給の農民の失業の割合も技術の比を…）＝反射で FarmUnemploymentStage2 を呼ぶ＝関数は残す（旗 0 の枝）＝赤の予言 0〈推〉。赤なら同じ型で書き換える。
+  FoodLedgerTests:213・:236（T4 凶作…・不変条件）＝盤面の σ×f≦1＝E＝0〈推〉＝赤の予言 0・前提の Assert を足す候補（赤なら）。
+  WriterRatchetTests:170（EarnedPerMonth の書き手 12）＝宣言 12→13（余りを出した POP の受け取りの 1 行・㉑ の予言）＝器の段で直す。
+  DormantIdentityTests（旗の表）＝器の段で +1・点火で −1。
+  変わらない物（理由つき）：SubsistenceStage2Tests の :45・:89・:135・:162（σ＝min(1,σraw) は 3-1 で変わらない）・UrbanFlowRealTests（D＝今の min(sub,GN)）・FamineGateReturnsRuralTests・
+   LandTaxFixedBasisTests・LandbaseInstrumentTests・RdhInstrumentTests・EmptyUrbanValueTests・IdeaBoardLoadTests（手で置く欄か同じ月の計器との突き合わせ・土地税の基数は受け取り R を含まない）。
+  一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて同じ線で直す（市場の在庫の釣り合い〔在庫＋売れた＝前の在庫＋産出〕を固定する試験があれば、余りの分だけ外れる＝旧の規則の番人）。
+
+■ 形（AI の案・確証なし＝素案 H1‴ の 3-1 の部分・作者の裁定ではない）
+ 旗 1：σraw（月の頭・SubsistenceHeadInto が局所の配列に書く・保存しない）＝担い手の Productivity の POP は ρ×U×T÷(必要量×人数)（min(1) の前）・それ以外は食べる割合。
+  x＝σraw×f（f＝StapleHarvestFactor・非有限は 1・負は 0＝③ の fdSelf と同じ守り）。D＝GoodNeed×min(1,x)・E＝GoodNeed×max(0,x−1)。市場へ出す必要量＝GoodNeed×max(0,1−x)。
+  売る財 r(g)＝Catalog の最初の投入を投入の無い財まで遡る（パン→小麦粉→麦・換算 q＝1×1）。r が州の財に無ければ売れない（Ê に入れない・払わない・扶養力に入れない）。
+  Ê[r]＋＝E×q（主食 g の回の POP の行）。available＝在庫＋産出＋Ê（:1626 の行の後に足す）。LastProduced には入れない。売れ行き＝その財の売れた÷available。
+  清算：produced′＝産出＋Ê・n′＝作り手の数＋E＞0 の POP の数（財ごと・同じ POP は 1 回）。作り手の share＝produced′＞Eps ? Output÷produced′ : 1÷n′。
+   余りを出した POP の受け取り R＝売上（商人の取り分の後）×(produced′＞Eps ? E÷produced′ : 1÷n′) → EarnedPerMonth（地代・賃金・原料の費・国営の持分を立てない）。
+   商人の取り分の domesticValue＝produced′×値段・条件 n′＝0。組合の交渉の按分（UnionBargaining.Prepare）にも同じ produced′ と n′ を渡す（RGO を飛ばす＝働いていない形の揃え）。〈作り手の居ない財〉の条件は n′＝0。
+  台帳：sub を D に置き換える（met・FoodMet・持ち越しの raw＝D＋qty）。LastSubsistenceOutput＝D＋（r＝g で売れる財の E）（反証役 v の中 1＝鎖の財の余りは作り手の LastProduced を通る）。
+   SubsistenceValuePerMonth＝min(D,GN)×値段（式は今のまま）。
+  失業（担い手の Productivity の POP）：raw＝(U−Lneed_f)÷能力・Lneed_f＝必要量×人数÷(ρ×T×f̄)・f̄＝その POP の主食の GoodNeed で重みづけた f（低 5）・
+   失業＝raw＞0 ? min(1, raw×(1−s_E)) : 0・s_E＝Σ E×q×売れ行き(r)÷Σ E×q（余り 0 なら 0）。U・能力・T は月の末（今の (b′) と同じ）。
+ 旗 0 は今と 1 ビットも同じ（σraw の配列は null＝新しい行は 1 行も走らない・prodP と n′ は元の配列そのもの）。新しい係数 0・新しい保存の状態 0（旗 1 本だけ）。
+ 入れない物：3-2（F1）・案 C′・土地税の算定の基準・土地の持ち分・TechLevel を読む括弧・InternationalMarket.cs（F3）・Fiscal.cs。
+
+■ 計器（器の段・旗 0・PriceOfBread.SimCore/Instruments/InstrumentsSubst.cs）
+ subst_s の末尾に 6 列（SubstS31HeaderText）：s3ESoldInst（計器の影の売れた余り＝担い手の POP・s3 の定義の Σ E×q×売れ行き）・s3EOfferedEngine・s3ESoldEngine・s3RPaidEngine・s3QEngine
+  （エンジンの実際の側＝清算の直後の値を州ごとに四半期で足す・受け口 Instruments.SubstSellMonth・旗 0 と計器なしは呼ばない＝0）・s3CrossInst（担い手の POP の主食で x＞1 と x＜1 が同時＝跨ぐ行・影）。
+ 足した計器の列＝この 6 列。既存の列の値は変えない（s3 の部品を internal の関数へ出しただけ＝式は同じ）。受け口は既にある局所 insOn を読む（Instruments.On の読みを増やさない）。
+ s3 の写しの部品（0 の②）：S3LandFactor（Territory.LandFactor の写し）・S3HarvestF（StapleHarvestFactor の写し）・S3SellGood（SubsistenceSellGood の写し）・S3SellShare（売れ行き）・S3LandTaxBase（Fiscal.LandTaxBase の写し）。
+ ident には --grown-ok subst_s（列が増えた表）。
+
+■ 紙（今の盤面＝keep_1321/base_ins〔M〕・keep_1321/n1・台本 scripts/instruments/c138ss/ss_gate.py・r1320/paper1320.py・出力 measurements/m1325_20261123/pre/）
+ paper1320（素案の [1]〜[4]）：1913 年 [1] σraw＞1∧f̄＜1 の行 1（人口 0.0001）・[3] σraw≦1∧σraw×f̄＞1 の行 15（0.0091）・ΣE÷Σ必要量 0.00009／全期間 [1] 524 行（0.0002）・[3] 3517 行（0.0026）・ΣE÷Σ必要量 0.00014。
+ ss_gate（基線 M・旗 0）：3-1 の列のある種 0＝G1 赤（旗 0 で門が落ちる）。H1 κ_E 1913 露・清とも実際 0・影 0（線の外）。H2 9 国とも線の内（中央 0.42〜0.51・最小 0.29〜0.45）。
+ ss_gate（N1）：H2 9 国とも線の内（中央 0.43〜0.50）。
+ 止める線（基線）：measurements/m1321_20261123/readM（合流の M の読み・同じ生）＝pxjump 100 倍以上 0・1e10 倍以上 0・gdpjump の〈それ以外〉0・plvl 0・gdp_zero10 0・空洞化 1/10 未満 0・
+  英の国債の不履行 3/10。この線の読み手 read_ss.sh を基線の生に当てた出力＝D:/PoB_work/c138ss_work/prebase（腕の前に読んで写す）。
+
+■ 段 0 の予言（ソースと基線の生から・向きと桁・〈推〉・門にしない）
+ P1 余りの立つ行は少ない：σraw＞1 か σraw≦1∧x＞1 の担い手は人口の約 0.3%（全期間）・1913 年の ΣE÷Σ必要量 約 1e-4。κ_E（売れた E÷Q）は 1913 年に 0 から 1e-4 の桁へ＝露 0.015・清 0.03 の線の外のまま（F4）。
+ P2 [1] の行は D が増える（必要量の約 +3.6%＝材料 D）＝飢えが少し減る向き。[3] の行は過分の持ち越しが消える＝他の主食の不足が少し戻る向き（同じ桁で逆向き＝正味は 0 の近く）。
+ P3 余りを出した担い手の受け取り R は正・小さい（農村の所得の +0.01% の桁）。失業は売れた余りの分だけ下がる（行は少ない）。
+ P4 扶養力の分子：r＝g の財の余りは今と同じく入り、鎖の財（パン）の余りは麦の作り手を通る＝ほぼ同じ。
+ P5 止める線は基線と同じ桁〈推〉（値段の道に入らない・移す量が小さい）。旗 1 の出力は種の 1 四半期目から旗 0 と分かれうる（余りの行が 1 つでも立てば軌道が分かれる）。
+ ＝見込みは〈悪くする〉ではない（消える自給と過分の持ち越しという勘定の誤りを直す向き）＝腕を回す。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（盤面は試験の中で置く・旗 0 で赤・突然変異で赤・期待は盤面の数から手の算術）：
+  PriceOfBread.Tests/SubsistenceSellSurplusTests.cs
+   T0 前提（主食 5 財の必要量・GoodNeed＝必要量×人数）。
+   T1（3-1-a）英の開幕・σraw 1・パンの f 1.2・米の f 0.5（在庫と作り手 0）・麦の値段 0.1×参照：出した余り＝0.2×0.55×人数・麦の在庫＋売れた＝前の在庫＋産出＋余り（旗 0 は余りなし）・
+      麦の LastProduced は旗 0 とビット一致・パンの在庫＋売れた＝前の在庫＋産出・R÷Σ麦の作り手の売上＝余り÷産出・売れた余り＝余り×S3SellShare（売れ行きの写し＝0 の②）。
+   T2（3-1-a の台帳）：LastSubsistenceOutput＝人数×(0.55＋0.2×0.5＋0.25＋0.06＋0.04)（旗 0 は 0.55×1.2）・FoodMet＝同じ（旗 0 は ＋min(0.11,0.10)×人数＝持ち越し）・自給の値は旗 0 とビット一致。
+   T3（3-1-c 豊作）：担い手を Productivity・σraw 0.9・全ての主食の f 1.25：失業＝raw×(1−s_E)（s_E＝Σ必要量×売れ行き÷Σ必要量＝f が一様なら重みは必要量）・
+      LastSubsistenceOutput＝人数×(0.55＋0.55×1.125)・旗 0 は (b′)・旗 1 と旗 0 の失業が違う。
+   T4（3-1-d 凶作）：σraw 1.2・f 0.7：LastSubsistenceOutput＝0.84×1.1×人数（旗 0 は 0.7×1.1）・余り 0・失業＝s_E を掛けない式。
+   T5（3-1-b 作り手の居ない財＋保存）：世界の無い州（米だけ・作り手 0・担い手 σ 1.5・町の人）：売れた＋在庫＝余り 100・担い手の受け取り＝町の人の払い・SumSavings の保存（1e-9）・旗 0 は売れない。
+   T6（3-1-e ガード）：余り 5e-10（Eps 未満）＝1÷n′ の枝：貯蓄が有限・受け取り＝払い・保存（1e-6）。
+   T7（3-1-f 片側の人数 0）：担い手の人数 0：旗 0 と貯蓄・FoodMet・失業・LastSubsistenceOutput がビット一致・NaN 0。
+   T8（3-1-g 構造）：全ての主食の売る財は自分か主食より後の段・投入の無い財・換算は正で有限・パン→麦。
+  PriceOfBread.Tests/SubstInstrumentTests.cs（器の段・0 の②）：
+   S1 S3LandFactor＝Territory.LandFactor（5 盤面・1 未満 2 以上）・S2 S3HarvestF＝StapleHarvestFactor（反射・土地係数 0.75）・S3 S3SellGood＝SubsistenceSellGood（全ての財・遡る財 10 以上）・
+   S4 S3LandTaxBase＝Fiscal.LandTaxBase（LandTaxFixedBasis 0／1・期待 40／25）。
+ G1（実際の側・⑮）：腕 B の subst_s の 3-1 の列が 10 種そろう・出した余りが正の行 1 以上・売れた余りが出した余りを超える行 0（ss_gate.py）。旗 0 の生は赤（上の紙）。
+ H2（史実の桁の線・壊さない側）：1913 年の農業の外の割合（1−農民÷兵士を除く全ての階級・class_s・種の中央）。錨〈推〉英 0.9・仏 0.6・普 0.65・米 0.7・露 0.25・日 0.4・清 0.2・オスマン 0.2・オーストリア 0.45。
+    線＝錨÷10 以上・錨×10 以下（1 を超える側は空）。9 国のどれかが外なら赤。基線は 9 国とも内。
+ 止める線（作者の止める線・腕 B の生を読み手 scripts/instruments/c138ss/read_ss.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines1002・stoplines906（pxmonth の 3 か月比と nation_s の priceLevel 四半期比の 100 倍以上〔主食の値段の下がる向きも〕・1e10 倍以上・非有限・plvl・gdpjump の〈それ以外〉）。
+     建国の直後と分母の痩せ（popjump1017）はヌル腕と並べる。基準とヌル腕を同じ台本で数え直す（⑰・read_ss.sh は基準の側も読む）。開幕の 1000 倍以上は記録（同じ国が半分以上の種なら NG）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ（主要国の州・植民地格の州も含む）。
+     基準の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ。それ以外で、その州の落ちの前の 4 四半期に腕の s3RPaidEngine か s3EOfferedEngine が正なら線の原因と読む
+     （一番近い所は植民地格で σraw＞1 の州＝1823 年に植民地格の人口の 18.7%〔素案 §4-2〕）。
+  S4 推定の計算量 ＞248.5 秒（名目・m1321 の M 230.9 秒・余り 約 13.2 秒）。割り当て +0.3 秒以下〈推〉（主食の行で x と min を 1 回・σraw の配列・余りの行は担い手 1 州 1 行の桁）。
+     2 秒以下＝合流の累計で読む（★(694)）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 記録（門にしない）：H1 κ_E 1913（露・清・実際と影）・κ の 10 年ごとの形・[1]〜[4] の行（paper1320 を腕の生に当てる）・跨ぐ行の数（s3CrossInst）・在庫へ入った余り（出した−売れた）・
+  gdp_zero10・ヌル腕の幅（nullgate）・NG（ng.sh・基準 rd:measurements/ng1321_20261123:m1321）・home_break・英の国債の不履行の種の数・開幕の 1000 倍以上・同じ盤面の成績表の行の差（card_difflines）。
+ 周辺の点検（読むだけ・直さない）：扶養力（Simulation.cs:2138〜:2148 の分子に LastSubsistenceOutput が 1 回）・移動の判断（PopDecision.cs:26 の自給の値＝D×値段）・組合（UnionBargaining.cs:47 は RGO を飛ばす）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c138ss/mut_ss.sh・出力 measurements/m1325_20261123/mut/・紙の予言）
+ | 突然変異                                        | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | S1〜S4 | G1（紙） |
+ | M1 R を払わない                                 | 赤 | 緑 | 緑 | 緑 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑（払った R 0＝記録） |
+ | M2〈作り手の居ない財〉の条件を producerCount＝0  | 緑 | 緑 | 緑 | 緑 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 |
+ | M3 余りを LastProduced に入れる                 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M4 持ち越しの raw を Q＋qty（過分を台帳へ）      | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M5 売ってから食べる（E＝Q×(1−1÷σraw)）          | 赤 | 赤 | 赤 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M6 失業に (1−s_E) を掛けない                     | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M7 パンの余りをパンのまま売る                   | 赤 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 | 赤 | 赤（S3 は計器と同じ写しなら緑） | 緑 |
+ | M8 R を州の全ての POP へ人数の比で              | 緑 | 緑 | 緑 | 緑 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 |
+ | M11 旗 0（何もしない実装）                       | 赤 | 赤 | 赤 | 赤 | 赤 | 赤 | 緑 | 緑 | 緑 | 赤 |
+ | M12 Lneed に f̄ を入れない（旧の Lneed）         | 緑 | 緑 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M14 余りを available の後に足す                 | 赤 | 緑 | 緑 | 緑 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 |
+ | M15 ガードの頭数を producerCount のまま          | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 |
+ | M16 消費の順を値段から（段を後に）              | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M17 扶養力の分子に Q をそのまま（鎖の財の余りも）| 緑 | 赤 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | Ma1 計器の収穫係数から土地係数を外す             | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 赤（S2） | 緑 |
+ | Ma2 計器の売る財で鎖を遡らない                   | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 赤（S3） | 緑 |
+ | Ma3 計器の土地税の基数の分岐を外す               | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 赤（S4） | 緑 |
+ 素案の M8（R を地代にも入れる）は R を EarnedPerMonth の 1 行だけに書く形では起こせない＝受け手の誤りの型 M8′（州の全ての POP へ）に替えた。
+ 素案の M13（R にガードを掛けない）は作り手 0 の盤面では E÷produced′＝1＝1÷n′ で同じ値＝赤にならない〈働いていない〉形（㉚）＝門の理由にしない（作り手が居て産出が Eps 未満の盤面は試験に置かない＝限界）。
+ 素案の M9・M10 は 3-2 の物（F1 で外れた）。
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+ 工業化度の読み手の許可表（IndustrializationReaderTests:25）：EconomyStep.cs 8＝この線は工業化度を読まない＝変化 0。技術水準の許可表（TechLevelRemovalTests）＝変化 0（TechLevel を読まない）。
+ `new MoneyStock(`（SimCore）64 件＝この線は足さない＝64 のまま。route_anchors.tsv（scripts/instruments/flow262/）の鍵の行に EconomyStep.cs は無い＝変化 0。
+ WriterRatchetTests の宣言の表：EarnedPerMonth 12→13（余りを出した POP の受け取りの 1 行）。他の行は変化 0。
+ OnDoubleReadScanTests（EconomyStep.cs::Run#0＝11）：この線は既にある局所 insOn を読む＝変化 0。
+ DormantIdentityTests.DormantZeroFields：器で +1（SubsistenceSellSurplus）・点火で −1。
+
+■ 計算量の割り当て
+ .cost：+0.3 秒以下〈推〉。計器の受け口は INS=1 の時だけ。2 秒以下＝合流の累計で読む。
+
+■ ほかの線との重なり（指示の持ち主の一覧）
+ EconomyStep.cs・UnionBargaining.cs（触らない＝呼び手の引数だけ変えた）・InstrumentsSubst.cs・Coefficients.p02 の :40 の次の 1 行はこの線だけ。
+ 共有：DormantIdentityTests.cs（EmptyPopDebtFirst の行の直前の 1 行）・WriterRatchetTests.cs（:170 の EarnedPerMonth の行と注 1 行）。c138df（DormantIdentityTests の ArrearsOnePredicate の行）とは別の行。
+ K49（波139）は EconomyStep.cs の注だけ＝合流で解く。
+
+■ 順
+ 1 この事前登録 → 2 器（旗 0・計器・試験）→ ㉘（scan_ss.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c138ssz --work D:/PoB_work/ident_c138ss --grown-ok subst_s --tests-delta <器の試験の数>）
+ → 4 突然変異（mut_ss.sh）→ 5 旗 1 → ㉘＋線の試験 → フルスイート・savetest・leakhunt（suite_ss.sh）→ 6 腕 B（armb.sh・計器つき 10 種・表を絞る）→ 門 → 印 D:/PoB_work/c138ss_work/ss.mark。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
