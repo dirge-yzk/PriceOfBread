@@ -1,0 +1,88 @@
+(1324) c138df 事前登録（腕の前のコミット）＝挙動の線：英の国債の不履行の入口・形 (e) の C1＋C2（テーマの 3 回目＝最後・1 回目 (1250) c127bd・2 回目 (1284) c132df）
+木 D:/PoB_work/wt_c138df・枝 c138df（e165b8887 から）・基線 m1321（INSRAW D:/PoB_work/keep_1321/base_ins・KEEPNULL keep_1321/n1・n2・a11）。書いた担当 Claude Opus 5.5。
+
+■ 0 形の種類＝入口（本位を離れる門の述語と位置を変える。尾の量は足さない）
+ 3 回の規則：3 回目＝最後。形と物差しは (1284) と同じ（measurements/m1284_20261122_prereg_df.txt の §1・§2）。変えた物は無い。
+ なぜ 3 回目か：(1284) は単独の腕 B で門と止める線を全て通り、(1287) の合流の合わせた木 T1_M で種 6 アクモラ王国の名目 GDP の 0 の近くからの跳び（止める線〈100 倍の《それ以外》〉5 件・1e10 倍 1 件）で外した。(1313) はその入口を分離の国庫の分与（df の機構ではない・df の無いヌル腕 N2 にも同じ型）と読み、(1318) c137ak（旗 SecessionTreasuryByMoney 1）が直して基線 m1321 に入った。
+ 作者 2026-11-21 の裁定（群 1 破綻とバグ）。答え待ちではない。
+
+■ 1 形（(1284) §1 のまま）
+ 旗 ArrearsOnePredicate（Coefficients.p03_debt_money.cs:114・器は main にある・既定 0→1）。Fiscal.Step の中だけ（main e165b8887 の Fiscal.cs:194 owes・:195 onePredicate・:197 旗 1 の MetallicStandardGate・:212 旗 0 の呼び・:214 局所関数）。
+ 共通の述語 owes＝payRate＜1 かつ GovDebt＞1e-9 かつ !underLimit かつ !WarmupFrozen。
+ C1：旗 1 は本位の停止の門を不履行の累計と判定の前に置く。C2：停止の財政の項を owes に替える（法と正貨カバーの項は残す）。
+ 置き換える旧の規則：〈r＜GoldSuspendMinFundingRatio（0.7）で離れる・離れる判定は不履行の判定の後〉。
+ このコミットの後の SimCore の差は Coefficients.p03_debt_money.cs:114 の既定（0→1）と注だけ。Fiscal.cs は触らない。
+ 収支：新しい係数 0・新しい状態 0・閾値 −1（旗 1 で GoldSuspendMinFundingRatio の読み手が無くなる＝係数は焼き込みの線で後に消す・今は残す）。
+ 変えない物：復帰の門（MetallicStandardGate の else の枝）・ArrearsOfMonth・RepudiateDebt・Simulation.cs。
+ AI の細部（確証なし）：述語の !underLimit と !WarmupFrozen を停止の門にも持ち込むこと・復帰の門をそのままにすること。
+
+■ 1b 名乗り：owes の r＜1 で 1−r≈1e-16 になる月（(1286) の訂正の末尾＝(1284) の腕 B の 239 か月のうち 9 か月）
+ 式は変えない（(1284) と同じ形）。理由：1−r に床を置くのは新しい閾値（〈作者 2026-11-16 の決まり〉③）で、形の変え直しになる。3 回目＝最後の線で形を変えない。
+ 今の盤面（keep_1321/base_ins の arrears_s・旗 0 の影）：金本位の月に新の述語が真の月 6852（英 189）のうち 1−r＜1e-12 が 478（英 1）＝7.0%。1−r＜1e-6 483・＜1e-3 2029・＜1e-2 4978。
+ ＝旗 1 では、r の丸め（payable÷claims・切り下げで払える額を埋めた月）だけで本位を離れる月があり得る。腕 B で tiny.py（金本位の月に predNew が真で 1−r＜1e-12 の月）を数えて記録する。採否に使わない。直すなら別の線（申し送り）。
+
+■ 2 門（〈作者 2026-11-16 の決まり〉①：止める線＋史実の桁の線＋単体の機構の試験）
+ 2-1 止める線（腕 B の計器つき 10 種・種 1〜10）
+  ・破綻：クラッシュ・NaN・保存則・savetest・leakhunt・進行不能。
+  ・stoplines906（scripts/instruments/c78gz/stoplines906.sh）：価格の 1 四半期 100 倍以上・1e10 倍以上・非有限・名目 GDP の 100 倍は 3 区分の〈それ以外〉だけ（★(1280)・建国の直後の型と政府の人口の 1/10・10 倍の四半期はヌル腕の件数と並べる＝㊳）。基準 keep_1321/base_ins とヌル腕 N1・N2 を同じ台本で数え直して並べる（⑰）。台本は腕の前に基準の生で回して旗 0 で緑かを確かめた（§4b）。
+  ・開幕の 1000 倍以上：同じ国が半分以上の種なら止める（NG）・それ以外は記録（★(617)・⑩）。
+  ・空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`＝ピークの 1/10 未満・規則 A2 の例外（植民地格・緯度の絶対値 55 度以上・開幕の人口 20 千人未満＝7 州）以外・主要国の州と本国格の州は例外にしない。**その線が原因と読めた件だけで止める**＝基線 keep_1321/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+  ・計算量：推定＞248.5 秒で止める。割り当て +0.1 秒〈推〉（コードは増えない・軌道が変わる分だけ）。2 秒以下＝1 本の腕で門にしない（★(694)）＝.cost を m1321（230.9 秒）と並べて記録し、合流の木の累計で読む。
+  ・機構のテストの赤（ソースを走査する番人を含む）。
+ 2-2 史実の桁の線（この線が一番動かす量＝本位の停止・史実の値を錨に・★(1321)）。読み手 scripts/instruments/c132df/gate_df.py（(1284) と同じ）。
+  G1 英の本位の停止の回数（種の平均）：史実 3（1797・1914・1931〈推〉）＝[0.3, 30] の外で赤。
+  G2 全ての国の本位の停止の回数（種の平均）：史実 約 50〈推〉＝[5, 500] の外で赤。
+ 2-3 単体の機構の試験（PriceOfBread.Tests/ArrearsOnePredicateTests.cs・main にある・盤面を試験の中で置く・旗を明示）
+  T1・T4・T5（旗 1 で緑・旗 0 の期待は試験の中の算術）・T6（計器 arrears_s・旗に依らない＝計器の番人）。(1284) §2-3 のまま。
+ 2-4 突然変異ごとにどの門で赤か（㉚・使い捨ての木 git archive で 1 本ずつ・scripts/instruments/c138df/mut_df.sh・出力 measurements/m1324_20261123/mut_*.txt）
+  M0 何も変えない → 全て緑
+  M1 停止の述語を r＜GoldSuspendMinFundingRatio へ戻す（位置は前のまま）→ T1 赤・T5 赤
+  M4 停止の門を判定の後へ（述語は新）→ T1 赤・T4 赤
+  M6 述語から !underLimit を外す → T5 赤
+  F0 旗を見ない（何もしない実装＝旗 0 の行）→ T1・T4・T5 赤
+  書き換えた番人の組（PFX=mutrw・FILT＝ArrearsOpenedRoomTests と FiscalTests の不履行の累計の番人）：M0 緑・F0 赤（3 本）・M1 赤（FiscalTests・T2）・M4 赤（T1・T2）。
+ 働いたかの段：T1・T4・T5 が旗 1 で緑・F0 で赤・M1/M4/M6 で赤。腕 B では arrears_s の金本位の月に owes が真の月が全てその月に離れたか（predNew 0 の行の数）を記録。
+
+■ 3 記録（採否に使わない・向きを付ける）
+ 英の国債の不履行の種の数（基準 3/10・N1 3/10・N2 4/10）・1930 年代の全ての国の不履行（種の平均・基準 0.90）・本位の外の続きの長さ・英の最初の停止の年・gdp_zero10・途中で生まれた国の 0 の近くからの跳び（ak の (a)＝区分を足さない列＝r1313/q12_born.py の民間÷国庫 1/1000 未満と 1 人あたり名目 GDP 1/20 未満の国×四半期・基準と N1・N2 も同じ台本）・nullgate.py の O・ng.sh（基準 rd:measurements/ng1321_20261123:m1321）・開幕の 1000 倍以上・旗 1 の成績表が旗 0（m1321）と違う行の数・本位の外で復帰して翌月にまた離れる往復・§1b の丸めの月・home_break（〈壊す〉①の読み手・記録）。
+
+■ 4 紙の台本（今の盤面 keep_1321/base_ins・旗 0＝基線・scripts/instruments/c138df/pre_base.sh・出力 measurements/m1324_20261123/pre/）
+ gate_df.py：基準 G1 2.20（3,3,1,2,2,1,4,2,1,3）→ 緑・G2 7.60（14,8,4,9,4,6,8,10,8,5）→ 緑。N1 G1 1.90・G2 8.00。N2 G1 2.10・G2 8.10。a11（種 11〜20）G1 1.10・G2 7.30。＝旗 0 で門の内（何もしない実装でも G1・G2 は緑＝G1・G2 は〈壊さない〉側の桁の線で、働きの門は §2-3 の単体の試験）。
+ 英の不履行 基準 3/10・1930 年代の不履行 0.90・本位の外の続き 76 件（中央 10・最大 483）。
+ 影（arrears_s・旗 0）：金本位の月に新の述語が真 6852（種ごと 805,165,713,1168,408,361,797,1062,978,395・英 27,37,6,3,7,7,55,17,10,20）・旧の述語が真 119・新だけ 6737・旧だけ 4。年代は 1900 年以後が 87%（5959/6852）。
+ 段0 の予言（向き・大きさ・(1284) の腕 B の新÷旧〔G1 ×2.9・G2 ×4.8〕を今の盤面に当てた〈推〉）：G1 2.2→4〜8・G2 7.6→25〜45＝どちらも門の内。英の不履行は減る側（金本位の月の導火線が消える・本位の外の月の累計〔C3・C4 の型〕は残る）＝3/10→1〜3/10〈推〉。1930 年代の不履行は減る（記録）。
+ アクモラ型（途中で生まれた国の名目 GDP の 0 の近くからの跳び）は出ない〈推〉＝入口の分離の国庫の分与は (1318) で直り基線に入った・df の機構はその国の本位を通らない（(1287)：アクモラは全期間で銀本位のまま＝門は一度も働いていない）。出たら止める線で読み、帰属は (1313) の q12 の型で読む（記録の段の先頭）。
+ ㉗：紙の台本は門の破れを予言しない。
+
+■ 4b 止める線の台本を基準の生で回した（★(1254)・腕の前・measurements/m1324_20261123/pre/）＝基準は全て緑。
+ 基準 keep_1321/base_ins：ukdefault 3/10（種 2・7・8）・pxjump 100 倍以上 0・1e10 0・非有限 0・gdpjump833 の〈それ以外〉0（分母の痩せ 0）・fixgate 緑・gdp_zero10 0・plvl 比≧100 0・開幕の 1000 倍以上 0・hol 1/10 未満 0（1/4 未満 2＝移民 1・その他 1）・popjump（政府の人口の 1/10・10 倍）は N1 に 2 組（種 4 オマーン 1826〜27・種 7 ポルトガル 1921〜22）。
+ ヌル腕（同じ台本で数え直し・⑰）：N1 ukdefault 3/10・名目 GDP の 100 倍 2（建国の直後 1・〈それ以外〉1＝種 6 ウジジ王国）・gdp_zero10 区間 3（種 6 ウジジ王国）・1/10 未満 0。N2 ukdefault 4/10・全て 0。
+ 途中で生まれた国の 0 の近くからの跳びの列（q12_born・記録）：hitAny の国×四半期 基準 39（4 種）・N1 280（5 種）・N2 19（3 種）。
+
+■ 5 恐れ（腕の前に書く・記録）
+ 復帰の門（r≧0.85・正貨カバー×1.3・!broken）は新の停止の述語（r＜1 かつ上限の外）より緩い＝往復を作り得る（(1284) の種 8 の英 1790〜1836 に 7 回）。§1b の丸めの月はこの往復を増やし得る。G2 の上側と arrears_s で読む（直すなら別の線＝復帰の門の述語の連続化は c132lk の材料）。
+
+■ 6 ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+ 工業化度の読み手の許可表：触らない（SimCore のコードの行を足さない）。
+ `new MoneyStock(` の件数：SimCore 66（grep・UnitTypeTests）＝変わらない。
+ route_anchors.tsv（scripts/instruments/flow262/route_anchors.tsv の Fiscal.cs の鍵 :44〜:46）：触らない。
+ WriterRatchetTests の宣言の表：コードは変わらない＝変わらない見込み。旗 1 で軌道の件数を写しただけの番人が動けば ★(749) で取り直し、verdict に列挙する。
+ DormantIdentityTests：点火のコミットで DormantZeroFields の ArrearsOnePredicate の行（:158）を注の行にする（1 行）。
+ 試験の数：3149（Category!=FullLength 2917＋Ui 232）と FullLength 3＝変わらない（ArrearsOnePredicateTests は main にある）＝--tests-delta 0。
+ 計器の表：足さない（arrears_s は main にある・列は sm の持ち物＝触らない）。
+
+■ 7 旗 1 の木で旧の規則を固定する番人（㉜・grep の結果＝GoldSuspend・MetallicStandard・InsolvencyMonths・ArrearsOnePredicate・GoldSuspensions で Tests を grep した 38 行・6 ファイル）
+ 書き換える（(1284) の 0cca4e5de の書き換えを今の木へ写す・行はそのまま当たった）：
+  PriceOfBread.Tests/FiscalTests.cs:986〜:987（注）・:998：前 `Assert.True(a.OnGoldStandard, …1 つ目の月で金本位から離れた…)` → 後 `Assert.False(a.OnGoldStandard, …新の規則…)`。残す性質：0.5＋0.5 で不履行・0.99×60・1−1e-10 の端・払えた月で 0・門が開いた月で 0。
+  PriceOfBread.Tests/ArrearsOpenedRoomTests.cs T1：旗 ArrearsBeyondOpenedRoom 1 の枝は離れた月から 0 を積む（0.4→0）・旗 0 の枝の不履行は残す。
+  PriceOfBread.Tests/ArrearsOpenedRoomTests.cs T2：同じ月に離れる・旗 1 は不履行なし・旗 0 は 4 か月目・金本位の月の量は ArrearsOfMonth を直に呼んで両方の旗で 0.25。
+ 書き換えない見込み（grep に当たったが旧の規則を固定しない＝(1284) の旗 1 のフルスイートで緑）：FiscalTests.cs:297・:961〜:964・TreasuryLedgerTests.cs:309〜:363・ArrearsUnderLimitPrevMonthTests.cs（(1316) で足した・計器の underLimit の番人・計器は両方の規則を数える）・ArrearsOnePredicateTests.cs（旗を明示）。
+ 一覧に無い赤はフルスイートで調べて同じ線で直す（㉜）。原因が読めない赤だけ止める。
+
+■ 8 計器：足さない。腕 B の表を絞る（⓪(a)）＝nation_s・stock_s・wars_s・casualty_s・region_s・migration_s・pxmonth_s・scalars_s（止める線と記録の読み手）・fiscal_s・mintcap_s（G1・G2）・arrears_s（この線）・sectreas_s・treasledger_s（生まれの国の記録＝q12）。
+
+■ 9 ぶつかり（触る行）
+ Coefficients.p03_debt_money.cs:114 だけ。Fiscal.cs は触らない（L2 の :104〜:137・土地税の :442 にも触れない）。FiscalTests.cs:986〜:998（sm の持ち物 :483 と重ならない）。ArrearsOpenedRoomTests.cs:44〜:115。DormantIdentityTests.cs:158 の 1 行。scripts/instruments/c138df/・measurements/m1324_*。
+
+■ 10 順
+ 事前登録（このコミット）→ 腕 Z＝旗 0 の木の SimCore は main e165b8887 と同じバイト（器と計器は main）＝m1321 で代える（ident は回さない）→ 旗 1＋㉜ の書き換え（台本 scripts/instruments/c138df/ を含む）→ ㉘（scan_df.sh）→ ㊴ → フルスイート・savetest・leakhunt（suite_df.sh）→ 突然変異（mut_df.sh）→ 腕 B（armb.sh・D: の空きを shutil で〈35GB＋8GB〉確かめる）→ 門 → 印 D:/PoB_work/c138df_work/df.mark → origin/c138df。形の変え直しは 1 回まで（⑭）。
