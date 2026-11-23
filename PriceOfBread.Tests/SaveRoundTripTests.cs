@@ -73,10 +73,10 @@ public class SaveRoundTripTests
     [Fact]
     public void StateDiffは集合の順だけと要素違いを分ける()
     {
-        var a = new HashSet<int>(); var b = new HashSet<int>(); var c = new HashSet<int>();
-        foreach (int x in new[] { 1, 2, 3, 40, 500 }) a.Add(x);
-        foreach (int x in new[] { 500, 40, 3, 2, 1 }) b.Add(x);
-        foreach (int x in new[] { 1, 2, 3, 40, 501 }) c.Add(x);
+        var a = new HashSet<string>(); var b = new HashSet<string>(); var c = new HashSet<string>();
+        foreach (var x in new[] { "あ", "い", "う", "え", "お" }) a.Add(x);
+        foreach (var x in new[] { "お", "え", "う", "い", "あ" }) b.Add(x);
+        foreach (var x in new[] { "あ", "い", "う", "え", "か" }) c.Add(x);
         var order = SaveGame.StateDiffOf(a, b, 4);
         Assert.Equal(0, order.Values);
         var diff = SaveGame.StateDiffOf(a, c, 4);
