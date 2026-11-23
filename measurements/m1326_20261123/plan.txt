@@ -1,0 +1,10 @@
+(1326) c138rd 読む線 の計画（2026-11-23・Claude Opus 5.5）
+作業の場所：D:/PoB_work/r1326_work/（台本 scripts/ と出力 out/ と report.txt）。worktree と枝は作らない（main の木 e165b8887 のソースを読むだけ）。コミット・push なし。腕 0 本。
+読む生（読むだけ）：
+- D:/PoB_work/keep_1321/base_ins（m1321 の計器つき10種）：formation2_s*・labeltier_s*・secession_s*・prodcap_s*・stock_s*・goods_s*・factory_s*・wars_s*・casualty_s*・sectreas_s*・nation_s*
+- KEEPNULL keep_1321/n1・n2（基準との並べ・内戦の数だけ）
+- 比べる基準（ak 前）：keep_1321_rej の中の基準の生があれば（読むだけ）、無ければ measurements/m1321_20261123/cwcount.txt の基準の数
+- measurements/m1321_20261123/cwcount.txt・readM
+- 実装ログ docs/202609/99_実装ログ_20260903.md の (1316)(1318)(1319)
+ソース：Formations.cs・FormationLabelTests.cs・Simulation.cs（電灯網）・Recipes／Catalog・内戦と分与（Secession 系）・Fiscal.cs:432・Ideology.cs:248
+問い：1 マラーター帝国の段 2 電灯網 1913 の能力 0 3 ak の後の内戦 4 制限選挙の発言力（読み手を数えるだけ）
