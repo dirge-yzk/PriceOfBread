@@ -5,8 +5,8 @@
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 D0="$(cd "$(dirname "$0")" && pwd)"; R="$(cd "$D0/../../.." && pwd -W)"; S=$R/scripts/instruments
 INS=${1:?ins}; CARD=${2:?成績表}; TAG=${3:?タグ}; OUT=${4:?出力}; SB=${5:?種の起点}; SE=$((SB+9))
-K=D:/PoB_work/keep_1254; BASE=$K/base_ins; N1=$K/n1
-[ "$SB" = 11 ] && BASE=$K/a11
+K=D:/PoB_work/keep_1315; BASE=$K/base_ins; N1=D:/PoB_work/keep_1308/n1   # (1316) keep_1254 は消えた＝基線の生は keep_1315（INSRAW）・ヌル腕 N1 は keep_1308（KEEPNULL）。種 11〜20（$K/a11）は keep_1308/a11
+[ "$SB" = 11 ] && BASE=D:/PoB_work/keep_1308/a11
 mkdir -p "$OUT"
 cd "$R"
 # 止める線
