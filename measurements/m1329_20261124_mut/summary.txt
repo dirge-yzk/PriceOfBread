@@ -1,0 +1,12 @@
+(1329) c139sm 突然変異の結果（使い捨ての木 wt_c139sm_mut・a1bac833a から・1 本ずつではなく 2 組で回した＝出力の置き場の名が漏れた欄を 1 本ずつ名指す）
+組 B（M1＋M2）：mutB 赤 2 本
+  M1 Legacy の max(0,·) を |·| へ戻す → PolicyPoliticsTests.旧の写しの減らす向きは望む段で0でありabsの写しは食い違う盤面がある 赤（Assert.Empty 失敗・Suffrage の要求が残る）
+  M2 CpBefore の Tg.Cede の門を外す → InstrumentHookClosureTests.UnselectedTablesAccumulateNothing 赤（漏れた欄：CpStates）
+組 A（M3〜M8）：UnselectedTablesAccumulateNothing 赤・漏れた欄＝CpStates,CmStates,BxNats,BxRegs,CkWorlds,CrownPrevs,CrownSinks,CrownSrcs,FdDiags,HabitlgSinks
+  M3 CmBefore の門 → CmStates（と CpStates）
+  M4 BasisxRgoRent の Tg.Basisx → BxNats,BxRegs
+  M5 CapSkip・CapSkipDedup の Tg.Capskip → CkWorlds（CkSinks は CapskipTable の門が残るので漏れない＝CapskipTable の門の突然変異は別）
+  M6 CrownFold・CrownSource の Tg.Cede → CrownPrevs,CrownSinks,CrownSrcs
+  M7 FdBegin の Tg.Fd → FdDiags
+  M8 HabitlgTable の Tg.Habitlg → HabitlgSinks
+未確認（名乗る）：CapskipTable 自身の門（CkSinks）の突然変異は回していない（CkSinks は CapskipTable だけが作る＝M5 の組では門が残る）。
