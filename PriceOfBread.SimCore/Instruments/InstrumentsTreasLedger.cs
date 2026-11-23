@@ -7,7 +7,7 @@ namespace PriceOfBread.SimCore;
 // 行の形（長い形）：quarter・year・nation・item・value。item＝科目の名前（その四半期の差分が 0 の科目は書かない）か、次の「_」始まりの印（国×四半期に必ず書く）：
 //   _treasuryEnd＝四半期末の国庫・_treasuryDelta＝前の四半期末からの国庫の変化・_ledgerSum＝科目の差分の和・_residual＝_treasuryDelta−_ledgerSum（台帳を通らない国庫の動き）・
 //   _privateMoney＝四半期末の TotalMoney（州の貯蓄の和）・_rebased＝その四半期に助走明けのリベースが有ったら 1（無ければ書かない）・_rebaseJump＝リベースの前後の国庫の差（印と同時）。
-// 最初の観測の四半期（途中で生まれた国）は前の値が無い＝科目の差分は 0 からの累積・_treasuryDelta・_residual は nan・_bornTreasury＝_treasuryEnd−_ledgerSum（受け取った初期の国庫）を足す。リベースの四半期は、リベース以後の分だけを差分にする（台帳が捨てられるため）。
+// 最初の観測の四半期（途中で生まれた国・助走の無い盤面の最初の国など〔助走明けのリベースを経ていない国〕）は前の値が無い＝科目の差分は 0 からの累積・_treasuryDelta・_residual は nan・_bornTreasury＝_treasuryEnd−_ledgerSum（受け取った初期の国庫）を足す。リベースの四半期は、リベース以後の分だけを差分にする（台帳が捨てられるため）。
 public static partial class Instruments
 {
     internal const string TreasLedgerHeaderText = "quarter\tyear\tnation\titem\tvalue";
@@ -48,6 +48,7 @@ public static partial class Instruments
         var sk = TlSinks.GetValue(sim, _ => new TlSink());
         sk.Peek.Clear();   // 試験の読み口は最後の四半期の行だけ（ArrearsPeek と同じ形）
         string qs = q.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        Span<double> dk = stackalloc double[NCat];   // (1316) ループの外へ（LedgerStep が全ての要素を書く＝国ごとに空にする必要は無い）
         foreach (var n in sim.Nations)
         {
             var w = n.World;
@@ -56,7 +57,6 @@ public static partial class Instruments
             var led = w.TreasuryLedger;
             var rows = new List<string>();
             double tre = w.Treasury.Value;
-            Span<double> dk = stackalloc double[NCat];
             var (dT0, dSum, res0) = LedgerStep(led, s.PrevLedger, tre, s.PrevTreasury, dk);
             for (int k = 0; k < NCat; k++) if (dk[k] != 0) rows.Add(head + (TreasuryCat)k + "\t" + TlF(dk[k]));
             double dT = s.Have ? dT0 : double.NaN;
@@ -64,7 +64,7 @@ public static partial class Instruments
             rows.Add(head + "_treasuryDelta\t" + TlF(dT));
             rows.Add(head + "_ledgerSum\t" + TlF(dSum));
             rows.Add(head + "_residual\t" + TlF(s.Have ? res0 : double.NaN));
-            if (!s.Have) rows.Add(head + "_bornTreasury\t" + TlF(tre - dSum));   // 途中で生まれた国が受け取った初期の国庫（台帳の外 SetTreasuryRaw で入った分）
+            if (!s.Have) rows.Add(head + "_bornTreasury\t" + TlF(tre - dSum));   // 助走明けのリベースを経ていない国（途中で生まれた国・助走の無い盤面の最初の国）が受け取った初期の国庫（台帳の外 SetTreasuryRaw で入った分）
             rows.Add(head + "_privateMoney\t" + TlF(w.TotalMoney.Value));
             if (s.Rebased) { rows.Add(head + "_rebased\t1"); rows.Add(head + "_rebaseJump\t" + TlF(s.Jump)); }
             if (sk.W is null) { sk.W = Open("treasledger", seed); sk.W.WriteLine(TreasLedgerHeaderText); }
