@@ -2,6 +2,7 @@
 # (1328) 合流（波138・m1321/arms1321.sh の写し・W138＝lawdir_s〔lp の門 G1〕を足した）の腕の組（arm1328.sh を呼ぶ）。表の組は (1308) と同じに、波137 の門と記録の表（W137）を足した。
 #   W137＝sectreas_s（ak の門 G1）・subst_s（s3 の器）・popclose_s（sm の列）。
 #   W135＝capcol_s（nc の門 G1・G2）・recipeout_s（k47 の門と史実の桁）・landshare_s（nc の記録）・treasledger_s（tl の器）。
+#   (1328) S11 の腕の名は ARMNAME で変えられる（アブレーションの腕 aS11A・aS11B）。
 #   bash arms1328.sh <組 M|S11|p5|N1|N2> <コミット>。M は全表（採れば新しい INSRAW＝keep_1328/base_ins）。
 S=D:/PoB_work/wt_m1328/scripts/instruments; CF=$S/ident/ident.cfg
 SMALL=$(grep '^SMALL=' $CF | cut -d= -f2 | tr -d '\r'); BYPASS=$(grep '^BYPASS=' $CF | cut -d= -f2 | tr -d '\r')
@@ -19,7 +20,7 @@ W138="lawdir_s"
 G=${1:?組}; H=${2:?コミット}
 case $G in
   M)    bash $S/m1328/arm1328.sh mM 1 10 1 1 - $H ;;
-  S11)  TABLES1328="$A11,$CA,$BK,$W127,cpop_s,admrule_s,rule_s,soldiervac_s,mintreg_s,mintcap_s,nationgood_s,armsfill_s,pop_s,tb_s,t1buy_s,secession_s,cessp_s,rulepower_s,sf_s,rponset_s,$W129,$W130,$W132,$W135,$W137,$W138" bash $S/m1328/arm1328.sh mS11 1 10 11 1 - $H ;;
+  S11)  TABLES1328="$A11,$CA,$BK,$W127,cpop_s,admrule_s,rule_s,soldiervac_s,mintreg_s,mintcap_s,nationgood_s,armsfill_s,pop_s,tb_s,t1buy_s,secession_s,cessp_s,rulepower_s,sf_s,rponset_s,$W129,$W130,$W132,$W135,$W137,$W138" bash $S/m1328/arm1328.sh ${ARMNAME:-mS11} 1 10 11 1 - $H ;;
   p5)   bash $S/m1328/arm1328.sh mp5 0 5 1 1 - $H ;;
   N1)   TABLES1328="$NUL,$CA,$BK,$W127,$W129,$W130,$W132,$W135,$W137,$W138" bash $S/m1328/arm1328.sh mN1 1 10 1 0 SupplySlope=0.50000001 $H ;;
   N2)   TABLES1328="$NUL,$CA,$BK,$W127,$W129,$W130,$W132,$W135,$W137,$W138" bash $S/m1328/arm1328.sh mN2 1 10 1 0 SupplySlope=0.49999999 $H ;;
