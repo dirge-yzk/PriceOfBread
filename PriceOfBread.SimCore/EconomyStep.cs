@@ -2401,7 +2401,7 @@ public static class EconomyStep
                 if (mbDir != 0) s.MothballFrac = new Share(Math.Clamp(s.MothballFrac.Value + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap.Value * (1.0 - stateCover)));
             }
             double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac.Value)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
-            // 「上がったから更に上がる」と確信して拡張し、 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。〔履歴 EconomyStep.cs#344〕
+            // 勢いの項（InvestExtrapolationWeight×(利幅−平滑)・労働を買う生産者だけ）は K49（(1319)）で重み 0＝規模の目標は 1＋利幅 だけ・項と係数の削除は焼き込みの線。〔履歴 EconomyStep.cs#344〕
             double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限
             bool eqS = eqOn && FactoryEquipment.Eligible(s);   // eqS〔履歴 EconomyStep.cs#345〕
             if (!eqS) s.Scale = PoliticalQuantities.Toward(s.Scale, scaleTarget, catSpeed);   // ★カテゴリ速度
