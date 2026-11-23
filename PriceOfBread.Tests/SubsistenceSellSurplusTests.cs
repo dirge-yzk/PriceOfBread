@@ -67,9 +67,9 @@ public class SubsistenceSellSurplusTests
         var s1 = Instruments.SubstSellOf(r1);
         Assert.Equal(e, s1.Offered, 9);
         Assert.Equal(0.0, Instruments.SubstSellOf(r0).Offered);
-        // 麦：同じ盤面（同じ前の在庫・同じ傷み・同じ産出）で 在庫＋売れた の差＝余り（旗 1 だけ available に入る）。産出（LastProduced）は旗に依らない
+        // 麦：同じ盤面（同じ前の在庫・同じ傷み・同じ作り手の産出）で 在庫＋売れた の差＝余り（旗 1 だけ available に入る）。市場の産出（LastProduced）は旗 0 の産出＋余り（財収支が閉じる）
         var wh1 = r1.Markets[Catalog.WheatId]; var wh0 = r0.Markets[Catalog.WheatId];
-        Assert.Equal(BitConverter.DoubleToInt64Bits(wh0.LastProduced), BitConverter.DoubleToInt64Bits(wh1.LastProduced));
+        Assert.Equal(wh0.LastProduced + e, wh1.LastProduced, 9);
         double av1 = wh1.Stock + wh1.LastSold, av0 = wh0.Stock + wh0.LastSold;
         Assert.True(Math.Abs(av1 - av0 - e) <= 1e-9 * (av0 + e), $"麦の available に余りが入っていない {av1 - av0} vs {e}");
         // パン：余りはパンの市場に入らない（在庫＋売れた が旗 0 と同じ）
@@ -77,9 +77,9 @@ public class SubsistenceSellSurplusTests
         Assert.True(Math.Abs(br1.Stock + br1.LastSold - (br0.Stock + br0.LastSold)) <= 1e-9 * (br0.Stock + br0.LastSold), "パンの余りがパンの市場に入った");
         // 受け取り：R÷Σ作り手の売上＝E÷産出（同じ売上を同じ按分で）
         double rev = r1.Producers.Where(s => s.GoodId == Catalog.WheatId).Sum(s => s.LastRevenue);
-        Assert.True(rev > 0 && wh1.LastProduced > 0, "前提：麦の作り手の売上と産出が正");
+        Assert.True(rev > 0 && wh0.LastProduced > 0, "前提：麦の作り手の売上と産出が正");
         Assert.True(s1.Paid > 0, "余りの受け取りが 0");
-        Assert.Equal(e / wh1.LastProduced, s1.Paid / rev, 9);
+        Assert.Equal(e / wh0.LastProduced, s1.Paid / rev, 9);                           // R÷Σ作り手の売上＝余り÷作り手の産出
         // 売れた余り＝余り×売れ行き（計器の写し S3SellShare と同じ量）
         Assert.Equal(e * Instruments.S3SellShare(wh1), s1.Sold, 9);
     }
@@ -163,7 +163,7 @@ public class SubsistenceSellSurplusTests
         Assert.True(e1 > 0, "前提：売れない余りの労働が正（上側の試験）");
         Assert.Equal(e1, u1, 9);
         double n = l1.Size;
-        Assert.Equal(n * (Need[0] * 1.0 + (Need.Sum() - Need[0]) * 1.125), sub1, 9);   // x＝1.125：パンは食べた分だけ・他は食べた＋自分の財で売る余り
+        Assert.Equal(n * Need.Sum(), sub1, 9);                                          // x＝1.125：扶養力の自給の分子は食べた分だけ（余りは市場の産出で 1 回）
         var (r0, l0, rho0, u0, _, _) = Productive(0.0, 0.9, 1.25);
         var (cap0, _) = Farm(r0);
         double old = Math.Clamp((Unsold(r0, cap0) - Need.Sum() * l0.Size / (rho0 * Tech(r0, new Coefficients()))) / cap0, 0.0, 1.0);
@@ -207,7 +207,7 @@ public class SubsistenceSellSurplusTests
         Assert.Equal(town.PaidPerMonth.Value, farmer.EarnedPerMonth.Value, 9);
         Assert.True(Math.Abs(r.SumSavings().Value - before) <= 1e-9 * before, $"貨幣の保存の破れ {before} → {r.SumSavings().Value}");
         var r0 = Tiny(1.5, 1000, out var f0, out _);
-        EconomyStep.Run(r0, new Coefficients());
+        EconomyStep.Run(r0, new Coefficients { SubsistenceSellSurplus = 0 });
         Assert.Equal(0.0, r0.Markets[Catalog.RiceId].LastSold);                       // 旗 0：余りは市場へ出ない
         Assert.Equal(0.0, f0.EarnedPerMonth.Value);
     }
@@ -231,7 +231,7 @@ public class SubsistenceSellSurplusTests
         var r1 = Tiny(1.5, 0, out var f1, out var t1);
         var r0 = Tiny(1.5, 0, out var f0, out var t0);
         EconomyStep.Run(r1, new Coefficients { SubsistenceSellSurplus = 1 });
-        EconomyStep.Run(r0, new Coefficients());
+        EconomyStep.Run(r0, new Coefficients { SubsistenceSellSurplus = 0 });
         foreach (var (a, b) in new[] { (f1, f0), (t1, t0) })
         {
             Assert.Equal(BitConverter.DoubleToInt64Bits(b.Savings.Value), BitConverter.DoubleToInt64Bits(a.Savings.Value));

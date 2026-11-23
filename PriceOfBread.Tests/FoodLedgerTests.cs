@@ -202,11 +202,14 @@ public class FoodLedgerTests
         Assert.True(expectMarket > 0);
         Assert.Equal(expectMarket, d!.MarketNeed, 9);            // 市場に出す必要量＝必要量×max(0, 1−自給率×収穫係数)（独立に組んだ値・追記 2 で豊作も対称）
         Assert.True(d.Desired < d.MarketNeed * 0.95, $"前提：挟みで欲しい量の和が縮む {d.Desired}/{d.MarketNeed}");   // 配り直し（②）は c132kx で消した＝挟みが残る
-        // ③0 なら Σ 必要量×(1−自給率)
-        var (_, r2) = Month(c => Flags(c, 1, 0), Ratio, Stock, harvest: F, ins: true);
+        // ③0 なら Σ 必要量×(1−自給率)（③0 の枝は 3-1〔旗 SubsistenceSellSurplus〕が 0 の時だけ在る＝(1325) で旗を盤面に置いた）
+        var (_, r2) = Month(c => { Flags(c, 1, 0); c.SubsistenceSellSurplus = 0; }, Ratio, Stock, harvest: F, ins: true);
         var d2 = Instruments.FdDiagOf(r2)!;
         double expect2 = r2.Pops.Sum(p => p.Size * E.Sum() * (1.0 - p.SubsistenceShare));
         Assert.Equal(expect2, d2.MarketNeed, 9);
+        // (1325) 3-1 が 1 なら ③ に依らず 必要量×max(0, 1−σraw×収穫係数)（③1 の期待と同じ値）
+        var (_, r3) = Month(c => { Flags(c, 1, 0); c.SubsistenceSellSurplus = 1; }, Ratio, Stock, harvest: F, ins: true);
+        Assert.Equal(expectMarket, Instruments.FdDiagOf(r3)!.MarketNeed, 9);
     }
 
     [Fact]

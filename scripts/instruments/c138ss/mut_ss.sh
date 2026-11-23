@@ -17,7 +17,7 @@ PAY = b'                region.Pops[sp].EarnedPerMonth += new MoneyPerMonth(pay)
 R = {
  'M1': (E, [(PAY, b'                // (M1) R \xe3\x82\x92\xe6\x89\x95\xe3\x82\x8f\xe3\x81\xaa\xe3\x81\x84')]),
  'M2': (E, [(b'            if (nPrime[gi] != 0 || revenue[gi] <= 0) continue;', b'            if (producerCount[gi] != 0 || revenue[gi] <= 0) continue;')]),
- 'M3': (E, [(b'            m.LastProduced = produced[gi];', b'            m.LastProduced = produced[gi] + (sell ? sEHat[gi] : 0);')]),
+ 'M3': (E, [(b'            if (sell) m.LastProduced += sEHat[gi];', b'            if (sell) m.LastProduced += 0.0;')]),   # (1325) 形の変え直しの後＝余りを LastProduced に入れない
  'M4': (E, [(b'if (fdLedger) { double raw = sub + qty;', b'if (fdLedger) { double raw = (sell && staple ? p.GoodNeed * sraw![fdI] * sF : sub) + qty;')]),
  'M5': (E, [(b'                    if (x > 1.0 && sOk)\n                    {\n                        double eq = p.GoodNeed * (x - 1.0) * sQ;',
              b'                    if (sraw![pIdx] > 1.0 && sOk)\n                    {\n                        double eq = p.GoodNeed * (sraw![pIdx] - 1.0) * sF * sQ;')]),
@@ -30,7 +30,7 @@ R = {
              (b'            m.Stock = Math.Max(0, available - sold);', b'            m.Stock = Math.Max(0, available - sold) + (sell ? sEHat[gi] : 0.0);')]),
  'M15': (E, [(b'(prodP[sr] > Eps ? seq / prodP[sr] : 1.0 / nPrime[sr])', b'(prodP[sr] > Eps ? seq / prodP[sr] : 1.0 / producerCount[sr])')]),
  'M16': (E, [(b'            int t = ((int)a.Tier).CompareTo((int)b.Tier);', b'            int t = region.Markets[a.Id].Price.CompareTo(region.Markets[b.Id].Price);')]),
- 'M17': (E, [(b'if (x > 1.0 && sOk && sR == gi) eSelf = p.GoodNeed * (x - 1.0);', b'if (x > 1.0) eSelf = p.GoodNeed * (x - 1.0);')]),
+ 'M17': (E, [(b'region.LastSubsistenceOutput += sub;', b'region.LastSubsistenceOutput += (sell && staple ? p.GoodNeed * sraw![fdI] * sF : sub);')]),
  'Ma1': (I, [(b'        return r.HarvestFactor * r.WeatherBandFactor * crop * landF;', b'        return r.HarvestFactor * r.WeatherBandFactor * crop;')]),
  'Ma2': (I, [(b'            if (inp.Length == 0) break;\n            q *= inp[0].QtyPerOutput; cur = inp[0].GoodId;\n        }\n        return (cur, q);\n    }\n\n    /// <summary>\xe5\x9b\x9b',
               b'            break;\n        }\n        return (cur, q);\n    }\n\n    /// <summary>\xe5\x9b\x9b')]),

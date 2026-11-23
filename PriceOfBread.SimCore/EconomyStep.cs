@@ -1713,7 +1713,7 @@ public static class EconomyStep
                               + inputTrickle[gi];
             if (BudgetBindDiag.On) BudgetBindDiag.Compose(world, popDemand * usePrice, inputNeed[gi] * usePrice, investDemand[gi] * usePrice, (militaryDemand[gi] + rebelDemand[gi]) * usePrice);
             double available = m.Stock + produced[gi];
-            if (sell) available += sEHat[gi];   // (1325) 3-1：自給の余り（売る財 r の分）＝在庫と産出の後に足す（LastProduced には入れない）
+            if (sell) available += sEHat[gi];   // (1325) 3-1：自給の余り（売る財 r の分）＝在庫と産出の後に足す（作り手の産出 produced には入れない＝LastProduced へは下で足す）
             double coreSold = coreDemand > 1e-12 ? Math.Min(available, coreDemand) : 0;
             ration[gi] = coreDemand > 1e-12 ? coreSold / coreDemand : 0;
             if (insInp is not null) insInp.Good(gi, available, coreDemand, popDemand, inputNeed[gi] + inputTrickle[gi], investDemand[gi], militaryDemand[gi] + rebelDemand[gi]);   // militaryDemand〔履歴 EconomyStep.cs#231〕
@@ -1945,13 +1945,7 @@ public static class EconomyStep
                         double subFactor = region.HarvestFactor;
                         if (staple) subFactor = StapleHarvestFactor(region, gi, regionLandFactor);   // 市場向けと同じ収穫係数（三重積）
                         double sub = staple ? p.GoodNeed * p.SubsistenceShare * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
-                        double eSelf = 0;   // (1325) 3-1：自分の財のまま売った余り（r＝g・売れる財）＝扶養力の分子に 1 回だけ入る（鎖の財の余りは作り手の LastProduced を通って入る）
-                        if (sell && staple)
-                        {
-                            double x = sraw![fdI] * sF;
-                            sub = p.GoodNeed * Math.Min(1.0, x);   // 食べた量 D（自給の過分は台帳へ持ち越さない＝余りは売る）
-                            if (x > 1.0 && sOk && sR == gi) eSelf = p.GoodNeed * (x - 1.0);
-                        }
+                        if (sell && staple) sub = p.GoodNeed * Math.Min(1.0, sraw![fdI] * sF);   // (1325) 3-1：食べた量 D（自給の過分は台帳へ持ち越さない＝余りは売る財の市場へ出て LastProduced に入る＝扶養力の分子にはそこで 1 回）
                         double met = sub + Math.Min(qty, p.GoodNeed - sub);
                         p.NeedMet += met * needW;
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
@@ -1964,7 +1958,6 @@ public static class EconomyStep
                             if (fdd is not null) { fdd.Demand += p.GoodDemand; fdd.Sub += sub; }   // GoodDemand〔履歴 EconomyStep.cs#268〕
                         }
                         if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; p.SubsistenceValuePerMonth += new MoneyPerMonth((sub > p.GoodNeed ? p.GoodNeed : sub) * m.Price); }   // 不作/高騰/過密で買えねば met<need→飢饉。〔履歴 EconomyStep.cs#269〕
-                        if (eSelf > 0) region.LastSubsistenceOutput += eSelf;
                         else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。〔履歴 EconomyStep.cs#270〕
                     }
                 }
@@ -1974,6 +1967,7 @@ public static class EconomyStep
             if (sell && sEHat[gi] > 0) sSellFrac[gi] = sold / available;   // (1325) 3-1：余りの売れ行き＝この財の売れた÷available（available≧Ê＞0）
             m.Stock = Math.Max(0, available - sold);   // 優先配分の浮動小数点残差で極微の負になりうる（−1e−15）。非負へクランプ
             m.LastProduced = produced[gi];
+            if (sell) m.LastProduced += sEHat[gi];   // (1325) 3-1：市場へ出た自給の余りは市場の産出（財収支＝前の在庫＋産出＋輸入−販売−輸出が閉じる）
             m.LastSold = sold;
             m.LastRation = new Share(ration[gi]);   // 財別の配給率を記帳（生産タブの材別「供給:n%」が読む唯一の出所）。純記帳＝力学の読み手なし
             m.LastShortage = Math.Max(0, totalDemand - available);
