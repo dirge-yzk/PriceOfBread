@@ -333,11 +333,23 @@ public static class PolicyPreferences
 
     internal static bool HasLegislature(Polity p) => p is Polity.ConstitutionalMonarchy or Polity.Republic;
 
+    /// <summary>(1323) 段 k→k+d の好み。旗 LawPrefSinglePeaked 0＝pref×sign（後退は拡大の符号の反転）。1＝<see cref="SinglePeaked"/>。純支持の全ての項がこの 1 本を読む。</summary>
+    internal static double Directed(World w, double pref, double sign)
+        => w.Coef.LawPrefSinglePeaked > 0 ? SinglePeaked(pref, sign > 0 ? 1 : -1) : pref * sign;
+
+    /// <summary>(1323) 望む段と今の段の差 k*−k＝(1+sgn(pref)+pref)/2（pref＝1 段上げの損得）。NaN は sgn 0。</summary>
+    internal static double PeakOffset(double pref) => (1.0 + (pref > 0 ? 1.0 : pref < 0 ? -1.0 : 0.0) + pref) / 2.0;
+
+    /// <summary>(1323) 強さ s・望む段の差 c＝k*−k の陣営の段 k→k+d の好み＝s×(|k−k*|−|k+d−k*|)。</summary>
+    internal static double StepGain(double strength, double peakOffset, int d) => strength * (Math.Abs(peakOffset) - Math.Abs(peakOffset - d));
+
+    internal static double SinglePeaked(double pref, int d) => StepGain(Math.Abs(pref), PeakOffset(pref), d);
+
     internal static double ParliamentNet(World w, PolicyAxis a, double sign, in Profile e)
     {
         if (!w.ParliamentEnabled || !HasLegislature(w.Polity)) return 0;
         double sum = 0;
-        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Pref(a, party, e, w, sign > 0) * sign;
+        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Directed(w, Pref(a, party, e, w, sign > 0), sign);
         return w.Coef.ParliamentLawWeight * sum;
     }
 
@@ -347,16 +359,16 @@ public static class PolicyPreferences
         double sum = 0;
         for (int b = 0; b < BlocCount; b++)
         {
-            double pr = Pref(a, b, e, w, increasing) * sign;
+            double pr = Directed(w, Pref(a, b, e, w, increasing), sign);
             if (pr < 0) sum += e.Power[b] * -pr;
         }
         if (w.ParliamentEnabled && HasLegislature(w.Polity))
             for (int party = 0; party < BlocCount; party++)
             {
-                double pr = Pref(a, party, e, w, increasing) * sign;
+                double pr = Directed(w, Pref(a, party, e, w, increasing), sign);
                 if (pr < 0) sum += w.Coef.ParliamentLawWeight * w.PartySeats[party] * -pr;
             }
-        double armyPr = ArmyStake(a) * sign;
+        double armyPr = Directed(w, ArmyStake(a), sign);
         if (armyPr < 0) sum += ArmyPower(w) * -armyPr;
         return sum;
     }
@@ -410,7 +422,7 @@ public static class PolicyPreferences
     {
         var e = Build(w);
         double sign = increasing ? 1 : -1;
-        return (Pref(a, 0, e, w, increasing) * sign, Pref(a, 1, e, w, increasing) * sign, Pref(a, 2, e, w, increasing) * sign, NetSupport(w, a, increasing, e));
+        return (Directed(w, Pref(a, 0, e, w, increasing), sign), Directed(w, Pref(a, 1, e, w, increasing), sign), Directed(w, Pref(a, 2, e, w, increasing), sign), NetSupport(w, a, increasing, e));
     }
 
 
@@ -422,20 +434,20 @@ public static class PolicyPreferences
         var list = new List<(string, double)>(BlocCount + 3);
         double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
-        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w, increasing) * sign));
+        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Directed(w, Pref(a, b, e, w, increasing), sign)));
         if (w.ParliamentEnabled && HasLegislature(w.Polity))
         {
             string[] partyNames = ["議会・保守党", "議会・自由党", "議会・社会党"];
             for (int party = 0; party < BlocCount; party++)
             {
-                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Pref(a, party, e, w, increasing) * sign;
+                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Directed(w, Pref(a, party, e, w, increasing), sign);
                 if (System.Math.Abs(v) > 1e-9) list.Add((partyNames[party], v));
             }
         }
-        double army = ArmyPower(w) * ArmyStake(a) * sign;
+        double army = ArmyPower(w) * Directed(w, ArmyStake(a), sign);
         if (System.Math.Abs(army) > 1e-9) list.Add(("軍", army));
         if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
-            list.Add(("国庫", e.StateRevenue * sign));
+            list.Add(("国庫", Directed(w, e.StateRevenue, sign)));
         list.Sort((x, y) => y.Item2.CompareTo(x.Item2));
         return [.. list];
     }
@@ -448,11 +460,11 @@ public static class PolicyPreferences
         double sum = 0;
         double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
-        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w, increasing) * sign;
+        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Directed(w, Pref(a, b, e, w, increasing), sign);
         sum += ParliamentNet(w, a, sign, e);
         if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
-            sum += e.StateRevenue * sign;
-        sum += ArmyPower(w) * ArmyStake(a) * sign;
+            sum += Directed(w, e.StateRevenue, sign);
+        sum += ArmyPower(w) * Directed(w, ArmyStake(a), sign);
         return sum;
     }
 
@@ -469,7 +481,9 @@ public static class PolicyPreferences
                 double s = System.Math.Abs(pref);
                 if (!(s > 0)) continue;
                 wsum[b] += s;
-                gap[b] += s * FactionSnapshot.Headroom(w, a, pref >= 0);
+                if (w.Coef.LawPrefSinglePeaked > 0)
+                    gap[b] += Math.Max(0, Directed(w, pref, 1)) * FactionSnapshot.Headroom(w, a, true) + Math.Max(0, Directed(w, pref, -1)) * FactionSnapshot.Headroom(w, a, false);
+                else gap[b] += s * FactionSnapshot.Headroom(w, a, pref >= 0);
             }
         }
         for (int b = 0; b < BlocCount; b++)
