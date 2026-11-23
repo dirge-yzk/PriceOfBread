@@ -11,7 +11,7 @@ LT=$(dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --
 LF=$(dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --list-tests --filter "Category=FullLength" 2>/dev/null | grep -c "^    ")
 LU=$(dotnet test PriceOfBread.Tests.Ui -c Release --artifacts-path $A --no-build --list-tests 2>/dev/null | grep -c "^    ")
 echo "list-tests Tests(Category!=FullLength)=$LT Tests.Ui=$LU 和=$((LT+LU)) FullLength=$LF" >> $O
-if [ "${SKIPSCAN:-1}" != 1 ]; then dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~LawPreferenceDirectionTests" > $WK/t_scan.txt 2>&1; RS=$?
+if [ "${SKIPSCAN:-1}" != 1 ]; then dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~NextCapitalHomeFirstTests|FullyQualifiedName~TerritoryTests|FullyQualifiedName~RevoltIgnitionTests" > $WK/t_scan.txt 2>&1; RS=$?
 echo "㉘ 走査の番人＋T1・T2 rc=$RS $(grep -E '合計' $WK/t_scan.txt | tail -1)" >> $O
 if [ $RS != 0 ]; then grep -E "^\s+失敗 " $WK/t_scan.txt >> $O; echo "STOP 走査の番人が赤" >> $O; exit 1; fi
 fi   # SKIPSCAN=1 は走査の束を飛ばす（フルスイートが同じ試験を含む）
