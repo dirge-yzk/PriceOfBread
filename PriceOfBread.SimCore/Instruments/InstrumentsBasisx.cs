@@ -79,6 +79,7 @@ public static partial class Instruments
     /// <summary>受け口（<see cref="LandbaseRgoRent"/> の頭・RGO だけ・INS のときだけ）：割る前の地代 <paramref name="rent"/> を受け手ごとに積む。助走の月は積まない。</summary>
     internal static void BasisxRgoRent(World w, Region r, Producer s, double rent)
     {
+        if (!Tg.Basisx) return;   // (1329) 書く表が選ばれていなければ置き場（BxNats・BxRegs）を作らない＝入口を閉じる
         if (w.WarmupFrozen || !BxPicked(w)) return;
         var a = BxNats.GetValue(w, _ => new BxNat());
         if (!a.DegReady) { a.Deg = BxDeg(w); a.DegReady = true; }

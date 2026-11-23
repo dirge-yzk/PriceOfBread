@@ -19,6 +19,7 @@ public static partial class Instruments
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<int>> CrownSrcs = new();
     internal static void CrownSource(World w, int code)
     {
+        if (!Tg.Cede) return;   // (1329) 同上（CrownSrcs）
         if (CrownSrcs.TryGetValue(w, out var box)) box.Value = code; else CrownSrcs.Add(w, new System.Runtime.CompilerServices.StrongBox<int>(code));
     }
     /// <summary>On の判定を中で持つ版（同じ関数に呼び口が 2 本ある CrownParliament.Step 用＝呼び側で On を 2 回読まない）。</summary>
@@ -236,6 +237,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/> の国ごとの段）：1 国の行を書き、次の四半期のために断面を置き直す（州が 0 の国は行を出さないが断面は置く）。</summary>
     static void CrownFold(MultiNationSim sim, ulong seed, World w, int q)
     {
+        if (!Tg.Cede) return;   // (1329) crownpc_s は Tg.Cede の群＝選ばれていなければ置き場（CrownPrevs・CrownSinks）を作らない＝入口を閉じる
         CrownPrevs.TryGetValue(w, out var prev);
         if (w.Regions.Count > 0)
         {
