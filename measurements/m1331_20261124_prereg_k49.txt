@@ -1,0 +1,108 @@
+# (1331) c139k49 事前登録：削除の線 K49 勢いの投資（S05-H027〈採算の勢いを規模の目標に足す〉）を消す＝係数 InvestExtrapolationWeight 0.3→0（挙動の線・3 回の規則の 3 回目＝最後）
+# 枝 c139k49（1f55fdf58 から）・worktree D:/PoB_work/wt_c139k49・作業フォルダ D:/PoB_work/c139k49_work・書き手 Claude Opus 5.5・2026-11-24
+# このファイルは腕の前の最初のコミット。数を変えるときは腕の前に理由つきで追記する（結果の後に変えたら〈結果の後の変更〉と名乗る）。
+
+## 0. 先頭に名乗る物
+- 出発：00一覧〈次の波（波139〜）〉1 の①。作者 2026-11-21 の裁定（群 4 の削除）・作者 2026-10-16「全てのバフ・デバフ(特に倍率を変更するもの）は全て削除したいです。」の対象。答え待ちではない。
+- 1 回目 (1298) c134k49：C3 の鎖の番人の赤で採らなかった（(1310) で番人の終わりを不満度へ直した）。2 回目 (1319) c137k49：止める線 0・空洞化 0・機構のテストの赤 0・**門 H（基盤の 3 生産者の能力の腕÷基準）の赤 2**（英 1913 12.75 倍・仏 1913 0.087 倍）で採らなかった。
+- **〈結果の後の変更〉と名乗る（(1319) から変えた所）**：
+  - ① 門 H を門から記録へ移す。理由：反証役 v＝門 H は効きが無くても赤になる率が 60.1%（基準の 5 種対 5 種で 87.7%）＝〈今の世界からの変化の幅〉の型で、作者 2026-11-16 の決まり①では記録の扱い。反証役 v2＝赤は軌道の差で、基盤の能力には史実の系列が無い。この回の紙（§5・perm_base.txt）でも m1328 の基準を 5 種と 5 種に分けた 252 通りのうち 218 通り（86.5%）で、どれか 1 行が 10 倍の外に出る。
+  - ② 門を作者 2026-11-16 の決まり①（止める線・史実の桁の線〔史実の系列がある時だけ〕・単体の機構の試験）に絞る。
+  - 2 回目の結果を見た後の変更なので、3 回目は〈同じ形〉のまま門だけを決まりに合わせた回と名乗る。形（係数 0.3→0）は (1298)(1319) と 1 字も変えない。
+- 3 回の規則：同じ形の 3 回目＝最後。外れたら 4 回目の腕は回さず、上流の読み（勢いの項が基盤の 3 生産者の規模に届く道）の線へ回す。形の変え直しの枠は 1 回。
+- 形は〈入口〉（尾ではない）：規模の目標の足し算の 1 項を 0 にする。
+- 確証：作者 2026-10-16 の文と 2026-11-21 の群 4 の裁定の下の削除＝削除そのものは作者の方向。0 にした後の世界の形は AI の読み〈確証なし〉。
+- 腕 Z：このコミットの木の SimCore は main（1f55fdf58）と同じバイト。係数の変更（既定値 1 行）は次のコミット＝腕 Z は基線 m1328（b10_20261124_m1328_ins・b5_20261124_m1328）で代えると名乗る（指示のとおり）。
+
+## 1. 現物（main 1f55fdf58・grep で確かめた）
+- Coefficients.p08_audit_soldiers.cs:62 `public double InvestExtrapolationWeight = 0.3;`
+- EconomyStep.cs:2404 注（〈上がったから更に上がる…バブルと崩壊がこの1項から出る〉）・:2405 `double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);`→ :2407 `if (!eqS) s.Scale = PoliticalQuantities.Toward(s.Scale, scaleTarget, catSpeed);`
+- 係数の読み手：SimCore は EconomyStep.cs:2405 の 1 箇所だけ。Tests は PolicyPoliticsTests.cs:1235（C3 の番人の Theory の 2 行目が重み 0 を置く・読むだけ）だけ。Tests.Ui・App・Runner・Display＝0。scripts は c134k49/mut_k49.sh・c136tc/C136Paper.cs・r1306/R1306Diag.cs・R1306Mut.cs（試験の盤面で重みを置く）・r1127/mk_ledger.py:98（台帳の錨の文字列）。POB_COEF の名前の文字列は 0。
+- 届く所（周辺の点検・読むだけ）：eqOn＝FactoryEquipment.On(coef, warmFrozen)＝RecipeEquipment＞0 かつ助走でない（FactoryEquipment.cs:8・EconomyStep.cs:705）。eqS＝eqOn×Eligible（BuysLabor・非 RGO・財が役務でない）。項が規模に届くのは ①助走（WarmupFrozen）の全ての労働を買う工場 ②助走の後は役務の財で労働を買う生産者＝国が調達する基盤の 3 生産者（水道局〔上下水道〕・ガス灯・電灯網〔電化インフラ〕）だけ。
+- 文書：docs/機能の台帳.md:1354（S05-H027）・docs/ゲーム概要と実装機能.md:1123・docs/history/Coefficients.p08_audit_soldiers.cs.md:589。
+
+## 2. 形（(1298)(1319) と同じ）
+- origin/c137k49 の f5b2b261a を今の木へ写す：p08:62 を 0・EconomyStep.cs:2404 の注だけを今の意味へ（:2405 の式は書き換えない）・試験 InvestMomentumDeletionTests（判定と盤面は 1 字も変えない・頭の注に (1331) を足すだけ）・DormantIdentityTests の ZeroDefaultLedger に 1 行・docs 3 か所。
+- 0×(利幅−平滑)＝±0＝目標は 1＋利幅 と同じ double（非有限の平滑が無い限り）。項と係数を物理に消すのは焼き込みの線。
+- 新しい係数 0・新しい状態 0・新しい分岐 0・足した計器の列 0（同じ盤面の旧と新は単体の試験の盤面で数える・§3-3）。
+- 宣言の表（WriterRatchetTests）は既定 0 の木の実測で取り直す（§6）。
+
+## 3. 門（〈作者 2026-11-16 の決まり〉①）
+### 3-1 止める線（作者）
+- 破綻：クラッシュ・NaN・保存則・savetest（四半期の途中を含む）・leakhunt・進行不能（10 種とも 668 四半期を完走）。
+- 発散：stoplines906（nation_s の priceLevel を全期間）。1e10 倍・非有限・開幕の 1000 倍は止める。〈1 四半期に 100 倍〉は〈それ以外〉の行だけが止める線。〈建国の直後〉〈建国の後の 0 の続き〉〈分母の痩せ〉と ㊳ popjump1017 は記録で N1（keep_1328/n1）の件数と並べる。基準 keep_1328/base_ins と N1 を同じ台本で数え直して並べる（⑰・§5）。
+- 空洞化 T1：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（既定 -ex rule＝規則 A2）でピークの 1/10 未満が出た件。**その線が原因と読めた件だけで止める**＝基準 keep_1328/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ（★(813)・結果を見る前にここへ写した）。主要国の州と本国格の州は例外にしない。
+- 計算量：推定の計算量 ≦248.5 秒（名目）。割り当て＝**+5.8 秒〈推〉**（(1319) の実測 233.2−m1308 227.4。0 を掛けるだけで計算は増えない＝差は軌道の差による件数の揺れと負荷）。.cost の項ごとの内訳（(1319) の実測の差）：生産：生産者×月 +1.1・清算：着値の充填 +1.1・価格：財の歩 +0.7・価格：日次の写像 +0.5・最低賃金の籠の走査 +0.4・清算：着値の下界 +0.4・清算：見た買い手行 +0.3・残り +1.3。m1328 227.9＋5.8＝233.7（余り 14.8）。.cost は m1328 と並べて記録。
+- 機構と不変条件を守るテストの赤（ソースを走査する番人を含む）。
+
+### 3-2 史実の桁の線（10 倍）
+- K49 が一番動かす量＝労働を買う生産者の規模（Scale）と能力。助走の後に届くのは基盤の 3 生産者の能力だけ（§1）。
+- **史実の系列が無い**＝基盤の 3 生産者の能力（ゲームの能力の単位）にも助走の工場の能力にも史実の系列は無い。よって史実の桁の門は置かない。
+- 記録 H（門ではない）：scripts/instruments/c139k49/mag_c139.py（読むだけ・prodcap_s の capacity を自分で足す・エンジンの関数を呼ばない）で F＝工場の能力・I＝基盤の 3 生産者の能力の腕÷基準（種の中央どうし・開幕・1850・1913・英仏普米露墺清と世界）を書く。
+
+### 3-3 単体の機構の試験（盤面は試験の中で置く・旗 0 で赤・突然変異で赤）
+- PriceOfBread.Tests/InvestMomentumDeletionTests.cs（(1298)(1319) §3-3 と同じ）。盤面＝英の 1 国（NationConfig.Britain・seed 41・Run(20)）の双子・選んだ生産者の SmoothedMargin だけを A＝0.2・B＝0.8 に置き、EconomyStep.Run を 1 か月だけ直接呼ぶ。期待は手の式。
+  - T1：助走の盤面の工場で A と B の規模が同じ double・手の式に 1e-9（内側 3 件以上）。
+  - T2：役務の財で労働を買う生産者で同じ（内側 1 件以上）。
+  - T3（対照）：重み 0.3 を試験の中で置くと A−B＝速さ×0.3×(B−A の平滑の差)。
+  - T4：労働を買わない生産者は重み 0 と 0.3 で同じ double（動いた行 1 件以上）。
+- 旗 0 に当たる重み 0.3（今の main の SimCore）で T1・T2 が赤・T3・T4 が緑＝確かめた（§5・measurements/m1331_20261124/pre03/t_pre03_weight03.txt）。
+
+## 4. 突然変異ごとにどの門で赤か（㉚・腕の前の表・台本 scripts/instruments/c139k49/mut_k49.sh・使い捨ての木 git archive）
+| 突然変異 | 入れ方 | T1 | T2 | T3 | T4 | 止める線 |
+| μ0（重みを戻す＝今の main） | p08:62 を 0.3 に | 赤 | 赤 | 緑 | 緑 | 緑（基線そのもの＝§5） |
+| μ2（勢いを労働を買わない生産者にも） | :2405 の BuysLabor の条件を外す（係数のまま） | 緑 | 緑 | 緑 | 赤 | 読まない（腕を回さない） |
+| μ4（項の符号を返す・係数のまま） | :2405 を `coef.InvestExtrapolationWeight * (s.SmoothedMargin - margin)` に | 緑 | 緑 | 赤 | 緑 | 読まない |
+| μ5（項の符号を返し重みを 0.3 の literal で） | :2405 を `0.3 * (s.SmoothedMargin - margin)` に | 赤 | 赤 | 赤 | 緑 | 読まない |
+- μ4 は既定 0 の下では何もしない（−0 を足すだけ）＝T1・T2 は緑で正しい。T3 が試験の中で重み 0.3 を置くので符号の誤りを拾う。
+- C3 の番人は突然変異の表の門ではない（記録の列として μ ごとに回す）。
+- 止める線は〈壊さない〉門＝何もしない実装（既定 0.3）で落ちない（§5 の紙）。〈狙いどおり働いた〉は T1・T2 で示す（既定 0.3 で赤）。
+- ㉚ の〈項を消した突然変異と元の形の差が雑音の内なら働いていない〉：この線は項を消すこと自体が狙い（作者の削除の方向）＝世界の差の大きさは記録。
+
+## 5. 紙の台本の出力（今の盤面 keep_1328/base_ins・measurements/m1331_20261124/paper_base/）
+- 台本 scripts/instruments/c139k49/pre_base.sh を基準の生 keep_1328/base_ins に腕と基準の両方として当てた（既定 0.3 の盤面＝何もしない実装）・N1（keep_1328/n1）を腕として当てた（記録）。
+  - 止める線（stop906_base.txt）：100 倍以上 0（建国の直後 0・分母の痩せ 0・それ以外 0）・1e10 倍以上 0・非有限 0・開幕の 1000 倍以上 0。四半期の比の最大 1.81（ネーデルラント 1939・種 6）・価格水準の最大 19.43（英 1950・種 4）。N1 も止める線 0（stop906_n1.txt）。popjump（㊳ の記録）：基準 3 行・2 組（popjump_base.txt）。
+  - 空洞化（hol_v4_base.txt）：ピークの 1/10 未満 0 件・1/4 未満 2 件（移民 1：s5 セントポール／その他 1）＋例外の規則の州 1（イカルイト・1/4・飢え）。N1 は 1/10 未満 0・1/4 未満 0。
+  - gdp_zero10 0 区間。英の不履行 基準 1/10（種 8）・N1 2/10（種 6・9）。
+  - 記録 H（mag_base.txt）：基準と基準＝外 0（新÷旧は全て 1）。〈記録（基準＜1）〉の行 14（英の基盤 1913 0.45 を含む）。
+  - 記録 H の誤りの外れの率（perm_base.txt・scripts/instruments/c139k49/k49_perm.py）：基準の 10 種を 5 と 5 に分けた 252 通りで、どれか 1 行でも 10 倍の外＝218/252（86.5%）。行ごと：英 I 1913 は分け方の 66 通り（基準の中央が 1 以上になる分け方）で全て外・仏 I 1850・露 I 1850・墺 I 1850 も数えた分け方で全て外・清 I 1913 57.1%・普 I 1913 19.0%・仏 I 1913 11.9%。F（工場の能力）は全ての行で 0%。＝〈I の行は効きが無くても外に出る〉ので記録。
+  - 記録（ukcrash_base.txt・ukcrash_n1.txt）：英の価格水準の開幕比の最大 基準 1.26〜19.11・N1 1.10〜2.31／実質 GDP が最大の 5% を割った年 基準 0・N1 0。
+- C3 の鎖の番人 2 行（PolicyPoliticsTests.実税が重い世界ほど生活が苦しく不満度が高い・Theory）を m1328 の SimCore で取り直した：2 行とも緑（pre03/t_pre03_weight03.txt）。2 行目は既に重み 0 の盤面＝既定 0 の木では 2 行が同じ盤面になり、2 行とも緑の予言。行の整理はこの線ではしない。
+- ㉗：紙は門の破れを予言しない。
+
+## 6. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表（IndustrializationReaderTests:23）：EconomyStep.cs 8＝変わらない（:2404 は注だけ）。
+- `new MoneyStock(` の件数：SimCore で 64＝変わらない。
+- route_anchors.tsv の鍵の行：触らない・変わらない。
+- WriterRatchetTests の宣言の表：(1319) では既定 0 の木で 4 行（:421 ConstructionSeen 2204→2323・:436 DeadProdZeroPop 175483→180210・:439 DeadProdBankrupt 1519→1562・:556 DiploHegemonScans 1889444→1963408）を取り直した。この木でも同じ型〈推〉＝件数の予言は〈0〜4 行・(1319) と同じ 4 行が最も多い〉。出たら軌道の件数を写しただけの番人として既定 0 の木の実測へ取り直し（★(749)）、verdict に〈ファイル:行・前と後〉を列挙する。
+- DormantIdentityTests：ZeroDefaultLedger に InvestExtrapolationWeight の 1 行。
+- 試験の数（㉑）：Tests（Category!=FullLength）2937→2941（T1〜T4）・Tests.Ui 232 のまま・合計 3169→3173・FullLength 3。
+- ㉘ の filter＝IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests|OnDoubleReadScanTests|InvestMomentumDeletionTests（scripts/instruments/c139k49/scan_k49.sh）。
+- 計器の束（㊴ Instrument＋Famine・Fiscal・Military・Revolt・WriterRatchet）はフルスイートより先に回す（suite_k49.sh の前段）。
+
+## 7. 旗 1（既定 0）の木の番人の grep（㉜）
+- 置き換える旧の規則：〈規模の目標＝1＋利幅＋0.3×(利幅−平滑)（労働を買う生産者）〉。
+- grep（`InvestExtrapolationWeight`・`SmoothedMargin`・`scaleTarget` を PriceOfBread.Tests と PriceOfBread.Tests.Ui で）：InvestExtrapolationWeight は PolicyPoliticsTests.cs:1235（重みを 0 に置く行＝新しい規則の側）だけ。scaleTarget は 0。SmoothedMargin は AiBuildOutlayGateTests 1・AiFirstWaveTests 1・FactoryEquipmentTests 21・InstrumentsTests 2・OpeningFiscalAlignTests 1・PhantomProductionTests 4・StateFactoryTests 5・SteelMarketAiTests 8＝どれも平滑の採算を別の機構（設備の配り・建設の支出・休止・国営・AI の判断・計器）の入力として置く行で、勢いの項の値を固定しない〈推〉。〈勢い〉の語は RevoltIgnitionTests の蜂起の勢い（別の機構）。＝旧の規則を固定する試験は 0 件の予言。
+- 一覧に無い赤が出たら ㉜ の改め（作者 2026-11-19）のとおり〈試験のバグ〉か〈周りの壊れ〉かを調べ同じ線で直す。原因の読めない赤と止める線に当たった時だけ止める。
+
+## 8. 記録（採否に使わない）
+- 記録 H（§3-2）と誤りの外れの率（§5）。基盤の 3 生産者の腕÷基準。
+- 英の国債の不履行（ukdef975・基線 M 1/10）・gdp_zero10・NG（ng.sh・基準 rd:measurements/ng1328_20261124:m1328・出力フォルダは D:/… で渡す）・nullgate.py の O（基線 m1328・N1・N2）・開幕の 1000 倍以上・本国の崩れ（home_break.py）・成績表の基線と違う行の数・ukcrash（英の価格水準の開幕比の最大・実質 GDP の 5% 割れ）。
+- C3 の番人 2 行（フルスイートの中で）。
+
+## 9. 段 0 の予言（符号と大きさ・腕の前）
+- (1319) の腕 B（同じ形・前の基線）：止める線 0・空洞化 1/10 未満 0・推定 +5.8 秒・工場の能力の腕÷基準は全ての国と年で 0.76〜1.34・英の価格水準の開幕比の最大 2.20・5% 割れ 0。この木でも同じ型〈推〉。
+- 助走の後は基盤の 3 生産者だけ＝直接の効きは小さい。世界の差は開幕の能力の小さな差からの軌道の差。記録 H の I の行は効きが無くても外に出る（§5）＝外が出ても採否に使わない。
+- 止める線：直接の道は無い〈推〉。軌道の差の出来事で 1000 倍・空洞化に届けば止める（読み替えない）。
+- 計算量 +5.8〈推〉（§3-1）。
+
+## 10. 重なり（他の線の持ち主のファイル）
+- c139sm（PolicyPoliticsTests.cs :1876〜:1910・InstrumentHookClosureTests・InstrumentsCpeace ほか）・c139sl（InstrumentsWar.cs・Diplomacy.cs の 1 行）・c139nc（Territory.cs :254〜:270・p08:114 の隣の 1 行・InstrumentsCapCol.cs）・c139el（Simulation.cs:1164〜:1165・Catalog.cs:145・p07:54 の隣）に触れない。PolicyPoliticsTests.cs:1235 は読むだけ。
+- 触る行（合流で解く）：Coefficients.p08_audit_soldiers.cs:62・EconomyStep.cs:2404（注だけ）・DormantIdentityTests.cs の ZeroDefaultLedger の末尾の 1 行・WriterRatchetTests.cs の宣言の行（要る時だけ・(1319) は :421・:436・:439・:556）・docs/機能の台帳.md:1354・docs/ゲーム概要と実装機能.md:1123・docs/history/Coefficients.p08_audit_soldiers.cs.md の InvestExtrapolationWeight の節（1 行足す）・新しいファイル PriceOfBread.Tests/InvestMomentumDeletionTests.cs・scripts/instruments/c139k49/・measurements/m1331_*。
+- 合流への予言：k49 と el はどちらも基盤の 3 生産者（電灯網）を動かす。記録 H の I の行の帰属は〈k49 だけ〉〈el だけ〉〈両方〉の腕の組で見る（記録なので門ではない）。
+
+## 11. D: と腕
+- 腕 Z：m1328 で代える（§0）。
+- 腕 B：既定 0 の木・`INS=1 bash scripts/instruments/batch.sh run c139k49B 10`（計器つき 10 種・種 1〜10・台本 scripts/instruments/c139k49/armb.sh）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝nation_s・prodcap_s・stock_s・region_s・class_s＋止める線と記録の読み手が開く表（wars_s・casualty_s・migration_s・pxmonth_s・scalars_s・fiscal_s）。POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国。
+- D: は 4〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る。
+- 読み手：scripts/instruments/c139k49/read_k49.sh。腕 B の生は合流の判断まで消さない（D:/PoB_work/c139k49_work/armB/out_c139k49B_10/ins）。印 D:/PoB_work/c139k49_work/k49.mark。
