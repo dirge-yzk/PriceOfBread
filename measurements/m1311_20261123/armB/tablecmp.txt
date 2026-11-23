@@ -1,0 +1,11 @@
+違う habitlg_s1.tsv
+違う habitlg_s10.tsv
+違う habitlg_s2.tsv
+違う habitlg_s3.tsv
+違う habitlg_s4.tsv
+違う habitlg_s5.tsv
+違う habitlg_s6.tsv
+違う habitlg_s7.tsv
+違う habitlg_s8.tsv
+違う habitlg_s9.tsv
+表 160 本のうち基準の生と違う 10 本
