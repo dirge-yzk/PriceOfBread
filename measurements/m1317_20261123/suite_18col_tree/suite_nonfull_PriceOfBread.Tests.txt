@@ -1,0 +1,25 @@
+D:\PoB_work\c137s3_work\suite\art_suite\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:11.14]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+[xUnit.net 00:00:11.25]     PriceOfBread.Tests.TechLevelRemovalTests.計器の列に技術水準が無い [FAIL]
+[xUnit.net 00:00:11.67]     PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [FAIL]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+  失敗 PriceOfBread.Tests.TechLevelRemovalTests.計器の列に技術水準が無い [126 ms]
+  エラー メッセージ:
+   計器に技術水準の列が戻った：InstrumentsSubst.cs:228
+  スタック トレース:
+     at PriceOfBread.Tests.TechLevelRemovalTests.計器の列に技術水準が無い() in D:\PoB_work\c137s3_work\suite\suitesrc\PriceOfBread.Tests\TechLevelRemovalTests.cs:line 79
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり [360 ms]
+  エラー メッセージ:
+   PriceOfBread.SimCore|InstrumentsSubst.cs: 2 行（許可 0）＝増えた。技術水準を読まず盤面の量か発見を読むこと
+  スタック トレース:
+     at PriceOfBread.Tests.TechLevelRemovalTests.技術水準を読む行の数はファイル別の許可表のとおり() in D:\PoB_work\c137s3_work\suite\suitesrc\PriceOfBread.Tests\TechLevelRemovalTests.cs:line 57
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:42:36.63]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+結果ファイル: D:/PoB_work/c137s3_work/suite/trx/nonfull_PriceOfBread.Tests.trx
+
+失敗!   -失敗:     2、合格:  2899、スキップ:     2、合計:  2903、期間: 46 m 23 s - PriceOfBread.Tests.dll (net10.0)

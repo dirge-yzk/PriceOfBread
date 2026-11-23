@@ -1,0 +1,6 @@
+D:\PoB_work\c137s3_work\suite\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+No test matches the given testcase filter `Category=FullLength` in D:\PoB_work\c137s3_work\suite\art_suite\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+警告: 結果ファイルを上書きしています: D:/PoB_work/c137s3_work/suite/trx/full_PriceOfBread.Tests.Ui.trx
+結果ファイル: D:/PoB_work/c137s3_work/suite/trx/full_PriceOfBread.Tests.Ui.trx
+

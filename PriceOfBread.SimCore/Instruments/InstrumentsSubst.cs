@@ -19,7 +19,7 @@ public static partial class Instruments
         + "derivedD1PerMonth\tderivedD2PerMonth\tderivedD1OverNominal\tderivedD2OverNominal\tderivedD1OverEngine\tderivedD2OverEngine\t"
         + "pollClaimPerMonth\tincomeTaxUpperPerMonth\trentToOthersPerMonth\trentToFarmersPerMonth\t"
         + "stapleNeedWeightedPrice\tstapleNeedValuePerMonth\tmarketShareOfNeed\tobligationOverMarketNeed\t"
-        + SubstS2HeaderText;
+        + SubstS2HeaderText + "\t" + SubstS3HeaderText;
 
     sealed class SubstSink { public System.IO.StreamWriter? W; public bool Header; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, SubstSink> SubstSinks = new();
@@ -102,6 +102,7 @@ public static partial class Instruments
                     F(stapleP), F(needValue), F(marketShare), F(SubstDiv(poll + incTax + rentOthers, marketShare * needValue)),
                 };
                 SubstS2Columns(r, c, lp, cols);   // SubstS2Columns〔履歴 InstrumentsSubst.cs#6〕
+                SubstS3Columns(w, r, c, lp, cols);   // (1317) 段 3-0 の器＝s3 の列（読むだけ）
                 sk.W.WriteLine(string.Join('\t', cols));
             }
         }
@@ -210,5 +211,100 @@ public static partial class Instruments
         cols.Add(F(h?.EffHead ?? nan)); cols.Add(F(h?.Eff0 ?? nan)); cols.Add(F(h?.BakeSigmaDiff ?? nan)); cols.Add(F(h?.BakeRhoRelDiff ?? nan));
         cols.Add(F(capE)); cols.Add(F(soldE)); cols.Add(F(uE)); cols.Add(F(tE)); cols.Add(F(heads)); cols.Add(F(lneed)); cols.Add(F(e));
         cols.Add(F(pp?.UnemploymentRate.Value ?? nan)); cols.Add(F(ub)); cols.Add(F(pp is not null && h is not null ? pp.SubsistenceShare / h.D0 : nan));
+    }
+
+    // ---- (1317) 自給の世帯の家計の段 3-0 の器：subst_s の末尾の s3 の列（読むだけ・エンジンの関数を呼ばず式を写す・新しい状態なし）----
+    internal const string SubstS3HeaderText = "s3SrawInst\ts3HarvestInst\ts3QInst\ts3DInst\ts3EInst\ts3EWheatInst\ts3ESoldShareInst\ts3EValueInst\ts3KappaInst\ts3KappaEInst\t"
+        + "s3UnempNewInst\ts3EatPerCapInst\ts3LandTaxPeasantInst";
+
+    /// <summary>主食 1 種の材料（純関数への入力）：名目の必要量・収穫係数 f・売る財の売れ行き sold÷(sold＋在庫)・売る財の値段・売る財の量への換算の積・パンのように遡る財か。</summary>
+    internal readonly record struct S3Staple(double BaseNeed, double F, double SellShare, double PriceR, double QtyToR, bool Chain);
+
+    /// <summary>s3 の数の列（純関数）。</summary>
+    internal readonly record struct S3Row(double Sraw, double Harvest, double Q, double D, double E, double EWheat, double ESoldShare, double EValue, double Kappa, double KappaE,
+        double UnempNew, double EatPerCap);
+
+    /// <summary>
+    /// 段 3-0 の定義（純関数）：σraw＝ρ×U×T÷(必要量×人数)・x＝σraw×f・D＝GoodNeed×min(1,x)（σraw≦1 かつ f＝1 の時だけ今の sub と同じ）・Q＝GoodNeed×x・E＝GoodNeed×max(0,x−1)。
+    /// Lneed_f＝必要量×人数÷(ρ×T×f̄)・s_E＝ΣE×q×売れ行き÷ΣE×q（ΣE＝0 なら 0）。rho が nan なら全て nan。技術の括弧（案 C の影）の列は技術水準の読み手の番人（TechLevelRemovalTests）と衝突するため 3-2 の線へ回した。
+    /// </summary>
+    internal static S3Row SubstS3Calc(double rho, double u, double t, double cap, double size, System.ReadOnlySpan<S3Staple> st)
+    {
+        double nan = double.NaN;
+        if (!(rho == rho)) return new S3Row(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan);
+        double need = 0, fw = 0;
+        foreach (var s in st) { need += s.BaseNeed; fw += s.BaseNeed * s.F; }
+        double fbar = need > 0 ? fw / need : nan;
+        double sraw = size > 0 && need > 0 ? rho * u * t / (need * size) : 0.0;
+        double q = 0, d = 0, e = 0, eq = 0, eWheat = 0, eShare = 0, eValue = 0;
+        foreach (var s in st)
+        {
+            double gn = s.BaseNeed * size, x = sraw * s.F;
+            q += gn * x; d += gn * System.Math.Min(1.0, x);
+            double eg = gn * System.Math.Max(0.0, x - 1.0), egq = eg * s.QtyToR;
+            e += eg; eq += egq; eShare += egq * s.SellShare; eValue += egq * s.PriceR;
+            if (s.Chain) eWheat += egq;
+        }
+        double sE = eq > 0 ? eShare / eq : 0.0;
+        double Lneed(double tt) => !(need * size > 0) ? 0.0 : (rho * tt * fbar > 0 ? need * size / (rho * tt * fbar) : double.PositiveInfinity);
+        double lneed = Lneed(t);
+        double kappa = cap > 0 ? 1.0 - System.Math.Min(u, lneed) / cap : nan;
+        double raw = cap > 0 ? (u - lneed) / cap : 0.0;
+        double unemp = raw > 0 ? System.Math.Min(1.0, raw * (1.0 - sE)) : 0.0;   // 否定形（NaN は 0 へ）
+        return new S3Row(sraw, fbar, q, d, e, eWheat, sE, eValue, kappa, q > 0 ? e / q : nan, unemp, size > 0 ? d / size : nan);
+    }
+
+    /// <summary>売る財（パンなら小麦粉を遡って小麦）と換算の積：Inputs の最初の入力を入力の無い財まで遡る（深さの上限は財の数）。</summary>
+    static (int r, double q) S3SellGood(int g)
+    {
+        int cur = g; double q = 1.0;
+        for (int i = 0; i < Catalog.Goods.Length; i++)
+        {
+            var inp = Catalog.Goods[cur].Inputs;
+            if (inp.Length == 0) break;
+            q *= inp[0].QtyPerOutput; cur = inp[0].GoodId;
+        }
+        return (cur, q);
+    }
+
+    /// <summary>四半期の末（<see cref="SubstTable"/> の行の末尾）：自給の段 3-0 の列（13 本）。</summary>
+    static void SubstS3Columns(World w, Region r, Coefficients c, int lp, List<string> cols)
+    {
+        Pop? pp = lp >= 0 && lp < r.Pops.Count ? r.Pops[lp] : null;
+        SubstHeads.TryGetValue(r, out var h);
+        var (capE, _, _) = S2FarmLabor(r);
+        double soldE = Catalog.FarmLaborId < r.Markets.Length ? r.Markets[Catalog.FarmLaborId].LastSold : 0;
+        double uE = S2Unsold(soldE, capE);
+        var (tE, _) = S2Tech(r, c);
+        double rural = 0;
+        foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
+        double landF = r.ArableLand >= 1e8 ? 1.0 : System.Math.Min(1.0, System.Math.Pow(r.ArableLand / System.Math.Max(1.0, rural), c.LandDiminishExponent));   // Territory.LandFactor の式の写し
+        var st = new List<S3Staple>(8);
+        foreach (var gd in Catalog.Goods)
+        {
+            if (gd.Tier != GoodTier.Staple || gd.Id >= r.Markets.Length) continue;
+            double crop = r.CropHealth is { } ch && gd.Id < ch.Length ? ch[gd.Id] : 1.0;
+            double f = r.HarvestFactor * r.WeatherBandFactor * crop * landF;
+            var (rg, qty) = S3SellGood(gd.Id);
+            double share = 0, price = 0;
+            if (rg < r.Markets.Length)
+            {
+                var m = r.Markets[rg]; double den = m.LastSold + System.Math.Max(0.0, m.Stock);
+                share = den > 0 ? m.LastSold / den : 0.0; price = m.Price;
+            }
+            st.Add(new S3Staple(gd.BaseNeed, f, share, price, qty, rg != gd.Id));
+        }
+        double size = pp?.Size ?? 0.0;
+        var row = SubstS3Calc(h?.Rho ?? double.NaN, uE, tE, capE, size, System.Runtime.InteropServices.CollectionsMarshal.AsSpan(st));
+        double landTax = 0, landRate = w.LandTax;
+        foreach (var p in r.Pops)
+        {
+            if (!(p.SubsistenceBasis > 0)) continue;
+            double lb = (c.LandTaxFixedBasis > 0 ? p.LandRentPerMonth + p.LandTaxBasisAdjPerMonth : p.LandRentPerMonth).Value;   // Fiscal.LandTaxBase の式の写し
+            if (landRate > 1e-9 && lb > 0) landTax += landRate * lb;
+        }
+        cols.Add(F(row.Sraw)); cols.Add(F(row.Harvest)); cols.Add(F(row.Q)); cols.Add(F(row.D)); cols.Add(F(row.E)); cols.Add(F(row.EWheat)); cols.Add(F(row.ESoldShare));
+        cols.Add(F(row.EValue)); cols.Add(F(row.Kappa)); cols.Add(F(row.KappaE));
+        cols.Add(F(row.UnempNew)); cols.Add(F(row.EatPerCap)); cols.Add(F(landTax));
     }
 }

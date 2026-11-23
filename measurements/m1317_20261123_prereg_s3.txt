@@ -1,0 +1,52 @@
+m1317 事前登録（最初のコミット）：(1317) c137s3 恒等＝自給の世帯の家計の段 3-0 の器（subst_s の末尾に s3 の列）
+書いたモデル：Claude Sonnet 5.5。木 b65ac8d70（枝 c137s3）。基準 m1308。作者 2026-11-21「群 6 の 3-0〜3-2 は残す」・作者 2026-11-04 の売る＝作った−食べる（作者「全て推奨で」で推奨を採った）。
+
+[1] 恒等の線・予言 0（★(743) の区分＝計器の列の増え）
+- 旗なし・係数なし・エンジンの状態なし。計器だけ（表 subst_s の末尾に s3 の列 18 本）。
+- 予言：subst_s は列だけ増える（既存の列の並びと値は不変）。他の全ての表・素の 5 種・計器つき 10 種の帯は m1308 と名乗り行を除いて全行一致。
+- ident は段 2（`--work D:/PoB_work/ident_c137s3`・`--grown-ok subst_s`）。〈判定: 恒等〉なら〈測った種で一致〉と名乗る。
+- 計算量：計器の切れた時（Tg.Subst＝false）に件数が増えない＝s3 の計算は SubstTable の中だけ（Wants("subst_s") の後ろ）。.cost の推定は一致を予言。
+
+[2] 足す物・消す物・読み手（消す物は 0）
+- 足す列（18 本・順序固定）：s3SrawInst s3HarvestInst s3QInst s3DInst s3EInst s3EWheatInst s3ESoldShareInst s3EValueInst s3KappaInst s3KappaEInst s3TechLevel s3Bracket s3Bracket0 s3SrawC s3LneedC s3UnempNewInst s3EatPerCapInst s3LandTaxPeasantInst。列の数は 18 で固定（反証役 v の低）。
+- 場所：PriceOfBread.SimCore/Instruments/InstrumentsSubst.cs（SubstHeaderText の末尾・SubstS3Columns・純関数 SubstS3Calc・SubstHeadState に Bracket0 の欄）。新しい係数 0・旗 0・エンジンの状態 0（SubstHeadState は ConditionalWeakTable の計器の状態でセーブに載らない）。
+- 定義（反証役 v の中 3 を計器の定義で先に固定・3-1 も同じ定義を使う）：
+  - 読む POP＝その州の人力の農業労働の最初の担い手 pp（S2FarmLabor の lp）。ρ＝計器が焼いた ρ（SubstHeadState.Rho・nan なら s3 の数の列は全て nan）。人数＝pp.Size。U・T・cap は四半期の末の値（S2FarmLabor・S2Tech を s2End と同じに読む）。
+  - 必要量＝主食の BaseNeed の和 need。GoodNeed_g＝BaseNeed_g×人数（食卓の補正と demandGate を 1 と置く＝限界の自己申告）。
+  - σraw＝ρ×U×T÷(need×人数)。f_g＝州の収穫係数×緯度帯天候×作物の健全度[g]×土地係数（三重積と土地係数の式を計器が写す・Territory.LandFactor は呼ばない）。x_g＝σraw×f_g。
+  - s3DInst＝ΣGoodNeed_g×min(1, x_g)（σraw≦1 かつ f＝1 の時だけ今の sub と同じ）。s3QInst＝ΣGoodNeed_g×x_g。s3EInst＝ΣGoodNeed_g×max(0, x_g−1)（x≦1 で厳密に 0）。
+  - s3HarvestInst＝BaseNeed 加重の f_g の平均 f̄。
+  - 売る財 r(g)＝Catalog.Goods[g].Inputs の最初の入力を、入力の無い財まで遡る（パン→小麦粉→小麦）。量の積 q_g＝途中の QtyPerOutput の積。s3EWheatInst＝r(g)≠g の ΣE_g×q_g。
+  - s3ESoldShareInst＝ΣE_g×q_g×share_g÷ΣE_g×q_g（share_g＝r の市場の LastSold÷(LastSold＋max(0,Stock))・分母 0 または市場が無ければ 0）。ΣE＝0 の時は 0（式で決める）。
+  - s3EValueInst＝ΣE_g×q_g×(r の市場の値段)。
+  - Lneed_f＝need×人数÷(ρ×T×f̄)（人数×need≦0 なら 0・分母≦0 なら +∞）。E の基準と揃える（v の中 2）。
+  - s3KappaInst＝cap＞0 なら 1−min(U, Lneed_f)÷cap（無ければ nan）。s3KappaEInst＝ΣE÷ΣQ（ΣQ≦0 なら nan）。
+  - s3UnempNewInst＝cap＞0 なら clamp01((U−Lneed_f)÷cap×(1−s_E))（否定形の NaN 安全・cap≦0 なら 0）。
+  - s3TechLevel＝world の TechLevel（その州の持ち主の国）。s3Bracket＝1＋min(TL,2)＋max(0,TL−2)×0.3（Improvement.BracketOf の式の写し・試験で本体と突き合わせる）。s3Bracket0＝計器が ρ を焼いた月（RhoSource＝1）の B（それ以外は nan）。
+  - s3SrawC＝σraw×B÷B0。s3LneedC＝need×人数÷(ρ×T×(B÷B0)×f̄)（案 C の影・Lneed_f と同じ基準＝v の中 2・下書き §3 の表から f を入れる向きに直した＝名乗り）。
+  - s3EatPerCapInst＝ΣD÷人数。s3LandTaxPeasantInst＝SubsistenceBasis＞0 の POP について、w.LandTax＞1e-9 かつ LandTaxBase＞0 のとき w.LandTax×LandTaxBase（Fiscal.cs:442〜448 の式を写す・privBase は 1 と置く＝限界の自己申告・LandTaxBase は LandTaxFixedBasis に従う写し）。
+- 他の線との重なり：Instruments.cs の表の登録の行には触れない（SubstTable は既存の呼び口のまま）。InstrumentsTg.cs は触れない（頭の状態は InstrumentsSubst.cs の SubstHeadState に足す＝同じ ConditionalWeakTable）。ak・sm・k49・nc とファイルは重ならない（DormantIdentityTests・WriterRatchetTests は宣言の行が要る時だけ）。
+- 読み手の grep（㉜ の模様 SubsistenceShare|SubsistenceStage2|s2Unemp|s2Sigma|FoodOvf|StapleLedger）：SimCore 9 ファイル（EconomyStep 19・InstrumentsSubst 6・MultiNationSim 4・InstrumentsFd 3・ほか各 1）・Tests 8 ファイル（FoodLedgerTests 23・IdeaBoardLoadTests 10・SubsistenceStage2Tests 9・SubsistenceTechShareTests 4・ほか）・scripts／measurements 2,832 ファイル。この線は新しい欄を書くだけで旧の規則は 1 つも置き換えない＝固定する試験の書き換え 0。
+- 読み手の grep（subst_s の列を読む台本）：末尾に足すだけ＝名前で読む台本は変わらない（列の番号で読む物は無い・SubstInstrumentTests.Rows は名前の辞書）。
+- ㉘ の点検（腕の前の grep）：工業化度の読み手の許可表（IndustrializationReaderTests）は SimCore の新しい読み手を足さない（TechLevel を Instruments から読むが工業化度ではない）。`new MoneyStock(` は SimCore で 64 件のまま（予言：増減 0）。route_anchors.tsv（scripts/instruments/flow262/）の subst の鍵の行は 0 行＝書き足さない。WriterRatchetTests の subst の宣言の行は 0＝触れない（予言：書き換え 0 件）。DormantIdentityTests は触れない。
+
+[3] 足す試験（SubstInstrumentTests.cs・7 本＝非 FullLength の合計 3128 → 3135 を予言）と突然変異
+1. 見出しの列の数：SubstHeaderText が s3 の 18 本で終わり、列の数が行ごとに一致（突然変異：列を 1 本落とす→赤）。
+2. 独立の盤面（手で置いた ρ・U・T・TL・f・cap・人数から手の式で期待値・1e-12）：全 s3 の数の列（突然変異 M1 f を外す→赤・M3 Lneed に f を入れない→赤）。
+3. σraw＜1（f＝1）の盤面で s3EInst＝厳密に 0・s3ESoldShareInst＝0・s3KappaEInst＝0。
+4. 凶作の盤面（σraw＝1.2・f＝0.7）で s3DInst＝0.84×GoodNeed・s3EInst＝0（突然変異 M2 min を外す→赤）。
+5. 豊作の盤面（f＝1.2・σraw＝0.9）で E＝0.08×GoodNeed＞0・失業の式で ΣE＞0 の扱い（s_E）・ΣE＝0 の時 s_E＝0。
+6. s3Bracket の写しが手の表（TL＝0・1・2・3.5）と Improvement.BracketOf に 1e-12 で一致・B＝B0 なら s3SrawC＝s3SrawInst。
+7. 実走（英仏・助走 1 四半期＋数四半期）：s3 の列が出る・Q＝D＋E（1e-9）・D≦GoodNeed の和・x≦1 の行で E＝0・s3EatPerCapInst＝ΣD÷人数と整合・焼いた州が 20 以上（何もしない計器で緑にならない）。
+- 計器が切れた時（Wants("subst_s")＝false）は SubstS3Calc が呼ばれないことは既存の InstrumentsTablesSelectTests の型（Cut に subst_s）が守る。
+- ㉘：器のコミットの直後に走査の番人（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests・隔離ビルド D:/PoB_work/c137s3_art）を回す。赤なら腕を回さず直す。
+
+[4] 腕：素の 5 種（b5）・計器つき 10 種（INS）が m1308 と名乗り行を除いて全行一致（計器の表の差は subst_s の列の増えだけ＝`--grown-ok subst_s`）。
+[5] 〈判定: 恒等〉なら採る。浮動小数の順序が変わる箇所は 0（エンジンに触れない）＝紙の台本の食い違いの数 0。
+入れない物：旗 SubsistenceSellSurplus・SubsistenceTechBracket（3-1＋3-2）・エンジンの実際の E・R_p の列・土地税の算定の基準。
+
+[追記 2026-11-23・腕の前・結果（ident の腕）を見る前の変更＝フルスイートの赤を受けて]
+- フルスイート（18 本の木）の非 FullLength：Tests 2903 本中 2899 合格・2 赤（TechLevelRemovalTests.計器の列に技術水準が無い／技術水準を読む行の数はファイル別の許可表のとおり）。原因＝s3 の技術水準の 5 列（s3TechLevel・s3Bracket・s3Bracket0・s3SrawC・s3LneedC）が World.TechLevel を読む行（InstrumentsSubst.cs に 2 行）と引数名 techLevel を足した。これは機構の番人（作者の技術水準の削除・二重計上の方針の番人・読み手を足さない）で、★(743) の ①〜④ の外＝書き換えない・許可表に行を足さない（赤を物差しの替えで緑にしない）。
+- 直し：技術水準を読む 5 列を外し、s3 は 13 本にする（Sraw Harvest Q D E EWheat ESoldShare EValue Kappa KappaE UnempNew EatPerCap LandTaxPeasant）。純関数 SubstS3Calc は b・b0 の引数を失う。試験は 7 本→6 本（技術の括弧の試験を外し、見出し・手の盤面・実走から Bracket の項を外す）＝非 FullLength の合計の予言を 3134 に直す（Tests 2902＋Ui 232）。
+- 技術の括弧の 5 列は、3-2 の挙動の線（旗 SubsistenceTechBracket）が持つ＝その線は規則を置き換える線なので ㉜ の改めで TechLevelRemovalTests の許可表を新しい規則に合わせて直してよい（技術水準の削除の方針との関係は作者の確認が要る＝報告の先頭）。3-0 の器には置かない。
+- 突然変異は 13 本の版で取り直す（M1 f・M2 min・M3 Lneed の f・M4 列を落とす・M5 E の max）。
