@@ -38,6 +38,7 @@ public sealed partial class Coefficients
     public double EffPerOutput = 0.08;            // RGO産出1単位あたりの効率化材消費（profit-gateで割に合う時だけ買う）
     public double EffBoost     = 0.3;             // 完全充足時のRGO産出の上乗せ（肥料/飼料/漁船/工具が満たされた時）
     public double SubsistenceStage2 = 1;          // 0＝旧の形（食べる割合は欄のデータのまま・1 ビットも変わらない）
+    public double SubsistenceSellSurplus = 0;     // (1325) 3-1：0＝旧の形（自給の余りは市場へ出ない）・正＝作った−食べた余りを売る財の市場へ（作者「売る割合は、自給して余った分」）
     public double GridBuildRate = 0.1;           // 送電容量の不足分を月に何割ずつ敷設するか（投資家の残予算の範囲で）
     public double FillInertia = 0.25;            // 電化率(ElecFill)・効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）
     public double ElecFillIrreversibility = 1.0; // 0=無効（採算で毎期進退）・1で電化率は下がらない（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）

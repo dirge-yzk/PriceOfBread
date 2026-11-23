@@ -221,9 +221,13 @@ public class SubstInstrumentTests
     {
         var h = Instruments.SubstHeaderText.Split('\t');
         Assert.Equal(13, S3Names.Length);
-        Assert.Equal(S3Names, h.Skip(h.Length - 13).ToArray());
+        // (1325) 3-1 の器で s3 の後ろに 6 列（SubstS31HeaderText）を足した＝s3 の 13 本はその前（並びは変えない）
+        var s31 = Instruments.SubstS31HeaderText.Split('	');
+        Assert.Equal(["s3ESoldInst", "s3EOfferedEngine", "s3ESoldEngine", "s3RPaidEngine", "s3QEngine", "s3CrossInst"], s31);
+        Assert.Equal(s31, h.Skip(h.Length - 6).ToArray());
+        Assert.Equal(S3Names, h.Skip(h.Length - 19).Take(13).ToArray());
         Assert.Equal(h.Length, h.Distinct().Count());
-        Assert.Equal("s2NewOverOld", h[h.Length - 14]);   // 既存の列の並びは変えない（s3 は s2 の後ろ）
+        Assert.Equal("s2NewOverOld", h[h.Length - 20]);   // 既存の列の並びは変えない（s3 は s2 の後ろ）
     }
 
     [Fact]
@@ -318,5 +322,62 @@ public class SubstInstrumentTests
             if (sraw > 0) sr++;
         }
         Assert.True(sr >= 10, $"σraw が正の州が少ない＝何もしない計器で緑にならない {sr}");
+    }
+    // ---- (1325) 段 3-1 の器：s3 の写しの部品を本体と突き合わせる（事前登録 measurements/m1325_20261123_prereg_ss.txt の S1〜S4・突然変異 Ma1〜Ma3）----
+    [Fact]
+    public void s3の土地係数の写しは本体と同じ()
+    {
+        var c = new Coefficients();
+        int n = 0;
+        foreach (var (arable, rural) in new[] { (1e9, 1000.0), (500.0, 1000.0), (2000.0, 1000.0), (300.0, 0.5), (0.0, 10.0) })
+        {
+            var r = new Region { ArableLand = arable };
+            Assert.Equal(BitConverter.DoubleToInt64Bits(Territory.LandFactor(r, rural, c)), BitConverter.DoubleToInt64Bits(Instruments.S3LandFactor(arable, rural, c)));
+            if (Territory.LandFactor(r, rural, c) < 1.0) n++;
+        }
+        Assert.True(n >= 2, "土地係数が 1 未満の盤面が無い＝写しの誤りを拾わない");
+    }
+
+    [Fact]
+    public void s3の収穫係数の三重積の写しは本体と同じ()
+    {
+        var hf = typeof(EconomyStep).GetMethod("StapleHarvestFactor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        var r = new Region { HarvestFactor = 0.9, WeatherBandFactor = 1.1 };
+        var crop = new double[Catalog.Goods.Length]; Array.Fill(crop, 0.8); crop[Catalog.BreadId] = 0.6; r.CropHealth = crop;
+        int n = 0;
+        foreach (var gd in Catalog.Goods)
+        {
+            if (gd.Tier != GoodTier.Staple) continue;
+            double e = (double)hf.Invoke(null, [r, gd.Id, 0.75])!;
+            Assert.Equal(BitConverter.DoubleToInt64Bits(e), BitConverter.DoubleToInt64Bits(Instruments.S3HarvestF(r, gd.Id, 0.75)));
+            Assert.NotEqual(0.9 * 1.1 * crop[gd.Id], e);   // 土地係数 0.75 が効く盤面
+            n++;
+        }
+        Assert.True(n >= 5);
+    }
+
+    [Fact]
+    public void s3の売る財の写しは本体と同じ()
+    {
+        int chain = 0;
+        for (int g = 0; g < Catalog.Goods.Length; g++)
+        {
+            var (ri, qi) = Instruments.S3SellGood(g);
+            var (re, qe) = EconomyStep.SubsistenceSellGood(g);
+            Assert.Equal(re, ri); Assert.Equal(BitConverter.DoubleToInt64Bits(qe), BitConverter.DoubleToInt64Bits(qi));
+            if (re != g) chain++;
+        }
+        Assert.True(chain >= 10, $"遡る財が少ない {chain}");
+    }
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void s3の土地税の基数の写しは本体と同じ(double fixedBasis)
+    {
+        var c = new Coefficients { LandTaxFixedBasis = fixedBasis };
+        var p = new Pop { Size = 10, LandRentPerMonth = new MoneyPerMonth(40), LandTaxBasisAdjPerMonth = new MoneyPerMonth(-15) };
+        Assert.Equal(BitConverter.DoubleToInt64Bits(Fiscal.LandTaxBase(c, p).Value), BitConverter.DoubleToInt64Bits(Instruments.S3LandTaxBase(c, p)));
+        Assert.Equal(fixedBasis > 0 ? 25.0 : 40.0, Instruments.S3LandTaxBase(c, p));
     }
 }

@@ -146,3 +146,15 @@
  1 この事前登録 → 2 器（旗 0・計器・試験）→ ㉘（scan_ss.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c138ssz --work D:/PoB_work/ident_c138ss --grown-ok subst_s --tests-delta <器の試験の数>）
  → 4 突然変異（mut_ss.sh）→ 5 旗 1 → ㉘＋線の試験 → フルスイート・savetest・leakhunt（suite_ss.sh）→ 6 腕 B（armb.sh・計器つき 10 種・表を絞る）→ 門 → 印 D:/PoB_work/c138ss_work/ss.mark。
  形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記 2026-11-23（器の段・腕 Z の前・結果を見る前の門は変えない）
+ 基線の止める線を この線の読み手 read_ss.sh で数え直した（measurements/m1325_20261123/pre/readbase/）：stop1002 の pxmonth 100 倍以上 0・1e10 倍以上 0・priceLevel 100 倍以上 0・非有限 0・
+  gdpjump の〈それ以外〉0（N1 は 1）・plvl 比≧100 0・開幕の 1000 倍以上 0・gdp_zero10 0・ss_gate は G1 赤（旗 0）・H2 緑。readM（合流の読み）と同じ。
+ ㉘ の束（scan_ss.sh・器の前の木＝試験を足した直後）：走査の番人（IndustrializationReader・UnitType・InstrumentsTests・WriterRatchet〔EarnedPerMonth 13〕・DormantIdentity・OnDoubleReadScan・TechLevelRemoval）は全て緑。
+  赤 4 は この線の試験と見出しの番人＝下の直しの後に緑（measurements/m1325_20261123/pre/scan_器の前.txt）。
+ 直した試験（器の段・この線の試験の盤面の誤り＝旗に依らない）：
+  SubsistenceSellSurplusTests：①麦とパンの在庫の釣り合いを〈前の在庫＋産出〉でなく〈同じ盤面の旗 0 との差＝余り〉で読む（月の頭の傷み〔WearRatePerMonth〕が在庫を減らす＝試験の盤面の読み違い）。
+   ②担い手の盤面は 1 か月温めてから置く（開幕の月は人力の農業労働の能力が 0）。凶作の〈余り 0〉は温めた月の後の差で読む。Assert の式と期待の数は変えない。
+ 書き換えた番人（★(764) 静的な件数・並びの番人・㉑ の予言の追記）：SubstInstrumentTests:220 s3の見出しは13本で末尾に並ぶ
+  前＝末尾 13 本が s3・末尾から 14 本目が s2NewOverOld／後＝末尾 6 本が 3-1 の列（名を Assert）・その前の 13 本が s3・末尾から 20 本目が s2NewOverOld。並びを変えない性質は残した。
+ 腕 Z の試験の差＝+14（SubsistenceSellSurplusTests 9・SubstInstrumentTests の写しの突き合わせ 5〔Fact 3＋Theory 2〕）。

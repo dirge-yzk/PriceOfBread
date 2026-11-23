@@ -39,7 +39,12 @@ public static class EconomyStep
         public Good[] SortBuf = [];    // ★(spt2) 並べ直しの作業配列
         public double[] FoodOvf = [], FoodDfc = [];   // PopNorm〔履歴 EconomyStep.cs#7〕
         public double[] StapleSubst = [], StapleSelf = [];          // StapleSubst〔履歴 EconomyStep.cs#8〕
+        // (1325) 3-1（旗 SubsistenceSellSurplus）：財ごとの自給の余り Ê・その財の売れ行き・POP ごとの主食の必要量と収穫係数の重み・按分の産出 produced′ と頭数 n′
+        public double[] SubsEHat = [], SubsSellFrac = [], SubsGn = [], SubsGnF = [], ProdP = [];
+        public int[] NPrime = [];
+        public readonly List<(int Pop, int R, double Eq)> SubsE = [];
     }
+    [System.ThreadStatic] private static double[]? _subsRaw;   // (1325) 3-1：月の頭に導く σraw（POP ごと・保存しない＝次の月の頭で導き直せる）
     /// <summary>
     /// 主食の交差弾力の冪＝(主食の幾何平均 ÷ 自分の値段比)^CrossElasticity（旧は消費の財のループの中の 2 行。〔履歴 EconomyStep.cs#10〕
     /// </summary>
@@ -93,12 +98,16 @@ public static class EconomyStep
     /// <summary>
     /// 旗 Coefficients.SubsistenceStage2 が 0 か world＝null＝欄 Pop.SubsistenceBasis そのもの（1 ビットも変わらない）。〔履歴 EconomyStep.cs#15〕
     /// </summary>
-    private static void SubsistenceHead(Region region, Coefficients coef, World? world)
+    private static void SubsistenceHead(Region region, Coefficients coef, World? world) => SubsistenceHeadInto(region, coef, world, null);
+
+    /// <summary>(1325) 3-1：sraw が null でなければ POP ごとの σraw（担い手の Productivity の POP は min(1) を掛ける前の値・それ以外は食べる割合）も書く。</summary>
+    private static void SubsistenceHeadInto(Region region, Coefficients coef, World? world, double[]? sraw)
     {
         var pops = region.Pops;
         if (!(coef.SubsistenceStage2 > 0) || world is null)
         {
             for (int i = 0; i < pops.Count; i++) pops[i].SubsistenceShare = pops[i].SubsistenceBasis;
+            if (sraw is not null) for (int i = 0; i < pops.Count; i++) sraw[i] = pops[i].SubsistenceShare;
             return;
         }
         if (world.WarmupFrozen)
@@ -109,6 +118,7 @@ public static class EconomyStep
                 if (p.SubsistenceBasisKind == SubsistenceBasisKind.OpeningShare && p.SubsistenceBasis > 0) p.SubsistenceBasisKind = SubsistenceBasisKind.WarmupShare;
                 p.SubsistenceShare = p.SubsistenceBasis;
             }
+            if (sraw is not null) for (int i = 0; i < pops.Count; i++) sraw[i] = pops[i].SubsistenceShare;
             return;
         }
         var (cap, lp) = HumanFarmLabor(region);
@@ -124,7 +134,48 @@ public static class EconomyStep
             }
             if (p.SubsistenceBasisKind != SubsistenceBasisKind.Productivity) p.SubsistenceShare = p.SubsistenceBasis;
             else p.SubsistenceShare = i == lp && p.Size > 0 ? Math.Min(1.0, p.SubsistenceBasis * u * t / (need * p.Size)) : 0.0;
+            if (sraw is not null) sraw[i] = p.SubsistenceBasisKind == SubsistenceBasisKind.Productivity && i == lp && p.Size > 0 ? p.SubsistenceBasis * u * t / (need * p.Size) : p.SubsistenceShare;
         }
+    }
+
+    /// <summary>
+    /// (1325) 3-1：自給の余りを売る財（パン→小麦粉→麦）と量の換算の積＝Catalog の最初の投入を投入の無い財まで遡る（深さの上限は財の数）。
+    /// 計器 subst_s の S3SellGood は同じ規則を計器の側で別に書く（試験で突き合わせる）。
+    /// </summary>
+    internal static (int R, double Q) SubsistenceSellGood(int g)
+    {
+        int cur = g; double q = 1.0;
+        for (int i = 0; i < Catalog.Goods.Length; i++)
+        {
+            var inp = Catalog.Goods[cur].Inputs;
+            if (inp.Length == 0) break;
+            q *= inp[0].QtyPerOutput; cur = inp[0].GoodId;
+        }
+        return (cur, q);
+    }
+
+    /// <summary>
+    /// (1325) 3-1 の失業：売れない余りの労働だけ＝raw＝(U−Lneed_f)÷能力・Lneed_f＝必要量×人数÷(ρ×T×f̄)・失業＝raw＞0 なら min(1, raw×(1−s_E))（否定形＝NaN は 0）。
+    /// f̄＝その POP の主食の GoodNeed で重みづけた収穫係数（gn＝Σ GoodNeed・gnf＝Σ GoodNeed×f・gn＝0 なら 1）。s_E＝その POP の余りの売れ行き（余り 0 なら 0）。U・能力・T はこの月の末。
+    /// </summary>
+    private static double FarmUnemploymentSell(Region region, Coefficients coef, Pop lpop, double gn, double gnf, double sE)
+    {
+        var (cap, _) = HumanFarmLabor(region);
+        if (!(cap > 0)) return 0;
+        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+        double u = UnsoldFarmCapacity(sold, cap), t = StapleEffTech(region, coef);
+        double fbar = gn > 0 ? gnf / gn : 1.0;
+        double lneed = StapleNeedPerCapita * lpop.Size / (lpop.SubsistenceBasis * t * fbar);
+        double raw = (u - lneed) / cap;
+        return raw > 0 ? Math.Min(1.0, raw * (1.0 - sE)) : 0.0;
+    }
+
+    /// <summary>(1325) 3-1：POP の余りの売れ行き s_E＝Σ E×q×(売れた÷available) ÷ Σ E×q（その POP の余り 0 なら 0）。</summary>
+    private static double SellShareOfPop(List<(int Pop, int R, double Eq)> sellE, double[] sellFrac, int pop)
+    {
+        double e = 0, es = 0;
+        foreach (var (sp, sr, seq) in sellE) if (sp == pop) { e += seq; es += seq * sellFrac[sr]; }
+        return e > 0 ? es / e : 0.0;
     }
 
     /// <summary>
@@ -694,7 +745,9 @@ public static class EconomyStep
     {
         Prefetch(region);   // ★(spr) R1 先読み（読むだけ・値を書かない＝恒等。Prefetch の注）
         if (Instruments.On && world is not null && !world.WarmupFrozen) Instruments.SubstMonthHead(world, region);   // SubstMonthHead〔履歴 EconomyStep.cs#75〕
-        SubsistenceHead(region, coef, world);   // SubsistenceHead〔履歴 EconomyStep.cs#76〕
+        double[]? sraw = null;   // (1325) 3-1：旗 0 は null＝下の自給の余りの行を 1 行も走らない
+        if (coef.SubsistenceSellSurplus > 0) { int npp = region.Pops.Count; sraw = _subsRaw is { } sb0 && sb0.Length >= npp ? sb0 : (_subsRaw = new double[Math.Max(npp, 16)]); }
+        SubsistenceHeadInto(region, coef, world, sraw);   // SubsistenceHead〔履歴 EconomyStep.cs#76〕
         int ng = region.Markets.Length;
         int np = region.Producers.Count;
         // 計算量の台帳（診断・この国の台帳）：生産者×月・POP×月（月次決算の残り＝財政・犯罪・軍事・人口ほかは POP に比例）。world＝null（単国の直呼び）は数えない。
@@ -1492,6 +1545,21 @@ public static class EconomyStep
             fdSelf = scratch.StapleSelf; fdOvf = scratch.FoodOvf; fdDfc = scratch.FoodDfc;
             if (costL is not null && fdLedger) costL[CostLedger.StapleLedgerPops] += (long)region.Pops.Count;   // 計算量の台帳：前計算 1 段＋決済後の締め 1 段
         }
+        // (1325) 3-1（旗 SubsistenceSellSurplus）：x＝σraw×f・食べた D＝GoodNeed×min(1,x)・余り E＝GoodNeed×max(0,x−1)（作者「売る割合は、自給して余った分」）。
+        //   余りは売る財 r（パンは麦）の available に足し（LastProduced には入れない）、清算で作り手と同じ按分（produced′＝産出＋Ê・頭数 n′＝作り手＋余りを出した POP）で受け取る。
+        bool sell = sraw is not null;
+        double[] sEHat = [], sSellFrac = [], sGn = [], sGnF = [];
+        List<(int Pop, int R, double Eq)>? sellE = null;
+        double sellQ = 0;
+        if (sell)
+        {
+            int npq = region.Pops.Count;
+            if (scratch.SubsEHat.Length < ng) { scratch.SubsEHat = new double[ng]; scratch.SubsSellFrac = new double[ng]; scratch.ProdP = new double[ng]; scratch.NPrime = new int[ng]; }
+            if (scratch.SubsGn.Length < npq) { scratch.SubsGn = new double[npq]; scratch.SubsGnF = new double[npq]; }
+            sEHat = scratch.SubsEHat; sSellFrac = scratch.SubsSellFrac; sGn = scratch.SubsGn; sGnF = scratch.SubsGnF;
+            System.Array.Clear(sEHat, 0, ng); System.Array.Clear(sSellFrac, 0, ng); System.Array.Clear(sGn, 0, npq); System.Array.Clear(sGnF, 0, npq);
+            sellE = scratch.SubsE; sellE.Clear();
+        }
         // 飛ばす側でも GoodNeed・GoodDemand には +0 を書く（財ごとの作業欄＝飛ばすと前の財の値が残る）。〔履歴 EconomyStep.cs#202〕
         bool skipZeroPop = !insOn && insSpend is null && insEnt is null && fdd is null && !BudgetBindDiag.On;
         long skippedZero = 0;
@@ -1503,6 +1571,15 @@ public static class EconomyStep
             var m = region.Markets[gi];
             double usePrice = Math.Max(m.Price, Eps);
             bool staple = good.Tier == GoodTier.Staple;
+            // (1325) 3-1：この主食の収穫係数 f（非有限は 1・負は 0＝③ の fdSelf と同じ守り）と売る財 r・換算 q・r が州の財か
+            double sF = 1.0, sQ = 0.0; int sR = -1; bool sOk = false;
+            if (sell && staple)
+            {
+                double hf = StapleHarvestFactor(region, gi, regionLandFactor);
+                sF = double.IsFinite(hf) ? Math.Max(0.0, hf) : 1.0;
+                (sR, sQ) = SubsistenceSellGood(gi);
+                sOk = sR < ng && region.GoodOf(sR) is not null;
+            }
             bool foodNonStaple = !staple && coef.FoodIncludesAnimalProtein > 0 && good.Nutrition > 0;   // ★塊1段1b：動物性タンパクも食卓の交差弾力に参加（肉高騰→パン/芋へ流れる＝ギッフェンの創発）
             // アヘンは中毒度を1人あたり必要量に上乗せ（供給→消費→中毒→需要 の正のフィードバック・実験）
             var habit = Habit.Of(coef, gi);   // 習慣性の無い財は全て 0〔履歴 EconomyStep.cs#203〕
@@ -1575,6 +1652,18 @@ public static class EconomyStep
                 if (habit.Active)
                     p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(habit.MiseryScale * (1.0 - lastSupply[pIdx])) + Habit.StockOf(region, habit)) * p.Size;
                 double marketNeed = staple ? (fdShortfall ? p.GoodNeed * Math.Max(0.0, 1.0 - p.SubsistenceShare * fdSelf[gi]) : p.GoodNeed * (1.0 - p.SubsistenceShare)) : p.GoodNeed;   // 自給分は市場に出さない（農民）。〔履歴 EconomyStep.cs#219〕
+                if (sell && staple)
+                {
+                    // (1325) 3-1：市場へ出す必要量＝GoodNeed×max(0,1−x)（σraw≦1 なら ③ の式と同じ値）・余り E を売る財 r の Ê に積む
+                    double x = sraw![pIdx] * sF;
+                    marketNeed = p.GoodNeed * Math.Max(0.0, 1.0 - x);
+                    sGn[pIdx] += p.GoodNeed; sGnF[pIdx] += p.GoodNeed * sF; sellQ += p.GoodNeed * x;
+                    if (x > 1.0 && sOk)
+                    {
+                        double eq = p.GoodNeed * (x - 1.0) * sQ;
+                        if (eq > 0) { sEHat[sR] += eq; sellE!.Add((pIdx, sR, eq)); }
+                    }
+                }
                 double demand = 0;
                 if (marketNeed > 0)
                 {
@@ -1624,6 +1713,7 @@ public static class EconomyStep
                               + inputTrickle[gi];
             if (BudgetBindDiag.On) BudgetBindDiag.Compose(world, popDemand * usePrice, inputNeed[gi] * usePrice, investDemand[gi] * usePrice, (militaryDemand[gi] + rebelDemand[gi]) * usePrice);
             double available = m.Stock + produced[gi];
+            if (sell) available += sEHat[gi];   // (1325) 3-1：自給の余り（売る財 r の分）＝在庫と産出の後に足す（LastProduced には入れない）
             double coreSold = coreDemand > 1e-12 ? Math.Min(available, coreDemand) : 0;
             ration[gi] = coreDemand > 1e-12 ? coreSold / coreDemand : 0;
             if (insInp is not null) insInp.Good(gi, available, coreDemand, popDemand, inputNeed[gi] + inputTrickle[gi], investDemand[gi], militaryDemand[gi] + rebelDemand[gi]);   // militaryDemand〔履歴 EconomyStep.cs#231〕
@@ -1855,6 +1945,13 @@ public static class EconomyStep
                         double subFactor = region.HarvestFactor;
                         if (staple) subFactor = StapleHarvestFactor(region, gi, regionLandFactor);   // 市場向けと同じ収穫係数（三重積）
                         double sub = staple ? p.GoodNeed * p.SubsistenceShare * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
+                        double eSelf = 0;   // (1325) 3-1：自分の財のまま売った余り（r＝g・売れる財）＝扶養力の分子に 1 回だけ入る（鎖の財の余りは作り手の LastProduced を通って入る）
+                        if (sell && staple)
+                        {
+                            double x = sraw![fdI] * sF;
+                            sub = p.GoodNeed * Math.Min(1.0, x);   // 食べた量 D（自給の過分は台帳へ持ち越さない＝余りは売る）
+                            if (x > 1.0 && sOk && sR == gi) eSelf = p.GoodNeed * (x - 1.0);
+                        }
                         double met = sub + Math.Min(qty, p.GoodNeed - sub);
                         p.NeedMet += met * needW;
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
@@ -1867,12 +1964,14 @@ public static class EconomyStep
                             if (fdd is not null) { fdd.Demand += p.GoodDemand; fdd.Sub += sub; }   // GoodDemand〔履歴 EconomyStep.cs#268〕
                         }
                         if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; p.SubsistenceValuePerMonth += new MoneyPerMonth((sub > p.GoodNeed ? p.GoodNeed : sub) * m.Price); }   // 不作/高騰/過密で買えねば met<need→飢饉。〔履歴 EconomyStep.cs#269〕
+                        if (eSelf > 0) region.LastSubsistenceOutput += eSelf;
                         else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。〔履歴 EconomyStep.cs#270〕
                     }
                 }
             }
 
             if (insEnt is not null && !needless) insEnt.GoodEnd(!(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId)));   // HigherEducationId〔履歴 EconomyStep.cs#271〕
+            if (sell && sEHat[gi] > 0) sSellFrac[gi] = sold / available;   // (1325) 3-1：余りの売れ行き＝この財の売れた÷available（available≧Ê＞0）
             m.Stock = Math.Max(0, available - sold);   // 優先配分の浮動小数点残差で極微の負になりうる（−1e−15）。非負へクランプ
             m.LastProduced = produced[gi];
             m.LastSold = sold;
@@ -2307,13 +2406,30 @@ public static class EconomyStep
             if (insInp is not null) insInp.Factory(s, ration);   // Factory〔履歴 EconomyStep.cs#322〕
         }
 
+        // (1325) 3-1：按分の産出 produced′＝産出＋Ê・頭数 n′＝作り手＋余りを出した POP（財ごとに数える）。旗 0 と余り 0 の月は元の配列そのもの。
+        double[] prodP = produced; int[] nPrime = producerCount;
+        List<(int Pop, int R, double Eq)>? sellAgg = null;
+        if (sell && sellE!.Count > 0)
+        {
+            prodP = scratch.ProdP; nPrime = scratch.NPrime;
+            System.Array.Copy(produced, prodP, ng); System.Array.Copy(producerCount, nPrime, ng);
+            for (int k = 0; k < ng; k++) if (sEHat[k] > 0) prodP[k] = produced[k] + sEHat[k];
+            sellAgg = new List<(int Pop, int R, double Eq)>(sellE.Count);
+            foreach (var (sp, sr, seq) in sellE)
+            {
+                int at = -1;
+                for (int a = 0; a < sellAgg.Count; a++) if (sellAgg[a].Pop == sp && sellAgg[a].R == sr) { at = a; break; }
+                if (at >= 0) sellAgg[at] = (sp, sr, sellAgg[at].Eq + seq);
+                else { sellAgg.Add((sp, sr, seq)); nPrime[sr]++; }
+            }
+        }
         // #6（B-A2）：輸入の消費分は国内生産者でなく商人（輸入の捌き手）へ＝「輸入穀物の代金が国内農民の懐に入る」歪みの除去。〔履歴 EconomyStep.cs#323〕
         if (region.MerchantPopIndex >= 0)
             foreach (var good in region.Goods)
             {
                 int gi = good.Id;
-                if (good.Tier == GoodTier.Service || good.NonTradeable || producerCount[gi] == 0 || revenue[gi] <= Eps) continue;
-                double domesticValue = produced[gi] * clearPrice[gi];
+                if (good.Tier == GoodTier.Service || good.NonTradeable || nPrime[gi] == 0 || revenue[gi] <= Eps) continue;
+                double domesticValue = prodP[gi] * clearPrice[gi];
                 // 輸入代金を払う捌き手の商人が、その在庫を国内で売った代金を受け取る。〔履歴 EconomyStep.cs#324〕
                 double importValue = (region.Markets[gi].PrevImport + region.Markets[gi].LastImport) * clearPrice[gi];   // 商人（輸入の捌き手）が受け取れる上限
                 double merchantCut = Math.Min(revenue[gi] - domesticValue, importValue);
@@ -2327,13 +2443,13 @@ public static class EconomyStep
         // 旗 0／禁止の国は何も計算しない。〔履歴 EconomyStep.cs#327〕
         bool ubOn = coef.UnionBargaining > 0 && world is not null && world.LaborUnion != LaborUnionLaw.Illegal;
         UnionBargaining.Ctx ub = default;
-        if (ubOn) { ub = UnionBargaining.Prepare(world!, region, np, sleep, produced, producerCount, revenue, inputCost, insOn); if (insOn) Instruments.SbRegionMonth(world!, in ub); }
+        if (ubOn) { ub = UnionBargaining.Prepare(world!, region, np, sleep, prodP, nPrime, revenue, inputCost, insOn); if (insOn) Instruments.SbRegionMonth(world!, in ub); }
         for (int pi = 0; pi < np; pi++)
         {
             if (sleep[pi] == 1) continue;   // continue〔履歴 EconomyStep.cs#328〕
             var s = region.Producers[pi];
             int gi = s.GoodId;
-            double share = produced[gi] > Eps ? s.Output / produced[gi] : 1.0 / producerCount[gi];
+            double share = prodP[gi] > Eps ? s.Output / prodP[gi] : 1.0 / nPrime[gi];
             double producerRevenue = revenue[gi] * share;
             double valueAdded = producerRevenue - inputCost[pi];
             // 赤字（負の付加価値）は所有者＝資本が負う。〔履歴 EconomyStep.cs#329〕
@@ -2430,10 +2546,26 @@ public static class EconomyStep
             }
         }
 
+        // (1325) 3-1：余りを出した POP の受け取り＝作り手の行と同じ按分（produced′＞Eps なら E÷produced′・でなければ 1÷n′）。自分の畑＝地代・賃金・原料の費・国営の持分を立てない。
+        //   Σ作り手の share＋Σ E÷produced′＝1（両方の枝）＝払った和＋商人の取り分＝売上（保存）。売れ残った余りは在庫（持ち主の無い共同の在庫＝今の規則）。
+        double sellPaid = 0;
+        if (sellAgg is not null)
+            foreach (var (sp, sr, seq) in sellAgg)
+            {
+                double pay = revenue[sr] * (prodP[sr] > Eps ? seq / prodP[sr] : 1.0 / nPrime[sr]);
+                region.Pops[sp].EarnedPerMonth += new MoneyPerMonth(pay);
+                sellPaid += pay;
+            }
+        if (sell && insOn)
+        {
+            double offered = 0, soldE = 0;
+            for (int k = 0; k < ng; k++) if (sEHat[k] > 0) { offered += sEHat[k]; soldE += sEHat[k] * sSellFrac[k]; }
+            Instruments.SubstSellMonth(region, offered, soldE, sellPaid, sellQ);   // 計器 subst_s の 3-1 の実際の側（移した直後の値）
+        }
         // 生産者のいない財の売上：#6（B-A2）と同型に商人（輸入の捌き手）へ＝国内移転で保存。〔履歴 EconomyStep.cs#352〕
         for (int gi = 0; gi < ng; gi++)
         {
-            if (producerCount[gi] != 0 || revenue[gi] <= 0) continue;
+            if (nPrime[gi] != 0 || revenue[gi] <= 0) continue;
             var gd0 = region.GoodOf(gi);
             if (gd0 is null) continue;
             if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(revenue[gi]);
@@ -2463,7 +2595,9 @@ public static class EconomyStep
                 // （主食消費は §EconomyStep で自給ぶんを FoodMet に計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
                 if (s.GoodId == Catalog.FarmLaborId)
                 {
-                    if (coef.SubsistenceStage2 > 0 && lpop.SubsistenceBasisKind == SubsistenceBasisKind.Productivity) unsold = FarmUnemploymentStage2(region, coef, lpop);   // FarmUnemploymentStage2〔履歴 EconomyStep.cs#356〕
+                    if (coef.SubsistenceStage2 > 0 && lpop.SubsistenceBasisKind == SubsistenceBasisKind.Productivity)
+                        unsold = sell ? FarmUnemploymentSell(region, coef, lpop, sGn[s.LaborPopIndex], sGnF[s.LaborPopIndex], SellShareOfPop(sellE!, sSellFrac, s.LaborPopIndex))   // (1325) 3-1
+                                      : FarmUnemploymentStage2(region, coef, lpop);   // FarmUnemploymentStage2〔履歴 EconomyStep.cs#356〕
                     else unsold -= lpop.SubsistenceShare;
                 }
                 lpop.UnemploymentRate = new Share(PoliticalQuantities.Clamp01(unsold));

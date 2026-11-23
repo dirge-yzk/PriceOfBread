@@ -1,0 +1,7 @@
+# (1318) scan HEAD=e165b8887 汚れ=9 2026-11-23 18:45:13
+scan rc=1 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 失敗!   -失敗:     4、合格:   176、スキップ:     0、合計:   180、期間: 24 m 7 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の見出しは13本で末尾に並ぶ [5 ms]
+  失敗 PriceOfBread.Tests.SubsistenceSellSurplusTests.凶作の食べる量はσrawかけるfで_余り0なら失業は売れ行きに依らない [7 ms]
+  失敗 PriceOfBread.Tests.SubsistenceSellSurplusTests.余りは売る財の市場へ出て_作り手と同じ按分で受け取る_旗0は出さない [3 ms]
+  失敗 PriceOfBread.Tests.SubsistenceSellSurplusTests.豊作の余りは売れた分だけ失業から外れる_旗0は旧の式 [< 1 ms]
+SCANDONE 2026-11-23 19:09:44

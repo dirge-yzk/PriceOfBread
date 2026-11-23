@@ -167,7 +167,8 @@ public class WriterRatchetTests
     // ★2026-10-02 (173)：Earned 11→**12**（＝宣言）＝植民地の不在地主の地代の送金（Colonial.RemitAbsenteeRent の払い手の所得の記録を下げる1行）。
     //   国内の売上の地代は④で在地の口座の仮勘定に入り州の月末の精算で貯蓄になる＝首都の州は先に精算を終えている＝精算の後に移し方の1本で送り（受け手の所得は移し方の1本が書く）、
     //   払い手の所得の記録を同じ額だけ下げる（所得の記録がお金と一緒に動く＝課税・票・信用枠の基数）。お金の書き手は増えていない（移し方の1本）。
-    [InlineData("EarnedPerMonth", 12)]                // 月内の仮勘定（受け取り）
+    // ★2026-11-23 (1325)：Earned 12→**13**（＝宣言）＝自給の余りを出した POP の受け取り（EconomyStep の清算の 1 行・作り手の行と同じ按分＝払い手の側の売上の行が既にある）。
+    [InlineData("EarnedPerMonth", 13)]                // 月内の仮勘定（受け取り）
     [InlineData("Treasury", 0)]               // 外交層の財布への代入（World.Treasury は private set＝構造で閉じている・Power.Treasury は 2026-09-30 に欄ごと削除）
     [InlineData("LandShares", 2)]             // ★(991) 土地の持ち分の欄へのメンバーの代入（Simulation.cs の構築 1・LandSale.cs の null の配列化 1）。局所の配列 ls[k] の書き換えは数えない＝番人は LandSaleTests の T5・T7
     public void お金への書き手は増やさない(string member, int baseline)
