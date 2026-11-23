@@ -33,3 +33,9 @@
 
 [4] 腕：ident 段 2（--work D:/PoB_work/ident_c137sm・宣言 --grown-ok popclose_s）。素の 5 種・計器つき 10 種が m1308 と全行一致（popclose_s の宣言した増減を除く）。
 [5] 〈判定: 恒等〉（測った種で一致・〈証明〉と書かない）なら採る。浮動小数の順序が変わる箇所は 0（stackalloc の位置の移動だけ・式は不変）。一致しなければその変更を外して報告に回す。
+
+[追記 1（腕の前・試験を回した後の事実）]
+  ・項 7 sb：札の一致の試験を書いて回したところ、同じ名の規則で段が違う名前が 1 つ見つかった＝マラーター帝国（Formations.Rules は Tier 2・CultureRealms の大名は Tier 3）。札は同じ。注の〈段も同じ〉は事実と違うので、注は〈札は同じ・段はマラーター帝国だけ違う〉へ直し、試験は札の一致＋段の食い違いの名簿（["マラーター帝国"]）の固定にした（事前登録の [2] の形からの変更＝結果の後の変更と名乗る）。段の食い違いは挙動の疑い（FormedElsewhere の q.FormationTier ≥ r.Tier と f.Tier ≥ r.Tier が同値でない名前）＝この線は恒等なので直さず報告に残す。
+  ・項 5 tl：stackalloc は InstrumentsTreasLedger.cs の foreach の中にあった（ループの中）＝そちらを外へ。Instruments.cs :1599 の stackalloc はメソッドの直下でループの中ではない＝触らない。
+  ・項 6 ar：(f)(g) は 10 種の基準の生（keep_1315/base_ins の arrears_s）で全行成り立つことを確かめて決めた。(f)＝owes＝0 の行は arrNewMonth＝0・(g)＝国ごとの cumNew は行の順に減らない（cumOld は減る行があり検査しない）。underLimit＝1 ⇒ owes＝0 は (b) が既に見る。
+  ・事前登録の突然変異の実測（コミット d74bd320a の木）：M1 赤（SaveRoundTripTests 1）・M2 赤（新しい試験 1）・M3 赤（新しい試験＋計器 U0 の試験）・M4 赤（T7 だけ＝T8 は 3 四半期に死の記帳の事象が無いので緑のまま＝T8 は人口の閉じ全体の番人・死の hook の番人は T7）・M5 赤。出力は measurements/m1316_20261123_mut/。

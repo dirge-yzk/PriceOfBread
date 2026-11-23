@@ -1,0 +1,2 @@
+失敗 PriceOfBread.Tests.SaveRoundTripTests.四半期の途中のセーブで続きが一致する [10 s]
+失敗!   -失敗:     1、合格:     8、スキップ:     0、合計:     9、期間: 32 s - PriceOfBread.Tests.dll (net10.0)

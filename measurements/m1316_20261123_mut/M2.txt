@@ -1,0 +1,2 @@
+失敗 PriceOfBread.Tests.DiscoveryEngineerTests.代表の生産者が居ない製法の行の項は何も書かれない [1 s]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
