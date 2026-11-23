@@ -1,6 +1,6 @@
-// (1306) c135c3 の使い捨ての素案の確かめ（コミットしない）：TaxChainCheck と同じ盤面・同じ 3 つの助走で、
-// 今の Assert の量（dSav・dSat・構成を固定した闘争度の差 dMil）と、素案の量（構成を固定した不満度の差 dDisc）を
-// 勢いの重み 0.3／0 × 係数の突然変異（試験の中で w.Coef に置く＝SimCore は触らない）で並べる。出力は C136_OUT/paper.tsv に 1 行ずつ足す。
+// (1310) c136tc の突然変異の台本の素材（使い捨ての台本）：PolicyPoliticsTests の TaxChainCheck（C3 の鎖の番人＝実税が重い世界ほど生活が苦しく不満度が高い）と同じ盤面・同じ 3 つの助走で、
+// 番人の Assert の量（dSav・dSat・構成を固定した不満度の差 dDisc〔(1310) で闘争度の差 dMil から替えた〕）を、勢いの重み 0.3／0 × 係数の突然変異（試験の中で w.Coef に置く＝SimCore は触らない）で並べる。
+// 出力は C136_OUT/paper.tsv に 1 行ずつ足す。(1306) の素案の確かめ（dMil）の台本はこの形に直した。
 using System.Text;
 using PriceOfBread.SimCore;
 using Xunit;
