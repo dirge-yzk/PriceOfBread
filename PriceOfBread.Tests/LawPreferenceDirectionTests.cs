@@ -3,17 +3,17 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(1323) c138lp 旗 LawPrefSinglePeaked の機構の試験（事前登録 measurements/m1323_20261123_prereg_lp.txt の G0 T1〜T9）。
-/// 盤面は試験の中で置く（英の 1789 の盤面・4 四半期・参政権と大衆の闘争度を試験が置く）。期待は試験が手で書く区分の式
-/// （拡大＝Pref・後退＝Pref≧0 か Pref≦−2 なら −Pref・−2&lt;Pref&lt;0 なら Pref×(Pref+1)）＝本体の Directed／SinglePeaked を期待の側で呼ばない。</summary>
+/// <summary>(1323) c138lp 旗 LawPrefSinglePeaked の機構の試験（事前登録 measurements/m1323_20261123_prereg_lp.txt の追記 2 の T1〜T9）。
+/// 規則＝単峰の一貫性：段 k→k−1 の好み＝−（段 k−1→k の好み）。Pref の段に依る項（参政権の近代エリート・相続の段の大きさ・本位の銀）だけを後退の向きで 1 段下で読む。
+/// 盤面は試験の中で置く（英の 1789 の盤面・4 四半期・段と大衆の闘争度を試験が置く）。期待は試験が手で書く式（本体の Pref の back を期待の側で使わない）。</summary>
 [Collection("Instruments")]
 public class LawPreferenceDirectionTests
 {
     private const ulong Seed = 1323UL;
 
-    private static World Board(double flag, double militancy = 0.4)
+    private static World Board(double flag, double militancy = 0.4, NationConfig? cfg = null)
     {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(1789), new NullAgent());
+        var sim = new Simulation((cfg ?? NationConfig.Britain()).ToScenario(1789), new NullAgent());
         sim.Run(4);
         var w = sim.World;
         w.Coef.LawPrefSinglePeaked = flag;
@@ -24,9 +24,6 @@ public class LawPreferenceDirectionTests
         return w;
     }
 
-    /// <summary>手で書く区分の式（事前登録の〈性質〉の行）。</summary>
-    private static double Hand(double p, bool up) => up ? p : (p >= 0 || p <= -2) ? -p : p * (p + 1);
-
     private static void Near(double want, double got, string what, double rel = 1e-12)
         => Assert.True(Math.Abs(want - got) <= rel * Math.Max(1.0, Math.Abs(want)), $"{what}：期待 {want:R}・実際 {got:R}");
 
@@ -35,134 +32,111 @@ public class LawPreferenceDirectionTests
     {
         var w1 = Board(1.0);
         double up = PolicyPreferences.NetSupport(w1, PolicyAxis.Suffrage, true), down = PolicyPreferences.NetSupport(w1, PolicyAxis.Suffrage, false);
-        Assert.True(up + down < -1e-6, $"旗 1：上げ {up:R}＋下げ {down:R} が負でない（現状維持が両方への反対として出ない）");
-        Assert.True(PolicyPreferences.Stance(w1, PolicyAxis.Suffrage, false).Modern < 0, "旗 1：近代エリートが制限選挙→なしに反対しない");
+        Assert.True(up + down < -1e-6, $"旗 1：上げ {up:R}＋下げ {down:R} が負でない");
+        Assert.Equal(-1.0, PolicyPreferences.Stance(w1, PolicyAxis.Suffrage, false).Modern, 15);   // 1 段下（なし）の近代エリートの上げの好み 1 の反転
         var w0 = Board(0.0);
         double up0 = PolicyPreferences.NetSupport(w0, PolicyAxis.Suffrage, true), down0 = PolicyPreferences.NetSupport(w0, PolicyAxis.Suffrage, false);
         Assert.Equal(0.0, up0 + down0, 12);   // 旗 0＝鏡写し（対照）
-        Near(up0, up, "拡大の純支持は旗に依らない", 1e-12);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(up0), BitConverter.DoubleToInt64Bits(up));
     }
 
     [Fact]
     public void T2_望む段にいる陣営は拡大にも後退にも反対する()
     {
-        Assert.Equal(-2.0, PolicyPreferences.StepGain(2.0, 0.0, 1), 15);
-        Assert.Equal(-2.0, PolicyPreferences.StepGain(2.0, 0.0, -1), 15);
         var w = Board(1.0, 0.4);
-        var e = PolicyPreferences.Build(w);
-        double p = PolicyPreferences.Pref(PolicyAxis.Suffrage, 1, e, w);
-        Near(-1.0 + 0.4 * w.Coef.SuffrageConcession, p, "前提：近代エリートの Pref＝−1＋闘争度×譲歩");
-        double up = PolicyPreferences.Stance(w, PolicyAxis.Suffrage, true).Modern, down = PolicyPreferences.Stance(w, PolicyAxis.Suffrage, false).Modern;
-        Assert.True(up < 0 && down < 0, $"近代エリート：上げ {up:R}・下げ {down:R}");
-        Near(Hand(p, true), up, "上げ"); Near(Hand(p, false), down, "下げ");
+        double t = 0.4 * w.Coef.SuffrageConcession;
+        var s = PolicyPreferences.Stance(w, PolicyAxis.Suffrage, true); var d = PolicyPreferences.Stance(w, PolicyAxis.Suffrage, false);
+        Near(-1.0 + t, s.Modern, "近代エリートの上げ（制限選挙）");
+        Near(-1.0, d.Modern, "近代エリートの下げ（制限選挙→なし）");
+        Assert.True(s.Modern < 0 && d.Modern < 0);
+        Near(-(-1.0 + t), d.Trad, "旧支配層の下げ（段に依らない＝反転）");
+        Near(-1.0, d.Mass, "大衆の下げ");
     }
 
     [Fact]
-    public void T3_可逆の段の法で後退の支持は拡大の符号反転で通らない()
+    public void T3_同じ陣営でも望む段の上では後退を支持し_段に依らない軸は反転のまま()
     {
-        var w = Board(1.0);
-        var e = PolicyPreferences.Build(w);
-        var dn = PolicyPreferences.Stance(w, PolicyAxis.Censorship, false);
-        var upS = PolicyPreferences.Stance(w, PolicyAxis.Censorship, true);
-        double[] gotDn = [dn.Trad, dn.Modern, dn.Mass], gotUp = [upS.Trad, upS.Modern, upS.Mass];
-        int mid = 0;
-        for (int b = 0; b < 3; b++)
-        {
-            double p = PolicyPreferences.Pref(PolicyAxis.Censorship, b, e, w, false);
-            Near(Hand(p, false), gotDn[b], $"陣営 {b} の下げ");
-            if (p > -2 && p < 0) { mid++; Assert.NotEqual(-gotUp[b], gotDn[b]); }
-        }
-        Assert.True(mid >= 1, "前提：−2<Pref<0 の陣営が 1 つ以上");
+        var w = Board(1.0, 0.4);
+        w.Suffrage = Suffrage.AdultMale;
+        double t = 0.4 * w.Coef.SuffrageConcession;
+        Near(1.0 - t, PolicyPreferences.Stance(w, PolicyAxis.Suffrage, false).Modern, "男子普通→制限選挙の近代エリート");
+        Assert.True(PolicyPreferences.Stance(w, PolicyAxis.Suffrage, false).Modern > 0);
+        var up = PolicyPreferences.Stance(w, PolicyAxis.Censorship, true); var dn = PolicyPreferences.Stance(w, PolicyAxis.Censorship, false);
+        Assert.Equal(-up.Trad, dn.Trad); Assert.Equal(-up.Modern, dn.Modern); Assert.Equal(-up.Mass, dn.Mass);
+        Assert.True(up.Trad != 0 && up.Modern != 0, "前提：検閲の好みが 0 でない");
     }
 
     [Fact]
-    public void T4_脅威を上げると望む段が上がる()
+    public void T4_脅威が望む段を押し上げる()
     {
-        double Up(World w) => PolicyPreferences.Stance(w, PolicyAxis.Suffrage, true).Modern;
-        double Dn(World w) => PolicyPreferences.Stance(w, PolicyAxis.Suffrage, false).Modern;
-        static double C(double p) => (1.0 + (p > 0 ? 1 : p < 0 ? -1 : 0) + p) / 2.0;
-        var lo = Board(1.0, 0.2); var hi = Board(1.0, 0.8);
-        double pLo = PolicyPreferences.Pref(PolicyAxis.Suffrage, 1, PolicyPreferences.Build(lo), lo), pHi = PolicyPreferences.Pref(PolicyAxis.Suffrage, 1, PolicyPreferences.Build(hi), hi);
-        Assert.True(pHi > pLo, $"Pref が闘争度で上がらない（{pLo:R}→{pHi:R}）");
-        Assert.True(C(pHi) > C(pLo), "望む段の差が上がらない");
-        Assert.True(Up(hi) > Up(lo), "拡大の好みが上がらない");
-        Assert.True(Dn(lo) <= 0 && Dn(hi) <= 0, $"後退の好みが正（{Dn(lo):R}・{Dn(hi):R}）");
-        Near(Hand(pLo, false), Dn(lo), "低い脅威の下げ"); Near(Hand(pHi, false), Dn(hi), "高い脅威の下げ");
+        var lo = Board(1.0, 0.4); lo.Suffrage = Suffrage.AdultMale;
+        var hi = Board(1.0, 1.2); hi.Suffrage = Suffrage.AdultMale;
+        double c = lo.Coef.SuffrageConcession;
+        Assert.True(1.2 * c > 1.0 && 0.4 * c < 1.0, "前提：譲歩の係数で脅威が 1 をまたぐ");
+        double dLo = PolicyPreferences.Stance(lo, PolicyAxis.Suffrage, false).Modern, dHi = PolicyPreferences.Stance(hi, PolicyAxis.Suffrage, false).Modern;
+        Near(1.0 - 0.4 * c, dLo, "低い脅威"); Near(1.0 - 1.2 * c, dHi, "高い脅威");
+        Assert.True(dLo > 0 && dHi < 0, $"低い脅威で後退を支持・高い脅威で反対（{dLo:R}・{dHi:R}）");
     }
 
     [Fact]
-    public void T5_拡大の向きは旧の規則と同じ値()
+    public void T5_拡大の向きは旧の規則と1ビットも同じ()
     {
         var w1 = Board(1.0); var w0 = Board(0.0);
+        w1.Inheritance = InheritanceLaw.Mid; w0.Inheritance = InheritanceLaw.Mid;
         int n = 0;
         foreach (var a in FactionSnapshot.Axes)
         {
             var s1 = PolicyPreferences.Stance(w1, a, true); var s0 = PolicyPreferences.Stance(w0, a, true);
-            double[] x1 = [s1.Trad, s1.Modern, s1.Mass], x0 = [s0.Trad, s0.Modern, s0.Mass];
-            for (int b = 0; b < 3; b++) { Assert.True(Math.Abs(x1[b] - x0[b]) <= 1e-12 * Math.Abs(x0[b]) + 1e-15, $"{a} 陣営 {b}：旗 1 {x1[b]:R}・旗 0 {x0[b]:R}"); if (x0[b] != 0) n++; }
+            double[] x1 = [s1.Trad, s1.Modern, s1.Mass, s1.Net], x0 = [s0.Trad, s0.Modern, s0.Mass, s0.Net];
+            for (int b = 0; b < 4; b++) { Assert.Equal(BitConverter.DoubleToInt64Bits(x0[b]), BitConverter.DoubleToInt64Bits(x1[b])); if (x0[b] != 0) n++; }
         }
         Assert.True(n >= 30, $"前提：0 でない拡大の好みの数 {n}");
-        Assert.Equal(3.0, PolicyPreferences.Directed(w1, 3.0, 1), 12);
-        Assert.Equal(-3.0, PolicyPreferences.Directed(w1, -3.0, 1), 12);
-        Assert.Equal(3.0, PolicyPreferences.Directed(w1, -3.0, -1), 12);
-        Assert.Equal(-3.0, PolicyPreferences.Directed(w1, 3.0, -1), 12);
-        Assert.Equal(0.0, PolicyPreferences.Directed(w1, 0.0, -1), 15);
+    }
+
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    public void T6_相続の後退は1段下からの率の差で読む(double flag)
+    {
+        var w = Board(flag);
+        w.Inheritance = InheritanceLaw.High;
+        double wm = PolicyPreferences.Build(w).Wealth[2];
+        double step = flag > 0 ? Government.InheritanceRate(InheritanceLaw.High) - Government.InheritanceRate(InheritanceLaw.Mid)
+                               : Government.InheritanceRate(InheritanceLaw.All) - Government.InheritanceRate(InheritanceLaw.High);
+        Near(-(1.0 - 3.0 * step * wm), PolicyPreferences.Stance(w, PolicyAxis.Inheritance, false).Mass, "大衆の下げ");
+        Assert.True(wm > 0, "前提：大衆の富の割合が正");
+    }
+
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    public void T7_本位の後退は1段下の銀を読む(double flag)
+    {
+        var w = Board(flag);
+        w.MonetaryLaw = MonetaryStandardLaw.Gold;
+        w.SilverGoldRatio = 0.7;
+        var c = w.Coef;
+        double W = PolicyPreferences.Build(w).Wealth[0], infl = w.ExpectedInflationPerYear.Value;
+        double drop = flag > 0 ? 0.3 : 0.0;
+        double peer = 0;
+        if (flag > 0 && c.MonetaryPeerPullScale > 0) { peer = c.MonetaryPeerPullScale * 0.3 * w.TradeGoldPull; if (!(peer >= -c.MonetaryPeerPullScale && peer <= c.MonetaryPeerPullScale)) peer = 0; }
+        double pref = c.MonetaryPrefScale * (W * (Math.Max(0, infl) + drop + peer) - (1.0 - W) * (Math.Max(0, -infl) + drop));
+        Near(-pref, PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, false).Trad, "旧支配層の下げ（金→銀）", 1e-9);
+        if (flag > 0) Assert.NotEqual(PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, false).Trad, -PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true).Trad);
     }
 
     [Fact]
-    public void T6_LawGapは現状維持の陣営の不満を減らす()
+    public void T8_LawGapは望む段にいる陣営の隔たりを0にし_報道の番人の性質は残る()
     {
-        var w1 = Board(1.0); var w0 = Board(0.0);
-        var e = PolicyPreferences.Build(w0);
-        int cases = 0;
-        foreach (var a in FactionSnapshot.Axes)
-        {
-            if (a == PolicyAxis.NationalizationAll) continue;
-            for (int b = 0; b < 3; b++)
-            {
-                double p = PolicyPreferences.Pref(a, b, e, w0);
-                if (p > -2 && p < 0 && FactionSnapshot.Headroom(w0, a, false) > 1e-9) cases++;
-            }
-        }
-        Assert.True(cases >= 1, "前提：−2<Pref<0 で可動域(下)>0 の軸×陣営が 1 つ以上");
+        var w1 = Board(1.0, 0.4); var w0 = Board(0.0, 0.4);
         double[] g1 = PolicyPreferences.LawGap(w1), g0 = PolicyPreferences.LawGap(w0);
-        bool strict = false;
-        for (int b = 0; b < 3; b++) { Assert.True(g1[b] <= g0[b] + 1e-12, $"陣営 {b}：旗 1 {g1[b]:R}＞旗 0 {g0[b]:R}"); if (g1[b] < g0[b] - 1e-12) strict = true; }
-        Assert.True(strict, "旗 1 で真に小さい陣営が無い");
-    }
-
-    [Fact]
-    public void T7_後退の反対の力は手書きの区分の式の和()
-    {
-        var w = Board(1.0);
-        var e = PolicyPreferences.Build(w);
-        double want = 0;
-        for (int b = 0; b < 3; b++) { double g = Hand(PolicyPreferences.Pref(PolicyAxis.Suffrage, b, e, w, false), false); if (g < 0) want += e.Power[b] * -g; }
-        if (w.ParliamentEnabled && PolicyPreferences.HasLegislature(w.Polity))
-            for (int party = 0; party < 3; party++) { double g = Hand(PolicyPreferences.Pref(PolicyAxis.Suffrage, party, e, w, false), false); if (g < 0) want += w.Coef.ParliamentLawWeight * w.PartySeats[party] * -g; }
-        Assert.Equal(0.0, PolicyPreferences.ArmyStake(PolicyAxis.Suffrage));
-        Assert.True(want > 0, "前提：後退に反対する陣営がいる");
-        Near(want, PolicyPreferences.OpposingPower(w, PolicyAxis.Suffrage, false, e), "OpposingPower(下げ)");
-    }
-
-    [Fact]
-    public void T8_人数0の陣営は純支持に入らない()
-    {
-        var w = Board(1.0);
-        w.ParliamentEnabled = false;   // 議会の党 0 は旧支配層と同じ Pref の行を読む＝街頭の陣営だけを見る盤面
-        var e = PolicyPreferences.Build(w);
-        PolicyPreferences.Profile With(double power0, double wealth0)
-        {
-            double[] pw = [power0, e.Power[1], e.Power[2]], we = [wealth0, e.Wealth[1], e.Wealth[2]];
-            return new PolicyPreferences.Profile(pw, we, e.Rent, e.Income, e.Poll, e.Old, e.StateRevenue, e.NominalGdp, e.LordRentToIncome, e.LandBase, e.ClergyToIncome0, e.CutRhoToIncome0);
-        }
-        foreach (bool inc in new[] { true, false })
-        {
-            double a = PolicyPreferences.NetSupport(w, PolicyAxis.EducationLaw, inc, With(0, 0.1)), b = PolicyPreferences.NetSupport(w, PolicyAxis.EducationLaw, inc, With(0, 0.9));
-            Assert.Equal(a, b, 15);
-            double c1 = PolicyPreferences.NetSupport(w, PolicyAxis.EducationLaw, inc, With(0.5, 0.1)), c2 = PolicyPreferences.NetSupport(w, PolicyAxis.EducationLaw, inc, With(0.5, 0.9));
-            Assert.NotEqual(c1, c2);   // 対照：人数がいれば旧支配層の Pref が効く
-        }
+        for (int b = 0; b < 3; b++) Assert.True(g1[b] <= g0[b] + 1e-15, $"陣営 {b}：旗 1 {g1[b]:R}＞旗 0 {g0[b]:R}");
+        Assert.True(g1[1] < g0[1] - 1e-12, $"近代エリート（制限選挙が望む段）の隔たりが旗 1 で小さくならない（{g0[1]:R}→{g1[1]:R}）");
+        // 旧の番人（PolicyPoliticsTests の報道）の性質：報道の自由化で旧支配層の隔たりが広がり、大衆の隔たりが縮む（旗 1 でも成り立つ）
+        var f = Board(1.0, 0.4, NationConfig.France());
+        f.Censorship = CensorshipLaw.StatePressOnly; var closed0 = PolicyPreferences.LawGap(f);
+        f.Censorship = CensorshipLaw.FreePress; var free = PolicyPreferences.LawGap(f);
+        Assert.True(free[2] < closed0[2] && free[0] > closed0[0], $"報道：大衆 {closed0[2]:R}→{free[2]:R}・旧支配層 {closed0[0]:R}→{free[0]:R}");
     }
 
     [Theory]
@@ -175,7 +149,7 @@ public class LawPreferenceDirectionTests
         try
         {
             var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: Seed, coef: new Coefficients()) { DiplomacyFrozen = true };
-            foreach (var n in sim.Nations) n.World.Coef.LawPrefSinglePeaked = flag;
+            foreach (var n in sim.Nations) { n.World.Coef.LawPrefSinglePeaked = flag; n.World.Suffrage = Suffrage.Census; }
             Instruments.Quarter(sim, Seed, 2);
             Assert.Empty(Instruments.LawDirPeek(sim));   // 年末でない四半期は書かない
             Instruments.Quarter(sim, Seed, 3);
@@ -190,13 +164,12 @@ public class LawPreferenceDirectionTests
                 Assert.Equal(h.Length, r.Length);
                 Assert.Equal(flag > 0 ? "1" : "0", r[Array.IndexOf(h, "singlePeakedFlag")]);
                 string o = flag > 0 ? "New" : "Old";
-                Near(V(r, "netUp" + o + "Index"), V(r, "netUpUsedIndex"), "netUpUsed", 1e-8);
-                Near(V(r, "netDown" + o + "Index"), V(r, "netDownUsedIndex"), "netDownUsed", 1e-8);
-                Near(-V(r, "netUpOldIndex"), V(r, "netDownOldIndex"), "旧の規則は鏡写し", 1e-8);
-                Near(V(r, "netUpOldIndex"), V(r, "netUpNewIndex"), "拡大は旧新で同じ", 1e-8);
+                Near(V(r, "netUpOldIndex"), V(r, "netUpUsedIndex"), "netUpUsed", 1e-8);
+                Near(V(r, "netUpNewIndex"), V(r, "netUpUsedIndex"), "netUpNew", 1e-8);
+                Near(V(r, "netDown" + o + "Index"), V(r, "netDownUsedIndex"), $"netDownUsed {r[3]}", 1e-8);
                 if (Math.Abs(V(r, "netDownNewIndex") - V(r, "netDownOldIndex")) > 1e-9) differ++;
             }
-            Assert.True(differ >= 1, "新の規則で後退の純支持が変わる行が無い");
+            Assert.True(differ >= 1, "新の規則で後退の純支持が変わる行が無い（制限選挙の参政権の行がある前提）");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

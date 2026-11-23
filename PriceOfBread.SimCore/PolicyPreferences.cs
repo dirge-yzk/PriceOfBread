@@ -177,9 +177,10 @@ public static class PolicyPreferences
 
     private static ReformLevel Step(ReformLevel lv, bool back) => back ? (lv == ReformLevel.None ? ReformLevel.None : lv - 1) : (lv == ReformLevel.Full ? ReformLevel.Full : lv + 1);
 
-    internal static double InheritanceStepSize(World w)
+    /// <summary>相続の段の 1 段上げの率の差。back＝(1323) 後退の向き＝1 段下の段からの 1 段（段 k−1→k の率の差）。</summary>
+    internal static double InheritanceStepSize(World w, bool back = false)
     {
-        int cur = (int)w.Inheritance, top = (int)InheritanceLaw.All;
+        int cur = (int)w.Inheritance - (back && w.Inheritance > InheritanceLaw.None ? 1 : 0), top = (int)InheritanceLaw.All;
         return cur < top ? Government.InheritanceRate((InheritanceLaw)(cur + 1)) - Government.InheritanceRate((InheritanceLaw)cur)
                          : Government.InheritanceRate(InheritanceLaw.All) - Government.InheritanceRate(InheritanceLaw.High);
     }
@@ -190,6 +191,7 @@ public static class PolicyPreferences
     internal static double Pref(PolicyAxis a, int b, in Profile e, World w, bool increasing = true)
     {
         bool trad = b == 0, modern = b == 1, mass = b == 2;
+        bool back = !increasing && w.Coef.LawPrefSinglePeaked > 0;   // (1323) 後退＝1 段下の段からの 1 段上げの好みの反転（段に依る項だけ 1 段下で読む）
         switch (a)
         {
             case PolicyAxis.IncomeTax:
@@ -265,7 +267,7 @@ public static class PolicyPreferences
             case PolicyAxis.MinimumWage:
                 return mass ? 1.0 : modern ? -1.0 : -0.5;
             case PolicyAxis.Inheritance:
-                return (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w) * e.Wealth[b];
+                return (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w, back) * e.Wealth[b];
             case PolicyAxis.WartimeRationing:
                 return trad ? 0.5 : modern ? -0.5 : 0;
             case PolicyAxis.MilitaryExport:
@@ -296,14 +298,15 @@ public static class PolicyPreferences
                 double bloc = capW + proW;
                 return bloc > 1e-9 ? banPressure * (capW - proW) / bloc : 0;
             case PolicyAxis.MonetaryStandard:
+                var monLaw = back && w.MonetaryLaw > MonetaryStandardLaw.Fiat ? w.MonetaryLaw - 1 : w.MonetaryLaw;   // (1323)
                 double silverDrop = 0;
-                if (w.MonetaryLaw == MonetaryStandardLaw.Silver)
+                if (monLaw == MonetaryStandardLaw.Silver)
                 {
                     silverDrop = PoliticalQuantities.Clamp01(1.0 - w.SilverGoldRatio);
                     if (!(silverDrop >= 0 && silverDrop <= 1)) silverDrop = 0;
                 }
                 double peerPull = 0;
-                if (w.Coef.MonetaryPeerPullScale > 0 && w.MonetaryLaw == MonetaryStandardLaw.Silver)
+                if (w.Coef.MonetaryPeerPullScale > 0 && monLaw == MonetaryStandardLaw.Silver)
                 {
                     peerPull = w.Coef.MonetaryPeerPullScale * Math.Abs(1.0 - w.SilverGoldRatio) * w.TradeGoldPull;
                     if (!(peerPull >= -w.Coef.MonetaryPeerPullScale && peerPull <= w.Coef.MonetaryPeerPullScale)) peerPull = 0;
@@ -324,8 +327,9 @@ public static class PolicyPreferences
                 return trad ? -1.0 : modern ? 1.0 : 0;
             case PolicyAxis.Suffrage:
                 double threat = Politics.AvgMassMilitancy(w) * w.Coef.SuffrageConcession;
+                var suf = back && a == PolicyAxis.Suffrage && w.Suffrage > Suffrage.None ? w.Suffrage - 1 : w.Suffrage;   // (1323) ColonialSuffrage は自分の段を読まない
                 return trad ? -1.0 + threat
-                     : modern ? (w.Suffrage < Suffrage.Census ? 1.0 : -1.0 + threat)
+                     : modern ? (suf < Suffrage.Census ? 1.0 : -1.0 + threat)
                      : 1.0;
             default: return 0;
         }
@@ -333,23 +337,11 @@ public static class PolicyPreferences
 
     internal static bool HasLegislature(Polity p) => p is Polity.ConstitutionalMonarchy or Polity.Republic;
 
-    /// <summary>(1323) 段 k→k+d の好み。旗 LawPrefSinglePeaked 0＝pref×sign（後退は拡大の符号の反転）。1＝<see cref="SinglePeaked"/>。純支持の全ての項がこの 1 本を読む。</summary>
-    internal static double Directed(World w, double pref, double sign)
-        => w.Coef.LawPrefSinglePeaked > 0 ? SinglePeaked(pref, sign > 0 ? 1 : -1) : pref * sign;
-
-    /// <summary>(1323) 望む段と今の段の差 k*−k＝(1+sgn(pref)+pref)/2（pref＝1 段上げの損得）。NaN は sgn 0。</summary>
-    internal static double PeakOffset(double pref) => (1.0 + (pref > 0 ? 1.0 : pref < 0 ? -1.0 : 0.0) + pref) / 2.0;
-
-    /// <summary>(1323) 強さ s・望む段の差 c＝k*−k の陣営の段 k→k+d の好み＝s×(|k−k*|−|k+d−k*|)。</summary>
-    internal static double StepGain(double strength, double peakOffset, int d) => strength * (Math.Abs(peakOffset) - Math.Abs(peakOffset - d));
-
-    internal static double SinglePeaked(double pref, int d) => StepGain(Math.Abs(pref), PeakOffset(pref), d);
-
     internal static double ParliamentNet(World w, PolicyAxis a, double sign, in Profile e)
     {
         if (!w.ParliamentEnabled || !HasLegislature(w.Polity)) return 0;
         double sum = 0;
-        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Directed(w, Pref(a, party, e, w, sign > 0), sign);
+        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Pref(a, party, e, w, sign > 0) * sign;
         return w.Coef.ParliamentLawWeight * sum;
     }
 
@@ -359,16 +351,16 @@ public static class PolicyPreferences
         double sum = 0;
         for (int b = 0; b < BlocCount; b++)
         {
-            double pr = Directed(w, Pref(a, b, e, w, increasing), sign);
+            double pr = Pref(a, b, e, w, increasing) * sign;
             if (pr < 0) sum += e.Power[b] * -pr;
         }
         if (w.ParliamentEnabled && HasLegislature(w.Polity))
             for (int party = 0; party < BlocCount; party++)
             {
-                double pr = Directed(w, Pref(a, party, e, w, increasing), sign);
+                double pr = Pref(a, party, e, w, increasing) * sign;
                 if (pr < 0) sum += w.Coef.ParliamentLawWeight * w.PartySeats[party] * -pr;
             }
-        double armyPr = Directed(w, ArmyStake(a), sign);
+        double armyPr = ArmyStake(a) * sign;
         if (armyPr < 0) sum += ArmyPower(w) * -armyPr;
         return sum;
     }
@@ -422,7 +414,7 @@ public static class PolicyPreferences
     {
         var e = Build(w);
         double sign = increasing ? 1 : -1;
-        return (Directed(w, Pref(a, 0, e, w, increasing), sign), Directed(w, Pref(a, 1, e, w, increasing), sign), Directed(w, Pref(a, 2, e, w, increasing), sign), NetSupport(w, a, increasing, e));
+        return (Pref(a, 0, e, w, increasing) * sign, Pref(a, 1, e, w, increasing) * sign, Pref(a, 2, e, w, increasing) * sign, NetSupport(w, a, increasing, e));
     }
 
 
@@ -434,20 +426,20 @@ public static class PolicyPreferences
         var list = new List<(string, double)>(BlocCount + 3);
         double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
-        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Directed(w, Pref(a, b, e, w, increasing), sign)));
+        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w, increasing) * sign));
         if (w.ParliamentEnabled && HasLegislature(w.Polity))
         {
             string[] partyNames = ["議会・保守党", "議会・自由党", "議会・社会党"];
             for (int party = 0; party < BlocCount; party++)
             {
-                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Directed(w, Pref(a, party, e, w, increasing), sign);
+                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Pref(a, party, e, w, increasing) * sign;
                 if (System.Math.Abs(v) > 1e-9) list.Add((partyNames[party], v));
             }
         }
-        double army = ArmyPower(w) * Directed(w, ArmyStake(a), sign);
+        double army = ArmyPower(w) * ArmyStake(a) * sign;
         if (System.Math.Abs(army) > 1e-9) list.Add(("軍", army));
         if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
-            list.Add(("国庫", Directed(w, e.StateRevenue, sign)));
+            list.Add(("国庫", e.StateRevenue * sign));
         list.Sort((x, y) => y.Item2.CompareTo(x.Item2));
         return [.. list];
     }
@@ -460,11 +452,11 @@ public static class PolicyPreferences
         double sum = 0;
         double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
-        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Directed(w, Pref(a, b, e, w, increasing), sign);
+        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w, increasing) * sign;
         sum += ParliamentNet(w, a, sign, e);
         if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
-            sum += Directed(w, e.StateRevenue, sign);
-        sum += ArmyPower(w) * Directed(w, ArmyStake(a), sign);
+            sum += e.StateRevenue * sign;
+        sum += ArmyPower(w) * ArmyStake(a) * sign;
         return sum;
     }
 
@@ -481,9 +473,8 @@ public static class PolicyPreferences
                 double s = System.Math.Abs(pref);
                 if (!(s > 0)) continue;
                 wsum[b] += s;
-                if (w.Coef.LawPrefSinglePeaked > 0)
-                    gap[b] += Math.Max(0, Directed(w, pref, 1)) * FactionSnapshot.Headroom(w, a, true) + Math.Max(0, Directed(w, pref, -1)) * FactionSnapshot.Headroom(w, a, false);
-                else gap[b] += s * FactionSnapshot.Headroom(w, a, pref >= 0);
+                if (pref < 0 && w.Coef.LawPrefSinglePeaked > 0 && !(Pref(a, b, e, w, false) < 0)) continue;   // (1323) 後退も望まない＝望む段にいる＝隔たり 0
+                gap[b] += s * FactionSnapshot.Headroom(w, a, pref >= 0);
             }
         }
         for (int b = 0; b < BlocCount; b++)

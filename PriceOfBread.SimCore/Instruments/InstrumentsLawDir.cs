@@ -1,9 +1,10 @@
 namespace PriceOfBread.SimCore;
 
-// (1323) c138lp 計器 lawdir_s：法の好みの向き（拡大と後退）の純支持を、旧の規則（後退＝拡大の符号の反転）と新の規則（望む段からの単峰の 1 段の損得）で
-// 同じ盤面に並べ、エンジンが実際に使う純支持（公開の NetSupport）と同じ行に書く。計器の国の年末だけ・軸ごとに 1 行。
-// 旧と新の式は事前登録 measurements/m1323_20261123_prereg_lp.txt の文から計器が自分で組む（エンジンの Directed・SinglePeaked を呼ばない）。
-// 力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない（Build は窓の外で呼ぶ＝POP の窓に値を残さない）。
+// (1323) c138lp 計器 lawdir_s：法の好みの向き（拡大と後退）の純支持を、旧の規則（後退＝今の段の 1 段上げの好みの反転）と
+// 新の規則（後退＝1 段下の段からの 1 段上げの好みの反転＝単峰の一貫性）で同じ盤面に並べ、エンジンが実際に使う純支持（公開の NetSupport）と同じ行に書く。
+// 段に依る Pref の項（Suffrage の近代エリート・Inheritance の段の大きさ・MonetaryStandard の銀）は事前登録 measurements/m1323_20261123_prereg_lp.txt の
+// 追記 2 の文から計器が自分で式を写し、段 k と段 k−1 で評価する（エンジンの Pref の back を通さない）。他の軸は Pref(…,向き) を入力として読む。
+// 計器の国の年末だけ・軸ごとに 1 行。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を足さない（Build は窓の外で呼ぶ）。
 public static partial class Instruments
 {
     internal const string LawDirHeaderText = "quarter\tyear\tnation\taxis\tlevelShare\tprefTradIndex\tprefModernIndex\tprefMassIndex"
@@ -15,32 +16,66 @@ public static partial class Instruments
     /// <summary>試験の読み口：直前に書いた年末の行。</summary>
     internal static IReadOnlyList<string> LawDirPeek(MultiNationSim sim) => LdSinks.GetValue(sim, _ => new LdSink()).Peek;
 
-    /// <summary>事前登録の新の規則（計器の写し）：強さ |p|・望む段の差 c＝(1+sgn(p)+p)/2・段 k→k+d の好み＝|p|×(|c|−|c−d|)。</summary>
-    static double LdNew(double p, int d)
+    /// <summary>段に依る 3 軸の 1 段上げの好み（計器の写し）。shift＝1 なら 1 段下の段で読む。他の軸は NaN（呼び手が Pref を読む）。</summary>
+    static double LdLevelPref(World w, PolicyAxis a, int b, in PolicyPreferences.Profile e, int shift)
     {
-        double sg = p > 0 ? 1.0 : p < 0 ? -1.0 : 0.0;
-        double c = (1.0 + sg + p) / 2.0;
-        return System.Math.Abs(p) * (System.Math.Abs(c) - System.Math.Abs(c - d));
+        bool mass = b == 2, modern = b == 1, trad = b == 0;
+        switch (a)
+        {
+            case PolicyAxis.Suffrage:
+            {
+                double mil = 0, size = 0;
+                foreach (var p in w.AllPops()) if (Politics.IsMassPop(p)) { mil += p.Militancy * p.Size; size += p.Size; }
+                double t = (!(size > 1e-9) ? 0 : mil / size) * w.Coef.SuffrageConcession;
+                int lvl = System.Math.Max(0, (int)w.Suffrage - shift);
+                return trad ? -1.0 + t : modern ? (lvl < (int)Suffrage.Census ? 1.0 : -1.0 + t) : 1.0;
+            }
+            case PolicyAxis.Inheritance:
+            {
+                int cur = System.Math.Max(0, (int)w.Inheritance - shift), top = (int)InheritanceLaw.All;
+                double step = cur < top ? Government.InheritanceRate((InheritanceLaw)(cur + 1)) - Government.InheritanceRate((InheritanceLaw)cur)
+                                        : Government.InheritanceRate(InheritanceLaw.All) - Government.InheritanceRate(InheritanceLaw.High);
+                return (mass ? 1.0 : 0.0) - 3.0 * step * e.Wealth[b];
+            }
+            case PolicyAxis.MonetaryStandard:
+            {
+                bool silver = System.Math.Max(0, (int)w.MonetaryLaw - shift) == (int)MonetaryStandardLaw.Silver;
+                var c = w.Coef;
+                double drop = 0, peer = 0;
+                if (silver) { drop = PoliticalQuantities.Clamp01(1.0 - w.SilverGoldRatio); if (!(drop >= 0 && drop <= 1)) drop = 0; }
+                if (c.MonetaryPeerPullScale > 0 && silver)
+                {
+                    peer = c.MonetaryPeerPullScale * System.Math.Abs(1.0 - w.SilverGoldRatio) * w.TradeGoldPull;
+                    if (!(peer >= -c.MonetaryPeerPullScale && peer <= c.MonetaryPeerPullScale)) peer = 0;
+                }
+                double infl = w.ExpectedInflationPerYear.Value;
+                return c.MonetaryPrefScale * (e.Wealth[b] * (System.Math.Max(0, infl) + drop + peer) - (1.0 - e.Wealth[b]) * (System.Math.Max(0, -infl) + drop));
+            }
+            default: return double.NaN;
+        }
     }
 
-    /// <summary>純支持の全ての項（街頭の 3 陣営・議会・国庫・軍）を計器が組む。newRule＝false は p×sign。</summary>
+    /// <summary>純支持の全ての項（街頭の 3 陣営・議会・国庫・軍）を計器が組む。inc＝false の newRule は段に依る軸を 1 段下で読む。</summary>
     static double LdNet(World w, PolicyAxis a, bool inc, in PolicyPreferences.Profile e, bool newRule)
     {
-        int d = inc ? 1 : -1;
-        double F(double p) => newRule ? LdNew(p, d) : p * d;
+        double sign = inc ? 1 : -1;
+        bool levelAxis = a is PolicyAxis.Suffrage or PolicyAxis.Inheritance or PolicyAxis.MonetaryStandard;
+        int shift = !inc && newRule ? 1 : 0;
+        var ee = e;
+        double P(int b) => levelAxis ? LdLevelPref(w, a, b, ee, shift) : PolicyPreferences.Pref(a, b, ee, w, inc);
         var c = w.Coef;
         bool leg = w.ParliamentEnabled && PolicyPreferences.HasLegislature(w.Polity);
         double street = c.ParliamentStreetSupersede > 0 && leg ? 1.0 - PoliticalQuantities.Clamp01(c.ParliamentStreetSupersede) : 1.0;
         double sum = 0;
-        for (int b = 0; b < PolicyPreferences.BlocCount; b++) sum += street * e.Power[b] * F(PolicyPreferences.Pref(a, b, e, w, inc));
+        for (int b = 0; b < PolicyPreferences.BlocCount; b++) sum += street * e.Power[b] * P(b) * sign;
         if (leg)
         {
             double parl = 0;
-            for (int party = 0; party < PolicyPreferences.BlocCount; party++) parl += w.PartySeats[party] * F(PolicyPreferences.Pref(a, party, e, w, inc));
+            for (int party = 0; party < PolicyPreferences.BlocCount; party++) parl += w.PartySeats[party] * P(party) * sign;
             sum += c.ParliamentLawWeight * parl;
         }
-        if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax) sum += F(e.StateRevenue);
-        sum += PolicyPreferences.ArmyPower(w) * F(PolicyPreferences.ArmyStake(a));
+        if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax) sum += e.StateRevenue * sign;
+        sum += PolicyPreferences.ArmyPower(w) * PolicyPreferences.ArmyStake(a) * sign;
         return sum;
     }
 
