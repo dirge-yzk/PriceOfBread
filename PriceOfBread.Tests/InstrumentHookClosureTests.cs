@@ -238,7 +238,7 @@ public class InstrumentHookClosureTests
     }
 
     // 閉じた file の累積の置き場（辞書・ConditionalWeakTable）。nation_s だけを選ぶ走りで空のまま、全表の走りでは溜まる。
-    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags"];
+    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags", "CpIterFlags", "CpStates", "HabitlgAccs", "NgEvs", "PxSinks"];   // (1322) 後ろの 5 つは (1268) で入口を閉じたのに置き場の名簿が無かった物（CpIter・CpMonth・HabitLgStep・NgRegionMoved・PxstepTable の閉じを外すと赤になる）
 
     [Fact]
     public void UnselectedTablesAccumulateNothing()
@@ -250,6 +250,38 @@ public class InstrumentHookClosureTests
         var leaked = ClosedAccs.Where(f => sel.Fields.GetValueOrDefault(f) > 0).ToList();
         Assert.True(leaked.Count == 0, "選ばない表の積算が溜まっている（入口の閉じが効いていない）：" + string.Join(",", leaked));
         try { System.IO.Directory.Delete(sel.Dir, true); } catch { }
+    }
+
+    /// <summary>(1322) 置き場を数える：nation_s だけを選ぶ走りでも溜まる置き場の集合は、名簿（OpenStores＝その表自身の積算など閉じる物がない置き場）と一致する。
+    /// 新しい置き場が閉じられないまま足されたら赤＝閉じる（ClosedAccs へ）か、閉じない理由を書いて名簿へ足す。名簿から外れた置き場（空になった）も赤。</summary>
+    private static readonly string[] OpenStores = [];
+
+    [Fact]
+    public void OpenStoresAreExactlyTheNamedOnes()
+    {
+        var sel = Run("nation_s");
+        var open = sel.Fields.Keys.Where(f => !ClosedAccs.Contains(f)).OrderBy(f => f, StringComparer.Ordinal).ToList();
+        Assert.True(open.SequenceEqual(OpenStores.OrderBy(f => f, StringComparer.Ordinal)), "nation_s だけの走りで溜まる置き場の名簿が合わない：実際＝" + string.Join(",", open) + "／名簿＝" + string.Join(",", OpenStores));
+        try { System.IO.Directory.Delete(sel.Dir, true); } catch { }
+    }
+
+    /// <summary>(1322) Nationgood 群（nationgood_s）は 4 国・種 1789 の走りでは年の間隔（NgEveryYears＝10）のため出力が無い＝NoOutputInThisRun で比べられなかった。間隔を 1 年にして、出力が出る走りで全表の走りと選んだ表のバイトを比べる。</summary>
+    [Fact]
+    public void NationgoodGroupWithOutputIsByteIdenticalToFullRun()
+    {
+        int saved = Instruments.NgEveryYears;
+        Instruments.NgEveryYears = 1;
+        try
+        {
+            var full = Run(null); var sel = Run("nationgood_s");
+            string a = Path(full, "nationgood_s"), b = Path(sel, "nationgood_s");
+            Assert.True(System.IO.File.Exists(a) && System.IO.File.Exists(b), "対照：nationgood_s が出ない走り（間隔を 1 年にしても出力が無い）");
+            Assert.True(new System.IO.FileInfo(a).Length > 200, "対照：nationgood_s が見出しだけ");
+            Assert.True(Bytes(a).AsSpan().SequenceEqual(Bytes(b)), "nationgood_s：選んだ表のバイトが全表の走りと一致しない " + FirstDiff(a, b));
+            Assert.True(sel.State <= full.State, "選ばない表の積算が全表の走りより多い");
+            try { System.IO.Directory.Delete(full.Dir, true); System.IO.Directory.Delete(sel.Dir, true); } catch { }
+        }
+        finally { Instruments.NgEveryYears = saved; }
     }
 
     /// <summary>全ての表を 1 本ずつ単独で選ぶ（環境変数 POB_IH_EXHAUSTIVE=1 のときだけ・約 5 分）。束に入れ損ねた共有する状態をここで拾う。</summary>
