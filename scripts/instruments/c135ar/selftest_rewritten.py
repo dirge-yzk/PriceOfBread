@@ -2,6 +2,7 @@
 #   組 1（規則どおりの違い）→ 台本 0・cmp_ins に不一致なし（宣言なしなら不一致）
 #   組 2（規則の外の 1 行）→ 台本は非 0・cmp_ins は不一致（2a 共通の行の自由でない列・2b 基準だけの行が owes＝0）
 #   組 3（宣言の外の表の 1 バイト）→ arrears_s は通っても cmp_ins は不一致
+#   組 4（(1316)）規則そのものの違反の行（4a＝(f) owes＝0 で arrNewMonth が立つ・4b＝(g) cumNew が減る）→ 台本は非 0・cmp_ins は不一致
 # 使い方：python -I selftest_rewritten.py   → 0＝全て期待どおり・1＝外れ。環境変数 SELFTEST_MUT で突然変異を試す（M1 台本を常に 0・M4 の確かめ）。
 import sys, os, tempfile, importlib.util, subprocess, shutil, io, contextlib
 
@@ -96,10 +97,23 @@ def main():
         rc, o = recheck(bd, ad)
         if rc != 0: bad.append(f'組 3：台本 rc={rc}')
         if cmp(m, bd, ad, rw) == 0: bad.append('組 3：宣言の外の表の違いで不一致にならない')
+        # 組 4a (1316)：共通の行（基準と腕に同じ行）で owes＝0 なのに arrNewMonth が立っている（govDebt＝0 なので (b) は owes＝0 を求める＝(f) だけが拾う）
+        bad4a = row('1', '0.5', '0', '0', '0', '0', '0', '0.2', '0', '0', nat='C', debt='0')
+        bd, ad = case('g4a', B + [bad4a], A + [bad4a])
+        rc, o = recheck(bd, ad)
+        if rc == 0: bad.append('組 4a：(f) の違反の行で台本が 0')
+        if cmp(m, bd, ad, rw) == 0: bad.append('組 4a：cmp_ins が不一致にならない')
+        # 組 4b (1316)：共通の行で国の cumNew が減る（owes・arrNewMonth は規則どおり 0＝(g) だけが拾う）
+        r4b1 = row('1', '0.5', '0', '0', '0', '0', '0', '0', '0', '5', nat='D', debt='0')
+        r4b2 = row('1', '0.6', '0', '0', '0', '0', '0', '0', '0', '3', nat='D', debt='0')
+        bd, ad = case('g4b', B + [r4b1, r4b2], A + [r4b1, r4b2])
+        rc, o = recheck(bd, ad)
+        if rc == 0: bad.append('組 4b：(g) の違反の行で台本が 0')
+        if cmp(m, bd, ad, rw) == 0: bad.append('組 4b：cmp_ins が不一致にならない')
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for b in bad: print('外れ：', b)
-    print('自己試験：' + ('全て期待どおり（組 1・2a・2b・2c・3）' if not bad else f'外れ {len(bad)} 件'))
+    print('自己試験：' + ('全て期待どおり（組 1・2a・2b・2c・3・4a・4b）' if not bad else f'外れ {len(bad)} 件'))
     return 1 if bad else 0
 
 

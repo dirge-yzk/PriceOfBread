@@ -586,7 +586,7 @@ def cmp_ins(new, base, known, removed, added, grown, rows_grown=(), removed_cols
         ok(f'計器の表は恒等（バイト一致 {same}・既知の揺れ {part["known"]}・宣言された増減 {len(missing) - len(bad_missing) + len(only) - len(bad_only) + part["grown"] + part["rows"] + part["cols"]}）' + (f'・検算の台本で通った表 {part["rw"]}' if part['rw'] else ''))
     # (853) 内訳の和＝共通の表の数（表示だけ・合わなければ注意の行を出す）
     tot = same + sum(part.values())
-    say(f'  内訳：共通の表 {len(both)} 本＝バイト一致 {same}＋既知の揺れ {part["known"]}＋列が増えた {part["grown"]}＋行が増えた {part["rows"]}＋列が消えた {part["cols"]}＋宣言の無い違い {part["real"]}＋その他 {part["other"]}（和 {tot}）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ〕の最初の区分にだけ数える'
+    say(f'  内訳：共通の表 {len(both)} 本＝バイト一致 {same}＋既知の揺れ {part["known"]}＋列が増えた {part["grown"]}＋行が増えた {part["rows"]}＋列が消えた {part["cols"]}＋検算の台本で通った表 {part["rw"]}＋宣言の無い違い {part["real"]}＋その他 {part["other"]}（和 {tot}）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ→検算の台本〕の最初の区分にだけ数える'
         + ('' if tot == len(both) else '　※和が合わない'))
 
 
