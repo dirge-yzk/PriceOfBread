@@ -1,0 +1,15 @@
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗が正なら製法と産地と制度と思想の行は技術水準を読まない [15 s]
+  エラー メッセージ:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.合成染料の行は旗0で解禁済み_旗が正で未解禁 [4 s]
+  エラー メッセージ:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.行の技師の量は親の産業の生産者の雇用の和と一致する [7 ms]
+  エラー メッセージ:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [10 ms]
+  エラー メッセージ:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [1 ms]
+  エラー メッセージ:
+   System.NullReferenceException : Object reference not set to an instance of an object.

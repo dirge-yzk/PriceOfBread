@@ -1,0 +1,20 @@
+M0 rc=1 失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.発見の表の灯油の行は石油ケロシンの1本だけ [5 ms]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [3 ms]
+M1 rc=1 失敗!   -失敗:     3、合格:     8、スキップ:     0、合計:    11、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.SecondRecipeContentsTests.石油ケロシンの行は原油と労働と技師を投入にし生産性は1_6かける7 [1 ms]
+    失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.灯油の近代レシピは石油ケロシンの1本だけで原油は0_5 [2 s]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [3 ms]
+M2 rc=1 失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 9 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.発見の表の灯油の行は石油ケロシンの1本だけ [6 ms]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [3 ms]
+M3 rc=1 失敗!   -失敗:     2、合格:     9、スキップ:     0、合計:    11、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.灯油の近代レシピは石油ケロシンの1本だけで原油は0_5 [2 s]
+    失敗 PriceOfBread.Tests.LampOilDuplicateRecipeTests.発見の表の灯油の行は石油ケロシンの1本だけ [46 ms]
+Mv rc=1 失敗!   -失敗:     5、合格:     5、スキップ:     0、合計:    10、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗が正なら製法と産地と制度と思想の行は技術水準を読まない [15 s]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.合成染料の行は旗0で解禁済み_旗が正で未解禁 [4 s]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.行の技師の量は親の産業の生産者の雇用の和と一致する [7 ms]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.旗0は製法の行が技術水準の式のまま_制度と思想の行は技術水準を読まない [10 ms]
+    失敗 PriceOfBread.Tests.DiscoveryEngineerTests.親の産業の定義は_開幕の雇い手が居る行で技師の量が正になる [1 ms]
+MUTDONE 2026-11-23 07:24:36
