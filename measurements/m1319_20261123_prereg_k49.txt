@@ -105,3 +105,10 @@
 - 腕 B：既定 0 の木・`INS=1 bash scripts/instruments/batch.sh run c137k49B 10`（計器つき 10 種・種 1〜10・台本 scripts/instruments/c137k49/armb.sh）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝nation_s・prodcap_s・stock_s・region_s・class_s＋止める線と記録の読み手が開く表（wars_s・casualty_s・migration_s・pxmonth_s・scalars_s・fiscal_s）。POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国。
 - D: は 4〜8GB〈推〉（prodcap_s が 1 種 約 160MB）＝起こす直前に shutil で〈35GB＋8GB〉を測る（計画の時点 114.3GB・この事前登録の時点 100GB）。
 - 読み手：scripts/instruments/c137k49/read_k49.sh。腕 B の生は合流の判断まで消さない（D:/PoB_work/c137k49_work/armB/out_c137k49B_10/ins）。印 D:/PoB_work/c137k49_work/k49.mark。
+
+## 13. 追記 2（腕 B の前・既定 0 の木 85a9d8d4b の試験・2026-11-23）
+- ㉜ の結果（measurements/m1319_20261123/suite_k49/suite.txt）：--list-tests 2900＋232＝3132・FullLength 3（§6 の予言のとおり）。
+- ㊴ 計器の束（Instrument・Famine・Fiscal・Military・Revolt・WriterRatchet）750 本：緑 749・スキップ 1（34 分 32 秒）。
+- Tests（Category!=FullLength）2900：緑 2898・スキップ 2（1 時間 13 分）・Tests.Ui 232 緑・FullLength 3 緑・savetest 乖離 0（状態の違いのある点 3/3・最大相対差 0）・leakhunt 保存則違反なし。
+- C3 の鎖の番人（PolicyPoliticsTests.実税が重い世界ほど生活が苦しく不満度が高い・Theory 2 行）は既定 0 の木で 2 行とも緑（§3-3 の予言どおり）。(1298) の赤は再現しない。
+- 腕 B は D: の空き 78.5GB（〈35GB＋8GB〉以上）を shutil で測ってから起こした（arms.sh free 6）。
