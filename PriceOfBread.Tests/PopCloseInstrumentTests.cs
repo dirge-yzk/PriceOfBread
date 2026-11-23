@@ -145,6 +145,56 @@ public class PopCloseInstrumentTests
         finally { Instruments.RdhOn = rdh0; Instruments.Configure(null, null); Instruments.SelectTables(null); }
     }
 
+    /// <summary>(1316) T7：死の記帳（World.KillPops）の暴力と非暴力の死が popclose_s の killedViolentK・killedOtherK に州ごとに載り、閉じた残差 residualClosedK が 0・列を足す前の残差 residualK は死の分だけ負になる。
+    /// 盤面は試験の中で置く（実の KillPops を 2 回呼ぶ）。期待値は KillPops の戻り値と人口の差から独立に作る。突然変異：KillPops の hook を外す → 閉じた残差が死の分だけ残って赤。</summary>
+    [Fact]
+    public void T7_死の記帳が州の閉じた残差を閉じる()
+    {
+        var sim = Make(); var uk = sim.Nations[0].World;
+        var r = uk.Regions[0];
+        var pops = r.Pops.Where(p => !p.IsSoldier && p.Size > 1).Take(2).ToList();
+        Assert.True(pops.Count == 2, "前提：死なせる POP が 2 つ無い");
+        double before = r.SumPopulation(), dv = 0, dn = 0;
+        var o = Scenario(sim, () => { dv = uk.KillPops([pops[0]], null, 0.5, violent: true); dn = uk.KillPops([pops[1]], null, 0.25, violent: false); });
+        Assert.True(dv > 0.4 && dn > 0.2, $"前提：死なせた量が足りない（{dv}・{dn}）");
+        Assert.Equal(before - dv - dn, r.SumPopulation(), 9);
+        var row = o.Row(r.Name);
+        Assert.Equal(dv, o.Col(row, "killedViolentK"), 9);
+        Assert.Equal(dn, o.Col(row, "killedOtherK"), 9);
+        Assert.Equal(-(dv + dn), o.Col(row, "residualK"), 9);
+        Assert.True(Math.Abs(o.Col(row, "residualClosedK")) < 1e-9, $"閉じた残差 {o.Col(row, "residualClosedK")}");
+    }
+
+    /// <summary>(1316) T8：出生・死亡（DemographicStep）・移民・死の記帳を含めて数四半期を回し、全ての州の閉じた残差が小さい（州ごと）。
+    /// 閉じない州があれば名前と量で赤＝記帳の穴の発見の道具（T5 は出生と死の列が rdh_s と一致するだけ）。</summary>
+    [Fact]
+    public void T8_数四半期を回して州ごとの閉じた残差が0()
+    {
+        var sim = Make(); var uk = sim.Nations[0].World;
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_pc_" + Guid.NewGuid().ToString("N"));
+        Instruments.SelectTables("popclose_s");
+        Instruments.Configure(dir, "*");
+        try
+        {
+            sim.StartWarmup();
+            Instruments.Phase(sim, Seed, "warm");
+            for (int q = 0; q < 3; q++) { sim.StepQuarter(); Instruments.Quarter(sim, Seed, q); }
+            Instruments.Close(sim);
+            var pc = Read(dir);
+            int cmp = 0; var bad = new List<string>();
+            foreach (var row in pc.Rows)
+            {
+                if (row[Array.IndexOf(pc.Header, "fresh")] == "1") continue;
+                cmp++;
+                double rc = pc.Col(row, "residualClosedK");
+                if (!(Math.Abs(rc) < 1e-6)) bad.Add($"{row[0]}|{row[Array.IndexOf(pc.Header, "region")]}={rc:G6}");
+            }
+            Assert.True(cmp >= 3 * uk.Regions.Count, $"対照：比べた行が少ない（{cmp}）");
+            Assert.True(bad.Count == 0, $"閉じない州 {bad.Count} 件：{string.Join("、", bad.Take(6))}");
+        }
+        finally { Instruments.Configure(null, null); Instruments.SelectTables(null); }
+    }
+
     [Fact]
     public void T6_州の間の移民と越境の移民が州の残差を閉じる()
     {

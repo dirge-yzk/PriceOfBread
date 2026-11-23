@@ -12,7 +12,8 @@ public static partial class Instruments
 
     internal const string PopCloseHeaderText = "quarter\tyear\tnation\tregion\ttier\tfresh\tprevPopulationK\tpopulationK\tdeltaPopulationK"
         + "\tmigrationInK\tmigrationOutK\tcrossBorderInK\tcrossBorderOutK\tspecialistInK\tspecialistOutK\tgarrisonInK\tgarrisonOutK\tcolonyMergeInK"
-        + "\tbirthsK\tdeathsNormalK\tdeathsFamineK\tresidualK\tresidualPerPrev";
+        + "\tbirthsK\tdeathsNormalK\tdeathsFamineK\tresidualK\tresidualPerPrev"
+        + "\tkilledViolentK\tkilledOtherK\tresidualClosedK";   // (1316) 末尾の 3 列：死の記帳 KillPops（戦死・粛清＝暴力／疫病ほか）の量と、それも引いた残差
 
     internal sealed class PopCloseAcc
     {
@@ -40,6 +41,15 @@ public static partial class Instruments
         var a = PopCloseOf(r); a.Births += births; a.DeathsNormal += deathsNormal; a.DeathsFamine += deathsFamine;
     }
 
+    /// <summary>(1316) 死の記帳 <see cref="World.KillPops"/> の 1 件（読むだけ）：POP ごとに積む（州は四半期の末に州の POP の和で読む）。[0]＝暴力（戦死・粛清）・[1]＝それ以外（疫病ほか）。</summary>
+    static readonly ConditionalWeakTable<Pop, double[]> PopKills = new();
+    internal static void PopKilled(Pop p, double d, bool violent)
+    {
+        if (!Tg.PopClose) return;
+        if (!(d > 0)) return;   // 否定形＝NaN も弾く
+        PopKills.GetValue(p, _ => new double[2])[violent ? 0 : 1] += d;
+    }
+
     static double PopCloseSize(Region r) { double s = 0; foreach (var p in r.Pops) s += p.Size; return s; }
 
     sealed class PopCloseSink { public System.IO.StreamWriter? W; public bool Header; }
@@ -49,7 +59,7 @@ public static partial class Instruments
     static void PopClosePhase(MultiNationSim sim, string time)
     {
         if (!Tg.PopClose || time != "warm") return;
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { var a = PopCloseOf(r); a.Prev = PopCloseSize(r); a.Clear(); }
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { var a = PopCloseOf(r); a.Prev = PopCloseSize(r); a.Clear(); foreach (var p in r.Pops) if (PopKills.TryGetValue(p, out var kk)) { kk[0] = 0; kk[1] = 0; } }
     }
 
     /// <summary>四半期の末：州ごとの行（前の四半期の末が無い州＝fresh は ΔP と残差が nan）。</summary>
@@ -73,10 +83,12 @@ public static partial class Instruments
                 for (int k = 0; k < a.In.Length; k++) { inSum += a.In[k]; outSum += a.Out[k]; }
                 double delta = fresh ? double.NaN : pop - a.Prev;
                 double resid = fresh ? double.NaN : delta - (inSum - outSum + a.Births - a.DeathsNormal - a.DeathsFamine);
+                double killV = 0, killO = 0;
+                foreach (var p in r.Pops) if (PopKills.TryGetValue(p, out var kk)) { killV += kk[0]; killO += kk[1]; kk[0] = 0; kk[1] = 0; }
                 double rate = fresh || !(a.Prev > 1e-9) ? double.NaN : Math.Abs(resid) / a.Prev;
                 sk.W.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), fresh ? "1" : "0", F(a.Prev), F(pop), F(delta),
                     F(a.In[0]), F(a.Out[0]), F(a.In[1]), F(a.Out[1]), F(a.In[2]), F(a.Out[2]), F(a.In[3]), F(a.Out[3]), F(a.In[4]),
-                    F(a.Births), F(a.DeathsNormal), F(a.DeathsFamine), F(resid), F(rate)));
+                    F(a.Births), F(a.DeathsNormal), F(a.DeathsFamine), F(resid), F(rate), F(killV), F(killO), F(fresh ? double.NaN : resid + killV + killO)));
                 a.Prev = pop; a.Clear();
             }
         }

@@ -978,6 +978,7 @@ public sealed class World
             if (d > p.Size) d = p.Size;   // 非負の保護（規模を超えては殺さない）
             if (ageWeights is not null) p.KillAges(p.Size, d, ageWeights);
             p.Size -= d; dead += d;
+            if (Instruments.On) Instruments.PopKilled(p, d, violent);   // (1316) popclose_s の死の列（読むだけ）
         }
         PopulationDelta -= dead;
         if (violent) WarDeadCumulative += dead; else DiagDeaths += dead;
