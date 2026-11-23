@@ -122,6 +122,7 @@ public static class FactionSnapshot
         increase = prefInc >= 0;
         double strength = System.Math.Abs(prefInc);
         if (!increase && PolicyPreferences.DirectionAware(w, axis, bloc)) strength = System.Math.Abs(PolicyPreferences.Pref(axis, bloc, e, w, false));
+        else if (!increase && w.Coef.LawPrefSinglePeaked > 0) strength = System.Math.Max(0, -PolicyPreferences.Pref(axis, bloc, e, w, false));   // (1323) 減らす向きの強さ＝1 段下からの上げの好みの反転・望む段にいれば 0
         double score = strength * Headroom(w, axis, increase);
         score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, e);
         return score;

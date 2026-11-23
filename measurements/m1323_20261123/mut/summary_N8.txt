@@ -1,0 +1,5 @@
+# (1323) 突然変異 基=9c633d315 2026-11-23 20:11:28
+mutated N8
+N8 rc=1 失敗! -失敗: 1、合格: 13、スキップ: 0、合計: 14、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+  N8 赤: LawPreferenceDirectionTests.T10_陣営の要求も同じ規則で望む段にいれば後退を求めない(flag: 1)
+MUTDONE 2026-11-23 20:14:32

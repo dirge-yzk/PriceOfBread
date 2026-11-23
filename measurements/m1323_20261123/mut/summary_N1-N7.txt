@@ -1,0 +1,36 @@
+# (1323) 突然変異 基=513fdc386 2026-11-23 19:48:54
+mutated N1
+N1 rc=1 失敗! -失敗: 6、合格: 6、スキップ: 0、合計: 12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  N1 赤: LawPreferenceDirectionTests.T1_英1800型で後退の純支持は拡大の純支持の符号反転でない
+  N1 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  N1 赤: LawPreferenceDirectionTests.T6_相続の後退は1段下からの率の差で読む(flag: 1)
+  N1 赤: LawPreferenceDirectionTests.T7_本位の後退は1段下の銀を読む(flag: 1)
+  N1 赤: LawPreferenceDirectionTests.T8_LawGapは望む段にいる陣営の隔たりを0にし_報道の番人の性質は残る
+  N1 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(flag: 1)
+mutated N2
+N2 rc=1 失敗! -失敗: 4、合格: 8、スキップ: 0、合計: 12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  N2 赤: LawPreferenceDirectionTests.T1_英1800型で後退の純支持は拡大の純支持の符号反転でない
+  N2 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  N2 赤: LawPreferenceDirectionTests.T8_LawGapは望む段にいる陣営の隔たりを0にし_報道の番人の性質は残る
+  N2 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(flag: 1)
+mutated N3
+N3 rc=1 失敗! -失敗: 1、合格: 11、スキップ: 0、合計: 12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  N3 赤: LawPreferenceDirectionTests.T6_相続の後退は1段下からの率の差で読む(flag: 1)
+mutated N4
+N4 rc=1 失敗! -失敗: 1、合格: 11、スキップ: 0、合計: 12、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+  N4 赤: LawPreferenceDirectionTests.T7_本位の後退は1段下の銀を読む(flag: 1)
+mutated N5
+N5 rc=1 失敗! -失敗: 4、合格: 8、スキップ: 0、合計: 12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  N5 赤: LawPreferenceDirectionTests.T1_英1800型で後退の純支持は拡大の純支持の符号反転でない
+  N5 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  N5 赤: LawPreferenceDirectionTests.T8_LawGapは望む段にいる陣営の隔たりを0にし_報道の番人の性質は残る
+  N5 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(flag: 1)
+mutated N6
+N6 rc=1 失敗! -失敗: 3、合格: 9、スキップ: 0、合計: 12、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  N6 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  N6 赤: LawPreferenceDirectionTests.T3_同じ陣営でも望む段の上では後退を支持し_段に依らない軸は反転のまま
+  N6 赤: LawPreferenceDirectionTests.T4_脅威が望む段を押し上げる
+mutated N7
+N7 rc=1 失敗! -失敗: 1、合格: 11、スキップ: 0、合計: 12、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+  N7 赤: LawPreferenceDirectionTests.T8_LawGapは望む段にいる陣営の隔たりを0にし_報道の番人の性質は残る
+MUTDONE 2026-11-23 20:04:37

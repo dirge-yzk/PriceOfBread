@@ -177,9 +177,10 @@ public static class PolicyPreferences
 
     private static ReformLevel Step(ReformLevel lv, bool back) => back ? (lv == ReformLevel.None ? ReformLevel.None : lv - 1) : (lv == ReformLevel.Full ? ReformLevel.Full : lv + 1);
 
-    internal static double InheritanceStepSize(World w)
+    /// <summary>相続の段の 1 段上げの率の差。back＝(1323) 後退の向き＝1 段下の段からの 1 段（段 k−1→k の率の差）。</summary>
+    internal static double InheritanceStepSize(World w, bool back = false)
     {
-        int cur = (int)w.Inheritance, top = (int)InheritanceLaw.All;
+        int cur = (int)w.Inheritance - (back && w.Inheritance > InheritanceLaw.None ? 1 : 0), top = (int)InheritanceLaw.All;
         return cur < top ? Government.InheritanceRate((InheritanceLaw)(cur + 1)) - Government.InheritanceRate((InheritanceLaw)cur)
                          : Government.InheritanceRate(InheritanceLaw.All) - Government.InheritanceRate(InheritanceLaw.High);
     }
@@ -190,6 +191,7 @@ public static class PolicyPreferences
     internal static double Pref(PolicyAxis a, int b, in Profile e, World w, bool increasing = true)
     {
         bool trad = b == 0, modern = b == 1, mass = b == 2;
+        bool back = !increasing && w.Coef.LawPrefSinglePeaked > 0;   // (1323) 後退＝1 段下の段からの 1 段上げの好みの反転（段に依る項だけ 1 段下で読む）
         switch (a)
         {
             case PolicyAxis.IncomeTax:
@@ -265,7 +267,7 @@ public static class PolicyPreferences
             case PolicyAxis.MinimumWage:
                 return mass ? 1.0 : modern ? -1.0 : -0.5;
             case PolicyAxis.Inheritance:
-                return (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w) * e.Wealth[b];
+                return (mass ? 1.0 : 0.0) - BurdenScale * InheritanceStepSize(w, back) * e.Wealth[b];
             case PolicyAxis.WartimeRationing:
                 return trad ? 0.5 : modern ? -0.5 : 0;
             case PolicyAxis.MilitaryExport:
@@ -296,14 +298,15 @@ public static class PolicyPreferences
                 double bloc = capW + proW;
                 return bloc > 1e-9 ? banPressure * (capW - proW) / bloc : 0;
             case PolicyAxis.MonetaryStandard:
+                var monLaw = back && w.MonetaryLaw > MonetaryStandardLaw.Fiat ? w.MonetaryLaw - 1 : w.MonetaryLaw;   // (1323)
                 double silverDrop = 0;
-                if (w.MonetaryLaw == MonetaryStandardLaw.Silver)
+                if (monLaw == MonetaryStandardLaw.Silver)
                 {
                     silverDrop = PoliticalQuantities.Clamp01(1.0 - w.SilverGoldRatio);
                     if (!(silverDrop >= 0 && silverDrop <= 1)) silverDrop = 0;
                 }
                 double peerPull = 0;
-                if (w.Coef.MonetaryPeerPullScale > 0 && w.MonetaryLaw == MonetaryStandardLaw.Silver)
+                if (w.Coef.MonetaryPeerPullScale > 0 && monLaw == MonetaryStandardLaw.Silver)
                 {
                     peerPull = w.Coef.MonetaryPeerPullScale * Math.Abs(1.0 - w.SilverGoldRatio) * w.TradeGoldPull;
                     if (!(peerPull >= -w.Coef.MonetaryPeerPullScale && peerPull <= w.Coef.MonetaryPeerPullScale)) peerPull = 0;
@@ -324,8 +327,9 @@ public static class PolicyPreferences
                 return trad ? -1.0 : modern ? 1.0 : 0;
             case PolicyAxis.Suffrage:
                 double threat = Politics.AvgMassMilitancy(w) * w.Coef.SuffrageConcession;
+                var suf = back && a == PolicyAxis.Suffrage && w.Suffrage > Suffrage.None ? w.Suffrage - 1 : w.Suffrage;   // (1323) ColonialSuffrage は自分の段を読まない
                 return trad ? -1.0 + threat
-                     : modern ? (w.Suffrage < Suffrage.Census ? 1.0 : -1.0 + threat)
+                     : modern ? (suf < Suffrage.Census ? 1.0 : -1.0 + threat)
                      : 1.0;
             default: return 0;
         }
@@ -469,6 +473,7 @@ public static class PolicyPreferences
                 double s = System.Math.Abs(pref);
                 if (!(s > 0)) continue;
                 wsum[b] += s;
+                if (pref < 0 && w.Coef.LawPrefSinglePeaked > 0 && !(Pref(a, b, e, w, false) < 0)) continue;   // (1323) 後退も望まない＝望む段にいる＝隔たり 0
                 gap[b] += s * FactionSnapshot.Headroom(w, a, pref >= 0);
             }
         }

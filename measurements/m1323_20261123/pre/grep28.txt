@@ -1,0 +1,7 @@
+# (1323) ㉘ 事前登録の点検の grep（e165b8887）
+new MoneyStock( の件数: 64
+route_anchors.tsv の PolicyPreferences の行: 0 
+scripts/instruments/flow262/route_anchors.tsv
+IndustrializationReaderTests の許可表の PolicyPreferences の行: 0
+WriterRatchetTests の PolicyPreferences の行: 0
+TechLevelRemovalTests の走査の語（Tech）: lawdir_s の列名に Tech を使わない

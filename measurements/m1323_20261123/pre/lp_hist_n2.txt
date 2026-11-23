@@ -1,0 +1,32 @@
+# lp_hist n2 種 1..10 欠け 0
+L1 英の男子普通以上の最初の年（種ごと）: none none none none none none none none none none
+L2 参政権が下がった国×年（種ごと）: 168 135 187 147 136 140 149 177 140 129  和 1508
+R1 軸	上げ	下げ
+MilitaryExport	4115	3883
+Censorship	4215	3657
+WartimeRationing	3125	3013
+LaborUnion	2870	2531
+Suffrage	1980	1510
+ConscriptionLaw	1797	956
+ShorterHours	218	1299
+CornLaws	83	1173
+OpiumExport	531	512
+OpiumPossession	490	437
+SocialSecurity	716	0
+Bureaucracy	533	0
+LandReform	530	0
+MonetaryStandard	313	91
+MinimumWage	270	117
+Antitrust	280	0
+SerfEmancipation	251	0
+Inheritance	232	0
+CapitalMobility	95	90
+SecretBallot	82	0
+ChildLabor	0	69
+Nationalization	50	0
+WomenRights	48	0
+Nationalization#5	44	0
+StateReligion	32	0
+ImmigrationRestriction	0	26
+ColonialSuffrage	5	0
+Nationalization#2	1	0

@@ -100,6 +100,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double DiscontentLawGap = 0.0;   // 読み手は Politics.Discontent 1箇所
     public double FiscalStressBufferMonths = 5.0;     // 国庫がこれを下回るほど逼迫度→1（旧＝絶対額50,000固定を53カ国へ一律適用＝小国が恒久破産モード・大国は無風の規模非中立）
     public double SuffrageConcession = 1.0;           // 革命脅威下でエリートが参政権拡大に譲歩する強さ（trad/modern の反対 −1 に threat×これを加算）
+    public double LawPrefSinglePeaked = 1;            // (1323) c138lp 旗（2026-11-23 腕 B の木で 1）：法の好みの向き。0＝後退の好み＝拡大の好みの符号の反転。1＝単峰の一貫性＝段 k→k−1 の好み＝−（段 k−1→k の好み）＝Pref の段に依る項（Suffrage の近代エリート・Inheritance の段の大きさ・MonetaryStandard の銀）を後退の向きでは 1 段下で読む（PolicyPreferences.Pref の back）
     public double ModernEliteSubCensusVoice = 0.3;    // 倍率排除②：制限選挙(Census)未満での近代エリート（ブルジョワ）の実効発言権
     public double IdeologyVoiceFloor = 0.7;           // 倍率排除②：国民イデオロギー集計で参政権ゲート外の層が持つ最低寄与（公共圏の機運）
     public double ReactionFromLoss = 0;   // （日本固有ではなく全世界＝識字を読む全ての量に効く）

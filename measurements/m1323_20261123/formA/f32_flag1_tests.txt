@@ -1,0 +1,5 @@
+rc=1 失敗!   -失敗:     4、合格:   345、スキップ:     0、合計:   349、期間: 4 m 38 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.Rs3LordReverseGainTests.減らす向きで内訳の合計は純支持と一致し議会の保守党の項が得に替わる [1 s]
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.純支持がNaNの一歩は施行でも否決され無償で素通りしない [112 ms]
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.法の隔たりは望む向きの余地が消えれば縮み反対側では広がる [105 ms]
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.立場の土台を分け合う読み口は旧の読み口と同じ値を返す [401 ms]
