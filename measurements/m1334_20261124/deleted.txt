@@ -2,3 +2,4 @@
 - D:/PoB_work/ident_c139sm（線 c139sm の ident 段 2 の生・刈った後の 110 本・keepsum measurements/m1334_20261124/keepsum_ident_c139sm_left.tsv）2026-11-24 07:12
 - D:/PoB_work/ident_c139sl（線 c139sl の ident 段 2 の生・刈った後の 110 本・keepsum measurements/m1334_20261124/keepsum_ident_c139sl_left.tsv）2026-11-24 07:12
 - 移した：D:/PoB_work/c139k49_work/armB → D:/PoB_work/keep_1334_rej/k49B（採らなかった線の腕 B の生 3.2GB）
+- D:/PoB_work/ident_m1334z（合流の腕 Z の ident 段 2 の生・刈った後の 120 本・keepsum measurements/m1334_20261124/keepsum_ident_m1334z_left.tsv）2026-11-24 07:56:57
