@@ -254,14 +254,20 @@ public static class Territory
     internal static Region? NextCapital(World from, IReadOnlyList<Region>? leaving = null)
     {
         // (1304) c135nc 旗 NextCapitalHomeFirst 1：leaving の外に本国格（Core・Integrated）の州が 1 つでもあれば、その中から選ぶ（無ければ今と同じ全ての州）
-        bool homeOnly = false;
-        if (from.Coef.NextCapitalHomeFirst > 0)
+        // (1332) c139nc 旗 NextCapitalCoreFirst 1：leaving の外で最も高い格（Core＞Integrated＞Colonial＝Model.cs の RegionTier の並び）の州だけから選ぶ＝homeOnly の分岐を置き換える（0＝上の形のまま）
+        bool coreFirst = from.Coef.NextCapitalCoreFirst > 0;
+        bool homeOnly = false; RegionTier top = RegionTier.Colonial;
+        if (coreFirst)
+        {
+            foreach (var q in from.Regions) if (!(leaving is not null && leaving.Contains(q)) && q.Tier < top) top = q.Tier;
+        }
+        else if (from.Coef.NextCapitalHomeFirst > 0)
             foreach (var q in from.Regions) if (q.Tier != RegionTier.Colonial && !(leaving is not null && leaving.Contains(q))) { homeOnly = true; break; }
         Region? cap = null; double capBest = double.MinValue;
         foreach (var q in from.Regions)
         {
             if ((leaving is not null && leaving.Contains(q))) continue;
-            if (homeOnly && q.Tier == RegionTier.Colonial) continue;
+            if (coreFirst ? q.Tier != top : (homeOnly && q.Tier == RegionTier.Colonial)) continue;
             double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
             if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
         }

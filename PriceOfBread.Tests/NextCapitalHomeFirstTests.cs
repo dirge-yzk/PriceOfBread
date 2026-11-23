@@ -19,6 +19,7 @@ public class NextCapitalHomeFirstTests
         var sim = new MultiNationSim([WorldData.ByName("フランス"), WorldData.ByName("イギリス")], seed: Seed, coef: new Coefficients()) { DiplomacyFrozen = true };
         var fr = sim.Nations[0].World; var br = sim.Nations[1].World;
         fr.Coef.NextCapitalHomeFirst = flag;
+        if (flag == 0) fr.Coef.NextCapitalCoreFirst = 0;   // (1332) 旗 0＝格を見ない旧の規則（NextCapitalCoreFirst 1 は NextCapitalHomeFirst の分岐を置き換えるので両方 0）
         Assert.True(fr.Regions.Count >= 6, $"前提：フランスの州が 6 つ以上（{fr.Regions.Count}）");
         foreach (var r in fr.Regions) { foreach (var s in r.Producers) s.Output = 0; r.Tier = RegionTier.Colonial; }
         fr.Regions[0].Tier = RegionTier.Core;
@@ -176,6 +177,118 @@ public class NextCapitalHomeFirstTests
             Assert.Equal("0", r1["diffOldCount"]); Assert.Equal("1", r1["diffNewCount"]);
             Assert.Equal("1", r1["homeRegions"]); Assert.Equal("Colonial", r1["capitalTier"]); Assert.Equal("0", r1["civilWarFlag"]); Assert.Equal("1", r1["g1Flag"]);
             Assert.Equal("0", r1["homeFirstFlag"]);
+        });
+    }
+
+    // ===== (1332) c139nc 旗 NextCapitalCoreFirst：leaving の外で最も高い格（Core＞Integrated＞Colonial）の州だけから選ぶ（事前登録 measurements/m1332_20261124_prereg_nc.txt）=====
+    // 盤面：Board(1.0)（NextCapitalHomeFirst 1・全て植民地格 0・A＝Regions[0] だけ Core）に、試験が格と値を置く。期待の州は置いた格と値から字で決める。
+
+    private static (MultiNationSim Sim, World Fr, World Br) CoreBoard(double coreFirst)
+    {
+        var (sim, fr, br) = Board(1.0);
+        fr.Coef.NextCapitalCoreFirst = coreFirst;
+        return (sim, fr, br);
+    }
+
+    // T8 盤面：A 首都 Core 1・D Core（貧しい）1・C Integrated 1e6・B 植民地格 1e9
+    private static (Region A, Region B, Region C, Region D) T8Board(World fr)
+    {
+        Region a = fr.Regions[0], b = fr.Regions[1], c = fr.Regions[2], d = fr.Regions[3];
+        Val(a, 1); Val(b, 1e9); Val(c, 1e6); Val(d, 1);
+        c.Tier = RegionTier.Integrated; d.Tier = RegionTier.Core;
+        return (a, b, c, d);
+    }
+
+    [Fact]
+    public void T8_割譲の後の首都は貧しいCoreのD_旗0では豊かなIntegratedのC()
+    {
+        var (_, fr, br) = CoreBoard(1.0);
+        var (a, _, _, d) = T8Board(fr);
+        Territory.TransferRegion(fr, br, a, Territory.Rehoming.Ceded);
+        Assert.Same(d, fr.Regions[0]); Assert.Equal(0, d.Id); Assert.Single(fr.Regions, r => r.Id == 0);
+
+        var (_, fr0, br0) = CoreBoard(0.0);
+        var (a0, _, c0, _) = T8Board(fr0);
+        Territory.TransferRegion(fr0, br0, a0, Territory.Rehoming.Ceded);
+        Assert.Same(c0, fr0.Regions[0]);   // 旗 0＝NextCapitalHomeFirst の形（本国格を区別しない）
+    }
+
+    [Fact]
+    public void T9_Coreが無ければIntegratedの中から選ぶ()
+    {
+        var (_, fr, br) = CoreBoard(1.0);
+        Region a = fr.Regions[0], b = fr.Regions[1], c = fr.Regions[2], e = fr.Regions[4];
+        Val(a, 1); Val(b, 1e9); Val(c, 1e3); Val(e, 1e6);
+        c.Tier = RegionTier.Integrated; e.Tier = RegionTier.Integrated;
+        Territory.TransferRegion(fr, br, a, Territory.Rehoming.Ceded);
+        Assert.Same(e, fr.Regions[0]);   // Integrated の中で最大＝E（植民地格の B は選ばない）
+        Assert.Equal(RegionTier.Integrated, fr.Regions[0].Tier);
+    }
+
+    [Fact]
+    public void T10_leavingのCoreを選ばない()
+    {
+        var (_, fr, _) = CoreBoard(1.0);
+        Region a = fr.Regions[0], b = fr.Regions[1], c = fr.Regions[2], d = fr.Regions[3], e = fr.Regions[4];
+        Val(a, 1); Val(b, 1e9); Val(c, 1e6); Val(d, 1); Val(e, 1e8);
+        c.Tier = RegionTier.Integrated; d.Tier = RegionTier.Core; e.Tier = RegionTier.Core;
+        Assert.Same(d, Territory.NextCapital(fr, [a, e]));   // E（Core・1e8）は leaving＝leaving の外の Core は D だけ
+        Assert.Same(c, Territory.NextCapital(fr, [a, d, e]));   // leaving の外に Core が無い＝Integrated の C（null でない）
+        Assert.Same(b, Territory.NextCapital(fr, [a, c, d, e]));   // 本国格が無い＝全ての州（leaving を除く）
+    }
+
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    public void T11_計器capcol_sの格の順の列(double coreFirst)
+    {
+        WithInstruments(() =>
+        {
+            var (sim, fr, br) = CoreBoard(coreFirst);
+            var (a, _, c, d) = T8Board(fr);
+            c.OriginPowerId = br.SelfPower!.Id;   // C は割譲で得た州の型（持ち主の国の Id と違う）
+            Instruments.Quarter(sim, Seed, 0);
+            Territory.TransferRegion(fr, br, a, Territory.Rehoming.Ceded);
+            Instruments.Quarter(sim, Seed, 1);
+            var r1 = RowOf(sim, 1, 0);
+            Assert.Equal("1", r1["picksCount"]);
+            Assert.Equal(d.Name, r1["lastTierRulePick"]);
+            Assert.Equal(coreFirst > 0 ? "1" : "0", r1["coreFirstFlag"]);
+            if (coreFirst > 0)
+            {
+                Assert.Equal(d.Name, r1["lastActual"]);
+                Assert.Equal("0", r1["diffTierCount"]); Assert.Equal("0", r1["pickTierGapCount"]);
+                Assert.Equal("1", r1["picksCoreCount"]); Assert.Equal("0", r1["picksIntCededCount"]);
+            }
+            else
+            {
+                Assert.Equal(c.Name, r1["lastActual"]);
+                Assert.Equal("1", r1["diffTierCount"]); Assert.Equal("1", r1["pickTierGapCount"]);
+                Assert.Equal("0", r1["picksCoreCount"]); Assert.Equal("1", r1["picksIntCededCount"]); Assert.Equal("0", r1["picksIntOwnCount"]);
+            }
+            Assert.Equal("0", r1["picksColonialCount"]);
+
+            Instruments.Quarter(sim, Seed, 2);
+            var r2 = RowOf(sim, 2, 0);
+            Assert.Equal("0", r2["diffTierCount"]); Assert.Equal("0", r2["pickTierGapCount"]); Assert.Equal("-", r2["lastTierRulePick"]);
+        });
+    }
+
+    [Fact]
+    public void T12_計器は故地のIntegratedをOwnに数える()
+    {
+        WithInstruments(() =>
+        {
+            var (sim, fr, br) = CoreBoard(1.0);
+            Region a = fr.Regions[0], c = fr.Regions[2];
+            Val(a, 1); Val(c, 1e6); c.Tier = RegionTier.Integrated;
+            c.OriginPowerId = fr.SelfPower!.Id;   // 持ち主の国の Id＝故地か昇格の型
+            Instruments.Quarter(sim, Seed, 0);
+            Territory.TransferRegion(fr, br, a, Territory.Rehoming.Ceded);
+            Instruments.Quarter(sim, Seed, 1);
+            var r1 = RowOf(sim, 1, 0);
+            Assert.Equal(c.Name, r1["lastActual"]);
+            Assert.Equal("1", r1["picksIntOwnCount"]); Assert.Equal("0", r1["picksIntCededCount"]); Assert.Equal("0", r1["pickTierGapCount"]);
         });
     }
 }
