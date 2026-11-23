@@ -1,0 +1,15 @@
+seed	rows	mismatch	shareOverOne	negSavingsRows	privOverT_lt0.1
+1	15	0	0	0	0
+2	14	0	0	0	0
+3	15	0	0	0	0
+4	8	0	0	0	0
+5	24	0	0	1	0
+6	11	0	0	0	0
+7	14	0	0	0	0
+8	12	0	0	0	0
+9	14	0	0	0	0
+10	5	0	0	0	0
+# 合計 rows=132 mismatch=0 shareOverOne=0 negSavingsRows=1 privOverT_lt0.1=0 missing=0 byMoneyFlag=['1']
+# 新÷旧（oldRuleT>0・131 行） p10=0.939 中央=1.119 p90=2.167 最小=0.01685 最大=4.359
+# 史実の桁の量＝生まれの国庫÷移る州の民間の貨幣（131 行） p10=0.005446 中央=0.02876 p90=0.06927 最大=0.5756
+GATE 緑（実際＝新の規則の食い違い 0・表の欠け 0・行 1 以上・全ての行が byMoneyFlag 1）

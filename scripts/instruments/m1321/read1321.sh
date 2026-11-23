@@ -7,6 +7,8 @@ export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 D0="$(cd "$(dirname "$0")" && pwd)"; R="$(cd "$D0/../../.." && pwd -W)"; S=$R/scripts/instruments
 INS=${1:?ins}; CARD=${2:?成績表}; TAG=${3:?タグ}; OUT=${4:?出力}; SB=${5:?種の起点}; SE=$((SB+9)); NONG=${6:-}
 K=D:/PoB_work/keep_1308; BASE=D:/PoB_work/keep_1315/base_ins; NUL=$K/n1; CB=$R/measurements/b10_20261123_m1308_ins
+# (1321) keep_1315 を消した後の N2 は BASE_OVR＝keep_1321/base_ins・NUL_OVR＝keep_1321/n1 で読む（新しい基線とヌル腕）。
+[ -n "${BASE_OVR:-}" ] && BASE=$BASE_OVR; [ -n "${NUL_OVR:-}" ] && NUL=$NUL_OVR
 [ "$SB" = 11 ] && BASE=$K/a11 && CB=$R/measurements/b10s11_20261123_m1308_ins
 mkdir -p "$OUT"
 cd "$R"

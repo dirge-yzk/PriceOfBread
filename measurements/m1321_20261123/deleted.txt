@@ -1,0 +1,1 @@
+2026-11-23 17:33:24 D:/PoB_work/keep_1315（base_ins 1700 本・28GB）：(1315) の INSRAW。(1321) が新しい ident.cfg（INSRAW keep_1321/base_ins）を origin/main 286fe658f へ push した後に消した（INSRAW でも KEEPNULL でもない・指示の許し・要約は measurements/m1315_20261123/keepsum_insraw1315.tsv）。N2 の腕の D:（〈35GB＋約 11GB〉）のため。
