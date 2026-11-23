@@ -80,4 +80,37 @@ public class EmptyUrbanValueTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+    /// <summary>(1316) c137sm 項 3＝案 A′ の項 ρ（農村の RGO の担い手の残余の、農業労働 1 単位あたりの重み付き平均）を手の算術で確かめる。
+    /// 盤面：RGO の LaborWeight≠0 の生産者を 1 本だけ置く（他の RGO は 0＝Board が外す）・産出の値段を「投入の費用＋5」・RentShare 0.25・FarmRentCap 0.5 → 残余＝(1−0.25)×5・ρ＝残余÷農業労働の投入量。
+    /// 期待値＝A′ と A の農村の値打ちの差 ℓ×ρ×(1−u_R)×合計（ℓ＝0.5・合計 1,000）を、試験が自分で掛けて 1e-12 で比べる（計器の列の組み方を呼ばない）。
+    /// ⚠壊し方＝InstrumentsUrx の ρ を 1 にする → 差が合わず赤。</summary>
+    [Fact]
+    public void 案A素の項ρは手の算術と一致する()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_c137sm_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var (w, r, rural, urban, c) = Board(1000, 0, pl: 3.0, pf: 1.0, capPerHead: 0.5, uU: 0, uR: 0.2);
+            Producer? rgo = null; double qf = 0;
+            foreach (var s in r.Producers)
+            {
+                if (!s.IsRgo || s.LaborPopIndex < 0 || s.LaborPopIndex >= r.Pops.Count || !ReferenceEquals(r.Pops[s.LaborPopIndex], rural)) continue;
+                if (s.GoodId < 0 || s.GoodId >= r.Markets.Length) continue;
+                double q = 0; foreach (var inp in s.Inputs) if (inp.GoodId == Catalog.FarmLaborId) q += inp.QtyPerOutput;
+                if (q > 0) { rgo = s; qf = q; break; }
+            }
+            Assert.NotNull(rgo);
+            double ic = 0; foreach (var inp in rgo!.Inputs) if (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length) ic += r.Markets[inp.GoodId].Price * inp.QtyPerOutput;
+            r.Markets[rgo.GoodId].Price = ic + 5.0;
+            rgo.RentShare = new Share(0.25); r.FarmRentCap = new Share(0.5); rgo.LaborWeight = 2.0;
+            Instruments.UrxPd(w, r, 1.0);
+            var p = Instruments.UrxMktPeek(w);
+            double rho = 0.75 * 5.0 / qf;                        // 手の算術：(1−RentShare)×(価格−投入の費用)÷農業労働の投入量
+            double expectedGap = 1000 * 0.5 * rho * (1.0 - 0.2); // 合計×ℓ×ρ×(1−u_R)
+            Assert.True(rho > 0, "前提：ρ が 0");
+            Assert.Equal(expectedGap, p.WVrA2 - p.WVr, 12);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
