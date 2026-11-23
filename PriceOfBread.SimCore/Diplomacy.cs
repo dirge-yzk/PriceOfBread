@@ -2983,7 +2983,7 @@ public sealed class Diplomacy
         // 終えた戦争を指す待ちは下ろす。〔履歴 Diplomacy.cs#343〕
         foreach (var q in Powers)
             if (q.PendingCallToArms is { } call && ((call.Caller == war.A && call.Enemy == war.B) || (call.Caller == war.B && call.Enemy == war.A))) q.PendingCallToArms = null;
-        ResetTensionTo(k, c.PostWarTension, TensionReason.WarResidue); if (Instruments.On) { Instruments.WarPairEvent(this, war.A, war.B, 2); Instruments.WarEndPush(this, war); }   // (1235) WarEndPush＝終戦の記録へ積んだ押しを計器の置き場で紐づける（On の読みは 1 回のまま）   // 講和で緊張がリセット（やがて再び煽られて再燃＝周期的）。内訳も戦争の遺恨1本へ＝開戦前の理由は戦争で清算された
+        ResetTensionTo(k, c.PostWarTension, TensionReason.WarResidue); if (Instruments.On) { Instruments.WarPairEvent(this, war.A, war.B, 2); Instruments.WarEndPush(this, war); Instruments.WarNoteEnd(this, war); }   // (1235) WarEndPush＝終戦の記録へ積んだ押しを計器の置き場で紐づける（On の読みは 1 回のまま）   // 講和で緊張がリセット（やがて再び煽られて再燃＝周期的）。内訳も戦争の遺恨1本へ＝開戦前の理由は戦争で清算された
         // 再戦の抑えは厭戦（WarWearyThreshold・減衰）と講和後の緊張が担う。〔履歴 Diplomacy.cs#344〕
         Wars.RemoveAt(i);
     }

@@ -2467,10 +2467,10 @@ public static partial class Instruments
     {
         using (var wr = Open("wars", sk.Seed))
         {
-            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK\tq\tentryCode");
+            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK\tq\tentryCode\tverdictCode\trebelTreasuryEnd");
             int wi = 0;
             foreach (var (year, war) in dip.Wars)
-                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi++)));
+                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB), WarMetaCols(dp, wi++), WarEndCols(dp, war)));
         }
         using (var wp = Open("warpolity", sk.Seed))   // (1206) 反乱側の政体と親の政体（wars_s の末尾を試験が読む＝別の表・行は wars_s と同じ順）
         {

@@ -40,6 +40,8 @@ public static partial class Instruments
         public bool HavePrev;
     }
 
+    sealed class WarEndBox { public int Verdict; public double RebelTreasury; }
+
     sealed class WarPairAcc { public double MaxT; public int Ge140, Gt100, Gate, Starts, Submits, Peace, Secession; }
 
     sealed class WarSt
@@ -52,6 +54,7 @@ public static partial class Instruments
         public readonly Dictionary<int, WarEntryAcc> Entry = new();
         public readonly Dictionary<long, WarPairAcc> Pair = new();
         public int PairsSampled;
+        public readonly System.Runtime.CompilerServices.ConditionalWeakTable<War, WarEndBox> Ends = new();   // (1330) wars_s の末尾 2 列＝終戦の判定と反乱国の国庫（終戦の 1 本 EndWar が On のときだけ書く）
         public int[] Band = new int[6];
         public int QSubmits, QPeace, QSecession;
         public readonly int[] QStarts = new int[WarCodeNames.Length];
@@ -92,6 +95,17 @@ public static partial class Instruments
         acc.Starts++;
     }
     internal static void WarNoteInvade(Diplomacy d) { if (!Tg.War) return; WarOf(d).InvadeQ.Add(WarOf(d).NextQ); }
+    /// <summary>(1330) 終戦の 1 本（EndWar）が EndedWars へ追記した直後（Instruments.On のときだけ）：判定（WarVerdict の整数＝0 白紙・1 A 勝ち・2 B 勝ち）と、内戦なら反乱国（B）の国庫を、終わりの月の値で写す。外国戦は nan。</summary>
+    internal static void WarNoteEnd(Diplomacy d, War war)
+    {
+        if (!Tg.War) return;
+        if (d.EndedWars.Count == 0) return;
+        var rebel = war.CivilWarParent is null ? null : war.A == war.CivilWarParent ? war.B : war.A;   // ResolvePeace の cwRebel と同じ読み（反乱国は A にも B にも立つ）
+        double tr = rebel?.Nation is { } rn ? rn.Treasury.Value : double.NaN;
+        WarOf(d).Ends.AddOrUpdate(war, new WarEndBox { Verdict = (int)d.EndedWars[^1].Verdict, RebelTreasury = tr });
+    }
+    /// <summary>wars_s の末尾 2 列（verdictCode・rebelTreasuryEnd）。終わっていない戦争は -1 と nan。</summary>
+    static string WarEndCols(Diplomacy d, War war) => WarOf(d).Ends.TryGetValue(war, out var b) ? WI(b.Verdict) + "	" + F(b.RebelTreasury) : "-1	nan";
     internal static string WarPolityCols(Diplomacy d, int i) { var st = WarOf(d); return i < st.WarPolity.Count ? st.WarPolity[i] : "-"+"	"+"-"; }
     static string WarMetaCols(Diplomacy d, int i)
     {
