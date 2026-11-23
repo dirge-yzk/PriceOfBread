@@ -140,6 +140,21 @@ public class LawPreferenceDirectionTests
     }
 
     [Theory]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    public void T10_陣営の要求も同じ規則で望む段にいれば後退を求めない(double flag)
+    {
+        var w = Board(flag, 0.4);
+        var e = PolicyPreferences.Build(w);
+        double score = FactionSnapshot.AxisScore(w, PolicyAxis.Suffrage, 1, e, out bool inc);
+        Assert.False(inc);   // 近代エリートの上げの好み −1+t＜0
+        double head = FactionSnapshot.Headroom(w, PolicyAxis.Suffrage, false);
+        Assert.True(head > 0, "前提：制限選挙から下げる可動域");
+        if (flag > 0) Assert.Equal(0.0, score);   // 1 段下（なし）からの上げの好み 1＞0＝後退を求めない
+        else Near((1.0 - 0.4 * w.Coef.SuffrageConcession) * head / (1.0 + PolicyPreferences.OpposingPower(w, PolicyAxis.Suffrage, false, e)), score, "旗 0：鏡写しの強さ");
+    }
+
+    [Theory]
     [InlineData(0.0)]
     [InlineData(1.0)]
     public void T9_計器lawdirは旧新と実際の純支持を並べる(double flag)

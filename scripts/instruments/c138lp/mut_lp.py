@@ -1,7 +1,7 @@
 # (1323) c138lp 突然変異（事前登録の追記 2 の N1〜N7・使い捨ての木の PolicyPreferences.cs をバイトで書き換える）。使い方: python mut_lp.py <木> <N1..N7>
 import sys
 t, m = sys.argv[1], sys.argv[2]
-p = t + '/PriceOfBread.SimCore/PolicyPreferences.cs'
+p = t + ('/PriceOfBread.SimCore/FactionSnapshot.cs' if m == 'N8' else '/PriceOfBread.SimCore/PolicyPreferences.cs')
 b = open(p, 'rb').read()
 SUF = 'var suf = back && a == PolicyAxis.Suffrage && w.Suffrage > Suffrage.None ? w.Suffrage - 1 : w.Suffrage;'
 R = {
@@ -12,6 +12,7 @@ R = {
  'N5': [(SUF, SUF.replace('w.Suffrage - 1', 'w.Suffrage + 1'))],
  'N6': [('double threat = Politics.AvgMassMilitancy(w) * w.Coef.SuffrageConcession;', 'double threat = 0.0;')],
  'N7': [('if (pref < 0 && w.Coef.LawPrefSinglePeaked > 0 && !(Pref(a, b, e, w, false) < 0)) continue;', '')],
+ 'N8': [('else if (!increase && w.Coef.LawPrefSinglePeaked > 0) strength', 'else if (false) strength')],
 }
 for o, n in R[m]:
     o = o.encode(); n = n.encode(); c = b.count(o); assert c == 1, (m, c, o[:50]); b = b.replace(o, n)
