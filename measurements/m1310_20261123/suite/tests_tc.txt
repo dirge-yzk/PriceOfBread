@@ -1,0 +1,91 @@
+START 07:07:45 filter=Category!=FullLength src=D:/PoB_work/wt_c136tc
+== PriceOfBread.Tests
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (90 ミリ秒)。
+  D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (303 ミリ秒)。
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\BilateralMarket.cs(1020,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\EconomyStep.cs(1461,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\Instruments.cs(2659,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(187,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(203,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsTreasLedger.cs(59,31): warning CA2014: スタック オーバーフローの可能性があります。stackalloc をループの外に移動してください。 (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2014) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ConservationTests.cs(268,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ClearingScopeTests.cs(361,22): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ClearingScopeTests.cs(366,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ConservationTests.cs(965,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(317,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(317,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(318,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(318,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\StartWarmupTests.cs(174,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\BilateralMarket.cs(1020,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\EconomyStep.cs(1461,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\Instruments.cs(2659,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(187,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(203,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\Instruments\InstrumentsTreasLedger.cs(59,31): warning CA2014: スタック オーバーフローの可能性があります。stackalloc をループの外に移動してください。 (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2014) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ConservationTests.cs(268,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ClearingScopeTests.cs(361,22): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ClearingScopeTests.cs(366,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\ConservationTests.cs(965,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(317,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(317,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(318,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\UnitTypeTests.cs(318,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\StartWarmupTests.cs(174,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    19 個の警告
+    0 エラー
+
+経過時間 00:00:22.85
+build rc=0
+D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:02:03.98]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+[xUnit.net 00:54:20.65]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+結果ファイル: D:\PoB_work\c136tc_work\ts\trx_tc\PriceOfBread.Tests.trx
+
+成功!   -失敗:     0、合格:  2890、スキップ:     2、合計:  2892、期間: 57 m 46 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 PriceOfBread.Tests
+== PriceOfBread.Tests.Ui
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Display\PriceOfBread.Display.csproj を復元しました (103 ミリ秒)。
+  D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (274 ミリ秒)。
+  D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.Tests.Ui\PriceOfBread.Tests.Ui.csproj を復元しました (272 ミリ秒)。
+  5 個中 2 個の復元対象のプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+  PriceOfBread.Display -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.Display\release\PriceOfBread.Display.dll
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.App\Controls\TableView.cs(131,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests.Ui -> D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.App\Controls\TableView.cs(131,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\c136tc_work\ts\tree_t_tc\PriceOfBread.App\PriceOfBread.App.csproj]
+    1 個の警告
+    0 エラー
+
+経過時間 00:02:02.92
+build rc=0
+D:\PoB_work\c136tc_work\ts\art_ttc\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+結果ファイル: D:\PoB_work\c136tc_work\ts\trx_tc\PriceOfBread.Tests.Ui.trx
+
+成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 28 s - PriceOfBread.Tests.Ui.dll (net10.0)
+rc=0 PriceOfBread.Tests.Ui
+END 08:09:37

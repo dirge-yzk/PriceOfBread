@@ -1,0 +1,28 @@
+(1310) c136tc 事前登録（恒等・試験だけ・SimCore の差 0 行）
+
+[1] 区分と予言 0
+- 区分：★(702) の物差しの直し（指標の替え：闘争度→不満度）。README ★(743) の ①〜④ の外と名乗る（(1306) 反証役 v の訂正のとおり）。
+- 古い裁定 C3（鎖の終わり＝闘争度）を推奨で上書きする形（作者 2026-11-20「全て推奨で」で推奨を採った。承認ではない）。
+- SimCore・Runner・App・Display の差 0 行（git diff --stat で名乗る）。ident は回さない（試験だけ）。
+- 理由：生活苦は闘争度に入らず不満度だけが持つ（Politics.cs DiscontentTerms の生活の項）。旧の dMil>0 は M1・M3・M4 でも緑＝鎖の最後の環を見ていない。
+
+[2] 旧→新の表（PolicyPoliticsTests.cs の TaxChainCheck 周辺だけ）
+| 項目 | 旧 | 新 |
+| 試験の名 | 実税が重い世界ほど生活が苦しく闘争度が高い（Fact） | 実税が重い世界ほど生活が苦しく不満度が高い（Theory・外挿の重み 0 の行を足す） |
+| 終わりの指標 | dMil（構成固定の闘争度の差）>0 | dDisc（構成固定の不満度の差・FactionSnapshot.DiscontentOf）> 0.25×(−dSat)。dMil は失敗の文言の記録 |
+| 残す物 | dSav<0・dSat<0・前提 2 本（税率・徴収） | 1 字も変えない |
+- 0.25 は AI の案・結果の後の閾値と名乗る（確証なし）。
+- 紙の (a)(b)（measurements/m1310_20261123/paper_ab.tsv・scripts/instruments/c136tc/C136Paper.cs）：(b) 構成固定の参加の差>0 は M1 +0.0102・M3 +0.0030・M4 +0.0046（0 の側）で全て緑＝闘争度の項が支配し突然変異に気づかない。(a) は M1 +0.00005・M3 −0.00001・M4 −0.0063 で赤になれる。閾値を結果から取らない (b) は働かない＝(a) を選ぶ（理由 1 行：(b) は M1・M3・M4 で緑）。
+- 読み手の grep：試験名・TaxChainCheck は PolicyPoliticsTests.cs 以外に scripts と measurements の過去の台本だけ（c13ib の edit_urban_a3.py・m1298 の diagpatch.py/run4.sh＝旧の記録で現行の読み手ではない）。SimCore・Runner・App・Display・POB_COEF・SaveGame の読み手は 0。
+- 他の線との重なり：PolicyPoliticsTests.cs の :1206〜:1295 だけ。ur の旗 1 が TaxChainCheck の数を動かしうる＝合流が合わせた木で読む。
+
+[3] 足す試験と突然変異・㉘・㉑
+- 足す試験：Theory の 2 行目（投資の外挿の重み 0＝K49 の形）。試験数の予言＝Category!=FullLength 3123→3124（Fact 1 本が Theory 2 行）・Ui 232・FullLength 3 は不変。
+- 予言 G1 main（0.3）：dSav<0・dSat<0・dDisc＞0.25×(−dSat)＝緑（dDisc は +0.0265〜+0.027）。G2 既定 0：緑（+0.027〜+0.028）。
+- 突然変異（試験の中の w.Coef・実の試験の本体 TaxChainCheck に渡す・台本 scripts/instruments/c136tc/C136Mut.cs）：M1 WantWeight=0 赤／M3 LivingRefSpeed=1 赤／M4 WantWeight=−0.8 赤／M2 FamineDriveGain=0 緑（飢えに依らない＝狙いどおり）。旧の番人（dMil>0）は M1・M3・M4 で緑＝表に並べる（paper_ab.tsv の dMil 列：+0.0093〜+0.0103・+0.0025〜+0.0030）。
+- ㉘ 走査の番人（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）は旗・係数・SimCore に触れない試験だけの線なので予言＝赤 0・書き換える件数 0（㉑）。回して確かめる。
+- 点検：`new MoneyStock(` は試験の中の既存の行のみ（件数は変えない）。route_anchors・工業化度の読み手の許可表・WriterRatchetTests の宣言の表は触らない。
+- 浮動小数の順序が変わる箇所：無し（dMil の式は同じ・disc 引数は配列の選択だけ）。
+
+[4] 素の 5 種・計器つき 10 種：SimCore の差 0 行なので m1308 と同一（回さない）。判定は git diff で〈SimCore の差 0 行〉と名乗る。
+[5] G1・G2・M1/M3/M4 赤・M2 緑・SimCore 差 0 行で採る。
