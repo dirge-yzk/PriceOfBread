@@ -1,0 +1,127 @@
+# (1323) ㉜ 旧の規則（拡大と後退の鏡写し＝Pref×sign）を名指す試験の grep（e165b8887）
+# 模様: NetSupport|PolicyPreferences.Pref|.Stance(|SupportBreakdown|LawGap|OpposingPower|ParliamentNet|CanStep(
+CorncfInstrumentTests.cs:241:                double want = PolicyPreferences.Pref(PolicyAxis.CornLaws, b, prof, w);
+DiscontentReaderTests.cs:8:/// ①闘争度の目標の法の項（政治の隔たり）が不満度の法の項と同じ式を通る（Step の MilVoice＝不満度の前クランプ・手計算の 0
+DiscontentReaderTests.cs:59:    public void 意識のある盤面でも闘争度の政治の項は不満度の政治の項と同じ式で_DiscontentLawGapは闘争度に広がらない()
+DiscontentReaderTests.cs:61:        // 意識と識字を高く置く＝政治の隔たりが立つ。2 つの同一の盤面で DiscontentLawGap だけ変える（闘争度の目標の政治の項は
+DiscontentReaderTests.cs:66:            w.Coef.DiscontentLawGap = lawGapCoef;
+DiscontentReaderTests.cs:90:            // 不満度（DiscontentLawGap＝0 の旧経路）の前クランプ＝闘争度の目標の 2 項の和。両方が [0,1] の内なので等しい。
+DormantIdentityTests.cs:130:        "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap �
+ElectionAiTests.cs:257:                var (trad, modern, mass, net) = PolicyPreferences.Stance(w, a, inc);
+ElectionAiTests.cs:365:        //   （MandateSpent）が入った＝上でマンデートを焼いた時点で NetSupport が動く。よって**前提を全て置いた後**に純支持を取り直�
+ElectionAiTests.cs:367:        net = PolicyPreferences.NetSupport(w, axis, inc);
+FiscalTests.cs:882:            foreach (var (who, v) in PolicyPreferences.SupportBreakdown(w, PolicyAxis.IncomeTax, true)) if (who == "国庫") return v;
+FlowMInstrumentTests.cs:8:/// ①純支持の分解：街頭の 3 ブロック＋議会＋軍の項の和が <c>PolicyPreferences.NetSupport</c> に合う（計器の写しと本体の突き合わせ�
+FlowMInstrumentTests.cs:44:                double net = PolicyPreferences.NetSupport(w, PolicyAxis.Coercion, inc, e);
+FlowMInstrumentTests.cs:118:                    double sum = Col(h, r, "netTermsSumIndex"), net = Col(h, r, "moveNetSupportIndex");
+GenderTests.cs:278:        var on = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
+GenderTests.cs:281:        var off = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
+GenderTests.cs:286:        var aged = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
+InheritanceLawTests.cs:95:        double mass = PolicyPreferences.Pref(PolicyAxis.Inheritance, 2, e, w);
+InheritanceLawTests.cs:98:        Assert.Equal(-3.0 * dr * e.Wealth[0], PolicyPreferences.Pref(PolicyAxis.Inheritance, 0, e, w), 12);
+InheritanceLawTests.cs:103:        if (e2.Wealth[0] > 0) Assert.True(PolicyPreferences.Pref(PolicyAxis.Inheritance, 0, e2, w) < 0);
+InstrumentsTests.cs:1218:            foreach (var c in new[] { "militaryMoveOutcomeCode", "militaryMoveIncreasingFlag", "militaryMoveCurrentShare", "militaryMoveTargetShare", "militaryMoveNetSupportIn
+InstrumentsTests.cs:1228:                double f = Col(nh, row, "militaryMoveStepFraction"), net = Col(nh, row, "militaryMoveNetSupportIndex"), res = Col(nh, row, "militaryMoveResistIndex");
+InstrumentsTests.cs:1392:            string[] countCols = ["frontClosedAtStepCount", "frontNetSupportFixedCount", "frontCapitalFixedCount", "frontMovedFreeCount", "frontMovedPaidCount", "frontIrrevers
+LandTaxPhiTests.cs:107:        Assert.True(PolicyPreferences.NetSupport(w, PolicyAxis.LandTax, true, e) < 0, "試験の前提：定額へ向かう（土地税の軸を上げる）向きは純反対");
+LordStakeD1bD2Tests.cs:41:    private static double P(World w, PolicyAxis a, int b, bool inc) => PolicyPreferences.Pref(a, b, PolicyPreferences.Build(w), w, inc);
+LordStakeD1bD2Tests.cs:84:            double op = PolicyPreferences.OpposingPower(w, PolicyAxis.StateReligion, false, PolicyPreferences.Build(w));   // 反対の力は別の関数・別の試験の主
+LordStakeD1bD2Tests.cs:157:            double op = PolicyPreferences.OpposingPower(w, PolicyAxis.Bureaucracy, false, PolicyPreferences.Build(w));
+LordstatD1aTests.cs:69:                Assert.Equal(BitConverter.DoubleToInt64Bits(-1.0), BitConverter.DoubleToInt64Bits(PolicyPreferences.Pref(a, 0, e, w, true)));
+LordstatD1aTests.cs:70:                Assert.Equal(BitConverter.DoubleToInt64Bits(-1.0), BitConverter.DoubleToInt64Bits(PolicyPreferences.Pref(a, 0, e, w, false)));
+LordstatD1aTests.cs:71:                Assert.Equal(1.0, PolicyPreferences.Pref(a, 1, e, w, true)); Assert.Equal(1.0, PolicyPreferences.Pref(a, 2, e, w, true));
+LordstatInstrumentTests.cs:164:        foreach (var bad in new[] { "TitheDegree(", "IntermediaryDegree(", "EstateDegree(", "EffectiveVoice(", "FranchiseVoice(", "IsMassPop(", "TitheClaim(", "LordStake
+MandateWallStockCapTests.cs:105:                double net = PolicyPreferences.NetSupport(w, axis, inc);
+MultiNationTests.cs:99:        var (t0, m0, s0, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
+MultiNationTests.cs:102:        var (_, mGold, _, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
+MultiNationTests.cs:104:        var (_, mSilver, _, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
+PartyTests.cs:57:    //   同じ党の同じ軸の選好は ParliamentNet（議席×党選好）として NetSupport に既に入っていた＝同じ原因を「通るか」と「どちらへ動く�
+PartyTests.cs:126:            double nC = PolicyPreferences.NetSupport(cons, axis, true), nS = PolicyPreferences.NetSupport(soc, axis, true);
+PartyTests.cs:128:            // 差は議会の項（議席×党選好＝ParliamentNet）だけから来る＝勢力別内訳の党の行の合計の差と一致（街頭・軍・小営業は議席�
+PartyTests.cs:130:            double oC = PolicyPreferences.OpposingPower(cons, axis, true, PolicyPreferences.Build(cons)), oS = PolicyPreferences.OpposingPower(soc, axis, true, PolicyPreferences.Buil
+PartyTests.cs:138:        foreach (var (who, v) in PolicyPreferences.SupportBreakdown(w, axis, true))
+PolicyPoliticsTests.cs:49:    //   ★段1は読み手ゼロ＝世界は動かない。世界が動かないことの証明は (i) DormantIdentityTests の休眠表（DiscontentLawGap）と
+PolicyPoliticsTests.cs:105:        Assert.Equal(0.0, new Coefficients().DiscontentLawGap);        // ★既定は旧経路（点火したら本アサートも直す＝表が休眠の一覧）
+PolicyPoliticsTests.cs:110:        c.DiscontentLawGap = 1.0;                                      // 切替＝物差しだけが LawGap へ
+PolicyPoliticsTests.cs:204:    public void 法の隔たりは望む向きの余地が消えれば縮み反対側では広がる()   // LawGap＝選好で重みづけた「余地」の平均（向き�
+PolicyPoliticsTests.cs:210:        // 報道法の選好は「旧支配層=−1／近代・大衆=+1」の定数（PolicyPreferences.Pref）＝法の現在値にも保有にも依らない
+PolicyPoliticsTests.cs:213:        var closed0 = PolicyPreferences.LawGap(w);
+PolicyPoliticsTests.cs:215:        var free = PolicyPreferences.LawGap(w);
+PolicyPoliticsTests.cs:221:        var mid = PolicyPreferences.LawGap(w);
+PolicyPoliticsTests.cs:1248:                var dCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, w.Coef); var dLawGap = w.Coef.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) :
+PolicyPoliticsTests.cs:1250:                foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; milC[p.
+PolicyPoliticsTests.cs:1452:        Assert.True(Government.CanStep(w, sAxis, sInc));
+PolicyPoliticsTests.cs:1466:        Assert.True(Government.CanStep(w, axis, inc));
+PolicyPoliticsTests.cs:1473:        Assert.False(Government.CanStep(w, axis, inc), "第4の脚（政治タブの点灯）だけが門を見ていない");
+PolicyPoliticsTests.cs:1601:        Assert.False(Government.CanStep(w, axis, inc));
+PolicyPoliticsTests.cs:1720:                    Assert.False(Government.CanStep(w, axis, inc));
+PolicyPoliticsTests.cs:1741:            if (PolicyPreferences.NetSupport(w, PolicyAxis.Suffrage, inc) < 0) { opp = (inc, level); break; }
+PolicyPoliticsTests.cs:1748:        Assert.False(Government.CanStep(w, PolicyAxis.Suffrage, i));
+PolicyPoliticsTests.cs:1781:                Assert.True(double.IsNaN(PolicyPreferences.NetSupport(w, a, l > lawBefore)), "テスト前提が崩れた：純支持が NaN になっていない（法）"
+PolicyPoliticsTests.cs:1782:                Assert.True(double.IsNaN(PolicyPreferences.NetSupport(w, PolicyAxis.Tariff, w.Policy.TariffTarget > tariffBefore)), "テスト前提が崩れた：純支持
+PolicyPoliticsTests.cs:1883:                var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
+PolicyPoliticsTests.cs:1891:                    var (tDec, mDec, sDec, _) = PolicyPreferences.Stance(w, axis, increasing: false);
+PolicyPoliticsTests.cs:1895:                score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
+PopPreferenceTests.cs:20:        var s = new PopPreference.Stance(Wealth: 0.002, Rent: 0, LandBase: 0, Poll: 0, Pop: 0.001, Benefit: 0.4, RentIncome: 0, Old: 0);
+PopPreferenceTests.cs:45:        double pref = PolicyPreferences.Pref(PolicyAxis.IncomeTax, 2, e, w);
+PopPreferenceTests.cs:48:        double lt = PolicyPreferences.Pref(PolicyAxis.LandTax, 0, e, w);
+PopPreferenceTests.cs:51:        Assert.Equal(0.0 - (PopPreference.BurdenScale + 1.0) * 0.35, PolicyPreferences.Pref(PolicyAxis.LandTax, 0, e2, w), 9);
+ReformPathTests.cs:138:        Assert.False(Government.CanStep(w, axis, inc));
+ReformPathTests.cs:150:        Assert.True(Government.CanStep(w, axis, inc));
+ReformPathTests.cs:292:        Assert.True(PolicyPreferences.NetSupport(Board().World, PolicyAxis.Tariff, false) < 0, "テスト前提が崩れた：関税を下げる押しの純支持が負でない
+ReformPathTests.cs:400:        Assert.False(Government.CanStep(w, axis, inc));
+ReformPathTests.cs:408:        Assert.True(Government.CanStep(w, axis, inc));
+RevoltIgnitionTests.cs:1101:        var (trad, modern, mass, net) = PolicyPreferences.Stance(w, PolicyAxis.CivilianArms, increasing: true);
+Rs2LordOppositionTests.cs:45:        Assert.Equal(-2.0 * (0.5 + (c - 0.75) / c * ratio), PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, e, w), 9);
+Rs2LordOppositionTests.cs:48:        Assert.Equal(-2.0 * (0.5 + (0.75 - 0.5) / 0.75 * ratio), PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, e, w), 9);
+Rs2LordOppositionTests.cs:51:        Assert.Equal(-1.0, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, e, w), 12);
+Rs2LordOppositionTests.cs:54:        Assert.Equal(-2.0 * (0.5 + (c - 0.65) / c * ratio), PolicyPreferences.Pref(PolicyAxis.LandReform, 0, e, w), 9);
+Rs2LordOppositionTests.cs:56:        Assert.Equal(-2.0 * (0.5 + (0.65 - 0.3) / 0.65 * ratio), PolicyPreferences.Pref(PolicyAxis.LandReform, 0, e, w), 9);
+Rs2LordOppositionTests.cs:58:        Assert.Equal(1.0, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 1, e, w));
+Rs2LordOppositionTests.cs:59:        Assert.Equal(1.0, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 2, e, w));
+Rs2LordOppositionTests.cs:60:        Assert.Equal(2.0, PolicyPreferences.Pref(PolicyAxis.LandReform, 2, e, w));
+Rs2LordOppositionTests.cs:72:            return (PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w), LordSums(w).W0);
+Rs2LordOppositionTests.cs:90:        Assert.Equal(-1.0, PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w), 12);
+Rs2LordOppositionTests.cs:103:        double used1 = -PolicyPreferences.Pref(PolicyAxis.SerfEmancipation, 0, PolicyPreferences.Build(w), w);
+Rs2LordOppositionTests.cs:116:        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.EducationLaw, 0, e, w), 9);
+Rs2LordOppositionTests.cs:117:        Assert.Equal(expect, PolicyPreferences.Pref(PolicyAxis.WomenRights, 0, e, w), 9);
+Rs3LordReverseGainTests.cs:34:    private static double Dec(World w, PolicyAxis a) => -PolicyPreferences.Pref(a, 0, PolicyPreferences.Build(w), w, false);
+Rs3LordReverseGainTests.cs:35:    private static double Inc(World w, PolicyAxis a) => -PolicyPreferences.Pref(a, 0, PolicyPreferences.Build(w), w, true);
+Rs3LordReverseGainTests.cs:78:                Assert.Equal(PolicyPreferences.Pref(a, b, on, w, true), PolicyPreferences.Pref(a, b, on, w, false));
+Rs3LordReverseGainTests.cs:130:        double op = PolicyPreferences.OpposingPower(w, PolicyAxis.LandReform, false, PolicyPreferences.Build(w));   // 反対の力は別の関数・別の試験の主�
+Rs3LordReverseGainTests.cs:137:        // 呼び手が向きを渡す経路（ParliamentNet・SupportBreakdown）の番人。議会のある盤面（立憲君主制・議席を置く）。
+Rs3LordReverseGainTests.cs:147:            var parts = PolicyPreferences.SupportBreakdown(w, PolicyAxis.LandReform, inc);
+Rs3LordReverseGainTests.cs:148:            Assert.Equal(PolicyPreferences.NetSupport(w, PolicyAxis.LandReform, inc), parts.Sum(x => x.Weight), 9);
+Rs3LordReverseGainTests.cs:153:        double cons = PolicyPreferences.SupportBreakdown(w, PolicyAxis.LandReform, false).First(x => x.Who == "議会・保守党").Weight;
+SmallFixes471Tests.cs:360:                    double net = PolicyPreferences.NetSupport(w, a, inc);
+# SimCore と Runner の読み手（エンジン側・計器）
+PriceOfBread.SimCore/FactionSnapshot.cs:58:        double[] lawGap = byDiscontent && c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
+PriceOfBread.SimCore/FactionSnapshot.cs:121:        double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);
+PriceOfBread.SimCore/FactionSnapshot.cs:124:        if (!increase && PolicyPreferences.DirectionAware(w, axis, bloc)) strength = System.Math.Abs(PolicyPreferences.Pref(axis, bloc, e, w, false));
+PriceOfBread.SimCore/FactionSnapshot.cs:126:        score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, e);
+PriceOfBread.SimCore/Government.cs:262:        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
+PriceOfBread.SimCore/Government.cs:288:        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
+PriceOfBread.SimCore/Government.cs:396:        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, shared ??= PolicyPreferences.Build(w)) : 1.0;
+PriceOfBread.SimCore/Government.cs:432:        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, e) : 1.0;
+PriceOfBread.SimCore/Government.cs:434:        double resist = PolicyPreferences.OpposingPower(w, a, increasing, e);
+PriceOfBread.SimCore/Instruments/Instruments.cs:965:        double p0 = PolicyPreferences.Pref(PolicyAxis.Coercion, 0, e, w) * sign, p1 = PolicyPreferences.Pref(PolicyAxis.Coercion, 1, e, w) * sign, p
+PriceOfBread.SimCore/Instruments/InstrumentsDiscontent.cs:22:        double[] gap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
+PriceOfBread.SimCore/Instruments/InstrumentsFm.cs:54:        a.NetTrad = street * e.Power[0] * PolicyPreferences.Pref(ax, 0, e, w) * sign;
+PriceOfBread.SimCore/Instruments/InstrumentsFm.cs:55:        a.NetModern = street * e.Power[1] * PolicyPreferences.Pref(ax, 1, e, w) * sign;
+PriceOfBread.SimCore/Instruments/InstrumentsFm.cs:56:        a.NetMass = street * e.Power[2] * PolicyPreferences.Pref(ax, 2, e, w) * sign;
+PriceOfBread.SimCore/Instruments/InstrumentsFm.cs:57:        a.NetParl = PolicyPreferences.ParliamentNet(w, ax, sign, e);
+PriceOfBread.SimCore/Instruments/InstrumentsLordstat.cs:122:                ("relPrefUpAct", F(PolicyPreferences.Pref(PolicyAxis.StateReligion, 0, prof, w, true))), ("relPrefDownAct", F(PolicyPreferen
+PriceOfBread.SimCore/Instruments/InstrumentsLordstat.cs:123:                ("relDoctrineCode", I((int)UtilityAgent.DoctrineFrom(w))), ("relGateNetUp", F(PolicyPreferences.NetSupport(w, PolicyAxis.Sta
+PriceOfBread.SimCore/Instruments/InstrumentsLordstat.cs:127:                ("d2PrefBurUpAct", F(PolicyPreferences.Pref(PolicyAxis.Bureaucracy, 0, prof, w, true))), ("d2PrefLandUpAct", F(PolicyPrefere
+PriceOfBread.SimCore/Instruments/InstrumentsLordstat.cs:128:                ("d2PrefBurDownAct", F(PolicyPreferences.Pref(PolicyAxis.Bureaucracy, 0, prof, w, false))), ("d2PrefLandDownAct", F(PolicyPr
+PriceOfBread.SimCore/Instruments/InstrumentsPopPref.cs:35:            for (int a = 0; a < nA; a++) for (int b = 0; b < PolicyPreferences.BlocCount; b++) old[a, b] = PolicyPreferences.Pref(PopPreferenc
+PriceOfBread.SimCore/Instruments/InstrumentsPopPref.cs:48:            var st = new PopPreference.Stance(
+PriceOfBread.SimCore/Politics.cs:1182:        double[] gap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
+PriceOfBread.SimCore/SelfPlay.cs:575:            var (trad, modern, mass, net) = PolicyPreferences.Stance(w, ev.AgendaAxes[k], ev.AgendaIncrease[k]);
+PriceOfBread.SimCore/World.cs:531:        double net = PolicyPreferences.NetSupport(this, ev.AgendaAxes[slot], ev.AgendaIncrease[slot]);
+PriceOfBread.Runner/PlayHarness.cs:358:            double up = PolicyPreferences.NetSupport(w, ax, true);
+PriceOfBread.Runner/PlayHarness.cs:360:            var br = PolicyPreferences.SupportBreakdown(w, ax, true)
+PriceOfBread.Runner/Program.cs:2417:            double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, true) : 1.0;
+PriceOfBread.Runner/Program.cs:2504:            double net = PriceOfBread.SimCore.PolicyPreferences.NetSupport(w2, PriceOfBread.SimCore.PolicyAxis.Tariff, increasing: true);
+PriceOfBread.Runner/Program.cs:2506:            foreach (var (who, wt2) in PriceOfBread.SimCore.PolicyPreferences.SupportBreakdown(w2, PriceOfBread.SimCore.PolicyAxis.Tariff, increasing: true))
+PriceOfBread.Runner/Program.cs:4322:                double[] fpGap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
