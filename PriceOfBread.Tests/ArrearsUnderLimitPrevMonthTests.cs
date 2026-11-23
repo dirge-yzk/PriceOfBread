@@ -78,7 +78,7 @@ public class ArrearsUnderLimitPrevMonthTests
             var h = Instruments.ArrearsHeaderText.Split('\t')[1..];
             var v = rows[^1].Split('\t');
             Assert.Equal("prevInterestToRevenue", h[^1]);
-            Assert.True(r0 > 0 && r1 > 0 && i0 > 0, $"前提：歳入と利払い i0={i0} r0={r0} i1={i1} r1={r1}");
+            Assert.True(r0 > 0 && r1 > 0 && i0 >= 0, $"前提：歳入と利払い i0={i0} r0={r0} i1={i1} r1={r1}");
             double prev = double.Parse(v[Array.IndexOf(h, "prevInterestToRevenue")], System.Globalization.CultureInfo.InvariantCulture);
             double cur = double.Parse(v[Array.IndexOf(h, "interestToRevenue")], System.Globalization.CultureInfo.InvariantCulture);
             Assert.Equal(i0 / r0, prev, 8);

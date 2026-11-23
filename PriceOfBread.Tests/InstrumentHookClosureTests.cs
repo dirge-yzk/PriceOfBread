@@ -240,12 +240,15 @@ public class InstrumentHookClosureTests
     // 閉じた file の累積の置き場（辞書・ConditionalWeakTable）。nation_s だけを選ぶ走りで空のまま、全表の走りでは溜まる。
     private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags", "CpIterFlags", "CpStates", "HabitlgAccs", "NgEvs", "PxSinks"];   // (1322) 後ろの 5 つは (1268) で入口を閉じたのに置き場の名簿が無かった物（CpIter・CpMonth・HabitLgStep・NgRegionMoved・PxstepTable の閉じを外すと赤になる）
 
+    /// <summary>(1322) 四半期の末に表を書いて置き場を空にする物（全表の走りの末でも 0＝〈全表で溜まる〉の対照は取れない）。選ばない走りで溜まっていないことだけを見る。外すと入口の閉じ（HabitLgStep）を外したとき赤になる。</summary>
+    private static readonly string[] ClearedAtQuarterEnd = ["HabitlgAccs"];
+
     [Fact]
     public void UnselectedTablesAccumulateNothing()
     {
         var full = Full.Value;
         var sel = Run("nation_s");
-        var missing = ClosedAccs.Where(f => full.Fields.GetValueOrDefault(f) == 0).ToList();
+        var missing = ClosedAccs.Where(f => !ClearedAtQuarterEnd.Contains(f) && full.Fields.GetValueOrDefault(f) == 0).ToList();
         Assert.True(missing.Count == 0, "対照：全表の走りで溜まらない置き場がある " + string.Join(",", missing));
         var leaked = ClosedAccs.Where(f => sel.Fields.GetValueOrDefault(f) > 0).ToList();
         Assert.True(leaked.Count == 0, "選ばない表の積算が溜まっている（入口の閉じが効いていない）：" + string.Join(",", leaked));
@@ -254,7 +257,7 @@ public class InstrumentHookClosureTests
 
     /// <summary>(1322) 置き場を数える：nation_s だけを選ぶ走りでも溜まる置き場の集合は、名簿（OpenStores＝その表自身の積算など閉じる物がない置き場）と一致する。
     /// 新しい置き場が閉じられないまま足されたら赤＝閉じる（ClosedAccs へ）か、閉じない理由を書いて名簿へ足す。名簿から外れた置き場（空になった）も赤。</summary>
-    private static readonly string[] OpenStores = [];
+    private static readonly string[] OpenStores = ["BxNats", "BxRegs", "CkSinks", "CkWorlds", "CmStates", "ConAccs", "CrownPrevs", "CrownSinks", "CrownSrcs", "Dips", "FdDiags", "Flows", "HabitlgSinks", "InheritBorns", "InheritOwnStarts", "InheritRegs", "InheritSinks", "Inps", "LandbaseSinks", "Lawgate2Table", "LbAdjs", "LbFrozen", "LbNationHist", "LbNats", "LbRegionHist", "MerchBufs", "MerchSinks", "MerchSteps", "MonSinks", "MonWs", "PopOwner", "PortAccs", "RailAccs", "Sinks", "StartGates", "States", "TrAccs", "UrxPpStates", "UrxRtStates", "UrxStates", "WarPushes"];   // (1322) 今ある 41 の置き場（実測）＝入口を閉じていない置き場の名簿。新しい置き場が足されると赤・閉じたら名簿から外す（閉じる線は別）
 
     [Fact]
     public void OpenStoresAreExactlyTheNamedOnes()
