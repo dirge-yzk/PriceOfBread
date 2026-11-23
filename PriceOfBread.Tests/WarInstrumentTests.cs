@@ -156,10 +156,10 @@ public class WarInstrumentTests
         finally { Instruments.Close(sim); Instruments.On = saved; }
         var lines = File.ReadAllLines(Path.Combine(dir, "wars_s1789.tsv"));
         var cols = lines[0].Split('\t');
-        Assert.Equal("q", cols[^2]); Assert.Equal("entryCode", cols[^1]);
+        Assert.Equal("q", cols[^4]); Assert.Equal("entryCode", cols[^3]);   // (1330) wars_s の末尾に 2 列（verdictCode・rebelTreasuryEnd）が増えた分だけ位置を追う＝名前と値は同じ
         var first = lines[1].Split('\t');
-        Assert.Equal("3", first[^2]);
-        Assert.Equal("declare", first[^1]);
+        Assert.Equal("3", first[^4]);
+        Assert.Equal("declare", first[^3]);
         // 対照：warband_s の行数は四半期の数と同じ（q の列が 0..5）
         var band = File.ReadAllLines(Path.Combine(dir, "warband_s1789.tsv"));
         Assert.Equal(7, band.Length);
