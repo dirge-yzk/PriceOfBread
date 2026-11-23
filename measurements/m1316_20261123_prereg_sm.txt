@@ -1,0 +1,41 @@
+(1316) 恒等の線 c137sm：小物の束（波136 の残り＋tl・ar の残り＋小物の束 2）。形＝恒等（挙動を変えない・予言 0）。書き手 Sonnet 5.5。
+最初のコミット（腕・試験の前）。基準＝m1308（B5 b5_20261123_m1308・B10INS b10_20261123_m1308_ins・INSRAW keep_1315/base_ins）。木の出発＝b65ac8d70。
+
+[1] 恒等の線・予言 0
+  素の 5 種・計器つき 10 種は m1308 と名乗り行（SOURCE-HASH）を除き全行バイト一致。計器の表の差は下の宣言だけ（popclose_s の末尾に列が増える＝--grown-ok popclose_s）。
+  新しい係数・旗・シミュの状態は 0。計算量の件数（.cost の推定）は増えない。
+
+[2] 項と消す物・残す物（★(743) の区分は試験を書き換える項だけ）
+  項 1 sv  SaveGame.cs :118 MarkCounts は残す。SaveRoundTripTests.cs :77・:83 の対照〈眠り・失敗・覚え＞0〉に、保存の点の _dayInQuarter（反射で読む）が 45・75 で月の頭でない（第 1 清算の後・次の読みより前）の Assert を足す＝区分は足すだけ（既存の Assert は 1 字も変えない）。
+          StateDiff の本体を StateDiffOf(object,object,int) へ出し（StateDiff は 1 行の包み・値は同じ）、HashSet の順だけ（OrderOnly）と要素違い（Values）を分ける自己試験を足す。
+          推奨で選んだ形＝xUnit の Assert（savetest の Runner には触らない＝Runner は全ての線で 0 行）。古い突然変異の台本（c102rp/mut.sh :45・:48・sp398/patch_toggle*.py）は空振りと名乗る注だけ足す。
+  項 2 kb  Discovery.cs :502 のガード（if (!spread && rp is null) continue;）は残す。試験の中で 1 本の製法の行の代表の生産者を全て外し（DiscoveryRow が -1 になる＝Producers から消す）、Evaluate の Terms が default になる Assert を足す。最後の木で Mv（:502 のガードを外す）を回して赤を確かめる（使い捨て・戻す）。
+  項 3 ur  UrxInstrumentTests でなく EmptyUrbanValueTests.cs に、RGO の LaborWeight≠0 の盤面（案 A′ の ρ が働く）で、A と A′ の差 WVrA2−WVr＝合計×ℓ×ρ×(1−u_R) を手の算術で 1e-12 で比べる試験を足す。列 urxpd_s の A′ は消さない（★(1315) の〈未検証の数〉を検証済みにする側）。
+  項 4 tc  scripts/instruments/c136tc/C136Paper.cs の頭の注だけ（(1306)・paper.tsv → (1310) の形）。
+  項 5 tl  InstrumentsTreasLedger.cs の _bornTreasury の注（途中で生まれた国→助走明けのリベースを経ていない国）。Instruments.cs :1599 の stackalloc をループの外へ（値は同じ・ループごとに Clear が要るか読んで確かめる）。
+  項 6 ar  scripts/instruments/c135ar/arrears_recheck.py：死んだ (d) の分岐（鍵が自由でない列の全部なので 共通の行で必ず等しい）を消す・規則そのものの検査 (f)(g) と自己試験の組 selftest_rewritten.py の追加・ident_check.py の内訳の行に〈検算の台本で通った表 rw〉を足す。
+          (h)（腕の underLimit＝前の月の比＜L）は列から独立に組めるかを keep_1315/base_ins の arrears_s 10 種で試した（紙の台本）：行が毎月でなく、前の行の interestToRevenue と L＝0.67 の比べが 10 種の全てで食い違う（余白 0.2 でも 1 件）＝組めない＝(h) は作らず番号で残す。
+  項 7 小物の束 2  pc＝World.KillPops の 1 か所（p.Size -= d の直後）に hook 1 行・popclose_s の末尾に killedViolentK・killedOtherK・residualClosedK の 3 列（既存の列は 1 字も変えない）・T7 の試験（死の記帳を起こして州の閉じた残差 0）・T5 は残す。
+          sb＝Formations.cs :363 の注を〈同じ名の規則は札も同じ〉へ（コードの式は変えない）・札の一致の試験（新しいファイル FormationLabelTests.cs）。
+          clock_s の nan＝keep_1315/base_ins の 10 種で T 行の英仏普清の列の nan は 0 件（nan は W・C・E 行の〈該当なし〉＝設計どおり）＝直す物が無い＝作らず報告に残す。
+          台本の keep_1254 → keep_1315：read_uf.sh :8・read1260.sh :8（K を keep_1315・N1 を keep_1308/n1）。
+  読み手の grep（消す・名前を変える物は無い）：SimCore・Runner・App・Display・Tests・scripts・measurements に、消す物 0＝新しい列と注と試験だけ。POB_COEF の名前 0・SaveGame の名前の表 0（新しい欄 0）。
+  他の線との重なり：SaveGame.cs は :41 付近（StateDiff の 1 行の包み）と :118 だけ。Instruments.cs は :1599 付近だけ。InstrumentsSubst.cs と subst_s は s3、表の登録の行は触らない。Runner・App・Display は 0 行。
+
+[3] 足す試験と突然変異（いずれも → 赤）
+  M1（項 1）：対照の点を 0 日にする（45→0 の読み）→ 日の位置の Assert が赤。
+  M2（項 2）：Mv＝Discovery.cs :502 のガードを外す → rp! の参照で例外＝赤。
+  M3（項 3）：InstrumentsUrx.cs の ρ を 1 にする → 手の算術の差が合わず赤。
+  M4（項 7 pc）：KillPops の hook を外す → 残差≠0 で赤。
+  M5（項 1 自己試験）：StateDiffOf の集合の順だけを Values に数える → 自己試験が赤。
+  足す試験の数の予言：非 FullLength Tests 2896 に +5（項 1 の自己試験 1・項 2 の 1・項 3 の 1・項 7 pc の 1・sb の 1）＝TESTS_NONFULL 3128＋5＝3133（Ui 232 は変わらない）。
+  ソースを走査する番人（㉘）：WriterRatchetTests の宣言の表・DormantIdentityTests の許可表・new MoneyStock( の件数（SimCore 64）・route_anchors.tsv の鍵の行は触らない＝書き換える件数 0（予言）。㉘ の束は器の後に回す。
+
+[4] 腕：ident 段 2（--work D:/PoB_work/ident_c137sm・宣言 --grown-ok popclose_s）。素の 5 種・計器つき 10 種が m1308 と全行一致（popclose_s の宣言した増減を除く）。
+[5] 〈判定: 恒等〉（測った種で一致・〈証明〉と書かない）なら採る。浮動小数の順序が変わる箇所は 0（stackalloc の位置の移動だけ・式は不変）。一致しなければその変更を外して報告に回す。
+
+[追記 1（腕の前・試験を回した後の事実）]
+  ・項 7 sb：札の一致の試験を書いて回したところ、同じ名の規則で段が違う名前が 1 つ見つかった＝マラーター帝国（Formations.Rules は Tier 2・CultureRealms の大名は Tier 3）。札は同じ。注の〈段も同じ〉は事実と違うので、注は〈札は同じ・段はマラーター帝国だけ違う〉へ直し、試験は札の一致＋段の食い違いの名簿（["マラーター帝国"]）の固定にした（事前登録の [2] の形からの変更＝結果の後の変更と名乗る）。段の食い違いは挙動の疑い（FormedElsewhere の q.FormationTier ≥ r.Tier と f.Tier ≥ r.Tier が同値でない名前）＝この線は恒等なので直さず報告に残す。
+  ・項 5 tl：stackalloc は InstrumentsTreasLedger.cs の foreach の中にあった（ループの中）＝そちらを外へ。Instruments.cs :1599 の stackalloc はメソッドの直下でループの中ではない＝触らない。
+  ・項 6 ar：(f)(g) は 10 種の基準の生（keep_1315/base_ins の arrears_s）で全行成り立つことを確かめて決めた。(f)＝owes＝0 の行は arrNewMonth＝0・(g)＝国ごとの cumNew は行の順に減らない（cumOld は減る行があり検査しない）。underLimit＝1 ⇒ owes＝0 は (b) が既に見る。
+  ・事前登録の突然変異の実測（コミット d74bd320a の木）：M1 赤（SaveRoundTripTests 1）・M2 赤（新しい試験 1）・M3 赤（新しい試験＋計器 U0 の試験）・M4 赤（T7 だけ＝T8 は 3 四半期に死の記帳の事象が無いので緑のまま＝T8 は人口の閉じ全体の番人・死の hook の番人は T7）・M5 赤。出力は measurements/m1316_20261123_mut/。

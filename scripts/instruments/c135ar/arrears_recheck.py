@@ -1,7 +1,7 @@
 # (1303) 検算の台本：arrears_s の underLimit を前の月の比へ直した時の、基準の生と腕の生の違いが規則どおりかを確かめる（読むだけ・エンジンを呼ばない）。
 #   python -I arrears_recheck.py <基準の arrears_s の tsv> <腕の arrears_s の tsv>   → 0＝規則どおり・1＝違反・2＝読めない
 # 限界：払える率か国債が変わった行は〈基準だけ＋腕だけ〉の組に見える（(e) の条件を満たせば通る）＝エンジンの変更は成績表と他の表のバイト一致が守る。
-# 規則は scripts の事前登録 measurements/m1303_20261122_prereg_ar.txt [2] の (a)〜(e)。
+# 規則は scripts の事前登録 measurements/m1303_20261122_prereg_ar.txt [2] の (a)〜(e)＋(1316) で足した (f)(g)（(d) の共通の行で自由でない列が違う分岐は死んでいたので消した）。
 import sys, csv
 from collections import OrderedDict
 
@@ -56,6 +56,22 @@ def main():
                 if n <= 2: viol(f'(b) {tag} の行 {k + 2} で owes が自分の列と食い違う')
         if n > 2: viol(f'(b) {tag} の食い違いは計 {n} 行')
 
+    # (f)(g) (1316) 規則そのものの検査（腕の全行・基準の列に頼らない自分の列の関係）：(f) owes＝0 の行は arrNewMonth＝0（払えない月の量は owes の月だけ立つ・underLimit＝1 なら (b) で owes＝0 なので arrNewMonth＝0 まで続く）・
+    #   (g) 国ごとの cumNew（新の規則の累積）は行の順に減らない。10 種の基準の生（keep_1315/base_ins の arrears_s）で全行成り立つことを確かめてある（紙の台本）。cumOld は減る行があるので検査しない。
+    #   (h)（underLimit＝前の月の比＜L）は行が毎月でなく interestToRevenue と L＝0.67 の比べが 10 種の全てで食い違う＝列からは組めない＝作らない。
+    nf = ng = 0; prevcum = {}
+    for k, r in enumerate(ra):
+        if r[ix['owes']] == '0' and float(r[ix['arrNewMonth']]) != 0:
+            nf += 1
+            if nf <= 2: viol(f'(f) 腕の行 {k + 2} で owes＝0 なのに arrNewMonth が立っている')
+        cn = float(r[ix['cumNew']]); nat = r[ix['nation']]
+        if nat in prevcum and cn < prevcum[nat] - 1e-9:
+            ng += 1
+            if ng <= 2: viol(f'(g) 腕の行 {k + 2} で cumNew が前の行より減った')
+        prevcum[nat] = cn
+    if nf > 2: viol(f'(f) の違反は計 {nf} 行')
+    if ng > 2: viol(f'(g) の違反は計 {ng} 行')
+
     def group(rows, tag):
         g = OrderedDict(); cnt = {}
         for r in rows:
@@ -102,8 +118,7 @@ def main():
             if x[ix['owes']] != y[ix['owes']]: dirty.add(nat)
         for k in cb:
             x, y = db[k], da[k]
-            if any(x[i] != y[i] for i in fixed):
-                viol(f'(d) {gk} の共通の行で自由でない列が違う（{",".join(hb[i] for i in fixed if x[i] != y[i])}）')
+            # (1316) 旧の『共通の行で自由でない列が違う』の分岐は削除：行の鍵が自由でない列の全部なので、共通の行では必ず等しい（死んだ分岐）。違いは (c) の基準だけ＋腕だけの行に出る。
             for h in FREE:
                 if x[ix[h]] == y[ix[h]]: continue
                 i = ix[h]

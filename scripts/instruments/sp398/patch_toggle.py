@@ -1,3 +1,4 @@
+# (1316) 注（空振り）：この突然変異の台本は (1309) の S1（走り書きの欄を返り値へ）より前の木の行を書き換える＝今の木では空振り（置き換える行が無く assert で落ちる）。使わない。
 import sys
 root = sys.argv[1] + '/PriceOfBread.SimCore/'
 def rw(name, pairs):
