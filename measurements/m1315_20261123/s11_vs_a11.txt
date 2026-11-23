@@ -1,0 +1,4 @@
+arm 320 a11 771 common 320 same 310 diff 10
+diff: habitlg_s11.tsv habitlg_s12.tsv habitlg_s13.tsv habitlg_s14.tsv habitlg_s15.tsv habitlg_s16.tsv habitlg_s17.tsv habitlg_s18.tsv habitlg_s19.tsv habitlg_s20.tsv
+arm only: 
+habitlg_s は ident.cfg の BYPASS の表＝表を絞った腕では見出し 1 行だけ（a11 は 211306 行）＝世界の差ではない。共通の 320 本のうち残り 310 本は sha256 一致。
