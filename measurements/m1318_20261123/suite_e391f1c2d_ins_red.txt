@@ -1,0 +1,5 @@
+# (1318) suite 木=/d/PoB_work/wt_c137ak HEAD=e391f1c2d 2026-11-23 12:50:41
+list-tests Tests(Category!=FullLength)=2905 Tests.Ui=232 和=3137 FullLength=3
+㊴ 計器の束 rc=1 失敗!   -失敗:     1、合格:   757、スキップ:     1、合計:   759、期間: 49 m 55 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.TreasLedgerInstrumentTests.T7_分離で生まれた子の国は最初の四半期に受け取った初期の国庫を_bornTreasuryの行で出し_親のOtherOutと足して0 [636 ms]
+STOP 計器の束が赤
