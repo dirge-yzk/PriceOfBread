@@ -7,3 +7,15 @@
 2026-11-23 10:48:50 消した D:/PoB_work/r1313_work（182MB・線の生と作業フォルダ・帰属を読み終えた＝sha1 か keepsum を measurements に置いた後）
 2026-11-23 10:48:50 消した D:/PoB_work/r1314_work（1MB・線の生と作業フォルダ・帰属を読み終えた＝sha1 か keepsum を measurements に置いた後）
 2026-11-23 10:49:09 消した D:/PoB_work/m1315_work/out_m1315s11_10_s11・src_m1315s11（自分の S11 の生・keepsum_s11.tsv の後）
+2026-11-23 11:01:29 消した D:/PoB_work/keep_1308/base_ins（27991MB・push be2186b3b の後・INSRAW は keep_1315/base_ins へ移った＝INSRAW でも KEEPNULL でもない・指示の許し〈作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った〉・keepsum は measurements/m1308_20261123/keepsum_insraw1308.tsv）
+2026-11-23 11:02:05 外した worktree D:/PoB_work/wt_c136kb（線の木・枝は origin に残る）
+2026-11-23 11:02:12 外した worktree D:/PoB_work/wt_c136sv（線の木・枝は origin に残る）
+2026-11-23 11:02:18 外した worktree D:/PoB_work/wt_c136tc（線の木・枝は origin に残る）
+2026-11-23 11:02:24 外した worktree D:/PoB_work/wt_c136ur（線の木・枝は origin に残る）
+2026-11-23 11:02:30 外した worktree D:/PoB_work/wt_m1315z（自分の ident と S11 の木・未追跡は main に写した記録の写しだけ）
+2026-11-23 11:03:40 消した D:/PoB_work/ident_m1315z（1441MB・自分の ident の残り＝腕 b の生は keep_1315/base_ins へ移した後の src・art・out_ia_5）
+2026-11-23 11:03:58 片付けの後の D: の空き 109.8GB（shutil）・ls -d D:/PoB_work/keep_*:
+D:/PoB_work/keep_1308
+D:/PoB_work/keep_1315
+残したもの：ローカルの枝 c136sv_id（0c436e158・sv の ident の木）と c136ur_mut（ae6f84b6a・ur の案 A の使い捨て＝patch は measurements/m1312_20261123/engine_A_not_applied.patch）＝origin に無い・線の担当が残すと書いた・合流は消していない。残ったプロセス：MSBuild の節点 PID 9008 と VBCSCompiler PID 8052（10:56 起動＝この回の saveleak の建てた時刻と合う〈推〉・build-server shutdown は打たない決まり＝残した）。
+この記録のコミットの push の後に、合流の worktree D:/PoB_work/wt_m1315・ローカルの枝 m1315・作業フォルダ D:/PoB_work/m1315_work を消す（自分で作った物）。
