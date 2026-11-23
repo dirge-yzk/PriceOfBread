@@ -175,14 +175,17 @@ public class SubstInstrumentTests
 
     /// <summary>★(849) 自給の段 2 の末尾の列を、旗 0 と旗 1 の両方で読む（助走 1 四半期を通す）。旗 1：計器が自分で焼いた ρ・自分で数えた食べる割合と失業 (b′) がエンジンと 1e-9 で一致（G2・G3a・G4 の型）。
     /// 旗 0：エンジンの印は OpeningShare のまま・食べる割合は欄そのもの・計器の反実仮想の食べる割合はエンジンと違う（門が旗 0 で落ちる）。</summary>
+    /// (1325) 3-1 で行を足した（㉜ の改め）：旗 SubsistenceSellSurplus 0 の行は (b′) と計器の比べのまま。旗 1 の行の失業は新しい式＝raw_f＝(U−Lneed÷f̄)÷能力（f̄＝計器の s3HarvestInst・土地係数 1 の盤面）の
+    /// 上側 min(1, raw_f) 以下・raw_f≦0 なら 0（売れ行き s_E は 0〜1 の重み＝下側は 0）。
     [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void 自給の段2の列は旗0と旗1で計器とエンジンを並べる(double flag)
+    [InlineData(0.0, 1.0)]
+    [InlineData(1.0, 0.0)]
+    [InlineData(1.0, 1.0)]
+    public void 自給の段2の列は旗0と旗1で計器とエンジンを並べる(double flag, double sell)
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_subst2_" + Guid.NewGuid().ToString("N"));
         var sim = Two(1791UL);
-        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; }
+        foreach (var n in sim.Nations) { n.World.Coef.SubsistenceStage2 = flag; n.World.Coef.SubsistenceSellSurplus = sell; if (sell > 0) foreach (var r in n.World.Regions) r.ArableLand = 1e9; }
         sim.StartWarmup(quartersOverride: 1);
         Instruments.Configure(dir, "*");
         try { for (int q = 0; q < 2; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1791UL, q); } }
@@ -198,7 +201,13 @@ public class SubstInstrumentTests
                 Assert.Equal("2", r["s2BasisKind"]);
                 Assert.True(Math.Abs(se - si) <= 1e-9, $"食べる割合が計器と違う {se} vs {si}");
                 Assert.True(D(r, "s2BakeRhoRelDiff") <= 1e-9 && D(r, "s2BakeSigmaDiff") <= 1e-9, "焼いた月の ρ か食べる割合が計器と違う");
-                if (e > 0) Assert.True(Math.Abs(ue - ub) <= 1e-9, $"失業が (b′) と違う {ue} vs {ub}");
+                if (sell > 0)
+                {
+                    double rawF = (D(r, "s2UEnd") - D(r, "s2LneedEnd") / D(r, "s3HarvestInst")) / D(r, "s2CapEnd");
+                    if (rawF > 0) Assert.True(ue >= 0 && ue <= Math.Min(1.0, rawF) + 1e-9, $"失業が新しい式の上側を超えた {ue} vs {rawF}");
+                    else { eNeg++; Assert.True(ue <= 1e-12, $"必要量に届かない売れ残りを失業と数えた {ue}"); }
+                }
+                else if (e > 0) Assert.True(Math.Abs(ue - ub) <= 1e-9, $"失業が (b′) と違う {ue} vs {ub}");
                 else { eNeg++; Assert.True(ue <= 1e-12, $"必要量に届かない売れ残りを失業と数えた {ue}"); }
             }
             else

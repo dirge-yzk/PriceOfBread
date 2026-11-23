@@ -40,6 +40,32 @@ public class SubsistenceStage2Tests
         return w > 0 ? wt / w : 1.0;
     }
     private static double Need() { double n = 0; foreach (var g in Catalog.Goods) if (g.Tier == GoodTier.Staple) n += g.BaseNeed; return n; }
+    /// <summary>(1325) 試験の式：州の主食の収穫係数の必要量加重（州の収穫係数×緯度帯の天候×作物の健全度・土地係数 1 の盤面）。</summary>
+    private static double Fbar(Region r)
+    {
+        double w = 0, wf = 0;
+        foreach (var g in r.Goods)
+        {
+            if (g.Tier != GoodTier.Staple || !(g.BaseNeed > 0)) continue;
+            double crop = r.CropHealth is { } ch && g.Id < ch.Length ? ch[g.Id] : 1.0;
+            w += g.BaseNeed; wf += g.BaseNeed * r.HarvestFactor * r.WeatherBandFactor * crop;
+        }
+        return w > 0 ? wf / w : 1.0;
+    }
+    /// <summary>(1325) 試験の式：主食の売る財（投入を投入の無い財まで遡る）の売れ行き 売れた÷(売れた＋在庫) の最大。</summary>
+    private static double SellHi(Region r)
+    {
+        double hi = 0;
+        foreach (var g in r.Goods)
+        {
+            if (g.Tier != GoodTier.Staple) continue;
+            int cur = g.Id;
+            while (Catalog.Goods[cur].Inputs.Length > 0) cur = Catalog.Goods[cur].Inputs[0].GoodId;
+            var m = r.Markets[cur]; double den = m.LastSold + Math.Max(0.0, m.Stock);
+            if (den > 0) hi = Math.Max(hi, m.LastSold / den);
+        }
+        return hi;
+    }
 
     [Fact]
     public void 旗0は欄に書かず_食べる割合は欄そのもの()
@@ -100,10 +126,15 @@ public class SubsistenceStage2Tests
         Assert.True(n > 20);
     }
 
-    [Fact]
-    public void 旗1の農民の失業は必要量を作る労働を超えた売れ残りだけ_両側()
+    /// <summary>(1325) 3-1 で Theory へ（㉜ の改め）：旗 SubsistenceSellSurplus 0 の行は (b′) の式のまま。旗 1 の行は新しい式＝raw＝(U−必要量×人数÷(ρ×T×f̄))÷能力・
+    /// 失業は min(1, raw×(1−s_E)) で s_E は余りの売れ行きの重みつき平均＝試験は 0 と売る財の売れ行きの最大の間で挟む（f̄ は盤面の収穫係数の必要量加重・土地係数は耕地 1e9 で 1）。両側と min(1) の上側は残す。</summary>
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 旗1の農民の失業は必要量を作る労働を超えた売れ残りだけ_両側(double sell)
     {
         var sim = Two(7UL, 1);
+        foreach (var nt in sim.Nations) { nt.World.Coef.SubsistenceSellSurplus = sell; foreach (var r in nt.World.Regions) r.ArableLand = 1e9; }
         sim.StartWarmup(quartersOverride: 1);
         sim.StepQuarter();
         // 1 州だけ ρ を 20 倍にして σ を 1 に張り付かせ、必要量を作る労働を超えた売れ残り（失業）を立たせる
@@ -122,8 +153,14 @@ public class SubsistenceStage2Tests
             if (lp < 0) continue;
             var p = r.Pops[lp];
             if (p.SubsistenceBasisKind != SubsistenceBasisKind.Productivity || !(cap > 0)) continue;
-            double e = Unsold(r, cap) - Need() * heads / (p.SubsistenceBasis * Tech(r, nt.World.Coef));
-            if (e > 0) { pos++; Assert.True(Math.Abs(p.UnemploymentRate.Value - Math.Clamp(e / cap, 0.0, 1.0)) <= 1e-9, $"失業が (b′) と違う {p.UnemploymentRate.Value} vs {e / cap}"); }
+            double fbar = sell > 0 ? Fbar(r) : 1.0;
+            double e = Unsold(r, cap) - Need() * heads / (p.SubsistenceBasis * Tech(r, nt.World.Coef) * fbar);
+            if (e > 0 && sell > 0)
+            {
+                pos++; double raw = e / cap, hi = SellHi(r), u = p.UnemploymentRate.Value;
+                Assert.True(u <= Math.Min(1.0, raw) + 1e-9 && u >= Math.Min(1.0, raw * (1.0 - hi)) - 1e-9, $"失業が新しい式の幅の外 {u} raw {raw} 売れ行きの最大 {hi}");
+            }
+            else if (e > 0) { pos++; Assert.True(Math.Abs(p.UnemploymentRate.Value - Math.Clamp(e / cap, 0.0, 1.0)) <= 1e-9, $"失業が (b′) と違う {p.UnemploymentRate.Value} vs {e / cap}"); }
             else { zero++; Assert.True(p.UnemploymentRate.Value <= 1e-12, $"必要量を作る労働に届かない売れ残りを失業と数えた {p.UnemploymentRate.Value}"); }
         }
         Assert.True(pos >= 1, "必要量を超える売れ残りの州が無い＝上側の試験にならない");
