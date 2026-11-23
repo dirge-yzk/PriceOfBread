@@ -1,0 +1,7 @@
+F0 入れた：D:/PoB_work/c138df_work/mut/F0/PriceOfBread.SimCore/Fiscal.cs（1 箇所）
+rc=1
+  失敗 PriceOfBread.Tests.ArrearsOnePredicateTests.T1_払えない月の1か月目の末に本位を離れ不履行しない_旗0は金本位のまま累計が線に届いて不履行 
+  失敗 PriceOfBread.Tests.ArrearsOnePredicateTests.T5_払えない月でも利払いが上限の内なら本位のまま_旗0は離れる 
+  失敗 PriceOfBread.Tests.ArrearsOnePredicateTests.T4_累計07でその月r04は本位を離れて不履行しない_旗0は不履行 
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+失敗!   -失敗:     3、合格:     1、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
