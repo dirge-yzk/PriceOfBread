@@ -38,7 +38,10 @@ public static class SaveGame
 
     /// <summary>(1309) 2 つのシミュの保存される欄（セーブと同じ FieldsOf）を並行にたどって比べる。シミュの道からは呼ばない（savetest と試験だけ）。
     /// 値は bit で比べる。辞書と集合は鍵で突き合わせ、値が同じで列挙の順だけ違うものは OrderOnly に数える。max＝Samples に残す件数。</summary>
-    internal static StateDiffResult StateDiff(MultiNationSim a, MultiNationSim b, int max)
+    internal static StateDiffResult StateDiff(MultiNationSim a, MultiNationSim b, int max) => StateDiffOf(a, b, max);
+
+    /// <summary>(1316) 比べる本体（盤面でなく任意の 2 つの物を比べる口＝集合の順だけと要素違いを分ける自己試験が使う・動きは StateDiff と同じ）。</summary>
+    internal static StateDiffResult StateDiffOf(object a, object b, int max)
     {
         var res = new StateDiffResult();
         var seen = new Dictionary<object, object>(ReferenceEqualityComparer.Instance);

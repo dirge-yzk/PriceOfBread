@@ -64,6 +64,28 @@ public class SaveRoundTripTests
         Assert.Same(sim2.Nations[0].World.Regions[0], m2.ClearPartners[1]);
     }
 
+    /// <summary>(1316) 保存の点の四半期の中の日（MultiNationSim の _dayInQuarter・反射で読むだけ）。</summary>
+    private static int DayOf(MultiNationSim s)
+        => (int)typeof(MultiNationSim).GetField("_dayInQuarter", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(s)!;
+
+    /// <summary>(1316) 比べる道具の自己試験：集合の順だけの違いは OrderOnly（値の違いに数えない）・要素が違えば Values に数える。
+    /// 突然変異：集合の順だけを Values に数える → 赤。</summary>
+    [Fact]
+    public void StateDiffは集合の順だけと要素違いを分ける()
+    {
+        var a = new HashSet<int>(); var b = new HashSet<int>(); var c = new HashSet<int>();
+        foreach (int x in new[] { 1, 2, 3, 40, 500 }) a.Add(x);
+        foreach (int x in new[] { 500, 40, 3, 2, 1 }) b.Add(x);
+        foreach (int x in new[] { 1, 2, 3, 40, 501 }) c.Add(x);
+        var order = SaveGame.StateDiffOf(a, b, 4);
+        Assert.Equal(0, order.Values);
+        var diff = SaveGame.StateDiffOf(a, c, 4);
+        Assert.True(diff.Values >= 1, "要素違いが値の違いに数えられていない");
+        // 対照：順だけの違いが実際に起きる（挿入の順が違う 2 つの集合の列挙の順が違う）
+        Assert.False(a.SequenceEqual(b), "前提：挿入の順が違う集合は列挙の順が違う");
+        Assert.Equal(1, order.OrderOnly);
+    }
+
     /// <summary>★四半期の途中（45・75 日目）のセーブ（(1125)・(1309)）：保存→読み→両方を同じ日数続けて、基礎貨幣・総人口・全市場の値段と在庫の和が一致し、保存される欄の値の違いが 0 件（順だけの違いは数えない）
     /// （印が載らないと、読んだ側は月の途中の眠り・清算の記憶を失って軌道が分かれる）。</summary>
     [Fact]
@@ -75,6 +97,7 @@ public class SaveRoundTripTests
         // (1309) 同じ A から 45 日と 75 日の 2 点で保存する（読んだ側 B45・B75 を同じ四半期の終わり＝180 日目まで続けて A と比べる）
         for (int d = 0; d < 45; d++) sim1.StepDay();
         var (asl45, fail45, par45) = SaveGame.MarkCounts(sim1);
+        Assert.True(DayOf(sim1) == 45 && DayOf(sim1) % Calendar.DaysPerMonth != 0, $"45 日の点の日の位置が月の頭か違う（今 {DayOf(sim1)}）");   // (1316)
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
@@ -85,6 +108,8 @@ public class SaveRoundTripTests
         SaveGame.Save(sim1, ms75);
         ms75.Position = 0;
         var sim3 = SaveGame.Load(ms75);
+        // (1316) 保存の点の日の位置：月の頭でない＝第 1 清算（月の頭）の後で次の読みより前（印の有無だけでは 0 日の点でも立つ＝日の位置を読む）
+        Assert.True(DayOf(sim1) == 75 && DayOf(sim1) % Calendar.DaysPerMonth != 0, $"75 日の点の日の位置が月の頭か違う（今 {DayOf(sim1)}）");
         // 対照（空振りの緑を防ぐ）：保存の点で、眠り・清算の失敗の印・清算の覚えが立っている市場がある（印が次の読み手より前に立っている）
         Assert.True(asl45 > 0 && fail45 > 0 && par45 > 0, $"45 日の点で印が立っていない（眠り {asl45}・失敗 {fail45}・覚え {par45}）");
         Assert.True(asl75 > 0 && fail75 > 0 && par75 > 0, $"75 日の点で印が立っていない（眠り {asl75}・失敗 {fail75}・覚え {par75}）");

@@ -37,6 +37,7 @@ open(p,'wb').write(b.encode())
 p2='D:/PoB_work/wt_c102rp/PriceOfBread.SimCore/BilateralMarket.cs'
 P
 run M4_Openを通さず直に "FullyQualifiedName~InstrumentsTablesSelectTests"
+# (1316) 注（空振り）：下の M2（:40〜:48）は (1309) の S1（走り書きの欄 LastPairWasLand を返り値へ）より前の木を書き換える台本＝今の木では置き換える行が無く assert で落ちる＝赤にならない（反証役 v の指摘）。使わない。
 python - <<'P'
 p='D:/PoB_work/wt_c102rp/PriceOfBread.SimCore/BilateralMarket.cs'
 b=open(p,'rb').read().decode()
