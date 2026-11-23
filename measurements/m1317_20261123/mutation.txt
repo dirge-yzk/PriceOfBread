@@ -1,38 +1,32 @@
-m1317 突然変異（使い捨て＝作業ツリーの一時変更を git checkout で戻した）。試験＝SubstInstrumentTests（13 本＝既存 6＋新 7）
-M1 f を外す→赤 3（凶作・豊作・手の盤面）
-M2 min を外す→赤 3（実走・豊作・手の盤面）
-M3 Lneed に f を入れない→赤 1（手の盤面の失業 0.036）
-M4 列を 1 本落とす→赤 7（見出し・実走・s2 の列ほか）
-M5 E の内側の max を外す→赤 4（実走・凶作・手の盤面・σraw＜1）
+m1317 突然変異（13 本の版・使い捨て＝作業ツリーの一時変更を git checkout で戻した）。SubstInstrumentTests 12 本（既存 6＋新 6）
+M1 f を外す→赤 3／M2 min を外す→赤 3／M3 Lneed に f を入れない→赤 1／M4 列を 1 本落とす→赤 7／M5 E の max を外す→赤 4（全て赤）
+（18 本の版でも M1〜M5 全て赤・TL の 5 列を外した後で取り直した）
 
-== M1_f外す
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は凶作で食べる量がσrawかけるfで決まる [1 ms]
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は豊作で余りが立ち売れ行きと失業の式に入る [< 1 
+== M1
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は凶作で食べる量がσrawかけるfで決まる [2 m
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は豊作で余りが立ち売れ行きと失業の式に�
   失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は手で置いた盤面で式どおり [< 1 ms]
-失敗!   -失敗:     3、合格:    10、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (n
-== M2_min外す
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の列は実走で式の関係を保つ [3 s]
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は豊作で余りが立ち売れ行きと失業の式に入る [1 ms
+失敗!   -失敗:     3、合格:     9、スキップ:     0、合計:    12、期間: 9 s - PriceOfBread.Te
+== M2
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の列は実走で式の関係を保つ [4 s]
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は豊作で余りが立ち売れ行きと失業の式に�
   失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は手で置いた盤面で式どおり [< 1 ms]
-失敗!   -失敗:     3、合格:    10、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (n
-== M3_Lneedにf入れない
+失敗!   -失敗:     3、合格:     9、スキップ:     0、合計:    12、期間: 9 s - PriceOfBread.Te
+== M3
   失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は手で置いた盤面で式どおり [1 ms]
-失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (n
-  File "D:\PoB_work\c137s3_work\mut.py", line 12, in <module>
-    assert a in orig
-           ^^^^^^^^^
-AssertionError
-== M5_E内側のmaxを外す
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の列は実走で式の関係を保つ [3 s]
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は凶作で食べる量がσrawかけるfで決まる [4 ms]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 8 s - PriceOfBread.Te
+== M4
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の列は実走で式の関係を保つ [4 s]
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.自給の段2の列は旗0と旗1で計器とエンジンを�
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.自給の段2の列は旗0と旗1で計器とエンジンを�
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.売れ残りは能力の基準で数え_国の和はlabor_s�
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の見出しは13本で末尾に並ぶ [18 ms]
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.Q2の材料は試験がPOPから数えた値に合う [602 ms
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.開幕の比はD1で1に近くD2では遠い [291 ms]
+失敗!   -失敗:     7、合格:     5、スキップ:     0、合計:    12、期間: 8 s - PriceOfBread.Te
+== M5
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の列は実走で式の関係を保つ [4 s]
+  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は凶作で食べる量がσrawかけるfで決まる [5 m
   失敗 PriceOfBread.Tests.SubstInstrumentTests.s3は手で置いた盤面で式どおり [< 1 ms]
   失敗 PriceOfBread.Tests.SubstInstrumentTests.s3はσrawが1未満なら余りが厳密に0 [< 1 ms]
-失敗!   -失敗:     4、合格:     9、スキップ:     0、合計:    13、期間: 6 s - PriceOfBread.Tests.dll (n
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の列は実走で式の関係を保つ [3 s]
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.自給の段2の列は旗0と旗1で計器とエンジンを並べる(f
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.自給の段2の列は旗0と旗1で計器とエンジンを並べる(f
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.売れ残りは能力の基準で数え_国の和はlabor_sに合う [1
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.s3の見出しは18本で末尾に並ぶ [14 ms]
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.Q2の材料は試験がPOPから数えた値に合う [708 ms]
-  失敗 PriceOfBread.Tests.SubstInstrumentTests.開幕の比はD1で1に近くD2では遠い [300 ms]
-失敗!   -失敗:     7、合格:     6、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (n
+失敗!   -失敗:     4、合格:     8、スキップ:     0、合計:    12、期間: 8 s - PriceOfBread.Te
