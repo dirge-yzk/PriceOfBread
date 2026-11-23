@@ -36,3 +36,11 @@
 
 [4] 腕：ident 段 2（--work D:/PoB_work/ident_c138sm・宣言 --grown-ok capskip_s,region_s,arrears_s）。素の 5 種・計器つき 10 種が m1321 と全行一致（宣言した列の増えだけ）。
 [5] 〈判定: 恒等〉（測った種で一致・〈証明〉と書かない）なら採る。一致しなければその変更を外して報告に回す。
+
+[追記 1（腕の前・試験を書いて回した後の事実・担当の名乗り）]
+  ・試験の数の予言の訂正：項 3 で置き場を数える試験に加えて〈Nationgood 群の比べ〉の試験（NationgoodGroupWithOutputIsByteIdenticalToFullRun）を足した＝足した試験は +5（T7・置き場の名簿・Nationgood 群・InstrumentColumnTests・ArrearsUnderLimitPrevMonthTests T6）＝TESTS_NONFULL 3149＋5＝3154（予言の +4 は 1 本の数え落とし）。
+  ・項 3 の置き場の名簿：実測で nation_s だけの走りで溜まる置き場が 41 あった（入口を閉じていない置き場・OpenStores）＝〈等しい〉でなく〈ClosedAccs か OpenStores に入っていない置き場が無い〉の形にした（走る試験の順で現れる置き場があるため）。
+  ・ClosedAccs の拡張で見つかった物：HabitlgAccs は四半期の末に表を書いて空にする＝全表の走りの末でも 0（ClearedAtQuarterEnd として〈全表で溜まる〉の対照だけ外す）。CpStates は CpMonth の閉じの後も Cpmed・Dep・Impose・War の読み口が作る（閉じていない＝OpenStores）＝CpMonth の閉じは擬似の欄 CpStates.Month（新しい鍵の状態に月が書かれたか）で見る。
+  ・置き場の数え方の直し：ConditionalWeakTable は〈増えた件数〉だと前の走りの州・国が走りの途中で回収されて 0 に見え、試験の順で誤って赤になる（実測：OpenStores の試験の後に走らせると WarSts・CpStates が〈溜まらない〉と赤）＝走りの前の鍵の集合を控えて〈控えに無かった鍵の数〉で数える。試験の読み方の変更＝規則の検査（閉じが効いていること）は変えない（★(743) の区分でなく新しい試験の作りの直し・旧の Assert の式は 1 字も変えず、数え方の前提だけ）。
+  ・T7 の盤面：飛ばした A の余りを X_lp の半分に置き、B の側の未充足が一部だけ引かれる盤面にした（全部引かれる盤面では dedupBase に dedup を入れる突然変異が見分けられなかった＝実測で緑だった M2 を受けて）。
+  ・項 4 の region_s の列：RegionProdHeaderText の末尾に足した（cearn_s の prod[0..5] の添字は変わらない）。
