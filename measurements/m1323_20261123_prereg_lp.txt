@@ -113,3 +113,44 @@
   英が男子普通以上に届く年＝M・N1・N2・a11 の 40 種とも none。
  止める線の台本（stoplines906・an_h2 -v4・gdp_zero10）は基準とヌル腕で回った（rc 0）：基準 M の 100 倍以上 0・1e10 倍以上 0・非有限 0・空洞化 1/10 未満 0・名目 GDP 0 の続き 0。
  腕 Z の宣言：--added-tables lawdir_s・--tests-delta 10（LawPreferenceDirectionTests の T1〜T8 の 8 件＋T9 の 2 件）。
+
+■ 追記 2（2026-11-23・形の変え直し 1 回目＝⑭ の枠を使う・腕 Z と腕 B の前・理由と新しい形・門の差し替え）
+ 理由（旗 1 の木の試験の出力を見た後＝⑭ に数える）：上の形（望む段 k*−k＝(1+sgn+Pref)/2）は k* が今の段 k と一緒に動く。Pref が段に依らない軸（検閲・教育法・税ほか大半）で、
+  拡大に弱く反対する陣営（−2<Pref<0）は段がどこへ動いても〈今の段の近く〉を望むことになり、一度動いた法を戻そうとしない＝片方向の錠（README §1-8〈片方向にしか動かない錠より同じ門で戻れる状態〉に反する）。
+  旗 1 の木で PolicyPoliticsTests〈法の隔たりは望む向きの余地が消えれば縮み反対側では広がる〉が赤（報道の自由化で旧支配層の隔たりが広がらない＝旧支配層が自由化に不満を持たなくなる）＝旧の番人が守る性質を消す。
+  記録：measurements/m1323_20261123/formA/（旗 1 の木の ㉜ の試験の赤 4 件・突然変異 M1〜M2 の途中まで）。走り始めの腕 Z（4f8690c9b の木）は止めた（生は消す）。
+ 新しい形（AI の案・確証なし・④ 方法を変える）：単峰の好みの一貫性＝段 k→k−1 の好み＝−（段 k−1→k の好み）。望む段 k*_b は〈1 段上げの好み Pref の符号が段の上で変わる所〉（新しい式を置かない）。
+  Pref が段に依らない軸では k* は端＝後退の好みは拡大の符号の反転のまま（今と同じ＝正しい）。Pref が段に依る軸だけが変わる：
+  ・Suffrage：近代エリートの〈今の参政権が制限選挙より下なら 1〉を、後退の向きでは 1 段下の段で読む＝制限選挙→なしの後退に −1（反対）。旧支配層と大衆は段に依らない＝今と同じ。
+    ColonialSuffrage（goto Suffrage）は国の参政権を読み自分の段を読まない＝今と同じ。
+  ・Inheritance：後退の向きの段の大きさ InheritanceStepSize を 1 段下から（段 k−1→k の率の差）＝後退で動く率の差そのもの。
+  ・MonetaryStandard：後退の向きでは本位の〈銀か〉を 1 段下の本位で読む（金→銀の後退は銀の値下がりの項を含む）。
+  ・SerfEmancipation・LandReform・Bureaucracy・StateReligion（DirectionAware）は既に後退の向きで戻した段の得を読む＝今と同じ。
+  旗 LawPrefSinglePeaked（名は仮のまま）は Pref の中の 1 か所（back＝!increasing かつ旗>0）で読む。5 つの読み手（ParliamentNet・OpposingPower・Stance・SupportBreakdown・NetSupport）は今の式のまま
+  （Pref(…,向き)×sign＝同じ関数 1 本・例外なし）。LawGap は拡大を望まない陣営で Pref(…,下げ) が負でない（後退も望まない＝望む段にいる）とき可動域の寄与 0（重みは今のまま）。
+  新しい係数 0・閾値 0・新しい状態 0。4f8690c9b の Directed・PeakOffset・StepGain・SinglePeaked は消し、読み手を e165b8887 の式へ戻す。
+  英 1800 の参政権（制限選挙・t≈0.69〈試走の Pref から〉）：後退の好み 旧支配層 +0.31（今と同じ）・近代エリート −1（今 +0.31）・大衆 −1（同じ）。拡大の好みは全ての軸で今と同じ（Pref(…,上げ) の経路は旗に依らない）。
+ 段 0 の予言（差し替え）：P1′ 拡大の純支持は全ての軸で今と 1 ビットも同じ。後退の純支持が変わるのは Suffrage（制限選挙→なしの段だけ）・Inheritance・MonetaryStandard の 3 軸。
+  P2′ 参政権が下がった国×年は減る（制限選挙→なしの後退の分だけ）〈推〉。基準の中央 151 → 2/3 前後〈推〉。P3′ 英の男子普通の年は none のまま〈推〉（拡大の側は変えない）。
+  P4′ 相続と本位の後退の回数は向きが読めない〈推〉（段の大きさと銀の項の符号による）＝記録。P5′ 止める線は基準と同じ桁〈推〉・計算量 ±0.0 秒（呼びの数は同じ・LawGap の追加の Pref は DiscontentLawGap 0 で呼ばれない）。
+ 門の差し替え（G0 の試験は全て新の形の式で書き直す・期待は試験が手で書く・止める線 S1〜S5 と H1 と記録は変えない）：
+  T1 英 1800 型（制限選挙・大衆の闘争度 0.4）：旗 1 で NetSupport(上げ)＋NetSupport(下げ)<0・Stance(下げ).Modern＝−1（手書き）・旗 0 では和 0。
+  T2 望む段にいる陣営（制限選挙の近代エリート・0<t<1）：Stance(上げ).Modern＝−1+t<0 かつ Stance(下げ).Modern＝−1<0。
+  T3 同じ陣営でも望む段の上では後退を支持：男子普通の段で近代エリートの Stance(下げ)＝1−t>0（k*＝制限選挙）・対照の検閲（段に依らない軸）は 3 陣営とも Stance(下げ)＝−Stance(上げ)。
+  T4 脅威が望む段を押し上げる：t＝1.2（>1）で男子普通の段の近代エリートの Stance(下げ)＝1−t<0（k* が男子普通以上へ）・t＝0.4 では >0。
+  T5 拡大の向きは旧の規則と 1 ビットも同じ（全ての軸×3 陣営・Stance(上げ) の旗 1 と旗 0 の DoubleToInt64Bits が一致）・0 でない値が 30 以上。
+  T6 相続（Inheritance＝High）：大衆の Stance(下げ)＝−(1−3×(率(High)−率(Mid))×富の割合)（手書き・Government.InheritanceRate を表として読む）・旗 0 は −(1−3×(率(All)−率(High))×富)。
+  T7 本位（金本位・SilverGoldRatio<1）：旧支配層の Stance(下げ)＝銀の値下がりの項を含む手書きの式の符号反転・旗 0 は銀の項を含まない式。
+  T8 LawGap：報道の旧の番人の性質（自由化で旧支配層の隔たりが広がる）が旗 1 でも成り立つ・制限選挙の近代エリート（t＜1）の参政権の寄与は旗 1 で 0（旗 0 は正）＝陣営 1 の LawGap が旗 1 で真に小さい。
+  T9 計器 lawdir_s（旗 0 と 1）：netUpUsed＝netUpOld＝netUpNew・netDownUsed＝旗の側の netDown（相対 1e-8）・旗 0 で netDownNew≠netDownOld の行が 1 以上（参政権の行）。
+ 突然変異（差し替え・㉚）：
+  N1 back を常に偽（旗を読まない）：T1・T2・T3(男子普通は緑)・T6・T7・T8・T9(旗 1) 赤。
+  N2 Suffrage の 1 段下を外す：T1・T2・T8 赤。
+  N3 Inheritance の 1 段下を外す：T6 赤。
+  N4 MonetaryStandard の 1 段下を外す：T7 赤。
+  N5 1 段下の代わりに 1 段上で読む（Suffrage）：T1・T2 赤。
+  N6 脅威の項を外す（threat → 0）：T4 赤。
+  N7 LawGap の望む段の除外を外す：T8 赤。
+ 計器 lawdir_s（差し替え・15 列は同じ名）：netDownOld／netDownNew は計器が自分で組む（Suffrage・Inheritance・MonetaryStandard は Pref の式を計器が自分で写し、段 k と段 k−1 で評価・他の軸は Pref(…,下げ) を入力として読む）。
+  netUpOld＝netUpNew＝Pref(…,上げ) から組む。G1 は同じ（旗 1 で netDownUsed＝netDownNew・行 1 以上・欠け 0・netDownNew≠−netUpNew の行が 1 以上）。
+ 腕 Z の宣言：--added-tables lawdir_s・--tests-delta 10（T1〜T8＋T9 の 2 件）。

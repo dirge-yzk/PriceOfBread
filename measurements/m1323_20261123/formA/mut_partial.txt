@@ -1,0 +1,27 @@
+# (1323) 突然変異 基=43328fc09 2026-11-23 19:00:13
+mutated M1
+M1 rc=1 失敗! -失敗: 7、合格: 3、スキップ: 0、合計: 10、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+  M1 赤: LawPreferenceDirectionTests.T1_英1800型で後退の純支持は拡大の純支持の符号反転でない
+  M1 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  M1 赤: LawPreferenceDirectionTests.T3_可逆の段の法で後退の支持は拡大の符号反転で通らない
+  M1 赤: LawPreferenceDirectionTests.T4_脅威を上げると望む段が上がる
+  M1 赤: LawPreferenceDirectionTests.T6_LawGapは現状維持の陣営の不満を減らす
+  M1 赤: LawPreferenceDirectionTests.T7_後退の反対の力は手書きの区分の式の和
+  M1 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(Double flag)
+  M1 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(flag: 1)
+mutated M2
+M2 rc=1 失敗! -失敗: 6、合格: 4、スキップ: 0、合計: 10、期間: 10 s - PriceOfBread.Tests.dll (net10.0)
+  M2 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  M2 赤: LawPreferenceDirectionTests.T3_可逆の段の法で後退の支持は拡大の符号反転で通らない
+  M2 赤: LawPreferenceDirectionTests.T4_脅威を上げると望む段が上がる
+  M2 赤: LawPreferenceDirectionTests.T5_拡大の向きは旧の規則と同じ値
+  M2 赤: LawPreferenceDirectionTests.T7_後退の反対の力は手書きの区分の式の和
+  M2 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(Double flag)
+  M2 赤: LawPreferenceDirectionTests.T9_計器lawdirは旧新と実際の純支持を並べる(flag: 1)
+mutated M3
+M3 rc=1 失敗! -失敗: 4、合格: 6、スキップ: 0、合計: 10、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+  M3 赤: LawPreferenceDirectionTests.T1_英1800型で後退の純支持は拡大の純支持の符号反転でない
+  M3 赤: LawPreferenceDirectionTests.T2_望む段にいる陣営は拡大にも後退にも反対する
+  M3 赤: LawPreferenceDirectionTests.T4_脅威を上げると望む段が上がる
+  M3 赤: LawPreferenceDirectionTests.T7_後退の反対の力は手書きの区分の式の和
+mutated M4
