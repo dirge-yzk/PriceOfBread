@@ -57,4 +57,34 @@ public class ArrearsUnderLimitPrevMonthTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>(1322) T6：列 prevInterestToRevenue は前の月の呼びの頭で見た比（underLimit に使った比）で、列 interestToRevenue（今の呼びの頭の比）とは別の値。期待値は試験が呼びの前後に読んだ欄から組む（計器の式を呼ばない）。</summary>
+    [Fact]
+    public void T6_列prevInterestToRevenueは前の呼びの頭の比で今の比ではない()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tlu6_" + Guid.NewGuid().ToString("N"));
+        Instruments.Configure(dir, "*");
+        try
+        {
+            var w = Board(0.67);
+            double i0 = w.LastInterestPerMonth.Value, r0 = w.LastRevenuePerMonth.Value;   // 呼び 1 の頭で見える値
+            Month(w, 0.5);
+            double i1 = w.LastInterestPerMonth.Value, r1 = w.LastRevenuePerMonth.Value;   // 呼び 2 の頭で見える値
+            Bigger(w);
+            int before = Instruments.ArrearsPeek(w)!.Count;
+            Month(w, 0.5);
+            var rows = Instruments.ArrearsPeek(w)!;
+            Assert.Equal(before + 1, rows.Count);
+            var h = Instruments.ArrearsHeaderText.Split('\t')[1..];
+            var v = rows[^1].Split('\t');
+            Assert.Equal("prevInterestToRevenue", h[^1]);
+            Assert.True(r0 > 0 && r1 > 0 && i0 > 0, $"前提：歳入と利払い i0={i0} r0={r0} i1={i1} r1={r1}");
+            double prev = double.Parse(v[Array.IndexOf(h, "prevInterestToRevenue")], System.Globalization.CultureInfo.InvariantCulture);
+            double cur = double.Parse(v[Array.IndexOf(h, "interestToRevenue")], System.Globalization.CultureInfo.InvariantCulture);
+            Assert.Equal(i0 / r0, prev, 8);
+            Assert.Equal(i1 / r1, cur, 8);
+            Assert.True(Math.Abs(i0 / r0 - i1 / r1) > 1e-6, $"前提：前の呼びの比と今の呼びの比が同じ（この試験は取り違えを見分けられない）{i0 / r0} {i1 / r1}");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
