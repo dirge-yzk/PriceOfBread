@@ -1,0 +1,57 @@
+# (1332) c139nc ㉘㉜ grep（main 1f55fdf58）
+== IndustrializationReaderTests の Territory.cs
+26:        ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
+== new MoneyStock( の件数（SimCore）
+66
+== route_anchors.tsv の Territory
+71:Territory.cs	internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c) => Pop.Blend(sp, dp, moveSize);	州の間の移民(POPの運搬)	
+== WriterRatchetTests の Territory・Capital
+119:    //   移し方の1本 World.Transfer（旧 MultiNationSim.TransferToPops を World へ移して一般化・+1）へ畳んだ＝CapitalMarket.TakeGold／GiveGold の本体・関税と補助
+210:    [InlineData(".Rebase(", "Territory.cs", 1)]            // 割譲の通貨の付け替え（換算の台帳と対）
+409:    // ★2026-10-13 表の更新（(300) 線 i1＝私的な建設 1 束が上げる工業化度を州の実質の年所得に比例させる〔IndCapitalOutputYears 0→1.0〕＝軌道が動い�
+== OnDoubleReadScanTests の Territory
+47:        ["Territory.cs::static#0"] = 4,
+== DormantIdentityTests の NextCapital
+161:        // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalH
+== Tests の NextCapital
+PriceOfBread.Tests/DormantIdentityTests.cs:161:        // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 �
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs:9:/// <summary>(1304) c135nc 旗 NextCapitalHomeFirst の機構の試験（事前登録 measurements/m1304_20261
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs:13:public class NextCapitalHomeFirstTests
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs:21:        fr.Coef.NextCapitalHomeFirst = flag;
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs:93:        Assert.Same(d, Territory.NextCapital(fr, [a, c]));   // C は leaving・B は植民地格
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs:95:        Assert.Same(b, Territory.NextCapital(fr, [a, c]));
+PriceOfBread.Tests/RevoltIgnitionTests.cs:781:    //   残りは**政府の遷都先**（選び方の1本 Territory.NextCapital＝段2 の遷都と同じ州）�
+PriceOfBread.Tests/RevoltIgnitionTests.cs:799:        var seat = Territory.NextCapital(pw, [capital]);
+== Tests の TransferRegion(…Ceded) で首都
+PriceOfBread.Tests/BasisxInstrumentTests.cs:353:                Territory.TransferRegion(uk, fr, moved, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/BasisxInstrumentTests.cs:355:                Territory.TransferRegion(fr, uk, moved, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/BasisxInstrumentTests.cs:360:                Territory.TransferRegion(uk, fr, moved, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/BasisxInstrumentTests.cs:362:                Territory.TransferRegion(fr, uk, moved, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CapacityAnchorTests.cs:67:        Territory.TransferRegion(uk, fr, core, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CapacityAnchorTests.cs:73:        Territory.TransferRegion(uk, fr, col, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CapacityAnchorTests.cs:101:        foreach (var r in pt.Regions.Where(x => x != keep).ToList()) Territory.TransferRegion(pt, es, r, Territory
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:7:/// 州の移し（<see cref="Territory.TransferRegion"/>）を手で踏み、StepQuarter を挟まずに <see c
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:54:            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:86:            Territory.TransferRegion(uk, fr, r1, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:91:            Territory.TransferRegion(uk, fr, r2, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:118:            Territory.TransferRegion(nw, uk, r, Territory.Rehoming.Returned);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:142:            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:143:            Territory.TransferRegion(fr, uk, r, Territory.Rehoming.Ceded);   // 同じ四半期に送り手へ
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:144:            Territory.TransferRegion(uk, fr, other, Territory.Rehoming.Ceded);   // 1 回だけ動いた州
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:159:            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:160:            Territory.TransferRegion(uk, fr, other, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:179:            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:183:            Territory.TransferRegion(uk, fr, other, Territory.Rehoming.Ceded);   // 助走の外の割譲は�
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:197:            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:213:            Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:214:            Territory.TransferRegion(uk, fr, other, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleToLocalTests.cs:40:        Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleToLocalTests.cs:56:        Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleToLocalTests.cs:77:        Territory.TransferRegion(uk, fr, r1, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleToLocalTests.cs:82:        Territory.TransferRegion(uk, fr, r2, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/CedeRuleToLocalTests.cs:94:        Territory.TransferRegion(uk, fr, rs, Territory.Rehoming.Seceded);
+PriceOfBread.Tests/CedeRuleToLocalTests.cs:98:        Territory.TransferRegion(uk, fr, rr, Territory.Rehoming.Returned);
+PriceOfBread.Tests/ColonyPromotionTests.cs:183:        Territory.TransferRegion(uk, fr, reg, Territory.Rehoming.Ceded);
+PriceOfBread.Tests/ConsDepartTests.cs:12:/// 盤面：4 国・外交凍結・助走の後 6 四半期目の途中で仏の州（首都以外）を全て普へ�
+== Tests の capcol
+PriceOfBread.Tests/NextCapitalHomeFirstTests.cs

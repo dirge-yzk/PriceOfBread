@@ -1,0 +1,12 @@
+seed	capIntCore_peace	capIntCore_civil	capColHome_peace	capColHome_civil	picks	pickIntCore	pickIntCore_civil	maxSovColCap	nations(capIntCore)	ukCaps
+1	0	0	0	0	9	0	0	0		1783:ロンドン(Cor)
+2	1	4	0	0	8	1	1	0	両シチリア:5	1783:ロンドン(Cor)
+3	537	0	0	0	15	1	0	1	プロイセン:537	1783:ロンドン(Cor)
+4	1	0	0	0	25	1	1	1	オスマン:1	1783:ロンドン(Cor)
+5	390	3	0	0	24	3	2	1	スペイン:388,オスマン:4,ハイデラバード:1	1783:ロンドン(Cor)→1853:中核ベンガル(Col)→1854:ロンドン(Cor)
+6	1	5	0	0	16	1	1	1	イギリス:6	1783:ロンドン(Cor)→1857:ダブリン(Cor)→1900:ルアーヴル(Int)→1902:ダブリン(Cor)
+7	3	1	0	0	11	3	3	0	オスマン:2,プロイセン:1,両シチリア:1	1783:ロンドン(Cor)→1798:ダブリン(Cor)→1799:ロンドン(Cor)
+8	2	6	0	0	14	2	2	0	ビルマ:8	1783:ロンドン(Cor)
+9	120	10	0	0	13	5	4	1	プロイセン:116,ハノーファー:7,オヨ帝国:5,ハイデラバード:1	1783:ロンドン(Cor)
+10	473	11	0	0	15	1	1	1	ポルトガル:484	1783:ロンドン(Cor)
+計	capIntCore 内戦でない=1528・内戦中=40	capColHome 内戦でない=0・内戦中=0	picks=150	pickIntCore=18（内戦中 15）	maxSovColCap 種の中央=1・最大=1

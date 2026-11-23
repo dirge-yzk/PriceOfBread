@@ -1,0 +1,124 @@
+(1332) c139nc 挙動の線の事前登録：首都の付け替えの候補を格の順（Core→Integrated→全ての州）の 1 本の規則へ（旗 NextCapitalCoreFirst・1 回目）と capcol_s の格の順の 8 列（2026-11-24・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発
+ 00一覧〈次の波（波139〜）〉2 の①（nc の残り）。実装ログ (1304)（:6304）の反証役 v〈Integrated を含めると種 6 で英の首都がサンクトペテルブルク（割譲の州）〉・v2〈Integrated には入植で昇格した植民地も入る（Simulation.cs:1272）＝2 つの型に分けて書く・8 回の付け替えは全て内戦の四半期の仮の首都〉。
+ 作者 2026-11-21：群 2（州と人口）は残す。答え待ちではない。3 回の規則の 1 回目。形の種類＝〈入口〉（首都の付け替えの選びの候補だけを変える・他は今のまま）。
+ 形は AI の案・確証なし（〈格の順〉は (1299)(1304) の推奨の続き・作者の裁定ではない）。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果＝measurements/m1332_20261124/pre/grep28_32.txt）
+ 旧の規則：Territory.NextCapital（main 1f55fdf58 :254〜:270）の旗 NextCapitalHomeFirst 1 の分岐＝leaving の外に本国格（Core・Integrated）が 1 つでもあれば本国格の州の中から、サービス以外の産出×RefPrice の最大（Core と Integrated を区別しない）。
+ grep〈NextCapital〉（Tests・Tests.Ui）＝DormantIdentityTests.cs:161（注）・NextCapitalHomeFirstTests.cs（T1〜T7）・RevoltIgnitionTests.cs:799（seat＝NextCapital(pw,[capital]) を期待の出所に使う＝同じ関数を通るので旗 1 でも一致〈推〉）。
+ NextCapitalHomeFirstTests の T1 の後半・T7・T2 の旗 0 の行は〈Board(0)＝NextCapitalHomeFirst 0＝格を見ない旧の規則〉の番人＝NextCapitalCoreFirst 1 は NextCapitalHomeFirst の分岐を置き換えるので、Board(0) が NextCapitalCoreFirst も 0 に置く前提の行を器で足す（器の既定は 0＝器では無変化・旗 1 の後も旧の規則の番人のまま）。
+ T1〜T7 の Board(1) の盤面は本国格の Core が A（首都）だけ＝割譲の後に Core が残らない＝旗 1 の格の順でも同じ州を選ぶ〈推〉（T3 の同点・T4 の leaving・T5 の艦隊・T6 の計器を含む）。
+ WriterRatchetTests：旗を読む行は無い。1 種 40 四半期の軌道の件数の InlineData（★(749)）は、開幕の 10 年に Core と Integrated を両方持つ国の首都の付け替えが出ない限り変わらない〈推〉（基準 M の種 1 は付け替えで Integrated を選んだ回が 0＝下の紙）。変わったら ★(749) の例外として取り直し verdict に列挙する。
+ ＝旧の規則を固定する Assert の赤の予言 0（前提の行は器で足す）。
+
+■ 段 0（ソースと基線の生から・読むだけ）
+ 0-1 Integrated の州ができる道（main 1f55fdf58）：Territory.Rehome の Ceded（:164・植民地格でない州は Integrated へ）と Returned（:175・TierInParent を戻す）だけ。
+     Simulation.PromoteColonyToRegion の既定 tier＝Integrated（:1269）は、呼び手 2 つ（Diplomacy.cs:2040 AcquireColony・MultiNationSim.cs:152 開幕）がどちらも RegionTier.Colonial を渡す＝入植で Integrated へ昇格する道は今の main に無い（v2 の〈入植で昇格した植民地も入る〉は今の木では立たない〈ソースで確かめた〉）。Diplomacy.PromotedColonies を増やす行も無い。
+ 0-2 割譲の州と故地（または将来の昇格）を見分ける量は既存の状態から導ける：Region.OriginPowerId（開幕の州＝その国の Power.Id〔MultiNationSim.cs:97〕・昇格の州＝昇格させた国〔Simulation.cs:1380〕・割譲では書き換えない）。
+     Integrated で OriginPowerId＝持ち主の国の Power.Id → 〈故地・昇格〉（割譲で取り戻した自国の州は Ceded で Integrated になる）・違えば〈割譲〉。新しい状態 0（⑩）＝見分けは計器の列（記録）だけ。
+ 0-3 呼び手 3 つは同じ入口で揃う：割譲の艦隊の戻り先（Territory.cs:201）・首都の付け替え（:232）・首都の蜂起の忠誠の守備兵の行き先（MultiNationSim.cs:300 の leaving つき・読むだけ）。MultiNationSim.cs の SetCapital(seat)（内戦の決着）と Formations の遷都は触らない（受け口の外＝capcol_s の otherChangeFlag）。
+
+■ 形（旗 1 の規則は 1 本）
+ Territory.NextCapital：旗 NextCapitalCoreFirst 1 のとき、leaving の外で最も高い格（Core＞Integrated＞Colonial＝Model.cs:59 の enum の並び）を求め、その格の州だけから、サービス以外の産出×RefPrice の最大（同点は Id の小さい方）。
+  homeOnly の分岐（NextCapitalHomeFirst）をこの規則で置き換える（旗 1 では NextCapitalHomeFirst を読まない＝例外の例外にしない・本国格が無ければ最も高い格は植民地格＝全ての州＝今と同じ）。
+  旗 0 は今と 1 ビットも同じ（homeOnly の計算と候補の走査の足し算と比べの順は変えない）。閾値なし。新しい係数 0（旗 1 本＝Coefficients.p08_audit_soldiers.cs:114 の次の 1 行）・新しい状態 0。
+ 入れない物：首都が移った植民地の格を上げる段（ブラジル 1815 型）・割譲の支配度（ver2.0 の後）・SetCapital(seat) と Formations の遷都。
+
+■ 計器 capcol_s の末尾に 8 列（器の段・旗 0・PriceOfBread.SimCore/Instruments/InstrumentsCapCol.cs・ident の宣言 --grown-ok capcol_s）
+ 受け口は今の 2 か所のまま（Territory.cs:232 の CapColPickIfOn・CapColSetIfOn）。計器はエンジンの関数を呼ばない（NextCapital を呼ばず、格の順位 CcRank〔Core 0・Integrated 1・Colonial 2〕と選び CcPickTier を計器が自分で組む＝エンジンの enum の並びに頼らない）。
+ 列：coreFirstFlag（旗）・lastTierRulePick（計器の格の順の選び）・diffTierCount（実際≠その選び）・pickTierGapCount（実際の首都の格が国の最も高い格より下だった付け替え）・
+     picksCoreCount・picksIntCededCount・picksIntOwnCount・picksColonialCount（実際の首都の格の内訳・Integrated は 0-2 の OriginPowerId で分ける）。
+ 乱数を引かない・エンジンに欄を足さない（置き場は今の ConditionalWeakTable）。足した計器の列＝上の 8 列（capcol_s は 22→30 列）。
+
+■ 紙（今の盤面＝keep_1328/base_ins〔M〕・a11〔S11〕・n1・n2・台本 scripts/instruments/c139nc/paper_nc.py・出力 measurements/m1332_20261124/pre/paper_*.txt）
+ pickIntCore（capcol_s の付け替えの四半期で lastActual が Integrated かつ同じ四半期の末に Core が有る回数＝旧の規則で格の下を選んだ回数の近似）：M 18（内戦の四半期 15）・S11 17（16）・N1 17（17）・N2 21（21）。付け替えの回数 M 150・S11 143・N1 122・N2 138。
+ capIntCore（首都が Integrated で Core が有る国×四半期・受け口の外の道を含む）：M 内戦でない 1528・内戦中 40／S11 205・27／N1 335・33／N2 1178・45。
+   M の大きい物：種 3 普 537（1816 にベルリンの割譲→バーミンガム〔Integrated〕を選んで 1950 まで）・種 5 西 388（1853 リガ〔Integrated〕）・種 10 葡 484（1830 内戦の決着の SetCapital でダブリン＝受け口の外・この線では動かない）・種 9 普 116。
+ 英の首都：M 種 6 1900 ルアーヴル（Integrated）→1902 ダブリン・種 5 1853 中核ベンガル（植民地格・1 四半期）。
+ 史実の桁の量（首都が植民地格の主権国〔内戦でない〕の数の四半期ごとの最大）：M 種の中央 1・最大 1／S11 0・1／N1 0・1。capColHome（本国格が有るのに首都が植民地格）＝全て 0（(1304) の点火の後）。
+ ＝旗 0 の盤面で G1 は赤（紙の近似 M 18＞0・★(790) の確かめ）。正確な旗 0 の値は腕 Z（器の木＝旗 0・計器つき 10 種）の capcol_s の pickTierGapCount で取り、ここへ追記する（数を変えない＝門は 0 のまま）。
+
+■ 段 0 の予言（ソースと基線の生から・向きと桁・〈推〉・門にしない）
+ P1 G1（pickTierGapCount の和）：旗 0 の M ≈18 → 旗 1 で 0（受け口の付け替えは全て最も高い格から）。
+ P2 付け替えの選びの格の内訳：旗 1 で Integrated の選びは〈Core が leaving の外に 1 つも無い〉ときだけ＝主に内戦の仮の首都（M の 18 回のうち 15 回が内戦の四半期）が Core の州へ移る。
+ P3 capIntCore（受け口の外の道を含む）：普 種 3 の 537 と西 種 5 の 388 のような〈割譲の付け替えで Integrated を選んで居座る〉型は消える〈推〉。種 10 葡 484 のような SetCapital(seat) の型は残る（記録）。
+ P4 軌道：首都の座標・地代の送り先・その後の蜂起と割譲が変わる種が出る。止める線は基準と同じ桁〈推〉。首都が植民地格の主権国の数は変わらない（植民地格を選ぶのは本国格 0 のときだけ＝旗 0 と同じ）。
+ ＝見込みは〈悪くする〉ではない（Core が残るのに割譲で得た他国の州へ首都が移る誤りを無くす向き）＝腕を回す。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（PriceOfBread.Tests/NextCapitalHomeFirstTests.cs・盤面は試験の中で置く・期待の州は試験が置いた格と値から字で決める）：
+  T8 A（首都 Core 1）・D（Core 1＝貧しい）・C（Integrated 1e6）・B（植民地格 1e9）。A を割譲→首都は D（旗 1）・C（旗 0）。
+  T9 Core が無い：C（Integrated 1e3）・E（Integrated 1e6）・B（植民地格 1e9）。A を割譲→E。
+  T10 NextCapital(fr,[A,E])（E＝Core 1e8 は leaving）→D・[A,D,E]→C（leaving の外に Core が無い＝Integrated・null でない）・[A,C,D,E]→B（本国格が無い＝全ての州）。
+  T11 計器（旗 1 と 0 の 2 件）：T8 の盤面で C の OriginPowerId を英に置き、1 回の割譲で lastTierRulePick＝D。旗 1：actual D・diffTier 0・gap 0・picksCore 1。旗 0：actual C・diffTier 1・gap 1・picksIntCeded 1・picksIntOwn 0。次の四半期は 0 と -。
+  T12 計器：C（Integrated）の OriginPowerId を仏に置く→picksIntOwn 1・picksIntCeded 0・gap 0。
+  T1〜T7 は旗 1 の木で緑（上の㉜）。
+ G1（狙い）：腕 B の capcol_s で pickTierGapCount の和＝0（10 種）。旗 0 は紙で M ≈18＝赤。
+ G2（削り過ぎ）：腕 B の capcol_s で diffOldHome0Count の和＝0（本国格 0 の盤面では格を見ない旧の選びと同じ）。
+ G3（形に固有の誤り＝同じ格の中の選び違い）：腕 B の capcol_s で diffTierCount の和＝0（実際＝計器が独立に組んだ格の順の選び）。
+ G1〜G3 の読み手：scripts/instruments/c139nc/cc_gate.py（capcol_s か格の順の列が欠けた種があれば赤）。G1〜G3 のどれかが 0 でなければ採らない（読み替えて採らない）。
+ 止める線（作者の止める線・腕 B の生を読み手 scripts/instruments/c139nc/read_nc.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines906（nation_s の priceLevel の四半期比 100 倍以上・1e10 倍以上・非有限・plvl・開幕の 1000 倍／gdpjump の 3 区分の〈それ以外〉だけ）。建国の直後と分母の痩せ（popjump1017）はヌル腕と並べる。基準とヌル腕を同じ台本で数え直す（⑰・pre_base.sh）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ。植民地格の州も含む。基準の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ。
+  S4 推定の計算量 ＞248.5 秒（名目・m1328 の余り 約 13.5 秒〔N1〕）。割り当て ±0 秒〈推〉（NextCapital は付け替えの時だけ・旗 1 の追加は州の 1 回の走査・計器は INS=1 の時だけ）。2 秒以下＝合流の累計で読む（★(694)）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 史実の桁の線（10 倍・錨＝史実の値）：首都が植民地格の主権国の数（四半期ごとの最大の種の中央）。史実 0〜1（ポルトガル 1808〜1821 のリオ〈推〉）。種の中央が 10 以上で線（錨 1×10）。基準 M 1。
+ 記録（門にしない）：gdp_zero10・ヌル腕の幅・nullgate・ng（基準 rd:measurements/ng1328_20261124:m1328）・home_break・英の国債の不履行の種の数・開幕の 1000 倍以上。
+
+■ 旗 0 で門が落ちることの確かめ（★(790)）
+ G1：旗 0 の盤面（紙）で M ≈18＝赤（腕 Z の正確な値を追記）。T8・T10・T11(旗 1) の Assert は旗 0 の実装（突然変異 M0）で赤。G2・G3 は旗 0 の盤面で：G2 0（旗 0 でも成り立つ〈削り過ぎ〉の門）・G3 ≈18（赤）。
+ 止める線は〈壊さない〉門＝旗 0 の基準で回して緑を確かめた（下）。
+
+■ 基準で回した止める線（★(1254)・台本 scripts/instruments/c139nc/pre_base.sh・出力 measurements/m1332_20261124/pre/）
+ keep_1328/base_ins：pxjump 100 倍以上 0・1e10 倍以上 0・非有限 0／gdpjump 100 倍以上 0／plvl 比≧100 0・開幕の 1000 倍以上 0／空洞化 1/10 未満 0・1/4 未満 2（移民 1・その他 1）。英の国債の不履行 1/10（種 8）。＝緑。
+ keep_1328/n1：pxjump 0・gdpjump 0・空洞化 1/10 未満 0・1/4 未満 0。英の国債の不履行 2/10（種 6・9）。n2 は pre/ の表。
+
+■ 記録（採否に使わない）
+ R1 付け替えの回数・内戦の四半期の付け替え（内戦の仮の首都の数）・選びの格の内訳（Core・Integrated 割譲・Integrated 故地/昇格・植民地格）・diffOld・otherChange（cc_gate.py）。
+ R2 英の首都の行き先（paper_nc.py の ukCaps・種ごと）・capIntCore（受け口の外の道を含む）の国の上位。
+ R3 同じ盤面の新÷旧＝成績表の行の差の数（card_difflines）。旗 1 の出力が旗 0 と違う行の数。
+ R4 nullgate.py（O・NG）・ng.sh・home_break・英の国債の不履行の種の数・開幕の 1000 倍以上・gdp_zero10。
+ R5 1 四半期に 100 倍以上と 1e10 倍以上の読み（基準とヌル腕を同じ台本で数え直して並べる）・popjump1017。
+ 〈周辺の点検〉（読むだけ）：MultiNationSim.cs:300 の蜂起の忠誠の守備兵の行き先（同じ NextCapital＝旗 1 で Core の州へ）・割譲の艦隊の戻り先（Territory.cs:201・T5）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c139nc/mut_nc.sh・器のコミット〔旗の既定 0＝T1〜T7 は旗 0 の分岐だけ通る〕・出力 measurements/m1332_20261124/mut/）
+ | 突然変異                                   | T8 | T9 | T10 | T11(1) | T11(0) | T12 | T3 | G1（紙） | G2 | G3 |
+ | M0 旗 0 の実装（coreFirst＝false）           | 赤 | 緑 | 赤  | 赤     | 緑     | 緑  | 緑 | 赤       | 緑 | 赤 |
+ | M1 格の順を外す（leaving の外の全ての州）     | 赤 | 赤 | 赤  | 赤     | 緑     | 緑  | 緑 | 赤       | 緑 | 赤 |
+ | M2 Integrated を Core の上へ                 | 赤 | 緑 | 赤  | 赤     | 緑     | 緑  | 緑 | 赤       | 緑 | 赤 |
+ | M3 最も高い格の判定が leaving を無視          | 緑 | 緑 | 赤  | 緑     | 緑     | 緑  | 緑 | 緑       | 緑 | 緑 |
+ | M4 候補の走査が leaving を無視                | 緑 | 緑 | 赤  | 緑     | 緑     | 緑  | 緑 | 緑       | 緑 | 緑 |
+ | M5 同点で Id の大きい方                       | 緑 | 緑 | 緑  | 緑     | 緑     | 緑  | 赤 | 緑       | 緑 | 緑〈推〉 |
+ | M6 計器が格の下の付け替えを数えない           | 緑 | 緑 | 緑  | 緑     | 赤     | 緑  | 緑 | 緑（盲） | 緑 | 緑 |
+ G1〜G3 の列は紙の読み（突然変異では腕を回さない＝腕の枠の節約）。M3・M4 は leaving を渡す呼び手が蜂起（MultiNationSim.cs:300）だけで受け口の外＝門は T10 だけ。
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）（grep の結果＝measurements/m1332_20261124/pre/grep28_32.txt・main 1f55fdf58）
+ 工業化度の読み手の許可表（IndustrializationReaderTests:26）：("Territory.cs", 1)＝この線は工業化度を読まない＝変化 0。
+ `new MoneyStock(`（SimCore）66 件＝この線は足さない＝66 のまま。
+ scripts/instruments/flow262/route_anchors.tsv の鍵の行〈Territory.cs MoveBetweenRegions〉（:71）＝触らない＝変化 0。
+ WriterRatchetTests の宣言の表：この線は CostLedger の数え手を足さない＝宣言の行の変化 0（:210 ("Territory.cs" の .Rebase( 1) は変わらない）。軌道の件数は上の㉜のとおり。
+ OnDoubleReadScanTests：Territory.cs::static#0＝4 のまま（Instruments.On の読みを足さない）。InstrumentsCapCol.cs の関数は各々 1 回以下のまま。
+ TechLevelRemovalTests：技術水準を読まない＝変化 0。
+ DormantIdentityTests.DormantZeroFields：器で +1（NextCapitalCoreFirst）・点火で −1。
+
+■ 計算量の割り当て
+ .cost：±0 秒〈推〉。計器の列は INS=1 の時だけ。
+
+■ ほかの線との重なり（指示の持ち主の一覧を grep で確かめた）
+ Territory.cs（NextCapital :254〜:270）はこの線だけ。Coefficients.p08_audit_soldiers.cs は :114 の次の 1 行（c139k49 は :62）。InstrumentsCapCol.cs はこの線だけ（c139sm は除外と書かれている）。
+ 共有：DormantIdentityTests.cs（:161 の注の次の 1 行）・WriterRatchetTests.cs（触らない予定）。
+
+■ 順
+ 1 この事前登録 → 2 器（旗 0・capcol_s の 8 列・試験 T8〜T12・Board(0) の前提の行）→ ㉘（scan_nc.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c139ncz --work D:/PoB_work/ident_c139nc --grown-ok capcol_s --tests-delta 6）
+ → 4 突然変異（mut_nc.sh）→ 5 旗 1 → ㊴ 計器の束 → フルスイート・savetest・leakhunt（suite_nc.sh）→ 6 腕 B（armb.sh・計器つき 10 種）→ 門 → 印 D:/PoB_work/c139nc_work/nc.mark。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記（2026-11-24・腕 Z の後・腕 B の前・門の数は変えない）
+ 腕 Z（ident c139ncz 段 2・器 b9343ab96）〈判定: 恒等〉（測った種で一致）：素 5 種 180 行・計器つき 10 種 182 行・推定 227.9 秒・表 1697 一致＋揺れ 20＋列が増えた 10（capcol_s +8 列）・注視 4714 行・NG 96 新 0 外れ 0・テスト 3175（3169＋6）・FullLength 3・savetest・leakhunt 緑。
+ 旗 0 の正確な門の値（腕 Z の capcol_s・cc_gate.py・measurements/m1332_20261124/identz/cc_gate_flag0_identz.txt）：G1＝18（紙の近似 18 と同じ）・G2＝0・G3＝18＝旗 0 で G1 と G3 は赤（★(790)）。
+   付け替え 150（内戦の四半期 122）・格の内訳 Core 123・Integrated 割譲 22・Integrated 故地/昇格 0・植民地格 5・受け口の外の付け替え（otherChange）124。
+ 突然変異（measurements/m1332_20261124/mut/mut_M*.txt・NextCapitalHomeFirstTests＋TerritoryTests 24 件）：表どおり。M0 T8・T10・T11(1) 赤／M1 T8・T9・T10・T11(1) 赤／M2 T8・T10・T11(1) 赤／M3 T10 赤／M4 T10・T4 赤（T4 は表に無い余分の赤＝候補の走査は旗 0 と共有）／M5 T3 赤／M6 T11(0) 赤。
+ ㉘ 走査の番人（器 b9343ab96）234 件 緑（measurements/m1332_20261124/scan/）。
