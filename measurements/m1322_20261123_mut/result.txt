@@ -1,0 +1,18 @@
+# 1 回目（M1・M4 だけ有効＝M0・M3 は置き場の数え方の誤りで無効・直した後の 2 回目と 3 回目が有効）
+M1 BondHoldings を保存から外す（NonSerialized）	rc=1	['失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=[]
+M4 soldierK を人口全体にする	rc=1	['失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=[]
+# 2 回目（置き場の数えを新しい鍵の数へ直した後）
+M0 無変更（基準）	rc=1	['失敗!   -失敗:     1、合格:    22、スキップ:     0、合計:    23、期間: 28 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.ArrearsUnderLimitPrevMonthTests.T6_列prevInterestToRevenueは前の呼びの頭の比で今の比ではない']
+M2 dedupBase に dedup を入れる	rc=1	['失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.CapSkipSellerPotentialTests.T7_計器の引く前の未充足は旗0の同じ盤面のBの側の未充足と一致
+M3a CpIter の閉じを外す	rc=1	['失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 24 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing']
+M3b CpMonth の閉じを外す	rc=1	['失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 24 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing']
+M3c HabitLgStep の閉じを外す	rc=0	['成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 23 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=[]
+M3d NgRegionMoved の閉じを外す	rc=0	['成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 23 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=[]
+M3e PxstepTable の閉じを外す	rc=1	['失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 23 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing']
+MUTDONE
+# 3 回目（HabitLgStep・NgRegionMoved は直に呼ぶ試験・T6 を直した後）
+M0 無変更（基準）	rc=0	['成功!   -失敗:     0、合格:    23、スキップ:     0、合計:    23、期間: 25 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=[]
+M3c HabitLgStep の閉じを外す	rc=1	['失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.InstrumentHookClosureTests.DirectEntriesLeaveNoKeyWhenTheirTableIsNotSelected']
+M3d NgRegionMoved の閉じを外す	rc=1	['失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.InstrumentHookClosureTests.DirectEntriesLeaveNoKeyWhenTheirTableIsNotSelected']
+M5 前の月の比を今の月の比にする	rc=1	['失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 2 s - PriceOfBread.Tests.dll (net10.0)']	FAIL=['Tests.ArrearsUnderLimitPrevMonthTests.T6_列prevInterestToRevenueは前の呼びの頭の比で今の比では
+MUTDONE

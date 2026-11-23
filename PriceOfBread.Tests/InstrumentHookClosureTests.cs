@@ -33,27 +33,29 @@ public class InstrumentHookClosureTests
             if (v is null || v is string) continue;
             int n = 0;
             var t = v.GetType();
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(System.Runtime.CompilerServices.ConditionalWeakTable<,>)) { foreach (var _ in (IEnumerable)v) n++; }
-            else if (v is ICollection c) n = c.Count;
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(System.Runtime.CompilerServices.ConditionalWeakTable<,>)) continue;   // (1322) ConditionalWeakTable は件数の増えでなく〈基準に無かった鍵の数〉で数える（CwtKeys）
+            if (v is ICollection c) n = c.Count;
             if (n > 0) d[f.Name] = n;
         }
         return d;
     }
 
-    private static int StateCount()
+    /// <summary>(1322) ConditionalWeakTable の欄ごとの今ある鍵の集合（参照で比べる）。前の走りの州・国が走りの途中で回収されて件数の増えが 0 に見える（試験の順に依る誤りの赤）を避けるため、走りの前の鍵の集合を控え、走りの後に〈控えに無かった鍵の数〉を数える。</summary>
+    private static Dictionary<string, HashSet<object>> CwtKeys()
     {
-        int n = 0;
+        var d = new Dictionary<string, HashSet<object>>();
         foreach (var f in typeof(Instruments).GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public))
         {
             if (f.IsLiteral) continue;
             var v = f.GetValue(null);
-            if (v is null || v is string) continue;
+            if (v is null) continue;
             var t = v.GetType();
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(System.Runtime.CompilerServices.ConditionalWeakTable<,>))
-            { foreach (var _ in (IEnumerable)v) n++; }
-            else if (v is ICollection c) n += c.Count;
+            if (!(t.IsGenericType && t.GetGenericTypeDefinition() == typeof(System.Runtime.CompilerServices.ConditionalWeakTable<,>))) continue;
+            var set = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            foreach (var kv in (IEnumerable)v) { var k = kv.GetType().GetProperty("Key")!.GetValue(kv); if (k is not null) set.Add(k); }
+            d[f.Name] = set;
         }
-        return n;
+        return d;
     }
 
     internal sealed record RunOut(string Dir, int State, Dictionary<string, int> Fields);
@@ -64,7 +66,7 @@ public class InstrumentHookClosureTests
         Instruments.SelectTables(tablesCsv);
         Instruments.Configure(dir, "*");
         GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
-        int baseState = StateCount(); var baseFields = FieldCounts();
+        var baseFields = FieldCounts(); var baseKeys = CwtKeys();
         var sim = Make();
         try
         {
@@ -83,8 +85,23 @@ public class InstrumentHookClosureTests
                 sim.StepQuarter();
                 Instruments.Quarter(sim, 1789UL, q);
             }
-            int state = StateCount() - baseState;
             var fields = FieldCounts().Where(kv => kv.Value > baseFields.GetValueOrDefault(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value - baseFields.GetValueOrDefault(kv.Key));
+            foreach (var kv in CwtKeys())
+            {
+                int added = kv.Value.Count(k => !baseKeys.GetValueOrDefault(kv.Key, new HashSet<object>()).Contains(k));
+                if (added > 0) fields[kv.Key] = added;
+            }
+            // (1322) CpStates は Cpmed・Dep・Impose・War の読み口も作る（CpMonth の閉じだけでは空にならない＝OpenStores）。CpMonth の閉じは〈新しい鍵の状態に月が書かれたか〉で見る（擬似の欄 CpStates.Month）。
+            int cpMonth = 0;
+            var cpf = typeof(Instruments).GetField("CpStates", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!.GetValue(null)!;
+            foreach (var kv in (IEnumerable)cpf)
+            {
+                var key = kv.GetType().GetProperty("Key")!.GetValue(kv)!; var val = kv.GetType().GetProperty("Value")!.GetValue(kv)!;
+                if (baseKeys["CpStates"].Contains(key)) continue;
+                if ((int)val.GetType().GetField("Month")!.GetValue(val)! != 0) cpMonth++;
+            }
+            if (cpMonth > 0) fields["CpStates.Month"] = cpMonth;
+            int state = fields.Values.Sum();
             Instruments.Close(sim);
             return new RunOut(dir, state, fields);
         }
@@ -238,18 +255,82 @@ public class InstrumentHookClosureTests
     }
 
     // 閉じた file の累積の置き場（辞書・ConditionalWeakTable）。nation_s だけを選ぶ走りで空のまま、全表の走りでは溜まる。
-    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags"];
+    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags", "CpIterFlags", "CpStates.Month", "HabitlgAccs", "NgEvs", "PxSinks"];   // (1322) 後ろの 5 つは (1268) で入口を閉じたのに置き場の名簿が無かった物（CpIter・CpMonth・HabitLgStep・NgRegionMoved・PxstepTable の閉じを外すと赤になる）。CpStates.Month は擬似の欄（CpStates 自体は Cpmed・Dep・Impose・War の読み口も作るので OpenStores＝CpMonth の閉じは新しい鍵の状態に月が書かれたかで見る）
+
+    /// <summary>(1322) 四半期の末に表を書いて置き場を空にする物（全表の走りの末でも 0＝〈全表で溜まる〉の対照は取れない）。選ばない走りで溜まっていないことだけを見る。外すと入口の閉じ（HabitLgStep）を外したとき赤になる。</summary>
+    private static readonly string[] ClearedAtQuarterEnd = ["HabitlgAccs"];
 
     [Fact]
     public void UnselectedTablesAccumulateNothing()
     {
         var full = Full.Value;
         var sel = Run("nation_s");
-        var missing = ClosedAccs.Where(f => full.Fields.GetValueOrDefault(f) == 0).ToList();
+        var missing = ClosedAccs.Where(f => !ClearedAtQuarterEnd.Contains(f) && full.Fields.GetValueOrDefault(f) == 0).ToList();
         Assert.True(missing.Count == 0, "対照：全表の走りで溜まらない置き場がある " + string.Join(",", missing));
         var leaked = ClosedAccs.Where(f => sel.Fields.GetValueOrDefault(f) > 0).ToList();
         Assert.True(leaked.Count == 0, "選ばない表の積算が溜まっている（入口の閉じが効いていない）：" + string.Join(",", leaked));
         try { System.IO.Directory.Delete(sel.Dir, true); } catch { }
+    }
+
+    /// <summary>(1322) 置き場を数える：nation_s だけを選ぶ走りでも溜まる置き場は、名簿（OpenStores＝入口を閉じていない置き場）か ClosedAccs に入っていなければ赤。
+    /// 新しい置き場が閉じられないまま足されたら赤＝閉じる（ClosedAccs へ）か、閉じない理由を書いて名簿へ足す（走る試験の順で現れる置き場もあるため、名簿の物が現れないことは赤にしない）。</summary>
+    private static readonly string[] OpenStores = ["BxNats", "BxRegs", "CkSinks", "CkWorlds", "CmStates", "ConAccs", "CrownPrevs", "CrownSinks", "CrownSrcs", "Dips", "FdDiags", "Flows", "HabitlgSinks", "InheritBorns", "InheritOwnStarts", "InheritRegs", "InheritSinks", "Inps", "LandbaseSinks", "Lawgate2Table", "LbAdjs", "LbFrozen", "LbNationHist", "LbNats", "LbRegionHist", "MerchBufs", "MerchSinks", "MerchSteps", "MonSinks", "MonWs", "PopOwner", "PortAccs", "RailAccs", "Sinks", "StartGates", "States", "TrAccs", "UrxPpStates", "UrxRtStates", "UrxStates", "WarPushes", "CpStates", "AreaCache", "_monLawNames"];   // (1322) 今ある 41 の置き場（実測）＝入口を閉じていない置き場の名簿。新しい置き場が足されると赤・閉じたら名簿から外す（閉じる線は別）
+
+    [Fact]
+    public void OpenStoresAreExactlyTheNamedOnes()
+    {
+        var sel = Run("nation_s");
+        var unnamed = sel.Fields.Keys.Where(f => !ClosedAccs.Contains(f) && !OpenStores.Contains(f)).OrderBy(f => f, StringComparer.Ordinal).ToList();
+        Assert.True(unnamed.Count == 0, "nation_s だけの走りで溜まる置き場が名簿に無い（閉じるか名簿へ足す）：" + string.Join(",", unnamed));
+        try { System.IO.Directory.Delete(sel.Dir, true); } catch { }
+    }
+
+    /// <summary>(1322) 入口を直に呼ぶ番人：HabitLgStep（habitlg_s）と NgRegionMoved（nationgood_s）は、走りでは置き場が四半期の末に空になる・州の移りが無い、のため件数では閉じの外れを拾えない
+    /// （突然変異で外しても全表の走りの比べが緑だった）。表を選ばないで呼んだ州の鍵が置き場に残らないことを見る（対照：選ぶと鍵が入る）。</summary>
+    [Fact]
+    public void DirectEntriesLeaveNoKeyWhenTheirTableIsNotSelected()
+    {
+        var sim = Make(); var w = sim.Nations[0].World; var r = w.Regions[0];
+        Assert.NotNull(w.Diplomacy);
+        bool Has(string field, object key)
+        {
+            var v = typeof(Instruments).GetField(field, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!.GetValue(null)!;
+            foreach (var kv in (IEnumerable)v) if (ReferenceEquals(kv.GetType().GetProperty("Key")!.GetValue(kv), key)) return true;
+            return false;
+        }
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ihd_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Instruments.SelectTables("nation_s"); Instruments.Configure(dir, "*");
+            Instruments.HabitLgStep(r, w.Coef, 1.0); Instruments.NgRegionMoved(w, r);
+            Assert.False(Has("HabitlgAccs", r), "habitlg_s を選ばないのに HabitLgStep が置き場へ積んだ（入口の閉じが外れている）");
+            Assert.False(Has("NgEvs", w.Diplomacy!), "nationgood_s を選ばないのに NgRegionMoved が置き場へ積んだ（入口の閉じが外れている）");
+            Instruments.Configure(null, null);
+            Instruments.SelectTables("habitlg_s,nationgood_s"); Instruments.Configure(dir, "*");
+            Instruments.HabitLgStep(r, w.Coef, 1.0); Instruments.NgRegionMoved(w, r);
+            Assert.True(Has("HabitlgAccs", r), "対照：habitlg_s を選ぶと HabitLgStep が積まない（試験の前提が崩れた）");
+            Assert.True(Has("NgEvs", w.Diplomacy!), "対照：nationgood_s を選ぶと NgRegionMoved が積まない（試験の前提が崩れた）");
+        }
+        finally { Instruments.Configure(null, null); Instruments.SelectTables(null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>(1322) Nationgood 群（nationgood_s）は 4 国・種 1789 の走りでは年の間隔（NgEveryYears＝10）のため出力が無い＝NoOutputInThisRun で比べられなかった。間隔を 1 年にして、出力が出る走りで全表の走りと選んだ表のバイトを比べる。</summary>
+    [Fact]
+    public void NationgoodGroupWithOutputIsByteIdenticalToFullRun()
+    {
+        int saved = Instruments.NgEveryYears;
+        Instruments.NgEveryYears = 1;
+        try
+        {
+            var full = Run(null); var sel = Run("nationgood_s");
+            string a = Path(full, "nationgood_s"), b = Path(sel, "nationgood_s");
+            Assert.True(System.IO.File.Exists(a) && System.IO.File.Exists(b), "対照：nationgood_s が出ない走り（間隔を 1 年にしても出力が無い）");
+            Assert.True(new System.IO.FileInfo(a).Length > 200, "対照：nationgood_s が見出しだけ");
+            Assert.True(Bytes(a).AsSpan().SequenceEqual(Bytes(b)), "nationgood_s：選んだ表のバイトが全表の走りと一致しない " + FirstDiff(a, b));
+            Assert.True(sel.State <= full.State, "選ばない表の積算が全表の走りより多い");
+            try { System.IO.Directory.Delete(full.Dir, true); System.IO.Directory.Delete(sel.Dir, true); } catch { }
+        }
+        finally { Instruments.NgEveryYears = saved; }
     }
 
     /// <summary>全ての表を 1 本ずつ単独で選ぶ（環境変数 POB_IH_EXHAUSTIVE=1 のときだけ・約 5 分）。束に入れ損ねた共有する状態をここで拾う。</summary>

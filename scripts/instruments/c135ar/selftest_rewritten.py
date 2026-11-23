@@ -10,11 +10,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 IDENT = os.environ.get('SELFTEST_IDENT') or os.path.normpath(os.path.join(HERE, '..', 'ident', 'ident_check.py'))   # 突然変異 M2 は書き換えた写しを渡す
 RECHECK = os.environ.get('SELFTEST_RECHECK') or os.path.join(HERE, 'arrears_recheck.py')   # M4 も同じ
 HEAD = ("quarter\tyear\tnation\tlaw\tmonetary\tonGoldBefore\tconvertibility\tpayRate\tgovDebt\tforeignShare\tinterestToRevenue"
-        "\tunderLimit\twarm\tspare\tunopenedRoom\tcoverage\towes\tpredOld\tpredNew\tarrOldMonth\tarrNewMonth\tcumOld\tcumNew\tinsolvencyBefore")
+        "\tunderLimit\twarm\tspare\tunopenedRoom\tcoverage\towes\tpredOld\tpredNew\tarrOldMonth\tarrNewMonth\tcumOld\tcumNew\tinsolvencyBefore\tprevInterestToRevenue")
 
 
-def row(q, pay, under, owes, pold, pnew, ao, an, co, cn, spare='-1', nat='A', debt='100'):
-    return '\t'.join([q, '1800', nat, '1', '1', '1', '0.9', pay, debt, '0.01', '0.5', under, '0', spare, '1', '0.98', owes, pold, pnew, ao, an, co, cn, '0'])
+def row(q, pay, under, owes, pold, pnew, ao, an, co, cn, spare='-1', nat='A', debt='100', prev='nan'):
+    return '\t'.join([q, '1800', nat, '1', '1', '1', '0.9', pay, debt, '0.01', '0.5', under, '0', spare, '1', '0.98', owes, pold, pnew, ao, an, co, cn, '0', prev])
 
 
 def write(d, name, rows):
@@ -24,7 +24,7 @@ def write(d, name, rows):
 
 
 # 基準の行（旧の underLimit）：R1 共通・R2 基準だけ・R3 共通（本位の月の pred で残る）
-B = [row('1', '0.9', '0', '1', '0', '1', '0.1', '0', '0.1', '0'),
+B = [row('1', '0.9', '0', '1', '0', '1', '0.1', '0', '0.1', '0', prev='0.9'),
      row('1', '0.8', '0', '1', '0', '1', '0.2', '0', '0.3', '0'),
      row('1', '0.95', '0', '1', '1', '1', '0.05', '0', '0.35', '0')]
 # 腕の行（新の underLimit）：R1 同じ・R3 は under＝1・owes＝0・predNew＝0・量 0・R4 腕だけ
@@ -110,10 +110,16 @@ def main():
         rc, o = recheck(bd, ad)
         if rc == 0: bad.append('組 4b：(g) の違反の行で台本が 0')
         if cmp(m, bd, ad, rw) == 0: bad.append('組 4b：cmp_ins が不一致にならない')
+        # 組 5 (1322)：(h) だけが拾う違反（underLimit＝1 なのに前の月の比 0.9 が L＝0.67 以上・他の (a)〜(g) は規則どおり）
+        bad5 = row('1', '0.5', '1', '0', '0', '0', '0', '0', '0', '0', nat='E', debt='0', prev='0.9')
+        bd, ad = case('g5', B + [bad5], A + [bad5])
+        rc, o = recheck(bd, ad)
+        if rc == 0: bad.append('組 5：(h) の違反の行で台本が 0')
+        if cmp(m, bd, ad, rw) == 0: bad.append('組 5：cmp_ins が不一致にならない')
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for b in bad: print('外れ：', b)
-    print('自己試験：' + ('全て期待どおり（組 1・2a・2b・2c・3・4a・4b）' if not bad else f'外れ {len(bad)} 件'))
+    print('自己試験：' + ('全て期待どおり（組 1・2a・2b・2c・3・4a・4b・5）' if not bad else f'外れ {len(bad)} 件'))
     return 1 if bad else 0
 
 

@@ -1101,7 +1101,7 @@ public sealed partial class InternationalMarket
                         double potBefore = insOnC ? potNew[t] : 0.0;
                         if (potW != 1.0) { potNew[t] += (doneQ + newUnmet) * Wg * potW; potNew[snA] += (doneQ + newUnmetS) * Wg * potW; }
                         else { potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmetS) * Wg; }
-                        if (insOnC) { Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore); if (skipQ > 0) Instruments.CapSkipDedup(nations[siA].World, g, (newUnmet - newUnmetS) * Wg * potW); }
+                        if (insOnC) { Instruments.ScopePot(this, nations[ni].World, scopeCls, scopeThr, (doneQ + newUnmet) * Wg, potNew[t] - potBefore); if (skipQ > 0) Instruments.CapSkipDedup(nations[siA].World, g, (newUnmet - newUnmetS) * Wg * potW, newUnmet * Wg * potW); }
                         unmetQ += newUnmet;
                     }
                     if (!(qA > 1e-12))

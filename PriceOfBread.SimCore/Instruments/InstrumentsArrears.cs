@@ -8,7 +8,7 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string ArrearsHeaderText = "quarter\tyear\tnation\tlaw\tmonetary\tonGoldBefore\tconvertibility\tpayRate\tgovDebt\tforeignShare\tinterestToRevenue"
-        + "\tunderLimit\twarm\tspare\tunopenedRoom\tcoverage\towes\tpredOld\tpredNew\tarrOldMonth\tarrNewMonth\tcumOld\tcumNew\tinsolvencyBefore";
+        + "\tunderLimit\twarm\tspare\tunopenedRoom\tcoverage\towes\tpredOld\tpredNew\tarrOldMonth\tarrNewMonth\tcumOld\tcumNew\tinsolvencyBefore\tprevInterestToRevenue";
 
     sealed class ArWorld { public readonly List<string> Rows = new(); public double CumOld, CumNew; public double PrevInt, PrevRev; }   // PrevInt・PrevRev＝前の月の呼びの末に見た利払いと歳入（エンジンの underLimit は Fiscal.Step の頭で前の月の値を読む）＝(1295)
     sealed class ArSink { public System.IO.StreamWriter? W; }
@@ -36,6 +36,7 @@ public static partial class Instruments
         double rev = w.LastRevenuePerMonth.Value, intr = w.LastInterestPerMonth.Value;
         var s = ArWorlds.GetValue(w, _ => new ArWorld());
         bool under = s.PrevInt < c.MaxInterestShareOfRevenue.Value * s.PrevRev;   // (1295) 前の月の比（エンジンの Fiscal.cs:13 と同じ読み）。上の intr・rev は今月の値で、列 interestToRevenue に使う
+        double prevRatio = s.PrevRev > 0 ? s.PrevInt / s.PrevRev : double.NaN;   // (1322) 列 prevInterestToRevenue＝前の月の呼びの末に見た利払い÷歳入（underLimit の判定に使った比・歳入≦0 は nan）
         s.PrevInt = intr; s.PrevRev = rev;
         bool warm = w.WarmupFrozen;
         bool owes = r < 1 && debt > 1e-9 && !under && !warm;
@@ -58,7 +59,7 @@ public static partial class Instruments
             static string B(bool b) => b ? "1" : "0";
             s.Rows.Add(string.Join('\t', F(w.Year), NameOf(w), F((int)w.MonetaryLaw), B(mon), B(onGold), F(w.Convertibility), F(r), F(debt),
                 F(debt > 0 ? w.ForeignDebt.Value / debt : double.NaN), F(rev > 0 ? intr / rev : double.NaN), B(under), B(warm), F(spare), F(unopenedRoom), F(cover),
-                B(owes), B(predOld), B(predNew), F(aOld), F(aNew), F(s.CumOld), F(s.CumNew), F(w.InsolvencyMonths)));
+                B(owes), B(predOld), B(predNew), F(aOld), F(aNew), F(s.CumOld), F(s.CumNew), F(w.InsolvencyMonths), F(prevRatio)));
         }
         if (s.CumOld >= c.DefaultArrearsMonths) s.CumOld = 0;
         if (s.CumNew >= c.DefaultArrearsMonths) s.CumNew = 0;

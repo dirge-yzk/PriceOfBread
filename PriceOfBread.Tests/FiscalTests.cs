@@ -480,18 +480,24 @@ public class FiscalTests
     }
 
     [Fact]
-    public void 国債台帳_台帳導入前のセーブは読込時に起票される()
+    public void 国債台帳_同じ版のセーブの往復で保有が保たれ台帳が閉じている()
     {
+        // (1322) 旧の番人〈台帳導入前のセーブは読込時に起票される〉を、作者の裁定〈セーブ互換は設計思想ではない・同じ版の往復だけ〉で、同じ版の往復の番人へ書き換えた（★(743) の ①〜④ でも ★(866) の Theory 化でもない）。
         var sim1 = new MultiNationSim([OpeningFixture.Named("イギリス"), OpeningFixture.Named("フランス")], 1789, _ => new NullAgent());   // ★(332) 開幕の国債を絶対額で持つ盤面
         var fr1 = sim1.Nations[1].World;
         Assert.True(fr1.GovDebt.Value > 0, "前提が崩れた：仏に初期国債がない");
-        foreach (var r in fr1.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);   // 台帳導入前のセーブ（保有は既定値0で読まれる）を模す
+        double held1 = HeldOf(fr1);
+        Assert.True(held1 > 0, "前提が崩れた：仏の国内債に持ち主が起票されていない");
+        var perPop1 = fr1.Regions.SelectMany(r => r.Pops).Select(p => p.BondHoldings.Value).ToArray();
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
         var sim2 = SaveGame.Load(ms);
         var fr2 = sim2.Nations[1].World;
-        Assert.True(HeldOf(fr2) > 0, "旧セーブの国内債に持ち主が起票されていない");
+        var perPop2 = fr2.Regions.SelectMany(r => r.Pops).Select(p => p.BondHoldings.Value).ToArray();
+        Assert.Equal(perPop1.Length, perPop2.Length);
+        for (int i = 0; i < perPop1.Length; i++) Assert.Equal(perPop1[i], perPop2[i]);   // 保有は POP ごとに保存される＝読込で起票し直さない
+        Assert.Equal(held1, HeldOf(fr2));
         new BondLedger().Check(fr2);
         new BondLedger().Check(sim2.Nations[0].World);
         sim2.StepQuarter();   // 読み込んだ世界が月次の検査を通って進む（セーブ破れでない）

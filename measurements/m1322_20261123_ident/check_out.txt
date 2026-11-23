@@ -1,0 +1,35 @@
+=== 恒等の判定（測った種で一致） c138sm（2026-11-23 21:23:51）===
+測った木：D:/PoB_work/wt_c138sm（HEAD d87405139・未コミット 1 本）
+基準の設定：D:/PoB_work/wt_c138sm/scripts/instruments/ident/ident.cfg
+宣言：grown=['capskip_s', 'region_s', 'arrears_s'] tests_delta=6
+腕 a：rc=0 end=2026-11-23 21:03:52
+腕 b：rc=0 end=2026-11-23 21:23:51
+腕 t：rc=0 end=2026-11-23 20:52:06
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：42da9b007a8d3ad5
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 42da9b007a8d3ad5
+[素の 5 種] b5_ia_5.txt 対 b5_20261123_m1321
+  ○ 全行バイト一致（179 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261123_m1321.cost
+  ○ 件数の行 45 本・推定 236.0 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 42da9b007a8d3ad5
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261123_m1321_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261123_m1321_ins.cost
+  ○ 件数の行 45 本・推定 230.9 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c138sm/out_ib_10/ins  対  基準 D:/PoB_work/keep_1321/base_ins
+  基準 1717 本・腕 1717 本・バイト一致 1667 本
+  列が増えた表（--grown-ok の宣言）30 本：arrears_s1.tsv+1列・arrears_s10.tsv+1列・arrears_s2.tsv+1列・arrears_s3.tsv+1列・arrears_s4.tsv+1列・arrears_s5.tsv+1列
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1667・既知の揺れ 20・宣言された増減 30）
+  内訳：共通の表 1717 本＝バイト一致 1667＋既知の揺れ 20＋列が増えた 30＋行が増えた 0＋列が消えた 0＋検算の台本で通った表 0＋宣言の無い違い 0＋その他 0（和 1717）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ→検算の台本〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261123_m1321.txt（タグの行を除く）
+  ○ タグの行以外が一致（4877 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 3155（基準 3149+6 を宣言）・FullLength 3（基準 3）
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等
+刈り込み：判定=判定: 恒等・表 1717 本・消した 1577 本（20.02GB）・残した 140 本
+刈り込みの結果：rc=0・刈り込み：判定=判定: 恒等・表 1717 本・消した 1577 本（20.02GB）・残した 140 本

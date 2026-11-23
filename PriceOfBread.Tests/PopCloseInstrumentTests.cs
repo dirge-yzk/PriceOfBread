@@ -165,8 +165,9 @@ public class PopCloseInstrumentTests
         Assert.True(Math.Abs(o.Col(row, "residualClosedK")) < 1e-9, $"閉じた残差 {o.Col(row, "residualClosedK")}");
     }
 
-    /// <summary>(1316) T8：出生・死亡（DemographicStep）・移民・死の記帳を含めて数四半期を回し、全ての州の閉じた残差が小さい（州ごと）。
-    /// 閉じない州があれば名前と量で赤＝記帳の穴の発見の道具（T5 は出生と死の列が rdh_s と一致するだけ）。</summary>
+    /// <summary>(1316) T8：出生・死亡（DemographicStep）・移民を含めて 3 四半期を回し、全ての州の閉じた残差が小さい（州ごと）。
+    /// 閉じない州があれば名前と量で赤＝記帳の穴の発見の道具（T5 は出生と死の列が rdh_s と一致するだけ）。
+    /// (1322) 説明文を実態へ直した：この 3 四半期には死の記帳（KillPops）の事象が無い（生の 398,216 行で閉じを確かめた反証役 v の読み）＝T8 は人口の閉じ全体の番人で、死の記帳の hook の番人は T7（hook を外すと T7 だけ赤）。</summary>
     [Fact]
     public void T8_数四半期を回して州ごとの閉じた残差が0()
     {

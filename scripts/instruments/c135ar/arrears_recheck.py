@@ -2,7 +2,7 @@
 #   python -I arrears_recheck.py <基準の arrears_s の tsv> <腕の arrears_s の tsv>   → 0＝規則どおり・1＝違反・2＝読めない
 # 限界：払える率か国債が変わった行は〈基準だけ＋腕だけ〉の組に見える（(e) の条件を満たせば通る）＝エンジンの変更は成績表と他の表のバイト一致が守る。
 # 規則は scripts の事前登録 measurements/m1303_20261122_prereg_ar.txt [2] の (a)〜(e)＋(1316) で足した (f)(g)（(d) の共通の行で自由でない列が違う分岐は死んでいたので消した）。
-import sys, csv
+import sys, csv, os
 from collections import OrderedDict
 
 csv.field_size_limit(1 << 26)
@@ -58,7 +58,7 @@ def main():
 
     # (f)(g) (1316) 規則そのものの検査（腕の全行・基準の列に頼らない自分の列の関係）：(f) owes＝0 の行は arrNewMonth＝0（払えない月の量は owes の月だけ立つ・underLimit＝1 なら (b) で owes＝0 なので arrNewMonth＝0 まで続く）・
     #   (g) 国ごとの cumNew（新の規則の累積）は行の順に減らない。10 種の基準の生（keep_1315/base_ins の arrears_s）で全行成り立つことを確かめてある（紙の台本）。cumOld は減る行があるので検査しない。
-    #   (h)（underLimit＝前の月の比＜L）は行が毎月でなく interestToRevenue と L＝0.67 の比べが 10 種の全てで食い違う＝列からは組めない＝作らない。
+    #   (h)（underLimit＝前の月の比＜L）は (1316) まで列から組めなかった＝(1322) で前の月の比の列 prevInterestToRevenue を足して下に作った。
     nf = ng = 0; prevcum = {}
     for k, r in enumerate(ra):
         if r[ix['owes']] == '0' and float(r[ix['arrNewMonth']]) != 0:
@@ -69,6 +69,19 @@ def main():
             ng += 1
             if ng <= 2: viol(f'(g) 腕の行 {k + 2} で cumNew が前の行より減った')
         prevcum[nat] = cn
+    # (h) (1322) underLimit＝前の月の比＜L（列 prevInterestToRevenue が (1322) の木から出る・無い生では飛ばす）。L は環境変数 POB_ARREARS_L（既定 0.67＝MaxInterestShareOfRevenue）。
+    #   nan の行（歳入≦0 か最初の呼び）と L との差が 1e-6 未満の行（10 桁に丸めて書かれる）は飛ばす。
+    nh = nhc = 0
+    if 'prevInterestToRevenue' in ix:
+        L = float(os.environ.get('POB_ARREARS_L', '0.67'))
+        for k, r in enumerate(ra):
+            pv = float(r[ix['prevInterestToRevenue']])
+            if pv != pv or abs(pv - L) < 1e-6: continue
+            nhc += 1
+            if (r[ix['underLimit']] == '1') != (pv < L):
+                nh += 1
+                if nh <= 2: viol(f'(h) 腕の行 {k + 2} で underLimit が前の月の比と食い違う（prev={pv}）')
+        if nh > 2: viol(f'(h) の違反は計 {nh} 行')
     if nf > 2: viol(f'(f) の違反は計 {nf} 行')
     if ng > 2: viol(f'(g) の違反は計 {ng} 行')
 

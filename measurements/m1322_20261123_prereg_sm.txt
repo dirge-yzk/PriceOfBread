@@ -1,0 +1,46 @@
+(1322) 恒等の線 c138sm：小物の束（(1316) の残り＝pf の重なりの列・ih の項 4＋閉じの穴・計器の列 soldierK と LastShortage・ar の (h)・T8 の説明文）＋SeedBondHoldings の番人と読込の再起票の削除＋ak の G1 の台本。形＝恒等（挙動を変えない・予言 0）。書き手 Sonnet 5.5。
+最初のコミット（腕・試験の前）。基準＝m1321（B5 b5_20261123_m1321・B10INS b10_20261123_m1321_ins・INSRAW keep_1321/base_ins）。木の出発＝e165b8887。
+
+[1] 恒等の線・予言 0
+  素の 5 種・計器つき 10 種は m1321 と名乗り行（SOURCE-HASH）を除き全行バイト一致。計器の表の差は下の宣言だけ（capskip_s・region_s・arrears_s の末尾に列が増える）。
+  新しい係数・旗・シミュの状態は 0。計算量の件数（.cost の推定）は増えない（増える列は計器が閉じていれば書かない＝入口で返る物だけ）。
+  SaveGame.Load は走りの中で呼ばれない（Runner の savetest と試験だけ）＝ident は恒等。savetest・SaveRoundTripTests は緑のまま。
+  浮動小数の順序が変わる箇所は 0（既存の式を 1 字も変えない・足す列は読むだけ）。
+
+[2] 項と消す物・残す物（★(743) の区分は試験を書き換える項だけ）
+  項 1 SeedBondHoldings の番人と読込の再起票：SaveGame.cs:28 の `foreach (var n in sim.Nations) Fiscal.SeedBondHoldings(n.World);` を消す（Load の再起票）。Fiscal.cs:521 の定義・Simulation.cs:211・World.cs:2262 は残す（走りの中の呼び出し）。
+          FiscalTests.cs:483 の〈国債台帳_台帳導入前のセーブは読込時に起票される〉は、旧のセーブ（保有 0 で保存した物）の読込を固定する試験＝作者の裁定〈セーブ互換は設計思想ではなく同じ版の往復だけ〉で旧セーブの読込は要らない。
+          同じ版の往復で保有が保たれる Assert へ書き換える（盤面は同じ・保有を 0 にする行を消し、保存前の州ごとの保有を控えて読込後と等しいこと・Check が通ること・1 四半期進むことを見る）。区分は ★(743) の ①〜④ でなく〈作者の裁定で旧セーブの互換を捨てる〉書き換え（名乗る・ ★(866) の Theory 化ではない）。旧の番人が守っていた性質のうち〈読込後に Check が通る・進める〉は残す。
+          読み手の grep（Fiscal.SeedBondHoldings）：SimCore 3（Fiscal.cs 定義・Simulation.cs:211・World.cs:2262）＋SaveGame.cs:28（消す）。Tests の呼び出し 6 か所（Arrears*Tests・FiscalTests.cs:923・:941）は盤面を作る呼びで残す。Runner・App・Display・scripts・measurements に 0。POB_COEF の名前 0・SaveGame の名前の表 0（BondHoldings は Pop の既存の欄）。
+  項 2 pf：capskip_s の末尾に 1 列 dedupBaseWeight（同じ行の次の売り手の側の未充足を引く前の量＝newUnmet×Wg×potW の和）を足す。引いた量 dedupWeight との比が〈重なり〉の割合。
+          受け口 Instruments.CapSkipDedup に引数を足す（BilateralMarket.cs:1104 の呼びの 1 行・計器が閉じていれば入口で返る・エンジンの式は変えない）。AI の読み（〈重なりの列〉の定義は (1316) の文面だけで、列の中身は担当の読み）。
+  項 3 ih の項 4＋閉じの穴：InstrumentHookClosureTests の ClosedAccs に CpIterFlags・CpStates・HabitlgAccs・NgEvs・PxSinks を足す（全表の走りで溜まる・nation_s だけの走りで空のまま。溜まらない置き場が出たら名簿から外して理由を書く）。
+          新しい試験 1 本：全表の走りで溜まり、nation_s だけの走りでも溜まる置き場は名簿（許す置き場）に無ければ赤（置き場を数える・新しい未閉じの置き場を拾う）。
+          項 4（6 群ごとの盤面）の〈Nationgood 群の比べ〉：SelectedGroupIsByteIdenticalToFullRun に Nationgood 群（nationgood_s）を足す。出力が出ない群なら NoOutputInThisRun に入れず理由を書く（名簿の件数 6 の予言）。
+  項 4 計器の列：region_s の末尾（RegionProdHeaderText の末尾）に soldierK（州の兵の POP の規模の和）・advLaborShortage（州の高度労働力の市場の LastShortage）の 2 列。cearn_s の prod[0..5] の読み手は添字で読む＝変わらない。
+          UrxInstrumentTests.cs:209 の EndsWith(RegionProdHeaderText) はヘッダー定数に含めるので緑のまま。
+  項 5 ar：arrears_s の末尾に prevInterestToRevenue（前の月の呼びの末の利払い÷歳入・歳入≦0 は nan）を足す。検算の台本 arrears_recheck.py に (h)（underLimit＝前の月の比＜L・L は既定 0.67・nan の行と L との差 1e-6 未満の行は飛ばす）・自己試験の組 5（(h) の違反）を足す。
+          df は arrears_s を読むだけ（Fiscal.cs には触らない）。突然変異：前の月の比を今の月の比にする。
+  項 6 T8：PopCloseInstrumentTests.cs T8 の説明文（summary）を実態へ（死の記帳の事象は 3 四半期に無い・死の hook の番人は T7・T8 は出生・死亡・移民を含めた人口の閉じ全体の番人）。コード・Assert は変えない。
+  項 7 ak の G1：scripts/instruments/m1321/rev/akv2_born.py（実際の側を treasledger_s の _bornTreasury で読む）を scripts/instruments/st_gate/st_gate_born.py に写し、門の形（全行が一致・行 1 以上・表の欠け 0 で rc 0）にして自己試験を付ける。read1321.sh は触らない。
+  他の線との重なり：SaveGame.cs は :28 だけ。Fiscal.cs には触れない（df）。InstrumentsSubst.cs（ss）・lp の表には触れない。BilateralMarket.cs は :1104 の 1 行（他の線の持ち物の一覧に無い）。Instruments.cs・DormantIdentityTests.cs・WriterRatchetTests.cs は宣言の行だけ（今回は 0 行の見込み）。Runner・App・Display は 0 行。
+
+[3] 足す試験と突然変異（いずれも → 赤）
+  T1（項 1）：FiscalTests の書き換えた試験。M1＝Pop.BondHoldings に [System.NonSerialized] を付ける（保存から外す）→ 読込後の保有が 0 で赤。
+  T2（項 2）：CapSkipSellerPotentialTests に T7（旗 1 の盤面で dedupBaseWeight≧dedupWeight＞0・dedupBase が旗 0 の同じ盤面の B の側の未充足〔試験が別の道で出す〕と等しい）。M2＝dedupBase に dedup を入れる→ 赤。
+  T3（項 3）：ClosedAccs の拡張（既存の UnselectedTablesAccumulateNothing）。M3a〜M3e＝閉じた 5 本（CpIter・CpMonth・HabitLgStep・NgRegionMoved・PxstepTable）の `if (!Tg.X) return;` をそれぞれ外す→ 1 本ずつ赤（M3a〜e の 5 本・使い捨ての木・出力は measurements/m1322_*）。新しい試験の置き場の名簿：未閉じの置き場の件数が変わると赤。
+  T4（項 4）：新しい試験 InstrumentColumnTests.RegionSoldierAndShortage（兵の規模と LastShortage を試験の中で置き、列が値と一致）。M4＝soldierK を人口全体にする→ 赤。
+  T5（項 5）：ArrearsUnderLimitPrevMonthTests に T6（列 prevInterestToRevenue が前の月の比 x1 で今月の比 x2 でない）。M5＝前の月の比を今の月にする→ 赤・自己試験の組 5 は (h) を外す変異で赤。
+  足す試験の数の予言：非 FullLength の Tests に +4（T2・置き場を数える・T4・T5）＝TESTS_NONFULL 3149＋4＝3153（Ui 232 は変わらない）。FiscalTests の書き換え 1 本は本数が変わらない。
+  ソースを走査する番人（㉘）：WriterRatchetTests の宣言の表・DormantIdentityTests の許可表・new MoneyStock( の件数（SimCore 64）・route_anchors.tsv の鍵の行は触らない＝書き換える件数 0（予言）。㉘ の束は器の後に回す。
+
+[4] 腕：ident 段 2（--work D:/PoB_work/ident_c138sm・宣言 --grown-ok capskip_s,region_s,arrears_s）。素の 5 種・計器つき 10 種が m1321 と全行一致（宣言した列の増えだけ）。
+[5] 〈判定: 恒等〉（測った種で一致・〈証明〉と書かない）なら採る。一致しなければその変更を外して報告に回す。
+
+[追記 1（腕の前・試験を書いて回した後の事実・担当の名乗り）]
+  ・試験の数の予言の訂正：項 3 で置き場を数える試験に加えて〈Nationgood 群の比べ〉の試験（NationgoodGroupWithOutputIsByteIdenticalToFullRun）を足した＝足した試験は +5（T7・置き場の名簿・Nationgood 群・InstrumentColumnTests・ArrearsUnderLimitPrevMonthTests T6）＝TESTS_NONFULL 3149＋5＝3154（予言の +4 は 1 本の数え落とし）。
+  ・項 3 の置き場の名簿：実測で nation_s だけの走りで溜まる置き場が 41 あった（入口を閉じていない置き場・OpenStores）＝〈等しい〉でなく〈ClosedAccs か OpenStores に入っていない置き場が無い〉の形にした（走る試験の順で現れる置き場があるため）。
+  ・ClosedAccs の拡張で見つかった物：HabitlgAccs は四半期の末に表を書いて空にする＝全表の走りの末でも 0（ClearedAtQuarterEnd として〈全表で溜まる〉の対照だけ外す）。CpStates は CpMonth の閉じの後も Cpmed・Dep・Impose・War の読み口が作る（閉じていない＝OpenStores）＝CpMonth の閉じは擬似の欄 CpStates.Month（新しい鍵の状態に月が書かれたか）で見る。
+  ・置き場の数え方の直し：ConditionalWeakTable は〈増えた件数〉だと前の走りの州・国が走りの途中で回収されて 0 に見え、試験の順で誤って赤になる（実測：OpenStores の試験の後に走らせると WarSts・CpStates が〈溜まらない〉と赤）＝走りの前の鍵の集合を控えて〈控えに無かった鍵の数〉で数える。試験の読み方の変更＝規則の検査（閉じが効いていること）は変えない（★(743) の区分でなく新しい試験の作りの直し・旧の Assert の式は 1 字も変えず、数え方の前提だけ）。
+  ・T7 の盤面：飛ばした A の余りを X_lp の半分に置き、B の側の未充足が一部だけ引かれる盤面にした（全部引かれる盤面では dedupBase に dedup を入れる突然変異が見分けられなかった＝実測で緑だった M2 を受けて）。
+  ・項 4 の region_s の列：RegionProdHeaderText の末尾に足した（cearn_s の prod[0..5] の添字は変わらない）。
