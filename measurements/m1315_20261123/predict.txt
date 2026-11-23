@@ -1,0 +1,31 @@
+(1315) 合流（波136）の予言（merge の前にコミットする・★(711)）
+書き手 Opus 5.5。基点 1c8873228（main＝origin/main）。基準 m1308（ident.cfg の B5・B10INS・INSRAW keep_1308/base_ins・NG ng1308）。
+
+入れる線（予定）
+- 恒等 c136sv (1309)：線の ident〈判定: 恒等（段 1）〉・SimCore は BilateralMarket.cs の走り書きの欄を out 引数へ（式と順序は同じ）＋SaveGame.StateDiff・MarkCounts（読むだけ）・Runner の savetest の枝・saveleak.sh :6。
+- 恒等 c136tc (1310)：試験だけ（SimCore・Runner・App の差 0 行）。
+- 挙動（削除）c136kb (1311)：腕 Z〈判定: 恒等（段 1）〉（項 1）・腕 B（項 2・計器つき 10 種・13 表）の成績表が m1308 と全行一致。
+- 恒等 c136ur (1312)：器 U0 だけ（urxpd_s の末尾 21 列・旗 UrbanFlowReal は 0 のまま・PopDecision と p06 は 0 行）。線の ident〈判定: 恒等（段 2）〉。
+- 写す：読む線 c136ak (1313)・設計の材料 c136sh (1314)（コミットしない線＝合流が写す）。
+
+消す名前（★(773)）：LampOilPetroleumDupOff・RemovedDuplicateRows・「石油灯油」（kb）・LastPairWasLand（sv）を 4 枝の SimCore・Runner・Tests・Tests.Ui・App で grep した＝他の枝の件数は main と同じ（新しい読み手 0）。merge-tree 6 組とも衝突 0。
+
+予言（合わせた木＝旗は全て既定・UrbanFlowReal 0）
+P1 素の 5 種の成績表は b5_20261123_m1308 と全行バイト一致（名乗り行を除く・179 行）・.cost の件数の行 45 本と推定 230.7 秒が一致。
+P2 計器つき 10 種の成績表は b10_20261123_m1308_ins と全行バイト一致（181 行）・推定 227.4 秒が一致。
+P3 計器の表（段 2・全表）：基準 1700 本のうち urxpd_s の 10 本だけが列の増え（+21 列・宣言 --grown-ok urxpd_s）・既知の揺れ 20 本（burscan_s・clock_s）・cearn_s の経路の行番号は Simulation.cs の 4 行の削除で動きうる（ident が既知の揺れとして扱う）・宣言の無い違い 0。
+   危うい所：kb の項 2（発見の行の削除）は線では 13 表だけで確かめた＝行の数で列を作る表があれば列が 1 本消える＝その時は〈予言の外れ〉と名乗り、表を読んでから宣言する（形を変えない）。
+P4 試験の数：Category!=FullLength 3128（基準 3123＋sv 3＋tc 1＋ur 1＋kb 0〔T2 −1・T3 +1〕）＝Tests 2896＋Ui 232・FullLength 3。
+P5 NG は ng1308 と同じ集合（84 件・新しい 0・外れた 0）。注視の表はタグの行以外が一致。
+P6 savetest OK（sv の 3 点 0,45,75 の state 形）・leakhunt 保存則違反なし。WriterRatchetTests の宣言の表の取り直し 0。
+P7 種 11〜20（S11・計器つき・表を絞る）の成績表は b10s11_20261123_m1308_ins と全行バイト一致（kb の項 2 の行の削除が種 11〜20 でも軌道を変えないことの確かめ）。
+
+止める線の段（合わせた木の軌道が m1308 と同じなら全て m1308 のまま＝0）
+- 価格水準の四半期比 100 倍・1e10 倍・非有限・開幕の 1000 倍：0。空洞化 1/10 未満：0。計算量 ＞248.5 秒：無し（227.4）。機構のテストの赤：0。
+記録の段
+- gdp_zero10・英の国債の不履行・NG・nullgate は m1308 の値のまま（軌道が同じ）。
+
+採否の規則（結果の前に固定）
+- P1・P2・P3（宣言の無い違い 0）・P4・P7 が当たれば、基線は m1308 のまま。INSRAW は合わせた木の腕 Z の生（PRUNE=0）で keep_1315/base_ins を作り、ident.cfg の INSRAW・BASE_COMMIT・STAGE_BASE・TESTS_NONFULL を書き換える（B5・B10INS・MON・NG_BASE・KEEPNULL は m1308 のまま）。
+- P1 か P2 か P7 が外れたら、kb の項 2（9f39a4469）を外した木で 1 本回して帰属を決める。
+- 成績表の差がヌル腕の幅の内でも改善とは書かない。
