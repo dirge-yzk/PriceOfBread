@@ -1,0 +1,3 @@
+(1328) 合流が消した古い keep（作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った＝新しい ident.cfg を push した後に、INSRAW でも KEEPNULL でもない古い keep を消してよい）
+2026-11-24 main 6d6e345cd を origin へ push した後に D:/PoB_work/keep_1321（base_ins・n1・n2・a11・約 69GB）を消した＝INSRAW は keep_1328/base_ins・KEEPNULL は keep_1328 へ移った。要約は measurements/m1321_20261123/keepsum_insraw1321.tsv・keepsum_n1_1321.tsv・keepsum_n2_1321.tsv・keepsum_a11_1321.tsv。
+keep_1321_rej（k49B）は K49 の 3 回目の比べが済むまで残す（消していない）。

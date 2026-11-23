@@ -1,0 +1,22 @@
+担当 26 人・手番 1804・読み 338.5M・書き 7.9M・出力 1.6M・助言役 9 回
+費用（Opus 5.5 の入力 1 トークン換算・模型の単価を掛けた）: 計 35.9M＝読み 16.2M（45%）・書き 7.8M（22%）・出力 7.9M（22%）・助言役 4.0M（11%）
+キャッシュ切れの丸ごとの書き直し: 2.1M（費用の 6%）
+文脈 20 万超の手番の読み: 212.9M（読みの 63%）／道具 1 つだけの手番: 1901/1804（105%）
+前の手番からの間隔	手番	書き	丸ごとの書き直し
+〜270秒	1766	3.9M	2
+270〜600秒	6	1.1M	4
+600秒〜	7	1.9M	7
+重い順（上位 12）
+担当	模型	手番	始まり	終わり	読み	書き	切れ	出力	助言役	費用	指示
+a630162a2f	opus-5-5	268	59K	487K	87.3M	0.5M	0.0M	234K	0回	6.1M	[Workflow harness — computed
+ae04de0df3	opus-5-5	238	108K	381K	64.2M	0.4M	0.0M	132K	0回	4.3M	[Workflow harness — computed
+a3400018d4	opus-5-5	206	59K	395K	57.3M	0.4M	0.0M	197K	0回	4.3M	[Workflow harness — computed
+a764ec5243	sonnet-5-5	165	59K	294K	29.0M	3.3M	3.0M	125K	0回	3.1M	[Workflow harness — computed
+aa76ee2b21	opus-5-5	41	21K	264K	5.7M	0.3M	0.0M	109K	2回	2.3M	PriceOfBread（C:\Users\dirge\
+a9ea084dbc	opus-5-5	46	21K	200K	5.5M	0.4M	0.2M	51K	1回	1.6M	PriceOfBread（C:\Users\dirge\
+a2616c5e82	opus-5-5	41	21K	175K	4.3M	0.2M	0.0M	53K	2回	1.5M	PriceOfBread（C:\Users\dirge\
+a3c96cf19f	opus-5-5	121	59K	203K	18.5M	0.2M	0.0M	62K	0回	1.5M	[Workflow harness — computed
+a6e4b2e4c5	opus-5-5	95	57K	211K	12.2M	0.2M	0.0M	79K	0回	1.3M	[Workflow harness — computed
+a0e4f8b9bc	opus-5-5	58	21K	163K	5.5M	0.2M	0.0M	53K	1回	1.2M	PriceOfBread（C:\Users\dirge\
+a389f3e72d	opus-5-5	43	22K	190K	4.3M	0.2M	0.0M	67K	1回	1.2M	PriceOfBread（C:\Users\dirge\
+a9a8b88453	opus-5-5	51	21K	128K	4.1M	0.1M	0.0M	35K	1回	0.9M	PriceOfBread（C:\Users\dirge\
