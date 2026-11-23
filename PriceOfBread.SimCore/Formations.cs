@@ -360,7 +360,7 @@ public static class Formations
         {
             if (q == p || q.Nation is null || q.FormationTier < r.Tier) continue;
             foreach (var f in Enumerate())
-                if (f.NewName == q.Name && (f.CultureIs ?? f.NewName) == key) return true;   // 段は外側の q.FormationTier ≥ r.Tier だけ（(1262)：名前は規則ごとに唯一で、成立の時に FormationTier＝その規則の段を同時に書く＝f.Tier ≥ r.Tier と同じ）
+                if (f.NewName == q.Name && (f.CultureIs ?? f.NewName) == key) return true;   // 段は外側の q.FormationTier ≥ r.Tier だけ（(1262)・(1316)：同じ NewName の規則は札〔CultureIs ?? NewName〕も同じ＝名前で規則を引いても札は 1 通り〔FormationLabelTests が固定〕。段は同じとは限らない：マラーター帝国だけ Rules〔Tier 2〕と CultureRealms の大名〔Tier 3〕で段が違う〔同じ試験が名簿で固定〕＝f.Tier ≥ r.Tier との同値は他の名前だけ）
         }
         return false;
     }
