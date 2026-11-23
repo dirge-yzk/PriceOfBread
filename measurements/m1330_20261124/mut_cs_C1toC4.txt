@@ -1,0 +1,5 @@
+C1 : 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+C2 : 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+C3 : 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+C4 : 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
