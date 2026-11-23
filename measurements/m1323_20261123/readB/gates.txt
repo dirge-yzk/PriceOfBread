@@ -1,0 +1,24 @@
+(1323) c138lp 腕 B（e11fc91a2・旗 LawPrefSinglePeaked 1・計器つき 10 種・種 1〜10）の門と記録（事前登録 measurements/m1323_20261123_prereg_lp.txt の追記 2〜4 の門）
+
+■ 門
+ G0 単体の機構の試験 LawPreferenceDirectionTests 14 件：旗 0 の木（㉘ 168 件）・旗 1 の木（㉜ の束 353 件・フルスイート）とも緑。
+   突然変異 N1〜N8 は予言した試験で赤（mut/summary_N1-N7.txt・mut/summary_N8.txt）。
+ G1 実際の側（lp_gate.py）：586170 行・実際＝新の規則の食い違い 0・欠け 0・singlePeakedFlag 全て 1・鏡写しでない行 51922＝緑。
+   旗 0 の腕 Z の生では赤（singlePeakedFlag 0・実際＝旧の式の食い違い 0／586170）＝pre/lp_gate_armZ_flag0.txt。
+   後退の純支持が旧で正・新で 0 以下の行：Suffrage 5816・MonetaryStandard 4497・Inheritance 44。
+ S1 破綻：10 種完走・フルスイート 2929＋スキップ 2・Ui 232・FullLength 3・savetest・leakhunt 緑（suite/suite_flag1_afffdf264.txt）。
+ S2 発散（stoplines906）：priceLevel の 1 四半期 100 倍以上 0（建国の直後 0・分母の痩せ 0・それ以外 0）・1e10 倍以上 0・非有限 0・pxmonth 3 か月比の最大 1.11・
+   名目 GDP の 1 四半期 100 倍以上 0・開幕の 1000 倍以上 0。同じ台本の基準 M 0・N1 0・N2 2（建国の直後 1・それ以外 1）（pre/stop906_*.txt）。
+ S3 空洞化（an_h2 -v4・規則 A2）：1/10 未満 0 件（1/4 未満 2 件＝移民 1・その他 1・基準も 2 件）。
+ S4 推定の計算量 227.9 秒（基準 m1321 230.9 秒・上限 248.5 秒）。
+ S5 機構のテストの赤 0。
+ H1 史実の桁の線（参政権が下がった国×年・種ごと・錨 約 40〈推〉・門 4〜400）：134 145 163 152 144 141 120 166 137 139（中央 142.5）＝緑。
+   基準 M 中央 151・N1 155・N2 145・a11 142（旗 0 でも門の内＝〈壊さない〉門）。
+
+■ 記録
+ L1 英が男子普通以上に届く年：10 種とも none（基準も none＝拡大の側はこの線で変えていない）。
+ 軸ごとの段の下げの回数（全ての国・10 種の和・基準→腕）：Suffrage 1508→1443・MonetaryStandard 71→55・Inheritance 0→0・ColonialSuffrage 0→0・Censorship 3824→3748（軌道の違い）。
+   上げ：Suffrage 1987→1929・MonetaryStandard 287→259・Inheritance 234→250。
+ 英の国債の不履行の種：腕 1/10（種 8）・基準 3/10（種 2・7・8）。
+ nullgate：判定〈雑音の内〉（記録）。NG（基準 ng1321_20261123）：新しい 9・外れた 8（記録）。本国の崩れ①：8/10 以上の国 0。
+ 名目 GDP 0 の続き：0。成績表の基準との差の行 245（card_difflines.txt）。
