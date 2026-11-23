@@ -1,0 +1,38 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\BilateralMarket.cs(1019,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\EconomyStep.cs(1461,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\Instruments\Instruments.cs(2663,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(188,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(204,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(234,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c139sm_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c139sm_mutart\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\ConservationTests.cs(268,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\ClearingScopeTests.cs(361,22): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\ClearingScopeTests.cs(366,25): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\ConservationTests.cs(965,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\UnitTypeTests.cs(317,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\UnitTypeTests.cs(317,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\UnitTypeTests.cs(318,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\UnitTypeTests.cs(318,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PopulationInstrumentTests.cs(253,79): warning CS0219: 変数 'vNeg' は割り当てられていますが、その値は使用されていません [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\StartWarmupTests.cs(174,16): warning CS8321: ローカル関数 'R' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\DependencyCycleTests.cs(99,23): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\c139sm_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c139sm_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:09:04.15]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+[xUnit.net 00:09:07.90]     PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing [FAIL]
+  失敗 PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing [3 s]
+  エラー メッセージ:
+   選ばない表の積算が溜まっている（入口の閉じが効いていない）：CpStates,CmStates,BxNats,BxRegs,CkWorlds,CrownPrevs,CrownSinks,CrownSrcs,FdDiags,HabitlgSinks
+  スタック トレース:
+     at PriceOfBread.Tests.InstrumentHookClosureTests.UnselectedTablesAccumulateNothing() in D:\PoB_work\wt_c139sm_mut\PriceOfBread.Tests\InstrumentHookClosureTests.cs:line 261
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     1、合格:    93、スキップ:     1、合計:    95、期間: 9 m 18 s - PriceOfBread.Tests.dll (net10.0)
