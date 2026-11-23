@@ -163,25 +163,29 @@ public class CapSkipSellerPotentialTests
             try
             {
                 var b = MakeBuyerCapped(flag);
+                double x = XLp(b);
+                var ma = b.Sellers[0].Markets[b.G]; ma.Stock = ma.TargetStock + x / 2;   // A の余り＝X_lp の半分＝飛ばした A へ足す量が X_lp の半分で、B の側の未充足は一部だけ引かれる（引く量＜引く前）
                 Clear(b);
                 var q = Instruments.CapskipPeek(b.Uk);
                 Assert.NotNull(q);
                 var cols = Enumerable.Range(0, q!.GetLength(1)).Select(k => q[b.G, k]).ToList();
                 cols.Add(b.Sellers[1].LastTradePotential); cols.Add(b.Sellers[1].Markets[b.G].LastExport);
-                cols.Add(Catalog.TransportWeight(b.G));
+                cols.Add(Catalog.TransportWeight(b.G)); cols.Add(x);
                 return cols.ToArray();
             }
             finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
         }
         var r0 = Run(0.0); var r1 = Run(1.0);
-        int n = r1.Length - 3;
+        int n = r1.Length - 4;
         Assert.Equal(8, n);   // 列の数（dedupBaseWeight を含む）
-        double wg = r1[n + 2];
+        double wg = r1[n + 2]; double x = r1[n + 3];
         double unmetB0 = r0[n] - r0[n + 1] * wg;   // 旗 0 の B の側の未充足の重さ＝潜在量−成約×重さ
         Assert.True(unmetB0 > 1e-12, $"前提：旗 0 の B の側の未充足が 0 {unmetB0}");
         Assert.True(r1[6] > 1e-12, $"旗 1 の dedupWeight が 0 {r1[6]}");
         Assert.True(r1[7] >= r1[6] * (1 - 1e-12), $"dedupBase {r1[7]} が dedup {r1[6]} より小さい");
         Assert.Equal(1.0, r1[7] / unmetB0, 9);
+        Assert.True(r1[7] > r1[6] * (1 + 1e-6), $"前提：引く量が引く前と同じ（一部だけ引かれる盤面でない）{r1[6]} {r1[7]}");   // 取り違え（引く量を引く前の欄へ入れる）を見分ける
+        Assert.Equal(1.0, r1[6] / (0.5 * x * wg), 6);   // 引いた量＝飛ばした A へ足した量＝X_lp の半分（試験の算術）
         Assert.Equal(0.0, r0[6]); Assert.Equal(0.0, r0[7]);   // 旗 0 は飛ばした売り手へ足さない＝引かない
     }
 
