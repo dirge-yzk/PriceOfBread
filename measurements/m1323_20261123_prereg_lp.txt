@@ -102,3 +102,14 @@
 ■ 腕：腕 Z＝ident 段 2（--work D:/PoB_work/ident_c138lp・--added-tables lawdir_s・--tests-delta は器のコミットで決めて追記）。腕 B＝計器つき 10 種・種 1〜10・表を絞る（nation_s・stock_s・wars_s・casualty_s・region_s・migration_s・pxmonth_s・scalars_s・fiscal_s・monlaw_s・reform_s・lawgate_s・lawdir_s・class_s）。
 ■ 周辺の点検（読むだけ・記録）：ReversalCostMul・BlockedByIrreversibility（Government.cs:454〜）・World.cs:531 の議題 NetSupport・FranchiseVoice（Fiscal.cs:432・Ideology.cs:248）・FactionSnapshot.AxisScore。
 ■ 落ちたら採らないで止める（同じ腕で物差しを替えない）。形の変え直しは 1 回だけ（⑭）。
+
+■ 追記（2026-11-23・腕 Z の前・器のコミット 4f8690c9b の後・表だけ＝門と形は変えない）
+ 紙の英 1800 の表（旗 0 の 1 種の試走・種 1・76 四半期・計器 lawdir_s・全文 measurements/m1323_20261123/pre/uk1800_lawdir_s1.tsv）：
+  参政権（制限選挙・levelShare 0.333）：Pref 旧支配層 −0.688・近代エリート −0.688・大衆 1 → 拡大の純支持 −1.120（旧新で同じ）・後退の純支持 旧 +1.120／新 −0.359（症状の〈制限選挙→なし 賛成〉が消える）。
+  検閲（Censorship・段 0）：拡大 +0.191（同じ）・後退 旧 −0.191／新 −0.919。所得税：拡大 −1.164（同じ）・後退 旧 +1.164／新 +0.679（富裕の陣営の減税の支持は残る）。
+  英の 39 軸：後退の純支持が変わる 35・旧で正→新で 0 以下 15・拡大が変わる 0・両方の向きが負（現状維持）15。計器の 9 国の 1800：351 行・後退が変わる 272・正→0 以下 145・拡大が変わる 0。
+ 基準とヌル腕の史実の桁の量（lp_hist.py・同じ台本・measurements/m1323_20261123/pre/lp_hist_*.txt）：参政権が下がった国×年の種ごと＝
+  M 146 152 156 153 162 150 147 166 135 140（中央 151）・N1 135 126 153 159 182 156 184 148 153 157（中央 155）・N2 168 135 187 147 136 140 149 177 140 129（中央 145）・a11 139 145 139 145 145 128 129 141 144 152（中央 142）。
+  英が男子普通以上に届く年＝M・N1・N2・a11 の 40 種とも none。
+ 止める線の台本（stoplines906・an_h2 -v4・gdp_zero10）は基準とヌル腕で回った（rc 0）：基準 M の 100 倍以上 0・1e10 倍以上 0・非有限 0・空洞化 1/10 未満 0・名目 GDP 0 の続き 0。
+ 腕 Z の宣言：--added-tables lawdir_s・--tests-delta 10（LawPreferenceDirectionTests の T1〜T8 の 8 件＋T9 の 2 件）。
