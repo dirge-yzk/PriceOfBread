@@ -1,0 +1,1 @@
+rc=0 成功!   -失敗:     0、合格:   353、スキップ:     0、合計:   353、期間: 3 m 54 s - PriceOfBread.Tests.dll (net10.0)
