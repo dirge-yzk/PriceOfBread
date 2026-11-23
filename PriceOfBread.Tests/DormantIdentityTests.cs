@@ -255,6 +255,7 @@ public class DormantIdentityTests
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
+        "InvestExtrapolationWeight",   // (1331) c139k49 K49 の 3 回目（(1319) c137k49 から写した）：勢いの投資の重み 0.3→0（削除の線・0 は消した後の値＝器ではない）。係数と項の削除は焼き込みの線（番人 InvestMomentumDeletionTests）
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
