@@ -1,0 +1,34 @@
+(1330) 線 c139sl 恒等：wars_s の勝敗の列＋止める線の読み手の記録の区分（事前登録・最初のコミット・書き手 Claude Sonnet 5.5）
+出発：main 1f55fdf58・基準 m1328。新しい係数・旗・状態は 0。腕は恒等の判定（ident 段 2）だけ＝挙動の線ではない。
+
+[1] 恒等の線・予言 0
+ - 変わる物は計器の表 wars_s の末尾に 2 列（verdictCode・rebelTreasuryEnd）が増えること（宣言 --grown-ok wars_s）。エンジンの出力・名乗り行以外の全ての帯は m1328 と全行一致の予言。
+ - verdictCode＝EndWar が決めた EndedWarRecord.Verdict の整数（0 白紙・1 A 勝ち・2 B 勝ち）。終わっていない戦争は -1。
+ - rebelTreasuryEnd＝内戦（CivilWarParent あり）のときだけ、EndWar の中（終戦の記録の追記の直後）の反乱国（ResolvePeace の cwRebel と同じ読み＝親でない側）の World.Treasury.Value。外国戦と終わらない戦争は nan。
+ - 浮動小数の順序が変わる箇所：0 件（値を読んで書くだけ）。同じ盤面の旧と新の比較の食い違い：エンジンの欄を書き換える行が無いので 0。
+
+[2] 消す物と残す物
+ - 消す物：0。足す物：InstrumentsWar.cs の WarEndBox・WarSt.Ends・WarNoteEnd・WarEndCols／Instruments.cs の wars_s の頭と行（末尾 2 列）／Diplomacy.cs EndWar の計器の呼び 1 行（Instruments.On の中・既存の if の中に WarNoteEnd を足すだけ）。
+ - 読み手の grep：wars_s の読み手は scripts の台本（列の名前で引く物と位置で引く物）・InstrumentsTests.cs:297（名前で引く）・WarInstrumentTests.cs T4（末尾から数える＝位置を 2 つ直す・名前と値は同じ＝計器の列の位置の追従だけ・Assert の内容は変えない）。SaveGame：状態は ConditionalWeakTable（保存されない計器の置き場・既存の WarSt と同じ型の置き場）＝セーブに触れない。POB_COEF の名前：0。
+ - 他の線との重なり：sl だけが InstrumentsWar.cs と Diplomacy.cs（計器の呼び 1 行）に触れる。WriterRatchetTests・DormantIdentityTests は宣言の行だけ（今のところ触る予定 0）。
+
+[3] 足す試験と突然変異・走査の番人
+ - 足す試験（C#）1 本：PriceOfBread.Tests/WarsVerdictColumnTests.cs T1（盤面を試験の中で置く・内戦 2 本〔反乱国が B と A〕・外国戦 1 本・終わらない戦争 1 本・終戦の 1 本 EndWar を通す・期待の判定は手で置いた戦勝点から・国庫は終戦の直前に World から）。Category!=FullLength の数の予言 3169 → 3170（--tests-delta 1）。
+ - 突然変異（使い捨ての木）：C1 判定を A 勝ち固定 → T1 赤。C2 反乱国を常に B で読む → T1 赤（反乱国が A の戦争）。C3 国庫を nan 固定 → T1 赤。C4 EndWar の呼びを外す → T1 赤。
+ - 走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・InstrumentHookClosureTests を項 1 の直後に回す（赤なら腕を回さない）。書き換える件数の予言：0。工業化度の読み手の許可表・route_anchors.tsv・WriterRatchetTests の宣言の表：触らない（0 行）。`new MoneyStock(` の件数：64 のまま（この木の grep）。
+ - 項 2（読み手・python）：scripts/instruments/c139sl/gdp_jump1330.py。止める線〈名目 GDP の 1 四半期 100 倍以上（前の四半期が正）〉の跳びを、次の順で区分する（結果の後に組んだ区分と名乗る・採否に使わない・新しい止める線を足さない）。
+   (0) 建国の直後（系列の最初の行から 4 四半期以内＝今の止める線の扱いと同じ）
+   (i) 政府の人口の 1 四半期の比（populationK）が 10 倍以上か 1/10 以下＝㊳（r833 の 分母の痩せ と同じ定義・既に止める線の読み手に入っている＝新しくない・並べるだけ）
+   (ii) 跳びの四半期の直前の 8 行（gdp_jump906 の窓 WIN と同じ）の中に、人口 10 千人以上で名目 GDP≦0 が 4 行以上連続する区間がある（gdp_zero10 の定義〔連続 4 四半期〕を窓に当てる。窓 8 は 906 の既存の定数を使う＝新しい閾値は足さない）
+   (iii) 市場の産出が 0 の近くの国＝1 つの式：州の産出（factoryOutputRefValuePerMonth＋extractionOutputRefValuePerMonth）の国の和の比 tot（跳びの四半期÷前の四半期）が 10 以上で、名目の比÷tot が [0.1,10]（1002 の ok3 と同じ区間・閾値を足さない）
+   どれにも当たらない跳び＝止める線のまま。
+ - 自己試験：scripts/instruments/c139sl/selftest1330.py と fixture（mkfix1330.py が書く合成の盤面）。型：ラヘジ（人口 93→15865・名目 130.7 倍）・ウジジ（0 の区間の後の跳び）・キサンガニ（産出 1.349→1509.6＝×1119・名目 ×839.5・人口比 1.006＝実測 c138ssB の s5 q527→528）・建国の直後・どれにも当たらない（人口も産出も動かず名目だけ 200 倍）・(i)(ii)(iii) の境界の対（直前の 0 が 3 行だけ・窓の外・産出比 9.9）。期待は盤面の意図から手で書く。
+ - 区分の突然変異（selftest が赤）：D1 (i) を外す D2 (ii) を外す D3 (iii) を外す D4 (ii) の連続を数えだけに替える D5 (iii) の ok3 を外す D6 区分の順を入れ替える。
+ - 数え直しの予言（項 3・読む表は keep_1328・keep_1328_rej の ins・名前の集計は 100 倍≧の跳び）：M 0・N1 0・N2 0・S11（a11＝基準 S11）0・mS11 0・aS11A 0・mM 0・ssB 1（キサンガニ s5 1915 q528 ×839.5 → (iii)）。ラヘジとウジジの実の行は keep_1321 が消えた＝fixture だけ（今の m1328 の生に実の行は無い）。
+ - 計算量：Instruments.On の外で増える仕事 0（呼びは On の中・Tg.War でも 1 回の辞書の追記）。.cost の件数が m1328 と一致の予言。
+
+[4] 帯
+ - 素の 5 種・計器つき 10 種が m1328 と名乗り行を除いて全行一致（計器の表 wars_s は 2 列の増えだけ・宣言 --grown-ok wars_s）。
+ - 一致しなければ、項 1 を外して報告に回す。
+
+[5] 〈判定: 恒等〉なら採る。同じ腕で止める線の定義は変えない。この波の挙動の線と合流は今の読み手（r833・c78gz・c92gf）で門を読む＝新しい区分は次の合流から記録の列として並べるだけ（読み替えない）。
