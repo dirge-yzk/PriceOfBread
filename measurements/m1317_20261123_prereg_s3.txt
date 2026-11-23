@@ -44,3 +44,9 @@ m1317 事前登録（最初のコミット）：(1317) c137s3 恒等＝自給の
 [4] 腕：素の 5 種（b5）・計器つき 10 種（INS）が m1308 と名乗り行を除いて全行一致（計器の表の差は subst_s の列の増えだけ＝`--grown-ok subst_s`）。
 [5] 〈判定: 恒等〉なら採る。浮動小数の順序が変わる箇所は 0（エンジンに触れない）＝紙の台本の食い違いの数 0。
 入れない物：旗 SubsistenceSellSurplus・SubsistenceTechBracket（3-1＋3-2）・エンジンの実際の E・R_p の列・土地税の算定の基準。
+
+[追記 2026-11-23・腕の前・結果（ident の腕）を見る前の変更＝フルスイートの赤を受けて]
+- フルスイート（18 本の木）の非 FullLength：Tests 2903 本中 2899 合格・2 赤（TechLevelRemovalTests.計器の列に技術水準が無い／技術水準を読む行の数はファイル別の許可表のとおり）。原因＝s3 の技術水準の 5 列（s3TechLevel・s3Bracket・s3Bracket0・s3SrawC・s3LneedC）が World.TechLevel を読む行（InstrumentsSubst.cs に 2 行）と引数名 techLevel を足した。これは機構の番人（作者の技術水準の削除・二重計上の方針の番人・読み手を足さない）で、★(743) の ①〜④ の外＝書き換えない・許可表に行を足さない（赤を物差しの替えで緑にしない）。
+- 直し：技術水準を読む 5 列を外し、s3 は 13 本にする（Sraw Harvest Q D E EWheat ESoldShare EValue Kappa KappaE UnempNew EatPerCap LandTaxPeasant）。純関数 SubstS3Calc は b・b0 の引数を失う。試験は 7 本→6 本（技術の括弧の試験を外し、見出し・手の盤面・実走から Bracket の項を外す）＝非 FullLength の合計の予言を 3134 に直す（Tests 2902＋Ui 232）。
+- 技術の括弧の 5 列は、3-2 の挙動の線（旗 SubsistenceTechBracket）が持つ＝その線は規則を置き換える線なので ㉜ の改めで TechLevelRemovalTests の許可表を新しい規則に合わせて直してよい（技術水準の削除の方針との関係は作者の確認が要る＝報告の先頭）。3-0 の器には置かない。
+- 突然変異は 13 本の版で取り直す（M1 f・M2 min・M3 Lneed の f・M4 列を落とす・M5 E の max）。

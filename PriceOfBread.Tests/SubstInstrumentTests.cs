@@ -214,16 +214,16 @@ public class SubstInstrumentTests
 
     // ---- (1317) 段 3-0 の器：s3 の列。期待値は試験の中で手の式から作る（計器の関数の式を写さない）。事前登録 measurements/m1317_20261123_prereg_s3.txt の 1〜7。
     private static readonly string[] S3Names = ["s3SrawInst", "s3HarvestInst", "s3QInst", "s3DInst", "s3EInst", "s3EWheatInst", "s3ESoldShareInst", "s3EValueInst", "s3KappaInst", "s3KappaEInst",
-        "s3TechLevel", "s3Bracket", "s3Bracket0", "s3SrawC", "s3LneedC", "s3UnempNewInst", "s3EatPerCapInst", "s3LandTaxPeasantInst"];
+        "s3UnempNewInst", "s3EatPerCapInst", "s3LandTaxPeasantInst"];
 
     [Fact]
-    public void s3の見出しは18本で末尾に並ぶ()
+    public void s3の見出しは13本で末尾に並ぶ()
     {
         var h = Instruments.SubstHeaderText.Split('\t');
-        Assert.Equal(18, S3Names.Length);
-        Assert.Equal(S3Names, h.Skip(h.Length - 18).ToArray());
+        Assert.Equal(13, S3Names.Length);
+        Assert.Equal(S3Names, h.Skip(h.Length - 13).ToArray());
         Assert.Equal(h.Length, h.Distinct().Count());
-        Assert.Equal("s2NewOverOld", h[h.Length - 19]);   // 既存の列の並びは変えない（s3 は s2 の後ろ）
+        Assert.Equal("s2NewOverOld", h[h.Length - 14]);   // 既存の列の並びは変えない（s3 は s2 の後ろ）
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class SubstInstrumentTests
     {
         // 2 財：g1（必要量 0.25・f=1・売る財へ換算 0.5・売れ行き 0.4・値段 3）・g2（必要量 0.125・f=0.5）。人数 8＝必要量×人数 3
         var st = new[] { new Instruments.S3Staple(0.25, 1.0, 0.4, 3.0, 0.5, true), new Instruments.S3Staple(0.125, 0.5, 0.9, 7.0, 1.0, false) };
-        var r = Instruments.SubstS3Calc(rho: 1.0, u: 3.0, t: 1.5, cap: 10.0, size: 8.0, b: 2.0, b0: 1.0, st);
+        var r = Instruments.SubstS3Calc(rho: 1.0, u: 3.0, t: 1.5, cap: 10.0, size: 8.0, st);
         double sraw = 1.0 * 3.0 * 1.5 / 3.0;                 // 1.5
         double fbar = (0.25 * 1.0 + 0.125 * 0.5) / 0.375;    // 必要量加重の f
         double q = 2.0 * 1.5 * 1.0 + 1.0 * 1.5 * 0.5;        // 3.75（g1 は x=1.5・g2 は x=0.75）
@@ -246,23 +246,18 @@ public class SubstInstrumentTests
         Assert.Equal(1.0 - 2.4 / 10.0, r.Kappa, 12);
         Assert.Equal(e / q, r.KappaE, 12);
         Assert.Equal((3.0 - lneed) / 10.0 * (1.0 - 0.4), r.UnempNew, 12);   // 0.036（Lneed に f を入れないと 0.06）
-        Assert.Equal(sraw * 2.0, r.SrawC, 12);               // B÷B0＝2
-        Assert.Equal(3.0 / (1.0 * 1.5 * 2.0 * fbar), r.LneedC, 12);
         Assert.Equal(d / 8.0, r.EatPerCap, 12);
         Assert.True(Math.Abs(r.UnempNew - 0.06) > 1e-3);     // Lneed に f を入れない値 0.06 とは別
         // ρ が nan（焼かれていない州）なら全て nan
-        var n = Instruments.SubstS3Calc(double.NaN, 3.0, 1.5, 10.0, 8.0, 2.0, 1.0, st);
-        Assert.True(double.IsNaN(n.Sraw) && double.IsNaN(n.Q) && double.IsNaN(n.UnempNew) && double.IsNaN(n.LneedC));
-        // B0 が nan なら案 C の影だけ nan
-        var nb = Instruments.SubstS3Calc(1.0, 3.0, 1.5, 10.0, 8.0, 2.0, double.NaN, st);
-        Assert.True(double.IsNaN(nb.SrawC) && double.IsNaN(nb.LneedC) && !double.IsNaN(nb.UnempNew));
+        var n = Instruments.SubstS3Calc(double.NaN, 3.0, 1.5, 10.0, 8.0, st);
+        Assert.True(double.IsNaN(n.Sraw) && double.IsNaN(n.Q) && double.IsNaN(n.UnempNew) && double.IsNaN(n.Kappa));
     }
 
     [Fact]
     public void s3はσrawが1未満なら余りが厳密に0()
     {
         var st = new[] { new Instruments.S3Staple(0.25, 1.0, 0.4, 3.0, 0.5, true), new Instruments.S3Staple(0.125, 1.0, 0.9, 7.0, 1.0, false) };
-        var r = Instruments.SubstS3Calc(1.0, 1.5, 1.5, 10.0, 8.0, 1.0, 1.0, st);   // σraw＝0.75
+        var r = Instruments.SubstS3Calc(1.0, 1.5, 1.5, 10.0, 8.0, st);   // σraw＝0.75
         Assert.Equal(0.75, r.Sraw, 12);
         Assert.Equal(0.0, r.E); Assert.Equal(0.0, r.EWheat); Assert.Equal(0.0, r.EValue);
         Assert.Equal(0.0, r.ESoldShare);                     // ΣE＝0 の時の s_E は 0
@@ -276,7 +271,7 @@ public class SubstInstrumentTests
     {
         // 凶作：σraw＝1.2・f＝0.7＝今の sub は GoodNeed×min(1,1.2)×0.7＝1.4 だが、新しい D は GoodNeed×min(1,0.84)＝0.84×GoodNeed
         var bad = new[] { new Instruments.S3Staple(0.5, 0.7, 0.0, 1.0, 1.0, false) };
-        var r = Instruments.SubstS3Calc(1.0, 1.6, 1.5, 10.0, 4.0, 1.0, 1.0, bad);   // 1×1.6×1.5÷(0.5×4)＝1.2
+        var r = Instruments.SubstS3Calc(1.0, 1.6, 1.5, 10.0, 4.0, bad);   // 1×1.6×1.5÷(0.5×4)＝1.2
         Assert.Equal(1.2, r.Sraw, 12);
         Assert.Equal(0.84 * 2.0, r.D, 12); Assert.Equal(0.0, r.E);
         Assert.NotEqual(2.0 * 1.0 * 0.7, r.D);
@@ -288,31 +283,16 @@ public class SubstInstrumentTests
         // 豊作：σraw＝0.9・f＝1.2＝x＝1.08＝余りは 0.08×GoodNeed（今の規則は σraw＜1 で余りを数えない）
         var good = new[] { new Instruments.S3Staple(0.5, 1.2, 0.5, 2.0, 1.0, false) };
         double sraw = 1.0 * 1.2 * 1.5 / 2.0;                 // 0.9
-        var g2 = Instruments.SubstS3Calc(1.0, 1.2, 1.5, 10.0, 4.0, 1.0, 1.0, good);
+        var g2 = Instruments.SubstS3Calc(1.0, 1.2, 1.5, 10.0, 4.0, good);
         Assert.Equal(sraw, g2.Sraw, 12);
         Assert.Equal(0.08 * 2.0, g2.E, 12); Assert.Equal(1.0 * 2.0, g2.D, 12); Assert.Equal(0.5, g2.ESoldShare, 12);
         Assert.Equal(0.08 * 2.0 * 2.0, g2.EValue, 12);
         // 売れ行き 1（余りが全て売れる）なら失業は 0・f＝0 でも nan にならない
         var all = new[] { new Instruments.S3Staple(0.5, 1.2, 1.0, 2.0, 1.0, false) };
-        Assert.Equal(0.0, Instruments.SubstS3Calc(1.0, 1.2, 1.5, 10.0, 4.0, 1.0, 1.0, all).UnempNew, 12);
+        Assert.Equal(0.0, Instruments.SubstS3Calc(1.0, 1.2, 1.5, 10.0, 4.0, all).UnempNew, 12);
         var zero = new[] { new Instruments.S3Staple(0.5, 0.0, 1.0, 2.0, 1.0, false) };
-        var z = Instruments.SubstS3Calc(1.0, 1.2, 1.5, 10.0, 4.0, 1.0, 1.0, zero);
+        var z = Instruments.SubstS3Calc(1.0, 1.2, 1.5, 10.0, 4.0, zero);
         Assert.Equal(0.0, z.UnempNew); Assert.False(double.IsNaN(z.Kappa)); Assert.Equal(0.0, z.D);
-    }
-
-    [Fact]
-    public void s3の技術の括弧は手の表と本体に一致()
-    {
-        double[] tl = [0.0, 1.0, 2.0, 3.5];
-        double[] want = [1.0, 2.0, 3.0, 3.0 + 1.5 * 0.3];
-        for (int i = 0; i < tl.Length; i++)
-        {
-            Assert.Equal(want[i], Instruments.S3Bracket(tl[i]), 12);
-            Assert.Equal(Improvement.BracketOf(tl[i]), Instruments.S3Bracket(tl[i]), 12);
-        }
-        var st = new[] { new Instruments.S3Staple(0.5, 1.0, 0.0, 1.0, 1.0, false) };
-        var r = Instruments.SubstS3Calc(1.0, 1.6, 1.5, 10.0, 4.0, 3.0, 3.0, st);   // B＝B0
-        Assert.Equal(r.Sraw, r.SrawC, 12);
     }
 
     [Fact]
@@ -326,7 +306,7 @@ public class SubstInstrumentTests
         finally { Instruments.Close(sim); Instruments.Configure(null, null); }
         var rows = Rows(System.IO.Path.Combine(dir, "subst_s1791.tsv"), Instruments.SubstHeaderText).Where(r => r["s2RhoSource"] == "1" && r["quarter"] != "0").ToList();
         Assert.True(rows.Count >= 20, $"焼いた州が少ない {rows.Count}");
-        int sr = 0, rc = 0;
+        int sr = 0;
         foreach (var r in rows)
         {
             double sraw = D(r, "s3SrawInst"), q = D(r, "s3QInst"), d = D(r, "s3DInst"), e = D(r, "s3EInst");
@@ -335,12 +315,8 @@ public class SubstInstrumentTests
             Assert.True(e >= 0 && d >= 0);
             Assert.True(D(r, "s3EatPerCapInst") <= D(r, "stapleNeedPerCapita") + 1e-9, "食べる量が必要量を超えた");
             double u = D(r, "s3UnempNewInst"); Assert.True(u >= 0 && u <= 1);
-            Assert.True(D(r, "s3Bracket") >= 1.0);
-            double b0 = D(r, "s3Bracket0");
-            if (b0 == b0) { Assert.True(Math.Abs(D(r, "s3SrawC") - sraw * D(r, "s3Bracket") / b0) <= 1e-8 * Math.Max(1.0, D(r, "s3SrawC"))); rc++; }   // 表の書式は有効数字 10 桁
             if (sraw > 0) sr++;
         }
         Assert.True(sr >= 10, $"σraw が正の州が少ない＝何もしない計器で緑にならない {sr}");
-        Assert.True(rc >= 10, $"案 C の影が出た州が少ない {rc}");
     }
 }
