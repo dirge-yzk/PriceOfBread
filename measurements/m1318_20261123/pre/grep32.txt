@@ -1,0 +1,40 @@
+# grep32 HEAD=b65ac8d70
+## 試験で SpawnSecededNations を呼ぶ所
+PriceOfBread.Tests/CedeRuleInstrumentTests.cs:112:            sim.SpawnSecededNations();
+PriceOfBread.Tests/ConservationTests.cs:246:        sim.SpawnSecededNations();
+PriceOfBread.Tests/InheritIntentTests.cs:49:        sim.SpawnSecededNations();
+PriceOfBread.Tests/PopCloseInstrumentTests.cs:79:        var o = Scenario(sim, () => { uk.PendingSecessionWars = [sec]; sim.SpawnSecededNations(); });
+PriceOfBread.Tests/RevoltIgnitionTests.cs:749:        sim.SpawnSecededNations();
+PriceOfBread.Tests/RevoltIgnitionTests.cs:753:        sim.SpawnSecededNations();
+PriceOfBread.Tests/RevoltIgnitionTests.cs:762:        sim.SpawnSecededNations();
+PriceOfBread.Tests/RevoltIgnitionTests.cs:818:        sim.SpawnSecededNations();
+PriceOfBread.Tests/RevoltIgnitionTests.cs:896:        simD.SpawnSecededNations();
+## 試験で InitialTreasury
+PriceOfBread.Tests/FactoryCounterTests.cs:30:            InitialTreasury = 1_000_000,
+PriceOfBread.Tests/FactoryEquipmentTests.cs:15:        FiscalEnabled = true, TaxRate = 0.10, InitialPollTax = 1.0, InitialTreasury = 1_000_000, BaseCoercion = 400,
+PriceOfBread.Tests/FactoryTierTests.cs:22:        InitialTreasury = treasury,
+PriceOfBread.Tests/FranceTests.cs:20:        InitialTreasury = treasury,
+PriceOfBread.Tests/RootSupplyTests.cs:22:            FiscalEnabled = true, TaxRate = 0.10, InitialPollTax = 1.0, InitialTreasury = 1_000_000, BaseCoercion = 400,
+PriceOfBread.Tests/ServiceEconomyTests.cs:221:        TaxRate = 0.10, InitialPollTax = 0.5, InitialTreasury = 200_000, BaseCoercion = 400,   // 人口正規化後＝人口あたり強度＋近世財�
+PriceOfBread.Tests/StateFactoryTests.cs:26:        InitialTreasury = treasury,
+## 分離の国庫・人口比分与
+PriceOfBread.Tests/AiFirstWaveTests.cs:258:    //          今の法                    流入（人口比/四半期） 失業  条約港 資本の危機  目標
+PriceOfBread.Tests/FranceTests.cs:46:        Assert.True(System.Math.Abs(share1 - share0) < 0.01,   // 移民で流入流出しないので人口比はほぼ一定（再ラベルで膨張/縮小しない）
+PriceOfBread.Tests/FranceTests.cs:47:            $"特権身分の人口比が移民で動いた（{share0:P2}→{share1:P2}）");
+PriceOfBread.Tests/FranceTests.cs:54:        sim.World.BaseCoercion = 80; sim.World.Policy.CoercionTarget = 80;   // 産業重視＝警察・軍需を抑え国庫を建設へ回す（治安維持力の人口比例維持�
+PriceOfBread.Tests/LiteracyTests.cs:141:        // ★(233) 露の 0.54（私有農奴の人口比）は差し戻した＝FarmLordShare は「農場の残余のうち地主が取る割合」で目盛りは 1.0 農奴制�
+PriceOfBread.Tests/MilitaryTests.cs:518:        Assert.Equal(c.MaxSoldierFraction.Value * u, Military.PeaceCapShareOfPop(c), 15);    // 平時の上限の人口比
+PriceOfBread.Tests/MobilityTests.cs:9:/// 食えない中層→労働者。転落は闘争度を上げる。聖職者は世俗化で没落するが人口比の下限で消えない。
+PriceOfBread.Tests/MobilityTests.cs:25:    public void 蓄財した中層が資本家に昇格する()   // ③中流→資本家（設計仕様）。昇格機構を直接・決定論的に検証＝人口動態(衛生/�
+PriceOfBread.Tests/NationIdentityTests.cs:148:        Assert.True(belgium.Treasury.Value > 0);                // 国庫の人口比分与
+PriceOfBread.Tests/ProtectorTests.cs:22:        tuscany.Regions[0].Religion = "正教"; SetPop(tuscany.Regions[0], 300);   // Bの1州＝正教・人口比 300/1000＝0.3
+PriceOfBread.Tests/ProtectorTests.cs:41:    public void 保護利害は相手国内の同宗教州人口比で緊張は式どおり増える()
+PriceOfBread.Tests/ProtectorTests.cs:54:        // grievance の式：Bの活性州のうち religion==religion(A) の人口比（religion(A)≠religion(B) が前提ガード）
+PriceOfBread.Tests/TaxTests.cs:20:        // ※治安維持力は低く固定（人口比例の維持費で国庫を食わせない）。
+PriceOfBread.Tests/TreasLedgerInstrumentTests.cs:148:            In(uk, TreasuryCat.Tax, 5000);   // 分与の元手（助走の無い盤面の国庫は 0）
+PriceOfBread.Tests/TreasLedgerInstrumentTests.cs:156:            double given = before - uk.Treasury.Value;   // 試験が手で測った親の国庫の減り（分与の額）
+PriceOfBread.Tests/TreasLedgerInstrumentTests.cs:157:            Assert.True(given > 0, "分与が 0＝試験の盤面が効いていない");
+PriceOfBread.Tests/WriterRatchetTests.cs:141:    //   Pop の中の1本（Pop.Carry）へ（12行→2行）・分離建国の国庫の分与（国庫と国境の出入りの台帳の手書き2行）を移し方の1本（
+## SimCore の人口比分与の読み手
+PriceOfBread.SimCore/MultiNationSim.cs:329:        double T = Math.Max(0, pw.Treasury.Value) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
+PriceOfBread.SimCore/MultiNationSim.cs:401:            Military = parentPower.Military * (parentPop > 1e-9 ? P / parentPop : 0),   // 初期表示値のみ（次の Diplomacy.Step が兵士POPから再導出＝実体は移転した兵士）

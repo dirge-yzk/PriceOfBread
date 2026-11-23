@@ -118,6 +118,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double CultureSecessionWeight = 1.0;       // 同一/未設定で0＝較正中立＝多民族帝国(墺洪/オスマン)の分裂を文化ラベルから創発
     public double SecessionThreshold = 1.43;          // 分離圧力(最大2)がこれ超＋中央の保持力を上回ると離脱（高め＝極端な乖離×極端な不満のみ＝稀）
     public double SecessionHoldPerPop = 0.000005;      // 中央の保持力＝治安維持力×正統性をこれ×人口で割る（大国ほど辺境を抑えにくい）
+    public double SecessionTreasuryByMoney = 1;       // (1318) c137ak 2026-11-23 点火（腕 B の木）：1＝分離の建国の国庫の分与を移る州の貯蓄の和÷親の貯蓄の和で（どちらかの和が 0 以下なら 0）・0＝今（移る州の人口÷親の人口）
 
     // --- 画一的な政体遷移（イデオロギー駆動）。支持(政体)=国民イデオロギー集計·親和。引力点-現政体>保持力で遷移 ---
     public double PolityInertia = 0.4;           // 保持力＝PolityInertia×正統性

@@ -149,6 +149,8 @@ public class TreasLedgerInstrumentTests
             double before = uk.Treasury.Value; Assert.True(before > 0);
             var parent = sim.Nations.First(n => ReferenceEquals(n.World, uk));
             var reg = uk.Regions[^1];   // 首都でない州（分離の対象）
+            reg.Pops.First(p => !p.IsSoldier && p.Size > 1e-9).ApplyBakedSavings(1000);   // (1318) 分与の盤面の前提：移る州が民間の貨幣を持つ（分与は旗 SecessionTreasuryByMoney 1 で貯蓄の比・0 で人口の比＝どちらでも正）
+            Assert.True(reg.SumSavings().Value > 0, "前提：移る州の民間の貨幣が 0");
             int n0 = sim.Nations.Count;
             typeof(MultiNationSim).GetMethod("SpawnNation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
                 .Invoke(sim, [parent, new List<Region> { reg }, null]);

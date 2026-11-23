@@ -1,0 +1,10 @@
+# M1（18e6fe6a7）
+  失敗 PriceOfBread.Tests.SecessionTreasuryShareTests.T7_残る州の貯蓄の和が負で比が1を超える盤面も削らない_保存は保つ [1 s]
+  成功 PriceOfBread.Tests.SecessionTreasuryShareTests.T8_計器は同じ盤面で旧と新の規則と実際の分与を並べる(flag: 0) [912 ms]
+  失敗 PriceOfBread.Tests.SecessionTreasuryShareTests.T8_計器は同じ盤面で旧と新の規則と実際の分与を並べる(flag: 1) [133 ms]
+  成功 PriceOfBread.Tests.SecessionTreasuryShareTests.T2_旗0は今の人口の比のまま [11 ms]
+  失敗 PriceOfBread.Tests.SecessionTreasuryShareTests.T4_片側の貨幣が0なら分与は0 [13 ms]
+  失敗 PriceOfBread.Tests.SecessionTreasuryShareTests.T6_移る州の負の貯蓄は分子と分母の両方に入る [14 ms]
+  失敗 PriceOfBread.Tests.SecessionTreasuryShareTests.T1_旗1の分与は移る州の貯蓄の和を親の貯蓄の和で割った比で_親の減りが子の国庫 [8 ms]
+  成功 PriceOfBread.Tests.SecessionTreasuryShareTests.T5_負の国庫からは分与しない [15 ms]
+  失敗 PriceOfBread.Tests.SecessionTreasuryShareTests.T3_移る州の貯蓄が大きい盤面でも分母は移す前の親の貯蓄の和 [9 ms]
