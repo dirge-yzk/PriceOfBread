@@ -1,7 +1,8 @@
 import sys, csv, os, statistics
 raw=sys.argv[1]
 g={'1':[], '0':[]}; z=[]; share=[]
-for s in range(1,11):
+SB=int(sys.argv[2]) if len(sys.argv)>2 else 1  # (1321) 種の起点を引数に（S11 で読むため・合流が足した）
+for s in range(SB,SB+10):
     for r in csv.DictReader(open(os.path.join(raw,f'sectreas_s{s}.tsv'),encoding='utf-8'),delimiter='\t'):
         o=float(r['oldRuleT']); n=float(r['newRuleT']); pt=float(r['parentTreasury'])
         if o>0: g[r['capitalRisingFlag']].append(n/o)

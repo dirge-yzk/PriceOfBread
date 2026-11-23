@@ -1,7 +1,8 @@
 import sys, csv, os, collections
 raw=sys.argv[1]
 tot=0; match=0; unmatched=[]; extra=0; capr=0; nzero=0
-for s in range(1,11):
+SB=int(sys.argv[2]) if len(sys.argv)>2 else 1  # (1321) 種の起点を引数に（S11 で読むため・合流が足した）
+for s in range(SB,SB+10):
     st=list(csv.DictReader(open(os.path.join(raw,f'sectreas_s{s}.tsv'),encoding='utf-8'),delimiter='\t'))
     born=collections.defaultdict(list)
     with open(os.path.join(raw,f'treasledger_s{s}.tsv'),encoding='utf-8') as f:
