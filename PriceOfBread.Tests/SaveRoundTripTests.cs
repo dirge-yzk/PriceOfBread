@@ -64,7 +64,7 @@ public class SaveRoundTripTests
         Assert.Same(sim2.Nations[0].World.Regions[0], m2.ClearPartners[1]);
     }
 
-    /// <summary>★四半期の途中（45 日目）のセーブ（(1125)）：保存→読み→両方を同じ日数続けて、基礎貨幣・総人口・全市場の値段と在庫の和が一致する（バイト列は印の外の 2 件の差があり比べない）
+    /// <summary>★四半期の途中（45・75 日目）のセーブ（(1125)・(1309)）：保存→読み→両方を同じ日数続けて、基礎貨幣・総人口・全市場の値段と在庫の和が一致し、保存される欄の値の違いが 0 件（順だけの違いは数えない）
     /// （印が載らないと、読んだ側は月の途中の眠り・清算の記憶を失って軌道が分かれる）。</summary>
     [Fact]
     public void 四半期の途中のセーブで続きが一致する()
@@ -72,23 +72,112 @@ public class SaveRoundTripTests
         var sim1 = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
         sim1.StartWarmup();
         for (int q = 0; q < 6; q++) sim1.StepQuarter();
+        // (1309) 同じ A から 45 日と 75 日の 2 点で保存する（読んだ側 B45・B75 を同じ四半期の終わり＝180 日目まで続けて A と比べる）
         for (int d = 0; d < 45; d++) sim1.StepDay();
-
+        var (asl45, fail45, par45) = SaveGame.MarkCounts(sim1);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
         var sim2 = SaveGame.Load(ms);
+        for (int d = 45; d < 75; d++) sim1.StepDay();
+        var (asl75, fail75, par75) = SaveGame.MarkCounts(sim1);
+        using var ms75 = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms75);
+        ms75.Position = 0;
+        var sim3 = SaveGame.Load(ms75);
+        // 対照（空振りの緑を防ぐ）：保存の点で、眠り・清算の失敗の印・清算の覚えが立っている市場がある（印が次の読み手より前に立っている）
+        Assert.True(asl45 > 0 && fail45 > 0 && par45 > 0, $"45 日の点で印が立っていない（眠り {asl45}・失敗 {fail45}・覚え {par45}）");
+        Assert.True(asl75 > 0 && fail75 > 0 && par75 > 0, $"75 日の点で印が立っていない（眠り {asl75}・失敗 {fail75}・覚え {par75}）");
 
-        for (int d = 0; d < 135; d++) { sim1.StepDay(); sim2.StepDay(); }
+        for (int d = 0; d < 105; d++) { sim1.StepDay(); sim3.StepDay(); }
+        for (int d = 0; d < 30; d++) sim2.StepDay();
+        for (int d = 0; d < 105; d++) sim2.StepDay();   // B45 は 45 日目から 180 日目まで（A は 75 日目から 105 日続けた）
 
         static double MarketSum(World w) { double s = 0; foreach (var r in w.Regions) foreach (var m in r.Markets) s += m.Price + m.Stock; return s; }
-        for (int i = 0; i < sim1.Nations.Count; i++)
+        foreach (var (sim, label) in new[] { (sim2, "45日"), (sim3, "75日") })
+            for (int i = 0; i < sim1.Nations.Count; i++)
+            {
+                var a = sim1.Nations[i].World; var b = sim.Nations[i].World;
+                Assert.True(a.BaseMoney.Value == b.BaseMoney.Value && a.TotalPopulation == b.TotalPopulation && MarketSum(a) == MarketSum(b),
+                    $"{label}の点・{a.SelfPower?.Name}：継続系列と復元系列が食い違う（基礎貨幣 {a.BaseMoney:F4}⇔{b.BaseMoney:F4}／人口 {a.TotalPopulation:F2}⇔{b.TotalPopulation:F2}／値段と在庫の和 {MarketSum(a):R}⇔{MarketSum(b):R}）");
+            }
+        // (1309) 保存される欄を全て比べる（値の違い 0 件）。辞書・集合の列挙の順だけの違い（Diplomacy の Remove を受ける欄）は値の違いに数えない。
+        foreach (var (sim, label) in new[] { (sim2, "45日"), (sim3, "75日") })
         {
-            var a = sim1.Nations[i].World; var b = sim2.Nations[i].World;
-            Assert.True(a.BaseMoney.Value == b.BaseMoney.Value && a.TotalPopulation == b.TotalPopulation && MarketSum(a) == MarketSum(b),
-                $"{a.SelfPower?.Name}：継続系列と復元系列が食い違う（基礎貨幣 {a.BaseMoney:F4}⇔{b.BaseMoney:F4}／人口 {a.TotalPopulation:F2}⇔{b.TotalPopulation:F2}／値段と在庫の和 {MarketSum(a):R}⇔{MarketSum(b):R}）");
+            var sd = SaveGame.StateDiff(sim1, sim, 8);
+            Assert.True(sd.Compared > 100000, $"{label}の点：比べた対象が少なすぎる（{sd.Compared}）");
+            Assert.True(sd.Values == 0, $"{label}の点：値の違い {sd.Values} 件（順だけ {sd.OrderOnly}）：{string.Join(" ／ ", sd.Samples)}");
         }
-        // バイト列の一致は比べない：印の外の差が 2 件ある（辞書 Diplomacy._tensionRamp の列挙順と InternationalMarket.LastPairWasLand の走り書き・measurements/m1125_20261114/byte_diff.txt）＝量だけ比べる。
+    }
+
+    /// <summary>(1309) 欄の比べ StateDiff の自己試験：同じ中身は値の違い 0・1 つの欄を変えれば値の違いに 1 件出る（比べの道具が空振りしない）。</summary>
+    [Fact]
+    public void 欄の比べは違いを拾う()
+    {
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var sim2 = SaveGame.Load(ms);
+        Assert.Equal(0, SaveGame.StateDiff(sim1, sim2, 4).Values);
+        var mk = sim2.Nations[0].World.Regions[0].Markets[0];
+        mk.ReservationWage += 1.0;
+        var sd = SaveGame.StateDiff(sim1, sim2, 4);
+        Assert.Equal(1, sd.Values);
+        Assert.Contains("ReservationWage", sd.Samples[0]);
+        mk.ReservationWage -= 1.0;
+        Assert.Equal(0, SaveGame.StateDiff(sim1, sim2, 4).Values);
+
+        // 順だけの違い：同じ鍵と値で列挙の順が違う辞書（Remove の後の追加が空いた枠を使う）は、値の違いに数えず順だけに数える
+        var fi = typeof(Diplomacy).GetField("_tensionRamp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var dA = (Dictionary<long, double>)fi.GetValue(sim1.Diplomacy)!; var dB = (Dictionary<long, double>)fi.GetValue(sim2.Diplomacy)!;
+        dA.Clear(); dB.Clear();
+        foreach (long k in new long[] { 1, 2, 3 }) dA[k] = k; dA.Remove(1); dA[4] = 4;   // 列挙の順 4,2,3
+        foreach (long k in new long[] { 2, 3, 4 }) dB[k] = k;                            // 列挙の順 2,3,4
+        Assert.False(dA.Keys.SequenceEqual(dB.Keys));
+        var so = SaveGame.StateDiff(sim1, sim2, 4);
+        Assert.Equal(0, so.Values);
+        Assert.Equal(1, so.OrderOnly);
+        dB[2] = 5.0;   // 値が違えば値の違い
+        Assert.Equal(1, SaveGame.StateDiff(sim1, sim2, 4).Values);
+    }
+
+    /// <summary>(1309) 距離の表の走り書き（旧 LastPairWasLand＝書いた直後に読むだけの bool の欄）は国際市場の欄に戻さない＝PairKm の返り値で運ぶ。
+    /// 国際市場（InternationalMarket）の実体の欄に、名前が Last で始まる bool があれば赤（セーブに載る走り書きは、保存の点で比べても同じ値が載るだけで違いに出ない＝穴）。</summary>
+    [Fact]
+    public void 国際市場に走り書きのbool欄を置かない()
+    {
+        var bad = typeof(InternationalMarket).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)
+            .Where(f => f.FieldType == typeof(bool) && f.Name.StartsWith("Last", System.StringComparison.Ordinal)).Select(f => f.Name).ToArray();
+        Assert.True(bad.Length == 0, "走り書きの bool 欄：" + string.Join(",", bad));
+        Assert.True(typeof(InternationalMarket).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic).Length > 2, "対照：欄を数えられている");
+    }
+
+    /// <summary>(1309) 初期化子つきの [NonSerialized] の欄は、読み込みで初期化子が走らない（SaveGame の GetUninitializedObject 系）ので初期値が 0 に化ける。
+    /// 許可表は理由つき（読み込み後に引き直される物だけ）。新しい物が増えたら赤＝理由を書くか、状態ならセーブに載せる。</summary>
+    [Fact]
+    public void 初期化子つきのNonSerializedは許可表の物だけ()
+    {
+        var found = new SortedDictionary<string, int>();
+        string root = System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
+        foreach (var f in System.IO.Directory.EnumerateFiles(root, "*.cs", System.IO.SearchOption.AllDirectories))
+        {
+            if (f.Contains(System.IO.Path.DirectorySeparatorChar + "obj" + System.IO.Path.DirectorySeparatorChar) || f.Contains(System.IO.Path.DirectorySeparatorChar + "bin" + System.IO.Path.DirectorySeparatorChar)) continue;
+            int n = 0;
+            foreach (var line in System.IO.File.ReadAllLines(f))
+            {
+                if (line.TrimStart().StartsWith("//")) continue;
+                int cut = line.IndexOf("//", System.StringComparison.Ordinal);
+                string code = cut >= 0 ? line[..cut] : line;
+                int at = code.IndexOf("NonSerialized", System.StringComparison.Ordinal);
+                if (at < 0) continue;
+                string rest = code[(at + "NonSerialized".Length)..];
+                if (rest.Contains('=') && !rest.Contains("=>")) n++;
+            }
+            if (n > 0) found[System.IO.Path.GetFileName(f)] = n;
+        }
+        // 許可表：Model.cs＝Producer.DiscoveryRow の添字の覚え（_discRow・_retRow・_discGood）。読み込み後は _discRecipe が null＝RecipeName と別の参照になり、getter が必ず引き直す。
+        Assert.Equal("Model.cs=1", string.Join(";", found.Select(kv => kv.Key + "=" + kv.Value)));
     }
     /// <summary>★年齢の層の数はセーブに書く（(1125)）：読む時に今の層の数と食い違えば例外（POB_AGE_BANDS が保存時と違うプロセスで読むと配列の長さが合わず静かに壊れる）。</summary>
     [Fact]

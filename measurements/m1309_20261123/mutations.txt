@@ -1,0 +1,20 @@
+# (1309) c136sv 突然変異の記録（使い捨て＝作業木に当てて元に戻した・savetest は measure.sh の隔離の写しで 300 四半期・種 1789・事後 12 四半期）
+# 基点：S0・S1 のコミットの木。出力の写しは同じフォルダの savetest_m*.txt。
+M1  Model.cs:591 ClearFailLp に [NonSerialized]
+    新しい形（0,45,75 state）：0日の点は値の違い 0・45日 1217244・75日 1148058 → 'savetest OK' を出さず『savetest 乖離 122（2量）・状態の違いのある点 2/3』＝赤。
+    → ident_check.py:640 は 'savetest OK' の文字列を読む＝この出力では FAIL になる（saveleak→ident_check の列）。
+    xUnit（SaveRoundTripTests・ClearingScopeTests）：赤 2 本＝四半期の途中のセーブで続きが一致する（45日の点・フランス）・眠りの印はセーブに載る（23 本中 2 赤）。
+    既定の形（4 引数＝保存の点が 0 日だけ）では緑のまま（M6 が同じ事実を示す）。
+M2  Model.cs:590 の眠りの印（FlowAsleep）に [NonSerialized]
+    新しい形：0日の点 0・45日 1171262・75日 1169509 → 赤。xUnit：同じ 2 本が赤。
+M3  StateDiff の辞書の順の違いを値の違いに数える形へ
+    savetest：全 3 点で値の違い 1（順だけ 3）→ 'savetest OK' を出さない＝赤。
+    xUnit：SaveRoundTripTests の 3 本（45・75日の途中のセーブ）は緑のまま＝穴（6 四半期では辞書の Remove の履歴がまだ無く順の違いが出ない）→ 同じ線で自己試験（欄の比べは違いを拾う）に〈同じ鍵と値で列挙の順だけ違う辞書〉を足し、M3 でその試験が赤になることを確かめた（1 本赤）。
+M5  S1 を外す（BilateralMarket.cs を 1c8873228 の形へ＝LastPairWasLand の欄を戻す）
+    savetest：全 3 点で値の違い 0・OK のまま＝緑（穴）。理由：書き手と読み手が同じ呼びの中にある走り書きは A と B_k に同じ値が載り、保存の点で比べても違いに出ない。
+    → 同じ線で機構の試験（国際市場に走り書きのbool欄を置かない）を足した。M5 で赤になることは下の追記。
+M6  保存の点を 0 日だけ（savetest 1789 300 12 0 state）＋M1
+    値の違い 0・'savetest OK' を出す＝M1 を当てても緑（空振りの再現・v の中①）。印前の件数は 0 日の点でも眠り 2104・失敗 21623・覚え 2892 が立っているが、次の読み手の前の点にならない（四半期の頭＝次の読みの前に第 1 清算が書き直す）。
+M7  Model.cs に初期化子つき [NonSerialized] 欄を 1 つ足す → 番人（初期化子つきのNonSerializedは許可表の物だけ）が赤（Expected "Model.cs=1"）。
+M5 追記：機構の試験（国際市場に走り書きのbool欄を置かない）を足し、M5 で赤（走り書きの bool 欄：LastPairWasLand）・S1 の木で緑を確かめた。
+追記：M5 の savetest・M3 の xUnit 以外の xUnit の赤は上のとおり。savetest の秒は未計測（四半期の保存・読込の ms は各出力に有る・ident の savetest.txt の経過で読む）。

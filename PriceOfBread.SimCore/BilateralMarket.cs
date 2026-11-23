@@ -168,7 +168,6 @@ public sealed partial class InternationalMarket
         return back;
     }
 
-    private bool LastPairWasLand;
 
     private readonly struct Seller(int node, double price, double stock)
     {
@@ -542,9 +541,9 @@ public sealed partial class InternationalMarket
             int ix = b * tc + a;
             double v = kmTab[ix];
             if (v >= 0) { kmGen[ix] = kmG; return v; }
-            v = PairKm(a, b, ix);
+            v = PairKm(a, b, ix, out bool pairLand);
             kmTab[ix] = v;
-            kmLand[ix] = LastPairWasLand;
+            kmLand[ix] = pairLand;
             kmGen[ix] = kmG;
             return v;
         }
@@ -569,20 +568,20 @@ public sealed partial class InternationalMarket
             for (int q = natOff[nat]; q < natOff[nat + 1]; q++)
             {
                 int s = natSt[q]; int ix = t * tc + s; double k = kmTab[ix];
-                if (!(k >= 0)) { k = PairKm(s, t, ix); kmTab[ix] = k; kmLand[ix] = LastPairWasLand; }
+                if (!(k >= 0)) { k = PairKm(s, t, ix, out bool pairLand); kmTab[ix] = k; kmLand[ix] = pairLand; }
                 mn = Math.Min(mn, k);
             }
             lbTab[li] = mn;
             return mn;
         }
         bool LandNow(int ix) => kmGen[ix] == kmG && kmLand[ix];
-        double PairKm(int a, int b, int ix)
+        double PairKm(int a, int b, int ix, out bool landOut)
         {
             byte st = kSt[ix]; double sea, lh;
             if (st == 0) { st = PairKmParts(tr, seaNodeOf, seaHalf, suezOkN, panOkN, landNode, landGraft, c.LandRouteEnabled, a, b, out sea, out lh); kSt[ix] = st; kSea[ix] = sea; kLh[ix] = lh; nKmRaw++; }
             else { sea = kSea[ix]; lh = kLh[ix]; nKmComp++; }
             double km = ComposeKm(st, sea, lh, kE[a], kE[b], kK[a], kK[b], out bool land);
-            LastPairWasLand = land;
+            landOut = land;
             return km;
         }
         Instruments.TrRoute RouteParts(int a, int b, bool sea, double eqBook)

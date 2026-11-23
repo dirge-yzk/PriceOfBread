@@ -3645,6 +3645,57 @@ if (args.Length > 0 && args[0] == "savetest")
     var sim1 = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
     sim1.StartWarmup();   // ★2026-08-10：実ゲームと同じ開始盤面から往復する（App も自己対戦バッチも助走を通る）＝助走の凍結フラグがセーブに正しく載るかも同時に見る
     for (int q = 0; q < preQ; q++) sim1.StepQuarter();
+    if (args.Length > 4)
+    {
+        // (1309) 月の途中の保存の点：第5引数＝保存の日の並び（例 0,45,75＝四半期の頭からの日数）・第6引数 state＝終わりに全ての保存される欄を比べる。
+        // A（sim1）が 1 本で進み、各点で保存。最後に各点のセーブから読んだ B_k を同じ終わりの日まで進め、A と比べる（2 量＋state なら欄ごと）。
+        // 'savetest OK' を出すのは 2 量が一致し、かつ（state のとき）全ての点で値の違い 0 件の時だけ（ident_check.py はこの文字列だけを読む）。
+        var days = args[4].Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries).Select(int.Parse).Distinct().OrderBy(x => x).ToArray();
+        bool stateMode = args.Length > 5 && args[5] == "state";
+        int endDay = postQ * Calendar.DaysPerQuarter;
+        var blobs = new List<byte[]>();
+        int curDay = 0;
+        foreach (int d in days)
+        {
+            for (; curDay < d; curDay++) sim1.StepDay();
+            var swK = System.Diagnostics.Stopwatch.StartNew();
+            using var msK = new System.IO.MemoryStream();
+            SaveGame.Save(sim1, msK);
+            blobs.Add(msK.ToArray());
+            var (mAsleep, mFail, mPartners) = SaveGame.MarkCounts(sim1);
+            System.Console.WriteLine($"保存 {msK.Length / 1024.0 / 1024.0:F1}MB（{swK.ElapsedMilliseconds}ms）／{preQ}四半期＋{d}日の点");
+            System.Console.WriteLine($"savetest 保存の点 {d}日・印前（眠り {mAsleep}・失敗 {mFail}・覚え {mPartners}）");
+        }
+        for (; curDay < endDay; curDay++) sim1.StepDay();
+        int diffK = 0, stateBad = 0; double worstK = 0;
+        for (int k = 0; k < days.Length; k++)
+        {
+            var swL = System.Diagnostics.Stopwatch.StartNew();
+            var simB = SaveGame.Load(new System.IO.MemoryStream(blobs[k]));
+            long loadK = swL.ElapsedMilliseconds;
+            for (int d = days[k]; d < endDay; d++) simB.StepDay();
+            for (int i = 0; i < sim1.Nations.Count; i++)
+            {
+                var a = sim1.Nations[i].World; var b = simB.Nations[i].World;
+                double ra = System.Math.Abs((a.BaseMoney - b.BaseMoney).Value) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney.Value));
+                double rp = System.Math.Abs(a.TotalPopulation - b.TotalPopulation) / System.Math.Max(1.0, a.TotalPopulation);
+                double r = System.Math.Max(ra, rp);
+                if (r > worstK) worstK = r;
+                if (r > 1e-9) { diffK++; if (diffK <= 5) System.Console.WriteLine($"  乖離（{days[k]}日の点） {a.SelfPower?.Name}: 基礎貨幣 {a.BaseMoney:F2}⇔{b.BaseMoney:F2}　人口 {a.TotalPopulation:F0}⇔{b.TotalPopulation:F0}"); }
+            }
+            if (stateMode)
+            {
+                var sd = SaveGame.StateDiff(sim1, simB, 8);
+                System.Console.WriteLine($"savetest 状態 {days[k]}日の点 値の違い {sd.Values}・順だけ {sd.OrderOnly}・比べた対象 {sd.Compared}（読込 {loadK}ms）");
+                foreach (var line in sd.Samples) System.Console.WriteLine("    " + line);
+                if (sd.Values > 0) stateBad++;
+            }
+        }
+        System.Console.WriteLine(diffK == 0 && stateBad == 0
+            ? $"savetest OK：{postQ}四半期後も全{sim1.Nations.Count}カ国が継続系列と一致（最大相対差 {worstK:E1}）"
+            : $"savetest 乖離 {diffK}（2量）・状態の違いのある点 {stateBad}/{days.Length}（最大相対差 {worstK:E1}）");
+        return;
+    }
     var sw = System.Diagnostics.Stopwatch.StartNew();
     using var ms = new System.IO.MemoryStream();
     SaveGame.Save(sim1, ms);
