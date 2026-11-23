@@ -67,23 +67,23 @@ public class ArrearsUnderLimitPrevMonthTests
         try
         {
             var w = Board(0.67);
-            double i0 = w.LastInterestPerMonth.Value, r0 = w.LastRevenuePerMonth.Value;   // 呼び 1 の頭で見える値
             Month(w, 0.5);
-            double i1 = w.LastInterestPerMonth.Value, r1 = w.LastRevenuePerMonth.Value;   // 呼び 2 の頭で見える値
+            double i1 = w.LastInterestPerMonth.Value, r1 = w.LastRevenuePerMonth.Value;   // 呼び 1 の後の欄＝呼び 1 の計器が見た値（呼びの中で更新された後に計器が読む）＝呼び 2 の前の月の比
             Bigger(w);
             int before = Instruments.ArrearsPeek(w)!.Count;
             Month(w, 0.5);
+            double i2 = w.LastInterestPerMonth.Value, r2 = w.LastRevenuePerMonth.Value;   // 呼び 2 の後の欄＝呼び 2 の計器が見た値（列 interestToRevenue）
             var rows = Instruments.ArrearsPeek(w)!;
             Assert.Equal(before + 1, rows.Count);
             var h = Instruments.ArrearsHeaderText.Split('\t')[1..];
             var v = rows[^1].Split('\t');
             Assert.Equal("prevInterestToRevenue", h[^1]);
-            Assert.True(r0 > 0 && r1 > 0 && i0 >= 0, $"前提：歳入と利払い i0={i0} r0={r0} i1={i1} r1={r1}");
+            Assert.True(r1 > 0 && r2 > 0 && i1 > 0 && i2 > 0, $"前提：歳入と利払い i1={i1} r1={r1} i2={i2} r2={r2}");
             double prev = double.Parse(v[Array.IndexOf(h, "prevInterestToRevenue")], System.Globalization.CultureInfo.InvariantCulture);
             double cur = double.Parse(v[Array.IndexOf(h, "interestToRevenue")], System.Globalization.CultureInfo.InvariantCulture);
-            Assert.Equal(i0 / r0, prev, 8);
-            Assert.Equal(i1 / r1, cur, 8);
-            Assert.True(Math.Abs(i0 / r0 - i1 / r1) > 1e-6, $"前提：前の呼びの比と今の呼びの比が同じ（この試験は取り違えを見分けられない）{i0 / r0} {i1 / r1}");
+            Assert.Equal(i1 / r1, prev, 8);
+            Assert.Equal(i2 / r2, cur, 8);
+            Assert.True(Math.Abs(i1 / r1 - i2 / r2) > 1e-6, $"前提：前の呼びの比と今の呼びの比が同じ（この試験は取り違えを見分けられない）{i1 / r1} {i2 / r2}");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

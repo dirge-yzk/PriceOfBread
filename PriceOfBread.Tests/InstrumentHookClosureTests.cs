@@ -285,6 +285,35 @@ public class InstrumentHookClosureTests
         try { System.IO.Directory.Delete(sel.Dir, true); } catch { }
     }
 
+    /// <summary>(1322) 入口を直に呼ぶ番人：HabitLgStep（habitlg_s）と NgRegionMoved（nationgood_s）は、走りでは置き場が四半期の末に空になる・州の移りが無い、のため件数では閉じの外れを拾えない
+    /// （突然変異で外しても全表の走りの比べが緑だった）。表を選ばないで呼んだ州の鍵が置き場に残らないことを見る（対照：選ぶと鍵が入る）。</summary>
+    [Fact]
+    public void DirectEntriesLeaveNoKeyWhenTheirTableIsNotSelected()
+    {
+        var sim = Make(); var w = sim.Nations[0].World; var r = w.Regions[0];
+        Assert.NotNull(w.Diplomacy);
+        bool Has(string field, object key)
+        {
+            var v = typeof(Instruments).GetField(field, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!.GetValue(null)!;
+            foreach (var kv in (IEnumerable)v) if (ReferenceEquals(kv.GetType().GetProperty("Key")!.GetValue(kv), key)) return true;
+            return false;
+        }
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ihd_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Instruments.SelectTables("nation_s"); Instruments.Configure(dir, "*");
+            Instruments.HabitLgStep(r, w.Coef, 1.0); Instruments.NgRegionMoved(w, r);
+            Assert.False(Has("HabitlgAccs", r), "habitlg_s を選ばないのに HabitLgStep が置き場へ積んだ（入口の閉じが外れている）");
+            Assert.False(Has("NgEvs", w.Diplomacy!), "nationgood_s を選ばないのに NgRegionMoved が置き場へ積んだ（入口の閉じが外れている）");
+            Instruments.Configure(null, null);
+            Instruments.SelectTables("habitlg_s,nationgood_s"); Instruments.Configure(dir, "*");
+            Instruments.HabitLgStep(r, w.Coef, 1.0); Instruments.NgRegionMoved(w, r);
+            Assert.True(Has("HabitlgAccs", r), "対照：habitlg_s を選ぶと HabitLgStep が積まない（試験の前提が崩れた）");
+            Assert.True(Has("NgEvs", w.Diplomacy!), "対照：nationgood_s を選ぶと NgRegionMoved が積まない（試験の前提が崩れた）");
+        }
+        finally { Instruments.Configure(null, null); Instruments.SelectTables(null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
     /// <summary>(1322) Nationgood 群（nationgood_s）は 4 国・種 1789 の走りでは年の間隔（NgEveryYears＝10）のため出力が無い＝NoOutputInThisRun で比べられなかった。間隔を 1 年にして、出力が出る走りで全表の走りと選んだ表のバイトを比べる。</summary>
     [Fact]
     public void NationgoodGroupWithOutputIsByteIdenticalToFullRun()
