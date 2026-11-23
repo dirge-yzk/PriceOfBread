@@ -115,3 +115,10 @@
  1 この事前登録 → 2 器（旗 0・capcol_s の 8 列・試験 T8〜T12・Board(0) の前提の行）→ ㉘（scan_nc.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c139ncz --work D:/PoB_work/ident_c139nc --grown-ok capcol_s --tests-delta 6）
  → 4 突然変異（mut_nc.sh）→ 5 旗 1 → ㊴ 計器の束 → フルスイート・savetest・leakhunt（suite_nc.sh）→ 6 腕 B（armb.sh・計器つき 10 種）→ 門 → 印 D:/PoB_work/c139nc_work/nc.mark。
  形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記（2026-11-24・腕 Z の後・腕 B の前・門の数は変えない）
+ 腕 Z（ident c139ncz 段 2・器 b9343ab96）〈判定: 恒等〉（測った種で一致）：素 5 種 180 行・計器つき 10 種 182 行・推定 227.9 秒・表 1697 一致＋揺れ 20＋列が増えた 10（capcol_s +8 列）・注視 4714 行・NG 96 新 0 外れ 0・テスト 3175（3169＋6）・FullLength 3・savetest・leakhunt 緑。
+ 旗 0 の正確な門の値（腕 Z の capcol_s・cc_gate.py・measurements/m1332_20261124/identz/cc_gate_flag0_identz.txt）：G1＝18（紙の近似 18 と同じ）・G2＝0・G3＝18＝旗 0 で G1 と G3 は赤（★(790)）。
+   付け替え 150（内戦の四半期 122）・格の内訳 Core 123・Integrated 割譲 22・Integrated 故地/昇格 0・植民地格 5・受け口の外の付け替え（otherChange）124。
+ 突然変異（measurements/m1332_20261124/mut/mut_M*.txt・NextCapitalHomeFirstTests＋TerritoryTests 24 件）：表どおり。M0 T8・T10・T11(1) 赤／M1 T8・T9・T10・T11(1) 赤／M2 T8・T10・T11(1) 赤／M3 T10 赤／M4 T10・T4 赤（T4 は表に無い余分の赤＝候補の走査は旗 0 と共有）／M5 T3 赤／M6 T11(0) 赤。
+ ㉘ 走査の番人（器 b9343ab96）234 件 緑（measurements/m1332_20261124/scan/）。
