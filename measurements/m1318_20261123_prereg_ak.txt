@@ -1,0 +1,117 @@
+(1318) c137ak 挙動の線の事前登録：分離の国庫の分与を人口の比から民間の貨幣の比へ（案 A・旗 SecessionTreasuryByMoney・1 回目）と計器 sectreas_s の器（2026-11-23・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発
+ 00一覧〈次の波（波137〜）〉2 の①。(1313) c136ak の推奨＝案 A（measurements/m1313_20261123/report.txt:43〜:66・AI の案・確証なし）。§0-2 ★(1315) ③（知らせる物）。作者 2026-11-21 の裁定（群 1 破綻とバグ）。
+ df の 3 回目（ArrearsOnePredicate の点火）とは混ぜない（帰属を分ける）。答え待ちではない。3 回の規則の 1 回目。形の種類＝〈入口〉（分離の瞬間の分与の基準だけを変える・他は今のまま）。
+ (1313) 反証役 v の訂正（report.txt:99〜:101）を写した：分子が分母を超える盤面を先に決める（下の形）・〈N2 の南アフリカ 1905 の跳びは案 A が入口で消す〉は〈推〉＝腕 B で数え直す。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果＝measurements/m1318_20261123/pre/grep32.txt）
+ 旧の規則：MultiNationSim.SpawnNation の分与 T＝max(0,国庫)×移る州の人口÷親の人口（:325〜:329・b65ac8d70）。
+ 試験で分離を起こす所：CedeRuleInstrumentTests:112・ConservationTests:246・InheritIntentTests:49・PopCloseInstrumentTests:79・RevoltIgnitionTests:749〜:896・TreasLedgerInstrumentTests:T7（SpawnNation を直に）。
+ 分与の額を名指す Assert：NationIdentityTests:148（belgium.Treasury > 0）・TreasLedgerInstrumentTests:157（given > 0）・:159〜:166（子の _bornTreasury＝親の減り）。どれも符号か保存で、人口の比の値を固定しない。
+ ＝旧の規則を固定する Assert の赤の予言 0（旗 1 でも移る州の貯蓄の和は正〈推〉）。赤が出たら ㉜ の改めのとおり、旧の規則そのものを固定する物は新の規則の試験へ書き換える。
+ MultiNationSim.cs:401 の Military の初期表示値（P÷parentPop）は触らない（表示だけ・次の Diplomacy.Step が兵士 POP から導く）。
+
+■ 形（AI の案・確証なし＝案 A は (1313) の推奨・作者の裁定ではない）
+ 旗 1：T＝max(0,国庫)×S÷M。S＝移る州の Region.SumSavings() の和・M＝移す前の親の World.TotalMoney（＝全ての州の SumSavings の和）。分子と分母は同じ定義の和（負の貯蓄〔借越〕も両方に入る＝思想〈分子と分母の非対称〉）。
+ 守り：S＞0 かつ M＞0 でなければ 0（旧の parentPop > 1e-9 の守りと同じ形・否定形でない比べ＝NaN も 0 へ倒れる）。新しい閾値・係数・状態は 0（旗 1 本だけ＝Coefficients.cs の SecessionHoldPerPop の次の 1 行）。
+ 分子が分母を超える盤面（残る州の貯蓄の和が負＝S＞M）：比を 1 で削らない（設計思想⑧・例外の例外を作らない）。T は国庫を超え、親の国庫は負へ（保存は保つ・World.Transfer は国庫の側を削らない）。
+   頻度は計器の shareOverOneFlag で数える（記録）。S≦0（移る州が正味の借越）は守りで 0＝子は国庫 0 で生まれる。
+ 旗 0 は今と 1 ビットも同じ（式と順序を変えない・新の和は旗 1 の枝の中だけで取る）。
+ 入れない物：df の 3 回目・案 B（官僚の空席を行き先に）・E2・E3 の直し・兵の給与の受け手・:401 の Military の表示値。
+
+■ 計器 sectreas_s（器の段で入れる・旗 0・PriceOfBread.SimCore/Instruments/InstrumentsSecTreas.cs・Instruments.cs の登録の 2 行＝CapColTable と CapColClose の直後）
+ 受け口は SpawnNation の分与の式の直後（州を移す前・World.Transfer の前）の 1 か所（Instruments.SecTreasIfOn・中で On と表の選びを読む＝SpawnNation の Instruments.On の読みを増やさない）。
+ 計器は州の POP の大きさと貯蓄を自分で回す（SumPopulation・SumSavings・TotalPopulation・TotalMoney を呼ばない）。旧と新の規則の T を自分で組み、実際の T（呼び手が渡す）と同じ行に書く。
+ 列（新しい表・1 回の分離＝1 行・四半期の末に書く・分離 0 の種は見出しだけ）：quarter year parent firstRegion regions capitalRisingFlag byMoneyFlag movedPopK parentPopK movedMoney movedNegSavings
+   parentMoney parentTreasury oldRuleT newRuleT actualT shareOverOneFlag（17 列）。足した計器の列＝この 17 列。既存の表の列は足さない。ident には --added-tables sectreas_s。
+ 力学の値を書かない・乱数を引かない・エンジンに欄を足さない（置き場は計器の ConditionalWeakTable＝セーブに載らない）。
+
+■ 紙（今の盤面＝keep_1315/base_ins〔M〕・keep_1308/a11〔S11〕・keep_1308/n1・n2・台本 scripts/instruments/c137ak/pre_base.sh・出力 measurements/m1318_20261123/pre/）
+ 新÷旧の分与（r1313/q4_share.py の近似＝親の値は前の四半期の末〈推〉）：M 123 生まれ p10 0.96・中央 1.17・p90 2.04・最大 10.4・最小 0.078（0.01 未満 0）／
+   N1 97 中央 1.08・0.01 未満 2〔負の値 2＝親の国庫の近似の誤り〈推〉〕／N2 128 中央 1.12・0.01 未満 5／S11 131 中央 1.08・0.01 未満 9。
+ 生まれの民間÷国庫 1/1000 未満（M）と 1 人あたり名目 GDP 1/20 未満（G）の国×四半期（r1313/q12_born.py）：M 0／1・N1 0／108・N2 140／221・S11 0／19（(1313) と一致）。
+ 旗 0 で門が落ちることの確かめ（★(790)）：G1 は旗 0 の生（byMoneyFlag 0）で赤（台本 st_gate.py を基準の生に当てると表が無い＝赤）。T1・T3・T6・T7・T8(1) は旗 0 の実装（＝突然変異 M1）で赤（下の表）。
+
+■ 段 0 の予言（ソースと基線の生から・向きと桁・〈推〉・門にしない）
+ P1 ふつうの生まれの分与は ×1.1〜2（中央 ×1.17〈推〉）＝親の国庫が少し多く出る。貨幣の乏しい州（E1 の型）の生まれは ×1e-5〜1e-2＝国庫ほぼ 0 で生まれる。
+ P2 一番動かす量（生まれの国庫÷移る州の民間の貨幣）：旗 1 では親の国庫÷親の民間（分離の直前）と同じ＝ふつうの国の比（基準の生まれの中央の逆数 1/39.9≈0.025 の桁〈推〉）。
+ P3 M と G の国×四半期：N2・S11 の型（民間÷国庫が極端に小さい生まれ）は入口で消える〈推〉。ただし最初の分離から軌道が分かれる＝種ごとの数は同じ盤面にならない（記録）。
+ P4 止める線は基準と同じ桁〈推〉（分与は 1 回の移しで、価格水準の道に触れない）。
+ ＝見込みは〈悪くする〉ではない（貨幣の無い州が親の 1 人あたりの国庫を持って出る誤りを無くす向き）＝腕を回す。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（PriceOfBread.Tests/SecessionTreasuryShareTests.cs・盤面は試験の中で置く＝英の全ての POP の貯蓄を 0 にして首都 C・移る州 X・Y に貯蓄を置く・
+   X と Y の守備兵は闘争度 1＝分与の前に州の人口が動かない・期待は試験が置いた額の算術）：
+  T1 国庫 1e5・C 1e6・X 40・Y 10 → 子の国庫＝1e5×50÷(1e6+50)（旗 0 は人口の比＝赤）・親の減り＝子の国庫（保存）・子の民間÷国庫＝親の分離前の民間÷国庫（相対 1e-9）。
+  T2 旗 0 は人口の比（試験が POP の大きさを足して組む）。
+  T3 X 5e5 → 1e5×(5e5+10)÷(1.5e6+10)（分母は移す前の親の和）。
+  T4 片側の貨幣 0：移る州の貯蓄 0 → 子 0・親は不変。親の和 0（C −50・X 40・Y 10）→ 子 0・親は不変。
+  T5 国庫 −1e5 → 子 0・親 −1e5 のまま。
+  T6 X に 60 と −20 の 2 つの POP → T1 と同じ値（負の貯蓄は分子と分母の両方）。
+  T7 C −500・X 400・Y 200（比 6）→ 子 6e5・親 1e5−6e5（削らない・保存）。
+  T8（旗 0 と 1）計器 sectreas_s：1 行・oldRuleT＝試験の人口の比・newRuleT＝T1 の式・actualT＝旗の側・movedMoney 50・movedNegSavings −20・parentMoney 1e6+50・
+     次の四半期は 0 行。actualT＝子の国庫。
+ G1（実際の側・⑮）：腕 B の sectreas_s で全ての行が byMoneyFlag 1・actualT＝newRuleT（相対 1e-9）・行 1 以上・表の欠け 0（読み手 scripts/instruments/c137ak/st_gate.py）。旗 0 の生は赤。
+ 止める線（作者の止める線・腕 B の生を読み手 scripts/instruments/c137ak/read_ak.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines906（nation_s の priceLevel の四半期比 100 倍以上・1e10 倍以上・非有限・plvl・開幕の 1000 倍／gdpjump の 3 区分の〈それ以外〉だけ）。
+     建国の直後と分母の痩せ（popjump1017）はヌル腕と並べる。基準とヌル腕を同じ台本で数え直す（⑰・pre_base.sh）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ。植民地格の州も含む。
+     基準の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ（基準 keep_1315/base_ins の 1/4 未満は 5 件＋例外の名簿 1＝s1 チャールストン・s6 セントポール・
+     s8 ダブリン・s9 チャールストン〔移民〕・s3 フォートウィリアム〔飢え〕・s7 ナイン〔例外の名簿〕）。
+  S4 推定の計算量 ＞248.5 秒（名目・余り 約 15.8 秒）。割り当て +0.1 秒未満〈推〉（分離の時だけ移る州の POP の和と親の TotalMoney を 1 回ずつ・1 種あたり分離は 10〜20 回）。
+     計器は INS=1 の時だけ。2 秒以下＝合流の累計で読む（★(694)）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 史実の桁の線（10 倍・この線が一番動かす量）：生まれの国庫÷移る州の民間の貨幣（st_gate.py の中央と最大）＝記録（指示のとおり）。
+ 記録（門にしない）：gdp_zero10・ヌル腕の幅・nullgate・NG（ng.sh・基準 rd:measurements/ng1308_20261123:m1308）・home_break・英の国債の不履行の種の数・開幕の 1000 倍以上。
+
+■ 基準で回した止める線（★(1254)・台本 scripts/instruments/c137ak/pre_base.sh・出力 measurements/m1318_20261123/pre/）
+ keep_1315/base_ins：pxjump 100 倍以上 0・1e10 倍以上 0・非有限 0／gdpjump 100 倍以上 0／plvl 比≧100 0・開幕の 1000 倍以上 0／gdp_zero10 0／空洞化 1/10 未満 0・1/4 未満 5。
+   英の国債の不履行 3/10（種 4・6・8）。popjump 行 7・件 5。＝緑。
+ keep_1308/n1：pxjump 0・gdpjump 0・plvl 0・空洞化 1/10 未満 0・1/4 未満 1。英の国債の不履行 4/10（種 1・5・7・9）。
+ keep_1308/n2：pxjump 0・gdpjump 100 倍以上 1（それ以外 1＝南アフリカ王国 1905 型〔(1313) の E1〕）。
+
+■ 記録（採否に使わない）
+ R1 st_gate.py：分離の回数・新÷旧の分布・shareOverOneFlag の行の数・移る州の負の貯蓄の行の数・生まれの民間÷国庫 < 0.1 の行の数・史実の桁の量。
+ R2 r1313/q12_born.py の M と G の国×四半期（腕 B と M・S11・N1・N2 を並べる）・r1313/q4_share.py の新÷旧の近似（腕 B）。
+ R3 南アフリカ 1905 型の跳び＝gdpjump833 の〈それ以外〉の件数（腕 B）。(a)〈0 の近くからの跳び〉は区分を足さず記録の列（(1313) 問い 6 の推奨）。
+ R4 同じ盤面の新÷旧＝成績表の行の差の数（card_difflines）。旗 1 の出力が旗 0 と違う行の数。
+ R5 nullgate.py（O・NG）・ng.sh・home_break・英の国債の不履行の種の数・開幕の 1000 倍以上・gdp_zero10・popjump1017。
+ R6 周辺の点検（読むだけ・直さない）：E2＝割譲で残った国が国庫を丸ごと持つ（Diplomacy.cs:2965〜:2972 の CedeRegion は州だけを移し国庫は動かさない）・
+    E3＝投資家 0 の国で外国の資本が国庫へ（CapitalMarket.cs:224〜:231 の GiveGold は投資家に配り切れない分を国庫へ〈推〉）・
+    行政の出口（Meritocracy.cs:77 の昇進は大きさ 0 の POP を飛ばす・:339 の職の割り振りも同じ）＝案 A は入口だけを直し、出口が細いことは変えない（(1313) v の中）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c137ak/mut_ak.sh・出力 measurements/m1318_20261123/mut/・紙の予言）
+ | 突然変異 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8(0) | T8(1) | G1（紙） |
+ | M1 人口の比へ戻す                    | 赤 | 緑 | 赤 | 赤 | 緑 | 赤 | 赤 | 緑 | 赤 | 赤 |
+ | M2 分母を移した後の親の貨幣          | 赤 | 緑 | 赤 | 緑 | 緑 | 赤 | 赤 | 緑 | 赤 | 赤 |
+ | M3 分子を移る州の最初の州だけ        | 赤 | 緑 | 赤 | 緑 | 緑 | 赤 | 赤 | 緑 | 赤 | 赤 |
+ | M4 max(0,国庫) を外す                | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ | M5 分子だけ負の貯蓄を 0              | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 赤 | 赤（負の貯蓄の行） |
+ | M6 親から引かない                    | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 緑（保存は S1 の leakhunt） |
+ | M7 計器の旧の規則の列に新の規則      | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 | 赤 | 緑 |
+ | M8 分母の守りを外す                  | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | 緑 | 緑 |
+ G1 の列は紙の読み（突然変異では腕を回さない＝腕の枠の節約）。M3 の分子は移る州の最初（新しい国の首都）だけ＝1 州の分離では恒等（2 州の盤面 T1 で赤）。
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）（grep の結果＝measurements/m1318_20261123/pre/grep28.txt）
+ 工業化度の読み手の許可表（IndustrializationReaderTests:25）：("MultiNationSim.cs", 2)＝この線は工業化度を読まない＝変化 0。InstrumentsSecTreas.cs は読み手でない。
+ `new MoneyStock(`（SimCore）66 件＝この線は足さない（旗 1 の和は default から +=）＝66 のまま。
+ scripts/instruments/flow262/route_anchors.tsv の鍵の行〈MultiNationSim.cs〉8 行＝触らない＝変化 0。World.Transfer の呼び出し位置の行番号は +10 ずれる（flow_s・cearn_s は ident が位置を写して比べる）。
+ WriterRatchetTests の宣言の表：この線は国庫・台帳の書き手を足さない（"Treasury" 0・CumulativeTradeFlow 6 のまま）＝宣言の行の変化 0。
+ OnDoubleReadScanTests：SpawnNation の Instruments.On の読みは 1 のまま（受け口は中で On を読む関数）。
+ DormantIdentityTests.DormantZeroFields：器で +1（SecessionTreasuryByMoney）・点火で −1。
+
+■ 計算量の割り当て
+ .cost：+0.1 秒未満〈推〉。計器の表は INS=1 の時だけ。
+
+■ ほかの線との重なり（指示の持ち主の一覧）
+ c137sm（SaveGame.cs・Instruments.cs の :1599 付近・InstrumentsTreasLedger.cs の注・Formations.cs の注ほか）・c137s3（InstrumentsSubst.cs・InstrumentsTg.cs・subst_s の宣言の行）・
+ c137k49（Coefficients.p08 の :62・EconomyStep.cs の注）・c137nc（Territory.cs の NextCapital・p08 の :114 の隣）と持ち主のファイルは重ならない。
+ 共有：Instruments.cs（この線は登録の 2 行＝CapColTable と CapColClose の直後）・Coefficients.cs（SecessionHoldPerPop の直後の 1 行）・DormantIdentityTests.cs（EmptyPopDebtFirst の行の直前の 1 行）。
+ MultiNationSim.cs はこの線だけ（:325〜:340）。
+
+■ 順
+ 1 この事前登録 → 2 器（旗 0・sectreas_s・試験）→ ㉘（scan_ak.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c137akz --work D:/PoB_work/ident_c137ak --added-tables sectreas_s --tests-delta 9）
+ → 4 突然変異（mut_ak.sh）→ 5 旗 1 → ㊴ 計器の束 → フルスイート・savetest・leakhunt（suite_ak.sh）→ 6 腕 B（armb.sh・計器つき 10 種）→ 門 → 印 D:/PoB_work/c137ak_work/ak.mark。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。

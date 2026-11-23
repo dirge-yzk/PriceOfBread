@@ -1,0 +1,21 @@
+# grep28 HEAD=b65ac8d70＋器の変更
+## IndustrializationReaderTests の MultiNationSim
+25:        ("Model.cs", 4), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
+## new MoneyStock( の件数（SimCore）
+66
+## route_anchors の MultiNationSim
+8:MultiNationSim.cs	double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);	運河の建設の工賃(投資家→労働の持分・PaySales)	
+9:MultiNationSim.cs	double paidCap = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);	港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)	
+10:MultiNationSim.cs	double paidState = InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);	港の建設の工賃・国家ルート(国庫→労働の持分・PaySales)	
+33:MultiNationSim.cs	paid += CapitalMarket.GiveGold(iw, amount * (kv.Value / totalShare), (payer, null), TreasuryCat.OtherOut);	運河の通行料の配当(国庫→拠出国の投資家)	
+56:MultiNationSim.cs	World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac.Value * throughput * risk);	海上保険の保険金(商人→被害の商人)	
+57:MultiNationSim.cs	dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);	招聘の支度金(国庫→到着した人)	
+58:MultiNationSim.cs	double k = World.Transfer((lw, lenders[li]), (null, null, null), oweGold * (heldBy[li] / lendTotal) / lw.FxRate);	外国債務の返済(貸し手のPOP→国境の外)	
+72:MultiNationSim.cs	double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare.Value, money: false);	越境の移民(POPの運搬)	
+## WriterRatchet の MultiNationSim と Treasury
+158:    [InlineData("CumulativeTradeFlow", 6)]    // 世界の台帳・国境をまたいだ出入り（移し方の1本の台帳の1行＋再併合の与信の合算・割譲の2行・分離建国の
+171:    [InlineData("Treasury", 0)]               // 外交層の財布への代入（World.Treasury は private set＝構造で閉じている・Power.Treasury は 2026-09-30 に欄ごと削除）
+202:    /// （Pop.Distribute・Pop.Take・Pop.Carry・Pop.SettleMonth・Pop.Rebase・World.SetTreasuryRaw）は internal＝InternalsVisibleTo で Tests・Runner・App にも見える
+208:    [InlineData("Pop.Carry(", "MultiNationSim.cs", 1)]     // 国境をまたぐ人の運搬の1本（MoveAbroad）だけ
+211:    [InlineData(".SetTreasuryRaw(", "Simulation.cs", 1)]   // 初期国庫（フローでない）
+403:    //   （0.45650→0.54106 µs＝件数だけ減らすと推定が実時間より約5倍下がる＝MultiNationSim.cs の CostLedger.UnitMicros の注記）。
