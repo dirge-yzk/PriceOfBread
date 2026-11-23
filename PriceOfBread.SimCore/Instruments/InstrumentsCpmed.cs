@@ -26,8 +26,9 @@ public static partial class Instruments
     static bool CmSame(double a, double b) => System.Math.Abs(a - b) <= 1e-12 * System.Math.Max(1.0, System.Math.Abs(b));
 
     /// <summary>講和の前（ResolvePeace を呼ぶ前）：入力から式で書ける物を記録する。</summary>
-    internal static CmPre CmBefore(Diplomacy d, Coefficients c, War war)
+    internal static CmPre? CmBefore(Diplomacy d, Coefficients c, War war)
     {
+        if (!Tg.Cede) return null;   // (1329) CmAfter は Tg.Cede でしか積まない＝CmStates・CpStates を作らない（入口を閉じる・呼び側は null を読み飛ばす）
         var st = CmOf(d); var cps = CpOf(d);
         bool civil = war.CivilWarParent is not null, forced = war.ForcedPeace;
         bool collapsed = CpIterFlags.TryGetValue(war, out var cf) && cf.Value;

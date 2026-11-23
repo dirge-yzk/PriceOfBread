@@ -1,6 +1,7 @@
 # (1303) 検算の台本：arrears_s の underLimit を前の月の比へ直した時の、基準の生と腕の生の違いが規則どおりかを確かめる（読むだけ・エンジンを呼ばない）。
 #   python -I arrears_recheck.py <基準の arrears_s の tsv> <腕の arrears_s の tsv>   → 0＝規則どおり・1＝違反・2＝読めない
 # 限界：払える率か国債が変わった行は〈基準だけ＋腕だけ〉の組に見える（(e) の条件を満たせば通る）＝エンジンの変更は成績表と他の表のバイト一致が守る。
+# 注 (1329)：(h) は計器の中の自己整合（arrears_s の列 underLimit と prevInterestToRevenue が同じ計器の中で突き合うか）で、エンジンの述語の番人ではない。基準を列の無い古い keep（keep_1321 など）へ向けると見出しの違いで違反になる＝基準は列が揃う生（INSRAW keep_1328/base_ins など）を使う。
 # 規則は scripts の事前登録 measurements/m1303_20261122_prereg_ar.txt [2] の (a)〜(e)＋(1316) で足した (f)(g)（(d) の共通の行で自由でない列が違う分岐は死んでいたので消した）。
 import sys, csv, os
 from collections import OrderedDict

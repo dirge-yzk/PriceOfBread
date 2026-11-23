@@ -91,16 +91,6 @@ public class InstrumentHookClosureTests
                 int added = kv.Value.Count(k => !baseKeys.GetValueOrDefault(kv.Key, new HashSet<object>()).Contains(k));
                 if (added > 0) fields[kv.Key] = added;
             }
-            // (1322) CpStates は Cpmed・Dep・Impose・War の読み口も作る（CpMonth の閉じだけでは空にならない＝OpenStores）。CpMonth の閉じは〈新しい鍵の状態に月が書かれたか〉で見る（擬似の欄 CpStates.Month）。
-            int cpMonth = 0;
-            var cpf = typeof(Instruments).GetField("CpStates", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!.GetValue(null)!;
-            foreach (var kv in (IEnumerable)cpf)
-            {
-                var key = kv.GetType().GetProperty("Key")!.GetValue(kv)!; var val = kv.GetType().GetProperty("Value")!.GetValue(kv)!;
-                if (baseKeys["CpStates"].Contains(key)) continue;
-                if ((int)val.GetType().GetField("Month")!.GetValue(val)! != 0) cpMonth++;
-            }
-            if (cpMonth > 0) fields["CpStates.Month"] = cpMonth;
             int state = fields.Values.Sum();
             Instruments.Close(sim);
             return new RunOut(dir, state, fields);
@@ -255,7 +245,7 @@ public class InstrumentHookClosureTests
     }
 
     // 閉じた file の累積の置き場（辞書・ConditionalWeakTable）。nation_s だけを選ぶ走りで空のまま、全表の走りでは溜まる。
-    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags", "CpIterFlags", "CpStates.Month", "HabitlgAccs", "NgEvs", "PxSinks"];   // (1322) 後ろの 5 つは (1268) で入口を閉じたのに置き場の名簿が無かった物（CpIter・CpMonth・HabitLgStep・NgRegionMoved・PxstepTable の閉じを外すと赤になる）。CpStates.Month は擬似の欄（CpStates 自体は Cpmed・Dep・Impose・War の読み口も作るので OpenStores＝CpMonth の閉じは新しい鍵の状態に月が書かれたかで見る）
+    private static readonly string[] ClosedAccs = ["AibAccs", "EqAccs", "LwSteps", "SbAccs", "NgAccs", "PxAccs", "CscAccs", "PopCloseAccs", "SoldierVacAccs", "IvfAccs", "MintregAccs", "MintcapAccs", "SatNeedsAccs", "UnifStates", "RpStates", "SubstSinks", "DivhostAccs", "WarSts", "EdDiags", "CpIterFlags", "CpStates", "HabitlgAccs", "NgEvs", "PxSinks", "CmStates", "BxNats", "BxRegs", "CkSinks", "CkWorlds", "CrownPrevs", "CrownSinks", "CrownSrcs", "FdDiags", "HabitlgSinks"];   // (1322) 後ろの 5 つは (1268) で入口を閉じたのに置き場の名簿が無かった物（CpIter・CpMonth・HabitLgStep・NgRegionMoved・PxstepTable の閉じを外すと赤になる）。(1329) CpStates は CpMonth に加えて CpBefore・CmBefore の入口も閉じた（Cpmed・Dep・Impose・War の読み口は各自の Tg の門の内）＝擬似の欄 CpStates.Month をやめて本物の置き場で数える
 
     /// <summary>(1322) 四半期の末に表を書いて置き場を空にする物（全表の走りの末でも 0＝〈全表で溜まる〉の対照は取れない）。選ばない走りで溜まっていないことだけを見る。外すと入口の閉じ（HabitLgStep）を外したとき赤になる。</summary>
     private static readonly string[] ClearedAtQuarterEnd = ["HabitlgAccs"];
@@ -274,7 +264,8 @@ public class InstrumentHookClosureTests
 
     /// <summary>(1322) 置き場を数える：nation_s だけを選ぶ走りでも溜まる置き場は、名簿（OpenStores＝入口を閉じていない置き場）か ClosedAccs に入っていなければ赤。
     /// 新しい置き場が閉じられないまま足されたら赤＝閉じる（ClosedAccs へ）か、閉じない理由を書いて名簿へ足す（走る試験の順で現れる置き場もあるため、名簿の物が現れないことは赤にしない）。</summary>
-    private static readonly string[] OpenStores = ["BxNats", "BxRegs", "CkSinks", "CkWorlds", "CmStates", "ConAccs", "CrownPrevs", "CrownSinks", "CrownSrcs", "Dips", "FdDiags", "Flows", "HabitlgSinks", "InheritBorns", "InheritOwnStarts", "InheritRegs", "InheritSinks", "Inps", "LandbaseSinks", "Lawgate2Table", "LbAdjs", "LbFrozen", "LbNationHist", "LbNats", "LbRegionHist", "MerchBufs", "MerchSinks", "MerchSteps", "MonSinks", "MonWs", "PopOwner", "PortAccs", "RailAccs", "Sinks", "StartGates", "States", "TrAccs", "UrxPpStates", "UrxRtStates", "UrxStates", "WarPushes", "CpStates", "AreaCache", "_monLawNames"];   // (1322) 今ある 41 の置き場（実測）＝入口を閉じていない置き場の名簿。新しい置き場が足されると赤・閉じたら名簿から外す（閉じる線は別）
+    private static readonly string[] OpenStores = ["ConAccs", "Dips", "Flows", "InheritBorns", "InheritOwnStarts", "InheritRegs", "InheritSinks", "Inps", "LandbaseSinks", "Lawgate2Table", "LbAdjs", "LbFrozen", "LbNationHist", "LbNats", "LbRegionHist", "MerchBufs", "MerchSinks", "MerchSteps", "MonSinks", "MonWs", "PopOwner", "PortAccs", "RailAccs", "Sinks", "StartGates", "States", "TrAccs", "UrxPpStates", "UrxRtStates", "UrxStates", "WarPushes", "AreaCache", "_monLawNames"];   // (1329) 今ある 33 の置き場（(1322) の 44 から CpStates・CmStates・BxNats・BxRegs・CkSinks・CkWorlds・CrownPrevs・CrownSinks・CrownSrcs・FdDiags・HabitlgSinks の 11 本を閉じた）＝入口を閉じていない置き場の名簿。新しい置き場が足されると赤・閉じたら名簿から外す。
+    // 閉じていない理由（1 行）：Sinks・States・PopOwner・Flows・StartGates・Dips・ConAccs・PortAccs・RailAccs・TrAccs＝nation_s ほか全ての表が共有する土台の置き場（閉じる＝計器の土台の作り直し）／Inherit*・Landbase 系（LandbaseSinks・Lb*）・Merch*・Mon*・Urx*・Inps・Lawgate2Table・WarPushes＝表ごとの入口の門（Tg）がまだ無い（00一覧 0 の① に残す）／AreaCache・_monLawNames＝この走りでは現れない（走る試験の順で現れる）
 
     [Fact]
     public void OpenStoresAreExactlyTheNamedOnes()

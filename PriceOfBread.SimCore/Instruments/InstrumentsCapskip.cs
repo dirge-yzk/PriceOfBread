@@ -26,6 +26,7 @@ public static partial class Instruments
     /// <paramref name="buyer"/> は買い手の州・<paramref name="access"/> は買い手の行の入手率・<paramref name="priced"/> はエンジンの値段の門・<paramref name="addedW"/> はエンジンが実際に足した重さ（旗 0 は 0）。</summary>
     internal static void CapSkip(World sellerWorld, int g, Market ms, Market mb, Region buyer, double access, double wg, bool priced, double addedW)
     {
+        if (!Tg.Capskip) return;   // (1329) 書く表が選ばれていなければ置き場（CkWorlds）を作らない＝入口を閉じる
         if (sellerWorld.WarmupFrozen || g < 0 || g >= Catalog.Goods.Length) return;
         var q = CkOf(sellerWorld);
         double offer = ms.Stock - ms.TargetStock; if (!(offer > 0)) offer = 0;
@@ -48,6 +49,7 @@ public static partial class Instruments
     /// <summary>受け口（:1083・Instruments.On かつその行の skipQ が正）：同じ行の次の売り手の側の未充足から引いた重さ（エンジンの実際の側）と、引く前の未充足の重さ（(1322)）。</summary>
     internal static void CapSkipDedup(World sellerWorld, int g, double dedupW, double baseW)
     {
+        if (!Tg.Capskip) return;   // (1329) 同上
         if (sellerWorld.WarmupFrozen || g < 0 || g >= Catalog.Goods.Length) return;
         var a = CkOf(sellerWorld);
         a[g, CkDedup] += dedupW; a[g, CkDedupBase] += baseW;
@@ -56,6 +58,7 @@ public static partial class Instruments
     /// <summary>四半期の末：全ての国×その四半期に飛ばしか差し引きが有った財の 1 行。書いたら国の和を 0 へ戻す。</summary>
     static void CapskipTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Capskip) return;   // (1329) 同上（CkSinks）
         var ck = CkSinks.GetValue(sim, _ => new CkSink());
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         foreach (var n in sim.Nations)

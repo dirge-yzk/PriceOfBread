@@ -30,10 +30,11 @@ public static partial class Instruments
     internal sealed class CpPre { public CpRec Rec = new(); }
 
     /// <summary>講和の前（ResolvePeace を呼ぶ前）：入力から式で書ける物を記録する。</summary>
-    internal static CpPre CpBefore(Diplomacy d, Coefficients c, War war, Diplomacy.CollapseGroup? cg, double share)
+    internal static CpPre? CpBefore(Diplomacy d, Coefficients c, War war, Diplomacy.CollapseGroup? cg, double share)
     {
-        var st = CpOf(d);
         d.CpHit = false; d.CpCeded = false;
+        if (!Tg.Cede) return null;   // (1329) 書く表（CpAfter 以後）が選ばれていなければ CpStates を作らない＝入口を閉じる（呼び側は null を読み飛ばす）
+        var st = CpOf(d);
         double s = PoliticalQuantities.ClampOr(war.Score, -1, 1, 0);
         bool aWins = s > 0;
         Power loser = aWins ? war.B : war.A, winner = aWins ? war.A : war.B;

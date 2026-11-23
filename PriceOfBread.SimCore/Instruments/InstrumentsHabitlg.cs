@@ -80,6 +80,7 @@ public static partial class Instruments
     /// <summary>四半期の末（<see cref="Quarter"/>）：最後の月の遷移を今の在庫で閉じ、蓄えた州の行を追記し、蓄えを捨てる。</summary>
     static void HabitlgTable(MultiNationSim sim, ulong seed, int q)
     {
+        if (!Tg.Habitlg) return;   // (1329) 書く表が選ばれていなければ置き場（HabitlgSinks）を作らない＝入口を閉じる
         var sk = HabitlgSinks.GetValue(sim, _ => new HabitcapSink());
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         var sb = new System.Text.StringBuilder();

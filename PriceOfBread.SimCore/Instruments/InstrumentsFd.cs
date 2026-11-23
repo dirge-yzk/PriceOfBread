@@ -17,8 +17,9 @@ public static partial class Instruments
     internal static FdDiag? FdDiagOf(Region r) => FdDiags.TryGetValue(r, out var d) ? d : null;
 
     /// <summary>消費の月の始め：蓄えを 0 に戻す（その月の主食の和を溜め直す）。</summary>
-    internal static FdDiag FdBegin(Region r)
+    internal static FdDiag? FdBegin(Region r)
     {
+        if (!Tg.Fd) return null;   // (1329) 書く表が選ばれていなければ置き場（FdDiags）を作らない＝入口を閉じる（呼び側 EconomyStep は null を読み飛ばす）
         var d = FdDiags.GetOrCreateValue(r);
         d.MarketNeed = d.Desired = d.DesiredOld = d.Demand = d.Sub = d.OldMet = d.Carry = d.CarryPopK = d.StapleNeed = d.PopK = d.FillOldW = d.FillNewW = d.FillPopK = d.BelowOldK = d.BelowNewK = d.SubsW = d.OverNeedPopK = 0;
         d.HarvestMean = d.ClampBindShare = d.WeatherHarvestMean = d.LandFactor = double.NaN; d.Written = true;

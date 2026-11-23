@@ -1859,6 +1859,37 @@ public class PolicyPoliticsTests
         }
     }
 
+    // 旧の式（(145) までの ComputeDemands の本体そのもの）
+    private static List<FactionSnapshot.Demand> Legacy(World w, int bloc, bool lawsOnly, bool absDecrease = false, PolicyAxis? only = null)
+    {
+        var list = new List<FactionSnapshot.Demand>();
+        foreach (var axis in FactionSnapshot.Axes)
+        {
+            if (axis == PolicyAxis.NationalizationAll) continue;
+            if (only is { } oa && axis != oa) continue;
+            if (lawsOnly && FactionSnapshot.IsInstantAxis(axis)) continue;
+            var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
+            double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : mass;
+            bool increase = prefInc >= 0;
+            double strength = Math.Abs(prefInc);
+            // (558) 農奴解放・土地改革の旧支配層の減らす向きの強さは進める向きの符号反転でなく、減らす向きの Stance の成分（Pref(…, false)×(−1)）が持つ。
+            // 他の軸では減らす向きの成分の絶対値＝進める向きの成分の絶対値（Pref×sign の定義）なので、この読みは旧の式と同じ列を返す。
+            if (!increase)
+            {
+                var (tDec, mDec, sDec, _) = PolicyPreferences.Stance(w, axis, increasing: false);
+                double dec = bloc == 0 ? tDec : bloc == 1 ? mDec : sDec;
+                // (1329) 減らす向きの強さ＝望む段にいる（減らす向きの成分が負）なら 0＝max(0,·)。旧の写しは |·| で、段に依る軸（参政権の近代エリート・相続・本位の銀）の望む段で食い違う。DirectionAware の旧支配層は |·| のまま（エンジンの AxisScore と同じ分け方）。
+                strength = absDecrease || PolicyPreferences.DirectionAware(w, axis, bloc) ? Math.Abs(dec) : Math.Max(0, dec);
+            }
+            double score = strength * FactionSnapshot.Headroom(w, axis, increase);
+            score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
+            if (score > FactionSnapshot.MinDemandScore) list.Add(new FactionSnapshot.Demand(axis, increase, score));
+        }
+        list.Sort((x, y) => { int cmp = y.Score.CompareTo(x.Score); return cmp != 0 ? cmp : x.Axis.CompareTo(y.Axis); });
+        if (list.Count > FactionSnapshot.TopK) list.RemoveRange(FactionSnapshot.TopK, list.Count - FactionSnapshot.TopK);
+        return list;
+    }
+
     /// <summary>★立場の土台を分け合う読み口（2026-10-01 (146) 計算量の予算・恒等）：要求の順位（<see cref="FactionSnapshot.ComputeDemands"/>＝
     /// <see cref="PolicyPreferences.Build"/> を1回・自分のブロックの選好だけを読む）は、旧の式（軸ごとに Stance の成分・小営業の立場・反対の力を
     /// 呼ぶたびに Build して照会して並べる）と同じ列を返す。
@@ -1872,33 +1903,6 @@ public class PolicyPoliticsTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(1789), new UtilityAgent());
         sim.Run(40);
         var w = sim.World;
-        // 旧の式（(145) までの ComputeDemands の本体そのもの）
-        static List<FactionSnapshot.Demand> Legacy(World w, int bloc, bool lawsOnly)
-        {
-            var list = new List<FactionSnapshot.Demand>();
-            foreach (var axis in FactionSnapshot.Axes)
-            {
-                if (axis == PolicyAxis.NationalizationAll) continue;
-                if (lawsOnly && FactionSnapshot.IsInstantAxis(axis)) continue;
-                var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
-                double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : mass;
-                bool increase = prefInc >= 0;
-                double strength = Math.Abs(prefInc);
-                // (558) 農奴解放・土地改革の旧支配層の減らす向きの強さは進める向きの符号反転でなく、減らす向きの Stance の成分（Pref(…, false)×(−1)）が持つ。
-                // 他の軸では減らす向きの成分の絶対値＝進める向きの成分の絶対値（Pref×sign の定義）なので、この読みは旧の式と同じ列を返す。
-                if (!increase)
-                {
-                    var (tDec, mDec, sDec, _) = PolicyPreferences.Stance(w, axis, increasing: false);
-                    strength = Math.Abs(bloc == 0 ? tDec : bloc == 1 ? mDec : sDec);
-                }
-                double score = strength * FactionSnapshot.Headroom(w, axis, increase);
-                score /= 1.0 + PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
-                if (score > FactionSnapshot.MinDemandScore) list.Add(new FactionSnapshot.Demand(axis, increase, score));
-            }
-            list.Sort((x, y) => { int cmp = y.Score.CompareTo(x.Score); return cmp != 0 ? cmp : x.Axis.CompareTo(y.Axis); });
-            if (list.Count > FactionSnapshot.TopK) list.RemoveRange(FactionSnapshot.TopK, list.Count - FactionSnapshot.TopK);
-            return list;
-        }
         int filled = 0, legislatures = 0;
         void Check()
         {
@@ -1916,5 +1920,27 @@ public class PolicyPoliticsTests
         Check();
         Assert.True(legislatures >= 1, "前提が崩れた：議会のある盤面を1度も通っていない（議会の項を通らない）");
         Assert.True(filled >= 8, $"前提が崩れた：要求の立つブロックが {filled}（比べる中身が無い）");
+    }
+
+    /// <summary>(1329) 旧の写し Legacy の減らす向きの強さは max(0,·)（エンジンの AxisScore と同じ）。段に依る軸（参政権の近代エリート）の望む段（Census＝進める向きを望まず、1 段下からの上げも望まない）で
+    /// |·| の写しは強さ 1 の要求を立てるがエンジンは立てない＝|·| の写しは赤になる盤面を置く（突然変異＝Legacy の max を |·| へ戻す）。</summary>
+    [Fact]
+    public void 旧の写しの減らす向きは望む段で0でありabsの写しは食い違う盤面がある()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(1789), new UtilityAgent());
+        sim.Run(4);
+        var w = sim.World;
+        w.Suffrage = Suffrage.Census;
+        var e = PolicyPreferences.Build(w);
+        Assert.True(PolicyPreferences.Pref(PolicyAxis.Suffrage, 1, e, w) < 0, "前提：近代エリートは進める向きを望まない");
+        Assert.True(PolicyPreferences.Pref(PolicyAxis.Suffrage, 1, e, w, false) > 0, "前提：1 段下からの上げは望む＝後退も望まない");
+        Assert.True(w.Coef.LawPrefSinglePeaked > 0, "前提：旗 LawPrefSinglePeaked 1");
+        double engine = FactionSnapshot.AxisScore(w, PolicyAxis.Suffrage, 1, e, out bool inc);
+        Assert.False(inc);
+        Assert.True(engine <= FactionSnapshot.MinDemandScore, "エンジン：望む段の減らす向きは要求を立てない");
+        Assert.Empty(Legacy(w, 1, false, only: PolicyAxis.Suffrage));
+        Assert.Single(Legacy(w, 1, false, absDecrease: true, only: PolicyAxis.Suffrage));   // 対照：|·| の写しは強さ 1 の要求を立てる＝突然変異で赤になる盤面
+        foreach (bool lawsOnly in new[] { false, true })
+            Assert.Equal(Legacy(w, 1, lawsOnly), FactionSnapshot.ComputeDemands(w, 1, lawsOnly));
     }
 }

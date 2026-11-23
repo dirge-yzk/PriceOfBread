@@ -1,0 +1,39 @@
+(1329) 恒等の線 c139sm：小物の束（lp の反証役 v の中＝Legacy の減らす向き・sm の v の低＝注 3 つ・CpStates を閉じる・OpenStores を 1 本ずつ閉じる）。形＝恒等（挙動を変えない・予言 0）。書き手 Sonnet 5.5。
+最初のコミット（腕・試験の前）。基準＝m1328（B5 b5_20261124_m1328・B10INS b10_20261124_m1328_ins・INSRAW D:/PoB_work/keep_1328/base_ins）。木の出発＝1f55fdf58。
+
+[1] 恒等の線・予言 0
+  素の 5 種・計器つき 10 種は m1328 と名乗り行（SOURCE-HASH）を除き全行バイト一致。計器の表の差は 0（列も表も足さない）。
+  新しい係数・旗・シミュの状態は 0。入口を閉じるのは計器の置き場だけ（エンジンの値を書かない）。計算量の件数（.cost の推定）は増えない（入口で返るだけ＝減る側）。
+  浮動小数の順序が変わる箇所は 0（既存の式を 1 字も変えない）。
+  エンジン側で読み手が見る戻り値の型が変わる所（null を返しうる）：CpBefore・CmBefore（Diplomacy.cs:2444〜2449 は既に null を読み飛ばす）・FdBegin（EconomyStep.cs:1487 は既に FdDiag? ）。EconomyStep.cs:1496 の skipZeroPop は !insOn を含む＝On のとき false のまま。
+
+[2] 項と消す物・残す物（★(743) の区分は試験を書き換える項だけ）
+  項 1 Legacy（PolicyPoliticsTests.cs の旧の写し）：減らす向きの強さを |·| から max(0,·) へ（DirectionAware の旧支配層は |·| のまま＝エンジン FactionSnapshot.AxisScore:123〜125 と同じ分け方）。㉜② の旧の規則の番人の書き換えではなく、旧の写しをエンジンの今の式に合わせる試験の側の直し（★(743) ② の外・Assert の比べる列は変えない・写しの中の式だけ）。
+    足す試験：旧の写しの減らす向きは望む段で 0 であり abs の写しは食い違う盤面がある（参政権 Census の近代エリート＝Pref(進める)<0・Pref(後退)>0・旗 LawPrefSinglePeaked 1）。突然変異：Legacy の max(0,·) を |·| へ戻す → 赤。
+  項 2 注 3 つ：InstrumentHookClosureTests.cs の OpenStores の注の件数（41→実際の件数）・arrears_recheck.py の頭の注（(h) は計器の中の自己整合・基準を古い keep へ向けない）。(h) の注は Instruments の arrears_s 側にも要るなら同じ注を添える。コードの値は変えない。
+  項 3 CpStates を閉じる：CpMonth に加え、CpBefore・CmBefore（Tg.Cede の門が無かった＝CpStates と CmStates を nation_s だけの走りでも作った）を Tg.Cede の門の内へ。Dep・Impose・War の読み口は既に Tg.Cede／Tg.War の門の内（InstrumentsDep.cs:72,86,100・InstrumentsImpose.cs:33・InstrumentsWar.cs:245 の WarEval は Tg.War）＝触らない（InstrumentsWar.cs は sl の持ち物）。擬似の欄 CpStates.Month をやめ、本物の置き場 CpStates・CmStates を ClosedAccs へ。突然変異：CpBefore か CmBefore の門を外す → UnselectedTablesAccumulateNothing が赤。
+  項 4 OpenStores を 1 本ずつ閉じる：
+    閉じる（今回の 10 本）：BxNats・BxRegs（BasisxRgoRent に Tg.Basisx）・CkSinks・CkWorlds（新 Tg.Capskip＝capskip_s・CapSkip・CapSkipDedup・CapskipTable）・CrownPrevs・CrownSinks・CrownSrcs（CrownFold・CrownSource に Tg.Cede＝crownpc_s は Cede の群）・FdDiags（FdBegin に Tg.Fd・戻り値 FdDiag?）・HabitlgSinks（HabitlgTable に Tg.Habitlg）・CmStates（項 3）。
+    閉じられない物（名簿に理由を 1 行）：Sinks・States・PopOwner・Flows・StartGates・Dips・ConAccs・PortAccs・RailAccs・TrAccs・LbFrozen ほかの nation_s などが同じ置き場を使う物と、表ごとの門がまだ無い物（Inherit*・Landbase 系・Merch*・Mon*・Urx*・Inps・Lawgate2Table・WarPushes・AreaCache・_monLawNames）。終わらない物は番号で 00一覧 0 の① に残す（削らない）。
+    突然変異：閉じた門のどれかを外す → 赤（突然変異の表は下の [3]）。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame の名前）：閉じる置き場は全て ConditionalWeakTable の static（Instruments の中）＝SaveGame・POB_COEF・Runner・App・Display の読み手 0。Tests の読み手は InstrumentHookClosureTests のリフレクション（名簿）と CpeaceColumnsTests（CpRowsPending）・ImposeAndCrownSourceTests（CpMonth・CrownSource を Tg 既定 true で直に呼ぶ）だけ。
+  他の線との重なり：sl＝InstrumentsWar.cs・Diplomacy.cs の計器の呼び 1 行（触らない）。nc＝InstrumentsCapCol.cs（触らない）。k49・el は計器に触れない。DormantIdentityTests.cs・WriterRatchetTests.cs は宣言の行だけ（今回は足す宣言 0）。
+
+[3] 足す試験と突然変異
+  足す試験：PolicyPoliticsTests.旧の写しの減らす向きは望む段で0でありabsの写しは食い違う盤面がある（+1）。直す既存の試験：InstrumentHookClosureTests（ClosedAccs に 10 本・OpenStores から 10 本・擬似の欄の取り止め＝件数の番人の名簿の書き換え＝★(749) の型〈軌道の件数を写しただけの番人〉と名乗る）。
+  試験の数の予言：TESTS_NONFULL 3169 → 3170（+1）。FullLength 3。
+  突然変異（使い捨ての木で 1 本ずつ・出力は measurements/m1329_20261124_mut/）：
+    M1 Legacy の max(0,·) を |·| へ戻す → 新しい試験が赤。
+    M2 CpBefore の Tg.Cede の門を外す → UnselectedTablesAccumulateNothing 赤（CpStates）。
+    M3 CmBefore の Tg.Cede の門を外す → 同（CmStates・CpStates）。
+    M4 BasisxRgoRent の Tg.Basisx の門を外す → 同（BxNats）。
+    M5 CapSkip の Tg.Capskip の門を外す → 同（CkWorlds）。
+    M6 CrownFold の Tg.Cede の門を外す → 同（CrownPrevs・CrownSinks）。
+    M7 FdBegin の Tg.Fd の門を外す → 同（FdDiags）。
+    M8 HabitlgTable の Tg.Habitlg の門を外す → 同（HabitlgSinks）。
+    緑のままの突然変異があれば穴を名乗るだけで終わらせず、同じ線で試験を足して赤にする。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests の許可表・`new MoneyStock(` の件数・route_anchors.tsv の鍵の行は触らない（足すソースは Tg の 1 行と門だけ）。WriterRatchetTests の宣言の表・DormantIdentityTests の DormantZeroFields は変えない（書き手を足さない）。
+
+[4] 素の 5 種・計器つき 10 種が m1328 と名乗り行を除いて全行一致（計器の表の差は 0）。ident 段 2（--work D:/PoB_work/ident_c139sm・〈35＋30GB〉を測る・宣言は要る時だけ）。savetest・leakhunt 緑。
+
+[5] 〈判定: 恒等〉（測った種で一致・宣言の無い違い 0）なら採る。一致しなければ、その変更を外して報告に回す。
