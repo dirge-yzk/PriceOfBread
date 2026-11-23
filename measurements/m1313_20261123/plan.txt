@@ -1,0 +1,10 @@
+(1313) c136ak 読む線（アクモラ型の (b)）の計画
+作業の場所：D:/PoB_work/r1313_work/（表・抜き出し・下書き）・台本は C:/Users/dirge/Documents/PriceOfBread/scripts/instruments/r1313/（コミットしない・合流が写す）
+worktree・枝：作らない（読むだけ・main の作業ツリーは読むだけ）。
+腕：問い 3 の再現の 1 本だけ（使い捨ての木 D:/PoB_work/r1313_work/tree・POB_COEF で ArrearsOnePredicate=1・種 6・計器つき 1 本）。SimCore に手を入れない。
+読む生（読むだけ）：
+- D:/PoB_work/keep_1308/base_ins（M・種 1〜10）treasledger_s・nation_s・class_s・region_s
+- D:/PoB_work/keep_1308/n1・n2（ヌル腕・種 1〜10）同上
+- D:/PoB_work/keep_1308/a11（種 11〜20）同上
+- measurements/m1292_20261122/（アクモラ T1_M 種 6 の抜き出し・report.txt）
+手順：問い 1 の数え → 問い 2 の科目の表 → 問い 3 の再現 → 根のソースの grep → 直しの形と推奨 → (a) の区分の材料 → report.txt

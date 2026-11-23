@@ -1,0 +1,5 @@
+k	quarter	year	_treasuryEnd	_treasuryDelta	_ledgerSum	_residual	_bornTreasury	_privateMoney	Tax	OtherIn	Army	OtherOut	TributeOut	n:totalPopulationK	n:soldierK	n:nominalGdpPerYear	n:adminClaimSimPerMonth	n:adminCatClaimSimPerMonth	n:adminCatPaidPerMonth	n:adminSpendableAtBudgetPerMonth	n:adminBureaucratCoverShare	n:payRateMeanShare	n:revenueBaseMeanPerMonth	n:directTaxNetMeanPerMonth	n:exportsPerClearing	n:importsPerClearing
+0	91	1806	1.271e+04	nan	0	nan	1.271e+04	49.1						740	0.8785	1.04e+04	nan	nan	nan	nan	nan	nan	nan	nan	0	0
+1	92	1806	1.274e+04	31.22	31.22	2.188e-12		144.6	25.38	11.86	-5.589	-0.4297		744.7	18.72	8873	116.8	116.8	0	467.2	1	1	8.459	8.459	19.4	0
+2	93	1806	1.274e+04	-0.1494	-0.1494	-3.835e-13		249.5	24.29	11.25	-27.43	-1.439	-6.811	749.4	29.74	8191	99.87	99.87	0	399.5	1	1	8.096	8.096	20.73	0
+#sum									49.66	23.11	-33.02	-1.869	-6.811													

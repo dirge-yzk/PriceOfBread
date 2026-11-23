@@ -1,0 +1,8 @@
+N2	1	共和制ハイデラバード#0	regs=1	parentRegs=3	popShare=0.6741	earnShare=0.01776	T_pop=76458	T_earn=2014.78	T_money=64.5149	priv0=726.076	priv0/T_earn=0.3604
+N2	4	キサンガニ王国#0	regs=1	parentRegs=17	popShare=0.05049	earnShare=0.001838	T_pop=96128	T_earn=3498.91	T_money=155.742	priv0=1196.18	priv0/T_earn=0.3419
+N2	4	南アフリカ王国#0	regs=1	parentRegs=18	popShare=0.01692	earnShare=0.002136	T_pop=27471.5	T_earn=3468.6	T_money=152.378	priv0=1387.67	priv0/T_earn=0.4001
+N2	4	キサンガニ王国#1	regs=1	parentRegs=24	popShare=0.1124	earnShare=0.0001999	T_pop=68507.5	T_earn=121.78	T_money=34.5813	priv0=825.206	priv0/T_earn=6.776
+A11	17	キサンガニ王国#0	regs=1	parentRegs=21	popShare=0.04217	earnShare=0.0009696	T_pop=31949.2	T_earn=734.505	T_money=147.506	priv0=3031.85	priv0/T_earn=4.128
+A11	18	アクモラ王国#0	regs=1	parentRegs=28	popShare=0.01755	earnShare=0	T_pop=12706.4	T_earn=0	T_money=3.71019	priv0=49.0976	priv0/T_earn=nan
+A11	20	ウジジ王国#0	regs=1	parentRegs=65	popShare=0.0002191	earnShare=0	T_pop=165.089	T_earn=0	T_money=0.0033956	priv0=0.175014	priv0/T_earn=nan
+A11	20	ウジジ王国#1	regs=1	parentRegs=4	popShare=0.01846	earnShare=0	T_pop=121.053	T_earn=0	T_money=0.000877028	priv0=0.206079	priv0/T_earn=nan
