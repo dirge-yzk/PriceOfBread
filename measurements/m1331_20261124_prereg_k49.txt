@@ -106,3 +106,7 @@
 - 腕 B：既定 0 の木・`INS=1 bash scripts/instruments/batch.sh run c139k49B 10`（計器つき 10 種・種 1〜10・台本 scripts/instruments/c139k49/armb.sh）・表を絞る（⓪(a)）：POB_INSTRUMENTS_TABLES＝nation_s・prodcap_s・stock_s・region_s・class_s＋止める線と記録の読み手が開く表（wars_s・casualty_s・migration_s・pxmonth_s・scalars_s・fiscal_s）。POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国。
 - D: は 4〜8GB〈推〉＝起こす直前に shutil で〈35GB＋8GB〉を測る。
 - 読み手：scripts/instruments/c139k49/read_k49.sh。腕 B の生は合流の判断まで消さない（D:/PoB_work/c139k49_work/armB/out_c139k49B_10/ins）。印 D:/PoB_work/c139k49_work/k49.mark。
+
+## 12. 追記 1（腕 B の前・既定 0 の木 df0977724・2026-11-24）
+- ㉘ 走査の番人＋T1〜T4（measurements/m1331_20261124/scan/scan_df0977724.txt）：146 本のうち赤 4＝全て WriterRatchetTests の宣言の表（§6 の予言の 4 行と同じ）。実測は (1319) と同じ数：:421 ConstructionSeen 2204→2323・:436 DeadProdZeroPop 175483→180210・:439 DeadProdBankrupt 1519→1562・:556 DiploHegemonScans 1889444→1963408。★(749) 軌道の件数を写しただけの番人として既定 0 の木の実測へ取り直した（次のコミット）。他の走査の番人（IndustrializationReader・UnitType・Instruments・DormantIdentity・OnDoubleReadScan）と T1〜T4 は緑。
+- 突然変異（measurements/m1331_20261124/mut/mut_M0〜M5.txt・使い捨ての木 df0977724 の git archive）：§4 の表のとおり＝μ0 T1・T2 赤／μ2 T4 赤／μ4 T3 赤／μ5 T1・T2・T3 赤。C3 の番人 2 行は全ての μ で緑（記録）。

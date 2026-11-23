@@ -1,0 +1,7 @@
+# (1331) scan HEAD=df0977724 汚れ=0 2026-11-24 03:55:32
+scan rc=1 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 失敗!   -失敗:     4、合格:   142、スキップ:     0、合計:   146、期間: 13 m 55 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 2204) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 1519) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1889444) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 33, declared: 175483) [< 1 ms]
+SCANDONE 2026-11-24 04:09:52

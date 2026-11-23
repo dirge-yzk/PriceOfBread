@@ -1,0 +1,7 @@
+# M2（df0977724）
+  成功 PriceOfBread.Tests.InvestMomentumDeletionTests.助走の工場の規模の目標は平滑の採算を読まない [2 s]
+  成功 PriceOfBread.Tests.InvestMomentumDeletionTests.対照_重みを置けば盤面は勢いの差を出す [456 ms]
+  失敗 PriceOfBread.Tests.InvestMomentumDeletionTests.労働を買わない生産者は重みの有無で同じ [447 ms]
+  成功 PriceOfBread.Tests.InvestMomentumDeletionTests.役務の財の生産者の規模の目標は平滑の採算を読まない [515 ms]
+  成功 PriceOfBread.Tests.PolicyPoliticsTests.実税が重い世界ほど生活が苦しく不満度が高い(外挿の重み0: False) [6 s]
+  成功 PriceOfBread.Tests.PolicyPoliticsTests.実税が重い世界ほど生活が苦しく不満度が高い(外挿の重み0: True) [2 s]
