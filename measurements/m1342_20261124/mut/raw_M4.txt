@@ -1,0 +1,29 @@
+D:\PoB_work\c141k59_work\mutg\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.10] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:02.77]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:04.08]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:04.43]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:13.99]     PriceOfBread.Tests.GenderTests.女性財産権法は労働供給を増やす [FAIL]
+[xUnit.net 00:00:13.99]       Assert.InRange() Failure: Value not in range
+[xUnit.net 00:00:13.99]       Range:  (0.5 - 0.70000000099999993)
+[xUnit.net 00:00:13.99]       Actual: 0.40000000000000002
+[xUnit.net 00:00:13.99]       Stack Trace:
+[xUnit.net 00:00:14.02]         D:\PoB_work\c141k59_work\mutg\PriceOfBread.Tests\GenderTests.cs(39,0): at PriceOfBread.Tests.GenderTests.女性財産権法は労働供給を増やす()
+[xUnit.net 00:00:14.02]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:14.02]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:14.06]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.GenderTests.女性財産権法は労働供給を増やす [9 s]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.5 - 0.70000000099999993)
+Actual: 0.40000000000000002
+  スタック トレース:
+     at PriceOfBread.Tests.GenderTests.女性財産権法は労働供給を増やす() in D:\PoB_work\c141k59_work\mutg\PriceOfBread.Tests\GenderTests.cs:line 39
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+テストの実行に失敗しました。
+テストの合計数: 1
+     失敗: 1
+合計時間: 18.7877 秒

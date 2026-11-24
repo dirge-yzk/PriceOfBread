@@ -1,0 +1,12 @@
+# (1342) scan HEAD=90d1d0a36 汚れ=0 2026-11-24 20:12:24
+# filter=FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~FemalePartLawFreeTests|FullyQualifiedName~GenderTests|FullyQualifiedName~LaborWeightTests|FullyQualifiedName~MobilityTests|FullyQualifiedName~RuleSharesFormTests
+scan rc=1 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 失敗!   -失敗:     2、合格:   199、スキップ:     0、合計:   201、期間: 31 m 15 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.InstrumentsTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される [21 m 9 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる [2 s]
+SCANDONE 2026-11-24 20:45:49
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 7 m 10 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest 乖離 0（2量）・状態の違いのある点 3/3（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 223・その月の額の和 1.441E+05 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+NARROWDONE 2026-11-24 21:05:31
+# 赤 2 は D: の空きが尽きた IOException（他の線の腕と同時・環境）＝同じ木・同じビルドで 2 本だけ回し直し：
+成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 37 m 17 s - PriceOfBread.Tests.dll (net10.0)
