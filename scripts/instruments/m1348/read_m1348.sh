@@ -4,7 +4,7 @@
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 D0="$(cd "$(dirname "$0")" && pwd)"; R="$(cd "$D0/../../.." && pwd -W)"; S=$R/scripts/instruments
 INS=${1:?ins}; CARD=${2:?成績表}; BCARD=${3:?基準の成績表}; BASE=${4:?基準の生}; TAG=${5:?タグ}; OUT=${6:?出力}; SB=${7:?種の起点}
-K=D:/PoB_work/keep_1341
+K=${K:-D:/PoB_work/keep_1341}   # popjump と home_break の N1（新しい基線のヌル腕を読むときは K=D:/PoB_work/keep_1348 で渡す）
 mkdir -p "$OUT"
 cd "$R"
 python -X utf8 -I $S/m1017/popjump1017.py B=$INS base=$BASE N1=$K/n1 > "$OUT/popjump.txt" 2>&1; echo "popjump rc=$?"
