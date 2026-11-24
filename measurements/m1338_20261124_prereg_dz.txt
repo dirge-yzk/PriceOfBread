@@ -60,3 +60,9 @@
     減る秒の予言：frontierTech の周回＝1 清算あたり国数 61 回の比較（月 1 回）＝0.01 秒未満・他の項は通らない枝＝0 秒。合計 −0.01 秒未満（雑音の内・門にしない）。
 
 [5]〈判定: 恒等〉（測った種で一致）なら採る。一致しなければその項を外して報告に回す。〈証明〉とは書かない。
+
+[追記 2026-11-24・腕の前・㉘ の最初の回し（結果の後ではなく旗なしの器の確かめ）で読み落しが見つかった]
+ [3] ㉑ の予言「許可表 0 行」は誤り。ソースを走査する件数の許可表の行が減る（減るだけ・増える行 0）：
+   IndustrializationReaderTests の EconomyStep.cs 8→7（DevelopmentPeak の枝の 1 行）・
+   TechLevelRemovalTests の MultiNationSim.cs 8→7（frontier の周回）・BilateralMarket.cs 1→行を消す・InstrumentsScalars.cs 1→行を消す（freightRevolution の列の値が定数になった）。
+   区分＝走査の番人の許可表の行を消すこと（〈番人を写しただけ〉の例外）。機構の向き・大きさ・判定の Assert は書き換えない。
