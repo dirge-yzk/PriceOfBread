@@ -112,6 +112,17 @@ public static class Politics
     private static double LawDistance(World w, Coefficients c, Pop p, double distance)
         => Math.Min(p.Consciousness, p.Literacy) * (1.0 - EffectiveVoice(w, c, p)) * distance;
 
+    /// <summary>(1345) 保持力 Coercion の式（Step が毎四半期 w.Coercion へ書く式をそのまま移した関数＝掛ける順・AtWar の読みは Step にあった時と同じ）。
+    /// BaseCoercion × 正統性 × 支払い率 × 戦時の乗数。戦時の乗数＝1＋(戦時なら WarRallyCoercion×max(0, 1−疲弊/WarRallyDecayPoint))−WarCoercionDrain×疲弊。</summary>
+    internal static double CoercionNow(World w, Coefficients c)
+    {
+        double warExh = w.SelfPower?.WarExhaustion ?? 0;
+        double warDrain = 1.0
+            + (Government.AtWar(w) ? c.WarRallyCoercion * Math.Max(0, 1.0 - warExh / Math.Max(1e-9, c.WarRallyDecayPoint)) : 0)
+            - c.WarCoercionDrain * warExh;   // [PORT:P5] 戦時ドレイン→保持力の乗数（軍は内外を兼ねる一つの武力）
+        return w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio.Value * warDrain;
+    }
+
     public static void Step(World w, Coefficients c)
     {
         if (!w.PoliticsEnabled) return;
@@ -188,7 +199,7 @@ public static class Politics
 
 
         double dynErodeMul = 1.0, dynRegenMul = 1.0;
-        {
+        {   // 天命：Step の先頭の `!w.PoliticsEnabled` の早い return の後ろ＝政治が止まっている国では DynasticMandate は動かない
             if (w.DynasticMandate < 0) w.DynasticMandate = 0.5;
             double dmPrev = w.DynasticMandate;
             var (uneduShare, uneduSatAvg) = PoliticalQuantities.MandateBase(w);
@@ -274,11 +285,7 @@ public static class Politics
         w.VictoryShock *= c.DefeatShockKeepPerQuarter;
         w.FamineMemory = w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
 
-        double warExh = w.SelfPower?.WarExhaustion ?? 0;
-        double warDrain = 1.0
-            + (Government.AtWar(w) ? c.WarRallyCoercion * Math.Max(0, 1.0 - warExh / Math.Max(1e-9, c.WarRallyDecayPoint)) : 0)
-            - c.WarCoercionDrain * warExh;   // [PORT:P5] 戦時ドレイン→保持力の乗数（軍は内外を兼ねる一つの武力）
-        w.Coercion = w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio.Value * warDrain;
+        w.Coercion = CoercionNow(w, c);
         double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
 
         Factions.Step(w, c);

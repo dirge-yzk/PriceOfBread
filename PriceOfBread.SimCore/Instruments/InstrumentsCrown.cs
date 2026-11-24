@@ -98,7 +98,7 @@ public static partial class Instruments
     {
         var r = new CrownRun { Start = start };
         double pc = start;
-        if (pc < 0) pc = CrownTarget(polityAtStep);   // :26 未捕捉の初期化
+        if (pc < 0) pc = CrownTarget(polityAtStep);   // ParliamentControl が負＝未捕捉の初期化（CrownTarget の値）
         double before = pc;
         if (c.SummonParliamentRate > 0 && c.SummonByInterestShare > 0)
         {
@@ -181,7 +181,7 @@ public static partial class Instruments
             row.Relabel = prev.Polity != w.Polity;
         }
         double end = row.Run.End;
-        if (row.ShogunateEnd && end < c.ConstitutionalControlFloor && row.PcNow == c.ConstitutionalControlFloor) { row.FloorHit = true; end = c.ConstitutionalControlFloor; }   // :159
+        if (row.ShogunateEnd && end < c.ConstitutionalControlFloor && row.PcNow == c.ConstitutionalControlFloor) { row.FloorHit = true; end = c.ConstitutionalControlFloor; }   // CrownParliament.cs の幕府の終わりの床 Max(ParliamentControl, ConstitutionalControlFloor) の写し
         row.Residual = row.PcNow - end;
         if (row.RegimeEvent && row.PoliticsOn)
         {

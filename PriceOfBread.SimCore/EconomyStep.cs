@@ -1008,7 +1008,7 @@ public static class EconomyStep
             double costPerUnit = bundle.Cost(region);   // 建設の資材の束の費用（K の1本）
             double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。〔履歴 EconomyStep.cs#144〕
-            if (coef.RailLocoNeedsDiscovery > 0 && !Discovery.RailTransport(coef.RailLocoGateWorld > 0 ? world?.WorldDiscovered ?? region.Discovered : region.Discovered)) locoGate = 0.0;   // (1130) 需要・予算の単価・決済の機関車の 6 か所が読む・(1152) 旗 RailLocoGateWorld＞0 は世界の発見の和（:741 の需要の門と同じ読み方）
+            if (coef.RailLocoNeedsDiscovery > 0 && !Discovery.RailTransport(coef.RailLocoGateWorld > 0 ? world?.WorldDiscovered ?? region.Discovered : region.Discovered)) locoGate = 0.0;   // (1130) 需要・予算の単価・決済の機関車の 6 か所が読む・(1152) 旗 RailLocoGateWorld＞0 は世界の発見の和（locoGate の 1 本を需要・予算の単価・決済が共有する）
             double buildCostPerUnit = costPerUnit;
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
                 buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)

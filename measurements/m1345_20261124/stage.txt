@@ -1,0 +1,8 @@
+段=2
+基準 4274145d3 との差 174 本・段 2 の条件に当たった 5 本・ident.cfg は基準の鍵と注だけの差＝数えない
+STAGE_BASE=4274145d3
+  段 2 の理由：PriceOfBread.SimCore/Instruments/InstrumentsCapskip.cs
+  段 2 の理由：PriceOfBread.SimCore/Instruments/InstrumentsCrown.cs
+  段 2 の理由：PriceOfBread.SimCore/Instruments/InstrumentsPortch.cs
+  段 2 の理由：PriceOfBread.SimCore/Instruments/InstrumentsTradeskip.cs
+  段 2 の理由：PriceOfBread.SimCore/Instruments/InstrumentsWar.cs
