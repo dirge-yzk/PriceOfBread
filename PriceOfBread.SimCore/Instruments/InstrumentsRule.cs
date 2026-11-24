@@ -126,7 +126,7 @@ public static partial class Instruments
         }
     }
 
-    /// <summary>旧の目標 t＝[state, local, foreign, ungov]（純関数・Politics.cs:946〜962 の式の逐語）。</summary>
+    /// <summary>旧の目標 t＝[state, local, foreign, ungov]（純関数・Politics の tState・tLocal・tForeign・tUngov を置く段の式の逐語）。</summary>
     internal static double[] RuleOldTarget(double orderR, double reach, double ruleInit1, double intermediary, double foreignSum)
     {
         double tUngov = (1.0 - orderR) * (1.0 - reach);
@@ -153,7 +153,7 @@ public static partial class Instruments
         return [1.0, 0, 0, 0];
     }
 
-    /// <summary>持ち主の取り分の読み手（RuleDelivery の式 Politics.cs:1114 の逐語・純関数）。</summary>
+    /// <summary>持ち主の取り分の読み手（Politics.RuleDelivery の式の逐語・純関数）。</summary>
     internal static double RuleDeliveryOf(double[] rule, double adminFill, double taxDiscount)
     {
         if (rule.Length != 4) return 1.0;

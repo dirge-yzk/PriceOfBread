@@ -172,7 +172,7 @@ public static partial class Instruments
         if (prev is null) { row.Explain = 1; row.Run = new CrownRun { Start = double.NaN, Summon = double.NaN, Rollback = double.NaN, Term1 = double.NaN, Term2 = double.NaN, Term2p = double.NaN, End = double.NaN, ArmyPower = double.NaN }; return row; }
         row.RegimeEvent = w.RecentRegimeChanges - prev.Rrc > 0.5;
         row.Grant = w.ReformGrantCount > prev.Grants;
-        if (!row.PoliticsOn) row.Run = new CrownRun { Start = prev.Pc, End = prev.Pc, ArmyPower = double.NaN };   // Politics.cs:199 の早い return＝PC は動かない
+        if (!row.PoliticsOn) row.Run = new CrownRun { Start = prev.Pc, End = prev.Pc, ArmyPower = double.NaN };   // Politics.Step の PoliticsEnabled 偽の早い return＝PC は動かない
         else row.Run = CrownApply(row.X, c, prev.Pc, prev.Polity, prev.Crown, prev.Seizure, prev.Coop, prev.Army, row.X.CurPrev);
         if (!row.RegimeEvent)
         {

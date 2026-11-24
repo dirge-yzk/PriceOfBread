@@ -44,7 +44,7 @@ public static partial class Instruments
             var c = w.Coef;
             double norm = Diplomacy.DistanceNormKm;
             double railGate = Discovery.RailTransport(w.Discovered) ? 1.0 : 0.0;
-            double landRatio = c.LandSeaCostRatio * (1.0 - railGate * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));   // BilateralMarket.cs:308 の写し
+            double landRatio = c.LandSeaCostRatio * (1.0 - railGate * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));   // BilateralMarket.StepBilateral の landRatio の式の写し
             string nat = NameOf(w);
             foreach (var r in w.Regions)
             {
@@ -55,14 +55,14 @@ public static partial class Instruments
                 var pOld = Climate.CityCoord(gcPickName); var pUsed = Climate.CityCoord(r.NearestPortName);
                 var (gcKm, landKmOld) = PortchEff((cc.Lat, cc.Lon), (pOld.Lat, pOld.Lon));
                 var (_, landKmNew) = PortchEff((cc.Lat, cc.Lon), (pUsed.Lat, pUsed.Lon));
-                // BilateralMarket.cs:309-316 の写し（terrCost）
+                // BilateralMarket.StepBilateral の terrCost の段の写し
                 int ti = (int)r.Terrain;
                 double horse = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
                 double rail = ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0;
                 double terrCost = horse + railGate * (rail - horse);
                 if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) terrCost = c.TerrainWaterMajorCost;
                 else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) terrCost = c.TerrainWaterMinorCost;
-                // BilateralMarket.cs:277-278 の門と InlandRailAfterDecay の写し（距離が 0 に近い州は減衰なし＝1）
+                // BilateralMarket.InlandRailAfterDecay と A1PHat の距離ゼロの門の写し（距離が 0 に近い州は減衰なし＝1）
                 double decayOld = gcKm > 1e-9 ? 1.0 / (1.0 + gcKm / norm) : 1.0;
                 double decayUsed = r.NearestPortDistanceKm > 1e-9 ? 1.0 / (1.0 + r.NearestPortDistanceKm / norm) : 1.0;
                 sk.W ??= Open("portch", seed);

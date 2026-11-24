@@ -64,7 +64,7 @@ public static partial class Instruments
         return false;
     }
 
-    /// <summary>身分制免税の度合い d′（Privileges.cs:41〜:45 の式を計器が書く・landfix と同じ）。</summary>
+    /// <summary>身分制免税の度合い d′（Privileges.TaxExemptionDegree の式を計器が書く・landfix と同じ）。</summary>
     static double BxDeg(World w)
     {
         var c = w.Coef;

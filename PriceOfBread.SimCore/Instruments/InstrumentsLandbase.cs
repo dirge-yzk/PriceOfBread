@@ -57,7 +57,7 @@ public static partial class Instruments
 
     static double LbRelDiff(double a, double b) => System.Math.Abs(a - b) / System.Math.Max(System.Math.Max(System.Math.Abs(a), System.Math.Abs(b)), 1e-300);
 
-    /// <summary>主食の値段（subst_s の stapleNeedWeightedPrice と同じ式＝InstrumentsSubst.cs:89〜:92）：主食の BaseNeed で重みを付けた州の値段。重みが 0 なら nan。</summary>
+    /// <summary>主食の値段（subst_s の stapleNeedWeightedPrice と同じ式＝InstrumentsSubst の stapleP を出す段）：主食の BaseNeed で重みを付けた州の値段。重みが 0 なら nan。</summary>
     static double LbStaplePrice(Region r)
     {
         double pw = 0, pn = 0; int ng = System.Math.Min(r.Markets.Length, Catalog.Goods.Length);
@@ -93,13 +93,13 @@ public static partial class Instruments
             var c = w.Coef;
             string nation = NameOf(w);
             bool picked = IsPicked(w, S(w));
-            // 身分制免税の度合い d′（Privileges.cs:41〜:45 を計器が書く）
+            // 身分制免税の度合い d′（Privileges.TaxExemptionDegree を計器が書く）
             double disc = c.PrivilegeTaxDiscount.Value;
             double deg = !(disc > 0) ? 0.0
                 : c.PrivilegeFromCrownShare.Value > 0 ? double.NaN
                 : (w.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate ? disc : 0.0);
             double landRate = w.LandTax, pollLevel = w.PollTax, taxRate = w.TaxRate.Value;
-            // 十分の一税の率′（Privileges.cs:35〜:37 の度合いを計器が書く）と聖職の有無（Fiscal.Step の clergy と同じ判定）
+            // 十分の一税の率′（Privileges.TitheDegree の度合いを計器が書く）と聖職の有無（Fiscal.Step の clergy と同じ判定）
             double titheDeg = !(c.TitheRate.Value > 0) ? 0.0
                 : w.StateReligion switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
             double titheRate = c.TitheRate.Value * titheDeg;

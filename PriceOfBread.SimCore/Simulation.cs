@@ -638,7 +638,7 @@ public sealed class Simulation
                 total++;
                 foreach (var g in p.Resources) if (g >= 0 && g < counts.Length) counts[g]++;
             }
-            // ★植民地（ColoniesAreRegions で実体の生産者を持ち、Simulation:1242 で同じ ScarceEndowment を受ける）を数えないと
+            // ★植民地（ColoniesAreRegions で実体の生産者を持ち、PromoteColonyToRegion で同じ ScarceEndowment を受ける）を数えないと
             //   世界総産出が保存しない（分子と分母の非対称）。
             foreach (var col in n.InitialColonies)
             {

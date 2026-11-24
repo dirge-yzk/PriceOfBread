@@ -327,7 +327,7 @@ public static class Meritocracy
     private static double FillJobs(Region r, World w, double m, double avgPerCap, Pop src, int jobClass, double amount, double minIncome,
                                    double secular, double higherEdu, ref double soldierVac, Coefficients c)
     {
-        bool emptySeat = c.SoldierVacancyFromZero > 0;   // (1166) 旗：大きさ 0 の兵の席も空きがあれば候補（Simulation.cs:1354 の器）
+        bool emptySeat = c.SoldierVacancyFromZero > 0;   // (1166) 旗：大きさ 0 の兵の席も空きがあれば候補（Meritocracy.Step 冒頭の席の準備〔_seatWorld・SeatPayRate〕と同じ器）
         double temperature = c.JobPoolTemperature > Eps ? c.JobPoolTemperature : Eps;   // 否定形のガード（0・負・NaN は Eps へ）
         int n = r.Pops.Count;
         Span<double> share = n <= 64 ? stackalloc double[n] : new double[n];

@@ -35,7 +35,7 @@ public static partial class Instruments
         double r = w.FiscalFundingRatio.Value, debt = w.GovDebt.Value;
         double rev = w.LastRevenuePerMonth.Value, intr = w.LastInterestPerMonth.Value;
         var s = ArWorlds.GetValue(w, _ => new ArWorld());
-        bool under = s.PrevInt < c.MaxInterestShareOfRevenue.Value * s.PrevRev;   // (1295) 前の月の比（エンジンの Fiscal.cs:13 と同じ読み）。上の intr・rev は今月の値で、列 interestToRevenue に使う
+        bool under = s.PrevInt < c.MaxInterestShareOfRevenue.Value * s.PrevRev;   // (1295) 前の月の比（エンジンの Fiscal.Step の underLimit と同じ読み）。上の intr・rev は今月の値で、列 interestToRevenue に使う
         double prevRatio = s.PrevRev > 0 ? s.PrevInt / s.PrevRev : double.NaN;   // (1322) 列 prevInterestToRevenue＝前の月の呼びの末に見た利払い÷歳入（underLimit の判定に使った比・歳入≦0 は nan）
         s.PrevInt = intr; s.PrevRev = rev;
         bool warm = w.WarmupFrozen;
