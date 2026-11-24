@@ -23,6 +23,10 @@
 閉じた	InstrumentsBuyShadow.cs	T1Row	477	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:912
 閉じた	InstrumentsBuyShadow.cs	T1Deal	525	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	BilateralMarket.cs:1144
 閉じた	InstrumentsBuyShadow.cs	T1Table	565	BuyShadow	minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s	7	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCapskip.cs	CapSkip	27	Capskip	capskip_s	1		BilateralMarket.cs:981
+閉じた	InstrumentsCapskip.cs	CapSkipDedup	50	Capskip	capskip_s	1		BilateralMarket.cs:1104
+閉じた	InstrumentsCapskip.cs	CapskipTable	59	Capskip	capskip_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
+閉じた	InstrumentsCapskip.cs	CapskipClose	83	Capskip	capskip_s	1		Instruments.cs 内（四半期の頭 Quarter・Close ほか）
 閉じた	InstrumentsCede.cs	CedeBefore	33	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
 閉じた	InstrumentsCede.cs	CedeTable	83	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
 閉じた	InstrumentsCede.cs	CedeClose	147	Cede	cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s	10	共有する状態あり（束で 1 つの bool）	Instruments.cs 内（四半期の頭 Quarter・Close ほか）
