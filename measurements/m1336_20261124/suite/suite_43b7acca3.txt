@@ -1,0 +1,10 @@
+# (1336) suite 木=/d/PoB_work/wt_c140sp HEAD=43b7acca3 2026-11-24 13:22:51
+list-tests Tests(Category!=FullLength)=2952 Tests.Ui=232 和=3184 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   770、スキップ:     1、合計:   771、期間: 20 m 11 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=1 失敗!   -失敗:     1、合格:  2949、スキップ:     2、合計:  2952、期間: 31 m 52 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.GoodIdGuardTests.道具のPythonは財の番号を数字で書かない [1 m 20 s]
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 26 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 44 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest 乖離 0（2量）・状態の違いのある点 3/3（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-24 14:27:21
