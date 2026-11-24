@@ -111,7 +111,7 @@ public sealed partial class Coefficients
     public double OpeningColonyDominanceFull = 1.0;  // 接収（Diplomacy.AcquireColony）は常に 0
     public double ColonyLabelsFromData = 1.0;   // (1278) c131cr 2026-11-21 点火（腕 B の木）：1＝昇格した植民地の州の文化と宗教の札を places.json の土地のデータから読み（無い名は空）、国の主流の札は植民地格の州を数えない・0＝旧（首都の州の札の写し・全ての州で数える）
     public double MajorityLabelTierOrder = 1.0;   // (1290) c133mr 2026-11-22 点火（腕 B の木）：1＝ColonyLabelsFromData 1 の下で、本国格に札の付いた人口が無い札（文化と宗教は別々）だけ植民地格の州で数える・0＝今（植民地格だけの国の札は空）
-    public double NextCapitalHomeFirst = 1.0;   // (1304) c135nc 2026-11-22 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を本国格（Core・Integrated）の州に限る（本国格が無ければ今と同じ全ての州）・0＝今（格を見ない）
+    public double NextCapitalHomeFirst = 1.0;   // (1304) c135nc 2026-11-22 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を本国格（Core・Integrated）の州に限る（本国格が無ければ今と同じ全ての州）・0＝今（格を見ない）。NextCapitalCoreFirst 1（既定）の下では読まれない（この分岐は CoreFirst 0 のときだけ）
     public double NextCapitalCoreFirst = 1.0;   // (1332) c139nc 2026-11-24 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を leaving の外で最も高い格（Core＞Integrated＞Colonial）の州だけにする（NextCapitalHomeFirst の分岐を置き換える）・0＝今（NextCapitalHomeFirst の形）
     public double ForeignRuleFromTreaty = 0.5;   // DominanceSpeed で目標へ寄せる
     public double TreatyPortHomeOnly = 1;        // (1138) c111tp 2026-11-14 点火：1＝条約港の読み手（ForeignPortShare・TreatyPortInForce）が植民地格の港を数えない・0＝旧（全ての港）
