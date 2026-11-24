@@ -1,0 +1,25 @@
+== PublicOrder
+PriceOfBread.SimCore core=5 ins=4
+PriceOfBread.App core=3 ins=0
+PriceOfBread.Runner core=1 ins=0
+PriceOfBread.Tests core=27 ins=0
+== CrimeRate
+PriceOfBread.SimCore core=7 ins=1
+PriceOfBread.App core=2 ins=0
+PriceOfBread.Runner core=2 ins=0
+PriceOfBread.Tests core=8 ins=0
+== \.Dominance\b
+PriceOfBread.SimCore core=5 ins=5
+PriceOfBread.App core=3 ins=0
+PriceOfBread.Runner core=0 ins=0
+PriceOfBread.Tests core=29 ins=0
+== Rule\[3\]
+PriceOfBread.SimCore core=0 ins=4
+PriceOfBread.App core=0 ins=0
+PriceOfBread.Runner core=0 ins=0
+PriceOfBread.Tests core=17 ins=0
+== Rule\[0\]
+PriceOfBread.SimCore core=8 ins=14
+PriceOfBread.App core=2 ins=0
+PriceOfBread.Runner core=0 ins=0
+PriceOfBread.Tests core=19 ins=0

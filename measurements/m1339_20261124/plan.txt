@@ -1,0 +1,8 @@
+(1339) c140gs 読む線 計画（読むだけ・腕 0・コミットしない・worktree なし）
+作業の場所: D:/PoB_work/r1339_work（台本 scripts/ ・表 out/）
+読む生（全て読むだけ）:
+  D:/PoB_work/keep_1334_rej/k49B/out_c139k49B_10/ins（腕 B・種 1 ウジジ）
+  D:/PoB_work/keep_1334/base_ins・n1・n2・a11（nation_s・region_s・pxmonth）
+  measurements/m1334_20261124/readN1 ほか・D:/PoB_work/fragility/*
+ソース（main ffb0c93ec・読むだけ）: World.cs の PriceLevel・CostPriceLevel・_moTrend・名目 GDP の書き手・Simulation.cs の州の価格の上乗せ・nation_s の書き手
+手順: 1 名目 GDP の定義を grep → 2 ウジジと N1 最大件で nominal=priceLevel×real×(fx) を四半期ごとに分解 → 3 根の項の式 → 4 4 本の生で同じ読み手で数え直し → 5 推奨 1 つ → 6 門の読み

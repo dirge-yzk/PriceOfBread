@@ -1,0 +1,11 @@
+PriceOfBread.SimCore/Crime.cs:7:        if (!w.PoliticsEnabled) { w.PublicOrder = 1.0; w.CrimeRate = 0; return; }
+PriceOfBread.SimCore/Crime.cs:13:        w.PublicOrder = order;
+PriceOfBread.SimCore/Crime.cs:26:            r.CrimeRate = crimeRate;
+PriceOfBread.SimCore/Crime.cs:51:        w.CrimeRate = worstRate;
+PriceOfBread.SimCore/Model.cs:629:    public double CrimeRate;
+PriceOfBread.SimCore/Politics.cs:946:            double order = PoliticalQuantities.Clamp01(w.PublicOrder);
+PriceOfBread.SimCore/PowerShares.cs:20:        double order = PoliticalQuantities.Clamp01(w.PublicOrder);
+PriceOfBread.SimCore/Territory.cs:93:            Console.Error.WriteLine($"[非有限診断] Territory.Opportunity {r.Name}={o}　pop={r.SumPopulation()} 賃金P={r.WagePremium} 工業={r.TotalIndustr
+PriceOfBread.SimCore/Territory.cs:105:        double pushPenalty = 1.0 - c.PushUnrestWeight * unrest - c.CrimePushWeight * r.CrimeRate;
+PriceOfBread.SimCore/World.cs:696:    public double PublicOrder { get; internal set; } = 1.0;   // 治安＝実効治安維持力の人口カバレッジ（1=完全な秩序）。財政破綻・人口
+PriceOfBread.SimCore/World.cs:697:    public double CrimeRate { get; internal set; }             // 月次の窃盗率（最悪地域・被害者の基数〔前の月の所得〕に掛ける率）。�

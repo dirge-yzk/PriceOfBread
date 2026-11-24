@@ -1,0 +1,14 @@
+./Crime.cs:11:        double effCoerce = PoliticalQuantities.EffectiveCoerce(w, c);
+./CrownParliament.cs:55:                && w.ReformistPower + w.RadicalPower > PoliticalQuantities.EffectiveCoerce(w, c))
+./Instruments/InstrumentsCrown.cs:78:        x.Coerce = w.Coercion * (pop / System.Math.Max(1.0, c.PoliticalReferencePop));
+./Instruments/InstrumentsDiscontent.cs:78:        double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
+./Instruments/InstrumentsRule.cs:16:        double effCoerce = w.Coercion * (pop / System.Math.Max(1.0, c.PoliticalReferencePop));
+./Instruments/InstrumentsSecession.cs:52:        double effNow = w.Coercion * (w.TotalPopulation / Math.Max(1.0, c.PoliticalReferencePop));
+./MultiNationSim.cs:404:        nw.Coercion = pw.Coercion;
+./PoliticalQuantities.cs:7:    public static double EffectiveCoerce(World w, Coefficients c)
+./PoliticalQuantities.cs:8:        => w.Coercion * (w.TotalPopulation / Math.Max(1.0, c.PoliticalReferencePop));
+./Politics.cs:135:        double momentum = PoliticalQuantities.Clamp01((w.ReformistPower + w.RadicalPower) / Math.Max(1, PoliticalQuantities.EffectiveCoerce(w, c)) * c.BandwagonSensitivity);
+./Politics.cs:282:        double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
+./Politics.cs:951:                rawOrder = PoliticalQuantities.EffectiveCoerce(w, c) / Math.Max(1e-9, w.TotalPopulation * c.CrimeOrderPerPop);
+./Politics.cs:1142:        => PoliticalQuantities.ChallengeRatio(w.ReformistPower + w.RadicalPower, PoliticalQuantities.EffectiveCoerce(w, w.Coef));
+./Simulation.cs:2580:            World.ReformistPower, World.Coercion,
