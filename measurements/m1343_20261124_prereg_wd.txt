@@ -1,0 +1,80 @@
+(1343) c141wd 挙動の線の事前登録：助走の間は全ての国で四半期の政策の決定の段を止める＝AI だけが助走で DecideQuarter と近代化の率を走らせる非対称を消す（旗 WarmupNoDecisions・1 回目）（2026-11-24・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発
+ 省く段 B6 の前半（D:/PoB_work/omission_stage_list.md:16）。D:/PoB_work/review_sym/report.md の 2（中）：助走の 20 四半期で AI の国だけが DecideQuarter を走らせ、政策の目標・記憶・国営工場の目標を積んで開幕を迎える。App は助走の前にプレイヤーを NullAgent にする＝プレイヤーの開幕はバッチで測られていない。
+ AI とプレイヤーの対称の原則・作者 2026-11-11〈完全等価〉。答え待ちではない。3 回の規則の 1 回目。形の種類＝〈入口〉（助走の間の決定の段だけを止める・ゲームの四半期の規則は触らない）。
+ 形は AI の案（omission_stage_list の B6・確証なし）。ただし〈AI とプレイヤーで同じ機構〉は作者の原則＝向きは確証あり。
+ 入れない物：B6 の後半（開幕の政治＝ゆっくり動く量だけ助走で回す）・App の助走の順・IsPlayer の分岐の数の番人（I5）。
+
+■ 現物（main b1c63d283）
+ Simulation.cs:1501〜:1509 QuarterStart：`if (!self.IsPlayer) World.ModernizationFrac = UtilityAgent.AutoModernizationFrac(...)`・else SetNavalUpkeepShare・:1509 `_agent.DecideQuarter(World)`＝助走の門が無い。
+ MultiNationSim.cs:551〜:575 WarmupEconomy（PoliticsEnabled false・WarmupFrozen true・DiplomacyFrozen）。StartWarmup（:437）は WarmupEconomy の後に OpenForces（Diplomacy.OpenGame→OpeningNavalShares：全ての国に同じ関数 SetNavalUpkeepShare＝助走の決定ではない＝触らない）。
+ Agents.cs:10 NullAgent（何もしない）・SelfPlay.cs:641 UtilityAgent.DecideQuarter。計器 Instruments.MonAiBefore／MonAiAfter は助走では既に何も数えない（InstrumentsMon.cs:184 で WarmupFrozen なら Armed=false）。
+
+■ 形（旗 1 の規則は 1 本）
+ Simulation.cs QuarterStart：`bool decideNow = !(World.WarmupFrozen && World.Coef.WarmupNoDecisions > 0);`＝旗 1 で助走の間は :1501〜:1509 の決定の段（AI の近代化の率・プレイヤーの海軍の維持の配分・DecideQuarter と計器の前後の 2 呼び）を全ての国で飛ばす。
+ 旗 0 は今と 1 ビットも同じ（decideNow は常に真）。新しい係数 0（旗 1 本＝Coefficients.p07_wiring_prewarm.cs の StartWarmupTechIterations の次の 1 行）・閾値 0・状態 0（UtilityAgent の内部の記憶＝_importEma 等は最初の決定の四半期に初めて置かれる＝助走の値を積まない）。
+ 開幕の値＝旗 1 では world.json と構築の値（ModernizationFrac＝OpeningModernizationFrac・NationPolicy の構築の値）のまま＝AI の国も NullAgent の国も同じ規則。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果＝measurements/m1343_20261124/pre/grep32.txt・b1c63d283）
+ 旧の規則：助走の間も AI の国だけが四半期ごとに決める（:1505・:1509 に WarmupFrozen の門が無い）。
+ grep（PriceOfBread.Tests）：DecideQuarter 13 ファイル 61 行・WarmupEconomy 1 ファイル 2 行・StartWarmup 81 ファイル 169 行・ModernizationFrac 9 ファイル 31 行。
+ StartWarmup を呼び、かつ決定の欄（DecideQuarter・ModernizationFrac・.Policy.・Mobilized・StateTarget・NavyUpkeep）を読むファイル：ElectionAiTests・InheritIntentTests・InstrumentsMonTests・InstrumentsTests・NationModelTests・OpeningFiscalAlignTests・TreasuryLedgerTests（＝旧の規則を固定し得る候補）。
+ 予言：助走の後の盤面（開幕の名目 GDP・国庫・価格）を読む試験は旗 1 で値が動く（下の段 0：開幕の名目 GDP の旗 1÷旗 0 は 0.79〜1.12・ビット一致の国 0）。旧の規則〈AI が助走で決めた開幕の政策の目標〉そのものを Assert する試験は grep で見つからない＝その型の赤の予言 0。
+ 史実の桁を固定した試験（StartWarmupTests の国債÷GDP・国庫・歳入の史実の桁）の赤は止める線ではない（記録・計器か記録へ移す）。WriterRatchetTests の 1 種 40 四半期の件数（★(749) 軌道の件数を写しただけの番人）は旗 1 で動く〈推〉＝取り直して verdict に列挙。
+ ㉜ の手順：旗 1 のコミットの直後に、差分の名（WarmupNoDecisions・DecideQuarter・AutoModernizationFrac・SetNavalUpkeepShare・ModernizationFrac・WarmupEconomy・StartWarmup）で当たったクラス＋㉘ の束＋FullLength＋savetest・leakhunt を腕 B の前に回す（赤は trx で見る）。
+
+■ 段 0（ソースと盤面から・読むだけ・プローブ scripts/instruments/c141wd/probe_wd0.cs.txt・出力 measurements/m1343_20261124/pre/stage0_probe.txt）
+ 0-1 決定の段が書く欄（grep）：AutoModernizationFrac→World.ModernizationFrac。DecideQuarter→Policy の MonetaryTarget・CapitalControlTarget・Apply(ChooseStance) の目標（課税・関税・法の段・利子・教育・軍・社会保障・労働時間ほか p.* 44 欄）・Mobilized（戦争の中だけ）・RequestCurrencyReform・ReactProtectiveTariff（TariffTarget と内部の _importEma）・SetNavalUpkeepShare（NavyUpkeepTarget・ArmyUpkeepTarget）・TryTradeBias（GoodTradeBias）・TryBuildFacility（Producer.StateTarget＝国営工場の目標）。
+ 0-2 全ての国（61・UtilityAgent・種 1789・助走 20 四半期）で助走の前→後に決定の欄が動いた国：旗 0＝61/61（ArmyUpkeep・NavyUpkeep・InterestRate・SocialSecurity・Tariff・WorkHours・ModernizationFrac・TradeBias は 61 国・EducationLaw 56・LaborUnion 54・LandTax 55・Censorship 48・PollTax 42・Conscription 30・Coercion 29・国営工場の目標 4・Mobilized 0）。
+     旗 1（器の木で測った）＝ArmyUpkeep と NavyUpkeep だけが 61 国で動く＝助走の後の OpenForces（OpeningNavalShares・全ての国に同じ関数）＝助走の決定ではない。他の欄は 0。
+ 0-3 開幕の盤面の旗 1 と旗 0 の差：決定の欄が違う国 61/61・開幕の名目 GDP の旗 1÷旗 0 最小 0.792・中央 1.010・最大 1.115・ビット一致の国 0＝開幕から軌道が分かれる（世界を変える線）。
+ 0-4 base_ins（keep_1341）の aib_s・monai_s は助走の四半期を数えない（monai の firstValue は助走の後の値）＝助走の中の数は上のプローブで取った〈近似ではない・同じ盤面の旧と新〉。
+
+■ 段 0 の予言（向きと桁・〈推〉・門にしない）
+ P1 開幕の政策の目標は構築の値のまま（AI の国の助走の決定 0 回）。ゲームの 1 四半期目に AI が初めて決める＝最初の四半期に目標が一度に動く。政府の反映は段ごとに動く（Government の段の速さ）＝法の段の跳びは起きない〈推〉。
+ P2 止める線：助走の間は Government の反映も凍結（Government.cs:130・:422）＝助走で積まれた目標は開幕まで盤面に効いていなかった＝開幕の盤面の差は主に TradeBias・国営工場の目標・近代化の率の助走中の効き（開幕の名目 GDP の差 ±20% 以内）。発散・空洞化の向きは無い〈推〉。
+ P3 計算量：助走の 20 四半期×61 国の DecideQuarter を飛ばす＝推定の計算量（.cost はゲームの四半期の台帳）は助走を数えない＝割り当て 0 秒・軌道の分かれによる揺れだけ（±2 秒の内〈推〉）。2 秒以下＝合流の累計で読む（★(694)）。
+ P4 英の不履行・gdp_zero10・NG・開幕の国営工場・総動員（助走では戦争が無い＝0）・AI の記憶（_importEma の初めの値は開幕の輸入）＝記録。
+ ＝見込みは〈悪くする〉ではない（非対称を消す向き・開幕の決定の欄を AI とプレイヤーで同じ規則にする）＝腕を回す。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（PriceOfBread.Tests/WarmupDecisionSymmetryTests.cs・盤面は試験の中で置く＝イギリス〔数える代理人の中に UtilityAgent〕とフランス・種 1789・助走 2 四半期）：
+  T1 旗 1：WarmupEconomy の間に DecideQuarter の呼び 0（AI の国もプレイヤーの国も）・決定の欄（NationPolicy の値型の公開の欄の全て＋ModernizationFrac＋Mobilized）が助走の前の値とビットで同じ。対照（同じ試験の中）：旗 0 は AI の国の呼び＝助走の四半期の数・決定の欄が 1 つ以上動き、ModernizationFrac が動く。
+  T2 旗 0 と 旗 1（Theory 2 行）：助走の後の 1 四半期目に、どちらの国も呼び 1 回・AI の国の ModernizationFrac が開幕の値から動く。
+  T3 同じ国（フランス）を AI で置いた盤面とプレイヤー（NullAgent＋IsPlayer）で置いた盤面を同じ種で StartWarmup：旗 1 で開幕の決定の欄と名目 GDP がビットで同じ。対照：旗 0 は決定の欄が 1 つ以上違う。
+ 止める線（作者の止める線・腕 B の生を読み手 scripts/instruments/c141wd/read_wd.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines906（nation_s の priceLevel の四半期比 100 倍以上・1e10 倍以上・非有限・plvl・開幕の 1000 倍／gdpjump の 3 区分の〈それ以外〉だけ）。建国の直後と分母の痩せ（popjump1017・政府の人口が 1 四半期で 1/10 未満か 10 倍以上）は基準とヌル腕と並べる（⑰・㊳）。基準 M＝measurements/m1341_20261124/readM・N1＝readN1・N2＝readN2（同じ台本の出力）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ。植民地格の州も含む。基準 keep_1341/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ。
+  S4 推定の計算量 ＞248.5 秒（名目・m1341 の M 225.6・S11 230.9＝余り 約 17.6 秒）。割り当て 0 秒（上の P3）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 史実の桁の線：この線が動かす量（助走の間の AI の決定の回数・開幕の政策の目標）に史実の系列は無い＝錨を置かない（★(1321)：系列が無いと名乗る）。
+ 〈狙いどおり働いた〉の段：G0（T1・T3）が旗 0 の実装で赤・突然変異で赤であること。腕の観測量（開幕の決定の欄が構築の値のままの国の数＝61 を期待）は記録。旗 1 の出力が旗 0 と違う行の数（成績表の全行の diff）は記録。
+ 記録（門にしない）：開幕の国営工場（aib_s の最初の四半期）・総動員（nation_s mobilizedFlag）・AI の記憶・英の国債の不履行の種の数（ukdef975）・gdp_zero10・NG（ng.sh・基準 rd:measurements/ng1341_20261124:m1341）・nullgate（記録）・開幕の 1000 倍以上・ヌル腕の幅（作者 2026-11-16 ①＝記録だけ）。
+
+■ 旗 0 で門が落ちることの確かめ（★(790)・紙の台本＝器の木の試験の対照の Assert と突然変異 M0）
+ T1・T3 の旗 1 の Assert は旗 0 の実装（M0〈旗を読まない〉）で赤〈予言〉。器の木（旗の既定 0）で試験を回したとき、T1 と T3 の対照の Assert（旗 0 で呼びがある・欄が動く・AI とプレイヤーで違う）は緑＝旗 0 の盤面では旗 1 の Assert が成り立たないことを同じ試験の中で確かめている。
+ 止める線は〈壊さない〉門＝基準 M（readM）で 0（pxmonth 100 倍以上 0・1e10 倍以上 0・非有限 0・gdpjump〈それ以外〉0・空洞化 1/10 未満 0・1/4 未満 9〔移民 9〕・gdp_zero10 0・推定 225.6 秒）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c141wd/mut_wd.sh・器のコミット・出力 measurements/m1343_20261124/mut/）
+ | 突然変異                                              | T1 | T2（旗 0 / 旗 1） | T3 |
+ | M0 旗を読まない（decideNow＝真＝旧の規則）              | 赤 | 緑 / 緑           | 赤 |
+ | M1 μ1 DecideQuarter だけ止める（近代化の率は助走で走る） | 赤（ModernizationFrac が動く） | 緑 / 緑 | 赤〈推〉 |
+ | M2 μ2 WarmupFrozen の向きを逆にする                     | 赤（助走で決める） | 緑 / 赤（助走の後に決めない） | 赤〈推〉 |
+ | M3 μ3 IsPlayer の国だけ止める                           | 赤（AI が助走で決める） | 緑 / 緑 | 赤 |
+ T2 は M2 だけで赤＝T2 は〈助走の後に必ず決める〉の番人。M1 で T3 が緑なら〈T3 は DecideQuarter を数えない〉と記録（T1 が拾う）。
+
+■ ㉘ 走査の番人の点検（器のコミットの直後・ident の前・台本 scripts/instruments/c141wd/scan_wd.sh）
+ 工業化度の読み手の許可表：差分に工業化度の読み 0＝変化なし。`new MoneyStock(` の件数：差分で 0 件。route_anchors.tsv の鍵の行：DecideQuarter・AutoModernizationFrac・SetNavalUpkeepShare・MonAiBefore で grep 0 件＝鍵の行に触れない。WriterRatchetTests の宣言の表：DecideQuarter 等で 0 件。DormantIdentityTests の DormantZeroFields に WarmupNoDecisions を 1 行（旗 1 のコミットで外す）。
+ 変わる件数の予言（㉑）：ソースを走査する件数の番人に当たる変更は無い〈推〉（新しい読みは World.Coef.WarmupNoDecisions 1 つ・Simulation.cs の 1 行の追加と 2 行の門）。赤が出たら止めて原因を読む。
+
+■ 〈周辺の点検〉（読むだけ）
+ StartWarmupTests の史実の桁の番人（国債÷GDP・国庫・歳入）：助走は Government の反映を止める（Government.cs:130・:422）＝AI の助走の目標は歳入に効かない〈推〉。RebaseOpeningFiscal（World.cs:2252）は各四半期の終わりに国庫を最後の歳入×月数へ置き直す＝歳入が助走の決定で変わる分だけ開幕の国庫が変わる（記録）。赤なら記録の側へ（止める線ではない）。
+ Simulation.cs:1504 の注〈AI 国は直後の DecideQuarter が自分の値で上書きするので無害〉：旗 1 の助走では両方とも走らない＝注の主張（ゲームの四半期の話）は変わらない。注は触らない（c141cn の範囲の外・この線の行は :1500〜:1510）。
+ Diplomacy.cs:896 OpeningNavalShares：助走の後に全ての国へ同じ関数＝対称＝触らない。
+
+■ 腕
+ 腕 Z＝ident 段 2（器の木・`bash scripts/instruments/c141wd/identz.sh`・--work D:/PoB_work/ident_c141wd・テストの差 +4）。
+ 腕 B＝旗 1 の木・計器つき 10 種（種 1〜10）・表を絞る＝nation_s・aib_s・scalars_s・stock_s と止める線と記録の読み手の表（pxmonth_s・region_s・migration_s・wars_s・casualty_s・fiscal_s）。D: は起こす直前に shutil で 35GB＋量を確かめる。
+ 種 11〜20 は線では回さない（合流が合わせた木で 1 回）。形の変え直しは 1 回だけ。
