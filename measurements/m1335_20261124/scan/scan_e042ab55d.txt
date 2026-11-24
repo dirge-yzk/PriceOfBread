@@ -1,0 +1,4 @@
+# (1335) scan HEAD=e042ab55d 汚れ=0 2026-11-24 10:49:27
+# filter=FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~HungerFlightTests|FullyQualifiedName~TerritoryTests|FullyQualifiedName~ConservationTests|FullyQualifiedName~RecruitVacancyTests
+scan rc=0 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 成功!   -失敗:     0、合格:   205、スキップ:     0、合計:   205、期間: 33 m 56 s - PriceOfBread.Tests.dll (net10.0) 
+SCANDONE 2026-11-24 11:23:41
