@@ -1,0 +1,3 @@
+# M1（HEAD）
+  失敗 PriceOfBread.Tests.GenderTests.女性の権利の後退は全ての段で普通の法の門だけ [2 s]
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T1_選挙権の後退は旗1で1段下がり旗0で動かない(flag: 1) [2 s]

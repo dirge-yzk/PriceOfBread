@@ -1,0 +1,10 @@
+# (1344) suite 木=/d/PoB_work/wt_c141lr HEAD=65da4552b 2026-11-24 22:31:15
+list-tests Tests(Category!=FullLength)=2954 Tests.Ui=232 和=3186 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   765、スキップ:     1、合計:   766、期間: 27 m 57 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=1 失敗!   -失敗:     1、合格:  2951、スキップ:     2、合計:  2954、期間: 32 m 28 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.RuleSharesFormTests.D6_女性の賃金保持の追従の速さが国家の区分に比例し行政効率に依らない [82 ms]
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 30 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 25 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 142・その月の額の和 4.105E+04 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-24 23:44:45
