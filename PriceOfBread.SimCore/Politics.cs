@@ -199,7 +199,7 @@ public static class Politics
 
 
         double dynErodeMul = 1.0, dynRegenMul = 1.0;
-        {
+        {   // 天命：Step の先頭の `!w.PoliticsEnabled` の早い return の後ろ＝政治が止まっている国では DynasticMandate は動かない
             if (w.DynasticMandate < 0) w.DynasticMandate = 0.5;
             double dmPrev = w.DynasticMandate;
             var (uneduShare, uneduSatAvg) = PoliticalQuantities.MandateBase(w);

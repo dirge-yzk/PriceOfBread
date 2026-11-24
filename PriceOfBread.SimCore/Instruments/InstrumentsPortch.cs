@@ -62,7 +62,7 @@ public static partial class Instruments
                 double terrCost = horse + railGate * (rail - horse);
                 if (r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) terrCost = c.TerrainWaterMajorCost;
                 else if (r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) terrCost = c.TerrainWaterMinorCost;
-                // BilateralMarket.InlandRailAfterDecay と A1PHat の距離ゼロの門の写し（距離が 0 に近い州は減衰なし＝1）
+                // BilateralMarket.StepBilateral の内陸の鉄道の門（港でなく NearestPortDistanceKm＞1e-9 の州だけ InlandRailAfterDecay を掛ける）の写し（距離が 0 に近い州は減衰なし＝1）
                 double decayOld = gcKm > 1e-9 ? 1.0 / (1.0 + gcKm / norm) : 1.0;
                 double decayUsed = r.NearestPortDistanceKm > 1e-9 ? 1.0 / (1.0 + r.NearestPortDistanceKm / norm) : 1.0;
                 sk.W ??= Open("portch", seed);
