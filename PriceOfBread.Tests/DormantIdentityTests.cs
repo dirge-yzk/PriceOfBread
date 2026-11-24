@@ -112,8 +112,6 @@ public class DormantIdentityTests
         "RevoltIgnitionIntensity",      // F3b蜂起doc 段4＝点火の付け替え（門1＝FactionStrength÷f.Size の示強量）。0で旧2門（力の門＋好機/圧倒）＝厳密恒等
         "RevoltGrievanceWeight",        // F3b蜂起doc 段4＝門2の怨嗟の重み（min(1, FactionRejectionMutation×Rejections)）。0で加算項が消える
         "RevoltVoiceFloor",             // F3b蜂起doc 裁定1＝(1−発言権)の床（旧支配層と普選後の大衆の恒久ゼロを外す）。0で FactionStrength は1命令も変わらない
-        "RevoltMilitiaRaise",           // F3b蜂起doc 段5＝蜂起した運動のブロックのPOPが不満度に応じて武器を取る率（Pop.MilitiaShare）。0で誰も札を持たない＝全読み手が恒等
-        "MilitiaCombatValue",           // F3b蜂起doc 段5＝民兵1人あたりの戦力 a（<1＝弱兵）。戦場の民間人死の配分の重み 1+a×民兵率 も同じ a。0で戦力にも死の配分にも寄与しない
         // ★SoldierDefectionByMilitancy（F3b蜂起doc 段5＝守備兵の寝返りは割合）は 2026-09-29 処理の一元化 段3 で**点火**（係数ごと削除）＝この表から外した。
         // ★RevoltCooldownRetire（F3b蜂起doc 段6＝共有クールダウンの退役）は 2026-09-29 に**点火**（作者裁定「根拠のない待ち」・旗・タイマー・係数ごと削除）＝この表から外した。
         // ★要求は法の経路（作者裁定2026-09-11）は同日に**点火**（主フラグごと削除・旧3枝も物理削除）＝この表から外した。
@@ -267,6 +265,8 @@ public class DormantIdentityTests
     private static readonly string[] RetiredFields =
     [
         "ServiceUnemployment",   // (1263) c129k12 K12：役務専任 pop の失業の強度（既定 1.0＝×1.0）の旗を焼いた（式は残す）
+        "RevoltMilitiaRaise", "MilitiaCombatValue",   // (1338) c140dz：民兵の札を立てる器と戦力の重み（既定 0＝休眠）を削除。Pop.MilitiaShare の欄と読み手は残る（書き手は無くなった＝別の線で畳む）
+        "DevelopmentMemory",   // (1338) c140dz：開発度の記憶（既定 0.4 だが IndustrializationOff＝1 の下で枝が通らなかった）を枝・Region.DevelopmentPeak・係数ごと削除（焼きの表の 4 番目の欄は 0.0 の穴にした）
         "ConsumeBudgetSavingsRatePerMonth",   // (1257) c128k20 K20：消費の予算の上限（EconomyStep の d＞0 の枝・既定 0＝休眠）を枝ごと削除。計器 CapOf は自分の d の並びで残る。
         "GuildMobilityDrag",   // (1227) c124kb 項 3 K10′：同業組合の移動の遅れ（既定 0・主ゲート GuildLawGate も 0＝休眠）を削除。法の軸 GuildLawGate・GuildRentPremium は残す
         "HealthcareLiteracyGateOff", "HealthcareEducationGate",   // (1227) c124kb 項 1：(1222) K03 の旗（既定 1）と識字の錠の係数を焼き込んだ（旗 0 の枝と係数を消した＝番人は HealthcareLiteracyGateTests）

@@ -538,18 +538,6 @@ public static class Politics
     {
         w.FactionRevolts++;
         best.Rejections += 1;
-        if (c.RevoltMilitiaRaise > 0)
-        {
-            foreach (var p in best.Region.Pops)
-            {
-                if (p.IsSoldier) continue;
-                int pb = PolicyPreferences.BlocOf(p);
-                if (pb != best.Bloc) continue;
-                double share = Math.Min(1.0, c.RevoltMilitiaRaise * p.Militancy);
-                if (!(share > p.MilitiaShare.Value)) continue;
-                p.MilitiaShare = new Share(share);
-            }
-        }
         Polity target = NearestPolity(best.Ideo);
         if (Instruments.On) Instruments.PrdfRevolt(w, (int)target);
         if (RaiseRevolt(w, best.Region, target))

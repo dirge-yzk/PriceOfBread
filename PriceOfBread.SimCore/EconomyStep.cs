@@ -829,15 +829,8 @@ public static class EconomyStep
         // 凍結は**両側**でなければ「1783年のまま」にならない。〔履歴 EconomyStep.cs#107〕
         if (cap && !warmFrozen)
         {
-            // 史実の資本は設備が失われても「体化された技術・熟練・制度」が残り、再建と維持が速い（独日の戦後復興）＝ ピークから離れるほど物理減価を緩め、0へ漸近させる（資本を注入しない＝保存則・単調性に非接触）。〔履歴 EconomyStep.cs#108〕
+            // 減価は一定率（ピークから離れるほど緩める枝は IndustrializationOff＝1 で通らない物だったので (1338) で削除）。〔履歴 EconomyStep.cs#108〕
             double dep = coef.IndDepreciation;
-            if (coef.DevelopmentMemory > 0 && !indOff)   // DevelopmentMemory〔履歴 EconomyStep.cs#109〕
-            {
-                double totNow = region.Industrialization + region.OldVintageCapital;
-                if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
-                if (region.DevelopmentPeak > 1e-9)
-                    dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
-            }
             region.Industrialization *= 1.0 - dep;
             region.OldVintageCapital *= 1.0 - dep;   // dep〔履歴 EconomyStep.cs#110〕
         }

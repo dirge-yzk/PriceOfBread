@@ -136,7 +136,7 @@ public static class OpeningBake
         return sb.ToString();
     }
 
-    static double[] CapValues(Region r) => [r.Industrialization, r.OldVintageCapital, 0.0 , r.StrandedVintage, r.DevelopmentPeak, r.GridCapacity, r.PriceLevel, r.LocalPriceMultiplier];
+    static double[] CapValues(Region r) => [r.Industrialization, r.OldVintageCapital, 0.0 , r.StrandedVintage, 0.0 , r.GridCapacity, r.PriceLevel, r.LocalPriceMultiplier];
 
 
     static readonly Lazy<JsonDocument> Embedded = new(() =>
@@ -172,7 +172,7 @@ public static class OpeningBake
                 var e = re.GetProperty(r.Name);
                 var cap = e.GetProperty("cap");
                 r.Industrialization = cap[0].GetDouble(); r.OldVintageCapital = cap[1].GetDouble();  r.StrandedVintage = cap[3].GetDouble();
-                r.DevelopmentPeak = cap[4].GetDouble(); r.GridCapacity = cap[5].GetDouble(); r.PriceLevel = cap[6].GetDouble(); r.LocalPriceMultiplier = cap[7].GetDouble();
+                r.GridCapacity = cap[5].GetDouble(); r.PriceLevel = cap[6].GetDouble(); r.LocalPriceMultiplier = cap[7].GetDouble();
                 var mk = e.GetProperty("mk");
                 for (int g = 0; g < ng; g++) { r.Markets[g].Price = mk[2 * g].GetDouble(); r.Markets[g].Stock = mk[2 * g + 1].GetDouble(); }
                 var pr = e.GetProperty("pr");

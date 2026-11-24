@@ -43,8 +43,6 @@ public sealed partial class Coefficients
     public double RevoltIgnitionIntensity = 0.0;   // 戦争の形の再併合も旧経路の鎮圧の行（Politics.SettleRevolt の1本＝返還州の闘争度の緩和・断裂の窓・運動の燃え尽き）を常に通る
     public double RevoltGrievanceWeight = 0.0;   // 門2の怨嗟の重み：min(1, FactionRejectionMutation×Rejections)（変異ロールと同じ飽和の書き方）を州の絶望に加える強さ
     public double RevoltVoiceFloor = 0.0;   // 蜂起の強度の発言権の床：(1−発言権) の下限をこの値にする。0＝恒等
-    public double RevoltMilitiaRaise = 0.0;   // ＝民兵率 min(1, これ×そのPOPの闘争度)
-    public double MilitiaCombatValue = 0.0;   // 民兵1人あたりの戦力 a（<1＝弱兵）
     public int FactionConcessionSteps = 2;       // 内戦の講和の経済決着（Politics.ConcedeToFaction）：要求最上位の法を2段・以下1段のむ
     public double FactionConcessionSlider = 0.15;  // 経済決着：スライダー軸の強制移動量
     public double LoyalistMilitiaWeight = 0.5;     // 湘軍項：反乱と思想距離が遠いブロックが体制側で郷勇を組む重み（F3bで0.5から掃引）

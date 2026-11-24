@@ -529,9 +529,8 @@ public sealed class MultiNationSim
     {
         var worlds = new World[Nations.Count];
         var obs = new (double[] Inst, double[] Sold)[Nations.Count];
-        double frontier = 0;   // frontier〔履歴 MultiNationSim.cs#61〕
-        for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); if (worlds[i].TechLevel > frontier) frontier = worlds[i].TechLevel; }
-        return Discovery.WorldPrices(worlds, obs, InternationalMarket.FreightRevolution(frontier, _coef));
+        for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); }
+        return Discovery.WorldPrices(worlds, obs, 1.0);
     }
     /// <summary>世界の解禁の和（需要の門が読む）を書き直して全ての国へ配る（同じ配列＝建国した国も親と同じものを参照）。</summary>
     private void ShareWorldDiscovered()

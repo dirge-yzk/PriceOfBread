@@ -268,7 +268,7 @@ public class FactoryEquipmentTests
     {
         var sim = Make(62, 1, 0);
         var w = sim.World;
-        w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;   // 購入と廃棄を止める
+        w.Coef.IndCapitalCost = 1e9; w.Coef.DepressionScrapRate = 0;   // 購入と廃棄を止める
         sim.Run(1);
         Region? reg = null; Producer? closed = null;
         foreach (var r in w.Regions)
@@ -336,7 +336,6 @@ public class FactoryEquipmentTests
         var sim = Make(21, 1, 0);
         var w = sim.World;
         w.Coef.IndCapitalCost = 1e9;           // 私的な建設の止める信号（ハードルが総収益を超える）＝購入が起きない
-        w.Coef.DevelopmentMemory = 0;          // 減価の係数を IndDepreciation そのものに（期待を自分で作れる）
         w.Coef.DepressionScrapRate = 0;        // 恐慌の廃棄を止める
         sim.Run(1);                            // 最初の月の門の整理（未発見の個体の Scale=0）を済ませる
         var start = new Dictionary<Producer, double>();
@@ -381,7 +380,7 @@ public class FactoryEquipmentTests
     {
         var sim = Make(23, 1, 0);
         var w = sim.World;
-        w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;
+        w.Coef.IndCapitalCost = 1e9; w.Coef.DepressionScrapRate = 0;
         sim.Run(1);
         var (r, ps) = FourProducers(w);
         var p = ps[0];
@@ -443,7 +442,7 @@ public class FactoryEquipmentTests
     {
         var sim = Make(24, 1, 0);
         var w = sim.World;
-        w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;
+        w.Coef.IndCapitalCost = 1e9; w.Coef.DepressionScrapRate = 0;
         sim.Run(1);                            // 最初の月の門の整理（退場する個体の設備を戻す）を済ませる＝この試験の盤面を動かさない
         var (r, ps) = FourProducers(w);
         var p = ps[0];
@@ -461,7 +460,7 @@ public class FactoryEquipmentTests
         {
             var sim = Make(33, 0, indOff);
             var w = sim.World;
-            w.Coef.IndCapitalCost = 1e9; w.Coef.DevelopmentMemory = 0; w.Coef.DepressionScrapRate = 0;
+            w.Coef.IndCapitalCost = 1e9; w.Coef.DepressionScrapRate = 0;
             var r = w.Regions[0];
             r.Industrialization = 2.0;
             for (int d = 0; d < 31; d++) sim.StepDay();

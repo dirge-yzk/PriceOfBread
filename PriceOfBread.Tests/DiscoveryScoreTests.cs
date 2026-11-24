@@ -595,8 +595,7 @@ public class DiscoveryScoreTests
         var expect = Discovery.WorldPrices(worlds, obs).Average;
         Assert.Equal(expect.Length, view!.Market!.Average.Length);
         for (int g = 0; g < expect.Length; g++) Assert.Equal(expect[g], view.Market.Average[g], 9);
-        double frontier = worlds.Max(x => x.TechLevel);
-        Assert.Equal(InternationalMarket.FreightRevolution(frontier, sim.Nations[0].World.Coef), view.Market.Freight, 12);
+        Assert.Equal(1.0, view.Market.Freight, 12);
         // (843) 旗 EraOff の焼き込みで運賃革命の倍率は常に 1（倍率が 1 でない盤面の配線の確かめは旗 0 の枝とともに消した）
         Assert.Contains(expect, v => v >= 0);
     }

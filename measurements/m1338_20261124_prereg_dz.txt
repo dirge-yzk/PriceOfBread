@@ -1,0 +1,68 @@
+(1338) c140dz 恒等 I3：死んだ物の削除　事前登録（最初のコミット・腕の前）　基準 m1334（ffb0c93ec7）
+作者 2026-11-12・11-16〈重要でない機能は削減〉・省く段 I3（D:/PoB_work/omission_stage_list.md）・作者 2026-11-23「すべて推奨で」で推奨を採った。承認ではない。
+
+[1] 恒等の線。予言 0（素の 5 種・計器つき 10 種の全表が m1334 と名乗り行を除いて 1 バイトも違わない）。
+    新しい係数・旗・状態は 0。係数のリテラルの書き換え 0。浮動小数の順序が変わる箇所の一覧は [2b]。
+
+[2] 消す物と残す物（読み手は grep・SimCore／Runner／App／Display／Tests／scripts／POB_COEF の名／SaveGame）
+ 項 1 FreightRevolution（InternationalMarket.cs:119〜:120 `=> 1.0`）
+   消す：関数 FreightRevolution・BilateralMarket の frontierTech の周回と freightRevolution・adValoremRev（×1.0 の 7 か所：lbOn の述語 1・TbRow/T1Row/a1 の 1+TransportMargin*x 4・baseMul・marL・mar2）・
+        MultiNationSim.AdvanceDiscoveryPrices の frontier（WorldPrices へ 1.0 を渡す）・
+        試験 2 行（DiscoveryScoreTests:599 は期待を 1.0 に・TechLevelRemovalTests:226 は行を消す）。
+   残す：TransportRevolutionMax／Onset／Span（読み手が Runner Program.cs:1323〜1324 と App GameViewModel.News.cs:292 にある＝この回は App・Runner 0 行）。
+        計器 scalars_s の freightRevolution 列＝ident に〈列が減る〉の宣言が無いので列は残し、値を F(1.0) の定数にする（宣言は要らない・書式は F(1.0)＝今の出力と同じ文字）。
+   読み手：SimCore 4 ファイル（Bilateral 5 節・International 1・MultiNation 1・InstrumentsScalars 1）・Tests 2・Runner 2（式を自前で再計算・残る）・App 1（残る）。
+ 項 2 DevelopmentMemory と Region.DevelopmentPeak（EconomyStep.cs:834〜:839 は coef.DevelopmentMemory>0 && !indOff＝IndustrializationOff 既定 1 の下で通らない）
+   消す：枝・Region.DevelopmentPeak（Model.cs:673）・係数 DevelopmentMemory（p04:12）・OpeningBake の書き（4 番目の欄は 0.0 の穴にする＝VintageTechLevel の 3 番目の欄と同じ前例・opening_bake.json と形式 opening_bake/1 の欄数 8 は動かさない）と読み（cap[4] を読まない）・
+        FactoryEquipmentTests の `w.Coef.DevelopmentMemory = 0` 5 行（消した係数への代入）。
+   残す：IndustrializationOff の旗と他の枝（indOff は :846・:848 が読む）。
+   恒等を保つ形：OpeningBakeEnabled 既定 0＝焼きの表は読まれない。読んでも cap[4] は無視＝旗 0 の経路と同じ。SaveGame はフィールドを名前で書く（欄が減るだけ・旧版互換は要らない）。
+   読み手：SimCore 3 ファイル・Tests 5 行（代入だけ）・scripts 1（正規表現の語・読み手でない）・App／Display／Runner 0。
+ 項 3 既定 0 の器 2 本（8 本まで・表 2〈消す〉のうち今もあって読み手が SimCore と Tests だけの物）
+   消す：RevoltMilitiaRaise（Politics.cs:541〜551 の札を立てる枝・p09:46）・MilitiaCombatValue（Diplomacy.cs:785〜788・:2318・p09:47）。
+   残す：Pop.MilitiaShare の欄とその読み手（EconomyStep:944・Politics:140・InstrumentsLwk:77・UnitTypeTests:166・:464〜474）＝書き手が無くなる＝00一覧の B7 へ（欄を消すと UnitTypeTests の型の表と SaveGame の savetest に触れる＝別の線）。
+   読み手：SimCore 3 ファイル・Tests（RevoltIgnitionTests の段5 の 7 本・DormantIdentityTests の名簿）・App／Display／Runner 0。
+   外した物（理由）：GuildLawGate・GuildRentPremium（Display/LawCatalog・App が読む）・UrbanFlowReal・B-1・ImportPayerLive・SubsistenceNoBoughtTech・ForcedPeaceBlankOverCollapse・EmptyPopDebtFirst（閉じた線＝組み直し待ちの列の材料）・
+        TradeCheapSellSubsidy（H21 の答え待ち）・PopDebtDriven（下位 4 本と ZeroDefaultLedger と案 B の下書きに触れる）・ProjectionUsesLand・RevoltVoiceFloor・CessionUnified（支配の力が畳む）・EduProducersCoexist・SilverRushEnabled・TechProductivityBracketOff 他（点火の予定が 00一覧か設計 doc にある）。
+        NiterBedEnabled・ConsumeBudgetSavingsRatePerMonth・GuildMobilityDrag・TeacherQualityWeight・EduReachFromAdmin・DiscoveryClockMotorParent は表 2 の日付の後にすでに消えている。
+        8 本まで＝2 本で止める（残りは点火の予定が有るか読み手が App／Display にある）。11-11 に廃止した天井の名の残り 19 は触らない（B7）。
+
+ [2b] 浮動小数の順序が変わる箇所
+   ・`1 + c.TransportMargin * adValoremRev`（adValoremRev＝1.0）→ `1 + c.TransportMargin`：×1.0 は丸めに触れない。
+   ・`tMargin*(1.0+km/D) * adValoremRev` → 掛け算の連鎖の末尾の ×1.0 を落とす（残りの項の順序は同じ）。
+   ・`(soldiersNow + MilitiaCombatValue*militiaMen)/SoldiersPerMilitary` の値 0・militiaMen＝0 → `soldiersNow/SoldiersPerMilitary`：x+0.0＝x。soldiersNow は兵士 POP の和で ≥+0。
+   ・`pp.Size*(1.0+0.0*MilitiaShare)` → `pp.Size`：0.0*有限＝0・1.0+0＝1.0・Size*1.0＝Size。
+   紙の台本で旧と新を同じ盤面で数える：scripts/instruments/c140dz/paper.py（x*1.0・x+0.0・1+a*1.0 を乱数 10^6 個で比べ、食い違い 0 を予言）。0 でなければその箇所を外す。
+
+ [2c] 他の線との重なり（grep で確かめた・持ち主の表のとおり）
+   InternationalMarket.cs は :119〜:120 だけ（sp は Procure :96〜:110）。MultiNationSim.cs は AdvanceDiscoveryPrices だけ（hf は :1431）。EconomyStep.cs は :828〜:840 だけ。
+   BilateralMarket.cs は :668〜:673 に加えて同じ変数 adValoremRev の読み手 6 行（:851・:887・:891・:911・:922・:1001・:1015）＝どの線も触らない行（指示の範囲より広い・合流で解く行として列挙）。
+   Diplomacy.cs・Politics.cs・p09_kingship_tax.cs・RevoltIgnitionTests.cs は項 3 の持ち物＝他の線は触らない。DormantIdentityTests.cs の名簿は自分の行だけ（宣言の行）。
+
+ ★(743) の区分：
+   ① 消した物への代入の削除＝FactoryEquipmentTests 5 行・TechLevelRemovalTests:226 の 1 行。
+   ② 同じ double を比べる書き換え＝DiscoveryScoreTests:599（FreightRevolution(...)＝1.0 の期待を 1.0 の定数へ・比べる double は同じ）。
+   ③④ 該当なし。番人（機構の向き・大きさ・判定）の Assert は書き換えない。
+   消す試験（器ごと）：RevoltIgnitionTests の段5 の 7 本（段5_係数0では民兵の札が1枚も立たない・不満度の高いブロックほど民兵率が高い・反動の蜂起では有産の側に民兵が立つ・戦争の終わりで民兵率が0へ戻る・民兵は札であって人も金も動かさない・死は増えず配分だけが民兵へ寄る・民兵は兵数かける係数だけ戦力になる）と補助関数 段5_蜂起させる。
+   残す段5：民兵になった分だけ労働が畑と工場から抜ける（MilitiaShare を試験の中で置く＝EconomyStep の読み手を守る）・首都の守備兵の寝返り・武器庫。
+
+[3] 試験
+   足す試験 0（削除と恒等の線）。守る物＝DormantIdentityTests の RetiredFields に 3 名を足す（RevoltMilitiaRaise・MilitiaCombatValue・DevelopmentMemory＝再び入れたら赤・期待値の出所は今回の名簿であって Coefficients ではない）。
+   突然変異（使い捨ての木で 1 本ずつ・赤を確かめる）：
+     M1 p04 に `public double DevelopmentMemory = 0;` を戻す → RetiredFields の番人が赤。
+     M2 p09 に `public double RevoltMilitiaRaise = 0.0;` を戻す → 同上が赤。
+     M3 InternationalMarket に FreightRevolution を戻して値 0.9 を返し BilateralMarket へ配線 → 素の 5 種が不一致（ident）。腕の前の紙の確かめは M3 を 1 種の selfplay 1 四半期で。
+   ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests に、足して OpeningBakeTests・TechLevelRemovalTests・DiscoveryScoreTests・FactoryEquipmentTests・RevoltIgnitionTests・SecessionLaborLawInstrumentTests・InstrumentHookClosureTests。
+   書き換える件数の予言（㉑）：工業化度の読み手の許可表 0 行・`new MoneyStock(` の件数 0・route_anchors.tsv 0 行・WriterRatchetTests の宣言の表 0 行（消した物は書き手の表に載らない・走査で確かめる）。
+   試験の数の予言：Category!=FullLength 3177 → 3170（RevoltIgnitionTests −7）。FullLength 3。--tests-delta -7。
+
+[4] ident 段 2：--tests-delta -7・宣言なし（計器の列は残した＝列の減りの宣言は要らない）。.cost の推定と件数の行は m1334 と同じ（死んだ分岐は件数に入らない）。
+    減る秒の予言：frontierTech の周回＝1 清算あたり国数 61 回の比較（月 1 回）＝0.01 秒未満・他の項は通らない枝＝0 秒。合計 −0.01 秒未満（雑音の内・門にしない）。
+
+[5]〈判定: 恒等〉（測った種で一致）なら採る。一致しなければその項を外して報告に回す。〈証明〉とは書かない。
+
+[追記 2026-11-24・腕の前・㉘ の最初の回し（結果の後ではなく旗なしの器の確かめ）で読み落しが見つかった]
+ [3] ㉑ の予言「許可表 0 行」は誤り。ソースを走査する件数の許可表の行が減る（減るだけ・増える行 0）：
+   IndustrializationReaderTests の EconomyStep.cs 8→7（DevelopmentPeak の枝の 1 行）・
+   TechLevelRemovalTests の MultiNationSim.cs 8→7（frontier の周回）・BilateralMarket.cs 1→行を消す・InstrumentsScalars.cs 1→行を消す（freightRevolution の列の値が定数になった）。
+   区分＝走査の番人の許可表の行を消すこと（〈番人を写しただけ〉の例外）。機構の向き・大きさ・判定の Assert は書き換えない。

@@ -1,0 +1,14 @@
+(1338) c140dz 記録（2026-11-24・木 82d8b2d79）
+判定: 恒等（測った種で一致）ident c140dz 段 2：素の 5 種 179 行・計器つき 10 種 182 行が m1334 と名乗り行を除いて全行バイト一致・計器の表 1725 本はバイト一致 1665＋既知の揺れ 60・宣言された増減 0・.cost 件数 45 本・推定 232.6／228.5 秒＝m1334 と同じ・savetest OK・leakhunt 保存則違反なし。
+試験：Category!=FullLength 3170（Tests 2938〔スキップ 2〕＋Ui 232）全て緑・FullLength 3 緑。--tests-delta -7（RevoltIgnitionTests の段5 の 7 本）。
+㉘：最初の回しで 2 件赤＝走査の件数の許可表（IndustrializationReaderTests EconomyStep 8→7・TechLevelRemovalTests MultiNationSim 8→7・Bilateral・InstrumentsScalars の行を消す）＝事前登録に追記して直した（減るだけ）。再回しは緑。
+突然変異：M1（DevelopmentMemory を戻す）・M2（RevoltMilitiaRaise を戻す）→ DormantIdentityTests の 3 本が赤（既定ゼロの係数は休眠表か台帳に載る・係数は全て読まれる・削除した係数は戻っていない）。M3 は ident の全行一致が代わり（旗を持たない定数の削除のため単独の突然変異は作らない）。
+紙の台本：scripts/instruments/c140dz/paper.py＝旧と新で食い違い 0／各 10^6。
+計器の列：消した列 0・宣言 0（scalars_s の freightRevolution は列を残し値を定数 1 の書式 F(1.0) に）。
+減った秒：.cost の推定は 232.6／228.5 のまま（予言 −0.01 秒未満・雑音の内で観測できず）。
+消した物：FreightRevolution・frontierTech の周回・adValoremRev の ×1.0（BilateralMarket 7 か所）・DevelopmentMemory・Region.DevelopmentPeak・RevoltMilitiaRaise・MilitiaCombatValue。
+残した物と理由：TransportRevolutionMax／Onset／Span（Runner と App が読む）・Pop.MilitiaShare とその読み手（EconomyStep:944・Politics:140・InstrumentsLwk:77・UnitTypeTests）＝書き手が無い欄＝00一覧の B7 へ・IndustrializationOff・opening_bake.json の欄 4（0.0 の穴）。
+範囲の外へ出た行：BilateralMarket.cs の adValoremRev の読み手 6 行（:851・:887・:891・:911・:922・:1001・:1015）＝合流で解く行。
+増えた行 0・減った行：エンジン約 60・試験約 170。新しい係数・旗・状態 0。
+生：D:/PoB_work/ident_c140dz（合流の判断まで残す）・trx D:/PoB_work/c140dz_work/trx。
+腕の枠で待った時間 0（arms.sh free 5〜6）。覗いた回数 ident 3・前面の待ち 約 45 回（waitmark 240 秒）・hook に止められた回数 0。
