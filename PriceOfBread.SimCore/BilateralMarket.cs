@@ -913,7 +913,7 @@ public sealed partial class InternationalMarket
                 int rowBase = t * tc; bool hostileRow = natAnyHostile[ni];
                 double tMargin = c.TransportMargin, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
                 double unmetQ = 0, skipQ = 0;   // (1277) skipQ＝この行で容量で飛ばした売り手へ足した量の和（旗 CapSkipSellerPotential 0 では 0 のまま）
-                bool insOnC = Instruments.On, capSkipOn = !thin && c.CapSkipSellerPotential > 0, capSkipIns = insOnC && !thin;   // (1277) c131pf：潜在量を書くのは四半期の最初の清算だけ（StepBilateral 冒頭の thin＝firstClearingOfQuarter でない回は書かない）
+                bool insOnC = Instruments.On, capSkipOn = !thin && c.CapSkipSellerPotential > 0, capSkipIns = insOnC && !thin;   // (1277) c131pf：潜在量を書くのは四半期の最初の清算だけ（StepBilateral の中の thin＝!firstClearingOfQuarter〔清算の準備の後で定義〕・firstClearingOfQuarter でない回は書かない）
                 double baseMul = 1 + c.TransportMargin;
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);
                 double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;

@@ -23,6 +23,7 @@ internal static class Tg
     internal static bool Equipment = true;
     internal static bool Fb = true;
     internal static bool Fd = true;
+    internal static bool Femp = true;
     internal static bool Habitlg = true;
     internal static bool House = true;
     internal static bool Idn = true;
@@ -78,6 +79,7 @@ internal static class Tg
         Equipment = Instruments.Wants("eq_s") || Instruments.Wants("eqr_s");
         Fb = Instruments.Wants("fb_s");
         Fd = Instruments.Wants("fd_s");
+        Femp = Instruments.Wants("femp_s");
         Habitlg = Instruments.Wants("habitlg_s");
         House = Instruments.Wants("house_s");
         Idn = Instruments.Wants("idn_s");
