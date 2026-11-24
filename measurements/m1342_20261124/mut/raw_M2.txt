@@ -1,0 +1,75 @@
+D:\PoB_work\c141k59_work\mut\M2\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.93]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.48]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.53]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:04.12]     PriceOfBread.Tests.FemalePartLawFreeTests.T3_困窮の項は旗に依らず賃金保持を読む [FAIL]
+[xUnit.net 00:00:04.12]       Assert.Equal() Failure: Values are not within 12 decimal places
+[xUnit.net 00:00:04.12]       Expected: 0.62 (rounded from 0.62)
+[xUnit.net 00:00:04.12]       Actual:   0.94999999999999996 (rounded from 0.94999999999999996)
+[xUnit.net 00:00:04.12]       Stack Trace:
+[xUnit.net 00:00:04.12]         D:\PoB_work\c141k59_work\mut\M2\PriceOfBread.Tests\FemalePartLawFreeTests.cs(71,0): at PriceOfBread.Tests.FemalePartLawFreeTests.T3_困窮の項は旗に依らず賃金保持を読む()
+[xUnit.net 00:00:04.12]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.12]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:04.15]     PriceOfBread.Tests.FemalePartLawFreeTests.T1_賃金保持1の州で構造の参加率は基礎の値だけ [FAIL]
+[xUnit.net 00:00:04.15]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:04.15]       Expected: 0.37
+[xUnit.net 00:00:04.15]       Actual:   0.69999999999999996
+[xUnit.net 00:00:04.15]       Stack Trace:
+[xUnit.net 00:00:04.15]         D:\PoB_work\c141k59_work\mut\M2\PriceOfBread.Tests\FemalePartLawFreeTests.cs(37,0): at PriceOfBread.Tests.FemalePartLawFreeTests.T1_賃金保持1の州で構造の参加率は基礎の値だけ()
+[xUnit.net 00:00:04.15]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.15]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.15]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:04.17]     PriceOfBread.Tests.FemalePartLawFreeTests.T2_賃金保持0では旗に依らず同じ [FAIL]
+[xUnit.net 00:00:04.18]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:04.18]       Expected: 0.37
+[xUnit.net 00:00:04.18]       Actual:   0.69999999999999996
+[xUnit.net 00:00:04.18]       Stack Trace:
+[xUnit.net 00:00:04.18]         D:\PoB_work\c141k59_work\mut\M2\PriceOfBread.Tests\FemalePartLawFreeTests.cs(54,0): at PriceOfBread.Tests.FemalePartLawFreeTests.T2_賃金保持0では旗に依らず同じ()
+[xUnit.net 00:00:04.18]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.18]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.18]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.GenderTests.女性の権利の段は旧3法の効果へ単調に写る [2 s]
+  成功 PriceOfBread.Tests.GenderTests.徴兵は男性のみで出身階級の女性比率が上がる [14 ms]
+  失敗 PriceOfBread.Tests.FemalePartLawFreeTests.T3_困窮の項は旗に依らず賃金保持を読む [2 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.62 (rounded from 0.62)
+Actual:   0.94999999999999996 (rounded from 0.94999999999999996)
+  スタック トレース:
+     at PriceOfBread.Tests.FemalePartLawFreeTests.T3_困窮の項は旗に依らず賃金保持を読む() in D:\PoB_work\c141k59_work\mut\M2\PriceOfBread.Tests\FemalePartLawFreeTests.cs:line 71
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.FemalePartLawFreeTests.T1_賃金保持1の州で構造の参加率は基礎の値だけ [31 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0.37
+Actual:   0.69999999999999996
+  スタック トレース:
+     at PriceOfBread.Tests.FemalePartLawFreeTests.T1_賃金保持1の州で構造の参加率は基礎の値だけ() in D:\PoB_work\c141k59_work\mut\M2\PriceOfBread.Tests\FemalePartLawFreeTests.cs:line 37
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.FemalePartLawFreeTests.T2_賃金保持0では旗に依らず同じ [26 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0.37
+Actual:   0.69999999999999996
+  スタック トレース:
+     at PriceOfBread.Tests.FemalePartLawFreeTests.T2_賃金保持0では旗に依らず同じ() in D:\PoB_work\c141k59_work\mut\M2\PriceOfBread.Tests\FemalePartLawFreeTests.cs:line 54
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.GenderTests.女性参政権は前提法なしに成立しない [2 s]
+  成功 PriceOfBread.Tests.GenderTests.女性の権利は段を飛ばせない [3 ms]
+  成功 PriceOfBread.Tests.GenderTests.女性の権利は梯子を降りない [2 ms]
+[xUnit.net 00:00:07.50]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.GenderTests.女性財産権法は労働供給を増やす [1 s]
+  成功 PriceOfBread.Tests.GenderTests.男女普通選挙は女性の権利が剥がれても黙って降格しない [5 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 10
+     成功: 7
+     失敗: 3
+合計時間: 9.9023 秒

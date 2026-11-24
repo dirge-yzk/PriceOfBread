@@ -1,0 +1,4 @@
+# M2（057b497bf）
+  失敗 PriceOfBread.Tests.FemalePartLawFreeTests.T3_困窮の項は旗に依らず賃金保持を読む [2 s]
+  失敗 PriceOfBread.Tests.FemalePartLawFreeTests.T1_賃金保持1の州で構造の参加率は基礎の値だけ [31 ms]
+  失敗 PriceOfBread.Tests.FemalePartLawFreeTests.T2_賃金保持0では旗に依らず同じ [26 ms]
