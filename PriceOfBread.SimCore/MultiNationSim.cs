@@ -150,7 +150,7 @@ public sealed class MultiNationSim
                 //   数えると保存検査（Validation「植民地の保存」＝残り＋独立＋昇格＝初期）が二重計上で落ちる
                 //   （実測 37+0+42=79 vs 初期43）。初期の総数はこの直後に Colonies から取り直される。
                 var reg = Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
-                // 途中の接収（Diplomacy.AcquireColony の全ての呼び手＝Subjugate・講和の奪取・MultiNationSim の無血併合）は 0 のまま＝実際に取った年から。〔履歴 MultiNationSim.cs#21〕
+                // 途中の接収（Diplomacy.AcquireColony の全ての呼び手＝Subjugate〔無血併合を含む〕・講和の奪取・内戦の決着〔MultiNationSim の反乱国の植民地の移し〕）は 0 のまま＝実際に取った年から。〔履歴 MultiNationSim.cs#21〕
                 if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;
             }
         }
