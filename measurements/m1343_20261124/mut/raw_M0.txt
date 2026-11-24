@@ -1,0 +1,47 @@
+D:\PoB_work\c141wd_work\mut\M0\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:01.34]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.80]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.84]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:06.17]     PriceOfBread.Tests.WarmupDecisionSymmetryTests.T3_助走の後のAIとプレイヤーの開幕の値が同じ規則で置かれる [FAIL]
+[xUnit.net 00:00:06.18]       旗 1：AI で置いたフランスとプレイヤーで置いたフランスの開幕の決定の欄が違う：ArmyUpkeepTarget・Censorship・ConscriptionLaw・CornLaws・EducationLaw・InterestRateTarget・LaborUnion・NavyUpkeepTarget・PollTaxTarget・SocialSecurityTarget・TariffTarget・WorkHours・ModernizationFrac
+[xUnit.net 00:00:06.18]       Stack Trace:
+[xUnit.net 00:00:06.18]         D:\PoB_work\c141wd_work\mut\M0\PriceOfBread.Tests\WarmupDecisionSymmetryTests.cs(114,0): at PriceOfBread.Tests.WarmupDecisionSymmetryTests.T3_助走の後のAIとプレイヤーの開幕の値が同じ規則で置かれる()
+[xUnit.net 00:00:06.18]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:06.18]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.WarmupDecisionSymmetryTests.T3_助走の後のAIとプレイヤーの開幕の値が同じ規則で置かれる [3 s]
+  エラー メッセージ:
+   旗 1：AI で置いたフランスとプレイヤーで置いたフランスの開幕の決定の欄が違う：ArmyUpkeepTarget・Censorship・ConscriptionLaw・CornLaws・EducationLaw・InterestRateTarget・LaborUnion・NavyUpkeepTarget・PollTaxTarget・SocialSecurityTarget・TariffTarget・WorkHours・ModernizationFrac
+  スタック トレース:
+     at PriceOfBread.Tests.WarmupDecisionSymmetryTests.T3_助走の後のAIとプレイヤーの開幕の値が同じ規則で置かれる() in D:\PoB_work\c141wd_work\mut\M0\PriceOfBread.Tests\WarmupDecisionSymmetryTests.cs:line 114
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.WarmupDecisionSymmetryTests.T2_助走の後の最初の四半期は旗に依らず決める(flag: 1) [928 ms]
+  成功 PriceOfBread.Tests.WarmupDecisionSymmetryTests.T2_助走の後の最初の四半期は旗に依らず決める(flag: 0) [482 ms]
+[xUnit.net 00:00:07.76]     PriceOfBread.Tests.WarmupDecisionSymmetryTests.T1_助走の間は全ての国で決定の欄が開幕の値のまま [FAIL]
+[xUnit.net 00:00:07.76]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:07.76]       Expected: 0
+[xUnit.net 00:00:07.76]       Actual:   2
+[xUnit.net 00:00:07.76]       Stack Trace:
+[xUnit.net 00:00:07.76]         D:\PoB_work\c141wd_work\mut\M0\PriceOfBread.Tests\WarmupDecisionSymmetryTests.cs(66,0): at PriceOfBread.Tests.WarmupDecisionSymmetryTests.T1_助走の間は全ての国で決定の欄が開幕の値のまま()
+[xUnit.net 00:00:07.76]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:07.76]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:07.76]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:07.77]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.WarmupDecisionSymmetryTests.T1_助走の間は全ての国で決定の欄が開幕の値のまま [185 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   2
+  スタック トレース:
+     at PriceOfBread.Tests.WarmupDecisionSymmetryTests.T1_助走の間は全ての国で決定の欄が開幕の値のまま() in D:\PoB_work\c141wd_work\mut\M0\PriceOfBread.Tests\WarmupDecisionSymmetryTests.cs:line 66
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+テストの実行に失敗しました。
+テストの合計数: 4
+     成功: 2
+     失敗: 2
+合計時間: 9.9746 秒

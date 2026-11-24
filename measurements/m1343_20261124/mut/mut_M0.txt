@@ -1,0 +1,3 @@
+# M0（17eaaa38f）
+  失敗 PriceOfBread.Tests.WarmupDecisionSymmetryTests.T3_助走の後のAIとプレイヤーの開幕の値が同じ規則で置かれる [3 s]
+  失敗 PriceOfBread.Tests.WarmupDecisionSymmetryTests.T1_助走の間は全ての国で決定の欄が開幕の値のまま [185 ms]
