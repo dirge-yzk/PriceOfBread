@@ -1,0 +1,11 @@
+PriceOfBread.Tests/GenderTests.cs:34:        Assert.True(reformed.World.WomenPropertyLaw, "イギリスで女性財産権の段に到達しない");
+PriceOfBread.Tests/GenderTests.cs:38:        Assert.InRange(reformed.World.Region.FemaleParticipation, 0.5, 0.7 + 1e-9);   // ★(408) 追従は法の浸透×官僚の役務の充足で進む（(408) 
+PriceOfBread.Tests/GenderTests.cs:39:        Assert.Equal(0.4, baseline.World.Region.FemaleParticipation, 2);
+PriceOfBread.Tests/GenderTests.cs:125:            Assert.Equal(prop, w.WomenPropertyLaw);
+PriceOfBread.Tests/GenderTests.cs:360:        double motherLit = c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * w.WomenWageRetention;
+PriceOfBread.Tests/LaborWeightTests.cs:13:        if (femaleNeed >= 0) c.FemaleNeedWeight = femaleNeed;
+PriceOfBread.Tests/LaborWeightTests.cs:154:        double part = rbb.FemaleParticipation;
+PriceOfBread.Tests/MobilityTests.cs:243:        w.WomenWageRetention = 0.0;
+PriceOfBread.Tests/RuleSharesFormTests.cs:325:            w.WomenWageRetention = 0.0;
+PriceOfBread.Tests/RuleSharesFormTests.cs:328:            Assert.Equal(want, w.WomenWageRetention, 9);
+PriceOfBread.Tests/StartWarmupTests.cs:264:            D("治安維持力", w.BaseCoercion); D("福祉水準", w.SocialSecurity); D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageR
