@@ -1,0 +1,2 @@
+# M1（b65e7c32e）
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T1_選挙権の後退は旗1で1段下がり旗0で動かない(flag: 1) [5 s]

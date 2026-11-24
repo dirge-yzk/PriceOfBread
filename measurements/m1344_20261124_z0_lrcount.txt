@@ -1,0 +1,23 @@
+seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+1	16	126	0	0	0	0	11	0	13	0	0	0	0	3	0
+2	17	138	0	0	0	0	34	0	14	0	0	0	0	3	0
+3	22	149	0	0	0	0	16	0	17	0	0	0	0	5	0
+4	19	132	0	0	0	0	32	0	14	0	0	0	0	5	0
+5	20	164	0	0	0	0	21	0	15	0	0	0	0	5	0
+6	15	121	0	0	0	0	27	0	11	0	0	0	0	4	0
+7	17	140	0	0	0	0	14	0	14	0	0	0	0	3	0
+8	16	140	0	0	0	0	10	0	14	0	0	0	0	2	0
+9	15	140	0	0	0	0	18	0	10	0	0	0	0	5	0
+10	17	158	0	0	0	0	19	0	14	0	0	0	0	3	0
+median_sixTotal	17.0
+seed	oldRuleBlockedAll	oldRuleBlockedSix	childLegalBelowLawPeaceQ	childLegalRisePeaceQ
+1	128	14	0	0
+2	143	15	0	0
+3	150	17	0	0
+4	135	14	0	0
+5	165	15	0	0
+6	126	11	0	0
+7	143	15	0	0
+8	142	14	0	0
+9	144	11	0	0
+10	159	14	0	0

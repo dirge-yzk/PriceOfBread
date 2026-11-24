@@ -1,0 +1,2 @@
+# M2（b65e7c32e）
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T2_農奴解放と土地改革は旗に依らず戻らない(flag: 1) [3 ms]
