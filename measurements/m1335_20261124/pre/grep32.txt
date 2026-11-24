@@ -1,0 +1,27 @@
+PriceOfBread.Tests/ConservationTests.cs:449:            oMax = System.Math.Max(oMax, Territory.Opportunity(r, c));
+PriceOfBread.Tests/ConservationTests.cs:457:            double o = Territory.Opportunity(r, c);
+PriceOfBread.Tests/ConservationTests.cs:461:            before[r] = (Mass(r), c.ImmigrationReceiveCapPerQuarter.Value * r.SumPopulation() * Territory.AbsorbCap(r, c));   // 開放＝法の率1
+PriceOfBread.Tests/ConservationTests.cs:480:    /// 「残る人の持ち分」（Territory.Holding）で止まる。(1) 旧の床（50千人）より小さい POP の州からも差があれば出る。
+PriceOfBread.Tests/ConservationTests.cs:495:                double v = Territory.Opportunity(r, c) * Territory.Holding(r, c) * r.FoodFill;
+PriceOfBread.Tests/ConservationTests.cs:504:            double v2 = Territory.Opportunity(src, c) * Territory.Holding(src, c) * src.FoodFill;
+PriceOfBread.Tests/ConservationTests.cs:507:                best = System.Math.Max(best, Territory.Opportunity(r, c));
+PriceOfBread.Tests/DormantIdentityTests.cs:368:        // ★(551) 恒等の線 gc1（ゴミ変数の 1 回目）：本番の盤面で動かない locked 州の解錠の道（Territory.Step の §1）の係数 5 本と�
+PriceOfBread.Tests/MilitaryTests.cs:1887:    /// <summary>★(161)（(157) の反証役の指摘 va#8）：移民の引力（<see cref="Territory.Opportunity"/>＝州の雇用の項 1−失業者÷人口）は**兵士の
+PriceOfBread.Tests/MilitaryTests.cs:1897:        double o0 = Territory.Opportunity(r, c);
+PriceOfBread.Tests/MilitaryTests.cs:1899:        double o1 = Territory.Opportunity(r, c);
+PriceOfBread.Tests/MilitaryTests.cs:1904:        Assert.True(Territory.Opportunity(r, c) < o0, "民間の失業が移民の引力を下げない");
+PriceOfBread.Tests/RecruitVacancyTests.cs:40:        foreach (var r in dst.Regions) { double o = Territory.Opportunity(r, c); if (double.IsFinite(o) && (hi is null || o > ho)) { hi = r; ho = o; } }
+PriceOfBread.Tests/RecruitVacancyTests.cs:44:            if (!ReferenceEquals(r, hi) && r.PopOf(PopClass.Engineer) is not null && double.IsFinite(Territory.Opportunity(r, c))) picks.Add(r);
+PriceOfBread.Tests/TerritoryTests.cs:50:    /// ＝流出は残る人の土地の持ち分（<see cref="Territory.Holding"/>）で止まる（収穫逓減の出る側）。
+PriceOfBread.Tests/TerritoryTests.cs:68:            Territory.Step(w, c);
+PriceOfBread.Tests/TerritoryTests.cs:73:        Assert.True(Territory.Opportunity(fr, c) - Territory.Opportunity(core, c) - c.TransportFriction > 0, "前提が崩れた：機会の差が閉じた（入る側が混んだ�
+PriceOfBread.Tests/TerritoryTests.cs:80:    /// ImmigrationReceiveCapPerQuarter÷3×その州の人口×<see cref="Territory.AbsorbCap"/> を超えない（旧＝全ての州が同じ月に流し込み、
+PriceOfBread.Tests/TerritoryTests.cs:91:        double cap = c.ImmigrationReceiveCapPerQuarter.Value / Calendar.MonthsPerQuarter * frPop * Territory.AbsorbCap(fr, c);
+PriceOfBread.Tests/TerritoryTests.cs:93:        Territory.Step(w, c);
+PriceOfBread.Tests/TerritoryTests.cs:115:            double o = Territory.Opportunity(r, c);
+PriceOfBread.Tests/TerritoryTests.cs:117:            r.ProductivityBonus *= (ReferenceEquals(r, S) ? (O - c.TransportFriction - delta) / Territory.Holding(r, c) : O) / o;   // S の残る値打ち＝O−摩擦−δ・他
+PriceOfBread.Tests/TerritoryTests.cs:119:        Assert.True(Math.Abs(Territory.Opportunity(a, c) - O) < 1e-9 && Math.Abs(Territory.Opportunity(S, c) * Territory.Holding(S, c) - (O - c.TransportFriction - delta)) < 1e-9,
+PriceOfBread.Tests/TerritoryTests.cs:126:        Territory.Step(w, c);
+PriceOfBread.Tests/TerritoryTests.cs:244:        double o0 = Territory.Opportunity(r, c);
+PriceOfBread.Tests/TerritoryTests.cs:246:        Assert.Equal(o0, Territory.Opportunity(r, c), 12);
+PriceOfBread.Tests/TerritoryTests.cs:248:        Assert.True(Territory.Opportunity(r, c) < o0, "平民の民間人の闘争度で機会が下がらない＝押し出しが死んでいる");

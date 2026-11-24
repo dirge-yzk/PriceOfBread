@@ -1,0 +1,31 @@
+## IndustrializationReaderTests の許可表
+25:        ("Model.cs", 4), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
+26:        ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
+## new MoneyStock( SimCore
+64
+## route_anchors
+8:MultiNationSim.cs	double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);	運河の建設の工賃(投資家→労働の持分・PaySales)	
+9:MultiNationSim.cs	double paidCap = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);	港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)	
+10:MultiNationSim.cs	double paidState = InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);	港の建設の工賃・国家ルート(国庫→労働の持分・PaySales)	
+33:MultiNationSim.cs	paid += CapitalMarket.GiveGold(iw, amount * (kv.Value / totalShare), (payer, null), TreasuryCat.OtherOut);	運河の通行料の配当(国庫→拠出国の投資家)	
+56:MultiNationSim.cs	World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac.Value * throughput * risk);	海上保険の保険金(商人→被害の商人)	
+57:MultiNationSim.cs	dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);	招聘の支度金(国庫→到着した人)	
+58:MultiNationSim.cs	double k = World.Transfer((lw, lenders[li]), (null, null, null), oweGold * (heldBy[li] / lendTotal) / lw.FxRate);	外国債務の返済(貸し手のPOP→国境の外)	
+71:Territory.cs	internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c) => Pop.Blend(sp, dp, moveSize);	州の間の移民(POPの運搬)	
+72:MultiNationSim.cs	double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare.Value, money: false);	越境の移民(POPの運搬)	
+## WriterRatchetTests
+208:    [InlineData("Pop.Carry(", "MultiNationSim.cs", 1)]     // 国境をまたぐ人の運搬の1本（MoveAbroad）だけ
+210:    [InlineData(".Rebase(", "Territory.cs", 1)]            // 割譲の通貨の付け替え（換算の台帳と対）
+## OnDoubleReadScanTests
+34:        ["MultiNationSim.cs::StepDiscoveries#0"] = 5,
+35:        ["MultiNationSim.cs::StepDay#0"] = 3,
+36:        ["MultiNationSim.cs::StepPorts#0"] = 3,
+47:        ["Territory.cs::static#0"] = 4,
+## TechLevelRemovalTests
+8:/// <summary>★(613) 線 tl：技術水準（<c>w.TechLevel</c>・<c>WorldTechLevel</c>）の削除の番人＝機構と不変条件。事前登録 measurements/tl613_20261028_prereg.txt の §6 T0
+13:    // SimCore と Runner の非コメント行（// 以降を除く）で、World の技術水準（TechLevel・WorldTechLevel）を読む・書く行の数のファイル別の許可表。
+24:        ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
+25:        ("PriceOfBread.SimCore", "World.cs", 3),   // (1160) c114sr D-r2：4→3（World.cs:1956 の EraFactor(WorldTechLevel, EraTensionRange) の行を消した）
+128:        double Budget(double world, double own) { w.WorldTechLevel = world; w.TechLevel = own; return w.ModernizationBudget(); }
+158:        w.TechLevel = 0.0; w.WorldTechLevel = 0.0;
+160:        w.WorldTechLevel = 3.0;
