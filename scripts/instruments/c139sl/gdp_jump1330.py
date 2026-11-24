@@ -3,7 +3,7 @@
 #   記録の列＝採否に使わない・止める線の定義は変えない（新しい止める線を足さない）。新しい区分は次の合流から記録の列として並べる。
 #   区分の順（先に当たった物）：(0) 建国の直後（系列の最初の行から K 四半期以内）＞(i) 政府の人口の比が ≧10 か ≦1/10（populationK）＞
 #     (ii) 直前 WIN 行（跳びの行を含まない）の中に、人口 ≧ZPOP 千人で名目 GDP ≦0 が ZMIN 行以上連続する区間がある（gdp_zero10 の連続の定義を窓に当てる）＞
-#     (iii) 市場の産出が 0 の近く＝州の産出（工場＋採取の参照値）の国の和の比 tot（跳びの四半期÷前の四半期）が ≧NEAR で、名目の比÷tot が [LO,HI]（前の四半期の産出が 0 で今が正なら真）＞どれにも当たらない。
+#     (iii) 市場の産出が 0 の近く＝州の産出（工場＋採取の参照値）の国の和の比 tot（跳びの四半期÷前の四半期）が ≧NEAR で、名目の比÷tot が [LO,HI]（前の四半期の産出が 0 なら偽＝stoplines1002 の ok3 と同じ・(1337) c140nt で直した）＞どれにも当たらない。
 #   窓 WIN・連続 ZMIN・NEAR・LO・HI は 906・1002 の既存の定数（新しい閾値は足さない）。ZPOP は gdp_zero10 の既存の人口の線。
 #   使い方: python -I -X utf8 gdp_jump1330.py [--rows] <名前>=<ins フォルダ> ...
 import csv, glob, math, os, sys
@@ -27,7 +27,7 @@ def zero_run(win):
 def out_cause(a, b, ra):
     sa = sum(a[k] for k in sorted(a)); sb = sum(b[k] for k in sorted(b))
     if not (math.isfinite(sa) and math.isfinite(sb)): return False, float('nan')
-    if sa <= 0: return sb > 0, math.inf if sb > 0 else float('nan')
+    if sa <= 0: return False, (math.inf if sb > 0 else float('nan'))   # (1337) 前の産出が 0 なら偽（stoplines1002 の ok3 と同じ）＝本物の跳びが記録の側へ逃げる口を閉じる。tot は表示のためだけ
     tot = sb / sa
     return (tot >= NEAR and LO <= ra / tot <= HI), tot
 args = [a for a in sys.argv[1:] if not a.startswith('--')]

@@ -31,6 +31,8 @@ case('L', 140, zeros([(0, 5)], 200.0, 1.0), flat(5.0), flat(100.0))             
 case('M', 150, zeros([(2, 3), (5, 6)], 200.0, 1.0), flat(1000.0), flat(100.0))                              # 0 が計 4 行だが連続でない（q2・3 と q5・6）＝(ii) でない
 case('N', 160, jump(1000.0, 200000.0), flat(1000.0), jump(100.0, 1000.0))                                    # 産出 ×10・名目 ×200（名目÷産出 = 20 > 10）＝(iii) でない
 case('O', 170, jump(1000.0, 100000.0), flat(1000.0), jump(100.0, 500000.0))                                  # 産出 ×5000・名目 ×100（名目÷産出 = 0.02 < 0.1）＝(iii) でない
+case('P', 180, jump(1000.0, 1000000000.0), flat(1000.0), lambda q: 500.0 if q == 10 else 0.0)                 # (1337) 前の産出が 0・今が正・名目 ×1e6＝(iii) でない（tot=inf の枝は偽）
+case('Q', 190, zeros([(0, 5)], 200.0, 1.0), flat(1000.0), jump(100.0, 5000.0))                            # (1337) (ii)（0 の区間が窓に 4 行以上）と (iii)（産出 ×50・名目÷産出 4）が両方当たる＝(ii) が先
 for fn, hd, rows in (('nation_s1.tsv', NC, nat), ('region_s1.tsv', RC, reg)):
     with open(os.path.join(OUT, fn), 'wb') as f: f.write(('\n'.join([hd] + rows) + '\n').encode('utf-8'))
 print('fixture', len(nat), len(reg))
