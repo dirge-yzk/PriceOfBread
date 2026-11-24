@@ -1,0 +1,40 @@
+(1351) c142ik 事前登録（恒等の線・cn の注の残り＋k59 の計器＋I5 IsPlayer の番人）　基準 m1341（木 4274145d3）・出発 main b8cdd3795・書いた日 2026-11-25
+（注）作者の承認ではない。作者「全て推奨で」（2026-11-20・11-23）で推奨を採った線。答え待ちではない。この事前登録は項 1〜3 のコミットと同じ手番で書いた＝腕・ident の前。
+
+[1] 恒等の線・予言 0
+  - 挙動を変えない。新しい係数 0・旗 0・シミュの状態 0（計器の Sink の欄だけ）。式の変更 0。
+  - 素の 5 種・計器つき 10 種が m1341 と名乗り行を除いて全行一致。計器の表の差は宣言だけ＝足す表は femp_s（1 本）。
+  - 浮動小数の順序が変わる箇所：無し（既存の式は触らない・計器は読むだけ）。紙の台本で旧と新の食い違いを数える対象も 0 箇所。
+  - 計算量：femp の fold は Instruments.On の時だけ（州×POP の和・四半期ごと）。.cost の推定は m1341 と一致のはず。
+
+[2] 消す物と残す物
+  項 1（★(743) の区分＝コメントだけ・試験の書き換え 0）
+    MultiNationSim.cs:153 の注：AcquireColony の呼び手を事実へ＝Subjugate〔無血併合を含む〕（Diplomacy.cs:2012）・講和の奪取（Diplomacy.cs:2662）・内戦の決着（MultiNationSim.cs:1014）。
+      grep -rn AcquireColony の結果：Diplomacy.cs:2012・2032（定義）・2662、MultiNationSim.cs:1014。無血併合は Subjugate の中の枝＝別の呼び手ではない。
+    BilateralMarket.cs:916 の注：thin は StepBilateral の冒頭でなく清算の準備の後（:719）で定義＝注を事実へ。
+  項 2（新しい計器 femp_s・★(743) 該当なし＝試験を足すだけ）
+    足す：PriceOfBread.SimCore/Instruments/InstrumentsFemp.cs（FempFold）・Tg.Femp（InstrumentsTg.cs）・Sink の欄 Femp/FempHeader・Quarter の呼び 1 行・Dispose 1 行。
+    列：quarter year nation womenRightsCode retention oldStruct newStruct actualStruct distressMax（州の POP の大きさで国へ加重）。
+    旧の構造値＝FemalePartBase＋(FemalePartProperty−FemalePartBase)×retention（Simulation.cs:1816 と同じ式を計器が自分で書く）・新＝FemalePartBase。
+    distressMax＝FemaleNeedWeight×retention（LaborSupply.cs:10 の困窮の項の上限＝Need=1）。Need は州の供給の満足から来る月次の量で fold では持たない（記録）。
+    読み手：Runner／App／Display 0 行・Tests は FempInstrumentTests のみ・scripts／measurements の台本は新しい（k59 の 2 回目が読む）。
+  項 3（I5・新しい番人）
+    足す：PriceOfBread.Tests/IsPlayerBranchCountTests.cs（SimCore の非コメント行で IsPlayer を含む行を、ファイル別の許可表で数える）。
+    grep（コメント込み）19 行・6 ファイル＝Diplomacy 12・InstrumentsUnif 1・MultiNationSim 3・Parliament 1・PlayText 1・Simulation 1。
+    非コメント行は 17 行（Diplomacy 11・MultiNationSim 2・他 1 ずつ）＝許可表はこの 17 行。コメントの 2 行は数えない（線が決めて名乗る）。
+    増えたら赤・減ったら表を直す（IndustrializationReaderTests と同じ型）。
+
+[3] 足す試験と突然変異・走査の番人（㉘）・書き換える件数（㉑）
+  足す試験（新しい 3 本＋Theory 3 行）：FempInstrumentTests 2 本（Theory 3 件＋Fact 1）・IsPlayerBranchCountTests 1 本。試験の数の予言：Tests の数は +5（3179 → 3184。Theory は行ごとに数える）。
+    ※Theory の InlineData 3 行＋Fact 1＋IsPlayer の Fact 1＝5 件。Ui は 232 のまま。
+  突然変異（使い捨ての木・結果は measurements/m1351_20261125_mut_ik.txt）
+    M1 旧の式の FemalePartProperty を FemalePartBase にする → FempInstrumentTests の Theory（retention 0.5・1.0）が赤。
+    M2 人口加重を外して州の単純平均にする → 州の賃金保持が違う盤面（Fact）が赤。
+    M3 SimCore に IsPlayer を使う行を 1 行足す → IsPlayerBranchCountTests が赤。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・InstrumentsPlacementTests・InstrumentHookClosureTests を ident の前に回す。
+  書き換える既存の試験の件数（㉑）：0（走査の番人の許可表の行も 0）。
+
+[4] 素の 5 種・計器つき 10 種は m1341 と全行一致（計器の表の差は femp_s の追加だけ）。TESTS_NONFULL 3179→3184 を ident に宣言。
+[5]〈判定: 恒等〉なら採る（測った種で一致。〈証明〉とは書かない）。一致しなければその変更を外して報告に回す。
+
+重なり（他の線）：MultiNationSim.cs は :153 の注の 1 行だけ（c142ds は :1395〜:1445）・Instruments.cs/InstrumentsTg.cs は自分の行だけ（c142ds の migcap と隣り合わせ＝合流で解く）。
