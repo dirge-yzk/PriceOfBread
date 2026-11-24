@@ -1,2 +1,3 @@
 - D:/PoB_work/ident_c140dz（線 c140dz の ident 段 2 の生・keepsum measurements/m1341_20261124/keepsum_ident_c140dz_left.tsv）2026-11-24 14:46:10
 - D:/PoB_work/ident_c140nt（線 c140nt の ident 段 2 の生・keepsum measurements/m1341_20261124/keepsum_ident_c140nt_left.tsv）2026-11-24 14:46:15
+- D:/PoB_work/ident_m1341z（合流の腕 Z の ident 段 2 の生・刈った後の 130 本・keepsum measurements/m1341_20261124/keepsum_ident_m1341z_left.tsv）2026-11-24 15:38:04
