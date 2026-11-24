@@ -160,7 +160,7 @@ public class DormantIdentityTests
         // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T1・T7）。
         // ★NextCapitalCoreFirst（(1332) c139nc 首都の付け替えの候補を最も高い格の州だけに）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T8・T11）。
         // ★SecessionTreasuryByMoney（(1318) c137ak 分離の国庫の分与を民間の貨幣の比へ）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は SecessionTreasuryShareTests の T1・T2・T8）。
-        "WarmupNoDecisions",            // (1343) c141wd 助走の間は全ての国で決定の段を飛ばす旗（0＝今の形・番人 WarmupDecisionSymmetryTests）
+        // ★WarmupNoDecisions（(1343) c141wd 助走の間は全ての国で決定の段を飛ばす）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は WarmupDecisionSymmetryTests）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★ColonyLabelsFromData（(1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は ColonyLabelsFromDataTests.T1c＝旗を明示）
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
