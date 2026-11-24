@@ -459,6 +459,7 @@ public static class Government
         if (!regressive) return false;
         var c = w.Coef;
         if (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform) return true;
+        if (c.ProtectedLawsReversible > 0) return false;   // (1344) 旗 1＝守られた法の不可逆を外す（L07 は上の行で残す）
         if (c.IrreversibleLaws <= 0) return false;
         if (w.RuptureWindowQuarters > 0) return false;
         if (!ProtectedLaw(w, a)) return false;
@@ -475,7 +476,7 @@ public static class Government
     internal static double ReversalCostMul(World w, PolicyAxis a, bool regressive)
     {
         var c = w.Coef;
-        if (!regressive || !(c.IrreversibleLaws > 0) || c.IrreversibleLaws >= 1.0 || w.RuptureWindowQuarters > 0 || !ProtectedLaw(w, a)) return 1.0;
+        if (c.ProtectedLawsReversible > 0 || !regressive || !(c.IrreversibleLaws > 0) || c.IrreversibleLaws >= 1.0 || w.RuptureWindowQuarters > 0 || !ProtectedLaw(w, a)) return 1.0;
         if (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform) return 1.0;
         return 1.0 / (1.0 - c.IrreversibleLaws);
     }
