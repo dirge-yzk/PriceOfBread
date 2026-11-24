@@ -699,7 +699,7 @@ public sealed class Simulation
     // 州の関税利害（分離独立の駆動）：工業州（鉄・石炭・鉄鋼・機械等を産む）は保護(+1)・農業/一次産品輸出州は自由貿易(−1)。〔履歴 Simulation.cs#52〕
     private const double InitialRentSeedScale = 3.0;
 
-    // 規模は国ごとに書かない（国名分岐なし）＝労働配分が需要比例 （EconomyStep:300 prodW=LastDemand×Scale）なので、大軍の国ほど大きな軍需産業が需要から自然に立つ。〔履歴 Simulation.cs#53〕
+    // 規模は国ごとに書かない（国名分岐なし）＝労働配分が需要比例 （EconomyStep の労働配分 prodW＝LaborWeight×Scale・LaborWeight＝付加価値×売れる量〔前期需要〕）なので、大軍の国ほど大きな軍需産業が需要から自然に立つ。〔履歴 Simulation.cs#53〕
     internal static readonly int[] InitialArmsIndustryGoods = [Catalog.GunpowderId, Catalog.CanvasId, Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.SailingShipId, Catalog.WarshipId];
 
     /// <summary>
@@ -728,7 +728,7 @@ public sealed class Simulation
     {
         var (city, share, resources, culture, religion, _, _, _, _) = p;   // resources〔履歴 Simulation.cs#56〕
         resources = ProvinceResources(city, resources, coef);   // resources〔履歴 Simulation.cs#57〕
-        var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
+        var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor.Value), coef);   // 農奴の市場参加床（既定0.15・FarmLordShare の上限を 1−床 に抑える Math.Min。0 なら効かない）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
         // 列挙する州（中国の茶州等）は下の賦存ブースト×3.5で産み、加工して世界へ売る＝供給の偏在が地理から創発する（287州世界）。
         producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(resources, pr.GoodId) < 0 && SiteRowFor(city, pr.GoodId, coef, sharedWorld) < 0);
@@ -1760,7 +1760,7 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             {
                 navIdx++;
-                // 軍需調達：軍隊（兵士POP）＋治安維持力に比例、交戦中は増（武器需要ブーム）。財源は国庫の一部。
+                // 軍需調達：兵数（natSoldiers）×戦時倍率（warMult）に比例（治安維持力は掛からない）。財源は国庫の一部。
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
                 double warMult = atWar ? 1.0 + World.Coef.WarArmsDemandPerContact * warEngageNat : 1.0;   // warMult〔履歴 Simulation.cs#205〕
