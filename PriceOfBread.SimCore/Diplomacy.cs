@@ -781,11 +781,8 @@ public sealed class Diplomacy
             // 軍隊規模＝兵士POP数（軍事費が徴募）。〔履歴 Diplomacy.cs#103〕
             var (techQuality, cohesion, militarism) = ArmyShape.Quality(nw, c);
             // ⚠民兵は職業を持ったまま武器を取った民間人（Pop.MilitiaShare）＝常備軍（IsSoldier）ではないので SoldierSizeK には入らない。〔履歴 Diplomacy.cs#104〕
-            double militiaMen = 0;
-            if (c.MilitiaCombatValue > 0)
-                foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare.Value > 0) militiaMen += mp.Size * mp.MilitiaShare.Value;
             double soldiersNow = nw.SoldierSizeK();   // soldiersNow〔履歴 Diplomacy.cs#105〕
-            p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
+            p.Military = (soldiersNow / c.SoldiersPerMilitary) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
             p.AirPower = p.Military * nw.Region.MilitaryAirFill;   // 1934拡張E2：空軍力＝陸海戦力×空軍装備充足（飛行機/戦闘機/化学兵器）。財の解禁(1910s)前はFill0＝空軍0＝恒等
             // 国内の全州を足す＝造船した港がどこであれ艦隊は国のもの。〔履歴 Diplomacy.cs#106〕
             double denom = nw.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(nw.Regions[0], c) : double.NaN;
@@ -2315,7 +2312,7 @@ public sealed class Diplomacy
                 {
                     double civPop = 0;
                     var civ = new List<Pop>(); var civW = new List<double>();
-                    foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civ.Add(pp); civW.Add(pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare.Value)); }
+                    foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civ.Add(pp); civW.Add(pp.Size); }
                     if (civPop > 1e-9)
                         civToll = wz.KillPops(civ, civW, civPop * tollRate, violent: true);   // 死の記帳の1本（段4e J）。〔履歴 Diplomacy.cs#245〕
                 }
