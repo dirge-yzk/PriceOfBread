@@ -24,7 +24,8 @@ for s in range(sb, sb + n):
         if q == 0: a0 += v
     q0 += a0; q03 += a3
     prev = {}
-    for h, r in rd(os.path.join(ins, f'monlaw_s{s}.tsv')):
+    pm = os.path.join(ins, f'monlaw_s{s}.tsv')
+    for h, r in (rd(pm) if os.path.exists(pm) else ()):
         u = r[h.index('nationUid')]; pc = r[h.index('polityCode')]
         cur = {a: float(r[h.index(a)]) for a in DOWN + UP}
         if u in prev:
