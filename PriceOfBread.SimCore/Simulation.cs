@@ -1498,7 +1498,8 @@ public sealed class Simulation
         if (!World.WarmupFrozen && _quarterIndex == _shockQuarter && World.Bank is not null)
             World.Bank.Confidence = Math.Max(0, World.Bank.Confidence - _shockMagnitude);
         // 後ろに置くと**AIの判断を上書きしてしまう**（AIはスタンス別の率を使うのに、   ここは一律の近代化率）＝AI挙動を変えない原則に反する。〔履歴 Simulation.cs#165〕
-        if (World.SelfPower is { } self)
+        bool decideNow = !(World.WarmupFrozen && World.Coef.WarmupNoDecisions > 0);   // (1343) c141wd 旗 WarmupNoDecisions 1＝助走の間は全ての国で決定の段（下の 2 つ）を飛ばす
+        if (decideNow && World.SelfPower is { } self)
         {
             double fs = UtilityAgent.FiscalStressOf(World);
             // AI国は直後の DecideQuarter が自分の値で上書きするので無害だったが、     NullAgent のプレイヤー国には上書きが来ない＝**UIで動かしても次の四半期に必ず 0.08 へ戻る**（スライダーが効かない）。〔履歴 Simulation.cs#166〕
@@ -1506,7 +1507,7 @@ public sealed class Simulation
             // AI は DecideQuarter の中で同じ関数を通る＝ここは**同じ関数を同じ引数で**呼ぶだけ   （割り振りの式はどこにも書き写さない）。〔履歴 Simulation.cs#167〕
             else UtilityAgent.SetNavalUpkeepShare(World);
         }
-        if (Instruments.On) Instruments.MonAiBefore(World); _agent.DecideQuarter(World); if (Instruments.On) Instruments.MonAiAfter(World);   // DecideQuarter〔履歴 Simulation.cs#168〕
+        if (decideNow) { if (Instruments.On) Instruments.MonAiBefore(World); _agent.DecideQuarter(World); if (Instruments.On) Instruments.MonAiAfter(World); }   // DecideQuarter〔履歴 Simulation.cs#168〕
         UpdateRegionalPriceLevels();           // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）を四半期ごとに更新。日次の StepDay が r.PriceLevel に適用
         Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。〔履歴 Simulation.cs#169〕
         // 窓の中の 2 段が書くのは国の欄・州の欄・法の欄・闘争度ほか。〔履歴 Simulation.cs#170〕

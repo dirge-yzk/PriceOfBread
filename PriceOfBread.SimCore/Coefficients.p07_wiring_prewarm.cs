@@ -116,6 +116,7 @@ public sealed partial class Coefficients
     // === 開始前の助走（作者裁定2026-08-10「助走をプレイヤーの世界と自己対戦バッチで統一し、延長する」）===
     public int StartWarmupQuarters = 20;        // 助走の長さ（四半期）
     public int StartWarmupTechIterations = 8;  // 技術の助走の反復回数（旧 GameViewModel のハードコード8）
+    public double WarmupNoDecisions = 0.0;      // (1343) c141wd 旗：1＝助走の間（WarmupFrozen）は全ての国で四半期の決定の段（近代化の率・海軍の維持の配分・DecideQuarter）を飛ばす＝AI もプレイヤーも開幕の値のまま開幕を迎える・0＝今の形（AI だけが助走で決める）
 
     public int MonopolyBurdenPushMode = 1;   // MonopolyBurdenPushMode＝AI が専売の段を広げる判定に、払えていて r＝1 のままでも利払いが重い間（借入の門が閉じ国庫を食う間）の動きを足す
 

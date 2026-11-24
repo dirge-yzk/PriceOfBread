@@ -1,0 +1,70 @@
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+// (1343) c141wd 段 0 の使い捨てのプローブ（コミットしない・写しは scripts/instruments/c141wd/probe_wd0.cs.txt）。
+// 全ての国（UtilityAgent・種 1789）を既定の助走 20 四半期で回し、助走の前と後で決定の欄が動いた国の数・欄の数を数える（旗 0 と旗 1）。
+public class ZzProbeWd0
+{
+    static readonly FieldInfo[] PF = typeof(NationPolicy).GetFields(BindingFlags.Public | BindingFlags.Instance)
+        .Where(f => f.FieldType.IsValueType).OrderBy(f => f.Name, StringComparer.Ordinal).ToArray();
+    static string[] Names => PF.Select(f => f.Name).Concat(new[] { "ModernizationFrac", "Mobilized", "StateTargetSum", "TradeBiasNonZero" }).ToArray();
+    static object?[] Snap(World w)
+    {
+        var v = new object?[PF.Length + 4];
+        for (int i = 0; i < PF.Length; i++) v[i] = PF[i].GetValue(w.Policy);
+        v[PF.Length] = BitConverter.DoubleToInt64Bits(w.ModernizationFrac);
+        v[PF.Length + 1] = w.Mobilized;
+        v[PF.Length + 2] = w.Regions.Sum(r => r.Producers.Sum(p => p.StateTarget));
+        v[PF.Length + 3] = Enumerable.Range(0, Catalog.Goods.Length).Count(g => w.TradeBiasOf(g) != 0);
+        return v;
+    }
+
+    [Fact]
+    public void Probe()
+    {
+        var outp = Environment.GetEnvironmentVariable("WD0_OUT");
+        if (string.IsNullOrEmpty(outp)) return;
+        var sb = new StringBuilder();
+        var names = Names;
+        var opening = new object?[2][][];
+        var gdp = new double[2][];
+        for (int fl = 0; fl < 2; fl++)
+        {
+            var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
+            foreach (var n in sim.Nations) n.World.Coef.WarmupNoDecisions = fl;
+            var pre = sim.Nations.Select(n => Snap(n.World)).ToArray();
+            sim.StartWarmup();
+            var post = sim.Nations.Select(n => Snap(n.World)).ToArray();
+            opening[fl] = post;
+            gdp[fl] = sim.Nations.Select(n => n.World.NominalGdpPerMonth.Value).ToArray();
+            var perField = new int[names.Length];
+            int nations = 0;
+            for (int i = 0; i < pre.Length; i++)
+            {
+                bool any = false;
+                for (int k = 0; k < names.Length; k++) if (!Equals(pre[i][k], post[i][k])) { perField[k]++; any = true; }
+                if (any) nations++;
+            }
+            sb.AppendLine($"# flag={fl} nations={pre.Length} 助走の前→後で決定の欄が動いた国={nations}");
+            for (int k = 0; k < names.Length; k++) if (perField[k] > 0) sb.AppendLine($"flag={fl}\tfield={names[k]}\tnationsChanged={perField[k]}");
+        }
+        int diffN = 0; var pf2 = new int[names.Length];
+        for (int i = 0; i < opening[0].Length; i++)
+        {
+            bool any = false;
+            for (int k = 0; k < names.Length; k++) if (!Equals(opening[0][i][k], opening[1][i][k])) { pf2[k]++; any = true; }
+            if (any) diffN++;
+        }
+        sb.AppendLine($"# 開幕の決定の欄：旗 0 と旗 1 で違う国={diffN}");
+        for (int k = 0; k < names.Length; k++) if (pf2[k] > 0) sb.AppendLine($"open01\tfield={names[k]}\tnations={pf2[k]}");
+        var ratio = gdp[0].Zip(gdp[1], (a, b) => a > 0 ? b / a : double.NaN).Where(x => !double.IsNaN(x)).OrderBy(x => x).ToArray();
+        sb.AppendLine($"# 開幕の名目 GDP の旗1÷旗0：最小 {ratio.First():G6}・中央 {ratio[ratio.Length / 2]:G6}・最大 {ratio.Last():G6}・ビット一致の国 {gdp[0].Zip(gdp[1], (a, b) => a == b).Count(x => x)}");
+        System.IO.File.WriteAllText(outp, sb.ToString());
+    }
+}
