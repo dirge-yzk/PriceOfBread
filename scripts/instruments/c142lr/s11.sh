@@ -4,7 +4,7 @@
 C=${1:?コミット}; export POB_WORK=${2:?作業フォルダ}
 cd "$(dirname "$0")/../../.."; R=$(pwd); S=$R/scripts/instruments; D0=$S/c142lr
 export TEMP=$POB_WORK/tmp TMP=$POB_WORK/tmp PYTHONUTF8=1 PYTHONIOENCODING=utf-8; mkdir -p $POB_WORK/tmp
-export POB_INSTRUMENTS_TABLES=$(ls D:/PoB_work/keep_1341/a11 | grep -E '_s11\.tsv$' | sed -E 's/_s11\.tsv$//' | sort -u | paste -sd, -)
+export POB_INSTRUMENTS_TABLES=$(ls D:/PoB_work/keep_1341/a11 | grep -E '_s11\.tsv$' | sed -E 's/11\.tsv$//' | sort -u | paste -sd, -)
 [ -z "$(git status --porcelain)" ] && [ "$(git rev-parse HEAD)" = "$(git rev-parse $C)" ] || { echo "木が汚れているか HEAD がコミットと違う"; exit 1; }
 FREE=$(python -c "import shutil;print(round(shutil.disk_usage('D:/').free/1e9,2))")
 echo "S11 start $(date '+%F %T') tree=$(git rev-parse --short=9 HEAD) Dfree=${FREE}GB armsfree=$(bash $S/tools/arms.sh free) tables=$(echo $POB_INSTRUMENTS_TABLES | tr ',' '\n' | wc -l)" >> D:/PoB_work/c142lr_work/arms_start.txt
