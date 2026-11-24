@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# (1349) c142ds ㉜ の改めの絞った試験（旗 1 の木・腕 B の前）：差分の名（DomesticStayFoodFill・StayValue・Territory.Step・MigrateBetweenNations）を Tests/ で grep して当たったクラス
-#   （HungerFlightTests・DormantIdentityTests・TerritoryTests・ConservationTests）＋㉘ の束（scan_ds.sh の既定の絞り込み）＋FullLength＋savetest・leakhunt。赤は trx で見る。
+# (1349) c142ds ㉜ の改めの絞った試験（旗 1 の木・腕 B の前）：差分の名（DestFoodSymmetric・MoveValue・Migcap・Territory.Step・MigrateBetweenNations）を Tests/ で grep して当たったクラス
+#   （DestFoodSymmetryTests・HungerFlightTests・DormantIdentityTests・TechLevelRemovalTests・TerritoryTests・ConservationTests）＋㉘ の束（scan_ds.sh の既定の絞り込み）＋FullLength＋savetest・leakhunt。赤は trx で見る。
 #   bash narrow_ds.sh <作業フォルダ（D:/…）>
 WK=${1:?作業フォルダ}; mkdir -p $WK/tmp $WK/trx
 export TEMP=$WK/tmp TMP=$WK/tmp

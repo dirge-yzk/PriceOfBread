@@ -1,0 +1,74 @@
+D:\PoB_work\c142ds_work\mut\M4\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.59]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:00.96]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.01]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.HungerFlightTests.T1_飢えた州から隣へ人が出る_旗0では出ない [312 ms]
+  成功 PriceOfBread.Tests.HungerFlightTests.T2_食の充足が1なら旗0と同じ流れ [3 ms]
+  成功 PriceOfBread.Tests.HungerFlightTests.T4_移す前後で総人口が同じ [< 1 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.地域間移民でも人口と基礎貨幣は保存される [589 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.小さな州への流入は受け入れの上限を超えない_超えた分は出る州に残る [< 1 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.州の不穏は平民の民間人の闘争度だけで兵と貴族を含まない [1 s]
+  成功 PriceOfBread.Tests.TerritoryTests.移民だけでは州は空にならない_流出は残る人の土地の持ち分で止まる [5 ms]
+[xUnit.net 00:00:04.25]     PriceOfBread.Tests.DestFoodSymmetryTests.T4_計器は旧と新の計画を同じ盤面で数える [FAIL]
+[xUnit.net 00:00:04.25]       旗 1 の実際の流れの比が計器の新の計画の比と違う
+[xUnit.net 00:00:04.25]       Stack Trace:
+[xUnit.net 00:00:04.25]         D:\PoB_work\c142ds_work\mut\M4\PriceOfBread.Tests\DestFoodSymmetryTests.cs(158,0): at PriceOfBread.Tests.DestFoodSymmetryTests.T4_計器は旧と新の計画を同じ盤面で数える()
+[xUnit.net 00:00:04.25]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.25]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.25]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:04.28]     PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない [FAIL]
+[xUnit.net 00:00:04.28]       前提が崩れた：B で上限が効いていない（0.12696824699946774・14.989950601520377・0.12696824699946774・0.5224379566209336）
+[xUnit.net 00:00:04.28]       Stack Trace:
+[xUnit.net 00:00:04.28]         D:\PoB_work\c142ds_work\mut\M4\PriceOfBread.Tests\DestFoodSymmetryTests.cs(134,0): at PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない()
+[xUnit.net 00:00:04.28]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.28]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.28]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:04.29]     PriceOfBread.Tests.DestFoodSymmetryTests.T1_機会が同じなら食の充足の高い行き先へ多く流れる_旗0では同じ [FAIL]
+[xUnit.net 00:00:04.29]       旗 1：A÷B の流れ 31.00000000002481 が差の比 2.818181818181819 と違う
+[xUnit.net 00:00:04.29]       Stack Trace:
+[xUnit.net 00:00:04.29]         D:\PoB_work\c142ds_work\mut\M4\PriceOfBread.Tests\DestFoodSymmetryTests.cs(68,0): at PriceOfBread.Tests.DestFoodSymmetryTests.T1_機会が同じなら食の充足の高い行き先へ多く流れる_旗0では同じ()
+[xUnit.net 00:00:04.29]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:04.29]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:04.29]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.TerritoryTests.再併合の返還州は親の中で一意のIdを受ける [583 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.辺境へ移民が流入する [178 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.首都を失った国は遷都し距離の基準の座標も新しい首都へ移る [69 ms]
+  成功 PriceOfBread.Tests.DestFoodSymmetryTests.T2_越境_行き先の食が出る州より低いと旗1で差が縮む [3 s]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T4_計器は旧と新の計画を同じ盤面で数える [20 ms]
+  エラー メッセージ:
+   旗 1 の実際の流れの比が計器の新の計画の比と違う
+  スタック トレース:
+     at PriceOfBread.Tests.DestFoodSymmetryTests.T4_計器は旧と新の計画を同じ盤面で数える() in D:\PoB_work\c142ds_work\mut\M4\PriceOfBread.Tests\DestFoodSymmetryTests.cs:line 158
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない [38 ms]
+  エラー メッセージ:
+   前提が崩れた：B で上限が効いていない（0.12696824699946774・14.989950601520377・0.12696824699946774・0.5224379566209336）
+  スタック トレース:
+     at PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない() in D:\PoB_work\c142ds_work\mut\M4\PriceOfBread.Tests\DestFoodSymmetryTests.cs:line 134
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T1_機会が同じなら食の充足の高い行き先へ多く流れる_旗0では同じ [3 ms]
+  エラー メッセージ:
+   旗 1：A÷B の流れ 31.00000000002481 が差の比 2.818181818181819 と違う
+  スタック トレース:
+     at PriceOfBread.Tests.DestFoodSymmetryTests.T1_機会が同じなら食の充足の高い行き先へ多く流れる_旗0では同じ() in D:\PoB_work\c142ds_work\mut\M4\PriceOfBread.Tests\DestFoodSymmetryTests.cs:line 68
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.DestFoodSymmetryTests.T2_国内_行き先の食が出る州より低いと旗1で差が縮む [6 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.国を除いた四半期も交易の接触は正しい国に付く [833 ms]
+[xUnit.net 00:00:04.59]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.TerritoryTests.同一シードで辺境開発は決定論的 [119 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.入口の形_遠い行き先は差が負になり1人も行かない [7 ms]
+  成功 PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない [3 s]
+
+テストの実行に失敗しました。
+テストの合計数: 19
+     成功: 16
+     失敗: 3
+合計時間: 6.2891 秒

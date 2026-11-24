@@ -1,0 +1,6 @@
+# M0（acf9fb219）
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T2_越境_行き先の食が出る州より低いと旗1で差が縮む [3 s]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T4_計器は旧と新の計画を同じ盤面で数える [16 ms]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない [26 ms]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T1_機会が同じなら食の充足の高い行き先へ多く流れる_旗0では同じ [3 ms]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T2_国内_行き先の食が出る州より低いと旗1で差が縮む [6 ms]

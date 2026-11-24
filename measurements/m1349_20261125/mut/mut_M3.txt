@@ -1,0 +1,2 @@
+# M3（acf9fb219）
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない [31 ms]
