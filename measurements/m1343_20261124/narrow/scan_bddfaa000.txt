@@ -10,3 +10,6 @@ scan rc=1 合計 1 個のテスト ファイルが指定されたパターンと
   失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1614) [< 1 ms]
 SCANDONE 2026-11-24 22:09:26
 FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 13 m 23 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 142・その月の額の和 4.105E+04 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+NARROWDONE 2026-11-24 22:36:39

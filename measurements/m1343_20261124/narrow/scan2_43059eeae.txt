@@ -1,0 +1,4 @@
+# (1343) scan HEAD=43059eeae 汚れ=0 2026-11-24 22:31:35
+# filter=FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~WarmupDecisionSymmetryTests
+scan rc=0 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 成功!   -失敗:     0、合格:    69、スキップ:     0、合計:    69、期間: 37 s - PriceOfBread.Tests.dll (net10.0) 
+SCANDONE 2026-11-24 22:32:41
