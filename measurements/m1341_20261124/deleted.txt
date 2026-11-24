@@ -7,3 +7,4 @@
 - D:/PoB_work/c140hf_work/armB/out_c140hfB_10（線 hf の腕 B の生・合流の A_hf〔全表〕の成績表が全行バイト一致＝同じ軌道・keepsum measurements/m1341_20261124/keepsum_c140hfB.tsv）2026-11-24 16:36:04
 - 移した：D:/PoB_work/c140sp_work/B/out_c140spB_10 → D:/PoB_work/keep_1341_rej/c140spB（採らなかった線 sp の腕 B の生）2026-11-24 16:36:04
 - 移した：D:/PoB_work/m1341_work/out_aS_10 → D:/PoB_work/keep_1341_rej/aS_spOnly（アブレーション A_sp の生・門の表 10 種）2026-11-24 16:36:04
+- push（main 37bc75672＝ident.cfg を m1341 へ）の後に消した（INSRAW でも KEEPNULL でもなくなった古い keep・指示の許し）：D:/PoB_work/keep_1334（base_ins・a11・n1・n2＝keepsum は measurements/m1334_20261124/keepsum_insraw1334.tsv・keepsum_a11_1334.tsv・keepsum_n1_1334.tsv・keepsum_n2_1334.tsv）2026-11-24 17:44:49
