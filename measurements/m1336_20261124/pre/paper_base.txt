@@ -1,0 +1,13 @@
+# (1336) paper_sp D:/PoB_work/keep_1334/base_ins seeds 1 .. 10
+H1 s1 first=1790 0.2568 y1913=0.4966 ratio=1.93 緑
+H1 s2 first=1790 0.2421 y1913=0.3129 ratio=1.29 緑
+H1 s3 first=1790 0.2254 y1913=0.4781 ratio=2.12 緑
+H1 s4 first=1790 0.2438 y1913=0.5096 ratio=2.09 緑
+H1 s5 first=1790 0.2588 y1913=0.5873 ratio=2.27 緑
+H1 s6 first=1790 0.238 y1913=0.4995 ratio=2.1 緑
+H1 s7 first=1790 0.2591 y1913=0.6626 ratio=2.56 緑
+H1 s8 first=1790 0.2542 y1913=0.375 ratio=1.48 緑
+H1 s9 first=1790 0.266 y1913=1.207 ratio=4.54 緑
+H1 s10 first=1790 0.2359 y1913=0.3054 ratio=1.29 緑
+H1 赤の種 0/10 比の最小 1.29 最大 4.54
+R1 stproc_s が無い（器より前の生）＝記録の量は腕 Z の生で数える
