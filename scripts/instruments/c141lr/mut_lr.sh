@@ -18,7 +18,8 @@ R = {'M0': (GV, []),
      'M1': (GV, [(FL, b'        if (false) return false;')]),                                                   # BlockedByIrreversibility の旗を読まない（旧のまま）
      'M2': (GV, [(L07, b'')]),                                                                               # L07 を旗の行より後へ＝旗 1 で農奴解放・土地改革も外れる
      'M3': (SM, [(b'if (World.Coef.ProtectedLawsReversible > 0 || !(', b'if (!(')]),                       # 児童労働の門の旗を読まない（旧のまま）
-     'M4': (GV, [(b'if (c.ProtectedLawsReversible > 0 || !regressive', b'if (!regressive')])}             # ReversalCostMul の旗を読まない（旧のまま）
+     'M4': (GV, [(b'if (c.ProtectedLawsReversible > 0 || !regressive', b'if (!regressive')]),             # ReversalCostMul の旗を読まない（旧のまま）
+     'F0': (d + '/Coefficients.p06_rank_discovery.cs', [(b'public double ProtectedLawsReversible = 1;', b'public double ProtectedLawsReversible = 0;')])}   # 旗の既定 0 の木（試験の直しを旗 0 でも確かめる）
 p, subs = R[mu]
 b = open(p, 'rb').read()
 for o, n in subs:
