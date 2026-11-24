@@ -58,7 +58,7 @@ public sealed partial class Coefficients
     public double ConscriptGrievanceRate = 0.05;      // 戦時の強制徴兵（徴兵法≥選抜の国・総動員はその深さを上げる）で徴兵された階級の闘争度加算×徴兵率＝E5徴兵法の一般効果
 
     // --- 軍需調達（国家が軍需財を消費＝死蔵解消。財源は国庫→生産者で保存。戦時増＝武器需要ブーム）---
-    public int[] MilitaryGoods = [Catalog.RifleId, Catalog.AmmunitionId, Catalog.ArtilleryId, Catalog.WarshipId, Catalog.SteamshipId, Catalog.HorseId, Catalog.AutomobileId];   // 裸の127をHorseIdへ＋自動車132を輜重へ（馬と併存＝WWIも馬匹依存だが自動車が食い込む。DemandOnset1.50到達後の晩期のみ実需） // 小銃・弾薬・火砲・軍艦・汽船・馬・自動車
+    public int[] MilitaryGoods = [Catalog.RifleId, Catalog.AmmunitionId, Catalog.ArtilleryId, Catalog.WarshipId, Catalog.SteamshipId, Catalog.HorseId, Catalog.AutomobileId];   // 裸の127をHorseIdへ＋自動車132を輜重へ（馬と併存＝WWIも馬匹依存だが自動車が食い込む。晩期のみ実需（旧の DemandOnset1 は削除済み）） // 小銃・弾薬・火砲・軍艦・汽船・馬・自動車
     public double[] MilitaryRates = [1.0, 0.8, 0.4, 0.15, 0.2, 0.1, 0.02]; // 各軍需財の消費比率
     public double[] MilitaryWearRatesPerMonth = [0.02, 1.0, 0.02, 0.02, 0.02, 1.0, 0.02];   // 必要量＝汽船1003／小銃5013／火砲2005／軍艦501 に対し買えたのは 汽船0.0／小銃32.7／火砲13.9／軍艦6.4＝装備充足0〜1%
     public double MilitaryUpkeepScale = 0.18 / Military.WorkingMenStdShare;                 // 兵士1人あたりの平時軍需消費スケール（0.12→0.18＝戦争が減っても常備軍の調達で火薬/鉛/帆船の連鎖を維持＝死蔵防止）
@@ -85,9 +85,9 @@ public sealed partial class Coefficients
     // --- 1934拡張E2（2026-07-19）：空軍装備＝tier3の更なる残余予算で調達する第4tier。財の解禁(onset1.0=1910s)前は生産ゼロ→Fill0＝空の概念ごと不走行＝厳密恒等 ---
     public int[] MilitaryAirGoods = [Catalog.MilitaryAircraftId, Catalog.ChemicalWeaponId];         // 飛行機（偵察/輸送）・戦闘機・化学兵器
     public double[] MilitaryAirRates = [0.05, 0.02];   // 各空軍財の消費比率（tier3級の少量＝最晩期の高価な装備）
-    public double AirControlPushWeight = 0.3;                // 制空の押し合い補正＝aPush×(1−これ/2＋これ×AirControl)
-    public double AirCasualtyWeight = 0.3;                   // 制空劣勢側の戦死増幅＝cas×(1＋これ×(2×(1−AirControl)−1)クランプ正)
-    public double WarExhaustionAirRaid = 0.03;               // 空襲の厭戦（封鎖と同型）＝これ×(1−AirControl)×敵AirPower実在ゲート
+    public double AirControlPushWeight = 0.3;                // 制空の押し合い補正＝aPush×(1−これ/2＋これ×制空 AirCtl)
+    public double AirCasualtyWeight = 0.3;                   // 制空劣勢側の戦死増幅＝cas×(1＋これ×(2×(1−制空 AirCtl)−1)クランプ正)
+    public double WarExhaustionAirRaid = 0.03;               // 空襲の厭戦（封鎖と同型）＝これ×(1−制空 AirCtl)×敵AirPower実在ゲート
     public double ChemExhaustionWeight = 0.04;               // 化学兵器の泥沼＝相互保有 min(自Fill,敵Fill)×これ を双方の厭戦へ（イーペルの相互報復）
 
     // --- B-1 海軍力・制海権・距離（§B 軍事リアリティ）。海軍は新スライダーを足さず Power.Military（陸海合算）から地理で創発分離 ---
@@ -98,7 +98,7 @@ public sealed partial class Coefficients
     public double SkillCombatMax = 0.5;            // 熟練度1.0での戦力倍率の上乗せ＝最大1.5倍（2026-08-04・作者の問い「最大2倍は史実的に適切か」への判断）
     public Share WartimeUpkeepFloor = new(0.8);        // 戦時の維持費の下限＝現在値のこの割合を下回れない（戦争中に軍を解散できない）
     public double SkillTensionWeight = 0.5;        // 熟練度が生む緊張＝軍隊規模に乗算する形（作者指示）
-    public RatePerMonth NavalAttritionRatePerMonth = new(0.05);      // 月次の摩耗率＝これ×(自分の展開海盆での敵支配度)＝その月に沈む艦の割合（(189) 艦の在庫を財ごとに同じ割合で沈める・旧＝海軍シェアを削り床 NavalShareMin）
+    public RatePerMonth NavalAttritionRatePerMonth = new(0.05);      // 月次の摩耗率＝これ×(自分の展開海盆での敵支配度)＝その月に沈む艦の割合（(189) 艦の在庫を財ごとに同じ割合で沈める・旧＝海軍シェアを削る方式・床は削除済み）
     public double AttentionHostilityFloor = 0.15;  // 平時（緊張0）でも残る敵意＝「無政府状態では武力は武力」
     public double AttentionTensionHalf = 40.0;     // 敵意が半分に達する緊張
     public double AllyAttentionDiscount = 0.7;     // 宗主と属国の間の敵意の割引（3割だけ向ける）＝作者裁定 2026-09-29 の5「属国は仮想敵国ほどではないが、脅威を与える」（ArmyShape.Hostility・脅威の緊張が同じ1本）

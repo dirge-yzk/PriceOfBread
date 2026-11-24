@@ -141,7 +141,7 @@ public static class EconomyStep
     }
 
     /// <summary>
-    /// 主食の自給の収穫係数＝市場向けRGOと同じ三重積（州の収穫係数×緯度帯天候×その主食の作物の健全度×土地係数）。〔履歴 EconomyStep.cs#19〕
+    /// 主食の自給の収穫係数＝州の収穫係数×緯度帯天候×その主食の作物の健全度×土地係数（市場向けRGOの産出が受ける戦争の損害〔WarFarmOutputDamage〕は自給には掛からない・意図かは未確認）。〔履歴 EconomyStep.cs#19〕
     /// </summary>
     private static double StapleHarvestFactor(Region region, int gi, double regionLandFactor)
     {
@@ -174,7 +174,7 @@ public static class EconomyStep
             double f = StapleHarvestFactor(region, id, regionLandFactor);
             self[id] = shortfall ? (double.IsFinite(f) ? Math.Max(0.0, f) : 1.0) : 1.0;   // 追記 2：豊作も凶作も対称（自給の産出 sub＝必要量×自給率×収穫係数 と同じ向き）。非有限は 1（旧）へ倒れる
             subst[id] = CrossSubstitution(Math.Max(region.Markets[id].Price, Eps), g.RefPrice, stapleMeanRatio, coef.CrossElasticity);
-            double e = (g.BaseNeed + Habit.StockOf(region, Habit.Of(coef, id))) * demandGate[id];   // 消費の財のループの effBaseNeed と同じ式（主食に医薬・住居・動物性の補正は無い）
+            double e = (g.BaseNeed + Habit.StockOf(region, Habit.Of(coef, id))) * demandGate[id];   // 消費の財のループの effBaseNeed と同じ式（ただし FoodIncludesAnimalProtein>0 なら消費側の主食だけ動物性の補正が掛かる・既定0で一致。医薬・住居の補正は無い）
             if (fdd is not null)
             {
                 eSum += e; hSum += e * f; hwSum += e * StapleHarvestFactor(region, id, 1.0);
@@ -607,7 +607,7 @@ public static class EconomyStep
         double distM = region.MerchantPopIndex >= 0 && !isService ? coef.MerchantMargin : 0;
         double insure = gi == coef.MedicalGoodId ? Math.Clamp(region.InsuranceCoverage, 0, InsuranceCoverageCap)
                       : gi == Catalog.HigherEducationId ? ScholarshipCover(region, coef) : 0;   // ScholarshipCover〔履歴 EconomyStep.cs#61〕
-        // タスクC（独占レント）：塩(6)の王室専売・茶(74)の東インド会社独占＝買い手価格に上乗せ（専売の上乗せと同型）。近代化(Industrialization)で解体＝自由化の創発代理。徴収は決済（qty確定時）で保有popへ。MonopolyRentPremium=0.15 点火（resentment側 MonopolyResentmentMilitancy=0 は差し戻し休眠）。0で恒等。
+        // タスクC（独占レント）：塩(6)の王室専売・茶(74)の東インド会社独占＝買い手価格に上乗せ（専売の上乗せと同型）。上乗せ率は独禁法の段（AntitrustLaw の CartelBan・Trustbust が MonopolyRentFactor を下げる）で変わる。徴収は決済（qty確定時）で保有popへ。MonopolyRentPremium=0.15 点火。0で恒等。
         double monRent = gi == Catalog.SaltId || gi == Catalog.TeaId ? MonopolyDegree(region, coef, coef.MonopolyRentPremium) : 0;
         double guildRent = guildShare is not null && gi >= 0 && gi < guildShare.Length ? coef.GuildRentPremium * guildDeg * guildShare[gi] : 0;
         return (stateMonop, distM, monRent, guildRent, insure);
@@ -923,7 +923,7 @@ public static class EconomyStep
             // 残るのは闇栽培＝ Simulation が四半期ごとに州の行政充足率から設定した ContrabandProductionFactor（禁止していない州は 1.0＝この行は不発＝厳密恒等）。〔履歴 EconomyStep.cs#124〕
             if (s.GoodId == coef.OpiumGoodId && region.ContrabandProductionFactor < 1.0) boost *= region.ContrabandProductionFactor;
             // 労働財（労働力・農業/高度労働力）の供給＝働ける人口：成人（男性＋女性×参加率）＋児童労働（許可時・半人前）。
-            // 基準（子供3割・女性参加0.4・児童労働許可）で正規化＝既定は等倍。徴兵・戦死で男が減ると締まり（失われた世代）、
+            // 各人口の初回の労働供給 InitialWork を基準に正規化＝各人口の出発点に対する相対変化。徴兵・戦死で男が減ると締まり（失われた世代）、
             // 女性財産権法で緩み（+2割）、**児童労働の禁止は実物の供給ショック**（−2割超）→賃金上昇＝成人労働者は禁止に賛成する政治。
             if (isLabor || s.GoodId == Catalog.AdvLaborId)
             {

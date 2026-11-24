@@ -125,7 +125,7 @@ public sealed partial class Coefficients
     public double TensionPopupThreshold = 70.0;   // 緊張ポップアップを出す内部緊張の閾値（同ランク列強と）＝宣戦閾値の半分（WarDeclareTension=140）
     public RatePerMonth WarExhaustionRatePerMonth = new(0.03);       // 総動員の上限（MobilizationConscriptFrac＝働き盛りの男の22%）まで動員した国の月の基礎
     public double WarExhaustionEcon = 0.10;       // ＋経済悪化（1人あたりの落ち込み GdpPcDrawdown・2026-09-29＝領土を失った総額の落ち込みは数えない）に比例して厭戦が増す（月）
-    public double WarExhaustionBlockade = 0.07;   // ＋通商破壊（海上封鎖）の度合い(1−CommerceRaidFactor)に比例して厭戦が増す（月）
+    public double WarExhaustionBlockade = 0.07;   // ＋通商破壊（海上封鎖）の度合い封鎖のリスク（Nation.LastBlockadeRisk）に比例して厭戦が増す（月）
     public double WarExhaustionCasualty = 0.6;    // ＋戦死（兵士に対する戦死率）に比例して厭戦が増す
     public double WarFeverMilitancy = 0.6;     // 闘争度→戦争熱：大衆の闘争度が戦争熱を押し上げる（外征で内憂をそらす）
     public double WarFeverMilitancyGate = 0.5; // その出口は好戦世論の公共圏に比例して開く加点（将校貴族 trad と合算しClampで上限1）

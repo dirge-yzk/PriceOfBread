@@ -65,7 +65,7 @@ public sealed partial class Coefficients
     public double LandRouteEnabled = 1.0;   // 0=旧・国一律（首都→重心）
     public double[] TerrainHorseCost = [1.0, 0.8, 0.9, 1.5, 3.0, 2.5, 8.0];   // 添字＝Terrain enum の順
     public double[] TerrainRailCost  = [1.0, 1.0, 1.0, 1.5, 1.2, 5.0, 3.0];
-    public double TerrainWaterMajorCost = 0.15;   // 読み手は TerrainCostEnabled>0 のときだけ（水運は陸運の1/5〜1/10＝docのレンジ）
+    public double TerrainWaterMajorCost = 0.15;   // 読み手は TerrainWaterMajorCost>0 のときだけ（BilateralMarket・Discovery）（水運は陸運の1/5〜1/10＝docのレンジ）
     public double TerrainWaterMinorCost = 0.4;
     public double RailCostFraction = 0.25;   // 旧＝帆船の時代と鉄道の時代が同じ12倍だった
     public double LandSeaCostRatio = 12.0;       // 陸の実効距離倍率（§4-2の実測例＝陸単価12。鉄道後の低減は#17で。B3裁定＝新係数はこの1本に集約・地形係数は作らない）
@@ -111,7 +111,7 @@ public sealed partial class Coefficients
     public double OpeningColonyDominanceFull = 1.0;  // 接収（Diplomacy.AcquireColony）は常に 0
     public double ColonyLabelsFromData = 1.0;   // (1278) c131cr 2026-11-21 点火（腕 B の木）：1＝昇格した植民地の州の文化と宗教の札を places.json の土地のデータから読み（無い名は空）、国の主流の札は植民地格の州を数えない・0＝旧（首都の州の札の写し・全ての州で数える）
     public double MajorityLabelTierOrder = 1.0;   // (1290) c133mr 2026-11-22 点火（腕 B の木）：1＝ColonyLabelsFromData 1 の下で、本国格に札の付いた人口が無い札（文化と宗教は別々）だけ植民地格の州で数える・0＝今（植民地格だけの国の札は空）
-    public double NextCapitalHomeFirst = 1.0;   // (1304) c135nc 2026-11-22 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を本国格（Core・Integrated）の州に限る（本国格が無ければ今と同じ全ての州）・0＝今（格を見ない）
+    public double NextCapitalHomeFirst = 1.0;   // (1304) c135nc 2026-11-22 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を本国格（Core・Integrated）の州に限る（本国格が無ければ今と同じ全ての州）・0＝今（格を見ない）。NextCapitalCoreFirst 1（既定）の下では読まれない（この分岐は CoreFirst 0 のときだけ）
     public double NextCapitalCoreFirst = 1.0;   // (1332) c139nc 2026-11-24 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を leaving の外で最も高い格（Core＞Integrated＞Colonial）の州だけにする（NextCapitalHomeFirst の分岐を置き換える）・0＝今（NextCapitalHomeFirst の形）
     public double ForeignRuleFromTreaty = 0.5;   // DominanceSpeed で目標へ寄せる
     public double TreatyPortHomeOnly = 1;        // (1138) c111tp 2026-11-14 点火：1＝条約港の読み手（ForeignPortShare・TreatyPortInForce）が植民地格の港を数えない・0＝旧（全ての港）

@@ -8,8 +8,9 @@ FIX = os.path.join(HERE, 'fixture')
 EXPECT = {
     'A': '建国の直後', 'B': '(i)人口の跳び', 'C': '(ii)0の区間の後', 'D': '(iii)産出が0の近く', 'E': 'どれにも当たらない',
     'F': 'どれにも当たらない', 'G': 'どれにも当たらない', 'H1': '(iii)産出が0の近く', 'H2': 'どれにも当たらない',
-    'I1': '(i)人口の跳び', 'I2': 'どれにも当たらない', 'J': '(iii)産出が0の近く', 'K': '(i)人口の跳び', 'L': 'どれにも当たらない',
+    'I1': '(i)人口の跳び', 'I2': 'どれにも当たらない', 'J': 'どれにも当たらない', 'K': '(i)人口の跳び', 'L': 'どれにも当たらない',
     'M': 'どれにも当たらない', 'N': 'どれにも当たらない', 'O': 'どれにも当たらない',
+    'P': 'どれにも当たらない', 'Q': '(ii)0の区間の後',   # (1337) P＝前の産出 0・名目 ×1e6／Q＝(ii) と (iii) が両方当たる
 }
 p = subprocess.run([sys.executable, '-X', 'utf8', '-I', os.path.join(D, 'gdp_jump1330.py'), '--rows', f'M={FIX}'], capture_output=True, encoding='utf-8')
 rows = {}
@@ -22,7 +23,7 @@ def ok(n, c, note=''):
     print(('緑' if c else '赤'), n, note)
     if not c: bad += 1
 for k, v in EXPECT.items(): ok(f'合成 {k}', rows.get(k) == v, f'期待 {v} 実 {rows.get(k)}')
-ok('行の数 17', len(rows) == 17, f'実 {len(rows)}')
+ok('行の数 19', len(rows) == 19, f'実 {len(rows)}')
 sm = [l for l in p.stdout.split('\n') if l.startswith('M\t種')]
-ok('要約 建国 1・(i) 3・(ii) 1・(iii) 3・どれにも 9', bool(sm) and '建国の直後 1・(i)人口の跳び 3・(ii)0の区間の後 1・(iii)産出が0の近く 3・どれにも当たらない 9' in sm[0], sm[0] if sm else '(要約なし)')
+ok('要約 建国 1・(i) 3・(ii) 2・(iii) 2・どれにも 11', bool(sm) and '建国の直後 1・(i)人口の跳び 3・(ii)0の区間の後 2・(iii)産出が0の近く 2・どれにも当たらない 11' in sm[0], sm[0] if sm else '(要約なし)')
 sys.exit(1 if bad else 0)

@@ -398,7 +398,7 @@ public sealed class World
     // ⚠**約2世代で完全に減衰**＝訓練された世代が退役して失われる（半減期を係数で持つ）。〔履歴 World.cs#72〕
     public double ArmySkill { get; internal set; }   // 幹部の熟練（陸と海は同じ1本・幹部は兵士 POP の中＝艦の乗員も同じ兵士）。旧は陸と海の2本を同じ式で進めていて常に等しかった
     public double NavySkill => ArmySkill;            // 海の読み手の名前（Diplomacy の同期〔NavySkillMul〕と計器 mil2 の注入が読む・App には読み手が無い）＝陸と同じ値
-    public double MilitaryReadiness { get; internal set; } = 1.0;  // 軍の即応度（0..1）。兵士の充足×給与funding＝戦力の乗数（SoldierStep が設定）
+    public double MilitaryReadiness { get; internal set; } = 1.0;  // 軍の即応度（0..1）。兵の暮らしの充足×装備の充足＝戦力の乗数（Military.cs の兵士の段が設定）
     public double HarvestFactor { get; internal set; } = 1.0;      // 今年の豊作/不作係数（1±変動。主食RGO産出と自給に乗算。不作＝飢饉→貧農の不満）
     private double[]? _cropHealth;
     public double[] CropHealth { get { if (_cropHealth is null) { _cropHealth = new double[Catalog.Goods.Length]; for (int i = 0; i < _cropHealth.Length; i++) _cropHealth[i] = 1.0; } return _cropHealth; } }   // 作物別の健全度（病虫害で<1・年次ロール）。栽培州の産出に乗る＝作物固有の不作（アイルランドのジャガイモ胴枯病型）。1.0=健全
@@ -693,7 +693,7 @@ public sealed class World
     public bool EthnicEnabled { get; internal set; }
     public bool PoliticalLockEnabled { get; internal set; } = true;   // スライダーの政治ロック（純支持≤0の向きへ動かせない）。財政機構の単体テストは false で隔離（税→歳入→保存の検証は政治的可否と直交）
     public bool CoercionFollowsForce { get; internal set; }            // 多国シム（実ゲーム＋selfplay）で true、較正/単体は false で BaseCoercion を独立に掃引（較正世界を保護）〔履歴 World.cs#118〕
-    public double PublicOrder { get; internal set; } = 1.0;   // 治安＝実効治安維持力の人口カバレッジ（1=完全な秩序）。財政破綻・人口増で警察が薄まると下がる
+    public double PublicOrder { get; internal set; } = 1.0;   // 治安＝実効治安維持力の人口カバレッジ（1=完全な秩序）。財政破綻で警察が薄まると下がる（人口は Crime.cs の秩序の式で約分され、人口増そのものでは下がらない）
     public double CrimeRate { get; internal set; }             // 月次の窃盗率（最悪地域・被害者の基数〔前の月の所得〕に掛ける率）。秩序の崩れ×困窮大衆で湧く（ガラス箱・警告用）
     public double ReformistPower { get; internal set; }
     public double RadicalPower { get; internal set; }
@@ -842,7 +842,7 @@ public sealed class World
     public string PendingFactionCrisisDemands = "";           // 対象勢力の要求（表示用・通知時と要求の取り直しで更新）
 
     public bool BornOfSecession { get; internal set; }            // 分離独立で生まれた国（独立戦争の危機乗数の判定用）
-    // P8 天命（0..1・0.5=中立・−1=未捕捉センチネル）：民の統治パフォーマンス評価EMA。主フラグ DynasticMandateEnabled=0 では永遠に−1のまま＝不読・恒等
+    // P8 天命（0..1・0.5=中立・−1=未捕捉センチネル）：民の統治パフォーマンス評価EMA。旗は無く、Politics.cs の天命の段が毎回 −1 を 0.5 へ置く（−1 のまま残らない）
     public double DynasticMandate { get; internal set; } = -1;
     public RatePerYear GovBondRatePerYear { get; internal set; } = new(0.04);   // 国債金利（債務/GDP＋買い手希少で上昇）＝毎月再計算の「市場利回り」
     public RatePerYear GovAvgCouponPerYear { get; internal set; } = new(0.04);   // R9：既往債の残高加重平均クーポン（発行時金利で固定）。利払いはこれで計算。BondRolloverFracPerMonth=1で毎月GovBondRatePerYearへ乗換＝浮動永久債（現行と厳密一致）・<1で満期ラグ＝金利変動が既存ストックへ即時波及しない（英1815高債務→1821金本位復帰の史実）。貨幣に触れない名目ヴェール＝保存則非算入
@@ -1086,7 +1086,7 @@ public sealed class World
     // 貿易路×メディアで広がる（MultiNationSim.StepDiffusion＝国の組の取引の割合×両国の媒体×放射の強さ〔思想＝持つ人の割合・制度＝解禁済みなら1〕の積み上げ）。〔履歴 World.cs#195〕
     public double[] SpreadReach = new double[Discovery.SpreadRows.Length];
     public int RumpLowQuarters;
-    public double PendingForeignBorrow;   // ★§1-4（ForeignLendingDebits>0のみ書かれる）：今四半期の対外借入元本＝四半期末に他国資本家から対称控除される待ち行列
+    public double PendingForeignBorrow;   // ★§1-4（Fiscal.cs の借入で外国の資本家の取り分があるときだけ書かれる）：今四半期の対外借入元本＝四半期末に他国資本家から対称控除される待ち行列
     public void LogAdd(string s) => PendingLog.Add(s);
     public void FlushLog()
     {
@@ -1566,7 +1566,7 @@ public sealed class World
         }
     }
 
-    // UI は Policy.InterestRateTarget を GameViewModel.InterestLever から直に書く（上限は VM 側の InterestCeil）＝経路は1本で足りる。〔履歴 World.cs#244〕
+    // UI は Policy.InterestRateTarget を Display の FiscalTables の Lever から直に書く（上限は FiscalTables の InterestCeil）＝経路は1本で足りる。〔履歴 World.cs#244〕
 
     /// <summary>
     /// ★私的な工場建設が既に使っている判断と**同じ関数**＝国家だけが相場を無視して買い漁る非対称を消す。〔履歴 World.cs#245〕
@@ -1689,7 +1689,7 @@ public sealed class World
     internal double TechProductivity(Region r)
     {
         // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）
-        // 労働時間→工場出力（連続・倍率排除②）：労働供給は労働時間に比例しつつ疲労で逓減（h=14で1.0、短いほど産出↓）。死亡率↓は人口動態で別途。
+        // 労働時間→工場出力（連続・倍率排除②）：労働供給は労働時間に比例しつつ疲労で逓減（h=14 は疲労の罰で 0.94・12 時間までは罰なし）。死亡率↓は人口動態で別途。
         double whOut = Math.Pow(WorkHoursValue / WorkHours.Unlimited.Hours(), Coef.LaborFatigueExp)
                      * Math.Max(0.0, 1.0 - Coef.LaborFatiguePenalty * Math.Max(0.0, WorkHoursValue - WorkHours.Twelve.Hours()));   // Max〔履歴 World.cs#263〕
         // union〔履歴 World.cs#264〕

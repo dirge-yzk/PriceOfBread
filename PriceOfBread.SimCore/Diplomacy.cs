@@ -2850,7 +2850,7 @@ public sealed class Diplomacy
     private static void OutcomeShocks(Coefficients c, World? winW, World? loseW, double absScore)
     {
         // P1-D 勝利の免責（DefeatShockの対称・普墺/普仏戦争のビスマルク免責）：決定的勝利は政権の正統性ストックを直接押し上げる
-        // ＝予算闘争や余白の押し切りで削った政治資本が戦勝で赦される。ストック正統性（LegitimacyIsStock）が減算を保持するのと対。VictoryLegitBoost=0.05 live・0で不発。
+        // ＝予算闘争や余白の押し切りで削った政治資本が戦勝で赦される。ストック正統性が減算を保持するのと対。VictoryLegitBoost=0.05 live・0で不発。
         if (absScore >= 1.0 && c.VictoryLegitBoost > 0 && winW is { } vw)
         {
             double legBefore = vw.Legitimacy;

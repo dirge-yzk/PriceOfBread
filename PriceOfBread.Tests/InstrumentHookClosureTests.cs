@@ -223,6 +223,7 @@ public class InstrumentHookClosureTests
         [InlineData("Wp", "wp_s")]
         [InlineData("War", "invade_s,warband_s,warentry_s,warpair_s,warpolity_s,wars_s")]   // (1268) 束
         [InlineData("Habitlg", "habitlg_s")]   // (1268) 束
+        [InlineData("Capskip", "capskip_s")]   // (1337) 束（(1329) c139sm で足した Tg.Capskip の群）
     public void SelectedGroupIsByteIdenticalToFullRun(string group, string csv)
     {
         var full = Full.Value;
@@ -301,6 +302,49 @@ public class InstrumentHookClosureTests
             Instruments.HabitLgStep(r, w.Coef, 1.0); Instruments.NgRegionMoved(w, r);
             Assert.True(Has("HabitlgAccs", r), "対照：habitlg_s を選ぶと HabitLgStep が積まない（試験の前提が崩れた）");
             Assert.True(Has("NgEvs", w.Diplomacy!), "対照：nationgood_s を選ぶと NgRegionMoved が積まない（試験の前提が崩れた）");
+        }
+        finally { Instruments.Configure(null, null); Instruments.SelectTables(null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>(1337) c140nt 入口を直に呼ぶ番人：Tg.Capskip の 3 つの門（CapSkip・CapSkipDedup・CapskipTable）は、4 国・種 1789 の走りでは容量で飛ばした売り手が出ず、件数では外れを拾えない
+    /// （(1329) の突然変異 M5 は CapSkip と CapSkipDedup の門を一緒に外しただけで、Dedup だけ・CapskipTable だけは未確認だった）。表を選ばないで呼んだ国・シムの鍵が置き場に残らないことを見る（対照：選ぶと鍵が入る）。</summary>
+    [Fact]
+    public void CapskipDirectEntriesLeaveNoKeyWhenTheirTableIsNotSelected()
+    {
+        var sim = Make(); var w = sim.Nations[0].World; var r = w.Regions[0];
+        var table = typeof(Instruments).GetMethod("CapskipTable", BindingFlags.Static | BindingFlags.NonPublic)!;
+        bool Has(string field, object key)
+        {
+            var v = typeof(Instruments).GetField(field, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!.GetValue(null)!;
+            foreach (var kv in (IEnumerable)v) if (ReferenceEquals(kv.GetType().GetProperty("Key")!.GetValue(kv), key)) return true;
+            return false;
+        }
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_ihc_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            // 1) CapSkipDedup だけ：CkWorlds に国の鍵が入るか
+            Instruments.SelectTables("nation_s"); Instruments.Configure(dir, "*");
+            Instruments.CapSkipDedup(w, 0, 1.0, 1.0);
+            Assert.False(Has("CkWorlds", w), "capskip_s を選ばないのに CapSkipDedup が置き場へ積んだ（Dedup の入口の閉じが外れている）");
+            Instruments.Configure(null, null);
+            Instruments.SelectTables("capskip_s"); Instruments.Configure(dir, "*");
+            Instruments.CapSkipDedup(w, 0, 1.0, 1.0);
+            Assert.True(Has("CkWorlds", w), "対照：capskip_s を選ぶと CapSkipDedup が積まない（試験の前提が崩れた）");
+            Instruments.Configure(null, null);
+            // 2) CapSkip だけ（別の国で）：Dedup の門を通らない入口
+            var w2 = sim.Nations[1].World; var r2 = w2.Regions[0];
+            Instruments.SelectTables("nation_s"); Instruments.Configure(dir, "*");
+            Instruments.CapSkip(w2, 0, r2.Markets[0], r2.Markets[0], r2, 1.0, 1.0, true, 0.0);
+            Assert.False(Has("CkWorlds", w2), "capskip_s を選ばないのに CapSkip が置き場へ積んだ（CapSkip の入口の閉じが外れている）");
+            Instruments.Configure(null, null);
+            // 3) CapskipTable だけ：CkSinks にシムの鍵が入るか
+            Instruments.SelectTables("nation_s"); Instruments.Configure(dir, "*");
+            table.Invoke(null, [sim, 1789UL, 0]);
+            Assert.False(Has("CkSinks", sim), "capskip_s を選ばないのに CapskipTable が置き場へ積んだ（Table の入口の閉じが外れている）");
+            Instruments.Configure(null, null);
+            Instruments.SelectTables("capskip_s"); Instruments.Configure(dir, "*");
+            table.Invoke(null, [sim, 1789UL, 0]);
+            Assert.True(Has("CkSinks", sim), "対照：capskip_s を選ぶと CapskipTable が積まない（試験の前提が崩れた）");
         }
         finally { Instruments.Configure(null, null); Instruments.SelectTables(null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

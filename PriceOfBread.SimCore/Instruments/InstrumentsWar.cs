@@ -13,7 +13,7 @@ public static partial class Instruments
     internal static readonly string[] WarReasons = ["", "外交なし", "自国", "弱小国が標的", "既に従属", "従属関係", "奪う領土なし", "交戦中", "属国が上限", "余剰戦力が不足", "兵力が不足", "船が不足", "制海権が不足", "糧食(缶詰)が不足"];
     internal static readonly string[] WarReasonCols = ["ok", "noDip", "self", "weak", "dependent", "suzerainOf", "noLand", "atWar", "maxDep", "will", "mil", "ship", "sea", "canned", "other"];
 
-    /// <summary>影の評価の門の番号（0＝全て通った）。World.cs:2190〜:2205 の順。</summary>
+    /// <summary>影の評価の門の番号（0＝全て通った）。World.CanInvade の門の順。</summary>
     internal static readonly string[] WarShadowGates = ["pass", "dependent", "suzerainOf", "noLand", "atWar", "maxDep", "will", "mil", "ship", "sea", "canned"];
     internal static readonly string[] WarShadowReasons = ["", "既に従属", "従属関係", "奪う領土なし", "交戦中", "属国が上限", "余剰戦力が不足", "兵力が不足", "船が不足", "制海権が不足", "糧食(缶詰)が不足"];
 
@@ -249,7 +249,7 @@ public static partial class Instruments
         return WarReasons.Length;   // other
     }
 
-    /// <summary>TryAiSubjugate の CanInvade の評価 1 件（Diplomacy.cs:2021 の同じ行から）。reason＝CanInvade の戻りの理由（通れば空）。</summary>
+    /// <summary>TryAiSubjugate の CanInvade の評価 1 件（Diplomacy.TryAiSubjugate の CanInvade の呼びと同じ行から）。reason＝CanInvade の戻りの理由（通れば空）。</summary>
     internal static void WarEval(Diplomacy d, Coefficients c, Power great, Power target, string reason)
     {
         if (!Tg.War) return;

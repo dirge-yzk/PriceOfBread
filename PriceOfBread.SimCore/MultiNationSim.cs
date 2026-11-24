@@ -150,7 +150,7 @@ public sealed class MultiNationSim
                 //   数えると保存検査（Validation「植民地の保存」＝残り＋独立＋昇格＝初期）が二重計上で落ちる
                 //   （実測 37+0+42=79 vs 初期43）。初期の総数はこの直後に Colonies から取り直される。
                 var reg = Simulation.PromoteColonyToRegion(w, _coef, col, RegionTier.Colonial);
-                // 途中の接収（Diplomacy.cs:2269）は 0 のまま＝実際に取った年から。〔履歴 MultiNationSim.cs#21〕
+                // 途中の接収（Diplomacy.Subjugate の AcquireColony）は 0 のまま＝実際に取った年から。〔履歴 MultiNationSim.cs#21〕
                 if (_coef.OpeningColonyDominanceFull > 0) reg.Dominance = 1.0;
             }
         }
@@ -1594,7 +1594,7 @@ public sealed class MultiNationSim
                 srcKnown[bestS] = srcKnown[d] = false;   // 州の POP が動いた2国だけ引き直す
             }
         }
-        // ⚠予約のゼロ化は**無条件**（EconomyStep:1674 と同じ規律＝条件の内側でゼロ化すると永久滞留する既知のバグ型）。
+        // ⚠予約のゼロ化は**無条件**（EconomyStep.Run の教育・医療の Fill のゼロ化と同じ規律＝条件の内側でゼロ化すると永久滞留する既知のバグ型）。
         //   ★カネは Pay した分しか国庫を出ていないので、捨てても保存は不変＝これが「空振りの返金」である。
         for (int i = 0; i < n; i++) Nations[i].World.RecruitBudget = 0;
     }
