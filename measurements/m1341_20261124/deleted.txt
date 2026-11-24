@@ -8,3 +8,9 @@
 - 移した：D:/PoB_work/c140sp_work/B/out_c140spB_10 → D:/PoB_work/keep_1341_rej/c140spB（採らなかった線 sp の腕 B の生）2026-11-24 16:36:04
 - 移した：D:/PoB_work/m1341_work/out_aS_10 → D:/PoB_work/keep_1341_rej/aS_spOnly（アブレーション A_sp の生・門の表 10 種）2026-11-24 16:36:04
 - push（main 37bc75672＝ident.cfg を m1341 へ）の後に消した（INSRAW でも KEEPNULL でもなくなった古い keep・指示の許し）：D:/PoB_work/keep_1334（base_ins・a11・n1・n2＝keepsum は measurements/m1334_20261124/keepsum_insraw1334.tsv・keepsum_a11_1334.tsv・keepsum_n1_1334.tsv・keepsum_n2_1334.tsv）2026-11-24 17:44:49
+- 移した：D:/PoB_work/c140sp_work/z_stproc → D:/PoB_work/keep_1341_rej/c140sp_zstproc（採らなかった線 sp の腕 Z の stproc_s）2026-11-24 18:22:09
+- 線 c140hf の worktree D:/PoB_work/wt_c140hf（未コミット 0〔dz は ident の manifest 1 本＝measurements/m1338_20261124/ へ写した〕・origin/c140hf は残す）とローカルの枝・作業フォルダ D:/PoB_work/c140hf_work（印とログ・腕の生は先に移すか keepsum の後に消した）2026-11-24 18:22:26
+- 線 c140sp の worktree D:/PoB_work/wt_c140sp（未コミット 0〔dz は ident の manifest 1 本＝measurements/m1338_20261124/ へ写した〕・origin/c140sp は残す）とローカルの枝・作業フォルダ D:/PoB_work/c140sp_work（印とログ・腕の生は先に移すか keepsum の後に消した）2026-11-24 18:22:35
+- 線 c140nt の worktree D:/PoB_work/wt_c140nt（未コミット 0〔dz は ident の manifest 1 本＝measurements/m1338_20261124/ へ写した〕・origin/c140nt は残す）とローカルの枝・作業フォルダ D:/PoB_work/c140nt_work（印とログ・腕の生は先に移すか keepsum の後に消した）2026-11-24 18:22:42
+- 線 c140dz の worktree D:/PoB_work/wt_c140dz（未コミット 0〔dz は ident の manifest 1 本＝measurements/m1338_20261124/ へ写した〕・origin/c140dz は残す）とローカルの枝・作業フォルダ D:/PoB_work/c140dz_work（印とログ・腕の生は先に移すか keepsum の後に消した）2026-11-24 18:22:48
+- D:/PoB_work/r1339_work・r1340_work（読む線と設計の材料の線の作業フォルダ・台本・表・文書は合流が写した）2026-11-24 18:22:48
