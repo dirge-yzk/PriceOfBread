@@ -1,6 +1,6 @@
 namespace PriceOfBread.SimCore;
 
-// (1277) c131pf 計器 capskip_s：清算（四半期の最初の回）で容量が尽きて飛ばした売り手（BilateralMarket.cs の :963 の分岐）の観測。(1244) c126pf の計器の写しに 2 列を足した。
+// (1277) c131pf 計器 capskip_s：清算（四半期の最初の回）で容量が尽きて飛ばした売り手（BilateralMarket.cs の capSkipOn && priced の分岐）の観測。(1244) c126pf の計器の写しに 2 列を足した。
 // 力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない（置き場は計器の ConditionalWeakTable）。
 // 同じ盤面で旧の規則（足さない）と新の規則（足す）を両方数える＝影の量は計器が売り手と買い手の市場から自分で組む（エンジンの式を呼ばない・行の未充足は引かない＝上界）。
 // 列：skips＝飛ばした回数・skipsPricedOut＝そのうちエンジンの値段の門で止まった回数・offerWeight＝飛ばした申し出（在庫−目標）×重さ・
@@ -22,7 +22,7 @@ public static partial class Instruments
 
     static double[,] CkOf(World w) { var s = CkWorlds.GetValue(w, _ => new CkWorld()); return s.Q ??= new double[Catalog.Goods.Length, CkLen]; }
 
-    /// <summary>受け口（:963 の分岐・Instruments.On かつ四半期の最初の清算）：<paramref name="sellerWorld"/> は売り手の国・<paramref name="ms"/> は売り手の市場・<paramref name="mb"/> は買い手の市場・
+    /// <summary>受け口（capSkipOn && priced の分岐・Instruments.On かつ四半期の最初の清算）：<paramref name="sellerWorld"/> は売り手の国・<paramref name="ms"/> は売り手の市場・<paramref name="mb"/> は買い手の市場・
     /// <paramref name="buyer"/> は買い手の州・<paramref name="access"/> は買い手の行の入手率・<paramref name="priced"/> はエンジンの値段の門・<paramref name="addedW"/> はエンジンが実際に足した重さ（旗 0 は 0）。</summary>
     internal static void CapSkip(World sellerWorld, int g, Market ms, Market mb, Region buyer, double access, double wg, bool priced, double addedW)
     {
@@ -46,7 +46,7 @@ public static partial class Instruments
         if (priced) q[g, CkShadow] += sh * wg;
     }
 
-    /// <summary>受け口（:1083・Instruments.On かつその行の skipQ が正）：同じ行の次の売り手の側の未充足から引いた重さ（エンジンの実際の側）と、引く前の未充足の重さ（(1322)）。</summary>
+    /// <summary>受け口（newUnmetS の行・Instruments.On かつその行の skipQ が正）：同じ行の次の売り手の側の未充足から引いた重さ（エンジンの実際の側）と、引く前の未充足の重さ（(1322)）。</summary>
     internal static void CapSkipDedup(World sellerWorld, int g, double dedupW, double baseW)
     {
         if (!Tg.Capskip) return;   // (1329) 同上

@@ -224,7 +224,7 @@ public static partial class Instruments
     }
 
     // ---------------------------------------------------------------- 影の評価 ----------------------------------------------------------------
-    /// <summary>World.CanInvade の :2190 以降の門を同じ順で純関数として評価する（弱小国の門は飛ばす）。最初に落ちた門の番号（0＝全て通った）。</summary>
+    /// <summary>World.CanInvade の弱小国の門より後の門を同じ順で純関数として評価する（弱小国の門は飛ばす）。最初に落ちた門の番号（0＝全て通った）。</summary>
     internal static int WarShadowGate(World gw, Diplomacy d, Coefficients c, Power self, Power t)
     {
         if (d.Suzerain(t) is not null) return 1;

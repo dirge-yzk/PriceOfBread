@@ -121,7 +121,7 @@ public static partial class Instruments
         internal const int DStride = 6, GdLen = 6;
         readonly int[] gd = new int[GdLen];   // 行の中の反復の内訳＝X・Y・left・予算・容量が縛った反復、売り手を外した反復
 
-        /// <summary>:887 の xNeed≦0 の飛ばし：案 B-b の上界 TS＋D·(rpT/先頭の売り手の値段)^ε−P−S ＞ 0 の行を数える（先頭の売り手が居ない・値段が正でない・NaN は ubInf）。</summary>
+        /// <summary>StepBilateral の xNeed≦0 の飛ばし：案 B-b の上界 TS＋D·(rpT/先頭の売り手の値段)^ε−P−S ＞ 0 の行を数える（先頭の売り手が居ない・値段が正でない・NaN は ubInf）。</summary>
         internal void SkipNeed(Market m, double refPrice, double priceLevel, double exRate, int headS, double eps)
         {
             if (cur < 0) return;

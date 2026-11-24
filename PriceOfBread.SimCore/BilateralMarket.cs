@@ -913,7 +913,7 @@ public sealed partial class InternationalMarket
                 int rowBase = t * tc; bool hostileRow = natAnyHostile[ni];
                 double tMargin = c.TransportMargin, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
                 double unmetQ = 0, skipQ = 0;   // (1277) skipQ＝この行で容量で飛ばした売り手へ足した量の和（旗 CapSkipSellerPotential 0 では 0 のまま）
-                bool insOnC = Instruments.On, capSkipOn = !thin && c.CapSkipSellerPotential > 0, capSkipIns = insOnC && !thin;   // (1277) c131pf：潜在量を書くのは四半期の最初の清算だけ（:1193 の !thin）
+                bool insOnC = Instruments.On, capSkipOn = !thin && c.CapSkipSellerPotential > 0, capSkipIns = insOnC && !thin;   // (1277) c131pf：潜在量を書くのは四半期の最初の清算だけ（StepBilateral 冒頭の thin＝firstClearingOfQuarter でない回は書かない）
                 double baseMul = 1 + c.TransportMargin;
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);
                 double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;
@@ -959,8 +959,8 @@ public sealed partial class InternationalMarket
                             {
                                 if (MultiNationSim.TimeOn) CntSkips++;
                                 if (capSkipOn || capSkipIns)
-                                {   // (1277) c131pf 旗 CapSkipSellerPotential：容量が尽きて飛ばす売り手のうち値段の門（:973 と同じ下界）を通る物は、この行で通るはずだった量 qS を売り手の州の潜在量へ（買い手の側には足さない）。
-                                    // qS＝min(残り, max(0, X_lp−unmetQ−skipQ))・X_lp＝買い手の X を買い手の自分の値段 lp で読んだ値（P̂ を引かない）。足した qS は skipQ に数え、次の売り手の側の未充足から引く（:1085）。
+                                {   // (1277) c131pf 旗 CapSkipSellerPotential：容量が尽きて飛ばす売り手のうち値段の門（直後の priced＝売り手の値段×下界の乗数＜買い手の値段 lp）を通る物は、この行で通るはずだった量 qS を売り手の州の潜在量へ（買い手の側には足さない）。
+                                    // qS＝min(残り, max(0, X_lp−unmetQ−skipQ))・X_lp＝買い手の X を買い手の自分の値段 lp で読んだ値（P̂ を引かない）。足した qS は skipQ に数え、次の売り手の側の未充足から引く（newUnmetS の行）。
                                     bool priced = sel.Price * (cheapAfter is not null && cheapAfter[s2] ? lbMulCheap : lbMul) < lp;
                                     double addW = 0;
                                     if (capSkipOn && priced)
