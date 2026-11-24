@@ -1,0 +1,18 @@
+(1351) c142ik 突然変異と㉘の記録（M1=旧の式の Property を Base へ・M2=人口加重を外す・M3=SimCore に IsPlayer の行を足す・M0=元の木）。5 件の試験の束の結果。
+㉘の束（IndustrializationReader・UnitType・InstrumentsTests・WriterRatchet・DormantIdentity・InstrumentsPlacement・InstrumentHookClosure）＝合格 236・スキップ 1・失敗 0（17 分 19 秒）
+M1
+  失敗 PriceOfBread.Tests.FempInstrumentTests.州の賃金保持が違えば人口の重みで加重する [1 s]
+  失敗 PriceOfBread.Tests.FempInstrumentTests.賃金保持が一様なら旧の構造値は基礎と財産権の線分上で新は基礎(retention: 0.5, oldExpect: 0.55000000000000004, newExpect: 0.
+  失敗 PriceOfBread.Tests.FempInstrumentTests.賃金保持が一様なら旧の構造値は基礎と財産権の線分上で新は基礎(retention: 1, oldExpect: 0.69999999999999996, newExpect: 0.40
+失敗!   -失敗:     3、合格:     2、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M2
+  失敗 PriceOfBread.Tests.FempInstrumentTests.州の賃金保持が違えば人口の重みで加重する [1 s]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M3
+  失敗 PriceOfBread.Tests.IsPlayerBranchCountTests.IsPlayerを含む行の数はファイル別の許可表のとおり [68 ms]
+失敗!   -失敗:     1、合格:     4、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+M0
+成功!   -失敗:     0、合格:     5、スキップ:     0、合計:     5、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+28
+成功!   -失敗:     0、合格:   236、スキップ:     1、合計:   237、期間: 17 m 19 s - PriceOfBread.Tests.dll (net10.0)
+END
