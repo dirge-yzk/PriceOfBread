@@ -1,0 +1,12 @@
+(1346) c141fw 読む線の計画（2026-11-24）
+作業の場所: D:/PoB_work/r1346_work/（台本は scripts/ の下・出力は out/ の下）。worktree と枝は作らない。コミットしない。腕 0 本。
+読む生（読むだけ）:
+  hf+sp M   : D:/PoB_work/keep_1341_rej/mM_hfsp/{region,migration,nation,wars}_s1..10.tsv
+  hf+sp S11 : D:/PoB_work/keep_1341_rej/mS11_hfsp/
+  sp 単独 A : D:/PoB_work/keep_1341_rej/aS_spOnly/ins/
+  sp 腕 B   : D:/PoB_work/keep_1341_rej/c140spB/ins/（m1335 前の木の sp 単独）
+  M=A_hf    : D:/PoB_work/keep_1341/base_ins/
+  S11       : D:/PoB_work/keep_1341/a11/   ヌル: keep_1341/n1・n2
+材料: measurements/m1341_20261124/readM_hfsp/・measurements/m1335_20261124/・D:/PoB_work/fragility/report.md
+ソース: PriceOfBread.SimCore/Territory.cs・MultiNationSim.cs（main b1c63d283）
+問い 1〜5 の順に表を作る。
