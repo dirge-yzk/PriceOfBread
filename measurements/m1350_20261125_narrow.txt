@@ -1,0 +1,8 @@
+# (1350) scan HEAD=6d2ba4406 汚れ=0 2026-11-25 05:36:40
+# filter=FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~ProtectedLawReversalTests|FullyQualifiedName~Lawgate2InstrumentTests|FullyQualifiedName~MinimumWageAiFloorTests|FullyQualifiedName~GenderTests|FullyQualifiedName~PolicyPoliticsTests|FullyQualifiedName~AiFirstWaveTests|FullyQualifiedName~PlayTextTests|FullyQualifiedName~RevoltIgnitionTests|FullyQualifiedName~StartWarmupTests|FullyQualifiedName~RuleSharesFormTests
+scan rc=0 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 成功!   -失敗:     0、合格:   380、スキップ:     0、合計:   380、期間: 32 m 3 s - PriceOfBread.Tests.dll (net10.0) 
+SCANDONE 2026-11-25 06:09:25
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 26 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 142・その月の額の和 4.105E+04 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+NARROWDONE 2026-11-25 06:19:58

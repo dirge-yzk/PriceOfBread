@@ -1,0 +1,18 @@
+== D:/PoB_work/keep_1341/base_ins
+時短の後退が 5 回以上の（種・国）の組	3	1 回以上の組	134
+議会（crownpc_s の coopParliamentCrownPrevIndex）の 6 大国×四半期の平均	nan	行 40080
+== D:/PoB_work/keep_1341/n1
+時短の後退が 5 回以上の（種・国）の組	2	1 回以上の組	149
+議会の統制力	NA
+== D:/PoB_work/keep_1341/n2
+時短の後退が 5 回以上の（種・国）の組	2	1 回以上の組	137
+議会の統制力	NA
+== D:/PoB_work/c142lr_work/armb/out_c142lrB_10/ins
+時短の後退が 5 回以上の（種・国）の組	19	1 回以上の組	379
+議会（crownpc_s の coopParliamentCrownPrevIndex）の 6 大国×四半期の平均	nan	行 40080
+== D:/PoB_work/keep_1341/a11
+時短の後退が 5 回以上の（種・国）の組	0	1 回以上の組	138
+議会の統制力	NA
+== D:/PoB_work/c142lr_work/s11/out_c142lrS_10_s11/ins
+時短の後退が 5 回以上の（種・国）の組	19	1 回以上の組	364
+議会の統制力	NA

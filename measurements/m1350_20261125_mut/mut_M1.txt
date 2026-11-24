@@ -1,0 +1,6 @@
+# M1（52a966438）
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T1_選挙権の後退は旗1で1段下がり旗0で動かない(flag: 1) [1 s]
+  失敗 PriceOfBread.Tests.GenderTests.女性の権利の後退は全ての段で普通の法の門だけ [14 ms]
+テストの合計数: 34
+     成功: 32
+     失敗: 2

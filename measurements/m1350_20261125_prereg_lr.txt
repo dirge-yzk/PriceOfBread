@@ -1,0 +1,121 @@
+(1350) c142lr 事前登録（腕の前のコミット）＝省く段 B7 の L08 の 2 回目：守られた法の不可逆を外す（旗 ProtectedLawsReversible 0→1・形は (1344) のまま・3 回の規則で次が最後）
+基線 m1341＋cn（main b8cdd3795・SOURCE-HASH d005c97b5928ee73＝SimCore の式は m1341 と同じ）・INSRAW＝D:/PoB_work/keep_1341/base_ins・NG の基準 ng1341_20261124（98 件）・TESTS_NONFULL 3179
+書いたモデル：Claude Opus 5.5（担当）。作者の言葉の引用は無い。形は (1344) の反証役が直した形 (ii)（AI の推奨・確証なし）。〈作者が採った〉〈承認〉とは書かない。
+
+■ 1 回目 (1344) との違い（ここだけ・形は変えない＝〈形の変え直し〉に数えない）
+- 出発の木：b8cdd3795 の上へ origin/c141lr の器 b65e7c32e・旗 1 2d1e92c12・試験の書き換え 875508586・8a7e1452a を cherry-pick（cn は Government.cs・SelfPlay.cs・Simulation.cs:1716〜:1721 に触れていない）。台本は scripts/instruments/c142lr/ へ写した（c141lr→c142lr の名だけ）。
+- 読み手 lr_count.py の直し 2 つ：
+  ① 種の番号を os.path.basename から取る（作業フォルダの名の _s11 に当たらない・★(1348)）。
+  ② 守られた法の後退を〈同じ国の前の行と政体コード polityCode が同じ四半期〉と〈変わった四半期〉に分ける（rec_m1348.py の形）。門 G5 の量は〈政体が同じ四半期〉の側（列 sixSame）。1 回目の量（sixTotal＝政体の変わり目を含む）は記録に並べる。
+- 試験の 2 つ（1 回目の反証役 v 低）：GenderTests の書き換えた番人は旗を盤面で明示する（w.Coef.ProtectedLawsReversible = 1・既定 1 に頼らない）。突然変異の要約（mut_*.txt）に試験の件数の行（合計・失敗）を必ず書く。
+- RuleSharesFormTests D6 の盤面の置き忘れの直し（★(743) の区分＝試験のバグ・1 回目の追記 2）は最初から運ぶ（旗 0 と 1 で同じ盤面）。
+- 新しい記録：州ごとの〈ピークの後の最小÷ピーク〉の読み手 scripts/instruments/c142lr/bham.py（既定はバーミンガム）。
+- 単独の S11（a11 の 82 表・種 11〜20）：D: の空きが〈35＋18GB〉ある時だけ回す。無ければ合流へ申し送る（線の門にはしない・止める線の読みだけ記録）。
+
+■ 形（1 回目の事前登録の写し・尾か入口か＝入口：法の段を動かす門の 1 本の分岐を外す）
+- 旗 Coefficients.ProtectedLawsReversible（p06 の IrreversibleLaws の隣・既定 0）。
+- 旗 1 で、守られた法（ProtectedLaw＝選挙権・女性の権利・社会保障・植民地の選挙権・移民の選挙権・平時の時短・平時の児童労働）の枝を 3 か所から外す：
+  ① Government.BlockedByIrreversibility（農奴解放と土地改革の行＝L07 の後・IrreversibleLaws の行の前で false を返す）
+  ② Government.ReversalCostMul（1.0 を返す条件の先頭に旗）
+  ③ Simulation.cs:1720 児童労働の合法度の追従の門（旗 1 で常に Toward）
+  ＝守られた法の後退は、他の法と同じ MandateGate の費用（costMul 1.0）だけになる。
+- L07（農奴解放・土地改革＝:461）は旗に依らず残す。
+- 断裂の窓 RuptureWindowQuarters：読み手は Government.cs の 2 か所と Simulation.cs:1720 だけ（grep：Politics.cs:119・:391・:485 は書き手・World.cs:713 は宣言・App・Runner・Display は 0）。旗 1 で読み手 0 になるが、器の回では状態と書き手を残す（削除は採った後の焼き込み）。
+- 旗 0 は今と 1 ビットも同じ（真偽の短絡の前置だけ・浮動小数の式は触らない）。新しい係数は旗 1 本・新しい状態は 0。
+- SelfPlay.cs:229（AI の候補の篩）は同じ BlockedByIrreversibility を読む＝AI とプレイヤーは同じ関数で対称。SelfPlay.cs は 0 行の見込み。
+- 決まり③の名乗り：L08 の行は ProtectedLaw の 7 軸を 1 本で扱う。参政権だけを外すと〈守られた法の中の、さらに外す軸〉＝例外の例外になる。よって 7 軸を同時に外す。
+- 決まり②：状態を足さない。IrreversibleLaws と ProtectedLaw の削除（焼き込み）は採った後。
+- ReversalCostMul は IrreversibleLaws＝1.0 の今は常に 1.0 を返す（休眠の枝）＝旗 1 で ② を外しても軌道は変わらない〈予言〉。働きは試験 T5（盤面で IrreversibleLaws＝0.5 を置く）で示す。
+
+■ 段 0（読むだけ・keep_1341/base_ins）
+- lawgate2_s（StepLevel の符号 5＝不可逆で止めた・最後の結果が残る行）：10 種で 1539 行・軸は SocialSecurity だけ。6 大国では ロシア 221・フランス 33・オーストリア 18・プロイセン 8（種 1・5・7・8・9 は 6 大国で 0）。
+- 他の 6 軸に符号 5 が無いのは、AI の目標が SelfPlay.GateLaw（:229）で先に現行へ畳まれる（ci＝ti で符号 0）ため〈推〉。
+- ＝錠は休眠していない（社会保障の後退を止めている・選挙権ほかは目標の篩で止めている）。形を恒等の削除へは移さない。
+- monlaw_s から数えた守られた法の後退の件数（後退の向き＝時短・児童労働は段が上がる側・他は下がる側・lr_count.py）：
+  全ての国の選挙権 121〜164／種・時短 10〜34／種・他の 5 軸 0。
+  6 大国（英・仏・普・露・墺・米）の合計：種 1〜10＝16,17,22,19,20,15,17,16,15,17・中央 17（選挙権 136 件／10 種・時短 38 件／10 種）。
+  ＝今も断裂の窓・戦時・政体の変わり目の経路で後退は起きている。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜ の改め・grep：IrreversibleLaws・ProtectedLaw・BlockedByIrreversibility・ReversalCostMul・Rupture・不可逆・後退不能・戦時のみ緩和可・ChildLaborLegal）
+- 旧の規則：守られた法の平時の後退は断裂の窓の外では不可（IrreversibleLaws≧1）・児童労働の合法度の追従の門。
+- grep で当たった試験（旧の規則を固定しうる物）：
+  MinimumWageAiFloorTests.cs:252〜:253（最低賃金法は守られていない＝旗に依らず同じ＝書き換え不要の見込み）
+  GenderTests.cs:68（窓を開けて降格の経路を測る＝旗 1 でも窓は後退を止めない＝不要の見込み）
+  Lawgate2InstrumentTests.cs:61〜66（農奴解放＝L07＝旗に依らず符号 5＝不要の見込み）
+  InstrumentsTests.cs:1330〜1331・:1392（農奴解放の符号 5＝L07＝不要の見込み）
+  PolicyPoliticsTests.cs:1637・:1712・:1740・:1809（〈不可逆に塞がれていないのは ShorterHours と ChildLabor〉の盤面＝旗 1 で塞がれない軸が増えうる＝赤なら新しい規則の式で書き換える候補）
+  AiFirstWaveTests.cs:315・:415（規則で畳む段＝不可逆を含む＝赤なら書き換え候補）
+  PlayTextTests.cs:36〜68（文言の整形だけ＝不要）
+  RevoltIgnitionTests.cs:339・:350（窓の書き手＝残す＝不要）・:1236・:1415（注だけ）
+  StartWarmupTests.cs:264（ChildLaborLegal の初期値の表示＝助走の軌道＝赤なら記録へ）
+- 赤になった番人は線の中で新しい規則の機構の試験へ書き換え、書き換えを外す突然変異で赤を確かめる。一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて直す。
+
+■ 単体の機構の試験 ProtectedLawReversalTests（新しい・盤面を試験の中で置く・旗は盤面で置く）
+- T1：選挙権の段 2（AdultMale）の国が Census を目標にし、政治のロックを外した盤面（費用 0＝普通の費用を払える）・平時・窓 0 で Government.Step を 1 回＝旗 1 で Census へ 1 段下がる／旗 0 で動かない。GateInfo の Ok も同じ向き。AI の篩 UtilityAgent.GateAllLawTargets も旗 1 で目標を残す（対称）。
+- T2：農奴解放（Full→None）と土地改革の後退は、旗 0 と 1 のどちらでも戻らない（BlockedByIrreversibility が真・Step の後も Full）。
+- T3：児童労働が合法へ戻った（ChildLaborAllowed＝真・合法度 0）平時・窓 0 の国で 1 四半期回す＝旗 1 で合法度が Toward で 0 より上へ／旗 0 で 0 のまま。
+- T4：守られていない軸（最低賃金法・検閲）の BlockedByIrreversibility と ReversalCostMul は旗 0 と 1 で同じ（偽・1.0）。
+- T5：盤面で IrreversibleLaws＝0.5 を置くと、選挙権の後退の ReversalCostMul は旗 0 で 2.0・旗 1 で 1.0。
+- 旗 0 で赤：T1・T3・T5（旗を 0 にして同じ Assert を書いた組の試験は緑のまま＝旧の規則の記述）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木・旗 1 の木で回す）
+| μ | 書き換え | 赤になる試験 |
+| μ1 | BlockedByIrreversibility の旗の行を消す（旧のまま） | T1 |
+| μ2 | L07 の行（農奴解放・土地改革）も旗 1 で外す | T2 |
+| μ3 | Simulation.cs:1720 の旗の項を消す（旧のまま） | T3 |
+| μ4 | ReversalCostMul の旗の項を消す（旧のまま） | T5 |
+- μ4 は今の盤面（IrreversibleLaws＝1.0）では軌道が変わらない＝腕 B では〈働いていない項〉。採否の理由にしない（記録）。
+
+
+■ 門（〈作者 2026-11-16 の決まり〉①・1 回目と同じ。G5 の量だけ政体が同じ四半期に絞った）
+G1 止める線：破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）・1 四半期に 100 倍以上（価格水準・名目 GDP・建国の直後＝系列の最初の 4 四半期と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる）・1e10 倍以上・空洞化。
+  空洞化の判定の基準（この回の止める線の形をそのまま写す）：空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で線を止めない）。
+G2 計算量：推定 ≦248.5 秒。割り当て＝1 回目の実測 +4.4 秒（腕 B 230.0・軌道の分かれ〈推〉）。S11 の基準 230.9＋4.4≒235.3＜248.5。2 秒以下の割り当ては 1 本の腕で門にしない＝記録（合流の累計で読む）。
+G3 単体の機構の試験：T1〜T5 緑（旗 1 の木）・旗 0 で T1・T3・T5 赤・μ1〜μ4 がそれぞれ下の表の試験で赤。書き換えた GenderTests の番人も μ1 で赤。
+G4 機構のテストの赤（走査の番人を含む）。
+G5 史実の桁の線（錨・10 倍）：
+  量＝守られた法の後退の件数のうち、政体コードが前の四半期と同じ四半期の物（6 大国＝英・仏・普・露・墺・米・1783〜1950・monlaw_s の段の変化を lr_count.py で数える・10 種の中央・列 sixSame）。
+  錨＝10 件（1 回目と同じ・国の単位の守られた法の後退・〈推〉の幅 9〜15・内訳は 1 回目の事前登録 m1344_20261124_prereg_lr.txt の G5）。
+  判定：10 種の中央が [1, 100]（錨の 1/10〜10 倍）の外なら NG。0 件も外に数える。
+  紙の台本（旗 0＝keep_1341/base_ins）：sixSame の中央 3.5（種 1〜10＝3,3,4,5,4,4,3,2,5,3）＝内。N1 5.0・N2 4.0（記録）。旗 0 でもこの門は通る＝〈壊さない〉門・働きの門ではない。
+  紙の台本（旗 1 の写し＝keep_1348_rej/aL_lrOnly＝合流 (1348) の単独の A_lr の M・線の 1 回目の腕 B と全行バイト一致）：sixSame の中央 6.5（7,6,8,9,6,11,3,6,8,5）＝内・sixTotal の中央 22.5（1 回目の腕 B と同じ）。
+  旗 0 で門が落ちることの確かめ：G5 は旗 0 でも内（〈壊さない〉門）＝旗 0 で落ちる門は G3（T1・T3・T5）だけ。
+
+■ 予言（腕の前）
+- SimCore の式は m1341 と同じ・器と旗 1 のコードは 1 回目と同じ＝腕 B の成績表は 1 回目の腕 B（measurements/b10_20261124_c141lrB_ins・木 e79a64a1d）と全行一致（SOURCE-HASH の行を除く）〈推〉。違えば理由を書く。
+- 腕 Z（旗 0・ident 段 2）＝〈判定: 恒等〉（--added-tables lrlock・--tests-delta は ProtectedLawReversalTests の件数）。
+- 空洞化：1/10 未満 0〈推〉（aL_lrOnly で 0）。1/4 未満は aL_lrOnly で 4 件（移民 3・その他 1）。
+- バーミンガム（bham.py・最小÷ピーク・種 1〜10）：基線 0.559,0.608,0.487,0.200,0.501,0.453,0.380,0.394,0.506,0.171（種 4・10 は元から 1/4 未満）／N1 最小 0.246／N2 最小 0.247／aL_lrOnly 0.281,0.707,0.692,0.108,0.499,0.479,0.389,0.303,0.384,0.347（種 4 が 0.108）／合わせた木 mM_wdlr の種 8 が 0.095。
+  ＝腕 B の種 4 は 1/10 に近い。1/10 未満に落ちても、基線の同じ種 4 が 0.200（1/4 未満）＝〈元からの弱さ〉の規則に当たる（結果を見る前にここへ書く）。
+- 英の不履行 1/10（1 回目と同じ）〈推〉。
+
+■ 狙いどおり働いたかの観測量（記録・腕の前に予言）
+- 新しい計器の表 lrlock_s（列：quarter・year・nationUid・nation・ruptureWindowQuarters・atWarFlag〔計器が w.Diplomacy から自分で導く〕・childLaborAllowedFlag・childLaborLegalShare）。エンジンの関数を呼ばない・旗 0 で軌道は 1 ビットも変えない（腕 Z で〈判定: 恒等〉・--added-tables lrlock）。
+- 読み手 lr_count.py：monlaw_s の後退の行を lrlock_s の窓（前の四半期か今の四半期が >0）と戦時で分け、〈旧の規則なら塞がれた後退〉（窓 0・時短と児童労働は平時）を数える。
+  予言：旗 0（腕 Z の生）＝政体の変わり目などの迂回の経路の分だけ（少ない）・旗 1（腕 B）＝それより多い。記録（符号だけの門は置かない・働きは G3 で示す）。
+- 児童労働の合法度：旗 1 で平時に ChildLaborAllowed＝真なのに合法度 0 のまま続く国×四半期が減る〈予言・記録〉。
+- 旗 1 の出力が旗 0 と違う行の数は記録に書く。
+
+■ 記録（採否に使わない）
+- 軸ごとの後退の件数（全ての国と 6 大国）・後退の年の一覧（6 大国）。
+- 議会の側：crownpc_s・parlseat_s（表を絞るので腕 B で取れれば）。
+- 英の不履行（ukdef975.py）・名目 GDP 0 の続き（gdp_zero10.py）・nullgate（記録）・NG（ng.sh・基準 ng1341_20261124）・開幕の 1000 倍以上・home_break。
+
+
+■ この回の ㉘ と ㉜ の点検（main b8cdd3795 で grep）
+- 現物の行：Government.cs:290・:394・:397（呼び手）・:457〜:465 BlockedByIrreversibility（:461 の L07 は残す）・:468 ProtectedLaw・:475〜:480 ReversalCostMul・:495〜:497 StepLevel・SelfPlay.cs:229・Simulation.cs:1720・Coefficients.p06_rank_discovery.cs:32 IrreversibleLaws 1.0。1 回目と同じ行。
+- 工業化度の読み手の許可表：触る行に工業化度の読みは無い。
+- new MoneyStock( の件数：SimCore で 66＝変えない。
+- route_anchors.tsv：Government.cs・SelfPlay.cs・Simulation.cs:17xx の鍵は 0 件。
+- WriterRatchetTests・DormantIdentityTests：触る名の行は 0 件。器で DormantZeroFields に旗の 1 行を足し、旗 1 のコミットで外す。
+- 走査の番人の件数の予言（㉑）：WriterRatchetTests の宣言の表の書き換え 0。InstrumentsTests の表の一覧は 1 回目のまま（lrlock_s の 1 表）。
+- ㉜ 旧の規則を固定しうる試験（grep：IrreversibleLaws・ProtectedLaw・BlockedByIrreversibility・ReversalCostMul・RuptureWindow・不可逆・後退不能・ChildLaborLegal・梯子を降りない）：AiFirstWaveTests・GenderTests・InstrumentsTests・Lawgate2InstrumentTests・MinimumWageAiFloorTests・PlayTextTests・PolicyPoliticsTests・RevoltIgnitionTests・StartWarmupTests（1 回目と同じ 9 本）。
+  1 回目で赤になったのは GenderTests.女性の権利は梯子を降りない（書き換え済み 875508586 を運ぶ）と、一覧の外の RuleSharesFormTests.D6（試験のバグ・8a7e1452a を運ぶ）だけ。旗 1 の木の絞った試験で他の赤が出たら、㉜ の改めの区分で読む。
+
+■ 他の線との重なり（この回）
+- c142ds：Territory.cs・MultiNationSim.cs:1395〜:1445・p03:92・Instruments/InstrumentsMigcap.cs＝この線の行と重ならない。c142ik：MultiNationSim.cs:153・BilateralMarket.cs:916・InstrumentsFemp.cs＝重ならない。
+- Instruments.cs（Sink の宣言・畳みの呼び出し・Dispose の 3 行）・DormantIdentityTests.cs（1 行）は全ての線が自分の行だけを触る（合流で解く）。
+
+■ 手順（この回）
+事前登録（このコミット）→ 器（旗 0・cherry-pick b65e7c32e）→ ㉘ の束 → 腕 Z（ident 段 2・--work D:/PoB_work/ident_c142lr・--added-tables lrlock）→ 突然変異（μ1〜μ4・F0）→ 旗 1（cherry-pick 2d1e92c12・875508586・8a7e1452a＋GenderTests の旗の明示）→ 絞った試験（narrow_lr.sh）→ 腕 B（計器つき 10 種・表を絞る 14 本＝armb.sh）→ 単独の S11（空きがある時だけ）→ フルスイート（腕 B の後・腕 B のコミットの木）。
+形の変え直しは 1 回だけ。旗 1 の出力を見た後のエンジンの変更は全て〈形の変え直し〉に数える。

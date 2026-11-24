@@ -322,9 +322,11 @@ public class RuleSharesFormTests
             var w = sim.World;
             foreach (var r in w.Regions) r.Rule = [reach, 1.0 - reach, 0.0, 0.0];
             w.WomenRights = WomenRightsLaw.Property;
+            w.Policy.WomenRights = WomenRightsLaw.Property;   // (1344) 盤面の置き忘れの直し：目標も財産権に置く（旧は法の不可逆が段を保っていた＝目標が下にあると後退が通る）
             w.WomenWageRetention = 0.0;
             // ★(408)(419) 追従の速さ∝R0×充足。充足 AdminFill は月次で動く＝1 日ごとに全州を 1 に置き直して 1 四半期（月次の追従 3 回）を踏む（充足が満額の式の literal）
             for (int d = 0; d < Calendar.DaysPerQuarter; d++) { foreach (var r in w.Regions) r.AdminFill = 1.0; sim.StepDay(); }
+            Assert.Equal(WomenRightsLaw.Property, w.WomenRights);   // (1344) 前提：1 四半期の間、法は財産権の段のまま（追従の目標 1 の盤面）
             Assert.Equal(want, w.WomenWageRetention, 9);
         }
     }

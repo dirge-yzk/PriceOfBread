@@ -1,0 +1,5 @@
+# M3（52a966438）
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T3_児童労働の再合法化は旗1で平時もTowardで進む(flag: 1) [490 ms]
+テストの合計数: 34
+     成功: 33
+     失敗: 1
