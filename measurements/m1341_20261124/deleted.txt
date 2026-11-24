@@ -3,3 +3,7 @@
 - D:/PoB_work/ident_m1341z（合流の腕 Z の ident 段 2 の生・刈った後の 130 本・keepsum measurements/m1341_20261124/keepsum_ident_m1341z_left.tsv）2026-11-24 15:38:04
 - D:/PoB_work/m1341_work/out_mM_10（合わせた木 hf＋sp の旗 1 の腕 mM・M で空洞化 1/10 未満〈線が原因〉1 件＝採らない組・門が読む表 10 種を D:/PoB_work/keep_1341_rej/mM_hfsp へ移し残りを消した・keepsum measurements/m1341_20261124/keepsum_rej_mM_hfsp.tsv）2026-11-24 16:09:56
 - D:/PoB_work/m1341_work/out_mS11_10_s11（合わせた木 hf＋sp の旗 1 の腕 mS11・M で空洞化 1/10 未満〈線が原因〉1 件＝採らない組・門が読む表 10 種を D:/PoB_work/keep_1341_rej/mS11_hfsp へ移し残りを消した・keepsum measurements/m1341_20261124/keepsum_rej_mS11_hfsp.tsv）2026-11-24 16:10:44
+- D:/PoB_work/keep_1334_rej（k49B・読む線 c140gs が読んだ＝合流が台本と表を scripts/instruments/r1339/・measurements/m1339_20261124/ へ写した後・指示の許し・keepsum measurements/m1341_20261124/keepsum_keep1334rej_k49B.tsv）2026-11-24 16:11:41
+- D:/PoB_work/c140hf_work/armB/out_c140hfB_10（線 hf の腕 B の生・合流の A_hf〔全表〕の成績表が全行バイト一致＝同じ軌道・keepsum measurements/m1341_20261124/keepsum_c140hfB.tsv）2026-11-24 16:36:04
+- 移した：D:/PoB_work/c140sp_work/B/out_c140spB_10 → D:/PoB_work/keep_1341_rej/c140spB（採らなかった線 sp の腕 B の生）2026-11-24 16:36:04
+- 移した：D:/PoB_work/m1341_work/out_aS_10 → D:/PoB_work/keep_1341_rej/aS_spOnly（アブレーション A_sp の生・門の表 10 種）2026-11-24 16:36:04

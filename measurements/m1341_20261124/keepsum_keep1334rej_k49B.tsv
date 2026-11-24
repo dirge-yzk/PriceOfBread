@@ -1,0 +1,11 @@
+# keepsum (728)	D:/PoB_work/keep_1334_rej/k49B	ファイル 9 本・合計 190719 バイト
+name	sha256	bytes	newlines	header
+b10_c139k49B_10.txt	ef2c04ae0a25d38831ed0d476bcdc0f58e93ac856a71d036072eac9153890dbb	22852	183	=== バッチ自己対戦 seeds 1..10（各668四半期）===
+b10_c139k49B_10.txt.cost	613bbb1f02971385d552593f69655e2df5d6145e2cb588e403e9564a4e4b73ab	6987	66	# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+b10_c139k49B_10.txt.manifest	3dee977d9a08a3a565e3f963294ce260084ba2a6d3c883e382562596bfcad30a	80128	720	SOURCE-HASH: ebc7403fbb2ca8c9
+fid_c139k49B_10.tsv	d4ee0498d138313d856409d58098f2adec77ccd336c19a1ed337e29086c4d6c7	410	11	#条件	seeds=1..10・四半期=668・上書き=なし	SOURCE-HASH=ebc7403fbb2ca8c9
+mon_c139k49B_10.txt	1c3bbdd6c2739c064e3413bdb1d9a6cf741b50253b5a6d411aa43cddde89af2f	78104	558	MONHEAD	読み手 an_mon.py (651+660)・タグ=c139k49B_10・入力=out_c139k49B_10/ins・種=1,2,3,4,5,6,7,8,9,10
+ms_c139k49B_10.log	a766e4db5eb23ef65e1e637c57eb6ab79248935de31a8647ee9c90aff18f24cc	1495	14	START 06:01:27 selfplay-batch N=10 SRC=D:/PoB_work/c139k49_work/armB/src_c139k49B
+prep_B.txt	625a3aa15d28064459957806c236a24ed104320aac3cabf75b755b0806fee95d	51	1	PREPDONE c139k49B dir:/d/PoB_work/wt_c139k49 plain
+read_B.log	26b17ab3944a20ecc665bebbfc6bd2f7ef899041764ebc89b425a8e133da133c	129	12	popjump rc=0
+run_B.txt	5354e790d1dd43f28a739344737a1a03433d30a3cf1b3160133ae6c9abf60b02	563	7	ARMS 取得 c139k49B（上限 6）
