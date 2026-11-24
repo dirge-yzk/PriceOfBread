@@ -1,0 +1,6 @@
+# (1345) suite 木=D:/PoB_work/wt_c141cn HEAD=460ed36f2 2026-11-24
+list-tests Tests(Category!=FullLength)=2947 Tests.Ui=232 和=3179 FullLength=3（ident の t 腕・基準 3176+3）
+Tests(Category!=FullLength) 成功!   -失敗:     0、合格:  2945、スキップ:     2、合計:  2947、期間: 1 h 37 m - PriceOfBread.Tests.d
+Tests.Ui 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 2 m 1 s - PriceOfBread.Tests.Ui
+FullLength 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 9 m 59 s - PriceOfBread.Tests.d
+㉘ の束（CoercionNowTests・IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests・PolicyPoliticsTests）成功!   -失敗:     0、合格:   230、スキップ:     0、合計:   230、期間: 18 m 32 s - PriceOfBread.Tests.
