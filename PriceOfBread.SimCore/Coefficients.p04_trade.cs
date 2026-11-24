@@ -9,7 +9,6 @@ public sealed partial class Coefficients
 
     // --- 資本・建設（§2.4 拡張：地域集約の「工業化度」。投資＝機械・セメントを消費して積む）---
     public double IndDepreciation = 0.003;        // 工業資本の減価率
-    public double DevelopmentMemory = 0.4;   // 点火2026-09-06＝0.0→0.4・〔4-5〕開発度の記憶
     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）
     public Share DepressionScrapThreshold = new(0.20);  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
     public double LandedPowerCapitalization = 8000;   // 土地は政治力ではあるが流動的な購買力ではない

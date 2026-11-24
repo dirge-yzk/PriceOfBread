@@ -670,7 +670,6 @@ public sealed class Region
     public double SeizureChill;
     public double Mechanization;
     public double OldVintageCapital;
-    public double DevelopmentPeak;
     public double StrandedVintage;
     public double TotalIndustrialization => Industrialization + OldVintageCapital;
     public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
