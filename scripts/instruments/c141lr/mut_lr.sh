@@ -5,7 +5,7 @@
 REV=${1:?}; OUT=${2:?}; R=D:/PoB_work/wt_c141lr; W=D:/PoB_work/c141lr_work/mut
 export TEMP=D:/PoB_work/c141lr_work/tmp TMP=D:/PoB_work/c141lr_work/tmp DOTNET_CLI_TELEMETRY_OPTOUT=1
 mkdir -p $OUT $TEMP
-for MU in M0 M1 M2 M3 M4; do
+for MU in ${MUS:-M0 M1 M2 M3 M4}; do
   T=$W/$MU; rm -rf $T; mkdir -p $T
   git -C $R archive $REV PriceOfBread.SimCore PriceOfBread.Tests | tar -x -C $T || { echo ARCHFAIL; exit 1; }
   python -I - "$T/PriceOfBread.SimCore" $MU <<'PY'
@@ -32,7 +32,7 @@ if mu == 'M2':
 open(p, 'wb').write(b); print('mutated', mu)
 PY
   dotnet build $T/PriceOfBread.Tests -c Release --artifacts-path $T/art -v q -nologo > $OUT/build_$MU.txt 2>&1 || { echo "BUILDFAIL $MU" | tee $OUT/mut_$MU.txt; continue; }
-  dotnet test $T/PriceOfBread.Tests -c Release --artifacts-path $T/art --no-build --filter "FullyQualifiedName~ProtectedLawReversalTests" --logger "console;verbosity=normal" > $OUT/raw_$MU.txt 2>&1
+  dotnet test $T/PriceOfBread.Tests -c Release --artifacts-path $T/art --no-build --filter "${FILT:-FullyQualifiedName~ProtectedLawReversalTests}" --logger "console;verbosity=normal" > $OUT/raw_$MU.txt 2>&1
   { echo "# $MU（$REV）"; grep -E "^\s+(失敗|Failed) |合計:|Total" $OUT/raw_$MU.txt; } > $OUT/mut_$MU.txt
   rm -rf $T
 done
