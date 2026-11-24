@@ -1,0 +1,2 @@
+# M2（e042ab55d）
+  失敗 PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない [6 s]

@@ -1,0 +1,3 @@
+# M3（e042ab55d）
+  失敗 PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない [5 s]
+  失敗 PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ [415 ms]

@@ -93,3 +93,8 @@
  1 この事前登録 → 2 器（旗 0・StayValue・試験 T1〜T4）→ ㉘（scan_hf.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c140hfz --work D:/PoB_work/ident_c140hf --tests-delta 4）
  → 4 突然変異（mut_hf.sh）→ 5 旗 1 → 絞った試験（㉜ の改め：差分の名を Tests/ で grep したクラス＋㉘ の束＋savetest・leakhunt）→ 6 腕 B（armb.sh・計器つき 10 種・表を絞る）→ 門 → フルスイート（腕 B の後）→ 印 D:/PoB_work/c140hf_work/hf.mark。
  形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記（2026-11-24・腕 Z の後・腕 B の前・門の数は変えない）
+ 腕 Z（ident c140hfz 段 2・器 e042ab55d・木の HEAD ac8337931〔台本だけの差〕）〈判定: 恒等〉（測った種で一致）：素 5 種 推定 232.6 秒・計器つき 10 種 推定 228.5 秒・表 1725＝バイト一致 1685＋既知の揺れ 40・NG 88 新 0 外れ 0・テスト 3181（3177＋4）・FullLength 3・savetest・leakhunt 緑（measurements/ident_20261124_c140hfz.txt）。
+ 突然変異（measurements/m1335_20261124/mut/mut_M*.txt・HungerFlightTests＋TerritoryTests＋ConservationTests）：表どおり。M0 T1・T4 赤／M1 T1・T3・T4 赤＋ConservationTests〈国家間移民の流出は行き先の数によらず上限を1回だけ〉赤（表に無い余分の赤＝越境の送出が食の項を失う）／M2 T3 赤／M3 T3 赤＋同じ ConservationTests 赤。
+ ㉘ 走査の番人＋この線の試験（器 e042ab55d）205 件 緑（measurements/m1335_20261124/scan/scan_e042ab55d.txt）。

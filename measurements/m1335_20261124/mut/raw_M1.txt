@@ -1,0 +1,110 @@
+D:\PoB_work\c140hf_work\mut\M1\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.88]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.53]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.58]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:02.02]     PriceOfBread.Tests.HungerFlightTests.T1_飢えた州から隣へ人が出る_旗0では出ない [FAIL]
+[xUnit.net 00:00:02.02]       飢えた州（食の充足 0.3・持ち分 1.202）から人が出ない（0）
+[xUnit.net 00:00:02.02]       Stack Trace:
+[xUnit.net 00:00:02.03]         D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\HungerFlightTests.cs(46,0): at PriceOfBread.Tests.HungerFlightTests.T1_飢えた州から隣へ人が出る_旗0では出ない()
+[xUnit.net 00:00:02.03]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:02.03]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:02.03]     PriceOfBread.Tests.HungerFlightTests.T4_移す前後で総人口が同じ [FAIL]
+[xUnit.net 00:00:02.03]       前提が崩れた：12 か月で辺境へ人が移っていない
+[xUnit.net 00:00:02.03]       Stack Trace:
+[xUnit.net 00:00:02.03]         D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\HungerFlightTests.cs(158,0): at PriceOfBread.Tests.HungerFlightTests.T4_移す前後で総人口が同じ()
+[xUnit.net 00:00:02.03]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:02.03]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.ConservationTests.港の混雑を解くのに要る建設費は手で打った数と一致する [146 ms]
+  失敗 PriceOfBread.Tests.HungerFlightTests.T1_飢えた州から隣へ人が出る_旗0では出ない [374 ms]
+  エラー メッセージ:
+   飢えた州（食の充足 0.3・持ち分 1.202）から人が出ない（0）
+  スタック トレース:
+     at PriceOfBread.Tests.HungerFlightTests.T1_飢えた州から隣へ人が出る_旗0では出ない() in D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\HungerFlightTests.cs:line 46
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.HungerFlightTests.T2_食の充足が1なら旗0と同じ流れ [8 ms]
+  失敗 PriceOfBread.Tests.HungerFlightTests.T4_移す前後で総人口が同じ [< 1 ms]
+  エラー メッセージ:
+   前提が崩れた：12 か月で辺境へ人が移っていない
+  スタック トレース:
+     at PriceOfBread.Tests.HungerFlightTests.T4_移す前後で総人口が同じ() in D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\HungerFlightTests.cs:line 158
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.TerritoryTests.地域間移民でも人口と基礎貨幣は保存される [821 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.小さな州への流入は受け入れの上限を超えない_超えた分は出る州に残る [< 1 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.州の不穏は平民の民間人の闘争度だけで兵と貴族を含まない [2 s]
+  成功 PriceOfBread.Tests.TerritoryTests.移民だけでは州は空にならない_流出は残る人の土地の持ち分で止まる [11 ms]
+  成功 PriceOfBread.Tests.ConservationTests.J006の吸収で住民は同名の州へ入る [3 s]
+  成功 PriceOfBread.Tests.ConservationTests.払い手の重みは自分の請求で払い手ごとに自分の貯蓄まで [94 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.再併合の返還州は親の中で一意のIdを受ける [1 s]
+  成功 PriceOfBread.Tests.ConservationTests.国家間移民の段の前後で世界の総人口と基礎貨幣は変わらない [1 s]
+  成功 PriceOfBread.Tests.TerritoryTests.辺境へ移民が流入する [351 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.首都を失った国は遷都し距離の基準の座標も新しい首都へ移る [29 ms]
+[xUnit.net 00:00:07.41]     PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない [FAIL]
+[xUnit.net 00:00:07.41]       StayValue 0.7833310767891198 が機会×持ち分×食の充足 0.23499932303673593 と違う
+[xUnit.net 00:00:07.41]       Stack Trace:
+[xUnit.net 00:00:07.41]         D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\HungerFlightTests.cs(141,0): at PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない()
+[xUnit.net 00:00:07.41]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:07.41]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない [5 s]
+  エラー メッセージ:
+   StayValue 0.7833310767891198 が機会×持ち分×食の充足 0.23499932303673593 と違う
+  スタック トレース:
+     at PriceOfBread.Tests.HungerFlightTests.T3_越境の送出はStayValueと同じ値で旗に依らない() in D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\HungerFlightTests.cs:line 141
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.ConservationTests.国家間移民の持参金は送出POPの1人あたり貯蓄と人数の積 [1 s]
+  成功 PriceOfBread.Tests.ConservationTests.債務は割譲と越境移民で債務者について行く [90 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.国を除いた四半期も交易の接触は正しい国に付く [1 s]
+  成功 PriceOfBread.Tests.TerritoryTests.同一シードで辺境開発は決定論的 [230 ms]
+  成功 PriceOfBread.Tests.TerritoryTests.入口の形_遠い行き先は差が負になり1人も行かない [40 ms]
+  成功 PriceOfBread.Tests.ConservationTests.家計の与信は国ごとにPOPの債務の和に等しい [58 s]
+  成功 PriceOfBread.Tests.ConservationTests.世界の総人口は出生と死亡と戦死でしか動かない [3 ms]
+  成功 PriceOfBread.Tests.ConservationTests.世界の外の側の台帳は与信と不換と鋳造へ動いた額を書く [6 ms]
+  成功 PriceOfBread.Tests.ConservationTests.港と運河の建設の工賃は労働の持分へ届く [256 ms]
+  成功 PriceOfBread.Tests.ConservationTests.州間の移住のお金の運搬はストック掛ける人数の比 [3 ms]
+  成功 PriceOfBread.Tests.ConservationTests.国を名乗らないPOPの側は移し方の1本が止める [10 ms]
+  成功 PriceOfBread.Tests.ConservationTests.世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない [7 m 53 s]
+  成功 PriceOfBread.Tests.ConservationTests.移民の負の持参金は移民に付いて行く [409 ms]
+  成功 PriceOfBread.Tests.ConservationTests.多国の走行で保存量Dが動かない [31 s]
+  成功 PriceOfBread.Tests.ConservationTests.越境の出る側は残る人の持ち分で止まり規模の床を持たない [662 ms]
+  成功 PriceOfBread.Tests.ConservationTests.国家の港建設は裁量余剰の予算の額だけ払い支払い率を掛ける [123 ms]
+  成功 PriceOfBread.Tests.ConservationTests.国家間移民は受入国の全ての州へ着き州ごとの上限を超えない [291 ms]
+  成功 PriceOfBread.Tests.ConservationTests.世界の総人口は全長でも出生と死亡と戦死でしか動かない [< 1 ms]
+  成功 PriceOfBread.Tests.ConservationTests.輸送の容量は割譲と建国で州と一緒に移る [12 ms]
+  成功 PriceOfBread.Tests.ConservationTests.国家間移民の受入は上限以下_閉鎖は開放の2割以下 [2 s]
+[xUnit.net 00:09:37.54]     PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ [FAIL]
+[xUnit.net 00:09:37.54]       上限に届いた POP が1つも無い（最大 20.0 %）＝上限の番人が何も検査していない
+[xUnit.net 00:09:37.54]       Stack Trace:
+[xUnit.net 00:09:37.54]         D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\ConservationTests.cs(394,0): at PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ()
+[xUnit.net 00:09:37.54]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:09:37.54]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:09:37.54]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.ConservationTests.国家間移民は差が0以下の国へは1人も行かない [381 ms]
+  失敗 PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ [326 ms]
+  エラー メッセージ:
+   上限に届いた POP が1つも無い（最大 20.0 %）＝上限の番人が何も検査していない
+  スタック トレース:
+     at PriceOfBread.Tests.ConservationTests.国家間移民の流出は行き先の数によらず上限を1回だけ() in D:\PoB_work\c140hf_work\mut\M1\PriceOfBread.Tests\ConservationTests.cs:line 394
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.ConservationTests.招聘の支度金は呼ばれた本人へ人数の比で渡る [525 ms]
+[xUnit.net 00:09:38.56]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.ConservationTests.国家の港建設の請求は四半期の締め月の請求に入る [401 ms]
+  成功 PriceOfBread.Tests.ConservationTests.按分の本体は符号つきで微小な額も配り切る [2 ms]
+  成功 PriceOfBread.Tests.ConservationTests.恐怖政治の没収は失脚した層から大衆へ同じ額で移る [4 ms]
+  成功 PriceOfBread.Tests.ConservationTests.世界の基礎貨幣は鋳造と不換発行でしか動かない [< 1 ms]
+  成功 PriceOfBread.Tests.ConservationTests.割譲の州の貯蓄と債務は受け手の通貨へ換算され差は換算の台帳へ入る [8 ms]
+  成功 PriceOfBread.Tests.ConservationTests.越境の持参金と債務は受入国の通貨へ換算され差は換算の台帳へ入る [54 ms]
+  成功 PriceOfBread.Tests.ConservationTests.家計の与信は全長でも国ごとにPOPの債務の和に等しい [< 1 ms]
+  成功 PriceOfBread.Tests.ConservationTests.人と動くお金は送り手と受け手を同じ額で書く [< 1 ms]
+  成功 PriceOfBread.Tests.ConservationTests.移し方の1本は動いた額を両側に書き受け手不在なら動かさない [6 ms]
+
+テストの実行に失敗しました。
+テストの合計数: 47
+     成功: 43
+     失敗: 4
+合計時間: 9.6837 分
