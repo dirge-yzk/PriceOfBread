@@ -4,3 +4,5 @@
 - 移した：D:/PoB_work/c139k49_work/armB → D:/PoB_work/keep_1334_rej/k49B（採らなかった線の腕 B の生 3.2GB）
 - D:/PoB_work/ident_m1334z（合流の腕 Z の ident 段 2 の生・刈った後の 120 本・keepsum measurements/m1334_20261124/keepsum_ident_m1334z_left.tsv）2026-11-24 07:56:57
 - D:/PoB_work/m1334_work/out_mN1_10（合流の N1 の 1 回目の生・M の空きのため・keepsum measurements/m1334_20261124/keepsum_mN1_first.tsv・push の後に回し直して keep_1334/n1 にする）2026-11-24 08:20:24
+- push（main 782a1a18b＝ident.cfg を m1334 へ）の後に消した（INSRAW でも KEEPNULL でもなくなった古い keep・指示の許し）：D:/PoB_work/keep_1321_rej（k49B・keepsum_keep1321rej_k49B.tsv）・D:/PoB_work/keep_1328_rej（aS11A・mM・mS11・mp5・ssB・keepsum_keep1328rej_*.tsv）・D:/PoB_work/keep_1328（base_ins・a11・n1・n2・keepsum は measurements/m1328_20261123/keepsum_insraw1328.tsv・keepsum_a11_1328.tsv・keepsum_n1_1328.tsv・keepsum_n2_1328.tsv）。空き 18.8GB→107.6GB。2026-11-24 09:12:26
+- 線の作業フォルダ D:/PoB_work/c139sm_work・c139sl_work・c139nc_work（腕 B の生〔門と止める線が読む表だけ・nc は採った＝M と全行一致〕と identz_raw）・c139k49_work（印だけ・腕 B の生は keep_1334_rej/k49B）・設計の材料の作業フォルダ r1333_work（docs・scripts/instruments/r1333・measurements/m1333_20261124 へ写した後）と線の worktree 4 本（未コミット 0 を確かめた後）・wt_m1334z。2026-11-24 09:48:41

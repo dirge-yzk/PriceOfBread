@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1334\scripts\instruments\hol\an_h2.py", line 46, in <module>
+    for gf in sorted([f for f in os.listdir(d) if f.startswith('region_s') and f.endswith('.tsv')], key=lambda f: int(f[len('region_s'):-4])):
+                                 ^^^^^^^^^^^^^
+FileNotFoundError: [WinError 3] 指定されたパスが見つかりません。: 'D:/PoB_work/keep_1328/base_ins'

@@ -1,0 +1,11 @@
+# keepsum (728)	D:/PoB_work/keep_1328_rej/ssB	ファイル 9 本・合計 190124 バイト
+name	sha256	bytes	newlines	header
+b10_c138ssB_10.txt	c4ce64e76db3f1418a6577cffda016e852a92159d6ac7197f5147a9e8b27b365	22658	180	=== バッチ自己対戦 seeds 1..10（各668四半期）===
+b10_c138ssB_10.txt.cost	821566327d3cf328f614b59fffd5615434e1f4e7b151af2731da4c2c9ee7178d	6990	66	# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+b10_c138ssB_10.txt.manifest	b651152a660531c5c0f0bd99e1ba261044eef03310ef9e4635b72e1be22d1c00	79774	717	SOURCE-HASH: 6f06f0f4d8668798
+fid_c138ssB_10.tsv	757e9de668261af6d228f03cbe3c7bbdc6bf7abc91cb2f5d43b42162ee5172e2	426	11	#条件	seeds=1..10・四半期=668・上書き=なし	SOURCE-HASH=6f06f0f4d8668798
+mon_c138ssB_10.txt	2592dd06fb9ed83484de95fca2b50ede14ec08c581c06d83d2497a8e620a9ffb	77904	553	MONHEAD	読み手 an_mon.py (651+660)・タグ=c138ssB_10・入力=out_c138ssB_10/ins・種=1,2,3,4,5,6,7,8,9,10
+ms_c138ssB_10.log	85f9023ec0b4239615695a9c6d8723efde95a49c84f9aa43bf93159cb0c199b0	1483	14	START 21:31:05 selfplay-batch N=10 SRC=D:/PoB_work/c138ss_work/armB/src_c138ssB
+prep_B.txt	5f13facc2429727f9bdd5e081762b7f8c2f70faa0e9332ddd52c5aa6d7b8b038	49	1	PREPDONE c138ssB dir:/d/PoB_work/wt_c138ss plain
+read_B.log	6dc346310f4c5abfe571109e6a59183386496bc1c8bb9bf02d499f0ab858f3e1	281	22	popjump rc=0
+run_B.txt	75549f92fc5c8b1b08dfc4f7ee8c09a4aed59113e4be724d3087b4fa134c791e	559	7	ARMS 取得 c138ssB（上限 6）

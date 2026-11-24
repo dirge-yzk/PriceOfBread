@@ -1,0 +1,14 @@
+seed	rows	G1	G2	G3	picks	picksCivil	core	intCeded	intOwn	colonial	diffOld	otherChange	maxSovColCap
+1	41846	0	0	0	18	15	7	4	0	7	2	14	0
+2	40822	0	0	0	19	19	14	4	1	0	9	19	0
+3	41560	0	0	0	18	17	17	1	0	0	1	16	0
+4	40777	0	0	0	11	8	10	1	0	0	3	9	0
+5	41622	0	0	0	25	21	23	2	0	0	9	21	0
+6	41503	0	0	0	14	10	12	0	0	2	2	7	1
+7	40833	0	0	0	7	6	7	0	0	0	1	7	0
+8	41164	0	0	0	5	5	2	3	0	0	0	5	0
+9	40781	0	0	0	14	10	11	3	0	0	2	12	0
+10	41307	0	0	0	8	5	8	0	0	0	2	6	0
+計	G1=0	G2=0	G3=0	picks=139（内戦の四半期 116）	格の内訳 Core=111・Integrated 割譲=18・Integrated 故地/昇格=1・植民地格=9	diffOld=31	otherChange=116	maxSovColCap 種の中央=0・最大=1	欠けた種=0
+G1 の国：
+門：G1 緑・G2 緑・G3 緑

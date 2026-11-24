@@ -1,0 +1,6 @@
+arm	種 10	内戦 135	長さの中央 9.0 か月	死者の和 667 千人
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1334\scripts\instruments\m1321\cwcount.py", line 7, in <module>
+    for f in sorted(os.listdir(d)):
+                    ^^^^^^^^^^^^^
+FileNotFoundError: [WinError 3] 指定されたパスが見つかりません。: 'D:/PoB_work/keep_1328/base_ins'

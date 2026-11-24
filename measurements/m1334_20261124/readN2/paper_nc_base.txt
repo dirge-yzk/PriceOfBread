@@ -1,0 +1,12 @@
+seed	capIntCore_peace	capIntCore_civil	capColHome_peace	capColHome_civil	picks	pickIntCore	pickIntCore_civil	maxSovColCap	nations(capIntCore)	ukCaps
+1	(region_s が無い)
+2	(region_s が無い)
+3	(region_s が無い)
+4	(region_s が無い)
+5	(region_s が無い)
+6	(region_s が無い)
+7	(region_s が無い)
+8	(region_s が無い)
+9	(region_s が無い)
+10	(region_s が無い)
+計	capIntCore 内戦でない=0・内戦中=0	capColHome 内戦でない=0・内戦中=0	picks=0	pickIntCore=0（内戦中 0）	maxSovColCap 種の中央=0・最大=0

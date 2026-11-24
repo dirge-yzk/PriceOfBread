@@ -1,0 +1,32 @@
+# (906) 止める線の読み手（866 の写し＋記録）（D:/PoB_work/keep_1328/base_ins・種 1〜10）
+== ukdefault
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1334\scripts\instruments\c10cp\ukdefault.py", line 9, in <module>
+    with open(os.path.join(d, f'nation_s{s}.tsv'), encoding='utf-8', newline='') as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:/PoB_work/keep_1328/base_ins\\nation_s1.tsv'
+== pxjump
+M	種 0	pxmonth 3 か月比の最大 1（100 倍以上 0・1e10 倍以上 0）	nation_s priceLevel 四半期比：100 倍以上 0（建国の直後 0・それ以外 0）・1e10 倍以上 0・非有限 0
+== gdpjump（旧の台本 gdp_jump797）
+M	種 0	100 倍以上 0（建国の直後〔≦4 四半期〕0・それ以外 0）	1e10 倍以上 0	非有限 0
+== gdpjump833 の両側の門（fixgate・緑が前提）
+D:/PoB_work/m1334_work/readN2/stop906_base.txt.fixrows.txt	緑	-	(e) =
+== gdpjump833（3 区分・行つき）
+# gdp_jump833 K=4 POP_RATIO_THIN=10 人口の列=populationK 合わせ=跳びの四半期の比だけ
+M	種 0	100 倍以上 0（建国の直後〔≦4 四半期〕0・分母の痩せ〔人口の比 ≧10 か ≦1/10〕0・それ以外 0）	1e10 倍以上 0	非有限 0	（記録：totalPopulationK で数えた痩せ 0）
+== gdp_zero10
+M: 名目 GDP が正でない人口 10 千人以上の国が 4 四半期以上続く区間 0・国×四半期 0 
+== plvl
+価格水準の最大 (0, '', 0, 0) 四半期の比の最大 (0, '', 0, 0) 比>=100の行 0 非有限 0 >=1e10 0 開幕の1000倍以上（国×種で最初の四半期） 0 []
+== 記録（906・新しい区分・採否に使わない）：gdp_jump906 --founding
+# gdp_jump833 K=4 POP_RATIO_THIN=10 人口の列=populationK 合わせ=跳びの四半期の比だけ
+M	種 0	100 倍以上 0（建国の直後〔≦4 四半期〕0・建国の後の 0 の続き〔直前 8 行に 0 以下が 4 行以上〕0・分母の痩せ 0・それ以外 0）	1e10 倍以上 0	非有限 0
+M	記録：0 以下から正への立ち上がり（比が定義できない・建国の直後より後・直前 8 行に 0 以下が 4 行以上）0	
+== 記録（906）：gdp_zero906 --founding
+M: 〈建国から続く 0〉（系列の最初の 4 行から始まる区間・人口 10 千人以上）0・国×四半期 0 
+== hol
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1334\scripts\instruments\hol\an_h2.py", line 46, in <module>
+    for gf in sorted([f for f in os.listdir(d) if f.startswith('region_s') and f.endswith('.tsv')], key=lambda f: int(f[len('region_s'):-4])):
+                                 ^^^^^^^^^^^^^
+FileNotFoundError: [WinError 3] 指定されたパスが見つかりません。: 'D:/PoB_work/keep_1328/base_ins'
