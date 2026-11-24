@@ -1,0 +1,236 @@
+seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+1	31	172	0	5	0	0	75	0	22	0	1	0	0	8	0
+2	21	146	0	1	0	0	81	0	14	0	0	0	0	7	0
+3	22	178	0	1	0	0	89	0	16	0	0	0	0	6	0
+4	9	131	0	3	0	0	54	0	7	0	0	0	0	2	0
+5	25	145	0	1	0	0	88	0	19	0	0	0	0	6	0
+6	17	143	0	2	0	0	71	0	11	0	1	0	0	5	0
+7	22	162	0	4	0	0	76	0	18	0	0	0	0	4	0
+8	19	141	0	2	0	0	138	0	14	0	0	0	0	5	0
+9	20	138	0	3	0	0	64	0	17	0	0	0	0	3	0
+10	27	144	0	1	0	0	94	0	18	0	1	0	0	8	0
+median_sixTotal	21.5
+seed	oldRuleBlockedAll	oldRuleBlockedSix	childLegalBelowLawPeaceQ	childLegalRisePeaceQ
+1	242	27	0	0
+2	224	20	0	0
+3	253	20	0	0
+4	186	9	0	0
+5	222	23	0	0
+6	206	14	0	0
+7	233	21	0	0
+8	272	19	0	0
+9	203	19	0	0
+10	231	25	0	0
+EV	1	1800	ロシア	Suffrage	1	0
+EV	1	1800	ロシア	ShorterHours	1	2
+EV	1	1807	イギリス	Suffrage	2	1
+EV	1	1812	ロシア	Suffrage	1	0
+EV	1	1813	ロシア	Suffrage	2	1
+EV	1	1813	プロイセン	Suffrage	1	0
+EV	1	1816	ロシア	Suffrage	1	0
+EV	1	1817	ロシア	ShorterHours	1	2
+EV	1	1820	プロイセン	Suffrage	1	0
+EV	1	1822	イギリス	Suffrage	1	0
+EV	1	1825	イギリス	Suffrage	1	0
+EV	1	1831	イギリス	Suffrage	1	0
+EV	1	1856	プロイセン	Suffrage	1	0
+EV	1	1857	プロイセン	ShorterHours	1	2
+EV	1	1861	アメリカ	Suffrage	2	1
+EV	1	1861	アメリカ	ShorterHours	1	2
+EV	1	1872	ロシア	Suffrage	1	0
+EV	1	1875	オーストリア	Suffrage	1	0
+EV	1	1883	ロシア	Suffrage	1	0
+EV	1	1887	アメリカ	Suffrage	1	0
+EV	1	1887	アメリカ	ShorterHours	1	2
+EV	1	1892	プロイセン	Suffrage	1	0
+EV	1	1893	プロイセン	ShorterHours	1	2
+EV	1	1902	ロシア	SocialSecurity	3	2
+EV	1	1920	フランス	Suffrage	1	0
+EV	1	1921	フランス	Suffrage	1	0
+EV	1	1922	アメリカ	Suffrage	1	0
+EV	1	1922	アメリカ	ShorterHours	1	2
+EV	1	1922	オーストリア	Suffrage	1	0
+EV	1	1945	ロシア	Suffrage	1	0
+EV	1	1946	ロシア	ShorterHours	1	2
+EV	2	1810	ロシア	Suffrage	1	0
+EV	2	1811	ロシア	ShorterHours	1	2
+EV	2	1815	ロシア	Suffrage	1	0
+EV	2	1827	イギリス	Suffrage	1	0
+EV	2	1830	ロシア	Suffrage	1	0
+EV	2	1836	フランス	Suffrage	1	0
+EV	2	1844	フランス	Suffrage	1	0
+EV	2	1845	イギリス	Suffrage	1	0
+EV	2	1852	プロイセン	ShorterHours	1	2
+EV	2	1874	アメリカ	Suffrage	2	1
+EV	2	1875	アメリカ	ShorterHours	1	2
+EV	2	1884	オーストリア	Suffrage	1	0
+EV	2	1884	オーストリア	ShorterHours	1	2
+EV	2	1896	アメリカ	Suffrage	1	0
+EV	2	1896	アメリカ	ShorterHours	1	2
+EV	2	1897	オーストリア	Suffrage	1	0
+EV	2	1900	イギリス	Suffrage	1	0
+EV	2	1926	アメリカ	Suffrage	1	0
+EV	2	1926	アメリカ	ShorterHours	1	2
+EV	2	1948	フランス	Suffrage	1	0
+EV	2	1948	フランス	ShorterHours	1	2
+EV	3	1807	ロシア	Suffrage	1	0
+EV	3	1813	オーストリア	Suffrage	1	0
+EV	3	1815	ロシア	Suffrage	1	0
+EV	3	1822	イギリス	Suffrage	1	0
+EV	3	1823	オーストリア	Suffrage	1	0
+EV	3	1832	プロイセン	Suffrage	1	0
+EV	3	1832	プロイセン	ShorterHours	1	2
+EV	3	1836	フランス	Suffrage	1	0
+EV	3	1853	プロイセン	Suffrage	1	0
+EV	3	1864	プロイセン	Suffrage	1	0
+EV	3	1870	オーストリア	Suffrage	1	0
+EV	3	1872	アメリカ	Suffrage	2	1
+EV	3	1872	アメリカ	ShorterHours	1	2
+EV	3	1896	アメリカ	Suffrage	1	0
+EV	3	1896	アメリカ	ShorterHours	1	2
+EV	3	1897	オーストリア	Suffrage	1	0
+EV	3	1897	オーストリア	ShorterHours	1	2
+EV	3	1911	ロシア	Suffrage	1	0
+EV	3	1934	プロイセン	Suffrage	1	0
+EV	3	1934	プロイセン	ShorterHours	1	2
+EV	3	1945	プロイセン	Suffrage	1	0
+EV	3	1946	プロイセン	ShorterHours	1	2
+EV	4	1801	オーストリア	Suffrage	1	0
+EV	4	1802	プロイセン	Suffrage	1	0
+EV	4	1806	プロイセン	Suffrage	1	0
+EV	4	1806	ロシア	Suffrage	1	0
+EV	4	1806	ロシア	ShorterHours	1	2
+EV	4	1854	オーストリア	Suffrage	1	0
+EV	4	1867	イギリス	Suffrage	1	0
+EV	4	1930	イギリス	Suffrage	1	0
+EV	4	1931	イギリス	ShorterHours	1	2
+EV	5	1798	イギリス	Suffrage	1	0
+EV	5	1808	プロイセン	Suffrage	1	0
+EV	5	1814	ロシア	Suffrage	1	0
+EV	5	1815	プロイセン	Suffrage	1	0
+EV	5	1816	ロシア	Suffrage	2	1
+EV	5	1818	イギリス	Suffrage	1	0
+EV	5	1819	アメリカ	ShorterHours	0	1
+EV	5	1834	イギリス	Suffrage	1	0
+EV	5	1856	ロシア	Suffrage	1	0
+EV	5	1883	プロイセン	Suffrage	1	0
+EV	5	1883	プロイセン	ShorterHours	1	2
+EV	5	1887	オーストリア	Suffrage	1	0
+EV	5	1888	オーストリア	ShorterHours	1	2
+EV	5	1890	ロシア	Suffrage	1	0
+EV	5	1895	フランス	Suffrage	1	0
+EV	5	1896	アメリカ	Suffrage	2	1
+EV	5	1896	アメリカ	ShorterHours	1	2
+EV	5	1903	オーストリア	Suffrage	1	0
+EV	5	1912	プロイセン	Suffrage	1	0
+EV	5	1912	プロイセン	ShorterHours	1	2
+EV	5	1915	オーストリア	Suffrage	2	1
+EV	5	1930	オーストリア	Suffrage	2	1
+EV	5	1931	アメリカ	Suffrage	1	0
+EV	5	1931	アメリカ	ShorterHours	1	2
+EV	5	1941	オーストリア	Suffrage	2	1
+EV	6	1799	ロシア	Suffrage	1	0
+EV	6	1803	ロシア	Suffrage	1	0
+EV	6	1806	ロシア	ShorterHours	0	1
+EV	6	1806	ロシア	ShorterHours	1	2
+EV	6	1821	イギリス	Suffrage	1	0
+EV	6	1853	イギリス	Suffrage	1	0
+EV	6	1853	イギリス	ShorterHours	1	2
+EV	6	1853	イギリス	Suffrage	1	0
+EV	6	1860	プロイセン	Suffrage	1	0
+EV	6	1868	アメリカ	Suffrage	2	1
+EV	6	1869	アメリカ	ShorterHours	1	2
+EV	6	1880	プロイセン	Suffrage	1	0
+EV	6	1880	プロイセン	ShorterHours	1	2
+EV	6	1893	オーストリア	Suffrage	1	0
+EV	6	1895	アメリカ	Suffrage	1	0
+EV	6	1899	フランス	Suffrage	1	0
+EV	6	1919	ロシア	SocialSecurity	3	2
+EV	7	1797	イギリス	Suffrage	1	0
+EV	7	1801	ロシア	Suffrage	1	0
+EV	7	1804	フランス	Suffrage	1	0
+EV	7	1805	ロシア	ShorterHours	0	1
+EV	7	1805	ロシア	ShorterHours	1	2
+EV	7	1808	ロシア	Suffrage	1	0
+EV	7	1830	プロイセン	Suffrage	1	0
+EV	7	1847	ロシア	Suffrage	1	0
+EV	7	1860	ロシア	Suffrage	1	0
+EV	7	1867	イギリス	Suffrage	1	0
+EV	7	1870	イギリス	Suffrage	1	0
+EV	7	1873	プロイセン	Suffrage	1	0
+EV	7	1874	オーストリア	Suffrage	1	0
+EV	7	1883	アメリカ	Suffrage	2	1
+EV	7	1883	アメリカ	ShorterHours	1	2
+EV	7	1886	アメリカ	Suffrage	2	1
+EV	7	1889	ロシア	Suffrage	1	0
+EV	7	1894	プロイセン	Suffrage	1	0
+EV	7	1900	オーストリア	Suffrage	1	0
+EV	7	1900	オーストリア	ShorterHours	1	2
+EV	7	1914	プロイセン	Suffrage	1	0
+EV	7	1920	ロシア	Suffrage	1	0
+EV	8	1797	イギリス	Suffrage	1	0
+EV	8	1803	フランス	Suffrage	1	0
+EV	8	1803	ロシア	Suffrage	1	0
+EV	8	1804	イギリス	Suffrage	1	0
+EV	8	1809	ロシア	Suffrage	1	0
+EV	8	1810	ロシア	ShorterHours	1	2
+EV	8	1814	フランス	Suffrage	1	0
+EV	8	1842	イギリス	Suffrage	2	1
+EV	8	1843	プロイセン	Suffrage	1	0
+EV	8	1844	プロイセン	ShorterHours	1	2
+EV	8	1851	イギリス	Suffrage	1	0
+EV	8	1865	プロイセン	Suffrage	1	0
+EV	8	1874	プロイセン	Suffrage	1	0
+EV	8	1889	オーストリア	Suffrage	1	0
+EV	8	1896	ロシア	Suffrage	1	0
+EV	8	1917	アメリカ	ShorterHours	0	1
+EV	8	1927	プロイセン	ShorterHours	0	1
+EV	8	1941	ロシア	Suffrage	1	0
+EV	8	1948	アメリカ	ShorterHours	0	1
+EV	9	1796	イギリス	Suffrage	1	0
+EV	9	1800	イギリス	Suffrage	1	0
+EV	9	1807	イギリス	Suffrage	1	0
+EV	9	1811	ロシア	Suffrage	2	1
+EV	9	1812	イギリス	Suffrage	1	0
+EV	9	1812	プロイセン	Suffrage	1	0
+EV	9	1815	ロシア	Suffrage	1	0
+EV	9	1824	プロイセン	Suffrage	1	0
+EV	9	1852	アメリカ	Suffrage	2	1
+EV	9	1874	プロイセン	Suffrage	1	0
+EV	9	1899	オーストリア	Suffrage	1	0
+EV	9	1901	フランス	Suffrage	1	0
+EV	9	1901	フランス	ShorterHours	1	2
+EV	9	1912	ロシア	Suffrage	1	0
+EV	9	1933	ロシア	Suffrage	1	0
+EV	9	1935	フランス	Suffrage	1	0
+EV	9	1946	プロイセン	Suffrage	1	0
+EV	9	1946	プロイセン	ShorterHours	1	2
+EV	9	1949	アメリカ	Suffrage	1	0
+EV	9	1949	アメリカ	ShorterHours	1	2
+EV	10	1799	イギリス	Suffrage	1	0
+EV	10	1800	ロシア	Suffrage	1	0
+EV	10	1803	イギリス	Suffrage	1	0
+EV	10	1805	ロシア	Suffrage	1	0
+EV	10	1811	オーストリア	Suffrage	1	0
+EV	10	1819	イギリス	Suffrage	1	0
+EV	10	1822	フランス	Suffrage	1	0
+EV	10	1832	アメリカ	Suffrage	2	1
+EV	10	1832	アメリカ	ShorterHours	1	2
+EV	10	1857	アメリカ	Suffrage	1	0
+EV	10	1858	アメリカ	ShorterHours	1	2
+EV	10	1870	オーストリア	Suffrage	1	0
+EV	10	1871	オーストリア	ShorterHours	1	2
+EV	10	1876	プロイセン	Suffrage	1	0
+EV	10	1879	ロシア	Suffrage	1	0
+EV	10	1892	プロイセン	Suffrage	1	0
+EV	10	1892	プロイセン	ShorterHours	1	2
+EV	10	1909	アメリカ	Suffrage	1	0
+EV	10	1909	アメリカ	ShorterHours	1	2
+EV	10	1910	プロイセン	Suffrage	1	0
+EV	10	1910	プロイセン	ShorterHours	1	2
+EV	10	1912	ロシア	Suffrage	1	0
+EV	10	1934	プロイセン	Suffrage	1	0
+EV	10	1934	プロイセン	ShorterHours	1	2
+EV	10	1939	イギリス	Suffrage	1	0
+EV	10	1939	イギリス	ShorterHours	1	2
+EV	10	1949	フランス	SocialSecurity	2	1

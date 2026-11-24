@@ -1,0 +1,19 @@
+種 1	開幕の着工 q0 3	q0〜3 7
+種 2	開幕の着工 q0 4	q0〜3 7
+種 3	開幕の着工 q0 6	q0〜3 7
+種 4	開幕の着工 q0 7	q0〜3 7
+種 5	開幕の着工 q0 4	q0〜3 7
+種 6	開幕の着工 q0 3	q0〜3 7
+種 7	開幕の着工 q0 5	q0〜3 7
+種 8	開幕の着工 q0 3	q0〜3 7
+種 9	開幕の着工 q0 5	q0〜3 7
+種 10	開幕の着工 q0 6	q0〜3 7
+和	開幕の着工 q0 46	q0〜3 70
+軸	後退（政体が同じ四半期）	後退（政体が変わった四半期）
+Suffrage	1	1407
+WomenRights	0	0
+SocialSecurity	0	0
+ColonialSuffrage	0	0
+MigrantNativeSuffrage	0	0
+ShorterHours	187	15
+ChildLabor	0	0

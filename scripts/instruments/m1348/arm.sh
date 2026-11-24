@@ -4,7 +4,7 @@
 #   POB_WORK＝D:/PoB_work/m1348_work。成績表 $W/b<N>_<腕>_<N>[_s<起点>].txt・生 $W/out_<TAG>/ins。
 export POB_WORK=D:/PoB_work/m1348_work
 export TEMP=$POB_WORK/tmp TMP=$POB_WORK/tmp
-unset POB_INSTRUMENTS_TABLES
+if [ -n "${ARM_TABLES:-}" ]; then export POB_INSTRUMENTS_TABLES="$ARM_TABLES"; else unset POB_INSTRUMENTS_TABLES; fi   # 表を絞る腕（アブレーション・S11）は ARM_TABLES で渡す
 mkdir -p $TEMP
 A=${1:?腕}; T=${2:?木}; N=${3:?種の数}; SB=${4:?起点}; I=${5:?ins}; SS=${6:-}
 S=D:/PoB_work/wt_m1348/scripts/instruments
