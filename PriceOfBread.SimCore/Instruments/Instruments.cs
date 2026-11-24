@@ -1973,6 +1973,7 @@ public static partial class Instruments
         LabelTierTable(sim, seed, q);      // LabelTierTable（(1290) 国の主流の札の格の順の旧新・labeltier_s）
         SoldierVacTable(sim, seed, q);     // SoldierVacTable（(1166) 兵 0 の崖・soldiervac_s）
         SatNeedsTable(sim, seed, q);       // SatNeedsTable（(1206) 必要の充足の内訳・satneeds_s）
+        StProcTable(sim, seed, q);         // StProcTable（(1336) 国家の購入の台帳の旧新・stproc_s）
         UnifTable(sim, seed, q);           // UnifTable（(1230)(1249) 民族主義の根と統一の宣戦・formation2_s・unifwar_s・tensionwhy_s）
         TransportFold(sk, seed, q, sim);   // TransportFold〔履歴 Instruments.cs#323〕
         ScopeFold(sk, seed, q, sim);       // ScopeFold〔履歴 Instruments.cs#324〕
@@ -2028,6 +2029,7 @@ public static partial class Instruments
         LabelTierClose(sim);   // LabelTierClose（(1290)）
         SoldierVacClose(sim);  // SoldierVacClose（(1166)）
         SatNeedsClose(sim);    // SatNeedsClose（(1206)）
+        StProcClose(sim);      // StProcClose（(1336)）
         UnifClose(sim);        // UnifClose（(1230)）
         CrownClose(sim);   // CrownClose〔履歴 Instruments.cs#350〕
         CenterClose(sim);  // CenterClose〔履歴 Instruments.cs#351〕
