@@ -1,0 +1,29 @@
+# keepsum (728)	D:/PoB_work/c141k59_work	ファイル 27 本・合計 9386 バイト
+name	sha256	bytes	newlines	header
+armb.mark	d4bb98a5fbf348320be5ae3bd4eac5f912deba729c71d392ab7e773a80f88dc7	29	1	rc=0 end=2026-11-24 22:49:09
+armb.mark.log	a06a82ce760b859f2d47554c46abcca3ecae572ebab84bbc0d2eb4a7605d092c	61	2	armB rc=0 BATCHDONE c141k59B_10
+arms_start.txt	233e65c206ace0e6a42dce2a72011bfa4919841cc77ad7c954a1b2c125e30e6f	269	4	identZ start 2026-11-24 19:36:54 tree=3e0e7e45e Dfree=70.43GB armsfree=2
+grep32.txt	476f85b62d1f91ffaa736da850434ae896b5f2e50f8a917d2d00b3ad4e732b3d	1343	11	PriceOfBread.Tests/GenderTests.cs:34:        Assert.True(reformed.World.WomenPropertyLaw, "イギリスで女性財産権の段に到達しない");
+identb.mark	cd9a0c1f412a636e41b41fdac03bb964d49dea776b933e1e7794cae2526d1132	29	1	rc=0 end=2026-11-24 22:08:07
+identb.mark.log	4381dccc17f0bca89f20c74134a73ae911abd1487bc75a326abea0620466b148	3488	48	PREPDONE ib dir:/d/PoB_work/wt_c141k59 plain
+identz.mark.log	b9398cac563728f602f73d0df5e9b32bdbd4bdf3d366df3e3df4b3ab8e7acf4d	231	3	ident start：段=2（--stage2 で上げた）
+k59.mark	1696be42ada78c7b10dc0414ccd594cdda20f98a05b9067cebfe2551850aace4	59	1	rc=0 end=2026-11-24 23:56:40 branch=c141k59 head=fd1e2e9a9
+minhist.py	388342c12ae984af23d378bde34fb4d8a937be120c561aa3175071a04116341f	1327	22	# 診断（結果の後・記録だけ）：国×年の partShare の最小の分布（旗 1 で構造 0.4 の 1 本なら 0.69 以上は困窮の項だけで届く稀な場合）
+mut.mark	06518d76ad03a564162618b8ed9bd1495524798c645c06542ed3ac88ae5aff49	29	1	rc=0 end=2026-11-24 19:10:32
+mut.mark.log	9c8d8ce9dee3599d87afe59506bd505c5c421f4f7e99a33f4ac80e171982c76a	36	3	mutated M1
+narrow.mark	8114284ebc42f8df14ae1873c2b9228ddcdb393a4fb4453e01e819290226fd3b	29	1	rc=1 end=2026-11-24 21:05:31
+narrow.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+pre.mark	37b4a343c3facd2ffb9d549c199e86048ea6102b3e1860e2bee5d997544d6ba9	29	1	rc=0 end=2026-11-24 19:10:39
+pre.mark.log	e4e441c9b6ff5163b7b5895acecf7275ce5d7176b274dc6ea62a761686df7386	206	14	stop906 base rc=0
+rerun2.mark	6019128fcbb9ffe9cddc8cd542337fbb7b7dc23f42f837c27da27e9d73048fed	29	1	rc=0 end=2026-11-24 21:45:08
+rerun2.mark.log	87425a32ef6bac44e137c4f7790d11198ec7a697f4c2c73c629e21d08c3a23c5	350	5	合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+rerun2.sh	d006b5c9968137203dd78dd240423f286ea8b7b808063d6c200c76cb073c40d0	831	7	WK=D:/PoB_work/c141k59_work/narrow; export TEMP=$WK/tmp TMP=$WK/tmp
+rmf1.mark	c75b6e36fdd31e2052bafa6de209919330bc3814b228ec6eb40d826b23f9bd66	29	1	rc=0 end=2026-11-24 23:16:06
+rmf1.mark.log	7db0e860426207060a3bff45883e7104429aed6e6d366c572615e73b9643d9b9	42	1	Deleted branch c141k59f1 (was 29c62bb32).
+scan.mark	7a801e7b9ee60a237bd0b0eb9505f5f97000aebdf51677c95b28a5bbff6ac43a	29	1	rc=0 end=2026-11-24 20:01:55
+scan.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+suite.mark	e300a76538cfd7fa1b32086b62498cd31c669d90dd64f31a32852e552f3cf638	29	1	rc=0 end=2026-11-24 23:56:10
+suite.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+t0.mark	d494f3a19604474b4b8206d431b3111d526c28aa283fd72a9bb7d7878d61d62f	29	1	rc=0 end=2026-11-24 18:55:08
+t0.mark.log	4d9e587e61e700f65c0a7b51aa0f20132e5e592e1e34e0fc617703e1aaba00e8	220	2	合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+t0.sh	c0a4c72f3e1f814f65c8e5b14615a1b9caaec18aabf9e63af5a37f2fdd1335d3	633	5	export TEMP=D:/PoB_work/c141k59_work/t0/tmp TMP=D:/PoB_work/c141k59_work/t0/tmp

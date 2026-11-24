@@ -1,0 +1,18 @@
+# keepsum (728)	D:/PoB_work/c141cn_work	ファイル 16 本・合計 86304 バイト
+name	sha256	bytes	newlines	header
+Politics.full.cs	2b2d369609958a697df214ce0713988c290c40006055502c64e9e8739df76131	68480	1218	﻿namespace PriceOfBread.SimCore;
+cn.mark	9c39497cb152c01f0b95c5e012fa7764b879376c88e2026833457e191daf789c	29	1	rc=0 end=2026-11-24 22:18:30
+fl.mark	230898cef04af321d1ec288922142920e19a299dce709ca336da1f6ba42ef31c	29	1	rc=0 end=2026-11-24 22:17:52
+fl.mark.log	5b61e4ed1777df1c0f988ca96f3e1d5c6899f98395095f2b633ac8318b585410	420	5	D:\PoB_work\c141cn_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+ident.mark	6b7809fcd3b85a974da32a6d8bbecc2157b2f5a856d3b079b7f8fab075bced6d	29	1	rc=0 end=2026-11-24 22:07:35
+ident.mark.log	dd6cd7a90cd1d04dbd14455ca494741bfae4bc5c0f127d8080e0efff988878f8	3747	41	ident start：段=2（基準 4274145d3 との差 174 本・段 2 の条件に当たった 5 本・ident.cfg は基準の鍵と注だけの差＝数えない）
+mut.mark	c8ac1ae5ae1bf2df2cab2fd60bb4e612d419a2ee4167da23b9624402f023911a	29	1	rc=0 end=2026-11-24 18:55:47
+mut.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+mut.out	571e0260aa445ca6818c77359452d08a383a30af5ad8ceff5e6827413c31d63b	623	8	== M1 支払い率を落とす
+mut.sh	bfb4a111fa098fee31d20ab23c3758721fb6d10a7f9197661ca4a10e935a3932	1472	24	#!/usr/bin/env bash
+notes.py	098ae624bef3d67ce08c25a86acf843d4e4ee1ed8a95e15a36cb4e32ea8f5262	3172	26	import sys
+suite.mark	806501f6f18c4931642399d469c47e5a3c0463914ad5fa4b9cf2fc826b89d898	29	1	rc=0 end=2026-11-24 20:51:13
+suite.mark.log	e113c2a56360914d6958fedd9cca0eefc385bc21352535620c44456df385f54a	907	9	D:\PoB_work\c141cn_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+t28.log	77df401f6559f2dc3b7ac54852e382d58a2c854e8ac6dfa1d27f7d29016eb09e	5665	29	  復元対象のプロジェクトを決定しています...
+ui.mark	ef308b56bbad64eb95c9eeb1a5909cccd790a675c92ad084d79f27d4a36fabac	29	1	rc=0 end=2026-11-24 20:54:23
+ui.mark.log	4ba9b6bb1000adfa915008c1608fe58892d45e6993fd1fd3410e92dcf8012df3	1644	16	  復元対象のプロジェクトを決定しています...

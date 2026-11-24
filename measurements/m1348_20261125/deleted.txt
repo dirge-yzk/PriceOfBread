@@ -1,2 +1,6 @@
 keep_1341_rej（aS_spOnly・c140spB・c140sp_zstproc・mM_hfsp・mS11_hfsp・約 7GB）＝読む線 c141fw (1346) の写し（e21267f7f）の後に消した（指示の許し）・keepsum は keepsum_keep1341rej_*.tsv
   注：aS_spOnly と c140spB は中身が ins/ の下で、keepsum.py は直下だけを数えた＝要約は 1 本と 0 本（中身の sha256 を残し損ねた・合流の誤り）。門の表は線 sp の measurements と (1341) の keepsum に残っている。
+(1348) 合流が消した物（2026-11-25）
+- 自分で作った物：ident_m1348z（腕 Z の生・判定の後に keepsum_ident_m1348z_left.tsv）・m1348_work の out_*（合わせた木の M・S11 と A_wd の M・S11 は門の表を keep_1348_rej へ移し残りを keepsum_*_rest.tsv の後・p5・p5W・A_lr は門の表ごと keep_1348_rej/aL_lrOnly へ）・src_*（写しの木）・worktree wt_m1348z・wt_m1348l・ローカルの枝 m1348・m1348w・m1348l・m1348z。この記録の後に wt_m1348（枝 m1348c）と m1348_work を消す。
+- 線の物（帰属を読み終えた後・keepsum の後）：ident_c141cn（keepsum_ident_c141cn_left.tsv）・線 wd と lr の腕 B の生（keepsum_c141wdB.tsv・keepsum_c141lrB.tsv）・線 k59 の腕 B の生は keep_1348_rej/c141k59B へ移した・作業フォルダ c141cn_work・c141k59_work・c141lr_work・c141wd_work・ident_c141lr・r1346_work・r1347_work（keepsum_left_*.tsv）・worktree wt_c141cn・wt_c141k59・wt_c141lr・wt_c141wd とローカルの枝 c141*（origin の枝は残した）。
+- keep_1341 は消していない（基線が m1341 のまま＝INSRAW・KEEPNULL）。keep_1348 は作っていない。

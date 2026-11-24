@@ -1,0 +1,29 @@
+# keepsum (728)	D:/PoB_work/c141wd_work	ファイル 27 本・合計 53369 バイト
+name	sha256	bytes	newlines	header
+armb.mark	5ad4750857b4af9c161e6acdb415ec097cd2b986a0a657a9ff7502e8ed1820db	29	1	rc=0 end=2026-11-24 22:59:13
+armb.mark.log	b25d99f97d6c27c7c9b4472dd946a04914727034ac4ecd30078bdb731df2dd94	60	2	armB rc=0 BATCHDONE c141wdB_10
+arms_start.txt	d6c4b0c5590d0dfcedcac6af7b1da42ba9dbcdacd22ab20824d616d4976bd282	180	3	identZ start 2026-11-24 19:14:32 tree=17eaaa38f Dfree=93.58GB armsfree=6
+build_t1.txt	62ac39bcf343d9cca58a78f03824bc4c81cd03dcf4ad02dab9bc29c15a76f8f1	9715	45	D:\PoB_work\wt_c141wd\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c141wd\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+cand32.txt	a3ddc194d6d508bc4e48cf1560a00056cc2ce16fdbaa5568a95d8acae215cd72	221	9	ElectionAiTests.cs 1
+identz.mark	17103f32763237f6e86ba34071fb3f1632ec264eea21ba0201d769d1a0f8547a	29	1	rc=0 end=2026-11-24 20:55:33
+identz.mark.log	584590c9959c7f9b496a70b44f7c4bf01611311d16f7e007b62e9ac28b70568e	4740	44	ident start：段=2（--stage2 で上げた）
+mut.mark	16ed1608a9e3325130c37ca3bcb1d33f351821af57b7b31e279254413da6f2fb	29	1	rc=0 end=2026-11-24 18:58:42
+mut.mark.log	74561a43563c7c35284d91cf258d31a3115441acf5fefea1fcd4e6eeb01824b7	48	4	mutated M0
+narrow.mark	6c9860bf03478e7c3405150a0ede2dd4ae5359e4d9db5b5d1c316b86a8ac2390	29	1	rc=1 end=2026-11-24 22:36:39
+narrow.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+narrow_files.txt	2afa6356f10f1d455b4cd86c9ea9c2682ef2a16c269b91db6dcbd2e393221a5e	1948	95	AiBuildOutlayGateTests
+readme.txt	9fd78cbfd589995ba908e0fe978be88eaf20fa720b82b1b51d37e90706f26913	20881	80	# 線の担当が毎回読む決まり（README.md の抜粋・短い版）
+scan.mark	f49dd6bd8eae6e3c555226d668bcf80498aaf89e12695faddfa58bf544934582	29	1	rc=0 end=2026-11-24 19:14:21
+scan.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+scan2.mark	474bdef1a72af78f9af49aeb5d8ae8f6f19c44bd93f8d42a6f8164d40e8cc467	29	1	rc=0 end=2026-11-24 22:32:42
+scan2.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+sp737.txt	3d72a6a178a6b5d0eacc137f154d625c9e6c6b8142baaba1d81aeed4c03b1b6b	4853	94	    internal static void SetNavalUpkeepShare(World w)
+stage0_probe.txt	9636a3062c77a2ace93457814e8a26878bef69dc6c4ec2c435c82f42b7de999e	2737	60	# flag=0 nations=61 助走の前→後で決定の欄が動いた国=61
+suite.mark	09f4ba30d514da9c13c0b57a54b632145570a4dc8ebdba1692d250ee930072af	29	1	rc=0 end=2026-11-24 23:55:23
+suite.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+t1.mark	c327a1a9e9dd76206ebe9d37d6b25705dadcab76784f1ca162801f2ed32f07d5	29	1	rc=0 end=2026-11-24 18:53:42
+t1.mark.log	f7f2162adc07964c8f25fac6b1501bad016486f02e4cb3c4a783d5ab4033ec19	361	4	rc=1
+t1.sh	0a10d2d09564d7327bca81cd2ad1aec194e8f27ac8bf8a9dc2e0d1d882d8158e	684	7	#!/usr/bin/env bash
+t1_out.txt	ad6abcdf2f824c4fd9043c97e3382785a19627e4c9da20bff3174f5eeed4c50b	1473	14	D:\PoB_work\c141wd_work\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+wd.mark	75a168e216c070f8d6831b163b61d092a96328496a9abc17da03f7fd9e21c3ed	58	1	rc=0 end=2026-11-24 23:55:55 branch=c141wd head=5fd1adc54
+wt.log	6ef701c493351979f736f1135620e775afc8d2f46f863438c747ee3f1fc84bab	5178	3	Preparing worktree (new branch 'c141wd')

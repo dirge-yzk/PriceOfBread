@@ -1,0 +1,30 @@
+# keepsum (728)	D:/PoB_work/c141lr_work	ファイル 28 本・合計 22632 バイト
+name	sha256	bytes	newlines	header
+armb.mark	b06490845618e33b779b8dd0064912840ca8a3fb2a3ea94fc5c1a92629489b36	29	1	rc=0 end=2026-11-24 22:30:55
+armb.mark.log	fbc04edcdda03deb8fb688d3106a1ecc9214841d2d3c4efd17d606777f4deac8	60	2	armB rc=0 BATCHDONE c141lrB_10
+armb_lrcount.txt	e2c40f17f9c4c652aeadf2cb8efed73d62004394d456316c1c293217d94616a9	9808	251	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+arms_start.txt	887eaeeaa46714247f58633b389de122fe7cb7322224275b5d3d762c27dff612	180	3	identZ start 2026-11-24 19:14:46 tree=b65e7c32e Dfree=93.52GB armsfree=6
+base_count.txt	9de0e1dcc1084ad749fc1ddc08e7a690dc7bb0bdfb606e8806aaabed315fb830	7414	186	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+identz.mark	f65ec8284012961737b98190088c282b3bcedffa1fd8e70fc4e926db043a3a88	29	1	rc=0 end=2026-11-24 20:44:05
+identz.mark.log	8b257cfce75b10961bffbca22a8284d7ec728daa657fdf9f053d5f5360bc2b7a	3404	45	ident start：段=2（--stage2 で上げた）
+lr.mark	188db734b6883df9170f6e8f3d4c34878585b8ee8f7bfd31c0e5702be53cac1d	42	1	c141lr done 0c8945374 2026-11-25 00:19:58
+mut1.mark	09fb3d3b54e027a9f4ccbea1fe61691e34b885e613b129b801d9a0d9cff3f6fb	29	1	rc=0 end=2026-11-24 19:21:16
+mut1.mark.log	0a2a073fcc206cb09fe53b7911d3bcd16dbe7661276f7c55e68d9adbcd61aff5	60	5	mutated M0
+mut2.mark	b23fdb4aed3d7009b2294b269e4146d9eb5838029d0cd641de5ee4f0ecc8e066	29	1	rc=0 end=2026-11-24 21:40:38
+mut2.mark.log	2f618761a290f846a9ee2f19b43c41f9cd313f2450f53cb53d84f36cc55c3a62	24	2	mutated M0
+mut3.mark	94a9c16302a22518108a4d76679a09dec51f6a3bf447d7f3f7c71dd459bfcb4f	29	1	rc=0 end=2026-11-24 23:36:31
+mut3.mark.log	4376b230251184a1dd1b9a034b646e68fdd272d74f3954e7e0223f7ff99b74ee	24	2	mutated M0
+narrow.mark	3b054571555c65ccdb9c363aba758355e948493f4f8cbcd98f4d897624e2b7ed	29	1	rc=1 end=2026-11-24 21:56:25
+narrow.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+pre.mark	36b576215fec521fa9dca208b70b0826e8fbe32456b5da034cba1d6018ff02df	29	1	rc=0 end=2026-11-24 20:26:20
+pre.mark.log	5908759ffc43fa399a6cffd401073a05c724b65e03544c75c80fe3a90f822421	256	17	stop906 base rc=0
+read.mark	922527ce9d95db0b1edc1d17991905ec427bd224827aeb136b57f2e1510c21a6	29	1	rc=0 end=2026-11-24 22:49:00
+read.mark.log	8ca37a736bf5fcde236a80b6145688b33d51c013ff072727dff2873375f2cceb	120	11	popjump rc=0
+scan0.mark	07ae7cfb0b0c6fa294207089c5c4874fa4da80f0560ed520dc45d93de23a1e3b	29	1	rc=0 end=2026-11-24 19:14:19
+scan0.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+suite.mark	10c11aba4b7d25d17a7f39b2bd338a773c353a64279ae1c72431aa056f13cb08	29	1	rc=1 end=2026-11-24 23:44:45
+suite.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+suite2.mark	b3bc43203eb92c75935145b16226ff5a7c76798e9c8a01085f42450fd2ec44b3	29	1	rc=0 end=2026-11-25 00:19:38
+suite2.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+suite_start.txt	020fae863fc5b4be1b6e0a313d97f3f9364698e8c013023d222dd510ea972ae0	20	1	2026-11-24 22:31:14
+z0_count.txt	3a784e9bceca0253b0beb5fb4b0fe4f7bb69b000f278fbaad79c7e51496c4e77	901	23	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
