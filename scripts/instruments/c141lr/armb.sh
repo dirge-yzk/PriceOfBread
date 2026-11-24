@@ -14,6 +14,6 @@ INS=1 bash $S/batch.sh run c141lrB 10 > $POB_WORK/run_B.txt 2>&1; RC=$?
 echo "armB rc=$RC $(tail -1 $POB_WORK/run_B.txt)"
 rm -rf $POB_WORK/src_c141lrB
 WD=$(cd $POB_WORK && pwd -W)
-bash $S/c141lr/read_hf.sh "$WD/out_c141lrB_10/ins" "$WD/b10_c141lrB_10.txt" c141lrB "$WD/read" 1 > $POB_WORK/read_B.log 2>&1
+bash $S/c141lr/read_lr.sh "$WD/out_c141lrB_10/ins" "$WD/b10_c141lrB_10.txt" c141lrB "$WD/read" 1 > $POB_WORK/read_B.log 2>&1
 echo "ARMBDONE $(date '+%F %T')"
 exit $RC
