@@ -34,7 +34,7 @@ open(p, 'wb').write(b); print('mutated', mu)
 PY
   dotnet build $T/PriceOfBread.Tests -c Release --artifacts-path $T/art -v q -nologo > $OUT/build_$MU.txt 2>&1 || { echo "BUILDFAIL $MU" | tee $OUT/mut_$MU.txt; continue; }
   dotnet test $T/PriceOfBread.Tests -c Release --artifacts-path $T/art --no-build --filter "${FILT:-FullyQualifiedName~ProtectedLawReversalTests}" --logger "console;verbosity=normal" > $OUT/raw_$MU.txt 2>&1
-  { echo "# $MU（$REV）"; grep -E "^\s+(失敗|Failed) |合計:|Total" $OUT/raw_$MU.txt; } > $OUT/mut_$MU.txt
+  { echo "# $MU（$REV）"; grep -E "^\s+(失敗|Failed) |テストの合計数|^\s+(成功|失敗): |合計:|Total" $OUT/raw_$MU.txt; } > $OUT/mut_$MU.txt
   rm -rf $T
 done
 echo MUTDONE > $OUT/mut.mark
