@@ -1,0 +1,7 @@
+# (1336) narrow HEAD=3e6b48ca8 汚れ=0 2026-11-24 11:45:39
+classes 44
+Tests narrow rc=0 成功!   -失敗:     0、合格:   696、スキップ:     0、合計:   696、期間: 53 m 46 s - PriceOfBread.Tests.dll (net10.0)
+Ui narrow rc=0 成功!   -失敗:     0、合格:    39、スキップ:     0、合計:    39、期間: 1 m 32 s - PriceOfBread.Tests.Ui.dll (net10.0)
+savetest: savetest 乖離 0（2量）・状態の違いのある点 3/3（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+NARROWDONE 2026-11-24 12:59:02

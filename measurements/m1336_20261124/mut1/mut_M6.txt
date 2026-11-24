@@ -1,0 +1,9 @@
+# M6（3e6b48ca8）
+  失敗 PriceOfBread.Tests.MilitaryTests.侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る [4 s]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T3_在庫の恒等式は旗に依らず保たれる(flag: 0) [173 ms]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T3_在庫の恒等式は旗に依らず保たれる(flag: 1) [57 ms]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T5_計器stproc_sの行は台帳と同じ盤面の旧新に一致する(flag: 1) [334 ms]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T5_計器stproc_sの行は台帳と同じ盤面の旧新に一致する(flag: 0) [73 ms]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T2_値段の式は国家の需要を1回だけ数える [110 ms]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T4_買い手ありの購入は旗に依らない [94 ms]
+  成功 PriceOfBread.Tests.StateProcureLedgerTests.T1_旗1の国家の購入は輸出でなく販売に積む [35 ms]
