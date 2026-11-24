@@ -154,6 +154,7 @@ public class DormantIdentityTests
         // ★RailLocoGateWorld（(1152) c113lc 機関車の門を世界の発見の和で読む）は 2026-11-15 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は RailLocoGateWorldTests＝旗を明示）。
         // ★ArrearsBeyondOpenedRoom（(1250) c127bd 金本位でない月の不履行の累計を開いた余地で払えなかった分だけにする旗）は 2026-11-20 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は ArrearsOpenedRoomTests）
         // ★DomesticStayFoodFill（(1335) c140hf 国内の移民の残る値打ちに食の充足＝越境と同じ Territory.StayValue）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は HungerFlightTests の T1・T2＝旗を明示）。
+        "ProtectedLawsReversible",      // (1344) c141lr 守られた法の不可逆・ReversalCostMul・児童労働の合法度の門を外す（0＝今の形・番人 ProtectedLawReversalTests）。点火は腕 B の木で外す
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）
         // ★MajorityLabelTierOrder（(1290) c133mr 国の主流の札を格の順で選ぶ）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は MajorityLabelTierOrderTests の T1）。

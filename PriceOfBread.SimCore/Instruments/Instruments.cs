@@ -244,6 +244,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Wp; public bool WpHeader;   // Wp〔履歴 Instruments.cs#107〕
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // ScoreS〔履歴 Instruments.cs#108〕
         public System.IO.StreamWriter? Lawgate2; public bool Lawgate2Header;                // Lawgate2〔履歴 Instruments.cs#109〕
+        public System.IO.StreamWriter? Lrlock; public bool LrlockHeader;                    // (1344) c141lr lrlock_s
         public System.IO.StreamWriter? LawGate; public bool LawGateHeader;                 // LawGate〔履歴 Instruments.cs#110〕
         public System.IO.StreamWriter? SvcBuy; public bool SvcBuyHeader;                   // SvcBuy〔履歴 Instruments.cs#111〕
         public System.IO.StreamWriter? Dcont; public bool DcontHeader;                       // Dcont〔履歴 Instruments.cs#112〕
@@ -1918,6 +1919,7 @@ public static partial class Instruments
             ModFold(sk, seed, w, st, q, picked, yearEnd);   // ModFold〔履歴 Instruments.cs#290〕
             LawGateFold(sk, seed, w, q, picked, yearEnd);   // LawGateFold〔履歴 Instruments.cs#291〕
             Lawgate2Fold(sk, seed, w, q);                   // Lawgate2Fold〔履歴 Instruments.cs#292〕
+            LrlockFold(sk, seed, w, q);                     // (1344) c141lr lrlock_s
             SvcBuyFold(sk, seed, w, q, picked);   // SvcBuyFold〔履歴 Instruments.cs#293〕
             DcontFold(sk, seed, w, q, picked, yearEnd);     // DcontFold〔履歴 Instruments.cs#294〕
             CeFold(sk, seed, w, st, q, picked, yearEnd);   // CeFold〔履歴 Instruments.cs#295〕
@@ -2090,6 +2092,7 @@ public static partial class Instruments
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // Dispose〔履歴 Instruments.cs#407〕
         sk.LawGate?.Dispose(); sk.LawGate = null;   // Dispose〔履歴 Instruments.cs#408〕
         sk.Lawgate2?.Dispose(); sk.Lawgate2 = null;   // Dispose〔履歴 Instruments.cs#409〕
+        sk.Lrlock?.Dispose(); sk.Lrlock = null;   // (1344) c141lr
         sk.SvcBuy?.Dispose(); sk.SvcBuy = null;   // Dispose〔履歴 Instruments.cs#410〕
         sk.Dcont?.Dispose(); sk.Dcont = null;   // Dispose〔履歴 Instruments.cs#411〕
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
