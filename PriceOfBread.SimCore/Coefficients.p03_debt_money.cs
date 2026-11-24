@@ -89,6 +89,7 @@ public sealed partial class Coefficients
 
     // --- 領土・地域間移民（§5.2／§A-8・段4c）---
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
+    public double DomesticStayFoodFill = 0.0;       // (1335) c140hf 旗：1＝国内の移民の残る値打ちを越境と同じ機会×持ち分×食の充足（Territory.StayValue）・0＝機会×持ち分（食の項なし）
     public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（国内の移民は距離の項も同じ摩擦に掛けて差から引く＝Territory.EntryFrictionTerm／越境は別に乗算の減衰 Territory.MigrationDecay）
     public double EthnicDraw = 0.7;                 // 低統一度は移民を引く：流入の引力 ×(1+これ×(1−統一度))＝坩堝
     public double EthnicAssimilation = 0.00017327;   // 同化の基礎（公教育なし＝半減期1000年＝墺の横這い）

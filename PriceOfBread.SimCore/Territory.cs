@@ -17,7 +17,7 @@ public static class Territory
         {
             var r = active[i];
             opp[i] = OppChecked(r, c);
-            stay[i] = opp[i] * Holding(r, c);
+            stay[i] = c.DomesticStayFoodFill > 0 ? StayValue(r, opp[i], c) : opp[i] * Holding(r, c);   // (1335) 旗 DomesticStayFoodFill 1＝越境と同じ残る値打ち（StayValue）・0＝食の項なし
             (lat[i], lon[i]) = Places.Coord(r.Name);
             foreach (var p in r.Pops) if (!p.IsSoldier) classes[i] |= 1 << p.ClassId;
         }
@@ -120,6 +120,11 @@ public static class Territory
         double ratio = r.ArableLand / Math.Max(1.0, r.SumRuralPopulation());
         return Math.Pow(Math.Max(1.0, ratio), c.LandDiminishExponent);
     }
+
+    /// <summary>(1335) c140hf：出る州の残る値打ち＝機会×残る人の土地の持ち分×食の充足（越境の送出 MultiNationSim.StepMigration と国内の Step〔旗 DomesticStayFoodFill 1〕が呼ぶ 1 本）。</summary>
+    internal static double StayValue(Region r, Coefficients c) => StayValue(r, Opportunity(r, c), c);
+
+    internal static double StayValue(Region r, double opportunity, Coefficients c) => opportunity * Holding(r, c) * r.FoodFill;
 
     internal static double AbsorbCap(Region? r, Coefficients c)
     {

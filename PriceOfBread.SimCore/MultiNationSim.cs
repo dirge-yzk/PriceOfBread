@@ -1428,7 +1428,7 @@ public sealed class MultiNationSim
             var src = Nations[s].World;
             foreach (var r in src.Regions)
             {
-                double push = Territory.Opportunity(r, _coef) * Territory.Holding(r, _coef) * r.FoodFill;
+                double push = Territory.StayValue(r, _coef);
                 if (!double.IsFinite(push)) continue;   // ★非有限の遮断＝評価できない州は送出元にしない
                 seenPairs += m;
                 var (sla, slo) = Places.Coord(r.Name);
