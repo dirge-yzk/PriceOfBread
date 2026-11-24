@@ -34,3 +34,6 @@ G5 史実の桁：6 大国の守られた法の後退の件数の 10 種の中�
 - Tests：合格 2951・スキップ 2・失敗 1（RuleSharesFormTests.D6）＝合計 2954＝list と一致。Tests.Ui 232 合格。FullLength 3 合格。savetest OK・leakhunt 保存則違反なし。
 - 赤 1 の直し：8a7e1452a（試験だけ）。git diff e79a64a1d 8a7e1452a -- PriceOfBread.SimCore＝0 行＝腕 B は回し直さない。
 - 直しの確かめ（mut_lr.sh M0＝旗 1・F0＝旗の既定 0 の木）：RuleSharesFormTests は両方で緑。F0 で赤 1＝GenderTests の書き換えた番人（新しい規則を既定で固定する番人＝旗 0 の木で赤は想定どおり）。
+
+■ フルスイート 2 回目（試験の直しの後・HEAD dd4878310・起動 23:45:06・終わり 00:19:38・㊴ の束は 1 回目で緑のため飛ばした）
+- Tests 合格 2952・スキップ 2・失敗 0（合計 2954＝list）・Tests.Ui 232 合格・FullLength 3 合格・savetest OK・leakhunt 保存則違反なし。
