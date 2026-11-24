@@ -1,0 +1,2 @@
+# M2（acf9fb219）
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T2_越境_行き先の食が出る州より低いと旗1で差が縮む [3 s]

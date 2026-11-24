@@ -12,11 +12,12 @@ public static class Territory
         int k = active.Count;
         if (k < 2) return;
 
-        var opp = new double[k]; var stay = new double[k]; var lat = new double[k]; var lon = new double[k]; var classes = new int[k];
+        var opp = new double[k]; var dv = new double[k]; var stay = new double[k]; var lat = new double[k]; var lon = new double[k]; var classes = new int[k];
         for (int i = 0; i < k; i++)
         {
             var r = active[i];
             opp[i] = OppChecked(r, c);
+            dv[i] = c.DestFoodSymmetric > 0 ? MoveValue(r, opp[i]) : opp[i];   // (1349) 旗 DestFoodSymmetric 1＝行き先の値打ちに残る値打ちと同じ食の充足（MoveValue）・0＝機会のまま
             stay[i] = c.DomesticStayFoodFill > 0 ? StayValue(r, opp[i], c) : opp[i] * Holding(r, c);   // (1335) 旗 DomesticStayFoodFill 1＝越境と同じ残る値打ち（StayValue）・0＝食の項なし
             (lat[i], lon[i]) = Places.Coord(r.Name);
             foreach (var p in r.Pops) if (!p.IsSoldier) classes[i] |= 1 << p.ClassId;
@@ -35,8 +36,8 @@ public static class Territory
             for (int d = 0; d < k; d++)
             {
                 gap[d] = 0;
-                if (d == s || !double.IsFinite(opp[d])) continue;
-                double g = opp[d] - stay[s] - c.TransportFriction;
+                if (d == s || !double.IsFinite(dv[d])) continue;
+                double g = dv[d] - stay[s] - c.TransportFriction;
                 if (!(g > 0)) continue;
                 double km = Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]);
                 g -= EntryFrictionTerm(km, tech, c);
@@ -125,6 +126,9 @@ public static class Territory
     internal static double StayValue(Region r, Coefficients c) => StayValue(r, Opportunity(r, c), c);
 
     internal static double StayValue(Region r, double opportunity, Coefficients c) => opportunity * Holding(r, c) * r.FoodFill;
+
+    /// <summary>(1349) c142ds：行き先の値打ち＝機会×食の充足（残る値打ち StayValue と同じ食の項・持ち分は掛けない）。国内の Step と越境の MultiNationSim.MigrateBetweenNations が旗 DestFoodSymmetric 1 で呼ぶ 1 本。</summary>
+    internal static double MoveValue(Region r, double opportunity) => opportunity * r.FoodFill;
 
     internal static double AbsorbCap(Region? r, Coefficients c)
     {

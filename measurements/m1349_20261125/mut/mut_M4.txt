@@ -1,0 +1,4 @@
+# M4（acf9fb219）
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T4_計器は旧と新の計画を同じ盤面で数える [20 ms]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない [38 ms]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T1_機会が同じなら食の充足の高い行き先へ多く流れる_旗0では同じ [3 ms]

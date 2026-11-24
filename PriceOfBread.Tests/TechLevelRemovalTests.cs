@@ -19,6 +19,7 @@ public class TechLevelRemovalTests
     [
         // (1338) c140dz：BilateralMarket.cs の行（frontierTech の周回）と InstrumentsScalars.cs の行（freightRevolution の列）を消した・MultiNationSim.cs 8→7（許可表の行を消すだけ）
         ("PriceOfBread.SimCore", "Discovery.cs", 2),
+        ("PriceOfBread.SimCore", "InstrumentsMigcap.cs", 1), // (1349) 計器 migcap_s の距離の時代の係数（エンジンの移民と同じ入力を写す・記録・Instruments.On のときだけ）
         ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
         ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 7),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),

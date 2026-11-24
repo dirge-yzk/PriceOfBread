@@ -1,0 +1,114 @@
+(1349) c142ds 挙動の線の事前登録：国内と越境の移民の行き先の値打ちに、残る値打ちと同じ食の充足を掛ける（対称・Territory.MoveValue＝機会×食の充足・旗 DestFoodSymmetric・1 回目）（2026-11-25・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発
+ 省く段 B5〈空洞化の根〉の続き（D:/PoB_work/omission_stage_list.md）。00一覧〈次の波（波142〜）〉2 の②（挙動の先頭）と 0 の③（fw の計器）。作者 2026-11-23：根の線を先に。答え待ちではない。3 回の規則の 1 回目。
+ 材料：読む線 (1346) c141fw の問い 5 の推奨（measurements/m1346_20261124/report.txt:69〜）と反証役 v の指摘（review_v.txt の中 1・低 5）。
+ 形の種類＝〈入口〉（移民の行き先の側の値打ちだけを変える）。形は AI の案・確証なし（越境と国内の出る側は既に食の充足を読む＝(1335) hf で入った非対称の直し）。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果＝measurements/m1349_20261125/pre/grep32.txt・木 b8cdd3795）
+ 旧の規則：行き先の値打ち＝機会のまま。国内 Territory.Step の差 g＝opp[d]−stay[s]−摩擦（Territory.cs:39）・越境 MigrateBetweenNations の g＝dst[x].O−push−閾値（MultiNationSim.cs:1439・O＝:1412 の機会）。
+ grep〈StayValue・Territory.Opportunity・TransportFriction・CrossBorderOppGapThreshold・AbsorbCap・MigrateBetweenNations・Territory.Step・ImmigrationReceiveCapPerQuarter〉（Tests）＝66 行・7 ファイル：
+  HungerFlightTests（22 行）：T1・T4 は行き先の食の充足 1.0・T2 は全ての州 1.0・T3 は越境で src 以外の全ての州 1.0＝行き先の値打ち＝機会×1.0＝旧と同じビット（IEEE の x×1.0＝x）〈推〉。
+  TerritoryTests（14 行）：Frontier の盤面（Territory.Step だけ＝州の FoodFill は既定 1.0）・入口の形（Board("フランス")＝回さない＝FoodFill 1.0）＝旗 1 でも同じビット〈推〉。
+  ConservationTests（19 行）：MigrationBoard は 1 四半期を回す＝FoodFill＜1 の州がある。越境の上限の番人（:444〜:477・上限率 1e-4＝上限が効く盤面）と出る側の持ち分の番人（:479〜:516・前提の best は機会で数える＝試験の中の式）＝旗 1 で行き先の差は縮むが、上限と〈出る／出ない〉の向きは変わらない〈推〉。
+  MilitaryTests:1887〜:1904・RecruitVacancyTests:40〜:44（Opportunity だけ）・AiFirstWaveTests:255（注）・UnitTypeTests:218・:588（型の表）・DormantIdentityTests（表の行）。
+ 予言：旧の規則そのものを固定する Assert の赤 0〈推〉。軌道を回す試験（WriterRatchetTests の 1 種 40 四半期の件数の InlineData・FullLength・StartWarmup）は旗 1 で動き得る＝赤なら ★(749) の〈軌道の件数を写しただけの番人〉か ㉜ の改めで分類する。
+
+■ 段 0（ソースと基線の生から・読むだけ）
+ 今の盤面＝keep_1341/base_ins（m1341 の M・計器つき 10 種）。(1346) の静的な数え直し（measurements/m1346_20261124/out/q4_Ahf.txt・同じ盤面）：
+  国内の移民の和 1,562,895 千人。行き先の食が出どころより低い流れ 592,281 千人（37.9%）。行き先の食の帯の和：＜0.5 23・0.5〜0.9 408,853・0.9〜0.99 1,031,797・≧0.99 122,222＝流れの 92% は食＜0.99 の州へ行く＝旗 1 で行き先の値打ちが 1〜50% 下がる。
+  上限を外した計画の量：R1（今）2,878,366 → R2（対称）1,713,608＝0.595 倍。これは〈上限を外した計画の量の上限〉（反証役 v 中）＝上限が効く行き先では量を決めるのは上限＝実際の動きの比は 0.595 より 1 に近い〈推〉。
+ フォートウィリアム型（ピーク÷開幕≧3 かつ ピークの後の最小÷ピーク＜1/4・r1346/q3_swell.py・c142ds_work/pre/swell_base.txt）：基準 M 8 件（持ち主の移り 1・1/10 未満 0）・N1 5・N2 7・S11 2（m1346 の q3_swell_K3.txt）。
+ バーミンガムの種ごとの最小÷ピーク（基準 M）：s1 0.56・s2 0.61・s3 0.49・s4 0.20・s5 0.50・s6 0.45・s7 0.38・s8 0.39・s9 0.51・s10 0.17（an_h2 の 1/4 未満は s4・s10＝行き先 ロンドン・マンチェスター・グラスゴー）。
+ 基準の止める線（c142ds/pre_base.sh・出力 measurements/m1349_20261125/pre/）：止める線 0・空洞化 1/10 未満 0・1/4 未満 9（全て移民）・gdp_zero10 0・英の不履行 M 1/10。
+ 符号の論（ソースから）：行き先の値打ちは旗 1 で下がるだけ（食≦1）＝全ての組で差 g は同じか小さい・出る州ごとの流出の割合（移動度×最大の差）は同じか小さい。ただし差の比で配る取り分は食の高い行き先へ寄り、上限で縮めていた行き先の縮めが緩む＝個々の流れの符号はソースから決まらない（回す理由）。
+
+■ 段 0 の予言（向きと桁・〈推〉・門にしない）
+ P1 国内の移民の和：1,562,895 → 1.0〜1.2M 千人〈推〉（下がる）。
+ P2 越境の和（49,302 千人）：下がる・変わりは国内より小さい〈推〉（越境の閾値 0.5 が大きく、行き先の食の帯は測っていない＝v 低）。
+ P3 フォートウィリアム型の件数：8 → 4〜8〈推〉（膨らむ段の流入が減る）。
+ P4 バーミンガムの種ごとの最小÷ピーク：s4・s10 は 0.20・0.17 → 上がる〈推〉（行き先の食＜1 なら流出が減る。行き先の食が 1 に近ければ取り分の寄りで変わらない）。
+ 見込みは〈悪くする〉ではない（流れの量を減らし、食の高い行き先へ寄せる）＝腕を回す。
+
+■ 形（旗 1 の規則は 1 本）
+ Territory.MoveValue(r, opp)＝opp×r.FoodFill（Territory.cs・StayValue の隣・StayValue は触らない＝式の順を変えない）。
+ 国内：Territory.Step で行き先の配列 dv[i]＝旗 1 なら MoveValue(r, opp[i])・旗 0 なら opp[i]。差 g＝dv[d]−stay[s]−摩擦（有限の確かめも dv[d]）。
+ 越境：MigrateBetweenNations の dst の O＝旗 1 なら Territory.MoveValue(r, o)・旗 0 なら o（:1439 の差は O を読む＝O を読む所は :1439 だけ・grep）。上限 Cap の式は触らない。
+ 旗 0 は今と 1 ビットも同じ。新しい係数 0（旗 1 本＝Coefficients.p03_debt_money.cs:92 DomesticStayFoodFill の次の行）・閾値 0・天井 0・状態 0。
+ 触らない物：受け入れの上限の式（ReceiveScale・dst の Cap）・AbsorbCap・RecruitSpecialists（:1541〜の Opportunity）・移民の上限の組（EmigrationMaxPerQuarter と FaminePushMaxFracBoost）・sp の 2 回目。
+
+■ ⑨ 二重計上の論
+ AbsorbCap の食（Territory.cs:132＝(食×住居×土地)^指数）は〈入れる人数〉の量の縛り＝行き先が何人を吸えるか。MoveValue の食は〈どこへ行くか〉の選び＝差 g と取り分。同じ量を同じ式に 2 回足してはいない：上限は計画が上限を超えた行き先でだけ効き（縮めの比 cap÷計画）、差は全ての行き先の取り分を決める。上限が効く行き先では、量は上限で決まり（計画を縮めても上限で切られる）、食は量に 1 回だけ効く（2 乗にならない）。上限が効かない行き先では量は差で決まり、上限の食は効かない。
+ 両方が効く〈2 乗の行〉＝上限が効き、かつ食＜1 の行き先：計画が上限の近くにある四半期だけ、計画の減りが量に効く。割合は計器 migcap_s で数える（腕 Z の生で、腕 B の前に下の追記へ書く・門は変えない）。
+ (1346) の〈増えの 81〜94% が消える〉は〈上限を外した計画の量の上限〉と名乗る（反証役 v 中）。越境の変更は、hf（(1335)）の帰属の外の旧の規則の変更と名乗る（越境の送出は hf より前から StayValue＝食あり・v 低）。
+
+■ 器の計器 migcap_s（旗 0・Instruments.On の時だけ・表を選んだときだけ・普段の計算量 0）
+ PriceOfBread.SimCore/Instruments/InstrumentsMigcap.cs（新しい）。四半期の末・全ての国の全ての州に 1 行。列：
+  quarter year nation region populationK foodFillSmoothed（Region.FoodFill＝平滑の後）opportunityIndex
+  domPlanOldKPerMonth domPlanNewKPerMonth domCapKPerMonth domRatioOld domRatioNew domBindOld domBindNew（国内・1 か月分）
+  xbPlanOldKPerQuarter xbPlanNewKPerQuarter xbCapKPerQuarter xbRatioOld xbRatioNew xbBindOld xbBindNew（越境・1 四半期分）destFoodSymmetricFlag
+ 旧＝行き先の値打ち＝機会・新＝機会×食の充足。同じ盤面で旧と新の両方を数える（教訓 ①）。計器はこの文から自分で式を組む＝エンジンの Territory.Step・MigrateBetweenNations・StayValue・Holding・LandFactor・AbsorbCap・EntryFrictionTerm・MigrationDecay を呼ばない。入力として読むのは機会（Territory.Opportunity＝region_s と同じ）・座標・距離・時代の係数・平均識字だけ。
+ 国内：出る州の残る値打ち＝機会×持ち分×（旗 DomesticStayFoodFill 1 なら）食の充足。差＝行き先の値打ち−残る値打ち−摩擦（正のとき）−摩擦×km÷(距離の尺度×時代の係数)。割合＝移動度×最大の差（0〜0.2）。行き先 d の計画＝Σ_s 割合×(差÷差の和)×(出る州の大衆のうち d に居る階級の人数)。上限＝月の受け入れ率×人口×(食×住居×土地)^指数。
+ 越境：残る値打ち＝機会×持ち分×食の充足。差＝(行き先の値打ち−残る値打ち−閾値)×1/(1＋km÷(距離の尺度×送出の国の時代の係数))。受入国の重み＝民族の引力×識字の差別。流量＝min(流出率×最大の差, 四半期の上限×(1＋飢饉の緩和×(1−食の充足)))×階級の人数（農民・労働者）。上限＝四半期の受け入れ率×人口×法の率×(食×住居×土地)^指数。
+ 〈近似〉の断り：四半期の末の盤面での 1 か月分の国内の計画（Step は月ごと）。
+ 読み手 scripts/instruments/c142ds/migcap_ds.py（上限が効く割合・2 乗の行の割合・計画の和と上限で縮めた和の新÷旧）。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（PriceOfBread.Tests/DestFoodSymmetryTests.cs・盤面は試験の中で置く・期待値は試験が手で書いた式）：
+  T1 仏の 1 か国（距離の尺度 0・上限なし）：出る州 S（リール）の残る値打ち 0.3・他の州の機会 2.0・居る階級の同じ 2 州 A（食 1.0）・B（食 0.5）。旗 1：A÷B の流れ＝(2−0.3−0.15)/(1−0.3−0.15)（1e-9）・人口の保存・MoveValue＝機会×食のビット一致。旗 0：A と B が同じ（1e-9）。
+  T2 国内：同じ盤面で B への流れが旗 1 で旗 0 より小さい。T2 越境：英仏米普露西の 1 四半期の盤面（上限なし）で、他の国の機会が最大の州 x の食を損益の分かれ目と 1 の中ほどへ下げ、x の農民と労働者の増えが旗 1 で旗 0 より小さい（旗 0 で増え＞0 の前提つき）。
+  T3 受け入れの上限の量は旗に依らない：上限率 1e-3（B で上限が効く＝上限なしの 1/10 未満の前提つき）で、B の流入が旗 0 と旗 1 で同じ（1e-9）。上限なしでは旗で変わる（前提）。
+  T4 計器：同じ盤面で旗 0 と 1 の migcap の行が同じ・旧の計画は A と B で等しい・新の計画の A÷B は手で書いた差の比・旗 1 の実際の流れの A÷B と計器の新の比が一致。
+ 止める線（作者の止める線・腕 B の生を scripts/instruments/c142ds/read_ds.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines906（pxmonth の 3 か月の比 100 倍以上・1e10 倍以上・非有限・plvl・gdpjump の〈それ以外〉）。建国の直後と分母の痩せ（popjump1017・㊳）はヌル腕と並べる。基準とヌル腕を同じ台本で数え直す（⑰・pre_base.sh）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ。植民地格の州も含む。基準の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ（基準 M の 1/4 未満＝s1 セントポール・ニューヨーク／s2 バハマ諸島／s4 バーミンガム／s5 セントポール／s6 セントポール・チャールストン／s10 バーミンガム・セントポール〔hol_v4_base.txt〕）。
+  S4 推定の計算量 ＞248.5 秒（名目・基準 M 225.6・S11 230.9・余り約 17.6 秒）。割り当て +0.0〜0.1 秒〈推〉（国内は州ごとに掛け算 1 つ・越境は行き先の州ごとに 1 つ・.cost の MigrationPairs の数え方は旗に依らない）。2 秒以下＝合流の累計で読む（★(694)）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 史実の桁の線（10 倍・★(1321)）：国内の移民の和（M 1,562,895 千人）に置く錨の系列は無い（61 か国の州の間の移動の全期間の和を史実で集めた系列を持たない）＝この線は〈系列なし〉と名乗り門にしない。
+ 〈狙いどおり働いた〉の段：G0（T1・T2〔国内・越境〕・T4）が旗 0 の実装（突然変異 M0）で赤・突然変異で赤であること。腕の観測量（P1〜P4・migcap の割合）は記録。
+ 記録（門にしない）：国内と越境の移民の和（migsum_ds.py）・フォートウィリアム型の件数とバーミンガムの最小÷ピーク（r1346/q3_swell.py）・migcap の割合・空洞化 1/4 未満の件数・英の国債の不履行（ukdef975）・gdp_zero10・nullgate（ヌル腕の幅＝記録だけ）・ng（基準 rd:measurements/ng1341_20261124:m1341）・home_break・開幕の 1000 倍以上・同じ盤面の新÷旧。
+
+■ 旗 0 で門が落ちることの確かめ（★(790)）
+ T1・T2（国内・越境）・T4 は旗を読まない実装（M0）で赤〈予言・器のコミットの後に使い捨ての木で確かめて下の追記へ〉。止める線は〈壊さない〉門＝基準で回して緑（上の段 0）。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c142ds/mut_ds.sh・出力 measurements/m1349_20261125/mut/）＝予言
+ | 突然変異                                   | T1 | T2 国内 | T2 越境 | T3 | T4 |
+ | M0 旗を読まない（国内と越境の両方が旧）     | 赤 | 赤      | 赤      | 緑 | 赤 |
+ | M1 国内だけ旧                               | 赤 | 赤      | 緑      | 緑 | 赤 |
+ | M2 越境だけ旧                               | 緑 | 緑      | 赤      | 緑 | 緑 |
+ | M3 旗 1 で国内の上限にも食を掛ける           | 緑 | 緑      | 緑      | 赤 | 緑 |
+ | M4 行き先の値打ちを食の 2 乗に               | 赤 | 緑      | 緑      | 緑 | 赤 |
+ （突然変異では腕を回さない＝腕の枠の節約。）
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）（grep の結果＝measurements/m1349_20261125/pre/grep28.txt）
+ 工業化度の読み手の許可表（IndustrializationReaderTests:24〜:26）：("Territory.cs", 1)・("MultiNationSim.cs", 2)＝工業化度を読まない＝変化 0。
+ `new MoneyStock(`（SimCore）66 件＝足さない＝66 のまま。
+ route_anchors.tsv の鍵の行：Territory.cs・MultiNationSim.cs の移民の行に触らない＝変化 0。
+ WriterRatchetTests の宣言の表：:208 ("Pop.Carry(", "MultiNationSim.cs", 1)・:210 (".Rebase(", "Territory.cs", 1)＝変わらない。CostLedger の数え手を足さない。
+ OnDoubleReadScanTests：Territory.cs::static#0＝4 のまま（Instruments.On の読みを足さない・計器の表は Quarter の中の 1 行）。
+ TechLevelRemovalTests の許可表：計器 InstrumentsMigcap.cs が距離の時代の係数の入力（WorldTechLevel）を 1 行読む＝表に ("PriceOfBread.SimCore", "InstrumentsMigcap.cs", 1) の 1 行を足す（+1 行・持ち主の一覧の外の宣言の行＝報告の先頭に名乗る）。エンジンの Territory.cs は 1 のまま。
+ DormantIdentityTests.DormantZeroFields：器で +1（DestFoodSymmetric）・点火で −1。
+
+■ 計算量の割り当て
+ +0.0〜0.1 秒〈推〉。計器は Instruments.On かつ表を選んだときだけ（.cost の推定に入らない）。
+
+■ ほかの線との重なり（指示の持ち主の一覧）
+ Territory.cs（:14〜:40・:124〜:132 の隣）・MultiNationSim.cs:1395〜:1445・Coefficients.p03_debt_money.cs:92 の隣はこの線だけ（c142ik は MultiNationSim.cs:153 の注だけ・c142lr は Government.cs・SelfPlay.cs・Simulation.cs）。
+ 共有：Instruments.cs（Quarter の LawDirTable の次の 1 行と Close の LawDirClose の次の 1 行）・DormantIdentityTests.cs（:156 の次の 1 行）・TechLevelRemovalTests.cs（:22 の前の 1 行）。
+
+■ 順
+ 1 この事前登録 → 2 器（旗 0・MoveValue・計器 migcap_s・試験 T1〜T4）→ ㉘（scan_ds.sh）→ 3 腕 Z（identz.sh＝ident.sh run c142dsz --stage2 --tests-delta 5 --added-tables migcap --work D:/PoB_work/ident_c142ds）
+ → 4 突然変異（mut_ds.sh）→ 腕 Z の migcap の生の読み（migcap_ds.py）を下の追記へ → 5 旗 1 → 絞った試験（㉜ の改め：差分の名を Tests/ で grep したクラス＋㉘ の束＋FullLength＋savetest・leakhunt）
+ → 6 腕 B（armb.sh・計器つき 10 種・表を絞る＝nation_s・stock_s・wars_s・casualty_s・region_s・migration_s・pxmonth_s・scalars_s・fiscal_s・migcap_s）→ 門 → フルスイート（腕 B の後）→ 印 D:/PoB_work/c142ds_work/ds.mark。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記 1（2026-11-25・腕 Z の後・腕 B の前・門は変えない）
+ 腕 Z〈判定: 恒等〉（測った種で一致・器 acf9fb219〔判定の頭の木 12b432f7c＝器＋測定の記録だけ〕・SOURCE-HASH 7e4de0ffa2b85a48・measurements/ident_20261125_c142dsz.txt・NG 98・新 0・外 0・宣言 added migcap・tests_delta 5）。
+ 腕 Z の migcap_s の生（D:/PoB_work/ident_c142ds/out_ib_10/ins・基準と同じ盤面）を migcap_ds.py で読んだ（measurements/m1349_20261125/armZ/migcap_armZ.txt）：
+  国内（州×四半期の行・1 か月分）：計画＞0 の行 旧 247,768・新 151,069。上限が効く割合 旧 0.258・新 0.230。〈2 乗の行〉（上限が効き食＜1）の割合 新 0.230＝上限が効く行のほぼ全て。
+   上限を外した計画の和 新÷旧 0.564。上限で縮めた和 旧 496,539 → 新 300,329（0.605）。
+  越境（1 四半期分）：計画＞0 の行 旧 616,353・新 389,344。上限が効く割合 旧 0.024・新 0.017。上限を外した計画の和 新÷旧 0.466。上限で縮めた和 旧 49,131 → 新 32,759（0.667）。
+ 計器の確かめ（記録）：上限で縮めた旧の和は実際の動きとよく合う＝国内 3×496,539＝1,489,616 対 region_s の和 1,562,895（0.953）・越境 49,131 対 49,302（0.997）。
+ 予言の更新（記録・門ではない）：P1 国内の和は静的には 0.605 倍＝約 0.95M 千人〈推〉（事前登録の 1.0〜1.2M より低い側・軌道の戻りで上がり得る）。P2 越境は静的に 0.667 倍＝約 33,000 千人〈推〉。
+ ⑨ の数え：上限が効く行き先（国内の計画＞0 の行の 23〜26%）では量は上限で決まり、食は上限の式に 1 回だけ効く。行き先の値打ちの食は、その行き先の取り分の配りを変える（量を 2 回縮めない）。上限が効かない行（約 74〜77%）では上限の食は量に効かない。

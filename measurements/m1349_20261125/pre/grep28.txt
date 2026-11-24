@@ -1,0 +1,40 @@
+# (1349) ㉘ grep（木 b8cdd3795＋器）
+## IndustrializationReaderTests の許可表
+24:        ("Instruments.cs", 1), ("InstrumentsCapacity.cs", 1), ("InstrumentsEquipment.cs", 2), ("InstrumentsLawGate.cs", 1), ("InstrumentsModernize.cs", 1), ("InstrumentsScore.cs", 1),
+25:        ("Model.cs", 4), ("MultiNationSim.cs", 2), ("NationBrief.cs", 1), ("NationConfig.cs", 1), ("OpeningBake.cs", 3),
+26:        ("SelfPlay.cs", 3), ("Simulation.cs", 14), ("Territory.cs", 1), ("Validation.cs", 2), ("World.cs", 7),
+34:        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(dir))
+83:        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(dir))
+## new MoneyStock( (SimCore)
+66
+## route_anchors.tsv
+8:MultiNationSim.cs	double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac.Value * pool, w);	運河の建設の工賃(投資家→労働の持分・PaySales)	
+9:MultiNationSim.cs	double paidCap = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);	港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)	
+10:MultiNationSim.cs	double paidState = InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);	港の建設の工賃・国家ルート(国庫→労働の持分・PaySales)	
+33:MultiNationSim.cs	paid += CapitalMarket.GiveGold(iw, amount * (kv.Value / totalShare), (payer, null), TreasuryCat.OtherOut);	運河の通行料の配当(国庫→拠出国の投資家)	
+56:MultiNationSim.cs	World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac.Value * throughput * risk);	海上保険の保険金(商人→被害の商人)	
+## WriterRatchetTests の宣言
+25:[Collection("Instruments")]   // (908) Instruments.cs の静的な Dir・On の並列の競合（(901) で 23 本が ArgumentException）
+34:        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(SimCoreDir()))
+208:    [InlineData("Pop.Carry(", "MultiNationSim.cs", 1)]     // 国境をまたぐ人の運搬の1本（MoveAbroad）だけ
+210:    [InlineData(".Rebase(", "Territory.cs", 1)]            // 割譲の通貨の付け替え（換算の台帳と対）
+## TechLevelRemovalTests
+8:/// <summary>★(613) 線 tl：技術水準（<c>w.TechLevel</c>・<c>WorldTechLevel</c>）の削除の番人＝機構と不変条件。事前登録 measurements/tl613_20261028_prereg.txt の §6 T0a〜T0d。
+13:    // SimCore と Runner の非コメント行（// 以降を除く）で、World の技術水準（TechLevel・WorldTechLevel）を読む・書く行の数のファイル別の許可表。
+20:        // (1338) c140dz：BilateralMarket.cs の行（frontierTech の周回）と InstrumentsScalars.cs の行（freightRevolution の列）を消した・MultiNationSim.cs 8→7（許可表の行を消すだけ）
+22:        ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
+24:        ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
+25:        ("PriceOfBread.SimCore", "World.cs", 3),   // (1160) c114sr D-r2：4→3（World.cs:1956 の EraFactor(WorldTechLevel, EraTensionRange) の行を消した）
+68:        foreach (var f in Directory.GetFiles(Path.Combine(dir, "Instruments"), "Instruments*.cs"))
+80:        Assert.DoesNotContain("techLevel", Instruments.ScoreHeaderText.Split('\t'));
+128:        double Budget(double world, double own) { w.WorldTechLevel = world; w.TechLevel = own; return w.ModernizationBudget(); }
+158:        w.TechLevel = 0.0; w.WorldTechLevel = 0.0;
+## OnDoubleReadScanTests
+6:/// <summary>(927) c81sm Instruments.On の二重読みの走査の番人。事前登録 measurements/m927_20261107_prereg_sm.txt [3]・表 measurements/m913_20261107/on_double_read_table.txt の型。
+7:/// 計器の門 <c>Instruments.On</c> を 1 つの関数の中で 2 回以上読むと、確保と使用が別の読みになり得る（並列の試験で On が途中で変わると NRE か計器の値のずれ・(913)(921) の型）。
+8:/// SimCore の各ファイルを字句で走査し（コメント・文字列を飛ばし、型の直下の丸括弧を持つ波括弧を関数と見なす）、関数ごとの <c>Instruments.On</c> の読みの数を数える。
+15:    // 今の木（11c35e54）で Instruments.On を 2 回以上読む関数。直した関数はここから消す。
+47:        ["Territory.cs::static#0"] = 4,
+86:            if (string.CompareOrdinal(src, i, "Instruments.On", 0, 14) == 0 && !(i + 14 < n && W(src[i + 14])) && !(i > 0 && (W(src[i - 1]) || src[i - 1] == '.')))
+118:        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(dir).OrderBy(x => x, StringComparer.Ordinal))
+131:    public void InstrumentsOnを2回以上読む関数は表の物だけで_読みは増えない()
