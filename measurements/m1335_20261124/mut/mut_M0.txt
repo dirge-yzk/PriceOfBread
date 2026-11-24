@@ -1,0 +1,3 @@
+# M0（e042ab55d）
+  失敗 PriceOfBread.Tests.HungerFlightTests.T1_飢えた州から隣へ人が出る_旗0では出ない [288 ms]
+  失敗 PriceOfBread.Tests.HungerFlightTests.T4_移す前後で総人口が同じ [< 1 ms]

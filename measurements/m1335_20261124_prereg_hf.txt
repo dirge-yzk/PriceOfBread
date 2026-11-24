@@ -1,0 +1,100 @@
+(1335) c140hf 挙動の線の事前登録：国内の移民の残る値打ちを越境と同じ 1 本の関数 Territory.StayValue＝機会×残る人の土地の持ち分×食の充足にする（旗 DomesticStayFoodFill・1 回目）（2026-11-24・担当 Opus 5.5・腕の前のコミット）
+
+■ 出発
+ 省く段 B5（挙動の先頭・D:/PoB_work/omission_stage_list.md）。弱さの地図の型 2（D:/PoB_work/fragility/report.md:10）＝飢えた州で人が出ない（パリ S11 種 16 0.132・ローマ・ジブラルタル）。(1328) の df：S11 種 19 のバーミンガムが飢えで 0.436→1/10 未満。
+ 作者 2026-11-23：根の線を先に。作者 2026-11-21：群 2 は残す。答え待ちではない。3 回の規則の 1 回目。形の種類＝〈入口〉（国内の移民の出る側の残る値打ちだけを変える）。
+ 形は AI の案・確証なし（〈越境と同じ式にそろえる〉は弱さの地図の推奨の続き・作者の裁定ではない）。ただし越境の側は既に食の充足を読む（MultiNationSim.cs:1431）＝国内と越境の非対称の直し。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果＝measurements/m1335_20261124/pre/grep32.txt・main ffb0c93ec）
+ 旧の規則：Territory.Step（Territory.cs:20）の stay[i] = opp[i] × Holding(r, c)＝国内の出る側に食の項が無い。越境（MultiNationSim.cs:1431）は Opportunity×Holding×FoodFill。
+ grep〈Territory.Step・Territory.Holding・Territory.Opportunity・Territory.AbsorbCap・RegionMobility・LandDiminishExponent〉（Tests）＝27 行・5 ファイル：
+  TerritoryTests.cs：:55〜:78〈移民だけでは州は空にならない〉（Frontier の盤面・Territory.Step だけを回す＝州の FoodFill は既定 1.0 のまま動かない）・:80〜:96〈受け入れの上限〉（同じ）・:105〜:135〈入口の形〉（Board("フランス")＝MultiNationSim を作っただけ＝FoodFill 1.0・S の残る値打ちを Opportunity×Holding でそろえる）。
+  ConservationTests.cs:449〜:510（越境・式は今と同じ値＝StayValue へ寄せても同じ）・MilitaryTests.cs:1897〜:1904・RecruitVacancyTests.cs:40〜:44（Opportunity だけ）・DormantIdentityTests.cs:368（注）。
+ 予言：食の充足が 1 の盤面では旗 1 の残る値打ち＝opp×Holding×1.0＝旧と同じビット（IEEE の x×1.0＝x）＝上の番人は旗 1 でも緑〈推〉。軌道を回す試験（WriterRatchetTests の 1 種 40 四半期の件数の InlineData・FullLength・StartWarmup の史実の桁）は食の充足が 1 未満の州が出れば動き得る＝変わったら ★(749) の例外として取り直し verdict に列挙する（機構の向きと大きさの Assert は書き換えない）。
+ ＝旧の規則そのものを固定する Assert の赤の予言 0。
+
+■ 段 0（ソースと基線の生から・読むだけ・台本 scripts/instruments/c140hf/stage0_hf.py・pre_s0.sh・出力 measurements/m1335_20261124/pre/stage0_*.txt・loop_summary.txt）
+ 0-1 型 2 の輪〈推測〉（飢え→農村が死ぬ→持ち分が上がる→出ない）を region_s の foodFillShare（四半期の末の生の充足＝Region.FoodFill は平滑＝近似）・holdingFactor・migrationOutKPerQuarter で並べた。
+  飢えた州（foodFillShare＜0.5 が 4 四半期以上）：基準 M 46 州・732 四半期（うち国内の流出＞0 は 69）／a11 48・514（45）／N1 58・710（91）／N2 42・527（61）。
+  飢えの初めと終わりで持ち分が上がり農村が減った州：M 18/46・a11 30/48・N1 37/58・N2 23/42。飢えの間に国内の流出が 0 の州：M 36・a11 39・N1 34・N2 27。
+  例：a11 種 16 パリ（フランス）飢え 7 四半期・ff 最小 0.418・持ち分 3.75→4.84・農村 1314→912 千人・国内の流出 0。基準 種 8 ローマ（教皇領・an_h2 の 1/4 未満〈その他〉）持ち分 1.41→14.3・food 0.766→0.419・農村 931→34.2 千人。
+  ＝輪は見える（全てではない＝都市の州は持ち分 1 のまま＝a11 種 19 バーミンガムは持ち分 1・飢えは 1942 の 1 四半期だけ）。輪が見えなくても形は変えない（越境との対称の直しとして立つ）。
+ 0-2 紙の予言（同じ盤面で旧と新の規則を数える・計器はエンジンの関数を呼ばず region_s の列から自分で組む）：飢えの四半期で〈同じ国の他の州の機会の最大−残る値打ち−摩擦 0.15〉が正（距離の項を引かない＝差の上の側の近似）の数：
+  M 旧 104 → 新 451（新だけ 347）／a11 72→282／N1 115→408／N2 90→441。旧で差 0・新で差＞0 の州 M 20・a11 26・N1 19・N2 12。
+  ＝旗 0 の盤面では飢えた四半期の 86% で国内の差が閉じている（旗 0 で〈出る〉が働かないことの確かめ＝★(790)）。
+ 0-3 計器の列は足さない（Instruments は持ち主のファイルの外）＝旧と新の規則の数え直しは region_s の既存の列からの台本（上）で行う＝〈近似〉と名乗る。
+
+■ 段 0 の予言（向きと桁・〈推〉・門にしない）
+ P1 飢えた州（M 46）から国内の流出が増える（飢えの四半期で流出＞0 の数 69 → 数百）。
+ P2 飢えた州の 6 年の人口の減りの種の中央は上がる（M −0.015 → 正の側）。食の充足は人が出ると上がる（口が減る）＝負の帰還で止まる〈推〉。
+ P3 空洞化：持ち分 1 の都市の州（バーミンガム型）が飢えで出る量は月 RegionMobility 0.03×差（上限 0.2）＝飢えの続きが短い（平滑 0.2/月）ので 1/10 未満は〈線が原因〉0〈推〉。1/4 未満の数は増え得る（記録）。
+ P4 国内の移民の総量は増える（M の和 904,566 千人・越境 67,108 千人）。越境の側は値が同じ（式は同じ・T3）。
+ ＝見込みは〈悪くする〉ではない（飢えた州から人が出ない誤りを無くす向き）＝腕を回す。
+
+■ 形（旗 1 の規則は 1 本）
+ Territory.StayValue(r, c)＝Opportunity(r,c)×Holding(r,c)×r.FoodFill（掛ける順は越境の今の式と同じ）。国内（Territory.cs:20）は既に求めた機会を渡す 2 引数目の形 StayValue(r, opp[i], c)＝opp×Holding×FoodFill を呼ぶ。越境（MultiNationSim.cs:1431）は StayValue(r, _coef)＝旗に依らず今と同じ値（同じ順の掛け算＝ビット一致・T3 で固定）。
+ 旗 0 は今と 1 ビットも同じ（stay[i] = opp[i] × Holding(r,c)）。新しい係数 0（旗 1 本＝Coefficients.p03_debt_money.cs:91 の次の 1 行）・閾値 0・状態 0。
+ 入れない物：(1293) 案 A（UrbanFlowReal の F1・PopDecision）・WagePremium の改名と 0.25〜4 の切り・国内の移民の行き先の比（型 1）・越境の MaxFrac の緩和を国内へ写すこと（下の〈周辺の点検〉）。
+
+■ 門（〈作者 2026-11-16 の決まり〉①・結果を見る前に固定・ループの中で変えない）
+ G0 単体の機構の試験（PriceOfBread.Tests/HungerFlightTests.cs・盤面は試験の中で置く）：
+  T1 2 州（Frontier 本土→辺境）：機会を両方 1.0・本土の持ち分 1.3^0.7≈1.20・食の充足 0.3。旗 1：本土から流出＞0（上限 0.2×人口以下）・辺境に着く。旗 0：本土の人口が 1 ビットも変わらない（旧の規則は持ち分で止まる）。
+  T2 食の充足 1（全ての州）：賃金のプレミアム 0.25/4 の盤面で 24 か月、旗 0 と旗 1 の全ての POP の大きさがビット一致（流れていることの前提つき）。
+  T3 越境（英仏米普露西・1 四半期回した盤面）：送出州の残る値打ちを食の充足 1 では（最良の機会−閾値）/0.6＝出ない・0.3 では 1/2 倍＝出る に置く。StayValue＝機会×持ち分×食の充足（試験が組む）のビット一致・食の充足 0.3 で流出＞0・1 で流出 0・国内の旗 0 と 1 で越境の結果がビット一致。
+  T4 T1 の盤面で 12 か月：2 州の総人口が保存（相対 1e-9）・辺境へ移っている。
+ 止める線（作者の止める線・腕 B の生を読み手 scripts/instruments/c140hf/read_hf.sh で）：
+  S1 破綻（クラッシュ・NaN・保存則・savetest・leakhunt・進行不能）＝フルスイート・savetest・leakhunt・腕 B の 10 種の完走。
+  S2 発散＝stoplines906（nation_s の priceLevel の四半期比 100 倍以上・1e10 倍以上・非有限・plvl・開幕の 1000 倍／gdpjump の 3 区分の〈それ以外〉だけ）。建国の直後と分母の痩せ（popjump1017）はヌル腕と並べる。基準とヌル腕を同じ台本で数え直す（⑰・pre_base.sh）。
+  S3 州の空洞化 T1＝an_h2.py -v4（規則 A2）の 1/10 未満の名簿の外のうち〈この線が原因と読めた件〉だけ。植民地格の州も含む。基準の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ（基準 M の 1/4 未満＝種 8 ローマ〈その他〉・移民 1 件＝pre/hol_v4_base.txt）。
+  S4 推定の計算量 ＞248.5 秒（名目・m1334 の余り 約 13.0 秒〔N1〕）。割り当て ±0 秒〈推〉（州ごとに掛け算 1 つ・.cost の MigrationPairs は旗に依らない＝出る州の数え方は stay の有限で同じ）。2 秒以下＝合流の累計で読む（★(694)）。
+  S5 機構と不変条件の試験の赤（走査の番人を含む）。
+ 史実の桁の線（10 倍・錨＝史実の値・★(1321)）：飢えた州（foodFillShare＜0.5 が 4 四半期以上）の 6 年の人口の減り（最初に飢えた四半期の人口→24 四半期後）の中央。錨＝アイルランドの大飢饉 1845〜51 の人口の減り 約 20〜25%〈推〉＝0.225・線＝中央が 0.0225 未満か 2.25 超。
+  ★紙で基準が既に線の外（M −0.0149・a11 0.0013・N1 0.0084・N2 −0.0067）＝旗 0 の盤面でこの線は赤（★(790) の確かめ）。この線で〈線が原因の NG〉にするのは、腕の中央が線の外で、かつ基準の中央より錨から遠いとき（|腕−0.225|＞|基準 −0.0149−0.225|＝0.2399）だけ（結果を見る前に固定）。
+ 〈狙いどおり働いた〉の段：G0（T1・T3）が旗 0 の実装で赤・突然変異で赤であること。腕の観測量（飢えた四半期で国内の流出＞0 の数）は記録（ヌル腕の幅とは比べない＝作者 2026-11-16 ①）。
+ 記録（門にしない）：飢えた州の数と流出（stage0_hf.py を腕に当てる）・空洞化 1/4 未満の件数・移民の総量（migsum_hf.py）・英の国債の不履行の種の数（ukdef975）・gdp_zero10・ヌル腕の幅・nullgate・ng（基準 rd:measurements/ng1334_20261124:m1334）・home_break・開幕の 1000 倍以上・同じ盤面の新÷旧（成績表の行の差の数）。
+
+■ 旗 0 で門が落ちることの確かめ（★(790)）
+ T1 の旗 1 の Assert は旗 0 の実装（突然変異 M0）で赤。T3 は越境の側から食の項を外す実装（M3）で赤。史実の桁の線は旗 0 の基準で赤（上）。止める線は〈壊さない〉門＝旗 0 の基準で回して緑を確かめた（下）。
+
+■ 基準で回した止める線（★(1254)・台本 scripts/instruments/c140hf/pre_base.sh・出力 measurements/m1335_20261124/pre/）
+ keep_1334/base_ins：pxjump 100 倍以上 0・1e10 倍以上 0・非有限 0／gdpjump 100 倍以上〈それ以外〉0／plvl 比≧100 0／空洞化 1/10 未満 0・1/4 未満 2（移民 1・その他 1〔種 8 ローマ〕）・例外の規則の州 1/4 飢え 2。英の国債の不履行 1/10（種 8）。gdp_zero10 0。国内の移民の和 904,566 千人・越境 67,108 千人。＝緑。
+ keep_1334/n1：止める線 0・空洞化 1/10 未満 0・1/4 未満 2（移民 2）・英の不履行 2/10（種 6・9）。n2：止める線 0・1/10 未満 0・1/4 未満 3（移民 3）・英の不履行 2/10（種 1・2）。
+
+■ 〈周辺の点検〉（読むだけ）
+ AbsorbCap（Territory.cs:124〜:130）：入る側は既に食の充足を読む＝旗 1 で出る側も読む＝両側がそろう（二重ではない＝出る側の押しと入る側の受け入れは別の量）。
+ PopDecision.cs:77〜:79 の飢えの門（都市の食の充足が閾値未満で農村より低いと州の中の都市化を止める・FamineGateReturnsRural）：州の中の階級の動き＝州の間の移民と別の流れ＝触らない。
+ 越境の MultiNationSim.cs:1453〜:1457 の MaxFrac の緩和（飢えで送出の上限を上げる）と送出の FoodFill：越境だけに 2 か所で食の充足が効く（今のまま・この線は国内へ緩和を写さない＝思想⑨の二重を国内に作らない）。国内の流出の上限は MaxMigrationFraction 0.2 のまま。
+
+■ 突然変異ごとの門の赤（㉚・使い捨ての木で試験を回す・台本 scripts/instruments/c140hf/mut_hf.sh・器のコミット・出力 measurements/m1335_20261124/mut/）
+ | 突然変異                                          | T1 | T2 | T3 | T4 | 史実の桁の線（紙） |
+ | M0 旗を読まない（国内は旧の規則のまま）             | 赤 | 緑 | 緑 | 赤〈推〉 | 赤（基準と同じ） |
+ | M1 StayValue から食の充足を外す                    | 赤 | 緑 | 赤 | 赤〈推〉 | 赤 |
+ | M2 食の充足の 2 乗                                  | 緑 | 緑 | 赤 | 緑 | 読まない |
+ | M3 越境の側だけ食の項なしの式へ                     | 緑 | 緑 | 赤 | 緑 | 読まない |
+ （T4 は〈辺境へ移っている〉の前提の Assert が M0・M1 で赤〈推〉＝保存の Assert ではない。突然変異では腕を回さない＝腕の枠の節約。）
+
+■ ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）（grep の結果＝measurements/m1335_20261124/pre/grep28.txt・main ffb0c93ec）
+ 工業化度の読み手の許可表（IndustrializationReaderTests:26）：("Territory.cs", 1)・("MultiNationSim.cs", 2)＝この線は工業化度を読まない＝変化 0。
+ `new MoneyStock(`（SimCore）64 件＝足さない＝64 のまま。
+ scripts/instruments/flow262/route_anchors.tsv の鍵の行〈Territory.cs MoveBetweenRegions〉（:71）と越境の Pop.Blend（:72）＝触らない＝変化 0。
+ WriterRatchetTests の宣言の表：:208 ("Pop.Carry(", "MultiNationSim.cs", 1)・:210 (".Rebase(", "Territory.cs", 1)＝変わらない。CostLedger の数え手を足さない。
+ OnDoubleReadScanTests：Territory.cs::static#0＝4 のまま（Instruments.On の読みを足さない）。
+ TechLevelRemovalTests：("Territory.cs", 1)＝技術水準を読む行を足さない＝変化 0。
+ DormantIdentityTests.DormantZeroFields：器で +1（DomesticStayFoodFill）・点火で −1。
+
+■ 計算量の割り当て
+ .cost：±0 秒〈推〉。
+
+■ ほかの線との重なり（指示の持ち主の一覧を grep で確かめた）
+ Territory.cs（:1〜:131）と MultiNationSim.cs:1431・Coefficients.p03_debt_money.cs:91 の隣はこの線だけ（c140nt は Territory.cs の lineref の注を除外と書かれている・c140dz は MultiNationSim.cs:534 だけ）。
+ 共有：DormantIdentityTests.cs（:158 の前の 1 行）・WriterRatchetTests.cs（触らない予定）。
+
+■ 順
+ 1 この事前登録 → 2 器（旗 0・StayValue・試験 T1〜T4）→ ㉘（scan_hf.sh）→ 3 腕 Z（段 2・identz.sh＝ident.sh run c140hfz --work D:/PoB_work/ident_c140hf --tests-delta 4）
+ → 4 突然変異（mut_hf.sh）→ 5 旗 1 → 絞った試験（㉜ の改め：差分の名を Tests/ で grep したクラス＋㉘ の束＋savetest・leakhunt）→ 6 腕 B（armb.sh・計器つき 10 種・表を絞る）→ 門 → フルスイート（腕 B の後）→ 印 D:/PoB_work/c140hf_work/hf.mark。
+ 形の変え直しは 1 回だけ（⑭）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+■ 追記（2026-11-24・腕 Z の後・腕 B の前・門の数は変えない）
+ 腕 Z（ident c140hfz 段 2・器 e042ab55d・木の HEAD ac8337931〔台本だけの差〕）〈判定: 恒等〉（測った種で一致）：素 5 種 推定 232.6 秒・計器つき 10 種 推定 228.5 秒・表 1725＝バイト一致 1685＋既知の揺れ 40・NG 88 新 0 外れ 0・テスト 3181（3177＋4）・FullLength 3・savetest・leakhunt 緑（measurements/ident_20261124_c140hfz.txt）。
+ 突然変異（measurements/m1335_20261124/mut/mut_M*.txt・HungerFlightTests＋TerritoryTests＋ConservationTests）：表どおり。M0 T1・T4 赤／M1 T1・T3・T4 赤＋ConservationTests〈国家間移民の流出は行き先の数によらず上限を1回だけ〉赤（表に無い余分の赤＝越境の送出が食の項を失う）／M2 T3 赤／M3 T3 赤＋同じ ConservationTests 赤。
+ ㉘ 走査の番人＋この線の試験（器 e042ab55d）205 件 緑（measurements/m1335_20261124/scan/scan_e042ab55d.txt）。
