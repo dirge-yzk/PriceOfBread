@@ -66,7 +66,7 @@ public sealed partial class Coefficients
     public double AppeaseMilitaryRatio = 2.5;      // 相手の軍が自軍のこれ倍超＝勝てない相手＝挑発せず宥和（緊張を下げる）
     public Share HegemonRestraintFloor = new(0.25);    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停止はしない）
     public RatePerMonth PrizeMoneyRatePerMonth = new(0.004);          // 海軍を持つ交易上の意味
-    public Share PrizeCargoShare = new(1.0);           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×(1-CommerceRaidFactor))』比例へ移すブレンド（prize-money-gdp-based-no-cargo）
+    public Share PrizeCargoShare = new(1.0);           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×LastBlockadeRisk)』比例へ移すブレンド（prize-money-gdp-based-no-cargo）
     public double ColonizeAnnexMilitancy = 0.3;    // A5無血植民地化の被支配不満（接収植民地のMilitancy/属国pop闘争度の初期値＝抵抗の実体化）
     public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
     public double InterventionMotiveRatio = 1.0;     // 勝勢側の陣営戦力 ÷ 介入国の陣営戦力 がこれ以上なら「止めたい」＝動機

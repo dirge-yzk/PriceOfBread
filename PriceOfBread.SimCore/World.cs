@@ -1086,7 +1086,7 @@ public sealed class World
     // 貿易路×メディアで広がる（MultiNationSim.StepDiffusion＝国の組の取引の割合×両国の媒体×放射の強さ〔思想＝持つ人の割合・制度＝解禁済みなら1〕の積み上げ）。〔履歴 World.cs#195〕
     public double[] SpreadReach = new double[Discovery.SpreadRows.Length];
     public int RumpLowQuarters;
-    public double PendingForeignBorrow;   // ★§1-4（ForeignLendingDebits>0のみ書かれる）：今四半期の対外借入元本＝四半期末に他国資本家から対称控除される待ち行列
+    public double PendingForeignBorrow;   // ★§1-4（Fiscal.cs の借入で外国の資本家の取り分があるときだけ書かれる）：今四半期の対外借入元本＝四半期末に他国資本家から対称控除される待ち行列
     public void LogAdd(string s) => PendingLog.Add(s);
     public void FlushLog()
     {

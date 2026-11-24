@@ -65,7 +65,7 @@ public sealed partial class Coefficients
     public double LandRouteEnabled = 1.0;   // 0=旧・国一律（首都→重心）
     public double[] TerrainHorseCost = [1.0, 0.8, 0.9, 1.5, 3.0, 2.5, 8.0];   // 添字＝Terrain enum の順
     public double[] TerrainRailCost  = [1.0, 1.0, 1.0, 1.5, 1.2, 5.0, 3.0];
-    public double TerrainWaterMajorCost = 0.15;   // 読み手は TerrainCostEnabled>0 のときだけ（水運は陸運の1/5〜1/10＝docのレンジ）
+    public double TerrainWaterMajorCost = 0.15;   // 読み手は TerrainWaterMajorCost>0 のときだけ（BilateralMarket・Discovery）（水運は陸運の1/5〜1/10＝docのレンジ）
     public double TerrainWaterMinorCost = 0.4;
     public double RailCostFraction = 0.25;   // 旧＝帆船の時代と鉄道の時代が同じ12倍だった
     public double LandSeaCostRatio = 12.0;       // 陸の実効距離倍率（§4-2の実測例＝陸単価12。鉄道後の低減は#17で。B3裁定＝新係数はこの1本に集約・地形係数は作らない）

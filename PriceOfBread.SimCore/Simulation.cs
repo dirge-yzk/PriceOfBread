@@ -282,7 +282,7 @@ public sealed class Simulation
     }
 
     /// <summary>局地飢饉の検証用：2つの active 州。州0＝食料余剰（農民多）、州1＝食料大幅不足（労働者多・自給僅少）。
-    /// 世界市場なし（単一国・TradeEnabled=false）なので州1は輸入できず飢える＝POP の飢えの上乗せ（DemographicStep）で州1だけ人口が減る。</summary>
+    /// 世界市場なし（単一国の世界）なので州1は輸入できず飢える＝POP の飢えの上乗せ（DemographicStep）で州1だけ人口が減る。</summary>
     private static List<Region> BuildRegionalFamine()
     {
         Region Make(int id, string name, double farmerSize, double workerSize, double foodOutput)
