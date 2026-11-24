@@ -1,0 +1,5 @@
+# M2（52a966438）
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T2_農奴解放と土地改革は旗に依らず戻らない(flag: 1) [2 ms]
+テストの合計数: 34
+     成功: 33
+     失敗: 1

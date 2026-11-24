@@ -1,0 +1,5 @@
+# M4（52a966438）
+  失敗 PriceOfBread.Tests.ProtectedLawReversalTests.T5_不可逆の強さが半ばの盤面で後退の費用の倍は旗1で1(flag: 1, expect: 1) [48 ms]
+テストの合計数: 34
+     成功: 33
+     失敗: 1
