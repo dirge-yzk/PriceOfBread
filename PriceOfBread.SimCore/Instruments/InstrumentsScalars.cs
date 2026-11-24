@@ -39,6 +39,6 @@ public static partial class Instruments
             F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue),
             I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask()),
             F(w.Policy.TariffTarget), F(TradeToGdp(w)),
-            F(w.ExternalPressure), F(InternationalMarket.FreightRevolution(w.WorldTechLevel, c)), I((int)w.WomenRights)));
+            F(w.ExternalPressure), F(1.0), I((int)w.WomenRights)));
     }
 }

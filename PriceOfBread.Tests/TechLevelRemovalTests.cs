@@ -17,10 +17,10 @@ public class TechLevelRemovalTests
 
     private static readonly (string Dir, string File, int Lines)[] Allowed =
     [
-        ("PriceOfBread.SimCore", "BilateralMarket.cs", 1),   // (843) c68ui：ArmyShape.cs・Diplomacy.cs・DiscoveryTables.cs・FiscalTables.cs・Megaprojects.cs（3→0）・PlayHarness.cs の行は段6 の旗の焼き込みで技術水準を読む行が無くなった（許可表の行を消す・MultiNationSim.cs 9→8・World.cs 5→4）
+        // (1338) c140dz：BilateralMarket.cs の行（frontierTech の周回）と InstrumentsScalars.cs の行（freightRevolution の列）を消した・MultiNationSim.cs 8→7（許可表の行を消すだけ）
         ("PriceOfBread.SimCore", "Discovery.cs", 2),
-        ("PriceOfBread.SimCore", "InstrumentsScalars.cs", 1), ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
-        ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 8),
+        ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
+        ("PriceOfBread.SimCore", "Military.cs", 1), ("PriceOfBread.SimCore", "MultiNationSim.cs", 7),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "World.cs", 3),   // (1160) c114sr D-r2：4→3（World.cs:1956 の EraFactor(WorldTechLevel, EraTensionRange) の行を消した）
         ("PriceOfBread.Runner", "Program.cs", 2),
@@ -223,7 +223,6 @@ public class TechLevelRemovalTests
         var c = new Coefficients();
         double hi = c.TransportRevolutionOnset + c.TransportRevolutionSpan + 1.0;
         foreach (double k in new[] { 1.0, -0.5, 3.0 }) Assert.Equal(1.0, c.EraFactor(hi, k));
-        Assert.Equal(1.0, InternationalMarket.FreightRevolution(hi, c));
     }
 
     // ---- 段5 技術の括弧（旗 TechProductivityBracketOff）-----------------------------------------------------------------

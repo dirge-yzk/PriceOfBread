@@ -666,16 +666,11 @@ public sealed partial class InternationalMarket
             if (eligible > 0) freightRate = c.FreightRatePer10Mm;
         }
 
-        double frontierTech = 0;
-        if (c.TransportRevolutionMax > 0)
-            for (int i = 0; i < nn; i++) if (nations[i].World.TechLevel > frontierTech) frontierTech = nations[i].World.TechLevel;
-        double freightRevolution = FreightRevolution(frontierTech, c);
-        double adValoremRev = freightRevolution;
         double WeightMarginAdd(int g)
         {
             if (c.TransportWeightMarginScale <= 0) return 0.0;
             double rp = goodById[g] is { } gd0 ? gd0.RefPrice : 0.0;
-            return rp > 1e-9 ? c.TransportWeightMarginScale * Catalog.TransportWeight(g) / rp * freightRevolution : 0.0;
+            return rp > 1e-9 ? c.TransportWeightMarginScale * Catalog.TransportWeight(g) / rp : 0.0;
         }
 
         double twoEps = 2.0 * c.PriceElasticity;
@@ -848,7 +843,7 @@ public sealed partial class InternationalMarket
             long nEvalLB = 0;
             bool lbAuditOn = LbAudit is not null;
             long nSkipLB = 0;
-            bool lbOn = c.TransportMargin >= 0 && adValoremRev >= 0 && weightAdd >= 0 && c.BlockadeStapleBias >= 0 && c.RiskLambda >= 0 && !LbOffForTest;
+            bool lbOn = c.TransportMargin >= 0 && weightAdd >= 0 && c.BlockadeStapleBias >= 0 && c.RiskLambda >= 0 && !LbOffForTest;
             long nFill = 0, nInv = 0, nBest = 0;
             foreach (var (t, lp) in buyers)
             {
@@ -884,11 +879,11 @@ public sealed partial class InternationalMarket
                 double wedge = duty - buyDear;
                 double wedgeHome = -buyDear;
 
-                if (tbOn) { double tbBm = 1 + c.TransportMargin * adValoremRev, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb)), exRate[ni]); }   // T0b：行の門の 6 区分（読むだけ）
+                if (tbOn) { double tbBm = 1 + c.TransportMargin, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb)), exRate[ni]); }   // T0b：行の門の 6 区分（読むだけ）
                 bool rowSkip; double a1Ph0 = double.NaN;
                 if (a1On)
                 {   // (1144) A-1 の行の門＝真の上界 TS＋D×(rpT÷u_min)^ε−min(P, P̂(u_min))−S が 0 以下なら飛ばす（u_min≦どの成約の u′＝飛ばした行は成約できない）。P̂ は B-b の上界が 0 以下の行だけ評価する（Q≦P＝B-b が正なら A-1 も正）。
-                    double a1Bm = 1 + c.TransportMargin * adValoremRev, a1Lb = a1Bm + Math.Min(wedge, wedgeHome);
+                    double a1Bm = 1 + c.TransportMargin, a1Lb = a1Bm + Math.Min(wedge, wedgeHome);
                     double a1LbMin = Math.Min(1.0, Math.Min(a1Lb, cheapG ? a1Lb - c.TradeBiasStrength : a1Lb));
                     double rpT0 = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], uMin = lp;
                     if (headS < sellers.Count) { double hm = sellers[headS].Price * a1LbMin; if (hm < uMin) uMin = hm; }
@@ -908,7 +903,7 @@ public sealed partial class InternationalMarket
                     rowSkip = !(ub > 0);
                 }
                 else rowSkip = !(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0);
-                if (tbOn) { double t1Bm = 1 + c.TransportMargin * adValoremRev, t1Lb = t1Bm + Math.Min(wedge, wedgeHome); Instruments.T1Row(this, nations[ni].World, tr[t].r, g, m, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(t1Lb, cheapG ? t1Lb - c.TradeBiasStrength : t1Lb)), exRate[ni], a1On, rowSkip, a1Ph0); }   // (1144) t1buy_s：W2(a) の母集合と門の照合（読むだけ）
+                if (tbOn) { double t1Bm = 1 + c.TransportMargin, t1Lb = t1Bm + Math.Min(wedge, wedgeHome); Instruments.T1Row(this, nations[ni].World, tr[t].r, g, m, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(t1Lb, cheapG ? t1Lb - c.TradeBiasStrength : t1Lb)), exRate[ni], a1On, rowSkip, a1Ph0); }   // (1144) t1buy_s：W2(a) の母集合と門の照合（読むだけ）
                 if (rowSkip) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }
                 if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
@@ -919,7 +914,7 @@ public sealed partial class InternationalMarket
                 double tMargin = c.TransportMargin, blockStaple = c.BlockadeStapleBias; bool stapleTier = gd.Tier == GoodTier.Staple;
                 double unmetQ = 0, skipQ = 0;   // (1277) skipQ＝この行で容量で飛ばした売り手へ足した量の和（旗 CapSkipSellerPotential 0 では 0 のまま）
                 bool insOnC = Instruments.On, capSkipOn = !thin && c.CapSkipSellerPotential > 0, capSkipIns = insOnC && !thin;   // (1277) c131pf：潜在量を書くのは四半期の最初の清算だけ（:1193 の !thin）
-                double baseMul = 1 + c.TransportMargin * adValoremRev;
+                double baseMul = 1 + c.TransportMargin;
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);
                 double lbMulCheap = cheapG ? lbMul - c.TradeBiasStrength : lbMul;
                 int candN = 0, resS = headS, resPrev = -1;
@@ -998,7 +993,7 @@ public sealed partial class InternationalMarket
                             if (lbOn && selP >= 0)
                             {   nEvalLB++;
                                 double kmL = LbKmOf(t, sNat);
-                                double marL = tMargin * (1.0 + kmL / Diplomacy.DistanceNormKm) * adValoremRev
+                                double marL = tMargin * (1.0 + kmL / Diplomacy.DistanceNormKm)
                                             + weightAdd * (kmL / Diplomacy.DistanceNormKm) + 0.0;
                                 double facL = 1 + marL + wS2 + 0.0;
                                 if (lbAuditOn) lbAud = selP * facL;
@@ -1012,7 +1007,7 @@ public sealed partial class InternationalMarket
                             double risk2 = 0;
                             if (hostileRow) { double rc = riskTabL[ix]; risk2 = rc >= 0 ? rc : PairRisk(sn, t); }
                             double bb2 = stapleTier ? blockStaple * risk2 : 0.0;
-                            double mar2 = tMargin * (1.0 + km2 / Diplomacy.DistanceNormKm) * adValoremRev
+                            double mar2 = tMargin * (1.0 + km2 / Diplomacy.DistanceNormKm)
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double fac2 = 1 + mar2 + wS2 + bb2;
                             double del2 = selP * fac2; if (del2 >= lp) nInv++;

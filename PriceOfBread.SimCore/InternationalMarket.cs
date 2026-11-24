@@ -116,7 +116,4 @@ public sealed partial class InternationalMarket
 
     internal static double TariffRate(World w, Coefficients c) => Math.Clamp(w.Tariff * TreatyPortTariffScale(w), c.TariffFloor, 1);
 
-    internal static double FreightRevolution(double frontierTech, Coefficients c)
-        => 1.0;
-
 }
