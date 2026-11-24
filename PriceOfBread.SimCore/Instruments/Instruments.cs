@@ -241,6 +241,7 @@ public static partial class Instruments
         public System.IO.StreamWriter? Lwk; public bool LwkHeader;                         // Lwk〔履歴 Instruments.cs#104〕
         public System.IO.StreamWriter? Chem, ChemGood; public bool ChemHeader, ChemGoodHeader;   // ChemGood〔履歴 Instruments.cs#105〕
         public System.IO.StreamWriter? Fb; public bool FbHeader;   // Fb〔履歴 Instruments.cs#106〕
+        public System.IO.StreamWriter? Femp; public bool FempHeader;   // (1351) femp_s
         public System.IO.StreamWriter? Wp; public bool WpHeader;   // Wp〔履歴 Instruments.cs#107〕
         public System.IO.StreamWriter? ModSig, ScoreS; public bool ModSigHeader, ScoreSHeader;   // ScoreS〔履歴 Instruments.cs#108〕
         public System.IO.StreamWriter? Lawgate2; public bool Lawgate2Header;                // Lawgate2〔履歴 Instruments.cs#109〕
@@ -1907,6 +1908,7 @@ public static partial class Instruments
             SfFold(sk, seed, w, q, picked, yearEnd);        // SfFold〔履歴 Instruments.cs#279〕
             AibFold(sk, seed, w, q, picked, yearEnd);       // AibFold〔履歴 Instruments.cs#280〕
             LwFold(sk, seed, w, q, picked, yearEnd);        // LwFold〔履歴 Instruments.cs#281〕
+            FempFold(sk, seed, w, q);                       // (1351) FempFold
             LwkFold(sk, seed, w, q, yearEnd);               // LwkFold〔履歴 Instruments.cs#282〕
             SbFold(sk, seed, w, q, picked);                 // SbFold〔履歴 Instruments.cs#283〕
             InpFold(sk, seed, w, st, q, picked, yearEnd);   // InpFold〔履歴 Instruments.cs#284〕
@@ -2086,6 +2088,7 @@ public static partial class Instruments
         sk.House?.Dispose(); sk.House = null;   // Dispose〔履歴 Instruments.cs#403〕
         sk.Chem?.Dispose(); sk.Chem = null; sk.ChemGood?.Dispose(); sk.ChemGood = null;   // Dispose〔履歴 Instruments.cs#404〕
         sk.Fb?.Dispose(); sk.Fb = null;   // Dispose〔履歴 Instruments.cs#405〕
+        sk.Femp?.Dispose(); sk.Femp = null;   // (1351)
         sk.Wp?.Dispose(); sk.Wp = null;   // Dispose〔履歴 Instruments.cs#406〕
         sk.ModSig?.Dispose(); sk.ModSig = null; sk.ScoreS?.Dispose(); sk.ScoreS = null;   // Dispose〔履歴 Instruments.cs#407〕
         sk.LawGate?.Dispose(); sk.LawGate = null;   // Dispose〔履歴 Instruments.cs#408〕
