@@ -4,7 +4,7 @@ import sys, os, csv, statistics as st
 csv.field_size_limit(1 << 30)
 B, BASE, Z = sys.argv[1], sys.argv[2], sys.argv[3]
 sb = int(sys.argv[4]) if len(sys.argv) > 4 else 1; n = int(sys.argv[5]) if len(sys.argv) > 5 else 10
-GOODS = ['石炭', '原油', '帆船', '汽船', '缶詰', 'キニーネ']
+STATE_BUYS = ['石炭', '原油', '帆船', '汽船', '缶詰', 'キニーネ']
 NATS = ['イギリス', 'フランス', 'ロシア', 'アメリカ', 'プロイセン', '清']
 YEARS = [1800, 1850, 1880, 1913, 1940]
 
@@ -20,7 +20,7 @@ def prices(ins):
         if not os.path.exists(p): continue
         for ix, v in rows(p):
             nm, g = v[ix['nation']], v[ix['good']]
-            if nm not in NATS or g not in GOODS: continue
+            if nm not in NATS or g not in STATE_BUYS: continue
             y = int(float(v[ix['year']]))
             if y not in YEARS: continue
             try: px = float(v[ix['priceMeanGold']])
@@ -31,7 +31,7 @@ def prices(ins):
 pb, p0 = prices(B), prices(BASE)
 print('# 同じ盤面の新÷旧：種ごとの比の中央（両方に行のある種だけ）・国×財×年')
 for nm in NATS:
-    for g in GOODS:
+    for g in STATE_BUYS:
         cells = []
         for y in YEARS:
             a, b = pb.get((nm, g, y), {}), p0.get((nm, g, y), {})
