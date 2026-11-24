@@ -1,0 +1,30 @@
+(1337) c140nt 事前登録（最初のコミット）。書き手 Claude Sonnet 5.5。基点 ffb0c93ec7（m1334）。枝 c140nt・worktree D:/PoB_work/wt_c140nt。作ったフォルダ：D:/PoB_work/wt_c140nt・D:/PoB_work/c140nt_work（段 2 を回すときだけ D:/PoB_work/ident_c140nt）。
+
+[1] 恒等の線・予言 0。注の直しと、計器の読み手（台本・計器の試験）の小物だけ。式の変更 0・新しい係数 0・旗 0・状態 0。
+  素の 5 種・計器つき 10 種の成績表は m1334（b5_20261124_m1334・b10_20261124_m1334_ins）と名乗り行を除いて全行バイト一致。.cost の推定も一致。
+  ident 段 1（注だけ＝コンパイル後の IL が同じ）で足りる見込み。計器の読み手の C# に触れる項 4 は、試験のファイルと InstrumentHookClosureTests の InlineData だけで SimCore の計器の本体は変えない見込み（変えたら段 2）。
+
+[2] 項と ★(743) の区分（試験の書き換えは 0 件の予定。足すだけ）
+  項 1 注を式の事実に合わせる N1〜N12（World.cs・Simulation.cs・EconomyStep.cs の注の行だけ）。N1・N10 は式を直すべきと読める＝注だけ直し、式は 00一覧に番号で残す（合流が書く）。
+  項 2 消えた名を指す注 N14（Coefficients.p04_trade.cs:128・p06:69・p07:61・:88〜:90・p08:68・World.cs の PendingForeignBorrow・Simulation.cs:285・Diplomacy.cs の LegitimacyIsStock の注）。〈旧＝…を削除〉の履歴の注（MigrationStayHome・InsultTension・NavalShareMin・SuezDetourKm・IndustrialRent の〔履歴〕）は事実どおりなので触らない。
+  項 3 行番号の参照 N13（scan.tsv の lineref 17 件のうち、持ち主の外の行を除く全て）を関数の名へ。
+  項 4 小物の束
+    (a) InstrumentHookClosureTests の SelectedGroupIsByteIdenticalToFullRun に Capskip の InlineData を足す・m1256 の hookmap に Capskip の 4 行を足す。
+    (b) 突然変異 M5a（CapSkipDedup の Tg.Capskip の門だけを外す）・M5b（CapskipTable の門だけを外す）。緑なら直呼びの試験を足して赤にする。
+    (c) gdp_jump1330.py の (iii) の tot=inf の枝（前の産出 0 で今が正なら真）を偽へ（stoplines1002 の ok3 と同じ）。fixture に前の産出 0・名目 ×1e6 の盤面 P を足す（期待＝どれにも当たらない）。既存の J の期待は (iii)→どれにも当たらない（同じ枝）。
+    (d) D6 を順の入れ替えへ（(ii) と (iii) を入れ替える突然変異）。fixture に (ii) と (iii) が両方当たる盤面 Q を足す（期待＝(ii)）。入れ替えると Q が (iii) になって赤になる（need の母集合も同時に入れ替える）。
+    (e) p08:114 NextCapitalHomeFirst の注に〈NextCapitalCoreFirst 1 の下では読まれない〉を足す。
+    (f) 台帳 S16-09 の錨を Territory.cs:232・MultiNationSim.cs:300 へ。
+  他の線との重なり：hf（Territory.cs :1〜:131・MultiNationSim.cs:1431・p03:91）・sp（InternationalMarket.cs Procure・MarketFlow.cs:165・p05）・dz（InternationalMarket.cs:119〜120・BilateralMarket.cs:668〜673・MultiNationSim.cs:534・InstrumentsScalars.cs:42・EconomyStep.cs:828〜840・Model.cs:673・OpeningBake.cs・p04:12・p06:85）。この線は上のファイルの行を触らない。MultiNationSim.cs は 153・1597 の注の 2 行だけ（hf の :1431・dz の :534 と別の行）。Coefficients.p04_trade.cs は :128 の注だけ（dz の :12 と別）・p06 は :69 だけ（dz の :85 と別）。00一覧に残す物＝Territory.cs・InternationalMarket.cs・MarketFlow.cs・BilateralMarket.cs:660〜680・EconomyStep.cs:828〜840・Model.cs:673・OpeningBake.cs の注（持ち主の線が触る）。
+
+[3] 足す試験・突然変異
+  T1 SelectedGroupIsByteIdenticalToFullRun の InlineData("Capskip","capskip_s")（+1 ケース）。この走り（4 国・種 1789・10 四半期）で capskip_s が出なければ NoOutputInThisRun に入れる（名簿の方法は既存の 6 群と同じ）。
+  T2 CapSkipDedup の直呼び：Tg を Capskip 選択にしたときと、しないときで CkWorlds が増えるか（M5a で赤）。
+  T3 CapskipTable の直呼び：選ばない走りで CkSinks が増えない（M5b で赤）。
+  自己試験（scripts/instruments/c140nt/ に写しを置かず、c139sl の selftest1330.py を直す）：P・Q を足して 19 件。D6（順の入れ替え）・D9（tot=inf の枝を戻す）の突然変異で赤。
+  試験の数の予言：3177（Tests 2945〔スキップ 2〕＋Ui 232）＋ 3＝3180（T1・T2・T3）。FullLength 3 のまま。
+  ソースを走査する番人（㉘）：許可表・宣言の表の行を書き換える件数の予言は 0 件（注の直しは式を変えない）。件数の番人（コメントの文字を数える物があれば）に当たったら列挙する。
+  突然変異の表：M5a・M5b（T2・T3 が赤）・D6・D9（selftest が赤）・コメントの突然変異は無い（注は挙動を持たない）。
+
+[4] 素の 5 種・計器つき 10 種は m1334 と名乗り行を除いて全行一致（計器の表の差は 0）。
+[5]〈判定: 恒等〉（測った種で一致）なら採る。一致しなければ、その項を外して報告に回す。
