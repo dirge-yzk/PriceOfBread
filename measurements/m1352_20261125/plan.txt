@@ -1,0 +1,11 @@
+(1352) c142bm 読む線：バーミンガム（英・core）の移民による空洞化の根
+作業の場所：D:/PoB_work/r1352_work/（台本・表・下書き）。台本の写しは scripts/instruments/r1352/ へ合流が写す（この線はコミットしない・worktree も作らない＝main の木 b8cdd3795 を読むだけ）。
+腕：0 本（今ある生だけ）。
+読む生（読むだけ）：
+- D:/PoB_work/keep_1341/base_ins（基線 M・計器つき 10 種：region・migration・xmig・factory・labor・pop ほか）
+- D:/PoB_work/keep_1341/a11（S11）・n1・n2（ヌル腕）
+- D:/PoB_work/keep_1348_rej/mM_wdlr（wd＋lr の M）・mS11_wdlr・aW_wdOnly・aWS11_wdOnly・aL_lrOnly（region・migration・nation・fiscal ほか）
+- measurements/m1348_20261125/readM_wdlr・readM_wdOnly・readS11_*（hol_v4*.txt・stop1330.txt）・measurements/m1328_*
+- D:/PoB_work/fragility/report.md の型 2・near_region_*.tsv
+ソース（main b8cdd3795 を grep）：PriceOfBread.SimCore/Territory.cs（国内の差 g・受け入れの上限・StayValue・AbsorbCap・LandFactor・Opportunity）・MultiNationSim.cs の移民の段。
+順：問い1（種8 の四半期の表）→問い2（分かれる最初の四半期）→問い3（同じ型を全ての腕で数える）→問い4（担う項）→問い5（推奨と次の波の素案）。

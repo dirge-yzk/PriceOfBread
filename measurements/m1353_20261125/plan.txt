@@ -1,0 +1,11 @@
+r1353 (c142uk) 読む線の計画 2026-11-25
+作業の場所：D:/PoB_work/r1353_work（台本は ./scripts、出力は ./out）。worktree・枝は作らない。コミット・push しない。腕 0 本。
+読む生（読むだけ）：
+- D:/PoB_work/keep_1348_rej/aWS11_wdOnly（wd 単独の S11・種 11〜20・12 表）
+- D:/PoB_work/keep_1348_rej/aW_wdOnly（wd 単独の M・種 1〜10・12 表）
+- D:/PoB_work/keep_1348_rej/mM_wdlr・mS11_wdlr（wd＋lr の合わせた木）
+- D:/PoB_work/keep_1341/a11（S11 基準）・base_ins（M 基準）・n1・n2（ヌル腕）
+- measurements/m1348_20261125/readS11_wdOnly・readM_wdOnly
+- measurements/m1343_20261124_prereg_wd.txt・実装ログ (1343)
+ソース（main b8cdd3795、読むだけ）：Simulation.cs 決定の段・MultiNationSim.cs WarmupEconomy・UtilityAgent.DecideQuarter・AutoModernizationFrac・Politics.cs 分離/内戦・Territory.cs Rehome
+問い 1〜6 は指示のとおり。

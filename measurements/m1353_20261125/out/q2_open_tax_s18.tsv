@@ -1,0 +1,10 @@
+# nation_s18 q0：欄	腕÷基準の中央（国）	英の腕÷基準
+adminLastRevenueAtBudgetPerMonth	0.765(61)	0.935
+adminRevenueBasePerMonth	0.995(61)	0.935
+revenueBaseMeanPerMonth	0.995(61)	0.935
+directTaxNetMeanPerMonth	1.001(61)	1.049
+indirectRevenueMeanPerMonth	0.994(61)	0.918
+pollTaxEndShare	1.000(50)	nan
+pollTaxTargetEndShare	1.000(12)	nan
+landTaxEndShare	1.000(60)	1.000
+landTaxTargetEndShare	1.000(61)	1.000
