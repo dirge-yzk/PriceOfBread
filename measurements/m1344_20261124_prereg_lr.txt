@@ -102,3 +102,8 @@ G5 史実の桁の線（錨・10 倍）：
 ■ 手順
 事前登録（このコミット）→ 器（旗 0）＋計器＋試験 → ㉘ の束 → 腕 Z（ident 段 2・--work D:/PoB_work/ident_c141lr・--added-tables lrlock・--tests-delta ＋試験の数）→ 突然変異 → 旗 1 → 絞った試験（Tests/ の grep で当たったクラス＋㉘ の束＋FullLength＋savetest・leakhunt）→ 腕 B（計器つき 10 種・表を絞る＝nation_s・stock_s・wars_s・casualty_s・region_s・migration_s・pxmonth_s・scalars_s・fiscal_s・monlaw_s・lrlock_s・lawgate2_s）→ フルスイート（腕 B の後・腕 B のコミットの木）。
 形の変え直しは 1 回だけ。旗 1 の出力を見た後のエンジンの変更は全て〈形の変え直し〉に数える。
+
+■ 追記（2026-11-24・旗 1 の木の絞った試験の後・腕 B の前）
+- 絞った試験（363 件）で赤 1：GenderTests.女性の権利は梯子を降りない（:98〜:106）。事前登録の一覧（grep の語）に無かった番人＝〈不可逆〉の語を名に持たず、GateInfo の後退が通らないことを固定していた＝旧の規則そのものを固定する番人（㉜ の改め・作者 2026-11-19 の改めの型）。
+- 書き換え：新しい規則の式（3 段とも BlockedByIrreversibility 偽・ReversalCostMul 1・政治のロックを外せば後退が通る・ロックありでも理由が〈後退不能〉でない）。旧の番人が守っていた性質のうち新しい規則でも成り立つ物＝〈段ごとの非対称を作らない〉を 3 段の同じ Assert で残す。名を〈女性の権利の後退は全ての段で普通の法の門だけ〉へ。
+- 書き換えを外す突然変異＝μ1（BlockedByIrreversibility の旗を読まない）で赤を確かめる。SimCore は触らない。

@@ -96,14 +96,21 @@ public class GenderTests
     }
 
     [Fact]
-    public void 女性の権利は梯子を降りない()   // ★統合法：制度は撤回されない（旧＝教育権だけ撤回可という非対称があった）
-    {
+    public void 女性の権利の後退は全ての段で普通の法の門だけ()   // ★統合法：段ごとの非対称を作らない（旧＝教育権だけ撤回可という非対称があった）。
+    {   // (1344) c141lr 旧の番人〈梯子を降りない＝不可逆〉を新しい規則へ書き換え（㉜ の改め）：守られた法の不可逆を外した後は、3 段とも同じ普通の門（MandateGate の費用 1 倍）だけで後退が決まる。
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
+        w.RuptureWindowQuarters = 0;   // 窓は閉じている（旧の規則なら不可逆が効く盤面）
         foreach (var stage in new[] { WomenRightsLaw.Property, WomenRightsLaw.Education, WomenRightsLaw.Suffrage })
         {
             w.WomenRights = stage;
+            w.PoliticalLockEnabled = true;
+            var (_, _, reasonLocked) = Government.GateInfo(w, PolicyAxis.WomenRights, increasing: false, targetLevel: (int)stage - 1);
+            Assert.NotEqual("後退不能（支持層が確立済み）", reasonLocked);   // 規則で塞がない（政治の門の理由か空だけ）
+            Assert.False(Government.BlockedByIrreversibility(w, PolicyAxis.WomenRights, regressive: true), $"{stage} の段が不可逆で塞がれる");
+            Assert.Equal(1.0, Government.ReversalCostMul(w, PolicyAxis.WomenRights, regressive: true));
+            w.PoliticalLockEnabled = false;                                 // 純支持 1＝政治の門は通る盤面
             var (ok, _, reason) = Government.GateInfo(w, PolicyAxis.WomenRights, increasing: false, targetLevel: (int)stage - 1);
-            Assert.False(ok, $"{stage} の段から後退できてしまう（{reason}）");
+            Assert.True(ok, $"{stage} の段から後退できない（{reason}）");
         }
     }
 
