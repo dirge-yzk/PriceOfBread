@@ -1414,7 +1414,8 @@ public sealed class MultiNationSim
                 var (la, lo) = Places.Coord(r.Name);
                 int classes = 0;
                 foreach (var p in r.Pops) if (!p.IsSoldier) classes |= 1 << p.ClassId;   // MoveMigrants が移せる相手（PopOf と同じ述語）
-                dst.Add((d, r, o, la, lo, _coef.ImmigrationReceiveCapPerQuarter.Value * r.SumPopulation() * lawCap * Territory.AbsorbCap(r, _coef), classes));
+                double ov = _coef.DestFoodSymmetric > 0 ? Territory.MoveValue(r, o) : o;   // (1349) 旗 DestFoodSymmetric 1＝行き先の値打ちに送出の StayValue と同じ食の充足（Territory.MoveValue）・上限の式は触らない
+                dst.Add((d, r, ov, la, lo, _coef.ImmigrationReceiveCapPerQuarter.Value * r.SumPopulation() * lawCap * Territory.AbsorbCap(r, _coef), classes));
             }
         }
         int m = dst.Count;
