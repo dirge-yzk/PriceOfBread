@@ -1,0 +1,18 @@
+(1366) c144cf 突然変異の結果（scripts/instruments/c144cf/mut.sh・使い捨ての書き換え→CwendInstrumentTests→git checkout で戻す）
+== M1 endPath を旧の順（forced → collapse → …）
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T5_endPathは講和の引き金で_collapseは別の列(score: 0.5, exhP: 1, exhR: 0.94999999999999996, forced: False, wa
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T5_endPathは講和の引き金で_collapseは別の列(score: -1.5, exhP: 1, exhR: 1, forced: False, want: "decisive") [
+失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M2 reunify を capitalRising で書く
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T7_reunifyReservedは座が反乱国の手にあるか(heldByRebel: True, want: "1") [17 ms]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M3 entryExit を常に false
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T6_分離の調停はblankSplitに数えず_調停でない分離の白紙は数える [21 ms]
+失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M4 collapseFlag を常に 0
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T5_endPathは講和の引き金で_collapseは別の列(score: 0.5, exhP: 1, exhR: 0.94999999999999996, forced: False, wa
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T5_endPathは講和の引き金で_collapseは別の列(score: -1.5, exhP: 1, exhR: 1, forced: False, want: "decisive") [
+  失敗 PriceOfBread.Tests.CwendInstrumentTests.T5_endPathは講和の引き金で_collapseは別の列(score: 0, exhP: 1, exhR: 1, forced: True, want: "forced") [19 ms]
+失敗!   -失敗:     3、合格:     9、スキップ:     0、合計:    12、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+done
+緑のままの突然変異：0（M1 T5 2 件・M2 T7 1 件・M3 T6 1 件・M4 T5 3 件が赤）。
