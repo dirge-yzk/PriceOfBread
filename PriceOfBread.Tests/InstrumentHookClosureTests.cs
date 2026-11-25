@@ -146,7 +146,7 @@ public class InstrumentHookClosureTests
         [InlineData("BuyShadow/Prodcap", "prodcap_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("BuyShadow/Recipeout", "recipeout_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("BuyShadow/Sellr", "sellr_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
-        [InlineData("BuyShadow/Tradeskip", "tradeskip_s,tskpair_s,tskshadow_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
+        [InlineData("BuyShadow/Tradeskip", "tradeskip_s,tskpair_s,tskshadow_s,tsreg_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Cede/Cede", "cederule_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Cede/Center", "center_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
         [InlineData("Cede/Cpeace", "cpeace_s")]   // 束の中の 1 file だけを選ぶ（共有する状態を持つ組）
@@ -180,7 +180,7 @@ public class InstrumentHookClosureTests
         [InlineData("Anchor", "anchor_s")]
         [InlineData("Arms", "armsfill_s")]
         [InlineData("Basisx", "basisx_s,cearn_s,cgrp_s,corncf_s,cornint_s,cpop_s,landbase_s,landbasereg_s,landfix_s,landsale_s,landshare_s,lordstat_s")]
-        [InlineData("BuyShadow", "minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s")]
+        [InlineData("BuyShadow", "minecap_s,nationgood_s,prodcap_s,recipeout_s,s4cost_s,s7staple_s,sellr_s,t1buy_s,tb_s,tradeskip_s,trbin_s,trnation_s,trrail_s,trroute_s,trstat_s,tskpair_s,tskshadow_s,tsreg_s")]
         [InlineData("Cede", "cederule_s,center_s,cpeace_s,cpmed_s,crownpc_s,dep_s,formation2_s,ideology_s,imp_s,monai_s,mongood_s,monlaw_s,parlseat_s,poppref_s,rule_s,tensionwhy_s,unifwar_s,warband_s,warentry_s,warpair_s")]
         [InlineData("Cess", "cess_s,cessp_s")]
         [InlineData("Chem", "chem_s,chemgood_s")]

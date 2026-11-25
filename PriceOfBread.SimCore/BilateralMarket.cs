@@ -847,7 +847,7 @@ public sealed partial class InternationalMarket
             long nFill = 0, nInv = 0, nBest = 0;
             foreach (var (t, lp) in buyers)
             {
-                if (ts is not null) ts.Row(tr[t].nation, g);
+                if (ts is not null) ts.Row(tr[t].nation, g, tr[t].r, mktOf[t]);
                 var m = mktOf[t];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;
                 if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;
