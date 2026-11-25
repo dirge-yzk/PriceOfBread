@@ -30,7 +30,13 @@ for arm, base in [('b5_c143spZa_5.txt', 'b5_20261125_m1355'), ('b10_c143spZb_10.
     ca, cb = os.path.join(W, arm + '.cost'), os.path.join(M, base + '.cost')
     if os.path.exists(ca) and os.path.exists(cb):
         _, cd = cmp_report(ca, cb)
-        ok &= len(cd) == 0
+        # 実測の行（条件〔SOURCE-HASH〕・実測・負荷）と推定の行の〈覆う割合〉は走りごとに違う＝件数の行と推定の秒だけを比べる
+        def est(x):
+            return x.split('秒'.encode())[0]
+        hard = [d for d in cd if not any(d[1].startswith(k.encode()) for k in ('条件:', '実測:', '負荷:'))
+                and not (d[1].startswith('推定の計算量'.encode()) and est(d[1]) == est(d[2]))]
+        print(f'  .cost の件数の行と推定の秒の違い {len(hard)}')
+        ok &= len(hard) == 0
 
 ins = os.path.join(W, 'out_c143spZb_10', 'ins')
 same = diffs = miss = added = 0
