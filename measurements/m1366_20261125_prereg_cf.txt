@@ -1,0 +1,47 @@
+(1366) c144cf 事前登録（恒等の線・計器 cwend_s の札の直し・形＝恒等＝入口でも尾でもなく計器だけ）  2026-11-25
+基準：m1362（木 434325065・SOURCE-HASH a27895429deb5132）。出発：00一覧〈次の波〉0 の①・(1359) の反証役 v 中の指摘。
+
+[1] 恒等の線・予言 0
+  エンジンの行 0・新しい係数・旗・状態 0。変えるのは計器 InstrumentsCwend.cs の列の中身だけ（cwend_s の 1 表）。
+  項 1 endPath を講和の引き金の区分にする＝forced → decisive → weary → other（Diplomacy.cs:2418〜:2419 の判定 decisive || weary || ForcedPeace と同じ式・同じ順）。
+        collapse（exhP ≥ cutP か exhR ≥ cutR）は別の列 collapseFlag（表の末尾に足す）へ。forced との重なりを列で読める。
+  項 2 reunifyReservedFlag の定義を名と合わせる＝親の SecedingRegion が今も反乱国の手にある（Diplomacy.cs:2559 の判定と同じ式）。
+        旧の定義〔親の SecedingRegion が null でない〕は、基準の 84 行（m1362 の base_ins の cwend_s 10 種）で capitalRisingFlag と全行同じ値（食い違い 0）。
+        理由＝SecedingRegion を立てる所は MultiNationSim.cs:262 の 1 箇所だけ（首都が離れる建国の時）で、外す所は :994〜:995（首都の移動・内戦の消滅）と Diplomacy.cs:2559（分断の確定）だけ＝終戦の瞬間まで立ったままの親は首都発の建国の親だけ。
+        新の定義も基準の 84 行で旧と同じ値になると予言する（検算の台本が行ごとに見る＝食い違えば不一致＝その変更を外して報告に回す）。
+  項 3 四半期の番号を、計器の中の名の合う局所の関数 QuarterOfMonth(int month)＝month ÷ Calendar.MonthsPerQuarter（整数の割り算）で出す。
+        旧は (int)Calendar.PerQuarterToPerMonth(month)＝month/3.0 を切り捨て＝月が非負の整数なら同じ値（名が合わない関数を呼んでいた）。Calendar.cs は ut の持ち物なので触らない。
+  浮動小数の順序が変わる箇所：なし（collapse・weary・decisive の式は旧のまま・項 3 は整数の割り算で値は同じ）。同じ盤面で旧≠新の比較の食い違いの数は、検算の台本（項 1・3）と基準 84 行（項 2）で数える＝0 でなければその項を外す。
+  予言：cwend 以外の全表が基準と全行一致・.cost +0（推定の秒数 0）・計算量 0 秒。
+
+[2] 消す物と残す物
+  消す：endPath の旧の値 collapse（forced・decisive・weary・other の 4 値になる）・四半期の PerQuarterToPerMonth の呼び。
+  足す：collapseFlag 列（末尾）・局所関数 QuarterOfMonth。変える：reunifyReservedFlag の式。
+  読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF・SaveGame）：cwend_s の列を読む物は CwendInstrumentTests.cs だけ
+  （endPath・collapse は他に scripts/instruments の台本 0・measurements の台本 0・Tests の他のファイル 0＝capitalRisingFlag を読む SecessionTreasuryShareTests・scripts/instruments/m1321・r1326 は sectreas_s の列で別の表）。
+  CwendHeaderText の読み手は InstrumentsCwend.cs の中だけ。POB_COEF・SaveGame に触れる物なし（計器の欄は ConditionalWeakTable の中だけ・セーブに載らない）。
+  他の線との重なり：なし（owns は InstrumentsCwend.cs・CwendInstrumentTests.cs・scripts/instruments/c144cf/・measurements/m1366_*）。呼び手 Diplomacy.cs:2441・MultiNationSim.cs:417 は変えない。
+
+[3] 足す試験と突然変異・走査の番人（㉘）・書き換える件数（㉑）
+  CwendInstrumentTests.cs（盤面は試験の中で置く・期待は試験が置いた値から）：
+    T5 Theory 3 行＝collapse の枝と forced を通る：(a) 戦勝点 −1.5・厭戦 1.0＝decisive・collapseFlag 1 (b) 戦勝点 0.5・親 1.0・反乱 0.95＝weary・collapseFlag 1（|score|＜1 の collapse が weary で講和した型）(c) ForcedPeace・厭戦 1.0＝forced・collapseFlag 1（重なり）。
+    T6 Fact＝分離の除外（entryExit）を通る：分離の内戦で ForcedPeace・戦勝点 0＝blankSplitFlag 0（verdictCode 0）／ForcedPeace でない分離の内戦で戦勝点 0＝blankSplitFlag 1。
+    T7 Theory 2 行＝reunifyReservedFlag：親の SecedingRegion を反乱国の手の州に置く＝1（capitalRisingFlag は 0 のまま）・親の自分の州に置く＝0。
+    T4 に前提を足す：pressure ＞ 0（革命圧力が 0 だと RevCut の式を検査していない）。
+  試験の数の予言：Tests +6（T5 3・T6 1・T7 2）・Ui 変わらず・TESTS_NONFULL 3217 → 3223。T4 の変更は件数に数えない。
+  突然変異（使い捨ての木・結果は measurements/m1366_20261125_mut_cf.txt）
+    M1 endPath の順を旧に戻す（forced → collapse → decisive → …）→ T5 (a)(b) が赤。
+    M2 reunify を capitalRising で書く → T7 が赤。
+    M3 entryExit を常に false にする → T6 が赤。
+    M4 collapseFlag を常に 0 にする → T5 が赤。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を ident の前に回す。
+  事前登録の点検（grep）：工業化度の読み手の許可表に触れない・`new MoneyStock(` の件数は変えない・route_anchors.tsv に触れない・WriterRatchetTests の宣言の表に触れない（予言＝書き換える既存の試験の件数 0・許可表の行 0）。
+
+[4] 素の 5 種・計器つき 10 種は m1362 と名乗り行を除いて全行一致（計器の表の差は cwend_s の中身だけ）。
+  宣言：--rewritten-tables cwend_s@scripts/instruments/c144cf/cwend_check.py（台本は基準の cwend_s から新しい札を出し直し、腕の表と行ごとに見る）・--tests-delta 6。
+[5]〈判定: 恒等〉（宣言の cwend 以外の違い 0・測った種で一致）なら採る。一致しなければその変更を外して報告に回す。
+
+記録（cw〔仮〕の材料）：M の 10 種の腕 Z の生で、endPath の区分ごとの件数（旧：collapse 68・weary 10・decisive 6〔基準 84 行〕）と新の件数を並べ、collapseFlag と forced の重なりの件数を書く。
+
+腕の前の訂正（2026-11-25・ident より前）：試験の数の予言を +6 から +7 へ。T5 に Theory 3 行・T5b（崩壊でない内戦は collapseFlag 0・Fact 1 件）・T6 1 件・T7 Theory 2 行＝+7（T5b を数え落としていた）。
+  --tests-delta 7・TESTS_NONFULL 3217 → 3224。突然変異の台本は scripts/instruments/c144cf/mut.sh。

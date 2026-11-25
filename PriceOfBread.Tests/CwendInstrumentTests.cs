@@ -7,7 +7,9 @@ namespace PriceOfBread.Tests;
 
 /// <summary>(1359) 計器 cwend_s（内戦の終わり 1 件ごとに 1 行）の番人（読むだけ）。盤面は試験の中で置く：SpawnNation を直に呼び、War を置き、
 /// 終戦の 1 本（ConcludeWar）を反射で通す。期待は試験が置いた値（厭戦 0.95・戦勝点 0／1・親の厭戦 0.37・重み 0.4）から。
-/// 突然変異（使い捨ての木）：M1 endPath の weary と decisive を入れ替える → T1・T2 赤。M2 継いだ厭戦を 0 で書く → T3 赤。M3 対外戦にも行を書く → T4 赤。</summary>
+/// 突然変異（使い捨ての木）：M1 endPath の weary と decisive を入れ替える → T1・T2 赤。M2 継いだ厭戦を 0 で書く → T3 赤。M3 対外戦にも行を書く → T4 赤。
+/// (1366) 追加：T5 endPath は講和の引き金の区分・collapse は別の列／T6 分離の除外／T7 reunify は座が反乱国の手にあるか。
+/// 突然変異：M1 endPath を旧の順（forced → collapse → …）→ T5 赤。M2 reunify を capitalRising で書く → T7 赤。M3 entryExit を常に false → T6 赤。M4 collapseFlag を常に 0 → T5 赤。</summary>
 [Collection("Instruments")]
 public class CwendInstrumentTests
 {
@@ -130,12 +132,82 @@ public class CwendInstrumentTests
             Instruments.CpMonth(d, 7, 1800);   // 月 7＝四半期 2
             Conclude(b, new War { A = b.Parent, B = b.Foreign, Score = 1.0, Months = 5 });   // 対外戦＝行なし
             var rebel = Spawn(b, withCapital: false);
+            b.ParentSim.World.RadicalPower = 0.3;   // 革命圧力を正にする（盤面は試験が置く）
             pressure = Politics.RevolutionPressure(b.ParentSim.World);
+            Assert.True(pressure > 0, "前提：革命圧力が正（0 だと RevCut の式を検査しない）");
             Conclude(b, CivilWar(b.Parent, rebel, 1.0, 0.1));
         });
         Assert.Single(rows);   // 対照：対外戦を足しても内戦の 1 行だけ
         var r = rows[0];
         Assert.Equal("2", Col(h, r, "quarter")); Assert.Equal("1800", Col(h, r, "year"));
         Assert.Equal(1.0 - 0.4 * pressure, Num(h, r, "revCutParent"), 9);
+    }
+
+    [Theory]
+    [InlineData(-1.5, 1.0, 1.0, false, "decisive")]   // 崩壊代入の戦勝点＝決着
+    [InlineData(0.5, 1.0, 0.95, false, "weary")]       // |戦勝点|＜1 の崩壊＝疲れ果てて講和（旧の札は collapse と書いた型）
+    [InlineData(0.0, 1.0, 1.0, true, "forced")]        // 調停と崩壊の重なり
+    public void T5_endPathは講和の引き金で_collapseは別の列(double score, double exhP, double exhR, bool forced, string want)
+    {
+        var (h, rows) = Run(b =>
+        {
+            b.Sim.Coef.RevolutionSurrenderWeight = 0;   // RevCut 1＝厭戦 1.0 は崩壊・0.95 は崩壊でない
+            var rebel = Spawn(b, withCapital: false);
+            var war = CivilWar(b.Parent, rebel, score, exhP);
+            rebel.WarExhaustion = exhR; war.ForcedPeace = forced;
+            Conclude(b, war);
+        });
+        Assert.Single(rows);
+        Assert.Equal(want, Col(h, rows[0], "endPath"));
+        Assert.Equal("1", Col(h, rows[0], "collapseFlag"));
+    }
+
+    [Fact]
+    public void T5b_崩壊でない内戦はcollapseFlagが0()
+    {
+        var (h, rows) = Run(b =>
+        {
+            b.Sim.Coef.RevolutionSurrenderWeight = 0;
+            var rebel = Spawn(b, withCapital: false);
+            Conclude(b, CivilWar(b.Parent, rebel, 1.0, 0.5));
+        });
+        Assert.Equal("0", Col(h, rows[0], "collapseFlag"));
+    }
+
+    [Fact]
+    public void T6_分離の調停はblankSplitに数えず_調停でない分離の白紙は数える()
+    {
+        var (h, rows) = Run(b =>
+        {
+            b.Sim.Coef.RevolutionSurrenderWeight = 0;
+            var r1 = Spawn(b, withCapital: false);
+            var w1 = CivilWar(b.Parent, r1, 0.0, 0.5); w1.CivilWarSecession = true; w1.ForcedPeace = true;   // 調停の分離の確定
+            Conclude(b, w1);
+            var r2 = Spawn(b, withCapital: false);
+            var w2 = CivilWar(b.Parent, r2, 0.0, 0.95); w2.CivilWarSecession = true;                          // 調停でない分離の白紙
+            Conclude(b, w2);
+        });
+        Assert.Equal(2, rows.Count);
+        Assert.Equal("forced", Col(h, rows[0], "endPath")); Assert.Equal("1", Col(h, rows[0], "secessionFlag")); Assert.Equal("0", Col(h, rows[0], "blankSplitFlag"));
+        Assert.Equal("weary", Col(h, rows[1], "endPath")); Assert.Equal("1", Col(h, rows[1], "secessionFlag")); Assert.Equal("1", Col(h, rows[1], "blankSplitFlag"));
+    }
+
+    [Theory]
+    [InlineData(true, "1")]    // 親の座が反乱国の手にある
+    [InlineData(false, "0")]   // 座が親自身の州（反乱国の手にない）
+    public void T7_reunifyReservedは座が反乱国の手にあるか(bool heldByRebel, string want)
+    {
+        var (h, rows) = Run(b =>
+        {
+            b.Sim.Coef.RevolutionSurrenderWeight = 0;
+            var rebel = Spawn(b, withCapital: false);   // 首都発でない建国＝capitalRisingFlag は 0
+            var seat = heldByRebel ? rebel.Nation!.Regions[0] : b.ParentSim.World.Regions[0];
+            b.ParentSim.World.SecedingRegion = seat;
+            Assert.Equal(heldByRebel, rebel.Nation!.Regions.Contains(seat));   // 前提：座の持ち主
+            Conclude(b, CivilWar(b.Parent, rebel, 1.0, 0.1));
+        });
+        Assert.Single(rows);
+        Assert.Equal("0", Col(h, rows[0], "capitalRisingFlag"));
+        Assert.Equal(want, Col(h, rows[0], "reunifyReservedFlag"));
     }
 }

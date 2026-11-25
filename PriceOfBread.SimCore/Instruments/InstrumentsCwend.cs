@@ -5,14 +5,14 @@ namespace PriceOfBread.SimCore;
 public static partial class Instruments
 {
     internal const string CwendHeaderText = "quarter\tyear\tparentUid\trebelUid\tmonths\tscoreAtPeace\tendPath\texhParent\texhRebel\trevCutParent\trevCutRebel\t"
-        + "inheritedExhaustion\tcapitalRisingFlag\tparentPolity\tcivilWarPolity\tsecessionFlag\tverdictCode\tblankSplitFlag\treunifyReservedFlag\tparentName\trebelName";
+        + "inheritedExhaustion\tcapitalRisingFlag\tparentPolity\tcivilWarPolity\tsecessionFlag\tverdictCode\tblankSplitFlag\treunifyReservedFlag\tparentName\trebelName\tcollapseFlag";
 
     sealed class CweRec
     {
         public int Month, Year, Months, ParentPol, WarPol, Verdict;
         public double Score, ExhP, ExhR, CutP, CutR, Inherited;
         public int CapRising;   // 1／0／−1（建国の記録が無い）
-        public bool Secession, BlankSplit, Reserved;
+        public bool Secession, BlankSplit, Reserved, Collapse;
         public string EndPath = "", ParentName = "", RebelName = "";
         public Power Parent = null!, Rebel = null!;
     }
@@ -48,7 +48,8 @@ public static partial class Instruments
         double exhP = parent.WarExhaustion, exhR = rebel.WarExhaustion;
         bool collapse = exhP >= 1.0 * cutP || exhR >= 1.0 * cutR;
         bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * CutOf(war.A)) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * CutOf(war.B));
-        string path = war.ForcedPeace ? "forced" : collapse ? "collapse" : System.Math.Abs(war.Score) >= 1.0 ? "decisive" : weary ? "weary" : "other";
+        // endPath＝講和の引き金（Diplomacy.cs の decisive || weary || ForcedPeace と同じ順）。collapse は引き金ではない（崩壊代入は戦勝点を置くだけ）＝別の列 collapseFlag
+        string path = war.ForcedPeace ? "forced" : System.Math.Abs(war.Score) >= 1.0 ? "decisive" : weary ? "weary" : "other";
         bool regime = !war.CivilWarSecession;
         var verdict = EndedWarRecord.VerdictOf(war.Score, regime, c.WhitePeaceScore);
         bool entryExit = war.CivilWarSecession && war.ForcedPeace;   // ResolvePeace の最初の枝（調停の分離の確定）
@@ -59,10 +60,13 @@ public static partial class Instruments
             Score = war.Score, ExhP = exhP, ExhR = exhR, CutP = cutP, CutR = cutR,
             Inherited = born is null ? double.NaN : born.Exhaustion, CapRising = born is null ? -1 : born.CapitalRising ? 1 : 0,
             Secession = war.CivilWarSecession, Verdict = (int)verdict, BlankSplit = !entryExit && verdict == WarVerdict.Blank,
-            Reserved = parent.Nation?.SecedingRegion is not null, EndPath = path,
+            Reserved = parent.Nation?.SecedingRegion is { } seat && rebel.Nation is { } rn && rn.Regions.Contains(seat), EndPath = path, Collapse = collapse,   // Reserved＝親の首都の座が今も反乱国の手にある（Diplomacy.cs の分断の確定の判定と同じ式）
             ParentName = NameOf(parent), RebelName = NameOf(rebel), Parent = parent, Rebel = rebel,
         });
     }
+
+    /// <summary>月の通し番号から四半期の番号（整数の割り算・非負の月で旧の (int)(月/3.0) と同じ値）。</summary>
+    static int QuarterOfMonth(int month) => System.Math.DivRem(month, Calendar.MonthsPerQuarter).Quotient;   // 裸の / を書かない（CalendarTests の走査）
 
     static void CweTable(Sink sk, Diplomacy d)
     {
@@ -73,8 +77,8 @@ public static partial class Instruments
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         int Uid(Power p) => p.Nation is { } w && States.TryGetValue(w, out var ws) ? ws.Uid : 0;
         foreach (var r in st.Recs)
-            wr.WriteLine(string.Join('\t', I((int)Calendar.PerQuarterToPerMonth(r.Month)), I(r.Year), I(Uid(r.Parent)), I(Uid(r.Rebel)), I(r.Months), F(r.Score), r.EndPath,
+            wr.WriteLine(string.Join('\t', I(QuarterOfMonth(r.Month)), I(r.Year), I(Uid(r.Parent)), I(Uid(r.Rebel)), I(r.Months), F(r.Score), r.EndPath,
                 F(r.ExhP), F(r.ExhR), F(r.CutP), F(r.CutR), F(r.Inherited), I(r.CapRising), I(r.ParentPol), I(r.WarPol),
-                r.Secession ? "1" : "0", I(r.Verdict), r.BlankSplit ? "1" : "0", r.Reserved ? "1" : "0", r.ParentName, r.RebelName));
+                r.Secession ? "1" : "0", I(r.Verdict), r.BlankSplit ? "1" : "0", r.Reserved ? "1" : "0", r.ParentName, r.RebelName, r.Collapse ? "1" : "0"));
     }
 }
