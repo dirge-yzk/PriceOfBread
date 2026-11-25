@@ -1,0 +1,29 @@
+(1372) c145ts 事前登録（恒等の線・計器だけ）— 最初のコミット（腕の前）
+木の出発：b8c0944c4（main）。基線の成績表：m1362。モデル：Claude Sonnet 5.5。
+
+[1] 恒等の線・予言 0
+- エンジンの値を変える行は 0・新しい係数・旗・状態は 0。計器の欄は計器の ConditionalWeakTable だけ（セーブに載せない）。
+- 項 1 tsreg：xCap を買い手と売り手の 2 列へ（xCapSeller・xCapBuyer）。import を m.PrevImport から取る。
+- 項 2 lawstep_s：新しい表（法の段が変わった 1 件ごとに 1 行）。Tg.Lawstep（Wants("lawstep_s")）で閉じる。普段（計器 off）の計算量 0。
+- 項 3 cwend：QuarterOfMonth の DivRem を / へ戻し CalendarTests.BareConversionSites に InstrumentsCwend.cs=1 を宣言。endPath の注の順を実際の順（forced → decisive → weary → other）へ。値はビットのまま。
+- 浮動小数の順序が変わる箇所：0（tsreg の 2 列は整数の件数・import は読む欄を替えるだけ＝旧の列は常に 0 の欄を読んでいた）。紙の台本の旧≠新の食い違い：xCap の合計（xCapSeller+xCapBuyer）＝旧 xCap の行は同数＝0 件。
+
+[2] 消す物と残す物
+- 消す物：RgCol.XCap（1 列）と tsreg の見出しの xCap 1 列。読み手の grep：SimCore は InstrumentsTradeskip.cs だけ（RgCol.XCap は :22・:212）・Tests は TsregInstrumentTests.cs（T1・T2）・InstrumentHookClosureTests は表名だけ・scripts は c143sg/tsreg_table.py（読むだけの台本・列名 xCap を持つ＝旧の生用に残す）・Runner/App/Display 0・POB_COEF 0・SaveGame 0。tradeskip の TsCol.XCap は残す（別の表）。
+- 残す物：tradeskip・tradeskip の組の表の xCap、cwend の値、RuptureWindowQuarters（0 の④＝入れない）。
+- lawstep の対象＝Government.LevelLaws の全ての段の法（施行の道）。ApplyDemand の税の段・スライダー軸は対象外（段の法でない）と名乗る。
+- 他の線との重なり（grep）：rv＝Politics.cs の :56〜:209 を避ける。ApplyDemand の呼び元（:699〜:710）に 2 行だけ。sv＝Simulation.cs に触れない。sm＝Simulation.cs :2119 に触れない・DerivedValueRatchetTests・ValueCountRatchetTests に触れない。GovernanceSnapshot.cs の RestoreTo に 2 行（持ち主の一覧に無いが指示に〈GovernanceSnapshot の戻し〉とある＝名乗る）。
+- フックの On の読み：Government.Step は既存の On の読みに畳む（新しい読みを足さない＝OnDoubleReadScanTests の表は変えない）。ApplyDemand の呼び元・RestoreTo は呼び手が On を読まず Instruments の関数の中で Tg と On を読む。
+
+[3] 足す試験と突然変異（㉘・㉑）
+- TsregInstrumentTests：T1 に〈売り手だけ容量切れ〉〈買い手だけ容量切れ〉の盤面。T2 に州の持ち主（州の合計＝tradeskip の xCap）と import の列の Assert。
+- LawstepInstrumentTests（新しい）：L1 段を動かす盤面で 1 行・書き手の別が盤面どおり（1 AI／2 蜂起の要求／3 派閥の危機／4 派閥の譲歩／5 政体の戻し／6 その他）。L2 段が動かない月は 0 行。L3 計器 off で何も作らない。
+- 突然変異：M1 xCapSeller と xCapBuyer を入れ替える → T1 赤。M2 import を LastImport に戻す → T2（import の Assert）赤。M3 書き手の別を固定（常に 1）→ L1 赤。M4 BareConversionSites の宣言を外す → CalendarTests 赤。
+- 走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests・CalendarTests・InstrumentHookClosureTests。書き換える件数の予言：CalendarTests の宣言 +1（InstrumentsCwend.cs）・他の表の件数 0。.new MoneyStock( の件数 0・route_anchors 0・WriterRatchetTests の宣言 0。
+- テスト数の予言：TESTS_NONFULL 3233 → 3233＋足した試験（TsregInstrumentTests +2・LawstepInstrumentTests +3＝+5・実測で確かめて --tests-delta に渡す）。
+
+[4] 成績表
+- 素の 5 種・計器つき 10 種が m1362 と名乗り行を除いて全行一致。計器の表の差は宣言だけ：tsreg（--rewritten-tables tsreg@scripts/instruments/c145ts/tsreg_check.py＝xCap 以外の全列が基準と等しい・xCapSeller+xCapBuyer＝基準の xCap・import 列は PrevImport で変わってよい＝非負）・lawstep（--added-tables lawstep）。cwend_s はビットのまま。.cost の推定 +0。
+- 記録：10 種での lawstep の件数（書き手の別ごと）。
+
+[5] 〈判定: 恒等〉なら採る（savetest は基点と同じ 303 件・同じ道なら恒等として進める）。
