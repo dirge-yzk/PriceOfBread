@@ -65,6 +65,9 @@ public static partial class Instruments
         });
     }
 
+    /// <summary>月の通し番号から四半期の番号（整数の割り算・非負の月で旧の (int)(月/3.0) と同じ値）。</summary>
+    static int QuarterOfMonth(int month) => month / Calendar.MonthsPerQuarter;
+
     static void CweTable(Sink sk, Diplomacy d)
     {
         if (!Tg.Cwend) return;
@@ -74,7 +77,7 @@ public static partial class Instruments
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         int Uid(Power p) => p.Nation is { } w && States.TryGetValue(w, out var ws) ? ws.Uid : 0;
         foreach (var r in st.Recs)
-            wr.WriteLine(string.Join('\t', I((int)Calendar.PerQuarterToPerMonth(r.Month)), I(r.Year), I(Uid(r.Parent)), I(Uid(r.Rebel)), I(r.Months), F(r.Score), r.EndPath,
+            wr.WriteLine(string.Join('\t', I(QuarterOfMonth(r.Month)), I(r.Year), I(Uid(r.Parent)), I(Uid(r.Rebel)), I(r.Months), F(r.Score), r.EndPath,
                 F(r.ExhP), F(r.ExhR), F(r.CutP), F(r.CutR), F(r.Inherited), I(r.CapRising), I(r.ParentPol), I(r.WarPol),
                 r.Secession ? "1" : "0", I(r.Verdict), r.BlankSplit ? "1" : "0", r.Reserved ? "1" : "0", r.ParentName, r.RebelName, r.Collapse ? "1" : "0"));
     }
