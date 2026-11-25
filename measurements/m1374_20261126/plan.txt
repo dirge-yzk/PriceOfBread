@@ -1,0 +1,9 @@
+(1374) c145bh 読む線の計画（2026-11-26・コミットしない・合流が measurements/m1374_*/ へ写す）
+作業の場所: D:/PoB_work/r1374_work/（表・出力）・台本 scripts/instruments/r1374/（コミットしない）
+worktree・枝は作らない（読むだけ）。
+読む生:
+ - M: D:/PoB_work/keep_1369/base_ins（m1362 の M と表が同じ・種 1〜10）: region・migration・casualty・epi・labor・pxmonth・wars・nation・pop・ほか要る表
+ - ヌル腕: D:/PoB_work/keep_1362/n1・n2（種 1〜10）・a11（S11 種 11〜20）
+ - 要約: measurements/m1362_20261125（pair1348.tsv・readM/bham.txt）・m1356_20261125・m1357_20261125
+ - 基線 m1355・k59B・spB の生は (1362) で消された（deleted.txt）＝帰属は M・N1・N2 と要約で読む。足りなければ種 2 だけの腕を 2 本まで（旗 1 本ずつ 0）。
+問い: 1 時期 2 行き先と量 3 英の国の量と他の州 4 帰属 5 同じ型か

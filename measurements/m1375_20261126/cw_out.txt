@@ -1,0 +1,23 @@
+records 84
+rpParent med/p90 1.0 1.0  rpRebel med/p90 0.884 1.0
+capRising0_collapse 7
+capRising0_nocollapse 2
+capRising=0 9
+capRising=1 75
+col_both_months<=3 24
+col_inherited>=0.99_m<=3 12
+col_months<=1 29
+col_months<=3 4
+col_months>3 35
+col_side=both 24
+col_side=parent 39
+col_side=rebel 5
+collapse/decisive 37
+collapse/weary/reach 31
+kP+kR<=1 76
+nocol_3b_hit_if_loserK=max 13
+nocol_3b_hit_if_loserK=min 14
+nocollapse/decisive 6
+nocollapse/weary 10
+rpP>=0.5 76
+rpR>=0.5 63

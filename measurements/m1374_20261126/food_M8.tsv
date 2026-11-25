@@ -1,0 +1,14 @@
+年	popK	stapleNeedPerMonth	marketNeedPerMonth	demandPerMonth	subPerMonth	fillNew	harvestMean	subsistenceMean	landFactor	clampBindShare	stapleGood	staplePrice	stapleMarginalCost	regionPriceLevel	importCrossRegionPerQuarter	importPaidPerQuarter	savingsPerCapitaOverNation	belowSelfCostShare	factoryOutputRefValuePerMonth
+1790	2519	2771	2173	2719	598.1	0.9422	0.8362	0.2585	0.9489	0.525	パン	1.499	0.06	0.821	0	179.1	2.98	0.02371	6072
+1810	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.154	0.06	0.6621	0	91.07	1.114	0.05123	3777
+1830	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.211	0.06	0.7964	0	107	1.174	0.0121	5401
+1845	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.509	0.06	0.7651	0	688.9	1.221	0	5625
+1850	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.985	0.06	0.7208	0	381	1.267	0	6086
+1855	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	2.337	0.06	0.8495	0	402	1.273	0.007844	5225
+1860	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	2.192	0.06	0.9348	0	831.6	1.27	0.007692	4445
+1870	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.797	0.06	1.005	0	1759	1.346	0.007576	3303
+1880	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.582	0.06	0.9532	0	2556	1.434	0.01695	3095
+1900	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	1.106	0.06	0.953	0	837.9	1.717	0.01119	7071
+1920	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	パン	0.8622	0.06	1.132	0	200	1.135	0.009328	4483
+1940	1269	1395	1015	1246	380.8	0.9888	0.8464	0.3225	1	1	パン	0.7047	0.06	0.7564	0	5.347	4.042	0.05474	4337
+1949	753.9	829.3	227.4	122.5	683.5	0.8739	1.035	0.7979	1	1	野菜	0.3752	0.27	1.111	0	5.558	5.528	0.04699	365.9

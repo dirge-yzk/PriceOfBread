@@ -1,0 +1,5 @@
+records 84
+RP parent at start quarter n 84 p10 0.438 med 0.878 p90 1.0 share>=0.99 0.44 share<0.5 0.214
+RP parent mean over war n 84 p10 0.423 med 0.815 p90 1.0 share>=0.99 0.333 share<0.5 0.226
+RP rebel at first quarter n 53 p10 0.192 med 1.0 p90 1.0 share>=0.99 0.566 share<0.5 0.245
+RP rebel mean over war n 53 p10 0.232 med 1.0 p90 1.0 share>=0.99 0.509 share<0.5 0.321

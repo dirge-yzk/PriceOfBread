@@ -1,0 +1,29 @@
+peace_FxMR<0.5 35788
+peace_FxMRx(1-RP)<0.5 102858
+peace_Kprime<0.5 191253
+peace_RP>0.5 249840
+peace_WE>0.5(now) 5969
+peace_rows_F 374832
+peace_rows_FMR 128142
+peace_rows_rp 374916
+peace_rows_scalars 128160
+war_FxMR<0.5 14343
+war_FxMRx(1-RP)<0.5 17013
+war_Kprime<0.5 6664
+war_RP>0.5 12147
+war_rows_F 34037
+war_rows_FMR 19164
+war_rows_rp 34037
+nations per seed peace_FxMR<0.5 mean 61.4 seeds 10
+nations per seed peace_FxMRx(1-RP)<0.5 mean 61.5 seeds 10
+nations per seed peace_Kprime<0.5 mean 59.6 seeds 10
+nations per seed peace_RP>0.5 mean 66.2 seeds 10
+nations per seed peace_WE>0.5(now) mean 45.6 seeds 10
+nations per seed war_FxMR<0.5 mean 61.0 seeds 10
+nations per seed war_FxMRx(1-RP)<0.5 mean 61.4 seeds 10
+nations per seed war_Kprime<0.5 mean 39.8 seeds 10
+nations per seed war_RP>0.5 mean 52.2 seeds 10
+peace_RP n 374916 p10 0.1686 med 1.0 p90 1.0 p99 1.0
+peace_Kprime n 374916 p10 0.1867 med 0.4882 p90 0.8557 p99 0.9764
+war_RP n 34037 p10 0.1308 med 0.3512 p90 1.0 p99 1.0
+war_Kprime n 34037 p10 0.3308 med 0.7401 p90 0.8843 p99 0.9531
