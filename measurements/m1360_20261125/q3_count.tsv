@@ -1,0 +1,29 @@
+腕	軸	種	後退1回以上の組	後退5回以上の組	往復5周以上の組	後退の総数	1国の最大(種 国)	戦時の後退の割合
+M	ShorterHours	10	379	14	14	713	15 (s9 ジェノヴァ)	0.09
+M	ChildLabor	10	0	0	0	0	0	0.00
+M	Suffrage	10	538	89	85	1571	16 (s1 ライン諸邦)	0.12
+M	WomenRights	10	0	0	0	0	0	0.00
+M	SocialSecurity	10	28	0	0	31	2 (s3 ポーランド)	0.13
+M	ColonialSuffrage	10	0	0	0	0	0	0.00
+M	MigrantNativeSuffrage	10	0	0	0	0	0	0.00
+S11	ShorterHours	10	377	22	22	761	17 (s15 教皇領)	0.06
+S11	ChildLabor	10	0	0	0	0	0	0.00
+S11	Suffrage	10	520	80	76	1514	8 (s11 ヴェネツィア)	0.10
+S11	WomenRights	10	0	0	0	0	0	0.00
+S11	SocialSecurity	10	18	0	0	22	3 (s17 コーカンド)	0.09
+S11	ColonialSuffrage	10	0	0	0	0	0	0.00
+S11	MigrantNativeSuffrage	10	0	0	0	0	0	0.00
+N1	ShorterHours	10	342	16	16	671	14 (s8 ジェノヴァ)	0.08
+N1	ChildLabor	10	0	0	0	0	0	0.00
+N1	Suffrage	10	515	71	64	1477	7 (s8 プロイセン)	0.09
+N1	WomenRights	10	0	0	0	0	0	0.00
+N1	SocialSecurity	10	33	0	0	40	3 (s1 コーカンド)	0.17
+N1	ColonialSuffrage	10	0	0	0	0	0	0.00
+N1	MigrantNativeSuffrage	10	0	0	0	0	0	0.00
+N2	ShorterHours	10	377	18	18	738	13 (s7 オマーン)	0.06
+N2	ChildLabor	10	0	0	0	0	0	0.00
+N2	Suffrage	10	526	87	85	1513	8 (s7 サルデーニャ＝ピエモンテ)	0.09
+N2	WomenRights	10	0	0	0	0	0	0.00
+N2	SocialSecurity	10	23	0	0	28	2 (s6 コーカンド)	0.07
+N2	ColonialSuffrage	10	0	0	0	0	0	0.00
+N2	MigrantNativeSuffrage	10	0	0	0	0	0	0.00

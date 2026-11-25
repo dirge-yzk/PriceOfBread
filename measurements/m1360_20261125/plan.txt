@@ -1,0 +1,10 @@
+(1360) c143hr 読む：時短（ShorterHours）の段の往復の根 — 作業の計画（2026-11-25）
+作業の場所：D:/PoB_work/r1360_work/（台本は scripts/instruments/r1360/ に置く＝コミットしない）
+worktree・枝は作らない（読むだけ・main 1cb76c40c の作業ツリーのソースを読むだけ）
+腕：0 本
+読む生：
+  D:/PoB_work/keep_1355/base_ins（M・monlaw・lrlock・lawdir・lawgate・lawgate2・poppref・parlseat・crownpc・nation・reform・coupgate）
+  D:/PoB_work/keep_1355/a11（S11 の 84 表）・n1・n2（ヌル腕）
+  measurements/m1350_20261125_*・measurements/m1355_20261125/・measurements/b10_20261124_m1341_ins（旧の規則の数）
+台本：scripts/instruments/m1355/hrmax.py・scripts/instruments/c142lr/rec_lr.py
+ソース：Government.cs・Politics.cs・SelfPlay.cs・Parliament.cs・PolicyPreferences.cs（grep で行を確かめる）
