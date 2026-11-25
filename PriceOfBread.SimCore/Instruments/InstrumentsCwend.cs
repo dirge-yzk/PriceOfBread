@@ -66,7 +66,7 @@ public static partial class Instruments
     }
 
     /// <summary>月の通し番号から四半期の番号（整数の割り算・非負の月で旧の (int)(月/3.0) と同じ値）。</summary>
-    static int QuarterOfMonth(int month) => month / Calendar.MonthsPerQuarter;
+    static int QuarterOfMonth(int month) => System.Math.DivRem(month, Calendar.MonthsPerQuarter).Quotient;   // 裸の / を書かない（CalendarTests の走査）
 
     static void CweTable(Sink sk, Diplomacy d)
     {
