@@ -137,12 +137,11 @@ public class SaveRoundTripTests
 
     /// <summary>(1370) 空の配列の共有の形：エンジンの `[]` は共有の空の配列だが、読み込みは長さ 0 の配列を別実体で作る。長さ 0 の配列は不変で値も続きも持てない＝
     /// StateDiff は共有の形を比べない（main の savetest の 303 の根）。往復の後に両方へ同じ `[]` の生産者を足して値の違い 0。本物の違い（double の 1 ビット）は拾う。
-    /// 旗 FemalePartLawFree 1（既定）の盤面。⚠突然変異「長さ 0 の配列の除外を消す」で赤・「double の 1 ビットを変える」でも赤。</summary>
+    /// 既定の盤面。⚠突然変異「長さ 0 の配列の除外を消す」で赤・「double の 1 ビットを変える」でも赤。</summary>
     [Fact]
     public void 空の配列の共有の形は往復の後も保たれる()
     {
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
-        Assert.True(sim1.Nations[0].World.Coef.FemalePartLawFree > 0);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;

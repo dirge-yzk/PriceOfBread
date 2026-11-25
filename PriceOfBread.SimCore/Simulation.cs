@@ -1812,7 +1812,7 @@ public sealed class Simulation
                 // 倍率排除④：女性参加・児童労働を連続状態（賃金保持・合法度）から複製。実効値は LaborSupply が家計困窮・就学を加味して創発。
                 r.WomenWageRetention = World.WomenWageRetention;          // 賃金保持（連続）。女性参加・女性識字の駆動
                 r.ChildLaborLegal = World.ChildLaborLegal;                // 児童労働の合法度（連続）。子供の労働/就学の時間配分を律する
-                r.FemaleParticipation = World.Coef.FemalePartLawFree > 0 ? World.Coef.FemalePartBase : World.Coef.FemalePartBase + (World.Coef.FemalePartProperty - World.Coef.FemalePartBase) * World.WomenWageRetention;   // 構造的参加率（need=0 の代表値・診断/UI用。0.4〜0.7 を賃金保持で連続補間＝2値の崖を解消）
+                r.FemaleParticipation = World.Coef.FemalePartBase;   // 構造的参加率（need=0 の代表値・診断/UI用）＝基礎の 1 本。法の段（賃金保持）の項は (1379) で焼き込み済みで無い（困窮の項は LaborSupply が賃金保持を読む）
                 r.HarvestFactor = World.HarvestFactor;                   // 今年の豊作/不作（主食RGO産出と自給に乗算）
                 r.CropHealth = World.CropHealth;                         // 作物別の健全度（病虫害）。栽培州の産出に乗る＝作物固有の不作（天候と積算）
                 r.WeatherBandFactor = World.WeatherBandFactor;           // 緯度帯（気候帯）の天候。HarvestFactorと積算＝同じ気候帯の国が一緒に不作（欧州一帯の凶作）

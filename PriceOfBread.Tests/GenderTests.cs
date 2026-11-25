@@ -35,7 +35,7 @@ public class GenderTests
         // 法→参加率の配線を直接検証（0.4→0.7＝労働供給の能力+2割）。
         // ※産出・賃金の均衡比較は120四半期の軌道分岐（政治・産業構成の違い）に埋もれて脆いため、機構の検証に留める。
         //   ★(383) 浸透は法の浸透の門で追従する（旧は移動平均）＝120 四半期では 0.7 の手前（0.692）にいることがある。★(399) 門〔LawEnforcementAdminGate〕は削除済み＝浸透は活きている州の人口で重みづけた国家の区分で読む（(402)）。配線は〈基線 0.4 を明らかに超え 0.7 を越えない〉で見る。
-        // ★(1356) c143k59 旗 FemalePartLawFree 1：構造の参加率は法の段に依らず FemalePartBase の 1 本（財産権法の段の項を消した・旧は InRange(0.5, 0.7)）。法→賃金保持の配線（困窮の項と母の識字が読む）は残る。
+        // ★(1356) c143k59・(1379) 旗を焼いた後：構造の参加率は法の段に依らず FemalePartBase の 1 本（財産権法の段の項を消した・旧は InRange(0.5, 0.7)）。法→賃金保持の配線（困窮の項と母の識字が読む）は残る。
         Assert.Equal(0.4, reformed.World.Region.FemaleParticipation, 2);
         Assert.True(reformed.World.WomenWageRetention > 0.5, $"法の段に届いたのに賃金保持が上がらない（{reformed.World.WomenWageRetention:F3}）");
         Assert.Equal(0.4, baseline.World.Region.FemaleParticipation, 2);
