@@ -1,0 +1,4 @@
+# 生 D:/PoB_work/keep_1355/n1・種のファイル 0
+行の数 0・法の段≧1 の行 0
+差の行（oldStruct−newStruct＞0.01）0・actualStruct＝newStruct 0（割合 nan）・actualStruct＝oldStruct 0
+差の行のある国（どれかの種）0：
