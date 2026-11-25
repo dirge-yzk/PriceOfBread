@@ -37,7 +37,7 @@ public class ValueCountRatchetTests
 
     // 2026-11-25 実測（基 11bfbfcd6）：SimCore 755・Display 48。
     [Theory]
-    [InlineData("SimCore", 755)]
+    [InlineData("SimCore", 758)]   // (1369) 合わせた木で数え直した＝wr の基 755＋ut (1363) の +3（PoliticalQuantities.cs の Toward の多重定義 2・Parliament.cs:335 の 1）＝予言どおり（★(764)）
     [InlineData("Display", 48)]
     public void Valueの取り出しは型の外で増やさない(string place, int baseline)
     {
