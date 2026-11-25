@@ -272,7 +272,7 @@ public class DisplayCatalogTests
         Assert.Equal(Unit.RatioToGdpYear, Col.Of<int, RatioToGdpYear>("a", "債務比", _ => new RatioToGdpYear(1)).Unit);
         // 専用の値型は 9 つ全てが単位に写る（Units.cs に型を足したら Unit にも足す）
         var unitTypes = typeof(MoneyStock).Assembly.GetTypes().Where(t => UnitValues.IsUnit(t)).ToList();
-        Assert.Equal(9, unitTypes.Count);
+        Assert.Equal(11, unitTypes.Count);   // (1369) ut (1363) の FractionPerMonth・FractionPerQuarter で 9→11（★(764) の静的な件数・予言どおり）
         Assert.All(unitTypes, t => Assert.NotNull(Col.UnitOf(t)));
         Assert.Null(Col.UnitOf(typeof(double)));
         Assert.Equal(Unit.People, Col.Number<int>("a", "人口", Unit.People, _ => 1).Unit);

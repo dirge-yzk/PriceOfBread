@@ -4,7 +4,7 @@ namespace PriceOfBread.SimCore.Display;
 /// 専用の値型が無い物（人口・財の量・件数）は目録の側で名乗る。</summary>
 public enum Unit
 {
-    MoneyStock, MoneyPerMonth, MoneyPerYear, Share, RatePerYear, RatePerMonth, RatePerQuarter, RealGdpPerMonth, RatioToGdpYear,
+    MoneyStock, MoneyPerMonth, MoneyPerYear, Share, RatePerYear, RatePerMonth, RatePerQuarter, RealGdpPerMonth, RatioToGdpYear, FractionPerMonth, FractionPerQuarter,
     People, Quantity, Count,
     /// <summary>財 1 単位の値段（£0.52 のような小さい金額を小数 2 桁で出す。月・年・在庫の別を持たない単価）。</summary>
     PricePerUnit,
@@ -138,6 +138,8 @@ public static class Col
         if (t == typeof(RatePerQuarter)) return Unit.RatePerQuarter;
         if (t == typeof(RealGdpPerMonth)) return Unit.RealGdpPerMonth;
         if (t == typeof(RatioToGdpYear)) return Unit.RatioToGdpYear;
+        if (t == typeof(FractionPerMonth)) return Unit.FractionPerMonth;      // (1369) ut の期間あたりの割合（月）
+        if (t == typeof(FractionPerQuarter)) return Unit.FractionPerQuarter;  // (1369) ut の期間あたりの割合（四半期）
         return null;
     }
 

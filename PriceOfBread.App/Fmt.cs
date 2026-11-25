@@ -98,6 +98,8 @@ public static class Fmt
             case Unit.RatePerYear: return Percent(v, 1) + "/年";
             case Unit.RatePerMonth: return Percent(v, 1) + "/月";
             case Unit.RatePerQuarter: return Percent(v, 1) + "/四半期";
+            case Unit.FractionPerMonth: return Percent(v, 1) + "/月";
+            case Unit.FractionPerQuarter: return Percent(v, 1) + "/四半期";
             case Unit.RealGdpPerMonth: return Money(ZeroAt(v, 0)) + "/月";
             case Unit.RatioToGdpYear: return "年GDPの" + Percent(v, 0);
             case Unit.People: return PopFmtK(v);
