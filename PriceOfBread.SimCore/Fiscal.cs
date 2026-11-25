@@ -361,9 +361,8 @@ public static class Fiscal
         if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;
         double nominalGdp = w.NominalGdpPerMonth.Value;
         double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
-        var capitalists = new List<Pop>();
-        foreach (var (_, p) in w.AllPopsWithRegion()) if (CapitalMarket.IsInvestor(p)) capitalists.Add(p);
-        double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings.Value);
+        var capitalists = CapitalMarket.Investors(w);
+        double capSavings = CapitalMarket.InvestorSavings(w);
         double openness = w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness.Value) : 1.0;
         double domesticPool = capSavings * c.BondAppetite.Value;
         double foreignPool = openness * c.ForeignBondCapacity.Value * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear.Value / Math.Max(1e-9, w.GovBondRatePerYear.Value), 0, ForeignBondYieldRatioCap);
