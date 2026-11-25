@@ -4,7 +4,7 @@
 WK=${1:?作業フォルダ}; mkdir -p $WK/tmp
 export TEMP=$WK/tmp TMP=$WK/tmp
 cd "$(dirname "$0")/../../.."; A=$WK/art; O=$WK/scan.txt
-F=${2:-"FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~FemalePartLawFreeTests|FullyQualifiedName~GenderTests|FullyQualifiedName~LaborWeightTests|FullyQualifiedName~MobilityTests|FullyQualifiedName~RuleSharesFormTests|FullyQualifiedName~FempInstrumentTests"}
+F=${2:-"FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~TechLevelRemovalTests|FullyQualifiedName~OnDoubleReadScanTests|FullyQualifiedName~FemalePartLawFreeTests|FullyQualifiedName~GenderTests|FullyQualifiedName~LaborWeightTests|FullyQualifiedName~MobilityTests|FullyQualifiedName~RuleSharesFormTests|FullyQualifiedName~FempInstrumentTests|FullyQualifiedName~StartWarmupTests"}
 echo "# (1356) scan HEAD=$(git rev-parse --short HEAD) 汚れ=$(git status --porcelain | wc -l) $(date '+%F %T')" > $O
 echo "# filter=$F" >> $O
 dotnet build PriceOfBread.Tests -c Release --artifacts-path $A -v q -nologo > $WK/build_scan.txt 2>&1 || { echo "BUILDFAIL" >> $O; grep -E "error" $WK/build_scan.txt | head -20 >> $O; echo SCANDONE >> $O; exit 1; }
