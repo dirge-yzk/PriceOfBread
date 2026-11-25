@@ -1,0 +1,7 @@
+(1376) 合流が消した物（2026-11-26・書き手 Opus 5.5）
+- D:/PoB_work/keep_1369（base_ins＝(1369) の INSRAW・新しい ident.cfg〔INSRAW keep_1376/base_ins〕を d12d0c2cc で push した後＝INSRAW でも KEEPNULL でもない・要約は measurements/m1369_20261126/keepsum_insraw1369.tsv）。
+- D:/PoB_work/ident_m1376z（合流の腕 Z の作業フォルダ・計器の生は keep_1376/base_ins へ移した・記録は measurements/ident_20261126_m1376z.txt ほか）。
+- 線の ident の生 D:/PoB_work/ident_c145ts・ident_c145sv・ident_c145rv・ident_c145sm（4 線とも恒等・反証役が読み終えた・要約は measurements/m1376_20261126/keepsum_ident_c145*.tsv）。
+- 線の隔離ビルド D:/PoB_work/c145ts_art・c145rv_art・c145sv_art（合流が作ったフォルダではない＝〈消してよいのは自分で作ったフォルダだけ〉から外れた・ビルドの出力だけで記録は無い）。
+- 残した物：keep_1362（n1・n2・a11＝KEEPNULL）・keep_1376（base_ins＝INSRAW）・線の作業フォルダ c145*_work・r1374_work・r1375_work（線の物）。
+- D: の空き：始まり 42.5GB → 線の生の削除の後 87.6GB → この削除の後 85.8GB。
