@@ -1,0 +1,24 @@
+  復元対象のプロジェクトを決定しています...
+  復元対象のすべてのプロジェクトは最新です。
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PopDecision.cs(38,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\EconomyStep.cs(1454,29): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\BilateralMarket.cs(1014,68): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\Instruments\Instruments.cs(2676,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(188,41): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(204,21): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\Instruments\InstrumentsSubst.cs(234,15): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\Instruments\InstrumentsLandsale.cs(83,156): warning CS0649: フィールド 'Instruments.LdAcc.MExport' は割り当てられません。常に既定値 0 を使用します [D:\PoB_work\wt_c146bk_mut\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\c146bk_mut_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c146bk_mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\c146bk_mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:04.48]     PriceOfBread.Tests.BankruptReentryShortageTests.足りない量が非有限なら品薄でない側へ [FAIL]
+  失敗 PriceOfBread.Tests.BankruptReentryShortageTests.足りない量が非有限なら品薄でない側へ [974 ms]
+  エラー メッセージ:
+   足りない量が NaN の月に倒産した工場が再開した（NaN を品薄の側へ倒した）
+  スタック トレース:
+     at PriceOfBread.Tests.BankruptReentryShortageTests.足りない量が非有限なら品薄でない側へ() in D:\PoB_work\wt_c146bk_mut\PriceOfBread.Tests\BankruptReentryShortageTests.cs:line 94
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
