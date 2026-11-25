@@ -257,13 +257,13 @@ public static class Government
         return n;
     }
 
-    private static bool MandateGate(World w, PolicyAxis a, bool increasing, int targetLevel, double costMul = 1.0)
+    private static bool MandateGate(World w, PolicyAxis a, bool increasing, int targetLevel)
     {
         double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
-        if (!(net > -MandateMargin(w, a, targetLevel) / costMul)) { if (Instruments.On) Instruments.GateResult(w, 1, net); return false; }
+        if (!(net > -MandateMargin(w, a, targetLevel))) { if (Instruments.On) Instruments.GateResult(w, 1, net); return false; }
         if (net < 0)
         {
-            double cost = -net * w.Coef.MandateSpendRate * costMul;
+            double cost = -net * w.Coef.MandateSpendRate;
             if (Instruments.On) Instruments.Priced(w, cost);
             if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true, cost); } return false; }
             if (Instruments.On) Instruments.WallPass(w, cost, true, a);
@@ -287,7 +287,7 @@ public static class Government
     {
         double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
         if (!(net > -MandateMargin(w, a, NextStage(w, a, increasing)))) return false;
-        return !(net < 0) || PoliticalCapitalAffords(w, -net * w.Coef.MandateSpendRate * ReversalCostMul(w, a, Regressive(a, increasing)));
+        return !(net < 0) || PoliticalCapitalAffords(w, -net * w.Coef.MandateSpendRate);
     }
 
     internal static bool UniversalConscriptionOpen(World w) => Privileges.SeigneurialDegree(w) <= 0;
@@ -394,9 +394,8 @@ public static class Government
         if (BlockedByIrreversibility(w, a, Regressive(a, increasing)))
             return (false, 0, a is PolicyAxis.ShorterHours or PolicyAxis.ChildLabor ? "戦時のみ緩和可" : "後退不能（支持層が確立済み）");
         double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, shared ??= PolicyPreferences.Build(w)) : 1.0;
-        double costMul = ReversalCostMul(w, a, Regressive(a, increasing));
-        double cost = net < 0 ? -net * w.Coef.MandateSpendRate * costMul : 0;
-        bool ok = net > -MandateMargin(w, a, targetLevel) / costMul;
+        double cost = net < 0 ? -net * w.Coef.MandateSpendRate : 0;
+        bool ok = net > -MandateMargin(w, a, targetLevel);
         if (ok && net < 0 && !PoliticalCapitalAffords(w, cost)) return (false, cost, w.Coef.MandateOverStockLegitPower > 0 && w.MandateSpent <= 0 && cost > w.PoliticalCapitalMax ? ReasonNoLegitimacy : ReasonNoCapitalStock);
         return (ok, cost, ok ? "" : ReasonNoMandate);
     }
@@ -457,28 +456,7 @@ public static class Government
     internal static bool BlockedByIrreversibility(World w, PolicyAxis a, bool regressive)
     {
         if (!regressive) return false;
-        var c = w.Coef;
-        if (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform) return true;
-        if (c.ProtectedLawsReversible > 0) return false;   // (1344) 旗 1＝守られた法の不可逆を外す（L07 は上の行で残す）
-        if (c.IrreversibleLaws <= 0) return false;
-        if (w.RuptureWindowQuarters > 0) return false;
-        if (!ProtectedLaw(w, a)) return false;
-        return c.IrreversibleLaws >= 1.0;
-    }
-
-    internal static bool ProtectedLaw(World w, PolicyAxis a) => a switch
-    {
-        PolicyAxis.Suffrage or PolicyAxis.WomenRights or PolicyAxis.SocialSecurity or PolicyAxis.ColonialSuffrage or PolicyAxis.MigrantNativeSuffrage => true,
-        PolicyAxis.ShorterHours or PolicyAxis.ChildLabor => !AtWar(w),
-        _ => false,
-    };
-
-    internal static double ReversalCostMul(World w, PolicyAxis a, bool regressive)
-    {
-        var c = w.Coef;
-        if (c.ProtectedLawsReversible > 0 || !regressive || !(c.IrreversibleLaws > 0) || c.IrreversibleLaws >= 1.0 || w.RuptureWindowQuarters > 0 || !ProtectedLaw(w, a)) return 1.0;
-        if (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform) return 1.0;
-        return 1.0 / (1.0 - c.IrreversibleLaws);
+        return a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform;
     }
 
     internal static bool AtWar(World w)
@@ -495,7 +473,7 @@ public static class Government
         bool regressive = Regressive(a, increasing);
         if (BlockedByIrreversibility(w, a, regressive)) { if (Instruments.On) Instruments.LevelResult(w, 5, ci, ti, ci); return ci; }
         if (increasing && !LawPrereq(w, a, ci + 1, w.Coef).Ok) { if (Instruments.On) Instruments.LevelResult(w, 6, ci, ti, ci); return ci; }
-        if (MandateGate(w, a, increasing, ci + (increasing ? 1 : -1), ReversalCostMul(w, a, regressive)))
+        if (MandateGate(w, a, increasing, ci + (increasing ? 1 : -1)))
         {
             if (Instruments.On) Instruments.LevelResult(w, -1, ci, ti, ci + (increasing ? 1 : -1));
             return ci + (increasing ? 1 : -1);

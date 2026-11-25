@@ -1717,7 +1717,6 @@ public sealed class Simulation
         bool childRegress = childTarget > World.ChildLaborLegal + 1e-9;
         // 交戦判定は国スコープ（州非依存）。毎州の再評価とラムダ・クロージャの確保を避け、ループ前に一度だけ算出して児童労働の不可逆判定・軍需調達・Military.Step で共用する。
         bool atWarNation = World.Diplomacy is { } dipN && World.SelfPower is { } spN && dipN.Wars.Any(war => war.A == spN || war.B == spN);
-        if (World.Coef.ProtectedLawsReversible > 0 || !(World.Coef.IrreversibleLaws > 0 && childRegress && !atWarNation && World.RuptureWindowQuarters <= 0))   // (1344) 旗 1＝平時の再合法化も Toward
             World.ChildLaborLegal = PoliticalQuantities.Toward(World.ChildLaborLegal, childTarget, World.Coef.WomenRightsFollowSpeed * (childRegress ? 1.0 : enforce));
         double nationPop = World.TotalPopulation;                        // 行政予算の地域按分に使う
         bool navalYard = false;   // navalYard〔履歴 Simulation.cs#197〕
