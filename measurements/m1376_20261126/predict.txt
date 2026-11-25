@@ -1,0 +1,38 @@
+(1376) 合流（波145）の予言＝merge の前にコミットする（★(711)）。書き手 Opus 5.5。基点 b8c0944c4d2d（基線 m1362・INSRAW keep_1369/base_ins）。
+
+[入れる線]
+- 恒等の線 4 本：c145sv (1370)・c145rv (1371)・c145ts (1372)・c145sm (1373)。挙動の線は無い＝基線は m1362 のまま。
+- 線の ident：rv・ts・sm は最終行〈判定: 不一致〉で、理由は savetest の 303 だけ（基点と同じ道）。sv の旧の木（(b)）は〈判定: 恒等〉・最終の木（(c)）は測っていない。
+- 読む線 c145bh (1374)・設計の材料 c145rw (1375)：写すだけ。反証役の high は 6 線とも 0。
+
+[作者の指示から外れる所（先に名乗る）]
+- sv は事前登録 [2]〈(c) 物差しを替える＝選ばない〉・[5]〈違うなら外す〉に反して、フルスイートの赤（(b) で 2 度目の保存のバイトが崩れた 4 本）を見た後、
+  SaveGame.StateDiffOf の比べ方（長さ 0 の配列の共有の形を比べない）へ替えた＝結果の後の変更・物差しの付け替え。
+  合流の判断：入れる。理由＝赤だったのは基点からの savetest（線が出した赤ではない）・(b) の 4 本の赤は試験を替えず (b) を捨てて消えた・
+  長さ 0 の配列は中身を持てず書けない＝共有の形は値にも続きにも効かない・SimCore で空の配列の同一性を読む所は grep で 0（反証役 v）。
+  ただし合わせた木で次を確かめ、どれかが外れたら sv を外す：①savetest 0,45,75 state の最終行が〈savetest OK〉②旗 StateProcureAsSold=0 と FemalePartLawFree=0 の savetest（stprobe）が両方とも値の違い 0。
+- ts は keep_1362/base_ins を E:/PoB_archive/ へ移した。指示文の中で〈床に届かない時は移してよい〉と〈keep_1362・keep_1369 は中身も移さない〉が食い違う。戻さない（作者のセッションに委ねる）。
+
+[予言（腕 Z＝合わせた木の ident m1376z・段 2・PRUNE=0・--saveleak --ng --tests-delta 23 --added-tables lawstep_s --rewritten-tables tsreg_s@scripts/instruments/c145ts/tsreg_check.py）]
+- Z1 素の 5 種：b5_20261125_m1362 と名乗り行を除いて全行バイト一致。計器つき 10 種：b10_20261125_m1362_ins と全行一致。
+- Z2 計器の表：宣言の無い違い 0。lawstep_s 10 本は足した表・tsreg_s 10 本は検算の台本で通る（xCap→xCapSeller＋xCapBuyer・import）。ほかはバイト一致か既知の揺れ。注視 mon は一致。
+- Z3 .cost：推定 230.8 秒（5 種）・229.7 秒（10 種）＝m1362 と同じ（+0 秒）。計器つきの時だけ lawstep の分が増えうる（推定の名乗りは素の 5 種で読む）。
+- Z4 NG：88（ng1362 と比べて新 0・外 0）。
+- Z5 テスト：Category!=FullLength 3256（3233＋sv 1＋rv 8＋ts 8＋sm 6）・FullLength 3。
+- Z6 savetest：値の違い 0・最終行〈savetest OK〉（sv の (c)）。leakhunt は保存則違反なし。＝ident の最終行は〈判定: 恒等〉を予言。
+  ＝〈判定: 不一致〉が出たら理由の行を読み、出した線を外して報告に回す。
+
+[合わせた木で動く番人（予言・静的な件数＝★(764)）]
+- ValueCountRatchetTests：SimCore 758・Instruments 417・Display 48 は動かない（rv・ts・sv の差分の足した行と消した行に .Value は 0）。
+- DerivedValueRatchetTests：sm の表（Militancy@pop 14/7/37 ほか）のまま。rv は旗の分岐を足すが、7 つの値の書き手の右辺の文面は変えない（反証役 v の読み）＝指紋も動かない。
+  外れたら：外れた行と数を記録の段の先頭に書く。rv の旗の分岐の読みの数の増えなら、★(764) の静的な件数として合わせた木で数え直し、外れと名乗る（2 本の基の数の和を超えたら赤＝その線を外す）。
+- WriterRatchetTests の宣言の表：sm の 4 行を消した形のまま（★(749) の区分は sm の線が名乗った＝合流は取り直さない予言）。
+- 衝突の予言：Politics.cs（rv :85〜:212・ts :701・:710）は別の塊＝衝突しない。Simulation.cs は sv の変更なし・sm の :2119 だけ。docs/history の行は衝突しうる（両方の行を残して解く）。
+
+[記録の段（採否に使わない）]
+- 合わせた木の stprobe（上の②）。
+- lawstep_s の件数を書き手の別ごとに 10 種で数える（ts の事前登録の記録の項）。
+- ident の生：段 2 の out_ib_10/ins を PRUNE=0 で残し、D:/PoB_work/keep_1376/base_ins へ（tsreg_s の列と lawstep_s が変わった＝INSRAW を移す）。新しい ident.cfg の push の後、keep_1369/base_ins は INSRAW でも KEEPNULL でもない＝消してよい（deleted.txt に名乗る）。
+- 線の ident の生 4 本は反証役が読み終えた＝keepsum を残して消した（D: 42.5GB＜腕 Z の 35＋30GB）。
+
+[計算量] 0 秒（全て恒等）。余りは約 15.2 秒のまま（保守側 S11）。
