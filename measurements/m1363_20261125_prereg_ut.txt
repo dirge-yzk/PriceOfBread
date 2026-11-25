@@ -1,0 +1,35 @@
+m1363 事前登録（c144ut・(1363) 恒等の線・型の線）  2026-11-25
+基準木 11bfbfcd6（基線 m1362）。作者 2026-11-25「全て推奨でよい。それでいこう」で推奨を採った。
+
+[1] 恒等の線・挙動の予言 0
+- 新しい型 2 種（Units.cs）：FractionPerMonth・FractionPerQuarter＝期間あたりの割合（累乗で換算）。流れの率 RatePerYear・RatePerMonth・RatePerQuarter は割り算で換算するまま（別の種類）。
+- 入口：FromMonth・FromQuarter（同じ周期は宣言のビットのまま・違う周期は Calendar の中の累乗）。換算は Calendar.cs の 2 本（FractionPerMonthToPerQuarter・FractionPerQuarterToPerMonth）。
+- 読みは宣言の周期のまま（同じ周期の読み手）＝月へ換算して戻さない。係数のリテラルは書き換えない（値の数は同じ）。計算の順序は変えない。
+- 予言：素の 5 種・計器つき 10 種は m1362 と名乗り行を除いて全行バイト一致。表の増減 0・.cost +0 秒（推定が一致）。セーブの往復は同じ版で一致。
+- 試験の数：3217 ＋ 1（UnitTypeTests に 1 本）。ほかの既存の試験は書き換えのみ（下記 [3]）。
+
+[2] 型にする物（12 本）と、外す物
+型にする（名前・宣言のファイル・読み手の周期の確かめ）
+- 四半期（FractionPerQuarter.FromQuarter）：MilitancySpeed（Politics.Step＝QuarterEnd）・GdpPeakDecay（UpdateGdpCycle＝QuarterEnd）・GdpTrendSmoothing（UpdateGdpCycle と SelfPlay の四半期ループ）・MonetaryTrendSpeed・ConvertibilityRiseSpeed・ConvertibilityDropSpeed（UpdatePriceLevel＝QuarterEnd）・ExchangeRateSpeed（同）・ManifestoCreditDecay（Parliament.StepManifesto）・TradeValueSmoothing（MultiNationSim.UpdateTradeWeights＝四半期）・PortDecay（StepPorts）。
+- 月（FractionPerMonth.FromMonth）：WomenRightsFollowSpeed（Simulation.MonthSettle）・FillInertia（EconomyStep.Run＝月の決済から）。
+- 読み手の形：寄る＝PoliticalQuantities.Toward に型の多重定義を足す（式は x+k*(t−x) のまま）・差を埋める＝Close（k*gap）・残す＝Remaining（x*(1.0−k)）。いずれも元の式と同じ順序。
+- 読み手の直した行（SimCore）：EconomyStep.cs:1915・:1955、MultiNationSim.cs:1226、Parliament.cs:335、World.cs:1325。そのほかの読み手（Toward を通る行）は型の多重定義でそのまま。
+- Runner・App・Display の読み手 0（grep で確かめた＝この 12 本の読み手は SimCore と Tests だけ）。scripts・POB_COEF の名前引きは名前のまま（IUnitValue の道＝UnitValues.FromDouble が単一の double 構築子を使う）。
+外す（理由）
+- ConsciousnessSpeed・LivingRefSpeed・PolicyBaseSpeed・PolityInertia・IndInvestmentSpeed：Runner か App に読み手がある（この線は Runner・App に 0 行）。
+- FoodFillSmoothing：月（Simulation.cs:2119・:2161）と州の Toward（:2318）で周期が違う読み手を持つ。
+- Credit の ConfidenceSpeed・PanicSpeed・CreditAdjustSpeed：日数配分（div）で割る読み。FiscalCapacitySmoothing・InflationExpectationSmoothing：型つきの量（MoneyPerMonth・RatePerYear）へ直接足す読みで .Value が増える。
+- *KeepPerQuarter・*KeepPerMonth（残存の割合）・TransportDecay・TensionDecay・WarPushSpeed ほか量の重み（*TensionPerMonth は流れの重み＝割合でない）：残存と重みは割合の型の意味と違う・順序が変わる式（1−率）を含む。
+- RatePerQuarter・RatePerMonth の既存の宣言（流れの率）：型の種類を変えない（今のまま）。
+- 手書きの寄り・減衰（Toward を通らない・ビットが変わるので直さず一覧）：Simulation.cs:2119（FoodFillSmoothing・月）・Politics.cs:284〜:286（Keep の掛け算）・Diplomacy.cs:856・TechEducation.cs:65（adoptRate）・Fiscal.cs:101・World.cs:1345・Credit.cs:33・:69・Military.cs:23。
+他の線との重なり：lb の行（Government.cs:290・:394〜:498、Simulation.cs:1720・SelfPlay.cs:229・p06:32〜:33）は触れない。Government.cs:178・:179・:438（PolicyBaseSpeed）は外した＝触れない。cf・wr は別のファイル。
+
+[3] 足す試験と突然変異・書き換える試験
+- UnitTypeTests.cs に 1 本（期間あたりの割合は同じ周期なら宣言のビットを返し違う周期は累乗で換算する）＋ UnitTypes の表へ 2 型＋ Declared の表へ 12 行。
+- M1 Calendar.FractionPerMonthToPerQuarter を割り算（×3）にする → 累乗の検査が赤。
+- M2 FractionPerQuarter.FromQuarter を FromMonth(FractionPerMonth.FromQuarter(x)) にする（月を経由して戻す）→ ビットの検査が赤。
+- M3 Calendar の外に型をまたぐ換算（FractionPerMonth を返し FractionPerQuarter を受ける）を足す → 「型をまたぐ換算はCalendarの中にしか無い」が赤。
+- 試験で係数へ double を代入・読む行を型へ直す（25 行・RevoltIgnition・DiscontentReader・DiscontentSplit・PolicyPolitics・DiscoveryScore・EconomyTests・FsxTests・InstrumentsTests・MoTrendInit・PhantomProduction・PriceLevelPressure・RuleSharesForm）。Assert の式・閾値は変えない（.Value で同じ数を読む）。
+- 走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。WriterRatchetTests の宣言の表の書き換えは予言 0 件（足す物なし）。.Value の数は増える（Parliament.cs:335・PoliticalQuantities の多重定義 2 行・試験側）＝数えて報告する。
+
+[4] 合否：素の 5 種・計器つき 10 種が m1362 と名乗り行を除いて全行一致（ident 段 2・全表）。〈判定: 恒等〉なら採る。一致しなければ違いの出た係数の変更を外す。
