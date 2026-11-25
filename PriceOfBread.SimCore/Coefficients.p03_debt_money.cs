@@ -19,7 +19,7 @@ public sealed partial class Coefficients
     public RatePerQuarter EmigrationMaxPerQuarter = new(0.003);     // 四半期の流出上限（人口割合）＝大量流出の暴走防止
     public double RegionalDistanceHalf = 4000.0; // 表示専用（地図の交易重力円）・力学には効かない
     public double FiscalCapacitySmoothing = 0.15; // 裁量余剰(FiscalCapacityPerMonth)EMAの平滑速度（豊作/恐慌の振れをならす）
-    public double GdpTrendSmoothing = 0.18;       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
+    public FractionPerQuarter GdpTrendSmoothing = FractionPerQuarter.FromQuarter(0.18);       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
     public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflationPerYear)EMAの平滑速度（旧 World直書き0.34）
     public Share AdminBudgetFrac = new(0.5);          // 行政＝歳入シェア（行政費スライダー×これ×歳入）
     public double MilitaryCadrePayRatio = 1.0;   // 旧の式〔0＝固定額を割り当てる〕は物理削除
@@ -70,7 +70,7 @@ public sealed partial class Coefficients
     public Share BankRunMax = new(0.5);           // 取り付けによる実効準備の最大縮小率（0.5＝半分まで）
     public double LolrHeatTrigger = 0.9;      // 最後の貸し手の発動：与信過熱度(Heat)がこれ超で危機と判定
     public Share LolrDrawdownTrigger = new(0.10); // 同：景気後退(GdpDrawdown)がこれ超で危機と判定
-    public double GdpPeakDecay = 0.02;        // GDPピークの忘却係数（四半期）
+    public FractionPerQuarter GdpPeakDecay = FractionPerQuarter.FromQuarter(0.02);        // GDPピークの忘却係数（四半期）
     public Share LolrMinFunding = new(0.6);       // 最後の貸し手を担える財政健全度（FiscalFundingRatio）の下限＝破綻寸前の国は救えない（Bagehot：solventにのみ貸す）
     public Share LolrStrength = new(0.7);         // 危機時に取り付け(run)を打ち消す割合＝流動性供給で恐慌を和らげる（高利＝根治はせず底打ちのみ）
     public Share PreTightenHeatFrac = new(0.75);      // 予防的引締めの発動＝過熱閾値のこの割合から（1.0＝予防なし＝素の過熱閾値のみ）
@@ -101,7 +101,7 @@ public sealed partial class Coefficients
     public double MinorityMilitancy = 0.2;          // 0で無効
 
     public double MonetaryPriceSensitivity = 0.25;  // 物価水準の感応度：P を「広義マネー/実質産出 のトレンド比」へ寄せる速度
-    public double MonetaryTrendSpeed = 0.02;        // M/Y トレンドの追従速度（遅い＝secular な産出成長を吸収。小さいほど長期デフレが残り、大きいほど純粋に循環のみ）
+    public FractionPerQuarter MonetaryTrendSpeed = FractionPerQuarter.FromQuarter(0.02);        // M/Y トレンドの追従速度（遅い＝secular な産出成長を吸収。小さいほど長期デフレが残り、大きいほど純粋に循環のみ）
     public double PriceLevelFloor = 0.4;            // 物価水準の下限（深いデフレの底＝暴走防止）
     public double MoTrendInitNeedsGdp = 1.0;        // > 0 のとき World.UpdatePriceLevel は実質 GDP が正でない四半期に M/Y の趨勢の基準を置かない（0＝今の形・番人 MoTrendInitTests）
     public double RegionalPriceLevelWeight = 0.3;   // 地域の現金の厚みの差→物価格差への感応度（0=地域差なし=従来一律）
@@ -111,14 +111,14 @@ public sealed partial class Coefficients
     public double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 GoldStandardMinFunding とは別（ヒステリシス）
     public Share GoldStandardMinFunding = new(0.85);    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）
     public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）
-    public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
+    public FractionPerQuarter ConvertibilityRiseSpeed = FractionPerQuarter.FromQuarter(0.05);   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
     public double ArrearsBeyondOpenedRoom = 1.0;    // (1250) >0：金本位でない月の不履行の累計は〈開いた切り下げの余地で払えなかった分〉だけ＝兌換の遅れでまだ開いていない余地の分を数えない（0＝累計は 1−r）
     public double ArrearsOnePredicate = 0;          // (1284) c132df 旗：>0＝本位の停止の門を不履行の導火線と同じ述語（払えない月・国債あり・利払いが上限の外・助走でない）にし、累計と判定の前に置く（法と正貨カバーの項は残す・GoldSuspendMinFundingRatio を読まない）。0＝旧（r＜GoldSuspendMinFundingRatio・判定の後）
-    public double ConvertibilityDropSpeed = 0.34;   // 危機で兌換が崩れる速さ（兌換停止は一夜＝速い・非対称）
+    public FractionPerQuarter ConvertibilityDropSpeed = FractionPerQuarter.FromQuarter(0.34);   // 危機で兌換が崩れる速さ（兌換停止は一夜＝速い・非対称）
     public double ConvertibilityCoverageBand = 1.0; // 加入していても準備が薄れれば兌換が目減りする＝金本位期でも物価/為替/国債金利のチャネルが死なない
     public double FisherInflationWeight = 0.5;       // 名目国債金利＝実質＋これ×期待インフレ（高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い）
     public double FiatInflationWeight = 0.6;         // 通貨切下げ（紙幣増発）が物価を押し上げる強さ：P ×= 1+これ×(切下げ額/広義マネー)＝印刷→インフレ→実質債務減
-    public double ExchangeRateSpeed = 0.2;           // レートが目標へ寄る速度（四半期）
+    public FractionPerQuarter ExchangeRateSpeed = FractionPerQuarter.FromQuarter(0.2);           // レートが目標へ寄る速度（四半期）
     public double ExchangeTradeAdjust = 3.0;         // 貿易収支によるオーバーシュート強度（赤字→余分に減価＝輸出競争力／黒字→増価）
     // ==== 通貨改革（2026-08-13・作者採用）====
     public Share CurrencyReformForgiveShare = new(1.0);   // 帳消しにする累積切下げの割合（1=全消し）

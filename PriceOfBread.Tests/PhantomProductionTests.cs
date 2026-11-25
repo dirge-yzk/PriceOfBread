@@ -247,7 +247,7 @@ public class PhantomProductionTests
                     string who = $"{w.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}";
                     Assert.True(Math.Abs(s.LaborWeight - expectLw) <= 1e-9 * Math.Max(1.0, Math.Abs(expectLw)), $"{who}：労働の重み {s.LaborWeight}（極限 {expectLw}・指数平滑なら 8.5e5 付近）");
                     Assert.True(s.SmoothedMargin < 100, $"{who}：採算の平滑 {s.SmoothedMargin}（今の採算へ追いついていない・指数平滑なら 975 付近）");
-                    double noCatch = 0.4 * (1 - c.FillInertia);   // 追いつかせない旧の形の最小
+                    double noCatch = 0.4 * (1 - c.FillInertia.Value);   // 追いつかせない旧の形の最小
                     Assert.True(s.SteamFill < noCatch && s.ElecFill < noCatch && s.EffFill < noCatch, $"{who}：率 蒸気 {s.SteamFill}・電化 {s.ElecFill}・効率 {s.EffFill}（0 へ戻っていない）");
                     Assert.True(s.SubsidyDependence < 0.1, $"{who}：補助の依存 {s.SubsidyDependence}（0 へ戻っていない）");
                     woke++;

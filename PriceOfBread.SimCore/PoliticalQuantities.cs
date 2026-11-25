@@ -115,6 +115,8 @@ public static class PoliticalQuantities
     internal static double Clamp01(double x) => !(x > 0) ? 0 : x > 1 ? 1 : x;
     internal static double Pos(double x) => !(x > 0) ? 0 : x;
     internal static double Toward(double x, double target, double k) => x + k * (target - x);
+    internal static double Toward(double x, double target, FractionPerQuarter k) => x + k.Value * (target - x);
+    internal static double Toward(double x, double target, FractionPerMonth k) => x + k.Value * (target - x);
     internal static double ProbOr(double a, double b) => 1.0 - (1.0 - a) * (1.0 - b);
     internal static double ClampOr(double x, double lo, double hi, double neutral) => x < lo ? lo : x > hi ? hi : (x >= lo ? x : neutral);
 

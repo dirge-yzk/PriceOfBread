@@ -1767,7 +1767,7 @@ public class InstrumentsTests
             int iEv = Array.IndexOf(h, "event"), iT = Array.IndexOf(h, "time");
             var upd = rows.Where(r => r[iEv] == "update").ToList();
             Assert.True(upd.Count >= 5, $"更新の行が少ない（{upd.Count}）");
-            double sens = uk.Coef.MonetaryPriceSensitivity, speed = uk.Coef.MonetaryTrendSpeed; int plain = 0; double prevAfter = double.NaN;
+            double sens = uk.Coef.MonetaryPriceSensitivity, speed = uk.Coef.MonetaryTrendSpeed.Value; int plain = 0; double prevAfter = double.NaN;
             foreach (var r in upd)
             {
                 double ratio = Col(h, r, "moneyToGdpMonths"), t0 = Col(h, r, "moTrendBeforeMonths"), t1 = Col(h, r, "moTrendAfterMonths"), cyc = Col(h, r, "cyclicalRatio");

@@ -1912,7 +1912,7 @@ public static class EconomyStep
             if (s.Output == 0 && s.DesiredOutput == 0)
             {   // ★(spi) 休んだ生産者（上の投入の段で飛ばした個体と同じ条件＝この 2 つの段の間に産出と作りたい量は書かれない）＝代金は全て 0（量が 0）・
                 //   電力・石炭・効率化材の量も 0＝下の 3 つの充足の平滑は目標 0 へ同じ式で寄せる（状態はこの 3 つと投入費だけ）。
-                double elecStep0 = coef.FillInertia * (0 - s.ElecFill);
+                double elecStep0 = coef.FillInertia.Close(0 - s.ElecFill);
                 if (elecStep0 < 0) elecStep0 *= 1.0 - coef.ElecFillIrreversibility;
                 s.ElecFill += elecStep0;
                 s.SteamFill = PoliticalQuantities.Toward(s.SteamFill, 0, coef.FillInertia);
@@ -1952,7 +1952,7 @@ public static class EconomyStep
             }
             double fillTarget = elecNeed[pi] > 0 ? ration[Catalog.ElectricityId] : 0;
             // ElecFillIrreversibility=1.0 点火＝電化率は下がらない（0で旧恒等）。〔履歴 EconomyStep.cs#284〕
-            double elecStep = coef.FillInertia * (fillTarget - s.ElecFill);
+            double elecStep = coef.FillInertia.Close(fillTarget - s.ElecFill);
             if (elecStep < 0) elecStep *= 1.0 - coef.ElecFillIrreversibility;
             s.ElecFill += elecStep;   // 電化はゆっくり進み・剥がれる（設備の慣性）
             double steamFillTarget = steamNeed[pi] > 0 ? ration[Catalog.CoalId] : 0;

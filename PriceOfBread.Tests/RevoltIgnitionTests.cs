@@ -26,13 +26,13 @@ public class RevoltIgnitionTests
         if (!ov.Contains("CoercionMax", StringComparison.Ordinal)) Assert.Equal(2000.0, c.CoercionMax);   // R1と同時に水準も是正（旧4000）
         if (!ov.Contains("FactionRevoltLocalCoerce", StringComparison.Ordinal)) Assert.Equal(0.5, c.FactionRevoltLocalCoerce);
         // ★段2（設計メモ §7-3・作者裁定2026-09-09）で確定した4値＝史実から逆算した数（勘で置いていない）。うっかり動いたらここが赤になる。
-        if (!ov.Contains("MilitancySpeed", StringComparison.Ordinal)) Assert.Equal(0.30, c.MilitancySpeed);
+        if (!ov.Contains("MilitancySpeed", StringComparison.Ordinal)) Assert.Equal(0.30, c.MilitancySpeed.Value);
         if (!ov.Contains("RegionalRevoltThreshold", StringComparison.Ordinal)) Assert.Equal(0.50, c.RegionalRevoltThreshold);
         if (!ov.Contains("WarWearinessMilitancy", StringComparison.Ordinal)) Assert.Equal(0.35, c.WarWearinessMilitancy);
         if (!ov.Contains("RegionalRevoltStrength", StringComparison.Ordinal)) Assert.Equal(0.5, c.RegionalRevoltStrength);
         // ★構造条件（設計メモ §7-3）：σ が門を下回っていないと、平穏な州が1四半期の欠乏で一揆を起こす＝作者裁定「一瞬の飢餓では起きない」が破れる。
-        Assert.True(c.MilitancySpeed < c.RegionalRevoltThreshold, "構造条件 σ < 門 が破れた＝1四半期の欠乏で一揆が発火する");
-        Assert.True(1.0 - Math.Pow(1.0 - c.MilitancySpeed, 2) > c.RegionalRevoltThreshold, "2四半期でも門に届かない＝「半年の飢餓で大量の反乱軍」が表せない");
+        Assert.True(c.MilitancySpeed.Value < c.RegionalRevoltThreshold, "構造条件 σ < 門 が破れた＝1四半期の欠乏で一揆が発火する");
+        Assert.True(1.0 - Math.Pow(1.0 - c.MilitancySpeed.Value, 2) > c.RegionalRevoltThreshold, "2四半期でも門に届かない＝「半年の飢餓で大量の反乱軍」が表せない");
         // ★満期の厭戦（0.9）が単独では門に届かない＝ナポレオン戦争級の長期戦でも戦争だけでは全土蜂起しない（飢餓が足されて初めて越える）。
         Assert.True(0.9 * c.WarWearinessMilitancy < c.RegionalRevoltThreshold, "厭戦だけで門を越える＝1.5年超の全戦争が全土蜂起になる");
     }
@@ -110,11 +110,11 @@ public class RevoltIgnitionTests
         // 食料は平常 1.0 から充足 0.10 へ落ちた＝落ち込み 0.90（2四半期目も慣れで 0.873）≫ 起点+1/利得＝駆動1.0＝targetは他項に依らずクランプで 1.0。
         Assert.True(c.FamineDropOnset + 1.0 / c.FamineDriveGain < 0.85, "前提：落ち込み0.85で飽和しない係数（盤面の置き方を見直す）");
         Politics.Step(w, c);
-        Assert.Equal(c.MilitancySpeed, noble.Militancy, 9);                       // 1四半期＝σ
+        Assert.Equal(c.MilitancySpeed.Value, noble.Militancy, 9);                       // 1四半期＝σ
         Assert.True(noble.Militancy < c.RegionalRevoltThreshold, $"1四半期の欠乏で門を越えた（{noble.Militancy:F3}）＝作者裁定が破れる");
         Assert.Equal(1.0 + c.LivingRefSpeed * (0.10 - 1.0), noble.FoodRef, 12);   // 平常は駆動の【後】に慣れの速度で寄る（同一ティック内で閉じない）
         Politics.Step(w, c);
-        Assert.Equal(1.0 - Math.Pow(1.0 - c.MilitancySpeed, 2), noble.Militancy, 9);   // 2四半期＝1−(1−σ)²
+        Assert.Equal(1.0 - Math.Pow(1.0 - c.MilitancySpeed.Value, 2), noble.Militancy, 9);   // 2四半期＝1−(1−σ)²
         Assert.True(noble.Militancy > c.RegionalRevoltThreshold, $"2四半期の欠乏でも門に届かない（{noble.Militancy:F3}）");
         Assert.Equal(1.0, noble.MilFamine);   // 飽和帯＝駆動1.0（診断の内訳も同じ値）
         // ★起点の番人：落ち込みが起点より小さい pop には飢餓の駆動が**厳密に0**（平時の揺れの9割）。
@@ -124,7 +124,7 @@ public class RevoltIgnitionTests
         Politics.Step(w, c);
         Assert.Equal(0.0, noble.MilFamine);
         // 闘争度の移動は**飢餓以外の3項だけ**（内訳の代入4本は target と同じ値・(551) で生活水準の項 MilLiving を削除）＝σ×(政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
-        Assert.Equal(c.MilitancySpeed * (noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
+        Assert.Equal(c.MilitancySpeed.Value * (noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
         foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - ramp; }
         Politics.Step(w, c);
         Assert.Equal(0.5, noble.MilFamine, 9);   // 斜路＝線形（クランプ前）＝門0.50に達する落ち込みで駆動ちょうど0.5
@@ -418,7 +418,7 @@ public class RevoltIgnitionTests
         // ★段2：州の絶望＝RegionRevoltHeat＝**州平均闘争度そのもの**（欠乏因子との積はやめた）。
         // ⚠σが 0.03→0.30 になったので、注入した闘争度が Politics.Step の**同一ティック内**で大きく動く（旧はσが小さく事実上不動だった）。
         //   この番人は**点火の門**を測るものであってσを測るものではないので、σを0にピンして盤面を凍結する＝較正値から独立させる。
-        w.Coef.MilitancySpeed = 0;
+        w.Coef.MilitancySpeed = FractionPerQuarter.FromQuarter(0);
         foreach (var p in home.Pops) { p.Militancy = regionMilitancy; p.Satisfaction = 0; p.Consciousness = 0; }
         var f = new FactionState
         {
@@ -787,7 +787,7 @@ public class RevoltIgnitionTests
     {
         var (w, _) = 段6_危機の寸前を作る();
         w.Factions.Clear();              // F3bを外し、F1だけを見る
-        w.Coef.MilitancySpeed = 0;       // 盤面を凍結＝熱は2四半期とも門の上（測るのは待ちの有無だけ）
+        w.Coef.MilitancySpeed = FractionPerQuarter.FromQuarter(0);       // 盤面を凍結＝熱は2四半期とも門の上（測るのは待ちの有無だけ）
         var hungry = 段6_飢えた州を作る(w, 1);
         Politics.Step(w, w.Coef);
         Assert.Contains(w.PendingLog, l => l.Contains("一揆") && l.Contains(hungry.Name));   // 対照＝1四半期目に燃えた
@@ -802,7 +802,7 @@ public class RevoltIgnitionTests
     {
         // 旧＝F1 が燃えると共有のタイマーが4四半期閉じ、F3b の選定ループに入れなかった（結束のある運動の86四半期のうち60四半期）。
         var (w, f) = 段6_危機の寸前を作る();
-        w.Coef.MilitancySpeed = 0;
+        w.Coef.MilitancySpeed = FractionPerQuarter.FromQuarter(0);
         foreach (var r in w.Regions) if (r != f.Region) foreach (var p in r.Pops) p.Militancy = 0;
         foreach (var p in f.Region.Pops) p.Militancy = 1.0;   // 運動の本拠が門の上＝同じ四半期に F1 も燃える
         Politics.Step(w, w.Coef);
@@ -1060,7 +1060,7 @@ public class RevoltIgnitionTests
         var w = sim.World; var c = w.Coef;
         Assert.True(w.Regions.Count > 2, "前提が崩れた：非首都州が2つ以上ない");
         if (strengthScale > 0) c.RegionalRevoltStrength = strengthScale;
-        c.MilitancySpeed = 0;   // 盤面を凍結＝闘争度は F1 の枝でしか動かない（測るのは選択と緩和だけ）
+        c.MilitancySpeed = FractionPerQuarter.FromQuarter(0);   // 盤面を凍結＝闘争度は F1 の枝でしか動かない（測るのは選択と緩和だけ）
         w.Factions.Clear(); w.PendingRebelRegions = null;
         foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0;
         var micro = w.Regions[1]; var big = w.Regions[2];
@@ -1397,7 +1397,7 @@ public class RevoltIgnitionTests
         Assert.True(ok, $"前提が崩れた：段 {axis} は政治ロックを外しても置けない（{why}）");
         int law0 = F1LawLevel(w, axis); double spent = w.MandateSpent; double pos0 = FactionSnapshot.AxisPosition(w, axis); var polity0 = w.Polity;
         var before = LawVector(w);
-        w.Coef.MilitancySpeed = 0;   // ストックの追従を止める＝緩和のインパルスだけを見る
+        w.Coef.MilitancySpeed = FractionPerQuarter.FromQuarter(0);   // ストックの追従を止める＝緩和のインパルスだけを見る
         var mil0 = Array.ConvertAll(w.Regions[2].Pops.ToArray(), q => q.Militancy);
         Politics.Step(w, w.Coef);
         Assert.Equal(polity0, w.Polity);
@@ -1498,7 +1498,7 @@ public class RevoltIgnitionTests
         foreach (var w in new[] { wa, wb })
         {
             var c = w.Coef;
-            c.MilitancySpeed = 0; c.RegionalRevoltStrength = 1e9;   // 勢い≫保持＝譲歩枝
+            c.MilitancySpeed = FractionPerQuarter.FromQuarter(0); c.RegionalRevoltStrength = 1e9;   // 勢い≫保持＝譲歩枝
             w.Factions.Clear(); w.PendingRebelRegions = null;
             foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0;
             foreach (var p in w.Regions[1].Pops) p.Militancy = 0.9;   // 同じ州の同じ一揆

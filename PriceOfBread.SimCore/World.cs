@@ -1322,7 +1322,7 @@ public sealed class World
             double full = band > 1e-9 ? PoliticalQuantities.Clamp01((cover - lo) / band) : 1.0;
             convTarget = 1.0 + (full - 1.0) * c.ConvertibilityCoverageBand;   // Band=0で1.0（旧）・1で full そのもの
         }
-        Convertibility = PoliticalQuantities.Clamp01(Convertibility + (convTarget < Convertibility ? c.ConvertibilityDropSpeed : c.ConvertibilityRiseSpeed) * (convTarget - Convertibility));
+        Convertibility = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(Convertibility, convTarget, convTarget < Convertibility ? c.ConvertibilityDropSpeed : c.ConvertibilityRiseSpeed));
         // 金本位：物価は正貨（BaseMoney＝金）に縛られる＝貿易赤字で金が流出すると M/Y↓→デフレ（Hume の正貨流出入）。
         // 不換（金本位外）：広義マネー（金+信用）＝信用膨張で増やせる→好況インフレ・紙幣増発も可能。兌換可能性で連続補間（部分兌換）。
         double money = broad + (baseM - broad) * Convertibility;   // Conv=1→BaseMoney(金)・Conv=0→BroadMoney(信用込み)

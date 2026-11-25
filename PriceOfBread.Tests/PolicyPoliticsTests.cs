@@ -300,7 +300,7 @@ public class PolicyPoliticsTests
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             sim.Run(8);
             var w = sim.World; var c = w.Coef;
-            c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0;
+            c.MilitancySpeed = FractionPerQuarter.FromQuarter(0); c.ConsciousnessSpeed = 0;
             c.UnionMobilization = 0;   // 改革派側の加算＝radical には入らないが、盤面の他の書き込みを増やさないため閉じる
             Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝閉じる対象が無い");
             double sz = 0;

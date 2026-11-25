@@ -20,7 +20,7 @@ namespace PriceOfBread.Tests;
 public class UnitTypeTests
 {
     /// <summary>専用の値型の一覧（新しい型を足したらここへ。Units.cs の型と一致することを下で確かめる）。</summary>
-    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(RatePerQuarter), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth), typeof(Share), typeof(RatioToGdpYear)];
+    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(RatePerQuarter), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth), typeof(Share), typeof(RatioToGdpYear), typeof(FractionPerMonth), typeof(FractionPerQuarter)];
 
     [Fact]
     public void 型の一覧は宣言された専用の値型の全部である()
@@ -87,6 +87,38 @@ public class UnitTypeTests
         Assert.NotNull(typeof(Calendar).GetMethod("PerMonthToPerYear", [typeof(RatePerMonth)]));
         // ★(317) 四半期率の換算も Calendar の型つきの多重定義（★(318) 使い手のある 1 本だけ残した）
         Assert.NotNull(typeof(Calendar).GetMethod("PerQuarterToPerMonth", [typeof(RatePerQuarter)]));
+    }
+
+    /// <summary>(1363) 期間あたりの割合の型：同じ周期の入口は宣言のビットのまま・違う周期は累乗で換算（流れの率の割り算とは別）。
+    /// ⚠突然変異：M1 FractionPerMonthToPerQuarter を割り算（×3）にして累乗の検査が赤。M2 FromQuarter の中で月を経由して戻して（FractionPerQuarter.FromQuarter を FromMonth(FractionPerMonth.FromQuarter(x))）ビットの検査が赤。
+    /// M3 Calendar の外に型をまたぐ換算を足して「型をまたぐ換算はCalendarの中にしか無い」が赤。</summary>
+    [Fact]
+    public void 期間あたりの割合は同じ周期なら宣言のビットを返し違う周期は累乗で換算する()
+    {
+        double[] xs = [0.0, 0.008, 0.015, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.30, 0.34, 1.0 / 3.0, 0.5, 1.0];
+        foreach (var x in xs)
+        {
+            Assert.Equal(BitConverter.DoubleToInt64Bits(x), BitConverter.DoubleToInt64Bits(FractionPerQuarter.FromQuarter(x).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(x), BitConverter.DoubleToInt64Bits(FractionPerMonth.FromMonth(x).Value));
+            // 違う周期＝累乗：3 か月続けて同じ割合で動かすと 1 四半期の割合になる（流れの率なら x/3 だが、割合は 1−(1−x)^3）
+            double q = FractionPerQuarter.FromMonth(x).Value;
+            Assert.Equal(1.0 - (1.0 - x) * (1.0 - x) * (1.0 - x), q, 12);
+            double m = FractionPerMonth.FromQuarter(x).Value;
+            Assert.Equal((1.0 - m) * (1.0 - m) * (1.0 - m), 1.0 - x, 12);
+            if (x is > 0 and < 1) { Assert.NotEqual(x / 3.0, m, 9); Assert.NotEqual(x * 3.0, q, 9); }
+        }
+        // 宣言の表：係数の宣言の既定値＝入口へ渡した数のビット（月の係数は月で・四半期の係数は四半期で読む）
+        var c = new Coefficients();
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.30), BitConverter.DoubleToInt64Bits(c.MilitancySpeed.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.15), BitConverter.DoubleToInt64Bits(c.WomenRightsFollowSpeed.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.25), BitConverter.DoubleToInt64Bits(c.FillInertia.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.008), BitConverter.DoubleToInt64Bits(c.PortDecay.Value));
+        // 読みの形：寄る・残る・埋める分が double の式とビットで同じ
+        double k = 0.30, x0 = 0.123456789, t0 = 0.9;
+        Assert.Equal(BitConverter.DoubleToInt64Bits(x0 + k * (t0 - x0)), BitConverter.DoubleToInt64Bits(PoliticalQuantities.Toward(x0, t0, FractionPerQuarter.FromQuarter(k))));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(x0 + k * (t0 - x0)), BitConverter.DoubleToInt64Bits(PoliticalQuantities.Toward(x0, t0, FractionPerMonth.FromMonth(k))));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(x0 * (1.0 - k)), BitConverter.DoubleToInt64Bits(FractionPerQuarter.FromQuarter(k).Remaining(x0)));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(k * (t0 - x0)), BitConverter.DoubleToInt64Bits(FractionPerMonth.FromMonth(k).Close(t0 - x0)));
     }
 
     /// <summary>量の宣言と型の表（double に戻したら赤）。World のプロパティ・Coefficients のフィールド。</summary>
@@ -287,6 +319,19 @@ public class UnitTypeTests
         (typeof(Coefficients), "CanalInvestReturns", typeof(Share)),
         (typeof(Coefficients), "ModernizationToRecruit", typeof(Share)),
         (typeof(Coefficients), "MerchantTradeMargin", typeof(Share)),
+        // (1363) 期間あたりの割合（累乗で換算）の型：宣言した周期のまま読む速さ・減衰・平滑の係数。流れの率（RatePer*）は割り算で換算する別の型。
+        (typeof(Coefficients), "MilitancySpeed", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "GdpPeakDecay", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "ExchangeRateSpeed", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "TradeValueSmoothing", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "MonetaryTrendSpeed", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "GdpTrendSmoothing", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "ManifestoCreditDecay", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "PortDecay", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "ConvertibilityRiseSpeed", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "ConvertibilityDropSpeed", typeof(FractionPerQuarter)),
+        (typeof(Coefficients), "WomenRightsFollowSpeed", typeof(FractionPerMonth)),
+        (typeof(Coefficients), "FillInertia", typeof(FractionPerMonth)),
     ];
 
     [Fact]

@@ -81,7 +81,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double UrbanConsciousnessBoost = 1.5;      // 都市pop の意識加速
     public double NewsConsciousnessFloor = 0.3;       // 1934拡張E3：意識のpress項の自由分を「内容の自由×紙の実在」の積へ＝floor+(1−floor)×NewsFill
     public double LivingRefSpeed = 0.03;              // 参照点が今の生活水準へ寄る四半期速度（半減期≒6年＝「暮らしの慣れ」）
-    public double MilitancySpeed = 0.30;              // 闘争度（ストック）の追従速度σ＝半減期5.8か月
+    public FractionPerQuarter MilitancySpeed = FractionPerQuarter.FromQuarter(0.30);              // 闘争度（ストック）の追従速度σ＝半減期5.8か月
     public int ElectionIntervalQuarters = 16;         // 議会選挙の間隔（四半期）
     public double NonElectiveSeatsEmpty = 1;          // 0＝非選挙の政体は毎期 議席＝得票の写し（今のまま）
     public double ParliamentSeatsWithoutGap = 1;      // 1＝開院の条件を思想の有無へ（空席の四半期を閉じる）・0＝旧（選挙の後 1 四半期から開院）。(1118) 2026-11-14 点火

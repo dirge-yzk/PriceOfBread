@@ -62,7 +62,7 @@ public class MoTrendInitTests
         Restore(w, saved, 2.0);
         double b2 = w.BroadMoney.Value, m2 = w.BaseMoney.Value, g2 = w.GdpPerMonth.Value;
         w.UpdatePriceLevel(w.Coef);
-        double r2 = Ratio(b2, m2, g2, w.Convertibility), k = w.Coef.MonetaryTrendSpeed;
+        double r2 = Ratio(b2, m2, g2, w.Convertibility), k = w.Coef.MonetaryTrendSpeed.Value;
         Assert.True(Math.Abs(r2 - t1) > 1e-6 * t1, "2 つ目の四半期の M/Y が 1 つ目と同じ＝寄る 1 歩を確かめられない");
         AssertRel(t1 + k * (r2 - t1), w.MoTrendForInstruments, "2 つ目の正の四半期の趨勢の 1 歩");
         Assert.True(double.IsFinite(w.PriceLevel) && w.PriceLevel >= w.Coef.PriceLevelFloor);
@@ -126,7 +126,7 @@ public class MoTrendInitTests
         Assert.True(pWant > p0 * 1.01, "圧が物価を動かさない前提では確かめられない");
         AssertRel(pWant, w.PriceLevel, "増発の圧の分だけ上がった物価");
         Assert.Equal(0.0, w.FiatInflationPressure);
-        AssertRel(cost0 + c.MonetaryTrendSpeed * (pWant - cost0), w.CostPriceLevel, "自己費用の物価の 1 歩");
+        AssertRel(cost0 + c.MonetaryTrendSpeed.Value * (pWant - cost0), w.CostPriceLevel, "自己費用の物価の 1 歩");
         AssertRel(e0 + c.InflationExpectationSmoothing * (Calendar.PerQuarterToPerYear(pWant / p0 - 1.0) - e0), w.ExpectedInflationPerYear.Value, "期待インフレの 1 歩");
         Restore(w, saved, 1.0);
     }

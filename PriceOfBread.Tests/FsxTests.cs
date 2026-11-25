@@ -60,7 +60,7 @@ public class FsxTests(ITestOutputHelper output)
         const int quarters = 16;
         var on = new PriceLevelPressureTests(output).RunDeficit(1.5, quarters);
         var c = new Coefficients();
-        double cycMax = 1.0 / c.MonetaryTrendSpeed;
+        double cycMax = 1.0 / c.MonetaryTrendSpeed.Value;
         double Bound(double pPrev) => Math.Max(Math.Max(pPrev, cycMax), c.PriceLevelFloor) * (1.0 + c.FiatInflationWeight * 3.0) * (1 + 1e-9);
         Assert.False(on.broke, "貨幣保存が破れた");
         Assert.Equal(quarters, on.reachedQ);

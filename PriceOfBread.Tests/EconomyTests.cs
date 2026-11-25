@@ -519,7 +519,7 @@ public class EconomyTests
             double c0 = w.CostPriceLevel;
             w.UpdatePriceLevel(c);
             double p1 = w.PriceLevel;
-            Assert.Equal(c0 + c.MonetaryTrendSpeed * (p1 - c0), w.CostPriceLevel);   // 更新後の P へ、趨勢の速さで1回だけ寄る
+            Assert.Equal(c0 + c.MonetaryTrendSpeed.Value * (p1 - c0), w.CostPriceLevel);   // 更新後の P へ、趨勢の速さで1回だけ寄る
             Assert.True(Math.Abs(w.CostPriceLevel - c0) < Math.Abs(p1 - c0), "自己費用の物価が P に追いついた（遅い趨勢でない）");
         }
     }

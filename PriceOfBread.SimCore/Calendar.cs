@@ -32,4 +32,6 @@ public static class Calendar
     public static RatioToGdpYear ToGdpYear(MoneyStock stock, MoneyPerYear gdpPerYear) => new(stock.Value / gdpPerYear.Value);
     public static double YearsToMonths(double years) => years * MonthsPerYear;
     public static double OverSteps(double rate, double steps) => 1.0 - Math.Pow(1.0 - rate, steps);
+    public static FractionPerQuarter FractionPerMonthToPerQuarter(FractionPerMonth perMonth) => new(OverSteps(perMonth.Value, MonthsPerQuarter));
+    public static FractionPerMonth FractionPerQuarterToPerMonth(FractionPerQuarter perQuarter) => new(OverSteps(perQuarter.Value, 1.0 / MonthsPerQuarter));
 }
