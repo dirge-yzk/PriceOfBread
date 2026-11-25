@@ -62,7 +62,7 @@ public static class TechEducation
         if (catchupTarget > baseTarget + 1e-9)
         {
             if (w.TechLevel < catchupTarget)
-                w.TechLevel += adoptRate * (catchupTarget - w.TechLevel);
+                w.TechLevel = PoliticalQuantities.Toward(w.TechLevel, catchupTarget, adoptRate);
         }
         else if (w.TechLevel < baseTarget)
         {

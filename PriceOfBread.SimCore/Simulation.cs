@@ -2115,7 +2115,7 @@ public sealed class Simulation
             World.Explain.Add("FoodFill", "前期の食料充足（穀倉の備蓄）", (1 - c.FoodFillSmoothing) * prevFood);
             World.Explain.Add("FoodFill", "今期の主食需給", c.FoodFillSmoothing * rawFill);
         }
-        World.FoodFill += c.FoodFillSmoothing * (rawFill - prevFood);
+        World.FoodFill = PoliticalQuantities.Toward(prevFood, rawFill, c.FoodFillSmoothing);
         // 扶養力：医療(乳児生存)で増、工業化(雇用・食料生産性)で増、都市化(少子化)で減、過重労働で微減、主食不足で減（飢饉）＝人口転換＋マルサス。
         double avgInd = 0; int actN = 0;
         double indPopSum = 0, indPopWeight = 0;   // 人16：工業化度の人口加重（Σ Ind×rpop / Σ rpop）＝非加重 avgInd を置換
