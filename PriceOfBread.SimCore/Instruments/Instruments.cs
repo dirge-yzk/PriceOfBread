@@ -1995,6 +1995,7 @@ public static partial class Instruments
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip, sim.Diplomacy);
+        CweTable(sk, sim.Diplomacy);   // (1359) CweTable
         CpTable(sk, sim.Diplomacy);   // CpTable〔履歴 Instruments.cs#330〕
         CmTable(sk, sim.Diplomacy);   // CmTable〔履歴 Instruments.cs#331〕
         ImpTable(sk, sim.Diplomacy);   // ImpTable〔履歴 Instruments.cs#332〕

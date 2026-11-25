@@ -2438,6 +2438,7 @@ public sealed class Diplomacy
     /// <summary>講和の 1 本＝ResolvePeace → EndWar → 復讐心の積み（月の走査の本体と FlushCollapseGroup が同じ 1 本を通る）。cg が null なら旧の単独の講和。</summary>
     private void ConcludeWar(Coefficients c, War war, int i, CollapseGroup? cg, double cgShare)
     {
+        if (Instruments.On) Instruments.CweEnd(this, c, war);   // (1359) 内戦の終わり 1 件ごとの行（読むだけ）
         var cpPre = Instruments.On ? Instruments.CpBefore(this, c, war, cg, cgShare) : null;
         var cmPre = Instruments.On ? Instruments.CmBefore(this, c, war) : null;   // cmPre〔履歴 Diplomacy.cs#264〕
         ResolvePeace(c, war, cg, cgShare);
