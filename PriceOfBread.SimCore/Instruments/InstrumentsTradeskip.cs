@@ -19,7 +19,7 @@ public static partial class Instruments
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
         Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard,
         UbRows, UbInf, RpIter, RpDiff, RpCtrl, RpCtrlDiff, GdRows, GdX, GdY, GdLeft, GdBudget, GdCap, GdRemove, Count }   // RpCtrlDiff〔履歴 InstrumentsTradeskip.cs#4〕
-    internal enum RgCol { Rows, Idle, NoNeed, Budget0, XSold, XCap, XWedge, XPass, ExHigh, ExXPrice, ExXNeed, ExY, ExBudget, ExCapMid, ExDealt, ExGuard, Count }
+    internal enum RgCol { Rows, Idle, NoNeed, Budget0, XSold, XCapSeller, XCapBuyer, XWedge, XPass, ExHigh, ExXPrice, ExXNeed, ExY, ExBudget, ExCapMid, ExDealt, ExGuard, Count }
     internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
     /// <summary>
     /// 〔履歴 InstrumentsTradeskip.cs#5〕
@@ -119,7 +119,7 @@ public static partial class Instruments
             var gd = Catalog.Goods[g];
             if (!(gd.Tier == GoodTier.Staple || gd.GrainChain)) return;
             if (!regIx.TryGetValue((reg, g), out var rr)) { rr = new RegRec { R = reg, Bn = bn, G = g, Port = reg.IsPort }; regIx[(reg, g)] = rr; Regs.Add(rr); }
-            rr.C[(int)RgCol.Rows]++; rr.Dem += m.LastDemand; rr.Imp += m.LastImport; rr.Short += m.LastShortage; cr = rr;
+            rr.C[(int)RgCol.Rows]++; rr.Dem += m.LastDemand; rr.Imp += m.PrevImport; rr.Short += m.LastShortage; cr = rr;
         }
         void R(RgCol c) { if (cr is not null) cr.C[(int)c]++; }
         /// <summary>
@@ -209,7 +209,8 @@ public static partial class Instruments
                 bool nan = double.IsNaN(ratio);
                 if (!nan) Add(curBn, curG, TsCol.Bin0 + b); else Add(curBn, curG, TsCol.RNaN);
                 if (left[i] <= 1e-12) { Add(curBn, curG, TsCol.XSold); R(RgCol.XSold); if (PairOn) P(sNat, 1); if (!nan) Add(curBn, curG, TsCol.GBin0 + b); continue; }
-                if (capLeft[sn] <= 1e-12 || capLeft[t] <= 1e-12) { Add(curBn, curG, TsCol.XCap); R(RgCol.XCap); if (PairOn) P(sNat, 2); if (!nan) Add(curBn, curG, TsCol.GBin0 + 10 + b); continue; }
+                if (capLeft[sn] <= 1e-12 || capLeft[t] <= 1e-12) { Add(curBn, curG, TsCol.XCap); R(capLeft[sn] <= 1e-12 ? RgCol.XCapSeller : RgCol.XCapBuyer);   // 売り手の容量切れを先に判じる（両方切れなら売り手）＝2 列の和は旧の 1 列と同じ
+                     if (PairOn) P(sNat, 2); if (!nan) Add(curBn, curG, TsCol.GBin0 + 10 + b); continue; }
                 double wS2 = wedge - (sellCheap is not null ? sellCheap[sNat] : 0.0);
                 bool wedgeD = false;
                 if (selP * (baseMul + wS2) >= lp)
@@ -378,7 +379,7 @@ public static partial class Instruments
         a.Pair = []; a.Sh = [];
     }
 
-    internal const string TsregHeaderText = "year	nation	region	portFlag	good	rows	rowIdle	rowNoNeed	rowBudget0	xSoldOut	xCap	xWedge	xPass	exPriceHigh	exXPriceSmall	exXNeedSmall	exYZero	exBudget	exCapMid	exDealt	exGuard	demand	import	shortage";
+    internal const string TsregHeaderText = "year	nation	region	portFlag	good	rows	rowIdle	rowNoNeed	rowBudget0	xSoldOut	xCapSeller	xCapBuyer	xWedge	xPass	exPriceHigh	exXPriceSmall	exXNeedSmall	exYZero	exBudget	exCapMid	exDealt	exGuard	demand	import	shortage";
     /// <summary>tsreg_s：その年の第 4 四半期の最初の清算の州×財（主食の財だけ）の行の止まり方。蓄えは TsAcc の行の文脈から積む（tradeskip と同じ出口の分類・同じ重み）。</summary>
     static void TsregWrite(TsSink sk, TsAcc a, int year, ulong seed)
     {

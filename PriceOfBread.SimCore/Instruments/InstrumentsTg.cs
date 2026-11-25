@@ -25,6 +25,7 @@ internal static class Tg
     internal static bool Fd = true;
     internal static bool Femp = true;
     internal static bool Cwend = true;   // (1359)
+    internal static bool Lawstep = true;   // (1372)
     internal static bool Habitlg = true;
     internal static bool House = true;
     internal static bool Idn = true;
@@ -82,6 +83,7 @@ internal static class Tg
         Fd = Instruments.Wants("fd_s");
         Femp = Instruments.Wants("femp_s");
         Cwend = Instruments.Wants("cwend_s");   // (1359)
+        Lawstep = Instruments.Wants("lawstep_s");   // (1372)
         Habitlg = Instruments.Wants("habitlg_s");
         House = Instruments.Wants("house_s");
         Idn = Instruments.Wants("idn_s");

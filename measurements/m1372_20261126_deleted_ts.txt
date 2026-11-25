@@ -1,0 +1,5 @@
+(1372) c145ts 移した物（消していない）
+2026-11-26 03:11 D:/PoB_work/keep_1362/base_ins（1783 本・30235518310 バイト）→ E:/PoB_archive/keep_1362/base_ins へ移した（件数とバイト数の合計が一致してから D: の側を消した）。
+理由：ident 段 2 の前に D: の空きが 45.6GB で〈35GB＋量〉に届かなかった。台本の〈床に届かない時は keep_1362/base_ins を E:/PoB_archive/ へ移してよい〉に従った（台本の別の行〈keep_1362 は誰も消さない・中身も移さない〉と食い違う＝報告の先頭に書く）。
+keepsum：measurements/m1372_20261126_keepsum_keep1362_base_ins.txt（先に取った）。keep_1362/base_ins は INSRAW（keep_1369/base_ins）でも KEEPNULL（keep_1362/n1・n2・a11）でもない。
+他の keep_* は触れていない。移した後の D: の空き 75.4GB。

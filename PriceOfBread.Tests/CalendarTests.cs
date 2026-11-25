@@ -60,6 +60,7 @@ public class CalendarTests
         ["Diplomacy.cs"] = 1,   // 順位の更新の間隔（四半期数→月数）
         ["EconomyStep.cs"] = 1,   // 建設期間（四半期数→月数）
         ["Instruments.cs"] = 1,   // 計器の月の添字（日→月）
+        ["InstrumentsCwend.cs"] = 1,   // 計器 cwend_s の月→四半期の整数の割り算（Calendar に整数の関数が無い・値は旧の DivRem と同じ）
         ["MultiNationSim.cs"] = 3,   // 月の添字・外交の月の通し番号・残部の再併合の期間（年数→四半期数）
         ["Privileges.cs"] = 1,   // 年の指数平均を月で畳む刻み（1/12 年）
         ["SelfPlay.cs"] = 2,   // 10 年の窓（四半期数）・建設期間（四半期数→日数＝NewFacilityOutlayPerMonth の工賃の式〔BuildFactory と同じ重複〕・(400)）

@@ -1,0 +1,10 @@
+(1372) c145ts 突然変異の記録（使い捨て＝作業ツリーで書き換え→絞った試験→git checkout で戻す・台本 D:/PoB_work/c145ts_work/mut.py）
+M1 tsreg の 2 列の入れ替え（売り手と買い手を逆に書く）→ 赤：TsregInstrumentTests T1・T4・T5（失敗 3・合格 2）
+M2 import を LastImport に戻す → 赤：TsregInstrumentTests T5（失敗 1・合格 4）
+M3 lawstep の書き手の別を常に 1 → 赤：LawstepInstrumentTests L1（失敗 1・合格 5）
+M4 CalendarTests.BareConversionSites の InstrumentsCwend.cs の宣言を外す → 赤：CalendarTests 量の換算は暦の関数を通す（失敗 1）
+M5 lawstep の〈その他〉（6）の行を書かない → 赤：LawstepInstrumentTests（失敗 1・合格 5＝L2）
+M6 lawstep が段の動かない法にも行を書く → 赤：LawstepInstrumentTests（失敗 5・合格 1）
+緑のままだった突然変異：0。
+㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests・CalendarTests・InstrumentHookClosureTests・Lawstep/Tsreg/CwendInstrumentTests・InstrumentsPlacementTests・Ratchet）：合格 278・スキップ 1・失敗 0（45 分 10 秒＝InstrumentHookClosureTests が大半）。
+書き換えた試験：CalendarTests.cs BareConversionSites に InstrumentsCwend.cs＝1 を足した（予言どおり +1）・TsregInstrumentTests T1・T2 の xCap を 2 列の和へ（区分＝計器の列の名の追従・Assert の向きと母集合は同じ）。他の表の件数の書き換え 0。
