@@ -414,6 +414,7 @@ public sealed class MultiNationSim
             // 史実の独立戦争は年単位（ギリシア1821-29・スペイン領アメリカ1810-25・ハンガリー1848-49・合衆国1861-65）。〔履歴 MultiNationSim.cs#45〕
             WarExhaustion = capitalRising ? parentPower.WarExhaustion : 0,
         };
+        if (Instruments.On) Instruments.CweBorn(power, capitalRising);   // (1359) 継いだ厭戦（読むだけ）
         power.SpawnedDuringPlay = true;   // ★プレイ中に生まれた国＝ハーネスの「満足度・最小国」の対象外（Validation.WorstSat）
         nw.Diplomacy = Diplomacy; nw.SelfPower = power;
         // 無いと、途中で生まれた国だけ Explain が null になり、   台帳を読む側が NullReferenceException で落ちる（実測＝ExplainTests が分離独立の起きるシードで死んだ）。〔履歴 MultiNationSim.cs#46〕
