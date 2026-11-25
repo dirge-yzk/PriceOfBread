@@ -3645,13 +3645,13 @@ if (args.Length > 0 && args[0] == "savetest")
     var sim1 = new MultiNationSim(WorldData.Nations(), seed, _ => new UtilityAgent());
     sim1.StartWarmup();   // ★2026-08-10：実ゲームと同じ開始盤面から往復する（App も自己対戦バッチも助走を通る）＝助走の凍結フラグがセーブに正しく載るかも同時に見る
     for (int q = 0; q < preQ; q++) sim1.StepQuarter();
-    if (args.Length > 4)
+    // (1380) 引数 4 つ以下の旧の枝（2 量だけ比べる）は消した＝保存の日 0・state の比べへ回す（第5引数が無ければ days＝0・state 有り）。
     {
         // (1309) 月の途中の保存の点：第5引数＝保存の日の並び（例 0,45,75＝四半期の頭からの日数）・第6引数 state＝終わりに全ての保存される欄を比べる。
         // A（sim1）が 1 本で進み、各点で保存。最後に各点のセーブから読んだ B_k を同じ終わりの日まで進め、A と比べる（2 量＋state なら欄ごと）。
-        // 'savetest OK' を出すのは 2 量が一致し、かつ（state のとき）全ての点で値の違い 0 件の時だけ（ident_check.py はこの文字列だけを読む）。
-        var days = args[4].Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries).Select(int.Parse).Distinct().OrderBy(x => x).ToArray();
-        bool stateMode = args.Length > 5 && args[5] == "state";
+        // 'savetest OK' を出すのは 2 量が一致し、かつ（state のとき）全ての点で値の違い 0 件の時だけ（ident_check.py は最終行がこの文字列で始まるかを読む＝不一致の行は頭が 'savetest 不一致'）。
+        var days = (args.Length > 4 ? args[4] : "0").Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries).Select(int.Parse).Distinct().OrderBy(x => x).ToArray();
+        bool stateMode = args.Length <= 5 || args[5] == "state";
         int endDay = postQ * Calendar.DaysPerQuarter;
         var blobs = new List<byte[]>();
         int curDay = 0;
@@ -3693,38 +3693,9 @@ if (args.Length > 0 && args[0] == "savetest")
         }
         System.Console.WriteLine(diffK == 0 && stateBad == 0
             ? $"savetest OK：{postQ}四半期後も全{sim1.Nations.Count}カ国が継続系列と一致（最大相対差 {worstK:E1}）"
-            : $"savetest 乖離 {diffK}（2量）・状態の違いのある点 {stateBad}/{days.Length}（最大相対差 {worstK:E1}）");
+            : $"savetest 不一致 {diffK}（2量）・状態の違いのある点 {stateBad}/{days.Length}（最大相対差 {worstK:E1}）");
         return;
     }
-    var sw = System.Diagnostics.Stopwatch.StartNew();
-    using var ms = new System.IO.MemoryStream();
-    SaveGame.Save(sim1, ms);
-    long saveMs = sw.ElapsedMilliseconds;
-    ms.Position = 0;
-    sw.Restart();
-    var sim2 = SaveGame.Load(ms);
-    long loadMs = sw.ElapsedMilliseconds;
-    System.Console.WriteLine($"保存 {ms.Length / 1024.0 / 1024.0:F1}MB（{saveMs}ms）／読込 {loadMs}ms（{preQ}四半期時点）");
-    for (int q = 0; q < postQ; q++) { sim1.StepQuarter(); sim2.StepQuarter(); }
-    int diffN = 0;
-    double worst = 0;
-    for (int i = 0; i < sim1.Nations.Count; i++)
-    {
-        var a = sim1.Nations[i].World; var b = sim2.Nations[i].World;
-        double ra = System.Math.Abs((a.BaseMoney - b.BaseMoney).Value) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney.Value));
-        double rp = System.Math.Abs(a.TotalPopulation - b.TotalPopulation) / System.Math.Max(1.0, a.TotalPopulation);
-        double r = System.Math.Max(ra, rp);
-        if (r > worst) worst = r;
-        if (r > 1e-9)
-        {
-            diffN++;
-            if (diffN <= 5) System.Console.WriteLine($"  乖離 {a.SelfPower?.Name}: 基礎貨幣 {a.BaseMoney:F2}⇔{b.BaseMoney:F2}　人口 {a.TotalPopulation:F0}⇔{b.TotalPopulation:F0}");
-        }
-    }
-    System.Console.WriteLine(diffN == 0
-        ? $"savetest OK：{postQ}四半期後も全{sim1.Nations.Count}カ国が継続系列と一致（最大相対差 {worst:E1}）"
-        : $"savetest 乖離 {diffN}/{sim1.Nations.Count}カ国（最大相対差 {worst:E1}）＝Dictionary列挙順の揺れなら微小・桁が大きければバグ");
-    return;
 }
 
 // === 政治アブレーション（政治アーキテクチャ整理2026-07-24 §4-4）： dotnet run -- politics-ablation [seed] ===
