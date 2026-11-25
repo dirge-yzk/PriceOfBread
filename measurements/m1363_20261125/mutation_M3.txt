@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.UnitTypeTests.型をまたぐ換算はCalendarの中にしか無い [8 ms]
+失敗!   -失敗:     1、合格:    25、スキップ:     0、合計:    26、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
