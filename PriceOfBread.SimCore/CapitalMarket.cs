@@ -49,14 +49,13 @@ public static class CapitalMarket
             double bondSpread = System.Math.Max(0, (w[i].GovBondRatePerYear - c.BondBaseRatePerYear).Value);
             double bondConf = System.Math.Clamp(1.0 - c.BondYieldFlightWeight * bondSpread, BondConfMin, 1.0);
             double fxCredit = System.Math.Clamp(w[i].ExchangeRate, c.ExchangeRateFloor, 1.0);
-            double cr = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio)
-                      * (c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility)
-                      * fxCredit
-                      * bondConf;
+            double debtTerm = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio);
+            double goldTerm = c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility;
+            double cr = debtTerm * goldTerm * fxCredit * bondConf;
             cred[i] = cr;
             w[i].CreditRating = cr;
-            w[i].CreditDebtTerm = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio);
-            w[i].CreditGoldTerm = c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility;
+            w[i].CreditDebtTerm = debtTerm;
+            w[i].CreditGoldTerm = goldTerm;
             w[i].CreditFxTerm = fxCredit;
             w[i].CreditBondTerm = bondConf;
             double headroom = Headroom(c, w[i]);
