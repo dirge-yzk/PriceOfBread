@@ -3,7 +3,7 @@
 #   bash narrow_sp.sh <作業フォルダ（D:/…）>
 WK=${1:?}; mkdir -p $WK/tmp $WK/trx
 export TEMP=$WK/tmp TMP=$WK/tmp AVALONIA_TELEMETRY_OPTOUT=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
-cd D:/PoB_work/wt_c143sp; R=$(pwd); A=$WK/art; O=$WK/narrow.txt
+cd ${2:-D:/PoB_work/wt_c143sp}; R=$(pwd); A=$WK/art; O=$WK/narrow.txt
 echo "# (1357) narrow HEAD=$(git rev-parse --short HEAD) 汚れ=$(git status --porcelain | wc -l) $(date '+%F %T')" > $O
 CL=$(grep -rlE "StateProcureAsSold|Procure\(|BuyUpkeepGood|LastExport|LastSold|StProc" PriceOfBread.Tests --include=*.cs | xargs -n1 basename | sed 's/\.cs$//' | sort -u)
 CL="$CL IndustrializationReaderTests UnitTypeTests InstrumentsTests WriterRatchetTests DormantIdentityTests TechLevelRemovalTests OnDoubleReadScanTests"
