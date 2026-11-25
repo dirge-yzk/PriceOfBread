@@ -1223,7 +1223,7 @@ public sealed class MultiNationSim
             {
                 if (!r.IsPort) continue;
                 double capBeforeDecay = r.PortCapacity;   // capBeforeDecay〔履歴 MultiNationSim.cs#135〕
-                if (!_calendarFrozen) r.PortCapacity = Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
+                if (!_calendarFrozen) r.PortCapacity = Math.Max(0, _coef.PortDecay.Remaining(r.PortCapacity));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
                 // 技術ゲート（近代港湾）。〔履歴 MultiNationSim.cs#136〕
                 if (_calendarFrozen || !techOk || r.LastTradeThrottle >= _coef.PortCongestionTarget) continue;   // ★助走：港湾も「年月をかけて広がる」能力＝凍結
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;

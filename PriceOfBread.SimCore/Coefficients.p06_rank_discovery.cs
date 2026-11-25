@@ -59,7 +59,7 @@ public sealed partial class Coefficients
     public double ElectionBribePovertyWeight = 0.0; // 半減点の単価を「全国一律の一人あたり名目所得」から「その有権者pop自身の豊かさ」へブレンドする率∈[0,1]：half
     public Share ManifestoFulfillMove = new(0.1);      // 達成と認める最小の移動量（軸の可動域に対する割合＝0.1で「1割進んだ」。段のある法は1段でおおむね超える）
     public double ManifestoFulfillCredit = 0.5;    // 達成した瞬間に加担した思想へ乗る支持（Ideology の r[] と同じ物差し＝他の出来事項と横並び）
-    public double ManifestoCreditDecay = 0.05;     // その支持の四半期あたりの減衰（半減期≈14四半期＝3.5年＝任期1回ぶん）
+    public FractionPerQuarter ManifestoCreditDecay = FractionPerQuarter.FromQuarter(0.05);     // その支持の四半期あたりの減衰（半減期≈14四半期＝3.5年＝任期1回ぶん）
     public double ElectionPushScale = 0.3;         // 設計目安＝効き1.0で+30%（世論を作る長期経路＝教育/検閲より常に劣る短期ブースト）
     public double NoConfidenceThreshold = 0.2;     // 与党族の得票率がこれ未満＝内閣が倒れる（第三共和政＝平均8ヶ月内閣の史実側）
     public double EarlyElectionMinQuarters = 4;    // 繰り上げ選挙の最短間隔（1年＝選挙の乱発防止）
@@ -122,7 +122,7 @@ public sealed partial class Coefficients
     public double IsolationExportWeight = 1.0;   // 二乗＝新しい数を作らず高関税レジームだけを閉じる（0.25→×0.94・0.8→×0.36・1.0→×0＝真の鎖国）
     public double TariffExportOppositionWeight = 3.0;   // IsolationExportWeight とセット＝「高関税は輸出も殺す」物理ができて初めて政治の負帰還が史実の向きになる
     public double AiTariffEmaRate = 0.25;               // AI の保護関税の輸入EMAの追従率（四半期0.25＝約1年の記憶＝「前年比」の最小実装。状態はAI個体の _importEma 1本だけ）
-    public double TradeValueSmoothing = 0.1;            // 列強の貿易取扱高EMAの四半期の追従率（約2.5年・MultiNationSim.UpdateTradeWeights）
+    public FractionPerQuarter TradeValueSmoothing = FractionPerQuarter.FromQuarter(0.1);            // 列強の貿易取扱高EMAの四半期の追従率（約2.5年・MultiNationSim.UpdateTradeWeights）
     public double AiTariffRelaxation = 0.1;             // 0＝厳密恒等（点火候補0.1＝約−10%/年）
     public double RentProtectionWeightCoef = 1.0;       // 関税・穀物法の選好が読む
     public double AISubmitLegitCost = 0.05;        // 屈服の正統性コスト（下関・三国干渉の屈辱＝国内の怒り）

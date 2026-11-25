@@ -39,7 +39,7 @@ public sealed partial class Coefficients
     public double EffBoost     = 0.3;             // 完全充足時のRGO産出の上乗せ（肥料/飼料/漁船/工具が満たされた時）
     public double SubsistenceStage2 = 1;          // 0＝旧の形（食べる割合は欄のデータのまま・1 ビットも変わらない）
     public double GridBuildRate = 0.1;           // 送電容量の不足分を月に何割ずつ敷設するか（投資家の残予算の範囲で）
-    public double FillInertia = 0.25;            // 電化率(ElecFill)・効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）
+    public FractionPerMonth FillInertia = FractionPerMonth.FromMonth(0.25);            // 電化率(ElecFill)・効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）
     public double ElecFillIrreversibility = 1.0; // 0=無効（採算で毎期進退）・1で電化率は下がらない（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）
     public double EnergyPerOutput = 0.05;        // 蒸気動力化した工場の産出1単位あたりの石炭（燃料）消費
     public double SteamBoost = 0.3;              // 完全蒸気動力時の能力上乗せ（蒸気機関＝水車/畜力を超える出力。電化のElecBoostと対称）
@@ -51,7 +51,7 @@ public sealed partial class Coefficients
     public double LaborWeightsByPower = 1;       // 旗（0＝旧の式・正＝重み）
     public double FemaleHandLaborWeight = 0.6;   // 手作業の女の 1 時間の産出÷成人男性（比）
     public double ChildHandLaborWeight = 0.35;   // 手作業の子（10〜14 歳）の 1 時間の産出÷成人男性（比）
-    public double WomenRightsFollowSpeed = 0.15;  // 法の浸透の月次収束速度＝女性財産権法→賃金保持(WomenWageRetention)・児童労働法→合法度(ChildLaborLegal)・実労働時間→法定上限の 3 つで共有（法は離散だが社会的確立は連続）
+    public FractionPerMonth WomenRightsFollowSpeed = FractionPerMonth.FromMonth(0.15);  // 法の浸透の月次収束速度＝女性財産権法→賃金保持(WomenWageRetention)・児童労働法→合法度(ChildLaborLegal)・実労働時間→法定上限の 3 つで共有（法は離散だが社会的確立は連続）
     public double FemaleNeedWeight = 0.5;         // 家計困窮(1−満足)が女性の追加就労を押し上げる強さ
     public double FemaleLitFloor = 0.6;           // 賃金保持なし時の女性識字の実効係数（女子が就学を後回しにされる＝人口転換の出生率項。retention=1で1.0＝旧 WomenPropertyLaw?1:0.6 の連続版）
     public double OldLaborFactor = 0.75;   // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）

@@ -332,7 +332,7 @@ public static class Parliament
 
     private static void StepManifesto(World w, Coefficients c)
     {
-        if (c.ManifestoCreditDecay > 0 && w.ManifestoCredit > 0) w.ManifestoCredit *= 1.0 - c.ManifestoCreditDecay;
+        if (c.ManifestoCreditDecay.Value > 0 && w.ManifestoCredit > 0) w.ManifestoCredit = c.ManifestoCreditDecay.Remaining(w.ManifestoCredit);
         if (w.ManifestoIdeology < 0 || w.ManifestoDone) return;
         double moved = FactionSnapshot.AxisPosition(w, w.ManifestoAxis) - w.ManifestoBaseline;
         if (!w.ManifestoIncrease) moved = -moved;

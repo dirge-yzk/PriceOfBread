@@ -9,7 +9,7 @@ public sealed partial class Coefficients
     public RatePerQuarter PortInvestFrac = new(0.04);       // 資本家が毎四半期 港へ投じる州投資家貯蓄の割合（混雑時のみ＝採算ゲート）
     public Share PortStateFrac = new(0.15);        // 国家が港建設に投じる裁量余剰（FiscalCapacityPerMonth＝純税収から利払い・行政・軍需の請求を引いた余り）のシェア＝行政費予算の一部
     public double PortBuildCostPerUnit = 40.0; // 港容量1単位の建設費（資本/国庫→自州popへ還流＝保存）
-    public double PortDecay = 0.008;           // 港湾の四半期減耗（維持に再投資が要る＝持続需要）
+    public FractionPerQuarter PortDecay = FractionPerQuarter.FromQuarter(0.008);           // 港湾の四半期減耗（維持に再投資が要る＝持続需要）
     public double PortCapToThroughput = 1.0;   // 港容量1あたり、その港州の実効海運への加法的上乗せ（港の大きさ＝交易の口の太さ）
     public double PortFeeRate = 0.01;          // 港湾料率＝海路の成約の額×これを港の1端ごとに港所有者(地元投資家)へ（商人仲介料とは別＝施設使用料）
     public double PortCongestionTarget = 0.9;  // この律速率(LastTradeThrottle)未満＝港/船腹が交易を絞っている＝拡張の採算が立つ（混雑ゲート）
