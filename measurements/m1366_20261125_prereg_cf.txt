@@ -42,3 +42,6 @@
 [5]〈判定: 恒等〉（宣言の cwend 以外の違い 0・測った種で一致）なら採る。一致しなければその変更を外して報告に回す。
 
 記録（cw〔仮〕の材料）：M の 10 種の腕 Z の生で、endPath の区分ごとの件数（旧：collapse 68・weary 10・decisive 6〔基準 84 行〕）と新の件数を並べ、collapseFlag と forced の重なりの件数を書く。
+
+腕の前の訂正（2026-11-25・ident より前）：試験の数の予言を +6 から +7 へ。T5 に Theory 3 行・T5b（崩壊でない内戦は collapseFlag 0・Fact 1 件）・T6 1 件・T7 Theory 2 行＝+7（T5b を数え落としていた）。
+  --tests-delta 7・TESTS_NONFULL 3217 → 3224。突然変異の台本は scripts/instruments/c144cf/mut.sh。
