@@ -1,0 +1,5 @@
+cd D:/PoB_work/wt_m1369
+export AVALONIA_TELEMETRY_OPTOUT=1
+F="FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~ValueCountRatchetTests|FullyQualifiedName~DerivedValueRatchetTests|FullyQualifiedName~ValueScan|FullyQualifiedName~CalendarTests|FullyQualifiedName~Cwend|FullyQualifiedName~ProtectedLawReversalTests|FullyQualifiedName~GenderTests|FullyQualifiedName~MinimumWageAiFloorTests|FullyQualifiedName~SourceScanCoverage|FullyQualifiedName~GoodIdGuard"
+dotnet test PriceOfBread.Tests -c Release --artifacts-path D:/PoB_work/m1369_work/art --filter "$F" --logger "trx;LogFileName=D:/PoB_work/m1369_work/t1.trx" 2>&1 | tail -40
+dotnet test PriceOfBread.Tests.Ui -c Release --artifacts-path D:/PoB_work/m1369_work/art --filter "FullyQualifiedName~DisplayCatalogTests|FullyQualifiedName~FmtTests" --logger "trx;LogFileName=D:/PoB_work/m1369_work/t1ui.trx" 2>&1 | tail -20
