@@ -28,30 +28,18 @@ public class WriterRatchetTests
     private static string SimCoreDir([CallerFilePath] string self = "")
         => Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(self))!, "PriceOfBread.SimCore");
 
+    /// <summary>(1364) 数え方は ValueScan の 1 本（エンジンの本体＝SimCore の .cs・Instruments を除く）。旧は Instruments を含めて数えていた（書き手は 0 だった）。</summary>
     private static int CountWriters(string member)
     {
         int n = 0;
-        foreach (var f in InstrumentsPlacementTests.TopAndInstruments(SimCoreDir()))
-            n += CountWritersIn(File.ReadLines(f), member);
+        foreach (var f in ValueScan.EngineFiles(SimCoreDir()))
+            n += ValueScan.CountWriters(File.ReadAllText(f), member);
         return n;
     }
 
-    /// <summary>(904) 書き手の数え方の本体（自己試験 M8 が人工の行で呼ぶ）。**1 行に書き手が 2 つある行（`a.X -= …; b.X += …;`）は 2 と数える**（旧は 1 行を 1 と数えた＝(895) M8）。</summary>
+    /// <summary>(904) 書き手の数え方の入口（自己試験 M8 が人工の行で呼ぶ）。本体は ValueScan.CountWriters の 1 本。**1 行に書き手が 2 つある行（`a.X -= …; b.X += …;`）は 2 と数える**。</summary>
     internal static int CountWritersIn(System.Collections.Generic.IEnumerable<string> lines, string member)
-    {
-        // 代入・複合代入のみ（`==` は除外）。`=>`（ラムダ/式形メンバ）も除外。
-        // ★添字つきの書き込み（`.StateSpent[(int)TreasuryCat.Army] += …`）も数える（2026-09-28 段2-1＝StateSpent を区分の配列にした＝数え落とさない）。
-        var rx = new Regex($@"\.{member}(\[[^\]]*\])?\s*(\+=|-=|\*=|/=|=(?![=>]))");
-        int n = 0;
-        foreach (var line in lines)
-        {
-            var code = line;
-            int c = code.IndexOf("//", StringComparison.Ordinal);
-            if (c >= 0) code = code[..c];   // コメント内の言及は数えない
-            n += rx.Matches(code).Count;
-        }
-        return n;
-    }
+        => ValueScan.CountWriters(string.Join("\n", lines), member);
 
     /// <summary>(904) 自己試験 M8：1 行に書き手が 2 つある行は 2 と数える・`==`・`=>`・コメント内の言及は数えない。突然変異「Matches(code).Count を IsMatch ? 1 : 0 へ戻す」で 2 本目（二つの書き手）が赤になる。期待は手のリテラル。</summary>
     [Fact]
@@ -61,6 +49,43 @@ public class WriterRatchetTests
         Assert.Equal(3, CountWritersIn(["a.X = 1; b.X += 2;", "c.X[(int)K.A] -= 3;"], "X"));
         Assert.Equal(0, CountWritersIn(["if (a.X == 1 && b.X => 2) { }", "var f = (q) => q.X;", "// a.X = 1; b.X += 2;"], "X"));
         Assert.Equal(1, CountWritersIn(["a.X = 1;   // b.X += 2;"], "X"));
+    }
+
+    /// <summary>(1364) 自己試験 M9：Toward の結果の代入も書き手 1・初期化子と文字列と複数行の注釈の中は数えない・入力の項の規則（型・係数・自分の名・予約語は数えない／ドット連鎖は最後の名・局所変数は 1 項）。
+    /// 突然変異「ValueScan.Strip を恒等へ」で 2 本目が赤・「InputTerms の係数の除外を外す」で 3 本目が赤。期待は手のリテラル。</summary>
+    [Fact]
+    public void M9_Towardの代入は1_初期化子と文字列と注釈は数えない_入力の項の規則()
+    {
+        Assert.Equal(1, CountWritersIn(["p.Consciousness = PoliticalQuantities.Toward(p.Consciousness, target, c.Speed);"], "Consciousness"));
+        Assert.Equal(0, CountWritersIn(["var q = new Pop { Militancy = 0.1 };", "var s = \"a.Militancy = 1\";", "/* a.Militancy = 2; */"], "Militancy"));
+        Assert.Equal(2, CountWritersIn(["a.M = 1; /* b.M = 2;", "c.M = 3; */ d.M = 4;"], "M"));
+        var terms = ValueScan.InputTerms("Math.Min(1, w.Foo.Bar + c.Rate * localVal) / (double)x.Count + p.Self - ab", "Self").OrderBy(s => s, StringComparer.Ordinal).ToArray();
+        Assert.Equal(["Bar", "Count", "local:localVal"], terms);
+        // 右辺は `;` まで・括弧の中の `;` は文の終わりにしない・次の文の項は含めない
+        Assert.Equal(["Foo(a.B)"], ValueScan.WriterRhs("x.M = Foo(a.B); y.N = 2;", "M").Select(s => s.Trim()));
+    }
+
+    /// <summary>(1364) 自己試験 M10：母集合＝仮の SimCore のフォルダから Instruments・obj・bin を除き、下のフォルダは含める。試験のフォルダ（SimCore の外）は走査の入口に渡らない。
+    /// 突然変異「EngineFiles の Instruments の除外を外す」で赤。</summary>
+    [Fact]
+    public void M10_母集合はInstrumentsを除く()
+    {
+        string tmp = Path.Combine(AppContext.BaseDirectory, "c144wr_scan_" + Guid.NewGuid().ToString("N"));
+        string sim = Path.Combine(tmp, "PriceOfBread.SimCore");
+        try
+        {
+            foreach (var rel in new[] { "A.cs", "Sub/E.cs", "Instruments/B.cs", "obj/C.cs", "bin/F.cs" })
+            {
+                string f = Path.Combine(sim, rel);
+                Directory.CreateDirectory(Path.GetDirectoryName(f)!);
+                File.WriteAllText(f, "x.M = 1;");
+            }
+            Directory.CreateDirectory(Path.Combine(tmp, "PriceOfBread.Tests"));
+            File.WriteAllText(Path.Combine(tmp, "PriceOfBread.Tests", "D.cs"), "x.M = 1;");
+            var names = ValueScan.EngineFiles(sim).Select(f => Path.GetRelativePath(sim, f).Replace(Path.DirectorySeparatorChar, '/')).ToArray();
+            Assert.Equal(["A.cs", "Sub/E.cs"], names);
+        }
+        finally { Directory.Delete(tmp, true); }
     }
 
     [Theory]
@@ -88,9 +113,9 @@ public class WriterRatchetTests
     // ★2026-09-30 基準値の更新（＝宣言・処理の一元化 段4e I＝人の移し方の1本 Pop.Blend）：闘争度 32→**25**＝運搬の書き手8か所（階級の移動3枝・州の中・社会移動・
     //   州の間・越境・招聘）が Blend の1行へ（−7）。政治意識 1→**2**＝運搬の1行（作者裁定 2026-09-28 §14-2 の6「国内の移動でも国民意識・政治意識・思想の分布を運ぶ＝1本の Blend で全部」）。
     //   ⚠事件スパイクではない＝人と一緒に動く量の保存（旧＝移った人の政治意識が着地の POP の値に化けた＝移動のたびに意識が湧くか消えた）。力学の書き手は Politics の1本のまま。
-    [InlineData("Militancy", 25)]      // 力学1・運搬1（Pop.Blend）・事件スパイク約17・緩和約4・初期化ほか（内戦の決着の緩和は SettleRevolt の1本）
-    [InlineData("Satisfaction", 4)]    // ⚠プロパティ代入のみ（初期化子は構築＝対象外）
-    [InlineData("Legitimacy", 13)]
+    [InlineData("Militancy", 16)]      // 力学1・運搬1（Pop.Blend）・事件スパイク約17・緩和約4・初期化ほか（内戦の決着の緩和は SettleRevolt の1本）
+    [InlineData("Satisfaction", 1)]    // ⚠プロパティ代入のみ（初期化子は構築＝対象外）
+    [InlineData("Legitimacy", 11)]
     [InlineData("Consciousness", 2)]   // ★手本（力学1本）＋人と一緒に動く運搬の1本（Pop.Blend）
     public void 心理量への書き手は増やさない(string member, int baseline)
     {
@@ -152,7 +177,7 @@ public class WriterRatchetTests
     [InlineData("Savings", 0)]                // POP の貯蓄（Pop の中だけ＝`_savings` へ書く・外はコンパイルエラー）
     // ★2026-09-28 段2-1（国家の支払い率）：StateSpent 25→24＝区分つきの配列へ（添字つきの書き込みを数える）・月次のゼロ化は Array.Clear（代入でない）。
     //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
-    [InlineData("StateSpent", 23)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
+    [InlineData("StateSpent", 18)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
     // ★2026-09-30 段4e（I＋人と動くお金の換算）：CumulativeTradeFlow 13→**12**（＝宣言）＝越境移民と招聘の持参金の台帳（逐語の写し2行）を国境をまたぐ人の運搬の1本（MultiNationSim.MoveAbroad）へ。
     [InlineData("CumulativeTradeFlow", 6)]    // 世界の台帳・国境をまたいだ出入り（移し方の1本の台帳の1行＋再併合の与信の合算・割譲の2行・分離建国の1行） ／6 本目＝MultiNationSim.cs:1821 の 1 行 2 書き手（src と dst を 1 行で書く越境移民の持参金・債務の台帳）
