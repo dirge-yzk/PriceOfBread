@@ -104,3 +104,8 @@
 
 ■ 周辺の点検の一覧（periph_sp.txt・SimCore の LastExport・LastSold の読み書き 31 行・計器を除く）
  生産の決定の側：EconomyStep.cs:115・:137（農の労働の LastSold）・:2454・:2473（unsold＝1−LastSold÷LastProduced）・MarketFlow.cs:165（値段の需要の側＝LastExport）・Simulation.cs:2141（主食の純輸入＝PrevImport−PrevExport・EconomyStep.cs:799 で LastExport を写す）・SelfPlay.cs:43〜:44（energy＝石炭と原油の LastSold）。読むだけ・直さない。
+
+■ 追記 1（2026-11-25・腕 B の後に書いた＝結果の後の追記と名乗る・門と予言は変えない）
+ 腕 Z：ident の段 2（全表 約 30GB）は、再開の時点の D: の空き 37.2GB（自分の suite の build を消して 38.9GB）で〈35GB＋量〉を満たせない。段 1 の表（ident.cfg の SMALL）＋stproc_s・nationgood_s だけを書かせる近似（scripts/instruments/c143sp/identz_s1.sh・約 3.5GB・比べは identz_cmp.py）で回し、〈近似〉と名乗る。全表の恒等は合流の腕 Z に申し送る。
+ 単独の S11（a11 の 82 表＋stproc_s）：〈35＋18GB〉が無い＝回さず合流へ申し送る。
+ 順：前の起動が、腕 B（旗 1 の木＝枝 c143sp_b・bcf7ca616）を腕 Z より先に回した（器の木 30f4e1d8d の枝 c143sp は ident のためにコミットせず置いた）。腕 B の門の読みは腕 Z に依らない。v3 の同じ盤面の比べ（compare_sp.py）は、この近似の腕 Z の stproc_s で取る。
