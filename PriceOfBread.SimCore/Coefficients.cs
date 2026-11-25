@@ -37,7 +37,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double FactoryBankruptcyMargin = -0.85; // 平滑採算がこれ未満で倒産（原価の15%以下で売り続け＝極度の慢性赤字のみ。死のスパイラル防止）
     public double FactoryReentryMargin = -0.05;    // 倒産中、現採算がこれ超で新規参入（やや赤字でも再開＝恐慌からの早い回復）
     public double FactoryReentryScale = 0.3;       // 新規参入時の操業規模（小さく入って採算が良ければ拡張）
-    public double ReentryShortageSameMonth = 0.0;  // (1378) c146bk 旗（0＝今の式〈需要＞産出＋売った後の在庫〉・1＝同じ月の清算の足りない量 LastShortage＞0＝前の在庫を取り崩して満たした月は品薄でない）
+    public double ReentryShortageSameMonth = 1.0;  // (1378) c146bk 旗（既定 1＝点火・0＝旧の式〈需要＞産出＋売った後の在庫〉・1＝同じ月の清算の足りない量 LastShortage＞0＝前の在庫を取り崩して満たした月は品薄でない）
 
     // --- pop 意思決定（§9-D・段1）---
     public double Mobility = 0.02;            // 階級間の再配分速度（緩和）
