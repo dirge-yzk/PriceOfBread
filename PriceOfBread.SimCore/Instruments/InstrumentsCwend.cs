@@ -48,7 +48,7 @@ public static partial class Instruments
         double exhP = parent.WarExhaustion, exhR = rebel.WarExhaustion;
         bool collapse = exhP >= 1.0 * cutP || exhR >= 1.0 * cutR;
         bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * CutOf(war.A)) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * CutOf(war.B));
-        // endPath＝講和の引き金（Diplomacy.cs の decisive || weary || ForcedPeace と同じ順）。collapse は引き金ではない（崩壊代入は戦勝点を置くだけ）＝別の列 collapseFlag
+        // endPath＝講和の引き金（判定の順は forced → decisive → weary → other）。collapse は引き金ではない（崩壊代入は戦勝点を置くだけ）＝別の列 collapseFlag
         string path = war.ForcedPeace ? "forced" : System.Math.Abs(war.Score) >= 1.0 ? "decisive" : weary ? "weary" : "other";
         bool regime = !war.CivilWarSecession;
         var verdict = EndedWarRecord.VerdictOf(war.Score, regime, c.WhitePeaceScore);
@@ -66,7 +66,7 @@ public static partial class Instruments
     }
 
     /// <summary>月の通し番号から四半期の番号（整数の割り算・非負の月で旧の (int)(月/3.0) と同じ値）。</summary>
-    static int QuarterOfMonth(int month) => System.Math.DivRem(month, Calendar.MonthsPerQuarter).Quotient;   // 裸の / を書かない（CalendarTests の走査）
+    static int QuarterOfMonth(int month) => month / Calendar.MonthsPerQuarter;   // 整数の割り算（月→四半期の整数の関数は Calendar に無い＝CalendarTests.BareConversionSites に InstrumentsCwend.cs＝1 を宣言）
 
     static void CweTable(Sink sk, Diplomacy d)
     {
