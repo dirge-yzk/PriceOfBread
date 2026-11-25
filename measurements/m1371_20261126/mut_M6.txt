@@ -1,0 +1,2 @@
+# M6（HEAD）
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T2b_思想の更新が闘争度に依らない [1 s]

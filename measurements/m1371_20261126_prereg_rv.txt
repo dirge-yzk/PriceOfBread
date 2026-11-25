@@ -1,0 +1,30 @@
+m1371 事前登録（c145rv・(1371) 恒等の線・器 2 つ・旗 0）  2026-11-26
+基準木 b8c0944c4（基線 m1362）。作者 2026-11-25（原文）「全て推奨でよい。それでいこう」で推奨を採った。点火は波146（この回は旗 1 の腕を回さない）。
+
+[1] 恒等の線・挙動の予言 0
+- 旗 2 本（既定 0・double・`> 0` で分岐）：WarWearyPoliticsCut（Coefficients.p02_borrow_polity_epidemic.cs）・SatReadersToDiscontent（Coefficients.cs）。新しい欄・状態・係数は 0。
+- 器 1 WarWearyPoliticsCut 旗 1＝①Politics.CoercionNow の戦時の乗数を 1 に ②闘争度の目標の厭戦の項（c.WarWearinessMilitancy×厭戦）を 0 に（MilWar も 0）③天命の dmWar を 0 に。旗 0 は今の式のまま（式の順序・書き方を変えない＝③項の三項演算子の else に元の式をそのまま置く）。
+- 器 2 SatReadersToDiscontent 旗 1＝Politics.Discontent が Clamp01(WantWeight×Pos(R−s))（Pos は x>0 ? x : 0＝NaN は 0＝否定形ではなく肯定形の比較で NaN を 0 へ落とす）・FactionSnapshot.Participation は D だけ・Ideology の思想の更新の入力 mil は D だけ。
+- 案 D1 にして D2（G÷R）にしない理由（比のガード）：R が小さい貧しい層で分母が痩せ D が跳ねる（比のガードを絶対値で書かない記憶＝R の下限を置くと例外の例外になる）。D2 は点火の後の段の候補。下書き §2-2 のとおり。
+- 浮動小数の順序が変わる箇所：なし（旗 0 の経路の式は字面のまま・闘争度の目標の和は voice+minorityMil+warMilTerm+famineMil の順で、warMilTerm＝WarWearinessMilitancy×warWeariness は旧と同じ値・同じ位置）。紙の台本で旧≠新の食い違いの数：0。
+- 予言：素の 5 種・計器つき 10 種は m1362（INSRAW＝keep_1369/base_ins）と名乗り行を除いて全行バイト一致・.cost +0 秒・表の増減 0。savetest は基点と同じ 303（根は旗 FemalePartLawFree 1 の道）なら恒等。
+- 試験の数：3233 ＋ 9（WarWearyPoliticsCutTests 4・SatReadersToDiscontentTests 4〔T1・T2a・T2b・T3〕＋ DormantZeroFields は件数でなく表の 2 行）。= 3233＋8＝3241（Tests 側）。DormantIdentityTests の表に 2 行（宣言の行だけ）。
+
+[2] 外す物・残す物（読み手の grep＝SimCore・Runner・App・Display・Tests・scripts・measurements・POB_COEF・SaveGame）
+- 触る行：Politics.cs の CoercionNow・Step の warWeariness の行と MilWar・sum の行・dmWar の行・Discontent の先頭／FactionSnapshot.Participation／Ideology.cs の mil の宣言の行／Coefficients の旗 2 行。
+- Discontent の読み手（旗 1 で値が変わる側）：FactionSnapshot.DiscontentOf（Participation・Ideology）・Display/PopTables.cs:151・Runner/Program.cs:4336（計器）・Instruments/InstrumentsDiscontent.cs:41・Tests（DiscontentReaderTests ほか＝旗を明示しない既存の試験は旗 0）。旗 0 の経路は 1 ビットも変えない。
+- 外した読み手（この回は入れない・次の波で同じ旗へ足す）：Ḡ の読み手 Credit.cs:16・:31・:53・SelfPlay.cs:428・:984・PoliticalQuantities.cs:15〜:25・Politics.cs:198（Ḡ の定義は rw が決める）／犯罪 Crime.cs:23・:43（段③と同じ旗）／群 8 Politics.cs:256・:340・CrownParliament.cs:44。EconomyStep.cs:1226 は FactionSnapshot.Participation を読む（武器の市場）＝旗 1 で参加が D だけになる影響は点火の腕で読む（下書き反証役の低）。
+- DiscontentLawGap（Coefficients.cs:100）は消さない（休眠の器・DormantZeroFields に載る）。
+- 他の線との重なり：ts の計器のフックは Politics.cs :56〜:209 を避ける。sm は Simulation.cs :2119・TechEducation.cs:65 の別の行。sv は Politics.cs に触れない。ut が型へ替えた行（MilitancySpeed など）は触らない。
+- Toward を通らない手書きの寄り・減衰（直さず一覧・報告へ）：Politics.cs の Keep の掛け算（RuptureWindowQuarters 周辺・LostRegionsCumulative *= 1−ReplacementRate・:284〜:286 の周り）・Diplomacy.cs:856（WarExhaustion×WarWearinessKeepPerMonth）・Simulation.cs:2119（FoodFillSmoothing）・TechEducation.cs:65。
+
+[3] 足す試験と突然変異・走査の番人
+- WarWearyPoliticsCutTests（T1 闘争度の目標・T2 天命・T3 保持力・T4 旗 0 の対照）。盤面＝仏西の交戦中（前提の Assert で AtWar・厭戦の値）。
+  M1 CoercionNow の旗の枝を戻す→T3 赤／M2 warMilTerm を戻す→T1 赤／M3 dmWar を戻す→T2 赤。旗 0 では T1〜T3 は赤（T4 が旗 0 の感度を対照で確かめる）。
+- SatReadersToDiscontentTests（T1 声の項・T2a 参加・T2b 思想・T3 D∝G）。期待値は手計算のリテラル（WantWeight 0.8・落差 0.05/0.10/0.20）。
+  M4 Discontent の旗の枝を戻す→T1 赤（T3 も赤）／M5 Participation の max を戻す→T2a 赤／M6 Ideology の mil を戻す→T2b 赤。旗 0 では T1・T2a・T2b が赤。
+- 走査の番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。DerivedValueRatchetTests・ValueCountRatchetTests の数（㉑）：予言＝書き換え 0（この線は新しい値・欄・書き手を足さない＝旗の分岐だけ）。赤なら自分の値の行の数だけを上げ、件数を報告に書く。
+- 点検（grep）：工業化度の読み手の許可表に触れない・new MoneyStock( の件数は変わらない・route_anchors.tsv の鍵の行に書き足さない・WriterRatchetTests の宣言の表は変えない（欄を足さない）。
+
+[4] 素の 5 種（b5_20261125_m1362）・計器つき 10 種（b10_20261125_m1362_ins）が名乗り行を除いて全行一致（計器の表の差は宣言だけ＝計器の列は足さない）。
+[5]〈判定: 恒等〉なら採る。不一致なら、その変更を外して報告に回す。旗 1 の腕は波146。

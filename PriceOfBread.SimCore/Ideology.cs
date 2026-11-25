@@ -34,7 +34,7 @@ public static class Ideologies
             dSeen++;
             double disc = FactionSnapshot.DiscontentOf(w, p, dCoord, dLawGap);
             double rich = BaseWeights(p, r, meanWealth, w.Coef);
-            double cons = p.Consciousness, mil = p.Militancy;
+            double cons = p.Consciousness, mil = w.Coef.SatReadersToDiscontent > 0 ? disc : p.Militancy;   // (1371) 旗 1＝思想は D だけ（闘争度を読まない）
             if (disc > mil) mil = disc;
             double conserv = PoliticalQuantities.Clamp01(rich / 2.0);
             double prog = 1.0 - conserv;

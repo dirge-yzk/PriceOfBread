@@ -1,0 +1,2 @@
+# M2（HEAD）
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T1_旗1で闘争度の目標が厭戦に依らない [92 ms]

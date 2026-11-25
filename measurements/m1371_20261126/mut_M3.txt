@@ -1,0 +1,2 @@
+# M3（HEAD）
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T2_旗1で天命の目標が厭戦に依らない [5 s]

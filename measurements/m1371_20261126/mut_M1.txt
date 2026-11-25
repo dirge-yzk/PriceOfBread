@@ -1,0 +1,2 @@
+# M1（HEAD）
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T3_旗1で保持力の戦時の乗数が1 [76 ms]
