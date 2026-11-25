@@ -60,7 +60,7 @@ public static partial class Instruments
             Score = war.Score, ExhP = exhP, ExhR = exhR, CutP = cutP, CutR = cutR,
             Inherited = born is null ? double.NaN : born.Exhaustion, CapRising = born is null ? -1 : born.CapitalRising ? 1 : 0,
             Secession = war.CivilWarSecession, Verdict = (int)verdict, BlankSplit = !entryExit && verdict == WarVerdict.Blank,
-            Reserved = parent.Nation?.SecedingRegion is { } seat && rebel.Nation is { } rn && rn.Regions.Contains(seat),   // 親の首都の座が今も反乱国の手にある（Diplomacy.cs の分断の確定の判定と同じ式） EndPath = path, Collapse = collapse,
+            Reserved = parent.Nation?.SecedingRegion is { } seat && rebel.Nation is { } rn && rn.Regions.Contains(seat), EndPath = path, Collapse = collapse,   // Reserved＝親の首都の座が今も反乱国の手にある（Diplomacy.cs の分断の確定の判定と同じ式）
             ParentName = NameOf(parent), RebelName = NameOf(rebel), Parent = parent, Rebel = rebel,
         });
     }
