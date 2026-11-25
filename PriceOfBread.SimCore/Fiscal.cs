@@ -98,7 +98,7 @@ public static class Fiscal
         if (Instruments.On) Instruments.Revenue(w, revenue, indirectRevenue);
         w.LastRevenuePerMonth = new MoneyPerMonth(budgetBase); w.LastInterestPerMonth = new MoneyPerMonth(interest);
         w.LastAdminClaimPerMonth = new MoneyPerMonth(adminClaim);
-        w.FiscalCapacityPerMonth = new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : w.FiscalCapacityPerMonth.Value + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacityPerMonth.Value));
+        w.FiscalCapacityPerMonth = new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : PoliticalQuantities.Toward(w.FiscalCapacityPerMonth.Value, surplus, c.FiscalCapacitySmoothing));
 
 
         if (w.CurrencyReformCooldown > 0) w.CurrencyReformCooldown--;
