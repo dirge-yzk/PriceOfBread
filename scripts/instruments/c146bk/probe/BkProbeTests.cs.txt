@@ -1,0 +1,24 @@
+using PriceOfBread.SimCore;
+using Xunit;
+namespace PriceOfBread.Tests;
+public class BkProbeTests
+{
+    [Fact]
+    public void Probe()
+    {
+        var o = new System.Text.StringBuilder();
+        foreach (var kind in new[] { ScenarioKind.France })
+        foreach (ulong seed in new ulong[] { 1, 2 })
+        {
+            var sim = new Simulation(new Scenario { Seed = seed, Kind = kind }, new NullAgent());
+            for (int y = 0; y < 8; y++)
+            {
+                BkProbe.Reached = BkProbe.Old = BkProbe.New = BkProbe.Margin = BkProbe.OldOnly = BkProbe.NewOnly = BkProbe.Decides = BkProbe.Unreach = 0;
+                sim.Run(60);
+                int nb = 0, nf = 0; foreach (var p in sim.World.Region.Producers) { if (!p.IsRgo) nf++; if (p.Bankrupt) nb++; }
+                o.AppendLine($"{kind}\tseed{seed}\tyear5blk{y}\treached={BkProbe.Reached}\told={BkProbe.Old}\tnew={BkProbe.New}\tmargin={BkProbe.Margin}\toldOnly={BkProbe.OldOnly}\tnewOnly={BkProbe.NewOnly}\tdecides={BkProbe.Decides}\tunreach={BkProbe.Unreach}\tbankruptNow={nb}\tnonRgo={nf}");
+            }
+        }
+        System.IO.File.WriteAllText("D:/PoB_work/c146bk_work/probe_france.tsv", o.ToString());
+    }
+}
