@@ -101,11 +101,15 @@ public class TsregInstrumentTests
     public void T3_計器を切ると州の表も蓄えも作られない()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_tsreg_" + Guid.NewGuid().ToString("N"));
-        Instruments.Configure(null, null);
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia()], Seed, _ => new UtilityAgent());
-        sim.DiplomacyFrozen = true; sim.StartWarmup();
-        for (int q = 0; q < 8; q++) sim.StepQuarter();
-        Assert.Null(Instruments.TsSnapshot(sim.Market));
-        Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, $"tsreg_s{Seed}.tsv")));
+        Instruments.Configure(null, null); int every0 = Instruments.NgEveryYears; Instruments.NgEveryYears = 1;   // 調べる年を毎年にして、切っていなければ蓄えが作られる盤面にする
+        try
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia()], Seed, _ => new UtilityAgent());
+            sim.DiplomacyFrozen = true; sim.StartWarmup();
+            for (int q = 0; q < 8; q++) sim.StepQuarter();
+            Assert.Null(Instruments.TsSnapshot(sim.Market));
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, $"tsreg_s{Seed}.tsv")));
+        }
+        finally { Instruments.NgEveryYears = every0; }
     }
 }
