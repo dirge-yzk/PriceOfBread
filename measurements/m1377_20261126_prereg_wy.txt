@@ -1,0 +1,62 @@
+m1377 事前登録（c146wy・(1377) 挙動の線・点火：WarWearyPoliticsCut を旗 1 へ）  2026-11-26
+基準木 6584be56d（基線 m1362・INSRAW keep_1376/base_ins・KEEPNULL keep_1362・NG の基準 ng1362_20261125）。
+00一覧〈次の波（波146〜）〉1 の①。作者 2026-11-25（原文）「全て推奨でよい。それでいこう」で推奨を採った（点火の順の先頭＝作者「良い方で」で AI が選んだ）。3 回の規則の 1 回目。
+形は〈入口〉（尾ではない）＝交戦中の国と、戦後に厭戦が残る国の全ての四半期に効く（基線の scalars の行 147,324 のうち厭戦＞0 が 130,377）。
+
+[1] 形（項ごとに 1 コミット・新しい係数・状態・欄は 0）
+- 項 1：この事前登録（最初のコミット）。
+- 項 2（旗 0 のまま・恒等）：①InstrumentsScalars.cs:38 の dmWar の列を旗を通す形へ（`c.WarWearyPoliticsCut > 0 ? 0.0 : <今の式>`・else に今の式を字面のまま）。②Politics.cs:90 の手書きの Pos（`want > 0 ? want : 0.0`）を PoliticalQuantities.Pos(want) へ（`!(x > 0) ? 0 : x`＝NaN も 0・+0 も同じ＝ビットが同じ・SatReadersToDiscontent 1 の枝だけ）。③WarWearyPoliticsCutTests に計器の試験 T5（旗 0 と 1 の Theory）を足す。④台本 scripts/instruments/c146wy/。→ ㉘ の走査の番人 → 腕 Z（ident・段 1・別の worktree wt_c146wyz で項 2 の木）。
+- 項 3（挙動）：Coefficients.p02_borrow_polity_epidemic.cs:96 の既定を 1 に。DormantIdentityTests.cs:160 の行を〈★点火＝この表から外した〉の注へ（番人を写しただけ＝★(743) の改めの範囲・前例 :156・:159）。
+- 項 4（試験）：旧の規則を固定する試験の書き換え（[2] の一覧・試験ごとに〈Theory 化〉か〈㉜ の改め〉かを名乗る）。
+- 死ぬ係数（旗 1 で読まれない・消さずに名を報告・消すのは波147 の焼き込み）：WarRallyCoercion・WarRallyDecayPoint・WarCoercionDrain・WarWearinessMilitancy・DynMandateWarWeight。
+- 入れない物：焼き込み・厭戦の段 2・SatReadersToDiscontent の点火・Diplomacy.cs・Government.cs・Runner（Runner に旗の名の読み手は無い＝grep 0 件）。
+
+[2] 置き換える旧の規則と、それを固定する試験（grep の結果＝6584be56d の木の Tests/）
+- 旧の規則：①保持力の戦時の乗数＝1＋(戦時なら WarRallyCoercion×max(0,1−厭戦/WarRallyDecayPoint))−WarCoercionDrain×厭戦（Politics.cs:122〜:131）②闘争度の目標の厭戦の項＝WarWearinessMilitancy×厭戦（:168〜:169・MilWar）③天命の dmWar＝−DynMandateWarWeight×厭戦（:215）。
+- 名の grep（WarRallyCoercion|WarRallyDecayPoint|WarCoercionDrain|WarWearinessMilitancy|DynMandateWarWeight|WarWearyPoliticsCut|MilWar|dmWar|CoercionNow）で当たったクラス：CoercionNowTests・DormantIdentityTests・RevoltIgnitionTests・ScalarDeletionTests・WarWearyPoliticsCutTests。
+  - CoercionNowTests.cs:23〜:29（手で数えた式）・:31〜:50（Theory war）・:52〜:61（戦時と平時の比）＝既定の係数で旧の乗数を固定＝赤の見込み → Theory 化（旗 0 と 1 を盤面で置く・旗 0 は今の式・旗 1 は乗数 1・前提の Assert〈乗数が 1 でない〉は旗 0 の側だけ）。
+  - ScalarDeletionTests.cs:236〜:258（厭戦の 2 項は残る）＝旧の規則そのもの＝赤の見込み → ㉜ の改め（旗 1 で MilWar＝0・天命が厭戦に依らない＝新しい規則の式で書く・旗 0 の対照〈項が働く〉は旗を明示して残す＝盤面が厭戦に感度を持つ対照）。:10〜:11 の注も直す。
+  - RevoltIgnitionTests.cs:31（WarWearinessMilitancy＝0.35 の宣言）・:37（0.9×WarWearinessMilitancy＜門）・:127（闘争度の移動＝σ×(政治＋厭戦＋民族)）＝係数の値と恒等式＝旗 1 でも同じ式で通る見込み（:127 は MilWar が 0 になるだけで等式は成り立つ）→ 変えない（赤なら区分を名乗って直す）。
+  - DormantIdentityTests.cs:160 → 項 3。WarWearyPoliticsCutTests＝旗を盤面で置く＝変わらない。
+- WarExhaustion を読むその他の試験 12 クラス（CivilWarArmsDemandTests・CollapsePeaceTests・CpeaceColumnsTests・CwendInstrumentTests・DerivedValueRatchetTests・ForcedPeaceBlankTests・ImposeAndCrownSourceTests・ImposeCrownFromLoserTests・MilitaryWarMultContactTests・NationalismUnificationTests・UnitTypeTests・WarThemeTests）と、Coercion・DynasticMandate を読む 17 クラス（AdminDeletionTests・CrimeTests・CrownParliamentTests・ExplainTests・FiscalTests・FlagBake1282Tests・FlowMInstrumentTests・MandateWallStockCapTests・NationalConsciousnessRemovedTests・OpeningForcesTests・PolicyPoliticsTests・RuleOrderP1Tests ほか）は絞った試験に入れる。赤が出たら〈旧の規則の番人〉か〈試験のバグ〉か〈周りの壊れ〉かを読んで同じ線で直す（原因が読めない赤だけ止める）。
+
+[3] 予言（紙の台本 scripts/instruments/c146wy/paper_wy.py・今の盤面 keep_1376/base_ins で取った・出力 measurements/m1377_20261126/paper_base.txt）
+- 基線（旗 0）：scalars の行 147,324・交戦中 19,226・milWarMean≠0 の行 130,128（交戦中 18,977）・交戦中の milWarMean 平均 0.1215（最大 0.35）・交戦中の militancyMean 0.2167／平時 0.1106・交戦中の厭戦の中央 0.365（90% 0.786）。
+- 予言 P1：交戦中の国で闘争度の戦時の上げが消える＝腕 B の milWarMean は全ての行で 0。交戦中の militancyMean は下がる（目標から平均 0.12 が抜ける＝0.2167 から 0.10〜0.18 の向き〈推〉）。平時（戦後に厭戦が残る行）の militancyMean も下がる。
+- 予言 P2：保持力から戦時の上げと削りが両方消える。旧の式の乗数（表から数え直し）：＞1 は 8,962 行（全て交戦中・開戦の直後＝厭戦＜約 0.27）＝旗 1 で保持力が下がる側／＜1 は 114,773 行（交戦中 10,264・平時の戦後 104,509）＝旗 1 で上がる側。交戦中の乗数の平均 1.030・中央 0.972。〈向き〉交戦中は中央の行で保持力が上がり（長い戦争の後半の削りが消える）、開戦の直後の行で下がる。平時の戦後の行は上がる（平均の乗数 0.987→1）。
+- 予言 P3：天命の戦時の低下が消える（交戦中の dmWar 平均 −0.157）＝天命の平均（基線 0.648）は上がる。
+- 予言 P4（向き〈推〉）：闘争度の低下（P1）が保持力の開戦の直後の低下（P2 の 8,962 行）より大きい＝蜂起の点火（center_s ignitionViolentFlag・基線 26,500）は減る・内戦の終わり（cwend_s・基線 84 行）は減るか同じ。交戦中の暴力の点火（基線 1,762）の減りが平時（8,610）より比で大きい。〈二月革命型が構造的に消える〉恐れ＝記録の先頭（交戦中の点火の件数）。採否に使わない。
+- .cost は 0 秒（新しい処理なし・三項演算子の分岐だけ）。計算量の割り当て 0 秒。
+- 旗 1 の出力が旗 0 と違う行の数：成績表は大半の行が変わる見込み（入口の形）＝記録に数を書く。
+
+[4] 門（〈作者 2026-11-16 の決まり〉①）
+- 止める線：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・発散（1 四半期に 100 倍以上〔建国の直後の型と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕の件数と並べる・㊳〕・1e10 倍以上）・空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線 keep_1376/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+- 史実の桁の線（10 倍）：ng.sh（記録・基準 ng1362_20261125）の桁の外れは記録。
+- 単体の機構の試験（盤面を試験の中で置く）：WarWearyPoliticsCutTests T1（闘争度の目標が厭戦に依らない）・T2（天命）・T3（保持力の乗数が 1）・T5（計器の dmWar と milWarMean が旗 1 で 0・旗 0 で −DynMandateWarWeight×厭戦 と WarWearinessMilitancy×厭戦）。旗 0 で赤（M0）・突然変異で赤（下の表）。
+- 狙いどおり働いたかの観測量 G1（腕 B）：scalars の milWarMean≠0 の行が 0（エンジンが書いた p.MilWar を計器が人口で平均する＝本物の経路）。旗 0 の盤面（基線）で 130,128 行＝門が落ちることを紙の台本で確かめた。
+- 記録だけ：ヌル腕の幅（nullgate）・gdp_zero10・NG の集合・exact・near・開幕の 1000 倍以上・英の国債の不履行の種の数・同じ盤面の新÷旧（militancyMean・dynMandate・effectiveCoerceIndex・点火の件数）・dmWar の列（計器が旗を通して自分で数える＝自己一致＝門にしない）。
+- 突然変異ごとの赤（㉚・使い捨ての木・scripts/instruments/c146wy/mut_wy.sh・出力 measurements/m1377_20261126/mut/）：
+  | μ | 当て方 | 赤になる門 |
+  | M0 | 3 本の旗の分岐を全て `> 9`（旗 1 でも旧の式） | T1・T2・T3・T5（旗 1）・G1 |
+  | M1 | 保持力の枝を戻す（warDrain の旗を false） | T3・CoercionNowTests（旗 1） |
+  | M2 | 闘争度の項を戻す（warMilTerm の旗を false） | T1・T5（milWarMean）・ScalarDeletionTests（旗 1） |
+  | M3 | 天命の項を戻す（dmWar の旗を false） | T2・ScalarDeletionTests（旗 1） |
+  | M4 | 計器の :38 を旧の式へ戻す | T5（dmWar） |
+- 門の形の変え直しは 1 回だけ。結果を見た後に門を変えない。
+
+[5] 計算量：割り当て 0 秒（m1362 の推定 233.3 秒〔S11〕・上限 248.5 秒）。
+
+[6] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表：触らない（Politics.cs・InstrumentsScalars.cs の工業化度の読みは 0 本）。`new MoneyStock(` の件数：SimCore 66＝変わらない。route_anchors.tsv（scripts/instruments/flow262/）の Politics.cs の行は :59 の 1 本（革命の没収）＝触らない行。WriterRatchetTests の宣言の表：Politics の行に触れない＝変わらない。
+- ValueScan（DerivedValueRatchetTests）：旗の三項が文面に残る＝この線で数は動かない（Militancy@pop 14/7/37・WarExhaustion 3/7/34・DynasticMandate 2/1/4・ハッシュ 5:ea738c0b5255・2:b54fdc5e0994・1:64bd56268e60 のまま）。増えたら赤。Pos の書き換え（Politics.cs:90）は不満度の式＝表の値の名に入らない見込み。
+- 焼き込み（波147）で下がる見込みの数：Militancy@pop の入力（WarWearinessMilitancy×厭戦の読み 1）・DynasticMandate の入力（DynMandateWarWeight×厭戦の読み 1）・WarExhaustion の出力（Politics.cs の 3 か所と計器の 1 か所＝34 から最大 4）。
+
+[7] 周辺の点検（読むだけ・触らない）
+- 開戦の門の厭戦の読み WarWearyThreshold（Diplomacy.cs:1368・:1552・:1613・:1616・:2142・Formations.cs:401）と講和の aLoses（Diplomacy.cs:2406）は厭戦の欄を直に読む＝この旗に依らない＝段 2 の席。
+
+[8] 重なり（他の線の owns を grep）
+- c146kt：Coefficients.p02_borrow_polity_epidemic.cs:48〜:49 と DormantIdentityTests.cs:159 の周り＝この線の p02:96・DormantIdentityTests.cs:160 と隣の行（DormantIdentityTests は :159 と :160 が隣＝合流で解く）。
+- c146bk・c146rf：重なるファイル無し（rf の Simulation.cs・Government.cs ほかに触れない）。
+- 空洞化の組（README ★(1348)）：bk と同じ州を押す見込み〈推〉＝合流が 2 本の腕 B の 1/4 未満の州を突き合わせる。
+
+[9] 待ち方：bg.sh＋run_in_background・waitmark は 1 回 240 秒まで・1 つの手番に 1 つ。
