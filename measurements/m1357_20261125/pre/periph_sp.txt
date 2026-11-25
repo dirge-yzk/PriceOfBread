@@ -1,0 +1,31 @@
+PriceOfBread.SimCore/BilateralMarket.cs:1084:                    double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
+PriceOfBread.SimCore/BilateralMarket.cs:1123:                    msA.Stock -= qA; msA.LastExport += qA;
+PriceOfBread.SimCore/BilateralMarket.cs:1247:            w0.LastExportValue = exportVal[i];
+PriceOfBread.SimCore/Discovery.cs:580:                prod[g] += m.LastProduced; imp[g] += m.LastImport - m.LastExport; dem[g] += m.LastDemand;
+PriceOfBread.SimCore/EconomyStep.cs:115:        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+PriceOfBread.SimCore/EconomyStep.cs:137:        double sold = Catalog.FarmLaborId < region.Markets.Length ? region.Markets[Catalog.FarmLaborId].LastSold : 0;
+PriceOfBread.SimCore/EconomyStep.cs:799:            m.PrevImport = m.LastImport; m.PrevExport = m.LastExport;   // ★S2台帳衛生：ゼロ化前に前清算値を写す（読み手が居なければ書くだけ＝恒等）
+PriceOfBread.SimCore/EconomyStep.cs:800:            m.PrevStock = m.Stock; m.LastImport = 0; m.LastExport = 0;
+PriceOfBread.SimCore/EconomyStep.cs:801:            m.LastProduced = 0; m.LastSold = 0; m.LastShortage = 0;
+PriceOfBread.SimCore/EconomyStep.cs:1871:            m.LastSold = sold;
+PriceOfBread.SimCore/EconomyStep.cs:2454:                double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+PriceOfBread.SimCore/EconomyStep.cs:2473:                double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+PriceOfBread.SimCore/InternationalMarket.cs:106:        if (buyer is null && !(w.Coef.StateProcureAsSold > 0)) m.LastExport += buy;   // (1336) c140sp 旗 StateProcureAsSold 1：国家の購入（buyer null）も国内の買い手と同じく LastSold へ（造幣の引き取りと同じ）＝値段の式の需要の側が want（LastDemand）と buy（LastExport）で 2 回数えない
+PriceOfBread.SimCore/InternationalMarket.cs:107:        else m.LastSold += buy;
+PriceOfBread.SimCore/Invariants.cs:120:                double expected = m.PrevStock + m.LastProduced + m.LastImport - m.LastSold - m.LastExport;
+PriceOfBread.SimCore/Invariants.cs:123:                        $"{Name}：在庫 {m.Stock} ≠ 前在庫{m.PrevStock}＋生産{m.LastProduced}＋輸入{m.LastImport}−販売{m.LastSold}−輸出{m.LastExport}");
+PriceOfBread.SimCore/MarketFlow.cs:165:                double demandRaw = totalDemand + m.LastExport;   // (1175) 輸出も値段に映る（旗 PriceLawSeesExports 既定 1 を焼いた・需給差の需要の側に前の月の輸出を足す・在庫の目標には入れない）
+PriceOfBread.SimCore/MultiNationSim.cs:1349:                double v = Math.Max(0, nw.LastExportValue) + Math.Max(0, nw.LastImportValue);
+PriceOfBread.SimCore/PolicyPreferences.cs:221:                    double tradeBase = w.LastExportValue;
+PriceOfBread.SimCore/PoliticalQuantities.cs:109:        double mil = Math.Max(0, w.LastMilitaryClaimPerMonth.Value) + Math.Max(0, w.LastSoldierPayPerMonth.Value);
+PriceOfBread.SimCore/SelfPlay.cs:43:            if (Catalog.CoalId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CoalId].LastSold);
+PriceOfBread.SimCore/SelfPlay.cs:44:            if (Catalog.CrudeOilId < mk.Length) energy += PoliticalQuantities.Pos(mk[Catalog.CrudeOilId].LastSold) * oilToCoal;
+PriceOfBread.SimCore/SelfPlay.cs:47:        double mil = !(pl > 0) ? 0 : PoliticalQuantities.Pos(PoliticalQuantities.Pos(w.LastMilitaryClaimPerMonth.Value) + PoliticalQuantities.Pos(w.LastSoldierPayPerMonth.Value)) / pl;
+PriceOfBread.SimCore/SelfPlay.cs:358:        => (FiscalBufferOf(w) + (w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPayPerMonth).Value) * OpulenceBufferQuarters;
+PriceOfBread.SimCore/SelfPlay.cs:1107:            if (s == Stance.Industrialize && fiscalStress <= 1e-9 && w.LastExportValue > w.LastImportValue * DumpingExportRatio
+PriceOfBread.SimCore/Simulation.cs:1731:        World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
+PriceOfBread.SimCore/Simulation.cs:1876:            World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が後 段0）
+PriceOfBread.SimCore/Simulation.cs:1890:        double tradeClaim = World.Tariff < 0 ? World.LastExportValue / erClaim * -World.Tariff : 0;
+PriceOfBread.SimCore/Simulation.cs:2436:            m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
+PriceOfBread.SimCore/Territory.cs:168:            foreach (var m in r.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
+PriceOfBread.SimCore/World.cs:260:    ///   ⚠<see cref="Market.LastSold"/> を使ってはいけない＝工場投入・投資・軍需を含む合算で、それらは専売を1ポンドも払わない

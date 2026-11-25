@@ -103,8 +103,9 @@ public sealed partial class InternationalMarket
         if (buyer is not null && pay > buyer.Savings.Value) { pay = Math.Max(0, buyer.Savings.Value); buy = pay / m.Price; }
         if (buy <= 1e-9) return 0;
         m.Stock -= buy;
-        if (buyer is null) m.LastExport += buy;
+        if (buyer is null && !(w.Coef.StateProcureAsSold > 0)) m.LastExport += buy;   // (1336) c140sp 旗 StateProcureAsSold 1：国家の購入（buyer null）も国内の買い手と同じく LastSold へ（造幣の引き取りと同じ）＝値段の式の需要の側が want（LastDemand）と buy（LastExport）で 2 回数えない
         else m.LastSold += buy;
+        if (buyer is null) Instruments.StProcIfOn(w, want, buy, m.Price);   // (1336) stproc_s の受け口（中で Instruments.On を読む）
         PaySales(buyer is null ? (w, null) : (w, [buyer]), r, g, pay, w, cat, routeFile: routeFile, routeLine: routeLine);
         return buy;
     }

@@ -4,6 +4,7 @@ namespace PriceOfBread.SimCore;
 
 public sealed partial class Coefficients
 {
+    public double StateProcureAsSold = 1.0;   // (1336) c140sp・(1357) c143sp 2026-11-25 点火（腕 B の木）：1＝国家の購入（InternationalMarket.Procure の buyer null）を LastExport でなく LastSold に積む（値段の式が国家の需要を 2 回数えない）・0＝今の形。番人 StateProcureLedgerTests
     // === 港湾容量（国家プロジェクト＋資本家参入・改修2026-06-28）。運河(StepCanals)を雛形に、港州の取扱容量を投資で積む。港0なら従来挙動＝較正中立。多国シム専用（StepPorts）===
     public RatePerQuarter PortInvestFrac = new(0.04);       // 資本家が毎四半期 港へ投じる州投資家貯蓄の割合（混雑時のみ＝採算ゲート）
     public Share PortStateFrac = new(0.15);        // 国家が港建設に投じる裁量余剰（FiscalCapacityPerMonth＝純税収から利払い・行政・軍需の請求を引いた余り）のシェア＝行政費予算の一部

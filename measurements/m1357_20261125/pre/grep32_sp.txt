@@ -1,0 +1,114 @@
+PriceOfBread.Tests/BillBlockedColumnsTests.cs:36:            var m = r.Markets[gd.Id]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0;
+PriceOfBread.Tests/CapSkipSellerPotentialTests.cs:58:        foreach (var n in b.Sim.Nations) foreach (var r in n.World.Regions) { var m = r.Markets[b.G]; m.LastExport = 0; m.LastImport = 0; }
+PriceOfBread.Tests/CapSkipSellerPotentialTests.cs:66:        foreach (var n in b.Sim.Nations) foreach (var r in n.World.Regions) { var m = r.Markets[b.G]; sb.Append(BitConverter.DoubleToInt64Bits(m.Stock)).Append(',').Append(BitConverter.DoubleToInt64Bits(m.LastExport)).Append(',').Append(BitConverter.DoubleToInt64Bits(m.LastImport)).Append(';'); }
+PriceOfBread.Tests/CapSkipSellerPotentialTests.cs:97:        Assert.Equal(0.0, a0.Markets[b0.G].LastExport);
+PriceOfBread.Tests/CapSkipSellerPotentialTests.cs:99:        Assert.True(a1.Markets[b1.G].LastExport > 1e-9, $"旗 1 で次の四半期に A が売れていない（{a1.Markets[b1.G].LastExport}）");
+PriceOfBread.Tests/CapSkipSellerPotentialTests.cs:172:                cols.Add(b.Sellers[1].LastTradePotential); cols.Add(b.Sellers[1].Markets[b.G].LastExport);
+PriceOfBread.Tests/CapSkipSellerPotentialTests.cs:198:        double done0 = b0.Sellers[1].Markets[b0.G].LastExport, done1 = b1.Sellers[1].Markets[b1.G].LastExport;
+PriceOfBread.Tests/CearnTradeColumnsTests.cs:235:                var m = r.Markets[gd.Id]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0;
+PriceOfBread.Tests/ClearingFillInstrumentTests.cs:105:                    var m = r.Markets[g]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0; m.PrevImport = 0; m.PrevExport = 0; m.LastShortage = 0;
+PriceOfBread.Tests/ClearingLowerBoundTests.cs:26:            foreach (var r in w.Regions) { A(r.SumPopulation()); A(r.SumSavings().Value); foreach (var m in r.Markets) { A(m.Price); A(m.Stock); A(m.LastImport); A(m.LastExport); } }
+PriceOfBread.Tests/ClearingScopeTests.cs:49:            m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0; m.PrevImport = 0; m.PrevExport = 0; m.LastShortage = 0;
+PriceOfBread.Tests/ClearingScopeTests.cs:66:        foreach (var r in sellers) { var m = r.Markets[g]; m.LastExport = 0; m.LastImport = 0; }
+PriceOfBread.Tests/ClearingScopeTests.cs:68:        foreach (var r in buyers) { var m = r.Markets[g]; m.PrevImport = 1; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; }
+PriceOfBread.Tests/ClearingScopeTests.cs:160:            foreach (var r in sellers) { var m = r.Markets[g]; m.LastExport = 0; m.LastImport = 0; }
+PriceOfBread.Tests/ClearingScopeTests.cs:162:            foreach (var r in buyers) { var m = r.Markets[g]; m.PrevImport = 0; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.LastShortage = 1; m.Price *= priceUp; }
+PriceOfBread.Tests/ClearingScopeTests.cs:201:        Assert.True(sellers.Sum(r => r.Markets[g].LastExport) > 1e-9, "最初の清算で買い手が成約していない（盤面の前提の破れ）");
+PriceOfBread.Tests/ClearingScopeTests.cs:229:            detail += $" K={K}:[" + string.Join(",", sellers.Select((r, i) => $"{(i == xi ? "X" : "-")}{r.Name}:exp{r.Markets[g].LastExport:F1}/price{r.Markets[g].Price / wp:F2}/stock{r.Markets[g].Stock:F0}/target{r.Markets[g].TargetStock:F0}")) + $" 買い手 {buyer.Name} の輸入 {buyer.Markets[g].LastImport:F1}]";
+PriceOfBread.Tests/ClearingScopeTests.cs:230:            return sellers[xi].Markets[g].LastExport;
+PriceOfBread.Tests/ClearingScopeTests.cs:251:                    l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); l.Add(m.Price);
+PriceOfBread.Tests/ClearingScopeTests.cs:279:            full = sellers[xi].Markets[g].LastExport;
+PriceOfBread.Tests/ClearingScopeTests.cs:292:                    l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); l.Add(m.Price);
+PriceOfBread.Tests/ClearingScopeTests.cs:295:            return (l, sellers[xi].Markets[g].LastExport, sellers.Where((_, i) => i != xi).Sum(r => r.Markets[g].LastExport));
+PriceOfBread.Tests/ClearingScopeTests.cs:318:            return (sellers[0].Markets[g].LastExport, sellers[1].Markets[g].LastExport);
+PriceOfBread.Tests/ClearingScopeTests.cs:336:            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { var m = r.Markets[g]; l.Add(m.Stock); l.Add(m.LastImport); l.Add(m.LastExport); }
+PriceOfBread.Tests/ClearingScopeTests.cs:385:            foreach (var r in sellers) { var sm = r.Markets[g]; sm.LastExport = 0; sm.LastImport = 0; }
+PriceOfBread.Tests/ClearingScopeTests.cs:388:            return sellers[xi].Markets[g].LastExport;
+PriceOfBread.Tests/ClearingScopeTests.cs:404:            return (sellers[xi].Markets[g].LastExport, buyer.Markets[g].LastImport);
+PriceOfBread.Tests/ClearingScopeTests.cs:436:                var m = r.Markets[g]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0; m.PrevImport = 0; m.PrevExport = 0; m.LastShortage = 0;
+PriceOfBread.Tests/ClearingScopeTests.cs:444:            Assert.True(sellers.Sum(r => r.Markets[g].LastExport) > 1e-9, "最初の清算で成約していない（盤面の前提の破れ）");
+PriceOfBread.Tests/ClearingScopeTests.cs:449:            foreach (var r in sellers) { var m = r.Markets[g]; m.LastExport = 0; m.LastImport = 0; }
+PriceOfBread.Tests/ClearingScopeTests.cs:451:            { var m = buyer.Markets[g]; m.PrevImport = 1; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; }
+PriceOfBread.Tests/ClearingScopeTests.cs:456:            double others = 0; for (int i = 0; i < sellers.Count; i++) if (i != xi) others += sellers[i].Markets[g].LastExport;
+PriceOfBread.Tests/ClearScratchTests.cs:21:            sb.Append(w.Region.Name).Append('|').Append(B(w.LastImportValue)).Append('|').Append(B(w.LastExportValue)).Append('|')
+PriceOfBread.Tests/ClearScratchTests.cs:76:        Assert.Contains(sim.Nations, n => n.World.LastImportValue > 0 || n.World.LastExportValue > 0);   // 越境の取引が1件も無いなら上の一致は空洞
+PriceOfBread.Tests/CorncfInstrumentTests.cs:125:                    foreach (var rg in o.Regions) { prod += rg.Markets[g].LastProduced; imp += rg.Markets[g].LastImport - rg.Markets[g].LastExport; dem += rg.Markets[g].LastDemand; }
+PriceOfBread.Tests/DiscoveryScoreTests.cs:61:        foreach (var rg in w.Regions) if (rg.State == RegionState.Active) { d += rg.Markets[g].LastDemand; p += rg.Markets[g].LastProduced; im += rg.Markets[g].LastImport - rg.Markets[g].LastExport; }
+PriceOfBread.Tests/DormantIdentityTests.cs:58:        // ★NavalPortProcurement（(606)(669)(679) 線 navf4 海軍の需要の道）は 2026-10-30 に 1 で**点火**＝この表から外した。(824) で旗ごと削除（RetiredFields）。番人は NavalPortProcurementTests。
+PriceOfBread.Tests/DormantIdentityTests.cs:280:        "PriceLawSeesExports", "LaborBandFloorOffGate",   // (1175) c116cl：既定 1 の旗 2 本を焼き込んだ（輸出を需要に足す式・労働 3 財の帯の床の撤去＝常に 1 の経路・旗 0 の番人は LaborMarketFormTests で今の盤面へ移した）
+PriceOfBread.Tests/DormantIdentityTests.cs:285:        "MilitaryProcurePriceGateScale",   // (1132) c110sm K1：軍需財の価格ゲート倍率（既定 1 の経路だけ残した・FactoryBuildPriceGateScale は FactoryTierTests が 0 を置く本物の読み手があるので残す）
+PriceOfBread.Tests/DormantIdentityTests.cs:286:        "GarrisonProcurement",             // (1132) c110sm K2：駐屯州調達の器（既定 0・旗 0 の道だけ残した・★(1129) ③ 作者「しばらくの間、全て推奨で」で推奨を採った）
+PriceOfBread.Tests/DormantIdentityTests.cs:362:        "NavalProcurementNeedsPort", "CrossBorderMigrationByOpportunity",
+PriceOfBread.Tests/DormantIdentityTests.cs:366:        "NavalPortProcurement",   // (824) c65id：I5 の旗の焼き込み（国の海軍の発注と予算を本国格の港の州へ配る・既定 1 の経路だけ残した）
+PriceOfBread.Tests/EconomyTests.cs:40:        mS.LastDemand = 1e-6; mS.LastProduced = 0; mS.LastImport = 0; mS.LastExport = 0; mS.Stock = 0; mS.Price = 49 * rpS;       // 供給も在庫も無い（上に張り付く）・需要は Eps の桁（閉じた式を使えない＝日次の経路）
+PriceOfBread.Tests/EconomyTests.cs:41:        mG.LastDemand = 10; mG.LastProduced = 1000; mG.LastImport = 0; mG.LastExport = 0; mG.Stock = 5000; mG.Price = 0.05 * rpG;   // 供給過剰（帯の下の端＝日次の経路）
+PriceOfBread.Tests/EconomyTests.cs:72:        foreach (var m in new[] { mF, mN }) { m.LastDemand = 100; m.LastProduced = 100; m.LastImport = 0; m.LastExport = 0; m.Stock = 100; }   // 需要＝供給＝価格だけが参照から離れている
+PriceOfBread.Tests/EconomyTests.cs:100:            m.LastDemand = 0; m.LastProduced = 0; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.Price = 3 * g.RefPrice * r.PriceLevel;   // 死んだ財（参照より高い値のまま置く）
+PriceOfBread.Tests/EconomyTests.cs:174:        mS.LastDemand = 10; mS.LastProduced = 0; mS.LastImport = 0; mS.LastExport = 0; mS.Stock = 0; mS.Price = 49 * rpS;         // 供給も在庫も無い（上に張り付く）
+PriceOfBread.Tests/EconomyTests.cs:175:        mG.LastDemand = 10; mG.LastProduced = 1000; mG.LastImport = 0; mG.LastExport = 0; mG.Stock = 5000; mG.Price = 0.05 * rpG;   // 供給過剰（帯の下の端）
+PriceOfBread.Tests/EconomyTests.cs:210:            m.LastDemand = demand; m.LastProduced = 0; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.Price = 49 * rp;   // 供給も在庫も無い（上に張り付く）
+PriceOfBread.Tests/EquipDiscoveryTests.cs:155:    /// <summary>同じ州で技術を下げると、必要額（MilitaryProcurementNeed＝財政の軍事費の請求の上限と軍需予算の上限が読む見積）が
+PriceOfBread.Tests/EquipDiscoveryTests.cs:175:        double needLow = EconomyStep.MilitaryProcurementNeed(r, c);
+PriceOfBread.Tests/EquipDiscoveryTests.cs:183:        double needHigh = EconomyStep.MilitaryProcurementNeed(r, c);
+PriceOfBread.Tests/EquipDiscoveryTests.cs:186:        double needHighWithoutUndiscovered = EconomyStep.MilitaryProcurementNeed(r, c);
+PriceOfBread.Tests/Hz8IdentityTests.cs:58:                double got = EconomyStep.StateProcureWant(need, price, mul, budget, 1.0, out double estOut);
+PriceOfBread.Tests/Hz8IdentityTests.cs:65:                Assert.Equal(Bits(need * afford), Bits(EconomyStep.StateProcureWant(need, price, 1.0, budget, 1.0, out _)));
+PriceOfBread.Tests/Hz8IdentityTests.cs:71:                Assert.Equal(Bits(need * afford * gate), Bits(EconomyStep.StateProcureWant(need, price, 1.0, budget, gate, out _)));
+PriceOfBread.Tests/Hz8IdentityTests.cs:85:                double got = EconomyStep.SettleStateProcure(r, want, ration, clear, mul, rev, 1);
+PriceOfBread.Tests/Hz8IdentityTests.cs:98:            Assert.Equal(Bits(admin), Bits(EconomyStep.StateProcureFill(got, need, 0.0)));
+PriceOfBread.Tests/Hz8IdentityTests.cs:99:            Assert.Equal(Bits(infra), Bits(EconomyStep.StateProcureFill(got, need, 1.0)));
+PriceOfBread.Tests/Hz8IdentityTests.cs:100:            Assert.Equal(Bits(elec), Bits(EconomyStep.StateProcureFill(got, need, 0.0)));
+PriceOfBread.Tests/Hz8IdentityTests.cs:102:        Assert.Equal(1.0, EconomyStep.StateProcureFill(5.0, 0.0, 1.0));   // 手の値：必要 0 の上下水道は満額
+PriceOfBread.Tests/Hz8IdentityTests.cs:103:        Assert.Equal(0.0, EconomyStep.StateProcureFill(5.0, 0.0, 0.0));   // 手の値：必要 0 の行政と電化インフラは 0
+PriceOfBread.Tests/ImportPayerLiveTests.cs:40:            m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0;
+PriceOfBread.Tests/InstrumentsTests.cs:570:            // ★(264) 反証役 rv 中#1・低#2：経路名は呼び手の位置。PaySales／Procure の中の Transfer（InternationalMarket.cs）は経路に出ない＝呼び手の位置を Transfer へ渡す。
+PriceOfBread.Tests/InstrumentsTests.cs:1290:    /// （<c>Transfer(</c>・<c>Blend(</c>・<c>PaySales(</c>・<c>Procure(</c>・<c>GiveGold(</c>・<c>TakeGold(</c>）を含むことを確かめる。期待はソースの本文（鍵の表とは別の出所）。
+PriceOfBread.Tests/InstrumentsTests.cs:1309:        string[] calls = ["Transfer(", "Blend(", "PaySales(", "Procure(", "GiveGold(", "TakeGold("];
+PriceOfBread.Tests/LaborClosedTests.cs:26:        m.LastDemand = demand; m.LastProduced = supply; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.LastSold = System.Math.Min(demand, supply);
+PriceOfBread.Tests/MilitaryTests.cs:248:        //   （2026-09-29 処理の一元化 段3 K＝国家の調達の1本 Colonial.BuyUpkeepGood・区分＝戦費）。
+PriceOfBread.Tests/MilitaryTests.cs:259:        for (int k = 0; k < goods.Length; k++) { st0[k] = m[goods[k]].Stock; ex0[k] = m[goods[k]].LastExport; px[k] = System.Math.Max(m[goods[k]].Price, 1e-9); }
+PriceOfBread.Tests/MilitaryTests.cs:269:            Assert.Equal(u, m[goods[k]].LastExport - ex0[k], 6);   // 市場から出た量＝財の出入りの台帳に載った量
+PriceOfBread.Tests/MilitaryTests.cs:395:    /// <summary>★国家の調達（補給財・侵攻の物資・海軍の燃料＝Colonial.BuyUpkeepGood）の代金は、その財の生産者の④の持分（地代・国営持分・賃金）へ。旧＝本国の全POP へ頭数。
+PriceOfBread.Tests/MilitaryTests.cs:410:            Colonial.BuyUpkeepGood(w, cap, good, scale * best, TreasuryCat.ColonialUpkeep);
+PriceOfBread.Tests/MilitaryTests.cs:723:    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。★(685) 合流：国の予算は本国格の港の州へ配られる（旗 NavalPortProcurement は (824) で焼き込み）＝比は〈Σ州の海軍の予算÷首都の陸の上限〉で読む。州ごとの配りの番人は NavalPortProcurementTests。
+PriceOfBread.Tests/MilitaryTests.cs:744:    /// 切り捨てを外すと予算は装備の器×海の金の割合のままで必要量に依らない＝比が 1 になって赤。（(824) で旗 NavalPortProcurement を焼き込み、旧の経路の navalCap〔首都の 1 本・M1b〕は死んだコードとして消えた＝旗 0 の行を消した。）
+PriceOfBread.Tests/MilitaryTests.cs:853:        double need0 = EconomyStep.MilitaryProcurementNeed(r, c);
+PriceOfBread.Tests/MilitaryTests.cs:856:        Assert.Equal(need0, EconomyStep.MilitaryProcurementNeed(r, c));
+PriceOfBread.Tests/MilitaryTests.cs:879:            r.NavalOrder = q;   // ★(679) 旗 NavalPortProcurement〔(824) で焼き込み〕：発注は月次の書き手 Simulation が州に配る（Run を直に呼ぶ本試験は Simulation を通らない）＝首都の州だけが港の盤面で Simulation が書く発注（国の発注×割合 1）を置く
+PriceOfBread.Tests/ModernizeReturnAndScoreTests.cs:171:            w.LastExportValue = 100; w.LastImportValue = 10;   // 輸出超過比 10＞1.3
+PriceOfBread.Tests/MultiNationTests.cs:132:        bool Traded(World w) => w.LastImportValue + w.LastExportValue > 1e-9;
+PriceOfBread.Tests/MultiNationTests.cs:143:        double TX(World w) => w.LastImportValue + w.LastExportValue;   // 越境の取引（運賃0＝どちらも積出し価格）
+PriceOfBread.Tests/NavalPortProcurementTests.cs:6:/// <summary>★(606) 線 navf／★(669) 線 navf3（海軍の需要の道・読む線 nav〔(594)〕の答え）の番人。艦の発注と予算を国の**本国格の港の州**へ配る（旗 NavalPortProcurement は (679) 線 navf4 で既定 1 に点火・(824) で焼き込み）。
+PriceOfBread.Tests/NavalPortProcurementTests.cs:9:public class NavalPortProcurementTests
+PriceOfBread.Tests/NavalPortProcurementTests.cs:76:    /// 盤面＝英仏。60日（艦の目標が無い間）→海の必要量を置いて月次の予算が書かれる最初の日に比べる（(824) で旗 NavalPortProcurement の焼き込みに伴い旗 0 の盤面を外した）。
+PriceOfBread.Tests/NavalPortProcurementTests.cs:165:    /// 旗 NavalPortProcurement の焼き込みで Territory の条件が外れた行（突然変異 M7＝その行を消す→緑で穴と判った）の番人。盤面＝英仏を60日→英の州2に予算 5 と発注を手で置き、仏へ割譲する。期待値は手で置いた値から独立に作る（0 と null）。</summary>
+PriceOfBread.Tests/NavalPortProcurementTests.cs:183:    /// （旗 NavalPortProcurement の焼き込み〔(824)〕で、旧の枝〈首都の州の予算 ÷ 首都の値段の必要額〉を確かめる試験を消した。）</summary>
+PriceOfBread.Tests/PriceStepDaysTests.cs:22:            m.LastDemand = cases[i].demand; m.LastProduced = cases[i].supply; m.LastImport = 0; m.LastExport = 0; m.Stock = cases[i].stock;
+PriceOfBread.Tests/ServiceClosedTests.cs:24:        m.LastDemand = demand; m.LastProduced = supply; m.LastImport = 0; m.LastExport = 0; m.Stock = 0;
+PriceOfBread.Tests/SmallFixes471Tests.cs:249:        Assert.Equal(sellerReg.Markets[g].LastExport, Imported(frBuyers, g), 6);
+PriceOfBread.Tests/TakeDustFloorTests.cs:129:                var m = r.Markets[gd.Id]; m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0;
+PriceOfBread.Tests/TradeClearingTests.cs:40:            m.LastDemand = 0; m.LastProduced = 0; m.LastExport = 0; m.LastImport = 0;
+PriceOfBread.Tests/TradeClearingTests.cs:57:    /// <summary>(1175) 旗 PriceLawSeesExports を焼いた後の番人：同じ需給の財で、前の月の輸出が大きい世界は値段が同じか高い（輸出は需給差の需要の側に映る）。
+PriceOfBread.Tests/TradeClearingTests.cs:73:                m.LastExport = export;
+PriceOfBread.Tests/TradeClearingTests.cs:103:        double othersAfter = 0, imported = 0, exported = seller.Markets[g].LastExport + seller2.Markets[g].LastExport;
+PriceOfBread.Tests/TradeClearingTests.cs:120:        Assert.True(seller.Markets[g].LastExport > 1e-9, "最安の売り手から買っていない");
+PriceOfBread.Tests/TradeClearingTests.cs:121:        Assert.True(seller2.Markets[g].LastExport > 1e-9,
+PriceOfBread.Tests/TradeClearingTests.cs:139:        Assert.Equal(0.0, w.LastExportValue);
+PriceOfBread.Tests/TradeClearingTests.cs:159:            { moved += r.Markets[g].LastExport; port += r.LastPortThroughput; }
+PriceOfBread.Tests/TradeClearingTests.cs:169:        Assert.True(seller2.Markets[g2].LastExport > 1e-9, "トスカーナの港が国内の州へ売っていない（テスト前提の破れ）");
+PriceOfBread.Tests/TradeClearingTests.cs:170:        Assert.True(genoa.LastExportValue > 1e-9, "越境の輸出が立っていない（テスト前提の破れ）");
+PriceOfBread.Tests/TradeClearingTests.cs:171:        Assert.Equal(0.0, tuscany.LastExportValue);                                 // 買い手はトスカーナの内陸州だけ＝トスカーナの売りは全て国内
+PriceOfBread.Tests/TradeClearingTests.cs:172:        Assert.Equal(genoa.ExportsByGood!.Sum(), genoa.LastExportValue, 9);
+PriceOfBread.Tests/TradeClearingTests.cs:174:        Assert.True(tuscany.LastImportValue > genoa.LastExportValue, "輸入（CIF）が輸出（FOB）に運賃を足した額になっていない");
+PriceOfBread.Tests/TradeClearingTests.cs:175:        Assert.True(tuscany.LastImportValue - genoa.LastExportValue <= genoa.LastExportValue * sea.Coef.FreightRatePer10Mm * 2.0, "運賃が積出し価格×運賃率×(距離÷1万km) の桁を超えた");
+PriceOfBread.Tests/TradeClearingTests.cs:194:            double q = 0; foreach (var r in gen.Regions) q += r.Markets[g].LastExport;
+PriceOfBread.Tests/TradeClearingTests.cs:195:            Assert.True(q > 1e-9 && gen.LastExportValue > 1e-9, "ジェノヴァの越境の輸出が立っていない（テスト前提の破れ）");
+PriceOfBread.Tests/TradeClearingTests.cs:196:            return (gen.LastExportValue / q, tus.LastTariffRevenuePerClearing, tus.TreasuryLedger[(int)TreasuryCat.Tariff] - led0, gen.LastExportValue);
+PriceOfBread.Tests/TradeClearingTests.cs:575:        Assert.True(Math.Abs(dg) > 1e-9 && gen.LastExportValue > 1e-9, "越境の取引が立っていない（テスト前提の破れ）");
+PriceOfBread.Tests/TradeClearingTests.cs:609:            if (!manySellers) Assert.True(seller.Markets[g].LastExport > 1e-9 && seller2.Markets[g].LastExport > 1e-9, "最安と次善の両方から買っていない（テスト前提の破れ）");
+PriceOfBread.Tests/TradeClearingTests.cs:610:            if (manySellers) Assert.True(sellers.Count(s => s.Markets[g].LastExport > 1e-9) >= 3, "3つ以上の売り手から買っていない＝最良が何度も替わる盤面でない（テスト前提の破れ）");
+PriceOfBread.Tests/TradeClearingTests.cs:616:                Add(w.BaseMoney.Value); Add(w.CumulativeTradeFlow.Value); Add(w.Treasury.Value); Add(w.LastExportValue); Add(w.LastImportValue); Add(w.LastTariffRevenuePerClearing);
+PriceOfBread.Tests/TradeClearingTests.cs:620:                    foreach (var m in r.Markets) { Add(m.Stock); Add(m.LastImport); Add(m.LastExport); }
+PriceOfBread.Tests/TransitTests.cs:126:        bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
+PriceOfBread.Tests/TransitTests.cs:167:        var bm = bern.Markets[gd.Id]; bm.Price = 0.001 * wp; bm.Stock = 20000; bm.TargetStock = 10000; bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
+PriceOfBread.Tests/WriterRatchetTests.cs:419:    // ★(679) 線 navf4 表の更新（NavalPortProcurement を既定 1 へ点火＝港の州の造船所が自分の市場の需要を受けて建設の見る生産者が増えた軌道・新しい計数の処理は無い）：

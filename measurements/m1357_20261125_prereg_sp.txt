@@ -1,0 +1,111 @@
+(1357) c143sp 挙動の線の事前登録：国家の購入（Procure の buyer null）を LastExport でなく LastSold に積む（旗 StateProcureAsSold・3 回の規則の 2 回目＝次が最後・形は (1336) のまま）（2026-11-25・担当 Opus 5.5・腕の前のコミット）
+
+■ 写した元と変えた所
+ 元＝(1336) の事前登録 measurements/m1336_20261124_prereg_sp.txt（origin/c140sp の bdba40d57・main には無い）。形・試験・突然変異・計器の列は全て同じ。
+ 変えた所（名乗る）：
+  ① 基線を m1334 から m1355 へ（main 1cb76c40c・hf〔DomesticStayFoodFill 1〕＋ds〔DestFoodSymmetric 1〕＋lr〔ProtectedLawsReversible 1〕の上）。比べる生＝INSRAW D:/PoB_work/keep_1355/base_ins・ヌル腕＝keep_1355/n1・n2・a11。NG の基準＝rd:measurements/ng1355_20261125:m1355（88 件）。
+  ② 反証役 v（中）の指摘への答え（下の〈v への答え〉）。
+  ③ 予言（フォートウィリアム型）を足した（下の〈段 0 の予言〉0-5・門ではない＝記録）。
+  ④ 台本は scripts/instruments/c140sp/ を c143sp/ へ写した（compare_sp.py の STATE_BUYS の直し 45e3cbb14 を含む・keep_1334→keep_1355・m1334→m1355・ng1334→ng1355 の置き換えだけ）。読み手 fw_sp.py を足した（予言の数を数えるだけ）。
+ 出発：00一覧〈次の波（波143〜）〉2 の②（ds を採った木の上で・(1346) の推奨のまま）。1 回目 (1336) は合流 (1341) で外した＝hf と合わせた木の M で種 1 フォートウィリアム（アメリカ・植民地格）70.0 千人→6.99＝0.089〈線が原因〉（単独の sp の腕 B では 1/10 未満 0）。作者 2026-11-23「すべて推奨で」で推奨を採った。答え待ちではない。
+ 形の種類＝〈入口〉（国家の購入の台帳の欄だけを付け替える・値段の式・在庫・代金の道は今のまま）。形は AI の案・確証なし（設計思想⑨ 二重計上の禁止の当てはめ）。
+
+■ 現物（main 1cb76c40c・grep で確かめた）
+ InternationalMarket.cs:96〜:110 Procure：:99 m.LastDemand += want・:106 if (buyer is null) m.LastExport += buy・:107 else m.LastSold += buy。
+ MarketFlow の値段の需要の側＝LastDemand＋LastExport（(1175) の焼き込み）＝国家の買いが want（LastDemand）と buy（LastExport）で 2 回入る（(1336) の読みと同じ・行は (1336) の事前登録を参照）。
+ buyer null の呼び手は Colonial.BuyUpkeepGood（route_anchors.tsv:7 の鍵の行）だけ。
+
+■ 置き換える旧の規則と、それを固定する試験（㉜・grep の結果＝measurements/m1357_20261125/pre/grep32_sp.txt・Procure|LastExport|PriceLawSeesExports|BuyUpkeepGood|StateProcureAsSold|StProc で 114 行・(1336) は 115 行）
+ 旧の規則：buyer null の購入の量を LastExport に積む。
+ 旧の規則を固定する Assert：MilitaryTests.cs:269 `Assert.Equal(u, m[goods[k]].LastExport - ex0[k], 6)`（:259 の ex0 の取り）＝旗 1 で赤の予言 1 件。書き換え（旗 1 のコミットで）：LastExport を LastSold に（(1336) の 3e6b48ca8 と同じ 2 行）。守っていた性質〈市場から出た量＝財の出入りの台帳に載った量〉は残す。書き換えを外す突然変異 μ6 で赤。
+ 赤にならない予言：TradeClearingTests・SmallFixes471Tests・MilitaryTests の代金の行き先・EconomyTests・TransitTests・PriceStepDaysTests ほか（(1336) の読みと同じ）。DormantIdentityTests の PriceLawSeesExports（焼き込み済みの名の表）は触らない。
+
+■ 段 0 の予言（ソースと基線の生から・腕の前）
+ 0-1〜0-4 は (1336) と同じ（国家が買う財の値段は下がる向き・BilateralMarket の yPrice の二重の別の読み手・Discovery の純輸入・GoodsBalance は保たれる・〈悪くする〉の予言ではない＝腕を回す）。
+ 0-5 予言（フォートウィリアム型・記録・門ではない）：fw_sp.py（開幕の 3 倍以上に膨らみ、その後ピークの 1/4 を割る州の件数・名指しの 3 州の落ち込みの最小）を m1355 の生で回した値（腕の前）：
+   M（keep_1355/base_ins）：件数 合計 4（種 3 ジブラルタル 0.220・種 5 イカルイト 0.182〔例外〕・種 9 バロー 0.241〔例外〕・種 10 セントポール 0.170）。
+   N1：合計 2（種 1 セントポール 0.181・種 10 バロー 0.194）。N2：合計 3（種 1 ニューヨーク 0.225・種 2 ナイン 0.058〔例外〕・種 5 セントポール 0.204）。
+   種 1 フォートウィリアム：M 最初 8.10 千人・ピーク 10.05・落ち込みの最小 0.845（N1 ピーク 41.71・0.324／N2 ピーク 9.35・0.668）。
+   種 1 バーミンガム：M 0.495（N1 0.565・N2 0.505）。種 1 セントポール：M 0.256（N1 0.181・N2 0.275）。
+   予言：腕 B の件数は 2〜6（ヌル腕の幅と同じ桁）・種 1 フォートウィリアムは 1/4 を割らない〈推〉。1 回目の 0.089 は hf と合わせた木でだけ出た＝今の基線は hf を含むので、この腕 B が 1 回目の合わせた木の型を直に読む。
+   読み方：腕 B でフォートウィリアムが 1/10 を割れば止める線（その線が原因と読めた件＝基線の同じ種で 0.845）。
+
+■ 形（旗 1 の規則は 1 本・(1336) と同じ）
+ Procure：旗 StateProcureAsSold 1 のとき、buyer null の buy も LastSold に積む（造幣の引き取りと同じ＝国内の買い手として扱う）。LastDemand の want は今のまま。PaySales の行は変えない。
+ 旗 0 は今と 1 ビットも同じ（分岐の条件だけ）。新しい係数 0（旗 1 本＝Coefficients.p05_port_insurance.cs の 1 行）・新しい状態 0。閾値なし。
+
+■ 計器 stproc_s（器の段・旗 0・(1336) と同じ・PriceOfBread.SimCore/Instruments/InstrumentsStProc.cs）
+ 受け口は Procure の buyer null の 1 か所（Instruments.StProcIfOn・中で On を 1 回読む）。計器は力学の値を書かない・乱数を引かない・置き場は ConditionalWeakTable（セーブに載らない）。
+ 計器が自分で読む量：四半期の末に、その国の全ての州×全ての財の m.LastExport×m.Price の和（exportValueNow）。受け口から受け取るのは want・buy・単価。
+ 列：quarter year nationIndex nation asSoldFlag procCount wantValueQ buyValueQ settleTickMatchFlag settleBuyValueNow exportValueNow exportValueOldRuleNow exportValueNewRuleNow stateShareOldRuleNow
+ 試験：PriceOfBread.Tests/StateProcureLedgerTests.cs（T1〜T5・7 件）。ident の宣言：--added-tables stproc_s・--tests-delta 7（3199→3206）。
+ Instruments.cs の登録の行：:1981（StProcTable・SatNeedsTable の次）・:2038（StProcClose・SatNeedsClose の次）の 2 行だけ。
+
+■ v への答え（反証役 v〈中〉の指摘）
+ v1 世界の側の〈旗の側の規則と今の値の食い違い 0〉（paper_sp.py の R2）は恒真（計器が旗を見て式を選ぶ）＝効きの根拠にしない。効きは単体の試験 T1・T2・T5 だけで示す。R2 は計器の配線の確かめとして記録に置くだけ。
+ v2 popjump の件数は表（popjump1017.py の出力の行）で数え直して書く（腕 B と基準と N1 を同じ台本で＝read_sp.sh・pre_base.sh）。文の要約から数を写さない。
+ v3 同じ盤面の比べ（compare_sp.py）は、腕 Z の生（旗 0 の器の木・計器つき 10 種＝ident の段 2 の生）と腕 B の生の同じ四半期・同じ種で取る（基準の keep_1355 は stproc_s を持たない）。
+
+■ 門（作者 2026-11-16 の決まり①だけ）
+ G0 止める線（この回の形をそのまま写す・腕 B の生で読む）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる・㊳ 政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期もヌル腕と並べる）・1e10 倍以上・空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線 keep_1355/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+   台本：scripts/instruments/c143sp/read_sp.sh＝基準とヌル腕は pre_base.sh で同じ台本で数え直す（⑰）。
+ G1 単体の機構の試験（盤面を試験の中で置く）：T1〜T5（(1336) と同じ）。
+   T1 旗 1：国家が want を買うと LastExport は変わらず、LastSold が buy だけ増える。
+   T2 旗 1：Procure の後の MarketFlow.StepDay の値段が、同じ盤面で LastDemand に want を 1 回足して在庫を buy だけ減らした対照とビットで同じ（旗 0 なら違う）。
+   T3 旗 0 と 1：Procure の後に GoodsBalance が緑。
+   T4 buyer ありは旗に依らず LastSold と LastExport が同じ。
+   T5 計器 stproc_s の行（旗 0 と 1）：buyValueQ＝試験が足した代金の和・旧−新＝settleBuyValueNow・exportValueNow＝試験が自分で数えた Σ LastExport×Price。
+ H1 史実の桁の線（錨）：イギリスの石炭の値段（nationgood_s の priceMeanGold）の 1913 年÷1790 年。史実の錨＝1〈推〉。門＝全ての種で [0.1, 10]。英が 1913 年に居ない種は判定しない（名乗る）。軍需（帆船・汽船・缶詰）・キニーネ・原油は系列が無い＝錨を置かない（★(1321)）。
+   1 回目 (1336) の腕 B は赤 0/10。紙の台本の値（m1355 の生・旗 0）は下の〈紙の台本の出力〉。
+ 〈狙いどおり働いた〉は G1 の T1・T2・T5 で示す。H1 は〈壊さない〉門＝旗 0 でも緑（判別の門ではない）。
+ 計算量：+0.0〜0.1 秒〈推〉（旗の分岐 1 つ・計器は INS=1 の時だけ）。2 秒以下＝1 本の腕で門にしない（合流の木の累計で読む・★(694)）。上限 248.5 秒・基線 m1355 M 231.5 秒（余り約 17 秒）。
+
+■ 突然変異ごとの門の赤（㉚・(1336) と同じ・使い捨ての木で mut_sp.sh・出力 measurements/m1357_20261125/mut/）
+ μ0 旗を読まない → T1 赤・T2 赤。μ1 旗 1 の枝も LastExport へ → T1 赤・T2 赤。μ2 両方に積む → T1・T2・T3 赤。μ3 buyer ありも旗 1 で LastExport へ → T4 赤。μ4 計器が Tick の変わり目で決済の月の値打ちを 0 に戻さない → T5 赤。μ5 計器の新の規則の式の符号を逆に → T5 赤。μ6 MilitaryTests の書き換えを外す（旗 1 のまま LastExport）→ MilitaryTests の侵攻の物資の試験が赤。
+
+■ ㉘ 走査の番人の点検（腕の前・この木の grep）
+ 工業化度の読み手の許可表：触らない。`new MoneyStock(` の件数：SimCore で 64（変えない）。
+ route_anchors.tsv:7 の鍵の行＝Colonial.cs の Procure の呼び（変えない）・Procure の中の PaySales の行も変えない。
+ WriterRatchetTests の宣言の表：LastSold・LastExport・InternationalMarket の書き手の行は無い（:120・:132 は注）＝変わる件数 0 の予言（㉑）。
+ OnDoubleReadScanTests：Procure は Instruments.On を読まない（受け口の中で 1 回）＝表の行は変わらない。
+ DormantIdentityTests.DormantZeroFields に StateProcureAsSold を器で 1 行（点火で外す）。
+ 台本：scan_sp.sh（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・TechLevelRemovalTests・OnDoubleReadScanTests）。
+
+■ ㉜ 旗 1 の木の絞った試験（腕 B の前）
+ narrow_sp.sh（差分で変える名を Tests/ で grep して当たったクラス＋㉘ の束＋StateProcureLedgerTests・MilitaryTests・TradeClearingTests）＋savetest・leakhunt（赤かは trx で見る）。フルスイートは腕 B の後に腕 B のコミットの木で 1 回（Category!=FullLength と =FullLength を分け、合計を --list-tests と突き合わせる）。
+
+■ 記録（採否に使わない）
+ 国家の購入の量と、それが LastExport に占めていた割合（腕 Z の生 stproc_s の R1・史実より約 2 桁小さい恐れ＝v2・前からある物）・燃料と装備の値段（compare_sp.py）・英の不履行（ukdef975）・gdp_zero10・開幕の 1000 倍以上（plvl_seeds）・NG（ng.sh・基準 ng1355・出力フォルダは D:/… の形）・nullgate.py・小国の旧の二重（0.9 超の行の数＝stproc_s の stateShareOldRuleNow が 0.9 を超える行の数）・fw_sp.py の件数・home_break。
+
+■ 〈周辺の点検〉（読むだけ・この線では直さない）
+ LastExport と LastSold を読む生産の決定の側（grep の一覧を measurements/m1357_20261125/pre/periph_sp.txt に置く）・造幣と軍需の国家の購入の道。
+
+■ 腕
+ 腕 Z：器の木（旗 0）で ident 段 2（scripts/instruments/c143sp/identz.sh＝ident.sh run c143spz --tree D:/PoB_work/wt_c143sp --work D:/PoB_work/ident_c143sp --stage2 --added-tables stproc_s --tests-delta 7）。走っている間はこの worktree にコミットしない（㉙）。
+ 腕 B：旗 1 の木で INS=1 bash scripts/instruments/batch.sh run c143spB 10（表を絞る＝nation_s・stock_s・wars_s・casualty_s・region_s・migration_s・pxmonth_s・scalars_s・fiscal_s・stproc_s・goods_s・pxgoods_s・nationgood_s）。種 11〜20 は線では回さない。
+ 単独の S11（a11 の表＋stproc_s・種 11〜20）：D: に 35＋18GB がある時だけ。無ければ合流へ申し送る。1 回目は合わせた木の空洞化で落ちた＝なるべく回す。
+ 形の変え直しは 1 回だけ（今回の線で使えば次は無い）。落ちたら採らずに止める（同じ腕で物差しを替えない）。
+
+■ 紙の台本の出力（m1355 の生・旗 0・腕の前）
+ paper_sp.py keep_1355/base：
+   H1 赤の種 0/10 比の最小 1.13 最大 4.64
+   R1 stproc_s が無い（器より前の生）＝記録の量は腕 Z の生で数える
+ paper_sp.py keep_1355/n1：
+   H1 赤の種 0/10 比の最小 1.36 最大 3.33
+   R1 stproc_s が無い（器より前の生）＝記録の量は腕 Z の生で数える
+ paper_sp.py keep_1355/n2：
+   H1 赤の種 0/10 比の最小 1.57 最大 4.48
+   R1 stproc_s が無い（器より前の生）＝記録の量は腕 Z の生で数える
+ paper_sp.py keep_1355/a11：
+   H1 赤の種 0/10 比の最小 1.39 最大 5.76
+   R1 stproc_s が無い（器より前の生）＝記録の量は腕 Z の生で数える
+ 止める線の数え直し（pre_base.sh・旗 0 の基準で台本が緑か＝★(1254)）：M・N1・N2 とも pxmonth の 3 か月比の最大 1.11・nation_s の価格水準の四半期比 100 倍以上 0・1e10 倍以上 0。空洞化 1/10 未満 M 0（1/4 未満 3）。gdp_zero10 M 0。popjump（表の行で数えた）：M 行 3・件 2／N1 行 9・件 5。英の不履行 M 2/10。
+ 旗 0 で門が落ちることの確かめ：G1 の T1・T2・T5 の旗 1 の側は旗 0 の盤面で赤（(1336) の 7454bb7fe で確かめた・この線でも μ0 で確かめる）。H1 は旗 0 で緑＝判別の門ではない（名乗る）。
+
+■ 周辺の点検の一覧（periph_sp.txt・SimCore の LastExport・LastSold の読み書き 31 行・計器を除く）
+ 生産の決定の側：EconomyStep.cs:115・:137（農の労働の LastSold）・:2454・:2473（unsold＝1−LastSold÷LastProduced）・MarketFlow.cs:165（値段の需要の側＝LastExport）・Simulation.cs:2141（主食の純輸入＝PrevImport−PrevExport・EconomyStep.cs:799 で LastExport を写す）・SelfPlay.cs:43〜:44（energy＝石炭と原油の LastSold）。読むだけ・直さない。
+
+■ 追記 1（2026-11-25・腕 B の後に書いた＝結果の後の追記と名乗る・門と予言は変えない）
+ 腕 Z：ident の段 2（全表 約 30GB）は、再開の時点の D: の空き 37.2GB（自分の suite の build を消して 38.9GB）で〈35GB＋量〉を満たせない。段 1 の表（ident.cfg の SMALL）＋stproc_s・nationgood_s だけを書かせる近似（scripts/instruments/c143sp/identz_s1.sh・約 3.5GB・比べは identz_cmp.py）で回し、〈近似〉と名乗る。全表の恒等は合流の腕 Z に申し送る。
+ 単独の S11（a11 の 82 表＋stproc_s）：〈35＋18GB〉が無い＝回さず合流へ申し送る。
+ 順：前の起動が、腕 B（旗 1 の木＝枝 c143sp_b・bcf7ca616）を腕 Z より先に回した（器の木 30f4e1d8d の枝 c143sp は ident のためにコミットせず置いた）。腕 B の門の読みは腕 Z に依らない。v3 の同じ盤面の比べ（compare_sp.py）は、この近似の腕 Z の stproc_s で取る。

@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2d02942c-2044-4d72-a40c-41fbe5f530a2" name="dirge@DIRGE 2026-11-25 14:36:03" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-25T14:36:03.9034616+09:00" queuing="2026-11-25T14:36:03.9034617+09:00" start="2026-11-25T14:35:54.1121924+09:00" finish="2026-11-25T14:37:27.2688721+09:00" />
+  <TestSettings name="default" id="e10318ab-d54b-4edb-a98f-9afba9426fbb">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-25_14_36_03" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="4c9da4b4-c0e9-4e95-899f-af94192cd3d1" testId="03a25632-d96f-d9cc-9b7e-b739e044e8dc" testName="PriceOfBread.Tests.LaborMarketFormTests.既定の旗は2で明示と同じ軌道" computerName="DIRGE" duration="00:00:00.1222806" startTime="2026-11-25T14:36:03.7248780+09:00" endTime="2026-11-25T14:36:03.8470661+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4c9da4b4-c0e9-4e95-899f-af94192cd3d1" />
+    <UnitTestResult executionId="bed4cc3e-187e-4a11-b390-6fa1f9ce0f44" testId="23d92e73-3b79-d411-a685-7478b6fb8f54" testName="PriceOfBread.Tests.ProductionMarketTablesTests.ページの欄の並べの表は宣言と置き場が食い違わず_どの幅でも全ての欄が置かれる" computerName="DIRGE" duration="00:00:01.5852679" startTime="2026-11-25T14:36:05.2921261+09:00" endTime="2026-11-25T14:36:06.8773702+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bed4cc3e-187e-4a11-b390-6fa1f9ce0f44" />
+    <UnitTestResult executionId="0168ca72-e34c-4cf7-86aa-7fdbbaa11582" testId="f82eb3b0-1939-eca1-6330-f7192a039d68" testName="PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む" computerName="DIRGE" duration="00:00:39.6592331" startTime="2026-11-25T14:36:00.9653815+09:00" endTime="2026-11-25T14:36:40.6026022+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0168ca72-e34c-4cf7-86aa-7fdbbaa11582" />
+    <UnitTestResult executionId="dfb069f8-0d41-4464-930c-a8dcb99c16ae" testId="608d4fd7-b426-e4f9-23b9-ab05460b9b37" testName="PriceOfBread.Tests.LaborMarketFormTests.崖の撤去が2なら人力の供給は原点を通る線形で満額の値段は旧と同じ_弾力を残す" computerName="DIRGE" duration="00:00:00.0008116" startTime="2026-11-25T14:36:03.8776832+09:00" endTime="2026-11-25T14:36:03.8784061+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dfb069f8-0d41-4464-930c-a8dcb99c16ae" />
+    <UnitTestResult executionId="47df9c51-80cf-4909-bffd-5618358c7037" testId="179cdec2-ecd8-96b8-0251-10d2f1ccad12" testName="PriceOfBread.Tests.ProductionDiagTests3.診断は世界を1ビットも動かさない" computerName="DIRGE" duration="00:00:00.8106473" startTime="2026-11-25T14:37:17.6696633+09:00" endTime="2026-11-25T14:37:18.4804882+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="47df9c51-80cf-4909-bffd-5618358c7037" />
+    <UnitTestResult executionId="a9cecaf2-7553-4f30-8eb9-6d8780a4dce2" testId="9d02fafd-65e5-b563-7c55-a9e12a899e16" testName="PriceOfBread.Tests.LaborMarketFormTests.世界の崖の撤去が2でも労働の値段は自己費用の下を通り_保存則と有限性は保たれる" computerName="DIRGE" duration="00:00:00.1494927" startTime="2026-11-25T14:36:09.8463675+09:00" endTime="2026-11-25T14:36:09.9959012+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a9cecaf2-7553-4f30-8eb9-6d8780a4dce2" />
+    <UnitTestResult executionId="f1c2ddb1-13e2-465b-86f0-54025812165d" testId="8075a5cc-19c6-0516-d148-7d629b4a8cc8" testName="PriceOfBread.Tests.LaborMarketFormTests.軸は方針の複写_検証_文言_段の表_議会_要求_PlayHarness_すべてに載る" computerName="DIRGE" duration="00:00:00.1245826" startTime="2026-11-25T14:36:03.8884232+09:00" endTime="2026-11-25T14:36:04.0073157+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f1c2ddb1-13e2-465b-86f0-54025812165d" />
+    <UnitTestResult executionId="02874c47-1caf-4e3a-b83a-884329f2853a" testId="f8e382e1-d4a5-be29-a8d4-b70b82b11a15" testName="PriceOfBread.Tests.ProductionDiagTests3.誰が買ったかは予算の差で階級に偏る" computerName="DIRGE" duration="00:00:00.0013514" startTime="2026-11-25T14:37:17.6686927+09:00" endTime="2026-11-25T14:37:17.6695516+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="02874c47-1caf-4e3a-b83a-884329f2853a" />
+    <UnitTestResult executionId="a367ba7c-d44d-481e-9895-b00006268d12" testId="6ddda5f8-8bc3-fbf3-c7a1-ce335c8bc27a" testName="PriceOfBread.Tests.ProductionDiagTests4.生産タブの専売のチェックはエンジンの真値と往復する" computerName="DIRGE" duration="00:00:07.9401870" startTime="2026-11-25T14:36:50.8862372+09:00" endTime="2026-11-25T14:36:58.8260083+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a367ba7c-d44d-481e-9895-b00006268d12" />
+    <UnitTestResult executionId="531dc915-36ed-4071-a243-6865be33635c" testId="d6686a54-35c7-6f24-1e89-d5f134e788ea" testName="PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は教育と医療の役務の枝に触らない" computerName="DIRGE" duration="00:00:00.0248551" startTime="2026-11-25T14:36:03.6406511+09:00" endTime="2026-11-25T14:36:03.6556769+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="531dc915-36ed-4071-a243-6865be33635c" />
+    <UnitTestResult executionId="af7fc110-35cc-45b7-add6-96d7a22b6206" testId="e10fafb0-d8d6-6d45-3380-378521f79203" testName="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する" computerName="DIRGE" duration="00:00:00.0450475" startTime="2026-11-25T14:37:18.4807650+09:00" endTime="2026-11-25T14:37:18.5259030+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="af7fc110-35cc-45b7-add6-96d7a22b6206" />
+    <UnitTestResult executionId="cfb69ddd-6979-421b-a12f-e63fc772f2a8" testId="fdc12099-2b82-e8ba-1075-447520d3914b" testName="PriceOfBread.Tests.ProductionMarketTablesTests.労働の表の供給は上限と同じ集合で数える_人力の上限を超えない" computerName="DIRGE" duration="00:00:04.2459077" startTime="2026-11-25T14:36:00.9672483+09:00" endTime="2026-11-25T14:36:05.1894387+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cfb69ddd-6979-421b-a12f-e63fc772f2a8" />
+    <UnitTestResult executionId="571c8adb-41fd-446d-a548-49222d866a22" testId="1e759ac1-525b-17b4-bbb9-d86c822e3cdf" testName="PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない" computerName="DIRGE" duration="00:00:00.0295965" startTime="2026-11-25T14:36:03.6951502+09:00" endTime="2026-11-25T14:36:03.7246462+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="571c8adb-41fd-446d-a548-49222d866a22" />
+    <UnitTestResult executionId="79195ab9-c330-4e05-bbe5-fd97ba659c75" testId="a2b5c56b-1519-15a2-06f7-1e57efcac9e3" testName="PriceOfBread.Tests.LaborMarketFormTests.崖の撤去のゲートが0なら採算の率は旧の式とビットで一致する" computerName="DIRGE" duration="00:00:00.0005488" startTime="2026-11-25T14:36:09.8459299+09:00" endTime="2026-11-25T14:36:09.8462478+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="79195ab9-c330-4e05-bbe5-fd97ba659c75" />
+    <UnitTestResult executionId="2283e0f2-9d2b-4139-b194-4c3a4dc938e2" testId="0b123ad8-b8d2-8050-11a8-b1f123eaf493" testName="PriceOfBread.Tests.ProductionMarketTablesTests.財の表は休止でない財だけ_工場生産の群が先_採取の群が後_群の中は財の番号順" computerName="DIRGE" duration="00:00:00.0380028" startTime="2026-11-25T14:36:06.8901855+09:00" endTime="2026-11-25T14:36:06.9280711+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2283e0f2-9d2b-4139-b194-4c3a4dc938e2" />
+    <UnitTestResult executionId="acfd734e-26b7-44f8-a443-46314a3d9658" testId="a5e57fb9-2c10-fbf9-8684-8ffc3459316d" testName="PriceOfBread.Tests.LaborMarketFormTests.床は籠と担い手の人数と能力から出て_売れた量と参照価格を読まない" computerName="DIRGE" duration="00:00:00.0283554" startTime="2026-11-25T14:36:03.8472875+09:00" endTime="2026-11-25T14:36:03.8755366+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="acfd734e-26b7-44f8-a443-46314a3d9658" />
+    <UnitTestResult executionId="d5bbb754-5a7a-471f-af4a-a26a23229a9c" testId="f5a30d56-cf68-dd3a-e366-67835d55c431" testName="PriceOfBread.Tests.ProductionMarketTablesTests.労働の表は3つの労働財を持ち_床は最低賃金法が無ければ空_法があれば立つ" computerName="DIRGE" duration="00:00:00.0042722" startTime="2026-11-25T14:36:06.8858002+09:00" endTime="2026-11-25T14:36:06.8899269+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d5bbb754-5a7a-471f-af4a-a26a23229a9c" />
+    <UnitTestResult executionId="0e3c8a9d-62d9-4d82-bb1a-833f045fdf17" testId="1c294534-3017-1aa3-81a8-aeafbf0834f9" testName="PriceOfBread.Tests.ProductionMarketTablesTests.設備の表は旗が正のとき行を持ち_割合の和が1_旗が0なら空" computerName="DIRGE" duration="00:00:00.0425108" startTime="2026-11-25T14:36:05.1898232+09:00" endTime="2026-11-25T14:36:05.2320738+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0e3c8a9d-62d9-4d82-bb1a-833f045fdf17" />
+    <UnitTestResult executionId="77aa1c1e-1235-4015-a2d7-19e34b86cb4e" testId="65ee62c0-ee7a-2631-4f23-e73d0bac3b03" testName="PriceOfBread.Tests.ProductionDiagTests.価格の分解は買い手の楔をエンジンと同じ式で拾う" computerName="DIRGE" duration="00:00:08.5861514" startTime="2026-11-25T14:37:18.5614152+09:00" endTime="2026-11-25T14:37:27.1475650+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="77aa1c1e-1235-4015-a2d7-19e34b86cb4e" />
+    <UnitTestResult executionId="3a1691ab-f86d-47df-bc6d-00041963d81c" testId="01e42965-f71a-4998-c00d-d79616a1372b" testName="PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する" computerName="DIRGE" duration="00:00:00.0100998" startTime="2026-11-25T14:37:27.1842727+09:00" endTime="2026-11-25T14:37:27.1942895+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3a1691ab-f86d-47df-bc6d-00041963d81c" />
+    <UnitTestResult executionId="62144e23-1ed3-44e3-8ec8-ffa92d8e7302" testId="11caabdb-bff6-01b7-2f29-650814bc1105" testName="PriceOfBread.Tests.LaborMarketFormTests.籠の中身は段で増える_生存は食料_生活は日用品も_充足は嗜好品も_役務と住居は入れない" computerName="DIRGE" duration="00:00:00.0253258" startTime="2026-11-25T14:36:04.0075307+09:00" endTime="2026-11-25T14:36:04.0327587+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="62144e23-1ed3-44e3-8ec8-ffa92d8e7302" />
+    <UnitTestResult executionId="53810974-1f03-4290-a077-1475759426b6" testId="5d20be1d-e08c-2494-df75-13d997ffabfc" testName="PriceOfBread.Tests.LaborMarketFormTests.軸を足した世界はセーブの往復でバイト一致する" computerName="DIRGE" duration="00:00:05.4360017" startTime="2026-11-25T14:36:04.4096686+09:00" endTime="2026-11-25T14:36:09.8456485+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="53810974-1f03-4290-a077-1475759426b6" />
+    <UnitTestResult executionId="e31132b0-2b54-460d-a35d-402b97b9da6d" testId="bd542d2d-7c5c-ce23-27a4-70f6907a6db6" testName="PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない" computerName="DIRGE" duration="00:00:18.7996840" startTime="2026-11-25T14:36:58.8683022+09:00" endTime="2026-11-25T14:37:17.6681485+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e31132b0-2b54-460d-a35d-402b97b9da6d" />
+    <UnitTestResult executionId="c9040fab-74b1-4280-86ad-806a1fc7e77e" testId="606796d0-0f09-6bbd-09f3-127eeb11460d" testName="PriceOfBread.Tests.ProductionDiagTests4.価格の分解は同業組合の上乗せをエンジンと同じ1本から拾う" computerName="DIRGE" duration="00:00:00.0378065" startTime="2026-11-25T14:36:58.8272537+09:00" endTime="2026-11-25T14:36:58.8651101+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c9040fab-74b1-4280-86ad-806a1fc7e77e" />
+    <UnitTestResult executionId="0a2304f4-e74c-4725-82e6-10feef696c40" testId="866cf748-6091-5795-b6ed-23e4b908f528" testName="PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する" computerName="DIRGE" duration="00:00:00.0364924" startTime="2026-11-25T14:37:27.1479222+09:00" endTime="2026-11-25T14:37:27.1841534+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0a2304f4-e74c-4725-82e6-10feef696c40" />
+    <UnitTestResult executionId="b9ea86d4-e75b-4a72-a688-25c0e0c5ce1f" testId="11348910-a2ed-1f5c-740c-cccc1ba332d4" testName="PriceOfBread.Tests.ProductionDiagTests.生産コストの人件費は労働の投入だけを集める" computerName="DIRGE" duration="00:00:00.0009767" startTime="2026-11-25T14:37:18.5602895+09:00" endTime="2026-11-25T14:37:18.5612976+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b9ea86d4-e75b-4a72-a688-25c0e0c5ce1f" />
+    <UnitTestResult executionId="506ef407-4c16-4d43-93a8-a0bb8c7a66d1" testId="d1ff8694-0a48-a8db-d5a4-07cfa5517f73" testName="PriceOfBread.Tests.ProductionDiagTests4.独占レントの度合は物理側の1本から価格分解と表示が読む" computerName="DIRGE" duration="00:00:00.0011346" startTime="2026-11-25T14:36:58.8263947+09:00" endTime="2026-11-25T14:36:58.8271811+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="506ef407-4c16-4d43-93a8-a0bb8c7a66d1" />
+    <UnitTestResult executionId="4467f11a-595d-493c-a615-40bc62e92f76" testId="1056e7ee-d6eb-2b23-d4ab-ac60177f9ca0" testName="PriceOfBread.Tests.LaborMarketFormTests.籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る" computerName="DIRGE" duration="00:00:00.0392075" startTime="2026-11-25T14:36:03.6566483+09:00" endTime="2026-11-25T14:36:03.6949391+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4467f11a-595d-493c-a615-40bc62e92f76" />
+    <UnitTestResult executionId="6c4060e5-0a9e-448a-aa1d-2265f76ed0d4" testId="bd7633c0-b5a0-9ca3-d07f-4028abfe7041" testName="PriceOfBread.Tests.LaborMarketFormTests.法の段は4つ_なしは何にも効かず_生存以上は工場労働と農業労働に効き技師は効かない" computerName="DIRGE" duration="00:00:00.0041517" startTime="2026-11-25T14:36:03.8785383+09:00" endTime="2026-11-25T14:36:03.8826159+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c4060e5-0a9e-448a-aa1d-2265f76ed0d4" />
+    <UnitTestResult executionId="38c4598f-5b4c-4861-a815-b2a0a8c27f0e" testId="35197c86-f7db-92fc-fcbc-692097b61263" testName="PriceOfBread.Tests.ProductionDiagTests4.先頭の個体を渡す分解は財で引く分解と同じ" computerName="DIRGE" duration="00:00:10.2829326" startTime="2026-11-25T14:36:40.6030130+09:00" endTime="2026-11-25T14:36:50.8856960+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="38c4598f-5b4c-4861-a815-b2a0a8c27f0e" />
+    <UnitTestResult executionId="c5ef9769-340a-41d2-8bde-784a7c19cb6b" testId="6d47c2e7-d428-431c-8f36-a9e8e0d5b0ea" testName="PriceOfBread.Tests.ProductionMarketTablesTests.世界価格比の色は高騰が赤_下落が青で_濃さは100パーセントからの離れに比例する" computerName="DIRGE" duration="00:00:00.0001665" startTime="2026-11-25T14:36:06.8855714+09:00" endTime="2026-11-25T14:36:06.8856420+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c5ef9769-340a-41d2-8bde-784a7c19cb6b" />
+    <UnitTestResult executionId="5fda3cfe-e6bd-4f57-a320-31cd6cd1bbe0" testId="c0a91dea-ce92-9691-e782-881b3ee48fba" testName="PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない" computerName="DIRGE" duration="00:00:00.3765785" startTime="2026-11-25T14:36:04.0329670+09:00" endTime="2026-11-25T14:36:04.4094636+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5fda3cfe-e6bd-4f57-a320-31cd6cd1bbe0" />
+    <UnitTestResult executionId="a22b2847-5876-4680-903c-5e1f86f9c4e9" testId="bcc89868-2ff9-3188-a2f7-cab0ab804311" testName="PriceOfBread.Tests.ProductionMarketTablesTests.財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_世界価格比は国内と世界の比" computerName="DIRGE" duration="00:00:00.0078243" startTime="2026-11-25T14:36:06.8776805+09:00" endTime="2026-11-25T14:36:06.8853067+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a22b2847-5876-4680-903c-5e1f86f9c4e9" />
+    <UnitTestResult executionId="dc7d9be4-64b4-49e5-b39e-62182efa074c" testId="05a9cd0e-7177-c113-032c-2276a5b39767" testName="PriceOfBread.Tests.LaborMarketFormTests.ゲートが開けば大衆が賛成し資本が反対し_他の法の前提を持たず段は1つずつ" computerName="DIRGE" duration="00:00:00.0019464" startTime="2026-11-25T14:36:03.8757368+09:00" endTime="2026-11-25T14:36:03.8775430+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dc7d9be4-64b4-49e5-b39e-62182efa074c" />
+    <UnitTestResult executionId="cb6a9d74-f2e1-4a2e-847d-f0c74bfe2130" testId="ddc761a1-6004-ecaa-f642-becfdc0ecb77" testName="PriceOfBread.Tests.LaborMarketFormTests.日次の価格の歩は法の床を下から効かせ_Noneと対象外の財は旧と同じ" computerName="DIRGE" duration="00:00:02.6884476" startTime="2026-11-25T14:36:00.9673051+09:00" endTime="2026-11-25T14:36:03.6303802+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cb6a9d74-f2e1-4a2e-847d-f0c74bfe2130" />
+    <UnitTestResult executionId="ce620a62-86ac-40fb-8290-f65da18fbc6d" testId="a7541ed3-031a-7725-55a8-e30ebd8980b9" testName="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は労働不足を素材不足と混ぜない" computerName="DIRGE" duration="00:00:00.0340885" startTime="2026-11-25T14:37:18.5260826+09:00" endTime="2026-11-25T14:37:18.5601128+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ce620a62-86ac-40fb-8290-f65da18fbc6d" />
+    <UnitTestResult executionId="c0154210-479a-43b3-8f05-46b3a91aa5a8" testId="0d422065-a9a9-6c0b-32dc-1db0ce27bebd" testName="PriceOfBread.Tests.ProductionDiagTests4.生産コストの分解は他州の生産者を所属州の機械化度で評価する" computerName="DIRGE" duration="00:00:00.0020038" startTime="2026-11-25T14:36:58.8653375+09:00" endTime="2026-11-25T14:36:58.8673746+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c0154210-479a-43b3-8f05-46b3a91aa5a8" />
+    <UnitTestResult executionId="ccfe0a03-06f3-4336-a3da-df44db31342d" testId="7c4f0fa6-2820-239e-14ff-6583effbb055" testName="PriceOfBread.Tests.ProductionMarketTablesTests.財の集計は市場の値の全州和と一致し_工場生産と採取の和が生産量" computerName="DIRGE" duration="00:00:00.0152735" startTime="2026-11-25T14:36:06.9283717+09:00" endTime="2026-11-25T14:36:06.9434827+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ccfe0a03-06f3-4336-a3da-df44db31342d" />
+    <UnitTestResult executionId="6fa8e70c-1051-4f36-b9e3-59b4d1f88ba5" testId="90de64b1-b67a-aacf-dcb1-23def8bacd2d" testName="PriceOfBread.Tests.ProductionMarketTablesTests.新しい表は行の鍵が重ならず_列の名前は規則に合い_数の列は単位を持つ" computerName="DIRGE" duration="00:00:00.0597767" startTime="2026-11-25T14:36:05.2323314+09:00" endTime="2026-11-25T14:36:05.2919109+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6fa8e70c-1051-4f36-b9e3-59b4d1f88ba5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.崖の撤去のゲートが0なら採算の率は旧の式とビットで一致する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="a2b5c56b-1519-15a2-06f7-1e57efcac9e3">
+      <Execution id="79195ab9-c330-4e05-bbe5-fd97ba659c75" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="崖の撤去のゲートが0なら採算の率は旧の式とビットで一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests3.popの購入記帳は内訳の和が合計に一致し販売量を超えない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="bd542d2d-7c5c-ce23-27a4-70f6907a6db6">
+      <Execution id="e31132b0-2b54-460d-a35d-402b97b9da6d" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests3" name="popの購入記帳は内訳の和が合計に一致し販売量を超えない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.法の段は4つ_なしは何にも効かず_生存以上は工場労働と農業労働に効き技師は効かない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="bd7633c0-b5a0-9ca3-d07f-4028abfe7041">
+      <Execution id="6c4060e5-0a9e-448a-aa1d-2265f76ed0d4" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="法の段は4つ_なしは何にも効かず_生存以上は工場労働と農業労働に効き技師は効かない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は掛け合わせると稼働率に一致する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="e10fafb0-d8d6-6d45-3380-378521f79203">
+      <Execution id="af7fc110-35cc-45b7-add6-96d7a22b6206" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests2" name="稼働率の内訳は掛け合わせると稼働率に一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.レシピごとの分解は恒等式を満たし従来の分解を含む" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="f82eb3b0-1939-eca1-6330-f7192a039d68">
+      <Execution id="0168ca72-e34c-4cf7-86aa-7fdbbaa11582" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="レシピごとの分解は恒等式を満たし従来の分解を含む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.ページの欄の並べの表は宣言と置き場が食い違わず_どの幅でも全ての欄が置かれる" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="23d92e73-3b79-d411-a685-7478b6fb8f54">
+      <Execution id="bed4cc3e-187e-4a11-b390-6fa1f9ce0f44" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="ページの欄の並べの表は宣言と置き場が食い違わず_どの幅でも全ての欄が置かれる" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests2.稼働率の内訳は労働不足を素材不足と混ぜない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="a7541ed3-031a-7725-55a8-e30ebd8980b9">
+      <Execution id="ce620a62-86ac-40fb-8290-f65da18fbc6d" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests2" name="稼働率の内訳は労働不足を素材不足と混ぜない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.軸は方針の複写_検証_文言_段の表_議会_要求_PlayHarness_すべてに載る" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="8075a5cc-19c6-0516-d148-7d629b4a8cc8">
+      <Execution id="f1c2ddb1-13e2-465b-86f0-54025812165d" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="軸は方針の複写_検証_文言_段の表_議会_要求_PlayHarness_すべてに載る" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.価格の分解は積み上げが市場価格と買い手価格に一致する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="01e42965-f71a-4998-c00d-d79616a1372b">
+      <Execution id="3a1691ab-f86d-47df-bc6d-00041963d81c" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="価格の分解は積み上げが市場価格と買い手価格に一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.生産コストの内訳は積み上げが限界費用に一致する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="866cf748-6091-5795-b6ed-23e4b908f528">
+      <Execution id="0a2304f4-e74c-4725-82e6-10feef696c40" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="生産コストの内訳は積み上げが限界費用に一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.崖の撤去が2なら人力の供給は原点を通る線形で満額の値段は旧と同じ_弾力を残す" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="608d4fd7-b426-e4f9-23b9-ab05460b9b37">
+      <Execution id="dfb069f8-0d41-4464-930c-a8dcb99c16ae" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="崖の撤去が2なら人力の供給は原点を通る線形で満額の値段は旧と同じ_弾力を残す" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.ゲートが開けば大衆が賛成し資本が反対し_他の法の前提を持たず段は1つずつ" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="05a9cd0e-7177-c113-032c-2276a5b39767">
+      <Execution id="dc7d9be4-64b4-49e5-b39e-62182efa074c" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="ゲートが開けば大衆が賛成し資本が反対し_他の法の前提を持たず段は1つずつ" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.新しい表は行の鍵が重ならず_列の名前は規則に合い_数の列は単位を持つ" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="90de64b1-b67a-aacf-dcb1-23def8bacd2d">
+      <Execution id="6fa8e70c-1051-4f36-b9e3-59b4d1f88ba5" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="新しい表は行の鍵が重ならず_列の名前は規則に合い_数の列は単位を持つ" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="1e759ac1-525b-17b4-bbb9-d86c822e3cdf">
+      <Execution id="571c8adb-41fd-446d-a548-49222d866a22" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="帯の床の撤去は需給が釣り合う帯の内側の値段を歪めない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.籠の中身は段で増える_生存は食料_生活は日用品も_充足は嗜好品も_役務と住居は入れない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="11caabdb-bff6-01b7-2f29-650814bc1105">
+      <Execution id="62144e23-1ed3-44e3-8ec8-ffa92d8e7302" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="籠の中身は段で増える_生存は食料_生活は日用品も_充足は嗜好品も_役務と住居は入れない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.価格の分解は同業組合の上乗せをエンジンと同じ1本から拾う" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="606796d0-0f09-6bbd-09f3-127eeb11460d">
+      <Execution id="c9040fab-74b1-4280-86ad-806a1fc7e77e" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="価格の分解は同業組合の上乗せをエンジンと同じ1本から拾う" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.先頭の個体を渡す分解は財で引く分解と同じ" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="35197c86-f7db-92fc-fcbc-692097b61263">
+      <Execution id="38c4598f-5b4c-4861-a815-b2a0a8c27f0e" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="先頭の個体を渡す分解は財で引く分解と同じ" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.設備の表は旗が正のとき行を持ち_割合の和が1_旗が0なら空" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="1c294534-3017-1aa3-81a8-aeafbf0834f9">
+      <Execution id="0e3c8a9d-62d9-4d82-bb1a-833f045fdf17" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="設備の表は旗が正のとき行を持ち_割合の和が1_旗が0なら空" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は教育と医療の役務の枝に触らない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="d6686a54-35c7-6f24-1e89-d5f134e788ea">
+      <Execution id="531dc915-36ed-4071-a243-6865be33635c" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="帯の床の撤去は教育と医療の役務の枝に触らない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_世界価格比は国内と世界の比" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="bcc89868-2ff9-3188-a2f7-cab0ab804311">
+      <Execution id="a22b2847-5876-4680-903c-5e1f86f9c4e9" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="財の値段の表は役務を持たず_需要か供給の立つ財だけ_層の順に並び_世界価格比は国内と世界の比" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.生産コストの人件費は労働の投入だけを集める" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="11348910-a2ed-1f5c-740c-cccc1ba332d4">
+      <Execution id="b9ea86d4-e75b-4a72-a688-25c0e0c5ce1f" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="生産コストの人件費は労働の投入だけを集める" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.労働の表の供給は上限と同じ集合で数える_人力の上限を超えない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="fdc12099-2b82-e8ba-1075-447520d3914b">
+      <Execution id="cfb69ddd-6979-421b-a12f-e63fc772f2a8" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="労働の表の供給は上限と同じ集合で数える_人力の上限を超えない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.床は籠と担い手の人数と能力から出て_売れた量と参照価格を読まない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="a5e57fb9-2c10-fbf9-8684-8ffc3459316d">
+      <Execution id="acfd734e-26b7-44f8-a443-46314a3d9658" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="床は籠と担い手の人数と能力から出て_売れた量と参照価格を読まない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="1056e7ee-d6eb-2b23-d4ab-ac60177f9ca0">
+      <Execution id="4467f11a-595d-493c-a615-40bc62e92f76" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="籠の値は手で組んだ財と値段の和に一致し除かれる財は数えない_床は人数と能力から出る" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.生産タブの専売のチェックはエンジンの真値と往復する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="6ddda5f8-8bc3-fbf3-c7a1-ce335c8bc27a">
+      <Execution id="a367ba7c-d44d-481e-9895-b00006268d12" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="生産タブの専売のチェックはエンジンの真値と往復する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.財の表は休止でない財だけ_工場生産の群が先_採取の群が後_群の中は財の番号順" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="0b123ad8-b8d2-8050-11a8-b1f123eaf493">
+      <Execution id="2283e0f2-9d2b-4139-b194-4c3a4dc938e2" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="財の表は休止でない財だけ_工場生産の群が先_採取の群が後_群の中は財の番号順" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.軸を足した世界はセーブの往復でバイト一致する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="5d20be1d-e08c-2494-df75-13d997ffabfc">
+      <Execution id="53810974-1f03-4290-a077-1475759426b6" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="軸を足した世界はセーブの往復でバイト一致する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.生産コストの分解は他州の生産者を所属州の機械化度で評価する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="0d422065-a9a9-6c0b-32dc-1db0ce27bebd">
+      <Execution id="c0154210-479a-43b3-8f05-46b3a91aa5a8" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="生産コストの分解は他州の生産者を所属州の機械化度で評価する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests3.誰が買ったかは予算の差で階級に偏る" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="f8e382e1-d4a5-be29-a8d4-b70b82b11a15">
+      <Execution id="02874c47-1caf-4e3a-b83a-884329f2853a" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests3" name="誰が買ったかは予算の差で階級に偏る" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests3.診断は世界を1ビットも動かさない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="179cdec2-ecd8-96b8-0251-10d2f1ccad12">
+      <Execution id="47df9c51-80cf-4909-bffd-5618358c7037" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests3" name="診断は世界を1ビットも動かさない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests4.独占レントの度合は物理側の1本から価格分解と表示が読む" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="d1ff8694-0a48-a8db-d5a4-07cfa5517f73">
+      <Execution id="506ef407-4c16-4d43-93a8-a0bb8c7a66d1" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests4" name="独占レントの度合は物理側の1本から価格分解と表示が読む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.労働の表は3つの労働財を持ち_床は最低賃金法が無ければ空_法があれば立つ" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="f5a30d56-cf68-dd3a-e366-67835d55c431">
+      <Execution id="d5bbb754-5a7a-471f-af4a-a26a23229a9c" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="労働の表は3つの労働財を持ち_床は最低賃金法が無ければ空_法があれば立つ" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.既定の旗は2で明示と同じ軌道" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="03a25632-d96f-d9cc-9b7e-b739e044e8dc">
+      <Execution id="4c9da4b4-c0e9-4e95-899f-af94192cd3d1" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="既定の旗は2で明示と同じ軌道" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.財の集計は市場の値の全州和と一致し_工場生産と採取の和が生産量" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="7c4f0fa6-2820-239e-14ff-6583effbb055">
+      <Execution id="ccfe0a03-06f3-4336-a3da-df44db31342d" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="財の集計は市場の値の全州和と一致し_工場生産と採取の和が生産量" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionDiagTests.価格の分解は買い手の楔をエンジンと同じ式で拾う" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="65ee62c0-ee7a-2631-4f23-e73d0bac3b03">
+      <Execution id="77aa1c1e-1235-4015-a2d7-19e34b86cb4e" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionDiagTests" name="価格の分解は買い手の楔をエンジンと同じ式で拾う" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.ProductionMarketTablesTests.世界価格比の色は高騰が赤_下落が青で_濃さは100パーセントからの離れに比例する" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="6d47c2e7-d428-431c-8f36-a9e8e0d5b0ea">
+      <Execution id="c5ef9769-340a-41d2-8bde-784a7c19cb6b" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.ProductionMarketTablesTests" name="世界価格比の色は高騰が赤_下落が青で_濃さは100パーセントからの離れに比例する" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.日次の価格の歩は法の床を下から効かせ_Noneと対象外の財は旧と同じ" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="ddc761a1-6004-ecaa-f642-becfdc0ecb77">
+      <Execution id="cb6a9d74-f2e1-4a2e-847d-f0c74bfe2130" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="日次の価格の歩は法の床を下から効かせ_Noneと対象外の財は旧と同じ" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="c0a91dea-ce92-9691-e782-881b3ee48fba">
+      <Execution id="5fda3cfe-e6bd-4f57-a320-31cd6cd1bbe0" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="帯の床の撤去は労働3財の下側だけを外す_床の下から出発しても床で止まらない" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.LaborMarketFormTests.世界の崖の撤去が2でも労働の値段は自己費用の下を通り_保存則と有限性は保たれる" storage="d:\pob_work\c143sp_work\narrow\art\bin\priceofbread.tests.ui\release\priceofbread.tests.ui.dll" id="9d02fafd-65e5-b563-7c55-a9e12a899e16">
+      <Execution id="a9cecaf2-7553-4f30-8eb9-6d8780a4dce2" />
+      <TestMethod codeBase="D:\PoB_work\c143sp_work\narrow\art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.LaborMarketFormTests" name="世界の崖の撤去が2でも労働の値段は自己費用の下を通り_保存則と有限性は保たれる" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="03a25632-d96f-d9cc-9b7e-b739e044e8dc" executionId="4c9da4b4-c0e9-4e95-899f-af94192cd3d1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="23d92e73-3b79-d411-a685-7478b6fb8f54" executionId="bed4cc3e-187e-4a11-b390-6fa1f9ce0f44" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f82eb3b0-1939-eca1-6330-f7192a039d68" executionId="0168ca72-e34c-4cf7-86aa-7fdbbaa11582" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="608d4fd7-b426-e4f9-23b9-ab05460b9b37" executionId="dfb069f8-0d41-4464-930c-a8dcb99c16ae" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="179cdec2-ecd8-96b8-0251-10d2f1ccad12" executionId="47df9c51-80cf-4909-bffd-5618358c7037" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9d02fafd-65e5-b563-7c55-a9e12a899e16" executionId="a9cecaf2-7553-4f30-8eb9-6d8780a4dce2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8075a5cc-19c6-0516-d148-7d629b4a8cc8" executionId="f1c2ddb1-13e2-465b-86f0-54025812165d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f8e382e1-d4a5-be29-a8d4-b70b82b11a15" executionId="02874c47-1caf-4e3a-b83a-884329f2853a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6ddda5f8-8bc3-fbf3-c7a1-ce335c8bc27a" executionId="a367ba7c-d44d-481e-9895-b00006268d12" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d6686a54-35c7-6f24-1e89-d5f134e788ea" executionId="531dc915-36ed-4071-a243-6865be33635c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e10fafb0-d8d6-6d45-3380-378521f79203" executionId="af7fc110-35cc-45b7-add6-96d7a22b6206" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fdc12099-2b82-e8ba-1075-447520d3914b" executionId="cfb69ddd-6979-421b-a12f-e63fc772f2a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e759ac1-525b-17b4-bbb9-d86c822e3cdf" executionId="571c8adb-41fd-446d-a548-49222d866a22" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a2b5c56b-1519-15a2-06f7-1e57efcac9e3" executionId="79195ab9-c330-4e05-bbe5-fd97ba659c75" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0b123ad8-b8d2-8050-11a8-b1f123eaf493" executionId="2283e0f2-9d2b-4139-b194-4c3a4dc938e2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a5e57fb9-2c10-fbf9-8684-8ffc3459316d" executionId="acfd734e-26b7-44f8-a443-46314a3d9658" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f5a30d56-cf68-dd3a-e366-67835d55c431" executionId="d5bbb754-5a7a-471f-af4a-a26a23229a9c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1c294534-3017-1aa3-81a8-aeafbf0834f9" executionId="0e3c8a9d-62d9-4d82-bb1a-833f045fdf17" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="65ee62c0-ee7a-2631-4f23-e73d0bac3b03" executionId="77aa1c1e-1235-4015-a2d7-19e34b86cb4e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="01e42965-f71a-4998-c00d-d79616a1372b" executionId="3a1691ab-f86d-47df-bc6d-00041963d81c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="11caabdb-bff6-01b7-2f29-650814bc1105" executionId="62144e23-1ed3-44e3-8ec8-ffa92d8e7302" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5d20be1d-e08c-2494-df75-13d997ffabfc" executionId="53810974-1f03-4290-a077-1475759426b6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bd542d2d-7c5c-ce23-27a4-70f6907a6db6" executionId="e31132b0-2b54-460d-a35d-402b97b9da6d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="606796d0-0f09-6bbd-09f3-127eeb11460d" executionId="c9040fab-74b1-4280-86ad-806a1fc7e77e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="866cf748-6091-5795-b6ed-23e4b908f528" executionId="0a2304f4-e74c-4725-82e6-10feef696c40" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="11348910-a2ed-1f5c-740c-cccc1ba332d4" executionId="b9ea86d4-e75b-4a72-a688-25c0e0c5ce1f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d1ff8694-0a48-a8db-d5a4-07cfa5517f73" executionId="506ef407-4c16-4d43-93a8-a0bb8c7a66d1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1056e7ee-d6eb-2b23-d4ab-ac60177f9ca0" executionId="4467f11a-595d-493c-a615-40bc62e92f76" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bd7633c0-b5a0-9ca3-d07f-4028abfe7041" executionId="6c4060e5-0a9e-448a-aa1d-2265f76ed0d4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="35197c86-f7db-92fc-fcbc-692097b61263" executionId="38c4598f-5b4c-4861-a815-b2a0a8c27f0e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6d47c2e7-d428-431c-8f36-a9e8e0d5b0ea" executionId="c5ef9769-340a-41d2-8bde-784a7c19cb6b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c0a91dea-ce92-9691-e782-881b3ee48fba" executionId="5fda3cfe-e6bd-4f57-a320-31cd6cd1bbe0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bcc89868-2ff9-3188-a2f7-cab0ab804311" executionId="a22b2847-5876-4680-903c-5e1f86f9c4e9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="05a9cd0e-7177-c113-032c-2276a5b39767" executionId="dc7d9be4-64b4-49e5-b39e-62182efa074c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ddc761a1-6004-ecaa-f642-becfdc0ecb77" executionId="cb6a9d74-f2e1-4a2e-847d-f0c74bfe2130" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7541ed3-031a-7725-55a8-e30ebd8980b9" executionId="ce620a62-86ac-40fb-8290-f65da18fbc6d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0d422065-a9a9-6c0b-32dc-1db0ce27bebd" executionId="c0154210-479a-43b3-8f05-46b3a91aa5a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7c4f0fa6-2820-239e-14ff-6583effbb055" executionId="ccfe0a03-06f3-4336-a3da-df44db31342d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90de64b1-b67a-aacf-dcb1-23def8bacd2d" executionId="6fa8e70c-1051-4f36-b9e3-59b4d1f88ba5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="39" executed="39" passed="39" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.03] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:02.42]   Discovering: PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:00:02.51]   Discovered:  PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:00:02.54]   Starting:    PriceOfBread.Tests.Ui&#xD;
+[xUnit.net 00:01:28.84]   Finished:    PriceOfBread.Tests.Ui&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
