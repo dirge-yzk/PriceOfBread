@@ -1,0 +1,7 @@
+identZ start 2026-11-25 12:19:25 tree=39ca8818a Dfree=71.04GB armsfree=4
+identZ 1 回目は D: の空き不足で腕 b が落ちた（13:10・Windows のイベントログ：ディスクに十分な空き領域がありません）。出力を消して回し直す
+identZ start 2026-11-25 13:34:17 tree=39ca8818a Dfree=78.4GB armsfree=5
+identZ end 2026-11-25 14:56:19 rc=0
+identZ 2 回目（最終の木 180d731c8 で取り直し）
+identZ start 2026-11-25 15:53:55 tree=68920cf3b Dfree=37.44GB armsfree=6
+identZ end 2026-11-25 16:37:28 rc=0
